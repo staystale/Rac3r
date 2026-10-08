@@ -1,9 +1,116 @@
 # CAR SIM — live list
 
-> **New session? Read HANDOVER.md first** (state, live link, next steps, as of 2026-10-06 late; the next 10 = HANDOVER §5).
+> **New session? Read CLAUDE.md, then this file. HANDOVER.md is older session state, being folded into this file (CODE QUALITY OVERHAUL phase 9). Its original note:** (state, live link, next steps, as of 2026-10-06 late; the next 10 = HANDOVER §5).
 
 **START HERE.** Queued work in the user's own priority order, what is awaiting a playtest verdict, and what
 recently shipped. Keep this file current in the same turn as the code change — see `CLAUDE.md` §1.
+
+## CODE QUALITY OVERHAUL - HIGH PRIORITY, QUEUED
+
+Source: senior developer review of the repo (2026-10-08). Verdict: the code is very hard to review or
+maintain. Features were added on top of each other without regard for existing ones. The standards
+for fixing this are in `CLAUDE.md` section 2 (naming, structure, duplication, performance). New code
+follows them from now on. This item brings the existing code up to standard.
+
+Findings (measured 2026-10-08, `src/`):
+- Two-letter or shorter names: about 1,500 declarations (`lab.js` ~400, `render.js` ~390,
+  `aidriver.js` ~110, `highway.js` ~110, `menu.js` ~85, `main.js` ~70). Names such as `dx`, `sp`, `qx`,
+  `cu` carry no meaning.
+- Dense lines: `lab.js` has 125 lines over 160 characters, `render.js` 102, `highway.js` 47, `main.js` 48,
+  `menu.js` 48. Several lines pack 5 or more statements of maths.
+- Oversized units: `render.js` is 3,893 lines and nearly all of it is one function (`createRenderer`,
+  ~3,845 lines). `lab.js` is 3,628 lines with 89 exports, imported by 12 other files, so it acts as a
+  hidden global store. Several functions in `lab.js` run 280-350 lines.
+- Duplication: `hit`, `drive`, `step`, `reset`, `draw`, `pick`, `end` are each defined in several files.
+  There are two AI drivers (`aidriver.js` circuits, `hwrace.js` highway). Lists and tables are repeated
+  across modules.
+- Implicit globals and coupling: files rely on names defined elsewhere (`lab.js` live bindings,
+  `window.__game`, `globalThis` in `aidriver.js`, `main.js`, `audio.js`, `tune.js`).
+- Heavy per-frame work: each cone tests itself against every barrier segment and every solid each
+  frame (`cones.js`, `hitWalls`). Loose-object counts are a known phone performance problem.
+- Tests and docs: `tools/` has about 110 scripts, many with a hardcoded `C:/Users/Admin/...` path and
+  no shared harness. Docs hold history and anecdotes instead of current guidance (`TODO.md` 186 KB,
+  `ENGINE.md` 176 KB, `HANDOVER.md` 32 KB).
+
+Rules for the whole item:
+- Behaviour must not change unless a phase says so. Every phase ends with the regression tools passing
+  and the before/after numbers recorded in the commit message.
+- One phase per branch. Merge only when its acceptance checks pass. Commit per file or per extraction,
+  so any step can be reverted.
+- Hand over to the owner for a phone test after each phase that touches visible behaviour (phases 3,
+  4, 5, 6).
+- Ask the owner before deleting a feature. Duplicate code is merged. Features are not cut.
+
+Phases:
+
+- [ ] **0. Baseline.** Before any change, record: lines per file, count of names of 2 characters or
+  fewer, count of lines over 100 characters, count of functions over 80 lines, median and 95th
+  percentile frame time on `framecheck` and `profile` for 3 levels, and the output of the existing
+  regression tools (`aifieldsuite`, `pacesuite`, `lapdriver` x 8 cars, `barriercheck`, `solidcheck`,
+  `propcheck`, `weavecheck`, `uicheck`, `menucheck`). Store the numbers in `tools/baseline.md`.
+  Done when the baseline is committed and rerunnable with one command (`node tools/runall.mjs`).
+- [ ] **1. Tooling.** Add `package.json` (scripts only, no runtime dependencies). Add ESLint with rules
+  for `id-length` (minimum 3, exceptions `x`, `y`, `z`, `i`, `j`), `no-undef` (catches hidden globals),
+  `no-shadow`, `max-lines` (800), `max-lines-per-function` (80), `max-len` (100), `complexity`,
+  `no-unused-vars`, and `no-restricted-globals`. Add Prettier. Add a git pre-commit check. Existing
+  violations are recorded in a baseline file so that new violations fail the check and old ones are
+  burned down. Done when `npm run lint` runs and fails on a new violation.
+- [ ] **2. Shared foundation.** Create `src/core/` with one `math.js` (clamp, lerp, hash, vector
+  helpers, angle wrap), one `constants.js` for shared units and limits, and an explicit `GameContext`
+  object (level, vehicle list, clock, settings) that is passed in. Find every repeated helper and
+  repeated list with a search, replace them with imports, and delete the copies. Done when no helper
+  is defined twice (checked by a script that lists duplicate function names) and no module reads a
+  global it did not import.
+- [ ] **3. Split `lab.js`** into modules with single jobs: level data (one file per level, data only),
+  track building (centreline, kerbs, barriers), surfaces and terrain, scenery placement, level
+  registry. `lab.js` goes away or becomes a thin index. Imports are explicit and narrow. Level data
+  stays data (CLAUDE.md section 5). Done when every level loads, `propcheck`, `barriercheck`,
+  `solidcheck` and `lapdriver` give the same results as baseline (lap times within 0.05 s), and no
+  file is over 800 lines.
+- [ ] **4. Split `render.js`** into one module per layer: camera, terrain, road and marks, cars,
+  objects and props, particles, HUD overlays, debug overlay. Replace the single 3,800-line closure
+  with small functions taking an explicit render state. Done when screenshots at 844x390 and 390x844
+  match the baseline for 3 levels (pixel diff within tolerance, `tilediff`), and `framecheck` is not
+  worse.
+- [ ] **5. One AI engine.** Merge `hwrace.js` into `aidriver.js` (or the reverse) as one driver with
+  a road-model interface (circuit or highway). Keep the agreed behaviours: no waiting, drive out when
+  stuck, dodging, mistakes by difficulty. Done when `aifieldsuite` and `pacesuite` are not worse than
+  baseline, `weavecheck` shows 0 hits, and there is a single driver module.
+- [ ] **6. Performance.** (a) Build a uniform-grid spatial index at level load for barrier segments,
+  solids, props and loose objects. (b) Cones and other loose objects query the grid for nearby
+  segments only, and sleep when at rest until something wakes them. (c) Remove per-frame allocation in
+  the hot loops (vehicle step, render loop, traffic). (d) Audit other O(objects x world) loops: AI
+  versus track samples, marks, render culling. (e) Set a per-frame budget (target: median 8 ms,
+  95th percentile 14 ms on the reference phone-class profile, to be confirmed with the owner). Done
+  when `framecheck` on the heaviest cone level shows a measured cut in collision tests per frame
+  (expected from tens of thousands to hundreds) and median frame time is not worse on any level.
+- [ ] **7. Rename pass.** Rename every abbreviated variable and parameter to a descriptive name, one
+  file at a time, smallest files first. Reformat dense lines to one statement per line, 100
+  characters. Extract the 280-350 line functions into named steps. Done when `npm run lint` passes
+  with no baseline exceptions for naming or line length, and the regression tools match baseline.
+  Do this per file, with a commit each, so a bad rename can be reverted alone.
+- [ ] **8. Test and tool cleanup.** Replace the hardcoded `C:/Users/Admin/...` paths with a shared
+  `tools/lib/paths.mjs`. Move one-off scripts (`_*.mjs`) to `tools/scratch/` or delete them. Give the
+  remaining checks one runner (`node tools/runall.mjs`) with pass or fail output and exit codes.
+  Done when a new clone can run the full suite with one command.
+- [ ] **9. Docs.** Trim `TODO.md` to open items only, and cut `ENGINE.md` to an architecture overview
+  (module map, data flow, the physics step, the `mods` seam), with details left in code comments.
+  Delete `HANDOVER.md` and fold the "where we are" section into `TODO.md`. Remove historical user
+  quotes, dated anecdotes, tunnel URLs and process IDs from all docs. Done when no doc is over about
+  400 lines and `CLAUDE.md` section 2 matches what the lint rules enforce.
+- [ ] **10. Lock it in.** Run lint and the regression suite in CI (GitHub Actions) on every push so
+  the standards cannot drift again. Add `CONTRIBUTING.md` with the standards and the one-command
+  checks, for the new collaborator.
+
+Order and risk: phases 0 and 1 first, because everything else needs a baseline and a lint gate.
+Phase 2 before 3 and 4, so the splits import shared code instead of copying it. Phases 3 and 4 are
+the riskiest (large moves); do them in small commits. Phase 6 can run in parallel with 7 once 3 is
+done, because the cone fix lives in `cones.js` and touches little else.
+
+Open questions for the owner: (1) is a `package.json` with dev-only tools (ESLint, Prettier) OK, given
+the project has had no build step? They would not be needed to run the game. (2) What is the reference
+phone and frame-time target? (3) Should phase 5 keep `aidriver.js` or `hwrace.js` as the base? (4) Plain JS with JSDoc types, or
+TypeScript? (5) Should the collaborator review each phase as a GitHub pull request?
 
 ## GAME NAME: RAC3R (user, 2026-10-03)
 
