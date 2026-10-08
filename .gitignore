@@ -1,0 +1,17 @@
+# Screenshots and archived old work (kept locally only)
+shots/
+_archive/
+
+# Reference photos / maps (only mentioned in code comments)
+art/ref/
+art/reference/
+
+# Logs, secrets, junk
+*.log
+.env
+.env.*
+*.pem
+*.key
+node_modules/
+.DS_Store
+Thumbs.db
