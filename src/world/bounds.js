@@ -45,4 +45,9 @@ export let FX0 = -FLOOR, FX1 = FLOOR, FY0 = -FLOOR, FY1 = FLOOR;
 export function edgeOut(x, y) { const ex = Math.max(x - FX1, FX0 - x), ey = Math.max(y - FY1, FY0 - y); return ex > ey ? ex : ey; }
 
 export function setFloor(floor) { FLOOR = floor; FENCE = FLOOR + RUNOFF_W; }
-export function setRect(b) { FX0 = b ? b.x0 : -FLOOR; FX1 = b ? b.x1 : FLOOR; FY0 = b ? b.y0 : -FLOOR; FY1 = b ? b.y1 : FLOOR; }
+export function setRect(rect) {
+  FX0 = rect ? rect.x0 : -FLOOR;
+  FX1 = rect ? rect.x1 : FLOOR;
+  FY0 = rect ? rect.y0 : -FLOOR;
+  FY1 = rect ? rect.y1 : FLOOR;
+}
