@@ -184,4 +184,3 @@ export function ghostSegment(sub, i) {
   sub.ghost = { d0: sub.pts[i].dist, d1: sub.pts[(i + 1) % sub.pts.length].dist || sub.totalDist };
   return sub;
 }
-

@@ -34,4 +34,3 @@ export function smoothPath(pts, perSeg = 24) {
   }
   return out;
 }
-
