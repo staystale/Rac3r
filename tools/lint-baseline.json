@@ -74,11 +74,11 @@
     "max-lines-per-function": 1
   },
   "src/lab.js": {
-    "complexity": 12,
-    "id-length": 828,
-    "max-len": 894,
+    "complexity": 7,
+    "id-length": 524,
+    "max-len": 655,
     "max-lines": 1,
-    "no-shadow": 2,
+    "no-shadow": 1,
     "no-unused-vars": 8
   },
   "src/main.js": {
@@ -182,5 +182,26 @@
   "src/world/surfaces.js": {
     "id-length": 2,
     "max-len": 78
+  },
+  "src/world/terrain.js": {
+    "complexity": 1,
+    "id-length": 111,
+    "max-len": 73
+  },
+  "src/world/tyrewall.js": {
+    "complexity": 1,
+    "id-length": 50,
+    "max-len": 25
+  },
+  "src/world/wear.js": {
+    "complexity": 2,
+    "id-length": 107,
+    "max-len": 125,
+    "no-shadow": 1
+  },
+  "src/world/zones.js": {
+    "complexity": 1,
+    "id-length": 36,
+    "max-len": 16
   }
 }
