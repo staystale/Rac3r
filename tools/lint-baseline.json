@@ -74,12 +74,12 @@
     "max-lines-per-function": 1
   },
   "src/lab.js": {
-    "complexity": 7,
-    "id-length": 524,
-    "max-len": 655,
+    "complexity": 6,
+    "id-length": 223,
+    "max-len": 242,
     "max-lines": 1,
     "no-shadow": 1,
-    "no-unused-vars": 8
+    "no-unused-vars": 3
   },
   "src/main.js": {
     "complexity": 9,
@@ -165,10 +165,41 @@
     "id-length": 8,
     "max-len": 8
   },
+  "src/world/levels/brands-snatch.js": {
+    "complexity": 1,
+    "id-length": 41,
+    "max-len": 60
+  },
+  "src/world/levels/castle-cum.js": {
+    "id-length": 47,
+    "max-len": 75
+  },
+  "src/world/levels/killder.js": {
+    "id-length": 36,
+    "max-len": 62
+  },
+  "src/world/levels/kit.js": {
+    "id-length": 23,
+    "max-len": 7
+  },
   "src/world/levels/lab-extension.js": {
     "complexity": 1,
     "id-length": 27,
     "max-len": 40
+  },
+  "src/world/levels/slidden-hill.js": {
+    "id-length": 78,
+    "max-len": 68,
+    "no-unused-vars": 4
+  },
+  "src/world/levels/sweaty-lamb.js": {
+    "id-length": 27,
+    "max-len": 60
+  },
+  "src/world/levels/thruston.js": {
+    "id-length": 49,
+    "max-len": 81,
+    "no-unused-vars": 1
   },
   "src/world/state.js": {
     "max-len": 3
