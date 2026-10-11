@@ -74,9 +74,9 @@
     "max-lines-per-function": 1
   },
   "src/lab.js": {
-    "complexity": 15,
-    "id-length": 937,
-    "max-len": 968,
+    "complexity": 14,
+    "id-length": 910,
+    "max-len": 928,
     "max-lines": 1,
     "no-shadow": 2,
     "no-unused-vars": 8
@@ -159,6 +159,11 @@
   "src/world/course.js": {
     "id-length": 8,
     "max-len": 8
+  },
+  "src/world/levels/lab-extension.js": {
+    "complexity": 1,
+    "id-length": 27,
+    "max-len": 40
   },
   "src/world/subtrack.js": {
     "complexity": 2,
