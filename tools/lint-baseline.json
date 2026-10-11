@@ -1,12 +1,11 @@
 {
   "src/aidriver.js": {
     "complexity": 5,
-    "id-length": 285,
-    "max-len": 369,
+    "id-length": 283,
+    "max-len": 367,
     "max-lines": 1,
     "max-lines-per-function": 5,
-    "no-shadow": 2,
-    "no-undef": 5,
+    "no-shadow": 1,
     "no-unused-vars": 1
   },
   "src/audio.js": {
@@ -50,11 +49,10 @@
   },
   "src/highway.js": {
     "complexity": 4,
-    "id-length": 341,
-    "max-len": 265,
+    "id-length": 340,
+    "max-len": 263,
     "max-lines-per-function": 1,
-    "no-shadow": 1,
-    "no-undef": 4
+    "no-shadow": 1
   },
   "src/hud.js": {
     "complexity": 4,
@@ -77,7 +75,7 @@
   },
   "src/lab.js": {
     "complexity": 17,
-    "id-length": 1033,
+    "id-length": 1032,
     "max-len": 1119,
     "max-lines": 1,
     "no-shadow": 2,
@@ -85,8 +83,8 @@
   },
   "src/main.js": {
     "complexity": 9,
-    "id-length": 226,
-    "max-len": 286,
+    "id-length": 225,
+    "max-len": 285,
     "max-lines": 1,
     "max-lines-per-function": 1,
     "no-shadow": 2,
@@ -112,8 +110,8 @@
   },
   "src/render.js": {
     "complexity": 18,
-    "id-length": 1026,
-    "max-len": 916,
+    "id-length": 1021,
+    "max-len": 914,
     "max-lines": 1,
     "max-lines-per-function": 7,
     "no-shadow": 6,
@@ -126,8 +124,8 @@
   },
   "src/stagegen.js": {
     "complexity": 2,
-    "id-length": 134,
-    "max-len": 107,
+    "id-length": 133,
+    "max-len": 106,
     "max-lines-per-function": 1,
     "no-shadow": 1,
     "no-unused-vars": 1

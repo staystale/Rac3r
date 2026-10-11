@@ -13,6 +13,7 @@
 // curvature are continuous across every join — straight -> sweeper -> S-bend -> straight, no kinks, no sudden steering.
 // LANES are config (HW_PRESETS): a UK motorway, a wide interstate, a skinny dual carriageway — the same generator for later flavour levels.
 import { lcg } from "./core/random.ts";
+import { envValue } from "./core/debug.ts";
 import { createSubtrack, ghostSegment, SURFACES, LEVELS, prepBumps, prepBarriersOf, onTrack, clearNaturalCache, solidsFromProps, zoneSurfaceAt, pruneWear } from './lab.js';
 
 // lanes / laneW / shoulder (left, hard shoulder; a solid line inside it when >= 2 m) / edge (right margin) in m; maxDeg off straight up;
@@ -609,8 +610,8 @@ export function setHighwayPreset(lv, preset) {
 }
 const QP = typeof location !== 'undefined' ? new URLSearchParams(location.search).get('hw') : null;
 // node tools only: HWNOX=1 builds the road with NO slips / bridges / extras (an A/B of their effect on the AI, same roads)
-const NOX = typeof process !== 'undefined' && !!(process.env && process.env.HWNOX);
-const NOF = typeof process !== 'undefined' && !!(process.env && process.env.HWNOF);   // node only: no FIELDS (scenery v2 A/B)
+const NOX = !!envValue("HWNOX");
+const NOF = !!envValue("HWNOF");   // node only: no FIELDS (scenery v2 A/B)
 export function createHighway(seed = 4242, preset = 'motorway') {
   if (!HW_PRESETS[preset]) preset = 'motorway';
   const lv = { id: 'highway', name: 'Highway to Hull', endless: true, floor: 1000000, seed, _cfg: HW_PRESETS[preset], roadType: preset, roadTypes: HW_NAMES,

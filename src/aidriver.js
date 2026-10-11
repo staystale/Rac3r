@@ -18,6 +18,7 @@
 //    then a backward braking pass, so the target at any point already brakes for everything ahead.
 // 4. DRIVING: Stanley steering onto the path + a lateral target (wander, mistakes, avoidance), target speed = profile x pace.
 import { parkMiller } from "./core/random.ts";
+import { debugValue, envValue } from "./core/debug.ts";
 import { groundAt, querySubtrack } from './lab.js';
 import { GRAVITY } from './cars.js';
 import { CAR_STATS } from './carstats.js';
@@ -34,7 +35,7 @@ const ALONG_GAP = 2.7;       // m kept from a car alongside by an attack or a co
 const HB_R = 25, HB_LOOSE = 8, HB_TURN = 1.4, HB_T = 0.25;   // handbrake turns: apex R (m, + HB_LOOSE on loose ground), corner turn (rad), pull (s).
 // MEASURED (aidrivecheck, HB on/off, Realish + Real, hatch + 4x4): Slidden / Knobhill / Castle Cum within 0.1 s, Sweaty Lamb +0.2..+0.7 s,
 // 6 pulls per 2 min at Slidden, 4 at Sweaty Lamb — it is FLAVOUR (the user's "drift and stuff"), not pace. A heading-error trigger fired ~never.
-const WIDE = +(globalThis.__WIDE ?? 0.8), WIDE_SLOW = 2.5;   // m past the usual edge allowed to get round a car / a slow or stopped one
+const WIDE = +(debugValue("WIDE") ?? 0.8), WIDE_SLOW = 2.5;   // m past the usual edge allowed to get round a car / a slow or stopped one
 const OBST_LINE = 1.6;     // m from an object on the road to the racing line (car half width 0.9 + tracking error)
 const OBST_CLEAR = 1.1;      // m: a loose object closer than r + this to my lateral target is in the way (half a car + margin)
 const UNDER_LOOSE = 0.35;    // throttle kept through a front slide on loose ground (off road, dirt, gravel)
@@ -261,7 +262,7 @@ function profileOf(path, spec, main, kBo) {
   const { id, gripG, brakeG } = carGrip(spec);
   // aiK (cars.js, optional): a per-car confidence on the plan — a front-heavy AWD road car on loose gravel ran 3 m/s hot into Sweaty Lamb
   // corners and slid off 22 s a lap at Real with the roster's numbers (MEASURED, aidrivecheck; the Subaroo WRZ)
-  const ak = spec.aiK || 1, kC = (globalThis.__AI_K || K_CORNER) * ak, kB = (kBo || globalThis.__AI_KB || K_BRAKE) * ak, key = id + ':' + kC + ':' + kB;
+  const ak = spec.aiK || 1, kC = (debugValue("AI_K") || K_CORNER) * ak, kB = (kBo || debugValue("AI_KB") || K_BRAKE) * ak, key = id + ':' + kC + ':' + kB;
   if (path.prof[key]) return path.prof[key];
   const n = path.n, v = new Float64Array(n), ds = path.sp, P = path.pts;
   for (let i = 0; i < n; i++) { const r = P[i].R; v[i] = Math.min(95, Math.sqrt(kC * (r / (r + R_TIGHT)) * P[i].mu * gripG * GRAVITY * r)); }
@@ -279,7 +280,7 @@ function profileOf(path, spec, main, kBo) {
 // Nearly still for DRIVE_OUT_T s after the green (nose in a wall, beached, tangled) -> REVERSE ~1-1.5 s with the wheel turned to swing
 // the nose back toward the road direction roadH(); three tries inside 15 s and still stuck -> st.giveUp: main.js resets it (last resort).
 // Returns the reversing controls, or null = drive on. (NOOUT=1 env: node A/B only - proves the highway merge changed nothing else)
-const NOOUT = typeof process !== 'undefined' && process.env && !!process.env.NOOUT;
+const NOOUT = !!envValue("NOOUT");
 function driveOut(st, car, v, dt, ctx, rnd, roadH) {
   if (ctx.hold || !(st.t > 3) || NOOUT) return null;
   if (st.t < (st.revUntil || 0)) {
@@ -310,7 +311,7 @@ const IDLE = { steer: 0, throttle: 0, brake: 0.3, handbrake: 0, reverse: 0 };
 // rolling start: follow, no swerving) }
 const N_LINES = 11, MARGIN = 0.55, LOOK_T = 3.2, EDGE_M = 1.8;
 // A/B tuning from the node tools only (HWT='{"kC":0.5}'); the browser has no process -> {}
-const HWT = (typeof process !== 'undefined' && process.env && process.env.HWT) ? JSON.parse(process.env.HWT) : {};
+const HWT = envValue("HWT") ? JSON.parse(envValue("HWT")) : {};
 function roadDriver(lv, traits, rnd) {
   const st = { line: null, tgt: null, think: 0, ph: (traits.seed || 1) % 100, t: 0 };
   const pace01 = Math.max(0, Math.min(1, (traits.pace - 0.8) / 0.185));
@@ -702,7 +703,7 @@ export function createAIDriver(level, traits = aiTraits(4, 0, 1)) {
       if (!st.atk && lead && nc >= 0 && nc !== st.atkCorner && nd > 15 && nd < 140 && lead.vAlong < v + 2
         && st.behindT > Math.max(0.15, 0.6 - 0.5 * traits.aggression)) {
         st.atkCorner = nc;
-        if (!globalThis.__NOATK && rnd() < 0.6 + 0.4 * traits.aggression) {
+        if (!debugValue("NOATK") && rnd() < 0.6 + 0.4 * traits.aggression) {
           const turn = L.corners[nc].turn, leadAbs = lineOff + lead.oc;
           const side = Math.sign(leadAbs) === turn && Math.abs(leadAbs) > 0.4 * latLim ? -turn : turn;
           st.atk = { car: lead.c, side, corner: nc, t0: st.t }; st.nAtk = (st.nAtk || 0) + 1;
@@ -713,7 +714,7 @@ export function createAIDriver(level, traits = aiTraits(4, 0, 1)) {
       if (!st.atk && lead && (nc < 0 || nd > 140) && (car.dragMul ?? 1) < 0.85 && st.behindT > Math.max(0.3, 1 - 0.7 * traits.aggression)
         && st.t - (st.towT || -99) > 4) {
         st.towT = st.t;
-        if (!globalThis.__NOATK && rnd() < 0.6 + 0.4 * traits.aggression) {
+        if (!debugValue("NOATK") && rnd() < 0.6 + 0.4 * traits.aggression) {
           const leadAbs = lineOff + lead.oc, ahead = pts[idx(bi + Math.round(80 / P.sp))].turn || 1;
           const sd = Math.abs(leadAbs) > 0.3 * latLim ? -Math.sign(leadAbs) : ahead;
           st.atk = { car: lead.c, side: sd, corner: -1, t0: st.t }; st.nAtk = (st.nAtk || 0) + 1;
@@ -726,7 +727,7 @@ export function createAIDriver(level, traits = aiTraits(4, 0, 1)) {
       if (st.cover && (past(st.cover) || st.t - st.cover.t0 > 6)) st.cover = null;
       if (!st.cover && !st.atk && threat && threat.f < -5 && nc >= 0 && nc !== st.covCorner && nd < 110) {
         st.covCorner = nc;
-        if (!globalThis.__NOCOV && rnd() < (0.5 + 0.5 * (traits.prec ?? 0.5)) * traits.defence) st.cover = { side: L.corners[nc].turn, corner: nc, t0: st.t };
+        if (!debugValue("NOCOV") && rnd() < (0.5 + 0.5 * (traits.prec ?? 0.5)) * traits.defence) st.cover = { side: L.corners[nc].turn, corner: nc, t0: st.t };
       }
       if (st.atk) { conflict = true; dodgeT = st.atk.side * (latLim - 1.0) - lineOff - latT; prof = profileOf(P, sp, main, K_BRAKE + ATK_KB); }
       else if (st.cover) { conflict = true; dodgeT = st.cover.side * 0.6 * latLim - lineOff - latT; }
@@ -774,7 +775,7 @@ export function createAIDriver(level, traits = aiTraits(4, 0, 1)) {
     // countersteer free — instead of caught at 0.18 rad (which lifted and tiptoed). Past DRIFT_MAX it is caught as before. A bolder driver
     // (aggression) drifts more often (decided per corner).
     const inCorner = P === main && L.cid[bi] >= 0;
-    if (inCorner && st.driftCorner !== L.cid[bi]) { st.driftCorner = L.cid[bi]; st.driftOn = st.t > (st.driftBan || 0) && rnd() < (globalThis.__DRIFT ?? (0.45 + 0.5 * traits.aggression)); }
+    if (inCorner && st.driftCorner !== L.cid[bi]) { st.driftCorner = L.cid[bi]; st.driftOn = st.t > (st.driftBan || 0) && rnd() < (debugValue("DRIFT") ?? (0.45 + 0.5 * traits.aggression)); }
     // ... and never near the road edge (a held drift there ran a Rally car off Sweaty Lamb 12 s a lap): within EDGE_DRIFT m it catches
     const pb = pts[bi], edgeRoom = P === main ? L.hw - Math.abs(lineOff + (car.x - pb.x) * -Math.sin(pb.h) + (car.y - pb.y) * Math.cos(pb.h)) : 0;   // m from the car to the nearer edge
     const drifting = st.driftOn && inCorner && loose > 0.3 && (sp.drive ?? 1) < 0.5 && sR > 0.12 && sR < DRIFT_MAX && v > 6 && edgeRoom > EDGE_DRIFT && pts[L.corners[L.cid[bi]].apex].R < DRIFT_R;
@@ -785,7 +786,7 @@ export function createAIDriver(level, traits = aiTraits(4, 0, 1)) {
     let vT = Infinity; const span = Math.round((3 + v * 0.25) / P.sp);
     for (let o = 0; o <= span; o++) vT = Math.min(vT, prof[idx(bi + o)]);
     if (P === main && Math.abs(latT) > 0.3) {
-      const aB = (globalThis.__AI_KB || K_BRAKE) * pts[bi].mu * carGrip(sp).brakeG * GRAVITY, far = Math.round((v * v / (2 * aB) + 15) / P.sp);
+      const aB = (debugValue("AI_KB") || K_BRAKE) * pts[bi].mu * carGrip(sp).brakeG * GRAVITY, far = Math.round((v * v / (2 * aB) + 15) / P.sp);
       for (let o = 0; o <= far; o += 2) { const k = idx(bi + o), q = pts[k], x = (lineOff + latT - q.off) * q.turn;
         if (x > 0.3 && q.R < 400) { const vk = prof[k] * Math.sqrt(Math.max(0.4, (q.R - x) / q.R)); vT = Math.min(vT, Math.sqrt(vk * vk + 2 * aB * o * P.sp)); } }
     }
@@ -814,7 +815,7 @@ export function createAIDriver(level, traits = aiTraits(4, 0, 1)) {
     // apex, a big turn still ahead (> HB_TURN rad) and moving -> one pull of HB_T s per hairpin, off the throttle,
     // full lock that way: the rear steps out and the car pivots. The better driver times it (skill), a weaker one sometimes doesn't bother.
     let handbrake = 0;
-    if (P === main && v > 6 && (globalThis.__HB ?? 1)) {
+    if (P === main && v > 6 && (debugValue("HB") ?? 1)) {
       const c = L.cid[bi], C = c >= 0 ? L.corners[c] : null;
       // turn-in: a corner that turns > HB_TURN rad in all (summed once along its run) with an apex tighter than HB_R (+ HB_LOOSE on loose
       // ground), the apex within ~0.8 s
