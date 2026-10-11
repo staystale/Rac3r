@@ -7,7 +7,7 @@ export const ss01 = (x) => (x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x));
 
 // TRACK KIT (2026-10-04, written for Castle Cum after doing Thruston by hand): decorate a traced circuit by DISTANCE + OFFSET
 // (+ = right of travel; on a clockwise lap that is the INSIDE). Everything generated is filtered off the road, off the given
-// lanes and inside the floor â€” the Thruston lesson: an outside offset on the inside of a left-hander lands on the track.
+// lanes and inside the floor — the Thruston lesson: an outside offset on the inside of a left-hander lands on the track.
 export function trackKit(sub, seed, lanes = []) {
   const rnd = parkMiller(seed);
   const at = (d, off) => smoothOnTrack(sub, d, off);
@@ -25,7 +25,7 @@ export function trackKit(sub, seed, lanes = []) {
 }
 
 // RALLYCROSS DRESSING (user, 2026-10-04: "a couple more hay bales and tyres around Slidden Hill and Knobhill"): knockable HAY BALES every 2.2 m
-// along the OUTSIDE of every corner (hw + 4.5), and a 2 x 3 block of TYRE STACKS on each inside apex (hw + 2.5) â€” kept off the road, every
+// along the OUTSIDE of every corner (hw + 4.5), and a 2 x 3 block of TYRE STACKS on each inside apex (hw + 2.5) — kept off the road, every
 // lane (joker, start, traps, paddock) and 1.6 m clear of any existing object.
 export function rxDress(sub, lanes, existing, lined = []) {   // lined: [[d0, d1]] stretches with bales along BOTH sides every 4.4 m
   const hw = sub.width / 2, out = [], have = [...existing];
@@ -35,7 +35,7 @@ export function rxDress(sub, lanes, existing, lined = []) {   // lined: [[d0, d1
   const add = (o) => { if (free(o.x, o.y)) { out.push(o); have.push(o); } };
   for (const c of autoKerbs(sub, { maxR: 60, exitR: 0, minTurn: 25, mergeGap: 10 })) {
     const outS = c.side === 'left' ? -1 : 1, mid = (c.startDist + c.endDist) / 2;
-    // ONLY WHERE THERE IS NO WALL YET (user: "they should go where there isn't already Armco and tyre walls" â€” the first pass lined bales in
+    // ONLY WHERE THERE IS NO WALL YET (user: "they should go where there isn't already Armco and tyre walls" — the first pass lined bales in
     // front of Slidden Hill's tyre walls): skip a bale with an existing tyre stack within 6 m
     for (let d = c.startDist - 6; d <= c.endDist + 10; d += 2.2) { const p = smoothOnTrack(sub, d, outS * (hw + 4.5)); if (existing.some((e) => e.kind === 'tyrestack' && Math.hypot(e.x - p.x, e.y - p.y) < 6)) continue; add({ x: p.x, y: p.y, kind: 'bale', rot: onTrack(sub, ((d % sub.totalDist) + sub.totalDist) % sub.totalDist, 0, {}).rot }); }
     for (const dd of [-1, 0, 1]) for (const w of [0, 1]) { const p = smoothOnTrack(sub, mid + dd * 0.95, -outS * (hw + 2.5 + w * 0.95)); add({ x: p.x, y: p.y, kind: 'tyrestack' }); }
@@ -44,7 +44,7 @@ export function rxDress(sub, lanes, existing, lined = []) {   // lined: [[d0, d1
   return out;
 }
 
-// JOKER SEPARATION (user, 2026-10-04: "hay bales between the joker section and the normal track on both rallycross tracks â€” a clear barrier"):
+// JOKER SEPARATION (user, 2026-10-04: "hay bales between the joker section and the normal track on both rallycross tracks — a clear barrier"):
 // a line of bales in the MIDDLE of the grass strip between the joker and the main road, every 2.1 m wherever that strip is at least 2.2 m wide
 // (so the joker's mouth and exit stay open).
 export function jokerBales(sub, joker, existing) {

@@ -44,11 +44,44 @@ function runPart(label, script, args) {
   return ok;
 }
 
+// encoding check: text re-encoded wrongly (UTF-8 read as Windows-1252) shows U+FFFD or U+00E2 U+20AC
+function collectText(dir, out) {
+  for (const e of readdirSync(dir, { withFileTypes: true })) {
+    if (e.name === "node_modules" || e.name === ".git") continue;
+    const p = `${dir}${e.name}`;
+    if (e.isDirectory()) collectText(`${p}/`, out);
+    else if (/\.(js|ts|mjs|md|json)$/.test(e.name)) out.push(p);
+  }
+}
+const textFiles = [];
+for (const d of ["src", "tools"]) {
+  try {
+    collectText(fileURLToPath(new URL(`../${d}/`, import.meta.url)), textFiles);
+  } catch {
+    // directory missing
+  }
+}
+const badSeq = "\u00e2\u20ac";
+const badChar = "\ufffd";
+let encHits = 0;
+for (const file of textFiles) {
+  const lines = readFileSync(file, "utf8").split("\n");
+  lines.forEach((l, i) => {
+    if (l.includes(badChar) || l.includes(badSeq)) {
+      encHits++;
+      const rel = file.startsWith(root) ? file.slice(root.length) : file;
+      console.log(`ENCODING ${rel}:${i + 1}`);
+    }
+  });
+}
+console.log(`encoding: ${textFiles.length} files, ${encHits} bad lines`);
+
 const tscOk = runPart("tsc", "node_modules/typescript/bin/tsc", ["-p", "tsconfig.json"]);
 const lintOk = runPart("lint", "tools/lint.mjs", []);
 
 const parts = [];
 if (failed) parts.push("syntax");
+if (encHits) parts.push("encoding");
 if (!tscOk) parts.push("tsc");
 if (!lintOk) parts.push("lint");
 console.log(parts.length ? `verify: FAIL (${parts.join(", ")})` : "verify: OK");

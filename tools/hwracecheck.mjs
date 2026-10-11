@@ -1,4 +1,4 @@
-// hwracecheck.mjs Ã¢â‚¬â€ VS AI on the ENDLESS HIGHWAY (src/hwrace.js), headless, the way main.js runs it: a rolling start (everyone held at
+// hwracecheck.mjs — VS AI on the ENDLESS HIGHWAY (src/hwrace.js), headless, the way main.js runs it: a rolling start (everyone held at
 // ROLL pace behind the lights, green at HW_GREEN), then 5 AI + the "player" (driven by the same racer, at a set difficulty) race up the
 // motorway through TRAFFIC with full contact + damage. Measures: grid overlaps, cars off the road, racer-racer / racer-traffic contacts,
 // wrecks, lane changes, speeds, the gaps that open, and the flow's END countdown (a fake screen of +-VIEW m).

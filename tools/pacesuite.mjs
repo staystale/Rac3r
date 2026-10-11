@@ -1,4 +1,4 @@
-// pacesuite.mjs â€” the highway AI A/B: hwracecheck on 3 road seeds x 3 difficulties (Mobile / Realish / Real), traffic 100 %, run in
+// pacesuite.mjs — the highway AI A/B: hwracecheck on 3 road seeds x 3 difficulties (Mobile / Realish / Real), traffic 100 %, run in
 // PARALLEL child processes, then ONE table: pace (mean, % under 130, passes per km) + safety (racer-racer / racer-traffic contact steps,
 // off-road car-steps, wrecks). A single 45 s race is too noisy to tune on (2026-10-06: one knob moved a seed +30 km/h and another -30).
 // node tools/pacesuite.mjs [label] [seconds]     (HWT='{"aB":0.55}' passes through to every run)
