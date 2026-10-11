@@ -75,8 +75,8 @@
   },
   "src/lab.js": {
     "complexity": 17,
-    "id-length": 1032,
-    "max-len": 1119,
+    "id-length": 1029,
+    "max-len": 1095,
     "max-lines": 1,
     "no-shadow": 2,
     "no-unused-vars": 9
@@ -151,5 +151,9 @@
     "max-lines-per-function": 2,
     "no-shadow": 6,
     "no-unused-vars": 3
+  },
+  "src/world/bounds.js": {
+    "id-length": 3,
+    "max-len": 26
   }
 }
