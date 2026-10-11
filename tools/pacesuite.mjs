@@ -3,7 +3,7 @@
 // off-road car-steps, wrecks). A single 45 s race is too noisy to tune on (2026-10-06: one knob moved a seed +30 km/h and another -30).
 // node tools/pacesuite.mjs [label] [seconds]     (HWT='{"aB":0.55}' passes through to every run)
 import { spawn } from 'node:child_process';
-import { writeFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync } from 'node:fs';
 const [LABEL = 'run', T = '45'] = process.argv.slice(2);
 const SEEDS = (process.env.PSEEDS || '4242,77,1234').split(',').map(Number), DIFFS = [0, 2, 4];
 const one = (seed, d) => new Promise((res) => {
@@ -25,4 +25,5 @@ for (const r of runs) {
 const n = runs.length;
 lines.push(`TOTAL ${LABEL}: mean ${(tot.mean / n).toFixed(1)} km/h | <130 ${(tot.slow / n).toFixed(0)}% | passes ${(tot.ppk / n).toFixed(1)}/km | rr ${tot.rr} rt ${tot.rt} | off ${tot.off} far ${tot.far} | BAD (far off >= 120 or wreck) runs ${tot.bad}/${n}`);
 console.log(lines.join('\n'));
+mkdirSync('shots/look', { recursive: true });
 writeFileSync(`shots/look/suite-${LABEL}.txt`, lines.join('\n') + '\n');
