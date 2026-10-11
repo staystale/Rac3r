@@ -107,10 +107,13 @@ Phase 2 before 3 and 4, so the splits import shared code instead of copying it. 
 the riskiest (large moves); do them in small commits. Phase 6 can run in parallel with 7 once 3 is
 done, because the cone fix lives in `cones.js` and touches little else.
 
-Open questions for the owner: (1) is a `package.json` with dev-only tools (ESLint, Prettier) OK, given
-the project has had no build step? They would not be needed to run the game. (2) What is the reference
-phone and frame-time target? (3) Should phase 5 keep `aidriver.js` or `hwrace.js` as the base? (4) Plain JS with JSDoc types, or
-TypeScript? (5) Should the collaborator review each phase as a GitHub pull request?
+Owner decisions (2026-10-11):
+1. `package.json` with dev-only tools: yes. TypeScript needs a build step: esbuild, run by `node serve.mjs` before serving, so the routine stays the same. The itch.io build is one bundled file.
+2. Target: modern phones (owner tests on iPhone 17 Pro Max). Measured on desktop with CPU throttled 4x: median frame 8 ms, 95th percentile 14 ms.
+3. There is only one AI: `aidriver.js` (circuit racer + highway weaver). `hwrace.js` holds the highway race rules, not a driver. Phase 5 becomes: tidy `aidriver.js`, rename `hwrace.js` to say what it is.
+4. TypeScript. Convert in place, phase by phase, not a rebuild: behaviour is proven unchanged by the phase 0 baseline. Playtest on the phone as often as possible, after every phase that touches visible behaviour.
+5. Reviews: rely on automated checks (`node tools/verify.mjs`, later lint and the regression suite in CI); the foreman spot-checks diffs and reviews the whole project now and then.
+Order: the overhaul first. LEVELS + EVENTS and every older item wait until it is done. Do not publish to itch.io until the owner approves the converted game.
 
 ## GAME NAME: RAC3R (user, 2026-10-03)
 
