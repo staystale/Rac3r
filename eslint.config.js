@@ -1,14 +1,6 @@
-import { createRequire } from "node:module";
 import globals from "globals";
-
-// typescript-eslint only supports the TypeScript 6 API, so hand it TS 6 in place of TS 7.
-const nodeRequire = createRequire(import.meta.url);
-const tsPath = nodeRequire.resolve("typescript");
-nodeRequire.cache[tsPath] = {
-  id: tsPath, filename: tsPath, loaded: true, exports: nodeRequire("@typescript/typescript6"),
-};
-const { default: tsParser } = await import("@typescript-eslint/parser");
-const { default: tsPlugin } = await import("@typescript-eslint/eslint-plugin");
+import tsParser from "@typescript-eslint/parser";
+import tsPlugin from "@typescript-eslint/eslint-plugin";
 
 const rules = {
   "id-length": ["error", { min: 3, exceptions: ["x", "y", "z", "i", "j"], properties: "never" }],

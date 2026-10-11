@@ -47,6 +47,9 @@ function runPart(label, script, args) {
 const tscOk = runPart("tsc", "node_modules/typescript/bin/tsc", ["-p", "tsconfig.json"]);
 const lintOk = runPart("lint", "tools/lint.mjs", []);
 
-const bad = failed || !tscOk || !lintOk;
-console.log(`verify: ${files.length} files, ${failed} failed`);
-process.exit(bad ? 1 : 0);
+const parts = [];
+if (failed) parts.push("syntax");
+if (!tscOk) parts.push("tsc");
+if (!lintOk) parts.push("lint");
+console.log(parts.length ? `verify: FAIL (${parts.join(", ")})` : "verify: OK");
+process.exit(parts.length ? 1 : 0);
