@@ -76,7 +76,7 @@
   "src/lab.js": {
     "complexity": 14,
     "id-length": 910,
-    "max-len": 928,
+    "max-len": 925,
     "max-lines": 1,
     "no-shadow": 2,
     "no-unused-vars": 8
@@ -164,6 +164,9 @@
     "complexity": 1,
     "id-length": 27,
     "max-len": 40
+  },
+  "src/world/state.js": {
+    "max-len": 3
   },
   "src/world/subtrack.js": {
     "complexity": 2,

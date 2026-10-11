@@ -7,6 +7,8 @@ import { parkMiller } from "./core/random.ts";
 import { setFloor, setRect } from "./world/bounds.js";
 export * from "./world/bounds.js";
 import { RUNOFF_W, FLOOR, FX0, FX1, FY0, FY1, KERB_W, KERB_H, KERB_RIDGE, KERB_RIDGE_L, RUNOFF_ROUGH, edgeOut } from "./world/bounds.js";
+export * from "./world/state.js";
+import { LEVEL, setActiveLevel } from "./world/state.js";
 export * from "./world/surfaces.js";
 import {
   MARK_WET, SPRAY_WET, SURFACES, TRAP_STEPS, SURFACE_TRAP, VERGE_W,
@@ -2803,16 +2805,7 @@ export const LEVELS = [
   },
 ];
 
-// The ACTIVE level. `let` so the exported binding is live: importers see the switch without anything
-// having to be re-plumbed through a setter.
-export let LEVEL = LEVELS[0];
-export let PAINT = LEVEL.paint;
-export let BOARDS = LEVEL.boards;
-export let CONES = LEVEL.cones;
-export let SPAWN = LEVEL.spawn;
-export let ZONES = LEVEL.zones;
-export let BUMPS = LEVEL.bumps;
-export let PROPS = LEVEL.props || [];
+setActiveLevel(LEVELS[0]);
 
 // =============================================================================================
 // SURFACE BLENDING AT CHANGE POINTS (user, 2026-10-03: "sections of surfaces should rarely come to abrupt
@@ -3057,13 +3050,7 @@ function applyBounds() {
 export function setLevel(id) {
   const next = LEVELS.find((l) => l.id === id);
   if (!next) return LEVEL;
-  LEVEL = next;
-  // EVERY exported per-level binding must be re-pointed here. MEASURED BUG, 2026-10-03: the PAINT/BOARDS/
-  // CONES line was deleted (DeepSeek, 2026-10-02) and every level then drew the lab's 242 cones and paint.
-  // Never push() into these arrays either — they are the level's own data, shared across switches.
-  PAINT = LEVEL.paint; BOARDS = LEVEL.boards; CONES = LEVEL.cones;
-  SPAWN = LEVEL.spawn; ZONES = LEVEL.zones; BUMPS = LEVEL.bumps;
-  PROPS = LEVEL.props || [];
+  setActiveLevel(next);
   setFloor(LEVEL.floor || 260);   // WORLD SIZE per level (2026-10-05)
   applyBounds();
   prepareLevel();
