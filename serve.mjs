@@ -31,9 +31,16 @@ createServer(async (req, res) => {
     }
     if (tsPath) {
       const esbuild = await import('esbuild');
-      const out = await esbuild.transform(await readFile(tsPath, 'utf8'), {
-        loader: 'ts', format: 'esm', sourcemap: 'inline', sourcefile: tsPath,
-      });
+      const src = await readFile(tsPath, 'utf8');
+      let out;
+      try {
+        out = await esbuild.transform(src, {
+          loader: 'ts', format: 'esm', sourcemap: 'inline', sourcefile: tsPath,
+        });
+      } catch (err) {
+        res.writeHead(500, { 'Content-Type': 'text/plain; charset=utf-8' }).end(String(err && err.message || err));
+        return;
+      }
       res.writeHead(200, {
         'Content-Type': 'text/javascript; charset=utf-8',
         'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',

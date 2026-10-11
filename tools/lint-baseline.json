@@ -1,0 +1,157 @@
+{
+  "src/aidriver.js": {
+    "complexity": 5,
+    "id-length": 285,
+    "max-len": 369,
+    "max-lines": 1,
+    "max-lines-per-function": 5,
+    "no-shadow": 2,
+    "no-undef": 5,
+    "no-unused-vars": 1
+  },
+  "src/audio.js": {
+    "complexity": 1,
+    "id-length": 9,
+    "max-len": 6,
+    "max-lines-per-function": 3,
+    "no-unused-vars": 2
+  },
+  "src/autodrive.js": {
+    "complexity": 1,
+    "id-length": 25,
+    "max-len": 20
+  },
+  "src/cars.js": {
+    "id-length": 21,
+    "max-len": 126
+  },
+  "src/cones.js": {
+    "complexity": 7,
+    "id-length": 137,
+    "max-len": 94,
+    "max-lines-per-function": 3,
+    "no-unused-vars": 2
+  },
+  "src/contact.js": {
+    "id-length": 44,
+    "max-len": 12
+  },
+  "src/damage.js": {
+    "complexity": 1,
+    "id-length": 30,
+    "max-len": 41
+  },
+  "src/guide.js": {
+    "complexity": 1,
+    "id-length": 78,
+    "max-len": 60,
+    "max-lines-per-function": 2,
+    "no-unused-vars": 1
+  },
+  "src/highway.js": {
+    "complexity": 4,
+    "id-length": 341,
+    "max-len": 265,
+    "max-lines-per-function": 1,
+    "no-shadow": 1,
+    "no-undef": 4
+  },
+  "src/hud.js": {
+    "complexity": 4,
+    "id-length": 162,
+    "max-len": 176,
+    "max-lines-per-function": 3,
+    "no-shadow": 1,
+    "no-unused-vars": 2
+  },
+  "src/hwrace.js": {
+    "complexity": 1,
+    "id-length": 39,
+    "max-len": 51
+  },
+  "src/input.js": {
+    "complexity": 1,
+    "id-length": 27,
+    "max-len": 24,
+    "max-lines-per-function": 1
+  },
+  "src/lab.js": {
+    "complexity": 17,
+    "id-length": 1033,
+    "max-len": 1119,
+    "max-lines": 1,
+    "no-shadow": 2,
+    "no-unused-vars": 9
+  },
+  "src/main.js": {
+    "complexity": 9,
+    "id-length": 226,
+    "max-len": 286,
+    "max-lines": 1,
+    "max-lines-per-function": 1,
+    "no-shadow": 2,
+    "no-unused-vars": 3
+  },
+  "src/marks.js": {
+    "complexity": 1,
+    "id-length": 26,
+    "max-len": 37,
+    "max-lines-per-function": 1
+  },
+  "src/menu.js": {
+    "complexity": 2,
+    "id-length": 209,
+    "max-len": 204,
+    "max-lines-per-function": 1,
+    "no-shadow": 6
+  },
+  "src/raceflow.js": {
+    "complexity": 1,
+    "id-length": 27,
+    "max-len": 34
+  },
+  "src/render.js": {
+    "complexity": 18,
+    "id-length": 1026,
+    "max-len": 916,
+    "max-lines": 1,
+    "max-lines-per-function": 7,
+    "no-shadow": 6,
+    "no-unused-vars": 8
+  },
+  "src/roll.js": {
+    "complexity": 2,
+    "id-length": 20,
+    "max-len": 36
+  },
+  "src/stagegen.js": {
+    "complexity": 2,
+    "id-length": 134,
+    "max-len": 107,
+    "max-lines-per-function": 1,
+    "no-shadow": 1,
+    "no-unused-vars": 1
+  },
+  "src/testlist.js": {
+    "max-len": 17
+  },
+  "src/traffic.js": {
+    "complexity": 2,
+    "id-length": 109,
+    "max-len": 94,
+    "max-lines-per-function": 2
+  },
+  "src/tune.js": {
+    "id-length": 67,
+    "max-len": 7
+  },
+  "src/vehicle.js": {
+    "complexity": 2,
+    "id-length": 73,
+    "max-len": 326,
+    "max-lines": 1,
+    "max-lines-per-function": 2,
+    "no-shadow": 6,
+    "no-unused-vars": 3
+  }
+}

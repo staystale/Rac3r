@@ -33,5 +33,20 @@ for (const file of files) {
   }
 }
 
+console.log(`syntax: ${files.length} files, ${failed} failed`);
+
+function runPart(label, script, args) {
+  const r = spawnSync(process.execPath, [`${root}${script}`, ...args], { cwd: root, encoding: "utf8" });
+  const out = `${r.stdout || ""}${r.stderr || ""}${r.error ? String(r.error) : ""}`.trimEnd();
+  if (out) console.log(out);
+  const ok = r.status === 0;
+  console.log(`${label}: ${ok ? "ok" : "FAIL"}`);
+  return ok;
+}
+
+const tscOk = runPart("tsc", "node_modules/typescript/bin/tsc", ["-p", "tsconfig.json"]);
+const lintOk = runPart("lint", "tools/lint.mjs", []);
+
+const bad = failed || !tscOk || !lintOk;
 console.log(`verify: ${files.length} files, ${failed} failed`);
-process.exit(failed ? 1 : 0);
+process.exit(bad ? 1 : 0);
