@@ -74,9 +74,9 @@
     "max-lines-per-function": 1
   },
   "src/lab.js": {
-    "complexity": 14,
-    "id-length": 910,
-    "max-len": 925,
+    "complexity": 12,
+    "id-length": 828,
+    "max-len": 894,
     "max-lines": 1,
     "no-shadow": 2,
     "no-unused-vars": 8
@@ -151,6 +151,11 @@
     "max-lines-per-function": 2,
     "no-shadow": 6,
     "no-unused-vars": 3
+  },
+  "src/world/barriers.js": {
+    "complexity": 2,
+    "id-length": 82,
+    "max-len": 31
   },
   "src/world/bounds.js": {
     "id-length": 2,
