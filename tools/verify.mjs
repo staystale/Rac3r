@@ -1,5 +1,5 @@
 import { spawnSync } from "node:child_process";
-import { readdirSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
@@ -23,7 +23,7 @@ for (const [dir, ext] of targets) {
 
 let failed = 0;
 for (const file of files) {
-  const r = spawnSync(process.execPath, ["--check", file], { encoding: "utf8" });
+  const r = spawnSync(process.execPath, ["--input-type=module", "--check"], { input: readFileSync(file, "utf8"), encoding: "utf8" });
   if (r.status !== 0) {
     failed++;
     const rel = file.startsWith(root) ? file.slice(root.length) : file;
