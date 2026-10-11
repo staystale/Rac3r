@@ -13,6 +13,7 @@ art/reference/
 *.pem
 *.key
 node_modules/
+dist/
 .DS_Store
 Thumbs.db
 .bigeon/

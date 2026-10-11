@@ -23,6 +23,25 @@ createServer(async (req, res) => {
     if (p === '/') p = '/index.html';
     const full = join(ROOT, normalize(p).replace(/^(\.\.[/\\])+/, ''));
     if (!full.startsWith(ROOT)) { res.writeHead(403).end('no'); return; }
+    let tsPath = null;
+    if (extname(full) === '.ts') tsPath = full;
+    else if (extname(full) === '.js') {
+      const ts = full.slice(0, -3) + '.ts';
+      if (!(await stat(full).then(() => true, () => false)) && (await stat(ts).then(() => true, () => false))) tsPath = ts;
+    }
+    if (tsPath) {
+      const esbuild = await import('esbuild');
+      const out = await esbuild.transform(await readFile(tsPath, 'utf8'), {
+        loader: 'ts', format: 'esm', sourcemap: 'inline', sourcefile: tsPath,
+      });
+      res.writeHead(200, {
+        'Content-Type': 'text/javascript; charset=utf-8',
+        'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
+        'Pragma': 'no-cache',
+      });
+      res.end(out.code);
+      return;
+    }
     const s = await stat(full);
     const body = await readFile(s.isDirectory() ? join(full, 'index.html') : full);
     res.writeHead(200, {

@@ -3,11 +3,14 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "verify": "node tools/verify.mjs"
+    "verify": "node tools/verify.mjs",
+    "build": "node tools/build.mjs",
+    "bundlecheck": "node tools/bundlecheck.mjs"
   },
   "devDependencies": {
     "acorn": "^8.19.0",
     "acorn-walk": "^8.3.5",
+    "esbuild": "^0.28.2",
     "playwright": "1.61.1"
   }
 }
