@@ -81,8 +81,9 @@ function runStep(name, tool, toolArgs) {
   const timedOut = r.error && r.error.code === 'ETIMEDOUT';
   let exit = timedOut ? 'timeout' : r.status;
   if (exit === null || exit === undefined) exit = r.error ? `error: ${r.error.message}` : `signal ${r.signal}`;
-  const text = `${r.stdout || ''}\n${r.stderr || ''}`;
-  const tail = text.split(/\r?\n/).filter((l) => l.trim()).slice(-5);
+  const lastLines = (s, n) => (s || '').split(/\r?\n/).filter((l) => l.trim()).slice(-n);
+  const tail = lastLines(r.stdout, tool === 'lapdriver' ? 8 : 5);
+  if (exit !== 0) tail.push(...lastLines(r.stderr, 5));
   return { name, exit, secs, tail, ok: exit === 0 };
 }
 
