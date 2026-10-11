@@ -74,11 +74,9 @@
     "max-lines-per-function": 1
   },
   "src/lab.js": {
-    "complexity": 6,
-    "id-length": 223,
-    "max-len": 242,
-    "max-lines": 1,
-    "no-shadow": 1,
+    "complexity": 5,
+    "id-length": 189,
+    "max-len": 188,
     "no-unused-vars": 3
   },
   "src/main.js": {
@@ -174,6 +172,11 @@
     "id-length": 47,
     "max-len": 75
   },
+  "src/world/levels/grass-track.js": {
+    "complexity": 1,
+    "id-length": 14,
+    "max-len": 21
+  },
   "src/world/levels/killder.js": {
     "id-length": 36,
     "max-len": 62
@@ -187,10 +190,20 @@
     "id-length": 27,
     "max-len": 40
   },
+  "src/world/levels/naffcar.js": {
+    "max-len": 1
+  },
+  "src/world/levels/sandbox.js": {
+    "id-length": 20,
+    "max-len": 31
+  },
   "src/world/levels/slidden-hill.js": {
     "id-length": 78,
     "max-len": 68,
     "no-unused-vars": 4
+  },
+  "src/world/levels/stock-car.js": {
+    "max-len": 1
   },
   "src/world/levels/sweaty-lamb.js": {
     "id-length": 27,
