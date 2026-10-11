@@ -21,7 +21,7 @@ createServer(async (req, res) => {
   try {
     let p = decodeURIComponent(new URL(req.url, 'http://x').pathname);
     if (p === '/') p = '/index.html';
-    const full = join(ROOT, normalize(p).replace(/^(\.\.[/\\])+/, ''));
+    let full = join(ROOT, normalize(p).replace(/^(\.\.[/\\])+/, ''));
     if (!full.startsWith(ROOT)) { res.writeHead(403).end('no'); return; }
     let tsPath = null;
     if (extname(full) === '.ts') tsPath = full;
@@ -50,7 +50,8 @@ createServer(async (req, res) => {
       return;
     }
     const s = await stat(full);
-    const body = await readFile(s.isDirectory() ? join(full, 'index.html') : full);
+    if (s.isDirectory()) full = join(full, 'index.html');
+    const body = await readFile(full);
     res.writeHead(200, {
       'Content-Type': TYPES[extname(full)] || 'application/octet-stream',
       // never let a phone cache a build; "that didn't change anything" must never be a stale file
