@@ -12,6 +12,7 @@
 // cross itself. SMOOTH JOINS: every element starts and ends at ZERO curvature and ramps linearly in between (a clothoid), so heading AND
 // curvature are continuous across every join — straight -> sweeper -> S-bend -> straight, no kinks, no sudden steering.
 // LANES are config (HW_PRESETS): a UK motorway, a wide interstate, a skinny dual carriageway — the same generator for later flavour levels.
+import { lcg } from "./core/random.ts";
 import { createSubtrack, ghostSegment, SURFACES, LEVELS, prepBumps, prepBarriersOf, onTrack, clearNaturalCache, solidsFromProps, zoneSurfaceAt, pruneWear } from './lab.js';
 
 // lanes / laneW / shoulder (left, hard shoulder; a solid line inside it when >= 2 m) / edge (right margin) in m; maxDeg off straight up;
@@ -38,7 +39,7 @@ const STEP = 4, AHEAD = 1100, BEHIND = 450, SPAWN_S = 300, UP = -Math.PI / 2, K_
 // back)"): OFF_T 6 -> 10 s; it does not run while you are within OFF_NEAR m of the edge or heading back to it faster than BACK_IN m/s.
 const BACK_V = 3, BACK_T = 1.2, BACK_M = 30, OFF_SOFT = 8, OFF_T = 10, OFF_HARD = 70, OFF_NEAR = 16, BACK_IN = 1.5;
 const wrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
-const rng = (seed) => { let s = (seed >>> 0) || 1; return () => { s = (Math.imul(s, 1664525) + 1013904223) >>> 0; return s / 4294967296; }; };
+const rng = (seed) => lcg((seed >>> 0) || 1);
 // SILLY SIGNS (the distance to Hull goes UP — you never get there)
 const SIGNS = ['SERVICES 2 MI (CLOSED)', 'SPEED CAMERA (BROKEN)', 'NO CHIPS FOR 300 MI', 'CONES NEXT 40 MI', 'WELCOME TO NOWHERE', 'HULL: TWINNED WITH HULL',
   'ARE WE NEARLY THERE?', 'BEWARE OF THE SHEEP', 'ROADWORKS ENDED 1987', 'SLOW DOWN (OR DON\'T)', 'SKID PAN 5 MI', 'LAST TOILET: BEHIND YOU'];

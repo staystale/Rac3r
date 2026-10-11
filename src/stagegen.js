@@ -7,6 +7,7 @@
 // road is RUN-UP -> START -> stage -> FINISH -> STOP ZONE; the engine's loop is closed by ONE ghost segment (lab.js ghostSegment) from the
 // stop-zone end to the run-up, so the start line stays at distance 0 and timing / grid / AI / resets all work unchanged.
 // Then the dressing, by theme: trees / rocks / crowds / chevrons / bales / tape / flags / marshals / boards / gantries / ice / water.
+import { lcg } from "./core/random.ts";
 import { createSubtrack, ghostSegment, onTrack, querySubtrack, autoKerbs, alongTrack, SURFACES, BASE_FLOOR as FLOOR, LEVELS, solidsFromProps, finishLevel, trackKit, prepBumps } from './lab.js';
 
 export const THEMES = {
@@ -25,7 +26,7 @@ const NAMES = {
   snow: [['Ikea', 'Brrr', 'Frosty', 'Snö', 'Nippy'], ['flatpack', 'meatballen', 'kanelbulle', 'skidsson', 'fjordfiesta', 'nosedrip', 'bumfrost']],
   desert: [['Dune ', 'Wadi ', 'Sahara ', 'Oasis '], ['Sandpants', 'Sunburn', 'Dusty Bin', 'Hot Bottom', 'Humpback', 'Sandwich', 'Grit Happens']],
 };
-const rng = (seed) => { let s = (seed >>> 0) || 1; return () => { s = (Math.imul(s, 1664525) + 1013904223) >>> 0; return s / 4294967296; }; };
+const rng = (seed) => lcg((seed >>> 0) || 1);
 
 // ---------------------------------------------------------------- the ROAD (centreline points, 3 m apart)
 const STEP = 3;

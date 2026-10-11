@@ -17,6 +17,7 @@
 // 3. SPEED PROFILE per car model (cached per path): sqrt(K_CORNER x mu x gripG x g x R) from the car's MEASURED grip (carstats.js),
 //    then a backward braking pass, so the target at any point already brakes for everything ahead.
 // 4. DRIVING: Stanley steering onto the path + a lateral target (wander, mistakes, avoidance), target speed = profile x pace.
+import { parkMiller } from "./core/random.ts";
 import { groundAt, querySubtrack } from './lab.js';
 import { GRAVITY } from './cars.js';
 import { CAR_STATS } from './carstats.js';
@@ -500,9 +501,9 @@ function roadDriver(lv, traits, rnd) {
 // _jokers (jokers taken) for the joker tactics.
 export function createAIDriver(level, traits = aiTraits(4, 0, 1)) {
   // the ENDLESS highway has no closed lap to plan a line round: the same driver reads the road frame instead (roadDriver above)
-  if (level.endless) { let sd = ((traits.seed || 4242) * 31 + 7) % 2147483647 || 1; return roadDriver(level, traits, () => { sd = (sd * 16807) % 2147483647; return sd / 2147483647; }); }
+  if (level.endless) { return roadDriver(level, traits, parkMiller(((traits.seed || 4242) * 31 + 7) % 2147483647 || 1)); }
   const L = racingLine(level), main = L, B = level._branches, n = L.n;
-  let sd = traits.seed || 4242; const rnd = () => { sd = (sd * 16807) % 2147483647; return sd / 2147483647; };
+  const rnd = parkMiller(traits.seed || 4242);
   const w1 = rnd() * 6.28, w2 = rnd() * 6.28;
   const jLaps = (level.joker && level.joker.laps) || 5;
   // the joker PLAN: a lap drawn from a spread (rarely the first, when the field is packed), tactics can override it on the day

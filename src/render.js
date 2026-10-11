@@ -8,6 +8,7 @@
 // Readability rules applied (CLAUDE.md §4): every car carries a DARK RIM so it never dissolves into the
 // pale floor, the front end is unmistakable (lights + screen rake + steered wheels), and the thing the
 // player must read at a glance — which way the front wheels point — is drawn at full contrast.
+import { parkMiller, hash2d } from "./core/random.ts";
 
 import { FLOOR, FX0, FX1, FY0, FY1, GRID, PAINT, BOARDS, CONES, CONE_R, COL, KERB_W, RUNOFF_W, FENCE,
          VERGE_W, ZONES, BUMPS, LEVEL, BARRIER_HALF, wearMap, WEAR_CELL, PROPS, wearDirty, wearEpoch, groundAt, visualSlopeAt, visualHeightAt, coverCut } from './lab.js';
@@ -1704,8 +1705,7 @@ export function createRenderer(canvas) {
         if (pr.snow) { ctx.fillStyle = '#eef3f7'; ctx.fillRect(-sz / 2 + sz * 0.12, -sz / 2 + sz * 0.06, sz * 0.5, sz * 0.22); }
       } else if (pr.kind === 'crowd') {
         // SPECTATORS: a cluster of people (a 2x2 px head-and-shoulders each, jackets in random colours, a shadow) over w x h m
-        const n = pr.n || 14, w = pr.w || 8, hh = pr.h || 3; let sd = (pr.seed || 7) * 7919;
-        const rr = () => { sd = (sd * 16807) % 2147483647; return sd / 2147483647; };
+        const n = pr.n || 14, w = pr.w || 8, hh = pr.h || 3; const rr = parkMiller((pr.seed || 7) * 7919);
         const JK = ['#c8302c', '#2b56b5', '#e2c13a', '#2f7d4f', '#f2f2f2', '#e07a1f', '#7a3fa0', '#16181d', '#3fb6c9'];
         for (let k = 0; k < n; k++) { const x = (rr() - 0.5) * w * p, y = (rr() - 0.5) * hh * p, z = Math.max(2, 0.55 * p);
           ctx.fillStyle = 'rgba(10,12,16,0.3)'; ctx.fillRect(x + z * 0.3, y + z * 0.4, z, z);
@@ -1943,7 +1943,7 @@ export function createRenderer(canvas) {
       case 'bumper': sh(1.6, 0.3); P(-0.8, -0.15, 1.6, 0.3, c.col || '#c8302c'); P(-0.8, -0.15, 1.6, 0.07, 'rgba(255,255,255,0.3)'); break;
       case 'tarp': P(-0.9, -0.7, 1.8, 1.4, c.col || '#2f6fb0'); P(-0.9, -0.2, 1.8, 0.12, 'rgba(255,255,255,0.18)'); P(0.2, -0.7, 0.12, 1.4, 'rgba(0,0,0,0.15)'); break;
       default: {   // broken: a scatter of bits in its colour
-        let sd = Math.floor(Math.abs((c.hx || 0) * 73.1 + (c.hy || 0) * 19.7)) % 9973 + 1; const rn = () => { sd = (sd * 16807) % 2147483647; return sd / 2147483647; };
+        const rn = parkMiller(Math.floor(Math.abs((c.hx || 0) * 73.1 + (c.hy || 0) * 19.7)) % 9973 + 1);
         const cols = c.kind === 'fluff' ? ['#f6f5ef', '#dcdbd2'] : c.kind === 'sand' ? ['#c4b28c', '#a89470'] : c.kind === 'cardboard' ? ['#b8925e', '#d9c08a'] : ['#8a6a43', '#5e4529'];
         for (let q = 0; q < 14; q++) { const a = rn() * 6.283, rr = Math.sqrt(rn()) * 1.2, w = 0.12 + rn() * 0.3, h = c.kind === 'splinters' ? 0.08 : w; P(Math.cos(a) * rr - w / 2, Math.sin(a) * rr - h / 2, w, h, cols[q % 2]); }
       }
@@ -1967,7 +1967,7 @@ export function createRenderer(canvas) {
           P(-0.8, -0.8, 1.6, 1.6, '#c9a85a'); P(-0.55, -0.55, 1.1, 1.1, '#b48f45'); P(-0.3, -0.3, 0.6, 0.6, '#d8bb6e'); P(-0.08, -0.08, 0.16, 0.16, '#9a7836');
         } else {
           // BURST STRAW: a spread of loose straw squares, the same every frame (seeded by its home position)
-          let sd = Math.floor(Math.abs(c.hx * 73.1 + c.hy * 19.7)) % 9973 + 1; const rn = () => { sd = (sd * 16807) % 2147483647; return sd / 2147483647; };
+          const rn = parkMiller(Math.floor(Math.abs(c.hx * 73.1 + c.hy * 19.7)) % 9973 + 1);
           for (let q = 0; q < 26; q++) { const a = rn() * 6.283, rr = Math.sqrt(rn()) * 1.8, w = 0.2 + rn() * 0.35; P(Math.cos(a) * rr - w / 2, Math.sin(a) * rr - w / 2, w, w, q % 3 ? '#cfae62' : '#a8873f'); }
         }
         ctx.restore(); continue;
@@ -2841,7 +2841,7 @@ export function createRenderer(canvas) {
       const cg = c.getContext('2d'); cg.drawImage(sp.c, 0, 0);
       const img = cg.getImageData(0, 0, c.width, c.height), P = img.data, W = c.width, H = c.height, Lp = sp.Lp, Wp = sp.Wp;
       const seed = (car.num || 1) * 2654435761;
-      const hsh = (x, y) => { let h = (x * 374761393 + y * 668265263 + seed) | 0; h = (h ^ (h >>> 13)) * 1274126177; return ((h ^ (h >>> 16)) >>> 0) / 4294967296; };
+      const hsh = hash2d(seed);
       const L = car.crushL, S = car.crushS, endMax = Lp * 0.26, sideMax = Wp * 0.34;
       for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
         const i = (y * W + x) * 4; if (P[i + 3] === 0) continue;
@@ -2960,7 +2960,7 @@ export function createRenderer(canvas) {
       const g2 = cv.getContext('2d'); g2.drawImage(sp0.c, 0, 0);
       const img = g2.getImageData(0, 0, cv.width, cv.height), P = img.data, W = cv.width, H = cv.height, Lp = sp0.Lp, Hp = sp0.Hp;
       const seed = (car.num || 1) * 40503 + (plus ? 7 : 3);
-      const hsh = (x, y) => { let h = (x * 374761393 + y * 668265263 + seed) | 0; h = (h ^ (h >>> 13)) * 1274126177; return ((h ^ (h >>> 16)) >>> 0) / 4294967296; };
+      const hsh = hash2d(seed);
       const dF = Lp * 0.26 * car.crushL[cF], dR = Lp * 0.22 * car.crushL[cR], rd = car.roofDmg || 0, wr = (s.wheelR || 0.3) * SPRITE_PPM, sill = Hp - wr * 1.15;
       for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
         const i = (y * W + x) * 4; if (P[i + 3] === 0) continue;

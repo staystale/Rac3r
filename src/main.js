@@ -5,6 +5,7 @@
 //   wall clock                    : camera lerp, shift-light flash, fps
 // The vehicle NEVER receives a frame delta. If the accumulator falls behind it drops the remainder
 // rather than catching up in one huge step — a background tab must not produce a 400-step lurch.
+import { lcg } from "./core/random.ts";
 
 import { makeCar, step, reset, assertFinite, DT } from './vehicle.js';
 const resetCar = reset;
@@ -199,7 +200,7 @@ function aiCarIds(n, seed) {
   // parity first: your TYPE (subclass) when it has 2+ cars (a Hatch race = hatches + the Mini, not the Lamborghini), else the whole class
   const sameSub = ROSTER.filter((r) => r.cls === me.cls && r.sub === me.sub);
   const pool = (sameSub.length >= 2 ? sameSub : ROSTER.filter((r) => r.cls === me.cls)).map((r) => r.id);
-  let s = seed >>> 0; const rnd = () => ((s = (Math.imul(s, 1664525) + 1013904223) >>> 0) / 4294967296);
+  const rnd = lcg(seed >>> 0);
   const out = [];
   while (out.length < n) { const deck = pool.slice(); for (let i = deck.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [deck[i], deck[j]] = [deck[j], deck[i]]; } out.push(...deck); }
   return out.slice(0, n);

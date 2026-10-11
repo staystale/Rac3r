@@ -3,6 +3,7 @@
 //
 // A proving-ground floor: pale, bounded by a hazard kerb (A4), with painted figures that give the eye
 // something to measure speed and drift angle against, and cones to aim at.
+import { parkMiller } from "./core/random.ts";
 
 // MEASURED: at 100 (a 200 m floor) the hatch used 83% of the lab just reaching 100 km/h. 150 fixed that
 // but the cars then got much faster again and crossed 300 m in ~5 s (photographed, car off the map).
@@ -2223,8 +2224,7 @@ TH_SUBTRACK.curvedKerbs = autoKerbs(TH_SUBTRACK, { maxR: 70, exitR: 30, heavyR: 
 const thAt = (d, off) => { const p = onTrack(TH_SUBTRACK, d, off, {}); return { x: p.x, y: p.y }; };
 // clear of the road? (centre at least hw + reach + margin from the centreline, and off every lane)
 const thClear = (x, y, reach) => querySubtrack(TH_SUBTRACK, x, y).dist >= TH_SUBTRACK.width / 2 + reach;
-let thSeed = 1968;   // Thruxton opened in 1968
-const thRnd = () => { thSeed = (thSeed * 16807) % 2147483647; return thSeed / 2147483647; };
+const thRnd = parkMiller(1968);   // Thruxton opened in 1968
 // EARTH BANKS round the outside (ukcircuits: "extensive earthen banks ... from Club through Noble"; Woodham Hill Bank on the
 // approach to Club, 2025) — a chain of humps, filtered off the road
 const thBank = (d0, d1, off, step, r, h) => { const out = []; const L = ((d1 - d0) + TH_SUBTRACK.totalDist) % TH_SUBTRACK.totalDist;
@@ -2361,8 +2361,7 @@ const CC_PAINT = [{ kind: 'chequered', x: CC_SUBTRACK.pts[0].x, y: CC_SUBTRACK.p
 // (+ = right of travel; on a clockwise lap that is the INSIDE). Everything generated is filtered off the road, off the given
 // lanes and inside the floor — the Thruston lesson: an outside offset on the inside of a left-hander lands on the track.
 export function trackKit(sub, seed, lanes = []) {
-  let sd = seed;
-  const rnd = () => { sd = (sd * 16807) % 2147483647; return sd / 2147483647; };
+  const rnd = parkMiller(seed);
   const at = (d, off) => smoothOnTrack(sub, d, off);
   const rot = (d) => onTrack(sub, ((d % sub.totalDist) + sub.totalDist) % sub.totalDist, 0, {}).rot;
   const prop = (d, off, o) => ({ ...o, ...at(d, off), rot: rot(d) + (o.rot || 0) });

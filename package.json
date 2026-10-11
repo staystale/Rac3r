@@ -9,12 +9,14 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@typescript/typescript6": "^6.0.2",
     "acorn": "^8.19.0",
     "acorn-walk": "^8.3.5",
     "esbuild": "^0.28.2",
     "eslint": "^10.12.0",
     "globals": "^17.13.0",
     "playwright": "1.61.1",
-    "typescript": "^7.0.2"
+    "typescript": "^7.0.2",
+    "typescript-eslint": "^8.71.1"
   }
 }
