@@ -74,10 +74,7 @@
     "max-lines-per-function": 1
   },
   "src/lab.js": {
-    "complexity": 5,
-    "id-length": 189,
-    "max-len": 188,
-    "no-unused-vars": 3
+    "max-len": 1
   },
   "src/main.js": {
     "complexity": 9,
@@ -155,9 +152,18 @@
     "id-length": 82,
     "max-len": 31
   },
+  "src/world/blend.js": {
+    "complexity": 2,
+    "id-length": 51,
+    "max-len": 60,
+    "no-unused-vars": 1
+  },
   "src/world/bounds.js": {
     "id-length": 2,
     "max-len": 25
+  },
+  "src/world/colours.js": {
+    "max-len": 1
   },
   "src/world/course.js": {
     "id-length": 8,
@@ -177,13 +183,23 @@
     "id-length": 14,
     "max-len": 21
   },
+  "src/world/levels/index.js": {
+    "id-length": 16,
+    "max-len": 35
+  },
   "src/world/levels/killder.js": {
     "id-length": 36,
     "max-len": 62
   },
   "src/world/levels/kit.js": {
-    "id-length": 23,
-    "max-len": 7
+    "id-length": 63,
+    "max-len": 23
+  },
+  "src/world/levels/knobhill.js": {
+    "complexity": 1,
+    "id-length": 44,
+    "max-len": 40,
+    "no-unused-vars": 2
   },
   "src/world/levels/lab-extension.js": {
     "complexity": 1,
@@ -213,6 +229,11 @@
     "id-length": 49,
     "max-len": 81,
     "no-unused-vars": 1
+  },
+  "src/world/load.js": {
+    "complexity": 2,
+    "id-length": 38,
+    "max-len": 35
   },
   "src/world/state.js": {
     "max-len": 3
