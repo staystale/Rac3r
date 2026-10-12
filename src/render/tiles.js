@@ -9,7 +9,7 @@ export function createTiles(view, cam, helpers) {
   const {
     PPMz, sx, sy, drawFloor, drawZones, drawLanes, drawTrackRibbon, drawLaneDashes, drawPatches,
     drawCovers, drawWear, drawCurvedKerbs, SURFACE_ART, PUDDLE_TINT,
-    getFly, FLY_HANDOVER, FLY_PREFETCH, prefetch, standInFill, levelOverview,
+    getFly, FLY_HANDOVER, FLY_PREFETCH, levelOverview, artBase,
   } = helpers;
 
   // ---------------------------------------------------------------- GROUND TILES (2026-10-03)
@@ -344,7 +344,21 @@ export function createTiles(view, cam, helpers) {
   }
   const AHEAD_MAX_MS = 9, AHEAD_S = 0.6;   // look-ahead painting: only below this tile cost; view shifted this many s of travel
 
+  // under a stand-in: the level's own ground colour where it has one (a missing patch reads as grass, not as a hole)
+  const standInFill = () => (LEVEL.base && LEVEL.base.id !== 'lab' ? artBase(LEVEL.base.id, COL.floor) : COL.outside);
+  // paint (without drawing) the tiles of step k covering a view centred on (cx, cy) at zoom z
+  function prefetch(k, cx, cy, z, budget) {
+    const tw = TILE_PX / (view.PPM * zOfStep(k)), p = view.PPM * z;
+    const vx0 = cx - view.W / 2 / p, vx1 = cx + view.W / 2 / p, vy0 = cy - view.H / 2 / p, vy1 = cy + view.H / 2 / p;
+    for (let i = Math.floor(vx0 / tw); i * tw < vx1 && budget.n > 0; i++)
+      for (let j = Math.floor(vy0 / tw); j * tw < vy1 && budget.n > 0; j++) {
+        const key = k + '|' + i + '|' + j;
+        if (!tiles.has(key)) { budget.n--; tiles.set(key, { c: paintTile(k, i, j), used: tileState.tileFrame }); }
+      }
+  }
+
   return {
     tileState, tiles, TILE_PX, ZSTEP, zStepOf, zOfStep, paletteSnap, paintTile, drawGround,
+    prefetch,
   };
 }

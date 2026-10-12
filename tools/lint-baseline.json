@@ -105,10 +105,15 @@
   },
   "src/render.js": {
     "complexity": 1,
-    "id-length": 88,
-    "max-len": 112,
+    "id-length": 47,
+    "max-len": 55,
     "max-lines-per-function": 1,
     "no-unused-vars": 6
+  },
+  "src/render/camera.js": {
+    "id-length": 38,
+    "max-len": 53,
+    "max-lines-per-function": 1
   },
   "src/render/cardamage.js": {
     "complexity": 2,
@@ -163,8 +168,8 @@
   },
   "src/render/tiles.js": {
     "complexity": 2,
-    "id-length": 104,
-    "max-len": 113,
+    "id-length": 109,
+    "max-len": 117,
     "max-lines-per-function": 1
   },
   "src/roll.js": {
