@@ -9,6 +9,7 @@ import type { Cover, CoverCells, CoverId, MergedCell, MergedCover } from "../wor
 import type {
   ArtLayer, Cam, ForSide, PrimFn, SurfaceArt, View, WearGroup,
 } from "./types.ts";
+import { createTextureCache, fillTexture, paintTexture } from "./textures.ts";
 
 // what createGround destructures from the renderer (forSide: a wrapper over createRoad)
 interface GroundHelpers {
@@ -20,10 +21,12 @@ interface GroundHelpers {
   ) => void;
   forSide: ForSide;
   grassEnds: 'round' | 'square';
+  surfaceTextures: boolean;     // ?tex=1: pre-painted repeating textures (textures.ts)
 }
 
 export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
-  const { PPMz, sx, sy, roundRect, forSide, grassEnds } = helpers;
+  const { PPMz, sx, sy, roundRect, forSide, grassEnds, surfaceTextures } = helpers;
+  const textures = createTextureCache(view);
 
   // ---------------------------------------------------------------- floor
   function drawFloor() {
@@ -308,7 +311,17 @@ export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
     if (view.noPatterns) return;
     const art = SURFACE_ART[id];
     if (!art) return;
+    if (surfaceTextures && paintTextured(id, art, [x0, y0, x1, y1])) return;
     for (const L of art.layers) PRIM[L[0]](L, x0, y0, x1, y1);
+  }
+  // ?tex=1: one pattern fill from the pre-painted texture (see textures.ts); false = draw live
+  function paintTextured(name: string, art: SurfaceArt, rect: number[]) {
+    const ppm = PPMz(), square = grassEnds === 'square';
+    const tex = textures.get(`${name}|${square}`, ppm,
+      (gfx, period) => paintTexture(gfx, period, ppm, art.layers, square));
+    if (!tex) return false;
+    fillTexture(view.ctx, tex, view.dpr, ppm, rect);
+    return true;
   }
   const artBase = (id: string, fallback: string) => (
     SURFACE_ART[id] ? SURFACE_ART[id]!.base : fallback

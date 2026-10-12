@@ -9,8 +9,7 @@
     "id-length": 101,
     "max-len": 157,
     "max-lines-per-function": 2,
-    "no-shadow": 1,
-    "no-unused-vars": 1
+    "no-shadow": 1
   },
   "src/ai/line.ts": {
     "complexity": 1,
@@ -26,8 +25,7 @@
     "complexity": 2,
     "id-length": 43,
     "max-len": 126,
-    "max-lines-per-function": 2,
-    "no-unused-vars": 1
+    "max-lines-per-function": 2
   },
   "src/audio.js": {
     "complexity": 1,
@@ -70,6 +68,11 @@
     "max-lines-per-function": 1,
     "no-shadow": 1
   },
+  "src/highwayrace.ts": {
+    "complexity": 1,
+    "id-length": 39,
+    "max-len": 51
+  },
   "src/hud.js": {
     "complexity": 4,
     "id-length": 162,
@@ -77,11 +80,6 @@
     "max-lines-per-function": 3,
     "no-shadow": 1,
     "no-unused-vars": 2
-  },
-  "src/highwayrace.ts": {
-    "complexity": 1,
-    "id-length": 39,
-    "max-len": 51
   },
   "src/input.js": {
     "complexity": 1,
