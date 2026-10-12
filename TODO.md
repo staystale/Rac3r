@@ -64,6 +64,7 @@ Phases:
   is defined twice (checked by a script that lists duplicate function names) and no module reads a
   global it did not import.
   DONE 2026-10-11: src/core/random.ts and src/core/debug.ts replace the copies (tools/survey-phase2.md).
+  GameContext, 2026-10-12: every page-link setting is read once (src/core/settings.ts, checked by tools/settingscheck.mjs); the world is built by explicit calls in main.js and lab.js (initWorld, addStageLevels, addHighwayLevel) instead of import side effects. Still to do: give the `game` object (main.js) a GameContext type when main.js is converted to TypeScript, and pass the current level through it instead of the LEVEL import (owner: "come back to the current level too").
 - [x] **3. Split `lab.js`** into modules with single jobs: level data (one file per level, data only),
   track building (centreline, kerbs, barriers), surfaces and terrain, scenery placement, level
   registry. `lab.js` goes away or becomes a thin index. Imports are explicit and narrow. Level data
@@ -123,6 +124,7 @@ Owner decisions (2026-10-11):
 Order: the overhaul first. LEVELS + EVENTS and every older item wait until it is done. Do not publish to itch.io until the owner approves the converted game.
 Known bugs found during the overhaul (wait until it is done, they are not caused by it):
 - RX race, two jokers: `node tools/racecheck.mjs` (slidden-hill) fails case C. The car is put through the joker gate on lap 2 and again on lap 3; the race never finishes (stuck on lap 3 after 8 minutes, no +30 s penalty). Same result on the original code (commit 857f105, checked 2026-10-12), so it is older than the overhaul. Not yet known whether the game or the test is wrong (the test teleports onto the gate; joker detection became a line that must be crossed on 2026-10-07). Cases A, B and practice pass. racecheck takes about 18 minutes, so it is not in the baseline run.
+- Highway tests failing on the code before these changes too (checked 2026-10-12 on ab938eb and later): `node tools/hwracecheck.mjs` "no racer wrecked (2)" (2 FAILs, counts vary per run), `node tools/trafficcheck.mjs` "motorway: traffic stays on the carriageway (30 car-steps off)", `node tools/treadmillcheck.mjs` "motorway: no litter in a driving lane (2)". Not caused by the overhaul; look at them with phase 5 (AI).
 
 
 
