@@ -1,5 +1,5 @@
 // The CARS layer of render.js (phase 4 split): drawPixelCar and the garage lift sprite.
-import { SPRITE_PPM } from "./shared.js";
+import { SPRITE_PPM } from "./shared.ts";
 
 export function createCars(view, cam, helpers) {
   const {

@@ -19,13 +19,13 @@ import { MARK_PPM } from './marks.js';
 import { createCarSprite } from "./render/carsprite.js";
 import { createCarDamage } from "./render/cardamage.js";
 import { createCars } from "./render/cars.js";
-import { createParticles } from "./render/particles.js";
+import { createParticles } from "./render/particles.ts";
 import { createRoad } from "./render/road.js";
 import { createGround } from "./render/ground.js";
 import { createProps } from "./render/props.js";
 import { createObjects } from "./render/objects.js";
 import { createTiles } from "./render/tiles.js";
-import { createCamera } from "./render/camera.js";
+import { createCamera } from "./render/camera.ts";
 
 // A2 REVISED after photographing it, 2026-09-27. A flat PPM of 16 put a 4 m car at 64 px on a 1280 px
 // desktop — a small orange blob with every drawn detail (mirrors, shut lines, lights, steered wheels)

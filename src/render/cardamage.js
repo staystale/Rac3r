@@ -1,7 +1,7 @@
 // Car DAMAGE (render.js split, phase 4): dented sprites, shadow silhouette, rolled-car faces.
 import { hash2d } from "../core/random.ts";
 import { shade } from "../render.js";   // hoisted, only called at draw time (no cycle)
-import { SPRITE_PPM } from "./shared.js";
+import { SPRITE_PPM } from "./shared.ts";
 
 export function createCarDamage(view) {
   // DAMAGED SPRITES (user, 2026-10-04: "cars should crumple, dent, chip and emit their coloured paint pixels in crashes"): a per-car copy

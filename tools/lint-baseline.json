@@ -110,7 +110,7 @@
     "max-lines-per-function": 1,
     "no-unused-vars": 6
   },
-  "src/render/camera.js": {
+  "src/render/camera.ts": {
     "id-length": 38,
     "max-len": 53,
     "max-lines-per-function": 1
@@ -146,7 +146,7 @@
     "max-len": 68,
     "max-lines-per-function": 2
   },
-  "src/render/particles.js": {
+  "src/render/particles.ts": {
     "id-length": 43,
     "max-len": 30,
     "max-lines-per-function": 1
@@ -163,7 +163,7 @@
     "max-len": 67,
     "max-lines-per-function": 2
   },
-  "src/render/shared.js": {
+  "src/render/shared.ts": {
     "max-len": 1
   },
   "src/render/tiles.js": {

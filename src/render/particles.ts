@@ -1,8 +1,17 @@
 // the PARTICLES layer of render.js (phase 4 of the render.js split): thrown material -
 // puffs, spray, smoke, paint chips and sparks. Moved verbatim from createRenderer.
-import { SPRITE_PPM } from "./shared.js";
+import { SPRITE_PPM } from "./shared.ts";
+import type { Spray } from "../world/types.ts";
+import type { Cam, Chip, ParticleCar, Puff, PuffHit, RenderMarks, View } from "./types.ts";
 
-export function createParticles(view, cam, helpers) {
+// what createParticles destructures from the renderer
+interface ParticleHelpers {
+  PPMz: () => number;
+  sx: (wx: number) => number;
+  sy: (wy: number) => number;
+}
+
+export function createParticles(view: View, cam: Cam, helpers: ParticleHelpers) {
   const { PPMz, sx, sy } = helpers;
   // ---------------------------------------------------------------- thrown material
   // Wall clock (rule 5): something the player WATCHES must not complete inside one frame.
@@ -12,9 +21,11 @@ export function createParticles(view, cam, helpers) {
   // / snow"). WHAT gets thrown is entirely the SURFACE's business — colour, size, rate, how far it is
   // flung, how long it hangs and how much it blooms all come off `surface.spray` in lab.js. This file
   // never learns what snow is, which is the same seam the marks layer uses.
-  const puffs = [];
+  const puffs: Puff[] = [];
   const MAX_PUFFS = 220;      // raised from 40: four wheels throwing continuously needs the headroom
-  function emit(x, y, vx, vy, sp, scale) {
+  function emit(
+    x: number, y: number, vx: number, vy: number, sp: Omit<Spray, "rate">, scale: number,
+  ) {
     if (puffs.length >= MAX_PUFFS) puffs.shift();          // cap; drop the oldest (§4)
     const a = Math.random() * 6.2832;
     const f = sp.lift * scale * (0.35 + Math.random() * 0.65);
@@ -36,7 +47,7 @@ export function createParticles(view, cam, helpers) {
   const BALE_DUST = { rgb: '214,190,128', size: 0.55, lift: 1.6, life: 1.4, grow: 1.1 };
   // a popped SHEEP (S-C): a white FLUFF cloud, no gore
   const FLUFF_PUFF = { rgb: '248,247,240', size: 0.5, lift: 3.2, life: 1.5, grow: 1.0 };
-  function addPuffs(hits) {
+  function addPuffs(hits: PuffHit[]) {
     for (const h of hits) {
       if (h.kind === 'fluff') { for (let i = 0; i < 5; i++) emit(h.x, h.y, (Math.random() - 0.5) * 4, (Math.random() - 0.5) * 4, FLUFF_PUFF, 1); continue; }
       if (h.kind === 'bale') { for (let i = 0; i < 4; i++) emit(h.x, h.y, (Math.random() - 0.5) * 3, (Math.random() - 0.5) * 3, BALE_DUST, 1); continue; }
@@ -50,7 +61,7 @@ export function createParticles(view, cam, helpers) {
   // a fractional remainder, because a rate below one particle per frame must still emit at the right
   // average rather than rounding to nothing.
   let sprayDebt = 0;
-  function addSpray(car, marks, wallDt) {
+  function addSpray(car: ParticleCar, marks: RenderMarks, wallDt: number) {
     const sp = car.surface.spray;
     if (!sp) { sprayDebt = 0; return; }
     const v = Math.hypot(car.vx, car.vy);
@@ -75,7 +86,7 @@ export function createParticles(view, cam, helpers) {
   const SMOKE_T = 115;
   const SMOKE = { rgb: '225,225,230', size: 0.45, lift: 0.9, life: 1.3, grow: 1.9 };
   let smokeDebt = 0;
-  function addSmoke(car, marks, wallDt) {
+  function addSmoke(car: ParticleCar, marks: RenderMarks, wallDt: number) {
     if (!car.tyreT) return;
     const wheels = marks.wheelsOf(car);
     for (const w of wheels) {
@@ -87,7 +98,7 @@ export function createParticles(view, cam, helpers) {
   }
   // a badly hit front (damage.js wreck.smoke) trails grey smoke from the nose — the silent twin of a damaged engine
   const DSMOKE = { rgb: '120,120,128', size: 0.5, lift: 0.7, life: 1.1, grow: 1.6 };
-  function addDamageSmoke(car, wallDt) {
+  function addDamageSmoke(car: ParticleCar, wallDt: number) {
     if (!car.wreck || !car.wreck.smoke) return;
     car._dsDebt = (car._dsDebt || 0) + (Math.hypot(car.vx, car.vy) > 2 ? 10 : 2.5) * wallDt;   // a stopped wreck: a thin wisp (10/s piled into a square haze)
     const ch = Math.cos(car.heading), sh = Math.sin(car.heading), f = car.spec.len * 0.45;
@@ -95,8 +106,8 @@ export function createParticles(view, cam, helpers) {
   }
   // PAINT CHIPS: every hit (damage.js dmgEvents) flings square pixels of the car's paint (and some primer / black trim) from the hurt corner;
   // they skid to a stop and lie on the ground a few seconds. Wall clock (rule 5: watched). Capped, oldest dropped (§4).
-  const chips = [], MAX_CHIPS = 400;
-  function addChips(car) {
+  const chips: Chip[] = [], MAX_CHIPS = 400;
+  function addChips(car: ParticleCar) {
     const ev = car.dmgEvents; if (!ev || !ev.length) return;
     const s = car.spec, ch = Math.cos(car.heading), sh = Math.sin(car.heading);
     for (const e of ev) {
@@ -112,7 +123,7 @@ export function createParticles(view, cam, helpers) {
     ev.length = 0;
   }
   // SPARKS (roll.js car.sparks: on its side / roof on hard ground): short bright pixels thrown back from the body, wall clock
-  function addSparks(car, wallDt) {
+  function addSparks(car: ParticleCar, wallDt: number) {
     if (!car.sparks) return;
     car._spDebt = (car._spDebt || 0) + 60 * wallDt;
     while (car._spDebt >= 1) { car._spDebt--;
@@ -121,7 +132,7 @@ export function createParticles(view, cam, helpers) {
       chips.push({ x: car.x + ch * ox - sh * oy, y: car.y + sh * ox + ch * oy, vx: -car.vx * 0.3 + Math.cos(a) * v, vy: -car.vy * 0.3 + Math.sin(a) * v, age: 0, life: 0.25 + Math.random() * 0.3, col: Math.random() < 0.6 ? '#ffd85a' : '#ffffff', sz: 2 });
     }
   }
-  function drawChips(wallDt) {
+  function drawChips(wallDt: number) {
     const u = PPMz() / SPRITE_PPM;
     for (let i = chips.length - 1; i >= 0; i--) {
       const q = chips[i]; q.age += wallDt; if (q.age > q.life) { chips.splice(i, 1); continue; }
@@ -131,7 +142,7 @@ export function createParticles(view, cam, helpers) {
     }
     view.ctx.globalAlpha = 1;
   }
-  function drawPuffs(wallDt) {
+  function drawPuffs(wallDt: number) {
     const p = PPMz();
     for (let i = puffs.length - 1; i >= 0; i--) {
       const q = puffs[i];

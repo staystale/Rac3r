@@ -373,6 +373,13 @@ export interface Level {
   obstacles?: Obstacle[];
   endless?: boolean;   // blend.ts: the 100 km highway
   _coversBase?: Cover[];   // blend.ts: the hand-placed covers
+  _hw?: HighwayState;   // highway.js: the endless road (only the fields the camera reads)
+}
+
+// LEVEL._hw as the camera reads it: the look-ahead direction and the road points' distance.
+export interface HighwayState {
+  camDir: { x: number; y: number };
+  pts: { s: number }[];
 }
 
 // One resampled centre-line point of a subtrack.

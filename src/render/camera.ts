@@ -4,8 +4,22 @@ import { FX0, FX1, FY0, FY1 } from "../world/bounds.ts";
 import { LEVEL } from "../world/state.ts";
 // LOOKAHEAD, ZOOM_MIN: read only inside functions (draw time), so the import cycle is harmless
 import { LOOKAHEAD, ZOOM_MIN } from "../render.js";
+import type { Cam, CamCar, CamState, View } from "./types.ts";
 
-export function createCamera(view, cam, helpers) {
+// what createCamera destructures from the renderer
+interface CameraHelpers {
+  PPMz: () => number;
+  drawFloor: () => void;
+  drawZones: () => void;
+  drawLanes: () => void;
+  drawTrackRibbon: () => void;
+  drawPatches: () => void;
+  drawCovers: () => void;
+  drawCurvedKerbs: () => void;
+  paletteSnap: (c: HTMLCanvasElement) => void;
+}
+
+export function createCamera(view: View, cam: Cam, helpers: CameraHelpers) {
   const {
     PPMz, drawFloor, drawZones, drawLanes, drawTrackRibbon, drawPatches, drawCovers,
     drawCurvedKerbs, paletteSnap,
@@ -13,7 +27,7 @@ export function createCamera(view, cam, helpers) {
 
   // camera follows with a lead in the direction of travel, smoothed on the WALL CLOCK (rule 5 — this
   // is something the player watches, so it must not run on sim time)
-  function follow(car, wallDt) {
+  function follow(car: CamCar, wallDt: number) {
     // Lead scaled by the zoom: at 50 m/s a flat 0.35 s lead is 18 m, which on a zoomed-in view shoves
     // the car to the edge of the screen. Zoomed out there is room for it, zoomed in there is not.
     const lead = 0.35 * view.zoom;
@@ -33,8 +47,9 @@ export function createCamera(view, cam, helpers) {
     if (!cam.initialised) { cam.lx = lx; cam.ly = ly; cam.initialised = true; }
     if (cam.lx === undefined) { cam.lx = cam.x - car.x; cam.ly = cam.y - car.y; }   // hand-over from the fly-in
     const k = 1 - Math.exp(-4 * wallDt);
-    cam.lx += (lx - cam.lx) * k; cam.ly += (ly - cam.ly) * k;
-    cam.x = car.x + cam.lx; cam.y = car.y + cam.ly;
+    // cam.ly! throughout: set together with lx just above
+    cam.lx += (lx - cam.lx) * k; cam.ly! += (ly - cam.ly!) * k;
+    cam.x = car.x + cam.lx; cam.y = car.y + cam.ly!;
   }
 
   // SPEED ZOOM. Asked for by the user and by the playtesters: above ~120 km/h the car was running off
@@ -49,7 +64,7 @@ export function createCamera(view, cam, helpers) {
   const FLY_TIME = 1.5;           // s of the move itself (ease-in-out, in log zoom)
   // the camera state other layers read: fly (the fly-in, or null), ovCache (the overview picture), vZoom
   // (the slow-averaged speed), pinZoom (tools only: debugZoom - the photo tools pin the wide view)
-  const camState = { fly: null, ovCache: null, vZoom: null, pinZoom: null };
+  const camState: CamState = { fly: null, ovCache: null, vZoom: null, pinZoom: null };
   // the level's extent: the circuit plus a margin, or the whole floor (shared by the fly-in and the menu thumbnails)
   function levelBounds() {
     let x0 = FX0, x1 = FX1, y0 = FY0, y1 = FY1;   // the floor rectangle (S-B: the lab is 520 x 1000)
@@ -95,10 +110,10 @@ export function createCamera(view, cam, helpers) {
   // scaled while zoom < FLY_HANDOVER, while the close-up tiles round the car are pre-painted FLY_PREFETCH per
   // frame — so by the hand-over they are already there.
   const FLY_HANDOVER = 0.28, FLY_PREFETCH = 2, OVERVIEW_PX = 2048;
-  function paintOverview(x0, y0, x1, y1, size = OVERVIEW_PX) {
+  function paintOverview(x0: number, y0: number, x1: number, y1: number, size = OVERVIEW_PX) {
     const ow = size, oh = Math.max(1, Math.round(size * (y1 - y0) / (x1 - x0)));
     const c = document.createElement('canvas'); c.width = ow; c.height = oh;
-    const g = c.getContext('2d');
+    const g = c.getContext('2d')!;   // a fresh canvas always gives a 2d context
     const keep = { ctx: view.ctx, W: view.W, H: view.H, zoom: view.zoom, cx: cam.x, cy: cam.y };
     view.ctx = g; view.W = ow; view.H = oh; view.zoom = ow / (view.PPM * (x1 - x0)); cam.x = (x0 + x1) / 2; cam.y = (y0 + y1) / 2;
     view.noPatterns = true;
@@ -107,7 +122,7 @@ export function createCamera(view, cam, helpers) {
     paletteSnap(c);
     return { c, x0, y0, x1, y1 };
   }
-  function updateFly(car, wallDt) {
+  function updateFly(car: CamCar, wallDt: number) {
     if (!camState.fly) return false;
     camState.fly.t += wallDt;
     const k = Math.min(1, Math.max(0, camState.fly.t - FLY_HOLD) / FLY_TIME);
@@ -122,7 +137,7 @@ export function createCamera(view, cam, helpers) {
     cam.lx = undefined;
     return true;
   }
-  function updateZoom(car, wallDt) {
+  function updateZoom(car: CamCar, wallDt: number) {
     if (camState.pinZoom) { view.zoom = camState.pinZoom; return; }
     // PROPORTIONAL TO SPEED, properly: hold the TIME-to-horizon constant rather than easing along an
     // arbitrary curve. You always see LOOKAHEAD seconds of road, so the distance visible scales
