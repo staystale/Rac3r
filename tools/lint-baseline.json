@@ -79,7 +79,7 @@
   "src/main.js": {
     "complexity": 9,
     "id-length": 224,
-    "max-len": 283,
+    "max-len": 282,
     "max-lines": 1,
     "max-lines-per-function": 1,
     "no-shadow": 2,
@@ -195,8 +195,8 @@
     "max-lines-per-function": 2
   },
   "src/tune.js": {
-    "id-length": 67,
-    "max-len": 7
+    "id-length": 68,
+    "max-len": 5
   },
   "src/vehicle.js": {
     "complexity": 2,

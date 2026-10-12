@@ -13,6 +13,9 @@
 
 import { TUNE } from './vehicle.js';
 
+let tuneAudio = null;   // the game's audio, handed over by main.js (setTuneAudio)
+export function setTuneAudio(a) { tuneAudio = a; }
+
 // Izz depends on mass AND izzK, so anything touching either has to rebuild it.
 function recalcIzz(car) {
   const s = car.spec;
@@ -87,8 +90,8 @@ export const ROWS = [
     step: 0.04, min: 0.08, max: 1.40, fmt: (v) => v.toFixed(2) },
 
   { label: 'Volume', hint: 'engine & tyre audio',
-    get: () => (typeof window !== 'undefined' && window.__game?.audio ? window.__game.audio.volume : 0.5),
-    set: (c, v) => { if (typeof window !== 'undefined' && window.__game?.audio) window.__game.audio.setVolume(v); },
+    get: () => (tuneAudio ? tuneAudio.volume : 0.5),
+    set: (c, v) => { if (tuneAudio) tuneAudio.setVolume(v); },
     step: 0.1, min: 0.0, max: 1.0, fmt: (v) => Math.round(v * 100) + '%' },
 ];
 

@@ -29,7 +29,7 @@ import { carContacts, slipstream } from './contact.js';
 import { createRaceFlow } from './raceflow.js';
 import { hit, hitRoll, repair, resetBill, tooInjured } from './damage.js';
 import { rolling, tripCheck, stepRoll } from './roll.js';
-import { nudge, resetAll, snapshot } from './tune.js';
+import { nudge, resetAll, setTuneAudio, snapshot } from './tune.js';
 import { TUNE } from './vehicle.js';
 import { initWorld, setLevel } from "./world/load.ts";
 import { SPAWN, LEVEL } from "./world/state.ts";
@@ -59,6 +59,7 @@ if (!(settings.menu === '1' || (settings.menu !== '0' && !navigator.webdriver)))
 
 const game = {
   dev: DEV,
+  settings,   // every page-link setting (core/settings.ts), for the code handed this object
   car: makeCar(settings.carId && CAR_IDS.includes(settings.carId) ? settings.carId : 'hatch-rwd'),
   cones: createCones(),
   marks: createMarks(),
@@ -606,6 +607,7 @@ let guidePending = false, rulesPending = null;
 const renderer = createRenderer(canvas, settings);
 const audio = createAudio();
 game.audio = audio;
+setTuneAudio(audio);
 const input = createInput(canvas, {
   mode: settings.inputMode,
   // Asked BEFORE the steering stick or the pedals get a chance to claim the pointer, so a control
