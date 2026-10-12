@@ -19,10 +19,11 @@ interface GroundHelpers {
     g: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number
   ) => void;
   forSide: ForSide;
+  grassEnds: 'round' | 'square';
 }
 
 export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
-  const { PPMz, sx, sy, roundRect, forSide } = helpers;
+  const { PPMz, sx, sy, roundRect, forSide, grassEnds } = helpers;
 
   // ---------------------------------------------------------------- floor
   function drawFloor() {
@@ -165,7 +166,7 @@ export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
     blades(L, x0, y0, x1, y1) {
       const [, col, sp, len, wid, prob = 1] = L, p = PPMz();
       if (len * p < 2 || sp * p < 2.5) return;
-      view.ctx.strokeStyle = col; view.ctx.lineWidth = Math.max(1, wid * p); view.ctx.lineCap = 'round'; view.ctx.beginPath();
+      view.ctx.strokeStyle = col; view.ctx.lineWidth = Math.max(1, wid * p); view.ctx.lineCap = grassEnds === 'square' ? 'butt' : 'round'; view.ctx.beginPath();
       lattice(x0, y0, x1, y1, sp, prob, (x, y, a, b) => {
         const l = len * p * (0.7 + 0.6 * b), t = (a - 0.5) * 0.9;
         view.ctx.moveTo(x, y); view.ctx.lineTo(x + Math.sin(t - 0.35) * l, y - Math.cos(t - 0.35) * l);

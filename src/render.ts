@@ -103,7 +103,8 @@ export function createRenderer(canvas: HTMLCanvasElement, settings: Settings) {
   const {
     drawFloor, SURFACE_ART, paintLayers, artBase, drawZones, PUDDLE_TINT, drawPatches,
     drawCovers, drawWear, drawBumps, drawRunoff,
-  } = createGround(view, cam, { PPMz, sx, sy, roundRect, forSide: (...a) => forSide(...a) });
+  } = createGround(view, cam, { PPMz, sx, sy, roundRect, forSide: (...a) => forSide(...a),
+    grassEnds: settings.grassEnds });
   const {
     drawLanes, drawTrackRibbon, drawLaneDashes, drawCurvedKerbs, drawPaint, forSide,
     drawKerb, drawSlip, drawMarks, drawArrows,
