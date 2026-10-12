@@ -1,6 +1,6 @@
 import { parkMiller } from "../../core/random.ts";
 import { alongTrack, smoothOnTrack } from "../barriers.js";
-import { autoKerbs } from "../subtrack.js";
+import { autoKerbs } from "../subtrack.ts";
 import { FLOOR } from "../bounds.ts";
 import { onTrack, querySubtrack } from "../tyrewall.js";
 export const ss01 = (x) => (x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x));

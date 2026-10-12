@@ -1,5 +1,5 @@
 import { SURFACES } from "../surfaces.ts";
-import { createSubtrack } from "../subtrack.js";
+import { createSubtrack } from "../subtrack.ts";
 // =============================================================================================
 // GRASS OVAL (Dirt/Grass/Mud Track — PLAN.md §3)
 // Counter-clockwise (turning left). Start/finish at x=0, y=38.

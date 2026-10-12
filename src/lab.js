@@ -8,7 +8,7 @@ export * from "./world/state.ts";
 export * from "./world/surfaces.ts";
 export * from "./world/barriers.js";
 export * from "./world/course.ts";
-export * from "./world/subtrack.js";
+export * from "./world/subtrack.ts";
 export * from "./world/levels/lab-extension.js";
 export * from "./world/zones.js";
 export * from "./world/terrain.js";

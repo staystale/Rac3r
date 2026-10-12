@@ -164,4 +164,93 @@ export interface Level {
   props?: Prop[];
   bounds?: Rect;
   floor?: number;
+  subtrack?: Subtrack;
+}
+
+// One resampled centre-line point of a subtrack.
+export interface TrackPoint {
+  x: number;
+  y: number;
+  dist: number;
+  dirX: number;
+  dirY: number;
+  nx: number;
+  ny: number;
+  heading: number;
+  width: number;
+}
+
+// A stretch of the lap with its own surface; startDist > endDist wraps over the start line.
+export interface Sector {
+  startDist: number;
+  endDist: number;
+  surface: Surface;
+}
+
+// A kerb along the road edge. 'left' = the +normal side.
+export interface CurvedKerb {
+  side: 'left' | 'right';
+  startDist: number;
+  endDist: number;
+  width: number;
+  h: number;
+}
+
+// One padded road segment of the lookup grid.
+export interface SubSeg {
+  ax: number;
+  ay: number;
+  bx: number;
+  by: number;
+  dx: number;
+  dy: number;
+  l2: number;
+  len: number;
+  minX: number;
+  maxX: number;
+  minY: number;
+  maxY: number;
+  ghost?: boolean;   // set by ghostSegment
+}
+
+// What createSubtrack returns (the track centre line and its lookup grid).
+export interface Subtrack {
+  pts: TrackPoint[];
+  segs: SubSeg[];
+  totalDist: number;
+  width: number;
+  sectors: Sector[];
+  sectorAt: (dist: number) => Sector | { surface: Surface };
+  curvedKerbs: CurvedKerb[];
+  grid: Map<number, number[]>;
+  ghost?: { d0: number; d1: number };   // ghostSegment
+  noLines?: boolean;   // stagegen.js
+  laneDash?: number[];   // highway.js
+  laneSolid?: number[];   // highway.js
+  sBase?: number;   // highway.js
+  layoutId?: number;   // highway.js, grass-track.js: a new value means cached ground is stale
+}
+
+// Options of autoKerbs (all optional; defaults in subtrack.ts).
+export interface AutoKerbOptions {
+  maxR?: number;
+  exitR?: number;
+  width?: number;
+  h?: number;
+  heavyR?: number;
+  heavyW?: number;
+  heavyH?: number;
+  minTurn?: number;
+  mergeGap?: number;
+}
+
+// Options of traceTrack (all optional; defaults in subtrack.ts).
+export interface TraceOptions {
+  mpp?: number;
+  cx?: number;
+  cy?: number;
+  step?: number;
+  rMin?: number;
+  passes?: number;
+  kern?: number;
 }

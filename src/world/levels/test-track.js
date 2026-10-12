@@ -1,5 +1,5 @@
 import { SURFACES } from "../surfaces.ts";
-import { createSubtrack } from "../subtrack.js";
+import { createSubtrack } from "../subtrack.ts";
 import { prepBumps } from "../terrain.js";
 import { courseCones } from "../tyrewall.js";
 // =============================================================================================

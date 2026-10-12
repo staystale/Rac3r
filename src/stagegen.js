@@ -9,7 +9,7 @@
 // Then the dressing, by theme: trees / rocks / crowds / chevrons / bales / tape / flags / marshals / boards / gantries / ice / water.
 import { lcg } from "./core/random.ts";
 import { finishLevel } from "./world/load.js";   // the world is set up before this file runs (as importing lab.js did)
-import { createSubtrack, ghostSegment, autoKerbs } from "./world/subtrack.js";
+import { createSubtrack, ghostSegment, autoKerbs } from "./world/subtrack.ts";
 import { onTrack, querySubtrack } from "./world/tyrewall.js";
 import { alongTrack, solidsFromProps } from "./world/barriers.js";
 import { SURFACES } from "./world/surfaces.ts";

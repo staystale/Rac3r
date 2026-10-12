@@ -1,5 +1,5 @@
 import { SURFACES } from "../surfaces.ts";
-import { createSubtrack } from "../subtrack.js";
+import { createSubtrack } from "../subtrack.ts";
 // =============================================================================================
 // STOCK CAR OVAL (Tarmac with broken sections — PLAN.md §3)
 // Counter-clockwise (turning left). Start/finish at x=0, y=48.

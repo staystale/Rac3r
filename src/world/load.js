@@ -2,7 +2,7 @@ import { setFloor, setRect } from "./bounds.ts";
 import { LEVEL, setActiveLevel } from "./state.ts";
 import { SURFACES, SURFACE_TRAP } from "./surfaces.ts";
 import { alongTrack, prepBarriers } from "./barriers.js";
-import { autoKerbs } from "./subtrack.js";
+import { autoKerbs } from "./subtrack.ts";
 import { laneAt } from "./zones.js";
 import { resetNatLevel } from "./terrain.js";
 import { PATCH_CELL, patchKey, PATCH_GRID, resetPATCH_GRID, HEAT_OFFROAD } from "./wear.js";

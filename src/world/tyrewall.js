@@ -1,5 +1,5 @@
 // tyrewall.js - the OUTER TYRE WALL section. Moved verbatim out of lab.js.
-import { SUB_CELL } from "./subtrack.js";
+import { SUB_CELL } from "./subtrack.ts";
 import { COURSE, GATE, GATE_SPACING, smoothPath } from "./course.ts";
 import { qsHintSub, qsHint } from "./wear.js";
 

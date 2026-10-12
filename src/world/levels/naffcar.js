@@ -1,5 +1,5 @@
 import { SURFACES } from "../surfaces.ts";
-import { createSubtrack } from "../subtrack.js";
+import { createSubtrack } from "../subtrack.ts";
 // =============================================================================================
 // NAFFCAR SPEEDWAY (Super Speedway — PLAN.md §3)
 // Counter-clockwise (turning left). Max extent 226m (fits cleanly within 302m world fence).

@@ -1,5 +1,9 @@
 import { SURFACES } from "./surfaces.ts";
 import { smoothPath } from "./course.ts";
+import type {
+  AutoKerbOptions, CurvedKerb, Point, Sector, SubSeg, Subtrack, Surface, TraceOptions,
+  TrackPoint,
+} from "./types.ts";
 // =============================================================================================
 // SUBTRACK SYSTEM (for circuit recovery / reset and lap progress tracking)
 // AUTO KERBS (2026-10-03; user: "check the kerbs, they look a bit broken"). MEASURED on Thruston: kerbs placed by NAMED corner
@@ -9,16 +13,19 @@ import { smoothPath } from "./course.ts";
 // inside of a RIGHT-hander (heading increasing, y-down).
 // MERGE + MIN TURN (2026-10-04, Thruston re-trace): on a traced lap the curvature still ripples, so one sweeper came out as 3-6 kerbs
 // with gaps. Corners turning less than minTurn deg get none (a kink is not a corner); same-side kerbs closer than mergeGap m join.
-export function autoKerbs(st, { maxR = 70, exitR = 30, width = 2.4, h = 0.11, heavyR = 0, heavyW = 3.0, heavyH = 0.14, minTurn = 0, mergeGap = 0 } = {}) {
+export function autoKerbs(st: Subtrack, {
+  maxR = 70, exitR = 30, width = 2.4, h = 0.11, heavyR = 0, heavyW = 3.0, heavyH = 0.14,
+  minTurn = 0, mergeGap = 0,
+}: AutoKerbOptions = {}): CurvedKerb[] {
   const pts = st.pts, n = pts.length;
-  const R = [], turn = [];
+  const R: number[] = [], turn: number[] = [];
   for (let i = 0; i < n; i++) {
     const a0 = pts[(i - 3 + n) % n], a1 = pts[(i + 3) % n];
     let dh = a1.heading - a0.heading; dh = Math.atan2(Math.sin(dh), Math.cos(dh));
     R.push(Math.max(1, ((a1.dist - a0.dist) + st.totalDist) % st.totalDist) / Math.max(1e-4, Math.abs(dh)));
     turn.push(dh > 0 ? 1 : -1);
   }
-  const kerbs = [];
+  const kerbs: CurvedKerb[] = [];
   let i = 0;
   // start scanning at a point that is NOT in a corner, so a corner spanning the line is found whole
   let start = 0; while (start < n && R[start] < maxR) start++;
@@ -48,7 +55,7 @@ export function autoKerbs(st, { maxR = 70, exitR = 30, width = 2.4, h = 0.11, he
   if (!mergeGap) return kerbs;
   // join same-side kerbs that nearly touch (the longer/heavier style wins); order by start
   kerbs.sort((p, q) => p.startDist - q.startDist);
-  const out = [];
+  const out: CurvedKerb[] = [];
   for (const k of kerbs) {
     const prev = [...out].reverse().find((o) => o.side === k.side);
     if (prev && k.startDist - prev.endDist < mergeGap && k.startDist >= prev.startDist) {
@@ -69,11 +76,13 @@ export function autoKerbs(st, { maxR = 70, exitR = 30, width = 2.4, h = 0.11, he
 // "straight" and "tight" and autoKerbs laid ~55 fragments (MEASURED: 84 corner edges round the lap). A CENTRIPETAL Catmull-Rom
 // through the points (alpha 0.5: no cusps or loops where points bunch, which is what kinked the uniform one) then smoothing
 // over +-3 samples: 36 edges.
-export function traceTrack(mapPts, { mpp = 0.47, cx = 480, cy = 338, step = 1.5, rMin = 12, passes = 10, kern = 3 } = {}) {
-  const centripetal = (p) => {
-    const n = p.length, out = [];
-    const tj = (a, b) => Math.sqrt(Math.hypot(b[0] - a[0], b[1] - a[1])) || 1e-3;
-    const L = (A, B, ta, tb, t) => [(A[0] * (tb - t) + B[0] * (t - ta)) / (tb - ta), (A[1] * (tb - t) + B[1] * (t - ta)) / (tb - ta)];
+export function traceTrack(mapPts: Point[], {
+  mpp = 0.47, cx = 480, cy = 338, step = 1.5, rMin = 12, passes = 10, kern = 3,
+}: TraceOptions = {}): Point[] {
+  const centripetal = (p: Point[]): Point[] => {
+    const n = p.length, out: Point[] = [];
+    const tj = (a: Point, b: Point) => Math.sqrt(Math.hypot(b[0] - a[0], b[1] - a[1])) || 1e-3;
+    const L = (A: Point, B: Point, ta: number, tb: number, t: number): Point => [(A[0] * (tb - t) + B[0] * (t - ta)) / (tb - ta), (A[1] * (tb - t) + B[1] * (t - ta)) / (tb - ta)];
     for (let i = 0; i < n; i++) {
       const P0 = p[(i - 1 + n) % n], P1 = p[i], P2 = p[(i + 1) % n], P3 = p[(i + 2) % n];
       const t0 = 0, t1 = t0 + tj(P0, P1), t2 = t1 + tj(P1, P2), t3 = t2 + tj(P2, P3);
@@ -86,8 +95,8 @@ export function traceTrack(mapPts, { mpp = 0.47, cx = 480, cy = 338, step = 1.5,
     }
     return out;
   };
-  const resample = (p) => {
-    const out = []; const n = p.length; let carry = 0;
+  const resample = (p: Point[]): Point[] => {
+    const out: Point[] = []; const n = p.length; let carry = 0;
     for (let i = 0; i < n; i++) {
       const a = p[i], b = p[(i + 1) % n], L = Math.hypot(b[0] - a[0], b[1] - a[1]);
       let t = carry; while (t < L) { out.push([a[0] + (b[0] - a[0]) * t / L, a[1] + (b[1] - a[1]) * t / L]); t += step; }
@@ -95,14 +104,15 @@ export function traceTrack(mapPts, { mpp = 0.47, cx = 480, cy = 338, step = 1.5,
     }
     return out;
   };
-  const lap = (p, k, mask, w = 1) => p.map((q, i) => {
+  const lap = (p: Point[], k: number, mask: boolean[] | null, w = 1): Point[] =>
+    p.map((q, i): Point => {
     if (mask && !mask[i]) return q;
     const a = p[(i - w + p.length) % p.length], b = p[(i + w) % p.length];
     return [q[0] + k * ((a[0] + b[0]) / 2 - q[0]), q[1] + k * ((a[1] + b[1]) / 2 - q[1])];
   });
   // R over an 8 m arc from SEGMENT headings (chord-to-chord angles averaged a short sharp bend away: Club read 11.7 m by the
   // chords and 6.6 m by the 8 m arc that kerbside.mjs uses — the same measure now)
-  const radii = (p) => { const n = p.length, h = Math.max(1, Math.round(4 / step));
+  const radii = (p: Point[]) => { const n = p.length, h = Math.max(1, Math.round(4 / step));
     const hd = p.map((q, i) => { const b = p[(i + 1) % n]; return Math.atan2(b[1] - q[1], b[0] - q[0]); });
     return p.map((_, i) => { let d = hd[(i + h) % n] - hd[(i - h + n) % n]; d = Math.atan2(Math.sin(d), Math.cos(d));
       return (2 * h * step) / Math.max(1e-4, Math.abs(d)); }); };
@@ -119,11 +129,14 @@ export function traceTrack(mapPts, { mpp = 0.47, cx = 480, cy = 338, step = 1.5,
   return resample(p);
 }
 export const SUB_CELL = 16;   // m, subtrack lookup grid cell
-export function createSubtrack(apexes, width = 13, sectors = [], curvedKerbs = [], dense = false) {
+export function createSubtrack(
+  apexes: Point[], width = 13, sectors: Sector[] = [], curvedKerbs: CurvedKerb[] = [],
+  dense = false,
+): Subtrack {
   const pts = dense ? apexes : smoothPath(apexes, 20);
   let totalDist = 0;
-  const sampled = [];
-  const segs = [];
+  const sampled: TrackPoint[] = [];
+  const segs: SubSeg[] = [];
   const n = pts.length;
   for (let i = 0; i < n; i++) {
     const a = pts[i];
@@ -149,7 +162,7 @@ export function createSubtrack(apexes, width = 13, sectors = [], curvedKerbs = [
     });
   }
 
-  function sectorAt(dist) {
+  function sectorAt(dist: number): Sector | { surface: Surface } {
     if (!sectors.length) return { surface: SURFACES.tarmac };
     for (let i = 0; i < sectors.length; i++) {
       const s = sectors[i];
@@ -164,7 +177,7 @@ export function createSubtrack(apexes, width = 13, sectors = [], curvedKerbs = [
 
   // LOOKUP GRID (perf, 2026-10-03): segment indices per SUB_CELL m square of their padded box, so querySubtrack checks a
   // handful of segments instead of every one. MEASURED: a shaded Test Track ground tile cost 34 ms at phone-ish CPU speed.
-  const grid = new Map();
+  const grid = new Map<number, number[]>();
   segs.forEach((g, i) => {
     for (let cx = Math.floor(g.minX / SUB_CELL); cx <= Math.floor(g.maxX / SUB_CELL); cx++)
       for (let cy = Math.floor(g.minY / SUB_CELL); cy <= Math.floor(g.maxY / SUB_CELL); cy++) {
@@ -178,7 +191,7 @@ export function createSubtrack(apexes, width = 13, sectors = [], curvedKerbs = [
 // roads are closed loops (distances wrap at the start line); a point-to-point stage keeps that arithmetic by closing its loop with ONE
 // invisible segment from the stop-zone end back to the run-up before the start. A ghost segment is not road: it is out of the lookup grid
 // (querySubtrack never returns it, so physics / ground / resets / AI-progress never see it) and render.js does not draw it.
-export function ghostSegment(sub, i) {
+export function ghostSegment(sub: Subtrack, i: number): Subtrack {
   sub.segs[i].ghost = true;
   for (const l of sub.grid.values()) { const k = l.indexOf(i); if (k >= 0) l.splice(k, 1); }
   sub.ghost = { d0: sub.pts[i].dist, d1: sub.pts[(i + 1) % sub.pts.length].dist || sub.totalDist };
