@@ -1,5 +1,5 @@
 // Shared render-layer shapes; the CARS / AI / GAME ones list only the fields the render code reads.
-import type { Level, Spray } from "../world/types.ts";
+import type { Level, Point, Spray } from "../world/types.ts";
 
 // The shared view object render.js creates.
 export interface View {
@@ -88,8 +88,40 @@ export interface ParticleCar extends CamCar {
 // What the particles read of the marks layer.
 export interface RenderMarks {
   wheelsOf: (car: ParticleCar) => RenderWheel[];
+  origin: Point;   // the world point the marks canvas is centred on (a getter in marks.js)
+  canvas: HTMLCanvasElement;
 }
 
+// One layer of a surface's art: [kind, colour, ...numbers in metres] (see PRIM in ground.ts).
+export type ArtLayer = [string, string, ...number[]];
+
+// How one surface is painted: a base colour, then layers drawn in order (SURFACE_ART in ground.ts).
+export interface SurfaceArt {
+  base: string;
+  layers: ArtLayer[];
+}
+
+// One pattern painter of PRIM: draws a layer over a world rectangle.
+export type PrimFn = (layer: ArtLayer, x0: number, y0: number, x1: number, y1: number) => void;
+
+// forSide(i, fn): runs fn in the frame of floor side i (px per metre, edge distance, half length).
+export type ForSide = (
+  side: number, fn: (ppm: number, dist: number, half: number) => void
+) => void;
+
+// What drawArrows reads of the game.
+export interface RoadGame {
+  jokerTaken?: boolean;
+}
+
+// The worn cells of one surface for one drawWear pass: rects as x, y, w, h, and their world box.
+export interface WearGroup {
+  r: number[];
+  bx0: number;
+  by0: number;
+  bx1: number;
+  by1: number;
+}
 // A hit that throws dust: a cone, a bale or a sheep.
 export interface PuffHit {
   kind?: string;

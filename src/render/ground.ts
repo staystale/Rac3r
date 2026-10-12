@@ -5,8 +5,23 @@ import { ZONES, BUMPS, LEVEL } from "../world/state.ts";
 import { COL } from "../world/colours.ts";
 import { VERGE_W } from "../world/surfaces.ts";
 import { wearMap, WEAR_CELL, groundAt, coverCut } from "../world/wear.ts";
+import type { Cover, CoverCells, CoverId, MergedCell, MergedCover } from "../world/types.ts";
+import type {
+  ArtLayer, Cam, ForSide, PrimFn, SurfaceArt, View, WearGroup,
+} from "./types.ts";
 
-export function createGround(view, cam, helpers) {
+// what createGround destructures from the renderer (forSide: a wrapper over createRoad)
+interface GroundHelpers {
+  PPMz: () => number;
+  sx: (wx: number) => number;
+  sy: (wy: number) => number;
+  roundRect: (
+    g: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number
+  ) => void;
+  forSide: ForSide;
+}
+
+export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
   const { PPMz, sx, sy, roundRect, forSide } = helpers;
 
   // ---------------------------------------------------------------- floor
@@ -69,7 +84,9 @@ export function createGround(view, cam, helpers) {
   // fine as it needs to be and costs the same at any zoom. Squares, not arcs: at grain size they read
   // identically and they are far cheaper.
   const MARKS_MAX = 30000;      // most marks one pattern layer may place in one call (see speckle)
-  function speckle(x0, y0, x1, y1, colour, spacing, size) {
+  function speckle(
+    x0: number, y0: number, x1: number, y1: number, colour: string, spacing: number, size: number
+  ) {
     const p = PPMz();
     const px = Math.max(1, size * p);
     if (px < 1.1 && spacing * p < 3) return;      // too far out to resolve: skip it entirely
@@ -108,7 +125,10 @@ export function createGround(view, cam, helpers) {
   // CULLED to the view so cost depends on the screen not the world, skipped entirely when the feature
   // would be under ~1 px, and BATCHED into one path per layer (one fill/stroke call, not one per mark).
   // Callers have translated the context to the world origin, so coordinates are world metres * p.
-  function lattice(x0, y0, x1, y1, spacing, prob, fn) {
+  function lattice(
+    x0: number, y0: number, x1: number, y1: number, spacing: number, prob: number,
+    fn: (x: number, y: number, a: number, b: number, c: number, p: number) => void
+  ) {
     const p = PPMz();
     const vx0 = Math.max(x0, cam.x - view.W / 2 / p - spacing), vx1 = Math.min(x1, cam.x + view.W / 2 / p + spacing);
     const vy0 = Math.max(y0, cam.y - view.H / 2 / p - spacing), vy1 = Math.min(y1, cam.y + view.H / 2 / p + spacing);
@@ -127,7 +147,7 @@ export function createGround(view, cam, helpers) {
     }
   }
   // the layer kinds. [kind, colour, ...numbers in metres]
-  const PRIM = {
+  const PRIM: Record<string, PrimFn> = {
     // fine square grain — aggregate, grit, sparkle
     grain(L, x0, y0, x1, y1) { speckle(x0, y0, x1, y1, L[1], L[2], L[3]); },
     // round stones, radius rMin..rMax — gravel, dirt pebbles
@@ -239,7 +259,7 @@ export function createGround(view, cam, helpers) {
   //   grass / short grass — mown stripes   long grass — dark, blade tufts
   //   snow — white, blue drift shadows     ice — blue, polish sheen + white cracks
   //   wet — dark, puddles, reflections, rain rings
-  const SURFACE_ART = {
+  const SURFACE_ART: Record<string, SurfaceArt | null> = {
     lab: null,                                   // the lab surface IS the floor colour already
     tarmac: { base: '#3a3c46', layers: [['grain', '#5a5d6a', 0.9, 0.09], ['grain', '#2b2d35', 1.7, 0.12]] },
     racetarmac: { base: '#2a2d36', layers: [['blobs', 'rgba(16,17,22,0.55)', 3.2, 1.6, 0.10, 0.6, 0.08]] },
@@ -268,7 +288,8 @@ export function createGround(view, cam, helpers) {
   };
   // FIELD LOOKS (highway.js fields, zone.art; the zone DRIVES as its own surface). User, 2026-10-06: "jsut reuse mud and grass or long
   // grass textures for field, and maybe colour them" - so each is an existing texture with only its COLOURS swapped (same layers).
-  const recolour = (id, base, cols) => ({ base, layers: SURFACE_ART[id].layers.map((L, k) => [L[0], cols[k] || L[1], ...L.slice(2)]) });
+  // SURFACE_ART[id]! is set for the ids below; the cast: slice(2) of an ArtLayer is all numbers
+  const recolour = (id: string, base: string, cols: string[]): SurfaceArt => ({ base, layers: SURFACE_ART[id]!.layers.map((L, k): ArtLayer => [L[0], cols[k] || L[1], ...L.slice(2) as number[]]) });
   SURFACE_ART.wheat = recolour('grassLong', '#bf9f4e', ['#dcc074', '#9c7f38']);      // long grass, ripe gold
   SURFACE_ART.rapeseed = recolour('grassLong', '#c9b02a', ['#ecd84a', '#8f9a2e']);   // long grass, yellow flower over green
   SURFACE_ART.pastureG = recolour('grass', '#86a35c', ['#92b068', '#6f8c4c']);       // grass, a fresher green than the verge
@@ -276,13 +297,15 @@ export function createGround(view, cam, helpers) {
   SURFACE_ART.hedgerow = recolour('grassLong', '#3c5a28', ['#5a7c3a', '#2c4220']);   // the long-grass BORDER round each field, darker
   // Paint one surface's layers over a region. The caller has set any clip and translated to the world
   // origin; this only adds the pattern (the caller fills the base colour, since it knows the shape).
-  function paintLayers(id, x0, y0, x1, y1) {
+  function paintLayers(id: string, x0: number, y0: number, x1: number, y1: number) {
     if (view.noPatterns) return;
     const art = SURFACE_ART[id];
     if (!art) return;
     for (const L of art.layers) PRIM[L[0]](L, x0, y0, x1, y1);
   }
-  const artBase = (id, fallback) => (SURFACE_ART[id] ? SURFACE_ART[id].base : fallback);
+  const artBase = (id: string, fallback: string) => (
+    SURFACE_ART[id] ? SURFACE_ART[id]!.base : fallback
+  );
 
   // EVERY PATCH OF SURFACE, from the same ZONES list the physics reads — so what you see is by
   // construction what you drive on, with no second copy of the layout to drift out of step. (That drift
@@ -334,7 +357,7 @@ export function createGround(view, cam, helpers) {
           view.ctx.font = `700 ${Math.round(fs)}px ui-sans-serif, system-ui, sans-serif`;
           view.ctx.textAlign = 'center'; view.ctx.textBaseline = 'middle';
           view.ctx.fillStyle = 'rgba(255,255,255,0.75)';
-          view.ctx.fillText(q.surface.label, sx(q.x), sy(y0 + 4.5));
+          view.ctx.fillText(q.surface.label!, sx(q.x), sy(y0 + 4.5));   // a labelled zone
         }
         continue;
       }
@@ -376,7 +399,7 @@ export function createGround(view, cam, helpers) {
           view.ctx.font = `700 ${Math.round(fs)}px ui-sans-serif, system-ui, sans-serif`;
           view.ctx.textAlign = 'center'; view.ctx.textBaseline = 'middle';
           view.ctx.fillStyle = 'rgba(30,32,40,0.32)';
-          view.ctx.fillText(q.surface.label, sx(q.x), sy(y0 + 5.5));
+          view.ctx.fillText(q.surface.label!, sx(q.x), sy(y0 + 5.5));   // a boxed panel is labelled
         }
       }
     }
@@ -401,17 +424,17 @@ export function createGround(view, cam, helpers) {
   // lab.js coverAt), cached per cover — squares, not ovals (user, pixel pass: "no circles"). Physics keeps the exact
   // shape; the drawn edge is within ~0.35 m of it, the same as the square blend patches. `rim` = squares with an
   // outside neighbour, filled as the edge line (stroking the squares would outline every one of them).
-  function coverCells(c) {
+  function coverCells(c: Cover): CoverCells {
     if (c._cells) return c._cells;
     const G = 0.5, co = Math.cos(c.rot || 0), si = Math.sin(c.rot || 0), hx = c.w / 2, hy = c.h / 2;
     // scan the ROTATED box's extents, not a square of the long side (a 160 x 14 m river was a 160 m square: 100k tests -> ~10k)
     const RX = hx * Math.abs(co) + hy * Math.abs(si) + G, RY = hx * Math.abs(si) + hy * Math.abs(co) + G;
-    const inside = (x, y) => {
+    const inside = (x: number, y: number) => {
       if (c.cut && coverCut(c, x, y)) return false;   // the river's dry band under the motorway (lab.js coverAt)
       const ex = x - c.x, ey = y - c.y, dx = ex * co + ey * si, dy = -ex * si + ey * co;
       return c.shape === 'ellipse' ? (dx * dx) / (hx * hx) + (dy * dy) / (hy * hy) <= 1 : Math.abs(dx) <= hx && Math.abs(dy) <= hy;
     };
-    const all = [], rim = [];
+    const all: number[] = [], rim: number[] = [];
     for (let x = Math.floor((c.x - RX) / G) * G; x < c.x + RX; x += G) for (let y = Math.floor((c.y - RY) / G) * G; y < c.y + RY; y += G) {
       const mx = x + G / 2, my = y + G / 2;
       if (!inside(mx, my)) continue;
@@ -420,7 +443,7 @@ export function createGround(view, cam, helpers) {
     }
     return (c._cells = { all, rim, G });
   }
-  const PUDDLE_TINT = {
+  const PUDDLE_TINT: Record<string, string> = {
     dirt: 'rgba(86,64,42,0.62)', mud: 'rgba(62,46,32,0.66)', thickMud: 'rgba(46,34,24,0.70)',
     sand: 'rgba(150,128,90,0.55)', gravel: 'rgba(96,90,78,0.58)',
     // on hard ground, water is a dark mirror, not blue (user, 2026-10-03: puddles on tarmac looked wrong)
@@ -453,18 +476,18 @@ export function createGround(view, cam, helpers) {
   // drawn on its own — its own translucent fill and dark rim — so overlapping puddles darkened twice and showed rims inside each other:
   // a stream read as a string of beads. Now, per cover KIND, the union of every cover's 0.5 m cells (the same cells coverAt answers
   // for, so it still matches the physics); each tint fills once, the pattern is clipped to the union, one rim round the outside.
-  function mergedCovers(list) {
-    if (LEVEL._mergedOf === list) return LEVEL._merged;
-    const G = 0.5, kinds = new Map();
+  function mergedCovers(list: Cover[]): MergedCover[] {
+    if (LEVEL._mergedOf === list) return LEVEL._merged!;   // set together with _mergedOf
+    const G = 0.5, kinds = new Map<CoverId, Map<number, MergedCell>>();
     for (const c of list) {
       let m = kinds.get(c.cover); if (!m) kinds.set(c.cover, (m = new Map()));
       const k = coverCells(c);
       const tint = c.cover === 'wet' ? (PUDDLE_TINT[(groundAt(c.x, c.y).surface.under) || 'tarmac'] || 'rgba(52,66,92,0.58)') : null;
       for (let i = 0; i < k.all.length; i += 2) { const gx = Math.round(k.all[i] / G), gy = Math.round(k.all[i + 1] / G), key = gx * 131071 + gy; if (!m.has(key)) m.set(key, { x: k.all[i], y: k.all[i + 1], gx, gy, tint }); }
     }
-    const out = [];
+    const out: MergedCover[] = [];
     for (const [kind, m] of kinds) {
-      const cells = [...m.values()], rim = [];
+      const cells = [...m.values()], rim: MergedCell[] = [];
       let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
       for (const c of cells) {
         if (!m.has((c.gx + 1) * 131071 + c.gy) || !m.has((c.gx - 1) * 131071 + c.gy) || !m.has(c.gx * 131071 + c.gy + 1) || !m.has(c.gx * 131071 + c.gy - 1)) rim.push(c);
@@ -475,18 +498,19 @@ export function createGround(view, cam, helpers) {
     LEVEL._mergedOf = list; LEVEL._merged = out;
     return out;
   }
-  function drawCoversMerged(list) {
+  function drawCoversMerged(list: Cover[]) {
     const p = PPMz(), vx0 = cam.x - view.W / 2 / p, vx1 = cam.x + view.W / 2 / p, vy0 = cam.y - view.H / 2 / p, vy1 = cam.y + view.H / 2 / p;
     for (const grp of mergedCovers(list)) {
       const [x0, y0, x1, y1] = grp.bb, G = grp.G;
       if (x1 < vx0 || x0 > vx1 || y1 < vy0 || y0 > vy1) continue;
       const vis = grp.cells.filter((c) => c.x + G >= vx0 && c.x <= vx1 && c.y + G >= vy0 && c.y <= vy1);
       if (!vis.length) continue;
-      const path = (cells) => { view.ctx.beginPath(); for (const c of cells) view.ctx.rect(sx(c.x), sy(c.y), G * p, G * p); };
+      const path = (cells: MergedCell[]) => { view.ctx.beginPath(); for (const c of cells) view.ctx.rect(sx(c.x), sy(c.y), G * p, G * p); };
       const bx0 = Math.max(x0, vx0), by0 = Math.max(y0, vy0), bx1 = Math.min(x1, vx1), by1 = Math.min(y1, vy1);
       if (grp.kind === 'wet') {
-        const byTint = new Map(); for (const c of vis) { let a = byTint.get(c.tint); if (!a) byTint.set(c.tint, (a = [])); a.push(c); }
-        for (const [tint, cells] of byTint) { path(cells); view.ctx.fillStyle = tint; view.ctx.fill(); }
+        const byTint = new Map<string | null, MergedCell[]>(); for (const c of vis) { let a = byTint.get(c.tint); if (!a) byTint.set(c.tint, (a = [])); a.push(c); }
+        // tint! : every wet cell has a tint
+        for (const [tint, cells] of byTint) { path(cells); view.ctx.fillStyle = tint!; view.ctx.fill(); }
         view.ctx.save(); path(vis); view.ctx.clip(); view.ctx.translate(sx(0), sy(0));
         PRIM.sheen(['sheen', 'rgba(215,228,248,0.09)', 4.0, 0.9, -0.45], bx0, by0, bx1, by1);
         PRIM.sheen(['sheen', 'rgba(235,242,252,0.18)', 4.0, 0.10, -0.45], bx0, by0, bx1, by1);
@@ -518,7 +542,7 @@ export function createGround(view, cam, helpers) {
     // 2026-10-03: a worn cell now LOOKS like what it has become (the same SURFACE_ART as everywhere else)
     // instead of a flat tinted square. Visible cells are grouped by surface, and each group is one path:
     // fill its base, clip to it, paint its layers once — so 1000 worn cells cost a handful of draw calls.
-    const groups = new Map();
+    const groups = new Map<string, WearGroup>();
     for (const cell of wearMap.values()) {
       if (cell.current === cell.orig) continue;
       const startedCovered = cell.orig === 'snow' || cell.orig === 'ice' || cell.orig === 'wet';
@@ -527,7 +551,8 @@ export function createGround(view, cam, helpers) {
       const x1 = Math.round(sx((cell.cx + 1) * WEAR_CELL)), y1 = Math.round(sy((cell.cy + 1) * WEAR_CELL));
       if (x1 < 0 || x0 > view.W || y1 < 0 || y0 > view.H) continue;
       // water on a cell is drawn as its BASE with a puddle over it, so meltwater on grass looks like water on grass
-      const gkey = cell.current === 'wet' ? 'wet|' + cell.base : cell.current;
+      // cell.current! : set right after the cell is made
+      const gkey = cell.current === 'wet' ? 'wet|' + cell.base : cell.current!;
       let g = groups.get(gkey);
       if (!g) groups.set(gkey, (g = { r: [], bx0: Infinity, by0: Infinity, bx1: -Infinity, by1: -Infinity }));
       g.r.push(x0, y0, x1 - x0, y1 - y0);
@@ -578,17 +603,18 @@ export function createGround(view, cam, helpers) {
       // "pixel hill-shading"). The hand-drawn dome / wedge / table art went: photographed together with the shading it
       // read as two layers of mud. Kept: the KERB (it is paint, not height) and the ramp's RED LIP — the ground really does
       // fall away there, which no shading can show, and a jump you cannot see coming is unfair (CLAUDE.md §1).
+      // kerb and ramp bumps always have len and wid (the ! below)
       if (b.kind === 'kerb') {
-        const n = Math.max(2, Math.round(b.len / 2.4));
+        const n = Math.max(2, Math.round(b.len! / 2.4));
         for (let i = 0; i < n; i++) {
           view.ctx.fillStyle = i % 2 ? COL.kerbB : COL.kerbA;
-          view.ctx.fillRect((-b.len / 2 + (i * b.len) / n) * p, (-b.wid / 2) * p, (b.len / n) * p + 1, b.wid * p);
+          view.ctx.fillRect((-b.len! / 2 + (i * b.len!) / n) * p, (-b.wid! / 2) * p, (b.len! / n) * p + 1, b.wid! * p);
         }
         view.ctx.fillStyle = 'rgba(255,255,255,0.35)';
-        view.ctx.fillRect((-b.len / 2) * p, -0.3 * p, b.len * p, 0.6 * p);
+        view.ctx.fillRect((-b.len! / 2) * p, -0.3 * p, b.len! * p, 0.6 * p);
       } else if (b.kind === 'ramp') {
         view.ctx.fillStyle = 'rgba(214,69,60,0.85)';
-        view.ctx.fillRect((b.len / 2 - 0.6) * p, (-b.wid / 2) * p, 0.6 * p, b.wid * p);
+        view.ctx.fillRect((b.len! / 2 - 0.6) * p, (-b.wid! / 2) * p, 0.6 * p, b.wid! * p);
       }
       view.ctx.restore();
     }

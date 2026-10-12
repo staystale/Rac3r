@@ -4,8 +4,19 @@ import { FX0, FX1, FY0, FY1, KERB_W } from "../world/bounds.ts";
 import { PAINT, BOARDS, LEVEL } from "../world/state.ts";
 import { COL } from "../world/colours.ts";
 import { MARK_EXTENT } from '../marks.js';
+import type { Prop } from "../world/types.ts";
+import type { Cam, ForSide, RenderMarks, RoadGame, View } from "./types.ts";
 
-export function createRoad(view, cam, helpers) {
+// what createRoad destructures from the renderer and the ground painter
+interface RoadHelpers {
+  PPMz: () => number;
+  sx: (wx: number) => number;
+  sy: (wy: number) => number;
+  paintLayers: (id: string, x0: number, y0: number, x1: number, y1: number) => void;
+  artBase: (id: string, fallback: string) => string;
+}
+
+export function createRoad(view: View, cam: Cam, helpers: RoadHelpers) {
   const { PPMz, sx, sy, paintLayers, artBase } = helpers;
 
   // ---------------------------------------------------------------- lanes (pit lanes, access roads) — lab.js laneAt
@@ -56,9 +67,9 @@ export function createRoad(view, cam, helpers) {
     // Group contiguous segments into sector spans to fill as ONE solid polygon per sector,
     // which completely eliminates the transverse anti-aliasing seam lines across the road.
     // the surface id at a distance; 'ghost' on a point-to-point stage's invisible return segment (lab.js ghostSegment): never drawn
-    const sidAt = (d) => { if (sub.ghost && d >= sub.ghost.d0 && d < sub.ghost.d1) return 'ghost'; const s = sub.sectorAt ? sub.sectorAt(d) : null; return (s && s.surface) ? s.surface.id : 'tarmac'; };
-    const spans = [];
-    let curSurface = null;
+    const sidAt = (d: number) => { if (sub.ghost && d >= sub.ghost.d0 && d < sub.ghost.d1) return 'ghost'; const s = sub.sectorAt ? sub.sectorAt(d) : null; return (s && s.surface) ? s.surface.id : 'tarmac'; };
+    const spans: { surface: string; start: number; end: number }[] = [];
+    let curSurface: string | null = null;
     let curStart = 0;
     for (let i = 0; i < n; i++) {
       const sId = sidAt(pts[i].dist);
@@ -68,19 +79,19 @@ export function createRoad(view, cam, helpers) {
         curStart = i;
       }
     }
-    spans.push({ surface: curSurface, start: curStart, end: n });
+    spans.push({ surface: curSurface!, start: curStart, end: n });   // n >= 3: set in the loop
 
     // Merge wrap-around span across start/finish line so there is no seam at index 0
     if (spans.length > 1 && spans[0].surface === spans[spans.length - 1].surface) {
-      const last = spans.pop();
+      const last = spans.pop()!;   // length > 1
       spans[0].start = last.start - n;
     }
 
     // the exact point where the sector changes between samples i-1 and i (bisected on sectorAt, the physics' own rule)
-    function sectorCut(i) {
+    function sectorCut(i: number) {
       const a = pts[(((i - 1) % n) + n) % n], b = pts[((i % n) + n) % n];
       let d0 = a.dist, d1 = b.dist; if (d1 < d0) d1 += sub.totalDist;
-      const idOf = (d) => sidAt(d % sub.totalDist);
+      const idOf = (d: number) => sidAt(d % sub.totalDist);
       const ida = idOf(d0);
       let lo = 0, hi = 1;
       for (let k = 0; k < 20; k++) { const m = (lo + hi) / 2; if (idOf(d0 + (d1 - d0) * m) === ida) lo = m; else hi = m; }
@@ -243,17 +254,18 @@ export function createRoad(view, cam, helpers) {
   function drawPaint() {
     for (const p of PAINT) {
       view.ctx.strokeStyle = COL.paint;
-      view.ctx.globalAlpha = p.tone;
+      view.ctx.globalAlpha = p.tone!;   // every painted mark has a tone
       // MEASURED BUG, 2026-09-27 (photographed): this read p.w, which is the BOX WIDTH for a box —
       // so the 6 m start box stroked at 96 px thick and rendered as a pale slab the size of a building.
       // Ring stroke width is now "lw" and nothing else is overloaded.
       view.ctx.lineWidth = Math.max(1, (p.lw || 0.12) * PPMz());
       if (p.kind === 'ring') {
         view.ctx.beginPath();
-        view.ctx.arc(sx(p.x), sy(p.y), p.r * PPMz(), 0, Math.PI * 2);
+        view.ctx.arc(sx(p.x), sy(p.y), p.r! * PPMz(), 0, Math.PI * 2);   // a ring has r
         view.ctx.stroke();
       } else if (p.kind === 'box' || p.kind === 'lane') {
-        view.ctx.strokeRect(sx(p.x - p.w / 2), sy(p.y - p.h / 2), p.w * PPMz(), p.h * PPMz());
+        // a box / lane has w and h
+        view.ctx.strokeRect(sx(p.x - p.w! / 2), sy(p.y - p.h! / 2), p.w! * PPMz(), p.h! * PPMz());
       } else if (p.kind === 'chequered') {
         const halfW = (p.wid || 13) / 2;
         const halfL = (p.len || 1.6) / 2;
@@ -295,15 +307,16 @@ export function createRoad(view, cam, helpers) {
 
   // JOKER ARROWS (user spec 2026-10-03: "a TRANSLUCENT WHITE ARROW, gently pulsing" at joker / pit entries). Hidden once the joker
   // is done in an RX race. Wall clock: the pulse is something the player watches.
-  function drawArrows(game, wallT) {
+  function drawArrows(game: RoadGame, wallT?: number) {
     const J = LEVEL.joker; if (!J || !J.arrows) return;
     if (game.jokerTaken) return;
     // stronger + OUTLINED (user: "needs to be closed and more clearly pointing") — at 0.28-0.5 alpha it faded into the grey tarmac
     const p = PPMz(), a = 0.45 + 0.35 * (0.5 + 0.5 * Math.sin((wallT || 0) * 3.2));
+    // ar! below: the arrows hold no null once built (the builders filter them)
     for (const ar of J.arrows) {
-      if (sx(ar.x) < -200 || sx(ar.x) > view.W + 200 || sy(ar.y) < -200 || sy(ar.y) > view.H + 200) continue;
-      const L = ar.len || 7;
-      view.ctx.save(); view.ctx.translate(sx(ar.x), sy(ar.y)); view.ctx.rotate(ar.rot);
+      if (sx(ar!.x) < -200 || sx(ar!.x) > view.W + 200 || sy(ar!.y) < -200 || sy(ar!.y) > view.H + 200) continue;
+      const L = ar!.len || 7;
+      view.ctx.save(); view.ctx.translate(sx(ar!.x), sy(ar!.y)); view.ctx.rotate(ar!.rot);
       view.ctx.fillStyle = `rgba(255,255,255,${a.toFixed(3)})`;
       view.ctx.beginPath();
       view.ctx.moveTo(L * 0.5 * p, 0); view.ctx.lineTo(0, -L * 0.42 * p); view.ctx.lineTo(0, -L * 0.16 * p); view.ctx.lineTo(-L * 0.5 * p, -L * 0.16 * p);
@@ -327,7 +340,7 @@ export function createRoad(view, cam, helpers) {
   // Inside fn the CAMERA is moved into the side's frame (and the view made square), so speckle's view culling - which compares with
   // cam - culls in the frame it draws in. (Before, the three rotated sides culled against the unrotated view: their grass / gravel grain
   // only drew when the camera was somewhere else.)
-  function forSide(i, fn) {
+  function forSide(i: number, fn: Parameters<ForSide>[1]) {
     const cx = (FX0 + FX1) / 2, cy = (FY0 + FY1) / 2, D = i % 2 ? (FX1 - FX0) / 2 : (FY1 - FY0) / 2, Lh = i % 2 ? (FY1 - FY0) / 2 : (FX1 - FX0) / 2;
     const a = (i * Math.PI) / 2, co = Math.round(Math.cos(a)), si = Math.round(Math.sin(a));
     const keep = { x: cam.x, y: cam.y, W: view.W, H: view.H }, dx = cam.x - cx, dy = cam.y - cy;
@@ -360,11 +373,11 @@ export function createRoad(view, cam, helpers) {
 
   // SLIP ROAD (highway.js extras): the tarmac itself is a lane ribbon (drawLanes, ground tiles); this draws its MARKINGS - the edge
   // lines and a row of white squares along the nose where it leaves the hard shoulder - on top, so they are never stale in a tile
-  function drawSlip(pr, p) {
+  function drawSlip(pr: Prop, p: number) {
     const L = pr.line; if (!L || L.length < 2) return;
     if (!pr._bb) { let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity; for (const [x, y] of L) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); } pr._bb = [x0 - 6, y0 - 6, x1 + 6, y1 + 6]; }
     if (sx(pr._bb[0]) > view.W || sx(pr._bb[2]) < 0 || sy(pr._bb[1]) > view.H || sy(pr._bb[3]) < 0) return;
-    const hw = (pr.w || 5) / 2 - 0.3, nrm = (k) => { const a = L[Math.max(0, k - 1)], b = L[Math.min(L.length - 1, k + 1)], h = Math.atan2(b[1] - a[1], b[0] - a[0]); return [-Math.sin(h), Math.cos(h)]; };
+    const hw = (pr.w || 5) / 2 - 0.3, nrm = (k: number) => { const a = L[Math.max(0, k - 1)], b = L[Math.min(L.length - 1, k + 1)], h = Math.atan2(b[1] - a[1], b[0] - a[0]); return [-Math.sin(h), Math.cos(h)]; };
     view.ctx.save(); view.ctx.strokeStyle = 'rgba(245,245,240,0.85)'; view.ctx.lineWidth = Math.max(1, 0.15 * p);
     for (const sg of [-1, 1]) { view.ctx.beginPath(); for (let k = sg > 0 ? 1 : 0; k < L.length; k++) { const [x, y] = L[k], [nx, ny] = nrm(k), X = sx(x + nx * hw * sg), Y = sy(y + ny * hw * sg); if (k === (sg > 0 ? 1 : 0)) view.ctx.moveTo(X, Y); else view.ctx.lineTo(X, Y); } view.ctx.stroke(); }
     view.ctx.fillStyle = 'rgba(245,245,240,0.7)';
@@ -372,7 +385,7 @@ export function createRoad(view, cam, helpers) {
     view.ctx.restore();
   }
 
-  function drawMarks(marks) {
+  function drawMarks(marks: RenderMarks) {
     // one blit of the whole world layer. imageSmoothingEnabled stays on here: the layer is 9 px/m and
     // the screen is 16 px/m, so smoothing is what stops the marks looking like stair-stepped bitmaps.
     const [mox, moy] = marks.origin || [0, 0], px = sx(mox - MARK_EXTENT), py = sy(moy - MARK_EXTENT);

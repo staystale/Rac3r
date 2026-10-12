@@ -134,8 +134,9 @@ export interface Prop {
   paint?: string;
   num?: string;
   len?: number;
-  line?: unknown[];
+  line?: Point[];
   nose?: boolean;
+  _bb?: [number, number, number, number];   // road.ts drawSlip caches the slip road's box
   field?: number;
   _s?: number;
   house?: boolean;
@@ -221,6 +222,14 @@ export interface Cover {
   cut?: CoverCut;
   _co?: number;   // coverAt caches for rotated covers
   _si?: number;
+  _cells?: CoverCells;   // ground.ts coverCells caches the covered 0.5 m cells
+}
+
+// The 0.5 m world-grid cells inside a cover, as x, y pairs; rim = those with an outside neighbour.
+export interface CoverCells {
+  all: number[];
+  rim: number[];
+  G: number;
 }
 
 // One entry of LEVEL.patches / PATCH_GRID: a spot of a different base laid on the ground.
@@ -374,6 +383,26 @@ export interface Level {
   endless?: boolean;   // blend.ts: the 100 km highway
   _coversBase?: Cover[];   // blend.ts: the hand-placed covers
   _hw?: HighwayState;   // highway.js: the endless road (only the fields the camera reads)
+  _mergedOf?: Cover[];   // ground.ts mergedCovers: the covers list _merged was built from
+  _merged?: MergedCover[];   // ground.ts mergedCovers
+}
+
+// One 0.5 m cell of a merged cover group; tint is set for puddles only.
+export interface MergedCell {
+  x: number;
+  y: number;
+  gx: number;
+  gy: number;
+  tint: string | null;
+}
+
+// All covers of one kind joined (ground.ts mergedCovers); rim = cells with an outside neighbour.
+export interface MergedCover {
+  kind: CoverId;
+  cells: MergedCell[];
+  rim: MergedCell[];
+  bb: [number, number, number, number];
+  G: number;
 }
 
 // LEVEL._hw as the camera reads it: the look-ahead direction and the road points' distance.
