@@ -17,6 +17,6 @@ export * from "./world/tyrewall.js";
 export * from "./world/levels/index.js";
 export * from "./world/blend.js";
 export * from "./world/load.js";
-export * from "./world/colours.js";
+export * from "./world/colours.ts";
 export { trackKit } from "./world/levels/kit.js";
 export { BRANDS_DROPPED } from "./world/levels/brands-snatch.js";

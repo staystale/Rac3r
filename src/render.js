@@ -14,7 +14,7 @@ import "./world/load.js";   // the world is set up before this file runs (as imp
 import { FLOOR, FX0, FX1, FY0, FY1, GRID, KERB_W, RUNOFF_W, FENCE } from "./world/bounds.js";
 import { PAINT, BOARDS, CONES, ZONES, BUMPS, LEVEL, PROPS } from "./world/state.js";
 import { CONE_R } from "./world/tyrewall.js";
-import { COL } from "./world/colours.js";
+import { COL } from "./world/colours.ts";
 import { VERGE_W } from "./world/surfaces.js";
 import { BARRIER_HALF } from "./world/barriers.js";
 import { wearMap, WEAR_CELL, wearDirty, wearEpoch, groundAt, coverCut } from "./world/wear.js";

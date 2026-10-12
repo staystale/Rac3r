@@ -14,7 +14,7 @@
 // press a pedal (CLAUDE.md §4: a tap on the HUD must never also reach the world).
 
 import "./world/load.js";   // the world is set up before this file runs (as importing lab.js did)
-import { COL } from "./world/colours.js";
+import { COL } from "./world/colours.ts";
 import { LEVEL } from "./world/state.js";
 
 const M = 12;

@@ -162,7 +162,7 @@
     "id-length": 2,
     "max-len": 25
   },
-  "src/world/colours.js": {
+  "src/world/colours.ts": {
     "max-len": 1
   },
   "src/world/course.js": {
