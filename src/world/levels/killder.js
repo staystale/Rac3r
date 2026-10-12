@@ -1,6 +1,6 @@
 import { alongTrack } from "../barriers.js";
 import { autoKerbs, createSubtrack, traceTrack } from "../subtrack.js";
-import { SURFACES } from "../surfaces.js";
+import { SURFACES } from "../surfaces.ts";
 import { prepBumps } from "../terrain.js";
 import { onTrack } from "../tyrewall.js";
 import { trackKit } from "./kit.js";

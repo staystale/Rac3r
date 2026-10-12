@@ -1,4 +1,4 @@
-import { SURFACES } from "../surfaces.js";
+import { SURFACES } from "../surfaces.ts";
 import { createSubtrack } from "../subtrack.js";
 // =============================================================================================
 // GRASS OVAL (Dirt/Grass/Mud Track — PLAN.md §3)

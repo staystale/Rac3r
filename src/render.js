@@ -15,7 +15,7 @@ import { FLOOR, FX0, FX1, FY0, FY1, GRID, KERB_W, RUNOFF_W, FENCE } from "./worl
 import { PAINT, BOARDS, CONES, ZONES, BUMPS, LEVEL, PROPS } from "./world/state.ts";
 import { CONE_R } from "./world/tyrewall.js";
 import { COL } from "./world/colours.ts";
-import { VERGE_W } from "./world/surfaces.js";
+import { VERGE_W } from "./world/surfaces.ts";
 import { BARRIER_HALF } from "./world/barriers.js";
 import { wearMap, WEAR_CELL, wearDirty, wearEpoch, groundAt, coverCut } from "./world/wear.js";
 import { visualSlopeAt, visualHeightAt } from "./world/terrain.js";

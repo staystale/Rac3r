@@ -1,6 +1,6 @@
 // wear.js - the SURFACE DEGRADATION & WEAR MAP section. Moved verbatim out of lab.js.
 import { LEVEL } from "./state.ts";
-import { SURFACES, MARK_WET, SPRAY_WET, VERGE_W, TRAP_STEPS, SURFACE_TRAP } from "./surfaces.js";
+import { SURFACES, MARK_WET, SPRAY_WET, VERGE_W, TRAP_STEPS, SURFACE_TRAP } from "./surfaces.ts";
 import {
   FX1, FX0, FY1, FY0, KERB_W, KERB_H, KERB_RIDGE, KERB_RIDGE_L, RUNOFF_W, RUNOFF_ROUGH,
 } from "./bounds.ts";

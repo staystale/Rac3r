@@ -1,4 +1,4 @@
-import { SURFACES } from "../surfaces.js";
+import { SURFACES } from "../surfaces.ts";
 
 // =============================================================================================
 // S-B THE LAB EXTENSION (user, 2026-10-06, VERBATIM: "add some of every object laid out nicely ready to test crash into ect into he lab

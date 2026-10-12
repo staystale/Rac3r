@@ -1,4 +1,9 @@
 import { RUNOFF_MU, RUNOFF_ROUGH, KERB_MU } from "./bounds.ts";
+import type { Mark, Spray, Surface } from "./types.ts";
+type SurfaceId =
+  | "lab" | "racetarmac" | "tarmac" | "dirt" | "gravel" | "grass" | "grassShort" | "grassLong"
+  | "kerb" | "ice" | "packedSnow" | "snow" | "wet" | "mud" | "thickMud" | "broken" | "concrete"
+  | "sand";
 const COL_GRAVEL_TRACK = '150,134,106';   // rgb of a rut ploughed through gravel — warm, not black
 const COL_GRASS_SCUFF  = '92,112,66';     // rgb of torn turf
 // =============================================================================================
@@ -34,20 +39,21 @@ const COL_GRASS_SCUFF  = '92,112,66';     // rgb of torn turf
 //           just to stay on the ground, so it is what makes soft springs pay on gravel.
 //
 // mark is what a wheel leaves behind (read by marks.js, which knows nothing about any of these).
-const MARK_GRAVEL = { rgb: COL_GRAVEL_TRACK, widen: 2.4, alpha: 0.13 };
-const MARK_GRASS = { rgb: COL_GRASS_SCUFF, widen: 1.9, alpha: 0.10 };
-const MARK_DIRT = { rgb: '98,74,52', widen: 2.3, alpha: 0.16 };
-const MARK_GRASS_LONG = { rgb: '76,96,52', widen: 2.1, alpha: 0.14 };
-const MARK_SNOW = { rgb: '138,152,170', widen: 2.2, alpha: 0.14 };   // compressed snow, blue-grey
-const MARK_MUD = { rgb: '58,42,30', widen: 2.6, alpha: 0.20 };       // deep dark ruts, the clearest of all
+const MARK_GRAVEL: Mark = { rgb: COL_GRAVEL_TRACK, widen: 2.4, alpha: 0.13 };
+const MARK_GRASS: Mark = { rgb: COL_GRASS_SCUFF, widen: 1.9, alpha: 0.10 };
+const MARK_DIRT: Mark = { rgb: '98,74,52', widen: 2.3, alpha: 0.16 };
+const MARK_GRASS_LONG: Mark = { rgb: '76,96,52', widen: 2.1, alpha: 0.14 };
+// compressed snow, blue-grey
+const MARK_SNOW: Mark = { rgb: '138,152,170', widen: 2.2, alpha: 0.14 };
+const MARK_MUD: Mark = { rgb: '58,42,30', widen: 2.6, alpha: 0.20 };       // deep dark ruts, the clearest of all
 // THICK MUD's OWN, darker mark (2026-10-07; user: tracks on mud "vanish or morph weirdly as the surface gets degraded to thick mud" -
 // "should darken if anything"; tools/_mudtracks.mjs). MEASURED: MARK_MUD (58,42,30) IS thick mud's base colour (#3a291d), so on a worn
 // cell the same tracks went 11 -> 7 luminance darker than their ground (pass 2 -> 4) and read as the ripple art instead. Wetter, darker.
-const MARK_THICK_MUD = { rgb: '34,23,15', widen: 2.6, alpha: 0.17 };   // 22,14,9 @ 0.26 photographed near-BLACK by pass 6: softened
-const MARK_SAND = { rgb: '176,152,112', widen: 2.5, alpha: 0.14 };
+const MARK_THICK_MUD: Mark = { rgb: '34,23,15', widen: 2.6, alpha: 0.17 };   // 22,14,9 @ 0.26 photographed near-BLACK by pass 6: softened
+const MARK_SAND: Mark = { rgb: '176,152,112', widen: 2.5, alpha: 0.14 };
 // Wet tarmac is the odd one: a tyre does not darken it, it DRIES it. So the mark is lighter than the
 // surface, which is why the trail behind a car on a wet track is the one you can actually see.
-export const MARK_WET = { rgb: '196,199,208', widen: 1.6, alpha: 0.16 };
+export const MARK_WET: Mark = { rgb: '196,199,208', widen: 1.6, alpha: 0.16 };
 
 // SPRAY — what a wheel THROWS UP off a loose surface (user, 2026-09-28: "floor with a loose surface like
 // snow mud sand or grass should particle emit and small and kick up dust / dirt / grass / snow").
@@ -64,14 +70,14 @@ export const MARK_WET = { rgb: '196,199,208', widen: 1.6, alpha: 0.16 };
 // Thrown material is AIRBORNE — it catches light and reads PALER and hazier than the packed surface
 // beneath it, except wet clods which read darker. Pick for contrast against the surface, never to
 // match it (CLAUDE.md §4: if the player cannot find it, it does not exist).
-const SPRAY_GRAVEL = { rgb: '222,210,184', size: 0.22, rate: 62, lift: 5.2, life: 0.55, grow: 0.60 };
-const SPRAY_GRASS  = { rgb: '152,190,106', size: 0.18, rate: 48, lift: 4.4, life: 0.46, grow: 0.22 };
-const SPRAY_DIRT   = { rgb: '190,160,122', size: 0.22, rate: 66, lift: 4.8, life: 0.60, grow: 0.70 };
-const SPRAY_GRASS_LONG = { rgb: '136,174,90', size: 0.22, rate: 58, lift: 4.6, life: 0.50, grow: 0.28 };
-const SPRAY_MUD    = { rgb: '64,46,30',    size: 0.26, rate: 42, lift: 3.4, life: 0.62, grow: 0.10 };
-const SPRAY_SAND   = { rgb: '244,230,200', size: 0.20, rate: 70, lift: 3.8, life: 0.85, grow: 0.95 };
-const SPRAY_SNOW   = { rgb: '255,255,255', size: 0.24, rate: 76, lift: 4.8, life: 0.75, grow: 0.85 };
-export const SPRAY_WET    = { rgb: '232,238,248', size: 0.15, rate: 54, lift: 3.0, life: 0.28, grow: 0.50 };
+const SPRAY_GRAVEL: Spray = { rgb: '222,210,184', size: 0.22, rate: 62, lift: 5.2, life: 0.55, grow: 0.60 };
+const SPRAY_GRASS:  Spray = { rgb: '152,190,106', size: 0.18, rate: 48, lift: 4.4, life: 0.46, grow: 0.22 };
+const SPRAY_DIRT:   Spray = { rgb: '190,160,122', size: 0.22, rate: 66, lift: 4.8, life: 0.60, grow: 0.70 };
+const SPRAY_GRASS_LONG: Spray = { rgb: '136,174,90', size: 0.22, rate: 58, lift: 4.6, life: 0.50, grow: 0.28 };
+const SPRAY_MUD:    Spray = { rgb: '64,46,30',    size: 0.26, rate: 42, lift: 3.4, life: 0.62, grow: 0.10 };
+const SPRAY_SAND:   Spray = { rgb: '244,230,200', size: 0.20, rate: 70, lift: 3.8, life: 0.85, grow: 0.95 };
+const SPRAY_SNOW:   Spray = { rgb: '255,255,255', size: 0.24, rate: 76, lift: 4.8, life: 0.75, grow: 0.85 };
+export const SPRAY_WET:    Spray = { rgb: '232,238,248', size: 0.15, rate: 54, lift: 3.0, life: 0.28, grow: 0.50 };
 
 // RETUNED 2026-09-28 (user: "can the floor styles feel slightly more unique to drive on - grass mud and
 // gravel feel too similar"). They WERE too similar, and the reason is instructive: all three were built
@@ -95,7 +101,7 @@ export const SPRAY_WET    = { rgb: '232,238,248', size: 0.15, rate: 54, lift: 3.
 //          cornering one (loose stones pack, snow compacts); below 1 means it just spins (mud, sand).
 //          This is why gravel rewards power and mud swallows it.
 // spray  — what the wheels throw up. Read by render.js, which knows nothing about any of these.
-export const SURFACES = {
+export const SURFACES: Record<SurfaceId, Surface> = {
   // THE LAB FLOOR — the reference. Sealed, polished, dead flat. Every bench number in tools/ was
   // measured on this, so its numbers are 1.0 by definition and must stay that way.
   lab:        { id: 'lab', label: 'LAB FLOOR', mu: 1.00, peakK: 1.00, longK: 1.00, plough: 0, rough: 0, mark: null, spray: null, hard: true },
@@ -157,7 +163,7 @@ export const RUNOFF_PLOUGH = 5.0;    // m/s^2 at the lip. 0.51 g, rising to 0.76
                                      // than any rally road, which is why this is ~8x the gravel figure.
 export const RUNOFF_GRADE = 1.5;     // multiplier at the fence
 export const TRAP_STEPS = 12;               // built once at load, indexed by depth: groundAt never allocates
-export const SURFACE_TRAP = Array.from({ length: TRAP_STEPS }, (_, i) => ({
+export const SURFACE_TRAP: Surface[] = Array.from({ length: TRAP_STEPS }, (_, i) => ({
   id: 'trap', coolK: 0.06, mu: RUNOFF_MU, peakK: 2.00, rough: RUNOFF_ROUGH, mark: MARK_GRAVEL,
   plough: RUNOFF_PLOUGH * (1 + (RUNOFF_GRADE - 1) * (i / (TRAP_STEPS - 1))),
 }));

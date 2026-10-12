@@ -1,6 +1,6 @@
 import { setFloor, setRect } from "./bounds.ts";
 import { LEVEL, setActiveLevel } from "./state.ts";
-import { SURFACES, SURFACE_TRAP } from "./surfaces.js";
+import { SURFACES, SURFACE_TRAP } from "./surfaces.ts";
 import { alongTrack, prepBarriers } from "./barriers.js";
 import { autoKerbs } from "./subtrack.js";
 import { laneAt } from "./zones.js";

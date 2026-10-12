@@ -12,7 +12,7 @@ import { finishLevel } from "./world/load.js";   // the world is set up before t
 import { createSubtrack, ghostSegment, autoKerbs } from "./world/subtrack.js";
 import { onTrack, querySubtrack } from "./world/tyrewall.js";
 import { alongTrack, solidsFromProps } from "./world/barriers.js";
-import { SURFACES } from "./world/surfaces.js";
+import { SURFACES } from "./world/surfaces.ts";
 import { BASE_FLOOR as FLOOR } from "./world/bounds.ts";
 import { LEVELS } from "./world/levels/index.js";
 import { trackKit } from "./world/levels/kit.js";

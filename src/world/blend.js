@@ -1,5 +1,5 @@
 import { FLOOR, KERB_W, edgeOut } from "./bounds.ts";
-import { SURFACES } from "./surfaces.js";
+import { SURFACES } from "./surfaces.ts";
 import { zoneAt } from "./zones.js";
 import { COVER_IDS } from "./wear.js";
 import { querySubtrack } from "./tyrewall.js";

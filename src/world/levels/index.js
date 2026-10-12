@@ -1,5 +1,5 @@
 import { FLOOR } from "../bounds.ts";
-import { SURFACES } from "../surfaces.js";
+import { SURFACES } from "../surfaces.ts";
 import { alongTrack, solidsFromProps } from "../barriers.js";
 import { LAB_BOUNDS, LAB_OFFROAD_BUMPS } from "./lab-extension.js";
 import { onTrack, propClearance } from "../tyrewall.js";

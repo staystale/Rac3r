@@ -1,6 +1,36 @@
 // Shared world data shapes; this file grows as files are converted.
 
-// A surface field is unknown for now: surfaces.ts will give it a type.
+// What a wheel leaves behind on a surface.
+export interface Mark {
+  rgb: string;
+  widen: number;
+  alpha: number;
+}
+
+// What the wheels throw up from a surface.
+export interface Spray {
+  rgb: string;
+  size: number;
+  rate: number;
+  lift: number;
+  life: number;
+  grow: number;
+}
+
+export interface Surface {
+  id: string;
+  label?: string;
+  mu: number;
+  peakK: number;
+  longK?: number;
+  plough: number;
+  rough: number;
+  mark: Mark | null;
+  spray?: Spray | null;
+  hard?: boolean;
+  coolK?: number;
+  heatK?: number;
+}
 
 export interface Paint {
   kind: string;
@@ -47,7 +77,7 @@ export interface Zone {
   y: number;
   w: number;
   h: number;
-  surface: unknown;
+  surface: Surface;
   boxed?: boolean;
   ext?: boolean;
   lane?: string;

@@ -244,7 +244,7 @@
     "max-len": 41,
     "no-unused-vars": 1
   },
-  "src/world/surfaces.js": {
+  "src/world/surfaces.ts": {
     "id-length": 2,
     "max-len": 78
   },

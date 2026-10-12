@@ -1,4 +1,4 @@
-import { SURFACES } from "./surfaces.js";
+import { SURFACES } from "./surfaces.ts";
 import { smoothPath } from "./course.ts";
 // =============================================================================================
 // SUBTRACK SYSTEM (for circuit recovery / reset and lap progress tracking)

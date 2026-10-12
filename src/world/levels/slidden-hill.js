@@ -1,7 +1,7 @@
 import { alongTrack } from "../barriers.js";
 import { FLOOR } from "../bounds.ts";
 import { autoKerbs, createSubtrack, traceTrack } from "../subtrack.js";
-import { SURFACES } from "../surfaces.js";
+import { SURFACES } from "../surfaces.ts";
 import { prepBumps } from "../terrain.js";
 import { onTrack, querySubtrack } from "../tyrewall.js";
 import { trackKit } from "./kit.js";

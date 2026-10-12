@@ -1,4 +1,4 @@
-import { SURFACES } from "../surfaces.js";
+import { SURFACES } from "../surfaces.ts";
 import { createSubtrack } from "../subtrack.js";
 // =============================================================================================
 // STOCK CAR OVAL (Tarmac with broken sections — PLAN.md §3)

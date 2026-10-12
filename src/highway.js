@@ -16,7 +16,7 @@ import { lcg } from "./core/random.ts";
 import { envValue } from "./core/debug.ts";
 import "./world/load.js";   // the world is set up before this file runs (as importing lab.js did)
 import { createSubtrack, ghostSegment } from "./world/subtrack.js";
-import { SURFACES } from "./world/surfaces.js";
+import { SURFACES } from "./world/surfaces.ts";
 import { LEVELS } from "./world/levels/index.js";
 import { prepBumps, clearNaturalCache } from "./world/terrain.js";
 import { prepBarriersOf, solidsFromProps } from "./world/barriers.js";
