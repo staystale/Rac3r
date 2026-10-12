@@ -22,6 +22,7 @@ import { SPRITE_PPM } from "./render/shared.js";
 import { createCars } from "./render/cars.js";
 import { createParticles } from "./render/particles.js";
 import { createProps } from "./render/props.js";
+import { createObjects } from "./render/objects.js";
 
 // A2 REVISED after photographing it, 2026-09-27. A flat PPM of 16 put a 4 m car at 64 px on a 1280 px
 // desktop — a small orange blob with every drawn detail (mirrors, shut lines, lights, steered wheels)
@@ -1281,8 +1282,11 @@ export function createRenderer(canvas) {
     addChips, addSparks, drawChips, drawPuffs,
   } = createParticles(view, cam, { PPMz, sx, sy });
   const { pixelCar, faceCache, drawPixelCar, drawCar } = createCars(view, cam, { PPMz, sx, sy, roundRect });
-  const { drawFence, drawBarriers, drawProps, drawCones, drawTape } = createProps(view, cam, {
-    PPMz, sx, sy, roundRect, forSide, drawSlip, chips, MAX_CHIPS,
+  const { drawFence, drawBarriers, drawProps } = createProps(view, cam, {
+    PPMz, sx, sy, roundRect, forSide, drawSlip,
+  });
+  const { drawCones, drawTape } = createObjects(view, cam, {
+    PPMz, sx, sy, roundRect, chips, MAX_CHIPS,
   });
 
 

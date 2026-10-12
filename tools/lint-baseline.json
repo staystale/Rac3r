@@ -119,17 +119,22 @@
     "max-lines-per-function": 3,
     "no-unused-vars": 3
   },
+  "src/render/objects.js": {
+    "complexity": 3,
+    "id-length": 96,
+    "max-len": 71,
+    "max-lines-per-function": 2
+  },
   "src/render/particles.js": {
     "id-length": 43,
     "max-len": 30,
     "max-lines-per-function": 1
   },
   "src/render/props.js": {
-    "complexity": 6,
-    "id-length": 257,
-    "max-len": 235,
-    "max-lines": 1,
-    "max-lines-per-function": 3
+    "complexity": 3,
+    "id-length": 161,
+    "max-len": 164,
+    "max-lines-per-function": 2
   },
   "src/render/shared.js": {
     "max-len": 1
