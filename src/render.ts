@@ -135,7 +135,8 @@ export function createRenderer(canvas: HTMLCanvasElement, settings: Settings) {
     prefetch: (...a: [number, number, number, number, TileBudget]) => prefetch(...a),
   });
   const {
-    tileState, tiles, TILE_PX, ZSTEP, zStepOf, zOfStep, paletteSnap, paintTile, drawGround,
+    tileState, tiles, TILE_PX, ZSTEP, zStepOf, zOfStep, paletteSnap, paintTile, startTile,
+    stepTile, finishTile, drawGround,
     prefetch,
   } = createTiles(view, cam, settings, {
     PPMz, sx, sy, drawFloor, drawZones, drawLanes, drawTrackRibbon, drawLaneDashes, drawPatches,
@@ -258,6 +259,19 @@ export function createRenderer(canvas: HTMLCanvasElement, settings: Settings) {
     },
     get tileCount() { return tiles.size; },
     // for tools/tilediff.mjs: ground tile (zoom step k, column i, row j) painted fresh -> its pixels (not cached)
+    // for tools/tilestrips.mjs: the same tile painted strip by strip, each stepTile timed
+    debugTileStrips(step: number, col: number, row: number, strips: number) {
+      const job = startTile(step, col, row), stripMs: number[] = [];
+      job.strips = strips;
+      for (let done = false; !done;) {
+        const began = performance.now();
+        done = stepTile(job);
+        stripMs.push(performance.now() - began);
+      }
+      const tile = finishTile(job), size = tile.width;
+      const data = tile.getContext('2d')!.getImageData(0, 0, size, size).data;
+      return { w: size, h: size, stripMs, data: Array.from(data) };
+    },
     debugTile(k: number, i: number, j: number) { const c = paintTile(k, i, j); return { w: c.width, h: c.height, data: Array.from(c.getContext('2d')!.getImageData(0, 0, c.width, c.height).data) }; },
   };
 }

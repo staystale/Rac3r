@@ -151,45 +151,88 @@ export function createTiles(view: View, cam: Cam, settings: Settings, helpers: T
     const c = document.createElement('canvas'); c.width = c.height = px;
     return { c, g: c.getContext('2d', { willReadFrequently: true })! };
   }
-  function paintTileInner(k: number, i: number, j: number) {
-    const tl0 = performance.now();      // start of the layers stage
-    const zq = zOfStep(k), pq = view.PPM * zq, tw = TILE_PX / pq;     // world metres per tile
+  // the layers of a ground tile, in drawing order - ONE place, used by the whole-tile and the strip path
+  function layerCalls() {
+    drawFloor();
+    drawZones();
+    drawLanes();          // UNDER the ribbon: where a lane meets the track, the track wins (lab.js zoneAt does the same)
+    // ENDLESS: wear UNDER the ribbon (2026-10-06, "dirt in the road"; tools/_dirtroad.mjs): the motorway is all tarmac (it never wears),
+    // but a worn verge cell's disc (0.72 x 1.5 m radius) reached ~1 m over the carriageway edge and read as dirt ON the road
+    const endless = !!LEVEL.endless;
+    if (endless) drawWear('base');
+    drawTrackRibbon();
+    drawLaneDashes();
+    drawPatches();
+    if (!endless) drawWear('base');     // baked in (2026-10-03): see wearDirty below. Under the covers ...
+    drawCovers();
+    drawWear('cover');    // ... except where the cover itself has changed
+    drawCurvedKerbs();    // kerbs last: no surface ever paints over a kerb
+  }
+  // STRIPS: a tile is painted in this many bands of device rows, one band per stepTile
+  // (so a frame can do one strip)
+  const STRIPS = 4;
+  type TileJob = {
+    k: number; i: number; j: number; c: HTMLCanvasElement;
+    sc: ReturnType<typeof tileScratch> | null;
+    g: CanvasRenderingContext2D; px: number; tw: number; strip: number; strips: number; t0: number;
+  };
+  function startTile(k: number, i: number, j: number): TileJob {
+    const t0 = performance.now();      // start of the layers stage
+    const tw = TILE_PX / (view.PPM * zOfStep(k));     // world metres per tile
     const px = Math.round(TILE_PX * view.dpr), c = document.createElement('canvas');
     c.width = c.height = px;
-    const viaScratch = !TILE_GPU, sc = viaScratch ? tileScratch(px) : null;
-    const g = viaScratch ? sc!.g : c.getContext('2d')!;
+    const sc = TILE_GPU ? null : tileScratch(px);
+    const g = sc ? sc.g : c.getContext('2d')!;
     g.setTransform(view.dpr, 0, 0, view.dpr, 0, 0);
+    return { k, i, j, c, sc, g, px, tw, strip: 0, strips: STRIPS, t0 };
+  }
+  // paints the layers into the job's canvas; with `band`, only the device rows [y0px, y1px)
+  function layersInto(job: TileJob, y0px: number, y1px: number, band = true) {
+    const ctx = job.g;
     const keep = { ctx: view.ctx, W: view.W, H: view.H, zoom: view.zoom, cx: cam.x, cy: cam.y };
-    view.ctx = g; view.W = view.H = TILE_PX; view.zoom = zq; cam.x = (i + 0.5) * tw; cam.y = (j + 0.5) * tw;
-    try {
-      drawFloor();
-      drawZones();
-      drawLanes();          // UNDER the ribbon: where a lane meets the track, the track wins (lab.js zoneAt does the same)
-      // ENDLESS: wear UNDER the ribbon (2026-10-06, "dirt in the road"; tools/_dirtroad.mjs): the motorway is all tarmac (it never wears),
-      // but a worn verge cell's disc (0.72 x 1.5 m radius) reached ~1 m over the carriageway edge and read as dirt ON the road
-      const endless = !!LEVEL.endless;
-      if (endless) drawWear('base');
-      drawTrackRibbon();
-      drawLaneDashes();
-      drawPatches();
-      if (!endless) drawWear('base');     // baked in (2026-10-03): see wearDirty below. Under the covers ...
-      drawCovers();
-      drawWear('cover');    // ... except where the cover itself has changed
-      drawCurvedKerbs();    // kerbs last: no surface ever paints over a kerb
-    } finally {
-      view.ctx = keep.ctx; view.W = keep.W; view.H = keep.H; view.zoom = keep.zoom; cam.x = keep.cx; cam.y = keep.cy;
+    view.ctx = ctx; view.W = view.H = TILE_PX; view.zoom = zOfStep(job.k);
+    cam.x = (job.i + 0.5) * job.tw; cam.y = (job.j + 0.5) * job.tw;
+    if (band) {
+      ctx.save();
+      ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.beginPath();
+      ctx.rect(0, y0px, job.px, y1px - y0px); ctx.clip();
+      ctx.setTransform(view.dpr, 0, 0, view.dpr, 0, 0);
     }
+    try {
+      layerCalls();
+    } finally {
+      if (band) ctx.restore();
+      Object.assign(view, { ctx: keep.ctx, W: keep.W, H: keep.H, zoom: keep.zoom });
+      cam.x = keep.cx; cam.y = keep.cy;
+    }
+    // canvas 2D defers drawing until pixels are read: this makes the strip's cost land in this call
+    if (band) ctx.getImageData(0, y0px, 1, 1);
+  }
+  function finishTile(job: TileJob) {
     tileState.tilesPainted++;
-    tileState.perStep[k] = (tileState.perStep[k] || 0) + 1;
+    tileState.perStep[job.k] = (tileState.perStep[job.k] || 0) + 1;
     const ts0 = performance.now();
-    tileState.msLayers += ts0 - tl0;
-    if (viaScratch) paletteSnap(sc!.c, c);
-    else paletteSnap(c);
+    tileState.msLayers += ts0 - job.t0;
+    if (job.sc) paletteSnap(job.sc.c, job.c);
+    else paletteSnap(job.c);
     const th0 = performance.now();
     tileState.msSnap += th0 - ts0;
-    hillShade(c, tw, (i + 0.5) * tw, (j + 0.5) * tw);
+    hillShade(job.c, job.tw, (job.i + 0.5) * job.tw, (job.j + 0.5) * job.tw);
     tileState.msShade += performance.now() - th0;
-    return c;
+    return job.c;
+  }
+  // paints the next strip; true when all strips are done
+  function stepTile(job: TileJob) {
+    const rows = Math.ceil(job.px / job.strips), top = job.strip * rows;
+    const bottom = job.strip === job.strips - 1 ? job.px : Math.min(job.px, top + rows);
+    layersInto(job, top, bottom);
+    job.strip++;
+    return job.strip >= job.strips;
+  }
+  function paintTileInner(k: number, i: number, j: number) {
+    const job = startTile(k, i, j);
+    layersInto(job, 0, job.px, false);
+    return finishTile(job);
   }
   // HILL-SHADING (step 3, 2026-10-03; user: "make sure banked surfaces are clearly shown with brighter spots and shadowing,
   // same with bumps and dips"; chose PIXEL HILL-SHADING). Light from the TOP-LEFT: ground sloping toward it is brighter,
@@ -406,7 +449,7 @@ export function createTiles(view: View, cam: Cam, settings: Settings, helpers: T
   }
 
   return {
-    tileState, tiles, TILE_PX, ZSTEP, zStepOf, zOfStep, paletteSnap, paintTile, drawGround,
+    tileState, tiles, TILE_PX, ZSTEP, zStepOf, zOfStep, paletteSnap, paintTile, startTile, stepTile, finishTile, drawGround,
     prefetch,
   };
 }
