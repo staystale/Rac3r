@@ -23,7 +23,7 @@ import { genStage, installStage, addStageLevels } from './stagegen.js';
 import { addHighwayLevel, stepHighway, resetHighway, highwayGuard, highwayRespawn, setHighwayPreset, roadFrame, speedCamera } from './highway.js';   // the ENDLESS motorway (registers itself in LEVELS)   // PROCEDURAL STAGES (installs the default generated stage into LEVELS)
 import { createAutoDriver } from './ai/autodrive.js';
 import { createTraffic } from './traffic.js';   // HIGHWAY TRAFFIC (endless levels)
-import { createHwFlow, hwFrames, hwGrid, hwGridSpan, hwPutBack, HW_GREEN } from './hwrace.js';   // VS AI on the highway
+import { createHwFlow, hwFrames, hwGrid, hwGridSpan, hwPutBack, HW_GREEN } from './highwayrace.js';   // VS AI on the highway
 import { createAIDriver } from './ai/circuit.js';
 import { aiTraits } from './ai/traits.js';
 import { lineRun } from './ai/line.js';
@@ -184,7 +184,7 @@ function drawGridSlot(n) {
 // 6 s apart — a race in single file.)
 const STAGE_GAP_S = 30, STAGE_GAP_M = 9;
 function gridPos(k) {
-  if (LEVEL.endless) return hwGrid(LEVEL, k);   // the highway: 2 wide in the right-hand lanes (hwrace.js)
+  if (LEVEL.endless) return hwGrid(LEVEL, k);   // the highway: 2 wide in the right-hand lanes (highwayrace.js)
   const sub = LEVEL.subtrack, sp = LEVEL.spawn, offLap = querySubtrack(sub, sp.x, sp.y).dist > sub.width / 2;
   if (LEVEL.stage && k > 0) { const d0 = querySubtrack(sub, sp.x, sp.y).trackDist, p = onTrack(sub, ((d0 - k * STAGE_GAP_M) % sub.totalDist + sub.totalDist) % sub.totalDist, 0, {}); return { x: p.x, y: p.y, h: p.rot }; }
   // A REAL 2-WIDE STAGGERED GRID (user, 2026-10-05: "grid starts are wonky / place the player too close to other cars / not in a grid
@@ -259,7 +259,7 @@ function armStart() {
   const on = mode !== 'menu' && (race.on || aiCount > 0), rolling = on && (!!LEVEL.rollingStart || !!LEVEL.endless) && !!LEVEL.subtrack;
   game.start = { on, t: 0, tGreen: rolling ? Infinity : 4 * START_STEP, tGreen0: rolling ? undefined : 4 * START_STEP, rolling, green: !on,
     drv: rolling ? (LEVEL.endless ? createAIDriver(LEVEL, aiTraits(4, 0, 1)) : createAutoDriver(LEVEL.subtrack)) : null };
-  // the HIGHWAY's rolling start has no line to cross: green HW_GREEN s in, everyone already rolling in formation (hwrace.js)
+  // the HIGHWAY's rolling start has no line to cross: green HW_GREEN s in, everyone already rolling in formation (highwayrace.js)
   if (rolling && LEVEL.endless) game.start.tGreen = game.start.tGreen0 = HW_GREEN;
 }
 const startHeld = () => game.start.on && !game.start.green && game.start.t < game.start.tGreen - START_EARLY;
@@ -361,7 +361,7 @@ function stepOrder() {
 // No record (never on the road yet): the nearest centreline point, as before.
 function aiReset(a) {
   const c = a.car, sub = LEVEL.subtrack, rec = c._lastOn;
-  // the HIGHWAY: 15 m back from where it was, in the lane with the most room, facing up the road, rolling (hwrace.js hwPutBack)
+  // the HIGHWAY: 15 m back from where it was, in the lane with the most room, facing up the road, rolling (highwayrace.js hwPutBack)
   if (LEVEL.endless) { const all = [game.car, ...game.ai.map((o) => o.car), ...game.traffic.cars].filter((o) => o !== c), p = hwPutBack(LEVEL, (c._hwf ? c._hwf.s : 0) - 15, all);
     const v = Math.max(12, 0.5 * Math.hypot(c.vx, c.vy)); reset(c, p.x, p.y, p.h); c.vx = Math.cos(p.h) * v; c.vy = Math.sin(p.h) * v; c._hwf = null; a.drv.relocate(); repair(c); a.hurtWait = null; return; }
   if (rec) {
@@ -540,7 +540,7 @@ function startFlow() {
   if (LEVEL.stage && game.start.on) game.start.tGreen = startAtOf(game.car);   // your lights count to YOUR start
   for (const c of [game.car, ...game.ai.map((a) => a.car)]) { c._cut = null; c._cutPen = 0; c._cuts = 0; }
   if (mode !== 'session' || !LEVEL.subtrack || !(game.ai.length || race.on)) return;
-  // the HIGHWAY: no laps — the race ends on the off-screen countdowns (hwrace.js createHwFlow); "on screen" = the renderer's real view
+  // the HIGHWAY: no laps — the race ends on the off-screen countdowns (highwayrace.js createHwFlow); "on screen" = the renderer's real view
   if (LEVEL.endless) { game.flow = createHwFlow({ lv: LEVEL, cars: [{ car: game.car, player: true }, ...game.ai.map((a) => ({ car: a.car }))], visible: (c) => onScreen(c.x, c.y) }); return; }
   if (LEVEL.stage) { game.flow = createRaceFlow({ cars: [{ car: game.car, player: true }, ...game.ai.map((a) => ({ car: a.car }))], total: LEVEL.subtrack.totalDist, laps: 1, stage: { finish: LEVEL.stage.finish } }); return; }
   const laps = raceLaps || (LEVEL.joker && race.on ? LEVEL.joker.laps || 5 : 3);

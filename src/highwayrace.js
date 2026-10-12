@@ -1,6 +1,7 @@
-// hwrace.js — VS AI ON THE ENDLESS HIGHWAY (user, 2026-10-05: "VS AI on the highway = a normal ROLLING-START race"; "an AI reaching the
+// highwayrace.js — VS AI ON THE ENDLESS HIGHWAY (user, 2026-10-05: "VS AI on the highway = a normal ROLLING-START race"; "an AI reaching the
 // EDGE OF THE SCREEN ahead (what is visible differs PC / phone) starts a COUNTDOWN (5-10 s); if it ends and you have not caught up -> race
 // ends, POSITIONS shown. You get so far ahead the AI go off screen BEHIND -> countdown; when it ends YOU WIN"; traffic in every mode).
+// (was hwrace.js until the phase 5 rename)
 //
 // The circuit AI (aidriver.js) races a precomputed line round a CLOSED lap; the treadmill's road is rebuilt every ~300 m and never
 // closes, so its driver reads the road through highway.js's road frame: the WEAVER (aidriver.js roadDriver; v1 raced in lanes — the user: "ignore lanes, go fast,

@@ -78,7 +78,7 @@
     "no-shadow": 1,
     "no-unused-vars": 2
   },
-  "src/hwrace.js": {
+  "src/highwayrace.js": {
     "complexity": 1,
     "id-length": 39,
     "max-len": 51

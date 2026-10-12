@@ -453,7 +453,7 @@ export function createMenu(api) {
       const r = el(p, 'div', '', 'row');
       btn(r, 'TRACK SELECT', () => { act.tracks(); show(); trackSelect(); }); btn(r, 'MAIN MENU', () => { act.menu(); show(); });
     };
-    // the HIGHWAY race (hwrace.js): no laps or times — how far up the road each car got, and the gap in metres to the leader
+    // the HIGHWAY race (highwayrace.js): no laps or times — how far up the road each car got, and the gap in metres to the leader
     const km = (m) => (m / 1000).toFixed(2) + ' KM';
     const hwTable = () => {
       const p = pane(true);

@@ -1,5 +1,5 @@
 // hwjudder.mjs — JUDDER on the endless highway at phone-ish CPU (CDP throttle x4, phone landscape). The player's car is driven by
-// the highway weaver (hwrace.js); every frame records: interval, sim / draw ms (un-smoothed from game.simMs / drawMs), ground tiles
+// the highway weaver (highwayrace.js); every frame records: interval, sim / draw ms (un-smoothed from game.simMs / drawMs), ground tiles
 // painted, whether the road window moved (stepHighway rebuild), loose objects spawned, the stand-in showing. Then it says which of
 // those the SLOW frames (> 25 ms) coincide with. Built 2026-10-06 (user: "judder on mobile on infinite levels - guess thats as chunks load").
 // node tools/hwjudder.mjs [seconds 20] [ai 5] [traffic 1] [cpu 4] [extra query]
@@ -19,7 +19,7 @@ await p.waitForTimeout(2500);   // fly-in done
 console.log('state', JSON.stringify(await p.evaluate(() => { const g = window.__game; return { on: g.start.on, green: g.start.green, rolling: g.start.rolling, menu: g.menu && g.menu.open, lvl: g.level.id }; })));
 const cdp = await ctx.newCDPSession(p); await cdp.send('Emulation.setCPUThrottlingRate', { rate: CPU });
 const r = await p.evaluate((SEC) => new Promise(async (res) => {
-  const g = window.__game, H = await import('/src/hwrace.js'), A = { ...await import('/src/ai/circuit.js'), ...await import('/src/ai/traits.js') };
+  const g = window.__game, H = await import('/src/highwayrace.js'), A = { ...await import('/src/ai/circuit.js'), ...await import('/src/ai/traits.js') };
   const drv = A.createAIDriver(g.level, A.aiTraits(4, 0, 1));
   g.input.update = () => { const others = [...g.ai.map((a) => a.car), ...g.traffic.cars]; H.hwFrames(g.level, [g.car, ...others]);
     return { ...drv.drive(g.car, 1 / 60, { cars: others }), reverse: 0, shiftUp: false, shiftDown: false }; };

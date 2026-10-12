@@ -6,7 +6,7 @@ const { makeCar, step, reset, DT } = await import(SRC + '/vehicle.js'), L = awai
 // the levels importing these modules used to add (task 078 made it explicit)
 H.addHighwayLevel();
 const { createTraffic } = await import(SRC + '/traffic.js'), { aiTraits } = await import(SRC + '/ai/traits.js'), { createAIDriver } = await import(SRC + '/ai/circuit.js');
-const { createHwFlow, hwFrames, hwGrid, hwGridSpan, HW_GREEN } = await import(SRC + '/hwrace.js');
+const { createHwFlow, hwFrames, hwGrid, hwGridSpan, HW_GREEN } = await import(SRC + '/highwayrace.js');
 let r = 777; const rnd = () => ((r = (Math.imul(r, 1664525) + 1013904223) >>> 0) / 4294967296);
 const lv = H.createHighway(SEED, 'motorway'); lv.id = 'cr'; L.LEVELS.push(lv); L.setLevel(lv.id);
 const N = 6, cars = [], drv = [];

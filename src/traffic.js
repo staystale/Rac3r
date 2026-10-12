@@ -161,7 +161,7 @@ export function createTraffic({ rnd = Math.random } = {}) {
       } else if (t.indT > 0 && !clear(t.laneT)) { t.laneT = t.lane; t.ind = 0; }   // changed its mind before moving
     }
     // ---- ACROSS: indicate, then drift over at LAT_V. car._trOff = the lane centre it is going to (null = keeping its lane): read by the
-    // highway racers (hwrace.js) so they plan with where a car WILL be - an indicating car is a car about to be in that lane
+    // highway racers (highwayrace.js) so they plan with where a car WILL be - an indicating car is a car about to be in that lane
     c._trOff = t.laneT !== t.lane ? C[t.laneT] : null;
     if (t.laneT !== t.lane) {
       // ABORT while crossing: anything alongside (or closing fast from behind) on the side I am moving to -> back to where I came from
