@@ -200,7 +200,7 @@ export interface Solid {
   h: number;
   rot: number;
   kind: string;
-  r: number;
+  r?: number;   // solidsFromProps sets it after the push
 }
 
 export interface Level {

@@ -60,10 +60,10 @@ export function prepBarriers(level: { barriers?: Barrier[] }): void {
 // from what is drawn, so "move that tree" moves its collision too.
 export function solidsFromProps(props: Prop[]): Solid[] {
   const out: Solid[] = [];
-  const box = (pr: Prop, ox: number, oy: number, w: number, h: number): void => { const c = Math.cos(pr.rot || 0), s = Math.sin(pr.rot || 0); out.push({ x: pr.x + c * ox - s * oy, y: pr.y + s * ox + c * oy, w, h, rot: pr.rot || 0, kind: pr.kind, r: 0 }); };
+  const box = (pr: Prop, ox: number, oy: number, w: number, h: number): void => { const c = Math.cos(pr.rot || 0), s = Math.sin(pr.rot || 0); out.push({ x: pr.x + c * ox - s * oy, y: pr.y + s * ox + c * oy, w, h, rot: pr.rot || 0, kind: pr.kind }); };
   for (const pr of props) {
     switch (pr.kind) {
-      case 'hangar': case 'grandstand': box(pr, 0, 0, pr.w ?? NaN, pr.h ?? NaN); break;
+      case 'hangar': case 'grandstand': box(pr, 0, 0, pr.w!, pr.h!); break;   // always have w and h
       case 'tower': box(pr, 0, 0, pr.size || 9, pr.size || 9); break;
       case 'truck': box(pr, 0, 0, 14, 2.5); break;
       case 'plane': box(pr, 0.3, 0, 7, 1); box(pr, 1.0, 0, 1.4, 9); box(pr, -2.8, 0, 0.8, 3.2); break;   // fuselage, wing, tailplane
@@ -77,7 +77,7 @@ export function solidsFromProps(props: Prop[]): Solid[] {
       // highway BRIDGES (highway.js extras): the two ABUTMENTS (4 m blocks) at the ends of the span, out on the grass; the deck is overhead
       case 'bridge': box(pr, -(pr.wid || 30) / 2 - 2, 0, 4, pr.carries === 'foot' ? 3.8 : 8); box(pr, (pr.wid || 30) / 2 + 2, 0, 4, pr.carries === 'foot' ? 3.8 : 8); break;
       case 'gate': box(pr, 0, 0, 6.8, 0.6); break;
-      case 'block': box(pr, 0, 0, pr.w ?? NaN, pr.h ?? NaN); break;
+      case 'block': box(pr, 0, 0, pr.w!, pr.h!); break;   // always have w and h
       case 'sculpture': box(pr, 0, 0, 2.2, 2.2); break;
       case 'bale': box(pr, 0, 0, 1.6, 1.6); break;
       case 'rock': box(pr, 0, 0, (pr.s || 3) * 0.7, (pr.s || 3) * 0.7); break;
@@ -96,7 +96,7 @@ export function solidClamp(car: CarBody): void {
   const c = Math.cos(car.heading), sn = Math.sin(car.heading);
   for (const b of list) {
     const dx = car.x - b.x, dy = car.y - b.y;
-    if (dx * dx + dy * dy > (cr + b.r) ** 2) continue;
+    if (dx * dx + dy * dy > (cr + b.r!) ** 2) continue;
     const bc = Math.cos(b.rot), bs = Math.sin(b.rot), bw = b.w / 2, bh = b.h / 2;
     // SAT on the 4 axes: overlap = sum of projected half-extents - |centre distance on the axis|
     let best = Infinity, ax = 0, ay = 0;
