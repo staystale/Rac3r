@@ -33,7 +33,7 @@ import { TUNE } from './vehicle.js';
 import { setLevel } from "./world/load.js";   // the world is set up before this file runs (as importing lab.js did)
 import { SPAWN, LEVEL } from "./world/state.ts";
 import { applyGround, fenceClamp, obstacleClamp, clearWear } from "./world/wear.js";
-import { barrierClamp, solidClamp } from "./world/barriers.js";
+import { barrierClamp, solidClamp } from "./world/barriers.ts";
 import { LEVELS } from "./world/levels/index.js";
 import { FENCE } from "./world/bounds.ts";
 import { findNearestSubtrackPoint, onTrack, querySubtrack } from "./world/tyrewall.js";

@@ -19,7 +19,7 @@ import { createSubtrack, ghostSegment } from "./world/subtrack.ts";
 import { SURFACES } from "./world/surfaces.ts";
 import { LEVELS } from "./world/levels/index.js";
 import { prepBumps, clearNaturalCache } from "./world/terrain.js";
-import { prepBarriersOf, solidsFromProps } from "./world/barriers.js";
+import { prepBarriersOf, solidsFromProps } from "./world/barriers.ts";
 import { onTrack } from "./world/tyrewall.js";
 import { zoneSurfaceAt, pruneWear } from "./world/wear.js";
 

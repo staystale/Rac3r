@@ -16,7 +16,7 @@ import { PAINT, BOARDS, CONES, ZONES, BUMPS, LEVEL, PROPS } from "./world/state.
 import { CONE_R } from "./world/tyrewall.js";
 import { COL } from "./world/colours.ts";
 import { VERGE_W } from "./world/surfaces.ts";
-import { BARRIER_HALF } from "./world/barriers.js";
+import { BARRIER_HALF } from "./world/barriers.ts";
 import { wearMap, WEAR_CELL, wearDirty, wearEpoch, groundAt, coverCut } from "./world/wear.js";
 import { visualSlopeAt, visualHeightAt } from "./world/terrain.js";
 import { MARK_PPM, MARK_EXTENT } from './marks.js';

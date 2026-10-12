@@ -1,5 +1,6 @@
-// barriers.js - the BARRIERS section (barriers, solid props, clamps). Moved verbatim out of lab.js.
+// barriers.ts - the BARRIERS section (barriers, solid props, clamps). Moved verbatim out of lab.js.
 import { LEVEL } from "./state.ts";
+import type { Barrier, BarrierKind, CarBody, Point, Prop, Solid, Subtrack } from "./types.ts";
 
 // =============================================================================================
 // BARRIERS (2026-10-03; user: "use aerial photos of tracks on race days for pit layouts and perimeter decorations — if you
@@ -10,7 +11,7 @@ import { LEVEL } from "./state.ts";
 //   line     painted line (pit lane edge) — NOT solid
 // Solid ones collide with the car's four corners (push out, bounce, scrape) on the same step as obstacleClamp; what is drawn
 // is exactly what you hit (user rule: visuals accurate to their effects).
-export const BARRIER_HALF = { armco: 0.3, wall: 0.45, pitwall: 0.5, fence: 0.15, building: 0.1, line: 0 };
+export const BARRIER_HALF: Record<BarrierKind, number> = { armco: 0.3, wall: 0.45, pitwall: 0.5, fence: 0.15, building: 0.1, line: 0 };
 const BARRIER_E = 0.3;           // restitution off a barrier (obstacles use 0.35)
 const BARRIER_SCRAPE = 0.85;     // share of the along-the-wall speed kept per contact step... (scrape)
 // polyline offset from the subtrack centreline, d0 -> d1 (wrapping past the line), `step` metres apart; offset may be a
@@ -18,15 +19,18 @@ const BARRIER_SCRAPE = 0.85;     // share of the along-the-wall speed kept per c
 // INTERPOLATED point + SMOOTHED normal for paths offset from the track (2026-10-04, photographed: the pit lane's edges wobbled).
 // onTrack snaps to the sample before d and uses that sample's own direction; at a 17 m offset the sample-to-sample jitter in
 // direction became metres of sideways wobble. Here: position lerped between samples, normal averaged over +-4 samples (~12 m).
-export function smoothOnTrack(sub, d, off) {
+export function smoothOnTrack(sub: Subtrack, d: number, off: number): { x: number; y: number } {
   const pts = sub.pts, n = pts.length; d = ((d % sub.totalDist) + sub.totalDist) % sub.totalDist;
   let lo = 0, hi = n - 1; while (lo < hi) { const m = (lo + hi + 1) >> 1; if (pts[m].dist <= d) lo = m; else hi = m - 1; }
   const a = pts[lo], b = pts[(lo + 1) % n], seg = (b.dist > a.dist ? b.dist : sub.totalDist) - a.dist, t = seg > 0 ? (d - a.dist) / seg : 0;
   let nx = 0, ny = 0; for (let k = -4; k <= 4; k++) { const q = pts[(lo + k + n) % n]; nx += q.nx; ny += q.ny; } const L = Math.hypot(nx, ny) || 1;
   return { x: a.x + (b.x - a.x) * t + (nx / L) * off, y: a.y + (b.y - a.y) * t + (ny / L) * off };
 }
-export function alongTrack(sub, d0, d1, offset, step = 4) {
-  const total = sub.totalDist, pts = [];
+export function alongTrack(
+  sub: Subtrack, d0: number, d1: number,
+  offset: number | ((t: number, len: number) => number), step = 4,
+): Point[] {
+  const total = sub.totalDist, pts: Point[] = [];
   let len = d1 - d0; if (len < 0) len += total;
   for (let t = 0; t <= len + 1e-6; t += step) {
     const d = (d0 + Math.min(t, len)) % total;
@@ -36,8 +40,8 @@ export function alongTrack(sub, d0, d1, offset, step = 4) {
   }
   return pts;
 }
-export function prepBarriersOf(level) { prepBarriers(level); }
-export function prepBarriers(level) {
+export function prepBarriersOf(level: { barriers?: Barrier[] }): void { prepBarriers(level); }
+export function prepBarriers(level: { barriers?: Barrier[] }): void {
   for (const b of level.barriers || []) {
     if (b._segs) continue;
     b._segs = [];
@@ -54,12 +58,12 @@ export function prepBarriers(level) {
 // segments, so a tree trunk or a wing tip narrower than the car could slip between two corners; SAT cannot miss it.
 // Response = the barrier rules (restitution BARRIER_E, scrape BARRIER_SCRAPE, yaw x0.6, shake). solidsFromProps builds the boxes
 // from what is drawn, so "move that tree" moves its collision too.
-export function solidsFromProps(props) {
-  const out = [];
-  const box = (pr, ox, oy, w, h) => { const c = Math.cos(pr.rot || 0), s = Math.sin(pr.rot || 0); out.push({ x: pr.x + c * ox - s * oy, y: pr.y + s * ox + c * oy, w, h, rot: pr.rot || 0, kind: pr.kind }); };
+export function solidsFromProps(props: Prop[]): Solid[] {
+  const out: Solid[] = [];
+  const box = (pr: Prop, ox: number, oy: number, w: number, h: number): void => { const c = Math.cos(pr.rot || 0), s = Math.sin(pr.rot || 0); out.push({ x: pr.x + c * ox - s * oy, y: pr.y + s * ox + c * oy, w, h, rot: pr.rot || 0, kind: pr.kind, r: 0 }); };
   for (const pr of props) {
     switch (pr.kind) {
-      case 'hangar': case 'grandstand': box(pr, 0, 0, pr.w, pr.h); break;
+      case 'hangar': case 'grandstand': box(pr, 0, 0, pr.w ?? NaN, pr.h ?? NaN); break;
       case 'tower': box(pr, 0, 0, pr.size || 9, pr.size || 9); break;
       case 'truck': box(pr, 0, 0, 14, 2.5); break;
       case 'plane': box(pr, 0.3, 0, 7, 1); box(pr, 1.0, 0, 1.4, 9); box(pr, -2.8, 0, 0.8, 3.2); break;   // fuselage, wing, tailplane
@@ -73,7 +77,7 @@ export function solidsFromProps(props) {
       // highway BRIDGES (highway.js extras): the two ABUTMENTS (4 m blocks) at the ends of the span, out on the grass; the deck is overhead
       case 'bridge': box(pr, -(pr.wid || 30) / 2 - 2, 0, 4, pr.carries === 'foot' ? 3.8 : 8); box(pr, (pr.wid || 30) / 2 + 2, 0, 4, pr.carries === 'foot' ? 3.8 : 8); break;
       case 'gate': box(pr, 0, 0, 6.8, 0.6); break;
-      case 'block': box(pr, 0, 0, pr.w, pr.h); break;
+      case 'block': box(pr, 0, 0, pr.w ?? NaN, pr.h ?? NaN); break;
       case 'sculpture': box(pr, 0, 0, 2.2, 2.2); break;
       case 'bale': box(pr, 0, 0, 1.6, 1.6); break;
       case 'rock': box(pr, 0, 0, (pr.s || 3) * 0.7, (pr.s || 3) * 0.7); break;
@@ -85,7 +89,7 @@ export function solidsFromProps(props) {
   for (const b of out) b.r = Math.hypot(b.w, b.h) / 2;
   return out;
 }
-export function solidClamp(car) {
+export function solidClamp(car: CarBody): void {
   const list = LEVEL.solids;
   if (!list || !list.length) return;
   const s = car.spec, hl = s.len * 0.48, hw = s.wid * 0.48, cr = Math.hypot(hl, hw);
@@ -115,12 +119,12 @@ export function solidClamp(car) {
     }
   }
 }
-export function barrierClamp(car) {
+export function barrierClamp(car: CarBody): void {
   const list = LEVEL.barriers;
   if (!list || !list.length) return;
   const s = car.spec, c = Math.cos(car.heading), sn = Math.sin(car.heading);
   const hl = s.len * 0.48, hw = s.wid * 0.48;
-  const corners = [[hl, hw], [hl, -hw], [-hl, hw], [-hl, -hw]];
+  const corners: Point[] = [[hl, hw], [hl, -hw], [-hl, hw], [-hl, -hw]];
   for (const b of list) {
     const half = BARRIER_HALF[b.kind];
     if (!half || !b._segs) continue;

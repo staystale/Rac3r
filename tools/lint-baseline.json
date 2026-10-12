@@ -147,7 +147,7 @@
     "no-shadow": 6,
     "no-unused-vars": 3
   },
-  "src/world/barriers.js": {
+  "src/world/barriers.ts": {
     "complexity": 2,
     "id-length": 82,
     "max-len": 31

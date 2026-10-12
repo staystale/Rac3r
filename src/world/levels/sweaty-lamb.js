@@ -1,4 +1,4 @@
-import { alongTrack } from "../barriers.js";
+import { alongTrack } from "../barriers.ts";
 import { FLOOR } from "../bounds.ts";
 import { autoKerbs, createSubtrack, traceTrack } from "../subtrack.ts";
 import { SURFACES } from "../surfaces.ts";

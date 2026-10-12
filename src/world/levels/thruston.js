@@ -1,5 +1,5 @@
 import { parkMiller } from "../../core/random.ts";
-import { alongTrack } from "../barriers.js";
+import { alongTrack } from "../barriers.ts";
 import { autoKerbs, createSubtrack, traceTrack } from "../subtrack.ts";
 import { SURFACES } from "../surfaces.ts";
 import { prepBumps } from "../terrain.js";

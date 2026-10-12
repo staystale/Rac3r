@@ -141,6 +141,7 @@ export interface Prop {
   n?: number;
   snow?: boolean;
   pal?: string;
+  carries?: string;
 }
 
 // An x, y pair in metres.
@@ -154,7 +155,57 @@ export interface Rect {
   y1: number;
 }
 
+// vehicle.js is not TypeScript yet; this is the part of the car the world code touches,
+// and the real Car type will satisfy it.
+export interface CarBody {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  heading: number;
+  yawRate: number;
+  shake: number;
+  spec: { len: number; wid: number };
+}
+
+export type BarrierKind = 'armco' | 'wall' | 'pitwall' | 'fence' | 'building' | 'line';
+
+// One padded segment of a barrier polyline (what prepBarriers pushes).
+export interface BarrierSeg {
+  ax: number;
+  ay: number;
+  dx: number;
+  dy: number;
+  l2: number;
+  minX: number;
+  maxX: number;
+  minY: number;
+  maxY: number;
+}
+
+// One entry of LEVEL.barriers; polylines in metres.
+export interface Barrier {
+  kind: BarrierKind;
+  pts: Point[];
+  col?: string;
+  _s?: number;   // highway.js
+  _segs?: BarrierSeg[];   // added by prepBarriers
+}
+
+// A rotated solid box (what solidsFromProps returns); r is its bounding radius.
+export interface Solid {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  rot: number;
+  kind: string;
+  r: number;
+}
+
 export interface Level {
+  barriers?: Barrier[];
+  solids?: Solid[];
   paint: Paint[];
   boards: Board[];
   cones: Cone[];

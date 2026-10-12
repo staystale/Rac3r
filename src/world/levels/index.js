@@ -1,6 +1,6 @@
 import { FLOOR } from "../bounds.ts";
 import { SURFACES } from "../surfaces.ts";
-import { alongTrack, solidsFromProps } from "../barriers.js";
+import { alongTrack, solidsFromProps } from "../barriers.ts";
 import { LAB_BOUNDS, LAB_OFFROAD_BUMPS } from "./lab-extension.js";
 import { onTrack, propClearance } from "../tyrewall.js";
 import {
@@ -28,7 +28,7 @@ import {
   KD_SUBTRACK, KD_BUMPS, KD_WATER, KD_PAINT, KD_CONES, KD_PROPS, KD_TAPE, KD_YARD, KD_FINISH,
 } from "./killder.js";
 import { BH_GP_LEVEL, BH_INDY_LEVEL } from "./brands-snatch.js";
-import { LAB_PAINT, LAB_BOARDS } from "../barriers.js";
+import { LAB_PAINT, LAB_BOARDS } from "../barriers.ts";
 import { prepBumps } from "../terrain.js";
 import { courseCones, slalom, outerTyreWall } from "../tyrewall.js";
 import {
