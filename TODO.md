@@ -114,6 +114,10 @@ Owner decisions (2026-10-11):
 4. TypeScript. Convert in place, phase by phase, not a rebuild: behaviour is proven unchanged by the phase 0 baseline. Playtest on the phone as often as possible, after every phase that touches visible behaviour.
 5. Reviews: rely on automated checks (`node tools/verify.mjs`, later lint and the regression suite in CI); the foreman spot-checks diffs and reviews the whole project now and then.
 Order: the overhaul first. LEVELS + EVENTS and every older item wait until it is done. Do not publish to itch.io until the owner approves the converted game.
+Known bugs found during the overhaul (wait until it is done, they are not caused by it):
+- RX race, two jokers: `node tools/racecheck.mjs` (slidden-hill) fails case C. The car is put through the joker gate on lap 2 and again on lap 3; the race never finishes (stuck on lap 3 after 8 minutes, no +30 s penalty). Same result on the original code (commit 857f105, checked 2026-10-12), so it is older than the overhaul. Not yet known whether the game or the test is wrong (the test teleports onto the gate; joker detection became a line that must be crossed on 2026-10-07). Cases A, B and practice pass. racecheck takes about 18 minutes, so it is not in the baseline run.
+
+
 
 ## GAME NAME: RAC3R (user, 2026-10-03)
 
