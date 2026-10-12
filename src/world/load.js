@@ -7,7 +7,7 @@ import { laneAt } from "./zones.ts";
 import { resetNatLevel } from "./terrain.ts";
 import { PATCH_CELL, patchKey, PATCH_GRID, resetPATCH_GRID, HEAT_OFFROAD } from "./wear.ts";
 import { onTrack, querySubtrack } from "./tyrewall.ts";
-import { buildBlend, seededRng, buildInclusions } from "./blend.js";
+import { buildBlend, seededRng, buildInclusions } from "./blend.ts";
 import { LEVELS } from "./levels/index.js";
 function prepareLevel() {
   prepBarriers(LEVEL);

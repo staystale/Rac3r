@@ -1,8 +1,11 @@
 import { FLOOR, KERB_W, edgeOut } from "./bounds.ts";
 import { SURFACES } from "./surfaces.ts";
+import type { SurfaceId } from "./surfaces.ts";
 import { zoneAt } from "./zones.ts";
 import { COVER_IDS } from "./wear.ts";
 import { querySubtrack } from "./tyrewall.ts";
+import type { Level, Patch, Surface, Inclusions, InclusionCover } from "./types.ts";
+type Rng = () => number;
 // =============================================================================================
 // SURFACE BLENDING AT CHANGE POINTS (user, 2026-10-03: "sections of surfaces should rarely come to abrupt
 // changes — a blend area where random patches of the under layer show through and the top layer drags over;
@@ -21,30 +24,30 @@ export const BLEND_W = 6;          // m from the change point to where the blend
 // So patches are 0.4-1.4 m (were 1-3.2 m), twice as many to keep the coverage, and a HARD surface (tarmac family,
 // lab floor, wet tarmac) never scatters onto anything — loose ground drags onto hard ground, never the reverse.
 export const BLEND_DENSITY = 1.4;  // patches per metre of boundary at the change point
-export function seededRng(str) {
+export function seededRng(str: string): () => number {
   let h = 2166136261;
   for (let i = 0; i < str.length; i++) h = Math.imul(h ^ str.charCodeAt(i), 16777619);
   return () => { h += 0x6D2B79F5; let t = h; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
 }
-const tri = (rng) => rng() * rng();      // 0..1, dense near 0: the "greater at the point of blend" falloff
+const tri = (rng: Rng): number => rng() * rng();      // 0..1, dense near 0: the "greater at the point of blend" falloff
 // SQUARES, not circles (user, 2026-10-03, with the pixel-art pass: "make the surface and transitions squares too,
 // no circles"): every blend patch is an axis-aligned square of 0.5, 1.0 or 1.5 m on a half-metre world grid.
 const SQ_GRID = 0.5;
-const snapG = (v) => Math.round(v / SQ_GRID) * SQ_GRID;
-function blendPatch(rng, x, y, surface, rot) {
+const snapG = (v: number): number => Math.round(v / SQ_GRID) * SQ_GRID;
+function blendPatch(rng: Rng, x: number, y: number, surface: Surface, rot: number): Patch {
   const w = SQ_GRID * (1 + Math.floor(rng() * 3));
   return { x: snapG(x), y: snapG(y), w, h: w, sq: true, surface, blend: true };
 }
-export function buildBlend(level, rng) {
-  const out = [];
+export function buildBlend(level: Level, rng: Rng): Patch[] {
+  const out: Patch[] = [];
   const st = level.subtrack;
-  const onRoad = (x, y, pad) => st && querySubtrack(st, x, y).dist < st.width / 2 + pad;
-  const inPad = (x, y) => level.zones.some((z) => (z.boxed || z.rounded) && Math.abs(x - z.x) < z.w / 2 + 1 && Math.abs(y - z.y) < z.h / 2 + 1);
+  const onRoad = (x: number, y: number, pad: number) => st && querySubtrack(st, x, y).dist < st.width / 2 + pad;
+  const inPad = (x: number, y: number): boolean => level.zones.some((z) => (z.boxed || z.rounded) && Math.abs(x - z.x) < z.w / 2 + 1 && Math.abs(y - z.y) < z.h / 2 + 1);
   if (st && st.sectors && st.sectors.length > 1) {
     const pts = st.pts, total = st.totalDist, hw = st.width / 2;
     // INTERPOLATED between samples. MEASURED (tools/blendcheck): snapping to the ~4 m sample spacing clumped the
     // patches into 4 m steps — 89 / 1 / 25 / 70 per metre from the change point instead of a smooth falloff.
-    const at = (d) => {
+    const at = (d: number) => {
       d = ((d % total) + total) % total;
       let i = 0; while (i < pts.length - 1 && pts[i + 1].dist <= d) i++;
       const a = pts[i], b = pts[(i + 1) % pts.length], seg = (b.dist > a.dist ? b.dist : total) - a.dist, k = seg > 0 ? (d - a.dist) / seg : 0;
@@ -95,7 +98,8 @@ export function buildBlend(level, rng) {
         if (Math.max(Math.abs(bx), Math.abs(by)) > FLOOR - KERB_W - 2 && !(z.ext && edgeOut(bx, by) < -KERB_W - 2)) continue;
         const outer = zoneAt(bx + nx * 1.5, by + ny * 1.5);
         if (outer === z.surface || outer.id === 'kerb') continue;
-        for (const [sign, surf] of [[1, z.surface], [-1, outer]]) {     // outward: the zone drags out; inward: the neighbour creeps in
+        const sides: [number, Surface][] = [[1, z.surface], [-1, outer]];
+        for (const [sign, surf] of sides) {     // outward: the zone drags out; inward: the neighbour creeps in
           if (rng() > 0.6) continue;
           const o = sign * (0.3 + tri(rng) * BLEND_W);
           const x = bx + nx * o, y = by + ny * o;
@@ -112,7 +116,7 @@ export function buildBlend(level, rng) {
 // and realistic"; table APPROVED as proposed). Share of each surface's AREA covered by small patches of a related surface; '@x'
 // is a COVER (puddle / snow / ice) rather than a ground patch. Seeded per level (the Grass Track re-rolls with its layout).
 // Boxed test panels stay pure (the tyre / wear tools and the player's tests depend on them).
-const INCLUDE = {
+const INCLUDE: Record<string, [string, number][]> = {
   gravel: [['sand', 0.08], ['dirt', 0.06]],
   dirt: [['gravel', 0.06], ['mud', 0.05]],
   grass: [['grassLong', 0.10], ['dirt', 0.04], ['mud', 0.02]],
@@ -130,8 +134,8 @@ const INCLUDE = {
 // patches". So: the same table, but INCL_RATE 0.1 of the patch COUNT the table implies at the original 1.5-5 m size, and the
 // patches themselves 0.75-2 m.
 const INCL_STEP = 6, INCL_MIN = 0.75, INCL_MAX = 2, INCL_COVER_CAP = 30, INCL_RATE = 0.1, INCL_REF_SIZE = 3.25;
-export function buildInclusions(level, rng) {
-  const patches = [], covers = [];
+export function buildInclusions(level: Level, rng: Rng): Inclusions {
+  const patches: Patch[] = [], covers: InclusionCover[] = [];
   // ENDLESS levels (the highway, 100 km a side): the FLOOR-wide 6 m scan below is ~1e9 cells there (MEASURED 2026-10-05: froze the
   // Test Mode menu, ran node out of heap). The road window moves anyway, so no inclusions on an endless level.
   if (level.endless) return { patches, covers };
@@ -162,7 +166,8 @@ export function buildInclusions(level, rng) {
       for (let k = 0; k < n; k++) {
         const sw = Math.round(side * (0.7 + rng() * 0.6) * 2) / 2, sh = Math.round(side * (0.7 + rng() * 0.6) * 2) / 2;
         const ox = Math.round((px + (rng() - 0.5) * side) * 2) / 2, oy = Math.round((py + (rng() - 0.5) * side) * 2) / 2;
-        patches.push({ x: ox, y: oy, w: Math.max(1, sw), h: Math.max(1, sh), sq: true, surface: SURFACES[pick] });
+        patches.push({ x: ox, y: oy, w: Math.max(1, sw), h: Math.max(1, sh), sq: true,
+          surface: SURFACES[pick as SurfaceId] });
       }
     }
   }

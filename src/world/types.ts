@@ -232,6 +232,25 @@ export interface Patch {
   surface: Surface;
   sq?: boolean;
   rot?: number;
+  blend?: boolean;   // blend.ts: made by buildBlend
+  src?: string;   // blend.ts: 'change' for sector change points
+}
+
+// A cover patch made by buildInclusions (cover is a CoverId name).
+export interface InclusionCover {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  rot: number;
+  cover: string;
+  shape: string;
+}
+
+// What buildInclusions returns.
+export interface Inclusions {
+  patches: Patch[];
+  covers: InclusionCover[];
 }
 
 // One entry of LEVEL.obstacles: an axis-aligned solid box.
@@ -328,6 +347,8 @@ export interface Level {
   _bumpGrid?: Map<number, Bump[]>;   // terrain.ts bumpAt
   covers?: Cover[];
   obstacles?: Obstacle[];
+  endless?: boolean;   // blend.ts: the 100 km highway
+  _coversBase?: Cover[];   // blend.ts: the hand-placed covers
 }
 
 // One resampled centre-line point of a subtrack.

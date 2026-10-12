@@ -15,7 +15,7 @@ export * from "./world/terrain.ts";
 export * from "./world/wear.ts";
 export * from "./world/tyrewall.ts";
 export * from "./world/levels/index.js";
-export * from "./world/blend.js";
+export * from "./world/blend.ts";
 export * from "./world/load.js";
 export * from "./world/colours.ts";
 export { trackKit } from "./world/levels/kit.js";
