@@ -13,7 +13,7 @@
 // While open, the guide consumes EVERY tap (main.js asks it first), so a tap on a card can never steer or
 // press a pedal (CLAUDE.md §4: a tap on the HUD must never also reach the world).
 
-import "./world/load.js";   // the world is set up before this file runs (as importing lab.js did)
+import "./world/load.ts";   // the world is set up before this file runs (as importing lab.js did)
 import { COL } from "./world/colours.ts";
 import { LEVEL } from "./world/state.ts";
 

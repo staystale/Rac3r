@@ -19,7 +19,7 @@
 // 4. DRIVING: Stanley steering onto the path + a lateral target (wander, mistakes, avoidance), target speed = profile x pace.
 import { parkMiller } from "./core/random.ts";
 import { debugValue, envValue } from "./core/debug.ts";
-import "./world/load.js";   // the world is set up before this file runs (as importing lab.js did)
+import "./world/load.ts";   // the world is set up before this file runs (as importing lab.js did)
 import { groundAt } from "./world/wear.ts";
 import { querySubtrack } from "./world/tyrewall.ts";
 import { GRAVITY } from './cars.js';

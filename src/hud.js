@@ -12,8 +12,8 @@
 // button ends up visually somewhere its tap is not.
 
 import { ROSTER, CAR_IDS } from './cars.js';
-import "./world/load.js";   // the world is set up before this file runs (as importing lab.js did)
-import { LEVELS } from "./world/levels/index.js";
+import "./world/load.ts";   // the world is set up before this file runs (as importing lab.js did)
+import { LEVELS } from "./world/levels/index.ts";
 import { LEVEL } from "./world/state.ts";
 import { COL } from "./world/colours.ts";
 import { PEDAL } from './input.js';

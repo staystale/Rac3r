@@ -14,10 +14,10 @@
 // LANES are config (HW_PRESETS): a UK motorway, a wide interstate, a skinny dual carriageway — the same generator for later flavour levels.
 import { lcg } from "./core/random.ts";
 import { envValue } from "./core/debug.ts";
-import "./world/load.js";   // the world is set up before this file runs (as importing lab.js did)
+import "./world/load.ts";   // the world is set up before this file runs (as importing lab.js did)
 import { createSubtrack, ghostSegment } from "./world/subtrack.ts";
 import { SURFACES } from "./world/surfaces.ts";
-import { LEVELS } from "./world/levels/index.js";
+import { LEVELS } from "./world/levels/index.ts";
 import { prepBumps, clearNaturalCache } from "./world/terrain.ts";
 import { prepBarriersOf, solidsFromProps } from "./world/barriers.ts";
 import { onTrack } from "./world/tyrewall.ts";

@@ -30,11 +30,11 @@ import { hit, hitRoll, repair, resetBill, tooInjured } from './damage.js';
 import { rolling, tripCheck, stepRoll } from './roll.js';
 import { nudge, resetAll, snapshot } from './tune.js';
 import { TUNE } from './vehicle.js';
-import { setLevel } from "./world/load.js";   // the world is set up before this file runs (as importing lab.js did)
+import { setLevel } from "./world/load.ts";   // the world is set up before this file runs (as importing lab.js did)
 import { SPAWN, LEVEL } from "./world/state.ts";
 import { applyGround, fenceClamp, obstacleClamp, clearWear } from "./world/wear.ts";
 import { barrierClamp, solidClamp } from "./world/barriers.ts";
-import { LEVELS } from "./world/levels/index.js";
+import { LEVELS } from "./world/levels/index.ts";
 import { FENCE } from "./world/bounds.ts";
 import { findNearestSubtrackPoint, onTrack, querySubtrack } from "./world/tyrewall.ts";
 

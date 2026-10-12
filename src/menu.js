@@ -8,8 +8,8 @@
 //   api.thumbs()        -> { levelId: canvas }  (painted once, cached)
 //   api.launch(level, car)    start a Test Mode session
 //   api.carSprite(id)   -> canvas of the generated pixel car
-import "./world/load.js";   // the world is set up before this file runs (as importing lab.js did)
-import { LEVELS } from "./world/levels/index.js";
+import "./world/load.ts";   // the world is set up before this file runs (as importing lab.js did)
+import { LEVELS } from "./world/levels/index.ts";
 import { ROSTER, CLASSES, classOf, PALETTE, TYRES, TYRE_BRANDS, TYRE_SURFS, tyreOf } from './cars.js';
 import { THEMES, LENGTHS } from './stagegen.js';
 import { CAR_STATS } from './carstats.js';

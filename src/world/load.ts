@@ -8,8 +8,9 @@ import { resetNatLevel } from "./terrain.ts";
 import { PATCH_CELL, patchKey, PATCH_GRID, resetPATCH_GRID, HEAT_OFFROAD } from "./wear.ts";
 import { onTrack, querySubtrack } from "./tyrewall.ts";
 import { buildBlend, seededRng, buildInclusions } from "./blend.ts";
-import { LEVELS } from "./levels/index.js";
-function prepareLevel() {
+import { LEVELS } from "./levels/index.ts";
+import type { Barrier, Cone, Lane, Level, Patch, Point, Prop } from "./types.ts";
+function prepareLevel(): void {
   prepBarriers(LEVEL);
   if (LEVEL.randomise) { LEVEL.randomise(); LEVEL._blend = null; }
   // ENDLESS levels get NO blend (MEASURED BUG, 2026-10-06, tools/_dirtroad.mjs: the highway's blend was built ONCE, against whatever road
@@ -24,7 +25,7 @@ function prepareLevel() {
   LEVEL.covers = [...LEVEL._coversBase, ...LEVEL._incl.covers];
   // KEEP LANES CLEAN (2026-10-04, user: Thruston "pits look messy"): blend + inclusion squares picked on the grass next to a lane
   // overlapped onto it and chewed its edge ragged. Drop any generated patch that reaches a lane (authored LEVEL.patches stay).
-  const offLane = (c) => { const r = Math.max(c.w, c.h) / 2 + 1; for (const d of [[0, 0], [r, 0], [-r, 0], [0, r], [0, -r], [r, r], [-r, -r], [r, -r], [-r, r]]) if (laneAt(c.x + d[0], c.y + d[1])) return false; return true; };
+  const offLane = (c: Patch): boolean => { const r = Math.max(c.w, c.h) / 2 + 1; for (const d of [[0, 0], [r, 0], [-r, 0], [0, r], [0, -r], [r, r], [-r, -r], [r, -r], [-r, r]]) if (laneAt(c.x + d[0], c.y + d[1])) return false; return true; };
   const gen = LEVEL.lanes ? [...LEVEL._blend, ...LEVEL._incl.patches].filter(offLane) : [...LEVEL._blend, ...LEVEL._incl.patches];
   LEVEL.allPatches = [...(LEVEL.patches || []), ...gen];
   resetPATCH_GRID();
@@ -45,11 +46,12 @@ function prepareLevel() {
 // beyond the dressing at half width + 5.5 m). Pit / painted lines stay lines.
 const TAPE_STEP = 4, LANE_CLEAR = 2.5;   // m: tape posts keep this far beyond a road lane's edge
 let tapeId = 0;
-function tapePass(lv) {
+function tapePass(lv: Level): void {
   if (!lv.subtrack || !(lv.stage || lv.joker)) return;
   const runs = [], hw = lv.subtrack.width / 2;
   for (const b of lv.barriers || []) if (b.kind === 'line' && b.col === '#e23b2e') runs.push(b.pts);
-  lv.barriers = (lv.barriers || []).filter((b) => !(b.kind === 'line' && b.col === '#e23b2e'));
+  lv.barriers = (lv.barriers || []).filter(
+    (b: Barrier) => !(b.kind === 'line' && b.col === '#e23b2e'));
   for (const c of autoKerbs(lv.subtrack, { maxR: 70, exitR: 0, minTurn: 18, mergeGap: 10 })) {
     if (lv.stage && c.startDist > lv.stage.finish) continue;
     const a = onTrack(lv.subtrack, c.startDist, 0, {}).rot, bb = onTrack(lv.subtrack, c.endDist, 0, {}).rot;
@@ -59,31 +61,32 @@ function tapePass(lv) {
   // ...but NEVER across a ROAD LANE (user, 2026-10-04: "tape covering joker track section entries on Knobhill"): a post within half a lane
   // width + LANE_CLEAR of the joker / RX start / pit / service lane is left out, and the run's idx gap leaves that section open (cones.js
   // strings consecutive idx only). Gravel traps (lanes with an 'out' side) are run-off, not road: tape may cross them.
-  const roads = (lv.lanes || []).filter((n) => n.out == null);
-  const onRoad = (x, y) => roads.some((n) => { for (let k = 0; k + 1 < n.pts.length; k++) {
+  const roads = (lv.lanes || []).filter((n: Lane) => n.out == null);
+  const onRoad = (x: number, y: number): boolean =>
+    roads.some((n) => { for (let k = 0; k + 1 < n.pts.length; k++) {
     const [ax, ay] = n.pts[k], [bx, by] = n.pts[k + 1], vx = bx - ax, vy = by - ay, L2 = vx * vx + vy * vy || 1;
     const t = Math.max(0, Math.min(1, ((x - ax) * vx + (y - ay) * vy) / L2)); if (Math.hypot(x - ax - t * vx, y - ay - t * vy) < n.width / 2 + LANE_CLEAR) return true; } return false; });
-  const posts = [];
+  const posts: Cone[] = [];
   for (const pts of runs) {
     const id = tapeId++;
-    pts.forEach(([x, y], i) => { if (querySubtrack(lv.subtrack, x, y).dist > hw + 1.5 && !onRoad(x, y)) posts.push({ x, y, kind: 'tapepost', tape: id, idx: i }); });
+    pts.forEach(([x, y]: Point, i: number) => { if (querySubtrack(lv.subtrack!, x, y).dist > hw + 1.5 && !onRoad(x, y)) posts.push({ x, y, kind: 'tapepost', tape: id, idx: i }); });
   }
   lv.cones = [...(lv.cones || []), ...posts];
 }
 // CHEVRONS + FLAGS are KNOCKABLE (user, 2026-10-04: "heavy but impactable"): every level's chevron boards and flag poles move from the
 // static props (drawn into the scenery, solid until today) into its loose objects (cones.js: mass, topple, slide, lie flat)
-function knockPass(lv) {
-  const mv = (lv.props || []).filter((p) => p.kind === 'chevron' || p.kind === 'flag'); if (!mv.length) return;
-  lv.props = lv.props.filter((p) => !(p.kind === 'chevron' || p.kind === 'flag'));
-  lv.cones = [...(lv.cones || []), ...mv.map((p) => ({ x: p.x, y: p.y, kind: p.kind, rot: p.rot || 0, col: p.col }))];
+function knockPass(lv: Level): void {
+  const mv = (lv.props || []).filter((p: Prop) => p.kind === 'chevron' || p.kind === 'flag'); if (!mv.length) return;
+  lv.props = lv.props!.filter((p: Prop) => !(p.kind === 'chevron' || p.kind === 'flag'));
+  lv.cones = [...(lv.cones || []), ...mv.map((p: Prop) => ({ x: p.x, y: p.y, kind: p.kind, rot: p.rot || 0, col: p.col }))];
 }
 // the post-passes every level gets (tape, knockable signs) — exported for generated levels (stagegen.js)
-export function finishLevel(lv) { tapePass(lv); knockPass(lv); return lv; }
+export function finishLevel(lv: Level): Level { tapePass(lv); knockPass(lv); return lv; }
 // the floor rectangle of the current level (S-B): LEVEL.bounds, else the square +-FLOOR
-function applyBounds() {
+function applyBounds(): void {
   setRect(LEVEL.bounds);
 }
-export function setLevel(id) {
+export function setLevel(id: string): Level {
   const next = LEVELS.find((l) => l.id === id);
   if (!next) return LEVEL;
   setActiveLevel(next);

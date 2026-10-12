@@ -183,7 +183,7 @@
     "id-length": 14,
     "max-len": 21
   },
-  "src/world/levels/index.js": {
+  "src/world/levels/index.ts": {
     "id-length": 16,
     "max-len": 35
   },
@@ -230,7 +230,7 @@
     "id-length": 49,
     "max-len": 81
   },
-  "src/world/load.js": {
+  "src/world/load.ts": {
     "complexity": 2,
     "id-length": 38,
     "max-len": 35

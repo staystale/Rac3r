@@ -4,7 +4,7 @@ import type { SurfaceId } from "./surfaces.ts";
 import { zoneAt } from "./zones.ts";
 import { COVER_IDS } from "./wear.ts";
 import { querySubtrack } from "./tyrewall.ts";
-import type { Level, Patch, Surface, Inclusions, InclusionCover } from "./types.ts";
+import type { CoverId, Level, Patch, Surface, Inclusions, InclusionCover } from "./types.ts";
 type Rng = () => number;
 // =============================================================================================
 // SURFACE BLENDING AT CHANGE POINTS (user, 2026-10-03: "sections of surfaces should rarely come to abrupt
@@ -158,7 +158,7 @@ export function buildInclusions(level: Level, rng: Rng): Inclusions {
     for (const [id, pct] of list) { const p = INCL_RATE * (pct * cellArea) / refArea; if (r < p) { pick = id; break; } r -= p; }
     if (!pick) continue;
     const w = INCL_MIN + rng() * (INCL_MAX - INCL_MIN), h = INCL_MIN + rng() * (INCL_MAX - INCL_MIN), rot = rng() * Math.PI;
-    if (pick[0] === '@') { if (covers.length < INCL_COVER_CAP) covers.push({ x: px, y: py, w, h, rot, cover: pick.slice(1), shape: 'ellipse' }); }
+    if (pick[0] === '@') { if (covers.length < INCL_COVER_CAP) covers.push({ x: px, y: py, w, h, rot, cover: pick.slice(1) as CoverId, shape: 'ellipse' }); }
     else {
       // a CLUSTER of 2-3 overlapping squares on the world grid (pixel-art rule: squares, not circles — photographed, smooth
       // ellipses read as a different art style from the Grass Track's square patches). Same expected area as one ellipse.

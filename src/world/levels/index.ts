@@ -1,4 +1,5 @@
 import { FLOOR } from "../bounds.ts";
+import type { Barrier, Level } from "../types.ts";
 import { SURFACES } from "../surfaces.ts";
 import { alongTrack, solidsFromProps } from "../barriers.ts";
 import { LAB_BOUNDS, LAB_OFFROAD_BUMPS } from "./lab-extension.ts";
@@ -43,7 +44,7 @@ import { TH_ARMCO } from "./thruston.ts";
 // =============================================================================================
 // THE LEVELS. `base` is what you are on where no zone covers you; `zones` are first-hit-wins.
 
-export const LEVELS = [
+export const LEVELS: Level[] = [
   {
     id: 'lab', name: 'The Lab',
     coneCount: true,      // show the knocked-cone tally (a cone course)
@@ -175,7 +176,8 @@ export const LEVELS = [
     barriers: [
       { kind: 'pitwall', pts: alongTrack(CC_SUBTRACK, 1250, 97, -10, 2) },
       { kind: 'line', pts: alongTrack(CC_SUBTRACK, 1255, 92, -15.5, 2) },
-      ...CC_ARMCO.map(([a, b]) => ({ kind: 'armco', pts: alongTrack(CC_SUBTRACK, a, b, -16, 2) })),
+      ...CC_ARMCO.map(([a, b]): Barrier =>
+        ({ kind: 'armco', pts: alongTrack(CC_SUBTRACK, a, b, -16, 2) })),
       { kind: 'fence', pts: alongTrack(CC_SUBTRACK, 1110, 1215, -22, 2) },     // "only a waist high fence" on the Camp bank
     ],
     spawn: (() => { const p = onTrack(CC_SUBTRACK, CC_SUBTRACK.totalDist - 15, 0, {}); return { x: p.x, y: p.y, heading: p.rot }; })(),
@@ -204,7 +206,8 @@ export const LEVELS = [
       { kind: 'line', pts: alongTrack(TH_SUBTRACK, 1206, 20, TH_PIT.off - 1.5, 2) },               // the yellow line
       { kind: 'building', pts: alongTrack(TH_SUBTRACK, TH_GAR.d0, TH_GAR.d1, TH_GAR.off - TH_GAR.depth / 2 + 0.3, 2) },
       // ARMCO on the OUTSIDE of the right-handers (an inside offset of a tight corner self-intersects)
-      ...TH_ARMCO.map(([a, b]) => ({ kind: 'armco', pts: alongTrack(TH_SUBTRACK, a, b, -16, 2) })),
+      ...TH_ARMCO.map(([a, b]): Barrier =>
+        ({ kind: 'armco', pts: alongTrack(TH_SUBTRACK, a, b, -16, 2) })),
       // catch fence behind the Armco at Church, where the spectators stand
       { kind: 'fence', pts: alongTrack(TH_SUBTRACK, 780, 875, -22, 2) },
     ],

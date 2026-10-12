@@ -10,7 +10,7 @@
 // player must read at a glance — which way the front wheels point — is drawn at full contrast.
 import { parkMiller, hash2d } from "./core/random.ts";
 
-import "./world/load.js";   // the world is set up before this file runs (as importing lab.js did)
+import "./world/load.ts";   // the world is set up before this file runs (as importing lab.js did)
 import { FLOOR, FX0, FX1, FY0, FY1, GRID, KERB_W, RUNOFF_W, FENCE } from "./world/bounds.ts";
 import { PAINT, BOARDS, CONES, ZONES, BUMPS, LEVEL, PROPS } from "./world/state.ts";
 import { CONE_R } from "./world/tyrewall.ts";

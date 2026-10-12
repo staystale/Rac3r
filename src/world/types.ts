@@ -62,7 +62,7 @@ export interface Cone {
   paint?: string;
   num?: string;
   col?: string;
-  tape?: string;
+  tape?: string | number;   // load.ts tapePass numbers its tapes
   idx?: number;
 }
 
@@ -243,8 +243,8 @@ export interface InclusionCover {
   w: number;
   h: number;
   rot: number;
-  cover: string;
-  shape: string;
+  cover: CoverId;
+  shape: 'rect' | 'ellipse';
 }
 
 // What buildInclusions returns.
@@ -325,8 +325,32 @@ export interface Solid {
   r?: number;   // solidsFromProps sets it after the push
 }
 
+// LEVEL.joker: the rallycross joker-lap rule (gate, time penalty, laps, painted arrows).
+export interface JokerRule {
+  gate: { x: number; y: number; r: number };
+  penalty: number;
+  laps: number;
+  arrows: ({ x: number; y: number; rot: number; len: number } | null)[];
+}
+
 export interface Level {
   id: string;
+  name: string;
+  coneCount?: boolean;   // show the knocked-cone tally (a cone course)
+  rollingStart?: boolean;   // races start rolling (the ovals)
+  seams?: boolean;
+  randomise?: () => void;   // the Grass Track: new random patches every load
+  patches?: Patch[];
+  stage?: { finish: number };   // rally stage: finish distance
+  joker?: JokerRule;
+  _blend?: Patch[] | null;   // load.ts prepareLevel
+  _incl?: Inclusions;   // load.ts prepareLevel
+  allPatches?: Patch[];   // load.ts prepareLevel
+  solidsDirty?: boolean;   // highway.js
+  fixed?: boolean;   // stagegen.js
+  litter?: number;   // main.js, highway levels
+  roadType?: string;   // highway.js
+  _layout?: number;   // highway.js
   barriers?: Barrier[];
   solids?: Solid[];
   paint: Paint[];
@@ -446,6 +470,7 @@ export interface Lane {
   pts: Point[];
   width: number;
   surface: Surface;
+  out?: number;   // gravel traps only (see Trap)
   _segs?: { ax: number; ay: number; dx: number; dy: number; l2: number }[];
   _bb?: [number, number, number, number];
 }

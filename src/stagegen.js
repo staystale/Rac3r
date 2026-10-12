@@ -8,13 +8,13 @@
 // stop-zone end to the run-up, so the start line stays at distance 0 and timing / grid / AI / resets all work unchanged.
 // Then the dressing, by theme: trees / rocks / crowds / chevrons / bales / tape / flags / marshals / boards / gantries / ice / water.
 import { lcg } from "./core/random.ts";
-import { finishLevel } from "./world/load.js";   // the world is set up before this file runs (as importing lab.js did)
+import { finishLevel } from "./world/load.ts";   // the world is set up before this file runs (as importing lab.js did)
 import { createSubtrack, ghostSegment, autoKerbs } from "./world/subtrack.ts";
 import { onTrack, querySubtrack } from "./world/tyrewall.ts";
 import { alongTrack, solidsFromProps } from "./world/barriers.ts";
 import { SURFACES } from "./world/surfaces.ts";
 import { BASE_FLOOR as FLOOR } from "./world/bounds.ts";
-import { LEVELS } from "./world/levels/index.js";
+import { LEVELS } from "./world/levels/index.ts";
 import { trackKit } from "./world/levels/kit.ts";
 import { prepBumps } from "./world/terrain.ts";
 
