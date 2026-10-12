@@ -187,13 +187,13 @@
     "id-length": 16,
     "max-len": 35
   },
-  "src/world/levels/killder.js": {
+  "src/world/levels/killder.ts": {
     "id-length": 36,
     "max-len": 62
   },
-  "src/world/levels/kit.js": {
+  "src/world/levels/kit.ts": {
     "id-length": 63,
-    "max-len": 23
+    "max-len": 26
   },
   "src/world/levels/knobhill.js": {
     "complexity": 1,
@@ -201,17 +201,17 @@
     "max-len": 40,
     "no-unused-vars": 2
   },
-  "src/world/levels/lab-extension.js": {
+  "src/world/levels/lab-extension.ts": {
     "complexity": 1,
     "id-length": 27,
-    "max-len": 40
+    "max-len": 41
   },
   "src/world/levels/naffcar.ts": {
     "max-len": 1
   },
-  "src/world/levels/sandbox.js": {
+  "src/world/levels/sandbox.ts": {
     "id-length": 20,
-    "max-len": 31
+    "max-len": 32
   },
   "src/world/levels/slidden-hill.js": {
     "id-length": 78,
@@ -221,7 +221,7 @@
   "src/world/levels/stock-car.ts": {
     "max-len": 1
   },
-  "src/world/levels/sweaty-lamb.js": {
+  "src/world/levels/sweaty-lamb.ts": {
     "id-length": 27,
     "max-len": 60
   },

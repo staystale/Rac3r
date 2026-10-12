@@ -3,7 +3,7 @@ import { FLOOR } from "../bounds.ts";
 import { autoKerbs, createSubtrack, traceTrack } from "../subtrack.ts";
 import { SURFACES } from "../surfaces.ts";
 import { prepBumps } from "../terrain.ts";
-import { ss01, trackKit } from "./kit.js";
+import { ss01, trackKit } from "./kit.ts";
 // =============================================================================================
 // CASTLE CUM — parody of Castle Combe (Wiltshire), built 2026-10-04. Track list approved 2026-10-03; decisions (user, 2026-10-04):
 // BIGGER scale (~1250 m lap so the chicanes keep their shape), Avon Rise crest FELT (light over the top; braking there can lock —

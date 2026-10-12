@@ -4,7 +4,7 @@ import { autoKerbs, createSubtrack, traceTrack } from "../subtrack.ts";
 import { SURFACES } from "../surfaces.ts";
 import { prepBumps } from "../terrain.ts";
 import { onTrack, querySubtrack } from "../tyrewall.ts";
-import { ss01, trackKit } from "./kit.js";
+import { ss01, trackKit } from "./kit.ts";
 // =============================================================================================
 // BRANDS SNATCH — parody of Brands Hatch (Kent). Built 2026-10-04. Decisions (user): BOTH layouts (GP + Indy) from one build, REAL-ISH
 // hills from the contour map (art/ref/bh1.png: 115-145 m), GRAVEL TRAPS + tyre walls + Armco, grandstands, pits, woods.

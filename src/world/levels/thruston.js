@@ -4,7 +4,7 @@ import { autoKerbs, createSubtrack, traceTrack } from "../subtrack.ts";
 import { SURFACES } from "../surfaces.ts";
 import { prepBumps } from "../terrain.ts";
 import { onTrack, querySubtrack } from "../tyrewall.ts";
-import { ss01 } from "./kit.js";
+import { ss01 } from "./kit.ts";
 // =============================================================================================
 // THRUSTON — parody of Thruxton, "the fastest circuit in the UK" (user's roster + build guide, SPECS-2026-10-03.md; track list
 // approved 2026-10-03). Clockwise, all race tarmac, an old airfield: S/F straight -> ALLARD (fast right) -> the COMPLEX

@@ -1,11 +1,11 @@
 import { FLOOR } from "../bounds.ts";
 import { SURFACES } from "../surfaces.ts";
 import { alongTrack, solidsFromProps } from "../barriers.ts";
-import { LAB_BOUNDS, LAB_OFFROAD_BUMPS } from "./lab-extension.js";
+import { LAB_BOUNDS, LAB_OFFROAD_BUMPS } from "./lab-extension.ts";
 import { onTrack, propClearance } from "../tyrewall.ts";
 import {
   SB_SUBTRACK, SB_CONES, SB_COVERS, SB_ZONES, SB_BUMPS, SB_PAINT, SB_BOARDS, SB_PROPS, SB_SPAWN,
-} from "./sandbox.js";
+} from "./sandbox.ts";
 import { TT_SUBTRACK, TT_CONES, TT_ZONES, TT_BUMPS, TT_PAINT, TT_BOARDS } from "./test-track.ts";
 import {
   GO_SECTORS, GO_SUBTRACK, GO_RANDOM_PATCHES, randomiseGrassTrack, GO_ZONES, GO_PROPS, GO_PAINT,
@@ -23,20 +23,20 @@ import {
 } from "./slidden-hill.js";
 import {
   SL_SUBTRACK, SL_BUMPS, SL_STREAM, SL_PAINT, SL_CONES, SL_PROPS, SL_TAPE, SL_YARD, SL_FINISH,
-} from "./sweaty-lamb.js";
+} from "./sweaty-lamb.ts";
 import {
   KD_SUBTRACK, KD_BUMPS, KD_WATER, KD_PAINT, KD_CONES, KD_PROPS, KD_TAPE, KD_YARD, KD_FINISH,
-} from "./killder.js";
+} from "./killder.ts";
 import { BH_GP_LEVEL, BH_INDY_LEVEL } from "./brands-snatch.js";
 import { LAB_PAINT, LAB_BOARDS } from "../barriers.ts";
 import { prepBumps } from "../terrain.ts";
 import { courseCones, slalom, outerTyreWall } from "../tyrewall.ts";
 import {
   LAB_LANE_ZONES, LAB_OFFROAD_ZONES, LAB_EXT_PAINT, LAB_EXT_BOARDS, LAB_CRASH_OBJECTS,
-} from "./lab-extension.js";
-import { LAB_BUMPS, LAB_PANELS } from "./sandbox.js";
+} from "./lab-extension.ts";
+import { LAB_BUMPS, LAB_PANELS } from "./sandbox.ts";
 import { KH_LEVEL } from "./knobhill.js";
-import { rxDress, jokerBales } from "./kit.js";
+import { rxDress, jokerBales } from "./kit.ts";
 import { SH_TYREWALL, SH_STARTWALL } from "./slidden-hill.js";
 import { CC_TYREWALL, CC_KIT, CC_ARMCO } from "./castle-cum.js";
 import { TH_ARMCO } from "./thruston.js";

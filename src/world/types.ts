@@ -497,3 +497,15 @@ export interface Slope {
   gy: number;
 }
 
+// What trackKit (levels/kit.ts) returns: the placement helpers of one track.
+export interface TrackKit {
+  rnd: () => number;
+  at: (d: number, off: number) => { x: number; y: number };
+  rot: (d: number) => number;
+  prop: (d: number, off: number, o: Omit<Prop, 'x' | 'y'>) => Prop;
+  clear: (x: number, y: number, reach: number) => boolean;
+  span: (d0: number, d1: number) => number;
+  bank: (d0: number, d1: number, off: number, r: number, h: number) => Bump[];
+  along: (d0: number, d1: number, off: number, step: number) => Point[];
+  onLane: (x: number, y: number, pad: number) => boolean;
+}

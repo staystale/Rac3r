@@ -5,7 +5,7 @@ import { autoKerbs, traceTrack, createSubtrack } from "../subtrack.ts";
 import { prepBumps } from "../terrain.ts";
 import { onTrack, querySubtrack } from "../tyrewall.ts";
 import { openSmooth, jokerArrow, jokerApproach } from "./slidden-hill.js";
-import { trackKit, rxDress, jokerBales } from "./kit.js";
+import { trackKit, rxDress, jokerBales } from "./kit.ts";
 // =============================================================================================
 // KNOBHILL — parody of Knockhill (Fife), the rallycross layout. Built 2026-10-04. Decisions (user): the TARMAC CIRCUIT + an INFIELD
 // DIRT section (~40 % dirt like the real RX lap: 1.4 km, 39 % dirt), DRY, hills FELT like Brands ("twists, drops and climbs 60 m").

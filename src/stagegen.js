@@ -15,7 +15,7 @@ import { alongTrack, solidsFromProps } from "./world/barriers.ts";
 import { SURFACES } from "./world/surfaces.ts";
 import { BASE_FLOOR as FLOOR } from "./world/bounds.ts";
 import { LEVELS } from "./world/levels/index.js";
-import { trackKit } from "./world/levels/kit.js";
+import { trackKit } from "./world/levels/kit.ts";
 import { prepBumps } from "./world/terrain.ts";
 
 export const THEMES = {

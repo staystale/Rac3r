@@ -1,4 +1,6 @@
 import { SURFACES } from "../surfaces.ts";
+import type { SurfaceId } from "../surfaces.ts";
+import type { Rect, Zone, Cone, Bump, Paint, Board } from "../types.ts";
 
 // =============================================================================================
 // S-B THE LAB EXTENSION (user, 2026-10-06, VERBATIM: "add some of every object laid out nicely ready to test crash into ect into he lab
@@ -10,20 +12,20 @@ import { SURFACES } from "../surfaces.ts";
 //               (two kinds where 21 kinds meet 17 lanes) laid out to drive into. Boxed: no blend, no inclusions, so each stays pure.
 //   y 548..732  OFF-ROAD AREA: grass with long grass, a mud bog, sand, gravel, a dirt loop round it and a dirt straight with jumps, plus
 //               hills and hollows. Grass / dirt / mud / sand carry the natural terrain (NAT_SURF) and all of it wears (the wear map).
-export const LAB_BOUNDS = { x0: -260, x1: 260, y0: -260, y1: 740 };
+export const LAB_BOUNDS: Rect = { x0: -260, x1: 260, y0: -260, y1: 740 };
 const LANE_Y0 = 296, LANE_PITCH = 14, LANE_H = 11, LANE_X0 = -245, LANE_X1 = 215, OBJ_X = 168;
 // [surface, object kinds at the end] - hard -> loose -> cold. Mixed pairs: exhaust + bumper, chevron + flag, cow + crate, sheep + bin (S-C: the animals FIRST, so you can hit one clean).
-export const LAB_LANES = [
+export const LAB_LANES = ([
   ['lab', ['cone']], ['racetarmac', ['tyrestack']], ['tarmac', ['banger']], ['concrete', ['caravan']], ['broken', ['podium']],
   ['wet', ['tyre']], ['dirt', ['bale']], ['gravel', ['pallet']], ['sand', ['sandbag']], ['grassShort', ['box']], ['grass', ['cow', 'crate']],
   ['grassLong', ['sheep', 'bin']], ['mud', ['barrel']], ['thickMud', ['exhaust', 'bumper']], ['packedSnow', ['chevron', 'flag']],
   ['snow', ['tarp']], ['ice', ['tapepost']],
-].map(([id, kinds], i) => ({ id, kinds, y: LANE_Y0 + i * LANE_PITCH }));
-export const LAB_LANE_ZONES = LAB_LANES.map((l) => ({ x: (LANE_X0 + LANE_X1) / 2, y: l.y, w: LANE_X1 - LANE_X0, h: LANE_H, surface: SURFACES[l.id], boxed: true, ext: true, lane: l.id }));
+] satisfies [SurfaceId, string[]][]).map(([id, kinds], i) => ({ id, kinds, y: LANE_Y0 + i * LANE_PITCH }));
+export const LAB_LANE_ZONES: Zone[] = LAB_LANES.map((l) => ({ x: (LANE_X0 + LANE_X1) / 2, y: l.y, w: LANE_X1 - LANE_X0, h: LANE_H, surface: SURFACES[l.id], boxed: true, ext: true, lane: l.id }));
 const LANE_COLS = ['#c8302c', '#2b56b5', '#d6a21e', '#2f5d3a', '#3a3f47', '#2f6fb0'];
 // what sits at the end of a lane: a wall / grid / row per kind, centred on the lane line, starting at OBJ_X
-function laneObjects(kinds, y, li) {
-  const out = [], col = (n) => LANE_COLS[(li + n) % LANE_COLS.length];
+function laneObjects(kinds: string[], y: number, li: number): Cone[] {
+  const out: Cone[] = [], col = (n: number) => LANE_COLS[(li + n) % LANE_COLS.length];
   for (const [ki, kind] of kinds.entries()) {
     const x0 = OBJ_X + ki * 14;        // the second kind of a mixed lane sits 14 m further on
     if (kind === 'cone') { for (let c = 0; c < 4; c++) for (let r = 0; r < 5; r++) out.push({ kind: 'cone', x: x0 + c * 4, y: y - 4 + r * 2 }); }
@@ -42,10 +44,10 @@ function laneObjects(kinds, y, li) {
   }
   return out;
 }
-export const LAB_CRASH_OBJECTS = LAB_LANES.flatMap((l, i) => laneObjects(l.kinds, l.y, i));
+export const LAB_CRASH_OBJECTS: Cone[] = LAB_LANES.flatMap((l, i) => laneObjects(l.kinds, l.y, i));
 // the OFF-ROAD AREA (first listed wins: the small features before the grass they sit in)
 const OR_Y = 640;
-export const LAB_OFFROAD_ZONES = [
+export const LAB_OFFROAD_ZONES: Zone[] = [
   { x: -20, y: OR_Y, w: 16, h: 12, surface: SURFACES.thickMud },                 // the bog's deep middle
   { x: -20, y: OR_Y, w: 40, h: 30, surface: SURFACES.mud },                      // MUD BOG
   { x: 0, y: 600, w: 200, h: 8, surface: SURFACES.dirt },                        // DIRT STRAIGHT with the jumps
@@ -58,7 +60,7 @@ export const LAB_OFFROAD_ZONES = [
   { x: 196, y: 682, w: 64, h: 52, surface: SURFACES.gravel },                    // GRAVEL
   { x: 0, y: OR_Y, w: 496, h: 184, surface: SURFACES.grass },                    // the rest: GRASS (rolling natural terrain)
 ].map((z) => ({ ...z, ext: true }));
-export const LAB_OFFROAD_BUMPS = [
+export const LAB_OFFROAD_BUMPS: Bump[] = [
   { kind: 'ramp', x: -40, y: 600, rot: 0, len: 14, wid: 8, h: 1.2 },             // the straight: a launch ramp ...
   { kind: 'table', x: 40, y: 600, rot: 0, len: 24, wid: 9, h: 1.0 },             // ... then a table top
   { kind: 'hump', x: -60, y: 688, r: 28, h: 3.5 },                               // HILLS
@@ -70,11 +72,11 @@ export const LAB_OFFROAD_BUMPS = [
   { kind: 'dip', x: 70, y: 632, r: 9, d: 0.7 },
   { kind: 'washboard', x: -150, y: 558, rot: 0, len: 60, wid: 7, amp: 0.05, wave: 0.9 },   // corrugations on the loop
 ];
-export const LAB_EXT_PAINT = [
+export const LAB_EXT_PAINT: Paint[] = [
   { kind: 'box', x: (LANE_X0 + LANE_X1) / 2, y: (LAB_LANES[0].y + LAB_LANES[LAB_LANES.length - 1].y) / 2, w: LANE_X1 - LANE_X0 + 8, h: LAB_LANES.length * LANE_PITCH + 6, tone: 0.8 },
   { kind: 'box', x: 0, y: OR_Y, w: 500, h: 188, tone: 0.8 },
 ];
-export const LAB_EXT_BOARDS = [
+export const LAB_EXT_BOARDS: Board[] = [
   { x: -15, y: 282, label: 'CRASH TEST LANES  -  drive EAST, objects at the end' },
   ...LAB_LANES.map((l) => ({ x: LANE_X0 + 18, y: l.y, label: l.kinds.map((k) => (k === 'tapepost' ? 'TAPE' : k.toUpperCase())).join(' + ') + '  >' })),
   { x: 0, y: 541, label: 'OFF-ROAD TEST AREA  -  hills, grass, dirt, mud, sand, gravel' },

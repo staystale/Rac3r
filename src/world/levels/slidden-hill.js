@@ -4,7 +4,7 @@ import { autoKerbs, createSubtrack, traceTrack } from "../subtrack.ts";
 import { SURFACES } from "../surfaces.ts";
 import { prepBumps } from "../terrain.ts";
 import { onTrack, querySubtrack } from "../tyrewall.ts";
-import { trackKit } from "./kit.js";
+import { trackKit } from "./kit.ts";
 // =============================================================================================
 // SLIDDEN HILL — parody of Lydden Hill (Kent), the rallycross circuit. Built 2026-10-04. Decisions (user, 2026-10-04): loose sections =
 // HARD DIRT + gravel patches (the dirt inclusion table), JOKER = an "RX race" (5 laps from the start grid, joker once, missed = +5 s),
