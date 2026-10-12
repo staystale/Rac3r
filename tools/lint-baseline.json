@@ -104,11 +104,10 @@
     "max-len": 34
   },
   "src/render.js": {
-    "complexity": 5,
-    "id-length": 430,
-    "max-len": 407,
-    "max-lines": 1,
-    "max-lines-per-function": 2,
+    "complexity": 3,
+    "id-length": 203,
+    "max-len": 234,
+    "max-lines-per-function": 1,
     "no-unused-vars": 6
   },
   "src/render/cars.js": {
@@ -118,6 +117,12 @@
     "max-lines": 1,
     "max-lines-per-function": 3,
     "no-unused-vars": 3
+  },
+  "src/render/ground.js": {
+    "complexity": 2,
+    "id-length": 228,
+    "max-len": 174,
+    "max-lines-per-function": 2
   },
   "src/render/objects.js": {
     "complexity": 3,
