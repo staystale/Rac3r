@@ -9,7 +9,8 @@ import * as H from '../src/highway.js';
 import { createTraffic } from '../src/traffic.js';
 import { carContacts, carContact } from '../src/contact.js';
 import { hit, tooInjured } from '../src/damage.js';
-import { aiTraits, createAIDriver } from '../src/aidriver.js';
+import { aiTraits } from '../src/ai/traits.js';
+import { createAIDriver } from '../src/ai/circuit.js';
 import { createHwFlow, hwFrames, hwGrid, hwGridSpan, HW_GREEN } from '../src/hwrace.js';
 // the levels importing these modules used to add (task 078 made it explicit)
 H.addHighwayLevel();

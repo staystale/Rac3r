@@ -2,7 +2,8 @@
 // distance from the line and from the centreline. node tools/aitrace.mjs <level> <car> <diff 0-4> [seconds]
 import { makeCar, step, reset, DT } from '../src/vehicle.js';
 import * as L from '../src/lab.js';
-import { createAIDriver, aiTraits } from '../src/aidriver.js';
+import { createAIDriver } from '../src/ai/circuit.js';
+import { aiTraits } from '../src/ai/traits.js';
 const [lv = 'naffcar', carId = 'hatch-rwd', d = '4', secs = '60'] = process.argv.slice(2);
 L.setLevel(lv); const st = L.LEVEL.subtrack, hw = st.width / 2;
 const car = makeCar(carId); const p = L.onTrack(st, st.totalDist - 30, 0, {}); reset(car, p.x, p.y, p.rot);

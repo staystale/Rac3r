@@ -1,4 +1,4 @@
-// weavecheck.mjs — the highway WEAVER (src/aidriver.js, the highway road driver) in CONTROLLED scenarios: one racer (real physics) comes up on
+// weavecheck.mjs — the highway WEAVER (src/ai/weaver.js, the highway road driver) in CONTROLLED scenarios: one racer (real physics) comes up on
 // slow "traffic" (kinematic boxes on their lane lines, 90 km/h) in patterns — a single car, a wall of 2 with one gap, a slalom of 4,
 // staggered pairs — at 150 / 200 / 240 km/h, on the motorway's first straight and in its bends. Per scenario: hits, worst rear slip
 // (a spin starts ~0.25 rad), worst distance past the line limits, and the speed kept. Tuning via env (HWT='{"aLat":0.3,...}').
@@ -6,7 +6,8 @@
 import { makeCar, step, reset, DT } from '../src/vehicle.js';
 import * as L from '../src/lab.js';
 import * as H from '../src/highway.js';
-import { aiTraits, createAIDriver } from '../src/aidriver.js';
+import { aiTraits } from '../src/ai/traits.js';
+import { createAIDriver } from '../src/ai/circuit.js';
 import { hwFrames } from '../src/hwrace.js';
 // the levels importing these modules used to add (task 078 made it explicit)
 H.addHighwayLevel();

@@ -4,7 +4,7 @@
 import { makeCar, step, reset, DT } from '../src/vehicle.js';
 import * as L from '../src/lab.js';
 import { stepHighway, addHighwayLevel } from '../src/highway.js';
-import { createAutoDriver } from '../src/autodrive.js';
+import { createAutoDriver } from '../src/ai/autodrive.js';
 // the levels importing these modules used to add (task 078 made it explicit)
 addHighwayLevel();
 const KM = +(process.argv[2] || 10), carId = process.argv[3] || 'saloon-rwd';

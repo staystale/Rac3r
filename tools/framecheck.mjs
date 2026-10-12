@@ -1,4 +1,4 @@
-// framecheck.mjs — frame times on a fast lap at phone-ish CPU speed (CDP CPU throttle x4), the lap driven by src/autodrive.js.
+// framecheck.mjs — frame times on a fast lap at phone-ish CPU speed (CDP CPU throttle x4), the lap driven by src/ai/autodrive.js.
 // node tools/framecheck.mjs <level> [extra query, e.g. &noshade=1]. Reports median / p95 / worst frame, frames over 33 ms and the
 // cost of a ground tile. Built 2026-10-03 for "still seeing lag at high speeds".
 import { startServer, launchBrowser } from './lib/browser.mjs';
@@ -15,7 +15,7 @@ const lv = process.argv[2] || 'test-track';
 // launch a session, then let the demo driver drive it (the same driver as the menu demo lap)
 const r = await p.evaluate((lv) => new Promise(async (res) => {
   const g = window.__game;
-  const A = await import('/src/autodrive.js');
+  const A = await import('/src/ai/autodrive.js');
   const drv = A.createAutoDriver(g.level.subtrack);
   g.input.update = () => ({ ...drv.drive(g.car), reverse: 0, shiftUp: false, shiftDown: false });
   const times = []; let last = performance.now(), n = 0;

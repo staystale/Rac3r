@@ -14,7 +14,7 @@ await p.goto(srv.url + '/?menu=1&guide=0'); await p.waitForTimeout(3000);
 await p.evaluate(async ([lv, n, laps, how, rx]) => {
   const g = window.__game; g.menu.hide(); g.launch(lv, 'hatch-rwd', { ai: n, diff: 2, laps, rx: !!rx });
   if (how === 'drive') {
-    const A = await import('/src/aidriver.js'); const L = await import('/src/lab.js');
+    const A = { ...await import('/src/ai/circuit.js'), ...await import('/src/ai/traits.js') }; const L = await import('/src/lab.js');
     const drv = A.createAIDriver(L.LEVEL, A.aiTraits(3, 0, 1, 99));
     g.input.update = () => ({ ...drv.drive(g.car, 1 / 60, { cars: g.ai.map((a) => a.car), lap: 1, laps }), reverse: 0, shiftUp: false, shiftDown: false });
   } else g.input.update = () => ({ steer: 0, throttle: 0, brake: 1, handbrake: 0, reverse: 0, shiftUp: false, shiftDown: false });

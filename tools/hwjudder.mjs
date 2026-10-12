@@ -19,7 +19,7 @@ await p.waitForTimeout(2500);   // fly-in done
 console.log('state', JSON.stringify(await p.evaluate(() => { const g = window.__game; return { on: g.start.on, green: g.start.green, rolling: g.start.rolling, menu: g.menu && g.menu.open, lvl: g.level.id }; })));
 const cdp = await ctx.newCDPSession(p); await cdp.send('Emulation.setCPUThrottlingRate', { rate: CPU });
 const r = await p.evaluate((SEC) => new Promise(async (res) => {
-  const g = window.__game, H = await import('/src/hwrace.js'), A = await import('/src/aidriver.js');
+  const g = window.__game, H = await import('/src/hwrace.js'), A = { ...await import('/src/ai/circuit.js'), ...await import('/src/ai/traits.js') };
   const drv = A.createAIDriver(g.level, A.aiTraits(4, 0, 1));
   g.input.update = () => { const others = [...g.ai.map((a) => a.car), ...g.traffic.cars]; H.hwFrames(g.level, [g.car, ...others]);
     return { ...drv.drive(g.car, 1 / 60, { cars: others }), reverse: 0, shiftUp: false, shiftDown: false }; };

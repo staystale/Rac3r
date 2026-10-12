@@ -1,11 +1,32 @@
 {
-  "src/aidriver.js": {
-    "complexity": 5,
-    "id-length": 283,
-    "max-len": 367,
-    "max-lines": 1,
-    "max-lines-per-function": 5,
+  "src/ai/autodrive.js": {
+    "complexity": 1,
+    "id-length": 25,
+    "max-len": 20
+  },
+  "src/ai/circuit.js": {
+    "complexity": 2,
+    "id-length": 101,
+    "max-len": 157,
+    "max-lines-per-function": 2,
     "no-shadow": 1,
+    "no-unused-vars": 1
+  },
+  "src/ai/line.js": {
+    "complexity": 1,
+    "id-length": 135,
+    "max-len": 70,
+    "max-lines-per-function": 1
+  },
+  "src/ai/traits.js": {
+    "id-length": 4,
+    "max-len": 13
+  },
+  "src/ai/weaver.js": {
+    "complexity": 2,
+    "id-length": 43,
+    "max-len": 126,
+    "max-lines-per-function": 2,
     "no-unused-vars": 1
   },
   "src/audio.js": {
@@ -14,11 +35,6 @@
     "max-len": 6,
     "max-lines-per-function": 3,
     "no-unused-vars": 2
-  },
-  "src/autodrive.js": {
-    "complexity": 1,
-    "id-length": 25,
-    "max-len": 20
   },
   "src/cars.js": {
     "id-length": 21,

@@ -3,7 +3,7 @@
 // node tools/treadmillcheck.mjs [km] [car] [file]   (file: ../src/highway.next.js to test a patch before it goes live)
 import { makeCar, step, reset, DT } from '../src/vehicle.js';
 import * as L from '../src/lab.js';
-import { createAutoDriver } from '../src/autodrive.js';
+import { createAutoDriver } from '../src/ai/autodrive.js';
 import { createCones } from '../src/cones.js';
 const KM = +(process.argv[2] || 10), carId = process.argv[3] || 'saloon-rwd';
 const H = await import(process.argv[4] || '../src/highway.js');

@@ -10,7 +10,7 @@ for (const [w, h, tag] of [[390, 844, 'port'], [844, 390, 'land']]) {
   p.on('pageerror', (e) => errs.push(e.message));
   await p.goto(`http://localhost:8080/?touch=1&guide=0&menu=0&level=highway&car=saloon-rwd&hw=${preset}`); await p.touchscreen.tap(w / 2, h / 2); await p.waitForTimeout(3500);
   await p.evaluate(async () => {
-    const g = window.__game, A = await import('/src/autodrive.js'); let sub = null, drv = null;
+    const g = window.__game, A = await import('/src/ai/autodrive.js'); let sub = null, drv = null;
     window.__tm = { fx0: 1, fx1: 0, fy0: 1, fy1: 0, n: 0, mode: 'drive' };
     g.input.update = () => { if (window.__tm.mode === 'reverse') return { steer: 0, throttle: 0, brake: 0, handbrake: 0, reverse: 1, shiftUp: false, shiftDown: false };
       if (g.level.subtrack !== sub) { sub = g.level.subtrack; drv = A.createAutoDriver(sub); } return { ...drv.drive(g.car), reverse: 0, shiftUp: false, shiftDown: false }; };

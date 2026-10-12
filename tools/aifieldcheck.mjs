@@ -7,7 +7,7 @@ import * as L from '../src/lab.js';
 import { carContact, slipstream } from '../src/contact.js';
 import { hit, repair, tooInjured } from '../src/damage.js';   // DMG=1: damage on, as main.js
 const DMG = !!process.env.DMG;
-const { createAIDriver, aiTraits } = await import(process.env.AINEXT ? '../src/aidriver.next.js' : '../src/aidriver.js');   // AINEXT=1: test a patch before it goes live
+const { createAIDriver } = await import(process.env.AINEXT ? '../src/ai/circuit.next.js' : '../src/ai/circuit.js'), { aiTraits } = await import('../src/ai/traits.js');   // AINEXT=1: test a patch before it goes live
 for (const k of ['SB', 'SG']) if (process.env[k] != null) globalThis['__' + k] = +process.env[k];
 if (process.env.NOATK) globalThis.__NOATK = 1; if (process.env.NOCOV) globalThis.__NOCOV = 1;
 const [lv = 'thruston', carId = 'hatch-rwd', d = '2', nArg = '6', seedArg = '7', lapsArg = '3'] = process.argv.slice(2);

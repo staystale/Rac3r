@@ -18,7 +18,7 @@ await p.goto(`${srv.url}/?touch=1&guide=0&menu=0&rules=0&level=highway&traffic=$
 await p.touchscreen.tap(400, 200); await p.waitForTimeout(800);
 await p.evaluate((n) => window.__game.launch('highway', 'saloon-rwd', { ai: n, diff: 2, traffic: +new URLSearchParams(location.search).get('traffic') }), AI);
 await p.waitForTimeout(2500);
-await p.evaluate(async () => { const g = window.__game, H = await import('/src/hwrace.js'), A = await import('/src/aidriver.js');
+await p.evaluate(async () => { const g = window.__game, H = await import('/src/hwrace.js'), A = { ...await import('/src/ai/circuit.js'), ...await import('/src/ai/traits.js') };
   const drv = A.createAIDriver(g.level, A.aiTraits(4, 0, 1));
   g.input.update = () => { const others = [...g.ai.map((a) => a.car), ...g.traffic.cars]; H.hwFrames(g.level, [g.car, ...others]);
     return { ...drv.drive(g.car, 1 / 60, { cars: others }), reverse: 0, shiftUp: false, shiftDown: false }; }; });
