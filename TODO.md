@@ -71,11 +71,12 @@ Phases:
   `solidcheck` and `lapdriver` give the same results as baseline (lap times within 0.05 s), and no
   file is over 800 lines.
   DONE 2026-10-12: lab.js split into src/world/ (one file per job, one file per level under world/levels/), all TypeScript; game files import the world modules directly; lab.js stays as the tools' entry point until phase 8. Checked: the bundled game code is identical before and after every conversion.
-- [ ] **4. Split `render.js`** into one module per layer: camera, terrain, road and marks, cars,
+- [x] **4. Split `render.js`** into one module per layer: camera, terrain, road and marks, cars,
   objects and props, particles, HUD overlays, debug overlay. Replace the single 3,800-line closure
   with small functions taking an explicit render state. Done when screenshots at 844x390 and 390x844
   match the baseline for 3 levels (pixel diff within tolerance, `tilediff`), and `framecheck` is not
   worse.
+  DONE 2026-10-12: render.js (3,900 lines) split into src/render.ts (set-up + frame) and src/render/ camera, tiles, ground, road, props, objects, particles, carsprite, cardamage, cars (largest 617 lines), all TypeScript; old ?smooth=1 renderer deleted. Checked: tilediff 0.00 % vs the phase 0 baseline (35a9c2c) on test-track, brands-snatch, highway; framecheck median unchanged (17.8 ms).
 - [ ] **5. One AI engine.** Merge `hwrace.js` into `aidriver.js` (or the reverse) as one driver with
   a road-model interface (circuit or highway). Keep the agreed behaviours: no waiting, drive out when
   stuck, dodging, mistakes by difficulty. Done when `aifieldsuite` and `pacesuite` are not worse than
@@ -88,6 +89,7 @@ Phases:
   95th percentile 14 ms on the reference phone-class profile, to be confirmed with the owner). Done
   when `framecheck` on the heaviest cone level shows a measured cut in collision tests per frame
   (expected from tens of thousands to hundreds) and median frame time is not worse on any level.
+  From phase 4: framecheck brands-snatch frames over 33 ms per lap, 5 runs each: baseline 22-26 (mean 24), after phase 4 21-31 (mean 28); median unchanged. Look at it here (likely view.* property reads in the hot draw code).
 - [ ] **7. Rename pass.** Rename every abbreviated variable and parameter to a descriptive name, one
   file at a time, smallest files first. Reformat dense lines to one statement per line, 100
   characters. Extract the 280-350 line functions into named steps. Done when `npm run lint` passes
