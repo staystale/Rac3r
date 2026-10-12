@@ -219,7 +219,9 @@ export function createTextureCache(view: View) {
     if (size < 1 || size > TEX_PX_MAX) return null;
     const canvas = document.createElement('canvas');
     canvas.width = canvas.height = size;
-    const gfx = canvas.getContext('2d')!;
+    // CPU-backed on purpose - the tiles are painted on a CPU scratch, and a GPU texture would be
+    // read back on every pattern fill (MEASURED, task 096: rally stage tile 24 -> 10 ms at CPU x4).
+    const gfx = canvas.getContext('2d', { willReadFrequently: true })!;
     gfx.setTransform(view.dpr, 0, 0, view.dpr, 0, 0);
     paint(gfx, size / (ppm * view.dpr));
     cache.set(full, canvas);
