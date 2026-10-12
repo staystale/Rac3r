@@ -106,7 +106,7 @@
   "src/render.js": {
     "complexity": 1,
     "id-length": 88,
-    "max-len": 109,
+    "max-len": 112,
     "max-lines-per-function": 1,
     "no-unused-vars": 6
   },

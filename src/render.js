@@ -118,7 +118,9 @@ export function createRenderer(canvas) {
   // before you drive. Wall clock (rule 5: the player watches it). The player can drive during it.
   const FLY_HOLD = 0.45;          // s held on the whole-level view before moving
   const FLY_TIME = 1.5;           // s of the move itself (ease-in-out, in log zoom)
-  let fly = null;
+  // the camera state other layers read: fly (the fly-in, or null), ovCache (the overview picture), vZoom
+  // (the slow-averaged speed), pinZoom (tools only: debugZoom - the photo tools pin the wide view)
+  const camState = { fly: null, ovCache: null, vZoom: null, pinZoom: null };
   // the level's extent: the circuit plus a margin, or the whole floor (shared by the fly-in and the menu thumbnails)
   function levelBounds() {
     let x0 = FX0, x1 = FX1, y0 = FY0, y1 = FY1;   // the floor rectangle (S-B: the lab is 520 x 1000)
@@ -136,15 +138,14 @@ export function createRenderer(canvas) {
   // (the window reaches 1100 m ahead, so the view never outruns it; 512 px — it only stands in for a frame or two). Off the road
   // the stand-in is the base colour (standInFill), so a view wider than the overview shows grass, not a hole.
   const OV_REPAINT = 500;
-  let ovCache = null;
   const roadS0 = () => (LEVEL.endless && LEVEL._hw && LEVEL._hw.pts.length ? LEVEL._hw.pts[0].s : 0);
   function levelOverview() {
     const layout = LEVEL.subtrack ? LEVEL.subtrack.layoutId || 0 : 0;
-    if (ovCache && ovCache.level === LEVEL && ovCache.layout === layout && (!LEVEL.endless || Math.abs(roadS0() - ovCache.s0) < OV_REPAINT)) return ovCache.ov;
+    if (camState.ovCache && camState.ovCache.level === LEVEL && camState.ovCache.layout === layout && (!LEVEL.endless || Math.abs(roadS0() - camState.ovCache.s0) < OV_REPAINT)) return camState.ovCache.ov;
     if (!(view.W > 0)) return null;
     const [x0, y0, x1, y1] = levelBounds();
-    ovCache = { level: LEVEL, layout, s0: roadS0(), ov: paintOverview(x0, y0, x1, y1, LEVEL.endless ? 512 : 1024) };
-    return ovCache.ov;
+    camState.ovCache = { level: LEVEL, layout, s0: roadS0(), ov: paintOverview(x0, y0, x1, y1, LEVEL.endless ? 512 : 1024) };
+    return camState.ovCache.ov;
   }
   // under a stand-in: the level's own ground colour where it has one (a missing patch reads as grass, not as a hole)
   const standInFill = () => (LEVEL.base && LEVEL.base.id !== 'lab' ? artBase(LEVEL.base.id, COL.floor) : COL.outside);
@@ -156,9 +157,9 @@ export function createRenderer(canvas) {
     // MEASURED BUG, 2026-10-03: on a ?level= link the level loads BEFORE the canvas is measured (W = 0), so zFit
     // was 0, log(0) = -Infinity, and the zoom went NaN — "createRadialGradient: non-finite" from every prop.
     // Not measured yet = no fly-in; the tap-to-start restart runs it again with a real screen.
-    if (!(zFit > 0 && Number.isFinite(zFit))) { fly = null; return; }
-    fly = { t: 0, cx: (x0 + x1) / 2, cy: (y0 + y1) / 2, z0: Math.min(1, zFit), ov: paintOverview(x0, y0, x1, y1) };
-    cam.x = fly.cx; cam.y = fly.cy; cam.initialised = true; view.zoom = fly.z0;
+    if (!(zFit > 0 && Number.isFinite(zFit))) { camState.fly = null; return; }
+    camState.fly = { t: 0, cx: (x0 + x1) / 2, cy: (y0 + y1) / 2, z0: Math.min(1, zFit), ov: paintOverview(x0, y0, x1, y1) };
+    cam.x = camState.fly.cx; cam.y = camState.fly.cy; cam.initialised = true; view.zoom = camState.fly.z0;
   }
   // THE FLY-IN DOES NOT USE THE TILES WHILE ZOOMED OUT. MEASURED (user: "zoom in at the start seems to struggle
   // and be glitchy"; photographed mid-flight as a blurred smear): the fly sweeps ~11 tile zoom steps in 1.5 s,
@@ -190,31 +191,30 @@ export function createRenderer(canvas) {
       }
   }
   function updateFly(car, wallDt) {
-    if (!fly) return false;
-    fly.t += wallDt;
-    const k = Math.min(1, Math.max(0, fly.t - FLY_HOLD) / FLY_TIME);
+    if (!camState.fly) return false;
+    camState.fly.t += wallDt;
+    const k = Math.min(1, Math.max(0, camState.fly.t - FLY_HOLD) / FLY_TIME);
     const e = k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;          // ease-in-out cubic
     const lead = 0.35, tx = car.x + car.vx * lead, ty = car.y + car.vy * lead;
     // the PAN leads the zoom (ease-out), so by the tile hand-over the view is already round the car,
     // where its tiles were pre-painted
     const ep = 1 - Math.pow(1 - k, 3);
-    cam.x = fly.cx + (tx - fly.cx) * ep; cam.y = fly.cy + (ty - fly.cy) * ep;
-    view.zoom = Math.exp(Math.log(fly.z0) + (Math.log(1) - Math.log(fly.z0)) * e);   // ease in log space: even feel
-    if (k >= 1) fly = null;
+    cam.x = camState.fly.cx + (tx - camState.fly.cx) * ep; cam.y = camState.fly.cy + (ty - camState.fly.cy) * ep;
+    view.zoom = Math.exp(Math.log(camState.fly.z0) + (Math.log(1) - Math.log(camState.fly.z0)) * e);   // ease in log space: even feel
+    if (k >= 1) camState.fly = null;
     cam.lx = undefined;
     return true;
   }
-  let vZoom = null, pinZoom = null;   // pinZoom: tools only (debugZoom) - the photo tools pin the wide view
   function updateZoom(car, wallDt) {
-    if (pinZoom) { view.zoom = pinZoom; return; }
+    if (camState.pinZoom) { view.zoom = camState.pinZoom; return; }
     // PROPORTIONAL TO SPEED, properly: hold the TIME-to-horizon constant rather than easing along an
     // arbitrary curve. You always see LOOKAHEAD seconds of road, so the distance visible scales
     // directly with how fast you are covering it — which is what "zoom out proportional to speed"
     // actually means for a driver. visible = W / (PPM * zoom) = v * LOOKAHEAD  =>  zoom = W / (PPM*v*T).
     // from a SLOW-AVERAGED speed (time constant ~1.5 s): braking into a corner and powering out no longer breathes the view
     const vNow = Math.hypot(car.vx, car.vy);
-    vZoom = vZoom === null ? vNow : vZoom + (vNow - vZoom) * (1 - Math.exp(-0.65 * wallDt));
-    const v = vZoom;
+    camState.vZoom = camState.vZoom === null ? vNow : camState.vZoom + (vNow - camState.vZoom) * (1 - Math.exp(-0.65 * wallDt));
+    const v = camState.vZoom;
     const want = v > 1 ? view.W / (view.PPM * v * LOOKAHEAD) : 1;
     const target = Math.max(ZOOM_MIN, Math.min(1, want));
     // CALMER (2026-10-04, tools/wobblecheck: the zoom moved the screen edge ~1.1 px EVERY frame at speed — the view breathed with every
@@ -266,7 +266,7 @@ export function createRenderer(canvas) {
   } = createTiles(view, cam, {
     PPMz, sx, sy, drawFloor, drawZones, drawLanes, drawTrackRibbon, drawLaneDashes, drawPatches,
     drawCovers, drawWear, drawCurvedKerbs, SURFACE_ART, PUDDLE_TINT,
-    getFly: () => fly, FLY_HANDOVER, FLY_PREFETCH, prefetch, standInFill,
+    getFly: () => camState.fly, FLY_HANDOVER, FLY_PREFETCH, prefetch, standInFill,
     levelOverview,
   });
 
@@ -284,7 +284,7 @@ export function createRenderer(canvas) {
     // invisible), and the camera snapped to a whole art pixel. The smoothed zoom is restored at the end of the frame.
     const keepZoom = view.zoom;
     let subX = 0, subY = 0, camTrue = null;
-    if (!NO_LOCK && (!fly || view.zoom >= FLY_HANDOVER)) {
+    if (!NO_LOCK && (!camState.fly || view.zoom >= FLY_HANDOVER)) {
       const k = (tileState.lastStep !== null && Math.abs(ZSTEP * Math.log2(view.zoom) - tileState.lastStep) < 0.75) ? tileState.lastStep : zStepOf(view.zoom);
       const zq = zOfStep(k), N = Math.max(1, Math.round(TILE_PX * view.dpr * view.zoom / zq));
       view.zoom = N * zq / (TILE_PX * view.dpr); tileState.drawnN = N;
@@ -348,13 +348,13 @@ export function createRenderer(canvas) {
     get H() { return view.H; },
     get dpr() { return view.dpr; },
     cam, resize, frame, snap, sx, sy, roundRect, flyIn, thumbnail,
-    get flying() { return !!fly; },
+    get flying() { return !!camState.fly; },
     get PPM() { return view.PPM * view.zoom; },
     get groundRenders() { return tileState.tilesPainted; },
     get tileMs() { return tileState.tileMs; },
     get staleRepaints() { return tileState.staleRepaints; },
     get drawnN() { return tileState.drawnN; },
-    get overviewBounds() { const o = ovCache && ovCache.ov; return o ? [o.x0, o.y0, o.x1, o.y1] : null; },
+    get overviewBounds() { const o = camState.ovCache && camState.ovCache.ov; return o ? [o.x0, o.y0, o.x1, o.y1] : null; },
     get viewBounds() { const p = PPMz(); return [cam.x - view.W / 2 / p, cam.y - view.H / 2 / p, cam.x + view.W / 2 / p, cam.y + view.H / 2 / p]; },
     get standInFrame() { return tileState.standIn; },
     pixelCar,                           // for tools/spritesheet.mjs
@@ -363,7 +363,7 @@ export function createRenderer(canvas) {
     // the level painted FLAT (each surface its base colour, no patterns, no palette snap) at ppm px per metre, plus
     // the colour each surface id is painted in, so the tool can compare every drawn pixel with groundAt().
     // for the photo tools (tools/_sceneryshots.mjs): pin the camera zoom (null = back to speed-driven)
-    debugZoom(z) { pinZoom = z; if (z) view.zoom = z; },
+    debugZoom(z) { camState.pinZoom = z; if (z) view.zoom = z; },
     debugFlat(x0, y0, x1, y1, ppm) {
       const ow = Math.round((x1 - x0) * ppm), oh = Math.round((y1 - y0) * ppm);
       const c = document.createElement('canvas'); c.width = ow; c.height = oh;
