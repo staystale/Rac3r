@@ -96,9 +96,9 @@ export interface Bump {
   kind: string;
   x: number;
   y: number;
-  cos: number;
-  sin: number;
-  reach2: number;
+  cos?: number;   // set by prepBumps
+  sin?: number;   // set by prepBumps
+  reach2?: number;   // set by prepBumps
   rot?: number;
   len?: number;
   wid?: number;
@@ -207,6 +207,7 @@ export interface Solid {
 }
 
 export interface Level {
+  id: string;
   barriers?: Barrier[];
   solids?: Solid[];
   paint: Paint[];
@@ -221,6 +222,10 @@ export interface Level {
   subtrack?: Subtrack;
   lanes?: Lane[];
   base?: Surface;
+  bankAngle?: number;   // radians; banked ovals only
+  camber?: Camber;
+  _bumpGridOf?: Bump[] | null;   // terrain.ts bumpAt: the list the grid was built from
+  _bumpGrid?: Map<number, Bump[]>;   // terrain.ts bumpAt
 }
 
 // One resampled centre-line point of a subtrack.
@@ -284,6 +289,8 @@ export interface Subtrack {
   laneDash?: number[];   // highway.js
   laneSolid?: number[];   // highway.js
   sBase?: number;   // highway.js
+  _camber?: Float32Array;   // terrain.ts camberHeightAt
+  _camberCfg?: Camber;   // terrain.ts camberHeightAt
   layoutId?: number;   // highway.js, grass-track.js: a new value means cached ground is stale
 }
 
@@ -342,3 +349,28 @@ export interface ClearBox {
   hw: number;
   hh: number;
 }
+
+// LEVEL.camber: track camber settings (terrain.ts camberTable).
+export interface Camber {
+  maxDeg: number;
+  refR: number;
+  crown?: number;
+  edge?: number;
+  sections?: { from: number; to: number; deg: number }[];
+}
+
+// One cell of terrain.ts's natural-ground cache: amplitude (m) of each noise family.
+export interface NatCell {
+  small: number;
+  medium: number;
+  rolling: number;
+  whoops: number;
+  zero?: boolean;   // set by natCell
+}
+
+// What slopeAt / visualSlopeAt return: the height gradient.
+export interface Slope {
+  gx: number;
+  gy: number;
+}
+

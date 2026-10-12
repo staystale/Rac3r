@@ -2,7 +2,7 @@ import { alongTrack, solidsFromProps } from "../barriers.ts";
 import { FLOOR } from "../bounds.ts";
 import { autoKerbs, createSubtrack, traceTrack } from "../subtrack.ts";
 import { SURFACES } from "../surfaces.ts";
-import { prepBumps } from "../terrain.js";
+import { prepBumps } from "../terrain.ts";
 import { onTrack, querySubtrack } from "../tyrewall.ts";
 import { ss01, trackKit } from "./kit.js";
 // =============================================================================================

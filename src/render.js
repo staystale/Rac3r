@@ -18,7 +18,7 @@ import { COL } from "./world/colours.ts";
 import { VERGE_W } from "./world/surfaces.ts";
 import { BARRIER_HALF } from "./world/barriers.ts";
 import { wearMap, WEAR_CELL, wearDirty, wearEpoch, groundAt, coverCut } from "./world/wear.js";
-import { visualSlopeAt, visualHeightAt } from "./world/terrain.js";
+import { visualSlopeAt, visualHeightAt } from "./world/terrain.ts";
 import { MARK_PPM, MARK_EXTENT } from './marks.js';
 
 // A2 REVISED after photographing it, 2026-09-27. A flat PPM of 16 put a 4 m car at 64 px on a 1280 px

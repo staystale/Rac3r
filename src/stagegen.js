@@ -16,7 +16,7 @@ import { SURFACES } from "./world/surfaces.ts";
 import { BASE_FLOOR as FLOOR } from "./world/bounds.ts";
 import { LEVELS } from "./world/levels/index.js";
 import { trackKit } from "./world/levels/kit.js";
-import { prepBumps } from "./world/terrain.js";
+import { prepBumps } from "./world/terrain.ts";
 
 export const THEMES = {
   forest: { name: 'FOREST GRAVEL', road: 'gravel', width: 9, base: 'grassLong', sep: 36, w: { straight: 1, fast: 1, medium: 1.1, square: 1, hairpin: 0.7 } },

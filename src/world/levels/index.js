@@ -29,7 +29,7 @@ import {
 } from "./killder.js";
 import { BH_GP_LEVEL, BH_INDY_LEVEL } from "./brands-snatch.js";
 import { LAB_PAINT, LAB_BOARDS } from "../barriers.ts";
-import { prepBumps } from "../terrain.js";
+import { prepBumps } from "../terrain.ts";
 import { courseCones, slalom, outerTyreWall } from "../tyrewall.ts";
 import {
   LAB_LANE_ZONES, LAB_OFFROAD_ZONES, LAB_EXT_PAINT, LAB_EXT_BOARDS, LAB_CRASH_OBJECTS,

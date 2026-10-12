@@ -11,7 +11,7 @@ export * from "./world/course.ts";
 export * from "./world/subtrack.ts";
 export * from "./world/levels/lab-extension.js";
 export * from "./world/zones.ts";
-export * from "./world/terrain.js";
+export * from "./world/terrain.ts";
 export * from "./world/wear.js";
 export * from "./world/tyrewall.ts";
 export * from "./world/levels/index.js";

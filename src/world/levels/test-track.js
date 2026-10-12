@@ -1,6 +1,6 @@
 import { SURFACES } from "../surfaces.ts";
 import { createSubtrack } from "../subtrack.ts";
-import { prepBumps } from "../terrain.js";
+import { prepBumps } from "../terrain.ts";
 import { courseCones } from "../tyrewall.ts";
 // =============================================================================================
 // THE TEST TRACK (A flowing road course showcasing all surface types)

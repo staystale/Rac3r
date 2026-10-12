@@ -248,7 +248,7 @@
     "id-length": 2,
     "max-len": 78
   },
-  "src/world/terrain.js": {
+  "src/world/terrain.ts": {
     "complexity": 1,
     "id-length": 111,
     "max-len": 73

@@ -3,6 +3,12 @@ import { KERB_RIDGE, KERB_RIDGE_L } from "./bounds.ts";
 import { LEVEL } from "./state.ts";
 import { querySubtrack } from "./tyrewall.ts";
 import { rutAt, layersAt } from "./wear.js";
+import type { Bump, Camber, Level, NatCell, Slope, Subtrack, SubtrackHit } from "./types.ts";
+
+// What a bump profile reads. Every kind always has the fields it uses (the "!" below),
+// but Bump keeps them optional.
+type Shape = Pick<Bump, "r" | "h" | "d" | "len" | "wid" | "amp" | "wave" | "r0" | "R">;
+type NatFamily = "small" | "medium" | "rolling" | "whoops";
 
 // ---------------------------------------------------------------------------------------------
 // BUMPS, JUMPS AND KERBS (user, 2026-09-28: "and some bumps / jumps / curbs").
@@ -15,65 +21,68 @@ import { rutAt, layersAt } from "./wear.js";
 // and the springs answer an infinite velocity with an infinite load. The one deliberate exception is a
 // ramp's LIP, where the ground genuinely does fall away — and that case is safe because the load clamps
 // at zero and the body goes ballistic, which is exactly what leaving a ramp is.
-const bumpKind = {
+const bumpKind: Record<string, (b: Shape, u: number, v: number) => number> = {
   // a round whoop. Drive over it at any angle; the further off-centre, the less you get.
-  hump: (b, u, v) => {
-    const d = Math.hypot(u, v) / b.r;
+  hump: (b: Shape, u: number, v: number): number => {
+    const d = Math.hypot(u, v) / b.r!;
     if (d >= 1) return 0;
     const c = Math.cos((Math.PI / 2) * d);
-    return b.h * c * c;
+    return b.h! * c * c;
   },
   // a launch ramp: rises the whole way and then stops. u runs 0 at the foot to 1 at the lip.
-  ramp: (b, u, v) => {
-    const t = (u + b.len / 2) / b.len;
+  ramp: (b: Shape, u: number, v: number): number => {
+    const t = (u + b.len! / 2) / b.len!;
     if (t < 0 || t > 1) return 0;
-    return b.h * t * t * across(v, b.wid);      // t^2: gentle at the foot, steepest at the lip
+    return b.h! * t * t * across(v, b.wid!);      // t^2: gentle at the foot, steepest at the lip
   },
   // a flat-top table jump: up, along, down. Landable, and the safer of the two jumps.
-  table: (b, u, v) => {
-    const t = (u + b.len / 2) / b.len;
+  table: (b: Shape, u: number, v: number): number => {
+    const t = (u + b.len! / 2) / b.len!;
     if (t < 0 || t > 1) return 0;
     const r = t < 0.3 ? t / 0.3 : t > 0.7 ? (1 - t) / 0.3 : 1;
     const s = Math.sin((Math.PI / 2) * r);
-    return b.h * s * s * across(v, b.wid);
+    return b.h! * s * s * across(v, b.wid!);
   },
   // a rumble kerb strip: a low hump across its width, ridged along its length. Same shape as the
   // boundary kerb, so it shakes the car for the same reason and by the same code.
-  kerb: (b, u, v) => {
-    const t = Math.abs(v) / (b.wid / 2);
-    if (t >= 1 || Math.abs(u) > b.len / 2) return 0;
+  kerb: (b: Shape, u: number, v: number): number => {
+    const t = Math.abs(v) / (b.wid! / 2);
+    if (t >= 1 || Math.abs(u) > b.len! / 2) return 0;
     const s = Math.cos((Math.PI / 2) * t);
-    return (b.h * s * s) + KERB_RIDGE * s * Math.sin((u / KERB_RIDGE_L) * Math.PI * 2);
+    return (b.h! * s * s) + KERB_RIDGE * s * Math.sin((u / KERB_RIDGE_L) * Math.PI * 2);
   },
 };
 // ---- TERRAIN SHAPES (step 3, 2026-10-03). The user's "vector dips": bumps push the car OUT and dips pull it IN, in any
 // direction — that is gravity on the slope, applied in applyGround from slopeAt(). Each shape is smooth everywhere.
 Object.assign(bumpKind, {
   // a round hollow: the hump turned upside down. d = depth (m), r = radius.
-  dip: (b, u, v) => -bumpKind.hump({ r: b.r, h: b.d }, u, v),
+  dip: (b: Shape, u: number, v: number): number => -bumpKind.hump({ r: b.r, h: b.d }, u, v),
   // WASHBOARD: short ripples across a strip. Felt through the suspension (chatter, grip loss) but deliberately left out
   // of the slope force (NO_SLOPE): a 1 m ripple pushing the car back and forth every step would be a judder.
-  washboard: (b, u, v) => {
-    if (Math.abs(u) > b.len / 2) return 0;
-    const t = 1 - Math.abs(u) / (b.len / 2);
+  washboard: (b: Shape, u: number, v: number): number => {
+    if (Math.abs(u) > b.len! / 2) return 0;
+    const t = 1 - Math.abs(u) / (b.len! / 2);
     const ends = Math.min(1, t * 6);                        // fade in over the first sixth so entry is not a step
-    return b.amp * ends * across(v, b.wid) * (0.5 + 0.5 * Math.sin((u / b.wave) * Math.PI * 2));
+    return b.amp! * ends * across(v, b.wid!) * (0.5 + 0.5 * Math.sin((u / b.wave!) * Math.PI * 2));
   },
   // BANKED BOWL, DUG INTO the ground: floor h below ground out to r0, then a wall rising to ground level at R. MEASURED BUG (user: "I think the bowl on the lab is broken"): the first version was
   // RAISED, 2.5 m up a 6 m outer slope, so driving in at 50 km/h was a ramp — 2.17 s of airtime over the whole bowl.
-  bowl: (b, u, v) => {
+  bowl: (b: Shape, u: number, v: number): number => {
     const d = Math.hypot(u, v);
-    if (d <= b.r0) return -b.h;
+    if (d <= b.r0!) return -b.h!;
     // S-curve wall (sin^2): flat into the floor AND flat into the rim, steepest part-way up. MEASURED: the t^2 wall was
     // steepest AT the rim (0.42), and driving out at 50 km/h launched 0.96 s over the lip; now the lip has zero slope.
-    if (d <= b.R) { const t = (d - b.r0) / (b.R - b.r0); const sn2 = Math.sin((Math.PI / 2) * t); return -b.h * (1 - sn2 * sn2); }
+    if (d <= b.R!) {
+      const t = (d - b.r0!) / (b.R! - b.r0!); const sn2 = Math.sin((Math.PI / 2) * t);
+      return -b.h! * (1 - sn2 * sn2);
+    }
     return 0;
   },
 });
 const NO_SLOPE = new Set(['kerb', 'washboard']);   // felt by the suspension only, never a push
 
 // taper to nothing at the edges, so clipping the side of a ramp gives you a wheel on and a wheel off
-function across(v, wid) {
+function across(v: number, wid: number): number {
   const t = Math.abs(v) / (wid / 2);
   if (t >= 1) return 0;
   const c = Math.cos((Math.PI / 2) * t);
@@ -82,8 +91,8 @@ function across(v, wid) {
 
 // Height of every bump at a point. Bumps ADD, so two crossing kerbs make a crest rather than fighting.
 // smooth = the height the SLOPE FORCE reads: no kerb ridges, no washboard ripples, no curved kerbs.
-const BUMP_CELL = 16, NO_BUMPS = [];
-export function bumpAt(x, y, smooth = false) {
+const BUMP_CELL = 16, NO_BUMPS: Bump[] = [];
+export function bumpAt(x: number, y: number, smooth = false): number {
   const list = LEVEL.bumps;
   // ONE subtrack query per lookup, shared by the banking, the camber and the curved kerbs. MEASURED (2026-10-03, user: "still
   // seeing lag at high speeds"): three separate scans made a Test Track ground tile cost ~12 ms to shade on a PC.
@@ -93,20 +102,21 @@ export function bumpAt(x, y, smooth = false) {
   // BUMP GRID (2026-10-04): Thruston's earth banks took the list to 212 bumps and every height lookup scanned them all —
   // MEASURED ground tile 22 -> 28.7 ms, slow frames 71 -> 103 of 570 at CPU x4. Now only the bumps whose reach touches this cell.
   if (LEVEL._bumpGridOf !== list) {
-    LEVEL._bumpGridOf = list; const grid = LEVEL._bumpGrid = new Map();
-    for (const b of list) { const r = Math.sqrt(b.reach2);
+    LEVEL._bumpGridOf = list; const grid = LEVEL._bumpGrid = new Map<number, Bump[]>();
+    for (const b of list) { const r = Math.sqrt(b.reach2!);
       for (let cx = Math.floor((b.x - r) / BUMP_CELL); cx <= Math.floor((b.x + r) / BUMP_CELL); cx++)
         for (let cy = Math.floor((b.y - r) / BUMP_CELL); cy <= Math.floor((b.y + r) / BUMP_CELL); cy++) { const k = cx * 100003 + cy; const c = grid.get(k); if (c) c.push(b); else grid.set(k, [b]); } }
   }
-  const cell = LEVEL._bumpGrid.get(Math.floor(x / BUMP_CELL) * 100003 + Math.floor(y / BUMP_CELL)) || NO_BUMPS;
+  // _bumpGrid was just set above if it was stale
+  const cell = LEVEL._bumpGrid!.get(Math.floor(x / BUMP_CELL) * 100003 + Math.floor(y / BUMP_CELL)) || NO_BUMPS;
   for (let i = 0; i < cell.length; i++) {
     const b = cell[i];
     if (smooth && NO_SLOPE.has(b.kind)) continue;
     const dx = x - b.x, dy = y - b.y;
     // cheap reject first: this runs twice per axle per physics step
-    if (dx * dx + dy * dy > b.reach2) continue;
-    const u = dx * b.cos + dy * b.sin;          // along the bump
-    const v = -dx * b.sin + dy * b.cos;         // across it
+    if (dx * dx + dy * dy > b.reach2!) continue;
+    const u = dx * b.cos! + dy * b.sin!;          // along the bump
+    const v = -dx * b.sin! + dy * b.cos!;         // across it
     h += bumpKind[b.kind](b, u, v);
   }
 
@@ -140,7 +150,7 @@ const BANK_X0 = 100, BANK_BLEND = 60, BANK_BACK = 16;
 // k 1 (user: "dips and whoops should GENTLY affect steering"). MEASURED hands-off through a whole Lab lane, 1.5 m off its
 // line at 50 km/h: whoops turn the car 0.6 -> 3.5 deg away, dips 0.3 -> 3.3 deg into them; k 2 / 3 gave 4.8 / 5.7 deg.
 export const BUMP_STEER = { k: 1 };
-export function bankHeightAt(x, y, qIn) {
+export function bankHeightAt(x: number, y: number, qIn?: SubtrackHit | null): number {
   const st = LEVEL.subtrack;
   if (!LEVEL.bankAngle || !st) return 0;
   const w = Math.min(1, Math.max(0, (Math.abs(x) - BANK_X0) / BANK_BLEND));
@@ -167,7 +177,7 @@ export function bankHeightAt(x, y, qIn) {
 // away = OFF-CAMBER). Default per segment: corners get + camber scaled by tightness (maxDeg at refR or tighter), straights
 // a CROWN (centre high, both edges lower — how real circuits drain), and the surface eases back to the ground over `edge` m
 // beyond the ribbon. Smoothed along the track so no section boundary is a step.
-function camberTable(st, cfg) {
+function camberTable(st: Subtrack, cfg: Camber): Float32Array {
   const n = st.pts.length, deg = new Float32Array(n), turn = new Int8Array(n);
   for (let i = 0; i < n; i++) {
     const a0 = st.pts[(i - 3 + n) % n], a1 = st.pts[(i + 3) % n];
@@ -183,7 +193,7 @@ function camberTable(st, cfg) {
   for (let i = 0; i < n; i++) { let t = 0; for (let k = -6; k <= 6; k++) t += deg[(i + k + n) % n] * turn[(i + k + n) % n]; sm[i] = t / 13; }
   return sm;   // signed: + = camber toward the inside of a RIGHT turn (+normal side low)
 }
-function camberHeightAt(x, y, qIn) {
+function camberHeightAt(x: number, y: number, qIn?: SubtrackHit | null): number {
   const st = LEVEL.subtrack, cfg = LEVEL.camber;
   if (!cfg || !st) return 0;
   if (!st._camber || st._camberCfg !== cfg) { st._camber = camberTable(st, cfg); st._camberCfg = cfg; }
@@ -219,7 +229,8 @@ const NAT_FAMILY = {            // wavelength (m) of each family
   rolling: 26,                  // grass: rolling hills (+ a half-size octave)
   whoops: 6,                    // sand: whoops / dunes (squared, so mostly crests)
 };
-const NAT_SURF = {              // base id -> { family: amplitude m }
+// base id -> { family: amplitude m }
+const NAT_SURF: Record<string, Record<string, number>> = {
   gravel: { small: 0.045 }, rally: { small: 0.05 },
   dirt: { small: 0.03, rolling: 0.10 },
   mud: { medium: 0.10 }, thickMud: { medium: 0.15 },
@@ -227,16 +238,20 @@ const NAT_SURF = {              // base id -> { family: amplitude m }
   sand: { whoops: 0.15, small: 0.02 },
   snow: { small: 0.02 },
 };
-function hash2(i, j, seed) { let h = (i * 374761393 + j * 668265263 + seed * 2147483647) | 0; h = (h ^ (h >>> 13)) * 1274126177 | 0; return ((h ^ (h >>> 16)) >>> 0) / 4294967295; }
-function vnoise(x, y, seed) {   // smooth value noise, -1..1
+function hash2(i: number, j: number, seed: number): number {
+  let h = (i * 374761393 + j * 668265263 + seed * 2147483647) | 0;
+  h = (h ^ (h >>> 13)) * 1274126177 | 0;
+  return ((h ^ (h >>> 16)) >>> 0) / 4294967295;
+}
+function vnoise(x: number, y: number, seed: number): number {   // smooth value noise, -1..1
   const i = Math.floor(x), j = Math.floor(y), fx = x - i, fy = y - j;
   const u = fx * fx * (3 - 2 * fx), v = fy * fy * (3 - 2 * fy);
   const a = hash2(i, j, seed), b = hash2(i + 1, j, seed), c = hash2(i, j + 1, seed), d = hash2(i + 1, j + 1, seed);
   return ((a * (1 - u) + b * u) * (1 - v) + (c * (1 - u) + d * u) * v) * 2 - 1;
 }
-let natCache = new Map(), natLevel = null, natSeed = 0;
+let natCache = new Map<number, NatCell>(), natLevel: Level | null = null, natSeed = 0;
 // NUMBER keys (perf, 2026-10-03): string keys made every height lookup ~5x slower (0.04 -> 0.7 us).
-function natCell(i, j) {
+function natCell(i: number, j: number): NatCell {
   const key = (i + 32768) * 65536 + (j + 32768);
   let c = natCache.get(key);
   if (c) return c;
@@ -245,18 +260,20 @@ function natCell(i, j) {
   // CPU x4). The bilinear blend between cell centres is what keeps the edges smooth; the averaging added little.
   const L = layersAt((i + 0.5) * NAT_CELL, (j + 0.5) * NAT_CELL);
   const p = NAT_SURF[L.base];
-  if (p) for (const f in p) c[f] += p[f];
+  // cast: for-in gives string, and the families are the only keys
+  if (p) for (const f in p) c[f as NatFamily] += p[f];
   c.zero = !(c.small || c.medium || c.rolling || c.whoops);
   natCache.set(key, c);
   return c;
 }
-function naturalHeightAt(x, y) {
+function naturalHeightAt(x: number, y: number): number {
   if (natLevel !== LEVEL) { natCache = new Map(); natLevel = LEVEL; natSeed = 0; for (const ch of LEVEL.id) natSeed = (natSeed * 31 + ch.charCodeAt(0)) | 0; }
   // amplitudes at this point: bilinear between the four surrounding cell CENTRES
   const fx = x / NAT_CELL - 0.5, fy = y / NAT_CELL - 0.5, i = Math.floor(fx), j = Math.floor(fy), tx = fx - i, ty = fy - j;
   const c00 = natCell(i, j), c10 = natCell(i + 1, j), c01 = natCell(i, j + 1), c11 = natCell(i + 1, j + 1);
   if (c00.zero && c10.zero && c01.zero && c11.zero) return 0;          // hard ground all round: flat, no noise
-  const amp = (f) => (c00[f] * (1 - tx) + c10[f] * tx) * (1 - ty) + (c01[f] * (1 - tx) + c11[f] * tx) * ty;
+  const amp = (f: NatFamily): number =>
+    (c00[f] * (1 - tx) + c10[f] * tx) * (1 - ty) + (c01[f] * (1 - tx) + c11[f] * tx) * ty;
   let h = 0;
   const aS = amp('small'), aM = amp('medium'), aR = amp('rolling'), aW = amp('whoops');
   if (aS) h += aS * vnoise(x / NAT_FAMILY.small, y / NAT_FAMILY.small, natSeed + 1);
@@ -265,33 +282,34 @@ function naturalHeightAt(x, y) {
   if (aW) { const n = vnoise(x / NAT_FAMILY.whoops, y / NAT_FAMILY.whoops, natSeed + 5); h += aW * (n * n * 2 - 0.5); }      // crests
   return h;
 }
-export function clearNaturalCache() { natCache = new Map(); }
+export function clearNaturalCache(): void { natCache = new Map(); }
 
 // Gradient of the SMOOTH height (central difference). The slope force is -m g grad(h): bumps push OUT, dips pull IN.
-export function slopeAt(x, y) {
+export function slopeAt(x: number, y: number): Slope {
   const e = 0.3;
   const gx = (bumpAt(x + e, y, true) - bumpAt(x - e, y, true)) / (2 * e);
   const gy = (bumpAt(x, y + e, true) - bumpAt(x, y - e, true)) / (2 * e);
   return { gx, gy };
 }
-export function heightAt(x, y) { return bumpAt(x, y, true); }
+export function heightAt(x: number, y: number): number { return bumpAt(x, y, true); }
 // What the GROUND LOOKS like (render.js hill-shading): the FULL height — washboard ripples and kerb humps included, so
 // you can see them — but never the per-surface roughness noise, which would speckle every tile.
-export function visualHeightAt(x, y) { return bumpAt(x, y); }
-export function visualSlopeAt(x, y) {
+export function visualHeightAt(x: number, y: number): number { return bumpAt(x, y); }
+export function visualSlopeAt(x: number, y: number): Slope {
   const e = 0.2;
   return { gx: (bumpAt(x + e, y) - bumpAt(x - e, y)) / (2 * e), gy: (bumpAt(x, y + e) - bumpAt(x, y - e)) / (2 * e) };
 }
 
 // Fill in the derived fields a bump needs at runtime, so groundAt never does trigonometry per step.
-export function prepBumps(list) {
+export function prepBumps(list: Bump[]): Bump[] {
   for (const b of list) {
     const rot = b.rot || 0;
     b.cos = Math.cos(rot); b.sin = Math.sin(rot);
-    const reach = b.kind === 'hump' || b.kind === 'dip' ? b.r : b.kind === 'bowl' ? b.R + 1 : Math.max(b.len, b.wid) / 2 + 1;
+    const reach = b.kind === 'hump' || b.kind === 'dip' ? b.r!
+      : b.kind === 'bowl' ? b.R! + 1 : Math.max(b.len!, b.wid!) / 2 + 1;
     b.reach2 = reach * reach;
   }
   return list;
 }
 
-export function resetNatLevel() { natLevel = null; }
+export function resetNatLevel(): void { natLevel = null; }

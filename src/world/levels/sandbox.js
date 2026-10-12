@@ -1,6 +1,6 @@
 import { SURFACES } from "../surfaces.ts";
 import { createSubtrack } from "../subtrack.ts";
-import { prepBumps } from "../terrain.js";
+import { prepBumps } from "../terrain.ts";
 import { courseCones } from "../tyrewall.ts";
 // =============================================================================================
 // THE SURFACE SANDBOX — REBUILT 2026-10-03 as a real circuit (user: "rebuild the surface sandbox to cover all

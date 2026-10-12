@@ -4,7 +4,7 @@ import { SURFACES, SURFACE_TRAP } from "./surfaces.ts";
 import { alongTrack, prepBarriers } from "./barriers.ts";
 import { autoKerbs } from "./subtrack.ts";
 import { laneAt } from "./zones.ts";
-import { resetNatLevel } from "./terrain.js";
+import { resetNatLevel } from "./terrain.ts";
 import { PATCH_CELL, patchKey, PATCH_GRID, resetPATCH_GRID, HEAT_OFFROAD } from "./wear.js";
 import { onTrack, querySubtrack } from "./tyrewall.ts";
 import { buildBlend, seededRng, buildInclusions } from "./blend.js";

@@ -2,7 +2,7 @@ import { parkMiller } from "../../core/random.ts";
 import { alongTrack } from "../barriers.ts";
 import { autoKerbs, createSubtrack, traceTrack } from "../subtrack.ts";
 import { SURFACES } from "../surfaces.ts";
-import { prepBumps } from "../terrain.js";
+import { prepBumps } from "../terrain.ts";
 import { onTrack, querySubtrack } from "../tyrewall.ts";
 import { ss01 } from "./kit.js";
 // =============================================================================================

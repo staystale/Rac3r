@@ -18,7 +18,7 @@ import "./world/load.js";   // the world is set up before this file runs (as imp
 import { createSubtrack, ghostSegment } from "./world/subtrack.ts";
 import { SURFACES } from "./world/surfaces.ts";
 import { LEVELS } from "./world/levels/index.js";
-import { prepBumps, clearNaturalCache } from "./world/terrain.js";
+import { prepBumps, clearNaturalCache } from "./world/terrain.ts";
 import { prepBarriersOf, solidsFromProps } from "./world/barriers.ts";
 import { onTrack } from "./world/tyrewall.ts";
 import { zoneSurfaceAt, pruneWear } from "./world/wear.js";

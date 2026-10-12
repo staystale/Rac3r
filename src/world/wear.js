@@ -5,7 +5,7 @@ import {
   FX1, FX0, FY1, FY0, KERB_W, KERB_H, KERB_RIDGE, KERB_RIDGE_L, RUNOFF_W, RUNOFF_ROUGH,
 } from "./bounds.ts";
 import { zoneAt } from "./zones.ts";
-import { bumpAt, slopeAt, heightAt, bankHeightAt, BUMP_STEER } from "./terrain.js";
+import { bumpAt, slopeAt, heightAt, bankHeightAt, BUMP_STEER } from "./terrain.ts";
 import { querySubtrack } from "./tyrewall.ts";
 
 // =============================================================================================
