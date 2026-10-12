@@ -78,10 +78,11 @@ Phases:
   match the baseline for 3 levels (pixel diff within tolerance, `tilediff`), and `framecheck` is not
   worse.
   DONE 2026-10-12: render.js (3,900 lines) split into src/render.ts (set-up + frame) and src/render/ camera, tiles, ground, road, props, objects, particles, carsprite, cardamage, cars (largest 617 lines), all TypeScript; old ?smooth=1 renderer deleted. Checked: tilediff 0.00 % vs the phase 0 baseline (35a9c2c) on test-track, brands-snatch, highway; framecheck median unchanged (17.8 ms).
-- [ ] **5. One AI engine.** Merge `hwrace.js` into `aidriver.js` (or the reverse) as one driver with
+- [x] **5. One AI engine.** Merge `hwrace.js` into `aidriver.js` (or the reverse) as one driver with
   a road-model interface (circuit or highway). Keep the agreed behaviours: no waiting, drive out when
   stuck, dodging, mistakes by difficulty. Done when `aifieldsuite` and `pacesuite` are not worse than
   baseline, `weavecheck` shows 0 hits, and there is a single driver module.
+  DONE 2026-10-12 (as owner decision 3): aidriver.js split into src/ai/ (traits, line, weaver = the highway driver, circuit = the circuit driver; autodrive.ts = the bench / demo / pace-car driver moved in); hwrace.js renamed highwayrace.ts (the highway race rules); all of src/ai, highwayrace and traffic are TypeScript. Checked: the bundled code is the same code, and aifieldsuite, pacesuite and weavecheck totals are identical to before (and to the phase 0 baseline).
 - [ ] **6. Performance.** (a) Build a uniform-grid spatial index at level load for barrier segments,
   solids, props and loose objects. (b) Cones and other loose objects query the grid for nearby
   segments only, and sleep when at rest until something wakes them. (c) Remove per-frame allocation in
@@ -91,6 +92,7 @@ Phases:
   when `framecheck` on the heaviest cone level shows a measured cut in collision tests per frame
   (expected from tens of thousands to hundreds) and median frame time is not worse on any level.
   From phase 4: framecheck brands-snatch frames over 33 ms per lap, 5 runs each: baseline 22-26 (mean 24), after phase 4 21-31 (mean 28); median unchanged. Look at it here (likely view.* property reads in the hot draw code).
+  From phase 5: when vehicle.js becomes TypeScript, remove the two "as unknown as" casts (ai/circuit.ts passing the level to the weaver, traffic.ts makeCar) and give the AI's AiCar / TrafficVehicle types the real Car type.
 - [ ] **7. Rename pass.** Rename every abbreviated variable and parameter to a descriptive name, one
   file at a time, smallest files first. Reformat dense lines to one statement per line, 100
   characters. Extract the 280-350 line functions into named steps. Done when `npm run lint` passes
@@ -125,6 +127,7 @@ Order: the overhaul first. LEVELS + EVENTS and every older item wait until it is
 Known bugs found during the overhaul (wait until it is done, they are not caused by it):
 - RX race, two jokers: `node tools/racecheck.mjs` (slidden-hill) fails case C. The car is put through the joker gate on lap 2 and again on lap 3; the race never finishes (stuck on lap 3 after 8 minutes, no +30 s penalty). Same result on the original code (commit 857f105, checked 2026-10-12), so it is older than the overhaul. Not yet known whether the game or the test is wrong (the test teleports onto the gate; joker detection became a line that must be crossed on 2026-10-07). Cases A, B and practice pass. racecheck takes about 18 minutes, so it is not in the baseline run.
 - Highway tests failing on the code before these changes too (checked 2026-10-12 on ab938eb and later): `node tools/hwracecheck.mjs` "no racer wrecked (2)" (2 FAILs, counts vary per run), `node tools/trafficcheck.mjs` "motorway: traffic stays on the carriageway (30 car-steps off)", `node tools/treadmillcheck.mjs` "motorway: no litter in a driving lane (2)". Not caused by the overhaul; look at them with phase 5 (AI).
+- AI weak spots measured in phase 5 (same as the phase 0 baseline, so not caused by the overhaul; improving the AI changes behaviour, so after the overhaul): pacesuite BAD runs 3/9 (a racer far off the road or wrecked); weavecheck: spun in 5 and over 1 m wide in 5 of 45 scenarios (all at 240 km/h); aifieldsuite: 4.0 incidents per race.
 
 
 
