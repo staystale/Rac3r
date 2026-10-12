@@ -4,7 +4,9 @@
 //
 // Laid as a centreline of corner apexes; the gates are generated from it, so the shape can be edited
 // as a path rather than by placing 80 cones by hand. Clockwise from the start box.
-export const COURSE = [
+import type { Point } from "./types.ts";
+
+export const COURSE: Point[] = [
   [   0,  -30], [  95,  -55], [ 170, -120], [ 190, -200],   // long right-hand sweep up the east side
   [ 140, -235], [  60, -225], [  10, -175],                 // tight hairpin at the top
   [ -60, -190], [-130, -215], [-195, -180],                 // esses heading west
@@ -19,8 +21,8 @@ export const GATE_SPACING = 13; // m along the path between gates. 26 m left the
                          // the gates are twice as dense. The path is resampled, so this is one number.
 // Catmull-Rom through the apexes, so the course is a smooth closed loop rather than a polygon, then
 // resampled at a fixed spacing. Editing the shape means moving an apex in COURSE — nothing else.
-export function smoothPath(pts, perSeg = 24) {
-  const out = [];
+export function smoothPath(pts: Point[], perSeg = 24): Point[] {
+  const out: Point[] = [];
   const n = pts.length;
   for (let i = 0; i < n; i++) {
     const p0 = pts[(i - 1 + n) % n], p1 = pts[i], p2 = pts[(i + 1) % n], p3 = pts[(i + 2) % n];

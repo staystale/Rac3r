@@ -158,14 +158,14 @@
     "max-len": 60,
     "no-unused-vars": 1
   },
-  "src/world/bounds.js": {
+  "src/world/bounds.ts": {
     "id-length": 2,
     "max-len": 25
   },
   "src/world/colours.ts": {
     "max-len": 1
   },
-  "src/world/course.js": {
+  "src/world/course.ts": {
     "id-length": 8,
     "max-len": 8
   },

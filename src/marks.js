@@ -8,7 +8,7 @@
 // explicitly, not silently dropped off the edge of an array.
 
 import "./world/load.js";   // the world is set up before this file runs (as importing lab.js did)
-import { FENCE, FX0, FX1, FY0, FY1, RUNOFF_W } from "./world/bounds.js";
+import { FENCE, FX0, FX1, FY0, FY1, RUNOFF_W } from "./world/bounds.ts";
 import { COL } from "./world/colours.ts";
 import { LEVEL } from "./world/state.ts";
 

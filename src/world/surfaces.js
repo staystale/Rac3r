@@ -1,4 +1,4 @@
-import { RUNOFF_MU, RUNOFF_ROUGH, KERB_MU } from "./bounds.js";
+import { RUNOFF_MU, RUNOFF_ROUGH, KERB_MU } from "./bounds.ts";
 const COL_GRAVEL_TRACK = '150,134,106';   // rgb of a rut ploughed through gravel — warm, not black
 const COL_GRASS_SCUFF  = '92,112,66';     // rgb of torn turf
 // =============================================================================================

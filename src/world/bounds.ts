@@ -1,3 +1,5 @@
+import type { Rect } from "./types.ts";
+
 // bounds.js — the world edge (floor, kerb, run-off, fence, bounds). Moved verbatim out of lab.js.
 
 // MEASURED: at 100 (a 200 m floor) the hatch used 83% of the lab just reaching 100 km/h. 150 fixed that
@@ -42,10 +44,10 @@ export let FENCE = FLOOR + RUNOFF_W;   // the actual barrier (follows FLOOR)
 // LEVEL.bounds { x0, x1, y0, y1 }; without it the square +-FLOOR (every other level, unchanged). FENCE stays FLOOR + RUNOFF_W.
 export let FX0 = -FLOOR, FX1 = FLOOR, FY0 = -FLOOR, FY1 = FLOOR;
 // metres PAST the floor edge at a point (negative inside): the square's max(|x|, |y|) - FLOOR, for any rectangle
-export function edgeOut(x, y) { const ex = Math.max(x - FX1, FX0 - x), ey = Math.max(y - FY1, FY0 - y); return ex > ey ? ex : ey; }
+export function edgeOut(x: number, y: number): number { const ex = Math.max(x - FX1, FX0 - x), ey = Math.max(y - FY1, FY0 - y); return ex > ey ? ex : ey; }
 
-export function setFloor(floor) { FLOOR = floor; FENCE = FLOOR + RUNOFF_W; }
-export function setRect(rect) {
+export function setFloor(floor: number): void { FLOOR = floor; FENCE = FLOOR + RUNOFF_W; }
+export function setRect(rect: Rect | undefined): void {
   FX0 = rect ? rect.x0 : -FLOOR;
   FX1 = rect ? rect.x1 : FLOOR;
   FY0 = rect ? rect.y0 : -FLOOR;

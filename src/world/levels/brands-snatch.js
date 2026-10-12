@@ -1,5 +1,5 @@
 import { alongTrack, solidsFromProps } from "../barriers.js";
-import { FLOOR } from "../bounds.js";
+import { FLOOR } from "../bounds.ts";
 import { autoKerbs, createSubtrack, traceTrack } from "../subtrack.js";
 import { SURFACES } from "../surfaces.js";
 import { prepBumps } from "../terrain.js";

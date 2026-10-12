@@ -1,5 +1,5 @@
 // terrain.js - the BUMPS, JUMPS AND KERBS and TERRAIN SHAPES sections. Moved verbatim out of lab.js.
-import { KERB_RIDGE, KERB_RIDGE_L } from "./bounds.js";
+import { KERB_RIDGE, KERB_RIDGE_L } from "./bounds.ts";
 import { LEVEL } from "./state.ts";
 import { querySubtrack } from "./tyrewall.js";
 import { rutAt, layersAt } from "./wear.js";

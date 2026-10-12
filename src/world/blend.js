@@ -1,4 +1,4 @@
-import { FLOOR, KERB_W, edgeOut } from "./bounds.js";
+import { FLOOR, KERB_W, edgeOut } from "./bounds.ts";
 import { SURFACES } from "./surfaces.js";
 import { zoneAt } from "./zones.js";
 import { COVER_IDS } from "./wear.js";

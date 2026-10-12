@@ -1,4 +1,4 @@
-import { setFloor, setRect } from "./bounds.js";
+import { setFloor, setRect } from "./bounds.ts";
 import { LEVEL, setActiveLevel } from "./state.ts";
 import { SURFACES, SURFACE_TRAP } from "./surfaces.js";
 import { alongTrack, prepBarriers } from "./barriers.js";

@@ -13,7 +13,7 @@ import { createSubtrack, ghostSegment, autoKerbs } from "./world/subtrack.js";
 import { onTrack, querySubtrack } from "./world/tyrewall.js";
 import { alongTrack, solidsFromProps } from "./world/barriers.js";
 import { SURFACES } from "./world/surfaces.js";
-import { BASE_FLOOR as FLOOR } from "./world/bounds.js";
+import { BASE_FLOOR as FLOOR } from "./world/bounds.ts";
 import { LEVELS } from "./world/levels/index.js";
 import { trackKit } from "./world/levels/kit.js";
 import { prepBumps } from "./world/terrain.js";

@@ -113,6 +113,17 @@ export interface Prop {
   pal?: string;
 }
 
+// An x, y pair in metres.
+export type Point = [number, number];
+
+// The floor rectangle (LEVEL.bounds).
+export interface Rect {
+  x0: number;
+  x1: number;
+  y0: number;
+  y1: number;
+}
+
 export interface Level {
   paint: Paint[];
   boards: Board[];
@@ -121,4 +132,6 @@ export interface Level {
   zones: Zone[];
   bumps: Bump[];
   props?: Prop[];
+  bounds?: Rect;
+  floor?: number;
 }

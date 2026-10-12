@@ -1,5 +1,5 @@
 import { SURFACES } from "./surfaces.js";
-import { smoothPath } from "./course.js";
+import { smoothPath } from "./course.ts";
 // =============================================================================================
 // SUBTRACK SYSTEM (for circuit recovery / reset and lap progress tracking)
 // AUTO KERBS (2026-10-03; user: "check the kerbs, they look a bit broken"). MEASURED on Thruston: kerbs placed by NAMED corner

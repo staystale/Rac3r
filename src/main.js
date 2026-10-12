@@ -35,7 +35,7 @@ import { SPAWN, LEVEL } from "./world/state.ts";
 import { applyGround, fenceClamp, obstacleClamp, clearWear } from "./world/wear.js";
 import { barrierClamp, solidClamp } from "./world/barriers.js";
 import { LEVELS } from "./world/levels/index.js";
-import { FENCE } from "./world/bounds.js";
+import { FENCE } from "./world/bounds.ts";
 import { findNearestSubtrackPoint, onTrack, querySubtrack } from "./world/tyrewall.js";
 
 const qs = new URLSearchParams(location.search);
