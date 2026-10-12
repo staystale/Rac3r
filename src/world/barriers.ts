@@ -154,7 +154,7 @@ export function barrierClamp(car: CarBody): void {
   }
 }
 
-// Painted floor figures — all data, all in metres. `kind` picks how render.js draws it.
+// Painted floor figures — all data, all in metres. `kind` picks how render.ts draws it.
 export const LAB_PAINT = [
   { kind: 'ring', x: 0, y: 0, r: 40, lw: 0.18, tone: 0.55 },      // skidpad
   { kind: 'ring', x: 0, y: 0, r: 20, lw: 0.12, tone: 0.35 },

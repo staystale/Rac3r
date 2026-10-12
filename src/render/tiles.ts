@@ -1,11 +1,38 @@
-// the GROUND TILES cache of render.js (phase 4 of the render.js split): the floor, zones and track
+// the GROUND TILES cache of render.ts (phase 4 of the render.js split): the floor, zones and track
 // ribbon painted into world-aligned tiles, blitted each frame. Moved verbatim.
 import { BUMPS, LEVEL } from "../world/state.ts";
 import { COL } from "../world/colours.ts";
 import { WEAR_CELL, wearDirty, wearEpoch, groundAt } from "../world/wear.ts";
 import { visualHeightAt } from "../world/terrain.ts";
+import type { Level } from "../world/types.ts";
+import type {
+  Cam, CamCar, Fly, Overview, SurfaceArt, Tile, TileBudget, TileState, View,
+} from "./types.ts";
 
-export function createTiles(view, cam, helpers) {
+// what createTiles destructures from the renderer
+interface TilesHelpers {
+  PPMz: () => number;
+  sx: (wx: number) => number;
+  sy: (wy: number) => number;
+  drawFloor: () => void;
+  drawZones: () => void;
+  drawLanes: () => void;
+  drawTrackRibbon: () => void;
+  drawLaneDashes: () => void;
+  drawPatches: () => void;
+  drawCovers: () => void;
+  drawWear: (pass?: string) => void;
+  drawCurvedKerbs: () => void;
+  SURFACE_ART: Record<string, SurfaceArt | null>;
+  PUDDLE_TINT: Record<string, string>;
+  getFly: () => Fly | null;
+  FLY_HANDOVER: number;
+  FLY_PREFETCH: number;
+  levelOverview: () => Overview | null;
+  artBase: (id: string, fallback: string) => string;
+}
+
+export function createTiles(view: View, cam: Cam, helpers: TilesHelpers) {
   const {
     PPMz, sx, sy, drawFloor, drawZones, drawLanes, drawTrackRibbon, drawLaneDashes, drawPatches,
     drawCovers, drawWear, drawCurvedKerbs, SURFACE_ART, PUDDLE_TINT,
@@ -27,22 +54,23 @@ export function createTiles(view, cam, helpers) {
   // most TILE_BUDGET per frame; until then the previous zoom step's tiles stand in (scaled), so a zoom
   // change never shows a hole and never repaints the whole screen in one frame.
   // css px per tile side (?tilepx= for A/B, tools/hwjudder.mjs)
-  const TILE_PX = (typeof location !== 'undefined' && +new URLSearchParams(location.search).get('tilepx')) || 256;
+  // get('tilepx')!: null only means no ?tilepx=, where +null is 0 and the || falls back to 256
+  const TILE_PX = (typeof location !== 'undefined' && +new URLSearchParams(location.search).get('tilepx')!) || 256;
   // 2 -> 1 (perf, 2026-10-03): at phone-ish CPU a tile is ~22 ms, so two in one frame was ~44 ms — a slow frame every time.
   // tiles painted per frame: ONE always, then more while the frame has spent < TILE_MS painting, up to TILE_BUDGET (a fast phone fills a
   // gap in a frame or two, a slow one never stalls); the level overview stands in for the rest. (tileBudget() / takeTile() below)
   const TILE_BUDGET = 4, TILE_MS = 6;
   const tileBudget = (n = TILE_BUDGET) => ({ n, first: true, until: performance.now() + TILE_MS });
   // may this frame paint one more tile? (the first always; then only inside the time budget)
-  function takeTile(b) { if (b.n <= 0 || (!b.first && b.until != null && performance.now() > b.until)) return false; b.n--; b.first = false; return true; }
+  function takeTile(b: TileBudget) { if (b.n <= 0 || (!b.first && b.until != null && performance.now() > b.until)) return false; b.n--; b.first = false; return true; }
   // cached tiles kept; oldest dropped first (~1 MB each at dpr 2). 48 -> 72 so the fly-in's pre-painted close-up steps (~60 tiles)
   // survive to be used. Scaled with the tile AREA, so smaller tiles keep the same ground in memory.
   const TILE_MAX = Math.round(72 * (256 / TILE_PX) ** 2);
   // 3 -> 2 steps per doubling (perf, 2026-10-03): the speed zoom crosses steps all lap and every step is a fresh set of tiles.
   // MEASURED at CPU x4, Test Track lap: 3 steps 51 slow frames / 187 tiles; 2 steps 37 / 170. Tiles stretch up to 1.41x.
   const ZSTEP = 2;                // zoom steps per doubling: 1, 0.71, 0.5, 0.35
-  const tiles = new Map();        // key "level|k|i|j" -> { c: canvas, used: frame number }
-  const tileState = {
+  const tiles = new Map<string, Tile>();   // key "level|k|i|j" -> { c: canvas, used: frame number }
+  const tileState: TileState = {
     tileFrame: 0, tilesPainted: 0,
     tileMs: 0,                  // total ms spent painting tiles (tools: perf)
     staleRepaints: 0,           // of those, repaints of a tile wear made stale (tools: hwjudder)
@@ -50,15 +78,15 @@ export function createTiles(view, cam, helpers) {
     drawnN: 0,                  // art px per tile the last frame was DRAWN at (tools/hwwobble.mjs)
     standIn: false,             // this frame showed a stand-in somewhere (tools: tile pop-in)
   };
-  let tileLevel = null, tileDpr = 0, tilePPM = 0, tileLayout = 0;
-  const zStepOf = (z) => Math.round(ZSTEP * Math.log2(z));
-  const zOfStep = (k) => Math.pow(2, k / ZSTEP);
+  let tileLevel: Level | null = null, tileDpr = 0, tilePPM = 0, tileLayout = 0;
+  const zStepOf = (z: number) => Math.round(ZSTEP * Math.log2(z));
+  const zOfStep = (k: number) => Math.pow(2, k / ZSTEP);
   // PIXEL MODE: snap every pixel of a freshly painted ground tile to a LIMITED PALETTE — the surfaces' own colours
   // (SURFACE_ART + COL), plus every translucent layer already blended over every base. Removes the anti-aliased
   // in-between shades that made stones and blob edges soft and blurry in pass 1. Done ONCE per tile (cached), via a
   // 32768-entry lookup (5 bits a channel), so it costs nothing per frame.
-  let paletteLUT = null;
-  function parseCol(sv) {
+  let paletteLUT: Uint32Array | null = null;
+  function parseCol(sv: unknown) {
     if (typeof sv !== 'string') return null;
     let m = sv.match(/^#([0-9a-f]{6})$/i);
     if (m) { const n = parseInt(m[1], 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255, 1]; }
@@ -68,17 +96,18 @@ export function createTiles(view, cam, helpers) {
   }
   function buildPalette() {
     const pal = [];
-    const over = (b, s) => [0, 1, 2].map((i) => Math.round(b[i] * (1 - s[3]) + s[i] * s[3]));
+    const over = (b: number[], s: number[]) =>
+      [0, 1, 2].map((i) => Math.round(b[i] * (1 - s[3]) + s[i] * s[3]));
     // MEASURED (pass 2): blending every translucent layer over every base gave ~1,500 shades on screen and the
     // blur survived. Now each layer is blended only over ITS OWN surface's base.
     for (const [id, a] of Object.entries(SURFACE_ART)) {
       if (!a) continue;
-      const base = parseCol(a.base); pal.push(base.slice(0, 3));
+      const base = parseCol(a.base)!; pal.push(base.slice(0, 3));
       for (const L of a.layers) { const c = parseCol(L[1]); if (c) pal.push(c[3] >= 0.999 ? c.slice(0, 3) : over(base, c)); }
       const tint = parseCol(PUDDLE_TINT[id]); if (tint) pal.push(over(base, tint));
     }
     for (const v of Object.values(COL)) { const c = parseCol(v); if (c && c[3] >= 0.999) pal.push(c.slice(0, 3)); }
-    ['#f2f2f4', '#d9d9e2', '#ffffff', '#14161c', '#c9c4bc', '#fff6e6'].forEach((v) => pal.push(parseCol(v).slice(0, 3)));
+    ['#f2f2f4', '#d9d9e2', '#ffffff', '#14161c', '#c9c4bc', '#fff6e6'].forEach((v) => pal.push(parseCol(v)!.slice(0, 3)));
     const lut = new Uint32Array(32768);
     for (let q = 0; q < 32768; q++) {
       const r0 = ((q >> 10) & 31) * 8 + 4, g0 = ((q >> 5) & 31) * 8 + 4, b0 = (q & 31) * 8 + 4;
@@ -89,19 +118,19 @@ export function createTiles(view, cam, helpers) {
     return lut;
   }
   // snaps cv; with `to`, reads cv and writes the snapped pixels into `to` instead (the tile scratch -> the tile, paintTileInner)
-  function paletteSnap(cv, to = cv) {
+  function paletteSnap(cv: HTMLCanvasElement, to = cv) {
     if (!paletteLUT) paletteLUT = buildPalette();
-    const img = cv.getContext('2d').getImageData(0, 0, cv.width, cv.height), d32 = new Uint32Array(img.data.buffer);
+    const img = cv.getContext('2d')!.getImageData(0, 0, cv.width, cv.height), d32 = new Uint32Array(img.data.buffer);
     for (let i = 0; i < d32.length; i++) {
       const v = d32[i]; if ((v >>> 24) < 8) continue;
       d32[i] = paletteLUT[(((v & 255) >> 3) << 10) | ((((v >> 8) & 255) >> 3) << 5) | (((v >> 16) & 255) >> 3)];
     }
-    to.getContext('2d').putImageData(img, 0, 0);
+    to.getContext('2d')!.putImageData(img, 0, 0);
   }
   // ?tilegpu=1: the old path (tiles painted + read back on their own GPU canvas) — perf A/B for tools/hwjudder.mjs
   const TILE_GPU = typeof location !== 'undefined' && new URLSearchParams(location.search).has('tilegpu');
   let tileAvg = 20;                                 // running average ms per tile (starts pessimistic = phone)
-  function paintTile(k, i, j) {
+  function paintTile(k: number, i: number, j: number) {
     const tp0 = performance.now();
     try { return paintTileInner(k, i, j); } finally { const dt = performance.now() - tp0; tileState.tileMs += dt; tileAvg += (dt - tileAvg) * 0.2; }
   }
@@ -112,16 +141,16 @@ export function createTiles(view, cam, helpers) {
   // halved the tile (23.6 ms) but then every frame re-uploaded every CPU tile it drew (drawImage 4.8 -> 11.4 % of the run). So:
   // draw + snap on ONE reusable CPU scratch (no readback stall), putImageData once into the tile's own GPU canvas (one upload).
   // a FRESH scratch per tile: a reused one would carry drawing state (line dash, font, smoothing ...) from the last tile
-  function tileScratch(px) {
+  function tileScratch(px: number) {
     const c = document.createElement('canvas'); c.width = c.height = px;
-    return { c, g: c.getContext('2d', { willReadFrequently: true }) };
+    return { c, g: c.getContext('2d', { willReadFrequently: true })! };
   }
-  function paintTileInner(k, i, j) {
+  function paintTileInner(k: number, i: number, j: number) {
     const zq = zOfStep(k), pq = view.PPM * zq, tw = TILE_PX / pq;     // world metres per tile
     const px = Math.round(TILE_PX * view.dpr), c = document.createElement('canvas');
     c.width = c.height = px;
     const viaScratch = !TILE_GPU, sc = viaScratch ? tileScratch(px) : null;
-    const g = viaScratch ? sc.g : c.getContext('2d');
+    const g = viaScratch ? sc!.g : c.getContext('2d')!;
     g.setTransform(view.dpr, 0, 0, view.dpr, 0, 0);
     const keep = { ctx: view.ctx, W: view.W, H: view.H, zoom: view.zoom, cx: cam.x, cy: cam.y };
     view.ctx = g; view.W = view.H = TILE_PX; view.zoom = zq; cam.x = (i + 0.5) * tw; cam.y = (j + 0.5) * tw;
@@ -144,7 +173,7 @@ export function createTiles(view, cam, helpers) {
       view.ctx = keep.ctx; view.W = keep.W; view.H = keep.H; view.zoom = keep.zoom; cam.x = keep.cx; cam.y = keep.cy;
     }
     tileState.tilesPainted++;
-    if (viaScratch) paletteSnap(sc.c, c);
+    if (viaScratch) paletteSnap(sc!.c, c);
     else paletteSnap(c);
     hillShade(c, tw, (i + 0.5) * tw, (j + 0.5) * tw);
     return c;
@@ -160,7 +189,7 @@ export function createTiles(view, cam, helpers) {
   const LIGHT = [-Math.SQRT1_2, -Math.SQRT1_2];
   const LIT = [255, 226, 150], LIT_N = [255, 255, 255], SHD = [26, 34, 58];   // warm (bright ground only), neutral, cool shadow          // toward the light, world frame (screen up-left)
   const NO_SHADE = typeof location !== 'undefined' && new URLSearchParams(location.search).has('noshade');   // perf A/B
-  function hillShade(cv, tw, cx, cy) {
+  function hillShade(cv: HTMLCanvasElement, tw: number, cx: number, cy: number) {
     if (NO_SHADE) return;
     const n = Math.max(1, Math.min(SHADE.maxCells, Math.ceil(tw / SHADE.cellM)));
     const cell = tw / n, x0 = cx - tw / 2, y0 = cy - tw / 2;
@@ -170,7 +199,7 @@ export function createTiles(view, cam, helpers) {
     // enough — 4x fewer lookups. MEASURED at CPU x4: ~12 ms of a 26 ms tile was this. Tiles that contain WASHBOARD (0.9 m
     // ripples) keep the full grid so the ripples still show.
     const m = n + 2, hg = new Float32Array(m * m);
-    const fine = BUMPS.some((bp) => bp.kind === 'washboard' && Math.abs(bp.x - cx) < tw / 2 + bp.len / 2 && Math.abs(bp.y - cy) < tw / 2 + bp.len / 2);
+    const fine = BUMPS.some((bp) => bp.kind === 'washboard' && Math.abs(bp.x - cx) < tw / 2 + bp.len! / 2 && Math.abs(bp.y - cy) < tw / 2 + bp.len! / 2);
     if (fine || n < 8) {
       for (let b = 0; b < m; b++) for (let a = 0; a < m; a++) hg[b * m + a] = visualHeightAt(x0 + (a - 0.5) * cell, y0 + (b - 0.5) * cell);
     } else {
@@ -203,7 +232,7 @@ export function createTiles(view, cam, helpers) {
     // CPU x4): up to 4096 fillRects a tile, each with a fresh rgba() string, were ~half of every ground tile. A cell's style is one
     // of ~9 (2 x SHADE.bands levels x lit / lit-lab / shadow): the same integer-edged rects are gathered per style and filled once.
     // Same pixels (tools/tilediff.mjs): the rects abut, never overlap, so one fill blends each pixel exactly once, as before.
-    const g = cv.getContext('2d');
+    const g = cv.getContext('2d')!;
     g.save(); g.setTransform(1, 0, 0, 1, 0, 0);
     const pxPerCell = cv.width / n, groups = new Map();
     for (let b = 0; b < n; b++) for (let a = 0; a < n; a++) {
@@ -227,7 +256,7 @@ export function createTiles(view, cam, helpers) {
     g.restore();
   }
   // How many tiles of zoom step k that cover the view are not painted yet. Draws nothing.
-  function countMissing(k) {
+  function countMissing(k: number) {
     const tw = TILE_PX / (view.PPM * zOfStep(k)), p = PPMz();
     const vx0 = cam.x - view.W / 2 / p, vx1 = cam.x + view.W / 2 / p, vy0 = cam.y - view.H / 2 / p, vy1 = cam.y + view.H / 2 / p;
     let missing = 0;
@@ -237,7 +266,7 @@ export function createTiles(view, cam, helpers) {
   }
   // Blit every tile of zoom step k that covers the view. Returns how many were missing. With
   // `paint` it paints missing tiles (budget permitting); without, it only draws what exists.
-  function blitStep(k, paint, budget) {
+  function blitStep(k: number, paint: boolean, budget: TileBudget) {
     const zq = zOfStep(k), tw = TILE_PX / (view.PPM * zq), p = PPMz();
     const vx0 = cam.x - view.W / 2 / p, vx1 = cam.x + view.W / 2 / p, vy0 = cam.y - view.H / 2 / p, vy1 = cam.y + view.H / 2 / p;
     let missing = 0;
@@ -266,7 +295,7 @@ export function createTiles(view, cam, helpers) {
   // drift that changes many cells into one repaint of the tiles involved.
   const WEAR_DRAIN = 0.15;
   let wearDrainT = 0, seenEpoch = -1;
-  function drainWear(wallDt) {
+  function drainWear(wallDt: number) {
     if (seenEpoch !== wearEpoch) { seenEpoch = wearEpoch; for (const t of tiles.values()) t.stale = true; wearDirty.length = 0; return; }
     wearDrainT += wallDt;
     if (wearDrainT < WEAR_DRAIN || wearDirty.length === 0) return;
@@ -282,7 +311,7 @@ export function createTiles(view, cam, helpers) {
     }
     wearDirty.length = 0;
   }
-  function drawGround(wallDt = 0, car = null) {
+  function drawGround(wallDt = 0, car: CamCar | null = null) {
     drainWear(wallDt);
     tileState.tileFrame++;
     const layout = LEVEL.subtrack ? LEVEL.subtrack.layoutId || 0 : 0;   // a re-randomised track (Grass Track)
@@ -347,7 +376,7 @@ export function createTiles(view, cam, helpers) {
   // under a stand-in: the level's own ground colour where it has one (a missing patch reads as grass, not as a hole)
   const standInFill = () => (LEVEL.base && LEVEL.base.id !== 'lab' ? artBase(LEVEL.base.id, COL.floor) : COL.outside);
   // paint (without drawing) the tiles of step k covering a view centred on (cx, cy) at zoom z
-  function prefetch(k, cx, cy, z, budget) {
+  function prefetch(k: number, cx: number, cy: number, z: number, budget: TileBudget) {
     const tw = TILE_PX / (view.PPM * zOfStep(k)), p = view.PPM * z;
     const vx0 = cx - view.W / 2 / p, vx1 = cx + view.W / 2 / p, vy0 = cy - view.H / 2 / p, vy1 = cy + view.H / 2 / p;
     for (let i = Math.floor(vx0 / tw); i * tw < vx1 && budget.n > 0; i++)

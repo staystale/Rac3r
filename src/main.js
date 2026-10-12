@@ -11,7 +11,7 @@ import { makeCar, step, reset, assertFinite, DT } from './vehicle.js';
 const resetCar = reset;
 import { CAR_IDS, applyLivery, applyTyre, ROSTER } from './cars.js';
 import { createInput } from './input.js';
-import { createRenderer } from './render.js';
+import { createRenderer } from './render.ts';
 import { createMarks } from './marks.js';
 import { createHud } from './hud.js';
 import { createCones } from './cones.js';

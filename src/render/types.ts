@@ -1,7 +1,7 @@
 // Shared render-layer shapes; the CARS / AI / GAME ones list only the fields the render code reads.
 import type { Level, Point, Spray } from "../world/types.ts";
 
-// The shared view object render.js creates.
+// The shared view object render.ts creates.
 export interface View {
   ctx: CanvasRenderingContext2D;
   W: number;
@@ -273,4 +273,41 @@ export interface TapeGame {
   };
   car: TapeCar;
   ai?: { car: TapeCar }[];
+}
+
+// A car as frame() hands it to every layer: drawn, smoking / chipping and trailing tape.
+export type GameCar = RenderCar & ParticleCar & TapeCar;
+
+// What frame() reads of the game (jokerTaken: RoadGame; cones, car, ai: TapeGame).
+export interface RenderGame extends RoadGame, TapeGame {
+  car: GameCar;
+  ai?: { car: GameCar }[];
+  traffic?: { cars: GameCar[] };   // highway traffic (traffic.js)
+  cones: TapeGame["cones"] & { list: RenderCone[]; drainHits: () => PuffHit[] };
+  marks: RenderMarks;
+}
+
+// One cached ground tile: its canvas, the frame it was last used, and whether wear made it stale.
+export interface Tile {
+  c: HTMLCanvasElement;
+  used: number;
+  stale?: boolean;
+}
+
+// The counters and flags the tile cache shares with the renderer's getters.
+export interface TileState {
+  tileFrame: number;
+  tilesPainted: number;
+  tileMs: number;
+  staleRepaints: number;
+  lastStep: number | null;
+  drawnN: number;
+  standIn: boolean;
+}
+
+// How many tiles one frame may still paint (n), and the time budget of tileBudget().
+export interface TileBudget {
+  n: number;
+  first?: boolean;
+  until?: number | null;
 }

@@ -1,4 +1,4 @@
-// render.js — camera, floor, cones, and the cars as PROCEDURAL ART.
+// render.ts — camera, floor, cones, and the cars as PROCEDURAL ART.
 //
 // A1/A2: device resolution, DPR capped at 2, PPM = 16 CSS px per metre. No low-res pixel buffer — the
 // brief's retro pixel art was retired in favour of "cute, realistic, detailed and clear" (user,
@@ -24,8 +24,9 @@ import { createRoad } from "./render/road.ts";
 import { createGround } from "./render/ground.ts";
 import { createProps } from "./render/props.ts";
 import { createObjects } from "./render/objects.ts";
-import { createTiles } from "./render/tiles.js";
+import { createTiles } from "./render/tiles.ts";
 import { createCamera } from "./render/camera.ts";
+import type { Cam, CamCar, RenderGame, TileBudget, View } from "./render/types.ts";
 
 // A2 REVISED after photographing it, 2026-09-27. A flat PPM of 16 put a 4 m car at 64 px on a 1280 px
 // desktop — a small orange blob with every drawn detail (mirrors, shut lines, lights, steered wheels)
@@ -35,7 +36,7 @@ import { createCamera } from "./render/camera.ts";
 // Sizing off min(W,H) is the CLAUDE.md §3 rule for anything that must survive both orientations.
 export const PPM_MIN = 18, PPM_MAX = 26, PPM_DIV = 17;
 export const ZOOM_MIN = 0.30;   // how far out the camera pulls at high speed
-const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
+const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);
 export const LOOKAHEAD = 2.6;   // seconds of road kept in view at any speed
 export const MAX_DPR = 2;
 
@@ -51,19 +52,19 @@ export const MAX_DPR = 2;
 const NO_LOCK = typeof location !== "undefined" && new URLSearchParams(location.search).has("nolock");
 const PIXEL_CSS = 1.3;            // css px per art pixel: a 4 m car is ~70 art px at zoom 1 on a phone
 
-export function createRenderer(canvas) {
+export function createRenderer(canvas: HTMLCanvasElement) {
   // \`let\`, not const: the ground cache (below) points every draw function at an off-screen canvas by
   // swapping this for the duration of one render. Nothing else ever reassigns it.
-  const mainCtx = canvas.getContext('2d');
+  const mainCtx = canvas.getContext('2d')!;   // a fresh canvas always gives a 2d context
   // the 7 most shared drawing variables in one object (phase 4 of the render.js split): zoom is the
   // smoothed speed zoom (see SPEED ZOOM below), noPatterns is set while painting the fly-in overview
   // (flat colours only)
-  const view = { ctx: mainCtx, W: 0, H: 0, dpr: 1, PPM: 22, zoom: 1, noPatterns: false };
+  const view: View = { ctx: mainCtx, W: 0, H: 0, dpr: 1, PPM: 22, zoom: 1, noPatterns: false };
   // pixel mode: the world buffer, its device-px block size (k), and the real dpr of the screen canvas
   const pcanvas = document.createElement('canvas');
-  const pctx = pcanvas.getContext('2d');
+  const pctx = pcanvas.getContext('2d')!;   // likewise
   let pk = 1, realDpr = 1;
-  const cam = { x: 0, y: 0, initialised: false };
+  const cam: Cam = { x: 0, y: 0, initialised: false };
   const PPMz = () => view.PPM * view.zoom;   // ONE place converts metres to pixels, so nothing can miss the zoom
 
   function resize() {
@@ -83,10 +84,12 @@ export function createRenderer(canvas) {
     view.PPM = Math.max(PPM_MIN, Math.min(PPM_MAX, Math.min(view.W, view.H) / PPM_DIV));
   }
 
-  const sx = (wx) => (wx - cam.x) * PPMz() + view.W / 2;
-  const sy = (wy) => (wy - cam.y) * PPMz() + view.H / 2;
+  const sx = (wx: number) => (wx - cam.x) * PPMz() + view.W / 2;
+  const sy = (wy: number) => (wy - cam.y) * PPMz() + view.H / 2;
 
-  function roundRect(g, x, y, w, h, r) {
+  function roundRect(
+    g: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number
+  ) {
     g.beginPath();
     g.moveTo(x + r, y);
     g.arcTo(x + w, y, x + w, y + h, r);
@@ -129,7 +132,8 @@ export function createRenderer(canvas) {
     FLY_PREFETCH,
   } = createCamera(view, cam, {
     PPMz, drawFloor, drawZones, drawLanes, drawTrackRibbon, drawPatches, drawCovers,
-    drawCurvedKerbs, paletteSnap: (c) => paletteSnap(c), prefetch: (...a) => prefetch(...a),
+    drawCurvedKerbs, paletteSnap: (c: HTMLCanvasElement) => paletteSnap(c),
+    prefetch: (...a: [number, number, number, number, TileBudget]) => prefetch(...a),
   });
   const {
     tileState, tiles, TILE_PX, ZSTEP, zStepOf, zOfStep, paletteSnap, paintTile, drawGround,
@@ -142,7 +146,7 @@ export function createRenderer(canvas) {
 
 
   // ---------------------------------------------------------------- frame
-  function frame(game, wallDt, wallT) {
+  function frame(game: RenderGame, wallDt: number, wallT: number) {
     if (!updateFly(game.car, wallDt)) {
       follow(game.car, wallDt);
       updateZoom(game.car, wallDt);
@@ -153,7 +157,7 @@ export function createRenderer(canvas) {
     // For drawing only: the zoom is quantised so a tile of the current step is a WHOLE number of art pixels wide (steps of ~0.5 %,
     // invisible), and the camera snapped to a whole art pixel. The smoothed zoom is restored at the end of the frame.
     const keepZoom = view.zoom;
-    let subX = 0, subY = 0, camTrue = null;
+    let subX = 0, subY = 0, camTrue: { x: number; y: number } | null = null;
     if (!NO_LOCK && (!camState.fly || view.zoom >= FLY_HANDOVER)) {
       const k = (tileState.lastStep !== null && Math.abs(ZSTEP * Math.log2(view.zoom) - tileState.lastStep) < 0.75) ? tileState.lastStep : zStepOf(view.zoom);
       const zq = zOfStep(k), N = Math.max(1, Math.round(TILE_PX * view.dpr * view.zoom / zq));
@@ -205,7 +209,7 @@ export function createRenderer(canvas) {
     if (camTrue) { cam.x = camTrue.x; cam.y = camTrue.y; }   // the true camera for the next frame / tools
   }
 
-  function snap(car) {
+  function snap(car: CamCar) {
     cam.x = car.x;
     cam.y = car.y;
     cam.lx = 0; cam.ly = 0;          // the look-ahead restarts from the car (follow() eases it back in)
@@ -233,34 +237,39 @@ export function createRenderer(canvas) {
     // the level painted FLAT (each surface its base colour, no patterns, no palette snap) at ppm px per metre, plus
     // the colour each surface id is painted in, so the tool can compare every drawn pixel with groundAt().
     // for the photo tools (tools/_sceneryshots.mjs): pin the camera zoom (null = back to speed-driven)
-    debugZoom(z) { camState.pinZoom = z; if (z) view.zoom = z; },
-    debugFlat(x0, y0, x1, y1, ppm) {
+    debugZoom(z: number | null) { camState.pinZoom = z; if (z) view.zoom = z; },
+    debugFlat(x0: number, y0: number, x1: number, y1: number, ppm: number) {
       const ow = Math.round((x1 - x0) * ppm), oh = Math.round((y1 - y0) * ppm);
       const c = document.createElement('canvas'); c.width = ow; c.height = oh;
       const keep = { ctx: view.ctx, W: view.W, H: view.H, zoom: view.zoom, cx: cam.x, cy: cam.y };
-      view.ctx = c.getContext('2d'); view.W = ow; view.H = oh; view.zoom = ppm / view.PPM; cam.x = (x0 + x1) / 2; cam.y = (y0 + y1) / 2;
+      view.ctx = c.getContext('2d')!; view.W = ow; view.H = oh; view.zoom = ppm / view.PPM; cam.x = (x0 + x1) / 2; cam.y = (y0 + y1) / 2;
       view.noPatterns = true;
       // the same ground layers frame() draws: the cached tiles' contents, then the live edge (run-off + edge kerb)
       try { drawFloor(); drawZones(); drawLanes(); drawTrackRibbon(); drawPatches(); drawCovers(); drawCurvedKerbs(); drawRunoff(); drawKerb(); }
       finally { view.ctx = keep.ctx; view.W = keep.W; view.H = keep.H; view.zoom = keep.zoom; cam.x = keep.cx; cam.y = keep.cy; view.noPatterns = false; }
-      return { w: ow, h: oh, data: Array.from(c.getContext('2d').getImageData(0, 0, ow, oh).data) };
+      return {
+        w: ow, h: oh, data: Array.from(c.getContext('2d')!.getImageData(0, 0, ow, oh).data),
+      };
     },
     debugColours() {
-      const base = {}; for (const [id, a] of Object.entries(SURFACE_ART)) if (a) base[id] = a.base;
+      const base: Record<string, string> = {};
+      for (const [id, a] of Object.entries(SURFACE_ART)) if (a) base[id] = a.base;
       return { base, puddle: { ...PUDDLE_TINT }, col: { ...COL } };
     },
     get tileCount() { return tiles.size; },
     // for tools/tilediff.mjs: ground tile (zoom step k, column i, row j) painted fresh -> its pixels (not cached)
-    debugTile(k, i, j) { const c = paintTile(k, i, j); return { w: c.width, h: c.height, data: Array.from(c.getContext('2d').getImageData(0, 0, c.width, c.height).data) }; },
+    debugTile(k: number, i: number, j: number) { const c = paintTile(k, i, j); return { w: c.width, h: c.height, data: Array.from(c.getContext('2d')!.getImageData(0, 0, c.width, c.height).data) }; },
   };
 }
 
 // multiply a hex colour's lightness; used for every shade of a car's paint so one `paint` value in
 // cars.js produces a whole consistent palette
-export function shade(hex, k) {
+export function shade(hex: string, k: number): string {
   const n = parseInt(hex.slice(1), 16);
   const r = Math.min(255, Math.round(((n >> 16) & 255) * k));
   const g = Math.min(255, Math.round(((n >> 8) & 255) * k));
   const b = Math.min(255, Math.round((n & 255) * k));
   return `rgb(${r},${g},${b})`;
 }
+
+export type Renderer = ReturnType<typeof createRenderer>;

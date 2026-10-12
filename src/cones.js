@@ -104,18 +104,18 @@ const BROKEN = new Set(['splinters', 'cardboard', 'sand', 'fluff']);
 // ANIMALS (S-C; user 2026-10-06: "Can we make Cows and sheep impactable ? Sheep can be like a tyres impact weight but burst into white
 // particles / [cows] should stay solid and be heavier more like hay bails impact weight"; Q5: "no gore ... sheep should explode into white
 // fluff over like 30mph ... cows tip over 40mph"). A SHEEP is 12 kg (a tyre): hit above SHEEP_POP_V it bursts into FLUFF (a drive-over
-// patch + a white cloud, render.js). A COW is 250 kg (a bale) and stays solid: hit above COW_TIP_V it TIPS onto its side (still solid).
+// patch + a white cloud, render.ts). A COW is 250 kg (a bale) and stays solid: hit above COW_TIP_V it TIPS onto its side (still solid).
 const SHEEP_POP_V = 13.4, COW_TIP_V = 17.9;   // m/s = 30 / 40 mph
 // RALLY TAPE: a SECTION between two consecutive posts of one tape snaps when a car crosses it (> TAPE_SNAP_V) or its posts are pulled
-// apart (> 1.8 x its rest length); a snapped section sticks to that car with TAPE_STICK chance (render.js trails it as a streamer)
+// apart (> 1.8 x its rest length); a snapped section sticks to that car with TAPE_STICK chance (render.ts trails it as a streamer)
 const TAPE_SNAP_V = 1.5, TAPE_STICK = 0.45;
 // ...and it GOES (user, 2026-10-04: "tape should vanish into a cloud of particles after multiple hits"): the snap is hit 1; the next
 // distinct hit (a car through the gap again, >= TAPE_REHIT s later, or its posts torn further apart) is hit TAPE_GONE: the stubs vanish
-// and a PUFF is queued for render.js (red / white flecks)
+// and a PUFF is queued for render.ts (red / white flecks)
 const TAPE_GONE = 2, TAPE_REHIT = 0.5;
 export function createCones({ objectHits = true } = {}) {   // objectHits: false is for harness baselines only
   let list = [], clock = 0, sections = [], puffs = [];
-  const hits = [];           // {x, y, speed, kind} drained by render.js each frame for dust
+  const hits = [];           // {x, y, speed, kind} drained by render.ts each frame for dust
 
   // a level object -> a live loose object (shared by reset and spawn)
   const live = (c) => ({

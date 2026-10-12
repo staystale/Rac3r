@@ -1,5 +1,5 @@
 // damage.js — CAR DAMAGE (2026-10-04). Bookkeeping on the sim step; vehicle.js reads only car.wreck (multipliers, no-op by default —
-// CLAUDE.md §2 rule 6), render.js draws the crush / dents / chips / loose wheels, hud.js the tyre diagram, the results the repair bill.
+// CLAUDE.md §2 rule 6), render.ts draws the crush / dents / chips / loose wheels, hud.js the tyre diagram, the results the repair bill.
 //
 // USER (2026-10-04): "full damage — but limited"; "damage resets with RESET — but is COUNTED cost-wise against you, paid at the end of a
 // race in Story mode — shown in Test but never charged; repairs by pits in certain events (ask when); if an AI is too injured it should
@@ -12,7 +12,7 @@
 // wall or a car: light damage by speed x time on that side + paint chips); above DMG_FLOOR an IMPACT, (dv - floor)^DMG_EXP, shared over
 // the four corners by where it came from. Each corner keeps HOW it was hit: crushL (end-on: shortens the car) and crushS (side-on:
 // pushes the side in), so the sprite crumples the right quarter the right way. Corners: 0 front / -y, 1 front / +y, 2 rear / -y,
-// 3 rear / +y (car frame: +x forward; +y = the lateral of contact.js / render.js; the car's RIGHT).
+// 3 rear / +y (car frame: +x forward; +y = the lateral of contact.js / render.ts; the car's RIGHT).
 // EFFECTS (limited): axle grip down to -20 %, power down to -15 % (front), a steering PULL toward the harder-hit front, a PUNCTURE (axle
 // x0.7) from a heavy corner hit, and a WHEEL OFF from a big hit on a corner already near wrecked: that axle x0.45, a hard pull, the bare
 // corner drags (rolling drag x5 per wheel). Never a DNF: the player RESETs (repairs), an AI that is tooInjured() resets itself.

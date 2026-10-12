@@ -1,4 +1,4 @@
-// the PROPS layer of render.js (phase 4 of the render.js split): fence, barriers, bridges,
+// the PROPS layer of render.ts (phase 4 of the render.js split): fence, barriers, bridges,
 // garage rows and props - the trackside scenery. Moved verbatim.
 import { parkMiller } from "../core/random.ts";
 import { RUNOFF_W } from "../world/bounds.ts";

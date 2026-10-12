@@ -103,11 +103,11 @@ function growTo(lv, sTarget) {
     if (e.done >= e.len - 1e-6) st.plan.shift();
   }
 }
-// ---- SLIP ROADS, BRIDGES, CHEEKY EXTRAS. Each is ONE prop (render.js draws it, physics reads it): no new system.
+// ---- SLIP ROADS, BRIDGES, CHEEKY EXTRAS. Each is ONE prop (render.ts draws it, physics reads it): no new system.
 // OFF-SLIP (kind 'slip'): leaves the LEFT edge (the hard shoulder side) at SLIP_DEG, a tapering lane 5 m wide, SLIP_LEN m long, ending
 // in a field gate; its surface is tarmac (lab.js zoneAt reads lv.lanes - the existing pit-lane ribbons), a SLIP sign + a countdown
 // board (3 / 2 / 1 bars) before it. Driving up it is off the motorway (the guard's OFF countdown applies, by design: it goes nowhere).
-// BRIDGES (kind 'bridge'): drawn OVER everything (render.js OVERHEAD), deck across the road at an angle, with what it carries:
+// BRIDGES (kind 'bridge'): drawn OVER everything (render.ts OVERHEAD), deck across the road at an angle, with what it carries:
 // 'road' (a lane + a car or two, parapets), 'rail' (sleepers + rails, no trains), 'foot' (narrow, people). UNDER the motorway:
 // kind 'river' (water band across, the motorway on a viaduct: parapets both sides) - drawn under the road, never on it.
 // Only their PIERS / abutments are solid, and those stand SLIP_CLEAR m outside the tarmac (+ off the verge strip the AI dodges on).
@@ -120,9 +120,9 @@ function growTo(lv, sTarget) {
 //   the motorway's bends, then merging back into the hard shoulder. The side road counts as ON the road (highwayGuard); on any other
 //   slip the off-road countdown waits and only the far-out reset ends it ("EXIT TAKEN").
 // - road / rail / foot bridges get APPROACHES (approaches()): a lane ribbon (tarmac / gravel ballast / dirt path) APP_LEN m out each side
-//   along the deck axis; render.js drawBridge draws their markings and the MOVING cars / walkers / trains (wall clock, no physics).
+//   along the deck axis; render.ts drawBridge draws their markings and the MOVING cars / walkers / trains (wall clock, no physics).
 // - a RIVER (river()) is a real 'wet' COVER (the same water as every puddle: grip, spray, drawn into the ground tiles) with dirt banks
-//   (zones), cut out where the motorway crosses on its parapets (cover.cut: lab.js coverAt + render.js coverCells), APP_LEN m each side.
+//   (zones), cut out where the motorway crosses on its parapets (cover.cut: lab.js coverAt + render.ts coverCells), APP_LEN m each side.
 // - anything long that leaves the road (approach, river, long slip) is CUT SHORT where the road later swings back across it (cuts).
 // - the WALLED preset gets them too: a gap in the left wall / armco where a slip leaves or the side road runs (P[j].gapL).
 // All the new random choices draw from st.xrnd, so the road's own shape stream (st.rnd) is unchanged by them.
@@ -173,7 +173,7 @@ function sideStep(lv, i, at) {
 function sideFlush(lv, end, sNext) {
   const st = lv._hw, sd = st.side; if (!sd) return;
   if (sd.pts.length >= 2) lv.lanes.push({ pts: sd.pts, width: SLIP_W, surface: SURFACES.tarmac, _s: sd.sPiece });
-  // its edge lines (render.js drawSlip), only where it has left the motorway's tarmac
+  // its edge lines (render.ts drawSlip), only where it has left the motorway's tarmac
   if (sd.mpts.length >= 2) lv.props.push({ kind: 'slip', line: sd.mpts, w: SLIP_W, nose: false, x: sd.mpts[0][0], y: sd.mpts[0][1], _s: sd.sPiece });
   // the next piece starts on this one's last point (no seam); sPiece = the road distance it is dropped behind with
   const last = sd.pts[sd.pts.length - 1], lastM = sd.mpts[sd.mpts.length - 1];
@@ -192,7 +192,7 @@ function approaches(lv, o, s) {
   });
 }
 // a RIVER under the motorway: per side, one water cover + two dirt bank strips, from just inside the parapet to APP_LEN m beyond it.
-// The cover's `cut` removes the part under the motorway exactly (lab.js coverAt + render.js coverCells): in the river's frame the road
+// The cover's `cut` removes the part under the motorway exactly (lab.js coverAt + render.ts coverCells): in the river's frame the road
 // edges are u = v tan(skew) +- e.
 function river(lv, o, s) {
   const st = lv._hw, ww = o.ww, tn = Math.tan(o.skew), e = o.roadHw / Math.cos(o.skew), ax = Math.cos(o.rot), ay = Math.sin(o.rot);
@@ -214,14 +214,14 @@ function river(lv, o, s) {
     addCut(lv, { pts, s, w: ww, skip: [s - 80, s + 80], after: () => put(Math.max(0.5, e - e0 + 10 * (pts.length - 1) - 6)) });
   }
 }
-// the level's covers = the highway's own (rivers) + the level's generated inclusions; a NEW array so render.js re-merges them
+// the level's covers = the highway's own (rivers) + the level's generated inclusions; a NEW array so render.ts re-merges them
 function syncCovers(lv) {
   const st = lv._hw; st.coversDirty = false;
   lv._coversBase = st.covers; lv.covers = [...st.covers, ...((lv._incl && lv._incl.covers) || [])];
 }
 // ---- SCENERY v2 (user, 2026-10-06: "i thought we were going to vary sceneary along side the road more like farms or long grass hedges and
 // small towns"; "yeah scenery too please"). In the FARM stretches: a PATCHWORK of FIELDS each side - rotated zones (lab.js zoneAt /
-// render.js drawZones, so what you see is what you drive on): WHEAT and RAPESEED (drive as long grass, drawn as crops: zone.art), MEADOW
+// render.ts drawZones, so what you see is what you drive on): WHEAT and RAPESEED (drive as long grass, drawn as crops: zone.art), MEADOW
 // (long grass), PASTURE (grass, sheep / cows), PLOUGHED (dirt, furrows), now and then a FARMYARD (gravel, barns, bales). Each is ringed by
 // a LONG GRASS border (HEDGE_W m, a zone you drive through - user, 2026-10-06: "hedges around fields ... should be long grass"; the
 // first cut was a solid 'hedge' barrier, which beached spun racers: pacesuite 2/9 -> 3/9 BAD), a tree or two in it. Now and then a VILLAGE: a lane following
@@ -230,7 +230,7 @@ function syncCovers(lv) {
 // The left side starts past the secret side road's band. Random choices: st.frnd (own stream). Cost per field: one zone + 2 polylines.
 const FIELD_T = [['wheat', 0.24], ['plough', 0.18], ['rapeseed', 0.12], ['meadow', 0.2], ['pasture', 0.18], ['yard', 0.08]];
 // [physics surface, look]. Looks REUSE the grass / long grass / mud textures, recoloured (user: "jsut reuse mud and grass or long grass
-// textures for field, and maybe colour them"; render.js SURFACE_ART wheat / rapeseed / pastureG / plough). Ploughed = MUD: look = grip.
+// textures for field, and maybe colour them"; render.ts SURFACE_ART wheat / rapeseed / pastureG / plough). Ploughed = MUD: look = grip.
 const FIELD_SURF = { wheat: ['grassLong', 'wheat'], rapeseed: ['grassLong', 'rapeseed'], meadow: ['grassLong', null], plough: ['mud', 'plough'], pasture: ['grass', 'pastureG'], yard: ['gravel', null] };
 const HEDGE_W = 2.5;
 const ROOFS = ['#8a3a2e', '#9a4a36', '#6e6a5e', '#5b626b', '#7a5a48', '#8a3a2e'];
@@ -341,7 +341,7 @@ function extras(lv, i, s, at, mk) {
     for (let d = 10; d <= len; d += 10) { h = a.rot - (SLIP_DEG * Math.min(1, d / 60) + (away - SLIP_DEG) * ease((d - 80) / Math.max(1, len - 80))) * Math.PI / 180; x += Math.cos(h) * 10; y += Math.sin(h) * 10; line.push([x, y]); }
     const o = mk({ kind: 'slip', x: a.x, y: a.y, rot, line, w: SLIP_W, len, label, type });
     lv.props.push(o);
-    // the tarmac: a lane ribbon (lab.js laneAt + render.js drawLanes, as the pit lanes), starting 12 m back and 2.6 m INSIDE the edge so
+    // the tarmac: a lane ribbon (lab.js laneAt + render.ts drawLanes, as the pit lanes), starting 12 m back and 2.6 m INSIDE the edge so
     // its round end lies under the motorway ribbon (PHOTOGRAPHED 2026-10-06: starting outside the edge left a stub in the verge)
     const b0 = at(Math.max(0, i - 3), -hw + 2.6), lane = { pts: [[b0.x, b0.y], ...line.slice(1)], width: SLIP_W, surface: SURFACES.tarmac, _s: s };
     lv.lanes.push(lane);
@@ -367,7 +367,7 @@ function extras(lv, i, s, at, mk) {
     if (kind === 'road') { o.cars = 1 + ((R() * 2) | 0); o.cow = x6; }
     if (kind === 'foot') { o.cone = x6; o.people = 1 + ((R() * 3) | 0); }
     if (kind === 'river') { o.boat = x6; o.ww = 10 + R() * 8; }
-    // what MOVES across it (render.js drawBridge, wall clock, no physics): road traffic both ways, walkers, a train now and then
+    // what MOVES across it (render.ts drawBridge, wall clock, no physics): road traffic both ways, walkers, a train now and then
     o.phase = R() * 1000;
     if (kind === 'rail') o.trainEvery = 14 + R() * 16;
     lv.props.push(o);
@@ -481,7 +481,7 @@ function rebuild(lv) {
   const sub = createSubtrack(P.map((q) => [q.x, q.y]), st.geo.width, [{ startDist: 0, endDist: 1e9, surface: SURFACES.tarmac }], [], true);
   ghostSegment(sub, P.length - 1);   // the closing segment, end -> start: never road
   sub.laneDash = st.geo.dashes; sub.laneSolid = st.geo.solid; sub.sBase = P[0].s;
-  // a new ROAD TYPE on the same seed is a different road: layoutId tells render.js its cached ground tiles are out of date
+  // a new ROAD TYPE on the same seed is a different road: layoutId tells render.ts its cached ground tiles are out of date
   sub.layoutId = lv._layout || 0;
   lv.subtrack = sub;
   prepBumps(lv.bumps.filter((b) => b.reach2 == null)); lv._bumpGridOf = null;
@@ -547,7 +547,7 @@ export function stepHighway(lv, car) {
   const st = stateOf(lv), q = locate(st, car.x, car.y), P = st.pts;
   st.q = q;
   st.driven = Math.max(st.driven, q.s - SPAWN_S); st.best = Math.max(st.best, q.s);
-  // the CAMERA's lead direction (render.js follow): the chord over the next ~60 m of road, so it leans INTO a bend before you reach it
+  // the CAMERA's lead direction (render.ts follow): the chord over the next ~60 m of road, so it leans INTO a bend before you reach it
   { const a = P[q.i], b = P[Math.min(P.length - 2, q.i + 15)], L = Math.hypot(b.x - a.x, b.y - a.y);
     if (L > 1) st.camDir = { x: (b.x - a.x) / L, y: (b.y - a.y) / L }; }
   if (P[P.length - 1].s - q.s > AHEAD) return 0;

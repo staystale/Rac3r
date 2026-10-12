@@ -1,9 +1,9 @@
-// the OBJECTS layer of render.js (phase 4 of the render.js split): pixel objects (cones, tyres),
+// the OBJECTS layer of render.ts (phase 4 of the render.js split): pixel objects (cones, tyres),
 // tape and debris. Moved verbatim.
 import { parkMiller } from "../core/random.ts";
 import { SPRITE_PPM } from "./shared.ts";
 import type { Cam, Chip, RenderCone, TapeGame, View } from "./types.ts";
-import { shade } from "../render.js";   // read only at draw time (no load-time cycle)
+import { shade } from "../render.ts";   // read only at draw time (no load-time cycle)
 
 // what createObjects destructures from the renderer and the particles
 interface ObjectsHelpers {

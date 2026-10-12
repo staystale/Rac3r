@@ -1,4 +1,4 @@
-// The CARS layer of render.js (phase 4 split): drawPixelCar and the garage lift sprite.
+// The CARS layer of render.ts (phase 4 split): drawPixelCar and the garage lift sprite.
 import { SPRITE_PPM } from "./shared.ts";
 import type {
   Cam, CarSprite, RenderCar, RenderCarSpec, RollFace, SideSprite, SilCanvas, View,

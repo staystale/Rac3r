@@ -40,7 +40,7 @@ export const RUNOFF_ROUGH = 0.004;   // m of surface noise — a constant shake,
                                      // hammer, and the grip penalty is what actually punishes you here.
 export let FENCE = FLOOR + RUNOFF_W;   // the actual barrier (follows FLOOR)
 // THE FLOOR RECTANGLE (S-B, 2026-10-06; user: the lab "about 1 km tall and rectangular, extended downwards"): where the floor edge is on
-// each side - the kerb, run-off and fence follow it (groundAt, fenceClamp, render.js drawRunoff / drawKerb / drawFence, cones.js).
+// each side - the kerb, run-off and fence follow it (groundAt, fenceClamp, render.ts drawRunoff / drawKerb / drawFence, cones.js).
 // LEVEL.bounds { x0, x1, y0, y1 }; without it the square +-FLOOR (every other level, unchanged). FENCE stays FLOOR + RUNOFF_W.
 export let FX0 = -FLOOR, FX1 = FLOOR, FY0 = -FLOOR, FY1 = FLOOR;
 // metres PAST the floor edge at a point (negative inside): the square's max(|x|, |y|) - FLOOR, for any rectangle

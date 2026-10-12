@@ -10,7 +10,7 @@
 // LANDING can start one too. ROLLING: the rate decays at every quarter turn the body hits the ground (side, roof, side, wheels), each
 // costing speed and doing side / roof damage (damage.js crushS / roofDmg) with paint chips; under SETTLE_W it settles onto the nearest
 // of wheels / side / roof. SLIDES: no tyres — the body grinds to a stop on its own friction for that ground (sparks on hard ground).
-// Sim time (rule 5): it moves the car; render.js draws it (faces, sparks), main.js hands control back on RESET (player) or resets the AI.
+// Sim time (rule 5): it moves the car; render.ts draws it (faces, sparks), main.js hands control back on RESET (player) or resets the AI.
 export const ROLL_H = 1.4;                    // m: body height (the side face the camera sees on a rolled car)
 const SSF_REF = 1.44;                         // the hatch: 1.5 / (2 x 0.52)
 const SETTLE_W = 2.4;                         // rad/s: slower than this, it falls onto the nearest face

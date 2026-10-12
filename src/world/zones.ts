@@ -11,7 +11,7 @@ import { querySubtrack } from "./tyrewall.ts";
 // is what lets a second level lay its surfaces out completely differently for free.
 //
 // `boxed` only affects DRAWING — a rim and a painted name, for a test panel you are meant to aim at.
-export const PAD_APRON = 1.2;   // m of tarmac round a rounded test pad (drawn by render.js drawZones)
+export const PAD_APRON = 1.2;   // m of tarmac round a rounded test pad (drawn by render.ts drawZones)
 // |dx|, |dy| from the centre inside a rectangle of half-size hw x hh with corner radius R
 function inRoundRect(dx: number, dy: number, hw: number, hh: number, R: number): boolean {
   if (dx > hw || dy > hh) return false;
@@ -19,7 +19,7 @@ function inRoundRect(dx: number, dy: number, hw: number, hh: number, R: number):
   return ix <= 0 || iy <= 0 || ix * ix + iy * iy <= R * R;
 }
 // LANES (2026-10-04, Thruston pit lane): LEVEL.lanes [{ pts: [[x,y]...] open polyline, width, surface }] — a ribbon of one surface
-// along a path, for pit lanes and access roads. Drawn by render.js drawLanes from the same pts and width.
+// along a path, for pit lanes and access roads. Drawn by render.ts drawLanes from the same pts and width.
 export function laneAt(x: number, y: number): Surface | null {
   const list = LEVEL.lanes;
   if (!list) return null;
@@ -73,7 +73,7 @@ export function zoneAt(x: number, y: number): Surface {
   for (let i = 0; i < z.length; i++) {
     const q = z[i];
     if (q.rounded) {
-      // ROUNDED PADS, exactly as render.js drawZones draws them: corner radius min(5, 0.15 w) and a PAD_APRON of tarmac
+      // ROUNDED PADS, exactly as render.ts drawZones draws them: corner radius min(5, 0.15 w) and a PAD_APRON of tarmac
       // round the outside. MEASURED BUG, 2026-10-03 (tools/visualcheck.mjs): physics was the plain rectangle, so the
       // drawn tarmac apron drove as grass and the rounded-off corners drove as the pad's surface.
       const dx = Math.abs(x - q.x), dy = Math.abs(y - q.y), R = Math.min(5, q.w * 0.15);

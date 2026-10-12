@@ -1,5 +1,5 @@
 // The clean PIXEL CAR sprite (render.js split, phase 4): one cached sprite per livery.
-import { shade } from "../render.js";   // hoisted, only called at draw time (no cycle)
+import { shade } from "../render.ts";   // hoisted, only called at draw time (no cycle)
 import { SPRITE_PPM } from "./shared.ts";
 import type { CarSprite, RenderCarSpec } from "./types.ts";
 

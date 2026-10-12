@@ -1,7 +1,7 @@
 // renamevar.mjs — scope-aware "variable -> object property" rename inside ONE function of ONE file.
 //
 // Usage:  node tools/renamevar.mjs <file> <function-name> <obj> <name...>
-//   e.g.  node tools/renamevar.mjs src/render.js createRenderer view ctx W H dpr PPM zoom noPatterns
+//   e.g.  node tools/renamevar.mjs src/render.ts createRenderer view ctx W H dpr PPM zoom noPatterns
 //
 // Inside the function declaration called <function-name>, every reference to one of <name...> that
 // resolves to that function's own body-level binding becomes <obj>.<name>. Assignments, compound

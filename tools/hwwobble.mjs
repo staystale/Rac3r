@@ -49,7 +49,7 @@ console.log(`  CAMERA jerk px: median ${pct(camJ, 0.5).toFixed(2)} p95 ${pct(cam
 console.log(`  SKIPS (> 3 px): ${skips.SLOW + skips.AFTER + skips.CAM} = slow frame ${skips.SLOW}, frame after a slow one ${skips.AFTER}, CAMERA with normal frames ${skips.CAM}`);
 console.log(`  CAR on screen moves px/frame: median ${pct(carW, 0.5).toFixed(2)} p95 ${pct(carW, 0.95).toFixed(2)} max ${Math.max(...carW).toFixed(1)}`);
 console.log(`  ZOOM moves the screen edge px/frame: median ${pct(zEdge, 0.5).toFixed(2)} p95 ${pct(zEdge, 0.95).toFixed(2)} max ${Math.max(...zEdge).toFixed(1)} | frames > 2 px: ${zEdge.filter((x) => x > 2).length}`);
-// the DRAWN zoom (art px per tile, render.js drawnN): every change rescales the whole picture by 1/N at once; a change straight back
+// the DRAWN zoom (art px per tile, render.ts drawnN): every change rescales the whole picture by 1/N at once; a change straight back
 // (N, N+1, N) within 10 frames = the zoom flickering on a rounding boundary
 { let ch = 0, back = 0; const at = [];
   for (let i = 1; i < R.length; i++) if (R[i].N !== R[i - 1].N) { ch++; at.push(i); }

@@ -1,6 +1,6 @@
 // Car DAMAGE (render.js split, phase 4): dented sprites, shadow silhouette, rolled-car faces.
 import { hash2d } from "../core/random.ts";
-import { shade } from "../render.js";   // hoisted, only called at draw time (no cycle)
+import { shade } from "../render.ts";   // hoisted, only called at draw time (no cycle)
 import { SPRITE_PPM } from "./shared.ts";
 import type {
   CarSprite, RenderCar, RenderCarSpec, RollFace, SideSprite, SilCanvas, View,

@@ -10,7 +10,7 @@
 // Reports, per level, the mismatched AREA by "drawn as -> drives as", with one example point for each, so a fix can
 // go straight to the spot. Gate: MAX_BAD_PCT. Found and fixed with it on 2026-10-03: kerbs drawn on the OPPOSITE side of
 // the track from the physics kerbs (lab.js querySubtrack side), rounded pads with no physics apron/corners (zoneAt),
-// sector changes drawn up to ~3 m late (render.js sectorCut).
+// sector changes drawn up to ~3 m late (render.ts sectorCut).
 import { startServer, launchBrowser } from './lib/browser.mjs';
 import { mkdirSync } from 'node:fs';
 

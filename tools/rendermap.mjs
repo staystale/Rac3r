@@ -1,5 +1,5 @@
-// node tools/rendermap.mjs src/render.js --out tools/survey-phase4.md
-// Survey of src/render.js, to plan splitting it: the module-level items, the items inside the one big
+// node tools/rendermap.mjs src/render.ts --out tools/survey-phase4.md
+// Survey of src/render.ts, to plan splitting it: the module-level items, the items inside the one big
 // closure createRenderer(canvas), which inner function reads or writes which shared closure variable,
 // the inner call graph and a proposed split into layers. Report only; writes nothing but --out.
 // Limits: references are found by name and scope (names declared by enclosing functions/blocks), good
@@ -16,7 +16,7 @@ const args = process.argv.slice(2);
 const oi = args.indexOf('--out');
 const outFile = oi >= 0 ? args[oi + 1] : null;
 const pick = (a, i) => !a.startsWith('--') && i !== oi + 1;
-const target = resolve(args.find(pick) || 'src/render.js');
+const target = resolve(args.find(pick) || 'src/render.ts');
 const OPTS = { ecmaVersion: 'latest', sourceType: 'module', locations: true };
 const MUT = new Set(['set', 'push', 'pop', 'shift', 'unshift', 'splice', 'clear', 'delete', 'add',
   'sort', 'reverse', 'fill', 'copyWithin']);
@@ -377,7 +377,7 @@ P();
 table(['key', 'form', 'lines', 'called from (src, `renderer.key`)'],
   retKeys.map((k) => [k.key, k.how, rng(k.start, k.end), list(usersOfKey(k.key))]));
 P('Other exports of the file: ' + modItems.filter((m) => m.exported).map((m) => m.label).join(', ')
-  + '. Importers of render.js: ' + list(srcFiles.map(relp).filter((f) => /from ['"].*render\.js['"]/.test(fileText.get(f)))) + '.');
+  + '. Importers of render.ts: ' + list(srcFiles.map(relp).filter((f) => /from ['"].*render\.js['"]/.test(fileText.get(f)))) + '.');
 P();
 P('## 2. Module-level items outside createRenderer');
 P();

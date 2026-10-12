@@ -1,10 +1,10 @@
-// the CAMERA of render.js (phase 4 of the render.js split): follow, speed zoom, the level
+// the CAMERA of render.ts (phase 4 of the render.js split): follow, speed zoom, the level
 // fly-in and the overview picture. Moved verbatim.
 import { FX0, FX1, FY0, FY1 } from "../world/bounds.ts";
 import { LEVEL } from "../world/state.ts";
 // LOOKAHEAD, ZOOM_MIN: read only inside functions (draw time), so the import cycle is harmless
-import { LOOKAHEAD, ZOOM_MIN } from "../render.js";
-import type { Cam, CamCar, CamState, View } from "./types.ts";
+import { LOOKAHEAD, ZOOM_MIN } from "../render.ts";
+import type { Cam, CamCar, CamState, TileBudget, View } from "./types.ts";
 
 // what createCamera destructures from the renderer
 interface CameraHelpers {
@@ -17,6 +17,7 @@ interface CameraHelpers {
   drawCovers: () => void;
   drawCurvedKerbs: () => void;
   paletteSnap: (c: HTMLCanvasElement) => void;
+  prefetch: (k: number, cx: number, cy: number, z: number, budget: TileBudget) => void;
 }
 
 export function createCamera(view: View, cam: Cam, helpers: CameraHelpers) {

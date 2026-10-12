@@ -1,6 +1,6 @@
 // tilediff.mjs — do two builds paint the SAME ground tiles? Paints tiles round the spawn of a level at a few zoom steps in build A
 // (http://localhost:8080/) and build B (default /shots/next/, a copy of index.html + src/), then compares pixel by pixel.
-// Both builds need render.js debugTile(). Built 2026-10-06 for the tile-painting speed-up (render.js paintTileInner / hillShade).
+// Both builds need render.ts debugTile(). Built 2026-10-06 for the tile-painting speed-up (render.ts paintTileInner / hillShade).
 // node tools/tilediff.mjs [level highway] [B path /shots/next/]
 import { chromium } from 'file:///C:/Users/Admin/Desktop/G/GamesStudio/BitterTrade/node_modules/playwright/index.mjs';
 const LV = process.argv[2] || 'highway', BP = process.argv[3] || '/shots/next/index.html', AQ = process.argv[4] || '';

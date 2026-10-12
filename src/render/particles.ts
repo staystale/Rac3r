@@ -1,4 +1,4 @@
-// the PARTICLES layer of render.js (phase 4 of the render.js split): thrown material -
+// the PARTICLES layer of render.ts (phase 4 of the render.js split): thrown material -
 // puffs, spray, smoke, paint chips and sparks. Moved verbatim from createRenderer.
 import { SPRITE_PPM } from "./shared.ts";
 import type { Spray } from "../world/types.ts";

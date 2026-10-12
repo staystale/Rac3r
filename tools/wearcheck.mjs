@@ -8,7 +8,7 @@
 //    wears by its own rules (lab ice sheet over grass -> grass -> dirt -> mud). Driven with the real
 //    vehicle model over the real lab, not by calling the rules directly.
 // 4. a puddle scales what it sits on (puddle-on-grass is LESS grippy than grass, not wet-tarmac grippy)
-// 5. COVERAGE (CLAUDE.md rule 18): every surface in SURFACES has graphics in render.js SURFACE_ART
+// 5. COVERAGE (CLAUDE.md rule 18): every surface in SURFACES has graphics in render.ts SURFACE_ART
 import { readFileSync } from 'node:fs';
 import { makeCar, step, reset, DT } from '../src/vehicle.js';
 import { setAidsDefault } from '../src/vehicle.js';
@@ -132,7 +132,7 @@ console.log(`4c. lab wet panel (damp tarmac): dry line after ${dCold.n} cold pas
 check(dCold.n >= 12 && dCold.n <= 25 && dHot.n <= 4, 'damp tarmac dries in ~12-25 cold passes, a few hot ones');
 
 // ---- 5. coverage: every surface has art
-const src = readFileSync(new URL('../src/render.js', import.meta.url), 'utf8');
+const src = readFileSync(new URL('../src/render.ts', import.meta.url), 'utf8');
 const art = src.slice(src.indexOf('const SURFACE_ART = {'), src.indexOf('function paintLayers'));
 const missing = Object.keys(L.SURFACES).filter((id) => id !== 'lab' && id !== 'kerb' && !new RegExp(`\\b${id}: \\{`).test(art));
 console.log('5. surfaces without graphics:', missing.length ? missing.join(', ') : 'none');

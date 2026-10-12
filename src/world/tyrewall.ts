@@ -52,7 +52,7 @@ export function outerTyreWall(
 }
 
 // The clearance a prop needs from the wall, from its kind. Half-extents in metres, padded ~0.6 m beyond
-// what render.js draws (a stack is 0.48 m in radius). Kinds not listed sit in the infield, away from it.
+// what render.ts draws (a stack is 0.48 m in radius). Kinds not listed sit in the infield, away from it.
 export function propClearance(props: Prop[]): ClearBox[] {
   const size: Record<string, Point> = {
     pylon: [1.6, 1.6], board: [9.6, 1.7], official_box: [2.8, 2.4],
@@ -105,7 +105,7 @@ export function querySubtrack(subtrack: Subtrack, px: number, py: number): Subtr
     if (d < minD) {
       minD = d;
       const cross = s.dx * (py - s.ay) - s.dy * (px - s.ax);
-      // 'left' = the +normal side (nx = -dy, ny = dx), the SAME convention render.js drawCurvedKerbs uses. MEASURED BUG,
+      // 'left' = the +normal side (nx = -dy, ny = dx), the SAME convention render.ts drawCurvedKerbs uses. MEASURED BUG,
       // 2026-10-03 (tools/visualcheck.mjs): this said 'right', so every kerb you drove on was on the OPPOSITE side of the
       // track from the kerb you could see — invisible bumps on plain grass, and painted kerbs that were just grass.
       bestSide = cross > 0 ? 'left' : 'right';

@@ -19,7 +19,7 @@ for (const preset of Object.keys(H.HW_PRESETS)) {
     const offN = pt ? (o.x - pt.x) * pt.nx + (o.y - pt.y) * pt.ny : 0;
     if (o.kind === 'chevron') { chev++;
       // GEOMETRY, not the curv field: the real heading change over +-30 m; the board must sit on the side AWAY from the turn and its
-      // arrows (+x after rot, as render.js draws them) must point INTO the turn
+      // arrows (+x after rot, as render.ts draws them) must point INTO the turn
       const hp = lv._hw.pts, j = hp.findIndex((p) => p.s >= o._s), a = hp[Math.max(0, j - 6)], m = hp[j], b = hp[Math.min(hp.length - 1, j + 6)];
       const h1 = Math.atan2(m.y - a.y, m.x - a.x), h2 = Math.atan2(b.y - m.y, b.x - m.x), turn = Math.sign(Math.atan2(Math.sin(h2 - h1), Math.cos(h2 - h1)));
       const inX = -Math.sin(h1) * turn, inY = Math.cos(h1) * turn;   // unit vector towards the inside of the bend

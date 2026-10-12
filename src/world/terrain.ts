@@ -292,7 +292,7 @@ export function slopeAt(x: number, y: number): Slope {
   return { gx, gy };
 }
 export function heightAt(x: number, y: number): number { return bumpAt(x, y, true); }
-// What the GROUND LOOKS like (render.js hill-shading): the FULL height — washboard ripples and kerb humps included, so
+// What the GROUND LOOKS like (render.ts hill-shading): the FULL height — washboard ripples and kerb humps included, so
 // you can see them — but never the per-surface roughness noise, which would speckle every tile.
 export function visualHeightAt(x: number, y: number): number { return bumpAt(x, y); }
 export function visualSlopeAt(x: number, y: number): Slope {

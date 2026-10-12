@@ -1,4 +1,4 @@
-// the GROUND PAINTER of render.js (phase 4 of the render.js split): floor, surface art and
+// the GROUND PAINTER of render.ts (phase 4 of the render.js split): floor, surface art and
 // patterns, zones, covers, wear, bumps and the runoff ring. Moved verbatim.
 import { FLOOR, FX0, FX1, FY0, FY1, GRID, RUNOFF_W } from "../world/bounds.ts";
 import { ZONES, BUMPS, LEVEL } from "../world/state.ts";

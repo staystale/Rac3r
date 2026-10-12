@@ -1,4 +1,4 @@
-// the ROAD layer of render.js (phase 4 of the render.js split): lanes, track ribbon, lane dashes,
+// the ROAD layer of render.ts (phase 4 of the render.js split): lanes, track ribbon, lane dashes,
 // curved kerbs, paint, the floor-edge kerb, slip roads and marks. Moved verbatim.
 import { FX0, FX1, FY0, FY1, KERB_W } from "../world/bounds.ts";
 import { PAINT, BOARDS, LEVEL } from "../world/state.ts";

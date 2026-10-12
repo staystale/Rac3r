@@ -146,7 +146,7 @@ export const classOf = (id) => CLASSES.find((k) => k.id === id);
 
 // PAINT + NUMBER (user, 2026-10-04: "palette + number + preview"): 16 colours for body and trim; a race number 1-99 (0 = none). A livery
 // is { paint, trim, num } per car id in the menu profile; applyLivery puts it on a car's spec (missing fields = the roster's own), so it
-// follows the car into every event and render.js caches a sprite per livery.
+// follows the car into every event and render.ts caches a sprite per livery.
 export const PALETTE = ['#f0f0ea', '#a9aeb6', '#5a5f69', '#16181d', '#c8342a', '#7a1d22', '#e0603a', '#f2a900',
   '#9bc53d', '#2e7d32', '#1f4d2e', '#3fb6c9', '#2f6fd0', '#1d3f9a', '#8a4fc0', '#e86fa8'];
 // TYRES (user, 2026-10-04: "the first upgrade — manufacturers, ranges per class; only fit what fits; rally / off-road tyres on a road car

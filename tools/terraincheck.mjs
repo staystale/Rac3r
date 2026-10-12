@@ -1,5 +1,5 @@
 // terraincheck.mjs — STEP 3 TERRAIN (2026-10-03). Height is real: the suspension feels it, gravity on its slope pushes the
-// car (user: "vector dips ... push in all 8 directions, OUT of bumps and IN to dips"), and render.js shades it.
+// car (user: "vector dips ... push in all 8 directions, OUT of bumps and IN to dips"), and render.ts shades it.
 // Checks the PUSH directions, the suspension zone in the Lab, the Naffcar banking, and the cost.
 import { makeCar, step, reset, DT } from '../src/vehicle.js';
 import * as L from '../src/lab.js';

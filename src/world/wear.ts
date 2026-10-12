@@ -46,7 +46,7 @@ import type {
 export const WEAR_CELL = 1.5;
 export const wearMap = new Map<string, WearCell>();
 // Cells whose surface CHANGED since the renderer last looked. The renderer bakes wear into its cached
-// ground tiles and uses this to know which tiles to repaint (render.js drawGround). Drained by it.
+// ground tiles and uses this to know which tiles to repaint (render.ts drawGround). Drained by it.
 export const wearDirty: WearCell[] = [];
 const BASE_WEAR: Record<string, [string, number]> = {             // base -> [what it becomes, passes it takes]. Cumulative from long grass: 2, 4, 6, 9.
   grassLong: ['grassShort', 2],
@@ -154,13 +154,13 @@ export function layersAt(x: number, y: number): Layers {
 // share of tyre-slip heat that reaches the TYRE on loose ground (vehicle.js TYRE_HEAT). User: "off-road surfaces
 // shouldn't get them up much". MEASURED: gravel drift 260 C in 14 s before -> 25 C at 30 s at 0.15.
 export const HEAT_OFFROAD = 0.15;
-export const COVER_SQ = 0.5;   // m, the cover grid (render.js coverCells uses the same 0.5)
+export const COVER_SQ = 0.5;   // m, the cover grid (render.ts coverCells uses the same 0.5)
 export function coverAt(x: number, y: number): CoverId | null {
   const list = LEVEL.covers;
   if (!list) return null;
   for (let i = 0; i < list.length; i++) {
     const c = list[i];
-    // the SAME 0.5 m world-grid squares render.js coverCells draws (user rule: visuals accurate to their effects):
+    // the SAME 0.5 m world-grid squares render.ts coverCells draws (user rule: visuals accurate to their effects):
     // the point is tested at the centre of its square, so a cover's grip edge is exactly its drawn stepped edge
     let dx = Math.floor(x / COVER_SQ) * COVER_SQ + COVER_SQ / 2 - c.x, dy = Math.floor(y / COVER_SQ) * COVER_SQ + COVER_SQ / 2 - c.y;
     // CHEAP REJECT before any trig (2026-10-04, profiled: Sweaty Lamb's 40-puddle stream made coverAt 3.4 % of a lap); rotation cached
@@ -176,7 +176,7 @@ export function coverAt(x: number, y: number): CoverId | null {
   return null;
 }
 // a cover's CUT-OUT (highway.js river: no water where the motorway crosses on its parapets): in the frame of (cut.ox, cut.oy) along
-// c.rot, the band |u - v tan| < e is dry. Tested at the 0.5 m square's centre, like the cover itself (render.js coverCells agrees).
+// c.rot, the band |u - v tan| < e is dry. Tested at the 0.5 m square's centre, like the cover itself (render.ts coverCells agrees).
 export function coverCut(c: Cover, x: number, y: number): boolean {
   const k = c.cut!, co = Math.cos(c.rot || 0), si = Math.sin(c.rot || 0);
   const ex = Math.floor(x / COVER_SQ) * COVER_SQ + COVER_SQ / 2 - k.ox, ey = Math.floor(y / COVER_SQ) * COVER_SQ + COVER_SQ / 2 - k.oy;

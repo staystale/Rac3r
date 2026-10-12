@@ -57,7 +57,7 @@ export const MARK_WET: Mark = { rgb: '196,199,208', widen: 1.6, alpha: 0.16 };
 
 // SPRAY — what a wheel THROWS UP off a loose surface (user, 2026-09-28: "floor with a loose surface like
 // snow mud sand or grass should particle emit and small and kick up dust / dirt / grass / snow").
-// Read by render.js, which never learns what any of these are; a surface without one throws nothing.
+// Read by render.ts, which never learns what any of these are; a surface without one throws nothing.
 //   rgb    colour of the thrown material
 //   size   metres, roughly the radius of one clod
 //   rate   particles per second per wheel at full chat — what makes dust billow and clods scatter
@@ -100,7 +100,7 @@ export const SPRAY_WET:    Spray = { rgb: '232,238,248', size: 0.15, rate: 54, l
 // longK  — longitudinal grip relative to lateral. Above 1 means a driven wheel finds more bite than a
 //          cornering one (loose stones pack, snow compacts); below 1 means it just spins (mud, sand).
 //          This is why gravel rewards power and mud swallows it.
-// spray  — what the wheels throw up. Read by render.js, which knows nothing about any of these.
+// spray  — what the wheels throw up. Read by render.ts, which knows nothing about any of these.
 export const SURFACES: Record<SurfaceId, Surface> = {
   // THE LAB FLOOR — the reference. Sealed, polished, dead flat. Every bench number in tools/ was
   // measured on this, so its numbers are 1.0 by definition and must stay that way.

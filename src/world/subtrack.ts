@@ -190,7 +190,7 @@ export function createSubtrack(
 // GHOST SEGMENT (point-to-point stages, user 2026-10-04: "rally stages are circular often — they should mostly be a LINE"). The engine's
 // roads are closed loops (distances wrap at the start line); a point-to-point stage keeps that arithmetic by closing its loop with ONE
 // invisible segment from the stop-zone end back to the run-up before the start. A ghost segment is not road: it is out of the lookup grid
-// (querySubtrack never returns it, so physics / ground / resets / AI-progress never see it) and render.js does not draw it.
+// (querySubtrack never returns it, so physics / ground / resets / AI-progress never see it) and render.ts does not draw it.
 export function ghostSegment(sub: Subtrack, i: number): Subtrack {
   sub.segs[i].ghost = true;
   for (const l of sub.grid.values()) { const k = l.indexOf(i); if (k >= 0) l.splice(k, 1); }
