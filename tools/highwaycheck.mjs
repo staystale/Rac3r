@@ -3,8 +3,10 @@
 // node tools/highwaycheck.mjs [km] [car]
 import { makeCar, step, reset, DT } from '../src/vehicle.js';
 import * as L from '../src/lab.js';
-import { stepHighway } from '../src/highway.js';
+import { stepHighway, addHighwayLevel } from '../src/highway.js';
 import { createAutoDriver } from '../src/autodrive.js';
+// the levels importing these modules used to add (task 078 made it explicit)
+addHighwayLevel();
 const KM = +(process.argv[2] || 10), carId = process.argv[3] || 'saloon-rwd';
 L.setLevel('highway'); const lv = L.LEVEL;
 const car = makeCar(carId); reset(car, lv.spawn.x, lv.spawn.y, lv.spawn.heading);

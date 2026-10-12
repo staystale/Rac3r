@@ -6,6 +6,8 @@ import * as L from '../src/lab.js';
 import * as H from '../src/highway.js';
 import { aiTraits, createAIDriver } from '../src/aidriver.js';
 import { hwFrames } from '../src/hwrace.js';
+// the levels importing these modules used to add (task 078 made it explicit)
+H.addHighwayLevel();
 let fails = 0;
 for (const [name, side, ang] of [['left verge, nose out 70 deg', -1, 70], ['right edge, nose out 80 deg', 1, 80], ['left verge, nose out 110 deg', -1, 110]]) {
   const lv = H.createHighway(4242, 'motorway'); lv.id = 'do' + name.length + side; if (!L.LEVELS.includes(lv)) L.LEVELS.push(lv); L.setLevel(lv.id);

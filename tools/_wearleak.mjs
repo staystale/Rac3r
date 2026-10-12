@@ -4,6 +4,8 @@
 // show / drive as the old dirt. Also the wear map's size (memory). node tools/_wearleak.mjs [srcDir] [preset]
 const SRC = process.argv[2] || '../src', PRESET = process.argv[3] || 'motorway';
 const L = await import(SRC + '/lab.js'), H = await import(SRC + '/highway.js'), V = await import(SRC + '/vehicle.js');
+// the levels importing these modules used to add (task 078 made it explicit)
+H.addHighwayLevel();
 let worst = 0, onRoad = 0, maxCells = 0, eg = '';
 for (const seed of [4242, 77, 1234]) {
   const lv = H.createHighway(seed, PRESET); lv.id = `wl-${seed}`; L.LEVELS.push(lv); L.setLevel(lv.id); L.clearWear();

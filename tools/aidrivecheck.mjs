@@ -3,8 +3,10 @@
 // "mobile" slower and messier. node tools/aidrivecheck.mjs [levels,comma] [cars,comma] [diffs,comma e.g. 0,4]
 import { makeCar, step, reset, DT } from '../src/vehicle.js';
 import * as L from '../src/lab.js';
-import '../src/stagegen.js';   // registers the generated + set rally stages in LEVELS
+import { addStageLevels } from '../src/stagegen.js';   // registers the generated + set rally stages in LEVELS
 import { createAutoDriver } from '../src/autodrive.js';
+// the levels importing these modules used to add (task 078 made it explicit)
+addStageLevels();
 const { createAIDriver, aiTraits, DIFFICULTIES, racingLine } = await import(process.env.AINEXT ? '../src/aidriver.next.js' : '../src/aidriver.js');
 const levels = (process.argv[2] || 'thruston,castle-cum,brands-snatch,knobhill,slidden-hill,test-track,naffcar').split(',');
 const cars = (process.argv[3] || 'hatch-rwd,rally-4x4,track-rwd').split(',');

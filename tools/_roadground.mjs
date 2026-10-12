@@ -3,6 +3,8 @@
 // the window (behind the car / ahead) - plus the wear-making rule: a cell is only created where cleanAt can wear. node tools/_roadground.mjs [preset]
 const PRESET = process.argv[2] || 'motorway';
 const L = await import('../src/lab.js'), H = await import('../src/highway.js'), V = await import('../src/vehicle.js');
+// the levels importing these modules used to add (task 078 made it explicit)
+H.addHighwayLevel();
 let total = 0, bad = 0; const by = {}, eg = [];
 for (const seed of [4242, 77, 1234]) {
   const lv = H.createHighway(seed, PRESET); lv.id = `rg-${seed}`; L.LEVELS.push(lv); L.setLevel(lv.id);

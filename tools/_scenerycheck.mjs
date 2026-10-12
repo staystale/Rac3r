@@ -4,6 +4,8 @@
 // ON the motorway is still tarmac (a field never covers the road). node tools/_scenerycheck.mjs [srcDir]
 const SRC = process.argv[2] || '../src';
 const L = await import(SRC + '/lab.js'), H = await import(SRC + '/highway.js'), V = await import(SRC + '/vehicle.js');
+// the levels importing these modules used to add (task 078 made it explicit)
+H.addHighwayLevel();
 let bad = 0; const fail = (m) => { bad++; console.log('FAIL ' + m); };
 for (const preset of ['motorway', 'interstate', 'dual', 'walled']) for (const seed of [4242, 77, 1234]) {
   const lv = H.createHighway(seed, preset); lv.id = `scn-${preset}-${seed}`; L.LEVELS.push(lv); L.setLevel(lv.id);

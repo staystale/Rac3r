@@ -3,6 +3,8 @@
 // node tools/_guardtest.mjs [srcDir]
 const SRC = process.argv[2] || '../src';
 const L = await import(SRC + '/lab.js'), H = await import(SRC + '/highway.js'), V = await import(SRC + '/vehicle.js');
+// the levels importing these modules used to add (task 078 made it explicit)
+H.addHighwayLevel();
 let bad = 0; const ok = (c, m) => { console.log((c ? 'ok   ' : 'FAIL ') + m); if (!c) bad++; };
 for (const seed of [4242, 77, 1234, 9001]) for (const want of ['side', 'slip']) {
   // a FRESH level per check, driven (teleported) up the left lane until the feature is 40-300 m ahead, then tested straight away

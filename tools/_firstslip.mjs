@@ -2,6 +2,8 @@
 // preset x 10 seeds (km from the start). node tools/_firstslip.mjs [srcDir]
 const SRC = process.argv[2] || '../src';
 const L = await import(SRC + '/lab.js'), H = await import(SRC + '/highway.js'), V = await import(SRC + '/vehicle.js');
+// the levels importing these modules used to add (task 078 made it explicit)
+H.addHighwayLevel();
 for (const preset of ['motorway', 'interstate', 'dual', 'walled']) {
   const out = [];
   for (let seed = 1; seed <= 10; seed++) {

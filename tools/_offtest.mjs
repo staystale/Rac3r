@@ -3,6 +3,8 @@
 import { makeCar, reset } from '../src/vehicle.js';
 import * as L from '../src/lab.js';
 import * as H from '../src/highway.js';
+// the levels importing these modules used to add (task 078 made it explicit)
+H.addHighwayLevel();
 const DT = 1 / 120;
 let bad = 0;
 function run(name, outAt, T = 25) {

@@ -8,6 +8,8 @@ import * as L from '../src/lab.js';
 import * as H from '../src/highway.js';
 import { aiTraits, createAIDriver } from '../src/aidriver.js';
 import { hwFrames } from '../src/hwrace.js';
+// the levels importing these modules used to add (task 078 made it explicit)
+H.addHighwayLevel();
 const DIFF = +(process.argv[2] ?? 2);
 const PAT = {
   single: [[0, 1]], wall: [[0, 0], [0, 1]], wallR: [[0, 1], [0, 2]], slalom: [[0, 1], [40, 0], [80, 2], [120, 1]], pairs: [[0, 0], [0, 1], [50, 1], [50, 2], [100, 0], [100, 1]],

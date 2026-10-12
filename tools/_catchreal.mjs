@@ -3,6 +3,8 @@
 // countdown every second and how often it resets / holds, and whether it ends. node tools/_catchreal.mjs [srcDir] [cruise km/h] [seed] [view]
 const SRC = process.argv[2] || '../src', CRUISE = +(process.argv[3] || 100) / 3.6, SEED = +(process.argv[4] || 4242), VIEW = +(process.argv[5] || 75);
 const { makeCar, step, reset, DT } = await import(SRC + '/vehicle.js'), L = await import(SRC + '/lab.js'), H = await import(SRC + '/highway.js');
+// the levels importing these modules used to add (task 078 made it explicit)
+H.addHighwayLevel();
 const { createTraffic } = await import(SRC + '/traffic.js'), { aiTraits, createAIDriver } = await import(SRC + '/aidriver.js');
 const { createHwFlow, hwFrames, hwGrid, hwGridSpan, HW_GREEN } = await import(SRC + '/hwrace.js');
 let r = 777; const rnd = () => ((r = (Math.imul(r, 1664525) + 1013904223) >>> 0) / 4294967296);

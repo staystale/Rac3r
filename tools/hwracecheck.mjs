@@ -11,6 +11,8 @@ import { carContacts, carContact } from '../src/contact.js';
 import { hit, tooInjured } from '../src/damage.js';
 import { aiTraits, createAIDriver } from '../src/aidriver.js';
 import { createHwFlow, hwFrames, hwGrid, hwGridSpan, HW_GREEN } from '../src/hwrace.js';
+// the levels importing these modules used to add (task 078 made it explicit)
+H.addHighwayLevel();
 const [T = 90, DIFF = 2, DENS = 0.6, PRESET = 'motorway', SEED = 4242] = process.argv.slice(2).map((a, i) => (i < 3 || i === 4 ? +a : a));
 let fails = 0; const check = (ok, msg) => { console.log((ok ? 'ok   ' : 'FAIL ') + msg); if (!ok) fails++; };
 let r = 777 + SEED - 4242; const rnd = () => ((r = (Math.imul(r, 1664525) + 1013904223) >>> 0) / 4294967296);

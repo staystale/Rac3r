@@ -8,6 +8,8 @@ import * as L from '../src/lab.js';
 import * as H from '../src/highway.js';
 import { createTraffic } from '../src/traffic.js';
 import { carContact } from '../src/contact.js';
+// the levels importing these modules used to add (task 078 made it explicit)
+H.addHighwayLevel();
 const DENS = +(process.argv[2] || 1), PH = +(process.argv[3] || 60);
 let fails = 0; const check = (ok, msg) => { console.log((ok ? 'ok   ' : 'FAIL ') + msg); if (!ok) fails++; };
 // the VIEW, as main.js gives it: the treadmill camera puts you ~3/4 down the screen. Worst case = zoomed right out in portrait

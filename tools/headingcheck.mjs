@@ -4,6 +4,8 @@
 // node tools/headingcheck.mjs [km] [file]
 import * as L from '../src/lab.js';
 const KM = +(process.argv[2] || 30), H = await import(process.argv[3] || '../src/highway.js');
+// the levels importing these modules used to add (task 078 made it explicit)
+H.addHighwayLevel();
 const car = { x: 0, y: 0, vx: 0, vy: 0 };
 for (const preset of Object.keys(H.HW_PRESETS)) for (const seed of [4242, 7, 99, 12345]) {
   const lv = H.createHighway(seed, preset); let left = 0, right = 0, sum = 0, n = 0, run = 0, runMax = 0, side = 0, swaps = 0, absMax = 0, lastS = 0, prof = [];

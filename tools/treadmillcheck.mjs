@@ -7,6 +7,8 @@ import { createAutoDriver } from '../src/autodrive.js';
 import { createCones } from '../src/cones.js';
 const KM = +(process.argv[2] || 10), carId = process.argv[3] || 'saloon-rwd';
 const H = await import(process.argv[4] || '../src/highway.js');
+// the levels importing these modules used to add (task 078 made it explicit)
+H.addHighwayLevel();
 const deg = (r) => (r * 180 / Math.PI).toFixed(1);
 let fails = 0; const check = (ok, msg) => { console.log((ok ? 'ok   ' : 'FAIL ') + msg); if (!ok) fails++; };
 for (const preset of Object.keys(H.HW_PRESETS)) {

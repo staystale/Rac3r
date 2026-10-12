@@ -5,6 +5,8 @@ import * as L from '../src/lab.js';
 import * as H from '../src/highway.js';
 import { aiTraits, createAIDriver } from '../src/aidriver.js';
 import { hwFrames } from '../src/hwrace.js';
+// the levels importing these modules used to add (task 078 made it explicit)
+H.addHighwayLevel();
 const [DIFF = 2, T = 40, SEED = 4242] = process.argv.slice(2).map(Number);
 const lv = H.createHighway(SEED, 'motorway'); lv.id = 'fr'; L.LEVELS.push(lv); L.setLevel(lv.id);
 const c = makeCar('saloon-rwd'); c.absOn = c.tcsOn = true;

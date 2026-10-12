@@ -4,6 +4,8 @@
 import * as L from '../src/lab.js';
 import * as H from '../src/highway.js';
 import { createHwFlow, HW_CATCH, HW_COUNT } from '../src/hwrace.js';
+// the levels importing these modules used to add (task 078 made it explicit)
+H.addHighwayLevel();
 const lv = H.createHighway(4242, 'motorway'); lv.id = 'ft'; L.LEVELS.push(lv); L.setLevel(lv.id);
 const DT = 1 / 120, VIEW = 75;
 function run(name, gapAt, T = 40, other = null) {

@@ -2,6 +2,8 @@
 // = never caught; 90 mph = caught at every gantry, once each, fine 100 + 10 x 20 = $300; 200 mph = the x2 band. node tools/_camcheck.mjs [hwPath]
 const HP = process.argv[2] || '../src/highway.js';
 const L = await import('../src/lab.js'), H = await import(HP), V = await import('../src/vehicle.js');
+// the levels importing these modules used to add (task 078 made it explicit)
+H.addHighwayLevel();
 let bad = 0; const ok = (c, m) => { console.log((c ? 'ok   ' : 'FAIL ') + m); if (!c) bad++; };
 for (const mph of [65, 90, 200]) {
   const lv = H.createHighway(4242, 'motorway'); lv.id = 'cam' + mph; L.LEVELS.push(lv); L.setLevel(lv.id);
