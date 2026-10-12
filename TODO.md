@@ -43,30 +43,34 @@ Rules for the whole item:
 
 Phases:
 
-- [ ] **0. Baseline.** Before any change, record: lines per file, count of names of 2 characters or
+- [x] **0. Baseline.** Before any change, record: lines per file, count of names of 2 characters or
   fewer, count of lines over 100 characters, count of functions over 80 lines, median and 95th
   percentile frame time on `framecheck` and `profile` for 3 levels, and the output of the existing
   regression tools (`aifieldsuite`, `pacesuite`, `lapdriver` x 8 cars, `barriercheck`, `solidcheck`,
   `propcheck`, `weavecheck`, `uicheck`, `menucheck`). Store the numbers in `tools/baseline.md`.
   Done when the baseline is committed and rerunnable with one command (`node tools/runall.mjs`).
-- [ ] **1. Tooling.** Add `package.json` (scripts only, no runtime dependencies). Add ESLint with rules
+  DONE 2026-10-11: tools/baseline.md (tools/runall.mjs), recorded at 35a9c2c.
+- [x] **1. Tooling.** Add `package.json` (scripts only, no runtime dependencies). Add ESLint with rules
   for `id-length` (minimum 3, exceptions `x`, `y`, `z`, `i`, `j`), `no-undef` (catches hidden globals),
   `no-shadow`, `max-lines` (800), `max-lines-per-function` (80), `max-len` (100), `complexity`,
   `no-unused-vars`, and `no-restricted-globals`. Add Prettier. Add a git pre-commit check. Existing
   violations are recorded in a baseline file so that new violations fail the check and old ones are
   burned down. Done when `npm run lint` runs and fails on a new violation.
-- [ ] **2. Shared foundation.** Create `src/core/` with one `math.js` (clamp, lerp, hash, vector
+  DONE 2026-10-11: package.json (dev tools only), ESLint with a per-file baseline (tools/lint.mjs), TypeScript 6 + tsc, tools/verify.mjs, GitHub check 'verify' required on main.
+- [x] **2. Shared foundation.** Create `src/core/` with one `math.js` (clamp, lerp, hash, vector
   helpers, angle wrap), one `constants.js` for shared units and limits, and an explicit `GameContext`
   object (level, vehicle list, clock, settings) that is passed in. Find every repeated helper and
   repeated list with a search, replace them with imports, and delete the copies. Done when no helper
   is defined twice (checked by a script that lists duplicate function names) and no module reads a
   global it did not import.
-- [ ] **3. Split `lab.js`** into modules with single jobs: level data (one file per level, data only),
+  DONE 2026-10-11: src/core/random.ts and src/core/debug.ts replace the copies (tools/survey-phase2.md).
+- [x] **3. Split `lab.js`** into modules with single jobs: level data (one file per level, data only),
   track building (centreline, kerbs, barriers), surfaces and terrain, scenery placement, level
   registry. `lab.js` goes away or becomes a thin index. Imports are explicit and narrow. Level data
   stays data (CLAUDE.md section 5). Done when every level loads, `propcheck`, `barriercheck`,
   `solidcheck` and `lapdriver` give the same results as baseline (lap times within 0.05 s), and no
   file is over 800 lines.
+  DONE 2026-10-12: lab.js split into src/world/ (one file per job, one file per level under world/levels/), all TypeScript; game files import the world modules directly; lab.js stays as the tools' entry point until phase 8. Checked: the bundled game code is identical before and after every conversion.
 - [ ] **4. Split `render.js`** into one module per layer: camera, terrain, road and marks, cars,
   objects and props, particles, HUD overlays, debug overlay. Replace the single 3,800-line closure
   with small functions taking an explicit render state. Done when screenshots at 844x390 and 390x844
@@ -93,6 +97,7 @@ Phases:
   `tools/lib/paths.mjs`. Move one-off scripts (`_*.mjs`) to `tools/scratch/` or delete them. Give the
   remaining checks one runner (`node tools/runall.mjs`) with pass or fail output and exit codes.
   Done when a new clone can run the full suite with one command.
+  Started 2026-10-12: guidecheck and 19 browser check tools use tools/lib/browser.mjs (tasks 035-036); the _*.mjs and *shots tools still have the hardcoded path.
 - [ ] **9. Docs.** Trim `TODO.md` to open items only, and cut `ENGINE.md` to an architecture overview
   (module map, data flow, the physics step, the `mods` seam), with details left in code comments.
   Delete `HANDOVER.md` and fold the "where we are" section into `TODO.md`. Remove historical user

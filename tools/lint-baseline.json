@@ -242,7 +242,7 @@
     "@typescript-eslint/no-unused-vars": 1,
     "complexity": 2,
     "id-length": 82,
-    "max-len": 41
+    "max-len": 39
   },
   "src/world/surfaces.ts": {
     "id-length": 2,
@@ -251,7 +251,7 @@
   "src/world/terrain.ts": {
     "complexity": 1,
     "id-length": 111,
-    "max-len": 73
+    "max-len": 69
   },
   "src/world/tyrewall.ts": {
     "complexity": 1,
