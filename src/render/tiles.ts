@@ -78,6 +78,7 @@ export function createTiles(view: View, cam: Cam, settings: Settings, helpers: T
     msSnap: 0,                  // ms in paletteSnap (tools/tilecost.mjs)
     msShade: 0,                 // ms in hillShade (tools/tilecost.mjs)
     newTiles: 0,                // tiles painted because none existed at that key (tools/tilecost.mjs)
+    msPerLayer: {},              // ?tileprof: ms per layer (tilecost)
     perStep: {},                // tiles painted per zoom step k (tools/tilecost.mjs)
     prefetched: 0,              // tiles painted by prefetch() (tools/tilecost.mjs)
     lastStep: null,
@@ -135,6 +136,7 @@ export function createTiles(view: View, cam: Cam, settings: Settings, helpers: T
   }
   // ?tilegpu=1: the old path (tiles painted + read back on their own GPU canvas) — perf A/B for tools/hwjudder.mjs
   const TILE_GPU = settings.tileGpu;
+  const PROF = settings.tileProf;      // ?tileprof: time each layer (tools/tilecost.mjs only)
   let tileAvg = 20;                                 // running average ms per tile (starts pessimistic = phone)
   function paintTile(k: number, i: number, j: number) {
     const tp0 = performance.now();
@@ -151,6 +153,36 @@ export function createTiles(view: View, cam: Cam, settings: Settings, helpers: T
     const c = document.createElement('canvas'); c.width = c.height = px;
     return { c, g: c.getContext('2d', { willReadFrequently: true })! };
   }
+  // ?tileprof: a 1x1 read makes the canvas finish the queued layer; time since last mark = its cost
+  let profG: CanvasRenderingContext2D | null = null, profPrev = 0;
+  function mark(name: string) {
+    profG!.getImageData(0, 0, 1, 1);
+    const now = performance.now();
+    tileState.msPerLayer[name] = (tileState.msPerLayer[name] || 0) + now - profPrev;
+    profPrev = now;
+  }
+  // the layers after the lanes (split out of paintTileInner for its complexity)
+  function paintUpperLayers() {
+    // ENDLESS: wear UNDER the ribbon (2026-10-06, "dirt in the road"; tools/_dirtroad.mjs): the motorway is all tarmac (it never wears),
+    // but a worn verge cell's disc (0.72 x 1.5 m radius) reached ~1 m over the carriageway edge and read as dirt ON the road
+    const endless = !!LEVEL.endless;
+    if (endless) drawWear('base');
+    if (PROF && endless) mark('wearBase');
+    drawTrackRibbon();
+    if (PROF) mark('ribbon');
+    drawLaneDashes();
+    if (PROF) mark('dashes');
+    drawPatches();
+    if (PROF) mark('patches');
+    if (!endless) drawWear('base');     // baked in (2026-10-03): see wearDirty below. Under the covers ...
+    if (PROF && !endless) mark('wearBase');
+    drawCovers();
+    if (PROF) mark('covers');
+    drawWear('cover');    // ... except where the cover itself has changed
+    if (PROF) mark('wearCover');
+    drawCurvedKerbs();    // kerbs last: no surface ever paints over a kerb
+    if (PROF) mark('kerbs');
+  }
   function paintTileInner(k: number, i: number, j: number) {
     const tl0 = performance.now();      // start of the layers stage
     const zq = zOfStep(k), pq = view.PPM * zq, tw = TILE_PX / pq;     // world metres per tile
@@ -162,20 +194,14 @@ export function createTiles(view: View, cam: Cam, settings: Settings, helpers: T
     const keep = { ctx: view.ctx, W: view.W, H: view.H, zoom: view.zoom, cx: cam.x, cy: cam.y };
     view.ctx = g; view.W = view.H = TILE_PX; view.zoom = zq; cam.x = (i + 0.5) * tw; cam.y = (j + 0.5) * tw;
     try {
+      if (PROF) { profG = g; profPrev = performance.now(); }
       drawFloor();
+      if (PROF) mark('floor');
       drawZones();
+      if (PROF) mark('zones');
       drawLanes();          // UNDER the ribbon: where a lane meets the track, the track wins (lab.js zoneAt does the same)
-      // ENDLESS: wear UNDER the ribbon (2026-10-06, "dirt in the road"; tools/_dirtroad.mjs): the motorway is all tarmac (it never wears),
-      // but a worn verge cell's disc (0.72 x 1.5 m radius) reached ~1 m over the carriageway edge and read as dirt ON the road
-      const endless = !!LEVEL.endless;
-      if (endless) drawWear('base');
-      drawTrackRibbon();
-      drawLaneDashes();
-      drawPatches();
-      if (!endless) drawWear('base');     // baked in (2026-10-03): see wearDirty below. Under the covers ...
-      drawCovers();
-      drawWear('cover');    // ... except where the cover itself has changed
-      drawCurvedKerbs();    // kerbs last: no surface ever paints over a kerb
+      if (PROF) mark('lanes');
+      paintUpperLayers();
     } finally {
       view.ctx = keep.ctx; view.W = keep.W; view.H = keep.H; view.zoom = keep.zoom; cam.x = keep.cx; cam.y = keep.cy;
     }

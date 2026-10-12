@@ -22,6 +22,9 @@ export interface Settings {
   tilePx: number;                // ?tilepx=N: css px per ground tile side (default 256; A/B)
   tileGpu: boolean;              // ?tilegpu: paint tiles straight on the GPU canvas
   noShade: boolean;              // ?noshade: skip the hill shading (perf A/B)
+  // ?tileprof: time each ground layer of a tile, forcing the canvas to finish it
+  // (tools/tilecost only; slows tiles)
+  tileProf: boolean;
 }
 
 
@@ -47,5 +50,6 @@ export function readSettings(search: string): Settings {
     tilePx: +params.get('tilepx')! || 256,
     tileGpu: params.has('tilegpu'),
     noShade: params.has('noshade'),
+    tileProf: params.has('tileprof'),
   };
 }

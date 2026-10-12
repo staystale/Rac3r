@@ -305,6 +305,7 @@ export interface TileState {
   msShade: number;
   newTiles: number;
   perStep: Record<number, number>;
+  msPerLayer: Record<string, number>;
   prefetched: number;
   lastStep: number | null;
   drawnN: number;

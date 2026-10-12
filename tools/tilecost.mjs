@@ -14,7 +14,7 @@ try {
     const ctx = await b.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true });
     const p = await ctx.newPage();
     const cdp = await ctx.newCDPSession(p); await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
-    await p.goto(srv.url + '/?touch=1&guide=0&level=' + lv + '&car=track-rwd');
+    await p.goto(srv.url + '/?touch=1&guide=0&level=' + lv + '&car=track-rwd&tileprof');
     await p.tap?.('body').catch?.(() => {}); await p.touchscreen.tap(400, 200); await p.waitForTimeout(4000);
     const s = await p.evaluate(() => new Promise(async (res) => {
       const g = window.__game;
@@ -31,6 +31,11 @@ try {
     console.log(`${lv}: tiles ${N} (new ${d('newTiles')}, wear ${d('staleRepaints')}, prefetch ${d('prefetched')}) | ` +
       `per zoom step ${JSON.stringify(steps)} | ms per tile: layers ${per('msLayers')}, snap ${per('msSnap')}, ` +
       `shade ${per('msShade')}, total ${per('tileMs')}`);
+    const lay = Object.keys(s.z.msPerLayer)
+      .map((k) => [k, (s.z.msPerLayer[k] - (s.a.msPerLayer[k] || 0)) / (N || 1)])
+      .sort((x, y) => y[1] - x[1]).slice(0, 6);
+    const txt = lay.map(([k, v]) => k + ' ' + v.toFixed(1)).join(', ');
+    console.log('  layers ms per tile: ' + txt);
     await ctx.close();
   }
 } finally {

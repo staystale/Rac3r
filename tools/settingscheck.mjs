@@ -8,6 +8,7 @@ const DEFAULTS = {
   dev: false, carId: null, aiCount: 0, aiDifficulty: 2, trafficDensity: 0.6, litter: null, menu: null,
   menuAi: 4, guide: null, rules: null, levelId: null, inputMode: 'auto', highwayDebug: null,
   noLock: false, tilePx: 256, tileGpu: false, noShade: false,
+  tileProf: false,
 };
 
 const TABLE = [
@@ -23,6 +24,7 @@ const TABLE = [
   ['?menu=1&guide=1&rules=1', { menu: '1', guide: '1', rules: '1' }],
   ['?dev&touch&pc&nolock&tilegpu&noshade&tilepx=128',
     { dev: true, inputMode: 'touch', noLock: true, tileGpu: true, noShade: true, tilePx: 128 }],
+  ['?tileprof', { tileProf: true }],
   ['?pc', { inputMode: 'pc' }],
   ['?tilepx=abc', { tilePx: 256 }],
   ['?tilepx=0', { tilePx: 256 }],
