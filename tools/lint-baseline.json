@@ -105,8 +105,8 @@
   },
   "src/render.js": {
     "complexity": 13,
-    "id-length": 822,
-    "max-len": 733,
+    "id-length": 779,
+    "max-len": 703,
     "max-lines": 1,
     "max-lines-per-function": 5,
     "no-unused-vars": 6
@@ -118,6 +118,11 @@
     "max-lines": 1,
     "max-lines-per-function": 3,
     "no-unused-vars": 3
+  },
+  "src/render/particles.js": {
+    "id-length": 43,
+    "max-len": 30,
+    "max-lines-per-function": 1
   },
   "src/render/shared.js": {
     "max-len": 1
