@@ -92,7 +92,7 @@ async function buildPlan() {
   const plan = [];
   for (const t of ['aifieldsuite']) plan.push({ tool: t, label: t, args: [] });
   plan.push({ tool: 'pacesuite', label: 'pacesuite', args: ['baseline'] });
-  for (const t of ['weavecheck', 'barriercheck', 'solidcheck', 'propcheck', 'uicheck', 'menucheck']) {
+  for (const t of ['weavecheck', 'barriercheck', 'solidcheck', 'propcheck', 'uicheck', 'guidecheck', 'menucheck']) {
     plan.push({ tool: t, label: t, args: [] });
   }
   for (const id of CAR_IDS) plan.push({ tool: 'lapdriver', label: `lapdriver ${id}`, args: ['test-track', id] });

@@ -1,11 +1,14 @@
 // guidecheck.mjs — the HOW TO PLAY guide (src/guide.js), driven with real taps at 6 screen sizes.
 // Checks, for every card: the card is fully on screen, it does NOT cover the thing it points at, NEXT is inside
 // it. Plus: a stray tap on the world neither advances a card nor steers; the sim is paused while it is open;
-// DONE closes it and marks it seen; the "?" chip reopens it. Needs the server on 8080.
+// DONE closes it and marks it seen; the "?" chip reopens it. Starts its own server.
 // Optional: node tools/guidecheck.mjs <dir>  -> also photographs every card into <dir>.
-import { chromium } from 'file:///C:/Users/Admin/Desktop/G/GamesStudio/BitterTrade/node_modules/playwright/index.mjs';
+import { startServer, launchBrowser } from './lib/browser.mjs';
 const OUT = process.argv[2];
-const b = await chromium.launch({ channel: 'msedge' });
+const srv = await startServer();
+let b;
+try {
+b = await launchBrowser();
 const errs = [];
 const sizes = [[844, 390, 'touch=1'], [390, 844, 'touch=1'], [360, 640, 'touch=1'], [412, 915, 'touch=1'], [768, 1024, 'touch=1'], [1280, 720, 'pc=1']];
 for (const lv of ['', '&level=grass-track']) for (const [W, H, q] of sizes) {
@@ -14,7 +17,7 @@ for (const lv of ['', '&level=grass-track']) for (const [W, H, q] of sizes) {
   const ctx = await b.newContext({ viewport: { width: W, height: H }, deviceScaleFactor: 2, isMobile: touch, hasTouch: touch });
   const p = await ctx.newPage();
   p.on('pageerror', e => errs.push(`${tag}: ${e.message}`));
-  await p.goto(`http://localhost:8080/?${q}&guide=1${lv}`);
+  await p.goto(`${srv.url}/?${q}&guide=1${lv}`);
   await p.mouse.click(W / 2, H / 2);
   // wait for the fly-in, not a fixed time: MEASURED, the Grass Track fly-in takes ~2.5 s in headless Edge at 15-30 fps
   await p.waitForFunction(() => window.__game.guide.active, null, { timeout: 8000 }).catch(() => {});
@@ -47,6 +50,10 @@ for (const lv of ['', '&level=grass-track']) for (const [W, H, q] of sizes) {
   console.log(`${tag.padEnd(16)} ${n} cards ok, ? at ${h.x},${h.y}${h.row3 ? ' (row 3)' : ''}`);
   await ctx.close();
 }
-await b.close();
+await b.close(); b = null;
 console.log(errs.length ? '\nFAIL:\n  ' + errs.join('\n  ') : '\nguide: every card on screen, clear of its target, taps consumed, sim paused, ? replays: OK');
 process.exitCode = errs.length ? 1 : 0;
+} finally {
+  await b?.close();
+  srv.stop();
+}
