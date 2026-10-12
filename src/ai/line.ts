@@ -12,6 +12,10 @@ import { groundAt } from "../world/wear.ts";
 import { querySubtrack } from "../world/tyrewall.ts";
 import { GRAVITY } from "../cars.js";
 import { CAR_STATS } from "../carstats.js";
+import type { Level, Lane } from "../world/types.ts";
+import type {
+  AiCar, Branches, CarStat, Corner, LinePoint, Path, PathPoint, RacingLine, SpeedProfile,
+} from "./types.ts";
 
 const LINE_MARGIN = 1.6;     // m kept from the road edge (car half width ~0.9 + room)
 const K_CORNER = 0.88;       // fraction of the measured cornering grip a PRO uses (calibrated: tools/aidrivecheck.mjs, clean at 0.88)
@@ -24,7 +28,7 @@ const CORNER_R = 70;         // m: line radius under which a stretch counts as a
 
 // ---------------------------------------------------------------- paths
 // headings, radius over ~8 m, surface mu at every point
-function finishPath(pts, closed, total) {
+function finishPath<P extends PathPoint>(pts: P[], closed: boolean, total: number): Path<P> {
   const n = pts.length, sp = total / (closed ? n : n - 1);
   for (let i = 0; i < n; i++) { const a = pts[i], b = closed ? pts[(i + 1) % n] : pts[Math.min(n - 1, i + 1)], c = closed ? a : pts[Math.max(0, i - 1)];
     a.h = (closed || i < n - 1) ? Math.atan2(b.y - a.y, b.x - a.x) : Math.atan2(a.y - c.y, a.x - c.x); }
@@ -38,11 +42,12 @@ function finishPath(pts, closed, total) {
   return { pts, n, closed, total, sp, prof: {} };
 }
 
-export function racingLine(level) {
+export function racingLine(level: Level): RacingLine {
   if (level._line) return level._line;
-  const sub = level.subtrack, P = sub.pts, n = P.length, hw = sub.width / 2, b = Math.max(0.5, hw - LINE_MARGIN);
+  // (! : a level with a lap has its subtrack by the time the AI looks)
+  const sub = level.subtrack!, P = sub.pts, n = P.length, hw = sub.width / 2, b = Math.max(0.5, hw - LINE_MARGIN);
   // grip across the road at every point (1 m lateral steps): mu of whatever is there
-  const lat = []; for (let o = -b; o <= b + 1e-6; o += 1) lat.push(+o.toFixed(2));
+  const lat: number[] = []; for (let o = -b; o <= b + 1e-6; o += 1) lat.push(+o.toFixed(2));
   const mu0 = P.map((p) => lat.map((o) => { const g = groundAt(p.x + p.nx * o, p.y + p.ny * o); return (g.surface && g.surface.mu) || 1; }));
   // SMOOTHED ALONG THE TRACK (+-MU_SMOOTH m) before the surface bias reads it (user, 2026-10-04: "Slidden Hill dirt to tarmac, the AI
   // still slows down!!"). Where a surface edge crosses the road at an angle, a few cross-sections are half dirt / half tarmac and the
@@ -82,7 +87,7 @@ export function racingLine(level) {
   // clamped to the road. (Neighbour-midpoint smoothing is curve SHORTENING: it glued Naffcar's line to the inside all the way round.)
   // Coarse spacings first (whole-corner out-in-out shape), then fine, ending at k = 1 (coarser k couples only every k-th point and
   // the interleaved chains zig-zag against each other).
-  const smooth = (k, iters) => {
+  const smooth = (k: number, iters: number) => {
     for (let it = 0; it < iters; it++) {
       for (let i = 0; i < n; i++) { qx[i] = P[i].x + P[i].nx * off[i]; qy[i] = P[i].y + P[i].ny * off[i]; }
       for (let i = 0; i < n; i++) { const a = (i - k + n) % n, c = (i + k) % n; dx[i] = qx[a] - 2 * qx[i] + qx[c]; dy[i] = qy[a] - 2 * qy[i] + qy[c]; }
@@ -103,10 +108,11 @@ export function racingLine(level) {
   const sp = sub.totalDist / n;   // m per point
   for (const m of [40, 20, 10, 5, 2.5]) { const k = Math.max(1, Math.round(m / sp)); smooth(k, 300); }
   smooth(1, 400);
-  const pts = P.map((p, i) => ({ x: p.x + p.nx * off[i], y: p.y + p.ny * off[i], nx: p.nx, ny: p.ny, dist: p.dist, off: off[i] }));
+  // (cast: finishPath, just below, sets h, R, turn and mu on these points)
+  const pts = P.map((p, i) => ({ x: p.x + p.nx * off[i], y: p.y + p.ny * off[i], nx: p.nx, ny: p.ny, dist: p.dist, off: off[i] } as LinePoint));
   const path = finishPath(pts, true, sub.totalDist);
   // CORNERS: runs of R < CORNER_R (scanning from a straight so a corner across the line is one run); apex = tightest point
-  const cid = new Int32Array(n).fill(-1), corners = [];
+  const cid = new Int32Array(n).fill(-1), corners: Corner[] = [];
   let s0 = pts.findIndex((p) => p.R >= CORNER_R); if (s0 < 0) s0 = 0;
   for (let q = 0; q < n; q++) {
     const i = (s0 + q) % n; if (pts[i].R >= CORNER_R) continue;
@@ -122,20 +128,24 @@ export function racingLine(level) {
 }
 
 // resample an open polyline at ~1 m and round its corners (ends fixed)
-function openPath(xy, rounds = 40) {
-  const out = [];
+function openPath(xy: number[][], rounds = 40) {
+  const out: PathPoint[] = [];
   for (let s = 0; s < xy.length - 1; s++) {
     const [ax, ay] = xy[s], [bx, by] = xy[s + 1], L = Math.hypot(bx - ax, by - ay); if (L < 1e-3) continue;
-    for (let t = 0; t < L; t += 1) out.push({ x: ax + (bx - ax) * t / L, y: ay + (by - ay) * t / L });
+    for (let t = 0; t < L; t += 1) out.push({ x: ax + (bx - ax) * t / L, y: ay + (by - ay) * t / L } as PathPoint);
   }
-  out.push({ x: xy[xy.length - 1][0], y: xy[xy.length - 1][1] });
+  // (the two casts in openPath: finishPath sets h, R, turn and mu on these points)
+  out.push({ x: xy[xy.length - 1][0], y: xy[xy.length - 1][1] } as PathPoint);
   for (let r = 0; r < rounds; r++) for (let i = 1; i < out.length - 1; i++) { out[i].x = 0.5 * out[i].x + 0.25 * (out[i - 1].x + out[i + 1].x); out[i].y = 0.5 * out[i].y + 0.25 * (out[i - 1].y + out[i + 1].y); }
   let total = 0; for (let i = 1; i < out.length; i++) total += Math.hypot(out[i].x - out[i - 1].x, out[i].y - out[i - 1].y);
   return { pts: out, total };
 }
-export const nearestIdx = (pts, x, y) => { let bi = 0, bd = Infinity; for (let i = 0; i < pts.length; i++) { const d = (pts[i].x - x) ** 2 + (pts[i].y - y) ** 2; if (d < bd) { bd = d; bi = i; } } return bi; };
+export const nearestIdx = (pts: PathPoint[], x: number, y: number) => { let bi = 0, bd = Infinity; for (let i = 0; i < pts.length; i++) { const d = (pts[i].x - x) ** 2 + (pts[i].y - y) ** 2; if (d < bd) { bd = d; bi = i; } } return bi; };
 // a BRANCH: (main line for preM metres before entryI) -> the lane -> (merge onto the main line postA..postB metres after exitI)
-export function branch(L, laneXY, entryI, exitI, preM = 25, postA = 15, postB = 35, rounds = 40) {
+export function branch(
+  L: RacingLine, laneXY: number[][], entryI: number, exitI: number,
+  preM = 25, postA = 15, postB = 35, rounds = 40,
+): Path {
   const n = L.n, sp = L.sp, M = L.pts, raw = [];
   if (entryI >= 0) for (let d = preM; d > 0; d -= 1) { const p = M[(entryI - Math.round(d / sp) + n * 4) % n]; raw.push([p.x, p.y]); }
   raw.push(...laneXY);
@@ -145,9 +155,10 @@ export function branch(L, laneXY, entryI, exitI, preM = 25, postA = 15, postB = 
   path.rejoin = (exitI + Math.round(postB / sp)) % n;
   return path;
 }
-function branches(level, L) {
-  const out = {}, lanes = level.lanes || [], hw = level.subtrack.width / 2;
-  const laneDist = (lane, x, y) => { let bd = Infinity; const P = lane.pts; for (let i = 0; i < P.length - 1; i++) { const [ax, ay] = P[i], [bx, by] = P[i + 1], vx = bx - ax, vy = by - ay, l2 = vx * vx + vy * vy || 1, t = Math.max(0, Math.min(1, ((x - ax) * vx + (y - ay) * vy) / l2)); bd = Math.min(bd, Math.hypot(ax + vx * t - x, ay + vy * t - y)); } return bd; };
+function branches(level: Level, L: RacingLine): Branches {
+  // (the two ! on level.subtrack: racingLine, our one caller, has already read it)
+  const out: Branches = {}, lanes = level.lanes || [], hw = level.subtrack!.width / 2;
+  const laneDist = (lane: Lane, x: number, y: number) => { let bd = Infinity; const P = lane.pts; for (let i = 0; i < P.length - 1; i++) { const [ax, ay] = P[i], [bx, by] = P[i + 1], vx = bx - ax, vy = by - ay, l2 = vx * vx + vy * vy || 1, t = Math.max(0, Math.min(1, ((x - ax) * vx + (y - ay) * vy) / l2)); bd = Math.min(bd, Math.hypot(ax + vx * t - x, ay + vy * t - y)); } return bd; };
   const J = level.joker;
   if (J) {
     const lane = lanes.find((l) => laneDist(l, J.gate.x, J.gate.y) < l.width / 2 + 1);
@@ -156,7 +167,7 @@ function branches(level, L) {
   }
   // the START lane: the lane the spawn sits on, when the spawn is off the lap (Slidden Hill's RX start straight)
   const s = level.spawn;
-  if (s && querySubtrack(level.subtrack, s.x, s.y).dist > hw) {
+  if (s && querySubtrack(level.subtrack!, s.x, s.y).dist > hw) {
     const lane = lanes.find((l) => laneDist(l, s.x, s.y) < l.width / 2 + 1);
     if (lane) { const P = lane.pts, back = [P[0][0] - Math.cos(s.heading) * 60, P[0][1] - Math.sin(s.heading) * 60];   // room for the grid behind
       out.start = branch(L, [back, ...P.map(([x, y]) => [x, y])], -1, nearestIdx(L.pts, P[P.length - 1][0], P[P.length - 1][1]), 0, 10, 30, 60);
@@ -168,7 +179,9 @@ function branches(level, L) {
 // STAGE RUN (main.js: a rally stage with real start intervals): where a driver would be T s after leaving the start line from rest, or
 // when it would reach toDist — its own speed profile x pace, with an acceleration limit (ACC_EST m/s^2, fading with speed) on a forward pass.
 const ACC_EST = 4.5;
-export function lineRun(level, spec, pace, T, toDist = Infinity) {
+export function lineRun(
+  level: Level, spec: AiCar["spec"], pace: number, T: number, toDist = Infinity,
+) {
   const L = racingLine(level), prof = profileOf(L, spec, L), n = L.n, P = L.pts;
   let k = 0; for (let i = 1; i < n; i++) if (P[i].dist < P[k].dist) k = i;   // the start line (centreline distance 0)
   let t = 0, v = 0;
@@ -180,24 +193,28 @@ export function lineRun(level, spec, pace, T, toDist = Infinity) {
   }
   const p = P[k]; return { x: p.x, y: p.y, h: p.h, v, t, dist: p.dist };
 }
-export function aiPaths(level) { const L = racingLine(level); return { line: L, ...level._branches }; }
+export function aiPaths(level: Level) { const L = racingLine(level); return { line: L, ...level._branches }; }
 
 // ---------------------------------------------------------------- the speed profile (per path, per car model)
 // from the car's MEASURED numbers (src/carstats.js, lab surface mu 1.0): gripG = steady cornering g, brake100 = metres from 100 km/h
-export function carGrip(spec) {
-  const id = String(spec.id).split('#')[0], cs = CAR_STATS[id] || {};
+export function carGrip(spec: AiCar["spec"]) {
+  // (cast: carstats.js is generated JavaScript, indexed here by a string id)
+  const id = String(spec.id).split('#')[0], cs = (CAR_STATS as Record<string, CarStat>)[id] || {};
   const gripG = cs.gripG || spec.mu * 0.9, brakeG = cs.brake100 ? (27.78 * 27.78) / (2 * cs.brake100) / GRAVITY : gripG * 0.8;
   return { id, gripG, brakeG };
 }
-export function profileOf(path, spec, main, kBo) {
+export function profileOf(
+  path: Path, spec: AiCar["spec"], main?: Path, kBo?: number,
+): SpeedProfile {
   const { id, gripG, brakeG } = carGrip(spec);
   // aiK (cars.js, optional): a per-car confidence on the plan — a front-heavy AWD road car on loose gravel ran 3 m/s hot into Sweaty Lamb
   // corners and slid off 22 s a lap at Real with the roster's numbers (MEASURED, aidrivecheck; the Subaroo WRZ)
-  const ak = spec.aiK || 1, kC = (debugValue("AI_K") || K_CORNER) * ak, kB = (kBo || debugValue("AI_KB") || K_BRAKE) * ak, key = id + ':' + kC + ':' + kB;
+  // (the two casts: debugValue is unknown; the tools set __AI_K / __AI_KB to numbers)
+  const ak = spec.aiK || 1, kC = (debugValue("AI_K") as number || K_CORNER) * ak, kB = (kBo || debugValue("AI_KB") as number || K_BRAKE) * ak, key = id + ':' + kC + ':' + kB;
   if (path.prof[key]) return path.prof[key];
   const n = path.n, v = new Float64Array(n), ds = path.sp, P = path.pts;
   for (let i = 0; i < n; i++) { const r = P[i].R; v[i] = Math.min(95, Math.sqrt(kC * (r / (r + R_TIGHT)) * P[i].mu * gripG * GRAVITY * r)); }
-  if (!path.closed && main) v[n - 1] = Math.min(v[n - 1], profileOf(main, spec)[path.rejoin]);
+  if (!path.closed && main) v[n - 1] = Math.min(v[n - 1], profileOf(main, spec)[path.rejoin!]);
   // backward braking pass (twice round a closed path so it wraps)
   for (let pass = 0; pass < (path.closed ? 2 : 1); pass++) for (let i = (path.closed ? n - 1 : n - 2); i >= 0; i--) {
     const nx = v[(i + 1) % n], a = kB * P[i].mu * brakeG * GRAVITY;

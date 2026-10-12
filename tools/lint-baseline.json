@@ -12,7 +12,7 @@
     "no-shadow": 1,
     "no-unused-vars": 1
   },
-  "src/ai/line.js": {
+  "src/ai/line.ts": {
     "complexity": 1,
     "id-length": 135,
     "max-len": 70,
@@ -22,7 +22,7 @@
     "id-length": 4,
     "max-len": 13
   },
-  "src/ai/weaver.js": {
+  "src/ai/weaver.ts": {
     "complexity": 2,
     "id-length": 43,
     "max-len": 126,

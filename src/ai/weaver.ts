@@ -1,6 +1,9 @@
 // ai/weaver.js — the HIGHWAY driver (roadDriver) + driveOut (from aidriver.js).
 import { envValue } from "../core/debug.ts";
-import { roadFrame, roadPose, roadSpan } from "../highway.js";
+import type {
+  AiCar, DriveCtx, DriveInput, DriveOutState, HighwayLevel, RoadBlock, Traits, WeaverState,
+} from "./types.ts";
+import { roadPose, roadSpan } from "../highway.js";
 
 // ---------------------------------------------------------------- DRIVE ITSELF OUT (both roads)
 // Nearly still for DRIVE_OUT_T s after the green (nose in a wall, beached, tangled) -> REVERSE ~1-1.5 s with the wheel turned to swing
@@ -8,7 +11,10 @@ import { roadFrame, roadPose, roadSpan } from "../highway.js";
 // Returns the reversing controls, or null = drive on. (NOOUT=1 env: node A/B only - proves the highway merge changed nothing else)
 const NOOUT = !!envValue("NOOUT");
 const DRIVE_OUT_T = 1.2;
-export function driveOut(st, car, v, dt, ctx, rnd, roadH) {
+export function driveOut(
+  st: DriveOutState, car: AiCar, v: number, dt: number, ctx: DriveCtx, rnd: () => number,
+  roadH: () => number,
+) {
   if (ctx.hold || !(st.t > 3) || NOOUT) return null;
   if (st.t < (st.revUntil || 0)) {
     let e = roadH() - car.heading; e = Math.atan2(Math.sin(e), Math.cos(e));
@@ -38,9 +44,10 @@ const IDLE = { steer: 0, throttle: 0, brake: 0.3, handbrake: 0, reverse: 0 };
 // rolling start: follow, no swerving) }
 const N_LINES = 11, MARGIN = 0.55, LOOK_T = 3.2, EDGE_M = 1.8;
 // A/B tuning from the node tools only (HWT='{"kC":0.5}'); the browser has no process -> {}
-const HWT = envValue("HWT") ? JSON.parse(envValue("HWT")) : {};
-export function roadDriver(lv, traits, rnd) {
-  const st = { line: null, tgt: null, think: 0, ph: (traits.seed || 1) % 100, t: 0 };
+// (the ! : envValue("HWT") was just seen to be set; JSON.parse returns any, which fits the Record)
+const HWT: Record<string, number> = envValue("HWT") ? JSON.parse(envValue("HWT")!) : {};
+export function roadDriver(lv: HighwayLevel, traits: Traits, rnd: () => number) {
+  const st: WeaverState = { line: null, tgt: null, think: 0, ph: (traits.seed || 1) % 100, t: 0 };
   const pace01 = Math.max(0, Math.min(1, (traits.pace - 0.8) / 0.185));
   // CORNER GRIP: a share of tarmac mu x the car's mu (the bench driver's 0.40; 0.38 Mobile .. 0.50 Real). MEASURED (hwracecheck): 0.6 x
   // gripG planned 0.8 g at 230 km/h on an R 500 and the field ran wide - the car's real grip at that speed is lower
@@ -50,7 +57,7 @@ export function roadDriver(lv, traits, rnd) {
   // turn feathering only for yaw BEYOND the road's own bend, lane-changing traffic blocks the lane it is going to, verge dodges
   const thrMax = (HWT.thr ?? 0.85) + (1 - (HWT.thr ?? 0.85)) * pace01, kC = (HWT.kC ?? 0.42) + (HWT.kCp ?? 0.12) * (traits.prec ?? 0.5), kB = (HWT.kB ?? 0.45) + 0.15 * (traits.prec ?? 0.5);
   const agg = traits.aggression ?? 0.5, margin = MARGIN + 0.25 * (1 - (traits.prec ?? 0.5));   // sloppier drivers leave more room
-  function drive(c, dt = 1 / 120, ctx = {}) {
+  function drive(c: AiCar, dt = 1 / 120, ctx: DriveCtx = {}): DriveInput {
     if (!lv._hw) return IDLE;
     const f = c._hwf; if (!f) return IDLE;
     const P = lv._hw.pts, v = Math.hypot(c.vx, c.vy), vAl = f.v, hold = !!ctx.hold;
@@ -77,8 +84,8 @@ export function roadDriver(lv, traits, rnd) {
     const vCorner = vT;
     // what blocks a lateral line `off`: the nearest car ahead whose body (+ margin) overlaps it -> { gap, v } (gap 0 = alongside), or
     // a car right beside us on that side (side: we cannot swerve through it)
-    const blockOn = (off) => {
-      let B = null;
+    const blockOn = (off: number) => {
+      let B: RoadBlock | null = null;
       for (const o of cars) { const g = o._hwf; if (!g) continue; const ds = g.s - f.s; if (ds < -6 || ds > 220) continue;
         // WHERE IT WILL BE (HWT.pred): a lane-changing traffic car blocks its target lane too, from now (it is going there)
         const tr = (HWT.pred ?? 1) && o._trOff != null && Math.abs(o._trOff - g.off) > 0.3 ? o._trOff : null;
@@ -100,7 +107,7 @@ export function roadDriver(lv, traits, rnd) {
     // Realish: a racer at 145 km/h moved 4.4 m left into the line of one 18 m back at 177 km/h - the one behind braked on the hard shoulder,
     // spun, and both left the road; the driver only ever looked at cars ahead, > 6 m back did not exist)
     const mirT = HWT.mir ?? 2.5;   // (MEASURED pacesuite, 18 races: bad runs 7 -> 2, off-road car-steps 13079 -> 4006, mean 126.7 -> 133.4 km/h)
-    const mirror = (off) => {
+    const mirror = (off: number) => {
       if (!mirT) return false;
       for (const o of cars) { const g = o._hwf; if (!g) continue; const ds = g.s - f.s, len = (c.spec.len + o.spec.len) / 2; if (ds > len + 1 || ds < -60) continue;
         const close = g.v - vAl; if (close < 0.5 && ds < -len) continue;
@@ -116,7 +123,7 @@ export function roadDriver(lv, traits, rnd) {
       if (!hold) {
         let best = st.line, bestScore = -Infinity, bestRaw = 0; st.free = null; const wy = { raw: -Infinity, off: 0, why: '' };
         for (let k = 0; k <= N_LINES + 2; k++) {
-          const off = k === N_LINES ? st.base : k === N_LINES + 1 ? vLo : k === N_LINES + 2 ? vHi : lo + (hi - lo) * k / (N_LINES - 1);
+          const off = k === N_LINES ? st.base! : k === N_LINES + 1 ? vLo : k === N_LINES + 2 ? vHi : lo + (hi - lo) * k / (N_LINES - 1);
           if (k > N_LINES && (off === lo || off === hi)) continue;
           const B = blockOn(off);
           // free road along it: unblocked = LOOK_T s of road (+ a bonus); blocked = the gap + what is kept of the blocker's speed
@@ -128,7 +135,7 @@ export function roadDriver(lv, traits, rnd) {
           // baseline 151.0 / 139.3 km/h; rp 40 + cm 12 + mvk 0.6 = 154.0 / 136.1, 0 bad, BUT weavecheck 9 of 45 hit (baseline 0)
           if (B && !B.side && B.o && !B.o.traffic && B.gap < 60) score -= (HWT.rp ?? 0) * (1 - B.gap / 60);
           // (MEASURED weavecheck: costed from where the car IS, any tracking lag dragged the plan after it - toward the car being passed)
-          const move = Math.abs(off - st.base) + 0.3 * Math.abs(off - f.off), raw = score;
+          const move = Math.abs(off - st.base!) + 0.3 * Math.abs(off - f.off), raw = score;
           if (raw > wy.raw) { wy.raw = raw; wy.off = off; wy.why = Math.abs(off - f.off) > reach ? 'reach' : 'cost'; }
           // REACH: no line further across than a swerve can make in ~1.5 s at this speed (MEASURED weavecheck: a 7 m jump asked at 240 km/h
           // put the car 18 deg to the road and into the grass)
@@ -140,7 +147,7 @@ export function roadDriver(lv, traits, rnd) {
           // 3 m apart every 0.2 s and slalom into the car it was passing)
           // swerve cost x HWT.mvk, commit bonus HWT.cm (defaults = the shipped behaviour). A looser setting was tried (2026-10-06, the
           // queueing) - MEASURED weavecheck hits of 45: cm 12 / mvk 0.6 = 9, cm 25 / mvk 0.6 = 8, cm 25 / mvk 0.8 = 2, default = 0
-          score -= move * (1.5 + v * 0.05) * (HWT.mvk ?? 1) - (Math.abs(off - st.base) < 0.6 ? (HWT.cm ?? 25) : 0);
+          score -= move * (1.5 + v * 0.05) * (HWT.mvk ?? 1) - (Math.abs(off - st.base!) < 0.6 ? (HWT.cm ?? 25) : 0);
           if (off < -geo.hw + lv._cfg.shoulder) score -= 8;                              // the hard shoulder: a last resort
           if (off < lo - 0.1 || off > hi + 0.1) score -= (HWT.vgc ?? 40);              // the verge: only when it is clearly quicker
           if (Math.abs(aim - f.off) > 1.2) { const mid = blockOn((aim + f.off) / 2); if (mid && mid.gap < 1) { score -= 400; if (wy.off === off) wy.why = 'mid'; } }
@@ -156,16 +163,16 @@ export function roadDriver(lv, traits, rnd) {
     // accumulated and walked the line into the car being passed)
     // ABORT a swerve already under way when the mirror shows a car closing on the side it is moving to (MEASURED hwracecheck seed 1234,
     // Real: the line was chosen while the road was clear; a car 30 km/h quicker came up into it 0.3 s later and they touched side to side)
-    if (mirT && (HWT.abort ?? 1) && Math.abs(st.tv || 0) > 0.2 && mirror(st.tgt + Math.sign(st.tv) * 0.6)) { st.base = st.tgt; st.think = Math.min(st.think, 0.05); }
-    st.line = Math.max(vLo, Math.min(vHi, st.base + Math.sin(st.t * 0.4 + st.ph) * Math.min(0.4, (traits.wander || 0) * 0.2)));
+    if (mirT && (HWT.abort ?? 1) && Math.abs(st.tv || 0) > 0.2 && mirror(st.tgt! + Math.sign(st.tv!) * 0.6)) { st.base = st.tgt; st.think = Math.min(st.think, 0.05); }
+    st.line = Math.max(vLo, Math.min(vHi, st.base! + Math.sin(st.t * 0.4 + st.ph) * Math.min(0.4, (traits.wander || 0) * 0.2)));
     // the lateral target eases toward the chosen line at LAT_R (faster when a crash is close: a real swerve)
-    const here = blockOn(st.tgt), urgent = here && here.gap < 6 + Math.max(0, vAl - here.v) * 0.8;
+    const here = blockOn(st.tgt!), urgent = here && here.gap < 6 + Math.max(0, vAl - here.v) * 0.8;
     // A SWERVE HAS INERTIA: the target's sideways speed ramps at aLat (a share of grip) and eases in to stop on the line. MEASURED
     // (hwracecheck, Real difficulty): an instant 6.5 m/s sideways step spun cars at 150 km/h on a straight (rear slip 0.6 rad)
-    const latR = LAT_R * (urgent ? 1.6 : 1) * (0.8 + 0.4 * agg), aLat = (urgent ? 0.3 : 0.18) * mu * G, d = st.line - st.tgt;
+    const latR = LAT_R * (urgent ? 1.6 : 1) * (0.8 + 0.4 * agg), aLat = (urgent ? 0.3 : 0.18) * mu * G, d = st.line - st.tgt!;
     const vWant = Math.sign(d) * Math.min(latR, Math.sqrt(2 * aLat * Math.abs(d)));
     st.tv = (st.tv || 0) + Math.max(-aLat * dt, Math.min(aLat * dt, vWant - (st.tv || 0)));
-    st.tgt += st.tv * dt; if (Math.abs(d) < 0.02 && Math.abs(st.tv) < 0.2) { st.tgt = st.line; st.tv = 0; }
+    st.tgt! += st.tv! * dt; if (Math.abs(d) < 0.02 && Math.abs(st.tv) < 0.2) { st.tgt = st.line; st.tv = 0; }
     // ---- BRAKE only for what is still in the way where we are / are going (braking-distance following; MEASURED in v1: a linear law
     // asked ~2 g at a 140 km/h closing speed -> lock-ups and spins)
     let brakeX = 0;
@@ -173,13 +180,13 @@ export function roadDriver(lv, traits, rnd) {
     // in the lane we were LEAVING cost 60 km/h on every pass): time to clear = the sideways distance still to go / the swerve rate
     // (the swerve's real time: from rest at aLat, d = a t^2 / 2 -> t = sqrt(2 d / a), + reaction)
     const now = blockOn(f.off), dGo = Math.abs(st.line - f.off), tClear = dGo > 0.3 ? 0.3 + Math.sqrt(2 * dGo / (0.25 * mu * G)) : Infinity;
-    let fol = null;
+    let fol: RoadBlock | null = null;
     for (const B of [here, now && now.gap / Math.max(1, vAl - now.v) < tClear ? now : null]) { if (!B || B.side) continue;
       const want = 2.5 + (hold ? 0.6 : (HWT.wt ?? 0.22)) * Math.max(0, vAl), aB = (HWT.aB ?? 0.55) * mu * G, room = B.gap - want;
       if (!fol || B.gap < fol.gap) fol = B;
       vT = Math.min(vT, room > 0 ? Math.sqrt(Math.max(0, B.v) ** 2 + 2 * aB * room) : Math.max(HWT.fl != null ? B.v * HWT.fl : 0, B.v + room * (HWT.rk ?? 0.7)));
       const close = vAl - B.v; if (close > 0.5) { const ttc = B.gap / close; if (ttc < 1.3) brakeX = Math.max(brakeX, Math.min(1, (1.3 - ttc) / 1.0)); } }
-    const offT = Math.max(vLo, Math.min(vHi, st.tgt)), vFollow = vT;
+    const offT = Math.max(vLo, Math.min(vHi, st.tgt!)), vFollow = vT;
     // RUNNING WIDE (past the line limits): lift, as a driver would - 3 m/s under what it is doing per metre out (on a verge dodge the
     // limit is the verge line; the grass itself already costs grip, so only past THAT)
     { const lim = f.off < 0 ? -vLo : vHi, out = Math.abs(f.off) - lim; if (out > 0.3) vT = Math.min(vT, vAl - 3 * out); }

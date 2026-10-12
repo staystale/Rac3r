@@ -5,7 +5,7 @@
 // node tools/aislow.mjs [level] [car] [diff]
 import { makeCar, step, reset, DT } from '../src/vehicle.js';
 import * as L from '../src/lab.js';
-const { createAIDriver } = await import(process.env.AINEXT ? '../src/ai/circuit.next.js' : '../src/ai/circuit.js'), { aiTraits } = await import('../src/ai/traits.ts'), { racingLine } = await import('../src/ai/line.js');
+const { createAIDriver } = await import(process.env.AINEXT ? '../src/ai/circuit.next.js' : '../src/ai/circuit.js'), { aiTraits } = await import('../src/ai/traits.ts'), { racingLine } = await import('../src/ai/line.ts');
 const [lv = 'slidden-hill', carId = 'rally-4x4', d = '4'] = process.argv.slice(2);
 for (const k of ['LF', 'LW']) if (process.env[k] != null) globalThis['__' + k] = +process.env[k];
 L.setLevel(lv); L.clearWear();

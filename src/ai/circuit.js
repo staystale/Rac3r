@@ -15,8 +15,8 @@ import { debugValue } from "../core/debug.ts";
 import { querySubtrack } from "../world/tyrewall.ts";
 import { GRAVITY } from "../cars.js";
 import { aiTraits } from "./traits.ts";
-import { K_BRAKE, OBST_CLEAR, racingLine, nearestIdx, branch, carGrip, profileOf } from "./line.js";
-import { roadDriver, driveOut } from "./weaver.js";
+import { K_BRAKE, OBST_CLEAR, racingLine, nearestIdx, branch, carGrip, profileOf } from "./line.ts";
+import { roadDriver, driveOut } from "./weaver.ts";
 
 const WANDER_EDGE = 1.1;     // m: the lateral target never puts the car's centre closer than this to the road edge
 const ATK_KB = 0.12;         // extra braking grip planned while ATTACKING (late braking into the corner)

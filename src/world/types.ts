@@ -1,4 +1,5 @@
 // Shared world data shapes; this file grows as files are converted.
+import type { Branches, RacingLine } from "../ai/types.ts";
 
 // What a wheel leaves behind on a surface.
 export interface Mark {
@@ -398,6 +399,8 @@ export interface Level {
   _hw?: HighwayState;   // highway.js: the endless road (only the fields the camera reads)
   _mergedOf?: Cover[];   // ground.ts mergedCovers: the covers list _merged was built from
   _merged?: MergedCover[];   // ground.ts mergedCovers
+  _line?: RacingLine;   // ai/line.ts racingLine: the racing line, cached
+  _branches?: Branches;   // ai/line.ts racingLine: the joker / start lane paths, cached
 }
 
 // One 0.5 m cell of a merged cover group; tint is set for puddles only.

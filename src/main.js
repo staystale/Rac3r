@@ -26,7 +26,7 @@ import { createTraffic } from './traffic.js';   // HIGHWAY TRAFFIC (endless leve
 import { createHwFlow, hwFrames, hwGrid, hwGridSpan, hwPutBack, HW_GREEN } from './highwayrace.ts';   // VS AI on the highway
 import { createAIDriver } from './ai/circuit.js';
 import { aiTraits } from './ai/traits.ts';
-import { lineRun } from './ai/line.js';
+import { lineRun } from './ai/line.ts';
 import { carContacts, slipstream } from './contact.js';
 import { createRaceFlow } from './raceflow.js';
 import { hit, hitRoll, repair, resetBill, tooInjured } from './damage.js';
