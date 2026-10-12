@@ -105,18 +105,36 @@
   },
   "src/render.js": {
     "complexity": 1,
-    "id-length": 99,
-    "max-len": 120,
+    "id-length": 88,
+    "max-len": 111,
     "max-lines-per-function": 1,
     "no-unused-vars": 6
   },
+  "src/render/cardamage.js": {
+    "complexity": 2,
+    "id-length": 109,
+    "max-len": 69,
+    "max-lines-per-function": 1,
+    "no-unused-vars": 1
+  },
   "src/render/cars.js": {
-    "complexity": 5,
-    "id-length": 197,
-    "max-len": 222,
-    "max-lines": 1,
-    "max-lines-per-function": 3,
-    "no-unused-vars": 3
+    "complexity": 1,
+    "id-length": 28,
+    "max-len": 29,
+    "max-lines-per-function": 1
+  },
+  "src/render/carsmooth.js": {
+    "complexity": 1,
+    "id-length": 22,
+    "max-len": 25,
+    "max-lines-per-function": 2,
+    "no-unused-vars": 2
+  },
+  "src/render/carsprite.js": {
+    "complexity": 1,
+    "id-length": 49,
+    "max-len": 105,
+    "max-lines-per-function": 2
   },
   "src/render/ground.js": {
     "complexity": 2,

@@ -16,8 +16,10 @@ import { CONES, LEVEL } from "./world/state.ts";
 import { COL } from "./world/colours.ts";
 import { visualSlopeAt } from "./world/terrain.ts";
 import { MARK_PPM } from './marks.js';
-import { SPRITE_PPM } from "./render/shared.js";
+import { createCarSprite } from "./render/carsprite.js";
+import { createCarDamage } from "./render/cardamage.js";
 import { createCars } from "./render/cars.js";
+import { createCarSmooth } from "./render/carsmooth.js";
 import { createParticles } from "./render/particles.js";
 import { createRoad } from "./render/road.js";
 import { createGround } from "./render/ground.js";
@@ -251,7 +253,12 @@ export function createRenderer(canvas) {
     chips, MAX_CHIPS, addPuffs, addSpray, addSmoke, addDamageSmoke,
     addChips, addSparks, drawChips, drawPuffs,
   } = createParticles(view, cam, { PPMz, sx, sy });
-  const { pixelCar, faceCache, drawPixelCar, drawCar } = createCars(view, cam, { PPMz, sx, sy, roundRect });
+  const { pixelCar } = createCarSprite();
+  const { damagedSprite, silhouette, faceCache, rolledFaces, drawFaces } = createCarDamage(view);
+  const { drawPixelCar, pixelCarWithWheels } = createCars(view, cam, {
+    PPMz, sx, sy, pixelCar, damagedSprite, silhouette, rolledFaces, drawFaces, faceCache,
+  });
+  const { drawCar } = createCarSmooth(view, cam, { PPMz, sx, sy, roundRect });
   const { drawFence, drawBarriers, drawProps } = createProps(view, cam, {
     PPMz, sx, sy, roundRect, forSide, drawSlip,
   });
@@ -358,25 +365,7 @@ export function createRenderer(canvas) {
     get viewBounds() { const p = PPMz(); return [cam.x - view.W / 2 / p, cam.y - view.H / 2 / p, cam.x + view.W / 2 / p, cam.y + view.H / 2 / p]; },
     get standInFrame() { return tileState.standIn; },
     pixelCar,                           // for tools/spritesheet.mjs
-    // the GARAGE lift (user, 2026-10-04: "some vehicles aren't showing their wheels in garage mode"): the body sprite only carries the
-    // body — the game draws the wheels separately (they steer) — so the lift gets a composite: wheels as drawPixelCar draws them, then
-    // the body. Same { c, Lp, Wp } shape; cached per car.
-    pixelCarWithWheels(spec) {
-      const k = 'wheels:' + spec.id + spec.paint + spec.trim + (spec.num || 0); if (faceCache.has(k)) return faceCache.get(k);
-      const sp = pixelCar(spec), s = spec;
-      const tyreL = s.kind === 'track' ? 14 : s.kind === 'tractor' ? 15 : 11, tyreW = s.kind === 'track' ? 6 : 4;
-      const hw = Math.max((s.trackWidth || 1.5) / 2 * SPRITE_PPM, sp.Wp / 2) + (s.kind === 'track' ? 1 : 0);
-      const padY = Math.max(0, Math.ceil(hw + 4 - sp.Wp / 2)), c = document.createElement('canvas'); c.width = sp.c.width + 4; c.height = sp.c.height + padY * 2;
-      const gx = c.getContext('2d'), cx = c.width / 2, cy = c.height / 2;
-      for (const [ax, side] of [[s.lf, -1], [s.lf, 1], [-s.lr, -1], [-s.lr, 1]]) {
-        const big = s.kind === 'tractor' && ax < 0, tl = big ? 20 : tyreL, tw = big ? 7 : tyreW, x = Math.round(cx + ax * SPRITE_PPM), y = Math.round(cy + side * hw);
-        gx.fillStyle = '#16171c'; gx.fillRect(x - tl / 2, y - tw / 2, tl, tw);
-        gx.fillStyle = '#3a3d47'; gx.fillRect(x - tl / 2 + 2, y - tw / 2, tl - 4, 1);
-        if (s.kind === 'tractor') { gx.fillStyle = '#fbc02d'; gx.fillRect(x - 2, y - 1, 4, 2); } else if (s.rim) { gx.fillStyle = s.rim; gx.fillRect(x - 2, y - 1, 4, 2); }
-      }
-      gx.drawImage(sp.c, Math.round(cx - sp.c.width / 2), Math.round(cy - sp.c.height / 2));
-      const out = { c, Lp: sp.Lp, Wp: sp.Wp + padY * 2 }; faceCache.set(k, out); return out;
-    },
+    pixelCarWithWheels,                 // for the garage
     // for tools/visualcheck.mjs (user rule, 2026-10-03: "surface visuals should be accurate to their effects"):
     // the level painted FLAT (each surface its base colour, no patterns, no palette snap) at ppm px per metre, plus
     // the colour each surface id is painted in, so the tool can compare every drawn pixel with groundAt().
