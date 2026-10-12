@@ -140,7 +140,7 @@
     "max-len": 151,
     "max-lines-per-function": 2
   },
-  "src/render/objects.js": {
+  "src/render/objects.ts": {
     "complexity": 3,
     "id-length": 92,
     "max-len": 68,
@@ -151,7 +151,7 @@
     "max-len": 30,
     "max-lines-per-function": 1
   },
-  "src/render/props.js": {
+  "src/render/props.ts": {
     "complexity": 3,
     "id-length": 161,
     "max-len": 164,

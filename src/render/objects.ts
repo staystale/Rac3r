@@ -2,9 +2,28 @@
 // tape and debris. Moved verbatim.
 import { parkMiller } from "../core/random.ts";
 import { SPRITE_PPM } from "./shared.ts";
+import type { Cam, Chip, RenderCone, TapeGame, View } from "./types.ts";
 import { shade } from "../render.js";   // read only at draw time (no load-time cycle)
 
-export function createObjects(view, cam, helpers) {
+// what createObjects destructures from the renderer and the particles
+interface ObjectsHelpers {
+  PPMz: () => number;
+  sx: (wx: number) => number;
+  sy: (wy: number) => number;
+  roundRect: (
+    g: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number
+  ) => void;
+  chips: Chip[];
+  MAX_CHIPS: number;
+}
+
+// a cached pixel sprite: its canvas and its size in px
+interface ObjSprite {
+  c: HTMLCanvasElement;
+  size: number;
+}
+
+export function createObjects(view: View, cam: Cam, helpers: ObjectsHelpers) {
   const {
     PPMz, sx, sy, roundRect, chips, MAX_CHIPS,
   } = helpers;
@@ -18,21 +37,24 @@ export function createObjects(view, cam, helpers) {
   // ---------------------------------------------------------------- PIXEL OBJECTS (cones, tyres)
   // Generated pixel sprites, cached, drawn at the car's art scale (SPRITE_PPM) with smoothing off. Round things are
   // PIXEL-round — rasterised square by square (pdisc), never an anti-aliased arc.
-  const objCache = new Map();
-  function objSprite(key, size, paint) {
+  const objCache = new Map<string, ObjSprite>();
+  function objSprite(
+    key: string, size: number, paint: (g: CanvasRenderingContext2D, n: number) => void
+  ): ObjSprite {
     let s = objCache.get(key);
     if (!s) {
       const c = document.createElement('canvas'); c.width = c.height = size;
-      paint(c.getContext('2d'), size); s = { c, size }; objCache.set(key, s);
+      // ! : a fresh canvas always has a 2d context
+      paint(c.getContext('2d')!, size); s = { c, size }; objCache.set(key, s);
     }
     return s;
   }
   // a pixel disc of radius rr centred in a size x size sprite (pixel centres inside the circle)
-  function pdisc(g, size, rr, col) {
+  function pdisc(g: CanvasRenderingContext2D, size: number, rr: number, col: string) {
     g.fillStyle = col; const m = (size - 1) / 2;
     for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) if ((x - m) ** 2 + (y - m) ** 2 <= rr * rr) g.fillRect(x, y, 1, 1);
   }
-  function pixelObjectSprite(c) {
+  function pixelObjectSprite(c: RenderCone): ObjSprite | null {
     const mode = c.mode || (c.kind === 'tyrestack' ? 'stack' : c.kind === 'tyre' ? 'flat' : 'cone');
     if (c.kind === 'cone') {
       if (c.down > 0.5) return objSprite('cone-down', 11, (g) => {          // lying on its side, tip to +x
@@ -62,7 +84,7 @@ export function createObjects(view, cam, helpers) {
     }
     return null;
   }
-  function drawPixelObject(c) {
+  function drawPixelObject(c: RenderCone) {
     const sp = pixelObjectSprite(c);
     if (!sp) return false;
     const u = PPMz() / SPRITE_PPM;
@@ -74,12 +96,12 @@ export function createObjects(view, cam, helpers) {
 
   // RALLY TAPE (cones.js sections): red / white between its posts; a SNAPPED section hangs as two short loose ends; tape STUCK to a car
   // trails behind it as a fluttering streamer (wall-clock flutter, fades after ~14 s)
-  function drawTape(game) {
+  function drawTape(game: TapeGame) {
     const S = game.cones.tapes; if (!S || !S.length) return;
     const p = PPMz(), lw = Math.max(1.5, 0.12 * p);
     view.ctx.save(); view.ctx.lineWidth = lw; view.ctx.lineCap = 'butt';
     // TAPE PUFFS (cones.js: a section gone after its second hit; and a streamer coming off a car): a burst of red / white flecks
-    const puff = (x, y, vx, vy, n) => {
+    const puff = (x: number, y: number, vx: number, vy: number, n: number) => {
       for (let i = 0; i < n; i++) {
         const a = Math.random() * 6.2832, v = 0.8 + Math.random() * 3.2;
         if (chips.length >= MAX_CHIPS) chips.shift();
@@ -92,7 +114,7 @@ export function createObjects(view, cam, helpers) {
       if (sct.gone) continue;
       const ax = sx(sct.a.x), ay = sy(sct.a.y), bx = sx(sct.b.x), by = sy(sct.b.y);
       if ((ax < -40 && bx < -40) || (ax > view.W + 40 && bx > view.W + 40) || (ay < -40 && by < -40) || (ay > view.H + 40 && by > view.H + 40)) continue;
-      const seg = (x0, y0, x1, y1) => { view.ctx.setLineDash([0.5 * p, 0.5 * p]); view.ctx.strokeStyle = '#e23b2e'; view.ctx.beginPath(); view.ctx.moveTo(x0, y0); view.ctx.lineTo(x1, y1); view.ctx.stroke();
+      const seg = (x0: number, y0: number, x1: number, y1: number) => { view.ctx.setLineDash([0.5 * p, 0.5 * p]); view.ctx.strokeStyle = '#e23b2e'; view.ctx.beginPath(); view.ctx.moveTo(x0, y0); view.ctx.lineTo(x1, y1); view.ctx.stroke();
         view.ctx.lineDashOffset = 0.5 * p; view.ctx.strokeStyle = '#f2f2f2'; view.ctx.beginPath(); view.ctx.moveTo(x0, y0); view.ctx.lineTo(x1, y1); view.ctx.stroke(); view.ctx.lineDashOffset = 0; };
       if (!sct.broken) seg(ax, ay, bx, by);
       else { const dx = bx - ax, dy = by - ay, L = Math.hypot(dx, dy) || 1, e = Math.min(L * 0.35, 1.3 * p);
@@ -123,9 +145,9 @@ export function createObjects(view, cam, helpers) {
   }
   // ROADSIDE DEBRIS (cones.js DEBRIS): top-down squares, rotated with the object; broken ones are a scatter of bits (seeded by home)
   const DEBRIS_KINDS = new Set(['pallet', 'box', 'crate', 'bin', 'sandbag', 'barrel', 'exhaust', 'bumper', 'tarp', 'splinters', 'cardboard', 'sand', 'fluff']);
-  function drawDebris(c) {
-    const p = PPMz(), P = (x, y, w, h, col) => { view.ctx.fillStyle = col; view.ctx.fillRect(x * p, y * p, w * p, h * p); };
-    const sh = (w, h) => { view.ctx.fillStyle = 'rgba(10,12,16,0.30)'; view.ctx.fillRect((-w / 2 + 0.15) * p, (-h / 2 + 0.25) * p, w * p, h * p); };
+  function drawDebris(c: RenderCone) {
+    const p = PPMz(), P = (x: number, y: number, w: number, h: number, col: string) => { view.ctx.fillStyle = col; view.ctx.fillRect(x * p, y * p, w * p, h * p); };
+    const sh = (w: number, h: number) => { view.ctx.fillStyle = 'rgba(10,12,16,0.30)'; view.ctx.fillRect((-w / 2 + 0.15) * p, (-h / 2 + 0.25) * p, w * p, h * p); };
     view.ctx.rotate(c.ang || 0);
     switch (c.kind) {
       case 'pallet': sh(1.2, 1.0); P(-0.6, -0.5, 1.2, 1.0, '#8a6a43'); for (let k = 0; k < 4; k++) P(-0.6, -0.42 + k * 0.26, 1.2, 0.08, '#5e4529'); break;
@@ -144,7 +166,7 @@ export function createObjects(view, cam, helpers) {
       }
     }
   }
-  function drawCones(cones) {
+  function drawCones(cones: RenderCone[]) {
     for (const c of cones) {
       const px = sx(c.x), py = sy(c.y);
       if (px < -60 || px > view.W + 60 || py < -60 || py > view.H + 60) continue;
@@ -153,7 +175,7 @@ export function createObjects(view, cam, helpers) {
       view.ctx.save();
       view.ctx.translate(px, py);
       if (c.kind === 'bale' || c.kind === 'straw') {
-        const P = (x, y, w, h, col) => { view.ctx.fillStyle = col; view.ctx.fillRect(x * PPMz(), y * PPMz(), w * PPMz(), h * PPMz()); };
+        const P = (x: number, y: number, w: number, h: number, col: string) => { view.ctx.fillStyle = col; view.ctx.fillRect(x * PPMz(), y * PPMz(), w * PPMz(), h * PPMz()); };
         view.ctx.rotate(c.ang || 0);
         if (c.kind === 'bale') {
           // ROUND HAY BALE from the top: straw square, darker spiral ring (squares — the pixel rule)
@@ -169,7 +191,7 @@ export function createObjects(view, cam, helpers) {
       if (c.kind === 'sheep' || c.kind === 'cow') {
         // SHEEP / COW (S-C: loose objects, cones.js; the old field look): a body square, a head square at +x, a shadow. A TIPPED cow lies
         // on its side: four dark leg squares out, the head flat
-        const p = PPMz(), P = (x, y, w, h, col) => { view.ctx.fillStyle = col; view.ctx.fillRect(x * p, y * p, w * p, h * p); };
+        const p = PPMz(), P = (x: number, y: number, w: number, h: number, col: string) => { view.ctx.fillStyle = col; view.ctx.fillRect(x * p, y * p, w * p, h * p); };
         view.ctx.rotate(c.ang || 0);
         if (c.kind === 'cow' && c.tipped) { P(-0.9, -0.2, 2, 0.9, 'rgba(10,12,16,0.3)'); P(-1.1, -0.45, 2, 0.85, '#f0eee8'); P(-0.6, -0.45, 0.7, 0.4, '#1c1d20');
           for (const lx of [-0.9, -0.5, 0.15, 0.55]) P(lx, 0.4, 0.2, 0.55, '#1c1d20'); P(0.9, -0.3, 0.55, 0.55, '#1c1d20'); }
@@ -187,7 +209,7 @@ export function createObjects(view, cam, helpers) {
       if (c.kind === 'chevron' || c.kind === 'flag') {
         // a knockable CHEVRON board / FLAG (cones.js): upright as the old prop; once knocked (down > 0.5) lying flat — the chevron face up
         // and darker, the flag pole down with its cloth crumpled beside it
-        const p = PPMz(), P = (x, y, w, h, col) => { view.ctx.fillStyle = col; view.ctx.fillRect(x * p, y * p, w * p, h * p); };
+        const p = PPMz(), P = (x: number, y: number, w: number, h: number, col: string) => { view.ctx.fillStyle = col; view.ctx.fillRect(x * p, y * p, w * p, h * p); };
         view.ctx.rotate(c.ang || 0);
         if (c.kind === 'chevron') {
           view.ctx.scale(1.6, 1.6);

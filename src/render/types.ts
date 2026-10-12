@@ -220,3 +220,57 @@ export interface RenderCar extends CamCar {
   _dsp?: { key: string; base: CarSprite; sp: CarSprite } | null;
   _dface?: Record<string, { key: string; out: CarSprite | SideSprite }>;
 }
+
+// One game object the cones layer draws (cones.js: cones, bales, tyres, animals, debris, ...).
+export interface RenderCone {
+  x: number;
+  y: number;
+  kind: string;
+  down: number;   // 0 = upright, 1 = flat
+  ang: number;
+  mode?: string;   // tyres: stack / flat / roll / flip / wobble
+  col?: string;
+  hx: number;   // home position; seeds the scatter of burst straw and broken debris
+  hy: number;
+  tipped?: boolean;
+  paint?: string;
+  num?: string;
+}
+
+// One rally tape section between two posts.
+export interface RenderTape {
+  a: { x: number; y: number };
+  b: { x: number; y: number };
+  gone?: boolean;
+  broken?: boolean;
+}
+
+// A tape streamer stuck to a car.
+export interface Streamer {
+  born: number;
+  phase: number;
+  len: number;
+}
+
+// What drawTape reads of a car.
+export interface TapeCar {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  heading: number;
+  spec: { len: number };
+  streamers?: Streamer[] | null;   // null = reset; cones.js sets it
+  _stN?: number | null;   // drawTape's count of streamers, to see one lost
+}
+
+// What drawTape reads of the game.
+export interface TapeGame {
+  cones: {
+    tapes?: RenderTape[];
+    tapePuffs?: { x: number; y: number; vx: number; vy: number }[];
+    clock?: number;
+  };
+  car: TapeCar;
+  ai?: { car: TapeCar }[];
+}

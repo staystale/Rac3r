@@ -22,8 +22,8 @@ import { createCars } from "./render/cars.ts";
 import { createParticles } from "./render/particles.ts";
 import { createRoad } from "./render/road.ts";
 import { createGround } from "./render/ground.ts";
-import { createProps } from "./render/props.js";
-import { createObjects } from "./render/objects.js";
+import { createProps } from "./render/props.ts";
+import { createObjects } from "./render/objects.ts";
 import { createTiles } from "./render/tiles.js";
 import { createCamera } from "./render/camera.ts";
 

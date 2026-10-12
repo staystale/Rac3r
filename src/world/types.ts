@@ -127,9 +127,9 @@ export interface Prop {
   s?: number;
   seed?: number;
   brand?: string;
-  front?: unknown[];
-  back?: unknown[];
-  banner?: unknown[];
+  front?: Point[];
+  back?: Point[];
+  banner?: Point[];
   roof?: string;
   paint?: string;
   num?: string;
@@ -147,6 +147,18 @@ export interface Prop {
   snow?: boolean;
   pal?: string;
   carries?: string;
+  boat?: boolean;   // highway.js bridges: a river bridge with a boat
+  roadHw?: number;   // highway.js river bridges
+  skew?: number;   // highway.js river bridges
+  appL?: number[];   // highway.js bridges: the approach lengths [0 | 1]
+  phase?: number;   // highway.js bridges
+  cow?: boolean;   // highway.js road bridges
+  cars?: number;   // highway.js road bridges
+  trainEvery?: number;   // highway.js rail bridges
+  cone?: boolean;   // highway.js foot bridges
+  people?: number;   // highway.js foot bridges
+  reach?: number;   // gantry / overhead props: how far they span the track (level data)
+  _flash?: number;   // render/props.ts reads it: the time a speed camera flashed (set by the game)
 }
 
 // An x, y pair in metres.
@@ -321,6 +333,7 @@ export interface Barrier {
   col?: string;
   _s?: number;   // highway.js
   _segs?: BarrierSeg[];   // added by prepBarriers
+  _rbb?: [number, number, number, number];   // render/props.ts drawBarriers caches the padded box
 }
 
 // A rotated solid box (what solidsFromProps returns); r is its bounding radius.

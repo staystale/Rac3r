@@ -4,15 +4,29 @@ import { parkMiller } from "../core/random.ts";
 import { RUNOFF_W } from "../world/bounds.ts";
 import { LEVEL, PROPS } from "../world/state.ts";
 import { BARRIER_HALF } from "../world/barriers.ts";
+import type { Point, Prop } from "../world/types.ts";
+import type { Cam, ForSide, View } from "./types.ts";
 
-export function createProps(view, cam, helpers) {
+// what createProps destructures from the renderer, the ground painter and the road painter
+interface PropsHelpers {
+  PPMz: () => number;
+  sx: (wx: number) => number;
+  sy: (wy: number) => number;
+  roundRect: (
+    g: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number
+  ) => void;
+  forSide: ForSide;
+  drawSlip: (pr: Prop, p: number) => void;
+}
+
+export function createProps(view: View, cam: Cam, helpers: PropsHelpers) {
   const {
     PPMz, sx, sy, roundRect, forSide, drawSlip,
   } = helpers;
 
   function drawFence() {
     if (LEVEL.endless) return;   // MEASURED 2026-10-05: ~133k mesh segments + posts per frame along a 100 km edge (55-105 ms frames)
-    for (let i = 0; i < 4; i++) forSide(i, (p, D, Lh) => {
+    for (let i = 0; i < 4; i++) forSide(i, (p: number, D: number, Lh: number) => {
       const y = (D + RUNOFF_W) * p, E = Lh + RUNOFF_W;   // E: the half-length of this side's fence, corners included
       // only the stretch in view (the frame's cam / W from forSide): the long sides are ~1 km of mesh
       const u0 = Math.max(-E, Math.floor((cam.x - view.W / 2 / p) / 4) * 4 - 4), u1 = Math.min(E, cam.x + view.W / 2 / p + 4);
@@ -55,8 +69,8 @@ export function createProps(view, cam, helpers) {
     const list = LEVEL.barriers;
     if (!list || !list.length) return;
     const p = PPMz();
-    const path = (pts) => { view.ctx.beginPath(); pts.forEach(([x, y], i) => (i ? view.ctx.lineTo(sx(x), sy(y)) : view.ctx.moveTo(sx(x), sy(y)))); };
-    const posts = (pts, every, size, col) => {
+    const path = (pts: Point[]) => { view.ctx.beginPath(); pts.forEach(([x, y], i) => (i ? view.ctx.lineTo(sx(x), sy(y)) : view.ctx.moveTo(sx(x), sy(y)))); };
+    const posts = (pts: Point[], every: number, size: number, col: string) => {
       view.ctx.fillStyle = col;
       let acc = 0;
       for (let i = 0; i < pts.length - 1; i++) {
@@ -103,8 +117,8 @@ export function createProps(view, cam, helpers) {
   // drawing on the wall clock (no physics, no state): a few dozen squares per bridge on screen.
   // The RIVER's water is now a real 'wet' cover (lab.js covers: the puddle water, grip and spray, painted into the ground tiles; user:
   // "water seemed to be painted and not our water texture"), so only the boat is drawn here.
-  function drawBridge(pr, p) {
-    const P = (x, y, w, h, col) => { view.ctx.fillStyle = col; view.ctx.fillRect(x * p, y * p, w * p, h * p); };
+  function drawBridge(pr: Prop, p: number) {
+    const P = (x: number, y: number, w: number, h: number, col: string) => { view.ctx.fillStyle = col; view.ctx.fillRect(x * p, y * p, w * p, h * p); };
     const half = (pr.wid || 30) / 2, c = pr.carries, sd = pr.seed || 0;
     if (pr.kind === 'river') {
       if (pr.boat) { const e = (pr.roadHw || half - 9) / Math.cos(pr.skew || 0) + 4; P(e, -1.2, 5, 2.4, '#e9e4d8'); P(e + 1, -0.8, 2, 1.6, '#c8302c'); P(e + 0.2, -1.25, 4.6, 0.2, '#6a7077'); }
@@ -112,7 +126,7 @@ export function createProps(view, cam, helpers) {
     }
     const a0 = half + 3 + ((pr.appL && pr.appL[0]) ?? 0), a1 = half + 3 + ((pr.appL && pr.appL[1]) ?? 0), Lt = a0 + a1, t = performance.now() / 1000 + (pr.phase || 0);
     // a mover at distance d along [-a0, a1] (wrapping), drawn by f(x)
-    const along = (v, k, gap, f) => f((((t * v + k * gap) % Lt) + Lt) % Lt - a0);   // v < 0 runs -x by itself
+    const along = (v: number, k: number, gap: number, f: (x: number) => void) => f((((t * v + k * gap) % Lt) + Lt) % Lt - a0);   // v < 0 runs -x by itself
     const dw = c === 'foot' ? 2.6 : c === 'rail' ? 7 : 9;
     view.ctx.fillStyle = 'rgba(10,12,16,0.32)'; view.ctx.fillRect((-half + 1.5) * p, (-dw / 2 + 2.6) * p, 2 * half * p, dw * p);   // shadow
     P(-half - 4, -dw / 2 - 0.6, 4, dw + 1.2, '#7c7f86'); P(half, -dw / 2 - 0.6, 4, dw + 1.2, '#7c7f86');                 // abutments
@@ -127,7 +141,7 @@ export function createProps(view, cam, helpers) {
       // TRAFFIC both ways (left-hand: +x in the lane at y +1.6): 1-2 cars per direction, 13-17 m/s, spaced along the whole road
       const cols = ['#c8302c', '#2b56b5', '#e9e4d8', '#3f5a3a', '#d6a21e'], n = 1 + (pr.cars || 1);
       for (let k = 0; k < n; k++) { const dir = k % 2 ? -1 : 1, y = dir > 0 ? 1.6 : -1.6, v = dir * (13 + ((sd + k * 7) % 5));
-        along(v, k, Lt / n * 1.7, (x) => { P(x - 2, y - 0.85, 4, 1.7, cols[(k + sd) % 5]); P(x + (dir > 0 ? -0.2 : -1.2), y - 0.7, 1.4, 1.4, 'rgba(20,22,28,0.6)'); P(x + (dir > 0 ? 1.7 : -2), y - 0.7, 0.3, 0.4, '#fff6e6'); P(x + (dir > 0 ? 1.7 : -2), y + 0.3, 0.3, 0.4, '#fff6e6'); }); }
+        along(v, k, Lt / n * 1.7, (x: number) => { P(x - 2, y - 0.85, 4, 1.7, cols[(k + sd) % 5]); P(x + (dir > 0 ? -0.2 : -1.2), y - 0.7, 1.4, 1.4, 'rgba(20,22,28,0.6)'); P(x + (dir > 0 ? 1.7 : -2), y - 0.7, 0.3, 0.4, '#fff6e6'); P(x + (dir > 0 ? 1.7 : -2), y + 0.3, 0.3, 0.4, '#fff6e6'); }); }
     } else if (c === 'rail') {
       // sleepers + rails over the deck and along the ballast approaches (the gravel ribbon in the tiles)
       for (let k = -a0; k < a1; k += 0.9) if (k < -half - 4 || k > half) P(k, -2.4, 0.35, 4.8, '#6e5a44'); else P(k, -dw / 2 + 0.8, 0.35, dw - 1.6, '#6e5a44');
@@ -146,21 +160,21 @@ export function createProps(view, cam, helpers) {
       if (pr.cone) { P(half * 0.2 - 0.35, -0.35, 0.7, 0.7, '#f97316'); P(half * 0.2 - 0.15, -0.15, 0.3, 0.3, '#f2f2f2'); }
       // WALKERS along the deck and the footpath (1.1-1.6 m/s), one now and then with a dog
       for (let k = 0; k < (pr.people || 1) + 1; k++) { const dir = (k + sd) % 2 ? 1 : -1, y = dir > 0 ? 0.35 : -0.35;
-        along(dir * (1.1 + ((sd + k * 3) % 5) * 0.12), k, Lt / ((pr.people || 1) + 1) * 1.3, (x) => { P(x - 0.3, y - 0.3, 0.6, 0.6, ['#c8302c', '#eab308', '#2b56b5', '#3f5a3a'][(k + sd) % 4]); P(x - 0.15, y - 0.15, 0.3, 0.3, '#e8c39e'); if ((k + sd) % 3 === 0) P(x + dir * 0.9 - 0.2, y - 0.15, 0.45, 0.3, '#5a4231'); }); }
+        along(dir * (1.1 + ((sd + k * 3) % 5) * 0.12), k, Lt / ((pr.people || 1) + 1) * 1.3, (x: number) => { P(x - 0.3, y - 0.3, 0.6, 0.6, ['#c8302c', '#eab308', '#2b56b5', '#3f5a3a'][(k + sd) % 4]); P(x - 0.15, y - 0.15, 0.3, 0.3, '#e8c39e'); if ((k + sd) % 3 === 0) P(x + dir * 0.9 - 0.2, y - 0.15, 0.45, 0.3, '#5a4231'); }); }
     }
   }
   // GARAGE ROW (2026-10-04): one strip along the lane from front / back / banner polylines, so it bends with the track
-  function drawGarageRow(pr, p) {
-    if (!pr._bb) { let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity; for (const [x, y] of [...pr.front, ...pr.back]) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); } pr._bb = [x0, y0, x1, y1]; }
+  function drawGarageRow(pr: Prop, p: number) {
+    if (!pr._bb) { let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity; for (const [x, y] of [...pr.front!, ...pr.back!]) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); } pr._bb = [x0, y0, x1, y1]; }
     if (sx(pr._bb[0]) > view.W || sx(pr._bb[2]) < 0 || sy(pr._bb[1]) > view.H || sy(pr._bb[3]) < 0) return;
-    const F = pr.front, B = pr.back, N = pr.banner, n = F.length;
-    const poly = (a, b, col) => { view.ctx.beginPath(); a.forEach(([x, y], i) => (i ? view.ctx.lineTo(sx(x), sy(y)) : view.ctx.moveTo(sx(x), sy(y)))); for (let i = b.length - 1; i >= 0; i--) view.ctx.lineTo(sx(b[i][0]), sy(b[i][1])); view.ctx.closePath(); view.ctx.fillStyle = col; view.ctx.fill(); };
+    const F = pr.front!, B = pr.back!, N = pr.banner!, n = F.length;
+    const poly = (a: Point[], b: Point[], col: string) => { view.ctx.beginPath(); a.forEach(([x, y], i) => (i ? view.ctx.lineTo(sx(x), sy(y)) : view.ctx.moveTo(sx(x), sy(y)))); for (let i = b.length - 1; i >= 0; i--) view.ctx.lineTo(sx(b[i][0]), sy(b[i][1])); view.ctx.closePath(); view.ctx.fillStyle = col; view.ctx.fill(); };
     view.ctx.save();
     view.ctx.translate(0.6 * p, 0.8 * p); poly(F, B, 'rgba(10,12,16,0.40)'); view.ctx.translate(-0.6 * p, -0.8 * p);   // shadow
     poly(F, B, '#5b626b');
     view.ctx.strokeStyle = '#3b4047'; view.ctx.lineWidth = Math.max(1, 0.25 * p);
     for (let i = 0; i < n; i += 2) { view.ctx.beginPath(); view.ctx.moveTo(sx(F[i][0]), sy(F[i][1])); view.ctx.lineTo(sx(B[i][0]), sy(B[i][1])); view.ctx.stroke(); }   // a unit every 5 m
-    view.ctx.beginPath(); F.forEach(([x, y], i) => (i ? view.ctx.lineTo(sx(x), sy(y)) : view.ctx.moveTo(sx(x), sy(y)))); for (let i = n - 1; i >= 0; i--) view.ctx.lineTo(sx(B[i][0]), sy(B[i][1])); view.ctx.closePath(); view.ctx.stroke();
+    view.ctx.beginPath(); F.forEach(([x, y]: Point, i: number) => (i ? view.ctx.lineTo(sx(x), sy(y)) : view.ctx.moveTo(sx(x), sy(y)))); for (let i = n - 1; i >= 0; i--) view.ctx.lineTo(sx(B[i][0]), sy(B[i][1])); view.ctx.closePath(); view.ctx.stroke();
     poly(F, N, '#c8302c');                                                                                      // the banner
     const bh = 0.9 * p;
     if (bh >= 8) {
@@ -175,6 +189,8 @@ export function createProps(view, cam, helpers) {
   // OVERHEAD props span the track ABOVE the cars and are drawn AFTER them. MEASURED BUG (user, 2026-10-03: "the gantry
   // being below cars on the naffcar track"): every prop was drawn before the car, so cars drove OVER the start gantry.
   const OVERHEAD = new Set(['gantry', 'footbridge', 'bridge']);
+  // pr.w, h, seed, label, front, back and banner are optional on Prop, but every kind
+  // that reads them sets them (the ! below)
   function drawProps(overhead = false) {
     if (!PROPS || !PROPS.length) return;
     const p = PPMz();
@@ -385,14 +401,14 @@ export function createProps(view, cam, helpers) {
         // lane side. Top-down: the flat roof with a divider per unit, the banner along the front edge. Squares only (pixel rule).
         // First cut (photographed): a light grey roof vanished into the concrete apron and a 1.3 m banner read as a red wall.
         // Now a dark slate roof with an outline, ribbed per unit, and a 0.9 m banner with the brand once, centred.
-        const gw = pr.w * p, gh = pr.h * p, unit = 5, o = Math.max(1, 0.25 * p);
+        const gw = pr.w! * p, gh = pr.h! * p, unit = 5, o = Math.max(1, 0.25 * p);
         view.ctx.fillStyle = 'rgba(10,12,16,0.40)'; view.ctx.fillRect(-gw / 2 + 0.6 * p, -gh / 2 + 0.8 * p, gw, gh);
         view.ctx.fillStyle = '#3b4047'; view.ctx.fillRect(-gw / 2, -gh / 2, gw, gh);                       // outline
         view.ctx.fillStyle = '#5b626b'; view.ctx.fillRect(-gw / 2 + o, -gh / 2 + o, gw - 2 * o, gh - 2 * o); // roof
         view.ctx.fillStyle = '#666d77';
         for (let y = 1; y < 10; y += 2) view.ctx.fillRect(-gw / 2 + o, -gh / 2 + (gh * y) / 10, gw - 2 * o, Math.max(1, 0.2 * p));   // roof ribs
         view.ctx.fillStyle = '#3b4047';
-        const units = Math.max(1, Math.round(pr.w / unit));
+        const units = Math.max(1, Math.round(pr.w! / unit));
         for (let k = 1; k < units; k++) view.ctx.fillRect(-gw / 2 + (gw * k) / units - o / 2, -gh / 2, o, gh);
         const bh = 0.9 * p;                                                                          // the banner, lane side
         view.ctx.fillStyle = '#c8302c'; view.ctx.fillRect(-gw / 2, -gh / 2, gw, bh);
@@ -416,31 +432,31 @@ export function createProps(view, cam, helpers) {
         view.ctx.fillStyle = '#5a5e66'; view.ctx.fillRect(-0.25 * p, -0.25 * p, 0.5 * p, 0.5 * p);                 // mast
       } else if (pr.kind === 'hangar') {
         // T2-style hangar: corrugated roof (ribs across), a lighter ridge, dark door end. Squares only.
-        const hw = pr.w * p, hh = pr.h * p;
+        const hw = pr.w! * p, hh = pr.h! * p;
         view.ctx.fillStyle = 'rgba(10,12,16,0.40)'; view.ctx.fillRect(-hw / 2 + 1.2 * p, -hh / 2 + 1.6 * p, hw, hh);
         view.ctx.fillStyle = '#7b8188'; view.ctx.fillRect(-hw / 2, -hh / 2, hw, hh);
         view.ctx.fillStyle = '#8c929a'; view.ctx.fillRect(-hw / 2, -hh / 2, hw, hh * 0.5);
-        view.ctx.fillStyle = '#6a7077'; for (let x = -pr.w / 2 + 1; x < pr.w / 2; x += 1.6) view.ctx.fillRect(x * p, -hh / 2, Math.max(1, 0.18 * p), hh);
+        view.ctx.fillStyle = '#6a7077'; for (let x = -pr.w! / 2 + 1; x < pr.w! / 2; x += 1.6) view.ctx.fillRect(x * p, -hh / 2, Math.max(1, 0.18 * p), hh);
         view.ctx.fillStyle = '#a7adb4'; view.ctx.fillRect(-hw / 2, -Math.max(1, 0.2 * p), hw, Math.max(2, 0.4 * p));
         view.ctx.fillStyle = '#3d4249'; view.ctx.fillRect(hw / 2 - 0.8 * p, -hh / 2, 0.8 * p, hh);
       } else if (pr.kind === 'plane') {
         // LIGHT AIRCRAFT, nose along +x: fuselage, wing, tailplane, a coloured stripe
-        const P = (x, y, w, h, col) => { view.ctx.fillStyle = col; view.ctx.fillRect(x * p, y * p, w * p, h * p); };
+        const P = (x: number, y: number, w: number, h: number, col: string) => { view.ctx.fillStyle = col; view.ctx.fillRect(x * p, y * p, w * p, h * p); };
         view.ctx.fillStyle = 'rgba(10,12,16,0.30)'; view.ctx.fillRect(-3.2 * p + 0.8 * p, -0.5 * p + 1.2 * p, 7 * p, 1 * p); view.ctx.fillRect(0.3 * p, -4.5 * p + 1.2 * p, 1.4 * p, 9 * p);
         P(-3.2, -0.5, 7, 1, '#eef0f2'); P(0.3, -4.5, 1.4, 9, '#e3e6ea'); P(-3.2, -1.6, 0.8, 3.2, '#e3e6ea');
         P(-2.6, -0.15, 5.6, 0.3, pr.col || '#c8302c'); P(3.4, -0.3, 0.4, 0.6, '#3a3f47');
       } else if (pr.kind === 'windsock') {
-        const P = (x, y, w, h, col) => { view.ctx.fillStyle = col; view.ctx.fillRect(x * p, y * p, w * p, h * p); };
+        const P = (x: number, y: number, w: number, h: number, col: string) => { view.ctx.fillStyle = col; view.ctx.fillRect(x * p, y * p, w * p, h * p); };
         P(-0.25, -0.25, 0.5, 0.5, '#5a5e66');
         for (let k = 0; k < 4; k++) P(0.25 + k * 0.6, -0.35 + k * 0.04, 0.6, 0.7 - k * 0.08, k % 2 ? '#f2f2f2' : '#f07a1a');
       } else if (pr.kind === 'truck') {
         // RACE TRANSPORTER (paddock): cab + long trailer with a team stripe, nose along +x
-        const P = (x, y, w, h, col) => { view.ctx.fillStyle = col; view.ctx.fillRect(x * p, y * p, w * p, h * p); };
+        const P = (x: number, y: number, w: number, h: number, col: string) => { view.ctx.fillStyle = col; view.ctx.fillRect(x * p, y * p, w * p, h * p); };
         view.ctx.fillStyle = 'rgba(10,12,16,0.35)'; view.ctx.fillRect(-7 * p + 0.6 * p, -1.25 * p + 0.9 * p, 14 * p, 2.5 * p);
         P(-7, -1.25, 11.2, 2.5, '#e6e8eb'); P(-7, -0.35, 11.2, 0.7, pr.col || '#c8302c'); P(4.6, -1.2, 2.4, 2.4, pr.col || '#c8302c'); P(6.2, -1.0, 0.6, 2.0, '#2a3038');
       } else if (pr.kind === 'tree') {
         // a tree from overlapping SQUARES (pixel rule), shade per seed; long shadow first
-        const sz = (pr.s || 4) * p, h = (pr.seed * 9301 + 49297) % 233280 / 233280;
+        const sz = (pr.s || 4) * p, h = (pr.seed! * 9301 + 49297) % 233280 / 233280;
         view.ctx.fillStyle = 'rgba(10,12,16,0.32)'; view.ctx.fillRect(-sz / 2 + 0.25 * sz, -sz / 2 + 0.35 * sz, sz, sz);
         // pal: 'dry' = desert scrub (olive / dust), else conifer greens; snow: white caps on the upper squares (generated stages)
         const cols = pr.pal === 'dry' ? (h < 0.5 ? ['#5b5a2e', '#6f6d38', '#8a8646'] : ['#64552c', '#786a36', '#948548']) : h < 0.5 ? ['#2f5a2a', '#3d6e33', '#4f8240'] : ['#355f2c', '#456f36', '#5a8a45'];
@@ -468,12 +484,12 @@ export function createProps(view, cam, helpers) {
           view.ctx.fillStyle = rr() < 0.5 ? '#e6c3a0' : '#8a5a3c'; view.ctx.fillRect(x - z * 0.22, y - z * 0.22, z * 0.44, z * 0.44); }
       } else if (pr.kind === 'marshal') {
         // MARSHAL POST: small hut, white roof, orange edge
-        const P = (x, y, w, h, col) => { view.ctx.fillStyle = col; view.ctx.fillRect(x * p, y * p, w * p, h * p); };
+        const P = (x: number, y: number, w: number, h: number, col: string) => { view.ctx.fillStyle = col; view.ctx.fillRect(x * p, y * p, w * p, h * p); };
         view.ctx.fillStyle = 'rgba(10,12,16,0.35)'; view.ctx.fillRect(-1.2 * p + 0.4 * p, -1 * p + 0.6 * p, 2.4 * p, 2 * p);
         P(-1.2, -1, 2.4, 2, '#f07a1a'); P(-0.95, -0.75, 1.9, 1.5, '#f2f2f2');
       } else if (pr.kind === 'footbridge') {
         // FOOTBRIDGE over the track (Castle Combe's Avon + Dunlop bridges): deck across (+x), stair towers at the ends, a sponsor band
-        const P = (x, y, w, h, col) => { view.ctx.fillStyle = col; view.ctx.fillRect(x * p, y * p, w * p, h * p); };
+        const P = (x: number, y: number, w: number, h: number, col: string) => { view.ctx.fillStyle = col; view.ctx.fillRect(x * p, y * p, w * p, h * p); };
         const half = (pr.wid || 27) / 2;
         view.ctx.fillStyle = 'rgba(10,12,16,0.30)'; view.ctx.fillRect(-half * p + 1.5 * p, -1.2 * p + 2.4 * p, 2 * half * p, 2.4 * p);   // shadow on the road
         P(-half, -1.2, 2 * half, 2.4, '#8f949c'); P(-half, -1.2, 2 * half, 0.3, '#c9ccd3'); P(-half, 0.9, 2 * half, 0.3, '#5d626d');
@@ -483,54 +499,54 @@ export function createProps(view, cam, helpers) {
         if (p * 1.0 >= 8) { view.ctx.fillStyle = '#ffffff'; view.ctx.font = `900 ${Math.round(p * 1.0)}px Impact, ui-sans-serif, sans-serif`; view.ctx.textAlign = 'center'; view.ctx.textBaseline = 'middle'; if (Math.cos(pr.rot || 0) < 0) view.ctx.rotate(Math.PI); /* never upside down (photographed) */ view.ctx.fillText(pr.label || '', 0, 0.05 * p, half * 1.05 * p); }
       } else if (pr.kind === 'sculpture') {
         // the red steel SCULPTURE by the start line (photo): a crown of red squares, orange core, long shadow (it is tall)
-        const P = (x, y, w, h, col) => { view.ctx.fillStyle = col; view.ctx.fillRect(x * p, y * p, w * p, h * p); };
+        const P = (x: number, y: number, w: number, h: number, col: string) => { view.ctx.fillStyle = col; view.ctx.fillRect(x * p, y * p, w * p, h * p); };
         view.ctx.fillStyle = 'rgba(10,12,16,0.32)'; view.ctx.fillRect(0.2 * p, 0.2 * p, 3.2 * p, 1.6 * p);
         for (const [x, y] of [[-1.1, -1.1], [0.3, -1.3], [0.7, -0.2], [-0.1, 0.6], [-1.2, 0.1]]) P(x, y, 0.8, 0.8, '#d6331f');
         P(-0.4, -0.4, 0.8, 0.8, '#f07a1a');
       } else if (pr.kind === 'block') {
         // a flat-roofed BUILDING (clubhouse, offices): roof colour, parapet, rooftop plant, optional name on the roof
-        const P = (x, y, w, h, col) => { view.ctx.fillStyle = col; view.ctx.fillRect(x * p, y * p, w * p, h * p); };
-        const w2 = pr.w / 2, h2 = pr.h / 2;
-        view.ctx.fillStyle = 'rgba(10,12,16,0.40)'; view.ctx.fillRect(-w2 * p + 1.2 * p, -h2 * p + 1.6 * p, pr.w * p, pr.h * p);
-        P(-w2, -h2, pr.w, pr.h, '#3b4047'); P(-w2 + 0.4, -h2 + 0.4, pr.w - 0.8, pr.h - 0.8, pr.roof || '#5b626b');
+        const P = (x: number, y: number, w: number, h: number, col: string) => { view.ctx.fillStyle = col; view.ctx.fillRect(x * p, y * p, w * p, h * p); };
+        const w2 = pr.w! / 2, h2 = pr.h! / 2;
+        view.ctx.fillStyle = 'rgba(10,12,16,0.40)'; view.ctx.fillRect(-w2 * p + 1.2 * p, -h2 * p + 1.6 * p, pr.w! * p, pr.h! * p);
+        P(-w2, -h2, pr.w!, pr.h!, '#3b4047'); P(-w2 + 0.4, -h2 + 0.4, pr.w! - 0.8, pr.h! - 0.8, pr.roof || '#5b626b');
         P(w2 - 4, -h2 + 1.2, 2.4, 1.8, '#9aa0a8'); P(w2 - 3.6, -h2 + 1.5, 1.6, 1.2, '#7c828a');
         // a CHURCH (highway.js village): a square tower at the west end of the nave, with a little cross; a HOUSE: a ridge line, no rooftop plant
         if (pr.church) { P(-w2 - 2.6, -2, 4, 4, '#3b4047'); P(-w2 - 2.3, -1.7, 3.4, 3.4, '#8f8a80'); P(-w2 - 0.8, -0.8, 0.4, 1.6, '#3b4047'); P(-w2 - 1.2, -0.2, 1.2, 0.4, '#3b4047'); }
-        if (pr.house || pr.church) P(-w2 + 0.4, -0.08, pr.w - 0.8, 0.16, 'rgba(20,22,28,0.35)');
-        if (pr.label && p * 1.4 >= 9) { view.ctx.fillStyle = 'rgba(255,255,255,0.85)'; view.ctx.font = `900 ${Math.round(p * 1.4)}px Impact, ui-sans-serif, sans-serif`; view.ctx.textAlign = 'center'; view.ctx.textBaseline = 'middle'; if (Math.cos(pr.rot || 0) < 0) view.ctx.rotate(Math.PI); view.ctx.fillText(pr.label, 0, 0.6 * p, pr.w * 0.8 * p); }
+        if (pr.house || pr.church) P(-w2 + 0.4, -0.08, pr.w! - 0.8, 0.16, 'rgba(20,22,28,0.35)');
+        if (pr.label && p * 1.4 >= 9) { view.ctx.fillStyle = 'rgba(255,255,255,0.85)'; view.ctx.font = `900 ${Math.round(p * 1.4)}px Impact, ui-sans-serif, sans-serif`; view.ctx.textAlign = 'center'; view.ctx.textBaseline = 'middle'; if (Math.cos(pr.rot || 0) < 0) view.ctx.rotate(Math.PI); view.ctx.fillText(pr.label, 0, 0.6 * p, pr.w! * 0.8 * p); }
       } else if (pr.kind === 'chevron') {
         // RALLY CHEVRON BOARD (black + yellow arrows), placed on the outside of a corner, arrows pointing the way it turns (+x).
         // Drawn at 1.6x (photographed: at 3.2 m it was a smudge beside the bales)
         view.ctx.scale(1.6, 1.6);
-        const P = (x, y, w, h, col) => { view.ctx.fillStyle = col; view.ctx.fillRect(x * p, y * p, w * p, h * p); };
+        const P = (x: number, y: number, w: number, h: number, col: string) => { view.ctx.fillStyle = col; view.ctx.fillRect(x * p, y * p, w * p, h * p); };
         view.ctx.fillStyle = 'rgba(10,12,16,0.32)'; view.ctx.fillRect(-1.6 * p + 0.3 * p, -0.25 * p + 0.5 * p, 3.2 * p, 0.5 * p);
         P(-1.6, -0.25, 3.2, 0.5, '#15171c');
         for (let k = 0; k < 3; k++) { P(-1.25 + k * 1.0, -0.2, 0.25, 0.15, '#f2c21b'); P(-1.0 + k * 1.0, -0.075, 0.25, 0.15, '#f2c21b'); P(-1.25 + k * 1.0, 0.05, 0.25, 0.15, '#f2c21b'); }
       } else if (pr.kind === 'bale') {
         // ROUND HAY BALE from the top: a straw square with a darker spiral ring (squares — the pixel rule)
-        const P = (x, y, w, h, col) => { view.ctx.fillStyle = col; view.ctx.fillRect(x * p, y * p, w * p, h * p); };
+        const P = (x: number, y: number, w: number, h: number, col: string) => { view.ctx.fillStyle = col; view.ctx.fillRect(x * p, y * p, w * p, h * p); };
         view.ctx.fillStyle = 'rgba(10,12,16,0.30)'; view.ctx.fillRect(-0.8 * p + 0.3 * p, -0.8 * p + 0.45 * p, 1.6 * p, 1.6 * p);
         P(-0.8, -0.8, 1.6, 1.6, '#c9a85a'); P(-0.55, -0.55, 1.1, 1.1, '#b48f45'); P(-0.3, -0.3, 0.6, 0.6, '#d8bb6e'); P(-0.08, -0.08, 0.16, 0.16, '#9a7836');
       } else if (pr.kind === 'flag') {
         // a FLAG on a pole: pole square + a pennant blowing in +x, with a long shadow
-        const P = (x, y, w, h, col) => { view.ctx.fillStyle = col; view.ctx.fillRect(x * p, y * p, w * p, h * p); };
+        const P = (x: number, y: number, w: number, h: number, col: string) => { view.ctx.fillStyle = col; view.ctx.fillRect(x * p, y * p, w * p, h * p); };
         view.ctx.fillStyle = 'rgba(10,12,16,0.28)'; view.ctx.fillRect(0.2 * p, 0.1 * p, 1.8 * p, 0.6 * p);
         P(-0.15, -0.15, 0.3, 0.3, '#3a3f47'); P(0.15, -0.55, 1.3, 0.75, pr.col || '#c8302c'); P(0.15, -0.55, 1.3, 0.12, 'rgba(255,255,255,0.35)');
       } else if (pr.kind === 'bridge' || pr.kind === 'river') { drawBridge(pr, p);
       } else if (pr.kind === 'slipcount') {
         // the 300 / 200 / 100 yd COUNTDOWN posts before an exit: white with red diagonal bars (squares, not circles)
-        const P = (x, y, w, h, col) => { view.ctx.fillStyle = col; view.ctx.fillRect(x * p, y * p, w * p, h * p); };
+        const P = (x: number, y: number, w: number, h: number, col: string) => { view.ctx.fillStyle = col; view.ctx.fillRect(x * p, y * p, w * p, h * p); };
         P(-0.5, -1.0, 1.2, 2.2, 'rgba(10,12,16,0.35)'); P(-0.6, -1.1, 1.2, 2.2, '#f2f2f2');
         for (let k = 0; k < (pr.bars || 1); k++) P(-0.6, -0.95 + k * 0.7, 1.2, 0.35, '#c8302c');
       } else if (pr.kind === 'gate') {
         // a FIELD GATE where the slip road ends (wooden 5-bar, posts either side)
-        const P = (x, y, w, h, col) => { view.ctx.fillStyle = col; view.ctx.fillRect(x * p, y * p, w * p, h * p); };
+        const P = (x: number, y: number, w: number, h: number, col: string) => { view.ctx.fillStyle = col; view.ctx.fillRect(x * p, y * p, w * p, h * p); };
         P(-3.4, -0.2, 6.8, 0.6, 'rgba(10,12,16,0.35)'); P(-3.2, -0.35, 0.5, 0.7, '#3a2d21'); P(2.7, -0.35, 0.5, 0.7, '#3a2d21');
         for (let k = 0; k < 3; k++) P(-2.7, -0.25 + k * 0.22, 5.4, 0.1, '#b48a5a');
       } else if (pr.kind === 'solarfarm') {
         // the SMILEY SOLAR FARM (a cheeky extra): rows of dark blue panels laid out as a smiling face, seen from above
-        const P = (x, y, w, h, col) => { view.ctx.fillStyle = col; view.ctx.fillRect(x * p, y * p, w * p, h * p); };
-        const cell = (cx, cy) => { P(cx * 2.4 - 1.1, cy * 2.4 - 0.9, 2.2, 1.8, '#1b2b55'); P(cx * 2.4 - 1.1, cy * 2.4 - 0.9, 2.2, 0.35, '#5f7fc4'); };
+        const P = (x: number, y: number, w: number, h: number, col: string) => { view.ctx.fillStyle = col; view.ctx.fillRect(x * p, y * p, w * p, h * p); };
+        const cell = (cx: number, cy: number) => { P(cx * 2.4 - 1.1, cy * 2.4 - 0.9, 2.2, 1.8, '#1b2b55'); P(cx * 2.4 - 1.1, cy * 2.4 - 0.9, 2.2, 0.35, '#5f7fc4'); };
         for (const [cx, cy] of [[-3, -3], [-2, -3], [2, -3], [3, -3], [-3, -2], [-2, -2], [2, -2], [3, -2]]) cell(cx, cy);   // eyes
         for (const [cx, cy] of [[-5, 1], [-4, 2], [-3, 3], [-2, 3], [-1, 4], [0, 4], [1, 4], [2, 3], [3, 3], [4, 2], [5, 1]]) cell(cx, cy);   // grin
       } else if (pr.kind === 'board') {
@@ -545,7 +561,7 @@ export function createProps(view, cam, helpers) {
         // Signboard body with colored accent border
         view.ctx.fillStyle = pr.blue ? '#1f4fa8' : '#14161c';   // blue = a motorway EXIT sign (highway.js slip roads)
         view.ctx.fillRect(-bw / 2, -bh / 2, bw, bh);
-        view.ctx.strokeStyle = pr.blue ? '#ffffff' : pr.label.includes('SPUM') ? '#eab308' : pr.label.includes('CREEM') ? '#38bdf8' : '#f97316';
+        view.ctx.strokeStyle = pr.blue ? '#ffffff' : pr.label!.includes('SPUM') ? '#eab308' : pr.label!.includes('CREEM') ? '#38bdf8' : '#f97316';
         view.ctx.lineWidth = 1.8; view.ctx.strokeRect(-bw / 2, -bh / 2, bw, bh);
         // Sponsor typography with punchy contrast
         view.ctx.fillStyle = '#ffffff';
