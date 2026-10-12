@@ -30,6 +30,7 @@ export interface Surface {
   hard?: boolean;
   coolK?: number;
   heatK?: number;
+  under?: string;   // what a snow / ice / wet surface lies on; a puddle's base id
 }
 
 export interface Paint {
@@ -168,7 +169,106 @@ export interface CarBody {
   heading: number;
   yawRate: number;
   shake: number;
-  spec: { len: number; wid: number };
+  spec: { len: number; wid: number; lf: number; lr: number; mass: number; trackWidth?: number };
+  t: { slipSpeedF: number; slipSpeedR: number };
+  air: number;
+  surface: Surface;
+  tyreT?: number[];
+  prevWheels: Wheel[] | null;   // null after a reset; stepWear sets it
+  zF: number;
+  zR: number;
+  zvF: number;
+  zvR: number;
+  groundF: number;
+  groundR: number;
+  groundVF: number;
+  groundVR: number;
+  groundInit: boolean;
+  slopeLat?: number;   // set by applyGround
+  slopeLong?: number;   // set by applyGround
+  slopeYaw?: number;   // set by applyGround
+  bankLatForce?: number;   // set by applyGround
+  bankLoadFactor?: number;   // set by applyGround
+  mods: { mass: number };
+}
+
+// One wheel's contact point in the world, metres.
+export interface Wheel {
+  x: number;
+  y: number;
+}
+
+// A cover lying on the ground (LEVEL.covers); 'wet' is a puddle.
+export type CoverId = 'snow' | 'ice' | 'wet';
+
+// A cover's cut-out band (highway.js river parapets).
+export interface CoverCut {
+  ox: number;
+  oy: number;
+  tn: number;
+  e: number;
+}
+
+// One entry of LEVEL.covers.
+export interface Cover {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  cover: CoverId;
+  shape?: 'rect' | 'ellipse';
+  rot?: number;
+  cut?: CoverCut;
+  _co?: number;   // coverAt caches for rotated covers
+  _si?: number;
+}
+
+// One entry of LEVEL.patches / PATCH_GRID: a spot of a different base laid on the ground.
+export interface Patch {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  surface: Surface;
+  sq?: boolean;
+  rot?: number;
+}
+
+// One entry of LEVEL.obstacles: an axis-aligned solid box.
+export interface Obstacle {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+// One cell of the wear map (wear.ts): two layers, base and cover.
+export interface WearCell {
+  cx: number;
+  cy: number;
+  base: string;
+  cover: string | null;
+  orig: string;
+  passes: number;
+  scrub: number;
+  dry: number;
+  standing: boolean;
+  lastSeenTime: number;
+  current?: string;   // set right after the cell is made
+  rut?: number;
+}
+
+// What layersAt returns: the static layers at a point, before any wear.
+export interface Layers {
+  base: string;
+  cover: string | null;
+  standing: boolean;
+}
+
+// What groundAt returns: height in metres and the surface there.
+export interface Ground {
+  h: number;
+  surface: Surface;
 }
 
 export type BarrierKind = 'armco' | 'wall' | 'pitwall' | 'fence' | 'building' | 'line';
@@ -226,6 +326,8 @@ export interface Level {
   camber?: Camber;
   _bumpGridOf?: Bump[] | null;   // terrain.ts bumpAt: the list the grid was built from
   _bumpGrid?: Map<number, Bump[]>;   // terrain.ts bumpAt
+  covers?: Cover[];
+  obstacles?: Obstacle[];
 }
 
 // One resampled centre-line point of a subtrack.

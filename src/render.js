@@ -17,7 +17,7 @@ import { CONE_R } from "./world/tyrewall.ts";
 import { COL } from "./world/colours.ts";
 import { VERGE_W } from "./world/surfaces.ts";
 import { BARRIER_HALF } from "./world/barriers.ts";
-import { wearMap, WEAR_CELL, wearDirty, wearEpoch, groundAt, coverCut } from "./world/wear.js";
+import { wearMap, WEAR_CELL, wearDirty, wearEpoch, groundAt, coverCut } from "./world/wear.ts";
 import { visualSlopeAt, visualHeightAt } from "./world/terrain.ts";
 import { MARK_PPM, MARK_EXTENT } from './marks.js';
 

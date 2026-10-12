@@ -21,7 +21,7 @@ import { LEVELS } from "./world/levels/index.js";
 import { prepBumps, clearNaturalCache } from "./world/terrain.ts";
 import { prepBarriersOf, solidsFromProps } from "./world/barriers.ts";
 import { onTrack } from "./world/tyrewall.ts";
-import { zoneSurfaceAt, pruneWear } from "./world/wear.js";
+import { zoneSurfaceAt, pruneWear } from "./world/wear.ts";
 
 // lanes / laneW / shoulder (left, hard shoulder; a solid line inside it when >= 2 m) / edge (right margin) in m; maxDeg off straight up;
 // sweep / bend = radius ranges (m); pStraight / pBend = chance an element is a straight / a tight bend (else a sweeper)

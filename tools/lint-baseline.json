@@ -258,7 +258,7 @@
     "id-length": 50,
     "max-len": 25
   },
-  "src/world/wear.js": {
+  "src/world/wear.ts": {
     "complexity": 2,
     "id-length": 107,
     "max-len": 125,

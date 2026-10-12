@@ -2,7 +2,7 @@
 import { KERB_RIDGE, KERB_RIDGE_L } from "./bounds.ts";
 import { LEVEL } from "./state.ts";
 import { querySubtrack } from "./tyrewall.ts";
-import { rutAt, layersAt } from "./wear.js";
+import { rutAt, layersAt } from "./wear.ts";
 import type { Bump, Camber, Level, NatCell, Slope, Subtrack, SubtrackHit } from "./types.ts";
 
 // What a bump profile reads. Every kind always has the fields it uses (the "!" below),

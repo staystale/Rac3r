@@ -1,7 +1,7 @@
 // tyrewall.js - the OUTER TYRE WALL section. Moved verbatim out of lab.js.
 import { SUB_CELL } from "./subtrack.ts";
 import { COURSE, GATE, GATE_SPACING, smoothPath } from "./course.ts";
-import { qsHintSub, qsHint } from "./wear.js";
+import { qsHintSub, qsHint } from "./wear.ts";
 import type {
   Cone, Point, Prop, Subtrack, SubtrackHit, TrackPoint, TyreWallOptions, ClearBox,
 } from "./types.ts";
@@ -80,14 +80,13 @@ export function querySubtrack(subtrack: Subtrack, px: number, py: number): Subtr
   if (!subtrack || !subtrack.segs) return { dist: Infinity, side: 'left', trackDist: 0 };
   const segs = subtrack.segs;
   if (subtrack === qsHintSub) {
-    // (subtrack as Subtrack): qsHintSub is typed null in wear.js, so === narrows subtrack to never
-    const n = segs.length, lim = ((subtrack as Subtrack).width / 2 + 3) ** 2;
+    const n = segs.length, lim = (subtrack.width / 2 + 3) ** 2;
     let bd = Infinity, bi = -1, bt = 0;
     for (let o = -21; o <= 21; o++) { const i = (qsHint + o + n) % n, sg = segs[i]; if (sg.ghost) continue;
       let t = ((px - sg.ax) * sg.dx + (py - sg.ay) * sg.dy) / (sg.l2 || 1); if (t < 0) t = 0; else if (t > 1) t = 1;
       const ex = px - (sg.ax + t * sg.dx), ey = py - (sg.ay + t * sg.dy), d = ex * ex + ey * ey; if (d < bd) { bd = d; bi = i; bt = t; } }
     if (bd < lim) { const sg = segs[bi], cross = sg.dx * (py - sg.ay) - sg.dy * (px - sg.ax);
-      return { dist: Math.sqrt(bd), side: cross > 0 ? 'left' : 'right', trackDist: (subtrack as Subtrack).pts[bi].dist + bt * sg.len,
+      return { dist: Math.sqrt(bd), side: cross > 0 ? 'left' : 'right', trackDist: subtrack.pts[bi].dist + bt * sg.len,
         seg: bi }; }
   }
   let minD = Infinity;

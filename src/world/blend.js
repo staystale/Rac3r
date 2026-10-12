@@ -1,7 +1,7 @@
 import { FLOOR, KERB_W, edgeOut } from "./bounds.ts";
 import { SURFACES } from "./surfaces.ts";
 import { zoneAt } from "./zones.ts";
-import { COVER_IDS } from "./wear.js";
+import { COVER_IDS } from "./wear.ts";
 import { querySubtrack } from "./tyrewall.ts";
 // =============================================================================================
 // SURFACE BLENDING AT CHANGE POINTS (user, 2026-10-03: "sections of surfaces should rarely come to abrupt

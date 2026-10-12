@@ -1,6 +1,6 @@
 import { RUNOFF_MU, RUNOFF_ROUGH, KERB_MU } from "./bounds.ts";
 import type { Mark, Spray, Surface } from "./types.ts";
-type SurfaceId =
+export type SurfaceId =
   | "lab" | "racetarmac" | "tarmac" | "dirt" | "gravel" | "grass" | "grassShort" | "grassLong"
   | "kerb" | "ice" | "packedSnow" | "snow" | "wet" | "mud" | "thickMud" | "broken" | "concrete"
   | "sand";
