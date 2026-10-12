@@ -15,7 +15,7 @@
 
 import "./world/load.js";   // the world is set up before this file runs (as importing lab.js did)
 import { COL } from "./world/colours.ts";
-import { LEVEL } from "./world/state.js";
+import { LEVEL } from "./world/state.ts";
 
 const M = 12;
 const KEY = 'carsim.guideSeen';

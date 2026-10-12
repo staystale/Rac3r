@@ -235,7 +235,7 @@
     "id-length": 38,
     "max-len": 35
   },
-  "src/world/state.js": {
+  "src/world/state.ts": {
     "max-len": 3
   },
   "src/world/subtrack.js": {

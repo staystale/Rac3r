@@ -1,5 +1,5 @@
 import { setFloor, setRect } from "./bounds.js";
-import { LEVEL, setActiveLevel } from "./state.js";
+import { LEVEL, setActiveLevel } from "./state.ts";
 import { SURFACES, SURFACE_TRAP } from "./surfaces.js";
 import { alongTrack, prepBarriers } from "./barriers.js";
 import { autoKerbs } from "./subtrack.js";

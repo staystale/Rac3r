@@ -1,5 +1,5 @@
 // barriers.js - the BARRIERS section (barriers, solid props, clamps). Moved verbatim out of lab.js.
-import { LEVEL } from "./state.js";
+import { LEVEL } from "./state.ts";
 
 // =============================================================================================
 // BARRIERS (2026-10-03; user: "use aerial photos of tracks on race days for pit layouts and perimeter decorations — if you

@@ -1,5 +1,5 @@
 // zones.js - the ZONES section. Moved verbatim out of lab.js.
-import { LEVEL } from "./state.js";
+import { LEVEL } from "./state.ts";
 import { SURFACES } from "./surfaces.js";
 import { querySubtrack } from "./tyrewall.js";
 

@@ -4,7 +4,7 @@
 // A proving-ground floor: pale, bounded by a hazard kerb (A4), with painted figures that give the eye
 // something to measure speed and drift angle against, and cones to aim at.
 export * from "./world/bounds.js";
-export * from "./world/state.js";
+export * from "./world/state.ts";
 export * from "./world/surfaces.js";
 export * from "./world/barriers.js";
 export * from "./world/course.js";
