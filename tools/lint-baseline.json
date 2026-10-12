@@ -253,7 +253,7 @@
     "id-length": 111,
     "max-len": 73
   },
-  "src/world/tyrewall.js": {
+  "src/world/tyrewall.ts": {
     "complexity": 1,
     "id-length": 50,
     "max-len": 25
@@ -264,7 +264,7 @@
     "max-len": 125,
     "no-shadow": 1
   },
-  "src/world/zones.js": {
+  "src/world/zones.ts": {
     "complexity": 1,
     "id-length": 36,
     "max-len": 16

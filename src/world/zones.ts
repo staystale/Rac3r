@@ -1,7 +1,8 @@
 // zones.js - the ZONES section. Moved verbatim out of lab.js.
 import { LEVEL } from "./state.ts";
 import { SURFACES } from "./surfaces.ts";
-import { querySubtrack } from "./tyrewall.js";
+import type { Surface } from "./types.ts";
+import { querySubtrack } from "./tyrewall.ts";
 
 // ---------------------------------------------------------------------------------------------
 // ZONES — every patch of surface on the floor, as ONE mechanism. A zone is a centred rectangle with a
@@ -12,14 +13,14 @@ import { querySubtrack } from "./tyrewall.js";
 // `boxed` only affects DRAWING — a rim and a painted name, for a test panel you are meant to aim at.
 export const PAD_APRON = 1.2;   // m of tarmac round a rounded test pad (drawn by render.js drawZones)
 // |dx|, |dy| from the centre inside a rectangle of half-size hw x hh with corner radius R
-function inRoundRect(dx, dy, hw, hh, R) {
+function inRoundRect(dx: number, dy: number, hw: number, hh: number, R: number): boolean {
   if (dx > hw || dy > hh) return false;
   const ix = dx - (hw - R), iy = dy - (hh - R);
   return ix <= 0 || iy <= 0 || ix * ix + iy * iy <= R * R;
 }
 // LANES (2026-10-04, Thruston pit lane): LEVEL.lanes [{ pts: [[x,y]...] open polyline, width, surface }] — a ribbon of one surface
 // along a path, for pit lanes and access roads. Drawn by render.js drawLanes from the same pts and width.
-export function laneAt(x, y) {
+export function laneAt(x: number, y: number): Surface | null {
   const list = LEVEL.lanes;
   if (!list) return null;
   for (const ln of list) {
@@ -32,7 +33,8 @@ export function laneAt(x, y) {
       }
       const h = ln.width / 2; ln._bb = [x0 - h, y0 - h, x1 + h, y1 + h];
     }
-    const b = ln._bb; if (x < b[0] || x > b[2] || y < b[1] || y > b[3]) continue;
+    const b = ln._bb!;   // set above on first visit
+    if (x < b[0] || x > b[2] || y < b[1] || y > b[3]) continue;
     const h2 = (ln.width / 2) ** 2;
     for (const g of ln._segs) {
       let t = ((x - g.ax) * g.dx + (y - g.ay) * g.dy) / g.l2; t = t < 0 ? 0 : t > 1 ? 1 : t;
@@ -42,7 +44,7 @@ export function laneAt(x, y) {
   }
   return null;
 }
-export function zoneAt(x, y) {
+export function zoneAt(x: number, y: number): Surface {
   // 1. If on a circuit with defined track sectors: road ribbon has continuous sector texturing & curved kerbs
   if (LEVEL.subtrack && LEVEL.subtrack.sectors && LEVEL.subtrack.sectors.length > 0) {
     const q = querySubtrack(LEVEL.subtrack, x, y);
@@ -85,11 +87,11 @@ export function zoneAt(x, y) {
       const dx = x - q.x, dy = y - q.y;
       if (q._r === undefined) { q._r = Math.hypot(q.w, q.h) / 2; q._co = Math.cos(q.rot); q._si = Math.sin(q.rot); }
       if (dx * dx + dy * dy > q._r * q._r) continue;
-      const co = q._co, si = q._si;
+      const co = q._co!, si = q._si!;   // set just above
       if (Math.abs(dx * co + dy * si) <= q.w / 2 && Math.abs(-dx * si + dy * co) <= q.h / 2) return q.surface;
       continue;
     }
     if (Math.abs(x - q.x) <= q.w / 2 && Math.abs(y - q.y) <= q.h / 2) return q.surface;
   }
-  return LEVEL.base;
+  return LEVEL.base!;   // every level sets base
 }

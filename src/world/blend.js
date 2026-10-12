@@ -1,8 +1,8 @@
 import { FLOOR, KERB_W, edgeOut } from "./bounds.ts";
 import { SURFACES } from "./surfaces.ts";
-import { zoneAt } from "./zones.js";
+import { zoneAt } from "./zones.ts";
 import { COVER_IDS } from "./wear.js";
-import { querySubtrack } from "./tyrewall.js";
+import { querySubtrack } from "./tyrewall.ts";
 // =============================================================================================
 // SURFACE BLENDING AT CHANGE POINTS (user, 2026-10-03: "sections of surfaces should rarely come to abrupt
 // changes — a blend area where random patches of the under layer show through and the top layer drags over;

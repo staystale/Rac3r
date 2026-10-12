@@ -3,10 +3,10 @@ import { LEVEL, setActiveLevel } from "./state.ts";
 import { SURFACES, SURFACE_TRAP } from "./surfaces.ts";
 import { alongTrack, prepBarriers } from "./barriers.ts";
 import { autoKerbs } from "./subtrack.ts";
-import { laneAt } from "./zones.js";
+import { laneAt } from "./zones.ts";
 import { resetNatLevel } from "./terrain.js";
 import { PATCH_CELL, patchKey, PATCH_GRID, resetPATCH_GRID, HEAT_OFFROAD } from "./wear.js";
-import { onTrack, querySubtrack } from "./tyrewall.js";
+import { onTrack, querySubtrack } from "./tyrewall.ts";
 import { buildBlend, seededRng, buildInclusions } from "./blend.js";
 import { LEVELS } from "./levels/index.js";
 function prepareLevel() {

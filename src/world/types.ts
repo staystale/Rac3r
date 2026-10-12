@@ -87,6 +87,9 @@ export interface Zone {
   hedge?: boolean;
   field?: number;
   _s?: number;
+  _r?: number;   // zoneAt caches for rotated zones
+  _co?: number;
+  _si?: number;
 }
 
 export interface Bump {
@@ -216,6 +219,8 @@ export interface Level {
   bounds?: Rect;
   floor?: number;
   subtrack?: Subtrack;
+  lanes?: Lane[];
+  base?: Surface;
 }
 
 // One resampled centre-line point of a subtrack.
@@ -304,4 +309,36 @@ export interface TraceOptions {
   rMin?: number;
   passes?: number;
   kern?: number;
+}
+// A ribbon of one surface along an open polyline (pit lanes, access roads).
+// _segs/_bb are cached by laneAt.
+export interface Lane {
+  pts: Point[];
+  width: number;
+  surface: Surface;
+  _segs?: { ax: number; ay: number; dx: number; dy: number; l2: number }[];
+  _bb?: [number, number, number, number];
+}
+
+// What querySubtrack returns; seg is absent on the no-subtrack early return, null off the grid.
+export interface SubtrackHit {
+  dist: number;
+  side: 'left' | 'right';
+  trackDist: number;
+  seg?: number | null;
+}
+
+// Options of outerTyreWall (all optional; defaults in tyrewall.ts).
+export interface TyreWallOptions {
+  margin?: number;
+  spacing?: number;
+  clear?: ClearBox[];
+}
+
+// A box {x, y, hw, hh} the tyre wall must leave a gap round.
+export interface ClearBox {
+  x: number;
+  y: number;
+  hw: number;
+  hh: number;
 }

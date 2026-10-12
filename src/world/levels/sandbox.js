@@ -1,7 +1,7 @@
 import { SURFACES } from "../surfaces.ts";
 import { createSubtrack } from "../subtrack.ts";
 import { prepBumps } from "../terrain.js";
-import { courseCones } from "../tyrewall.js";
+import { courseCones } from "../tyrewall.ts";
 // =============================================================================================
 // THE SURFACE SANDBOX — REBUILT 2026-10-03 as a real circuit (user: "rebuild the surface sandbox to cover all
 // surface types, cones, tyres and make it similar to the test track in the sense it's a real track with lap

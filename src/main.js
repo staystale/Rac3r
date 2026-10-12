@@ -36,7 +36,7 @@ import { applyGround, fenceClamp, obstacleClamp, clearWear } from "./world/wear.
 import { barrierClamp, solidClamp } from "./world/barriers.ts";
 import { LEVELS } from "./world/levels/index.js";
 import { FENCE } from "./world/bounds.ts";
-import { findNearestSubtrackPoint, onTrack, querySubtrack } from "./world/tyrewall.js";
+import { findNearestSubtrackPoint, onTrack, querySubtrack } from "./world/tyrewall.ts";
 
 const qs = new URLSearchParams(location.search);
 const DEV = qs.has('dev');

@@ -21,7 +21,7 @@ import { parkMiller } from "./core/random.ts";
 import { debugValue, envValue } from "./core/debug.ts";
 import "./world/load.js";   // the world is set up before this file runs (as importing lab.js did)
 import { groundAt } from "./world/wear.js";
-import { querySubtrack } from "./world/tyrewall.js";
+import { querySubtrack } from "./world/tyrewall.ts";
 import { GRAVITY } from './cars.js';
 import { CAR_STATS } from './carstats.js';
 import { roadFrame, roadPose, roadSpan } from './highway.js';

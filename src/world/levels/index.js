@@ -2,7 +2,7 @@ import { FLOOR } from "../bounds.ts";
 import { SURFACES } from "../surfaces.ts";
 import { alongTrack, solidsFromProps } from "../barriers.ts";
 import { LAB_BOUNDS, LAB_OFFROAD_BUMPS } from "./lab-extension.js";
-import { onTrack, propClearance } from "../tyrewall.js";
+import { onTrack, propClearance } from "../tyrewall.ts";
 import {
   SB_SUBTRACK, SB_CONES, SB_COVERS, SB_ZONES, SB_BUMPS, SB_PAINT, SB_BOARDS, SB_PROPS, SB_SPAWN,
 } from "./sandbox.js";
@@ -30,7 +30,7 @@ import {
 import { BH_GP_LEVEL, BH_INDY_LEVEL } from "./brands-snatch.js";
 import { LAB_PAINT, LAB_BOARDS } from "../barriers.ts";
 import { prepBumps } from "../terrain.js";
-import { courseCones, slalom, outerTyreWall } from "../tyrewall.js";
+import { courseCones, slalom, outerTyreWall } from "../tyrewall.ts";
 import {
   LAB_LANE_ZONES, LAB_OFFROAD_ZONES, LAB_EXT_PAINT, LAB_EXT_BOARDS, LAB_CRASH_OBJECTS,
 } from "./lab-extension.js";

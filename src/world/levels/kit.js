@@ -2,7 +2,7 @@ import { parkMiller } from "../../core/random.ts";
 import { alongTrack, smoothOnTrack } from "../barriers.ts";
 import { autoKerbs } from "../subtrack.ts";
 import { FLOOR } from "../bounds.ts";
-import { onTrack, querySubtrack } from "../tyrewall.js";
+import { onTrack, querySubtrack } from "../tyrewall.ts";
 export const ss01 = (x) => (x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x));
 
 // TRACK KIT (2026-10-04, written for Castle Cum after doing Thruston by hand): decorate a traced circuit by DISTANCE + OFFSET

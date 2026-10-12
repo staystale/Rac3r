@@ -2,7 +2,7 @@ import { alongTrack } from "../barriers.ts";
 import { autoKerbs, createSubtrack, traceTrack } from "../subtrack.ts";
 import { SURFACES } from "../surfaces.ts";
 import { prepBumps } from "../terrain.js";
-import { onTrack } from "../tyrewall.js";
+import { onTrack } from "../tyrewall.ts";
 import { trackKit } from "./kit.js";
 // =============================================================================================
 // KILLDER — parody of the Kielder Forest rally stages (Northumberland). Built 2026-10-04. DECIDED (user): "FAST + FLOWING"; "be LIBERAL

@@ -4,9 +4,9 @@ import { SURFACES, MARK_WET, SPRAY_WET, VERGE_W, TRAP_STEPS, SURFACE_TRAP } from
 import {
   FX1, FX0, FY1, FY0, KERB_W, KERB_H, KERB_RIDGE, KERB_RIDGE_L, RUNOFF_W, RUNOFF_ROUGH,
 } from "./bounds.ts";
-import { zoneAt } from "./zones.js";
+import { zoneAt } from "./zones.ts";
 import { bumpAt, slopeAt, heightAt, bankHeightAt, BUMP_STEER } from "./terrain.js";
-import { querySubtrack } from "./tyrewall.js";
+import { querySubtrack } from "./tyrewall.ts";
 
 // =============================================================================================
 // SURFACE DEGRADATION & WEAR MAP — LAYERED, rebuilt 2026-10-03 (user: "snow should compress to ice after

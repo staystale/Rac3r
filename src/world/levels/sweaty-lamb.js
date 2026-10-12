@@ -3,7 +3,7 @@ import { FLOOR } from "../bounds.ts";
 import { autoKerbs, createSubtrack, traceTrack } from "../subtrack.ts";
 import { SURFACES } from "../surfaces.ts";
 import { prepBumps } from "../terrain.js";
-import { onTrack } from "../tyrewall.js";
+import { onTrack } from "../tyrewall.ts";
 import { trackKit } from "./kit.js";
 // =============================================================================================
 // SWEATY LAMB — parody of Sweet Lamb (mid Wales), the gravel rally stage. Built 2026-10-04. Decisions (user): layout INSPIRED BY THE

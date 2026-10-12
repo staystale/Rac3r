@@ -3,7 +3,7 @@ import { alongTrack } from "../barriers.ts";
 import { autoKerbs, createSubtrack, traceTrack } from "../subtrack.ts";
 import { SURFACES } from "../surfaces.ts";
 import { prepBumps } from "../terrain.js";
-import { onTrack, querySubtrack } from "../tyrewall.js";
+import { onTrack, querySubtrack } from "../tyrewall.ts";
 import { ss01 } from "./kit.js";
 // =============================================================================================
 // THRUSTON — parody of Thruxton, "the fastest circuit in the UK" (user's roster + build guide, SPECS-2026-10-03.md; track list
