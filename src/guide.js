@@ -13,7 +13,9 @@
 // While open, the guide consumes EVERY tap (main.js asks it first), so a tap on a card can never steer or
 // press a pedal (CLAUDE.md §4: a tap on the HUD must never also reach the world).
 
-import { COL, LEVEL } from './lab.js';
+import "./world/load.js";   // the world is set up before this file runs (as importing lab.js did)
+import { COL } from "./world/colours.js";
+import { LEVEL } from "./world/state.js";
 
 const M = 12;
 const KEY = 'carsim.guideSeen';

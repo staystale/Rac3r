@@ -8,7 +8,15 @@
 // stop-zone end to the run-up, so the start line stays at distance 0 and timing / grid / AI / resets all work unchanged.
 // Then the dressing, by theme: trees / rocks / crowds / chevrons / bales / tape / flags / marshals / boards / gantries / ice / water.
 import { lcg } from "./core/random.ts";
-import { createSubtrack, ghostSegment, onTrack, querySubtrack, autoKerbs, alongTrack, SURFACES, BASE_FLOOR as FLOOR, LEVELS, solidsFromProps, finishLevel, trackKit, prepBumps } from './lab.js';
+import { finishLevel } from "./world/load.js";   // the world is set up before this file runs (as importing lab.js did)
+import { createSubtrack, ghostSegment, autoKerbs } from "./world/subtrack.js";
+import { onTrack, querySubtrack } from "./world/tyrewall.js";
+import { alongTrack, solidsFromProps } from "./world/barriers.js";
+import { SURFACES } from "./world/surfaces.js";
+import { BASE_FLOOR as FLOOR } from "./world/bounds.js";
+import { LEVELS } from "./world/levels/index.js";
+import { trackKit } from "./world/levels/kit.js";
+import { prepBumps } from "./world/terrain.js";
 
 export const THEMES = {
   forest: { name: 'FOREST GRAVEL', road: 'gravel', width: 9, base: 'grassLong', sep: 36, w: { straight: 1, fast: 1, medium: 1.1, square: 1, hairpin: 0.7 } },

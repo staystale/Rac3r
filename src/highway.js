@@ -14,7 +14,14 @@
 // LANES are config (HW_PRESETS): a UK motorway, a wide interstate, a skinny dual carriageway — the same generator for later flavour levels.
 import { lcg } from "./core/random.ts";
 import { envValue } from "./core/debug.ts";
-import { createSubtrack, ghostSegment, SURFACES, LEVELS, prepBumps, prepBarriersOf, onTrack, clearNaturalCache, solidsFromProps, zoneSurfaceAt, pruneWear } from './lab.js';
+import "./world/load.js";   // the world is set up before this file runs (as importing lab.js did)
+import { createSubtrack, ghostSegment } from "./world/subtrack.js";
+import { SURFACES } from "./world/surfaces.js";
+import { LEVELS } from "./world/levels/index.js";
+import { prepBumps, clearNaturalCache } from "./world/terrain.js";
+import { prepBarriersOf, solidsFromProps } from "./world/barriers.js";
+import { onTrack } from "./world/tyrewall.js";
+import { zoneSurfaceAt, pruneWear } from "./world/wear.js";
 
 // lanes / laneW / shoulder (left, hard shoulder; a solid line inside it when >= 2 m) / edge (right margin) in m; maxDeg off straight up;
 // sweep / bend = radius ranges (m); pStraight / pBend = chance an element is a straight / a tight bend (else a sweeper)

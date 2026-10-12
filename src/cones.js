@@ -2,7 +2,10 @@
 // Cones topple and slide. Tyre stacks absorb momentum, and shatter into individual tyres
 // that roll upright on their tread, tumble/flip, wobble, and slide flat on the floor.
 
-import { CONES, FLOOR, FX0, FX1, FY0, FY1, LEVEL, BARRIER_HALF } from './lab.js';
+import "./world/load.js";   // the world is set up before this file runs (as importing lab.js did)
+import { CONES, LEVEL } from "./world/state.js";
+import { FLOOR, FX0, FX1, FY0, FY1 } from "./world/bounds.js";
+import { BARRIER_HALF } from "./world/barriers.js";
 const WALL_E = 0.3, WALL_SCRAPE = 0.8, OVER_V = 9, OVER_CHANCE = 0.3;
 function hitWalls(k) {
   const r = k.r || 0.3;

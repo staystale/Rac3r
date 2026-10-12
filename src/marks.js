@@ -7,7 +7,10 @@
 // A3: 200 x 200 m at 9 px/m = 1800 x 1800 (~13 MB). Stamps outside the bounds are CLAMPED OUT
 // explicitly, not silently dropped off the edge of an array.
 
-import { FENCE, COL, LEVEL, FX0, FX1, FY0, FY1, RUNOFF_W } from './lab.js';
+import "./world/load.js";   // the world is set up before this file runs (as importing lab.js did)
+import { FENCE, FX0, FX1, FY0, FY1, RUNOFF_W } from "./world/bounds.js";
+import { COL } from "./world/colours.js";
+import { LEVEL } from "./world/state.js";
 
 // EXTENT is now the FENCE, not the floor. MEASURED BUG, 2026-09-28 (user: "we should leave little tracks
 // in the gravel trap"): the layer stopped at the floor edge and the stamp function explicitly skipped

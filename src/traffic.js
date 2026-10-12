@@ -13,7 +13,9 @@
 // Measured: tools/trafficcheck.mjs.
 import { makeCar, step, reset } from './vehicle.js';
 import { ROSTER } from './cars.js';
-import { applyGround, fenceClamp, obstacleClamp, barrierClamp, solidClamp } from './lab.js';
+import "./world/load.js";   // the world is set up before this file runs (as importing lab.js did)
+import { applyGround, fenceClamp, obstacleClamp } from "./world/wear.js";
+import { barrierClamp, solidClamp } from "./world/barriers.js";
 import { hit, tooInjured } from './damage.js';
 import { rolling, tripCheck, stepRoll } from './roll.js';
 import { roadFrame, roadPose, roadSpan } from './highway.js';

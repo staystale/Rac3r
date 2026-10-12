@@ -10,8 +10,15 @@
 // player must read at a glance — which way the front wheels point — is drawn at full contrast.
 import { parkMiller, hash2d } from "./core/random.ts";
 
-import { FLOOR, FX0, FX1, FY0, FY1, GRID, PAINT, BOARDS, CONES, CONE_R, COL, KERB_W, RUNOFF_W, FENCE,
-         VERGE_W, ZONES, BUMPS, LEVEL, BARRIER_HALF, wearMap, WEAR_CELL, PROPS, wearDirty, wearEpoch, groundAt, visualSlopeAt, visualHeightAt, coverCut } from './lab.js';
+import "./world/load.js";   // the world is set up before this file runs (as importing lab.js did)
+import { FLOOR, FX0, FX1, FY0, FY1, GRID, KERB_W, RUNOFF_W, FENCE } from "./world/bounds.js";
+import { PAINT, BOARDS, CONES, ZONES, BUMPS, LEVEL, PROPS } from "./world/state.js";
+import { CONE_R } from "./world/tyrewall.js";
+import { COL } from "./world/colours.js";
+import { VERGE_W } from "./world/surfaces.js";
+import { BARRIER_HALF } from "./world/barriers.js";
+import { wearMap, WEAR_CELL, wearDirty, wearEpoch, groundAt, coverCut } from "./world/wear.js";
+import { visualSlopeAt, visualHeightAt } from "./world/terrain.js";
 import { MARK_PPM, MARK_EXTENT } from './marks.js';
 
 // A2 REVISED after photographing it, 2026-09-27. A flat PPM of 16 put a 4 m car at 64 px on a 1280 px
