@@ -2,17 +2,20 @@
 import { hash2d } from "../core/random.ts";
 import { shade } from "../render.js";   // hoisted, only called at draw time (no cycle)
 import { SPRITE_PPM } from "./shared.ts";
+import type {
+  CarSprite, RenderCar, RenderCarSpec, RollFace, SideSprite, SilCanvas, View,
+} from "./types.ts";
 
-export function createCarDamage(view) {
+export function createCarDamage(view: View) {
   // DAMAGED SPRITES (user, 2026-10-04: "cars should crumple, dent, chip and emit their coloured paint pixels in crashes"): a per-car copy
   // of the sprite, rebuilt only when its damage changes by 0.1 on a corner. Each hurt corner is CRUMPLED (cut back along a jagged
   // diagonal, deeper with damage), DENTED (a darkened band behind the crush) and CHIPPED (paint pixels knocked to grey primer). Seeded per
   // car, so the same car always breaks the same way. Canvas: +x = forward (front at the right), +y = the car's +y (damage.js corners).
   // the TOP-VIEW crush pass (damagedSprite below; the UNDERSIDE when rolled uses it too, without the roof): returns a new canvas
-  function crushTop(car, sp, withRoof) {
+  function crushTop(car: RenderCar, sp: CarSprite, withRoof: boolean) {
     const rdKeep = car.roofDmg; if (!withRoof) car.roofDmg = 0;
       const c = document.createElement('canvas'); c.width = sp.c.width; c.height = sp.c.height;
-      const cg = c.getContext('2d'); cg.drawImage(sp.c, 0, 0);
+      const cg = c.getContext('2d')!; cg.drawImage(sp.c, 0, 0);
       const img = cg.getImageData(0, 0, c.width, c.height), P = img.data, W = c.width, H = c.height, Lp = sp.Lp, Wp = sp.Wp;
       const seed = (car.num || 1) * 2654435761;
       const hsh = hash2d(seed);
@@ -54,16 +57,17 @@ export function createCarDamage(view) {
     car.roofDmg = rdKeep;
     return c;
   }
-  function damagedSprite(car, sp) {
+  function damagedSprite(car: RenderCar, sp: CarSprite) {
     // v2 (user: "not accurate to the 1/4 damaged", "cars don't dent — they should clearly dent if hit"): every EDGE is pushed in by
     // the crush of its two corners, sloped between them — the front / rear by the END-ON crush (crushL), the sides by the SIDE-ON crush
     // (crushS) — so a hit on the front-left shortens the front on the left and caves the left flank there. Behind the new edge a DENT
     // band (dark, graded, with a pale crease at the fold) that is visible from a light knock up, and chipped paint (primer). Seeded.
-    const q = (a) => a.map((x) => Math.round(x * 12)).join(',');
+    const q = (a: number[]) => a.map((x) => Math.round(x * 12)).join(',');
     const key = q(car.crushL) + '|' + q(car.crushS) + '|' + car.wheelOff.map(Number).join('') + '|' + Math.round((car.roofDmg || 0) * 8);
     if (car._dsp && car._dsp.key === key && car._dsp.base === sp) return car._dsp.sp;
     let out = sp;
-    if (car.dmg.some((x) => x >= 0.02) || car.roofDmg > 0.05) {
+    if (car.dmg!.some((x) => x >= 0.02) || car.roofDmg > 0.05) {   // ! : only called
+      // when car.dmg is set
       out = { ...sp, c: crushTop(car, sp, true) };
     }
     car._dsp = { key, base: sp, sp: out };
@@ -71,18 +75,21 @@ export function createCarDamage(view) {
   }
   // SHADOW = a darker copy of the sprite (user, 2026-10-04: "make sure the car shadow is redrawn too / is just a darker copy of the
   // sprite") — so a crumpled corner, a missing wheel or a car on its side casts its own shape. Cached on the canvas it copies.
-  function silhouette(cv) {
+  function silhouette(cv: SilCanvas) {
     if (cv._sil) return cv._sil;
     const c = document.createElement('canvas'); c.width = cv.width; c.height = cv.height;
-    const s = c.getContext('2d'); s.drawImage(cv, 0, 0); s.globalCompositeOperation = 'source-in'; s.fillStyle = '#14121c'; s.fillRect(0, 0, c.width, c.height);
+    const s = c.getContext('2d')!; s.drawImage(cv, 0, 0); s.globalCompositeOperation = 'source-in'; s.fillStyle = '#14121c'; s.fillRect(0, 0, c.width, c.height);
     cv._sil = c; return c;
   }
   // ROLLED CARS (roll.js): the other faces of the box, generated like the top sprite (art px; x rear -> front as pixelCar).
-  const faceCache = new Map(), ROLL_HP = (s) => Math.round(1.4 * SPRITE_PPM);
-  function sideSprite(s) {
-    const k = 'side:' + s.id + s.paint + s.trim; if (faceCache.has(k)) return faceCache.get(k);
+  const faceCache = new Map<string, CarSprite | SideSprite>(),
+    ROLL_HP = (s: RenderCarSpec) => Math.round(1.4 * SPRITE_PPM);
+  function sideSprite(s: RenderCarSpec): SideSprite {
+    const k = 'side:' + s.id + s.paint + s.trim; if (faceCache.has(k)) {
+      return faceCache.get(k) as SideSprite;
+    }
     const Lp = Math.round(s.len * SPRITE_PPM), Hp = ROLL_HP(s), c = document.createElement('canvas'); c.width = Lp + 4; c.height = Hp + 4;
-    const g2 = c.getContext('2d'), px = (x, y, w, h, col) => { if (w <= 0 || h <= 0) return; g2.fillStyle = col; g2.fillRect(2 + Math.round(x), 2 + Math.round(y), Math.round(w), Math.round(h)); };
+    const g2 = c.getContext('2d')!, px = (x: number, y: number, w: number, h: number, col: string) => { if (w <= 0 || h <= 0) return; g2.fillStyle = col; g2.fillRect(2 + Math.round(x), 2 + Math.round(y), Math.round(w), Math.round(h)); };
     const P = s.paint || '#d0552f', O = shade(P, 0.4), Dk = shade(P, 0.7), Lt = shade(P, 1.25), GL = '#15171d', GH = '#3d4658';
     const wr = (s.wheelR || 0.3) * SPRITE_PPM, roofY = Hp * 0.08, beltY = Hp * 0.42, sillY = Hp - wr * 1.15;
     const cabA = Lp * (s.kind === 'track' ? 0.3 : 0.25), cabB = Lp * (s.kind === 'estate' ? 0.86 : 0.7);
@@ -95,10 +102,12 @@ export function createCarDamage(view) {
     for (const ax of [Lp / 2 + s.lf * SPRITE_PPM, Lp / 2 - s.lr * SPRITE_PPM]) { px(ax - wr, Hp - 2 * wr, 2 * wr, 2 * wr, '#16171c'); px(ax - wr / 2, Hp - 1.5 * wr, wr, wr, '#6d707a'); }
     const out = { c, Lp, Hp }; faceCache.set(k, out); return out;
   }
-  function underSprite(s) {
-    const k = 'under:' + s.id + s.paint + s.trim; if (faceCache.has(k)) return faceCache.get(k);
+  function underSprite(s: RenderCarSpec): CarSprite {
+    const k = 'under:' + s.id + s.paint + s.trim; if (faceCache.has(k)) {
+      return faceCache.get(k) as CarSprite;
+    }
     const Lp = Math.round(s.len * SPRITE_PPM), Wp = Math.round(s.wid * SPRITE_PPM) | 1, c = document.createElement('canvas'); c.width = Lp + 4; c.height = Wp + 4;
-    const g2 = c.getContext('2d'), px = (x, y, w, h, col) => { if (w <= 0 || h <= 0) return; g2.fillStyle = col; g2.fillRect(2 + Math.round(x), 2 + Math.round(y), Math.round(w), Math.round(h)); };
+    const g2 = c.getContext('2d')!, px = (x: number, y: number, w: number, h: number, col: string) => { if (w <= 0 || h <= 0) return; g2.fillStyle = col; g2.fillRect(2 + Math.round(x), 2 + Math.round(y), Math.round(w), Math.round(h)); };
     const P = s.paint || '#d0552f';
     px(0, 1, Lp, Wp - 2, shade(P, 0.35)); px(1, 0, Lp - 2, Wp, shade(P, 0.35)); px(2, 2, Lp - 4, Wp - 4, '#34353b');   // floor pan in a lip of paint
     px(3, Wp * 0.28, Lp - 6, 2, '#4a4c55'); px(3, Wp * 0.72 - 2, Lp - 6, 2, '#4a4c55');                           // chassis rails
@@ -117,21 +126,21 @@ export function createCarDamage(view) {
   // compute"): the underside and the two side faces get the car's damage too, built lazily (only once the car rolls) and cached per car
   // and per damage step — nothing per frame. Side face (x rear -> front, y roof -> wheels): its two END corners cut the ends back
   // (crushL), its two SIDE corners dent the panel along the length (crushS), a crushed roof pushes the cabin down, a lost wheel is gone.
-  function dmgFace(car, kind) {
+  function dmgFace(car: RenderCar, kind: string): CarSprite | SideSprite | null {
     if (!car.dmg) return null;
-    const qq = (a) => a.map((x) => Math.round(x * 12)).join(','), key = kind + qq(car.crushL) + qq(car.crushS) + car.wheelOff.map(Number).join('') + Math.round((car.roofDmg || 0) * 8);
+    const qq = (a: number[]) => a.map((x) => Math.round(x * 12)).join(','), key = kind + qq(car.crushL) + qq(car.crushS) + car.wheelOff.map(Number).join('') + Math.round((car.roofDmg || 0) * 8);
     const C = car._dface || (car._dface = {});
     if (C[kind] && C[kind].key === key) return C[kind].out;
-    const s = car.spec; let out;
+    const s = car.spec; let out: CarSprite | SideSprite;
     if (kind === 'under') {
       const u = underSprite(s); out = { ...u, c: crushTop(car, u, false) };
       // a lost wheel: its tyre block gone from the underside
-      const g2 = out.c.getContext('2d'), hw = (s.trackWidth || 1.5) / 2 * SPRITE_PPM, mid = u.Wp / 2, wr = (s.wheelR || 0.3) * SPRITE_PPM;
+      const g2 = out.c.getContext('2d')!, hw = (s.trackWidth || 1.5) / 2 * SPRITE_PPM, mid = u.Wp / 2, wr = (s.wheelR || 0.3) * SPRITE_PPM;
       for (let k = 0; k < 4; k++) if (car.wheelOff[k]) { const ax = u.Lp / 2 + (k < 2 ? s.lf : -s.lr) * SPRITE_PPM; g2.clearRect(2 + ax - wr, 2 + mid + (k % 2 ? 1 : -1) * hw - 2, 2 * wr, 4); }
     } else {
       const sp0 = sideSprite(s), plus = kind === 'sideP', cF = plus ? 1 : 0, cR = plus ? 3 : 2;
       const cv = document.createElement('canvas'); cv.width = sp0.c.width; cv.height = sp0.c.height;
-      const g2 = cv.getContext('2d'); g2.drawImage(sp0.c, 0, 0);
+      const g2 = cv.getContext('2d')!; g2.drawImage(sp0.c, 0, 0);
       const img = g2.getImageData(0, 0, cv.width, cv.height), P = img.data, W = cv.width, H = cv.height, Lp = sp0.Lp, Hp = sp0.Hp;
       const seed = (car.num || 1) * 40503 + (plus ? 7 : 3);
       const hsh = hash2d(seed);
@@ -154,16 +163,17 @@ export function createCarDamage(view) {
     C[kind] = { key, out };
     return out;
   }
-  function rolledFaces(car, sp, phi) {
-    const s = car.spec, side = sideSprite(s), under = underSprite(s), W = sp.Wp, H = side.Hp, c = Math.cos(phi), sn = Math.sin(phi), out = [];
-    const face = (kind, plain) => (car.dmg ? dmgFace(car, kind) || plain : plain);
+  function rolledFaces(car: RenderCar, sp: CarSprite, phi: number) {
+    const s = car.spec, side = sideSprite(s), under = underSprite(s), W = sp.Wp, H = side.Hp, c = Math.cos(phi), sn = Math.sin(phi), out: RollFace[] = [];
+    const face = (kind: string, plain: CarSprite | SideSprite) =>
+      (car.dmg ? dmgFace(car, kind) || plain : plain);
     if (c > 0.02) out.push({ cv: sp.c, cy: (H / 2) * sn, ky: c, hh: sp.Wp });
     if (c < -0.02) out.push({ cv: face('under', under).c, cy: -(H / 2) * sn, ky: c, hh: under.Wp });
     if (sn > 0.02) out.push({ cv: face('sideN', side).c, cy: -(W / 2) * c, ky: -sn, hh: side.Hp });
     if (sn < -0.02) out.push({ cv: face('sideP', side).c, cy: (W / 2) * c, ky: -sn, hh: side.Hp });
     return out;
   }
-  function drawFaces(faces, Lp, sil, off) {
+  function drawFaces(faces: RollFace[], Lp: number, sil: boolean, off: number) {
     for (const f of faces) {
       view.ctx.save(); view.ctx.translate(off, f.cy + off); view.ctx.scale(1, f.ky);
       view.ctx.drawImage(sil ? silhouette(f.cv) : f.cv, -Lp / 2 - 2, -f.hh / 2 - 2);

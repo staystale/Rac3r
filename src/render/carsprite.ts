@@ -1,6 +1,7 @@
 // The clean PIXEL CAR sprite (render.js split, phase 4): one cached sprite per livery.
 import { shade } from "../render.js";   // hoisted, only called at draw time (no cycle)
 import { SPRITE_PPM } from "./shared.ts";
+import type { CarSprite, RenderCarSpec } from "./types.ts";
 
 export function createCarSprite() {
   // ---------------------------------------------------------------- PIXEL CARS (mock-up)
@@ -10,21 +11,21 @@ export function createCarSprite() {
   // pixel blocks UNDER the body so the fronts still visibly steer. Front = +x.
   // 3x5 pixel digits for roof numbers (rows top to bottom, 3 bits each). The first Naffcar "18", drawn freehand,
   // read as "IJ" on the review sheet.
-  const DIGITS = { 0: [7, 5, 5, 5, 7], 1: [2, 6, 2, 2, 7], 2: [7, 1, 7, 4, 7], 3: [7, 1, 7, 1, 7], 4: [5, 5, 7, 1, 1],
+  const DIGITS: Record<number, number[]> = { 0: [7, 5, 5, 5, 7], 1: [2, 6, 2, 2, 7], 2: [7, 1, 7, 4, 7], 3: [7, 1, 7, 1, 7], 4: [5, 5, 7, 1, 1],
     5: [7, 4, 7, 1, 7], 6: [7, 4, 7, 5, 7], 7: [7, 1, 2, 2, 2], 8: [7, 5, 7, 5, 7], 9: [7, 5, 7, 1, 7] };
-  const spriteCache = new Map();
-  function pixelCar(spec) {
+  const spriteCache = new Map<string, CarSprite>();
+  function pixelCar(spec: RenderCarSpec): CarSprite {
     const key = spec.id + '|' + spec.paint + '|' + spec.trim + '|' + (spec.num || 0);   // one sprite per LIVERY (paint, trim, number)
-    if (spriteCache.has(key)) return spriteCache.get(key);
+    if (spriteCache.has(key)) return spriteCache.get(key)!;   // has(key) was just true
     const Lp = Math.round(spec.len * SPRITE_PPM), Wp = Math.round(spec.wid * SPRITE_PPM) | 1;   // odd width: a centre row
     const c = document.createElement('canvas'); c.width = Lp + 4; c.height = Wp + 4;
-    const g = c.getContext('2d');
+    const g = c.getContext('2d')!;   // a new canvas always gives a 2d context
     // px(x, y, w, h, col): one solid block on the art grid. x runs rear (0) -> front (Lp); y is the car's side.
-    const px = (x, y, w, h, col) => { if (w <= 0 || h <= 0) return; g.fillStyle = col; g.fillRect(2 + Math.round(x), 2 + Math.round(y), Math.round(w), Math.round(h)); };
+    const px = (x: number, y: number, w: number, h: number, col: string) => { if (w <= 0 || h <= 0) return; g.fillStyle = col; g.fillRect(2 + Math.round(x), 2 + Math.round(y), Math.round(w), Math.round(h)); };
     const P = spec.paint, O = shade(P, 0.40), D = shade(P, 0.70), Lt = shade(P, 1.30), Rf = shade(P, 1.10), T = spec.trim || D;
     const GL = '#15171d', GH = '#3d4658', HEAD = '#fff3c4', TAIL = '#c8342a', CHR = '#c9ccd4', WHITE = '#f2f2ee';
     // base id: the AI's 'naffcar#3' too (it was drawn as a plain muscle car)
-    const kind = String(spec.id).split('#')[0] === 'naffcar' ? 'stock' : spec.kind, mid = (Wp - 1) / 2, f = (x) => x * Lp;
+    const kind = String(spec.id).split('#')[0] === 'naffcar' ? 'stock' : spec.kind, mid = (Wp - 1) / 2, f = (x: number) => x * Lp;
     // shared: the classic body block — outline, fill, cut corners, top light, bottom shade
     const shell = (inset = 0) => {
       px(0, inset, Lp, Wp - inset * 2, O); px(1, inset + 1, Lp - 2, Wp - inset * 2 - 2, P);
@@ -32,7 +33,7 @@ export function createCarSprite() {
       px(2, inset + 1, Lp - 4, 2, Lt); px(2, Wp - inset - 3, Lp - 4, 2, D);
     };
     // shared: a glass cabin from x0 (rear glass start) to x3 (windscreen end); r0..r1 is the roof
-    const cabin = (x0, r0, r1, x3, roofCol = Rf) => {
+    const cabin = (x0: number, r0: number, r1: number, x3: number, roofCol = Rf) => {
       px(x0, 3, r0 - x0, Wp - 6, GL); px(x0 + 1, 4, 1, Wp - 8, GH);                         // rear glass
       px(r0, 2, r1 - r0, Wp - 4, roofCol);                                                  // roof
       px(r0 + 1, 2, r1 - r0 - 2, 1, GL); px(r0 + 1, Wp - 3, r1 - r0 - 2, 1, GL);           // side glass
@@ -43,8 +44,8 @@ export function createCarSprite() {
     };
     // RACE NUMBER (garage livery): a white panel with a dark outline and the digits at scale s (3x5 font), centred at cx along the car,
     // upright when the car points right — drawn where each body has room (the roof; the nose on the open-wheeler; the bonnet on the tractor)
-    const NUM = spec.num | 0;
-    const numPanel = (cx, s) => {
+    const NUM = spec.num! | 0;   // undefined | 0 is 0: unset on the base specs
+    const numPanel = (cx: number, s: number) => {
       const ds = String(NUM).split('').map(Number), nw = ds.length * 3 * s + (ds.length - 1) * s, nh = 5 * s, pw = nw + 2 * s, ph = nh + 2 * s;
       const x0 = Math.round(cx - pw / 2), y0 = Math.round(mid + 0.5 - ph / 2);
       px(x0 - 1, y0 - 1, pw + 2, ph + 2, '#14161b'); px(x0, y0, pw, ph, WHITE);

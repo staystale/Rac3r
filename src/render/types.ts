@@ -122,3 +122,69 @@ export interface Chip {
   col: string;
   sz: number;
 }
+
+// A canvas that silhouette() caches its darker copy on (cardamage.ts).
+export interface SilCanvas extends HTMLCanvasElement {
+  _sil?: HTMLCanvasElement;
+}
+
+// The top-view car sprite pixelCar builds and caches: the canvas and its size in art px.
+export interface CarSprite {
+  c: SilCanvas;
+  Lp: number;
+  Wp: number;
+}
+
+// The side face of a rolled car (sideSprite): the canvas and its size in art px.
+export interface SideSprite {
+  c: SilCanvas;
+  Lp: number;
+  Hp: number;
+}
+
+// One face of a rolled car as rolledFaces returns it for drawFaces.
+export interface RollFace {
+  cv: HTMLCanvasElement;
+  cy: number;
+  ky: number;
+  hh: number;
+}
+
+// What the car layers read of a car SPEC (cars.js; not converted yet).
+export interface RenderCarSpec {
+  id: string;
+  paint: string;
+  trim: string;
+  num?: number;      // set by the garage livery
+  kind: string;
+  lf: number;
+  lr: number;
+  len: number;
+  wid: number;
+  trackWidth?: number;
+  wheelR?: number;
+  rideH?: number;
+  rim?: string;
+}
+
+// What the car layers read of a CAR (vehicle.js, damage.js, roll.js; not converted yet).
+export interface RenderCar extends CamCar {
+  heading: number;
+  spec: RenderCarSpec;
+  num?: number;
+  delta: number;
+  dmg?: number[];    // the next five are set together with dmg by damageInit
+  crushL: number[];
+  crushS: number[];
+  roofDmg: number;
+  punct: boolean[];
+  wheelOff: boolean[];
+  roll?: { phi: number } | null;
+  lightsOn?: boolean;
+  indicator?: number;
+  hazard?: boolean;
+  brakeLight?: number;
+  // caches the car layers set on the car itself
+  _dsp?: { key: string; base: CarSprite; sp: CarSprite } | null;
+  _dface?: Record<string, { key: string; out: CarSprite | SideSprite }>;
+}
