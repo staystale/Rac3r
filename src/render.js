@@ -19,7 +19,6 @@ import { MARK_PPM } from './marks.js';
 import { createCarSprite } from "./render/carsprite.js";
 import { createCarDamage } from "./render/cardamage.js";
 import { createCars } from "./render/cars.js";
-import { createCarSmooth } from "./render/carsmooth.js";
 import { createParticles } from "./render/particles.js";
 import { createRoad } from "./render/road.js";
 import { createGround } from "./render/ground.js";
@@ -40,16 +39,15 @@ export const LOOKAHEAD = 2.6;   // seconds of road kept in view at any speed
 export const MAX_DPR = 2;
 
 // =============================================================================================
-// PIXEL-ART MODE — the default (approved 2026-10-03; ?smooth=1 for the old renderer). Began as a ?pixel=1 mock-up (user, 2026-10-03: "everything pixel art, realistic-ish but in
-// a pixel style", car ~70 px long like the reference sprites in art/reference/).
+// PIXEL-ART MODE — the only renderer (approved 2026-10-03). Began as a ?pixel=1 mock-up (user, 2026-10-03:
+// "everything pixel art, realistic-ish but in a pixel style", car ~70 px long like the reference sprites in
+// art/reference/).
 // The WORLD is drawn into a low-resolution buffer — one art pixel = PIXEL_CSS css px (an integer number of device
 // pixels) — and blitted to the screen with smoothing OFF, so every edge is a hard pixel step. The HUD is drawn
 // afterwards at full resolution so buttons and numbers stay crisp. Cars are generated PIXEL SPRITES (pixelCar).
 // Everything else is the existing renderer, drawn small — the mock-up shows how far that alone gets.
-// DEFAULT since the user approved the mock-up (2026-10-03). ?smooth=1 brings back the old smooth renderer.
 // ?nolock=1 turns the pixel-locked view off (A/B for tools/wobblecheck)
 const NO_LOCK = typeof location !== "undefined" && new URLSearchParams(location.search).has("nolock");
-export const PIXEL = !(typeof location !== 'undefined' && new URLSearchParams(location.search).has('smooth'));
 const PIXEL_CSS = 1.3;            // css px per art pixel: a 4 m car is ~70 art px at zoom 1 on a phone
 
 export function createRenderer(canvas) {
@@ -61,8 +59,8 @@ export function createRenderer(canvas) {
   // (flat colours only)
   const view = { ctx: mainCtx, W: 0, H: 0, dpr: 1, PPM: 22, zoom: 1, noPatterns: false };
   // pixel mode: the world buffer, its device-px block size (k), and the real dpr of the screen canvas
-  const pcanvas = PIXEL ? document.createElement('canvas') : null;
-  const pctx = PIXEL ? pcanvas.getContext('2d') : null;
+  const pcanvas = document.createElement('canvas');
+  const pctx = pcanvas.getContext('2d');
   let pk = 1, realDpr = 1;
   const cam = { x: 0, y: 0, initialised: false };
   const PPMz = () => view.PPM * view.zoom;   // ONE place converts metres to pixels, so nothing can miss the zoom
@@ -74,15 +72,13 @@ export function createRenderer(canvas) {
     canvas.width = Math.round(view.W * realDpr);
     canvas.height = Math.round(view.H * realDpr);
     mainCtx.setTransform(realDpr, 0, 0, realDpr, 0, 0);   // draw in CSS px everywhere below
-    if (PIXEL) {
-      // an art pixel is a whole number of device pixels, so the upscale never smears
-      pk = Math.max(2, Math.round(PIXEL_CSS * realDpr));
-      pcanvas.width = Math.ceil(canvas.width / pk); pcanvas.height = Math.ceil(canvas.height / pk);
-      view.dpr = pcanvas.width / view.W;                       // the EFFECTIVE dpr every world draw (and every tile) uses
-      pctx.setTransform(view.dpr, 0, 0, view.dpr, 0, 0);
-      pctx.imageSmoothingEnabled = false;
-      view.ctx = pctx;
-    }
+    // an art pixel is a whole number of device pixels, so the upscale never smears
+    pk = Math.max(2, Math.round(PIXEL_CSS * realDpr));
+    pcanvas.width = Math.ceil(canvas.width / pk); pcanvas.height = Math.ceil(canvas.height / pk);
+    view.dpr = pcanvas.width / view.W;                       // the EFFECTIVE dpr every world draw (and every tile) uses
+    pctx.setTransform(view.dpr, 0, 0, view.dpr, 0, 0);
+    pctx.imageSmoothingEnabled = false;
+    view.ctx = pctx;
     view.PPM = Math.max(PPM_MIN, Math.min(PPM_MAX, Math.min(view.W, view.H) / PPM_DIV));
   }
 
@@ -180,7 +176,7 @@ export function createRenderer(canvas) {
     view.noPatterns = true;
     try { drawFloor(); drawZones(); drawLanes(); drawTrackRibbon(); drawPatches(); drawCovers(); drawCurvedKerbs(); }
     finally { view.ctx = keep.ctx; view.W = keep.W; view.H = keep.H; view.zoom = keep.zoom; cam.x = keep.cx; cam.y = keep.cy; view.noPatterns = false; }
-    if (PIXEL) paletteSnap(c);
+    paletteSnap(c);
     return { c, x0, y0, x1, y1 };
   }
   // paint (without drawing) the tiles of step k covering a view centred on (cx, cy) at zoom z
@@ -258,7 +254,6 @@ export function createRenderer(canvas) {
   const { drawPixelCar, pixelCarWithWheels } = createCars(view, cam, {
     PPMz, sx, sy, pixelCar, damagedSprite, silhouette, rolledFaces, drawFaces, faceCache,
   });
-  const { drawCar } = createCarSmooth(view, cam, { PPMz, sx, sy, roundRect });
   const { drawFence, drawBarriers, drawProps } = createProps(view, cam, {
     PPMz, sx, sy, roundRect, forSide, drawSlip,
   });
@@ -327,17 +322,15 @@ export function createRenderer(canvas) {
     drawChips(wallDt);          // paint chips on the ground, under the cars          // under the car: dust over the bonnet reads as a rendering fault
     // HIGHWAY TRAFFIC (traffic.js), only the ones near the view (they are spread over ~800 m), under the AI and the player
     if (game.traffic) { const m = 12 * PPMz(); for (const c of game.traffic.cars) { const X = sx(c.x), Y = sy(c.y); if (X < -m || X > view.W + m || Y < -m || Y > view.H + m) continue;
-      if (PIXEL) drawPixelCar(c); else drawCar(c, wallT); } }
-    for (const a of game.ai || []) { if (PIXEL) drawPixelCar(a.car); else drawCar(a.car, wallT); }   // AI cars under the player's
-    if (PIXEL) drawPixelCar(game.car); else drawCar(game.car, wallT);
+      drawPixelCar(c); } }
+    for (const a of game.ai || []) { drawPixelCar(a.car); }   // AI cars under the player's
+    drawPixelCar(game.car);
     drawProps(true);            // overhead structures (gantry) pass OVER the cars
-    if (PIXEL) {
-      mainCtx.save();
-      mainCtx.setTransform(1, 0, 0, 1, 0, 0);
-      mainCtx.imageSmoothingEnabled = false;
-      mainCtx.drawImage(pcanvas, subX, subY, pcanvas.width * pk, pcanvas.height * pk);
-      mainCtx.restore();
-    }
+    mainCtx.save();
+    mainCtx.setTransform(1, 0, 0, 1, 0, 0);
+    mainCtx.imageSmoothingEnabled = false;
+    mainCtx.drawImage(pcanvas, subX, subY, pcanvas.width * pk, pcanvas.height * pk);
+    mainCtx.restore();
     view.zoom = keepZoom;
     if (camTrue) { cam.x = camTrue.x; cam.y = camTrue.y; }   // the true camera for the next frame / tools
   }

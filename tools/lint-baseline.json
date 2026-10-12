@@ -106,7 +106,7 @@
   "src/render.js": {
     "complexity": 1,
     "id-length": 88,
-    "max-len": 111,
+    "max-len": 109,
     "max-lines-per-function": 1,
     "no-unused-vars": 6
   },
@@ -123,13 +123,6 @@
     "max-len": 29,
     "max-lines-per-function": 1
   },
-  "src/render/carsmooth.js": {
-    "complexity": 1,
-    "id-length": 22,
-    "max-len": 25,
-    "max-lines-per-function": 2,
-    "no-unused-vars": 2
-  },
   "src/render/carsprite.js": {
     "complexity": 1,
     "id-length": 49,
@@ -138,14 +131,14 @@
   },
   "src/render/ground.js": {
     "complexity": 2,
-    "id-length": 228,
-    "max-len": 174,
+    "id-length": 205,
+    "max-len": 157,
     "max-lines-per-function": 2
   },
   "src/render/objects.js": {
     "complexity": 3,
-    "id-length": 96,
-    "max-len": 71,
+    "id-length": 92,
+    "max-len": 68,
     "max-lines-per-function": 2
   },
   "src/render/particles.js": {

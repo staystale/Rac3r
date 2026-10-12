@@ -4,7 +4,6 @@ import { FX0, FX1, FY0, FY1, KERB_W } from "../world/bounds.ts";
 import { PAINT, BOARDS, LEVEL } from "../world/state.ts";
 import { COL } from "../world/colours.ts";
 import { MARK_EXTENT } from '../marks.js';
-import { PIXEL } from "../render.js";   // a const read only at draw time (no load-time cycle)
 
 export function createRoad(view, cam, helpers) {
   const { PPMz, sx, sy, paintLayers, artBase } = helpers;
@@ -358,11 +357,11 @@ export function createRoad(view, cam, helpers) {
     // the screen is 16 px/m, so smoothing is what stops the marks looking like stair-stepped bitmaps.
     const [mox, moy] = marks.origin || [0, 0], px = sx(mox - MARK_EXTENT), py = sy(moy - MARK_EXTENT);
     const size = MARK_EXTENT * 2 * PPMz();
-    // PIXEL mode: smoothing OFF, so marks land on the art grid as hard blocks (photographed soft and blurry with
+    // smoothing OFF, so marks land on the art grid as hard blocks (photographed soft and blurry with
     // it on, 2026-10-03 — the only smeared thing left in the world layer)
-    if (PIXEL) view.ctx.imageSmoothingEnabled = false;
+    view.ctx.imageSmoothingEnabled = false;
     view.ctx.drawImage(marks.canvas, px, py, size, size);
-    if (PIXEL) view.ctx.imageSmoothingEnabled = true;
+    view.ctx.imageSmoothingEnabled = true;
   }
   return {
     drawLanes, drawTrackRibbon, drawLaneDashes, drawCurvedKerbs, drawPaint, forSide,

@@ -1,10 +1,8 @@
 // the OBJECTS layer of render.js (phase 4 of the render.js split): pixel objects (cones, tyres),
 // tape and debris. Moved verbatim.
 import { parkMiller } from "../core/random.ts";
-import { CONE_R } from "../world/tyrewall.ts";
-import { COL } from "../world/colours.ts";
 import { SPRITE_PPM } from "./shared.js";
-import { PIXEL, shade } from "../render.js";   // read only at draw time (no load-time cycle)
+import { shade } from "../render.js";   // read only at draw time (no load-time cycle)
 
 export function createObjects(view, cam, helpers) {
   const {
@@ -147,7 +145,6 @@ export function createObjects(view, cam, helpers) {
     }
   }
   function drawCones(cones) {
-    const r = CONE_R * PPMz() * 1.35;   // drawn a touch over scale: a cone the player cannot see is not a cone
     for (const c of cones) {
       const px = sx(c.x), py = sy(c.y);
       if (px < -60 || px > view.W + 60 || py < -60 || py > view.H + 60) continue;
@@ -205,7 +202,7 @@ export function createObjects(view, cam, helpers) {
         }
         view.ctx.restore(); continue;
       }
-      if (PIXEL && drawPixelObject(c)) { view.ctx.restore(); continue; }
+      if (drawPixelObject(c)) { view.ctx.restore(); continue; }
 
       if (c.kind === 'banger') {
         const p = PPMz();
@@ -348,274 +345,6 @@ export function createObjects(view, cam, helpers) {
         view.ctx.fillRect(1.05 * p, -0.2 * p, 0.2 * p, 0.12 * p);
         view.ctx.restore();
         continue;
-      }
-
-      if (c.kind === 'tyrestack' || c.kind === 'tyre') {
-        const tr = (c.r || 0.42) * PPMz();
-        const mode = c.mode || (c.kind === 'tyrestack' ? 'stack' : 'flat');
-
-        if (mode === 'roll') {
-          // Upright rolling tyre seen from above: rounded tread capsule rolling along c.ang
-          view.ctx.rotate(c.ang);
-          const tw = tr * 0.24;
-          // Rolling shadow
-          view.ctx.fillStyle = 'rgba(12,14,18,0.40)';
-          roundRect(view.ctx, -tr * 0.95 + 2, -tw + 2, tr * 1.9, tw * 2, tw);
-          view.ctx.fill();
-
-          // Outer rubber tread body with fully rounded semicircle caps (radius = tw)
-          view.ctx.fillStyle = '#202228';
-          roundRect(view.ctx, -tr * 0.95, -tw, tr * 1.9, tw * 2, tw);
-          view.ctx.fill();
-          view.ctx.strokeStyle = '#686f82';
-          view.ctx.lineWidth = 1.2;
-          view.ctx.stroke();
-
-          // Scrolling tread grooves / sipes
-          view.ctx.fillStyle = '#101114';
-          const rollOff = ((c.rollDist || 0) * PPMz()) % (tr * 0.35);
-          for (let gx = -tr * 0.70 + rollOff; gx < tr * 0.70; gx += tr * 0.35) {
-            view.ctx.fillRect(gx, -tw * 0.85, 2, tw * 1.7);
-          }
-        } else if (mode === 'flip') {
-          // Tumbling end-over-end — always completely rounded, circular/elliptical perspective
-          view.ctx.rotate(c.ang);
-          const flipScale = Math.abs(Math.cos(c.flipPhase || 0));
-          const faceH = tr * Math.max(0.18, flipScale);
-
-          // Contact / tumbling ground shadow
-          view.ctx.fillStyle = 'rgba(12,14,18,0.36)';
-          view.ctx.beginPath();
-          view.ctx.ellipse(2, 3, tr * 1.05, faceH * 1.05, 0, 0, Math.PI * 2);
-          view.ctx.fill();
-
-          // If tilted edge-on, show the cylindrical curved tread thickness behind the face
-          if (flipScale < 0.45) {
-            view.ctx.fillStyle = '#14151a';
-            view.ctx.beginPath();
-            view.ctx.ellipse(0, tr * 0.16 * (1 - flipScale), tr * 0.98, faceH * 0.95, 0, 0, Math.PI * 2);
-            view.ctx.fill();
-          }
-
-          // Main circular/elliptical tyre face (zero square corners)
-          view.ctx.fillStyle = '#24262e';
-          view.ctx.beginPath();
-          view.ctx.ellipse(0, 0, tr, faceH, 0, 0, Math.PI * 2);
-          view.ctx.fill();
-          view.ctx.strokeStyle = '#686f82';
-          view.ctx.lineWidth = 1.4;
-          view.ctx.stroke();
-
-          // Sidewall sponsor stencils (compressed with faceH)
-          if (faceH > tr * 0.35) {
-            view.ctx.strokeStyle = '#ffffff';
-            view.ctx.lineWidth = Math.max(1, tr * 0.08);
-            view.ctx.beginPath();
-            view.ctx.ellipse(0, 0, tr * 0.65, faceH * 0.65, 0, 0.3, 1.9);
-            view.ctx.stroke();
-            view.ctx.beginPath();
-            view.ctx.ellipse(0, 0, tr * 0.65, faceH * 0.65, 0, 3.4, 5.0);
-            view.ctx.stroke();
-          }
-
-          // Inner hollow hub hole
-          view.ctx.fillStyle = '#0a0b0e';
-          view.ctx.beginPath();
-          view.ctx.ellipse(0, 0, tr * 0.44, faceH * 0.44, 0, 0, Math.PI * 2);
-          view.ctx.fill();
-          view.ctx.strokeStyle = '#1e2026';
-          view.ctx.lineWidth = 1.1;
-          view.ctx.stroke();
-        } else if (mode === 'wobble') {
-          // Precessing Euler wobble before slapping flat
-          view.ctx.rotate(c.ang + Math.sin(c.wobblePhase || 0) * 0.4);
-          const tiltScale = 0.65 + 0.35 * Math.abs(Math.sin(c.wobblePhase || 0));
-
-          view.ctx.fillStyle = 'rgba(12,14,18,0.35)';
-          view.ctx.beginPath();
-          view.ctx.arc(2, 2.5, tr * 1.04, 0, Math.PI * 2);
-          view.ctx.fill();
-
-          view.ctx.fillStyle = '#24262e';
-          view.ctx.beginPath();
-          view.ctx.ellipse(0, 0, tr, tr * tiltScale, 0, 0, Math.PI * 2);
-          view.ctx.fill();
-          view.ctx.strokeStyle = '#686f82';
-          view.ctx.lineWidth = 1.3;
-          view.ctx.stroke();
-
-          view.ctx.fillStyle = '#0a0b0e';
-          view.ctx.beginPath();
-          view.ctx.ellipse(0, 0, tr * 0.44, tr * 0.44 * tiltScale, 0, 0, Math.PI * 2);
-          view.ctx.fill();
-        } else if (mode === 'stack') {
-          // Standing 3-tier tyre stack seen from above
-          view.ctx.fillStyle = 'rgba(14,16,20,0.38)';
-          view.ctx.beginPath();
-          view.ctx.arc(2.5, 3.5, tr * 1.08, 0, Math.PI * 2);
-          view.ctx.fill();
-
-          // Tier 1 (bottom tyre offset ring)
-          view.ctx.fillStyle = '#181920';
-          view.ctx.beginPath();
-          view.ctx.arc(-1.5, -1.5, tr * 1.06, 0, Math.PI * 2);
-          view.ctx.fill();
-          view.ctx.strokeStyle = '#484c58';
-          view.ctx.lineWidth = 1.1;
-          view.ctx.stroke();
-
-          // Tier 2 (middle tyre offset ring)
-          view.ctx.fillStyle = '#1f2128';
-          view.ctx.beginPath();
-          view.ctx.arc(1.2, 1.2, tr * 1.02, 0, Math.PI * 2);
-          view.ctx.fill();
-          view.ctx.strokeStyle = '#555a68';
-          view.ctx.lineWidth = 1.1;
-          view.ctx.stroke();
-
-          // Top Tyre (pure circle)
-          view.ctx.fillStyle = '#262830';
-          view.ctx.beginPath();
-          view.ctx.arc(0, 0, tr, 0, Math.PI * 2);
-          view.ctx.fill();
-          view.ctx.strokeStyle = '#686f82';
-          view.ctx.lineWidth = 1.4;
-          view.ctx.stroke();
-
-          view.ctx.strokeStyle = '#14151a';
-          view.ctx.lineWidth = Math.max(1, tr * 0.16);
-          view.ctx.beginPath();
-          view.ctx.arc(0, 0, tr * 0.84, 0, Math.PI * 2);
-          view.ctx.stroke();
-
-          // Sidewall sponsor stencils
-          view.ctx.strokeStyle = '#ffffff';
-          view.ctx.lineWidth = Math.max(1, tr * 0.09);
-          view.ctx.beginPath();
-          view.ctx.arc(0, 0, tr * 0.65, 0.3, 1.9);
-          view.ctx.stroke();
-          view.ctx.beginPath();
-          view.ctx.arc(0, 0, tr * 0.65, 3.4, 5.0);
-          view.ctx.stroke();
-
-          view.ctx.strokeStyle = '#f5c518';
-          view.ctx.lineWidth = Math.max(1, tr * 0.05);
-          view.ctx.beginPath();
-          view.ctx.arc(0, 0, tr * 0.65, 2.1, 2.7);
-          view.ctx.stroke();
-          view.ctx.beginPath();
-          view.ctx.arc(0, 0, tr * 0.65, 5.2, 5.8);
-          view.ctx.stroke();
-
-          view.ctx.fillStyle = '#0a0b0e';
-          view.ctx.beginPath();
-          view.ctx.arc(0, 0, tr * 0.44, 0, Math.PI * 2);
-          view.ctx.fill();
-          view.ctx.strokeStyle = '#1e2026';
-          view.ctx.lineWidth = 1.2;
-          view.ctx.stroke();
-        } else {
-          // Single flat tyre lying on ground — 100% PURE CIRCLE (zero oval)
-          view.ctx.rotate(c.ang);
-
-          // Circular contact shadow
-          view.ctx.fillStyle = 'rgba(12,14,18,0.36)';
-          view.ctx.beginPath();
-          view.ctx.arc(2.0, 2.5, tr * 1.05, 0, Math.PI * 2);
-          view.ctx.fill();
-
-          // Main tyre rubber body (pure circle)
-          view.ctx.fillStyle = '#24262e';
-          view.ctx.beginPath();
-          view.ctx.arc(0, 0, tr, 0, Math.PI * 2);
-          view.ctx.fill();
-
-          // High-contrast outer silhouette ring
-          view.ctx.strokeStyle = '#686f82';
-          view.ctx.lineWidth = 1.4;
-          view.ctx.stroke();
-
-          // Tread groove ring
-          view.ctx.strokeStyle = '#14151a';
-          view.ctx.lineWidth = Math.max(1, tr * 0.16);
-          view.ctx.beginPath();
-          view.ctx.arc(0, 0, tr * 0.84, 0, Math.PI * 2);
-          view.ctx.stroke();
-
-          // Sidewall sponsor stencils (rotates with c.ang)
-          view.ctx.strokeStyle = '#ffffff';
-          view.ctx.lineWidth = Math.max(1, tr * 0.09);
-          view.ctx.beginPath();
-          view.ctx.arc(0, 0, tr * 0.65, 0.3, 1.9);
-          view.ctx.stroke();
-          view.ctx.beginPath();
-          view.ctx.arc(0, 0, tr * 0.65, 3.4, 5.0);
-          view.ctx.stroke();
-
-          view.ctx.strokeStyle = '#f5c518';
-          view.ctx.lineWidth = Math.max(1, tr * 0.05);
-          view.ctx.beginPath();
-          view.ctx.arc(0, 0, tr * 0.65, 2.1, 2.7);
-          view.ctx.stroke();
-          view.ctx.beginPath();
-          view.ctx.arc(0, 0, tr * 0.65, 5.2, 5.8);
-          view.ctx.stroke();
-
-          // Inner hollow hole
-          view.ctx.fillStyle = '#0a0b0e';
-          view.ctx.beginPath();
-          view.ctx.arc(0, 0, tr * 0.44, 0, Math.PI * 2);
-          view.ctx.fill();
-          view.ctx.strokeStyle = '#1e2026';
-          view.ctx.lineWidth = 1.2;
-          view.ctx.stroke();
-        }
-        view.ctx.restore();
-        continue;
-      }
-
-      if (d > 0.02) {
-        // ---- lying down: the cone's body stretches out along `ang`, the base stays put
-        view.ctx.rotate(c.ang);
-        const len = r * (1.0 + 2.6 * d);
-        view.ctx.fillStyle = 'rgba(40,38,46,0.18)';
-        view.ctx.beginPath();
-        view.ctx.ellipse(len * 0.3 + 2, 2.5, len * 0.78, r * 1.1, 0, 0, Math.PI * 2);
-        view.ctx.fill();
-        // body, tapering to the tip
-        view.ctx.fillStyle = COL.cone;
-        view.ctx.beginPath();
-        view.ctx.moveTo(0, -r * 1.25);
-        view.ctx.lineTo(len, -r * 0.34);
-        view.ctx.lineTo(len, r * 0.34);
-        view.ctx.lineTo(0, r * 1.25);
-        view.ctx.closePath();
-        view.ctx.fill();
-        // the reflective band, now a stripe across the lying body
-        view.ctx.fillStyle = COL.coneBand;
-        view.ctx.beginPath();
-        view.ctx.moveTo(len * 0.52, -r * 0.72);
-        view.ctx.lineTo(len * 0.74, -r * 0.48);
-        view.ctx.lineTo(len * 0.74, r * 0.48);
-        view.ctx.lineTo(len * 0.52, r * 0.72);
-        view.ctx.closePath();
-        view.ctx.fill();
-        // square base plate
-        view.ctx.fillStyle = COL.coneDark;
-        roundRect(view.ctx, -r * 0.5, -r * 1.45, r * 1.0, r * 2.9, 2);
-        view.ctx.fill();
-      } else {
-        // ---- upright: concentric rings, seen from above
-        view.ctx.fillStyle = 'rgba(40,38,46,0.20)';
-        view.ctx.beginPath(); view.ctx.ellipse(r * 0.5, r * 0.7, r * 1.35, r * 1.0, 0, 0, Math.PI * 2); view.ctx.fill();
-        view.ctx.fillStyle = COL.coneDark;
-        view.ctx.beginPath(); view.ctx.arc(0, 0, r * 1.5, 0, Math.PI * 2); view.ctx.fill();
-        view.ctx.fillStyle = COL.cone;
-        view.ctx.beginPath(); view.ctx.arc(0, 0, r * 1.18, 0, Math.PI * 2); view.ctx.fill();
-        view.ctx.fillStyle = COL.coneBand;
-        view.ctx.beginPath(); view.ctx.arc(0, 0, r * 0.78, 0, Math.PI * 2); view.ctx.fill();
-        view.ctx.fillStyle = COL.cone;
-        view.ctx.beginPath(); view.ctx.arc(0, 0, r * 0.46, 0, Math.PI * 2); view.ctx.fill();
       }
       view.ctx.restore();
     }

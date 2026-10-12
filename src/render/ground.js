@@ -5,7 +5,6 @@ import { ZONES, BUMPS, LEVEL } from "../world/state.ts";
 import { COL } from "../world/colours.ts";
 import { VERGE_W } from "../world/surfaces.ts";
 import { wearMap, WEAR_CELL, groundAt, coverCut } from "../world/wear.ts";
-import { PIXEL } from "../render.js";   // a const read only at draw time (no load-time cycle)
 
 export function createGround(view, cam, helpers) {
   const { PPMz, sx, sy, roundRect, forSide } = helpers;
@@ -138,8 +137,7 @@ export function createGround(view, cam, helpers) {
       view.ctx.fillStyle = col; view.ctx.beginPath();
       lattice(x0, y0, x1, y1, sp, prob, (x, y, a) => {
         const r = (rMin + (rMax - rMin) * a) * p;
-        if (PIXEL) { view.ctx.rect(x - r, y - r, r * 2, r * 2); return; }      // square stones in pixel art
-        view.ctx.moveTo(x + r, y); view.ctx.arc(x, y, r, 0, Math.PI * 2);
+        view.ctx.rect(x - r, y - r, r * 2, r * 2);      // square stones in pixel art
       });
       view.ctx.fill();
     },
@@ -187,29 +185,14 @@ export function createGround(view, cam, helpers) {
     },
     // soft ellipses — puddles, mud pools, glossy highlights, drift shadows, repair patches
     blobs(L, x0, y0, x1, y1) {
-      const [, col, sp, rx, ry, prob = 1, spin = 1] = L, p = PPMz();
+      const [, col, sp, rx, ry, prob = 1] = L, p = PPMz();
       if (ry * p < 0.8 || sp * p < 3) return;
       view.ctx.fillStyle = col; view.ctx.beginPath();
       lattice(x0, y0, x1, y1, sp, prob, (x, y, a, b) => {
-        const s = 0.7 + 0.6 * b, rot = (a - 0.5) * Math.PI * spin;
-        if (PIXEL) { const ww = rx * s * p, hh = ry * s * p; view.ctx.rect(x - ww, y - hh, ww * 2, hh * 2); return; }   // square blobs in pixel art
-        view.ctx.moveTo(x + Math.cos(rot) * rx * s * p, y + Math.sin(rot) * rx * s * p);
-        view.ctx.ellipse(x, y, rx * s * p, ry * s * p, rot, 0, Math.PI * 2);
+        const s = 0.7 + 0.6 * b;
+        const ww = rx * s * p, hh = ry * s * p; view.ctx.rect(x - ww, y - hh, ww * 2, hh * 2);   // square blobs in pixel art
       });
       view.ctx.fill();
-    },
-    // thin rings — rain ripples on standing water
-    rings(L, x0, y0, x1, y1) {
-      const [, col, sp, r, wid, prob = 1] = L, p = PPMz();
-      if (r * p < 2 || sp * p < 4) return;
-      if (PIXEL) return;     // as hollow squares they read as UI glitches (photographed on the wet pad) — sheen + puddles carry it
-      view.ctx.strokeStyle = col; view.ctx.lineWidth = Math.max(1, wid * p); view.ctx.beginPath();
-      lattice(x0, y0, x1, y1, sp, prob, (x, y, a) => {
-        const rr = r * (0.6 + 0.8 * a) * p;
-        if (PIXEL) { view.ctx.rect(x - rr, y - rr, rr * 2, rr * 2); return; }   // square ripples in pixel art
-        view.ctx.moveTo(x + rr, y); view.ctx.arc(x, y, rr, 0, Math.PI * 2);
-      });
-      view.ctx.stroke();
     },
     // jagged cracks with a side branch — ice, broken tarmac
     cracks(L, x0, y0, x1, y1) {
@@ -281,7 +264,7 @@ export function createGround(view, cam, helpers) {
     // paint. Real wet asphalt is DARKER tarmac with its aggregate still showing, broad soft reflections and
     // dark glossy standing water in the low spots.
     // + BLUE-ISH PUDDLES (user, 2026-10-03: "wet tarmac isn't clear enough, maybe needs blue-ish puddles")
-    wet: { base: '#2c3039', layers: [['grain', '#454a57', 0.9, 0.08], ['blobs', 'rgba(86,120,176,0.55)', 4.2, 1.6, 0.8, 0.55, 0.2], ['sheen', 'rgba(205,218,238,0.10)', 6.0, 1.6, -0.35], ['sheen', 'rgba(230,238,250,0.16)', 6.0, 0.18, -0.35], ['rings', 'rgba(200,220,250,0.35)', 4.6, 0.35, 0.03, 0.4]] },
+    wet: { base: '#2c3039', layers: [['grain', '#454a57', 0.9, 0.08], ['blobs', 'rgba(86,120,176,0.55)', 4.2, 1.6, 0.8, 0.55, 0.2], ['sheen', 'rgba(205,218,238,0.10)', 6.0, 1.6, -0.35], ['sheen', 'rgba(230,238,250,0.16)', 6.0, 0.18, -0.35]] },
   };
   // FIELD LOOKS (highway.js fields, zone.art; the zone DRIVES as its own surface). User, 2026-10-06: "jsut reuse mud and grass or long
   // grass textures for field, and maybe colour them" - so each is an existing texture with only its COLOURS swapped (same layers).
@@ -414,7 +397,7 @@ export function createGround(view, cam, helpers) {
   // is TRANSLUCENT water over whatever is under it, so you can see it is a puddle on grass, on dirt or on
   // tarmac. When wear changes a cell under a cover (snow packed to ice, ice scrubbed through), drawWear
   // paints that cell's new state over this.
-  // PIXEL mode: a cover is drawn as the 0.5 m world-grid squares whose centre is inside it (the same inside test as
+  // A cover is drawn as the 0.5 m world-grid squares whose centre is inside it (the same inside test as
   // lab.js coverAt), cached per cover — squares, not ovals (user, pixel pass: "no circles"). Physics keeps the exact
   // shape; the drawn edge is within ~0.35 m of it, the same as the square blend patches. `rim` = squares with an
   // outside neighbour, filled as the edge line (stroking the squares would outline every one of them).
@@ -436,17 +419,6 @@ export function createGround(view, cam, helpers) {
       if (!inside(mx + G, my) || !inside(mx - G, my) || !inside(mx, my + G) || !inside(mx, my - G)) rim.push(x, y);
     }
     return (c._cells = { all, rim, G });
-  }
-  function cellsPath(list, G) {
-    const p = PPMz(); view.ctx.beginPath();
-    for (let i = 0; i < list.length; i += 2) view.ctx.rect(sx(list[i]), sy(list[i + 1]), G * p, G * p);
-  }
-  function coverPath(c) {
-    if (PIXEL) { const k = coverCells(c); cellsPath(k.all, k.G); return; }
-    const p = PPMz();
-    view.ctx.beginPath();
-    if (c.shape === 'ellipse') view.ctx.ellipse(sx(c.x), sy(c.y), (c.w / 2) * p, (c.h / 2) * p, c.rot || 0, 0, Math.PI * 2);
-    else { view.ctx.save(); view.ctx.translate(sx(c.x), sy(c.y)); view.ctx.rotate(c.rot || 0); view.ctx.rect((-c.w / 2) * p, (-c.h / 2) * p, c.w * p, c.h * p); view.ctx.restore(); }
   }
   const PUDDLE_TINT = {
     dirt: 'rgba(86,64,42,0.62)', mud: 'rgba(62,46,32,0.66)', thickMud: 'rgba(46,34,24,0.70)',
@@ -518,7 +490,6 @@ export function createGround(view, cam, helpers) {
         view.ctx.save(); path(vis); view.ctx.clip(); view.ctx.translate(sx(0), sy(0));
         PRIM.sheen(['sheen', 'rgba(215,228,248,0.09)', 4.0, 0.9, -0.45], bx0, by0, bx1, by1);
         PRIM.sheen(['sheen', 'rgba(235,242,252,0.18)', 4.0, 0.10, -0.45], bx0, by0, bx1, by1);
-        PRIM.rings(['rings', 'rgba(220,232,250,0.30)', 2.8, 0.30, 0.03, 0.45], bx0, by0, bx1, by1);
         view.ctx.restore();
         path(grp.rim.filter((c) => c.x + G >= vx0 && c.x <= vx1 && c.y + G >= vy0 && c.y <= vy1)); view.ctx.fillStyle = 'rgba(30,40,58,0.30)'; view.ctx.fill();
       } else {
@@ -532,42 +503,7 @@ export function createGround(view, cam, helpers) {
   function drawCovers() {
     const list = LEVEL.covers;
     if (!list) return;
-    if (PIXEL) { drawCoversMerged(list); return; }
-    const p = PPMz();
-    for (const c of list) {
-      const r = Math.max(c.w, c.h) / 2;
-      if (sx(c.x + r) < 0 || sx(c.x - r) > view.W || sy(c.y + r) < 0 || sy(c.y - r) > view.H) continue;
-      coverPath(c);
-      view.ctx.save();
-      if (c.cover === 'wet') {
-        // water takes the colour of what it lies in: brown in dirt and mud, so it reads as part of them
-        const under = (groundAt(c.x, c.y).surface.under) || 'tarmac';
-        view.ctx.fillStyle = PUDDLE_TINT[under] || 'rgba(52,66,92,0.58)';
-        view.ctx.fill();
-        view.ctx.clip();
-        view.ctx.translate(sx(0), sy(0));
-        // reflections: broad and faint with one thin bright edge, sparse rain rings — the first cut (tight
-        // regular bands) read as hatching on the dark tarmac puddles (photographed 2026-10-03)
-        PRIM.sheen(['sheen', 'rgba(215,228,248,0.09)', 4.0, 0.9, -0.45], c.x - r, c.y - r, c.x + r, c.y + r);
-        PRIM.sheen(['sheen', 'rgba(235,242,252,0.18)', 4.0, 0.10, -0.45], c.x - r, c.y - r, c.x + r, c.y + r);
-        PRIM.rings(['rings', 'rgba(220,232,250,0.30)', 2.8, 0.30, 0.03, 0.45], c.x - r, c.y - r, c.x + r, c.y + r);
-        view.ctx.restore();
-        if (PIXEL) { const k = coverCells(c); cellsPath(k.rim, k.G); view.ctx.fillStyle = 'rgba(30,40,58,0.30)'; view.ctx.fill(); continue; }
-        coverPath(c);
-        view.ctx.strokeStyle = 'rgba(30,40,58,0.35)'; view.ctx.lineWidth = Math.max(1, 0.12 * p); view.ctx.stroke();
-      } else {
-        view.ctx.fillStyle = artBase(c.cover, '#ffffff');
-        view.ctx.fill();
-        view.ctx.clip();
-        view.ctx.translate(sx(0), sy(0));
-        paintLayers(c.cover, c.x - r, c.y - r, c.x + r, c.y + r);
-        view.ctx.restore();
-        if (PIXEL) { const k = coverCells(c); cellsPath(k.rim, k.G); view.ctx.fillStyle = c.cover === 'snow' ? 'rgba(160,180,205,0.55)' : 'rgba(255,255,255,0.55)'; view.ctx.fill(); continue; }
-        coverPath(c);
-        view.ctx.strokeStyle = c.cover === 'snow' ? 'rgba(160,180,205,0.55)' : 'rgba(255,255,255,0.7)';
-        view.ctx.lineWidth = Math.max(1, 0.16 * p); view.ctx.stroke();
-      }
-    }
+    drawCoversMerged(list);
   }
 
   // Dynamic surface wear patches: grass worn to short grass, dirt, and mud
@@ -608,9 +544,7 @@ export function createGround(view, cam, helpers) {
       // a soft DISC per cell (radius 0.72 of the cell, so neighbours overlap) rather than a hard square:
       // worn ground then spreads as organic ruts instead of a blocky staircase (photographed 2026-10-03)
       for (let i = 0; i < r.length; i += 4) {
-        if (PIXEL) { view.ctx.rect(r[i], r[i + 1], r[i + 2], r[i + 3]); continue; }     // squares in pixel art
-        const rr = r[i + 2] * 0.72, cx = r[i] + r[i + 2] / 2, cy = r[i + 1] + r[i + 3] / 2;
-        view.ctx.moveTo(cx + rr, cy); view.ctx.arc(cx, cy, rr, 0, Math.PI * 2);
+        view.ctx.rect(r[i], r[i + 1], r[i + 2], r[i + 3]);     // squares in pixel art
       }
       view.ctx.fillStyle = artBase(id, '#6b5644');
       view.ctx.fill();

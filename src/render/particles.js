@@ -1,7 +1,6 @@
 // the PARTICLES layer of render.js (phase 4 of the render.js split): thrown material -
 // puffs, spray, smoke, paint chips and sparks. Moved verbatim from createRenderer.
 import { SPRITE_PPM } from "./shared.js";
-import { PIXEL } from "../render.js";   // a const read only at draw time (no load-time cycle)
 
 export function createParticles(view, cam, helpers) {
   const { PPMz, sx, sy } = helpers;
@@ -142,18 +141,11 @@ export function createParticles(view, cam, helpers) {
       q.x += q.vx * wallDt; q.y += q.vy * wallDt;
       q.vx *= 1 - 2.6 * wallDt; q.vy *= 1 - 2.6 * wallDt;   // air drag: clods slow and settle
       view.ctx.fillStyle = `rgb(${q.rgb})`;
-      if (PIXEL) {
-        // PIXEL PUFFS: a square snapped to the art-pixel grid, fading in STEPS (pixel-art smoke), not a smooth disc
-        view.ctx.globalAlpha = Math.ceil((1 - t) * 4) / 4 * 0.5;
-        const rr = Math.max(1, Math.round((q.r0 + t * q.grow) * p * view.dpr));
-        const bx = Math.round(sx(q.x) * view.dpr), by = Math.round(sy(q.y) * view.dpr);
-        view.ctx.save(); view.ctx.setTransform(1, 0, 0, 1, 0, 0); view.ctx.fillRect(bx - rr, by - rr, rr * 2, rr * 2); view.ctx.restore();
-        continue;
-      }
-      view.ctx.globalAlpha = (1 - t) * 0.55;
-      view.ctx.beginPath();
-      view.ctx.arc(sx(q.x), sy(q.y), (q.r0 + t * q.grow) * p, 0, Math.PI * 2);
-      view.ctx.fill();
+      // PIXEL PUFFS: a square snapped to the art-pixel grid, fading in STEPS (pixel-art smoke), not a smooth disc
+      view.ctx.globalAlpha = Math.ceil((1 - t) * 4) / 4 * 0.5;
+      const rr = Math.max(1, Math.round((q.r0 + t * q.grow) * p * view.dpr));
+      const bx = Math.round(sx(q.x) * view.dpr), by = Math.round(sy(q.y) * view.dpr);
+      view.ctx.save(); view.ctx.setTransform(1, 0, 0, 1, 0, 0); view.ctx.fillRect(bx - rr, by - rr, rr * 2, rr * 2); view.ctx.restore();
     }
     view.ctx.globalAlpha = 1;
   }

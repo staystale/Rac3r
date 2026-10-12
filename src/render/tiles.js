@@ -4,7 +4,6 @@ import { BUMPS, LEVEL } from "../world/state.ts";
 import { COL } from "../world/colours.ts";
 import { WEAR_CELL, wearDirty, wearEpoch, groundAt } from "../world/wear.ts";
 import { visualHeightAt } from "../world/terrain.ts";
-import { PIXEL } from "../render.js";   // read only at draw time (no load-time cycle)
 
 export function createTiles(view, cam, helpers) {
   const {
@@ -121,7 +120,7 @@ export function createTiles(view, cam, helpers) {
     const zq = zOfStep(k), pq = view.PPM * zq, tw = TILE_PX / pq;     // world metres per tile
     const px = Math.round(TILE_PX * view.dpr), c = document.createElement('canvas');
     c.width = c.height = px;
-    const viaScratch = PIXEL && !TILE_GPU, sc = viaScratch ? tileScratch(px) : null;
+    const viaScratch = !TILE_GPU, sc = viaScratch ? tileScratch(px) : null;
     const g = viaScratch ? sc.g : c.getContext('2d');
     g.setTransform(view.dpr, 0, 0, view.dpr, 0, 0);
     const keep = { ctx: view.ctx, W: view.W, H: view.H, zoom: view.zoom, cx: cam.x, cy: cam.y };
@@ -146,7 +145,7 @@ export function createTiles(view, cam, helpers) {
     }
     tileState.tilesPainted++;
     if (viaScratch) paletteSnap(sc.c, c);
-    else if (PIXEL) paletteSnap(c);
+    else paletteSnap(c);
     hillShade(c, tw, (i + 0.5) * tw, (j + 0.5) * tw);
     return c;
   }
