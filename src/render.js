@@ -51,32 +51,34 @@ export function createRenderer(canvas) {
   // \`let\`, not const: the ground cache (below) points every draw function at an off-screen canvas by
   // swapping this for the duration of one render. Nothing else ever reassigns it.
   const mainCtx = canvas.getContext('2d');
-  let ctx = mainCtx;
+  // the 7 most shared drawing variables in one object (phase 4 of the render.js split): zoom is the
+  // smoothed speed zoom (see SPEED ZOOM below), noPatterns is set while painting the fly-in overview
+  // (flat colours only)
+  const view = { ctx: mainCtx, W: 0, H: 0, dpr: 1, PPM: 22, zoom: 1, noPatterns: false };
   // pixel mode: the world buffer, its device-px block size (k), and the real dpr of the screen canvas
   const pcanvas = PIXEL ? document.createElement('canvas') : null;
   const pctx = PIXEL ? pcanvas.getContext('2d') : null;
   let pk = 1, realDpr = 1;
   const cam = { x: 0, y: 0, initialised: false };
-  let W = 0, H = 0, dpr = 1, PPM = 22;
-  const PPMz = () => PPM * zoom;   // ONE place converts metres to pixels, so nothing can miss the zoom
+  const PPMz = () => view.PPM * view.zoom;   // ONE place converts metres to pixels, so nothing can miss the zoom
 
   function resize() {
     realDpr = Math.min(MAX_DPR, devicePixelRatio || 1);
-    dpr = realDpr;
-    W = canvas.clientWidth; H = canvas.clientHeight;
-    canvas.width = Math.round(W * realDpr);
-    canvas.height = Math.round(H * realDpr);
+    view.dpr = realDpr;
+    view.W = canvas.clientWidth; view.H = canvas.clientHeight;
+    canvas.width = Math.round(view.W * realDpr);
+    canvas.height = Math.round(view.H * realDpr);
     mainCtx.setTransform(realDpr, 0, 0, realDpr, 0, 0);   // draw in CSS px everywhere below
     if (PIXEL) {
       // an art pixel is a whole number of device pixels, so the upscale never smears
       pk = Math.max(2, Math.round(PIXEL_CSS * realDpr));
       pcanvas.width = Math.ceil(canvas.width / pk); pcanvas.height = Math.ceil(canvas.height / pk);
-      dpr = pcanvas.width / W;                       // the EFFECTIVE dpr every world draw (and every tile) uses
-      pctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      view.dpr = pcanvas.width / view.W;                       // the EFFECTIVE dpr every world draw (and every tile) uses
+      pctx.setTransform(view.dpr, 0, 0, view.dpr, 0, 0);
       pctx.imageSmoothingEnabled = false;
-      ctx = pctx;
+      view.ctx = pctx;
     }
-    PPM = Math.max(PPM_MIN, Math.min(PPM_MAX, Math.min(W, H) / PPM_DIV));
+    view.PPM = Math.max(PPM_MIN, Math.min(PPM_MAX, Math.min(view.W, view.H) / PPM_DIV));
   }
 
   // camera follows with a lead in the direction of travel, smoothed on the WALL CLOCK (rule 5 — this
@@ -84,7 +86,7 @@ export function createRenderer(canvas) {
   function follow(car, wallDt) {
     // Lead scaled by the zoom: at 50 m/s a flat 0.35 s lead is 18 m, which on a zoomed-in view shoves
     // the car to the edge of the screen. Zoomed out there is room for it, zoomed in there is not.
-    const lead = 0.35 * zoom;
+    const lead = 0.35 * view.zoom;
     // LOCKED TO THE CAR, ONLY THE LEAD IS SMOOTHED (user, 2026-10-03: "camera / car tracking still seems jittery"). The
     // camera used to chase car + lead with an exponential lerp. MEASURED: with uneven frame times the lerp's lag changes
     // by ~v*dt/2 — half a metre at 200 km/h — so the car twitched against the camera even after the render
@@ -96,7 +98,7 @@ export function createRenderer(canvas) {
     // view: the car sits ~3/4 down the screen with the road ahead above it. Capped sideways so a 60 deg bend cannot push the car off
     // the side of a narrow portrait screen.
     const hwy = LEVEL.endless && LEVEL._hw;
-    if (hwy && hwy.camDir) { const P = PPMz(), A = 0.26 * H / P, cx = 0.2 * W / P;
+    if (hwy && hwy.camDir) { const P = PPMz(), A = 0.26 * view.H / P, cx = 0.2 * view.W / P;
       lx = Math.max(-cx, Math.min(cx, hwy.camDir.x * A)); ly = hwy.camDir.y * A; }
     if (!cam.initialised) { cam.lx = lx; cam.ly = ly; cam.initialised = true; }
     if (cam.lx === undefined) { cam.lx = cam.x - car.x; cam.ly = cam.y - car.y; }   // hand-over from the fly-in
@@ -110,7 +112,6 @@ export function createRenderer(canvas) {
   // with speed so the distance you can SEE scales with the distance you cover. Smoothed on the WALL
   // CLOCK (rule 5) — a zoom is something the player watches, and an unsmoothed one pumps on every
   // gearchange.
-  let zoom = 1;
   // LEVEL FLY-IN (playtesters, re-asked by the user 2026-10-03 after DeepSeek's version was reverted): every
   // level start opens on the WHOLE level, then eases in to the car over FLY_TIME, so you see what is around
   // before you drive. Wall clock (rule 5: the player watches it). The player can drive during it.
@@ -139,7 +140,7 @@ export function createRenderer(canvas) {
   function levelOverview() {
     const layout = LEVEL.subtrack ? LEVEL.subtrack.layoutId || 0 : 0;
     if (ovCache && ovCache.level === LEVEL && ovCache.layout === layout && (!LEVEL.endless || Math.abs(roadS0() - ovCache.s0) < OV_REPAINT)) return ovCache.ov;
-    if (!(W > 0)) return null;
+    if (!(view.W > 0)) return null;
     const [x0, y0, x1, y1] = levelBounds();
     ovCache = { level: LEVEL, layout, s0: roadS0(), ov: paintOverview(x0, y0, x1, y1, LEVEL.endless ? 512 : 1024) };
     return ovCache.ov;
@@ -150,13 +151,13 @@ export function createRenderer(canvas) {
   function thumbnail(size = 320) { const [x0, y0, x1, y1] = levelBounds(); return paintOverview(x0, y0, x1, y1, size).c; }
   function flyIn() {
     const [x0, y0, x1, y1] = levelBounds();
-    const zFit = Math.min(W / (PPM * (x1 - x0)), H / (PPM * (y1 - y0)));
+    const zFit = Math.min(view.W / (view.PPM * (x1 - x0)), view.H / (view.PPM * (y1 - y0)));
     // MEASURED BUG, 2026-10-03: on a ?level= link the level loads BEFORE the canvas is measured (W = 0), so zFit
     // was 0, log(0) = -Infinity, and the zoom went NaN — "createRadialGradient: non-finite" from every prop.
     // Not measured yet = no fly-in; the tap-to-start restart runs it again with a real screen.
     if (!(zFit > 0 && Number.isFinite(zFit))) { fly = null; return; }
     fly = { t: 0, cx: (x0 + x1) / 2, cy: (y0 + y1) / 2, z0: Math.min(1, zFit), ov: paintOverview(x0, y0, x1, y1) };
-    cam.x = fly.cx; cam.y = fly.cy; cam.initialised = true; zoom = fly.z0;
+    cam.x = fly.cx; cam.y = fly.cy; cam.initialised = true; view.zoom = fly.z0;
   }
   // THE FLY-IN DOES NOT USE THE TILES WHILE ZOOMED OUT. MEASURED (user: "zoom in at the start seems to struggle
   // and be glitchy"; photographed mid-flight as a blurred smear): the fly sweeps ~11 tile zoom steps in 1.5 s,
@@ -169,18 +170,18 @@ export function createRenderer(canvas) {
     const ow = size, oh = Math.max(1, Math.round(size * (y1 - y0) / (x1 - x0)));
     const c = document.createElement('canvas'); c.width = ow; c.height = oh;
     const g = c.getContext('2d');
-    const keep = { ctx, W, H, zoom, cx: cam.x, cy: cam.y };
-    ctx = g; W = ow; H = oh; zoom = ow / (PPM * (x1 - x0)); cam.x = (x0 + x1) / 2; cam.y = (y0 + y1) / 2;
-    noPatterns = true;
+    const keep = { ctx: view.ctx, W: view.W, H: view.H, zoom: view.zoom, cx: cam.x, cy: cam.y };
+    view.ctx = g; view.W = ow; view.H = oh; view.zoom = ow / (view.PPM * (x1 - x0)); cam.x = (x0 + x1) / 2; cam.y = (y0 + y1) / 2;
+    view.noPatterns = true;
     try { drawFloor(); drawZones(); drawLanes(); drawTrackRibbon(); drawPatches(); drawCovers(); drawCurvedKerbs(); }
-    finally { ctx = keep.ctx; W = keep.W; H = keep.H; zoom = keep.zoom; cam.x = keep.cx; cam.y = keep.cy; noPatterns = false; }
+    finally { view.ctx = keep.ctx; view.W = keep.W; view.H = keep.H; view.zoom = keep.zoom; cam.x = keep.cx; cam.y = keep.cy; view.noPatterns = false; }
     if (PIXEL) paletteSnap(c);
     return { c, x0, y0, x1, y1 };
   }
   // paint (without drawing) the tiles of step k covering a view centred on (cx, cy) at zoom z
   function prefetch(k, cx, cy, z, budget) {
-    const tw = TILE_PX / (PPM * zOfStep(k)), p = PPM * z;
-    const vx0 = cx - W / 2 / p, vx1 = cx + W / 2 / p, vy0 = cy - H / 2 / p, vy1 = cy + H / 2 / p;
+    const tw = TILE_PX / (view.PPM * zOfStep(k)), p = view.PPM * z;
+    const vx0 = cx - view.W / 2 / p, vx1 = cx + view.W / 2 / p, vy0 = cy - view.H / 2 / p, vy1 = cy + view.H / 2 / p;
     for (let i = Math.floor(vx0 / tw); i * tw < vx1 && budget.n > 0; i++)
       for (let j = Math.floor(vy0 / tw); j * tw < vy1 && budget.n > 0; j++) {
         const key = k + '|' + i + '|' + j;
@@ -197,14 +198,14 @@ export function createRenderer(canvas) {
     // where its tiles were pre-painted
     const ep = 1 - Math.pow(1 - k, 3);
     cam.x = fly.cx + (tx - fly.cx) * ep; cam.y = fly.cy + (ty - fly.cy) * ep;
-    zoom = Math.exp(Math.log(fly.z0) + (Math.log(1) - Math.log(fly.z0)) * e);   // ease in log space: even feel
+    view.zoom = Math.exp(Math.log(fly.z0) + (Math.log(1) - Math.log(fly.z0)) * e);   // ease in log space: even feel
     if (k >= 1) fly = null;
     cam.lx = undefined;
     return true;
   }
   let vZoom = null, pinZoom = null;   // pinZoom: tools only (debugZoom) - the photo tools pin the wide view
   function updateZoom(car, wallDt) {
-    if (pinZoom) { zoom = pinZoom; return; }
+    if (pinZoom) { view.zoom = pinZoom; return; }
     // PROPORTIONAL TO SPEED, properly: hold the TIME-to-horizon constant rather than easing along an
     // arbitrary curve. You always see LOOKAHEAD seconds of road, so the distance visible scales
     // directly with how fast you are covering it — which is what "zoom out proportional to speed"
@@ -213,15 +214,15 @@ export function createRenderer(canvas) {
     const vNow = Math.hypot(car.vx, car.vy);
     vZoom = vZoom === null ? vNow : vZoom + (vNow - vZoom) * (1 - Math.exp(-0.65 * wallDt));
     const v = vZoom;
-    const want = v > 1 ? W / (PPM * v * LOOKAHEAD) : 1;
+    const want = v > 1 ? view.W / (view.PPM * v * LOOKAHEAD) : 1;
     const target = Math.max(ZOOM_MIN, Math.min(1, want));
     // CALMER (2026-10-04, tools/wobblecheck: the zoom moved the screen edge ~1.1 px EVERY frame at speed — the view breathed with every
     // lift and squeeze): 2.5/s -> 0.9/s, and changes under 4 % of the target are ignored (dead band).
-    if (Math.abs(target - zoom) > 0.04 * target) zoom += (target - zoom) * (1 - Math.exp(-0.9 * wallDt));
+    if (Math.abs(target - view.zoom) > 0.04 * target) view.zoom += (target - view.zoom) * (1 - Math.exp(-0.9 * wallDt));
   }
 
-  const sx = (wx) => (wx - cam.x) * PPMz() + W / 2;
-  const sy = (wy) => (wy - cam.y) * PPMz() + H / 2;
+  const sx = (wx) => (wx - cam.x) * PPMz() + view.W / 2;
+  const sy = (wy) => (wy - cam.y) * PPMz() + view.H / 2;
 
   function roundRect(g, x, y, w, h, r) {
     g.beginPath();
@@ -235,53 +236,53 @@ export function createRenderer(canvas) {
 
   // ---------------------------------------------------------------- floor
   function drawFloor() {
-    ctx.fillStyle = COL.outside;
-    ctx.fillRect(0, 0, W, H);
+    view.ctx.fillStyle = COL.outside;
+    view.ctx.fillRect(0, 0, view.W, view.H);
     const p = PPMz();
 
     // the floor RECTANGLE (S-B): FX0..FX1 x FY0..FY1, the square +-FLOOR on every level without bounds
     const fw = (FX1 - FX0) * p, fh = (FY1 - FY0) * p;
     if (LEVEL.base && LEVEL.base.id !== 'lab') {
-      ctx.fillStyle = artBase(LEVEL.base.id, COL.floor);
-      ctx.fillRect(sx(FX0), sy(FY0), fw, fh);
-      ctx.save();
-      ctx.translate(sx(0), sy(0));
+      view.ctx.fillStyle = artBase(LEVEL.base.id, COL.floor);
+      view.ctx.fillRect(sx(FX0), sy(FY0), fw, fh);
+      view.ctx.save();
+      view.ctx.translate(sx(0), sy(0));
       paintLayers(LEVEL.base.id, FX0, FY0, FX1, FY1);
-      ctx.restore();
+      view.ctx.restore();
     } else {
-      ctx.fillStyle = COL.floor;
-      ctx.fillRect(sx(FX0), sy(FY0), fw, fh);
+      view.ctx.fillStyle = COL.floor;
+      view.ctx.fillRect(sx(FX0), sy(FY0), fw, fh);
 
       // a soft warm pool so a big pale floor is not dead flat. Since the ground TILES (2026-10-03) it is
       // centred on the WORLD ORIGIN (the skidpad), not on the car: tiles are painted separately, so a
       // screen-centred gradient would come out as one blotch per tile. It stays UNDER the zones.
-      const gr = ctx.createRadialGradient(sx(0), sy(0), 0, sx(0), sy(0), FLOOR * 0.9 * p);
+      const gr = view.ctx.createRadialGradient(sx(0), sy(0), 0, sx(0), sy(0), FLOOR * 0.9 * p);
       gr.addColorStop(0, 'rgba(255,252,246,0.55)');
       gr.addColorStop(1, 'rgba(226,226,234,0)');
-      ctx.fillStyle = gr;
-      ctx.fillRect(sx(FX0), sy(FY0), fw, fh);
+      view.ctx.fillStyle = gr;
+      view.ctx.fillRect(sx(FX0), sy(FY0), fw, fh);
 
       // grid — only the lines actually on screen
-      const x0 = Math.floor((cam.x - W / 2 / PPMz()) / GRID) * GRID;
-      const x1 = cam.x + W / 2 / PPMz();
-      const y0 = Math.floor((cam.y - H / 2 / PPMz()) / GRID) * GRID;
-      const y1 = cam.y + H / 2 / PPMz();
-      ctx.strokeStyle = COL.grid;
-      ctx.lineWidth = 1;
-      ctx.beginPath();
+      const x0 = Math.floor((cam.x - view.W / 2 / PPMz()) / GRID) * GRID;
+      const x1 = cam.x + view.W / 2 / PPMz();
+      const y0 = Math.floor((cam.y - view.H / 2 / PPMz()) / GRID) * GRID;
+      const y1 = cam.y + view.H / 2 / PPMz();
+      view.ctx.strokeStyle = COL.grid;
+      view.ctx.lineWidth = 1;
+      view.ctx.beginPath();
       for (let x = x0; x <= x1; x += GRID) {
         if (x < FX0 || x > FX1) continue;
         const px = Math.round(sx(x)) + 0.5;
-        ctx.moveTo(px, sy(Math.max(FY0, y0 - GRID)));
-        ctx.lineTo(px, sy(Math.min(FY1, y1 + GRID)));
+        view.ctx.moveTo(px, sy(Math.max(FY0, y0 - GRID)));
+        view.ctx.lineTo(px, sy(Math.min(FY1, y1 + GRID)));
       }
       for (let y = y0; y <= y1; y += GRID) {
         if (y < FY0 || y > FY1) continue;
         const py = Math.round(sy(y)) + 0.5;
-        ctx.moveTo(sx(Math.max(FX0, x0 - GRID)), py);
-        ctx.lineTo(sx(Math.min(FX1, x1 + GRID)), py);
+        view.ctx.moveTo(sx(Math.max(FX0, x0 - GRID)), py);
+        view.ctx.lineTo(sx(Math.min(FX1, x1 + GRID)), py);
       }
-      ctx.stroke();
+      view.ctx.stroke();
     }
   }
 
@@ -291,7 +292,7 @@ export function createRenderer(canvas) {
   // so disagreed with the physics there. The pattern is world-anchored, so pieces join without a seam.
   function drawLanes() {
     if (!LEVEL.lanes) return;
-    const P = PPMz(), vx0 = cam.x - W / 2 / P, vx1 = cam.x + W / 2 / P, vy0 = cam.y - H / 2 / P, vy1 = cam.y + H / 2 / P;
+    const P = PPMz(), vx0 = cam.x - view.W / 2 / P, vx1 = cam.x + view.W / 2 / P, vy0 = cam.y - view.H / 2 / P, vy1 = cam.y + view.H / 2 / P;
     for (const ln of LEVEL.lanes) {
       const pts = ln.pts, n = pts.length, hw = ln.width / 2, id = ln.surface.id;
       if (n < 2) continue;
@@ -299,7 +300,7 @@ export function createRenderer(canvas) {
       // tile of pattern only to clip it away — MEASURED ground tile 45.7 ms (Thruston 26). Now only the pieces touching the view,
       // and the pattern only over their box.
       let bx0 = Infinity, by0 = Infinity, bx1 = -Infinity, by1 = -Infinity, any = false;
-      ctx.beginPath();
+      view.ctx.beginPath();
       for (let i = 0; i < n - 1; i++) {
         const [ax, ay] = pts[i], [qx, qy] = pts[i + 1];
         const sx0 = Math.min(ax, qx) - hw, sx1 = Math.max(ax, qx) + hw, sy0 = Math.min(ay, qy) - hw, sy1 = Math.max(ay, qy) + hw;
@@ -307,14 +308,14 @@ export function createRenderer(canvas) {
         any = true; bx0 = Math.min(bx0, sx0); bx1 = Math.max(bx1, sx1); by0 = Math.min(by0, sy0); by1 = Math.max(by1, sy1);
         const L = Math.hypot(qx - ax, qy - ay) || 1, nx = -(qy - ay) / L * hw, ny = (qx - ax) / L * hw;
         // every piece wound the same way (nonzero fill = their union, no holes where they overlap)
-        ctx.moveTo(sx(ax + nx), sy(ay + ny)); ctx.lineTo(sx(qx + nx), sy(qy + ny)); ctx.lineTo(sx(qx - nx), sy(qy - ny)); ctx.lineTo(sx(ax - nx), sy(ay - ny)); ctx.closePath();
+        view.ctx.moveTo(sx(ax + nx), sy(ay + ny)); view.ctx.lineTo(sx(qx + nx), sy(qy + ny)); view.ctx.lineTo(sx(qx - nx), sy(qy - ny)); view.ctx.lineTo(sx(ax - nx), sy(ay - ny)); view.ctx.closePath();
         // a disc at each end of a visible piece (anticlockwise = the quads' winding, else holes)
-        ctx.moveTo(sx(ax + hw), sy(ay)); ctx.arc(sx(ax), sy(ay), hw * P, 0, Math.PI * 2, true);
-        ctx.moveTo(sx(qx + hw), sy(qy)); ctx.arc(sx(qx), sy(qy), hw * P, 0, Math.PI * 2, true);
+        view.ctx.moveTo(sx(ax + hw), sy(ay)); view.ctx.arc(sx(ax), sy(ay), hw * P, 0, Math.PI * 2, true);
+        view.ctx.moveTo(sx(qx + hw), sy(qy)); view.ctx.arc(sx(qx), sy(qy), hw * P, 0, Math.PI * 2, true);
       }
       if (!any) continue;
-      ctx.fillStyle = artBase(id, COL.tarmac); ctx.fill('nonzero');
-      ctx.save(); ctx.clip('nonzero'); ctx.translate(sx(0), sy(0)); paintLayers(id, Math.max(bx0, vx0), Math.max(by0, vy0), Math.min(bx1, vx1), Math.min(by1, vy1)); ctx.restore();
+      view.ctx.fillStyle = artBase(id, COL.tarmac); view.ctx.fill('nonzero');
+      view.ctx.save(); view.ctx.clip('nonzero'); view.ctx.translate(sx(0), sy(0)); paintLayers(id, Math.max(bx0, vx0), Math.max(by0, vy0), Math.min(bx1, vx1), Math.min(by1, vy1)); view.ctx.restore();
     }
   }
 
@@ -366,7 +367,7 @@ export function createRenderer(canvas) {
     }
     for (const span of spans) {
       if (span.surface === 'ghost') continue;
-      ctx.fillStyle = artBase(span.surface, COL.tarmac);
+      view.ctx.fillStyle = artBase(span.surface, COL.tarmac);
       // world bbox of this span, so its pattern is painted over THIS span only. MEASURED 2026-10-03: painting
       // each span across the whole view (relying on the clip) drew the screen once per span — Stock Car
       // fell to 10 fps at 4x CPU throttle.
@@ -382,31 +383,31 @@ export function createRenderer(canvas) {
       const line = spans.length > 1 ? [sectorCut(span.start)] : [];
       for (let i = span.start; i < span.end; i++) line.push(pts[((i % n) + n) % n]);
       line.push(spans.length > 1 ? sectorCut(span.end) : pts[((span.end % n) + n) % n]);
-      ctx.beginPath();
+      view.ctx.beginPath();
       // Outer left edge along the span
       for (let i = 0; i < line.length; i++) {
         const pt = line[i], lx = sx(pt.x + pt.nx * halfW), ly = sy(pt.y + pt.ny * halfW);
-        if (i === 0) ctx.moveTo(lx, ly); else ctx.lineTo(lx, ly);
+        if (i === 0) view.ctx.moveTo(lx, ly); else view.ctx.lineTo(lx, ly);
       }
       // Inner right edge along the span in reverse
       for (let i = line.length - 1; i >= 0; i--) {
         const pt = line[i];
-        ctx.lineTo(sx(pt.x - pt.nx * halfW), sy(pt.y - pt.ny * halfW));
+        view.ctx.lineTo(sx(pt.x - pt.nx * halfW), sy(pt.y - pt.ny * halfW));
       }
-      ctx.closePath();
-      ctx.fill();
+      view.ctx.closePath();
+      view.ctx.fill();
       // the surface's pattern, clipped to this span (2026-10-03 — the ribbon used to be flat colour)
-      ctx.save();
-      ctx.clip();
-      ctx.translate(sx(0), sy(0));
+      view.ctx.save();
+      view.ctx.clip();
+      view.ctx.translate(sx(0), sy(0));
       paintLayers(span.surface, bx0, by0, bx1, by1);
-      ctx.restore();
+      view.ctx.restore();
     }
 
     // 2. White outer boundary lines (continuous along tarmac/broken/racetarmac, omitted on dirt/mud/grass)
-    ctx.strokeStyle = 'rgba(255,255,255,0.72)';
-    ctx.lineWidth = Math.max(1, 0.22 * p);
-    ctx.beginPath();
+    view.ctx.strokeStyle = 'rgba(255,255,255,0.72)';
+    view.ctx.lineWidth = Math.max(1, 0.22 * p);
+    view.ctx.beginPath();
     let leftDrawing = false;
     for (let i = 0; i <= n; i++) {
       const a = pts[i % n];
@@ -418,15 +419,15 @@ export function createRenderer(canvas) {
       }
       const lx = sx(a.x + a.nx * (halfW - 0.2)), ly = sy(a.y + a.ny * (halfW - 0.2));
       if (!leftDrawing) {
-        ctx.moveTo(lx, ly);
+        view.ctx.moveTo(lx, ly);
         leftDrawing = true;
       } else {
-        ctx.lineTo(lx, ly);
+        view.ctx.lineTo(lx, ly);
       }
     }
-    ctx.stroke();
+    view.ctx.stroke();
 
-    ctx.beginPath();
+    view.ctx.beginPath();
     let rightDrawing = false;
     for (let i = 0; i <= n; i++) {
       const a = pts[i % n];
@@ -438,13 +439,13 @@ export function createRenderer(canvas) {
       }
       const rx = sx(a.x - a.nx * (halfW - 0.2)), ry = sy(a.y - a.ny * (halfW - 0.2));
       if (!rightDrawing) {
-        ctx.moveTo(rx, ry);
+        view.ctx.moveTo(rx, ry);
         rightDrawing = true;
       } else {
-        ctx.lineTo(rx, ry);
+        view.ctx.lineTo(rx, ry);
       }
     }
-    ctx.stroke();
+    view.ctx.stroke();
 
   }
 
@@ -453,16 +454,16 @@ export function createRenderer(canvas) {
   function drawLaneDashes() {
     const sub = LEVEL.subtrack; if (!sub || !sub.laneDash) return;
     const pts = sub.pts, n = pts.length, p = PPMz(), gh = sub.ghost;
-    ctx.save(); ctx.strokeStyle = 'rgba(245,245,240,0.8)'; ctx.lineWidth = Math.max(1, 0.15 * p); ctx.setLineDash([3 * p, 6 * p]); ctx.lineDashOffset = ((sub.sBase || 0) * p) % (9 * p);
-    for (const off of sub.laneDash) { ctx.beginPath(); let on = false;
-      for (let i = 0; i < n; i++) { const a = pts[i]; if (gh && a.dist >= gh.d0) break; const x = sx(a.x + a.nx * off), y = sy(a.y + a.ny * off); if (!on) { ctx.moveTo(x, y); on = true; } else ctx.lineTo(x, y); }
-      ctx.stroke(); }
-    ctx.setLineDash([]);
+    view.ctx.save(); view.ctx.strokeStyle = 'rgba(245,245,240,0.8)'; view.ctx.lineWidth = Math.max(1, 0.15 * p); view.ctx.setLineDash([3 * p, 6 * p]); view.ctx.lineDashOffset = ((sub.sBase || 0) * p) % (9 * p);
+    for (const off of sub.laneDash) { view.ctx.beginPath(); let on = false;
+      for (let i = 0; i < n; i++) { const a = pts[i]; if (gh && a.dist >= gh.d0) break; const x = sx(a.x + a.nx * off), y = sy(a.y + a.ny * off); if (!on) { view.ctx.moveTo(x, y); on = true; } else view.ctx.lineTo(x, y); }
+      view.ctx.stroke(); }
+    view.ctx.setLineDash([]);
     // SOLID lines (sub.laneSolid, the highway's hard-shoulder line)
-    for (const off of sub.laneSolid || []) { ctx.beginPath(); let on = false;
-      for (let i = 0; i < n; i++) { const a = pts[i]; if (gh && a.dist >= gh.d0) break; const x = sx(a.x + a.nx * off), y = sy(a.y + a.ny * off); if (!on) { ctx.moveTo(x, y); on = true; } else ctx.lineTo(x, y); }
-      ctx.stroke(); }
-    ctx.restore();
+    for (const off of sub.laneSolid || []) { view.ctx.beginPath(); let on = false;
+      for (let i = 0; i < n; i++) { const a = pts[i]; if (gh && a.dist >= gh.d0) break; const x = sx(a.x + a.nx * off), y = sy(a.y + a.ny * off); if (!on) { view.ctx.moveTo(x, y); on = true; } else view.ctx.lineTo(x, y); }
+      view.ctx.stroke(); }
+    view.ctx.restore();
   }
   // CURVED CORNER KERBS — split out of drawTrackRibbon 2026-10-03 and drawn AFTER patches, wear and covers
   // (user, with a screenshot of churned dirt and a grass patch painted over a kerb: "surfaces shouldn't cover
@@ -484,34 +485,34 @@ export function createRenderer(canvas) {
 
           // Red and white kerb teeth alternating every 2.0 m along the corner
           const tooth = Math.floor(a.dist / 2.0) % 2;
-          ctx.fillStyle = tooth ? COL.kerbB : COL.kerbA;
+          view.ctx.fillStyle = tooth ? COL.kerbB : COL.kerbA;
 
           const iaX = sx(a.x + sgn * a.nx * halfW), iaY = sy(a.y + sgn * a.ny * halfW);
           const ibX = sx(b.x + sgn * b.nx * halfW), ibY = sy(b.y + sgn * b.ny * halfW);
           const oaX = sx(a.x + sgn * a.nx * (halfW + kw)), oaY = sy(a.y + sgn * a.ny * (halfW + kw));
           const obX = sx(b.x + sgn * b.nx * (halfW + kw)), obY = sy(b.y + sgn * b.ny * (halfW + kw));
 
-          ctx.beginPath();
-          ctx.moveTo(iaX, iaY);
-          ctx.lineTo(ibX, ibY);
-          ctx.lineTo(obX, obY);
-          ctx.lineTo(oaX, oaY);
-          ctx.closePath();
-          ctx.fill();
+          view.ctx.beginPath();
+          view.ctx.moveTo(iaX, iaY);
+          view.ctx.lineTo(ibX, ibY);
+          view.ctx.lineTo(obX, obY);
+          view.ctx.lineTo(oaX, oaY);
+          view.ctx.closePath();
+          view.ctx.fill();
 
           // Outer highlight bevel along crest
-          ctx.strokeStyle = 'rgba(255,255,255,0.40)';
-          ctx.lineWidth = Math.max(1, 0.08 * p);
-          ctx.beginPath();
-          ctx.moveTo(oaX, oaY); ctx.lineTo(obX, obY);
-          ctx.stroke();
+          view.ctx.strokeStyle = 'rgba(255,255,255,0.40)';
+          view.ctx.lineWidth = Math.max(1, 0.08 * p);
+          view.ctx.beginPath();
+          view.ctx.moveTo(oaX, oaY); view.ctx.lineTo(obX, obY);
+          view.ctx.stroke();
 
           // Inner shadow joint along asphalt edge
-          ctx.strokeStyle = 'rgba(0,0,0,0.22)';
-          ctx.lineWidth = Math.max(1, 0.08 * p);
-          ctx.beginPath();
-          ctx.moveTo(iaX, iaY); ctx.lineTo(ibX, ibY);
-          ctx.stroke();
+          view.ctx.strokeStyle = 'rgba(0,0,0,0.22)';
+          view.ctx.lineWidth = Math.max(1, 0.08 * p);
+          view.ctx.beginPath();
+          view.ctx.moveTo(iaX, iaY); view.ctx.lineTo(ibX, ibY);
+          view.ctx.stroke();
         }
       }
     }
@@ -519,18 +520,18 @@ export function createRenderer(canvas) {
 
   function drawPaint() {
     for (const p of PAINT) {
-      ctx.strokeStyle = COL.paint;
-      ctx.globalAlpha = p.tone;
+      view.ctx.strokeStyle = COL.paint;
+      view.ctx.globalAlpha = p.tone;
       // MEASURED BUG, 2026-09-27 (photographed): this read p.w, which is the BOX WIDTH for a box —
       // so the 6 m start box stroked at 96 px thick and rendered as a pale slab the size of a building.
       // Ring stroke width is now "lw" and nothing else is overloaded.
-      ctx.lineWidth = Math.max(1, (p.lw || 0.12) * PPMz());
+      view.ctx.lineWidth = Math.max(1, (p.lw || 0.12) * PPMz());
       if (p.kind === 'ring') {
-        ctx.beginPath();
-        ctx.arc(sx(p.x), sy(p.y), p.r * PPMz(), 0, Math.PI * 2);
-        ctx.stroke();
+        view.ctx.beginPath();
+        view.ctx.arc(sx(p.x), sy(p.y), p.r * PPMz(), 0, Math.PI * 2);
+        view.ctx.stroke();
       } else if (p.kind === 'box' || p.kind === 'lane') {
-        ctx.strokeRect(sx(p.x - p.w / 2), sy(p.y - p.h / 2), p.w * PPMz(), p.h * PPMz());
+        view.ctx.strokeRect(sx(p.x - p.w / 2), sy(p.y - p.h / 2), p.w * PPMz(), p.h * PPMz());
       } else if (p.kind === 'chequered') {
         const halfW = (p.wid || 13) / 2;
         const halfL = (p.len || 1.6) / 2;
@@ -538,36 +539,36 @@ export function createRenderer(canvas) {
         const rows = 16;
         const rowH = (halfW * 2) / rows;
 
-        ctx.save();
-        ctx.translate(sx(p.x), sy(p.y));
-        ctx.rotate(p.rot || 0);
+        view.ctx.save();
+        view.ctx.translate(sx(p.x), sy(p.y));
+        view.ctx.rotate(p.rot || 0);
 
         // Leading and trailing boundary lines
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(-halfL * PPMz(), -halfW * PPMz(), halfL * 2 * PPMz(), Math.max(1, 0.12 * PPMz()));
-        ctx.fillRect(-halfL * PPMz(), (halfW - 0.12) * PPMz(), halfL * 2 * PPMz(), Math.max(1, 0.12 * PPMz()));
+        view.ctx.fillStyle = '#ffffff';
+        view.ctx.fillRect(-halfL * PPMz(), -halfW * PPMz(), halfL * 2 * PPMz(), Math.max(1, 0.12 * PPMz()));
+        view.ctx.fillRect(-halfL * PPMz(), (halfW - 0.12) * PPMz(), halfL * 2 * PPMz(), Math.max(1, 0.12 * PPMz()));
 
         // Alternating black and white finish line squares
         for (let r = 0; r < rows; r++) {
           for (let c = 0; c < cols; c++) {
             const isWhite = (r + c) % 2 === 0;
-            ctx.fillStyle = isWhite ? '#ffffff' : '#14161c';
+            view.ctx.fillStyle = isWhite ? '#ffffff' : '#14161c';
             const sqX = (-halfL + c * (halfL * 2 / cols)) * PPMz();
             const sqY = (-halfW + r * rowH) * PPMz();
             const sqW = (halfL * 2 / cols) * PPMz();
             const sqH = rowH * PPMz();
-            ctx.fillRect(sqX, sqY, sqW + 0.4, sqH + 0.4);
+            view.ctx.fillRect(sqX, sqY, sqW + 0.4, sqH + 0.4);
           }
         }
-        ctx.restore();
+        view.ctx.restore();
       }
-      ctx.globalAlpha = 1;
+      view.ctx.globalAlpha = 1;
     }
     // distance boards down the braking straight
-    ctx.fillStyle = COL.inkSoft;
-    ctx.font = `600 ${Math.round(0.9 * PPMz())}px ui-sans-serif, system-ui, sans-serif`;
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    for (const b of BOARDS) ctx.fillText(b.label, sx(b.x), sy(b.y));
+    view.ctx.fillStyle = COL.inkSoft;
+    view.ctx.font = `600 ${Math.round(0.9 * PPMz())}px ui-sans-serif, system-ui, sans-serif`;
+    view.ctx.textAlign = 'center'; view.ctx.textBaseline = 'middle';
+    for (const b of BOARDS) view.ctx.fillText(b.label, sx(b.x), sy(b.y));
   }
 
   // A4: the boundary is VISIBLE — and now it is three different things, so it has to READ as three
@@ -587,13 +588,13 @@ export function createRenderer(canvas) {
   function forSide(i, fn) {
     const cx = (FX0 + FX1) / 2, cy = (FY0 + FY1) / 2, D = i % 2 ? (FX1 - FX0) / 2 : (FY1 - FY0) / 2, Lh = i % 2 ? (FY1 - FY0) / 2 : (FX1 - FX0) / 2;
     const a = (i * Math.PI) / 2, co = Math.round(Math.cos(a)), si = Math.round(Math.sin(a));
-    const keep = { x: cam.x, y: cam.y, W, H }, dx = cam.x - cx, dy = cam.y - cy;
-    ctx.save();
-    ctx.translate(sx(cx), sy(cy));
-    ctx.rotate(a);
-    cam.x = dx * co + dy * si; cam.y = -dx * si + dy * co; W = H = Math.max(W, H);
+    const keep = { x: cam.x, y: cam.y, W: view.W, H: view.H }, dx = cam.x - cx, dy = cam.y - cy;
+    view.ctx.save();
+    view.ctx.translate(sx(cx), sy(cy));
+    view.ctx.rotate(a);
+    cam.x = dx * co + dy * si; cam.y = -dx * si + dy * co; view.W = view.H = Math.max(view.W, view.H);
     try { fn(PPMz(), D, Lh); }
-    finally { cam.x = keep.x; cam.y = keep.y; W = keep.W; H = keep.H; ctx.restore(); }
+    finally { cam.x = keep.x; cam.y = keep.y; view.W = keep.W; view.H = keep.H; view.ctx.restore(); }
   }
 
   // GROUND TEXTURE. A fixed lattice (never an RNG — that crawls between frames), CULLED TO THE VIEW.
@@ -610,8 +611,8 @@ export function createRenderer(canvas) {
     if (px < 1.1 && spacing * p < 3) return;      // too far out to resolve: skip it entirely
     // intersect the region with what is actually on screen, snapped to the lattice so the pattern is
     // world-locked and does not swim as the camera moves
-    const vx0 = Math.max(x0, cam.x - W / 2 / p), vx1 = Math.min(x1, cam.x + W / 2 / p);
-    const vy0 = Math.max(y0, cam.y - H / 2 / p), vy1 = Math.min(y1, cam.y + H / 2 / p);
+    const vx0 = Math.max(x0, cam.x - view.W / 2 / p), vx1 = Math.min(x1, cam.x + view.W / 2 / p);
+    const vy0 = Math.max(y0, cam.y - view.H / 2 / p), vy1 = Math.min(y1, cam.y + view.H / 2 / p);
     if (vx1 <= vx0 || vy1 <= vy0) return;
     // MARK CAP (2026-10-03): the fly-in's whole-level overview asked one call for ~188,000 squares of grass grain
     // (1.1 s to record, 4.9 s to rasterise at 4x throttle). Any call that would place more than MARKS_MAX marks
@@ -619,7 +620,7 @@ export function createRenderer(canvas) {
     const n0 = ((vx1 - vx0) / spacing) * ((vy1 - vy0) / spacing);
     if (n0 > MARKS_MAX) spacing *= Math.sqrt(n0 / MARKS_MAX);
     const ax = Math.floor(vx0 / spacing) * spacing, ay = Math.floor(vy0 / spacing) * spacing;
-    ctx.fillStyle = colour;
+    view.ctx.fillStyle = colour;
     for (let u = ax; u < vx1; u += spacing) {
       for (let v = ay; v < vy1; v += spacing) {
         // deterministic scatter from the world position, so a speck belongs to the GROUND
@@ -627,7 +628,7 @@ export function createRenderer(canvas) {
         const jx = (h - Math.floor(h)) - 0.5;
         const h2 = Math.sin(u * 39.3468 + v * 11.135) * 24634.6345;
         const jy = (h2 - Math.floor(h2)) - 0.5;
-        ctx.fillRect((u + jx * spacing) * p, (v + jy * spacing) * p, px, px);
+        view.ctx.fillRect((u + jx * spacing) * p, (v + jy * spacing) * p, px, px);
       }
     }
   }
@@ -645,8 +646,8 @@ export function createRenderer(canvas) {
   // Callers have translated the context to the world origin, so coordinates are world metres * p.
   function lattice(x0, y0, x1, y1, spacing, prob, fn) {
     const p = PPMz();
-    const vx0 = Math.max(x0, cam.x - W / 2 / p - spacing), vx1 = Math.min(x1, cam.x + W / 2 / p + spacing);
-    const vy0 = Math.max(y0, cam.y - H / 2 / p - spacing), vy1 = Math.min(y1, cam.y + H / 2 / p + spacing);
+    const vx0 = Math.max(x0, cam.x - view.W / 2 / p - spacing), vx1 = Math.min(x1, cam.x + view.W / 2 / p + spacing);
+    const vy0 = Math.max(y0, cam.y - view.H / 2 / p - spacing), vy1 = Math.min(y1, cam.y + view.H / 2 / p + spacing);
     if (vx1 <= vx0 || vy1 <= vy0) return;
     const n0 = ((vx1 - vx0) / spacing) * ((vy1 - vy0) / spacing) * prob;
     if (n0 > MARKS_MAX) spacing *= Math.sqrt(n0 / MARKS_MAX);      // the same MARK CAP as speckle
@@ -669,113 +670,113 @@ export function createRenderer(canvas) {
     stones(L, x0, y0, x1, y1) {
       const [, col, sp, rMin, rMax, prob = 1] = L, p = PPMz();
       if (rMax * p < 0.8 || sp * p < 2.5) return;
-      ctx.fillStyle = col; ctx.beginPath();
+      view.ctx.fillStyle = col; view.ctx.beginPath();
       lattice(x0, y0, x1, y1, sp, prob, (x, y, a) => {
         const r = (rMin + (rMax - rMin) * a) * p;
-        if (PIXEL) { ctx.rect(x - r, y - r, r * 2, r * 2); return; }      // square stones in pixel art
-        ctx.moveTo(x + r, y); ctx.arc(x, y, r, 0, Math.PI * 2);
+        if (PIXEL) { view.ctx.rect(x - r, y - r, r * 2, r * 2); return; }      // square stones in pixel art
+        view.ctx.moveTo(x + r, y); view.ctx.arc(x, y, r, 0, Math.PI * 2);
       });
-      ctx.fill();
+      view.ctx.fill();
     },
     // grass blades — a little V tuft per lattice point
     blades(L, x0, y0, x1, y1) {
       const [, col, sp, len, wid, prob = 1] = L, p = PPMz();
       if (len * p < 2 || sp * p < 2.5) return;
-      ctx.strokeStyle = col; ctx.lineWidth = Math.max(1, wid * p); ctx.lineCap = 'round'; ctx.beginPath();
+      view.ctx.strokeStyle = col; view.ctx.lineWidth = Math.max(1, wid * p); view.ctx.lineCap = 'round'; view.ctx.beginPath();
       lattice(x0, y0, x1, y1, sp, prob, (x, y, a, b) => {
         const l = len * p * (0.7 + 0.6 * b), t = (a - 0.5) * 0.9;
-        ctx.moveTo(x, y); ctx.lineTo(x + Math.sin(t - 0.35) * l, y - Math.cos(t - 0.35) * l);
-        ctx.moveTo(x, y); ctx.lineTo(x + Math.sin(t + 0.35) * l, y - Math.cos(t + 0.35) * l);
+        view.ctx.moveTo(x, y); view.ctx.lineTo(x + Math.sin(t - 0.35) * l, y - Math.cos(t - 0.35) * l);
+        view.ctx.moveTo(x, y); view.ctx.lineTo(x + Math.sin(t + 0.35) * l, y - Math.cos(t + 0.35) * l);
       });
-      ctx.stroke(); ctx.lineCap = 'butt';
+      view.ctx.stroke(); view.ctx.lineCap = 'butt';
     },
     // mown stripes: alternate bands along world y, `band` metres wide
     stripes(L, x0, y0, x1, y1) {
       const [, col, band] = L, p = PPMz();
-      const vx0 = Math.max(x0, cam.x - W / 2 / p), vx1 = Math.min(x1, cam.x + W / 2 / p);
-      const vy0 = Math.max(y0, cam.y - H / 2 / p), vy1 = Math.min(y1, cam.y + H / 2 / p);
+      const vx0 = Math.max(x0, cam.x - view.W / 2 / p), vx1 = Math.min(x1, cam.x + view.W / 2 / p);
+      const vy0 = Math.max(y0, cam.y - view.H / 2 / p), vy1 = Math.min(y1, cam.y + view.H / 2 / p);
       if (vx1 <= vx0 || vy1 <= vy0) return;
-      ctx.fillStyle = col;
+      view.ctx.fillStyle = col;
       for (let k = Math.floor(vy0 / band); k * band < vy1; k++) {
         if (k & 1) continue;
-        ctx.fillRect(vx0 * p, k * band * p, (vx1 - vx0) * p, band * p);
+        view.ctx.fillRect(vx0 * p, k * band * p, (vx1 - vx0) * p, band * p);
       }
     },
     // wavy lines — wind ripples in sand, ridges in thick mud
     ripples(L, x0, y0, x1, y1) {
       const [, col, sp, amp, wave, wid] = L, p = PPMz();
       if (sp * p < 4) return;
-      const vx0 = Math.max(x0, cam.x - W / 2 / p), vx1 = Math.min(x1, cam.x + W / 2 / p);
-      const vy0 = Math.max(y0, cam.y - H / 2 / p - amp), vy1 = Math.min(y1, cam.y + H / 2 / p + amp);
+      const vx0 = Math.max(x0, cam.x - view.W / 2 / p), vx1 = Math.min(x1, cam.x + view.W / 2 / p);
+      const vy0 = Math.max(y0, cam.y - view.H / 2 / p - amp), vy1 = Math.min(y1, cam.y + view.H / 2 / p + amp);
       if (vx1 <= vx0 || vy1 <= vy0) return;
       const step = wave / 6;
-      ctx.strokeStyle = col; ctx.lineWidth = Math.max(1, wid * p); ctx.beginPath();
+      view.ctx.strokeStyle = col; view.ctx.lineWidth = Math.max(1, wid * p); view.ctx.beginPath();
       for (let k = Math.floor(vy0 / sp); k * sp < vy1; k++) {
         const ph = Math.sin(k * 12.9898) * 437.5;
         for (let x = Math.floor(vx0 / step) * step, first = true; x <= vx1 + step; x += step, first = false) {
           const y = k * sp + amp * Math.sin((x / wave) * Math.PI * 2 + ph);
-          if (first) ctx.moveTo(x * p, y * p); else ctx.lineTo(x * p, y * p);
+          if (first) view.ctx.moveTo(x * p, y * p); else view.ctx.lineTo(x * p, y * p);
         }
       }
-      ctx.stroke();
+      view.ctx.stroke();
     },
     // soft ellipses — puddles, mud pools, glossy highlights, drift shadows, repair patches
     blobs(L, x0, y0, x1, y1) {
       const [, col, sp, rx, ry, prob = 1, spin = 1] = L, p = PPMz();
       if (ry * p < 0.8 || sp * p < 3) return;
-      ctx.fillStyle = col; ctx.beginPath();
+      view.ctx.fillStyle = col; view.ctx.beginPath();
       lattice(x0, y0, x1, y1, sp, prob, (x, y, a, b) => {
         const s = 0.7 + 0.6 * b, rot = (a - 0.5) * Math.PI * spin;
-        if (PIXEL) { const ww = rx * s * p, hh = ry * s * p; ctx.rect(x - ww, y - hh, ww * 2, hh * 2); return; }   // square blobs in pixel art
-        ctx.moveTo(x + Math.cos(rot) * rx * s * p, y + Math.sin(rot) * rx * s * p);
-        ctx.ellipse(x, y, rx * s * p, ry * s * p, rot, 0, Math.PI * 2);
+        if (PIXEL) { const ww = rx * s * p, hh = ry * s * p; view.ctx.rect(x - ww, y - hh, ww * 2, hh * 2); return; }   // square blobs in pixel art
+        view.ctx.moveTo(x + Math.cos(rot) * rx * s * p, y + Math.sin(rot) * rx * s * p);
+        view.ctx.ellipse(x, y, rx * s * p, ry * s * p, rot, 0, Math.PI * 2);
       });
-      ctx.fill();
+      view.ctx.fill();
     },
     // thin rings — rain ripples on standing water
     rings(L, x0, y0, x1, y1) {
       const [, col, sp, r, wid, prob = 1] = L, p = PPMz();
       if (r * p < 2 || sp * p < 4) return;
       if (PIXEL) return;     // as hollow squares they read as UI glitches (photographed on the wet pad) — sheen + puddles carry it
-      ctx.strokeStyle = col; ctx.lineWidth = Math.max(1, wid * p); ctx.beginPath();
+      view.ctx.strokeStyle = col; view.ctx.lineWidth = Math.max(1, wid * p); view.ctx.beginPath();
       lattice(x0, y0, x1, y1, sp, prob, (x, y, a) => {
         const rr = r * (0.6 + 0.8 * a) * p;
-        if (PIXEL) { ctx.rect(x - rr, y - rr, rr * 2, rr * 2); return; }   // square ripples in pixel art
-        ctx.moveTo(x + rr, y); ctx.arc(x, y, rr, 0, Math.PI * 2);
+        if (PIXEL) { view.ctx.rect(x - rr, y - rr, rr * 2, rr * 2); return; }   // square ripples in pixel art
+        view.ctx.moveTo(x + rr, y); view.ctx.arc(x, y, rr, 0, Math.PI * 2);
       });
-      ctx.stroke();
+      view.ctx.stroke();
     },
     // jagged cracks with a side branch — ice, broken tarmac
     cracks(L, x0, y0, x1, y1) {
       const [, col, sp, len, wid, prob = 1] = L, p = PPMz();
       if (len * p < 4 || sp * p < 4) return;
-      ctx.strokeStyle = col; ctx.lineWidth = Math.max(1, wid * p); ctx.beginPath();
+      view.ctx.strokeStyle = col; view.ctx.lineWidth = Math.max(1, wid * p); view.ctx.beginPath();
       lattice(x0, y0, x1, y1, sp, prob, (x, y, a, b, c) => {
         let ang = a * Math.PI * 2, px = x, py = y;
-        ctx.moveTo(px, py);
+        view.ctx.moveTo(px, py);
         for (let s = 0; s < 4; s++) {
           ang += ((s % 2 ? b : c) - 0.5) * 1.4;
           px += Math.cos(ang) * len * 0.3 * p; py += Math.sin(ang) * len * 0.3 * p;
-          ctx.lineTo(px, py);
-          if (s === 1) { ctx.lineTo(px + Math.cos(ang + 1.1) * len * 0.25 * p, py + Math.sin(ang + 1.1) * len * 0.25 * p); ctx.moveTo(px, py); }
+          view.ctx.lineTo(px, py);
+          if (s === 1) { view.ctx.lineTo(px + Math.cos(ang + 1.1) * len * 0.25 * p, py + Math.sin(ang + 1.1) * len * 0.25 * p); view.ctx.moveTo(px, py); }
         }
       });
-      ctx.stroke();
+      view.ctx.stroke();
     },
     // long diagonal sheen bands — polish on ice, reflection on standing water
     sheen(L, x0, y0, x1, y1) {
       const [, col, sp, wid, slope] = L, p = PPMz();
       // extended past the view by a band's width: a square-cut diagonal band ending exactly at a TILE edge
       // left a visible notch at every tile seam (photographed 2026-10-03 on the lab ice sheet)
-      const vx0 = Math.max(x0, cam.x - W / 2 / p - wid * 2), vx1 = Math.min(x1, cam.x + W / 2 / p + wid * 2);
-      const vy0 = Math.max(y0, cam.y - H / 2 / p), vy1 = Math.min(y1, cam.y + H / 2 / p);
+      const vx0 = Math.max(x0, cam.x - view.W / 2 / p - wid * 2), vx1 = Math.min(x1, cam.x + view.W / 2 / p + wid * 2);
+      const vy0 = Math.max(y0, cam.y - view.H / 2 / p), vy1 = Math.min(y1, cam.y + view.H / 2 / p);
       if (vx1 <= vx0 || vy1 <= vy0) return;
-      ctx.strokeStyle = col; ctx.lineWidth = Math.max(1, wid * p); ctx.beginPath();
+      view.ctx.strokeStyle = col; view.ctx.lineWidth = Math.max(1, wid * p); view.ctx.beginPath();
       const kA = (vy0 - slope * Math.max(vx0, vx1)) / sp, kB = (vy1 - slope * Math.min(vx0, vx1)) / sp;
       for (let k = Math.floor(Math.min(kA, kB)); k <= Math.ceil(Math.max(kA, kB)); k++) {
-        ctx.moveTo(vx0 * p, (k * sp + slope * vx0) * p); ctx.lineTo(vx1 * p, (k * sp + slope * vx1) * p);
+        view.ctx.moveTo(vx0 * p, (k * sp + slope * vx0) * p); view.ctx.lineTo(vx1 * p, (k * sp + slope * vx1) * p);
       }
-      ctx.stroke();
+      view.ctx.stroke();
     },
   };
 
@@ -827,9 +828,8 @@ export function createRenderer(canvas) {
   SURFACE_ART.hedgerow = recolour('grassLong', '#3c5a28', ['#5a7c3a', '#2c4220']);   // the long-grass BORDER round each field, darker
   // Paint one surface's layers over a region. The caller has set any clip and translated to the world
   // origin; this only adds the pattern (the caller fills the base colour, since it knows the shape).
-  let noPatterns = false;   // set while painting the fly-in overview (flat colours only)
   function paintLayers(id, x0, y0, x1, y1) {
-    if (noPatterns) return;
+    if (view.noPatterns) return;
     const art = SURFACE_ART[id];
     if (!art) return;
     for (const L of art.layers) PRIM[L[0]](L, x0, y0, x1, y1);
@@ -854,39 +854,39 @@ export function createRenderer(canvas) {
       // than 11 m from its centre line — painted in some tiles, missing in others, changing as tiles reloaded.
       const ca = Math.abs(Math.cos(q.rot || 0)), sa = Math.abs(Math.sin(q.rot || 0));
       const ex = (q.w / 2) * ca + (q.h / 2) * sa, ey = (q.w / 2) * sa + (q.h / 2) * ca;
-      if (sx(q.x - ex) > W || sx(q.x + ex) < 0 || sy(q.y - ey) > H || sy(q.y + ey) < 0) continue;
+      if (sx(q.x - ex) > view.W || sx(q.x + ex) < 0 || sy(q.y - ey) > view.H || sy(q.y + ey) < 0) continue;
 
       if (q.rounded) {
         const rad = Math.min(5 * p, q.w * p * 0.15);
         // Outer asphalt perimeter apron
-        ctx.fillStyle = COL.tarmac;
-        ctx.beginPath();
+        view.ctx.fillStyle = COL.tarmac;
+        view.ctx.beginPath();
         // the apron is PHYSICAL tarmac (lab.js PAD_APRON, zoneAt) — change the two together
-        roundRect(ctx, sx(x0 - 1.2), sy(y0 - 1.2), (q.w + 2.4) * p, (q.h + 2.4) * p, rad + 1.2 * p);
-        ctx.fill();
+        roundRect(view.ctx, sx(x0 - 1.2), sy(y0 - 1.2), (q.w + 2.4) * p, (q.h + 2.4) * p, rad + 1.2 * p);
+        view.ctx.fill();
 
-        ctx.save();
-        ctx.beginPath();
-        roundRect(ctx, sx(x0), sy(y0), q.w * p, q.h * p, rad);
-        ctx.fillStyle = art.base;
-        ctx.fill();
-        ctx.clip();
-        ctx.translate(sx(0), sy(0));
+        view.ctx.save();
+        view.ctx.beginPath();
+        roundRect(view.ctx, sx(x0), sy(y0), q.w * p, q.h * p, rad);
+        view.ctx.fillStyle = art.base;
+        view.ctx.fill();
+        view.ctx.clip();
+        view.ctx.translate(sx(0), sy(0));
         paintLayers(q.surface.id, x0, y0, x0 + q.w, y0 + q.h);
-        ctx.restore();
+        view.ctx.restore();
 
-        ctx.strokeStyle = 'rgba(255,255,255,0.55)';
-        ctx.lineWidth = Math.max(1, 0.20 * p);
-        ctx.beginPath();
-        roundRect(ctx, sx(x0), sy(y0), q.w * p, q.h * p, rad);
-        ctx.stroke();
+        view.ctx.strokeStyle = 'rgba(255,255,255,0.55)';
+        view.ctx.lineWidth = Math.max(1, 0.20 * p);
+        view.ctx.beginPath();
+        roundRect(view.ctx, sx(x0), sy(y0), q.w * p, q.h * p, rad);
+        view.ctx.stroke();
 
         const fs = 3.2 * p;
         if (fs > 7) {
-          ctx.font = `700 ${Math.round(fs)}px ui-sans-serif, system-ui, sans-serif`;
-          ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-          ctx.fillStyle = 'rgba(255,255,255,0.75)';
-          ctx.fillText(q.surface.label, sx(q.x), sy(y0 + 4.5));
+          view.ctx.font = `700 ${Math.round(fs)}px ui-sans-serif, system-ui, sans-serif`;
+          view.ctx.textAlign = 'center'; view.ctx.textBaseline = 'middle';
+          view.ctx.fillStyle = 'rgba(255,255,255,0.75)';
+          view.ctx.fillText(q.surface.label, sx(q.x), sy(y0 + 4.5));
         }
         continue;
       }
@@ -895,52 +895,52 @@ export function createRenderer(canvas) {
         // ROTATED zone: clip in the zone's frame, then step back to the world frame (the clip stays) and paint the texture
         // over the zone's bounding box, so it lines up with the ground exactly where zoneAt says the surface is.
         const r = Math.hypot(q.w, q.h) / 2;
-        if (sx(q.x + r) < 0 || sx(q.x - r) > W || sy(q.y + r) < 0 || sy(q.y - r) > H) continue;
-        ctx.save();
-        ctx.translate(sx(q.x), sy(q.y)); ctx.rotate(q.rot);
-        ctx.beginPath(); ctx.rect((-q.w / 2) * p, (-q.h / 2) * p, q.w * p, q.h * p);
-        ctx.fillStyle = art.base; ctx.fill(); ctx.clip();
-        ctx.rotate(-q.rot); ctx.translate(-sx(q.x), -sy(q.y));
-        ctx.translate(sx(0), sy(0));
+        if (sx(q.x + r) < 0 || sx(q.x - r) > view.W || sy(q.y + r) < 0 || sy(q.y - r) > view.H) continue;
+        view.ctx.save();
+        view.ctx.translate(sx(q.x), sy(q.y)); view.ctx.rotate(q.rot);
+        view.ctx.beginPath(); view.ctx.rect((-q.w / 2) * p, (-q.h / 2) * p, q.w * p, q.h * p);
+        view.ctx.fillStyle = art.base; view.ctx.fill(); view.ctx.clip();
+        view.ctx.rotate(-q.rot); view.ctx.translate(-sx(q.x), -sy(q.y));
+        view.ctx.translate(sx(0), sy(0));
         // only the part IN VIEW (in a tile: the tile). MEASURED 2026-10-04: once the culling fix let the 432 m runway into every tile
         // it crosses, each tile repainted its whole 430 m square of texture — ground tile 22 -> 26 ms, slow frames 71 -> ~90.
-        const vx0 = cam.x - W / 2 / p, vy0 = cam.y - H / 2 / p;
-        paintLayers(aid, Math.max(q.x - r, vx0), Math.max(q.y - r, vy0), Math.min(q.x + r, vx0 + W / p), Math.min(q.y + r, vy0 + H / p));
-        ctx.restore();
+        const vx0 = cam.x - view.W / 2 / p, vy0 = cam.y - view.H / 2 / p;
+        paintLayers(aid, Math.max(q.x - r, vx0), Math.max(q.y - r, vy0), Math.min(q.x + r, vx0 + view.W / p), Math.min(q.y + r, vy0 + view.H / p));
+        view.ctx.restore();
         continue;
       }
-      ctx.save();
-      ctx.beginPath();
-      ctx.rect(sx(x0), sy(y0), q.w * p, q.h * p);
-      ctx.fillStyle = art.base;
-      ctx.fill();
-      ctx.clip();       // so the texture cannot spill outside the region the physics uses
-      ctx.translate(sx(0), sy(0));
+      view.ctx.save();
+      view.ctx.beginPath();
+      view.ctx.rect(sx(x0), sy(y0), q.w * p, q.h * p);
+      view.ctx.fillStyle = art.base;
+      view.ctx.fill();
+      view.ctx.clip();       // so the texture cannot spill outside the region the physics uses
+      view.ctx.translate(sx(0), sy(0));
       paintLayers(q.surface.id, x0, y0, x0 + q.w, y0 + q.h);
-      ctx.restore();
+      view.ctx.restore();
       // `boxed` marks a deliberate TEST PANEL: give it a rim and paint its FULL NAME on.
       if (q.boxed) {
-        ctx.strokeStyle = 'rgba(40,42,50,0.35)';
-        ctx.lineWidth = Math.max(1, 0.25 * p);
-        ctx.strokeRect(sx(x0), sy(y0), q.w * p, q.h * p);
+        view.ctx.strokeStyle = 'rgba(40,42,50,0.35)';
+        view.ctx.lineWidth = Math.max(1, 0.25 * p);
+        view.ctx.strokeRect(sx(x0), sy(y0), q.w * p, q.h * p);
         const fs = 3.4 * p;
         if (fs > 7) {
-          ctx.font = `700 ${Math.round(fs)}px ui-sans-serif, system-ui, sans-serif`;
-          ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-          ctx.fillStyle = 'rgba(30,32,40,0.32)';
-          ctx.fillText(q.surface.label, sx(q.x), sy(y0 + 5.5));
+          view.ctx.font = `700 ${Math.round(fs)}px ui-sans-serif, system-ui, sans-serif`;
+          view.ctx.textAlign = 'center'; view.ctx.textBaseline = 'middle';
+          view.ctx.fillStyle = 'rgba(30,32,40,0.32)';
+          view.ctx.fillText(q.surface.label, sx(q.x), sy(y0 + 5.5));
         }
       }
     }
     // A soft seam where the quarters meet, so the join reads as a real transition and not a UI edge.
     if (LEVEL.seams) {
-      ctx.strokeStyle = 'rgba(80,80,92,0.20)';
-      ctx.lineWidth = Math.max(1, 0.3 * p);
-      ctx.beginPath();
+      view.ctx.strokeStyle = 'rgba(80,80,92,0.20)';
+      view.ctx.lineWidth = Math.max(1, 0.3 * p);
+      view.ctx.beginPath();
       // the old square's quarters only (S-B: the lab's extension south of FLOOR is one floor, no quarter seam)
-      ctx.moveTo(sx(-FLOOR), sy(0)); ctx.lineTo(sx(FLOOR), sy(0));
-      ctx.moveTo(sx(0), sy(-FLOOR)); ctx.lineTo(sx(0), sy(FLOOR));
-      ctx.stroke();
+      view.ctx.moveTo(sx(-FLOOR), sy(0)); view.ctx.lineTo(sx(FLOOR), sy(0));
+      view.ctx.moveTo(sx(0), sy(-FLOOR)); view.ctx.lineTo(sx(0), sy(FLOOR));
+      view.ctx.stroke();
     }
   }
 
@@ -973,15 +973,15 @@ export function createRenderer(canvas) {
     return (c._cells = { all, rim, G });
   }
   function cellsPath(list, G) {
-    const p = PPMz(); ctx.beginPath();
-    for (let i = 0; i < list.length; i += 2) ctx.rect(sx(list[i]), sy(list[i + 1]), G * p, G * p);
+    const p = PPMz(); view.ctx.beginPath();
+    for (let i = 0; i < list.length; i += 2) view.ctx.rect(sx(list[i]), sy(list[i + 1]), G * p, G * p);
   }
   function coverPath(c) {
     if (PIXEL) { const k = coverCells(c); cellsPath(k.all, k.G); return; }
     const p = PPMz();
-    ctx.beginPath();
-    if (c.shape === 'ellipse') ctx.ellipse(sx(c.x), sy(c.y), (c.w / 2) * p, (c.h / 2) * p, c.rot || 0, 0, Math.PI * 2);
-    else { ctx.save(); ctx.translate(sx(c.x), sy(c.y)); ctx.rotate(c.rot || 0); ctx.rect((-c.w / 2) * p, (-c.h / 2) * p, c.w * p, c.h * p); ctx.restore(); }
+    view.ctx.beginPath();
+    if (c.shape === 'ellipse') view.ctx.ellipse(sx(c.x), sy(c.y), (c.w / 2) * p, (c.h / 2) * p, c.rot || 0, 0, Math.PI * 2);
+    else { view.ctx.save(); view.ctx.translate(sx(c.x), sy(c.y)); view.ctx.rotate(c.rot || 0); view.ctx.rect((-c.w / 2) * p, (-c.h / 2) * p, c.w * p, c.h * p); view.ctx.restore(); }
   }
   const PUDDLE_TINT = {
     dirt: 'rgba(86,64,42,0.62)', mud: 'rgba(62,46,32,0.66)', thickMud: 'rgba(46,34,24,0.70)',
@@ -999,17 +999,17 @@ export function createRenderer(canvas) {
     const p = PPMz();
     for (const c of list) {
       const r = Math.max(c.w, c.h) / 2;
-      if (sx(c.x + r) < 0 || sx(c.x - r) > W || sy(c.y + r) < 0 || sy(c.y - r) > H) continue;
-      ctx.save();
-      ctx.beginPath();
-      if (c.sq) ctx.rect(sx(c.x - c.w / 2), sy(c.y - c.h / 2), c.w * p, c.h * p);
-      else ctx.ellipse(sx(c.x), sy(c.y), (c.w / 2) * p, (c.h / 2) * p, c.rot || 0, 0, Math.PI * 2);
-      ctx.fillStyle = artBase(c.surface.id, '#6b5644');
-      ctx.fill();
-      ctx.clip();
-      ctx.translate(sx(0), sy(0));
+      if (sx(c.x + r) < 0 || sx(c.x - r) > view.W || sy(c.y + r) < 0 || sy(c.y - r) > view.H) continue;
+      view.ctx.save();
+      view.ctx.beginPath();
+      if (c.sq) view.ctx.rect(sx(c.x - c.w / 2), sy(c.y - c.h / 2), c.w * p, c.h * p);
+      else view.ctx.ellipse(sx(c.x), sy(c.y), (c.w / 2) * p, (c.h / 2) * p, c.rot || 0, 0, Math.PI * 2);
+      view.ctx.fillStyle = artBase(c.surface.id, '#6b5644');
+      view.ctx.fill();
+      view.ctx.clip();
+      view.ctx.translate(sx(0), sy(0));
       paintLayers(c.surface.id, c.x - r, c.y - r, c.x + r, c.y + r);
-      ctx.restore();
+      view.ctx.restore();
     }
   }
   // MERGED COVERS (user, 2026-10-04: "puddles, streams or bodies of water should CONNECT together if touching"). Each cover used to be
@@ -1039,28 +1039,28 @@ export function createRenderer(canvas) {
     return out;
   }
   function drawCoversMerged(list) {
-    const p = PPMz(), vx0 = cam.x - W / 2 / p, vx1 = cam.x + W / 2 / p, vy0 = cam.y - H / 2 / p, vy1 = cam.y + H / 2 / p;
+    const p = PPMz(), vx0 = cam.x - view.W / 2 / p, vx1 = cam.x + view.W / 2 / p, vy0 = cam.y - view.H / 2 / p, vy1 = cam.y + view.H / 2 / p;
     for (const grp of mergedCovers(list)) {
       const [x0, y0, x1, y1] = grp.bb, G = grp.G;
       if (x1 < vx0 || x0 > vx1 || y1 < vy0 || y0 > vy1) continue;
       const vis = grp.cells.filter((c) => c.x + G >= vx0 && c.x <= vx1 && c.y + G >= vy0 && c.y <= vy1);
       if (!vis.length) continue;
-      const path = (cells) => { ctx.beginPath(); for (const c of cells) ctx.rect(sx(c.x), sy(c.y), G * p, G * p); };
+      const path = (cells) => { view.ctx.beginPath(); for (const c of cells) view.ctx.rect(sx(c.x), sy(c.y), G * p, G * p); };
       const bx0 = Math.max(x0, vx0), by0 = Math.max(y0, vy0), bx1 = Math.min(x1, vx1), by1 = Math.min(y1, vy1);
       if (grp.kind === 'wet') {
         const byTint = new Map(); for (const c of vis) { let a = byTint.get(c.tint); if (!a) byTint.set(c.tint, (a = [])); a.push(c); }
-        for (const [tint, cells] of byTint) { path(cells); ctx.fillStyle = tint; ctx.fill(); }
-        ctx.save(); path(vis); ctx.clip(); ctx.translate(sx(0), sy(0));
+        for (const [tint, cells] of byTint) { path(cells); view.ctx.fillStyle = tint; view.ctx.fill(); }
+        view.ctx.save(); path(vis); view.ctx.clip(); view.ctx.translate(sx(0), sy(0));
         PRIM.sheen(['sheen', 'rgba(215,228,248,0.09)', 4.0, 0.9, -0.45], bx0, by0, bx1, by1);
         PRIM.sheen(['sheen', 'rgba(235,242,252,0.18)', 4.0, 0.10, -0.45], bx0, by0, bx1, by1);
         PRIM.rings(['rings', 'rgba(220,232,250,0.30)', 2.8, 0.30, 0.03, 0.45], bx0, by0, bx1, by1);
-        ctx.restore();
-        path(grp.rim.filter((c) => c.x + G >= vx0 && c.x <= vx1 && c.y + G >= vy0 && c.y <= vy1)); ctx.fillStyle = 'rgba(30,40,58,0.30)'; ctx.fill();
+        view.ctx.restore();
+        path(grp.rim.filter((c) => c.x + G >= vx0 && c.x <= vx1 && c.y + G >= vy0 && c.y <= vy1)); view.ctx.fillStyle = 'rgba(30,40,58,0.30)'; view.ctx.fill();
       } else {
-        path(vis); ctx.fillStyle = artBase(grp.kind, '#ffffff'); ctx.fill();
-        ctx.save(); ctx.clip(); ctx.translate(sx(0), sy(0)); paintLayers(grp.kind, bx0, by0, bx1, by1); ctx.restore();
+        path(vis); view.ctx.fillStyle = artBase(grp.kind, '#ffffff'); view.ctx.fill();
+        view.ctx.save(); view.ctx.clip(); view.ctx.translate(sx(0), sy(0)); paintLayers(grp.kind, bx0, by0, bx1, by1); view.ctx.restore();
         path(grp.rim.filter((c) => c.x + G >= vx0 && c.x <= vx1 && c.y + G >= vy0 && c.y <= vy1));
-        ctx.fillStyle = grp.kind === 'snow' ? 'rgba(160,180,205,0.55)' : 'rgba(255,255,255,0.55)'; ctx.fill();
+        view.ctx.fillStyle = grp.kind === 'snow' ? 'rgba(160,180,205,0.55)' : 'rgba(255,255,255,0.55)'; view.ctx.fill();
       }
     }
   }
@@ -1071,36 +1071,36 @@ export function createRenderer(canvas) {
     const p = PPMz();
     for (const c of list) {
       const r = Math.max(c.w, c.h) / 2;
-      if (sx(c.x + r) < 0 || sx(c.x - r) > W || sy(c.y + r) < 0 || sy(c.y - r) > H) continue;
+      if (sx(c.x + r) < 0 || sx(c.x - r) > view.W || sy(c.y + r) < 0 || sy(c.y - r) > view.H) continue;
       coverPath(c);
-      ctx.save();
+      view.ctx.save();
       if (c.cover === 'wet') {
         // water takes the colour of what it lies in: brown in dirt and mud, so it reads as part of them
         const under = (groundAt(c.x, c.y).surface.under) || 'tarmac';
-        ctx.fillStyle = PUDDLE_TINT[under] || 'rgba(52,66,92,0.58)';
-        ctx.fill();
-        ctx.clip();
-        ctx.translate(sx(0), sy(0));
+        view.ctx.fillStyle = PUDDLE_TINT[under] || 'rgba(52,66,92,0.58)';
+        view.ctx.fill();
+        view.ctx.clip();
+        view.ctx.translate(sx(0), sy(0));
         // reflections: broad and faint with one thin bright edge, sparse rain rings — the first cut (tight
         // regular bands) read as hatching on the dark tarmac puddles (photographed 2026-10-03)
         PRIM.sheen(['sheen', 'rgba(215,228,248,0.09)', 4.0, 0.9, -0.45], c.x - r, c.y - r, c.x + r, c.y + r);
         PRIM.sheen(['sheen', 'rgba(235,242,252,0.18)', 4.0, 0.10, -0.45], c.x - r, c.y - r, c.x + r, c.y + r);
         PRIM.rings(['rings', 'rgba(220,232,250,0.30)', 2.8, 0.30, 0.03, 0.45], c.x - r, c.y - r, c.x + r, c.y + r);
-        ctx.restore();
-        if (PIXEL) { const k = coverCells(c); cellsPath(k.rim, k.G); ctx.fillStyle = 'rgba(30,40,58,0.30)'; ctx.fill(); continue; }
+        view.ctx.restore();
+        if (PIXEL) { const k = coverCells(c); cellsPath(k.rim, k.G); view.ctx.fillStyle = 'rgba(30,40,58,0.30)'; view.ctx.fill(); continue; }
         coverPath(c);
-        ctx.strokeStyle = 'rgba(30,40,58,0.35)'; ctx.lineWidth = Math.max(1, 0.12 * p); ctx.stroke();
+        view.ctx.strokeStyle = 'rgba(30,40,58,0.35)'; view.ctx.lineWidth = Math.max(1, 0.12 * p); view.ctx.stroke();
       } else {
-        ctx.fillStyle = artBase(c.cover, '#ffffff');
-        ctx.fill();
-        ctx.clip();
-        ctx.translate(sx(0), sy(0));
+        view.ctx.fillStyle = artBase(c.cover, '#ffffff');
+        view.ctx.fill();
+        view.ctx.clip();
+        view.ctx.translate(sx(0), sy(0));
         paintLayers(c.cover, c.x - r, c.y - r, c.x + r, c.y + r);
-        ctx.restore();
-        if (PIXEL) { const k = coverCells(c); cellsPath(k.rim, k.G); ctx.fillStyle = c.cover === 'snow' ? 'rgba(160,180,205,0.55)' : 'rgba(255,255,255,0.55)'; ctx.fill(); continue; }
+        view.ctx.restore();
+        if (PIXEL) { const k = coverCells(c); cellsPath(k.rim, k.G); view.ctx.fillStyle = c.cover === 'snow' ? 'rgba(160,180,205,0.55)' : 'rgba(255,255,255,0.55)'; view.ctx.fill(); continue; }
         coverPath(c);
-        ctx.strokeStyle = c.cover === 'snow' ? 'rgba(160,180,205,0.55)' : 'rgba(255,255,255,0.7)';
-        ctx.lineWidth = Math.max(1, 0.16 * p); ctx.stroke();
+        view.ctx.strokeStyle = c.cover === 'snow' ? 'rgba(160,180,205,0.55)' : 'rgba(255,255,255,0.7)';
+        view.ctx.lineWidth = Math.max(1, 0.16 * p); view.ctx.stroke();
       }
     }
   }
@@ -1124,7 +1124,7 @@ export function createRenderer(canvas) {
       if ((pass === 'cover') !== startedCovered) continue;
       const x0 = Math.round(sx(cell.cx * WEAR_CELL)), y0 = Math.round(sy(cell.cy * WEAR_CELL));
       const x1 = Math.round(sx((cell.cx + 1) * WEAR_CELL)), y1 = Math.round(sy((cell.cy + 1) * WEAR_CELL));
-      if (x1 < 0 || x0 > W || y1 < 0 || y0 > H) continue;
+      if (x1 < 0 || x0 > view.W || y1 < 0 || y0 > view.H) continue;
       // water on a cell is drawn as its BASE with a puddle over it, so meltwater on grass looks like water on grass
       const gkey = cell.current === 'wet' ? 'wet|' + cell.base : cell.current;
       let g = groups.get(gkey);
@@ -1138,28 +1138,28 @@ export function createRenderer(canvas) {
     for (const [gk, g] of groups) {
       const r = g.r;
       const wetOn = gk.startsWith('wet|') ? gk.slice(4) : null, id = wetOn || gk;
-      ctx.save();
-      ctx.beginPath();
+      view.ctx.save();
+      view.ctx.beginPath();
       // a soft DISC per cell (radius 0.72 of the cell, so neighbours overlap) rather than a hard square:
       // worn ground then spreads as organic ruts instead of a blocky staircase (photographed 2026-10-03)
       for (let i = 0; i < r.length; i += 4) {
-        if (PIXEL) { ctx.rect(r[i], r[i + 1], r[i + 2], r[i + 3]); continue; }     // squares in pixel art
+        if (PIXEL) { view.ctx.rect(r[i], r[i + 1], r[i + 2], r[i + 3]); continue; }     // squares in pixel art
         const rr = r[i + 2] * 0.72, cx = r[i] + r[i + 2] / 2, cy = r[i + 1] + r[i + 3] / 2;
-        ctx.moveTo(cx + rr, cy); ctx.arc(cx, cy, rr, 0, Math.PI * 2);
+        view.ctx.moveTo(cx + rr, cy); view.ctx.arc(cx, cy, rr, 0, Math.PI * 2);
       }
-      ctx.fillStyle = artBase(id, '#6b5644');
-      ctx.fill();
-      ctx.clip();
-      ctx.translate(sx(0), sy(0));
+      view.ctx.fillStyle = artBase(id, '#6b5644');
+      view.ctx.fill();
+      view.ctx.clip();
+      view.ctx.translate(sx(0), sy(0));
       paintLayers(id, g.bx0, g.by0, g.bx1, g.by1);
       if (wetOn) {
-        ctx.fillStyle = PUDDLE_TINT[wetOn] || 'rgba(52,66,92,0.58)';
+        view.ctx.fillStyle = PUDDLE_TINT[wetOn] || 'rgba(52,66,92,0.58)';
         // grown by a cell: the discs reach past the cells' squares, and the clip keeps it inside them
         const m = WEAR_CELL;
-        ctx.fillRect((g.bx0 - m) * PPMz(), (g.by0 - m) * PPMz(), (g.bx1 - g.bx0 + 2 * m) * PPMz(), (g.by1 - g.by0 + 2 * m) * PPMz());
+        view.ctx.fillRect((g.bx0 - m) * PPMz(), (g.by0 - m) * PPMz(), (g.bx1 - g.bx0 + 2 * m) * PPMz(), (g.by1 - g.by0 + 2 * m) * PPMz());
         PRIM.sheen(['sheen', 'rgba(220,232,250,0.12)', 3.0, 0.5, -0.45], g.bx0, g.by0, g.bx1, g.by1);
       }
-      ctx.restore();
+      view.ctx.restore();
     }
   }
 
@@ -1171,10 +1171,10 @@ export function createRenderer(canvas) {
   function drawBumps() {
     const p = PPMz();
     for (const b of BUMPS) {
-      if (Math.abs(b.x - cam.x) * p > W / 2 + 200 || Math.abs(b.y - cam.y) * p > H / 2 + 200) continue;
-      ctx.save();
-      ctx.translate(sx(b.x), sy(b.y));
-      ctx.rotate(b.rot || 0);
+      if (Math.abs(b.x - cam.x) * p > view.W / 2 + 200 || Math.abs(b.y - cam.y) * p > view.H / 2 + 200) continue;
+      view.ctx.save();
+      view.ctx.translate(sx(b.x), sy(b.y));
+      view.ctx.rotate(b.rot || 0);
       // TERRAIN SHAPES ARE SHOWN BY HILL-SHADING NOW (step 3, 2026-10-03; user chose "rebuild the old jumps as terrain" and
       // "pixel hill-shading"). The hand-drawn dome / wedge / table art went: photographed together with the shading it
       // read as two layers of mud. Kept: the KERB (it is paint, not height) and the ramp's RED LIP — the ground really does
@@ -1182,16 +1182,16 @@ export function createRenderer(canvas) {
       if (b.kind === 'kerb') {
         const n = Math.max(2, Math.round(b.len / 2.4));
         for (let i = 0; i < n; i++) {
-          ctx.fillStyle = i % 2 ? COL.kerbB : COL.kerbA;
-          ctx.fillRect((-b.len / 2 + (i * b.len) / n) * p, (-b.wid / 2) * p, (b.len / n) * p + 1, b.wid * p);
+          view.ctx.fillStyle = i % 2 ? COL.kerbB : COL.kerbA;
+          view.ctx.fillRect((-b.len / 2 + (i * b.len) / n) * p, (-b.wid / 2) * p, (b.len / n) * p + 1, b.wid * p);
         }
-        ctx.fillStyle = 'rgba(255,255,255,0.35)';
-        ctx.fillRect((-b.len / 2) * p, -0.3 * p, b.len * p, 0.6 * p);
+        view.ctx.fillStyle = 'rgba(255,255,255,0.35)';
+        view.ctx.fillRect((-b.len / 2) * p, -0.3 * p, b.len * p, 0.6 * p);
       } else if (b.kind === 'ramp') {
-        ctx.fillStyle = 'rgba(214,69,60,0.85)';
-        ctx.fillRect((b.len / 2 - 0.6) * p, (-b.wid / 2) * p, 0.6 * p, b.wid * p);
+        view.ctx.fillStyle = 'rgba(214,69,60,0.85)';
+        view.ctx.fillRect((b.len / 2 - 0.6) * p, (-b.wid / 2) * p, 0.6 * p, b.wid * p);
       }
-      ctx.restore();
+      view.ctx.restore();
     }
   }
 
@@ -1200,12 +1200,12 @@ export function createRenderer(canvas) {
     for (let i = 0; i < 4; i++) forSide(i, (p, D, Lh) => {
       const E = Lh + RUNOFF_W, F = D + RUNOFF_W;   // along: the side plus both corners; out: the fence
       // GRASS VERGE first — the strip between the kerb and the gravel where you can still save it.
-      ctx.fillStyle = COL.grass;
-      ctx.fillRect(-E * p, D * p, E * 2 * p, VERGE_W * p);
+      view.ctx.fillStyle = COL.grass;
+      view.ctx.fillRect(-E * p, D * p, E * 2 * p, VERGE_W * p);
       speckle(-E, D, E, D + VERGE_W, COL.grassDark, 0.8, 0.16);
       // then the TRAP: the full width of the side, plus the corner so the ring closes with no seam.
-      ctx.fillStyle = COL.gravel;
-      ctx.fillRect(-E * p, (D + VERGE_W) * p, E * 2 * p, (RUNOFF_W - VERGE_W) * p);
+      view.ctx.fillStyle = COL.gravel;
+      view.ctx.fillRect(-E * p, (D + VERGE_W) * p, E * 2 * p, (RUNOFF_W - VERGE_W) * p);
       speckle(-E, D + VERGE_W, E, F, COL.gravelGrit, 0.85, 0.15);
       speckle(-E, D + VERGE_W, E, F, COL.gravelDark, 2.4, 0.24);
     });
@@ -1219,14 +1219,14 @@ export function createRenderer(canvas) {
       const blk = 2.6;                             // m per block
       for (let u = -Lh; u < Lh; u += blk) {
         const w = Math.min(blk, Lh - u);
-        ctx.fillStyle = (Math.round((u + Lh) / blk) % 2) ? COL.kerbB : COL.kerbA;
-        ctx.fillRect(u * p, inner * p, w * p + 1, KERB_W * p);
+        view.ctx.fillStyle = (Math.round((u + Lh) / blk) % 2) ? COL.kerbB : COL.kerbA;
+        view.ctx.fillRect(u * p, inner * p, w * p + 1, KERB_W * p);
       }
       // it is RAISED: bright along the crest, shadow at the inner lip where the car climbs on
-      ctx.fillStyle = 'rgba(255,255,255,0.45)';
-      ctx.fillRect(-Lh * p, (D - 0.5) * p, Lh * 2 * p, 0.5 * p);
-      ctx.fillStyle = 'rgba(0,0,0,0.16)';
-      ctx.fillRect(-Lh * p, inner * p, Lh * 2 * p, 0.35 * p);
+      view.ctx.fillStyle = 'rgba(255,255,255,0.45)';
+      view.ctx.fillRect(-Lh * p, (D - 0.5) * p, Lh * 2 * p, 0.5 * p);
+      view.ctx.fillStyle = 'rgba(0,0,0,0.16)';
+      view.ctx.fillRect(-Lh * p, inner * p, Lh * 2 * p, 0.35 * p);
     });
   }
 
@@ -1235,37 +1235,37 @@ export function createRenderer(canvas) {
     for (let i = 0; i < 4; i++) forSide(i, (p, D, Lh) => {
       const y = (D + RUNOFF_W) * p, E = Lh + RUNOFF_W;   // E: the half-length of this side's fence, corners included
       // only the stretch in view (the frame's cam / W from forSide): the long sides are ~1 km of mesh
-      const u0 = Math.max(-E, Math.floor((cam.x - W / 2 / p) / 4) * 4 - 4), u1 = Math.min(E, cam.x + W / 2 / p + 4);
+      const u0 = Math.max(-E, Math.floor((cam.x - view.W / 2 / p) / 4) * 4 - 4), u1 = Math.min(E, cam.x + view.W / 2 / p + 4);
       // High-performance Armco crash barrier:
       // 1. Backing catch-fence wire mesh
-      ctx.strokeStyle = 'rgba(145,148,160,0.32)';
-      ctx.lineWidth = Math.max(1, 0.08 * p);
-      ctx.beginPath();
+      view.ctx.strokeStyle = 'rgba(145,148,160,0.32)';
+      view.ctx.lineWidth = Math.max(1, 0.08 * p);
+      view.ctx.beginPath();
       for (let u = Math.max(-E, Math.floor((u0 + E) / 2.4) * 2.4 - E); u < u1; u += 2.4) {
-        ctx.moveTo(u * p, y - 1.2 * p);
-        ctx.lineTo((u + 2.4) * p, y + 0.4 * p);
-        ctx.moveTo((u + 2.4) * p, y - 1.2 * p);
-        ctx.lineTo(u * p, y + 0.4 * p);
+        view.ctx.moveTo(u * p, y - 1.2 * p);
+        view.ctx.lineTo((u + 2.4) * p, y + 0.4 * p);
+        view.ctx.moveTo((u + 2.4) * p, y - 1.2 * p);
+        view.ctx.lineTo(u * p, y + 0.4 * p);
       }
-      ctx.stroke();
+      view.ctx.stroke();
 
       // 2. Steel I-beam stanchions every 4 m
       const postW = Math.max(2, 0.28 * p);
       const postH = Math.max(3, 0.55 * p);
-      ctx.fillStyle = '#42454e';
+      view.ctx.fillStyle = '#42454e';
       for (let u = Math.max(-E, Math.floor((u0 + E) / 4) * 4 - E); u <= u1; u += 4) {
-        ctx.fillRect(u * p - postW / 2, y - postH * 0.4, postW, postH);
+        view.ctx.fillRect(u * p - postW / 2, y - postH * 0.4, postW, postH);
       }
 
       // 3. Double-corrugated Armco rail: deep shadow underneath, steel beam, specular upper highlight
-      ctx.fillStyle = 'rgba(25,27,32,0.6)';
-      ctx.fillRect(-E * p, y + 0.15 * p, E * 2 * p, Math.max(1, 0.15 * p));
+      view.ctx.fillStyle = 'rgba(25,27,32,0.6)';
+      view.ctx.fillRect(-E * p, y + 0.15 * p, E * 2 * p, Math.max(1, 0.15 * p));
 
-      ctx.fillStyle = '#9296a2';  // galvanized beam
-      ctx.fillRect(-E * p, y - 0.25 * p, E * 2 * p, Math.max(2, 0.45 * p));
+      view.ctx.fillStyle = '#9296a2';  // galvanized beam
+      view.ctx.fillRect(-E * p, y - 0.25 * p, E * 2 * p, Math.max(2, 0.45 * p));
 
-      ctx.fillStyle = '#d2d6e2';  // top reflective bevel
-      ctx.fillRect(-E * p, y - 0.25 * p, E * 2 * p, Math.max(1, 0.12 * p));
+      view.ctx.fillStyle = '#d2d6e2';  // top reflective bevel
+      view.ctx.fillRect(-E * p, y - 0.25 * p, E * 2 * p, Math.max(1, 0.12 * p));
     });
   }
 
@@ -1275,45 +1275,45 @@ export function createRenderer(canvas) {
     const list = LEVEL.barriers;
     if (!list || !list.length) return;
     const p = PPMz();
-    const path = (pts) => { ctx.beginPath(); pts.forEach(([x, y], i) => (i ? ctx.lineTo(sx(x), sy(y)) : ctx.moveTo(sx(x), sy(y)))); };
+    const path = (pts) => { view.ctx.beginPath(); pts.forEach(([x, y], i) => (i ? view.ctx.lineTo(sx(x), sy(y)) : view.ctx.moveTo(sx(x), sy(y)))); };
     const posts = (pts, every, size, col) => {
-      ctx.fillStyle = col;
+      view.ctx.fillStyle = col;
       let acc = 0;
       for (let i = 0; i < pts.length - 1; i++) {
         const [ax, ay] = pts[i], [bx, by] = pts[i + 1], L = Math.hypot(bx - ax, by - ay);
-        for (; acc <= L; acc += every) { const t = acc / L, x = ax + (bx - ax) * t, y = ay + (by - ay) * t; ctx.fillRect(sx(x) - (size * p) / 2, sy(y) - (size * p) / 2, size * p, size * p); }
+        for (; acc <= L; acc += every) { const t = acc / L, x = ax + (bx - ax) * t, y = ay + (by - ay) * t; view.ctx.fillRect(sx(x) - (size * p) / 2, sy(y) - (size * p) / 2, size * p, size * p); }
         acc -= L;
       }
     };
-    ctx.save(); ctx.lineJoin = 'round'; ctx.lineCap = 'butt';
+    view.ctx.save(); view.ctx.lineJoin = 'round'; view.ctx.lineCap = 'butt';
     for (const b of list) {
       const half = BARRIER_HALF[b.kind] ?? 0.2;
       if (b.kind === 'building') continue;
       // OFF-SCREEN CULL (2026-10-04): Thruston's ~500 m of Armco was stroked + posted every frame for the whole lap
       if (!b._rbb) { let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity; for (const [x, y] of b.pts) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); } b._rbb = [x0 - 1, y0 - 1, x1 + 1, y1 + 1]; }
-      if (sx(b._rbb[0]) > W || sx(b._rbb[2]) < 0 || sy(b._rbb[1]) > H || sy(b._rbb[3]) < 0) continue;
-      if (b.kind === 'line') { path(b.pts); ctx.strokeStyle = b.col || '#e2c13a'; ctx.lineWidth = Math.max(1, 0.25 * p); ctx.stroke(); continue; }
+      if (sx(b._rbb[0]) > view.W || sx(b._rbb[2]) < 0 || sy(b._rbb[1]) > view.H || sy(b._rbb[3]) < 0) continue;
+      if (b.kind === 'line') { path(b.pts); view.ctx.strokeStyle = b.col || '#e2c13a'; view.ctx.lineWidth = Math.max(1, 0.25 * p); view.ctx.stroke(); continue; }
       if (b.kind === 'fence') {
-        path(b.pts); ctx.strokeStyle = 'rgba(40,44,52,0.55)'; ctx.lineWidth = Math.max(1, 2 * half * p); ctx.stroke();
+        path(b.pts); view.ctx.strokeStyle = 'rgba(40,44,52,0.55)'; view.ctx.lineWidth = Math.max(1, 2 * half * p); view.ctx.stroke();
         posts(b.pts, 3, 0.35, '#2b2f38'); continue;
       }
       if (b.kind === 'armco') {
-        path(b.pts); ctx.strokeStyle = '#5d626d'; ctx.lineWidth = Math.max(2, 2 * half * p); ctx.stroke();      // shadowed rail
-        path(b.pts); ctx.strokeStyle = '#c9ccd3'; ctx.lineWidth = Math.max(1, half * p); ctx.stroke();          // bright face
+        path(b.pts); view.ctx.strokeStyle = '#5d626d'; view.ctx.lineWidth = Math.max(2, 2 * half * p); view.ctx.stroke();      // shadowed rail
+        path(b.pts); view.ctx.strokeStyle = '#c9ccd3'; view.ctx.lineWidth = Math.max(1, half * p); view.ctx.stroke();          // bright face
         posts(b.pts, 2, 0.32, '#3d4049'); continue;
       }
       // wall / pitwall
-      path(b.pts); ctx.strokeStyle = '#a9a7a0'; ctx.lineWidth = Math.max(2, 2 * half * p); ctx.stroke();
+      path(b.pts); view.ctx.strokeStyle = '#a9a7a0'; view.ctx.lineWidth = Math.max(2, 2 * half * p); view.ctx.stroke();
       if (b.kind === 'pitwall') {
         // painted red / white / blue blocks along the base (photographed at Thruxton)
-        ctx.lineWidth = Math.max(1, half * 0.9 * p);
+        view.ctx.lineWidth = Math.max(1, half * 0.9 * p);
         const cols = ['#c8302c', '#f2f2f2', '#2b56b5'];
-        ctx.setLineDash([2 * p, 4 * p]);
-        cols.forEach((col, k) => { ctx.lineDashOffset = -k * 2 * p; path(b.pts); ctx.strokeStyle = col; ctx.stroke(); });
-        ctx.setLineDash([]);
+        view.ctx.setLineDash([2 * p, 4 * p]);
+        cols.forEach((col, k) => { view.ctx.lineDashOffset = -k * 2 * p; path(b.pts); view.ctx.strokeStyle = col; view.ctx.stroke(); });
+        view.ctx.setLineDash([]);
       }
     }
-    ctx.restore();
+    view.ctx.restore();
   }
   // JOKER ARROWS (user spec 2026-10-03: "a TRANSLUCENT WHITE ARROW, gently pulsing" at joker / pit entries). Hidden once the joker
   // is done in an RX race. Wall clock: the pulse is something the player watches.
@@ -1323,15 +1323,15 @@ export function createRenderer(canvas) {
     // stronger + OUTLINED (user: "needs to be closed and more clearly pointing") — at 0.28-0.5 alpha it faded into the grey tarmac
     const p = PPMz(), a = 0.45 + 0.35 * (0.5 + 0.5 * Math.sin((wallT || 0) * 3.2));
     for (const ar of J.arrows) {
-      if (sx(ar.x) < -200 || sx(ar.x) > W + 200 || sy(ar.y) < -200 || sy(ar.y) > H + 200) continue;
+      if (sx(ar.x) < -200 || sx(ar.x) > view.W + 200 || sy(ar.y) < -200 || sy(ar.y) > view.H + 200) continue;
       const L = ar.len || 7;
-      ctx.save(); ctx.translate(sx(ar.x), sy(ar.y)); ctx.rotate(ar.rot);
-      ctx.fillStyle = `rgba(255,255,255,${a.toFixed(3)})`;
-      ctx.beginPath();
-      ctx.moveTo(L * 0.5 * p, 0); ctx.lineTo(0, -L * 0.42 * p); ctx.lineTo(0, -L * 0.16 * p); ctx.lineTo(-L * 0.5 * p, -L * 0.16 * p);
-      ctx.lineTo(-L * 0.5 * p, L * 0.16 * p); ctx.lineTo(0, L * 0.16 * p); ctx.lineTo(0, L * 0.42 * p); ctx.closePath(); ctx.fill();
-      ctx.strokeStyle = `rgba(20,22,28,${(a * 0.8).toFixed(3)})`; ctx.lineWidth = Math.max(1.5, 0.25 * p); ctx.lineJoin = "miter"; ctx.stroke();
-      ctx.restore();
+      view.ctx.save(); view.ctx.translate(sx(ar.x), sy(ar.y)); view.ctx.rotate(ar.rot);
+      view.ctx.fillStyle = `rgba(255,255,255,${a.toFixed(3)})`;
+      view.ctx.beginPath();
+      view.ctx.moveTo(L * 0.5 * p, 0); view.ctx.lineTo(0, -L * 0.42 * p); view.ctx.lineTo(0, -L * 0.16 * p); view.ctx.lineTo(-L * 0.5 * p, -L * 0.16 * p);
+      view.ctx.lineTo(-L * 0.5 * p, L * 0.16 * p); view.ctx.lineTo(0, L * 0.16 * p); view.ctx.lineTo(0, L * 0.42 * p); view.ctx.closePath(); view.ctx.fill();
+      view.ctx.strokeStyle = `rgba(20,22,28,${(a * 0.8).toFixed(3)})`; view.ctx.lineWidth = Math.max(1.5, 0.25 * p); view.ctx.lineJoin = "miter"; view.ctx.stroke();
+      view.ctx.restore();
     }
   }
   // SLIP ROAD (highway.js extras): the tarmac itself is a lane ribbon (drawLanes, ground tiles); this draws its MARKINGS - the edge
@@ -1339,13 +1339,13 @@ export function createRenderer(canvas) {
   function drawSlip(pr, p) {
     const L = pr.line; if (!L || L.length < 2) return;
     if (!pr._bb) { let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity; for (const [x, y] of L) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); } pr._bb = [x0 - 6, y0 - 6, x1 + 6, y1 + 6]; }
-    if (sx(pr._bb[0]) > W || sx(pr._bb[2]) < 0 || sy(pr._bb[1]) > H || sy(pr._bb[3]) < 0) return;
+    if (sx(pr._bb[0]) > view.W || sx(pr._bb[2]) < 0 || sy(pr._bb[1]) > view.H || sy(pr._bb[3]) < 0) return;
     const hw = (pr.w || 5) / 2 - 0.3, nrm = (k) => { const a = L[Math.max(0, k - 1)], b = L[Math.min(L.length - 1, k + 1)], h = Math.atan2(b[1] - a[1], b[0] - a[0]); return [-Math.sin(h), Math.cos(h)]; };
-    ctx.save(); ctx.strokeStyle = 'rgba(245,245,240,0.85)'; ctx.lineWidth = Math.max(1, 0.15 * p);
-    for (const sg of [-1, 1]) { ctx.beginPath(); for (let k = sg > 0 ? 1 : 0; k < L.length; k++) { const [x, y] = L[k], [nx, ny] = nrm(k), X = sx(x + nx * hw * sg), Y = sy(y + ny * hw * sg); if (k === (sg > 0 ? 1 : 0)) ctx.moveTo(X, Y); else ctx.lineTo(X, Y); } ctx.stroke(); }
-    ctx.fillStyle = 'rgba(245,245,240,0.7)';
-    if (pr.nose !== false) for (let k = 1; k < Math.min(5, L.length); k++) { const [x, y] = L[k], [nx, ny] = nrm(k); ctx.fillRect(sx(x + nx * hw) - 0.3 * p, sy(y + ny * hw) - 0.3 * p, 0.6 * p, 0.6 * p); }
-    ctx.restore();
+    view.ctx.save(); view.ctx.strokeStyle = 'rgba(245,245,240,0.85)'; view.ctx.lineWidth = Math.max(1, 0.15 * p);
+    for (const sg of [-1, 1]) { view.ctx.beginPath(); for (let k = sg > 0 ? 1 : 0; k < L.length; k++) { const [x, y] = L[k], [nx, ny] = nrm(k), X = sx(x + nx * hw * sg), Y = sy(y + ny * hw * sg); if (k === (sg > 0 ? 1 : 0)) view.ctx.moveTo(X, Y); else view.ctx.lineTo(X, Y); } view.ctx.stroke(); }
+    view.ctx.fillStyle = 'rgba(245,245,240,0.7)';
+    if (pr.nose !== false) for (let k = 1; k < Math.min(5, L.length); k++) { const [x, y] = L[k], [nx, ny] = nrm(k); view.ctx.fillRect(sx(x + nx * hw) - 0.3 * p, sy(y + ny * hw) - 0.3 * p, 0.6 * p, 0.6 * p); }
+    view.ctx.restore();
   }
   // BRIDGES (highway.js extras): carries 'road' / 'rail' / 'foot' = a deck OVER the motorway (kind 'bridge', drawn after the cars);
   // kind 'river' = the motorway over water. Local frame: +x along the deck (across the motorway). Squares only.
@@ -1356,7 +1356,7 @@ export function createRenderer(canvas) {
   // The RIVER's water is now a real 'wet' cover (lab.js covers: the puddle water, grip and spray, painted into the ground tiles; user:
   // "water seemed to be painted and not our water texture"), so only the boat is drawn here.
   function drawBridge(pr, p) {
-    const P = (x, y, w, h, col) => { ctx.fillStyle = col; ctx.fillRect(x * p, y * p, w * p, h * p); };
+    const P = (x, y, w, h, col) => { view.ctx.fillStyle = col; view.ctx.fillRect(x * p, y * p, w * p, h * p); };
     const half = (pr.wid || 30) / 2, c = pr.carries, sd = pr.seed || 0;
     if (pr.kind === 'river') {
       if (pr.boat) { const e = (pr.roadHw || half - 9) / Math.cos(pr.skew || 0) + 4; P(e, -1.2, 5, 2.4, '#e9e4d8'); P(e + 1, -0.8, 2, 1.6, '#c8302c'); P(e + 0.2, -1.25, 4.6, 0.2, '#6a7077'); }
@@ -1366,7 +1366,7 @@ export function createRenderer(canvas) {
     // a mover at distance d along [-a0, a1] (wrapping), drawn by f(x)
     const along = (v, k, gap, f) => f((((t * v + k * gap) % Lt) + Lt) % Lt - a0);   // v < 0 runs -x by itself
     const dw = c === 'foot' ? 2.6 : c === 'rail' ? 7 : 9;
-    ctx.fillStyle = 'rgba(10,12,16,0.32)'; ctx.fillRect((-half + 1.5) * p, (-dw / 2 + 2.6) * p, 2 * half * p, dw * p);   // shadow
+    view.ctx.fillStyle = 'rgba(10,12,16,0.32)'; view.ctx.fillRect((-half + 1.5) * p, (-dw / 2 + 2.6) * p, 2 * half * p, dw * p);   // shadow
     P(-half - 4, -dw / 2 - 0.6, 4, dw + 1.2, '#7c7f86'); P(half, -dw / 2 - 0.6, 4, dw + 1.2, '#7c7f86');                 // abutments
     P(-half, -dw / 2, 2 * half, dw, c === 'rail' ? '#5a5048' : '#8f949c');
     P(-half, -dw / 2, 2 * half, 0.4, '#c9ccd3'); P(-half, dw / 2 - 0.4, 2 * half, 0.4, '#5d626d');                       // parapets
@@ -1404,25 +1404,25 @@ export function createRenderer(canvas) {
   // GARAGE ROW (2026-10-04): one strip along the lane from front / back / banner polylines, so it bends with the track
   function drawGarageRow(pr, p) {
     if (!pr._bb) { let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity; for (const [x, y] of [...pr.front, ...pr.back]) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); } pr._bb = [x0, y0, x1, y1]; }
-    if (sx(pr._bb[0]) > W || sx(pr._bb[2]) < 0 || sy(pr._bb[1]) > H || sy(pr._bb[3]) < 0) return;
+    if (sx(pr._bb[0]) > view.W || sx(pr._bb[2]) < 0 || sy(pr._bb[1]) > view.H || sy(pr._bb[3]) < 0) return;
     const F = pr.front, B = pr.back, N = pr.banner, n = F.length;
-    const poly = (a, b, col) => { ctx.beginPath(); a.forEach(([x, y], i) => (i ? ctx.lineTo(sx(x), sy(y)) : ctx.moveTo(sx(x), sy(y)))); for (let i = b.length - 1; i >= 0; i--) ctx.lineTo(sx(b[i][0]), sy(b[i][1])); ctx.closePath(); ctx.fillStyle = col; ctx.fill(); };
-    ctx.save();
-    ctx.translate(0.6 * p, 0.8 * p); poly(F, B, 'rgba(10,12,16,0.40)'); ctx.translate(-0.6 * p, -0.8 * p);   // shadow
+    const poly = (a, b, col) => { view.ctx.beginPath(); a.forEach(([x, y], i) => (i ? view.ctx.lineTo(sx(x), sy(y)) : view.ctx.moveTo(sx(x), sy(y)))); for (let i = b.length - 1; i >= 0; i--) view.ctx.lineTo(sx(b[i][0]), sy(b[i][1])); view.ctx.closePath(); view.ctx.fillStyle = col; view.ctx.fill(); };
+    view.ctx.save();
+    view.ctx.translate(0.6 * p, 0.8 * p); poly(F, B, 'rgba(10,12,16,0.40)'); view.ctx.translate(-0.6 * p, -0.8 * p);   // shadow
     poly(F, B, '#5b626b');
-    ctx.strokeStyle = '#3b4047'; ctx.lineWidth = Math.max(1, 0.25 * p);
-    for (let i = 0; i < n; i += 2) { ctx.beginPath(); ctx.moveTo(sx(F[i][0]), sy(F[i][1])); ctx.lineTo(sx(B[i][0]), sy(B[i][1])); ctx.stroke(); }   // a unit every 5 m
-    ctx.beginPath(); F.forEach(([x, y], i) => (i ? ctx.lineTo(sx(x), sy(y)) : ctx.moveTo(sx(x), sy(y)))); for (let i = n - 1; i >= 0; i--) ctx.lineTo(sx(B[i][0]), sy(B[i][1])); ctx.closePath(); ctx.stroke();
+    view.ctx.strokeStyle = '#3b4047'; view.ctx.lineWidth = Math.max(1, 0.25 * p);
+    for (let i = 0; i < n; i += 2) { view.ctx.beginPath(); view.ctx.moveTo(sx(F[i][0]), sy(F[i][1])); view.ctx.lineTo(sx(B[i][0]), sy(B[i][1])); view.ctx.stroke(); }   // a unit every 5 m
+    view.ctx.beginPath(); F.forEach(([x, y], i) => (i ? view.ctx.lineTo(sx(x), sy(y)) : view.ctx.moveTo(sx(x), sy(y)))); for (let i = n - 1; i >= 0; i--) view.ctx.lineTo(sx(B[i][0]), sy(B[i][1])); view.ctx.closePath(); view.ctx.stroke();
     poly(F, N, '#c8302c');                                                                                      // the banner
     const bh = 0.9 * p;
     if (bh >= 8) {
-      ctx.fillStyle = '#ffffff'; ctx.font = `900 ${Math.round(bh * 0.8)}px Impact, ui-sans-serif, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      view.ctx.fillStyle = '#ffffff'; view.ctx.font = `900 ${Math.round(bh * 0.8)}px Impact, ui-sans-serif, sans-serif`; view.ctx.textAlign = 'center'; view.ctx.textBaseline = 'middle';
       for (let i = 3; i < n - 3; i += 6) {
         const a = N[i - 1], b = N[i + 1], m = F[i], q = N[i], ang = Math.atan2(b[1] - a[1], b[0] - a[0]);
-        ctx.save(); ctx.translate(sx((m[0] + q[0]) / 2), sy((m[1] + q[1]) / 2)); ctx.rotate(ang); ctx.fillText(pr.brand || 'KUM TYRES', 0, 1, 6 * 2.5 * p * 0.85); ctx.restore();
+        view.ctx.save(); view.ctx.translate(sx((m[0] + q[0]) / 2), sy((m[1] + q[1]) / 2)); view.ctx.rotate(ang); view.ctx.fillText(pr.brand || 'KUM TYRES', 0, 1, 6 * 2.5 * p * 0.85); view.ctx.restore();
       }
     }
-    ctx.restore();
+    view.ctx.restore();
   }
   // OVERHEAD props span the track ABOVE the cars and are drawn AFTER them. MEASURED BUG (user, 2026-10-03: "the gantry
   // being below cars on the naffcar track"): every prop was drawn before the car, so cars drove OVER the start gantry.
@@ -1437,200 +1437,200 @@ export function createRenderer(canvas) {
       const px = sx(pr.x), py = sy(pr.y);
       // margin by the prop's own size (a fixed 150 px let a 20 m hangar pop in at the screen edge)
       const m = Math.max(150, Math.max(pr.w || 0, pr.h || 0, pr.size || 0, pr.wid || 0, 18) * p * 0.75, (pr.reach || 0) * p);
-      if (px < -m || px > W + m || py < -m || py > H + m) continue;
-      ctx.save();
-      ctx.translate(px, py);
-      if (pr.rot) ctx.rotate(pr.rot);
+      if (px < -m || px > view.W + m || py < -m || py > view.H + m) continue;
+      view.ctx.save();
+      view.ctx.translate(px, py);
+      if (pr.rot) view.ctx.rotate(pr.rot);
 
       if (pr.kind === 'grandstand' || pr.kind === 'stadium_grandstand') {
         const gw = (pr.w || 36) * p, gh = (pr.h || 7.5) * p;
         // Heavy ground shadow
-        ctx.fillStyle = 'rgba(10,12,16,0.42)';
-        ctx.fillRect(-gw / 2 + 4, -gh / 2 + 5, gw, gh);
+        view.ctx.fillStyle = 'rgba(10,12,16,0.42)';
+        view.ctx.fillRect(-gw / 2 + 4, -gh / 2 + 5, gw, gh);
         // Base structural frame
-        ctx.fillStyle = '#2e2c28';
-        ctx.fillRect(-gw / 2, -gh / 2, gw, gh);
+        view.ctx.fillStyle = '#2e2c28';
+        view.ctx.fillRect(-gw / 2, -gh / 2, gw, gh);
         // Stepped seating tiers
         const rows = pr.kind === 'stadium_grandstand' ? 6 : 4;
         const rowH = gh / rows;
         for (let r = 0; r < rows; r++) {
-          ctx.fillStyle = r % 2 === 0 ? '#423d35' : '#585246';
-          ctx.fillRect(-gw / 2, -gh / 2 + r * rowH, gw, rowH);
+          view.ctx.fillStyle = r % 2 === 0 ? '#423d35' : '#585246';
+          view.ctx.fillRect(-gw / 2, -gh / 2 + r * rowH, gw, rowH);
           // Planks and footwells
-          ctx.fillStyle = 'rgba(20,18,16,0.45)';
-          ctx.fillRect(-gw / 2, -gh / 2 + r * rowH + rowH - 1.5, gw, 1.5);
+          view.ctx.fillStyle = 'rgba(20,18,16,0.45)';
+          view.ctx.fillRect(-gw / 2, -gh / 2 + r * rowH + rowH - 1.5, gw, 1.5);
           // Colorful spectator crowd heads & caps
           const crowdColors = ['#e63946', '#3a86ff', '#2a9d8f', '#ffb703', '#fb8500', '#f1faee', '#8338ec'];
           const numDots = Math.floor(gw / (0.80 * p));
           for (let d = 0; d < numDots; d++) {
             const seed = (d * 19 + r * 37) % crowdColors.length;
-            ctx.fillStyle = crowdColors[seed];
-            ctx.fillRect(-gw / 2 + d * (0.80 * p) + 2, -gh / 2 + r * rowH + rowH * 0.28, 3.5, 3.5);
+            view.ctx.fillStyle = crowdColors[seed];
+            view.ctx.fillRect(-gw / 2 + d * (0.80 * p) + 2, -gh / 2 + r * rowH + rowH * 0.28, 3.5, 3.5);
           }
         }
         // Corrugated canopy roof over the rear half
-        ctx.fillStyle = 'rgba(12,14,18,0.30)';
-        ctx.fillRect(-gw / 2, -gh / 2 + gh * 0.45, gw, 4); // shadow under roof edge
-        ctx.fillStyle = '#656b78'; // galvanized zinc roof
-        ctx.fillRect(-gw / 2 - 2, -gh / 2 - 2, gw + 4, gh * 0.50);
+        view.ctx.fillStyle = 'rgba(12,14,18,0.30)';
+        view.ctx.fillRect(-gw / 2, -gh / 2 + gh * 0.45, gw, 4); // shadow under roof edge
+        view.ctx.fillStyle = '#656b78'; // galvanized zinc roof
+        view.ctx.fillRect(-gw / 2 - 2, -gh / 2 - 2, gw + 4, gh * 0.50);
         // Roof corrugation ribs
-        ctx.strokeStyle = '#858c9b'; ctx.lineWidth = 1;
-        ctx.beginPath();
+        view.ctx.strokeStyle = '#858c9b'; view.ctx.lineWidth = 1;
+        view.ctx.beginPath();
         for (let rx = -gw / 2; rx <= gw / 2; rx += 4 * p) {
-          ctx.moveTo(rx, -gh / 2 - 2); ctx.lineTo(rx, -gh / 2 + gh * 0.50);
+          view.ctx.moveTo(rx, -gh / 2 - 2); view.ctx.lineTo(rx, -gh / 2 + gh * 0.50);
         }
-        ctx.stroke();
+        view.ctx.stroke();
         // Fluttering pennant flags along the roof ridge
         const flagColors = ['#ef4444', '#3b82f6', '#eab308', '#22c55e'];
         for (let fi = -gw / 2 + 6 * p; fi <= gw / 2 - 6 * p; fi += 10 * p) {
-          ctx.fillStyle = '#222';
-          ctx.fillRect(fi - 1, -gh / 2 - 8, 2, 7);
-          ctx.fillStyle = flagColors[Math.abs(Math.floor(fi)) % flagColors.length];
-          ctx.beginPath();
-          ctx.moveTo(fi + 1, -gh / 2 - 8); ctx.lineTo(fi + 7, -gh / 2 - 5); ctx.lineTo(fi + 1, -gh / 2 - 2);
-          ctx.fill();
+          view.ctx.fillStyle = '#222';
+          view.ctx.fillRect(fi - 1, -gh / 2 - 8, 2, 7);
+          view.ctx.fillStyle = flagColors[Math.abs(Math.floor(fi)) % flagColors.length];
+          view.ctx.beginPath();
+          view.ctx.moveTo(fi + 1, -gh / 2 - 8); view.ctx.lineTo(fi + 7, -gh / 2 - 5); view.ctx.lineTo(fi + 1, -gh / 2 - 2);
+          view.ctx.fill();
         }
         // Front safety barrier rail
-        ctx.strokeStyle = '#8e95a5'; ctx.lineWidth = Math.max(1.2, 0.12 * p);
-        ctx.strokeRect(-gw / 2, -gh / 2, gw, gh);
+        view.ctx.strokeStyle = '#8e95a5'; view.ctx.lineWidth = Math.max(1.2, 0.12 * p);
+        view.ctx.strokeRect(-gw / 2, -gh / 2, gw, gh);
       } else if (pr.kind === 'official_box') {
         // Wooden cabin on stilts
-        ctx.fillStyle = 'rgba(10,12,16,0.38)';
-        ctx.fillRect(-2.2 * p + 3, -1.8 * p + 4, 4.4 * p, 3.6 * p);
+        view.ctx.fillStyle = 'rgba(10,12,16,0.38)';
+        view.ctx.fillRect(-2.2 * p + 3, -1.8 * p + 4, 4.4 * p, 3.6 * p);
         // 4 heavy timber stilt posts
-        ctx.fillStyle = '#3a2e22';
-        ctx.fillRect(-2.0 * p, -1.6 * p, 0.4 * p, 3.2 * p);
-        ctx.fillRect(1.6 * p, -1.6 * p, 0.4 * p, 3.2 * p);
+        view.ctx.fillStyle = '#3a2e22';
+        view.ctx.fillRect(-2.0 * p, -1.6 * p, 0.4 * p, 3.2 * p);
+        view.ctx.fillRect(1.6 * p, -1.6 * p, 0.4 * p, 3.2 * p);
         // Ladder rungs on the side
-        ctx.fillStyle = '#65523f';
+        view.ctx.fillStyle = '#65523f';
         for (let ly = -1.2 * p; ly <= 1.2 * p; ly += 0.5 * p) {
-          ctx.fillRect(1.6 * p, ly, 0.4 * p, 2);
+          view.ctx.fillRect(1.6 * p, ly, 0.4 * p, 2);
         }
         // Cabin body
-        ctx.fillStyle = '#6b5847';
-        ctx.fillRect(-1.8 * p, -1.4 * p, 3.6 * p, 2.8 * p);
+        view.ctx.fillStyle = '#6b5847';
+        view.ctx.fillRect(-1.8 * p, -1.4 * p, 3.6 * p, 2.8 * p);
         // Green timber window frame & observation window
-        ctx.fillStyle = '#2b4436';
-        ctx.fillRect(-1.5 * p, -1.1 * p, 3.0 * p, 1.2 * p);
-        ctx.fillStyle = '#3b4856';
-        ctx.fillRect(-1.3 * p, -1.0 * p, 2.6 * p, 1.0 * p);
+        view.ctx.fillStyle = '#2b4436';
+        view.ctx.fillRect(-1.5 * p, -1.1 * p, 3.0 * p, 1.2 * p);
+        view.ctx.fillStyle = '#3b4856';
+        view.ctx.fillRect(-1.3 * p, -1.0 * p, 2.6 * p, 1.0 * p);
         // Slanted corrugated tin roof
-        ctx.fillStyle = '#555e6c';
-        ctx.fillRect(-2.1 * p, -1.7 * p, 4.2 * p, 1.4 * p);
+        view.ctx.fillStyle = '#555e6c';
+        view.ctx.fillRect(-2.1 * p, -1.7 * p, 4.2 * p, 1.4 * p);
         // Wrap-around balcony rail
-        ctx.strokeStyle = '#c4b5a0'; ctx.lineWidth = 1.5;
-        ctx.strokeRect(-1.9 * p, -0.2 * p, 3.8 * p, 1.7 * p);
+        view.ctx.strokeStyle = '#c4b5a0'; view.ctx.lineWidth = 1.5;
+        view.ctx.strokeRect(-1.9 * p, -0.2 * p, 3.8 * p, 1.7 * p);
         // Marshal figure with yellow caution flag & chequered flag
-        ctx.fillStyle = '#ffcc00'; // Yellow flag
-        ctx.beginPath(); ctx.moveTo(1.7 * p, -1.7 * p); ctx.lineTo(2.6 * p, -1.3 * p); ctx.lineTo(1.7 * p, -0.9 * p); ctx.fill();
-        ctx.fillStyle = '#fff'; // Chequered flag on opposite pole
-        ctx.fillRect(-2.4 * p, -1.6 * p, 0.7 * p, 0.5 * p);
-        ctx.fillStyle = '#111';
-        ctx.fillRect(-2.4 * p, -1.6 * p, 0.35 * p, 0.25 * p);
-        ctx.fillRect(-2.05 * p, -1.35 * p, 0.35 * p, 0.25 * p);
+        view.ctx.fillStyle = '#ffcc00'; // Yellow flag
+        view.ctx.beginPath(); view.ctx.moveTo(1.7 * p, -1.7 * p); view.ctx.lineTo(2.6 * p, -1.3 * p); view.ctx.lineTo(1.7 * p, -0.9 * p); view.ctx.fill();
+        view.ctx.fillStyle = '#fff'; // Chequered flag on opposite pole
+        view.ctx.fillRect(-2.4 * p, -1.6 * p, 0.7 * p, 0.5 * p);
+        view.ctx.fillStyle = '#111';
+        view.ctx.fillRect(-2.4 * p, -1.6 * p, 0.35 * p, 0.25 * p);
+        view.ctx.fillRect(-2.05 * p, -1.35 * p, 0.35 * p, 0.25 * p);
       } else if (pr.kind === 'gantry') {
         const gw = (pr.wid || 26) * p;
         // Heavy 3D steel truss frame spanning across track
-        ctx.fillStyle = 'rgba(10,12,16,0.30)';
-        ctx.fillRect(-gw / 2 + 2, -0.6 * p + 3, gw, 1.2 * p);
+        view.ctx.fillStyle = 'rgba(10,12,16,0.30)';
+        view.ctx.fillRect(-gw / 2 + 2, -0.6 * p + 3, gw, 1.2 * p);
         // Concrete crash protection pillars on both sides
-        ctx.fillStyle = '#9aa0ae';
-        ctx.fillRect(-gw / 2 - 0.6 * p, -0.9 * p, 1.2 * p, 1.8 * p);
-        ctx.fillRect(gw / 2 - 0.6 * p, -0.9 * p, 1.2 * p, 1.8 * p);
+        view.ctx.fillStyle = '#9aa0ae';
+        view.ctx.fillRect(-gw / 2 - 0.6 * p, -0.9 * p, 1.2 * p, 1.8 * p);
+        view.ctx.fillRect(gw / 2 - 0.6 * p, -0.9 * p, 1.2 * p, 1.8 * p);
         // Yellow/black hazard chevrons on pillars
-        ctx.fillStyle = '#eab308';
-        ctx.fillRect(-gw / 2 - 0.6 * p, -0.9 * p, 1.2 * p, 0.4 * p);
-        ctx.fillRect(gw / 2 - 0.6 * p, -0.9 * p, 1.2 * p, 0.4 * p);
+        view.ctx.fillStyle = '#eab308';
+        view.ctx.fillRect(-gw / 2 - 0.6 * p, -0.9 * p, 1.2 * p, 0.4 * p);
+        view.ctx.fillRect(gw / 2 - 0.6 * p, -0.9 * p, 1.2 * p, 0.4 * p);
         // SPEED CAMERA (highway gantries, highway.js speedCamera): a yellow box on the beam over the left lanes; flashes white when it
         // catches you (pr._flash, wall clock)
-        if (LEVEL.endless) { const fl = pr._flash && performance.now() - pr._flash < 250; ctx.fillStyle = fl ? '#ffffff' : '#eab308'; ctx.fillRect(-gw * 0.3 - 0.7 * p, 0.6 * p, 1.4 * p, 1.0 * p); ctx.fillStyle = '#1c1d20'; ctx.fillRect(-gw * 0.3 - 0.35 * p, 1.2 * p, 0.7 * p, 0.3 * p); }
+        if (LEVEL.endless) { const fl = pr._flash && performance.now() - pr._flash < 250; view.ctx.fillStyle = fl ? '#ffffff' : '#eab308'; view.ctx.fillRect(-gw * 0.3 - 0.7 * p, 0.6 * p, 1.4 * p, 1.0 * p); view.ctx.fillStyle = '#1c1d20'; view.ctx.fillRect(-gw * 0.3 - 0.35 * p, 1.2 * p, 0.7 * p, 0.3 * p); }
         // Main steel truss beam
-        ctx.strokeStyle = '#3e4450'; ctx.lineWidth = Math.max(2.5, 0.35 * p);
-        ctx.strokeRect(-gw / 2, -0.6 * p, gw, 1.2 * p);
+        view.ctx.strokeStyle = '#3e4450'; view.ctx.lineWidth = Math.max(2.5, 0.35 * p);
+        view.ctx.strokeRect(-gw / 2, -0.6 * p, gw, 1.2 * p);
         // Steel cross-bracing lattice
-        ctx.strokeStyle = '#2b303c'; ctx.lineWidth = 1.2;
-        ctx.beginPath();
+        view.ctx.strokeStyle = '#2b303c'; view.ctx.lineWidth = 1.2;
+        view.ctx.beginPath();
         for (let bx = -gw / 2; bx < gw / 2; bx += 3.5 * p) {
-          ctx.moveTo(bx, -0.6 * p); ctx.lineTo(bx + 3.5 * p, 0.6 * p);
-          ctx.moveTo(bx + 3.5 * p, -0.6 * p); ctx.lineTo(bx, 0.6 * p);
+          view.ctx.moveTo(bx, -0.6 * p); view.ctx.lineTo(bx + 3.5 * p, 0.6 * p);
+          view.ctx.moveTo(bx + 3.5 * p, -0.6 * p); view.ctx.lineTo(bx, 0.6 * p);
         }
-        ctx.stroke();
+        view.ctx.stroke();
         // 5 circular start light pods with bright red glowing LED cores
         const lightSpacing = gw / 8;
         for (let l = -2; l <= 2; l++) {
           const lx = l * lightSpacing;
-          ctx.fillStyle = '#111317';
-          roundRect(ctx, lx - 0.35 * p, -0.45 * p, 0.7 * p, 0.9 * p, 3); ctx.fill();
-          ctx.strokeStyle = '#4a5160'; ctx.lineWidth = 1; ctx.stroke();
+          view.ctx.fillStyle = '#111317';
+          roundRect(view.ctx, lx - 0.35 * p, -0.45 * p, 0.7 * p, 0.9 * p, 3); view.ctx.fill();
+          view.ctx.strokeStyle = '#4a5160'; view.ctx.lineWidth = 1; view.ctx.stroke();
           // Outer red glow
-          ctx.fillStyle = 'rgba(239, 68, 68, 0.35)';
-          ctx.beginPath(); ctx.arc(lx, 0, 0.35 * p, 0, Math.PI * 2); ctx.fill();
+          view.ctx.fillStyle = 'rgba(239, 68, 68, 0.35)';
+          view.ctx.beginPath(); view.ctx.arc(lx, 0, 0.35 * p, 0, Math.PI * 2); view.ctx.fill();
           // Solid red core
-          ctx.fillStyle = '#ef4444';
-          ctx.beginPath(); ctx.arc(lx, 0, 0.20 * p, 0, Math.PI * 2); ctx.fill();
+          view.ctx.fillStyle = '#ef4444';
+          view.ctx.beginPath(); view.ctx.arc(lx, 0, 0.20 * p, 0, Math.PI * 2); view.ctx.fill();
           // White specular highlight
-          ctx.fillStyle = '#fff';
-          ctx.beginPath(); ctx.arc(lx - 0.05 * p, -0.05 * p, 0.06 * p, 0, Math.PI * 2); ctx.fill();
+          view.ctx.fillStyle = '#fff';
+          view.ctx.beginPath(); view.ctx.arc(lx - 0.05 * p, -0.05 * p, 0.06 * p, 0, Math.PI * 2); view.ctx.fill();
         }
         // Center digital lap / position board with green LEDs
-        ctx.fillStyle = '#0a0d0a';
-        roundRect(ctx, -1.4 * p, -0.55 * p, 2.8 * p, 0.45 * p, 2); ctx.fill();
-        ctx.fillStyle = '#22c55e';
-        ctx.font = `700 ${Math.round(0.32 * p)}px ui-monospace, monospace`;
-        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-        ctx.fillText('LAP 1', 0, -0.32 * p);
+        view.ctx.fillStyle = '#0a0d0a';
+        roundRect(view.ctx, -1.4 * p, -0.55 * p, 2.8 * p, 0.45 * p, 2); view.ctx.fill();
+        view.ctx.fillStyle = '#22c55e';
+        view.ctx.font = `700 ${Math.round(0.32 * p)}px ui-monospace, monospace`;
+        view.ctx.textAlign = 'center'; view.ctx.textBaseline = 'middle';
+        view.ctx.fillText('LAP 1', 0, -0.32 * p);
       } else if (pr.kind === 'pit_wall') {
         const pw = (pr.len || 220) * p, ph = (pr.h || 1.2) * p;
         // Ground shadow
-        ctx.fillStyle = 'rgba(10,12,16,0.35)';
-        ctx.fillRect(-pw / 2 + 2, -ph / 2 + 3, pw, ph);
+        view.ctx.fillStyle = 'rgba(10,12,16,0.35)';
+        view.ctx.fillRect(-pw / 2 + 2, -ph / 2 + 3, pw, ph);
         // Concrete wall body
-        ctx.fillStyle = '#8a909d';
-        ctx.fillRect(-pw / 2, -ph / 2, pw, ph);
+        view.ctx.fillStyle = '#8a909d';
+        view.ctx.fillRect(-pw / 2, -ph / 2, pw, ph);
         // Top steel capping plate with bevel highlight
-        ctx.fillStyle = '#b8becb';
-        ctx.fillRect(-pw / 2, -ph / 2, pw, ph * 0.35);
+        view.ctx.fillStyle = '#b8becb';
+        view.ctx.fillRect(-pw / 2, -ph / 2, pw, ph * 0.35);
         // Yellow/black diagonal hazard stripes at the wall ends
-        ctx.fillStyle = '#eab308';
-        ctx.fillRect(-pw / 2, -ph / 2, 4 * p, ph);
-        ctx.fillRect(pw / 2 - 4 * p, -ph / 2, 4 * p, ph);
-        ctx.fillStyle = '#111';
-        ctx.fillRect(-pw / 2 + 1.2 * p, -ph / 2, 1.4 * p, ph);
-        ctx.fillRect(pw / 2 - 2.6 * p, -ph / 2, 1.4 * p, ph);
+        view.ctx.fillStyle = '#eab308';
+        view.ctx.fillRect(-pw / 2, -ph / 2, 4 * p, ph);
+        view.ctx.fillRect(pw / 2 - 4 * p, -ph / 2, 4 * p, ph);
+        view.ctx.fillStyle = '#111';
+        view.ctx.fillRect(-pw / 2 + 1.2 * p, -ph / 2, 1.4 * p, ph);
+        view.ctx.fillRect(pw / 2 - 2.6 * p, -ph / 2, 1.4 * p, ph);
         // Pit stall accessories along the inside of the wall (toolboxes & air booms)
         for (let bx = -pw / 2 + 25 * p; bx <= pw / 2 - 25 * p; bx += 40 * p) {
           // Red tool cabinet
-          ctx.fillStyle = '#b91c1c';
-          roundRect(ctx, bx - 1.2 * p, -ph / 2 - 1.0 * p, 2.4 * p, 0.8 * p, 2); ctx.fill();
-          ctx.fillStyle = '#d1d5db';
-          ctx.fillRect(bx - 1.0 * p, -ph / 2 - 0.7 * p, 2.0 * p, 1.5);
+          view.ctx.fillStyle = '#b91c1c';
+          roundRect(view.ctx, bx - 1.2 * p, -ph / 2 - 1.0 * p, 2.4 * p, 0.8 * p, 2); view.ctx.fill();
+          view.ctx.fillStyle = '#d1d5db';
+          view.ctx.fillRect(bx - 1.0 * p, -ph / 2 - 0.7 * p, 2.0 * p, 1.5);
           // Overhead air hose boom
-          ctx.strokeStyle = '#222'; ctx.lineWidth = 1.2;
-          ctx.beginPath(); ctx.moveTo(bx, -ph / 2); ctx.lineTo(bx + 1.5 * p, -ph / 2 - 2.0 * p); ctx.stroke();
+          view.ctx.strokeStyle = '#222'; view.ctx.lineWidth = 1.2;
+          view.ctx.beginPath(); view.ctx.moveTo(bx, -ph / 2); view.ctx.lineTo(bx + 1.5 * p, -ph / 2 - 2.0 * p); view.ctx.stroke();
         }
       } else if (pr.kind === 'pylon') {
         // High-output halogen floodlight pylon
         // Warm circular ground illumination pool on the deck
-        const grad = ctx.createRadialGradient(0, 0, 1 * p, 0, 0, 18 * p);
+        const grad = view.ctx.createRadialGradient(0, 0, 1 * p, 0, 0, 18 * p);
         grad.addColorStop(0, 'rgba(255, 248, 220, 0.16)');
         grad.addColorStop(0.5, 'rgba(255, 244, 200, 0.08)');
         grad.addColorStop(1, 'rgba(255, 240, 180, 0)');
-        ctx.fillStyle = grad;
-        ctx.beginPath(); ctx.arc(0, 0, 18 * p, 0, Math.PI * 2); ctx.fill();
+        view.ctx.fillStyle = grad;
+        view.ctx.beginPath(); view.ctx.arc(0, 0, 18 * p, 0, Math.PI * 2); view.ctx.fill();
 
         // Tower shadow
-        ctx.fillStyle = 'rgba(10,12,16,0.38)';
-        ctx.beginPath(); ctx.arc(3, 3, 1.1 * p, 0, Math.PI * 2); ctx.fill();
+        view.ctx.fillStyle = 'rgba(10,12,16,0.38)';
+        view.ctx.beginPath(); view.ctx.arc(3, 3, 1.1 * p, 0, Math.PI * 2); view.ctx.fill();
         // Steel base
-        ctx.fillStyle = '#2f343e';
-        ctx.beginPath(); ctx.arc(0, 0, 0.9 * p, 0, Math.PI * 2); ctx.fill();
+        view.ctx.fillStyle = '#2f343e';
+        view.ctx.beginPath(); view.ctx.arc(0, 0, 0.9 * p, 0, Math.PI * 2); view.ctx.fill();
         // Quad floodlamp heads with silver dishes & warm centers
         const heads = [[-0.6, -0.6], [0.2, -0.6], [-0.6, 0.2], [0.2, 0.2]];
         for (const [hx, hy] of heads) {
-          ctx.fillStyle = '#e2e8f0';
-          roundRect(ctx, hx * p, hy * p, 0.55 * p, 0.45 * p, 1.5); ctx.fill();
-          ctx.fillStyle = '#fffbeb';
-          ctx.beginPath(); ctx.arc((hx + 0.27) * p, (hy + 0.22) * p, 0.14 * p, 0, Math.PI * 2); ctx.fill();
+          view.ctx.fillStyle = '#e2e8f0';
+          roundRect(view.ctx, hx * p, hy * p, 0.55 * p, 0.45 * p, 1.5); view.ctx.fill();
+          view.ctx.fillStyle = '#fffbeb';
+          view.ctx.beginPath(); view.ctx.arc((hx + 0.27) * p, (hy + 0.22) * p, 0.14 * p, 0, Math.PI * 2); view.ctx.fill();
         }
       } else if (pr.kind === 'garages') {
         // PIT GARAGES (Thruxton photo): concrete-block units under a red tyre-brand banner. Local +x = along the lane, -y = the
@@ -1638,174 +1638,174 @@ export function createRenderer(canvas) {
         // First cut (photographed): a light grey roof vanished into the concrete apron and a 1.3 m banner read as a red wall.
         // Now a dark slate roof with an outline, ribbed per unit, and a 0.9 m banner with the brand once, centred.
         const gw = pr.w * p, gh = pr.h * p, unit = 5, o = Math.max(1, 0.25 * p);
-        ctx.fillStyle = 'rgba(10,12,16,0.40)'; ctx.fillRect(-gw / 2 + 0.6 * p, -gh / 2 + 0.8 * p, gw, gh);
-        ctx.fillStyle = '#3b4047'; ctx.fillRect(-gw / 2, -gh / 2, gw, gh);                       // outline
-        ctx.fillStyle = '#5b626b'; ctx.fillRect(-gw / 2 + o, -gh / 2 + o, gw - 2 * o, gh - 2 * o); // roof
-        ctx.fillStyle = '#666d77';
-        for (let y = 1; y < 10; y += 2) ctx.fillRect(-gw / 2 + o, -gh / 2 + (gh * y) / 10, gw - 2 * o, Math.max(1, 0.2 * p));   // roof ribs
-        ctx.fillStyle = '#3b4047';
+        view.ctx.fillStyle = 'rgba(10,12,16,0.40)'; view.ctx.fillRect(-gw / 2 + 0.6 * p, -gh / 2 + 0.8 * p, gw, gh);
+        view.ctx.fillStyle = '#3b4047'; view.ctx.fillRect(-gw / 2, -gh / 2, gw, gh);                       // outline
+        view.ctx.fillStyle = '#5b626b'; view.ctx.fillRect(-gw / 2 + o, -gh / 2 + o, gw - 2 * o, gh - 2 * o); // roof
+        view.ctx.fillStyle = '#666d77';
+        for (let y = 1; y < 10; y += 2) view.ctx.fillRect(-gw / 2 + o, -gh / 2 + (gh * y) / 10, gw - 2 * o, Math.max(1, 0.2 * p));   // roof ribs
+        view.ctx.fillStyle = '#3b4047';
         const units = Math.max(1, Math.round(pr.w / unit));
-        for (let k = 1; k < units; k++) ctx.fillRect(-gw / 2 + (gw * k) / units - o / 2, -gh / 2, o, gh);
+        for (let k = 1; k < units; k++) view.ctx.fillRect(-gw / 2 + (gw * k) / units - o / 2, -gh / 2, o, gh);
         const bh = 0.9 * p;                                                                          // the banner, lane side
-        ctx.fillStyle = '#c8302c'; ctx.fillRect(-gw / 2, -gh / 2, gw, bh);
+        view.ctx.fillStyle = '#c8302c'; view.ctx.fillRect(-gw / 2, -gh / 2, gw, bh);
         if (bh >= 8) {
-          ctx.fillStyle = '#ffffff'; ctx.font = `900 ${Math.round(bh * 0.8)}px Impact, ui-sans-serif, sans-serif`;
-          ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-          ctx.fillText(pr.brand || 'KUM TYRES', 0, -gh / 2 + bh / 2 + 1, gw * 0.9);
+          view.ctx.fillStyle = '#ffffff'; view.ctx.font = `900 ${Math.round(bh * 0.8)}px Impact, ui-sans-serif, sans-serif`;
+          view.ctx.textAlign = 'center'; view.ctx.textBaseline = 'middle';
+          view.ctx.fillText(pr.brand || 'KUM TYRES', 0, -gh / 2 + bh / 2 + 1, gw * 0.9);
         } else {
-          ctx.fillStyle = '#ffffff'; ctx.fillRect(-gw * 0.25, -gh / 2 + bh * 0.3, gw * 0.5, Math.max(1, bh * 0.4));
+          view.ctx.fillStyle = '#ffffff'; view.ctx.fillRect(-gw * 0.25, -gh / 2 + bh * 0.3, gw * 0.5, Math.max(1, bh * 0.4));
         }
       } else if (pr.kind === 'tower') {
         // CONTROL TOWER: a two-storey block (long shadow = tall) with a small glazed cab on the roof. The first cut — a square with
         // a thick dark band — photographed as a swimming pool.
         const g = (pr.size || 9) * p, c = g * 0.45;
-        ctx.fillStyle = 'rgba(10,12,16,0.40)'; ctx.fillRect(-g / 2 + 1.6 * p, -g / 2 + 2.2 * p, g, g);
-        ctx.fillStyle = '#d9d5cc'; ctx.fillRect(-g / 2, -g / 2, g, g);                                  // flat roof
-        ctx.fillStyle = '#bdb8ad'; ctx.fillRect(-g / 2, g / 2 - 0.5 * p, g, 0.5 * p); ctx.fillRect(g / 2 - 0.5 * p, -g / 2, 0.5 * p, g);   // parapet shade
-        ctx.fillStyle = 'rgba(10,12,16,0.35)'; ctx.fillRect(-c / 2 + 0.6 * p, -c / 2 + 0.8 * p, c, c);  // the cab's shadow
-        ctx.fillStyle = '#2f4656'; ctx.fillRect(-c / 2, -c / 2, c, c);                                   // glazed cab
-        ctx.fillStyle = '#e9e6df'; ctx.fillRect(-c / 2 + 0.35 * p, -c / 2 + 0.35 * p, c - 0.7 * p, c - 0.7 * p);   // its roof
-        ctx.fillStyle = '#5a5e66'; ctx.fillRect(-0.25 * p, -0.25 * p, 0.5 * p, 0.5 * p);                 // mast
+        view.ctx.fillStyle = 'rgba(10,12,16,0.40)'; view.ctx.fillRect(-g / 2 + 1.6 * p, -g / 2 + 2.2 * p, g, g);
+        view.ctx.fillStyle = '#d9d5cc'; view.ctx.fillRect(-g / 2, -g / 2, g, g);                                  // flat roof
+        view.ctx.fillStyle = '#bdb8ad'; view.ctx.fillRect(-g / 2, g / 2 - 0.5 * p, g, 0.5 * p); view.ctx.fillRect(g / 2 - 0.5 * p, -g / 2, 0.5 * p, g);   // parapet shade
+        view.ctx.fillStyle = 'rgba(10,12,16,0.35)'; view.ctx.fillRect(-c / 2 + 0.6 * p, -c / 2 + 0.8 * p, c, c);  // the cab's shadow
+        view.ctx.fillStyle = '#2f4656'; view.ctx.fillRect(-c / 2, -c / 2, c, c);                                   // glazed cab
+        view.ctx.fillStyle = '#e9e6df'; view.ctx.fillRect(-c / 2 + 0.35 * p, -c / 2 + 0.35 * p, c - 0.7 * p, c - 0.7 * p);   // its roof
+        view.ctx.fillStyle = '#5a5e66'; view.ctx.fillRect(-0.25 * p, -0.25 * p, 0.5 * p, 0.5 * p);                 // mast
       } else if (pr.kind === 'hangar') {
         // T2-style hangar: corrugated roof (ribs across), a lighter ridge, dark door end. Squares only.
         const hw = pr.w * p, hh = pr.h * p;
-        ctx.fillStyle = 'rgba(10,12,16,0.40)'; ctx.fillRect(-hw / 2 + 1.2 * p, -hh / 2 + 1.6 * p, hw, hh);
-        ctx.fillStyle = '#7b8188'; ctx.fillRect(-hw / 2, -hh / 2, hw, hh);
-        ctx.fillStyle = '#8c929a'; ctx.fillRect(-hw / 2, -hh / 2, hw, hh * 0.5);
-        ctx.fillStyle = '#6a7077'; for (let x = -pr.w / 2 + 1; x < pr.w / 2; x += 1.6) ctx.fillRect(x * p, -hh / 2, Math.max(1, 0.18 * p), hh);
-        ctx.fillStyle = '#a7adb4'; ctx.fillRect(-hw / 2, -Math.max(1, 0.2 * p), hw, Math.max(2, 0.4 * p));
-        ctx.fillStyle = '#3d4249'; ctx.fillRect(hw / 2 - 0.8 * p, -hh / 2, 0.8 * p, hh);
+        view.ctx.fillStyle = 'rgba(10,12,16,0.40)'; view.ctx.fillRect(-hw / 2 + 1.2 * p, -hh / 2 + 1.6 * p, hw, hh);
+        view.ctx.fillStyle = '#7b8188'; view.ctx.fillRect(-hw / 2, -hh / 2, hw, hh);
+        view.ctx.fillStyle = '#8c929a'; view.ctx.fillRect(-hw / 2, -hh / 2, hw, hh * 0.5);
+        view.ctx.fillStyle = '#6a7077'; for (let x = -pr.w / 2 + 1; x < pr.w / 2; x += 1.6) view.ctx.fillRect(x * p, -hh / 2, Math.max(1, 0.18 * p), hh);
+        view.ctx.fillStyle = '#a7adb4'; view.ctx.fillRect(-hw / 2, -Math.max(1, 0.2 * p), hw, Math.max(2, 0.4 * p));
+        view.ctx.fillStyle = '#3d4249'; view.ctx.fillRect(hw / 2 - 0.8 * p, -hh / 2, 0.8 * p, hh);
       } else if (pr.kind === 'plane') {
         // LIGHT AIRCRAFT, nose along +x: fuselage, wing, tailplane, a coloured stripe
-        const P = (x, y, w, h, col) => { ctx.fillStyle = col; ctx.fillRect(x * p, y * p, w * p, h * p); };
-        ctx.fillStyle = 'rgba(10,12,16,0.30)'; ctx.fillRect(-3.2 * p + 0.8 * p, -0.5 * p + 1.2 * p, 7 * p, 1 * p); ctx.fillRect(0.3 * p, -4.5 * p + 1.2 * p, 1.4 * p, 9 * p);
+        const P = (x, y, w, h, col) => { view.ctx.fillStyle = col; view.ctx.fillRect(x * p, y * p, w * p, h * p); };
+        view.ctx.fillStyle = 'rgba(10,12,16,0.30)'; view.ctx.fillRect(-3.2 * p + 0.8 * p, -0.5 * p + 1.2 * p, 7 * p, 1 * p); view.ctx.fillRect(0.3 * p, -4.5 * p + 1.2 * p, 1.4 * p, 9 * p);
         P(-3.2, -0.5, 7, 1, '#eef0f2'); P(0.3, -4.5, 1.4, 9, '#e3e6ea'); P(-3.2, -1.6, 0.8, 3.2, '#e3e6ea');
         P(-2.6, -0.15, 5.6, 0.3, pr.col || '#c8302c'); P(3.4, -0.3, 0.4, 0.6, '#3a3f47');
       } else if (pr.kind === 'windsock') {
-        const P = (x, y, w, h, col) => { ctx.fillStyle = col; ctx.fillRect(x * p, y * p, w * p, h * p); };
+        const P = (x, y, w, h, col) => { view.ctx.fillStyle = col; view.ctx.fillRect(x * p, y * p, w * p, h * p); };
         P(-0.25, -0.25, 0.5, 0.5, '#5a5e66');
         for (let k = 0; k < 4; k++) P(0.25 + k * 0.6, -0.35 + k * 0.04, 0.6, 0.7 - k * 0.08, k % 2 ? '#f2f2f2' : '#f07a1a');
       } else if (pr.kind === 'truck') {
         // RACE TRANSPORTER (paddock): cab + long trailer with a team stripe, nose along +x
-        const P = (x, y, w, h, col) => { ctx.fillStyle = col; ctx.fillRect(x * p, y * p, w * p, h * p); };
-        ctx.fillStyle = 'rgba(10,12,16,0.35)'; ctx.fillRect(-7 * p + 0.6 * p, -1.25 * p + 0.9 * p, 14 * p, 2.5 * p);
+        const P = (x, y, w, h, col) => { view.ctx.fillStyle = col; view.ctx.fillRect(x * p, y * p, w * p, h * p); };
+        view.ctx.fillStyle = 'rgba(10,12,16,0.35)'; view.ctx.fillRect(-7 * p + 0.6 * p, -1.25 * p + 0.9 * p, 14 * p, 2.5 * p);
         P(-7, -1.25, 11.2, 2.5, '#e6e8eb'); P(-7, -0.35, 11.2, 0.7, pr.col || '#c8302c'); P(4.6, -1.2, 2.4, 2.4, pr.col || '#c8302c'); P(6.2, -1.0, 0.6, 2.0, '#2a3038');
       } else if (pr.kind === 'tree') {
         // a tree from overlapping SQUARES (pixel rule), shade per seed; long shadow first
         const sz = (pr.s || 4) * p, h = (pr.seed * 9301 + 49297) % 233280 / 233280;
-        ctx.fillStyle = 'rgba(10,12,16,0.32)'; ctx.fillRect(-sz / 2 + 0.25 * sz, -sz / 2 + 0.35 * sz, sz, sz);
+        view.ctx.fillStyle = 'rgba(10,12,16,0.32)'; view.ctx.fillRect(-sz / 2 + 0.25 * sz, -sz / 2 + 0.35 * sz, sz, sz);
         // pal: 'dry' = desert scrub (olive / dust), else conifer greens; snow: white caps on the upper squares (generated stages)
         const cols = pr.pal === 'dry' ? (h < 0.5 ? ['#5b5a2e', '#6f6d38', '#8a8646'] : ['#64552c', '#786a36', '#948548']) : h < 0.5 ? ['#2f5a2a', '#3d6e33', '#4f8240'] : ['#355f2c', '#456f36', '#5a8a45'];
-        ctx.fillStyle = cols[0]; ctx.fillRect(-sz / 2, -sz / 2, sz, sz);
-        ctx.fillStyle = pr.snow ? '#dfe7ee' : cols[1]; ctx.fillRect(-sz / 2 + sz * 0.12, -sz / 2 + sz * 0.1, sz * 0.62, sz * 0.62);
-        if (pr.snow) { ctx.fillStyle = cols[1]; ctx.fillRect(-sz / 2 + sz * 0.42, -sz / 2 + sz * 0.42, sz * 0.32, sz * 0.32); }
-        ctx.fillStyle = pr.snow ? '#ffffff' : cols[2]; ctx.fillRect(-sz / 2 + sz * 0.2, -sz / 2 + sz * 0.18, sz * 0.3, sz * 0.3);
+        view.ctx.fillStyle = cols[0]; view.ctx.fillRect(-sz / 2, -sz / 2, sz, sz);
+        view.ctx.fillStyle = pr.snow ? '#dfe7ee' : cols[1]; view.ctx.fillRect(-sz / 2 + sz * 0.12, -sz / 2 + sz * 0.1, sz * 0.62, sz * 0.62);
+        if (pr.snow) { view.ctx.fillStyle = cols[1]; view.ctx.fillRect(-sz / 2 + sz * 0.42, -sz / 2 + sz * 0.42, sz * 0.32, sz * 0.32); }
+        view.ctx.fillStyle = pr.snow ? '#ffffff' : cols[2]; view.ctx.fillRect(-sz / 2 + sz * 0.2, -sz / 2 + sz * 0.18, sz * 0.3, sz * 0.3);
       } else if (pr.kind === 'rock') {
         // ROCK / BOULDER: overlapping grey squares, light top-left, dark bottom-right, a long shadow (pixel rule); pal 'red' = desert stone
         const sz = (pr.s || 3) * p, h = ((pr.seed || 1) * 9301 + 49297) % 233280 / 233280;
         const cols = pr.pal === 'red' ? ['#6e4a32', '#8c5f40', '#a87652', '#c39270'] : ['#4d5157', '#62676e', '#7b8088', '#989da4'];
-        ctx.fillStyle = 'rgba(10,12,16,0.34)'; ctx.fillRect(-sz / 2 + 0.3 * sz, -sz / 2 + 0.4 * sz, sz, sz * 0.9);
-        ctx.fillStyle = cols[0]; ctx.fillRect(-sz / 2, -sz / 2 + sz * 0.1, sz, sz * 0.8); ctx.fillRect(-sz / 2 + sz * 0.15, -sz / 2, sz * 0.7, sz);
-        ctx.fillStyle = cols[1]; ctx.fillRect(-sz / 2 + sz * 0.1, -sz / 2 + sz * 0.08, sz * 0.72, sz * 0.7);
-        ctx.fillStyle = cols[2]; ctx.fillRect(-sz / 2 + sz * 0.16, -sz / 2 + sz * 0.12, sz * (0.38 + 0.15 * h), sz * 0.36);
-        ctx.fillStyle = cols[3]; ctx.fillRect(-sz / 2 + sz * 0.22, -sz / 2 + sz * 0.16, sz * 0.16, sz * 0.14);
-        if (pr.snow) { ctx.fillStyle = '#eef3f7'; ctx.fillRect(-sz / 2 + sz * 0.12, -sz / 2 + sz * 0.06, sz * 0.5, sz * 0.22); }
+        view.ctx.fillStyle = 'rgba(10,12,16,0.34)'; view.ctx.fillRect(-sz / 2 + 0.3 * sz, -sz / 2 + 0.4 * sz, sz, sz * 0.9);
+        view.ctx.fillStyle = cols[0]; view.ctx.fillRect(-sz / 2, -sz / 2 + sz * 0.1, sz, sz * 0.8); view.ctx.fillRect(-sz / 2 + sz * 0.15, -sz / 2, sz * 0.7, sz);
+        view.ctx.fillStyle = cols[1]; view.ctx.fillRect(-sz / 2 + sz * 0.1, -sz / 2 + sz * 0.08, sz * 0.72, sz * 0.7);
+        view.ctx.fillStyle = cols[2]; view.ctx.fillRect(-sz / 2 + sz * 0.16, -sz / 2 + sz * 0.12, sz * (0.38 + 0.15 * h), sz * 0.36);
+        view.ctx.fillStyle = cols[3]; view.ctx.fillRect(-sz / 2 + sz * 0.22, -sz / 2 + sz * 0.16, sz * 0.16, sz * 0.14);
+        if (pr.snow) { view.ctx.fillStyle = '#eef3f7'; view.ctx.fillRect(-sz / 2 + sz * 0.12, -sz / 2 + sz * 0.06, sz * 0.5, sz * 0.22); }
       } else if (pr.kind === 'crowd') {
         // SPECTATORS: a cluster of people (a 2x2 px head-and-shoulders each, jackets in random colours, a shadow) over w x h m
         const n = pr.n || 14, w = pr.w || 8, hh = pr.h || 3; const rr = parkMiller((pr.seed || 7) * 7919);
         const JK = ['#c8302c', '#2b56b5', '#e2c13a', '#2f7d4f', '#f2f2f2', '#e07a1f', '#7a3fa0', '#16181d', '#3fb6c9'];
         for (let k = 0; k < n; k++) { const x = (rr() - 0.5) * w * p, y = (rr() - 0.5) * hh * p, z = Math.max(2, 0.55 * p);
-          ctx.fillStyle = 'rgba(10,12,16,0.3)'; ctx.fillRect(x + z * 0.3, y + z * 0.4, z, z);
-          ctx.fillStyle = JK[(rr() * JK.length) | 0]; ctx.fillRect(x - z / 2, y - z / 2, z, z);
-          ctx.fillStyle = rr() < 0.5 ? '#e6c3a0' : '#8a5a3c'; ctx.fillRect(x - z * 0.22, y - z * 0.22, z * 0.44, z * 0.44); }
+          view.ctx.fillStyle = 'rgba(10,12,16,0.3)'; view.ctx.fillRect(x + z * 0.3, y + z * 0.4, z, z);
+          view.ctx.fillStyle = JK[(rr() * JK.length) | 0]; view.ctx.fillRect(x - z / 2, y - z / 2, z, z);
+          view.ctx.fillStyle = rr() < 0.5 ? '#e6c3a0' : '#8a5a3c'; view.ctx.fillRect(x - z * 0.22, y - z * 0.22, z * 0.44, z * 0.44); }
       } else if (pr.kind === 'marshal') {
         // MARSHAL POST: small hut, white roof, orange edge
-        const P = (x, y, w, h, col) => { ctx.fillStyle = col; ctx.fillRect(x * p, y * p, w * p, h * p); };
-        ctx.fillStyle = 'rgba(10,12,16,0.35)'; ctx.fillRect(-1.2 * p + 0.4 * p, -1 * p + 0.6 * p, 2.4 * p, 2 * p);
+        const P = (x, y, w, h, col) => { view.ctx.fillStyle = col; view.ctx.fillRect(x * p, y * p, w * p, h * p); };
+        view.ctx.fillStyle = 'rgba(10,12,16,0.35)'; view.ctx.fillRect(-1.2 * p + 0.4 * p, -1 * p + 0.6 * p, 2.4 * p, 2 * p);
         P(-1.2, -1, 2.4, 2, '#f07a1a'); P(-0.95, -0.75, 1.9, 1.5, '#f2f2f2');
       } else if (pr.kind === 'footbridge') {
         // FOOTBRIDGE over the track (Castle Combe's Avon + Dunlop bridges): deck across (+x), stair towers at the ends, a sponsor band
-        const P = (x, y, w, h, col) => { ctx.fillStyle = col; ctx.fillRect(x * p, y * p, w * p, h * p); };
+        const P = (x, y, w, h, col) => { view.ctx.fillStyle = col; view.ctx.fillRect(x * p, y * p, w * p, h * p); };
         const half = (pr.wid || 27) / 2;
-        ctx.fillStyle = 'rgba(10,12,16,0.30)'; ctx.fillRect(-half * p + 1.5 * p, -1.2 * p + 2.4 * p, 2 * half * p, 2.4 * p);   // shadow on the road
+        view.ctx.fillStyle = 'rgba(10,12,16,0.30)'; view.ctx.fillRect(-half * p + 1.5 * p, -1.2 * p + 2.4 * p, 2 * half * p, 2.4 * p);   // shadow on the road
         P(-half, -1.2, 2 * half, 2.4, '#8f949c'); P(-half, -1.2, 2 * half, 0.3, '#c9ccd3'); P(-half, 0.9, 2 * half, 0.3, '#5d626d');
         P(-half * 0.55, -0.75, half * 1.1, 1.5, '#1c4fa0');
         P(-half - 1.6, -1.5, 3.2, 3.0, '#6a7077'); P(half - 1.6, -1.5, 3.2, 3.0, '#6a7077');                                       // stair towers
         for (let k = 0; k < 4; k++) { P(-half - 1.4, -1.3 + k * 0.7, 2.8, 0.25, '#565b63'); P(half - 1.4, -1.3 + k * 0.7, 2.8, 0.25, '#565b63'); }
-        if (p * 1.0 >= 8) { ctx.fillStyle = '#ffffff'; ctx.font = `900 ${Math.round(p * 1.0)}px Impact, ui-sans-serif, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; if (Math.cos(pr.rot || 0) < 0) ctx.rotate(Math.PI); /* never upside down (photographed) */ ctx.fillText(pr.label || '', 0, 0.05 * p, half * 1.05 * p); }
+        if (p * 1.0 >= 8) { view.ctx.fillStyle = '#ffffff'; view.ctx.font = `900 ${Math.round(p * 1.0)}px Impact, ui-sans-serif, sans-serif`; view.ctx.textAlign = 'center'; view.ctx.textBaseline = 'middle'; if (Math.cos(pr.rot || 0) < 0) view.ctx.rotate(Math.PI); /* never upside down (photographed) */ view.ctx.fillText(pr.label || '', 0, 0.05 * p, half * 1.05 * p); }
       } else if (pr.kind === 'sculpture') {
         // the red steel SCULPTURE by the start line (photo): a crown of red squares, orange core, long shadow (it is tall)
-        const P = (x, y, w, h, col) => { ctx.fillStyle = col; ctx.fillRect(x * p, y * p, w * p, h * p); };
-        ctx.fillStyle = 'rgba(10,12,16,0.32)'; ctx.fillRect(0.2 * p, 0.2 * p, 3.2 * p, 1.6 * p);
+        const P = (x, y, w, h, col) => { view.ctx.fillStyle = col; view.ctx.fillRect(x * p, y * p, w * p, h * p); };
+        view.ctx.fillStyle = 'rgba(10,12,16,0.32)'; view.ctx.fillRect(0.2 * p, 0.2 * p, 3.2 * p, 1.6 * p);
         for (const [x, y] of [[-1.1, -1.1], [0.3, -1.3], [0.7, -0.2], [-0.1, 0.6], [-1.2, 0.1]]) P(x, y, 0.8, 0.8, '#d6331f');
         P(-0.4, -0.4, 0.8, 0.8, '#f07a1a');
       } else if (pr.kind === 'block') {
         // a flat-roofed BUILDING (clubhouse, offices): roof colour, parapet, rooftop plant, optional name on the roof
-        const P = (x, y, w, h, col) => { ctx.fillStyle = col; ctx.fillRect(x * p, y * p, w * p, h * p); };
+        const P = (x, y, w, h, col) => { view.ctx.fillStyle = col; view.ctx.fillRect(x * p, y * p, w * p, h * p); };
         const w2 = pr.w / 2, h2 = pr.h / 2;
-        ctx.fillStyle = 'rgba(10,12,16,0.40)'; ctx.fillRect(-w2 * p + 1.2 * p, -h2 * p + 1.6 * p, pr.w * p, pr.h * p);
+        view.ctx.fillStyle = 'rgba(10,12,16,0.40)'; view.ctx.fillRect(-w2 * p + 1.2 * p, -h2 * p + 1.6 * p, pr.w * p, pr.h * p);
         P(-w2, -h2, pr.w, pr.h, '#3b4047'); P(-w2 + 0.4, -h2 + 0.4, pr.w - 0.8, pr.h - 0.8, pr.roof || '#5b626b');
         P(w2 - 4, -h2 + 1.2, 2.4, 1.8, '#9aa0a8'); P(w2 - 3.6, -h2 + 1.5, 1.6, 1.2, '#7c828a');
         // a CHURCH (highway.js village): a square tower at the west end of the nave, with a little cross; a HOUSE: a ridge line, no rooftop plant
         if (pr.church) { P(-w2 - 2.6, -2, 4, 4, '#3b4047'); P(-w2 - 2.3, -1.7, 3.4, 3.4, '#8f8a80'); P(-w2 - 0.8, -0.8, 0.4, 1.6, '#3b4047'); P(-w2 - 1.2, -0.2, 1.2, 0.4, '#3b4047'); }
         if (pr.house || pr.church) P(-w2 + 0.4, -0.08, pr.w - 0.8, 0.16, 'rgba(20,22,28,0.35)');
-        if (pr.label && p * 1.4 >= 9) { ctx.fillStyle = 'rgba(255,255,255,0.85)'; ctx.font = `900 ${Math.round(p * 1.4)}px Impact, ui-sans-serif, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; if (Math.cos(pr.rot || 0) < 0) ctx.rotate(Math.PI); ctx.fillText(pr.label, 0, 0.6 * p, pr.w * 0.8 * p); }
+        if (pr.label && p * 1.4 >= 9) { view.ctx.fillStyle = 'rgba(255,255,255,0.85)'; view.ctx.font = `900 ${Math.round(p * 1.4)}px Impact, ui-sans-serif, sans-serif`; view.ctx.textAlign = 'center'; view.ctx.textBaseline = 'middle'; if (Math.cos(pr.rot || 0) < 0) view.ctx.rotate(Math.PI); view.ctx.fillText(pr.label, 0, 0.6 * p, pr.w * 0.8 * p); }
       } else if (pr.kind === 'chevron') {
         // RALLY CHEVRON BOARD (black + yellow arrows), placed on the outside of a corner, arrows pointing the way it turns (+x).
         // Drawn at 1.6x (photographed: at 3.2 m it was a smudge beside the bales)
-        ctx.scale(1.6, 1.6);
-        const P = (x, y, w, h, col) => { ctx.fillStyle = col; ctx.fillRect(x * p, y * p, w * p, h * p); };
-        ctx.fillStyle = 'rgba(10,12,16,0.32)'; ctx.fillRect(-1.6 * p + 0.3 * p, -0.25 * p + 0.5 * p, 3.2 * p, 0.5 * p);
+        view.ctx.scale(1.6, 1.6);
+        const P = (x, y, w, h, col) => { view.ctx.fillStyle = col; view.ctx.fillRect(x * p, y * p, w * p, h * p); };
+        view.ctx.fillStyle = 'rgba(10,12,16,0.32)'; view.ctx.fillRect(-1.6 * p + 0.3 * p, -0.25 * p + 0.5 * p, 3.2 * p, 0.5 * p);
         P(-1.6, -0.25, 3.2, 0.5, '#15171c');
         for (let k = 0; k < 3; k++) { P(-1.25 + k * 1.0, -0.2, 0.25, 0.15, '#f2c21b'); P(-1.0 + k * 1.0, -0.075, 0.25, 0.15, '#f2c21b'); P(-1.25 + k * 1.0, 0.05, 0.25, 0.15, '#f2c21b'); }
       } else if (pr.kind === 'bale') {
         // ROUND HAY BALE from the top: a straw square with a darker spiral ring (squares — the pixel rule)
-        const P = (x, y, w, h, col) => { ctx.fillStyle = col; ctx.fillRect(x * p, y * p, w * p, h * p); };
-        ctx.fillStyle = 'rgba(10,12,16,0.30)'; ctx.fillRect(-0.8 * p + 0.3 * p, -0.8 * p + 0.45 * p, 1.6 * p, 1.6 * p);
+        const P = (x, y, w, h, col) => { view.ctx.fillStyle = col; view.ctx.fillRect(x * p, y * p, w * p, h * p); };
+        view.ctx.fillStyle = 'rgba(10,12,16,0.30)'; view.ctx.fillRect(-0.8 * p + 0.3 * p, -0.8 * p + 0.45 * p, 1.6 * p, 1.6 * p);
         P(-0.8, -0.8, 1.6, 1.6, '#c9a85a'); P(-0.55, -0.55, 1.1, 1.1, '#b48f45'); P(-0.3, -0.3, 0.6, 0.6, '#d8bb6e'); P(-0.08, -0.08, 0.16, 0.16, '#9a7836');
       } else if (pr.kind === 'flag') {
         // a FLAG on a pole: pole square + a pennant blowing in +x, with a long shadow
-        const P = (x, y, w, h, col) => { ctx.fillStyle = col; ctx.fillRect(x * p, y * p, w * p, h * p); };
-        ctx.fillStyle = 'rgba(10,12,16,0.28)'; ctx.fillRect(0.2 * p, 0.1 * p, 1.8 * p, 0.6 * p);
+        const P = (x, y, w, h, col) => { view.ctx.fillStyle = col; view.ctx.fillRect(x * p, y * p, w * p, h * p); };
+        view.ctx.fillStyle = 'rgba(10,12,16,0.28)'; view.ctx.fillRect(0.2 * p, 0.1 * p, 1.8 * p, 0.6 * p);
         P(-0.15, -0.15, 0.3, 0.3, '#3a3f47'); P(0.15, -0.55, 1.3, 0.75, pr.col || '#c8302c'); P(0.15, -0.55, 1.3, 0.12, 'rgba(255,255,255,0.35)');
       } else if (pr.kind === 'bridge' || pr.kind === 'river') { drawBridge(pr, p);
       } else if (pr.kind === 'slipcount') {
         // the 300 / 200 / 100 yd COUNTDOWN posts before an exit: white with red diagonal bars (squares, not circles)
-        const P = (x, y, w, h, col) => { ctx.fillStyle = col; ctx.fillRect(x * p, y * p, w * p, h * p); };
+        const P = (x, y, w, h, col) => { view.ctx.fillStyle = col; view.ctx.fillRect(x * p, y * p, w * p, h * p); };
         P(-0.5, -1.0, 1.2, 2.2, 'rgba(10,12,16,0.35)'); P(-0.6, -1.1, 1.2, 2.2, '#f2f2f2');
         for (let k = 0; k < (pr.bars || 1); k++) P(-0.6, -0.95 + k * 0.7, 1.2, 0.35, '#c8302c');
       } else if (pr.kind === 'gate') {
         // a FIELD GATE where the slip road ends (wooden 5-bar, posts either side)
-        const P = (x, y, w, h, col) => { ctx.fillStyle = col; ctx.fillRect(x * p, y * p, w * p, h * p); };
+        const P = (x, y, w, h, col) => { view.ctx.fillStyle = col; view.ctx.fillRect(x * p, y * p, w * p, h * p); };
         P(-3.4, -0.2, 6.8, 0.6, 'rgba(10,12,16,0.35)'); P(-3.2, -0.35, 0.5, 0.7, '#3a2d21'); P(2.7, -0.35, 0.5, 0.7, '#3a2d21');
         for (let k = 0; k < 3; k++) P(-2.7, -0.25 + k * 0.22, 5.4, 0.1, '#b48a5a');
       } else if (pr.kind === 'solarfarm') {
         // the SMILEY SOLAR FARM (a cheeky extra): rows of dark blue panels laid out as a smiling face, seen from above
-        const P = (x, y, w, h, col) => { ctx.fillStyle = col; ctx.fillRect(x * p, y * p, w * p, h * p); };
+        const P = (x, y, w, h, col) => { view.ctx.fillStyle = col; view.ctx.fillRect(x * p, y * p, w * p, h * p); };
         const cell = (cx, cy) => { P(cx * 2.4 - 1.1, cy * 2.4 - 0.9, 2.2, 1.8, '#1b2b55'); P(cx * 2.4 - 1.1, cy * 2.4 - 0.9, 2.2, 0.35, '#5f7fc4'); };
         for (const [cx, cy] of [[-3, -3], [-2, -3], [2, -3], [3, -3], [-3, -2], [-2, -2], [2, -2], [3, -2]]) cell(cx, cy);   // eyes
         for (const [cx, cy] of [[-5, 1], [-4, 2], [-3, 3], [-2, 3], [-1, 4], [0, 4], [1, 4], [2, 3], [3, 3], [4, 2], [5, 1]]) cell(cx, cy);   // grin
       } else if (pr.kind === 'board') {
         // Heavy timber support posts
         const bw = 18 * p, bh = 2.4 * p;
-        ctx.fillStyle = 'rgba(10,12,16,0.38)';
-        ctx.fillRect(-bw / 2 + 2, -bh / 2 + 3, bw, bh);
+        view.ctx.fillStyle = 'rgba(10,12,16,0.38)';
+        view.ctx.fillRect(-bw / 2 + 2, -bh / 2 + 3, bw, bh);
         // Wooden support posts
-        ctx.fillStyle = '#3a2d21';
-        ctx.fillRect(-bw / 2 + 1 * p, -bh / 2, 0.4 * p, bh + 2);
-        ctx.fillRect(bw / 2 - 1.4 * p, -bh / 2, 0.4 * p, bh + 2);
+        view.ctx.fillStyle = '#3a2d21';
+        view.ctx.fillRect(-bw / 2 + 1 * p, -bh / 2, 0.4 * p, bh + 2);
+        view.ctx.fillRect(bw / 2 - 1.4 * p, -bh / 2, 0.4 * p, bh + 2);
         // Signboard body with colored accent border
-        ctx.fillStyle = pr.blue ? '#1f4fa8' : '#14161c';   // blue = a motorway EXIT sign (highway.js slip roads)
-        ctx.fillRect(-bw / 2, -bh / 2, bw, bh);
-        ctx.strokeStyle = pr.blue ? '#ffffff' : pr.label.includes('SPUM') ? '#eab308' : pr.label.includes('CREEM') ? '#38bdf8' : '#f97316';
-        ctx.lineWidth = 1.8; ctx.strokeRect(-bw / 2, -bh / 2, bw, bh);
+        view.ctx.fillStyle = pr.blue ? '#1f4fa8' : '#14161c';   // blue = a motorway EXIT sign (highway.js slip roads)
+        view.ctx.fillRect(-bw / 2, -bh / 2, bw, bh);
+        view.ctx.strokeStyle = pr.blue ? '#ffffff' : pr.label.includes('SPUM') ? '#eab308' : pr.label.includes('CREEM') ? '#38bdf8' : '#f97316';
+        view.ctx.lineWidth = 1.8; view.ctx.strokeRect(-bw / 2, -bh / 2, bw, bh);
         // Sponsor typography with punchy contrast
-        ctx.fillStyle = '#ffffff';
-        ctx.font = `900 ${Math.round(1.15 * p)}px Impact, ui-sans-serif, sans-serif`;
-        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-        ctx.fillText(pr.label || 'SPONSOR', 0, 0);
+        view.ctx.fillStyle = '#ffffff';
+        view.ctx.font = `900 ${Math.round(1.15 * p)}px Impact, ui-sans-serif, sans-serif`;
+        view.ctx.textAlign = 'center'; view.ctx.textBaseline = 'middle';
+        view.ctx.fillText(pr.label || 'SPONSOR', 0, 0);
       }
-      ctx.restore();
+      view.ctx.restore();
     }
   }
 
@@ -1816,9 +1816,9 @@ export function createRenderer(canvas) {
     const size = MARK_EXTENT * 2 * PPMz();
     // PIXEL mode: smoothing OFF, so marks land on the art grid as hard blocks (photographed soft and blurry with
     // it on, 2026-10-03 — the only smeared thing left in the world layer)
-    if (PIXEL) ctx.imageSmoothingEnabled = false;
-    ctx.drawImage(marks.canvas, px, py, size, size);
-    if (PIXEL) ctx.imageSmoothingEnabled = true;
+    if (PIXEL) view.ctx.imageSmoothingEnabled = false;
+    view.ctx.drawImage(marks.canvas, px, py, size, size);
+    if (PIXEL) view.ctx.imageSmoothingEnabled = true;
   }
 
   // ---------------------------------------------------------------- cones
@@ -1878,9 +1878,9 @@ export function createRenderer(canvas) {
     const sp = pixelObjectSprite(c);
     if (!sp) return false;
     const u = PPMz() / SPRITE_PPM;
-    ctx.rotate(c.ang || 0);
-    ctx.scale(u, u);
-    ctx.drawImage(sp.c, -sp.size / 2, -sp.size / 2);
+    view.ctx.rotate(c.ang || 0);
+    view.ctx.scale(u, u);
+    view.ctx.drawImage(sp.c, -sp.size / 2, -sp.size / 2);
     return true;
   }
 
@@ -1889,7 +1889,7 @@ export function createRenderer(canvas) {
   function drawTape(game) {
     const S = game.cones.tapes; if (!S || !S.length) return;
     const p = PPMz(), lw = Math.max(1.5, 0.12 * p);
-    ctx.save(); ctx.lineWidth = lw; ctx.lineCap = 'butt';
+    view.ctx.save(); view.ctx.lineWidth = lw; view.ctx.lineCap = 'butt';
     // TAPE PUFFS (cones.js: a section gone after its second hit; and a streamer coming off a car): a burst of red / white flecks
     const puff = (x, y, vx, vy, n) => {
       for (let i = 0; i < n; i++) {
@@ -1903,14 +1903,14 @@ export function createRenderer(canvas) {
     for (const sct of S) {
       if (sct.gone) continue;
       const ax = sx(sct.a.x), ay = sy(sct.a.y), bx = sx(sct.b.x), by = sy(sct.b.y);
-      if ((ax < -40 && bx < -40) || (ax > W + 40 && bx > W + 40) || (ay < -40 && by < -40) || (ay > H + 40 && by > H + 40)) continue;
-      const seg = (x0, y0, x1, y1) => { ctx.setLineDash([0.5 * p, 0.5 * p]); ctx.strokeStyle = '#e23b2e'; ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
-        ctx.lineDashOffset = 0.5 * p; ctx.strokeStyle = '#f2f2f2'; ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke(); ctx.lineDashOffset = 0; };
+      if ((ax < -40 && bx < -40) || (ax > view.W + 40 && bx > view.W + 40) || (ay < -40 && by < -40) || (ay > view.H + 40 && by > view.H + 40)) continue;
+      const seg = (x0, y0, x1, y1) => { view.ctx.setLineDash([0.5 * p, 0.5 * p]); view.ctx.strokeStyle = '#e23b2e'; view.ctx.beginPath(); view.ctx.moveTo(x0, y0); view.ctx.lineTo(x1, y1); view.ctx.stroke();
+        view.ctx.lineDashOffset = 0.5 * p; view.ctx.strokeStyle = '#f2f2f2'; view.ctx.beginPath(); view.ctx.moveTo(x0, y0); view.ctx.lineTo(x1, y1); view.ctx.stroke(); view.ctx.lineDashOffset = 0; };
       if (!sct.broken) seg(ax, ay, bx, by);
       else { const dx = bx - ax, dy = by - ay, L = Math.hypot(dx, dy) || 1, e = Math.min(L * 0.35, 1.3 * p);
         seg(ax, ay, ax + dx / L * e + dy / L * e * 0.3, ay + dy / L * e - dx / L * e * 0.3); seg(bx, by, bx - dx / L * e + dy / L * e * 0.3, by - dy / L * e - dx / L * e * 0.3); }
     }
-    ctx.setLineDash([]);
+    view.ctx.setLineDash([]);
     const now = performance.now() / 1000, clock = game.cones.clock || 0;
     for (const car of [game.car, ...(game.ai || []).map((a) => a.car)]) {
       // null = reset (the car was teleported): no puff, just forget the count
@@ -1925,20 +1925,20 @@ export function createRenderer(canvas) {
       car.streamers.forEach((st, k) => {
         // trails BEHIND the direction of travel (or the car's back when slow), fluttering
         const dirx = v > 1 ? -car.vx / v : -ch, diry = v > 1 ? -car.vy / v : -sh, side = (k - 1) * 0.35;
-        ctx.beginPath(); ctx.moveTo(sx(bxW - sh * side), sy(byW + ch * side));
+        view.ctx.beginPath(); view.ctx.moveTo(sx(bxW - sh * side), sy(byW + ch * side));
         for (let q = 1; q <= 6; q++) { const u = q / 6, w = Math.sin(now * 14 + st.phase + u * 5) * 0.35 * u;
-          ctx.lineTo(sx(bxW - sh * side + dirx * st.len * u - diry * w), sy(byW + ch * side + diry * st.len * u + dirx * w)); }
-        ctx.lineWidth = lw * 1.8; ctx.setLineDash([0.5 * p, 0.5 * p]); ctx.strokeStyle = '#e23b2e'; ctx.stroke(); ctx.lineDashOffset = 0.5 * p; ctx.strokeStyle = '#f2f2f2'; ctx.stroke(); ctx.lineDashOffset = 0; ctx.setLineDash([]); ctx.lineWidth = lw;   // streamers drawn thicker (photographed thin)
+          view.ctx.lineTo(sx(bxW - sh * side + dirx * st.len * u - diry * w), sy(byW + ch * side + diry * st.len * u + dirx * w)); }
+        view.ctx.lineWidth = lw * 1.8; view.ctx.setLineDash([0.5 * p, 0.5 * p]); view.ctx.strokeStyle = '#e23b2e'; view.ctx.stroke(); view.ctx.lineDashOffset = 0.5 * p; view.ctx.strokeStyle = '#f2f2f2'; view.ctx.stroke(); view.ctx.lineDashOffset = 0; view.ctx.setLineDash([]); view.ctx.lineWidth = lw;   // streamers drawn thicker (photographed thin)
       });
     }
-    ctx.restore();
+    view.ctx.restore();
   }
   // ROADSIDE DEBRIS (cones.js DEBRIS): top-down squares, rotated with the object; broken ones are a scatter of bits (seeded by home)
   const DEBRIS_KINDS = new Set(['pallet', 'box', 'crate', 'bin', 'sandbag', 'barrel', 'exhaust', 'bumper', 'tarp', 'splinters', 'cardboard', 'sand', 'fluff']);
   function drawDebris(c) {
-    const p = PPMz(), P = (x, y, w, h, col) => { ctx.fillStyle = col; ctx.fillRect(x * p, y * p, w * p, h * p); };
-    const sh = (w, h) => { ctx.fillStyle = 'rgba(10,12,16,0.30)'; ctx.fillRect((-w / 2 + 0.15) * p, (-h / 2 + 0.25) * p, w * p, h * p); };
-    ctx.rotate(c.ang || 0);
+    const p = PPMz(), P = (x, y, w, h, col) => { view.ctx.fillStyle = col; view.ctx.fillRect(x * p, y * p, w * p, h * p); };
+    const sh = (w, h) => { view.ctx.fillStyle = 'rgba(10,12,16,0.30)'; view.ctx.fillRect((-w / 2 + 0.15) * p, (-h / 2 + 0.25) * p, w * p, h * p); };
+    view.ctx.rotate(c.ang || 0);
     switch (c.kind) {
       case 'pallet': sh(1.2, 1.0); P(-0.6, -0.5, 1.2, 1.0, '#8a6a43'); for (let k = 0; k < 4; k++) P(-0.6, -0.42 + k * 0.26, 1.2, 0.08, '#5e4529'); break;
       case 'box': sh(0.8, 0.6); P(-0.4, -0.3, 0.8, 0.6, '#b8925e'); P(-0.4, -0.04, 0.8, 0.08, '#d9c08a'); break;
@@ -1960,203 +1960,203 @@ export function createRenderer(canvas) {
     const r = CONE_R * PPMz() * 1.35;   // drawn a touch over scale: a cone the player cannot see is not a cone
     for (const c of cones) {
       const px = sx(c.x), py = sy(c.y);
-      if (px < -60 || px > W + 60 || py < -60 || py > H + 60) continue;
+      if (px < -60 || px > view.W + 60 || py < -60 || py > view.H + 60) continue;
       const d = c.down;                       // 0 = upright, 1 = flat
 
-      ctx.save();
-      ctx.translate(px, py);
+      view.ctx.save();
+      view.ctx.translate(px, py);
       if (c.kind === 'bale' || c.kind === 'straw') {
-        const P = (x, y, w, h, col) => { ctx.fillStyle = col; ctx.fillRect(x * PPMz(), y * PPMz(), w * PPMz(), h * PPMz()); };
-        ctx.rotate(c.ang || 0);
+        const P = (x, y, w, h, col) => { view.ctx.fillStyle = col; view.ctx.fillRect(x * PPMz(), y * PPMz(), w * PPMz(), h * PPMz()); };
+        view.ctx.rotate(c.ang || 0);
         if (c.kind === 'bale') {
           // ROUND HAY BALE from the top: straw square, darker spiral ring (squares — the pixel rule)
-          ctx.fillStyle = 'rgba(10,12,16,0.30)'; ctx.fillRect(-0.8 * PPMz() + 0.3 * PPMz(), -0.8 * PPMz() + 0.45 * PPMz(), 1.6 * PPMz(), 1.6 * PPMz());
+          view.ctx.fillStyle = 'rgba(10,12,16,0.30)'; view.ctx.fillRect(-0.8 * PPMz() + 0.3 * PPMz(), -0.8 * PPMz() + 0.45 * PPMz(), 1.6 * PPMz(), 1.6 * PPMz());
           P(-0.8, -0.8, 1.6, 1.6, '#c9a85a'); P(-0.55, -0.55, 1.1, 1.1, '#b48f45'); P(-0.3, -0.3, 0.6, 0.6, '#d8bb6e'); P(-0.08, -0.08, 0.16, 0.16, '#9a7836');
         } else {
           // BURST STRAW: a spread of loose straw squares, the same every frame (seeded by its home position)
           const rn = parkMiller(Math.floor(Math.abs(c.hx * 73.1 + c.hy * 19.7)) % 9973 + 1);
           for (let q = 0; q < 26; q++) { const a = rn() * 6.283, rr = Math.sqrt(rn()) * 1.8, w = 0.2 + rn() * 0.35; P(Math.cos(a) * rr - w / 2, Math.sin(a) * rr - w / 2, w, w, q % 3 ? '#cfae62' : '#a8873f'); }
         }
-        ctx.restore(); continue;
+        view.ctx.restore(); continue;
       }
       if (c.kind === 'sheep' || c.kind === 'cow') {
         // SHEEP / COW (S-C: loose objects, cones.js; the old field look): a body square, a head square at +x, a shadow. A TIPPED cow lies
         // on its side: four dark leg squares out, the head flat
-        const p = PPMz(), P = (x, y, w, h, col) => { ctx.fillStyle = col; ctx.fillRect(x * p, y * p, w * p, h * p); };
-        ctx.rotate(c.ang || 0);
+        const p = PPMz(), P = (x, y, w, h, col) => { view.ctx.fillStyle = col; view.ctx.fillRect(x * p, y * p, w * p, h * p); };
+        view.ctx.rotate(c.ang || 0);
         if (c.kind === 'cow' && c.tipped) { P(-0.9, -0.2, 2, 0.9, 'rgba(10,12,16,0.3)'); P(-1.1, -0.45, 2, 0.85, '#f0eee8'); P(-0.6, -0.45, 0.7, 0.4, '#1c1d20');
           for (const lx of [-0.9, -0.5, 0.15, 0.55]) P(lx, 0.4, 0.2, 0.55, '#1c1d20'); P(0.9, -0.3, 0.55, 0.55, '#1c1d20'); }
         else if (c.kind === 'cow') { P(-0.9, -0.35, 2, 1, 'rgba(10,12,16,0.3)'); P(-1.1, -0.5, 2, 1, '#f0eee8'); P(-0.7, -0.5, 0.6, 0.5, '#1c1d20'); P(0.2, 0, 0.5, 0.5, '#1c1d20'); P(0.9, -0.3, 0.55, 0.6, '#1c1d20'); }
         else { P(-0.45, -0.2, 1, 0.7, 'rgba(10,12,16,0.3)'); P(-0.55, -0.35, 1, 0.7, '#ecebe4'); P(-0.45, -0.25, 0.8, 0.5, '#f7f6f0'); P(0.42, -0.2, 0.32, 0.4, '#2a2a2c'); }
-        ctx.restore(); continue;
+        view.ctx.restore(); continue;
       }
-      if (DEBRIS_KINDS.has(c.kind)) { drawDebris(c); ctx.restore(); continue; }
+      if (DEBRIS_KINDS.has(c.kind)) { drawDebris(c); view.ctx.restore(); continue; }
       if (c.kind === 'tapepost') {
         // a tape POST: a dark stake (upright) or lying (knocked)
-        const p = PPMz(); ctx.rotate(c.ang || 0); ctx.fillStyle = '#3a2d21';
-        if (d < 0.5) ctx.fillRect(-0.12 * p, -0.12 * p, 0.24 * p, 0.24 * p); else ctx.fillRect(-0.6 * p, -0.06 * p, 1.2 * p, 0.12 * p);
-        ctx.restore(); continue;
+        const p = PPMz(); view.ctx.rotate(c.ang || 0); view.ctx.fillStyle = '#3a2d21';
+        if (d < 0.5) view.ctx.fillRect(-0.12 * p, -0.12 * p, 0.24 * p, 0.24 * p); else view.ctx.fillRect(-0.6 * p, -0.06 * p, 1.2 * p, 0.12 * p);
+        view.ctx.restore(); continue;
       }
       if (c.kind === 'chevron' || c.kind === 'flag') {
         // a knockable CHEVRON board / FLAG (cones.js): upright as the old prop; once knocked (down > 0.5) lying flat — the chevron face up
         // and darker, the flag pole down with its cloth crumpled beside it
-        const p = PPMz(), P = (x, y, w, h, col) => { ctx.fillStyle = col; ctx.fillRect(x * p, y * p, w * p, h * p); };
-        ctx.rotate(c.ang || 0);
+        const p = PPMz(), P = (x, y, w, h, col) => { view.ctx.fillStyle = col; view.ctx.fillRect(x * p, y * p, w * p, h * p); };
+        view.ctx.rotate(c.ang || 0);
         if (c.kind === 'chevron') {
-          ctx.scale(1.6, 1.6);
-          if (d < 0.5) { ctx.fillStyle = 'rgba(10,12,16,0.32)'; ctx.fillRect(-1.6 * p + 0.3 * p, -0.25 * p + 0.5 * p, 3.2 * p, 0.5 * p); P(-1.6, -0.25, 3.2, 0.5, '#15171c');
+          view.ctx.scale(1.6, 1.6);
+          if (d < 0.5) { view.ctx.fillStyle = 'rgba(10,12,16,0.32)'; view.ctx.fillRect(-1.6 * p + 0.3 * p, -0.25 * p + 0.5 * p, 3.2 * p, 0.5 * p); P(-1.6, -0.25, 3.2, 0.5, '#15171c');
             for (let k = 0; k < 3; k++) { P(-1.25 + k * 1.0, -0.2, 0.25, 0.15, '#f2c21b'); P(-1.0 + k * 1.0, -0.075, 0.25, 0.15, '#f2c21b'); P(-1.25 + k * 1.0, 0.05, 0.25, 0.15, '#f2c21b'); } }
           else { P(-1.6, -0.5, 3.2, 1.0, '#15171c'); for (let k = 0; k < 3; k++) { P(-1.25 + k * 1.0, -0.4, 0.3, 0.3, '#b08c14'); P(-0.95 + k * 1.0, -0.15, 0.3, 0.3, '#b08c14'); P(-1.25 + k * 1.0, 0.1, 0.3, 0.3, '#b08c14'); }
             P(-1.5, 0.5, 0.15, 0.6, '#5a4632'); P(1.35, 0.5, 0.15, 0.6, '#5a4632'); }   // face up, its two posts
         } else {
-          if (d < 0.5) { ctx.fillStyle = 'rgba(10,12,16,0.28)'; ctx.fillRect(0.2 * p, 0.1 * p, 1.8 * p, 0.6 * p);
+          if (d < 0.5) { view.ctx.fillStyle = 'rgba(10,12,16,0.28)'; view.ctx.fillRect(0.2 * p, 0.1 * p, 1.8 * p, 0.6 * p);
             P(-0.15, -0.15, 0.3, 0.3, '#3a3f47'); P(0.15, -0.55, 1.3, 0.75, c.col || '#c8302c'); P(0.15, -0.55, 1.3, 0.12, 'rgba(255,255,255,0.35)'); }
           else { P(-1.1, -0.06, 2.2, 0.12, '#5a5f68'); P(0.6, 0.06, 0.8, 0.5, c.col || '#c8302c'); P(0.9, 0.2, 0.5, 0.3, shade(c.col || '#c8302c', 0.7)); }   // pole down, cloth crumpled
         }
-        ctx.restore(); continue;
+        view.ctx.restore(); continue;
       }
-      if (PIXEL && drawPixelObject(c)) { ctx.restore(); continue; }
+      if (PIXEL && drawPixelObject(c)) { view.ctx.restore(); continue; }
 
       if (c.kind === 'banger') {
         const p = PPMz();
-        ctx.rotate(c.ang);
+        view.ctx.rotate(c.ang);
         // Cast shadow
-        ctx.fillStyle = 'rgba(10,12,16,0.44)';
-        roundRect(ctx, -2.1 * p + 3, -1.0 * p + 4, 4.2 * p, 2.0 * p, 5); ctx.fill();
+        view.ctx.fillStyle = 'rgba(10,12,16,0.44)';
+        roundRect(view.ctx, -2.1 * p + 3, -1.0 * p + 4, 4.2 * p, 2.0 * p, 5); view.ctx.fill();
         // Dented banger body with primer & rust patches
-        ctx.fillStyle = c.paint || '#7c342a';
-        roundRect(ctx, -2.1 * p, -1.0 * p, 4.2 * p, 2.0 * p, 4); ctx.fill();
-        ctx.strokeStyle = '#181a1f'; ctx.lineWidth = 1.2; ctx.stroke();
+        view.ctx.fillStyle = c.paint || '#7c342a';
+        roundRect(view.ctx, -2.1 * p, -1.0 * p, 4.2 * p, 2.0 * p, 4); view.ctx.fill();
+        view.ctx.strokeStyle = '#181a1f'; view.ctx.lineWidth = 1.2; view.ctx.stroke();
         // Heavy triangular welded iron roof fin with driver number
-        ctx.fillStyle = '#1e2129';
-        ctx.fillRect(-0.4 * p, -0.15 * p, 1.4 * p, 0.3 * p);
-        ctx.fillStyle = '#f8fafc';
-        ctx.font = `900 ${Math.round(1.05 * p)}px Impact, ui-sans-serif, sans-serif`;
-        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-        ctx.fillText(c.num || '42', 0.3 * p, 0);
+        view.ctx.fillStyle = '#1e2129';
+        view.ctx.fillRect(-0.4 * p, -0.15 * p, 1.4 * p, 0.3 * p);
+        view.ctx.fillStyle = '#f8fafc';
+        view.ctx.font = `900 ${Math.round(1.05 * p)}px Impact, ui-sans-serif, sans-serif`;
+        view.ctx.textAlign = 'center'; view.ctx.textBaseline = 'middle';
+        view.ctx.fillText(c.num || '42', 0.3 * p, 0);
         // Smashed windscreen & open cabin showing welded H-frame roll-bar
-        ctx.fillStyle = '#14161c';
-        roundRect(ctx, -0.8 * p, -0.75 * p, 1.9 * p, 1.5 * p, 2); ctx.fill();
+        view.ctx.fillStyle = '#14161c';
+        roundRect(view.ctx, -0.8 * p, -0.75 * p, 1.9 * p, 1.5 * p, 2); view.ctx.fill();
         // Steel roll-cage crossbars
-        ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.moveTo(-0.5 * p, -0.6 * p); ctx.lineTo(0.7 * p, 0.6 * p);
-        ctx.moveTo(-0.5 * p, 0.6 * p); ctx.lineTo(0.7 * p, -0.6 * p);
-        ctx.stroke();
+        view.ctx.strokeStyle = '#e2e8f0'; view.ctx.lineWidth = 1.5;
+        view.ctx.beginPath();
+        view.ctx.moveTo(-0.5 * p, -0.6 * p); view.ctx.lineTo(0.7 * p, 0.6 * p);
+        view.ctx.moveTo(-0.5 * p, 0.6 * p); view.ctx.lineTo(0.7 * p, -0.6 * p);
+        view.ctx.stroke();
         // Crumpled front wing & exposed radiator
-        ctx.fillStyle = '#3a3e48';
-        ctx.fillRect(1.8 * p, -0.6 * p, 0.3 * p, 1.2 * p);
+        view.ctx.fillStyle = '#3a3e48';
+        view.ctx.fillRect(1.8 * p, -0.6 * p, 0.3 * p, 1.2 * p);
         // Smashed headlight
-        ctx.fillStyle = '#fff6dc';
-        ctx.beginPath(); ctx.arc(1.9 * p, -0.6 * p, 0.15 * p, 0, Math.PI * 2); ctx.fill();
+        view.ctx.fillStyle = '#fff6dc';
+        view.ctx.beginPath(); view.ctx.arc(1.9 * p, -0.6 * p, 0.15 * p, 0, Math.PI * 2); view.ctx.fill();
         // Sponsor stencil on boot
-        ctx.fillStyle = 'rgba(255,255,255,0.7)';
-        ctx.font = `700 ${Math.round(0.35 * p)}px ui-monospace, monospace`;
-        ctx.fillText("BILL'S SCRAP", -1.3 * p, 0);
-        ctx.restore();
+        view.ctx.fillStyle = 'rgba(255,255,255,0.7)';
+        view.ctx.font = `700 ${Math.round(0.35 * p)}px ui-monospace, monospace`;
+        view.ctx.fillText("BILL'S SCRAP", -1.3 * p, 0);
+        view.ctx.restore();
         continue;
       }
 
       if (c.kind === 'caravan') {
         const p = PPMz();
-        ctx.rotate(c.ang);
+        view.ctx.rotate(c.ang);
         // Cast shadow
-        ctx.fillStyle = 'rgba(10,12,16,0.40)';
-        roundRect(ctx, -2.4 * p + 4, -1.1 * p + 5, 4.8 * p, 2.2 * p, 7); ctx.fill();
+        view.ctx.fillStyle = 'rgba(10,12,16,0.40)';
+        roundRect(view.ctx, -2.4 * p + 4, -1.1 * p + 5, 4.8 * p, 2.2 * p, 7); view.ctx.fill();
         // Steel A-frame tow hitch with black jockey wheel
-        ctx.strokeStyle = '#5a6270'; ctx.lineWidth = Math.max(2, 0.14 * p);
-        ctx.beginPath(); ctx.moveTo(2.4 * p, -0.35 * p); ctx.lineTo(3.3 * p, 0); ctx.lineTo(2.4 * p, 0.35 * p); ctx.stroke();
+        view.ctx.strokeStyle = '#5a6270'; view.ctx.lineWidth = Math.max(2, 0.14 * p);
+        view.ctx.beginPath(); view.ctx.moveTo(2.4 * p, -0.35 * p); view.ctx.lineTo(3.3 * p, 0); view.ctx.lineTo(2.4 * p, 0.35 * p); view.ctx.stroke();
         // Jockey wheel
-        ctx.fillStyle = '#111';
-        ctx.fillRect(3.1 * p, -0.15 * p, 0.3 * p, 0.3 * p);
+        view.ctx.fillStyle = '#111';
+        view.ctx.fillRect(3.1 * p, -0.15 * p, 0.3 * p, 0.3 * p);
         // Green gas bottle mounted on A-frame
-        ctx.fillStyle = '#2d6a4f';
-        roundRect(ctx, 2.5 * p, -0.2 * p, 0.4 * p, 0.4 * p, 2); ctx.fill();
+        view.ctx.fillStyle = '#2d6a4f';
+        roundRect(view.ctx, 2.5 * p, -0.2 * p, 0.4 * p, 0.4 * p, 2); view.ctx.fill();
         // Rounded retro tourer body in classic warm cream
-        ctx.fillStyle = '#f4f0e6';
-        roundRect(ctx, -2.4 * p, -1.1 * p, 4.8 * p, 2.2 * p, 6); ctx.fill();
-        ctx.strokeStyle = '#9ca3af'; ctx.lineWidth = 1.2; ctx.stroke();
+        view.ctx.fillStyle = '#f4f0e6';
+        roundRect(view.ctx, -2.4 * p, -1.1 * p, 4.8 * p, 2.2 * p, 6); view.ctx.fill();
+        view.ctx.strokeStyle = '#9ca3af'; view.ctx.lineWidth = 1.2; view.ctx.stroke();
         // Burnt-orange & chocolate dual vintage beltline stripes
-        ctx.fillStyle = '#c0561a';
-        ctx.fillRect(-2.3 * p, -0.22 * p, 4.6 * p, 0.28 * p);
-        ctx.fillStyle = '#5a280d';
-        ctx.fillRect(-2.3 * p, 0.08 * p, 4.6 * p, 0.12 * p);
+        view.ctx.fillStyle = '#c0561a';
+        view.ctx.fillRect(-2.3 * p, -0.22 * p, 4.6 * p, 0.28 * p);
+        view.ctx.fillStyle = '#5a280d';
+        view.ctx.fillRect(-2.3 * p, 0.08 * p, 4.6 * p, 0.12 * p);
         // Pop-up roof vent hatch
-        ctx.fillStyle = '#d8d4c8';
-        roundRect(ctx, -0.4 * p, -0.4 * p, 0.8 * p, 0.8 * p, 2); ctx.fill();
-        ctx.fillStyle = 'rgba(0,0,0,0.18)';
-        ctx.fillRect(-0.4 * p, 0.3 * p, 0.8 * p, 0.1 * p); // vent shadow
+        view.ctx.fillStyle = '#d8d4c8';
+        roundRect(view.ctx, -0.4 * p, -0.4 * p, 0.8 * p, 0.8 * p, 2); view.ctx.fill();
+        view.ctx.fillStyle = 'rgba(0,0,0,0.18)';
+        view.ctx.fillRect(-0.4 * p, 0.3 * p, 0.8 * p, 0.1 * p); // vent shadow
         // Tinted panoramic front & rear windows with curtain borders
-        ctx.fillStyle = '#1e293b';
-        roundRect(ctx, 1.7 * p, -0.85 * p, 0.5 * p, 1.7 * p, 1.5); ctx.fill();
-        roundRect(ctx, -2.2 * p, -0.85 * p, 0.5 * p, 1.7 * p, 1.5); ctx.fill();
-        ctx.fillStyle = '#ffffff'; // White curtain trim
-        ctx.fillRect(1.7 * p, -0.85 * p, 0.1 * p, 1.7 * p);
-        ctx.fillRect(-1.8 * p, -0.85 * p, 0.1 * p, 1.7 * p);
+        view.ctx.fillStyle = '#1e293b';
+        roundRect(view.ctx, 1.7 * p, -0.85 * p, 0.5 * p, 1.7 * p, 1.5); view.ctx.fill();
+        roundRect(view.ctx, -2.2 * p, -0.85 * p, 0.5 * p, 1.7 * p, 1.5); view.ctx.fill();
+        view.ctx.fillStyle = '#ffffff'; // White curtain trim
+        view.ctx.fillRect(1.7 * p, -0.85 * p, 0.1 * p, 1.7 * p);
+        view.ctx.fillRect(-1.8 * p, -0.85 * p, 0.1 * p, 1.7 * p);
         // Side door with handle
-        ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1;
-        ctx.strokeRect(-0.8 * p, 0.4 * p, 1.0 * p, 0.7 * p);
-        ctx.fillStyle = '#cbd5e1';
-        ctx.fillRect(-0.7 * p, 0.65 * p, 0.15 * p, 0.15 * p); // handle
+        view.ctx.strokeStyle = '#94a3b8'; view.ctx.lineWidth = 1;
+        view.ctx.strokeRect(-0.8 * p, 0.4 * p, 1.0 * p, 0.7 * p);
+        view.ctx.fillStyle = '#cbd5e1';
+        view.ctx.fillRect(-0.7 * p, 0.65 * p, 0.15 * p, 0.15 * p); // handle
         // Amber side marker lights and red circular taillights
-        ctx.fillStyle = '#f59e0b';
-        ctx.fillRect(-1.0 * p, -1.15 * p, 0.2 * p, 0.1 * p);
-        ctx.fillRect(1.0 * p, -1.15 * p, 0.2 * p, 0.1 * p);
-        ctx.fillStyle = '#ef4444';
-        ctx.beginPath(); ctx.arc(-2.4 * p, -0.7 * p, 0.12 * p, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath(); ctx.arc(-2.4 * p, 0.7 * p, 0.12 * p, 0, Math.PI * 2); ctx.fill();
-        ctx.restore();
+        view.ctx.fillStyle = '#f59e0b';
+        view.ctx.fillRect(-1.0 * p, -1.15 * p, 0.2 * p, 0.1 * p);
+        view.ctx.fillRect(1.0 * p, -1.15 * p, 0.2 * p, 0.1 * p);
+        view.ctx.fillStyle = '#ef4444';
+        view.ctx.beginPath(); view.ctx.arc(-2.4 * p, -0.7 * p, 0.12 * p, 0, Math.PI * 2); view.ctx.fill();
+        view.ctx.beginPath(); view.ctx.arc(-2.4 * p, 0.7 * p, 0.12 * p, 0, Math.PI * 2); view.ctx.fill();
+        view.ctx.restore();
         continue;
       }
 
       if (c.kind === 'podium') {
         const p = PPMz();
-        ctx.rotate(c.ang);
+        view.ctx.rotate(c.ang);
         // Ground shadow
-        ctx.fillStyle = 'rgba(10,12,16,0.38)';
-        roundRect(ctx, -1.8 * p + 3, -1.0 * p + 4, 3.6 * p, 2.0 * p, 3); ctx.fill();
+        view.ctx.fillStyle = 'rgba(10,12,16,0.38)';
+        roundRect(view.ctx, -1.8 * p + 3, -1.0 * p + 4, 3.6 * p, 2.0 * p, 3); view.ctx.fill();
         // 3 stepped blocks: 2nd (left), 1st (center), 3rd (right)
         // Center 1st place tier
-        ctx.fillStyle = '#b4783e';
-        roundRect(ctx, -0.6 * p, -1.0 * p, 1.2 * p, 2.0 * p, 2); ctx.fill();
-        ctx.strokeStyle = '#5a3512'; ctx.lineWidth = 1.2; ctx.stroke();
+        view.ctx.fillStyle = '#b4783e';
+        roundRect(view.ctx, -0.6 * p, -1.0 * p, 1.2 * p, 2.0 * p, 2); view.ctx.fill();
+        view.ctx.strokeStyle = '#5a3512'; view.ctx.lineWidth = 1.2; view.ctx.stroke();
         // Left 2nd place tier
-        ctx.fillStyle = '#9b622e';
-        roundRect(ctx, -1.7 * p, -0.85 * p, 1.1 * p, 1.7 * p, 2); ctx.fill();
-        ctx.stroke();
+        view.ctx.fillStyle = '#9b622e';
+        roundRect(view.ctx, -1.7 * p, -0.85 * p, 1.1 * p, 1.7 * p, 2); view.ctx.fill();
+        view.ctx.stroke();
         // Right 3rd place tier
-        ctx.fillStyle = '#874f20';
-        roundRect(ctx, 0.6 * p, -0.75 * p, 1.1 * p, 1.5 * p, 2); ctx.fill();
-        ctx.stroke();
+        view.ctx.fillStyle = '#874f20';
+        roundRect(view.ctx, 0.6 * p, -0.75 * p, 1.1 * p, 1.5 * p, 2); view.ctx.fill();
+        view.ctx.stroke();
         // Chequered bunting skirt along the front bottom
         const checkW = 0.3 * p;
         for (let cx = -1.7 * p; cx < 1.7 * p; cx += checkW) {
-          ctx.fillStyle = Math.floor(cx / checkW) % 2 === 0 ? '#111' : '#fff';
-          ctx.fillRect(cx, 0.85 * p, checkW, 0.15 * p);
+          view.ctx.fillStyle = Math.floor(cx / checkW) % 2 === 0 ? '#111' : '#fff';
+          view.ctx.fillRect(cx, 0.85 * p, checkW, 0.15 * p);
         }
         // Numerals 1, 2, 3
-        ctx.fillStyle = '#ffffff';
-        ctx.font = `900 ${Math.round(0.75 * p)}px ui-sans-serif, sans-serif`;
-        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-        ctx.fillText('1', 0, 0.3 * p);
-        ctx.fillText('2', -1.15 * p, 0.3 * p);
-        ctx.fillText('3', 1.15 * p, 0.3 * p);
+        view.ctx.fillStyle = '#ffffff';
+        view.ctx.font = `900 ${Math.round(0.75 * p)}px ui-sans-serif, sans-serif`;
+        view.ctx.textAlign = 'center'; view.ctx.textBaseline = 'middle';
+        view.ctx.fillText('1', 0, 0.3 * p);
+        view.ctx.fillText('2', -1.15 * p, 0.3 * p);
+        view.ctx.fillText('3', 1.15 * p, 0.3 * p);
         // Gold / Silver / Bronze trophy cups on the top steps!
         // 1st place Gold cup
-        ctx.fillStyle = '#eab308';
-        ctx.fillRect(-0.25 * p, -0.75 * p, 0.5 * p, 0.45 * p);
-        ctx.fillRect(-0.15 * p, -0.3 * p, 0.3 * p, 0.15 * p);
-        ctx.strokeStyle = '#ca8a04'; ctx.lineWidth = 1.2;
-        ctx.beginPath(); ctx.arc(0, -0.52 * p, 0.35 * p, -0.6, 0.6); ctx.stroke(); // cup handles
+        view.ctx.fillStyle = '#eab308';
+        view.ctx.fillRect(-0.25 * p, -0.75 * p, 0.5 * p, 0.45 * p);
+        view.ctx.fillRect(-0.15 * p, -0.3 * p, 0.3 * p, 0.15 * p);
+        view.ctx.strokeStyle = '#ca8a04'; view.ctx.lineWidth = 1.2;
+        view.ctx.beginPath(); view.ctx.arc(0, -0.52 * p, 0.35 * p, -0.6, 0.6); view.ctx.stroke(); // cup handles
         // 2nd place Silver cup
-        ctx.fillStyle = '#cbd5e1';
-        ctx.fillRect(-1.35 * p, -0.65 * p, 0.4 * p, 0.35 * p);
-        ctx.fillRect(-1.25 * p, -0.3 * p, 0.2 * p, 0.12 * p);
+        view.ctx.fillStyle = '#cbd5e1';
+        view.ctx.fillRect(-1.35 * p, -0.65 * p, 0.4 * p, 0.35 * p);
+        view.ctx.fillRect(-1.25 * p, -0.3 * p, 0.2 * p, 0.12 * p);
         // 3rd place Bronze cup
-        ctx.fillStyle = '#b45309';
-        ctx.fillRect(0.95 * p, -0.55 * p, 0.4 * p, 0.35 * p);
-        ctx.fillRect(1.05 * p, -0.2 * p, 0.2 * p, 0.12 * p);
-        ctx.restore();
+        view.ctx.fillStyle = '#b45309';
+        view.ctx.fillRect(0.95 * p, -0.55 * p, 0.4 * p, 0.35 * p);
+        view.ctx.fillRect(1.05 * p, -0.2 * p, 0.2 * p, 0.12 * p);
+        view.ctx.restore();
         continue;
       }
 
@@ -2166,268 +2166,268 @@ export function createRenderer(canvas) {
 
         if (mode === 'roll') {
           // Upright rolling tyre seen from above: rounded tread capsule rolling along c.ang
-          ctx.rotate(c.ang);
+          view.ctx.rotate(c.ang);
           const tw = tr * 0.24;
           // Rolling shadow
-          ctx.fillStyle = 'rgba(12,14,18,0.40)';
-          roundRect(ctx, -tr * 0.95 + 2, -tw + 2, tr * 1.9, tw * 2, tw);
-          ctx.fill();
+          view.ctx.fillStyle = 'rgba(12,14,18,0.40)';
+          roundRect(view.ctx, -tr * 0.95 + 2, -tw + 2, tr * 1.9, tw * 2, tw);
+          view.ctx.fill();
 
           // Outer rubber tread body with fully rounded semicircle caps (radius = tw)
-          ctx.fillStyle = '#202228';
-          roundRect(ctx, -tr * 0.95, -tw, tr * 1.9, tw * 2, tw);
-          ctx.fill();
-          ctx.strokeStyle = '#686f82';
-          ctx.lineWidth = 1.2;
-          ctx.stroke();
+          view.ctx.fillStyle = '#202228';
+          roundRect(view.ctx, -tr * 0.95, -tw, tr * 1.9, tw * 2, tw);
+          view.ctx.fill();
+          view.ctx.strokeStyle = '#686f82';
+          view.ctx.lineWidth = 1.2;
+          view.ctx.stroke();
 
           // Scrolling tread grooves / sipes
-          ctx.fillStyle = '#101114';
+          view.ctx.fillStyle = '#101114';
           const rollOff = ((c.rollDist || 0) * PPMz()) % (tr * 0.35);
           for (let gx = -tr * 0.70 + rollOff; gx < tr * 0.70; gx += tr * 0.35) {
-            ctx.fillRect(gx, -tw * 0.85, 2, tw * 1.7);
+            view.ctx.fillRect(gx, -tw * 0.85, 2, tw * 1.7);
           }
         } else if (mode === 'flip') {
           // Tumbling end-over-end — always completely rounded, circular/elliptical perspective
-          ctx.rotate(c.ang);
+          view.ctx.rotate(c.ang);
           const flipScale = Math.abs(Math.cos(c.flipPhase || 0));
           const faceH = tr * Math.max(0.18, flipScale);
 
           // Contact / tumbling ground shadow
-          ctx.fillStyle = 'rgba(12,14,18,0.36)';
-          ctx.beginPath();
-          ctx.ellipse(2, 3, tr * 1.05, faceH * 1.05, 0, 0, Math.PI * 2);
-          ctx.fill();
+          view.ctx.fillStyle = 'rgba(12,14,18,0.36)';
+          view.ctx.beginPath();
+          view.ctx.ellipse(2, 3, tr * 1.05, faceH * 1.05, 0, 0, Math.PI * 2);
+          view.ctx.fill();
 
           // If tilted edge-on, show the cylindrical curved tread thickness behind the face
           if (flipScale < 0.45) {
-            ctx.fillStyle = '#14151a';
-            ctx.beginPath();
-            ctx.ellipse(0, tr * 0.16 * (1 - flipScale), tr * 0.98, faceH * 0.95, 0, 0, Math.PI * 2);
-            ctx.fill();
+            view.ctx.fillStyle = '#14151a';
+            view.ctx.beginPath();
+            view.ctx.ellipse(0, tr * 0.16 * (1 - flipScale), tr * 0.98, faceH * 0.95, 0, 0, Math.PI * 2);
+            view.ctx.fill();
           }
 
           // Main circular/elliptical tyre face (zero square corners)
-          ctx.fillStyle = '#24262e';
-          ctx.beginPath();
-          ctx.ellipse(0, 0, tr, faceH, 0, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.strokeStyle = '#686f82';
-          ctx.lineWidth = 1.4;
-          ctx.stroke();
+          view.ctx.fillStyle = '#24262e';
+          view.ctx.beginPath();
+          view.ctx.ellipse(0, 0, tr, faceH, 0, 0, Math.PI * 2);
+          view.ctx.fill();
+          view.ctx.strokeStyle = '#686f82';
+          view.ctx.lineWidth = 1.4;
+          view.ctx.stroke();
 
           // Sidewall sponsor stencils (compressed with faceH)
           if (faceH > tr * 0.35) {
-            ctx.strokeStyle = '#ffffff';
-            ctx.lineWidth = Math.max(1, tr * 0.08);
-            ctx.beginPath();
-            ctx.ellipse(0, 0, tr * 0.65, faceH * 0.65, 0, 0.3, 1.9);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.ellipse(0, 0, tr * 0.65, faceH * 0.65, 0, 3.4, 5.0);
-            ctx.stroke();
+            view.ctx.strokeStyle = '#ffffff';
+            view.ctx.lineWidth = Math.max(1, tr * 0.08);
+            view.ctx.beginPath();
+            view.ctx.ellipse(0, 0, tr * 0.65, faceH * 0.65, 0, 0.3, 1.9);
+            view.ctx.stroke();
+            view.ctx.beginPath();
+            view.ctx.ellipse(0, 0, tr * 0.65, faceH * 0.65, 0, 3.4, 5.0);
+            view.ctx.stroke();
           }
 
           // Inner hollow hub hole
-          ctx.fillStyle = '#0a0b0e';
-          ctx.beginPath();
-          ctx.ellipse(0, 0, tr * 0.44, faceH * 0.44, 0, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.strokeStyle = '#1e2026';
-          ctx.lineWidth = 1.1;
-          ctx.stroke();
+          view.ctx.fillStyle = '#0a0b0e';
+          view.ctx.beginPath();
+          view.ctx.ellipse(0, 0, tr * 0.44, faceH * 0.44, 0, 0, Math.PI * 2);
+          view.ctx.fill();
+          view.ctx.strokeStyle = '#1e2026';
+          view.ctx.lineWidth = 1.1;
+          view.ctx.stroke();
         } else if (mode === 'wobble') {
           // Precessing Euler wobble before slapping flat
-          ctx.rotate(c.ang + Math.sin(c.wobblePhase || 0) * 0.4);
+          view.ctx.rotate(c.ang + Math.sin(c.wobblePhase || 0) * 0.4);
           const tiltScale = 0.65 + 0.35 * Math.abs(Math.sin(c.wobblePhase || 0));
 
-          ctx.fillStyle = 'rgba(12,14,18,0.35)';
-          ctx.beginPath();
-          ctx.arc(2, 2.5, tr * 1.04, 0, Math.PI * 2);
-          ctx.fill();
+          view.ctx.fillStyle = 'rgba(12,14,18,0.35)';
+          view.ctx.beginPath();
+          view.ctx.arc(2, 2.5, tr * 1.04, 0, Math.PI * 2);
+          view.ctx.fill();
 
-          ctx.fillStyle = '#24262e';
-          ctx.beginPath();
-          ctx.ellipse(0, 0, tr, tr * tiltScale, 0, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.strokeStyle = '#686f82';
-          ctx.lineWidth = 1.3;
-          ctx.stroke();
+          view.ctx.fillStyle = '#24262e';
+          view.ctx.beginPath();
+          view.ctx.ellipse(0, 0, tr, tr * tiltScale, 0, 0, Math.PI * 2);
+          view.ctx.fill();
+          view.ctx.strokeStyle = '#686f82';
+          view.ctx.lineWidth = 1.3;
+          view.ctx.stroke();
 
-          ctx.fillStyle = '#0a0b0e';
-          ctx.beginPath();
-          ctx.ellipse(0, 0, tr * 0.44, tr * 0.44 * tiltScale, 0, 0, Math.PI * 2);
-          ctx.fill();
+          view.ctx.fillStyle = '#0a0b0e';
+          view.ctx.beginPath();
+          view.ctx.ellipse(0, 0, tr * 0.44, tr * 0.44 * tiltScale, 0, 0, Math.PI * 2);
+          view.ctx.fill();
         } else if (mode === 'stack') {
           // Standing 3-tier tyre stack seen from above
-          ctx.fillStyle = 'rgba(14,16,20,0.38)';
-          ctx.beginPath();
-          ctx.arc(2.5, 3.5, tr * 1.08, 0, Math.PI * 2);
-          ctx.fill();
+          view.ctx.fillStyle = 'rgba(14,16,20,0.38)';
+          view.ctx.beginPath();
+          view.ctx.arc(2.5, 3.5, tr * 1.08, 0, Math.PI * 2);
+          view.ctx.fill();
 
           // Tier 1 (bottom tyre offset ring)
-          ctx.fillStyle = '#181920';
-          ctx.beginPath();
-          ctx.arc(-1.5, -1.5, tr * 1.06, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.strokeStyle = '#484c58';
-          ctx.lineWidth = 1.1;
-          ctx.stroke();
+          view.ctx.fillStyle = '#181920';
+          view.ctx.beginPath();
+          view.ctx.arc(-1.5, -1.5, tr * 1.06, 0, Math.PI * 2);
+          view.ctx.fill();
+          view.ctx.strokeStyle = '#484c58';
+          view.ctx.lineWidth = 1.1;
+          view.ctx.stroke();
 
           // Tier 2 (middle tyre offset ring)
-          ctx.fillStyle = '#1f2128';
-          ctx.beginPath();
-          ctx.arc(1.2, 1.2, tr * 1.02, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.strokeStyle = '#555a68';
-          ctx.lineWidth = 1.1;
-          ctx.stroke();
+          view.ctx.fillStyle = '#1f2128';
+          view.ctx.beginPath();
+          view.ctx.arc(1.2, 1.2, tr * 1.02, 0, Math.PI * 2);
+          view.ctx.fill();
+          view.ctx.strokeStyle = '#555a68';
+          view.ctx.lineWidth = 1.1;
+          view.ctx.stroke();
 
           // Top Tyre (pure circle)
-          ctx.fillStyle = '#262830';
-          ctx.beginPath();
-          ctx.arc(0, 0, tr, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.strokeStyle = '#686f82';
-          ctx.lineWidth = 1.4;
-          ctx.stroke();
+          view.ctx.fillStyle = '#262830';
+          view.ctx.beginPath();
+          view.ctx.arc(0, 0, tr, 0, Math.PI * 2);
+          view.ctx.fill();
+          view.ctx.strokeStyle = '#686f82';
+          view.ctx.lineWidth = 1.4;
+          view.ctx.stroke();
 
-          ctx.strokeStyle = '#14151a';
-          ctx.lineWidth = Math.max(1, tr * 0.16);
-          ctx.beginPath();
-          ctx.arc(0, 0, tr * 0.84, 0, Math.PI * 2);
-          ctx.stroke();
+          view.ctx.strokeStyle = '#14151a';
+          view.ctx.lineWidth = Math.max(1, tr * 0.16);
+          view.ctx.beginPath();
+          view.ctx.arc(0, 0, tr * 0.84, 0, Math.PI * 2);
+          view.ctx.stroke();
 
           // Sidewall sponsor stencils
-          ctx.strokeStyle = '#ffffff';
-          ctx.lineWidth = Math.max(1, tr * 0.09);
-          ctx.beginPath();
-          ctx.arc(0, 0, tr * 0.65, 0.3, 1.9);
-          ctx.stroke();
-          ctx.beginPath();
-          ctx.arc(0, 0, tr * 0.65, 3.4, 5.0);
-          ctx.stroke();
+          view.ctx.strokeStyle = '#ffffff';
+          view.ctx.lineWidth = Math.max(1, tr * 0.09);
+          view.ctx.beginPath();
+          view.ctx.arc(0, 0, tr * 0.65, 0.3, 1.9);
+          view.ctx.stroke();
+          view.ctx.beginPath();
+          view.ctx.arc(0, 0, tr * 0.65, 3.4, 5.0);
+          view.ctx.stroke();
 
-          ctx.strokeStyle = '#f5c518';
-          ctx.lineWidth = Math.max(1, tr * 0.05);
-          ctx.beginPath();
-          ctx.arc(0, 0, tr * 0.65, 2.1, 2.7);
-          ctx.stroke();
-          ctx.beginPath();
-          ctx.arc(0, 0, tr * 0.65, 5.2, 5.8);
-          ctx.stroke();
+          view.ctx.strokeStyle = '#f5c518';
+          view.ctx.lineWidth = Math.max(1, tr * 0.05);
+          view.ctx.beginPath();
+          view.ctx.arc(0, 0, tr * 0.65, 2.1, 2.7);
+          view.ctx.stroke();
+          view.ctx.beginPath();
+          view.ctx.arc(0, 0, tr * 0.65, 5.2, 5.8);
+          view.ctx.stroke();
 
-          ctx.fillStyle = '#0a0b0e';
-          ctx.beginPath();
-          ctx.arc(0, 0, tr * 0.44, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.strokeStyle = '#1e2026';
-          ctx.lineWidth = 1.2;
-          ctx.stroke();
+          view.ctx.fillStyle = '#0a0b0e';
+          view.ctx.beginPath();
+          view.ctx.arc(0, 0, tr * 0.44, 0, Math.PI * 2);
+          view.ctx.fill();
+          view.ctx.strokeStyle = '#1e2026';
+          view.ctx.lineWidth = 1.2;
+          view.ctx.stroke();
         } else {
           // Single flat tyre lying on ground — 100% PURE CIRCLE (zero oval)
-          ctx.rotate(c.ang);
+          view.ctx.rotate(c.ang);
 
           // Circular contact shadow
-          ctx.fillStyle = 'rgba(12,14,18,0.36)';
-          ctx.beginPath();
-          ctx.arc(2.0, 2.5, tr * 1.05, 0, Math.PI * 2);
-          ctx.fill();
+          view.ctx.fillStyle = 'rgba(12,14,18,0.36)';
+          view.ctx.beginPath();
+          view.ctx.arc(2.0, 2.5, tr * 1.05, 0, Math.PI * 2);
+          view.ctx.fill();
 
           // Main tyre rubber body (pure circle)
-          ctx.fillStyle = '#24262e';
-          ctx.beginPath();
-          ctx.arc(0, 0, tr, 0, Math.PI * 2);
-          ctx.fill();
+          view.ctx.fillStyle = '#24262e';
+          view.ctx.beginPath();
+          view.ctx.arc(0, 0, tr, 0, Math.PI * 2);
+          view.ctx.fill();
 
           // High-contrast outer silhouette ring
-          ctx.strokeStyle = '#686f82';
-          ctx.lineWidth = 1.4;
-          ctx.stroke();
+          view.ctx.strokeStyle = '#686f82';
+          view.ctx.lineWidth = 1.4;
+          view.ctx.stroke();
 
           // Tread groove ring
-          ctx.strokeStyle = '#14151a';
-          ctx.lineWidth = Math.max(1, tr * 0.16);
-          ctx.beginPath();
-          ctx.arc(0, 0, tr * 0.84, 0, Math.PI * 2);
-          ctx.stroke();
+          view.ctx.strokeStyle = '#14151a';
+          view.ctx.lineWidth = Math.max(1, tr * 0.16);
+          view.ctx.beginPath();
+          view.ctx.arc(0, 0, tr * 0.84, 0, Math.PI * 2);
+          view.ctx.stroke();
 
           // Sidewall sponsor stencils (rotates with c.ang)
-          ctx.strokeStyle = '#ffffff';
-          ctx.lineWidth = Math.max(1, tr * 0.09);
-          ctx.beginPath();
-          ctx.arc(0, 0, tr * 0.65, 0.3, 1.9);
-          ctx.stroke();
-          ctx.beginPath();
-          ctx.arc(0, 0, tr * 0.65, 3.4, 5.0);
-          ctx.stroke();
+          view.ctx.strokeStyle = '#ffffff';
+          view.ctx.lineWidth = Math.max(1, tr * 0.09);
+          view.ctx.beginPath();
+          view.ctx.arc(0, 0, tr * 0.65, 0.3, 1.9);
+          view.ctx.stroke();
+          view.ctx.beginPath();
+          view.ctx.arc(0, 0, tr * 0.65, 3.4, 5.0);
+          view.ctx.stroke();
 
-          ctx.strokeStyle = '#f5c518';
-          ctx.lineWidth = Math.max(1, tr * 0.05);
-          ctx.beginPath();
-          ctx.arc(0, 0, tr * 0.65, 2.1, 2.7);
-          ctx.stroke();
-          ctx.beginPath();
-          ctx.arc(0, 0, tr * 0.65, 5.2, 5.8);
-          ctx.stroke();
+          view.ctx.strokeStyle = '#f5c518';
+          view.ctx.lineWidth = Math.max(1, tr * 0.05);
+          view.ctx.beginPath();
+          view.ctx.arc(0, 0, tr * 0.65, 2.1, 2.7);
+          view.ctx.stroke();
+          view.ctx.beginPath();
+          view.ctx.arc(0, 0, tr * 0.65, 5.2, 5.8);
+          view.ctx.stroke();
 
           // Inner hollow hole
-          ctx.fillStyle = '#0a0b0e';
-          ctx.beginPath();
-          ctx.arc(0, 0, tr * 0.44, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.strokeStyle = '#1e2026';
-          ctx.lineWidth = 1.2;
-          ctx.stroke();
+          view.ctx.fillStyle = '#0a0b0e';
+          view.ctx.beginPath();
+          view.ctx.arc(0, 0, tr * 0.44, 0, Math.PI * 2);
+          view.ctx.fill();
+          view.ctx.strokeStyle = '#1e2026';
+          view.ctx.lineWidth = 1.2;
+          view.ctx.stroke();
         }
-        ctx.restore();
+        view.ctx.restore();
         continue;
       }
 
       if (d > 0.02) {
         // ---- lying down: the cone's body stretches out along `ang`, the base stays put
-        ctx.rotate(c.ang);
+        view.ctx.rotate(c.ang);
         const len = r * (1.0 + 2.6 * d);
-        ctx.fillStyle = 'rgba(40,38,46,0.18)';
-        ctx.beginPath();
-        ctx.ellipse(len * 0.3 + 2, 2.5, len * 0.78, r * 1.1, 0, 0, Math.PI * 2);
-        ctx.fill();
+        view.ctx.fillStyle = 'rgba(40,38,46,0.18)';
+        view.ctx.beginPath();
+        view.ctx.ellipse(len * 0.3 + 2, 2.5, len * 0.78, r * 1.1, 0, 0, Math.PI * 2);
+        view.ctx.fill();
         // body, tapering to the tip
-        ctx.fillStyle = COL.cone;
-        ctx.beginPath();
-        ctx.moveTo(0, -r * 1.25);
-        ctx.lineTo(len, -r * 0.34);
-        ctx.lineTo(len, r * 0.34);
-        ctx.lineTo(0, r * 1.25);
-        ctx.closePath();
-        ctx.fill();
+        view.ctx.fillStyle = COL.cone;
+        view.ctx.beginPath();
+        view.ctx.moveTo(0, -r * 1.25);
+        view.ctx.lineTo(len, -r * 0.34);
+        view.ctx.lineTo(len, r * 0.34);
+        view.ctx.lineTo(0, r * 1.25);
+        view.ctx.closePath();
+        view.ctx.fill();
         // the reflective band, now a stripe across the lying body
-        ctx.fillStyle = COL.coneBand;
-        ctx.beginPath();
-        ctx.moveTo(len * 0.52, -r * 0.72);
-        ctx.lineTo(len * 0.74, -r * 0.48);
-        ctx.lineTo(len * 0.74, r * 0.48);
-        ctx.lineTo(len * 0.52, r * 0.72);
-        ctx.closePath();
-        ctx.fill();
+        view.ctx.fillStyle = COL.coneBand;
+        view.ctx.beginPath();
+        view.ctx.moveTo(len * 0.52, -r * 0.72);
+        view.ctx.lineTo(len * 0.74, -r * 0.48);
+        view.ctx.lineTo(len * 0.74, r * 0.48);
+        view.ctx.lineTo(len * 0.52, r * 0.72);
+        view.ctx.closePath();
+        view.ctx.fill();
         // square base plate
-        ctx.fillStyle = COL.coneDark;
-        roundRect(ctx, -r * 0.5, -r * 1.45, r * 1.0, r * 2.9, 2);
-        ctx.fill();
+        view.ctx.fillStyle = COL.coneDark;
+        roundRect(view.ctx, -r * 0.5, -r * 1.45, r * 1.0, r * 2.9, 2);
+        view.ctx.fill();
       } else {
         // ---- upright: concentric rings, seen from above
-        ctx.fillStyle = 'rgba(40,38,46,0.20)';
-        ctx.beginPath(); ctx.ellipse(r * 0.5, r * 0.7, r * 1.35, r * 1.0, 0, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = COL.coneDark;
-        ctx.beginPath(); ctx.arc(0, 0, r * 1.5, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = COL.cone;
-        ctx.beginPath(); ctx.arc(0, 0, r * 1.18, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = COL.coneBand;
-        ctx.beginPath(); ctx.arc(0, 0, r * 0.78, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = COL.cone;
-        ctx.beginPath(); ctx.arc(0, 0, r * 0.46, 0, Math.PI * 2); ctx.fill();
+        view.ctx.fillStyle = 'rgba(40,38,46,0.20)';
+        view.ctx.beginPath(); view.ctx.ellipse(r * 0.5, r * 0.7, r * 1.35, r * 1.0, 0, 0, Math.PI * 2); view.ctx.fill();
+        view.ctx.fillStyle = COL.coneDark;
+        view.ctx.beginPath(); view.ctx.arc(0, 0, r * 1.5, 0, Math.PI * 2); view.ctx.fill();
+        view.ctx.fillStyle = COL.cone;
+        view.ctx.beginPath(); view.ctx.arc(0, 0, r * 1.18, 0, Math.PI * 2); view.ctx.fill();
+        view.ctx.fillStyle = COL.coneBand;
+        view.ctx.beginPath(); view.ctx.arc(0, 0, r * 0.78, 0, Math.PI * 2); view.ctx.fill();
+        view.ctx.fillStyle = COL.cone;
+        view.ctx.beginPath(); view.ctx.arc(0, 0, r * 0.46, 0, Math.PI * 2); view.ctx.fill();
       }
-      ctx.restore();
+      view.ctx.restore();
     }
   }
 
@@ -2553,10 +2553,10 @@ export function createRenderer(canvas) {
     for (let i = chips.length - 1; i >= 0; i--) {
       const q = chips[i]; q.age += wallDt; if (q.age > q.life) { chips.splice(i, 1); continue; }
       q.x += q.vx * wallDt; q.y += q.vy * wallDt; const k = Math.max(0, 1 - 4 * wallDt); q.vx *= k; q.vy *= k;   // skid to a stop
-      ctx.globalAlpha = Math.min(1, q.life - q.age); ctx.fillStyle = q.col;
-      const z = Math.max(1, Math.round(q.sz * u)); ctx.fillRect(Math.round(sx(q.x) - z / 2), Math.round(sy(q.y) - z / 2), z, z);
+      view.ctx.globalAlpha = Math.min(1, q.life - q.age); view.ctx.fillStyle = q.col;
+      const z = Math.max(1, Math.round(q.sz * u)); view.ctx.fillRect(Math.round(sx(q.x) - z / 2), Math.round(sy(q.y) - z / 2), z, z);
     }
-    ctx.globalAlpha = 1;
+    view.ctx.globalAlpha = 1;
   }
   function drawPuffs(wallDt) {
     const p = PPMz();
@@ -2567,21 +2567,21 @@ export function createRenderer(canvas) {
       const t = q.age / q.life;
       q.x += q.vx * wallDt; q.y += q.vy * wallDt;
       q.vx *= 1 - 2.6 * wallDt; q.vy *= 1 - 2.6 * wallDt;   // air drag: clods slow and settle
-      ctx.fillStyle = `rgb(${q.rgb})`;
+      view.ctx.fillStyle = `rgb(${q.rgb})`;
       if (PIXEL) {
         // PIXEL PUFFS: a square snapped to the art-pixel grid, fading in STEPS (pixel-art smoke), not a smooth disc
-        ctx.globalAlpha = Math.ceil((1 - t) * 4) / 4 * 0.5;
-        const rr = Math.max(1, Math.round((q.r0 + t * q.grow) * p * dpr));
-        const bx = Math.round(sx(q.x) * dpr), by = Math.round(sy(q.y) * dpr);
-        ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillRect(bx - rr, by - rr, rr * 2, rr * 2); ctx.restore();
+        view.ctx.globalAlpha = Math.ceil((1 - t) * 4) / 4 * 0.5;
+        const rr = Math.max(1, Math.round((q.r0 + t * q.grow) * p * view.dpr));
+        const bx = Math.round(sx(q.x) * view.dpr), by = Math.round(sy(q.y) * view.dpr);
+        view.ctx.save(); view.ctx.setTransform(1, 0, 0, 1, 0, 0); view.ctx.fillRect(bx - rr, by - rr, rr * 2, rr * 2); view.ctx.restore();
         continue;
       }
-      ctx.globalAlpha = (1 - t) * 0.55;
-      ctx.beginPath();
-      ctx.arc(sx(q.x), sy(q.y), (q.r0 + t * q.grow) * p, 0, Math.PI * 2);
-      ctx.fill();
+      view.ctx.globalAlpha = (1 - t) * 0.55;
+      view.ctx.beginPath();
+      view.ctx.arc(sx(q.x), sy(q.y), (q.r0 + t * q.grow) * p, 0, Math.PI * 2);
+      view.ctx.fill();
     }
-    ctx.globalAlpha = 1;
+    view.ctx.globalAlpha = 1;
   }
   // ---------------------------------------------------------------- the car
   function wheel(g, lengthM, widthM, ppm, steer) {
@@ -2998,49 +2998,49 @@ export function createRenderer(canvas) {
   }
   function drawFaces(faces, Lp, sil, off) {
     for (const f of faces) {
-      ctx.save(); ctx.translate(off, f.cy + off); ctx.scale(1, f.ky);
-      ctx.drawImage(sil ? silhouette(f.cv) : f.cv, -Lp / 2 - 2, -f.hh / 2 - 2);
-      ctx.restore();
+      view.ctx.save(); view.ctx.translate(off, f.cy + off); view.ctx.scale(1, f.ky);
+      view.ctx.drawImage(sil ? silhouette(f.cv) : f.cv, -Lp / 2 - 2, -f.hh / 2 - 2);
+      view.ctx.restore();
     }
   }
   function drawPixelCar(car) {
     const s = car.spec, sp0 = pixelCar(s), sp = car.dmg ? damagedSprite(car, sp0) : sp0, u = PPMz() / SPRITE_PPM;
-    ctx.save();
-    ctx.translate(sx(car.x), sy(car.y));
-    ctx.rotate(car.heading);
-    ctx.scale(u, u);
+    view.ctx.save();
+    view.ctx.translate(sx(car.x), sy(car.y));
+    view.ctx.rotate(car.heading);
+    view.ctx.scale(u, u);
     // shadow: a darker copy of the sprite, offset down-right by the car's ride height (cars.js rideH)
     const shOff = 2 + Math.round((s.rideH || 0.13) * 10);
     if (car.roll && car.roll.phi) {
       const faces = rolledFaces(car, sp, car.roll.phi);
-      ctx.globalAlpha = 0.3; drawFaces(faces, sp.Lp, true, shOff + 2); ctx.globalAlpha = 1;
+      view.ctx.globalAlpha = 0.3; drawFaces(faces, sp.Lp, true, shOff + 2); view.ctx.globalAlpha = 1;
       drawFaces(faces, sp.Lp, false, 0);
-      ctx.restore();
+      view.ctx.restore();
       return;
     }
-    ctx.globalAlpha = 0.3; ctx.drawImage(silhouette(sp.c), -sp.Lp / 2 - 2 + shOff, -sp.Wp / 2 - 2 + shOff); ctx.globalAlpha = 1;
+    view.ctx.globalAlpha = 0.3; view.ctx.drawImage(silhouette(sp.c), -sp.Lp / 2 - 2 + shOff, -sp.Wp / 2 - 2 + shOff); view.ctx.globalAlpha = 1;
     // wheels: pixel blocks, the fronts turned by the steering angle
     const tyreL = s.kind === 'track' ? 14 : s.kind === 'tractor' ? 15 : 11, tyreW = s.kind === 'track' ? 6 : 4;
     // at the body's EDGE so they poke out at the sides like the reference sprites (pass 1 hid them under the body)
     const hw = Math.max((s.trackWidth || 1.5) / 2 * SPRITE_PPM, sp.Wp / 2) + (s.kind === 'track' ? 1 : 0);
     for (const [ax, side, st, ci] of [[s.lf, -1, car.delta, 0], [s.lf, 1, car.delta, 1], [-s.lr, -1, 0, 2], [-s.lr, 1, 0, 3]]) {
-      if (car.wheelOff && car.wheelOff[ci]) { ctx.fillStyle = '#2b2d33'; ctx.fillRect(Math.round(ax * SPRITE_PPM) - 2, Math.round(side * hw) - 1, 4, 2); continue; }   // DAMAGE: wheel gone, a hub stub
-      ctx.save();
-      ctx.translate(Math.round(ax * SPRITE_PPM), Math.round(side * hw));
-      ctx.rotate(st);
+      if (car.wheelOff && car.wheelOff[ci]) { view.ctx.fillStyle = '#2b2d33'; view.ctx.fillRect(Math.round(ax * SPRITE_PPM) - 2, Math.round(side * hw) - 1, 4, 2); continue; }   // DAMAGE: wheel gone, a hub stub
+      view.ctx.save();
+      view.ctx.translate(Math.round(ax * SPRITE_PPM), Math.round(side * hw));
+      view.ctx.rotate(st);
       const big = s.kind === 'tractor' && ax < 0;                     // tractor: huge rear wheels, yellow rims
       const tl = big ? 20 : tyreL, tw = big ? 7 : tyreW;
-      ctx.fillStyle = '#16171c'; ctx.fillRect(-tl / 2, -tw / 2, tl, tw);
-      ctx.fillStyle = '#3a3d47'; ctx.fillRect(-tl / 2 + 2, -tw / 2, tl - 4, 1);
-      if (s.kind === 'tractor') { ctx.fillStyle = '#fbc02d'; ctx.fillRect(-2, -1, 4, 2); }
-      else if (s.rim) { ctx.fillStyle = s.rim; ctx.fillRect(-2, -1, 4, 2); }   // coloured wheels (the Subaroo's gold)
-      ctx.restore();
+      view.ctx.fillStyle = '#16171c'; view.ctx.fillRect(-tl / 2, -tw / 2, tl, tw);
+      view.ctx.fillStyle = '#3a3d47'; view.ctx.fillRect(-tl / 2 + 2, -tw / 2, tl - 4, 1);
+      if (s.kind === 'tractor') { view.ctx.fillStyle = '#fbc02d'; view.ctx.fillRect(-2, -1, 4, 2); }
+      else if (s.rim) { view.ctx.fillStyle = s.rim; view.ctx.fillRect(-2, -1, 4, 2); }   // coloured wheels (the Subaroo's gold)
+      view.ctx.restore();
     }
-    ctx.drawImage(sp.c, -sp.Lp / 2 - 2, -sp.Wp / 2 - 2);
+    view.ctx.drawImage(sp.c, -sp.Lp / 2 - 2, -sp.Wp / 2 - 2);
     // DAMAGE (damage.js): a dark crushed block on each hurt corner, growing with the damage, a pale crease along its edge; a punctured
     // wheel shows a bright rim. Squares, not curves (pixel rule).
     if (car.punct) for (let c = 0; c < 4; c++) {
-      if (car.punct[c]) { ctx.fillStyle = '#c9c9d2'; ctx.fillRect(Math.round((c < 2 ? s.lf : -s.lr) * SPRITE_PPM) - 2, Math.round((c % 2 ? 1 : -1) * hw) - 1, 4, 2); }
+      if (car.punct[c]) { view.ctx.fillStyle = '#c9c9d2'; view.ctx.fillRect(Math.round((c < 2 ? s.lf : -s.lr) * SPRITE_PPM) - 2, Math.round((c % 2 ? 1 : -1) * hw) - 1, 4, 2); }
     }
     // brake lights glow when braking (a live overlay on the sprite)
     // HEADLIGHTS (user, 2026-10-04: "all cars have working headlights"): two soft beams ahead (drawn in the car's frame, art px), brighter
@@ -3060,24 +3060,24 @@ export function createRenderer(canvas) {
       for (const [y, cn] of [[-sp.Wp / 2 + 4, 0], [sp.Wp / 2 - 4, 1]]) {
         const lk = lamp(cn);
         if (!lk) continue;
-        const gr = ctx.createLinearGradient(sp.Lp / 2, 0, sp.Lp / 2 + 190, 0); gr.addColorStop(0, 'rgba(255,244,200,' + (0.34 * lk).toFixed(3) + ')'); gr.addColorStop(1, 'rgba(255,244,200,0)');
-        ctx.fillStyle = gr; ctx.beginPath(); ctx.moveTo(sp.Lp / 2 - 1, y - 2); ctx.lineTo(sp.Lp / 2 + 190, y - 34 + (y > 0 ? 30 : 0)); ctx.lineTo(sp.Lp / 2 + 190, y + 34 - (y < 0 ? 30 : 0)); ctx.lineTo(sp.Lp / 2 - 1, y + 2); ctx.closePath(); ctx.fill();
-        ctx.fillStyle = '#fffbe6'; ctx.fillRect(sp.Lp / 2 - 3, y - 2, 3, 4);
+        const gr = view.ctx.createLinearGradient(sp.Lp / 2, 0, sp.Lp / 2 + 190, 0); gr.addColorStop(0, 'rgba(255,244,200,' + (0.34 * lk).toFixed(3) + ')'); gr.addColorStop(1, 'rgba(255,244,200,0)');
+        view.ctx.fillStyle = gr; view.ctx.beginPath(); view.ctx.moveTo(sp.Lp / 2 - 1, y - 2); view.ctx.lineTo(sp.Lp / 2 + 190, y - 34 + (y > 0 ? 30 : 0)); view.ctx.lineTo(sp.Lp / 2 + 190, y + 34 - (y < 0 ? 30 : 0)); view.ctx.lineTo(sp.Lp / 2 - 1, y + 2); view.ctx.closePath(); view.ctx.fill();
+        view.ctx.fillStyle = '#fffbe6'; view.ctx.fillRect(sp.Lp / 2 - 3, y - 2, 3, 4);
       }
     }
     // HAZARDS (car.hazard, a crashed traffic car): both sides at once
     if ((car.indicator || car.hazard) && Math.floor(performance.now() / 333) % 2 === 0) for (const ind of car.hazard ? [-1, 1] : [car.indicator]) {
-      const y = ind < 0 ? -sp.Wp / 2 : sp.Wp / 2 - 3; ctx.fillStyle = '#ffa630';
+      const y = ind < 0 ? -sp.Wp / 2 : sp.Wp / 2 - 3; view.ctx.fillStyle = '#ffa630';
       const sd = ind < 0 ? 0 : 1;
-      if (lamp(sd)) ctx.fillRect(sp.Lp / 2 - 4, y, 3, 3);
-      if (lamp(sd + 2)) ctx.fillRect(-sp.Lp / 2 + 1, y, 3, 3);
+      if (lamp(sd)) view.ctx.fillRect(sp.Lp / 2 - 4, y, 3, 3);
+      if (lamp(sd + 2)) view.ctx.fillRect(-sp.Lp / 2 + 1, y, 3, 3);
     }
     if (car.brakeLight > 0.05) {
-      ctx.fillStyle = '#ff4a3a';
-      if (lamp(2)) ctx.fillRect(-sp.Lp / 2, -sp.Wp / 2 + 2, 2, 3);
-      if (lamp(3)) ctx.fillRect(-sp.Lp / 2, sp.Wp / 2 - 5, 2, 3);
+      view.ctx.fillStyle = '#ff4a3a';
+      if (lamp(2)) view.ctx.fillRect(-sp.Lp / 2, -sp.Wp / 2 + 2, 2, 3);
+      if (lamp(3)) view.ctx.fillRect(-sp.Lp / 2, sp.Wp / 2 - 5, 2, 3);
     }
-    ctx.restore();
+    view.ctx.restore();
   }
 
   function drawCar(car, wallT) {
@@ -3085,9 +3085,9 @@ export function createRenderer(canvas) {
     const px = sx(car.x), py = sy(car.y);
     const L = s.len, Wd = s.wid;
 
-    ctx.save();
-    ctx.translate(px, py);
-    ctx.rotate(car.heading);          // +x is forward, +y is the car's right
+    view.ctx.save();
+    view.ctx.translate(px, py);
+    view.ctx.rotate(car.heading);          // +x is forward, +y is the car's right
 
     // THE WHOLE CAR IS DRAWN AT A FIXED REFERENCE SCALE and then transformed to size.
     //
@@ -3107,7 +3107,7 @@ export function createRenderer(canvas) {
     // real launch gets big, and then it gets big because the car really is up there.
     const lift = Math.max(0, Math.min(1, car.z / 0.7));
     const u = (PPMz() / CAR_REF_PPM) * (1 + lift * 0.10);
-    ctx.scale(u, u);
+    view.ctx.scale(u, u);
     const ppm = CAR_REF_PPM;   // everything below is authored at this scale and scaled as a whole
     const half = (Wd / 2) * ppm;
     const nose = (L / 2) * ppm, tail = -(L / 2) * ppm;
@@ -3119,11 +3119,11 @@ export function createRenderer(canvas) {
     const lightWx = 3.5 + lift * 16, lightWy = 4.5 + lift * 20;   // shadow falls away as the car rises
     const ox = lightWx * Math.cos(-car.heading) - lightWy * Math.sin(-car.heading);
     const oy = lightWx * Math.sin(-car.heading) + lightWy * Math.cos(-car.heading);
-    ctx.save();
-    ctx.fillStyle = lift > 0.02 ? 'rgba(28,26,36,' + (0.17 + lift * 0.12).toFixed(3) + ')' : 'rgba(28,26,36,0.17)';
-    roundRect(ctx, tail + ox, -half * 0.98 + oy, nose - tail, half * 1.96, 7);
-    ctx.fill();
-    ctx.restore();
+    view.ctx.save();
+    view.ctx.fillStyle = lift > 0.02 ? 'rgba(28,26,36,' + (0.17 + lift * 0.12).toFixed(3) + ')' : 'rgba(28,26,36,0.17)';
+    roundRect(view.ctx, tail + ox, -half * 0.98 + oy, nose - tail, half * 1.96, 7);
+    view.ctx.fill();
+    view.ctx.restore();
 
     // Wheels sit at the body edge, drawn UNDER the bodywork. MEASURED BUG, 2026-09-28 (user:
     // "rally cars front wheels do not look like they turn"): the wheels sit at trackWidth/2, which is
@@ -3139,10 +3139,10 @@ export function createRenderer(canvas) {
       ]) {
         const curWw = isTrack ? (ax > 0 ? 0.31 : 0.42) : 0.26;
         const curWl = isTrack ? (ax > 0 ? 0.72 : 0.76) : 0.72;
-        ctx.save();
-        ctx.translate(ax * ppm, side * vhw);
-        wheel(ctx, curWl, curWw, ppm, st);
-        ctx.restore();
+        view.ctx.save();
+        view.ctx.translate(ax * ppm, side * vhw);
+        wheel(view.ctx, curWl, curWw, ppm, st);
+        view.ctx.restore();
       }
     };
 
@@ -3151,7 +3151,7 @@ export function createRenderer(canvas) {
     //      already computing).
     const rollPx = Math.max(-2.2, Math.min(2.2, (car.t.ay || 0) * 0.06));
     const pitchPx = Math.max(-2.2, Math.min(2.2, -(car.t.ax || 0) * 0.06));
-    ctx.translate(pitchPx, rollPx);
+    view.ctx.translate(pitchPx, rollPx);
 
     drawWheels();     // UNDER the bodywork — see the note above drawWheels
 
@@ -3162,270 +3162,270 @@ export function createRenderer(canvas) {
     if (kind === 'track') {
       const vhw = Math.max((s.trackWidth / 2) * ppm, half * 1.05);
       // 1. Suspension wishbones: bright metallic graphite with high contrast
-      ctx.strokeStyle = '#787e90';
-      ctx.lineWidth = 1.6;
+      view.ctx.strokeStyle = '#787e90';
+      view.ctx.lineWidth = 1.6;
       for (const [ax, side] of [
         [s.lf, -1], [s.lf, 1], [-s.lr, -1], [-s.lr, 1],
       ]) {
         const wx = ax * ppm, wy = side * vhw;
-        ctx.beginPath();
-        ctx.moveTo(ax * ppm * 0.45, side * half * 0.35);
-        ctx.lineTo(wx, wy);
-        ctx.moveTo(ax * ppm * 1.05, side * half * 0.35);
-        ctx.lineTo(wx, wy);
-        ctx.stroke();
+        view.ctx.beginPath();
+        view.ctx.moveTo(ax * ppm * 0.45, side * half * 0.35);
+        view.ctx.lineTo(wx, wy);
+        view.ctx.moveTo(ax * ppm * 1.05, side * half * 0.35);
+        view.ctx.lineTo(wx, wy);
+        view.ctx.stroke();
       }
 
       // 2. Sculpted Monocoque Tub + Sidepods (Coke-bottle aerodynamic tapering)
       const tubHalf = half * 0.36;
       const podHalf = half * 0.76;
-      ctx.fillStyle = s.paint;
-      ctx.beginPath();
-      ctx.moveTo(nose * 0.95, 0);
-      ctx.lineTo(nose * 0.45, -tubHalf);
-      ctx.lineTo(nose * 0.10, -podHalf);
-      ctx.lineTo(tail * 0.40, -podHalf * 0.95);
-      ctx.lineTo(tail * 0.75, -tubHalf * 1.1);
-      ctx.lineTo(tail * 0.95, -tubHalf * 0.85);
-      ctx.lineTo(tail * 0.95, tubHalf * 0.85);
-      ctx.lineTo(tail * 0.75, tubHalf * 1.1);
-      ctx.lineTo(tail * 0.40, podHalf * 0.95);
-      ctx.lineTo(nose * 0.10, podHalf);
-      ctx.lineTo(nose * 0.45, tubHalf);
-      ctx.closePath();
-      ctx.fill();
-      ctx.strokeStyle = '#323642';
-      ctx.lineWidth = 1.8;
-      ctx.stroke();
+      view.ctx.fillStyle = s.paint;
+      view.ctx.beginPath();
+      view.ctx.moveTo(nose * 0.95, 0);
+      view.ctx.lineTo(nose * 0.45, -tubHalf);
+      view.ctx.lineTo(nose * 0.10, -podHalf);
+      view.ctx.lineTo(tail * 0.40, -podHalf * 0.95);
+      view.ctx.lineTo(tail * 0.75, -tubHalf * 1.1);
+      view.ctx.lineTo(tail * 0.95, -tubHalf * 0.85);
+      view.ctx.lineTo(tail * 0.95, tubHalf * 0.85);
+      view.ctx.lineTo(tail * 0.75, tubHalf * 1.1);
+      view.ctx.lineTo(tail * 0.40, podHalf * 0.95);
+      view.ctx.lineTo(nose * 0.10, podHalf);
+      view.ctx.lineTo(nose * 0.45, tubHalf);
+      view.ctx.closePath();
+      view.ctx.fill();
+      view.ctx.strokeStyle = '#323642';
+      view.ctx.lineWidth = 1.8;
+      view.ctx.stroke();
 
       // Livery racing stripe
-      ctx.fillStyle = '#e03434';
-      ctx.fillRect(tail * 0.70, -2, (nose - tail) * 0.75, 4);
+      view.ctx.fillStyle = '#e03434';
+      view.ctx.fillRect(tail * 0.70, -2, (nose - tail) * 0.75, 4);
 
       // 3. Sidepod radiator dark inlets
-      ctx.fillStyle = '#14151a';
-      ctx.fillRect(nose * 0.08, -podHalf + 1, ppm * 0.22, podHalf * 0.28);
-      ctx.fillRect(nose * 0.08, podHalf * 0.72 - 1, ppm * 0.22, podHalf * 0.28);
+      view.ctx.fillStyle = '#14151a';
+      view.ctx.fillRect(nose * 0.08, -podHalf + 1, ppm * 0.22, podHalf * 0.28);
+      view.ctx.fillRect(nose * 0.08, podHalf * 0.72 - 1, ppm * 0.22, podHalf * 0.28);
 
       // 4. Front multi-element aerodynamic wing with endplates
-      ctx.fillStyle = '#2a2d36';
-      roundRect(ctx, nose * 0.90, -half * 0.98, ppm * 0.28, half * 1.96, 2);
-      ctx.fill();
-      ctx.strokeStyle = '#62687a';
-      ctx.lineWidth = 1.2;
-      ctx.stroke();
+      view.ctx.fillStyle = '#2a2d36';
+      roundRect(view.ctx, nose * 0.90, -half * 0.98, ppm * 0.28, half * 1.96, 2);
+      view.ctx.fill();
+      view.ctx.strokeStyle = '#62687a';
+      view.ctx.lineWidth = 1.2;
+      view.ctx.stroke();
 
       // Front wing red cascade flap
-      ctx.fillStyle = '#e03434';
-      roundRect(ctx, nose * 0.82, -half * 0.92, ppm * 0.10, half * 1.84, 1);
-      ctx.fill();
+      view.ctx.fillStyle = '#e03434';
+      roundRect(view.ctx, nose * 0.82, -half * 0.92, ppm * 0.10, half * 1.84, 1);
+      view.ctx.fill();
 
       // Front wing endplates (bright border so they pop against asphalt)
-      ctx.fillStyle = '#181920';
-      roundRect(ctx, nose * 0.76, -half * 1.01, ppm * 0.42, 2.5, 1);
-      ctx.fill();
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 1;
-      ctx.stroke();
+      view.ctx.fillStyle = '#181920';
+      roundRect(view.ctx, nose * 0.76, -half * 1.01, ppm * 0.42, 2.5, 1);
+      view.ctx.fill();
+      view.ctx.strokeStyle = '#ffffff';
+      view.ctx.lineWidth = 1;
+      view.ctx.stroke();
 
-      roundRect(ctx, nose * 0.76, half * 0.98, ppm * 0.42, 2.5, 1);
-      ctx.fill();
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 1;
-      ctx.stroke();
+      roundRect(view.ctx, nose * 0.76, half * 0.98, ppm * 0.42, 2.5, 1);
+      view.ctx.fill();
+      view.ctx.strokeStyle = '#ffffff';
+      view.ctx.lineWidth = 1;
+      view.ctx.stroke();
 
       // 5. Massive rear dual-element wing with endplates & rain light
-      ctx.fillStyle = '#2a2d36';
-      roundRect(ctx, tail * 0.92, -half * 0.98, ppm * 0.35, half * 1.96, 2);
-      ctx.fill();
-      ctx.strokeStyle = '#62687a';
-      ctx.lineWidth = 1.2;
-      ctx.stroke();
+      view.ctx.fillStyle = '#2a2d36';
+      roundRect(view.ctx, tail * 0.92, -half * 0.98, ppm * 0.35, half * 1.96, 2);
+      view.ctx.fill();
+      view.ctx.strokeStyle = '#62687a';
+      view.ctx.lineWidth = 1.2;
+      view.ctx.stroke();
 
       // Rear wing DRS flap
-      ctx.fillStyle = '#e03434';
-      roundRect(ctx, tail * 0.82, -half * 0.92, ppm * 0.12, half * 1.84, 1);
-      ctx.fill();
+      view.ctx.fillStyle = '#e03434';
+      roundRect(view.ctx, tail * 0.82, -half * 0.92, ppm * 0.12, half * 1.84, 1);
+      view.ctx.fill();
 
       // Rear wing endplates
-      ctx.fillStyle = '#181920';
-      roundRect(ctx, tail * 1.02, -half * 1.01, ppm * 0.50, 2.5, 1);
-      ctx.fill();
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 1;
-      ctx.stroke();
+      view.ctx.fillStyle = '#181920';
+      roundRect(view.ctx, tail * 1.02, -half * 1.01, ppm * 0.50, 2.5, 1);
+      view.ctx.fill();
+      view.ctx.strokeStyle = '#ffffff';
+      view.ctx.lineWidth = 1;
+      view.ctx.stroke();
 
-      roundRect(ctx, tail * 1.02, half * 0.98, ppm * 0.50, 2.5, 1);
-      ctx.fill();
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 1;
-      ctx.stroke();
+      roundRect(view.ctx, tail * 1.02, half * 0.98, ppm * 0.50, 2.5, 1);
+      view.ctx.fill();
+      view.ctx.strokeStyle = '#ffffff';
+      view.ctx.lineWidth = 1;
+      view.ctx.stroke();
 
       // Rear red LED rain / hazard safety light
-      ctx.fillStyle = '#ff2222';
-      ctx.beginPath();
-      ctx.arc(tail * 0.98, 0, 2.5, 0, Math.PI * 2);
-      ctx.fill();
+      view.ctx.fillStyle = '#ff2222';
+      view.ctx.beginPath();
+      view.ctx.arc(tail * 0.98, 0, 2.5, 0, Math.PI * 2);
+      view.ctx.fill();
 
       // 6. Cockpit, Halo structure & Driver Helmet
-      ctx.fillStyle = '#15161c';
-      ctx.beginPath();
-      ctx.ellipse(-ppm * 0.08, 0, ppm * 0.38, tubHalf * 0.75, 0, 0, Math.PI * 2);
-      ctx.fill();
+      view.ctx.fillStyle = '#15161c';
+      view.ctx.beginPath();
+      view.ctx.ellipse(-ppm * 0.08, 0, ppm * 0.38, tubHalf * 0.75, 0, 0, Math.PI * 2);
+      view.ctx.fill();
 
-      ctx.fillStyle = '#f0c030';
-      ctx.beginPath();
-      ctx.arc(-ppm * 0.10, 0, ppm * 0.18, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = '#1c2230';
-      ctx.fillRect(-ppm * 0.04, -ppm * 0.10, ppm * 0.08, ppm * 0.20);
+      view.ctx.fillStyle = '#f0c030';
+      view.ctx.beginPath();
+      view.ctx.arc(-ppm * 0.10, 0, ppm * 0.18, 0, Math.PI * 2);
+      view.ctx.fill();
+      view.ctx.fillStyle = '#1c2230';
+      view.ctx.fillRect(-ppm * 0.04, -ppm * 0.10, ppm * 0.08, ppm * 0.20);
 
-      ctx.strokeStyle = '#282930';
-      ctx.lineWidth = 2.2;
-      ctx.beginPath();
-      ctx.moveTo(-ppm * 0.32, -tubHalf * 0.7);
-      ctx.lineTo(ppm * 0.14, 0);
-      ctx.lineTo(-ppm * 0.32, tubHalf * 0.7);
-      ctx.stroke();
+      view.ctx.strokeStyle = '#282930';
+      view.ctx.lineWidth = 2.2;
+      view.ctx.beginPath();
+      view.ctx.moveTo(-ppm * 0.32, -tubHalf * 0.7);
+      view.ctx.lineTo(ppm * 0.14, 0);
+      view.ctx.lineTo(-ppm * 0.32, tubHalf * 0.7);
+      view.ctx.stroke();
 
       // Engine airbox scoop above driver head
-      ctx.fillStyle = '#1c1d24';
-      ctx.beginPath();
-      ctx.ellipse(tail * 0.36, 0, ppm * 0.16, tubHalf * 0.45, 0, 0, Math.PI * 2);
-      ctx.fill();
+      view.ctx.fillStyle = '#1c1d24';
+      view.ctx.beginPath();
+      view.ctx.ellipse(tail * 0.36, 0, ppm * 0.16, tubHalf * 0.45, 0, 0, Math.PI * 2);
+      view.ctx.fill();
     } else {
       // a proper car shell: slightly narrower at the nose, rounded, with a gradient across the width
-      ctx.beginPath();
-      ctx.moveTo(nose - 4, -half * 0.88);
-      ctx.quadraticCurveTo(nose, -half * 0.88, nose, -half * 0.62);
-      ctx.lineTo(nose, half * 0.62);
-      ctx.quadraticCurveTo(nose, half * 0.88, nose - 4, half * 0.88);
-      ctx.lineTo(tail + 4, half * 0.96);
-      ctx.quadraticCurveTo(tail, half * 0.96, tail, half * 0.7);
-      ctx.lineTo(tail, -half * 0.7);
-      ctx.quadraticCurveTo(tail, -half * 0.96, tail + 4, -half * 0.96);
-      ctx.closePath();
-      const bg = ctx.createLinearGradient(0, -half, 0, half);
+      view.ctx.beginPath();
+      view.ctx.moveTo(nose - 4, -half * 0.88);
+      view.ctx.quadraticCurveTo(nose, -half * 0.88, nose, -half * 0.62);
+      view.ctx.lineTo(nose, half * 0.62);
+      view.ctx.quadraticCurveTo(nose, half * 0.88, nose - 4, half * 0.88);
+      view.ctx.lineTo(tail + 4, half * 0.96);
+      view.ctx.quadraticCurveTo(tail, half * 0.96, tail, half * 0.7);
+      view.ctx.lineTo(tail, -half * 0.7);
+      view.ctx.quadraticCurveTo(tail, -half * 0.96, tail + 4, -half * 0.96);
+      view.ctx.closePath();
+      const bg = view.ctx.createLinearGradient(0, -half, 0, half);
       bg.addColorStop(0, shade(s.paint, 1.16));
       bg.addColorStop(0.42, s.paint);
       bg.addColorStop(1, shade(s.paint, 0.74));
-      ctx.fillStyle = bg;
-      ctx.fill();
+      view.ctx.fillStyle = bg;
+      view.ctx.fill();
       // DARK RIM (§4) — this is what stops the car dissolving into a pale floor
-      ctx.strokeStyle = shade(s.paint, 0.45);
-      ctx.lineWidth = 1.8;
-      ctx.stroke();
+      view.ctx.strokeStyle = shade(s.paint, 0.45);
+      view.ctx.lineWidth = 1.8;
+      view.ctx.stroke();
 
       // greenhouse: windscreen, roof, rear screen. Proportions carry the archetype.
       const cabF = kind === 'muscle' ? 0.02 : kind === 'estate' ? 0.20 : 0.16;
       const cabR = kind === 'estate' ? -0.44 : kind === 'muscle' ? -0.40 : -0.36;
       const gh = half * 0.74;
-      ctx.fillStyle = s.glass;
-      ctx.beginPath();
-      ctx.moveTo(L * cabF * ppm, -gh * 0.80);
-      ctx.lineTo(L * cabF * ppm + 3, gh * 0.80);
-      ctx.lineTo(L * cabR * ppm, gh);
-      ctx.lineTo(L * cabR * ppm, -gh);
-      ctx.closePath();
-      ctx.fill();
+      view.ctx.fillStyle = s.glass;
+      view.ctx.beginPath();
+      view.ctx.moveTo(L * cabF * ppm, -gh * 0.80);
+      view.ctx.lineTo(L * cabF * ppm + 3, gh * 0.80);
+      view.ctx.lineTo(L * cabR * ppm, gh);
+      view.ctx.lineTo(L * cabR * ppm, -gh);
+      view.ctx.closePath();
+      view.ctx.fill();
       // roof panel in body colour over the middle of the greenhouse
-      ctx.fillStyle = shade(s.paint, 1.04);
+      view.ctx.fillStyle = shade(s.paint, 1.04);
       const rf = L * (cabF - 0.06) * ppm, rr = L * (cabR + 0.06) * ppm;
-      roundRect(ctx, rr, -gh * 0.92, rf - rr, gh * 1.84, 3);
-      ctx.fill();
-      ctx.strokeStyle = shade(s.paint, 0.55); ctx.lineWidth = 1; ctx.stroke();
+      roundRect(view.ctx, rr, -gh * 0.92, rf - rr, gh * 1.84, 3);
+      view.ctx.fill();
+      view.ctx.strokeStyle = shade(s.paint, 0.55); view.ctx.lineWidth = 1; view.ctx.stroke();
 
       // estate roof rails — the silhouette cue that says "estate" at a glance
       if (kind === 'estate') {
-        ctx.fillStyle = shade(s.paint, 0.6);
-        roundRect(ctx, L * cabR * ppm, -gh * 0.95, (L * cabF - L * cabR) * ppm, 2, 1); ctx.fill();
-        roundRect(ctx, L * cabR * ppm, gh * 0.95 - 2, (L * cabF - L * cabR) * ppm, 2, 1); ctx.fill();
+        view.ctx.fillStyle = shade(s.paint, 0.6);
+        roundRect(view.ctx, L * cabR * ppm, -gh * 0.95, (L * cabF - L * cabR) * ppm, 2, 1); view.ctx.fill();
+        roundRect(view.ctx, L * cabR * ppm, gh * 0.95 - 2, (L * cabF - L * cabR) * ppm, 2, 1); view.ctx.fill();
       }
       // RALLY: roof scoop, bonnet vents, a big rear wing and arch extensions. The silhouette has to say
       // "rally car" at phone size, so it is all read from the outline rather than from detail.
       if (kind === 'rally') {
         // wide arch extensions, front and rear
-        ctx.fillStyle = shade(s.paint, 0.62);
+        view.ctx.fillStyle = shade(s.paint, 0.62);
         for (const ax of [s.lf * ppm, -s.lr * ppm]) {
-          roundRect(ctx, ax - 9, -half * 1.06, 18, half * 0.22, 2); ctx.fill();
-          roundRect(ctx, ax - 9, half * 0.84, 18, half * 0.22, 2); ctx.fill();
+          roundRect(view.ctx, ax - 9, -half * 1.06, 18, half * 0.22, 2); view.ctx.fill();
+          roundRect(view.ctx, ax - 9, half * 0.84, 18, half * 0.22, 2); view.ctx.fill();
         }
         // rear wing on end plates, clear of the body
-        ctx.fillStyle = shade(s.paint, 0.5);
-        roundRect(ctx, tail + 1, -half * 1.02, 6, half * 2.04, 2); ctx.fill();
-        ctx.fillStyle = s.trim;
-        roundRect(ctx, tail + 0, -half * 1.02, 3, 5, 1); ctx.fill();
-        roundRect(ctx, tail + 0, half * 1.02 - 5, 3, 5, 1); ctx.fill();
+        view.ctx.fillStyle = shade(s.paint, 0.5);
+        roundRect(view.ctx, tail + 1, -half * 1.02, 6, half * 2.04, 2); view.ctx.fill();
+        view.ctx.fillStyle = s.trim;
+        roundRect(view.ctx, tail + 0, -half * 1.02, 3, 5, 1); view.ctx.fill();
+        roundRect(view.ctx, tail + 0, half * 1.02 - 5, 3, 5, 1); view.ctx.fill();
         // roof scoop
-        ctx.fillStyle = shade(s.paint, 0.55);
-        roundRect(ctx, L * 0.04 * ppm, -half * 0.22, 10, half * 0.44, 2); ctx.fill();
+        view.ctx.fillStyle = shade(s.paint, 0.55);
+        roundRect(view.ctx, L * 0.04 * ppm, -half * 0.22, 10, half * 0.44, 2); view.ctx.fill();
         // bonnet vents
-        ctx.fillStyle = 'rgba(24,22,30,0.55)';
-        roundRect(ctx, nose - 17, -half * 0.42, 7, half * 0.20, 1); ctx.fill();
-        roundRect(ctx, nose - 17, half * 0.22, 7, half * 0.20, 1); ctx.fill();
+        view.ctx.fillStyle = 'rgba(24,22,30,0.55)';
+        roundRect(view.ctx, nose - 17, -half * 0.42, 7, half * 0.20, 1); view.ctx.fill();
+        roundRect(view.ctx, nose - 17, half * 0.22, 7, half * 0.20, 1); view.ctx.fill();
         // bonnet light pod
-        ctx.fillStyle = '#fff4d2';
-        roundRect(ctx, nose - 11, -half * 0.30, 5, half * 0.60, 2); ctx.fill();
+        view.ctx.fillStyle = '#fff4d2';
+        roundRect(view.ctx, nose - 11, -half * 0.30, 5, half * 0.60, 2); view.ctx.fill();
       }
       // muscle car bonnet stripes + scoop
       if (kind === 'muscle') {
-        ctx.fillStyle = 'rgba(28,26,32,0.55)';
-        roundRect(ctx, L * 0.06 * ppm, -half * 0.30, nose - L * 0.06 * ppm - 2, half * 0.16, 1); ctx.fill();
-        roundRect(ctx, L * 0.06 * ppm, half * 0.14, nose - L * 0.06 * ppm - 2, half * 0.16, 1); ctx.fill();
-        ctx.fillStyle = shade(s.paint, 0.5);
-        roundRect(ctx, L * 0.16 * ppm, -half * 0.34, 8, half * 0.68, 2); ctx.fill();
+        view.ctx.fillStyle = 'rgba(28,26,32,0.55)';
+        roundRect(view.ctx, L * 0.06 * ppm, -half * 0.30, nose - L * 0.06 * ppm - 2, half * 0.16, 1); view.ctx.fill();
+        roundRect(view.ctx, L * 0.06 * ppm, half * 0.14, nose - L * 0.06 * ppm - 2, half * 0.16, 1); view.ctx.fill();
+        view.ctx.fillStyle = shade(s.paint, 0.5);
+        roundRect(view.ctx, L * 0.16 * ppm, -half * 0.34, 8, half * 0.68, 2); view.ctx.fill();
       }
       // tractor: wide rear fenders, yellow front grille, exhaust stack
       if (kind === 'tractor') {
-        ctx.fillStyle = shade(s.paint, 0.65);
-        roundRect(ctx, -s.lr * ppm - 10, -half * 1.08, 22, half * 0.32, 2); ctx.fill();
-        roundRect(ctx, -s.lr * ppm - 10, half * 0.76, 22, half * 0.32, 2); ctx.fill();
-        ctx.fillStyle = '#1e2024';
-        ctx.beginPath(); ctx.arc(nose * 0.35, -half * 0.45, 3.5, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = s.trim;
-        roundRect(ctx, nose - 4, -half * 0.45, 3, half * 0.9, 1); ctx.fill();
+        view.ctx.fillStyle = shade(s.paint, 0.65);
+        roundRect(view.ctx, -s.lr * ppm - 10, -half * 1.08, 22, half * 0.32, 2); view.ctx.fill();
+        roundRect(view.ctx, -s.lr * ppm - 10, half * 0.76, 22, half * 0.32, 2); view.ctx.fill();
+        view.ctx.fillStyle = '#1e2024';
+        view.ctx.beginPath(); view.ctx.arc(nose * 0.35, -half * 0.45, 3.5, 0, Math.PI * 2); view.ctx.fill();
+        view.ctx.fillStyle = s.trim;
+        roundRect(view.ctx, nose - 4, -half * 0.45, 3, half * 0.9, 1); view.ctx.fill();
       }
 
       // panel shut lines — cheap detail that reads as "a made object"
-      ctx.strokeStyle = 'rgba(30,28,36,0.22)';
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(L * cabF * ppm, -half * 0.86); ctx.lineTo(L * cabF * ppm, half * 0.86);
-      ctx.moveTo(L * cabR * ppm, -half * 0.9); ctx.lineTo(L * cabR * ppm, half * 0.9);
-      ctx.stroke();
+      view.ctx.strokeStyle = 'rgba(30,28,36,0.22)';
+      view.ctx.lineWidth = 1;
+      view.ctx.beginPath();
+      view.ctx.moveTo(L * cabF * ppm, -half * 0.86); view.ctx.lineTo(L * cabF * ppm, half * 0.86);
+      view.ctx.moveTo(L * cabR * ppm, -half * 0.9); view.ctx.lineTo(L * cabR * ppm, half * 0.9);
+      view.ctx.stroke();
 
       // wing mirrors
-      ctx.fillStyle = shade(s.paint, 0.8);
-      roundRect(ctx, L * (cabF - 0.01) * ppm, -half * 1.04, 4, 3, 1); ctx.fill();
-      roundRect(ctx, L * (cabF - 0.01) * ppm, half * 1.04 - 3, 4, 3, 1); ctx.fill();
+      view.ctx.fillStyle = shade(s.paint, 0.8);
+      roundRect(view.ctx, L * (cabF - 0.01) * ppm, -half * 1.04, 4, 3, 1); view.ctx.fill();
+      roundRect(view.ctx, L * (cabF - 0.01) * ppm, half * 1.04 - 3, 4, 3, 1); view.ctx.fill();
 
       // lights: warm at the front, red at the back. The front end must be unmistakable.
-      ctx.fillStyle = '#fff6dc';
-      roundRect(ctx, nose - 5, -half * 0.58, 4, half * 0.30, 1.5); ctx.fill();
-      roundRect(ctx, nose - 5, half * 0.28, 4, half * 0.30, 1.5); ctx.fill();
+      view.ctx.fillStyle = '#fff6dc';
+      roundRect(view.ctx, nose - 5, -half * 0.58, 4, half * 0.30, 1.5); view.ctx.fill();
+      roundRect(view.ctx, nose - 5, half * 0.28, 4, half * 0.30, 1.5); view.ctx.fill();
       // brake lights brighten under braking — a free, honest state readout (rule 10)
       const braking = car.t.lockedF || car.t.lockedR || (car.brakeLight || 0) > 0.05;
-      ctx.fillStyle = braking ? '#ff5248' : '#a8302c';
-      roundRect(ctx, tail + 1, -half * 0.62, 4, half * 0.34, 1.5); ctx.fill();
-      roundRect(ctx, tail + 1, half * 0.28, 4, half * 0.34, 1.5); ctx.fill();
+      view.ctx.fillStyle = braking ? '#ff5248' : '#a8302c';
+      roundRect(view.ctx, tail + 1, -half * 0.62, 4, half * 0.34, 1.5); view.ctx.fill();
+      roundRect(view.ctx, tail + 1, half * 0.28, 4, half * 0.34, 1.5); view.ctx.fill();
       if (braking) {
-        ctx.globalAlpha = 0.5;
-        ctx.fillStyle = '#ff6a60';
-        roundRect(ctx, tail - 1, -half * 0.7, 7, half * 1.4, 2); ctx.fill();
-        ctx.globalAlpha = 1;
+        view.ctx.globalAlpha = 0.5;
+        view.ctx.fillStyle = '#ff6a60';
+        roundRect(view.ctx, tail - 1, -half * 0.7, 7, half * 1.4, 2); view.ctx.fill();
+        view.ctx.globalAlpha = 1;
       }
 
       // specular streak down the shoulder — the "realistic" bit; keep it subtle
-      const sp = ctx.createLinearGradient(tail, 0, nose, 0);
+      const sp = view.ctx.createLinearGradient(tail, 0, nose, 0);
       sp.addColorStop(0, 'rgba(255,255,255,0)');
       sp.addColorStop(0.5, 'rgba(255,255,255,0.30)');
       sp.addColorStop(1, 'rgba(255,255,255,0)');
-      ctx.fillStyle = sp;
-      roundRect(ctx, tail + 6, -half * 0.80, nose - tail - 12, 2.2, 1);
-      ctx.fill();
+      view.ctx.fillStyle = sp;
+      roundRect(view.ctx, tail + 6, -half * 0.80, nose - tail - 12, 2.2, 1);
+      view.ctx.fill();
     }
 
-    ctx.restore();
+    view.ctx.restore();
   }
 
   // ---------------------------------------------------------------- GROUND TILES (2026-10-03)
@@ -3527,14 +3527,14 @@ export function createRenderer(canvas) {
     return { c, g: c.getContext('2d', { willReadFrequently: true }) };
   }
   function paintTileInner(k, i, j) {
-    const zq = zOfStep(k), pq = PPM * zq, tw = TILE_PX / pq;     // world metres per tile
-    const px = Math.round(TILE_PX * dpr), c = document.createElement('canvas');
+    const zq = zOfStep(k), pq = view.PPM * zq, tw = TILE_PX / pq;     // world metres per tile
+    const px = Math.round(TILE_PX * view.dpr), c = document.createElement('canvas');
     c.width = c.height = px;
     const viaScratch = PIXEL && !TILE_GPU, sc = viaScratch ? tileScratch(px) : null;
     const g = viaScratch ? sc.g : c.getContext('2d');
-    g.setTransform(dpr, 0, 0, dpr, 0, 0);
-    const keep = { ctx, W, H, zoom, cx: cam.x, cy: cam.y };
-    ctx = g; W = H = TILE_PX; zoom = zq; cam.x = (i + 0.5) * tw; cam.y = (j + 0.5) * tw;
+    g.setTransform(view.dpr, 0, 0, view.dpr, 0, 0);
+    const keep = { ctx: view.ctx, W: view.W, H: view.H, zoom: view.zoom, cx: cam.x, cy: cam.y };
+    view.ctx = g; view.W = view.H = TILE_PX; view.zoom = zq; cam.x = (i + 0.5) * tw; cam.y = (j + 0.5) * tw;
     try {
       drawFloor();
       drawZones();
@@ -3551,7 +3551,7 @@ export function createRenderer(canvas) {
       drawWear('cover');    // ... except where the cover itself has changed
       drawCurvedKerbs();    // kerbs last: no surface ever paints over a kerb
     } finally {
-      ctx = keep.ctx; W = keep.W; H = keep.H; zoom = keep.zoom; cam.x = keep.cx; cam.y = keep.cy;
+      view.ctx = keep.ctx; view.W = keep.W; view.H = keep.H; view.zoom = keep.zoom; cam.x = keep.cx; cam.y = keep.cy;
     }
     tilesPainted++;
     if (viaScratch) paletteSnap(sc.c, c);
@@ -3638,8 +3638,8 @@ export function createRenderer(canvas) {
   }
   // How many tiles of zoom step k that cover the view are not painted yet. Draws nothing.
   function countMissing(k) {
-    const tw = TILE_PX / (PPM * zOfStep(k)), p = PPMz();
-    const vx0 = cam.x - W / 2 / p, vx1 = cam.x + W / 2 / p, vy0 = cam.y - H / 2 / p, vy1 = cam.y + H / 2 / p;
+    const tw = TILE_PX / (view.PPM * zOfStep(k)), p = PPMz();
+    const vx0 = cam.x - view.W / 2 / p, vx1 = cam.x + view.W / 2 / p, vy0 = cam.y - view.H / 2 / p, vy1 = cam.y + view.H / 2 / p;
     let missing = 0;
     for (let i = Math.floor(vx0 / tw); i * tw < vx1; i++)
       for (let j = Math.floor(vy0 / tw); j * tw < vy1; j++) if (!tiles.has(k + '|' + i + '|' + j)) missing++;
@@ -3648,8 +3648,8 @@ export function createRenderer(canvas) {
   // Blit every tile of zoom step k that covers the view. Returns how many were missing. With
   // `paint` it paints missing tiles (budget permitting); without, it only draws what exists.
   function blitStep(k, paint, budget) {
-    const zq = zOfStep(k), tw = TILE_PX / (PPM * zq), p = PPMz();
-    const vx0 = cam.x - W / 2 / p, vx1 = cam.x + W / 2 / p, vy0 = cam.y - H / 2 / p, vy1 = cam.y + H / 2 / p;
+    const zq = zOfStep(k), tw = TILE_PX / (view.PPM * zq), p = PPMz();
+    const vx0 = cam.x - view.W / 2 / p, vx1 = cam.x + view.W / 2 / p, vy0 = cam.y - view.H / 2 / p, vy1 = cam.y + view.H / 2 / p;
     let missing = 0;
     for (let i = Math.floor(vx0 / tw); i * tw < vx1; i++) {
       for (let j = Math.floor(vy0 / tw); j * tw < vy1; j++) {
@@ -3662,9 +3662,9 @@ export function createRenderer(canvas) {
         t.used = tileFrame;
         // integer edges, so neighbouring tiles meet with no hairline seam
         // edges on whole ART pixels (dpr = art px per css px); with the pixel-locked view every tile is the same width
-        const x0 = Math.round(sx(i * tw) * dpr) / dpr, x1 = Math.round(sx((i + 1) * tw) * dpr) / dpr;
-        const y0 = Math.round(sy(j * tw) * dpr) / dpr, y1 = Math.round(sy((j + 1) * tw) * dpr) / dpr;
-        ctx.drawImage(t.c, x0, y0, x1 - x0, y1 - y0);
+        const x0 = Math.round(sx(i * tw) * view.dpr) / view.dpr, x1 = Math.round(sx((i + 1) * tw) * view.dpr) / view.dpr;
+        const y0 = Math.round(sy(j * tw) * view.dpr) / view.dpr, y1 = Math.round(sy((j + 1) * tw) * view.dpr) / view.dpr;
+        view.ctx.drawImage(t.c, x0, y0, x1 - x0, y1 - y0);
       }
     }
     return missing;
@@ -3684,7 +3684,7 @@ export function createRenderer(canvas) {
     for (const [key, t] of tiles) {
       if (t.stale) continue;
       const [k, i, j] = key.split('|').map(Number);
-      const tw = TILE_PX / (PPM * zOfStep(k)), x0 = i * tw, y0 = j * tw;
+      const tw = TILE_PX / (view.PPM * zOfStep(k)), x0 = i * tw, y0 = j * tw;
       for (const c of wearDirty) {
         const cx = c.cx * WEAR_CELL, cy = c.cy * WEAR_CELL;
         if (cx + WEAR_CELL >= x0 && cx <= x0 + tw && cy + WEAR_CELL >= y0 && cy <= y0 + tw) { t.stale = true; break; }
@@ -3696,13 +3696,13 @@ export function createRenderer(canvas) {
     drainWear(wallDt);
     tileFrame++;
     const layout = LEVEL.subtrack ? LEVEL.subtrack.layoutId || 0 : 0;   // a re-randomised track (Grass Track)
-    if (tileLevel !== LEVEL || tileDpr !== dpr || tilePPM !== PPM || tileLayout !== layout) {
-      tiles.clear(); tileLevel = LEVEL; tileDpr = dpr; tilePPM = PPM; tileLayout = layout; lastStep = null;
+    if (tileLevel !== LEVEL || tileDpr !== view.dpr || tilePPM !== view.PPM || tileLayout !== layout) {
+      tiles.clear(); tileLevel = LEVEL; tileDpr = view.dpr; tilePPM = view.PPM; tileLayout = layout; lastStep = null;
     }
-    if (fly && fly.ov && zoom < FLY_HANDOVER) {
+    if (fly && fly.ov && view.zoom < FLY_HANDOVER) {
       const o = fly.ov;
-      ctx.fillStyle = COL.outside; ctx.fillRect(0, 0, W, H);
-      ctx.drawImage(o.c, sx(o.x0), sy(o.y0), (o.x1 - o.x0) * PPMz(), (o.y1 - o.y0) * PPMz());
+      view.ctx.fillStyle = COL.outside; view.ctx.fillRect(0, 0, view.W, view.H);
+      view.ctx.drawImage(o.c, sx(o.x0), sy(o.y0), (o.x1 - o.x0) * PPMz(), (o.y1 - o.y0) * PPMz());
       if (car) {
         const budget = { n: FLY_PREFETCH };
         // the steps the camera will pass through after the hand-over, nearest-to-final first
@@ -3714,13 +3714,13 @@ export function createRenderer(canvas) {
     }
     // HYSTERESIS on the zoom step (perf, 2026-10-03): the speed zoom wanders across step boundaries all the time and every
     // switch repaints the whole view. Stay on the current step until the zoom is 0.75 of a step away from it.
-    let k = fly ? 2 * Math.ceil(zStepOf(zoom) / 2) : zStepOf(zoom);   // flight: even steps only, finer side
-    if (!fly && lastStep !== null && Math.abs(ZSTEP * Math.log2(zoom) - lastStep) < 0.75) k = lastStep;
+    let k = fly ? 2 * Math.ceil(zStepOf(view.zoom) / 2) : zStepOf(view.zoom);   // flight: even steps only, finer side
+    if (!fly && lastStep !== null && Math.abs(ZSTEP * Math.log2(view.zoom) - lastStep) < 0.75) k = lastStep;
     const budget = tileBudget();
     // count what the wanted step is missing BEFORE painting, to decide whether a stand-in is needed
     if (lastStep !== null && lastStep !== k && countMissing(k) > 0) {
       // the stand-in: the step we were on, scaled. Drawn first, then whatever of k exists goes over it.
-      ctx.fillStyle = standInFill(); ctx.fillRect(0, 0, W, H);
+      view.ctx.fillStyle = standInFill(); view.ctx.fillRect(0, 0, view.W, view.H);
       blitStep(lastStep, false, budget);
       const left = blitStep(k, true, budget);
       standIn = left > 0;
@@ -3732,7 +3732,7 @@ export function createRenderer(canvas) {
       // rest arrive over the next frames, so a frame or two shows a softer patch at the edge instead of a stall.
       if (countMissing(k) > 1) {
         const ov = levelOverview();
-        if (ov) { ctx.fillStyle = standInFill(); ctx.fillRect(0, 0, W, H); ctx.drawImage(ov.c, sx(ov.x0), sy(ov.y0), (ov.x1 - ov.x0) * PPMz(), (ov.y1 - ov.y0) * PPMz()); }
+        if (ov) { view.ctx.fillStyle = standInFill(); view.ctx.fillRect(0, 0, view.W, view.H); view.ctx.drawImage(ov.c, sx(ov.x0), sy(ov.y0), (ov.x1 - ov.x0) * PPMz(), (ov.y1 - ov.y0) * PPMz()); }
         standIn = blitStep(k, true, budget) > 0;
       } else { blitStep(k, true, { n: Infinity }); standIn = false; }
       lastStep = k;
@@ -3744,7 +3744,7 @@ export function createRenderer(canvas) {
     // paints a tile in < AHEAD_MAX_MS, a frame with NOTHING missing paints one tile from the view AHEAD of the car. Phones
     // (12-20 ms a tile at CPU x4) never qualify, so they keep the measured-better behaviour above.
     if (!standIn && !fly && car && tileAvg < AHEAD_MAX_MS && Math.hypot(car.vx, car.vy) > 3) {
-      prefetch(k, cam.x + car.vx * AHEAD_S, cam.y + car.vy * AHEAD_S, zoom, { n: 1 });
+      prefetch(k, cam.x + car.vx * AHEAD_S, cam.y + car.vy * AHEAD_S, view.zoom, { n: 1 });
     }
     if (tiles.size > TILE_MAX) {
       const old = [...tiles.entries()].sort((a, b) => a[1].used - b[1].used);
@@ -3766,13 +3766,13 @@ export function createRenderer(canvas) {
     // each edge was rounded separately, in CSS px not art px — so the pixel-art ground was resampled differently every frame: a shimmer.
     // For drawing only: the zoom is quantised so a tile of the current step is a WHOLE number of art pixels wide (steps of ~0.5 %,
     // invisible), and the camera snapped to a whole art pixel. The smoothed zoom is restored at the end of the frame.
-    const keepZoom = zoom;
+    const keepZoom = view.zoom;
     let subX = 0, subY = 0, camTrue = null;
-    if (!NO_LOCK && (!fly || zoom >= FLY_HANDOVER)) {
-      const k = (lastStep !== null && Math.abs(ZSTEP * Math.log2(zoom) - lastStep) < 0.75) ? lastStep : zStepOf(zoom);
-      const zq = zOfStep(k), N = Math.max(1, Math.round(TILE_PX * dpr * zoom / zq));
-      zoom = N * zq / (TILE_PX * dpr); drawnN = N;
-      const pd = PPM * zoom * dpr, hx = (W * dpr) / 2, hy = (H * dpr) / 2;
+    if (!NO_LOCK && (!fly || view.zoom >= FLY_HANDOVER)) {
+      const k = (lastStep !== null && Math.abs(ZSTEP * Math.log2(view.zoom) - lastStep) < 0.75) ? lastStep : zStepOf(view.zoom);
+      const zq = zOfStep(k), N = Math.max(1, Math.round(TILE_PX * view.dpr * view.zoom / zq));
+      view.zoom = N * zq / (TILE_PX * view.dpr); drawnN = N;
+      const pd = view.PPM * view.zoom * view.dpr, hx = (view.W * view.dpr) / 2, hy = (view.H * view.dpr) / 2;
       // SUB-PIXEL BLIT (user, 2026-10-04, after the lock: "it is still shaking or wiggling as I drive"). MEASURED (tools/wobblecheck):
       // snapping the camera to whole art pixels made the world move in uneven 1-or-2-art-pixel steps — camera jerk median 1.46 px per
       // frame, max 8.8 (unlocked: 0.03). Now the world is DRAWN at the snapped camera (crisp, no shimmer) and the finished art-pixel image
@@ -3805,7 +3805,7 @@ export function createRenderer(canvas) {
     drawPuffs(wallDt);
     drawChips(wallDt);          // paint chips on the ground, under the cars          // under the car: dust over the bonnet reads as a rendering fault
     // HIGHWAY TRAFFIC (traffic.js), only the ones near the view (they are spread over ~800 m), under the AI and the player
-    if (game.traffic) { const m = 12 * PPMz(); for (const c of game.traffic.cars) { const X = sx(c.x), Y = sy(c.y); if (X < -m || X > W + m || Y < -m || Y > H + m) continue;
+    if (game.traffic) { const m = 12 * PPMz(); for (const c of game.traffic.cars) { const X = sx(c.x), Y = sy(c.y); if (X < -m || X > view.W + m || Y < -m || Y > view.H + m) continue;
       if (PIXEL) drawPixelCar(c); else drawCar(c, wallT); } }
     for (const a of game.ai || []) { if (PIXEL) drawPixelCar(a.car); else drawCar(a.car, wallT); }   // AI cars under the player's
     if (PIXEL) drawPixelCar(game.car); else drawCar(game.car, wallT);
@@ -3817,7 +3817,7 @@ export function createRenderer(canvas) {
       mainCtx.drawImage(pcanvas, subX, subY, pcanvas.width * pk, pcanvas.height * pk);
       mainCtx.restore();
     }
-    zoom = keepZoom;
+    view.zoom = keepZoom;
     if (camTrue) { cam.x = camTrue.x; cam.y = camTrue.y; }   // the true camera for the next frame / tools
   }
 
@@ -3830,18 +3830,18 @@ export function createRenderer(canvas) {
 
   return {
     get ctx() { return mainCtx; },      // the HUD draws on the full-resolution screen, even in pixel mode
-    get W() { return W; },
-    get H() { return H; },
-    get dpr() { return dpr; },
+    get W() { return view.W; },
+    get H() { return view.H; },
+    get dpr() { return view.dpr; },
     cam, resize, frame, snap, sx, sy, roundRect, flyIn, thumbnail,
     get flying() { return !!fly; },
-    get PPM() { return PPM * zoom; },
+    get PPM() { return view.PPM * view.zoom; },
     get groundRenders() { return tilesPainted; },
     get tileMs() { return tileMs; },
     get staleRepaints() { return staleRepaints; },
     get drawnN() { return drawnN; },
     get overviewBounds() { const o = ovCache && ovCache.ov; return o ? [o.x0, o.y0, o.x1, o.y1] : null; },
-    get viewBounds() { const p = PPMz(); return [cam.x - W / 2 / p, cam.y - H / 2 / p, cam.x + W / 2 / p, cam.y + H / 2 / p]; },
+    get viewBounds() { const p = PPMz(); return [cam.x - view.W / 2 / p, cam.y - view.H / 2 / p, cam.x + view.W / 2 / p, cam.y + view.H / 2 / p]; },
     get standInFrame() { return standIn; },
     pixelCar,                           // for tools/spritesheet.mjs
     // the GARAGE lift (user, 2026-10-04: "some vehicles aren't showing their wheels in garage mode"): the body sprite only carries the
@@ -3867,16 +3867,16 @@ export function createRenderer(canvas) {
     // the level painted FLAT (each surface its base colour, no patterns, no palette snap) at ppm px per metre, plus
     // the colour each surface id is painted in, so the tool can compare every drawn pixel with groundAt().
     // for the photo tools (tools/_sceneryshots.mjs): pin the camera zoom (null = back to speed-driven)
-    debugZoom(z) { pinZoom = z; if (z) zoom = z; },
+    debugZoom(z) { pinZoom = z; if (z) view.zoom = z; },
     debugFlat(x0, y0, x1, y1, ppm) {
       const ow = Math.round((x1 - x0) * ppm), oh = Math.round((y1 - y0) * ppm);
       const c = document.createElement('canvas'); c.width = ow; c.height = oh;
-      const keep = { ctx, W, H, zoom, cx: cam.x, cy: cam.y };
-      ctx = c.getContext('2d'); W = ow; H = oh; zoom = ppm / PPM; cam.x = (x0 + x1) / 2; cam.y = (y0 + y1) / 2;
-      noPatterns = true;
+      const keep = { ctx: view.ctx, W: view.W, H: view.H, zoom: view.zoom, cx: cam.x, cy: cam.y };
+      view.ctx = c.getContext('2d'); view.W = ow; view.H = oh; view.zoom = ppm / view.PPM; cam.x = (x0 + x1) / 2; cam.y = (y0 + y1) / 2;
+      view.noPatterns = true;
       // the same ground layers frame() draws: the cached tiles' contents, then the live edge (run-off + edge kerb)
       try { drawFloor(); drawZones(); drawLanes(); drawTrackRibbon(); drawPatches(); drawCovers(); drawCurvedKerbs(); drawRunoff(); drawKerb(); }
-      finally { ctx = keep.ctx; W = keep.W; H = keep.H; zoom = keep.zoom; cam.x = keep.cx; cam.y = keep.cy; noPatterns = false; }
+      finally { view.ctx = keep.ctx; view.W = keep.W; view.H = keep.H; view.zoom = keep.zoom; cam.x = keep.cx; cam.y = keep.cy; view.noPatterns = false; }
       return { w: ow, h: oh, data: Array.from(c.getContext('2d').getImageData(0, 0, ow, oh).data) };
     },
     debugColours() {
