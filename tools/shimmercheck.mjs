@@ -2,12 +2,15 @@
 // autodrive lap; wraps drawImage to record every GROUND TILE blit in ART pixels (the pixel canvas): (1) tiles drawn at a fractional art-
 // pixel position, (2) frames where tiles of one step are drawn at DIFFERENT widths (each edge rounded separately -> the texture inside
 // stretches by a pixel, frame to frame = shimmer). Also the zoom change per frame. node tools/shimmercheck.mjs [level]
-import { chromium } from 'file:///C:/Users/Admin/Desktop/G/GamesStudio/BitterTrade/node_modules/playwright/index.mjs';
+import { startServer, launchBrowser } from './lib/browser.mjs';
 const lv = process.argv[2] || 'brands-snatch';
-const b = await chromium.launch({ channel: 'msedge' });
+const srv = await startServer();
+let b;
+try {
+b = await launchBrowser();
 const ctx = await b.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true });
 const p = await ctx.newPage();
-await p.goto('http://localhost:8080/?touch=1&guide=0&menu=0&level=' + lv + '&car=track-rwd'); await p.touchscreen.tap(400, 200); await p.waitForTimeout(4000);
+await p.goto(srv.url + '/?touch=1&guide=0&menu=0&level=' + lv + '&car=track-rwd'); await p.touchscreen.tap(400, 200); await p.waitForTimeout(4000);
 const r = await p.evaluate(() => new Promise(async (res) => {
   const g = window.__game; const A = await import('/src/autodrive.js'); const drv = A.createAutoDriver(g.level.subtrack);
   g.input.update = () => ({ ...drv.drive(g.car), reverse: 0, shiftUp: false, shiftDown: false });
@@ -32,3 +35,7 @@ const r = await p.evaluate(() => new Promise(async (res) => {
 console.log(JSON.stringify(r));
 console.log(`frames with a tile at a FRACTIONAL art pixel: ${r.fracFrames}/${r.frames}; frames with tiles at MIXED widths: ${r.mixFrames}/${r.frames}`);
 await b.close();
+} finally {
+  await b?.close();
+  srv.stop();
+}

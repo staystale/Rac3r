@@ -1,12 +1,15 @@
 // hwprofile.mjs — WHERE the time goes on the endless highway at phone-ish CPU: the CDP sampling profiler over a drive by the highway
 // weaver (as tools/hwjudder.mjs), self + total time per function, top N. Built 2026-10-06 for the highway judder.
 // node tools/hwprofile.mjs [seconds 12] [ai 0] [traffic 0] [cpu 4] [extra query] [top 30]
-import { chromium } from 'file:///C:/Users/Admin/Desktop/G/GamesStudio/BitterTrade/node_modules/playwright/index.mjs';
+import { startServer, launchBrowser } from './lib/browser.mjs';
 const SEC = +(process.argv[2] || 12), AI = +(process.argv[3] || 0), TR = process.argv[4] || '0', CPU = +(process.argv[5] || 4), extra = process.argv[6] || '', TOP = +(process.argv[7] || 30);
-const b = await chromium.launch({ channel: 'msedge' });
+const srv = await startServer();
+let b;
+try {
+b = await launchBrowser();
 const ctx = await b.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true });
 const p = await ctx.newPage();
-await p.goto(`http://localhost:8080/?touch=1&guide=0&menu=0&rules=0&level=highway&traffic=${TR}${extra}`); await p.waitForTimeout(1500);
+await p.goto(`${srv.url}/?touch=1&guide=0&menu=0&rules=0&level=highway&traffic=${TR}${extra}`); await p.waitForTimeout(1500);
 await p.touchscreen.tap(400, 200); await p.waitForTimeout(800);
 await p.evaluate((n) => window.__game.launch('highway', 'saloon-rwd', { ai: n, diff: 2, traffic: +new URLSearchParams(location.search).get('traffic') }), AI);
 await p.waitForTimeout(2500);
@@ -34,3 +37,7 @@ console.log(`${SEC}s at CPU x${CPU}, ai ${AI}, traffic ${TR}, ${km.toFixed(2)} k
 const pr = (m, title) => { console.log(title); for (const [k, ms] of [...m].sort((a, b) => b[1] - a[1]).slice(0, TOP)) console.log(`  ${ms.toFixed(0).padStart(6)} ms ${(100 * ms / all).toFixed(1).padStart(5)} %  ${k}`); };
 pr(S, 'SELF'); pr(T, 'TOTAL (inclusive)');
 await b.close();
+} finally {
+  await b?.close();
+  srv.stop();
+}

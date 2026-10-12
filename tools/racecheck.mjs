@@ -1,13 +1,16 @@
 // racecheck.mjs — the RX RACE on a joker level (user, 2026-10-04: 5 laps from the grid, joker once, missed = +5 s). Two races in the
 // live game, driven by the autodriver at 4x sim speed-up: (A) never takes the joker -> FINISH with +10 s; (B) the car is put through
 // the joker gate on lap 2 -> JOKER DONE, no penalty. Also: the arrow hides after the joker; practice mode never starts a race.
-// Needs the server. node tools/racecheck.mjs [level]
-import { chromium } from 'file:///C:/Users/Admin/Desktop/G/GamesStudio/BitterTrade/node_modules/playwright/index.mjs';
+// Starts its own server. node tools/racecheck.mjs [level]
+import { startServer, launchBrowser } from './lib/browser.mjs';
 const lv = process.argv[2] || 'slidden-hill';
-const b = await chromium.launch({ channel: 'msedge' });
+const srv = await startServer();
+let b;
+try {
+b = await launchBrowser();
 const p = await (await b.newContext({ viewport: { width: 844, height: 390 } })).newPage();
 const errs = []; p.on('pageerror', (e) => errs.push(e.message));
-await p.goto('http://localhost:8080/?pc=1&guide=0&menu=0'); await p.mouse.click(400, 200); await p.waitForTimeout(800);
+await p.goto(srv.url + '/?pc=1&guide=0&menu=0'); await p.mouse.click(400, 200); await p.waitForTimeout(800);
 const fails = [];
 const run = (takeJoker) => p.evaluate(([lv, takeJoker]) => new Promise(async (res) => {
   const g = window.__game; g.launch(lv, 'rally-4x4', { rx: true });
@@ -37,3 +40,7 @@ console.log('practice starts a race?', prac); if (prac) fails.push('practice');
 if (errs.length) { console.log('PAGE ERRORS', errs); fails.push('errors'); }
 console.log(fails.length ? 'FAILED: ' + fails.join(' ') : 'RX race: all OK');
 await b.close();
+} finally {
+  await b?.close();
+  srv.stop();
+}

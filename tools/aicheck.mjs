@@ -1,12 +1,15 @@
 // aicheck.mjs — AI stage 1 through the REAL menu (user flow): Test Mode -> track -> VS AI -> n -> LAUNCH. Checks: n AI cars, each its own
 // livery, held still on the grid until the GREEN light (start lights, 2026-10-04), then driving; no page errors. Photos at phone size.
 // node tools/aicheck.mjs [track name] [n]
-import { chromium } from 'file:///C:/Users/Admin/Desktop/G/GamesStudio/BitterTrade/node_modules/playwright/index.mjs';
+import { startServer, launchBrowser } from './lib/browser.mjs';
 const [trackName = 'Thruston', n = '3'] = process.argv.slice(2);
-const b = await chromium.launch({ channel: 'msedge' });
+const srv = await startServer();
+let b;
+try {
+b = await launchBrowser();
 const p = await (await b.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true })).newPage();
 const errs = []; p.on('pageerror', (e) => errs.push(e.message));
-await p.goto('http://localhost:8080/?touch=1&guide=0&menu=1'); await p.waitForTimeout(1500);
+await p.goto(srv.url + '/?touch=1&guide=0&menu=1'); await p.waitForTimeout(1500);
 const click = async (txt) => { await p.locator('button', { hasText: txt }).first().click(); await p.waitForTimeout(450); };
 // (ALL TRACKS: the category layer, 2026-10-05)
 await click('TEST MODE'); await click('ALL TRACKS'); await click(trackName); await click('VS AI'); await click(n);
@@ -22,3 +25,7 @@ const ok = held.n === +n && held.hold && held.v.every((v) => v < 0.2) && new Set
 console.log('on the grid:', JSON.stringify(held)); console.log('after the player goes:', JSON.stringify(going)); if (errs.length) console.log('ERRORS', errs);
 console.log(ok ? 'AI stage 1: all OK' : 'FAILED');
 await b.close();
+} finally {
+  await b?.close();
+  srv.stop();
+}

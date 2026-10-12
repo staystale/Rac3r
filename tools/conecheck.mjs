@@ -1,5 +1,8 @@
-import { chromium } from 'file:///C:/Users/Admin/Desktop/G/GamesStudio/BitterTrade/node_modules/playwright/index.mjs';
-const b = await chromium.launch({ channel: 'msedge' });
+import { startServer, launchBrowser } from './lib/browser.mjs';
+const srv = await startServer();
+let b;
+try {
+b = await launchBrowser();
 const ctx = await b.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true });
 const p = await ctx.newPage();
 const errs = [];
@@ -8,7 +11,7 @@ p.on('console', m => { if (m.type() === 'error') errs.push(m.text()); });
 // MEASURED BUG IN THIS HARNESS, 2026-09-28: it warped to (-52,-38.5), which after the floor was
 // quartered is GRASS. The car managed 17 km/h in 4.2 s and never reached a cone, so it reported 0
 // knocked and looked like a cone regression. Aim at the slalom where it actually is, on the lab floor.
-await p.goto('http://localhost:8080/?dev=1');
+await p.goto(srv.url + '/?dev=1');
 await p.mouse.click(422, 195);
 await p.waitForTimeout(150);
 const before = await p.evaluate(() => window.__game.cones.knocked);
@@ -27,3 +30,7 @@ const post = await p.evaluate(() => window.__game.cones.knocked);
 console.log('after RESTART:', post);
 await b.close();
 console.log(errs.length ? 'ERRORS: ' + errs.join(' | ') : 'no console errors');
+} finally {
+  await b?.close();
+  srv.stop();
+}

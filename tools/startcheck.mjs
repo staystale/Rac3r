@@ -1,13 +1,16 @@
 // startcheck.mjs — START LIGHTS (user, 2026-10-04): standing start = reds 1-2-3 then GREEN, every car (player + AI) held until green;
 // rolling start (ovals) = the game drives ALL cars at pace, green as the front car crosses the line, then released. Timing starts at green.
 // Photos of the lights at phone size. node tools/startcheck.mjs
-import { chromium } from 'file:///C:/Users/Admin/Desktop/G/GamesStudio/BitterTrade/node_modules/playwright/index.mjs';
-const b = await chromium.launch({ channel: 'msedge' });
+import { startServer, launchBrowser } from './lib/browser.mjs';
+const srv = await startServer();
+let b;
+try {
+b = await launchBrowser();
 const fails = [];
 for (const [lv, rolling] of [['thruston', false], ['naffcar', true]]) {
   const p = await (await b.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true })).newPage();
   const errs = []; p.on('pageerror', (e) => errs.push(e.message));
-  await p.goto('http://localhost:8080/?touch=1&guide=0&menu=0'); await p.touchscreen.tap(400, 200); await p.waitForTimeout(800);
+  await p.goto(srv.url + '/?touch=1&guide=0&menu=0'); await p.touchscreen.tap(400, 200); await p.waitForTimeout(800);
   // the player FLOORS it the whole time: held cars must not move before green
   await p.evaluate((lv) => { const g = window.__game; g.launch(lv, 'hatch-rwd', { ai: 3 }); window.__orig = g.input.update; g.input.update = () => ({ steer: 0, throttle: 1, brake: 0, handbrake: 0, reverse: 0, shiftUp: false, shiftDown: false }); }, lv);
   const samples = [];
@@ -29,3 +32,7 @@ for (const [lv, rolling] of [['thruston', false], ['naffcar', true]]) {
 }
 console.log(fails.length ? 'FAILED: ' + fails.join(' ') : 'start lights: all OK');
 await b.close();
+} finally {
+  await b?.close();
+  srv.stop();
+}

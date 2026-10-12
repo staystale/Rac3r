@@ -3,13 +3,16 @@
 // painted, whether the road window moved (stepHighway rebuild), loose objects spawned, the stand-in showing. Then it says which of
 // those the SLOW frames (> 25 ms) coincide with. Built 2026-10-06 (user: "judder on mobile on infinite levels - guess thats as chunks load").
 // node tools/hwjudder.mjs [seconds 20] [ai 5] [traffic 1] [cpu 4] [extra query]
-import { chromium } from 'file:///C:/Users/Admin/Desktop/G/GamesStudio/BitterTrade/node_modules/playwright/index.mjs';
+import { startServer, launchBrowser } from './lib/browser.mjs';
 const SEC = +(process.argv[2] || 20), AI = +(process.argv[3] || 5), TR = process.argv[4] || '1', CPU = +(process.argv[5] || 4), extra = process.argv[6] || '';
-const b = await chromium.launch({ channel: 'msedge' });
+const srv = await startServer();
+let b;
+try {
+b = await launchBrowser();
 const ctx = await b.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true });
 const p = await ctx.newPage();
 const errs = []; p.on('pageerror', (e) => errs.push(e.message));
-await p.goto(`http://localhost:8080/?touch=1&guide=0&menu=0&rules=0&level=highway&traffic=${TR}${extra}`); await p.waitForTimeout(1500);
+await p.goto(`${srv.url}/?touch=1&guide=0&menu=0&rules=0&level=highway&traffic=${TR}${extra}`); await p.waitForTimeout(1500);
 await p.touchscreen.tap(400, 200); await p.waitForTimeout(800);
 await p.evaluate((n) => window.__game.launch('highway', 'saloon-rwd', { ai: n, diff: 2, traffic: +new URLSearchParams(location.search).get('traffic') }), AI);
 await p.waitForTimeout(2500);   // fly-in done
@@ -55,3 +58,7 @@ for (const [x, i] of worst) console.log(`  worst @${i}: ${x.dt.toFixed(0)} ms si
 console.log(`zoom: median ${[...F].map((x) => x.z).sort((a, b) => a - b)[N >> 1]?.toFixed?.(3)}, tiles alive at the end ${r.alive}`);
 console.log('errors', errs.length ? errs.slice(0, 3).join(' || ') : 'none');
 await b.close();
+} finally {
+  await b?.close();
+  srv.stop();
+}

@@ -1,14 +1,17 @@
 // resetcheck.mjs — RESET on circuits (user, 2026-10-04): put back BEHIND / in line with where the car LEFT the road, half on /
-// half off on the side it left by, nose 5-15 deg back toward the road, never on the racing line. Needs the server.
+// half off on the side it left by, nose 5-15 deg back toward the road, never on the racing line. Starts its own server.
 // node tools/resetcheck.mjs [level ...]
-import { chromium } from 'file:///C:/Users/Admin/Desktop/G/GamesStudio/BitterTrade/node_modules/playwright/index.mjs';
+import { startServer, launchBrowser } from './lib/browser.mjs';
 const levels = process.argv.slice(2).length ? process.argv.slice(2) : ['thruston', 'test-track', 'naffcar', 'grass-track'];
-const b = await chromium.launch({ channel: 'msedge' });
+const srv = await startServer();
+let b;
+try {
+b = await launchBrowser();
 const p = await (await b.newContext({ viewport: { width: 844, height: 390 } })).newPage();
 const errs = []; p.on('pageerror', e => errs.push(e.message));
 const fails = [];
 for (const lv of levels) {
-  await p.goto('http://localhost:8080/?pc=1&guide=0&menu=0&level=' + lv); await p.mouse.click(400, 200); await p.waitForTimeout(500);
+  await p.goto(srv.url + '/?pc=1&guide=0&menu=0&level=' + lv); await p.mouse.click(400, 200); await p.waitForTimeout(500);
   const sub = await p.evaluate(() => ({ total: window.__game.level.subtrack.totalDist, w: window.__game.level.subtrack.width }));
   for (const [frac, side] of [[0.3, 1], [0.55, -1], [0.8, 1], [0.97, -1]]) {
     const d0 = sub.total * frac;
@@ -40,3 +43,7 @@ for (const lv of levels) {
 if (errs.length) { console.log('PAGE ERRORS', errs); fails.push('errors'); }
 console.log(fails.length ? 'FAILED: ' + fails.join(' ') : 'ALL OK');
 await b.close();
+} finally {
+  await b?.close();
+  srv.stop();
+}

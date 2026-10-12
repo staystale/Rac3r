@@ -3,12 +3,15 @@
 //   circuit race -> put back where it left (progress restored, notice 'PUT BACK');  RX race -> a time penalty (_cutPen), notice;
 //   and a control: the same speed along the track (no cut) -> nothing. Photo of the notice: shots/look/cut-<level>.png
 // node tools/cutcheck.mjs [level] [rx 0|1]
-import { chromium } from 'file:///C:/Users/Admin/Desktop/G/GamesStudio/BitterTrade/node_modules/playwright/index.mjs';
+import { startServer, launchBrowser } from './lib/browser.mjs';
 const [lv = 'thruston', rx = '0'] = process.argv.slice(2);
-const b = await chromium.launch({ channel: 'msedge' });
+const srv = await startServer();
+let b;
+try {
+b = await launchBrowser();
 const p = await (await b.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true })).newPage();
 const errs = []; p.on('pageerror', (e) => errs.push(String(e))); p.on('console', (m) => { if (m.text().startsWith('dbg')) console.log(m.text()); });
-await p.goto('http://localhost:8080/?menu=1&guide=0'); await p.waitForTimeout(3000);
+await p.goto(srv.url + '/?menu=1&guide=0'); await p.waitForTimeout(3000);
 await p.evaluate(([lv, rx]) => { const g = window.__game; g.menu.hide(); g.launch(lv, 'hatch-rwd', { ai: 1, diff: 0, laps: 3, rx: !!rx });
   g.input.update = () => ({ steer: 0, throttle: 0, brake: 0, handbrake: 0, reverse: 0, shiftUp: false, shiftDown: false }); }, [lv, +rx]);
 await p.waitForTimeout(5500);   // lights
@@ -40,3 +43,7 @@ console.log('before', JSON.stringify(before), 'after', JSON.stringify(after));
 const ok = +rx ? after.pen >= 2 && /CUT/.test(after.notice || '') : after.cuts >= 1 && after.prog - before.prog < 60 && /PUT BACK/.test(after.notice || '');
 console.log(ok && !errs.length ? 'CUT CHECK: OK' : 'FAILED', errs);
 await b.close();
+} finally {
+  await b?.close();
+  srv.stop();
+}

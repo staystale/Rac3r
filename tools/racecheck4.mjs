@@ -2,12 +2,15 @@
 // (imported in the page), wait for the end; checks flow states, the flag, the results (sorted on total, the player's row, estimates,
 // penalties, DNF) and that the podium then the table show; photos at the given size into shots/look/race4-*.png.
 // node tools/racecheck4.mjs [level] [ai n] [laps] [park|drive] [rx 0|1] [W] [H]
-import { chromium } from 'file:///C:/Users/Admin/Desktop/G/GamesStudio/BitterTrade/node_modules/playwright/index.mjs';
+import { startServer, launchBrowser } from './lib/browser.mjs';
 const [lv = 'thruston', n = '5', laps = '1', how = 'drive', rx = '0', W = '844', H = '390'] = process.argv.slice(2);
-const b = await chromium.launch({ channel: 'msedge' });
+const srv = await startServer();
+let b;
+try {
+b = await launchBrowser();
 const ctx = await b.newContext({ viewport: { width: +W, height: +H }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
 const p = await ctx.newPage(); const errs = []; p.on('pageerror', (e) => errs.push(String(e)));
-await p.goto('http://localhost:8080/?menu=1&guide=0'); await p.waitForTimeout(3000);
+await p.goto(srv.url + '/?menu=1&guide=0'); await p.waitForTimeout(3000);
 await p.evaluate(async ([lv, n, laps, how, rx]) => {
   const g = window.__game; g.menu.hide(); g.launch(lv, 'hatch-rwd', { ai: n, diff: 2, laps, rx: !!rx });
   if (how === 'drive') {
@@ -37,3 +40,7 @@ const sorted = res && res.every((r, i) => i === 0 || r.dnf || res[i - 1].total <
 const ok = st && st.state === 'done' && st.shown && res && res.length === +n + 1 && res.some((r) => r.who === 'YOU') && sorted && !errs.length;
 console.log(ok ? 'STAGE 4 RACE: OK' : 'FAILED', errs.length ? errs : '');
 await b.close();
+} finally {
+  await b?.close();
+  srv.stop();
+}

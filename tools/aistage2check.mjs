@@ -2,12 +2,15 @@
 // Checks: every AI on the racing driver (traits present, personas mixed), the chosen difficulty reached them, no page errors, all AI
 // moving 10 s after green; on Slidden Hill every AI still on the RX start lane while it is on it (no dash to the lap). Phone-size photos.
 // node tools/aistage2check.mjs [track name] [n] [difficulty button]
-import { chromium } from 'file:///C:/Users/Admin/Desktop/G/GamesStudio/BitterTrade/node_modules/playwright/index.mjs';
+import { startServer, launchBrowser } from './lib/browser.mjs';
 const [trackName = 'Slidden Hill', n = '5', diffBtn = 'REALISH'] = process.argv.slice(2);
-const b = await chromium.launch({ channel: 'msedge' });
+const srv = await startServer();
+let b;
+try {
+b = await launchBrowser();
 const p = await (await b.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true })).newPage();
 const errs = []; p.on('pageerror', (e) => errs.push(e.message));
-await p.goto('http://localhost:8080/?touch=1&guide=0&menu=1'); await p.waitForTimeout(1500);
+await p.goto(srv.url + '/?touch=1&guide=0&menu=1'); await p.waitForTimeout(1500);
 const click = async (txt) => { await p.locator('button', { hasText: txt }).first().click(); await p.waitForTimeout(450); };
 // (ALL TRACKS: the category layer, 2026-10-05)
 await click('TEST MODE'); await click('ALL TRACKS'); await click(trackName); await click('VS AI'); await click(n); await click(diffBtn);
@@ -34,3 +37,7 @@ console.log('AI:', JSON.stringify(info)); console.log('km/h 10 s after green:', 
 if (errs.length) console.log('ERRORS', errs);
 console.log(ok ? 'AI stage 2 in game: OK' : 'FAILED');
 await b.close();
+} finally {
+  await b?.close();
+  srv.stop();
+}

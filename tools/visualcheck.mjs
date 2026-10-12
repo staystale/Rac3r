@@ -4,14 +4,14 @@
 // MISMATCH when its colour is not one of the colours the physics surface there is painted in. Mismatches within
 // EDGE_M of a physics boundary are anti-aliasing / sub-pixel edges and are counted separately, not failed.
 //
-//   node tools/visualcheck.mjs [level ...]     needs the dev server on :8080. Writes shots/visualcheck-<level>.png:
+//   node tools/visualcheck.mjs [level ...]     starts its own server. Writes shots/visualcheck-<level>.png:
 //                                             red = real mismatch, yellow = edge, faded = matches.
 //
 // Reports, per level, the mismatched AREA by "drawn as -> drives as", with one example point for each, so a fix can
 // go straight to the spot. Gate: MAX_BAD_PCT. Found and fixed with it on 2026-10-03: kerbs drawn on the OPPOSITE side of
 // the track from the physics kerbs (lab.js querySubtrack side), rounded pads with no physics apron/corners (zoneAt),
 // sector changes drawn up to ~3 m late (render.js sectorCut).
-import { chromium } from 'file:///C:/Users/Admin/Desktop/G/GamesStudio/BitterTrade/node_modules/playwright/index.mjs';
+import { startServer, launchBrowser } from './lib/browser.mjs';
 import { mkdirSync } from 'node:fs';
 
 const PPM = 2;            // px per metre painted (0.5 m per pixel: the pixel-art grid of patches and covers)
@@ -23,12 +23,15 @@ const MAX_BAD_PCT = 0.5;
 const LEVEL_IDS = process.argv.slice(2).length ? process.argv.slice(2) : ['lab', 'test-track', 'grass-track', 'stock-car', 'naffcar', 'sandbox'];
 mkdirSync(new URL('../shots/', import.meta.url), { recursive: true });
 
-const b = await chromium.launch({ channel: 'msedge' });
+const srv = await startServer();
+let b;
+try {
+b = await launchBrowser();
 let fails = 0;
 for (const lv of LEVEL_IDS) {
   const p = await (await b.newContext({ viewport: { width: 844, height: 390 } })).newPage();
   const errs = []; p.on('pageerror', (e) => errs.push(e.message));
-  await p.goto(`http://localhost:8080/?level=${lv}&pc=1`); await p.waitForTimeout(1500);
+  await p.goto(`${srv.url}/?level=${lv}&pc=1`); await p.waitForTimeout(1500);
   const res = await p.evaluate(async ({ PPM, EDGE_M }) => {
     const L = await import('/src/lab.js'), R = window.__game.renderer, LV = L.LEVEL;
     // bounds: the circuit plus a margin, or the whole floor for a level with no circuit
@@ -105,3 +108,7 @@ for (const lv of LEVEL_IDS) {
 await b.close();
 console.log(fails ? `\nFAIL (${fails} levels)` : '\nVisuals match physics: all OK');
 process.exitCode = fails ? 1 : 0;
+} finally {
+  await b?.close();
+  srv.stop();
+}

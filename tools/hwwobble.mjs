@@ -5,13 +5,16 @@
 //   AFTER the frame after a slow one (the catch-up step is uneven)
 //   CAM   neither: a normal-length frame and the camera still jumped (a camera / interpolation fault)
 // node tools/hwwobble.mjs [seconds 20] [cpu 1] [ai 0] [traffic 0] [extra query]
-import { chromium } from 'file:///C:/Users/Admin/Desktop/G/GamesStudio/BitterTrade/node_modules/playwright/index.mjs';
+import { startServer, launchBrowser } from './lib/browser.mjs';
 const SEC = +(process.argv[2] || 20), CPU = +(process.argv[3] || 1), AI = +(process.argv[4] || 0), TR = process.argv[5] || '0', extra = process.argv[6] || '';
-const b = await chromium.launch({ channel: 'msedge' });
+const srv = await startServer();
+let b;
+try {
+b = await launchBrowser();
 const ctx = await b.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true });
 const p = await ctx.newPage();
 const errs = []; p.on('pageerror', (e) => errs.push(e.message));
-await p.goto(`http://localhost:8080/?touch=1&guide=0&menu=0&rules=0&level=highway&traffic=${TR}${extra}`); await p.waitForTimeout(1500);
+await p.goto(`${srv.url}/?touch=1&guide=0&menu=0&rules=0&level=highway&traffic=${TR}${extra}`); await p.waitForTimeout(1500);
 await p.touchscreen.tap(400, 200); await p.waitForTimeout(800);
 await p.evaluate((n) => window.__game.launch('highway', 'saloon-rwd', { ai: n, diff: 2, traffic: +new URLSearchParams(location.search).get('traffic') }), AI);
 await p.waitForTimeout(2500);
@@ -56,3 +59,7 @@ console.log(`  ZOOM moves the screen edge px/frame: median ${pct(zEdge, 0.5).toF
 for (const e of camEx) console.log('   cam ' + e);
 console.log('errors', errs.length ? errs.slice(0, 3).join(' || ') : 'none');
 await b.close();
+} finally {
+  await b?.close();
+  srv.stop();
+}

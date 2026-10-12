@@ -50,7 +50,7 @@
   "src/highway.js": {
     "complexity": 4,
     "id-length": 340,
-    "max-len": 263,
+    "max-len": 262,
     "max-lines-per-function": 1,
     "no-shadow": 1
   },
@@ -106,7 +106,7 @@
   "src/render.js": {
     "complexity": 18,
     "id-length": 1021,
-    "max-len": 914,
+    "max-len": 912,
     "max-lines": 1,
     "max-lines-per-function": 7,
     "no-shadow": 6,

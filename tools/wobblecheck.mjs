@@ -3,12 +3,15 @@
 // the zoom, the frame time. Reports, in SCREEN pixels: camera jerk (how far each frame's camera move differs from the previous frame's,
 // time-corrected — a smooth pan is 0), the car's wobble on screen, heading jitter (deg per frame, second difference), and frame times.
 // node tools/wobblecheck.mjs [level] [car] [cpuRate]
-import { chromium } from 'file:///C:/Users/Admin/Desktop/G/GamesStudio/BitterTrade/node_modules/playwright/index.mjs';
+import { startServer, launchBrowser } from './lib/browser.mjs';
 const [lv = 'brands-snatch', carId = 'hatch-rwd', rate = '1', extra = ''] = process.argv.slice(2);
-const b = await chromium.launch({ channel: 'msedge' });
+const srv = await startServer();
+let b;
+try {
+b = await launchBrowser();
 const ctx = await b.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true });
 const p = await ctx.newPage(); const cdp = await ctx.newCDPSession(p); await cdp.send('Emulation.setCPUThrottlingRate', { rate: +rate });
-await p.goto(`http://localhost:8080/?touch=1&guide=0&menu=0&level=${lv}&car=${carId}${extra}`); await p.touchscreen.tap(400, 200); await p.waitForTimeout(4500);
+await p.goto(`${srv.url}/?touch=1&guide=0&menu=0&level=${lv}&car=${carId}${extra}`); await p.touchscreen.tap(400, 200); await p.waitForTimeout(4500);
 const r = await p.evaluate(() => new Promise(async (res) => {
   const g = window.__game, R = g.renderer; const A = await import('/src/autodrive.js'); const drv = A.createAutoDriver(g.level.subtrack);
   g.input.update = () => ({ ...drv.drive(g.car), reverse: 0, shiftUp: false, shiftDown: false });
@@ -39,3 +42,7 @@ console.log(`  CAR on screen moves px/frame: median ${pct(carW, 0.5).toFixed(2)}
 console.log(`  ZOOM moves the screen edge px/frame: median ${pct(zEdge, 0.5).toFixed(2)}  p95 ${pct(zEdge, 0.95).toFixed(2)}  max ${Math.max(...zEdge).toFixed(1)}`);
 console.log(`  HEADING jitter deg/frame: median ${pct(hj, 0.5).toFixed(3)}  p95 ${pct(hj, 0.95).toFixed(3)}  max ${Math.max(...hj).toFixed(2)}`);
 await b.close();
+} finally {
+  await b?.close();
+  srv.stop();
+}

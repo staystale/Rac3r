@@ -1,10 +1,13 @@
 // Marks discipline check against the REAL game, per PLAN.md's acceptance table.
-import { chromium } from 'file:///C:/Users/Admin/Desktop/G/GamesStudio/BitterTrade/node_modules/playwright/index.mjs';
-const b = await chromium.launch({ channel: 'msedge' });
+import { startServer, launchBrowser } from './lib/browser.mjs';
+const srv = await startServer();
+let b;
+try {
+b = await launchBrowser();
 async function run(name, url, fn) {
   const ctx = await b.newContext({ viewport: { width: 844, height: 390 } });
   const p = await ctx.newPage();
-  await p.goto('http://localhost:8080' + url);
+  await p.goto(srv.url + url);
   await p.mouse.click(422, 195);
   await p.waitForTimeout(120);
   await p.evaluate(() => window.__game.marks.clear());
@@ -47,3 +50,7 @@ if (gentle > 60) fails.push(`gentle cornering left ${gentle} marks — the slip 
 else console.log(`   (gentle left ${gentle} marks — keyboard proxy, see note in this file)`);
 for (const [n, v] of [['handbrake', hb], ['lockup', lock], ['power-on', power]]) if (v === 0) fails.push(`${n} left NO marks`);
 console.log(fails.length ? '\nFAIL:\n  ' + fails.join('\n  ') : '\nmarks discipline OK');
+} finally {
+  await b?.close();
+  srv.stop();
+}

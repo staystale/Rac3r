@@ -1,12 +1,15 @@
 // menurace.mjs — the MENU RACE (2026-10-04): ?menu=1 at 844x390 + 390x844, waits, photographs shots/look/menu-race-<W>.png, reports
 // the cars (count, km/h), the fps, slow frames (> 25 ms) and page errors. CPU=4 env: throttle the CPU x4 (slow phone).
-import { chromium } from 'file:///C:/Users/Admin/Desktop/G/GamesStudio/BitterTrade/node_modules/playwright/index.mjs';
-const b = await chromium.launch({ channel: 'msedge' });
+import { startServer, launchBrowser } from './lib/browser.mjs';
+const srv = await startServer();
+let b;
+try {
+b = await launchBrowser();
 for (const [W, H] of [[844, 390], [390, 844]]) {
   const ctx = await b.newContext({ viewport: { width: W, height: H }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
   const p = await ctx.newPage(); const errs = []; p.on('pageerror', (e) => errs.push(String(e)));
   if (process.env.CPU) { const c = await ctx.newCDPSession(p); await c.send('Emulation.setCPUThrottlingRate', { rate: +process.env.CPU }); }
-  await p.goto('http://localhost:8080/?menu=1&guide=0' + (process.env.MENUAI ? '&menuai=' + process.env.MENUAI : '')); await p.waitForTimeout(6000);
+  await p.goto(srv.url + '/?menu=1&guide=0' + (process.env.MENUAI ? '&menuai=' + process.env.MENUAI : '')); await p.waitForTimeout(6000);
   await p.evaluate(() => { window.__ft = []; let l = performance.now(); const f = (t) => { window.__ft.push(t - l); l = t; requestAnimationFrame(f); }; requestAnimationFrame(f); });
   await p.waitForTimeout(8000);
   const r = await p.evaluate(() => { const g = window.__game, ft = window.__ft.slice(1), s = [...ft].sort((a, b) => a - b);
@@ -17,3 +20,7 @@ for (const [W, H] of [[844, 390], [390, 844]]) {
   await ctx.close();
 }
 await b.close();
+} finally {
+  await b?.close();
+  srv.stop();
+}

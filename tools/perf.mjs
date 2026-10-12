@@ -1,9 +1,12 @@
 // Frame cost with the marks layer HEAVILY USED, not empty (CLAUDE.md §3: match real counts).
-import { chromium } from 'file:///C:/Users/Admin/Desktop/G/GamesStudio/BitterTrade/node_modules/playwright/index.mjs';
-const b = await chromium.launch({ channel: 'msedge' });
+import { startServer, launchBrowser } from './lib/browser.mjs';
+const srv = await startServer();
+let b;
+try {
+b = await launchBrowser();
 const ctx = await b.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true });
 const p = await ctx.newPage();
-await p.goto('http://localhost:8080/?car=muscle-rwd');
+await p.goto(srv.url + '/?car=muscle-rwd');
 await p.mouse.click(422, 195);
 async function sample(label) {
   const r = await p.evaluate(() => new Promise((res) => {
@@ -23,3 +26,7 @@ for (let i = 0; i < 6; i++) {
 }
 await sample('after heavy rubber');
 await b.close();
+} finally {
+  await b?.close();
+  srv.stop();
+}

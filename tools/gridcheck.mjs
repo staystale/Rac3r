@@ -2,12 +2,15 @@
 // not in a starting grid formation"). For each level: launch VS AI x5 through the real launch path (several times: the player's slot is
 // random), read every car's pose while held at the lights, and report: the closest pair (box gap), each car's slot as (metres back from
 // the front car along the road, lateral offset), and whether the player is in the formation. node tools/gridcheck.mjs [levels,comma]
-import { chromium } from 'file:///C:/Users/Admin/Desktop/G/GamesStudio/BitterTrade/node_modules/playwright/index.mjs';
+import { startServer, launchBrowser } from './lib/browser.mjs';
 const levels = (process.argv[2] || 'thruston,brands-gp,test-track,knobhill,slidden,naffcar,castle-cum').split(',');
-const b = await chromium.launch({ channel: 'msedge' });
+const srv = await startServer();
+let b;
+try {
+b = await launchBrowser();
 const p = await (await b.newContext({ viewport: { width: 844, height: 390 } })).newPage(), errs = [];
 p.on('pageerror', (e) => errs.push(e.message));
-await p.goto('http://localhost:8080/?pc=1&guide=0&menu=0'); await p.mouse.click(400, 200); await p.waitForTimeout(2500);
+await p.goto(srv.url + '/?pc=1&guide=0&menu=0'); await p.mouse.click(400, 200); await p.waitForTimeout(2500);
 const ids = await p.evaluate(() => window.__game.level && (window.__LV = 1) && null);
 for (const id of levels) {
   for (let run = 0; run < 3; run++) {
@@ -31,3 +34,7 @@ for (const id of levels) {
 }
 console.log('page errors:', errs.length ? [...new Set(errs)].join(' / ') : 'none');
 await b.close();
+} finally {
+  await b?.close();
+  srv.stop();
+}
