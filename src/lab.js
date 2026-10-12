@@ -20,3 +20,7 @@ export * from "./world/load.ts";
 export * from "./world/colours.ts";
 export { trackKit } from "./world/levels/kit.ts";
 export { BRANDS_DROPPED } from "./world/levels/brands-snatch.ts";
+
+// build the world (the tools' world: the hand-made levels only, as before)
+import { initWorld } from "./world/load.ts";
+initWorld();

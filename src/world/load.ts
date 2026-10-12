@@ -97,14 +97,20 @@ export function setLevel(id: string): Level {
   return LEVEL;
 }
 
-setActiveLevel(LEVELS[0]);
-for (const lv of LEVELS) finishLevel(lv);
+let worldReady = false;
+// builds the world: called once (main.js, lab.js), not as a side effect of importing
+export function initWorld(): void {
+  if (worldReady) return;
+  worldReady = true;
+  setActiveLevel(LEVELS[0]);
+  for (const lv of LEVELS) finishLevel(lv);
 
-// TYRE HEAT SHARE per surface (vehicle.js TYRE_HEAT): hard ground 1, loose ground HEAT_OFFROAD. Here, at the end,
-// because the run-off trap surfaces are built after SURFACES. Puddles copy their base's value (surfaceOf).
-for (const s of [...Object.values(SURFACES), ...SURFACE_TRAP]) if (s.heatK === undefined) s.heatK = s.hard ? 1 : HEAT_OFFROAD;
+  // TYRE HEAT SHARE per surface (vehicle.js TYRE_HEAT): hard ground 1, loose ground HEAT_OFFROAD. Here, at the end,
+  // because the run-off trap surfaces are built after SURFACES. Puddles copy their base's value (surfaceOf).
+  for (const s of [...Object.values(SURFACES), ...SURFACE_TRAP]) if (s.heatK === undefined) s.heatK = s.hard ? 1 : HEAT_OFFROAD;
 
-// The first level is active from module load without a setLevel() call, so prepare it here — at the END of the
-// module, after every const it reads exists (calling it earlier threw "Cannot access tri before initialization").
-applyBounds();
-prepareLevel();
+  // The first level is active from module load without a setLevel() call, so prepare it here — at the END of the
+  // module, after every const it reads exists (calling it earlier threw "Cannot access tri before initialization").
+  applyBounds();
+  prepareLevel();
+}

@@ -19,8 +19,8 @@ import { createCones } from './cones.js';
 import { createAudio } from './audio.js';
 import { createGuide, rulesSeen } from './guide.js';
 import { createMenu } from './menu.js';
-import { genStage, installStage } from './stagegen.js';
-import { stepHighway, resetHighway, highwayGuard, highwayRespawn, setHighwayPreset, roadFrame, speedCamera } from './highway.js';   // the ENDLESS motorway (registers itself in LEVELS)   // PROCEDURAL STAGES (installs the default generated stage into LEVELS)
+import { genStage, installStage, addStageLevels } from './stagegen.js';
+import { addHighwayLevel, stepHighway, resetHighway, highwayGuard, highwayRespawn, setHighwayPreset, roadFrame, speedCamera } from './highway.js';   // the ENDLESS motorway (registers itself in LEVELS)   // PROCEDURAL STAGES (installs the default generated stage into LEVELS)
 import { createAutoDriver } from './autodrive.js';
 import { createTraffic } from './traffic.js';   // HIGHWAY TRAFFIC (endless levels)
 import { createHwFlow, hwFrames, hwGrid, hwGridSpan, hwPutBack, HW_GREEN } from './hwrace.js';   // VS AI on the highway
@@ -31,13 +31,18 @@ import { hit, hitRoll, repair, resetBill, tooInjured } from './damage.js';
 import { rolling, tripCheck, stepRoll } from './roll.js';
 import { nudge, resetAll, snapshot } from './tune.js';
 import { TUNE } from './vehicle.js';
-import { setLevel } from "./world/load.ts";   // the world is set up before this file runs (as importing lab.js did)
+import { initWorld, setLevel } from "./world/load.ts";
 import { SPAWN, LEVEL } from "./world/state.ts";
 import { applyGround, fenceClamp, obstacleClamp, clearWear } from "./world/wear.ts";
 import { barrierClamp, solidClamp } from "./world/barriers.ts";
 import { LEVELS } from "./world/levels/index.ts";
 import { FENCE } from "./world/bounds.ts";
 import { findNearestSubtrackPoint, onTrack, querySubtrack } from "./world/tyrewall.ts";
+
+// build the world, in this order: the hand-made levels (load.ts), then the levels added after them
+initWorld();
+addStageLevels();
+addHighwayLevel();
 
 const settings = readSettings(location.search);
 const DEV = settings.dev;

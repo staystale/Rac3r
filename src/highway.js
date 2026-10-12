@@ -15,7 +15,6 @@
 import { lcg } from "./core/random.ts";
 import { envValue } from "./core/debug.ts";
 import { readSettings } from "./core/settings.ts";
-import "./world/load.ts";   // the world is set up before this file runs (as importing lab.js did)
 import { createSubtrack, ghostSegment } from "./world/subtrack.ts";
 import { SURFACES } from "./world/surfaces.ts";
 import { LEVELS } from "./world/levels/index.ts";
@@ -628,4 +627,10 @@ export function createHighway(seed = 4242, preset = 'motorway') {
   resetHighway(lv);
   return lv;
 }
-LEVELS.push(createHighway(4242, QP || 'motorway'));
+let highwayAdded = false;
+// adds the endless motorway to LEVELS (called once, after the hand-made levels)
+export function addHighwayLevel() {
+  if (highwayAdded) return;
+  highwayAdded = true;
+  LEVELS.push(createHighway(4242, QP || 'motorway'));
+}

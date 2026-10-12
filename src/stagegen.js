@@ -8,7 +8,7 @@
 // stop-zone end to the run-up, so the start line stays at distance 0 and timing / grid / AI / resets all work unchanged.
 // Then the dressing, by theme: trees / rocks / crowds / chevrons / bales / tape / flags / marshals / boards / gantries / ice / water.
 import { lcg } from "./core/random.ts";
-import { finishLevel } from "./world/load.ts";   // the world is set up before this file runs (as importing lab.js did)
+import { finishLevel } from "./world/load.ts";
 import { createSubtrack, ghostSegment, autoKerbs } from "./world/subtrack.ts";
 import { onTrack, querySubtrack } from "./world/tyrewall.ts";
 import { alongTrack, solidsFromProps } from "./world/barriers.ts";
@@ -214,7 +214,6 @@ export function installStage(lv) {
   return lv;
 }
 export const GEN_DEFAULT = { seed: 1001, theme: 'forest', len: 'medium', style: 'mixed' };
-installStage(genStage(GEN_DEFAULT));
 // THE SET STAGES (user, 2026-10-04: "rally stages should be SET, but other events might need a procedural track"): the generator as a
 // design tool — seeds picked by tools/stageseeds.mjs (2 km, first attempt so each rebuilds in ~5-35 ms at boot, corners / hairpins /
 // crests scored, then looked at), registered as ordinary levels after Killder, the same road every time so it can be learned.
@@ -224,11 +223,18 @@ export const SET_STAGES = [
   { seed: 33, theme: 'snow', style: 'tight', name: 'Ikeaflatpack' }, { seed: 12, theme: 'snow', style: 'mixed', name: 'Brrrmeatballen' },
   { seed: 21, theme: 'desert', style: 'tight', name: 'Sahara Sandpants' }, { seed: 31, theme: 'desert', style: 'mixed', name: 'Wadi Dusty Bin' },
 ];
-{
-  let at = LEVELS.findIndex((l) => l.id === 'killder') + 1 || LEVELS.length;
-  for (const o of SET_STAGES) {
-    const lv = genStage({ ...o, len: 'medium', attempt: 0 }); if (o.name) lv.name = o.name;
-    lv.id = 'stage-' + lv.name.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z]+/g, '-').replace(/-$/, ''); lv.fixed = true;
-    LEVELS.splice(at++, 0, finishLevel(lv));
+let stagesAdded = false;
+// adds the default generated stage, then the set stages, to LEVELS (called once, after the hand-made levels)
+export function addStageLevels() {
+  if (stagesAdded) return;
+  stagesAdded = true;
+  installStage(genStage(GEN_DEFAULT));
+  {
+    let at = LEVELS.findIndex((l) => l.id === 'killder') + 1 || LEVELS.length;
+    for (const o of SET_STAGES) {
+      const lv = genStage({ ...o, len: 'medium', attempt: 0 }); if (o.name) lv.name = o.name;
+      lv.id = 'stage-' + lv.name.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z]+/g, '-').replace(/-$/, ''); lv.fixed = true;
+      LEVELS.splice(at++, 0, finishLevel(lv));
+    }
   }
 }

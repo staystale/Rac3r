@@ -2,7 +2,6 @@
 // Cones topple and slide. Tyre stacks absorb momentum, and shatter into individual tyres
 // that roll upright on their tread, tumble/flip, wobble, and slide flat on the floor.
 
-import "./world/load.ts";   // the world is set up before this file runs (as importing lab.js did)
 import { CONES, LEVEL } from "./world/state.ts";
 import { FLOOR, FX0, FX1, FY0, FY1 } from "./world/bounds.ts";
 import { BARRIER_HALF } from "./world/barriers.ts";

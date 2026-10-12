@@ -7,7 +7,6 @@
 // A3: 200 x 200 m at 9 px/m = 1800 x 1800 (~13 MB). Stamps outside the bounds are CLAMPED OUT
 // explicitly, not silently dropped off the edge of an array.
 
-import "./world/load.ts";   // the world is set up before this file runs (as importing lab.js did)
 import { FENCE, FX0, FX1, FY0, FY1, RUNOFF_W } from "./world/bounds.ts";
 import { COL } from "./world/colours.ts";
 import { LEVEL } from "./world/state.ts";

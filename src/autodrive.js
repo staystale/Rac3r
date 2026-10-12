@@ -5,7 +5,6 @@
 // The driver (history in tools/lapdriver.mjs and ENGINE.md): a STANLEY controller on the subtrack centreline for steering,
 // and a target speed from the tightest radius ahead and the grip of the surface there, v = sqrt(K_GRIP * mu * g * R),
 // with a braking allowance; it brakes firmly (gain 1.0) with a 35% floor while steering, and feathers the throttle by feel.
-import "./world/load.ts";   // the world is set up before this file runs (as importing lab.js did)
 import { groundAt } from "./world/wear.ts";
 import { GRAVITY } from './cars.js';
 

@@ -11,7 +11,6 @@
 import { hash2d } from "./core/random.ts";
 import type { Settings } from "./core/settings.ts";
 
-import "./world/load.ts";   // the world is set up before this file runs (as importing lab.js did)
 import { FENCE } from "./world/bounds.ts";
 import { CONES } from "./world/state.ts";
 import { COL } from "./world/colours.ts";
