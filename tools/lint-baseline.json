@@ -104,9 +104,9 @@
     "max-len": 34
   },
   "src/render.js": {
-    "complexity": 3,
-    "id-length": 203,
-    "max-len": 233,
+    "complexity": 1,
+    "id-length": 99,
+    "max-len": 120,
     "max-lines-per-function": 1,
     "no-unused-vars": 6
   },
@@ -149,6 +149,12 @@
   },
   "src/render/shared.js": {
     "max-len": 1
+  },
+  "src/render/tiles.js": {
+    "complexity": 2,
+    "id-length": 104,
+    "max-len": 113,
+    "max-lines-per-function": 1
   },
   "src/roll.js": {
     "complexity": 2,
