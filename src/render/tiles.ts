@@ -83,6 +83,8 @@ export function createTiles(view: View, cam: Cam, settings: Settings, helpers: T
     lastStep: null,
     drawnN: 0,                  // art px per tile the last frame was DRAWN at (tools/hwwobble.mjs)
     standIn: false,             // this frame showed a stand-in somewhere (tools: tile pop-in)
+    jobs: 0,                    // strip jobs in flight (tools)
+    stripSteps: 0,              // strip steps done: strips and finishes (tools)
   };
   let tileLevel: Level | null = null, tileDpr = 0, tilePPM = 0, tileLayout = 0;
   const zStepOf = (z: number) => Math.round(ZSTEP * Math.log2(z));
@@ -234,6 +236,40 @@ export function createTiles(view: View, cam: Cam, settings: Settings, helpers: T
     layersInto(job, 0, job.px, false);
     return finishTile(job);
   }
+  // STRIP JOBS (?strips=0 turns them off). A new ground tile is not painted whole in one frame: a
+  // job paints it strip by strip (startTile / stepTile), then finishTile (snap + shade) as one
+  // more step. Each step is paid for by one takeTile, so a frame does as many steps as TILE_MS
+  // allows (at least one). MEASURED, task 091: one tile 15-40 ms at CPU x4 on grass levels; a
+  // strip is about half of that. The seam pixels differ slightly from a whole-tile paint (owner
+  // accepted, 2026-10-12). While a missing tile's job runs it counts as missing (the stand-in
+  // shows); a stale tile keeps its old canvas until the job finishes.
+  const STRIP_TILES = settings.stripTiles;
+  const JOB_KEEP = 30;     // frames a job may go untouched before it is dropped
+  type StripJob = TileJob & { stale?: boolean; seen: number };
+  const jobs = new Map<string, StripJob>();
+  function storeTile(key: string, job: StripJob) {
+    const canvas = finishTile(job), old = tiles.get(key), stale = job.stale === true;
+    if (old) { old.c = canvas; old.stale = stale; tileState.staleRepaints++; }
+    else { tiles.set(key, { c: canvas, used: 0, stale }); tileState.newTiles++; }
+    jobs.delete(key);
+  }
+  // steps (a strip, or the finish, each one takeTile); the caller has paid for the first
+  function advanceTile(key: string, step: number, col: number, row: number, budget: TileBudget) {
+    const began = performance.now();
+    let job = jobs.get(key);
+    if (!job) { job = { ...startTile(step, col, row), seen: 0 }; jobs.set(key, job); }
+    do {
+      job.seen = tileState.tileFrame; tileState.stripSteps++;
+      if (job.strip < job.strips) stepTile(job); else { storeTile(key, job); break; }
+    } while (takeTile(budget));
+    tileState.tileMs += performance.now() - began;
+    tileState.jobs = jobs.size;
+  }
+  function markJobsStale() { for (const job of jobs.values()) job.stale = true; }
+  function dropOldJobs() {
+    for (const [key, job] of jobs) if (job.seen < tileState.tileFrame - JOB_KEEP) jobs.delete(key);
+    tileState.jobs = jobs.size;
+  }
   // HILL-SHADING (step 3, 2026-10-03; user: "make sure banked surfaces are clearly shown with brighter spots and shadowing,
   // same with bumps and dips"; chose PIXEL HILL-SHADING). Light from the TOP-LEFT: ground sloping toward it is brighter,
   // away from it darker, in STEPPED bands on square cells (pixel art: squares, no smooth gradients). It reads the SAME
@@ -320,6 +356,27 @@ export function createTiles(view: View, cam: Cam, settings: Settings, helpers: T
       for (let j = Math.floor(vy0 / tw); j * tw < vy1; j++) if (!tiles.has(k + '|' + i + '|' + j)) missing++;
     return missing;
   }
+  // the tile at key, painting a missing or stale one first when paint and the budget allow
+  function tileFor(
+    key: string, step: number, col: number, row: number, paint: boolean, budget: TileBudget,
+  ) {
+    let tile = tiles.get(key);
+    if (STRIP_TILES) {
+      if ((!tile || tile.stale) && paint && takeTile(budget)) {
+        advanceTile(key, step, col, row, budget);
+      }
+      return tiles.get(key);
+    }
+    if (!tile && paint && takeTile(budget)) {
+      tile = { c: paintTile(step, col, row), used: 0 }; tiles.set(key, tile);
+      tileState.newTiles++;
+    }
+    // a STALE tile (wear changed under it) keeps showing until the budget lets it be repainted
+    else if (tile && tile.stale && paint && takeTile(budget)) {
+      tile.c = paintTile(step, col, row); tile.stale = false; tileState.staleRepaints++;
+    }
+    return tile;
+  }
   // Blit every tile of zoom step k that covers the view. Returns how many were missing. With
   // `paint` it paints missing tiles (budget permitting); without, it only draws what exists.
   function blitStep(k: number, paint: boolean, budget: TileBudget) {
@@ -329,13 +386,7 @@ export function createTiles(view: View, cam: Cam, settings: Settings, helpers: T
     for (let i = Math.floor(vx0 / tw); i * tw < vx1; i++) {
       for (let j = Math.floor(vy0 / tw); j * tw < vy1; j++) {
         const key = k + '|' + i + '|' + j;
-        let t = tiles.get(key);
-        if (!t && paint && takeTile(budget)) {
-          t = { c: paintTile(k, i, j), used: 0 }; tiles.set(key, t);
-          tileState.newTiles++;
-        }
-        // a STALE tile (wear changed under it) keeps showing until the budget lets it be repainted
-        else if (t && t.stale && paint && takeTile(budget)) { t.c = paintTile(k, i, j); t.stale = false; tileState.staleRepaints++; }
+        const t = tileFor(key, k, i, j, paint, budget);
         if (!t) { missing++; continue; }
         t.used = tileState.tileFrame;
         // integer edges, so neighbouring tiles meet with no hairline seam
@@ -355,17 +406,17 @@ export function createTiles(view: View, cam: Cam, settings: Settings, helpers: T
   const WEAR_DRAIN = 0.15;
   let wearDrainT = 0, seenEpoch = -1;
   function drainWear(wallDt: number) {
-    if (seenEpoch !== wearEpoch) { seenEpoch = wearEpoch; for (const t of tiles.values()) t.stale = true; wearDirty.length = 0; return; }
+    if (seenEpoch !== wearEpoch) { seenEpoch = wearEpoch; for (const t of tiles.values()) t.stale = true; markJobsStale(); wearDirty.length = 0; return; }
     wearDrainT += wallDt;
     if (wearDrainT < WEAR_DRAIN || wearDirty.length === 0) return;
     wearDrainT = 0;
     for (const [key, t] of tiles) {
-      if (t.stale) continue;
+      if (t.stale && !jobs.has(key)) continue;
       const [k, i, j] = key.split('|').map(Number);
       const tw = TILE_PX / (view.PPM * zOfStep(k)), x0 = i * tw, y0 = j * tw;
       for (const c of wearDirty) {
         const cx = c.cx * WEAR_CELL, cy = c.cy * WEAR_CELL;
-        if (cx + WEAR_CELL >= x0 && cx <= x0 + tw && cy + WEAR_CELL >= y0 && cy <= y0 + tw) { t.stale = true; break; }
+        if (cx + WEAR_CELL >= x0 && cx <= x0 + tw && cy + WEAR_CELL >= y0 && cy <= y0 + tw) { t.stale = true; const job = jobs.get(key); if (job) job.stale = true; break; }
       }
     }
     wearDirty.length = 0;
@@ -373,9 +424,10 @@ export function createTiles(view: View, cam: Cam, settings: Settings, helpers: T
   function drawGround(wallDt = 0, car: CamCar | null = null) {
     drainWear(wallDt);
     tileState.tileFrame++;
+    if (STRIP_TILES) dropOldJobs();
     const layout = LEVEL.subtrack ? LEVEL.subtrack.layoutId || 0 : 0;   // a re-randomised track (Grass Track)
     if (tileLevel !== LEVEL || tileDpr !== view.dpr || tilePPM !== view.PPM || tileLayout !== layout) {
-      tiles.clear(); tileLevel = LEVEL; tileDpr = view.dpr; tilePPM = view.PPM; tileLayout = layout; tileState.lastStep = null;
+      tiles.clear(); jobs.clear(); tileState.jobs = 0; tileLevel = LEVEL; tileDpr = view.dpr; tilePPM = view.PPM; tileLayout = layout; tileState.lastStep = null;
     }
     const fly = getFly();
     if (fly && fly.ov && view.zoom < FLY_HANDOVER) {
@@ -409,7 +461,7 @@ export function createTiles(view: View, cam: Cam, settings: Settings, helpers: T
       // in the frame it appeared — MEASURED at CPU x4: frames up to ~150 ms when ground scrolled in at speed. Now: the whole-
       // level overview (the fly-in's flat painting, kept per level) goes down first, then at most TILE_BUDGET real tiles; the
       // rest arrive over the next frames, so a frame or two shows a softer patch at the edge instead of a stall.
-      if (countMissing(k) > 1) {
+      if (countMissing(k) > (STRIP_TILES ? 0 : 1)) {
         const ov = levelOverview();
         if (ov) { view.ctx.fillStyle = standInFill(); view.ctx.fillRect(0, 0, view.W, view.H); view.ctx.drawImage(ov.c, sx(ov.x0), sy(ov.y0), (ov.x1 - ov.x0) * PPMz(), (ov.y1 - ov.y0) * PPMz()); }
         tileState.standIn = blitStep(k, true, budget) > 0;

@@ -8,6 +8,7 @@ const DEFAULTS = {
   dev: false, carId: null, aiCount: 0, aiDifficulty: 2, trafficDensity: 0.6, litter: null, menu: null,
   menuAi: 4, guide: null, rules: null, levelId: null, inputMode: 'auto', highwayDebug: null,
   noLock: false, tilePx: 256, tileGpu: false, noShade: false,
+  stripTiles: true,
 };
 
 const TABLE = [
@@ -30,6 +31,8 @@ const TABLE = [
   ['?level=&car=', { levelId: '', carId: '' }],
   ['?hw=interstate', { highwayDebug: 'interstate' }],
   ['?hw=', { highwayDebug: '' }],
+  ['?strips=0', { stripTiles: false }],
+  ['?strips=1', {}],
 ];
 
 let bad = 0;

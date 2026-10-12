@@ -309,6 +309,8 @@ export interface TileState {
   lastStep: number | null;
   drawnN: number;
   standIn: boolean;
+  jobs: number;
+  stripSteps: number;
 }
 
 // How many tiles one frame may still paint (n), and the time budget of tileBudget().
