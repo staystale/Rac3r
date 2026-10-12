@@ -19,4 +19,4 @@ export * from "./world/blend.ts";
 export * from "./world/load.js";
 export * from "./world/colours.ts";
 export { trackKit } from "./world/levels/kit.ts";
-export { BRANDS_DROPPED } from "./world/levels/brands-snatch.js";
+export { BRANDS_DROPPED } from "./world/levels/brands-snatch.ts";

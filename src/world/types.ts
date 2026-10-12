@@ -509,3 +509,10 @@ export interface TrackKit {
   along: (d0: number, d1: number, off: number, step: number) => Point[];
   onLane: (x: number, y: number, pad: number) => boolean;
 }
+
+// A gravel trap lane (rallycross / Brands levels): a Lane plus its side (out) and lap span d0-d1.
+export interface Trap extends Lane {
+  out: number;
+  d0: number;
+  d1: number;
+}

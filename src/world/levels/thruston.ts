@@ -5,6 +5,7 @@ import { SURFACES } from "../surfaces.ts";
 import { prepBumps } from "../terrain.ts";
 import { onTrack, querySubtrack } from "../tyrewall.ts";
 import { ss01 } from "./kit.ts";
+import type { Point, Bump, Zone, Cone, Paint, Lane, Prop } from "../types.ts";
 // =============================================================================================
 // THRUSTON — parody of Thruxton, "the fastest circuit in the UK" (user's roster + build guide, SPECS-2026-10-03.md; track list
 // approved 2026-10-03). Clockwise, all race tarmac, an old airfield: S/F straight -> ALLARD (fast right) -> the COMPLEX
@@ -25,7 +26,7 @@ import { ss01 } from "./kit.ts";
 // line, then traceTrack() (no kinks, every corner R >= 12 m). Check against the map: node tools/traceoverlay.mjs thruston.
 // The previous trace (hand points through Catmull-Rom, kinked at Campbell / Cobb / Club) is in _archive/; the FIRST layout is
 // _archive/thruston-old-layout.cjs.
-const TH_MAP = [
+const TH_MAP: Point[] = [
   [51,532],[46,515],[40,500],[33,480],[25,455],[21,430],[21,405],[30,380],[55,355],[70,345],[100,330],    // S/F straight up the west side, ALLARD
   [120,305],[155,260],[180,210],[191,172],[194,150],[197,120],[204,105],[214,99],                         // up to CAMPBELL (right)
   [225,101],[242,104],[265,104],[280,102],[287,97],                                                        // the dip to COBB (left)
@@ -37,13 +38,14 @@ const TH_MAP = [
   [125,636],[110,625],[100,615],[85,597],[70,575],[57,552]];
 export const TH_SUBTRACK = createSubtrack(traceTrack(TH_MAP, { rMin: 15.5 }), 14, [{ startDist: 0, endDist: 1e9, surface: SURFACES.racetarmac }], [], true);
 TH_SUBTRACK.curvedKerbs = autoKerbs(TH_SUBTRACK, { maxR: 70, exitR: 30, heavyR: 22, minTurn: 20, mergeGap: 12 });
-const thAt = (d, off) => { const p = onTrack(TH_SUBTRACK, d, off, {}); return { x: p.x, y: p.y }; };
+const thAt = (d: number, off: number) =>
+  { const p = onTrack(TH_SUBTRACK, d, off, {}); return { x: p.x, y: p.y }; };
 // clear of the road? (centre at least hw + reach + margin from the centreline, and off every lane)
-const thClear = (x, y, reach) => querySubtrack(TH_SUBTRACK, x, y).dist >= TH_SUBTRACK.width / 2 + reach;
+const thClear = (x: number, y: number, reach: number) => querySubtrack(TH_SUBTRACK, x, y).dist >= TH_SUBTRACK.width / 2 + reach;
 const thRnd = parkMiller(1968);   // Thruxton opened in 1968
 // EARTH BANKS round the outside (ukcircuits: "extensive earthen banks ... from Club through Noble"; Woodham Hill Bank on the
 // approach to Club, 2025) — a chain of humps, filtered off the road
-const thBank = (d0, d1, off, step, r, h) => { const out = []; const L = ((d1 - d0) + TH_SUBTRACK.totalDist) % TH_SUBTRACK.totalDist;
+const thBank = (d0: number, d1: number, off: number, step: number, r: number, h: number) => { const out: Bump[] = []; const L = ((d1 - d0) + TH_SUBTRACK.totalDist) % TH_SUBTRACK.totalDist;
   for (let t = 0; t <= L; t += step) { const p = thAt((d0 + t) % TH_SUBTRACK.totalDist, off); if (thClear(p.x, p.y, r + 3)) out.push({ kind: 'hump', ...p, r, h }); }
   return out; };
 export const TH_BUMPS = prepBumps([
@@ -59,7 +61,7 @@ export const TH_BUMPS = prepBumps([
   ...thBank(1035, 1100, -31, 4, 7, 1.4),      // Woodham Hill Bank
 ]);
 // THE AIRFIELD, from the real map (first match wins, so the paved runway is listed before the remnants it lies on):
-export const TH_ZONES = [
+export const TH_ZONES: Zone[] = [
   { x: 61.1, y: -38.8, w: 245.3, h: 9, rot: -0.4036, surface: SURFACES.tarmac },          // paved active runway (SW-NE)
   { x: 11.8, y: -2.3, w: 245.1, h: 10, rot: 0.5667, surface: SURFACES.grassShort },     // grass active runway (NW-SE), mown short
   // what is left of the original runway (SW-NE). SHORTENED 2026-10-04 (user: "pits look messy"): it ran ~26 m past its real west
@@ -72,13 +74,13 @@ export const TH_ZONES = [
 export const TH_ARMCO = [[35, 125], [205, 250], [290, 345], [560, 760], [785, 870], [1080, 1112]];
 const TH_TYREWALL = TH_ARMCO.flatMap(([a, b]) => [[-14.0, 0], [-15.0, 0.475]].flatMap(([off, shift]) =>
   alongTrack(TH_SUBTRACK, a + shift, b, off, 0.95).map(([x, y]) => ({ x, y, kind: 'tyrestack' }))));
-export const TH_CONES = [
+export const TH_CONES: Cone[] = [
   ...TH_TYREWALL,
   // CLUB: tyre markers on the outside of each flick (user: "heavy kerbing and tyre markers strictly at the final Club chicane")
   ...[1126, 1136, 1146, 1156, 1166, 1176].flatMap((d, k) => [{ ...thAt(d, (k % 2 ? 12 : -12)), kind: 'tyrestack' }]),
   { ...thAt(1146, 0.5), kind: 'cone' },     // the apex cone in the middle flick
 ];
-export const TH_PAINT = [
+export const TH_PAINT: Paint[] = [
   { kind: 'chequered', x: TH_SUBTRACK.pts[0].x, y: TH_SUBTRACK.pts[0].y, len: 1.6, wid: 14, rot: TH_SUBTRACK.pts[0].heading },
 ];
 // PITS + PERIMETER (2026-10-04; user: "aerial / race-day photos for pit layouts and perimeter decorations — if you need ARMCO or
@@ -88,12 +90,14 @@ export const TH_PAINT = [
 export const TH_PIT = { d0: 1178, d1: 48, off: 17, w: 9, ramp: 28 };   // lane leaves after Club, rejoins before Allard (R >= 67 m here)
 const TH_PIT_LANE = alongTrack(TH_SUBTRACK, TH_PIT.d0, TH_PIT.d1, (t, len) => 4 + (TH_PIT.off - 4) * ss01(Math.min(t, len - t) / TH_PIT.ramp), 2);
 export const TH_GAR = { d0: 1204, d1: 22, off: TH_PIT.off + TH_PIT.w / 2 + 5, depth: 10, n: 4 };   // garage fronts flush with the lane (a 1 m grass strip showed)
-const thSpan = (d0, d1) => ((d1 - d0) + TH_SUBTRACK.totalDist) % TH_SUBTRACK.totalDist;
+const thSpan = (d0: number, d1: number) =>
+  ((d1 - d0) + TH_SUBTRACK.totalDist) % TH_SUBTRACK.totalDist;
 // THE INFIELD (2026-10-04; user: "isn't there more decorating to make it look like the real race track?"). Read off the map
 // (art/ref/thruxton-map.png: paved taxiway system, paved apron, hangars, grass aircraft parking) and the 1945 RAF photo
 // (art/ref/may45.jpg). Map px -> game m exactly as TH_MAP. Widths EXAGGERATED (the lap is ~1/3 scale, the cars full size).
-const thM = (px, py) => [+((px - 480) * 0.47).toFixed(2), +((py - 338) * 0.47).toFixed(2)];
-export const TH_LANES = [
+const thM = (px: number, py: number): Point =>
+  [+((px - 480) * 0.47).toFixed(2), +((py - 338) * 0.47).toFixed(2)];
+export const TH_LANES: Lane[] = [
   { pts: TH_PIT_LANE, width: TH_PIT.w, surface: SURFACES.concrete },
   { pts: [thM(207, 492), thM(180, 590)], width: 18, surface: SURFACES.tarmac },                                   // PADDOCK (paved apron)
   { pts: [thM(207, 492), thM(222, 450), thM(245, 432), thM(310, 404), thM(372, 372)], width: 7, surface: SURFACES.broken },   // taxiway to the runway
@@ -108,8 +112,8 @@ const TH_HANGARS = [0.2, 0.5, 0.8].map((t) => {
   const ux = (b[0] - a[0]), uy = (b[1] - a[1]), L = Math.hypot(ux, uy), px = uy / L, py = -ux / L;   // points EAST (infield); the first sign put two hangars on the track (measured 4.8 m from the centreline)
   return { kind: 'hangar', x: x + px * 14, y: y + py * 14, w: 20, h: 12, rot: Math.atan2(py, px) };   // 12 m deep: at 15 they touched (one long shed, and a car between two was pushed back and forth)
 });
-const TH_PLANES = [[478, 488, 0.5, '#c8302c'], [500, 482, 2.4, '#2b56b5'], [560, 470, 1.2, '#e2c13a'], [640, 455, 3.6, '#2f7d4f'],
-  [690, 432, 0.1, '#c8302c'], [600, 425, 4.6, '#5a5e66']].map(([px, py, rot, col]) => { const [x, y] = thM(px, py); return { kind: 'plane', x, y, rot, col }; });
+const TH_PLANES: Prop[] = ([[478, 488, 0.5, '#c8302c'], [500, 482, 2.4, '#2b56b5'], [560, 470, 1.2, '#e2c13a'], [640, 455, 3.6, '#2f7d4f'],
+  [690, 432, 0.1, '#c8302c'], [600, 425, 4.6, '#5a5e66']] satisfies [number, number, number, string][]).map(([px, py, rot, col]) => { const [x, y] = thM(px, py); return { kind: 'plane', x, y, rot, col }; });
 const TH_PADDOCK = [0.18, 0.42, 0.66].flatMap((t, k) => {
   const a = thM(207, 492), b = thM(180, 590), x = a[0] + (b[0] - a[0]) * t, y = a[1] + (b[1] - a[1]) * t;
   const ux = b[0] - a[0], uy = b[1] - a[1], L = Math.hypot(ux, uy), rot = Math.atan2(uy, ux), px = -uy / L, py = ux / L;
@@ -117,16 +121,16 @@ const TH_PADDOCK = [0.18, 0.42, 0.66].flatMap((t, k) => {
   return [{ kind: 'truck', x: x + px * 5.5, y: y + py * 5.5, rot, col: cols[k * 2] }, { kind: 'truck', x: x - px * 5.5, y: y - py * 5.5, rot: rot + Math.PI, col: cols[k * 2 + 1] }];
 });
 // WOODS on the west side (1945 photo) + hedgerow trees round the outside; seeded, filtered off the road
-const TH_TREES = [];
+const TH_TREES: Prop[] = [];
 for (let k = 0; k < 46; k++) { const d = 40 + thRnd() * 190, off = -46 - thRnd() * 34, p = thAt(d, off); if (thClear(p.x, p.y, 10)) TH_TREES.push({ kind: 'tree', ...p, s: 3 + thRnd() * 3, seed: k }); }
 for (let d = 0; d < TH_SUBTRACK.totalDist; d += 26) { const p = thAt(d, -44 - thRnd() * 10); if (thClear(p.x, p.y, 12)) TH_TREES.push({ kind: 'tree', ...p, s: 2.5 + thRnd() * 2.5, seed: 100 + d }); }
 // MARSHAL POSTS behind the Armco at each corner
 const TH_POSTS = [70, 230, 315, 470, 600, 700, 830, 1000, 1090, 1150].map((d) => { const q = onTrack(TH_SUBTRACK, d, -20, {}); return { kind: 'marshal', x: q.x, y: q.y, rot: q.rot }; }).filter((p) => thClear(p.x, p.y, 4));
 // placed BY DISTANCE (2026-10-04 re-trace): fixed x/y left the gantry off the line and the stand off the straight when the track moved.
 // Clockwise lap: +offset = inside (right of travel), -offset = outside. Grandstand: OUTSIDE the S/F straight, opposite the pits.
-const thProp = (d, off, o) => { const p = onTrack(TH_SUBTRACK, d, off, {}); return { ...o, x: p.x, y: p.y, rot: p.rot + (o.rot || 0) }; };
+const thProp = (d: number, off: number, o: Omit<Prop, "x" | "y">): Prop => { const p = onTrack(TH_SUBTRACK, d, off, {}); return { ...o, x: p.x, y: p.y, rot: p.rot + (o.rot || 0) }; };
 export const TH_STAND = { d0: 1188, d1: 1228, off: -14 };
-export const TH_PROPS = [
+export const TH_PROPS: Prop[] = [
   thProp((TH_STAND.d0 + TH_STAND.d1) / 2, TH_STAND.off, { kind: 'grandstand', w: TH_STAND.d1 - TH_STAND.d0, h: 8 }),
   thProp(3, 0, { kind: 'gantry', wid: 26, rot: Math.PI / 2 }),
   // garages: ONE row that follows the lane (the first cut, 4 rotated blocks, stepped and overlapped on the curve — user: "messy")

@@ -4,6 +4,7 @@ import { autoKerbs, createSubtrack, traceTrack } from "../subtrack.ts";
 import { SURFACES } from "../surfaces.ts";
 import { prepBumps } from "../terrain.ts";
 import { ss01, trackKit } from "./kit.ts";
+import type { Point, Lane, Zone, Paint, Prop, Subtrack } from "../types.ts";
 // =============================================================================================
 // CASTLE CUM — parody of Castle Combe (Wiltshire), built 2026-10-04. Track list approved 2026-10-03; decisions (user, 2026-10-04):
 // BIGGER scale (~1250 m lap so the chicanes keep their shape), Avon Rise crest FELT (light over the top; braking there can lock —
@@ -15,7 +16,7 @@ import { ss01, trackKit } from "./kit.ts";
 // left kink) -> TOWER (right, braking downhill) -> BOBBIES (chicane, 1999) -> WESTWAY / DEAN STRAIGHT -> CAMP (right) -> line.
 // Corner guide: bristolpegasus.com Castle Combe turn-by-turn; scenery: the circuit's own site sign (art/ref/cc4.jpg — it is drawn
 // rotated 180 deg from the map) and pistonclick.com spectator guide.
-const CC_MAP = [
+const CC_MAP: Point[] = [
   [940, 1031], [900, 1031], [800, 1029], [700, 1026], [640, 1021], [600, 1012],                         // start / finish straight (west)
   [580, 1000], [550, 975], [500, 948], [450, 918], [400, 890], [350, 855], [320, 830], [280, 795], [250, 765], [200, 728],   // FOLLY, the climb
   [165, 705], [130, 697], [80, 688], [45, 678],                                                          // AVON RISE (left, crest)
@@ -30,16 +31,17 @@ const CC_MAP = [
   [1215, 750], [1200, 800], [1185, 850], [1172, 900], [1158, 945], [1138, 980], [1110, 1008], [1080, 1025], [1050, 1031], [1000, 1031]];   // re-read: first pass ran ~15 px east   // DEAN STRAIGHT, CAMP
 export const CC_SUBTRACK = createSubtrack(traceTrack(CC_MAP, { mpp: 0.358, cx: 637, cy: 532, rMin: 15.5 }), 13, [{ startDist: 0, endDist: 1e9, surface: SURFACES.racetarmac }], [], true);
 CC_SUBTRACK.curvedKerbs = autoKerbs(CC_SUBTRACK, { maxR: 70, exitR: 30, heavyR: 22, minTurn: 20, mergeGap: 12 });
-export const CC_PAINT = [{ kind: 'chequered', x: CC_SUBTRACK.pts[0].x, y: CC_SUBTRACK.pts[0].y, len: 1.6, wid: 13, rot: CC_SUBTRACK.pts[0].heading }];
+export const CC_PAINT: Paint[] = [{ kind: 'chequered', x: CC_SUBTRACK.pts[0].x, y: CC_SUBTRACK.pts[0].y, len: 1.6, wid: 13, rot: CC_SUBTRACK.pts[0].heading }];
 
 // CASTLE CUM SCENERY (all asked for, 2026-10-04). Distances measured on this trace (lap 1338 m): FOLLY 130, AVON RISE 313, QUARRY 384,
 // ESSES 547-624, OLD PADDOCK 663, HAMMERDOWN 795, TOWER 904, BOBBIES 997-1033, WESTWAY 1089, CAMP 1261. Pit lane from the map: OUTSIDE
 // the start straight, leaving at Camp and rejoining before Folly ("the pit exit joins the main circuit before Folly").
-const ccMapXY = (px, py) => [+((px - 637) * 0.358).toFixed(2), +((py - 532) * 0.358).toFixed(2)];
+const ccMapXY = (px: number, py: number): Point =>
+  [+((px - 637) * 0.358).toFixed(2), +((py - 532) * 0.358).toFixed(2)];
 const CC_PIT = { d0: 1225, d1: 121, off: -17, w: 9, ramp: 28 };
 const CC_PIT_LANE = alongTrack(CC_SUBTRACK, CC_PIT.d0, CC_PIT.d1, (t, len) => -4 + (CC_PIT.off + 4) * ss01(Math.min(t, len - t) / CC_PIT.ramp), 2);
 const CC_KIT0 = trackKit(CC_SUBTRACK, 1950);   // Castle Combe circuit opened 1950
-const CC_KART = (() => {   // the KART TRACK, north of the top straight (site sign: "skid pan, kart track, 4x4 course"), in its own frame
+const CC_KART: Point[] = (() => {   // the KART TRACK, north of the top straight (site sign: "skid pan, kart track, 4x4 course"), in its own frame
   const c = CC_KIT0.at(740, -56), r = CC_KIT0.rot(740)   /* beyond the ring road (it ran through the kart track at -38) */, cs = Math.cos(r), sn = Math.sin(r);
   return [[-25, -8], [20, -8], [25, -3], [25, 3], [20, 8], [2, 8], [-4, 2], [-10, 8], [-25, 8], [-29, 3], [-29, -3], [-25, -8]]
     .map(([u, v]) => [+(c.x + cs * u - sn * v).toFixed(2), +(c.y + sn * u + cs * v).toFixed(2)]);
@@ -47,7 +49,7 @@ const CC_KART = (() => {   // the KART TRACK, north of the top straight (site si
 // RING ROAD from the track's OUTLINE, not an offset: an offset of -66 m looped back on itself inside the Esses' left-handers and
 // squashed against the world edge (photographed). Per 6 deg round the centroid: the furthest track point in a +-12 deg window,
 // + margin, smoothed, clamped inside the floor. A star-shaped curve like this cannot self-intersect.
-function ringAround(sub, margin, lim) {
+function ringAround(sub: Subtrack, margin: number, lim: number): Point[] {
   let cx = 0, cy = 0; for (const p of sub.pts) { cx += p.x; cy += p.y; } cx /= sub.pts.length; cy /= sub.pts.length;
   const N = 60, rr = new Array(N).fill(0);
   for (const p of sub.pts) { const a = Math.atan2(p.y - cy, p.x - cx), d = Math.hypot(p.x - cx, p.y - cy);
@@ -60,18 +62,18 @@ function ringAround(sub, margin, lim) {
 // both ends, as a real perimeter road feeds into the paddock — the ring minus the points near the pits / paddock, opened there
 const CC_RING = (() => {
   const full = ringAround(CC_SUBTRACK, 26, FLOOR - 9), pad = alongTrack(CC_SUBTRACK, 1210, 140, -36, 4);
-  const near = ([x, y]) => pad.some(([px, py]) => Math.hypot(x - px, y - py) < 22);
+  const near = ([x, y]: Point) => pad.some(([px, py]) => Math.hypot(x - px, y - py) < 22);
   const k0 = full.findIndex((q, i) => near(q) && !near(full[(i + 1) % full.length]));   // last point inside the paddock zone
-  const out = []; for (let i = 1; i <= full.length; i++) { const q = full[(k0 + i) % full.length]; if (near(q)) break; out.push(q); }
+  const out: Point[] = []; for (let i = 1; i <= full.length; i++) { const q = full[(k0 + i) % full.length]; if (near(q)) break; out.push(q); }
   // join each end to the nearer END of the paddock (photographed: the open ends dangled 100 m short of it)
-  const ends = [smoothOnTrack(CC_SUBTRACK, 1290, -42), smoothOnTrack(CC_SUBTRACK, 65, -42)].map((p) => [+p.x.toFixed(2), +p.y.toFixed(2)]);
-  const dd = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
+  const ends = [smoothOnTrack(CC_SUBTRACK, 1290, -42), smoothOnTrack(CC_SUBTRACK, 65, -42)].map((p): Point => [+p.x.toFixed(2), +p.y.toFixed(2)]);
+  const dd = (a: Point, b: Point) => Math.hypot(a[0] - b[0], a[1] - b[1]);
   const first = dd(out[0], ends[0]) < dd(out[0], ends[1]) ? ends[0] : ends[1], last = first === ends[0] ? ends[1] : ends[0];
   // the Camp end went straight across the pit lane (photographed): route it round the OUTSIDE of the pit entry first
-  const via = [smoothOnTrack(CC_SUBTRACK, 1235, -50)].map((p) => [+p.x.toFixed(2), +p.y.toFixed(2)])[0];
+  const via = [smoothOnTrack(CC_SUBTRACK, 1235, -50)].map((p): Point => [+p.x.toFixed(2), +p.y.toFixed(2)])[0];
   return first === ends[0] ? [first, via, ...out, last] : [first, ...out, via, last];
 })();
-export const CC_LANES = [
+export const CC_LANES: Lane[] = [
   { pts: CC_PIT_LANE, width: CC_PIT.w, surface: SURFACES.concrete },
   { pts: alongTrack(CC_SUBTRACK, 1285, 70, -42, 3), width: 26, surface: SURFACES.tarmac },          // PADDOCK behind the pits
   { pts: [ccMapXY(316, 270), ccMapXY(452, 141)], width: 11, surface: SURFACES.broken },             // the ESSES escape road (pre-1999 layout)
@@ -96,12 +98,12 @@ export const CC_BUMPS = prepBumps([
   ...CC_KIT.bank(140, 260, -32, 7, 1.3), ...CC_KIT.bank(350, 440, -34, 7, 1.5), ...CC_KIT.bank(530, 640, -30, 7, 1.3),
   ...CC_KIT.bank(970, 1060, -30, 7, 1.3), ...CC_KIT.bank(1110, 1215, -30, 7, 2.0),
 ]);
-const CC_TREES = [];
+const CC_TREES: Prop[] = [];
 for (let k = 0; k < 420 && CC_TREES.length < 110; k++) {
   const x = (CC_KIT.rnd() - 0.5) * 2 * (FLOOR - 12), y = (CC_KIT.rnd() - 0.5) * 2 * (FLOOR - 12);
   if (CC_KIT.clear(x, y, 9)) CC_TREES.push({ kind: 'tree', x, y, s: 3 + CC_KIT.rnd() * 3.5, seed: 500 + k });
 }
-export const CC_PROPS = [
+export const CC_PROPS: Prop[] = [
   CC_KIT.prop(3, 0, { kind: 'gantry', wid: 24, rot: Math.PI / 2 }),
   CC_KIT.prop(1325, -11.3, { kind: 'sculpture' }),                       // the red sculpture by the pit wall (photo)
   CC_KIT.prop(1195, 0, { kind: 'footbridge', wid: 27, label: 'AVAN TYRES', rot: Math.PI / 2 }),    // AVON footbridge over Dean Straight
@@ -118,4 +120,4 @@ export const CC_PROPS = [
   ...CC_TREES,
 ].filter((p) => p.kind === 'gantry' || p.kind === 'footbridge' || p.kind === 'sculpture' || p.kind === 'tower' || p.kind === 'truck' || p.kind === 'block' || CC_KIT.clear(p.x, p.y, p.kind === 'tree' ? 9 : 3));
 export const CC_TYREWALL = CC_ARMCO.flatMap(([a, b]) => [[-14.0, 0], [-15.0, 0.475]].flatMap(([off, sh]) => alongTrack(CC_SUBTRACK, a + sh, b, off, 0.95).map(([x, y]) => ({ x, y, kind: 'tyrestack' }))));
-export const CC_ZONES = [(() => { const c = CC_KIT.at(872, -58); return { x: c.x, y: c.y, w: 34, h: 26, rot: CC_KIT.rot(870), surface: SURFACES.wet }; })()];   // SKID PAN
+export const CC_ZONES: Zone[] = [(() => { const c = CC_KIT.at(872, -58); return { x: c.x, y: c.y, w: 34, h: 26, rot: CC_KIT.rot(870), surface: SURFACES.wet }; })()];   // SKID PAN

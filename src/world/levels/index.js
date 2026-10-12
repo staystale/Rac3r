@@ -16,18 +16,18 @@ import { NC_SUBTRACK, NC_ZONES, NC_PROPS, NC_PAINT, NC_BOARDS } from "./naffcar.
 import {
   TH_SUBTRACK, TH_ZONES, TH_BUMPS, TH_PAINT, TH_PROPS, TH_CONES, TH_STAND, TH_PIT, TH_GAR,
   TH_LANES,
-} from "./thruston.js";
-import { CC_SUBTRACK, CC_ZONES, CC_BUMPS, CC_PAINT, CC_PROPS, CC_LANES } from "./castle-cum.js";
+} from "./thruston.ts";
+import { CC_SUBTRACK, CC_ZONES, CC_BUMPS, CC_PAINT, CC_PROPS, CC_LANES } from "./castle-cum.ts";
 import {
   SH_SUBTRACK, SH_BUMPS, SH_START, SH_JOKER, SH_PADDOCK, SH_JOKER_RULE, SH_PROPS, SH_ARMCO,
-} from "./slidden-hill.js";
+} from "./slidden-hill.ts";
 import {
   SL_SUBTRACK, SL_BUMPS, SL_STREAM, SL_PAINT, SL_CONES, SL_PROPS, SL_TAPE, SL_YARD, SL_FINISH,
 } from "./sweaty-lamb.ts";
 import {
   KD_SUBTRACK, KD_BUMPS, KD_WATER, KD_PAINT, KD_CONES, KD_PROPS, KD_TAPE, KD_YARD, KD_FINISH,
 } from "./killder.ts";
-import { BH_GP_LEVEL, BH_INDY_LEVEL } from "./brands-snatch.js";
+import { BH_GP_LEVEL, BH_INDY_LEVEL } from "./brands-snatch.ts";
 import { LAB_PAINT, LAB_BOARDS } from "../barriers.ts";
 import { prepBumps } from "../terrain.ts";
 import { courseCones, slalom, outerTyreWall } from "../tyrewall.ts";
@@ -35,11 +35,11 @@ import {
   LAB_LANE_ZONES, LAB_OFFROAD_ZONES, LAB_EXT_PAINT, LAB_EXT_BOARDS, LAB_CRASH_OBJECTS,
 } from "./lab-extension.ts";
 import { LAB_BUMPS, LAB_PANELS } from "./sandbox.ts";
-import { KH_LEVEL } from "./knobhill.js";
+import { KH_LEVEL } from "./knobhill.ts";
 import { rxDress, jokerBales } from "./kit.ts";
-import { SH_TYREWALL, SH_STARTWALL } from "./slidden-hill.js";
-import { CC_TYREWALL, CC_KIT, CC_ARMCO } from "./castle-cum.js";
-import { TH_ARMCO } from "./thruston.js";
+import { SH_TYREWALL, SH_STARTWALL } from "./slidden-hill.ts";
+import { CC_TYREWALL, CC_KIT, CC_ARMCO } from "./castle-cum.ts";
+import { TH_ARMCO } from "./thruston.ts";
 // =============================================================================================
 // THE LEVELS. `base` is what you are on where no zone covers you; `zones` are first-hit-wins.
 
