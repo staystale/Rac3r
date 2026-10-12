@@ -188,7 +188,7 @@ export function createRenderer(canvas) {
     for (let i = Math.floor(vx0 / tw); i * tw < vx1 && budget.n > 0; i++)
       for (let j = Math.floor(vy0 / tw); j * tw < vy1 && budget.n > 0; j++) {
         const key = k + '|' + i + '|' + j;
-        if (!tiles.has(key)) { budget.n--; tiles.set(key, { c: paintTile(k, i, j), used: tileFrame }); }
+        if (!tiles.has(key)) { budget.n--; tiles.set(key, { c: paintTile(k, i, j), used: tileState.tileFrame }); }
       }
   }
   function updateFly(car, wallDt) {
@@ -290,7 +290,15 @@ export function createRenderer(canvas) {
   // MEASURED at CPU x4, Test Track lap: 3 steps 51 slow frames / 187 tiles; 2 steps 37 / 170. Tiles stretch up to 1.41x.
   const ZSTEP = 2;                // zoom steps per doubling: 1, 0.71, 0.5, 0.35
   const tiles = new Map();        // key "level|k|i|j" -> { c: canvas, used: frame number }
-  let tileFrame = 0, tilesPainted = 0, tileLevel = null, tileDpr = 0, tilePPM = 0, tileLayout = 0;
+  const tileState = {
+    tileFrame: 0, tilesPainted: 0,
+    tileMs: 0,                  // total ms spent painting tiles (tools: perf)
+    staleRepaints: 0,           // of those, repaints of a tile wear made stale (tools: hwjudder)
+    lastStep: null,
+    drawnN: 0,                  // art px per tile the last frame was DRAWN at (tools/hwwobble.mjs)
+    standIn: false,             // this frame showed a stand-in somewhere (tools: tile pop-in)
+  };
+  let tileLevel = null, tileDpr = 0, tilePPM = 0, tileLayout = 0;
   const zStepOf = (z) => Math.round(ZSTEP * Math.log2(z));
   const zOfStep = (k) => Math.pow(2, k / ZSTEP);
   // PIXEL MODE: snap every pixel of a freshly painted ground tile to a LIMITED PALETTE — the surfaces' own colours
@@ -340,12 +348,10 @@ export function createRenderer(canvas) {
   }
   // ?tilegpu=1: the old path (tiles painted + read back on their own GPU canvas) — perf A/B for tools/hwjudder.mjs
   const TILE_GPU = typeof location !== 'undefined' && new URLSearchParams(location.search).has('tilegpu');
-  let tileMs = 0;                                   // total ms spent painting tiles (tools: perf)
-  let staleRepaints = 0;                            // of those, repaints of a tile wear made stale (tools: hwjudder)
   let tileAvg = 20;                                 // running average ms per tile (starts pessimistic = phone)
   function paintTile(k, i, j) {
     const tp0 = performance.now();
-    try { return paintTileInner(k, i, j); } finally { const dt = performance.now() - tp0; tileMs += dt; tileAvg += (dt - tileAvg) * 0.2; }
+    try { return paintTileInner(k, i, j); } finally { const dt = performance.now() - tp0; tileState.tileMs += dt; tileAvg += (dt - tileAvg) * 0.2; }
   }
   // TILES ARE PAINTED ON A CPU SCRATCH, KEPT ON THE GPU (perf, 2026-10-06; user: "judder on mobile on infinite levels - guess thats
   // as chunks load"). MEASURED (tools/hwjudder.mjs + hwprofile.mjs, highway at 130-240 km/h, CPU x4, phone landscape): the road
@@ -385,7 +391,7 @@ export function createRenderer(canvas) {
     } finally {
       view.ctx = keep.ctx; view.W = keep.W; view.H = keep.H; view.zoom = keep.zoom; cam.x = keep.cx; cam.y = keep.cy;
     }
-    tilesPainted++;
+    tileState.tilesPainted++;
     if (viaScratch) paletteSnap(sc.c, c);
     else if (PIXEL) paletteSnap(c);
     hillShade(c, tw, (i + 0.5) * tw, (j + 0.5) * tw);
@@ -489,9 +495,9 @@ export function createRenderer(canvas) {
         let t = tiles.get(key);
         if (!t && paint && takeTile(budget)) { t = { c: paintTile(k, i, j), used: 0 }; tiles.set(key, t); }
         // a STALE tile (wear changed under it) keeps showing until the budget lets it be repainted
-        else if (t && t.stale && paint && takeTile(budget)) { t.c = paintTile(k, i, j); t.stale = false; staleRepaints++; }
+        else if (t && t.stale && paint && takeTile(budget)) { t.c = paintTile(k, i, j); t.stale = false; tileState.staleRepaints++; }
         if (!t) { missing++; continue; }
-        t.used = tileFrame;
+        t.used = tileState.tileFrame;
         // integer edges, so neighbouring tiles meet with no hairline seam
         // edges on whole ART pixels (dpr = art px per css px); with the pixel-locked view every tile is the same width
         const x0 = Math.round(sx(i * tw) * view.dpr) / view.dpr, x1 = Math.round(sx((i + 1) * tw) * view.dpr) / view.dpr;
@@ -526,10 +532,10 @@ export function createRenderer(canvas) {
   }
   function drawGround(wallDt = 0, car = null) {
     drainWear(wallDt);
-    tileFrame++;
+    tileState.tileFrame++;
     const layout = LEVEL.subtrack ? LEVEL.subtrack.layoutId || 0 : 0;   // a re-randomised track (Grass Track)
     if (tileLevel !== LEVEL || tileDpr !== view.dpr || tilePPM !== view.PPM || tileLayout !== layout) {
-      tiles.clear(); tileLevel = LEVEL; tileDpr = view.dpr; tilePPM = view.PPM; tileLayout = layout; lastStep = null;
+      tiles.clear(); tileLevel = LEVEL; tileDpr = view.dpr; tilePPM = view.PPM; tileLayout = layout; tileState.lastStep = null;
     }
     if (fly && fly.ov && view.zoom < FLY_HANDOVER) {
       const o = fly.ov;
@@ -541,22 +547,22 @@ export function createRenderer(canvas) {
         // only the EVEN steps are used during the flight (see below) — three steps, ~60 tiles, not ~90
         for (let k = 0; k >= zStepOf(FLY_HANDOVER) - 1 && budget.n > 0; k -= 2) prefetch(k, car.x, car.y, zOfStep(k) / 1.6, budget);
       }
-      lastStep = null;
+      tileState.lastStep = null;
       return;
     }
     // HYSTERESIS on the zoom step (perf, 2026-10-03): the speed zoom wanders across step boundaries all the time and every
     // switch repaints the whole view. Stay on the current step until the zoom is 0.75 of a step away from it.
     let k = fly ? 2 * Math.ceil(zStepOf(view.zoom) / 2) : zStepOf(view.zoom);   // flight: even steps only, finer side
-    if (!fly && lastStep !== null && Math.abs(ZSTEP * Math.log2(view.zoom) - lastStep) < 0.75) k = lastStep;
+    if (!fly && tileState.lastStep !== null && Math.abs(ZSTEP * Math.log2(view.zoom) - tileState.lastStep) < 0.75) k = tileState.lastStep;
     const budget = tileBudget();
     // count what the wanted step is missing BEFORE painting, to decide whether a stand-in is needed
-    if (lastStep !== null && lastStep !== k && countMissing(k) > 0) {
+    if (tileState.lastStep !== null && tileState.lastStep !== k && countMissing(k) > 0) {
       // the stand-in: the step we were on, scaled. Drawn first, then whatever of k exists goes over it.
       view.ctx.fillStyle = standInFill(); view.ctx.fillRect(0, 0, view.W, view.H);
-      blitStep(lastStep, false, budget);
+      blitStep(tileState.lastStep, false, budget);
       const left = blitStep(k, true, budget);
-      standIn = left > 0;
-      if (left === 0) lastStep = k;
+      tileState.standIn = left > 0;
+      if (left === 0) tileState.lastStep = k;
     } else {
       // STAND-IN FOR NEW GROUND (perf, 2026-10-03; user: "still seeing lag at high speeds"). This used to paint EVERY missing tile
       // in the frame it appeared — MEASURED at CPU x4: frames up to ~150 ms when ground scrolled in at speed. Now: the whole-
@@ -565,9 +571,9 @@ export function createRenderer(canvas) {
       if (countMissing(k) > 1) {
         const ov = levelOverview();
         if (ov) { view.ctx.fillStyle = standInFill(); view.ctx.fillRect(0, 0, view.W, view.H); view.ctx.drawImage(ov.c, sx(ov.x0), sy(ov.y0), (ov.x1 - ov.x0) * PPMz(), (ov.y1 - ov.y0) * PPMz()); }
-        standIn = blitStep(k, true, budget) > 0;
-      } else { blitStep(k, true, { n: Infinity }); standIn = false; }
-      lastStep = k;
+        tileState.standIn = blitStep(k, true, budget) > 0;
+      } else { blitStep(k, true, { n: Infinity }); tileState.standIn = false; }
+      tileState.lastStep = k;
     }
     // (A LOOK-AHEAD painter was tried here, 2026-10-03: one tile per spare frame from where the car is heading. MEASURED at
     // CPU x4 it made things WORSE — 97 slow frames per lap vs 51 without, and more tiles in total. Removed.)
@@ -575,7 +581,7 @@ export function createRenderer(canvas) {
     // tiles of a phone, so at 1 tile a frame 27% of frames showed the flat stand-in (1600x900, 159 of 600). On a device that
     // paints a tile in < AHEAD_MAX_MS, a frame with NOTHING missing paints one tile from the view AHEAD of the car. Phones
     // (12-20 ms a tile at CPU x4) never qualify, so they keep the measured-better behaviour above.
-    if (!standIn && !fly && car && tileAvg < AHEAD_MAX_MS && Math.hypot(car.vx, car.vy) > 3) {
+    if (!tileState.standIn && !fly && car && tileAvg < AHEAD_MAX_MS && Math.hypot(car.vx, car.vy) > 3) {
       prefetch(k, cam.x + car.vx * AHEAD_S, cam.y + car.vy * AHEAD_S, view.zoom, { n: 1 });
     }
     if (tiles.size > TILE_MAX) {
@@ -583,9 +589,7 @@ export function createRenderer(canvas) {
       for (let n = 0; n < tiles.size - TILE_MAX; n++) tiles.delete(old[n][0]);
     }
   }
-  let lastStep = null, drawnN = 0;   // drawnN: art px per tile the last frame was DRAWN at (tools/hwwobble.mjs)
   const AHEAD_MAX_MS = 9, AHEAD_S = 0.6;   // look-ahead painting: only below this tile cost; view shifted this many s of travel
-  let standIn = false;            // this frame showed a stand-in somewhere (tools: tile pop-in)
 
   // ---------------------------------------------------------------- frame
   function frame(game, wallDt, wallT) {
@@ -601,9 +605,9 @@ export function createRenderer(canvas) {
     const keepZoom = view.zoom;
     let subX = 0, subY = 0, camTrue = null;
     if (!NO_LOCK && (!fly || view.zoom >= FLY_HANDOVER)) {
-      const k = (lastStep !== null && Math.abs(ZSTEP * Math.log2(view.zoom) - lastStep) < 0.75) ? lastStep : zStepOf(view.zoom);
+      const k = (tileState.lastStep !== null && Math.abs(ZSTEP * Math.log2(view.zoom) - tileState.lastStep) < 0.75) ? tileState.lastStep : zStepOf(view.zoom);
       const zq = zOfStep(k), N = Math.max(1, Math.round(TILE_PX * view.dpr * view.zoom / zq));
-      view.zoom = N * zq / (TILE_PX * view.dpr); drawnN = N;
+      view.zoom = N * zq / (TILE_PX * view.dpr); tileState.drawnN = N;
       const pd = view.PPM * view.zoom * view.dpr, hx = (view.W * view.dpr) / 2, hy = (view.H * view.dpr) / 2;
       // SUB-PIXEL BLIT (user, 2026-10-04, after the lock: "it is still shaking or wiggling as I drive"). MEASURED (tools/wobblecheck):
       // snapping the camera to whole art pixels made the world move in uneven 1-or-2-art-pixel steps — camera jerk median 1.46 px per
@@ -668,13 +672,13 @@ export function createRenderer(canvas) {
     cam, resize, frame, snap, sx, sy, roundRect, flyIn, thumbnail,
     get flying() { return !!fly; },
     get PPM() { return view.PPM * view.zoom; },
-    get groundRenders() { return tilesPainted; },
-    get tileMs() { return tileMs; },
-    get staleRepaints() { return staleRepaints; },
-    get drawnN() { return drawnN; },
+    get groundRenders() { return tileState.tilesPainted; },
+    get tileMs() { return tileState.tileMs; },
+    get staleRepaints() { return tileState.staleRepaints; },
+    get drawnN() { return tileState.drawnN; },
     get overviewBounds() { const o = ovCache && ovCache.ov; return o ? [o.x0, o.y0, o.x1, o.y1] : null; },
     get viewBounds() { const p = PPMz(); return [cam.x - view.W / 2 / p, cam.y - view.H / 2 / p, cam.x + view.W / 2 / p, cam.y + view.H / 2 / p]; },
-    get standInFrame() { return standIn; },
+    get standInFrame() { return tileState.standIn; },
     pixelCar,                           // for tools/spritesheet.mjs
     // the GARAGE lift (user, 2026-10-04: "some vehicles aren't showing their wheels in garage mode"): the body sprite only carries the
     // body — the game draws the wheels separately (they steer) — so the lift gets a composite: wheels as drawPixelCar draws them, then
