@@ -300,6 +300,12 @@ export interface TileState {
   tilesPainted: number;
   tileMs: number;
   staleRepaints: number;
+  msLayers: number;
+  msSnap: number;
+  msShade: number;
+  newTiles: number;
+  perStep: Record<number, number>;
+  prefetched: number;
   lastStep: number | null;
   drawnN: number;
   standIn: boolean;

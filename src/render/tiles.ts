@@ -74,6 +74,12 @@ export function createTiles(view: View, cam: Cam, settings: Settings, helpers: T
     tileFrame: 0, tilesPainted: 0,
     tileMs: 0,                  // total ms spent painting tiles (tools: perf)
     staleRepaints: 0,           // of those, repaints of a tile wear made stale (tools: hwjudder)
+    msLayers: 0,                // ms drawing the layers of tiles, incl. scratch set-up (tools/tilecost.mjs)
+    msSnap: 0,                  // ms in paletteSnap (tools/tilecost.mjs)
+    msShade: 0,                 // ms in hillShade (tools/tilecost.mjs)
+    newTiles: 0,                // tiles painted because none existed at that key (tools/tilecost.mjs)
+    perStep: {},                // tiles painted per zoom step k (tools/tilecost.mjs)
+    prefetched: 0,              // tiles painted by prefetch() (tools/tilecost.mjs)
     lastStep: null,
     drawnN: 0,                  // art px per tile the last frame was DRAWN at (tools/hwwobble.mjs)
     standIn: false,             // this frame showed a stand-in somewhere (tools: tile pop-in)
@@ -146,6 +152,7 @@ export function createTiles(view: View, cam: Cam, settings: Settings, helpers: T
     return { c, g: c.getContext('2d', { willReadFrequently: true })! };
   }
   function paintTileInner(k: number, i: number, j: number) {
+    const tl0 = performance.now();      // start of the layers stage
     const zq = zOfStep(k), pq = view.PPM * zq, tw = TILE_PX / pq;     // world metres per tile
     const px = Math.round(TILE_PX * view.dpr), c = document.createElement('canvas');
     c.width = c.height = px;
@@ -173,9 +180,15 @@ export function createTiles(view: View, cam: Cam, settings: Settings, helpers: T
       view.ctx = keep.ctx; view.W = keep.W; view.H = keep.H; view.zoom = keep.zoom; cam.x = keep.cx; cam.y = keep.cy;
     }
     tileState.tilesPainted++;
+    tileState.perStep[k] = (tileState.perStep[k] || 0) + 1;
+    const ts0 = performance.now();
+    tileState.msLayers += ts0 - tl0;
     if (viaScratch) paletteSnap(sc!.c, c);
     else paletteSnap(c);
+    const th0 = performance.now();
+    tileState.msSnap += th0 - ts0;
     hillShade(c, tw, (i + 0.5) * tw, (j + 0.5) * tw);
+    tileState.msShade += performance.now() - th0;
     return c;
   }
   // HILL-SHADING (step 3, 2026-10-03; user: "make sure banked surfaces are clearly shown with brighter spots and shadowing,
@@ -274,7 +287,10 @@ export function createTiles(view: View, cam: Cam, settings: Settings, helpers: T
       for (let j = Math.floor(vy0 / tw); j * tw < vy1; j++) {
         const key = k + '|' + i + '|' + j;
         let t = tiles.get(key);
-        if (!t && paint && takeTile(budget)) { t = { c: paintTile(k, i, j), used: 0 }; tiles.set(key, t); }
+        if (!t && paint && takeTile(budget)) {
+          t = { c: paintTile(k, i, j), used: 0 }; tiles.set(key, t);
+          tileState.newTiles++;
+        }
         // a STALE tile (wear changed under it) keeps showing until the budget lets it be repainted
         else if (t && t.stale && paint && takeTile(budget)) { t.c = paintTile(k, i, j); t.stale = false; tileState.staleRepaints++; }
         if (!t) { missing++; continue; }
@@ -382,7 +398,10 @@ export function createTiles(view: View, cam: Cam, settings: Settings, helpers: T
     for (let i = Math.floor(vx0 / tw); i * tw < vx1 && budget.n > 0; i++)
       for (let j = Math.floor(vy0 / tw); j * tw < vy1 && budget.n > 0; j++) {
         const key = k + '|' + i + '|' + j;
-        if (!tiles.has(key)) { budget.n--; tiles.set(key, { c: paintTile(k, i, j), used: tileState.tileFrame }); }
+        if (!tiles.has(key)) {
+          budget.n--; tiles.set(key, { c: paintTile(k, i, j), used: tileState.tileFrame });
+          tileState.prefetched++;
+        }
       }
   }
 
