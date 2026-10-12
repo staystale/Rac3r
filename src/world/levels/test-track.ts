@@ -2,9 +2,10 @@ import { SURFACES } from "../surfaces.ts";
 import { createSubtrack } from "../subtrack.ts";
 import { prepBumps } from "../terrain.ts";
 import { courseCones } from "../tyrewall.ts";
+import type { Point, Sector, CurvedKerb, Zone, Paint, Board, Cone, Bump } from "../types.ts";
 // =============================================================================================
 // THE TEST TRACK (A flowing road course showcasing all surface types)
-const TT_APEXES = [
+const TT_APEXES: Point[] = [
   [-70, -95], [0, -95], [70, -95],                 // Main straight (Race Tarmac)
   [120, -75], [145, -20], [130, 35],               // Turn 1 sweeping right (Tarmac)
   [95, 75], [55, 95], [15, 75],                    // Turn 2 chicane (Broken Tarmac + Kerbs)
@@ -13,7 +14,7 @@ const TT_APEXES = [
   [-110, -75],                                     // Turn 5 entry back to straight
 ];
 
-const TT_CURVED_KERBS = [
+const TT_CURVED_KERBS: CurvedKerb[] = [
   // Turn 1 Apex inside (Right / -nx)
   { side: 'right', startDist: 180, endDist: 280, width: 2.4, h: 0.11 },
   // Turn 1 Exit outside (Left / +nx)
@@ -32,7 +33,7 @@ const TT_CURVED_KERBS = [
   { side: 'right', startDist: 805, endDist: 855, width: 2.4, h: 0.11 },
 ];
 
-const TT_SECTORS = [
+const TT_SECTORS: Sector[] = [
   // Sector 1: Race Tarmac main straight
   { startDist: 820, endDist: 150, surface: SURFACES.racetarmac },
   // Sector 2: Turn 1 sweeper
@@ -46,7 +47,7 @@ const TT_SECTORS = [
 ];
 
 export const TT_SUBTRACK = createSubtrack(TT_APEXES, 13, TT_SECTORS, TT_CURVED_KERBS);
-export const TT_CONES = [
+export const TT_CONES: Cone[] = [
   ...courseCones(TT_APEXES, 13, 14),
   // Chicane and corner protection tyre stacks
   { x: 58, y: 72, kind: 'tyrestack' },
@@ -62,7 +63,7 @@ export const TT_CONES = [
   { x: 20, y: -16, kind: 'tyrestack' },
 ];
 
-export const TT_ZONES = [
+export const TT_ZONES: Zone[] = [
   // Dedicated Infield Proving Ground testing facilities:
   { x: 0, y: -30, w: 54, h: 28, surface: SURFACES.wet, boxed: true, rounded: true },
   { x: -58, y: -30, w: 46, h: 28, surface: SURFACES.ice, boxed: true, rounded: true },
@@ -71,17 +72,17 @@ export const TT_ZONES = [
   { x: 32, y: 25, w: 52, h: 32, surface: SURFACES.gravel, boxed: true, rounded: true },
 ];
 
-export const TT_BUMPS = prepBumps([
+export const TT_BUMPS: Bump[] = prepBumps([
   // Table jump on the straight exit (straight ramp on straight section)
   { kind: 'table', x: 45, y: -95, rot: 0, len: 24, wid: 14, h: 0.80 },
 ]);
 
-export const TT_PAINT = [
+export const TT_PAINT: Paint[] = [
   // Chequered Grand Prix start/finish line — exactly aligned with road centerline and heading
   { kind: 'chequered', x: -48, y: -96.48, len: 1.6, wid: 13, rot: 0.0109 },
 ];
 
-export const TT_BOARDS = [
+export const TT_BOARDS: Board[] = [
   { x: -48, y: -87.5, label: 'FINISH' },
   { x: 0, y: -87.5, label: '50m' },
   { x: 50, y: -87.5, label: '100m' },

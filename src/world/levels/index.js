@@ -6,13 +6,13 @@ import { onTrack, propClearance } from "../tyrewall.ts";
 import {
   SB_SUBTRACK, SB_CONES, SB_COVERS, SB_ZONES, SB_BUMPS, SB_PAINT, SB_BOARDS, SB_PROPS, SB_SPAWN,
 } from "./sandbox.js";
-import { TT_SUBTRACK, TT_CONES, TT_ZONES, TT_BUMPS, TT_PAINT, TT_BOARDS } from "./test-track.js";
+import { TT_SUBTRACK, TT_CONES, TT_ZONES, TT_BUMPS, TT_PAINT, TT_BOARDS } from "./test-track.ts";
 import {
   GO_SECTORS, GO_SUBTRACK, GO_RANDOM_PATCHES, randomiseGrassTrack, GO_ZONES, GO_PROPS, GO_PAINT,
   GO_BOARDS,
-} from "./grass-track.js";
-import { SO_SUBTRACK, SO_ZONES, SO_PROPS, SO_PAINT, SO_BOARDS } from "./stock-car.js";
-import { NC_SUBTRACK, NC_ZONES, NC_PROPS, NC_PAINT, NC_BOARDS } from "./naffcar.js";
+} from "./grass-track.ts";
+import { SO_SUBTRACK, SO_ZONES, SO_PROPS, SO_PAINT, SO_BOARDS } from "./stock-car.ts";
+import { NC_SUBTRACK, NC_ZONES, NC_PROPS, NC_PAINT, NC_BOARDS } from "./naffcar.ts";
 import {
   TH_SUBTRACK, TH_ZONES, TH_BUMPS, TH_PAINT, TH_PROPS, TH_CONES, TH_STAND, TH_PIT, TH_GAR,
   TH_LANES,

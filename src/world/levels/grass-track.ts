@@ -1,24 +1,28 @@
 import { SURFACES } from "../surfaces.ts";
 import { createSubtrack } from "../subtrack.ts";
+import type { SurfaceId } from "../surfaces.ts";
+import type {
+  Point, Sector, CurvedKerb, Zone, Prop, Paint, Board, Patch, Subtrack,
+} from "../types.ts";
 // =============================================================================================
 // GRASS OVAL (Dirt/Grass/Mud Track — PLAN.md §3)
 // Counter-clockwise (turning left). Start/finish at x=0, y=38.
 // =============================================================================================
-const GO_APEXES = [
+const GO_APEXES: Point[] = [
   [0, 38], [55, 38], [85, 18], [85, -18], [55, -38], [0, -38], [-55, -38], [-85, -18], [-85, 18], [-55, 38]
 ];
-export const GO_SECTORS = [
+export const GO_SECTORS: Sector[] = [
   { startDist: 0, endDist: 55, surface: SURFACES.grassShort },
   { startDist: 55, endDist: 185, surface: SURFACES.dirt },
   { startDist: 185, endDist: 240, surface: SURFACES.grassShort },
   { startDist: 240, endDist: 1000, surface: SURFACES.dirt },
 ];
-const GO_CURVED_KERBS = [
+const GO_CURVED_KERBS: CurvedKerb[] = [
   // Inner kerb hugging the inside edge (right of path vector)
   { side: 'right', startDist: 0, endDist: 1000, width: 2.0, h: 0.08 }
 ];
 export const GO_SUBTRACK = createSubtrack(GO_APEXES, 14, GO_SECTORS, GO_CURVED_KERBS);
-export const GO_RANDOM_PATCHES = [];      // filled by randomiseGrassTrack on every load
+export const GO_RANDOM_PATCHES: Patch[] = [];      // filled by randomiseGrassTrack on every load
 
 // GRASS TRACK LAYOUT (user, 2026-10-03, second pass): "it should be mostly as I asked — grass on the straights
 // and dirt on the corners — however random patches, single squares etc of grass, long grass or mud or dirt,
@@ -31,13 +35,15 @@ export const GO_RANDOM_PATCHES = [];      // filled by randomiseGrassTrack on ev
 const GO_TURN = 0.25;
 const GO_MIN_RUN = 20;             // m; shorter base runs are absorbed into their neighbours
 const GO_PATCHES = 46;
-const GO_PATCH_ON_STRAIGHT = [['dirt', 0.30], ['mud', 0.25], ['grassLong', 0.30], ['thickMud', 0.15]];
-const GO_PATCH_ON_CORNER = [['grassShort', 0.30], ['mud', 0.35], ['grassLong', 0.15], ['thickMud', 0.20]];
-function pick(table, x) { for (const [id, w] of table) { if ((x -= w) < 0) return id; } return table[table.length - 1][0]; }
-export function randomiseGrassTrack(sub, sectors, patches, rng = Math.random) {
+const GO_PATCH_ON_STRAIGHT: [SurfaceId, number][] = [['dirt', 0.30], ['mud', 0.25], ['grassLong', 0.30], ['thickMud', 0.15]];
+const GO_PATCH_ON_CORNER: [SurfaceId, number][] = [['grassShort', 0.30], ['mud', 0.35], ['grassLong', 0.15], ['thickMud', 0.20]];
+function pick(table: [SurfaceId, number][], x: number): SurfaceId { for (const [id, w] of table) { if ((x -= w) < 0) return id; } return table[table.length - 1][0]; }
+export function randomiseGrassTrack(
+  sub: Subtrack, sectors: Sector[], patches: Patch[], rng: () => number = Math.random,
+): void {
   const pts = sub.pts, total = sub.totalDist;
-  const headingAt = (d) => { let p = pts[0]; for (const q of pts) if (q.dist <= d) p = q; return p; };
-  const isCorner = (d) => {
+  const headingAt = (d: number) => { let p = pts[0]; for (const q of pts) if (q.dist <= d) p = q; return p; };
+  const isCorner = (d: number) => {
     const dh = headingAt((d + 12) % total).heading - headingAt(d).heading;
     return Math.abs(Math.atan2(Math.sin(dh), Math.cos(dh))) > GO_TURN;
   };
@@ -84,7 +90,7 @@ export function randomiseGrassTrack(sub, sectors, patches, rng = Math.random) {
   sub.layoutId = (sub.layoutId || 0) + 1;       // tells the renderer its cached ground is out of date
 }
 
-export const GO_ZONES = [
+export const GO_ZONES: Zone[] = [
   // Infield natural grass & mud patches (odd squares around edges of grass)
   { x: 0, y: 0, w: 110, h: 45, surface: SURFACES.grass },
   { x: -35, y: -4, w: 28, h: 22, surface: SURFACES.mud },
@@ -96,7 +102,7 @@ export const GO_ZONES = [
   // the random PATCHES rolled every load (randomiseGrassTrack), which the user asked for instead.
 ];
 
-export const GO_PROPS = [
+export const GO_PROPS: Prop[] = [
   { kind: 'podium', x: 0, y: 0, rot: 0 },
   { kind: 'caravan', x: -26, y: -4, rot: 0.16 },
   { kind: 'grandstand', x: 0, y: 66, w: 38, h: 7, rot: 0 },
@@ -104,11 +110,11 @@ export const GO_PROPS = [
   { kind: 'pylon', x: -65, y: -48 }, { kind: 'pylon', x: 65, y: -48 },
 ];
 
-export const GO_PAINT = [
+export const GO_PAINT: Paint[] = [
   // White chalk start/finish line across the front straight
   { kind: 'lane', x: 0, y: 38, w: 0.8, h: 14, tone: 0.95 },
 ];
 
-export const GO_BOARDS = [
+export const GO_BOARDS: Board[] = [
   { x: 0, y: 47, label: 'FINISH' },
 ];

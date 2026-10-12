@@ -178,7 +178,7 @@
     "id-length": 47,
     "max-len": 75
   },
-  "src/world/levels/grass-track.js": {
+  "src/world/levels/grass-track.ts": {
     "complexity": 1,
     "id-length": 14,
     "max-len": 21
@@ -206,7 +206,7 @@
     "id-length": 27,
     "max-len": 40
   },
-  "src/world/levels/naffcar.js": {
+  "src/world/levels/naffcar.ts": {
     "max-len": 1
   },
   "src/world/levels/sandbox.js": {
@@ -218,7 +218,7 @@
     "max-len": 68,
     "no-unused-vars": 4
   },
-  "src/world/levels/stock-car.js": {
+  "src/world/levels/stock-car.ts": {
     "max-len": 1
   },
   "src/world/levels/sweaty-lamb.js": {
