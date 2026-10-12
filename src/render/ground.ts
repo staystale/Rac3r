@@ -214,6 +214,11 @@ export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
       });
       view.ctx.fill();
     },
+    // thin rings (rain ripples) are NOT drawn in pixel art - as hollow squares they read as UI
+    // glitches (photographed on the wet pad). The wet surface keeps its rings layer only because
+    // its colour is part of the tile palette (tiles.ts paletteSnap): removing it changed the
+    // ground pixels (tilediff, task 074).
+    rings() {},
     // jagged cracks with a side branch — ice, broken tarmac
     cracks(L, x0, y0, x1, y1) {
       const [, col, sp, len, wid, prob = 1] = L, p = PPMz();
@@ -284,7 +289,8 @@ export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
     // paint. Real wet asphalt is DARKER tarmac with its aggregate still showing, broad soft reflections and
     // dark glossy standing water in the low spots.
     // + BLUE-ISH PUDDLES (user, 2026-10-03: "wet tarmac isn't clear enough, maybe needs blue-ish puddles")
-    wet: { base: '#2c3039', layers: [['grain', '#454a57', 0.9, 0.08], ['blobs', 'rgba(86,120,176,0.55)', 4.2, 1.6, 0.8, 0.55, 0.2], ['sheen', 'rgba(205,218,238,0.10)', 6.0, 1.6, -0.35], ['sheen', 'rgba(230,238,250,0.16)', 6.0, 0.18, -0.35]] },
+    wet: { base: '#2c3039', layers: [['grain', '#454a57', 0.9, 0.08], ['blobs', 'rgba(86,120,176,0.55)', 4.2, 1.6, 0.8, 0.55, 0.2], ['sheen', 'rgba(205,218,238,0.10)', 6.0, 1.6, -0.35], ['sheen', 'rgba(230,238,250,0.16)', 6.0, 0.18, -0.35],
+      ['rings', 'rgba(200,220,250,0.35)', 4.6, 0.35, 0.03, 0.4]] },
   };
   // FIELD LOOKS (highway.js fields, zone.art; the zone DRIVES as its own surface). User, 2026-10-06: "jsut reuse mud and grass or long
   // grass textures for field, and maybe colour them" - so each is an existing texture with only its COLOURS swapped (same layers).
