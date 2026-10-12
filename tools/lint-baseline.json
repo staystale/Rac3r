@@ -104,13 +104,23 @@
     "max-len": 34
   },
   "src/render.js": {
-    "complexity": 18,
-    "id-length": 1021,
-    "max-len": 952,
+    "complexity": 13,
+    "id-length": 822,
+    "max-len": 733,
     "max-lines": 1,
-    "max-lines-per-function": 7,
-    "no-shadow": 6,
-    "no-unused-vars": 8
+    "max-lines-per-function": 5,
+    "no-unused-vars": 6
+  },
+  "src/render/cars.js": {
+    "complexity": 5,
+    "id-length": 197,
+    "max-len": 222,
+    "max-lines": 1,
+    "max-lines-per-function": 3,
+    "no-unused-vars": 3
+  },
+  "src/render/shared.js": {
+    "max-len": 1
   },
   "src/roll.js": {
     "complexity": 2,
