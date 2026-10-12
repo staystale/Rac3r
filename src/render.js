@@ -239,11 +239,11 @@ export function createRenderer(canvas) {
   // only called at draw time, after createRoad has returned forSide
   const {
     drawFloor, SURFACE_ART, paintLayers, artBase, drawZones, PUDDLE_TINT, drawPatches,
-    drawCovers, drawWear, drawBumps, drawRunoff, drawArrows,
+    drawCovers, drawWear, drawBumps, drawRunoff,
   } = createGround(view, cam, { PPMz, sx, sy, roundRect, forSide: (...a) => forSide(...a) });
   const {
     drawLanes, drawTrackRibbon, drawLaneDashes, drawCurvedKerbs, drawPaint, forSide,
-    drawKerb, drawSlip, drawMarks,
+    drawKerb, drawSlip, drawMarks, drawArrows,
   } = createRoad(view, cam, { PPMz, sx, sy, paintLayers, artBase });
   const {
     chips, MAX_CHIPS, addPuffs, addSpray, addSmoke, addDamageSmoke,

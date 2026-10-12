@@ -293,6 +293,26 @@ export function createRoad(view, cam, helpers) {
     for (const b of BOARDS) view.ctx.fillText(b.label, sx(b.x), sy(b.y));
   }
 
+  // JOKER ARROWS (user spec 2026-10-03: "a TRANSLUCENT WHITE ARROW, gently pulsing" at joker / pit entries). Hidden once the joker
+  // is done in an RX race. Wall clock: the pulse is something the player watches.
+  function drawArrows(game, wallT) {
+    const J = LEVEL.joker; if (!J || !J.arrows) return;
+    if (game.jokerTaken) return;
+    // stronger + OUTLINED (user: "needs to be closed and more clearly pointing") — at 0.28-0.5 alpha it faded into the grey tarmac
+    const p = PPMz(), a = 0.45 + 0.35 * (0.5 + 0.5 * Math.sin((wallT || 0) * 3.2));
+    for (const ar of J.arrows) {
+      if (sx(ar.x) < -200 || sx(ar.x) > view.W + 200 || sy(ar.y) < -200 || sy(ar.y) > view.H + 200) continue;
+      const L = ar.len || 7;
+      view.ctx.save(); view.ctx.translate(sx(ar.x), sy(ar.y)); view.ctx.rotate(ar.rot);
+      view.ctx.fillStyle = `rgba(255,255,255,${a.toFixed(3)})`;
+      view.ctx.beginPath();
+      view.ctx.moveTo(L * 0.5 * p, 0); view.ctx.lineTo(0, -L * 0.42 * p); view.ctx.lineTo(0, -L * 0.16 * p); view.ctx.lineTo(-L * 0.5 * p, -L * 0.16 * p);
+      view.ctx.lineTo(-L * 0.5 * p, L * 0.16 * p); view.ctx.lineTo(0, L * 0.16 * p); view.ctx.lineTo(0, L * 0.42 * p); view.ctx.closePath(); view.ctx.fill();
+      view.ctx.strokeStyle = `rgba(20,22,28,${(a * 0.8).toFixed(3)})`; view.ctx.lineWidth = Math.max(1.5, 0.25 * p); view.ctx.lineJoin = "miter"; view.ctx.stroke();
+      view.ctx.restore();
+    }
+  }
+
   // A4: the boundary is VISIBLE — and now it is three different things, so it has to READ as three
   // (CLAUDE.md §4: if the player cannot find it, it does not exist). From the inside out:
   //   the KERB, a raised rumble strip you ride over and can jump off,
@@ -365,6 +385,6 @@ export function createRoad(view, cam, helpers) {
   }
   return {
     drawLanes, drawTrackRibbon, drawLaneDashes, drawCurvedKerbs, drawPaint, forSide,
-    drawKerb, drawSlip, drawMarks,
+    drawKerb, drawSlip, drawMarks, drawArrows,
   };
 }

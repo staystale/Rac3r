@@ -610,28 +610,8 @@ export function createGround(view, cam, helpers) {
     });
   }
 
-  // JOKER ARROWS (user spec 2026-10-03: "a TRANSLUCENT WHITE ARROW, gently pulsing" at joker / pit entries). Hidden once the joker
-  // is done in an RX race. Wall clock: the pulse is something the player watches.
-  function drawArrows(game, wallT) {
-    const J = LEVEL.joker; if (!J || !J.arrows) return;
-    if (game.jokerTaken) return;
-    // stronger + OUTLINED (user: "needs to be closed and more clearly pointing") — at 0.28-0.5 alpha it faded into the grey tarmac
-    const p = PPMz(), a = 0.45 + 0.35 * (0.5 + 0.5 * Math.sin((wallT || 0) * 3.2));
-    for (const ar of J.arrows) {
-      if (sx(ar.x) < -200 || sx(ar.x) > view.W + 200 || sy(ar.y) < -200 || sy(ar.y) > view.H + 200) continue;
-      const L = ar.len || 7;
-      view.ctx.save(); view.ctx.translate(sx(ar.x), sy(ar.y)); view.ctx.rotate(ar.rot);
-      view.ctx.fillStyle = `rgba(255,255,255,${a.toFixed(3)})`;
-      view.ctx.beginPath();
-      view.ctx.moveTo(L * 0.5 * p, 0); view.ctx.lineTo(0, -L * 0.42 * p); view.ctx.lineTo(0, -L * 0.16 * p); view.ctx.lineTo(-L * 0.5 * p, -L * 0.16 * p);
-      view.ctx.lineTo(-L * 0.5 * p, L * 0.16 * p); view.ctx.lineTo(0, L * 0.16 * p); view.ctx.lineTo(0, L * 0.42 * p); view.ctx.closePath(); view.ctx.fill();
-      view.ctx.strokeStyle = `rgba(20,22,28,${(a * 0.8).toFixed(3)})`; view.ctx.lineWidth = Math.max(1.5, 0.25 * p); view.ctx.lineJoin = "miter"; view.ctx.stroke();
-      view.ctx.restore();
-    }
-  }
-
   return {
     drawFloor, SURFACE_ART, paintLayers, artBase, drawZones, PUDDLE_TINT, drawPatches,
-    drawCovers, drawWear, drawBumps, drawRunoff, drawArrows,
+    drawCovers, drawWear, drawBumps, drawRunoff,
   };
 }

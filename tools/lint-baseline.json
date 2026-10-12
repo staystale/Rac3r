@@ -131,8 +131,8 @@
   },
   "src/render/ground.js": {
     "complexity": 2,
-    "id-length": 205,
-    "max-len": 157,
+    "id-length": 200,
+    "max-len": 151,
     "max-lines-per-function": 2
   },
   "src/render/objects.js": {
@@ -154,8 +154,8 @@
   },
   "src/render/road.js": {
     "complexity": 2,
-    "id-length": 92,
-    "max-len": 61,
+    "id-length": 97,
+    "max-len": 67,
     "max-lines-per-function": 2
   },
   "src/render/shared.js": {
