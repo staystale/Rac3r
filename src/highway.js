@@ -14,6 +14,7 @@
 // LANES are config (HW_PRESETS): a UK motorway, a wide interstate, a skinny dual carriageway — the same generator for later flavour levels.
 import { lcg } from "./core/random.ts";
 import { envValue } from "./core/debug.ts";
+import { readSettings } from "./core/settings.ts";
 import "./world/load.ts";   // the world is set up before this file runs (as importing lab.js did)
 import { createSubtrack, ghostSegment } from "./world/subtrack.ts";
 import { SURFACES } from "./world/surfaces.ts";
@@ -615,7 +616,7 @@ export function setHighwayPreset(lv, preset) {
   if (!HW_PRESETS[preset] || lv.roadType === preset) return;
   lv.roadType = preset; lv._cfg = HW_PRESETS[preset]; lv._layout = (lv._layout || 0) + 1;
 }
-const QP = typeof location !== 'undefined' ? new URLSearchParams(location.search).get('hw') : null;
+const QP = typeof location !== 'undefined' ? readSettings(location.search).highwayDebug : null;
 // node tools only: HWNOX=1 builds the road with NO slips / bridges / extras (an A/B of their effect on the AI, same roads)
 const NOX = !!envValue("HWNOX");
 const NOF = !!envValue("HWNOF");   // node only: no FIELDS (scenery v2 A/B)

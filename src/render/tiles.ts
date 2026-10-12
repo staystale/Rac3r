@@ -1,6 +1,7 @@
 // the GROUND TILES cache of render.ts (phase 4 of the render.js split): the floor, zones and track
 // ribbon painted into world-aligned tiles, blitted each frame. Moved verbatim.
 import { BUMPS, LEVEL } from "../world/state.ts";
+import type { Settings } from "../core/settings.ts";
 import { COL } from "../world/colours.ts";
 import { WEAR_CELL, wearDirty, wearEpoch, groundAt } from "../world/wear.ts";
 import { visualHeightAt } from "../world/terrain.ts";
@@ -32,7 +33,7 @@ interface TilesHelpers {
   artBase: (id: string, fallback: string) => string;
 }
 
-export function createTiles(view: View, cam: Cam, helpers: TilesHelpers) {
+export function createTiles(view: View, cam: Cam, settings: Settings, helpers: TilesHelpers) {
   const {
     PPMz, sx, sy, drawFloor, drawZones, drawLanes, drawTrackRibbon, drawLaneDashes, drawPatches,
     drawCovers, drawWear, drawCurvedKerbs, SURFACE_ART, PUDDLE_TINT,
@@ -54,8 +55,7 @@ export function createTiles(view: View, cam: Cam, helpers: TilesHelpers) {
   // most TILE_BUDGET per frame; until then the previous zoom step's tiles stand in (scaled), so a zoom
   // change never shows a hole and never repaints the whole screen in one frame.
   // css px per tile side (?tilepx= for A/B, tools/hwjudder.mjs)
-  // get('tilepx')!: null only means no ?tilepx=, where +null is 0 and the || falls back to 256
-  const TILE_PX = (typeof location !== 'undefined' && +new URLSearchParams(location.search).get('tilepx')!) || 256;
+  const TILE_PX = settings.tilePx;
   // 2 -> 1 (perf, 2026-10-03): at phone-ish CPU a tile is ~22 ms, so two in one frame was ~44 ms — a slow frame every time.
   // tiles painted per frame: ONE always, then more while the frame has spent < TILE_MS painting, up to TILE_BUDGET (a fast phone fills a
   // gap in a frame or two, a slow one never stalls); the level overview stands in for the rest. (tileBudget() / takeTile() below)
@@ -128,7 +128,7 @@ export function createTiles(view: View, cam: Cam, helpers: TilesHelpers) {
     to.getContext('2d')!.putImageData(img, 0, 0);
   }
   // ?tilegpu=1: the old path (tiles painted + read back on their own GPU canvas) — perf A/B for tools/hwjudder.mjs
-  const TILE_GPU = typeof location !== 'undefined' && new URLSearchParams(location.search).has('tilegpu');
+  const TILE_GPU = settings.tileGpu;
   let tileAvg = 20;                                 // running average ms per tile (starts pessimistic = phone)
   function paintTile(k: number, i: number, j: number) {
     const tp0 = performance.now();
@@ -188,7 +188,7 @@ export function createTiles(view: View, cam: Cam, helpers: TilesHelpers) {
   const SHADE = { cellM: 0.5, maxCells: 64, gain: 3.0, bands: 4, depth: 0.36, hRef: 0.25, hGain: 0.9, slopeK: 0.55 };   // height outweighs slope so a bump reads LIGHTER overall and a dip DARKER (user)   // 4 bands: at 3 the Naffcar bank flipped a whole band at the turn apex and read as a seam
   const LIGHT = [-Math.SQRT1_2, -Math.SQRT1_2];
   const LIT = [255, 226, 150], LIT_N = [255, 255, 255], SHD = [26, 34, 58];   // warm (bright ground only), neutral, cool shadow          // toward the light, world frame (screen up-left)
-  const NO_SHADE = typeof location !== 'undefined' && new URLSearchParams(location.search).has('noshade');   // perf A/B
+  const NO_SHADE = settings.noShade;   // perf A/B
   function hillShade(cv: HTMLCanvasElement, tw: number, cx: number, cy: number) {
     if (NO_SHADE) return;
     const n = Math.max(1, Math.min(SHADE.maxCells, Math.ceil(tw / SHADE.cellM)));

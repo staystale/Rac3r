@@ -12,6 +12,7 @@ const resetCar = reset;
 import { CAR_IDS, applyLivery, applyTyre, ROSTER } from './cars.js';
 import { createInput } from './input.js';
 import { createRenderer } from './render.ts';
+import { readSettings } from './core/settings.ts';
 import { createMarks } from './marks.js';
 import { createHud } from './hud.js';
 import { createCones } from './cones.js';
@@ -38,8 +39,8 @@ import { LEVELS } from "./world/levels/index.ts";
 import { FENCE } from "./world/bounds.ts";
 import { findNearestSubtrackPoint, onTrack, querySubtrack } from "./world/tyrewall.ts";
 
-const qs = new URLSearchParams(location.search);
-const DEV = qs.has('dev');
+const settings = readSettings(location.search);
+const DEV = settings.dev;
 // 5 -> 12 (2026-10-03, high-speed judder). MEASURED: frames over ~42 ms hit the 5-step cap and THREW AWAY sim time, so the
 // car fell behind real time and hitched (drawn car vs a smooth path: worst 1.4 m at 200 km/h). wallDt is already capped
 // at 0.1 s (12 steps), so this cannot become the "background tab lurch" the cap was guarding against.
@@ -49,11 +50,11 @@ const canvas = document.getElementById('c');
 const boot = document.getElementById('boot');
 // the boot screen says "loading…" until the code runs (user, 2026-10-04: the old "THE LAB / tap to drive" flashed up first); only the no-menu
 // mode (?menu=0, the test tools) still waits for a tap there
-if (!(qs.get('menu') === '1' || (qs.get('menu') !== '0' && !navigator.webdriver))) { boot.querySelector('h1').textContent = 'THE LAB'; boot.querySelector('p').textContent = 'tap to drive'; }
+if (!(settings.menu === '1' || (settings.menu !== '0' && !navigator.webdriver))) { boot.querySelector('h1').textContent = 'THE LAB'; boot.querySelector('p').textContent = 'tap to drive'; }
 
 const game = {
   dev: DEV,
-  car: makeCar(qs.get('car') && CAR_IDS.includes(qs.get('car')) ? qs.get('car') : 'hatch-rwd'),
+  car: makeCar(settings.carId && CAR_IDS.includes(settings.carId) ? settings.carId : 'hatch-rwd'),
   cones: createCones(),
   marks: createMarks(),
   fps: 0, fpsLow: 0,
@@ -149,9 +150,9 @@ function stepRace(car, dt) {
 // Each is { car, drv }: a real car stepped by the same physics on the same fixed step, driven by the autodriver for now (stage 2 makes
 // them race). ?ai=N (0-5) puts N on the grid behind the player on a circuit; they respawn on RESTART, level change and car change.
 const AI_LIVERIES = [['#c8302c', '#7e1d1a'], ['#2b56b5', '#14306e'], ['#e2c13a', '#8a6d12'], ['#2f7d4f', '#174a2c'], ['#7a3fa0', '#43205a']];
-let aiCount = Math.max(0, Math.min(5, +(qs.get('ai') || 0)));
+let aiCount = settings.aiCount;
 // DIFFICULTY (PLAN.md §4: 0 Mobile game .. 4 Real; aidriver.js DIFFICULTIES): the centre of the field's spread. ?diff=N, or setup's row.
-let aiDiff = Math.max(0, Math.min(4, qs.has('diff') ? +qs.get('diff') : 2));
+let aiDiff = settings.aiDifficulty;
 game.ai = [];
 // RACE LENGTH (user, 2026-10-04: "choose in setup"): setup's LAPS row; 0 = the level's default (3 on a circuit, the joker laps on RX)
 let raceLaps = 0;
@@ -542,8 +543,8 @@ try { game.hwBest = +(localStorage.getItem('rac3r.hwbest') || 0); } catch { game
 // TRAFFIC (user, 2026-10-05: "traffic in every mode, a slider in test mode for density"): 0..1.5 (1 = PER_LANE cars a lane), setup's
 // TRAFFIC slider or ?traffic=; LITTER (user: "a slider for frequency / density" of the roadside objects): 0..3 x, setup's LITTER slider
 game.traffic = createTraffic();
-let trafficDensity = qs.has('traffic') ? Math.max(0, Math.min(1.5, +qs.get('traffic'))) : 0.6;
-if (qs.has('litter')) for (const l of LEVELS) if (l.endless) l.litter = Math.max(0, Math.min(3, +qs.get('litter')));
+let trafficDensity = settings.trafficDensity;
+if (settings.litter !== null) for (const l of LEVELS) if (l.endless) l.litter = settings.litter;
 // what the camera can see right now (+ a margin): traffic only appears / goes OUTSIDE it
 function onScreen(x, y) { const m = 14 * renderer.PPM, X = renderer.sx(x), Y = renderer.sy(y); return X > -m && X < renderer.W + m && Y > -m && Y < renderer.H + m; }
 function doRestart() {
@@ -591,17 +592,17 @@ const guide = createGuide();
 // MENUS (user spec 2026-10-03: main menu -> Test Mode / Garage; a live DEMO LAP behind the menu). mode: 'menu' | 'session'.
 // APPROVED (user, 2026-10-03: "sounds great") — the menu is the normal start. ?menu=0 drives straight in (the old start);
 // automation (navigator.webdriver) also skips it, so every tool that taps the HUD still lands in a session; ?menu=1 forces it.
-const MENU = qs.get('menu') === '1' || (qs.get('menu') !== '0' && !navigator.webdriver);
+const MENU = settings.menu === '1' || (settings.menu !== '0' && !navigator.webdriver);
 let mode = 'session', demo = null, demoStill = 0, paused = false;
 // MENU RACE (user, 2026-10-04: "just use the updated AI / 5-car race event for the menu screen"): behind the menu a 5-car race runs —
 // the camera car + DEMO_AI opponents, all on the racing AI (aidriver.js) at DEMO_DIFF, no lights. Was one autodrive car on the Test Track.
-const DEMO_LEVEL = 'thruston', DEMO_CAR = 'hatch-rwd', DEMO_AI = qs.has('menuai') ? Math.max(0, Math.min(5, +qs.get('menuai'))) : 4, DEMO_DIFF = 3;   // ?menuai=N: A/B the frame cost
+const DEMO_LEVEL = 'thruston', DEMO_CAR = 'hatch-rwd', DEMO_AI = settings.menuAi, DEMO_DIFF = 3;   // ?menuai=N: A/B the frame cost
 let guidePending = false, rulesPending = null;
-const renderer = createRenderer(canvas);
+const renderer = createRenderer(canvas, settings);
 const audio = createAudio();
 game.audio = audio;
 const input = createInput(canvas, {
-  mode: qs.has('touch') ? 'touch' : qs.has('pc') ? 'pc' : 'auto',
+  mode: settings.inputMode,
   // Asked BEFORE the steering stick or the pedals get a chance to claim the pointer, so a control
   // always wins over the world it is drawn on top of. Returns true if the HUD consumed the touch.
   hudDown: (px, py) => {
@@ -673,8 +674,8 @@ function selectLevel(id) {
   clearWear();
   doRestart();
 }
-if (qs.has('level')) {
-  selectLevel(qs.get('level'));
+if (settings.levelId !== null) {
+  selectLevel(settings.levelId);
 }
 function cycleLevel() {
   const i = LEVELS.findIndex((l) => l.id === LEVEL.id);
@@ -728,7 +729,7 @@ function start() {
   boot.classList.add('gone');
   audio.init();
   doRestart();
-  const g = qs.get('guide');
+  const g = settings.guide;
   guidePending = g === '1' || (g !== '0' && !guide.seen && !navigator.webdriver);
 }
 canvas.addEventListener('pointerdown', start, { once: false });
@@ -751,7 +752,7 @@ function launch(levelId, carId, opts = {}) {
   // ROAD TYPE (endless highway, Test Mode setup): set before the restart below builds the road
   { const lv = LEVELS.find((l) => l.id === levelId); if (lv && lv.endless && opts.road) setHighwayPreset(lv, opts.road); }
   aiCount = Math.max(0, Math.min(5, opts.ai | 0));
-  aiDiff = Math.max(0, Math.min(4, qs.has('diff') ? +qs.get('diff') : 2));   // the menu race set its own
+  aiDiff = settings.aiDifficulty;   // the menu race set its own
   if (opts.diff != null) aiDiff = Math.max(0, Math.min(4, opts.diff | 0));
   race.on = !!opts.rx;
   aiCarMode = opts.aiCars === 'class' ? 'class' : 'same';
@@ -764,11 +765,11 @@ function launch(levelId, carId, opts = {}) {
   applyLivery(game.car.spec, opts.livery);
   applyTyre(game.car.spec, opts.tyre);       // TYRES from the garage (none = Pre-Spun, the stock car)   // PAINT + NUMBER from the garage (none = the car's own colours, no number)
   doRestart();
-  const g = qs.get('guide');
+  const g = settings.guide;
   guidePending = g === '1' || (g !== '0' && !guide.seen && !navigator.webdriver);
   // EVENT RULES the first time you do this kind of event (guide.js RULES); after HOW TO PLAY if that is showing too. ?rules=1 forces
   // them (photos), ?rules=0 / automation skips them, as the guide.
-  const rq = qs.get('rules'), kind = eventKind();
+  const rq = settings.rules, kind = eventKind();
   rulesPending = kind && (rq === '1' || (rq !== '0' && !rulesSeen(kind) && !navigator.webdriver)) ? kind : null;
 }
 // which RULES walkthrough this session needs (guide.js RULES keys), or null

@@ -9,6 +9,7 @@
 // pale floor, the front end is unmistakable (lights + screen rake + steered wheels), and the thing the
 // player must read at a glance — which way the front wheels point — is drawn at full contrast.
 import { hash2d } from "./core/random.ts";
+import type { Settings } from "./core/settings.ts";
 
 import "./world/load.ts";   // the world is set up before this file runs (as importing lab.js did)
 import { FENCE } from "./world/bounds.ts";
@@ -48,11 +49,10 @@ export const MAX_DPR = 2;
 // pixels) — and blitted to the screen with smoothing OFF, so every edge is a hard pixel step. The HUD is drawn
 // afterwards at full resolution so buttons and numbers stay crisp. Cars are generated PIXEL SPRITES (pixelCar).
 // Everything else is the existing renderer, drawn small — the mock-up shows how far that alone gets.
-// ?nolock=1 turns the pixel-locked view off (A/B for tools/wobblecheck)
-const NO_LOCK = typeof location !== "undefined" && new URLSearchParams(location.search).has("nolock");
 const PIXEL_CSS = 1.3;            // css px per art pixel: a 4 m car is ~70 art px at zoom 1 on a phone
 
-export function createRenderer(canvas: HTMLCanvasElement) {
+export function createRenderer(canvas: HTMLCanvasElement, settings: Settings) {
+  const NO_LOCK = settings.noLock;
   // \`let\`, not const: the ground cache (below) points every draw function at an off-screen canvas by
   // swapping this for the duration of one render. Nothing else ever reassigns it.
   const mainCtx = canvas.getContext('2d')!;   // a fresh canvas always gives a 2d context
@@ -138,7 +138,7 @@ export function createRenderer(canvas: HTMLCanvasElement) {
   const {
     tileState, tiles, TILE_PX, ZSTEP, zStepOf, zOfStep, paletteSnap, paintTile, drawGround,
     prefetch,
-  } = createTiles(view, cam, {
+  } = createTiles(view, cam, settings, {
     PPMz, sx, sy, drawFloor, drawZones, drawLanes, drawTrackRibbon, drawLaneDashes, drawPatches,
     drawCovers, drawWear, drawCurvedKerbs, SURFACE_ART, PUDDLE_TINT,
     getFly: () => camState.fly, FLY_HANDOVER, FLY_PREFETCH, levelOverview, artBase,
