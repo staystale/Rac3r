@@ -5,7 +5,7 @@
 import { makeCar, step, reset, DT } from '../src/vehicle.js';
 import * as L from '../src/lab.js';
 import { createAIDriver } from '../src/ai/circuit.js';
-import { aiTraits } from '../src/ai/traits.js';
+import { aiTraits } from '../src/ai/traits.ts';
 import { aiPaths } from '../src/ai/line.js';
 const levels = (process.argv[2] || 'slidden-hill,knobhill').split(','), carId = process.argv[3] || 'rally-4x4', d = +(process.argv[4] || 4);
 const seeds = (process.argv[5] || '1,2,3,4,5').split(',').map(Number);

@@ -1,8 +1,10 @@
 // ai/traits.js — the 5 difficulties, the personalities and aiTraits (from aidriver.js).
+import type { Difficulty, Traits } from "./types.ts";
+
 // ---- the 5 difficulties (PLAN.md §4): the CENTRE of the field's spread. pace = fraction of the profile; lineQ = how much of the racing
 // line's width they use (the rest: nearer the middle); wander = m of slow drift off it; mistake = chance per corner of an error;
 // slip = chance of a joker-tactics blunder (forgetting it, so +30 s).
-export const DIFFICULTIES = [
+export const DIFFICULTIES: Difficulty[] = [
   { id: 'mobile', name: 'Mobile game', pace: 0.80, lineQ: 0.55, wander: 1.8, mistake: 0.20, slip: 0.12 },
   { id: 'game', name: 'Game', pace: 0.86, lineQ: 0.72, wander: 1.2, mistake: 0.12, slip: 0.06 },
   { id: 'realish', name: 'Realish', pace: 0.91, lineQ: 0.86, wander: 0.7, mistake: 0.07, slip: 0.02 },
@@ -18,7 +20,7 @@ const PERSONAS = [
   { id: 'defensive', pace: -0.005, skill: +0.1, aggression: 0.25, defence: 0.9 },  // covers the inside, hard to pass
   { id: 'balanced', pace: 0, skill: 0, aggression: 0.5, defence: 0.5 },
 ];
-export function aiTraits(diffIndex, i, n, seed = 1) {
+export function aiTraits(diffIndex: number, i: number, n: number, seed = 1): Traits {
   const D = DIFFICULTIES[Math.max(0, Math.min(4, diffIndex | 0))];
   let sd = (seed * 48271 + i * 7919 + 13) % 2147483647 || 1; const rnd = () => { sd = (sd * 16807) % 2147483647; return sd / 2147483647; };
   const P = PERSONAS[(i + Math.floor(seed)) % PERSONAS.length];

@@ -3,9 +3,9 @@
 import { makeCar, step, reset, DT } from '../src/vehicle.js';
 import * as L from '../src/lab.js';
 import * as H from '../src/highway.js';
-import { aiTraits } from '../src/ai/traits.js';
+import { aiTraits } from '../src/ai/traits.ts';
 import { createAIDriver } from '../src/ai/circuit.js';
-import { hwFrames } from '../src/highwayrace.js';
+import { hwFrames } from '../src/highwayrace.ts';
 // the levels importing these modules used to add (task 078 made it explicit)
 H.addHighwayLevel();
 const [DIFF = 2, T = 40, SEED = 4242] = process.argv.slice(2).map(Number);

@@ -2,7 +2,7 @@
 // rejoin stretch swapped for the joker lane, per car. Real RX jokers cost ~1-2 s. node tools/jokercost.mjs [level]
 import { makeCar, step, reset, DT } from '../src/vehicle.js';
 import * as L from '../src/lab.js';
-import { createAutoDriver } from '../src/ai/autodrive.js';
+import { createAutoDriver } from '../src/ai/autodrive.ts';
 const lv = process.argv[2] || 'slidden-hill';
 L.setLevel(lv);
 const st = L.LEVEL.subtrack, J = L.LEVEL.lanes.find((l) => l.surface.id === 'dirt' && l.width === 12).pts;

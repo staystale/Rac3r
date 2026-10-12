@@ -12,7 +12,7 @@ const ctx = await b.newContext({ viewport: { width: 844, height: 390 }, deviceSc
 const p = await ctx.newPage();
 await p.goto(srv.url + '/?touch=1&guide=0&menu=0&level=' + lv + '&car=track-rwd'); await p.touchscreen.tap(400, 200); await p.waitForTimeout(4000);
 const r = await p.evaluate(() => new Promise(async (res) => {
-  const g = window.__game; const A = await import('/src/ai/autodrive.js'); const drv = A.createAutoDriver(g.level.subtrack);
+  const g = window.__game; const A = await import('/src/ai/autodrive.ts'); const drv = A.createAutoDriver(g.level.subtrack);
   g.input.update = () => ({ ...drv.drive(g.car), reverse: 0, shiftUp: false, shiftDown: false });
   const proto = CanvasRenderingContext2D.prototype, orig = proto.drawImage; let rec = [];
   proto.drawImage = function (img, ...a) {

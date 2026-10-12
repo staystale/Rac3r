@@ -14,7 +14,7 @@ await p.goto(srv.url + '/?pc=1&guide=0&menu=0'); await p.mouse.click(400, 200); 
 const fails = [];
 const run = (takeJoker) => p.evaluate(([lv, takeJoker]) => new Promise(async (res) => {
   const g = window.__game; g.launch(lv, 'rally-4x4', { rx: true });
-  const A = await import('/src/ai/autodrive.js'); const drv = A.createAutoDriver(g.level.subtrack);
+  const A = await import('/src/ai/autodrive.ts'); const drv = A.createAutoDriver(g.level.subtrack);
   g.input.update = () => ({ ...drv.drive(g.car), reverse: 0, shiftUp: false, shiftDown: false });
   let jumped = false; const t0 = performance.now();
   (function f() {

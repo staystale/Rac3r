@@ -14,7 +14,7 @@ import { parkMiller } from "../core/random.ts";
 import { debugValue } from "../core/debug.ts";
 import { querySubtrack } from "../world/tyrewall.ts";
 import { GRAVITY } from "../cars.js";
-import { aiTraits } from "./traits.js";
+import { aiTraits } from "./traits.ts";
 import { K_BRAKE, OBST_CLEAR, racingLine, nearestIdx, branch, carGrip, profileOf } from "./line.js";
 import { roadDriver, driveOut } from "./weaver.js";
 

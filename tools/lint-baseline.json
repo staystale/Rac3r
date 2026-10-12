@@ -1,5 +1,5 @@
 {
-  "src/ai/autodrive.js": {
+  "src/ai/autodrive.ts": {
     "complexity": 1,
     "id-length": 25,
     "max-len": 20
@@ -18,7 +18,7 @@
     "max-len": 70,
     "max-lines-per-function": 1
   },
-  "src/ai/traits.js": {
+  "src/ai/traits.ts": {
     "id-length": 4,
     "max-len": 13
   },
@@ -78,7 +78,7 @@
     "no-shadow": 1,
     "no-unused-vars": 2
   },
-  "src/highwayrace.js": {
+  "src/highwayrace.ts": {
     "complexity": 1,
     "id-length": 39,
     "max-len": 51

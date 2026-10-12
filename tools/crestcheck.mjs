@@ -3,7 +3,7 @@
 // Avon Rise (user: "felt — light over the top", not flying). node tools/crestcheck.mjs [level] [d0-d1,...]
 import { makeCar, step, reset, DT } from '../src/vehicle.js';
 import * as L from '../src/lab.js';
-import { createAutoDriver } from '../src/ai/autodrive.js';
+import { createAutoDriver } from '../src/ai/autodrive.ts';
 import { CAR_IDS } from '../src/cars.js';
 const lv = process.argv[2] || 'castle-cum';
 const wins = (process.argv[3] || '270-330,815-905').split(',').map((w) => w.split('-').map(Number));

@@ -4,7 +4,7 @@
 import { makeCar, step, reset, DT } from '../src/vehicle.js';
 import * as L from '../src/lab.js';
 import { createCones } from '../src/cones.js';
-const { createAIDriver } = await import(process.env.AINEXT ? '../src/ai/circuit.next.js' : '../src/ai/circuit.js'), { aiTraits } = await import('../src/ai/traits.js'), { racingLine } = await import('../src/ai/line.js');
+const { createAIDriver } = await import(process.env.AINEXT ? '../src/ai/circuit.next.js' : '../src/ai/circuit.js'), { aiTraits } = await import('../src/ai/traits.ts'), { racingLine } = await import('../src/ai/line.js');
 const [lv = 'sweaty-lamb', carId = 'rally-4x4', d = '3'] = process.argv.slice(2), use = process.env.OBS !== '0';
 if (process.env.OBL) globalThis.__OBL = +process.env.OBL;
 L.setLevel(lv); L.clearWear();

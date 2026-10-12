@@ -21,11 +21,11 @@ import { createGuide, rulesSeen } from './guide.js';
 import { createMenu } from './menu.js';
 import { genStage, installStage, addStageLevels } from './stagegen.js';
 import { addHighwayLevel, stepHighway, resetHighway, highwayGuard, highwayRespawn, setHighwayPreset, roadFrame, speedCamera } from './highway.js';   // the ENDLESS motorway (registers itself in LEVELS)   // PROCEDURAL STAGES (installs the default generated stage into LEVELS)
-import { createAutoDriver } from './ai/autodrive.js';
+import { createAutoDriver } from './ai/autodrive.ts';
 import { createTraffic } from './traffic.js';   // HIGHWAY TRAFFIC (endless levels)
-import { createHwFlow, hwFrames, hwGrid, hwGridSpan, hwPutBack, HW_GREEN } from './highwayrace.js';   // VS AI on the highway
+import { createHwFlow, hwFrames, hwGrid, hwGridSpan, hwPutBack, HW_GREEN } from './highwayrace.ts';   // VS AI on the highway
 import { createAIDriver } from './ai/circuit.js';
-import { aiTraits } from './ai/traits.js';
+import { aiTraits } from './ai/traits.ts';
 import { lineRun } from './ai/line.js';
 import { carContacts, slipstream } from './contact.js';
 import { createRaceFlow } from './raceflow.js';
@@ -855,7 +855,7 @@ function loop(now) {
     if (game.fpsClear) { fpsHist.length = 0; game.fpsClear = false; } else fpsHist.push(game.fps); if (fpsHist.length > 25) fpsHist.shift(); game.fpsLow = fpsHist.length ? Math.min(...fpsHist) : game.fps; }
 
   let inp = input.update(wallDt);
-  // MENU: the demo car drives itself (src/ai/autodrive.js — the same driver as the lap bench and the AI seed). If it ever
+  // MENU: the demo car drives itself (src/ai/autodrive.ts — the same driver as the lap bench and the AI seed). If it ever
   // stops (stuck off the road), put it back on the track.
   if (mode !== 'menu' && startHeld()) {
     inp = game.start.rolling ? { ...atPace(game.start.drv.drive(game.car, DT, { cars: [...game.ai.map((a) => a.car), ...game.traffic.cars], hold: true }), game.car), shiftUp: false, shiftDown: false }

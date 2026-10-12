@@ -14,14 +14,14 @@
 // completes the lap — a driver that understeers into every wall prices everything wrongly.
 import { makeCar, step, reset, DT } from '../src/vehicle.js';
 import * as L from '../src/lab.js';
-import { createAutoDriver } from '../src/ai/autodrive.js';
+import { createAutoDriver } from '../src/ai/autodrive.ts';
 
 const levelId = process.argv[2] || 'sandbox', carId = process.argv[3] || 'hatch-rwd';
 L.setLevel(levelId);
 const lv = L.LEVEL, st = lv.subtrack;
 if (!st) { console.log(levelId, 'has no circuit'); process.exit(1); }
 const total = st.totalDist, hw = st.width / 2;
-// THE DRIVER LIVES IN src/ai/autodrive.js since 2026-10-03 (menus): one copy for the bench, the menu demo lap and the AI seed.
+// THE DRIVER LIVES IN src/ai/autodrive.ts since 2026-10-03 (menus): one copy for the bench, the menu demo lap and the AI seed.
 // Its measured history (Stanley steering, firm braking, throttle by feel) is in that file's header and in the HISTORY
 // block at the bottom of this one.
 const car = makeCar(carId);

@@ -11,7 +11,7 @@ const p = await ctx.newPage(); const cdp = await ctx.newCDPSession(p); await cdp
 const extra = process.argv[3] || '';
 await p.goto(srv.url + '/?touch=1&guide=0&menu=0&level=' + lv + '&car=track-rwd' + extra); await p.touchscreen.tap(400, 200); await p.waitForTimeout(4000);
 await cdp.send('Profiler.enable'); await cdp.send('Profiler.setSamplingInterval', { interval: 200 }); await cdp.send('Profiler.start');
-await p.evaluate(() => new Promise(async (res) => { const g = window.__game; const A = await import('/src/ai/autodrive.js'); const drv = A.createAutoDriver(g.level.subtrack);
+await p.evaluate(() => new Promise(async (res) => { const g = window.__game; const A = await import('/src/ai/autodrive.ts'); const drv = A.createAutoDriver(g.level.subtrack);
   g.input.update = () => ({ ...drv.drive(g.car), reverse: 0, shiftUp: false, shiftDown: false }); setTimeout(res, 10000); }));
 const { profile } = await cdp.send('Profiler.stop');
 const dt = {}; const byId = new Map(profile.nodes.map((n) => [n.id, n]));

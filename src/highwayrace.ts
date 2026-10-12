@@ -11,6 +11,31 @@
 // THE END (flow): EVERY AI ahead of you and the slowest of them OFF SCREEN -> "CATCH THEM n" for HW_CATCH s (back on screen =
 // cancelled), at 0 the race ends. Every AI behind you AND off screen -> "PULLING AWAY n"; at 0 the race ends and you have won. Positions = how far up the road.
 import { roadFrame, roadPose, roadSpan } from './highway.js';
+import type { AiCar, HighwayLevel } from "./ai/types.ts";
+
+// One racer of the highway race.
+interface HwEntry { car: AiCar; player: boolean }
+// One row of the results table (raceflow.js-shaped, + dist / gapM).
+interface HwRow {
+  car: AiCar; player: boolean; num: number; paint: string; s: number; dist: number;
+  bill: number; time: number; total: number; penalty: number; est: boolean; best: null;
+  laps: number; pos?: number; gapM?: number; gap?: number;
+}
+// What createHwFlow takes.
+interface HwFlowArgs {
+  lv: HighwayLevel; cars: { car: AiCar; player?: boolean }[];
+  visible: (car: AiCar) => boolean; count?: number; catchT?: number;
+}
+// What createHwFlow returns: the race state, and the countdowns' bookkeeping.
+interface HwFlow {
+  highway: boolean; state: string; t: number; laps: number; entries: HwEntry[];
+  flags: number[]; results: HwRow[] | null;
+  cd: number | null; cdKind: string | null; cdHold: boolean; myPlace: number | null | undefined;
+  // order / step / end: set right after the object is made
+  order?: () => number; step?: (dt: number) => void; end?: () => void;
+  endT?: number; lostT?: number; cdLeft?: number | null; cdOffAt?: number;
+  edge?: number | null; nearT?: number;
+}
 
 
 export const HW_GREEN = 6, HW_COUNT = 8;
@@ -22,7 +47,7 @@ export const HW_GREEN = 6, HW_COUNT = 8;
 export const HW_CATCH = 15; const CLOSE_V = 1.0, REFILL = 0.5, NEAR = 40, NEAR_T = 10, GRACE = 2, JUMP = 8;
 
 // every car's ROAD FRAME once per step: c._hwf = { s, off, v (along the road) }
-export function hwFrames(lv, cars) {
+export function hwFrames(lv: HighwayLevel, cars: AiCar[]) {
   for (const c of cars) { const f = roadFrame(lv, c.x, c.y, c._hwf ? c._hwf.s : null); c._hwf = f ? { s: f.s, off: f.off, v: c.vx * f.dx + c.vy * f.dy } : null; }
 }
 
@@ -30,15 +55,15 @@ export function hwFrames(lv, cars) {
 // THE GRID: slot 0 = pole. Two columns in the two right-hand lanes (both lanes on a dual), rows GRID_ROW m apart, the right-hand column
 // GRID_STAG m further back (staggered); GRID_BACK m behind the spawn. hwGridSpan = the road distances it covers (to clear traffic)
 const GRID_ROW = 14, GRID_STAG = 7, GRID_BACK = 12;
-export function hwGrid(lv, k) {
+export function hwGrid(lv: HighwayLevel, k: number) {
   const C = lv._hw.geo.centres, nL = C.length, cols = nL >= 3 ? [nL - 2, nL - 1] : [0, Math.min(1, nL - 1)];
-  const s0 = roadFrame(lv, lv.spawn.x, lv.spawn.y, null).s, row = Math.floor(k / 2), col = k % 2;
+  const s0 = roadFrame(lv, lv.spawn.x, lv.spawn.y, null)!.s, row = Math.floor(k / 2), col = k % 2;
   const p = roadPose(lv, s0 - GRID_BACK - row * GRID_ROW - col * GRID_STAG, C[cols[col]]);
   return { x: p.x, y: p.y, h: p.h };
 }
-export function hwGridSpan(lv, n) { const s0 = roadFrame(lv, lv.spawn.x, lv.spawn.y, null).s; return [s0 - GRID_BACK - (Math.ceil(n / 2) + 1) * GRID_ROW - 25, s0 + 60]; }
+export function hwGridSpan(lv: HighwayLevel, n: number) { const s0 = roadFrame(lv, lv.spawn.x, lv.spawn.y, null)!.s; return [s0 - GRID_BACK - (Math.ceil(n / 2) + 1) * GRID_ROW - 25, s0 + 60]; }
 // where to put a car back (crashed / stuck / rolled): at road distance s, in the lane with the most room, facing up the road
-export function hwPutBack(lv, s, cars) {
+export function hwPutBack(lv: HighwayLevel, s: number, cars: AiCar[]) {
   const { s0, s1 } = roadSpan(lv), C = lv._hw.geo.centres; s = Math.max(s0 + 60, Math.min(s1 - 60, s));
   let best = 0, room = -1;
   for (let L = 0; L < C.length; L++) { let r = 99; for (const o of cars) { const f = o._hwf; if (f && Math.abs(f.off - C[L]) < 2.6) r = Math.min(r, Math.abs(f.s - s)); } if (r > room) { room = r; best = L; } }
@@ -50,14 +75,15 @@ export function hwPutBack(lv, s, cars) {
 
 // THE RACE: entries [{ car, player }]; visible(car) = on screen right now. flow.step(dt) after the green; flow.order() -> your position.
 // Results rows are raceflow.js-shaped (+ dist / gapM) so menu.js can show them; flow.highway marks the distance table.
-export function createHwFlow({ lv, cars, visible, count = HW_COUNT, catchT = HW_CATCH }) {
-  const sRef = roadFrame(lv, lv.spawn.x, lv.spawn.y, null).s;
+export function createHwFlow(
+  { lv, cars, visible, count = HW_COUNT, catchT = HW_CATCH }: HwFlowArgs) {
+  const sRef = roadFrame(lv, lv.spawn.x, lv.spawn.y, null)!.s;   // ! : null before the road exists
   const E = cars.map(({ car, player }) => ({ car, player: !!player }));
-  const flow = { highway: true, state: 'racing', t: 0, laps: 0, entries: E, flags: [], results: null, cd: null, cdKind: null, cdHold: false, myPlace: null };
-  let gapPrev = null, gapRate = 0;
-  const sOf = (e) => (e.car._hwf ? e.car._hwf.s : -Infinity);
+  const flow: HwFlow = { highway: true, state: 'racing', t: 0, laps: 0, entries: E, flags: [], results: null, cd: null, cdKind: null, cdHold: false, myPlace: null };
+  let gapPrev: number | null = null, gapRate = 0;
+  const sOf = (e: HwEntry) => (e.car._hwf ? e.car._hwf.s : -Infinity);
   flow.order = () => { const me = E.find((e) => e.player); return me ? 1 + E.filter((e) => e !== me && sOf(e) > sOf(me)).length : 1; };
-  flow.step = (dt) => {
+  flow.step = (dt: number) => {
     if (flow.state === 'done') return;
     flow.t += dt;
     const me = E.find((e) => e.player), ai = E.filter((e) => !e.player); if (!me || !ai.length || flow.t < 3) return;
@@ -77,9 +103,9 @@ export function createHwFlow({ lv, cars, visible, count = HW_COUNT, catchT = HW_
     if (kind !== flow.cdKind) {
       if (flow.cdKind === 'ahead') { flow.cdLeft = flow.cd; flow.cdOffAt = flow.t; }
       flow.cdKind = kind;
-      flow.cd = !kind ? null : kind === 'behind' ? count : flow.cdLeft != null ? Math.min(catchT, flow.cdLeft + (flow.t - flow.cdOffAt)) : catchT;
+      flow.cd = !kind ? null : kind === 'behind' ? count : flow.cdLeft != null ? Math.min(catchT, flow.cdLeft + (flow.t - flow.cdOffAt!)) : catchT;
       // the near-the-edge HOLD allowance (NEAR_T) and the edge itself carry over the same way: only a FULL clock starts them afresh
-      if (kind === 'ahead' && flow.cd >= catchT) { flow.edge = null; flow.nearT = 0; flow.cdLeft = null; }
+      if (kind === 'ahead' && flow.cd! >= catchT) { flow.edge = null; flow.nearT = 0; flow.cdLeft = null; }
     }
     // the leader's gap and how fast it is changing (+ = it is pulling away), smoothed over ~1 s. A JUMP (> JUMP m in one step: the car
     // you have to catch changed, or a reset) is not closing: re-seed the rate instead of reading it as a sprint that refills the clock.
@@ -91,15 +117,15 @@ export function createHwFlow({ lv, cars, visible, count = HW_COUNT, catchT = HW_
       // "nearly caught up" = within NEAR m of the edge of the screen (the visible distance is not known here: the first gap at which
       // it went off screen stands in for it)
       if (flow.edge == null) flow.edge = gap;
-      if (gapRate < -CLOSE_V) { flow.cd = Math.min(catchT, flow.cd + REFILL * dt); flow.cdHold = true; }
+      if (gapRate < -CLOSE_V) { flow.cd = Math.min(catchT, flow.cd! + REFILL * dt); flow.cdHold = true; }
       else if (gap < flow.edge + NEAR && gapRate < CLOSE_V && (flow.nearT = (flow.nearT || 0) + dt) < NEAR_T) flow.cdHold = true;
-      else flow.cd -= dt;
-      if (flow.cd <= 0) end();
-    } else if (kind) { flow.cd -= dt; if (flow.cd <= 0) end(); }
+      else flow.cd! -= dt;
+      if (flow.cd! <= 0) end();
+    } else if (kind) { flow.cd! -= dt; if (flow.cd! <= 0) end(); }
   };
   function end() {
     flow.state = 'done'; flow.endT = flow.t; flow.cdKind = null;
-    const rows = E.map((e) => ({ car: e.car, player: e.player, num: e.car.num || 1, paint: e.car.spec.paint, s: sOf(e), dist: Math.max(0, sOf(e) - sRef),
+    const rows: HwRow[] = E.map((e) => ({ car: e.car, player: e.player, num: e.car.num || 1, paint: e.car.spec.paint, s: sOf(e), dist: Math.max(0, sOf(e) - sRef),
       bill: Math.round(e.car.dmgBill || 0), time: flow.t, total: flow.t, penalty: 0, est: false, best: null, laps: 0 }));
     rows.sort((a, b) => b.s - a.s);
     rows.forEach((r, i) => { r.pos = i + 1; r.gapM = rows[0].s - r.s; r.gap = 0; });

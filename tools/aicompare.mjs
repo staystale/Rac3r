@@ -2,9 +2,9 @@
 // with the surface mu there. node tools/aicompare.mjs <level> <car> [diff 0-4]
 import { makeCar, step, reset, DT } from '../src/vehicle.js';
 import * as L from '../src/lab.js';
-import { createAutoDriver } from '../src/ai/autodrive.js';
+import { createAutoDriver } from '../src/ai/autodrive.ts';
 import { createAIDriver } from '../src/ai/circuit.js';
-import { aiTraits } from '../src/ai/traits.js';
+import { aiTraits } from '../src/ai/traits.ts';
 const [lv = 'test-track', carId = 'hatch-rwd', d = '4'] = process.argv.slice(2);
 const BIN = 25;
 function run(mk) {

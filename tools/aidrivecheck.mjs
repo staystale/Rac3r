@@ -4,10 +4,10 @@
 import { makeCar, step, reset, DT } from '../src/vehicle.js';
 import * as L from '../src/lab.js';
 import { addStageLevels } from '../src/stagegen.js';   // registers the generated + set rally stages in LEVELS
-import { createAutoDriver } from '../src/ai/autodrive.js';
+import { createAutoDriver } from '../src/ai/autodrive.ts';
 // the levels importing these modules used to add (task 078 made it explicit)
 addStageLevels();
-const { createAIDriver } = await import(process.env.AINEXT ? '../src/ai/circuit.next.js' : '../src/ai/circuit.js'), { aiTraits, DIFFICULTIES } = await import('../src/ai/traits.js'), { racingLine } = await import('../src/ai/line.js');
+const { createAIDriver } = await import(process.env.AINEXT ? '../src/ai/circuit.next.js' : '../src/ai/circuit.js'), { aiTraits, DIFFICULTIES } = await import('../src/ai/traits.ts'), { racingLine } = await import('../src/ai/line.js');
 const levels = (process.argv[2] || 'thruston,castle-cum,brands-snatch,knobhill,slidden-hill,test-track,naffcar').split(',');
 const cars = (process.argv[3] || 'hatch-rwd,rally-4x4,track-rwd').split(',');
 const diffs = (process.argv[4] || '0,2,4').split(',').map(Number);

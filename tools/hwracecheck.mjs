@@ -1,4 +1,4 @@
-// hwracecheck.mjs — VS AI on the ENDLESS HIGHWAY (src/highwayrace.js), headless, the way main.js runs it: a rolling start (everyone held at
+// hwracecheck.mjs — VS AI on the ENDLESS HIGHWAY (src/highwayrace.ts), headless, the way main.js runs it: a rolling start (everyone held at
 // ROLL pace behind the lights, green at HW_GREEN), then 5 AI + the "player" (driven by the same racer, at a set difficulty) race up the
 // motorway through TRAFFIC with full contact + damage. Measures: grid overlaps, cars off the road, racer-racer / racer-traffic contacts,
 // wrecks, lane changes, speeds, the gaps that open, and the flow's END countdown (a fake screen of +-VIEW m).
@@ -9,9 +9,9 @@ import * as H from '../src/highway.js';
 import { createTraffic } from '../src/traffic.js';
 import { carContacts, carContact } from '../src/contact.js';
 import { hit, tooInjured } from '../src/damage.js';
-import { aiTraits } from '../src/ai/traits.js';
+import { aiTraits } from '../src/ai/traits.ts';
 import { createAIDriver } from '../src/ai/circuit.js';
-import { createHwFlow, hwFrames, hwGrid, hwGridSpan, HW_GREEN } from '../src/highwayrace.js';
+import { createHwFlow, hwFrames, hwGrid, hwGridSpan, HW_GREEN } from '../src/highwayrace.ts';
 // the levels importing these modules used to add (task 078 made it explicit)
 H.addHighwayLevel();
 const [T = 90, DIFF = 2, DENS = 0.6, PRESET = 'motorway', SEED = 4242] = process.argv.slice(2).map((a, i) => (i < 3 || i === 4 ? +a : a));

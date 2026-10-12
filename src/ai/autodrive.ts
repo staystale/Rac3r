@@ -7,38 +7,42 @@
 // with a braking allowance; it brakes firmly (gain 1.0) with a 35% floor while steering, and feathers the throttle by feel.
 import { groundAt } from "../world/wear.ts";
 import { GRAVITY } from '../cars.js';
+import type { Subtrack, TrackPoint } from "../world/types.ts";
+import type { AiCar, DriveInput } from "./types.ts";
 
 const K_GRIP = 0.40;     // fraction of the theoretical cornering speed it uses — a careful, CONSISTENT driver
 const K_DECEL = 0.30;    // fraction of mu*g it plans to brake at
 
-export function createAutoDriver(subtrack) {
+export function createAutoDriver(subtrack: Subtrack) {
   const pts = subtrack.pts, total = subtrack.totalDist;
   // binary search (2026-10-04: the linear scan was 12 % of a frame with 5 AI drivers)
-  const at = (d) => { d = ((d % total) + total) % total; let lo = 0, hi = pts.length - 1; while (lo < hi) { const m = (lo + hi + 1) >> 1; if (pts[m].dist <= d) lo = m; else hi = m - 1; } return pts[lo]; };
-  const radiusAt = (d) => { let dh = at(d + 4).heading - at(d - 4).heading; dh = Math.atan2(Math.sin(dh), Math.cos(dh)); return 8 / Math.max(1e-4, Math.abs(dh)); };
-  const st = { d: null, travelled: 0, lastDist: 0, vT: 60 };
+  const at = (d: number) => { d = ((d % total) + total) % total; let lo = 0, hi = pts.length - 1; while (lo < hi) { const m = (lo + hi + 1) >> 1; if (pts[m].dist <= d) lo = m; else hi = m - 1; } return pts[lo]; };
+  const radiusAt = (d: number) => { let dh = at(d + 4).heading - at(d - 4).heading; dh = Math.atan2(Math.sin(dh), Math.cos(dh)); return 8 / Math.max(1e-4, Math.abs(dh)); };
+  const st: { d: number | null; travelled: number; lastDist: number; vT: number } =
+    { d: null, travelled: 0, lastDist: 0, vT: 60 };
 
   // Returns { steer, throttle, brake, handbrake } for this step, and keeps progress (st.d, st.travelled).
-  function drive(car) {
+  function drive(car: AiCar): DriveInput {
     if (st.d === null) {
       // start at the nearest centreline point
       let bd = Infinity; for (const p of pts) { const q = (p.x - car.x) ** 2 + (p.y - car.y) ** 2; if (q < bd) { bd = q; st.d = p.dist; } }
     }
+    // (st.d! below: the block above sets st.d from the centreline points, which tsc cannot see)
     // PROGRESS: nearest point in a window just behind / ahead (see lapdriver history: querySubtrack froze off the road)
-    let best = null, bd = Infinity;
+    let best: TrackPoint | null = null, bd = Infinity;
     for (const p of pts) {
-      let ahead = p.dist - st.d; if (ahead < -total / 2) ahead += total; if (ahead > total / 2) ahead -= total;
+      let ahead = p.dist - st.d!; if (ahead < -total / 2) ahead += total; if (ahead > total / 2) ahead -= total;
       if (ahead < -5 || ahead > 40) continue;
       const dist2 = (p.x - car.x) ** 2 + (p.y - car.y) ** 2;
       if (dist2 < bd) { bd = dist2; best = p; }
     }
-    if (best) { let dd = best.dist - st.d; if (dd < -total / 2) dd += total; if (dd > 0) st.travelled += dd; st.d = best.dist; }
+    if (best) { let dd = best.dist - st.d!; if (dd < -total / 2) dd += total; if (dd > 0) st.travelled += dd; st.d = best.dist; }
     st.lastDist = Math.sqrt(bd);
     const v = Math.hypot(car.vx, car.vy);
     // STANLEY steering at the front axle
     const fx = car.x + Math.cos(car.heading) * car.spec.lf, fy = car.y + Math.sin(car.heading) * car.spec.lf;
-    let fb = best || at(st.d), fbd = Infinity;
-    for (const p2 of pts) { let ah = p2.dist - st.d; if (ah < -total / 2) ah += total; if (ah > total / 2) ah -= total; if (ah < -3 || ah > 12) continue;
+    let fb = best || at(st.d!), fbd = Infinity;
+    for (const p2 of pts) { let ah = p2.dist - st.d!; if (ah < -total / 2) ah += total; if (ah > total / 2) ah -= total; if (ah < -3 || ah > 12) continue;
       const q2 = (p2.x - fx) ** 2 + (p2.y - fy) ** 2; if (q2 < fbd) { fbd = q2; fb = p2; } }
     const ahead = at(fb.dist + 2 + v * 0.15);
     let psi = ahead.heading - car.heading; psi = Math.atan2(Math.sin(psi), Math.cos(psi));
@@ -51,8 +55,8 @@ export function createAutoDriver(subtrack) {
     // SPEED: the slowest corner in the next stretch, at the grip of the surface there
     let vT = 60;
     for (let a = 5; a < 20 + v * 2.2; a += 4) {
-      const p = at(st.d + a), mu = groundAt(p.x, p.y).surface.mu * car.spec.mu;
-      const vCorner = Math.sqrt(K_GRIP * mu * GRAVITY * radiusAt(st.d + a));
+      const p = at(st.d! + a), mu = groundAt(p.x, p.y).surface.mu * car.spec.mu;
+      const vCorner = Math.sqrt(K_GRIP * mu * GRAVITY * radiusAt(st.d! + a));
       vT = Math.min(vT, Math.sqrt(vCorner * vCorner + 2 * K_DECEL * mu * GRAVITY * a));
     }
     st.vT = vT;
