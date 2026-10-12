@@ -12,8 +12,10 @@ export const ss01 = (x: number): number => (x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3
 export function trackKit(sub: Subtrack, seed: number, lanes: Lane[] = []): TrackKit {
   const rnd = parkMiller(seed);
   const at = (d: number, off: number) => smoothOnTrack(sub, d, off);
-  const rot = (d: number) => onTrack(sub, ((d % sub.totalDist) + sub.totalDist) % sub.totalDist, 0, {}).rot;
-  const prop = (d: number, off: number, o: Omit<Prop, 'x' | 'y'>) => ({ ...o, ...at(d, off), rot: rot(d) + (o.rot || 0) });
+  const rot = (d: number) =>
+    onTrack(sub, ((d % sub.totalDist) + sub.totalDist) % sub.totalDist, 0, {}).rot;
+  const prop = (d: number, off: number, o: Omit<Prop, 'x' | 'y'>) =>
+    ({ ...o, ...at(d, off), rot: rot(d) + (o.rot || 0) });
   const onLane = (x: number, y: number, pad: number) => lanes.some((ln) => ln.pts.some(([ax, ay], i) => { const q = ln.pts[i + 1]; if (!q) return false;
     const dx = q[0] - ax, dy = q[1] - ay, l2 = dx * dx + dy * dy || 1e-6; let t = ((x - ax) * dx + (y - ay) * dy) / l2; t = t < 0 ? 0 : t > 1 ? 1 : t;
     return Math.hypot(x - ax - dx * t, y - ay - dy * t) <= ln.width / 2 + pad; }));
@@ -21,7 +23,8 @@ export function trackKit(sub: Subtrack, seed: number, lanes: Lane[] = []): Track
   const span = (d0: number, d1: number) => ((d1 - d0) + sub.totalDist) % sub.totalDist;
   // earth bank = humps every 4 m (at 10 m they photographed as separate blobs)
   const bank = (d0: number, d1: number, off: number, r: number, h: number) => { const out: Bump[] = []; for (let t = 0; t <= span(d0, d1); t += 4) { const p = at(d0 + t, off); if (clear(p.x, p.y, r + 2)) out.push({ kind: 'hump', x: p.x, y: p.y, r, h }); } return out; };
-  const along = (d0: number, d1: number, off: number, step: number) => alongTrack(sub, d0, d1, off, step);
+  const along = (d0: number, d1: number, off: number, step: number) =>
+    alongTrack(sub, d0, d1, off, step);
   return { rnd, at, rot, prop, clear, span, bank, along, onLane };
 }
 

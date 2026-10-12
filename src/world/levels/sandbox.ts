@@ -32,7 +32,7 @@ const SB_APEXES: Point[] = [
 // geometry measured 2026-10-03 (scratch design script): lap 1669 m, tightest centreline radius 11.8 m
 // (the chicane), closest approach of two parts of the track 49.7 m, max extent 213 m (floor edge 256).
 const SB_W = 13;
-const SB_SECTORS: Sector[] = [];            // filled below, by apex distance, once the track exists
+const SB_SECTORS: Sector[] = [];   // filled below, by apex distance, once the track exists
 const SB_KERBS: CurvedKerb[] = [];
 export const SB_SUBTRACK = createSubtrack(SB_APEXES, SB_W, SB_SECTORS, SB_KERBS);
 // distance along the lap of apex i (smoothPath samples 20 points per apex segment)
@@ -54,7 +54,8 @@ function sbAt(d: number, off = 0) { const p = sbPt(d); return { x: p.x + p.nx * 
 // sectors, by apex index: [from apex, to apex, surface]
 ([[0, 2, 'racetarmac'], [2, 4, 'tarmac'], [4, 7, 'broken'], [7, 9, 'gravel'], [9, 11, 'dirt'], [11, 13, 'sand'],
  [13, 14, 'mud'], [14, 15, 'thickMud'], [15, 16, 'grassLong'], [16, 17, 'grassShort'], [17, 18, 'snow'],
- [18, 19, 'ice'], [19, 21, 'wet'], [21, 22, 'racetarmac']] satisfies [number, number, SurfaceId][]).forEach(([a, b, id]) => {
+ [18, 19, 'ice'], [19, 21, 'wet'], [21, 22, 'racetarmac']] satisfies [number, number, SurfaceId][])
+  .forEach(([a, b, id]) => {
   SB_SECTORS.push({ startDist: sbApex(a), endDist: b >= SB_APEXES.length ? 1e9 : sbApex(b), surface: SURFACES[id] });
 });
 // kerbs on the INSIDE of the tarmac corners (T1, the chicane's three bends, the last corner)

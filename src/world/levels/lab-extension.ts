@@ -20,7 +20,8 @@ export const LAB_LANES = ([
   ['wet', ['tyre']], ['dirt', ['bale']], ['gravel', ['pallet']], ['sand', ['sandbag']], ['grassShort', ['box']], ['grass', ['cow', 'crate']],
   ['grassLong', ['sheep', 'bin']], ['mud', ['barrel']], ['thickMud', ['exhaust', 'bumper']], ['packedSnow', ['chevron', 'flag']],
   ['snow', ['tarp']], ['ice', ['tapepost']],
-] satisfies [SurfaceId, string[]][]).map(([id, kinds], i) => ({ id, kinds, y: LANE_Y0 + i * LANE_PITCH }));
+] satisfies [SurfaceId, string[]][]).map(([id, kinds], i) =>
+  ({ id, kinds, y: LANE_Y0 + i * LANE_PITCH }));
 export const LAB_LANE_ZONES: Zone[] = LAB_LANES.map((l) => ({ x: (LANE_X0 + LANE_X1) / 2, y: l.y, w: LANE_X1 - LANE_X0, h: LANE_H, surface: SURFACES[l.id], boxed: true, ext: true, lane: l.id }));
 const LANE_COLS = ['#c8302c', '#2b56b5', '#d6a21e', '#2f5d3a', '#3a3f47', '#2f6fb0'];
 // what sits at the end of a lane: a wall / grid / row per kind, centred on the lane line, starting at OBJ_X
