@@ -3,7 +3,7 @@
 // m off the path) ??? then the same metres of the MAIN line for comparison. node tools/_jokerexit.mjs [level] [car] [diff] [seed]
 import { makeCar, step, reset, DT } from '../src/vehicle.js';
 import * as L from '../src/lab.js';
-const { createAIDriver } = await import(process.env.AINEXT ? '../src/ai/circuit.next.js' : '../src/ai/circuit.js'), { aiTraits } = await import('../src/ai/traits.ts'), { aiPaths } = await import('../src/ai/line.ts');
+const { createAIDriver } = await import(process.env.AINEXT ? '../src/ai/circuit.next.js' : '../src/ai/circuit.ts'), { aiTraits } = await import('../src/ai/traits.ts'), { aiPaths } = await import('../src/ai/line.ts');
 const [lv = 'knobhill', carId = 'hatch-rwd', d = '4', seed = '1'] = process.argv.slice(2);
 L.setLevel(lv); L.clearWear();
 const paths = aiPaths(L.LEVEL), J = paths.joker, M = paths.line; if (!J) { console.log('no joker on', lv); process.exit(0); }

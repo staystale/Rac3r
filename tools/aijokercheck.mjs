@@ -4,7 +4,7 @@
 // until it reaches the lane's end, must be under the lane's half width). node tools/aijokercheck.mjs [levels] [car] [diff 0-4] [seeds e.g. 1,2,3,4,5]
 import { makeCar, step, reset, DT } from '../src/vehicle.js';
 import * as L from '../src/lab.js';
-import { createAIDriver } from '../src/ai/circuit.js';
+import { createAIDriver } from '../src/ai/circuit.ts';
 import { aiTraits } from '../src/ai/traits.ts';
 import { aiPaths } from '../src/ai/line.ts';
 const levels = (process.argv[2] || 'slidden-hill,knobhill').split(','), carId = process.argv[3] || 'rally-4x4', d = +(process.argv[4] || 4);

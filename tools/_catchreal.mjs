@@ -5,7 +5,7 @@ const SRC = process.argv[2] || '../src', CRUISE = +(process.argv[3] || 100) / 3.
 const { makeCar, step, reset, DT } = await import(SRC + '/vehicle.js'), L = await import(SRC + '/lab.js'), H = await import(SRC + '/highway.js');
 // the levels importing these modules used to add (task 078 made it explicit)
 H.addHighwayLevel();
-const { createTraffic } = await import(SRC + '/traffic.js'), { aiTraits } = await import(SRC + '/ai/traits.ts'), { createAIDriver } = await import(SRC + '/ai/circuit.js');
+const { createTraffic } = await import(SRC + '/traffic.ts'), { aiTraits } = await import(SRC + '/ai/traits.ts'), { createAIDriver } = await import(SRC + '/ai/circuit.ts');
 const { createHwFlow, hwFrames, hwGrid, hwGridSpan, HW_GREEN } = await import(SRC + '/highwayrace.ts');
 let r = 777; const rnd = () => ((r = (Math.imul(r, 1664525) + 1013904223) >>> 0) / 4294967296);
 const lv = H.createHighway(SEED, 'motorway'); lv.id = 'cr'; L.LEVELS.push(lv); L.setLevel(lv.id);

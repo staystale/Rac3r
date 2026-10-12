@@ -1,4 +1,4 @@
-// trafficcheck.mjs — HIGHWAY TRAFFIC (src/traffic.js), headless. A SCRIPTED player (kinematic: placed on its lane each step, so the
+// trafficcheck.mjs — HIGHWAY TRAFFIC (src/traffic.ts), headless. A SCRIPTED player (kinematic: placed on its lane each step, so the
 // test is about the traffic, not a driver) runs phases: FAST (140 km/h, outer lane), SLOW (70 km/h, left lane: traffic passes it),
 // STOPPED on the hard shoulder, then FAST again. Measures, per preset and density: traffic-on-traffic CONTACTS (they must not crash
 // into each other), cars POPPING IN / OUT inside the view, traffic off the carriageway, lane changes, recycles, and the step cost.
@@ -6,7 +6,7 @@
 import { makeCar, DT } from '../src/vehicle.js';
 import * as L from '../src/lab.js';
 import * as H from '../src/highway.js';
-import { createTraffic } from '../src/traffic.js';
+import { createTraffic } from '../src/traffic.ts';
 import { carContact } from '../src/contact.js';
 // the levels importing these modules used to add (task 078 made it explicit)
 H.addHighwayLevel();

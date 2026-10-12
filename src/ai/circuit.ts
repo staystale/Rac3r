@@ -15,8 +15,12 @@ import { debugValue } from "../core/debug.ts";
 import { querySubtrack } from "../world/tyrewall.ts";
 import { GRAVITY } from "../cars.js";
 import { aiTraits } from "./traits.ts";
-import { K_BRAKE, OBST_CLEAR, racingLine, nearestIdx, branch, carGrip, profileOf } from "./line.ts";
+import { K_BRAKE, OBST_CLEAR, racingLine, nearestIdx, carGrip, profileOf } from "./line.ts";
 import { roadDriver, driveOut } from "./weaver.ts";
+import type { Level } from "../world/types.ts";
+import type {
+  AiCar, CircuitState, DriveCtx, HighwayLevel, JokerCtx, Lead, Threat,
+} from "./types.ts";
 
 const WANDER_EDGE = 1.1;     // m: the lateral target never puts the car's centre closer than this to the road edge
 const ATK_KB = 0.12;         // extra braking grip planned while ATTACKING (late braking into the corner)
@@ -40,32 +44,40 @@ const HARDER = 0.03, HARDER_T = 4;
 // ---------------------------------------------------------------- the driver
 // drive(car, dt, ctx): ctx = { cars: [other car objects], lap: current lap (1-based), laps: race length }. Other cars may carry
 // _jokers (jokers taken) for the joker tactics.
-export function createAIDriver(level, traits = aiTraits(4, 0, 1)) {
+export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
   // the ENDLESS highway has no closed lap to plan a line round: the same driver reads the road frame instead (roadDriver above)
-  if (level.endless) { return roadDriver(level, traits, parkMiller(((traits.seed || 4242) * 31 + 7) % 2147483647 || 1)); }
-  const L = racingLine(level), main = L, B = level._branches, n = L.n;
+  // (cast: an endless Level is the highway's level, whose road fields ai/types.ts HighwayLevel describes)
+  if (level.endless) {
+    return roadDriver(
+      level as unknown as HighwayLevel, traits,
+      parkMiller(((traits.seed || 4242) * 31 + 7) % 2147483647 || 1),
+    );
+  }
+  // (! : racingLine has just made the branches)
+  const L = racingLine(level), main = L, B = level._branches!, n = L.n;
   const rnd = parkMiller(traits.seed || 4242);
   const w1 = rnd() * 6.28, w2 = rnd() * 6.28;
   const jLaps = (level.joker && level.joker.laps) || 5;
   // the joker PLAN: a lap drawn from a spread (rarely the first, when the field is packed), tactics can override it on the day
   const jPlan = (() => { const r = rnd(), cum = [0.12, 0.35, 0.6, 0.82, 1.0]; for (let k = 0; k < cum.length; k++) if (r < cum[k]) return Math.min(jLaps, k + 1); return jLaps; })();
-  const st = { path: main, i: null, vT: 0, t: 0, lap: 0, jokers: 0, jPlan, jWant: false, jDecLap: -1, jForget: rnd() < (traits.slip || 0),
+  const st: CircuitState = { path: main, i: null, vT: 0, t: 0, lap: 0, jokers: 0, jPlan, jWant: false, jDecLap: -1, jForget: rnd() < (traits.slip || 0),
     mist: null, mistCorner: -1, dodge: 0, follow: false, cap: 0, lastDist: 0, pushing: false, thrUntil: 0,
     atk: null, atkCorner: -1, hbCorner: -1, hbUntil: 0, cover: null, covCorner: -1, leadCar: null, behindT: 0 };
 
-  function advance(car) {
+  function advance(car: AiCar) {
     const P = st.path, pts = P.pts, N = P.n;
-    let bi = st.i, bd = Infinity;
+    let bi = st.i!, bd = Infinity;   // (! : drive finds its place before it calls advance)
     for (let o = -4; o <= 30; o++) {
-      let i = st.i + o; if (P.closed) i = (i + N) % N; else if (i < 0 || i >= N) continue;
+      let i = st.i! + o; if (P.closed) i = (i + N) % N; else if (i < 0 || i >= N) continue;
       const q = (pts[i].x - car.x) ** 2 + (pts[i].y - car.y) ** 2; if (q < bd) { bd = q; bi = i; }
     }
-    if (P === main && st.i > N * 0.8 && bi < N * 0.2) st.lap++;
+    if (P === main && st.i! > N * 0.8 && bi < N * 0.2) st.lap++;
     st.i = bi; st.lastDist = Math.sqrt(bd);
     // off the end of a branch: back onto the line where it merged
-    if (P !== main && bi >= N - 2) { st.path = main; st.i = P.rejoin; advance(car); }
+    // (! : a branch always has rejoin)
+    if (P !== main && bi >= N - 2) { st.path = main; st.i = P.rejoin!; advance(car); }
   }
-  function decideJoker(ctx, lap, laps) {
+  function decideJoker(ctx: JokerCtx, lap: number, laps: number) {
     st.jDecLap = lap;
     if (!B.joker || st.jokers > 0) { st.jWant = false; return; }
     if (lap >= laps) { st.jWant = !st.jForget; return; }      // last chance (a low-skill driver may simply forget: +30 s)
@@ -80,17 +92,17 @@ export function createAIDriver(level, traits = aiTraits(4, 0, 1)) {
     }
     st.jWant = (ahead && rnd() < 0.2 + 0.5 * traits.aggression) || (coverIt && rnd() < 0.2 + 0.5 * traits.defence);
   }
-  function startMistake(cIdx) {
+  function startMistake(cIdx: number) {
     const r = rnd(), kind = r < 0.4 ? 'late' : r < 0.65 ? 'early' : r < 0.85 ? 'throttle' : 'lift';
     st.mist = { kind, sev: Math.min(1, (0.3 + 0.7 * rnd()) * (1.2 - traits.skill)), corner: cIdx, inside: false, t: 0 };
   }
 
-  function drive(car, dt = 1 / 120, ctx = {}) {
+  function drive(car: AiCar, dt = 1 / 120, ctx: DriveCtx = {}) {
     st.t += dt;
     const sp = car.spec, v = Math.hypot(car.vx, car.vy);
     if (st.i === null) {
       // the START: a car sitting on the RX start straight drives it (user: "the traditional start"), else the line
-      if (B.start && querySubtrack(level.subtrack, car.x, car.y).dist > L.hw && Math.hypot(...(() => { const k = nearestIdx(B.start.pts, car.x, car.y), p = B.start.pts[k]; return [p.x - car.x, p.y - car.y]; })()) < 12) {
+      if (B.start && querySubtrack(level.subtrack!, car.x, car.y).dist > L.hw && Math.hypot(...(() => { const k = nearestIdx(B.start.pts, car.x, car.y), p = B.start.pts[k]; return [p.x - car.x, p.y - car.y]; })()) < 12) {
         st.path = B.start; st.i = nearestIdx(B.start.pts, car.x, car.y);
       } else { st.path = main; st.i = nearestIdx(main.pts, car.x, car.y); }
     }
@@ -99,9 +111,10 @@ export function createAIDriver(level, traits = aiTraits(4, 0, 1)) {
     // stays still / drives too slow for too long, ect it can reset"). Nearly still for DRIVE_OUT_T s after the green (nose in a wall, beached,
     // tangled with a car) -> REVERSE for ~1-1.5 s with the wheel turned to swing the nose back toward the road, then drive on. The game's
     // reset (main.js) is the LAST resort now: it waits longer, so this gets two or three tries first.
-    { const o = driveOut(st, car, v, dt, ctx, rnd, () => st.path.pts[st.i].h); if (o) return o; }
+    // (! : st.i was set just above)
+    { const o = driveOut(st, car, v, dt, ctx, rnd, () => st.path.pts[st.i!].h); if (o) return o; }
     const lap = ctx.lap || Math.max(1, st.lap), laps = ctx.laps || jLaps;
-    const P = st.path, pts = P.pts, N = P.n, idx = (k) => (P.closed ? ((k % N) + N) % N : Math.max(0, Math.min(N - 1, k)));
+    const P = st.path, pts = P.pts, N = P.n, idx = (k: number) => (P.closed ? ((k % N) + N) % N : Math.max(0, Math.min(N - 1, k)));
     const bi = st.i; let prof = profileOf(P, sp, main);
     const others = ctx.cars || [];
     // BATTLING (user: "scrabbling for victory"): a car within 25 m -> push a little harder, and err a little more
@@ -111,7 +124,7 @@ export function createAIDriver(level, traits = aiTraits(4, 0, 1)) {
     // ---- JOKER: decide once per lap ~220 m before the branch; take it at the switch point
     let jCap = Infinity;
     if (B.joker && P === main) {
-      const dSw = (((B.joker.switchI - bi) % n) + n) % n * L.sp;
+      const dSw = (((B.joker.switchI! - bi) % n) + n) % n * L.sp;
       if (dSw < 220 && st.jDecLap !== lap) decideJoker({ ...ctx, self: car }, lap, laps);
       if (st.jWant) {
         const vJ = profileOf(B.joker, sp, main)[0], aB = K_BRAKE * carGrip(sp).brakeG * GRAVITY * 0.8;
@@ -139,7 +152,7 @@ export function createAIDriver(level, traits = aiTraits(4, 0, 1)) {
     if (st.t < st.thrUntil) thrForce = true;
 
     // ---- the line: less of its width for lower skill (lineQ), plus a slow WANDER, bigger for less skilled drivers
-    const lineOff = P === main ? pts[bi].off : 0;
+    const lineOff = P === main ? pts[bi].off! : 0;   // (! : the racing line has off at every point)
     latT += -lineOff * (1 - traits.lineQ);
     latT += traits.wander * (0.6 * Math.sin(st.t * 0.37 + w1) + 0.4 * Math.sin(st.t * 0.83 + w2));
     // THE START (user, 2026-10-04: "they aim for the racing line a bit too hard at the start of races and it causes crashes — increase crash
@@ -156,7 +169,7 @@ export function createAIDriver(level, traits = aiTraits(4, 0, 1)) {
     const prec = traits.prec ?? 0.5, clear = 2.3 - 0.4 * traits.aggression, gapF = (6.5 - 2.5 * traits.aggression) * (1.15 - 0.35 * prec);
     const latLim = P === main ? L.hw - WANDER_EDGE : 2;
     const ch = Math.cos(car.heading), sh = Math.sin(car.heading);
-    let dodgeT = 0, followCap = Infinity, conflict = false, lead = null, threat = null, side = 0; const alg = [];
+    let dodgeT = 0, followCap = Infinity, conflict = false, lead: Lead | null = null, threat: Threat | null = null, side = 0; const alg: number[] = [];
     const myLat = st.dodge + latT;
     for (const c of others) {
       const rx = c.x - car.x, ry = c.y - car.y, f = rx * ch + ry * sh, l = -rx * sh + ry * ch;
@@ -237,7 +250,7 @@ export function createAIDriver(level, traits = aiTraits(4, 0, 1)) {
       if (lead && lead.c === st.leadCar) st.behindT += dt; else { st.leadCar = lead ? lead.c : null; st.behindT = 0; }
       const cur = L.cid[bi]; let nc = -1, nd = 0;
       for (let o = 1, m = Math.round(150 / L.sp); o < m; o++) { const c = L.cid[(bi + o) % n]; if (c >= 0 && c !== cur) { nc = c; nd = o * L.sp; break; } }
-      const past = (pl) => pl.corner >= 0 && cur === pl.corner && ((bi - L.corners[pl.corner].apex + n) % n) < n / 2;
+      const past = (pl: { corner: number }) => pl.corner >= 0 && cur === pl.corner && ((bi - L.corners[pl.corner].apex + n) % n) < n / 2;
       if (st.atk) { const A = st.atk, f = (A.car.x - car.x) * ch + (A.car.y - car.y) * sh;
         if (f < -5 || f > 35 || st.t - A.t0 > (A.corner < 0 ? 9 : 7) || past(A)) st.atk = null; }
       if (!st.atk && lead && nc >= 0 && nc !== st.atkCorner && nd > 15 && nd < 140 && lead.vAlong < v + 2
@@ -280,7 +293,7 @@ export function createAIDriver(level, traits = aiTraits(4, 0, 1)) {
     st.dodge += Math.max(-rate * dt, Math.min(rate * dt, dodgeT - st.dodge)) * (conflict ? 1 : 0.5);
     st.follow = followCap < Infinity;
     latT += st.dodge;
-    const edge = st.t < (st.wideUntil || 0) ? st.wide : latLim;   // past the usual edge only while going round a car (above)
+    const edge = st.t < (st.wideUntil || 0) ? st.wide! : latLim;   // past the usual edge only while going round a car (above)
     latT = Math.max(-edge, Math.min(edge, lineOff + latT)) - lineOff;
     // OFF THE LINE INTO A CORNER (an attack, a cover, a dodge, a wander): the profile is for the racing line's radius; x m further INSIDE
     // at the apex is a radius R - x, so the corner speed drops by sqrt((R - x) / R). Without it attackers ran wide on the exit
@@ -315,7 +328,7 @@ export function createAIDriver(level, traits = aiTraits(4, 0, 1)) {
     // countersteer free — instead of caught at 0.18 rad (which lifted and tiptoed). Past DRIFT_MAX it is caught as before. A bolder driver
     // (aggression) drifts more often (decided per corner).
     const inCorner = P === main && L.cid[bi] >= 0;
-    if (inCorner && st.driftCorner !== L.cid[bi]) { st.driftCorner = L.cid[bi]; st.driftOn = st.t > (st.driftBan || 0) && rnd() < (debugValue("DRIFT") ?? (0.45 + 0.5 * traits.aggression)); }
+    if (inCorner && st.driftCorner !== L.cid[bi]) { st.driftCorner = L.cid[bi]; st.driftOn = st.t > (st.driftBan || 0) && rnd() < (debugValue("DRIFT") as number ?? (0.45 + 0.5 * traits.aggression)); }
     // ... and never near the road edge (a held drift there ran a Rally car off Sweaty Lamb 12 s a lap): within EDGE_DRIFT m it catches
     const pb = pts[bi], edgeRoom = P === main ? L.hw - Math.abs(lineOff + (car.x - pb.x) * -Math.sin(pb.h) + (car.y - pb.y) * Math.cos(pb.h)) : 0;   // m from the car to the nearer edge
     const drifting = st.driftOn && inCorner && loose > 0.3 && (sp.drive ?? 1) < 0.5 && sR > 0.12 && sR < DRIFT_MAX && v > 6 && edgeRoom > EDGE_DRIFT && pts[L.corners[L.cid[bi]].apex].R < DRIFT_R;
@@ -326,8 +339,8 @@ export function createAIDriver(level, traits = aiTraits(4, 0, 1)) {
     let vT = Infinity; const span = Math.round((3 + v * 0.25) / P.sp);
     for (let o = 0; o <= span; o++) vT = Math.min(vT, prof[idx(bi + o)]);
     if (P === main && Math.abs(latT) > 0.3) {
-      const aB = (debugValue("AI_KB") || K_BRAKE) * pts[bi].mu * carGrip(sp).brakeG * GRAVITY, far = Math.round((v * v / (2 * aB) + 15) / P.sp);
-      for (let o = 0; o <= far; o += 2) { const k = idx(bi + o), q = pts[k], x = (lineOff + latT - q.off) * q.turn;
+      const aB = (debugValue("AI_KB") as number || K_BRAKE) * pts[bi].mu * carGrip(sp).brakeG * GRAVITY, far = Math.round((v * v / (2 * aB) + 15) / P.sp);
+      for (let o = 0; o <= far; o += 2) { const k = idx(bi + o), q = pts[k], x = (lineOff + latT - q.off!) * q.turn;
         if (x > 0.3 && q.R < 400) { const vk = prof[k] * Math.sqrt(Math.max(0.4, (q.R - x) / q.R)); vT = Math.min(vT, Math.sqrt(vk * vk + 2 * aB * o * P.sp)); } }
     }
     vT = Math.min(vT * traits.pace * push * vMul, jCap, followCap);
@@ -361,7 +374,7 @@ export function createAIDriver(level, traits = aiTraits(4, 0, 1)) {
       // ground), the apex within ~0.8 s
       if (C && C.angle === undefined) { let sum = 0; for (let i = C.start; L.cid[i] === c; i = (i + 1) % n) { const d = pts[(i + 1) % n].h - pts[i].h; sum += Math.atan2(Math.sin(d), Math.cos(d)); } C.angle = Math.abs(sum); }
       const toApex = ((C ? C.apex : bi) - bi + n) % n;
-      if (C && C.angle > HB_TURN && pts[C.apex].R < HB_R + HB_LOOSE * loose && toApex < n / 2 && toApex * L.sp < 0.8 * v + 6 && st.hbCorner !== c) {
+      if (C && C.angle! > HB_TURN && pts[C.apex].R < HB_R + HB_LOOSE * loose && toApex < n / 2 && toApex * L.sp < 0.8 * v + 6 && st.hbCorner !== c) {
         st.hbCorner = c; if (rnd() < 0.5 + 0.5 * traits.skill) st.hbUntil = st.t + HB_T;
       }
       if (st.t < st.hbUntil) { handbrake = 1; throttle = 0; brake = 0; st.hbN = (st.hbN || 0) + 1; }
@@ -372,3 +385,4 @@ export function createAIDriver(level, traits = aiTraits(4, 0, 1)) {
   const relocate = () => { st.i = null; st.path = main; st.dodge = 0; st.mist = null; st.thrUntil = 0; st.revUntil = 0; st.slowT = 0; st.outN = 0; st.giveUp = false; };
   return { drive, state: st, total: L.total, traits, relocate };
 }
+export type AIDriver = ReturnType<typeof createAIDriver>;

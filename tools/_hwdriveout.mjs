@@ -5,7 +5,7 @@ import { makeCar, step, reset, DT } from '../src/vehicle.js';
 import * as L from '../src/lab.js';
 import * as H from '../src/highway.js';
 import { aiTraits } from '../src/ai/traits.ts';
-import { createAIDriver } from '../src/ai/circuit.js';
+import { createAIDriver } from '../src/ai/circuit.ts';
 import { hwFrames } from '../src/highwayrace.ts';
 // the levels importing these modules used to add (task 078 made it explicit)
 H.addHighwayLevel();

@@ -4,7 +4,7 @@
     "id-length": 25,
     "max-len": 20
   },
-  "src/ai/circuit.js": {
+  "src/ai/circuit.ts": {
     "complexity": 2,
     "id-length": 101,
     "max-len": 157,
@@ -204,7 +204,7 @@
   "src/testlist.js": {
     "max-len": 17
   },
-  "src/traffic.js": {
+  "src/traffic.ts": {
     "complexity": 2,
     "id-length": 109,
     "max-len": 94,

@@ -8,7 +8,7 @@ const b = await chromium.launch({ channel: 'msedge' });
 const page = async () => { const p = await (await b.newContext({ viewport: { width: 1280, height: 720 }, deviceScaleFactor: 1 })).newPage(); await p.goto('http://localhost:8080/?menu=1&guide=0'); await p.waitForTimeout(3500); return p; };
 const race = async (p, lv, car, opts, driveDiff = 3) => p.evaluate(async ([lv, car, opts, dd]) => {
   const g = window.__game; g.menu.hide(); g.launch(lv, car, opts);
-  const A = { ...await import('/src/ai/circuit.js'), ...await import('/src/ai/traits.ts') }, L = await import('/src/lab.js'); const drv = A.createAIDriver(L.LEVEL, A.aiTraits(dd, 0, 1, 7));
+  const A = { ...await import('/src/ai/circuit.ts'), ...await import('/src/ai/traits.ts') }, L = await import('/src/lab.js'); const drv = A.createAIDriver(L.LEVEL, A.aiTraits(dd, 0, 1, 7));
   g.input.update = () => ({ ...drv.drive(g.car, 1 / 60, { cars: g.ai.map((a) => a.car), lap: 1, laps: 3 }), reverse: 0, shiftUp: false, shiftDown: false });
 }, [lv, car, opts, driveDiff]);
 // 1. the menu with the AI race behind it

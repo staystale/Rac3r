@@ -12,7 +12,7 @@ await p.touchscreen.tap(400, 200); await p.waitForTimeout(800);
 await p.evaluate((pr) => window.__game.launch('highway', 'saloon-rwd', { ai: 5, diff: 0, traffic: 1.5, litter: 3, road: pr }), PRESET);
 await p.waitForTimeout(2500);
 const r = await p.evaluate((SEC) => new Promise(async (res) => {
-  const g = window.__game, H = await import('/src/highwayrace.ts'), A = { ...await import('/src/ai/circuit.js'), ...await import('/src/ai/traits.ts') }, L = await import('/src/lab.js'), HW = await import('/src/highway.js');
+  const g = window.__game, H = await import('/src/highwayrace.ts'), A = { ...await import('/src/ai/circuit.ts'), ...await import('/src/ai/traits.ts') }, L = await import('/src/lab.js'), HW = await import('/src/highway.js');
   const drv = A.createAIDriver(g.level, A.aiTraits(4, 0, 1));
   g.input.update = () => { const others = [...g.ai.map((a) => a.car), ...g.traffic.cars]; H.hwFrames(g.level, [g.car, ...others]);
     return { ...drv.drive(g.car, 1 / 60, { cars: others }), reverse: 0, shiftUp: false, shiftDown: false }; };

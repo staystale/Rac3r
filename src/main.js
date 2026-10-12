@@ -22,9 +22,9 @@ import { createMenu } from './menu.js';
 import { genStage, installStage, addStageLevels } from './stagegen.js';
 import { addHighwayLevel, stepHighway, resetHighway, highwayGuard, highwayRespawn, setHighwayPreset, roadFrame, speedCamera } from './highway.js';   // the ENDLESS motorway (registers itself in LEVELS)   // PROCEDURAL STAGES (installs the default generated stage into LEVELS)
 import { createAutoDriver } from './ai/autodrive.ts';
-import { createTraffic } from './traffic.js';   // HIGHWAY TRAFFIC (endless levels)
+import { createTraffic } from './traffic.ts';   // HIGHWAY TRAFFIC (endless levels)
 import { createHwFlow, hwFrames, hwGrid, hwGridSpan, hwPutBack, HW_GREEN } from './highwayrace.ts';   // VS AI on the highway
-import { createAIDriver } from './ai/circuit.js';
+import { createAIDriver } from './ai/circuit.ts';
 import { aiTraits } from './ai/traits.ts';
 import { lineRun } from './ai/line.ts';
 import { carContacts, slipstream } from './contact.js';
