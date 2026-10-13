@@ -93,6 +93,9 @@ Phases:
   (expected from tens of thousands to hundreds) and median frame time is not worse on any level.
   From phase 4: framecheck brands-snatch frames over 33 ms per lap, 5 runs each: baseline 22-26 (mean 24), after phase 4 21-31 (mean 28); median unchanged. Look at it here (likely view.* property reads in the hot draw code).
   From phase 5: when vehicle.js becomes TypeScript, remove the two "as unknown as" casts (ai/circuit.ts passing the level to the weaver, traffic.ts makeCar) and give the AI's AiCar / TrafficVehicle types the real Car type.
+  - [x] Pre-painted repeating surface textures (tasks 095-097): default on,
+    ?tex=0 for live painting. Phone tested and approved.
+
 - [ ] **7. Rename pass.** Rename every abbreviated variable and parameter to a descriptive name, one
   file at a time, smallest files first. Reformat dense lines to one statement per line, 100
   characters. Extract the 280-350 line functions into named steps. Done when `npm run lint` passes

@@ -1,5 +1,6 @@
-// PRE-PAINTED SURFACE TEXTURES (?tex=1). WHAT: each surface's pattern layers are painted ONCE per
-// (surface, px per metre, dpr) into a seamless, REPEATING canvas; paintLayers then fills its area
+// PRE-PAINTED SURFACE TEXTURES (default; ?tex=0 = live). WHAT: each surface's pattern layers are
+// painted ONCE per (surface, px per metre, dpr) into a seamless, REPEATING canvas; paintLayers
+// then fills its area
 // with createPattern(texture, 'repeat') in one operation. WHY (MEASURED, task 091): the floor and
 // zones layers cost 15-32 ms per tile on grass levels, ~1,800 grass strokes a tile, drawn mark by
 // mark: that is the highway / Killder / rally-stage judder.

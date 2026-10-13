@@ -21,7 +21,7 @@ interface GroundHelpers {
   ) => void;
   forSide: ForSide;
   grassEnds: 'round' | 'square';
-  surfaceTextures: boolean;     // ?tex=1: pre-painted repeating textures (textures.ts)
+  surfaceTextures: boolean;     // default on (?tex=0 = live): pre-painted textures (textures.ts)
 }
 
 export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
@@ -314,7 +314,8 @@ export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
     if (surfaceTextures && paintTextured(id, art, [x0, y0, x1, y1])) return;
     for (const L of art.layers) PRIM[L[0]](L, x0, y0, x1, y1);
   }
-  // ?tex=1: one pattern fill from the pre-painted texture (see textures.ts); false = draw live
+  // default (?tex=0 = live): one pattern fill from the pre-painted texture (see textures.ts);
+  // false = draw live
   function paintTextured(name: string, art: SurfaceArt, rect: number[]) {
     const ppm = PPMz(), square = grassEnds === 'square';
     const tex = textures.get(`${name}|${square}`, ppm,

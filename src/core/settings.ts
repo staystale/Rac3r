@@ -23,7 +23,7 @@ export interface Settings {
   tileGpu: boolean;              // ?tilegpu: paint tiles straight on the GPU canvas
   noShade: boolean;              // ?noshade: skip the hill shading (perf A/B)
   grassEnds: "round" | "square";   // ?grass=square: square grass blade ends (cheaper; A/B)
-  surfaceTextures: boolean;       // ?tex=1: pre-painted repeating surface textures (default off)
+  surfaceTextures: boolean;       // ?tex=0: paint surfaces live, not pre-painted textures (A/B)
 }
 
 
@@ -50,6 +50,6 @@ export function readSettings(search: string): Settings {
     tileGpu: params.has('tilegpu'),
     noShade: params.has('noshade'),
     grassEnds: params.get('grass') === 'square' ? 'square' : 'round',
-    surfaceTextures: params.get('tex') === '1',
+    surfaceTextures: params.get('tex') !== '0',
   };
 }
