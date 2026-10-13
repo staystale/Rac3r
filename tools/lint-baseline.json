@@ -17,10 +17,6 @@
     "max-len": 70,
     "max-lines-per-function": 1
   },
-  "src/ai/traits.ts": {
-    "id-length": 4,
-    "max-len": 13
-  },
   "src/ai/weaver.ts": {
     "complexity": 2,
     "id-length": 41,
