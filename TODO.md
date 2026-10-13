@@ -83,7 +83,7 @@ Phases:
   stuck, dodging, mistakes by difficulty. Done when `aifieldsuite` and `pacesuite` are not worse than
   baseline, `weavecheck` shows 0 hits, and there is a single driver module.
   DONE 2026-10-12 (as owner decision 3): aidriver.js split into src/ai/ (traits, line, weaver = the highway driver, circuit = the circuit driver; autodrive.ts = the bench / demo / pace-car driver moved in); hwrace.js renamed highwayrace.ts (the highway race rules); all of src/ai, highwayrace and traffic are TypeScript. Checked: the bundled code is the same code, and aifieldsuite, pacesuite and weavecheck totals are identical to before (and to the phase 0 baseline).
-- [ ] **6. Performance.** (a) Build a uniform-grid spatial index at level load for barrier segments,
+- [x] **6. Performance.** (a) Build a uniform-grid spatial index at level load for barrier segments,
   solids, props and loose objects. (b) Cones and other loose objects query the grid for nearby
   segments only, and sleep when at rest until something wakes them. (c) Remove per-frame allocation in
   the hot loops (vehicle step, render loop, traffic). (d) Audit other O(objects x world) loops: AI
@@ -95,6 +95,32 @@ Phases:
   From phase 5: when vehicle.js becomes TypeScript, remove the two "as unknown as" casts (ai/circuit.ts passing the level to the weaver, traffic.ts makeCar) and give the AI's AiCar / TrafficVehicle types the real Car type.
   - [x] Pre-painted repeating surface textures (tasks 095-097): default on,
     ?tex=0 for live painting. Phone tested and approved.
+  DONE 2026-10-13: phase 6 closed. Frame table, node tools/framecheck.mjs, CPU x4, autodrive lap,
+  phase 0 baseline (35a9c2c) -> now (origin/main). Frames are ms; "over 33" is frames over 33 ms of 570.
+
+  | level        | median    | p95         | worst       | over 33 ms |
+  |--------------|-----------|-------------|-------------|------------|
+  | test-track   | 18.0 -> 18.0 | 18.1 -> 18.1 | 36.0 -> 54.0 | 9 -> 7 (rerun now: 10, worst 36.1) |
+  | brands-snatch | 18.0 -> 18.0 | 18.1 -> 18.1 | 36.1 -> 53.9 | 24 -> 23 |
+  | highway      | 18.0 -> 18.0 | 90.0 -> 35.5 | 126.0 -> 72.0 | 126 -> 34 |
+
+  Highway baseline was run twice: 126 frames over 33 ms (p95 89.9, worst 126.0) and 111 (p95 90.0,
+  worst 161.5). The worst frame on test-track and brands-snatch is one-off spikes; the 18 ms median is
+  the display cap in this test, so the work time (median about 9-10 ms) is the better guide.
+  - Done: surface textures pre-painted (095-097, phone approved); the ?meter=1 frame meter on the
+    phone (098, 102, 105); memory diet in contact / barriers / terrain (104); ?pool=1 tried and
+    removed, no gain (103, 106); car physics, roster and the AI / traffic / render car types now
+    TypeScript (108-110).
+  - NOT done, by decision: the spatial grid for cones (a) / (b). Cones already sleep at rest; a
+    measured worst case (20 moving objects x 544 walls on brands-snatch) is about 0.06 ms a frame,
+    so a grid is not worth it.
+  - PHONE JUDDER finding: the drops on the iPhone (Safari) flat out on the highway are iOS Safari's
+    own touch processing, not our code (our frame work is about 3-4 ms). A test page with the same
+    kind of drawing: 0 drops/min with no fingers down, 64 touching with no handlers, 22 with the
+    game's touch handling, 11 without its touch blockers. The blockers stay (they fix iOS stuck
+    controls).
+  - The one cast left: ai/circuit.ts "level as unknown as HighwayLevel" (a level type; goes when
+    highway.js is converted).
 
 - [ ] **7. Rename pass.** Rename every abbreviated variable and parameter to a descriptive name, one
   file at a time, smallest files first. Reformat dense lines to one statement per line, 100
@@ -466,6 +492,9 @@ BUILD ORDER (Claude, 2026-10-04; user: "levels and events first", "make sure tha
               [ ] S-J  Story-mode time / distance limit for highway races (later).
               [ ] S-K  MENU ART in a "3D style"; the garage shot shows the car you cycle to. NO references yet: ask first. Q8-Q10.
               [ ] S-L  APP STORE + GOOGLE PLAY release: compliance list, discuss changes. Q11-Q14.
+                   APP PLAN (owner, 2026-10-13): after the overhaul. 1) app wrapper (e.g. Capacitor, M),
+                   measure the judder with ?meter=1; 2) only if it still judders, native touch input
+                   passed to the game (M). A fully native rewrite (L) is not recommended.
               AI DESIGN NOTES (the record the user asked for: "keep clear record of that convo about ai behaviour"). Add to it each round.
                 AGREED SO FAR (user, 2026-10-06): racing line + awareness / avoidance; per-racer personality; "try hard to win", let chaos
                   happen; crashes fine if they feel real. BUDGET: low difficulty ~10+ incidents per 3-lap race, hard <= 5. "fast ... know
