@@ -102,8 +102,7 @@
   },
   "src/raceflow.js": {
     "complexity": 1,
-    "id-length": 26,
-    "max-len": 34
+    "max-lines-per-function": 1
   },
   "src/render.ts": {
     "@typescript-eslint/no-unused-vars": 6,
