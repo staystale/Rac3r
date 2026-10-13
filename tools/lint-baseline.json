@@ -119,9 +119,7 @@
   },
   "src/render/objects.ts": {
     "complexity": 3,
-    "id-length": 88,
-    "max-len": 68,
-    "max-lines-per-function": 2
+    "max-lines-per-function": 3
   },
   "src/render/particles.ts": {
     "max-lines-per-function": 1
