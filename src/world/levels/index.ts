@@ -48,8 +48,9 @@ export const LEVELS: Level[] = [
   {
     id: 'lab', name: 'The Lab',
     coneCount: true,      // show the knocked-cone tally (a cone course)
-    // COVERS (2026-10-03): lying ON whatever is under them; see "LAYERED" wear in this file. The ice sheet
-    // is over GRASS on purpose — scrub it through and the grass shows, then wears to mud (the user's chain).
+    // COVERS (2026-10-03): lying ON whatever is under them; see "LAYERED" wear in this file.
+    // The ice sheet is over GRASS on purpose — scrub it through and the grass shows, then wears
+    // to mud (the user's chain).
     covers: [
       { x: -95, y: -185, w: 60, h: 30, cover: 'ice', shape: 'ellipse' },
       { x: -180, y: -185, w: 50, h: 26, cover: 'snow', shape: 'ellipse' },
@@ -63,7 +64,8 @@ export const LEVELS: Level[] = [
       { x: FLOOR / 2, y: FLOOR / 2, w: FLOOR, h: FLOOR, surface: SURFACES.tarmac },    // SE
       { x: FLOOR / 2, y: -FLOOR / 2, w: FLOOR, h: FLOOR, surface: SURFACES.gravel },   // NE
       { x: -FLOOR / 2, y: -FLOOR / 2, w: FLOOR, h: FLOOR, surface: SURFACES.grass },   // NW
-      // S-B: AFTER the old zones, so the old blend's random stream (and every old patch) is unchanged
+      // S-B: AFTER the old zones, so the old blend's random stream (and every old patch) is
+      // unchanged
       ...LAB_LANE_ZONES, ...LAB_OFFROAD_ZONES,
     ],
     bumps: [...LAB_BUMPS, ...prepBumps(LAB_OFFROAD_BUMPS)],
@@ -85,14 +87,19 @@ export const LEVELS: Level[] = [
     coneCount: true,      // show the knocked-cone tally (a cone course)
     base: SURFACES.grassShort,
     subtrack: TT_SUBTRACK,
-    // CAMBER (user, 2026-10-03): 2% crown on the straights, up to 4 deg of positive camber in the corners (at 40 m radius or
-    // tighter). Off-camber sections can be added here as { from, to, deg: -2 } (metres of track distance).
+    // CAMBER (user, 2026-10-03): 2% crown on the straights, up to 4 deg of positive camber in
+    // the corners (at 40 m radius or tighter). Off-camber sections can be added here as
+    // { from, to, deg: -2 } (metres of track distance).
     camber: { maxDeg: 4, refR: 40, crown: 0.02, edge: 6, sections: [] },
     covers: [
-      onTrack(TT_SUBTRACK, 250, 2, { w: 9, h: 5, cover: 'wet', shape: 'ellipse' }),     // sweeper, tarmac
-      onTrack(TT_SUBTRACK, 740, -2, { w: 7, h: 4, cover: 'wet', shape: 'ellipse' }),    // hairpin, tarmac
-      onTrack(TT_SUBTRACK, 580, 0, { w: 14, h: 9, cover: 'ice', shape: 'ellipse' }),    // black ice on the dirt
-      onTrack(TT_SUBTRACK, 700, 14, { w: 18, h: 10, cover: 'snow', shape: 'ellipse' }), // drift beside the hairpin
+      // sweeper, tarmac
+      onTrack(TT_SUBTRACK, 250, 2, { w: 9, h: 5, cover: 'wet', shape: 'ellipse' }),
+      // hairpin, tarmac
+      onTrack(TT_SUBTRACK, 740, -2, { w: 7, h: 4, cover: 'wet', shape: 'ellipse' }),
+      // black ice on the dirt
+      onTrack(TT_SUBTRACK, 580, 0, { w: 14, h: 9, cover: 'ice', shape: 'ellipse' }),
+      // drift beside the hairpin
+      onTrack(TT_SUBTRACK, 700, 14, { w: 18, h: 10, cover: 'snow', shape: 'ellipse' }),
     ],
     zones: TT_ZONES,
     bumps: TT_BUMPS,
@@ -122,7 +129,10 @@ export const LEVELS: Level[] = [
     lanes: [SL_YARD],
     stage: { finish: SL_FINISH },
     // 6 m behind the START line, facing it: the clock starts as you cross it
-    spawn: (() => { const p = onTrack(SL_SUBTRACK, SL_SUBTRACK.totalDist - 6, 0, {}); return { x: p.x, y: p.y, heading: p.rot }; })(),
+    spawn: (() => {
+      const pose = onTrack(SL_SUBTRACK, SL_SUBTRACK.totalDist - 6, 0, {});
+      return { x: pose.x, y: pose.y, heading: pose.rot };
+    })(),
   },
   {
     id: 'killder', name: 'Killder',
@@ -139,7 +149,10 @@ export const LEVELS: Level[] = [
     solids: solidsFromProps(KD_PROPS),
     lanes: [KD_YARD],
     stage: { finish: KD_FINISH },
-    spawn: (() => { const p = onTrack(KD_SUBTRACK, KD_SUBTRACK.totalDist - 6, 0, {}); return { x: p.x, y: p.y, heading: p.rot }; })(),
+    spawn: (() => {
+      const pose = onTrack(KD_SUBTRACK, KD_SUBTRACK.totalDist - 6, 0, {});
+      return { x: pose.x, y: pose.y, heading: pose.rot };
+    })(),
   },
   {
     id: 'slidden-hill', name: 'Slidden Hill',
@@ -148,16 +161,34 @@ export const LEVELS: Level[] = [
     camber: { maxDeg: 2, refR: 60, crown: 0.02, edge: 6, sections: [] },
     zones: [],
     bumps: SH_BUMPS,
-    paint: [{ kind: 'chequered', x: SH_SUBTRACK.pts[0].x, y: SH_SUBTRACK.pts[0].y, len: 1.6, wid: 14, rot: SH_SUBTRACK.pts[0].heading }],
+    paint: [{
+      kind: 'chequered', x: SH_SUBTRACK.pts[0].x, y: SH_SUBTRACK.pts[0].y, len: 1.6, wid: 14,
+      rot: SH_SUBTRACK.pts[0].heading,
+    }],
     boards: [], seams: false,
     lanes: [SH_START, SH_JOKER, SH_PADDOCK],
     joker: SH_JOKER_RULE,
     props: SH_PROPS,
     solids: solidsFromProps(SH_PROPS),
-    cones: [...SH_TYREWALL, ...SH_STARTWALL, ...rxDress(SH_SUBTRACK, [SH_START, SH_JOKER, SH_PADDOCK], [...SH_TYREWALL, ...SH_STARTWALL]), ...jokerBales(SH_SUBTRACK, SH_JOKER, [...SH_TYREWALL, ...SH_STARTWALL])],
-    barriers: SH_ARMCO.map(([a, b, off]) => ({ kind: 'armco', pts: alongTrack(SH_SUBTRACK, a, b, off, 2) })),
+    cones: [
+      ...SH_TYREWALL, ...SH_STARTWALL,
+      ...rxDress(
+        SH_SUBTRACK, [SH_START, SH_JOKER, SH_PADDOCK], [...SH_TYREWALL, ...SH_STARTWALL],
+      ),
+      ...jokerBales(SH_SUBTRACK, SH_JOKER, [...SH_TYREWALL, ...SH_STARTWALL]),
+    ],
+    barriers: SH_ARMCO.map(([begin, end, off]) => (
+      { kind: 'armco', pts: alongTrack(SH_SUBTRACK, begin, end, off, 2) }
+    )),
     // on the grid near the dead end of the (moved) start straight, facing the junction
-    spawn: (() => { const [p0, p1] = SH_START.pts, x0 = p0[0] + (p1[0] - p0[0]) * 0.08, y0 = p0[1] + (p1[1] - p0[1]) * 0.08; return { x: x0, y: y0, heading: Math.atan2(p1[1] - p0[1], p1[0] - p0[0]) }; })(),
+    spawn: (() => {
+      const [fromPt, toPt] = SH_START.pts,
+        spawnX = fromPt[0] + (toPt[0] - fromPt[0]) * 0.08,
+        spawnY = fromPt[1] + (toPt[1] - fromPt[1]) * 0.08;
+      return {
+        x: spawnX, y: spawnY, heading: Math.atan2(toPt[1] - fromPt[1], toPt[0] - fromPt[0]),
+      };
+    })(),
   },
   {
     id: 'castle-cum', name: 'Castle Cum',
@@ -170,23 +201,33 @@ export const LEVELS: Level[] = [
     boards: [],
     props: CC_PROPS,
     seams: false,
-    cones: [...CC_TYREWALL, ...[1000, 1012, 1024].map((d, k) => ({ ...CC_KIT.at(d, k % 2 ? 9 : -9), kind: 'tyrestack' }))],
+    cones: [
+      ...CC_TYREWALL,
+      ...[1000, 1012, 1024].map((dist, idx) => (
+        { ...CC_KIT.at(dist, idx % 2 ? 9 : -9), kind: 'tyrestack' }
+      )),
+    ],
     lanes: CC_LANES,
     solids: solidsFromProps(CC_PROPS),
     barriers: [
       { kind: 'pitwall', pts: alongTrack(CC_SUBTRACK, 1250, 97, -10, 2) },
       { kind: 'line', pts: alongTrack(CC_SUBTRACK, 1255, 92, -15.5, 2) },
-      ...CC_ARMCO.map(([a, b]): Barrier =>
-        ({ kind: 'armco', pts: alongTrack(CC_SUBTRACK, a, b, -16, 2) })),
-      { kind: 'fence', pts: alongTrack(CC_SUBTRACK, 1110, 1215, -22, 2) },     // "only a waist high fence" on the Camp bank
+      ...CC_ARMCO.map(([begin, end]): Barrier =>
+        ({ kind: 'armco', pts: alongTrack(CC_SUBTRACK, begin, end, -16, 2) })),
+      // "only a waist high fence" on the Camp bank
+      { kind: 'fence', pts: alongTrack(CC_SUBTRACK, 1110, 1215, -22, 2) },
     ],
-    spawn: (() => { const p = onTrack(CC_SUBTRACK, CC_SUBTRACK.totalDist - 15, 0, {}); return { x: p.x, y: p.y, heading: p.rot }; })(),
+    spawn: (() => {
+      const pose = onTrack(CC_SUBTRACK, CC_SUBTRACK.totalDist - 15, 0, {});
+      return { x: pose.x, y: pose.y, heading: pose.rot };
+    })(),
   },
   {
     id: 'thruston', name: 'Thruston',
     base: SURFACES.grass,
     subtrack: TH_SUBTRACK,
-    // a smooth, fast airfield surface: a gentle crown, up to 3 deg of camber in the corners (Thruxton is FLAT; bumps above)
+    // a smooth, fast airfield surface: a gentle crown, up to 3 deg of camber in the corners
+    // (Thruxton is FLAT; bumps above)
     camber: { maxDeg: 3, refR: 70, crown: 0.02, edge: 6, sections: [] },
     zones: TH_ZONES,
     bumps: TH_BUMPS,
@@ -195,19 +236,32 @@ export const LEVELS: Level[] = [
     props: TH_PROPS,
     seams: false,
     cones: TH_CONES,
-    // on the grid 15 m BEHIND the line (photographed: at distance 0 the car sat on the chequers)
-    spawn: (() => { const p = onTrack(TH_SUBTRACK, TH_SUBTRACK.totalDist - 15, 0, {}); return { x: p.x, y: p.y, heading: p.rot }; })(),
-    // the grandstand is solid: an invisible 'building' barrier along its track-side face (obstacles are axis-aligned only)
+    // on the grid 15 m BEHIND the line (photographed: at distance 0 the car sat on the
+    // chequers)
+    spawn: (() => {
+      const pose = onTrack(TH_SUBTRACK, TH_SUBTRACK.totalDist - 15, 0, {});
+      return { x: pose.x, y: pose.y, heading: pose.rot };
+    })(),
+    // the grandstand is solid: an invisible 'building' barrier along its track-side face
+    // (obstacles are axis-aligned only)
     barriers: [
-      { kind: 'building', pts: alongTrack(TH_SUBTRACK, TH_STAND.d0, TH_STAND.d1, TH_STAND.off + 4.2) },
+      {
+        kind: 'building',
+        pts: alongTrack(TH_SUBTRACK, TH_STAND.d0, TH_STAND.d1, TH_STAND.off + 4.2),
+      },
       { kind: 'building', pts: alongTrack(TH_SUBTRACK, 1093, 1119, -22.6, 2) },
       // pit wall between the track and the lane, only where the lane has fully separated
       { kind: 'pitwall', pts: alongTrack(TH_SUBTRACK, 1201, 25, 10, 2) },
-      { kind: 'line', pts: alongTrack(TH_SUBTRACK, 1206, 20, TH_PIT.off - 1.5, 2) },               // the yellow line
-      { kind: 'building', pts: alongTrack(TH_SUBTRACK, TH_GAR.d0, TH_GAR.d1, TH_GAR.off - TH_GAR.depth / 2 + 0.3, 2) },
-      // ARMCO on the OUTSIDE of the right-handers (an inside offset of a tight corner self-intersects)
-      ...TH_ARMCO.map(([a, b]): Barrier =>
-        ({ kind: 'armco', pts: alongTrack(TH_SUBTRACK, a, b, -16, 2) })),
+      // the yellow line
+      { kind: 'line', pts: alongTrack(TH_SUBTRACK, 1206, 20, TH_PIT.off - 1.5, 2) },
+      {
+        kind: 'building',
+        pts: alongTrack(TH_SUBTRACK, TH_GAR.d0, TH_GAR.d1, TH_GAR.off - TH_GAR.depth / 2 + 0.3, 2),
+      },
+      // ARMCO on the OUTSIDE of the right-handers (an inside offset of a tight corner
+      // self-intersects)
+      ...TH_ARMCO.map(([begin, end]): Barrier =>
+        ({ kind: 'armco', pts: alongTrack(TH_SUBTRACK, begin, end, -16, 2) })),
       // catch fence behind the Armco at Church, where the spectators stand
       { kind: 'fence', pts: alongTrack(TH_SUBTRACK, 780, 875, -22, 2) },
     ],
@@ -218,7 +272,8 @@ export const LEVELS: Level[] = [
     id: 'grass-track', name: 'Grass Track',
     base: SURFACES.grass,
     subtrack: GO_SUBTRACK,
-    randomise: () => randomiseGrassTrack(GO_SUBTRACK, GO_SECTORS, GO_RANDOM_PATCHES),   // new random patches every load
+    // new random patches every load
+    randomise: () => randomiseGrassTrack(GO_SUBTRACK, GO_SECTORS, GO_RANDOM_PATCHES),
     patches: GO_RANDOM_PATCHES,
     covers: [
       onTrack(GO_SUBTRACK, 100, 2, { w: 7, h: 4, cover: 'wet', shape: 'ellipse' }),
@@ -240,8 +295,10 @@ export const LEVELS: Level[] = [
       { x: -55, y: -28, kind: 'tyrestack' }, { x: -57, y: -27, kind: 'tyrestack' },
       { x: -55, y: 28, kind: 'tyrestack' }, { x: -57, y: 27, kind: 'tyrestack' },
       // Infield caravan protection barrier
-      { x: -18, y: -6, kind: 'tyrestack' }, { x: -18, y: -3, kind: 'tyrestack' }, { x: -18, y: 0, kind: 'tyrestack' },
-      // Outer tyre wall (2026-10-03): loose stacks 3 m outside the track edge, gapped round the pylons
+      { x: -18, y: -6, kind: 'tyrestack' }, { x: -18, y: -3, kind: 'tyrestack' },
+      { x: -18, y: 0, kind: 'tyrestack' },
+      // Outer tyre wall (2026-10-03): loose stacks 3 m outside the track edge, gapped round
+      // the pylons
       ...outerTyreWall(GO_SUBTRACK, { margin: 3, spacing: 1.0, clear: propClearance(GO_PROPS) }),
     ],
     spawn: { x: -4, y: 38, heading: 0 },
@@ -271,18 +328,22 @@ export const LEVELS: Level[] = [
       { x: -8, y: -10, kind: 'banger', rot: 2.15 },
       { x: 30, y: 15, kind: 'banger', rot: -1.15 },
       // Continuous infield barrier separating track from wrecked bangers
-      { x: -45, y: 36, kind: 'tyrestack' }, { x: -30, y: 36, kind: 'tyrestack' }, { x: 30, y: 36, kind: 'tyrestack' }, { x: 45, y: 36, kind: 'tyrestack' },
-      { x: -45, y: -36, kind: 'tyrestack' }, { x: -30, y: -36, kind: 'tyrestack' }, { x: 30, y: -36, kind: 'tyrestack' }, { x: 45, y: -36, kind: 'tyrestack' },
+      { x: -45, y: 36, kind: 'tyrestack' }, { x: -30, y: 36, kind: 'tyrestack' },
+      { x: 30, y: 36, kind: 'tyrestack' }, { x: 45, y: 36, kind: 'tyrestack' },
+      { x: -45, y: -36, kind: 'tyrestack' }, { x: -30, y: -36, kind: 'tyrestack' },
+      { x: 30, y: -36, kind: 'tyrestack' }, { x: 45, y: -36, kind: 'tyrestack' },
       // Corner apex tyre stacks
       { x: 72, y: 24, kind: 'tyrestack' }, { x: 72, y: -24, kind: 'tyrestack' },
       { x: -72, y: -24, kind: 'tyrestack' }, { x: -72, y: 24, kind: 'tyrestack' },
-      // Outer tyre wall (2026-10-03): loose stacks 2 m outside the track edge — 2, not 3, so the wall
-      // runs IN FRONT of the sponsor boards (front edge y 60.8) instead of being gapped by 18 m at each
+      // Outer tyre wall (2026-10-03): loose stacks 2 m outside the track edge — 2, not 3, so
+      // the wall runs IN FRONT of the sponsor boards (front edge y 60.8) instead of being gapped
+      // by 18 m at each
       ...outerTyreWall(SO_SUBTRACK, { margin: 2, spacing: 1.0, clear: propClearance(SO_PROPS) }),
     ],
     spawn: { x: -4, y: 48, heading: 0 },
     obstacles: [
-      { x: 18, y: 76, w: 42, h: 7 },    // Grandstand — moved further from the track edge (2026-10-02)
+      // Grandstand — moved further from the track edge (2026-10-02)
+      { x: 18, y: 76, w: 42, h: 7 },
       { x: -14, y: 64, w: 4.4, h: 3.6 }, // Marshal tower / official box
     ],
   },
@@ -300,8 +361,10 @@ export const LEVELS: Level[] = [
     seams: false,
     cones: [
       // Pit wall impact attenuator crash cushions
-      { x: -111, y: 62, kind: 'tyrestack' }, { x: -113, y: 61, kind: 'tyrestack' }, { x: -113, y: 63, kind: 'tyrestack' },
-      { x: 111, y: 62, kind: 'tyrestack' }, { x: 113, y: 61, kind: 'tyrestack' }, { x: 113, y: 63, kind: 'tyrestack' },
+      { x: -111, y: 62, kind: 'tyrestack' }, { x: -113, y: 61, kind: 'tyrestack' },
+      { x: -113, y: 63, kind: 'tyrestack' },
+      { x: 111, y: 62, kind: 'tyrestack' }, { x: 113, y: 61, kind: 'tyrestack' },
+      { x: 113, y: 63, kind: 'tyrestack' },
       // Spare racing tyre sets stacked along pit stalls
       { x: -60, y: 57, kind: 'tyrestack' }, { x: -20, y: 57, kind: 'tyrestack' },
       { x: 20, y: 57, kind: 'tyrestack' }, { x: 60, y: 57, kind: 'tyrestack' },

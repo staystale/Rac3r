@@ -183,10 +183,6 @@
   "src/world/levels/grass-track.ts": {
     "complexity": 1
   },
-  "src/world/levels/index.ts": {
-    "id-length": 16,
-    "max-len": 35
-  },
   "src/world/levels/knobhill.ts": {
     "@typescript-eslint/no-unused-vars": 2,
     "complexity": 1
