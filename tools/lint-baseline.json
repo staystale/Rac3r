@@ -184,9 +184,7 @@
     "no-shadow": 6
   },
   "src/world/barriers.ts": {
-    "complexity": 2,
-    "id-length": 74,
-    "max-len": 31
+    "complexity": 2
   },
   "src/world/blend.ts": {
     "@typescript-eslint/no-unused-vars": 1,
