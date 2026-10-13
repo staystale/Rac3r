@@ -250,11 +250,15 @@ function vnoise(x: number, y: number, seed: number): number {   // smooth value 
   return ((a * (1 - u) + b * u) * (1 - v) + (c * (1 - u) + d * u) * v) * 2 - 1;
 }
 let natCache = new Map<number, NatCell>(), natLevel: Level | null = null, natSeed = 0;
+const NAT_CACHE_MAX = 60000;   // cap on cached cells: the endless highway would grow it forever
 // NUMBER keys (perf, 2026-10-03): string keys made every height lookup ~5x slower (0.04 -> 0.7 us).
 function natCell(i: number, j: number): NatCell {
   const key = (i + 32768) * 65536 + (j + 32768);
   let c = natCache.get(key);
   if (c) return c;
+  // bounded (memory diet, task 104): cells are a pure function of
+  // position and level, so a cleared cell is recomputed identically
+  if (natCache.size >= NAT_CACHE_MAX) natCache.clear();
   c = { small: 0, medium: 0, rolling: 0, whoops: 0 };
   // ONE sample at the cell centre (perf): 9 per cell cost ~1200 surface lookups per new ground tile (tiles 22 -> ~30 ms at
   // CPU x4). The bilinear blend between cell centres is what keeps the edges smooth; the averaging added little.
@@ -272,10 +276,16 @@ function naturalHeightAt(x: number, y: number): number {
   const fx = x / NAT_CELL - 0.5, fy = y / NAT_CELL - 0.5, i = Math.floor(fx), j = Math.floor(fy), tx = fx - i, ty = fy - j;
   const c00 = natCell(i, j), c10 = natCell(i + 1, j), c01 = natCell(i, j + 1), c11 = natCell(i + 1, j + 1);
   if (c00.zero && c10.zero && c01.zero && c11.zero) return 0;          // hard ground all round: flat, no noise
-  const amp = (f: NatFamily): number =>
-    (c00[f] * (1 - tx) + c10[f] * tx) * (1 - ty) + (c01[f] * (1 - tx) + c11[f] * tx) * ty;
+  // no allocation per call (memory diet, task 104: inline, no amp() closure)
+  const aS = (c00.small * (1 - tx) + c10.small * tx) * (1 - ty)
+    + (c01.small * (1 - tx) + c11.small * tx) * ty;
+  const aM = (c00.medium * (1 - tx) + c10.medium * tx) * (1 - ty)
+    + (c01.medium * (1 - tx) + c11.medium * tx) * ty;
+  const aR = (c00.rolling * (1 - tx) + c10.rolling * tx) * (1 - ty)
+    + (c01.rolling * (1 - tx) + c11.rolling * tx) * ty;
+  const aW = (c00.whoops * (1 - tx) + c10.whoops * tx) * (1 - ty)
+    + (c01.whoops * (1 - tx) + c11.whoops * tx) * ty;
   let h = 0;
-  const aS = amp('small'), aM = amp('medium'), aR = amp('rolling'), aW = amp('whoops');
   if (aS) h += aS * vnoise(x / NAT_FAMILY.small, y / NAT_FAMILY.small, natSeed + 1);
   if (aM) { const n = vnoise(x / NAT_FAMILY.medium, y / NAT_FAMILY.medium, natSeed + 2); h += aM * n * (0.6 + 0.8 * n * n); }   // sharpened
   if (aR) h += aR * (0.75 * vnoise(x / NAT_FAMILY.rolling, y / NAT_FAMILY.rolling, natSeed + 3) + 0.25 * vnoise(x / (NAT_FAMILY.rolling / 2), y / (NAT_FAMILY.rolling / 2), natSeed + 4));

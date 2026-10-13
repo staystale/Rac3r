@@ -6,21 +6,22 @@
 const CAR_E = 0.25;         // bounciness of a car-to-car hit
 const CAR_SCRAPE = 0.12;    // share of the sideways relative speed removed per contact (door-rubbing friction)
 
-function axes(car) {
-  const c = Math.cos(car.heading), s = Math.sin(car.heading);
-  return { c, s, hl: car.spec.len * 0.48, hw: car.spec.wid * 0.48 };
-}
-
 // returns true if they touched (for sound / shake / tools)
 export function carContact(a, b) {
-  const A = axes(a), B = axes(b);
+  // no allocation per call (memory diet, task 104: plain locals, no axes() objects)
+  const aCos = Math.cos(a.heading), aSin = Math.sin(a.heading),
+    aHl = a.spec.len * 0.48, aHw = a.spec.wid * 0.48;
+  const bCos = Math.cos(b.heading), bSin = Math.sin(b.heading),
+    bHl = b.spec.len * 0.48, bHw = b.spec.wid * 0.48;
   const dx = b.x - a.x, dy = b.y - a.y;
-  const rA = Math.hypot(A.hl, A.hw), rB = Math.hypot(B.hl, B.hw);
+  const rA = Math.hypot(aHl, aHw), rB = Math.hypot(bHl, bHw);
   if (dx * dx + dy * dy > (rA + rB) ** 2) return false;
   let best = Infinity, nx = 0, ny = 0;
-  for (const [ux, uy] of [[A.c, A.s], [-A.s, A.c], [B.c, B.s], [-B.s, B.c]]) {
-    const pa = A.hl * Math.abs(A.c * ux + A.s * uy) + A.hw * Math.abs(-A.s * ux + A.c * uy);
-    const pb = B.hl * Math.abs(B.c * ux + B.s * uy) + B.hw * Math.abs(-B.s * ux + B.c * uy);
+  for (let axis = 0; axis < 4; axis++) {
+    const ux = axis === 0 ? aCos : axis === 1 ? -aSin : axis === 2 ? bCos : -bSin;
+    const uy = axis === 0 ? aSin : axis === 1 ? aCos : axis === 2 ? bSin : bCos;
+    const pa = aHl * Math.abs(aCos * ux + aSin * uy) + aHw * Math.abs(-aSin * ux + aCos * uy);
+    const pb = bHl * Math.abs(bCos * ux + bSin * uy) + bHw * Math.abs(-bSin * ux + bCos * uy);
     const d = dx * ux + dy * uy, ov = pa + pb - Math.abs(d);
     if (ov <= 0) return false;
     if (ov < best) { best = ov; const sg = d >= 0 ? 1 : -1; nx = ux * sg; ny = uy * sg; }   // n points from a to b

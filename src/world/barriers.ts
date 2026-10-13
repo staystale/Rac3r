@@ -89,6 +89,12 @@ export function solidsFromProps(props: Prop[]): Solid[] {
   for (const b of out) b.r = Math.hypot(b.w, b.h) / 2;
   return out;
 }
+// the idx-th of four numbers (no array per call)
+function pickAxis(
+  idx: number, first: number, second: number, third: number, fourth: number,
+): number {
+  return idx === 0 ? first : idx === 1 ? second : idx === 2 ? third : fourth;
+}
 export function solidClamp(car: CarBody): void {
   const list = LEVEL.solids;
   if (!list || !list.length) return;
@@ -100,7 +106,10 @@ export function solidClamp(car: CarBody): void {
     const bc = Math.cos(b.rot), bs = Math.sin(b.rot), bw = b.w / 2, bh = b.h / 2;
     // SAT on the 4 axes: overlap = sum of projected half-extents - |centre distance on the axis|
     let best = Infinity, ax = 0, ay = 0;
-    for (const [ux, uy] of [[c, sn], [-sn, c], [bc, bs], [-bs, bc]]) {
+    // no allocation per call (memory diet, task 104: k-loop instead of an array of axis arrays)
+    for (let idx = 0; idx < 4; idx++) {
+      const ux = pickAxis(idx, c, -sn, bc, -bs);
+      const uy = pickAxis(idx, sn, c, bs, bc);
       const rc = hl * Math.abs(c * ux + sn * uy) + hw * Math.abs(-sn * ux + c * uy);
       const rb = bw * Math.abs(bc * ux + bs * uy) + bh * Math.abs(-bs * ux + bc * uy);
       const dist = dx * ux + dy * uy, ov = rc + rb - Math.abs(dist);
@@ -124,13 +133,14 @@ export function barrierClamp(car: CarBody): void {
   if (!list || !list.length) return;
   const s = car.spec, c = Math.cos(car.heading), sn = Math.sin(car.heading);
   const hl = s.len * 0.48, hw = s.wid * 0.48;
-  const corners: Point[] = [[hl, hw], [hl, -hw], [-hl, hw], [-hl, -hw]];
   for (const b of list) {
     const half = BARRIER_HALF[b.kind];
     if (!half || !b._segs) continue;
     for (const g of b._segs) {
       if (car.x < g.minX - s.len || car.x > g.maxX + s.len || car.y < g.minY - s.len || car.y > g.maxY + s.len) continue;
-      for (const [u, v] of corners) {
+      // no allocation per call (memory diet, task 104: corners by idx)
+      for (let idx = 0; idx < 4; idx++) {
+        const u = idx < 2 ? hl : -hl, v = (idx % 2 === 0) ? hw : -hw;
         const px = car.x + c * u - sn * v, py = car.y + sn * u + c * v;
         let t = ((px - g.ax) * g.dx + (py - g.ay) * g.dy) / g.l2; t = t < 0 ? 0 : t > 1 ? 1 : t;
         const qx = g.ax + g.dx * t, qy = g.ay + g.dy * t;
