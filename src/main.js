@@ -256,7 +256,9 @@ function spawnAI(n = aiCount) {
 // Sim time (rule 5: what the cars do). Solo practice: no lights.
 const START_STEP = 1.0, START_EARLY = 0.12, ROLL_PACE = 16, ROLL_BACK = 120;
 game.start = { on: false, t: 0, tGreen: 0, rolling: false, green: false };
+let autoDrv = null, autoStill = 0;   // ?autopilot=1: the player car's AI driver
 function armStart() {
+  autoDrv = settings.autopilot ? createAIDriver(LEVEL, aiTraits(4, 0, 1)) : null;   // 4 = top
   const on = mode !== 'menu' && (race.on || aiCount > 0), rolling = on && (!!LEVEL.rollingStart || !!LEVEL.endless) && !!LEVEL.subtrack;
   game.start = { on, t: 0, tGreen: rolling ? Infinity : 4 * START_STEP, tGreen0: rolling ? undefined : 4 * START_STEP, rolling, green: !on,
     drv: rolling ? (LEVEL.endless ? createAIDriver(LEVEL, aiTraits(4, 0, 1)) : createAutoDriver(LEVEL.subtrack)) : null };
@@ -901,6 +903,22 @@ function loop(now) {
     inp = game.start.rolling ? { ...atPace(game.start.drv.drive(game.car, DT, { cars: [...game.ai.map((a) => a.car), ...game.traffic.cars], hold: true }), game.car), shiftUp: false, shiftDown: false }
                              : { ...inp, throttle: 0, brake: 1, handbrake: 0, reverse: 0 };
   }
+  // ?autopilot=1: the AI drives the player car; the phone judder test (drops) needs no fingers
+  if (settings.autopilot && mode !== 'menu' && !startHeld() && autoDrv) {
+    const others = [...game.ai.map((rival) => rival.car), ...game.traffic.cars];
+    inp = { ...autoDrv.drive(game.car, wallDt, { cars: others, lap: 1, laps: 99 }),
+      reverse: 0, shiftUp: false, shiftDown: false };
+    autoStill = Math.hypot(game.car.vx, game.car.vy) < 2 ? autoStill + wallDt : 0;
+    if (autoStill > 3) {
+      autoStill = 0;
+      if (LEVEL.endless) doReset();
+      else {
+        const spot = findNearestSubtrackPoint(LEVEL.subtrack, game.car.x, game.car.y);
+        reset(game.car, spot.x, spot.y, spot.heading);
+      }
+      autoDrv.relocate();
+    }
+  }
   if (mode === 'menu' && demo) {
     inp = { ...demo.drive(game.car, wallDt, { cars: game.ai.map((a) => a.car), lap: 1, laps: 99 }), reverse: 0, shiftUp: false, shiftDown: false };
     demoStill = Math.hypot(game.car.vx, game.car.vy) < 2 ? demoStill + wallDt : 0;
@@ -1004,7 +1022,7 @@ function loop(now) {
       }
       stepStart(DT);
       // the HIGHWAY: every car's road frame (s, offset, speed along) once per step, for the racers, the order and the countdowns
-      if (LEVEL.endless && game.ai.length) hwFrames(LEVEL, [game.car, ...game.ai.map((a) => a.car), ...game.traffic.cars]);
+      if (LEVEL.endless && (game.ai.length || settings.autopilot)) hwFrames(LEVEL, [game.car, ...game.ai.map((a) => a.car), ...game.traffic.cars]);
       stepAI(DT);
       if (LEVEL.endless) { if (game.flow && game.flow.highway) game.position = game.flow.order(); }
       else if ((game.ai.length || game.flow || LEVEL.stage) && LEVEL.subtrack) stepOrder();

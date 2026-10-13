@@ -9,6 +9,7 @@ const DEFAULTS = {
   menuAi: 4, guide: null, rules: null, levelId: null, inputMode: 'auto', highwayDebug: null,
   noLock: false, tilePx: 256, tileGpu: false, noShade: false,
   grassEnds: 'round', surfaceTextures: true, meter: false,
+  autopilot: false,
 };
 
 const TABLE = [
@@ -38,6 +39,8 @@ const TABLE = [
   ['?tex', { surfaceTextures: true }],
   ['?meter=1', { meter: true }],
   ['?meter=0', { meter: false }],
+  ['?autopilot=1', { autopilot: true }],
+  ['?autopilot=0', { autopilot: false }],
 ];
 
 let bad = 0;
