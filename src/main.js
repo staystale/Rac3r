@@ -15,7 +15,7 @@ import { createRenderer } from './render.ts';
 import { readSettings } from './core/settings.ts';
 import { createMarks } from './marks.js';
 import { createHud } from './hud.js';
-import { createMeter } from './ui/meter.ts';   // ?meter=1 frame meter
+import { createMeter, takeMeterEvents } from './ui/meter.ts';   // ?meter=1 frame meter
 import { createCones } from './cones.js';
 import { createAudio } from './audio.js';
 import { createGuide, rulesSeen } from './guide.js';
@@ -1093,8 +1093,9 @@ function loop(now) {
       const tilesNow = renderer.groundRenders, draw = performance.now() - drawT0;
       const steps = game.stepsLastFrame;
       const moving = Math.hypot(game.car.vx, game.car.vy) > 5.6;   // over 20 km/h
+      const ev = takeMeterEvents();   // highway slides / overview repaints this frame
       meter.add({ dt: frameMs, sim: meterSim, draw, steps, tiles: tilesNow - meterTiles, moving,
-        touches: meterTouches });
+        touches: meterTouches, slide: ev.slide, overview: ev.overview });
       meterTouches = 0;
       meterTiles = tilesNow; meter.draw(renderer.ctx, renderer.W, renderer.H);
     }

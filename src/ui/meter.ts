@@ -5,38 +5,65 @@
 // garbage per frame.
 //
 // Dots above a bar: YELLOW = ground tiles were drawn that frame; PINK = a finger went down, up
-// or was cancelled that frame (touches), one row higher. The last two text lines count the
-// drops near a tile / near a touch (in that frame or the 2 before).
+// or was cancelled that frame (touches), one row higher; GREEN = the highway's road window slid
+// that frame (stepHighway extended the road), one more row up; CYAN = the overview was repainted
+// that frame (endless levels), the top row. The last text lines count the drops near a tile /
+// near a touch (in that frame or the 2 before), and the drops after a slide / after an overview
+// (in that frame or within the 500 ms before it).
+// highway.js and camera.ts call meterEvent(); main.js takes the counts once per frame.
+
+const pending = { slide: 0, overview: 0 };
+const taken = { slide: 0, overview: 0 };   // reused: takeMeterEvents allocates nothing
+
+export function meterEvent(kind: 'slide' | 'overview'): void { pending[kind]++; }
+
+// Returns the counts since the last call and zeroes them. The SAME object every time (copied
+// into, so the caller must read it before the next call).
+export function takeMeterEvents(): { slide: number; overview: number } {
+  taken.slide = pending.slide; taken.overview = pending.overview;
+  pending.slide = 0; pending.overview = 0;
+  return taken;
+}
 
 export type FrameRec = {
   dt: number; sim: number; draw: number; steps: number; tiles: number;
   moving: boolean;   // the player car is over 20 km/h (5.6 m/s)
   touches: number;   // finger down / up events since the last frame
+  slide: number;     // highway road window slides this frame
+  overview: number;  // overview repaints this frame
 };
 
 const KEEP = 240;      // frames kept for the numbers
 const BARS = 120;      // frames drawn as bars
 const EVERY = 15;      // the stats are recomputed every this many frames
+const AFTER_MS = 500;   // a drop this soon after a slide / overview repaint counts as after it
 const DROP_MS = 25;    // a frame longer than this missed a 60 Hz beat: a drop
 const FULL_MS = 40;    // bar graph: this many ms = full height
 // CSS px: below the HUD's button rows (top 12 + 34, second row on a phone 34 + 6, help row 3)
-const BOX_X = 12, BOX_Y = 132, BOX_W = 360, BOX_H = 148;
+const BOX_X = 12, BOX_Y = 132, BOX_W = 360, BOX_H = 162;
 const GRAPH_Y = 4, GRAPH_H = 52, GRAPH_X = 20, BAR_W = 2;
 
 // Running totals since the meter was created (never reset). The tiles of the last 3 frames are
 // kept in plain number variables: a drop "near a tile" had tiles in this frame or the 2 before.
-// The same for touches.
+// The same for touches. For slides and overviews the ms since the last one are kept (sum of the
+// frame dt, this frame included): a drop is "after" one if it is under AFTER_MS.
 function createTotals() {
-  let millis = 0, drops = 0, near = 0, nearTouch = 0;
+  let millis = 0, drops = 0, near = 0, nearTouch = 0, afterSlide = 0, afterOv = 0;
   let prev1 = 0, prev2 = 0, touch1 = 0, touch2 = 0;
+  let sinceSlide = 1e9, sinceOv = 1e9;
   return {
-    add(frameMs: number, tiles: number, touches: number, moving: boolean): void {
+    add(frameMs: number, tiles: number, touches: number, moving: boolean,
+      slide: number, overview: number): void {
+      sinceSlide = slide > 0 ? 0 : sinceSlide + frameMs;
+      sinceOv = overview > 0 ? 0 : sinceOv + frameMs;
       if (moving) {
         millis += frameMs;
         if (frameMs > DROP_MS) {
           drops++;
           if (tiles > 0 || prev1 > 0 || prev2 > 0) near++;
           if (touches > 0 || touch1 > 0 || touch2 > 0) nearTouch++;
+          if (sinceSlide <= AFTER_MS) afterSlide++;
+          if (sinceOv <= AFTER_MS) afterOv++;
         }
       }
       prev2 = prev1; prev1 = tiles;
@@ -46,7 +73,8 @@ function createTotals() {
       const secs = millis / 1000;
       const perMin = secs > 0 ? drops / secs * 60 : 0;
       return [`driving ${Math.round(secs)} s: drops ${drops} (${perMin.toFixed(1)}/min)`,
-        `near a tile ${near}, near a touch ${nearTouch}`];
+        `near a tile ${near}, near a touch ${nearTouch}`,
+        `after a slide ${afterSlide}, after an overview ${afterOv}`];
     },
   };
 }
@@ -55,21 +83,36 @@ function markDot(ctx: CanvasRenderingContext2D, dotX: number, dotY: number, colo
   ctx.fillStyle = color; ctx.fillRect(dotX, Math.max(0, dotY), BAR_W, 2);
 }
 
+// the 120 / 60 fps guide lines and their labels
+function drawGuides(ctx: CanvasRenderingContext2D, base: number, scale: number): void {
+  ctx.font = '10px monospace'; ctx.textBaseline = 'middle'; ctx.textAlign = 'left';
+  ctx.fillStyle = '#fff';
+  ctx.strokeStyle = 'rgba(255,255,255,0.7)'; ctx.lineWidth = 1;
+  for (const [msec, label] of [[8.3, '120'], [16.7, '60']] as const) {
+    const lineY = Math.round(base - msec * scale) + 0.5;
+    ctx.beginPath(); ctx.moveTo(GRAPH_X, lineY); ctx.lineTo(GRAPH_X + BARS * BAR_W, lineY);
+    ctx.stroke();
+    ctx.fillText(label, 2, lineY);
+  }
+}
+
 export function createMeter() {
   const dts = new Float64Array(KEEP), sims = new Float64Array(KEEP), draws = new Float64Array(KEEP);
   const stepsBuf = new Float64Array(KEEP), tilesBuf = new Float64Array(KEEP);
+  const slideBuf = new Float64Array(KEEP), ovBuf = new Float64Array(KEEP);
   const touchBuf = new Float64Array(KEEP), sorted = new Float64Array(KEEP);
   let head = 0, count = 0, sinceStats = EVERY;
-  const lines = ['', '', '', '', '', ''];
+  const lines = ['', '', '', '', '', '', ''];
   const totals = createTotals();
 
   function add(rec: FrameRec): void {
     dts[head] = rec.dt; sims[head] = rec.sim; draws[head] = rec.draw;
     stepsBuf[head] = rec.steps; tilesBuf[head] = rec.tiles;
-    touchBuf[head] = rec.touches;
+    touchBuf[head] = rec.touches; slideBuf[head] = rec.slide; ovBuf[head] = rec.overview;
     head = (head + 1) % KEEP;
     if (count < KEEP) count++;
-    sinceStats++; totals.add(rec.dt, rec.tiles, rec.touches, rec.moving);
+    sinceStats++; totals.add(rec.dt, rec.tiles, rec.touches, rec.moving,
+      rec.slide, rec.overview);
   }
 
   const fix1 = (val: number) => val.toFixed(1);
@@ -95,7 +138,7 @@ export function createMeter() {
     lines[3] = `worst: sim ${fix1(sims[worst])} draw ${fix1(draws[worst])}` +
       ` other ${fix1(Math.max(0, dts[worst] - sims[worst] - draws[worst]))}` +
       ` steps ${stepsBuf[worst]} tiles ${tilesBuf[worst]} touch ${touchBuf[worst]}`;
-    [lines[4], lines[5]] = totals.text();
+    [lines[4], lines[5], lines[6]] = totals.text();
   }
 
   function draw(ctx: CanvasRenderingContext2D, width: number, height: number): void {
@@ -118,16 +161,10 @@ export function createMeter() {
       ctx.fillStyle = '#3070e0'; ctx.fillRect(barX, base - simH - drawH, BAR_W, drawH);
       if (touchBuf[idx] > 0) markDot(ctx, barX, base - total - 8, '#ff4fd8');
       if (tilesBuf[idx] > 0) markDot(ctx, barX, base - total - 4, '#ffd020');
+      if (slideBuf[idx] > 0) markDot(ctx, barX, base - total - 12, '#4fe36b');
+      if (ovBuf[idx] > 0) markDot(ctx, barX, base - total - 16, '#4fd8ff');
     }
-    ctx.font = '10px monospace'; ctx.textBaseline = 'middle'; ctx.textAlign = 'left';
-    ctx.fillStyle = '#fff';
-    ctx.strokeStyle = 'rgba(255,255,255,0.7)'; ctx.lineWidth = 1;
-    for (const [msec, label] of [[8.3, '120'], [16.7, '60']] as const) {
-      const lineY = Math.round(base - msec * scale) + 0.5;
-      ctx.beginPath(); ctx.moveTo(GRAPH_X, lineY); ctx.lineTo(GRAPH_X + BARS * BAR_W, lineY);
-      ctx.stroke();
-      ctx.fillText(label, 2, lineY);
-    }
+    drawGuides(ctx, base, scale);
     ctx.textBaseline = 'top';
     for (let row = 0; row < lines.length; row++) ctx.fillText(lines[row], 4, 62 + row * 14);
     ctx.restore();

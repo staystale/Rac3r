@@ -16,6 +16,7 @@ import { lcg } from "./core/random.ts";
 import { envValue } from "./core/debug.ts";
 import { readSettings } from "./core/settings.ts";
 import { createSubtrack, ghostSegment } from "./world/subtrack.ts";
+import { meterEvent } from "./ui/meter.ts";
 import { SURFACES } from "./world/surfaces.ts";
 import { LEVELS } from "./world/levels/index.ts";
 import { prepBumps, clearNaturalCache } from "./world/terrain.ts";
@@ -554,7 +555,9 @@ export function stepHighway(lv, car) {
   // extend 300 m, dress it, drop what is BEHIND, rebuild
   // loose objects for the new stretch wait in st.looseNew, and st.looseCut is the road distance behind which main.js drops them
   // (game.cones.spawn / cull — the live objects belong to the game, not the level)
-  growTo(lv, st.s + 300); dress(lv, st.dressed, P.length, st.looseNew); st.dressed = P.length;
+  growTo(lv, st.s + 300);
+  meterEvent('slide');
+  dress(lv, st.dressed, P.length, st.looseNew); st.dressed = P.length;
   let cut = 0; while (cut < P.length && P[cut].s < q.s - BEHIND) cut++;
   const ds = P[cut].s - P[0].s;
   P.splice(0, cut); st.dressed -= cut; st.ci = Math.max(0, st.ci - cut); q.i = st.ci;

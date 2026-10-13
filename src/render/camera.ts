@@ -2,6 +2,7 @@
 // fly-in and the overview picture. Moved verbatim.
 import { FX0, FX1, FY0, FY1 } from "../world/bounds.ts";
 import { LEVEL } from "../world/state.ts";
+import { meterEvent } from "../ui/meter.ts";
 // LOOKAHEAD, ZOOM_MIN: read only inside functions (draw time), so the import cycle is harmless
 import { LOOKAHEAD, ZOOM_MIN } from "../render.ts";
 import type { Cam, CamCar, CamState, TileBudget, View } from "./types.ts";
@@ -89,6 +90,7 @@ export function createCamera(view: View, cam: Cam, helpers: CameraHelpers) {
     if (camState.ovCache && camState.ovCache.level === LEVEL && camState.ovCache.layout === layout && (!LEVEL.endless || Math.abs(roadS0() - camState.ovCache.s0) < OV_REPAINT)) return camState.ovCache.ov;
     if (!(view.W > 0)) return null;
     const [x0, y0, x1, y1] = levelBounds();
+    meterEvent('overview');
     camState.ovCache = { level: LEVEL, layout, s0: roadS0(), ov: paintOverview(x0, y0, x1, y1, LEVEL.endless ? 512 : 1024) };
     return camState.ovCache.ov;
   }
