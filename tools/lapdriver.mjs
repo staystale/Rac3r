@@ -12,7 +12,7 @@
 // excursion, and seconds spent on each surface.
 // VERIFY BEFORE TRUSTING (CLAUDE.md rule 15): it fails loudly if it leaves the road for long or never
 // completes the lap — a driver that understeers into every wall prices everything wrongly.
-import { makeCar, step, reset, DT } from '../src/vehicle.js';
+import { makeCar, step, reset, DT } from '../src/vehicle.ts';
 import * as L from '../src/lab.js';
 import { createAutoDriver } from '../src/ai/autodrive.ts';
 

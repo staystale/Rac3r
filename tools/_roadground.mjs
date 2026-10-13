@@ -2,7 +2,7 @@
 // 2 m along, 5 across) and count points whose static ground (lab.js cleanAt) is not tarmac - grouped by what it is and by where along
 // the window (behind the car / ahead) - plus the wear-making rule: a cell is only created where cleanAt can wear. node tools/_roadground.mjs [preset]
 const PRESET = process.argv[2] || 'motorway';
-const L = await import('../src/lab.js'), H = await import('../src/highway.js'), V = await import('../src/vehicle.js');
+const L = await import('../src/lab.js'), H = await import('../src/highway.js'), V = await import('../src/vehicle.ts');
 // the levels importing these modules used to add (task 078 made it explicit)
 H.addHighwayLevel();
 let total = 0, bad = 0; const by = {}, eg = [];

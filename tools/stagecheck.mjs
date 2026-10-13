@@ -1,6 +1,6 @@
 // stagecheck.mjs — STAGE TIME per car on a point-to-point level (LEVEL.stage): the autodriver from the spawn, start line -> finish.
 // node tools/stagecheck.mjs [level]. Built 2026-10-04 for Sweaty Lamb (user: "~1 minute").
-import { makeCar, step, reset, DT } from '../src/vehicle.js';
+import { makeCar, step, reset, DT } from '../src/vehicle.ts';
 import * as L from '../src/lab.js';
 import { createAutoDriver } from '../src/ai/autodrive.ts';
 import { CAR_IDS } from '../src/cars.ts';

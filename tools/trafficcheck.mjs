@@ -3,7 +3,7 @@
 // STOPPED on the hard shoulder, then FAST again. Measures, per preset and density: traffic-on-traffic CONTACTS (they must not crash
 // into each other), cars POPPING IN / OUT inside the view, traffic off the carriageway, lane changes, recycles, and the step cost.
 // node tools/trafficcheck.mjs [density 0..1.5] [seconds per phase]
-import { makeCar, DT } from '../src/vehicle.js';
+import { makeCar, DT } from '../src/vehicle.ts';
 import * as L from '../src/lab.js';
 import * as H from '../src/highway.js';
 import { createTraffic } from '../src/traffic.ts';

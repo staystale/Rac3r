@@ -3,7 +3,7 @@
 // BELOW target by > 1.5 m/s and what it was doing then: full throttle (traction / power limited — physics), part throttle (the driver
 // holding back: wheelspin / slide feel), understeer lift, oversteer catch, braking.
 // node tools/aislow.mjs [level] [car] [diff]
-import { makeCar, step, reset, DT } from '../src/vehicle.js';
+import { makeCar, step, reset, DT } from '../src/vehicle.ts';
 import * as L from '../src/lab.js';
 const { createAIDriver } = await import(process.env.AINEXT ? '../src/ai/circuit.next.js' : '../src/ai/circuit.ts'), { aiTraits } = await import('../src/ai/traits.ts'), { racingLine } = await import('../src/ai/line.ts');
 const [lv = 'slidden-hill', carId = 'rally-4x4', d = '4'] = process.argv.slice(2);

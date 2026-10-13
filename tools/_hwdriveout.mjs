@@ -1,7 +1,7 @@
 // _hwdriveout.mjs — AI ROUND 2.1: the DRIVE OUT on the HIGHWAY (new: the old highway driver had none). A racer is put STOPPED off the
 // road, nose pointing ACROSS the road at the verge (beached), with nothing else around; does it reverse, turn back and drive on?
 // Per scenario: drive-outs fired, gave up?, speed + distance up the road after 12 s, back on the carriageway?  node tools/_hwdriveout.mjs
-import { makeCar, step, reset, DT } from '../src/vehicle.js';
+import { makeCar, step, reset, DT } from '../src/vehicle.ts';
 import * as L from '../src/lab.js';
 import * as H from '../src/highway.js';
 import { aiTraits } from '../src/ai/traits.ts';

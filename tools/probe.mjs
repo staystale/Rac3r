@@ -11,7 +11,7 @@
 //   node tools/probe.mjs            all five cars, all benches
 //   node tools/probe.mjs hatch-rwd  one car
 
-import { makeCar, step, reset, assertFinite, neutralInput, DT } from '../src/vehicle.js';
+import { makeCar, step, reset, assertFinite, neutralInput, DT } from '../src/vehicle.ts';
 import { CAR_IDS } from '../src/cars.ts';
 
 const clamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);

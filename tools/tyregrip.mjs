@@ -2,7 +2,7 @@
 // 60 km/h, best steady lateral g with body slip under BETA) on all 9 tyre surfaces (cars.js TYRE_SURFS), vs the stock car (no tyre object), and
 // how hot the tyres get in 30 s of hard tarmac cornering (heatHard). Also proves Pre-Spun == stock (the floor, user 2026-10-04).
 // node tools/tyregrip.mjs [car] [tyre,tyre,...]
-import { makeCar, step, reset, DT } from '../src/vehicle.js';
+import { makeCar, step, reset, DT } from '../src/vehicle.ts';
 import { SURFACES } from '../src/lab.js';
 import { TYRES, applyTyre } from '../src/cars.ts';
 const car = process.argv[2] || 'hatch-rwd', BETA = 0.2;

@@ -4,7 +4,7 @@
 // + the highway: field animals are in the loose stream (no 'beast' props left), and a cleared field takes its animals with it.
 // node tools/_animalcheck.mjs [srcDir]
 const SRC = process.argv[2] || '../src';
-const L = await import(SRC + '/lab.js'), C = await import(SRC + '/cones.js'), V = await import(SRC + '/vehicle.js'), H = await import(SRC + '/highway.js');
+const L = await import(SRC + '/lab.js'), C = await import(SRC + '/cones.js'), V = await import(SRC + '/vehicle.ts'), H = await import(SRC + '/highway.js');
 // the levels importing these modules used to add (task 078 made it explicit)
 H.addHighwayLevel();
 let bad = 0; const ok = (c, m) => { console.log((c ? 'ok   ' : 'FAIL ') + m); if (!c) bad++; };

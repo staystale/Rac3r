@@ -4,7 +4,7 @@
 //
 // For each soft term: switch it off, then check BOTH stability and the grip actually achieved. Anything
 // that can go without the car spinning should go — and each one that goes should hand grip back.
-import { makeCar, step, reset, neutralInput, DT, TUNE } from '../src/vehicle.js';
+import { makeCar, step, reset, neutralInput, DT, TUNE } from '../src/vehicle.ts';
 import { CAR_IDS } from '../src/cars.ts';
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
 

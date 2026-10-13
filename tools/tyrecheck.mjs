@@ -8,8 +8,8 @@
 //   3. wheelspin heats only the DRIVEN tyres — FWD, RWD and 4WD differ
 //   4. cold tyres grip less on TARMAC; on GRAVEL temperature makes no difference
 //   5. grass, snow, ice cool tyres faster than tarmac
-import { makeCar, step, reset, DT, TYRE_AMBIENT } from '../src/vehicle.js';
-import { setAidsDefault } from '../src/vehicle.js';
+import { makeCar, step, reset, DT, TYRE_AMBIENT } from '../src/vehicle.ts';
+import { setAidsDefault } from '../src/vehicle.ts';
 // RAW physics: driver aids OFF (with TCS on, a burnout is not a burnout; with ABS on, a locked pass cannot lock).
 setAidsDefault(false);
 import { SURFACES } from '../src/lab.js';

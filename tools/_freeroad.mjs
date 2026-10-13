@@ -1,6 +1,6 @@
 // scratch: ONE weaver on an EMPTY motorway (no traffic) - what limits its speed? Every 1 s: v, the speed target vT, the throttle and its
 // caps (thrCap from the turn feathering, e = vT - v), the road's radius here. node tools/_freeroad.mjs [diff] [seconds] [seed]
-import { makeCar, step, reset, DT } from '../src/vehicle.js';
+import { makeCar, step, reset, DT } from '../src/vehicle.ts';
 import * as L from '../src/lab.js';
 import * as H from '../src/highway.js';
 import { aiTraits } from '../src/ai/traits.ts';

@@ -11,7 +11,7 @@
 // Rows write either to `car.spec` (per-car numbers — a fresh copy per car, so edits are safe and are
 // discarded when you switch car), `car.mods` (the upgrade seam), or `TUNE` (global model shape).
 
-import { TUNE } from './vehicle.js';
+import { TUNE } from './vehicle.ts';
 
 let tuneAudio = null;   // the game's audio, handed over by main.js (setTuneAudio)
 export function setTuneAudio(a) { tuneAudio = a; }

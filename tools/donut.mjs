@@ -4,7 +4,7 @@
 // break traction — the power that used to spin the rears no longer could.
 //
 // A donut is sustained when the rear stays sliding and the car keeps yawing, for seconds, not a moment.
-import { makeCar, step, reset, neutralInput, DT } from '../src/vehicle.js';
+import { makeCar, step, reset, neutralInput, DT } from '../src/vehicle.ts';
 import { CAR_IDS } from '../src/cars.ts';
 
 function donut(id, powerMul) {

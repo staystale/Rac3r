@@ -2,7 +2,7 @@
 // 5 AI at Real (d4) against a "player" that cruises at CRUISE km/h in its lane (not trying), on a phone-ish +-VIEW m screen. Logs the
 // countdown every second and how often it resets / holds, and whether it ends. node tools/_catchreal.mjs [srcDir] [cruise km/h] [seed] [view]
 const SRC = process.argv[2] || '../src', CRUISE = +(process.argv[3] || 100) / 3.6, SEED = +(process.argv[4] || 4242), VIEW = +(process.argv[5] || 75);
-const { makeCar, step, reset, DT } = await import(SRC + '/vehicle.js'), L = await import(SRC + '/lab.js'), H = await import(SRC + '/highway.js');
+const { makeCar, step, reset, DT } = await import(SRC + '/vehicle.ts'), L = await import(SRC + '/lab.js'), H = await import(SRC + '/highway.js');
 // the levels importing these modules used to add (task 078 made it explicit)
 H.addHighwayLevel();
 const { createTraffic } = await import(SRC + '/traffic.ts'), { aiTraits } = await import(SRC + '/ai/traits.ts'), { createAIDriver } = await import(SRC + '/ai/circuit.ts');

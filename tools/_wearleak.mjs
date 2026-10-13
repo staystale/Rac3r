@@ -3,7 +3,7 @@
 // and after every rebuild count cells whose ground has CHANGED under them (e.g. the road came back over an old dirt cell) - they would
 // show / drive as the old dirt. Also the wear map's size (memory). node tools/_wearleak.mjs [srcDir] [preset]
 const SRC = process.argv[2] || '../src', PRESET = process.argv[3] || 'motorway';
-const L = await import(SRC + '/lab.js'), H = await import(SRC + '/highway.js'), V = await import(SRC + '/vehicle.js');
+const L = await import(SRC + '/lab.js'), H = await import(SRC + '/highway.js'), V = await import(SRC + '/vehicle.ts');
 // the levels importing these modules used to add (task 078 made it explicit)
 H.addHighwayLevel();
 let worst = 0, onRoad = 0, maxCells = 0, eg = '';

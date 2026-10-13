@@ -1,7 +1,7 @@
 // aidrivecheck.mjs — the RACING AI (stage 2) lapping alone, node only. Per level x car x difficulty: lap time, off-road seconds, worst
 // distance past the edge, and the bench driver's lap for comparison. A PRO ("real") must be clearly quicker than the bench and clean;
 // "mobile" slower and messier. node tools/aidrivecheck.mjs [levels,comma] [cars,comma] [diffs,comma e.g. 0,4]
-import { makeCar, step, reset, DT } from '../src/vehicle.js';
+import { makeCar, step, reset, DT } from '../src/vehicle.ts';
 import * as L from '../src/lab.js';
 import { addStageLevels } from '../src/stagegen.js';   // registers the generated + set rally stages in LEVELS
 import { createAutoDriver } from '../src/ai/autodrive.ts';

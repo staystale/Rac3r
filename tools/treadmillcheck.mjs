@@ -1,7 +1,7 @@
 // treadmillcheck.mjs — HIGHWAY v2 (the treadmill, src/highway.js): does the road always climb the screen, join smoothly, stay bounded,
 // and does the guard put a reversing car back? A bench driver drives N km per preset; then a scripted reverse.
 // node tools/treadmillcheck.mjs [km] [car] [file]   (file: ../src/highway.next.js to test a patch before it goes live)
-import { makeCar, step, reset, DT } from '../src/vehicle.js';
+import { makeCar, step, reset, DT } from '../src/vehicle.ts';
 import * as L from '../src/lab.js';
 import { createAutoDriver } from '../src/ai/autodrive.ts';
 import { createCones } from '../src/cones.js';

@@ -2,7 +2,7 @@
 // up a long slip = the countdown waits, and driving on past OFF_HARD ends it as "EXIT TAKEN"; on plain grass the countdown runs as before.
 // node tools/_guardtest.mjs [srcDir]
 const SRC = process.argv[2] || '../src';
-const L = await import(SRC + '/lab.js'), H = await import(SRC + '/highway.js'), V = await import(SRC + '/vehicle.js');
+const L = await import(SRC + '/lab.js'), H = await import(SRC + '/highway.js'), V = await import(SRC + '/vehicle.ts');
 // the levels importing these modules used to add (task 078 made it explicit)
 H.addHighwayLevel();
 let bad = 0; const ok = (c, m) => { console.log((c ? 'ok   ' : 'FAIL ') + m); if (!c) bad++; };

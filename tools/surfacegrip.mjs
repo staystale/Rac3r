@@ -2,7 +2,7 @@
 // lateral g with the body slip under BETA — run on every surface), against what the racing AI ASSUMES: gripG(tarmac) x mu(surface) /
 // mu(reference). User (2026-10-04): "AI still slow down on transition change, and drive slow on slippy surfaces".
 // node tools/surfacegrip.mjs [cars] [beta rad]
-import { makeCar, step, reset, DT } from '../src/vehicle.js';
+import { makeCar, step, reset, DT } from '../src/vehicle.ts';
 import { SURFACES } from '../src/lab.js';
 const cars = (process.argv[2] || 'hatch-rwd,rally-4x4,track-rwd').split(','), BETA = +(process.argv[3] || 0.2);
 const surfs = ['racetarmac', 'tarmac', 'concrete', 'wet', 'gravel', 'dirt', 'sand', 'mud', 'grass', 'snow'];

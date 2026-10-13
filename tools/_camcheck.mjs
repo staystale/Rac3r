@@ -1,7 +1,7 @@
 // scratch: SPEED CAMERAS (highway.js speedCamera). A car is carried up the road at a set speed for 14 km (4+ gantries): under 70 mph
 // = never caught; 90 mph = caught at every gantry, once each, fine 100 + 10 x 20 = $300; 200 mph = the x2 band. node tools/_camcheck.mjs [hwPath]
 const HP = process.argv[2] || '../src/highway.js';
-const L = await import('../src/lab.js'), H = await import(HP), V = await import('../src/vehicle.js');
+const L = await import('../src/lab.js'), H = await import(HP), V = await import('../src/vehicle.ts');
 // the levels importing these modules used to add (task 078 made it explicit)
 H.addHighwayLevel();
 let bad = 0; const ok = (c, m) => { console.log((c ? 'ok   ' : 'FAIL ') + m); if (!c) bad++; };

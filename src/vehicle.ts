@@ -12,6 +12,77 @@
 // more stable near the limit than integrating in world frame and rotating back.
 
 import { GRAVITY, defaultMods, SURFACE_LAB, spec } from './cars.ts';
+import type { Mods, Spec, Surface } from './cars.ts';
+
+// What step() reads from the input: steer -1..1, pedals 0..1, handbrake (on/off or 0..1), manual
+// shifts, reverse pedal.
+export interface CarInput {
+  steer: number; throttle: number; brake: number;
+  handbrake: boolean | number; shiftUp?: boolean; shiftDown?: boolean;   // shifts: manual box only
+  reverse?: number;
+}
+
+// The car.t telemetry (read by the dev overlay, the bench and the marks layer; never drives
+// physics). The last two lines are not in makeCar's literal: step() adds those fields.
+export type CarTelemetry = {
+  vLong: number; vLat: number; slipF: number; slipR: number;
+  FzF: number; FzR: number; FyF: number; FyR: number; FyMaxF: number; FyMaxR: number;
+  FxF: number; FxR: number;
+  loadKF: number; loadKR: number;
+  satF: number; satR: number;
+  slidingF: boolean; slidingR: boolean;
+  lockedF: boolean; lockedR: boolean;
+  slipSpeedF: number; slipSpeedR: number;
+  spinF: boolean; spinR: boolean;
+  torque: number; driveForce: number; speed: number;
+  ax: number; ay: number;
+  absWorking?: boolean; tcsWorking?: boolean; gripTF?: number; gripTR?: number;
+  slipSpeedDriven?: number; delta?: number; gear?: number; rpm?: number;
+}
+
+// The damage state vehicle.ts reads (damage.js sets car.wreck; multipliers, 1 = undamaged).
+export interface CarWreck { toe: number; power: number; roll: number; gripF: number; gripR: number }
+// The rollover state (roll.js): vehicle.ts only nulls it.
+export interface CarRoll { phase: string }
+// Render position of the last frame (main.js, traffic.ts): vehicle.ts only nulls it.
+export interface CarPrev { x: number; y: number; h: number }
+// A wheel position from last step (world/wear.ts): vehicle.ts only nulls the list.
+export interface CarWheelPos { x: number; y: number }
+// Tape stuck to the car (cones.js): vehicle.ts only nulls the list.
+export interface CarStreamer { born: number }
+
+// The car: everything makeCar's literal creates, what reset() adds, and what other files set on it.
+export interface Car {
+  spec: Spec; mods: Mods; surface: Surface;
+  x: number; y: number; vx: number; vy: number;
+  heading: number; yawRate: number; delta: number;
+  rpm: number; gear: number;
+  absOn: boolean; tcsOn: boolean; tcsK: number; escCut: number;
+  shiftTimer: number; aLongPrev: number;
+  spinLatchF: number; spinLatchR: number;
+  FyFlag: number; FyRlag: number;
+  revLatch: boolean; gearLock: number;
+  zF: number; zvF: number; zR: number; zvR: number;
+  groundF: number; groundVF: number; groundR: number; groundVR: number;
+  z: number; loadK: number; air: number;
+  brakeArmed: boolean; slipFPrev: number; aPeakFPrev: number;
+  align: number; clutch: number; transfer: number;
+  spec0: Spec; reverseTimer: number; autoBox: boolean;
+  t: CarTelemetry;
+  // added by reset(), which makeCar calls right after building the literal
+  wheelSpin: number; tyreT: number[]; groundInit: boolean;
+  _p: CarPrev | null; prevWheels: CarWheelPos[] | null;
+  roll: CarRoll | null; sparks: boolean; streamers: CarStreamer[] | null;
+  // set by world/wear.ts (the slope and bank forces under the car)
+  slopeLong?: number; slopeLat?: number; slopeYaw?: number;
+  bankLatForce?: number; bankLoadFactor?: number;
+  // set by contact.js (the slipstream) and by vehicle.ts itself (the handbrake hold)
+  dragMul?: number; hbAfter?: number;
+  // set by damage.js
+  wreck?: CarWreck;
+  // set by tools / the debug panel only
+  yawDampOverride?: number;
+}
 
 export const DT = 1 / 120;
 
@@ -114,12 +185,12 @@ export const TYRE_FLEX = { k: 0.07, T: 85, vRef: 12 };
 // Engine braking at the redline, in g of the car's weight (falls with revs). See step 5 in step().
 // MEASURED 100 -> 50 km/h lift-off: hatch 47.5 s -> 13.3 s, muscle 36.9 -> 10.3, track 30.4 -> 9.8 (0.12 g: 17.4 s; 0.25 g: 10.6 s).
 let ENGINE_BRAKE = 0.18;
-export const setEngineBrake = (v) => { ENGINE_BRAKE = v; };   // for tools only
+export const setEngineBrake = (v: number) => { ENGINE_BRAKE = v; };   // for tools only
 // DRIVER AIDS (2026-10-03, step 2). See ABS / TCS in step(). Measured results in tools/aidcheck.mjs.
 // Tools that measure RAW tyre / surface physics (burnouts, wheelspin, locked passes) create cars with the aids OFF:
 // with TCS on, a burnout is not a burnout. The game itself never calls this.
 const AIDS_DEFAULT = { on: true };
-export const setAidsDefault = (on) => { AIDS_DEFAULT.on = !!on; };
+export const setAidsDefault = (on: boolean) => { AIDS_DEFAULT.on = !!on; };
 // VERTICAL GRAVITY multiplier for the suspension / airtime only (grip and weight still use g). See the measured note at
 // the suspension. Exported setter for tools.
 // 1 -> 1.4 (user, 2026-10-03: "I seem to get airborne slightly too easily / stay in the air too long"). MEASURED: all
@@ -127,7 +198,7 @@ export const setAidsDefault = (on) => { AIDS_DEFAULT.on = !!on; };
 // WORSE (the damper ties the body to the lip's upward speed). Heavier vertical gravity shortens flight AND raises the
 // speed a crest needs to launch you: x1.4 -> hatch 0.79 -> ~0.5 s, whoops 0.75 -> ~0.4 s. Grip and weight still use g.
 let VERT_G = 1.4;
-export const setVertG = (k) => { VERT_G = k; };
+export const setVertG = (k: number) => { VERT_G = k; };
 const ABS_K = 0.92;        // brake capped at this fraction of the grip left after cornering
 const TCS_SPIN = 1.2;      // m/s of driven-wheel spin (or 10% of road speed if more) before the traction half cuts
 // vMin 5 -> 10 m/s: MEASURED, at 5 m/s on full lock the body slip is ~14 deg of pure GEOMETRY, the slip term chased it and
@@ -144,7 +215,7 @@ const TYRE_COOL = 0.008;           // 1/s toward ambient, always (0.010 before t
 //   above tyreOpt[1] ... falls 0.15%/C, FLOORED at TYRE_HOT_FLOOR (0.90) — above cold, always.
 // The first version dropped an overheated tyre to 0.72, BELOW cold (0.86) — the user called that out.
 const TYRE_HOT_FLOOR = 0.90;
-export function tyreGrip(T, spec) {
+export function tyreGrip(T: number, spec: Spec) {
   const [warm, tooHot] = spec.tyreOpt || [65, 110];
   const peak = spec.tyrePeak || 90;
   const cold = spec.tyreColdGrip ?? 0.86;
@@ -177,7 +248,7 @@ const ALPHA_PEAK_MIN = 0.10;   // rad (~5.7 deg); never peak earlier than this
 // The curve's shape factor, 0..1 of peak, as a function of slip angle. Shared by BOTH regimes — that
 // is the whole point: the sliding branch takes its magnitude from this same curve, so the two laws
 // agree by construction at every angle instead of stepping by up to 2.8x at the hand-over.
-export function curveFactor(alpha, aPeak, slideGrip) {
+export function curveFactor(alpha: number, aPeak: number, slideGrip: number) {
   const an = Math.abs(alpha) / aPeak;
   if (an <= 1) return Math.sin((Math.PI / 2) * an);
   const base = 1 - (1 - slideGrip) * Math.min(1, (an - 1) / TUNE.falloff);
@@ -192,17 +263,19 @@ export function curveFactor(alpha, aPeak, slideGrip) {
 // falls away far more gently past it. That is the whole reason a rally driver can hold a car sideways on
 // gravel and steer it on the throttle, and why the same technique instantly spins you on tarmac.
 // Lowering mu alone would only make gravel feel like wet tarmac — slippery, not loose.
-function tyreLateral(alpha, D, Ca, slideGrip, peakK = 1) {
+function tyreLateral(
+  alpha: number, D: number, Ca: number, slideGrip: number, peakK = 1,
+) {
   if (D <= 1) return 0;
   const aPeak = Math.max(ALPHA_PEAK_MIN, (D / Ca) * TUNE.alphaPeakK * peakK);
   return -Math.sign(alpha) * curveFactor(alpha, aPeak, slideGrip) * D;
 }
 
-export function neutralInput() {
+export function neutralInput(): CarInput {
   return { steer: 0, throttle: 0, brake: 0, handbrake: false, shiftUp: false, shiftDown: false };
 }
 
-export function makeCar(id, mods = defaultMods()) {
+export function makeCar(id: string, mods = defaultMods()) {
   const s = spec(id);
   const car = {
     spec: s,
@@ -247,12 +320,12 @@ export function makeCar(id, mods = defaultMods()) {
       torque: 0, driveForce: 0, speed: 0,
       ax: 0, ay: 0,                     // body-frame accel, m/s^2. ay/g IS the lateral grip number.
     },
-  };
+  } as Car;   // cast: reset() below fills in wheelSpin, tyreT, groundInit, _p, prevWheels, ...
   reset(car);
   return car;
 }
 
-export function reset(car, x = 0, y = 0, heading = -Math.PI / 2) {
+export function reset(car: Car, x = 0, y = 0, heading = -Math.PI / 2) {
   car._p = null;          // no render interpolation across a teleport (main.js)
   // ... and no WEAR across it. MEASURED BUG (user, 2026-10-06: "dirt in the road on highway levels is still a bug"; tools/_dirtroad.mjs):
   // lab.js stepWear sweeps each tyre from car.prevWheels to where it is now, so after a teleport (an AI / traffic respawn, the
@@ -270,12 +343,12 @@ export function reset(car, x = 0, y = 0, heading = -Math.PI / 2) {
   car.wheelSpin = 0;
   car.tyreT = [TYRE_AMBIENT, TYRE_AMBIENT, TYRE_AMBIENT, TYRE_AMBIENT];   // cold start (user)
   car.slipFPrev = 0; car.aPeakFPrev = 0.12; car.align = 1; car.clutch = 1; car.brakeArmed = true; car.gearLock = 0; car.zF = 0; car.zvF = 0; car.zR = 0; car.zvR = 0; car.groundF = 0; car.groundVF = 0; car.groundR = 0; car.groundVR = 0; car.z = 0; car.groundInit = false; car.loadK = 1; car.air = 0; car.revLatch = false; car.FyFlag = 0; car.FyRlag = 0; car.spinLatchF = 1; car.spinLatchR = 1;
-  const t = car.t;
+  const t = car.t as Record<string, number | boolean | undefined>;
   for (const k in t) if (typeof t[k] === 'number') t[k] = 0; else t[k] = false;
 }
 
 // Torque at rpm from the car's curve, linearly interpolated. Off the ends, hold the end value.
-export function torqueAt(spec, rpm) {
+export function torqueAt(spec: Spec, rpm: number) {
   const c = spec.curve;
   if (rpm <= c[0][0]) return c[0][1];
   for (let i = 1; i < c.length; i++) {
@@ -287,7 +360,7 @@ export function torqueAt(spec, rpm) {
   return c[c.length - 1][1];
 }
 
-function ratio(spec, gear) {
+function ratio(spec: Spec, gear: number) {
   if (gear < 0) return spec.reverseRatio;
   // CLAMPED. An out-of-range gear returns undefined, which makes the total ratio NaN, which makes every
   // force NaN, which makes the car vanish — and it does so SILENTLY (rule 20). Found when a harness set
@@ -296,9 +369,9 @@ function ratio(spec, gear) {
   return spec.gears[g - 1];
 }
 
-const clamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);
+const clamp = (v: number, lo: number, hi: number) => (v < lo ? lo : v > hi ? hi : v);
 
-export function step(car, input, dt = DT) {
+export function step(car: Car, input: CarInput, dt = DT) {
   const s = car.spec;
   const m = s.mass * car.mods.mass;
   const g = GRAVITY;
@@ -355,7 +428,7 @@ export function step(car, input, dt = DT) {
   //   GAS while rolling back   -> brakes, then forward drive below 1 m/s
   //   BRAKE                    -> always brakes. It can never select reverse, so the old bug cannot return.
   if (car.gearLock > 0) car.gearLock = Math.max(0, car.gearLock - dt);
-  const rawRev = clamp(+input.reverse || 0, 0, 1);
+  const rawRev = clamp(+input.reverse! || 0, 0, 1);
   if (rawRev > 0.05 && car.gear > 0 && vLong < 1.0 && car.gearLock <= 0) { car.gear = -1; car.gearLock = 0.4; }
   if (car.gear < 0 && rawRev <= 0.05 && car.gearLock <= 0 && (vLong > -1.0 || (rawThrottle > 0.05 && vLong > -0.5))) {
     car.gear = 1; car.gearLock = 0.4;
@@ -463,7 +536,7 @@ export function step(car, input, dt = DT) {
   const susK = susW * susW;
   const susC = 2 * s.susZ * susW;
   const DROOP_MAX = 0.22; // m maximum wheel extension before tyre leaves ground
-  const susp = (gh, gv, zk, vk) => {
+  const susp = (gh: number, gv: number, zk: 'zF' | 'zR', vk: 'zvF' | 'zvR') => {
     // If body height is above ground + droop, tyre is in free air: ballistic free-fall
     if (car[zk] - DROOP_MAX > gh) {
       car[vk] += -g * VERT_G * dt;
@@ -580,7 +653,7 @@ export function step(car, input, dt = DT) {
   //   SLIDING  — locked, handbraked, or spinning: mu_slide * Fz along -slipDir (breakaway, drift)
   const cd = Math.cos(delta), sd = Math.sin(delta);
   // TYRES (cars.js TYRES): x grip on this surface's group; none fitted (Pre-Spun) = 1
-  const tyreK = s.tyre ? (s.tyre.bySurf[car.surface.id] ?? 1) : 1;
+  const tyreK = s.tyre ? (s.tyre.bySurf![car.surface.id] ?? 1) : 1;
   const muBase = s.mu * car.surface.mu * tyreK;
   const peakK = car.surface.peakK || 1;   // loose surfaces peak much later — see tyreLateral
   // LONGITUDINAL GRIP RELATIVE TO LATERAL. Added 2026-09-28 (user: "grass mud and gravel feel too
@@ -600,7 +673,10 @@ export function step(car, input, dt = DT) {
   // able to pull away and to brake to a stop).
   const latFade = clamp(Math.hypot(vLong, vLat) / 1.2, 0, 1);
 
-  const axle = (Fz, sxl, syl, FxDemand, slip, ca, forceSlide, FzNom, latchKey, gripT = 1) => {
+  const axle = (
+    Fz: number, sxl: number, syl: number, FxDemand: number, slip: number, ca: number,
+    forceSlide: boolean, FzNom: number, latchKey: 'spinLatchF' | 'spinLatchR', gripT = 1,
+  ) => {
     // A TYRE IN THE AIR MAKES NO FORCE. FIXED 2026-10-03 (Claude) — the "freeze when you brake mid-jump".
     //
     // MEASURED: driving off the lab ramp and braking while airborne turned x/y into NaN on the FIRST
@@ -761,7 +837,8 @@ export function step(car, input, dt = DT) {
   let absWorking = false;
   if (car.absOn && brakeIn > 0.05 && vLongAbs > 1) {
     const tp = car.t;
-    const cap = (Fz, Fy) => ABS_K * Math.sqrt(Math.max(0, (muBase * Fz * car.mods.gripLong) ** 2 - Fy * Fy));
+    const cap = (Fz: number, Fy: number) =>
+      ABS_K * Math.sqrt(Math.max(0, (muBase * Fz * car.mods.gripLong) ** 2 - Fy * Fy));
     const cF = cap(FzF, tp.FyF || 0), cR = cap(FzR, tp.FyR || 0);
     if (FbF > cF) { FbF = cF; absWorking = true; }
     if (FbR > cR) { FbR = cR; absWorking = true; }
@@ -794,7 +871,9 @@ export function step(car, input, dt = DT) {
   // friction work per axle (W), taken BEFORE the relaxation lag below changes Fy. A sliding / spinning / locked
   // axle skates at slipSpeed; a rolling one scrubs at a fraction of its lateral patch speed, plus ~8% longitudinal
   // slip at its drive / brake force.
-  const work = (A, syl, locked, Fz) => (A.spinning || locked || (A.sliding && A.slipSpeed > 2))
+  const work = (
+    A: ReturnType<typeof axle>, syl: number, locked: boolean, Fz: number,
+  ) => (A.spinning || locked || (A.sliding && A.slipSpeed > 2))
     ? Math.hypot(A.Fx, A.Fy) * TYRE_HEAT.slipSat * Math.tanh(A.slipSpeed / TYRE_HEAT.slipSat) / (1 + Math.hypot(vLong, vLat) / TYRE_HEAT.roadV)
     : Math.abs(A.Fy) * Math.abs(syl) + Math.abs(A.Fx) * 0.08 * vLongAbs * Math.min(1, Math.abs(A.Fx) / (muBase * Fz + 1));
   const workF = work(F, sylF, lockedF, FzF), workR = work(R, sylR, lockedR, FzR);
@@ -840,7 +919,7 @@ export function step(car, input, dt = DT) {
     const spAll = Math.hypot(vLong, vLat);
     const scale = PLOUGH_CRAWL + (1 - PLOUGH_CRAWL) * Math.min(1, spAll / PLOUGH_VREF);
     // share = static load share, lk = this end's suspension load: airborne over gravel ploughs nothing.
-    const pl = (vL, vT, share, lk) => {
+    const pl = (vL: number, vT: number, share: number, lk: number) => {
       const sp2 = Math.hypot(vL, vT);
       if (sp2 < 0.05) return [0, 0];
       const Fmag = m * share * plough * scale * Math.min(1, lk);
@@ -998,7 +1077,8 @@ export function step(car, input, dt = DT) {
     // is working (force / load) x this tyre's share x speed; on loose ground x heatK like everything else.
     // GRIPPING axles only: a sliding / spinning / locked axle already heats by slip work, and adding flex on top
     // MEASURED took the tarmac drift from too-hot-at-27 s to 17 s (the user wants overheating to stay hard).
-    const grips = (A, locked) => !(A.spinning || locked || A.sliding);
+    const grips = (A: ReturnType<typeof axle>, locked: boolean) =>
+      !(A.spinning || locked || A.sliding);
     // CORNERING force only. MEASURED: with |Fx| included, holding 90 km/h on a straight (throttle on, then engine
     // braking off) warmed the rears to 46 C in 30 s; the rule is that a cruise barely warms them. Drive and brake
     // heat still arrive through the slip work above.
@@ -1006,7 +1086,9 @@ export function step(car, input, dt = DT) {
     // table with the handbrake on, the fronts gained +203 C in ONE step — the axle was airborne (Fz 0) but still carried
     // 7.6 kN of lagged lateral force, so force / max(1, Fz) read as ~7600 x "working hard". Now: grounded axles only,
     // load floored at a quarter of static, utilisation capped at the tyre's own grip (it cannot work harder than that).
-    const utilOf = (A, locked, Fz, FzNom) => (grips(A, locked) && Fz > 0.05 * FzNom)
+    const utilOf = (
+      A: ReturnType<typeof axle>, locked: boolean, Fz: number, FzNom: number,
+    ) => (grips(A, locked) && Fz > 0.05 * FzNom)
       ? Math.min(muBase, Math.abs(A.Fy) / Math.max(0.25 * FzNom, Fz)) : 0;
     const utilF = utilOf(F, lockedF, FzF, FzNomF), utilR = utilOf(R, lockedR, FzR, FzNomR);
     const vk = Math.min(1, Math.hypot(vLong, vLat) / TYRE_FLEX.vRef);
@@ -1070,7 +1152,7 @@ export function step(car, input, dt = DT) {
 
 // Assert finite on everything that can kill the renderer (rule 20). Called from main.js under ?dev=1
 // and from the bench unconditionally. A silent NaN is a vanished car.
-export function assertFinite(car) {
+export function assertFinite(car: Car) {
   const v = [car.x, car.y, car.vx, car.vy, car.heading, car.yawRate, car.rpm, car.delta];
   for (let i = 0; i < v.length; i++) {
     if (!Number.isFinite(v[i])) {

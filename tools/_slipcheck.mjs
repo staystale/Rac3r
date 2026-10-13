@@ -3,7 +3,7 @@
 // corners included (CLAUDE.md: never the centre); that the slip ribbon is tarmac where it starts and grass-free; nothing on a walled road.
 // node tools/_slipcheck.mjs [srcDir]   (srcDir default ../src - point it at a scratch copy to test .next files)
 const SRC = process.argv[2] || '../src';
-const L = await import(SRC + '/lab.js'), H = await import(SRC + '/highway.js'), V = await import(SRC + '/vehicle.js');
+const L = await import(SRC + '/lab.js'), H = await import(SRC + '/highway.js'), V = await import(SRC + '/vehicle.ts');
 // the levels importing these modules used to add (task 078 made it explicit)
 H.addHighwayLevel();
 let bad = 0; const fail = (m) => { bad++; console.log('FAIL ' + m); };

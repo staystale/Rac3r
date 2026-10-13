@@ -1,6 +1,6 @@
 // scratch: the OFF-ROAD guard (highway.js highwayGuard) with a car placed by hand: sitting 12 m out (near: must not reset), 25 m out
 // still (must reset at ~10 s), 25 m out heading back at 3 m/s (paused while heading in), 25 m out with a 0.5 m/s drift in (not trying).
-import { makeCar, reset } from '../src/vehicle.js';
+import { makeCar, reset } from '../src/vehicle.ts';
 import * as L from '../src/lab.js';
 import * as H from '../src/highway.js';
 // the levels importing these modules used to add (task 078 made it explicit)

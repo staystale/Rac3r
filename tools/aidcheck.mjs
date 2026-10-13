@@ -6,7 +6,7 @@
 // the player cannot feel it (CLAUDE.md §3), so every one has a bar it must clear:
 //   ABS  hard brake mid-corner: no front lock, the car keeps turning; straight stop no longer than without
 //   TCS  slippery launch: less wheelspin; a provoked slide: smaller peak slip; clean cornering: grip not reduced
-import { makeCar, step, reset, DT } from '../src/vehicle.js';
+import { makeCar, step, reset, DT } from '../src/vehicle.ts';
 import { SURFACES } from '../src/lab.js';
 
 const I = (o) => ({ steer: 0, throttle: 0, brake: 0, handbrake: 0, ...o });

@@ -7,7 +7,7 @@
 // rather than catching up in one huge step — a background tab must not produce a 400-step lurch.
 import { lcg } from "./core/random.ts";
 
-import { makeCar, step, reset, assertFinite, DT } from './vehicle.js';
+import { makeCar, step, reset, assertFinite, DT } from './vehicle.ts';
 const resetCar = reset;
 import { CAR_IDS, applyLivery, applyTyre, ROSTER } from './cars.ts';
 import { createInput } from './input.js';
@@ -33,7 +33,7 @@ import { createRaceFlow } from './raceflow.js';
 import { hit, hitRoll, repair, resetBill, tooInjured } from './damage.js';
 import { rolling, tripCheck, stepRoll } from './roll.js';
 import { nudge, resetAll, setTuneAudio, snapshot } from './tune.js';
-import { TUNE } from './vehicle.js';
+import { TUNE } from './vehicle.ts';
 import { initWorld, setLevel } from "./world/load.ts";
 import { SPAWN, LEVEL } from "./world/state.ts";
 import { applyGround, fenceClamp, obstacleClamp, clearWear } from "./world/wear.ts";

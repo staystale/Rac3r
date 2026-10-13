@@ -7,7 +7,7 @@
 //   4. OFF-ROAD AREA: all its surfaces present, natural terrain moves the grass, the big hill is 2+ m.
 //   5. OTHER LEVELS keep their square.
 import { readFileSync } from 'node:fs';
-const L = await import('../src/lab.js'), C = await import('../src/cones.js'), V = await import('../src/vehicle.js');
+const L = await import('../src/lab.js'), C = await import('../src/cones.js'), V = await import('../src/vehicle.ts');
 let bad = 0; const ok = (c, m) => { console.log((c ? 'ok   ' : 'FAIL ') + m); if (!c) bad++; };
 const g = (x, y) => L.groundAt(x, y).surface.id;
 L.setLevel('lab');

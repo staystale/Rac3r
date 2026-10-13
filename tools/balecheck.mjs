@@ -1,7 +1,7 @@
 // balecheck.mjs — HAY BALES (user, 2026-10-04: "like tyres but heavier — you can hit them and they move; they explode with dust and slow
 // you down a lot"). Node only. A hatch drives straight at one bale on flat ground: a NUDGE (8 km/h) pushes it without bursting it; a HIT
 // (60 km/h) bursts it to straw, throws dust, and costs far more speed than hitting a tyre stack does. node tools/balecheck.mjs
-import { makeCar, step, reset, DT } from '../src/vehicle.js';
+import { makeCar, step, reset, DT } from '../src/vehicle.ts';
 import * as L from '../src/lab.js';
 import { createCones } from '../src/cones.js';
 L.setLevel('lab');

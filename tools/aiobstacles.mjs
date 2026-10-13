@@ -1,7 +1,7 @@
 // aiobstacles.mjs — does the racing AI step round loose objects (cones, tyres, bales)? One AI, 2 laps with the level's real objects
 // (cones.js), objects passed to drive() as main.js does (within 45 m, refreshed 0.25 s) or not (OBS=0); prints objects MOVED, lap time.
 // node tools/aiobstacles.mjs [level] [car] [diff]
-import { makeCar, step, reset, DT } from '../src/vehicle.js';
+import { makeCar, step, reset, DT } from '../src/vehicle.ts';
 import * as L from '../src/lab.js';
 import { createCones } from '../src/cones.js';
 const { createAIDriver } = await import(process.env.AINEXT ? '../src/ai/circuit.next.js' : '../src/ai/circuit.ts'), { aiTraits } = await import('../src/ai/traits.ts'), { racingLine } = await import('../src/ai/line.ts');

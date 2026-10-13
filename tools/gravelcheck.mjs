@@ -9,7 +9,7 @@
 //   3. IT GRABS — a yawed car must be pulled straight, not left spinning.
 //   4. YOU GET STUCK — full throttle from rest in gravel must barely move the car.
 //   5. IT DOES NOT TOUCH THE TARMAC. Every number on the floor is unchanged.
-import { makeCar, step, reset, neutralInput, DT } from '../src/vehicle.js';
+import { makeCar, step, reset, neutralInput, DT } from '../src/vehicle.ts';
 import { applyGround, groundAt, FLOOR, FENCE, RUNOFF_MU, SURFACE_TARMAC, LEVELS, setLevel, SURFACES } from '../src/lab.js';
 // S-B (2026-10-06): the lab's south edge moved 480 m south, so the trap is measured on a BARE square lab floor (kerbcheck.mjs the same)
 { const lab = LEVELS.find((l) => l.id === 'lab');   // the old lab's quarters + its blend / inclusion patches; no extension, no bounds

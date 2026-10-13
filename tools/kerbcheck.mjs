@@ -10,7 +10,7 @@
 //   2. SPEED-SCALED — a crawl over the kerb is nothing; a fast strike takes the wheels off the ground.
 //   3. WORKS WHILE BUSY — the same strike mid-corner and mid-handbrake, with nothing suppressed.
 //   4. TRANSIENT — it must be over. Load back to ~1, body back down, car still under control.
-import { makeCar, step, reset, neutralInput, DT } from '../src/vehicle.js';
+import { makeCar, step, reset, neutralInput, DT } from '../src/vehicle.ts';
 import { applyGround as edge, FLOOR, KERB_W, FENCE, LEVELS, setLevel, SURFACES } from '../src/lab.js';
 // S-B (2026-10-06): the lab's south edge moved 480 m south (past the extension's off-road area), so the edge is measured on a BARE square
 // lab floor - the same lab surface, kerb, verge and trap the old lab's south edge had at x 0, and nothing else

@@ -9,7 +9,7 @@
 // GRIP: on tarmac you must be within a few degrees or you are losing time; on gravel the peak is way
 // out at 15-25 deg, which is what lets you point the car with the throttle. So this measures the whole
 // grip-versus-slip-angle curve on each surface, not just its maximum.
-import { makeCar, step, reset, neutralInput, DT } from '../src/vehicle.js';
+import { makeCar, step, reset, neutralInput, DT } from '../src/vehicle.ts';
 import { SURFACES, groundAt, applyGround, ZONES, FLOOR, FENCE, FY1 } from '../src/lab.js';
 import { CAR_IDS } from '../src/cars.ts';
 

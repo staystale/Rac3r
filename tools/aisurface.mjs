@@ -2,7 +2,7 @@
 // they should predict it and speed up"). One AI, one lap (node, no contact); every change of the car's surface mu is an event; for each:
 // speed 1 s before / at / 1.5 s after, the target vT at the same moments, and whether it braked or lifted with vT above v.
 // node tools/aisurface.mjs [level] [car] [diff]
-import { makeCar, step, reset, DT } from '../src/vehicle.js';
+import { makeCar, step, reset, DT } from '../src/vehicle.ts';
 import * as L from '../src/lab.js';
 const { createAIDriver } = await import(process.env.AINEXT ? '../src/ai/circuit.next.js' : '../src/ai/circuit.ts'), { aiTraits } = await import('../src/ai/traits.ts'), { racingLine } = await import('../src/ai/line.ts');
 const [lv = 'slidden-hill', carId = 'rally-4x4', d = '4'] = process.argv.slice(2);

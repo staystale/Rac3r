@@ -212,14 +212,14 @@
     "id-length": 68,
     "max-len": 5
   },
-  "src/vehicle.js": {
+  "src/vehicle.ts": {
     "complexity": 2,
     "id-length": 73,
     "max-len": 326,
     "max-lines": 1,
     "max-lines-per-function": 2,
     "no-shadow": 6,
-    "no-unused-vars": 3
+    "@typescript-eslint/no-unused-vars": 3
   },
   "src/world/barriers.ts": {
     "complexity": 2,

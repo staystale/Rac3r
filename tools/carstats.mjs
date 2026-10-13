@@ -2,7 +2,7 @@
 // receipt — the garage shows what the car actually does, measured, never a hand-typed spec sheet). Re-run after any
 // change to cars.js or the vehicle model:   node tools/carstats.mjs
 import fs from 'fs';
-import { makeCar, step, reset, DT } from '../src/vehicle.js';
+import { makeCar, step, reset, DT } from '../src/vehicle.ts';
 import { CAR_IDS } from '../src/cars.ts';
 import { SURFACES } from '../src/lab.js';
 const out = {};

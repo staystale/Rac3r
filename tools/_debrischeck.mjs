@@ -3,7 +3,7 @@
 // knocked away and never break; a tarp is driven over (car speed kept). Plus: how many debris pieces the highway LITTER places per km.
 // node tools/_debrischeck.mjs [srcDir]
 const SRC = process.argv[2] || '../src';
-const L = await import(SRC + '/lab.js'), V = await import(SRC + '/vehicle.js'), C = await import(SRC + '/cones.js'), H = await import(SRC + '/highway.js');
+const L = await import(SRC + '/lab.js'), V = await import(SRC + '/vehicle.ts'), C = await import(SRC + '/cones.js'), H = await import(SRC + '/highway.js');
 // the levels importing these modules used to add (task 078 made it explicit)
 H.addHighwayLevel();
 let bad = 0; const ok = (c, m) => { console.log((c ? 'ok   ' : 'FAIL ') + m); if (!c) bad++; };

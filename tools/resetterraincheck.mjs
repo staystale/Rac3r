@@ -2,7 +2,7 @@
 // when pulling away"). Before the fix a reset 7.5 m up Sweaty Lamb flew the car 106 m up. Pass: < 0.1 s airborne, > 30 km/h after 3 s.
 // node tools/resetterraincheck.mjs
 let fails = 0;
-import { makeCar, step, reset, DT } from '../src/vehicle.js';
+import { makeCar, step, reset, DT } from '../src/vehicle.ts';
 import * as L from '../src/lab.js';
 for (const [lv, d] of [['sweaty-lamb', 900], ['sweaty-lamb', 100], ['slidden-hill', 742], ['castle-cum', 296], ['thruston', 600]]) {
   L.setLevel(lv); const st = L.LEVEL.subtrack, p = L.onTrack(st, d, 0, {});

@@ -4,7 +4,7 @@
 //  POWER OVERSTEER: 40 km/h on gravel, half lock, then full throttle 2 s: peak REAR slip angle (deg) and yaw rate (deg/s) — can it be
 //  steered on the throttle (drifted)?
 // node tools/carfeel.mjs [cars]
-import { makeCar, step, reset, DT } from '../src/vehicle.js';
+import { makeCar, step, reset, DT } from '../src/vehicle.ts';
 if (process.env.CNEXT) { const C = await import('../src/cars.next.js'), C0 = await import('../src/cars.ts'); for (const r of C.ROSTER) { const o = C0.ROSTER.find((x) => x.id === r.id); if (o) Object.assign(o, r); } }
 import { SURFACES } from '../src/lab.js';
 const cars = (process.argv[2] || 'hatch-rwd,saloon-rwd,wrz-awd,rally-4x4').split(',');

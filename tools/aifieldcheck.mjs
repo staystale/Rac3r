@@ -2,7 +2,7 @@
 // per car its persona, laps done, best lap; for the field: contact-seconds (time any pair is touching), contact EVENTS (new touches),
 // overtakes (order changes on track), stuck resets, seconds off the road. Difficulty and seed decide the mix.
 // node tools/aifieldcheck.mjs [level] [car] [diff 0-4] [n 1-6] [seed] [laps]
-import { makeCar, step, reset, DT } from '../src/vehicle.js';
+import { makeCar, step, reset, DT } from '../src/vehicle.ts';
 import * as L from '../src/lab.js';
 import { carContact, slipstream } from '../src/contact.js';
 import { hit, repair, tooInjured } from '../src/damage.js';   // DMG=1: damage on, as main.js

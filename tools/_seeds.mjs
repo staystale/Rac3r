@@ -1,5 +1,5 @@
 import * as L from '../src/lab.js';
-import { makeCar, step, reset, DT } from '../src/vehicle.js';
+import { makeCar, step, reset, DT } from '../src/vehicle.ts';
 const { createCones } = await import('../src/' + process.argv[2]);
 const out = [];
 for (const s0 of [1, 7, 42]) {

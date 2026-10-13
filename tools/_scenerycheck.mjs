@@ -3,7 +3,7 @@
 // river (any hedge point inside a lane ribbon or on water); the per-step cost of stepHighway (the rebuild with fields); and that a wheel
 // ON the motorway is still tarmac (a field never covers the road). node tools/_scenerycheck.mjs [srcDir]
 const SRC = process.argv[2] || '../src';
-const L = await import(SRC + '/lab.js'), H = await import(SRC + '/highway.js'), V = await import(SRC + '/vehicle.js');
+const L = await import(SRC + '/lab.js'), H = await import(SRC + '/highway.js'), V = await import(SRC + '/vehicle.ts');
 // the levels importing these modules used to add (task 078 made it explicit)
 H.addHighwayLevel();
 let bad = 0; const fail = (m) => { bad++; console.log('FAIL ' + m); };

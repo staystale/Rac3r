@@ -3,7 +3,7 @@
 // motorway through TRAFFIC with full contact + damage. Measures: grid overlaps, cars off the road, racer-racer / racer-traffic contacts,
 // wrecks, lane changes, speeds, the gaps that open, and the flow's END countdown (a fake screen of +-VIEW m).
 // node tools/hwracecheck.mjs [seconds] [diff 0-4] [traffic 0-1.5] [preset]
-import { makeCar, step, reset, DT } from '../src/vehicle.js';
+import { makeCar, step, reset, DT } from '../src/vehicle.ts';
 import * as L from '../src/lab.js';
 import * as H from '../src/highway.js';
 import { createTraffic } from '../src/traffic.ts';

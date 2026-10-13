@@ -10,7 +10,7 @@
 //
 //   node tools/airbrake.mjs          all cars, all airborne inputs   (exit code 1 on any failure)
 
-import { makeCar, step, reset, assertFinite, DT } from '../src/vehicle.js';
+import { makeCar, step, reset, assertFinite, DT } from '../src/vehicle.ts';
 import { applyGround } from '../src/lab.js';
 import { CAR_IDS } from '../src/cars.ts';
 
