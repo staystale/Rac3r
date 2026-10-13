@@ -222,10 +222,6 @@
     "id-length": 49,
     "max-len": 60
   },
-  "src/world/bounds.ts": {
-    "id-length": 2,
-    "max-len": 25
-  },
   "src/world/levels/brands-snatch.ts": {
     "complexity": 1,
     "id-length": 41,
