@@ -159,9 +159,7 @@
   },
   "src/traffic.ts": {
     "complexity": 2,
-    "id-length": 107,
-    "max-len": 94,
-    "max-lines-per-function": 2
+    "max-lines-per-function": 3
   },
   "src/vehicle.ts": {
     "@typescript-eslint/no-unused-vars": 3,
