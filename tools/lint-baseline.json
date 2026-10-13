@@ -249,9 +249,7 @@
     "max-len": 81
   },
   "src/world/load.ts": {
-    "complexity": 2,
-    "id-length": 36,
-    "max-len": 35
+    "complexity": 2
   },
   "src/world/subtrack.ts": {
     "@typescript-eslint/no-unused-vars": 1,
