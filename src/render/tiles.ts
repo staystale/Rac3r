@@ -151,6 +151,27 @@ export function createTiles(view: View, cam: Cam, settings: Settings, helpers: T
     const c = document.createElement('canvas'); c.width = c.height = px;
     return { c, g: c.getContext('2d', { willReadFrequently: true })! };
   }
+  // ?pool=1 (perf A/B, default off): REUSE canvases instead of allocating them per tile.
+  // WHY: the phone meter shows judder frames are mostly not our JS (a 40 ms frame had sim 5 +
+  // draw 1 ms). Each new tile allocates a tile canvas AND a scratch canvas, 768 x 768 px =
+  // 2.4 MB each at dpr 3, plus the getImageData buffer; at ~8 tiles a second Safari frees
+  // 40-60 MB of canvases a second, outside our code. Here: ONE scratch per pixel size (reset()
+  // clears pixels and all drawing state), and a free list (<= TILE_POOL_MAX) of dropped tile
+  // canvases. A reused tile canvas needs no clearing: paletteSnap's putImageData writes the
+  // full-size ImageData over every pixel. Never used with ?tilegpu.
+  const TILE_POOL = settings.tilePool && !TILE_GPU;
+  const TILE_POOL_MAX = 12;
+  let poolScratch:
+    { px: number; c: HTMLCanvasElement; g: CanvasRenderingContext2D } | null = null;
+  const freeCanvases: HTMLCanvasElement[] = [];
+  function takeFreeCanvas(size: number) {
+    const idx = freeCanvases.findIndex((cvs) => cvs.width === size);
+    return idx < 0 ? null : freeCanvases.splice(idx, 1)[0];
+  }
+  // a tile left the cache: nothing else holds its canvas (blitStep draws only from `tiles`)
+  function releaseTile(tile: Tile) {
+    if (TILE_POOL && freeCanvases.length < TILE_POOL_MAX) freeCanvases.push(tile.c);
+  }
   // the layers of a ground tile, in drawing order - ONE place, used by the whole-tile and the strip path
   function layerCalls() {
     drawFloor();
@@ -179,9 +200,20 @@ export function createTiles(view: View, cam: Cam, settings: Settings, helpers: T
   function startTile(k: number, i: number, j: number): TileJob {
     const t0 = performance.now();      // start of the layers stage
     const tw = TILE_PX / (view.PPM * zOfStep(k));     // world metres per tile
-    const px = Math.round(TILE_PX * view.dpr), c = document.createElement('canvas');
-    c.width = c.height = px;
-    const sc = TILE_GPU ? null : tileScratch(px);
+    const px = Math.round(TILE_PX * view.dpr);
+    let c = TILE_POOL ? takeFreeCanvas(px) : null;
+    if (!c) { c = document.createElement('canvas'); c.width = c.height = px; }
+    let sc: ReturnType<typeof tileScratch> | null = null;
+    if (!TILE_GPU) {
+      if (TILE_POOL && poolScratch && poolScratch.px === px
+        && typeof poolScratch.g.reset === 'function') {
+        poolScratch.g.reset();      // clears pixels + all drawing state, like a fresh canvas
+        sc = poolScratch;
+      } else {
+        sc = tileScratch(px);
+        if (TILE_POOL) poolScratch = { px, c: sc.c, g: sc.g };
+      }
+    }
     const g = sc ? sc.g : c.getContext('2d')!;
     g.setTransform(view.dpr, 0, 0, view.dpr, 0, 0);
     return { k, i, j, c, sc, g, px, tw, strip: 0, strips: STRIPS, t0 };
@@ -375,6 +407,7 @@ export function createTiles(view: View, cam: Cam, settings: Settings, helpers: T
     tileState.tileFrame++;
     const layout = LEVEL.subtrack ? LEVEL.subtrack.layoutId || 0 : 0;   // a re-randomised track (Grass Track)
     if (tileLevel !== LEVEL || tileDpr !== view.dpr || tilePPM !== view.PPM || tileLayout !== layout) {
+      for (const old of tiles.values()) releaseTile(old);
       tiles.clear(); tileLevel = LEVEL; tileDpr = view.dpr; tilePPM = view.PPM; tileLayout = layout; tileState.lastStep = null;
     }
     const fly = getFly();
@@ -427,7 +460,9 @@ export function createTiles(view: View, cam: Cam, settings: Settings, helpers: T
     }
     if (tiles.size > TILE_MAX) {
       const old = [...tiles.entries()].sort((a, b) => a[1].used - b[1].used);
-      for (let n = 0; n < tiles.size - TILE_MAX; n++) tiles.delete(old[n][0]);
+      for (let n = 0, drop = tiles.size - TILE_MAX; n < drop; n++) {
+        releaseTile(old[n][1]); tiles.delete(old[n][0]);
+      }
     }
   }
   const AHEAD_MAX_MS = 9, AHEAD_S = 0.6;   // look-ahead painting: only below this tile cost; view shifted this many s of travel

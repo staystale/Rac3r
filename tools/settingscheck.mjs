@@ -8,6 +8,7 @@ const DEFAULTS = {
   dev: false, carId: null, aiCount: 0, aiDifficulty: 2, trafficDensity: 0.6, litter: null, menu: null,
   menuAi: 4, guide: null, rules: null, levelId: null, inputMode: 'auto', highwayDebug: null,
   noLock: false, tilePx: 256, tileGpu: false, noShade: false,
+  tilePool: false,
   grassEnds: 'round', surfaceTextures: true, meter: false,
 };
 
@@ -38,6 +39,8 @@ const TABLE = [
   ['?tex', { surfaceTextures: true }],
   ['?meter=1', { meter: true }],
   ['?meter=0', { meter: false }],
+  ['?pool=1', { tilePool: true }],
+  ['?pool=0', { tilePool: false }],
 ];
 
 let bad = 0;
