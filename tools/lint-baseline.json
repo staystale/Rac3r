@@ -59,8 +59,7 @@
   },
   "src/highwayrace.ts": {
     "complexity": 1,
-    "id-length": 38,
-    "max-len": 51
+    "max-lines-per-function": 1
   },
   "src/hud.js": {
     "complexity": 4,
