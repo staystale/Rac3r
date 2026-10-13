@@ -218,9 +218,7 @@
     "max-len": 75
   },
   "src/world/levels/grass-track.ts": {
-    "complexity": 1,
-    "id-length": 14,
-    "max-len": 21
+    "complexity": 1
   },
   "src/world/levels/index.ts": {
     "id-length": 16,
