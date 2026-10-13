@@ -1088,7 +1088,9 @@ function loop(now) {
   const drawT0 = performance.now();
   try {
     renderer.frame(game, wallDt, now / 1000);
-    if (mode !== 'menu') hud.draw(renderer.ctx, game, renderer.W, renderer.H, wallDt);
+    if (mode !== 'menu' && !settings.skipLayers.has('hud')) {
+      hud.draw(renderer.ctx, game, renderer.W, renderer.H, wallDt);
+    }
     if (meter && mode !== 'menu') {
       const tilesNow = renderer.groundRenders, draw = performance.now() - drawT0;
       const steps = game.stepsLastFrame;

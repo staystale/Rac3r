@@ -25,6 +25,7 @@ export interface Settings {
   grassEnds: "round" | "square";   // ?grass=square: square grass blade ends (cheaper; A/B)
   surfaceTextures: boolean;       // ?tex=0: paint surfaces live, not pre-painted textures (A/B)
   meter: boolean;   // ?meter=1: on-screen frame meter (perf, phone)
+  skipLayers: Set<string>;   // ?skip=props,barriers: layers not drawn (phone judder bisect)
   autopilot: boolean;   // ?autopilot=1: the AI drives the player car (phone frame tests, no touch)
 }
 
@@ -55,5 +56,6 @@ export function readSettings(search: string): Settings {
     surfaceTextures: params.get('tex') !== '0',
     meter: params.get('meter') === '1',
     autopilot: params.get('autopilot') === '1',
+    skipLayers: new Set((params.get('skip') || '').split(',').filter(Boolean)),
   };
 }

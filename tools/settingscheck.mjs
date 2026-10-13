@@ -9,7 +9,7 @@ const DEFAULTS = {
   menuAi: 4, guide: null, rules: null, levelId: null, inputMode: 'auto', highwayDebug: null,
   noLock: false, tilePx: 256, tileGpu: false, noShade: false,
   grassEnds: 'round', surfaceTextures: true, meter: false,
-  autopilot: false,
+  autopilot: false, skipLayers: '',   // a Set is compared as its sorted names joined by ','
 };
 
 const TABLE = [
@@ -41,15 +41,17 @@ const TABLE = [
   ['?meter=0', { meter: false }],
   ['?autopilot=1', { autopilot: true }],
   ['?autopilot=0', { autopilot: false }],
+  ['?skip=props,cars', { skipLayers: 'cars,props' }],
 ];
 
+const norm = (v) => (v instanceof Set ? [...v].sort().join(',') : v);
 let bad = 0;
 console.log('link'.padEnd(52) + 'result');
 for (const [link, want] of TABLE) {
   const got = readSettings(link), exp = { ...DEFAULTS, ...want };
   const diffs = [];
   for (const k of new Set([...Object.keys(exp), ...Object.keys(got)])) {
-    if (!Object.is(got[k], exp[k])) diffs.push(`${k}: got ${String(got[k])}, want ${String(exp[k])}`);
+    if (!Object.is(norm(got[k]), exp[k])) diffs.push(`${k}: got ${String(got[k])}, want ${String(exp[k])}`);
   }
   if (diffs.length) bad++;
   console.log((link || "''").padEnd(52) + (diffs.length ? 'FAIL ' + diffs.join('; ') : 'ok'));

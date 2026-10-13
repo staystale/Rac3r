@@ -52,6 +52,11 @@ const PIXEL_CSS = 1.3;            // css px per art pixel: a 4 m car is ~70 art 
 
 export function createRenderer(canvas: HTMLCanvasElement, settings: Settings) {
   const NO_LOCK = settings.noLock;
+  // ?skip=<layers>: phone judder bisect. Safari records canvas commands and paints them
+  // later, outside our timing, so the meter cannot show painting cost; skipping layers can.
+  const SKIP = settings.skipLayers;
+  const skip = (name: string) =>
+    SKIP.has(name) || (SKIP.has('world') && name !== 'ground' && name !== 'car');
   // \`let\`, not const: the ground cache (below) points every draw function at an off-screen canvas by
   // swapping this for the duration of one render. Nothing else ever reassigns it.
   const mainCtx = canvas.getContext('2d')!;   // a fresh canvas always gives a 2d context
@@ -177,30 +182,37 @@ export function createRenderer(canvas: HTMLCanvasElement, settings: Settings) {
     // MEASURED BUG, 2026-09-28: the run-off was filled AFTER the marks blit, so gravel tracks were
     // painted and then immediately buried under the gravel (user: "we should leave little tracks in the
     // gravel trap"). Check what a thing is drawn OVER — CLAUDE.md §4.
-    drawGround(wallDt, game.car);   // floor + zones + ribbon + covers + WEAR, from the tile cache above
-    drawRunoff();
-    drawKerb();
-    drawBumps();
-    drawPaint();
-    drawArrows(game, wallT);
-    drawMarks(game.marks);
-    drawFence();
-    drawBarriers();
-    drawProps();
-    drawCones(game.cones.list);
-    drawTape(game);
+    // ground = floor + zones + ribbon + covers + WEAR, from the tile cache above
+    if (!skip('ground')) drawGround(wallDt, game.car);
+    if (!skip('deck')) {
+      drawRunoff(); drawKerb(); drawBumps(); drawPaint(); drawArrows(game, wallT);
+    }
+    if (!skip('marks')) drawMarks(game.marks);
+    if (!skip('fence')) drawFence();
+    if (!skip('barriers')) drawBarriers();
+    if (!skip('props')) drawProps();
+    if (!skip('cones')) { drawCones(game.cones.list); drawTape(game); }
     addPuffs(game.cones.drainHits());
     addSpray(game.car, game.marks, wallDt);
     addSmoke(game.car, game.marks, wallDt);
     for (const c of [game.car, ...(game.ai || []).map((a) => a.car), ...(game.traffic ? game.traffic.cars.filter((t) => t.dmg && Math.abs(t.x - game.car.x) < 90 && Math.abs(t.y - game.car.y) < 90) : [])]) { addDamageSmoke(c, wallDt); addChips(c); addSparks(c, wallDt); }
-    drawPuffs(wallDt);
-    drawChips(wallDt);          // paint chips on the ground, under the cars          // under the car: dust over the bonnet reads as a rendering fault
+    if (!skip('fx')) drawPuffs(wallDt);
+    // chips: paint chips on the ground, under the cars (dust over the bonnet reads as a fault)
+    if (!skip('fx')) drawChips(wallDt);
     // HIGHWAY TRAFFIC (traffic.js), only the ones near the view (they are spread over ~800 m), under the AI and the player
-    if (game.traffic) { const m = 12 * PPMz(); for (const c of game.traffic.cars) { const X = sx(c.x), Y = sy(c.y); if (X < -m || X > view.W + m || Y < -m || Y > view.H + m) continue;
-      drawPixelCar(c); } }
-    for (const a of game.ai || []) { drawPixelCar(a.car); }   // AI cars under the player's
-    drawPixelCar(game.car);
-    drawProps(true);            // overhead structures (gantry) pass OVER the cars
+    if (game.traffic && !skip('traffic')) {
+      const m = 12 * PPMz();
+      for (const c of game.traffic.cars) {
+        const X = sx(c.x), Y = sy(c.y);
+        if (X < -m || X > view.W + m || Y < -m || Y > view.H + m) continue;
+        drawPixelCar(c);
+      }
+    }
+    // AI cars under the player's
+    if (!skip('ai')) for (const a of game.ai || []) { drawPixelCar(a.car); }
+    if (!skip('car')) drawPixelCar(game.car);
+    // overhead structures (gantry) pass OVER the cars
+    if (!skip('props')) drawProps(true);
     mainCtx.save();
     mainCtx.setTransform(1, 0, 0, 1, 0, 0);
     mainCtx.imageSmoothingEnabled = false;
