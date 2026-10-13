@@ -169,9 +169,7 @@
     "max-lines-per-function": 1
   },
   "src/roll.js": {
-    "complexity": 2,
-    "id-length": 18,
-    "max-len": 36
+    "complexity": 2
   },
   "src/stagegen.js": {
     "complexity": 2,
