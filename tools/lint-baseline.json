@@ -183,10 +183,6 @@
     "max-len": 94,
     "max-lines-per-function": 2
   },
-  "src/tune.js": {
-    "id-length": 68,
-    "max-len": 5
-  },
   "src/vehicle.ts": {
     "@typescript-eslint/no-unused-vars": 3,
     "complexity": 2,
