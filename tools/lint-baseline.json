@@ -39,8 +39,6 @@
   },
   "src/guide.js": {
     "complexity": 1,
-    "id-length": 76,
-    "max-len": 60,
     "max-lines-per-function": 2,
     "no-unused-vars": 1
   },
