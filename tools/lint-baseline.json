@@ -220,10 +220,6 @@
   "src/world/levels/lab-extension.ts": {
     "complexity": 1
   },
-  "src/world/levels/sandbox.ts": {
-    "id-length": 20,
-    "max-len": 31
-  },
   "src/world/levels/slidden-hill.ts": {
     "@typescript-eslint/no-unused-vars": 4
   },
