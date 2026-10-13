@@ -226,9 +226,7 @@
     "max-len": 31
   },
   "src/world/levels/slidden-hill.ts": {
-    "@typescript-eslint/no-unused-vars": 4,
-    "id-length": 72,
-    "max-len": 68
+    "@typescript-eslint/no-unused-vars": 4
   },
   "src/world/levels/thruston.ts": {
     "@typescript-eslint/no-unused-vars": 1,
