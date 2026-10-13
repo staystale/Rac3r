@@ -5,10 +5,7 @@
   },
   "src/ai/circuit.ts": {
     "complexity": 2,
-    "id-length": 98,
-    "max-len": 157,
-    "max-lines-per-function": 2,
-    "no-shadow": 1
+    "max-lines-per-function": 2
   },
   "src/ai/line.ts": {
     "complexity": 1,
