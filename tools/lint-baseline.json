@@ -41,9 +41,7 @@
     "no-unused-vars": 2
   },
   "src/damage.js": {
-    "complexity": 1,
-    "id-length": 29,
-    "max-len": 41
+    "complexity": 1
   },
   "src/guide.js": {
     "complexity": 1,
