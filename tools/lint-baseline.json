@@ -170,9 +170,6 @@
     "max-len": 67,
     "max-lines-per-function": 2
   },
-  "src/render/shared.ts": {
-    "max-len": 1
-  },
   "src/render/tiles.ts": {
     "complexity": 2,
     "id-length": 108,
