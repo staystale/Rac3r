@@ -81,7 +81,7 @@
   "src/main.js": {
     "complexity": 9,
     "id-length": 215,
-    "max-len": 282,
+    "max-len": 279,
     "max-lines": 1,
     "max-lines-per-function": 1,
     "no-shadow": 2,
@@ -109,7 +109,7 @@
     "@typescript-eslint/no-unused-vars": 6,
     "complexity": 1,
     "id-length": 47,
-    "max-len": 54,
+    "max-len": 51,
     "max-lines-per-function": 1
   },
   "src/render/camera.ts": {
@@ -238,9 +238,7 @@
   },
   "src/world/levels/knobhill.ts": {
     "@typescript-eslint/no-unused-vars": 2,
-    "complexity": 1,
-    "id-length": 44,
-    "max-len": 40
+    "complexity": 1
   },
   "src/world/levels/lab-extension.ts": {
     "complexity": 1
