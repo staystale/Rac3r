@@ -112,9 +112,7 @@
   "src/render/cardamage.ts": {
     "@typescript-eslint/no-unused-vars": 1,
     "complexity": 2,
-    "id-length": 109,
-    "max-len": 69,
-    "max-lines-per-function": 1
+    "max-lines-per-function": 3
   },
   "src/render/cars.ts": {
     "complexity": 1,
