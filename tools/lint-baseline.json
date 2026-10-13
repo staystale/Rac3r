@@ -202,9 +202,7 @@
     "max-lines-per-function": 2
   },
   "src/world/terrain.ts": {
-    "complexity": 1,
-    "id-length": 106,
-    "max-len": 69
+    "complexity": 1
   },
   "src/world/tyrewall.ts": {
     "complexity": 1
