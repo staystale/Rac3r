@@ -231,10 +231,6 @@
     "id-length": 16,
     "max-len": 35
   },
-  "src/world/levels/killder.ts": {
-    "id-length": 36,
-    "max-len": 62
-  },
   "src/world/levels/knobhill.ts": {
     "@typescript-eslint/no-unused-vars": 2,
     "complexity": 1
