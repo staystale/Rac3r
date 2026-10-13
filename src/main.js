@@ -549,6 +549,33 @@ function startFlow() {
   game.flow = createRaceFlow({ cars: [{ car: game.car, player: true }, ...game.ai.map((a) => ({ car: a.car }))], total: LEVEL.subtrack.totalDist, laps, joker: race.on ? LEVEL.joker : null });
 }
 try { game.hwBest = +(localStorage.getItem('rac3r.hwbest') || 0); } catch { game.hwBest = 0; }
+let camRecord = {};
+try {
+  camRecord = JSON.parse(localStorage.getItem('rac3r.cams') || '{}') || {};
+} catch {
+  camRecord = {};
+}
+let savedHwBest = game.hwBest;   // what is in storage now
+let camDirty = false;
+// NO storage writes in the frame loop: a synchronous localStorage write can stall a phone frame
+// (judder). The highway best and the speed camera record live in memory while driving and are
+// saved here at safe moments: pause, restart, leaving a level, page hidden / closed.
+function saveRecords() {
+  try {
+    if ((game.hwBest | 0) > (savedHwBest | 0)) {
+      localStorage.setItem('rac3r.hwbest', String(game.hwBest | 0));
+      savedHwBest = game.hwBest;
+    }
+    if (camDirty) {
+      localStorage.setItem('rac3r.cams', JSON.stringify(camRecord));
+      camDirty = false;
+    }
+  } catch { /* private mode: fine */ }
+}
+addEventListener('pagehide', saveRecords);
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) saveRecords();
+});
 // TRAFFIC (user, 2026-10-05: "traffic in every mode, a slider in test mode for density"): 0..1.5 (1 = PER_LANE cars a lane), setup's
 // TRAFFIC slider or ?traffic=; LITTER (user: "a slider for frequency / density" of the roadside objects): 0..3 x, setup's LITTER slider
 game.traffic = createTraffic();
@@ -557,6 +584,7 @@ if (settings.litter !== null) for (const l of LEVELS) if (l.endless) l.litter = 
 // what the camera can see right now (+ a margin): traffic only appears / goes OUTSIDE it
 function onScreen(x, y) { const m = 14 * renderer.PPM, X = renderer.sx(x), Y = renderer.sy(y); return X > -m && X < renderer.W + m && Y > -m && Y < renderer.H + m; }
 function doRestart() {
+  saveRecords();
   if (LEVEL.endless) { resetHighway(LEVEL); game.hwDist = 0; game.camFines = 0; game.camCount = 0; game.camCaught = null; }   // the same motorway from the start again
   game.fpsClear = true;   // the FPS corner's 10 s LOW starts again: the level-load hitch is not a driving dip (MEASURED: LOW 26 from the load)
   // Full level restart: resets car to spawn, stands cones up, clears marks and wear
@@ -675,6 +703,7 @@ game.input = input;
 // lab floor at the same coordinates.
 function selectLevel(id) {
   if (id === LEVEL.id) return;
+  saveRecords();
   setLevel(id);
   // MEASURED BUG (user, 2026-10-04: "joker lap HUD warning showing on tracks it shouldn't"): the RX race flag survived the in-game level
   // switch, so after an RX race on Knobhill every track showed LAP n/5 + JOKER TO DO. A level without a joker has no RX race.
@@ -748,6 +777,7 @@ addEventListener('keydown', start);
 
 // ---- MENU WIRING (only with ?menu=1 for now)
 function enterMenu() {
+  saveRecords();
   mode = 'menu'; paused = false; started = true;
   aiCount = DEMO_AI; aiDiff = DEMO_DIFF; game.ai = []; game.start = { on: false, green: true, t: 0, tGreen: 0 };
   boot.classList.add('gone');
@@ -791,6 +821,7 @@ function eventKind() {
   return null;
 }
 function openPause() {
+  saveRecords();
   paused = true;
   const kind = eventKind();
   menu.pause({
@@ -941,9 +972,25 @@ function loop(now) {
           lastOnTrack = null; breadcrumbs.length = 0; if (renderer && renderer.snap) renderer.snap(game.car);
           game.notice = { text: why, at: performance.now() }; acc = 0; break; }
         // SPEED CAMERA (highway.js speedCamera): caught = a HUD card (hud.js drawCamera) + the fine on the session; fastest + count kept
-        { const cam = speedCamera(LEVEL, game.car); if (cam) { game.camCaught = { ...cam, at: performance.now() }; game.camFines = (game.camFines || 0) + cam.fine; game.camCount = (game.camCount || 0) + 1;
-          try { const S = JSON.parse(localStorage.getItem('rac3r.cams') || '{}'); S.count = (S.count || 0) + 1; S.fines = (S.fines || 0) + cam.fine; if (!(S.fastest >= cam.kmh)) S.fastest = cam.kmh; localStorage.setItem('rac3r.cams', JSON.stringify(S)); game.camBest = S.fastest; } catch { /* fine */ } } }
-        game.hwDist = LEVEL._hw.driven || 0; if (game.hwDist > (game.hwBest || 0)) { game.hwBest = game.hwDist; if ((game.hwDist | 0) % 50 === 0) try { localStorage.setItem('rac3r.hwbest', String(game.hwBest | 0)); } catch { /* fine */ } } }
+        {
+          const cam = speedCamera(LEVEL, game.car);
+          if (cam) {
+            game.camCaught = { ...cam, at: performance.now() };
+            game.camFines = (game.camFines || 0) + cam.fine;
+            game.camCount = (game.camCount || 0) + 1;
+            // in memory only: saveRecords() writes it at a safe moment
+            camRecord.count = (camRecord.count || 0) + 1;
+            camRecord.fines = (camRecord.fines || 0) + cam.fine;
+            if (!(camRecord.fastest >= cam.kmh)) camRecord.fastest = cam.kmh;
+            camDirty = true;
+            game.camBest = camRecord.fastest;
+          }
+        }
+        game.hwDist = LEVEL._hw.driven || 0;
+        if (game.hwDist > (game.hwBest || 0)) {
+          game.hwBest = game.hwDist;
+        }
+      }
       stepRace(game.car, DT);
       // BREADCRUMBS for RESET on levels with no circuit. MEASURED BUG, 2026-10-03 (guide audit): doReset() read
       // this list but nothing ever wrote to it, so RESET on The Lab sent you to the spawn. Every 0.5 s of sim time
