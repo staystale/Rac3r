@@ -123,9 +123,7 @@
   },
   "src/render/cars.ts": {
     "complexity": 1,
-    "id-length": 28,
-    "max-len": 29,
-    "max-lines-per-function": 1
+    "max-lines-per-function": 2
   },
   "src/render/carsprite.ts": {
     "complexity": 1,
