@@ -71,8 +71,6 @@
   },
   "src/input.js": {
     "complexity": 1,
-    "id-length": 26,
-    "max-len": 24,
     "max-lines-per-function": 1
   },
   "src/main.js": {
