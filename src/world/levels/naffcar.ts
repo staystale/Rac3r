@@ -7,7 +7,8 @@ import type { Point, Sector, CurvedKerb, Zone, Prop, Paint, Board } from "../typ
 // Start/finish at x=0, y=75. Banked corners (18 deg), stadium grandstands, start gantry.
 // =============================================================================================
 const NC_APEXES: Point[] = [
-  [0, 75], [135, 75], [190, 48], [215, 0], [190, -48], [135, -75], [0, -75], [-135, -75], [-190, -48], [-215, 0], [-190, 48], [-135, 75]
+  [0, 75], [135, 75], [190, 48], [215, 0], [190, -48], [135, -75],
+  [0, -75], [-135, -75], [-190, -48], [-215, 0], [-190, 48], [-135, 75]
 ];
 const NC_SECTORS: Sector[] = [
   { startDist: 0, endDist: 2500, surface: SURFACES.racetarmac }
