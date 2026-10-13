@@ -16,8 +16,6 @@
   },
   "src/ai/weaver.ts": {
     "complexity": 2,
-    "id-length": 41,
-    "max-len": 126,
     "max-lines-per-function": 2
   },
   "src/audio.js": {
