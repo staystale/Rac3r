@@ -41,6 +41,19 @@ const { analyze } = require("eslint-scope");
 const code = result.outputFiles[0].text;
 const ast = espree.parse(code, { ecmaVersion: "latest", sourceType: "module", range: true });
 const scopeManager = analyze(ast, { ecmaVersion: 2022, sourceType: "module" });
+// A shorthand property ({ id }) must keep its key when the binding is renamed, so
+// it becomes { id: $1 }; otherwise {id} and {id: other} would hash differently.
+const shorthand = new Set();
+function walk(node) {
+  if (!node || typeof node.type !== "string") return;
+  if (node.type === "Property" && node.shorthand) shorthand.add(node.key.range[0]);
+  for (const key of Object.keys(node)) {
+    const child = node[key];
+    if (Array.isArray(child)) child.forEach(walk);
+    else if (child && typeof child === "object") walk(child);
+  }
+}
+walk(ast);
 const edits = new Map();
 let counter = 0;
 for (const scope of scopeManager.scopes) {
@@ -48,10 +61,12 @@ for (const scope of scopeManager.scopes) {
     if (variable.defs.length === 0) continue;
     counter += 1;
     const name = "$" + counter;
-    for (const id of variable.identifiers) edits.set(id.range[0], [id.range[1], name]);
-    for (const ref of variable.references) {
-      edits.set(ref.identifier.range[0], [ref.identifier.range[1], name]);
-    }
+    const edit = (id) => {
+      const text = shorthand.has(id.range[0]) ? `${id.name}:${name}` : name;
+      edits.set(id.range[0], [id.range[1], text]);
+    };
+    variable.identifiers.forEach(edit);
+    variable.references.forEach((ref) => edit(ref.identifier));
   }
 }
 let canonical = code;
