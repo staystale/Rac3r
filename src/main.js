@@ -1106,7 +1106,8 @@ function loop(now) {
       const moving = Math.hypot(game.car.vx, game.car.vy) > 5.6;   // over 20 km/h
       const ev = takeMeterEvents();   // highway slides / overview repaints this frame
       meter.add({ dt: frameMs, sim: meterSim, draw, steps, tiles: tilesNow - meterTiles, moving,
-        touches: meterTouches, slide: ev.slide, overview: ev.overview });
+        touches: meterTouches, slide: ev.slide, overview: ev.overview,
+        dist: LEVEL._hw ? game.hwDist : 0 });
       meterTouches = 0;
       meterTiles = tilesNow; meter.draw(renderer.ctx, renderer.W, renderer.H);
     }

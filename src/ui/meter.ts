@@ -34,6 +34,7 @@ export type FrameRec = {
   touches: number;   // finger down / up events since the last frame
   slide: number;     // highway road window slides this frame
   overview: number;  // overview repaints this frame
+  dist: number;      // game.hwDist in metres (0 off the highway)
 };
 
 const KEEP = 240;      // frames kept for the numbers
@@ -41,10 +42,11 @@ const BARS = 120;      // frames drawn as bars
 const EVERY = 15;      // the stats are recomputed every this many frames
 const AFTER_MS = 500;   // a drop this soon after an overview repaint counts as after it
 const NO_SLIDE = 1e9;   // start value of the ms since a slide: no slide has happened yet
+const KM_KEEP = 12;   // km of highway whose drop counts are shown
 const DROP_MS = 25;    // a frame longer than this missed a 60 Hz beat: a drop
 const FULL_MS = 40;    // bar graph: this many ms = full height
 // CSS px: below the HUD's button rows (top 12 + 34, second row on a phone 34 + 6, help row 3)
-const BOX_X = 12, BOX_Y = 132, BOX_W = 360, BOX_H = 176;
+const BOX_X = 12, BOX_Y = 132, BOX_W = 360, BOX_H = 190;
 const GRAPH_Y = 4, GRAPH_H = 52, GRAPH_X = 20, BAR_W = 2;
 
 // Bucket of the ms since the last slide: 0 <.5s, 1 .5-1s, 2 1-2s, 3 2-3s, 4 3-5s, 5 5s+, 6 none.
@@ -65,15 +67,27 @@ function createTotals() {
   let prev1 = 0, prev2 = 0, touch1 = 0, touch2 = 0;
   let sinceSlide = NO_SLIDE, sinceOv = 1e9;
   const slideBk = new Float64Array(7);   // drops per bucket of ms since a slide
+  const kmRing = new Float64Array(KM_KEEP);   // drops of the last finished km
+  let kmDone = 0, kmNow = 0, kmDrops = 0;   // finished km, current km index, its drops
+  // the car is on road km index kmIdx: close the finished km into the ring
+  function roadKm(kmIdx: number): void {
+    if (kmIdx < kmNow) { kmNow = 0; kmDone = 0; kmDrops = 0; }   // restart
+    while (kmNow < kmIdx) {
+      kmRing[kmDone % KM_KEEP] = kmDrops;
+      kmDone++; kmNow++; kmDrops = 0;
+    }
+  }
   return {
     add(frameMs: number, tiles: number, touches: number, moving: boolean,
-      slide: number, overview: number): void {
+      slide: number, overview: number, dist: number): void {
+      if (dist > 0) roadKm(Math.floor(dist / 1000));
       sinceSlide = slide > 0 ? 0 : sinceSlide + frameMs;
       sinceOv = overview > 0 ? 0 : sinceOv + frameMs;
       if (moving) {
         millis += frameMs;
         if (frameMs > DROP_MS) {
           drops++;
+          if (dist > 0) kmDrops++;
           if (tiles > 0 || prev1 > 0 || prev2 > 0) near++;
           if (touches > 0 || touch1 > 0 || touch2 > 0) nearTouch++;
           slideBk[slideBucket(sinceSlide)]++;
@@ -82,6 +96,11 @@ function createTotals() {
       }
       prev2 = prev1; prev1 = tiles;
       touch2 = touch1; touch1 = touches;
+    },
+    kmText(): string {
+      let out = 'per km:';
+      for (let i = Math.max(0, kmDone - KM_KEEP); i < kmDone; i++) out += ' ' + kmRing[i % KM_KEEP];
+      return out + ' (now ' + kmDrops + ')';
     },
     text(): string[] {
       const secs = millis / 1000;
@@ -117,7 +136,7 @@ export function createMeter() {
   const slideBuf = new Float64Array(KEEP), ovBuf = new Float64Array(KEEP);
   const touchBuf = new Float64Array(KEEP), sorted = new Float64Array(KEEP);
   let head = 0, count = 0, sinceStats = EVERY;
-  const lines = ['', '', '', '', '', '', '', ''];
+  const lines = ['', '', '', '', '', '', '', '', ''];
   const totals = createTotals();
 
   function add(rec: FrameRec): void {
@@ -127,7 +146,7 @@ export function createMeter() {
     head = (head + 1) % KEEP;
     if (count < KEEP) count++;
     sinceStats++; totals.add(rec.dt, rec.tiles, rec.touches, rec.moving,
-      rec.slide, rec.overview);
+      rec.slide, rec.overview, rec.dist);
   }
 
   const fix1 = (val: number) => val.toFixed(1);
@@ -154,6 +173,7 @@ export function createMeter() {
       ` other ${fix1(Math.max(0, dts[worst] - sims[worst] - draws[worst]))}` +
       ` steps ${stepsBuf[worst]} tiles ${tilesBuf[worst]} touch ${touchBuf[worst]}`;
     [lines[4], lines[5], lines[6], lines[7]] = totals.text();
+    lines[8] = totals.kmText();
   }
 
   function draw(ctx: CanvasRenderingContext2D, width: number, height: number): void {
