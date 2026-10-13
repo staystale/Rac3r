@@ -133,9 +133,7 @@
   },
   "src/render/tiles.ts": {
     "complexity": 2,
-    "id-length": 108,
-    "max-len": 114,
-    "max-lines-per-function": 1
+    "max-lines-per-function": 3
   },
   "src/roll.js": {
     "complexity": 2
