@@ -15,6 +15,7 @@ import { createRenderer } from './render.ts';
 import { readSettings } from './core/settings.ts';
 import { createMarks } from './marks.js';
 import { createHud } from './hud.js';
+import { createMeter } from './ui/meter.ts';   // ?meter=1 frame meter
 import { createCones } from './cones.js';
 import { createAudio } from './audio.js';
 import { createGuide, rulesSeen } from './guide.js';
@@ -825,6 +826,8 @@ Object.defineProperty(window.__game, 'paused', { get: () => paused });
 
 let acc = 0;
 let last = performance.now();
+const meter = settings.meter ? createMeter() : null;   // ?meter=1 only
+let meterTiles = 0;
 let fpsAcc = 0, fpsN = 0; const fpsHist = [];
 
 // SAFETY NET (added 2026-10-03, Claude). The airborne-brake bug showed what happens without one: a single
@@ -846,6 +849,8 @@ function recoverCar(why) {
 function loop(now) {
   // Rescheduled FIRST, so a throw anywhere below can never stop the game loop again.
   requestAnimationFrame(loop);
+  const frameMs = now - last;   // the meter's dt, before the clamp below
+  let meterSim = 0;
   const wallDt = Math.min(0.1, (now - last) / 1000);
   last = now;
   fpsAcc += wallDt; fpsN++;
@@ -981,6 +986,7 @@ function loop(now) {
       n++;
     }
     game.simMs = (game.simMs || 0) * 0.9 + (performance.now() - simT0) * 0.1;
+    if (meter) meterSim = performance.now() - simT0;
     if (n >= MAX_STEPS) acc = 0;      // fell behind: drop it, never catch up in a lurch
     game.stepsLastFrame = n;
     game.car.brakeLight = inp.brake;
@@ -1014,6 +1020,12 @@ function loop(now) {
   try {
     renderer.frame(game, wallDt, now / 1000);
     if (mode !== 'menu') hud.draw(renderer.ctx, game, renderer.W, renderer.H, wallDt);
+    if (meter && mode !== 'menu') {
+      const tilesNow = renderer.groundRenders, draw = performance.now() - drawT0;
+      const steps = game.stepsLastFrame;
+      meter.add({ dt: frameMs, sim: meterSim, draw, steps, tiles: tilesNow - meterTiles });
+      meterTiles = tilesNow; meter.draw(renderer.ctx, renderer.W, renderer.H);
+    }
   } finally {
     if (keepPose) { car.x = keepPose.x; car.y = keepPose.y; car.heading = keepPose.h; }
     for (const [c, x, y, h] of aiKeep) { c.x = x; c.y = y; c.heading = h; }

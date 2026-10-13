@@ -24,6 +24,7 @@ export interface Settings {
   noShade: boolean;              // ?noshade: skip the hill shading (perf A/B)
   grassEnds: "round" | "square";   // ?grass=square: square grass blade ends (cheaper; A/B)
   surfaceTextures: boolean;       // ?tex=0: paint surfaces live, not pre-painted textures (A/B)
+  meter: boolean;   // ?meter=1: on-screen frame meter (perf, phone)
 }
 
 
@@ -51,5 +52,6 @@ export function readSettings(search: string): Settings {
     noShade: params.has('noshade'),
     grassEnds: params.get('grass') === 'square' ? 'square' : 'round',
     surfaceTextures: params.get('tex') !== '0',
+    meter: params.get('meter') === '1',
   };
 }
