@@ -293,8 +293,6 @@
     "no-shadow": 1
   },
   "src/world/zones.ts": {
-    "complexity": 1,
-    "id-length": 28,
-    "max-len": 16
+    "complexity": 1
   }
 }
