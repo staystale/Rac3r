@@ -20,8 +20,6 @@
   },
   "src/audio.js": {
     "complexity": 1,
-    "id-length": 9,
-    "max-len": 6,
     "max-lines-per-function": 3,
     "no-unused-vars": 2
   },

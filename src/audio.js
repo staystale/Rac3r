@@ -2,7 +2,8 @@
 // Runs purely client-side; safely no-ops in Node or headless test runners (CLAUDE.md §5).
 
 export function createAudio() {
-  const AudioCtx = typeof window !== 'undefined' ? (window.AudioContext || window.webkitAudioContext) : null;
+  const AudioCtx = typeof window !== 'undefined'
+    ? (window.AudioContext || window.webkitAudioContext) : null;
   if (!AudioCtx) {
     return {
       init: () => {},
@@ -18,8 +19,18 @@ export function createAudio() {
   let ctx = null;
   let masterGain = null;
   // remembered between sessions (the pause menu's SOUND slider / MUTE, 2026-10-07)
-  const load = (k, d) => { try { const v = localStorage.getItem(k); return v === null ? d : v; } catch { return d; } };
-  const save = () => { try { localStorage.setItem('rac3r.vol', String(volume)); localStorage.setItem('rac3r.mute', muted ? '1' : '0'); } catch { /* private mode */ } };
+  const load = (key, fallback) => {
+    try {
+      const stored = localStorage.getItem(key);
+      return stored === null ? fallback : stored;
+    } catch { return fallback; }
+  };
+  const save = () => {
+    try {
+      localStorage.setItem('rac3r.vol', String(volume));
+      localStorage.setItem('rac3r.mute', muted ? '1' : '0');
+    } catch { /* private mode */ }
+  };
   let volume = Math.max(0, Math.min(1, +load('rac3r.vol', 0.5) || 0));
   let muted = load('rac3r.mute', '0') === '1';
 
@@ -48,12 +59,12 @@ export function createAudio() {
 
   // Sigmoid soft-clipping saturation curve for warm combustion rumble (eliminates harsh buzz)
   function makeSaturationCurve(amount = 8) {
-    const k = amount;
-    const n = 1024;
-    const curve = new Float32Array(n);
-    for (let i = 0; i < n; ++i) {
-      const x = (i * 2) / n - 1;
-      curve[i] = ((1 + k) * x) / (1 + k * Math.abs(x));
+    const sharpness = amount;
+    const samples = 1024;
+    const curve = new Float32Array(samples);
+    for (let i = 0; i < samples; ++i) {
+      const x = (i * 2) / samples - 1;
+      curve[i] = ((1 + sharpness) * x) / (1 + sharpness * Math.abs(x));
     }
     return curve;
   }
@@ -80,8 +91,8 @@ export function createAudio() {
         const unlock = () => {
           if (ctx && ctx.state === 'suspended') ctx.resume().catch(() => {});
         };
-        for (const ev of ['click', 'touchstart', 'touchend', 'pointerdown', 'keydown']) {
-          window.addEventListener(ev, unlock, { passive: true });
+        for (const evName of ['click', 'touchstart', 'touchend', 'pointerdown', 'keydown']) {
+          window.addEventListener(evName, unlock, { passive: true });
         }
       }
 
@@ -203,12 +214,14 @@ export function createAudio() {
     if (ctx.state !== 'running' || muted || volume <= 0.001) return;
 
     const now = ctx.currentTime;
-    const s = car.spec;
-    const rpm = Math.max(s.idleRpm * 0.9, car.rpm || s.idleRpm);
+    const spec = car.spec;
+    const rpm = Math.max(spec.idleRpm * 0.9, car.rpm || spec.idleRpm);
     const speed = Math.hypot(car.vx, car.vy);
 
     // Firing frequency from cylinders
-    const cyl = s.cyl || (s.id === 'muscle-rwd' ? 8 : s.id === 'tractor' ? 6 : s.id === 'track-rwd' ? 6 : 4);
+    const cyl = spec.cyl
+      || (spec.id === 'muscle-rwd' ? 8
+        : spec.id === 'tractor' ? 6 : spec.id === 'track-rwd' ? 6 : 4);
     const baseFreq = (rpm / 60) * (cyl / 2);
 
     // Smooth engine pitch glide
@@ -217,19 +230,20 @@ export function createAudio() {
     oscSub.frequency.setTargetAtTime(baseFreq * 0.5, now, 0.05);
 
     // Throttle load opens acoustic intake filter
-    const throttle = Math.max(0, Math.min(1, car.gear < 0 ? (car.brakeLight || 0) : (car.in ? car.in.throttle : 0)));
-    const filterTarget = 240 + (rpm / s.redline) * 1100 + throttle * 1200;
+    const throttle = Math.max(0, Math.min(1,
+      car.gear < 0 ? (car.brakeLight || 0) : (car.in ? car.in.throttle : 0)));
+    const filterTarget = 240 + (rpm / spec.redline) * 1100 + throttle * 1200;
     engineFilter.frequency.setTargetAtTime(filterTarget, now, 0.06);
 
-    const targetGain = 0.22 + (rpm / s.redline) * 0.18 + throttle * 0.24;
+    const targetGain = 0.22 + (rpm / spec.redline) * 0.18 + throttle * 0.24;
     engineGain.gain.setTargetAtTime(targetGain, now, 0.04);
 
     // --- 2. RESPONSIVE TYRE SCREECH (From Turning, Braking, and Burnouts) ---
     // Reads telemetry `car.t` (rule 10: live physical state)
-    const t = car.t || {};
-    const latSlip = Math.max(Math.abs(t.satF || 0), Math.abs(t.satR || 0));
-    const longSlip = Math.max(Math.abs(t.slipSpeedF || 0), Math.abs(t.slipSpeedR || 0));
-    const isLocked = Boolean(t.lockedF || t.lockedR);
+    const telem = car.t || {};
+    const latSlip = Math.max(Math.abs(telem.satF || 0), Math.abs(telem.satR || 0));
+    const longSlip = Math.max(Math.abs(telem.slipSpeedF || 0), Math.abs(telem.slipSpeedR || 0));
+    const isLocked = Boolean(telem.lockedF || telem.lockedR);
     const isBraking = isLocked || ((car.brakeLight || 0) > 0.05 && longSlip > 1.2);
 
     // Demand: 1.0 = full friction limit reached
@@ -240,7 +254,10 @@ export function createAudio() {
     );
 
     const surfId = car.surface ? car.surface.id : 'tarmac';
-    const isLoose = surfId === 'gravel' || surfId === 'rally' || surfId === 'dirt' || surfId === 'mud' || surfId === 'grass' || surfId === 'grassShort' || surfId === 'grassLong' || surfId === 'snow' || surfId === 'sand' || surfId === 'thickMud';
+    const isLoose = surfId === 'gravel' || surfId === 'rally' || surfId === 'dirt'
+      || surfId === 'mud' || surfId === 'grass' || surfId === 'grassShort'
+      || surfId === 'grassLong' || surfId === 'snow' || surfId === 'sand'
+      || surfId === 'thickMud';
 
     // Screech activates when cornering hard (>0.62) or braking (>0.50)
     const squealThresh = isLoose ? 0.70 : 0.62;
@@ -297,8 +314,8 @@ export function createAudio() {
     bumpGain.gain.setTargetAtTime(targetBump, now, 0.03);
   }
 
-  function setVolume(v) {
-    volume = Math.max(0, Math.min(1, v));
+  function setVolume(level) {
+    volume = Math.max(0, Math.min(1, level));
     save();
     if (masterGain && ctx) {
       masterGain.gain.setTargetAtTime(muted ? 0.0 : volume, ctx.currentTime, 0.02);
