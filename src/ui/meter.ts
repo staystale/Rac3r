@@ -8,8 +8,11 @@
 // or was cancelled that frame (touches), one row higher; GREEN = the highway's road window slid
 // that frame (stepHighway extended the road), one more row up; CYAN = the overview was repainted
 // that frame (endless levels), the top row. The last text lines count the drops near a tile /
-// near a touch (in that frame or the 2 before), and the drops after a slide / after an overview
-// (in that frame or within the 500 ms before it).
+// near a touch (in that frame or the 2 before), and the drops after an overview (in that frame
+// or within the 500 ms before it). Every counted drop is also put in a bucket by the time since
+// the last highway slide (this frame included): <0.5 s, 0.5-1 s, 1-2 s, 2-3 s, 3-5 s, 5 s+,
+// or none (no slide yet). It shows whether drops come with a delay after a slide (garbage
+// collection). The bucket line is split over 2 text lines to fit 390 px wide.
 // highway.js and camera.ts call meterEvent(); main.js takes the counts once per frame.
 
 const pending = { slide: 0, overview: 0 };
@@ -36,21 +39,32 @@ export type FrameRec = {
 const KEEP = 240;      // frames kept for the numbers
 const BARS = 120;      // frames drawn as bars
 const EVERY = 15;      // the stats are recomputed every this many frames
-const AFTER_MS = 500;   // a drop this soon after a slide / overview repaint counts as after it
+const AFTER_MS = 500;   // a drop this soon after an overview repaint counts as after it
+const NO_SLIDE = 1e9;   // start value of the ms since a slide: no slide has happened yet
 const DROP_MS = 25;    // a frame longer than this missed a 60 Hz beat: a drop
 const FULL_MS = 40;    // bar graph: this many ms = full height
 // CSS px: below the HUD's button rows (top 12 + 34, second row on a phone 34 + 6, help row 3)
-const BOX_X = 12, BOX_Y = 132, BOX_W = 360, BOX_H = 162;
+const BOX_X = 12, BOX_Y = 132, BOX_W = 360, BOX_H = 176;
 const GRAPH_Y = 4, GRAPH_H = 52, GRAPH_X = 20, BAR_W = 2;
+
+// Bucket of the ms since the last slide: 0 <.5s, 1 .5-1s, 2 1-2s, 3 2-3s, 4 3-5s, 5 5s+, 6 none.
+function slideBucket(msec: number): number {
+  if (msec >= NO_SLIDE) return 6;
+  if (msec < 500) return 0;
+  if (msec < 1000) return 1;
+  if (msec < 2000) return 2;
+  return msec < 3000 ? 3 : msec < 5000 ? 4 : 5;
+}
 
 // Running totals since the meter was created (never reset). The tiles of the last 3 frames are
 // kept in plain number variables: a drop "near a tile" had tiles in this frame or the 2 before.
 // The same for touches. For slides and overviews the ms since the last one are kept (sum of the
 // frame dt, this frame included): a drop is "after" one if it is under AFTER_MS.
 function createTotals() {
-  let millis = 0, drops = 0, near = 0, nearTouch = 0, afterSlide = 0, afterOv = 0;
+  let millis = 0, drops = 0, near = 0, nearTouch = 0, afterOv = 0;
   let prev1 = 0, prev2 = 0, touch1 = 0, touch2 = 0;
-  let sinceSlide = 1e9, sinceOv = 1e9;
+  let sinceSlide = NO_SLIDE, sinceOv = 1e9;
+  const slideBk = new Float64Array(7);   // drops per bucket of ms since a slide
   return {
     add(frameMs: number, tiles: number, touches: number, moving: boolean,
       slide: number, overview: number): void {
@@ -62,7 +76,7 @@ function createTotals() {
           drops++;
           if (tiles > 0 || prev1 > 0 || prev2 > 0) near++;
           if (touches > 0 || touch1 > 0 || touch2 > 0) nearTouch++;
-          if (sinceSlide <= AFTER_MS) afterSlide++;
+          slideBk[slideBucket(sinceSlide)]++;
           if (sinceOv <= AFTER_MS) afterOv++;
         }
       }
@@ -73,8 +87,9 @@ function createTotals() {
       const secs = millis / 1000;
       const perMin = secs > 0 ? drops / secs * 60 : 0;
       return [`driving ${Math.round(secs)} s: drops ${drops} (${perMin.toFixed(1)}/min)`,
-        `near a tile ${near}, near a touch ${nearTouch}`,
-        `after a slide ${afterSlide}, after an overview ${afterOv}`];
+        `near a tile ${near}, near a touch ${nearTouch}, after an overview ${afterOv}`,
+        `since slide: <.5s ${slideBk[0]}, .5-1s ${slideBk[1]}, 1-2s ${slideBk[2]},`,
+        `2-3s ${slideBk[3]}, 3-5s ${slideBk[4]}, 5s+ ${slideBk[5]}, none ${slideBk[6]}`];
     },
   };
 }
@@ -102,7 +117,7 @@ export function createMeter() {
   const slideBuf = new Float64Array(KEEP), ovBuf = new Float64Array(KEEP);
   const touchBuf = new Float64Array(KEEP), sorted = new Float64Array(KEEP);
   let head = 0, count = 0, sinceStats = EVERY;
-  const lines = ['', '', '', '', '', '', ''];
+  const lines = ['', '', '', '', '', '', '', ''];
   const totals = createTotals();
 
   function add(rec: FrameRec): void {
@@ -138,7 +153,7 @@ export function createMeter() {
     lines[3] = `worst: sim ${fix1(sims[worst])} draw ${fix1(draws[worst])}` +
       ` other ${fix1(Math.max(0, dts[worst] - sims[worst] - draws[worst]))}` +
       ` steps ${stepsBuf[worst]} tiles ${tilesBuf[worst]} touch ${touchBuf[worst]}`;
-    [lines[4], lines[5], lines[6]] = totals.text();
+    [lines[4], lines[5], lines[6], lines[7]] = totals.text();
   }
 
   function draw(ctx: CanvasRenderingContext2D, width: number, height: number): void {
