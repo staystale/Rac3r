@@ -109,8 +109,6 @@
     "max-lines-per-function": 1
   },
   "src/render/camera.ts": {
-    "id-length": 38,
-    "max-len": 53,
     "max-lines-per-function": 1
   },
   "src/render/cardamage.ts": {
