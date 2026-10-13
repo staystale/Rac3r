@@ -119,6 +119,14 @@ Phases:
     kind of drawing: 0 drops/min with no fingers down, 64 touching with no handlers, 22 with the
     game's touch handling, 11 without its touch blockers. The blockers stay (they fix iOS stuck
     controls).
+  - HIGHWAY JUDDER (2026-10-13, hands-off phone tests with ?meter=1&autopilot=1): about 6 dropped
+    frames per km of NEW highway at any speed (80 / 120 / 220 km/h), flat over 6 km (no leak);
+    circuits 0. Cleared: drawing (?skip=world,ground,hud still drops), ground tiles (?tilepx=512,
+    ?tilegpu), the road slide (meter timing), the terrain cache drop (?nonat=1), storage writes
+    (task 117), AI / traffic, memory churn (?churn= on a circuit). Heap check: no leak, the highway
+    allocates less per km than a circuit. Verdict: inside Safari / WebKit, not our code. Reports:
+    docs/judder-highway.md, docs/judder-assessment.md. Test switches kept for the app / rebuild
+    work: ?meter=1, ?autopilot=1|<kmh>, ?skip=, ?churn=, ?nonat=1.
   - The one cast left: ai/circuit.ts "level as unknown as HighwayLevel" (a level type; goes when
     highway.js is converted).
 
@@ -495,6 +503,9 @@ BUILD ORDER (Claude, 2026-10-04; user: "levels and events first", "make sure tha
                    APP PLAN (owner, 2026-10-13): after the overhaul. 1) app wrapper (e.g. Capacitor, M),
                    measure the judder with ?meter=1; 2) only if it still judders, native touch input
                    passed to the game (M). A fully native rewrite (L) is not recommended.
+                   HIGHWAY REBUILD (owner, 2026-10-13): later, build a NEW endless-highway version
+                   designed from the ground up not to judder, phone-tested as it is built (the
+                   feature is a key selling point). Start from the two judder reports.
               AI DESIGN NOTES (the record the user asked for: "keep clear record of that convo about ai behaviour"). Add to it each round.
                 AGREED SO FAR (user, 2026-10-06): racing line + awareness / avoidance; per-racer personality; "try hard to win", let chaos
                   happen; crashes fine if they feel real. BUDGET: low difficulty ~10+ incidents per 3-lap race, hard <= 5. "fast ... know
