@@ -211,10 +211,6 @@
     "complexity": 1,
     "max-lines-per-function": 1
   },
-  "src/world/levels/castle-cum.ts": {
-    "id-length": 47,
-    "max-len": 75
-  },
   "src/world/levels/grass-track.ts": {
     "complexity": 1
   },
