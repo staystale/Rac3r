@@ -231,10 +231,6 @@
     "id-length": 80,
     "max-len": 39
   },
-  "src/world/surfaces.ts": {
-    "id-length": 2,
-    "max-len": 78
-  },
   "src/world/terrain.ts": {
     "complexity": 1,
     "id-length": 106,
