@@ -94,9 +94,8 @@
   "src/render.ts": {
     "@typescript-eslint/no-unused-vars": 6,
     "complexity": 1,
-    "id-length": 47,
-    "max-len": 51,
-    "max-lines-per-function": 1
+    "id-length": 2,
+    "max-lines-per-function": 2
   },
   "src/render/camera.ts": {
     "max-lines-per-function": 1
