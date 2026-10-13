@@ -39,8 +39,8 @@ const LANE_COLS = ['#c8302c', '#2b56b5', '#d6a21e', '#2f5d3a', '#3a3f47', '#2f6f
 // what sits at the end of a lane: a wall / grid / row per kind, centred on the lane line,
 // starting at OBJ_X
 function laneObjects(kinds: string[], y: number, laneIndex: number): Cone[] {
-  const out: Cone[] = [];
-  const col = (shift: number) => LANE_COLS[(laneIndex + shift) % LANE_COLS.length];
+  const out: Cone[] = [],
+    col = (shift: number) => LANE_COLS[(laneIndex + shift) % LANE_COLS.length];
   for (const [kindIndex, kind] of kinds.entries()) {
     // the second kind of a mixed lane sits 14 m further on
     const startX = OBJ_X + kindIndex * 14;
@@ -57,9 +57,8 @@ function laneObjects(kinds: string[], y: number, laneIndex: number): Cone[] {
         for (let row = 0; row < 4; row++)
           out.push({ kind: 'tyre', x: startX + column * 3, y: y - 4.5 + row * 3 });
     } else if (kind === 'bale') {
-      for (let row = 0; row < 6; row++) {
+      for (let row = 0; row < 6; row++)
         out.push({ kind: 'bale', x: startX, y: y - 4.2 + row * 1.7 });
-      }
       out.push(
         { kind: 'bale', x: startX + 8, y: y - 1 },
         { kind: 'bale', x: startX + 8, y: y + 1 },
@@ -84,21 +83,18 @@ function laneObjects(kinds: string[], y: number, laneIndex: number): Cone[] {
             rot: (column + row) * 0.9,
           });
     } else if (kind === 'cow') {
-      for (let row = 0; row < 3; row++) {
+      for (let row = 0; row < 3; row++)
         out.push({
           kind: 'cow', x: startX + (row % 2) * 3.5, y: y - 3.4 + row * 3.4, rot: row * 0.5,
         });
-      }
     } else if (kind === 'chevron') {
-      for (let row = 0; row < 4; row++) {
+      for (let row = 0; row < 4; row++)
         out.push({
           kind: 'chevron', x: startX, y: y - 3.9 + row * 2.6, rot: Math.PI / 2, col: '#c8302c',
         });
-      }
     } else if (kind === 'flag') {
-      for (let row = 0; row < 3; row++) {
+      for (let row = 0; row < 3; row++)
         out.push({ kind: 'flag', x: startX, y: y - 3.5 + row * 3.5, col: col(row) });
-      }
     } else if (kind === 'tapepost') {
       for (const [tapeIndex, dx] of [[0, 0], [1, 8]])
         for (let row = 0; row < 5; row++)

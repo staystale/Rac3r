@@ -37,9 +37,8 @@ export function trackKit(sub: Subtrack, seed: number, lanes: Lane[] = []): Track
     const out: Bump[] = [];
     for (let step = 0; step <= span(from, end); step += 4) {
       const point = pointAt(from + step, off);
-      if (clear(point.x, point.y, radius + 2)) {
+      if (clear(point.x, point.y, radius + 2))
         out.push({ kind: 'hump', x: point.x, y: point.y, r: radius, h: height });
-      }
     }
     return out;
   };
@@ -95,16 +94,15 @@ export function rxDress(
         rot: onTrack(sub, ((dist % sub.totalDist) + sub.totalDist) % sub.totalDist, 0, {}).rot,
       });
     }
-    for (const offset of [-1, 0, 1]) {
+    for (const offset of [-1, 0, 1])
       for (const row of [0, 1]) {
         const point = smoothOnTrack(
           sub, mid + offset * 0.95, -outS * (halfWidth + 2.5 + row * 0.95));
         add({ x: point.x, y: point.y, kind: 'tyrestack' });
       }
-    }
   }
-  for (const [from, end] of lined) {
-    for (let dist = from; dist <= end; dist += 4.4) {
+  for (const [from, end] of lined)
+    for (let dist = from; dist <= end; dist += 4.4)
       for (const side of [-1, 1]) {
         const point = smoothOnTrack(sub, dist, side * (halfWidth + 4.5));
         add({
@@ -114,8 +112,6 @@ export function rxDress(
           rot: onTrack(sub, ((dist % sub.totalDist) + sub.totalDist) % sub.totalDist, 0, {}).rot,
         });
       }
-    }
-  }
   return out;
 }
 
@@ -124,21 +120,21 @@ export function rxDress(
 // between the joker and the main road, every 2.1 m wherever that strip is at least 2.2 m wide
 // (so the joker's mouth and exit stay open).
 export function jokerBales(sub: Subtrack, joker: Lane, existing: Cone[]): Cone[] {
-  const halfWidth = sub.width / 2, jokerHalf = joker.width / 2;
-  const out: Cone[] = [], jokerPts = joker.pts;
+  const halfWidth = sub.width / 2, jokerHalf = joker.width / 2,
+    out: Cone[] = [], jokerPts = joker.pts;
   let acc = 0;
   for (let i = 1; i < jokerPts.length; i++) {
-    const [startX, startY] = jokerPts[i - 1], [endX, endY] = jokerPts[i];
-    const length = Math.hypot(endX - startX, endY - startY);
+    const [startX, startY] = jokerPts[i - 1], [endX, endY] = jokerPts[i],
+      length = Math.hypot(endX - startX, endY - startY);
     for (let along = acc; along < length; along += 2.1) {
-      const x = startX + (endX - startX) * along / length;
-      const y = startY + (endY - startY) * along / length;
-      const query = querySubtrack(sub, x, y), gap = query.dist - halfWidth - jokerHalf;
+      const x = startX + (endX - startX) * along / length,
+        y = startY + (endY - startY) * along / length,
+        query = querySubtrack(sub, x, y), gap = query.dist - halfWidth - jokerHalf;
       // clear of the main road's KERBS (2.4 m) too: bale centre >= 3.3 m off the road edge and
       // >= 0.9 m off the joker edge (photographed on a kerb)
       if (gap < 4.2) continue;
-      const centre = onTrack(sub, query.trackDist, 0, {}), dx = centre.x - x, dy = centre.y - y;
-      const toCentre = Math.hypot(dx, dy) || 1, shift = jokerHalf + Math.min(gap / 2, gap - 3.3);
+      const centre = onTrack(sub, query.trackDist, 0, {}), dx = centre.x - x, dy = centre.y - y,
+        toCentre = Math.hypot(dx, dy) || 1, shift = jokerHalf + Math.min(gap / 2, gap - 3.3);
       const bale = {
         x: +(x + dx / toCentre * shift).toFixed(2),
         y: +(y + dy / toCentre * shift).toFixed(2),
@@ -147,9 +143,8 @@ export function jokerBales(sub: Subtrack, joker: Lane, existing: Cone[]): Cone[]
       };
       if (![...existing, ...out].some(
         (other) => Math.hypot(other.x - bale.x, other.y - bale.y) < 1.6
-      )) {
+      ))
         out.push(bale);
-      }
     }
     acc = (acc - length) % 2.1;
     if (acc < 0) acc += 2.1;

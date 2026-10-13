@@ -73,8 +73,8 @@ export function createAutoDriver(subtrack: Subtrack) {
     state.lastDist = Math.sqrt(bestDist2);
     const speed = Math.hypot(car.vx, car.vy);
     // STANLEY steering at the front axle
-    const frontX = car.x + Math.cos(car.heading) * car.spec.lf;
-    const frontY = car.y + Math.sin(car.heading) * car.spec.lf;
+    const frontX = car.x + Math.cos(car.heading) * car.spec.lf,
+      frontY = car.y + Math.sin(car.heading) * car.spec.lf;
     let frontPoint = best || pointAt(state.d!), frontBestDist2 = Infinity;
     for (const axlePoint of pts) {
       let axleAhead = axlePoint.dist - state.d!;
@@ -97,16 +97,16 @@ export function createAutoDriver(subtrack: Subtrack) {
     // SPEED: the slowest corner in the next stretch, at the grip of the surface there
     let targetSpeed = 60;
     for (let lookAhead = 5; lookAhead < 20 + speed * 2.2; lookAhead += 4) {
-      const point = pointAt(state.d! + lookAhead);
-      const surfaceMu = groundAt(point.x, point.y).surface.mu * car.spec.mu;
+      const point = pointAt(state.d! + lookAhead),
+        surfaceMu = groundAt(point.x, point.y).surface.mu * car.spec.mu;
       const cornerSpeed = Math.sqrt(K_GRIP * surfaceMu * GRAVITY * radiusAt(state.d! + lookAhead));
       targetSpeed = Math.min(
         targetSpeed,
         Math.sqrt(cornerSpeed * cornerSpeed + 2 * K_DECEL * surfaceMu * GRAVITY * lookAhead));
     }
     state.vT = targetSpeed;
-    const slideR = Math.abs(car.t.slipR);
-    const feel = Math.max(0, 1 - Math.max(0, slideR - 0.06) / 0.10)
+    const slideR = Math.abs(car.t.slipR),
+      feel = Math.max(0, 1 - Math.max(0, slideR - 0.06) / 0.10)
       * (car.t.spinR || car.t.spinF ? 0.5 : 1);
     const throttle = speed < targetSpeed ? Math.min(1, (targetSpeed - speed) * 0.5) * feel : 0;
     const brake = speed > targetSpeed + 0.5

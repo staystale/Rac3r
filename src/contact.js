@@ -36,8 +36,8 @@ export function carContact(firstCar, secondCar) {
       ny = axisY * sign;   // n points from the first car to the second
     }
   }
-  const massA = firstCar.spec.mass, massB = secondCar.spec.mass;
-  const invMassSum = 1 / massA + 1 / massB;
+  const massA = firstCar.spec.mass, massB = secondCar.spec.mass,
+    invMassSum = 1 / massA + 1 / massB;
   // separate, split by mass (the lighter car moves more)
   firstCar.x -= nx * best * (1 / massA) / invMassSum;
   firstCar.y -= ny * best * (1 / massA) / invMassSum;
@@ -45,15 +45,15 @@ export function carContact(firstCar, secondCar) {
   secondCar.y += ny * best * (1 / massB) / invMassSum;
   // contact point: halfway between the two centres, moved onto the contact line
   const contactX = (firstCar.x + secondCar.x) / 2, contactY = (firstCar.y + secondCar.y) / 2;
-  const rax = contactX - firstCar.x, ray = contactY - firstCar.y;
-  const rbx = contactX - secondCar.x, rby = contactY - secondCar.y;
+  const rax = contactX - firstCar.x, ray = contactY - firstCar.y,
+    rbx = contactX - secondCar.x, rby = contactY - secondCar.y;
   // point velocities (v + w x r)
   const vax = firstCar.vx - firstCar.yawRate * ray, vay = firstCar.vy + firstCar.yawRate * rax;
   const vbx = secondCar.vx - secondCar.yawRate * rby, vby = secondCar.vy + secondCar.yawRate * rbx;
   const rvx = vbx - vax, rvy = vby - vay, normalSpeed = rvx * nx + rvy * ny;
   if (normalSpeed >= 0) return true;                       // already separating
-  const inertiaA = massA * (firstCar.spec.len ** 2 + firstCar.spec.wid ** 2) / 12;
-  const inertiaB = massB * (secondCar.spec.len ** 2 + secondCar.spec.wid ** 2) / 12;
+  const inertiaA = massA * (firstCar.spec.len ** 2 + firstCar.spec.wid ** 2) / 12,
+    inertiaB = massB * (secondCar.spec.len ** 2 + secondCar.spec.wid ** 2) / 12;
   const raxn = rax * ny - ray * nx, rbxn = rbx * ny - rby * nx;
   const jolt = -(1 + CAR_E) * normalSpeed
     / (invMassSum + raxn * raxn / inertiaA + rbxn * rbxn / inertiaB);
@@ -81,11 +81,9 @@ export function carContact(firstCar, secondCar) {
 // every pair once
 export function carContacts(cars) {
   let count = 0;
-  for (let i = 0; i < cars.length; i++) {
-    for (let other = i + 1; other < cars.length; other++) {
+  for (let i = 0; i < cars.length; i++)
+    for (let other = i + 1; other < cars.length; other++)
       if (carContact(cars[i], cars[other])) count++;
-    }
-  }
   return count;
 }
 
@@ -101,8 +99,8 @@ export function slipstream(cars) {
     const cosHeading = Math.cos(car.heading), sinHeading = Math.sin(car.heading);
     for (const other of cars) {
       if (other === car || other.vx * other.vx + other.vy * other.vy < DRAFT_V * DRAFT_V) continue;
-      const relX = other.x - car.x, relY = other.y - car.y;
-      const forward = relX * cosHeading + relY * sinHeading;
+      const relX = other.x - car.x, relY = other.y - car.y,
+        forward = relX * cosHeading + relY * sinHeading;
       if (forward < 3 || forward > DRAFT_LEN) continue;
       const alignment = Math.cos(other.heading) * cosHeading + Math.sin(other.heading) * sinHeading;
       if (alignment < 0.9) continue;   // same direction only
