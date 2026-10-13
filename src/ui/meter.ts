@@ -4,7 +4,10 @@
 // only with ?meter=1; without it nothing here runs. The ring buffers are allocated once: no
 // garbage per frame.
 
-export type FrameRec = { dt: number; sim: number; draw: number; steps: number; tiles: number };
+export type FrameRec = {
+  dt: number; sim: number; draw: number; steps: number; tiles: number;
+  moving: boolean;   // the player car is over 20 km/h (5.6 m/s)
+};
 
 const KEEP = 240;      // frames kept for the numbers
 const BARS = 120;      // frames drawn as bars
@@ -20,18 +23,20 @@ const GRAPH_Y = 4, GRAPH_H = 52, GRAPH_X = 20, BAR_W = 2;
 function createTotals() {
   let millis = 0, drops = 0, near = 0, prev1 = 0, prev2 = 0;
   return {
-    add(frameMs: number, tiles: number): void {
-      millis += frameMs;
-      if (frameMs > DROP_MS) {
-        drops++;
-        if (tiles > 0 || prev1 > 0 || prev2 > 0) near++;
+    add(frameMs: number, tiles: number, moving: boolean): void {
+      if (moving) {
+        millis += frameMs;
+        if (frameMs > DROP_MS) {
+          drops++;
+          if (tiles > 0 || prev1 > 0 || prev2 > 0) near++;
+        }
       }
       prev2 = prev1; prev1 = tiles;
     },
     text(): string {
       const secs = millis / 1000;
       const perMin = secs > 0 ? drops / secs * 60 : 0;
-      return `total ${Math.round(secs)} s: drops ${drops} (${perMin.toFixed(1)}/min),` +
+      return `driving ${Math.round(secs)} s: drops ${drops} (${perMin.toFixed(1)}/min),` +
         ` near a tile ${near}`;
     },
   };
@@ -50,7 +55,7 @@ export function createMeter() {
     stepsBuf[head] = rec.steps; tilesBuf[head] = rec.tiles;
     head = (head + 1) % KEEP;
     if (count < KEEP) count++;
-    sinceStats++; totals.add(rec.dt, rec.tiles);
+    sinceStats++; totals.add(rec.dt, rec.tiles, rec.moving);
   }
 
   const fix1 = (val: number) => val.toFixed(1);

@@ -1023,7 +1023,8 @@ function loop(now) {
     if (meter && mode !== 'menu') {
       const tilesNow = renderer.groundRenders, draw = performance.now() - drawT0;
       const steps = game.stepsLastFrame;
-      meter.add({ dt: frameMs, sim: meterSim, draw, steps, tiles: tilesNow - meterTiles });
+      const moving = Math.hypot(game.car.vx, game.car.vy) > 5.6;   // over 20 km/h
+      meter.add({ dt: frameMs, sim: meterSim, draw, steps, tiles: tilesNow - meterTiles, moving });
       meterTiles = tilesNow; meter.draw(renderer.ctx, renderer.W, renderer.H);
     }
   } finally {
