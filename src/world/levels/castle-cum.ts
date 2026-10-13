@@ -6,10 +6,10 @@ import { prepBumps } from "../terrain.ts";
 import { ss01, trackKit } from "./kit.ts";
 import type { Point, Lane, Zone, Paint, Prop, Subtrack } from "../types.ts";
 // =============================================================================================
-// CASTLE CUM â€” parody of Castle Combe (Wiltshire), built 2026-10-04. Track list approved
+// CASTLE CUM — parody of Castle Combe (Wiltshire), built 2026-10-04. Track list approved
 // 2026-10-03; decisions (user, 2026-10-04):
 // BIGGER scale (~1250 m lap so the chicanes keep their shape), Avon Rise crest FELT (light
-// over the top; braking there can lock â€” the real Quarry trap), all the scenery, DRY tarmac
+// over the top; braking there can lock — the real Quarry trap), all the scenery, DRY tarmac
 // + grass.
 // TRACED from the official map (art/ref/cc2.png, Wikimedia
 // "Castle_Combe_Circuit_track_map.svg" at 1280 px; 385 m = 448 px -> 0.859 m/px real) at
@@ -21,7 +21,7 @@ import type { Point, Lane, Zone, Paint, Prop, Subtrack } from "../types.ts";
 // TOWER (right, braking downhill) -> BOBBIES (chicane, 1999) -> WESTWAY / DEAN STRAIGHT ->
 // CAMP (right) -> line.
 // Corner guide: bristolpegasus.com Castle Combe turn-by-turn; scenery: the circuit's own
-// site sign (art/ref/cc4.jpg â€” it is drawn rotated 180 deg from the map) and
+// site sign (art/ref/cc4.jpg — it is drawn rotated 180 deg from the map) and
 // pistonclick.com spectator guide.
 const CC_MAP: Point[] = [
   // start / finish straight (west)
