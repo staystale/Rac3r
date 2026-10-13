@@ -173,8 +173,7 @@ export interface Rect {
   y1: number;
 }
 
-// vehicle.js is not TypeScript yet; this is the part of the car the world code touches,
-// and the real Car type will satisfy it.
+// The part of the car (vehicle.ts Car) the world code touches; the real Car satisfies it.
 export interface CarBody {
   x: number;
   y: number;
@@ -182,11 +181,11 @@ export interface CarBody {
   vy: number;
   heading: number;
   yawRate: number;
-  shake: number;
+  shake?: number;   // set by the first contact (contact.js, the clamps), never by makeCar
   spec: { len: number; wid: number; lf: number; lr: number; mass: number; trackWidth?: number };
   t: { slipSpeedF: number; slipSpeedR: number };
   air: number;
-  surface: Surface;
+  surface: Pick<Surface, 'id' | 'mu'>;   // the fields both Surface types (here and cars.ts) have
   tyreT?: number[];
   prevWheels: Wheel[] | null;   // null after a reset; stepWear sets it
   zF: number;

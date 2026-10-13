@@ -2,7 +2,7 @@
 // randomised and moved to the front, or replaced — whichever is most efficient)"; "CRASHABLE cars WITH DAMAGE; NOT racing, just driving;
 // GENTLY AVOIDING; LANE CHANGING"; "traffic in EVERY MODE and a SLIDER in test mode for DENSITY").
 //
-// Every traffic car is a REAL car (vehicle.js step, the same clamps, damage, rollover and contacts as you and the AI), driven by a dumb
+// Every traffic car is a REAL car (vehicle.ts step, the same clamps, damage, rollover and contacts as you and the AI), driven by a dumb
 // LANE DRIVER: pure pursuit on its lane line (+ a small sideways lean away from you when you are alongside), a cruise speed of
 // 90-110 km/h (the left lane slowest), FOLLOWING whatever is ahead in its path (traffic, you, the AI) at ~1 s, and braking hard when the
 // time to a collision gets short. LANE CHANGES: indicate first, then drift across — to overtake a slower car (right, else rarely left),
@@ -12,7 +12,6 @@
 // never near another car in that lane. Positions are absolute road distances, so the window moving needs nothing.
 // Measured: tools/trafficcheck.mjs.
 import { makeCar, step, reset } from './vehicle.ts';
-import type { Car } from './vehicle.ts';
 import { ROSTER } from './cars.ts';
 import { applyGround, fenceClamp, obstacleClamp } from "./world/wear.ts";
 import { barrierClamp, solidClamp } from "./world/barriers.ts";
@@ -56,12 +55,11 @@ export function createTraffic({ rnd = Math.random } = {}) {
   }
   function fresh(t: TrafficCar, s: number, lane: number, v: number) {
     const ids = VEH.filter(([id]) => ROSTER.some((r) => r.id === id)), [id] = pick(ids), pi = PAINTS.indexOf(pick(PAINTS)), [paint, trim] = PAINTS[pi];
-    // (cast: vehicle.js is JavaScript; its car is what TrafficVehicle describes)
-    const car = makeCar(id) as unknown as TrafficVehicle;
+    const car: TrafficVehicle = makeCar(id);
     car.spec = { ...car.spec, id: id + '#t' + pi, paint, trim };
     car.traffic = true; car.absOn = !!(car.spec.aids && car.spec.aids.abs); car.tcsOn = !!(car.spec.aids && car.spec.aids.tcs);
     const off = geo().centres[lane], p = roadPose(lv, s, off);
-    reset(car as unknown as Car, p.x, p.y, p.h); car.vx = Math.cos(p.h) * v; car.vy = Math.sin(p.h) * v; gearFor(car, v);
+    reset(car, p.x, p.y, p.h); car.vx = Math.cos(p.h) * v; car.vy = Math.sin(p.h) * v; gearFor(car, v);
     Object.assign(t, { car, lane, laneT: lane, laneOff: off, bias: 0, vWant: cruise(lane, geo().centres.length), s, off, vAl: v,
       ind: 0, indT: 0, think: rnd() * 0.3, keepLeftT: 0, wreck: false, deadT: 0, parked: false, kOff: null, kin: false, phys: true });
     return t;
@@ -237,7 +235,7 @@ export function createTraffic({ rnd = Math.random } = {}) {
     hit(c, v0x, v0y);
     applyGround(c, dt);
     if (rolling(c)) { stepRoll(c, dt, () => {}); t.wreck = true; }
-    else { step(c as unknown as Car, input, dt); tripCheck(c, dt); }
+    else { step(c, input, dt); tripCheck(c, dt); }
   }
   // make room: every traffic car within r m of (x, y) leaves (the player was just put back there)
   function clearAround(x: number, y: number, r: number) {

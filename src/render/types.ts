@@ -1,5 +1,7 @@
 // Shared render-layer shapes; the CARS / AI / GAME ones list only the fields the render code reads.
 import type { Level, Point, Spray } from "../world/types.ts";
+import type { Spec } from "../cars.ts";
+import type { Car } from "../vehicle.ts";
 
 // The shared view object render.ts creates.
 export interface View {
@@ -182,30 +184,16 @@ export interface RollFace {
   hh: number;
 }
 
-// What the car layers read of a car SPEC (cars.ts Spec; switched over in a later task).
-export interface RenderCarSpec {
-  id: string;
-  paint: string;
-  trim: string;
-  num?: number;      // set by the garage livery
-  kind: string;
-  lf: number;
-  lr: number;
-  len: number;
-  wid: number;
-  trackWidth?: number;
-  wheelR?: number;
-  rideH?: number;
-  rim?: string;
-}
+// What the car layers read of a car SPEC (cars.ts Spec).
+export type RenderCarSpec =
+  Pick<Spec, 'id' | 'paint' | 'trim' | 'kind' | 'lf' | 'lr' | 'len' | 'wid'>
+  & Partial<Pick<Spec, 'num' | 'trackWidth' | 'wheelR' | 'rideH' | 'rim'>>;   // num: the livery
 
-// What the car layers read of a CAR (vehicle.js, damage.js, roll.js; not converted yet).
-export interface RenderCar extends CamCar {
-  heading: number;
+// What the car layers read of a CAR (vehicle.ts Car + what damage.js / roll.js / the render
+// layers add).
+export interface RenderCar extends CamCar, Pick<Car, 'heading' | 'delta'> {
   spec: RenderCarSpec;
-  num?: number;
-  delta: number;
-  dmg?: number[];    // the next five are set together with dmg by damageInit
+  num?: number;  dmg?: number[];    // the next five are set together with dmg by damageInit
   crushL: number[];
   crushS: number[];
   roofDmg: number;

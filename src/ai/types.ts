@@ -1,6 +1,9 @@
-// The AI's shared shapes. Car and road-level shapes describe ONLY the fields src/ai/ and
-// src/highwayrace.ts read, from JavaScript not converted yet (vehicle.js, highway.js).
-import type { Lane, Spawn, Surface, Wheel } from "../world/types.ts";
+// The AI's shared shapes. Car shapes describe ONLY the fields src/ai/ and src/highwayrace.ts read
+// (types from vehicle.ts / cars.ts); road-level shapes come from JavaScript not converted yet
+// (highway.js).
+import type { Lane, Spawn } from "../world/types.ts";
+import type { Spec, Surface } from "../cars.ts";
+import type { Car, CarTelemetry } from "../vehicle.ts";
 
 // One row of DIFFICULTIES: the centre of a difficulty's spread.
 export interface Difficulty {
@@ -45,15 +48,12 @@ export interface RoadFrame {
   v: number;
 }
 
-// A car model's numbers (cars.js), the fields the AI reads.
-export interface AiSpec {
-  id: string; lf: number; L: number; mu: number; steerMax?: number; paint: string;
-  wid: number; len: number; aiK?: number;
-  drive?: number;   // cars.js: how much of the drive is at the front
-   // (circuit.ts drifts only below 0.5)
-}
+// A car model's numbers (cars.ts Spec), the fields the AI reads; the optional ones are
+// optional here because the AI is also driven by tools with plain objects.
+export type AiSpec = Pick<Spec, 'id' | 'lf' | 'L' | 'mu' | 'paint' | 'wid' | 'len'>
+  & Partial<Pick<Spec, 'steerMax' | 'aiK' | 'drive'>>;   // drive: circuit.ts drifts only below 0.5
 
-// A car (vehicle.js), the fields the AI reads.
+// A car (vehicle.ts Car), the narrow view of the fields the AI reads.
 export interface AiCar {
   x: number;
   y: number;
@@ -65,12 +65,12 @@ export interface AiCar {
   num?: number;
   dmgBill?: number;
   spec: AiSpec;
-  surface: { mu: number };
-  t: { slipR: number; slipF?: number; spinR?: number; spinF?: number };
+  surface: Pick<Surface, 'mu'>;
+  t: Pick<CarTelemetry, 'slipR'> & Partial<Pick<CarTelemetry, 'slipF' | 'spinR' | 'spinF'>>;
   _hwf?: RoadFrame | null;
-  _trOff?: number | null;   // traffic.js: the lane offset a lane-changing car is heading for
-  traffic?: boolean;   // traffic.js: a traffic car, not another racer
-  _hwS?: number;   // traffic.js: this racer's road distance last step
+  _trOff?: number | null;   // traffic.ts: the lane offset a lane-changing car is heading for
+  traffic?: boolean;   // traffic.ts: a traffic car, not another racer
+  _hwS?: number;   // traffic.ts: this racer's road distance last step
    // (the hint for its next road frame)
   _jokers?: number;   // main.js: jokers taken (the joker tactics read it)
   dragMul?: number;   // contact.js: the slipstream (1 = no tow)
@@ -308,49 +308,13 @@ export interface CircuitState extends DriveOutState {
   hbN?: number;   // drive: handbrake pulls made
 }
 
-// A car model's numbers (cars.js) that traffic.js reads to set a car's gear.
-export interface TrafficSpec extends AiSpec {
-  gears: number[];
-  lr: number;
-  mass: number;
-  wheelR: number;
-  finalDrive: number;
-  downshiftRpm: number;
-  idleRpm: number;
-  redline: number;
-  aids?: { abs?: boolean; tcs?: boolean };
-  trim?: string;   // traffic.js: the paint's darker trim
-}
-
-// A traffic car is a real car (vehicle.js) plus what traffic.js puts on it.
-// (the extra fields are the part of the car the world clamps read, world/types.ts CarBody)
-export interface TrafficVehicle extends AiCar {
-  spec: TrafficSpec;
-  surface: Surface;
-  t: AiCar["t"] & { slipSpeedF: number; slipSpeedR: number };
-  shake: number;
-  air: number;
-  prevWheels: Wheel[] | null;
-  zF: number;
-  zR: number;
-  zvF: number;
-  zvR: number;
-  groundF: number;
-  groundR: number;
-  groundVF: number;
-  groundVR: number;
-  groundInit: boolean;
-  mods: { mass: number };
-  gear: number;
-  rpm: number;
-  absOn: boolean;
-  tcsOn: boolean;
-  dmg?: number[];
-  indicator?: number;   // traffic.js: -1 / 0 / 1
-  hazard?: boolean;   // traffic.js: a wreck's hazard lights
-  brakeLight?: number;   // traffic.js
-  _p?: { x: number; y: number; h: number };   // traffic.js: where it was at the start of the step
-}
+// A traffic car is a real car (vehicle.ts makeCar) plus what traffic.ts puts on it.
+export type TrafficVehicle = Car & Pick<AiCar, 'traffic' | '_trOff' | '_hwS' | '_hwf'> & {
+  dmg?: number[];   // damage.js damageInit: the damage of the four corners
+  indicator?: number;   // traffic.ts: -1 / 0 / 1
+  hazard?: boolean;   // traffic.ts: a wreck's hazard lights
+  brakeLight?: number;   // traffic.ts
+};
 
 // One traffic slot: a live car, or (parked) a slot waiting for a free off-screen spot.
 export interface TrafficCar {
