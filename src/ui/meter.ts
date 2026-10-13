@@ -11,7 +11,7 @@ const BARS = 120;      // frames drawn as bars
 const EVERY = 15;      // the stats are recomputed every this many frames
 const FULL_MS = 40;    // bar graph: this many ms = full height
 // CSS px: below the HUD's button rows (top 12 + 34, second row on a phone 34 + 6, help row 3)
-const BOX_X = 12, BOX_Y = 132, BOX_W = 260, BOX_H = 120;
+const BOX_X = 12, BOX_Y = 132, BOX_W = 310, BOX_H = 120;
 const GRAPH_Y = 4, GRAPH_H = 52, GRAPH_X = 20, BAR_W = 2;
 
 export function createMeter() {
