@@ -908,6 +908,12 @@ function loop(now) {
     const others = [...game.ai.map((rival) => rival.car), ...game.traffic.cars];
     inp = { ...autoDrv.drive(game.car, wallDt, { cars: others, lap: 1, laps: 99 }),
       reverse: 0, shiftUp: false, shiftDown: false };
+    // ?autopilot=<kmh>: cap the speed (phone judder: highway vs speed)
+    if (settings.autopilotKmh > 0) {
+      const over = Math.hypot(game.car.vx, game.car.vy) - settings.autopilotKmh / 3.6;
+      if (over > 0) inp.throttle = 0;
+      if (over > 10 / 3.6) inp.brake = 0.3;
+    }
     autoStill = Math.hypot(game.car.vx, game.car.vy) < 2 ? autoStill + wallDt : 0;
     if (autoStill > 3) {
       autoStill = 0;

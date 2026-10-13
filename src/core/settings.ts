@@ -27,8 +27,13 @@ export interface Settings {
   meter: boolean;   // ?meter=1: on-screen frame meter (perf, phone)
   skipLayers: Set<string>;   // ?skip=props,barriers: layers not drawn (phone judder bisect)
   autopilot: boolean;   // ?autopilot=1: the AI drives the player car (phone frame tests, no touch)
+  autopilotKmh: number;   // ?autopilot=120: hold the autopilot car at this speed (0 = no cap)
 }
 
+function autopilotKmh(params: URLSearchParams): number {
+  const kmh = +(params.get('autopilot') || 0);
+  return kmh > 1 ? kmh : 0;
+}
 
 export function readSettings(search: string): Settings {
   const params = new URLSearchParams(search);
@@ -55,7 +60,8 @@ export function readSettings(search: string): Settings {
     grassEnds: params.get('grass') === 'square' ? 'square' : 'round',
     surfaceTextures: params.get('tex') !== '0',
     meter: params.get('meter') === '1',
-    autopilot: params.get('autopilot') === '1',
+    autopilot: params.get('autopilot') === '1' || autopilotKmh(params) > 0,
+    autopilotKmh: autopilotKmh(params),
     skipLayers: new Set((params.get('skip') || '').split(',').filter(Boolean)),
   };
 }
