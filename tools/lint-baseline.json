@@ -141,8 +141,6 @@
     "max-lines-per-function": 2
   },
   "src/render/particles.ts": {
-    "id-length": 41,
-    "max-len": 30,
     "max-lines-per-function": 1
   },
   "src/render/props.ts": {
