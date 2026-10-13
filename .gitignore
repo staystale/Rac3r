@@ -18,3 +18,4 @@ dist/
 Thumbs.db
 .bigeon/
 bigeon.config.json
+.samecode

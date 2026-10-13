@@ -6,14 +6,14 @@
   },
   "src/ai/circuit.ts": {
     "complexity": 2,
-    "id-length": 101,
+    "id-length": 98,
     "max-len": 157,
     "max-lines-per-function": 2,
     "no-shadow": 1
   },
   "src/ai/line.ts": {
     "complexity": 1,
-    "id-length": 135,
+    "id-length": 130,
     "max-len": 70,
     "max-lines-per-function": 1
   },
@@ -23,7 +23,7 @@
   },
   "src/ai/weaver.ts": {
     "complexity": 2,
-    "id-length": 43,
+    "id-length": 41,
     "max-len": 126,
     "max-lines-per-function": 2
   },
@@ -40,42 +40,42 @@
   },
   "src/cones.js": {
     "complexity": 7,
-    "id-length": 137,
+    "id-length": 119,
     "max-len": 94,
     "max-lines-per-function": 3,
     "no-unused-vars": 2
   },
   "src/contact.js": {
-    "id-length": 40,
+    "id-length": 36,
     "max-len": 12
   },
   "src/damage.js": {
     "complexity": 1,
-    "id-length": 30,
+    "id-length": 29,
     "max-len": 41
   },
   "src/guide.js": {
     "complexity": 1,
-    "id-length": 78,
+    "id-length": 76,
     "max-len": 60,
     "max-lines-per-function": 2,
     "no-unused-vars": 1
   },
   "src/highway.js": {
     "complexity": 4,
-    "id-length": 340,
+    "id-length": 327,
     "max-len": 262,
     "max-lines-per-function": 1,
     "no-shadow": 1
   },
   "src/highwayrace.ts": {
     "complexity": 1,
-    "id-length": 39,
+    "id-length": 38,
     "max-len": 51
   },
   "src/hud.js": {
     "complexity": 4,
-    "id-length": 162,
+    "id-length": 161,
     "max-len": 176,
     "max-lines-per-function": 3,
     "no-shadow": 1,
@@ -83,7 +83,7 @@
   },
   "src/input.js": {
     "complexity": 1,
-    "id-length": 27,
+    "id-length": 26,
     "max-len": 24,
     "max-lines-per-function": 1
   },
@@ -92,7 +92,7 @@
   },
   "src/main.js": {
     "complexity": 9,
-    "id-length": 224,
+    "id-length": 215,
     "max-len": 282,
     "max-lines": 1,
     "max-lines-per-function": 1,
@@ -101,7 +101,7 @@
   },
   "src/marks.js": {
     "complexity": 1,
-    "id-length": 26,
+    "id-length": 19,
     "max-len": 37,
     "max-lines-per-function": 1
   },
@@ -114,7 +114,7 @@
   },
   "src/raceflow.js": {
     "complexity": 1,
-    "id-length": 27,
+    "id-length": 26,
     "max-len": 34
   },
   "src/render.ts": {
@@ -150,18 +150,18 @@
   },
   "src/render/ground.ts": {
     "complexity": 2,
-    "id-length": 200,
+    "id-length": 198,
     "max-len": 151,
     "max-lines-per-function": 2
   },
   "src/render/objects.ts": {
     "complexity": 3,
-    "id-length": 92,
+    "id-length": 88,
     "max-len": 68,
     "max-lines-per-function": 2
   },
   "src/render/particles.ts": {
-    "id-length": 43,
+    "id-length": 41,
     "max-len": 30,
     "max-lines-per-function": 1
   },
@@ -173,7 +173,7 @@
   },
   "src/render/road.ts": {
     "complexity": 2,
-    "id-length": 97,
+    "id-length": 89,
     "max-len": 67,
     "max-lines-per-function": 2
   },
@@ -182,13 +182,13 @@
   },
   "src/render/tiles.ts": {
     "complexity": 2,
-    "id-length": 109,
+    "id-length": 108,
     "max-len": 114,
     "max-lines-per-function": 1
   },
   "src/roll.js": {
     "complexity": 2,
-    "id-length": 20,
+    "id-length": 18,
     "max-len": 36
   },
   "src/stagegen.js": {
@@ -204,7 +204,7 @@
   },
   "src/traffic.ts": {
     "complexity": 2,
-    "id-length": 109,
+    "id-length": 107,
     "max-len": 94,
     "max-lines-per-function": 2
   },
@@ -213,23 +213,23 @@
     "max-len": 5
   },
   "src/vehicle.ts": {
+    "@typescript-eslint/no-unused-vars": 3,
     "complexity": 2,
-    "id-length": 73,
-    "max-len": 326,
+    "id-length": 72,
+    "max-len": 325,
     "max-lines": 1,
     "max-lines-per-function": 2,
-    "no-shadow": 6,
-    "@typescript-eslint/no-unused-vars": 3
+    "no-shadow": 6
   },
   "src/world/barriers.ts": {
     "complexity": 2,
-    "id-length": 82,
+    "id-length": 74,
     "max-len": 31
   },
   "src/world/blend.ts": {
     "@typescript-eslint/no-unused-vars": 1,
     "complexity": 2,
-    "id-length": 51,
+    "id-length": 49,
     "max-len": 60
   },
   "src/world/bounds.ts": {
@@ -266,7 +266,7 @@
     "max-len": 62
   },
   "src/world/levels/kit.ts": {
-    "id-length": 63,
+    "id-length": 57,
     "max-len": 23
   },
   "src/world/levels/knobhill.ts": {
@@ -277,7 +277,7 @@
   },
   "src/world/levels/lab-extension.ts": {
     "complexity": 1,
-    "id-length": 27,
+    "id-length": 26,
     "max-len": 40
   },
   "src/world/levels/naffcar.ts": {
@@ -289,7 +289,7 @@
   },
   "src/world/levels/slidden-hill.ts": {
     "@typescript-eslint/no-unused-vars": 4,
-    "id-length": 78,
+    "id-length": 72,
     "max-len": 68
   },
   "src/world/levels/stock-car.ts": {
@@ -306,7 +306,7 @@
   },
   "src/world/load.ts": {
     "complexity": 2,
-    "id-length": 38,
+    "id-length": 36,
     "max-len": 35
   },
   "src/world/state.ts": {
@@ -315,7 +315,7 @@
   "src/world/subtrack.ts": {
     "@typescript-eslint/no-unused-vars": 1,
     "complexity": 2,
-    "id-length": 82,
+    "id-length": 80,
     "max-len": 39
   },
   "src/world/surfaces.ts": {
@@ -324,23 +324,23 @@
   },
   "src/world/terrain.ts": {
     "complexity": 1,
-    "id-length": 110,
+    "id-length": 106,
     "max-len": 69
   },
   "src/world/tyrewall.ts": {
     "complexity": 1,
-    "id-length": 50,
+    "id-length": 45,
     "max-len": 25
   },
   "src/world/wear.ts": {
     "complexity": 2,
-    "id-length": 107,
+    "id-length": 98,
     "max-len": 125,
     "no-shadow": 1
   },
   "src/world/zones.ts": {
     "complexity": 1,
-    "id-length": 36,
+    "id-length": 28,
     "max-len": 16
   }
 }

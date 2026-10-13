@@ -3,7 +3,7 @@ import tsParser from "@typescript-eslint/parser";
 import tsPlugin from "@typescript-eslint/eslint-plugin";
 
 const rules = {
-  "id-length": ["error", { min: 3, exceptions: ["x", "y", "z", "i", "j"], properties: "never" }],
+  "id-length": ["error", { min: 3, exceptions: ["x", "y", "z", "i", "j", "dx", "dy", "dt", "vx", "vy", "nx", "ny"], properties: "never" }],
   "no-undef": "error",
   "no-shadow": "error",
   "max-lines": ["error", 800],
