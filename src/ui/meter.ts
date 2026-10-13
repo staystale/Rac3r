@@ -9,24 +9,48 @@ export type FrameRec = { dt: number; sim: number; draw: number; steps: number; t
 const KEEP = 240;      // frames kept for the numbers
 const BARS = 120;      // frames drawn as bars
 const EVERY = 15;      // the stats are recomputed every this many frames
+const DROP_MS = 25;    // a frame longer than this missed a 60 Hz beat: a drop
 const FULL_MS = 40;    // bar graph: this many ms = full height
 // CSS px: below the HUD's button rows (top 12 + 34, second row on a phone 34 + 6, help row 3)
-const BOX_X = 12, BOX_Y = 132, BOX_W = 310, BOX_H = 120;
+const BOX_X = 12, BOX_Y = 132, BOX_W = 360, BOX_H = 134;
 const GRAPH_Y = 4, GRAPH_H = 52, GRAPH_X = 20, BAR_W = 2;
+
+// Running totals since the meter was created (never reset). The tiles of the last 3 frames are
+// kept in plain number variables: a drop "near a tile" had tiles in this frame or the 2 before.
+function createTotals() {
+  let millis = 0, drops = 0, near = 0, prev1 = 0, prev2 = 0;
+  return {
+    add(frameMs: number, tiles: number): void {
+      millis += frameMs;
+      if (frameMs > DROP_MS) {
+        drops++;
+        if (tiles > 0 || prev1 > 0 || prev2 > 0) near++;
+      }
+      prev2 = prev1; prev1 = tiles;
+    },
+    text(): string {
+      const secs = millis / 1000;
+      const perMin = secs > 0 ? drops / secs * 60 : 0;
+      return `total ${Math.round(secs)} s: drops ${drops} (${perMin.toFixed(1)}/min),` +
+        ` near a tile ${near}`;
+    },
+  };
+}
 
 export function createMeter() {
   const dts = new Float64Array(KEEP), sims = new Float64Array(KEEP), draws = new Float64Array(KEEP);
   const stepsBuf = new Float64Array(KEEP), tilesBuf = new Float64Array(KEEP);
   const sorted = new Float64Array(KEEP);
   let head = 0, count = 0, sinceStats = EVERY;
-  const lines = ['', '', '', ''];
+  const lines = ['', '', '', '', ''];
+  const totals = createTotals();
 
   function add(rec: FrameRec): void {
     dts[head] = rec.dt; sims[head] = rec.sim; draws[head] = rec.draw;
     stepsBuf[head] = rec.steps; tilesBuf[head] = rec.tiles;
     head = (head + 1) % KEEP;
     if (count < KEEP) count++;
-    sinceStats++;
+    sinceStats++; totals.add(rec.dt, rec.tiles);
   }
 
   const fix1 = (val: number) => val.toFixed(1);
@@ -50,7 +74,9 @@ export function createMeter() {
       `  draw avg ${fix1(sumDraw / count)} ms`;
     lines[2] = `steps avg ${fix1(sumSteps / count)} max ${maxSteps}   tiles ${nTiles}`;
     lines[3] = `worst: sim ${fix1(sims[worst])} draw ${fix1(draws[worst])}` +
+      ` other ${fix1(Math.max(0, dts[worst] - sims[worst] - draws[worst]))}` +
       ` steps ${stepsBuf[worst]} tiles ${tilesBuf[worst]}`;
+    lines[4] = totals.text();
   }
 
   function draw(ctx: CanvasRenderingContext2D, width: number, height: number): void {
