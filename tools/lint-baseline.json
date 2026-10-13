@@ -228,9 +228,7 @@
     "@typescript-eslint/no-unused-vars": 4
   },
   "src/world/levels/thruston.ts": {
-    "@typescript-eslint/no-unused-vars": 1,
-    "id-length": 49,
-    "max-len": 81
+    "@typescript-eslint/no-unused-vars": 1
   },
   "src/world/load.ts": {
     "complexity": 2
