@@ -193,8 +193,7 @@
   "src/world/blend.ts": {
     "@typescript-eslint/no-unused-vars": 1,
     "complexity": 2,
-    "id-length": 49,
-    "max-len": 60
+    "max-len": 5
   },
   "src/world/levels/brands-snatch.ts": {
     "complexity": 1,
