@@ -5,7 +5,7 @@
 //
 // Added 2026-10-03 for the pixel-art pass: every sprite change is reviewed on this sheet before it ships.
 import { chromium } from 'file:///C:/Users/Admin/Desktop/G/GamesStudio/BitterTrade/node_modules/playwright/index.mjs';
-import { CAR_IDS } from '../src/cars.js';
+import { CAR_IDS } from '../src/cars.ts';
 import { fileURLToPath } from 'node:url';
 
 // fileURLToPath, not .pathname: the folder has a space, and .pathname kept it as %20 (wrote to a literal "car%20sim")
@@ -27,7 +27,7 @@ const raw = await (async () => {
   const p = await (await b.newContext({ viewport: { width: 400, height: 300 } })).newPage();
   await p.goto('http://localhost:8080/?pc=1'); await p.waitForTimeout(500);
   const res = await p.evaluate(async (ids) => {
-    const { spec } = await import('/src/cars.js'); const R = window.__game.renderer;
+    const { spec } = await import('/src/cars.ts'); const R = window.__game.renderer;
     return ids.map((id) => { const s = R.pixelCar(spec(id)), k = 6, c = document.createElement('canvas'); c.width = s.c.width * k; c.height = s.c.height * k;
       const g = c.getContext('2d'); g.imageSmoothingEnabled = false; g.fillStyle = '#7f9f62'; g.fillRect(0, 0, c.width, c.height); g.drawImage(s.c, 0, 0, c.width, c.height); return [id, c.toDataURL()]; });
   }, CAR_IDS);

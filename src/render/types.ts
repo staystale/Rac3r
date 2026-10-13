@@ -182,7 +182,7 @@ export interface RollFace {
   hh: number;
 }
 
-// What the car layers read of a car SPEC (cars.js; not converted yet).
+// What the car layers read of a car SPEC (cars.ts Spec; switched over in a later task).
 export interface RenderCarSpec {
   id: string;
   paint: string;

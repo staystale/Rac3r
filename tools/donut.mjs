@@ -5,7 +5,7 @@
 //
 // A donut is sustained when the rear stays sliding and the car keeps yawing, for seconds, not a moment.
 import { makeCar, step, reset, neutralInput, DT } from '../src/vehicle.js';
-import { CAR_IDS } from '../src/cars.js';
+import { CAR_IDS } from '../src/cars.ts';
 
 function donut(id, powerMul) {
   const car = makeCar(id);

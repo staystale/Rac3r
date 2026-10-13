@@ -4,7 +4,7 @@
 import { makeCar, step, reset, DT } from '../src/vehicle.js';
 import * as L from '../src/lab.js';
 import { createAutoDriver } from '../src/ai/autodrive.ts';
-import { CAR_IDS } from '../src/cars.js';
+import { CAR_IDS } from '../src/cars.ts';
 const lv = process.argv[2] || 'castle-cum';
 const wins = (process.argv[3] || '270-330,815-905').split(',').map((w) => w.split('-').map(Number));
 const FLAT = process.argv.includes('--flat');   // FLAT OUT from 120 m before each window (a keen player arrives faster than the careful driver)

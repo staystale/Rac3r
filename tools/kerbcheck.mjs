@@ -17,7 +17,7 @@ import { applyGround as edge, FLOOR, KERB_W, FENCE, LEVELS, setLevel, SURFACES }
 { const lab = LEVELS.find((l) => l.id === 'lab');   // the old lab's quarters + its blend / inclusion patches; no extension, no bounds
   LEVELS.push({ id: 'edge-test', name: 'edge', base: SURFACES.lab, zones: lab.zones.filter((z) => !z.ext), bumps: [], paint: [], boards: [], cones: [], props: [], spawn: { x: 0, y: 0, heading: 0 }, _blend: lab._blend, _incl: lab._incl, _coversBase: lab._coversBase });
   setLevel('edge-test'); }
-import { CAR_IDS } from '../src/cars.js';
+import { CAR_IDS } from '../src/cars.ts';
 
 
 // Approach the south kerb at `v` m/s, `deg` off perpendicular, doing `extra` throughout.

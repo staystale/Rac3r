@@ -3,7 +3,7 @@
 import { makeCar, step, reset, DT } from '../src/vehicle.js';
 import * as L from '../src/lab.js';
 import { createAutoDriver } from '../src/ai/autodrive.ts';
-import { CAR_IDS } from '../src/cars.js';
+import { CAR_IDS } from '../src/cars.ts';
 const lv = process.argv[2] || 'sweaty-lamb';
 L.setLevel(lv);
 const st = L.LEVEL.subtrack, F = L.LEVEL.stage.finish, hw = st.width / 2;

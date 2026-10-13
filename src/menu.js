@@ -9,7 +9,7 @@
 //   api.launch(level, car)    start a Test Mode session
 //   api.carSprite(id)   -> canvas of the generated pixel car
 import { LEVELS } from "./world/levels/index.ts";
-import { ROSTER, CLASSES, classOf, PALETTE, TYRES, TYRE_BRANDS, TYRE_SURFS, tyreOf } from './cars.js';
+import { ROSTER, CLASSES, classOf, PALETTE, TYRES, TYRE_BRANDS, TYRE_SURFS, tyreOf } from './cars.ts';
 import { THEMES, LENGTHS } from './stagegen.js';
 import { CAR_STATS } from './carstats.js';
 import { TEST_LIST } from './testlist.js';

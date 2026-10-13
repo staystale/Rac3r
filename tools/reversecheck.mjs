@@ -11,7 +11,7 @@
 //       MEASURED 2026-10-03: 5.5 -> 5.4 m/s in 1 s, both directions)
 //   5. reversing, press GAS               -> must stop, then drive forwards
 import { makeCar, step, reset, neutralInput, DT } from '../src/vehicle.js';
-import { CAR_IDS } from '../src/cars.js';
+import { CAR_IDS } from '../src/cars.ts';
 
 const ramp = (held) => Math.min(1, 0.26 + 0.74 * (held / 0.50));
 function sim(id, v0, phases) {

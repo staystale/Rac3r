@@ -11,7 +11,7 @@
 // Bicycle model, per-axle friction ellipse. Body-frame integration with centripetal terms, which is
 // more stable near the limit than integrating in world frame and rotating back.
 
-import { GRAVITY, defaultMods, SURFACE_LAB, spec } from './cars.js';
+import { GRAVITY, defaultMods, SURFACE_LAB, spec } from './cars.ts';
 
 export const DT = 1 / 120;
 

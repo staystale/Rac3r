@@ -11,7 +11,7 @@
 // grip-versus-slip-angle curve on each surface, not just its maximum.
 import { makeCar, step, reset, neutralInput, DT } from '../src/vehicle.js';
 import { SURFACES, groundAt, applyGround, ZONES, FLOOR, FENCE, FY1 } from '../src/lab.js';
-import { CAR_IDS } from '../src/cars.js';
+import { CAR_IDS } from '../src/cars.ts';
 
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
 

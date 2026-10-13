@@ -4,7 +4,7 @@
 // node tools/tyregrip.mjs [car] [tyre,tyre,...]
 import { makeCar, step, reset, DT } from '../src/vehicle.js';
 import { SURFACES } from '../src/lab.js';
-import { TYRES, applyTyre } from '../src/cars.js';
+import { TYRES, applyTyre } from '../src/cars.ts';
 const car = process.argv[2] || 'hatch-rwd', BETA = 0.2;
 const list = process.argv[3] ? process.argv[3].split(',') : TYRES.map((t) => t.id);
 const surfs = ['tarmac', 'wet', 'gravel', 'dirt', 'grass', 'mud', 'sand', 'snow', 'ice'];

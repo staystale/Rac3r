@@ -7,7 +7,7 @@
 // If the simulation does not reproduce these at small slip angles, something is wrong in the rig
 // itself and no amount of tuning will fix it. This is the test that says "the physics is right".
 import { makeCar, step, reset, neutralInput, DT, TUNE } from '../src/vehicle.js';
-import { CAR_IDS } from '../src/cars.js';
+import { CAR_IDS } from '../src/cars.ts';
 const G = 9.81;
 
 // Use a small steering INPUT and read back the road-wheel angle the model actually settled on, then

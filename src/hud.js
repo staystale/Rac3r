@@ -11,7 +11,7 @@
 // Buttons are DATA so hit-testing and drawing read the same geometry. Two copies of a rect is how a
 // button ends up visually somewhere its tap is not.
 
-import { ROSTER, CAR_IDS } from './cars.js';
+import { ROSTER, CAR_IDS } from './cars.ts';
 import { LEVELS } from "./world/levels/index.ts";
 import { LEVEL } from "./world/state.ts";
 import { COL } from "./world/colours.ts";

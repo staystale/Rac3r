@@ -12,7 +12,7 @@
 
 import { makeCar, step, reset, assertFinite, DT } from '../src/vehicle.js';
 import { applyGround } from '../src/lab.js';
-import { CAR_IDS } from '../src/cars.js';
+import { CAR_IDS } from '../src/cars.ts';
 
 const AIR_INPUTS = {
   brake:      { throttle: 0, brake: 1, handbrake: false, steer: 0 },

@@ -12,7 +12,7 @@
 //   node tools/probe.mjs hatch-rwd  one car
 
 import { makeCar, step, reset, assertFinite, neutralInput, DT } from '../src/vehicle.js';
-import { CAR_IDS } from '../src/cars.js';
+import { CAR_IDS } from '../src/cars.ts';
 
 const clamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);
 

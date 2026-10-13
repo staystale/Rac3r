@@ -10,13 +10,55 @@
 // Izz is computed, not authored: mass*(len^2 + wid^2)/12.
 // Torque curves are 7-point tables, not a single peak — the shape is what makes gearing matter.
 
+import type { Mark, Spray } from './world/types.ts';
+
 export const GRAVITY = 9.81;
 
 // mods — THE ONLY SEAM between the game layer and the physics (CLAUDE.md rule 6).
 // Every entry defaults to a no-op, so a stock car drives exactly as it did before upgrades existed.
 // Nothing in vehicle.js may read a part name, an archetype or a pip. Slice 1 never sets any of these;
 // they exist so slice 3 is an afternoon instead of a rewrite.
-export function defaultMods() {
+// What defaultMods() returns: eight multipliers, 1 = no-op.
+export interface Mods {
+  power: number; shiftTime: number; inertia: number; gripLat: number;
+  gripLong: number; brakeTorque: number; mass: number; rigidity: number;
+}
+
+// A surface as the physics reads it (SURFACE_LAB, and the entries built in src/world/surfaces.ts).
+export interface Surface {
+  id: string; mu: number; plough: number; hard: boolean;
+  label?: string; peakK?: number; longK?: number; rough?: number;
+  mark?: Mark | null; spray?: Spray | null; coolK?: number; heatK?: number; under?: string;
+}
+
+// A torque table: [rpm, Nm] points.
+export type Curve = [number, number][];
+
+// One tyre model: its grip multipliers per surface and its optional heat-window fields.
+export interface Tyre {
+  id: string; brand: string; name: string; price: number; fits: string[];
+  grip: Record<string, number>; bySurf?: Record<string, number>;
+  opt?: [number, number]; peak?: number; cold?: number; slide?: number; heatHard?: number;
+  note?: string;
+}
+
+// One ROSTER entry: the fields every car states, and the optional ones only some cars state.
+export interface RosterRow {
+  id: string; name: string; kind: string; cls: string; sub: string;
+  cg: number; rideH: number; aids?: { abs: boolean; tcs: boolean };
+  mass: number; lf: number; lr: number; len: number; wid: number;
+  drive: number; brakeBiasF: number; caF: number; caR: number; mu: number;
+  curve: Curve; redline: number; upshiftRpm: number; downshiftRpm: number;
+  gears: number[]; finalDrive: number; dragC: number;
+  paint: string; trim: string; glass: string;
+  izzK?: number; rim?: string; aiK?: number; aeroK?: number; downforceF?: number;
+  downforceR?: number;
+  susF?: number; susZ?: number; trackWidth?: number; tyreWidth?: number; idleRpm?: number;
+  wheelR?: number; cyl?: number; steerMax?: number;
+  tyreOpt?: [number, number]; tyrePeak?: number; tyreColdGrip?: number;
+}
+
+export function defaultMods(): Mods {
   return {
     power: 1.0,        // engine torque multiplier
     shiftTime: 1.0,    // gearbox: <1 is faster
@@ -31,7 +73,7 @@ export function defaultMods() {
 
 // surface — A6. One multiplier into the grip term, defaulting to a no-op. The lab floor is the only
 // surface this slice; adding it later would mean re-tuning every number in the bench grid.
-export const SURFACE_LAB = { id: 'lab', mu: 1.0, plough: 0, hard: true };
+export const SURFACE_LAB: Surface = { id: 'lab', mu: 1.0, plough: 0, hard: true };
 
 // Shared defaults (PLAN.md). Anything a car does not state comes from here.
 const SHARED = {
@@ -104,31 +146,32 @@ const SHARED = {
 };
 
 // Curve shape borrowed from the hatch and scaled/shifted per car (PLAN.md).
-const CURVE_HATCH  = [[900, 313], [2000, 430], [3000, 473], [4000, 488], [5000, 466], [6000, 410], [6800, 343]];
-const CURVE_ESTATE = [[900, 415], [1800, 565], [2600, 609], [3200, 625], [4000, 588], [4800, 510], [6000, 410]];
-const CURVE_MUSCLE = [[900, 1941], [1800, 2544], [2600, 2757], [3400, 2811], [4200, 2676], [5000, 2346], [6000, 1929]];
+const CURVE_HATCH: Curve  = [[900, 313], [2000, 430], [3000, 473], [4000, 488], [5000, 466], [6000, 410], [6800, 343]];
+const CURVE_ESTATE: Curve = [[900, 415], [1800, 565], [2600, 609], [3200, 625], [4000, 588], [4800, 510], [6000, 410]];
+const CURVE_MUSCLE: Curve = [[900, 1941], [1800, 2544], [2600, 2757], [3400, 2811], [4200, 2676], [5000, 2346], [6000, 1929]];
 // Bumped 2026-09-28 when the roster-wide grip raise stopped it breaking traction — a rally car that
 // cannot be made to slide is the wrong car.
-const CURVE_RALLY  = [[1200, 537], [2200, 762], [3200, 862], [4200, 881], [5200, 840], [6400, 737], [7600, 587]];
-const CURVE_TRACK  = [[1500, 438], [3000, 568], [4500, 655], [6000, 723], [7000, 756], [8000, 728], [9000, 616]];
+const CURVE_RALLY: Curve  = [[1200, 537], [2200, 762], [3200, 862], [4200, 881], [5200, 840], [6400, 737], [7600, 587]];
+const CURVE_TRACK: Curve  = [[1500, 438], [3000, 568], [4500, 655], [6000, 723], [7000, 756], [8000, 728], [9000, 616]];
 // (user, 2026-10-04: "a BMW 3 series 2000s and a Subaru WRX classic 2005 saloon") — game units, scaled from the real figures as the
 // roster is (the hatch peaks 488): an E46 330i-style straight six (300 Nm real, ~1.5x the hatch, smooth and flat, 6500 redline) and a
 // GD WRX-style turbo flat four (300 Nm real at 3600: soft under 2500, then the boost, tailing off to 7000)
-const CURVE_SALOON = [[900, 460], [2000, 620], [3000, 700], [3500, 730], [4500, 720], [5500, 680], [6500, 600]];
+const CURVE_SALOON: Curve = [[900, 460], [2000, 620], [3000, 700], [3500, 730], [4500, 720], [5500, 680], [6500, 600]];
 // v2 (user: "feels a bit slow at acceleration / unable to wheelspin or drift"): +12 % boost and the lag filled from 2000 rpm
-const CURVE_WRZ    = [[1000, 380], [2000, 600], [2800, 790], [3600, 840], [4500, 820], [5500, 730], [6500, 600], [7000, 540]];
-const CURVE_TRACTOR = [[600, 3600], [1000, 5200], [1500, 5800], [1900, 5400], [2200, 4200], [2500, 800], [2600, 50]];
+const CURVE_WRZ: Curve    = [[1000, 380], [2000, 600], [2800, 790], [3600, 840], [4500, 820], [5500, 730], [6500, 600], [7000, 540]];
+const CURVE_TRACTOR: Curve = [[600, 3600], [1000, 5200], [1500, 5800], [1900, 5400], [2200, 4200], [2500, 800], [2600, 50]];
 // NEW CARS (user, 2026-10-04). Curves are on the game's scale (the roster runs ~1.7x real torque — see SHARED dragC), set against the
 // measured roster (tools/carstats.mjs), not the brochure.
-const CURVE_MINI    = [[900, 120], [2000, 160], [3000, 178], [4000, 182], [5000, 172], [6000, 150], [6500, 132]];
-const CURVE_LAMBO   = [[1000, 620], [2500, 880], [4000, 990], [5500, 1060], [6500, 1070], [7500, 1020], [8500, 900]];
-const CURVE_MIKRA   = [[1200, 170], [2200, 230], [3200, 255], [4200, 260], [5200, 246], [6200, 217], [7000, 191]];
-const CURVE_KIT     = [[1500, 300], [3000, 420], [4500, 500], [6000, 540], [7000, 545], [8000, 500], [8500, 460]];
-const CURVE_RX      = [[1500, 760], [2500, 1150], [3500, 1300], [4500, 1320], [5500, 1250], [6500, 1100], [7500, 940]];
-const CURVE_BANGER  = [[900, 380], [2000, 500], [3000, 540], [4000, 545], [5000, 500], [6000, 430]];
-const CURVE_GRASS   = [[1500, 200], [3000, 270], [4500, 320], [6000, 345], [7000, 350], [8000, 330], [8800, 300]];
-const CURVE_DRIFT   = [[1200, 380], [2500, 640], [3500, 800], [4500, 830], [5500, 800], [6500, 720], [7800, 600]];
-const CURVE_F2      = [[1500, 350], [3000, 455], [4500, 525], [6000, 580], [7000, 605], [8000, 585], [9000, 495]];
+const CURVE_MINI: Curve    = [[900, 120], [2000, 160], [3000, 178], [4000, 182], [5000, 172], [6000, 150], [6500, 132]];
+const CURVE_LAMBO: Curve   = [[1000, 620], [2500, 880], [4000, 990], [5500, 1060], [6500, 1070], [7500, 1020], [8500, 900]];
+const CURVE_MIKRA: Curve   = [[1200, 170], [2200, 230], [3200, 255], [4200, 260], [5200, 246], [6200, 217], [7000, 191]];
+const CURVE_KIT: Curve     = [[1500, 300], [3000, 420], [4500, 500], [6000, 540], [7000, 545], [8000, 500], [8500, 460]];
+const CURVE_RX: Curve      = [[1500, 760], [2500, 1150], [3500, 1300], [4500, 1320], [5500, 1250], [6500, 1100], [7500, 940]];
+const CURVE_BANGER: Curve  = [[900, 380], [2000, 500], [3000, 540], [4000, 545],
+  [5000, 500], [6000, 430]];
+const CURVE_GRASS: Curve   = [[1500, 200], [3000, 270], [4500, 320], [6000, 345], [7000, 350], [8000, 330], [8800, 300]];
+const CURVE_DRIFT: Curve   = [[1200, 380], [2500, 640], [3500, 800], [4500, 830], [5500, 800], [6500, 720], [7800, 600]];
+const CURVE_F2: Curve      = [[1500, 350], [3000, 455], [4500, 525], [6000, 580], [7000, 605], [8000, 585], [9000, 495]];
 
 // CLASSES (user, 2026-10-04: "classes ... subclasses for events; the car menu filters by class then subclass; upgrading never changes a
 // car's class"; split agreed as proposed). Each ROSTER row carries cls + sub; events will ask for a class (and maybe a subclass).
@@ -142,7 +185,7 @@ export const CLASSES = [
   { id: 'drift', name: 'DRIFT', subs: ['Pro', 'Street'] },
   { id: 'offroad', name: 'OFF-ROAD / ODD', subs: ['Odd'] },
 ];
-export const classOf = (id) => CLASSES.find((k) => k.id === id);
+export const classOf = (id: string) => CLASSES.find((k) => k.id === id);
 
 // PAINT + NUMBER (user, 2026-10-04: "palette + number + preview"): 16 colours for body and trim; a race number 1-99 (0 = none). A livery
 // is { paint, trim, num } per car id in the menu profile; applyLivery puts it on a car's spec (missing fields = the roster's own), so it
@@ -167,7 +210,9 @@ export const TYRE_BRANDS = [
 ];
 const ALLC = ['road', 'rally', 'rx', 'stock', 'oval', 'single', 'drift', 'offroad'];
 // grip x per surface, in TYRE_SURFS order:          tarmac  wet  gravel dirt  grass  mud   sand  snow  ice
-const T_ = (id, brand, name, price, fits, g, extra = {}) => ({ id, brand, name, price, fits, grip: Object.fromEntries(TYRE_SURFS.map(([k], i) => [k, g[i]])), ...extra });
+const T_ = (id: string, brand: string, name: string, price: number, fits: string[], g: number[],
+  extra: Partial<Tyre> = {}): Tyre =>
+  ({ id, brand, name, price, fits, grip: Object.fromEntries(TYRE_SURFS.map(([k], i) => [k, g[i]])), ...extra });
 export const TYRES = [
   T_('pre-spun', 'spum', 'Pre-Spun', 0, ALLC,                                                   [1, 1, 1, 1, 1, 1, 1, 1, 1], { note: 'the floor: what every car leaves the factory on' }),
   T_('all-season', 'spum', 'All-Season', 320, ['road', 'rally', 'rx', 'stock', 'drift'],        [1.05, 1.1, 1.05, 1.05, 1.05, 1.04, 1.04, 1.12, 1.08], { note: 'a little better at everything' }),
@@ -186,23 +231,26 @@ export const TYRES = [
   T_('p-wet', 'pirrelly', 'Full Wet', 1100, ['single', 'oval'],                                 [1.02, 1.35, 0.95, 0.95, 0.95, 0.92, 0.92, 0.85, 0.8], { opt: [40, 80], peak: 60, note: 'standing water; dies on a dry line' }),
 ];
 for (const t of TYRES) { t.bySurf = {}; for (const [sid, gr] of Object.entries(SURF_GROUP)) t.bySurf[sid] = t.grip[gr]; }
-export const tyreOf = (id) => TYRES.find((t) => t.id === id) || TYRES[0];
+export const tyreOf = (id: string) => TYRES.find((t) => t.id === id) || TYRES[0];
 // fit a tyre to a spec (null / unknown / 'pre-spun' = stock: no tyre object, the roster's own heat window — physics exactly as before)
-export function applyTyre(s, id) {
-  const row = ROSTER.find((r) => r.id === String(s.id).split('#')[0]) || {}, t = tyreOf(id);
+export function applyTyre(s: Spec, id: string): Spec {
+  const row = ROSTER.find((r) => r.id === String(s.id).split('#')[0]) || ({} as RosterRow),
+    t = tyreOf(id);
   const fits = t.fits.includes(row.cls);
   s.tyre = t.id === 'pre-spun' || !fits ? null : t;
   s.tyreOpt = (s.tyre && s.tyre.opt) || row.tyreOpt; s.tyrePeak = (s.tyre && s.tyre.peak) || row.tyrePeak; s.tyreColdGrip = (s.tyre && s.tyre.cold) || row.tyreColdGrip;
   if (s.tyreOpt === undefined) delete s.tyreOpt; if (s.tyrePeak === undefined) delete s.tyrePeak; if (s.tyreColdGrip === undefined) delete s.tyreColdGrip;
   return s;
 }
-export function applyLivery(s, lv) {
-  const row = ROSTER.find((r) => r.id === String(s.id).split('#')[0]) || {};
+export function applyLivery(
+  s: Spec, lv: { paint?: string; trim?: string; num?: number } | null,
+): Spec {
+  const row = ROSTER.find((r) => r.id === String(s.id).split('#')[0]) || ({} as RosterRow);
   s.paint = (lv && lv.paint) || row.paint; s.trim = (lv && lv.trim) || row.trim; s.num = (lv && lv.num) || 0;
   return s;
 }
 
-export const ROSTER = [
+export const ROSTER: RosterRow[] = [
   {
     id: 'hatch-fwd', name: 'Hatch FWD', kind: 'hatch', cls: 'road', sub: 'Hatch',
     cg: 0.55, rideH: 0.14,   // m: CENTRE OF GRAVITY and RIDE HEIGHT (user, 2026-10-04) — rollover (roll.js) + shadow; handling still uses cgH
@@ -456,10 +504,14 @@ export const ROSTER = [
   },
 ];
 
+// What spec(id) returns: SHARED + the row + L and Izz (+ what applyTyre / applyLivery set).
+export type Spec = typeof SHARED & RosterRow
+  & { L: number; Izz: number; tyre?: Tyre | null; num?: number };
+
 // Resolve a roster row into a full spec: SHARED defaults + computed wheelbase and yaw inertia.
-export function spec(id) {
+export function spec(id: string): Spec {
   const row = ROSTER.find((c) => c.id === id) || ROSTER[0];
-  const s = { ...SHARED, ...row };
+  const s = { ...SHARED, ...row } as Spec;   // L and Izz are filled in just below
   s.L = s.lf + s.lr;
   s.Izz = ((s.mass * (s.len * s.len + s.wid * s.wid)) / 12) * s.izzK;
   return s;

@@ -9,7 +9,7 @@ import { lcg } from "./core/random.ts";
 
 import { makeCar, step, reset, assertFinite, DT } from './vehicle.js';
 const resetCar = reset;
-import { CAR_IDS, applyLivery, applyTyre, ROSTER } from './cars.js';
+import { CAR_IDS, applyLivery, applyTyre, ROSTER } from './cars.ts';
 import { createInput } from './input.js';
 import { createRenderer } from './render.ts';
 import { readSettings } from './core/settings.ts';

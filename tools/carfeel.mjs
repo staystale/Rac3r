@@ -5,7 +5,7 @@
 //  steered on the throttle (drifted)?
 // node tools/carfeel.mjs [cars]
 import { makeCar, step, reset, DT } from '../src/vehicle.js';
-if (process.env.CNEXT) { const C = await import('../src/cars.next.js'), C0 = await import('../src/cars.js'); for (const r of C.ROSTER) { const o = C0.ROSTER.find((x) => x.id === r.id); if (o) Object.assign(o, r); } }
+if (process.env.CNEXT) { const C = await import('../src/cars.next.js'), C0 = await import('../src/cars.ts'); for (const r of C.ROSTER) { const o = C0.ROSTER.find((x) => x.id === r.id); if (o) Object.assign(o, r); } }
 import { SURFACES } from '../src/lab.js';
 const cars = (process.argv[2] || 'hatch-rwd,saloon-rwd,wrz-awd,rally-4x4').split(',');
 const warm = (c) => { c.tyreT = [85, 85, 85, 85]; };

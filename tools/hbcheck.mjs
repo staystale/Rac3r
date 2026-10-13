@@ -1,7 +1,7 @@
 // The user STILL reports going backwards on the handbrake. My benches said it holds — but they have
 // been wrong about this twice by assuming a perfect counter-steer. Test the honest cases.
 import { makeCar, step, reset, neutralInput, DT } from '../src/vehicle.js';
-import { CAR_IDS } from '../src/cars.js';
+import { CAR_IDS } from '../src/cars.ts';
 const clamp=(v,a,b)=>v<a?a:v>b?b:v;
 
 function run(id, v0, hbMs, mode) {

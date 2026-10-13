@@ -12,7 +12,7 @@
 // never near another car in that lane. Positions are absolute road distances, so the window moving needs nothing.
 // Measured: tools/trafficcheck.mjs.
 import { makeCar, step, reset } from './vehicle.js';
-import { ROSTER } from './cars.js';
+import { ROSTER } from './cars.ts';
 import { applyGround, fenceClamp, obstacleClamp } from "./world/wear.ts";
 import { barrierClamp, solidClamp } from "./world/barriers.ts";
 import { hit, tooInjured } from './damage.js';

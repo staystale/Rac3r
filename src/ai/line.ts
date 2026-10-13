@@ -10,7 +10,7 @@
 import { debugValue } from "../core/debug.ts";
 import { groundAt } from "../world/wear.ts";
 import { querySubtrack } from "../world/tyrewall.ts";
-import { GRAVITY } from "../cars.js";
+import { GRAVITY } from "../cars.ts";
 import { CAR_STATS } from "../carstats.js";
 import type { Level, Lane } from "../world/types.ts";
 import type {

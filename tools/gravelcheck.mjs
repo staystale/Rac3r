@@ -15,7 +15,7 @@ import { applyGround, groundAt, FLOOR, FENCE, RUNOFF_MU, SURFACE_TARMAC, LEVELS,
 { const lab = LEVELS.find((l) => l.id === 'lab');   // the old lab's quarters + its blend / inclusion patches; no extension, no bounds
   LEVELS.push({ id: 'edge-test', name: 'edge', base: SURFACES.lab, zones: lab.zones.filter((z) => !z.ext), bumps: [], paint: [], boards: [], cones: [], props: [], spawn: { x: 0, y: 0, heading: 0 }, _blend: lab._blend, _incl: lab._incl, _coversBase: lab._coversBase });
   setLevel('edge-test'); }
-import { CAR_IDS } from '../src/cars.js';
+import { CAR_IDS } from '../src/cars.ts';
 
 // MEASURED BUG in this very harness, 2026-09-28: it dropped the car in at FLOOR+2 and measured distance
 // to a stop — but every run above 10 m/s reached the FENCE, so it printed 27.5 / 27.6 / 27.6 / 27.6 m

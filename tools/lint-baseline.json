@@ -34,7 +34,7 @@
     "max-lines-per-function": 3,
     "no-unused-vars": 2
   },
-  "src/cars.js": {
+  "src/cars.ts": {
     "id-length": 21,
     "max-len": 126
   },

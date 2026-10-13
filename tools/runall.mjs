@@ -88,7 +88,7 @@ function runStep(name, tool, toolArgs) {
 }
 
 async function buildPlan() {
-  const { CAR_IDS } = await import(pathToFileURL(path.join(ROOT, 'src', 'cars.js')).href);
+  const { CAR_IDS } = await import(pathToFileURL(path.join(ROOT, 'src', 'cars.ts')).href);
   const plan = [];
   for (const t of ['aifieldsuite']) plan.push({ tool: t, label: t, args: [] });
   plan.push({ tool: 'pacesuite', label: 'pacesuite', args: ['baseline'] });

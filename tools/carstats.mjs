@@ -3,7 +3,7 @@
 // change to cars.js or the vehicle model:   node tools/carstats.mjs
 import fs from 'fs';
 import { makeCar, step, reset, DT } from '../src/vehicle.js';
-import { CAR_IDS } from '../src/cars.js';
+import { CAR_IDS } from '../src/cars.ts';
 import { SURFACES } from '../src/lab.js';
 const out = {};
 for (const id of CAR_IDS) {

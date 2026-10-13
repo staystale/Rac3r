@@ -3,7 +3,7 @@
 // does not spin itself backwards. The foot brake locks the rear through the same path the handbrake
 // does, so it needs its own regression test.
 import { makeCar, step, reset, neutralInput, DT } from '../src/vehicle.js';
-import { CAR_IDS } from '../src/cars.js';
+import { CAR_IDS } from '../src/cars.ts';
 const clamp=(v,a,b)=>v<a?a:v>b?b:v;
 
 function run(id, v0, steer) {
