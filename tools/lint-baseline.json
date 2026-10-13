@@ -129,8 +129,6 @@
   },
   "src/render/road.ts": {
     "complexity": 2,
-    "id-length": 89,
-    "max-len": 67,
     "max-lines-per-function": 2
   },
   "src/render/tiles.ts": {
