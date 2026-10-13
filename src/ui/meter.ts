@@ -3,10 +3,15 @@
 // from something else (grey: the browser, the GPU, a late frame). Only main.js creates it, and
 // only with ?meter=1; without it nothing here runs. The ring buffers are allocated once: no
 // garbage per frame.
+//
+// Dots above a bar: YELLOW = ground tiles were drawn that frame; PINK = a finger went down, up
+// or was cancelled that frame (touches), one row higher. The last two text lines count the
+// drops near a tile / near a touch (in that frame or the 2 before).
 
 export type FrameRec = {
   dt: number; sim: number; draw: number; steps: number; tiles: number;
   moving: boolean;   // the player car is over 20 km/h (5.6 m/s)
+  touches: number;   // finger down / up events since the last frame
 };
 
 const KEEP = 240;      // frames kept for the numbers
@@ -15,47 +20,56 @@ const EVERY = 15;      // the stats are recomputed every this many frames
 const DROP_MS = 25;    // a frame longer than this missed a 60 Hz beat: a drop
 const FULL_MS = 40;    // bar graph: this many ms = full height
 // CSS px: below the HUD's button rows (top 12 + 34, second row on a phone 34 + 6, help row 3)
-const BOX_X = 12, BOX_Y = 132, BOX_W = 360, BOX_H = 134;
+const BOX_X = 12, BOX_Y = 132, BOX_W = 360, BOX_H = 148;
 const GRAPH_Y = 4, GRAPH_H = 52, GRAPH_X = 20, BAR_W = 2;
 
 // Running totals since the meter was created (never reset). The tiles of the last 3 frames are
 // kept in plain number variables: a drop "near a tile" had tiles in this frame or the 2 before.
+// The same for touches.
 function createTotals() {
-  let millis = 0, drops = 0, near = 0, prev1 = 0, prev2 = 0;
+  let millis = 0, drops = 0, near = 0, nearTouch = 0;
+  let prev1 = 0, prev2 = 0, touch1 = 0, touch2 = 0;
   return {
-    add(frameMs: number, tiles: number, moving: boolean): void {
+    add(frameMs: number, tiles: number, touches: number, moving: boolean): void {
       if (moving) {
         millis += frameMs;
         if (frameMs > DROP_MS) {
           drops++;
           if (tiles > 0 || prev1 > 0 || prev2 > 0) near++;
+          if (touches > 0 || touch1 > 0 || touch2 > 0) nearTouch++;
         }
       }
       prev2 = prev1; prev1 = tiles;
+      touch2 = touch1; touch1 = touches;
     },
-    text(): string {
+    text(): string[] {
       const secs = millis / 1000;
       const perMin = secs > 0 ? drops / secs * 60 : 0;
-      return `driving ${Math.round(secs)} s: drops ${drops} (${perMin.toFixed(1)}/min),` +
-        ` near a tile ${near}`;
+      return [`driving ${Math.round(secs)} s: drops ${drops} (${perMin.toFixed(1)}/min)`,
+        `near a tile ${near}, near a touch ${nearTouch}`];
     },
   };
+}
+
+function markDot(ctx: CanvasRenderingContext2D, dotX: number, dotY: number, color: string): void {
+  ctx.fillStyle = color; ctx.fillRect(dotX, Math.max(0, dotY), BAR_W, 2);
 }
 
 export function createMeter() {
   const dts = new Float64Array(KEEP), sims = new Float64Array(KEEP), draws = new Float64Array(KEEP);
   const stepsBuf = new Float64Array(KEEP), tilesBuf = new Float64Array(KEEP);
-  const sorted = new Float64Array(KEEP);
+  const touchBuf = new Float64Array(KEEP), sorted = new Float64Array(KEEP);
   let head = 0, count = 0, sinceStats = EVERY;
-  const lines = ['', '', '', '', ''];
+  const lines = ['', '', '', '', '', ''];
   const totals = createTotals();
 
   function add(rec: FrameRec): void {
     dts[head] = rec.dt; sims[head] = rec.sim; draws[head] = rec.draw;
     stepsBuf[head] = rec.steps; tilesBuf[head] = rec.tiles;
+    touchBuf[head] = rec.touches;
     head = (head + 1) % KEEP;
     if (count < KEEP) count++;
-    sinceStats++; totals.add(rec.dt, rec.tiles, rec.moving);
+    sinceStats++; totals.add(rec.dt, rec.tiles, rec.touches, rec.moving);
   }
 
   const fix1 = (val: number) => val.toFixed(1);
@@ -80,8 +94,8 @@ export function createMeter() {
     lines[2] = `steps avg ${fix1(sumSteps / count)} max ${maxSteps}   tiles ${nTiles}`;
     lines[3] = `worst: sim ${fix1(sims[worst])} draw ${fix1(draws[worst])}` +
       ` other ${fix1(Math.max(0, dts[worst] - sims[worst] - draws[worst]))}` +
-      ` steps ${stepsBuf[worst]} tiles ${tilesBuf[worst]}`;
-    lines[4] = totals.text();
+      ` steps ${stepsBuf[worst]} tiles ${tilesBuf[worst]} touch ${touchBuf[worst]}`;
+    [lines[4], lines[5]] = totals.text();
   }
 
   function draw(ctx: CanvasRenderingContext2D, width: number, height: number): void {
@@ -102,11 +116,10 @@ export function createMeter() {
       ctx.fillStyle = '#888'; ctx.fillRect(barX, base - total, BAR_W, total);
       ctx.fillStyle = '#e03030'; ctx.fillRect(barX, base - simH, BAR_W, simH);
       ctx.fillStyle = '#3070e0'; ctx.fillRect(barX, base - simH - drawH, BAR_W, drawH);
-      if (tilesBuf[idx] > 0) {
-        ctx.fillStyle = '#ffd020'; ctx.fillRect(barX, Math.max(0, base - total - 4), BAR_W, 2);
-      }
+      if (touchBuf[idx] > 0) markDot(ctx, barX, base - total - 8, '#ff4fd8');
+      if (tilesBuf[idx] > 0) markDot(ctx, barX, base - total - 4, '#ffd020');
     }
-    ctx.font = '11px monospace'; ctx.textBaseline = 'middle'; ctx.textAlign = 'left';
+    ctx.font = '10px monospace'; ctx.textBaseline = 'middle'; ctx.textAlign = 'left';
     ctx.fillStyle = '#fff';
     ctx.strokeStyle = 'rgba(255,255,255,0.7)'; ctx.lineWidth = 1;
     for (const [msec, label] of [[8.3, '120'], [16.7, '60']] as const) {

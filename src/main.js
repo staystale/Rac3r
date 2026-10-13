@@ -828,6 +828,10 @@ let acc = 0;
 let last = performance.now();
 const meter = settings.meter ? createMeter() : null;   // ?meter=1 only
 let meterTiles = 0;
+let meterTouches = 0;   // ?meter=1: pointer down / up / cancel events since the last frame
+if (meter) for (const evName of ['pointerdown', 'pointerup', 'pointercancel']) {
+  addEventListener(evName, () => { meterTouches++; }, { capture: true, passive: true });
+}
 let fpsAcc = 0, fpsN = 0; const fpsHist = [];
 
 // SAFETY NET (added 2026-10-03, Claude). The airborne-brake bug showed what happens without one: a single
@@ -1024,7 +1028,9 @@ function loop(now) {
       const tilesNow = renderer.groundRenders, draw = performance.now() - drawT0;
       const steps = game.stepsLastFrame;
       const moving = Math.hypot(game.car.vx, game.car.vy) > 5.6;   // over 20 km/h
-      meter.add({ dt: frameMs, sim: meterSim, draw, steps, tiles: tilesNow - meterTiles, moving });
+      meter.add({ dt: frameMs, sim: meterSim, draw, steps, tiles: tilesNow - meterTiles, moving,
+        touches: meterTouches });
+      meterTouches = 0;
       meterTiles = tilesNow; meter.draw(renderer.ctx, renderer.W, renderer.H);
     }
   } finally {
