@@ -18,7 +18,8 @@ export const COL = {
   danger: '#d8453c',
   live: '#4cc2a0',
   gravel: '#cfc6b4',       // the gravel trap. Warm and dead-looking against the cold lab floor.
-  rally: '#c2b49a',        // rally-stage gravel — a touch browner, so the two read as different things
+  rally: '#c2b49a',        // rally-stage gravel — a touch browner, so the two read as different
+                           // things
   rallyGrit: '#a8987c',
   rallyDark: '#8e8066',
   gravelDark: '#a3977f',
