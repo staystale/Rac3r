@@ -27,6 +27,7 @@ export interface Settings {
   meter: boolean;   // ?meter=1: on-screen frame meter (perf, phone)
   noNatClear: boolean;   // ?nonat=1: the highway slide keeps the terrain height cache (judder test)
   skipLayers: Set<string>;   // ?skip=props,barriers: layers not drawn (phone judder bisect)
+  churn: '' | 'pictures' | 'objects';   // ?churn=: judder mechanism test (memory churn)
   autopilot: boolean;   // ?autopilot=1: the AI drives the player car (phone frame tests, no touch)
   autopilotKmh: number;   // ?autopilot=120: hold the autopilot car at this speed (0 = no cap)
 }
@@ -34,6 +35,11 @@ export interface Settings {
 function autopilotKmh(params: URLSearchParams): number {
   const kmh = +(params.get('autopilot') || 0);
   return kmh > 1 ? kmh : 0;
+}
+
+function churnKind(params: URLSearchParams): '' | 'pictures' | 'objects' {
+  const kind = params.get('churn');
+  return kind === 'pictures' || kind === 'objects' ? kind : '';
 }
 
 export function readSettings(search: string): Settings {
@@ -63,6 +69,7 @@ export function readSettings(search: string): Settings {
     meter: params.get('meter') === '1',
     autopilot: params.get('autopilot') === '1' || autopilotKmh(params) > 0,
     autopilotKmh: autopilotKmh(params),
+    churn: churnKind(params),
     noNatClear: params.get('nonat') === '1',
     skipLayers: new Set((params.get('skip') || '').split(',').filter(Boolean)),
   };

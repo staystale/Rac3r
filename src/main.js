@@ -16,6 +16,7 @@ import { readSettings } from './core/settings.ts';
 import { createMarks } from './marks.js';
 import { createHud } from './hud.js';
 import { createMeter, takeMeterEvents } from './ui/meter.ts';   // ?meter=1 frame meter
+import { createChurn } from './core/churn.ts';   // ?churn= memory churn test
 import { createCones } from './cones.js';
 import { createAudio } from './audio.js';
 import { createGuide, rulesSeen } from './guide.js';
@@ -860,6 +861,7 @@ Object.defineProperty(window.__game, 'paused', { get: () => paused });
 let acc = 0;
 let last = performance.now();
 const meter = settings.meter ? createMeter() : null;   // ?meter=1 only
+const churn = settings.churn ? createChurn(settings.churn) : null;   // ?churn= only
 let meterTiles = 0;
 let meterTouches = 0;   // ?meter=1: pointer down / up / cancel events since the last frame
 if (meter) for (const evName of ['pointerdown', 'pointerup', 'pointercancel']) {
@@ -1097,6 +1099,7 @@ function loop(now) {
     if (mode !== 'menu' && !settings.skipLayers.has('hud')) {
       hud.draw(renderer.ctx, game, renderer.W, renderer.H, wallDt);
     }
+    if (churn) churn.step(wallDt, renderer.ctx);   // ?churn= only
     if (meter && mode !== 'menu') {
       const tilesNow = renderer.groundRenders, draw = performance.now() - drawT0;
       const steps = game.stepsLastFrame;
