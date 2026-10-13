@@ -568,7 +568,10 @@ export function stepHighway(lv, car) {
   for (const k of ['keep', 'cuts']) { const a = st[k], kept = a.filter(keep); a.length = 0; a.push(...kept); }
   { const n = st.covers.length; st.covers = st.covers.filter(keep); if (n !== st.covers.length) st.coversDirty = true; }
   if (st.coversDirty) syncCovers(lv);
-  rebuild(lv); clearNaturalCache(); lv.solidsDirty = true;
+  rebuild(lv);
+  // ?nonat=1 (judder test): a 9000-cell drop may force full GCs
+  if (!settings.noNatClear) clearNaturalCache();
+  lv.solidsDirty = true;
   pruneWear(car.x, car.y, BEHIND + AHEAD);   // wear left behind, or under ground that has changed, goes (lab.js pruneWear)
   return ds;
 }
@@ -618,7 +621,8 @@ export function setHighwayPreset(lv, preset) {
   if (!HW_PRESETS[preset] || lv.roadType === preset) return;
   lv.roadType = preset; lv._cfg = HW_PRESETS[preset]; lv._layout = (lv._layout || 0) + 1;
 }
-const QP = typeof location !== 'undefined' ? readSettings(location.search).highwayDebug : null;
+const settings = readSettings(typeof location !== 'undefined' ? location.search : '');
+const QP = typeof location !== 'undefined' ? settings.highwayDebug : null;
 // node tools only: HWNOX=1 builds the road with NO slips / bridges / extras (an A/B of their effect on the AI, same roads)
 const NOX = !!envValue("HWNOX");
 const NOF = !!envValue("HWNOF");   // node only: no FIELDS (scenery v2 A/B)
