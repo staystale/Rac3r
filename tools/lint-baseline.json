@@ -87,9 +87,6 @@
     "max-len": 24,
     "max-lines-per-function": 1
   },
-  "src/lab.js": {
-    "max-len": 1
-  },
   "src/main.js": {
     "complexity": 9,
     "id-length": 215,
