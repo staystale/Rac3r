@@ -6,7 +6,8 @@ import type { Point, Sector, CurvedKerb, Zone, Prop, Paint, Board } from "../typ
 // Counter-clockwise (turning left). Start/finish at x=0, y=48.
 // =============================================================================================
 const SO_APEXES: Point[] = [
-  [0, 48], [70, 48], [105, 22], [105, -22], [70, -48], [0, -48], [-70, -48], [-105, -22], [-105, 22], [-70, 48]
+  [0, 48], [70, 48], [105, 22], [105, -22], [70, -48],
+  [0, -48], [-70, -48], [-105, -22], [-105, 22], [-70, 48]
 ];
 const SO_SECTORS: Sector[] = [
   { startDist: 0, endDist: 85, surface: SURFACES.tarmac },

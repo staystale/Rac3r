@@ -265,9 +265,6 @@
     "id-length": 72,
     "max-len": 68
   },
-  "src/world/levels/stock-car.ts": {
-    "max-len": 1
-  },
   "src/world/levels/sweaty-lamb.ts": {
     "id-length": 27,
     "max-len": 60
