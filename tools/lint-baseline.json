@@ -241,9 +241,7 @@
     "max-len": 69
   },
   "src/world/tyrewall.ts": {
-    "complexity": 1,
-    "id-length": 45,
-    "max-len": 25
+    "complexity": 1
   },
   "src/world/wear.ts": {
     "complexity": 2,
