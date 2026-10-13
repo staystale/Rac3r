@@ -199,9 +199,6 @@
     "no-shadow": 1,
     "no-unused-vars": 1
   },
-  "src/testlist.js": {
-    "max-len": 17
-  },
   "src/traffic.ts": {
     "complexity": 2,
     "id-length": 107,

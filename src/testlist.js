@@ -1,24 +1,66 @@
-// testlist.js — THE TEST QUEUE (user, 2026-10-06: "can we have a to test feature list somewhere in the pause menu while we are testing
-// it should be updated when we add new features and remove approved features"). Shown in the PAUSE menu, TEST MODE only (menu.js
-// pause -> TESTING). THE RULE (CLAUDE.md §1): every feature handed over for a phone test gets an entry here IN THE SAME TASK; when the
-// user approves it, DELETE the entry (and note the verdict in TODO.md). Keep each line short: it is read on a phone, mid-session.
+// testlist.js — THE TEST QUEUE (user, 2026-10-06: "can we have a to test feature list somewhere in
+// the pause menu while we are testing it should be updated when we add new features and remove
+// approved features"). Shown in the PAUSE menu, TEST MODE only (menu.js pause -> TESTING).
+// THE RULE (CLAUDE.md §1): every feature handed over for a phone test gets an entry here IN THE
+// SAME TASK; when the user approves it, DELETE the entry (and note the verdict in TODO.md). Keep
+// each line short: it is read on a phone, mid-session.
 //   id     stable key            added   date it went in (yyyy-mm-dd)
 //   where  how to get to it      try     what to do      wrong   what would count as a bug
 export const TEST_LIST = [
-  // (approved 2026-10-06 late, deleted: fields, grassedge, catchthem, slipsdual, fps - TODO.md 1c; 2026-10-07: dirtroad, animals, labext)
-  { id: 'sound', added: '2026-10-07', name: 'Sound slider + MUTE in pause', where: 'Pause menu (any session), under RESUME',
+  // (approved 2026-10-06 late, deleted: fields, grassedge, catchthem, slipsdual, fps - TODO.md 1c;
+  // 2026-10-07: dirtroad, animals, labext)
+  {
+    id: 'sound',
+    added: '2026-10-07',
+    name: 'Sound slider + MUTE in pause',
+    where: 'Pause menu (any session), under RESUME',
     try: 'Drag SOUND, tap MUTE / UNMUTE, close and reopen the game.',
-    wrong: 'Volume not changing, MUTE not silencing, or the setting forgotten after a reload.' },
-  { id: 'joker', added: '2026-10-07', name: 'Joker counted wide, once a lap', where: 'Knobhill RX race (also Slidden Hill)',
-    try: 'Take the joker running wide of the lane; another lap, take it again, or reverse back over it.',
-    wrong: 'A wide joker not counted; one joker counted twice; a joker counted when you never left the main road.' },
-  { id: 'markedge', added: '2026-10-07', name: 'Knobhill: marks no longer cut off', where: 'Knobhill, top-left corner, with AI on',
-    try: 'Lay marks in the top-left corner, then do a few laps (AI too) and come back to look at them.',
-    wrong: 'Marks cut off in a straight line again, on Knobhill or any other circuit (the Lab south area still can: it is too big).' },
-  { id: 'ainowait', added: '2026-10-07', name: 'AI: never wait, drive out when stuck', where: 'Any circuit with AI on (Knobhill, Thruston, Brands)',
-    try: 'Race 3 laps on easy, then on the hardest. Watch them stuck behind each other, and any that beach or hit a wall.',
-    wrong: 'AI sitting behind for ages; a stuck car not reversing out before it resets; more wrecks on hard than easy.' },
-  { id: 'judder', added: '2026-10-06', name: 'Judder: try ?nolock=1', where: 'Add ?nolock=1 to the link, then the highway',
+    wrong: 'Volume not changing, MUTE not silencing, or the setting forgotten after a reload.',
+  },
+  {
+    id: 'joker',
+    added: '2026-10-07',
+    name: 'Joker counted wide, once a lap',
+    where: 'Knobhill RX race (also Slidden Hill)',
+    try:
+      'Take the joker running wide of the lane; another lap, take it again, or reverse back ' +
+      'over it.',
+    wrong:
+      'A wide joker not counted; one joker counted twice; a joker counted when you never left ' +
+      'the main road.',
+  },
+  {
+    id: 'markedge',
+    added: '2026-10-07',
+    name: 'Knobhill: marks no longer cut off',
+    where: 'Knobhill, top-left corner, with AI on',
+    try:
+      'Lay marks in the top-left corner, then do a few laps (AI too) and come back to look at ' +
+      'them.',
+    wrong:
+      'Marks cut off in a straight line again, on Knobhill or any other circuit (the Lab south ' +
+      'area still can: it is too big).',
+  },
+  {
+    id: 'ainowait',
+    added: '2026-10-07',
+    name: 'AI: never wait, drive out when stuck',
+    where: 'Any circuit with AI on (Knobhill, Thruston, Brands)',
+    try:
+      'Race 3 laps on easy, then on the hardest. Watch them stuck behind each other, and any ' +
+      'that beach or hit a wall.',
+    wrong:
+      'AI sitting behind for ages; a stuck car not reversing out before it resets; more wrecks ' +
+      'on hard than easy.',
+  },
+  {
+    id: 'judder',
+    added: '2026-10-06',
+    name: 'Judder: try ?nolock=1',
+    where: 'Add ?nolock=1 to the link, then the highway',
     try: 'Drive at speed with and without ?nolock=1. Watch the FPS corner too.',
-    wrong: 'Tell us which one judders; FPS dropping under ~50 when it does. (Not seen yet 2026-10-06: kept open.)' },
+    wrong:
+      'Tell us which one judders; FPS dropping under ~50 when it does. (Not seen yet ' +
+      '2026-10-06: kept open.)',
+  },
 ];
