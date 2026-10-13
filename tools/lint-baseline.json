@@ -243,9 +243,7 @@
     "max-len": 40
   },
   "src/world/levels/lab-extension.ts": {
-    "complexity": 1,
-    "id-length": 26,
-    "max-len": 40
+    "complexity": 1
   },
   "src/world/levels/sandbox.ts": {
     "id-length": 20,
