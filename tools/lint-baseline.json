@@ -12,8 +12,6 @@
   },
   "src/ai/line.ts": {
     "complexity": 1,
-    "id-length": 130,
-    "max-len": 70,
     "max-lines-per-function": 1
   },
   "src/ai/weaver.ts": {
