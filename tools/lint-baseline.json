@@ -1,8 +1,7 @@
 {
   "src/ai/autodrive.ts": {
     "complexity": 1,
-    "id-length": 25,
-    "max-len": 20
+    "max-lines-per-function": 1
   },
   "src/ai/circuit.ts": {
     "complexity": 2,
