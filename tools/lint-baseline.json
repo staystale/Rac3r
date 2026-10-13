@@ -40,10 +40,6 @@
     "max-lines-per-function": 3,
     "no-unused-vars": 2
   },
-  "src/contact.js": {
-    "id-length": 36,
-    "max-len": 12
-  },
   "src/damage.js": {
     "complexity": 1,
     "id-length": 29,
