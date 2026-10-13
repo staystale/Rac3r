@@ -230,10 +230,6 @@
     "id-length": 2,
     "max-len": 25
   },
-  "src/world/course.ts": {
-    "id-length": 8,
-    "max-len": 8
-  },
   "src/world/levels/brands-snatch.ts": {
     "complexity": 1,
     "id-length": 41,
