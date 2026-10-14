@@ -501,6 +501,100 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
     const slide = slideStep(car, path, nearIdx, speed, lineOff, { deltaS, LOCK, cap });
     return { psi, ...slide };
   }
+  type Slide = ReturnType<typeof steerSlideStep>;
+  /** Throttle for the target speed: held drift, loose understeer, over / understeer, grip. */
+  function throttleFor(speed: number, targetSpeed: number, slide: Slide, looseUnder: boolean) {
+    const { drifting, slipRear, under, over } = slide;
+    const feel = Math.max(0, 1 - Math.max(0, slipRear - 0.07) / 0.12);
+    const gap = (targetSpeed - speed) * 0.6;
+    return drifting ? Math.max(0.25, Math.min(1, 0.6 + (DRIFT_SLIP - slipRear) * 3)) * (
+        speed < targetSpeed * 1.1 ? 1 : 0.4) : looseUnder ? Math.min(
+        UNDER_LOOSE, speed < targetSpeed ? gap : 0) : under ? 0 : over ? (
+        speed < targetSpeed ? Math.min(0.2, gap) : 0) :
+        speed < targetSpeed ? Math.min(1, gap) * feel : 0;
+  }
+  /** Throttle and brake for the target speed. */
+  function pedals(speed: number, targetSpeed: number, thrForce: boolean, slide: Slide,
+      looseUnder: boolean) {
+    const { drifting, under, over, steer } = slide;
+    let throttle = throttleFor(speed, targetSpeed, slide, looseUnder);
+    if (thrForce && speed < targetSpeed * 1.1) throttle = 1;
+    let brake = speed > targetSpeed + 0.3 ? Math.min(1, (speed - targetSpeed) * 1.5) * Math.max(
+        0.6, 1 - Math.abs(steer) / 0.5) : 0;
+    if (under && !looseUnder && speed > 0.85 * targetSpeed) brake = Math.max(brake, 0.35);
+    if (over || drifting) brake = 0;
+    return { throttle, brake };
+  }
+  /** SPEED, throttle, brake and the handbrake turn: the controls the driver returns. */
+  function pedalStep(car: AiCar, path: typeof state.path, nearIdx: number,
+      idx: (pos: number) => number, speed: number, dt: number, prof: ReturnType<typeof profileOf>,
+      latT: number, lineOff: number, scale: { push: number, vMul: number, jCap: number,
+      followCap: number, thrForce: boolean }, slide: Slide) {
+    const pts = path.pts;
+    const { push, vMul, jCap, followCap, thrForce } = scale;
+    const { psi, loose, drifting, edgeRoom, under, steer } = slide;
+    // ---- SPEED: the profile (it already brakes for what is ahead) x pace x mistakes, capped by
+    // the joker approach and traffic
+    let targetSpeed = profileSpeed(main, car, path, nearIdx, idx, speed, prof, latT, lineOff);
+    targetSpeed = Math.min(targetSpeed * traits.pace * push * vMul, jCap, followCap);
+    state.vT = targetSpeed;
+    // OFF ROAD / LOOSE (user, 2026-10-04: "they still slow down like mad off road / changing
+    // surfaces"): on loose ground a sliding front is the surface, not a mistake — keep driving
+    // (UNDER_LOOSE throttle) and never brake for it. MEASURED before (aifieldcheck SURF, Brands +
+    // Castle Cum, 6 cars): on grass / dirt the AI braked 26-36 % and lifted 13-33 % of the time,
+    // front slip > 0.14 for 19-40 %. ...only OFF THE PLANNED SURFACE (the car on clearly worse
+    // ground than its racing line: off the road, onto a loose patch). On a loose line (Sweaty
+    // Lamb's gravel) the old lift + brake stays: applied there too, the 4x4 at Real left the stage
+    // 16 s a lap (MEASURED).
+    const offPlan = path === main && car.surface.mu < 0.85 * (pts[nearIdx].mu || 1);
+    const looseUnder = under && loose > 0.3 && offPlan;
+    if (drifting) { state.driftT = (state.driftT || 0) + dt; state.lastDrift = state.t; }
+    // a drift that ran it OFF the road: it backs off drifting for DRIFT_BAN s (a driver who scares
+    // himself)
+    // off within 2 s of a drift
+    if (edgeRoom < -0.5 && state.t - (state.lastDrift ?? -99) < 2) {
+      state.driftOn = false;
+      state.driftBan = state.t + DRIFT_BAN;
+    }
+    let { throttle, brake } = pedals(speed, targetSpeed, thrForce, slide, looseUnder);
+    // HANDBRAKE TURNS (user, 2026-10-04: "they should also use handbrake and drift and stuff"):
+    // into a HAIRPIN (apex R < HB_R) before the apex, a big turn still ahead (> HB_TURN rad) and
+    // moving -> one pull of HB_T s per hairpin, off the throttle, full lock that way: the rear
+    // steps out and the car pivots. The better driver times it (skill), a weaker one sometimes
+    // doesn't bother.
+    const handbrake = handbrakeStep(path, nearIdx, speed, loose);
+    if (handbrake) {
+      throttle = 0;
+      brake = 0;
+    }
+    return {
+      steer: handbrake ? Math.sign(steer || psi) * Math.max(Math.abs(steer), 0.9) : steer,
+          throttle, brake, handbrake
+    };
+  }
+
+  /** OBSTACLES: the way round a loose object, when no car is in the way. */
+  function obstacleAvoid(car: AiCar, ctx: DriveCtx, path: typeof state.path, nearIdx: number,
+      idx: (pos: number) => number, speed: number, prec: number, lineOff: number, myLat: number,
+      latLim: number, latT: number, dt: number, cars: { dodgeT: number, conflict: boolean }) {
+    let { dodgeT, conflict } = cars;
+    // ---- OBSTACLES (user, 2026-10-04: "AI need to see tyres and cones as obstacles — although
+    // optional ones haha — but try and avoid them
+    // on rally stages / tracks"): ctx.obstacles = loose objects near this car ({ x, y, r },
+    // main.js). One in my path ahead, on the road ->
+    // step round it on the side with room; no room -> drive through (optional). Cars come first:
+    // only when no car is in the way. A more
+    // precise driver sees it further ahead.
+    if (!conflict) {
+      const around = obstacleStep(car, ctx, path, nearIdx, idx, speed, prec, lineOff, myLat, latLim,
+          latT, dt);
+      if (around !== null) {
+        conflict = true;
+        dodgeT = around;
+      }
+    }
+    return { dodgeT, conflict };
+  }
 
   function drive(car: AiCar, dt = 1 / 120, ctx: DriveCtx = {}) {
     state.t += dt;
@@ -518,7 +612,7 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
       if (out) return out;
     }
     const lap = ctx.lap || Math.max(1, state.lap), laps = ctx.laps || jLaps;
-    const path = state.path, pts = path.pts, size = path.n, idx = (pos: number) => (
+    const path = state.path, size = path.n, idx = (pos: number) => (
         path.closed ? ((pos % size) + size) % size : Math.max(0, Math.min(size - 1, pos)));
     const nearIdx = state.i!; let prof = profileOf(path, spec, main);
     const others = ctx.cars || [];
@@ -548,21 +642,9 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
         latLim, myLat);
     let dodgeT = cars.dodgeT, conflict = cars.conflict;
     const followCap = cars.followCap;
-    // ---- OBSTACLES (user, 2026-10-04: "AI need to see tyres and cones as obstacles — although
-    // optional ones haha — but try and avoid them
-    // on rally stages / tracks"): ctx.obstacles = loose objects near this car ({ x, y, r },
-    // main.js). One in my path ahead, on the road ->
-    // step round it on the side with room; no room -> drive through (optional). Cars come first:
-    // only when no car is in the way. A more
-    // precise driver sees it further ahead.
-    if (!conflict) {
-      const around = obstacleStep(car, ctx, path, nearIdx, idx, speed, prec, lineOff, myLat, latLim,
-          latT, dt);
-      if (around !== null) {
-        conflict = true;
-        dodgeT = around;
-      }
-    }
+    const avoid = obstacleAvoid(car, ctx, path, nearIdx, idx, speed, prec, lineOff, myLat, latLim,
+        latT, dt, { dodgeT, conflict });
+    ({ dodgeT, conflict } = avoid);
     // ---- RACECRAFT (stage 3, 2026-10-04; user: "real overtakes, real defending, scrabbling for
     // victory"). Stage 2 only went round a car that was already in the way, so circuits were
     // processions (aifieldsuite, Realish: 35 held passes in 12 six-car 3-lap races, Brands and
@@ -590,57 +672,9 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
     // off-road 142 -> 299 car-s, MEASURED). (applied in the SPEED section: every bend ahead within
     // braking distance, not only the "corners" — Naffcar's banked turns are wider than CORNER_R,
     // and tow passes on their inside slid off: off-road 0 -> 14 car-s, MEASURED)
-    const { psi, loose, slipRear, drifting, edgeRoom, over, under, steer } = steerSlideStep(car,
-        path, nearIdx, idx, speed, lineOff, latT);
-
-    // ---- SPEED: the profile (it already brakes for what is ahead) x pace x mistakes, capped by
-    // the joker approach and traffic
-    let targetSpeed = profileSpeed(main, car, path, nearIdx, idx, speed, prof, latT, lineOff);
-    targetSpeed = Math.min(targetSpeed * traits.pace * push * vMul, jCap, followCap);
-    state.vT = targetSpeed;
-    const slideR = slipRear, feel = Math.max(0, 1 - Math.max(0, slideR - 0.07) / 0.12);
-    // OFF ROAD / LOOSE (user, 2026-10-04: "they still slow down like mad off road / changing
-    // surfaces"): on loose ground a sliding front is the surface, not a mistake — keep driving
-    // (UNDER_LOOSE throttle) and never brake for it. MEASURED before (aifieldcheck SURF, Brands +
-    // Castle Cum, 6 cars): on grass / dirt the AI braked 26-36 % and lifted 13-33 % of the time,
-    // front slip > 0.14 for 19-40 %. ...only OFF THE PLANNED SURFACE (the car on clearly worse
-    // ground than its racing line: off the road, onto a loose patch). On a loose line (Sweaty
-    // Lamb's gravel) the old lift + brake stays: applied there too, the 4x4 at Real left the stage
-    // 16 s a lap (MEASURED).
-    const offPlan = path === main && car.surface.mu < 0.85 * (pts[nearIdx].mu || 1);
-    const looseUnder = under && loose > 0.3 && offPlan;
-    if (drifting) { state.driftT = (state.driftT || 0) + dt; state.lastDrift = state.t; }
-    // a drift that ran it OFF the road: it backs off drifting for DRIFT_BAN s (a driver who scares
-    // himself)
-    // off within 2 s of a drift
-    if (edgeRoom < -0.5 && state.t - (state.lastDrift ?? -99) < 2) {
-      state.driftOn = false;
-      state.driftBan = state.t + DRIFT_BAN;
-    }
-    let throttle = drifting ? Math.max(0.25, Math.min(1, 0.6 + (DRIFT_SLIP - slipRear) * 3)) * (
-        speed < targetSpeed * 1.1 ? 1 : 0.4) : looseUnder ? Math.min(
-        UNDER_LOOSE, speed < targetSpeed ? (targetSpeed - speed) * 0.6 : 0) : under ? 0 : over ? (
-        speed < targetSpeed ? Math.min(0.2, (targetSpeed - speed) * 0.6) : 0) :
-        speed < targetSpeed ? Math.min(1, (targetSpeed - speed) * 0.6) * feel : 0;
-    if (thrForce && speed < targetSpeed * 1.1) throttle = 1;
-    let brake = speed > targetSpeed + 0.3 ? Math.min(1, (speed - targetSpeed) * 1.5) * Math.max(
-        0.6, 1 - Math.abs(steer) / 0.5) : 0;
-    if (under && !looseUnder && speed > 0.85 * targetSpeed) brake = Math.max(brake, 0.35);
-    if (over || drifting) brake = 0;
-    // HANDBRAKE TURNS (user, 2026-10-04: "they should also use handbrake and drift and stuff"):
-    // into a HAIRPIN (apex R < HB_R) before the apex, a big turn still ahead (> HB_TURN rad) and
-    // moving -> one pull of HB_T s per hairpin, off the throttle, full lock that way: the rear
-    // steps out and the car pivots. The better driver times it (skill), a weaker one sometimes
-    // doesn't bother.
-    const handbrake = handbrakeStep(path, nearIdx, speed, loose);
-    if (handbrake) {
-      throttle = 0;
-      brake = 0;
-    }
-    return {
-      steer: handbrake ? Math.sign(steer || psi) * Math.max(Math.abs(steer), 0.9) : steer,
-          throttle, brake, handbrake
-    };
+    const slide = steerSlideStep(car, path, nearIdx, idx, speed, lineOff, latT);
+    return pedalStep(car, path, nearIdx, idx, speed, dt, prof, latT, lineOff,
+        { push, vMul, jCap, followCap, thrForce }, slide);
   }
   // put back on the road by the game (stuck / broken): find its place again, forget the dodge and
   // any mistake in progress
