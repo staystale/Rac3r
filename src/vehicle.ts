@@ -1234,11 +1234,53 @@ function lowSpeedBlend(car: Car, carSpec: Spec, mass: number, gravity: number, d
   return { vLong, vLat };
 }
 
+/**
+ * Telemetry section of step(): publish this step's forces, slips and aid activity on car.t, and
+ * remember the slip angle and peak for the next step.
+ */
+function writeTelemetry(car: Car, carSpec: Spec, tick: AxleTick, axles: AxleOutcome,
+    vLong: number, vLat: number, slipF: number, slipR: number, loadKF: number, loadKR: number,
+    absWorking: boolean, escWorking: boolean, handbrake: number, torque: number,
+    driveForce: number, accelLong: number, accelLat: number, delta: number) {
+  const telem = car.t;
+  const { muBase } = tick;
+  const { frontAxle, rearAxle, lockedF, lockedR, FzF, FzR } = axles;
+  telem.vLong = vLong; telem.vLat = vLat;
+  telem.slipF = slipF; telem.slipR = slipR;
+  car.slipFPrev = slipF;
+  car.aPeakFPrev = Math.max(ALPHA_PEAK_MIN,
+      (muBase * FzF * car.mods.gripLat / (carSpec.caF * car.mods.gripLat)) * TUNE.alphaPeakK);
+  telem.FzF = FzF; telem.FzR = FzR;
+  // per-axle suspension load: which END is light is the story
+  telem.loadKF = loadKF; telem.loadKR = loadKR;
+  telem.FyF = frontAxle.Fy;
+  telem.FyR = rearAxle.Fy;
+  telem.FyMaxF = frontAxle.FyMax;
+  telem.FyMaxR = rearAxle.FyMax;
+  telem.FxF = frontAxle.Fx; telem.FxR = rearAxle.Fx;
+  telem.satF = frontAxle.sat; telem.satR = rearAxle.sat;
+  telem.slidingF = frontAxle.sliding; telem.slidingR = rearAxle.sliding;
+  const drivenAxle = carSpec.drive >= 0.99 ? frontAxle : carSpec.drive <= 0.01 ? rearAxle : null;
+  telem.slipSpeedDriven = drivenAxle ? (drivenAxle.spinning ? drivenAxle.slipSpeed : 0)
+      : Math.max(frontAxle.spinning ? frontAxle.slipSpeed : 0, rearAxle.spinning
+          ? rearAxle.slipSpeed : 0);
+  telem.spinF = frontAxle.spinning; telem.spinR = rearAxle.spinning;
+  // aid activity for the HUD chips (they flash while working — the silent twin, the phone may be
+  // muted)
+  telem.absWorking = absWorking; telem.tcsWorking = escWorking || car.tcsK < 0.95;
+  telem.lockedF = lockedF; telem.lockedR = lockedR || (handbrake > 0.5 && rearAxle.sliding);
+  telem.slipSpeedF = frontAxle.slipSpeed;
+  telem.slipSpeedR = rearAxle.slipSpeed;
+  telem.torque = torque; telem.driveForce = driveForce;
+  telem.ax = accelLong; telem.ay = accelLat;
+  telem.speed = Math.hypot(car.vx, car.vy);
+  telem.delta = delta; telem.gear = car.gear; telem.rpm = car.rpm;
+}
+
 export function step(car: Car, input: CarInput, dt = PHYSICS_STEP_SECONDS) {
   const carSpec = car.spec;
   const mass = carSpec.mass * car.mods.mass;
   const gravity = GRAVITY;
-  const telem = car.t;
 
   // ---- 1. to body frame
   const cosH = Math.cos(car.heading), sinH = Math.sin(car.heading);
@@ -1444,36 +1486,8 @@ export function step(car: Car, input: CarInput, dt = PHYSICS_STEP_SECONDS) {
   //      slipSpeed comes straight out of the axle function — it is the magnitude of the contact
   //      patch's slip velocity, which is exactly what the marks layer and the squeal need. Do not
   //      re-derive it here; two derivations of one quantity is how they drift apart.
-  telem.vLong = vLong; telem.vLat = vLat;
-  telem.slipF = slipF; telem.slipR = slipR;
-  car.slipFPrev = slipF;
-  car.aPeakFPrev = Math.max(ALPHA_PEAK_MIN,
-      (muBase * FzF * car.mods.gripLat / (carSpec.caF * car.mods.gripLat)) * TUNE.alphaPeakK);
-  telem.FzF = FzF; telem.FzR = FzR;
-  // per-axle suspension load: which END is light is the story
-  telem.loadKF = loadKF; telem.loadKR = loadKR;
-  telem.FyF = frontAxle.Fy;
-  telem.FyR = rearAxle.Fy;
-  telem.FyMaxF = frontAxle.FyMax;
-  telem.FyMaxR = rearAxle.FyMax;
-  telem.FxF = frontAxle.Fx; telem.FxR = rearAxle.Fx;
-  telem.satF = frontAxle.sat; telem.satR = rearAxle.sat;
-  telem.slidingF = frontAxle.sliding; telem.slidingR = rearAxle.sliding;
-  const drivenAxle = carSpec.drive >= 0.99 ? frontAxle : carSpec.drive <= 0.01 ? rearAxle : null;
-  telem.slipSpeedDriven = drivenAxle ? (drivenAxle.spinning ? drivenAxle.slipSpeed : 0)
-      : Math.max(frontAxle.spinning ? frontAxle.slipSpeed : 0, rearAxle.spinning
-          ? rearAxle.slipSpeed : 0);
-  telem.spinF = frontAxle.spinning; telem.spinR = rearAxle.spinning;
-  // aid activity for the HUD chips (they flash while working — the silent twin, the phone may be
-  // muted)
-  telem.absWorking = absWorking; telem.tcsWorking = escWorking || car.tcsK < 0.95;
-  telem.lockedF = lockedF; telem.lockedR = lockedR || (handbrake > 0.5 && rearAxle.sliding);
-  telem.slipSpeedF = frontAxle.slipSpeed;
-  telem.slipSpeedR = rearAxle.slipSpeed;
-  telem.torque = torque; telem.driveForce = driveForce;
-  telem.ax = accelLong; telem.ay = accelLat;
-  telem.speed = Math.hypot(car.vx, car.vy);
-  telem.delta = delta; telem.gear = car.gear; telem.rpm = car.rpm;
+  writeTelemetry(car, carSpec, tick, axles, vLong, vLat, slipF, slipR, loadKF, loadKR,
+      absWorking, escWorking, handbrake, torque, driveForce, accelLong, accelLat, delta);
 
   return car;
 }
