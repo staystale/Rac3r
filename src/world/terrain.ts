@@ -108,16 +108,12 @@ function across(lateral: number, wid: number): number {
 // fighting. smooth = the height the SLOPE FORCE reads: no kerb ridges, no washboard ripples, no
 // curved kerbs.
 const BUMP_CELL = 16, NO_BUMPS: Bump[] = [];
-export function bumpAt(x: number, y: number, smooth = false): number {
-  const list = LEVEL.bumps;
-  // ONE subtrack query per lookup, shared by the banking, the camber and the curved kerbs. MEASURED
-  // (2026-10-03, user: "still seeing lag at high speeds"): three separate scans made a Test Track
-  // ground tile cost ~12 ms to shade on a PC.
-  const track = LEVEL.subtrack;
-  const hit = track && (LEVEL.bankAngle || LEVEL.camber || (!smooth && track.curvedKerbs))
-    ? querySubtrack(track, x, y) : null;
-  let height = bankHeightAt(x, y, hit) + camberHeightAt(x, y, hit) - rutAt(x, y)
-    + naturalHeightAt(x, y);
+/**
+ * Rebuild LEVEL._bumpGrid when the bump list changed: every bump goes in each grid cell its
+ * reach touches.
+ * @param list the level's bumps
+ */
+function ensureBumpGrid(list: Bump[]): void {
   // BUMP GRID (2026-10-04): Thruston's earth banks took the list to 212 bumps and every height
   // lookup scanned them all — MEASURED ground tile 22 -> 28.7 ms, slow frames 71 -> 103 of 570 at
   // CPU x4. Now only the bumps whose reach touches this cell.
@@ -137,9 +133,19 @@ export function bumpAt(x: number, y: number, smooth = false): number {
         }
     }
   }
-  // _bumpGrid was just set above if it was stale
-  const cell = LEVEL._bumpGrid!.get(Math.floor(x / BUMP_CELL) * 100003
-    + Math.floor(y / BUMP_CELL)) || NO_BUMPS;
+}
+/**
+ * Add the height of the bumps in one grid cell to a running height.
+ * @param height the height so far
+ * @param cell the bumps whose reach touches the cell
+ * @param x world x
+ * @param y world y
+ * @param smooth true to skip kerb ridges and washboard ripples (the slope force reads this)
+ * @returns the height with the bumps added
+ */
+function addBumpHeights(
+  height: number, cell: Bump[], x: number, y: number, smooth: boolean,
+): number {
   for (let i = 0; i < cell.length; i++) {
     const bump = cell[i];
     if (smooth && NO_SLOPE.has(bump.kind)) continue;
@@ -150,24 +156,51 @@ export function bumpAt(x: number, y: number, smooth = false): number {
     const lateral = -dx * bump.sin! + dy * bump.cos!;         // across it
     height += bumpKind[bump.kind](bump, along, lateral);
   }
-
-  // Curved rumble kerbs along corner apexes and exits
-  if (!smooth && LEVEL.subtrack && LEVEL.subtrack.curvedKerbs && hit) {
-    const halfW = LEVEL.subtrack.width / 2;
-    for (let i = 0; i < LEVEL.subtrack.curvedKerbs.length; i++) {
-      const kerb = LEVEL.subtrack.curvedKerbs[i];
-      if (kerb.side === hit.side && hit.trackDist >= kerb.startDist
-        && hit.trackDist <= kerb.endDist) {
-        const kerbWidth = kerb.width || 2.4;
-        if (hit.dist >= halfW && hit.dist <= halfW + kerbWidth) {
-          const frac = (hit.dist - halfW) / kerbWidth;
-          const sine = Math.sin(Math.PI * frac);
-          height += (kerb.h || 0.11) * sine * sine
-            + KERB_RIDGE * sine * Math.sin((hit.trackDist / KERB_RIDGE_L) * Math.PI * 2);
-        }
+  return height;
+}
+/**
+ * Add the curved rumble kerbs (along corner apexes and exits) under a subtrack hit.
+ * @param height the height so far
+ * @param track the level's subtrack
+ * @param hit the subtrack query result for this point
+ * @returns the height with the kerbs added
+ */
+function addCurvedKerbHeights(height: number, track: Subtrack, hit: SubtrackHit): number {
+  const halfW = track.width / 2;
+  for (let i = 0; i < track.curvedKerbs!.length; i++) {
+    const kerb = track.curvedKerbs![i];
+    if (kerb.side === hit.side && hit.trackDist >= kerb.startDist
+      && hit.trackDist <= kerb.endDist) {
+      const kerbWidth = kerb.width || 2.4;
+      if (hit.dist >= halfW && hit.dist <= halfW + kerbWidth) {
+        const frac = (hit.dist - halfW) / kerbWidth;
+        const sine = Math.sin(Math.PI * frac);
+        height += (kerb.h || 0.11) * sine * sine
+          + KERB_RIDGE * sine * Math.sin((hit.trackDist / KERB_RIDGE_L) * Math.PI * 2);
       }
     }
   }
+  return height;
+}
+export function bumpAt(x: number, y: number, smooth = false): number {
+  const list = LEVEL.bumps;
+  // ONE subtrack query per lookup, shared by the banking, the camber and the curved kerbs. MEASURED
+  // (2026-10-03, user: "still seeing lag at high speeds"): three separate scans made a Test Track
+  // ground tile cost ~12 ms to shade on a PC.
+  const track = LEVEL.subtrack;
+  const hit = track && (LEVEL.bankAngle || LEVEL.camber || (!smooth && track.curvedKerbs))
+    ? querySubtrack(track, x, y) : null;
+  let height = bankHeightAt(x, y, hit) + camberHeightAt(x, y, hit) - rutAt(x, y)
+    + naturalHeightAt(x, y);
+  ensureBumpGrid(list);
+  // _bumpGrid was just set above if it was stale
+  const cell = LEVEL._bumpGrid!.get(Math.floor(x / BUMP_CELL) * 100003
+    + Math.floor(y / BUMP_CELL)) || NO_BUMPS;
+  height = addBumpHeights(height, cell, x, y, smooth);
+
+  // Curved rumble kerbs along corner apexes and exits
+  if (!smooth && LEVEL.subtrack && LEVEL.subtrack.curvedKerbs && hit)
+    height = addCurvedKerbHeights(height, LEVEL.subtrack, hit);
 
   return height;
 }
