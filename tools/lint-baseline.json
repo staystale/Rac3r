@@ -80,9 +80,6 @@
     "complexity": 1,
     "max-lines-per-function": 2
   },
-  "src/render/particles.ts": {
-    "max-lines-per-function": 1
-  },
   "src/render/props.ts": {
     "complexity": 1
   },
