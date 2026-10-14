@@ -247,6 +247,16 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
     return { latT, lineOff, startK };
   }
 
+  /** Flags a battle (car within 25 m); returns the push factor on the pace. */
+  function battleStep(car: AiCar, others: AiCar[]) {
+    // BATTLING (user: "scrabbling for victory"): a car within 25 m -> push a little harder, and
+    // err a little more
+    state.pushing = others.some((other) => Math.hypot(other.x - car.x, other.y - car.y) < 25);
+    return (state.pushing ? 1 + 0.02 * traits.aggression : 1) * (
+        state.atk ? 1 + 0.02 * traits.aggression : 1) * (
+        1 + HARDER * Math.min(1, (state.behindT || 0) / HARDER_T));
+  }
+
   function drive(car: AiCar, dt = 1 / 120, ctx: DriveCtx = {}) {
     state.t += dt;
     const spec = car.spec, speed = Math.hypot(car.vx, car.vy);
@@ -267,12 +277,7 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
         path.closed ? ((pos % size) + size) % size : Math.max(0, Math.min(size - 1, pos)));
     const nearIdx = state.i!; let prof = profileOf(path, spec, main);
     const others = ctx.cars || [];
-    // BATTLING (user: "scrabbling for victory"): a car within 25 m -> push a little harder, and
-    // err a little more
-    state.pushing = others.some((other) => Math.hypot(other.x - car.x, other.y - car.y) < 25);
-    const push = (state.pushing ? 1 + 0.02 * traits.aggression : 1) * (
-        state.atk ? 1 + 0.02 * traits.aggression : 1) * (
-        1 + HARDER * Math.min(1, (state.behindT || 0) / HARDER_T));
+    const push = battleStep(car, others);
 
     // ---- JOKER: decide once per lap ~220 m before the branch; take it at the switch point
     const jCap = jokerStep(car, ctx, path, nearIdx, lap, laps);
