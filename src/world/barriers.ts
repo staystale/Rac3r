@@ -1,7 +1,9 @@
 // barriers.ts - the BARRIERS section (barriers, solid props, clamps). Moved verbatim out of
 // lab.js.
 import { LEVEL } from "./state.ts";
-import type { Barrier, BarrierKind, CarBody, Point, Prop, Solid, Subtrack } from "./types.ts";
+import type {
+  Barrier, BarrierKind, BarrierSeg, CarBody, Point, Prop, Solid, Subtrack,
+} from "./types.ts";
 
 // =============================================================================================
 // BARRIERS (2026-10-03; user: "use aerial photos of tracks on race days for pit layouts and
@@ -85,50 +87,102 @@ export function prepBarriers(level: { barriers?: Barrier[] }): void {
 // trunk or a wing tip narrower than the car could slip between two corners; SAT cannot miss it.
 // Response = the barrier rules (restitution BARRIER_E, scrape BARRIER_SCRAPE, yaw x0.6, shake).
 // solidsFromProps builds the boxes from what is drawn, so "move that tree" moves its collision too.
+/**
+ * Push one rotated solid box (a part of a prop) onto the solids list.
+ * @param out the solids list being built
+ * @param prop the prop the box belongs to (position, rotation, kind)
+ * @param offX box centre offset along the prop's x axis (metres)
+ * @param offY box centre offset along the prop's y axis (metres)
+ * @param width box width (metres)
+ * @param height box height (metres)
+ */
+function pushPropBox(
+  out: Solid[], prop: Prop, offX: number, offY: number, width: number, height: number,
+): void {
+  const cosRot = Math.cos(prop.rot || 0), sinRot = Math.sin(prop.rot || 0);
+  out.push({ x: prop.x + cosRot * offX - sinRot * offY, y: prop.y + sinRot * offX
+      + cosRot * offY, w: width, h: height, rot: prop.rot || 0, kind: prop.kind });
+}
+/**
+ * Solid boxes of the big structure props (hangar, grandstand, tower, truck, plane, marshal,
+ * board, windsock).
+ * @param out the solids list being built
+ * @param prop the prop
+ * @returns true when the prop kind was handled here
+ */
+function addStructureSolids(out: Solid[], prop: Prop): boolean {
+  const box = (offX: number, offY: number, width: number, height: number): void =>
+    pushPropBox(out, prop, offX, offY, width, height);
+  switch (prop.kind) {
+    // always have w and h
+    case 'hangar': case 'grandstand': box(0, 0, prop.w!, prop.h!); return true;
+    case 'tower': box(0, 0, prop.size || 9, prop.size || 9); return true;
+    case 'truck': box(0, 0, 14, 2.5); return true;
+    // fuselage, wing, tailplane
+    case 'plane': box(0.3, 0, 7, 1); box(1.0, 0, 1.4, 9); box(-2.8, 0, 0.8,
+        3.2); return true;
+    case 'marshal': box(0, 0, 2.4, 2); return true;
+    case 'board': box(0, 0, 18, 1.2); return true;
+    case 'windsock': box(0, 0, 0.5, 0.5); return true;
+    default: return false;
+  }
+}
+/**
+ * Solid boxes of the trackside furniture props (tree, gantry, footbridge, bridge).
+ * @param out the solids list being built
+ * @param prop the prop
+ * @returns true when the prop kind was handled here
+ */
+function addFurnitureSolids(out: Solid[], prop: Prop): boolean {
+  const box = (offX: number, offY: number, width: number, height: number): void =>
+    pushPropBox(out, prop, offX, offY, width, height);
+  switch (prop.kind) {
+    // a TREE stops you at its trunk + lower branches (half the canopy); you can clip the outer
+    // leaves
+    case 'tree': box(0, 0, (prop.s || 4) * 0.5, (prop.s || 4) * 0.5); return true;
+    // the two legs
+    case 'gantry': box(-(prop.wid || 26) / 2, 0, 1.2, 1.8); box((prop.wid || 26)
+        / 2, 0, 1.2, 1.8); return true;
+    // stair towers
+    case 'footbridge': box(-(prop.wid || 27) / 2, 0, 1.6, 3.0); box((prop.wid || 27)
+        / 2, 0, 1.6, 3.0); return true;
+    // highway BRIDGES (highway.js extras): the two ABUTMENTS (4 m blocks) at the ends of the
+    // span, out on the grass; the deck is overhead
+    case 'bridge': box(-(prop.wid || 30) / 2 - 2, 0, 4, prop.carries === 'foot' ? 3.8
+        : 8); box((prop.wid || 30) / 2 + 2, 0, 4, prop.carries === 'foot' ? 3.8
+        : 8); return true;
+    default: return false;
+  }
+}
+/**
+ * Solid boxes of the small props (gate, block, sculpture, bale, rock).
+ * @param out the solids list being built
+ * @param prop the prop
+ * @returns true when the prop kind was handled here
+ */
+function addSmallSolids(out: Solid[], prop: Prop): boolean {
+  const box = (offX: number, offY: number, width: number, height: number): void =>
+    pushPropBox(out, prop, offX, offY, width, height);
+  switch (prop.kind) {
+    case 'gate': box(0, 0, 6.8, 0.6); return true;
+    case 'block': box(0, 0, prop.w!, prop.h!); return true;   // always have w and h
+    case 'sculpture': box(0, 0, 2.2, 2.2); return true;
+    case 'bale': box(0, 0, 1.6, 1.6); return true;
+    case 'rock': box(0, 0, (prop.s || 3) * 0.7, (prop.s || 3) * 0.7); return true;
+    // (field sheep / cows are LOOSE OBJECTS since S-C, 2026-10-07 - cones.js: pushable, a sheep
+    // pops into fluff, a cow tips; not solid props)
+    // (chevron boards and flag poles are NOT solid since 2026-10-04: flimsy signs on stakes that
+    // a car flattens — as solid walls they
+    // tore a rally car's front wheels off and rolled it at a Killder corner exit, photographed)
+    default: return false;
+  }
+}
 export function solidsFromProps(props: Prop[]): Solid[] {
   const out: Solid[] = [];
-  const box = (prop: Prop, offX: number, offY: number, width: number, height: number): void => {
-    const cosRot = Math.cos(prop.rot || 0), sinRot = Math.sin(prop.rot || 0);
-    out.push({ x: prop.x + cosRot * offX - sinRot * offY, y: prop.y + sinRot * offX
-        + cosRot * offY, w: width, h: height, rot: prop.rot || 0, kind: prop.kind });
-  };
   for (const prop of props) {
-    switch (prop.kind) {
-      // always have w and h
-      case 'hangar': case 'grandstand': box(prop, 0, 0, prop.w!, prop.h!); break;
-      case 'tower': box(prop, 0, 0, prop.size || 9, prop.size || 9); break;
-      case 'truck': box(prop, 0, 0, 14, 2.5); break;
-      // fuselage, wing, tailplane
-      case 'plane': box(prop, 0.3, 0, 7, 1); box(prop, 1.0, 0, 1.4, 9); box(prop, -2.8, 0, 0.8,
-          3.2); break;
-      case 'marshal': box(prop, 0, 0, 2.4, 2); break;
-      case 'board': box(prop, 0, 0, 18, 1.2); break;
-      case 'windsock': box(prop, 0, 0, 0.5, 0.5); break;
-      // a TREE stops you at its trunk + lower branches (half the canopy); you can clip the outer
-      // leaves
-      case 'tree': box(prop, 0, 0, (prop.s || 4) * 0.5, (prop.s || 4) * 0.5); break;
-      // the two legs
-      case 'gantry': box(prop, -(prop.wid || 26) / 2, 0, 1.2, 1.8); box(prop, (prop.wid || 26)
-          / 2, 0, 1.2, 1.8); break;
-      // stair towers
-      case 'footbridge': box(prop, -(prop.wid || 27) / 2, 0, 1.6, 3.0); box(prop, (prop.wid || 27)
-          / 2, 0, 1.6, 3.0); break;
-      // highway BRIDGES (highway.js extras): the two ABUTMENTS (4 m blocks) at the ends of the
-      // span, out on the grass; the deck is overhead
-      case 'bridge': box(prop, -(prop.wid || 30) / 2 - 2, 0, 4, prop.carries === 'foot' ? 3.8
-          : 8); box(prop, (prop.wid || 30) / 2 + 2, 0, 4, prop.carries === 'foot' ? 3.8
-          : 8); break;
-      case 'gate': box(prop, 0, 0, 6.8, 0.6); break;
-      case 'block': box(prop, 0, 0, prop.w!, prop.h!); break;   // always have w and h
-      case 'sculpture': box(prop, 0, 0, 2.2, 2.2); break;
-      case 'bale': box(prop, 0, 0, 1.6, 1.6); break;
-      case 'rock': box(prop, 0, 0, (prop.s || 3) * 0.7, (prop.s || 3) * 0.7); break;
-      // (field sheep / cows are LOOSE OBJECTS since S-C, 2026-10-07 - cones.js: pushable, a sheep
-      // pops into fluff, a cow tips; not solid props)
-      // (chevron boards and flag poles are NOT solid since 2026-10-04: flimsy signs on stakes that
-      // a car flattens — as solid walls they
-      // tore a rally car's front wheels off and rolled it at a Killder corner exit, photographed)
-    }
+    if (addStructureSolids(out, prop)) continue;
+    if (addFurnitureSolids(out, prop)) continue;
+    addSmallSolids(out, prop);
   }
   for (const solid of out) solid.r = Math.hypot(solid.w, solid.h) / 2;
   return out;
@@ -139,6 +193,70 @@ function pickAxis(
 ): number {
   return idx === 0 ? first : idx === 1 ? second : idx === 2 ? third : fourth;
 }
+/**
+ * Bounce the car off a surface: restitution BARRIER_E along the normal, BARRIER_SCRAPE along the
+ * wall, yaw damping and shake. Only acts when the car moves into the surface.
+ * @param car the car body (velocity, yawRate, shake are changed)
+ * @param nx surface normal x (unit, pointing at the car)
+ * @param ny surface normal y
+ */
+function bounceOffNormal(car: CarBody, nx: number, ny: number): void {
+  const normalSpeed = car.vx * nx + car.vy * ny;
+  if (normalSpeed < 0) {
+    const tangX = -ny, tangY = nx, tangSpeed = car.vx * tangX + car.vy * tangY;
+    const vn2 = -normalSpeed * BARRIER_E, vt2 = tangSpeed * BARRIER_SCRAPE;
+    car.vx = nx * vn2 + tangX * vt2;
+    car.vy = ny * vn2 + tangY * vt2;
+    car.yawRate *= 0.6;
+    car.shake = Math.min(1.0, (car.shake || 0) + Math.abs(normalSpeed) * 0.12);
+  }
+}
+/** Result of the separating-axis test between the car and a solid box. */
+interface SatResult {
+  best: number;      // smallest overlap; <= 0 when the boxes do not touch
+  pushX: number;     // unit push direction x
+  pushY: number;     // unit push direction y
+}
+/**
+ * Separating-axis test of the car box against one solid box on the 4 axes.
+ * @param car the car body
+ * @param solid the solid box
+ * @param halfLen car half length
+ * @param halfWid car half width
+ * @param cosHead cos of the car heading
+ * @param sinHead sin of the car heading
+ * @returns the smallest overlap and the push direction (best = -1 when separated)
+ */
+function satAgainstSolid(
+  car: CarBody, solid: Solid, halfLen: number, halfWid: number, cosHead: number, sinHead: number,
+): SatResult {
+  const dx = car.x - solid.x, dy = car.y - solid.y;
+  const cosRot = Math.cos(solid.rot), sinRot = Math.sin(solid.rot), halfW = solid.w / 2,
+      halfH = solid.h / 2;
+  // SAT on the 4 axes: overlap = sum of projected half-extents - |centre distance on the axis|
+  let best = Infinity, pushX = 0, pushY = 0;
+  // no allocation per call (memory diet, task 104: k-loop instead of an array of axis arrays)
+  for (let idx = 0; idx < 4; idx++) {
+    const axisX = pickAxis(idx, cosHead, -sinHead, cosRot, -sinRot);
+    const axisY = pickAxis(idx, sinHead, cosHead, sinRot, cosRot);
+    const carExtent = halfLen * Math.abs(cosHead * axisX + sinHead * axisY)
+        + halfWid * Math.abs(-sinHead * axisX + cosHead * axisY);
+    const boxExtent = halfW * Math.abs(cosRot * axisX + sinRot * axisY)
+        + halfH * Math.abs(-sinRot * axisX + cosRot * axisY);
+    const dist = dx * axisX + dy * axisY, overlap = carExtent + boxExtent - Math.abs(dist);
+    if (overlap <= 0) {
+      best = -1;
+      break;
+    }
+    if (overlap < best) {
+      best = overlap;
+      const sign = dist >= 0 ? 1 : -1;
+      pushX = axisX * sign;
+      pushY = axisY * sign;
+    }
+  }
+  return { best, pushX, pushY };
+}
 export function solidClamp(car: CarBody): void {
   const list = LEVEL.solids;
   if (!list || !list.length) return;
@@ -148,42 +266,66 @@ export function solidClamp(car: CarBody): void {
   for (const solid of list) {
     const dx = car.x - solid.x, dy = car.y - solid.y;
     if (dx * dx + dy * dy > (carRadius + solid.r!) ** 2) continue;
-    const cosRot = Math.cos(solid.rot), sinRot = Math.sin(solid.rot), halfW = solid.w / 2,
-        halfH = solid.h / 2;
-    // SAT on the 4 axes: overlap = sum of projected half-extents - |centre distance on the axis|
-    let best = Infinity, pushX = 0, pushY = 0;
-    // no allocation per call (memory diet, task 104: k-loop instead of an array of axis arrays)
-    for (let idx = 0; idx < 4; idx++) {
-      const axisX = pickAxis(idx, cosHead, -sinHead, cosRot, -sinRot);
-      const axisY = pickAxis(idx, sinHead, cosHead, sinRot, cosRot);
-      const carExtent = halfLen * Math.abs(cosHead * axisX + sinHead * axisY)
-          + halfWid * Math.abs(-sinHead * axisX + cosHead * axisY);
-      const boxExtent = halfW * Math.abs(cosRot * axisX + sinRot * axisY)
-          + halfH * Math.abs(-sinRot * axisX + cosRot * axisY);
-      const dist = dx * axisX + dy * axisY, overlap = carExtent + boxExtent - Math.abs(dist);
-      if (overlap <= 0) {
-        best = -1;
-        break;
-      }
-      if (overlap < best) {
-        best = overlap;
-        const sign = dist >= 0 ? 1 : -1;
-        pushX = axisX * sign;
-        pushY = axisY * sign;
-      }
-    }
+    const { best, pushX, pushY } = satAgainstSolid(car, solid, halfLen, halfWid, cosHead, sinHead);
     if (best <= 0) continue;
     car.x += pushX * best;
     car.y += pushY * best;
-    const normalSpeed = car.vx * pushX + car.vy * pushY;
-    if (normalSpeed < 0) {
-      const tangX = -pushY, tangY = pushX, tangSpeed = car.vx * tangX + car.vy * tangY;
-      const vn2 = -normalSpeed * BARRIER_E, vt2 = tangSpeed * BARRIER_SCRAPE;
-      car.vx = pushX * vn2 + tangX * vt2;
-      car.vy = pushY * vn2 + tangY * vt2;
-      car.yawRate *= 0.6;
-      car.shake = Math.min(1.0, (car.shake || 0) + Math.abs(normalSpeed) * 0.12);
-    }
+    bounceOffNormal(car, pushX, pushY);
+  }
+}
+/**
+ * Push one car corner out of a barrier segment and bounce the car if it pokes in.
+ * @param car the car body
+ * @param seg the barrier segment
+ * @param half half thickness of the barrier
+ * @param cornerX world x of the car corner
+ * @param cornerY world y of the car corner
+ */
+function clampCornerToSeg(
+  car: CarBody, seg: BarrierSeg, half: number, cornerX: number, cornerY: number,
+): void {
+  let frac = ((cornerX - seg.ax) * seg.dx + (cornerY - seg.ay) * seg.dy) / seg.l2;
+  frac = frac < 0 ? 0 : frac > 1 ? 1 : frac;
+  const nearX = seg.ax + seg.dx * frac, nearY = seg.ay + seg.dy * frac;
+  let nx = cornerX - nearX, ny = cornerY - nearY;
+  const dist = Math.hypot(nx, ny);
+  if (dist >= half) return;
+  if (dist < 1e-6) {
+    nx = -seg.dy;
+    ny = seg.dx;
+  }
+  const normLen = Math.hypot(nx, ny);
+  nx /= normLen;
+  ny /= normLen;
+  // which side the car is on: the side its CENTRE is on (a corner may have poked through)
+  const side = Math.sign((car.x - nearX) * nx + (car.y - nearY) * ny) || 1;
+  nx *= side;
+  ny *= side;
+  const push = half - dist * side;
+  car.x += nx * push;
+  car.y += ny * push;
+  bounceOffNormal(car, nx, ny);
+}
+/**
+ * Clamp the car's four corners against one barrier segment.
+ * @param car the car body
+ * @param seg the barrier segment
+ * @param half half thickness of the barrier
+ * @param halfLen car half length
+ * @param halfWid car half width
+ * @param cosHead cos of the car heading
+ * @param sinHead sin of the car heading
+ */
+function clampCornersToSeg(
+  car: CarBody, seg: BarrierSeg, half: number, halfLen: number, halfWid: number,
+  cosHead: number, sinHead: number,
+): void {
+  // no allocation per call (memory diet, task 104: corners by idx)
+  for (let idx = 0; idx < 4; idx++) {
+    const fore = idx < 2 ? halfLen : -halfLen, lateral = (idx % 2 === 0) ? halfWid : -halfWid;
+    const cornerX = car.x + cosHead * fore - sinHead * lateral, cornerY = car.y
+        + sinHead * fore + cosHead * lateral;
+    clampCornerToSeg(car, seg, half, cornerX, cornerY);
   }
 }
 export function barrierClamp(car: CarBody): void {
@@ -197,41 +339,7 @@ export function barrierClamp(car: CarBody): void {
     for (const seg of barrier._segs) {
       if (car.x < seg.minX - spec.len || car.x > seg.maxX + spec.len
           || car.y < seg.minY - spec.len || car.y > seg.maxY + spec.len) continue;
-      // no allocation per call (memory diet, task 104: corners by idx)
-      for (let idx = 0; idx < 4; idx++) {
-        const fore = idx < 2 ? halfLen : -halfLen, lateral = (idx % 2 === 0) ? halfWid : -halfWid;
-        const cornerX = car.x + cosHead * fore - sinHead * lateral, cornerY = car.y
-            + sinHead * fore + cosHead * lateral;
-        let frac = ((cornerX - seg.ax) * seg.dx + (cornerY - seg.ay) * seg.dy) / seg.l2;
-        frac = frac < 0 ? 0 : frac > 1 ? 1 : frac;
-        const nearX = seg.ax + seg.dx * frac, nearY = seg.ay + seg.dy * frac;
-        let nx = cornerX - nearX, ny = cornerY - nearY;
-        const dist = Math.hypot(nx, ny);
-        if (dist >= half) continue;
-        if (dist < 1e-6) {
-          nx = -seg.dy;
-          ny = seg.dx;
-        }
-        const normLen = Math.hypot(nx, ny);
-        nx /= normLen;
-        ny /= normLen;
-        // which side the car is on: the side its CENTRE is on (a corner may have poked through)
-        const side = Math.sign((car.x - nearX) * nx + (car.y - nearY) * ny) || 1;
-        nx *= side;
-        ny *= side;
-        const push = half - dist * side;
-        car.x += nx * push;
-        car.y += ny * push;
-        const normalSpeed = car.vx * nx + car.vy * ny;
-        if (normalSpeed < 0) {
-          const tangX = -ny, tangY = nx, tangSpeed = car.vx * tangX + car.vy * tangY;
-          const vn2 = -normalSpeed * BARRIER_E, vt2 = tangSpeed * BARRIER_SCRAPE;
-          car.vx = nx * vn2 + tangX * vt2;
-          car.vy = ny * vn2 + tangY * vt2;
-          car.yawRate *= 0.6;
-          car.shake = Math.min(1.0, (car.shake || 0) + Math.abs(normalSpeed) * 0.12);
-        }
-      }
+      clampCornersToSeg(car, seg, half, halfLen, halfWid, cosHead, sinHead);
     }
   }
 }
