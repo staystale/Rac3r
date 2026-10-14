@@ -71,10 +71,9 @@
   },
   "src/menu.js": {
     "complexity": 2,
-    "id-length": 209,
-    "max-len": 204,
-    "max-lines-per-function": 1,
-    "no-shadow": 6
+    "max-lines": 1,
+    "max-lines-per-function": 3,
+    "no-shadow": 5
   },
   "src/raceflow.js": {
     "complexity": 1,
