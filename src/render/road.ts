@@ -670,6 +670,18 @@ function slipNormal(line: NonNullable<Prop['line']>, index: number) {
 }
 
 /**
+ * Whether a slip road's bounding box (already cached) is wholly off screen.
+ * @param ctx the road context
+ * @param prop the slip road prop
+ * @returns true when nothing of it can be seen
+ */
+function slipOffscreen(ctx: RoadCtx, prop: Prop) {
+  const { view, toScreenX, toScreenY } = ctx;
+  return toScreenX(prop._bb![0]) > view.W || toScreenX(prop._bb![2]) < 0 ||
+      toScreenY(prop._bb![1]) > view.H || toScreenY(prop._bb![3]) < 0;
+}
+
+/**
  * SLIP ROAD (highway.js extras): the tarmac itself is a lane ribbon (drawLanes, ground tiles);
  * this draws its MARKINGS - the edge lines and a row of white squares along the nose where it
  * leaves the hard shoulder - on top, so they are never stale in a tile.
@@ -681,8 +693,7 @@ function drawSlip(ctx: RoadCtx, prop: Prop, pxPerM: number) {
   const { view, toScreenX, toScreenY } = ctx;
   const line = prop.line; if (!line || line.length < 2) return;
   if (!prop._bb) cacheSlipBox(prop, line);
-  if (toScreenX(prop._bb![0]) > view.W || toScreenX(prop._bb![2]) < 0 ||
-      toScreenY(prop._bb![1]) > view.H || toScreenY(prop._bb![3]) < 0) return;
+  if (slipOffscreen(ctx, prop)) return;
   const halfW = (prop.w || 5) / 2 - 0.3, nrm = (index: number) => slipNormal(line, index);
   view.ctx.save();
   view.ctx.strokeStyle = 'rgba(245,245,240,0.85)';
