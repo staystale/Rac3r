@@ -25,9 +25,11 @@ import { createAttackSteps, createRaceMoves } from "./racecraft.ts";
 import {
   steerAim, profileSpeed, createHandbrakeStep, createSlideStep, DRIFT_SLIP,
 } from "./driverSteps.ts";
+import { jokerStep } from "./driverJoker.ts";
+import type { Drv } from "./driverCtx.ts";
 import type { Level } from "../world/types.ts";
 import type {
-  AiCar, CarsAcc, CarsEnv, CircuitState, DriveCtx, HighwayLevel, JokerCtx,
+  AiCar, CarsAcc, CarsEnv, CircuitState, DriveCtx, HighwayLevel,
 } from "./types.ts";
 
 // m: the lateral target never puts the car's centre closer than this to the road edge
@@ -92,6 +94,10 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
   const moves = createRaceMoves(state, line, traits, rnd, attack.beyondApex);
   const handbrakeStep = createHandbrakeStep(state, line, traits, rnd);
   const slideStep = createSlideStep(state, line, traits, rnd);
+  const drv: Drv = {
+    level, traits, rnd, line, main, branches, count, state, attack, moves, handbrakeStep,
+    slideStep, wanderPhaseA, wanderPhaseB, jLaps,
+  };
 
   function advance(car: AiCar) {
     const path = state.path, pts = path.pts, size = path.n;
@@ -117,34 +123,6 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
       advance(car);
     }
   }
-  /** TACTICS: a car close ahead (stuck behind it) / a jokered rival close behind. */
-  function jokerThreats(ctx: JokerCtx) {
-    const selfCar = ctx.self; let ahead = false, coverIt = false;
-    for (const other of ctx.cars || []) {
-      const dx = other.x - selfCar.x, dy = other.y - selfCar.y, along = dx * Math.cos(
-          selfCar.heading) + dy * Math.sin(selfCar.heading), gap = Math.hypot(dx, dy);
-      if (along > 0 && gap < 30) ahead = true;
-      if (along < 0 && gap < 25 && (other._jokers || 0) > 0) coverIt = true;
-    }
-    return { ahead, coverIt };
-  }
-  function decideJoker(ctx: JokerCtx, lap: number, laps: number) {
-    state.jDecLap = lap;
-    if (!branches.joker || state.jokers > 0) { state.jWant = false; return; }
-    // last chance (a low-skill driver may simply forget: +30 s)
-    if (lap >= laps) {
-      state.jWant = !state.jForget;
-      return;
-    }
-    if (lap === state.jPlan) { state.jWant = true; return; }
-    // TACTICS: stuck behind someone -> "jump" them with the joker (more likely the more
-    // aggressive); a rival right behind who has
-    // already jokered -> cover them now before they gain the clean air (more likely the more
-    // defensive)
-    const { ahead, coverIt } = jokerThreats(ctx);
-    state.jWant = (ahead && rnd() < 0.2 + 0.5 * traits.aggression) || (
-        coverIt && rnd() < 0.2 + 0.5 * traits.defence);
-  }
   function startMistake(cIdx: number) {
     const roll = rnd(), kind = roll < 0.4 ? 'late' : roll < 0.65 ? 'early' : roll < 0.85 ?
         'throttle' : 'lift';
@@ -164,29 +142,6 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
         nearest]; return [point.x - car.x, point.y - car.y]; })()) < 12) {
       state.path = branches.start; state.i = nearestIdx(branches.start.pts, car.x, car.y);
     } else { state.path = main; state.i = nearestIdx(main.pts, car.x, car.y); }
-  }
-
-  /** Decides the joker once per lap, takes it at the switch point; returns the speed cap. */
-  function jokerStep(car: AiCar, ctx: DriveCtx, path: typeof state.path, nearIdx: number,
-      lap: number, laps: number) {
-    const spec = car.spec;
-    let jCap = Infinity;
-    if (branches.joker && path === main) {
-      const dSw = (((branches.joker.switchI! - nearIdx) % count) + count) % count * line.sp;
-      if (dSw < 220 && state.jDecLap !== lap) decideJoker({ ...ctx, self: car }, lap, laps);
-      if (state.jWant) {
-        const jokerSpeed = profileOf(branches.joker, spec, main)[0],
-            brakeDecel = K_BRAKE * carGrip(spec).brakeG * GRAVITY * 0.8;
-        jCap = Math.sqrt(jokerSpeed * jokerSpeed + 2 * brakeDecel * dSw);
-        if (dSw <= 3) {
-          state.path = branches.joker;
-          state.i = 0;
-          state.jokers++;
-          state.jWant = false;
-        }
-      }
-    }
-    return jCap;
   }
 
   /** Applies the running mistake to the line (latT) and the speed (vMul); may arm the throttle. */
@@ -623,7 +578,7 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
     const others = ctx.cars || [];
     const push = battleStep(car, others);
     // ---- JOKER: decide once per lap ~220 m before the branch; take it at the switch point
-    const jCap = jokerStep(car, ctx, path, nearIdx, lap, laps);
+    const jCap = jokerStep(drv, car, ctx, path, nearIdx, lap, laps);
 
     // ---- MISTAKES (user: "genuine subtle driving errors that lead to crashes and / or slower lap
     // times"), drawn per corner ~45 m out
