@@ -2,6 +2,7 @@
 // refactor of the level-building code can be PROVED to leave the level data identical.
 // node tools/worldhash.mjs        one line per level + "worldhash: <all>";
 //                                 SAME/DIFFERENT vs the saved reference
+// node tools/worldhash.mjs --highway <km>  also drive the endless road <km> km, hash "highway-km"
 // node tools/worldhash.mjs save   also writes tools/.worldhash (gitignored) as the reference
 // Levels: every entry of LEVELS after addStageLevels() + addHighwayLevel() (the highway is
 // only the start window of the endless road, built as the game builds it at load).
@@ -10,7 +11,7 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import * as L from '../src/lab.js';
 import { addStageLevels } from '../src/stagegen.js';
-import { addHighwayLevel } from '../src/highway.js';
+import { addHighwayLevel, resetHighway, stepHighway, roadPose } from '../src/highway.js';
 
 addStageLevels();
 addHighwayLevel();
@@ -110,24 +111,76 @@ function fingerprint(id) {
 }
 
 /**
+ * Fold the highway level's current data into a running hash.
+ * @param {import('node:crypto').Hash} hash running hash
+ * @param {object} lv the highway level
+ * @returns {void}
+ */
+function foldHighway(hash, lv) {
+  const own = ['lanes', 'covers', 'cuts', 'props', 'solids', 'zones', 'cones'];
+  const more = ['bumps', 'barriers', 'paint', 'boards', 'spawn'];
+  const parts = [lv._hw, ...own.map((key) => lv[key]), ...more.map((key) => lv[key])];
+  hash.update(ser(parts));
+}
+
+/**
+ * Drive a stand-in car along the endless road the way the game does (stepHighway every step,
+ * a few metres at a time, in the left lane) and fold the level data in every ~200 m.
+ * @param {number} km distance to drive in km (0 = off)
+ * @returns {{hash: string, info: string}|null} the highway hash and counts, or null when off
+ */
+function driveHighway(km) {
+  if (!(km > 0)) return null;
+  Math.random = seededRandom(0x5eed);
+  const lv = L.LEVELS.find((level) => level.id === 'highway');
+  L.setLevel('highway');
+  resetHighway(lv);
+  const hash = createHash('sha256');
+  const lane = lv._hw.geo.centres[0];
+  const car = { x: lv.spawn.x, y: lv.spawn.y };
+  const start = 300, end = start + km * 1000;
+  let folds = 0, shifts = 0;
+  for (let dist = start, next = start + 200; dist <= end; dist += 4) {
+    const pose = roadPose(lv, dist, lane);
+    car.x = pose.x;
+    car.y = pose.y;
+    if (stepHighway(lv, car)) shifts++;
+    if (dist >= next) {
+      foldHighway(hash, lv);
+      folds++;
+      next += 200;
+    }
+  }
+  foldHighway(hash, lv);
+  const info = `folds=${folds} shifts=${shifts} ${counts(lv)} pts=${lv._hw.pts.length}`;
+  return { hash: hash.digest('hex'), info };
+}
+
+/**
  * Print the report and compare with the saved reference.
  * @returns {void}
  */
 function main() {
+  const hwArg = process.argv.indexOf('--highway');
+  const hwKm = hwArg > 0 ? Number(process.argv[hwArg + 1]) : 0;
   const rows = L.LEVELS.map((lv) => fingerprint(lv.id));
   const all = sha(rows.map((row) => row.id + ' ' + row.hash).join('\n'));
   for (const row of rows) console.log(`${row.id}  ${row.hash.slice(0, 16)}  ${row.info}`);
+  const hw = driveHighway(hwKm);
+  if (hw) console.log(`highway ${hwKm} km  ${hw.hash.slice(0, 16)}  ${hw.info}`);
   const saved = existsSync(SAVE_FILE) ? JSON.parse(readFileSync(SAVE_FILE, 'utf8')) : null;
   console.log('worldhash: ' + all);
   if (saved) {
     const bad = rows.filter((row) => saved.levels[row.id] !== row.hash).map((row) => row.id);
     const gone = Object.keys(saved.levels).filter((id) => !rows.some((row) => row.id === id));
     bad.push(...gone);
+    if (hw && saved.highway && saved.highway[hwKm] !== hw.hash) bad.push('highway-km');
     console.log(bad.length ? `worldhash: DIFFERENT (${bad.join(', ')})` : 'worldhash: SAME');
   }
-  if (process.argv[2] === 'save') {
+  if (process.argv.includes('save')) {
     const levels = Object.fromEntries(rows.map((row) => [row.id, row.hash]));
-    writeFileSync(SAVE_FILE, JSON.stringify({ all, levels }, null, 1) + '\n');
+    const highway = Object.assign({}, saved && saved.highway, hw ? { [hwKm]: hw.hash } : {});
+    writeFileSync(SAVE_FILE, JSON.stringify({ all, levels, highway }, null, 1) + '\n');
   }
 }
 
