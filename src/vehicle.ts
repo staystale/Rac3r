@@ -1140,6 +1140,72 @@ function updateTyreTemps(car: Car, carSpec: Spec, tick: AxleTick, out: AxleOutco
   telem.gripTF = gripTF; telem.gripTR = gripTR;
 }
 
+/**
+ * Yaw section of step(): aerodynamic directional stability, the tyre and ploughing yaw moment, and
+ * the one-sided yaw damping. Updates car.yawRate.
+ */
+function integrateYaw(car: Car, carSpec: Spec, dt: number, axles: AxleOutcome, delta: number,
+    vLong: number, vLat: number, FpyF: number, FpyR: number, escMz: number) {
+  const { frontAxle, rearAxle } = axles;
+  const cosDelta = Math.cos(delta), sinDelta = Math.sin(delta);
+  // AERODYNAMIC DIRECTIONAL STABILITY, from geometry rather than a tuned constant.
+  //
+  // A car sliding at body-slip angle beta presents its flank to the airflow. The sideforce is
+  //     Fy_aero = 0.5 * rho * A_side * Cy * v^2 * sin(beta)
+  // and it acts at the aerodynamic centre of pressure, which on a road car sits BEHIND the centre
+  // of mass — so it pushes the tail back into line. This is why real cars are directionally stable
+  // at speed, and it is a first-order effect at 160 km/h, not a nicety.
+  //
+  // It is the ONLY stabiliser that grows with speed. Tyre yaw damping does the opposite: front and
+  // rear slip angles differ by yawRate*L/v, which SHRINKS as speed rises — measured at 45 m/s in a
+  // full slide, slipF and slipR were within 0.4 deg of each other, so the tyres were contributing
+  // almost no damping at all. With nothing growing to oppose the destabilising weight-transfer
+  // moment, every car spun above ~40 m/s. Its absence was the bug.
+  // m^2 of flank, x the car's own aero (a wing, a spoiler)
+  const A_SIDE = carSpec.len * 1.35 * (carSpec.aeroK || 1) * (TUNE.aeroMul || 1);
+  const CP_BEHIND_CG = carSpec.len * 0.15;        // m, centre of pressure aft of the CG
+  const betaBody = Math.atan2(vLat, Math.abs(vLong) + 0.5);
+  const vSq = vLong * vLong + vLat * vLat;
+  // sign: steering right gives POSITIVE yaw and NEGATIVE beta here, so realigning the nose with the
+  // velocity vector needs a moment carrying beta's sign. Had this inverted first time and it fed
+  // the spin instead of arresting it.
+  const aeroYaw = 0.5 * AIR_DENSITY * A_SIDE * CY_SIDE * vSq * Math.sin(betaBody) * CP_BEHIND_CG;
+
+  // The ploughing terms enter the yaw moment at their own axle, which is where the straightening
+  // comes from — nothing is added to make gravel stabilising, it just is.
+  const yawMoment = carSpec.lf * (frontAxle.Fy * cosDelta + frontAxle.Fx * sinDelta) - carSpec.lr
+      * rearAxle.Fy + aeroYaw + carSpec.lf * FpyF - carSpec.lr * FpyR + escMz + (car.slopeYaw || 0);
+  car.yawRate += (yawMoment / carSpec.Izz) * dt;
+
+  // Yaw damping. MEASURED 2026-09-27: a flick-and-release handbrake turn reached 92 deg, then swung
+  // BACK through centre at -1.4 rad/s and oscillated (92 -> 7 -> 37 deg). The bicycle model has no
+  // tyre relaxation length and no suspension compliance, both of which damp yaw on a real car, so
+  // the rotation had nothing to settle it and the car behaved like a pendulum. This term stands in
+  // for them. Deliberately small — enough to settle the oscillation, not enough to stop a drift.
+  // MEASURED 2026-09-27: damping yawRate ABSOLUTELY cost 40% of the steady-state cornering rate
+  // (0.29 rad/s against a grip-limited 0.49), which the user felt as "the rear wheels fight
+  // turning". Real damping opposes CHANGE, not steady cornering. Damp the deviation from the turn
+  // rate the steering is actually asking for, so a held corner is untouched while a pendulum or a
+  // spin is still arrested. ONE-SIDED. Damping toward yawRef symmetrically was worse than the
+  // original: when yawRate was BELOW the commanded rate it ADDED yaw, forcing the car to follow the
+  // steering angle regardless of grip — measured 1.22 rad/s against a grip-limited maximum of 0.49.
+  // It may only ever oppose yaw the car has in EXCESS of what the steering asked for, which is the
+  // spin/pendulum case and nothing else.
+  //
+  // AND IT MUST BE CONTINUOUS. MEASURED BUG, 2026-09-27 (user: "the track spec car seems juddery"):
+  // the sign test above was a HARD SWITCH, so when the yaw rate sat near the commanded rate it
+  // flipped every few steps and applied/removed a finite impulse each time. Dumped on the track
+  // car: yaw acceleration going -0.41 -> +1.88 -> -0.26 in SINGLE steps, repeating every ~5 steps,
+  // while slip angles and tyre forces evolved perfectly smoothly through it. Max jerk 268 against
+  // 4-13 for every other car; the track car triggered it because its grip is highest, so yawRate
+  // and yawRef sit closest together. A discontinuous force is always a judder — fade it in over a
+  // band so it is zero at the boundary.
+  const yawRef = clamp((vLong * Math.tan(delta)) / carSpec.L, -3, 3);
+  const over = Math.abs(car.yawRate) - Math.abs(yawRef);
+  const ramp = clamp(over / YAW_DAMP_BAND, 0, 1);
+  if (ramp > 0) car.yawRate -= car.yawRate * ramp * (car.yawDampOverride ?? TUNE.yawDamp) * dt;
+}
+
 export function step(car: Car, input: CarInput, dt = PHYSICS_STEP_SECONDS) {
   const carSpec = car.spec;
   const mass = carSpec.mass * car.mods.mass;
@@ -1254,6 +1320,8 @@ export function step(car: Car, input: CarInput, dt = PHYSICS_STEP_SECONDS) {
     : Math.abs(axleState.Fy) * Math.abs(syl) + Math.abs(axleState.Fx) * 0.08 * vLongAbs
         * Math.min(1, Math.abs(axleState.Fx) / (muBase * load + 1));
   const workF = work(frontAxle, sylF, lockedF, FzF), workR = work(rearAxle, sylR, lockedR, FzR);
+  const axles = { frontAxle, rearAxle, lockedF, lockedR, FzF, FzR, FzNomF, FzNomR, workF, workR,
+    gripTF, gripTR };
 
   // TYRE RELAXATION LENGTH — real, standard, and its absence was the turn-in bug.
   //
@@ -1316,62 +1384,7 @@ export function step(car: Car, input: CarInput, dt = PHYSICS_STEP_SECONDS) {
 
   vLong += (accelLong + car.yawRate * vLat) * dt;
   vLat += (accelLat - car.yawRate * vLong) * dt;
-  // AERODYNAMIC DIRECTIONAL STABILITY, from geometry rather than a tuned constant.
-  //
-  // A car sliding at body-slip angle beta presents its flank to the airflow. The sideforce is
-  //     Fy_aero = 0.5 * rho * A_side * Cy * v^2 * sin(beta)
-  // and it acts at the aerodynamic centre of pressure, which on a road car sits BEHIND the centre
-  // of mass — so it pushes the tail back into line. This is why real cars are directionally stable
-  // at speed, and it is a first-order effect at 160 km/h, not a nicety.
-  //
-  // It is the ONLY stabiliser that grows with speed. Tyre yaw damping does the opposite: front and
-  // rear slip angles differ by yawRate*L/v, which SHRINKS as speed rises — measured at 45 m/s in a
-  // full slide, slipF and slipR were within 0.4 deg of each other, so the tyres were contributing
-  // almost no damping at all. With nothing growing to oppose the destabilising weight-transfer
-  // moment, every car spun above ~40 m/s. Its absence was the bug.
-  // m^2 of flank, x the car's own aero (a wing, a spoiler)
-  const A_SIDE = carSpec.len * 1.35 * (carSpec.aeroK || 1) * (TUNE.aeroMul || 1);
-  const CP_BEHIND_CG = carSpec.len * 0.15;        // m, centre of pressure aft of the CG
-  const betaBody = Math.atan2(vLat, Math.abs(vLong) + 0.5);
-  const vSq = vLong * vLong + vLat * vLat;
-  // sign: steering right gives POSITIVE yaw and NEGATIVE beta here, so realigning the nose with the
-  // velocity vector needs a moment carrying beta's sign. Had this inverted first time and it fed
-  // the spin instead of arresting it.
-  const aeroYaw = 0.5 * AIR_DENSITY * A_SIDE * CY_SIDE * vSq * Math.sin(betaBody) * CP_BEHIND_CG;
-
-  // The ploughing terms enter the yaw moment at their own axle, which is where the straightening
-  // comes from — nothing is added to make gravel stabilising, it just is.
-  const yawMoment = carSpec.lf * (frontAxle.Fy * cosDelta + frontAxle.Fx * sinDelta) - carSpec.lr
-      * rearAxle.Fy + aeroYaw + carSpec.lf * FpyF - carSpec.lr * FpyR + escMz + (car.slopeYaw || 0);
-  car.yawRate += (yawMoment / carSpec.Izz) * dt;
-
-  // Yaw damping. MEASURED 2026-09-27: a flick-and-release handbrake turn reached 92 deg, then swung
-  // BACK through centre at -1.4 rad/s and oscillated (92 -> 7 -> 37 deg). The bicycle model has no
-  // tyre relaxation length and no suspension compliance, both of which damp yaw on a real car, so
-  // the rotation had nothing to settle it and the car behaved like a pendulum. This term stands in
-  // for them. Deliberately small — enough to settle the oscillation, not enough to stop a drift.
-  // MEASURED 2026-09-27: damping yawRate ABSOLUTELY cost 40% of the steady-state cornering rate
-  // (0.29 rad/s against a grip-limited 0.49), which the user felt as "the rear wheels fight
-  // turning". Real damping opposes CHANGE, not steady cornering. Damp the deviation from the turn
-  // rate the steering is actually asking for, so a held corner is untouched while a pendulum or a
-  // spin is still arrested. ONE-SIDED. Damping toward yawRef symmetrically was worse than the
-  // original: when yawRate was BELOW the commanded rate it ADDED yaw, forcing the car to follow the
-  // steering angle regardless of grip — measured 1.22 rad/s against a grip-limited maximum of 0.49.
-  // It may only ever oppose yaw the car has in EXCESS of what the steering asked for, which is the
-  // spin/pendulum case and nothing else.
-  //
-  // AND IT MUST BE CONTINUOUS. MEASURED BUG, 2026-09-27 (user: "the track spec car seems juddery"):
-  // the sign test above was a HARD SWITCH, so when the yaw rate sat near the commanded rate it
-  // flipped every few steps and applied/removed a finite impulse each time. Dumped on the track
-  // car: yaw acceleration going -0.41 -> +1.88 -> -0.26 in SINGLE steps, repeating every ~5 steps,
-  // while slip angles and tyre forces evolved perfectly smoothly through it. Max jerk 268 against
-  // 4-13 for every other car; the track car triggered it because its grip is highest, so yawRate
-  // and yawRef sit closest together. A discontinuous force is always a judder — fade it in over a
-  // band so it is zero at the boundary.
-  const yawRef = clamp((vLong * Math.tan(delta)) / carSpec.L, -3, 3);
-  const over = Math.abs(car.yawRate) - Math.abs(yawRef);
-  const ramp = clamp(over / YAW_DAMP_BAND, 0, 1);
-  if (ramp > 0) car.yawRate -= car.yawRate * ramp * (car.yawDampOverride ?? TUNE.yawDamp) * dt;
+  integrateYaw(car, carSpec, dt, axles, delta, vLong, vLat, FpyF, FpyR, escMz);
 
   // ---- 9. low-speed blend. Without this the car shivers and creeps at a standstill and it reads
   //         as a bug in the friction model (PLAN.md "What would count as wrong").
@@ -1401,8 +1414,7 @@ export function step(car: Car, input: CarInput, dt = PHYSICS_STEP_SECONDS) {
   }
 
   // ---- tyre temperatures (see TYRE TEMPERATURE at the top)
-  updateTyreTemps(car, carSpec, tick, { frontAxle, rearAxle, lockedF, lockedR, FzF, FzR, FzNomF,
-    FzNomR, workF, workR, gripTF, gripTR }, vLong, vLat, accelLat);
+  updateTyreTemps(car, carSpec, tick, axles, vLong, vLat, accelLat);
 
   car.aLongPrev = accelLong;
   car.heading += car.yawRate * dt;
