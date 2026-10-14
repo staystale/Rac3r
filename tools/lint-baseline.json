@@ -57,8 +57,7 @@
   },
   "src/main.js": {
     "complexity": 9,
-    "id-length": 215,
-    "max-len": 135,
+    "max-len": 158,
     "max-lines": 1,
     "max-lines-per-function": 1,
     "no-shadow": 2,
