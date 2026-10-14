@@ -35,10 +35,8 @@
   },
   "src/highway.js": {
     "complexity": 4,
-    "id-length": 327,
-    "max-len": 127,
-    "max-lines-per-function": 1,
-    "no-shadow": 1
+    "max-len": 169,
+    "max-lines-per-function": 1
   },
   "src/highwayrace.ts": {
     "complexity": 1,
