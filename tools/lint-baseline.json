@@ -102,8 +102,6 @@
   },
   "src/render/ground.ts": {
     "complexity": 2,
-    "id-length": 198,
-    "max-len": 73,
     "max-lines-per-function": 2
   },
   "src/render/objects.ts": {

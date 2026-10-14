@@ -1,3 +1,7 @@
+/* eslint-disable max-lines -- one statement per line and 100-column wrapping took this file past
+   800 lines (693 before); moving code out of createGround needs a new module, which samecode
+   cannot prove identical (it changes the bundle's scope order). Split it in a later task. */
+
 // the GROUND PAINTER of render.ts (phase 4 of the render.js split): floor, surface art and
 // patterns, zones, covers, wear, bumps and the runoff ring. Moved verbatim.
 import { FLOOR, FX0, FX1, FY0, FY1, GRID, RUNOFF_W } from "../world/bounds.ts";
@@ -17,7 +21,8 @@ interface GroundHelpers {
   sx: (wx: number) => number;
   sy: (wy: number) => number;
   roundRect: (
-    g: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number
+    ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number,
+    radius: number
   ) => void;
   forSide: ForSide;
   grassEnds: 'round' | 'square';
@@ -32,51 +37,53 @@ export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
   function drawFloor() {
     view.ctx.fillStyle = COL.outside;
     view.ctx.fillRect(0, 0, view.W, view.H);
-    const p = PPMz();
+    const ppm = PPMz();
 
     // the floor RECTANGLE (S-B): FX0..FX1 x FY0..FY1, the square +-FLOOR on every level without
     // bounds
-    const fw = (FX1 - FX0) * p, fh = (FY1 - FY0) * p;
+    const floorW = (FX1 - FX0) * ppm, floorH = (FY1 - FY0) * ppm;
     if (LEVEL.base && LEVEL.base.id !== 'lab') {
       view.ctx.fillStyle = artBase(LEVEL.base.id, COL.floor);
-      view.ctx.fillRect(sx(FX0), sy(FY0), fw, fh);
+      view.ctx.fillRect(sx(FX0), sy(FY0), floorW, floorH);
       view.ctx.save();
       view.ctx.translate(sx(0), sy(0));
       paintLayers(LEVEL.base.id, FX0, FY0, FX1, FY1);
       view.ctx.restore();
     } else {
       view.ctx.fillStyle = COL.floor;
-      view.ctx.fillRect(sx(FX0), sy(FY0), fw, fh);
+      view.ctx.fillRect(sx(FX0), sy(FY0), floorW, floorH);
 
       // a soft warm pool so a big pale floor is not dead flat. Since the ground TILES (2026-10-03)
       // it is centred on the WORLD ORIGIN (the skidpad), not on the car: tiles are painted
       // separately, so a screen-centred gradient would come out as one blotch per tile. It stays
       // UNDER the zones.
-      const gr = view.ctx.createRadialGradient(sx(0), sy(0), 0, sx(0), sy(0), FLOOR * 0.9 * p);
-      gr.addColorStop(0, 'rgba(255,252,246,0.55)');
-      gr.addColorStop(1, 'rgba(226,226,234,0)');
-      view.ctx.fillStyle = gr;
-      view.ctx.fillRect(sx(FX0), sy(FY0), fw, fh);
+      const glow = view.ctx.createRadialGradient(
+        sx(0), sy(0), 0, sx(0), sy(0), FLOOR * 0.9 * ppm
+      );
+      glow.addColorStop(0, 'rgba(255,252,246,0.55)');
+      glow.addColorStop(1, 'rgba(226,226,234,0)');
+      view.ctx.fillStyle = glow;
+      view.ctx.fillRect(sx(FX0), sy(FY0), floorW, floorH);
 
       // grid — only the lines actually on screen
-      const x0 = Math.floor((cam.x - view.W / 2 / PPMz()) / GRID) * GRID;
-      const x1 = cam.x + view.W / 2 / PPMz();
-      const y0 = Math.floor((cam.y - view.H / 2 / PPMz()) / GRID) * GRID;
-      const y1 = cam.y + view.H / 2 / PPMz();
+      const gridX0 = Math.floor((cam.x - view.W / 2 / PPMz()) / GRID) * GRID;
+      const gridX1 = cam.x + view.W / 2 / PPMz();
+      const gridY0 = Math.floor((cam.y - view.H / 2 / PPMz()) / GRID) * GRID;
+      const gridY1 = cam.y + view.H / 2 / PPMz();
       view.ctx.strokeStyle = COL.grid;
       view.ctx.lineWidth = 1;
       view.ctx.beginPath();
-      for (let x = x0; x <= x1; x += GRID) {
+      for (let x = gridX0; x <= gridX1; x += GRID) {
         if (x < FX0 || x > FX1) continue;
-        const px = Math.round(sx(x)) + 0.5;
-        view.ctx.moveTo(px, sy(Math.max(FY0, y0 - GRID)));
-        view.ctx.lineTo(px, sy(Math.min(FY1, y1 + GRID)));
+        const lineX = Math.round(sx(x)) + 0.5;
+        view.ctx.moveTo(lineX, sy(Math.max(FY0, gridY0 - GRID)));
+        view.ctx.lineTo(lineX, sy(Math.min(FY1, gridY1 + GRID)));
       }
-      for (let y = y0; y <= y1; y += GRID) {
+      for (let y = gridY0; y <= gridY1; y += GRID) {
         if (y < FY0 || y > FY1) continue;
-        const py = Math.round(sy(y)) + 0.5;
-        view.ctx.moveTo(sx(Math.max(FX0, x0 - GRID)), py);
-        view.ctx.lineTo(sx(Math.min(FX1, x1 + GRID)), py);
+        const lineY = Math.round(sy(y)) + 0.5;
+        view.ctx.moveTo(sx(Math.max(FX0, gridX0 - GRID)), lineY);
+        view.ctx.lineTo(sx(Math.min(FX1, gridX1 + GRID)), lineY);
       }
       view.ctx.stroke();
     }
@@ -90,34 +97,42 @@ export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
   // the visible rectangle first makes the count depend on the SCREEN, not the world, so the grain
   // can be as fine as it needs to be and costs the same at any zoom. Squares, not arcs: at grain
   // size they read identically and they are far cheaper.
-  const MARKS_MAX = 30000;      // most marks one pattern layer may place in one call (see speckle)
+  // most marks one pattern layer may place in one call (see speckle)
+  const MARKS_MAX = 30000;
   function speckle(
-    x0: number, y0: number, x1: number, y1: number, colour: string, spacing: number, size: number
+    minX: number, minY: number, maxX: number, maxY: number,
+    colour: string, spacing: number, size: number
   ) {
-    const p = PPMz();
-    const px = Math.max(1, size * p);
-    if (px < 1.1 && spacing * p < 3) return;      // too far out to resolve: skip it entirely
+    const ppm = PPMz();
+    const markPx = Math.max(1, size * ppm);
+    // too far out to resolve: skip it entirely
+    if (markPx < 1.1 && spacing * ppm < 3) return;
     // intersect the region with what is actually on screen, snapped to the lattice so the pattern
     // is world-locked and does not swim as the camera moves
-    const vx0 = Math.max(x0, cam.x - view.W / 2 / p), vx1 = Math.min(x1, cam.x + view.W / 2 / p);
-    const vy0 = Math.max(y0, cam.y - view.H / 2 / p), vy1 = Math.min(y1, cam.y + view.H / 2 / p);
+    const vx0 = Math.max(minX, cam.x - view.W / 2 / ppm),
+      vx1 = Math.min(maxX, cam.x + view.W / 2 / ppm);
+    const vy0 = Math.max(minY, cam.y - view.H / 2 / ppm),
+      vy1 = Math.min(maxY, cam.y + view.H / 2 / ppm);
     if (vx1 <= vx0 || vy1 <= vy0) return;
     // MARK CAP (2026-10-03): the fly-in's whole-level overview asked one call for ~188,000 squares
     // of grass grain (1.1 s to record, 4.9 s to rasterise at 4x throttle). Any call that would
     // place more than MARKS_MAX marks thins its lattice to fit — invisible at the zoom where it
     // happens, since that much grain is sub-pixel noise.
-    const n0 = ((vx1 - vx0) / spacing) * ((vy1 - vy0) / spacing);
-    if (n0 > MARKS_MAX) spacing *= Math.sqrt(n0 / MARKS_MAX);
-    const ax = Math.floor(vx0 / spacing) * spacing, ay = Math.floor(vy0 / spacing) * spacing;
+    const markCount = ((vx1 - vx0) / spacing) * ((vy1 - vy0) / spacing);
+    if (markCount > MARKS_MAX) spacing *= Math.sqrt(markCount / MARKS_MAX);
+    const startU = Math.floor(vx0 / spacing) * spacing,
+      startV = Math.floor(vy0 / spacing) * spacing;
     view.ctx.fillStyle = colour;
-    for (let u = ax; u < vx1; u += spacing) {
-      for (let v = ay; v < vy1; v += spacing) {
+    for (let latU = startU; latU < vx1; latU += spacing) {
+      for (let latV = startV; latV < vy1; latV += spacing) {
         // deterministic scatter from the world position, so a speck belongs to the GROUND
-        const h = Math.sin(u * 12.9898 + v * 78.233) * 43758.5453;
-        const jx = (h - Math.floor(h)) - 0.5;
-        const h2 = Math.sin(u * 39.3468 + v * 11.135) * 24634.6345;
-        const jy = (h2 - Math.floor(h2)) - 0.5;
-        view.ctx.fillRect((u + jx * spacing) * p, (v + jy * spacing) * p, px, px);
+        const hashA = Math.sin(latU * 12.9898 + latV * 78.233) * 43758.5453;
+        const jitterX = (hashA - Math.floor(hashA)) - 0.5;
+        const hashB = Math.sin(latU * 39.3468 + latV * 11.135) * 24634.6345;
+        const jitterY = (hashB - Math.floor(hashB)) - 0.5;
+        view.ctx.fillRect(
+          (latU + jitterX * spacing) * ppm, (latV + jitterY * spacing) * ppm, markPx, markPx
+        );
       }
     }
   }
@@ -136,91 +151,125 @@ export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
   // not one per mark). Callers have translated the context to the world origin, so coordinates are
   // world metres * p.
   function lattice(
-    x0: number, y0: number, x1: number, y1: number, spacing: number, prob: number,
-    fn: (x: number, y: number, a: number, b: number, c: number, p: number) => void
+    minX: number, minY: number, maxX: number, maxY: number, spacing: number, prob: number,
+    mark: (x: number, y: number, a: number, b: number, c: number, p: number) => void
   ) {
-    const p = PPMz();
-    const vx0 = Math.max(x0, cam.x - view.W / 2 / p - spacing), vx1 = Math.min(x1, cam.x + view.W / 2 / p + spacing);
-    const vy0 = Math.max(y0, cam.y - view.H / 2 / p - spacing), vy1 = Math.min(y1, cam.y + view.H / 2 / p + spacing);
+    const ppm = PPMz();
+    const vx0 = Math.max(minX, cam.x - view.W / 2 / ppm - spacing),
+      vx1 = Math.min(maxX, cam.x + view.W / 2 / ppm + spacing);
+    const vy0 = Math.max(minY, cam.y - view.H / 2 / ppm - spacing),
+      vy1 = Math.min(maxY, cam.y + view.H / 2 / ppm + spacing);
     if (vx1 <= vx0 || vy1 <= vy0) return;
-    const n0 = ((vx1 - vx0) / spacing) * ((vy1 - vy0) / spacing) * prob;
-    if (n0 > MARKS_MAX) spacing *= Math.sqrt(n0 / MARKS_MAX);      // the same MARK CAP as speckle
-    const ax = Math.floor(vx0 / spacing) * spacing, ay = Math.floor(vy0 / spacing) * spacing;
-    for (let u = ax; u < vx1; u += spacing) {
-      for (let v = ay; v < vy1; v += spacing) {
-        const h1 = Math.sin(u * 12.9898 + v * 78.233) * 43758.5453, a = h1 - Math.floor(h1);
-        const h2 = Math.sin(u * 39.3468 + v * 11.135) * 24634.6345, b = h2 - Math.floor(h2);
-        const h3 = Math.sin(u * 7.1231 + v * 51.719) * 15731.743, c = h3 - Math.floor(h3);
-        if (c > prob) continue;
-        fn((u + (a - 0.5) * spacing) * p, (v + (b - 0.5) * spacing) * p, a, b, c, p);
+    const markCount = ((vx1 - vx0) / spacing) * ((vy1 - vy0) / spacing) * prob;
+    // the same MARK CAP as speckle
+    if (markCount > MARKS_MAX) spacing *= Math.sqrt(markCount / MARKS_MAX);
+    const startU = Math.floor(vx0 / spacing) * spacing,
+      startV = Math.floor(vy0 / spacing) * spacing;
+    for (let latU = startU; latU < vx1; latU += spacing) {
+      for (let latV = startV; latV < vy1; latV += spacing) {
+        const hashA = Math.sin(latU * 12.9898 + latV * 78.233) * 43758.5453,
+          randA = hashA - Math.floor(hashA);
+        const hashB = Math.sin(latU * 39.3468 + latV * 11.135) * 24634.6345,
+          randB = hashB - Math.floor(hashB);
+        const hashC = Math.sin(latU * 7.1231 + latV * 51.719) * 15731.743,
+          randC = hashC - Math.floor(hashC);
+        if (randC > prob) continue;
+        mark(
+          (latU + (randA - 0.5) * spacing) * ppm, (latV + (randB - 0.5) * spacing) * ppm,
+          randA, randB, randC, ppm
+        );
       }
     }
   }
   // the layer kinds. [kind, colour, ...numbers in metres]
   const PRIM: Record<string, PrimFn> = {
     // fine square grain — aggregate, grit, sparkle
-    grain(L, x0, y0, x1, y1) { speckle(x0, y0, x1, y1, L[1], L[2], L[3]); },
+    grain(layer, minX, minY, maxX, maxY) {
+      speckle(minX, minY, maxX, maxY, layer[1], layer[2], layer[3]);
+    },
     // round stones, radius rMin..rMax — gravel, dirt pebbles
-    stones(L, x0, y0, x1, y1) {
-      const [, col, sp, rMin, rMax, prob = 1] = L, p = PPMz();
-      if (rMax * p < 0.8 || sp * p < 2.5) return;
-      view.ctx.fillStyle = col; view.ctx.beginPath();
-      lattice(x0, y0, x1, y1, sp, prob, (x, y, a) => {
-        const r = (rMin + (rMax - rMin) * a) * p;
-        view.ctx.rect(x - r, y - r, r * 2, r * 2);      // square stones in pixel art
+    stones(layer, minX, minY, maxX, maxY) {
+      const [, col, spacing, rMin, rMax, prob = 1] = layer, ppm = PPMz();
+      if (rMax * ppm < 0.8 || spacing * ppm < 2.5) return;
+      view.ctx.fillStyle = col;
+      view.ctx.beginPath();
+      lattice(minX, minY, maxX, maxY, spacing, prob, (x, y, randA) => {
+        const radius = (rMin + (rMax - rMin) * randA) * ppm;
+        // square stones in pixel art
+        view.ctx.rect(x - radius, y - radius, radius * 2, radius * 2);
       });
       view.ctx.fill();
     },
     // grass blades — a little V tuft per lattice point
-    blades(L, x0, y0, x1, y1) {
-      const [, col, sp, len, wid, prob = 1] = L, p = PPMz();
-      if (len * p < 2 || sp * p < 2.5) return;
-      view.ctx.strokeStyle = col; view.ctx.lineWidth = Math.max(1, wid * p); view.ctx.lineCap = grassEnds === 'square' ? 'butt' : 'round'; view.ctx.beginPath();
-      lattice(x0, y0, x1, y1, sp, prob, (x, y, a, b) => {
-        const l = len * p * (0.7 + 0.6 * b), t = (a - 0.5) * 0.9;
-        view.ctx.moveTo(x, y); view.ctx.lineTo(x + Math.sin(t - 0.35) * l, y - Math.cos(t - 0.35) * l);
-        view.ctx.moveTo(x, y); view.ctx.lineTo(x + Math.sin(t + 0.35) * l, y - Math.cos(t + 0.35) * l);
+    blades(layer, minX, minY, maxX, maxY) {
+      const [, col, spacing, len, wid, prob = 1] = layer, ppm = PPMz();
+      if (len * ppm < 2 || spacing * ppm < 2.5) return;
+      view.ctx.strokeStyle = col;
+      view.ctx.lineWidth = Math.max(1, wid * ppm);
+      view.ctx.lineCap = grassEnds === 'square' ? 'butt' : 'round';
+      view.ctx.beginPath();
+      lattice(minX, minY, maxX, maxY, spacing, prob, (x, y, randA, randB) => {
+        const bladeLen = len * ppm * (0.7 + 0.6 * randB), tilt = (randA - 0.5) * 0.9;
+        view.ctx.moveTo(x, y);
+        view.ctx.lineTo(x + Math.sin(tilt - 0.35) * bladeLen, y - Math.cos(tilt - 0.35) * bladeLen);
+        view.ctx.moveTo(x, y);
+        view.ctx.lineTo(x + Math.sin(tilt + 0.35) * bladeLen, y - Math.cos(tilt + 0.35) * bladeLen);
       });
-      view.ctx.stroke(); view.ctx.lineCap = 'butt';
+      view.ctx.stroke();
+      view.ctx.lineCap = 'butt';
     },
     // mown stripes: alternate bands along world y, `band` metres wide
-    stripes(L, x0, y0, x1, y1) {
-      const [, col, band] = L, p = PPMz();
-      const vx0 = Math.max(x0, cam.x - view.W / 2 / p), vx1 = Math.min(x1, cam.x + view.W / 2 / p);
-      const vy0 = Math.max(y0, cam.y - view.H / 2 / p), vy1 = Math.min(y1, cam.y + view.H / 2 / p);
+    stripes(layer, minX, minY, maxX, maxY) {
+      const [, col, band] = layer, ppm = PPMz();
+      const vx0 = Math.max(minX, cam.x - view.W / 2 / ppm),
+        vx1 = Math.min(maxX, cam.x + view.W / 2 / ppm);
+      const vy0 = Math.max(minY, cam.y - view.H / 2 / ppm),
+        vy1 = Math.min(maxY, cam.y + view.H / 2 / ppm);
       if (vx1 <= vx0 || vy1 <= vy0) return;
       view.ctx.fillStyle = col;
-      for (let k = Math.floor(vy0 / band); k * band < vy1; k++) {
-        if (k & 1) continue;
-        view.ctx.fillRect(vx0 * p, k * band * p, (vx1 - vx0) * p, band * p);
+      for (let bandIdx = Math.floor(vy0 / band); bandIdx * band < vy1; bandIdx++) {
+        if (bandIdx & 1) continue;
+        view.ctx.fillRect(vx0 * ppm, bandIdx * band * ppm, (vx1 - vx0) * ppm, band * ppm);
       }
     },
     // wavy lines — wind ripples in sand, ridges in thick mud
-    ripples(L, x0, y0, x1, y1) {
-      const [, col, sp, amp, wave, wid] = L, p = PPMz();
-      if (sp * p < 4) return;
-      const vx0 = Math.max(x0, cam.x - view.W / 2 / p), vx1 = Math.min(x1, cam.x + view.W / 2 / p);
-      const vy0 = Math.max(y0, cam.y - view.H / 2 / p - amp), vy1 = Math.min(y1, cam.y + view.H / 2 / p + amp);
+    ripples(layer, minX, minY, maxX, maxY) {
+      const [, col, spacing, amp, wave, wid] = layer, ppm = PPMz();
+      if (spacing * ppm < 4) return;
+      const vx0 = Math.max(minX, cam.x - view.W / 2 / ppm),
+        vx1 = Math.min(maxX, cam.x + view.W / 2 / ppm);
+      const vy0 = Math.max(minY, cam.y - view.H / 2 / ppm - amp),
+        vy1 = Math.min(maxY, cam.y + view.H / 2 / ppm + amp);
       if (vx1 <= vx0 || vy1 <= vy0) return;
       const step = wave / 6;
-      view.ctx.strokeStyle = col; view.ctx.lineWidth = Math.max(1, wid * p); view.ctx.beginPath();
-      for (let k = Math.floor(vy0 / sp); k * sp < vy1; k++) {
-        const ph = Math.sin(k * 12.9898) * 437.5;
-        for (let x = Math.floor(vx0 / step) * step, first = true; x <= vx1 + step; x += step, first = false) {
-          const y = k * sp + amp * Math.sin((x / wave) * Math.PI * 2 + ph);
-          if (first) view.ctx.moveTo(x * p, y * p); else view.ctx.lineTo(x * p, y * p);
+      view.ctx.strokeStyle = col;
+      view.ctx.lineWidth = Math.max(1, wid * ppm);
+      view.ctx.beginPath();
+      for (let row = Math.floor(vy0 / spacing); row * spacing < vy1; row++) {
+        const phase = Math.sin(row * 12.9898) * 437.5;
+        for (
+          let x = Math.floor(vx0 / step) * step, first = true;
+          x <= vx1 + step;
+          x += step, first = false
+        ) {
+          const y = row * spacing + amp * Math.sin((x / wave) * Math.PI * 2 + phase);
+          if (first) view.ctx.moveTo(x * ppm, y * ppm);
+          else view.ctx.lineTo(x * ppm, y * ppm);
         }
       }
       view.ctx.stroke();
     },
     // soft ellipses — puddles, mud pools, glossy highlights, drift shadows, repair patches
-    blobs(L, x0, y0, x1, y1) {
-      const [, col, sp, rx, ry, prob = 1] = L, p = PPMz();
-      if (ry * p < 0.8 || sp * p < 3) return;
-      view.ctx.fillStyle = col; view.ctx.beginPath();
-      lattice(x0, y0, x1, y1, sp, prob, (x, y, a, b) => {
-        const s = 0.7 + 0.6 * b;
-        const ww = rx * s * p, hh = ry * s * p; view.ctx.rect(x - ww, y - hh, ww * 2, hh * 2);   // square blobs in pixel art
+    blobs(layer, minX, minY, maxX, maxY) {
+      const [, col, spacing, radiusX, radiusY, prob = 1] = layer, ppm = PPMz();
+      if (radiusY * ppm < 0.8 || spacing * ppm < 3) return;
+      view.ctx.fillStyle = col;
+      view.ctx.beginPath();
+      lattice(minX, minY, maxX, maxY, spacing, prob, (x, y, randA, randB) => {
+        const scale = 0.7 + 0.6 * randB;
+        const halfW = radiusX * scale * ppm, halfH = radiusY * scale * ppm;
+        // square blobs in pixel art
+        view.ctx.rect(x - halfW, y - halfH, halfW * 2, halfH * 2);
       });
       view.ctx.fill();
     },
@@ -230,35 +279,54 @@ export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
     // ground pixels (tilediff, task 074).
     rings() {},
     // jagged cracks with a side branch — ice, broken tarmac
-    cracks(L, x0, y0, x1, y1) {
-      const [, col, sp, len, wid, prob = 1] = L, p = PPMz();
-      if (len * p < 4 || sp * p < 4) return;
-      view.ctx.strokeStyle = col; view.ctx.lineWidth = Math.max(1, wid * p); view.ctx.beginPath();
-      lattice(x0, y0, x1, y1, sp, prob, (x, y, a, b, c) => {
-        let ang = a * Math.PI * 2, px = x, py = y;
-        view.ctx.moveTo(px, py);
-        for (let s = 0; s < 4; s++) {
-          ang += ((s % 2 ? b : c) - 0.5) * 1.4;
-          px += Math.cos(ang) * len * 0.3 * p; py += Math.sin(ang) * len * 0.3 * p;
-          view.ctx.lineTo(px, py);
-          if (s === 1) { view.ctx.lineTo(px + Math.cos(ang + 1.1) * len * 0.25 * p, py + Math.sin(ang + 1.1) * len * 0.25 * p); view.ctx.moveTo(px, py); }
+    cracks(layer, minX, minY, maxX, maxY) {
+      const [, col, spacing, len, wid, prob = 1] = layer, ppm = PPMz();
+      if (len * ppm < 4 || spacing * ppm < 4) return;
+      view.ctx.strokeStyle = col;
+      view.ctx.lineWidth = Math.max(1, wid * ppm);
+      view.ctx.beginPath();
+      lattice(minX, minY, maxX, maxY, spacing, prob, (x, y, randA, randB, randC) => {
+        let ang = randA * Math.PI * 2, penX = x, penY = y;
+        view.ctx.moveTo(penX, penY);
+        for (let seg = 0; seg < 4; seg++) {
+          ang += ((seg % 2 ? randB : randC) - 0.5) * 1.4;
+          penX += Math.cos(ang) * len * 0.3 * ppm;
+          penY += Math.sin(ang) * len * 0.3 * ppm;
+          view.ctx.lineTo(penX, penY);
+          if (seg === 1) {
+            view.ctx.lineTo(
+              penX + Math.cos(ang + 1.1) * len * 0.25 * ppm,
+              penY + Math.sin(ang + 1.1) * len * 0.25 * ppm
+            );
+            view.ctx.moveTo(penX, penY);
+          }
         }
       });
       view.ctx.stroke();
     },
     // long diagonal sheen bands — polish on ice, reflection on standing water
-    sheen(L, x0, y0, x1, y1) {
-      const [, col, sp, wid, slope] = L, p = PPMz();
+    sheen(layer, minX, minY, maxX, maxY) {
+      const [, col, spacing, wid, slope] = layer, ppm = PPMz();
       // extended past the view by a band's width: a square-cut diagonal band ending exactly at a
       // TILE edge left a visible notch at every tile seam (photographed 2026-10-03 on the lab ice
       // sheet)
-      const vx0 = Math.max(x0, cam.x - view.W / 2 / p - wid * 2), vx1 = Math.min(x1, cam.x + view.W / 2 / p + wid * 2);
-      const vy0 = Math.max(y0, cam.y - view.H / 2 / p), vy1 = Math.min(y1, cam.y + view.H / 2 / p);
+      const vx0 = Math.max(minX, cam.x - view.W / 2 / ppm - wid * 2),
+        vx1 = Math.min(maxX, cam.x + view.W / 2 / ppm + wid * 2);
+      const vy0 = Math.max(minY, cam.y - view.H / 2 / ppm),
+        vy1 = Math.min(maxY, cam.y + view.H / 2 / ppm);
       if (vx1 <= vx0 || vy1 <= vy0) return;
-      view.ctx.strokeStyle = col; view.ctx.lineWidth = Math.max(1, wid * p); view.ctx.beginPath();
-      const kA = (vy0 - slope * Math.max(vx0, vx1)) / sp, kB = (vy1 - slope * Math.min(vx0, vx1)) / sp;
-      for (let k = Math.floor(Math.min(kA, kB)); k <= Math.ceil(Math.max(kA, kB)); k++) {
-        view.ctx.moveTo(vx0 * p, (k * sp + slope * vx0) * p); view.ctx.lineTo(vx1 * p, (k * sp + slope * vx1) * p);
+      view.ctx.strokeStyle = col;
+      view.ctx.lineWidth = Math.max(1, wid * ppm);
+      view.ctx.beginPath();
+      const lineA = (vy0 - slope * Math.max(vx0, vx1)) / spacing,
+        lineB = (vy1 - slope * Math.min(vx0, vx1)) / spacing;
+      for (
+        let line = Math.floor(Math.min(lineA, lineB));
+        line <= Math.ceil(Math.max(lineA, lineB));
+        line++
+      ) {
+        view.ctx.moveTo(vx0 * ppm, (line * spacing + slope * vx0) * ppm);
+        view.ctx.lineTo(vx1 * ppm, (line * spacing + slope * vx1) * ppm);
       }
       view.ctx.stroke();
     },
@@ -277,53 +345,167 @@ export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
   //   wet — dark, puddles, reflections, rain rings
   const SURFACE_ART: Record<string, SurfaceArt | null> = {
     lab: null,                                   // the lab surface IS the floor colour already
-    tarmac: { base: '#3a3c46', layers: [['grain', '#5a5d6a', 0.9, 0.09], ['grain', '#2b2d35', 1.7, 0.12]] },
-    racetarmac: { base: '#2a2d36', layers: [['blobs', 'rgba(16,17,22,0.55)', 3.2, 1.6, 0.10, 0.6, 0.08]] },
+    tarmac: {
+      base: '#3a3c46',
+      layers: [
+        ['grain', '#5a5d6a', 0.9, 0.09],
+        ['grain', '#2b2d35', 1.7, 0.12],
+      ],
+    },
+    racetarmac: {
+      base: '#2a2d36',
+      layers: [
+        ['blobs', 'rgba(16,17,22,0.55)', 3.2, 1.6, 0.10, 0.6, 0.08],
+      ],
+    },
     // circles (repair patches) removed 2026-10-03 — user: "the circles on broken concrete look
     // weird, just keep the cracks"
-    broken: { base: '#8e9099', layers: [['cracks', '#4a4b54', 2.2, 1.7, 0.07], ['grain', '#a3a5ad', 1.0, 0.10]] },
-    concrete: { base: '#a9a7a0', layers: [['grain', '#bdbbb4', 0.8, 0.10], ['cracks', '#8c8a83', 6.0, 3.0, 0.05]] },   // pale slabs, faint joints
-    dirt: { base: '#8a6e50', layers: [['grain', '#74593d', 0.7, 0.12], ['stones', '#b59672', 1.5, 0.06, 0.13], ['grain', '#5d4329', 2.2, 0.22]] },
-    mud: { base: '#5a4231', layers: [['blobs', '#3f2d20', 2.2, 0.95, 0.70, 0.6, 0.25], ['blobs', 'rgba(255,238,215,0.20)', 1.9, 0.30, 0.08, 0.45, 0.25], ['grain', '#4a3626', 0.9, 0.12]] },
-    thickMud: { base: '#3a291d', layers: [['ripples', '#24180f', 0.9, 0.16, 3.0, 0.20], ['blobs', 'rgba(255,238,215,0.30)', 1.3, 0.30, 0.08, 0.6]] },
-    gravel: { base: '#a99c84', layers: [['stones', '#d4cab5', 0.75, 0.05, 0.11], ['stones', '#7d725d', 0.85, 0.05, 0.10]] },
+    broken: {
+      base: '#8e9099',
+      layers: [
+        ['cracks', '#4a4b54', 2.2, 1.7, 0.07],
+        ['grain', '#a3a5ad', 1.0, 0.10],
+      ],
+    },
+    // pale slabs, faint joints
+    concrete: {
+      base: '#a9a7a0',
+      layers: [
+        ['grain', '#bdbbb4', 0.8, 0.10],
+        ['cracks', '#8c8a83', 6.0, 3.0, 0.05],
+      ],
+    },
+    dirt: {
+      base: '#8a6e50',
+      layers: [
+        ['grain', '#74593d', 0.7, 0.12],
+        ['stones', '#b59672', 1.5, 0.06, 0.13],
+        ['grain', '#5d4329', 2.2, 0.22],
+      ],
+    },
+    mud: {
+      base: '#5a4231',
+      layers: [
+        ['blobs', '#3f2d20', 2.2, 0.95, 0.70, 0.6, 0.25],
+        ['blobs', 'rgba(255,238,215,0.20)', 1.9, 0.30, 0.08, 0.45, 0.25],
+        ['grain', '#4a3626', 0.9, 0.12],
+      ],
+    },
+    thickMud: {
+      base: '#3a291d',
+      layers: [
+        ['ripples', '#24180f', 0.9, 0.16, 3.0, 0.20],
+        ['blobs', 'rgba(255,238,215,0.30)', 1.3, 0.30, 0.08, 0.6],
+      ],
+    },
+    gravel: {
+      base: '#a99c84',
+      layers: [
+        ['stones', '#d4cab5', 0.75, 0.05, 0.11],
+        ['stones', '#7d725d', 0.85, 0.05, 0.10],
+      ],
+    },
     // sand REDONE 2026-10-03 (user: "I don't love how sand looks") — the bold squiggles read as
     // cartoon. Now fine two-tone grains with faint, long, soft wind ripples.
-    sand: { base: '#e0c994', layers: [['ripples', 'rgba(176,146,92,0.30)', 0.85, 0.10, 3.6, 0.07], ['grain', '#c9ad74', 0.5, 0.06], ['grain', '#f3e5bf', 0.62, 0.06]] },
-    grass: { base: '#7e9c5e', layers: [['stripes', '#89a868', 4], ['grain', '#6a8850', 1.2, 0.18]] },
-    grassShort: { base: '#7e9c5e', layers: [['stripes', '#89a868', 4], ['grain', '#6a8850', 1.2, 0.18]] },
-    grassLong: { base: '#4d6b33', layers: [['blades', '#6f904a', 0.5, 0.42, 0.07], ['blades', '#3a5226', 0.62, 0.48, 0.07]] },
+    sand: {
+      base: '#e0c994',
+      layers: [
+        ['ripples', 'rgba(176,146,92,0.30)', 0.85, 0.10, 3.6, 0.07],
+        ['grain', '#c9ad74', 0.5, 0.06],
+        ['grain', '#f3e5bf', 0.62, 0.06],
+      ],
+    },
+    grass: {
+      base: '#7e9c5e',
+      layers: [
+        ['stripes', '#89a868', 4],
+        ['grain', '#6a8850', 1.2, 0.18],
+      ],
+    },
+    grassShort: {
+      base: '#7e9c5e',
+      layers: [
+        ['stripes', '#89a868', 4],
+        ['grain', '#6a8850', 1.2, 0.18],
+      ],
+    },
+    grassLong: {
+      base: '#4d6b33',
+      layers: [
+        ['blades', '#6f904a', 0.5, 0.42, 0.07],
+        ['blades', '#3a5226', 0.62, 0.48, 0.07],
+      ],
+    },
     // (field looks: added below SURFACE_ART - the grass / long grass / mud textures recoloured,
     // highway.js FIELD_SURF)
-    snow: { base: '#f3f7fb', layers: [['blobs', 'rgba(140,170,210,0.20)', 3.0, 1.9, 0.5, 0.6, 0.15], ['grain', '#ffffff', 0.9, 0.12]] },
-    packedSnow: { base: '#c4cfda', layers: [['blobs', 'rgba(96,118,150,0.22)', 2.6, 1.3, 0.4, 0.6, 0.15], ['grain', '#e9eff5', 0.8, 0.14], ['grain', '#9fb0c2', 1.6, 0.10]] },
-    ice: { base: '#b9daee', layers: [['sheen', 'rgba(255,255,255,0.32)', 4.5, 0.55, 0.5], ['cracks', 'rgba(255,255,255,0.80)', 3.6, 1.7, 0.05]] },
+    snow: {
+      base: '#f3f7fb',
+      layers: [
+        ['blobs', 'rgba(140,170,210,0.20)', 3.0, 1.9, 0.5, 0.6, 0.15],
+        ['grain', '#ffffff', 0.9, 0.12],
+      ],
+    },
+    packedSnow: {
+      base: '#c4cfda',
+      layers: [
+        ['blobs', 'rgba(96,118,150,0.22)', 2.6, 1.3, 0.4, 0.6, 0.15],
+        ['grain', '#e9eff5', 0.8, 0.14],
+        ['grain', '#9fb0c2', 1.6, 0.10],
+      ],
+    },
+    ice: {
+      base: '#b9daee',
+      layers: [
+        ['sheen', 'rgba(255,255,255,0.32)', 4.5, 0.55, 0.5],
+        ['cracks', 'rgba(255,255,255,0.80)', 3.6, 1.7, 0.05],
+      ],
+    },
     // wet tarmac REDONE 2026-10-03 (user: "I don't love how wet tarmac looks") — the blue blobs
     // read as paint. Real wet asphalt is DARKER tarmac with its aggregate still showing, broad soft
     // reflections and dark glossy standing water in the low spots. + BLUE-ISH PUDDLES (user,
     // 2026-10-03: "wet tarmac isn't clear enough, maybe needs blue-ish puddles")
-    wet: { base: '#2c3039', layers: [['grain', '#454a57', 0.9, 0.08], ['blobs', 'rgba(86,120,176,0.55)', 4.2, 1.6, 0.8, 0.55, 0.2], ['sheen', 'rgba(205,218,238,0.10)', 6.0, 1.6, -0.35], ['sheen', 'rgba(230,238,250,0.16)', 6.0, 0.18, -0.35],
-      ['rings', 'rgba(200,220,250,0.35)', 4.6, 0.35, 0.03, 0.4]] },
+    wet: {
+      base: '#2c3039',
+      layers: [
+        ['grain', '#454a57', 0.9, 0.08],
+        ['blobs', 'rgba(86,120,176,0.55)', 4.2, 1.6, 0.8, 0.55, 0.2],
+        ['sheen', 'rgba(205,218,238,0.10)', 6.0, 1.6, -0.35],
+        ['sheen', 'rgba(230,238,250,0.16)', 6.0, 0.18, -0.35],
+        ['rings', 'rgba(200,220,250,0.35)', 4.6, 0.35, 0.03, 0.4],
+      ],
+    },
   };
   // FIELD LOOKS (highway.js fields, zone.art; the zone DRIVES as its own surface). User,
   // 2026-10-06: "jsut reuse mud and grass or long grass textures for field, and maybe colour them"
   // - so each is an existing texture with only its COLOURS swapped (same layers). SURFACE_ART[id]!
   // is set for the ids below; the cast: slice(2) of an ArtLayer is all numbers
-  const recolour = (id: string, base: string, cols: string[]): SurfaceArt => ({ base, layers: SURFACE_ART[id]!.layers.map((L, k): ArtLayer => [L[0], cols[k] || L[1], ...L.slice(2) as number[]]) });
-  SURFACE_ART.wheat = recolour('grassLong', '#bf9f4e', ['#dcc074', '#9c7f38']);      // long grass, ripe gold
-  SURFACE_ART.rapeseed = recolour('grassLong', '#c9b02a', ['#ecd84a', '#8f9a2e']);   // long grass, yellow flower over green
-  SURFACE_ART.pastureG = recolour('grass', '#86a35c', ['#92b068', '#6f8c4c']);       // grass, a fresher green than the verge
-  SURFACE_ART.plough = recolour('mud', '#6a4c34', ['#4e3624', 'rgba(255,238,215,0.14)', '#5a412c']);   // mud, a lighter turned-earth brown
-  SURFACE_ART.hedgerow = recolour('grassLong', '#3c5a28', ['#5a7c3a', '#2c4220']);   // the long-grass BORDER round each field, darker
+  const recolour = (artId: string, base: string, cols: string[]): SurfaceArt => ({
+    base,
+    layers: SURFACE_ART[artId]!.layers.map(
+      (layer, idx): ArtLayer => [layer[0], cols[idx] || layer[1], ...layer.slice(2) as number[]]
+    ),
+  });
+  // long grass, ripe gold
+  SURFACE_ART.wheat = recolour('grassLong', '#bf9f4e', ['#dcc074', '#9c7f38']);
+  // long grass, yellow flower over green
+  SURFACE_ART.rapeseed = recolour('grassLong', '#c9b02a', ['#ecd84a', '#8f9a2e']);
+  // grass, a fresher green than the verge
+  SURFACE_ART.pastureG = recolour('grass', '#86a35c', ['#92b068', '#6f8c4c']);
+  // mud, a lighter turned-earth brown
+  SURFACE_ART.plough = recolour(
+    'mud', '#6a4c34', ['#4e3624', 'rgba(255,238,215,0.14)', '#5a412c']
+  );
+  // the long-grass BORDER round each field, darker
+  SURFACE_ART.hedgerow = recolour('grassLong', '#3c5a28', ['#5a7c3a', '#2c4220']);
   // Paint one surface's layers over a region. The caller has set any clip and translated to the
-  // world origin; this only adds the pattern (the caller fills the base colour, since it knows the
-  // shape).
-  function paintLayers(id: string, x0: number, y0: number, x1: number, y1: number) {
+  // world origin; this only adds the pattern (the caller fills the base colour, since it knows
+  // the shape).
+  function paintLayers(artId: string, minX: number, minY: number, maxX: number, maxY: number) {
     if (view.noPatterns) return;
-    const art = SURFACE_ART[id];
+    const art = SURFACE_ART[artId];
     if (!art) return;
-    if (surfaceTextures && paintTextured(id, art, [x0, y0, x1, y1])) return;
-    for (const L of art.layers) PRIM[L[0]](L, x0, y0, x1, y1);
+    if (surfaceTextures && paintTextured(artId, art, [minX, minY, maxX, maxY])) return;
+    for (const layer of art.layers) PRIM[layer[0]](layer, minX, minY, maxX, maxY);
   }
   // default (?tex=0 = live): one pattern fill from the pre-painted texture (see textures.ts);
   // false = draw live
@@ -335,8 +517,8 @@ export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
     fillTexture(view.ctx, tex, view.dpr, ppm, rect);
     return true;
   }
-  const artBase = (id: string, fallback: string) => (
-    SURFACE_ART[id] ? SURFACE_ART[id]!.base : fallback
+  const artBase = (artId: string, fallback: string) => (
+    SURFACE_ART[artId] ? SURFACE_ART[artId]!.base : fallback
   );
 
   // EVERY PATCH OF SURFACE, from the same ZONES list the physics reads — so what you see is by
@@ -346,95 +528,120 @@ export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
   // Drawn back to front, so the first-hit-wins order in lab.js is honoured visually too: a panel
   // laid ON a quadrant is listed first and must therefore be painted LAST.
   function drawZones() {
-    const p = PPMz();
+    const ppm = PPMz();
     for (let i = ZONES.length - 1; i >= 0; i--) {
-      const q = ZONES[i];
-      const aid = q.art || q.surface.id, art = SURFACE_ART[aid];   // q.art: drawn as another look (a wheat field drives as long grass)
+      const zone = ZONES[i];
+      // zone.art: drawn as another look (a wheat field drives as long grass)
+      const artId = zone.art || zone.surface.id, art = SURFACE_ART[artId];
       if (!art) continue;
-      const x0 = q.x - q.w / 2, y0 = q.y - q.h / 2;
+      const left = zone.x - zone.w / 2, top = zone.y - zone.h / 2;
       // off screen? On the ROTATED footprint. MEASURED BUG (user, 2026-10-04: "the old runway bugs
       // in and out of existence"): this tested the unrotated w x h box, so a long thin rotated
       // runway (432 x 22 m at -22 deg) was skipped by every ground tile more than 11 m from its
       // centre line — painted in some tiles, missing in others, changing as tiles reloaded.
-      const ca = Math.abs(Math.cos(q.rot || 0)), sa = Math.abs(Math.sin(q.rot || 0));
-      const ex = (q.w / 2) * ca + (q.h / 2) * sa, ey = (q.w / 2) * sa + (q.h / 2) * ca;
-      if (sx(q.x - ex) > view.W || sx(q.x + ex) < 0 || sy(q.y - ey) > view.H || sy(q.y + ey) < 0) continue;
+      const cosAbs = Math.abs(Math.cos(zone.rot || 0)), sinAbs = Math.abs(Math.sin(zone.rot || 0));
+      const extentX = (zone.w / 2) * cosAbs + (zone.h / 2) * sinAbs,
+        extentY = (zone.w / 2) * sinAbs + (zone.h / 2) * cosAbs;
+      if (
+        sx(zone.x - extentX) > view.W || sx(zone.x + extentX) < 0 ||
+        sy(zone.y - extentY) > view.H || sy(zone.y + extentY) < 0
+      ) continue;
 
-      if (q.rounded) {
-        const rad = Math.min(5 * p, q.w * p * 0.15);
+      if (zone.rounded) {
+        const rad = Math.min(5 * ppm, zone.w * ppm * 0.15);
         // Outer asphalt perimeter apron
         view.ctx.fillStyle = COL.tarmac;
         view.ctx.beginPath();
         // the apron is PHYSICAL tarmac (lab.js PAD_APRON, zoneAt) — change the two together
-        roundRect(view.ctx, sx(x0 - 1.2), sy(y0 - 1.2), (q.w + 2.4) * p, (q.h + 2.4) * p, rad + 1.2 * p);
+        roundRect(
+          view.ctx, sx(left - 1.2), sy(top - 1.2),
+          (zone.w + 2.4) * ppm, (zone.h + 2.4) * ppm, rad + 1.2 * ppm
+        );
         view.ctx.fill();
 
         view.ctx.save();
         view.ctx.beginPath();
-        roundRect(view.ctx, sx(x0), sy(y0), q.w * p, q.h * p, rad);
+        roundRect(view.ctx, sx(left), sy(top), zone.w * ppm, zone.h * ppm, rad);
         view.ctx.fillStyle = art.base;
         view.ctx.fill();
         view.ctx.clip();
         view.ctx.translate(sx(0), sy(0));
-        paintLayers(q.surface.id, x0, y0, x0 + q.w, y0 + q.h);
+        paintLayers(zone.surface.id, left, top, left + zone.w, top + zone.h);
         view.ctx.restore();
 
         view.ctx.strokeStyle = 'rgba(255,255,255,0.55)';
-        view.ctx.lineWidth = Math.max(1, 0.20 * p);
+        view.ctx.lineWidth = Math.max(1, 0.20 * ppm);
         view.ctx.beginPath();
-        roundRect(view.ctx, sx(x0), sy(y0), q.w * p, q.h * p, rad);
+        roundRect(view.ctx, sx(left), sy(top), zone.w * ppm, zone.h * ppm, rad);
         view.ctx.stroke();
 
-        const fs = 3.2 * p;
-        if (fs > 7) {
-          view.ctx.font = `700 ${Math.round(fs)}px ui-sans-serif, system-ui, sans-serif`;
-          view.ctx.textAlign = 'center'; view.ctx.textBaseline = 'middle';
+        const fontPx = 3.2 * ppm;
+        if (fontPx > 7) {
+          view.ctx.font = `700 ${Math.round(fontPx)}px ui-sans-serif, system-ui, sans-serif`;
+          view.ctx.textAlign = 'center';
+          view.ctx.textBaseline = 'middle';
           view.ctx.fillStyle = 'rgba(255,255,255,0.75)';
-          view.ctx.fillText(q.surface.label!, sx(q.x), sy(y0 + 4.5));   // a labelled zone
+          // a labelled zone
+          view.ctx.fillText(zone.surface.label!, sx(zone.x), sy(top + 4.5));
         }
         continue;
       }
 
-      if (q.rot) {
+      if (zone.rot) {
         // ROTATED zone: clip in the zone's frame, then step back to the world frame (the clip
         // stays) and paint the texture over the zone's bounding box, so it lines up with the ground
         // exactly where zoneAt says the surface is.
-        const r = Math.hypot(q.w, q.h) / 2;
-        if (sx(q.x + r) < 0 || sx(q.x - r) > view.W || sy(q.y + r) < 0 || sy(q.y - r) > view.H) continue;
+        const reach = Math.hypot(zone.w, zone.h) / 2;
+        if (
+          sx(zone.x + reach) < 0 || sx(zone.x - reach) > view.W ||
+          sy(zone.y + reach) < 0 || sy(zone.y - reach) > view.H
+        ) continue;
         view.ctx.save();
-        view.ctx.translate(sx(q.x), sy(q.y)); view.ctx.rotate(q.rot);
-        view.ctx.beginPath(); view.ctx.rect((-q.w / 2) * p, (-q.h / 2) * p, q.w * p, q.h * p);
-        view.ctx.fillStyle = art.base; view.ctx.fill(); view.ctx.clip();
-        view.ctx.rotate(-q.rot); view.ctx.translate(-sx(q.x), -sy(q.y));
+        view.ctx.translate(sx(zone.x), sy(zone.y));
+        view.ctx.rotate(zone.rot);
+        view.ctx.beginPath();
+        view.ctx.rect((-zone.w / 2) * ppm, (-zone.h / 2) * ppm, zone.w * ppm, zone.h * ppm);
+        view.ctx.fillStyle = art.base;
+        view.ctx.fill();
+        view.ctx.clip();
+        view.ctx.rotate(-zone.rot);
+        view.ctx.translate(-sx(zone.x), -sy(zone.y));
         view.ctx.translate(sx(0), sy(0));
         // only the part IN VIEW (in a tile: the tile). MEASURED 2026-10-04: once the culling fix
         // let the 432 m runway into every tile it crosses, each tile repainted its whole 430 m
         // square of texture — ground tile 22 -> 26 ms, slow frames 71 -> ~90.
-        const vx0 = cam.x - view.W / 2 / p, vy0 = cam.y - view.H / 2 / p;
-        paintLayers(aid, Math.max(q.x - r, vx0), Math.max(q.y - r, vy0), Math.min(q.x + r, vx0 + view.W / p), Math.min(q.y + r, vy0 + view.H / p));
+        const vx0 = cam.x - view.W / 2 / ppm, vy0 = cam.y - view.H / 2 / ppm;
+        paintLayers(
+          artId, Math.max(zone.x - reach, vx0), Math.max(zone.y - reach, vy0),
+          Math.min(zone.x + reach, vx0 + view.W / ppm),
+          Math.min(zone.y + reach, vy0 + view.H / ppm)
+        );
         view.ctx.restore();
         continue;
       }
       view.ctx.save();
       view.ctx.beginPath();
-      view.ctx.rect(sx(x0), sy(y0), q.w * p, q.h * p);
+      view.ctx.rect(sx(left), sy(top), zone.w * ppm, zone.h * ppm);
       view.ctx.fillStyle = art.base;
       view.ctx.fill();
-      view.ctx.clip();       // so the texture cannot spill outside the region the physics uses
+      // so the texture cannot spill outside the region the physics uses
+      view.ctx.clip();
       view.ctx.translate(sx(0), sy(0));
-      paintLayers(q.surface.id, x0, y0, x0 + q.w, y0 + q.h);
+      paintLayers(zone.surface.id, left, top, left + zone.w, top + zone.h);
       view.ctx.restore();
       // `boxed` marks a deliberate TEST PANEL: give it a rim and paint its FULL NAME on.
-      if (q.boxed) {
+      if (zone.boxed) {
         view.ctx.strokeStyle = 'rgba(40,42,50,0.35)';
-        view.ctx.lineWidth = Math.max(1, 0.25 * p);
-        view.ctx.strokeRect(sx(x0), sy(y0), q.w * p, q.h * p);
-        const fs = 3.4 * p;
-        if (fs > 7) {
-          view.ctx.font = `700 ${Math.round(fs)}px ui-sans-serif, system-ui, sans-serif`;
-          view.ctx.textAlign = 'center'; view.ctx.textBaseline = 'middle';
+        view.ctx.lineWidth = Math.max(1, 0.25 * ppm);
+        view.ctx.strokeRect(sx(left), sy(top), zone.w * ppm, zone.h * ppm);
+        const fontPx = 3.4 * ppm;
+        if (fontPx > 7) {
+          view.ctx.font = `700 ${Math.round(fontPx)}px ui-sans-serif, system-ui, sans-serif`;
+          view.ctx.textAlign = 'center';
+          view.ctx.textBaseline = 'middle';
           view.ctx.fillStyle = 'rgba(30,32,40,0.32)';
-          view.ctx.fillText(q.surface.label!, sx(q.x), sy(y0 + 5.5));   // a boxed panel is labelled
+          // a boxed panel is labelled
+          view.ctx.fillText(zone.surface.label!, sx(zone.x), sy(top + 5.5));
         }
       }
     }
@@ -442,12 +649,14 @@ export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
     // edge.
     if (LEVEL.seams) {
       view.ctx.strokeStyle = 'rgba(80,80,92,0.20)';
-      view.ctx.lineWidth = Math.max(1, 0.3 * p);
+      view.ctx.lineWidth = Math.max(1, 0.3 * ppm);
       view.ctx.beginPath();
       // the old square's quarters only (S-B: the lab's extension south of FLOOR is one floor, no
       // quarter seam)
-      view.ctx.moveTo(sx(-FLOOR), sy(0)); view.ctx.lineTo(sx(FLOOR), sy(0));
-      view.ctx.moveTo(sx(0), sy(-FLOOR)); view.ctx.lineTo(sx(0), sy(FLOOR));
+      view.ctx.moveTo(sx(-FLOOR), sy(0));
+      view.ctx.lineTo(sx(FLOOR), sy(0));
+      view.ctx.moveTo(sx(0), sy(-FLOOR));
+      view.ctx.lineTo(sx(0), sy(FLOOR));
       view.ctx.stroke();
     }
   }
@@ -462,55 +671,80 @@ export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
   // the exact shape; the drawn edge is within ~0.35 m of it, the same as the square blend patches.
   // `rim` = squares with an outside neighbour, filled as the edge line (stroking the squares would
   // outline every one of them).
-  function coverCells(c: Cover): CoverCells {
-    if (c._cells) return c._cells;
-    const G = 0.5, co = Math.cos(c.rot || 0), si = Math.sin(c.rot || 0), hx = c.w / 2, hy = c.h / 2;
+  function coverCells(cover: Cover): CoverCells {
+    if (cover._cells) return cover._cells;
+    const cellSize = 0.5, cosRot = Math.cos(cover.rot || 0), sinRot = Math.sin(cover.rot || 0),
+      halfW = cover.w / 2, halfH = cover.h / 2;
     // scan the ROTATED box's extents, not a square of the long side (a 160 x 14 m river was a 160 m
     // square: 100k tests -> ~10k)
-    const RX = hx * Math.abs(co) + hy * Math.abs(si) + G, RY = hx * Math.abs(si) + hy * Math.abs(co) + G;
+    const reachX = halfW * Math.abs(cosRot) + halfH * Math.abs(sinRot) + cellSize,
+      reachY = halfW * Math.abs(sinRot) + halfH * Math.abs(cosRot) + cellSize;
     const inside = (x: number, y: number) => {
-      if (c.cut && coverCut(c, x, y)) return false;   // the river's dry band under the motorway (lab.js coverAt)
-      const ex = x - c.x, ey = y - c.y, dx = ex * co + ey * si, dy = -ex * si + ey * co;
-      return c.shape === 'ellipse' ? (dx * dx) / (hx * hx) + (dy * dy) / (hy * hy) <= 1 : Math.abs(dx) <= hx && Math.abs(dy) <= hy;
+      // the river's dry band under the motorway (lab.js coverAt)
+      if (cover.cut && coverCut(cover, x, y)) return false;
+      const offX = x - cover.x, offY = y - cover.y,
+        dx = offX * cosRot + offY * sinRot, dy = -offX * sinRot + offY * cosRot;
+      return cover.shape === 'ellipse'
+        ? (dx * dx) / (halfW * halfW) + (dy * dy) / (halfH * halfH) <= 1
+        : Math.abs(dx) <= halfW && Math.abs(dy) <= halfH;
     };
     const all: number[] = [], rim: number[] = [];
-    for (let x = Math.floor((c.x - RX) / G) * G; x < c.x + RX; x += G) for (let y = Math.floor((c.y - RY) / G) * G; y < c.y + RY; y += G) {
-      const mx = x + G / 2, my = y + G / 2;
-      if (!inside(mx, my)) continue;
-      all.push(x, y);
-      if (!inside(mx + G, my) || !inside(mx - G, my) || !inside(mx, my + G) || !inside(mx, my - G)) rim.push(x, y);
-    }
-    return (c._cells = { all, rim, G });
+    for (let x = Math.floor((cover.x - reachX) / cellSize) * cellSize;
+      x < cover.x + reachX; x += cellSize)
+      for (let y = Math.floor((cover.y - reachY) / cellSize) * cellSize;
+        y < cover.y + reachY; y += cellSize) {
+        const midX = x + cellSize / 2, midY = y + cellSize / 2;
+        if (!inside(midX, midY)) continue;
+        all.push(x, y);
+        if (
+          !inside(midX + cellSize, midY) || !inside(midX - cellSize, midY) ||
+          !inside(midX, midY + cellSize) || !inside(midX, midY - cellSize)
+        ) rim.push(x, y);
+      }
+    return (cover._cells = { all, rim, G: cellSize });
   }
   const PUDDLE_TINT: Record<string, string> = {
     dirt: 'rgba(86,64,42,0.62)', mud: 'rgba(62,46,32,0.66)', thickMud: 'rgba(46,34,24,0.70)',
     sand: 'rgba(150,128,90,0.55)', gravel: 'rgba(96,90,78,0.58)',
     // on hard ground, water is a dark mirror, not blue (user, 2026-10-03: puddles on tarmac looked
     // wrong)
-    tarmac: 'rgba(16,19,26,0.62)', racetarmac: 'rgba(12,14,20,0.62)', broken: 'rgba(30,33,42,0.60)', lab: 'rgba(120,128,142,0.45)',
+    tarmac: 'rgba(16,19,26,0.62)', racetarmac: 'rgba(12,14,20,0.62)',
+    broken: 'rgba(30,33,42,0.60)', lab: 'rgba(120,128,142,0.45)',
     // water on grass reads BLUE (it vanished into the grass as dark green — photographed
     // 2026-10-03)
-    grass: 'rgba(74,104,150,0.62)', grassShort: 'rgba(74,104,150,0.62)', grassLong: 'rgba(66,96,140,0.64)',
+    grass: 'rgba(74,104,150,0.62)', grassShort: 'rgba(74,104,150,0.62)',
+    grassLong: 'rgba(66,96,140,0.64)',
   };
   // RANDOM PATCHES (Grass Track, re-rolled every load — lab.js randomiseGrassTrack): small ellipses
   // of another base surface, drawn with that surface's own SURFACE_ART so a mud spot looks like
   // mud.
   function drawPatches() {
-    const list = LEVEL.allPatches || LEVEL.patches;     // random spots + blend patches (lab.js prepareLevel)
+    // random spots + blend patches (lab.js prepareLevel)
+    const list = LEVEL.allPatches || LEVEL.patches;
     if (!list || !list.length) return;
-    const p = PPMz();
-    for (const c of list) {
-      const r = Math.max(c.w, c.h) / 2;
-      if (sx(c.x + r) < 0 || sx(c.x - r) > view.W || sy(c.y + r) < 0 || sy(c.y - r) > view.H) continue;
+    const ppm = PPMz();
+    for (const patch of list) {
+      const reach = Math.max(patch.w, patch.h) / 2;
+      if (
+        sx(patch.x + reach) < 0 || sx(patch.x - reach) > view.W ||
+        sy(patch.y + reach) < 0 || sy(patch.y - reach) > view.H
+      ) continue;
       view.ctx.save();
       view.ctx.beginPath();
-      if (c.sq) view.ctx.rect(sx(c.x - c.w / 2), sy(c.y - c.h / 2), c.w * p, c.h * p);
-      else view.ctx.ellipse(sx(c.x), sy(c.y), (c.w / 2) * p, (c.h / 2) * p, c.rot || 0, 0, Math.PI * 2);
-      view.ctx.fillStyle = artBase(c.surface.id, '#6b5644');
+      if (patch.sq) view.ctx.rect(
+        sx(patch.x - patch.w / 2), sy(patch.y - patch.h / 2), patch.w * ppm, patch.h * ppm
+      );
+      else view.ctx.ellipse(
+        sx(patch.x), sy(patch.y), (patch.w / 2) * ppm, (patch.h / 2) * ppm,
+        patch.rot || 0, 0, Math.PI * 2
+      );
+      view.ctx.fillStyle = artBase(patch.surface.id, '#6b5644');
       view.ctx.fill();
       view.ctx.clip();
       view.ctx.translate(sx(0), sy(0));
-      paintLayers(c.surface.id, c.x - r, c.y - r, c.x + r, c.y + r);
+      paintLayers(
+        patch.surface.id, patch.x - reach, patch.y - reach, patch.x + reach, patch.y + reach
+      );
       view.ctx.restore();
     }
   }
@@ -522,49 +756,107 @@ export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
   // clipped to the union, one rim round the outside.
   function mergedCovers(list: Cover[]): MergedCover[] {
     if (LEVEL._mergedOf === list) return LEVEL._merged!;   // set together with _mergedOf
-    const G = 0.5, kinds = new Map<CoverId, Map<number, MergedCell>>();
-    for (const c of list) {
-      let m = kinds.get(c.cover); if (!m) kinds.set(c.cover, (m = new Map()));
-      const k = coverCells(c);
-      const tint = c.cover === 'wet' ? (PUDDLE_TINT[(groundAt(c.x, c.y).surface.under) || 'tarmac'] || 'rgba(52,66,92,0.58)') : null;
-      for (let i = 0; i < k.all.length; i += 2) { const gx = Math.round(k.all[i] / G), gy = Math.round(k.all[i + 1] / G), key = gx * 131071 + gy; if (!m.has(key)) m.set(key, { x: k.all[i], y: k.all[i + 1], gx, gy, tint }); }
+    const cellSize = 0.5, kinds = new Map<CoverId, Map<number, MergedCell>>();
+    for (const cover of list) {
+      let kindCells = kinds.get(cover.cover);
+      if (!kindCells) kinds.set(cover.cover, (kindCells = new Map()));
+      const own = coverCells(cover);
+      const tint = cover.cover === 'wet'
+        ? (PUDDLE_TINT[(groundAt(cover.x, cover.y).surface.under) || 'tarmac']
+          || 'rgba(52,66,92,0.58)')
+        : null;
+      for (let i = 0; i < own.all.length; i += 2) {
+        const gridX = Math.round(own.all[i] / cellSize),
+          gridY = Math.round(own.all[i + 1] / cellSize),
+          key = gridX * 131071 + gridY;
+        if (!kindCells.has(key))
+          kindCells.set(key, {
+            x: own.all[i], y: own.all[i + 1], gx: gridX, gy: gridY, tint,
+          });
+      }
     }
     const out: MergedCover[] = [];
-    for (const [kind, m] of kinds) {
-      const cells = [...m.values()], rim: MergedCell[] = [];
-      let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
-      for (const c of cells) {
-        if (!m.has((c.gx + 1) * 131071 + c.gy) || !m.has((c.gx - 1) * 131071 + c.gy) || !m.has(c.gx * 131071 + c.gy + 1) || !m.has(c.gx * 131071 + c.gy - 1)) rim.push(c);
-        x0 = Math.min(x0, c.x); y0 = Math.min(y0, c.y); x1 = Math.max(x1, c.x + G); y1 = Math.max(y1, c.y + G);
+    for (const [kind, kindCells] of kinds) {
+      const cells = [...kindCells.values()], rim: MergedCell[] = [];
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      for (const cell of cells) {
+        if (
+          !kindCells.has((cell.gx + 1) * 131071 + cell.gy) ||
+          !kindCells.has((cell.gx - 1) * 131071 + cell.gy) ||
+          !kindCells.has(cell.gx * 131071 + cell.gy + 1) ||
+          !kindCells.has(cell.gx * 131071 + cell.gy - 1)
+        ) rim.push(cell);
+        minX = Math.min(minX, cell.x);
+        minY = Math.min(minY, cell.y);
+        maxX = Math.max(maxX, cell.x + cellSize);
+        maxY = Math.max(maxY, cell.y + cellSize);
       }
-      out.push({ kind, cells, rim, bb: [x0, y0, x1, y1], G });
+      out.push({ kind, cells, rim, bb: [minX, minY, maxX, maxY], G: cellSize });
     }
-    LEVEL._mergedOf = list; LEVEL._merged = out;
+    LEVEL._mergedOf = list;
+    LEVEL._merged = out;
     return out;
   }
   function drawCoversMerged(list: Cover[]) {
-    const p = PPMz(), vx0 = cam.x - view.W / 2 / p, vx1 = cam.x + view.W / 2 / p, vy0 = cam.y - view.H / 2 / p, vy1 = cam.y + view.H / 2 / p;
+    const ppm = PPMz(), vx0 = cam.x - view.W / 2 / ppm, vx1 = cam.x + view.W / 2 / ppm,
+      vy0 = cam.y - view.H / 2 / ppm, vy1 = cam.y + view.H / 2 / ppm;
     for (const grp of mergedCovers(list)) {
-      const [x0, y0, x1, y1] = grp.bb, G = grp.G;
-      if (x1 < vx0 || x0 > vx1 || y1 < vy0 || y0 > vy1) continue;
-      const vis = grp.cells.filter((c) => c.x + G >= vx0 && c.x <= vx1 && c.y + G >= vy0 && c.y <= vy1);
+      const [minX, minY, maxX, maxY] = grp.bb, cellSize = grp.G;
+      if (maxX < vx0 || minX > vx1 || maxY < vy0 || minY > vy1) continue;
+      const vis = grp.cells.filter(
+        (cell) => cell.x + cellSize >= vx0 && cell.x <= vx1 &&
+          cell.y + cellSize >= vy0 && cell.y <= vy1
+      );
       if (!vis.length) continue;
-      const path = (cells: MergedCell[]) => { view.ctx.beginPath(); for (const c of cells) view.ctx.rect(sx(c.x), sy(c.y), G * p, G * p); };
-      const bx0 = Math.max(x0, vx0), by0 = Math.max(y0, vy0), bx1 = Math.min(x1, vx1), by1 = Math.min(y1, vy1);
+      const path = (cells: MergedCell[]) => {
+        view.ctx.beginPath();
+        for (const cell of cells)
+          view.ctx.rect(sx(cell.x), sy(cell.y), cellSize * ppm, cellSize * ppm);
+      };
+      const bx0 = Math.max(minX, vx0), by0 = Math.max(minY, vy0),
+        bx1 = Math.min(maxX, vx1), by1 = Math.min(maxY, vy1);
       if (grp.kind === 'wet') {
-        const byTint = new Map<string | null, MergedCell[]>(); for (const c of vis) { let a = byTint.get(c.tint); if (!a) byTint.set(c.tint, (a = [])); a.push(c); }
+        const byTint = new Map<string | null, MergedCell[]>();
+        for (const cell of vis) {
+          let tinted = byTint.get(cell.tint);
+          if (!tinted) byTint.set(cell.tint, (tinted = []));
+          tinted.push(cell);
+        }
         // tint! : every wet cell has a tint
-        for (const [tint, cells] of byTint) { path(cells); view.ctx.fillStyle = tint!; view.ctx.fill(); }
-        view.ctx.save(); path(vis); view.ctx.clip(); view.ctx.translate(sx(0), sy(0));
+        for (const [tint, cells] of byTint) {
+          path(cells);
+          view.ctx.fillStyle = tint!;
+          view.ctx.fill();
+        }
+        view.ctx.save();
+        path(vis);
+        view.ctx.clip();
+        view.ctx.translate(sx(0), sy(0));
         PRIM.sheen(['sheen', 'rgba(215,228,248,0.09)', 4.0, 0.9, -0.45], bx0, by0, bx1, by1);
         PRIM.sheen(['sheen', 'rgba(235,242,252,0.18)', 4.0, 0.10, -0.45], bx0, by0, bx1, by1);
         view.ctx.restore();
-        path(grp.rim.filter((c) => c.x + G >= vx0 && c.x <= vx1 && c.y + G >= vy0 && c.y <= vy1)); view.ctx.fillStyle = 'rgba(30,40,58,0.30)'; view.ctx.fill();
+        path(grp.rim.filter(
+          (cell) => cell.x + cellSize >= vx0 && cell.x <= vx1 &&
+          cell.y + cellSize >= vy0 && cell.y <= vy1
+        ));
+        view.ctx.fillStyle = 'rgba(30,40,58,0.30)';
+        view.ctx.fill();
       } else {
-        path(vis); view.ctx.fillStyle = artBase(grp.kind, '#ffffff'); view.ctx.fill();
-        view.ctx.save(); view.ctx.clip(); view.ctx.translate(sx(0), sy(0)); paintLayers(grp.kind, bx0, by0, bx1, by1); view.ctx.restore();
-        path(grp.rim.filter((c) => c.x + G >= vx0 && c.x <= vx1 && c.y + G >= vy0 && c.y <= vy1));
-        view.ctx.fillStyle = grp.kind === 'snow' ? 'rgba(160,180,205,0.55)' : 'rgba(255,255,255,0.55)'; view.ctx.fill();
+        path(vis);
+        view.ctx.fillStyle = artBase(grp.kind, '#ffffff');
+        view.ctx.fill();
+        view.ctx.save();
+        view.ctx.clip();
+        view.ctx.translate(sx(0), sy(0));
+        paintLayers(grp.kind, bx0, by0, bx1, by1);
+        view.ctx.restore();
+        path(grp.rim.filter(
+          (cell) => cell.x + cellSize >= vx0 && cell.x <= vx1 &&
+          cell.y + cellSize >= vy0 && cell.y <= vy1
+        ));
+        view.ctx.fillStyle = grp.kind === 'snow'
+          ? 'rgba(160,180,205,0.55)' : 'rgba(255,255,255,0.55)';
+        view.ctx.fill();
       }
     }
   }
@@ -580,7 +872,8 @@ export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
   // into mud"): wear was drawn AFTER the covers, so every 1.5 m dirt cell turning to mud beside a
   // puddle painted its square over the puddle's edge until the puddle was gone.
   //   'base'  — cells that started with no cover (dirt -> mud ...): drawn UNDER the covers
-  //   'cover' — cells whose cover itself changed (snow packed to ice, ice scrubbed through): drawn OVER
+  //   'cover' — cells whose cover itself changed (snow packed to ice, ice scrubbed through):
+  //             drawn OVER
   function drawWear(pass = 'base') {
     if (!wearMap || wearMap.size === 0) return;
     // 2026-10-03: a worn cell now LOOKS like what it has become (the same SURFACE_ART as everywhere
@@ -592,44 +885,57 @@ export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
       if (cell.current === cell.orig) continue;
       const startedCovered = cell.orig === 'snow' || cell.orig === 'ice' || cell.orig === 'wet';
       if ((pass === 'cover') !== startedCovered) continue;
-      const x0 = Math.round(sx(cell.cx * WEAR_CELL)), y0 = Math.round(sy(cell.cy * WEAR_CELL));
-      const x1 = Math.round(sx((cell.cx + 1) * WEAR_CELL)), y1 = Math.round(sy((cell.cy + 1) * WEAR_CELL));
-      if (x1 < 0 || x0 > view.W || y1 < 0 || y0 > view.H) continue;
+      const px0 = Math.round(sx(cell.cx * WEAR_CELL)), py0 = Math.round(sy(cell.cy * WEAR_CELL));
+      const px1 = Math.round(sx((cell.cx + 1) * WEAR_CELL)),
+        py1 = Math.round(sy((cell.cy + 1) * WEAR_CELL));
+      if (px1 < 0 || px0 > view.W || py1 < 0 || py0 > view.H) continue;
       // water on a cell is drawn as its BASE with a puddle over it, so meltwater on grass looks
       // like water on grass cell.current! : set right after the cell is made
-      const gkey = cell.current === 'wet' ? 'wet|' + cell.base : cell.current!;
-      let g = groups.get(gkey);
-      if (!g) groups.set(gkey, (g = { r: [], bx0: Infinity, by0: Infinity, bx1: -Infinity, by1: -Infinity }));
-      g.r.push(x0, y0, x1 - x0, y1 - y0);
+      const groupKey = cell.current === 'wet' ? 'wet|' + cell.base : cell.current!;
+      let group = groups.get(groupKey);
+      if (!group) groups.set(groupKey, (group = {
+        r: [], bx0: Infinity, by0: Infinity, bx1: -Infinity, by1: -Infinity,
+      }));
+      group.r.push(px0, py0, px1 - px0, py1 - py0);
       // world bbox of the group, so its pattern is painted over these cells only. MEASURED
       // 2026-10-03: painting each group across the whole view (clip-only) cost the lab panels run
       // 236 -> 192 frames.
-      g.bx0 = Math.min(g.bx0, cell.cx * WEAR_CELL); g.bx1 = Math.max(g.bx1, (cell.cx + 1) * WEAR_CELL);
-      g.by0 = Math.min(g.by0, cell.cy * WEAR_CELL); g.by1 = Math.max(g.by1, (cell.cy + 1) * WEAR_CELL);
+      group.bx0 = Math.min(group.bx0, cell.cx * WEAR_CELL);
+      group.bx1 = Math.max(group.bx1, (cell.cx + 1) * WEAR_CELL);
+      group.by0 = Math.min(group.by0, cell.cy * WEAR_CELL);
+      group.by1 = Math.max(group.by1, (cell.cy + 1) * WEAR_CELL);
     }
-    for (const [gk, g] of groups) {
-      const r = g.r;
-      const wetOn = gk.startsWith('wet|') ? gk.slice(4) : null, id = wetOn || gk;
+    for (const [groupKey, group] of groups) {
+      const rects = group.r;
+      const wetOn = groupKey.startsWith('wet|') ? groupKey.slice(4) : null,
+        artId = wetOn || groupKey;
       view.ctx.save();
       view.ctx.beginPath();
       // a soft DISC per cell (radius 0.72 of the cell, so neighbours overlap) rather than a hard
       // square: worn ground then spreads as organic ruts instead of a blocky staircase
       // (photographed 2026-10-03)
-      for (let i = 0; i < r.length; i += 4) {
-        view.ctx.rect(r[i], r[i + 1], r[i + 2], r[i + 3]);     // squares in pixel art
+      for (let i = 0; i < rects.length; i += 4) {
+        // squares in pixel art
+        view.ctx.rect(rects[i], rects[i + 1], rects[i + 2], rects[i + 3]);
       }
-      view.ctx.fillStyle = artBase(id, '#6b5644');
+      view.ctx.fillStyle = artBase(artId, '#6b5644');
       view.ctx.fill();
       view.ctx.clip();
       view.ctx.translate(sx(0), sy(0));
-      paintLayers(id, g.bx0, g.by0, g.bx1, g.by1);
+      paintLayers(artId, group.bx0, group.by0, group.bx1, group.by1);
       if (wetOn) {
         view.ctx.fillStyle = PUDDLE_TINT[wetOn] || 'rgba(52,66,92,0.58)';
         // grown by a cell: the discs reach past the cells' squares, and the clip keeps it inside
         // them
-        const m = WEAR_CELL;
-        view.ctx.fillRect((g.bx0 - m) * PPMz(), (g.by0 - m) * PPMz(), (g.bx1 - g.bx0 + 2 * m) * PPMz(), (g.by1 - g.by0 + 2 * m) * PPMz());
-        PRIM.sheen(['sheen', 'rgba(220,232,250,0.12)', 3.0, 0.5, -0.45], g.bx0, g.by0, g.bx1, g.by1);
+        const grow = WEAR_CELL;
+        view.ctx.fillRect(
+          (group.bx0 - grow) * PPMz(), (group.by0 - grow) * PPMz(),
+          (group.bx1 - group.bx0 + 2 * grow) * PPMz(), (group.by1 - group.by0 + 2 * grow) * PPMz()
+        );
+        PRIM.sheen(
+          ['sheen', 'rgba(220,232,250,0.12)', 3.0, 0.5, -0.45],
+          group.bx0, group.by0, group.bx1, group.by1
+        );
       }
       view.ctx.restore();
     }
@@ -642,47 +948,59 @@ export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
   // ground stops, a table has a flat bright top and two edges, a hump is a lit dome, a kerb is the
   // familiar red and white.
   function drawBumps() {
-    const p = PPMz();
-    for (const b of BUMPS) {
-      if (Math.abs(b.x - cam.x) * p > view.W / 2 + 200 || Math.abs(b.y - cam.y) * p > view.H / 2 + 200) continue;
+    const ppm = PPMz();
+    for (const bump of BUMPS) {
+      if (
+        Math.abs(bump.x - cam.x) * ppm > view.W / 2 + 200 ||
+        Math.abs(bump.y - cam.y) * ppm > view.H / 2 + 200
+      ) continue;
       view.ctx.save();
-      view.ctx.translate(sx(b.x), sy(b.y));
-      view.ctx.rotate(b.rot || 0);
+      view.ctx.translate(sx(bump.x), sy(bump.y));
+      view.ctx.rotate(bump.rot || 0);
       // TERRAIN SHAPES ARE SHOWN BY HILL-SHADING NOW (step 3, 2026-10-03; user chose "rebuild the
       // old jumps as terrain" and "pixel hill-shading"). The hand-drawn dome / wedge / table art
       // went: photographed together with the shading it read as two layers of mud. Kept: the KERB
       // (it is paint, not height) and the ramp's RED LIP — the ground really does fall away there,
       // which no shading can show, and a jump you cannot see coming is unfair (CLAUDE.md §1). kerb
       // and ramp bumps always have len and wid (the ! below)
-      if (b.kind === 'kerb') {
-        const n = Math.max(2, Math.round(b.len! / 2.4));
-        for (let i = 0; i < n; i++) {
+      if (bump.kind === 'kerb') {
+        const stripes = Math.max(2, Math.round(bump.len! / 2.4));
+        for (let i = 0; i < stripes; i++) {
           view.ctx.fillStyle = i % 2 ? COL.kerbB : COL.kerbA;
-          view.ctx.fillRect((-b.len! / 2 + (i * b.len!) / n) * p, (-b.wid! / 2) * p, (b.len! / n) * p + 1, b.wid! * p);
+          view.ctx.fillRect(
+            (-bump.len! / 2 + (i * bump.len!) / stripes) * ppm, (-bump.wid! / 2) * ppm,
+            (bump.len! / stripes) * ppm + 1, bump.wid! * ppm
+          );
         }
         view.ctx.fillStyle = 'rgba(255,255,255,0.35)';
-        view.ctx.fillRect((-b.len! / 2) * p, -0.3 * p, b.len! * p, 0.6 * p);
-      } else if (b.kind === 'ramp') {
+        view.ctx.fillRect((-bump.len! / 2) * ppm, -0.3 * ppm, bump.len! * ppm, 0.6 * ppm);
+      } else if (bump.kind === 'ramp') {
         view.ctx.fillStyle = 'rgba(214,69,60,0.85)';
-        view.ctx.fillRect((b.len! / 2 - 0.6) * p, (-b.wid! / 2) * p, 0.6 * p, b.wid! * p);
+        view.ctx.fillRect(
+          (bump.len! / 2 - 0.6) * ppm, (-bump.wid! / 2) * ppm, 0.6 * ppm, bump.wid! * ppm
+        );
       }
       view.ctx.restore();
     }
   }
 
   function drawRunoff() {
-    if (LEVEL.endless) return;   // the lab's border ring is drawn along the WHOLE world edge: 100 km a side on the highway
-    for (let i = 0; i < 4; i++) forSide(i, (p, D, Lh) => {
-      const E = Lh + RUNOFF_W, F = D + RUNOFF_W;   // along: the side plus both corners; out: the fence
+    // the lab's border ring is drawn along the WHOLE world edge: 100 km a side on the highway
+    if (LEVEL.endless) return;
+    for (let i = 0; i < 4; i++) forSide(i, (ppm, dist, halfLen) => {
+      // along: the side plus both corners; out: the fence
+      const alongEnd = halfLen + RUNOFF_W, outEnd = dist + RUNOFF_W;
       // GRASS VERGE first — the strip between the kerb and the gravel where you can still save it.
       view.ctx.fillStyle = COL.grass;
-      view.ctx.fillRect(-E * p, D * p, E * 2 * p, VERGE_W * p);
-      speckle(-E, D, E, D + VERGE_W, COL.grassDark, 0.8, 0.16);
+      view.ctx.fillRect(-alongEnd * ppm, dist * ppm, alongEnd * 2 * ppm, VERGE_W * ppm);
+      speckle(-alongEnd, dist, alongEnd, dist + VERGE_W, COL.grassDark, 0.8, 0.16);
       // then the TRAP: the full width of the side, plus the corner so the ring closes with no seam.
       view.ctx.fillStyle = COL.gravel;
-      view.ctx.fillRect(-E * p, (D + VERGE_W) * p, E * 2 * p, (RUNOFF_W - VERGE_W) * p);
-      speckle(-E, D + VERGE_W, E, F, COL.gravelGrit, 0.85, 0.15);
-      speckle(-E, D + VERGE_W, E, F, COL.gravelDark, 2.4, 0.24);
+      view.ctx.fillRect(
+        -alongEnd * ppm, (dist + VERGE_W) * ppm, alongEnd * 2 * ppm, (RUNOFF_W - VERGE_W) * ppm
+      );
+      speckle(-alongEnd, dist + VERGE_W, alongEnd, outEnd, COL.gravelGrit, 0.85, 0.15);
+      speckle(-alongEnd, dist + VERGE_W, alongEnd, outEnd, COL.gravelDark, 2.4, 0.24);
     });
   }
 
