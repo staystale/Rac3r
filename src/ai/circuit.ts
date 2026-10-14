@@ -23,7 +23,7 @@ import { K_BRAKE, OBST_CLEAR, racingLine, nearestIdx, carGrip, profileOf } from 
 import { roadDriver, driveOut } from "./weaver.ts";
 import type { Level } from "../world/types.ts";
 import type {
-  AiCar, CircuitState, DriveCtx, HighwayLevel, JokerCtx, Lead, Threat,
+  AiCar, CarsAcc, CarsEnv, CircuitState, DriveCtx, HighwayLevel, JokerCtx,
 } from "./types.ts";
 
 // m: the lateral target never puts the car's centre closer than this to the road edge
@@ -302,6 +302,145 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
     return dodge;
   }
 
+  /** The path index nearest to a car, searched from 16 m behind to just past it. */
+  function closestPathIdx(env: CarsEnv, other: AiCar, fwd: number) {
+    const { path, nearIdx, idx } = env, pts = path.pts;
+    let closeIdx = nearIdx, closeDist2 = Infinity;
+    const span = Math.round((Math.max(0, fwd) + 12) / path.sp);
+    for (let offset = -Math.round(16 / path.sp); offset <= span; offset += 1) {
+      const slot = idx(nearIdx + offset), dist2 = (pts[slot].x - other.x) ** 2 + (
+          pts[slot].y - other.y) ** 2;
+      if (dist2 < closeDist2) {
+        closeDist2 = dist2;
+        closeIdx = slot;
+      }
+    }
+    return closeIdx;
+  }
+
+  /** Goes round (or sits behind) a car ahead that is closing: the dodge target and gap cap. */
+  function followAhead(acc: CarsAcc, env: CarsEnv, fwd: number, otherLat: number,
+      vAlong: number, closeIdx: number) {
+    const { car, path, idx, speed, prec, prof, lineOff, latT, latLim, myLat, clear, gapF } = env;
+    acc.conflict = true;
+    // GO ROUND, DON'T QUEUE (user, 2026-10-04: "AI still seem to almost queue and wait
+    // rather than overtake and avoid blocking cars,
+    // even if it's slightly off track"): the room to pass may use WIDE m past the usual edge
+    // (wheels on the grass), WIDE_SLOW for a
+    // car that is much slower or stopped (spun, beached); once a side is chosen it no longer
+    // matches the car ahead's speed unless
+    // still overlapping it close up. (Was: room inside the edge only, and it slowed to
+    // follow whenever within gapF + 4 m even with a
+    // side chosen. The room test also subtracted latT — wrong whenever the driver was
+    // wandering.)
+    const slowBlock = vAlong < Math.min(0.7 * speed, speed - 4) || vAlong < 6;
+    const wide = latLim + (slowBlock ? WIDE_SLOW : WIDE);
+    const cands = [otherLat + clear, otherLat - clear].filter(
+        (cand) => Math.abs(lineOff + cand) <= wide).sort(
+        (first, second) => Math.abs(first - myLat) - Math.abs(second - myLat));
+    if (cands.length && fwd > 3) {
+      acc.dodgeT = cands[0] - latT;
+      if (Math.abs(lineOff + cands[0]) > latLim) {
+        state.wide = wide;
+        state.wideUntil = state.t + 1.2;
+      }
+    }
+    if (!cands.length || (fwd < gapF && Math.abs(otherLat - myLat) < 1.6)) {
+      let capF = vAlong + Math.max(0, fwd - gapF) * 0.7;
+      // ANTICIPATION (prec): the car ahead will slow to (about) the profile where it is now,
+      // so arrive gapF behind at that speed
+      // instead of reacting once it brakes — the nose-to-tail hits in braking zones
+      // (aifieldsuite: ~40 % of contact events)
+      if (prec > 0) {
+        const leadSpeed = Math.min(
+            vAlong, prof[idx(closeIdx + Math.round(6 / path.sp))] * traits.pace),
+            brakeDecel = 0.6 * carGrip(car.spec).brakeG * GRAVITY * (car.surface.mu || 1);
+        capF = Math.min(capF, capF * (1 - prec) + prec * Math.sqrt(
+            leadSpeed * leadSpeed + 2 * brakeDecel * Math.max(0, fwd - gapF)));
+      }
+      acc.followCap = Math.min(acc.followCap, capF);
+    }
+  }
+
+  /** A car alongside (or just behind): remember its place and keep a gap from it. */
+  function alongsideCar(acc: CarsAcc, env: CarsEnv, fwd: number, otherLat: number) {
+    const { latT, startK, myLat } = env;
+    if (fwd > -2.5) acc.side = acc.side || Math.sign(otherLat - myLat);
+    acc.alg.push(otherLat);
+    const gapA = 2.4 + START_GAP * startK;
+    if (Math.abs(otherLat - myLat) < gapA) {
+      acc.conflict = true;
+      acc.dodgeT = myLat + Math.sign(myLat - otherLat || 1) * (
+          gapA - Math.abs(otherLat - myLat)) - latT;
+    }
+  }
+
+  /** Notes the nearest car ahead (lead) and the nearest faster one close behind (threat). */
+  function noteLeadThreat(acc: CarsAcc, env: CarsEnv, other: AiCar, fwd: number,
+      otherLat: number, vAlong: number) {
+    const { speed, myLat, clear } = env;
+    if (fwd > 2.5 && fwd < 22 && Math.abs(otherLat - myLat) < clear + 0.8 && (
+        !acc.lead || fwd < acc.lead.f)) acc.lead = {
+      c: other, f: fwd, oc: otherLat, vAlong
+    };
+    if (fwd < -3 && fwd > -16 && vAlong > speed - 1 && (!acc.threat || fwd > acc.threat.f)) {
+      acc.threat = {
+        c: other, f: fwd, oc: otherLat
+      };
+    }
+  }
+
+  /** The car being ATTACKED: no following gap once we are moving over (only overlap holds us). */
+  function attackedCar(acc: CarsAcc, env: CarsEnv, fwd: number, otherLat: number, vAlong: number) {
+    if (fwd > 2.5 && fwd < 5 && Math.abs(otherLat - env.myLat) < 1.5) acc.followCap = Math.min(
+        acc.followCap, vAlong + 0.5);
+    if (fwd < 4.5 && fwd > -4.5) acc.alg.push(otherLat);
+  }
+
+  /** Reads the cars around: who leads, who threatens, who is alongside; the dodge and gap cap. */
+  function carsStep(car: AiCar, others: AiCar[], path: typeof state.path, nearIdx: number,
+      idx: (pos: number) => number, speed: number, prec: number, prof: ReturnType<typeof profileOf>,
+      lineOff: number, latT: number, startK: number, latLim: number, myLat: number) {
+    const clear = 2.3 - 0.4 * traits.aggression, gapF = (
+        6.5 - 2.5 * traits.aggression) * (1.15 - 0.35 * prec);
+    const env: CarsEnv = {
+      car, path, nearIdx, idx, speed, prec, prof, lineOff, latT, startK, latLim, myLat, clear, gapF
+    };
+    const cosH = Math.cos(car.heading), sinH = Math.sin(car.heading);
+    const acc: CarsAcc = {
+      dodgeT: 0, followCap: Infinity, conflict: false, lead: null, threat: null, side: 0, alg: []
+    };
+    for (const other of others) {
+      const relX = other.x - car.x, relY = other.y - car.y, fwd = relX * cosH + relY * sinH,
+          lat = -relX * sinH + relY * cosH;
+      if (fwd < -15 || fwd > 8 + speed * 1.1 || Math.abs(lat) > 8) continue;
+      // its lateral place relative to MY path
+      const closeIdx = closestPathIdx(env, other, fwd);
+      const point = path.pts[closeIdx], otherLat = (other.x - point.x) * -Math.sin(point.h) + (
+          other.y - point.y) * Math.cos(point.h);
+      const vAlong = other.vx * cosH + other.vy * sinH;
+      noteLeadThreat(acc, env, other, fwd, otherLat, vAlong);
+      if (state.atk && other === state.atk.car) {
+        attackedCar(acc, env, fwd, otherLat, vAlong);
+        continue;
+      }
+      if (fwd > 2.5) {
+        // FOLLOWING only while closing, with a short gap: it rubs and bumps in braking zones
+        // (aifieldcheck: ~6 s of contact per 3 laps of 6 cars at Realish). USER (2026-10-04, after
+        // testing it): "contact is ok … it felt ok before, put it back" — a strict speed-based gap
+        // (zero contact, but a procession: 1 position change in 3 laps) was tried and REVERTED.
+        if (speed - vAlong > -0.5 && Math.abs(otherLat - myLat) < clear) {
+          followAhead(acc, env, fwd, otherLat, vAlong, closeIdx);
+        }
+      } else if (fwd > -4) {
+        alongsideCar(acc, env, fwd, otherLat);
+      } else if (!acc.conflict && traits.defence > 0.5 && vAlong > speed + 0.5 && fwd > -14) {
+        acc.dodgeT = Math.max(-1.2, Math.min(1.2, (otherLat - latT) * 0.5)) * traits.defence;
+      }
+    }
+    return acc;
+  }
+
   function drive(car: AiCar, dt = 1 / 120, ctx: DriveCtx = {}) {
     state.t += dt;
     const spec = car.spec, speed = Math.hypot(car.vx, car.vy);
@@ -342,105 +481,14 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
     // chosen path"): a car ahead in the way -> pick the side with room and go round it (that IS the
     // overtake); no room -> sit behind it, matching its speed; a car alongside -> keep a gap; a
     // faster car close behind -> a defensive driver covers its side a little
-    const prec = traits.prec ?? 0.5, clear = 2.3 - 0.4 * traits.aggression, gapF = (
-        6.5 - 2.5 * traits.aggression) * (1.15 - 0.35 * prec);
+    const prec = traits.prec ?? 0.5;
     const latLim = path === main ? line.hw - WANDER_EDGE : 2;
     const cosH = Math.cos(car.heading), sinH = Math.sin(car.heading);
-    let dodgeT = 0, followCap = Infinity, conflict = false, lead: Lead | null = null, threat:
-        Threat | null = null, side = 0;
-    const alg: number[] = [];
     const myLat = state.dodge + latT;
-    for (const other of others) {
-      const relX = other.x - car.x, relY = other.y - car.y, fwd = relX * cosH + relY * sinH,
-          lat = -relX * sinH + relY * cosH;
-      if (fwd < -15 || fwd > 8 + speed * 1.1 || Math.abs(lat) > 8) continue;
-      // its lateral place relative to MY path
-      let closeIdx = nearIdx, closeDist2 = Infinity;
-      const span = Math.round((Math.max(0, fwd) + 12) / path.sp);
-      for (let offset = -Math.round(16 / path.sp); offset <= span; offset += 1) {
-        const slot = idx(nearIdx + offset), dist2 = (pts[slot].x - other.x) ** 2 + (
-            pts[slot].y - other.y) ** 2;
-        if (dist2 < closeDist2) {
-          closeDist2 = dist2;
-          closeIdx = slot;
-        }
-      }
-      const point = pts[closeIdx], otherLat = (other.x - point.x) * -Math.sin(point.h) + (
-          other.y - point.y) * Math.cos(point.h);
-      const vAlong = other.vx * cosH + other.vy * sinH;
-      if (fwd > 2.5 && fwd < 22 && Math.abs(otherLat - myLat) < clear + 0.8 && (
-          !lead || fwd < lead.f)) lead = {
-        c: other, f: fwd, oc: otherLat, vAlong
-      };
-      if (fwd < -3 && fwd > -16 && vAlong > speed - 1 && (!threat || fwd > threat.f)) threat = {
-        c: other, f: fwd, oc: otherLat
-      };
-      if (state.atk && other === state.atk.car) {
-        // the car being ATTACKED: no following gap once we are moving over (only a real overlap
-        // close up holds us back)
-        if (fwd > 2.5 && fwd < 5 && Math.abs(otherLat - myLat) < 1.5) followCap = Math.min(
-            followCap, vAlong + 0.5);
-        if (fwd < 4.5 && fwd > -4.5) alg.push(otherLat);
-        continue;
-      }
-      if (fwd > 2.5) {
-        // FOLLOWING only while closing, with a short gap: it rubs and bumps in braking zones
-        // (aifieldcheck: ~6 s of contact per 3 laps of 6 cars at Realish). USER (2026-10-04, after
-        // testing it): "contact is ok … it felt ok before, put it back" — a strict speed-based gap
-        // (zero contact, but a procession: 1 position change in 3 laps) was tried and REVERTED.
-        if (speed - vAlong > -0.5 && Math.abs(otherLat - myLat) < clear) {
-          conflict = true;
-          // GO ROUND, DON'T QUEUE (user, 2026-10-04: "AI still seem to almost queue and wait
-          // rather than overtake and avoid blocking cars,
-          // even if it's slightly off track"): the room to pass may use WIDE m past the usual edge
-          // (wheels on the grass), WIDE_SLOW for a
-          // car that is much slower or stopped (spun, beached); once a side is chosen it no longer
-          // matches the car ahead's speed unless
-          // still overlapping it close up. (Was: room inside the edge only, and it slowed to
-          // follow whenever within gapF + 4 m even with a
-          // side chosen. The room test also subtracted latT — wrong whenever the driver was
-          // wandering.)
-          const slowBlock = vAlong < Math.min(0.7 * speed, speed - 4) || vAlong < 6;
-          const wide = latLim + (slowBlock ? WIDE_SLOW : WIDE);
-          const cands = [otherLat + clear, otherLat - clear].filter(
-              (cand) => Math.abs(lineOff + cand) <= wide).sort(
-              (first, second) => Math.abs(first - myLat) - Math.abs(second - myLat));
-          if (cands.length && fwd > 3) {
-            dodgeT = cands[0] - latT;
-            if (Math.abs(lineOff + cands[0]) > latLim) {
-              state.wide = wide;
-              state.wideUntil = state.t + 1.2;
-            }
-          }
-          if (!cands.length || (fwd < gapF && Math.abs(otherLat - myLat) < 1.6)) {
-            let capF = vAlong + Math.max(0, fwd - gapF) * 0.7;
-            // ANTICIPATION (prec): the car ahead will slow to (about) the profile where it is now,
-            // so arrive gapF behind at that speed
-            // instead of reacting once it brakes — the nose-to-tail hits in braking zones
-            // (aifieldsuite: ~40 % of contact events)
-            if (prec > 0) {
-              const leadSpeed = Math.min(
-                  vAlong, prof[idx(closeIdx + Math.round(6 / path.sp))] * traits.pace),
-                  brakeDecel = 0.6 * carGrip(spec).brakeG * GRAVITY * (car.surface.mu || 1);
-              capF = Math.min(capF, capF * (1 - prec) + prec * Math.sqrt(
-                  leadSpeed * leadSpeed + 2 * brakeDecel * Math.max(0, fwd - gapF)));
-              }
-            followCap = Math.min(followCap, capF);
-          }
-        }
-      } else if (fwd > -4) {
-        if (fwd > -2.5) side = side || Math.sign(otherLat - myLat);
-        alg.push(otherLat);
-        const gapA = 2.4 + START_GAP * startK;
-        if (Math.abs(otherLat - myLat) < gapA) {
-          conflict = true;
-          dodgeT = myLat + Math.sign(myLat - otherLat || 1) * (
-              gapA - Math.abs(otherLat - myLat)) - latT;
-        }
-      } else if (!conflict && traits.defence > 0.5 && vAlong > speed + 0.5 && fwd > -14) {
-        dodgeT = Math.max(-1.2, Math.min(1.2, (otherLat - latT) * 0.5)) * traits.defence;
-      }
-    }
+    const cars = carsStep(car, others, path, nearIdx, idx, speed, prec, prof, lineOff, latT, startK,
+        latLim, myLat);
+    let dodgeT = cars.dodgeT, conflict = cars.conflict;
+    const { followCap, lead, threat, side, alg } = cars;
     // ---- OBSTACLES (user, 2026-10-04: "AI need to see tyres and cones as obstacles — although
     // optional ones haha — but try and avoid them
     // on rally stages / tracks"): ctx.obstacles = loose objects near this car ({ x, y, r },

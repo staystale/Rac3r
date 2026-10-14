@@ -264,6 +264,17 @@ export interface Threat {
   oc: number;
 }
 
+// What the circuit driver learns from the cars around it (carsStep) and what it reads from drive().
+export interface CarsAcc {
+  dodgeT: number; followCap: number; conflict: boolean; lead: Lead | null;
+  threat: Threat | null; side: number; alg: number[];
+}
+export interface CarsEnv {
+  car: AiCar; path: Path<DrivePoint>; nearIdx: number; idx: (pos: number) => number;
+  speed: number; prec: number; prof: SpeedProfile; lineOff: number;
+  latT: number; startK: number; latLim: number; myLat: number; clear: number; gapF: number;
+}
+
 // The circuit driver's state (createAIDriver). Fields without a ? are set when it is made.
 export interface CircuitState extends DriveOutState {
   path: Path<DrivePoint>;
