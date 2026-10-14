@@ -181,6 +181,43 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
     return jCap;
   }
 
+  /** Applies the running mistake to the line (latT) and the speed (vMul); may arm the throttle. */
+  function applyMistake(mist: NonNullable<typeof state.mist>, nearIdx: number) {
+    let latT = 0, vMul = 1;
+    const corner = line.corners[mist.corner], inC = line.cid[nearIdx] === mist.corner,
+        pastApex = inC && ((nearIdx - corner.apex + count) % count) < count / 2;
+    if (inC) mist.inside = true;
+    if (mist.inside && !inC) state.mist = null;    // through the corner: done
+    // brakes late: runs wide, maybe off
+    else if (mist.kind === 'late' && !pastApex) vMul = 1.06 + 0.14 * mist.sev;
+    // turns in early: clips the inside
+    else if (mist.kind === 'early' && !pastApex) latT += corner.turn * (1 + 2 * mist.sev);
+    // hesitates: just slow
+    else if (mist.kind === 'lift') vMul = 1 - (0.05 + 0.1 * mist.sev);
+    // too much, too soon: a slide
+    else if (mist.kind === 'throttle' && pastApex && !mist.fired) {
+      mist.fired = true;
+      state.thrUntil = state.t + 0.3 + 0.5 * mist.sev;
+    }
+    return { latT, vMul };
+  }
+
+  /** Draws a mistake per corner ~45 m out and applies the running one: line, speed, throttle. */
+  function mistakeStep(path: typeof state.path, nearIdx: number) {
+    let latT = 0, vMul = 1;
+    if (path === main) {
+      const cornerAhead = line.cid[(nearIdx + Math.round(45 / line.sp)) % count];
+      if (cornerAhead >= 0 && cornerAhead !== state.mistCorner) {
+        state.mistCorner = cornerAhead;
+        state.mist = null;
+        if (rnd() < traits.mistake * (state.pushing ? 1.6 : 1)) startMistake(cornerAhead);
+      }
+      const mist = state.mist;
+      if (mist) ({ latT, vMul } = applyMistake(mist, nearIdx));
+    }
+    return { latT, vMul, thrForce: state.t < state.thrUntil };
+  }
+
   function drive(car: AiCar, dt = 1 / 120, ctx: DriveCtx = {}) {
     state.t += dt;
     const spec = car.spec, speed = Math.hypot(car.vx, car.vy);
@@ -213,34 +250,10 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
 
     // ---- MISTAKES (user: "genuine subtle driving errors that lead to crashes and / or slower lap
     // times"), drawn per corner ~45 m out
-    let latT = 0, vMul = 1, thrForce = false;
-    if (path === main) {
-      const cornerAhead = line.cid[(nearIdx + Math.round(45 / line.sp)) % count];
-      if (cornerAhead >= 0 && cornerAhead !== state.mistCorner) {
-        state.mistCorner = cornerAhead;
-        state.mist = null;
-        if (rnd() < traits.mistake * (state.pushing ? 1.6 : 1)) startMistake(cornerAhead);
-      }
-      const mist = state.mist;
-      if (mist) {
-        const corner = line.corners[mist.corner], inC = line.cid[nearIdx] === mist.corner,
-            pastApex = inC && ((nearIdx - corner.apex + count) % count) < count / 2;
-        if (inC) mist.inside = true;
-        if (mist.inside && !inC) state.mist = null;    // through the corner: done
-        // brakes late: runs wide, maybe off
-        else if (mist.kind === 'late' && !pastApex) vMul = 1.06 + 0.14 * mist.sev;
-        // turns in early: clips the inside
-        else if (mist.kind === 'early' && !pastApex) latT += corner.turn * (1 + 2 * mist.sev);
-        // hesitates: just slow
-        else if (mist.kind === 'lift') vMul = 1 - (0.05 + 0.1 * mist.sev);
-        // too much, too soon: a slide
-        else if (mist.kind === 'throttle' && pastApex && !mist.fired) {
-          mist.fired = true;
-          state.thrUntil = state.t + 0.3 + 0.5 * mist.sev;
-        }
-      }
-    }
-    if (state.t < state.thrUntil) thrForce = true;
+    const mistakes = mistakeStep(path, nearIdx);
+    let latT = mistakes.latT;
+    let vMul = mistakes.vMul;
+    const thrForce = mistakes.thrForce;
 
     // ---- the line: less of its width for lower skill (lineQ), plus a slow WANDER, bigger for less
     // skilled drivers
