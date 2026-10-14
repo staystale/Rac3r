@@ -62,8 +62,7 @@ const KH_JOKER: Lane = { pts: openSmooth(
   [[590, 657], [572, 684], [540, 699], [500, 701], [468, 694],
   [448, 678]].map(([x, y]) => khXY(x, y))), width: 12, surface: SURFACES.dirt };
 const KH_JOKER_RULE = (() => {
-  const jokerPts = KH_JOKER.pts, mid = jokerPts[Math.floor(jokerPts.length / 2)],
-    jokerSixth = jokerPts[6], jokerOnTrack = onTrack(KH_SUBTRACK, khD(620, 643), -4, {});
+  const jokerPts = KH_JOKER.pts, mid = jokerPts[Math.floor(jokerPts.length / 2)];
   return { gate: { x: mid[0], y: mid[1], r: 7 }, penalty: 30, laps: 5,
     arrows: [jokerArrow(KH_SUBTRACK, jokerPts),
     jokerApproach(KH_SUBTRACK, jokerPts)].filter(Boolean) };

@@ -181,15 +181,12 @@ export function jokerArrow(sub: Subtrack, joker: Point[], len = 10) {
 }
 export const SH_JOKER_RULE = (() => {
   // 30: fully on the gravel (22 straddled the edge, photographed)
-  const joker = SH_JOKER.pts, mid = joker[Math.floor(joker.length / 2)], jokerPtA = joker[30],
-    jokerPtB = joker[34];
-  const trackPt = onTrack(SH_SUBTRACK, 60, 3.5, {});
+  const joker = SH_JOKER.pts, mid = joker[Math.floor(joker.length / 2)];
   // PENALTY 5 -> 10 s (MEASURED, tools/jokercost: the joker costs rally 1.8 s but hatch 7.4 / track
   // car 6.4 s — slow on dirt — so at +5 s a road car was FASTER skipping it. The penalty must beat
   // every car's joker cost.) USER (phone screenshot with a red hand-drawn arrow, 2026-10-04): "only
   // ONE arrow, placed where the red arrow is" — on the track at its right edge just before the
   // gravel splits off, pointing into the joker's mouth.
-  const mouthPt = onTrack(SH_SUBTRACK, 98, 4, {});
   // PENALTY 10 -> 30 s per miss OR extra joker (user, 2026-10-04: "harsh, real-ish")
   return { gate: { x: mid[0], y: mid[1], r: 7 }, penalty: 30, laps: 5,
     arrows: [jokerArrow(SH_SUBTRACK, joker), jokerApproach(SH_SUBTRACK, joker)].filter(Boolean) };

@@ -96,7 +96,6 @@ const REST_SPEED = 0.15;       // m/s, below which we snap to rest with no throt
 const SLOPE_ROLL = 0.06;
 // g of slope pull across the car (~19 deg) before a stopped car slides sideways
 const SLOPE_SLIDE = 0.35;
-const REVERSE_HOLD = 0.40;     // s of brake at a standstill to engage reverse (A5)
 
 
 // ---------------------------------------------------------------------------------------------
@@ -144,7 +143,8 @@ export const TUNE = {
   handbrakeForce: 1.15, // rear brake demand as a multiple of rear grip. >1 locks; below 1 it only
                         // drags, so this is a real STRENGTH rather than an on/off switch.
 };
-// min (1 - use^2) under the friction ellipse — never let lateral hit 0
+// Not used yet: candidate floor for (1 - use^2) under the friction ellipse, so lateral grip never
+// reaches 0. To be tried in a handling pass (TODO.md).
 const ELLIPSE_FLOOR = 0.10;
 // REVERTED to effectively a switch, 2026-09-27. Cross-fading the rolling and sliding laws over a
 // 0.30 band DID kill the track car judder (max jerk 457 -> 210) but wrecked the thing the slice
@@ -155,8 +155,6 @@ const ELLIPSE_FLOOR = 0.10;
 // The judder is chased separately rather than paid for with the drift.
 const SLIDE_BLEND = 0.001;
 
-// leave the wheelspin state only below this much of grip — hysteresis
-const SPIN_EXIT = 0.85;
 const CIRCLE_TAU = 0.06;       // s to hand the friction budget between directions — see the circle
 // Suspension rate and damping are PER CAR, in cars.js (susF / susZ) — see the note there.
 const LOAD_MAX = 2.6;

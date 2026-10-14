@@ -122,7 +122,7 @@
     "max-lines-per-function": 3
   },
   "src/vehicle.ts": {
-    "@typescript-eslint/no-unused-vars": 3,
+    "@typescript-eslint/no-unused-vars": 1,
     "complexity": 2,
     "max-lines": 1,
     "max-lines-per-function": 2
@@ -141,14 +141,10 @@
     "complexity": 1
   },
   "src/world/levels/knobhill.ts": {
-    "@typescript-eslint/no-unused-vars": 2,
     "complexity": 1
   },
   "src/world/levels/lab-extension.ts": {
     "complexity": 1
-  },
-  "src/world/levels/slidden-hill.ts": {
-    "@typescript-eslint/no-unused-vars": 4
   },
   "src/world/load.ts": {
     "complexity": 2
