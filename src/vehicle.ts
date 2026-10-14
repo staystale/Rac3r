@@ -458,6 +458,25 @@ function steerFrontWheels(car: Car, carSpec: Spec, input: CarInput, dt: number) 
 }
 
 /**
+ * Reverse part of the powertrain section: the R pedal selects and releases reverse gear (with the
+ * gear lock that stops it hunting). Returns the R pedal, 0..1.
+ */
+function engageReverse(car: Car, input: CarInput, rawThrottle: number, vLong: number, dt: number) {
+  if (car.gearLock > 0) car.gearLock = Math.max(0, car.gearLock - dt);
+  const rawRev = clamp(+input.reverse! || 0, 0, 1);
+  if (rawRev > 0.05 && car.gear > 0 && vLong < 1.0 && car.gearLock <= 0) {
+    car.gear = -1;
+    car.gearLock = 0.4;
+  }
+  if (car.gear < 0 && rawRev <= 0.05 && car.gearLock <= 0
+      && (vLong > -1.0 || (rawThrottle > 0.05 && vLong > -0.5))) {
+    car.gear = 1;
+    car.gearLock = 0.4;
+  }
+  return rawRev;
+}
+
+/**
  * Powertrain section of step(): pedal mapping, reverse engagement, wheelspin, rpm and gear shifts.
  * Returns the pedal and ratio values the rest of step() reads.
  */
@@ -505,17 +524,7 @@ function runPowertrain(car: Car, carSpec: Spec, input: CarInput, vLong: number, 
   //   GAS while rolling back   -> brakes, then forward drive below 1 m/s
   //   BRAKE                    -> always brakes. It can never select reverse, so the old bug
 //                               cannot return.
-  if (car.gearLock > 0) car.gearLock = Math.max(0, car.gearLock - dt);
-  const rawRev = clamp(+input.reverse! || 0, 0, 1);
-  if (rawRev > 0.05 && car.gear > 0 && vLong < 1.0 && car.gearLock <= 0) {
-    car.gear = -1;
-    car.gearLock = 0.4;
-  }
-  if (car.gear < 0 && rawRev <= 0.05 && car.gearLock <= 0
-      && (vLong > -1.0 || (rawThrottle > 0.05 && vLong > -0.5))) {
-    car.gear = 1;
-    car.gearLock = 0.4;
-  }
+  const rawRev = engageReverse(car, input, rawThrottle, vLong, dt);
 
   const inReverse = car.gear < 0;
   const throttle = inReverse ? rawRev : (rawRev > 0.05 ? 0 : rawThrottle);
@@ -525,6 +534,17 @@ function runPowertrain(car: Car, carSpec: Spec, input: CarInput, vLong: number, 
   const gearRatio = ratio(carSpec, car.gear);
   const totalRatio = Math.abs(gearRatio) * carSpec.finalDrive;
 
+  updateEngineRpm(car, carSpec, vLong, dt, inReverse, throttle, totalRatio);
+  shiftGears(car, carSpec, input, inReverse);
+  return { handbrakeRaw, inReverse, throttle, brakeIn, totalRatio };
+}
+
+/**
+ * Engine part of the powertrain section: wheelspin of the driven wheels, the rpm target from wheel
+ * speed with the clutch-slip launch, and the rpm chasing it.
+ */
+function updateEngineRpm(car: Car, carSpec: Spec, vLong: number, dt: number, inReverse: boolean,
+    throttle: number, totalRatio: number) {
   // rpmTarget from wheel speed; chased at a rate set by drivetrain inertia. When tyres grip, wheels
   // roll with ground speed: wheelRps = |vLong| / wheelR. When driven tyres genuinely break traction
   // (wheelspin on slippery surfaces or burnout), the driven wheels spin faster than ground speed.
@@ -557,7 +577,20 @@ function runPowertrain(car: Car, carSpec: Spec, input: CarInput, vLong: number, 
 
   const revRate = 12 / car.mods.inertia;
   car.rpm += (rpmTarget - car.rpm) * Math.min(1, revRate * dt);
+}
 
+/** The auto box's up or down shift off the rpm, held while drifting or while traction is broken. */
+function autoShift(car: Car, carSpec: Spec, isDrifting: boolean, isTractionBroken: boolean) {
+  if (!isDrifting && !isTractionBroken && car.rpm >= carSpec.upshiftRpm
+      && car.gear < carSpec.gears.length) {
+    car.gear++; car.shiftTimer = carSpec.shiftTime * car.mods.shiftTime;
+  } else if (car.rpm <= carSpec.downshiftRpm && car.gear > 1) {
+    car.gear--; car.shiftTimer = carSpec.shiftTime * car.mods.shiftTime;
+  }
+}
+
+/** Gearbox part of the powertrain section: the auto box's up and down shifts, or the manual's. */
+function shiftGears(car: Car, carSpec: Spec, input: CarInput, inReverse: boolean) {
   // auto box Hold gear during a drift or power-slide. Upshifting mid-drift cuts the clutch,
   // dropping drive torque to zero and bogging the car down. Holding the gear keeps continuous power
   // delivery throughout the slide.
@@ -567,12 +600,7 @@ function runPowertrain(car: Car, carSpec: Spec, input: CarInput, vLong: number, 
   const isTractionBroken = (car.wheelSpin || 0) > 2.5;
 
   if (car.autoBox && car.shiftTimer <= 0 && !inReverse) {
-    if (!isDrifting && !isTractionBroken && car.rpm >= carSpec.upshiftRpm
-        && car.gear < carSpec.gears.length) {
-      car.gear++; car.shiftTimer = carSpec.shiftTime * car.mods.shiftTime;
-    } else if (car.rpm <= carSpec.downshiftRpm && car.gear > 1) {
-      car.gear--; car.shiftTimer = carSpec.shiftTime * car.mods.shiftTime;
-    }
+    autoShift(car, carSpec, isDrifting, isTractionBroken);
   } else if (!car.autoBox && car.shiftTimer <= 0) {
     if (input.shiftUp && car.gear < carSpec.gears.length) {
       car.gear++;
@@ -582,7 +610,6 @@ function runPowertrain(car: Car, carSpec: Spec, input: CarInput, vLong: number, 
       car.shiftTimer = carSpec.shiftTime * car.mods.shiftTime;
     }
   }
-  return { handbrakeRaw, inReverse, throttle, brakeIn, totalRatio };
 }
 
 /**
@@ -661,6 +688,16 @@ function computeAxleLoads(car: Car, carSpec: Spec, mass: number, gravity: number
   car.z = (car.zF + car.zR) / 2;                        // what the renderer lifts the car by
   car.air = loadKF <= 0 && loadKR <= 0 ? car.air + dt : 0;
 
+  return axleVerticalForces(car, carSpec, mass, gravity, vLong, vLat, loadKF, loadKR);
+}
+
+/**
+ * Aero part of the loads section: downforce scaling with v^2 added to the static axle loads, the
+ * transfer and the suspension load factors. Returns the load factor and vertical force of each
+ * axle.
+ */
+function axleVerticalForces(car: Car, carSpec: Spec, mass: number, gravity: number,
+    vLong: number, vLat: number, loadKF: number, loadKR: number) {
   // Aerodynamic downforce scaling with v^2
   const vSqPlanar = vLong * vLong + vLat * vLat;
   const FdownF = 0.5 * AIR_DENSITY * (carSpec.downforceF || 0) * vSqPlanar * (TUNE.aeroMul || 1);
@@ -673,6 +710,25 @@ function computeAxleLoads(car: Car, carSpec: Spec, mass: number, gravity: number
       (((mass * gravity * carSpec.lf) / carSpec.L + car.transfer + FdownR) * loadKR)
           * (car.bankLoadFactor || 1));
   return { loadKF, loadKR, FzF, FzR };
+}
+
+/**
+ * Traction half of TCS: updates car.tcsK and returns the engine cut factor of both aid halves.
+ */
+function tractionCut(car: Car, vLongAbs: number, inReverse: boolean, dt: number) {
+  // TCS, TRACTION HALF (2026-10-03): when the driven wheels run more than TCS_SPIN m/s ahead of the
+  // road, cut the engine — smoothly, a discontinuous force is a judder — and give it back as grip
+  // returns. The stability half sets car.escCut (below, from the last step). Both only when the car
+  // HAS TCS and it is switched on.
+  if (car.tcsOn && !inReverse) {
+    // allowed slip = 10% of road speed (min TCS_SPIN): real systems let ~10-15% slip through, it is
+    // where traction peaks. MEASURED (user: "TCS too strong"): a flat 0.8 m/s cut in on plain
+    // tarmac in most corner exits; gentler slope too.
+    const spin = car.wheelSpin || 0, allow = Math.max(TCS_SPIN, 0.10 * vLongAbs);
+    const target = spin > allow ? Math.max(0.15, 1 - (spin - allow) * 0.35) : 1;
+    car.tcsK += (target - car.tcsK) * Math.min(1, 25 * dt);
+  } else car.tcsK = 1;
+  return car.tcsOn ? car.tcsK * car.escCut : 1;
 }
 
 /**
@@ -693,19 +749,7 @@ function computeLongitudinalDemand(car: Car, carSpec: Spec, mass: number, gravit
   car.clutch = car.shiftTimer > 0
     ? Math.max(0, car.clutch - dt / CLUTCH_RELEASE)
     : Math.min(1, car.clutch + dt / CLUTCH_TAKEUP);
-  // TCS, TRACTION HALF (2026-10-03): when the driven wheels run more than TCS_SPIN m/s ahead of the
-  // road, cut the engine — smoothly, a discontinuous force is a judder — and give it back as grip
-  // returns. The stability half sets car.escCut (below, from the last step). Both only when the car
-  // HAS TCS and it is switched on.
-  if (car.tcsOn && !inReverse) {
-    // allowed slip = 10% of road speed (min TCS_SPIN): real systems let ~10-15% slip through, it is
-    // where traction peaks. MEASURED (user: "TCS too strong"): a flat 0.8 m/s cut in on plain
-    // tarmac in most corner exits; gentler slope too.
-    const spin = car.wheelSpin || 0, allow = Math.max(TCS_SPIN, 0.10 * vLongAbs);
-    const target = spin > allow ? Math.max(0.15, 1 - (spin - allow) * 0.35) : 1;
-    car.tcsK += (target - car.tcsK) * Math.min(1, 25 * dt);
-  } else car.tcsK = 1;
-  const aidCut = car.tcsOn ? car.tcsK * car.escCut : 1;
+  const aidCut = tractionCut(car, vLongAbs, inReverse, dt);
   // REV LIMITER (2026-10-03). MEASURED BUG (tools/carstats.mjs): there was none — the engine rpm
   // was CLAMPED at the redline but kept making torque, so in top gear a car accelerated until drag
   // alone stopped it: the Naffcar V8 reached 759 km/h, the hatch 271. Now the engine cuts as the
@@ -961,6 +1005,24 @@ function ploughingForces(car: Car, carSpec: Spec, mass: number, vLong: number, v
 }
 
 /**
+ * Yaw moment the stability aid wants: against the yaw error outside the dead band, plus the pull
+ * back from a slip angle past its limit.
+ */
+function escYawDemand(carSpec: Spec, err: number, dead: number, over: boolean, betaNow: number) {
+  let want = 0;
+  // UNDERSTEER correction (adding rotation) is GENTLE and fades out as slip builds. MEASURED: at
+  // full gain the estate, floored on full lock at 45 km/h, went from pushing wide (3 deg) to a 16
+  // deg slide WITH the aid on.
+  if (Math.abs(err) > dead) {
+    const escScale = over ? 1 : ESC.underK * Math.max(0, 1 - Math.abs(betaNow) / ESC.betaLim);
+    want = -Math.sign(err) * (Math.abs(err) - dead) * ESC.gain * carSpec.Izz * escScale;
+  }
+  if (Math.abs(betaNow) > ESC.betaLim) want += Math.sign(betaNow)
+      * (Math.abs(betaNow) - ESC.betaLim) * ESC.betaGain * carSpec.Izz;
+  return want;
+}
+
+/**
  * Section 8 of step(), stability half of TCS: the yaw moment and drag of the stability aid, and
  * the engine cut it asks for (stored in car.escCut). Returns zeros when the aid is idle.
  */
@@ -993,18 +1055,9 @@ function stabilityControl(car: Car, carSpec: Spec, tick: AxleTick, handbrakeRaw:
     // sideways they only ever turn the nose back toward where it is going (sign of beta, as
     // aeroYaw), and the add-rotation (understeer) correction is allowed only while straight.
     const betaNow = Math.atan2(vLat, vLongAbs + 0.5);
-    let want = 0;
     const over = Math.sign(err) === Math.sign(car.yawRate)
         && Math.abs(car.yawRate) > Math.abs(yawRef);
-    // UNDERSTEER correction (adding rotation) is GENTLE and fades out as slip builds. MEASURED: at
-    // full gain the estate, floored on full lock at 45 km/h, went from pushing wide (3 deg) to a 16
-    // deg slide WITH the aid on.
-    if (Math.abs(err) > dead) {
-      const escScale = over ? 1 : ESC.underK * Math.max(0, 1 - Math.abs(betaNow) / ESC.betaLim);
-      want = -Math.sign(err) * (Math.abs(err) - dead) * ESC.gain * carSpec.Izz * escScale;
-    }
-    if (Math.abs(betaNow) > ESC.betaLim) want += Math.sign(betaNow)
-        * (Math.abs(betaNow) - ESC.betaLim) * ESC.betaGain * carSpec.Izz;
+    const want = escYawDemand(carSpec, err, dead, over, betaNow);
     if (want !== 0) {
       const half = (carSpec.trackWidth || 1.5) / 2;
       const MzMax = muBase * ((FzF + FzR) / 4) * half;
