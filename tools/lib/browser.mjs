@@ -36,6 +36,12 @@ export async function startServer() {
   return { url, stop };
 }
 
+/** Extra page-link settings from the RAC3R_QUERY environment variable ("skip=world,ground"), as "&..." or "". */
+export function extraQuery() {
+  const extra = (process.env.RAC3R_QUERY || "").replace(/^[?&]+/, "");
+  return extra ? "&" + extra : "";
+}
+
 export function launchBrowser() {
   return chromium.launch({ channel: process.env.CHECK_BROWSER ?? "msedge" });
 }

@@ -3,7 +3,7 @@
 // it. Plus: a stray tap on the world neither advances a card nor steers; the sim is paused while it is open;
 // DONE closes it and marks it seen; the "?" chip reopens it. Starts its own server.
 // Optional: node tools/guidecheck.mjs <dir>  -> also photographs every card into <dir>.
-import { startServer, launchBrowser } from './lib/browser.mjs';
+import { startServer, launchBrowser, extraQuery } from './lib/browser.mjs';
 const OUT = process.argv[2];
 const srv = await startServer();
 let b;
@@ -17,7 +17,7 @@ for (const lv of ['', '&level=grass-track']) for (const [W, H, q] of sizes) {
   const ctx = await b.newContext({ viewport: { width: W, height: H }, deviceScaleFactor: 2, isMobile: touch, hasTouch: touch });
   const p = await ctx.newPage();
   p.on('pageerror', e => errs.push(`${tag}: ${e.message}`));
-  await p.goto(`${srv.url}/?${q}&guide=1${lv}`);
+  await p.goto(`${srv.url}/?${q}&guide=1${lv}${extraQuery()}`);
   await p.mouse.click(W / 2, H / 2);
   // wait for the fly-in, not a fixed time: MEASURED, the Grass Track fly-in takes ~2.5 s in headless Edge at 15-30 fps
   await p.waitForFunction(() => window.__game.guide.active, null, { timeout: 8000 }).catch(() => {});

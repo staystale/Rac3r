@@ -2,7 +2,7 @@
 // -> LAUNCH -> session -> pause chip -> MAIN MENU -> Garage; photographs each screen into the folder given as argv[2] (or
 // skips photos). Fails on any page error. Built 2026-10-03 with the menus; caught the portrait pause GHOST-CLICK.
 import { mkdirSync } from 'node:fs';
-import { startServer, launchBrowser } from './lib/browser.mjs';
+import { startServer, launchBrowser, extraQuery } from './lib/browser.mjs';
 const srv = await startServer();
 let b;
 try {
@@ -12,7 +12,7 @@ for (const [W, H] of [[844, 390], [390, 844]]) {
   const errs = []; p.on('pageerror', e => errs.push(e.message)); p.on('console', m => { if (m.type() === 'error') errs.push(m.text()); });
   const OUTDIR = process.argv[2]; if (OUTDIR) mkdirSync(OUTDIR, { recursive: true }); const shot = async (n) => { await p.waitForTimeout(500); if (OUTDIR) await p.screenshot({ path: OUTDIR + '/menu-' + W + '-' + n + '.png' }); };
   const tap = async (txt) => { await p.waitForTimeout(400); const l = p.locator('#menu button', { hasText: txt }).first(); await l.tap(); };
-  await p.goto(srv.url + '/?touch=1&menu=1&guide=0'); await p.waitForTimeout(3500);
+  await p.goto(srv.url + '/?touch=1&menu=1&guide=0' + extraQuery()); await p.waitForTimeout(3500);
   await shot('1-main');
   const demo = await p.evaluate(() => ({ mode: window.__game.mode, v: Math.hypot(window.__game.car.vx, window.__game.car.vy).toFixed(1), car: window.__game.car.spec.id }));
   await tap('TEST MODE'); await shot('2-types'); await tap('OVALS'); await shot('2-tracks');   // the category layer (2026-10-05)

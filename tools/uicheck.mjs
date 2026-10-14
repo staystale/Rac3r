@@ -1,7 +1,7 @@
 // uicheck.mjs — drive the HUD with REAL TOUCH TAPS at phone size.
 // Exists because "I can't change vehicle" shipped: every harness tested logic, none tested whether a
 // thumb could actually reach the control (CLAUDE.md §3, the layout-harness lesson).
-import { startServer, launchBrowser } from './lib/browser.mjs';
+import { startServer, launchBrowser, extraQuery } from './lib/browser.mjs';
 import { SPAWN } from '../src/lab.js';
 const srv = await startServer();
 let b, b2;
@@ -12,7 +12,7 @@ for (const [label, W, H] of [['landscape 844x390', 844, 390], ['portrait 390x844
   const ctx = await b.newContext({ viewport: { width: W, height: H }, deviceScaleFactor: 3, isMobile: true, hasTouch: true });
   const p = await ctx.newPage();
   p.on('pageerror', e => fails.push(label + ': ' + e.message));
-  await p.goto(srv.url + '/?touch=1');
+  await p.goto(srv.url + '/?touch=1' + extraQuery());
   await p.touchscreen.tap(W / 2, H / 2);   // dismisses the boot overlay
   await p.waitForTimeout(150);
   const start = await p.evaluate(() => window.__game.car.spec.id);
@@ -53,7 +53,7 @@ const overlaps = [];
 for (const [W, H] of [[844, 390], [390, 844], [1280, 720], [360, 640], [412, 915], [768, 1024]]) {
   const ctx = await b2.newContext({ viewport: { width: W, height: H }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
   const p = await ctx.newPage();
-  await p.goto(srv.url + '/?touch=1');
+  await p.goto(srv.url + '/?touch=1' + extraQuery());
   await p.touchscreen.tap(W / 2, H / 2);
   await p.waitForTimeout(120);
   // checked twice: tyre HUD off and ON (2026-10-03: the strip grows the speed panel and pushes lap + tally down)
