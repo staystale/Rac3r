@@ -89,6 +89,15 @@ export function tripCheck(car, dt, rnd = Math.random) {
     startRoll(car, kick.dir, kick.dv);
     return true;
   }
+  if (tripLanding(car, dt, vLat, stability, rnd)) return true;
+  return tripGround(car, vLat, stability, rnd);
+}
+
+/**
+ * The air-time bookkeeping and the crooked-landing roll check of tripCheck.
+ * @returns {boolean} true when the landing started a roll
+ */
+function tripLanding(car, dt, vLat, stability, rnd) {
   const landed = !(car.air > 0) && (car._airT || 0) > 0.35;
   car._airT = car.air > 0 ? (car._airT || 0) + dt : 0;
   // a CROOKED LANDING (user, 2026-10-04, after Killder's jump: "a little easy to roll over on
@@ -103,6 +112,14 @@ export function tripCheck(car, dt, rnd = Math.random) {
       return true;
     }
   }
+  return false;
+}
+
+/**
+ * The one-check-per-ground-cell trip roll of tripCheck (drifting on the wheels).
+ * @returns {boolean} true when the car started to roll
+ */
+function tripGround(car, vLat, stability, rnd) {
   if (car.air > 0) return false;
   const speed = Math.hypot(car.vx, car.vy);
   if (speed < 8) return false;
@@ -132,36 +149,7 @@ export function tripCheck(car, dt, rnd = Math.random) {
 export function stepRoll(car, dt, onHit) {
   const state = car.roll, surface = car.surface || {}, gravity = 9.81,
     speed = Math.hypot(car.vx, car.vy);
-  if (state.phase === 'rolling') {
-    const was = Math.floor(state.phi / HALF_PI + 1e-9 * Math.sign(state.w));
-    state.phi += state.w * dt;
-    const now = Math.floor(state.phi / HALF_PI + 1e-9 * Math.sign(state.w));
-    if (now !== was) {   // a quarter turn: the body meets the ground on its next face
-      // 1 / 3 a side, 2 the roof, 0 the wheels
-      const face = ((Math.round(state.phi / HALF_PI) % 4) + 4) % 4;
-      state.w *= 0.6 + 0.2 * Math.random();
-      car.vx *= 0.86;
-      car.vy *= 0.86;
-      // rolling toward +y lands on its +y side first
-      if (onHit) onHit(
-        face === 2 ? 'roof' : face === 0 ? 'wheels' : 'side',
-        face === 1 ? 1 : -1,
-        Math.abs(state.w),
-      );
-    }
-    if (Math.abs(state.w) < SETTLE_W) {
-      // fall onto the nearest face
-      const target = Math.round(state.phi / HALF_PI) * HALF_PI;
-      state.w += ((target - state.phi) * 30 - state.w * 7) * dt;
-      if (Math.abs(target - state.phi) < 0.03 && Math.abs(state.w) < 0.3) {
-        const face = ((Math.round(target / HALF_PI) % 4) + 4) % 4;
-        state.phi = face * HALF_PI;
-        state.w = 0;
-        state.phase = face === 0 ? 'none' : face === 2 ? 'roof' : 'side';
-        if (state.phase === 'none') { car.roll = null; return; }
-      }
-    }
-  }
+  if (state.phase === 'rolling' && spinStep(car, state, dt, onHit)) return;
   // the body slides on whatever it is lying on (while rolling: mostly in the air, little drag)
   const friction = state.phase === 'rolling' ? 0.25 : muBody(surface);
   if (speed > 0.01) {
@@ -178,4 +166,40 @@ export function stepRoll(car, dt, onHit) {
   state.still = speed < 0.8 ? state.still + dt : 0;
   if (car.t) { car.t.vLong = speed; }
   car.rpm = Math.max(800, (car.rpm || 800) - 3000 * dt);
+}
+
+/**
+ * The spin of a rolling car for one step: quarter-turn hits and the settle onto a face.
+ * @returns {boolean} true when the car came to rest on its wheels (the roll is over)
+ */
+function spinStep(car, state, dt, onHit) {
+  const was = Math.floor(state.phi / HALF_PI + 1e-9 * Math.sign(state.w));
+  state.phi += state.w * dt;
+  const now = Math.floor(state.phi / HALF_PI + 1e-9 * Math.sign(state.w));
+  if (now !== was) {   // a quarter turn: the body meets the ground on its next face
+    // 1 / 3 a side, 2 the roof, 0 the wheels
+    const face = ((Math.round(state.phi / HALF_PI) % 4) + 4) % 4;
+    state.w *= 0.6 + 0.2 * Math.random();
+    car.vx *= 0.86;
+    car.vy *= 0.86;
+    // rolling toward +y lands on its +y side first
+    if (onHit) onHit(
+      face === 2 ? 'roof' : face === 0 ? 'wheels' : 'side',
+      face === 1 ? 1 : -1,
+      Math.abs(state.w),
+    );
+  }
+  if (Math.abs(state.w) < SETTLE_W) {
+    // fall onto the nearest face
+    const target = Math.round(state.phi / HALF_PI) * HALF_PI;
+    state.w += ((target - state.phi) * 30 - state.w * 7) * dt;
+    if (Math.abs(target - state.phi) < 0.03 && Math.abs(state.w) < 0.3) {
+      const face = ((Math.round(target / HALF_PI) % 4) + 4) % 4;
+      state.phi = face * HALF_PI;
+      state.w = 0;
+      state.phase = face === 0 ? 'none' : face === 2 ? 'roof' : 'side';
+      if (state.phase === 'none') { car.roll = null; return true; }
+    }
+  }
+  return false;
 }
