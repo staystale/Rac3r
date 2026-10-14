@@ -581,6 +581,53 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
     return 0;
   }
 
+  /** A bolder driver drifts more often: decided once per corner. */
+  function decideDrift(nearIdx: number) {
+    if (state.driftCorner !== line.cid[nearIdx]) {
+      state.driftCorner = line.cid[nearIdx];
+      state.driftOn = state.t > (state.driftBan || 0) && rnd() < (
+          debugValue("DRIFT") as number ?? (0.45 + 0.5 * traits.aggression));
+    }
+  }
+
+  /** DRIFT HOLD: held on loose ground, in a corner, in a rear-driven car, away from the edge. */
+  function driftHold(car: AiCar, path: typeof state.path, nearIdx: number, speed: number,
+      lineOff: number, loose: number, slipRear: number) {
+    const pts = path.pts, spec = car.spec;
+    // DRIFT HOLD (user, 2026-10-04: "really need AI to drift and handbrake sometimes / aggressive
+    // off-road driving"): on loose ground, in a corner, in a car with the drive at the back (RWD
+    // / rear-biased AWD), a slide is HELD — the rear kept near DRIFT_SLIP with the throttle,
+    // countersteer free — instead of caught at 0.18 rad (which lifted and tiptoed). Past
+    // DRIFT_MAX it is caught as before. A bolder driver (aggression) drifts more often (decided
+    // per corner).
+    const inCorner = path === main && line.cid[nearIdx] >= 0;
+    if (inCorner) decideDrift(nearIdx);
+    // ... and never near the road edge (a held drift there ran a Rally car off Sweaty Lamb 12 s a
+    // lap): within EDGE_DRIFT m it catches m from the car to the nearer edge
+    const nearPt = pts[nearIdx], edgeRoom = path === main ? line.hw - Math.abs(
+        lineOff + (car.x - nearPt.x) * -Math.sin(nearPt.h) + (car.y - nearPt.y) * Math.cos(
+        nearPt.h)) : 0;
+    const drifting = state.driftOn && inCorner && loose > 0.3 && (spec.drive ?? 1) < 0.5 &&
+        slipRear > 0.12 && slipRear < DRIFT_MAX && speed > 6 && edgeRoom > EDGE_DRIFT && pts[
+        line.corners[line.cid[nearIdx]].apex].R < DRIFT_R;
+    return { drifting, edgeRoom };
+  }
+
+  /** Slip, the held drift (per corner, never near the edge), over / understeer and the steer. */
+  function slideStep(car: AiCar, path: typeof state.path, nearIdx: number, speed: number,
+      lineOff: number, aim: { deltaS: number, LOCK: number, cap: number }) {
+    const { deltaS, LOCK, cap } = aim;
+    const loose = Math.max(0, Math.min(1, (1 - car.surface.mu) / 0.5));
+    const slipFront = Math.abs(car.t.slipF || 0), slipRear = Math.abs(car.t.slipR || 0);
+    const { drifting, edgeRoom } = driftHold(car, path, nearIdx, speed, lineOff, loose, slipRear);
+    const over = slipRear > 0.18 && speed > 5 && !drifting,
+        under = slipFront > 0.14 + 0.06 * loose && speed > 5 && !over && !drifting;
+    const steer = over || drifting ? Math.max(-1, Math.min(1, deltaS / LOCK)) : Math.max(
+        -cap, Math.min(cap, deltaS / LOCK));
+    state.cap = cap;
+    return { loose, slipRear, drifting, edgeRoom, over, under, steer };
+  }
+
   function drive(car: AiCar, dt = 1 / 120, ctx: DriveCtx = {}) {
     state.t += dt;
     const spec = car.spec, speed = Math.hypot(car.vx, car.vy);
@@ -643,17 +690,14 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
       }
     }
     // ---- RACECRAFT (stage 3, 2026-10-04; user: "real overtakes, real defending, scrabbling for
-    // victory"). Stage 2 only went round a car
-    // that was already in the way, so circuits were processions (aifieldsuite, Realish: 35 held
-    // passes in 12 six-car 3-lap races, Brands
-    // and Naffcar ~0). ATTACK: sat behind the same car (longer for the cautious) with a corner
-    // coming -> commit to a side for that corner:
-    // the INSIDE, unless the car ahead already covers it, then round the OUTSIDE for the
-    // switch-back; brake later (K_BRAKE + ATK_KB) and
-    // push a little. Ends past the apex, once ahead, if it drops back or after 7 s. DEFENCE: a car
-    // closing behind with a corner coming ->
-    // a defensive driver (chance = defence) moves over to COVER THE INSIDE once, and pays for the
-    // tighter line (3 % slower in the corner).
+    // victory"). Stage 2 only went round a car that was already in the way, so circuits were
+    // processions (aifieldsuite, Realish: 35 held passes in 12 six-car 3-lap races, Brands and
+    // Naffcar ~0). ATTACK: sat behind the same car (longer for the cautious) with a corner coming
+    // -> commit to a side for that corner: the INSIDE, unless the car ahead already covers it,
+    // then round the OUTSIDE for the switch-back; brake later (K_BRAKE + ATK_KB) and push a
+    // little. Ends past the apex, once ahead, if it drops back or after 7 s. DEFENCE: a car
+    // closing behind with a corner coming -> a defensive driver (chance = defence) moves over to
+    // COVER THE INSIDE once, and pays for the tighter line (3 % slower in the corner).
     if (path === main) {
       ({ vMul, dodgeT, conflict, prof } = racecraftStep(car, path, nearIdx, idx, speed, dt, lineOff,
           latLim, latT, myLat, cars, vMul, dodgeT, conflict, prof));
@@ -686,35 +730,8 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
     // 114.4 -> 112.7, Slidden 55.9 -> 55.1, tarmac unchanged. TRIED and REJECTED (same tool): more
     // rear slip before lifting, a later slide catch and power through the slide — each alone
     // harmless, together the 4x4 left the road at Knobhill / Sweaty Lamb (16-31 s off a lap).
-    const loose = Math.max(0, Math.min(1, (1 - car.surface.mu) / 0.5));
-    const slipFront = Math.abs(car.t.slipF || 0), slipRear = Math.abs(car.t.slipR || 0);
-    // DRIFT HOLD (user, 2026-10-04: "really need AI to drift and handbrake sometimes / aggressive
-    // off-road driving"): on loose ground, in a
-    // corner, in a car with the drive at the back (RWD / rear-biased AWD), a slide is HELD — the
-    // rear kept near DRIFT_SLIP with the throttle,
-    // countersteer free — instead of caught at 0.18 rad (which lifted and tiptoed). Past DRIFT_MAX
-    // it is caught as before. A bolder driver
-    // (aggression) drifts more often (decided per corner).
-    const inCorner = path === main && line.cid[nearIdx] >= 0;
-    if (inCorner && state.driftCorner !== line.cid[nearIdx]) {
-      state.driftCorner = line.cid[nearIdx];
-      state.driftOn = state.t > (state.driftBan || 0) && rnd() < (
-          debugValue("DRIFT") as number ?? (0.45 + 0.5 * traits.aggression));
-    }
-    // ... and never near the road edge (a held drift there ran a Rally car off Sweaty Lamb 12 s a
-    // lap): within EDGE_DRIFT m it catches
-    // m from the car to the nearer edge
-    const nearPt = pts[nearIdx], edgeRoom = path === main ? line.hw - Math.abs(
-        lineOff + (car.x - nearPt.x) * -Math.sin(nearPt.h) + (car.y - nearPt.y) * Math.cos(
-        nearPt.h)) : 0;
-    const drifting = state.driftOn && inCorner && loose > 0.3 && (spec.drive ?? 1) < 0.5 &&
-        slipRear > 0.12 && slipRear < DRIFT_MAX && speed > 6 && edgeRoom > EDGE_DRIFT && pts[
-        line.corners[line.cid[nearIdx]].apex].R < DRIFT_R;
-    const over = slipRear > 0.18 && speed > 5 && !drifting,
-        under = slipFront > 0.14 + 0.06 * loose && speed > 5 && !over && !drifting;
-    const steer = over || drifting ? Math.max(-1, Math.min(1, deltaS / LOCK)) : Math.max(
-        -cap, Math.min(cap, deltaS / LOCK));
-    state.cap = cap;
+    const slide = slideStep(car, path, nearIdx, speed, lineOff, { deltaS, LOCK, cap });
+    const { loose, slipRear, drifting, edgeRoom, over, under, steer } = slide;
 
     // ---- SPEED: the profile (it already brakes for what is ahead) x pace x mistakes, capped by
     // the joker approach and traffic
