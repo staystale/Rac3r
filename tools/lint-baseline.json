@@ -141,11 +141,10 @@
   "src/vehicle.ts": {
     "@typescript-eslint/no-unused-vars": 3,
     "complexity": 2,
-    "id-length": 72,
-    "max-len": 77,
+    "id-length": 1,
     "max-lines": 1,
     "max-lines-per-function": 2,
-    "no-shadow": 6
+    "no-shadow": 4
   },
   "src/world/barriers.ts": {
     "complexity": 2
