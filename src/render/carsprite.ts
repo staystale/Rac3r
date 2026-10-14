@@ -4,17 +4,13 @@ import { SPRITE_PPM } from "./shared.ts";
 import type { CarSprite, RenderCarSpec } from "./types.ts";
 
 export function createCarSprite() {
-  // ---------------------------------------------------------------- PIXEL CARS (mock-up)
-  // A sprite per car, GENERATED on an integer grid in the reference style
-  // (art/reference/car-ref-*.jpg): a 1 px
-  // dark outline, flat body colour with one highlight band, black glass, shut lines, mirrors,
-  // lights. Drawn once,
-  // cached, then rotated as a whole with smoothing off (the classic top-down pixel look). Wheels
-  // are separate
-  // pixel blocks UNDER the body so the fronts still visibly steer. Front = +x.
-  // 3x5 pixel digits for roof numbers (rows top to bottom, 3 bits each). The first Naffcar "18",
-  // drawn freehand,
-  // read as "IJ" on the review sheet.
+  // ---------------------------------------------------------------- PIXEL CARS (mock-up) A sprite
+  // per car, GENERATED on an integer grid in the reference style (art/reference/car-ref-*.jpg): a 1
+  // px dark outline, flat body colour with one highlight band, black glass, shut lines, mirrors,
+  // lights. Drawn once, cached, then rotated as a whole with smoothing off (the classic top-down
+  // pixel look). Wheels are separate pixel blocks UNDER the body so the fronts still visibly steer.
+  // Front = +x. 3x5 pixel digits for roof numbers (rows top to bottom, 3 bits each). The first
+  // Naffcar "18", drawn freehand, read as "IJ" on the review sheet.
   const DIGITS: Record<number, number[]> = {
     0: [7, 5, 5, 5, 7], 1: [2, 6, 2, 2, 7], 2: [7, 1, 7, 4, 7], 3: [7, 1, 7, 1, 7],
     4: [5, 5, 7, 1, 1], 5: [7, 4, 7, 1, 7], 6: [7, 4, 7, 5, 7], 7: [7, 1, 2, 2, 2],
@@ -33,8 +29,7 @@ export function createCarSprite() {
     canvas.height = widthPx + 4;
     const ctx = canvas.getContext('2d')!;   // a new canvas always gives a 2d context
     // block(x, y, width, height, col): one solid block on the art grid. x runs rear (0) -> front
-    // (lengthPx); y is the
-    // car's side.
+    // (lengthPx); y is the car's side.
     const block = (x: number, y: number, width: number, height: number, col: string) => {
       if (width <= 0 || height <= 0) return;
       ctx.fillStyle = col;
@@ -201,12 +196,10 @@ export function createCarSprite() {
         block(along(0.18), widthPx, 3, 1, '#222');
       } else if (kind === 'saloon') {
         // BMV 3 SERIOUS — the E46's signatures from above (user: "less standard, more like the real
-        // counterpart"): a TAPERED nose, two
-        // POWER-DOME creases converging on a chrome KIDNEY grille, twin round ANGEL-EYE lamps each
-        // side, the bonnet ROUNDEL, a SUNROOF,
-        // a short boot deck with its lip, L-shaped TAIL LIGHTS wrapping onto the flanks, silver
-        // multi-spoke wheels (spec.rim)
-        // nose taper
+        // counterpart"): a TAPERED nose, two POWER-DOME creases converging on a chrome KIDNEY
+        // grille, twin round ANGEL-EYE lamps each side, the bonnet ROUNDEL, a SUNROOF, a short boot
+        // deck with its lip, L-shaped TAIL LIGHTS wrapping onto the flanks, silver multi-spoke
+        // wheels (spec.rim) nose taper
         for (const [x, y] of [[lengthPx - 1, 0], [lengthPx - 1, 1], [lengthPx - 2, 0],
           [lengthPx - 1, widthPx - 1], [lengthPx - 1, widthPx - 2], [lengthPx - 2, widthPx - 1],
           [0, 1], [0, widthPx - 2]]) ctx.clearRect(2 + x, 2 + y, 1, 1);

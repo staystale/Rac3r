@@ -147,10 +147,11 @@ export function buildBlend(level: Level, rng: Rng): Patch[] {
   }
   return out.filter((patch) => !patch.surface.hard);
 }
-// Per-level preparation: re-roll random layouts, build (or reuse) the blend, index every patch in the grid.
-// SURFACE INCLUSIONS (user, 2026-10-03: "can surfaces have a chance to contain other like surfaces % wise ... keep it proportional
-// and realistic"; table APPROVED as proposed). Share of each surface's AREA covered by small patches of a related surface; '@x'
-// is a COVER (puddle / snow / ice) rather than a ground patch. Seeded per level (the Grass Track re-rolls with its layout).
+// Per-level preparation: re-roll random layouts, build (or reuse) the blend, index every patch in
+// the grid. SURFACE INCLUSIONS (user, 2026-10-03: "can surfaces have a chance to contain other like
+// surfaces % wise ... keep it proportional and realistic"; table APPROVED as proposed). Share of
+// each surface's AREA covered by small patches of a related surface; '@x' is a COVER (puddle / snow
+// / ice) rather than a ground patch. Seeded per level (the Grass Track re-rolls with its layout).
 // Boxed test panels stay pure (the tyre / wear tools and the player's tests depend on them).
 const INCLUDE: Record<string, [string, number][]> = {
   gravel: [['sand', 0.08], ['dirt', 0.06]],
@@ -166,8 +167,8 @@ const INCLUDE: Record<string, [string, number][]> = {
   snow: [['@ice', 0.10]],
   ice: [['@snow', 0.10]],
 };
-// USER, after seeing it (2026-10-03): "it looks awful, too much too often — it should be like 10% of
-// that, and ideally smaller patches". So: the same table, but INCL_RATE 0.1 of the patch COUNT
+// USER, after seeing it (2026-10-03): "it looks awful, too much too often — it should be like 10%
+// of that, and ideally smaller patches". So: the same table, but INCL_RATE 0.1 of the patch COUNT
 // the table implies at the original 1.5-5 m size, and the patches themselves 0.75-2 m.
 const INCL_STEP = 6, INCL_MIN = 0.75, INCL_MAX = 2, INCL_COVER_CAP = 30, INCL_RATE = 0.1,
   INCL_REF_SIZE = 3.25;

@@ -8,15 +8,13 @@ import type {
 
 export function createCarDamage(view: View) {
   // DAMAGED SPRITES (user, 2026-10-04: "cars should crumple, dent, chip and emit their coloured
-  // paint pixels in crashes"): a per-car copy
-  // of the sprite, rebuilt only when its damage changes by 0.1 on a corner. Each hurt corner is
-  // CRUMPLED (cut back along a jagged
-  // diagonal, deeper with damage), DENTED (a darkened band behind the crush) and CHIPPED (paint
-  // pixels knocked to grey primer). Seeded per
-  // car, so the same car always breaks the same way. Canvas: +x = forward (front at the right), +y
-  // = the car's +y (damage.js corners).
-  // the TOP-VIEW crush pass (damagedSprite below; the UNDERSIDE when rolled uses it too, without
-  // the roof): returns a new canvas
+  // paint pixels in crashes"): a per-car copy of the sprite, rebuilt only when its damage changes
+  // by 0.1 on a corner. Each hurt corner is CRUMPLED (cut back along a jagged diagonal, deeper with
+  // damage), DENTED (a darkened band behind the crush) and CHIPPED (paint pixels knocked to grey
+  // primer). Seeded per car, so the same car always breaks the same way. Canvas: +x = forward
+  // (front at the right), +y = the car's +y (damage.js corners). the TOP-VIEW crush pass
+  // (damagedSprite below; the UNDERSIDE when rolled uses it too, without the roof): returns a new
+  // canvas
   function crushTop(car: RenderCar, sprite: CarSprite, withRoof: boolean) {
     const rdKeep = car.roofDmg;
     if (!withRoof) car.roofDmg = 0;
@@ -121,13 +119,11 @@ export function createCarDamage(view: View) {
   }
   function damagedSprite(car: RenderCar, sprite: CarSprite) {
     // v2 (user: "not accurate to the 1/4 damaged", "cars don't dent — they should clearly dent if
-    // hit"): every EDGE is pushed in by
-    // the crush of its two corners, sloped between them — the front / rear by the END-ON crush
-    // (crushL), the sides by the SIDE-ON crush
-    // (crushS) — so a hit on the front-left shortens the front on the left and caves the left
-    // flank there. Behind the new edge a DENT
-    // band (dark, graded, with a pale crease at the fold) that is visible from a light knock up,
-    // and chipped paint (primer). Seeded.
+    // hit"): every EDGE is pushed in by the crush of its two corners, sloped between them — the
+    // front / rear by the END-ON crush (crushL), the sides by the SIDE-ON crush (crushS) — so a hit
+    // on the front-left shortens the front on the left and caves the left flank there. Behind the
+    // new edge a DENT band (dark, graded, with a pale crease at the fold) that is visible from a
+    // light knock up, and chipped paint (primer). Seeded.
     const quantise = (values: number[]) => values.map((x) => Math.round(x * 12)).join(',');
     const key = quantise(car.crushL) + '|' + quantise(car.crushS) + '|'
         + car.wheelOff.map(Number).join('') + '|' + Math.round((car.roofDmg || 0) * 8);
@@ -141,9 +137,8 @@ export function createCarDamage(view: View) {
     return out;
   }
   // SHADOW = a darker copy of the sprite (user, 2026-10-04: "make sure the car shadow is redrawn
-  // too / is just a darker copy of the
-  // sprite") — so a crumpled corner, a missing wheel or a car on its side casts its own shape.
-  // Cached on the canvas it copies.
+  // too / is just a darker copy of the sprite") — so a crumpled corner, a missing wheel or a car on
+  // its side casts its own shape. Cached on the canvas it copies.
   function silhouette(source: SilCanvas) {
     if (source._sil) return source._sil;
     const copy = document.createElement('canvas');
@@ -249,17 +244,14 @@ export function createCarDamage(view: View) {
     return out;
   }
   // a box rolled phi about its long axis, seen from above: each face whose outward normal points
-  // up, at its projected place and width
-  // (top: centre (H/2) sin, width W cos; underside: -(H/2) sin, W cos; -y side: -(W/2) cos, H sin;
-  // +y side: (W/2) cos, -H sin)
-  // DAMAGED ROLL FACES (user, 2026-10-04: "cars that have lost their front half still show it when
-  // they roll"; "balance it against the
-  // compute"): the underside and the two side faces get the car's damage too, built lazily (only
-  // once the car rolls) and cached per car
-  // and per damage step — nothing per frame. Side face (x rear -> front, y roof -> wheels): its
-  // two END corners cut the ends back
-  // (crushL), its two SIDE corners dent the panel along the length (crushS), a crushed roof pushes
-  // the cabin down, a lost wheel is gone.
+  // up, at its projected place and width (top: centre (H/2) sin, width W cos; underside: -(H/2)
+  // sin, W cos; -y side: -(W/2) cos, H sin; +y side: (W/2) cos, -H sin) DAMAGED ROLL FACES (user,
+  // 2026-10-04: "cars that have lost their front half still show it when they roll"; "balance it
+  // against the compute"): the underside and the two side faces get the car's damage too, built
+  // lazily (only once the car rolls) and cached per car and per damage step — nothing per frame.
+  // Side face (x rear -> front, y roof -> wheels): its two END corners cut the ends back (crushL),
+  // its two SIDE corners dent the panel along the length (crushS), a crushed roof pushes the cabin
+  // down, a lost wheel is gone.
   function dmgFace(car: RenderCar, kind: string): CarSprite | SideSprite | null {
     if (!car.dmg) return null;
     const quantise = (values: number[]) => values.map((x) => Math.round(x * 12)).join(','),

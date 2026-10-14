@@ -1,20 +1,16 @@
 // stagegen.js — PROCEDURAL POINT-TO-POINT RALLY STAGES. User, 2026-10-04: "our rally stages are
-// circular often — they should mostly be a
-// LINE, not a track"; "make it procedural maybe so it feels infinite"; "levels are most important";
-// "make new things if needed, keep it
-// pretty". A seeded generator: the same { seed, theme, len, style } always builds the same stage;
-// NEW STAGE = a new seed.
+// circular often — they should mostly be a LINE, not a track"; "make it procedural maybe so it
+// feels infinite"; "levels are most important"; "make new things if needed, keep it pretty". A
+// seeded generator: the same { seed, theme, len, style } always builds the same stage; NEW STAGE =
+// a new seed.
 //
 // HOW: a self-avoiding road grown element by element (straights, fast sweepers, medium corners,
-// squares, hairpins, chicanes) inside the
-// world box (lab.js FLOOR — step 2 of the plan gives levels a bigger world), with backtracking when
-// it paints itself into a corner. The
-// road is RUN-UP -> START -> stage -> FINISH -> STOP ZONE; the engine's loop is closed by ONE ghost
-// segment (lab.js ghostSegment) from the
-// stop-zone end to the run-up, so the start line stays at distance 0 and timing / grid / AI /
-// resets all work unchanged.
-// Then the dressing, by theme: trees / rocks / crowds / chevrons / bales / tape / flags / marshals
-// / boards / gantries / ice / water.
+// squares, hairpins, chicanes) inside the world box (lab.js FLOOR — step 2 of the plan gives levels
+// a bigger world), with backtracking when it paints itself into a corner. The road is RUN-UP ->
+// START -> stage -> FINISH -> STOP ZONE; the engine's loop is closed by ONE ghost segment (lab.js
+// ghostSegment) from the stop-zone end to the run-up, so the start line stays at distance 0 and
+// timing / grid / AI / resets all work unchanged. Then the dressing, by theme: trees / rocks /
+// crowds / chevrons / bales / tape / flags / marshals / boards / gantries / ice / water.
 import { lcg } from "./core/random.ts";
 import { finishLevel } from "./world/load.ts";
 import { createSubtrack, ghostSegment, autoKerbs } from "./world/subtrack.ts";
@@ -151,10 +147,9 @@ function growRoad(rand, themeSpec, style, target) {
     return { out, x: curX, y: curY, hdg: curHdg, s: curDist };
   };
   // SPACE-SEEKING (v2 — MEASURED v1: a greedy random walk painted itself into a corner, 30-100 % of
-  // long stages came out short, one at
-  // 0.33 km): of up to K valid candidates take the one whose END has the most free space round it
-  // and ahead of it (not facing a wall
-  // or old road within 60 m), plus a little randomness so stages still differ
+  // long stages came out short, one at 0.33 km): of up to K valid candidates take the one whose END
+  // has the most free space round it and ahead of it (not facing a wall or old road within 60 m),
+  // plus a little randomness so stages still differ
   const crowd = (posX, posY, sNow) => { let count = 0; const cellX = Math.floor(posX / CELL),
       cellY = Math.floor(posY / CELL);
     for (let i = -3; i <= 3; i++) for (let j = -3; j <= 3; j++) for (const point of occ
@@ -201,8 +196,8 @@ function growRoad(rand, themeSpec, style, target) {
     }
   }
   // the STOP ZONE: up to 60 m on, straight if it fits, else a gentle bend each way; if none fits,
-  // the stage ends one element EARLIER
-  // (MEASURED: a run with no room for a stop zone returned nothing at all)
+  // the stage ends one element EARLIER (MEASURED: a run with no room for a stop zone returned
+  // nothing at all)
   let stop = 0, finishS = dist;
   for (let guard = 0; guard < 40 && !stop; guard++) {
     finishS = dist;
@@ -467,11 +462,10 @@ export function installStage(level) {
 }
 export const GEN_DEFAULT = { seed: 1001, theme: 'forest', len: 'medium', style: 'mixed' };
 // THE SET STAGES (user, 2026-10-04: "rally stages should be SET, but other events might need a
-// procedural track"): the generator as a
-// design tool — seeds picked by tools/stageseeds.mjs (2 km, first attempt so each rebuilds in ~5-35
-// ms at boot, corners / hairpins /
-// crests scored, then looked at), registered as ordinary levels after Killder, the same road every
-// time so it can be learned.
+// procedural track"): the generator as a design tool — seeds picked by tools/stageseeds.mjs (2 km,
+// first attempt so each rebuilds in ~5-35 ms at boot, corners / hairpins / crests scored, then
+// looked at), registered as ordinary levels after Killder, the same road every time so it can be
+// learned.
 export const SET_STAGES = [
   {
     seed: 38, theme: 'forest', style: 'tight', name: 'Llanfairsheepdip'

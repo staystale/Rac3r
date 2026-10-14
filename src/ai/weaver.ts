@@ -7,11 +7,10 @@ import { roadPose, roadSpan } from "../highway.js";
 
 // ---------------------------------------------------------------- DRIVE ITSELF OUT (both roads)
 // Nearly still for DRIVE_OUT_T s after the green (nose in a wall, beached, tangled) -> REVERSE
-// ~1-1.5 s with the wheel turned to swing
-// the nose back toward the road direction roadH(); three tries inside 15 s and still stuck ->
-// state.giveUp: main.js resets it (last resort).
-// Returns the reversing controls, or null = drive on. (NOOUT=1 env: node A/B only - proves the
-// highway merge changed nothing else)
+// ~1-1.5 s with the wheel turned to swing the nose back toward the road direction roadH(); three
+// tries inside 15 s and still stuck -> state.giveUp: main.js resets it (last resort). Returns the
+// reversing controls, or null = drive on. (NOOUT=1 env: node A/B only - proves the highway merge
+// changed nothing else)
 const NOOUT = !!envValue("NOOUT");
 const DRIVE_OUT_T = 1.2;
 export function driveOut(
@@ -36,35 +35,28 @@ export function driveOut(
   return null;
 }
 
-// ---------------------------------------------------------------- THE HIGHWAY (endless level):
-// the road read through highway.js
-// AI ROUND 2 stage 1 (user, 2026-10-07: "same ai"; CLAUDE.md ONE SYSTEM NOT TWO THEN ONE): this
-// was hwrace.js createHwDriver. It is now
-// this file's road reader for levels with no closed lap (level.endless), behind the ONE entry
-// point createAIDriver; moved UNCHANGED
-// (MEASURED: weavecheck + pacesuite identical to before with __NOOUT) plus the shared drive-out.
-// Later stages share more (mistakes, skill).
-// m/s the lateral target moves (x1.8 in an emergency); traffic changes lane at 0.9
+// ---------------------------------------------------------------- THE HIGHWAY (endless level): the
+// road read through highway.js AI ROUND 2 stage 1 (user, 2026-10-07: "same ai"; CLAUDE.md ONE
+// SYSTEM NOT TWO THEN ONE): this was hwrace.js createHwDriver. It is now this file's road reader
+// for levels with no closed lap (level.endless), behind the ONE entry point createAIDriver; moved
+// UNCHANGED (MEASURED: weavecheck + pacesuite identical to before with __NOOUT) plus the shared
+// drive-out. Later stages share more (mistakes, skill). m/s the lateral target moves (x1.8 in an
+// emergency); traffic changes lane at 0.9
 const LAT_R = 3.0;
 const GRAVITY = 9.81;
 const IDLE = { steer: 0, throttle: 0, brake: 0.3, handbrake: 0, reverse: 0 };
 // the RACER — v2, a WEAVER (user, 2026-10-05: "AI on highways should IGNORE LANES and go FAST,
-// DODGING traffic and WEAVING through like
-// the player would"). No lanes: across the whole carriageway (hard shoulder included) it tries
-// N_LINES lateral lines a few times a
-// second and scores each by how much free road it has: every car ahead within 220 m whose body (+
-// a margin) overlaps the line blocks
-// it at its gap; the line with the most road wins, with a cost for a big swerve and a bonus for
-// staying put (no dithering), and never a
-// line on the far side of a car right alongside. It steers for that line (Stanley, as autodrive.js
-// — the controller that holds this
-// road), the lateral target moving at LAT_R so a swerve is a car's swerve. Speed: corner speed
-// from the road's curvature, flat out
-// otherwise; it brakes only while its line is still blocked (braking-distance following), and hard
-// when a crash is close.
-// traits = aidriver.js aiTraits (pace, prec, wander, aggression). ctx = { cars: everyone else
-// (with _hwf), hold: keep station (the
-// rolling start: follow, no swerving) }
+// DODGING traffic and WEAVING through like the player would"). No lanes: across the whole
+// carriageway (hard shoulder included) it tries N_LINES lateral lines a few times a second and
+// scores each by how much free road it has: every car ahead within 220 m whose body (+ a margin)
+// overlaps the line blocks it at its gap; the line with the most road wins, with a cost for a big
+// swerve and a bonus for staying put (no dithering), and never a line on the far side of a car
+// right alongside. It steers for that line (Stanley, as autodrive.js — the controller that holds
+// this road), the lateral target moving at LAT_R so a swerve is a car's swerve. Speed: corner speed
+// from the road's curvature, flat out otherwise; it brakes only while its line is still blocked
+// (braking-distance following), and hard when a crash is close. traits = aidriver.js aiTraits
+// (pace, prec, wander, aggression). ctx = { cars: everyone else (with _hwf), hold: keep station
+// (the rolling start: follow, no swerving) }
 const N_LINES = 11, MARGIN = 0.55, LOOK_T = 3.2, EDGE_M = 1.8;
 // A/B tuning from the node tools only (HWT='{"kC":0.5}'); the browser has no process -> {}
 // (the ! : envValue("HWT") was just seen to be set; JSON.parse returns any, which fits the Record)
@@ -76,17 +68,14 @@ export function roadDriver(level: HighwayLevel, traits: Traits, rnd: () => numbe
   };
   const pace01 = Math.max(0, Math.min(1, (traits.pace - 0.8) / 0.185));
   // CORNER GRIP: a share of tarmac mu x the car's mu (the bench driver's 0.40; 0.38 Mobile .. 0.50
-  // Real). MEASURED (hwracecheck): 0.6 x
-  // gripG planned 0.8 g at 230 km/h on an R 500 and the field ran wide - the car's real grip at
-  // that speed is lower
-  // RACING, NOT A SUNDAY DRIVE (user, 2026-10-06: "they seem slow ... make them faster and just
-  // try n handle it"; MEASURED pacesuite, 18
-  // races, vs the mirror-only build: mean 133.4 -> 138.2 km/h, under-130 40 -> 35 %, bad races 2
-  // -> 1; weavecheck 0 spins, 1-2 of 45
-  // close passes clip at 150 km/h): throttle floor 0.85 (was 0.6), corner share 0.42-0.54 (was
-  // 0.33-0.42), follow decel 0.55 g share,
-  // turn feathering only for yaw BEYOND the road's own bend, lane-changing traffic blocks the lane
-  // it is going to, verge dodges
+  // Real). MEASURED (hwracecheck): 0.6 x gripG planned 0.8 g at 230 km/h on an R 500 and the field
+  // ran wide - the car's real grip at that speed is lower RACING, NOT A SUNDAY DRIVE (user,
+  // 2026-10-06: "they seem slow ... make them faster and just try n handle it"; MEASURED pacesuite,
+  // 18 races, vs the mirror-only build: mean 133.4 -> 138.2 km/h, under-130 40 -> 35 %, bad races 2
+  // -> 1; weavecheck 0 spins, 1-2 of 45 close passes clip at 150 km/h): throttle floor 0.85 (was
+  // 0.6), corner share 0.42-0.54 (was 0.33-0.42), follow decel 0.55 g share, turn feathering only
+  // for yaw BEYOND the road's own bend, lane-changing traffic blocks the lane it is going to, verge
+  // dodges
   const thrMax = (HWT.thr ?? 0.85) + (1 - (HWT.thr ?? 0.85)) * pace01,
     cornerK = (HWT.kC ?? 0.42) + (HWT.kCp ?? 0.12) * (traits.prec ?? 0.5),
     brakeK = (HWT.kB ?? 0.45) + 0.15 * (traits.prec ?? 0.5);
@@ -109,15 +98,14 @@ export function roadDriver(level: HighwayLevel, traits: Traits, rnd: () => numbe
       if (outCtl) return outCtl;
     }
     // the hard shoulder is road too, as for a player; lines stay EDGE_M inside the edges (MEASURED
-    // hwracecheck: a 1 m margin on the
-    // outside of an R 730 at 227 km/h ran 1.5 m wide onto the grass)
+    // hwracecheck: a 1 m margin on the outside of an R 730 at 227 km/h ran 1.5 m wide onto the
+    // grass)
     const geo = level._hw.geo, minOff = -geo.hw + EDGE_M, maxOff = geo.hw - EDGE_M;
     // THE VERGE DODGE (user, 2026-10-06: "ai should go off road to dodge if its quicker, just not
-    // too far obviously"): two more lines,
-    // VERGE m past each edge (half the car on the grass), only worth taking when the road is
-    // blocked: VERGE_COST + the grip it costs.
-    // Never on the outside of a bend (armco there at hw + 1.8: highway.js) or on a walled preset.
-    // vLo / vHi = how far the line may go.
+    // too far obviously"): two more lines, VERGE m past each edge (half the car on the grass), only
+    // worth taking when the road is blocked: VERGE_COST + the grip it costs. Never on the outside
+    // of a bend (armco there at hw + 1.8: highway.js) or on a walled preset. vLo / vHi = how far
+    // the line may go.
     const kNow = (pts[Math.max(0, Math.min(pts.length - 1,
       Math.round((frame.s - pts[0].s) / 4) + Math.round(vAl * 1.5 / 4)))] || {}).curv || 0;
     const vgOK = (HWT.verge ?? 1) && !level._cfg.walls && !hold,
@@ -141,8 +129,8 @@ export function roadDriver(level: HighwayLevel, traits: Traits, rnd: () => numbe
     }
     const vCorner = vTarget;
     // what blocks a lateral line `off`: the nearest car ahead whose body (+ margin) overlaps it ->
-    // { gap, v } (gap 0 = alongside), or
-    // a car right beside us on that side (side: we cannot swerve through it)
+    // { gap, v } (gap 0 = alongside), or a car right beside us on that side (side: we cannot swerve
+    // through it)
     const blockOn = (off: number) => {
       let block: RoadBlock | null = null;
       for (const other of cars) {
@@ -182,13 +170,11 @@ export function roadDriver(level: HighwayLevel, traits: Traits, rnd: () => numbe
       return block;
     };
     // THE MIRROR: a FASTER car coming up from behind blocks a line it is on if it would arrive
-    // within MIR_T s (MEASURED hwracecheck seed 77,
-    // Realish: a racer at 145 km/h moved 4.4 m left into the line of one 18 m back at 177 km/h -
-    // the one behind braked on the hard shoulder,
+    // within MIR_T s (MEASURED hwracecheck seed 77, Realish: a racer at 145 km/h moved 4.4 m left
+    // into the line of one 18 m back at 177 km/h - the one behind braked on the hard shoulder,
     // spun, and both left the road; the driver only ever looked at cars ahead, > 6 m back did not
-    // exist)
-    // (MEASURED pacesuite, 18 races: bad runs 7 -> 2, off-road car-steps 13079 -> 4006, mean 126.7
-    // -> 133.4 km/h)
+    // exist) (MEASURED pacesuite, 18 races: bad runs 7 -> 2, off-road car-steps 13079 -> 4006, mean
+    // 126.7 -> 133.4 km/h)
     const mirT = HWT.mir ?? 2.5;
     const mirror = (off: number) => {
       if (!mirT) return false;
@@ -317,9 +303,8 @@ export function roadDriver(level: HighwayLevel, traits: Traits, rnd: () => numbe
     const here = blockOn(state.tgt!),
       urgent = here && here.gap < 6 + Math.max(0, vAl - here.v) * 0.8;
     // A SWERVE HAS INERTIA: the target's sideways speed ramps at aLat (a share of grip) and eases
-    // in to stop on the line. MEASURED
-    // (hwracecheck, Real difficulty): an instant 6.5 m/s sideways step spun cars at 150 km/h on a
-    // straight (rear slip 0.6 rad)
+    // in to stop on the line. MEASURED (hwracecheck, Real difficulty): an instant 6.5 m/s sideways
+    // step spun cars at 150 km/h on a straight (rear slip 0.6 rad)
     const latR = LAT_R * (urgent ? 1.6 : 1) * (0.8 + 0.4 * agg),
       aLat = (urgent ? 0.3 : 0.18) * grip * GRAVITY, latDist = state.line - state.tgt!;
     const vWant = Math.sign(latDist) * Math.min(latR, Math.sqrt(2 * aLat * Math.abs(latDist)));
@@ -358,8 +343,8 @@ export function roadDriver(level: HighwayLevel, traits: Traits, rnd: () => numbe
     }
     const offT = Math.max(vLo, Math.min(vHi, state.tgt!)), vFollow = vTarget;
     // RUNNING WIDE (past the line limits): lift, as a driver would - 3 m/s under what it is doing
-    // per metre out (on a verge dodge the
-    // limit is the verge line; the grass itself already costs grip, so only past THAT)
+    // per metre out (on a verge dodge the limit is the verge line; the grass itself already costs
+    // grip, so only past THAT)
     {
       const lim = frame.off < 0 ? -vLo : vHi, out = Math.abs(frame.off) - lim;
       if (out > 0.3) vTarget = Math.min(vTarget, vAl - 3 * out);
@@ -369,13 +354,11 @@ export function roadDriver(level: HighwayLevel, traits: Traits, rnd: () => numbe
     if (Math.abs(frame.off) > geo.hw - 0.6 && fol)
       vTarget = Math.min(vTarget, Math.max(fol.v + (HWT.vgv ?? 8), vAl - 2));
     // ---- STEER: the STANLEY controller of autodrive.js on the target line: heading error to the
-    // road a little ahead + the front
-    // axle's cross-track error + yaw damping. MEASURED (hwracecheck, v1): pure pursuit weaved +-1
-    // m and ran 7 m wide out of an R 500.
-    // (the front axle's road frame from the car's own frame + its heading: a SECOND roadFrame
-    // search per step snapped to the wrong
-    // road point and read the car 2 m off where it was - MEASURED weavecheck: the car drifted onto
-    // a car it had chosen to pass)
+    // road a little ahead + the front axle's cross-track error + yaw damping. MEASURED
+    // (hwracecheck, v1): pure pursuit weaved +-1 m and ran 7 m wide out of an R 500. (the front
+    // axle's road frame from the car's own frame + its heading: a SECOND roadFrame search per step
+    // snapped to the wrong road point and read the car 2 m off where it was - MEASURED weavecheck:
+    // the car drifted onto a car it had chosen to pass)
     const hRoad = roadPose(level, frame.s, 0).h, rel = car.heading - hRoad,
       axle = {
         s: frame.s + Math.cos(rel) * car.spec.lf,
@@ -383,13 +366,11 @@ export function roadDriver(level: HighwayLevel, traits: Traits, rnd: () => numbe
       };
     const aheadPose = roadPose(level, axle.s + 2 + speed * 0.15, offT);
     // + the swerve's own sideways speed as a FEED-FORWARD heading (without it the car lagged the
-    // moving target, then overshot: spins)
-    // (an extra AIM term at the line ahead was tried: MEASURED weavecheck, spins in 17 of 45
-    // scenarios - Stanley's own gain stays)
-    // COURSE, not heading (MEASURED weavecheck: in a bend the car's sideslip, ~1 deg at 180 km/h,
-    // left a steady 0.5 m drift off the line
-    // that Stanley's heading term never saw - and it drifted into the car it was passing): the
-    // angle the car is actually TRAVELLING at
+    // moving target, then overshot: spins) (an extra AIM term at the line ahead was tried: MEASURED
+    // weavecheck, spins in 17 of 45 scenarios - Stanley's own gain stays) COURSE, not heading
+    // (MEASURED weavecheck: in a bend the car's sideslip, ~1 deg at 180 km/h, left a steady 0.5 m
+    // drift off the line that Stanley's heading term never saw - and it drifted into the car it was
+    // passing): the angle the car is actually TRAVELLING at
     const course = speed > 3 ? Math.atan2(car.vy, car.vx) : car.heading;
     let psi = aheadPose.h + Math.atan2(state.tv || 0, speed + 1) - course;
     psi = Math.atan2(Math.sin(psi), Math.cos(psi));
@@ -401,10 +382,9 @@ export function roadDriver(level: HighwayLevel, traits: Traits, rnd: () => numbe
     const relH = Math.atan2(Math.sin(car.heading - hRoad), Math.cos(car.heading - hRoad)),
       hMax = Math.max(0.05, Math.min(0.35, 4 / Math.max(1, speed)));
     // YAW DAMPING on the ACTUAL yaw rate vs the road's (MEASURED weavecheck, Real: at 200 km/h the
-    // car rotated 0.4 rad/s through the
-    // line while Stanley's psi still pointed across - yaw kept building into a 35 deg slide). The
-    // car should turn with the road plus
-    // what the swerve needs; anything beyond that is countered.
+    // car rotated 0.4 rad/s through the line while Stanley's psi still pointed across - yaw kept
+    // building into a 35 deg slide). The car should turn with the road plus what the swerve needs;
+    // anything beyond that is countered.
     const latVel = vAl * Math.sin(relH), latErr = latVel - (state.tv || 0),
       yawRoad = vAl * (pts[Math.max(0, Math.min(pts.length - 1, idx0))].curv || 0);
     let deltaS = psi + Math.atan2(-1.2 * cross, speed + 2)

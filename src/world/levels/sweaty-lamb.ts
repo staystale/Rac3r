@@ -8,30 +8,23 @@ import { trackKit } from "./kit.ts";
 import type { Point, Cover, Lane, Cone, Prop, Paint, Barrier } from "../types.ts";
 // =============================================================================================
 // SWEATY LAMB — parody of Sweet Lamb (mid Wales), the gravel rally stage. Built 2026-10-04.
-// Decisions (user): layout INSPIRED BY THE
-// PHOTOS (no published map — rally-maps needs a browser): Sweet Lamb is 4.24 km of gravel, 373-497
-// m (123 m of climb), a valley side
-// of switchbacks that make the famous spectator bowl, black corrugated farm sheds round a gravel
-// yard, a water splash, moorland and
-// conifer plantations (art/ref/sl1-5.jpg). ~1 MINUTE of stage (~1.2 km at this game's scale).
-// After the flying finish BOTH: a stop
-// zone + RESTART, and an untimed farm road back round to the start. Built as ONE closed loop
-// (stage + liaison) so RESET, lap tracking
-// and the autodriver all work; LEVEL.stage = { finish } and main.js times start line -> finish.
-// World metres (mpp 1). Valley floor in the south, the hill rising to the north (one cos^2 hill,
-// 18 m); start in the SW farm yard.
-// V2 (user, 2026-10-04: "a bit basic track wise — more unique corners"; "slightly longer, more
-// twists and turns, same map size";
-// "more tyres, cones, flags so it feels like a rally event"). ~2 km of stage, every corner a
-// different kind, in order:
-// SQUARE LEFT out of the yard, DOG-LEG square right, fast ESSES along the valley, the WATER
-// SPLASH, a long right SWEEPER round the SE
-// corner, a TYRE CHICANE on the climb, a square left, the HAIRPIN AROUND THE TREE, a left kink,
-// HAIRPIN 2, the CREST YUMP, a right-left
-// FLICK, a downhill left sweeper, a SQUARE RIGHT junction, the HAIRPIN AT THE TOP of the second
-// hill, the LONG FAST DESCENT, a WIGGLE,
-// the flying FINISH; then a short farm road back to the start.
-// square left, dog-leg square right
+// Decisions (user): layout INSPIRED BY THE PHOTOS (no published map — rally-maps needs a browser):
+// Sweet Lamb is 4.24 km of gravel, 373-497 m (123 m of climb), a valley side of switchbacks that
+// make the famous spectator bowl, black corrugated farm sheds round a gravel yard, a water splash,
+// moorland and conifer plantations (art/ref/sl1-5.jpg). ~1 MINUTE of stage (~1.2 km at this game's
+// scale). After the flying finish BOTH: a stop zone + RESTART, and an untimed farm road back round
+// to the start. Built as ONE closed loop (stage + liaison) so RESET, lap tracking and the
+// autodriver all work; LEVEL.stage = { finish } and main.js times start line -> finish. World
+// metres (mpp 1). Valley floor in the south, the hill rising to the north (one cos^2 hill, 18 m);
+// start in the SW farm yard. V2 (user, 2026-10-04: "a bit basic track wise — more unique corners";
+// "slightly longer, more twists and turns, same map size"; "more tyres, cones, flags so it feels
+// like a rally event"). ~2 km of stage, every corner a different kind, in order: SQUARE LEFT out of
+// the yard, DOG-LEG square right, fast ESSES along the valley, the WATER SPLASH, a long right
+// SWEEPER round the SE corner, a TYRE CHICANE on the climb, a square left, the HAIRPIN AROUND THE
+// TREE, a left kink, HAIRPIN 2, the CREST YUMP, a right-left FLICK, a downhill left sweeper, a
+// SQUARE RIGHT junction, the HAIRPIN AT THE TOP of the second hill, the LONG FAST DESCENT, a
+// WIGGLE, the flying FINISH; then a short farm road back to the start. square left, dog-leg square
+// right
 const SL_STAGE: Point[] = [[-215, 205], [-175, 205], [-150, 200], [-148, 172], [-140, 160],
   [-110, 158],
   // ESSES, the SPLASH
@@ -108,9 +101,8 @@ export const SL_BUMPS = prepBumps([
     ...SL_KIT.bank(SL_C.tree + 40, SL_C.hp2 - 30, 24, 7, 1.5),
 ]);
 // EVENT DRESSING by corner: chevron boards on the OUTSIDE (pointing the way), hay bales lining it,
-// cones on the inside apex, flags
-// at the spectator spots. Outside of a left-hander is +, of a right-hander -. (dir: +1 = the
-// corner turns right)
+// cones on the inside apex, flags at the spectator spots. Outside of a left-hander is +, of a
+// right-hander -. (dir: +1 = the corner turns right)
 const slTurn = (dist: number) => {
   const before = SL_KIT.rot(dist - 8), after = SL_KIT.rot(dist + 8);
   let turn = after - before;
@@ -131,10 +123,9 @@ for (const dist of [SL_C.sqL, SL_C.sqR, SL_C.sqL2, SL_C.tree, SL_C.hp2, SL_C.sqR
     { kind: 'flag', col: ['#c8302c', '#e2c13a', '#2b56b5', '#2f7d4f'][(dist | 0) % 4] }));
 }
 // HAY BALES round EVERY corner of the stage (user, 2026-10-04: "more hay bales around the rally
-// stage corners"): corners found from the
-// curvature (autoKerbs' corner finder: tighter than 45 m, turning > 25 deg), a knockable bale
-// every 2.1 m along the OUTSIDE from just
-// before the corner to 12 m after it. (First cut: 7 bales at 8 hand-picked corners.)
+// stage corners"): corners found from the curvature (autoKerbs' corner finder: tighter than 45 m,
+// turning > 25 deg), a knockable bale every 2.1 m along the OUTSIDE from just before the corner to
+// 12 m after it. (First cut: 7 bales at 8 hand-picked corners.)
 for (const kerb of autoKerbs(SL_SUBTRACK, { maxR: 45, exitR: 0, minTurn: 25, mergeGap: 10 })) {
   if (kerb.startDist > SL_FINISH) continue;
   // 'left' = +normal = the INSIDE of a right-hander, so the outside is the other side

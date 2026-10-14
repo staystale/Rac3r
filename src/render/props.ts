@@ -208,19 +208,16 @@ export function createProps(view: View, cam: Cam, helpers: PropsHelpers) {
     view.ctx.restore();
   }
   // BRIDGES (highway.js extras): carries 'road' / 'rail' / 'foot' = a deck OVER the motorway (kind
-  // 'bridge', drawn after the cars);
-  // kind 'river' = the motorway over water. Local frame: +x along the deck (across the motorway).
-  // Squares only.
-  // v2 (2026-10-06, user: "bridges have no connecting roads so it looks silly"; "make the cars n
-  // stuff move across if you can ... only if
-  // cheap enough"): the APPROACHES (highway.js approaches(): lane ribbons in the ground tiles) run
-  // pr.appL[0 | 1] m out from each end;
-  // their markings / rails are drawn here, and so is what MOVES across: cars both ways, walkers, a
-  // train every pr.trainEvery s. Pure
-  // drawing on the wall clock (no physics, no state): a few dozen squares per bridge on screen.
-  // The RIVER's water is now a real 'wet' cover (lab.js covers: the puddle water, grip and spray,
-  // painted into the ground tiles; user:
-  // "water seemed to be painted and not our water texture"), so only the boat is drawn here.
+  // 'bridge', drawn after the cars); kind 'river' = the motorway over water. Local frame: +x along
+  // the deck (across the motorway). Squares only. v2 (2026-10-06, user: "bridges have no connecting
+  // roads so it looks silly"; "make the cars n stuff move across if you can ... only if cheap
+  // enough"): the APPROACHES (highway.js approaches(): lane ribbons in the ground tiles) run
+  // pr.appL[0 | 1] m out from each end; their markings / rails are drawn here, and so is what MOVES
+  // across: cars both ways, walkers, a train every pr.trainEvery s. Pure drawing on the wall clock
+  // (no physics, no state): a few dozen squares per bridge on screen. The RIVER's water is now a
+  // real 'wet' cover (lab.js covers: the puddle water, grip and spray, painted into the ground
+  // tiles; user: "water seemed to be painted and not our water texture"), so only the boat is drawn
+  // here.
   function drawBridge(prop: Prop, ppm: number) {
     const paint = (x: number, y: number, width: number, height: number, col: string) => {
       view.ctx.fillStyle = col;
@@ -434,9 +431,8 @@ export function createProps(view: View, cam: Cam, helpers: PropsHelpers) {
     view.ctx.restore();
   }
   // OVERHEAD props span the track ABOVE the cars and are drawn AFTER them. MEASURED BUG (user,
-  // 2026-10-03: "the gantry
-  // being below cars on the naffcar track"): every prop was drawn before the car, so cars drove
-  // OVER the start gantry.
+  // 2026-10-03: "the gantry being below cars on the naffcar track"): every prop was drawn before
+  // the car, so cars drove OVER the start gantry.
   const OVERHEAD = new Set(['gantry', 'footbridge', 'bridge']);
   // pr.w, h, seed, label, front, back and banner are optional on Prop, but every kind
   // that reads them sets them (the ! below)
@@ -731,11 +727,9 @@ export function createProps(view: View, cam: Cam, helpers: PropsHelpers) {
         }
       } else if (prop.kind === 'garages') {
         // PIT GARAGES (Thruxton photo): concrete-block units under a red tyre-brand banner. Local
-        // +x = along the lane, -y = the
-        // lane side. Top-down: the flat roof with a divider per unit, the banner along the front
-        // edge. Squares only (pixel rule).
-        // First cut (photographed): a light grey roof vanished into the concrete apron and a 1.3 m
-        // banner read as a red wall.
+        // +x = along the lane, -y = the lane side. Top-down: the flat roof with a divider per unit,
+        // the banner along the front edge. Squares only (pixel rule). First cut (photographed): a
+        // light grey roof vanished into the concrete apron and a 1.3 m banner read as a red wall.
         // Now a dark slate roof with an outline, ribbed per unit, and a 0.9 m banner with the brand
         // once, centred.
         const garageW = prop.w! * ppm,
@@ -1094,8 +1088,8 @@ export function createProps(view: View, cam: Cam, helpers: PropsHelpers) {
         }
       } else if (prop.kind === 'chevron') {
         // RALLY CHEVRON BOARD (black + yellow arrows), placed on the outside of a corner, arrows
-        // pointing the way it turns (+x).
-        // Drawn at 1.6x (photographed: at 3.2 m it was a smudge beside the bales)
+        // pointing the way it turns (+x). Drawn at 1.6x (photographed: at 3.2 m it was a smudge
+        // beside the bales)
         view.ctx.scale(1.6, 1.6);
         const paint = (x: number, y: number, width: number, height: number, col: string) => {
           view.ctx.fillStyle = col;

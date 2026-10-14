@@ -36,7 +36,7 @@
   "src/highway.js": {
     "complexity": 4,
     "id-length": 327,
-    "max-len": 262,
+    "max-len": 127,
     "max-lines-per-function": 1,
     "no-shadow": 1
   },
@@ -47,7 +47,7 @@
   "src/hud.js": {
     "complexity": 4,
     "id-length": 161,
-    "max-len": 176,
+    "max-len": 115,
     "max-lines-per-function": 3,
     "no-shadow": 1,
     "no-unused-vars": 2
@@ -59,7 +59,7 @@
   "src/main.js": {
     "complexity": 9,
     "id-length": 215,
-    "max-len": 279,
+    "max-len": 135,
     "max-lines": 1,
     "max-lines-per-function": 1,
     "no-shadow": 2,
@@ -105,7 +105,7 @@
   "src/render/ground.ts": {
     "complexity": 2,
     "id-length": 198,
-    "max-len": 151,
+    "max-len": 73,
     "max-lines-per-function": 2
   },
   "src/render/objects.ts": {
@@ -144,7 +144,7 @@
     "@typescript-eslint/no-unused-vars": 3,
     "complexity": 2,
     "id-length": 72,
-    "max-len": 325,
+    "max-len": 77,
     "max-lines": 1,
     "max-lines-per-function": 2,
     "no-shadow": 6
@@ -154,8 +154,7 @@
   },
   "src/world/blend.ts": {
     "@typescript-eslint/no-unused-vars": 1,
-    "complexity": 2,
-    "max-len": 5
+    "complexity": 2
   },
   "src/world/levels/brands-snatch.ts": {
     "complexity": 1,

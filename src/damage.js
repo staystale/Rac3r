@@ -12,21 +12,18 @@
 //
 // HOW: every collision the game resolves (walls / barriers / props, other cars, heavy objects)
 // changes the car's velocity in one step. main.js snapshots the velocity around each and calls
-// hit(): under SCRAPE_DV nothing; SCRAPE_DV..DMG_FLOOR = a SCRAPE (sliding along a wall or a
-// car: light damage by speed x time on that side + paint chips); above DMG_FLOOR an IMPACT,
-// (dv - floor)^DMG_EXP, shared over the four corners by where it came from. Each corner keeps
-// HOW it was hit: crushL (end-on: shortens the car) and crushS (side-on: pushes the side in),
-// so the sprite crumples the right quarter the right way. Corners: 0 front / -y, 1 front / +y,
-// 2 rear / -y, 3 rear / +y (car frame: +x forward; +y = the lateral of contact.js / render.ts;
-// the car's RIGHT).
-// EFFECTS (limited): axle grip down to -20 %, power down to -15 % (front), a steering PULL
-// toward the harder-hit front, a PUNCTURE (axle x0.7) from a heavy corner hit, and a WHEEL OFF
-// from a big hit on a corner already near wrecked: that axle x0.45, a hard pull, the bare
-// corner drags (rolling drag x5 per wheel). Never a DNF: the player RESETs (repairs), an AI
-// that is tooInjured() resets itself.
-// The BILL counts every hit, repaired or not.
-// m/s of impact velocity change below which it is only a scrape (v1: 2.5 — "really hard to
-// cause")
+// hit(): under SCRAPE_DV nothing; SCRAPE_DV..DMG_FLOOR = a SCRAPE (sliding along a wall or a car:
+// light damage by speed x time on that side + paint chips); above DMG_FLOOR an IMPACT, (dv -
+// floor)^DMG_EXP, shared over the four corners by where it came from. Each corner keeps HOW it was
+// hit: crushL (end-on: shortens the car) and crushS (side-on: pushes the side in), so the sprite
+// crumples the right quarter the right way. Corners: 0 front / -y, 1 front / +y, 2 rear / -y, 3
+// rear / +y (car frame: +x forward; +y = the lateral of contact.js / render.ts; the car's RIGHT).
+// EFFECTS (limited): axle grip down to -20 %, power down to -15 % (front), a steering PULL toward
+// the harder-hit front, a PUNCTURE (axle x0.7) from a heavy corner hit, and a WHEEL OFF from a big
+// hit on a corner already near wrecked: that axle x0.45, a hard pull, the bare corner drags
+// (rolling drag x5 per wheel). Never a DNF: the player RESETs (repairs), an AI that is tooInjured()
+// resets itself. The BILL counts every hit, repaired or not. m/s of impact velocity change below
+// which it is only a scrape (v1: 2.5 — "really hard to cause")
 export const DMG_FLOOR = 1.5;
 // m/s: a contact this small in one step is a car sliding along something
 const SCRAPE_DV = 0.12;

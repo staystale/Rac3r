@@ -6,32 +6,26 @@ import type { SurfaceId } from "../surfaces.ts";
 import type {
   Point, Sector, CurvedKerb, Zone, Prop, Paint, Board, Cone, Bump, Cover, Spawn,
 } from "../types.ts";
-// =============================================================================================
-// THE SURFACE SANDBOX — REBUILT 2026-10-03 as a real circuit (user: "rebuild the surface sandbox to
-// cover all
-// surface types, cones, tyres and make it similar to the test track in the sense it's a real track
-// with lap
-// timer and reset functions but unique and better. Beautiful and functional. Put some mixed testing
-// functions like wet spots and snow or ice patches, long and short grass patches").
+// ============================================================================================= THE
+// SURFACE SANDBOX — REBUILT 2026-10-03 as a real circuit (user: "rebuild the surface sandbox to
+// cover all surface types, cones, tyres and make it similar to the test track in the sense it's a
+// real track with lap timer and reset functions but unique and better. Beautiful and functional.
+// Put some mixed testing functions like wet spots and snow or ice patches, long and short grass
+// patches").
 //
 // It is a SUBTRACK, like the Test Track, so the lap timer, the lap counter and RESET-to-the-track
-// all work
-// with no new code. One lap (~1.67 km) runs through EVERY surface in the game, in an order that
-// flows:
+// all work with no new code. One lap (~1.67 km) runs through EVERY surface in the game, in an order
+// that flows:
 //   start straight RACE TARMAC > T1 sweeper TARMAC > chicane BROKEN TARMAC (kerbs) >
 //   fast sweeper RALLY GRAVEL > top hairpin DIRT > esses SAND > MUD > THICK MUD hairpin >
 //   LONG GRASS > SHORT GRASS > SNOW > ICE > WET TARMAC > home.
 // On the road: COVERS as surprises — a puddle on the start straight, black ice in the T1 sweeper, a
-// snow
-// drift across the gravel, a puddle in the dirt hairpin, an ice patch on the short grass.
-// In the infield: rounded TEST PADS (wet, snow, ice, mud, gravel, sand) like the Test Track's, and
-// patches
-// of long and short grass to drive across and wear.
-// Everything is placed BY DISTANCE ALONG THE TRACK (sbAt), and kerbs / barriers find the inside or
-// outside
-// of a corner from the track's own curvature — so moving an apex keeps them all where they belong.
-// The old ring version (2026-09-28) laid surface boxes across a circular cone course; it had no
-// lap.
+// snow drift across the gravel, a puddle in the dirt hairpin, an ice patch on the short grass. In
+// the infield: rounded TEST PADS (wet, snow, ice, mud, gravel, sand) like the Test Track's, and
+// patches of long and short grass to drive across and wear. Everything is placed BY DISTANCE ALONG
+// THE TRACK (sbAt), and kerbs / barriers find the inside or outside of a corner from the track's
+// own curvature — so moving an apex keeps them all where they belong. The old ring version
+// (2026-09-28) laid surface boxes across a circular cone course; it had no lap.
 const SB_APEXES: Point[] = [
   [-100, 190], [60, 190], [160, 170], [200, 110], [188, 48], [140, 22], [158, -32], [200, -80],
   [190, -160], [130, -200], [60, -170], [40, -110], [-20, -80], [-80, -120], [-140, -180],
@@ -39,8 +33,7 @@ const SB_APEXES: Point[] = [
   [-210, -70], [-160, -20], [-120, 30], [-170, 80], [-200, 140], [-170, 190],
 ];
 // geometry measured 2026-10-03 (scratch design script): lap 1669 m, tightest centreline radius 11.8
-// m
-// (the chicane), closest approach of two parts of the track 49.7 m, max extent 213 m (floor edge
+// m (the chicane), closest approach of two parts of the track 49.7 m, max extent 213 m (floor edge
 // 256).
 const SB_W = 13;
 const SB_SECTORS: Sector[] = [];   // filled below, by apex distance, once the track exists
@@ -128,8 +121,7 @@ export const SB_ZONES: Zone[] = [
   { x: 60, y: 160, w: 80, h: 18, surface: SURFACES.grassLong },
 ];
 // NO JUMPS on this level (user, 2026-10-03: "no jumps on the surface sandbox new level please").
-// The
-// ramp, the gravel table and the dirt whoops were removed; the lab keeps its own jumps.
+// The ramp, the gravel table and the dirt whoops were removed; the lab keeps its own jumps.
 export const SB_BUMPS: Bump[] = [];
 const SB_START = sbAt(0);
 export const SB_PAINT: Paint[] = [{ kind: 'chequered', x: SB_START.x, y: SB_START.y, len: 1.6,
@@ -150,12 +142,10 @@ export const LAB_BUMPS = prepBumps([
   ...[0, 1, 2, 3].map((i) => ({ kind: 'hump', x: 60, y: -60 - i * 14, r: 6.5, h: 0.30 })),
   { kind: 'kerb', x: 185, y: -40, rot: 0, len: 44, wid: 3.4, h: 0.11 },
   // ---- SUSPENSION TEST ZONE (user, 2026-10-03: "add some bumps and dips to the lab level and mark
-  // it out as a
-  // suspension test zone"; chose whoops + dips/compressions + washboard + banked bowl). The bare
-  // lab floor, south-west,
-  // x -245..0, y 162..214 — scanned clear of cones, panels, the drag strip (y 240) and the benches.
-  // Drive WEST -> EAST.
-  // Lane 1 (y 172): WHOOPS, six round humps rising 0.15 -> 0.40 m, 9 m apart.
+  // it out as a suspension test zone"; chose whoops + dips/compressions + washboard + banked bowl).
+  // The bare lab floor, south-west, x -245..0, y 162..214 — scanned clear of cones, panels, the
+  // drag strip (y 240) and the benches. Drive WEST -> EAST. Lane 1 (y 172): WHOOPS, six round humps
+  // rising 0.15 -> 0.40 m, 9 m apart.
   ...[0.15, 0.20, 0.25, 0.30, 0.35, 0.40].map((height, i) =>
     ({ kind: 'hump', x: -228 + i * 9, y: 172, r: 3.2, h: height })),
   // Lane 2 (y 187): DIPS, five hollows 0.15 -> 0.45 m deep, then one BIG COMPRESSION (wide, 0.8 m).
@@ -165,8 +155,7 @@ export const LAB_BUMPS = prepBumps([
   // Lane 3 (y 203): WASHBOARD, 50 m of 0.9 m ripples, 5 cm deep.
   { kind: 'washboard', x: -205, y: 203, rot: 0, len: 50, wid: 7, amp: 0.05, wave: 0.9 },
   // BANKED BOWL at the east end: flat floor to 6 m, wall rising to 2.5 m at 18 m (flat at the
-  // bottom, steep at the top),
-  // back slope out over 6 m.
+  // bottom, steep at the top), back slope out over 6 m.
   { kind: 'bowl', x: -36, y: 188, r0: 6, R: 18, h: 2.5, B: 6 },
 ]);
 
@@ -178,8 +167,8 @@ export const LAB_PANELS: Zone[] = ([
     boxed: true,
 }))).concat([
   // 2026-10-03: long grass was defined but on no level, and thick mud is new — so both get a test
-  // panel,
-  // in the clear north-west grass quarter (scanned clear of cones, bumps, paint and the spawn).
+  // panel, in the clear north-west grass quarter (scanned clear of cones, bumps, paint and the
+  // spawn).
   { x: -143, y: -106, w: 56, h: 56, surface: SURFACES.grassLong, boxed: true },
   { x: -77, y: -106, w: 56, h: 56, surface: SURFACES.thickMud, boxed: true },
 ]);

@@ -24,8 +24,8 @@ const LINE_MARGIN = 1.6;     // m kept from the road edge (car half width ~0.9 +
 // fraction of the measured cornering grip a PRO uses
 // (calibrated: tools/aidrivecheck.mjs, clean at 0.88)
 const K_CORNER = 0.88;
-// fraction of grip planned for braking
-// (0.80 arrived 4 m/s hot into Sweaty Lamb's S on gravel, MEASURED)
+// fraction of grip planned for braking (0.80 arrived 4 m/s hot into Sweaty Lamb's S on gravel,
+// MEASURED)
 export const K_BRAKE = 0.70;
 // m: hairpins get less of the grip, kC x R / (R + R_TIGHT)
 // (Slidden's R 10 hairpin: full lock, still wide)

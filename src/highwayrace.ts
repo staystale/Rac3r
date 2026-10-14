@@ -1,23 +1,18 @@
 // highwayrace.js — VS AI ON THE ENDLESS HIGHWAY (user, 2026-10-05: "VS AI on the highway = a normal
-// ROLLING-START race"; "an AI reaching the
-// EDGE OF THE SCREEN ahead (what is visible differs PC / phone) starts a COUNTDOWN (5-10 s); if it
-// ends and you have not caught up -> race
-// ends, POSITIONS shown. You get so far ahead the AI go off screen BEHIND -> countdown; when it
-// ends YOU WIN"; traffic in every mode).
-// (was hwrace.js until the phase 5 rename)
+// ROLLING-START race"; "an AI reaching the EDGE OF THE SCREEN ahead (what is visible differs PC /
+// phone) starts a COUNTDOWN (5-10 s); if it ends and you have not caught up -> race ends, POSITIONS
+// shown. You get so far ahead the AI go off screen BEHIND -> countdown; when it ends YOU WIN";
+// traffic in every mode). (was hwrace.js until the phase 5 rename)
 //
 // The circuit AI (aidriver.js) races a precomputed line round a CLOSED lap; the treadmill's road is
-// rebuilt every ~300 m and never
-// closes, so its driver reads the road through highway.js's road frame: the WEAVER (aidriver.js
-// roadDriver; v1 raced in lanes — the user: "ignore lanes, go fast,
+// rebuilt every ~300 m and never closes, so its driver reads the road through highway.js's road
+// frame: the WEAVER (aidriver.js roadDriver; v1 raced in lanes — the user: "ignore lanes, go fast,
 // dodge and weave through like the player would").
 // THE START: a 2-wide staggered grid in the two right-hand lanes behind the spawn; every car (you
-// too) is driven at the rolling pace
-// behind red lights (main.js atPace), GREEN at HW_GREEN s.
-// THE END (flow): EVERY AI ahead of you and the slowest of them OFF SCREEN -> "CATCH THEM n" for
-// HW_CATCH s (back on screen =
-// cancelled), at 0 the race ends. Every AI behind you AND off screen -> "PULLING AWAY n"; at 0 the
-// race ends and you have won. Positions = how far up the road.
+// too) is driven at the rolling pace behind red lights (main.js atPace), GREEN at HW_GREEN s. THE
+// END (flow): EVERY AI ahead of you and the slowest of them OFF SCREEN -> "CATCH THEM n" for
+// HW_CATCH s (back on screen = cancelled), at 0 the race ends. Every AI behind you AND off screen
+// -> "PULLING AWAY n"; at 0 the race ends and you have won. Positions = how far up the road.
 import { roadFrame, roadPose, roadSpan } from './highway.js';
 import type { AiCar, HighwayLevel } from "./ai/types.ts";
 
@@ -48,12 +43,10 @@ interface HwFlow {
 
 export const HW_GREEN = 6, HW_COUNT = 8;
 // CATCH THEM is SOFT (user, 2026-10-06: "catch them timer should be longer on highway, also it
-// should be a bit soft if you've nearly
-// caught up drop the timer... but let them getaway if the player isnt trying"): HW_CATCH s; while
-// you are CLOSING on the leader (gap
-// shrinking faster than CLOSE_V, smoothed over ~1 s) it refills at REFILL x; NEAR m or less past
-// the screen it holds; otherwise it runs.
-// PULLING AWAY (you winning) stays HW_COUNT (user: "winning is ok atm").
+// should be a bit soft if you've nearly caught up drop the timer... but let them getaway if the
+// player isnt trying"): HW_CATCH s; while you are CLOSING on the leader (gap shrinking faster than
+// CLOSE_V, smoothed over ~1 s) it refills at REFILL x; NEAR m or less past the screen it holds;
+// otherwise it runs. PULLING AWAY (you winning) stays HW_COUNT (user: "winning is ok atm").
 // (hovering just past the edge holds for NEAR_T s at most: sitting there for ever is not trying
 // either)
 export const HW_CATCH = 15;
@@ -70,9 +63,8 @@ export function hwFrames(level: HighwayLevel, cars: AiCar[]) {
 
 
 // THE GRID: slot 0 = pole. Two columns in the two right-hand lanes (both lanes on a dual), rows
-// GRID_ROW m apart, the right-hand column
-// GRID_STAG m further back (staggered); GRID_BACK m behind the spawn. hwGridSpan = the road
-// distances it covers (to clear traffic)
+// GRID_ROW m apart, the right-hand column GRID_STAG m further back (staggered); GRID_BACK m behind
+// the spawn. hwGridSpan = the road distances it covers (to clear traffic)
 const GRID_ROW = 14, GRID_STAG = 7, GRID_BACK = 12;
 export function hwGrid(level: HighwayLevel, slot: number) {
   const centres = level._hw.geo.centres, laneCount = centres.length,
@@ -109,14 +101,12 @@ export function hwPutBack(level: HighwayLevel, dist: number, cars: AiCar[]) {
 }
 
 // (the RACER itself - the WEAVER - lives in aidriver.js since AI ROUND 2 stage 1: ONE driver,
-// createAIDriver, for circuits and the
-// highway; user 2026-10-07: "one engine is better and cheaper". This file keeps only the RACE:
-// grid, put-back, the CATCH THEM flow.)
+// createAIDriver, for circuits and the highway; user 2026-10-07: "one engine is better and
+// cheaper". This file keeps only the RACE: grid, put-back, the CATCH THEM flow.)
 
 // THE RACE: entries [{ car, player }]; visible(car) = on screen right now. flow.step(dt) after the
-// green; flow.order() -> your position.
-// Results rows are raceflow.js-shaped (+ dist / gapM) so menu.js can show them; flow.highway marks
-// the distance table.
+// green; flow.order() -> your position. Results rows are raceflow.js-shaped (+ dist / gapM) so
+// menu.js can show them; flow.highway marks the distance table.
 export function createHwFlow(
   { lv, cars, visible, count = HW_COUNT, catchT = HW_CATCH }: HwFlowArgs) {
   const sRef = roadFrame(lv, lv.spawn.x, lv.spawn.y, null)!.s;   // ! : null before the road exists
@@ -137,23 +127,20 @@ export function createHwFlow(
       rivals = entries.filter((entry) => !entry.player);
     if (!myEntry || !rivals.length || flow.t < 3) return;
     // CATCH THEM only when you are LAST and even the SLOWEST rival is off screen ahead (user,
-    // 2026-10-06: "the catch them / loosing them
-    // warnings and timers should only show if the slowest ai has passed you / is going off screen
-    // ahead, otherwise you should be free to
+    // 2026-10-06: "the catch them / loosing them warnings and timers should only show if the
+    // slowest ai has passed you / is going off screen ahead, otherwise you should be free to
     // race"). While any rival is behind you or on screen there is no clock. (A story-mode time /
-    // distance limit can come later.)
-    // `top` = the rival you have to catch: the LAST one
+    // distance limit can come later.) `top` = the rival you have to catch: the LAST one
     const myS = sOf(myEntry), top = rivals.reduce((slowest, entry) =>
       (sOf(entry) < sOf(slowest) ? entry : slowest), rivals[0]);
     let kind = rivals.every((entry) =>
       sOf(entry) > myS + 5) && !visible(top.car) ? 'ahead' : rivals.every((entry) =>
       sOf(entry) < myS - 5 && !visible(entry.car)) ? 'behind' : null;
     // GRACE (user, 2026-10-06: "catch them timer never seems to time out it fails to count down";
-    // MEASURED in tools/_flowtest: a rival
-    // dipping back on screen at the edge for a moment - a bend, the zoom breathing - set the clock
-    // back to the full HW_CATCH every time).
-    // A running clock now survives up to GRACE s of the condition dropping; only staying back in
-    // touch longer cancels it.
+    // MEASURED in tools/_flowtest: a rival dipping back on screen at the edge for a moment - a
+    // bend, the zoom breathing - set the clock back to the full HW_CATCH every time). A running
+    // clock now survives up to GRACE s of the condition dropping; only staying back in touch longer
+    // cancels it.
     if (kind) flow.lostT = 0;
     else if (flow.cdKind && (flow.lostT = (flow.lostT || 0) + dt) < GRACE) kind = flow.cdKind;
     // RESUME, not restart: CATCH THEM cancelled (a rival spun / beached, you passed it, it came
@@ -179,9 +166,8 @@ export function createHwFlow(
       }
     }
     // the leader's gap and how fast it is changing (+ = it is pulling away), smoothed over ~1 s. A
-    // JUMP (> JUMP m in one step: the car
-    // you have to catch changed, or a reset) is not closing: re-seed the rate instead of reading it
-    // as a sprint that refills the clock.
+    // JUMP (> JUMP m in one step: the car you have to catch changed, or a reset) is not closing:
+    // re-seed the rate instead of reading it as a sprint that refills the clock.
     const gap = sOf(top) - myS;
     if (gapPrev != null && Math.abs(gap - gapPrev) > JUMP) gapRate = 0;
     else if (gapPrev != null) gapRate +=
@@ -190,8 +176,7 @@ export function createHwFlow(
     flow.cdHold = false;
     if (kind === 'ahead') {
       // "nearly caught up" = within NEAR m of the edge of the screen (the visible distance is not
-      // known here: the first gap at which
-      // it went off screen stands in for it)
+      // known here: the first gap at which it went off screen stands in for it)
       if (flow.edge == null) flow.edge = gap;
       if (gapRate < -CLOSE_V) {
         flow.cd = Math.min(catchT, flow.cd! + REFILL * dt);

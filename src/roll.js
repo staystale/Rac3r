@@ -10,14 +10,13 @@
 // leading side — soonest where the ground grabs the sliding tyres (gravel, dirt, sand, mud), late
 // on grass and snow, only in a big fast spin on tarmac, never on ice — scaled by the car's static
 // stability (track / 2 x cg height: tall cars go over sooner); a hard SIDE impact (damage.js
-// sideKick) and a crooked LANDING can start one too. ROLLING: the rate decays at every quarter
-// turn the body hits the ground (side, roof, side, wheels), each costing speed and doing side /
-// roof damage (damage.js crushS / roofDmg) with paint chips; under SETTLE_W it settles onto the
-// nearest of wheels / side / roof. SLIDES: no tyres — the body grinds to a stop on its own
-// friction for that ground (sparks on hard ground).
-// Sim time (rule 5): it moves the car; render.ts draws it (faces, sparks), main.js hands control
-// back on RESET (player) or resets the AI.
-// m: body height (the side face the camera sees on a rolled car)
+// sideKick) and a crooked LANDING can start one too. ROLLING: the rate decays at every quarter turn
+// the body hits the ground (side, roof, side, wheels), each costing speed and doing side / roof
+// damage (damage.js crushS / roofDmg) with paint chips; under SETTLE_W it settles onto the nearest
+// of wheels / side / roof. SLIDES: no tyres — the body grinds to a stop on its own friction for
+// that ground (sparks on hard ground). Sim time (rule 5): it moves the car; render.ts draws it
+// (faces, sparks), main.js hands control back on RESET (player) or resets the AI. m: body height
+// (the side face the camera sees on a rolled car)
 export const ROLL_H = 1.4;
 // the hatch: 1.5 / (2 x 0.52)
 const SSF_REF = 1.44;
@@ -33,9 +32,8 @@ const HALF_PI = Math.PI / 2;
 // ANGLE (0 under ANG_MIN of the slide being sideways, 1 at fully sideways) x SPEED ((v / 60
 // mph)^4 under it, rising past it, cap x2.5) x the car's stability (track / 2 cg).
 const PCT = {
-  // high: the ground grabs a sliding car
-  // (user, 2026-10-04) SAND the HIGHEST risk (it also stops a slide fastest, so its per-cell %
-  // is highest), SNOW a close second
+  // high: the ground grabs a sliding car (user, 2026-10-04) SAND the HIGHEST risk (it also stops a
+  // slide fastest, so its per-cell % is highest), SNOW a close second
   grassLong: 5, sand: 22, mud: 5, thickMud: 7, snow: 11,
   // a GRAVEL TRAP (lab.js SURFACE_TRAP: deep, ploughing): the readiest to dig in and flip a car
   // sliding into it sideways (user)

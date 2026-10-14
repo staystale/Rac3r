@@ -8,20 +8,16 @@ import { trackKit } from "./kit.ts";
 import type { Point, Sector, Lane, Cone, Prop, Subtrack } from "../types.ts";
 // =============================================================================================
 // SLIDDEN HILL — parody of Lydden Hill (Kent), the rallycross circuit. Built 2026-10-04. Decisions
-// (user, 2026-10-04): loose sections =
-// HARD DIRT + gravel patches (the dirt inclusion table), JOKER = an "RX race" (5 laps from the
-// start grid, joker once, missed = +5 s),
-// START on the RX grid (the dead-end start straight), scenery like Castle Cum + the hill.
-// TRACED from the official RX map (art/ref/ly2.png = Wikimedia "Lydden_Hill_-_Rallycross.svg" at
-// 1280 px: black = tarmac, yellow =
+// (user, 2026-10-04): loose sections = HARD DIRT + gravel patches (the dirt inclusion table), JOKER
+// = an "RX race" (5 laps from the start grid, joker once, missed = +5 s), START on the RX grid (the
+// dead-end start straight), scenery like Castle Cum + the hill. TRACED from the official RX map
+// (art/ref/ly2.png = Wikimedia "Lydden_Hill_-_Rallycross.svg" at 1280 px: black = tarmac, yellow =
 // gravel; no scale bar — sized for a ~1 km lap, 0.30 game m per px). Lap from the JUNCTION where
-// the start straight meets the loop:
-// up the diagonal -> PADDOCK HILL (the outer tarmac sweep, top-left) -> CHESSONS DRIFT (gravel,
-// top) -> down to DEVIL'S ELBOW ("almost
-// doubles back") -> the climb to NORTH BEND ("a hairpin at the top of the hill") -> HAIRY HILL ("a
-// steep downhill") -> the gravel run
-// back to the junction. JOKER = the inner gravel arc across the top-left (branch on the diagonal,
-// rejoin on Chessons Drift).
+// the start straight meets the loop: up the diagonal -> PADDOCK HILL (the outer tarmac sweep,
+// top-left) -> CHESSONS DRIFT (gravel, top) -> down to DEVIL'S ELBOW ("almost doubles back") -> the
+// climb to NORTH BEND ("a hairpin at the top of the hill") -> HAIRY HILL ("a steep downhill") ->
+// the gravel run back to the junction. JOKER = the inner gravel arc across the top-left (branch on
+// the diagonal, rejoin on Chessons Drift).
 const SH_FRAME = { mpp: 0.30, cx: 640, cy: 358 };
 const shXY = (pixelX: number, pixelY: number): Point =>
   [+((pixelX - SH_FRAME.cx) * SH_FRAME.mpp).toFixed(2),
@@ -76,8 +72,8 @@ export const SH_SUBTRACK = createSubtrack(SH_SUBTRACK0.pts.map((point) => [point
 SH_SUBTRACK.curvedKerbs = autoKerbs(SH_SUBTRACK, { maxR: 70, exitR: 30, heavyR: 22, minTurn: 20,
   mergeGap: 12 });
 // the JOKER (inner gravel arc) and the START STRAIGHT (the RX grid, used once) are LANES: drivable,
-// off the lap's centreline
-// OPEN path smoothing (Chaikin, endpoints kept) — traceTrack is for closed loops only
+// off the lap's centreline OPEN path smoothing (Chaikin, endpoints kept) — traceTrack is for closed
+// loops only
 export const openSmooth = (pts: Point[], iterations = 3): Point[] => {
   let cur = pts;
   for (let pass = 0; pass < iterations; pass++) {
@@ -144,27 +140,21 @@ export const SH_STARTWALL = (() => {
   return out.filter((cone) => !onS(cone));
 })();
 // JOKER RULES (user, 2026-10-03/04): once per race, mandatory, missed = time penalty; a translucent
-// white arrow, gently pulsing, at
-// the entry. The GATE is the middle of the joker lane: drive through it and the joker counts.
-// Normal route branch -> rejoin 180 m,
-// joker 134 m but tight and on dirt (MEASURED cost: ENGINE.md).
-// ARROWS (user, 2026-10-04: "the arrow needs to be closer and more clearly pointing at the joker
-// lap, and vanish when it has been
-// taken"). The first cut sat at the split pointing along BOTH routes (they part slowly: 1 m apart
-// at 72 m, 11 m at 112 m, measured).
-// Now: one on the track 7 m before the split, on the joker (+) half, turned 20 deg toward it; one
-// at the joker's mouth where the
-// routes are ~9 m apart, pointing down the joker. Both 10 m long. main.js hides them once the gate
-// is driven through.
-// JOKER ARROW ACROSS THE TRANSITION (user, 2026-10-04, phone screenshot: "joker arrows should sit
-// across the transition to highlight the
-// joker section clearly"): centred where the joker's centre line crosses the ROAD EDGE (half on the
-// tarmac, half on the dirt), aimed along
-// the joker there. (Before: on the track ~40 m before the split, aimed at the mouth.)
-// the APPROACH arrow (user, 2026-10-04: "not sure the joker suggestion is showing correctly"): the
-// lane-mouth arrow sat just off the road
-// and landed at the screen edge at speed; this one is ON the road, 30 m before the turn-off, on the
-// joker's side, angled into the lane
+// white arrow, gently pulsing, at the entry. The GATE is the middle of the joker lane: drive
+// through it and the joker counts. Normal route branch -> rejoin 180 m, joker 134 m but tight and
+// on dirt (MEASURED cost: ENGINE.md). ARROWS (user, 2026-10-04: "the arrow needs to be closer and
+// more clearly pointing at the joker lap, and vanish when it has been taken"). The first cut sat at
+// the split pointing along BOTH routes (they part slowly: 1 m apart at 72 m, 11 m at 112 m,
+// measured). Now: one on the track 7 m before the split, on the joker (+) half, turned 20 deg
+// toward it; one at the joker's mouth where the routes are ~9 m apart, pointing down the joker.
+// Both 10 m long. main.js hides them once the gate is driven through. JOKER ARROW ACROSS THE
+// TRANSITION (user, 2026-10-04, phone screenshot: "joker arrows should sit across the transition to
+// highlight the joker section clearly"): centred where the joker's centre line crosses the ROAD
+// EDGE (half on the tarmac, half on the dirt), aimed along the joker there. (Before: on the track
+// ~40 m before the split, aimed at the mouth.) the APPROACH arrow (user, 2026-10-04: "not sure the
+// joker suggestion is showing correctly"): the lane-mouth arrow sat just off the road and landed at
+// the screen edge at speed; this one is ON the road, 30 m before the turn-off, on the joker's side,
+// angled into the lane
 export function jokerApproach(sub: Subtrack, joker: Point[], len = 12) {
   const halfWidth = sub.width / 2;
   for (let i = 1; i < joker.length - 1; i++) if (querySubtrack(sub, joker[i][0],
@@ -195,11 +185,10 @@ export const SH_JOKER_RULE = (() => {
     jokerPtB = joker[34];
   const trackPt = onTrack(SH_SUBTRACK, 60, 3.5, {});
   // PENALTY 5 -> 10 s (MEASURED, tools/jokercost: the joker costs rally 1.8 s but hatch 7.4 / track
-  // car 6.4 s — slow on dirt — so at
-  // +5 s a road car was FASTER skipping it. The penalty must beat every car's joker cost.)
-  // USER (phone screenshot with a red hand-drawn arrow, 2026-10-04): "only ONE arrow, placed where
-  // the red arrow is" — on the track
-  // at its right edge just before the gravel splits off, pointing into the joker's mouth.
+  // car 6.4 s — slow on dirt — so at +5 s a road car was FASTER skipping it. The penalty must beat
+  // every car's joker cost.) USER (phone screenshot with a red hand-drawn arrow, 2026-10-04): "only
+  // ONE arrow, placed where the red arrow is" — on the track at its right edge just before the
+  // gravel splits off, pointing into the joker's mouth.
   const mouthPt = onTrack(SH_SUBTRACK, 98, 4, {});
   // PENALTY 10 -> 30 s per miss OR extra joker (user, 2026-10-04: "harsh, real-ish")
   return { gate: { x: mid[0], y: mid[1], r: 7 }, penalty: 30, laps: 5,
@@ -207,10 +196,9 @@ export const SH_JOKER_RULE = (() => {
 })();
 
 // SLIDDEN HILL SCENERY (user: "same treatment" + the hill). Distances on this trace (lap 1136 m):
-// joker branch 69 / rejoin 249, PADDOCK
-// HILL 166, CHESSONS DRIFT 202-361 (dirt), DEVIL'S ELBOW 511 (a LEFT hairpin: its outside is +),
-// NORTH BEND 742, HAIRY HILL 856, the
-// gravel run 978-1101. + = inside except at the Elbow (measured against the centroid).
+// joker branch 69 / rejoin 249, PADDOCK HILL 166, CHESSONS DRIFT 202-361 (dirt), DEVIL'S ELBOW 511
+// (a LEFT hairpin: its outside is +), NORTH BEND 742, HAIRY HILL 856, the gravel run 978-1101. + =
+// inside except at the Elbow (measured against the centroid).
 const SH_ST = SH_START.pts, SH_SDIR = (() => {
   const [first, second] = SH_ST, len = Math.hypot(second[0] - first[0], second[1] - first[1]);
   return [(second[0] - first[0]) / len, (second[1] - first[1]) / len];
@@ -228,9 +216,8 @@ const SH_KIT = trackKit(SH_SUBTRACK, 1955, [SH_START, SH_JOKER, SH_PADDOCK]);
 export const SH_ARMCO = [[120, 200, -16], [230, 330, -16], [480, 545, 16], [700, 790, -16]];
 export const SH_BUMPS = prepBumps([
   // THE HILL: North Bend is "a hairpin at the top of the hill", then HAIRY HILL "a steep downhill".
-  // One broad cos^2 hill over the
-  // top-right: 8 m high, 105 m radius -> steepest ~12 %, flat again before Devil's Elbow and
-  // Chessons (both > 170 m from its centre).
+  // One broad cos^2 hill over the top-right: 8 m high, 105 m radius -> steepest ~12 %, flat again
+  // before Devil's Elbow and Chessons (both > 170 m from its centre).
   { kind: 'hump', x: +((1150 - SH_FRAME.cx) * SH_FRAME.mpp).toFixed(2),
     y: +((140 - SH_FRAME.cy) * SH_FRAME.mpp).toFixed(2), r: 105, h: 8 },
   // the natural bowl: viewing banks round the outside

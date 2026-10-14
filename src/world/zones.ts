@@ -5,17 +5,13 @@ import type { Surface } from "./types.ts";
 import { querySubtrack } from "./tyrewall.ts";
 
 // ---------------------------------------------------------------------------------------------
-// ZONES — every patch of surface on the floor, as ONE mechanism. A zone is a centred rectangle
-// with a
-// surface on it; first hit wins, and anything uncovered is the level's base surface. The lab's
-// four
-// quadrants and its low-friction panels are now the same kind of object with different numbers,
-// which
-// is what lets a second level lay its surfaces out completely differently for free.
+// ZONES — every patch of surface on the floor, as ONE mechanism. A zone is a centred rectangle with
+// a surface on it; first hit wins, and anything uncovered is the level's base surface. The lab's
+// four quadrants and its low-friction panels are now the same kind of object with different
+// numbers, which is what lets a second level lay its surfaces out completely differently for free.
 //
 // `boxed` only affects DRAWING — a rim and a painted name, for a test panel you are meant to aim
-// at.
-// m of tarmac round a rounded test pad (drawn by render.ts drawZones)
+// at. m of tarmac round a rounded test pad (drawn by render.ts drawZones)
 export const PAD_APRON = 1.2;
 // |dx|, |dy| from the centre inside a rectangle of half-size hw x hh with corner radius R
 function inRoundRect(dx: number, dy: number, halfW: number, halfH: number,
@@ -25,9 +21,8 @@ function inRoundRect(dx: number, dy: number, halfW: number, halfH: number,
   return insetX <= 0 || insetY <= 0 || insetX * insetX + insetY * insetY <= radius * radius;
 }
 // LANES (2026-10-04, Thruston pit lane): LEVEL.lanes [{ pts: [[x,y]...] open polyline, width,
-// surface }] — a ribbon of one surface
-// along a path, for pit lanes and access roads. Drawn by render.ts drawLanes from the same pts and
-// width.
+// surface }] — a ribbon of one surface along a path, for pit lanes and access roads. Drawn by
+// render.ts drawLanes from the same pts and width.
 export function laneAt(x: number, y: number): Surface | null {
   const list = LEVEL.lanes;
   if (!list) return null;
@@ -90,11 +85,10 @@ export function zoneAt(x: number, y: number): Surface {
   for (let i = 0; i < z.length; i++) {
     const zone = z[i];
     if (zone.rounded) {
-      // ROUNDED PADS, exactly as render.ts drawZones draws them: corner radius min(5, 0.15 w) and
-      // a PAD_APRON of tarmac
-      // round the outside. MEASURED BUG, 2026-10-03 (tools/visualcheck.mjs): physics was the plain
-      // rectangle, so the
-      // drawn tarmac apron drove as grass and the rounded-off corners drove as the pad's surface.
+      // ROUNDED PADS, exactly as render.ts drawZones draws them: corner radius min(5, 0.15 w) and a
+      // PAD_APRON of tarmac round the outside. MEASURED BUG, 2026-10-03 (tools/visualcheck.mjs):
+      // physics was the plain rectangle, so the drawn tarmac apron drove as grass and the
+      // rounded-off corners drove as the pad's surface.
       const dx = Math.abs(x - zone.x), dy = Math.abs(y - zone.y),
         radius = Math.min(5, zone.w * 0.15);
       if (inRoundRect(dx, dy, zone.w / 2, zone.h / 2, radius)) return zone.surface;

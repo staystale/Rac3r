@@ -7,22 +7,17 @@ import { ss01, trackKit } from "./kit.ts";
 import type { Point, Lane, Zone, Paint, Prop, Subtrack } from "../types.ts";
 // =============================================================================================
 // CASTLE CUM — parody of Castle Combe (Wiltshire), built 2026-10-04. Track list approved
-// 2026-10-03; decisions (user, 2026-10-04):
-// BIGGER scale (~1250 m lap so the chicanes keep their shape), Avon Rise crest FELT (light
-// over the top; braking there can lock — the real Quarry trap), all the scenery, DRY tarmac
-// + grass.
-// TRACED from the official map (art/ref/cc2.png, Wikimedia
-// "Castle_Combe_Circuit_track_map.svg" at 1280 px; 385 m = 448 px -> 0.859 m/px real) at
-// 0.358 game m per px (0.42 of real), centre (637, 532). Clockwise from the line on the
-// bottom straight:
-// FOLLY (flat right kink, bumpy) -> AVON RISE (shallow left over the CREST) -> QUARRY (long
-// slow right; "statistically the most accident-prone corner in the UK") -> FARM STRAIGHT ->
-// the ESSES (chicane, 1999) -> OLD PADDOCK (fast right) -> HAMMERDOWN (flat left kink) ->
-// TOWER (right, braking downhill) -> BOBBIES (chicane, 1999) -> WESTWAY / DEAN STRAIGHT ->
-// CAMP (right) -> line.
-// Corner guide: bristolpegasus.com Castle Combe turn-by-turn; scenery: the circuit's own
-// site sign (art/ref/cc4.jpg — it is drawn rotated 180 deg from the map) and
-// pistonclick.com spectator guide.
+// 2026-10-03; decisions (user, 2026-10-04): BIGGER scale (~1250 m lap so the chicanes keep their
+// shape), Avon Rise crest FELT (light over the top; braking there can lock — the real Quarry trap),
+// all the scenery, DRY tarmac + grass. TRACED from the official map (art/ref/cc2.png, Wikimedia
+// "Castle_Combe_Circuit_track_map.svg" at 1280 px; 385 m = 448 px -> 0.859 m/px real) at 0.358 game
+// m per px (0.42 of real), centre (637, 532). Clockwise from the line on the bottom straight: FOLLY
+// (flat right kink, bumpy) -> AVON RISE (shallow left over the CREST) -> QUARRY (long slow right;
+// "statistically the most accident-prone corner in the UK") -> FARM STRAIGHT -> the ESSES (chicane,
+// 1999) -> OLD PADDOCK (fast right) -> HAMMERDOWN (flat left kink) -> TOWER (right, braking
+// downhill) -> BOBBIES (chicane, 1999) -> WESTWAY / DEAN STRAIGHT -> CAMP (right) -> line. Corner
+// guide: bristolpegasus.com Castle Combe turn-by-turn; scenery: the circuit's own site sign
+// (art/ref/cc4.jpg — it is drawn rotated 180 deg from the map) and pistonclick.com spectator guide.
 const CC_MAP: Point[] = [
   // start / finish straight (west)
   [940, 1031], [900, 1031], [800, 1029], [700, 1026], [640, 1021], [600, 1012],
@@ -183,10 +178,9 @@ export const CC_BUMPS = prepBumps([
   // -> at 145 km/h (40 m/s) 8.3 m/s^2 of the 13.7 vertical gravity: the car goes LIGHT, not
   // airborne. Braking there is the real trap (locks). Measured: see ENGINE.md.
   { kind: 'hump', ...CC_KIT.at(296, 0), r: 30, h: 0.95 },
-  // the run down into TOWER: a broad rise on the top straight after Hammerdown, so you brake
-  // for Tower going DOWNHILL
-  // MEASURED (tools/crestcheck --flat): r 45 h 1.6 put EVERY car airborne 0.2-0.5 s flat out
-  // (user asked for light, not flying); r 50 h 0.9 = 46% of that crest curvature
+  // the run down into TOWER: a broad rise on the top straight after Hammerdown, so you brake for
+  // Tower going DOWNHILL MEASURED (tools/crestcheck --flat): r 45 h 1.6 put EVERY car airborne
+  // 0.2-0.5 s flat out (user asked for light, not flying); r 50 h 0.9 = 46% of that crest curvature
   { kind: 'hump', ...CC_KIT.at(850, 0), r: 50, h: 0.9 },
   // FOLLY: "the track is bumpy here"
   ...[0, 1, 2, 3, 4].map((idx) => ({

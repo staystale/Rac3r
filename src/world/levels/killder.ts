@@ -7,21 +7,17 @@ import { trackKit } from "./kit.ts";
 import type { Point, Cover, Lane, Cone, Prop, Paint, Barrier } from "../types.ts";
 // =============================================================================================
 // KILLDER — parody of the Kielder Forest rally stages (Northumberland). Built 2026-10-04. DECIDED
-// (user): "FAST + FLOWING"; "be LIBERAL
-// with hay bales, tyres, cones, flags and other event decorations"; a staggered-start stage like
-// Sweaty Lamb (main.js / raceflow stage).
-// Real Kielder: fast gravel forest roads through dense conifer plantations, long straights into
-// tight JUNCTION hairpins, big crests and
-// jumps, log piles at the junctions, the reservoir (Kielder Water). ~2 km of stage (1966 m
-// traced), in order: the FOREST STRAIGHT out of
-// the start, flowing right-left SWEEPERS north, the big CREST, JUNCTION HAIRPIN 1 (right), south
-// past the plantation, the DAM STRAIGHT
-// along Kielder Water, a fast right, THE JUMP, a long fast left, the LOG-PILE SQUARE right,
-// north-east S-bends, JUNCTION HAIRPIN 2
-// (left), the long crest-y TOP ROAD west, sweeping down the west side, fast S-BENDS, the flying
-// FINISH; then the forest road back.
-// MEASURED (layout check): tightest R 24 m (the junction hairpins), road never within 32 m of
-// another part of itself.
+// (user): "FAST + FLOWING"; "be LIBERAL with hay bales, tyres, cones, flags and other event
+// decorations"; a staggered-start stage like Sweaty Lamb (main.js / raceflow stage). Real Kielder:
+// fast gravel forest roads through dense conifer plantations, long straights into tight JUNCTION
+// hairpins, big crests and jumps, log piles at the junctions, the reservoir (Kielder Water). ~2 km
+// of stage (1966 m traced), in order: the FOREST STRAIGHT out of the start, flowing right-left
+// SWEEPERS north, the big CREST, JUNCTION HAIRPIN 1 (right), south past the plantation, the DAM
+// STRAIGHT along Kielder Water, a fast right, THE JUMP, a long fast left, the LOG-PILE SQUARE
+// right, north-east S-bends, JUNCTION HAIRPIN 2 (left), the long crest-y TOP ROAD west, sweeping
+// down the west side, fast S-BENDS, the flying FINISH; then the forest road back. MEASURED (layout
+// check): tightest R 24 m (the junction hairpins), road never within 32 m of another part of
+// itself.
 const KD_STAGE: Point[] = [[-200, 230], [-140, 232], [-80, 228], [-30, 215], [10, 190], [30, 150],
   [35, 110], [32, 70], [25, 30], [22, -2], [38, -16], [58, -10], [70, 10],
   [76, 60], [92, 108], [122, 140], [170, 150], [210, 140], [230, 100], [232, 50], [230, 10],
@@ -85,9 +81,8 @@ export const KD_BUMPS = prepBumps([
     ...KD_KIT.bank(KD_C.hp2 - 30, KD_C.hp2 + 30, 20, 6, 1.4),
 ]);
 // EVENT DRESSING (user: "be liberal"): on EVERY corner chevrons on the outside, hay bales lining
-// the outside, cones on the inside apex,
-// flags; tyre-stack walls at the junction hairpins and the square; spectator tape + marquees at
-// the hairpins and the jump; log piles.
+// the outside, cones on the inside apex, flags; tyre-stack walls at the junction hairpins and the
+// square; spectator tape + marquees at the hairpins and the jump; log piles.
 const kdTurn = (dist: number) => {
   const before = KD_KIT.rot(dist - 8), after = KD_KIT.rot(dist + 8);
   let turn = after - before;
@@ -153,10 +148,9 @@ for (const [clusterX, clusterY, width, depth, count] of [[-60, 120, 70, 120, 35]
   if (KD_KIT.clear(x, y, 8)) KD_TREES.push(
     { kind: 'tree', x, y, s: 4 + KD_KIT.rnd() * 2.5, seed: 2 * treeIdx + 1 });
 }
-// the TREE WALLS of a forest stage (photographed v1: plantations only, so the road ran through
-// open grass): both sides, 10-16 m out,
-// every ~8 m with gaps, along the whole stage (the corners' bales / chevrons sit inside 13 m;
-// clear() keeps 8 m off any road)
+// the TREE WALLS of a forest stage (photographed v1: plantations only, so the road ran through open
+// grass): both sides, 10-16 m out, every ~8 m with gaps, along the whole stage (the corners' bales
+// / chevrons sit inside 13 m; clear() keeps 8 m off any road)
 for (let dist = 20; dist < KD_FINISH - 10; dist += 8) for (const side of [-1, 1]) {
   if (KD_KIT.rnd() < 0.3) continue;
   const pos = KD_KIT.at(dist + KD_KIT.rnd() * 4, side * (14 + KD_KIT.rnd() * 6));

@@ -31,14 +31,12 @@ export function createObjects(view: View, cam: Cam, helpers: ObjectsHelpers) {
   // ---------------------------------------------------------------- cones
   //
   // STANDING and TOPPLED must be unmistakable at a glance and at phone size (§4: if the player
-  // cannot
-  // read it, it did not happen). Standing reads as concentric rings — the cone seen from directly
-  // above. Toppled reads as a LONG shape lying in the direction it was hit, which is a completely
-  // different silhouette rather than the same blob in a different colour.
+  // cannot read it, it did not happen). Standing reads as concentric rings — the cone seen from
+  // directly above. Toppled reads as a LONG shape lying in the direction it was hit, which is a
+  // completely different silhouette rather than the same blob in a different colour.
   // ---------------------------------------------------------------- PIXEL OBJECTS (cones, tyres)
   // Generated pixel sprites, cached, drawn at the car's art scale (SPRITE_PPM) with smoothing off.
-  // Round things are
-  // PIXEL-round — rasterised square by square (pdisc), never an anti-aliased arc.
+  // Round things are PIXEL-round — rasterised square by square (pdisc), never an anti-aliased arc.
   const objCache = new Map<string, ObjSprite>();
   function objSprite(
     key: string, size: number, paint: (g: CanvasRenderingContext2D, n: number) => void
@@ -122,8 +120,8 @@ export function createObjects(view: View, cam: Cam, helpers: ObjectsHelpers) {
   }
 
   // RALLY TAPE (cones.js sections): red / white between its posts; a SNAPPED section hangs as two
-  // short loose ends; tape STUCK to a car
-  // trails behind it as a fluttering streamer (wall-clock flutter, fades after ~14 s)
+  // short loose ends; tape STUCK to a car trails behind it as a fluttering streamer (wall-clock
+  // flutter, fades after ~14 s)
   function drawTape(game: TapeGame) {
     const tapes = game.cones.tapes; if (!tapes || !tapes.length) return;
     const ppm = PPMz(), lineWidth = Math.max(1.5, 0.12 * ppm);

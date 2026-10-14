@@ -34,7 +34,8 @@ export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
     view.ctx.fillRect(0, 0, view.W, view.H);
     const p = PPMz();
 
-    // the floor RECTANGLE (S-B): FX0..FX1 x FY0..FY1, the square +-FLOOR on every level without bounds
+    // the floor RECTANGLE (S-B): FX0..FX1 x FY0..FY1, the square +-FLOOR on every level without
+    // bounds
     const fw = (FX1 - FX0) * p, fh = (FY1 - FY0) * p;
     if (LEVEL.base && LEVEL.base.id !== 'lab') {
       view.ctx.fillStyle = artBase(LEVEL.base.id, COL.floor);
@@ -47,9 +48,10 @@ export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
       view.ctx.fillStyle = COL.floor;
       view.ctx.fillRect(sx(FX0), sy(FY0), fw, fh);
 
-      // a soft warm pool so a big pale floor is not dead flat. Since the ground TILES (2026-10-03) it is
-      // centred on the WORLD ORIGIN (the skidpad), not on the car: tiles are painted separately, so a
-      // screen-centred gradient would come out as one blotch per tile. It stays UNDER the zones.
+      // a soft warm pool so a big pale floor is not dead flat. Since the ground TILES (2026-10-03)
+      // it is centred on the WORLD ORIGIN (the skidpad), not on the car: tiles are painted
+      // separately, so a screen-centred gradient would come out as one blotch per tile. It stays
+      // UNDER the zones.
       const gr = view.ctx.createRadialGradient(sx(0), sy(0), 0, sx(0), sy(0), FLOOR * 0.9 * p);
       gr.addColorStop(0, 'rgba(255,252,246,0.55)');
       gr.addColorStop(1, 'rgba(226,226,234,0)');
@@ -80,13 +82,14 @@ export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
     }
   }
 
-  // GROUND TEXTURE. A fixed lattice (never an RNG — that crawls between frames), CULLED TO THE VIEW.
+  // GROUND TEXTURE. A fixed lattice (never an RNG — that crawls between frames), CULLED TO THE
+  // VIEW.
   //
   // MEASURED BUG, 2026-09-28 (photographed): this looped the whole 260 m quadrant, so it could only
-  // afford ~3 m spacing and the result was a field of 1 m polka dots rather than ground. Culling to the
-  // visible rectangle first makes the count depend on the SCREEN, not the world, so the grain can be as
-  // fine as it needs to be and costs the same at any zoom. Squares, not arcs: at grain size they read
-  // identically and they are far cheaper.
+  // afford ~3 m spacing and the result was a field of 1 m polka dots rather than ground. Culling to
+  // the visible rectangle first makes the count depend on the SCREEN, not the world, so the grain
+  // can be as fine as it needs to be and costs the same at any zoom. Squares, not arcs: at grain
+  // size they read identically and they are far cheaper.
   const MARKS_MAX = 30000;      // most marks one pattern layer may place in one call (see speckle)
   function speckle(
     x0: number, y0: number, x1: number, y1: number, colour: string, spacing: number, size: number
@@ -94,14 +97,15 @@ export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
     const p = PPMz();
     const px = Math.max(1, size * p);
     if (px < 1.1 && spacing * p < 3) return;      // too far out to resolve: skip it entirely
-    // intersect the region with what is actually on screen, snapped to the lattice so the pattern is
-    // world-locked and does not swim as the camera moves
+    // intersect the region with what is actually on screen, snapped to the lattice so the pattern
+    // is world-locked and does not swim as the camera moves
     const vx0 = Math.max(x0, cam.x - view.W / 2 / p), vx1 = Math.min(x1, cam.x + view.W / 2 / p);
     const vy0 = Math.max(y0, cam.y - view.H / 2 / p), vy1 = Math.min(y1, cam.y + view.H / 2 / p);
     if (vx1 <= vx0 || vy1 <= vy0) return;
-    // MARK CAP (2026-10-03): the fly-in's whole-level overview asked one call for ~188,000 squares of grass grain
-    // (1.1 s to record, 4.9 s to rasterise at 4x throttle). Any call that would place more than MARKS_MAX marks
-    // thins its lattice to fit — invisible at the zoom where it happens, since that much grain is sub-pixel noise.
+    // MARK CAP (2026-10-03): the fly-in's whole-level overview asked one call for ~188,000 squares
+    // of grass grain (1.1 s to record, 4.9 s to rasterise at 4x throttle). Any call that would
+    // place more than MARKS_MAX marks thins its lattice to fit — invisible at the zoom where it
+    // happens, since that much grain is sub-pixel noise.
     const n0 = ((vx1 - vx0) / spacing) * ((vy1 - vy0) / spacing);
     if (n0 > MARKS_MAX) spacing *= Math.sqrt(n0 / MARKS_MAX);
     const ax = Math.floor(vx0 / spacing) * spacing, ay = Math.floor(vy0 / spacing) * spacing;
@@ -119,16 +123,18 @@ export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
   }
 
   // ---------------------------------------------------------------- SURFACE PAINTER (2026-10-03)
-  // User: "All surfaces should have unique and noticeable graphics so we can easily and instantly tell
-  // them apart." PHOTOGRAPHED BEFORE: every surface was a base colour plus the same square speckle, so
-  // grass/short grass, tarmac/race tarmac, wet/broken, sand/gravel and mud/dirt read as pairs. Colour
-  // alone does not survive a glance at speed; SHAPE does. So each surface now gets its own pattern
-  // vocabulary — stripes, blades, stones, ripples, glossy blobs, cracks, sheen — on top of its colour.
+  // User: "All surfaces should have unique and noticeable graphics so we can easily and instantly
+  // tell them apart." PHOTOGRAPHED BEFORE: every surface was a base colour plus the same square
+  // speckle, so grass/short grass, tarmac/race tarmac, wet/broken, sand/gravel and mud/dirt read as
+  // pairs. Colour alone does not survive a glance at speed; SHAPE does. So each surface now gets
+  // its own pattern vocabulary — stripes, blades, stones, ripples, glossy blobs, cracks, sheen — on
+  // top of its colour.
   //
-  // Every primitive below shares the speckle rules: a FIXED world lattice (never an RNG, or it crawls),
-  // CULLED to the view so cost depends on the screen not the world, skipped entirely when the feature
-  // would be under ~1 px, and BATCHED into one path per layer (one fill/stroke call, not one per mark).
-  // Callers have translated the context to the world origin, so coordinates are world metres * p.
+  // Every primitive below shares the speckle rules: a FIXED world lattice (never an RNG, or it
+  // crawls), CULLED to the view so cost depends on the screen not the world, skipped entirely when
+  // the feature would be under ~1 px, and BATCHED into one path per layer (one fill/stroke call,
+  // not one per mark). Callers have translated the context to the world origin, so coordinates are
+  // world metres * p.
   function lattice(
     x0: number, y0: number, x1: number, y1: number, spacing: number, prob: number,
     fn: (x: number, y: number, a: number, b: number, c: number, p: number) => void
@@ -243,8 +249,9 @@ export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
     // long diagonal sheen bands — polish on ice, reflection on standing water
     sheen(L, x0, y0, x1, y1) {
       const [, col, sp, wid, slope] = L, p = PPMz();
-      // extended past the view by a band's width: a square-cut diagonal band ending exactly at a TILE edge
-      // left a visible notch at every tile seam (photographed 2026-10-03 on the lab ice sheet)
+      // extended past the view by a band's width: a square-cut diagonal band ending exactly at a
+      // TILE edge left a visible notch at every tile seam (photographed 2026-10-03 on the lab ice
+      // sheet)
       const vx0 = Math.max(x0, cam.x - view.W / 2 / p - wid * 2), vx1 = Math.min(x1, cam.x + view.W / 2 / p + wid * 2);
       const vy0 = Math.max(y0, cam.y - view.H / 2 / p), vy1 = Math.min(y1, cam.y + view.H / 2 / p);
       if (vx1 <= vx0 || vy1 <= vy0) return;
@@ -257,10 +264,10 @@ export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
     },
   };
 
-  // HOW EACH SURFACE IS PAINTED: a base colour, then layers drawn in order. One table — a new surface is a
-  // row here and a row in lab.js (SURFACES) and nothing else. Read by drawFloor, drawZones,
-  // drawTrackRibbon and drawWear, so a surface looks the same wherever it appears. Each surface has a
-  // SIGNATURE SHAPE so no two are told apart by colour alone:
+  // HOW EACH SURFACE IS PAINTED: a base colour, then layers drawn in order. One table — a new
+  // surface is a row here and a row in lab.js (SURFACES) and nothing else. Read by drawFloor,
+  // drawZones, drawTrackRibbon and drawWear, so a surface looks the same wherever it appears. Each
+  // surface has a SIGNATURE SHAPE so no two are told apart by colour alone:
   //   tarmac — fine light aggregate        race tarmac — smooth, dark, long rubber streaks
   //   broken — pale, cracked, dark patches dirt — warm brown, pale pebbles
   //   mud — dark wet pools + gloss         thick mud — near-black, ridged ruts + gloss
@@ -272,41 +279,45 @@ export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
     lab: null,                                   // the lab surface IS the floor colour already
     tarmac: { base: '#3a3c46', layers: [['grain', '#5a5d6a', 0.9, 0.09], ['grain', '#2b2d35', 1.7, 0.12]] },
     racetarmac: { base: '#2a2d36', layers: [['blobs', 'rgba(16,17,22,0.55)', 3.2, 1.6, 0.10, 0.6, 0.08]] },
-    // circles (repair patches) removed 2026-10-03 — user: "the circles on broken concrete look weird, just keep the cracks"
+    // circles (repair patches) removed 2026-10-03 — user: "the circles on broken concrete look
+    // weird, just keep the cracks"
     broken: { base: '#8e9099', layers: [['cracks', '#4a4b54', 2.2, 1.7, 0.07], ['grain', '#a3a5ad', 1.0, 0.10]] },
     concrete: { base: '#a9a7a0', layers: [['grain', '#bdbbb4', 0.8, 0.10], ['cracks', '#8c8a83', 6.0, 3.0, 0.05]] },   // pale slabs, faint joints
     dirt: { base: '#8a6e50', layers: [['grain', '#74593d', 0.7, 0.12], ['stones', '#b59672', 1.5, 0.06, 0.13], ['grain', '#5d4329', 2.2, 0.22]] },
     mud: { base: '#5a4231', layers: [['blobs', '#3f2d20', 2.2, 0.95, 0.70, 0.6, 0.25], ['blobs', 'rgba(255,238,215,0.20)', 1.9, 0.30, 0.08, 0.45, 0.25], ['grain', '#4a3626', 0.9, 0.12]] },
     thickMud: { base: '#3a291d', layers: [['ripples', '#24180f', 0.9, 0.16, 3.0, 0.20], ['blobs', 'rgba(255,238,215,0.30)', 1.3, 0.30, 0.08, 0.6]] },
     gravel: { base: '#a99c84', layers: [['stones', '#d4cab5', 0.75, 0.05, 0.11], ['stones', '#7d725d', 0.85, 0.05, 0.10]] },
-    // sand REDONE 2026-10-03 (user: "I don't love how sand looks") — the bold squiggles read as cartoon.
-    // Now fine two-tone grains with faint, long, soft wind ripples.
+    // sand REDONE 2026-10-03 (user: "I don't love how sand looks") — the bold squiggles read as
+    // cartoon. Now fine two-tone grains with faint, long, soft wind ripples.
     sand: { base: '#e0c994', layers: [['ripples', 'rgba(176,146,92,0.30)', 0.85, 0.10, 3.6, 0.07], ['grain', '#c9ad74', 0.5, 0.06], ['grain', '#f3e5bf', 0.62, 0.06]] },
     grass: { base: '#7e9c5e', layers: [['stripes', '#89a868', 4], ['grain', '#6a8850', 1.2, 0.18]] },
     grassShort: { base: '#7e9c5e', layers: [['stripes', '#89a868', 4], ['grain', '#6a8850', 1.2, 0.18]] },
     grassLong: { base: '#4d6b33', layers: [['blades', '#6f904a', 0.5, 0.42, 0.07], ['blades', '#3a5226', 0.62, 0.48, 0.07]] },
-    // (field looks: added below SURFACE_ART - the grass / long grass / mud textures recoloured, highway.js FIELD_SURF)
+    // (field looks: added below SURFACE_ART - the grass / long grass / mud textures recoloured,
+    // highway.js FIELD_SURF)
     snow: { base: '#f3f7fb', layers: [['blobs', 'rgba(140,170,210,0.20)', 3.0, 1.9, 0.5, 0.6, 0.15], ['grain', '#ffffff', 0.9, 0.12]] },
     packedSnow: { base: '#c4cfda', layers: [['blobs', 'rgba(96,118,150,0.22)', 2.6, 1.3, 0.4, 0.6, 0.15], ['grain', '#e9eff5', 0.8, 0.14], ['grain', '#9fb0c2', 1.6, 0.10]] },
     ice: { base: '#b9daee', layers: [['sheen', 'rgba(255,255,255,0.32)', 4.5, 0.55, 0.5], ['cracks', 'rgba(255,255,255,0.80)', 3.6, 1.7, 0.05]] },
-    // wet tarmac REDONE 2026-10-03 (user: "I don't love how wet tarmac looks") — the blue blobs read as
-    // paint. Real wet asphalt is DARKER tarmac with its aggregate still showing, broad soft reflections and
-    // dark glossy standing water in the low spots.
-    // + BLUE-ISH PUDDLES (user, 2026-10-03: "wet tarmac isn't clear enough, maybe needs blue-ish puddles")
+    // wet tarmac REDONE 2026-10-03 (user: "I don't love how wet tarmac looks") — the blue blobs
+    // read as paint. Real wet asphalt is DARKER tarmac with its aggregate still showing, broad soft
+    // reflections and dark glossy standing water in the low spots. + BLUE-ISH PUDDLES (user,
+    // 2026-10-03: "wet tarmac isn't clear enough, maybe needs blue-ish puddles")
     wet: { base: '#2c3039', layers: [['grain', '#454a57', 0.9, 0.08], ['blobs', 'rgba(86,120,176,0.55)', 4.2, 1.6, 0.8, 0.55, 0.2], ['sheen', 'rgba(205,218,238,0.10)', 6.0, 1.6, -0.35], ['sheen', 'rgba(230,238,250,0.16)', 6.0, 0.18, -0.35],
       ['rings', 'rgba(200,220,250,0.35)', 4.6, 0.35, 0.03, 0.4]] },
   };
-  // FIELD LOOKS (highway.js fields, zone.art; the zone DRIVES as its own surface). User, 2026-10-06: "jsut reuse mud and grass or long
-  // grass textures for field, and maybe colour them" - so each is an existing texture with only its COLOURS swapped (same layers).
-  // SURFACE_ART[id]! is set for the ids below; the cast: slice(2) of an ArtLayer is all numbers
+  // FIELD LOOKS (highway.js fields, zone.art; the zone DRIVES as its own surface). User,
+  // 2026-10-06: "jsut reuse mud and grass or long grass textures for field, and maybe colour them"
+  // - so each is an existing texture with only its COLOURS swapped (same layers). SURFACE_ART[id]!
+  // is set for the ids below; the cast: slice(2) of an ArtLayer is all numbers
   const recolour = (id: string, base: string, cols: string[]): SurfaceArt => ({ base, layers: SURFACE_ART[id]!.layers.map((L, k): ArtLayer => [L[0], cols[k] || L[1], ...L.slice(2) as number[]]) });
   SURFACE_ART.wheat = recolour('grassLong', '#bf9f4e', ['#dcc074', '#9c7f38']);      // long grass, ripe gold
   SURFACE_ART.rapeseed = recolour('grassLong', '#c9b02a', ['#ecd84a', '#8f9a2e']);   // long grass, yellow flower over green
   SURFACE_ART.pastureG = recolour('grass', '#86a35c', ['#92b068', '#6f8c4c']);       // grass, a fresher green than the verge
   SURFACE_ART.plough = recolour('mud', '#6a4c34', ['#4e3624', 'rgba(255,238,215,0.14)', '#5a412c']);   // mud, a lighter turned-earth brown
   SURFACE_ART.hedgerow = recolour('grassLong', '#3c5a28', ['#5a7c3a', '#2c4220']);   // the long-grass BORDER round each field, darker
-  // Paint one surface's layers over a region. The caller has set any clip and translated to the world
-  // origin; this only adds the pattern (the caller fills the base colour, since it knows the shape).
+  // Paint one surface's layers over a region. The caller has set any clip and translated to the
+  // world origin; this only adds the pattern (the caller fills the base colour, since it knows the
+  // shape).
   function paintLayers(id: string, x0: number, y0: number, x1: number, y1: number) {
     if (view.noPatterns) return;
     const art = SURFACE_ART[id];
@@ -329,11 +340,11 @@ export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
   );
 
   // EVERY PATCH OF SURFACE, from the same ZONES list the physics reads — so what you see is by
-  // construction what you drive on, with no second copy of the layout to drift out of step. (That drift
-  // is exactly the bug that cost me an afternoon in the ground sampling earlier today.)
+  // construction what you drive on, with no second copy of the layout to drift out of step. (That
+  // drift is exactly the bug that cost me an afternoon in the ground sampling earlier today.)
   //
-  // Drawn back to front, so the first-hit-wins order in lab.js is honoured visually too: a panel laid
-  // ON a quadrant is listed first and must therefore be painted LAST.
+  // Drawn back to front, so the first-hit-wins order in lab.js is honoured visually too: a panel
+  // laid ON a quadrant is listed first and must therefore be painted LAST.
   function drawZones() {
     const p = PPMz();
     for (let i = ZONES.length - 1; i >= 0; i--) {
@@ -341,9 +352,10 @@ export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
       const aid = q.art || q.surface.id, art = SURFACE_ART[aid];   // q.art: drawn as another look (a wheat field drives as long grass)
       if (!art) continue;
       const x0 = q.x - q.w / 2, y0 = q.y - q.h / 2;
-      // off screen? On the ROTATED footprint. MEASURED BUG (user, 2026-10-04: "the old runway bugs in and out of existence"): this
-      // tested the unrotated w x h box, so a long thin rotated runway (432 x 22 m at -22 deg) was skipped by every ground tile more
-      // than 11 m from its centre line — painted in some tiles, missing in others, changing as tiles reloaded.
+      // off screen? On the ROTATED footprint. MEASURED BUG (user, 2026-10-04: "the old runway bugs
+      // in and out of existence"): this tested the unrotated w x h box, so a long thin rotated
+      // runway (432 x 22 m at -22 deg) was skipped by every ground tile more than 11 m from its
+      // centre line — painted in some tiles, missing in others, changing as tiles reloaded.
       const ca = Math.abs(Math.cos(q.rot || 0)), sa = Math.abs(Math.sin(q.rot || 0));
       const ex = (q.w / 2) * ca + (q.h / 2) * sa, ey = (q.w / 2) * sa + (q.h / 2) * ca;
       if (sx(q.x - ex) > view.W || sx(q.x + ex) < 0 || sy(q.y - ey) > view.H || sy(q.y + ey) < 0) continue;
@@ -384,8 +396,9 @@ export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
       }
 
       if (q.rot) {
-        // ROTATED zone: clip in the zone's frame, then step back to the world frame (the clip stays) and paint the texture
-        // over the zone's bounding box, so it lines up with the ground exactly where zoneAt says the surface is.
+        // ROTATED zone: clip in the zone's frame, then step back to the world frame (the clip
+        // stays) and paint the texture over the zone's bounding box, so it lines up with the ground
+        // exactly where zoneAt says the surface is.
         const r = Math.hypot(q.w, q.h) / 2;
         if (sx(q.x + r) < 0 || sx(q.x - r) > view.W || sy(q.y + r) < 0 || sy(q.y - r) > view.H) continue;
         view.ctx.save();
@@ -394,8 +407,9 @@ export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
         view.ctx.fillStyle = art.base; view.ctx.fill(); view.ctx.clip();
         view.ctx.rotate(-q.rot); view.ctx.translate(-sx(q.x), -sy(q.y));
         view.ctx.translate(sx(0), sy(0));
-        // only the part IN VIEW (in a tile: the tile). MEASURED 2026-10-04: once the culling fix let the 432 m runway into every tile
-        // it crosses, each tile repainted its whole 430 m square of texture — ground tile 22 -> 26 ms, slow frames 71 -> ~90.
+        // only the part IN VIEW (in a tile: the tile). MEASURED 2026-10-04: once the culling fix
+        // let the 432 m runway into every tile it crosses, each tile repainted its whole 430 m
+        // square of texture — ground tile 22 -> 26 ms, slow frames 71 -> ~90.
         const vx0 = cam.x - view.W / 2 / p, vy0 = cam.y - view.H / 2 / p;
         paintLayers(aid, Math.max(q.x - r, vx0), Math.max(q.y - r, vy0), Math.min(q.x + r, vx0 + view.W / p), Math.min(q.y + r, vy0 + view.H / p));
         view.ctx.restore();
@@ -424,31 +438,35 @@ export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
         }
       }
     }
-    // A soft seam where the quarters meet, so the join reads as a real transition and not a UI edge.
+    // A soft seam where the quarters meet, so the join reads as a real transition and not a UI
+    // edge.
     if (LEVEL.seams) {
       view.ctx.strokeStyle = 'rgba(80,80,92,0.20)';
       view.ctx.lineWidth = Math.max(1, 0.3 * p);
       view.ctx.beginPath();
-      // the old square's quarters only (S-B: the lab's extension south of FLOOR is one floor, no quarter seam)
+      // the old square's quarters only (S-B: the lab's extension south of FLOOR is one floor, no
+      // quarter seam)
       view.ctx.moveTo(sx(-FLOOR), sy(0)); view.ctx.lineTo(sx(FLOOR), sy(0));
       view.ctx.moveTo(sx(0), sy(-FLOOR)); view.ctx.lineTo(sx(0), sy(FLOOR));
       view.ctx.stroke();
     }
   }
 
-  // COVERS (2026-10-03) — snow, ice and puddles lying ON any surface (LEVEL.covers, lab.js). Static, so
-  // they are painted into the ground tiles. Snow and ice are opaque and use their own SURFACE_ART; a puddle
-  // is TRANSLUCENT water over whatever is under it, so you can see it is a puddle on grass, on dirt or on
-  // tarmac. When wear changes a cell under a cover (snow packed to ice, ice scrubbed through), drawWear
-  // paints that cell's new state over this.
-  // A cover is drawn as the 0.5 m world-grid squares whose centre is inside it (the same inside test as
-  // lab.js coverAt), cached per cover — squares, not ovals (user, pixel pass: "no circles"). Physics keeps the exact
-  // shape; the drawn edge is within ~0.35 m of it, the same as the square blend patches. `rim` = squares with an
-  // outside neighbour, filled as the edge line (stroking the squares would outline every one of them).
+  // COVERS (2026-10-03) — snow, ice and puddles lying ON any surface (LEVEL.covers, lab.js).
+  // Static, so they are painted into the ground tiles. Snow and ice are opaque and use their own
+  // SURFACE_ART; a puddle is TRANSLUCENT water over whatever is under it, so you can see it is a
+  // puddle on grass, on dirt or on tarmac. When wear changes a cell under a cover (snow packed to
+  // ice, ice scrubbed through), drawWear paints that cell's new state over this. A cover is drawn
+  // as the 0.5 m world-grid squares whose centre is inside it (the same inside test as lab.js
+  // coverAt), cached per cover — squares, not ovals (user, pixel pass: "no circles"). Physics keeps
+  // the exact shape; the drawn edge is within ~0.35 m of it, the same as the square blend patches.
+  // `rim` = squares with an outside neighbour, filled as the edge line (stroking the squares would
+  // outline every one of them).
   function coverCells(c: Cover): CoverCells {
     if (c._cells) return c._cells;
     const G = 0.5, co = Math.cos(c.rot || 0), si = Math.sin(c.rot || 0), hx = c.w / 2, hy = c.h / 2;
-    // scan the ROTATED box's extents, not a square of the long side (a 160 x 14 m river was a 160 m square: 100k tests -> ~10k)
+    // scan the ROTATED box's extents, not a square of the long side (a 160 x 14 m river was a 160 m
+    // square: 100k tests -> ~10k)
     const RX = hx * Math.abs(co) + hy * Math.abs(si) + G, RY = hx * Math.abs(si) + hy * Math.abs(co) + G;
     const inside = (x: number, y: number) => {
       if (c.cut && coverCut(c, x, y)) return false;   // the river's dry band under the motorway (lab.js coverAt)
@@ -467,13 +485,16 @@ export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
   const PUDDLE_TINT: Record<string, string> = {
     dirt: 'rgba(86,64,42,0.62)', mud: 'rgba(62,46,32,0.66)', thickMud: 'rgba(46,34,24,0.70)',
     sand: 'rgba(150,128,90,0.55)', gravel: 'rgba(96,90,78,0.58)',
-    // on hard ground, water is a dark mirror, not blue (user, 2026-10-03: puddles on tarmac looked wrong)
+    // on hard ground, water is a dark mirror, not blue (user, 2026-10-03: puddles on tarmac looked
+    // wrong)
     tarmac: 'rgba(16,19,26,0.62)', racetarmac: 'rgba(12,14,20,0.62)', broken: 'rgba(30,33,42,0.60)', lab: 'rgba(120,128,142,0.45)',
-    // water on grass reads BLUE (it vanished into the grass as dark green — photographed 2026-10-03)
+    // water on grass reads BLUE (it vanished into the grass as dark green — photographed
+    // 2026-10-03)
     grass: 'rgba(74,104,150,0.62)', grassShort: 'rgba(74,104,150,0.62)', grassLong: 'rgba(66,96,140,0.64)',
   };
-  // RANDOM PATCHES (Grass Track, re-rolled every load — lab.js randomiseGrassTrack): small ellipses of another
-  // base surface, drawn with that surface's own SURFACE_ART so a mud spot looks like mud.
+  // RANDOM PATCHES (Grass Track, re-rolled every load — lab.js randomiseGrassTrack): small ellipses
+  // of another base surface, drawn with that surface's own SURFACE_ART so a mud spot looks like
+  // mud.
   function drawPatches() {
     const list = LEVEL.allPatches || LEVEL.patches;     // random spots + blend patches (lab.js prepareLevel)
     if (!list || !list.length) return;
@@ -493,10 +514,12 @@ export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
       view.ctx.restore();
     }
   }
-  // MERGED COVERS (user, 2026-10-04: "puddles, streams or bodies of water should CONNECT together if touching"). Each cover used to be
-  // drawn on its own — its own translucent fill and dark rim — so overlapping puddles darkened twice and showed rims inside each other:
-  // a stream read as a string of beads. Now, per cover KIND, the union of every cover's 0.5 m cells (the same cells coverAt answers
-  // for, so it still matches the physics); each tint fills once, the pattern is clipped to the union, one rim round the outside.
+  // MERGED COVERS (user, 2026-10-04: "puddles, streams or bodies of water should CONNECT together
+  // if touching"). Each cover used to be drawn on its own — its own translucent fill and dark rim —
+  // so overlapping puddles darkened twice and showed rims inside each other: a stream read as a
+  // string of beads. Now, per cover KIND, the union of every cover's 0.5 m cells (the same cells
+  // coverAt answers for, so it still matches the physics); each tint fills once, the pattern is
+  // clipped to the union, one rim round the outside.
   function mergedCovers(list: Cover[]): MergedCover[] {
     if (LEVEL._mergedOf === list) return LEVEL._merged!;   // set together with _mergedOf
     const G = 0.5, kinds = new Map<CoverId, Map<number, MergedCell>>();
@@ -551,18 +574,19 @@ export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
     drawCoversMerged(list);
   }
 
-  // Dynamic surface wear patches: grass worn to short grass, dirt, and mud
-  // Drawn ON TOP OF the track ribbon and ground, but UNDER the kerbs and marks!
-  // TWO PASSES around the covers. MEASURED BUG, 2026-10-03 (user: "puddles on the grass track ... vanish
-  // when driven over and turned dirt into mud"): wear was drawn AFTER the covers, so every 1.5 m dirt cell
-  // turning to mud beside a puddle painted its square over the puddle's edge until the puddle was gone.
+  // Dynamic surface wear patches: grass worn to short grass, dirt, and mud Drawn ON TOP OF the
+  // track ribbon and ground, but UNDER the kerbs and marks! TWO PASSES around the covers. MEASURED
+  // BUG, 2026-10-03 (user: "puddles on the grass track ... vanish when driven over and turned dirt
+  // into mud"): wear was drawn AFTER the covers, so every 1.5 m dirt cell turning to mud beside a
+  // puddle painted its square over the puddle's edge until the puddle was gone.
   //   'base'  — cells that started with no cover (dirt -> mud ...): drawn UNDER the covers
   //   'cover' — cells whose cover itself changed (snow packed to ice, ice scrubbed through): drawn OVER
   function drawWear(pass = 'base') {
     if (!wearMap || wearMap.size === 0) return;
-    // 2026-10-03: a worn cell now LOOKS like what it has become (the same SURFACE_ART as everywhere else)
-    // instead of a flat tinted square. Visible cells are grouped by surface, and each group is one path:
-    // fill its base, clip to it, paint its layers once — so 1000 worn cells cost a handful of draw calls.
+    // 2026-10-03: a worn cell now LOOKS like what it has become (the same SURFACE_ART as everywhere
+    // else) instead of a flat tinted square. Visible cells are grouped by surface, and each group
+    // is one path: fill its base, clip to it, paint its layers once — so 1000 worn cells cost a
+    // handful of draw calls.
     const groups = new Map<string, WearGroup>();
     for (const cell of wearMap.values()) {
       if (cell.current === cell.orig) continue;
@@ -571,14 +595,15 @@ export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
       const x0 = Math.round(sx(cell.cx * WEAR_CELL)), y0 = Math.round(sy(cell.cy * WEAR_CELL));
       const x1 = Math.round(sx((cell.cx + 1) * WEAR_CELL)), y1 = Math.round(sy((cell.cy + 1) * WEAR_CELL));
       if (x1 < 0 || x0 > view.W || y1 < 0 || y0 > view.H) continue;
-      // water on a cell is drawn as its BASE with a puddle over it, so meltwater on grass looks like water on grass
-      // cell.current! : set right after the cell is made
+      // water on a cell is drawn as its BASE with a puddle over it, so meltwater on grass looks
+      // like water on grass cell.current! : set right after the cell is made
       const gkey = cell.current === 'wet' ? 'wet|' + cell.base : cell.current!;
       let g = groups.get(gkey);
       if (!g) groups.set(gkey, (g = { r: [], bx0: Infinity, by0: Infinity, bx1: -Infinity, by1: -Infinity }));
       g.r.push(x0, y0, x1 - x0, y1 - y0);
-      // world bbox of the group, so its pattern is painted over these cells only. MEASURED 2026-10-03:
-      // painting each group across the whole view (clip-only) cost the lab panels run 236 -> 192 frames.
+      // world bbox of the group, so its pattern is painted over these cells only. MEASURED
+      // 2026-10-03: painting each group across the whole view (clip-only) cost the lab panels run
+      // 236 -> 192 frames.
       g.bx0 = Math.min(g.bx0, cell.cx * WEAR_CELL); g.bx1 = Math.max(g.bx1, (cell.cx + 1) * WEAR_CELL);
       g.by0 = Math.min(g.by0, cell.cy * WEAR_CELL); g.by1 = Math.max(g.by1, (cell.cy + 1) * WEAR_CELL);
     }
@@ -587,8 +612,9 @@ export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
       const wetOn = gk.startsWith('wet|') ? gk.slice(4) : null, id = wetOn || gk;
       view.ctx.save();
       view.ctx.beginPath();
-      // a soft DISC per cell (radius 0.72 of the cell, so neighbours overlap) rather than a hard square:
-      // worn ground then spreads as organic ruts instead of a blocky staircase (photographed 2026-10-03)
+      // a soft DISC per cell (radius 0.72 of the cell, so neighbours overlap) rather than a hard
+      // square: worn ground then spreads as organic ruts instead of a blocky staircase
+      // (photographed 2026-10-03)
       for (let i = 0; i < r.length; i += 4) {
         view.ctx.rect(r[i], r[i + 1], r[i + 2], r[i + 3]);     // squares in pixel art
       }
@@ -599,7 +625,8 @@ export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
       paintLayers(id, g.bx0, g.by0, g.bx1, g.by1);
       if (wetOn) {
         view.ctx.fillStyle = PUDDLE_TINT[wetOn] || 'rgba(52,66,92,0.58)';
-        // grown by a cell: the discs reach past the cells' squares, and the clip keeps it inside them
+        // grown by a cell: the discs reach past the cells' squares, and the clip keeps it inside
+        // them
         const m = WEAR_CELL;
         view.ctx.fillRect((g.bx0 - m) * PPMz(), (g.by0 - m) * PPMz(), (g.bx1 - g.bx0 + 2 * m) * PPMz(), (g.by1 - g.by0 + 2 * m) * PPMz());
         PRIM.sheen(['sheen', 'rgba(220,232,250,0.12)', 3.0, 0.5, -0.45], g.bx0, g.by0, g.bx1, g.by1);
@@ -609,10 +636,11 @@ export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
   }
 
 
-  // BUMPS, JUMPS AND KERBS. A top-down view has no height, so a jump you cannot SEE coming is an unfair
-  // one — and unavoidable is a bug, not difficulty (CLAUDE.md §1). Each kind gets a shape that tells you
-  // what it will do: a ramp is a wedge that brightens toward a RED LIP where the ground stops, a table
-  // has a flat bright top and two edges, a hump is a lit dome, a kerb is the familiar red and white.
+  // BUMPS, JUMPS AND KERBS. A top-down view has no height, so a jump you cannot SEE coming is an
+  // unfair one — and unavoidable is a bug, not difficulty (CLAUDE.md §1). Each kind gets a shape
+  // that tells you what it will do: a ramp is a wedge that brightens toward a RED LIP where the
+  // ground stops, a table has a flat bright top and two edges, a hump is a lit dome, a kerb is the
+  // familiar red and white.
   function drawBumps() {
     const p = PPMz();
     for (const b of BUMPS) {
@@ -620,11 +648,12 @@ export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
       view.ctx.save();
       view.ctx.translate(sx(b.x), sy(b.y));
       view.ctx.rotate(b.rot || 0);
-      // TERRAIN SHAPES ARE SHOWN BY HILL-SHADING NOW (step 3, 2026-10-03; user chose "rebuild the old jumps as terrain" and
-      // "pixel hill-shading"). The hand-drawn dome / wedge / table art went: photographed together with the shading it
-      // read as two layers of mud. Kept: the KERB (it is paint, not height) and the ramp's RED LIP — the ground really does
-      // fall away there, which no shading can show, and a jump you cannot see coming is unfair (CLAUDE.md §1).
-      // kerb and ramp bumps always have len and wid (the ! below)
+      // TERRAIN SHAPES ARE SHOWN BY HILL-SHADING NOW (step 3, 2026-10-03; user chose "rebuild the
+      // old jumps as terrain" and "pixel hill-shading"). The hand-drawn dome / wedge / table art
+      // went: photographed together with the shading it read as two layers of mud. Kept: the KERB
+      // (it is paint, not height) and the ramp's RED LIP — the ground really does fall away there,
+      // which no shading can show, and a jump you cannot see coming is unfair (CLAUDE.md §1). kerb
+      // and ramp bumps always have len and wid (the ! below)
       if (b.kind === 'kerb') {
         const n = Math.max(2, Math.round(b.len! / 2.4));
         for (let i = 0; i < n; i++) {

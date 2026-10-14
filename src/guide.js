@@ -117,11 +117,10 @@ const CARDS = [
 
 // EVENT RULES (user, 2026-10-05: "rules to events should be EXPLAINED the FIRST TIME you do them,
 // and shown WALK-THROUGH style, if needed"). The same card overlay, pointing at the HUD that
-// matters; opened by main.js when an event STARTS for the first time on this device (remembered
-// per event in localStorage 'carsim.rulesSeen'), PAUSING the sim before the lights; replayed from
-// the pause menu.
-// key = main.js eventKind(): 'race' (VS AI, circuit), 'rx' (RX race), 'stage' (rally stage),
-// 'highway' (VS AI on the endless road), 'endless' (the endless road, solo).
+// matters; opened by main.js when an event STARTS for the first time on this device (remembered per
+// event in localStorage 'carsim.rulesSeen'), PAUSING the sim before the lights; replayed from the
+// pause menu. key = main.js eventKind(): 'race' (VS AI, circuit), 'rx' (RX race), 'stage' (rally
+// stage), 'highway' (VS AI on the endless road), 'endless' (the endless road, solo).
 const NOTICE = (scene) => ({
   x: scene.W / 2 - Math.min(150, scene.W * 0.4), y: scene.H * 0.3 - 26,
   w: Math.min(300, scene.W * 0.8), h: 52,

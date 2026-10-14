@@ -8,16 +8,13 @@ import { openSmooth, jokerArrow, jokerApproach } from "./slidden-hill.ts";
 import { trackKit, rxDress, jokerBales } from "./kit.ts";
 import type { Point, Lane, Trap, Cone, Prop, Barrier, Bump } from "../types.ts";
 // =============================================================================================
-// KNOBHILL — parody of Knockhill (Fife), the rallycross layout. Built 2026-10-04. Decisions
-// (user): the TARMAC CIRCUIT + an INFIELD
-// DIRT section (~40 % dirt like the real RX lap: 1.4 km, 39 % dirt), DRY, hills FELT like Brands
-// ("twists, drops and climbs 60 m").
-// TRACED from Wikimedia "Knockhill_circuit_map.png" (art/ref/kh3.png, 800 px; 100 m = 76 px) at
-// 0.62 game m/px. Clockwise from the line:
-// DUFFUS DIP (fast blind downhill right) -> SCOTSMAN (90 right) -> BUTCHERS -> the chicane ->
-// bottom straight [JOKER: a dirt loop off the
-// LEFT after turn 4, as the real one] -> CLARK'S (blind uphill right, "onto two wheels") -> DIRT:
-// HISLOP'S -> up to the hairpin -> back
+// KNOBHILL — parody of Knockhill (Fife), the rallycross layout. Built 2026-10-04. Decisions (user):
+// the TARMAC CIRCUIT + an INFIELD DIRT section (~40 % dirt like the real RX lap: 1.4 km, 39 %
+// dirt), DRY, hills FELT like Brands ("twists, drops and climbs 60 m"). TRACED from Wikimedia
+// "Knockhill_circuit_map.png" (art/ref/kh3.png, 800 px; 100 m = 76 px) at 0.62 game m/px. Clockwise
+// from the line: DUFFUS DIP (fast blind downhill right) -> SCOTSMAN (90 right) -> BUTCHERS -> the
+// chicane -> bottom straight [JOKER: a dirt loop off the LEFT after turn 4, as the real one] ->
+// CLARK'S (blind uphill right, "onto two wheels") -> DIRT: HISLOP'S -> up to the hairpin -> back
 // onto the start straight. No published RX map: the dirt runs where the real circuit's tarmac does
 // from Clark's to the hairpin.
 const KH_CAL = { mpp: 0.62, cx: 400, cy: 520 };
@@ -57,10 +54,10 @@ const KH_SUBTRACK = createSubtrack(KH_SUB0.pts.map((point) => [point.x, point.y]
 KH_SUBTRACK.curvedKerbs = autoKerbs(KH_SUBTRACK,
   { maxR: 70, exitR: 30, heavyR: 22, minTurn: 20, mergeGap: 12 }).filter((kerb) =>
   kerb.endDist < KH_D.dirtIn || kerb.startDist > KH_D.dirtOut);
-// the JOKER: a dirt loop off the LEFT (south) of the bottom straight after the chicane
-// SHALLOW (MEASURED, tools/jokercost: the first loop, 34 m deep, cost 7-16.5 s; a real RX joker
-// costs ~1-3 s)
-// + 4 m further out in the middle (user wanted bales between joker and track: the strip was 1-2 m)
+// the JOKER: a dirt loop off the LEFT (south) of the bottom straight after the chicane SHALLOW
+// (MEASURED, tools/jokercost: the first loop, 34 m deep, cost 7-16.5 s; a real RX joker costs ~1-3
+// s) + 4 m further out in the middle (user wanted bales between joker and track: the strip was 1-2
+// m)
 const KH_JOKER: Lane = { pts: openSmooth(
   [[590, 657], [572, 684], [540, 699], [500, 701], [468, 694],
   [448, 678]].map(([x, y]) => khXY(x, y))), width: 12, surface: SURFACES.dirt };

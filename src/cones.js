@@ -75,8 +75,7 @@ const MAX_CONE_V = 32;       // clamp fling speed
 
 // A stack hit hard enough comes apart: it becomes one ROLLING tyre and throws out two more — one
 // cartwheeling left, one skidding flat right. Used by the car hitting a stack AND (2026-10-03) by
-// any
-// other object hitting one, so a tyre flung into the wall bursts the stack it lands on.
+// any other object hitting one, so a tyre flung into the wall bursts the stack it lands on.
 function burstStack(stack, out) {
   stack.kind = 'tyre';
   stack.mode = 'roll';
@@ -102,37 +101,30 @@ function burstStack(stack, out) {
 }
 
 // OBJECT-OBJECT COLLISIONS (user, 2026-10-03: "tyres should hit other tyres and cones or objects
-// etc and
-// pass impact onto them if necessary"). Every object is a circle of radius r and mass m. Only
-// objects that
-// are MOVING are tested — a wall of 600 stacks at rest costs nothing — each against the whole
-// list with a
-// cheap box reject (see collideObjects for why not a spatial hash). Response is a standard
-// impulse along the contact normal
-// with restitution, split by inverse mass, plus positional correction so objects never sit inside
-// each other.
-// Consequences match the car path: a stack hit hard bursts, a cone hit hard topples, everything
-// hit counts
-// as knocked (moved) for the tally, and hard hits throw dust.
+// etc and pass impact onto them if necessary"). Every object is a circle of radius r and mass m.
+// Only objects that are MOVING are tested — a wall of 600 stacks at rest costs nothing — each
+// against the whole list with a cheap box reject (see collideObjects for why not a spatial hash).
+// Response is a standard impulse along the contact normal with restitution, split by inverse mass,
+// plus positional correction so objects never sit inside each other. Consequences match the car
+// path: a stack hit hard bursts, a cone hit hard topples, everything hit counts as knocked (moved)
+// for the tally, and hard hits throw dust.
 const OBJ_REST = { cone: 0.45, tyre: 0.35, tyrestack: 0.25, bale: 0.08, sheep: 0.2, cow: 0.1 };
 // BALE: 250 kg (a real round bale is 250-350), r 0.8. A hit above BALE_BURST_V bursts it: a flat
-// patch of STRAW (no longer solid), a
-// big straw-dust cloud, and the car loses BALE_DRAG of its speed on top of the momentum it gave
-// the bale.
+// patch of STRAW (no longer solid), a big straw-dust cloud, and the car loses BALE_DRAG of its
+// speed on top of the momentum it gave the bale.
 const BALE_BURST_V = 5, BALE_DRAG = 0.22;   // restitution by kind; heavy props 0.15
 // m/s relative speed that bursts a stack (same threshold as the car)
 const STACK_BURST_V = 3.8;
 
 // what TOPPLES when hit (cones; and since 2026-10-04 rally CHEVRON boards, 45 kg on their posts,
-// and FLAG poles, 12 kg — user: "heavy but
-// impactable", they had been solid walls, then pass-through)
+// and FLAG poles, 12 kg — user: "heavy but impactable", they had been solid walls, then
+// pass-through)
 const TOPPLES = new Set(['cone', 'chevron', 'flag', 'tapepost']);
 // ROADSIDE DEBRIS (user, 2026-10-05: "pallets, boxes, crates, wheelie bins, sandbags, barrels,
-// exhaust / bumper, tarps; some should
-// BREAK or become DRIVE-OVERABLE after a hit or two, as logic says per object"): mass kg, r m,
-// hits to break (0 = never: it slides),
-// and what it breaks INTO (a flat, drive-over patch, like the burst bale's straw). Placed by
-// highway.js LITTER (the density slider).
+// exhaust / bumper, tarps; some should BREAK or become DRIVE-OVERABLE after a hit or two, as logic
+// says per object"): mass kg, r m, hits to break (0 = never: it slides), and what it breaks INTO (a
+// flat, drive-over patch, like the burst bale's straw). Placed by highway.js LITTER (the density
+// slider).
 export const DEBRIS = {
   pallet:   { mass: 20, r: 0.6, breaks: 1, into: 'splinters' },   // snaps first hit
   box:      { mass: 4,  r: 0.4, breaks: 1, into: 'cardboard' },   // flattened
@@ -146,25 +138,21 @@ export const DEBRIS = {
   tarp:     { mass: 3,  r: 0.9, breaks: 0, flat: true },
 };
 const BROKEN = new Set(['splinters', 'cardboard', 'sand', 'fluff']);
-// ANIMALS (S-C; user 2026-10-06: "Can we make Cows and sheep impactable ? Sheep can be like a
-// tyres impact weight but burst into white
-// particles / [cows] should stay solid and be heavier more like hay bails impact weight"; Q5: "no
-// gore ... sheep should explode into white
-// fluff over like 30mph ... cows tip over 40mph"). A SHEEP is 12 kg (a tyre): hit above
-// SHEEP_POP_V it bursts into FLUFF (a drive-over
-// patch + a white cloud, render.ts). A COW is 250 kg (a bale) and stays solid: hit above
-// COW_TIP_V it TIPS onto its side (still solid).
+// ANIMALS (S-C; user 2026-10-06: "Can we make Cows and sheep impactable ? Sheep can be like a tyres
+// impact weight but burst into white particles / [cows] should stay solid and be heavier more like
+// hay bails impact weight"; Q5: "no gore ... sheep should explode into white fluff over like 30mph
+// ... cows tip over 40mph"). A SHEEP is 12 kg (a tyre): hit above SHEEP_POP_V it bursts into FLUFF
+// (a drive-over patch + a white cloud, render.ts). A COW is 250 kg (a bale) and stays solid: hit
+// above COW_TIP_V it TIPS onto its side (still solid).
 const SHEEP_POP_V = 13.4, COW_TIP_V = 17.9;   // m/s = 30 / 40 mph
 // RALLY TAPE: a SECTION between two consecutive posts of one tape snaps when a car crosses it (>
-// TAPE_SNAP_V) or its posts are pulled
-// apart (> 1.8 x its rest length); a snapped section sticks to that car with TAPE_STICK chance
-// (render.ts trails it as a streamer)
+// TAPE_SNAP_V) or its posts are pulled apart (> 1.8 x its rest length); a snapped section sticks to
+// that car with TAPE_STICK chance (render.ts trails it as a streamer)
 const TAPE_SNAP_V = 1.5, TAPE_STICK = 0.45;
 // ...and it GOES (user, 2026-10-04: "tape should vanish into a cloud of particles after multiple
-// hits"): the snap is hit 1; the next
-// distinct hit (a car through the gap again, >= TAPE_REHIT s later, or its posts torn further
-// apart) is hit TAPE_GONE: the stubs vanish
-// and a PUFF is queued for render.ts (red / white flecks)
+// hits"): the snap is hit 1; the next distinct hit (a car through the gap again, >= TAPE_REHIT s
+// later, or its posts torn further apart) is hit TAPE_GONE: the stubs vanish and a PUFF is queued
+// for render.ts (red / white flecks)
 const TAPE_GONE = 2, TAPE_REHIT = 0.5;
 // objectHits: false is for harness baselines only
 export function createCones({ objectHits = true } = {}) {
@@ -223,9 +211,8 @@ export function createCones({ objectHits = true } = {}) {
   }
 
   // ONE CAR vs ONE OBJECT (2026-10-04, multi-car: AI cars hit the same cones / tyres / bales).
-  // Lifted out of step()'s loop unchanged
-  // except continue -> return, so a single car behaves exactly as before (tools/objcheck,
-  // tyrewallcheck, balecheck).
+  // Lifted out of step()'s loop unchanged except continue -> return, so a single car behaves
+  // exactly as before (tools/objcheck, tyrewallcheck, balecheck).
   function hitByCar(obj, car, newTyres) {
     const spec = car.spec, halfLen = spec.len / 2, halfWid = spec.wid / 2,
         cosH = Math.cos(car.heading), sinH = Math.sin(car.heading);
@@ -545,13 +532,10 @@ export function createCones({ objectHits = true } = {}) {
   }
 
   // A PERSISTENT GRID of the objects AT REST, built once per level (reset) — they do not move, so
-  // it stays
-  // valid. Each step only the MOVING objects are tested: against the resting objects in their 3x3
-  // cells,
-  // and against each other directly (there are only ever a handful). An object that comes to rest
-  // is filed
-  // into the cell it stopped in. MEASURED 2026-10-03 (tools/objcheck.mjs, car into the Stock Car
-  // wall):
+  // it stays valid. Each step only the MOVING objects are tested: against the resting objects in
+  // their 3x3 cells, and against each other directly (there are only ever a handful). An object
+  // that comes to rest is filed into the cell it stopped in. MEASURED 2026-10-03
+  // (tools/objcheck.mjs, car into the Stock Car wall):
   //   grid rebuilt every step ..... 446 us/step mean with debris flying
   //   movers vs whole list ........ 437-626 us (noisy; the list is 633 long)
   //   this ........................ see objcheck — the figure is written into ENGINE.md
@@ -578,9 +562,8 @@ export function createCones({ objectHits = true } = {}) {
   let prevMovers = [];
   const burst = [];                  // reused every step
   // ONE pair test, defined once. MEASURED 2026-10-03 (objcheck, same-run baseline): building this
-  // as a closure
-  // every step and looping over a fresh [a, b] array per contact cost ~140 us/step over the
-  // no-collision path.
+  // as a closure every step and looping over a fresh [a, b] array per contact cost ~140 us/step
+  // over the no-collision path.
   function touch(obj, rel) {
     obj.moved = true;
     obj.hitCount = (obj.hitCount || 0) + 1;
@@ -681,9 +664,8 @@ export function createCones({ objectHits = true } = {}) {
           _n: nextN++ }); },
     rebuildGrid: rebuildRestGrid,   // for harnesses that add objects by hand (tools/objcheck.mjs)
     // STREAMED objects (the endless highway, 2026-10-05: "littered with tyres and cones, chevrons
-    // for the corners"): spawn() adds level
-    // objects as the road grows ahead; cull(keep) drops every object keep() rejects (the road
-    // behind) and refiles the rest grid
+    // for the corners"): spawn() adds level objects as the road grows ahead; cull(keep) drops every
+    // object keep() rejects (the road behind) and refiles the rest grid
     spawn(objs) {
       for (const levelObj of objs) {
         const obj = live(levelObj);

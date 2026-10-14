@@ -20,13 +20,10 @@ export function createRoad(view: View, cam: Cam, helpers: RoadHelpers) {
   const { PPMz, sx, sy, paintLayers, artBase } = helpers;
 
   // ---------------------------------------------------------------- lanes (pit lanes, access
-  // roads) — lab.js laneAt
-  // Drawn PIECE BY PIECE — each segment's rectangle plus a disc at every point — which is exactly
-  // the set lab.js laneAt calls
-  // lane (distance to the polyline <= half width). The first cut (one polygon, averaged normals)
-  // pinched at taxiway corners and
-  // so disagreed with the physics there. The pattern is world-anchored, so pieces join without a
-  // seam.
+  // roads) — lab.js laneAt Drawn PIECE BY PIECE — each segment's rectangle plus a disc at every
+  // point — which is exactly the set lab.js laneAt calls lane (distance to the polyline <= half
+  // width). The first cut (one polygon, averaged normals) pinched at taxiway corners and so
+  // disagreed with the physics there. The pattern is world-anchored, so pieces join without a seam.
   function drawLanes() {
     if (!LEVEL.lanes) return;
     const pxPerM = PPMz(), vx0 = cam.x - view.W / 2 / pxPerM, vx1 = cam.x + view.W / 2 / pxPerM,
@@ -36,10 +33,9 @@ export function createRoad(view: View, cam: Cam, helpers: RoadHelpers) {
           surfaceId = lane.surface.id;
       if (count < 2) continue;
       // SEGMENT CULL (2026-10-04, Castle Cum): the ring road's box is the whole map, so EVERY tile
-      // built all 48 pieces and painted a
-      // tile of pattern only to clip it away — MEASURED ground tile 45.7 ms (Thruston 26). Now
-      // only the pieces touching the view,
-      // and the pattern only over their box.
+      // built all 48 pieces and painted a tile of pattern only to clip it away — MEASURED ground
+      // tile 45.7 ms (Thruston 26). Now only the pieces touching the view, and the pattern only
+      // over their box.
       let bx0 = Infinity, by0 = Infinity, bx1 = -Infinity, by1 = -Infinity, any = false;
       view.ctx.beginPath();
       for (let i = 0; i < count - 1; i++) {
@@ -142,10 +138,8 @@ export function createRoad(view: View, cam: Cam, helpers: RoadHelpers) {
       if (span.surface === 'ghost') continue;
       view.ctx.fillStyle = artBase(span.surface, COL.tarmac);
       // world bbox of this span, so its pattern is painted over THIS span only. MEASURED
-      // 2026-10-03: painting
-      // each span across the whole view (relying on the clip) drew the screen once per span —
-      // Stock Car
-      // fell to 10 fps at 4x CPU throttle.
+      // 2026-10-03: painting each span across the whole view (relying on the clip) drew the screen
+      // once per span — Stock Car fell to 10 fps at 4x CPU throttle.
       let bx0 = Infinity, by0 = Infinity, bx1 = -Infinity, by1 = -Infinity;
       for (let i = span.start; i <= span.end; i++) {
         const point = pts[((i % count) + count) % count];
@@ -153,10 +147,9 @@ export function createRoad(view: View, cam: Cam, helpers: RoadHelpers) {
         by0 = Math.min(by0, point.y - halfW); by1 = Math.max(by1, point.y + halfW);
       }
       // the span's centreline: cut at the EXACT sector boundaries. MEASURED BUG, 2026-10-03
-      // (tools/visualcheck.mjs):
-      // spans ran to the first SAMPLE past the boundary, so every sector change was drawn up to ~3
-      // m after the point
-      // where the grip actually changes (the physics cuts at the exact track distance).
+      // (tools/visualcheck.mjs): spans ran to the first SAMPLE past the boundary, so every sector
+      // change was drawn up to ~3 m after the point where the grip actually changes (the physics
+      // cuts at the exact track distance).
       const line = spans.length > 1 ? [sectorCut(span.start)] : [];
       for (let i = span.start; i < span.end; i++) line.push(pts[((i % count) + count) % count]);
       line.push(spans.length > 1 ? sectorCut(span.end) : pts[
@@ -235,8 +228,8 @@ export function createRoad(view: View, cam: Cam, helpers: RoadHelpers) {
   }
 
   // LANE DASHES (the highway, sub.laneDash = lateral offsets): white dashes 3 m on / 6 m off,
-  // phased by the road's ABSOLUTE distance
-  // (sub.sBase) so they line up across ground tiles painted before and after the road window moved
+  // phased by the road's ABSOLUTE distance (sub.sBase) so they line up across ground tiles painted
+  // before and after the road window moved
   function drawLaneDashes() {
     const sub = LEVEL.subtrack; if (!sub || !sub.laneDash) return;
     const pts = sub.pts, count = pts.length, pxPerM = PPMz(), ghost = sub.ghost;
@@ -271,14 +264,11 @@ export function createRoad(view: View, cam: Cam, helpers: RoadHelpers) {
       view.ctx.stroke(); }
     view.ctx.restore();
   }
-  // CURVED CORNER KERBS — split out of drawTrackRibbon 2026-10-03 and drawn AFTER patches, wear
-  // and covers
-  // (user, with a screenshot of churned dirt and a grass patch painted over a kerb: "surfaces
-  // shouldn't cover
-  // kerbs — kerbs should be their own surface, bumpy and slightly slippy like real race kerbs").
-  // The physics
-  // already treats them that way (SURFACES.kerb, mu 0.70, ridges in bumpAt); now nothing can paint
-  // over them.
+  // CURVED CORNER KERBS — split out of drawTrackRibbon 2026-10-03 and drawn AFTER patches, wear and
+  // covers (user, with a screenshot of churned dirt and a grass patch painted over a kerb:
+  // "surfaces shouldn't cover kerbs — kerbs should be their own surface, bumpy and slightly slippy
+  // like real race kerbs"). The physics already treats them that way (SURFACES.kerb, mu 0.70,
+  // ridges in bumpAt); now nothing can paint over them.
   function drawCurvedKerbs() {
     if (!LEVEL.subtrack || !LEVEL.subtrack.pts) return;
     const sub = LEVEL.subtrack, pts = sub.pts, count = pts.length, pxPerM = PPMz(),
@@ -339,8 +329,7 @@ export function createRoad(view: View, cam: Cam, helpers: RoadHelpers) {
       view.ctx.globalAlpha = mark.tone!;   // every painted mark has a tone
       // MEASURED BUG, 2026-09-27 (photographed): this read p.w, which is the BOX WIDTH for a box —
       // so the 6 m start box stroked at 96 px thick and rendered as a pale slab the size of a
-      // building.
-      // Ring stroke width is now "lw" and nothing else is overloaded.
+      // building. Ring stroke width is now "lw" and nothing else is overloaded.
       view.ctx.lineWidth = Math.max(1, (mark.lw || 0.12) * PPMz());
       if (mark.kind === 'ring') {
         view.ctx.beginPath();
@@ -393,8 +382,8 @@ export function createRoad(view: View, cam: Cam, helpers: RoadHelpers) {
   }
 
   // JOKER ARROWS (user spec 2026-10-03: "a TRANSLUCENT WHITE ARROW, gently pulsing" at joker / pit
-  // entries). Hidden once the joker
-  // is done in an RX race. Wall clock: the pulse is something the player watches.
+  // entries). Hidden once the joker is done in an RX race. Wall clock: the pulse is something the
+  // player watches.
   function drawArrows(game: RoadGame, wallT?: number) {
     const joker = LEVEL.joker; if (!joker || !joker.arrows) return;
     if (game.jokerTaken) return;
@@ -434,17 +423,14 @@ export function createRoad(view: View, cam: Cam, helpers: RoadHelpers) {
   // Each side is the same drawing rotated, so the whole edge is one function of a side index.
   //
   // `forSide(i, fn)` hands fn a frame where +v points OUTWARD from the floor and u runs along the
-  // edge,
-  // which is what removes the four near-identical copies the old version had.
-  // S-B (2026-10-06): the floor is a RECTANGLE (lab.js FX0..FX1 x FY0..FY1). The frame is centred
-  // on it, and fn gets (p, D, Lh): D = the
-  // floor edge's distance from the centre on this side, Lh = half the edge's length (both FLOOR on
-  // a square: drawn exactly as before).
-  // Inside fn the CAMERA is moved into the side's frame (and the view made square), so speckle's
-  // view culling - which compares with
-  // cam - culls in the frame it draws in. (Before, the three rotated sides culled against the
-  // unrotated view: their grass / gravel grain
-  // only drew when the camera was somewhere else.)
+  // edge, which is what removes the four near-identical copies the old version had. S-B
+  // (2026-10-06): the floor is a RECTANGLE (lab.js FX0..FX1 x FY0..FY1). The frame is centred on
+  // it, and fn gets (p, D, Lh): D = the floor edge's distance from the centre on this side, Lh =
+  // half the edge's length (both FLOOR on a square: drawn exactly as before). Inside fn the CAMERA
+  // is moved into the side's frame (and the view made square), so speckle's view culling - which
+  // compares with cam - culls in the frame it draws in. (Before, the three rotated sides culled
+  // against the unrotated view: their grass / gravel grain only drew when the camera was somewhere
+  // else.)
   function forSide(i: number, callback: Parameters<ForSide>[1]) {
     const centreX = (FX0 + FX1) / 2, centreY = (FY0 + FY1) / 2, edgeDist = i % 2 ? (
         FX1 - FX0) / 2 : (FY1 - FY0) / 2, halfLen = i % 2 ? (FY1 - FY0) / 2 : (FX1 - FX0) / 2;
@@ -491,9 +477,8 @@ export function createRoad(view: View, cam: Cam, helpers: RoadHelpers) {
   }
 
   // SLIP ROAD (highway.js extras): the tarmac itself is a lane ribbon (drawLanes, ground tiles);
-  // this draws its MARKINGS - the edge
-  // lines and a row of white squares along the nose where it leaves the hard shoulder - on top, so
-  // they are never stale in a tile
+  // this draws its MARKINGS - the edge lines and a row of white squares along the nose where it
+  // leaves the hard shoulder - on top, so they are never stale in a tile
   function drawSlip(prop: Prop, pxPerM: number) {
     const line = prop.line; if (!line || line.length < 2) return;
     if (!prop._bb) {
@@ -537,15 +522,13 @@ export function createRoad(view: View, cam: Cam, helpers: RoadHelpers) {
 
   function drawMarks(marks: RenderMarks) {
     // one blit of the whole world layer. imageSmoothingEnabled stays on here: the layer is 9 px/m
-    // and
-    // the screen is 16 px/m, so smoothing is what stops the marks looking like stair-stepped
+    // and the screen is 16 px/m, so smoothing is what stops the marks looking like stair-stepped
     // bitmaps.
     const [mox, moy] = marks.origin || [0, 0], markX = sx(mox - MARK_EXTENT), markY = sy(
         moy - MARK_EXTENT);
     const size = MARK_EXTENT * 2 * PPMz();
     // smoothing OFF, so marks land on the art grid as hard blocks (photographed soft and blurry
-    // with
-    // it on, 2026-10-03 — the only smeared thing left in the world layer)
+    // with it on, 2026-10-03 — the only smeared thing left in the world layer)
     view.ctx.imageSmoothingEnabled = false;
     view.ctx.drawImage(marks.canvas, markX, markY, size, size);
     view.ctx.imageSmoothingEnabled = true;

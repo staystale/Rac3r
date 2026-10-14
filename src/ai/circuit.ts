@@ -2,18 +2,15 @@
 // The cautious BENCH driver stays in autodrive.js (lap tools, menu demo, pace car).
 //
 // USER SPEC (2026-10-04): AI know RACING LINES and how to overtake; SURFACE AWARENESS (stay on
-// faster / grippier ground when quicker);
-// the difficulty is the CENTRE of a GRADIENT across the field ("some drive better, some quicker,
-// some more defensive, some more
-// aggressive"); VARIATION OFF THE LINE grows as difficulty drops ("worse AI more random, better AI
-// like a professional: fast and on line");
-// difficulty comes from "how fast, how few mistakes, racing lines, tactics like pit stops and
-// joker laps, deviation from the line"; the AI
-// should feel like it's SCRABBLING for victory or making GENUINE SUBTLE DRIVING ERRORS that lead
-// to crashes and / or slower laps; take
+// faster / grippier ground when quicker); the difficulty is the CENTRE of a GRADIENT across the
+// field ("some drive better, some quicker, some more defensive, some more aggressive"); VARIATION
+// OFF THE LINE grows as difficulty drops ("worse AI more random, better AI like a professional:
+// fast and on line"); difficulty comes from "how fast, how few mistakes, racing lines, tactics like
+// pit stops and joker laps, deviation from the line"; the AI should feel like it's SCRABBLING for
+// victory or making GENUINE SUBTLE DRIVING ERRORS that lead to crashes and / or slower laps; take
 // JOKER laps randomly / tactically; AVOID waiting for or crashing into other cars, deviating from
-// its chosen path to do it; on Slidden
-// Hill take the TRADITIONAL START (the RX start straight), not a dash to the nearest bit of lap.
+// its chosen path to do it; on Slidden Hill take the TRADITIONAL START (the RX start straight), not
+// a dash to the nearest bit of lap.
 //
 // 4. DRIVING: Stanley steering onto the path + a lateral target (wander, mistakes, avoidance),
 // target speed = profile x pace.
@@ -38,17 +35,15 @@ const ALONG_GAP = 2.7;       // m kept from a car alongside by an attack or a co
 // handbrake turns: apex R (m, + HB_LOOSE on loose ground), corner turn (rad), pull (s).
 const HB_R = 25, HB_LOOSE = 8, HB_TURN = 1.4, HB_T = 0.25;
 // MEASURED (aidrivecheck, HB on/off, Realish + Real, hatch + 4x4): Slidden / Knobhill / Castle Cum
-// within 0.1 s, Sweaty Lamb +0.2..+0.7 s,
-// 6 pulls per 2 min at Slidden, 4 at Sweaty Lamb — it is FLAVOUR (the user's "drift and stuff"),
-// not pace. A heading-error trigger fired ~never.
-// m past the usual edge allowed to get round a car / a slow or stopped one
+// within 0.1 s, Sweaty Lamb +0.2..+0.7 s, 6 pulls per 2 min at Slidden, 4 at Sweaty Lamb — it is
+// FLAVOUR (the user's "drift and stuff"), not pace. A heading-error trigger fired ~never. m past
+// the usual edge allowed to get round a car / a slow or stopped one
 const WIDE = +(debugValue("WIDE") ?? 0.8), WIDE_SLOW = 2.5;
 // throttle kept through a front slide on loose ground (off road, dirt, gravel)
 const UNDER_LOOSE = 0.35;
 // MEASURED (aifieldsuite Realish, 24 races): before start-contacts 765, contact 231 s, resets 14,
-// passes 118; 6 s / 0.8 m: 564, 258 s, 17,
-// 219; 9 s / 1.3 m (kept): 492, 212 s, 9, 192 (off-road +12 %)
-// s to ease from the grid lane onto the line; m more room alongside then
+// passes 118; 6 s / 0.8 m: 564, 258 s, 17, 219; 9 s / 1.3 m (kept): 492, 212 s, 9, 192 (off-road
+// +12 %) s to ease from the grid lane onto the line; m more room alongside then
 const START_BLEND = 9, START_GAP = 1.3;
 // + only in corners with an apex tighter than DRIFT_R m (hairpins / junctions)   // rad: the rear
 // slip a drifting AI holds, and where it gives up and catches it
@@ -61,15 +56,13 @@ const EDGE_DRIFT = 2.0, DRIFT_BAN = 60;
 // a car it PUSHES HARDER, up to HARDER faster the longer it is held.
 const HARDER = 0.03, HARDER_T = 4;
 
-// ---------------------------------------------------------------- the driver
-// drive(car, dt, ctx): ctx = { cars: [other car objects], lap: current lap (1-based), laps: race
-// length }. Other cars may carry
-// _jokers (jokers taken) for the joker tactics.
+// ---------------------------------------------------------------- the driver drive(car, dt, ctx):
+// ctx = { cars: [other car objects], lap: current lap (1-based), laps: race length }. Other cars
+// may carry _jokers (jokers taken) for the joker tactics.
 export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
   // the ENDLESS highway has no closed lap to plan a line round: the same driver reads the road
-  // frame instead (roadDriver above)
-  // (cast: an endless Level is the highway's level, whose road fields ai/types.ts HighwayLevel
-  // describes)
+  // frame instead (roadDriver above) (cast: an endless Level is the highway's level, whose road
+  // fields ai/types.ts HighwayLevel describes)
   if (level.endless) {
     return roadDriver(
       level as unknown as HighwayLevel, traits,
@@ -167,14 +160,11 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
     }
     advance(car);
     // ---- DRIVE ITSELF OUT (user, 2026-10-07: "it should try to drive it self out, if it falls
-    // super far behind / stays off track too long /
-    // stays still / drives too slow for too long, ect it can reset"). Nearly still for DRIVE_OUT_T
-    // s after the green (nose in a wall, beached,
+    // super far behind / stays off track too long / stays still / drives too slow for too long, ect
+    // it can reset"). Nearly still for DRIVE_OUT_T s after the green (nose in a wall, beached,
     // tangled with a car) -> REVERSE for ~1-1.5 s with the wheel turned to swing the nose back
-    // toward the road, then drive on. The game's
-    // reset (main.js) is the LAST resort now: it waits longer, so this gets two or three tries
-    // first.
-    // (! : st.i was set just above)
+    // toward the road, then drive on. The game's reset (main.js) is the LAST resort now: it waits
+    // longer, so this gets two or three tries first. (! : st.i was set just above)
     {
       const out = driveOut(state, car, speed, dt, ctx, rnd, () => state.path.pts[state.i!].h);
       if (out) return out;
@@ -240,21 +230,19 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
     }
     if (state.t < state.thrUntil) thrForce = true;
 
-    // ---- the line: less of its width for lower skill (lineQ), plus a slow WANDER, bigger for
-    // less skilled drivers
-    // (! : the racing line has off at every point)
+    // ---- the line: less of its width for lower skill (lineQ), plus a slow WANDER, bigger for less
+    // skilled drivers (! : the racing line has off at every point)
     const lineOff = path === main ? pts[nearIdx].off! : 0;
     latT += -lineOff * (1 - traits.lineQ);
     latT += traits.wander * (
         0.6 * Math.sin(state.t * 0.37 + wanderPhaseA) + 0.4 * Math.sin(
         state.t * 0.83 + wanderPhaseB));
     // THE START (user, 2026-10-04: "they aim for the racing line a bit too hard at the start of
-    // races and it causes crashes — increase crash
-    // awareness a tiny bit, more willing to overtake / avoid, without slowing down"): from the
-    // moment it moves off, the car KEEPS ITS GRID
-    // LANE (its offset from the line when it set off) and eases onto the line over START_BLEND s;
-    // in that phase cars alongside get more
-    // room (START_GAP) and a car ahead is gone round rather than followed.
+    // races and it causes crashes — increase crash awareness a tiny bit, more willing to overtake /
+    // avoid, without slowing down"): from the moment it moves off, the car KEEPS ITS GRID LANE (its
+    // offset from the line when it set off) and eases onto the line over START_BLEND s; in that
+    // phase cars alongside get more room (START_GAP) and a car ahead is gone round rather than
+    // followed.
     if (state.goT == null && speed > 2 && path === main) {
       state.goT = state.t;
       const here = pts[nearIdx];
@@ -264,10 +252,9 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
     if (startK > 0 && path === main && state.gridLat != null) latT += state.gridLat * startK;
 
     // ---- OTHER CARS (user: "avoid waiting for or crashing into other cars, deviating from its
-    // chosen path"): a car ahead in the way
-    // -> pick the side with room and go round it (that IS the overtake); no room -> sit behind it,
-    // matching its speed; a car alongside
-    // -> keep a gap; a faster car close behind -> a defensive driver covers its side a little
+    // chosen path"): a car ahead in the way -> pick the side with room and go round it (that IS the
+    // overtake); no room -> sit behind it, matching its speed; a car alongside -> keep a gap; a
+    // faster car close behind -> a defensive driver covers its side a little
     const prec = traits.prec ?? 0.5, clear = 2.3 - 0.4 * traits.aggression, gapF = (
         6.5 - 2.5 * traits.aggression) * (1.15 - 0.35 * prec);
     const latLim = path === main ? line.hw - WANDER_EDGE : 2;
@@ -311,11 +298,9 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
       }
       if (fwd > 2.5) {
         // FOLLOWING only while closing, with a short gap: it rubs and bumps in braking zones
-        // (aifieldcheck: ~6 s of contact per 3 laps
-        // of 6 cars at Realish). USER (2026-10-04, after testing it): "contact is ok … it felt ok
-        // before, put it back" — a strict
-        // speed-based gap (zero contact, but a procession: 1 position change in 3 laps) was tried
-        // and REVERTED.
+        // (aifieldcheck: ~6 s of contact per 3 laps of 6 cars at Realish). USER (2026-10-04, after
+        // testing it): "contact is ok … it felt ok before, put it back" — a strict speed-based gap
+        // (zero contact, but a procession: 1 position change in 3 laps) was tried and REVERTED.
         if (speed - vAlong > -0.5 && Math.abs(otherLat - myLat) < clear) {
           conflict = true;
           // GO ROUND, DON'T QUEUE (user, 2026-10-04: "AI still seem to almost queue and wait
@@ -457,8 +442,8 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
         }
       }
       // TOW PASS (ovals, long straights: no corner close enough to brake into): in the slipstream
-      // of the same car for a while -> pull
-      // out to the side with more room and drive past on the extra speed (contact.js slipstream)
+      // of the same car for a while -> pull out to the side with more room and drive past on the
+      // extra speed (contact.js slipstream)
       if (!state.atk && lead && (nextCorner < 0 || nextDist > 140) && (car.dragMul ?? 1) < 0.85 &&
           state.behindT > Math.max(0.3, 1 - 0.7 * traits.aggression)
         && state.t - (state.towT || -99) > 4) {
@@ -474,8 +459,8 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
         }
       }
       // GIVING ROOM: a car alongside on the INSIDE of the corner we are entering, and we are not
-      // attacking -> concede a little (a
-      // defensive driver less), as real drivers do rather than turn in on it
+      // attacking -> concede a little (a defensive driver less), as real drivers do rather than
+      // turn in on it
       const insideOf = cur >= 0 ? line.corners[cur].turn : nextCorner >= 0 && nextDist < 40 ?
           line.corners[nextCorner].turn : 0;
       if (!state.atk && side && side === insideOf) vMul *= 1 - YIELD * (1.2 - traits.defence);
@@ -498,8 +483,7 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
         dodgeT = state.cover.side * 0.6 * latLim - lineOff - latT;
       }
       // never squeeze a car that is ALONGSIDE: the racecraft target keeps ALONG_GAP from it
-      // (attacks ignored it: side contact
-      // 41 -> 110 events on one Thruston run, MEASURED)
+      // (attacks ignored it: side contact 41 -> 110 events on one Thruston run, MEASURED)
       if (state.atk || state.cover) {
         let target = latT + dodgeT;
         for (const alongOther of alg) if (
@@ -518,14 +502,11 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
     const edge = state.t < (state.wideUntil || 0) ? state.wide! : latLim;
     latT = Math.max(-edge, Math.min(edge, lineOff + latT)) - lineOff;
     // OFF THE LINE INTO A CORNER (an attack, a cover, a dodge, a wander): the profile is for the
-    // racing line's radius; x m further INSIDE
-    // at the apex is a radius R - x, so the corner speed drops by sqrt((R - x) / R). Without it
-    // attackers ran wide on the exit
-    // (aifieldsuite Realish off-road 142 -> 299 car-s, MEASURED).
-    // (applied in the SPEED section: every bend ahead within braking distance, not only the
-    // "corners" — Naffcar's banked turns are
-    // wider than CORNER_R, and tow passes on their inside slid off: off-road 0 -> 14 car-s,
-    // MEASURED)
+    // racing line's radius; x m further INSIDE at the apex is a radius R - x, so the corner speed
+    // drops by sqrt((R - x) / R). Without it attackers ran wide on the exit (aifieldsuite Realish
+    // off-road 142 -> 299 car-s, MEASURED). (applied in the SPEED section: every bend ahead within
+    // braking distance, not only the "corners" — Naffcar's banked turns are wider than CORNER_R,
+    // and tow passes on their inside slid off: off-road 0 -> 14 car-s, MEASURED)
 
     // ---- steering: Stanley on the path + latT at the front axle (the bench driver's controller)
     const frontX = car.x + cosH * spec.lf, frontY = car.y + sinH * spec.lf;
@@ -551,23 +532,18 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
     const LOCK = spec.steerMax || 0.56;
     const cap = Math.min(
         1, (1.3 * spec.L * muHere * GRAVITY / Math.max(4, speed * speed) + 0.12) / LOCK);
-    // OVERSTEER (rear slip past ~10 deg): no cap, so it can countersteer; UNDERSTEER (front past
-    // ~8 deg): more lock only scrubs, so
-    // lift and brake to get the front back (MEASURED: Sweaty Lamb's S at sF 0.27 rad, then a spin
-    // at sR -0.78)
-    // LOOSE SURFACES (user, 2026-10-04: "slow down weirdly on surface changes, dirt to tarmac —
-    // they should predict it and speed up").
-    // loose = 0 on tarmac (mu 1) .. 1 at mu 0.5. MEASURED (tools/aisurface, rally-4x4 Real): 19 of
-    // 26 Slidden surface changes lifted > 0.3 s
-    // with the target still above the speed — mostly WHEELSPIN halving the throttle (normal on
-    // dirt), then the front-slip "understeer"
-    // lift. On loose ground: no wheelspin cut, and 0.06 rad more front slip before the understeer
-    // lift -> 10 of 26; laps (Real) Knobhill
-    // 47.6 -> 45.8 hatch / 41.5 -> 40.5 4x4, Sweaty Lamb 128.5 -> 125.2 / 114.4 -> 112.7, Slidden
-    // 55.9 -> 55.1, tarmac unchanged.
-    // TRIED and REJECTED (same tool): more rear slip before lifting, a later slide catch and power
-    // through the slide — each alone harmless,
-    // together the 4x4 left the road at Knobhill / Sweaty Lamb (16-31 s off a lap).
+    // OVERSTEER (rear slip past ~10 deg): no cap, so it can countersteer; UNDERSTEER (front past ~8
+    // deg): more lock only scrubs, so lift and brake to get the front back (MEASURED: Sweaty Lamb's
+    // S at sF 0.27 rad, then a spin at sR -0.78) LOOSE SURFACES (user, 2026-10-04: "slow down
+    // weirdly on surface changes, dirt to tarmac — they should predict it and speed up"). loose = 0
+    // on tarmac (mu 1) .. 1 at mu 0.5. MEASURED (tools/aisurface, rally-4x4 Real): 19 of 26 Slidden
+    // surface changes lifted > 0.3 s with the target still above the speed — mostly WHEELSPIN
+    // halving the throttle (normal on dirt), then the front-slip "understeer" lift. On loose
+    // ground: no wheelspin cut, and 0.06 rad more front slip before the understeer lift -> 10 of
+    // 26; laps (Real) Knobhill 47.6 -> 45.8 hatch / 41.5 -> 40.5 4x4, Sweaty Lamb 128.5 -> 125.2 /
+    // 114.4 -> 112.7, Slidden 55.9 -> 55.1, tarmac unchanged. TRIED and REJECTED (same tool): more
+    // rear slip before lifting, a later slide catch and power through the slide — each alone
+    // harmless, together the 4x4 left the road at Knobhill / Sweaty Lamb (16-31 s off a lap).
     const loose = Math.max(0, Math.min(1, (1 - car.surface.mu) / 0.5));
     const slipFront = Math.abs(car.t.slipF || 0), slipRear = Math.abs(car.t.slipR || 0);
     // DRIFT HOLD (user, 2026-10-04: "really need AI to drift and handbrake sometimes / aggressive
@@ -584,8 +560,7 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
           debugValue("DRIFT") as number ?? (0.45 + 0.5 * traits.aggression));
     }
     // ... and never near the road edge (a held drift there ran a Rally car off Sweaty Lamb 12 s a
-    // lap): within EDGE_DRIFT m it catches
-    // m from the car to the nearer edge
+    // lap): within EDGE_DRIFT m it catches m from the car to the nearer edge
     const nearPt = pts[nearIdx], edgeRoom = path === main ? line.hw - Math.abs(
         lineOff + (car.x - nearPt.x) * -Math.sin(nearPt.h) + (car.y - nearPt.y) * Math.cos(
         nearPt.h)) : 0;
@@ -627,21 +602,18 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
     // changes.)
     const slideR = slipRear, feel = Math.max(0, 1 - Math.max(0, slideR - 0.07) / 0.12);
     // OFF ROAD / LOOSE (user, 2026-10-04: "they still slow down like mad off road / changing
-    // surfaces"): on loose ground a sliding front
-    // is the surface, not a mistake — keep driving (UNDER_LOOSE throttle) and never brake for it.
-    // MEASURED before (aifieldcheck SURF,
-    // Brands + Castle Cum, 6 cars): on grass / dirt the AI braked 26-36 % and lifted 13-33 % of
-    // the time, front slip > 0.14 for 19-40 %.
-    // ...only OFF THE PLANNED SURFACE (the car on clearly worse ground than its racing line: off
-    // the road, onto a loose patch). On a loose
-    // line (Sweaty Lamb's gravel) the old lift + brake stays: applied there too, the 4x4 at Real
-    // left the stage 16 s a lap (MEASURED).
+    // surfaces"): on loose ground a sliding front is the surface, not a mistake — keep driving
+    // (UNDER_LOOSE throttle) and never brake for it. MEASURED before (aifieldcheck SURF, Brands +
+    // Castle Cum, 6 cars): on grass / dirt the AI braked 26-36 % and lifted 13-33 % of the time,
+    // front slip > 0.14 for 19-40 %. ...only OFF THE PLANNED SURFACE (the car on clearly worse
+    // ground than its racing line: off the road, onto a loose patch). On a loose line (Sweaty
+    // Lamb's gravel) the old lift + brake stays: applied there too, the 4x4 at Real left the stage
+    // 16 s a lap (MEASURED).
     const offPlan = path === main && car.surface.mu < 0.85 * (pts[nearIdx].mu || 1);
     const looseUnder = under && loose > 0.3 && offPlan;
     if (drifting) { state.driftT = (state.driftT || 0) + dt; state.lastDrift = state.t; }
     // a drift that ran it OFF the road: it backs off drifting for DRIFT_BAN s (a driver who scares
-    // himself)
-    // off within 2 s of a drift
+    // himself) off within 2 s of a drift
     if (edgeRoom < -0.5 && state.t - (state.lastDrift ?? -99) < 2) {
       state.driftOn = false;
       state.driftBan = state.t + DRIFT_BAN;
@@ -657,11 +629,10 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
     if (under && !looseUnder && speed > 0.85 * targetSpeed) brake = Math.max(brake, 0.35);
     if (over || drifting) brake = 0;
     // HANDBRAKE TURNS (user, 2026-10-04: "they should also use handbrake and drift and stuff"):
-    // into a HAIRPIN (apex R < HB_R) before the
-    // apex, a big turn still ahead (> HB_TURN rad) and moving -> one pull of HB_T s per hairpin,
-    // off the throttle,
-    // full lock that way: the rear steps out and the car pivots. The better driver times it
-    // (skill), a weaker one sometimes doesn't bother.
+    // into a HAIRPIN (apex R < HB_R) before the apex, a big turn still ahead (> HB_TURN rad) and
+    // moving -> one pull of HB_T s per hairpin, off the throttle, full lock that way: the rear
+    // steps out and the car pivots. The better driver times it (skill), a weaker one sometimes
+    // doesn't bother.
     let handbrake = 0;
     if (path === main && speed > 6 && (debugValue("HB") ?? 1)) {
       const cornerId = line.cid[nearIdx], corner = cornerId >= 0 ? line.corners[cornerId] : null;

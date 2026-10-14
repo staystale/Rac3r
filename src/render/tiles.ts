@@ -40,9 +40,8 @@ export function createTiles(view: View, cam: Cam, settings: Settings, helpers: T
     getFly, FLY_HANDOVER, FLY_PREFETCH, levelOverview, artBase,
   } = helpers;
 
-  // ---------------------------------------------------------------- GROUND TILES (2026-10-03)
-  // The floor, the surface zones and the track ribbon never change while you drive (wear and
-  // marks are
+  // ---------------------------------------------------------------- GROUND TILES (2026-10-03) The
+  // floor, the surface zones and the track ribbon never change while you drive (wear and marks are
   // drawn separately, on top), so they are painted into cached TILES and each frame just blits
   // tiles.
   //
@@ -51,24 +50,18 @@ export function createTiles(view: View, cam: Cam, settings: Settings, helpers: T
   //   no patterns, painted live ............ 229 frames
   //   new patterns, painted live ........... 130 frames (draw 20.6 ms/frame)
   // one big cache, repainted when stale .. 193 frames — every repaint was a 100-200 ms hitch,
-  // because
-  // the browser RASTERISES thousands of pattern shapes in one go
+  // because the browser RASTERISES thousands of pattern shapes in one go
   //   tiles, <= TILE_BUDGET painted/frame .. see ENGINE.md for the figure after this change
   // Tiles are world-aligned squares at a few fixed ZOOM STEPS. A zoom between steps draws the
-  // nearest
-  // step's tiles scaled (<= 13% — invisible on ground texture). A tile not ready yet is painted
-  // in at
-  // most TILE_BUDGET per frame; until then the previous zoom step's tiles stand in (scaled), so a
-  // zoom
-  // change never shows a hole and never repaints the whole screen in one frame.
+  // nearest step's tiles scaled (<= 13% — invisible on ground texture). A tile not ready yet is
+  // painted in at most TILE_BUDGET per frame; until then the previous zoom step's tiles stand in
+  // (scaled), so a zoom change never shows a hole and never repaints the whole screen in one frame.
   // css px per tile side (?tilepx= for A/B, tools/hwjudder.mjs)
   const TILE_PX = settings.tilePx;
-  // 2 -> 1 (perf, 2026-10-03): at phone-ish CPU a tile is ~22 ms, so two in one frame was ~44 ms
-  // — a slow frame every time.
-  // tiles painted per frame: ONE always, then more while the frame has spent < TILE_MS painting,
-  // up to TILE_BUDGET (a fast phone fills a
-  // gap in a frame or two, a slow one never stalls); the level overview stands in for the rest.
-  // (tileBudget() / takeTile() below)
+  // 2 -> 1 (perf, 2026-10-03): at phone-ish CPU a tile is ~22 ms, so two in one frame was ~44 ms —
+  // a slow frame every time. tiles painted per frame: ONE always, then more while the frame has
+  // spent < TILE_MS painting, up to TILE_BUDGET (a fast phone fills a gap in a frame or two, a slow
+  // one never stalls); the level overview stands in for the rest. (tileBudget() / takeTile() below)
   const TILE_BUDGET = 4, TILE_MS = 6;
   const tileBudget = (count = TILE_BUDGET) => ({ n: count, first: true, until: performance.now()
       + TILE_MS });
@@ -81,14 +74,12 @@ export function createTiles(view: View, cam: Cam, settings: Settings, helpers: T
     return true;
   }
   // cached tiles kept; oldest dropped first (~1 MB each at dpr 2). 48 -> 72 so the fly-in's
-  // pre-painted close-up steps (~60 tiles)
-  // survive to be used. Scaled with the tile AREA, so smaller tiles keep the same ground in
-  // memory.
+  // pre-painted close-up steps (~60 tiles) survive to be used. Scaled with the tile AREA, so
+  // smaller tiles keep the same ground in memory.
   const TILE_MAX = Math.round(72 * (256 / TILE_PX) ** 2);
   // 3 -> 2 steps per doubling (perf, 2026-10-03): the speed zoom crosses steps all lap and every
-  // step is a fresh set of tiles.
-  // MEASURED at CPU x4, Test Track lap: 3 steps 51 slow frames / 187 tiles; 2 steps 37 / 170.
-  // Tiles stretch up to 1.41x.
+  // step is a fresh set of tiles. MEASURED at CPU x4, Test Track lap: 3 steps 51 slow frames / 187
+  // tiles; 2 steps 37 / 170. Tiles stretch up to 1.41x.
   const ZSTEP = 2;                // zoom steps per doubling: 1, 0.71, 0.5, 0.35
   // key "level|k|i|j" -> { c: canvas, used: frame number }
   const tiles = new Map<string, Tile>();
@@ -112,12 +103,10 @@ export function createTiles(view: View, cam: Cam, settings: Settings, helpers: T
   const zStepOf = (z: number) => Math.round(ZSTEP * Math.log2(z));
   const zOfStep = (step: number) => Math.pow(2, step / ZSTEP);
   // PIXEL MODE: snap every pixel of a freshly painted ground tile to a LIMITED PALETTE — the
-  // surfaces' own colours
-  // (SURFACE_ART + COL), plus every translucent layer already blended over every base. Removes
-  // the anti-aliased
-  // in-between shades that made stones and blob edges soft and blurry in pass 1. Done ONCE per
-  // tile (cached), via a
-  // 32768-entry lookup (5 bits a channel), so it costs nothing per frame.
+  // surfaces' own colours (SURFACE_ART + COL), plus every translucent layer already blended over
+  // every base. Removes the anti-aliased in-between shades that made stones and blob edges soft and
+  // blurry in pass 1. Done ONCE per tile (cached), via a 32768-entry lookup (5 bits a channel), so
+  // it costs nothing per frame.
   let paletteLUT: Uint32Array | null = null;
   function parseCol(text: unknown) {
     if (typeof text !== 'string') return null;
@@ -135,8 +124,7 @@ export function createTiles(view: View, cam: Cam, settings: Settings, helpers: T
     const over = (under: number[], overlay: number[]) =>
       [0, 1, 2].map((i) => Math.round(under[i] * (1 - overlay[3]) + overlay[i] * overlay[3]));
     // MEASURED (pass 2): blending every translucent layer over every base gave ~1,500 shades on
-    // screen and the
-    // blur survived. Now each layer is blended only over ITS OWN surface's base.
+    // screen and the blur survived. Now each layer is blended only over ITS OWN surface's base.
     for (const [surfaceId, art] of Object.entries(SURFACE_ART)) {
       if (!art) continue;
       const base = parseCol(art.base)!; pal.push(base.slice(0, 3));
@@ -193,20 +181,16 @@ export function createTiles(view: View, cam: Cam, settings: Settings, helpers: T
     } finally { const dt = performance.now() - tp0; tileState.tileMs += dt; tileAvg += (dt
         - tileAvg) * 0.2; }
   }
-  // TILES ARE PAINTED ON A CPU SCRATCH, KEPT ON THE GPU (perf, 2026-10-06; user: "judder on
-  // mobile on infinite levels - guess thats
-  // as chunks load"). MEASURED (tools/hwjudder.mjs + hwprofile.mjs, highway at 130-240 km/h, CPU
-  // x4, phone landscape): the road
-  // window moving (stepHighway, ~2 ms) is NOT it; ground tiles are - ~10 a second scroll in at
-  // speed and each cost 45 ms, of which
-  // paletteSnap's getImageData was ~half: reading back a GPU canvas stalls the GPU pipeline. A
-  // tile canvas with willReadFrequently
-  // halved the tile (23.6 ms) but then every frame re-uploaded every CPU tile it drew (drawImage
-  // 4.8 -> 11.4 % of the run). So:
-  // draw + snap on ONE reusable CPU scratch (no readback stall), putImageData once into the
-  // tile's own GPU canvas (one upload).
-  // a FRESH scratch per tile: a reused one would carry drawing state (line dash, font, smoothing
-  // ...) from the last tile
+  // TILES ARE PAINTED ON A CPU SCRATCH, KEPT ON THE GPU (perf, 2026-10-06; user: "judder on mobile
+  // on infinite levels - guess thats as chunks load"). MEASURED (tools/hwjudder.mjs +
+  // hwprofile.mjs, highway at 130-240 km/h, CPU x4, phone landscape): the road window moving
+  // (stepHighway, ~2 ms) is NOT it; ground tiles are - ~10 a second scroll in at speed and each
+  // cost 45 ms, of which paletteSnap's getImageData was ~half: reading back a GPU canvas stalls the
+  // GPU pipeline. A tile canvas with willReadFrequently halved the tile (23.6 ms) but then every
+  // frame re-uploaded every CPU tile it drew (drawImage 4.8 -> 11.4 % of the run). So: draw + snap
+  // on ONE reusable CPU scratch (no readback stall), putImageData once into the tile's own GPU
+  // canvas (one upload). a FRESH scratch per tile: a reused one would carry drawing state (line
+  // dash, font, smoothing ...) from the last tile
   function tileScratch(size: number) {
     const canvas = document.createElement('canvas'); canvas.width = canvas.height = size;
     return { c: canvas, g: canvas.getContext('2d', { willReadFrequently: true })! };
@@ -305,21 +289,16 @@ export function createTiles(view: View, cam: Cam, settings: Settings, helpers: T
     return finishTile(job);
   }
   // HILL-SHADING (step 3, 2026-10-03; user: "make sure banked surfaces are clearly shown with
-  // brighter spots and shadowing,
-  // same with bumps and dips"; chose PIXEL HILL-SHADING). Light from the TOP-LEFT: ground sloping
-  // toward it is brighter,
-  // away from it darker, in STEPPED bands on square cells (pixel art: squares, no smooth
-  // gradients). It reads the SAME
-  // height the physics drives on (lab.js bumpAt), so what you see is what you drive. Applied
-  // AFTER the palette snap so a
-  // shaded patch of grass can never snap to another surface's colour. Baked once per tile: costs
-  // nothing per frame.
-  // depth: how far a full band moves a colour toward white (lit) or black (shadow). MEASURED
-  // (photographed): a plain
-  // brightness MULTIPLY of 1.2 was invisible on dark race tarmac (#2d303a), so light is ADDED
-  // toward white instead.
-  // height outweighs slope so a bump reads LIGHTER overall and a dip DARKER (user)
-  // 4 bands: at 3 the Naffcar bank flipped a whole band at the turn apex and read as a seam
+  // brighter spots and shadowing, same with bumps and dips"; chose PIXEL HILL-SHADING). Light from
+  // the TOP-LEFT: ground sloping toward it is brighter, away from it darker, in STEPPED bands on
+  // square cells (pixel art: squares, no smooth gradients). It reads the SAME height the physics
+  // drives on (lab.js bumpAt), so what you see is what you drive. Applied AFTER the palette snap so
+  // a shaded patch of grass can never snap to another surface's colour. Baked once per tile: costs
+  // nothing per frame. depth: how far a full band moves a colour toward white (lit) or black
+  // (shadow). MEASURED (photographed): a plain brightness MULTIPLY of 1.2 was invisible on dark
+  // race tarmac (#2d303a), so light is ADDED toward white instead. height outweighs slope so a bump
+  // reads LIGHTER overall and a dip DARKER (user) 4 bands: at 3 the Naffcar bank flipped a whole
+  // band at the turn apex and read as a seam
   const SHADE = {
     cellM: 0.5, maxCells: 64, gain: 3.0, bands: 4, depth: 0.36, hRef: 0.25, hGain: 0.9,
     slopeK: 0.55
@@ -335,13 +314,10 @@ export function createTiles(view: View, cam: Cam, settings: Settings, helpers: T
     const cells = Math.max(1, Math.min(SHADE.maxCells, Math.ceil(tileWidth / SHADE.cellM)));
     const cell = tileWidth / cells, minX = centreX - tileWidth / 2, minY = centreY - tileWidth / 2;
     // HEIGHTS ONCE on a grid of cell centres with a one-cell border; slopes from the neighbours.
-    // MEASURED: 5 lookups per cell
-    // (4 for the slope, 1 for the tint) made a Test Track tile ~12 ms on a PC; now (n+2)^2
-    // lookups in all.
-    // SAMPLED ON A 2x COARSER GRID and interpolated (perf, 2026-10-03): terrain changes over
-    // metres, so heights every 1 m are
-    // enough — 4x fewer lookups. MEASURED at CPU x4: ~12 ms of a 26 ms tile was this. Tiles that
-    // contain WASHBOARD (0.9 m
+    // MEASURED: 5 lookups per cell (4 for the slope, 1 for the tint) made a Test Track tile ~12 ms
+    // on a PC; now (n+2)^2 lookups in all. SAMPLED ON A 2x COARSER GRID and interpolated (perf,
+    // 2026-10-03): terrain changes over metres, so heights every 1 m are enough — 4x fewer lookups.
+    // MEASURED at CPU x4: ~12 ms of a 26 ms tile was this. Tiles that contain WASHBOARD (0.9 m
     // ripples) keep the full grid so the ripples still show.
     const side = cells + 2, heights = new Float32Array(side * side);
     const fine = BUMPS.some((bump) => bump.kind === 'washboard' && Math.abs(bump.x - centreX)
@@ -386,21 +362,16 @@ export function createTiles(view: View, cam: Cam, settings: Settings, helpers: T
     }
     if (!any) return;                                   // flat tile: nothing to do
     // DRAWN AS TRANSLUCENT SQUARES, not per-pixel (perf, 2026-10-03). "Move toward white by k" IS
-    // "draw white at opacity k", so
-    // the colours are identical — but there is no getImageData / putImageData readback. MEASURED
-    // at CPU x4: once the natural
-    // ground put gentle hills on every grass tile, that readback ran on EVERY tile and shading
-    // cost ~15 ms of a 29 ms tile.
-    // The warm light (for near-white ground, where white cannot show) is chosen per cell from the
-    // surface underneath.
-    // ONE PATH PER SHADE, not one fillRect per cell (perf, 2026-10-06, the highway judder).
-    // MEASURED (tools/hwprofile.mjs, highway,
-    // CPU x4): up to 4096 fillRects a tile, each with a fresh rgba() string, were ~half of every
-    // ground tile. A cell's style is one
-    // of ~9 (2 x SHADE.bands levels x lit / lit-lab / shadow): the same integer-edged rects are
-    // gathered per style and filled once.
-    // Same pixels (tools/tilediff.mjs): the rects abut, never overlap, so one fill blends each
-    // pixel exactly once, as before.
+    // "draw white at opacity k", so the colours are identical — but there is no getImageData /
+    // putImageData readback. MEASURED at CPU x4: once the natural ground put gentle hills on every
+    // grass tile, that readback ran on EVERY tile and shading cost ~15 ms of a 29 ms tile. The warm
+    // light (for near-white ground, where white cannot show) is chosen per cell from the surface
+    // underneath. ONE PATH PER SHADE, not one fillRect per cell (perf, 2026-10-06, the highway
+    // judder). MEASURED (tools/hwprofile.mjs, highway, CPU x4): up to 4096 fillRects a tile, each
+    // with a fresh rgba() string, were ~half of every ground tile. A cell's style is one of ~9 (2 x
+    // SHADE.bands levels x lit / lit-lab / shadow): the same integer-edged rects are gathered per
+    // style and filled once. Same pixels (tools/tilediff.mjs): the rects abut, never overlap, so
+    // one fill blends each pixel exactly once, as before.
     const ctx = canvas.getContext('2d')!;
     ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0);
     const pxPerCell = canvas.width / cells, groups = new Map();
@@ -480,14 +451,11 @@ export function createTiles(view: View, cam: Cam, settings: Settings, helpers: T
     return missing;
   }
   // WEAR IS BAKED INTO THE TILES (2026-10-03). MEASURED: drawing worn cells live every frame cost
-  // the lab
-  // panels run 238 -> 197 frames (4x throttle). Now a changed cell only marks the tiles over it
-  // STALE; they
-  // keep showing until repainted within TILE_BUDGET, so wear appears within a frame or two and
-  // costs
-  // nothing while it is not changing. Dirty cells are drained at most every WEAR_DRAIN s, which
-  // batches a
-  // drift that changes many cells into one repaint of the tiles involved.
+  // the lab panels run 238 -> 197 frames (4x throttle). Now a changed cell only marks the tiles
+  // over it STALE; they keep showing until repainted within TILE_BUDGET, so wear appears within a
+  // frame or two and costs nothing while it is not changing. Dirty cells are drained at most every
+  // WEAR_DRAIN s, which batches a drift that changes many cells into one repaint of the tiles
+  // involved.
   const WEAR_DRAIN = 0.15;
   let wearDrainT = 0, seenEpoch = -1;
   function drainWear(wallDt: number) {
@@ -547,11 +515,9 @@ export function createTiles(view: View, cam: Cam, settings: Settings, helpers: T
       tileState.lastStep = null;
       return;
     }
-    // HYSTERESIS on the zoom step (perf, 2026-10-03): the speed zoom wanders across step
-    // boundaries all the time and every
-    // switch repaints the whole view. Stay on the current step until the zoom is 0.75 of a step
-    // away from it.
-    // flight: even steps only, finer side
+    // HYSTERESIS on the zoom step (perf, 2026-10-03): the speed zoom wanders across step boundaries
+    // all the time and every switch repaints the whole view. Stay on the current step until the
+    // zoom is 0.75 of a step away from it. flight: even steps only, finer side
     let step = fly ? 2 * Math.ceil(zStepOf(view.zoom) / 2) : zStepOf(view.zoom);
     if (!fly && tileState.lastStep !== null && Math.abs(ZSTEP * Math.log2(view.zoom)
         - tileState.lastStep) < 0.75) step = tileState.lastStep;
@@ -568,11 +534,9 @@ export function createTiles(view: View, cam: Cam, settings: Settings, helpers: T
       if (left === 0) tileState.lastStep = step;
     } else {
       // STAND-IN FOR NEW GROUND (perf, 2026-10-03; user: "still seeing lag at high speeds"). This
-      // used to paint EVERY missing tile
-      // in the frame it appeared — MEASURED at CPU x4: frames up to ~150 ms when ground scrolled
-      // in at speed. Now: the whole-
-      // level overview (the fly-in's flat painting, kept per level) goes down first, then at most
-      // TILE_BUDGET real tiles; the
+      // used to paint EVERY missing tile in the frame it appeared — MEASURED at CPU x4: frames up
+      // to ~150 ms when ground scrolled in at speed. Now: the whole- level overview (the fly-in's
+      // flat painting, kept per level) goes down first, then at most TILE_BUDGET real tiles; the
       // rest arrive over the next frames, so a frame or two shows a softer patch at the edge
       // instead of a stall.
       if (countMissing(step) > 1) {
@@ -587,17 +551,14 @@ export function createTiles(view: View, cam: Cam, settings: Settings, helpers: T
       } else { blitStep(step, true, { n: Infinity }); tileState.standIn = false; }
       tileState.lastStep = step;
     }
-    // (A LOOK-AHEAD painter was tried here, 2026-10-03: one tile per spare frame from where the
-    // car is heading. MEASURED at
-    // CPU x4 it made things WORSE — 97 slow frames per lap vs 51 without, and more tiles in
-    // total. Removed.)
-    // BACK, GATED ON TILE COST (user, 2026-10-04: "block loading is chunky / visible on PC"). A
-    // big PC screen needs ~3x the
-    // tiles of a phone, so at 1 tile a frame 27% of frames showed the flat stand-in (1600x900,
-    // 159 of 600). On a device that
-    // paints a tile in < AHEAD_MAX_MS, a frame with NOTHING missing paints one tile from the view
-    // AHEAD of the car. Phones
-    // (12-20 ms a tile at CPU x4) never qualify, so they keep the measured-better behaviour above.
+    // (A LOOK-AHEAD painter was tried here, 2026-10-03: one tile per spare frame from where the car
+    // is heading. MEASURED at CPU x4 it made things WORSE — 97 slow frames per lap vs 51 without,
+    // and more tiles in total. Removed.) BACK, GATED ON TILE COST (user, 2026-10-04: "block loading
+    // is chunky / visible on PC"). A big PC screen needs ~3x the tiles of a phone, so at 1 tile a
+    // frame 27% of frames showed the flat stand-in (1600x900, 159 of 600). On a device that paints
+    // a tile in < AHEAD_MAX_MS, a frame with NOTHING missing paints one tile from the view AHEAD of
+    // the car. Phones (12-20 ms a tile at CPU x4) never qualify, so they keep the measured-better
+    // behaviour above.
     if (!tileState.standIn && !fly && car && tileAvg < AHEAD_MAX_MS && Math.hypot(car.vx, car.vy)
         > 3) {
       prefetch(step, cam.x + car.vx * AHEAD_S, cam.y + car.vy * AHEAD_S, view.zoom, { n: 1 });

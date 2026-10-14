@@ -14,12 +14,10 @@ import type {
 
 // =============================================================================================
 // SURFACE DEGRADATION & WEAR MAP — LAYERED, rebuilt 2026-10-03 (user: "snow should compress to ice
-// after
-// several passes; ice should wear away with heavy braking or sliding and show the surface
-// underneath; if
-// the surface under is grass it should behave like grass and turn to mud once exposed and then
-// driven
-// over ... mud turns to thick mud ... puddles on any surface, ice and snow on any surface").
+// after several passes; ice should wear away with heavy braking or sliding and show the surface
+// underneath; if the surface under is grass it should behave like grass and turn to mud once
+// exposed and then driven over ... mud turns to thick mud ... puddles on any surface, ice and snow
+// on any surface").
 //
 // A wear CELL (WEAR_CELL m square) holds two layers:
 // base — the ground itself. Wears down a chain by PASSES (a wheel crossing the cell, debounced):
@@ -32,30 +30,26 @@ import type {
 // ICE_SCRUB_MIN, metres of slip accumulated past ICE_SCRUB). Rolling over it does nothing.
 //                    When it goes, the base is exposed and wears by its own rules from then on.
 // wet WATER DRIES BY TYRE HEAT (user, 2026-10-03, third pass: "puddles should only go when hot
-// tyres
-// or weather evaporate them — dry lines can still form with many passes of cold tyres but happen
-// quicker with warmer tyres"). Each pass adds dryness by tyre temperature (dryAmount):
-// STANDING water (level puddles, meltwater): cold tyres add NOTHING; hot tyres evaporate it.
-// DAMP ground (a wet zone / sector, wet tarmac): cold tyres dry a line slowly, warm ones fast.
+// tyres or weather evaporate them — dry lines can still form with many passes of cold tyres but
+// happen quicker with warmer tyres"). Each pass adds dryness by tyre temperature (dryAmount):
+// STANDING water (level puddles, meltwater): cold tyres add NOTHING; hot tyres evaporate it. DAMP
+// ground (a wet zone / sector, wet tarmac): cold tyres dry a line slowly, warm ones fast.
 //                    When dry it MIXES with what it lay on
-// (WATER_MIX): grass / dirt -> mud, sand -> gravel, gravel -> mud; tarmac just dries.
-// (user, 2026-10-03: "puddles should vanish or mix with surfaces like grass or dirt to
-// create mud ... sand and water should mix to create gravel ... gravel and water make mud")
-// Covers come from the level (LEVEL.covers, any shape over any surface) or from a zone whose own
-// surface
-// is snow/ice — those are treated as a cover over zone.under (default UNDER_DEFAULT), so a lab ice
-// panel scrubs through to tarmac and the same rules apply everywhere.
+// (WATER_MIX): grass / dirt -> mud, sand -> gravel, gravel -> mud; tarmac just dries. (user,
+// 2026-10-03: "puddles should vanish or mix with surfaces like grass or dirt to create mud ... sand
+// and water should mix to create gravel ... gravel and water make mud") Covers come from the level
+// (LEVEL.covers, any shape over any surface) or from a zone whose own surface is snow/ice — those
+// are treated as a cover over zone.under (default UNDER_DEFAULT), so a lab ice panel scrubs through
+// to tarmac and the same rules apply everywhere.
 //
 // ONE rule table. MEASURED BUG fixed here: the old code had the chain written TWICE with different
-// numbers
-// (recordWearAt said long grass -> mud in 8 passes, the game's recordWearPoint said 6), and the
-// only test
-// exercised the copy the game never used (CLAUDE.md rule 18).
+// numbers (recordWearAt said long grass -> mud in 8 passes, the game's recordWearPoint said 6), and
+// the only test exercised the copy the game never used (CLAUDE.md rule 18).
 export const WEAR_CELL = 1.5;
 export const wearMap = new Map<string, WearCell>();
 // Cells whose surface CHANGED since the renderer last looked. The renderer bakes wear into its
-// cached
-// ground tiles and uses this to know which tiles to repaint (render.ts drawGround). Drained by it.
+// cached ground tiles and uses this to know which tiles to repaint (render.ts drawGround). Drained
+// by it.
 export const wearDirty: WearCell[] = [];
 // base -> [what it becomes, passes it takes]. Cumulative from long grass: 2, 4, 6, 9.
 const BASE_WEAR: Record<string, [string, number]> = {
@@ -76,8 +70,7 @@ export function dryAmount(standing: boolean, tyreTemp: number): number {
   return 0.06 + 0.30 * Math.max(0, Math.min(1, (tyreTemp - 40) / 60));
 }
 // (history) the rule before (user: "a happy medium — a % chance so it takes 1-3 passes"): a 40%
-// chance per pass of
-// ANY tyre, so 1-3 passes. Replaced by dryAmount above.
+// chance per pass of ANY tyre, so 1-3 passes. Replaced by dryAmount above.
 export const SNOW_MELT_CHANCE = 0.5;   // packed snow melts to water (else freezes to ice), per cell
 // per pass, standing water over a WATER_MIX base -> 1-3 passes
 export const WATER_CHURN_CHANCE = 0.4;
@@ -87,12 +80,10 @@ const WATER_MIX: Record<string, string> = {
   sand: 'gravel', gravel: 'mud',
 };
 // 7.0, was 2.0. User, 2026-10-03: "ice should take a couple of passes before it melts unless tyres
-// are very
-// hot". MEASURED at 2.0: ONE locked-brake pass scrubbed 32 cells through. A locked pass puts ~3 m
-// of slip into a
-// cell (two wheels in line, ~1.5 m each), so 7 m takes 2-3 hard passes. Hot tyres melting it faster
-// waits for
-// the tyre-temperature model (TODO, tier 3) — it should scale THIS number down, nothing else.
+// are very hot". MEASURED at 2.0: ONE locked-brake pass scrubbed 32 cells through. A locked pass
+// puts ~3 m of slip into a cell (two wheels in line, ~1.5 m each), so 7 m takes 2-3 hard passes.
+// Hot tyres melting it faster waits for the tyre-temperature model (TODO, tier 3) — it should scale
+// THIS number down, nothing else.
 export const ICE_SCRUB = 7.0;      // m of tyre slip over a cell to scrub its ice through
 export const ICE_SCRUB_MIN = 2.0;  // m/s of slip below which a wheel is rolling, not scrubbing
 export const COVER_IDS: Record<CoverId, number> & Record<string, number> = { snow: 1, ice: 1,
@@ -100,10 +91,9 @@ export const COVER_IDS: Record<CoverId, number> & Record<string, number> = { sno
 const UNDER_DEFAULT = 'tarmac';
 
 // ONE wear clock for the world (sim seconds), not per car. MEASURED BUG, 2026-10-03
-// (tools/wearcheck.mjs):
-// the pass debounce used car.simTime, which starts at 0 for every new car — so after switching car,
-// every
-// cell the old car had driven over stopped counting passes until the new car's clock caught up.
+// (tools/wearcheck.mjs): the pass debounce used car.simTime, which starts at 0 for every new car —
+// so after switching car, every cell the old car had driven over stopped counting passes until the
+// new car's clock caught up.
 let wearClock = 0;
 export let wearEpoch = 0;
 export function clearWear(): void {
@@ -115,15 +105,12 @@ export function clearWear(): void {
 }
 
 // PRUNE THE WEAR on a streamed level (highway.js stepHighway, after each rebuild). MEASURED BUG
-// (user, 2026-10-06: "occasionally leaves
-// patches of dirt on highway levels ... after longer drives / with ai on"; tools/_wearleak.mjs):
-// wear cells live at WORLD positions and
-// were never dropped - so when the endless road was rebuilt and new ground (a field, a bridge
-// approach, the road swinging back) came
-// down over a worn cell, that cell still drove AND drew as the old dirt / mud. Spun AI chew the
-// verge, so it showed most with AI. The map
-// also grew for the whole drive, and every ground-tile repaint walks it. Drop a cell if it is
-// farther than `far` m from (x, y) or the
+// (user, 2026-10-06: "occasionally leaves patches of dirt on highway levels ... after longer drives
+// / with ai on"; tools/_wearleak.mjs): wear cells live at WORLD positions and were never dropped -
+// so when the endless road was rebuilt and new ground (a field, a bridge approach, the road
+// swinging back) came down over a worn cell, that cell still drove AND drew as the old dirt / mud.
+// Spun AI chew the verge, so it showed most with AI. The map also grew for the whole drive, and
+// every ground-tile repaint walks it. Drop a cell if it is farther than `far` m from (x, y) or the
 // ground under it is not what it was worn FROM; its tiles are repainted (wearDirty).
 export function pruneWear(x: number, y: number, far: number): number {
   let dropped = 0;
@@ -147,13 +134,10 @@ export function pruneWear(x: number, y: number, far: number): number {
 export const cleanAt = (x: number, y: number): string => { const layers = layersAt(x,
   y); return layers.cover || layers.base; };
 
-// The STATIC layers at a point, before any wear: { base, cover } as surface ids.
-// LEVEL.patches: [{ x, y, w, h, rot, surface }] — small ellipses of a different BASE laid on the
-// ground
-// (the Grass Track's random spots). Checked after the zone, so a patch on the road changes the
-// road.
-// Looked up through PATCH_GRID (built per level in prepareLevel), so thousands of blend patches
-// cost the
+// The STATIC layers at a point, before any wear: { base, cover } as surface ids. LEVEL.patches: [{
+// x, y, w, h, rot, surface }] — small ellipses of a different BASE laid on the ground (the Grass
+// Track's random spots). Checked after the zone, so a patch on the road changes the road. Looked up
+// through PATCH_GRID (built per level in prepareLevel), so thousands of blend patches cost the
 // physics a handful of comparisons per query instead of a scan of the whole list.
 export const PATCH_CELL = 6;
 export let PATCH_GRID = new Map<number, Patch[]>();
@@ -182,24 +166,22 @@ function patchAt(x: number, y: number): Surface | null {
 export function layersAt(x: number, y: number): Layers {
   const zoneSurface = zoneAt(x, y);
   // `standing`: the water here is a PUDDLE (LEVEL.covers), not a damp wet zone — they dry
-  // differently
-  // kerbs are their own surface; patches never cover them
+  // differently kerbs are their own surface; patches never cover them
   const z = zoneSurface.id === 'kerb' ? zoneSurface : (patchAt(x, y) || zoneSurface);
   let base = z.id, cover: string | null = null;
   // a snow, ice OR WET zone is a cover over its `under` (default tarmac). Wet joined 2026-10-03
-  // (user: "wet tarmac
-  // ... needs blue-ish puddles that can be removed by driving over them") — so a wet panel or wet
-  // sector now
-  // DRIES where it is driven, cell by cell, leaving a dry line through it like a real drying track.
+  // (user: "wet tarmac ... needs blue-ish puddles that can be removed by driving over them") — so a
+  // wet panel or wet sector now DRIES where it is driven, cell by cell, leaving a dry line through
+  // it like a real drying track.
   if (COVER_IDS[base]) { cover = base; base = z.under || UNDER_DEFAULT; }
   const puddleCover = coverAt(x, y);
   if (puddleCover) cover = puddleCover;
   return { base, cover, standing: !!puddleCover };
 }
-// LEVEL.covers: [{ x, y, w, h, cover: 'snow'|'ice'|'wet', shape: 'rect'|'ellipse', rot }]
-// share of tyre-slip heat that reaches the TYRE on loose ground (vehicle.js TYRE_HEAT). User:
-// "off-road surfaces
-// shouldn't get them up much". MEASURED: gravel drift 260 C in 14 s before -> 25 C at 30 s at 0.15.
+// LEVEL.covers: [{ x, y, w, h, cover: 'snow'|'ice'|'wet', shape: 'rect'|'ellipse', rot }] share of
+// tyre-slip heat that reaches the TYRE on loose ground (vehicle.js TYRE_HEAT). User: "off-road
+// surfaces shouldn't get them up much". MEASURED: gravel drift 260 C in 14 s before -> 25 C at 30 s
+// at 0.15.
 export const HEAT_OFFROAD = 0.15;
 export const COVER_SQ = 0.5;   // m, the cover grid (render.ts coverCells uses the same 0.5)
 export function coverAt(x: number, y: number): CoverId | null {
@@ -208,9 +190,8 @@ export function coverAt(x: number, y: number): CoverId | null {
   for (let i = 0; i < list.length; i++) {
     const coverArea = list[i];
     // the SAME 0.5 m world-grid squares render.ts coverCells draws (user rule: visuals accurate to
-    // their effects):
-    // the point is tested at the centre of its square, so a cover's grip edge is exactly its drawn
-    // stepped edge
+    // their effects): the point is tested at the centre of its square, so a cover's grip edge is
+    // exactly its drawn stepped edge
     let dx = Math.floor(x / COVER_SQ) * COVER_SQ + COVER_SQ / 2 - coverArea.x,
       dy = Math.floor(y / COVER_SQ) * COVER_SQ + COVER_SQ / 2 - coverArea.y;
     // CHEAP REJECT before any trig (2026-10-04, profiled: Sweaty Lamb's 40-puddle stream made
@@ -235,9 +216,8 @@ export function coverAt(x: number, y: number): CoverId | null {
   return null;
 }
 // a cover's CUT-OUT (highway.js river: no water where the motorway crosses on its parapets): in the
-// frame of (cut.ox, cut.oy) along
-// c.rot, the band |u - v tan| < e is dry. Tested at the 0.5 m square's centre, like the cover
-// itself (render.ts coverCells agrees).
+// frame of (cut.ox, cut.oy) along c.rot, the band |u - v tan| < e is dry. Tested at the 0.5 m
+// square's centre, like the cover itself (render.ts coverCells agrees).
 export function coverCut(coverArea: Cover, x: number, y: number): boolean {
   const cut = coverArea.cut!, cosRot = Math.cos(coverArea.rot || 0),
     sinRot = Math.sin(coverArea.rot || 0);
@@ -248,10 +228,8 @@ export function coverCut(coverArea: Cover, x: number, y: number): boolean {
 }
 
 // What a tyre feels for a base + cover. snow / ice replace the base outright (the tyre is on them).
-// A
-// PUDDLE does not — water on grass is not wet tarmac — it scales the base: less grip, more drag,
-// wet
-// marks and spray. Built once per base and cached, so physics gets a plain surface object.
+// A PUDDLE does not — water on grass is not wet tarmac — it scales the base: less grip, more drag,
+// wet marks and spray. Built once per base and cached, so physics gets a plain surface object.
 const PUDDLE: Record<string, Surface> = {};
 export function surfaceOf(base: string, cover: string | null): Surface {
   if (!cover) return SURFACES[base as SurfaceId] || SURFACES[UNDER_DEFAULT];
@@ -285,9 +263,8 @@ function getCell(cellX: number, cellY: number): WearCell | null {
 function passCell(cell: WearCell, tyreTemp = 18): void {
   if (cell.cover === 'snow') {
     // MELT OR FREEZE (user, 2026-10-03: "snow should have a chance to melt or turn to ice when
-    // driven over — it
-    // should still take multiple passes"). After SNOW_TO_ICE passes it becomes ICE or MELTWATER, by
-    // chance.
+    // driven over — it should still take multiple passes"). After SNOW_TO_ICE passes it becomes ICE
+    // or MELTWATER, by chance.
     if (++cell.passes >= SNOW_TO_ICE) {
       cell.cover = Math.random() < SNOW_MELT_CHANCE ? 'wet' : 'ice';
       cell.passes = 0;
@@ -298,15 +275,11 @@ function passCell(cell: WearCell, tyreTemp = 18): void {
     // CHURN vs EVAPORATE (user, 2026-10-03, fourth pass: "water on dirt ... should become mud when
     // driven over").
     // MEASURED BUG: a puddle on dirt only mixed after it had DRIED, and standing water only dries
-    // above 60 C, so on
-    // dirt it stayed a puddle forever. Tyres churning water INTO soft ground is not evaporation: on
-    // any base with a
-    // WATER_MIX rule, every pass of ANY tyre has WATER_CHURN_CHANCE to churn it (1-3 passes, the
-    // user's earlier
-    // "happy medium"). Hard ground (tarmac) has nothing to churn into, so it keeps the heat /
-    // weather rule.
-    // capped: the 3rd pass always churns (pure 40% measured a worst case of 9-12 passes over 200
-    // puddles)
+    // above 60 C, so on dirt it stayed a puddle forever. Tyres churning water INTO soft ground is
+    // not evaporation: on any base with a WATER_MIX rule, every pass of ANY tyre has
+    // WATER_CHURN_CHANCE to churn it (1-3 passes, the user's earlier "happy medium"). Hard ground
+    // (tarmac) has nothing to churn into, so it keeps the heat / weather rule. capped: the 3rd pass
+    // always churns (pure 40% measured a worst case of 9-12 passes over 200 puddles)
     if (cell.standing && WATER_MIX[cell.base]
       && (++cell.passes >= 3 || Math.random() < WATER_CHURN_CHANCE)) cell.dry = 1;
     else cell.dry += dryAmount(cell.standing, tyreTemp);
@@ -320,11 +293,9 @@ function passCell(cell: WearCell, tyreTemp = 18): void {
     const rule = BASE_WEAR[cell.base];
     if (rule && ++cell.passes >= rule[1]) { cell.base = rule[0]; cell.passes = 0; }
     // RUTS THAT DEEPEN (step 3; user: the "vector dips" — "mud turns to thick mud / vector dips;
-    // sand and gravel also
-    // have the chance to create vector dips"). A pass digs the cell down by RUT[base].step (sand /
-    // gravel by chance) to
-    // its max. It is real height: the suspension feels it and gravity on its sides pulls wheels
-    // into the groove.
+    // sand and gravel also have the chance to create vector dips"). A pass digs the cell down by
+    // RUT[base].step (sand / gravel by chance) to its max. It is real height: the suspension feels
+    // it and gravity on its sides pulls wheels into the groove.
     const rutRule = RUT[cell.base];
     if (rutRule && Math.random() < rutRule.chance) {
       const was = cell.rut || 0;
@@ -342,8 +313,8 @@ function scrubCell(cell: WearCell, slipM: number): void {
   if (cell.cover !== 'ice') return;
   cell.scrub += slipM;
   // scrubbed ice leaves MELTWATER, not bare ground (user, 2026-10-03: "after snow / ice water
-  // should be left") —
-  // a puddle that then churns into its base by the WATER_MIX rules, so ice over grass ends as mud.
+  // should be left") — a puddle that then churns into its base by the WATER_MIX rules, so ice over
+  // grass ends as mud.
   if (cell.scrub >= ICE_SCRUB) {
     cell.cover = 'wet';
     cell.standing = true;
@@ -398,16 +369,15 @@ export function getWornSurface(x: number, y: number): Surface | null {
 }
 
 // Height noise for a surface, from its own `rough`. Two incommensurate frequencies so it does not
-// read
-// as a sine wave, and long enough wavelengths to survive a 120 Hz sim at 45 m/s without aliasing.
+// read as a sine wave, and long enough wavelengths to survive a 120 Hz sim at 45 m/s without
+// aliasing.
 function roughAt(x: number, y: number, rough: number): number {
   if (!rough) return 0;
   return rough * (Math.sin(x * 0.9) * Math.sin(y * 1.2) + 0.6 * Math.sin(x * 2.1 + y * 1.7));
 }
 
 // THE GROUND under a point: its height in metres and what it grips like. Everything about the
-// world's
-// surface is this one function; main.js reads it and vehicle.js integrates over it.
+// world's surface is this one function; main.js reads it and vehicle.js integrates over it.
 export function groundAt(x: number, y: number): Ground {
   // e = metres past the floor edge (negative inside); on the square it is max(|x|, |y|) - FLOOR, as
   // before (S-B: any rectangle)
@@ -423,10 +393,8 @@ export function groundAt(x: number, y: number): Ground {
   }
 
   // --- THE KERB. A HUMP, not a step: zero at the inner lip, KERB_H at the crest, back to zero at
-  // the
-  // outer edge. sin^2 so both ends are smooth — a discontinuity here is an infinite ground
-  // velocity,
-  // and the suspension would answer with an infinite load.
+  // the outer edge. sin^2 so both ends are smooth — a discontinuity here is an infinite ground
+  // velocity, and the suspension would answer with an infinite load.
   if (over <= 0) {
     const depth = (over + KERB_W) / KERB_W;
     const hump = Math.sin(Math.PI * depth);
@@ -464,8 +432,7 @@ export function carWheels(car: CarBody): Wheel[] {
 }
 
 // A HOT tyre (above HOT_TYRE) over snow or water counts its pass TWICE with HOT_EXTRA_CHANCE — it
-// melts and
-// dries faster. On ice the slip it scrubs with is multiplied by heatScrub (see stepWear).
+// melts and dries faster. On ice the slip it scrubs with is multiplied by heatScrub (see stepWear).
 const HOT_TYRE = 80, HOT_EXTRA_CHANCE = 0.5;
 function recordWearPoint(x: number, y: number, simTime: number, tyreT = 0): void {
   const cell = getCell(Math.floor(x / WEAR_CELL), Math.floor(y / WEAR_CELL));
@@ -489,11 +456,10 @@ export function stepWear(car: CarBody, dt: number): void {
   if (!car.prevWheels) car.prevWheels = curr;
   const telemetry = car.t;
   // A JUMP is not a tyre path (MEASURED BUG, 2026-10-06, "dirt in the road"; tools/_dirtroad.mjs):
-  // highway traffic out of view is moved
-  // KINEMATICALLY (traffic.js, no applyGround), so prevWheels went stale and the first physical
-  // step after it woke swept one straight
-  // line of wear from where it fell asleep, often across the carriageway. Same for any teleport. 3
-  // m in one step = 360 m/s at 120 Hz.
+  // highway traffic out of view is moved KINEMATICALLY (traffic.js, no applyGround), so prevWheels
+  // went stale and the first physical step after it woke swept one straight line of wear from where
+  // it fell asleep, often across the carriageway. Same for any teleport. 3 m in one step = 360 m/s
+  // at 120 Hz.
   if (Math.hypot(curr[0].x - car.prevWheels[0].x,
     curr[0].y - car.prevWheels[0].y) > 3) { car.prevWheels = curr; return; }
   for (let i = 0; i < 4; i++) {
@@ -531,16 +497,13 @@ export function stepWear(car: CarBody, dt: number): void {
 //
 // Sampled AT EACH AXLE, not at the centre. A 2.6 m wheelbase over a 3.5 m kerb means the front is
 // cresting while the rear is still climbing, and that phase difference is the whole character of
-// riding
-// a kerb — one end light while the other still grips. One sample point would average it away.
-// LOCAL LOOKUP HINT (2026-10-04, AI stage 1: applyGround made 34 track lookups per car per physics
-// step — slope, bump steer, camber,
-// kerbs — each a fresh grid search; with 6 cars that was a third of the frame). The car is looked
-// up ONCE; the samples around it search
-// only the 21 segments either side of its nearest one, and that answer is used only when the point
-// is ON the road (within half width +
-// 3 m) — then no other part of the lap can be nearer (legs are >= 33 m apart on every level).
-// Anything else gets the full search.
+// riding a kerb — one end light while the other still grips. One sample point would average it
+// away. LOCAL LOOKUP HINT (2026-10-04, AI stage 1: applyGround made 34 track lookups per car per
+// physics step — slope, bump steer, camber, kerbs — each a fresh grid search; with 6 cars that was
+// a third of the frame). The car is looked up ONCE; the samples around it search only the 21
+// segments either side of its nearest one, and that answer is used only when the point is ON the
+// road (within half width + 3 m) — then no other part of the lap can be nearer (legs are >= 33 m
+// apart on every level). Anything else gets the full search.
 export let qsHintSub: Subtrack | null = null, qsHint = -1;
 export function applyGround(car: CarBody, dt: number): void {
   const st0 = LEVEL.subtrack;
@@ -556,15 +519,13 @@ function applyGroundInner(car: CarBody, dt: number): void {
   const frontGround = groundAt(frontX, frontY);
   const rearGround = groundAt(rearX, rearY);
   // The true discrete derivative, so driving ALONG a ridged kerb shakes the car for exactly the
-  // same
-  // reason crossing one does. There is no separate "rumble" code anywhere, and there should not be.
-  // FIRST STEP AFTER A RESET (user, 2026-10-04: "resetting on terrain causes the car to get stuck
-  // when pulling away"). reset() zeroes the
-  // ground + suspension heights, so on a hill the first derivative read the whole hill as one step:
-  // MEASURED a reset 7.5 m up Sweaty
-  // Lamb launched the car 106 m into the air (Slidden Hill 67 m; Castle Cum's 1.1 m crest 1.1 s of
-  // air). Now the first step after a reset
-  // puts the ground AND the body at the local height with no vertical speed.
+  // same reason crossing one does. There is no separate "rumble" code anywhere, and there should
+  // not be. FIRST STEP AFTER A RESET (user, 2026-10-04: "resetting on terrain causes the car to get
+  // stuck when pulling away"). reset() zeroes the ground + suspension heights, so on a hill the
+  // first derivative read the whole hill as one step: MEASURED a reset 7.5 m up Sweaty Lamb
+  // launched the car 106 m into the air (Slidden Hill 67 m; Castle Cum's 1.1 m crest 1.1 s of air).
+  // Now the first step after a reset puts the ground AND the body at the local height with no
+  // vertical speed.
   if (!car.groundInit) {
     car.groundF = frontGround.h;
     car.groundR = rearGround.h;
@@ -580,26 +541,19 @@ function applyGroundInner(car: CarBody, dt: number): void {
   car.surface = rearGround.surface;
 
   // Corner banking physics (PLAN.md §3): on banked turns (e.g. Naffcar), the slope hauls the car
-  // inward
-  // SLOPE FORCE (step 3, 2026-10-03; user: "vector dips ... push in all 8 directions, out and in").
-  // Gravity along the
-  // smooth terrain: F = -m g grad(h), world frame -> body frame. Bumps push OUT, dips and banking
-  // pull IN/DOWN. Only on
-  // the ground (an airborne car falls straight). Replaces the old bank FORCE, which pushed 0.3 g to
-  // the car's left
-  // anywhere past |x| 130 — grass included (fixed earlier today); banking is now real height
-  // (bankHeightAt).
+  // inward SLOPE FORCE (step 3, 2026-10-03; user: "vector dips ... push in all 8 directions, out
+  // and in"). Gravity along the smooth terrain: F = -m g grad(h), world frame -> body frame. Bumps
+  // push OUT, dips and banking pull IN/DOWN. Only on the ground (an airborne car falls straight).
+  // Replaces the old bank FORCE, which pushed 0.3 g to the car's left anywhere past |x| 130 — grass
+  // included (fixed earlier today); banking is now real height (bankHeightAt).
   car.bankLatForce = 0; car.bankLoadFactor = 1.0;
   if (car.air > 0) { car.slopeLong = 0; car.slopeLat = 0; car.slopeYaw = 0; }
   else {
     // PER AXLE, under each wheel (ruts: sampled at the centre the car sits on the ridge between two
-    // grooves and is pushed
-    // sideways; at the wheels each side is pulled back into its own groove). Each axle carries its
-    // static share of the
-    // weight, and the two axles' sideways pushes act at the axles — so an off-centre whoop or dip
-    // under the FRONT wheels
-    // tugs the nose toward the dip / away from the hump (user, 2026-10-03: "dips and whoops should
-    // gently affect steering").
+    // grooves and is pushed sideways; at the wheels each side is pulled back into its own groove).
+    // Each axle carries its static share of the weight, and the two axles' sideways pushes act at
+    // the axles — so an off-centre whoop or dip under the FRONT wheels tugs the nose toward the dip
+    // / away from the hump (user, 2026-10-03: "dips and whoops should gently affect steering").
     const hw2 = (spec.trackWidth || 1.5) / 2, perpSin = -sinH, perpCos = cosH,
       wheelbase = spec.lf + spec.lr;
     const weight = spec.mass * car.mods.mass * 9.81;
@@ -622,24 +576,19 @@ function applyGroundInner(car: CarBody, dt: number): void {
       Flong += forceLong; Flat += forceLat; yawMoment += arm * forceLat;
     }
     // BUMP STEER: the front wheel that drops (into a dip, or off the far side of a whoop) tugs the
-    // nose toward its side —
-    // the tramlining a real car's steering does. +y is the car's right, and a right turn is
-    // positive yaw, so a LOWER right
-    // wheel (hL > hR) adds positive yaw. Strength BUMP_STEER x front weight x height difference
-    // (m).
-    // banking excluded: a steady cross-slope is not a bump, and the slope push already slides you
-    // down it
+    // nose toward its side — the tramlining a real car's steering does. +y is the car's right, and
+    // a right turn is positive yaw, so a LOWER right wheel (hL > hR) adds positive yaw. Strength
+    // BUMP_STEER x front weight x height difference (m). banking excluded: a steady cross-slope is
+    // not a bump, and the slope push already slides you down it
     const hAt = (x: number, y: number): number => heightAt(x, y) - bankHeightAt(x, y);
     const heightRight = hAt(car.x + cosH * spec.lf + perpSin * hw2,
       car.y + sinH * spec.lf + perpCos * hw2);
     const heightLeft = hAt(car.x + cosH * spec.lf - perpSin * hw2,
       car.y + sinH * spec.lf - perpCos * hw2);
     // BUMPS ONLY, never an even slope (user, 2026-10-03: "I think the bowl on the lab is broken"):
-    // on the bowl wall the
-    // left / right difference was PERMANENT and dragged the nose toward the middle the whole way
-    // round. Subtract what a
-    // flat plane with the local slope would give, so a steady cross-slope (bowl, hill, banking)
-    // reads zero.
+    // on the bowl wall the left / right difference was PERMANENT and dragged the nose toward the
+    // middle the whole way round. Subtract what a flat plane with the local slope would give, so a
+    // steady cross-slope (bowl, hill, banking) reads zero.
     const frontSlope = slopeAt(car.x + cosH * spec.lf, car.y + sinH * spec.lf);
     // hL - hR on a flat tilted plane
     const plane = -2 * hw2 * (frontSlope.gx * perpSin + frontSlope.gy * perpCos);

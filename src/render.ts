@@ -46,15 +46,13 @@ export const MAX_DPR = 2;
 
 // =============================================================================================
 // PIXEL-ART MODE — the only renderer (approved 2026-10-03). Began as a ?pixel=1 mock-up (user,
-// 2026-10-03: "everything pixel art, realistic-ish but in a pixel style", car ~70 px long like
-// the reference sprites in art/reference/).
-// The WORLD is drawn into a low-resolution buffer — one art pixel = PIXEL_CSS css px (an integer
-// number of device pixels) — and blitted to the screen with smoothing OFF, so every edge is a
-// hard pixel step. The HUD is drawn afterwards at full resolution so buttons and numbers stay
-// crisp. Cars are generated PIXEL SPRITES (pixelCar).
-// Everything else is the existing renderer, drawn small — the mock-up shows how far that alone
-// gets.
-// css px per art pixel: a 4 m car is ~70 art px at zoom 1 on a phone
+// 2026-10-03: "everything pixel art, realistic-ish but in a pixel style", car ~70 px long like the
+// reference sprites in art/reference/). The WORLD is drawn into a low-resolution buffer — one art
+// pixel = PIXEL_CSS css px (an integer number of device pixels) — and blitted to the screen with
+// smoothing OFF, so every edge is a hard pixel step. The HUD is drawn afterwards at full resolution
+// so buttons and numbers stay crisp. Cars are generated PIXEL SPRITES (pixelCar). Everything else
+// is the existing renderer, drawn small — the mock-up shows how far that alone gets. css px per art
+// pixel: a 4 m car is ~70 art px at zoom 1 on a phone
 const PIXEL_CSS = 1.3;
 
 export function createRenderer(canvas: HTMLCanvasElement, settings: Settings) {
@@ -210,11 +208,10 @@ export function createRenderer(canvas: HTMLCanvasElement, settings: Settings) {
     }
     // ORDER MATTERS. Everything that IS the ground goes down first, then the marks layer over all
     // of it, then the fence — which is a vertical object and belongs on top of everything on the
-    // deck.
-    // MEASURED BUG, 2026-09-28: the run-off was filled AFTER the marks blit, so gravel tracks
+    // deck. MEASURED BUG, 2026-09-28: the run-off was filled AFTER the marks blit, so gravel tracks
     // were painted and then immediately buried under the gravel (user: "we should leave little
-    // tracks in the gravel trap"). Check what a thing is drawn OVER — CLAUDE.md §4.
-    // ground = floor + zones + ribbon + covers + WEAR, from the tile cache above
+    // tracks in the gravel trap"). Check what a thing is drawn OVER — CLAUDE.md §4. ground = floor
+    // + zones + ribbon + covers + WEAR, from the tile cache above
     if (!skip('ground')) drawGround(wallDt, game.car);
     if (!skip('deck')) {
       drawRunoff();
@@ -373,8 +370,8 @@ export function createRenderer(canvas: HTMLCanvasElement, settings: Settings) {
     },
     get tileCount() { return tiles.size; },
     // for tools/tilediff.mjs: ground tile (zoom step k, column i, row j) painted fresh -> its
-    // pixels (not cached)
-    // for tools/tilestrips.mjs: the same tile painted strip by strip, each stepTile timed
+    // pixels (not cached) for tools/tilestrips.mjs: the same tile painted strip by strip, each
+    // stepTile timed
     debugTileStrips(step: number, col: number, row: number, strips: number) {
       const job = startTile(step, col, row), stripMs: number[] = [];
       job.strips = strips;

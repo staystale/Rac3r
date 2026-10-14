@@ -11,11 +11,10 @@
 // indicate first, then drift across — to overtake a slower car (right, else rarely left),
 // back to the left when it is clear (keep left), and now and then for no reason. A car TOO
 // DAMAGED stops with its hazards on.
-// RECYCLING: a car OUT OF VIEW (main.js passes the renderer's real screen test) and well behind
-// you is REPLACED by a fresh random car (model + colour) ahead, off the top; one far ahead
-// (you stopped) comes back from behind. A new car is always placed OFF SCREEN and never near
-// another car in that lane. Positions are absolute road distances, so the window moving needs
-// nothing.
+// RECYCLING: a car OUT OF VIEW (main.js passes the renderer's real screen test) and well behind you
+// is REPLACED by a fresh random car (model + colour) ahead, off the top; one far ahead (you
+// stopped) comes back from behind. A new car is always placed OFF SCREEN and never near another car
+// in that lane. Positions are absolute road distances, so the window moving needs nothing.
 // Measured: tools/trafficcheck.mjs.
 import { makeCar, step, reset } from './vehicle.ts';
 import { ROSTER } from './cars.ts';

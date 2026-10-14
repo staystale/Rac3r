@@ -63,13 +63,12 @@ export function createCamera(view: View, cam: Cam, helpers: CameraHelpers) {
 
   // SPEED ZOOM. Asked for by the user and by the playtesters: above ~120 km/h the car was running
   // off the screen because the view showed a fixed number of metres however fast you were going.
-  // Zoom out with speed so the distance you can SEE scales with the distance you cover. Smoothed
-  // on the WALL CLOCK (rule 5) — a zoom is something the player watches, and an unsmoothed one
-  // pumps on every gearchange.
-  // LEVEL FLY-IN (playtesters, re-asked by the user 2026-10-03 after DeepSeek's version was
-  // reverted): every level start opens on the WHOLE level, then eases in to the car over FLY_TIME,
-  // so you see what is around before you drive. Wall clock (rule 5: the player watches it). The
-  // player can drive during it.
+  // Zoom out with speed so the distance you can SEE scales with the distance you cover. Smoothed on
+  // the WALL CLOCK (rule 5) — a zoom is something the player watches, and an unsmoothed one pumps
+  // on every gearchange. LEVEL FLY-IN (playtesters, re-asked by the user 2026-10-03 after
+  // DeepSeek's version was reverted): every level start opens on the WHOLE level, then eases in to
+  // the car over FLY_TIME, so you see what is around before you drive. Wall clock (rule 5: the
+  // player watches it). The player can drive during it.
   const FLY_HOLD = 0.45;          // s held on the whole-level view before moving
   const FLY_TIME = 1.5;           // s of the move itself (ease-in-out, in log zoom)
   // the camera state other layers read: fly (the fly-in, or null), ovCache (the overview picture),

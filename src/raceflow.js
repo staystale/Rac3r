@@ -1,40 +1,33 @@
-// raceflow.js — AI STAGE 4: HOW A RACE ENDS (2026-10-04). Pure bookkeeping on the sim step;
-// main.js feeds it, hud.js draws the flag,
-// menu.js shows the podium + results.
+// raceflow.js — AI STAGE 4: HOW A RACE ENDS (2026-10-04). Pure bookkeeping on the sim step; main.js
+// feeds it, hud.js draws the flag, menu.js shows the podium + results.
 //
 // USER SPEC (2026-10-04): a CHEQUERED FLAG sweeps the WHOLE screen for the winner and when the
-// event ends; once the TOP 3 have finished
-// the race is CUT SHORT and everyone else takes their running position; RESULTS (positions, times,
-// gaps, best lap, penalties incl. joker)
-// with Restart / Track select / Menu. DECIDED (user): a SHORT GRACE for the player once the top 3
-// are home — "but this might introduce
-// logical flaws for timed events like rallycross / rally — make sure that's caught and works like
-// real life — maybe simulate / estimate".
-// PODIUM first, then the table. LAPS chosen in setup.
+// event ends; once the TOP 3 have finished the race is CUT SHORT and everyone else takes their
+// running position; RESULTS (positions, times, gaps, best lap, penalties incl. joker) with Restart
+// / Track select / Menu. DECIDED (user): a SHORT GRACE for the player once the top 3 are home —
+// "but this might introduce logical flaws for timed events like rallycross / rally — make sure
+// that's caught and works like real life — maybe simulate / estimate". PODIUM first, then the
+// table. LAPS chosen in setup.
 //
 // So the classification is ON TIME, like a real timed event, never on road position alone:
 // * a finished car: its race time + penalties (RX joker: none taken = +penalty, each extra =
 // +penalty);
 // * a car still running when the race is cut: an ESTIMATE = now + the distance it has left / its
-// pace (its last full lap, else its
-// average so far), marked "~" in the table. RX: a car that has NOT taken its joker and still has
-// more than JOKER_LEFT laps to go is
-// assumed to take it (+ the joker's estimated cost), not penalised — it still had the chance; on
-// its final stretch without it, the
+// pace (its last full lap, else its average so far), marked "~" in the table. RX: a car that has
+// NOT taken its joker and still has more than JOKER_LEFT laps to go is assumed to take it (+ the
+// joker's estimated cost), not penalised — it still had the chance; on its final stretch without
+// it, the
 //     penalty applies, as it would at the flag.
 // * a car that will be lapped simply estimates long — the order comes out the same as "laps, then
-// time".
-// States: 'racing' -> (top 3 home) 'grace' (player still running, GRACE s) -> 'done'. The player
-// finishing ends the grace at once; a
-// player who finished in the top 3 waits at most WAIT_TOP3 s for the rest of the top 3.
+// time". States: 'racing' -> (top 3 home) 'grace' (player still running, GRACE s) -> 'done'. The
+// player finishing ends the grace at once; a player who finished in the top 3 waits at most
+// WAIT_TOP3 s for the rest of the top 3.
 export const GRACE = 5, WAIT_TOP3 = 15, JOKER_LEFT = 0.6, DNF_X = 2, STAGE_WAIT = 10;
 // RALLY STAGE mode (stage = { finish }: user, 2026-10-04: "like real life — a time trial with
-// staggered starts, each timed from their own
-// start, so you can catch the car ahead or be caught"): a car's time runs from crossing the start
-// line (progress 0) to the finish
-// distance. The event ends when YOU are through the finish and the rest are too, or STAGE_WAIT s
-// later; a car still on the stage is
-// ESTIMATED from its pace so far (elapsed / fraction of the stage done).
+// staggered starts, each timed from their own start, so you can catch the car ahead or be caught"):
+// a car's time runs from crossing the start line (progress 0) to the finish distance. The event
+// ends when YOU are through the finish and the rest are too, or STAGE_WAIT s later; a car still on
+// the stage is ESTIMATED from its pace so far (elapsed / fraction of the stage done).
 
 // cars: [{ car, player }]; total: lap length (m); laps; joker: LEVEL.joker or null
 export function createRaceFlow({ cars, total, laps, joker = null, stage = null }) {

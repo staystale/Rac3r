@@ -5,31 +5,28 @@ import type { Barrier, BarrierKind, CarBody, Point, Prop, Solid, Subtrack } from
 
 // =============================================================================================
 // BARRIERS (2026-10-03; user: "use aerial photos of tracks on race days for pit layouts and
-// perimeter decorations — if you
-// need to make things like ARMCO or FENCES, do"). LEVEL.barriers: [{ kind, pts: [[x, y], ...] }],
-// polylines in metres.
+// perimeter decorations — if you need to make things like ARMCO or FENCES, do"). LEVEL.barriers: [{
+// kind, pts: [[x, y], ...] }], polylines in metres.
 //   armco    steel double rail on posts — solid
 // wall concrete — solid pitwall concrete, red / white / blue painted (Thruxton photos) — solid
 // fence catch fence, posts + mesh — solid building an invisible solid outline (props draw the
 // building)
 //   line     painted line (pit lane edge) — NOT solid
 // Solid ones collide with the car's four corners (push out, bounce, scrape) on the same step as
-// obstacleClamp; what is drawn
-// is exactly what you hit (user rule: visuals accurate to their effects).
+// obstacleClamp; what is drawn is exactly what you hit (user rule: visuals accurate to their
+// effects).
 export const BARRIER_HALF: Record<BarrierKind, number> = { armco: 0.3, wall: 0.45, pitwall: 0.5,
     fence: 0.15, building: 0.1, line: 0 };
 const BARRIER_E = 0.3;           // restitution off a barrier (obstacles use 0.35)
 // share of the along-the-wall speed kept per contact step... (scrape)
 const BARRIER_SCRAPE = 0.85;
 // polyline offset from the subtrack centreline, startDist -> endDist (wrapping past the line),
-// `step` metres apart; offset may be a
-// function of the distance (pit-lane entry / exit ramps). + = the +normal side.
-// INTERPOLATED point + SMOOTHED normal for paths offset from the track (2026-10-04, photographed:
-// the pit lane's edges wobbled).
-// onTrack snaps to the sample before dist and uses that sample's own direction; at a 17 m
-// offset the sample-to-sample jitter in
-// direction became metres of sideways wobble. Here: position lerped between samples, normal
-// averaged over +-4 samples (~12 m).
+// `step` metres apart; offset may be a function of the distance (pit-lane entry / exit ramps). + =
+// the +normal side. INTERPOLATED point + SMOOTHED normal for paths offset from the track
+// (2026-10-04, photographed: the pit lane's edges wobbled). onTrack snaps to the sample before dist
+// and uses that sample's own direction; at a 17 m offset the sample-to-sample jitter in direction
+// became metres of sideways wobble. Here: position lerped between samples, normal averaged over +-4
+// samples (~12 m).
 export function smoothOnTrack(sub: Subtrack, dist: number, off: number): { x: number; y: number } {
   const pts = sub.pts, count = pts.length;
   dist = ((dist % sub.totalDist) + sub.totalDist) % sub.totalDist;
@@ -83,14 +80,11 @@ export function prepBarriers(level: { barriers?: Barrier[] }): void {
   }
 }
 // SOLID PROPS (2026-10-04; user: "make sure trees, planes etc are collidable objects").
-// LEVEL.solids [{ x, y, w, h, rot }] — rotated
-// boxes, tested against the car's box with the separating-axis test. barrierClamp only checks the
-// car's 4 CORNERS against
-// segments, so a tree trunk or a wing tip narrower than the car could slip between two corners;
-// SAT cannot miss it.
+// LEVEL.solids [{ x, y, w, h, rot }] — rotated boxes, tested against the car's box with the
+// separating-axis test. barrierClamp only checks the car's 4 CORNERS against segments, so a tree
+// trunk or a wing tip narrower than the car could slip between two corners; SAT cannot miss it.
 // Response = the barrier rules (restitution BARRIER_E, scrape BARRIER_SCRAPE, yaw x0.6, shake).
-// solidsFromProps builds the boxes
-// from what is drawn, so "move that tree" moves its collision too.
+// solidsFromProps builds the boxes from what is drawn, so "move that tree" moves its collision too.
 export function solidsFromProps(props: Prop[]): Solid[] {
   const out: Solid[] = [];
   const box = (prop: Prop, offX: number, offY: number, width: number, height: number): void => {
