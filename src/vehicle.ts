@@ -675,34 +675,13 @@ function computeAxleLoads(car: Car, carSpec: Spec, mass: number, gravity: number
   return { loadKF, loadKR, FzF, FzR };
 }
 
-export function step(car: Car, input: CarInput, dt = PHYSICS_STEP_SECONDS) {
-  const carSpec = car.spec;
-  const mass = carSpec.mass * car.mods.mass;
-  const gravity = GRAVITY;
-  const telem = car.t;
-
-  // ---- 1. to body frame
-  const cosH = Math.cos(car.heading), sinH = Math.sin(car.heading);
-  let vLong = car.vx * cosH + car.vy * sinH;
-  let vLat = -car.vx * sinH + car.vy * cosH;
-
-  // ---- 2. steering
-  const delta = steerFrontWheels(car, carSpec, input, dt);
-
-  // ---- powertrain: reverse engagement (A5), shifting, rpm
-  const { handbrakeRaw, inReverse, throttle, brakeIn, totalRatio } = runPowertrain(
-      car, carSpec, input, vLong, dt);
-
-  // ---- 3. slip angles (guarded divide — rule 20)
-  const vLongAbs = Math.abs(vLong);
-  const dirSign = vLong === 0 ? 1 : Math.sign(vLong);
-  const slipF = Math.atan2(vLat + car.yawRate * carSpec.lf, vLongAbs + EPS_SLIP) - delta * dirSign;
-  const slipR = Math.atan2(vLat - car.yawRate * carSpec.lr, vLongAbs + EPS_SLIP);
-
-  // ---- 4. vertical loads
-  const { loadKF, loadKR, FzF, FzR } = computeAxleLoads(
-      car, carSpec, mass, gravity, vLong, vLat, dt);
-
+/**
+ * Section 5 of step(): clutch ramp, traction-control cut, rev limiter, engine braking, drive force
+ * and brake force per axle. Returns the demands the tyre blocks start from.
+ */
+function computeLongitudinalDemand(car: Car, carSpec: Spec, mass: number, gravity: number,
+    vLong: number, vLongAbs: number, dirSign: number, inReverse: boolean, throttle: number,
+    brakeIn: number, totalRatio: number, dt: number) {
   // ---- 5. longitudinal demand per axle CLUTCH RAMP. MEASURED BUG, 2026-09-27 (user: "still
   // getting judder sometimes"): torque was zeroed during a shift and then restored in ONE step —
   // dumped on the track car, FxR jumping 0 -> 6480 N on the step the shift timer expired, which via
@@ -774,6 +753,41 @@ export function step(car: Car, input: CarInput, dt = PHYSICS_STEP_SECONDS) {
   const brakeSign = -dirSign;                     // brakes oppose motion
   let FxBrakeF = vLongAbs < 0.05 ? 0 : FbF * brakeSign;
   let FxBrakeR = vLongAbs < 0.05 ? 0 : FbR * brakeSign;
+  return { torque, driveForce, FxDriveF, FxDriveR, FbF, FbR, brakeSign, FxBrakeF, FxBrakeR };
+}
+
+export function step(car: Car, input: CarInput, dt = PHYSICS_STEP_SECONDS) {
+  const carSpec = car.spec;
+  const mass = carSpec.mass * car.mods.mass;
+  const gravity = GRAVITY;
+  const telem = car.t;
+
+  // ---- 1. to body frame
+  const cosH = Math.cos(car.heading), sinH = Math.sin(car.heading);
+  let vLong = car.vx * cosH + car.vy * sinH;
+  let vLat = -car.vx * sinH + car.vy * cosH;
+
+  // ---- 2. steering
+  const delta = steerFrontWheels(car, carSpec, input, dt);
+
+  // ---- powertrain: reverse engagement (A5), shifting, rpm
+  const { handbrakeRaw, inReverse, throttle, brakeIn, totalRatio } = runPowertrain(
+      car, carSpec, input, vLong, dt);
+
+  // ---- 3. slip angles (guarded divide — rule 20)
+  const vLongAbs = Math.abs(vLong);
+  const dirSign = vLong === 0 ? 1 : Math.sign(vLong);
+  const slipF = Math.atan2(vLat + car.yawRate * carSpec.lf, vLongAbs + EPS_SLIP) - delta * dirSign;
+  const slipR = Math.atan2(vLat - car.yawRate * carSpec.lr, vLongAbs + EPS_SLIP);
+
+  // ---- 4. vertical loads
+  const { loadKF, loadKR, FzF, FzR } = computeAxleLoads(
+      car, carSpec, mass, gravity, vLong, vLat, dt);
+
+  // ---- 5. longitudinal demand per axle
+  let { torque, driveForce, FxDriveF, FxDriveR, FbF, FbR, brakeSign, FxBrakeF, FxBrakeR } =
+      computeLongitudinalDemand(car, carSpec, mass, gravity, vLong, vLongAbs, dirSign, inReverse,
+          throttle, brakeIn, totalRatio, dt);
 
   // handbrake locks the rear outright 0..1, not a boolean: the handbrake is modulated (see
   // input.js). still means full, so the headless benches and any older caller keep working.
