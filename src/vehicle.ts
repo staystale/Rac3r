@@ -1330,43 +1330,42 @@ function writeTelemetry(car: Car, carSpec: Spec, tick: AxleTick, axles: AxleOutc
   telem.delta = delta; telem.gear = car.gear; telem.rpm = car.rpm;
 }
 
-export function step(car: Car, input: CarInput, dt = PHYSICS_STEP_SECONDS) {
-  const carSpec = car.spec;
-  const mass = carSpec.mass * car.mods.mass;
-  const gravity = GRAVITY;
+/**
+ * Tyre relaxation section of step(): lags each axle's lateral force behind its slip angle by a
+ * rolling distance and writes the lagged Fy back onto both axle outcomes.
+ */
+function relaxAxleForces(car: Car, dt: number, vLong: number, vLat: number,
+    frontAxle: ReturnType<typeof axleForce>, rearAxle: ReturnType<typeof axleForce>) {
+  // TYRE RELAXATION LENGTH — real, standard, and its absence was the turn-in bug.
+  //
+  // A tyre does not develop its lateral force the instant a slip angle appears: the carcass has to
+  // deflect, which takes a ROLLING DISTANCE (the relaxation length, ~0.5 m) rather than a time. So
+  // the lag is RELAX_LEN / v — sharp at speed, soft when slow, exactly as in a real car.
+  //
+  // MEASURED BUG, 2026-09-27 (user: "braking when turning... it slides weird"): without it the
+  // FRONT reached full grip instantly at turn-in while the rear was still at zero — dumped FyF
+  // 10178 N against FyR -89 N, a net yaw moment of +12658 N.m that spun the car up to 0.66 rad/s
+  // before the rear contributed anything at all. Four of five cars then rotated past 90 deg. Brake
+  // force made no difference to it (identical at 1.35 g and 0.90 g), which is what ruled the brakes
+  // out.
+  const relaxTau = RELAX_LEN / Math.max(3, Math.hypot(vLong, vLat));
+  const relaxK = 1 - Math.exp(-dt / relaxTau);
+  car.FyFlag += (frontAxle.Fy - car.FyFlag) * relaxK;
+  car.FyRlag += (rearAxle.Fy - car.FyRlag) * relaxK;
+  frontAxle.Fy = car.FyFlag;
+  rearAxle.Fy = car.FyRlag;
+}
 
-  // ---- 1. to body frame
-  const cosH = Math.cos(car.heading), sinH = Math.sin(car.heading);
-  let vLong = car.vx * cosH + car.vy * sinH;
-  let vLat = -car.vx * sinH + car.vy * cosH;
-
-  // ---- 2. steering
-  const delta = steerFrontWheels(car, carSpec, input, dt);
-
-  // ---- powertrain: reverse engagement (A5), shifting, rpm
-  const { handbrakeRaw, inReverse, throttle, brakeIn, totalRatio } = runPowertrain(
-      car, carSpec, input, vLong, dt);
-
-  // ---- 3. slip angles (guarded divide — rule 20)
-  const vLongAbs = Math.abs(vLong);
-  const dirSign = vLong === 0 ? 1 : Math.sign(vLong);
-  const slipF = Math.atan2(vLat + car.yawRate * carSpec.lf, vLongAbs + EPS_SLIP) - delta * dirSign;
-  const slipR = Math.atan2(vLat - car.yawRate * carSpec.lr, vLongAbs + EPS_SLIP);
-
-  // ---- 4. vertical loads
-  const { loadKF, loadKR, FzF, FzR } = computeAxleLoads(
-      car, carSpec, mass, gravity, vLong, vLat, dt);
-
-  // ---- 5. longitudinal demand per axle
-  let { torque, driveForce, FxDriveF, FxDriveR, FbF, FbR, brakeSign, FxBrakeF, FxBrakeR } =
-      computeLongitudinalDemand(car, carSpec, mass, gravity, vLong, vLongAbs, dirSign, inReverse,
-          throttle, brakeIn, totalRatio, dt);
-
-  // handbrake locks the rear outright 0..1, not a boolean: the handbrake is modulated (see
-  // input.js). still means full, so the headless benches and any older caller keep working.
-  const handbrake = handbrakeRaw;
-
-
+/**
+ * Sections 6/7 of step(): the tick values shared by the tyre blocks, the brake lock state and the
+ * force of both axles (with the tyre relaxation lag applied to Fy). Returns the tick, the axle
+ * outcome and whether ABS is working.
+ */
+function computeAxleForces(car: Car, carSpec: Spec, mass: number, gravity: number, dt: number,
+    delta: number, vLong: number, vLat: number, vLongAbs: number, dirSign: number, slipF: number,
+    slipR: number, brakeIn: number, FzF: number, FzR: number, FbF: number, FbR: number,
+    FxBrakeF0: number, FxBrakeR0: number, brakeSign: number, handbrake: number,
+    FxDriveF: number, FxDriveR: number) {
   // ---- 6/7. per-axle tyre force.
   //
   // MEASURED BUG, 2026-09-27: the first cut gave a locked axle its friction as pure LONGITUDINAL
@@ -1413,10 +1412,10 @@ export function step(car: Car, input: CarInput, dt = PHYSICS_STEP_SECONDS) {
   const sxlR = vLong;
   const sylR = patchLatR;
 
-  const brakeState = brakeLockState(car, tick, brakeIn, vLongAbs, FzF, FzR, FbF, FbR, FxBrakeF,
-      FxBrakeR, brakeSign, handbrake);
-  FxBrakeF = brakeState.FxBrakeF;
-  FxBrakeR = brakeState.FxBrakeR;
+  const brakeState = brakeLockState(car, tick, brakeIn, vLongAbs, FzF, FzR, FbF, FbR, FxBrakeF0,
+      FxBrakeR0, brakeSign, handbrake);
+  const FxBrakeF = brakeState.FxBrakeF;
+  const FxBrakeR = brakeState.FxBrakeR;
   const { absWorking, lockedF, hbForce, lockedR } = brakeState;
 
   // static axle loads
@@ -1446,24 +1445,53 @@ export function step(car: Car, input: CarInput, dt = PHYSICS_STEP_SECONDS) {
   const axles = { frontAxle, rearAxle, lockedF, lockedR, FzF, FzR, FzNomF, FzNomR, workF, workR,
     gripTF, gripTR };
 
-  // TYRE RELAXATION LENGTH — real, standard, and its absence was the turn-in bug.
-  //
-  // A tyre does not develop its lateral force the instant a slip angle appears: the carcass has to
-  // deflect, which takes a ROLLING DISTANCE (the relaxation length, ~0.5 m) rather than a time. So
-  // the lag is RELAX_LEN / v — sharp at speed, soft when slow, exactly as in a real car.
-  //
-  // MEASURED BUG, 2026-09-27 (user: "braking when turning... it slides weird"): without it the
-  // FRONT reached full grip instantly at turn-in while the rear was still at zero — dumped FyF
-  // 10178 N against FyR -89 N, a net yaw moment of +12658 N.m that spun the car up to 0.66 rad/s
-  // before the rear contributed anything at all. Four of five cars then rotated past 90 deg. Brake
-  // force made no difference to it (identical at 1.35 g and 0.90 g), which is what ruled the brakes
-  // out.
-  const relaxTau = RELAX_LEN / Math.max(3, Math.hypot(vLong, vLat));
-  const relaxK = 1 - Math.exp(-dt / relaxTau);
-  car.FyFlag += (frontAxle.Fy - car.FyFlag) * relaxK;
-  car.FyRlag += (rearAxle.Fy - car.FyRlag) * relaxK;
-  frontAxle.Fy = car.FyFlag;
-  rearAxle.Fy = car.FyRlag;
+  relaxAxleForces(car, dt, vLong, vLat, frontAxle, rearAxle);
+  return { tick, axles, absWorking };
+}
+
+export function step(car: Car, input: CarInput, dt = PHYSICS_STEP_SECONDS) {
+  const carSpec = car.spec;
+  const mass = carSpec.mass * car.mods.mass;
+  const gravity = GRAVITY;
+
+  // ---- 1. to body frame
+  const cosH = Math.cos(car.heading), sinH = Math.sin(car.heading);
+  let vLong = car.vx * cosH + car.vy * sinH;
+  let vLat = -car.vx * sinH + car.vy * cosH;
+
+  // ---- 2. steering
+  const delta = steerFrontWheels(car, carSpec, input, dt);
+
+  // ---- powertrain: reverse engagement (A5), shifting, rpm
+  const { handbrakeRaw, inReverse, throttle, brakeIn, totalRatio } = runPowertrain(
+      car, carSpec, input, vLong, dt);
+
+  // ---- 3. slip angles (guarded divide — rule 20)
+  const vLongAbs = Math.abs(vLong);
+  const dirSign = vLong === 0 ? 1 : Math.sign(vLong);
+  const slipF = Math.atan2(vLat + car.yawRate * carSpec.lf, vLongAbs + EPS_SLIP) - delta * dirSign;
+  const slipR = Math.atan2(vLat - car.yawRate * carSpec.lr, vLongAbs + EPS_SLIP);
+
+  // ---- 4. vertical loads
+  const { loadKF, loadKR, FzF, FzR } = computeAxleLoads(
+      car, carSpec, mass, gravity, vLong, vLat, dt);
+
+  // ---- 5. longitudinal demand per axle
+  let { torque, driveForce, FxDriveF, FxDriveR, FbF, FbR, brakeSign, FxBrakeF, FxBrakeR } =
+      computeLongitudinalDemand(car, carSpec, mass, gravity, vLong, vLongAbs, dirSign, inReverse,
+          throttle, brakeIn, totalRatio, dt);
+
+  // handbrake locks the rear outright 0..1, not a boolean: the handbrake is modulated (see
+  // input.js). still means full, so the headless benches and any older caller keep working.
+  const handbrake = handbrakeRaw;
+
+
+  // ---- 6/7. per-axle tyre force.
+  const { tick, axles, absWorking } = computeAxleForces(car, carSpec, mass, gravity, dt, delta,
+      vLong, vLat, vLongAbs, dirSign, slipF, slipR, brakeIn, FzF, FzR, FbF, FbR, FxBrakeF, FxBrakeR,
+      brakeSign, handbrake, FxDriveF, FxDriveR);
+  const { frontAxle, rearAxle } = axles;
+  const cosDelta = Math.cos(delta), sinDelta = Math.sin(delta);
 
   // ---- 7b. PLOUGHING — what makes a gravel trap a gravel trap (user, 2026-09-28: "can the gravel
   // trap
