@@ -68,42 +68,36 @@ const shares = (fore, lateral) => {
   return weights.map((x) => x / total);
 };
 
-export function hit(car, vx0, vy0, dt = 1 / 120, rnd = Math.random) {
-  const dvx = car.vx - vx0, dvy = car.vy - vy0, deltaV = Math.hypot(dvx, dvy);
-  if (!(deltaV >= SCRAPE_DV)) return 0;
-  if (!car.dmg) damageInit(car);
-  const cosH = Math.cos(car.heading), sinH = Math.sin(car.heading);
-  // where it came FROM, car frame, unit
-  const fore = -(dvx * cosH + dvy * sinH) / deltaV, lateral = -(-dvx * sinH + dvy * cosH) / deltaV;
-  const weights = shares(fore, lateral),
-    endW = Math.abs(fore) / (Math.abs(fore) + Math.abs(lateral) + 1e-6);
-  let top = 0;
-  for (let corner = 1; corner < 4; corner++) if (weights[corner] > weights[top]) top = corner;
-  if (deltaV < DMG_FLOOR) {
-    // SCRAPE: light damage by sliding speed x time on the side touching, a few paint chips now
-    // and then (rate-limited)
-    const speed = Math.hypot(car.vx, car.vy);
-    if (speed < 3) return 0;
-    const amt = SCRAPE_K * speed * dt;
-    for (let corner = 0; corner < 4; corner++) {
-      const add = amt * weights[corner] * 1.6;
-      car.dmg[corner] = Math.min(1, car.dmg[corner] + add);
-      car.crushS[corner] = Math.min(1, car.crushS[corner] + add * (1 - endW));
-      car.crushL[corner] = Math.min(1, car.crushL[corner] + add * endW);
-    }
-    car.dmgBill = (car.dmgBill || 0) + amt * REPAIR_PER;
-    car._scrapeT = (car._scrapeT || 0) + dt;
-    if (car._scrapeT > 0.06) {
-      car._scrapeT = 0;
-      pushEvent(car, { c: top, amt: 0.04, scrape: true });
-    }
-    derive(car);
-    return amt;
+/**
+ * A SCRAPE (a hit under DMG_FLOOR): light damage on the corners by sliding speed x time.
+ * @returns {number} the damage added, 0 when too slow
+ */
+function scrape(car, dt, weights, endW, top) {
+  // SCRAPE: light damage by sliding speed x time on the side touching, a few paint chips now
+  // and then (rate-limited)
+  const speed = Math.hypot(car.vx, car.vy);
+  if (speed < 3) return 0;
+  const amt = SCRAPE_K * speed * dt;
+  for (let corner = 0; corner < 4; corner++) {
+    const add = amt * weights[corner] * 1.6;
+    car.dmg[corner] = Math.min(1, car.dmg[corner] + add);
+    car.crushS[corner] = Math.min(1, car.crushS[corner] + add * (1 - endW));
+    car.crushL[corner] = Math.min(1, car.crushL[corner] + add * endW);
   }
-  const amt = DMG_K * (deltaV - DMG_FLOOR) ** DMG_EXP;
-  // a hard hit from the SIDE may trip the car over (roll.js tripCheck): it is pushed, and rolls,
-  // away from the impact
-  if (Math.abs(lateral) > 0.6) car._sideKick = { dir: -Math.sign(lateral), dv: deltaV };
+  car.dmgBill = (car.dmgBill || 0) + amt * REPAIR_PER;
+  car._scrapeT = (car._scrapeT || 0) + dt;
+  if (car._scrapeT > 0.06) {
+    car._scrapeT = 0;
+    pushEvent(car, { c: top, amt: 0.04, scrape: true });
+  }
+  derive(car);
+  return amt;
+}
+
+/**
+ * Spreads a hard hit of size amt over the corners: damage, crush, punctures, lost wheels.
+ */
+function hardHitCorners(car, amt, weights, endW, rnd) {
   for (let corner = 0; corner < 4; corner++) {
     const add = amt * weights[corner];
     car.dmg[corner] = Math.min(1, car.dmg[corner] + add);
@@ -116,6 +110,27 @@ export function hit(car, vx0, vy0, dt = 1 / 120, rnd = Math.random) {
       (car.wheelSpawn || (car.wheelSpawn = [])).push(corner);
     }
   }
+}
+
+export function hit(car, vx0, vy0, dt = 1 / 120, rnd = Math.random) {
+  const dvx = car.vx - vx0, dvy = car.vy - vy0, deltaV = Math.hypot(dvx, dvy);
+  if (!(deltaV >= SCRAPE_DV)) return 0;
+  if (!car.dmg) damageInit(car);
+  const cosH = Math.cos(car.heading), sinH = Math.sin(car.heading);
+  // where it came FROM, car frame, unit
+  const fore = -(dvx * cosH + dvy * sinH) / deltaV, lateral = -(-dvx * sinH + dvy * cosH) / deltaV;
+  const weights = shares(fore, lateral),
+    endW = Math.abs(fore) / (Math.abs(fore) + Math.abs(lateral) + 1e-6);
+  let top = 0;
+  for (let corner = 1; corner < 4; corner++) if (weights[corner] > weights[top]) top = corner;
+  if (deltaV < DMG_FLOOR) {
+    return scrape(car, dt, weights, endW, top);
+  }
+  const amt = DMG_K * (deltaV - DMG_FLOOR) ** DMG_EXP;
+  // a hard hit from the SIDE may trip the car over (roll.js tripCheck): it is pushed, and rolls,
+  // away from the impact
+  if (Math.abs(lateral) > 0.6) car._sideKick = { dir: -Math.sign(lateral), dv: deltaV };
+  hardHitCorners(car, amt, weights, endW, rnd);
   car.dmgBill = (car.dmgBill || 0) + amt * REPAIR_PER;
   car.dmgHits = (car.dmgHits || 0) + 1;
   car.dmgFlash = 1;
