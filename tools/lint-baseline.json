@@ -194,9 +194,7 @@
   },
   "src/world/wear.ts": {
     "complexity": 2,
-    "id-length": 98,
-    "max-len": 125,
-    "no-shadow": 1
+    "max-lines-per-function": 1
   },
   "src/world/zones.ts": {
     "complexity": 1
