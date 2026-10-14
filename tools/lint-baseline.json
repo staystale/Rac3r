@@ -62,8 +62,7 @@
     "complexity": 1
   },
   "src/raceflow.js": {
-    "complexity": 1,
-    "max-lines-per-function": 1
+    "complexity": 1
   },
   "src/render.ts": {
     "complexity": 1,
