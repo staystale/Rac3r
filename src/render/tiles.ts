@@ -575,6 +575,40 @@ function evictTiles(tcx: TilesCtx) {
 }
 
 /**
+ * The zoom step to draw the ground at, with hysteresis on the current step.
+ * @param tcx the tile context
+ * @param fly the fly-in state, or a falsy value when not flying
+ * @returns the zoom step
+ */
+function groundStep(tcx: TilesCtx, fly: unknown) {
+  const { view, state } = tcx;
+  // flight: even steps only, finer side
+  let step = fly ? 2 * Math.ceil(zStepOf(view.zoom) / 2) : zStepOf(view.zoom);
+  if (!fly && state.lastStep !== null && Math.abs(ZSTEP * Math.log2(view.zoom)
+      - state.lastStep) < 0.75) step = state.lastStep;
+  return step;
+}
+
+/**
+ * Paints one tile from the view AHEAD of the car when nothing is missing and tiles are cheap.
+ * @param tcx the tile context
+ * @param step the zoom step
+ * @param fly the fly-in state, or a falsy value when not flying
+ * @param car the car, or null
+ */
+function lookAhead(tcx: TilesCtx, step: number, fly: unknown, car: CamCar | null) {
+  const { view, cam, state } = tcx;
+  // LOOK-AHEAD, GATED ON TILE COST: a big PC screen needs ~3x the tiles of a phone, so at 1 tile
+  // a frame 27% of frames showed the flat stand-in. On a device that paints a tile in <
+  // AHEAD_MAX_MS, a frame with NOTHING missing paints one tile from the view AHEAD of the car.
+  // Phones (12-20 ms a tile at CPU x4) never qualify, so they keep the measured-better behaviour.
+  if (!state.standIn && !fly && car && state.tileAvg < AHEAD_MAX_MS && Math.hypot(car.vx, car.vy)
+      > 3) {
+    prefetch(tcx, step, cam.x + car.vx * AHEAD_S, cam.y + car.vy * AHEAD_S, view.zoom, { n: 1 });
+  }
+}
+
+/**
  * Draws the ground: the tiles of the zoom step in view, with stand-ins for what is not painted
  * yet. HYSTERESIS on the zoom step: the speed zoom wanders across step boundaries all the time
  * and every switch repaints the whole view, so it stays on the current step until the zoom is
@@ -584,7 +618,7 @@ function evictTiles(tcx: TilesCtx) {
  * @param car the car for the fly-in prefetch and look-ahead, or null
  */
 function drawGround(tcx: TilesCtx, wallDt = 0, car: CamCar | null = null) {
-  const { view, cam, state } = tcx;
+  const { view, state } = tcx;
   drainWear(tcx, wallDt);
   state.tileFrame++;
   resetOnChange(tcx);
@@ -593,24 +627,14 @@ function drawGround(tcx: TilesCtx, wallDt = 0, car: CamCar | null = null) {
     drawFlyOverview(tcx, fly.ov, car);
     return;
   }
-  // flight: even steps only, finer side
-  let step = fly ? 2 * Math.ceil(zStepOf(view.zoom) / 2) : zStepOf(view.zoom);
-  if (!fly && state.lastStep !== null && Math.abs(ZSTEP * Math.log2(view.zoom)
-      - state.lastStep) < 0.75) step = state.lastStep;
+  const step = groundStep(tcx, fly);
   const budget = tileBudget();
   // count what the wanted step is missing BEFORE painting, to decide whether a stand-in is
   // needed
   if (state.lastStep !== null && state.lastStep !== step && countMissing(tcx, step) > 0) {
     drawStepChange(tcx, step, budget);
   } else drawNewGround(tcx, step, budget);
-  // LOOK-AHEAD, GATED ON TILE COST: a big PC screen needs ~3x the tiles of a phone, so at 1 tile
-  // a frame 27% of frames showed the flat stand-in. On a device that paints a tile in <
-  // AHEAD_MAX_MS, a frame with NOTHING missing paints one tile from the view AHEAD of the car.
-  // Phones (12-20 ms a tile at CPU x4) never qualify, so they keep the measured-better behaviour.
-  if (!state.standIn && !fly && car && state.tileAvg < AHEAD_MAX_MS && Math.hypot(car.vx, car.vy)
-      > 3) {
-    prefetch(tcx, step, cam.x + car.vx * AHEAD_S, cam.y + car.vy * AHEAD_S, view.zoom, { n: 1 });
-  }
+  lookAhead(tcx, step, fly, car);
   evictTiles(tcx);
 }
 
