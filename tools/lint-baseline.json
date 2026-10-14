@@ -65,18 +65,6 @@
     "complexity": 1,
     "max-lines-per-function": 2
   },
-  "src/render/cardamage.ts": {
-    "complexity": 2,
-    "max-lines-per-function": 3
-  },
-  "src/render/cars.ts": {
-    "complexity": 1,
-    "max-lines-per-function": 2
-  },
-  "src/render/carsprite.ts": {
-    "complexity": 1,
-    "max-lines-per-function": 2
-  },
   "src/render/props.ts": {
     "complexity": 1
   },
