@@ -1,7 +1,7 @@
 // The surface art of the ground painter: the table saying how each surface is painted,
 // and the painters of its base colour and pattern layers, live or from a cached texture.
 import type { ArtLayer, SurfaceArt } from "../types.ts";
-import { fillTexture, paintTexture } from "../textures.ts";
+import { TEX_PPM, fillTexture, paintTexture } from "../textures.ts";
 import type { GroundCtx } from "./types.ts";
 
 // HOW EACH SURFACE IS PAINTED: a base colour, then layers drawn in order. One table — a new
@@ -258,11 +258,11 @@ export function paintLayers(
  */
 function paintTextured(groundCtx: GroundCtx, name: string, art: SurfaceArt, rect: number[]) {
   const { view, PPMz, grassEnds, textures } = groundCtx;
-  const ppm = PPMz(), square = grassEnds === 'square';
-  const tex = textures.get(`${name}|${square}`, ppm,
-    (gfx, period) => paintTexture(gfx, period, ppm, art.layers, square));
+  const square = grassEnds === 'square';
+  const tex = textures.get(`${name}|${square}`,
+    (gfx, period) => paintTexture(gfx, period, TEX_PPM, art.layers, square));
   if (!tex) return false;
-  fillTexture(view.ctx, tex, view.dpr, ppm, rect);
+  fillTexture(view.ctx, tex, PPMz(), rect);
   return true;
 }
 

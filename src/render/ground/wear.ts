@@ -10,7 +10,6 @@ import type { WearGroup } from "../types.ts";
 import type { GroundCtx } from "./types.ts";
 import { speckle } from "./prims.ts";
 import { paintLayers, artBase } from "./art.ts";
-import { PUDDLE_TINT } from "./covers.ts";
 
 // Dynamic surface wear patches: grass worn to short grass, dirt, and mud Drawn ON TOP OF the
 // track ribbon and ground, but UNDER the kerbs and marks! TWO PASSES around the covers. MEASURED
@@ -56,9 +55,9 @@ function groupWornCells(groundCtx: GroundCtx, pass: string) {
     const px1 = Math.round(toScreenX((cell.cx + 1) * WEAR_CELL)),
       py1 = Math.round(toScreenY((cell.cy + 1) * WEAR_CELL));
     if (px1 < 0 || px0 > view.W || py1 < 0 || py0 > view.H) continue;
-    // water on a cell is drawn as its BASE with a puddle over it, so meltwater on grass looks
-    // like water on grass cell.current! : set right after the cell is made
-    const groupKey = cell.current === 'wet' ? 'wet|' + cell.base : cell.current!;
+    // cell.current! : set right after the cell is made; water is the wet surface art, the same
+    // look as a wet zone and a puddle
+    const groupKey = cell.current!;
     let group = groups.get(groupKey);
     if (!group) groups.set(groupKey, (group = {
       r: [], bx0: Infinity, by0: Infinity, bx1: -Infinity, by1: -Infinity,
@@ -79,14 +78,12 @@ function groupWornCells(groundCtx: GroundCtx, pass: string) {
  * Paints one group of worn cells: its base, clipped to the cells, then its pattern layers.
  *
  * @param groundCtx the shared ground painter context
- * @param groupKey the surface id, or 'wet|' plus the base surface under water
+ * @param groupKey the surface id
  * @param group the cells' screen rectangles and world bounding box
  */
 function paintWearGroup(groundCtx: GroundCtx, groupKey: string, group: WearGroup) {
-  const { view, PPMz, toScreenX, toScreenY, PRIM } = groundCtx;
-    const rects = group.r;
-    const wetOn = groupKey.startsWith('wet|') ? groupKey.slice(4) : null,
-      artId = wetOn || groupKey;
+  const { view, toScreenX, toScreenY } = groundCtx;
+    const rects = group.r, artId = groupKey;
     view.ctx.save();
     view.ctx.beginPath();
     // a soft DISC per cell (radius 0.72 of the cell, so neighbours overlap) rather than a hard
@@ -101,20 +98,6 @@ function paintWearGroup(groundCtx: GroundCtx, groupKey: string, group: WearGroup
     view.ctx.clip();
     view.ctx.translate(toScreenX(0), toScreenY(0));
     paintLayers(groundCtx, artId, group.bx0, group.by0, group.bx1, group.by1);
-    if (wetOn) {
-      view.ctx.fillStyle = PUDDLE_TINT[wetOn] || 'rgba(52,66,92,0.58)';
-      // grown by a cell: the discs reach past the cells' squares, and the clip keeps it inside
-      // them
-      const grow = WEAR_CELL;
-      view.ctx.fillRect(
-        (group.bx0 - grow) * PPMz(), (group.by0 - grow) * PPMz(),
-        (group.bx1 - group.bx0 + 2 * grow) * PPMz(), (group.by1 - group.by0 + 2 * grow) * PPMz()
-      );
-      PRIM.sheen(
-        ['sheen', 'rgba(220,232,250,0.12)', 3.0, 0.5, -0.45],
-        group.bx0, group.by0, group.bx1, group.by1
-      );
-    }
     view.ctx.restore();
 }
 

@@ -1,19 +1,22 @@
 // PRE-PAINTED SURFACE TEXTURES (default; ?tex=0 = live). WHAT: each surface's pattern layers are
-// painted ONCE per (surface, px per metre, dpr) into a seamless, REPEATING canvas; paintLayers then
-// fills its area with createPattern(texture, 'repeat') in one operation. WHY (MEASURED, task 091):
-// the floor and zones layers cost 15-32 ms per tile on grass levels, ~1,800 grass strokes a tile,
-// drawn mark by mark: that is the highway / Killder / rally-stage judder.
-// THE PERIOD: the texture is T x T device px, T = round(TEX_M * pq * dpr), so it repeats every
-// period = T / (pq * dpr) metres (about TEX_M) in x and y: the look repeats every TEX_M m (the
+// painted ONCE per surface, at the fixed art density TEX_PPM (the car sprites' SPRITE_PPM), into a
+// seamless, REPEATING canvas; paintLayers then fills its area with createPattern(texture,
+// 'repeat'), scaled to the zoom, in one operation. WHY (MEASURED, task 091): the floor and zones
+// layers cost 15-32 ms per tile on grass levels, ~1,800 grass strokes a tile, drawn mark by mark:
+// that is the highway / Killder / rally-stage judder. One painting also means the ground is the
+// same picture at every zoom, only bigger or smaller, never repainted.
+// THE PERIOD: the texture is T x T px, T = round(TEX_M * TEX_PPM), so it repeats every
+// period = T / TEX_PPM metres (about TEX_M) in x and y: the look repeats every TEX_M m (the
 // owner judges that on the phone). SEAMLESS = PERIODIC: the painters below round every spacing /
 // wave / band so a whole number fits in the period, hash the integer cell index wrapped mod the
 // count, and redraw the marks that cross an edge from the cells just outside it.
 import { LEVEL } from "../world/state.ts";
-import type { ArtLayer, View } from "./types.ts";
+import { SPRITE_PPM } from "./shared.ts";
+import type { ArtLayer } from "./types.ts";
 
 export const TEX_M = 24;        // the repeat distance in metres (owner judges it on the phone)
 export const TEX_MAX = 24;      // most textures cached (least recently used goes first)
-const TEX_PX_MAX = 4096;        // a texture wider than this is not built (the live path draws)
+export const TEX_PPM = SPRITE_PPM;  // art px per metre of every texture (as the car sprites)
 
 type Mark = (
   posX: number, posY: number, rndA: number, rndB: number, rndC: number, ppm: number
@@ -188,14 +191,14 @@ export function paintTexture(
   }
 }
 
-// fill [x0, x1] x [y0, y1] (world m; the context is at the world origin) with the texture:
-// one texel = one device px, anchored at the world origin, smoothing off
-export function fillTexture(
-  gfx: Gfx, tex: HTMLCanvasElement, dpr: number, ppm: number, rect: number[]
-) {
+// fill [x0, x1] x [y0, y1] (world m; the context is at the world origin) with the texture: one
+// texel is ppm / TEX_PPM of the context's units, so every zoom shows the same picture, nearest
+// neighbour (smoothing off), anchored at the world origin
+export function fillTexture(gfx: Gfx, tex: HTMLCanvasElement, ppm: number, rect: number[]) {
   const pat = gfx.createPattern(tex, 'repeat');
   if (!pat) return;
-  pat.setTransform(new DOMMatrix().scale(1 / dpr, 1 / dpr));
+  const unit = ppm / TEX_PPM;
+  pat.setTransform(new DOMMatrix().scale(unit, unit));
   const smooth = gfx.imageSmoothingEnabled;
   gfx.imageSmoothingEnabled = false;
   gfx.fillStyle = pat;
@@ -204,27 +207,23 @@ export function fillTexture(
   gfx.imageSmoothingEnabled = smooth;
 }
 
-// the texture cache: (key, ppm, dpr) -> canvas, dropped when the level / dpr / PPM change (as
-// the tiles are), at most TEX_MAX entries, least recently used evicted first
-export function createTextureCache(view: View) {
+// the texture cache: key -> canvas, one painting per surface at TEX_PPM whatever the zoom or dpr,
+// dropped when the level changes, at most TEX_MAX entries, least recently used evicted first
+export function createTextureCache() {
   const cache = new Map<string, HTMLCanvasElement>();
-  let level: unknown = null, lastDpr = 0, lastPpm = 0;
-  function get(key: string, ppm: number, paint: (gfx: Gfx, period: number) => void) {
-    if (level !== LEVEL || lastDpr !== view.dpr || lastPpm !== view.PPM) {
-      cache.clear(); level = LEVEL; lastDpr = view.dpr; lastPpm = view.PPM;
-    }
-    const full = `${key}|${ppm}|${view.dpr}`, hit = cache.get(full);
-    if (hit) { cache.delete(full); cache.set(full, hit); return hit; }
-    const size = Math.round(TEX_M * ppm * view.dpr);
-    if (size < 1 || size > TEX_PX_MAX) return null;
+  let level: unknown = null;
+  function get(key: string, paint: (gfx: Gfx, period: number) => void) {
+    if (level !== LEVEL) { cache.clear(); level = LEVEL; }
+    const hit = cache.get(key);
+    if (hit) { cache.delete(key); cache.set(key, hit); return hit; }
+    const size = Math.round(TEX_M * TEX_PPM);
     const canvas = document.createElement('canvas');
     canvas.width = canvas.height = size;
     // CPU-backed on purpose - the tiles are painted on a CPU scratch, and a GPU texture would be
     // read back on every pattern fill (MEASURED, task 096: rally stage tile 24 -> 10 ms at CPU x4).
     const gfx = canvas.getContext('2d', { willReadFrequently: true })!;
-    gfx.setTransform(view.dpr, 0, 0, view.dpr, 0, 0);
-    paint(gfx, size / (ppm * view.dpr));
-    cache.set(full, canvas);
+    paint(gfx, size / TEX_PPM);
+    cache.set(key, canvas);
     while (cache.size > TEX_MAX) cache.delete(cache.keys().next().value!);
     return canvas;
   }

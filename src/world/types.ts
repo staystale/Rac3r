@@ -402,13 +402,12 @@ export interface Level {
   _branches?: Branches;   // ai/line.ts racingLine: the joker / start lane paths, cached
 }
 
-// One 0.5 m cell of a merged cover group; tint is set for puddles only.
+// One 0.5 m cell of a merged cover group.
 export interface MergedCell {
   x: number;
   y: number;
   gx: number;
   gy: number;
-  tint: string | null;
 }
 
 // All covers of one kind joined (ground.ts mergedCovers); rim = cells with an outside neighbour.

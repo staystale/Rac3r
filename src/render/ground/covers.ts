@@ -1,7 +1,7 @@
 // The covers of the ground painter: random patches and covers such as puddles and snow,
 // merged per kind and drawn over the surface.
 import { LEVEL } from "../../world/state.ts";
-import { groundAt, coverCut } from "../../world/wear.ts";
+import { coverCut } from "../../world/wear.ts";
 import type { Cover, CoverCells, CoverId, MergedCell, MergedCover } from "../../world/types.ts";
 import type { GroundCtx, ViewRect } from "./types.ts";
 import { paintLayers, artBase } from "./art.ts";
@@ -134,17 +134,13 @@ function collectCoverCells(
     let kindCells = kinds.get(cover.cover);
     if (!kindCells) kinds.set(cover.cover, (kindCells = new Map()));
     const own = coverCells(cover);
-    const tint = cover.cover === 'wet'
-      ? (PUDDLE_TINT[(groundAt(cover.x, cover.y).surface.under) || 'tarmac']
-        || 'rgba(52,66,92,0.58)')
-      : null;
     for (let i = 0; i < own.all.length; i += 2) {
       const gridX = Math.round(own.all[i] / cellSize),
         gridY = Math.round(own.all[i + 1] / cellSize),
         key = gridX * 131071 + gridY;
       if (!kindCells.has(key))
         kindCells.set(key, {
-          x: own.all[i], y: own.all[i + 1], gx: gridX, gy: gridY, tint,
+          x: own.all[i], y: own.all[i + 1], gx: gridX, gy: gridY,
         });
     }
   }
@@ -229,7 +225,7 @@ function pathCells(groundCtx: GroundCtx, cells: MergedCell[], cellSize: number) 
 }
 
 /**
- * Paints a merged WET cover: tinted cells, sheen bands and a dark rim.
+ * Paints a merged WET cover: the wet surface art and a dark rim.
  *
  * @param groundCtx the shared ground painter context
  * @param grp the merged cover
@@ -241,26 +237,16 @@ function paintWetCover(
   groundCtx: GroundCtx, grp: MergedCover, vis: MergedCell[], viewRect: ViewRect,
   box: number[]
 ) {
-  const { view, toScreenX, toScreenY, PRIM } = groundCtx;
+  const { view, toScreenX, toScreenY } = groundCtx;
   const cellSize = grp.G, [bx0, by0, bx1, by1] = box;
-  const byTint = new Map<string | null, MergedCell[]>();
-  for (const cell of vis) {
-    let tinted = byTint.get(cell.tint);
-    if (!tinted) byTint.set(cell.tint, (tinted = []));
-    tinted.push(cell);
-  }
-  // tint! : every wet cell has a tint
-  for (const [tint, cells] of byTint) {
-    pathCells(groundCtx, cells, cellSize);
-    view.ctx.fillStyle = tint!;
-    view.ctx.fill();
-  }
-  view.ctx.save();
+  // the wet surface art, the same water as a wet zone and a wet wear cell
   pathCells(groundCtx, vis, cellSize);
+  view.ctx.fillStyle = artBase(groundCtx, 'wet', '#2c3039');
+  view.ctx.fill();
+  view.ctx.save();
   view.ctx.clip();
   view.ctx.translate(toScreenX(0), toScreenY(0));
-  PRIM.sheen(['sheen', 'rgba(215,228,248,0.09)', 4.0, 0.9, -0.45], bx0, by0, bx1, by1);
-  PRIM.sheen(['sheen', 'rgba(235,242,252,0.18)', 4.0, 0.10, -0.45], bx0, by0, bx1, by1);
+  paintLayers(groundCtx, 'wet', bx0, by0, bx1, by1);
   view.ctx.restore();
   pathCells(groundCtx, filterCellsInView(grp.rim, cellSize, viewRect), cellSize);
   view.ctx.fillStyle = 'rgba(30,40,58,0.30)';
