@@ -1,7 +1,7 @@
 // zones.js - the ZONES section. Moved verbatim out of lab.js.
 import { LEVEL } from "./state.ts";
 import { SURFACES } from "./surfaces.ts";
-import type { Surface } from "./types.ts";
+import type { Subtrack, Surface, Zone } from "./types.ts";
 import { querySubtrack } from "./tyrewall.ts";
 
 // ---------------------------------------------------------------------------------------------
@@ -54,26 +54,79 @@ export function laneAt(x: number, y: number): Surface | null {
   }
   return null;
 }
+/**
+ * The surface of the road ribbon (sector texturing) or its curved kerbs at a point.
+ * @param subtrack the level's subtrack (with sectors)
+ * @param x world x
+ * @param y world y
+ * @returns the ribbon / kerb surface, or null when the point is off both
+ */
+function subtrackSurfaceAt(subtrack: Subtrack, x: number, y: number): Surface | null {
+  const hit = querySubtrack(subtrack, x, y);
+  const halfW = subtrack.width / 2;
+  if (hit.dist <= halfW) {
+    const sec = subtrack.sectorAt ? subtrack.sectorAt(hit.trackDist) : null;
+    return (sec && sec.surface) ? sec.surface : SURFACES.tarmac;
+  }
+  // Check curved kerbs on corner apexes and exits
+  if (subtrack.curvedKerbs) {
+    for (let i = 0; i < subtrack.curvedKerbs.length; i++) {
+      const kerb = subtrack.curvedKerbs[i];
+      if (kerb.side === hit.side && hit.trackDist >= kerb.startDist
+        && hit.trackDist <= kerb.endDist) {
+        if (hit.dist <= halfW + (kerb.width || 2.4)) return SURFACES.kerb;
+      }
+    }
+  }
+  return null;
+}
+/**
+ * The surface a single zone gives a point (rounded pad + apron, rotated zone or plain rectangle).
+ * @param zone the zone
+ * @param x world x
+ * @param y world y
+ * @returns the zone's surface (or the pad apron's tarmac), or null when the point misses it
+ */
+function zoneSurfaceAt(zone: Zone, x: number, y: number): Surface | null {
+  if (zone.rounded) {
+    // ROUNDED PADS, exactly as render.ts drawZones draws them: corner radius min(5, 0.15 w) and a
+    // PAD_APRON of tarmac round the outside. MEASURED BUG, 2026-10-03 (tools/visualcheck.mjs):
+    // physics was the plain rectangle, so the drawn tarmac apron drove as grass and the
+    // rounded-off corners drove as the pad's surface.
+    const dx = Math.abs(x - zone.x), dy = Math.abs(y - zone.y),
+      radius = Math.min(5, zone.w * 0.15);
+    if (inRoundRect(dx, dy, zone.w / 2, zone.h / 2, radius)) return zone.surface;
+    if (inRoundRect(dx, dy, zone.w / 2 + PAD_APRON, zone.h / 2 + PAD_APRON,
+      radius + PAD_APRON)) return SURFACES.tarmac;
+    return null;
+  }
+  if (zone.rot) {
+    // ROTATED zone (2026-10-03: Thruston's diagonal airfield runways, traced from the real map).
+    // Cheap reject + cached trig (2026-10-06:
+    // the highway's fields put ~80 rotated zones in the window, tested for every wheel off the
+    // road)
+    const dx = x - zone.x, dy = y - zone.y;
+    if (zone._r === undefined) {
+      zone._r = Math.hypot(zone.w, zone.h) / 2;
+      zone._co = Math.cos(zone.rot);
+      zone._si = Math.sin(zone.rot);
+    }
+    if (dx * dx + dy * dy > zone._r * zone._r) return null;
+    const cosRot = zone._co!, sinRot = zone._si!;   // set just above
+    if (Math.abs(dx * cosRot + dy * sinRot) <= zone.w / 2
+      && Math.abs(-dx * sinRot + dy * cosRot) <= zone.h / 2) return zone.surface;
+    return null;
+  }
+  if (Math.abs(x - zone.x) <= zone.w / 2 && Math.abs(
+    y - zone.y) <= zone.h / 2) return zone.surface;
+  return null;
+}
 export function zoneAt(x: number, y: number): Surface {
   // 1. If on a circuit with defined track sectors: road ribbon has continuous sector texturing &
   // curved kerbs
   if (LEVEL.subtrack && LEVEL.subtrack.sectors && LEVEL.subtrack.sectors.length > 0) {
-    const hit = querySubtrack(LEVEL.subtrack, x, y);
-    const halfW = LEVEL.subtrack.width / 2;
-    if (hit.dist <= halfW) {
-      const sec = LEVEL.subtrack.sectorAt ? LEVEL.subtrack.sectorAt(hit.trackDist) : null;
-      return (sec && sec.surface) ? sec.surface : SURFACES.tarmac;
-    }
-    // Check curved kerbs on corner apexes and exits
-    if (LEVEL.subtrack.curvedKerbs) {
-      for (let i = 0; i < LEVEL.subtrack.curvedKerbs.length; i++) {
-        const kerb = LEVEL.subtrack.curvedKerbs[i];
-        if (kerb.side === hit.side && hit.trackDist >= kerb.startDist
-          && hit.trackDist <= kerb.endDist) {
-          if (hit.dist <= halfW + (kerb.width || 2.4)) return SURFACES.kerb;
-        }
-      }
-    }
+    const trackSurface = subtrackSurfaceAt(LEVEL.subtrack, x, y);
+    if (trackSurface) return trackSurface;
   }
 
   // 1b. LANES (pit lanes, access roads): the track wins where they overlap (render draws lanes
@@ -84,38 +137,8 @@ export function zoneAt(x: number, y: number): Surface {
   // 2. Dedicated proving ground test pads (Wet, Ice, Snow, Mud, Gravel)
   const z = LEVEL.zones;
   for (let i = 0; i < z.length; i++) {
-    const zone = z[i];
-    if (zone.rounded) {
-      // ROUNDED PADS, exactly as render.ts drawZones draws them: corner radius min(5, 0.15 w) and a
-      // PAD_APRON of tarmac round the outside. MEASURED BUG, 2026-10-03 (tools/visualcheck.mjs):
-      // physics was the plain rectangle, so the drawn tarmac apron drove as grass and the
-      // rounded-off corners drove as the pad's surface.
-      const dx = Math.abs(x - zone.x), dy = Math.abs(y - zone.y),
-        radius = Math.min(5, zone.w * 0.15);
-      if (inRoundRect(dx, dy, zone.w / 2, zone.h / 2, radius)) return zone.surface;
-      if (inRoundRect(dx, dy, zone.w / 2 + PAD_APRON, zone.h / 2 + PAD_APRON,
-        radius + PAD_APRON)) return SURFACES.tarmac;
-      continue;
-    }
-    if (zone.rot) {
-      // ROTATED zone (2026-10-03: Thruston's diagonal airfield runways, traced from the real map).
-      // Cheap reject + cached trig (2026-10-06:
-      // the highway's fields put ~80 rotated zones in the window, tested for every wheel off the
-      // road)
-      const dx = x - zone.x, dy = y - zone.y;
-      if (zone._r === undefined) {
-        zone._r = Math.hypot(zone.w, zone.h) / 2;
-        zone._co = Math.cos(zone.rot);
-        zone._si = Math.sin(zone.rot);
-      }
-      if (dx * dx + dy * dy > zone._r * zone._r) continue;
-      const cosRot = zone._co!, sinRot = zone._si!;   // set just above
-      if (Math.abs(dx * cosRot + dy * sinRot) <= zone.w / 2
-        && Math.abs(-dx * sinRot + dy * cosRot) <= zone.h / 2) return zone.surface;
-      continue;
-    }
-    if (Math.abs(x - zone.x) <= zone.w / 2 && Math.abs(
-      y - zone.y) <= zone.h / 2) return zone.surface;
+    const zoneSurface = zoneSurfaceAt(z[i], x, y);
+    if (zoneSurface) return zoneSurface;
   }
   return LEVEL.base!;   // every level sets base
 }
