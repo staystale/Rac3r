@@ -26,9 +26,9 @@
     "complexity": 1
   },
   "src/highway.js": {
-    "complexity": 4,
+    "complexity": 3,
     "max-lines": 1,
-    "max-lines-per-function": 3
+    "max-lines-per-function": 2
   },
   "src/highwayrace.ts": {
     "complexity": 1,

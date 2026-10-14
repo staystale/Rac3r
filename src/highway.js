@@ -690,10 +690,217 @@ function village(level, i, pointAt, clear) {
     });
   }
 }
+/**
+ * A point on a field plot, `along` its length and `across` its depth (the sign follows the
+ * side the plot is on, so positive is away from the road).
+ * @param {object} plot the field plot (centre, axis, normal, side)
+ * @param {number} along metres along the field's long axis
+ * @param {number} across metres across it, away from the road
+ * @returns {number[]} [x, y]
+ */
+function fieldCorner(plot, along, across) {
+  const { centre, axisX, axisY, nx, ny, side } = plot;
+  return [
+    centre.x + axisX * along + nx * across * side,
+    centre.y + axisY * along + ny * across * side,
+  ];
+}
+/**
+ * A random point well inside a field plot (draws two random numbers: along, then across).
+ * @param {object} plot the field plot
+ * @param {() => number} rand the field random stream
+ * @param {number} margin metres kept clear of the edges
+ * @returns {number[]} [x, y]
+ */
+function fieldInside(plot, rand, margin) {
+  const { fieldLen, depth } = plot;
+  return fieldCorner(
+    plot,
+    (rand() - 0.5) * (fieldLen - 2 * margin),
+    (rand() - 0.5) * (depth - 2 * margin)
+  );
+}
+/**
+ * Add a field's surface zone and, after it, the bigger long-grass hedge zone round it.
+ * @param {object} level the highway level
+ * @param {object} plot the field plot
+ * @returns {void}
+ */
+function addFieldZones(level, plot) {
+  const { centre, fieldLen, depth, heading, fieldId, type, dist } = plot;
+  const [phys, art] = FIELD_SURF[type];
+  // the field FIRST (zones: the first listed wins, and is painted last), then its long-grass
+  // border: one zone HEDGE_W bigger all round
+  level.zones.push({
+    x: centre.x,
+    y: centre.y,
+    w: fieldLen,
+    h: depth,
+    rot: heading,
+    surface: SURFACES[phys],
+    art,
+    field: fieldId,
+    _s: dist,
+  });
+  level.zones.push({
+    x: centre.x,
+    y: centre.y,
+    w: fieldLen + 2 * HEDGE_W,
+    h: depth + 2 * HEDGE_W,
+    rot: heading,
+    surface: SURFACES.grassLong,
+    art: "hedgerow",
+    hedge: true,
+    field: fieldId,
+    _s: dist,
+  });
+}
+/**
+ * Add the hedgerow trees on a field's far edge (1 to 3, random).
+ * @param {object} level the highway level
+ * @param {object} plot the field plot
+ * @param {() => number} rand the field random stream
+ * @returns {void}
+ */
+function addFieldTrees(level, plot, rand) {
+  const { fieldLen, depth, fieldId, dist } = plot;
+  const far = depth / 2 + HEDGE_W / 2;
+  for (let treeIdx = 0, treeCount = 1 + ((rand() * 2.4) | 0); treeIdx < treeCount; treeIdx++) {
+    const [x, y] = fieldCorner(plot, (rand() - 0.5) * (fieldLen - 10), far);
+    level.props.push({
+      kind: "tree",
+      x,
+      y,
+      s: 4.5 + rand() * 2.5,
+      seed: (fieldId * 7 + treeIdx) | 0,
+      field: fieldId,
+      _s: dist,
+    });
+  }
+}
+/**
+ * Wheat field: now and then a scatter of bales.
+ * @param {object} level the highway level
+ * @param {object} plot the field plot
+ * @param {() => number} rand the field random stream
+ * @returns {void}
+ */
+function addFieldBales(level, plot, rand) {
+  const { fieldId, type, dist } = plot;
+  if (type === "wheat" && rand() < 0.45)
+    for (let num = 3 + ((rand() * 4) | 0); num > 0; num--) {
+      const [x, y] = fieldInside(plot, rand, 5);
+      level.props.push({ kind: "bale", x, y, field: fieldId, _s: dist });
+    }
+}
+/**
+ * Pasture: a flock of sheep or a herd of cows (loose objects, not props).
+ * @param {object} plot the field plot
+ * @param {() => number} rand the field random stream
+ * @param {object[]} loose where the loose objects go
+ * @returns {void}
+ */
+function addFieldStock(plot, rand, loose) {
+  const { fieldId, type, dist } = plot;
+  if (type === "pasture") {
+    const species = rand() < 0.6 ? "sheep" : "cow";
+    for (let num = (species === "sheep" ? 5 : 3) + ((rand() * 5) | 0); num > 0; num--) {
+      const [x, y] = fieldInside(plot, rand, 4);
+      loose.push({ kind: species, x, y, rot: rand() * 6.28, field: fieldId, _s: dist });
+    }
+  }
+}
+/**
+ * Farm yard: two sheds and a few bales.
+ * @param {object} level the highway level
+ * @param {object} plot the field plot
+ * @param {() => number} rand the field random stream
+ * @returns {void}
+ */
+function addFieldYard(level, plot, rand) {
+  const { fieldLen, depth, heading, fieldId, type, dist } = plot;
+  if (type === 'yard') {
+    for (let num = 0; num < 2; num++) {
+      const [x, y] = fieldCorner(plot, (num ? 1 : -1) * fieldLen * 0.22, depth * 0.12);
+      level.props.push({
+        kind: "block",
+        x,
+        y,
+        w: Math.min(16, fieldLen * 0.3),
+        h: Math.min(10, depth * 0.3),
+        rot: heading,
+        roof: ["#8a3a2e", "#2c2f33", "#6e6a5e"][(rand() * 3) | 0],
+        field: fieldId,
+        _s: dist,
+      });
+    }
+    for (let num = 2 + ((rand() * 4) | 0); num > 0; num--) {
+      const [x, y] = fieldCorner(plot, (rand() - 0.5) * fieldLen * 0.5, -depth * 0.28);
+      level.props.push({ kind: "bale", x, y, field: fieldId, _s: dist });
+    }
+  }
+}
+/**
+ * Lay one strip of fields beside the road: one or two rows, each a field with its zones, trees
+ * and contents. A row that has no room (roomFor) is skipped.
+ * @param {object} level the highway level
+ * @param {object} strip {side, i, dist, fieldLen, count}: side, road index / distance, size
+ * @param {Function} pointAt road point at (index, offset)
+ * @param {object} clear the areas already built on
+ * @param {object[]} loose where loose objects (livestock) go
+ * @returns {void}
+ */
+function layFieldRows(level, strip, pointAt, clear, loose) {
+  const state = level._hw, halfWidth = state.geo.hw, rand = state.frnd;
+  const { side, i, dist, fieldLen, count } = strip;
+  const centreIdx = i + (count >> 1),
+    heading = pointAt(centreIdx, 0).rot,
+    axisX = Math.cos(heading),
+    axisY = Math.sin(heading),
+    nx = -axisY,
+    ny = axisX;
+  let offset = (side < 0 ? halfWidth + 25 : halfWidth + 11) + rand() * 6;
+  for (let row = 0, rows = rand() < 0.55 ? 2 : 1; row < rows; row++) {
+    const depth = 38 + rand() * 45,
+      centre = pointAt(centreIdx, side * (offset + depth / 2)),
+      fieldId = ++state.fieldId,
+      type = pickW(rand, FIELD_T);
+    offset += depth + 5 + rand() * 6;
+    const rect = {
+      x: centre.x,
+      y: centre.y,
+      ax: axisX,
+      ay: axisY,
+      hu: fieldLen / 2 + HEDGE_W,
+      hv: depth / 2 + HEDGE_W,
+      field: fieldId,
+    };
+    if (!roomFor(state, rect, clear, 4)) continue;
+    keepOut(level, rect, dist);
+    const plot = {
+      side, dist, fieldLen, depth, centre, heading, axisX, axisY, nx, ny, fieldId, type,
+    };
+    addFieldZones(level, plot);
+    addFieldTrees(level, plot, rand);
+    addFieldBales(level, plot, rand);
+    addFieldStock(plot, rand, loose);
+    addFieldYard(level, plot, rand);
+  }
+}
+/**
+ * Scenery v2 fields beside the road on a farm biome: starts the village schedule, builds a
+ * village when due, and lays a strip of fields on each side when the last one has ended.
+ * @param {object} level the highway level
+ * @param {number} i road point index
+ * @param {Function} pointAt road point at (index, offset)
+ * @param {object} clear the areas already built on
+ * @param {string} biome the biome here
+ * @param {object[]} loose where loose objects (livestock) go
+ * @returns {void}
+ */
 function fields(level, i, pointAt, clear, biome, loose) {
   const state = level._hw,
     road = state.pts,
-    halfWidth = state.geo.hw,
     rand = state.frnd,
     dist = road[i].s;
   if (!state.fieldNext) {
@@ -711,108 +918,7 @@ function fields(level, i, pointAt, clear, biome, loose) {
     const fieldLen = 70 + rand() * 70, count = Math.ceil(fieldLen / STEP);
     if (i + count + 2 >= road.length) continue;
     state.fieldNext[side] = dist + fieldLen + 5 + rand() * 8;
-    const centreIdx = i + (count >> 1),
-      heading = pointAt(centreIdx, 0).rot,
-      axisX = Math.cos(heading),
-      axisY = Math.sin(heading),
-      nx = -axisY,
-      ny = axisX;
-    let offset = (side < 0 ? halfWidth + 25 : halfWidth + 11) + rand() * 6;
-    for (let row = 0, rows = rand() < 0.55 ? 2 : 1; row < rows; row++) {
-      const depth = 38 + rand() * 45,
-        centre = pointAt(centreIdx, side * (offset + depth / 2)),
-        fieldId = ++state.fieldId,
-        type = pickW(rand, FIELD_T);
-      offset += depth + 5 + rand() * 6;
-      const rect = {
-        x: centre.x,
-        y: centre.y,
-        ax: axisX,
-        ay: axisY,
-        hu: fieldLen / 2 + HEDGE_W,
-        hv: depth / 2 + HEDGE_W,
-        field: fieldId,
-      };
-      if (!roomFor(state, rect, clear, 4)) continue;
-      keepOut(level, rect, dist);
-      const [phys, art] = FIELD_SURF[type];
-      // the field FIRST (zones: the first listed wins, and is painted last), then its long-grass
-      // border: one zone HEDGE_W bigger all round
-      level.zones.push({
-        x: centre.x,
-        y: centre.y,
-        w: fieldLen,
-        h: depth,
-        rot: heading,
-        surface: SURFACES[phys],
-        art,
-        field: fieldId,
-        _s: dist,
-      });
-      level.zones.push({
-        x: centre.x,
-        y: centre.y,
-        w: fieldLen + 2 * HEDGE_W,
-        h: depth + 2 * HEDGE_W,
-        rot: heading,
-        surface: SURFACES.grassLong,
-        art: "hedgerow",
-        hedge: true,
-        field: fieldId,
-        _s: dist,
-      });
-      const cornerAt = (along, across) => [
-        centre.x + axisX * along + nx * across * side,
-        centre.y + axisY * along + ny * across * side,
-      ];
-      const far = depth / 2 + HEDGE_W / 2;
-      for (let treeIdx = 0, treeCount = 1 + ((rand() * 2.4) | 0); treeIdx < treeCount; treeIdx++) {
-        const [x, y] = cornerAt((rand() - 0.5) * (fieldLen - 10), far);
-        level.props.push({
-          kind: "tree",
-          x,
-          y,
-          s: 4.5 + rand() * 2.5,
-          seed: (fieldId * 7 + treeIdx) | 0,
-          field: fieldId,
-          _s: dist,
-        });
-      }
-      const inside = (margin) =>
-        cornerAt((rand() - 0.5) * (fieldLen - 2 * margin), (rand() - 0.5) * (depth - 2 * margin));
-      if (type === "wheat" && rand() < 0.45)
-        for (let num = 3 + ((rand() * 4) | 0); num > 0; num--) {
-          const [x, y] = inside(5);
-          level.props.push({ kind: "bale", x, y, field: fieldId, _s: dist });
-        }
-      if (type === "pasture") {
-        const species = rand() < 0.6 ? "sheep" : "cow";
-        for (let num = (species === "sheep" ? 5 : 3) + ((rand() * 5) | 0); num > 0; num--) {
-          const [x, y] = inside(4);
-          loose.push({ kind: species, x, y, rot: rand() * 6.28, field: fieldId, _s: dist });
-        }
-      }
-      if (type === 'yard') {
-        for (let num = 0; num < 2; num++) {
-          const [x, y] = cornerAt((num ? 1 : -1) * fieldLen * 0.22, depth * 0.12);
-          level.props.push({
-            kind: "block",
-            x,
-            y,
-            w: Math.min(16, fieldLen * 0.3),
-            h: Math.min(10, depth * 0.3),
-            rot: heading,
-            roof: ["#8a3a2e", "#2c2f33", "#6e6a5e"][(rand() * 3) | 0],
-            field: fieldId,
-            _s: dist,
-          });
-        }
-        for (let num = 2 + ((rand() * 4) | 0); num > 0; num--) {
-          const [x, y] = cornerAt((rand() - 0.5) * fieldLen * 0.5, -depth * 0.28);
-          level.props.push({ kind: "bale", x, y, field: fieldId, _s: dist });
-        }
-      }
-    }
+    layFieldRows(level, { side, i, dist, fieldLen, count }, pointAt, clear, loose);
   }
 }
 function extras(level, i, dist, pointAt, mark) {
