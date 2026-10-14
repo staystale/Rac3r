@@ -135,6 +135,16 @@ Phases:
   characters. Extract the 280-350 line functions into named steps. Done when `npm run lint` passes
   with no baseline exceptions for naming or line length, and the regression tools match baseline.
   Do this per file, with a commit each, so a bad rename can be reverted alone.
+  Part 1 DONE 2026-10-14 (tasks 112-168): every short name renamed and every line under 100
+  characters across src (lint id-length 0, max-len 0, no-shadow 0), each rename proved
+  code-identical with tools/samecode.mjs; sx/sy became toScreenX/toScreenY and DT became
+  PHYSICS_STEP_SECONDS (owner decision); chopped and glued comments reflowed
+  (tools/reflowcomments.mjs); dead code removed (task 167). Lint problems 8,655 at the start of
+  phase 7 -> about 160.
+  Part 2 (owner: batch by area): split the 65 functions over 80 lines, the 81 over the complexity
+  limit and the 7 files over 800 lines, one area at a time - menus and HUD, levels, render, AI, car
+  physics last - each batch checked with the regression suite (lap times, AI suites, tilediff
+  screenshots) and phone tested by the owner after each area.
 - [ ] **8. Test and tool cleanup.** Replace the hardcoded `C:/Users/Admin/...` paths with a shared
   `tools/lib/paths.mjs`. Move one-off scripts (`_*.mjs`) to `tools/scratch/` or delete them. Give the
   remaining checks one runner (`node tools/runall.mjs`) with pass or fail output and exit codes.
@@ -165,6 +175,9 @@ Known bugs found during the overhaul (wait until it is done, they are not caused
 - RX race, two jokers: `node tools/racecheck.mjs` (slidden-hill) fails case C. The car is put through the joker gate on lap 2 and again on lap 3; the race never finishes (stuck on lap 3 after 8 minutes, no +30 s penalty). Same result on the original code (commit 857f105, checked 2026-10-12), so it is older than the overhaul. Not yet known whether the game or the test is wrong (the test teleports onto the gate; joker detection became a line that must be crossed on 2026-10-07). Cases A, B and practice pass. racecheck takes about 18 minutes, so it is not in the baseline run.
 - Highway tests failing on the code before these changes too (checked 2026-10-12 on ab938eb and later): `node tools/hwracecheck.mjs` "no racer wrecked (2)" (2 FAILs, counts vary per run), `node tools/trafficcheck.mjs` "motorway: traffic stays on the carriageway (30 car-steps off)", `node tools/treadmillcheck.mjs` "motorway: no litter in a driving lane (2)". Not caused by the overhaul; look at them with phase 5 (AI).
 - AI weak spots measured in phase 5 (same as the phase 0 baseline, so not caused by the overhaul; improving the AI changes behaviour, so after the overhaul): pacesuite BAD runs 3/9 (a racer far off the road or wrecked); weavecheck: spun in 5 and over 1 m wide in 5 of 45 scenarios (all at 240 km/h); aifieldsuite: 4.0 incidents per race.
+- src/vehicle.ts ELLIPSE_FLOOR (0.10) has been defined but unused since the first commit: a floor
+  so lateral grip under the friction ellipse never reaches 0. Owner to test wiring it in during a
+  handling pass (it changes the driving, so not part of the overhaul).
 
 
 
