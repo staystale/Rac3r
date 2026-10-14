@@ -15,31 +15,9 @@
 // -> "PULLING AWAY n"; at 0 the race ends and you have won. Positions = how far up the road.
 import { roadFrame, roadPose, roadSpan } from './highway.js';
 import type { AiCar, HighwayLevel } from "./ai/types.ts";
-
-// One racer of the highway race.
-interface HwEntry { car: AiCar; player: boolean }
-// One row of the results table (raceflow.js-shaped, + dist / gapM).
-interface HwRow {
-  car: AiCar; player: boolean; num: number; paint: string; s: number; dist: number;
-  bill: number; time: number; total: number; penalty: number; est: boolean; best: null;
-  laps: number; pos?: number; gapM?: number; gap?: number;
-}
-// What createHwFlow takes.
-interface HwFlowArgs {
-  lv: HighwayLevel; cars: { car: AiCar; player?: boolean }[];
-  visible: (car: AiCar) => boolean; count?: number; catchT?: number;
-}
-// What createHwFlow returns: the race state, and the countdowns' bookkeeping.
-interface HwFlow {
-  highway: boolean; state: string; t: number; laps: number; entries: HwEntry[];
-  flags: number[]; results: HwRow[] | null;
-  cd: number | null; cdKind: string | null; cdHold: boolean; myPlace: number | null | undefined;
-  // order / step / end: set right after the object is made
-  order?: () => number; step?: (dt: number) => void; end?: () => void;
-  endT?: number; lostT?: number; cdLeft?: number | null; cdOffAt?: number;
-  edge?: number | null; nearT?: number;
-}
-
+import { endRace, order } from "./ai/hwFlow.ts";
+import { stepFlow } from "./ai/hwFlowStep.ts";
+import type { HwCtx, HwFlow, HwFlowArgs } from "./ai/hwFlowTypes.ts";
 
 export const HW_GREEN = 6, HW_COUNT = 8;
 // CATCH THEM is SOFT (user, 2026-10-06: "catch them timer should be longer on highway, also it
@@ -50,7 +28,6 @@ export const HW_GREEN = 6, HW_COUNT = 8;
 // (hovering just past the edge holds for NEAR_T s at most: sitting there for ever is not trying
 // either)
 export const HW_CATCH = 15;
-const CLOSE_V = 1.0, REFILL = 0.5, NEAR = 40, NEAR_T = 10, GRACE = 2, JUMP = 8;
 
 // every car's ROAD FRAME once per step: c._hwf = { s, off, v (along the road) }
 export function hwFrames(level: HighwayLevel, cars: AiCar[]) {
@@ -113,104 +90,9 @@ export function createHwFlow(
   const entries = cars.map(({ car, player }) => ({ car, player: !!player }));
   const flow: HwFlow = { highway: true, state: 'racing', t: 0, laps: 0, entries: entries, flags: [],
     results: null, cd: null, cdKind: null, cdHold: false, myPlace: null };
-  let gapPrev: number | null = null, gapRate = 0;
-  const sOf = (entry: HwEntry) => (entry.car._hwf ? entry.car._hwf.s : -Infinity);
-  flow.order = () => {
-    const myEntry = entries.find((entry) => entry.player);
-    return myEntry ? 1 + entries.filter((entry) =>
-      entry !== myEntry && sOf(entry) > sOf(myEntry)).length : 1;
-  };
-  flow.step = (dt: number) => {
-    if (flow.state === 'done') return;
-    flow.t += dt;
-    const myEntry = entries.find((entry) => entry.player),
-      rivals = entries.filter((entry) => !entry.player);
-    if (!myEntry || !rivals.length || flow.t < 3) return;
-    // CATCH THEM only when you are LAST and even the SLOWEST rival is off screen ahead (user,
-    // 2026-10-06: "the catch them / loosing them warnings and timers should only show if the
-    // slowest ai has passed you / is going off screen ahead, otherwise you should be free to
-    // race"). While any rival is behind you or on screen there is no clock. (A story-mode time /
-    // distance limit can come later.)
-    // `top` = the rival you have to catch: the LAST one
-    const myS = sOf(myEntry), top = rivals.reduce((slowest, entry) =>
-      (sOf(entry) < sOf(slowest) ? entry : slowest), rivals[0]);
-    let kind = rivals.every((entry) =>
-      sOf(entry) > myS + 5) && !visible(top.car) ? 'ahead' : rivals.every((entry) =>
-      sOf(entry) < myS - 5 && !visible(entry.car)) ? 'behind' : null;
-    // GRACE (user, 2026-10-06: "catch them timer never seems to time out it fails to count down";
-    // MEASURED in tools/_flowtest: a rival dipping back on screen at the edge for a moment - a
-    // bend, the zoom breathing - set the clock back to the full HW_CATCH every time). A running
-    // clock now survives up to GRACE s of the condition dropping; only staying back in touch longer
-    // cancels it.
-    if (kind) flow.lostT = 0;
-    else if (flow.cdKind && (flow.lostT = (flow.lostT || 0) + dt) < GRACE) kind = flow.cdKind;
-    // RESUME, not restart: CATCH THEM cancelled (a rival spun / beached, you passed it, it came
-    // back by) and then due again picks up where
-    // it stopped, refilled only by the time you were back in touch (1 s per s). It used to restart
-    // at the full HW_CATCH every time - with
-    // racers spinning off, the number could go 15 -> 9, cancel, 15 -> 8, cancel ... and never reach
-    // 0.
-    if (kind !== flow.cdKind) {
-      if (flow.cdKind === 'ahead') {
-        flow.cdLeft = flow.cd;
-        flow.cdOffAt = flow.t;
-      }
-      flow.cdKind = kind;
-      flow.cd = !kind ? null : kind === 'behind' ? count : flow.cdLeft != null ? Math.min(catchT,
-        flow.cdLeft + (flow.t - flow.cdOffAt!)) : catchT;
-      // the near-the-edge HOLD allowance (NEAR_T) and the edge itself carry over the same way: only
-      // a FULL clock starts them afresh
-      if (kind === 'ahead' && flow.cd! >= catchT) {
-        flow.edge = null;
-        flow.nearT = 0;
-        flow.cdLeft = null;
-      }
-    }
-    // the leader's gap and how fast it is changing (+ = it is pulling away), smoothed over ~1 s. A
-    // JUMP (> JUMP m in one step: the car you have to catch changed, or a reset) is not closing:
-    // re-seed the rate instead of reading it as a sprint that refills the clock.
-    const gap = sOf(top) - myS;
-    if (gapPrev != null && Math.abs(gap - gapPrev) > JUMP) gapRate = 0;
-    else if (gapPrev != null) gapRate +=
-      ((gap - gapPrev) / dt - gapRate) * Math.min(1, dt / 1.0);
-    gapPrev = gap;
-    flow.cdHold = false;
-    if (kind === 'ahead') {
-      // "nearly caught up" = within NEAR m of the edge of the screen (the visible distance is not
-      // known here: the first gap at which it went off screen stands in for it)
-      if (flow.edge == null) flow.edge = gap;
-      if (gapRate < -CLOSE_V) {
-        flow.cd = Math.min(catchT, flow.cd! + REFILL * dt);
-        flow.cdHold = true;
-      }
-      else if (gap < flow.edge + NEAR && gapRate < CLOSE_V
-        && (flow.nearT = (flow.nearT || 0) + dt) < NEAR_T) flow.cdHold = true;
-      else flow.cd! -= dt;
-      if (flow.cd! <= 0) end();
-    } else if (kind) {
-      flow.cd! -= dt;
-      if (flow.cd! <= 0) end();
-    }
-  };
-  function end() {
-    flow.state = 'done';
-    flow.endT = flow.t;
-    flow.cdKind = null;
-    const rows: HwRow[] = entries.map((entry) => ({ car: entry.car, player: entry.player,
-      num: entry.car.num || 1, paint: entry.car.spec.paint, s: sOf(entry),
-      dist: Math.max(0, sOf(entry) - sRef),
-      bill: Math.round(entry.car.dmgBill || 0), time: flow.t, total: flow.t, penalty: 0, est: false,
-        best: null, laps: 0 }));
-    rows.sort((first, second) => second.s - first.s);
-    rows.forEach((row, i) => {
-      row.pos = i + 1;
-      row.gapM = rows[0].s - row.s;
-      row.gap = 0;
-    });
-    flow.results = rows;
-    flow.myPlace = (rows.find((row) => row.player) || {}).pos;
-    flow.flags.push(flow.t);
-  }
-  flow.end = end;
+  const ctx: HwCtx = { flow, entries, visible, count, catchT, sRef, gapPrev: null, gapRate: 0 };
+  flow.order = () => order(ctx);
+  flow.step = (dt: number) => stepFlow(ctx, dt);
+  flow.end = () => endRace(ctx);
   return flow;
 }
