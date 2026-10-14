@@ -6,7 +6,7 @@ import { prepBumps } from "../terrain.ts";
 import { onTrack, querySubtrack } from "../tyrewall.ts";
 import { openSmooth, jokerArrow, jokerApproach } from "./slidden-hill.ts";
 import { trackKit, rxDress, jokerBales } from "./kit.ts";
-import type { Point, Lane, Trap, Cone, Prop, Barrier, Bump } from "../types.ts";
+import type { Point, Lane, Trap, Cone, Prop, Barrier, Bump, Subtrack } from "../types.ts";
 // =============================================================================================
 // KNOBHILL — parody of Knockhill (Fife), the rallycross layout. Built 2026-10-04. Decisions (user):
 // the TARMAC CIRCUIT + an INFIELD DIRT section (~40 % dirt like the real RX lap: 1.4 km, 39 %
@@ -67,11 +67,15 @@ const KH_JOKER_RULE = (() => {
     arrows: [jokerArrow(KH_SUBTRACK, jokerPts),
     jokerApproach(KH_SUBTRACK, jokerPts)].filter(Boolean) };
   })();
-export const KH_LEVEL = (() => {
-  const sub = KH_SUBTRACK, halfWidth = sub.width / 2;
-  // gravel traps on the outside of the TARMAC corners only (the real Clark's has one); tyre walls
-  // on the dirt corners instead
-  const traps: Trap[] = [], barriers: Barrier[] = [], cones: Cone[] = [];
+type KhKit = ReturnType<typeof trackKit>;
+/**
+ * Builds the gravel traps on the outside of the tarmac corners; the dirt corners get tyre walls.
+ * @param sub the track
+ * @param halfWidth half the track width
+ * @param traps gravel trap lanes, appended to
+ * @param cones tyre stacks, appended to
+ */
+function buildKhTraps(sub: Subtrack, halfWidth: number, traps: Trap[], cones: Cone[]): void {
   const isDirt = (dist: number) => dist > KH_D.dirtIn - 5 && dist < KH_D.dirtOut + 5;
   for (const kerb of autoKerbs(sub, { maxR: 45, exitR: 0, minTurn: 35, mergeGap: 15 })) {
     const out = kerb.side === 'left' ? -1 : 1;
@@ -84,7 +88,20 @@ export const KH_LEVEL = (() => {
       pts: alongTrack(sub, kerb.startDist - 5, kerb.endDist + 30, out * (halfWidth + 2 + 6), 2),
       width: 12, surface: SURFACES.gravel });
   }
-  const kit = trackKit(sub, 1974, [KH_JOKER, ...traps]);   // Knockhill opened 1974
+}
+/**
+ * Builds the armco and tyre-stack walls behind each gravel trap, skipping any part near a road.
+ * @param sub the track
+ * @param kit the track kit
+ * @param halfWidth half the track width
+ * @param traps gravel trap lanes
+ * @param barriers armco barriers, appended to
+ * @param cones tyre stacks, appended to
+ */
+function buildKhTrapWalls(
+  sub: Subtrack, kit: KhKit, halfWidth: number, traps: Trap[], barriers: Barrier[],
+  cones: Cone[],
+): void {
   const nearRoad = (x: number, y: number) =>
     querySubtrack(sub, x, y).dist < halfWidth + 4 || kit.onLane(x, y, 0.6);
   const runs = (pts: Point[]) => {
@@ -107,6 +124,56 @@ export const KH_LEVEL = (() => {
       [offset - trap.out * 2.35, 0.475]]) for (const [x, y] of alongTrack(sub, trap.d0 + shift,
       trap.d1, rowOffset, 0.95)) if (!nearRoad(x, y)) cones.push({ x, y, kind: 'tyrestack' });
   }
+}
+// footprint check, as Brands (props on the road were a real bug there)
+const FOOT: Record<string, (prop: Prop) => number[]> =
+  { grandstand: (prop) => [prop.w!, prop.h!], tower: (prop) => [prop.size!, prop.size!],
+  truck: () => [14, 2.5], marshal: () => [2.4, 2], board: () => [18, 1.2],
+  tree: (prop) => [prop.s! * 0.5, prop.s! * 0.5] };
+/**
+ * Tells whether a prop's footprint keeps clear of the road, the lanes and the floor edge.
+ * @param sub the track
+ * @param kit the track kit
+ * @param halfWidth half the track width
+ * @param prop the prop to test
+ * @return true when the prop is clear
+ */
+function isKhPropClear(sub: Subtrack, kit: KhKit, halfWidth: number, prop: Prop): boolean {
+  const footprint = FOOT[prop.kind];
+  if (!footprint) return true;
+  const [width, height] = footprint(prop), cosR = Math.cos(prop.rot || 0),
+    sinR = Math.sin(prop.rot || 0);
+  for (let across = -width / 2 - 1.5; across <= width / 2
+    + 1.5; across += 1.5) for (let along = -height / 2 - 1.5; along <= height / 2
+    + 1.5; along += 1.5) {
+    const x = prop.x + cosR * across - sinR * along, y = prop.y + sinR * across + cosR * along;
+    if (querySubtrack(sub, x, y).dist < halfWidth + 0.5 || kit.onLane(x, y, 0)
+      || Math.abs(x) > FLOOR - 4 || Math.abs(y) > FLOOR - 4) return false;
+    }
+  return true;
+}
+/**
+ * Scatters Fife farmland trees round the outside, few inside.
+ * @param kit the track kit
+ * @param props prop list, appended to
+ */
+function scatterKhTrees(kit: KhKit, props: Prop[]): void {
+  for (let attempt = 0; attempt < 600 && props.filter((prop) =>
+    prop.kind === 'tree').length < 110; attempt++) {
+    const x = (kit.rnd() - 0.5) * 2 * (FLOOR - 12), y = (kit.rnd() - 0.5) * 2 * (FLOOR - 12);
+    if ((Math.abs(y) > 120 || Math.abs(x) > 230 || kit.rnd() < 0.15)
+      && kit.clear(x, y, 10)) props.push({ kind: 'tree', x, y, s: 3.5 + kit.rnd() * 3,
+      seed: attempt });
+  }
+}
+export const KH_LEVEL = (() => {
+  const sub = KH_SUBTRACK, halfWidth = sub.width / 2;
+  // gravel traps on the outside of the TARMAC corners only (the real Clark's has one); tyre walls
+  // on the dirt corners instead
+  const traps: Trap[] = [], barriers: Barrier[] = [], cones: Cone[] = [];
+  buildKhTraps(sub, halfWidth, traps, cones);
+  const kit = trackKit(sub, 1974, [KH_JOKER, ...traps]);   // Knockhill opened 1974
+  buildKhTrapWalls(sub, kit, halfWidth, traps, barriers, cones);
   const finalCones = cones.filter((cone) => querySubtrack(sub, cone.x, cone.y).dist > halfWidth
     + 1.2 && !kit.onLane(cone.x, cone.y, 0.3));
   const props: Prop[] = [
@@ -129,32 +196,9 @@ export const KH_LEVEL = (() => {
     kit.prop((kerb.startDist + kerb.endDist) / 2,
     (kerb.side === 'left' ? 1 : -1) * (halfWidth + 28), { kind: 'marshal' }));
   // Fife farmland: trees round the outside, few inside
-  for (let attempt = 0; attempt < 600 && props.filter((prop) =>
-    prop.kind === 'tree').length < 110; attempt++) {
-    const x = (kit.rnd() - 0.5) * 2 * (FLOOR - 12), y = (kit.rnd() - 0.5) * 2 * (FLOOR - 12);
-    if ((Math.abs(y) > 120 || Math.abs(x) > 230 || kit.rnd() < 0.15)
-      && kit.clear(x, y, 10)) props.push({ kind: 'tree', x, y, s: 3.5 + kit.rnd() * 3,
-      seed: attempt });
-  }
-  // footprint check, as Brands (props on the road were a real bug there)
-  const FOOT: Record<string, (prop: Prop) => number[]> =
-    { grandstand: (prop) => [prop.w!, prop.h!], tower: (prop) => [prop.size!, prop.size!],
-    truck: () => [14, 2.5], marshal: () => [2.4, 2], board: () => [18, 1.2],
-    tree: (prop) => [prop.s! * 0.5, prop.s! * 0.5] };
-  const boxClear = (prop: Prop) => {
-    const footprint = FOOT[prop.kind];
-    if (!footprint) return true;
-    const [width, height] = footprint(prop), cosR = Math.cos(prop.rot || 0),
-      sinR = Math.sin(prop.rot || 0);
-    for (let across = -width / 2 - 1.5; across <= width / 2
-      + 1.5; across += 1.5) for (let along = -height / 2 - 1.5; along <= height / 2
-      + 1.5; along += 1.5) {
-      const x = prop.x + cosR * across - sinR * along, y = prop.y + sinR * across + cosR * along;
-      if (querySubtrack(sub, x, y).dist < halfWidth + 0.5 || kit.onLane(x, y, 0)
-        || Math.abs(x) > FLOOR - 4 || Math.abs(y) > FLOOR - 4) return false;
-      }
-    return true; };
-  const okProps = props.filter((prop) => prop.kind === 'gantry' || boxClear(prop));
+  scatterKhTrees(kit, props);
+  const okProps = props.filter((prop) => prop.kind === 'gantry'
+    || isKhPropClear(sub, kit, halfWidth, prop));
   const hills: Bump[] = [
     { kind: 'dip', ...(([x, y]) => ({ x, y }))(khXY(625, 480)), r: 55, d: 3.5 },      // DUFFUS DIP
     // CLARK'S blind uphill crest
