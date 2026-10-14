@@ -97,8 +97,7 @@
     "complexity": 1
   },
   "src/render/tiles.ts": {
-    "complexity": 2,
-    "max-lines-per-function": 3
+    "complexity": 1
   },
   "src/roll.js": {
     "complexity": 2
