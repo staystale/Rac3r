@@ -44,75 +44,129 @@ function laneObjects(kinds: string[], y: number, laneIndex: number): Cone[] {
   for (const [kindIndex, kind] of kinds.entries()) {
     // the second kind of a mixed lane sits 14 m further on
     const startX = OBJ_X + kindIndex * 14;
-    if (kind === 'cone') {
-      for (let column = 0; column < 4; column++)
-        for (let row = 0; row < 5; row++)
-          out.push({ kind: 'cone', x: startX + column * 4, y: y - 4 + row * 2 });
-    } else if (kind === 'tyrestack') {
-      for (let column = 0; column < 2; column++)
-        for (let row = 0; row < 9; row++)
-          out.push({ kind: 'tyrestack', x: startX + column * 1.0, y: y - 4 + row * 1.0 });
-    } else if (kind === 'tyre') {
-      for (let column = 0; column < 3; column++)
-        for (let row = 0; row < 4; row++)
-          out.push({ kind: 'tyre', x: startX + column * 3, y: y - 4.5 + row * 3 });
-    } else if (kind === 'bale') {
-      for (let row = 0; row < 6; row++)
-        out.push({ kind: 'bale', x: startX, y: y - 4.2 + row * 1.7 });
-      out.push(
-        { kind: 'bale', x: startX + 8, y: y - 1 },
-        { kind: 'bale', x: startX + 8, y: y + 1 },
-      );
-    } else if (kind === 'banger') {
-      out.push(
-        { kind: 'banger', x: startX + 2, y, rot: Math.PI / 2, paint: '#8b2a26', num: '42' },
-        { kind: 'banger', x: startX + 12, y: y - 2.5, rot: 0.3, paint: '#2a4d7a', num: '17' },
-        { kind: 'banger', x: startX + 12, y: y + 2.8, rot: -0.3, paint: '#8b7a2b', num: '88' },
-      );
-    } else if (kind === 'caravan') {
-      out.push(
-        { kind: 'caravan', x: startX + 3, y, rot: Math.PI / 2 },
-        { kind: 'caravan', x: startX + 16, y: y + 1, rot: 0.2 },
-      );
-    } else if (kind === 'podium') out.push({ kind: 'podium', x: startX + 3, y, rot: 0 });
-    else if (kind === 'sheep') {
-      for (let column = 0; column < 3; column++)
-        for (let row = 0; row < 3; row++)
-          out.push({
-            kind: 'sheep', x: startX + column * 2.6, y: y - 2.8 + row * 2.8,
-            rot: (column + row) * 0.9,
-          });
-    } else if (kind === 'cow') {
-      for (let row = 0; row < 3; row++)
-        out.push({
-          kind: 'cow', x: startX + (row % 2) * 3.5, y: y - 3.4 + row * 3.4, rot: row * 0.5,
-        });
-    } else if (kind === 'chevron') {
-      for (let row = 0; row < 4; row++)
-        out.push({
-          kind: 'chevron', x: startX, y: y - 3.9 + row * 2.6, rot: Math.PI / 2, col: '#c8302c',
-        });
-    } else if (kind === 'flag') {
-      for (let row = 0; row < 3; row++)
-        out.push({ kind: 'flag', x: startX, y: y - 3.5 + row * 3.5, col: col(row) });
-    } else if (kind === 'tapepost') {
-      for (const [tapeIndex, dx] of [[0, 0], [1, 8]])
-        for (let row = 0; row < 5; row++)
-          out.push({
-            kind: 'tapepost', x: startX + dx, y: y - 5 + row * 2.5,
-            tape: 'lab-ice-' + tapeIndex, idx: row,
-          });
-    } else {
-      const count = kinds.length > 1 ? 2 : 3;
-      for (let column = 0; column < count; column++)
-        for (let row = 0; row < 3; row++)
-          out.push({
-            kind, x: startX + column * 4, y: y - 3.5 + row * 3.5,
-            rot: (column * 3 + row) * 0.7, col: col(column * 3 + row),
-          });
+    if (!pushLaneGrid(out, kind, startX, y) && !pushLaneVehicles(out, kind, startX, y)
+      && !pushLaneLivestock(out, kind, startX, y)) {
+      pushLaneMarkers(out, kind, kinds, startX, y, col);
     }
   }
   return out;
+}
+/**
+ * Pushes a grid of cones, tyre stacks or tyres for the end of a lane.
+ * @param out objects list, appended to
+ * @param kind object kind
+ * @param startX first x of the block
+ * @param y lane centre line
+ * @return true when the kind is one of these
+ */
+function pushLaneGrid(out: Cone[], kind: string, startX: number, y: number): boolean {
+  if (kind === 'cone') {
+    for (let column = 0; column < 4; column++)
+      for (let row = 0; row < 5; row++)
+        out.push({ kind: 'cone', x: startX + column * 4, y: y - 4 + row * 2 });
+  } else if (kind === 'tyrestack') {
+    for (let column = 0; column < 2; column++)
+      for (let row = 0; row < 9; row++)
+        out.push({ kind: 'tyrestack', x: startX + column * 1.0, y: y - 4 + row * 1.0 });
+  } else if (kind === 'tyre') {
+    for (let column = 0; column < 3; column++)
+      for (let row = 0; row < 4; row++)
+        out.push({ kind: 'tyre', x: startX + column * 3, y: y - 4.5 + row * 3 });
+  } else return false;
+  return true;
+}
+/**
+ * Pushes bales, bangers, caravans or a podium for the end of a lane.
+ * @param out objects list, appended to
+ * @param kind object kind
+ * @param startX first x of the block
+ * @param y lane centre line
+ * @return true when the kind is one of these
+ */
+function pushLaneVehicles(out: Cone[], kind: string, startX: number, y: number): boolean {
+  if (kind === 'bale') {
+    for (let row = 0; row < 6; row++)
+      out.push({ kind: 'bale', x: startX, y: y - 4.2 + row * 1.7 });
+    out.push(
+      { kind: 'bale', x: startX + 8, y: y - 1 },
+      { kind: 'bale', x: startX + 8, y: y + 1 },
+    );
+  } else if (kind === 'banger') {
+    out.push(
+      { kind: 'banger', x: startX + 2, y, rot: Math.PI / 2, paint: '#8b2a26', num: '42' },
+      { kind: 'banger', x: startX + 12, y: y - 2.5, rot: 0.3, paint: '#2a4d7a', num: '17' },
+      { kind: 'banger', x: startX + 12, y: y + 2.8, rot: -0.3, paint: '#8b7a2b', num: '88' },
+    );
+  } else if (kind === 'caravan') {
+    out.push(
+      { kind: 'caravan', x: startX + 3, y, rot: Math.PI / 2 },
+      { kind: 'caravan', x: startX + 16, y: y + 1, rot: 0.2 },
+    );
+  } else if (kind === 'podium') out.push({ kind: 'podium', x: startX + 3, y, rot: 0 });
+  else return false;
+  return true;
+}
+/**
+ * Pushes sheep, cows or chevrons for the end of a lane.
+ * @param out objects list, appended to
+ * @param kind object kind
+ * @param startX first x of the block
+ * @param y lane centre line
+ * @return true when the kind is one of these
+ */
+function pushLaneLivestock(out: Cone[], kind: string, startX: number, y: number): boolean {
+  if (kind === 'sheep') {
+    for (let column = 0; column < 3; column++)
+      for (let row = 0; row < 3; row++)
+        out.push({
+          kind: 'sheep', x: startX + column * 2.6, y: y - 2.8 + row * 2.8,
+          rot: (column + row) * 0.9,
+        });
+  } else if (kind === 'cow') {
+    for (let row = 0; row < 3; row++)
+      out.push({
+        kind: 'cow', x: startX + (row % 2) * 3.5, y: y - 3.4 + row * 3.4, rot: row * 0.5,
+      });
+  } else if (kind === 'chevron') {
+    for (let row = 0; row < 4; row++)
+      out.push({
+        kind: 'chevron', x: startX, y: y - 3.9 + row * 2.6, rot: Math.PI / 2, col: '#c8302c',
+      });
+  } else return false;
+  return true;
+}
+/**
+ * Pushes flags, tape posts or the default block of the lane kind for the end of a lane.
+ * @param out objects list, appended to
+ * @param kind object kind
+ * @param kinds every kind in the lane
+ * @param startX first x of the block
+ * @param y lane centre line
+ * @param col picks a colour from the lane palette by shift
+ */
+function pushLaneMarkers(
+  out: Cone[], kind: string, kinds: string[], startX: number, y: number,
+  col: (shift: number) => string,
+): void {
+  if (kind === 'flag') {
+    for (let row = 0; row < 3; row++)
+      out.push({ kind: 'flag', x: startX, y: y - 3.5 + row * 3.5, col: col(row) });
+  } else if (kind === 'tapepost') {
+    for (const [tapeIndex, dx] of [[0, 0], [1, 8]])
+      for (let row = 0; row < 5; row++)
+        out.push({
+          kind: 'tapepost', x: startX + dx, y: y - 5 + row * 2.5,
+          tape: 'lab-ice-' + tapeIndex, idx: row,
+        });
+  } else {
+    const count = kinds.length > 1 ? 2 : 3;
+    for (let column = 0; column < count; column++)
+      for (let row = 0; row < 3; row++)
+        out.push({
+          kind, x: startX + column * 4, y: y - 3.5 + row * 3.5,
+          rot: (column * 3 + row) * 0.7, col: col(column * 3 + row),
+        });
+  }
 }
 export const LAB_CRASH_OBJECTS: Cone[] = LAB_LANES.flatMap((lane, i) =>
   laneObjects(lane.kinds, lane.y, i));
