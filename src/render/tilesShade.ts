@@ -115,6 +115,11 @@ function shadeLevels(heights: Float32Array, cells: number, cell: number) {
   return { levels, any };
 }
 
+/** the shade cells: world origin and size, tile pixels per metre, pixel offset of the origin */
+type ShadeGrid = {
+  minX: number; minY: number; cell: number; pxPerM: number; offX: number; offY: number;
+};
+
 /** a style of shade cell: its colour, strength and the rects (x, y, w, h runs) to fill with it */
 type ShadeGroup = { col: number[]; k: number; r: number[] };
 
@@ -130,8 +135,9 @@ type ShadeGroup = { col: number[]; k: number; r: number[] };
  * @returns the groups
  */
 function groupShadeRects(canvas: HTMLCanvasElement, levels: Float32Array, cells: number,
-    minX: number, minY: number, cell: number) {
-  const pxPerCell = canvas.width / cells, groups = new Map<number, ShadeGroup>();
+    grid: ShadeGrid) {
+  const { minX, minY, cell, pxPerM, offX, offY } = grid;
+  const groups = new Map<number, ShadeGroup>();
   for (let rowNum = 0; rowNum < cells; rowNum++) for (let colNum = 0; colNum < cells; colNum++) {
     const level = levels[rowNum * cells + colNum];
     if (level === 0) continue;
@@ -146,9 +152,10 @@ function groupShadeRects(canvas: HTMLCanvasElement, levels: Float32Array, cells:
         * 1000);
     let group = groups.get(key);
     if (!group) { group = { col, k: Math.abs(level), r: [] }; groups.set(key, group); }
-    const px0 = Math.round(colNum * pxPerCell), py0 = Math.round(rowNum * pxPerCell);
-    group.r.push(px0, py0, Math.round((colNum + 1) * pxPerCell) - px0, Math.round((rowNum + 1)
-        * pxPerCell) - py0);
+    const px0 = Math.round(offX + colNum * cell * pxPerM);
+    const py0 = Math.round(offY + rowNum * cell * pxPerM);
+    group.r.push(px0, py0, Math.round(offX + (colNum + 1) * cell * pxPerM) - px0,
+        Math.round(offY + (rowNum + 1) * cell * pxPerM) - py0);
   }
   return groups;
 }
@@ -169,14 +176,24 @@ function groupShadeRects(canvas: HTMLCanvasElement, levels: Float32Array, cells:
 export function hillShade(noShade: boolean, canvas: HTMLCanvasElement, tileWidth: number,
     centreX: number, centreY: number) {
   if (noShade) return;
-  const cells = Math.max(1, Math.min(SHADE.maxCells, Math.ceil(tileWidth / SHADE.cellM)));
-  const cell = tileWidth / cells, minX = centreX - tileWidth / 2, minY = centreY - tileWidth / 2;
-  const heights = sampleHeights(cells, cell, tileWidth, centreX, centreY);
+  // the cells sit on a WORLD grid (a fixed size per metre, an even index at the tile's west and
+  // north), so the same ground gets the same bands at every zoom step; only far out, where a
+  // tile holds more than maxCells, the cell doubles
+  let cell: number = SHADE.cellM;
+  while (tileWidth / cell + 2 > SHADE.maxCells) cell *= 2;
+  const tileX = centreX - tileWidth / 2, tileY = centreY - tileWidth / 2;
+  const minX = 2 * cell * Math.floor(tileX / (2 * cell));
+  const minY = 2 * cell * Math.floor(tileY / (2 * cell));
+  const cells = Math.ceil((tileWidth + Math.max(tileX - minX, tileY - minY)) / cell);
+  const span = cells * cell, pxPerM = canvas.width / tileWidth;
+  const heights = sampleHeights(cells, cell, span, minX + span / 2, minY + span / 2);
   const { levels, any } = shadeLevels(heights, cells, cell);
   if (!any) return;                                   // flat tile: nothing to do
   const ctx = canvas.getContext('2d')!;
   ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0);
-  const groups = groupShadeRects(canvas, levels, cells, minX, minY, cell);
+  const groups = groupShadeRects(canvas, levels, cells, {
+    minX, minY, cell, pxPerM, offX: (minX - tileX) * pxPerM, offY: (minY - tileY) * pxPerM,
+  });
   for (const group of groups.values()) {
     ctx.fillStyle = `rgba(${group.col[0]},${group.col[1]},${group.col[2]},${
       group.k.toFixed(3)})`;
