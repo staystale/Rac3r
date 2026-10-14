@@ -1,5 +1,5 @@
-// traffic.js â€” HIGHWAY TRAFFIC (user, 2026-10-05: "dumb, slightly SLOW TRAFFIC, RECYCLED when
-// overtaken and off screen (vehicle randomised and moved to the front, or replaced â€” whichever
+// traffic.js — HIGHWAY TRAFFIC (user, 2026-10-05: "dumb, slightly SLOW TRAFFIC, RECYCLED when
+// overtaken and off screen (vehicle randomised and moved to the front, or replaced — whichever
 // is most efficient)"; "CRASHABLE cars WITH DAMAGE; NOT racing, just driving;
 // GENTLY AVOIDING; LANE CHANGING"; "traffic in EVERY MODE and a SLIDER in test mode for DENSITY").
 //
@@ -7,7 +7,7 @@
 // as you and the AI), driven by a dumb LANE DRIVER: pure pursuit on its lane line (+ a small
 // sideways lean away from you when you are alongside), a cruise speed of 90-110 km/h (the left lane
 // slowest), FOLLOWING whatever is ahead in its path (traffic, you, the AI) at ~1 s, and braking
-// hard when the time to a collision gets short. LANE CHANGES: indicate first, then drift across â€”
+// hard when the time to a collision gets short. LANE CHANGES: indicate first, then drift across —
 // to overtake a slower car (right, else rarely left), back to the left when it is clear (keep
 // left), and now and then for no reason. A car TOO DAMAGED stops with its hazards on.
 // RECYCLING: a car OUT OF VIEW (main.js passes the renderer's real screen test) and well behind you
