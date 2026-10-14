@@ -517,7 +517,7 @@ function makePrim(groundCtx: GroundCtx): Record<string, PrimFn> {
     // thin rings (rain ripples) are NOT drawn in pixel art - as hollow squares they read as UI
     // glitches (photographed on the wet pad). The wet surface keeps its rings layer only because
     // its colour is part of the tile palette (tiles.ts paletteSnap): removing it changed the
-    // ground pixels (tilediff, task 074).
+    // ground pixels (tilediff).
     rings() {},
     // jagged cracks with a side branch — ice, broken tarmac
     cracks(layer, minX, minY, maxX, maxY) {
