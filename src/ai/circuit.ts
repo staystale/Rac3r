@@ -441,6 +441,37 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
     return acc;
   }
 
+  /** Stanley steering aim at the front axle: heading error, demand, lock and cap. */
+  function steerAim(car: AiCar, path: typeof state.path, nearIdx: number,
+      idx: (pos: number) => number, speed: number, latT: number) {
+    const pts = path.pts, spec = car.spec;
+    const cosH = Math.cos(car.heading), sinH = Math.sin(car.heading);
+    const frontX = car.x + cosH * spec.lf, frontY = car.y + sinH * spec.lf;
+    let frontIdx = nearIdx, frontDist2 = Infinity;
+    for (let offset = -2; offset <= 10; offset++) {
+      const pos = idx(nearIdx + offset), dist2 = (pts[pos].x - frontX) ** 2 + (
+          pts[pos].y - frontY) ** 2;
+      if (dist2 < frontDist2) {
+        frontDist2 = dist2;
+        frontIdx = pos;
+      }
+    }
+    const look = Math.round((2 + speed * 0.15) / path.sp), ahead = pts[idx(frontIdx + look)],
+        frontPt = pts[frontIdx];
+    let psi = ahead.h - car.heading; psi = Math.atan2(Math.sin(psi), Math.cos(psi));
+    const cross = (frontX - frontPt.x) * -Math.sin(frontPt.h) + (frontY - frontPt.y) * Math.cos(
+        frontPt.h) - latT;
+    const deltaS = psi + Math.atan2(-1.2 * cross, speed + 2) - 0.03 * (
+        car.yawRate - speed * Math.tan(car.delta) / spec.L);
+    const muHere = car.surface.mu * spec.mu;
+    // cap: the kinematic angle for the grip-limited turn + a front slip allowance (the bench cap
+    // pinned at ~0.1 at 35 m/s: ran wide)
+    const LOCK = spec.steerMax || 0.56;
+    const cap = Math.min(
+        1, (1.3 * spec.L * muHere * GRAVITY / Math.max(4, speed * speed) + 0.12) / LOCK);
+    return { psi, deltaS, LOCK, cap };
+  }
+
   function drive(car: AiCar, dt = 1 / 120, ctx: DriveCtx = {}) {
     state.t += dt;
     const spec = car.spec, speed = Math.hypot(car.vx, car.vy);
@@ -462,7 +493,6 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
     const nearIdx = state.i!; let prof = profileOf(path, spec, main);
     const others = ctx.cars || [];
     const push = battleStep(car, others);
-
     // ---- JOKER: decide once per lap ~220 m before the branch; take it at the switch point
     const jCap = jokerStep(car, ctx, path, nearIdx, lap, laps);
 
@@ -620,31 +650,8 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
     // off-road 142 -> 299 car-s, MEASURED). (applied in the SPEED section: every bend ahead within
     // braking distance, not only the "corners" — Naffcar's banked turns are wider than CORNER_R,
     // and tow passes on their inside slid off: off-road 0 -> 14 car-s, MEASURED)
-
     // ---- steering: Stanley on the path + latT at the front axle (the bench driver's controller)
-    const frontX = car.x + cosH * spec.lf, frontY = car.y + sinH * spec.lf;
-    let frontIdx = nearIdx, frontDist2 = Infinity;
-    for (let offset = -2; offset <= 10; offset++) {
-      const pos = idx(nearIdx + offset), dist2 = (pts[pos].x - frontX) ** 2 + (
-          pts[pos].y - frontY) ** 2;
-      if (dist2 < frontDist2) {
-        frontDist2 = dist2;
-        frontIdx = pos;
-      }
-    }
-    const look = Math.round((2 + speed * 0.15) / path.sp), ahead = pts[idx(frontIdx + look)],
-        frontPt = pts[frontIdx];
-    let psi = ahead.h - car.heading; psi = Math.atan2(Math.sin(psi), Math.cos(psi));
-    const cross = (frontX - frontPt.x) * -Math.sin(frontPt.h) + (frontY - frontPt.y) * Math.cos(
-        frontPt.h) - latT;
-    const deltaS = psi + Math.atan2(-1.2 * cross, speed + 2) - 0.03 * (
-        car.yawRate - speed * Math.tan(car.delta) / spec.L);
-    const muHere = car.surface.mu * spec.mu;
-    // cap: the kinematic angle for the grip-limited turn + a front slip allowance (the bench cap
-    // pinned at ~0.1 at 35 m/s: ran wide)
-    const LOCK = spec.steerMax || 0.56;
-    const cap = Math.min(
-        1, (1.3 * spec.L * muHere * GRAVITY / Math.max(4, speed * speed) + 0.12) / LOCK);
+    const { psi, deltaS, LOCK, cap } = steerAim(car, path, nearIdx, idx, speed, latT);
     // OVERSTEER (rear slip past ~10 deg): no cap, so it can countersteer; UNDERSTEER (front past ~8
     // deg): more lock only scrubs, so lift and brake to get the front back (MEASURED: Sweaty Lamb's
     // S at sF 0.27 rad, then a spin at sR -0.78) LOOSE SURFACES (user, 2026-10-04: "slow down
@@ -708,12 +715,6 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
     }
     targetSpeed = Math.min(targetSpeed * traits.pace * push * vMul, jCap, followCap);
     state.vT = targetSpeed;
-    // (no WHEELSPIN cut any more: it halved the throttle on tarmac too, so a car coming off dirt
-    // with its wheels still spinning lifted at
-    // the transition — the user's 'still slow down on transition change'. MEASURED without it
-    // (aidrivecheck, 6 levels x 3 cars x Realish +
-    // Real): 0 to 0.6 s faster everywhere, nothing slower; aisurface Slidden 4x4: 8 -> 6 lifts at
-    // changes.)
     const slideR = slipRear, feel = Math.max(0, 1 - Math.max(0, slideR - 0.07) / 0.12);
     // OFF ROAD / LOOSE (user, 2026-10-04: "they still slow down like mad off road / changing
     // surfaces"): on loose ground a sliding front is the surface, not a mistake — keep driving
