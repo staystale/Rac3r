@@ -10,8 +10,8 @@
 // table. LAPS chosen in setup.
 //
 // So the classification is ON TIME, like a real timed event, never on road position alone:
-// * a finished car: its race time + penalties (RX joker: none taken = +penalty, each extra =
-// +penalty);
+// * a finished car: its race time + penalties (RX joker: none taken = +penalty, each
+//   extra = +penalty);
 // * a car still running when the race is cut: an ESTIMATE = now + the distance it has left / its
 // pace (its last full lap, else its average so far), marked "~" in the table. RX: a car that has
 // NOT taken its joker and still has more than JOKER_LEFT laps to go is assumed to take it (+ the

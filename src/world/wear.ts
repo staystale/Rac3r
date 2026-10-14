@@ -273,8 +273,8 @@ function passCell(cell: WearCell, tyreTemp = 18): void {
       cell.dry = 0;
     }
   } else if (cell.cover === 'wet') {
-    // CHURN vs EVAPORATE (user, 2026-10-03, fourth pass: "water on dirt ... should become mud when
-    // driven over").
+    // CHURN vs EVAPORATE (user, 2026-10-03, fourth pass: "water on dirt ... should
+    // become mud when driven over").
     // MEASURED BUG: a puddle on dirt only mixed after it had DRIED, and standing water only dries
     // above 60 C, so on dirt it stayed a puddle forever. Tyres churning water INTO soft ground is
     // not evaporation: on any base with a WATER_MIX rule, every pass of ANY tyre has

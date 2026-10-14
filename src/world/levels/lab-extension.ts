@@ -9,8 +9,8 @@ import type { Rect, Zone, Cone, Bump, Paint, Board } from "../types.ts";
 // it fun and useful"; Q3 "go 1k why not fill the other area with an off road test area with some
 // test hills grass and dirt with active terrain"; Q4 "ideally one for each but maybe mix some if
 // needed"). The floor goes from 520 x 520 to 520 x 1000 m: the old square is untouched
-// (tools/_labcheck.mjs proves every old metre is the same) and the new 480 m runs SOUTH of it,
-// in the lab floor.
+// (tools/_labcheck.mjs proves every old metre is the same) and the new 480 m runs SOUTH of it, in
+// the lab floor.
 //   y 290..526  CRASH LANES: one per surface (17), 11 m wide, 460 m long, driven WEST -> EAST; at
 //               the east end of each, one object kind (two kinds where 21 kinds meet 17 lanes)
 //               laid out to drive into. Boxed: no blend, no inclusions, so each stays pure.

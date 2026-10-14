@@ -51,8 +51,8 @@ export function createAutoDriver(subtrack: Subtrack) {
         }
       }
     }
-    // (state.d! below: the block above sets state.d from the centreline points, which tsc
-    // cannot see)
+    // (state.d! below: the block above sets state.d from the centreline points,
+    // which tsc cannot see)
     // PROGRESS: nearest point in a window just behind / ahead (see lapdriver history:
     // querySubtrack froze off the road)
     let best: TrackPoint | null = null, bestDist2 = Infinity;

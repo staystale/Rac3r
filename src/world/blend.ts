@@ -7,20 +7,18 @@ import { querySubtrack } from "./tyrewall.ts";
 import type { CoverId, Level, Patch, Surface, Inclusions, InclusionCover } from "./types.ts";
 type Rng = () => number;
 // =============================================================================================
-// SURFACE BLENDING AT CHANGE POINTS (user, 2026-10-03: "sections of surfaces should rarely come to
-// abrupt changes — a blend area where random patches of the under layer show through and the top
-// layer drags over; semi random, greater at the point of blend and lower away from it, so we get a
-// natural gradient"). Generated as PATCHES (the same mechanism as the Grass Track's spots — real
-// ground: grip, wear, graphics):
+// SURFACE BLENDING AT CHANGE POINTS (user, 2026-10-03: "sections of surfaces should rarely come
+// to abrupt changes — a blend area where random patches of the under layer show through and the
+// top layer drags over; semi random, greater at the point of blend and lower away from it, so
+// we get a natural gradient"). Generated as PATCHES (the same mechanism as the Grass Track's
+// spots — real ground: grip, wear, graphics):
 //   (a) TRACK SECTOR changes: each side's surface scattered into the other along the road,
-//   triangular density
-//       peaking at the change point and reaching zero BLEND_W metres away.
-//   (b) LOOSE ROAD EDGES (dirt, gravel, grass, mud, sand, snow sectors): the road surface drags out
-//   onto the
-//       verge and the verge creeps onto the road. Hard (tarmac-family) edges stay crisp, as in
-//       reality.
+//       triangular density peaking at the change point and reaching zero BLEND_W metres away.
+//   (b) LOOSE ROAD EDGES (dirt, gravel, grass, mud, sand, snow sectors): the road surface drags
+//       out onto the verge and the verge creeps onto the road. Hard (tarmac-family) edges stay
+//       crisp, as in reality.
 //   (c) NATURAL ZONE EDGES (not the boxed / rounded test pads, which are deliberate man-made
-//   panels).
+//       panels).
 // Kerbs always win (layersAt), so no patch ever covers a kerb. Covers (puddles / snow / ice) are
 // not blended yet. FIXED PER LEVEL: a seeded RNG (from the level id), so a level looks the same
 // every load — except levels that re-randomise (the Grass Track), whose blend is rolled again with

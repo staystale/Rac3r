@@ -30,8 +30,8 @@ export const GO_RANDOM_PATCHES: Patch[] = [];
 // the straights and dirt on the corners — however random patches, single squares etc of grass,
 // long grass or mud or dirt, randomly throughout the normal course. The course should change just
 // these random patches."
-//   1. the BASE is fixed: every corner dirt, every straight short grass (heading change over 12 m
-//      > GO_TURN).
+//   1. the BASE is fixed: every corner dirt, every straight short grass (heading change over
+//      12 m > GO_TURN).
 //   2. each load scatters GO_PATCHES random PATCHES over the racing surface (LEVEL.patches):
 //      small blobs 1-5 m across of long grass, mud, thick mud, dirt or grass, chosen by what they
 //      sit in. They are real ground — physics, wear and graphics all read them (layersAt /

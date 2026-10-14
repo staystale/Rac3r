@@ -628,8 +628,8 @@ function stepAI(dt) {
       barrierClamp(car);
       solidClamp(car);
       hit(car, v0x, v0y);
-      // TOO INJURED (user: "if an AI is too injured it should reset"): back on the road, mended —
-      // the bill keeps the cost
+      // TOO INJURED (user: "if an AI is too injured it should reset"): back on the
+      // road, mended — the bill keeps the cost
       // TOO INJURED: a pause before the reset so the crash PLAYS OUT (user, 2026-10-04: "wait a
       // moment, the worse the damage the longer, max 2-3 s"): 1 s + 2 s x severity (mean corner
       // damage, + 0.4 for a lost wheel), coasting on light brakes meanwhile
@@ -1334,12 +1334,12 @@ if (meter) for (const evName of ['pointerdown', 'pointerup', 'pointercancel']) {
 let fpsAcc = 0, fpsN = 0;
 const fpsHist = [];
 
-// SAFETY NET (added 2026-10-03, Claude). The airborne-brake bug showed what happens without one: a
-// single NaN in the car reached groundAt(), step() threw, and because nothing caught it
-// requestAnimationFrame was never called again — the whole game froze on its last frame and every
-// button looked dead. This is NOT a fix for physics bugs (those get fixed at source — see
-// vehicle.js axle()). It makes sure the next one costs the player a reset instead of the game, and
-// SHOUTS in the console so it is found:
+// SAFETY NET (added 2026-10-03, Claude). The airborne-brake bug showed what happens without
+// one: a single NaN in the car reached groundAt(), step() threw, and because nothing caught it
+// requestAnimationFrame was never called again — the whole game froze on its last frame and
+// every button looked dead. This is NOT a fix for physics bugs (those get fixed at source —
+// see vehicle.js axle()). It makes sure the next one costs the player a reset instead of the
+// game, and SHOUTS in the console so it is found:
 //   * the car is checked for non-finite state EVERY step (8 numbers — free), not only under ?dev=1;
 //   * on failure it is put back on the track near the last good position it had, via doReset();
 //   * the frame is always rescheduled, even if something throws.

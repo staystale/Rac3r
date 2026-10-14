@@ -163,12 +163,12 @@ const LOAD_MAX = 2.6;
 // TYRE TEMPERATURE (user, 2026-10-03). Four tyres, each its own temperature (deg C), indexed by
 // side of the BODY:
 //   0 front +y, 1 front -y, 2 rear +y, 3 rear -y.
-// HEAT IN = the friction work at the contact patch (force x slip speed), per axle, split left/right
-// by the lateral load transfer — so cornering loads (and heats) the OUTSIDE pair, wheelspin heats
-// only the DRIVEN axle (FWD / RWD / 4WD differ by construction), and the axle doing more cornering
-// work heats more. HEAT OUT = toward ambient at TYRE_COOL + TYRE_AIR * speed, plus the surface's
-// own coolK (grass, snow, ice, mud, wet cool tyres; tarmac does not) — data on the surface, so this
-// file still knows no surface by name.
+// HEAT IN = the friction work at the contact patch (force x slip speed), per axle, split
+// left/right by the lateral load transfer — so cornering loads (and heats) the OUTSIDE pair,
+// wheelspin heats only the DRIVEN axle (FWD / RWD / 4WD differ by construction), and the axle
+// doing more cornering work heats more. HEAT OUT = toward ambient at TYRE_COOL + TYRE_AIR * speed,
+// plus the surface's own coolK (grass, snow, ice, mud, wet cool tyres; tarmac does not) — data on
+// the surface, so this file still knows no surface by name.
 // GRIP: only on a HARD surface (surface.hard), a tyre outside its working window grips less;
 // off-road grip ignores temperature, as in real life (user). Per-car window: spec.tyreOpt [lo, hi],
 // spec.tyreColdGrip. Tyres start COLD (ambient) on every reset (user: "cold, warm them up").
@@ -189,8 +189,8 @@ export const TYRE_T_MAX = 260;
 //   roadV:   sliding over FRESH road dumps heat into it; the tyre's share is
 //            1 / (1 + ground speed / roadV). A pinned burnout (speed 0) keeps it all — so
 //            burnouts pop, drifts only overheat. Rolling scrub is unaffected.
-//   surface.heatK (lab.js): on loose ground the slip is IN the ground — the tyre gets
-//            HEAT_OFFROAD of it
+//   surface.heatK (lab.js): on loose ground the slip is IN the ground — the tyre gets HEAT_OFFROAD
+//            of it
 // Swept 48 combinations (tools/_tyresweep, deleted); the only one meeting every target is below.
 // MEASURED after:
 //   burnout   too hot 18 s, 260 C 57 s      drift   warm 13 s, too hot 27 s, never 260 C in 90 s
@@ -612,8 +612,8 @@ export function step(car: Car, input: CarInput, dt = DT) {
   // under the car (car.ground, metres) and how fast it is changing (car.groundV). The body is a
   // mass on a spring/damper over that profile, and EVERYTHING else falls out of it:
   //   * a crest lifts the ground away faster than the body can follow -> load drops -> less grip,
-  //     and the yaw damping and self-aligning torque that stabilise the car drop with it. It gets
-  //     loose.
+  //     and the yaw damping and self-aligning torque that stabilise the car drop with it. It
+  //     gets loose.
   //   * hit it fast enough and the spring reaches full extension: load clamps at 0, the body goes
   //     ballistic, and that is airtime — emergent, not scheduled.
   //   * coming down, the spring compresses past static: load OVERSHOOTS above 1 and it plants hard.
@@ -847,8 +847,7 @@ export function step(car: Car, input: CarInput, dt = DT) {
     const demandRatio = FmaxRoll > 1 ? Math.abs(FxDemand) / FmaxRoll : 0;
     // NOTE: hysteresis on this state was tried (enter above 1.0 of grip, leave below 0.85) to stop
     // the rear flipping in and out of wheelspin during a slide. It made the track car WORSE (judder
-    // 63 ->
-    // 175) because holding the state longer makes the eventual jump bigger. A shared friction
+    // 63 -> 175) because holding the state longer makes the eventual jump bigger. A shared friction
     // circle was tried too and was better physics and better almost everywhere, but worse again for
     // the track car at gear shifts (223). Both reverted. See ENGINE.md.
     const overLong = demandRatio > 1;

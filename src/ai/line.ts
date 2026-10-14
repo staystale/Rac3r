@@ -5,8 +5,8 @@
 //    its radius so the line cannot fold), biased off any cross-section offset whose grip is well
 //    below the best there (SURFACE AWARENESS). Corners found on it (runs with R < CORNER_R).
 // 2. BRANCH PATHS: the JOKER lane (main line -> joker -> merge back onto the line) and the START
-//    lane (an RX start straight off the lap), resampled and rounded, each with its own speed
-//    profile.
+//    lane (an RX start straight off the lap), resampled and rounded, each with its
+//    own speed profile.
 // 3. SPEED PROFILE per car model (cached per path): sqrt(K_CORNER x mu x gripG x g x R) from the
 //    car's MEASURED grip (carstats.js), then a backward braking pass, so the target at any point
 //    already brakes for everything ahead.

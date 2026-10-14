@@ -3,14 +3,13 @@
 // is most efficient)"; "CRASHABLE cars WITH DAMAGE; NOT racing, just driving;
 // GENTLY AVOIDING; LANE CHANGING"; "traffic in EVERY MODE and a SLIDER in test mode for DENSITY").
 //
-// Every traffic car is a REAL car (vehicle.ts step, the same clamps, damage, rollover and
-// contacts as you and the AI), driven by a dumb LANE DRIVER: pure pursuit on its lane line
-// (+ a small sideways lean away from you when you are alongside), a cruise speed of
-// 90-110 km/h (the left lane slowest), FOLLOWING whatever is ahead in its path (traffic, you,
-// the AI) at ~1 s, and braking hard when the time to a collision gets short. LANE CHANGES:
-// indicate first, then drift across — to overtake a slower car (right, else rarely left),
-// back to the left when it is clear (keep left), and now and then for no reason. A car TOO
-// DAMAGED stops with its hazards on.
+// Every traffic car is a REAL car (vehicle.ts step, the same clamps, damage, rollover and contacts
+// as you and the AI), driven by a dumb LANE DRIVER: pure pursuit on its lane line (+ a small
+// sideways lean away from you when you are alongside), a cruise speed of 90-110 km/h (the left lane
+// slowest), FOLLOWING whatever is ahead in its path (traffic, you, the AI) at ~1 s, and braking
+// hard when the time to a collision gets short. LANE CHANGES: indicate first, then drift across —
+// to overtake a slower car (right, else rarely left), back to the left when it is clear (keep
+// left), and now and then for no reason. A car TOO DAMAGED stops with its hazards on.
 // RECYCLING: a car OUT OF VIEW (main.js passes the renderer's real screen test) and well behind you
 // is REPLACED by a fresh random car (model + colour) ahead, off the top; one far ahead (you
 // stopped) comes back from behind. A new car is always placed OFF SCREEN and never near another car
