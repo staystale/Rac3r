@@ -93,8 +93,10 @@
     "max-lines-per-function": 1
   },
   "src/render/props.ts": {
-    "complexity": 3,
-    "max-lines": 1
+    "complexity": 1
+  },
+  "src/render/props/bridges.ts": {
+    "complexity": 2
   },
   "src/render/road.ts": {
     "complexity": 2,

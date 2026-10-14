@@ -159,7 +159,7 @@ export interface Prop {
   cone?: boolean;   // highway.js foot bridges
   people?: number;   // highway.js foot bridges
   reach?: number;   // gantry / overhead props: how far they span the track (level data)
-  _flash?: number;   // render/props.ts reads it: the time a speed camera flashed (set by the game)
+  _flash?: number;   // render/props/buildings.ts reads it: when a camera flashed (set by the game)
 }
 
 // An x, y pair in metres.
@@ -333,7 +333,7 @@ export interface Barrier {
   col?: string;
   _s?: number;   // highway.js
   _segs?: BarrierSeg[];   // added by prepBarriers
-  _rbb?: [number, number, number, number];   // render/props.ts drawBarriers caches the padded box
+  _rbb?: [number, number, number, number];   // render/props/fence.ts caches the padded box
 }
 
 // A rotated solid box (what solidsFromProps returns); r is its bounding radius.
