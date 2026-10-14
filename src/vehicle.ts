@@ -1021,6 +1021,51 @@ function stabilityControl(car: Car, carSpec: Spec, tick: AxleTick, handbrakeRaw:
   return { escMz, escFx, escWorking };
 }
 
+/**
+ * Section 6 of step(), brake side: ABS caps on each axle's brake force, the lock-up tests, and the
+ * handbrake force on the rear. Returns the brake forces and lock flags the tyre blocks read.
+ */
+function brakeLockState(car: Car, tick: AxleTick, brakeIn: number, vLongAbs: number, FzF: number,
+    FzR: number, FbF: number, FbR: number, FxBrakeF: number, FxBrakeR: number, brakeSign: number,
+    handbrake: number) {
+  const { muBase } = tick;
+  // lock-up test: brake demand alone exceeding available grip ABS (2026-10-03): cap each axle's
+  // brake at ABS_K of the grip LEFT after cornering (last step's lateral force, friction ellipse),
+  // so the wheels keep turning and the tyre keeps steering. Without it the lap driver locked the
+  // track car's fronts at 32% pedal mid-corner and went straight on. The handbrake is not touched.
+  let absWorking = false;
+  if (car.absOn && brakeIn > 0.05 && vLongAbs > 1) {
+    const lastTelem = car.t;
+    const cap = (load: number, lateralForce: number) =>
+      ABS_K * Math.sqrt(Math.max(0,
+          (muBase * load * car.mods.gripLong) ** 2 - lateralForce * lateralForce));
+    const capF = cap(FzF, lastTelem.FyF || 0), capR = cap(FzR, lastTelem.FyR || 0);
+    if (FbF > capF) { FbF = capF; absWorking = true; }
+    if (FbR > capR) { FbR = capR; absWorking = true; }
+    FxBrakeF = FbF * brakeSign; FxBrakeR = FbR * brakeSign;
+  }
+  const lockedF = brakeIn > 0.05 && vLongAbs > 0.3
+      && Math.abs(FbF) > muBase * FzF * car.mods.gripLong;
+  // HANDBRAKE AS A FORCE, not a boolean. MEASURED 2026-09-27 (user: "hand braking at higher speeds
+  // still feels off and ends up in the car swinging backwards"): as an instant full lock, its
+  // violence scaled with FRONT grip — and raising mu to 1.25 made every flick, at every speed, in
+  // every car, reach 90 deg of body slip. Identical outcomes across different inputs is rule 1. As
+  // a rear brake DEMAND it locks only when it actually exceeds rear grip, the existing over-demand
+  // path handles the transition continuously, and its strength is one tunable number.
+  const hbForce = handbrake * TUNE.handbrakeForce * muBase * FzR * car.mods.gripLong;
+  // Does the handbrake demand actually EXCEED rear grip? If so the wheel genuinely LOCKS, and a
+  // locked wheel skates at the full contact-patch speed — which is what makes it lose its lateral
+  // grip and lay rubber. MEASURED BUG, 2026-09-27 (user: "handbrake does not seem to lock up the
+  // rear wheels"): converting the handbrake from a lock into a force meant it no longer set
+  // forceSlide, so the rear's longitudinal slip was derived from how far past grip the demand was —
+  // 0.7 m/s at 20 m/s instead of ~20. The rear kept almost all its lateral grip and laid no marks
+  // at all (the mark floor is 2.2 m/s).
+  const hbLocksRear = hbForce > muBase * FzR * car.mods.gripLong * 0.98;
+  const lockedR = hbLocksRear
+      || (brakeIn > 0.05 && vLongAbs > 0.3 && Math.abs(FbR) > muBase * FzR * car.mods.gripLong);
+  return { absWorking, FxBrakeF, FxBrakeR, lockedF, hbForce, lockedR };
+}
+
 export function step(car: Car, input: CarInput, dt = PHYSICS_STEP_SECONDS) {
   const carSpec = car.spec;
   const mass = carSpec.mass * car.mods.mass;
@@ -1105,40 +1150,11 @@ export function step(car: Car, input: CarInput, dt = PHYSICS_STEP_SECONDS) {
   const sxlR = vLong;
   const sylR = patchLatR;
 
-  // lock-up test: brake demand alone exceeding available grip ABS (2026-10-03): cap each axle's
-  // brake at ABS_K of the grip LEFT after cornering (last step's lateral force, friction ellipse),
-  // so the wheels keep turning and the tyre keeps steering. Without it the lap driver locked the
-  // track car's fronts at 32% pedal mid-corner and went straight on. The handbrake is not touched.
-  let absWorking = false;
-  if (car.absOn && brakeIn > 0.05 && vLongAbs > 1) {
-    const lastTelem = car.t;
-    const cap = (load: number, lateralForce: number) =>
-      ABS_K * Math.sqrt(Math.max(0,
-          (muBase * load * car.mods.gripLong) ** 2 - lateralForce * lateralForce));
-    const capF = cap(FzF, lastTelem.FyF || 0), capR = cap(FzR, lastTelem.FyR || 0);
-    if (FbF > capF) { FbF = capF; absWorking = true; }
-    if (FbR > capR) { FbR = capR; absWorking = true; }
-    FxBrakeF = FbF * brakeSign; FxBrakeR = FbR * brakeSign;
-  }
-  const lockedF = brakeIn > 0.05 && vLongAbs > 0.3
-      && Math.abs(FbF) > muBase * FzF * car.mods.gripLong;
-  // HANDBRAKE AS A FORCE, not a boolean. MEASURED 2026-09-27 (user: "hand braking at higher speeds
-  // still feels off and ends up in the car swinging backwards"): as an instant full lock, its
-  // violence scaled with FRONT grip — and raising mu to 1.25 made every flick, at every speed, in
-  // every car, reach 90 deg of body slip. Identical outcomes across different inputs is rule 1. As
-  // a rear brake DEMAND it locks only when it actually exceeds rear grip, the existing over-demand
-  // path handles the transition continuously, and its strength is one tunable number.
-  const hbForce = handbrake * TUNE.handbrakeForce * muBase * FzR * car.mods.gripLong;
-  // Does the handbrake demand actually EXCEED rear grip? If so the wheel genuinely LOCKS, and a
-  // locked wheel skates at the full contact-patch speed — which is what makes it lose its lateral
-  // grip and lay rubber. MEASURED BUG, 2026-09-27 (user: "handbrake does not seem to lock up the
-  // rear wheels"): converting the handbrake from a lock into a force meant it no longer set
-  // forceSlide, so the rear's longitudinal slip was derived from how far past grip the demand was —
-  // 0.7 m/s at 20 m/s instead of ~20. The rear kept almost all its lateral grip and laid no marks
-  // at all (the mark floor is 2.2 m/s).
-  const hbLocksRear = hbForce > muBase * FzR * car.mods.gripLong * 0.98;
-  const lockedR = hbLocksRear
-      || (brakeIn > 0.05 && vLongAbs > 0.3 && Math.abs(FbR) > muBase * FzR * car.mods.gripLong);
+  const brakeState = brakeLockState(car, tick, brakeIn, vLongAbs, FzF, FzR, FbF, FbR, FxBrakeF,
+      FxBrakeR, brakeSign, handbrake);
+  FxBrakeF = brakeState.FxBrakeF;
+  FxBrakeR = brakeState.FxBrakeR;
+  const { absWorking, lockedF, hbForce, lockedR } = brakeState;
 
   // static axle loads
   const FzNomF = (mass * gravity * carSpec.lr) / carSpec.L,
