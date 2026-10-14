@@ -22,9 +22,12 @@ import { aiTraits } from "./traits.ts";
 import { K_BRAKE, OBST_CLEAR, racingLine, nearestIdx, carGrip, profileOf } from "./line.ts";
 import { roadDriver, driveOut } from "./weaver.ts";
 import { createAttackSteps, createRaceMoves } from "./racecraft.ts";
+import {
+  steerAim, profileSpeed, createHandbrakeStep, createSlideStep, DRIFT_SLIP,
+} from "./driverSteps.ts";
 import type { Level } from "../world/types.ts";
 import type {
-  AiCar, CarsAcc, CarsEnv, CircuitState, DriveCtx, HighwayLevel, JokerCtx, RacingLine,
+  AiCar, CarsAcc, CarsEnv, CircuitState, DriveCtx, HighwayLevel, JokerCtx,
 } from "./types.ts";
 
 // m: the lateral target never puts the car's centre closer than this to the road edge
@@ -32,8 +35,6 @@ const WANDER_EDGE = 1.1;
 // extra braking grip planned while ATTACKING (late braking into the corner)
 const ATK_KB = 0.12;
 const ALONG_GAP = 2.7;       // m kept from a car alongside by an attack or a cover move
-// handbrake turns: apex R (m, + HB_LOOSE on loose ground), corner turn (rad), pull (s).
-const HB_R = 25, HB_LOOSE = 8, HB_TURN = 1.4, HB_T = 0.25;
 // MEASURED (aidrivecheck, HB on/off, Realish + Real, hatch + 4x4): Slidden / Knobhill / Castle Cum
 // within 0.1 s, Sweaty Lamb +0.2..+0.7 s, 6 pulls per 2 min at Slidden, 4 at Sweaty Lamb — it is
 // FLAVOUR (the user's "drift and stuff"), not pace. A heading-error trigger fired ~never. m past
@@ -46,10 +47,7 @@ const UNDER_LOOSE = 0.35;
 // +12 %)
 // s to ease from the grid lane onto the line; m more room alongside then
 const START_BLEND = 9, START_GAP = 1.3;
-// + only in corners with an apex tighter than DRIFT_R m (hairpins / junctions)   // rad: the rear
-// slip a drifting AI holds, and where it gives up and catches it
-const DRIFT_SLIP = 0.22, DRIFT_MAX = 0.4, DRIFT_R = 35;
-const EDGE_DRIFT = 2.0, DRIFT_BAN = 60;
+const DRIFT_BAN = 60;
 // NEVER WAIT (user, 2026-10-07: "patience they should never really wait imo, just try harder and
 // go faster"): seconds of being held up before
 // a pass is tried were 0.3-1.5 s (by aggression), now 0.15-0.6; the chance to commit to one per
@@ -92,6 +90,8 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
 
   const attack = createAttackSteps(state, line, traits, rnd);
   const moves = createRaceMoves(state, line, traits, rnd, attack.beyondApex);
+  const handbrakeStep = createHandbrakeStep(state, line, traits, rnd);
+  const slideStep = createSlideStep(state, line, traits, rnd);
 
   function advance(car: AiCar) {
     const path = state.path, pts = path.pts, size = path.n;
@@ -444,37 +444,6 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
     return acc;
   }
 
-  /** Stanley steering aim at the front axle: heading error, demand, lock and cap. */
-  function steerAim(car: AiCar, path: typeof state.path, nearIdx: number,
-      idx: (pos: number) => number, speed: number, latT: number) {
-    const pts = path.pts, spec = car.spec;
-    const cosH = Math.cos(car.heading), sinH = Math.sin(car.heading);
-    const frontX = car.x + cosH * spec.lf, frontY = car.y + sinH * spec.lf;
-    let frontIdx = nearIdx, frontDist2 = Infinity;
-    for (let offset = -2; offset <= 10; offset++) {
-      const pos = idx(nearIdx + offset), dist2 = (pts[pos].x - frontX) ** 2 + (
-          pts[pos].y - frontY) ** 2;
-      if (dist2 < frontDist2) {
-        frontDist2 = dist2;
-        frontIdx = pos;
-      }
-    }
-    const look = Math.round((2 + speed * 0.15) / path.sp), ahead = pts[idx(frontIdx + look)],
-        frontPt = pts[frontIdx];
-    let psi = ahead.h - car.heading; psi = Math.atan2(Math.sin(psi), Math.cos(psi));
-    const cross = (frontX - frontPt.x) * -Math.sin(frontPt.h) + (frontY - frontPt.y) * Math.cos(
-        frontPt.h) - latT;
-    const deltaS = psi + Math.atan2(-1.2 * cross, speed + 2) - 0.03 * (
-        car.yawRate - speed * Math.tan(car.delta) / spec.L);
-    const muHere = car.surface.mu * spec.mu;
-    // cap: the kinematic angle for the grip-limited turn + a front slip allowance (the bench cap
-    // pinned at ~0.1 at 35 m/s: ran wide)
-    const LOCK = spec.steerMax || 0.56;
-    const cap = Math.min(
-        1, (1.3 * spec.L * muHere * GRAVITY / Math.max(4, speed * speed) + 0.12) / LOCK);
-    return { psi, deltaS, LOCK, cap };
-  }
-
   /** RACECRAFT on the main line: attack, tow pass, giving room, cover; the target it sets. */
   function racecraftStep(car: AiCar, path: typeof state.path, nearIdx: number,
       idx: (pos: number) => number, speed: number, dt: number, lineOff: number, latLim: number,
@@ -510,122 +479,6 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
     }
     state.cc = cur >= 0 ? cur : nextDist < 80 ? nextCorner : -1;
     return { vMul, dodgeT, conflict, prof };
-  }
-
-  /** The profile speed over the look-ahead, cut for the bends ahead when off the line. */
-  function profileSpeed(car: AiCar, path: typeof state.path, nearIdx: number,
-      idx: (pos: number) => number, speed: number, prof: ReturnType<typeof profileOf>,
-      latT: number, lineOff: number) {
-    const pts = path.pts, spec = car.spec;
-  let targetSpeed = Infinity; const span = Math.round((3 + speed * 0.25) / path.sp);
-  for (let offset = 0; offset <= span; offset++) targetSpeed = Math.min(
-      targetSpeed, prof[idx(nearIdx + offset)]);
-  if (path === main && Math.abs(latT) > 0.3) {
-    const brakeDecel = (debugValue("AI_KB") as number || K_BRAKE) * pts[nearIdx].mu * carGrip(
-        spec).brakeG * GRAVITY, far = Math.round(
-        (speed * speed / (2 * brakeDecel) + 15) / path.sp);
-    for (let offset = 0; offset <= far; offset += 2) {
-      const pos = idx(nearIdx + offset), bend = pts[pos], x = (
-          lineOff + latT - bend.off!) * bend.turn;
-      if (x > 0.3 && bend.R < 400) {
-        const bendSpeed = prof[pos] * Math.sqrt(Math.max(0.4, (bend.R - x) / bend.R));
-        targetSpeed = Math.min(
-            targetSpeed, Math.sqrt(bendSpeed * bendSpeed + 2 * brakeDecel * offset * path.sp));
-      }
-      }
-  }
-    return targetSpeed;
-  }
-
-  type Corner = RacingLine["corners"][number];
-
-  /** The total turn of a corner (rad), summed once along its run and kept on the corner. */
-  function cornerAngle(path: typeof state.path, corner: Corner, cornerId: number) {
-    if (corner.angle !== undefined) return;
-    const pts = path.pts;
-    let sum = 0;
-    for (let i = corner.start; line.cid[i] === cornerId; i = (i + 1) % count) {
-      const step = pts[(i + 1) % count].h - pts[i].h;
-      sum += Math.atan2(Math.sin(step), Math.cos(step));
-    }
-    corner.angle = Math.abs(sum);
-  }
-
-  /** Arms one handbrake pull when a tight, big corner is about to be turned into. */
-  function hairpinPull(path: typeof state.path, nearIdx: number, speed: number, loose: number,
-      corner: Corner | null, cornerId: number) {
-    const pts = path.pts;
-    const toApex = ((corner ? corner.apex : nearIdx) - nearIdx + count) % count;
-    if (corner && corner.angle! > HB_TURN && pts[corner.apex].R < HB_R + HB_LOOSE * loose &&
-        toApex < count / 2 && toApex * line.sp < 0.8 * speed + 6 &&
-        state.hbCorner !== cornerId) {
-      state.hbCorner = cornerId;
-      if (rnd() < 0.5 + 0.5 * traits.skill) state.hbUntil = state.t + HB_T;
-    }
-  }
-
-  /** HANDBRAKE TURN: one pull per hairpin, before the apex; 1 while the pull is on. */
-  function handbrakeStep(path: typeof state.path, nearIdx: number, speed: number, loose: number) {
-    if (path === main && speed > 6 && (debugValue("HB") ?? 1)) {
-      const cornerId = line.cid[nearIdx], corner = cornerId >= 0 ? line.corners[cornerId] : null;
-      // turn-in: a corner that turns > HB_TURN rad in all (summed once along its run) with an apex
-      // tighter than HB_R (+ HB_LOOSE on loose
-      // ground), the apex within ~0.8 s
-      if (corner) cornerAngle(path, corner, cornerId);
-      hairpinPull(path, nearIdx, speed, loose, corner, cornerId);
-      if (state.t < state.hbUntil) {
-        state.hbN = (state.hbN || 0) + 1;
-        return 1;
-      }
-    }
-    return 0;
-  }
-
-  /** A bolder driver drifts more often: decided once per corner. */
-  function decideDrift(nearIdx: number) {
-    if (state.driftCorner !== line.cid[nearIdx]) {
-      state.driftCorner = line.cid[nearIdx];
-      state.driftOn = state.t > (state.driftBan || 0) && rnd() < (
-          debugValue("DRIFT") as number ?? (0.45 + 0.5 * traits.aggression));
-    }
-  }
-
-  /** DRIFT HOLD: held on loose ground, in a corner, in a rear-driven car, away from the edge. */
-  function driftHold(car: AiCar, path: typeof state.path, nearIdx: number, speed: number,
-      lineOff: number, loose: number, slipRear: number) {
-    const pts = path.pts, spec = car.spec;
-    // DRIFT HOLD (user, 2026-10-04: "really need AI to drift and handbrake sometimes / aggressive
-    // off-road driving"): on loose ground, in a corner, in a car with the drive at the back (RWD
-    // / rear-biased AWD), a slide is HELD — the rear kept near DRIFT_SLIP with the throttle,
-    // countersteer free — instead of caught at 0.18 rad (which lifted and tiptoed). Past
-    // DRIFT_MAX it is caught as before. A bolder driver (aggression) drifts more often (decided
-    // per corner).
-    const inCorner = path === main && line.cid[nearIdx] >= 0;
-    if (inCorner) decideDrift(nearIdx);
-    // ... and never near the road edge (a held drift there ran a Rally car off Sweaty Lamb 12 s a
-    // lap): within EDGE_DRIFT m it catches m from the car to the nearer edge
-    const nearPt = pts[nearIdx], edgeRoom = path === main ? line.hw - Math.abs(
-        lineOff + (car.x - nearPt.x) * -Math.sin(nearPt.h) + (car.y - nearPt.y) * Math.cos(
-        nearPt.h)) : 0;
-    const drifting = state.driftOn && inCorner && loose > 0.3 && (spec.drive ?? 1) < 0.5 &&
-        slipRear > 0.12 && slipRear < DRIFT_MAX && speed > 6 && edgeRoom > EDGE_DRIFT && pts[
-        line.corners[line.cid[nearIdx]].apex].R < DRIFT_R;
-    return { drifting, edgeRoom };
-  }
-
-  /** Slip, the held drift (per corner, never near the edge), over / understeer and the steer. */
-  function slideStep(car: AiCar, path: typeof state.path, nearIdx: number, speed: number,
-      lineOff: number, aim: { deltaS: number, LOCK: number, cap: number }) {
-    const { deltaS, LOCK, cap } = aim;
-    const loose = Math.max(0, Math.min(1, (1 - car.surface.mu) / 0.5));
-    const slipFront = Math.abs(car.t.slipF || 0), slipRear = Math.abs(car.t.slipR || 0);
-    const { drifting, edgeRoom } = driftHold(car, path, nearIdx, speed, lineOff, loose, slipRear);
-    const over = slipRear > 0.18 && speed > 5 && !drifting,
-        under = slipFront > 0.14 + 0.06 * loose && speed > 5 && !over && !drifting;
-    const steer = over || drifting ? Math.max(-1, Math.min(1, deltaS / LOCK)) : Math.max(
-        -cap, Math.min(cap, deltaS / LOCK));
-    state.cap = cap;
-    return { loose, slipRear, drifting, edgeRoom, over, under, steer };
   }
 
   function drive(car: AiCar, dt = 1 / 120, ctx: DriveCtx = {}) {
@@ -735,7 +588,7 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
 
     // ---- SPEED: the profile (it already brakes for what is ahead) x pace x mistakes, capped by
     // the joker approach and traffic
-    let targetSpeed = profileSpeed(car, path, nearIdx, idx, speed, prof, latT, lineOff);
+    let targetSpeed = profileSpeed(main, car, path, nearIdx, idx, speed, prof, latT, lineOff);
     targetSpeed = Math.min(targetSpeed * traits.pace * push * vMul, jCap, followCap);
     state.vT = targetSpeed;
     const slideR = slipRear, feel = Math.max(0, 1 - Math.max(0, slideR - 0.07) / 0.12);
