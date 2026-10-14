@@ -585,30 +585,12 @@ function runPowertrain(car: Car, carSpec: Spec, input: CarInput, vLong: number, 
   return { handbrakeRaw, inReverse, throttle, brakeIn, totalRatio };
 }
 
-export function step(car: Car, input: CarInput, dt = PHYSICS_STEP_SECONDS) {
-  const carSpec = car.spec;
-  const mass = carSpec.mass * car.mods.mass;
-  const gravity = GRAVITY;
-  const telem = car.t;
-
-  // ---- 1. to body frame
-  const cosH = Math.cos(car.heading), sinH = Math.sin(car.heading);
-  let vLong = car.vx * cosH + car.vy * sinH;
-  let vLat = -car.vx * sinH + car.vy * cosH;
-
-  // ---- 2. steering
-  const delta = steerFrontWheels(car, carSpec, input, dt);
-
-  // ---- powertrain: reverse engagement (A5), shifting, rpm
-  const { handbrakeRaw, inReverse, throttle, brakeIn, totalRatio } = runPowertrain(
-      car, carSpec, input, vLong, dt);
-
-  // ---- 3. slip angles (guarded divide — rule 20)
-  const vLongAbs = Math.abs(vLong);
-  const dirSign = vLong === 0 ? 1 : Math.sign(vLong);
-  const slipF = Math.atan2(vLat + car.yawRate * carSpec.lf, vLongAbs + EPS_SLIP) - delta * dirSign;
-  const slipR = Math.atan2(vLat - car.yawRate * carSpec.lr, vLongAbs + EPS_SLIP);
-
+/**
+ * Section 4 of step(): longitudinal weight transfer, the per-axle suspension springs riding the
+ * ground profile, and aero downforce. Returns the load factor and vertical force of each axle.
+ */
+function computeAxleLoads(car: Car, carSpec: Spec, mass: number, gravity: number, vLong: number,
+    vLat: number, dt: number) {
   // ---- 4. vertical loads with one step of longitudinal transfer lag (stable; implicit is not
   // worth it) Longitudinal weight transfer, THROUGH THE SUSPENSION. Braking loads the front axle,
   // which raises its peak grip (D = mu*Fz in the tyre curve) and makes the car turn in better;
@@ -690,6 +672,36 @@ export function step(car: Car, input: CarInput, dt = PHYSICS_STEP_SECONDS) {
   const FzR = Math.max(0,
       (((mass * gravity * carSpec.lf) / carSpec.L + car.transfer + FdownR) * loadKR)
           * (car.bankLoadFactor || 1));
+  return { loadKF, loadKR, FzF, FzR };
+}
+
+export function step(car: Car, input: CarInput, dt = PHYSICS_STEP_SECONDS) {
+  const carSpec = car.spec;
+  const mass = carSpec.mass * car.mods.mass;
+  const gravity = GRAVITY;
+  const telem = car.t;
+
+  // ---- 1. to body frame
+  const cosH = Math.cos(car.heading), sinH = Math.sin(car.heading);
+  let vLong = car.vx * cosH + car.vy * sinH;
+  let vLat = -car.vx * sinH + car.vy * cosH;
+
+  // ---- 2. steering
+  const delta = steerFrontWheels(car, carSpec, input, dt);
+
+  // ---- powertrain: reverse engagement (A5), shifting, rpm
+  const { handbrakeRaw, inReverse, throttle, brakeIn, totalRatio } = runPowertrain(
+      car, carSpec, input, vLong, dt);
+
+  // ---- 3. slip angles (guarded divide — rule 20)
+  const vLongAbs = Math.abs(vLong);
+  const dirSign = vLong === 0 ? 1 : Math.sign(vLong);
+  const slipF = Math.atan2(vLat + car.yawRate * carSpec.lf, vLongAbs + EPS_SLIP) - delta * dirSign;
+  const slipR = Math.atan2(vLat - car.yawRate * carSpec.lr, vLongAbs + EPS_SLIP);
+
+  // ---- 4. vertical loads
+  const { loadKF, loadKR, FzF, FzR } = computeAxleLoads(
+      car, carSpec, mass, gravity, vLong, vLat, dt);
 
   // ---- 5. longitudinal demand per axle CLUTCH RAMP. MEASURED BUG, 2026-09-27 (user: "still
   // getting judder sometimes"): torque was zeroed during a shift and then restored in ONE step —
