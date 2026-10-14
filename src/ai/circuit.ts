@@ -512,6 +512,31 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
     return { vMul, dodgeT, conflict, prof };
   }
 
+  /** The profile speed over the look-ahead, cut for the bends ahead when off the line. */
+  function profileSpeed(car: AiCar, path: typeof state.path, nearIdx: number,
+      idx: (pos: number) => number, speed: number, prof: ReturnType<typeof profileOf>,
+      latT: number, lineOff: number) {
+    const pts = path.pts, spec = car.spec;
+  let targetSpeed = Infinity; const span = Math.round((3 + speed * 0.25) / path.sp);
+  for (let offset = 0; offset <= span; offset++) targetSpeed = Math.min(
+      targetSpeed, prof[idx(nearIdx + offset)]);
+  if (path === main && Math.abs(latT) > 0.3) {
+    const brakeDecel = (debugValue("AI_KB") as number || K_BRAKE) * pts[nearIdx].mu * carGrip(
+        spec).brakeG * GRAVITY, far = Math.round(
+        (speed * speed / (2 * brakeDecel) + 15) / path.sp);
+    for (let offset = 0; offset <= far; offset += 2) {
+      const pos = idx(nearIdx + offset), bend = pts[pos], x = (
+          lineOff + latT - bend.off!) * bend.turn;
+      if (x > 0.3 && bend.R < 400) {
+        const bendSpeed = prof[pos] * Math.sqrt(Math.max(0.4, (bend.R - x) / bend.R));
+        targetSpeed = Math.min(
+            targetSpeed, Math.sqrt(bendSpeed * bendSpeed + 2 * brakeDecel * offset * path.sp));
+      }
+      }
+  }
+    return targetSpeed;
+  }
+
   function drive(car: AiCar, dt = 1 / 120, ctx: DriveCtx = {}) {
     state.t += dt;
     const spec = car.spec, speed = Math.hypot(car.vx, car.vy);
@@ -649,23 +674,7 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
 
     // ---- SPEED: the profile (it already brakes for what is ahead) x pace x mistakes, capped by
     // the joker approach and traffic
-    let targetSpeed = Infinity; const span = Math.round((3 + speed * 0.25) / path.sp);
-    for (let offset = 0; offset <= span; offset++) targetSpeed = Math.min(
-        targetSpeed, prof[idx(nearIdx + offset)]);
-    if (path === main && Math.abs(latT) > 0.3) {
-      const brakeDecel = (debugValue("AI_KB") as number || K_BRAKE) * pts[nearIdx].mu * carGrip(
-          spec).brakeG * GRAVITY, far = Math.round(
-          (speed * speed / (2 * brakeDecel) + 15) / path.sp);
-      for (let offset = 0; offset <= far; offset += 2) {
-        const pos = idx(nearIdx + offset), bend = pts[pos], x = (
-            lineOff + latT - bend.off!) * bend.turn;
-        if (x > 0.3 && bend.R < 400) {
-          const bendSpeed = prof[pos] * Math.sqrt(Math.max(0.4, (bend.R - x) / bend.R));
-          targetSpeed = Math.min(
-              targetSpeed, Math.sqrt(bendSpeed * bendSpeed + 2 * brakeDecel * offset * path.sp));
-        }
-        }
-    }
+    let targetSpeed = profileSpeed(car, path, nearIdx, idx, speed, prof, latT, lineOff);
     targetSpeed = Math.min(targetSpeed * traits.pace * push * vMul, jCap, followCap);
     state.vT = targetSpeed;
     const slideR = slipRear, feel = Math.max(0, 1 - Math.max(0, slideR - 0.07) / 0.12);
