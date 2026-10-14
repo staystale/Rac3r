@@ -1449,6 +1449,30 @@ function computeAxleForces(car: Car, carSpec: Spec, mass: number, gravity: numbe
   return { tick, axles, absWorking };
 }
 
+/**
+ * Force sum of step(): drag, rolling resistance, the axle and ploughing forces, stability drag and
+ * slopes, resolved in the body frame and divided by mass. Returns the body accelerations.
+ */
+function bodyAccelerations(car: Car, carSpec: Spec, mass: number, gravity: number, delta: number,
+    vLong: number, vLongAbs: number, dirSign: number, axles: AxleOutcome,
+    plough: { FpxF: number; FpyF: number; FpxR: number; FpyR: number }, escFx: number) {
+  const { frontAxle, rearAxle } = axles;
+  const { FpxF, FpyF, FpxR, FpyR } = plough;
+  const cosDelta = Math.cos(delta), sinDelta = Math.sin(delta);
+  // dragMul: the slipstream (contact.js), 1 when alone
+  const drag = -carSpec.dragC * (car.dragMul ?? 1) * vLong * vLongAbs;
+  // DAMAGE: a wheel off drags its corner
+  const roll = vLongAbs < 0.05 ? 0
+      : -carSpec.rollC * mass * gravity * dirSign * (car.wreck ? car.wreck.roll : 1);
+  const Fxbody = frontAxle.Fx * cosDelta - frontAxle.Fy * sinDelta + rearAxle.Fx + drag + roll
+      + FpxF + FpxR + escFx + (car.slopeLong || 0);
+  const Fybody = frontAxle.Fy * cosDelta + frontAxle.Fx * sinDelta + rearAxle.Fy + FpyF + FpyR
+      + (car.bankLatForce || 0) + (car.slopeLat || 0);
+  const accelLong = Fxbody / mass;
+  const accelLat = Fybody / mass;
+  return { accelLong, accelLat };
+}
+
 export function step(car: Car, input: CarInput, dt = PHYSICS_STEP_SECONDS) {
   const carSpec = car.spec;
   const mass = carSpec.mass * car.mods.mass;
@@ -1490,8 +1514,6 @@ export function step(car: Car, input: CarInput, dt = PHYSICS_STEP_SECONDS) {
   const { tick, axles, absWorking } = computeAxleForces(car, carSpec, mass, gravity, dt, delta,
       vLong, vLat, vLongAbs, dirSign, slipF, slipR, brakeIn, FzF, FzR, FbF, FbR, FxBrakeF, FxBrakeR,
       brakeSign, handbrake, FxDriveF, FxDriveR);
-  const { frontAxle, rearAxle } = axles;
-  const cosDelta = Math.cos(delta), sinDelta = Math.sin(delta);
 
   // ---- 7b. PLOUGHING — what makes a gravel trap a gravel trap (user, 2026-09-28: "can the gravel
   // trap
@@ -1511,7 +1533,7 @@ export function step(car: Car, input: CarInput, dt = PHYSICS_STEP_SECONDS) {
   // the real behaviour, and the reason a spun car stops dead in the gravel.
   //
   // It reaches here only as car.surface.plough, so vehicle.js still does not know what gravel is.
-  const { FpxF, FpyF, FpxR, FpyR } = ploughingForces(
+  const ploughF = ploughingForces(
       car, carSpec, mass, vLong, vLat, loadKF, loadKR);
 
   // ---- 8. integrate TCS, STABILITY HALF (2026-10-03; user: one TCS switch covers wheelspin AND
@@ -1521,21 +1543,12 @@ export function step(car: Car, input: CarInput, dt = PHYSICS_STEP_SECONDS) {
   // brake, and cuts the engine while the car is rotating more than the wheel asks for.
   const { escMz, escFx, escWorking } = stabilityControl(car, carSpec, tick, handbrakeRaw,
       inReverse, vLong, vLat, vLongAbs, dirSign, delta, FzF, FzR);
-  // dragMul: the slipstream (contact.js), 1 when alone
-  const drag = -carSpec.dragC * (car.dragMul ?? 1) * vLong * vLongAbs;
-  // DAMAGE: a wheel off drags its corner
-  const roll = vLongAbs < 0.05 ? 0
-      : -carSpec.rollC * mass * gravity * dirSign * (car.wreck ? car.wreck.roll : 1);
-  const Fxbody = frontAxle.Fx * cosDelta - frontAxle.Fy * sinDelta + rearAxle.Fx + drag + roll
-      + FpxF + FpxR + escFx + (car.slopeLong || 0);
-  const Fybody = frontAxle.Fy * cosDelta + frontAxle.Fx * sinDelta + rearAxle.Fy + FpyF + FpyR
-      + (car.bankLatForce || 0) + (car.slopeLat || 0);
-  const accelLong = Fxbody / mass;
-  const accelLat = Fybody / mass;
+  const { accelLong, accelLat } = bodyAccelerations(car, carSpec, mass, gravity, delta, vLong,
+      vLongAbs, dirSign, axles, ploughF, escFx);
 
   vLong += (accelLong + car.yawRate * vLat) * dt;
   vLat += (accelLat - car.yawRate * vLong) * dt;
-  integrateYaw(car, carSpec, dt, axles, delta, vLong, vLat, FpyF, FpyR, escMz);
+  integrateYaw(car, carSpec, dt, axles, delta, vLong, vLat, ploughF.FpyF, ploughF.FpyR, escMz);
 
   // ---- 9. low-speed blend. Without this the car shivers and creeps at a standstill and it reads
   //         as a bug in the friction model (PLAN.md "What would count as wrong").
