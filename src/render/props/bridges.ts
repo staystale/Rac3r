@@ -45,21 +45,12 @@ function drawBridgeRoad(propCtx: PropCtx, prop: Prop, geo: BridgeGeom) {
 }
 
 /**
- * Draws the sleepers, rails and the passing train of a rail bridge.
- * @param propCtx the view and painter helpers
+ * Draws the passing train of a rail bridge.
  * @param prop the bridge prop
  * @param geo the deck geometry shared with the other bridge drawers
  */
-function drawBridgeRail(propCtx: PropCtx, prop: Prop, geo: BridgeGeom) {
-  const { paint, half, seed, negEnd, posEnd, trackLen, clock, deckWid } = geo;
-  // sleepers + rails over the deck and along the ballast approaches (the gravel ribbon in the
-  // tiles)
-  for (let sleeperX = -negEnd; sleeperX < posEnd; sleeperX += 0.9)
-    if (sleeperX < -half - 4 || sleeperX > half) paint(sleeperX, -2.4, 0.35, 4.8, '#6e5a44');
-    else paint(sleeperX, -deckWid / 2 + 0.8, 0.35, deckWid - 1.6, '#6e5a44');
-  for (const y of [-1.9, -0.6, 0.6, 1.9]) paint(-negEnd, y - 0.08, trackLen, 0.16, '#b9bcc3');
-  for (let bracketX = -half + 3; bracketX < half; bracketX += 12)
-    paint(bracketX, -deckWid / 2 - 0.3, 0.3, deckWid + 0.6, '#3d4049');
+function drawBridgeTrain(prop: Prop, geo: BridgeGeom) {
+  const { paint, seed, negEnd, posEnd, clock } = geo;
   // A TRAIN every trainEvery s: 3-5 coaches of 18 m at 32 m/s, one way or the other, crossing
   // the whole length then gone
   const every = prop.trainEvery || 20,
@@ -84,6 +75,25 @@ function drawBridgeRail(propCtx: PropCtx, prop: Prop, geo: BridgeGeom) {
         paint(x + winX, y - 0.5, 1.6, 1, 'rgba(30,40,58,0.55)');
     }
   }
+}
+
+/**
+ * Draws the sleepers, rails and the passing train of a rail bridge.
+ * @param propCtx the view and painter helpers
+ * @param prop the bridge prop
+ * @param geo the deck geometry shared with the other bridge drawers
+ */
+function drawBridgeRail(propCtx: PropCtx, prop: Prop, geo: BridgeGeom) {
+  const { paint, half, negEnd, posEnd, trackLen, deckWid } = geo;
+  // sleepers + rails over the deck and along the ballast approaches (the gravel ribbon in the
+  // tiles)
+  for (let sleeperX = -negEnd; sleeperX < posEnd; sleeperX += 0.9)
+    if (sleeperX < -half - 4 || sleeperX > half) paint(sleeperX, -2.4, 0.35, 4.8, '#6e5a44');
+    else paint(sleeperX, -deckWid / 2 + 0.8, 0.35, deckWid - 1.6, '#6e5a44');
+  for (const y of [-1.9, -0.6, 0.6, 1.9]) paint(-negEnd, y - 0.08, trackLen, 0.16, '#b9bcc3');
+  for (let bracketX = -half + 3; bracketX < half; bracketX += 12)
+    paint(bracketX, -deckWid / 2 - 0.3, 0.3, deckWid + 0.6, '#3d4049');
+  drawBridgeTrain(prop, geo);
 }
 
 /**
@@ -123,6 +133,24 @@ function drawBridgeFoot(propCtx: PropCtx, prop: Prop, geo: BridgeGeom) {
   }
 }
 
+/**
+ * Draws the boat of a river crossing.
+ * @param prop the river prop
+ * @param half half the deck length
+ * @param paint the square painter in metres
+ */
+function drawRiverBoat(
+  prop: Prop, half: number,
+  paint: (x: number, y: number, width: number, height: number, col: string) => void,
+) {
+  if (prop.boat) {
+    const boatX = (prop.roadHw || half - 9) / Math.cos(prop.skew || 0) + 4;
+    paint(boatX, -1.2, 5, 2.4, '#e9e4d8');
+    paint(boatX + 1, -0.8, 2, 1.6, '#c8302c');
+    paint(boatX + 0.2, -1.25, 4.6, 0.2, '#6a7077');
+  }
+}
+
 // BRIDGES (highway.js extras): carries 'road' / 'rail' / 'foot' = a deck OVER the motorway (kind
 // 'bridge', drawn after the cars); kind 'river' = the motorway over water. Local frame: +x along
 // the deck (across the motorway). Squares only. v2 (2026-10-06, user: "bridges have no connecting
@@ -150,12 +178,7 @@ export function drawBridge(propCtx: PropCtx, prop: Prop, ppm: number) {
     carries = prop.carries,
     seed = prop.seed || 0;
   if (prop.kind === 'river') {
-    if (prop.boat) {
-      const boatX = (prop.roadHw || half - 9) / Math.cos(prop.skew || 0) + 4;
-      paint(boatX, -1.2, 5, 2.4, '#e9e4d8');
-      paint(boatX + 1, -0.8, 2, 1.6, '#c8302c');
-      paint(boatX + 0.2, -1.25, 4.6, 0.2, '#6a7077');
-    }
+    drawRiverBoat(prop, half, paint);
     return;
   }
   const negEnd = half + 3 + ((prop.appL && prop.appL[0]) ?? 0),
