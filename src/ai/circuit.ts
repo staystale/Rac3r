@@ -146,19 +146,22 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
     };
   }
 
+  /** Puts a car that has no place yet on the RX start branch or the main line. */
+  function placeAtStart(car: AiCar) {
+    // the START: a car sitting on the RX start straight drives it (user: "the traditional
+    // start"), else the line
+    if (branches.start && querySubtrack(level.subtrack!, car.x, car.y).dist > line.hw &&
+        Math.hypot(...(() => {
+        const nearest = nearestIdx(branches.start.pts, car.x, car.y), point = branches.start.pts[
+        nearest]; return [point.x - car.x, point.y - car.y]; })()) < 12) {
+      state.path = branches.start; state.i = nearestIdx(branches.start.pts, car.x, car.y);
+    } else { state.path = main; state.i = nearestIdx(main.pts, car.x, car.y); }
+  }
+
   function drive(car: AiCar, dt = 1 / 120, ctx: DriveCtx = {}) {
     state.t += dt;
     const spec = car.spec, speed = Math.hypot(car.vx, car.vy);
-    if (state.i === null) {
-      // the START: a car sitting on the RX start straight drives it (user: "the traditional
-      // start"), else the line
-      if (branches.start && querySubtrack(level.subtrack!, car.x, car.y).dist > line.hw &&
-          Math.hypot(...(() => {
-          const nearest = nearestIdx(branches.start.pts, car.x, car.y), point = branches.start.pts[
-          nearest]; return [point.x - car.x, point.y - car.y]; })()) < 12) {
-        state.path = branches.start; state.i = nearestIdx(branches.start.pts, car.x, car.y);
-      } else { state.path = main; state.i = nearestIdx(main.pts, car.x, car.y); }
-    }
+    if (state.i === null) placeAtStart(car);
     advance(car);
     // ---- DRIVE ITSELF OUT (user, 2026-10-07: "it should try to drive it self out, if it falls
     // super far behind / stays off track too long / stays still / drives too slow for too long, ect
@@ -173,7 +176,7 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
     const lap = ctx.lap || Math.max(1, state.lap), laps = ctx.laps || jLaps;
     const path = state.path, pts = path.pts, size = path.n, idx = (pos: number) => (
         path.closed ? ((pos % size) + size) % size : Math.max(0, Math.min(size - 1, pos)));
-    const nearIdx = state.i; let prof = profileOf(path, spec, main);
+    const nearIdx = state.i!; let prof = profileOf(path, spec, main);
     const others = ctx.cars || [];
     // BATTLING (user: "scrabbling for victory"): a car within 25 m -> push a little harder, and
     // err a little more
