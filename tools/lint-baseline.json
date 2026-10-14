@@ -25,9 +25,8 @@
   "src/damage.js": {
     "complexity": 1
   },
-  "src/highway.js": {
-    "complexity": 1,
-    "max-lines": 1
+  "src/highway/extras.js": {
+    "complexity": 1
   },
   "src/highwayrace.ts": {
     "complexity": 1,
