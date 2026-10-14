@@ -46,7 +46,6 @@
     "complexity": 4,
     "max-lines": 1,
     "max-lines-per-function": 3,
-    "no-shadow": 1,
     "no-unused-vars": 2
   },
   "src/input.js": {
@@ -57,7 +56,6 @@
     "complexity": 9,
     "max-lines": 1,
     "max-lines-per-function": 2,
-    "no-shadow": 2,
     "no-unused-vars": 3
   },
   "src/marks.js": {
@@ -67,8 +65,7 @@
   "src/menu.js": {
     "complexity": 2,
     "max-lines": 1,
-    "max-lines-per-function": 3,
-    "no-shadow": 5
+    "max-lines-per-function": 3
   },
   "src/raceflow.js": {
     "complexity": 1,
@@ -135,10 +132,8 @@
   "src/vehicle.ts": {
     "@typescript-eslint/no-unused-vars": 3,
     "complexity": 2,
-    "id-length": 1,
     "max-lines": 1,
-    "max-lines-per-function": 2,
-    "no-shadow": 4
+    "max-lines-per-function": 2
   },
   "src/world/barriers.ts": {
     "complexity": 2
