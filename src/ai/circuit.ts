@@ -257,6 +257,51 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
         1 + HARDER * Math.min(1, (state.behindT || 0) / HARDER_T));
   }
 
+  /** Steps round a loose obstacle (cone, tyre) in the way; the dodge target, or null. */
+  function obstacleStep(car: AiCar, ctx: DriveCtx, path: typeof state.path, nearIdx: number,
+      idx: (pos: number) => number, speed: number, prec: number, lineOff: number,
+      myLat: number, latLim: number, latT: number, dt: number) {
+    const pts = path.pts, cosH = Math.cos(car.heading), sinH = Math.sin(car.heading);
+    let dodge: number | null = null;
+    const onLine = path === main ? lineOff : 0;
+    // ---- OBSTACLES (user, 2026-10-04: "AI need to see tyres and cones as obstacles — although
+    // optional ones haha — but try and avoid them
+    // on rally stages / tracks"): ctx.obstacles = loose objects near this car ({ x, y, r },
+    // main.js). One in my path ahead, on the road ->
+    // step round it on the side with room; no room -> drive through (optional). Cars come first:
+    // only when no car is in the way. A more
+    // precise driver sees it further ahead.
+    if (ctx.obstacles) {
+      const reach = 6 + speed * (0.6 + 0.6 * prec); let best = null;
+      for (const obstacle of ctx.obstacles) {
+        const relX = obstacle.x - car.x, relY = obstacle.y - car.y,
+            fwd = relX * cosH + relY * sinH;
+        if (fwd < 2 || fwd > reach) continue;
+        const lat = -relX * sinH + relY * cosH; if (Math.abs(lat) > 8) continue;
+        const pos = idx(nearIdx + Math.round(fwd / path.sp)), pathPt = pts[pos], obstLat = (
+            obstacle.x - pathPt.x) * -Math.sin(pathPt.h) + (obstacle.y - pathPt.y) * Math.cos(
+            pathPt.h);
+        // off the road: not in the way
+        if (Math.abs(onLine + obstLat) > (path === main ? line.hw + 0.5 : 6)) continue;
+        if (Math.abs(obstLat - myLat) < obstacle.r + OBST_CLEAR && (
+            !best || fwd < best.f)) best = {
+          f: fwd, oc: obstLat, r: obstacle.r
+        };
+      }
+      if (best) {
+        const clearance = best.r + OBST_CLEAR + 0.2;
+        const cands = [best.oc + clearance, best.oc - clearance].filter(
+            (cand) => Math.abs(onLine + cand) <= latLim).sort(
+            (first, second) => Math.abs(first - myLat) - Math.abs(second - myLat));
+        if (cands.length) {
+          dodge = cands[0] - latT;
+          state.obst = (state.obst || 0) + dt;
+        }
+      }
+    }
+    return dodge;
+  }
+
   function drive(car: AiCar, dt = 1 / 120, ctx: DriveCtx = {}) {
     state.t += dt;
     const spec = car.spec, speed = Math.hypot(car.vx, car.vy);
@@ -403,34 +448,12 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
     // step round it on the side with room; no room -> drive through (optional). Cars come first:
     // only when no car is in the way. A more
     // precise driver sees it further ahead.
-    if (!conflict && ctx.obstacles && ctx.obstacles.length) {
-      const reach = 6 + speed * (0.6 + 0.6 * prec); let best = null;
-      for (const obstacle of ctx.obstacles) {
-        const relX = obstacle.x - car.x, relY = obstacle.y - car.y,
-            fwd = relX * cosH + relY * sinH;
-        if (fwd < 2 || fwd > reach) continue;
-        const lat = -relX * sinH + relY * cosH; if (Math.abs(lat) > 8) continue;
-        const pos = idx(nearIdx + Math.round(fwd / path.sp)), pathPt = pts[pos], obstLat = (
-            obstacle.x - pathPt.x) * -Math.sin(pathPt.h) + (obstacle.y - pathPt.y) * Math.cos(
-            pathPt.h);
-        // off the road: not in the way
-        if (Math.abs((path === main ? lineOff : 0) + obstLat) > (
-            path === main ? line.hw + 0.5 : 6)) continue;
-        if (Math.abs(obstLat - myLat) < obstacle.r + OBST_CLEAR && (
-            !best || fwd < best.f)) best = {
-          f: fwd, oc: obstLat, r: obstacle.r
-        };
-      }
-      if (best) {
-        const clearance = best.r + OBST_CLEAR + 0.2;
-        const cands = [best.oc + clearance, best.oc - clearance].filter(
-            (cand) => Math.abs((path === main ? lineOff : 0) + cand) <= latLim).sort(
-            (first, second) => Math.abs(first - myLat) - Math.abs(second - myLat));
-        if (cands.length) {
-          conflict = true;
-          dodgeT = cands[0] - latT;
-          state.obst = (state.obst || 0) + dt;
-        }
+    if (!conflict) {
+      const around = obstacleStep(car, ctx, path, nearIdx, idx, speed, prec, lineOff, myLat, latLim,
+          latT, dt);
+      if (around !== null) {
+        conflict = true;
+        dodgeT = around;
       }
     }
     // ---- RACECRAFT (stage 3, 2026-10-04; user: "real overtakes, real defending, scrabbling for
