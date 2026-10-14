@@ -20,10 +20,6 @@
     "max-lines-per-function": 3,
     "no-unused-vars": 2
   },
-  "src/cars.ts": {
-    "id-length": 21,
-    "max-len": 126
-  },
   "src/cones.js": {
     "complexity": 7,
     "max-lines-per-function": 3,
