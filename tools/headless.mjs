@@ -53,8 +53,8 @@ async function main() {
   for (const [label, w, h] of [['Desktop 1280x720',1280,720],['Phone landscape 844x390',844,390],['Phone portrait 390x844',390,844]]) {
     CW = w; CH = h;
     r.resize();
-    const n = r.sy(-10), s = r.sy(10);
-    console.log(`${label}: ${r.W}x${r.H} dpr=${r.dpr} PPM=${r.PPM.toFixed(1)} car@(${r.sx(0).toFixed(0)},${r.sy(0).toFixed(0)}) sy:${n.toFixed(0)}/${s.toFixed(0)} ${n<s?'OK':'✗'}`);
+    const n = r.toScreenY(-10), s = r.toScreenY(10);
+    console.log(`${label}: ${r.W}x${r.H} dpr=${r.dpr} PPM=${r.PPM.toFixed(1)} car@(${r.toScreenX(0).toFixed(0)},${r.toScreenY(0).toFixed(0)}) toScreenY:${n.toFixed(0)}/${s.toFixed(0)} ${n<s?'OK':'✗'}`);
   }
   try { r.frame(game, 1/60, Date.now()/1000); console.log('frame renders'); } catch(e) { console.log('frame error:', e.message); }
 }

@@ -8,8 +8,8 @@ import { shade } from "../render.ts";   // read only at draw time (no load-time 
 // what createObjects destructures from the renderer and the particles
 interface ObjectsHelpers {
   PPMz: () => number;
-  sx: (wx: number) => number;
-  sy: (wy: number) => number;
+  toScreenX: (wx: number) => number;
+  toScreenY: (wy: number) => number;
   roundRect: (
     g: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number
   ) => void;
@@ -25,7 +25,7 @@ interface ObjSprite {
 
 export function createObjects(view: View, cam: Cam, helpers: ObjectsHelpers) {
   const {
-    PPMz, sx, sy, roundRect, chips, MAX_CHIPS,
+    PPMz, toScreenX, toScreenY, roundRect, chips, MAX_CHIPS,
   } = helpers;
 
   // ---------------------------------------------------------------- cones
@@ -144,7 +144,8 @@ export function createObjects(view: View, cam: Cam, helpers: ObjectsHelpers) {
     }
     for (const sct of tapes) {
       if (sct.gone) continue;
-      const startX = sx(sct.a.x), startY = sy(sct.a.y), endX = sx(sct.b.x), endY = sy(sct.b.y);
+      const startX = toScreenX(sct.a.x), startY = toScreenY(sct.a.y), endX = toScreenX(sct.b.x),
+        endY = toScreenY(sct.b.y);
       if ((startX < -40 && endX < -40) || (startX > view.W + 40 && endX > view.W + 40)
         || (startY < -40 && endY < -40) || (startY > view.H + 40 && endY > view.H + 40)) continue;
       const seg = (fromX: number, fromY: number, toX: number, toY: number) => {
@@ -196,12 +197,12 @@ export function createObjects(view: View, cam: Cam, helpers: ObjectsHelpers) {
         const dirx = speed > 1 ? -car.vx / speed : -cosHeading, diry = speed > 1 ? -car.vy / speed
           : -sinHeading, side = (index - 1) * 0.35;
         view.ctx.beginPath();
-        view.ctx.moveTo(sx(bxW - sinHeading * side), sy(byW + cosHeading * side));
+        view.ctx.moveTo(toScreenX(bxW - sinHeading * side), toScreenY(byW + cosHeading * side));
         for (let step = 1; step <= 6; step++) {
           const along = step / 6, flutter = Math.sin(now * 14 + streamer.phase
             + along * 5) * 0.35 * along;
-          view.ctx.lineTo(sx(bxW - sinHeading * side + dirx * streamer.len * along
-            - diry * flutter), sy(byW + cosHeading * side + diry * streamer.len * along
+          view.ctx.lineTo(toScreenX(bxW - sinHeading * side + dirx * streamer.len * along
+            - diry * flutter), toScreenY(byW + cosHeading * side + diry * streamer.len * along
             + dirx * flutter));
           }
         // streamers drawn thicker (photographed thin)
@@ -293,7 +294,7 @@ export function createObjects(view: View, cam: Cam, helpers: ObjectsHelpers) {
   }
   function drawCones(cones: RenderCone[]) {
     for (const cone of cones) {
-      const screenX = sx(cone.x), screenY = sy(cone.y);
+      const screenX = toScreenX(cone.x), screenY = toScreenY(cone.y);
       if (screenX < -60 || screenX > view.W + 60 || screenY < -60 || screenY > view.H
         + 60) continue;
       const down = cone.down;                       // 0 = upright, 1 = flat

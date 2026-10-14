@@ -77,7 +77,6 @@
   "src/render.ts": {
     "@typescript-eslint/no-unused-vars": 6,
     "complexity": 1,
-    "id-length": 2,
     "max-lines-per-function": 2
   },
   "src/render/camera.ts": {

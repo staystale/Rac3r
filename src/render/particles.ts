@@ -7,12 +7,12 @@ import type { Cam, Chip, ParticleCar, Puff, PuffHit, RenderMarks, View } from ".
 // what createParticles destructures from the renderer
 interface ParticleHelpers {
   PPMz: () => number;
-  sx: (wx: number) => number;
-  sy: (wy: number) => number;
+  toScreenX: (wx: number) => number;
+  toScreenY: (wy: number) => number;
 }
 
 export function createParticles(view: View, cam: Cam, helpers: ParticleHelpers) {
-  const { PPMz, sx, sy } = helpers;
+  const { PPMz, toScreenX, toScreenY } = helpers;
   // ---------------------------------------------------------------- thrown material
   // Wall clock (rule 5): something the player WATCHES must not complete inside one frame.
   //
@@ -171,7 +171,8 @@ export function createParticles(view: View, cam: Cam, helpers: ParticleHelpers) 
       const damp = Math.max(0, 1 - 4 * wallDt); chip.vx *= damp; chip.vy *= damp;
       view.ctx.globalAlpha = Math.min(1, chip.life - chip.age); view.ctx.fillStyle = chip.col;
       const z = Math.max(1, Math.round(chip.sz * scale));
-      view.ctx.fillRect(Math.round(sx(chip.x) - z / 2), Math.round(sy(chip.y) - z / 2), z, z);
+      view.ctx.fillRect(Math.round(toScreenX(chip.x) - z / 2),
+        Math.round(toScreenY(chip.y) - z / 2), z, z);
     }
     view.ctx.globalAlpha = 1;
   }
@@ -190,7 +191,8 @@ export function createParticles(view: View, cam: Cam, helpers: ParticleHelpers) 
       // not a smooth disc
       view.ctx.globalAlpha = Math.ceil((1 - fade) * 4) / 4 * 0.5;
       const radius = Math.max(1, Math.round((puff.r0 + fade * puff.grow) * ppm * view.dpr));
-      const pixelX = Math.round(sx(puff.x) * view.dpr), pixelY = Math.round(sy(puff.y) * view.dpr);
+      const pixelX = Math.round(toScreenX(puff.x) * view.dpr),
+        pixelY = Math.round(toScreenY(puff.y) * view.dpr);
       view.ctx.save(); view.ctx.setTransform(1, 0, 0, 1, 0, 0);
       view.ctx.fillRect(pixelX - radius, pixelY - radius, radius * 2, radius * 2);
       view.ctx.restore();

@@ -332,7 +332,7 @@ export function createGuide() {
     const touch = game.input.isTouch();
     // the car on screen, for the tyres card; at least a thumb's width so the hole reads as a hole
     const half = Math.max(30, 3 * renderer.PPM);
-    const ccx = renderer.sx(game.car.x), ccy = renderer.sy(game.car.y);
+    const ccx = renderer.toScreenX(game.car.x), ccy = renderer.toScreenY(game.car.y);
     const font = (size, weight = 600) =>
       `${weight} ${size}px ui-sans-serif, system-ui, -apple-system, sans-serif`;
     ctx.font = font(11);

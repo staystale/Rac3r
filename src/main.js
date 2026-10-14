@@ -928,7 +928,8 @@ if (settings.litter !== null)
   for (const level of LEVELS) if (level.endless) level.litter = settings.litter;
 // what the camera can see right now (+ a margin): traffic only appears / goes OUTSIDE it
 function onScreen(x, y) {
-  const margin = 14 * renderer.PPM, screenX = renderer.sx(x), screenY = renderer.sy(y);
+  const margin = 14 * renderer.PPM, screenX = renderer.toScreenX(x),
+    screenY = renderer.toScreenY(y);
   return screenX > -margin && screenX < renderer.W + margin && screenY > -margin
     && screenY < renderer.H + margin;
 }

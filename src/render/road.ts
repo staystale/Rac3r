@@ -10,14 +10,14 @@ import type { Cam, ForSide, RenderMarks, RoadGame, View } from "./types.ts";
 // what createRoad destructures from the renderer and the ground painter
 interface RoadHelpers {
   PPMz: () => number;
-  sx: (wx: number) => number;
-  sy: (wy: number) => number;
+  toScreenX: (wx: number) => number;
+  toScreenY: (wy: number) => number;
   paintLayers: (id: string, x0: number, y0: number, x1: number, y1: number) => void;
   artBase: (id: string, fallback: string) => string;
 }
 
 export function createRoad(view: View, cam: Cam, helpers: RoadHelpers) {
-  const { PPMz, sx, sy, paintLayers, artBase } = helpers;
+  const { PPMz, toScreenX, toScreenY, paintLayers, artBase } = helpers;
 
   // ---------------------------------------------------------------- lanes (pit lanes, access
   // roads) — lab.js laneAt Drawn PIECE BY PIECE — each segment's rectangle plus a disc at every
@@ -51,22 +51,23 @@ export function createRoad(view: View, cam: Cam, helpers: RoadHelpers) {
         const segLen = Math.hypot(endX - startX, endY - startY) || 1, nx = -(
             endY - startY) / segLen * halfWidth, ny = (endX - startX) / segLen * halfWidth;
         // every piece wound the same way (nonzero fill = their union, no holes where they overlap)
-        view.ctx.moveTo(sx(startX + nx), sy(startY + ny));
-        view.ctx.lineTo(sx(endX + nx), sy(endY + ny));
-        view.ctx.lineTo(sx(endX - nx), sy(endY - ny));
-        view.ctx.lineTo(sx(startX - nx), sy(startY - ny));
+        view.ctx.moveTo(toScreenX(startX + nx), toScreenY(startY + ny));
+        view.ctx.lineTo(toScreenX(endX + nx), toScreenY(endY + ny));
+        view.ctx.lineTo(toScreenX(endX - nx), toScreenY(endY - ny));
+        view.ctx.lineTo(toScreenX(startX - nx), toScreenY(startY - ny));
         view.ctx.closePath();
         // a disc at each end of a visible piece (anticlockwise = the quads' winding, else holes)
-        view.ctx.moveTo(sx(startX + halfWidth), sy(startY));
-        view.ctx.arc(sx(startX), sy(startY), halfWidth * pxPerM, 0, Math.PI * 2, true);
-        view.ctx.moveTo(sx(endX + halfWidth), sy(endY));
-        view.ctx.arc(sx(endX), sy(endY), halfWidth * pxPerM, 0, Math.PI * 2, true);
+        view.ctx.moveTo(toScreenX(startX + halfWidth), toScreenY(startY));
+        view.ctx.arc(toScreenX(startX), toScreenY(startY), halfWidth * pxPerM, 0, Math.PI * 2,
+          true);
+        view.ctx.moveTo(toScreenX(endX + halfWidth), toScreenY(endY));
+        view.ctx.arc(toScreenX(endX), toScreenY(endY), halfWidth * pxPerM, 0, Math.PI * 2, true);
       }
       if (!any) continue;
       view.ctx.fillStyle = artBase(surfaceId, COL.tarmac); view.ctx.fill('nonzero');
       view.ctx.save();
       view.ctx.clip('nonzero');
-      view.ctx.translate(sx(0), sy(0));
+      view.ctx.translate(toScreenX(0), toScreenY(0));
       paintLayers(surfaceId, Math.max(bx0, vx0), Math.max(by0, vy0), Math.min(bx1, vx1), Math.min(
           by1, vy1));
       view.ctx.restore();
@@ -157,14 +158,15 @@ export function createRoad(view: View, cam: Cam, helpers: RoadHelpers) {
       view.ctx.beginPath();
       // Outer left edge along the span
       for (let i = 0; i < line.length; i++) {
-        const point = line[i], edgeX = sx(point.x + point.nx * halfW), edgeY = sy(
+        const point = line[i], edgeX = toScreenX(point.x + point.nx * halfW), edgeY = toScreenY(
             point.y + point.ny * halfW);
         if (i === 0) view.ctx.moveTo(edgeX, edgeY); else view.ctx.lineTo(edgeX, edgeY);
       }
       // Inner right edge along the span in reverse
       for (let i = line.length - 1; i >= 0; i--) {
         const point = line[i];
-        view.ctx.lineTo(sx(point.x - point.nx * halfW), sy(point.y - point.ny * halfW));
+        view.ctx.lineTo(toScreenX(point.x - point.nx * halfW),
+          toScreenY(point.y - point.ny * halfW));
       }
       view.ctx.closePath();
       view.ctx.fill();
@@ -172,7 +174,7 @@ export function createRoad(view: View, cam: Cam, helpers: RoadHelpers) {
       // colour)
       view.ctx.save();
       view.ctx.clip();
-      view.ctx.translate(sx(0), sy(0));
+      view.ctx.translate(toScreenX(0), toScreenY(0));
       paintLayers(span.surface, bx0, by0, bx1, by1);
       view.ctx.restore();
     }
@@ -192,7 +194,7 @@ export function createRoad(view: View, cam: Cam, helpers: RoadHelpers) {
         leftDrawing = false;
         continue;
       }
-      const edgeX = sx(point.x + point.nx * (halfW - 0.2)), edgeY = sy(
+      const edgeX = toScreenX(point.x + point.nx * (halfW - 0.2)), edgeY = toScreenY(
           point.y + point.ny * (halfW - 0.2));
       if (!leftDrawing) {
         view.ctx.moveTo(edgeX, edgeY);
@@ -214,7 +216,7 @@ export function createRoad(view: View, cam: Cam, helpers: RoadHelpers) {
         rightDrawing = false;
         continue;
       }
-      const edgeX = sx(point.x - point.nx * (halfW - 0.2)), edgeY = sy(
+      const edgeX = toScreenX(point.x - point.nx * (halfW - 0.2)), edgeY = toScreenY(
           point.y - point.ny * (halfW - 0.2));
       if (!rightDrawing) {
         view.ctx.moveTo(edgeX, edgeY);
@@ -242,7 +244,7 @@ export function createRoad(view: View, cam: Cam, helpers: RoadHelpers) {
       for (let i = 0; i < count; i++) {
         const point = pts[i];
         if (ghost && point.dist >= ghost.d0) break;
-        const x = sx(point.x + point.nx * off), y = sy(point.y + point.ny * off);
+        const x = toScreenX(point.x + point.nx * off), y = toScreenY(point.y + point.ny * off);
         if (!drawing) {
           view.ctx.moveTo(x, y);
           drawing = true;
@@ -255,7 +257,7 @@ export function createRoad(view: View, cam: Cam, helpers: RoadHelpers) {
       for (let i = 0; i < count; i++) {
         const point = pts[i];
         if (ghost && point.dist >= ghost.d0) break;
-        const x = sx(point.x + point.nx * off), y = sy(point.y + point.ny * off);
+        const x = toScreenX(point.x + point.nx * off), y = toScreenY(point.y + point.ny * off);
         if (!drawing) {
           view.ctx.moveTo(x, y);
           drawing = true;
@@ -288,13 +290,14 @@ export function createRoad(view: View, cam: Cam, helpers: RoadHelpers) {
           const tooth = Math.floor(startPt.dist / 2.0) % 2;
           view.ctx.fillStyle = tooth ? COL.kerbB : COL.kerbA;
 
-          const iaX = sx(startPt.x + sgn * startPt.nx * halfW), iaY = sy(
+          const iaX = toScreenX(startPt.x + sgn * startPt.nx * halfW), iaY = toScreenY(
               startPt.y + sgn * startPt.ny * halfW);
-          const ibX = sx(endPt.x + sgn * endPt.nx * halfW), ibY = sy(
+          const ibX = toScreenX(endPt.x + sgn * endPt.nx * halfW), ibY = toScreenY(
               endPt.y + sgn * endPt.ny * halfW);
-          const oaX = sx(startPt.x + sgn * startPt.nx * (halfW + kerbWidth)), oaY = sy(
+          const oaX = toScreenX(startPt.x + sgn * startPt.nx * (halfW + kerbWidth)),
+            oaY = toScreenY(
               startPt.y + sgn * startPt.ny * (halfW + kerbWidth));
-          const obX = sx(endPt.x + sgn * endPt.nx * (halfW + kerbWidth)), obY = sy(
+          const obX = toScreenX(endPt.x + sgn * endPt.nx * (halfW + kerbWidth)), obY = toScreenY(
               endPt.y + sgn * endPt.ny * (halfW + kerbWidth));
 
           view.ctx.beginPath();
@@ -333,12 +336,14 @@ export function createRoad(view: View, cam: Cam, helpers: RoadHelpers) {
       view.ctx.lineWidth = Math.max(1, (mark.lw || 0.12) * PPMz());
       if (mark.kind === 'ring') {
         view.ctx.beginPath();
-        view.ctx.arc(sx(mark.x), sy(mark.y), mark.r! * PPMz(), 0, Math.PI * 2);   // a ring has r
+        view.ctx.arc(toScreenX(mark.x), toScreenY(mark.y), mark.r! * PPMz(), 0,
+          Math.PI * 2);   // a ring has r
         view.ctx.stroke();
       } else if (mark.kind === 'box' || mark.kind === 'lane') {
         // a box / lane has w and h
         view.ctx.strokeRect(
-            sx(mark.x - mark.w! / 2), sy(mark.y - mark.h! / 2), mark.w! * PPMz(), mark.h! * PPMz(
+            toScreenX(mark.x - mark.w! / 2), toScreenY(mark.y - mark.h! / 2), mark.w! * PPMz(),
+              mark.h! * PPMz(
             ));
       } else if (mark.kind === 'chequered') {
         const halfW = (mark.wid || 13) / 2;
@@ -348,7 +353,7 @@ export function createRoad(view: View, cam: Cam, helpers: RoadHelpers) {
         const rowH = (halfW * 2) / rows;
 
         view.ctx.save();
-        view.ctx.translate(sx(mark.x), sy(mark.y));
+        view.ctx.translate(toScreenX(mark.x), toScreenY(mark.y));
         view.ctx.rotate(mark.rot || 0);
 
         // Leading and trailing boundary lines
@@ -378,7 +383,8 @@ export function createRoad(view: View, cam: Cam, helpers: RoadHelpers) {
     view.ctx.fillStyle = COL.inkSoft;
     view.ctx.font = `600 ${Math.round(0.9 * PPMz())}px ui-sans-serif, system-ui, sans-serif`;
     view.ctx.textAlign = 'center'; view.ctx.textBaseline = 'middle';
-    for (const board of BOARDS) view.ctx.fillText(board.label, sx(board.x), sy(board.y));
+    for (const board of BOARDS) view.ctx.fillText(board.label, toScreenX(board.x),
+      toScreenY(board.y));
   }
 
   // JOKER ARROWS (user spec 2026-10-03: "a TRANSLUCENT WHITE ARROW, gently pulsing" at joker / pit
@@ -392,10 +398,11 @@ export function createRoad(view: View, cam: Cam, helpers: RoadHelpers) {
     const pxPerM = PPMz(), alpha = 0.45 + 0.35 * (0.5 + 0.5 * Math.sin((wallT || 0) * 3.2));
     // ar! below: the arrows hold no null once built (the builders filter them)
     for (const arrow of joker.arrows) {
-      if (sx(arrow!.x) < -200 || sx(arrow!.x) > view.W + 200 || sy(arrow!.y) < -200 || sy(
-          arrow!.y) > view.H + 200) continue;
+      if (toScreenX(arrow!.x) < -200 || toScreenX(arrow!.x) > view.W + 200 ||
+          toScreenY(arrow!.y) < -200 || toScreenY(arrow!.y) > view.H + 200) continue;
       const arrowLen = arrow!.len || 7;
-      view.ctx.save(); view.ctx.translate(sx(arrow!.x), sy(arrow!.y)); view.ctx.rotate(arrow!.rot);
+      view.ctx.save(); view.ctx.translate(toScreenX(arrow!.x),
+        toScreenY(arrow!.y)); view.ctx.rotate(arrow!.rot);
       view.ctx.fillStyle = `rgba(255,255,255,${alpha.toFixed(3)})`;
       view.ctx.beginPath();
       view.ctx.moveTo(arrowLen * 0.5 * pxPerM, 0);
@@ -440,7 +447,7 @@ export function createRoad(view: View, cam: Cam, helpers: RoadHelpers) {
       x: cam.x, y: cam.y, W: view.W, H: view.H
     }, dx = cam.x - centreX, dy = cam.y - centreY;
     view.ctx.save();
-    view.ctx.translate(sx(centreX), sy(centreY));
+    view.ctx.translate(toScreenX(centreX), toScreenY(centreY));
     view.ctx.rotate(angle);
     cam.x = dx * cosA + dy * sinA;
     cam.y = -dx * sinA + dy * cosA;
@@ -491,8 +498,8 @@ export function createRoad(view: View, cam: Cam, helpers: RoadHelpers) {
       }
       prop._bb = [minX - 6, minY - 6, maxX + 6, maxY + 6];
     }
-    if (sx(prop._bb[0]) > view.W || sx(prop._bb[2]) < 0 || sy(prop._bb[1]) > view.H || sy(
-        prop._bb[3]) < 0) return;
+    if (toScreenX(prop._bb[0]) > view.W || toScreenX(prop._bb[2]) < 0 ||
+        toScreenY(prop._bb[1]) > view.H || toScreenY(prop._bb[3]) < 0) return;
     const halfW = (prop.w || 5) / 2 - 0.3, nrm = (index: number) => {
       const prev = line[Math.max(0, index - 1)], next = line[Math.min(line.length - 1, index + 1)],
           heading = Math.atan2(next[1] - prev[1], next[0] - prev[0]);
@@ -504,8 +511,9 @@ export function createRoad(view: View, cam: Cam, helpers: RoadHelpers) {
     for (const sign of [-1, 1]) {
       view.ctx.beginPath();
       for (let index = sign > 0 ? 1 : 0; index < line.length; index++) {
-        const [x, y] = line[index], [nx, ny] = nrm(index), screenX = sx(x + nx * halfW * sign),
-            screenY = sy(y + ny * halfW * sign);
+        const [x, y] = line[index], [nx, ny] = nrm(index),
+          screenX = toScreenX(x + nx * halfW * sign),
+            screenY = toScreenY(y + ny * halfW * sign);
         if (index === (sign > 0 ? 1 : 0)) view.ctx.moveTo(screenX, screenY);
         else view.ctx.lineTo(screenX, screenY);
       }
@@ -514,7 +522,8 @@ export function createRoad(view: View, cam: Cam, helpers: RoadHelpers) {
     view.ctx.fillStyle = 'rgba(245,245,240,0.7)';
     if (prop.nose !== false) for (let index = 1; index < Math.min(5, line.length); index++) {
       const [x, y] = line[index], [nx, ny] = nrm(index);
-      view.ctx.fillRect(sx(x + nx * halfW) - 0.3 * pxPerM, sy(y + ny * halfW) - 0.3 * pxPerM,
+      view.ctx.fillRect(toScreenX(x + nx * halfW) - 0.3 * pxPerM,
+        toScreenY(y + ny * halfW) - 0.3 * pxPerM,
           0.6 * pxPerM, 0.6 * pxPerM);
     }
     view.ctx.restore();
@@ -524,7 +533,8 @@ export function createRoad(view: View, cam: Cam, helpers: RoadHelpers) {
     // one blit of the whole world layer. imageSmoothingEnabled stays on here: the layer is 9 px/m
     // and the screen is 16 px/m, so smoothing is what stops the marks looking like stair-stepped
     // bitmaps.
-    const [mox, moy] = marks.origin || [0, 0], markX = sx(mox - MARK_EXTENT), markY = sy(
+    const [mox, moy] = marks.origin || [0, 0], markX = toScreenX(mox - MARK_EXTENT),
+      markY = toScreenY(
         moy - MARK_EXTENT);
     const size = MARK_EXTENT * 2 * PPMz();
     // smoothing OFF, so marks land on the art grid as hard blocks (photographed soft and blurry

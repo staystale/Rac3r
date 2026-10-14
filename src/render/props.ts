@@ -10,8 +10,8 @@ import type { Cam, ForSide, View } from './types.ts';
 // what createProps destructures from the renderer, the ground painter and the road painter
 interface PropsHelpers {
   PPMz: () => number;
-  sx: (wx: number) => number;
-  sy: (wy: number) => number;
+  toScreenX: (wx: number) => number;
+  toScreenY: (wy: number) => number;
   roundRect: (
     ctx: CanvasRenderingContext2D,
     x: number,
@@ -25,7 +25,7 @@ interface PropsHelpers {
 }
 
 export function createProps(view: View, cam: Cam, helpers: PropsHelpers) {
-  const { PPMz, sx, sy, roundRect, forSide, drawSlip } = helpers;
+  const { PPMz, toScreenX, toScreenY, roundRect, forSide, drawSlip } = helpers;
 
   function drawFence() {
     // MEASURED 2026-10-05: ~133k mesh segments + posts per frame along a 100 km edge (55-105 ms
@@ -107,8 +107,8 @@ export function createProps(view: View, cam: Cam, helpers: PropsHelpers) {
     const path = (pts: Point[]) => {
       view.ctx.beginPath();
       pts.forEach(([x, y], i) =>
-        i ? view.ctx.lineTo(sx(x), sy(y)) : view.ctx.moveTo(sx(x), sy(y)),
-      );
+        i ? view.ctx.lineTo(toScreenX(x), toScreenY(y)) : view.ctx.moveTo(toScreenX(x),
+          toScreenY(y)));
     };
     const posts = (pts: Point[], every: number, size: number, col: string) => {
       view.ctx.fillStyle = col;
@@ -122,8 +122,8 @@ export function createProps(view: View, cam: Cam, helpers: PropsHelpers) {
             x = fromX + (toX - fromX) * frac,
             y = fromY + (toY - fromY) * frac;
           view.ctx.fillRect(
-            sx(x) - (size * ppm) / 2,
-            sy(y) - (size * ppm) / 2,
+            toScreenX(x) - (size * ppm) / 2,
+            toScreenY(y) - (size * ppm) / 2,
             size * ppm,
             size * ppm,
           );
@@ -153,10 +153,10 @@ export function createProps(view: View, cam: Cam, helpers: PropsHelpers) {
         barrier._rbb = [minX - 1, minY - 1, maxX + 1, maxY + 1];
       }
       if (
-        sx(barrier._rbb[0]) > view.W ||
-        sx(barrier._rbb[2]) < 0 ||
-        sy(barrier._rbb[1]) > view.H ||
-        sy(barrier._rbb[3]) < 0
+        toScreenX(barrier._rbb[0]) > view.W ||
+        toScreenX(barrier._rbb[2]) < 0 ||
+        toScreenY(barrier._rbb[1]) > view.H ||
+        toScreenY(barrier._rbb[3]) < 0
       )
         continue;
       if (barrier.kind === 'line') {
@@ -368,10 +368,10 @@ export function createProps(view: View, cam: Cam, helpers: PropsHelpers) {
       prop._bb = [minX, minY, maxX, maxY];
     }
     if (
-      sx(prop._bb[0]) > view.W ||
-      sx(prop._bb[2]) < 0 ||
-      sy(prop._bb[1]) > view.H ||
-      sy(prop._bb[3]) < 0
+      toScreenX(prop._bb[0]) > view.W ||
+      toScreenX(prop._bb[2]) < 0 ||
+      toScreenY(prop._bb[1]) > view.H ||
+      toScreenY(prop._bb[3]) < 0
     )
       return;
     const front = prop.front!,
@@ -381,9 +381,10 @@ export function createProps(view: View, cam: Cam, helpers: PropsHelpers) {
     const poly = (fwd: Point[], rev: Point[], col: string) => {
       view.ctx.beginPath();
       fwd.forEach(([x, y], i) =>
-        i ? view.ctx.lineTo(sx(x), sy(y)) : view.ctx.moveTo(sx(x), sy(y)),
-      );
-      for (let i = rev.length - 1; i >= 0; i--) view.ctx.lineTo(sx(rev[i][0]), sy(rev[i][1]));
+        i ? view.ctx.lineTo(toScreenX(x), toScreenY(y)) : view.ctx.moveTo(toScreenX(x),
+          toScreenY(y)));
+      for (let i = rev.length - 1; i >= 0; i--) view.ctx.lineTo(toScreenX(rev[i][0]),
+        toScreenY(rev[i][1]));
       view.ctx.closePath();
       view.ctx.fillStyle = col;
       view.ctx.fill();
@@ -397,15 +398,16 @@ export function createProps(view: View, cam: Cam, helpers: PropsHelpers) {
     view.ctx.lineWidth = Math.max(1, 0.25 * ppm);
     for (let i = 0; i < count; i += 2) {
       view.ctx.beginPath();
-      view.ctx.moveTo(sx(front[i][0]), sy(front[i][1]));
-      view.ctx.lineTo(sx(back[i][0]), sy(back[i][1]));
+      view.ctx.moveTo(toScreenX(front[i][0]), toScreenY(front[i][1]));
+      view.ctx.lineTo(toScreenX(back[i][0]), toScreenY(back[i][1]));
       view.ctx.stroke();
     } // a unit every 5 m
     view.ctx.beginPath();
     front.forEach(([x, y]: Point, i: number) =>
-      i ? view.ctx.lineTo(sx(x), sy(y)) : view.ctx.moveTo(sx(x), sy(y)),
+      i ? view.ctx.lineTo(toScreenX(x), toScreenY(y)) : view.ctx.moveTo(toScreenX(x), toScreenY(y)),
     );
-    for (let i = count - 1; i >= 0; i--) view.ctx.lineTo(sx(back[i][0]), sy(back[i][1]));
+    for (let i = count - 1; i >= 0; i--) view.ctx.lineTo(toScreenX(back[i][0]),
+      toScreenY(back[i][1]));
     view.ctx.closePath();
     view.ctx.stroke();
     poly(front, banner, '#c8302c'); // the banner
@@ -422,7 +424,8 @@ export function createProps(view: View, cam: Cam, helpers: PropsHelpers) {
           bannerPt = banner[i],
           ang = Math.atan2(next[1] - prev[1], next[0] - prev[0]);
         view.ctx.save();
-        view.ctx.translate(sx((frontPt[0] + bannerPt[0]) / 2), sy((frontPt[1] + bannerPt[1]) / 2));
+        view.ctx.translate(toScreenX((frontPt[0] + bannerPt[0]) / 2),
+          toScreenY((frontPt[1] + bannerPt[1]) / 2));
         view.ctx.rotate(ang);
         view.ctx.fillText(prop.brand || 'KUM TYRES', 0, 1, 6 * 2.5 * ppm * 0.85);
         view.ctx.restore();
@@ -449,8 +452,8 @@ export function createProps(view: View, cam: Cam, helpers: PropsHelpers) {
         drawSlip(prop, ppm);
         continue;
       }
-      const screenX = sx(prop.x),
-        screenY = sy(prop.y);
+      const screenX = toScreenX(prop.x),
+        screenY = toScreenY(prop.y);
       // margin by the prop's own size (a fixed 150 px let a 20 m hangar pop in at the screen edge)
       const margin = Math.max(
         150,

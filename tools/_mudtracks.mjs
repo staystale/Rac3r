@@ -22,9 +22,9 @@ for (let pass = 1; pass <= 6; pass++) {
   const r = await p.evaluate(async ([Y, base]) => {
     const g = window.__game, c = g.car, hw = c.spec.trackWidth / 2, cv = document.getElementById('c'), k = cv.getContext('2d');
     const R = g.renderer, sc = cv.width / cv.clientWidth;
-    const lum = (wx, wy) => { const sx = R.sx(wx), sy = R.sy(wy); if (sx < 0 || sy < 0 || sx >= cv.clientWidth || sy >= cv.clientHeight) return null; const d = k.getImageData(Math.round(sx * sc), Math.round(sy * sc), 1, 1).data; return 0.3 * d[0] + 0.59 * d[1] + 0.11 * d[2]; };
+    const lum = (wx, wy) => { const sx = R.toScreenX(wx), sy = R.toScreenY(wy); if (sx < 0 || sy < 0 || sx >= cv.clientWidth || sy >= cv.clientHeight) return null; const d = k.getImageData(Math.round(sx * sc), Math.round(sy * sc), 1, 1).data; return 0.3 * d[0] + 0.59 * d[1] + 0.11 * d[2]; };
     let tr = 0, side = 0, n = 0; const L = await import('/' + base + 'src/lab.js');
-    for (let x = -97; x <= -89; x += 0.25) { const a = lum(x, Y + hw), s = lum(x, Y + hw + 1.6); if (a == null || s == null) return { err: 'off screen', x, sx: R.sx(x), sy: R.sy(Y + hw), ppm: R.PPM }; tr += a; side += s; n++; }
+    for (let x = -97; x <= -89; x += 0.25) { const a = lum(x, Y + hw), s = lum(x, Y + hw + 1.6); if (a == null || s == null) return { err: 'off screen', x, sx: R.toScreenX(x), sy: R.toScreenY(Y + hw), ppm: R.PPM }; tr += a; side += s; n++; }
     const cells = {}; let rut = 0, rn = 0;
     if (L) for (let x = -97; x <= -89; x += 1.5) { const cl = L.wearMap.get(Math.floor(x / L.WEAR_CELL) + ',' + Math.floor((Y + hw) / L.WEAR_CELL)); if (cl) { cells[cl.current] = (cells[cl.current] || 0) + 1; rut += cl.rut || 0; rn++; } }
     return { track: +(tr / n).toFixed(1), beside: +(side / n).toFixed(1), contrast: +((side - tr) / n).toFixed(1), cells, rutCm: rn ? +((rut / rn) * 100).toFixed(1) : null };
@@ -34,7 +34,7 @@ for (let pass = 1; pass <= 6; pass++) {
   // make the ground they lie on (0 = the tracks are invisible on it, whatever the ground has worn to).
   const sample = () => p.evaluate(([Y]) => {
     const g = window.__game, c = g.car, hw = c.spec.trackWidth / 2, R = g.renderer, cv = document.getElementById('c'), k = cv.getContext('2d'), sc = cv.width / cv.clientWidth;
-    let s = 0, n = 0; for (let x = -97; x <= -89; x += 0.25) for (const y of [Y + hw, Y - hw]) { const d = k.getImageData(Math.round(R.sx(x) * sc), Math.round(R.sy(y) * sc), 1, 1).data; s += 0.3 * d[0] + 0.59 * d[1] + 0.11 * d[2]; n++; }
+    let s = 0, n = 0; for (let x = -97; x <= -89; x += 0.25) for (const y of [Y + hw, Y - hw]) { const d = k.getImageData(Math.round(R.toScreenX(x) * sc), Math.round(R.toScreenY(y) * sc), 1, 1).data; s += 0.3 * d[0] + 0.59 * d[1] + 0.11 * d[2]; n++; }
     return s / n;
   }, [Y]);
   const withM = await sample();

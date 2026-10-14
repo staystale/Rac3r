@@ -98,8 +98,8 @@ export function createRenderer(canvas: HTMLCanvasElement, settings: Settings) {
     view.PPM = Math.max(PPM_MIN, Math.min(PPM_MAX, Math.min(view.W, view.H) / PPM_DIV));
   }
 
-  const sx = (worldX: number) => (worldX - cam.x) * PPMz() + view.W / 2;
-  const sy = (worldY: number) => (worldY - cam.y) * PPMz() + view.H / 2;
+  const toScreenX = (worldX: number) => (worldX - cam.x) * PPMz() + view.W / 2;
+  const toScreenY = (worldY: number) => (worldY - cam.y) * PPMz() + view.H / 2;
 
   function roundRect(
     target: CanvasRenderingContext2D, x: number, y: number, width: number, height: number,
@@ -119,26 +119,28 @@ export function createRenderer(canvas: HTMLCanvasElement, settings: Settings) {
   const {
     drawFloor, SURFACE_ART, paintLayers, artBase, drawZones, PUDDLE_TINT, drawPatches,
     drawCovers, drawWear, drawBumps, drawRunoff,
-  } = createGround(view, cam, { PPMz, sx, sy, roundRect, forSide: (...args) => forSide(...args),
+  } = createGround(view, cam, { PPMz, toScreenX, toScreenY, roundRect,
+    forSide: (...args) => forSide(...args),
     grassEnds: settings.grassEnds, surfaceTextures: settings.surfaceTextures });
   const {
     drawLanes, drawTrackRibbon, drawLaneDashes, drawCurvedKerbs, drawPaint, forSide,
     drawKerb, drawSlip, drawMarks, drawArrows,
-  } = createRoad(view, cam, { PPMz, sx, sy, paintLayers, artBase });
+  } = createRoad(view, cam, { PPMz, toScreenX, toScreenY, paintLayers, artBase });
   const {
     chips, MAX_CHIPS, addPuffs, addSpray, addSmoke, addDamageSmoke,
     addChips, addSparks, drawChips, drawPuffs,
-  } = createParticles(view, cam, { PPMz, sx, sy });
+  } = createParticles(view, cam, { PPMz, toScreenX, toScreenY });
   const { pixelCar } = createCarSprite();
   const { damagedSprite, silhouette, faceCache, rolledFaces, drawFaces } = createCarDamage(view);
   const { drawPixelCar, pixelCarWithWheels } = createCars(view, cam, {
-    PPMz, sx, sy, pixelCar, damagedSprite, silhouette, rolledFaces, drawFaces, faceCache,
+    PPMz, toScreenX, toScreenY, pixelCar, damagedSprite, silhouette, rolledFaces, drawFaces,
+      faceCache,
   });
   const { drawFence, drawBarriers, drawProps } = createProps(view, cam, {
-    PPMz, sx, sy, roundRect, forSide, drawSlip,
+    PPMz, toScreenX, toScreenY, roundRect, forSide, drawSlip,
   });
   const { drawCones, drawTape } = createObjects(view, cam, {
-    PPMz, sx, sy, roundRect, chips, MAX_CHIPS,
+    PPMz, toScreenX, toScreenY, roundRect, chips, MAX_CHIPS,
   });
 
   // createCamera needs paletteSnap / prefetch from the tiles (which need the camera): the wrappers
@@ -156,7 +158,8 @@ export function createRenderer(canvas: HTMLCanvasElement, settings: Settings) {
     stepTile, finishTile, drawGround,
     prefetch,
   } = createTiles(view, cam, settings, {
-    PPMz, sx, sy, drawFloor, drawZones, drawLanes, drawTrackRibbon, drawLaneDashes, drawPatches,
+    PPMz, toScreenX, toScreenY, drawFloor, drawZones, drawLanes, drawTrackRibbon, drawLaneDashes,
+      drawPatches,
     drawCovers, drawWear, drawCurvedKerbs, SURFACE_ART, PUDDLE_TINT,
     getFly: () => camState.fly, FLY_HANDOVER, FLY_PREFETCH, levelOverview, artBase,
   });
@@ -251,7 +254,7 @@ export function createRenderer(canvas: HTMLCanvasElement, settings: Settings) {
     if (game.traffic && !skip('traffic')) {
       const margin = 12 * PPMz();
       for (const car of game.traffic.cars) {
-        const screenX = sx(car.x), screenY = sy(car.y);
+        const screenX = toScreenX(car.x), screenY = toScreenY(car.y);
         if (screenX < -margin || screenX > view.W + margin
           || screenY < -margin || screenY > view.H + margin) continue;
         drawPixelCar(car);
@@ -290,7 +293,7 @@ export function createRenderer(canvas: HTMLCanvasElement, settings: Settings) {
     get W() { return view.W; },
     get H() { return view.H; },
     get dpr() { return view.dpr; },
-    cam, resize, frame, snap, sx, sy, roundRect, flyIn, thumbnail,
+    cam, resize, frame, snap, toScreenX, toScreenY, roundRect, flyIn, thumbnail,
     get flying() { return !!camState.fly; },
     get PPM() { return view.PPM * view.zoom; },
     get groundRenders() { return tileState.tilesPainted; },

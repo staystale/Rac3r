@@ -271,7 +271,7 @@ const NAME_RULES = [
   ['camera', 'cam zoom vZoom pinZoom fly ovCache W H dpr PPM resize follow updateZoom updateFly levelBounds '
     + 'levelOverview roadS0 standInFill thumbnail flyIn paintOverview prefetch snap OV_REPAINT FLY_HOLD '
     + 'FLY_TIME FLY_HANDOVER FLY_PREFETCH OVERVIEW_PX'],
-  ['shared', 'mainCtx ctx pcanvas pctx pk realDpr PPMz sx sy roundRect recolour artBase noPatterns '
+  ['shared', 'mainCtx ctx pcanvas pctx pk realDpr PPMz toScreenX toScreenY roundRect recolour artBase noPatterns '
     + 'speckle lattice SPRITE_PPM'],
   ['ground', 'drawFloor drawZones drawPatches drawCovers drawCoversMerged mergedCovers coverCells cellsPath '
     + 'coverPath drawWear drawBumps drawRunoff drawGround paintLayers PRIM SURFACE_ART PUDDLE_TINT'],

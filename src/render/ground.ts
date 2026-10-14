@@ -14,8 +14,8 @@ import { createTextureCache, fillTexture, paintTexture } from "./textures.ts";
 // what createGround destructures from the renderer (forSide: a wrapper over createRoad)
 interface GroundHelpers {
   PPMz: () => number;
-  sx: (wx: number) => number;
-  sy: (wy: number) => number;
+  toScreenX: (wx: number) => number;
+  toScreenY: (wy: number) => number;
   roundRect: (
     ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number,
     radius: number
@@ -26,7 +26,7 @@ interface GroundHelpers {
 }
 
 export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
-  const { PPMz, sx, sy, roundRect, forSide, grassEnds, surfaceTextures } = helpers;
+  const { PPMz, toScreenX, toScreenY, roundRect, forSide, grassEnds, surfaceTextures } = helpers;
   const textures = createTextureCache(view);
 
   // ---------------------------------------------------------------- floor
@@ -40,26 +40,26 @@ export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
     const floorW = (FX1 - FX0) * ppm, floorH = (FY1 - FY0) * ppm;
     if (LEVEL.base && LEVEL.base.id !== 'lab') {
       view.ctx.fillStyle = artBase(LEVEL.base.id, COL.floor);
-      view.ctx.fillRect(sx(FX0), sy(FY0), floorW, floorH);
+      view.ctx.fillRect(toScreenX(FX0), toScreenY(FY0), floorW, floorH);
       view.ctx.save();
-      view.ctx.translate(sx(0), sy(0));
+      view.ctx.translate(toScreenX(0), toScreenY(0));
       paintLayers(LEVEL.base.id, FX0, FY0, FX1, FY1);
       view.ctx.restore();
     } else {
       view.ctx.fillStyle = COL.floor;
-      view.ctx.fillRect(sx(FX0), sy(FY0), floorW, floorH);
+      view.ctx.fillRect(toScreenX(FX0), toScreenY(FY0), floorW, floorH);
 
       // a soft warm pool so a big pale floor is not dead flat. Since the ground TILES (2026-10-03)
       // it is centred on the WORLD ORIGIN (the skidpad), not on the car: tiles are painted
       // separately, so a screen-centred gradient would come out as one blotch per tile. It stays
       // UNDER the zones.
       const glow = view.ctx.createRadialGradient(
-        sx(0), sy(0), 0, sx(0), sy(0), FLOOR * 0.9 * ppm
+        toScreenX(0), toScreenY(0), 0, toScreenX(0), toScreenY(0), FLOOR * 0.9 * ppm
       );
       glow.addColorStop(0, 'rgba(255,252,246,0.55)');
       glow.addColorStop(1, 'rgba(226,226,234,0)');
       view.ctx.fillStyle = glow;
-      view.ctx.fillRect(sx(FX0), sy(FY0), floorW, floorH);
+      view.ctx.fillRect(toScreenX(FX0), toScreenY(FY0), floorW, floorH);
 
       // grid — only the lines actually on screen
       const gridX0 = Math.floor((cam.x - view.W / 2 / PPMz()) / GRID) * GRID;
@@ -71,15 +71,15 @@ export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
       view.ctx.beginPath();
       for (let x = gridX0; x <= gridX1; x += GRID) {
         if (x < FX0 || x > FX1) continue;
-        const lineX = Math.round(sx(x)) + 0.5;
-        view.ctx.moveTo(lineX, sy(Math.max(FY0, gridY0 - GRID)));
-        view.ctx.lineTo(lineX, sy(Math.min(FY1, gridY1 + GRID)));
+        const lineX = Math.round(toScreenX(x)) + 0.5;
+        view.ctx.moveTo(lineX, toScreenY(Math.max(FY0, gridY0 - GRID)));
+        view.ctx.lineTo(lineX, toScreenY(Math.min(FY1, gridY1 + GRID)));
       }
       for (let y = gridY0; y <= gridY1; y += GRID) {
         if (y < FY0 || y > FY1) continue;
-        const lineY = Math.round(sy(y)) + 0.5;
-        view.ctx.moveTo(sx(Math.max(FX0, gridX0 - GRID)), lineY);
-        view.ctx.lineTo(sx(Math.min(FX1, gridX1 + GRID)), lineY);
+        const lineY = Math.round(toScreenY(y)) + 0.5;
+        view.ctx.moveTo(toScreenX(Math.max(FX0, gridX0 - GRID)), lineY);
+        view.ctx.lineTo(toScreenX(Math.min(FX1, gridX1 + GRID)), lineY);
       }
       view.ctx.stroke();
     }
@@ -539,8 +539,8 @@ export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
       const extentX = (zone.w / 2) * cosAbs + (zone.h / 2) * sinAbs,
         extentY = (zone.w / 2) * sinAbs + (zone.h / 2) * cosAbs;
       if (
-        sx(zone.x - extentX) > view.W || sx(zone.x + extentX) < 0 ||
-        sy(zone.y - extentY) > view.H || sy(zone.y + extentY) < 0
+        toScreenX(zone.x - extentX) > view.W || toScreenX(zone.x + extentX) < 0 ||
+        toScreenY(zone.y - extentY) > view.H || toScreenY(zone.y + extentY) < 0
       ) continue;
 
       if (zone.rounded) {
@@ -550,25 +550,25 @@ export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
         view.ctx.beginPath();
         // the apron is PHYSICAL tarmac (lab.js PAD_APRON, zoneAt) — change the two together
         roundRect(
-          view.ctx, sx(left - 1.2), sy(top - 1.2),
+          view.ctx, toScreenX(left - 1.2), toScreenY(top - 1.2),
           (zone.w + 2.4) * ppm, (zone.h + 2.4) * ppm, rad + 1.2 * ppm
         );
         view.ctx.fill();
 
         view.ctx.save();
         view.ctx.beginPath();
-        roundRect(view.ctx, sx(left), sy(top), zone.w * ppm, zone.h * ppm, rad);
+        roundRect(view.ctx, toScreenX(left), toScreenY(top), zone.w * ppm, zone.h * ppm, rad);
         view.ctx.fillStyle = art.base;
         view.ctx.fill();
         view.ctx.clip();
-        view.ctx.translate(sx(0), sy(0));
+        view.ctx.translate(toScreenX(0), toScreenY(0));
         paintLayers(zone.surface.id, left, top, left + zone.w, top + zone.h);
         view.ctx.restore();
 
         view.ctx.strokeStyle = 'rgba(255,255,255,0.55)';
         view.ctx.lineWidth = Math.max(1, 0.20 * ppm);
         view.ctx.beginPath();
-        roundRect(view.ctx, sx(left), sy(top), zone.w * ppm, zone.h * ppm, rad);
+        roundRect(view.ctx, toScreenX(left), toScreenY(top), zone.w * ppm, zone.h * ppm, rad);
         view.ctx.stroke();
 
         const fontPx = 3.2 * ppm;
@@ -578,7 +578,7 @@ export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
           view.ctx.textBaseline = 'middle';
           view.ctx.fillStyle = 'rgba(255,255,255,0.75)';
           // a labelled zone
-          view.ctx.fillText(zone.surface.label!, sx(zone.x), sy(top + 4.5));
+          view.ctx.fillText(zone.surface.label!, toScreenX(zone.x), toScreenY(top + 4.5));
         }
         continue;
       }
@@ -589,11 +589,11 @@ export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
         // exactly where zoneAt says the surface is.
         const reach = Math.hypot(zone.w, zone.h) / 2;
         if (
-          sx(zone.x + reach) < 0 || sx(zone.x - reach) > view.W ||
-          sy(zone.y + reach) < 0 || sy(zone.y - reach) > view.H
+          toScreenX(zone.x + reach) < 0 || toScreenX(zone.x - reach) > view.W ||
+          toScreenY(zone.y + reach) < 0 || toScreenY(zone.y - reach) > view.H
         ) continue;
         view.ctx.save();
-        view.ctx.translate(sx(zone.x), sy(zone.y));
+        view.ctx.translate(toScreenX(zone.x), toScreenY(zone.y));
         view.ctx.rotate(zone.rot);
         view.ctx.beginPath();
         view.ctx.rect((-zone.w / 2) * ppm, (-zone.h / 2) * ppm, zone.w * ppm, zone.h * ppm);
@@ -601,8 +601,8 @@ export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
         view.ctx.fill();
         view.ctx.clip();
         view.ctx.rotate(-zone.rot);
-        view.ctx.translate(-sx(zone.x), -sy(zone.y));
-        view.ctx.translate(sx(0), sy(0));
+        view.ctx.translate(-toScreenX(zone.x), -toScreenY(zone.y));
+        view.ctx.translate(toScreenX(0), toScreenY(0));
         // only the part IN VIEW (in a tile: the tile). MEASURED 2026-10-04: once the culling fix
         // let the 432 m runway into every tile it crosses, each tile repainted its whole 430 m
         // square of texture — ground tile 22 -> 26 ms, slow frames 71 -> ~90.
@@ -617,19 +617,19 @@ export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
       }
       view.ctx.save();
       view.ctx.beginPath();
-      view.ctx.rect(sx(left), sy(top), zone.w * ppm, zone.h * ppm);
+      view.ctx.rect(toScreenX(left), toScreenY(top), zone.w * ppm, zone.h * ppm);
       view.ctx.fillStyle = art.base;
       view.ctx.fill();
       // so the texture cannot spill outside the region the physics uses
       view.ctx.clip();
-      view.ctx.translate(sx(0), sy(0));
+      view.ctx.translate(toScreenX(0), toScreenY(0));
       paintLayers(zone.surface.id, left, top, left + zone.w, top + zone.h);
       view.ctx.restore();
       // `boxed` marks a deliberate TEST PANEL: give it a rim and paint its FULL NAME on.
       if (zone.boxed) {
         view.ctx.strokeStyle = 'rgba(40,42,50,0.35)';
         view.ctx.lineWidth = Math.max(1, 0.25 * ppm);
-        view.ctx.strokeRect(sx(left), sy(top), zone.w * ppm, zone.h * ppm);
+        view.ctx.strokeRect(toScreenX(left), toScreenY(top), zone.w * ppm, zone.h * ppm);
         const fontPx = 3.4 * ppm;
         if (fontPx > 7) {
           view.ctx.font = `700 ${Math.round(fontPx)}px ui-sans-serif, system-ui, sans-serif`;
@@ -637,7 +637,7 @@ export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
           view.ctx.textBaseline = 'middle';
           view.ctx.fillStyle = 'rgba(30,32,40,0.32)';
           // a boxed panel is labelled
-          view.ctx.fillText(zone.surface.label!, sx(zone.x), sy(top + 5.5));
+          view.ctx.fillText(zone.surface.label!, toScreenX(zone.x), toScreenY(top + 5.5));
         }
       }
     }
@@ -649,10 +649,10 @@ export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
       view.ctx.beginPath();
       // the old square's quarters only (S-B: the lab's extension south of FLOOR is one floor, no
       // quarter seam)
-      view.ctx.moveTo(sx(-FLOOR), sy(0));
-      view.ctx.lineTo(sx(FLOOR), sy(0));
-      view.ctx.moveTo(sx(0), sy(-FLOOR));
-      view.ctx.lineTo(sx(0), sy(FLOOR));
+      view.ctx.moveTo(toScreenX(-FLOOR), toScreenY(0));
+      view.ctx.lineTo(toScreenX(FLOOR), toScreenY(0));
+      view.ctx.moveTo(toScreenX(0), toScreenY(-FLOOR));
+      view.ctx.lineTo(toScreenX(0), toScreenY(FLOOR));
       view.ctx.stroke();
     }
   }
@@ -722,22 +722,23 @@ export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
     for (const patch of list) {
       const reach = Math.max(patch.w, patch.h) / 2;
       if (
-        sx(patch.x + reach) < 0 || sx(patch.x - reach) > view.W ||
-        sy(patch.y + reach) < 0 || sy(patch.y - reach) > view.H
+        toScreenX(patch.x + reach) < 0 || toScreenX(patch.x - reach) > view.W ||
+        toScreenY(patch.y + reach) < 0 || toScreenY(patch.y - reach) > view.H
       ) continue;
       view.ctx.save();
       view.ctx.beginPath();
       if (patch.sq) view.ctx.rect(
-        sx(patch.x - patch.w / 2), sy(patch.y - patch.h / 2), patch.w * ppm, patch.h * ppm
+        toScreenX(patch.x - patch.w / 2), toScreenY(patch.y - patch.h / 2), patch.w * ppm,
+          patch.h * ppm
       );
       else view.ctx.ellipse(
-        sx(patch.x), sy(patch.y), (patch.w / 2) * ppm, (patch.h / 2) * ppm,
+        toScreenX(patch.x), toScreenY(patch.y), (patch.w / 2) * ppm, (patch.h / 2) * ppm,
         patch.rot || 0, 0, Math.PI * 2
       );
       view.ctx.fillStyle = artBase(patch.surface.id, '#6b5644');
       view.ctx.fill();
       view.ctx.clip();
-      view.ctx.translate(sx(0), sy(0));
+      view.ctx.translate(toScreenX(0), toScreenY(0));
       paintLayers(
         patch.surface.id, patch.x - reach, patch.y - reach, patch.x + reach, patch.y + reach
       );
@@ -807,7 +808,7 @@ export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
       const path = (cells: MergedCell[]) => {
         view.ctx.beginPath();
         for (const cell of cells)
-          view.ctx.rect(sx(cell.x), sy(cell.y), cellSize * ppm, cellSize * ppm);
+          view.ctx.rect(toScreenX(cell.x), toScreenY(cell.y), cellSize * ppm, cellSize * ppm);
       };
       const bx0 = Math.max(minX, vx0), by0 = Math.max(minY, vy0),
         bx1 = Math.min(maxX, vx1), by1 = Math.min(maxY, vy1);
@@ -827,7 +828,7 @@ export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
         view.ctx.save();
         path(vis);
         view.ctx.clip();
-        view.ctx.translate(sx(0), sy(0));
+        view.ctx.translate(toScreenX(0), toScreenY(0));
         PRIM.sheen(['sheen', 'rgba(215,228,248,0.09)', 4.0, 0.9, -0.45], bx0, by0, bx1, by1);
         PRIM.sheen(['sheen', 'rgba(235,242,252,0.18)', 4.0, 0.10, -0.45], bx0, by0, bx1, by1);
         view.ctx.restore();
@@ -843,7 +844,7 @@ export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
         view.ctx.fill();
         view.ctx.save();
         view.ctx.clip();
-        view.ctx.translate(sx(0), sy(0));
+        view.ctx.translate(toScreenX(0), toScreenY(0));
         paintLayers(grp.kind, bx0, by0, bx1, by1);
         view.ctx.restore();
         path(grp.rim.filter(
@@ -881,9 +882,10 @@ export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
       if (cell.current === cell.orig) continue;
       const startedCovered = cell.orig === 'snow' || cell.orig === 'ice' || cell.orig === 'wet';
       if ((pass === 'cover') !== startedCovered) continue;
-      const px0 = Math.round(sx(cell.cx * WEAR_CELL)), py0 = Math.round(sy(cell.cy * WEAR_CELL));
-      const px1 = Math.round(sx((cell.cx + 1) * WEAR_CELL)),
-        py1 = Math.round(sy((cell.cy + 1) * WEAR_CELL));
+      const px0 = Math.round(toScreenX(cell.cx * WEAR_CELL)),
+        py0 = Math.round(toScreenY(cell.cy * WEAR_CELL));
+      const px1 = Math.round(toScreenX((cell.cx + 1) * WEAR_CELL)),
+        py1 = Math.round(toScreenY((cell.cy + 1) * WEAR_CELL));
       if (px1 < 0 || px0 > view.W || py1 < 0 || py0 > view.H) continue;
       // water on a cell is drawn as its BASE with a puddle over it, so meltwater on grass looks
       // like water on grass cell.current! : set right after the cell is made
@@ -917,7 +919,7 @@ export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
       view.ctx.fillStyle = artBase(artId, '#6b5644');
       view.ctx.fill();
       view.ctx.clip();
-      view.ctx.translate(sx(0), sy(0));
+      view.ctx.translate(toScreenX(0), toScreenY(0));
       paintLayers(artId, group.bx0, group.by0, group.bx1, group.by1);
       if (wetOn) {
         view.ctx.fillStyle = PUDDLE_TINT[wetOn] || 'rgba(52,66,92,0.58)';
@@ -951,7 +953,7 @@ export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
         Math.abs(bump.y - cam.y) * ppm > view.H / 2 + 200
       ) continue;
       view.ctx.save();
-      view.ctx.translate(sx(bump.x), sy(bump.y));
+      view.ctx.translate(toScreenX(bump.x), toScreenY(bump.y));
       view.ctx.rotate(bump.rot || 0);
       // TERRAIN SHAPES ARE SHOWN BY HILL-SHADING NOW (step 3, 2026-10-03; user chose "rebuild the
       // old jumps as terrain" and "pixel hill-shading"). The hand-drawn dome / wedge / table art

@@ -13,8 +13,8 @@ import type {
 // what createTiles destructures from the renderer
 interface TilesHelpers {
   PPMz: () => number;
-  sx: (wx: number) => number;
-  sy: (wy: number) => number;
+  toScreenX: (wx: number) => number;
+  toScreenY: (wy: number) => number;
   drawFloor: () => void;
   drawZones: () => void;
   drawLanes: () => void;
@@ -35,7 +35,8 @@ interface TilesHelpers {
 
 export function createTiles(view: View, cam: Cam, settings: Settings, helpers: TilesHelpers) {
   const {
-    PPMz, sx, sy, drawFloor, drawZones, drawLanes, drawTrackRibbon, drawLaneDashes, drawPatches,
+    PPMz, toScreenX, toScreenY, drawFloor, drawZones, drawLanes, drawTrackRibbon, drawLaneDashes,
+      drawPatches,
     drawCovers, drawWear, drawCurvedKerbs, SURFACE_ART, PUDDLE_TINT,
     getFly, FLY_HANDOVER, FLY_PREFETCH, levelOverview, artBase,
   } = helpers;
@@ -441,9 +442,11 @@ export function createTiles(view: View, cam: Cam, settings: Settings, helpers: T
         // integer edges, so neighbouring tiles meet with no hairline seam
         // edges on whole ART pixels (dpr = art px per css px); with the pixel-locked view every
         // tile is the same width
-        const left = Math.round(sx(i * tileWidth) * view.dpr) / view.dpr, right = Math.round(sx((i
+        const left = Math.round(toScreenX(i * tileWidth) * view.dpr) / view.dpr,
+          right = Math.round(toScreenX((i
             + 1) * tileWidth) * view.dpr) / view.dpr;
-        const top = Math.round(sy(j * tileWidth) * view.dpr) / view.dpr, bottom = Math.round(sy((j
+        const top = Math.round(toScreenY(j * tileWidth) * view.dpr) / view.dpr,
+          bottom = Math.round(toScreenY((j
             + 1) * tileWidth) * view.dpr) / view.dpr;
         view.ctx.drawImage(tile.c, left, top, right - left, bottom - top);
       }
@@ -502,7 +505,8 @@ export function createTiles(view: View, cam: Cam, settings: Settings, helpers: T
     if (fly && fly.ov && view.zoom < FLY_HANDOVER) {
       const overview = fly.ov;
       view.ctx.fillStyle = COL.outside; view.ctx.fillRect(0, 0, view.W, view.H);
-      view.ctx.drawImage(overview.c, sx(overview.x0), sy(overview.y0), (overview.x1 - overview.x0)
+      view.ctx.drawImage(overview.c, toScreenX(overview.x0), toScreenY(overview.y0),
+        (overview.x1 - overview.x0)
           * PPMz(), (overview.y1 - overview.y0) * PPMz());
       if (car) {
         const budget = { n: FLY_PREFETCH };
@@ -545,7 +549,8 @@ export function createTiles(view: View, cam: Cam, settings: Settings, helpers: T
         if (overview) {
           view.ctx.fillStyle = standInFill();
           view.ctx.fillRect(0, 0, view.W, view.H);
-          view.ctx.drawImage(overview.c, sx(overview.x0), sy(overview.y0), (overview.x1
+          view.ctx.drawImage(overview.c, toScreenX(overview.x0), toScreenY(overview.y0),
+            (overview.x1
               - overview.x0) * PPMz(), (overview.y1 - overview.y0) * PPMz());
         }
         tileState.standIn = blitStep(step, true, budget) > 0;

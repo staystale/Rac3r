@@ -7,8 +7,8 @@ import type {
 // what createCars destructures from the renderer and the sprite layers
 interface CarsHelpers {
   PPMz: () => number;
-  sx: (wx: number) => number;
-  sy: (wy: number) => number;
+  toScreenX: (wx: number) => number;
+  toScreenY: (wy: number) => number;
   pixelCar: (spec: RenderCarSpec) => CarSprite;
   damagedSprite: (car: RenderCar, sp: CarSprite) => CarSprite;
   silhouette: (cv: SilCanvas) => HTMLCanvasElement;
@@ -19,13 +19,14 @@ interface CarsHelpers {
 
 export function createCars(view: View, cam: Cam, helpers: CarsHelpers) {
   const {
-    PPMz, sx, sy, pixelCar, damagedSprite, silhouette, rolledFaces, drawFaces, faceCache,
+    PPMz, toScreenX, toScreenY, pixelCar, damagedSprite, silhouette, rolledFaces, drawFaces,
+      faceCache,
   } = helpers;
   function drawPixelCar(car: RenderCar) {
     const spec = car.spec, sp0 = pixelCar(spec),
       sprite = car.dmg ? damagedSprite(car, sp0) : sp0, scale = PPMz() / SPRITE_PPM;
     view.ctx.save();
-    view.ctx.translate(sx(car.x), sy(car.y));
+    view.ctx.translate(toScreenX(car.x), toScreenY(car.y));
     view.ctx.rotate(car.heading);
     view.ctx.scale(scale, scale);
     // shadow: a darker copy of the sprite, offset down-right by the car's ride height

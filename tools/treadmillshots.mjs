@@ -15,7 +15,7 @@ for (const [w, h, tag] of [[390, 844, 'port'], [844, 390, 'land']]) {
     g.input.update = () => { if (window.__tm.mode === 'reverse') return { steer: 0, throttle: 0, brake: 0, handbrake: 0, reverse: 1, shiftUp: false, shiftDown: false };
       if (g.level.subtrack !== sub) { sub = g.level.subtrack; drv = A.createAutoDriver(sub); } return { ...drv.drive(g.car), reverse: 0, shiftUp: false, shiftDown: false }; };
     const R = g.renderer;
-    (function f() { const t = window.__tm; if (t.mode === 'drive' && !R.flying) { const fx = R.sx(g.car.x) / R.W, fy = R.sy(g.car.y) / R.H;
+    (function f() { const t = window.__tm; if (t.mode === 'drive' && !R.flying) { const fx = R.toScreenX(g.car.x) / R.W, fy = R.toScreenY(g.car.y) / R.H;
       t.fx0 = Math.min(t.fx0, fx); t.fx1 = Math.max(t.fx1, fx); t.fy0 = Math.min(t.fy0, fy); t.fy1 = Math.max(t.fy1, fy); t.n++; } requestAnimationFrame(f); })();
   });
   for (let k = 1; k <= 3; k++) { await p.waitForTimeout(8000); await p.screenshot({ path: `shots/look/tm-${preset}-${tag}-${k}.png` }); }
