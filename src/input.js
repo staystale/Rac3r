@@ -44,6 +44,173 @@ const HB_SLEW = 1 / 0.10;  // units per second, up AND down
 // still bites lightly.
 const BRAKE_RAMP = 0.25;   // s to reach full pedal
 
+// 52 px meant a full-right to full-left correction was a 104 px thumb drag — too slow to catch a
+// slide on a phone, which is most of why a handbrake flick "could not be fought". 38 makes the
+// counter-steer a flick of the thumb rather than a sweep of the hand.
+const STICK_MAX = 38;          // px of travel for full lock
+
+const KEYMAP = {
+  a: 'left', arrowleft: 'left', d: 'right', arrowright: 'right',
+  w: 'up', arrowup: 'up', s: 'down', arrowdown: 'down',
+  ' ': 'hand', e: 'shiftUp', q: 'shiftDown', z: 'reverse', t: 'toggleTcs',
+};
+
+/**
+ * Is the touch scheme in force (mode forced to touch, or auto on a coarse pointer)?
+ * @param {object} state the input state returned by createInput
+ * @returns {boolean}
+ */
+function isInputTouch(state) {
+  return state.mode === 'touch' ||
+    (state.mode === 'auto' && matchMedia('(pointer: coarse)').matches);
+}
+
+/**
+ * The pedal circles, laid out from the bottom-right corner.
+ * @param {number} width canvas width in px
+ * @param {number} height canvas height in px
+ * @returns {Array<{name: string, x: number, y: number, r: number}>}
+ */
+function findPedalHits(width, height) {
+  // laid out from the bottom-right corner; the four corners have owners (CLAUDE.md §4)
+  const { r: radius, gap, margin } = PEDAL;
+  const x = width - margin - radius;
+  const yThrottle = height - margin - radius;
+  const yBrake = yThrottle - radius * 2 - gap;
+  const xHand = x - radius * 2 - gap;
+  return [
+    { name: 'throttle', x, y: yThrottle, r: radius },
+    { name: 'brake', x, y: yBrake, r: radius },
+    { name: 'handbrake', x: xHand, y: yThrottle, r: radius },
+    { name: 'reverse', x: xHand, y: yBrake, r: radius * 0.66 },   // small R, above the handbrake
+  ];
+}
+
+// THE HUD IS TESTED FIRST. MEASURED BUG, 2026-09-27 (user: "I can't change vehicle"): the
+// steering stick claims the whole left 55% of the screen, and the car chip and RESET both live
+// inside that zone — so on a phone every tap on them was swallowed as a steering drag and never
+// reached the HUD. CLAUDE.md §4 says a tap on the HUD must never also reach the world; this was
+// the same rule inverted, with the world eating the HUD. Controls win, always, and they win
+// before anything else.
+/**
+ * Decide which control a pointer-down lands on.
+ * @param {object} core shared handler state (opts used for hudDown)
+ * @param {number} tapX x in canvas px
+ * @param {number} tapY y in canvas px
+ * @param {number} width canvas width in px
+ * @param {number} height canvas height in px
+ * @returns {string|null} 'hud', a pedal name, 'stick', or null for a world tap
+ */
+function pickInputTarget(core, tapX, tapY, width, height) {
+  if (core.opts.hudDown && core.opts.hudDown(tapX, tapY)) return 'hud';
+  for (const pedal of findPedalHits(width, height)) {
+    // generous hit radius: a thumb is not a mouse
+    if (Math.hypot(tapX - pedal.x, tapY - pedal.y) <= pedal.r * 1.35) return pedal.name;
+  }
+  if (tapX < width * 0.55) return 'stick';
+  return null;
+}
+
+/**
+ * Pointer down: claim the pointer for a control, or record a world tap.
+ * @param {object} core shared handler state
+ * @param {PointerEvent} event
+ * @returns {void}
+ */
+function onInputPointerDown(core, event) {
+  const { state, canvas, owners } = core;
+  const rect = canvas.getBoundingClientRect();
+  const tapX = event.clientX - rect.left, tapY = event.clientY - rect.top;
+  const hit = pickInputTarget(core, tapX, tapY, rect.width, rect.height);
+  if (hit === 'stick') {
+    owners.set(event.pointerId, 'stick');
+    state.stick.active = true;
+    state.stick.ox = tapX; state.stick.oy = tapY;
+    state.stick.x = tapX; state.stick.y = tapY;
+  } else if (hit === 'hud') {
+    owners.set(event.pointerId, 'hud');      // consumed by a control; never reaches the world
+  } else if (hit) {
+    owners.set(event.pointerId, hit);
+    state.pedals[hit] = true;
+  } else {
+    // did not hit a control: it is a world tap (the car selector chip claims its own in hud.js)
+    state.tapped = { x: tapX, y: tapY };
+  }
+  try {
+    canvas.setPointerCapture?.(event.pointerId);
+  } catch { /* pointer already gone (iOS took it) */ }
+  event.preventDefault();
+}
+
+/**
+ * Pointer move: drag the stick if this pointer owns it.
+ * @param {object} core shared handler state
+ * @param {PointerEvent} event
+ * @returns {void}
+ */
+function onInputPointerMove(core, event) {
+  const { state, canvas, owners } = core;
+  const who = owners.get(event.pointerId);
+  if (who !== 'stick') return;
+  const rect = canvas.getBoundingClientRect();
+  state.stick.x = event.clientX - rect.left;
+  state.stick.y = event.clientY - rect.top;
+  event.preventDefault();
+}
+
+/**
+ * Pointer up / cancel / lost capture: release whatever this pointer held.
+ * @param {object} core shared handler state
+ * @param {PointerEvent} event
+ * @returns {void}
+ */
+function onInputPointerUp(core, event) {
+  const { state, owners } = core;
+  const who = owners.get(event.pointerId);
+  if (who === 'stick') { state.stick.active = false; state.stick.x = state.stick.ox; }
+  else if (who && who !== 'hud') state.pedals[who] = false;
+  owners.delete(event.pointerId);
+  event.preventDefault();
+}
+
+// STUCK CONTROLS ON iOS (user, 2026-10-04: rapid taps / holds / several fingers left throttle,
+// brake or steering ON). When iOS takes over a touch for a system gesture (magnifier, callout,
+// pinch, edge swipe) the pointerup never comes, so the owner map keeps a pedal held for ever.
+// Three layers: (1) stop the gestures starting — non-passive touch handlers that preventDefault
+// on the canvas (the CSS alone does not stop the long-press magnifier on iOS); (2) release
+// EVERYTHING when the page loses focus or is hidden; (3) when the last finger leaves the
+// screen, nothing can still be held, whatever events went missing. tools/inputcheck.mjs drives
+// each case.
+/**
+ * Release every held control: pointers, stick, pedals and keys.
+ * @param {object} core shared handler state
+ * @returns {void}
+ */
+function releaseAllInput(core) {
+  const { state, owners, keys } = core;
+  owners.clear();
+  state.stick.active = false; state.stick.x = state.stick.ox;
+  for (const pedalName in state.pedals) state.pedals[pedalName] = false;
+  keys.clear();
+}
+
+/**
+ * Touch end / cancel in the capture phase: when the last finger has left, release everything.
+ * @param {object} core shared handler state
+ * @param {TouchEvent} event
+ * @returns {void}
+ */
+function onInputLastFinger(core, event) {
+  if (event.touches.length === 0 && core.owners.size) releaseAllInput(core);
+}
+
+/**
+ * Prevent the default of a cancelable event (stops iOS gestures on the canvas).
+ * @param {Event} event
+ * @returns {void}
+ */
+function blockInputEvent(event) { if (event.cancelable) event.preventDefault(); }
+
 export function createInput(canvas, opts = {}) {
   const state = {
     steer: 0, throttle: 0, brake: 0, shiftUp: false, shiftDown: false,
@@ -58,17 +225,18 @@ export function createInput(canvas, opts = {}) {
     handbrake: 0,                     // 0..1, slewed both ways (see HB_SLEW)
   };
 
-  const keys = new Set();
-  const isTouch = () =>
-    state.mode === 'touch' || (state.mode === 'auto' && matchMedia('(pointer: coarse)').matches);
+  // shared handler state: the public object above plus the closure variables the handlers share
+  const core = {
+    state, canvas, opts,
+    keys: new Set(),
+    // pointerId -> { kind: 'stick' | pedal name }
+    owners: new Map(),
+  };
+  const keys = core.keys;
+  const isTouch = () => isInputTouch(state);
   state.isTouch = isTouch;
 
   // ---------- keyboard
-  const KEYMAP = {
-    a: 'left', arrowleft: 'left', d: 'right', arrowright: 'right',
-    w: 'up', arrowup: 'up', s: 'down', arrowdown: 'down',
-    ' ': 'hand', e: 'shiftUp', q: 'shiftDown', z: 'reverse', t: 'toggleTcs',
-  };
   addEventListener('keydown', (event) => {
     const action = KEYMAP[event.key.toLowerCase()];
     if (action) { keys.add(action); event.preventDefault(); }
@@ -80,113 +248,23 @@ export function createInput(canvas, opts = {}) {
   });
 
   // ---------- touch / pointer
-  // pointerId -> { kind: 'stick' | pedal name }
-  const owners = new Map();
-  // 52 px meant a full-right to full-left correction was a 104 px thumb drag — too slow to catch a
-  // slide on a phone, which is most of why a handbrake flick "could not be fought". 38 makes the
-  // counter-steer a flick of the thumb rather than a sweep of the hand.
-  const STICK_MAX = 38;          // px of travel for full lock
+  state.pedalHits = findPedalHits;
 
-  function pedalHits(width, height) {
-    // laid out from the bottom-right corner; the four corners have owners (CLAUDE.md §4)
-    const { r: radius, gap, margin } = PEDAL;
-    const x = width - margin - radius;
-    const yThrottle = height - margin - radius;
-    const yBrake = yThrottle - radius * 2 - gap;
-    const xHand = x - radius * 2 - gap;
-    return [
-      { name: 'throttle', x, y: yThrottle, r: radius },
-      { name: 'brake', x, y: yBrake, r: radius },
-      { name: 'handbrake', x: xHand, y: yThrottle, r: radius },
-      { name: 'reverse', x: xHand, y: yBrake, r: radius * 0.66 },   // small R, above the handbrake
-    ];
-  }
-  state.pedalHits = pedalHits;
-
-  // THE HUD IS TESTED FIRST. MEASURED BUG, 2026-09-27 (user: "I can't change vehicle"): the
-  // steering stick claims the whole left 55% of the screen, and the car chip and RESET both live
-  // inside that zone — so on a phone every tap on them was swallowed as a steering drag and never
-  // reached the HUD. CLAUDE.md §4 says a tap on the HUD must never also reach the world; this was
-  // the same rule inverted, with the world eating the HUD. Controls win, always, and they win
-  // before anything else.
-  function pick(tapX, tapY, width, height) {
-    if (opts.hudDown && opts.hudDown(tapX, tapY)) return 'hud';
-    for (const pedal of pedalHits(width, height)) {
-      // generous hit radius: a thumb is not a mouse
-      if (Math.hypot(tapX - pedal.x, tapY - pedal.y) <= pedal.r * 1.35) return pedal.name;
-    }
-    if (tapX < width * 0.55) return 'stick';
-    return null;
-  }
-
-  function down(event) {
-    const rect = canvas.getBoundingClientRect();
-    const tapX = event.clientX - rect.left, tapY = event.clientY - rect.top;
-    const hit = pick(tapX, tapY, rect.width, rect.height);
-    if (hit === 'stick') {
-      owners.set(event.pointerId, 'stick');
-      state.stick.active = true;
-      state.stick.ox = tapX; state.stick.oy = tapY;
-      state.stick.x = tapX; state.stick.y = tapY;
-    } else if (hit === 'hud') {
-      owners.set(event.pointerId, 'hud');      // consumed by a control; never reaches the world
-    } else if (hit) {
-      owners.set(event.pointerId, hit);
-      state.pedals[hit] = true;
-    } else {
-      // did not hit a control: it is a world tap (the car selector chip claims its own in hud.js)
-      state.tapped = { x: tapX, y: tapY };
-    }
-    try {
-      canvas.setPointerCapture?.(event.pointerId);
-    } catch { /* pointer already gone (iOS took it) */ }
-    event.preventDefault();
-  }
-  function move(event) {
-    const who = owners.get(event.pointerId);
-    if (who !== 'stick') return;
-    const rect = canvas.getBoundingClientRect();
-    state.stick.x = event.clientX - rect.left;
-    state.stick.y = event.clientY - rect.top;
-    event.preventDefault();
-  }
-  function onPointerUp(event) {
-    const who = owners.get(event.pointerId);
-    if (who === 'stick') { state.stick.active = false; state.stick.x = state.stick.ox; }
-    else if (who && who !== 'hud') state.pedals[who] = false;
-    owners.delete(event.pointerId);
-    event.preventDefault();
-  }
-
-  canvas.addEventListener('pointerdown', down);
-  canvas.addEventListener('pointermove', move);
-  canvas.addEventListener('pointerup', onPointerUp);
-  canvas.addEventListener('pointercancel', onPointerUp);
+  canvas.addEventListener('pointerdown', (event) => onInputPointerDown(core, event));
+  canvas.addEventListener('pointermove', (event) => onInputPointerMove(core, event));
+  canvas.addEventListener('pointerup', (event) => onInputPointerUp(core, event));
+  canvas.addEventListener('pointercancel', (event) => onInputPointerUp(core, event));
   canvas.addEventListener('lostpointercapture', (event) => {
-    if (owners.has(event.pointerId)) onPointerUp(event);
+    if (core.owners.has(event.pointerId)) onInputPointerUp(core, event);
   });
   canvas.addEventListener('contextmenu', (event) => event.preventDefault());
 
-  // STUCK CONTROLS ON iOS (user, 2026-10-04: rapid taps / holds / several fingers left throttle,
-  // brake or steering ON). When iOS takes over a touch for a system gesture (magnifier, callout,
-  // pinch, edge swipe) the pointerup never comes, so the owner map keeps a pedal held for ever.
-  // Three layers: (1) stop the gestures starting — non-passive touch handlers that preventDefault
-  // on the canvas (the CSS alone does not stop the long-press magnifier on iOS); (2) release
-  // EVERYTHING when the page loses focus or is hidden; (3) when the last finger leaves the
-  // screen, nothing can still be held, whatever events went missing. tools/inputcheck.mjs drives
-  // each case.
-  function releaseAll() {
-    owners.clear();
-    state.stick.active = false; state.stick.x = state.stick.ox;
-    for (const pedalName in state.pedals) state.pedals[pedalName] = false;
-    keys.clear();
-  }
+  const releaseAll = () => releaseAllInput(core);
   state.releaseAll = releaseAll;
-  const block = (event) => { if (event.cancelable) event.preventDefault(); };
   for (const evName of ['touchstart', 'touchmove', 'touchend'])
-    canvas.addEventListener(evName, block, { passive: false });
-  addEventListener('gesturestart', block, { passive: false });     // iOS pinch
-  const lastFinger = (event) => { if (event.touches.length === 0 && owners.size) releaseAll(); };
+    canvas.addEventListener(evName, blockInputEvent, { passive: false });
+  addEventListener('gesturestart', blockInputEvent, { passive: false });     // iOS pinch
+  const lastFinger = (event) => onInputLastFinger(core, event);
   addEventListener('touchend', lastFinger, { capture: true });
   addEventListener('touchcancel', lastFinger, { capture: true });
   addEventListener('blur', releaseAll);
