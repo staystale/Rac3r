@@ -55,35 +55,11 @@ export interface AxleTick {
   latFade: number; dt: number;
 }
 
-/**
- * Sections 6/7 of step(): the force one axle's tyres make. Rolling (cornering stiffness x slip
- * angle inside the friction circle) blended into sliding (locked, handbraked or spinning).
- */
-export function axleForce(
-  car: Car, carSpec: Spec, tick: AxleTick,
-  axleLoad: number, sxl: number, syl: number, FxDemand: number, slip: number, cornering: number,
-  forceSlide: boolean, FzNom: number, latchKey: 'spinLatchF' | 'spinLatchR', gripT = 1,
+/** Load-sensitive friction and effective cornering stiffness of one axle. */
+function axleGrip(
+  car: Car, carSpec: Spec, axleLoad: number, FzNom: number, cornering: number,
+  muBase: number, longK: number, gripT: number,
 ) {
-  const { muBase, longK, peakK, latFade, dt } = tick;
-  // A TYRE IN THE AIR MAKES NO FORCE. FIXED 2026-10-03 (Claude) — the "freeze when you brake
-  // mid-jump".
-  //
-  // MEASURED: driving off the lab ramp and braking while airborne turned x/y into NaN on the
-  // FIRST airborne step, 8 of 8 cars (tools/airbrake.mjs). Cause: the "SECOND AERO FIX" below
-  // scales cornering stiffness by load (caEff = ca * Fz/FzNom), so with Fz = 0 the sliding branch
-  // computes aPeakS = 0/0 = NaN. Braking is what reaches that branch (lockedF/lockedR ->
-  // forceSlide), which is why only brake-in-the-air froze it. The NaN position then made
-  // groundAt() return no surface, step() threw on `surface.mu`, and the frame loop died — the
-  // screen froze on its last frame and RESTART/RESET looked broken because nothing was being
-  // drawn any more.
-  //
-  // It also fixes a quieter bug on the same path: with Fz = 0 the rolling branch handed out the
-  // FULL drive and brake demand (the friction budget of 0 skipped its own scaling), so throttle
-  // and brakes still pushed the car while it was flying. 1 N is far below any real axle load
-  // (~4000 N+), so this never touches a wheel that is on the ground.
-  if (!(axleLoad > 1)) {
-    return { Fx: 0, Fy: 0, FyMax: 0, sliding: false, sat: 0, spinning: false, slipSpeed: 0 };
-  }
   // TYRE LOAD SENSITIVITY — real, standard tyre behaviour, and its absence was the root of the
   // high-speed spin. Grip is NOT proportional to load: a tyre's coefficient of friction FALLS as
   // it is loaded, so doubling the load gives roughly 1.7x the grip, not 2x.
@@ -115,75 +91,60 @@ export function axleForce(
   // the peak slip angle moves from 7 degrees to 21 degrees. You would never reach the peak grip
   // unless you were drifting an F1 car. Scaling Ca with load keeps the peak angle realistic.
   const caEff = cornering * loadRatio;
+  return { muEff, FmaxRoll, FmaxSlide, caEff };
+}
 
-  // longitudinal demand alone beyond grip => the wheel spins up or locks
-  // WHEELSPIN / LOCK-UP: the longitudinal demand alone exceeds grip. This is a DIFFERENT thing
-  // from a tyre merely at a big slip angle, and conflating the two made the donut bench report
-  // that the muscle car could donut at 0.7x power when by hand it needed 2.4x (CLAUDE.md rule
-  // 15).
-  const demandRatio = FmaxRoll > 1 ? Math.abs(FxDemand) / FmaxRoll : 0;
-  // NOTE: hysteresis on this state was tried (enter above 1.0 of grip, leave below 0.85) to stop
-  // the rear flipping in and out of wheelspin during a slide. It made the track car WORSE (judder
-  // 63 -> 175) because holding the state longer makes the eventual jump bigger. A shared friction
-  // circle was tried too and was better physics and better almost everywhere, but worse again for
-  // the track car at gear shifts (223). Both reverted. See ENGINE.md.
-  const overLong = demandRatio > 1;
-
-  // BLENDED, never switched. MEASURED BUG, 2026-09-27 (user: "the track spec car seems juddery",
-  // returning after the power went up): this was a hard `if` between the rolling and sliding
-  // laws, and at the boundary the two disagree by (1 - slideGrip) in magnitude AND in direction.
-  // With plenty of power the demand sits right on that boundary, so the force flipped between the
-  // two every step — track car max jerk 457 against 7-11 for the others. Same lesson as the yaw
-  // damping: a discontinuous force is always a judder. Fade across a band so the two laws meet
-  // smoothly. Use the HYSTERETIC state, not a fresh threshold — computing the latch and then
-  // ignoring it here is why the first attempt at this changed nothing at all.
-  const wSlide = forceSlide ? 1 : clamp((demandRatio - 1) / SLIDE_BLEND, 0, 1);
-
+/** The sliding law of one axle: locked, handbraked or spinning tyres. */
+function slidingLaw(
+  car: Car, carSpec: Spec, FmaxRoll: number, caEff: number, sxl: number, syl: number,
+  FxDemand: number, forceSlide: boolean, demandRatio: number, latFade: number,
+) {
   let slideFx = 0, slideFy = 0, slipSpeed = 0;
-  if (wSlide > 0) {
-    // Longitudinal slip speed: a LOCKED wheel skates at the patch speed; a SPINNING one skates in
-    // proportion to how far past grip the demand is (we do not model wheel spin as a state).
-    // KNOWN ISSUE, diagnosed but NOT fixed — see ENGINE.md. At breakaway the rolling law
-    // (ellipse- limited) and the sliding law disagree: measured FyR stepping 2115 -> 5951 N in a
-    // single step on the track car. Two attempts to close it both cost more than the judder was
-    // worth and were reverted with their numbers: cross-fading the laws over a band took a
-    // handbrake flick from 49 deg / 75% speed kept to 101 deg / 27% and running backwards;
-    // flooring sx relative to the lateral slip took it to 180 deg / 20%. The honest fix is to
-    // model wheel angular velocity as a real state so longitudinal slip is derived rather than
-    // approximated. Until then the drift is worth more than the smoothness.
-    const overLongSlip = Math.max(0, demandRatio - 1);
-    const slipLong = forceSlide
-      ? sxl
-      : -Math.sign(FxDemand) * (Math.abs(sxl) + Math.min(18, overLongSlip * 12));
-    const mag = Math.hypot(slipLong, syl) + 1e-4;
-    // Magnitude from the SAME curve the rolling branch uses, evaluated at this axle's COMBINED
-    // slip angle. Previously this was a flat mu*slideGrip*Fz, which disagreed with the
-    // ellipse-limited rolling law by up to 2.8x at the hand-over (measured FyR stepping 2115 ->
-    // 5951 N in one step) — the track-car judder. Taking both from one curve removes the step at
-    // source, and leaves slideGrip free to be what it should be: how much grip a tyre loses once
-    // it is past the peak.
-    const aPeakS = Math.max(ALPHA_PEAK_MIN,
-        (FmaxRoll / (caEff * car.mods.gripLat)) * TUNE.alphaPeakK);
-    const alphaComb = Math.atan2(Math.abs(syl), Math.abs(slipLong) + 0.5);
-    // FLOORED at slideGrip. curveFactor is a LATERAL curve — it is zero at zero slip angle, which
-    // is correct for cornering force but catastrophic here: a wheel spinning in a straight line
-    // has no slip ANGLE, and using the curve raw gave it no force at all, so no car could
-    // accelerate (measured: vmax 0 for four of five). A fully sliding tyre keeps ~slideGrip of
-    // its friction whatever direction it is sliding; the curve only adds the bulge up to peak
-    // near the limit.
-    const Ftot = FmaxRoll
-        * Math.max(carSpec.slideGrip, curveFactor(alphaComb, aPeakS, carSpec.slideGrip));
-    slideFx = (-Ftot * slipLong) / mag;
-    slideFy = ((-Ftot * syl) / mag) * latFade;
-    slipSpeed = Math.hypot(slipLong, syl);
-  }
-  if (wSlide >= 1) {
-    return {
-      Fx: slideFx, Fy: slideFy,
-      FyMax: FmaxSlide, sliding: true, sat: 1, spinning: overLong && !forceSlide,
-      slipSpeed,
-    };
-  }
+  // Longitudinal slip speed: a LOCKED wheel skates at the patch speed; a SPINNING one skates in
+  // proportion to how far past grip the demand is (we do not model wheel spin as a state).
+  // KNOWN ISSUE, diagnosed but NOT fixed — see ENGINE.md. At breakaway the rolling law
+  // (ellipse- limited) and the sliding law disagree: measured FyR stepping 2115 -> 5951 N in a
+  // single step on the track car. Two attempts to close it both cost more than the judder was
+  // worth and were reverted with their numbers: cross-fading the laws over a band took a
+  // handbrake flick from 49 deg / 75% speed kept to 101 deg / 27% and running backwards;
+  // flooring sx relative to the lateral slip took it to 180 deg / 20%. The honest fix is to
+  // model wheel angular velocity as a real state so longitudinal slip is derived rather than
+  // approximated. Until then the drift is worth more than the smoothness.
+  const overLongSlip = Math.max(0, demandRatio - 1);
+  const slipLong = forceSlide
+    ? sxl
+    : -Math.sign(FxDemand) * (Math.abs(sxl) + Math.min(18, overLongSlip * 12));
+  const mag = Math.hypot(slipLong, syl) + 1e-4;
+  // Magnitude from the SAME curve the rolling branch uses, evaluated at this axle's COMBINED
+  // slip angle. Previously this was a flat mu*slideGrip*Fz, which disagreed with the
+  // ellipse-limited rolling law by up to 2.8x at the hand-over (measured FyR stepping 2115 ->
+  // 5951 N in one step) — the track-car judder. Taking both from one curve removes the step at
+  // source, and leaves slideGrip free to be what it should be: how much grip a tyre loses once
+  // it is past the peak.
+  const aPeakS = Math.max(ALPHA_PEAK_MIN,
+      (FmaxRoll / (caEff * car.mods.gripLat)) * TUNE.alphaPeakK);
+  const alphaComb = Math.atan2(Math.abs(syl), Math.abs(slipLong) + 0.5);
+  // FLOORED at slideGrip. curveFactor is a LATERAL curve — it is zero at zero slip angle, which
+  // is correct for cornering force but catastrophic here: a wheel spinning in a straight line
+  // has no slip ANGLE, and using the curve raw gave it no force at all, so no car could
+  // accelerate (measured: vmax 0 for four of five). A fully sliding tyre keeps ~slideGrip of
+  // its friction whatever direction it is sliding; the curve only adds the bulge up to peak
+  // near the limit.
+  const Ftot = FmaxRoll
+      * Math.max(carSpec.slideGrip, curveFactor(alphaComb, aPeakS, carSpec.slideGrip));
+  slideFx = (-Ftot * slipLong) / mag;
+  slideFy = ((-Ftot * syl) / mag) * latFade;
+  slipSpeed = Math.hypot(slipLong, syl);
+  return { fx: slideFx, fy: slideFy, slipSpeed };
+}
+
+/** The friction circle of one axle: both demands scaled by one lagged factor. */
+function circleForce(
+  car: Car, carSpec: Spec, tick: AxleTick, axleLoad: number, FxDemand: number,
+  slip: number, syl: number, muEff: number, caEff: number,
+  latchKey: 'spinLatchF' | 'spinLatchR',
+) {
+  const { latFade, peakK, dt } = tick;
   // THE FRICTION CIRCLE. One budget shared between the two directions: take both demands and, if
   // together they exceed it, scale BOTH by the same factor. No branch and no threshold, so there
   // is nothing to chatter — and that chatter was the judder (the rear sat on the limit and
@@ -222,6 +183,76 @@ export function axleForce(
     spinning: over > 1.02 && Math.abs(FxDemand) > Math.abs(FyWant),
     slipSpeed: Math.max(saturated ? Math.abs(syl) : 0, (over - 1) * 6),
   };
+}
+
+const NO_SLIDE = { fx: 0, fy: 0, slipSpeed: 0 };
+
+/**
+ * Sections 6/7 of step(): the force one axle's tyres make. Rolling (cornering stiffness x slip
+ * angle inside the friction circle) blended into sliding (locked, handbraked or spinning).
+ */
+export function axleForce(
+  car: Car, carSpec: Spec, tick: AxleTick,
+  axleLoad: number, sxl: number, syl: number, FxDemand: number, slip: number, cornering: number,
+  forceSlide: boolean, FzNom: number, latchKey: 'spinLatchF' | 'spinLatchR', gripT = 1,
+) {
+  const { muBase, longK, latFade } = tick;
+  // A TYRE IN THE AIR MAKES NO FORCE. FIXED 2026-10-03 (Claude) — the "freeze when you brake
+  // mid-jump".
+  //
+  // MEASURED: driving off the lab ramp and braking while airborne turned x/y into NaN on the
+  // FIRST airborne step, 8 of 8 cars (tools/airbrake.mjs). Cause: the "SECOND AERO FIX" below
+  // scales cornering stiffness by load (caEff = ca * Fz/FzNom), so with Fz = 0 the sliding branch
+  // computes aPeakS = 0/0 = NaN. Braking is what reaches that branch (lockedF/lockedR ->
+  // forceSlide), which is why only brake-in-the-air froze it. The NaN position then made
+  // groundAt() return no surface, step() threw on `surface.mu`, and the frame loop died — the
+  // screen froze on its last frame and RESTART/RESET looked broken because nothing was being
+  // drawn any more.
+  //
+  // It also fixes a quieter bug on the same path: with Fz = 0 the rolling branch handed out the
+  // FULL drive and brake demand (the friction budget of 0 skipped its own scaling), so throttle
+  // and brakes still pushed the car while it was flying. 1 N is far below any real axle load
+  // (~4000 N+), so this never touches a wheel that is on the ground.
+  if (!(axleLoad > 1)) {
+    return { Fx: 0, Fy: 0, FyMax: 0, sliding: false, sat: 0, spinning: false, slipSpeed: 0 };
+  }
+  const { muEff, FmaxRoll, FmaxSlide, caEff } =
+    axleGrip(car, carSpec, axleLoad, FzNom, cornering, muBase, longK, gripT);
+
+  // longitudinal demand alone beyond grip => the wheel spins up or locks
+  // WHEELSPIN / LOCK-UP: the longitudinal demand alone exceeds grip. This is a DIFFERENT thing
+  // from a tyre merely at a big slip angle, and conflating the two made the donut bench report
+  // that the muscle car could donut at 0.7x power when by hand it needed 2.4x (CLAUDE.md rule
+  // 15).
+  const demandRatio = FmaxRoll > 1 ? Math.abs(FxDemand) / FmaxRoll : 0;
+  // NOTE: hysteresis on this state was tried (enter above 1.0 of grip, leave below 0.85) to stop
+  // the rear flipping in and out of wheelspin during a slide. It made the track car WORSE (judder
+  // 63 -> 175) because holding the state longer makes the eventual jump bigger. A shared friction
+  // circle was tried too and was better physics and better almost everywhere, but worse again for
+  // the track car at gear shifts (223). Both reverted. See ENGINE.md.
+  const overLong = demandRatio > 1;
+
+  // BLENDED, never switched. MEASURED BUG, 2026-09-27 (user: "the track spec car seems juddery",
+  // returning after the power went up): this was a hard `if` between the rolling and sliding
+  // laws, and at the boundary the two disagree by (1 - slideGrip) in magnitude AND in direction.
+  // With plenty of power the demand sits right on that boundary, so the force flipped between the
+  // two every step — track car max jerk 457 against 7-11 for the others. Same lesson as the yaw
+  // damping: a discontinuous force is always a judder. Fade across a band so the two laws meet
+  // smoothly. Use the HYSTERETIC state, not a fresh threshold — computing the latch and then
+  // ignoring it here is why the first attempt at this changed nothing at all.
+  const wSlide = forceSlide ? 1 : clamp((demandRatio - 1) / SLIDE_BLEND, 0, 1);
+
+
+  const slide = wSlide > 0 ? slidingLaw(car, carSpec, FmaxRoll, caEff, sxl, syl, FxDemand,
+    forceSlide, demandRatio, latFade) : NO_SLIDE;
+  if (wSlide >= 1) {
+    return {
+      Fx: slide.fx, Fy: slide.fy,
+      FyMax: FmaxSlide, sliding: true, sat: 1, spinning: overLong && !forceSlide,
+      slipSpeed: slide.slipSpeed,
+    };
+  }
+  return circleForce(car, carSpec, tick, axleLoad, FxDemand, slip, syl, muEff, caEff, latchKey);
 }
 
 /**
