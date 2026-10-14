@@ -9,10 +9,12 @@ import { PATCH_CELL, patchKey, PATCH_GRID, resetPATCH_GRID, HEAT_OFFROAD } from 
 import { onTrack, querySubtrack } from "./tyrewall.ts";
 import { buildBlend, seededRng, buildInclusions } from "./blend.ts";
 import { LEVELS } from "./levels/index.ts";
-import type { Barrier, Cone, Lane, Level, Patch, Point, Prop } from "./types.ts";
-function prepareLevel(): void {
-  prepBarriers(LEVEL);
-  if (LEVEL.randomise) { LEVEL.randomise(); LEVEL._blend = null; }
+import type { Barrier, Cone, Lane, Level, Patch, Point, Prop, Subtrack } from "./types.ts";
+/**
+ * Build (or reuse) the level's blend patches and surface inclusions.
+ * Sets LEVEL._blend, LEVEL._coversBase, LEVEL._incl and LEVEL.covers.
+ */
+function buildLevelPatchSets(): void {
   // ENDLESS levels get NO blend (MEASURED BUG, 2026-10-06, tools/_dirtroad.mjs: the highway's
   // blend was built ONCE, against whatever road window existed at the first setLevel, then
   // cached through every restart / road type / reseed - 8209 long grass / dirt squares, many on
@@ -32,23 +34,26 @@ function prepareLevel(): void {
     );
   }
   LEVEL.covers = [...LEVEL._coversBase, ...LEVEL._incl.covers];
-  // KEEP LANES CLEAN (2026-10-04, user: Thruston "pits look messy"): blend + inclusion squares
-  // picked on the grass next to a lane overlapped onto it and chewed its edge ragged. Drop any
-  // generated patch that reaches a lane (authored LEVEL.patches stay).
-  const offLane = (patch: Patch): boolean => {
-    const reach = Math.max(patch.w, patch.h) / 2 + 1;
-    for (const offset of [
-      [0, 0], [reach, 0], [-reach, 0], [0, reach], [0, -reach],
-      [reach, reach], [-reach, -reach], [reach, -reach], [-reach, reach],
-    ]) if (laneAt(patch.x + offset[0], patch.y + offset[1])) return false;
-    return true;
-  };
-  const gen = LEVEL.lanes
-    ? [...LEVEL._blend, ...LEVEL._incl.patches].filter(offLane)
-    : [...LEVEL._blend, ...LEVEL._incl.patches];
-  LEVEL.allPatches = [...(LEVEL.patches || []), ...gen];
+}
+/**
+ * Does a generated patch stay clear of every lane (centre and eight points round its reach)?
+ * @param patch the patch
+ * @returns true when no lane touches it
+ */
+function isPatchOffLane(patch: Patch): boolean {
+  const reach = Math.max(patch.w, patch.h) / 2 + 1;
+  for (const offset of [
+    [0, 0], [reach, 0], [-reach, 0], [0, reach], [0, -reach],
+    [reach, reach], [-reach, -reach], [reach, -reach], [-reach, reach],
+  ]) if (laneAt(patch.x + offset[0], patch.y + offset[1])) return false;
+  return true;
+}
+/**
+ * Index every patch of LEVEL.allPatches in the patch grid (PATCH_GRID is reset first).
+ */
+function indexPatchGrid(): void {
   resetPATCH_GRID();
-  for (const patch of LEVEL.allPatches) {
+  for (const patch of LEVEL.allPatches!) {
     const radius = Math.max(patch.w, patch.h) / 2;
     for (let cellX = Math.floor((patch.x - radius) / PATCH_CELL);
       cellX <= Math.floor((patch.x + radius) / PATCH_CELL); cellX++)
@@ -59,6 +64,19 @@ function prepareLevel(): void {
         else PATCH_GRID.set(key, [patch]);
       }
   }
+}
+function prepareLevel(): void {
+  prepBarriers(LEVEL);
+  if (LEVEL.randomise) { LEVEL.randomise(); LEVEL._blend = null; }
+  buildLevelPatchSets();
+  // KEEP LANES CLEAN (2026-10-04, user: Thruston "pits look messy"): blend + inclusion squares
+  // picked on the grass next to a lane overlapped onto it and chewed its edge ragged. Drop any
+  // generated patch that reaches a lane (authored LEVEL.patches stay).
+  const gen = LEVEL.lanes
+    ? [...LEVEL._blend!, ...LEVEL._incl!.patches].filter(isPatchOffLane)
+    : [...LEVEL._blend!, ...LEVEL._incl!.patches];
+  LEVEL.allPatches = [...(LEVEL.patches || []), ...gen];
+  indexPatchGrid();
 }
 
 // RALLY TAPE (user, 2026-10-04: "rally tape should be contactable and easy to snap — give it
@@ -71,50 +89,70 @@ function prepareLevel(): void {
 // m: tape posts keep this far beyond a road lane's edge
 const TAPE_STEP = 4, LANE_CLEAR = 2.5;
 let tapeId = 0;
-function tapePass(level: Level): void {
-  if (!level.subtrack || !(level.stage || level.joker)) return;
-  const runs = [], halfWidth = level.subtrack.width / 2;
+/**
+ * Is a point within a road lane (half width + LANE_CLEAR)?
+ * @param roads the road lanes (not gravel traps)
+ * @param x world x
+ * @param y world y
+ * @returns true when on a road lane
+ */
+function isOnRoadLane(roads: Lane[], x: number, y: number): boolean {
+  return roads.some((lane) => {
+    for (let i = 0; i + 1 < lane.pts.length; i++) {
+      const [segX0, segY0] = lane.pts[i], [segX1, segY1] = lane.pts[i + 1],
+        vx = segX1 - segX0, vy = segY1 - segY0, lenSq = vx * vx + vy * vy || 1;
+      const along = Math.max(0, Math.min(1, ((x - segX0) * vx + (y - segY0) * vy) / lenSq));
+      if (Math.hypot(x - segX0 - along * vx, y - segY0 - along * vy)
+        < lane.width / 2 + LANE_CLEAR) return true;
+    }
+    return false;
+  });
+}
+/**
+ * Collect the tape runs: the old red spectator lines (removed from the barriers) and a run on
+ * both sides of every corner.
+ * @param level the level (barriers are filtered)
+ * @param subtrack the level's subtrack
+ * @returns the polylines of the runs
+ */
+function collectTapeRuns(level: Level, subtrack: Subtrack): Point[][] {
+  const runs: Point[][] = [], halfWidth = subtrack.width / 2;
   for (const barrier of level.barriers || [])
     if (barrier.kind === 'line' && barrier.col === '#e23b2e') runs.push(barrier.pts);
   level.barriers = (level.barriers || []).filter(
     (barrier: Barrier) => !(barrier.kind === 'line' && barrier.col === '#e23b2e'));
-  for (const corner of autoKerbs(level.subtrack,
+  for (const corner of autoKerbs(subtrack,
     { maxR: 70, exitR: 0, minTurn: 18, mergeGap: 10 })) {
     if (level.stage && corner.startDist > level.stage.finish) continue;
-    const rotIn = onTrack(level.subtrack, corner.startDist, 0, {}).rot,
-      rotOut = onTrack(level.subtrack, corner.endDist, 0, {}).rot;
+    const rotIn = onTrack(subtrack, corner.startDist, 0, {}).rot,
+      rotOut = onTrack(subtrack, corner.endDist, 0, {}).rot;
     let turn = rotOut - rotIn;
     turn = Math.atan2(Math.sin(turn), Math.cos(turn));
     const out = turn > 0 ? -1 : 1;
     runs.push(
-      alongTrack(level.subtrack, corner.startDist - 15, corner.endDist + 15,
+      alongTrack(subtrack, corner.startDist - 15, corner.endDist + 15,
         out * (halfWidth + 5.5), TAPE_STEP),
-      alongTrack(level.subtrack, corner.startDist - 10, corner.endDist + 10,
+      alongTrack(subtrack, corner.startDist - 10, corner.endDist + 10,
         -out * (halfWidth + 2.5), TAPE_STEP),
     );
   }
+  return runs;
+}
+function tapePass(level: Level): void {
+  if (!level.subtrack || !(level.stage || level.joker)) return;
+  const halfWidth = level.subtrack.width / 2;
+  const runs = collectTapeRuns(level, level.subtrack);
   // ...but NEVER across a ROAD LANE (user, 2026-10-04: "tape covering joker track section
   // entries on Knobhill"): a post within half a lane width + LANE_CLEAR of the joker / RX start /
   // pit / service lane is left out, and the run's idx gap leaves that section open (cones.js
   // strings consecutive idx only). Gravel traps (lanes with an 'out' side) are run-off, not
   // road: tape may cross them.
   const roads = (level.lanes || []).filter((lane: Lane) => lane.out == null);
-  const onRoad = (x: number, y: number): boolean =>
-    roads.some((lane) => {
-      for (let i = 0; i + 1 < lane.pts.length; i++) {
-        const [segX0, segY0] = lane.pts[i], [segX1, segY1] = lane.pts[i + 1],
-          vx = segX1 - segX0, vy = segY1 - segY0, lenSq = vx * vx + vy * vy || 1;
-        const along = Math.max(0, Math.min(1, ((x - segX0) * vx + (y - segY0) * vy) / lenSq));
-        if (Math.hypot(x - segX0 - along * vx, y - segY0 - along * vy)
-          < lane.width / 2 + LANE_CLEAR) return true;
-      }
-      return false;
-    });
   const posts: Cone[] = [];
   for (const pts of runs) {
     const runId = tapeId++;
     pts.forEach(([x, y]: Point, i: number) => {
-      if (querySubtrack(level.subtrack!, x, y).dist > halfWidth + 1.5 && !onRoad(x, y))
+      if (querySubtrack(level.subtrack!, x, y).dist > halfWidth + 1.5 && !isOnRoadLane(roads, x, y))
         posts.push({ x, y, kind: 'tapepost', tape: runId, idx: i });
     });
   }
