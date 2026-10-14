@@ -24,6 +24,18 @@ for (const [W, H] of [[844, 390], [390, 844]]) {
   const pz = await p.evaluate(() => ({ paused: window.__game.paused, sim: window.__game.car.simTime }));
   await p.waitForTimeout(400); const pz2 = await p.evaluate(() => window.__game.car.simTime);
   await tap('MAIN MENU'); await p.waitForTimeout(800); await tap('GARAGE'); await shot('6-garage');
+  await tap('PAINT'); await shot('7-paint'); await tap('BACK');   // paint shop, back to the garage with its BACK button
+  await tap('TYRES'); await shot('8-tyres'); await tap('BACK');
+  // RESULTS and TESTING are not reachable by a tap from the menu (a finished race / the pause chip open them), but the game
+  // exposes window.__game.menu (pause / results), so call those with a stand-in race flow / pause actions
+  await p.evaluate(() => {
+    const g = window.__game, me = { car: g.car, player: true, pos: 1, num: 1, total: 62.34, gap: 0, best: 30.12, penalty: 0, bill: 120, paint: '#d8453c' };
+    const ai = [2, 3, 4].map(n => ({ car: g.car, player: false, pos: n, num: n, total: 62.34 + n, gap: n, best: 30.5 + n / 10, penalty: n === 3 ? 5 : 0, bill: 0, paint: '#3a7bd8' }));
+    g.menu.results({ results: [me, ...ai], laps: 2 }, { name: 'menucheck', restart() {}, tracks() {}, menu() {} });
+  });
+  await shot('9-results'); await tap('RESULTS'); await shot('9-results-table');
+  await p.evaluate(() => window.__game.menu.pause({ resume() {}, restart() {}, guide() {}, exit() {}, tests: true }));
+  await tap('TESTING'); await shot('10-testing');
   console.log(W + 'x' + H, 'demo', JSON.stringify(demo), '| session', JSON.stringify(sess), '| pause', pz.paused, 'sim frozen', pz.sim === pz2, '| errors', errs.length ? errs.slice(0, 3).join(' || ') : 'none');
 }
 await b.close();
