@@ -24,7 +24,7 @@ import { roadDriver, driveOut } from "./weaver.ts";
 import { createAttackSteps, createRaceMoves } from "./racecraft.ts";
 import type { Level } from "../world/types.ts";
 import type {
-  AiCar, CarsAcc, CarsEnv, CircuitState, DriveCtx, HighwayLevel, JokerCtx,
+  AiCar, CarsAcc, CarsEnv, CircuitState, DriveCtx, HighwayLevel, JokerCtx, RacingLine,
 } from "./types.ts";
 
 // m: the lateral target never puts the car's centre closer than this to the road edge
@@ -537,6 +537,50 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
     return targetSpeed;
   }
 
+  type Corner = RacingLine["corners"][number];
+
+  /** The total turn of a corner (rad), summed once along its run and kept on the corner. */
+  function cornerAngle(path: typeof state.path, corner: Corner, cornerId: number) {
+    if (corner.angle !== undefined) return;
+    const pts = path.pts;
+    let sum = 0;
+    for (let i = corner.start; line.cid[i] === cornerId; i = (i + 1) % count) {
+      const step = pts[(i + 1) % count].h - pts[i].h;
+      sum += Math.atan2(Math.sin(step), Math.cos(step));
+    }
+    corner.angle = Math.abs(sum);
+  }
+
+  /** Arms one handbrake pull when a tight, big corner is about to be turned into. */
+  function hairpinPull(path: typeof state.path, nearIdx: number, speed: number, loose: number,
+      corner: Corner | null, cornerId: number) {
+    const pts = path.pts;
+    const toApex = ((corner ? corner.apex : nearIdx) - nearIdx + count) % count;
+    if (corner && corner.angle! > HB_TURN && pts[corner.apex].R < HB_R + HB_LOOSE * loose &&
+        toApex < count / 2 && toApex * line.sp < 0.8 * speed + 6 &&
+        state.hbCorner !== cornerId) {
+      state.hbCorner = cornerId;
+      if (rnd() < 0.5 + 0.5 * traits.skill) state.hbUntil = state.t + HB_T;
+    }
+  }
+
+  /** HANDBRAKE TURN: one pull per hairpin, before the apex; 1 while the pull is on. */
+  function handbrakeStep(path: typeof state.path, nearIdx: number, speed: number, loose: number) {
+    if (path === main && speed > 6 && (debugValue("HB") ?? 1)) {
+      const cornerId = line.cid[nearIdx], corner = cornerId >= 0 ? line.corners[cornerId] : null;
+      // turn-in: a corner that turns > HB_TURN rad in all (summed once along its run) with an apex
+      // tighter than HB_R (+ HB_LOOSE on loose
+      // ground), the apex within ~0.8 s
+      if (corner) cornerAngle(path, corner, cornerId);
+      hairpinPull(path, nearIdx, speed, loose, corner, cornerId);
+      if (state.t < state.hbUntil) {
+        state.hbN = (state.hbN || 0) + 1;
+        return 1;
+      }
+    }
+    return 0;
+  }
+
   function drive(car: AiCar, dt = 1 / 120, ctx: DriveCtx = {}) {
     state.t += dt;
     const spec = car.spec, speed = Math.hypot(car.vx, car.vy);
@@ -711,33 +755,10 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
     // moving -> one pull of HB_T s per hairpin, off the throttle, full lock that way: the rear
     // steps out and the car pivots. The better driver times it (skill), a weaker one sometimes
     // doesn't bother.
-    let handbrake = 0;
-    if (path === main && speed > 6 && (debugValue("HB") ?? 1)) {
-      const cornerId = line.cid[nearIdx], corner = cornerId >= 0 ? line.corners[cornerId] : null;
-      // turn-in: a corner that turns > HB_TURN rad in all (summed once along its run) with an apex
-      // tighter than HB_R (+ HB_LOOSE on loose
-      // ground), the apex within ~0.8 s
-      if (corner && corner.angle === undefined) {
-        let sum = 0;
-        for (let i = corner.start; line.cid[i] === cornerId; i = (i + 1) % count) {
-          const step = pts[(i + 1) % count].h - pts[i].h;
-          sum += Math.atan2(Math.sin(step), Math.cos(step));
-        }
-        corner.angle = Math.abs(sum);
-      }
-      const toApex = ((corner ? corner.apex : nearIdx) - nearIdx + count) % count;
-      if (corner && corner.angle! > HB_TURN && pts[corner.apex].R < HB_R + HB_LOOSE * loose &&
-          toApex < count / 2 && toApex * line.sp < 0.8 * speed + 6 &&
-          state.hbCorner !== cornerId) {
-        state.hbCorner = cornerId;
-        if (rnd() < 0.5 + 0.5 * traits.skill) state.hbUntil = state.t + HB_T;
-      }
-      if (state.t < state.hbUntil) {
-        handbrake = 1;
-        throttle = 0;
-        brake = 0;
-        state.hbN = (state.hbN || 0) + 1;
-      }
+    const handbrake = handbrakeStep(path, nearIdx, speed, loose);
+    if (handbrake) {
+      throttle = 0;
+      brake = 0;
     }
     return {
       steer: handbrake ? Math.sign(steer || psi) * Math.max(Math.abs(steer), 0.9) : steer,
