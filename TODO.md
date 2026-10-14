@@ -175,9 +175,7 @@ Known bugs found during the overhaul (wait until it is done, they are not caused
 - RX race, two jokers: `node tools/racecheck.mjs` (slidden-hill) fails case C. The car is put through the joker gate on lap 2 and again on lap 3; the race never finishes (stuck on lap 3 after 8 minutes, no +30 s penalty). Same result on the original code (commit 857f105, checked 2026-10-12), so it is older than the overhaul. Not yet known whether the game or the test is wrong (the test teleports onto the gate; joker detection became a line that must be crossed on 2026-10-07). Cases A, B and practice pass. racecheck takes about 18 minutes, so it is not in the baseline run.
 - Highway tests failing on the code before these changes too (checked 2026-10-12 on ab938eb and later): `node tools/hwracecheck.mjs` "no racer wrecked (2)" (2 FAILs, counts vary per run), `node tools/trafficcheck.mjs` "motorway: traffic stays on the carriageway (30 car-steps off)", `node tools/treadmillcheck.mjs` "motorway: no litter in a driving lane (2)". Not caused by the overhaul; look at them with phase 5 (AI).
 - AI weak spots measured in phase 5 (same as the phase 0 baseline, so not caused by the overhaul; improving the AI changes behaviour, so after the overhaul): pacesuite BAD runs 3/9 (a racer far off the road or wrecked); weavecheck: spun in 5 and over 1 m wide in 5 of 45 scenarios (all at 240 km/h); aifieldsuite: 4.0 incidents per race.
-- src/vehicle.ts ELLIPSE_FLOOR (0.10) has been defined but unused since the first commit: a floor
-  so lateral grip under the friction ellipse never reaches 0. Owner to test wiring it in during a
-  handling pass (it changes the driving, so not part of the overhaul).
+- Idea: a floor (e.g. 0.10) under (1 - use^2) in the friction ellipse, so a tyre keeps a little lateral grip under full braking / wheelspin. Not implemented; try in a handling pass if cars lose all steering there.
 
 
 

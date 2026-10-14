@@ -1,36 +1,12 @@
 {
-  "src/ai/autodrive.ts": {
-    "complexity": 1,
-    "max-lines-per-function": 1
-  },
-  "src/ai/circuit.ts": {
-    "complexity": 2,
-    "max-lines-per-function": 2
-  },
-  "src/ai/line.ts": {
-    "complexity": 1,
-    "max-lines-per-function": 1
-  },
-  "src/ai/weaver.ts": {
-    "complexity": 2,
-    "max-lines-per-function": 2
-  },
   "src/audio.js": {
     "complexity": 1
-  },
-  "src/cones.js": {
-    "complexity": 7,
-    "max-lines-per-function": 3
   },
   "src/damage.js": {
     "complexity": 1
   },
   "src/highway/extras.js": {
     "complexity": 1
-  },
-  "src/highwayrace.ts": {
-    "complexity": 1,
-    "max-lines-per-function": 1
   },
   "src/hud/laps.js": {
     "complexity": 1
@@ -77,15 +53,5 @@
   },
   "src/stagegen.js": {
     "complexity": 1
-  },
-  "src/traffic.ts": {
-    "complexity": 2,
-    "max-lines-per-function": 3
-  },
-  "src/vehicle.ts": {
-    "@typescript-eslint/no-unused-vars": 1,
-    "complexity": 2,
-    "max-lines": 1,
-    "max-lines-per-function": 2
   }
 }

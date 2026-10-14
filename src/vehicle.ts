@@ -149,9 +149,6 @@ export const TUNE = {
   handbrakeForce: 1.15, // rear brake demand as a multiple of rear grip. >1 locks; below 1 it only
                         // drags, so this is a real STRENGTH rather than an on/off switch.
 };
-// Not used yet: candidate floor for (1 - use^2) under the friction ellipse, so lateral grip never
-// reaches 0. To be tried in a handling pass (TODO.md).
-const ELLIPSE_FLOOR = 0.10;
 // TYRE TEMPERATURE (user, 2026-10-03). Four tyres, each its own temperature (deg C), indexed by
 // side of the BODY:
 //   0 front +y, 1 front -y, 2 rear +y, 3 rear -y.
