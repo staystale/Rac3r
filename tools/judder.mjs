@@ -1,6 +1,6 @@
 // Judder = step-to-step oscillation. Count sign reversals in yaw acceleration and measure jerk.
 // A smooth corner should reverse rarely; a juddering one flips almost every step.
-import { makeCar, step, reset, neutralInput, DT } from '../src/vehicle.ts';
+import { makeCar, step, reset, neutralInput, PHYSICS_STEP_SECONDS } from '../src/vehicle.ts';
 import { CAR_IDS } from '../src/cars.ts';
 
 function scan(id, label, v0, steer, thr) {
@@ -10,17 +10,17 @@ function scan(id, label, v0, steer, thr) {
   const inp = { ...neutralInput(), steer, throttle: thr };
   let prevYaw = 0, prevAcc = 0, flips = 0, n = 0, jerkSum = 0, maxJerk = 0;
   for (let i = 0; i < 120 * 4; i++) {
-    step(car, inp, DT);
-    const acc = (car.yawRate - prevYaw) / DT;
+    step(car, inp, PHYSICS_STEP_SECONDS);
+    const acc = (car.yawRate - prevYaw) / PHYSICS_STEP_SECONDS;
     if (i > 40) {
-      const jerk = Math.abs(acc - prevAcc) / DT;
+      const jerk = Math.abs(acc - prevAcc) / PHYSICS_STEP_SECONDS;
       jerkSum += jerk; maxJerk = Math.max(maxJerk, jerk);
       if (Math.sign(acc) !== Math.sign(prevAcc) && acc !== 0 && prevAcc !== 0) flips++;
       n++;
     }
     prevAcc = acc; prevYaw = car.yawRate;
   }
-  return { flipsPerSec: flips / (n * DT), meanJerk: jerkSum / n, maxJerk };
+  return { flipsPerSec: flips / (n * PHYSICS_STEP_SECONDS), meanJerk: jerkSum / n, maxJerk };
 }
 
 console.log('car            corner: flips/s  meanJerk   maxJerk  |  slow corner: flips/s  meanJerk');

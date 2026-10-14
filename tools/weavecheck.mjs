@@ -3,7 +3,7 @@
 // staggered pairs — at 150 / 200 / 240 km/h, on the motorway's first straight and in its bends. Per scenario: hits, worst rear slip
 // (a spin starts ~0.25 rad), worst distance past the line limits, and the speed kept. Tuning via env (HWT='{"aLat":0.3,...}').
 // node tools/weavecheck.mjs [diff]
-import { makeCar, step, reset, DT } from '../src/vehicle.ts';
+import { makeCar, step, reset, PHYSICS_STEP_SECONDS } from '../src/vehicle.ts';
 import * as L from '../src/lab.js';
 import * as H from '../src/highway.js';
 import { aiTraits } from '../src/ai/traits.ts';
@@ -25,13 +25,13 @@ for (const seed of [4242, 77, 1234]) for (const v0 of [150, 200, 240]) for (cons
   const vT = 90 / 3.6, obs = pat.map(([ds, ln]) => ({ s: s0 + 120 + ds, off: C[ln], spec: { len: 4.3, wid: 1.8 } }));
   let hit = 0, slip = 0, wide = 0, vMin = 999, t = 0;
   const hi = lv._hw.geo.hw - 1.8;
-  for (; t < 14; t += DT) {
-    for (const o of obs) { o.s += vT * DT; const q = H.roadPose(lv, o.s, o.off); o.x = q.x; o.y = q.y; o.heading = q.h; o.vx = Math.cos(q.h) * vT; o.vy = Math.sin(q.h) * vT; o._hwf = { s: o.s, off: o.off, v: vT }; }
+  for (; t < 14; t += PHYSICS_STEP_SECONDS) {
+    for (const o of obs) { o.s += vT * PHYSICS_STEP_SECONDS; const q = H.roadPose(lv, o.s, o.off); o.x = q.x; o.y = q.y; o.heading = q.h; o.vx = Math.cos(q.h) * vT; o.vy = Math.sin(q.h) * vT; o._hwf = { s: o.s, off: o.off, v: vT }; }
     hwFrames(lv, [c]); const f = c._hwf; if (!f) break;
     H.stepHighway(lv, c);
-    const w = drv.drive(c, DT, { cars: obs }); L.applyGround(c, DT); step(c, w, DT);
+    const w = drv.drive(c, PHYSICS_STEP_SECONDS, { cars: obs }); L.applyGround(c, PHYSICS_STEP_SECONDS); step(c, w, PHYSICS_STEP_SECONDS);
     for (const o of obs) if (Math.abs(o.s - f.s) < (c.spec.len + o.spec.len) / 2 && Math.abs(o.off - f.off) < (c.spec.wid + o.spec.wid) / 2) { hit++; break; }
-    if (process.env.WVONE === `${seed}/${v0}/${pn}` && Math.round(t / DT) % 12 === 0) console.log(`   t ${t.toFixed(2)} v ${(f.v * 3.6).toFixed(0)} off ${f.off.toFixed(2)} line ${drv.state.line.toFixed(2)} tgt ${drv.state.tgt.toFixed(2)} tv ${(drv.state.tv || 0).toFixed(2)} | ${obs.map((o) => `[${(o.s - f.s).toFixed(0)} ${o.off.toFixed(1)}]`).join(' ')} | thr ${w.throttle.toFixed(2)} brk ${w.brake.toFixed(2)} st ${w.steer.toFixed(3)} slipR ${c.t.slipR.toFixed(2)} yaw ${c.yawRate.toFixed(3)} rel ${(Math.atan2(Math.sin(c.heading - H.roadPose(lv, f.s, 0).h), Math.cos(c.heading - H.roadPose(lv, f.s, 0).h)) * 57.3).toFixed(2)}deg delta ${c.delta.toFixed(3)} vlat ${(c.t.vLat || 0).toFixed(2)}`);
+    if (process.env.WVONE === `${seed}/${v0}/${pn}` && Math.round(t / PHYSICS_STEP_SECONDS) % 12 === 0) console.log(`   t ${t.toFixed(2)} v ${(f.v * 3.6).toFixed(0)} off ${f.off.toFixed(2)} line ${drv.state.line.toFixed(2)} tgt ${drv.state.tgt.toFixed(2)} tv ${(drv.state.tv || 0).toFixed(2)} | ${obs.map((o) => `[${(o.s - f.s).toFixed(0)} ${o.off.toFixed(1)}]`).join(' ')} | thr ${w.throttle.toFixed(2)} brk ${w.brake.toFixed(2)} st ${w.steer.toFixed(3)} slipR ${c.t.slipR.toFixed(2)} yaw ${c.yawRate.toFixed(3)} rel ${(Math.atan2(Math.sin(c.heading - H.roadPose(lv, f.s, 0).h), Math.cos(c.heading - H.roadPose(lv, f.s, 0).h)) * 57.3).toFixed(2)}deg delta ${c.delta.toFixed(3)} vlat ${(c.t.vLat || 0).toFixed(2)}`);
     slip = Math.max(slip, Math.abs(c.t.slipR)); wide = Math.max(wide, Math.abs(f.off) - hi); vMin = Math.min(vMin, Math.hypot(c.vx, c.vy) * 3.6);
     if (obs.every((o) => f.s > o.s + 30)) break;
   }

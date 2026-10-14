@@ -3,7 +3,7 @@
 // motorway through TRAFFIC with full contact + damage. Measures: grid overlaps, cars off the road, racer-racer / racer-traffic contacts,
 // wrecks, lane changes, speeds, the gaps that open, and the flow's END countdown (a fake screen of +-VIEW m).
 // node tools/hwracecheck.mjs [seconds] [diff 0-4] [traffic 0-1.5] [preset]
-import { makeCar, step, reset, DT } from '../src/vehicle.ts';
+import { makeCar, step, reset, PHYSICS_STEP_SECONDS } from '../src/vehicle.ts';
 import * as L from '../src/lab.js';
 import * as H from '../src/highway.js';
 import { createTraffic } from '../src/traffic.ts';
@@ -38,7 +38,7 @@ while (t < T) {
   const t0 = performance.now();
   const green = t >= HW_GREEN;
   for (let k = 0; k < N; k++) { const c = cars[k], others = [...cars.filter((o) => o !== c), ...tr.cars];
-    let w = drv[k].drive(c, DT, { cars: others, hold: !green });
+    let w = drv[k].drive(c, PHYSICS_STEP_SECONDS, { cars: others, hold: !green });
     if (t >= PACE_T0) { const d = drv[k].state.dbg, Lm = pace[k].lim, va = c._hwf ? c._hwf.v : 0;
       if (!d) Lm.other++; else if (d.brakeX > 0) Lm.emerg++; else if (d.vFollow < d.vCorner - 0.5 && d.vT - va < 2.5) { Lm.follow++; const F = pace[k].fo, B = d.fol;
         if (B && B.o) { if (cars.includes(B.o)) F.racer++; else F.traffic++; F.gap += B.gap; F.dv += (B.o._hwf ? B.o._hwf.v : 0) * 3.6; }
@@ -46,12 +46,12 @@ while (t < T) {
         const fr = drv[k].state.free; if (fr) { F.freeLine++; if (Math.abs(fr.off - c._hwf.off) > 2.5 + 0 * va) F.freeOut++; } } else if (d.vT - va < 2.5) Lm.corner++;
       else if (w.throttle >= 0.999) Lm.full++; else if (w.throttle >= d.thrCap * d.feel - 1e-6) Lm.feather++; else Lm.other++; }
     if (!green) { const v = Math.hypot(c.vx, c.vy); w = { ...w, throttle: v > ROLL ? 0 : Math.min(w.throttle, 0.55), brake: Math.max(w.brake, v > ROLL + 2 ? 0.25 : 0) }; }
-    const v0x = c.vx, v0y = c.vy; L.barrierClamp(c); L.solidClamp(c); hit(c, v0x, v0y); L.applyGround(c, DT); step(c, w, DT);
-    if (process.env.HRTRACE && +process.env.HRTRACE === c.num && Math.round(t / DT) % 30 === 0 && t > +(process.env.HRT0 || 0) && t < +(process.env.HRT1 || 1e9)) { const f = c._hwf, P = lv._hw.pts, i = Math.round((f.s - P[0].s) / 4);
+    const v0x = c.vx, v0y = c.vy; L.barrierClamp(c); L.solidClamp(c); hit(c, v0x, v0y); L.applyGround(c, PHYSICS_STEP_SECONDS); step(c, w, PHYSICS_STEP_SECONDS);
+    if (process.env.HRTRACE && +process.env.HRTRACE === c.num && Math.round(t / PHYSICS_STEP_SECONDS) % 30 === 0 && t > +(process.env.HRT0 || 0) && t < +(process.env.HRT1 || 1e9)) { const f = c._hwf, P = lv._hw.pts, i = Math.round((f.s - P[0].s) / 4);
       console.log(`      #${c.num} t ${t.toFixed(2)} v ${(Math.hypot(c.vx, c.vy) * 3.6).toFixed(0)} off ${f.off.toFixed(2)} line ${drv[k].state.line.toFixed(2)} tgt ${drv[k].state.tgt.toFixed(2)} curv ${(P[i].curv * 1e4).toFixed(1)}e-4 steer ${w.steer.toFixed(3)} thr ${w.throttle.toFixed(2)} brk ${w.brake.toFixed(2)} slipF ${c.t.slipF.toFixed(3)} slipR ${c.t.slipR.toFixed(3)} yaw ${c.yawRate.toFixed(3)} need ${(f.v * P[i].curv).toFixed(3)} delta ${c.delta.toFixed(3)} | near ${[...cars, ...tr.cars].filter((o) => o !== c && o._hwf && Math.abs(o._hwf.s - f.s) < 40).map((o) => `${o.num && cars.includes(o) ? '#' + o.num : 'T'}[ds ${(o._hwf.s - f.s).toFixed(1)} off ${o._hwf.off.toFixed(1)} v ${(o._hwf.v * 3.6).toFixed(0)}]`).join(' ')}`); }
     const ln = Math.round(drv[k].state.line / 3.65); if (laneOf[k] != null && ln !== laneOf[k]) lc++; laneOf[k] = ln; }
   H.stepHighway(lv, me);
-  tr.step(DT, { player: me, others: cars.filter((c) => c !== me), visible: (x, y, s) => me._hwf && Math.abs(s - me._hwf.s) < VIEW });
+  tr.step(PHYSICS_STEP_SECONDS, { player: me, others: cars.filter((c) => c !== me), visible: (x, y, s) => me._hwf && Math.abs(s - me._hwf.s) < VIEW });
   const all = [...cars, ...tr.cars], v0 = all.map((c) => [c.vx, c.vy]);
   for (let i = 0; i < N; i++) for (let k = 0; k < all.length; k++) if (k !== i && (k > i || k >= N) && carContact(cars[i], all[k])) { if (k < N) rr++; else rt++; }
   all.forEach((c, i) => hit(c, v0[i][0], v0[i][1]));
@@ -69,10 +69,10 @@ while (t < T) {
     if (f && me._hwf && Math.abs(f.s - me._hwf.s) < 400 && Math.abs(f.off) > lv._hw.geo.hw + 0.5) { off++;
       if (process.env.HRDBG && !c._dbg) { c._dbg = 1; const P = lv._hw.pts, i = Math.round((f.s - P[0].s) / 4); let kx = 0; for (let j = i - 30; j < i + 5; j++) if (P[j]) kx = Math.max(kx, Math.abs(P[j].curv));
         console.log(`    OFF #${c.num} t ${t.toFixed(1)}: v ${(Math.hypot(c.vx, c.vy) * 3.6).toFixed(0)} off ${f.off.toFixed(1)} ds-from-you ${(f.s - me._hwf.s).toFixed(0)} | tightest R behind ${(1 / kx).toFixed(0)} m | slipR ${c.t.slipR.toFixed(2)} slipF ${c.t.slipF?.toFixed?.(2)} | dmg ${(c.dmg || []).map((d) => d.toFixed(2))} | window ${(f.s - P[0].s).toFixed(0)}..${(P[P.length - 1].s - f.s).toFixed(0)}`); } } if (tooInjured(c) && f && me._hwf && Math.abs(f.s - me._hwf.s) < 400) wreck.add(c.num); vMax = Math.max(vMax, Math.hypot(c.vx, c.vy)); }
-  if (green) { flow.step(DT); if (flow.cdKind) cdSeen.add(flow.cdKind); if (flow.state === 'done' && !ended) ended = { t, kind: [...cdSeen].pop(), place: flow.myPlace }; }
+  if (green) { flow.step(PHYSICS_STEP_SECONDS); if (flow.cdKind) cdSeen.add(flow.cdKind); if (flow.state === 'done' && !ended) ended = { t, kind: [...cdSeen].pop(), place: flow.myPlace }; }
   const ss = cars.map((c) => (c._hwf ? c._hwf.s : 0)); gapMax = Math.max(gapMax, Math.max(...ss) - Math.min(...ss));
-  if (Math.round(t / DT) % Math.round(15 / DT) === 0) console.log(`  t ${t.toFixed(0)}s: v ${cars.map((c) => Math.round(Math.hypot(c.vx, c.vy) * 3.6)).join(' ')} km/h | ahead of you ${cars.map((c) => Math.round((c._hwf ? c._hwf.s : 0) - (me._hwf ? me._hwf.s : 0))).join(' ')} m | lines ${drv.map((d) => d.state.lane).join('')} | traffic ${tr.cars.length} | flow ${flow.state} ${flow.cdKind || ''} ${flow.cd != null ? flow.cd.toFixed(1) : ''}`);
-  t += DT;
+  if (Math.round(t / PHYSICS_STEP_SECONDS) % Math.round(15 / PHYSICS_STEP_SECONDS) === 0) console.log(`  t ${t.toFixed(0)}s: v ${cars.map((c) => Math.round(Math.hypot(c.vx, c.vy) * 3.6)).join(' ')} km/h | ahead of you ${cars.map((c) => Math.round((c._hwf ? c._hwf.s : 0) - (me._hwf ? me._hwf.s : 0))).join(' ')} m | lines ${drv.map((d) => d.state.lane).join('')} | traffic ${tr.cars.length} | flow ${flow.state} ${flow.cdKind || ''} ${flow.cd != null ? flow.cd.toFixed(1) : ''}`);
+  t += PHYSICS_STEP_SECONDS;
 }
 console.log(`${PRESET} diff ${DIFF} traffic ${DENS}: ${T} s | grid overlaps ${overlap}, traffic cleared off the grid ${cleared} | top speed ${(vMax * 3.6).toFixed(0)} km/h | spread ${gapMax.toFixed(0)} m | lane changes ${lc} | ${(ms / n * 1000).toFixed(0)} us/step`);
 console.log(`  contacts: racer-racer ${rr} steps, racer-traffic ${rt} steps | wrecked racers ${[...wreck].join(',') || 'none'} | off-road car-steps ${off} (far off ${farOff}) | countdowns seen ${[...cdSeen].join(',') || 'none'} | ended ${ended ? JSON.stringify(ended) : 'no'}`);

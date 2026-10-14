@@ -11,7 +11,7 @@
 //   node tools/probe.mjs            all five cars, all benches
 //   node tools/probe.mjs hatch-rwd  one car
 
-import { makeCar, step, reset, assertFinite, neutralInput, DT } from '../src/vehicle.ts';
+import { makeCar, step, reset, assertFinite, neutralInput, PHYSICS_STEP_SECONDS } from '../src/vehicle.ts';
 import { CAR_IDS } from '../src/cars.ts';
 
 const clamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);
@@ -39,7 +39,7 @@ function benchAccel(car) {
   let t = 0, topSpeed = 0;
   let t100 = null;
   while (t < 40) {
-    step(car, inp, DT); assertFinite(car); t += DT;
+    step(car, inp, PHYSICS_STEP_SECONDS); assertFinite(car); t += PHYSICS_STEP_SECONDS;
     const v = Math.hypot(car.vx, car.vy);
     topSpeed = Math.max(topSpeed, v);
     if (t100 === null && v >= 27) t100 = t;
@@ -47,7 +47,7 @@ function benchAccel(car) {
   }
   // separate long run for terminal velocity
   reset(car, 0, 0, 0); let vmax = 0;
-  for (let i = 0; i < 120 * 90; i++) { step(car, inp, DT); vmax = Math.max(vmax, Math.hypot(car.vx, car.vy)); }
+  for (let i = 0; i < 120 * 90; i++) { step(car, inp, PHYSICS_STEP_SECONDS); vmax = Math.max(vmax, Math.hypot(car.vx, car.vy)); }
   assertFinite(car);
   return { t27: t100, vmax };
 }
@@ -60,12 +60,12 @@ function benchBrake(car) {
   const x0 = car.x;
   let t = 0, lockedFrames = 0, frames = 0, peakDecel = 0, vPrev = 27.8;
   while (t < 10) {
-    step(car, inp, DT); assertFinite(car); t += DT; frames++;
+    step(car, inp, PHYSICS_STEP_SECONDS); assertFinite(car); t += PHYSICS_STEP_SECONDS; frames++;
     const v = Math.hypot(car.vx, car.vy);
     // Window the decel sample. The first 0.15 s is the load-transfer transient and the last metre is
     // the low-speed rest-snap; both read as an impossible spike. The 2.55 g in the first grid was the
     // rest-snap, not the brakes (CLAUDE.md rule 15 — the bench lied before the model did).
-    if (t > 0.15 && v > 1.5) peakDecel = Math.max(peakDecel, (vPrev - v) / DT);
+    if (t > 0.15 && v > 1.5) peakDecel = Math.max(peakDecel, (vPrev - v) / PHYSICS_STEP_SECONDS);
     vPrev = v;
     if (car.t.lockedF || car.t.lockedR) lockedFrames++;
     if (v < 0.2) break;
@@ -87,7 +87,7 @@ function benchBrake(car) {
     const xT = car.x;
     let tt = 0;
     while (tt < 15) {
-      step(car, thr, DT); assertFinite(car); tt += DT;
+      step(car, thr, PHYSICS_STEP_SECONDS); assertFinite(car); tt += PHYSICS_STEP_SECONDS;
       if (Math.hypot(car.vx, car.vy) < 0.2) break;
     }
     const d = car.x - xT;
@@ -117,12 +117,12 @@ function benchLateral(car) {
       // saturated, then scrubbing from 16 m/s to 2.6 m/s — so the average was the tail of a spin-down,
       // not a steady state. Take the PEAK while the car is still grip-limited rather than spun.
       let peak = 0;
-      const steps = Math.round(4 / DT);
+      const steps = Math.round(4 / PHYSICS_STEP_SECONDS);
       for (let i = 0; i < steps; i++) {
         inp.steer = st;
         const sp = Math.hypot(car.vx, car.vy);
         inp.throttle = clamp((v - sp) * 0.3, 0, 1);      // hold speed against cornering scrub
-        step(car, inp, DT);
+        step(car, inp, PHYSICS_STEP_SECONDS);
         if (!Number.isFinite(car.x)) break;
         const beta = Math.abs(Math.atan2(car.t.vLat, Math.abs(car.t.vLong)));
         if (beta > 0.44) break;                          // >25 deg of body slip: spun, not cornering
@@ -145,7 +145,7 @@ function benchHandbrake(car) {
   const inp = { ...neutralInput(), steer: 1, handbrake: true, throttle: 0 };
   let t = 0, t90 = null, maxYaw = 0;
   while (t < 4) {
-    step(car, inp, DT); assertFinite(car); t += DT;
+    step(car, inp, PHYSICS_STEP_SECONDS); assertFinite(car); t += PHYSICS_STEP_SECONDS;
     const yaw = Math.abs(car.heading - h0) * 180 / Math.PI;
     maxYaw = Math.max(maxYaw, yaw);
     if (t90 === null && yaw >= 90) t90 = t;
@@ -156,7 +156,7 @@ function benchHandbrake(car) {
   let recovered = false;
   for (let i = 0; i < 120 * 3; i++) {
     rec.steer = clamp(-car.t.vLat * 0.3, -1, 1);   // counter-steer toward the slide
-    step(car, rec, DT); assertFinite(car);
+    step(car, rec, PHYSICS_STEP_SECONDS); assertFinite(car);
     if (Math.abs(car.t.vLat) < 1.0 && Math.abs(car.yawRate) < 0.25 && Math.hypot(car.vx, car.vy) > 3) { recovered = true; break; }
   }
   return { t90, maxYaw, recovered };
@@ -177,17 +177,17 @@ function benchPowerOn(car) {
   setSpeed(car, 15);
   const inp = { ...neutralInput(), steer: 0.35, throttle: 0.15 };
   // settle 1.5 s at a steady moderate corner
-  for (let i = 0; i < Math.round(1.5 / DT); i++) {
+  for (let i = 0; i < Math.round(1.5 / PHYSICS_STEP_SECONDS); i++) {
     const sp = Math.hypot(car.vx, car.vy);
     inp.throttle = clamp((15 - sp) * 0.3, 0, 0.5);
-    step(car, inp, DT); assertFinite(car);
+    step(car, inp, PHYSICS_STEP_SECONDS); assertFinite(car);
   }
   const beta0 = Math.atan2(car.t.vLat, Math.abs(car.t.vLong));
   // now floor it, same steering lock
   inp.throttle = 1;
   let betaPeak = beta0, yawPeak = Math.abs(car.yawRate);
-  for (let i = 0; i < Math.round(2.0 / DT); i++) {
-    step(car, inp, DT); assertFinite(car);
+  for (let i = 0; i < Math.round(2.0 / PHYSICS_STEP_SECONDS); i++) {
+    step(car, inp, PHYSICS_STEP_SECONDS); assertFinite(car);
     const b = Math.atan2(car.t.vLat, Math.abs(car.t.vLong));
     if (Math.abs(b) > Math.abs(betaPeak)) betaPeak = b;
     yawPeak = Math.max(yawPeak, Math.abs(car.yawRate));
@@ -204,7 +204,7 @@ function benchFuzz(car, seed = 12345) {
   const rnd = () => ((s = (s * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff);
   const inp = neutralInput();
   let bad = 0, maxDist = 0;
-  const steps = Math.round(60 / DT);
+  const steps = Math.round(60 / PHYSICS_STEP_SECONDS);
   for (let i = 0; i < steps; i++) {
     if (i % 24 === 0) {
       inp.steer = rnd() * 2 - 1;
@@ -212,7 +212,7 @@ function benchFuzz(car, seed = 12345) {
       inp.brake = rnd() > 0.7 ? rnd() : 0;
       inp.handbrake = rnd() > 0.85;
     }
-    step(car, inp, DT);
+    step(car, inp, PHYSICS_STEP_SECONDS);
     try { assertFinite(car); } catch { bad++; break; }
     maxDist = Math.max(maxDist, Math.hypot(car.x, car.y));
   }
@@ -263,7 +263,7 @@ const HEAD = {
 };
 const pad = (v, n) => String(v === null ? '—' : v === true ? 'yes' : v === false ? 'NO' : v).padStart(n);
 
-console.log('\nBENCH GRID — five cars, five benches. Fixed step ' + (1 / DT).toFixed(0) + ' Hz.\n');
+console.log('\nBENCH GRID — five cars, five benches. Fixed step ' + (1 / PHYSICS_STEP_SECONDS).toFixed(0) + ' Hz.\n');
 console.log(Object.keys(W).map((k) => pad(HEAD[k], W[k])).join(' '));
 console.log(Object.keys(W).map((k) => '-'.repeat(W[k])).join(' '));
 for (const r of rows) console.log(Object.keys(W).map((k) => pad(r[k], W[k])).join(' '));

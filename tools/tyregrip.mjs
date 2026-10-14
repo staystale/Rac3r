@@ -2,7 +2,7 @@
 // 60 km/h, best steady lateral g with body slip under BETA) on all 9 tyre surfaces (cars.js TYRE_SURFS), vs the stock car (no tyre object), and
 // how hot the tyres get in 30 s of hard tarmac cornering (heatHard). Also proves Pre-Spun == stock (the floor, user 2026-10-04).
 // node tools/tyregrip.mjs [car] [tyre,tyre,...]
-import { makeCar, step, reset, DT } from '../src/vehicle.ts';
+import { makeCar, step, reset, PHYSICS_STEP_SECONDS } from '../src/vehicle.ts';
 import { SURFACES } from '../src/lab.js';
 import { TYRES, applyTyre } from '../src/cars.ts';
 const car = process.argv[2] || 'hatch-rwd', BETA = 0.2;
@@ -13,7 +13,7 @@ function grip(tyre, S, v0 = 16.7) {
   let g = 0;
   for (let st = 0.02; st <= 0.6; st += 0.02) {
     const c = mk(tyre); reset(c, 0, 0, 0); const o = c.spec.tyreOpt || [65, 110]; c.tyreT = Array(4).fill((o[0] + o[1]) / 2); c.vx = v0; c.gear = 2; let ay = 0, n = 0, bad = false;
-    for (let k = 0; k < 480; k++) { c.surface = S; step(c, { steer: st, throttle: c.t.vLong < v0 ? 0.5 : 0, brake: 0, handbrake: 0 }, DT);
+    for (let k = 0; k < 480; k++) { c.surface = S; step(c, { steer: st, throttle: c.t.vLong < v0 ? 0.5 : 0, brake: 0, handbrake: 0 }, PHYSICS_STEP_SECONDS);
       if (Math.abs(Math.atan2(c.t.vLat, Math.abs(c.t.vLong))) > BETA) bad = true; if (k > 300) { ay += Math.abs(c.t.vLong * c.yawRate); n++; } }
     if (!bad) g = Math.max(g, ay / n / 9.81);
   }
@@ -22,7 +22,7 @@ function grip(tyre, S, v0 = 16.7) {
 function heat(tyre) {
   // 30 s at 70 km/h on tarmac with the wheel at 0.25 and the throttle holding speed (a hard, slightly sliding corner)
   const c = mk(tyre); reset(c, 0, 0, 0); c.vx = 19.4; c.gear = 3;
-  for (let k = 0; k < 30 / DT; k++) { c.surface = SURFACES.tarmac; step(c, { steer: 0.25, throttle: c.t.vLong < 19.4 ? 0.9 : 0.2, brake: 0, handbrake: 0 }, DT); }
+  for (let k = 0; k < 30 / PHYSICS_STEP_SECONDS; k++) { c.surface = SURFACES.tarmac; step(c, { steer: 0.25, throttle: c.t.vLong < 19.4 ? 0.9 : 0.2, brake: 0, handbrake: 0 }, PHYSICS_STEP_SECONDS); }
   return Math.max(...c.tyreT);
 }
 const base = {}; for (const k of surfs) base[k] = grip('stock', SURFACES[k]);

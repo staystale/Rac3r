@@ -4,7 +4,7 @@
 //
 // For each soft term: switch it off, then check BOTH stability and the grip actually achieved. Anything
 // that can go without the car spinning should go — and each one that goes should hand grip back.
-import { makeCar, step, reset, neutralInput, DT, TUNE } from '../src/vehicle.ts';
+import { makeCar, step, reset, neutralInput, PHYSICS_STEP_SECONDS, TUNE } from '../src/vehicle.ts';
 import { CAR_IDS } from '../src/cars.ts';
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
 
@@ -18,7 +18,7 @@ function grip(id) {
   for (let i = 0; i < 120 * 5; i++) {
     const sp = Math.hypot(car.vx, car.vy);
     inp.throttle = clamp((25 - sp) * 0.3, 0, 0.7);
-    step(car, inp, DT);
+    step(car, inp, PHYSICS_STEP_SECONDS);
     if (i > 120 * 2.5) { sum += Math.abs(car.t.ay) / 9.81; n++; }
   }
   return sum / n;
@@ -31,7 +31,7 @@ function turnIn(id) {
   car.vx = 25; car.gear = 3; car.rpm = 4000;
   const inp = { ...neutralInput(), steer: 0.8, throttle: 0.3 };
   let peak = 0;
-  for (let i = 0; i < 120 * 3; i++) { step(car, inp, DT); peak = Math.max(peak, Math.abs(car.yawRate)); }
+  for (let i = 0; i < 120 * 3; i++) { step(car, inp, PHYSICS_STEP_SECONDS); peak = Math.max(peak, Math.abs(car.yawRate)); }
   return peak;
 }
 
@@ -43,7 +43,7 @@ function spin(id) {
   const inp = { ...neutralInput(), steer: 0.8 };
   let peak = 0, back = 0;
   for (let i = 0; i < 120 * 6; i++) {
-    step(car, inp, DT);
+    step(car, inp, PHYSICS_STEP_SECONDS);
     if (Math.hypot(car.vx, car.vy) > 3) peak = Math.max(peak, Math.abs(Math.atan2(car.t.vLat, car.t.vLong) * 57.3));
     back = Math.min(back, car.t.vLong);
     if (Math.hypot(car.vx, car.vy) < 1) break;

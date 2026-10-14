@@ -9,7 +9,7 @@
 // GRIP: on tarmac you must be within a few degrees or you are losing time; on gravel the peak is way
 // out at 15-25 deg, which is what lets you point the car with the throttle. So this measures the whole
 // grip-versus-slip-angle curve on each surface, not just its maximum.
-import { makeCar, step, reset, neutralInput, DT } from '../src/vehicle.ts';
+import { makeCar, step, reset, neutralInput, PHYSICS_STEP_SECONDS } from '../src/vehicle.ts';
 import { SURFACES, groundAt, applyGround, ZONES, FLOOR, FENCE, FY1 } from '../src/lab.js';
 import { CAR_IDS } from '../src/cars.ts';
 
@@ -28,7 +28,7 @@ function steady(id, surf, steer, v = 25) {
     car.groundF = car.groundR = 0; car.groundVF = car.groundVR = 0;
     const sp = Math.hypot(car.vx, car.vy);
     inp.throttle = clamp((v - sp) * 0.3, 0, 1);
-    step(car, inp, DT);
+    step(car, inp, PHYSICS_STEP_SECONDS);
     if (i > 120 * 3) {                     // settled
       g += Math.abs(car.t.ay) / 9.81;
       beta += Math.abs(Math.atan2(car.t.vLat, car.t.vLong) * 57.3);
@@ -57,7 +57,7 @@ function brake(id, surf, v = 28) {
   while (Math.hypot(car.vx, car.vy) > 0.5 && t < 20) {
     car.surface = surf;
     car.groundF = car.groundR = 0; car.groundVF = car.groundVR = 0;
-    step(car, inp, DT); t += DT;
+    step(car, inp, PHYSICS_STEP_SECONDS); t += PHYSICS_STEP_SECONDS;
   }
   return Math.hypot(car.x, car.y);
 }
@@ -74,7 +74,7 @@ function topIn(id, surf, secs = 15) {
   for (let i = 0; i < 120 * secs; i++) {
     car.surface = surf;
     car.groundF = car.groundR = 0; car.groundVF = car.groundVR = 0;
-    step(car, inp, DT);
+    step(car, inp, PHYSICS_STEP_SECONDS);
   }
   return Math.hypot(car.vx, car.vy) * 3.6;
 }
@@ -136,14 +136,14 @@ console.log('    car             susF   mean g   worst load dip   a wheel off th
     const inp = { ...neutralInput(), steer: 0.42 };
     let g = 0, n = 0, dip = 1, air = 0;
     for (let i = 0; i < 120 * 10; i++) {
-      applyGround(car, DT);
+      applyGround(car, PHYSICS_STEP_SECONDS);
       const sp = Math.hypot(car.vx, car.vy);
       inp.throttle = clamp((24 - sp) * 0.3, 0, 1);
-      step(car, inp, DT);
+      step(car, inp, PHYSICS_STEP_SECONDS);
       if (i > 120 * 2) {
         g += Math.abs(car.t.ay) / 9.81; n++;
         dip = Math.min(dip, Math.min(car.t.loadKF, car.t.loadKR));
-        if (car.t.loadKF <= 0 || car.t.loadKR <= 0) air += DT;
+        if (car.t.loadKF <= 0 || car.t.loadKR <= 0) air += PHYSICS_STEP_SECONDS;
       }
     }
     console.log(`    ${id.padEnd(15)} ${F(car.spec.susF)}  ${F(g / n)} g   ${F(dip)}            ${F(air, 2)} s`);

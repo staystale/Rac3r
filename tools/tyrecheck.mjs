@@ -8,7 +8,7 @@
 //   3. wheelspin heats only the DRIVEN tyres — FWD, RWD and 4WD differ
 //   4. cold tyres grip less on TARMAC; on GRAVEL temperature makes no difference
 //   5. grass, snow, ice cool tyres faster than tarmac
-import { makeCar, step, reset, DT, TYRE_AMBIENT } from '../src/vehicle.ts';
+import { makeCar, step, reset, PHYSICS_STEP_SECONDS, TYRE_AMBIENT } from '../src/vehicle.ts';
 import { setAidsDefault } from '../src/vehicle.ts';
 // RAW physics: driver aids OFF (with TCS on, a burnout is not a burnout; with ABS on, a locked pass cannot lock).
 setAidsDefault(false);
@@ -19,7 +19,7 @@ const check = (ok, msg) => { console.log((ok ? '  ok   ' : '  FAIL ') + msg); if
 const f0 = (a) => a.map((x) => x.toFixed(0)).join(' / ');
 function run(id, surface, secs, control, setup) {
   const car = makeCar(id); reset(car, 0, 0, 0); if (setup) setup(car);
-  for (let i = 0; i < secs / DT; i++) { car.surface = surface; step(car, control(car), DT); }
+  for (let i = 0; i < secs / PHYSICS_STEP_SECONDS; i++) { car.surface = surface; step(car, control(car), PHYSICS_STEP_SECONDS); }
   return car;
 }
 const hold = (v) => (car) => ({ steer: 0, throttle: Math.hypot(car.vx, car.vy) < v ? 0.6 : 0, brake: 0 });
@@ -69,9 +69,9 @@ check(Math.min(front(spin['estate-4x4']), rear(spin['estate-4x4'])) > TYRE_AMBIE
 
 // 4. grip vs temperature: peak lateral g on a steering ramp with the tyre temperature PINNED
 function peakG(surface, T) {
-  const c = run('hatch-rwd', surface, 5, (cc) => { cc.tyreT.fill(T); return { steer: Math.min(0.5, cc.__t = (cc.__t || 0) + DT * 0.12), throttle: Math.hypot(cc.vx, cc.vy) < 18 ? 0.5 : 0, brake: 0 }; }, (cc) => { cc.vx = 18; });
+  const c = run('hatch-rwd', surface, 5, (cc) => { cc.tyreT.fill(T); return { steer: Math.min(0.5, cc.__t = (cc.__t || 0) + PHYSICS_STEP_SECONDS * 0.12), throttle: Math.hypot(cc.vx, cc.vy) < 18 ? 0.5 : 0, brake: 0 }; }, (cc) => { cc.vx = 18; });
   let g = 0; const c2 = makeCar('hatch-rwd'); reset(c2, 0, 0, 0); c2.vx = 18; let s = 0;
-  for (let i = 0; i < 5 / DT; i++) { c2.surface = surface; c2.tyreT.fill(T); s = Math.min(0.5, s + DT * 0.12); step(c2, { steer: s, throttle: Math.hypot(c2.vx, c2.vy) < 18 ? 0.5 : 0, brake: 0 }, DT); g = Math.max(g, Math.abs(c2.t.ay) / 9.81); }
+  for (let i = 0; i < 5 / PHYSICS_STEP_SECONDS; i++) { c2.surface = surface; c2.tyreT.fill(T); s = Math.min(0.5, s + PHYSICS_STEP_SECONDS * 0.12); step(c2, { steer: s, throttle: Math.hypot(c2.vx, c2.vy) < 18 ? 0.5 : 0, brake: 0 }, PHYSICS_STEP_SECONDS); g = Math.max(g, Math.abs(c2.t.ay) / 9.81); }
   return g;
 }
 const gTc = peakG(SURFACES.tarmac, TYRE_AMBIENT), gTw = peakG(SURFACES.tarmac, 100), gTh = peakG(SURFACES.tarmac, 150);
@@ -97,7 +97,7 @@ check(cooled.grass < cooled.tarmac - 10 && cooled.snow < cooled.grass, 'grass co
 // 6. an overheating tyre HOLDS (capped), it never wraps round to cold (user-reported bug)
 { const c = run('hatch-rwd', SURFACES.tarmac, 60, () => ({ steer: 0, throttle: 1, brake: 0 }), (cc) => { cc.vx = 0; });
   const cc = makeCar('hatch-rwd'); reset(cc, 0, 0, 0); let minAfterHot = 999, peak = 0, hot = false;
-  for (let i = 0; i < 60 / DT; i++) { cc.surface = SURFACES.tarmac; cc.vx = 0; cc.vy = 0; step(cc, { steer: 0, throttle: 1, brake: 0 }, DT);
+  for (let i = 0; i < 60 / PHYSICS_STEP_SECONDS; i++) { cc.surface = SURFACES.tarmac; cc.vx = 0; cc.vy = 0; step(cc, { steer: 0, throttle: 1, brake: 0 }, PHYSICS_STEP_SECONDS);
     peak = Math.max(peak, cc.tyreT[2]); if (cc.tyreT[2] > 200) hot = true; if (hot) minAfterHot = Math.min(minAfterHot, cc.tyreT[2]); }
   console.log(`6. 60 s pinned burnout: rear peak ${peak.toFixed(0)} C, lowest after first passing 200 C: ${minAfterHot.toFixed(0)} C`);
   check(hot && minAfterHot > 150, 'an overheated tyre holds its heat — it never wraps round to cold'); }
@@ -108,8 +108,8 @@ check(cooled.grass < cooled.tarmac - 10 && cooled.snow < cooled.grass, 'grass co
   const times = (id, surf, ctl, pin, v0, secs = 90) => {
     const c = makeCar(id); reset(c, 0, 0, 0); if (v0) c.vx = v0;
     const hit = { 65: Infinity, 110: Infinity, 260: Infinity }; let at30 = 0;
-    for (let i = 0; i < secs / DT; i++) { c.surface = surf; if (pin) { c.vx = 0; c.vy = 0; } step(c, ctl(c), DT);
-      const T = Math.max(...c.tyreT), tt = (i + 1) * DT; for (const k in hit) if (hit[k] === Infinity && T >= +k) hit[k] = tt; if (Math.abs(tt - 30) < DT / 2) at30 = T; }
+    for (let i = 0; i < secs / PHYSICS_STEP_SECONDS; i++) { c.surface = surf; if (pin) { c.vx = 0; c.vy = 0; } step(c, ctl(c), PHYSICS_STEP_SECONDS);
+      const T = Math.max(...c.tyreT), tt = (i + 1) * PHYSICS_STEP_SECONDS; for (const k in hit) if (hit[k] === Infinity && T >= +k) hit[k] = tt; if (Math.abs(tt - 30) < PHYSICS_STEP_SECONDS / 2) at30 = T; }
     return { ...hit, at30 };
   };
   const s = (v) => (v === Infinity ? 'never' : v.toFixed(0) + ' s');
@@ -145,8 +145,8 @@ check(cooled.grass < cooled.tarmac - 10 && cooled.snow < cooled.grass, 'grass co
     const c = makeCar('hatch-rwd'); prep(c); c.tyreT = [50, 50, 50, 50]; c.gear = 3;
     let step1 = 0, prev = c.tyreT.slice();
     for (let i = 0; i < 300; i++) {
-      Lmod.applyGround(c, DT);
-      step(c, { steer: 0, throttle: 0, brake: 0, handbrake: 0, ...(Math.abs(c.x - tb.x) < 12 ? inp : {}) }, DT);
+      Lmod.applyGround(c, PHYSICS_STEP_SECONDS);
+      step(c, { steer: 0, throttle: 0, brake: 0, handbrake: 0, ...(Math.abs(c.x - tb.x) < 12 ? inp : {}) }, PHYSICS_STEP_SECONDS);
       c.tyreT.forEach((x, k) => { step1 = Math.max(step1, x - prev[k]); }); prev = c.tyreT.slice();
     }
     const rise = Math.max(...c.tyreT) - 50;
@@ -155,7 +155,7 @@ check(cooled.grass < cooled.tarmac - 10 && cooled.snow < cooled.grass, 'grass co
   }
   const c = makeCar('hatch-rwd'); reset(c, 0, 0, 0); c.vx = 25; c.gear = 3; c.tyreT = [50, 50, 50, 50];
   let step1 = 0, prev = c.tyreT.slice();
-  for (let t = 0; t < 2; t += DT) { c.surface = t < 0.7 ? SURFACES.grass : SURFACES.tarmac; step(c, { steer: 0.4, throttle: 0, brake: 1, handbrake: 1 }, DT); c.tyreT.forEach((x, k) => { step1 = Math.max(step1, x - prev[k]); }); prev = c.tyreT.slice(); }
+  for (let t = 0; t < 2; t += PHYSICS_STEP_SECONDS) { c.surface = t < 0.7 ? SURFACES.grass : SURFACES.tarmac; step(c, { steer: 0.4, throttle: 0, brake: 1, handbrake: 1 }, PHYSICS_STEP_SECONDS); c.tyreT.forEach((x, k) => { step1 = Math.max(step1, x - prev[k]); }); prev = c.tyreT.slice(); }
   console.log(`8. braking slide from grass onto tarmac: biggest single step +${step1.toFixed(2)} C, peak ${Math.max(...c.tyreT).toFixed(0)} C`);
   check(step1 < 2, 'braking slide across a surface change: no heat spike');
   Lmod.setLevel('lab');

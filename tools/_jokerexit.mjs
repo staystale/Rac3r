@@ -1,7 +1,7 @@
 // _jokerexit.mjs ??? the JOKER branch, dumped (user, 2026-10-07: "exit of jokers still seems slow n on rails a bit"). Per ~5 m of the
 // branch path: radius R, ground mu, the PLAN speed (profile x pace), and what one AI actually did there (speed, throttle, brake, slip,
 // m off the path) ??? then the same metres of the MAIN line for comparison. node tools/_jokerexit.mjs [level] [car] [diff] [seed]
-import { makeCar, step, reset, DT } from '../src/vehicle.ts';
+import { makeCar, step, reset, PHYSICS_STEP_SECONDS } from '../src/vehicle.ts';
 import * as L from '../src/lab.js';
 const { createAIDriver } = await import(process.env.AINEXT ? '../src/ai/circuit.next.js' : '../src/ai/circuit.ts'), { aiTraits } = await import('../src/ai/traits.ts'), { aiPaths } = await import('../src/ai/line.ts');
 const [lv = 'knobhill', carId = 'hatch-rwd', d = '4', seed = '1'] = process.argv.slice(2);
@@ -12,8 +12,8 @@ const tr = aiTraits(+d, 0, 1, +seed), drv = createAIDriver(L.LEVEL, tr);
 drv.state.jPlan = 1;   // joker on lap 1, so the dump comes quickly
 const rec = new Map(); let t = 0, seen = false, left = false, lapGuess = 1;
 while (t < 200) {
-  L.applyGround(car, DT);
-  const w = drv.drive(car, DT, { cars: [], lap: lapGuess, laps: 5 }); step(car, w, DT); t += DT;
+  L.applyGround(car, PHYSICS_STEP_SECONDS);
+  const w = drv.drive(car, PHYSICS_STEP_SECONDS, { cars: [], lap: lapGuess, laps: 5 }); step(car, w, PHYSICS_STEP_SECONDS); t += PHYSICS_STEP_SECONDS;
   const st = drv.state;
   if (st.path === J) { seen = true; const i = st.i, k = Math.floor(i * J.sp / 5);
     if (!rec.has(k)) rec.set(k, { v: Math.hypot(car.vx, car.vy), thr: w.throttle, brk: w.brake, sR: Math.abs(car.t.slipR || 0), sF: Math.abs(car.t.slipF || 0), off: st.lastDist, vT: st.vT, mu: car.surface.mu }); }

@@ -9,7 +9,7 @@
 //   3. IT GRABS — a yawed car must be pulled straight, not left spinning.
 //   4. YOU GET STUCK — full throttle from rest in gravel must barely move the car.
 //   5. IT DOES NOT TOUCH THE TARMAC. Every number on the floor is unchanged.
-import { makeCar, step, reset, neutralInput, DT } from '../src/vehicle.ts';
+import { makeCar, step, reset, neutralInput, PHYSICS_STEP_SECONDS } from '../src/vehicle.ts';
 import { applyGround, groundAt, FLOOR, FENCE, RUNOFF_MU, SURFACE_TARMAC, LEVELS, setLevel, SURFACES } from '../src/lab.js';
 // S-B (2026-10-06): the lab's south edge moved 480 m south, so the trap is measured on a BARE square lab floor (kerbcheck.mjs the same)
 { const lab = LEVELS.find((l) => l.id === 'lab');   // the old lab's quarters + its blend / inclusion patches; no extension, no bounds
@@ -35,8 +35,8 @@ function onSurface(id, surf, v, yaw = 0, inp0 = {}, secs = 20) {
   for (let i = 0; i < 120 * secs; i++) {
     car.surface = surf;                       // pinned: no fence, no grading, just this surface
     car.groundF = car.groundR = 0; car.groundVF = car.groundVR = 0;
-    step(car, inp, DT);
-    t += DT;
+    step(car, inp, PHYSICS_STEP_SECONDS);
+    t += PHYSICS_STEP_SECONDS;
     const beta = Math.abs(Math.atan2(car.t.vLat, car.t.vLong) * 57.3);
     if (Math.hypot(car.vx, car.vy) > 2) maxYaw = Math.max(maxYaw, beta);
     if (Math.hypot(car.vx, car.vy) < 0.4) break;
@@ -56,8 +56,8 @@ function realTrap(id, v, yaw = 0) {
   const inp = { ...neutralInput() };
   const y0 = car.y;
   for (let i = 0; i < 120 * 20; i++) {
-    applyGround(car, DT);
-    step(car, inp, DT);
+    applyGround(car, PHYSICS_STEP_SECONDS);
+    step(car, inp, PHYSICS_STEP_SECONDS);
     if (Math.abs(car.y) >= FENCE - 0.6) {
       return { hit: true, vHit: Math.hypot(car.vx, car.vy), dist: Math.abs(car.y - y0) };
     }
@@ -110,7 +110,7 @@ for (const id of CAR_IDS) {
     for (let i = 0; i < 120 * 4; i++) {
       car.surface = surf;
       car.groundF = car.groundR = 0; car.groundVF = car.groundVR = 0;
-      step(car, inp, DT);
+      step(car, inp, PHYSICS_STEP_SECONDS);
     }
     return Math.hypot(car.x, car.y);
   };
@@ -135,7 +135,7 @@ console.log('\n6. THE TARMAC IS UNTOUCHED — plough is 0 there, so this is the 
   const inp = { ...neutralInput(), brake: 1 };
   let t = 0;
   const x0 = car.x;
-  while (Math.hypot(car.vx, car.vy) > 0.5 && t < 10) { applyGround(car, DT); step(car, inp, DT); t += DT; }
+  while (Math.hypot(car.vx, car.vy) > 0.5 && t < 10) { applyGround(car, PHYSICS_STEP_SECONDS); step(car, inp, PHYSICS_STEP_SECONDS); t += PHYSICS_STEP_SECONDS; }
   console.log(`   braking 30 m/s -> 0 on the floor: ${(car.x - x0).toFixed(1)} m in ${t.toFixed(2)}s`);
   console.log(`   surface: ${car.surface.id}  mu ${car.surface.mu}  plough ${car.surface.plough}  mark ${car.surface.mark ? 'yes' : 'none'}`);
 }

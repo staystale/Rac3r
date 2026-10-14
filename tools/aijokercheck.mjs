@@ -2,7 +2,7 @@
 // per lap time, which lap it jokered (counted by the GATE, the same circle test as main.js stepJoker), how many gate entries (must be 1),
 // and on Slidden Hill whether the start was driven down the RX start straight (the furthest it got from the start lane,
 // until it reaches the lane's end, must be under the lane's half width). node tools/aijokercheck.mjs [levels] [car] [diff 0-4] [seeds e.g. 1,2,3,4,5]
-import { makeCar, step, reset, DT } from '../src/vehicle.ts';
+import { makeCar, step, reset, PHYSICS_STEP_SECONDS } from '../src/vehicle.ts';
 import * as L from '../src/lab.js';
 import { createAIDriver } from '../src/ai/circuit.ts';
 import { aiTraits } from '../src/ai/traits.ts';
@@ -20,12 +20,12 @@ for (const lv of levels) {
     let reachedEnd = false, t = 0, prog = null, lastQ = null, inGate = false, gates = 0, gateLap = [], lapT = [], tl = 0, startDev = 0, off = 0;
     const total = st.totalDist;
     while (t < 600) {
-      L.applyGround(car, DT);
+      L.applyGround(car, PHYSICS_STEP_SECONDS);
       const lap = prog == null ? 1 : Math.max(1, Math.floor(prog / total) + 1);
-      step(car, drv.drive(car, DT, { cars: [], lap, laps: J ? J.laps : 5 }), DT); t += DT;
+      step(car, drv.drive(car, PHYSICS_STEP_SECONDS, { cars: [], lap, laps: J ? J.laps : 5 }), PHYSICS_STEP_SECONDS); t += PHYSICS_STEP_SECONDS;
       const q = L.querySubtrack(st, car.x, car.y);
       if (isFinite(q.trackDist)) { if (prog == null) { prog = q.trackDist > total / 2 ? q.trackDist - total : q.trackDist; } else { let dq = q.trackDist - lastQ; if (dq > total / 2) dq -= total; if (dq < -total / 2) dq += total; const before = Math.floor(prog / total); prog += dq; if (Math.floor(prog / total) > before && prog > 0) { lapT.push((t - tl).toFixed(1)); tl = t; } } lastQ = q.trackDist; }
-      if (q.dist > st.width / 2 + 1 && !(paths.startLane && t < 8)) off += DT;
+      if (q.dist > st.width / 2 + 1 && !(paths.startLane && t < 8)) off += PHYSICS_STEP_SECONDS;
       if (J) { const g = (car.x - J.gate.x) ** 2 + (car.y - J.gate.y) ** 2 < J.gate.r * J.gate.r; if (g && !inGate) { gates++; gateLap.push(lap); } inGate = g; }
       if (paths.startLane && !reachedEnd) { const E = paths.startLane.pts[paths.startLane.pts.length - 1]; if (Math.hypot(car.x - E[0], car.y - E[1]) < 10) reachedEnd = true; else startDev = Math.max(startDev, segDist(paths.startLane.pts, car.x, car.y)); }
       if (prog != null && prog >= total * (J ? J.laps : 5)) break;

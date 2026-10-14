@@ -1,7 +1,7 @@
 // terraincheck.mjs — STEP 3 TERRAIN (2026-10-03). Height is real: the suspension feels it, gravity on its slope pushes the
 // car (user: "vector dips ... push in all 8 directions, OUT of bumps and IN to dips"), and render.ts shades it.
 // Checks the PUSH directions, the suspension zone in the Lab, the Naffcar banking, and the cost.
-import { makeCar, step, reset, DT } from '../src/vehicle.ts';
+import { makeCar, step, reset, PHYSICS_STEP_SECONDS } from '../src/vehicle.ts';
 import * as L from '../src/lab.js';
 const fails = [];
 const check = (ok, msg) => { console.log(`  ${ok ? 'ok  ' : 'FAIL'} ${msg}`); if (!ok) fails.push(msg); };
@@ -31,8 +31,8 @@ const lane = (y, x0, x1, label) => {
   const c = makeCar('hatch-rwd'); reset(c, x0, y, 0); c.vx = 13.9; c.gear = 3;
   let maxL = 0, minL = 9, air = 0, sumd = 0, n = 0, prev = 1;
   for (let i = 0; i < 120 * 8 && c.x < x1; i++) {
-    L.applyGround(c, DT); step(c, { steer: 0, throttle: c.t.vLong < 13.9 ? 0.4 : 0, brake: 0, handbrake: 0 }, DT);
-    maxL = Math.max(maxL, c.loadK); minL = Math.min(minL, c.loadK); if (c.air > 0) air += DT; sumd += Math.abs(c.loadK - prev); prev = c.loadK; n++;
+    L.applyGround(c, PHYSICS_STEP_SECONDS); step(c, { steer: 0, throttle: c.t.vLong < 13.9 ? 0.4 : 0, brake: 0, handbrake: 0 }, PHYSICS_STEP_SECONDS);
+    maxL = Math.max(maxL, c.loadK); minL = Math.min(minL, c.loadK); if (c.air > 0) air += PHYSICS_STEP_SECONDS; sumd += Math.abs(c.loadK - prev); prev = c.loadK; n++;
   }
   console.log(`   ${label.padEnd(10)} load ${minL.toFixed(2)}..${maxL.toFixed(2)} x static, airtime ${air.toFixed(2)} s, chatter ${(sumd / n * 1000).toFixed(1)}`);
   return { maxL, minL, air, chatter: sumd / n, finite: Number.isFinite(c.x + c.y) };

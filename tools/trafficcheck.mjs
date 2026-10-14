@@ -3,7 +3,7 @@
 // STOPPED on the hard shoulder, then FAST again. Measures, per preset and density: traffic-on-traffic CONTACTS (they must not crash
 // into each other), cars POPPING IN / OUT inside the view, traffic off the carriageway, lane changes, recycles, and the step cost.
 // node tools/trafficcheck.mjs [density 0..1.5] [seconds per phase]
-import { makeCar, DT } from '../src/vehicle.ts';
+import { makeCar, PHYSICS_STEP_SECONDS } from '../src/vehicle.ts';
 import * as L from '../src/lab.js';
 import * as H from '../src/highway.js';
 import { createTraffic } from '../src/traffic.ts';
@@ -30,11 +30,11 @@ for (const preset of ['motorway', 'interstate', 'dual']) {
   const phases = [['fast', 140 / 3.6, C.length - 1], ['slow', 70 / 3.6, 0], ['stopped', 0, -1], ['fast again', 140 / 3.6, C.length - 1]];
   for (const [name, v, lane] of phases) {
     const target = lane < 0 ? -geo.hw + lv._cfg.shoulder / 2 : C[lane];
-    for (let t = 0; t < PH; t += DT) {
+    for (let t = 0; t < PH; t += PHYSICS_STEP_SECONDS) {
       // the player: speed + lane eased in (a lane change over ~2 s), then placed
-      pV += Math.max(-6 * DT, Math.min(4 * DT, v - pV)); pOff += Math.max(-1.8 * DT, Math.min(1.8 * DT, target - pOff)); pS += pV * DT; place();
+      pV += Math.max(-6 * PHYSICS_STEP_SECONDS, Math.min(4 * PHYSICS_STEP_SECONDS, v - pV)); pOff += Math.max(-1.8 * PHYSICS_STEP_SECONDS, Math.min(1.8 * PHYSICS_STEP_SECONDS, target - pOff)); pS += pV * PHYSICS_STEP_SECONDS; place();
       const ds = H.stepHighway(lv, me);
-      const t0 = performance.now(); tr.step(DT, { player: me, others: [], visible: vis }); ms += performance.now() - t0; n++;
+      const t0 = performance.now(); tr.step(PHYSICS_STEP_SECONDS, { player: me, others: [], visible: vis }); ms += performance.now() - t0; n++;
       // traffic vs traffic (resolved, as main.js does with carContacts) — every touch counted
       const cs = tr.cars;
       for (let i = 0; i < cs.length; i++) for (let k = i + 1; k < cs.length; k++) if (carContact(cs[i], cs[k])) { contacts++;
@@ -48,7 +48,7 @@ for (const preset of ['motorway', 'interstate', 'dual']) {
       prev = now;
       for (const tt of tr.list) if (!tt.parked) { if (Math.abs(tt.off) > geo.hw + 0.3) { offRoad++; if (process.env.TFDBG && !tt._dbgOff) { tt._dbgOff = 1; console.log(`    OFF ${name} t ${t.toFixed(1)}: s ${(tt.s - pS).toFixed(1)} off ${tt.off.toFixed(2)} laneOff ${tt.laneOff.toFixed(2)} lane ${tt.lane}->${tt.laneT} v ${(tt.vAl * 3.6).toFixed(0)} phys ${tt.phys} kin ${tt.kin} wreck ${tt.wreck} heading-err ${(Math.atan2(tt.car.vy, tt.car.vx) * 57.3).toFixed(0)} | player off ${pOff.toFixed(2)}`); } }
         if (tt.wreck) { wrecks++; if (process.env.TFDBG && !tt._dbgW) { tt._dbgW = 1; console.log(`    WRECK ${name} t ${t.toFixed(1)}: s ${(tt.s - pS).toFixed(1)} off ${tt.off.toFixed(2)} dmg ${tt.car.dmg.map((d) => d.toFixed(2))} roll ${!!(tt.car.roll && tt.car.roll.phase !== 'none')} v ${(Math.hypot(tt.car.vx, tt.car.vy) * 3.6).toFixed(0)}`); } } vSum += Math.hypot(tt.car.vx, tt.car.vy); vN++; }
-      if (Math.round(t / DT) % 120 === 0) lanes = tr.list.reduce((a, tt) => a + (tt.laneT !== tt.lane ? 1 : 0), lanes);
+      if (Math.round(t / PHYSICS_STEP_SECONDS) % 120 === 0) lanes = tr.list.reduce((a, tt) => a + (tt.laneT !== tt.lane ? 1 : 0), lanes);
     }
     const st = tr.stats();
     console.log(`  ${preset} after ${name}: live ${st.live}/${st.want}, placed ${st.placed}, recycled ${st.recycled}, forced in view ${st.visHits} | contacts so far ${contacts} (${contactCars.size} cars)`);

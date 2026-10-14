@@ -4,7 +4,7 @@
 // break traction — the power that used to spin the rears no longer could.
 //
 // A donut is sustained when the rear stays sliding and the car keeps yawing, for seconds, not a moment.
-import { makeCar, step, reset, neutralInput, DT } from '../src/vehicle.ts';
+import { makeCar, step, reset, neutralInput, PHYSICS_STEP_SECONDS } from '../src/vehicle.ts';
 import { CAR_IDS } from '../src/cars.ts';
 
 function donut(id, powerMul) {
@@ -15,7 +15,7 @@ function donut(id, powerMul) {
   const inp = { ...neutralInput(), steer: 1, throttle: 1 };
   let slidingSteps = 0, n = 0, yawSum = 0, spd = 0;
   for (let i = 0; i < 120 * 6; i++) {
-    step(car, inp, DT);
+    step(car, inp, PHYSICS_STEP_SECONDS);
     if (i > 120) {                       // after 1 s of settling
       n++;
       if (car.t.spinR) slidingSteps++;      // TRUE wheelspin, not merely a big rear slip angle

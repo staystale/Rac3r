@@ -2,7 +2,7 @@
 // 5 AI at Real (d4) against a "player" that cruises at CRUISE km/h in its lane (not trying), on a phone-ish +-VIEW m screen. Logs the
 // countdown every second and how often it resets / holds, and whether it ends. node tools/_catchreal.mjs [srcDir] [cruise km/h] [seed] [view]
 const SRC = process.argv[2] || '../src', CRUISE = +(process.argv[3] || 100) / 3.6, SEED = +(process.argv[4] || 4242), VIEW = +(process.argv[5] || 75);
-const { makeCar, step, reset, DT } = await import(SRC + '/vehicle.ts'), L = await import(SRC + '/lab.js'), H = await import(SRC + '/highway.js');
+const { makeCar, step, reset, PHYSICS_STEP_SECONDS } = await import(SRC + '/vehicle.ts'), L = await import(SRC + '/lab.js'), H = await import(SRC + '/highway.js');
 // the levels importing these modules used to add (task 078 made it explicit)
 H.addHighwayLevel();
 const { createTraffic } = await import(SRC + '/traffic.ts'), { aiTraits } = await import(SRC + '/ai/traits.ts'), { createAIDriver } = await import(SRC + '/ai/circuit.ts');
@@ -20,18 +20,18 @@ while (t < 120 && flow.state !== 'done') {
   hwFrames(lv, [...cars, ...tr.cars]);
   const green = t >= HW_GREEN;
   for (let k = 0; k < N; k++) { const c = cars[k], others = [...cars.filter((o) => o !== c), ...tr.cars];
-    let w = drv[k].drive(c, DT, { cars: others, hold: !green });
+    let w = drv[k].drive(c, PHYSICS_STEP_SECONDS, { cars: others, hold: !green });
     if (c === me && green) { const v = Math.hypot(c.vx, c.vy); w = { ...w, throttle: v < CRUISE ? Math.min(w.throttle, 0.6) : 0, brake: v > CRUISE + 1 ? 0.2 : w.brake }; }
     if (!green) { const v = Math.hypot(c.vx, c.vy); w = { ...w, throttle: v > 16 ? 0 : Math.min(w.throttle, 0.55), brake: Math.max(w.brake, v > 18 ? 0.25 : 0) }; }
-    L.barrierClamp(c); L.solidClamp(c); L.applyGround(c, DT); step(c, w, DT); }
+    L.barrierClamp(c); L.solidClamp(c); L.applyGround(c, PHYSICS_STEP_SECONDS); step(c, w, PHYSICS_STEP_SECONDS); }
   const ds = H.stepHighway(lv, me); if (ds) for (const c of [...cars, ...tr.cars]) if (c._hwf) c._hwf.s -= ds;
-  tr.step(DT, { player: me, others: cars.filter((c) => c !== me), visible: vis });
-  if (green) { flow.step(DT);
-    if (flow.cdKind === 'ahead') { cdT += DT; if (flow.cdHold) holdT += DT; if (prevKind === 'ahead' && flow.cd > prevCd + 0.5) resets++; }
+  tr.step(PHYSICS_STEP_SECONDS, { player: me, others: cars.filter((c) => c !== me), visible: vis });
+  if (green) { flow.step(PHYSICS_STEP_SECONDS);
+    if (flow.cdKind === 'ahead') { cdT += PHYSICS_STEP_SECONDS; if (flow.cdHold) holdT += PHYSICS_STEP_SECONDS; if (prevKind === 'ahead' && flow.cd > prevCd + 0.5) resets++; }
     if (flow.cdKind !== prevKind && prevKind === 'ahead') resets++;
     prevKind = flow.cdKind; prevCd = flow.cd; }
-  if (Math.abs(t - Math.round(t)) < DT / 2 && Math.round(t) % 2 === 0 && green) { const top = cars.filter((c) => c !== me).reduce((a, c) => (c._hwf.s < a._hwf.s ? c : a)); line.push(`${Math.round(t)}s:${flow.cdKind ? flow.cdKind[0] + (flow.cdHold ? 'H' : '') + flow.cd.toFixed(1) : '-'}(gap ${(top._hwf.s - me._hwf.s).toFixed(0)})`); }
-  t += DT;
+  if (Math.abs(t - Math.round(t)) < PHYSICS_STEP_SECONDS / 2 && Math.round(t) % 2 === 0 && green) { const top = cars.filter((c) => c !== me).reduce((a, c) => (c._hwf.s < a._hwf.s ? c : a)); line.push(`${Math.round(t)}s:${flow.cdKind ? flow.cdKind[0] + (flow.cdHold ? 'H' : '') + flow.cd.toFixed(1) : '-'}(gap ${(top._hwf.s - me._hwf.s).toFixed(0)})`); }
+  t += PHYSICS_STEP_SECONDS;
 }
 console.log(line.join(' '));
 console.log(`cruise ${(CRUISE * 3.6).toFixed(0)} km/h seed ${SEED} view ${VIEW}: ${flow.state === 'done' ? 'ENDED at ' + flow.endT.toFixed(1) + ' s' : 'NOT ENDED in 120 s'} | countdown ran ${cdT.toFixed(1)} s, held ${holdT.toFixed(1)} s, reset/cancelled ${resets}x`);

@@ -5,7 +5,7 @@
 // 4. Fence collision wedging protection
 
 import { SURFACES, createSubtrack, findNearestSubtrackPoint, recordWearAt, getWornSurface, clearWear, fenceClamp, groundAt, setLevel, LEVELS, FLOOR, FENCE } from '../src/lab.js';
-import { makeCar, reset, step, neutralInput, DT } from '../src/vehicle.ts';
+import { makeCar, reset, step, neutralInput, PHYSICS_STEP_SECONDS } from '../src/vehicle.ts';
 
 console.log('=== PHASE 1 VERIFICATION ===\n');
 

@@ -2,7 +2,7 @@
 // per car its persona, laps done, best lap; for the field: contact-seconds (time any pair is touching), contact EVENTS (new touches),
 // overtakes (order changes on track), stuck resets, seconds off the road. Difficulty and seed decide the mix.
 // node tools/aifieldcheck.mjs [level] [car] [diff 0-4] [n 1-6] [seed] [laps]
-import { makeCar, step, reset, DT } from '../src/vehicle.ts';
+import { makeCar, step, reset, PHYSICS_STEP_SECONDS } from '../src/vehicle.ts';
 import * as L from '../src/lab.js';
 import { carContact, slipstream } from '../src/contact.js';
 import { hit, repair, tooInjured } from '../src/damage.js';   // DMG=1: damage on, as main.js
@@ -33,13 +33,13 @@ const surf = {}; const kinds = { start: 0, noseTail: 0, side: 0 }; let nowTouch 
 while (t < 200 + LAPS * 120) {
   for (const f of field) {
     const c = f.car, lap = f.prog == null ? 1 : Math.max(1, Math.floor(f.prog / total) + 1);
-    const v0x = c.vx, v0y = c.vy; L.barrierClamp(c); L.solidClamp(c); if (DMG) { hit(c, v0x, v0y, DT); if (tooInjured(c)) { const q = L.findNearestSubtrackPoint(sub, c.x, c.y); reset(c, q.x, q.y, q.heading); f.drv.relocate(); repair(c); f.dmgResets = (f.dmgResets || 0) + 1; inc.reset++; f.inc = (f.inc || 0) + 1; } }
-    L.applyGround(c, DT);
-    step(c, f.lastU = f.drv.drive(c, DT, { cars: field.filter((o) => o !== f).map((o) => o.car), lap, laps: LAPS }), DT);
+    const v0x = c.vx, v0y = c.vy; L.barrierClamp(c); L.solidClamp(c); if (DMG) { hit(c, v0x, v0y, PHYSICS_STEP_SECONDS); if (tooInjured(c)) { const q = L.findNearestSubtrackPoint(sub, c.x, c.y); reset(c, q.x, q.y, q.heading); f.drv.relocate(); repair(c); f.dmgResets = (f.dmgResets || 0) + 1; inc.reset++; f.inc = (f.inc || 0) + 1; } }
+    L.applyGround(c, PHYSICS_STEP_SECONDS);
+    step(c, f.lastU = f.drv.drive(c, PHYSICS_STEP_SECONDS, { cars: field.filter((o) => o !== f).map((o) => o.car), lap, laps: LAPS }), PHYSICS_STEP_SECONDS);
     if (process.env.SURF && t > 12) { const k = c.surface.id || c.surface.name || String(c.surface.mu), S = surf[k] || (surf[k] = { t: 0, v: 0, vT: 0, brk: 0, lift: 0, under: 0, mu: c.surface.mu }), u = f.lastU || {}, sF = Math.abs(c.t.slipF || 0);
-      S.t += DT; S.v += Math.hypot(c.vx, c.vy) * DT; S.vT += Math.min(95, f.drv.state.vT) * DT; if (u.brake > 0) S.brk += DT; else if ((u.throttle || 0) < 0.3) S.lift += DT; if (sF > 0.14) S.under += DT; }
-    f.stuck = Math.hypot(c.vx, c.vy) < 1 ? f.stuck + DT : 0;
-    if (f.drv.state.follow && t > 12) f.fol = (f.fol || 0) + DT;   // QUEUEING: seconds held to the speed of a car ahead (after the start)
+      S.t += PHYSICS_STEP_SECONDS; S.v += Math.hypot(c.vx, c.vy) * PHYSICS_STEP_SECONDS; S.vT += Math.min(95, f.drv.state.vT) * PHYSICS_STEP_SECONDS; if (u.brake > 0) S.brk += PHYSICS_STEP_SECONDS; else if ((u.throttle || 0) < 0.3) S.lift += PHYSICS_STEP_SECONDS; if (sF > 0.14) S.under += PHYSICS_STEP_SECONDS; }
+    f.stuck = Math.hypot(c.vx, c.vy) < 1 ? f.stuck + PHYSICS_STEP_SECONDS : 0;
+    if (f.drv.state.follow && t > 12) f.fol = (f.fol || 0) + PHYSICS_STEP_SECONDS;   // QUEUEING: seconds held to the speed of a car ahead (after the start)
     if (f.stuck > 3 || f.drv.state.giveUp) { const q = L.findNearestSubtrackPoint(sub, c.x, c.y); reset(c, q.x, q.y, q.heading); f.drv.relocate(); f.stuck = 0; f.resets++; inc.reset++; f.inc = (f.inc || 0) + 1; }
     { const vv = Math.hypot(c.vx, c.vy); if (vv > 5 && t > 2) { let a = Math.atan2(c.vy, c.vx) - c.heading; a = Math.abs(Math.atan2(Math.sin(a), Math.cos(a))); if (a > 1.22 && t - (f.spinT ?? -99) > 3) { f.spinT = t; inc.spin++; f.inc = (f.inc || 0) + 1; } } }
     const q = L.querySubtrack(sub, c.x, c.y);
@@ -47,7 +47,7 @@ while (t < 200 + LAPS * 120) {
       if (f.prog == null) f.prog = q.trackDist > total / 2 ? q.trackDist - total : q.trackDist;
       else { let dq = q.trackDist - f.lastQ; if (dq > total / 2) dq -= total; if (dq < -total / 2) dq += total; const b = Math.floor(f.prog / total); f.prog += dq; if (Math.floor(f.prog / total) > b && f.prog > 0) { if (b >= 0) f.laps.push(t - f.tl); f.tl = t; } }
       f.lastQ = q.trackDist;
-      if (q.dist > sub.width / 2 + 0.5) { if (process.env.OFFLOG && !f.wasOff) { const s = f.drv.state; console.log(`OFF #${f.car.spec.id.split("#")[1]} t ${t.toFixed(1)} d ${q.trackDist.toFixed(0)} v ${Math.hypot(c.vx, c.vy).toFixed(1)} vT ${s.vT.toFixed(1)} atk ${!!s.atk} cov ${!!s.cover} mist ${s.mist ? s.mist.kind : "-"} follow ${s.follow} dodge ${s.dodge.toFixed(1)}`); } f.wasOff = true; f.off += DT; } else f.wasOff = false;
+      if (q.dist > sub.width / 2 + 0.5) { if (process.env.OFFLOG && !f.wasOff) { const s = f.drv.state; console.log(`OFF #${f.car.spec.id.split("#")[1]} t ${t.toFixed(1)} d ${q.trackDist.toFixed(0)} v ${Math.hypot(c.vx, c.vy).toFixed(1)} vT ${s.vT.toFixed(1)} atk ${!!s.atk} cov ${!!s.cover} mist ${s.mist ? s.mist.kind : "-"} follow ${s.follow} dodge ${s.dodge.toFixed(1)}`); } f.wasOff = true; f.off += PHYSICS_STEP_SECONDS; } else f.wasOff = false;
       if (q.dist > sub.width / 2 + INC_OFF) { if (!f.wellOff) { f.wellOff = true; inc.off++; f.inc = (f.inc || 0) + 1; } } else if (q.dist < sub.width / 2) f.wellOff = false;
     }
   }
@@ -64,14 +64,14 @@ while (t < 200 + LAPS * 120) {
       kinds[t < 8 ? 'start' : Math.abs(l) < 1.6 ? 'noseTail' : 'side']++; }
     nowTouch.add(key);
   }
-  if (DMG) field.forEach((f, i) => hit(f.car, vS[i][0], vS[i][1], DT));
-  if (any) touchT += DT;
+  if (DMG) field.forEach((f, i) => hit(f.car, vS[i][0], vS[i][1], PHYSICS_STEP_SECONDS));
+  if (any) touchT += PHYSICS_STEP_SECONDS;
   wasTouch = nowTouch; nowTouch = new Set();
-  t += DT;
+  t += PHYSICS_STEP_SECONDS;
   // overtakes: the running order by progress, once a second
-  if (Math.abs(t % 1) < DT && t > 5) { const o = field.map((f, i) => [f.prog, i]).sort((a, b) => b[0] - a[0]).map((x) => x[1]).join(','); if (order && o !== order) { const A = order.split(','), B = o.split(','); for (let k = 0; k < N; k++) if (A[k] !== B[k]) { overtakes++; break; } } order = o; }
+  if (Math.abs(t % 1) < PHYSICS_STEP_SECONDS && t > 5) { const o = field.map((f, i) => [f.prog, i]).sort((a, b) => b[0] - a[0]).map((x) => x[1]).join(','); if (order && o !== order) { const A = order.split(','), B = o.split(','); for (let k = 0; k < N; k++) if (A[k] !== B[k]) { overtakes++; break; } } order = o; }
   // PASSES: a pair swaps running order and HOLDS it 3 s (after the first 12 s, so the start's shuffle is not counted)
-  if (t > 12 && Math.abs(t % 0.5) < DT) for (let a = 0; a < N; a++) for (let b = a + 1; b < N; b++) {
+  if (t > 12 && Math.abs(t % 0.5) < PHYSICS_STEP_SECONDS) for (let a = 0; a < N; a++) for (let b = a + 1; b < N; b++) {
     const k = a + ':' + b, ahead = field[a].prog > field[b].prog, P = pairs[k] || (pairs[k] = { ahead, since: t, held: ahead });
     if (ahead !== P.ahead) { P.ahead = ahead; P.since = t; }
     if (P.ahead !== P.held && t - P.since >= 3) { P.held = P.ahead; passes++; }

@@ -10,7 +10,7 @@
 // 4. a puddle scales what it sits on (puddle-on-grass is LESS grippy than grass, not wet-tarmac grippy)
 // 5. COVERAGE (CLAUDE.md rule 18): every surface in SURFACES has graphics in render.ts SURFACE_ART
 import { readFileSync } from 'node:fs';
-import { makeCar, step, reset, DT } from '../src/vehicle.ts';
+import { makeCar, step, reset, PHYSICS_STEP_SECONDS } from '../src/vehicle.ts';
 import { setAidsDefault } from '../src/vehicle.ts';
 // RAW physics: driver aids OFF (with TCS on, a burnout is not a burnout; with ABS on, a locked pass cannot lock).
 setAidsDefault(false);
@@ -48,8 +48,8 @@ function driveAcross(inputFn, y, label) {
   reset(car, -150, y, 0);
   car.vx = 16;
   for (let i = 0; i < 120 * 6 && car.x < -40; i++) {
-    L.applyGround(car, DT);
-    step(car, inputFn(car), DT);
+    L.applyGround(car, PHYSICS_STEP_SECONDS);
+    step(car, inputFn(car), PHYSICS_STEP_SECONDS);
   }
   return car;
 }

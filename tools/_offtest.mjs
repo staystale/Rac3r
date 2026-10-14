@@ -5,15 +5,15 @@ import * as L from '../src/lab.js';
 import * as H from '../src/highway.js';
 // the levels importing these modules used to add (task 078 made it explicit)
 H.addHighwayLevel();
-const DT = 1 / 120;
+const PHYSICS_STEP_SECONDS = 1 / 120;
 let bad = 0;
 function run(name, outAt, T = 25) {
   const lv = H.createHighway(4242, 'motorway'); lv.id = 'ot' + name.length; L.LEVELS.push(lv); L.setLevel(lv.id);
   const c = makeCar('saloon-rwd'), s0 = H.roadFrame(lv, lv.spawn.x, lv.spawn.y, null).s, hw = lv._hw.geo.hw;
   let t = 0, why = null, s = s0;
-  for (; t < T; t += DT) { s += 15 * DT; const out = outAt(t), p = H.roadPose(lv, s, -(hw + out)), q = H.roadPose(lv, s + 1, -(hw + out));
+  for (; t < T; t += PHYSICS_STEP_SECONDS) { s += 15 * PHYSICS_STEP_SECONDS; const out = outAt(t), p = H.roadPose(lv, s, -(hw + out)), q = H.roadPose(lv, s + 1, -(hw + out));
     reset(c, p.x, p.y, p.h); c.vx = (q.x - p.x) * 15; c.vy = (q.y - p.y) * 15;
-    H.stepHighway(lv, c); why = H.highwayGuard(lv, c, DT); if (why) break; }
+    H.stepHighway(lv, c); why = H.highwayGuard(lv, c, PHYSICS_STEP_SECONDS); if (why) break; }
   console.log(`${name.padEnd(40)} ${why ? 'RESET at ' + t.toFixed(1) + ' s (' + why + ')' : 'no reset in ' + T + ' s'}`);
   return why ? t : null;
 }

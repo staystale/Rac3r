@@ -6,7 +6,7 @@
 //   steady lateral acc   ay = V*r
 // If the simulation does not reproduce these at small slip angles, something is wrong in the rig
 // itself and no amount of tuning will fix it. This is the test that says "the physics is right".
-import { makeCar, step, reset, neutralInput, DT, TUNE } from '../src/vehicle.ts';
+import { makeCar, step, reset, neutralInput, PHYSICS_STEP_SECONDS, TUNE } from '../src/vehicle.ts';
 import { CAR_IDS } from '../src/cars.ts';
 const G = 9.81;
 
@@ -22,7 +22,7 @@ function measured(id, V, steerIn) {
   for (let i = 0; i < 120 * 6; i++) {
     const sp = Math.hypot(car.vx, car.vy);
     inp.throttle = Math.max(0, Math.min(0.5, (V - sp) * 0.3));
-    step(car, inp, DT);
+    step(car, inp, PHYSICS_STEP_SECONDS);
     if (i > 120 * 4) { rSum += car.yawRate; dSum += car.delta; aySum += car.t.ay; n++; }
   }
   return { r: rSum / n, delta: dSum / n, ay: aySum / n };

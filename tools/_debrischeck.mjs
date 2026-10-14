@@ -14,7 +14,7 @@ for (const [kind, D] of Object.entries(C.DEBRIS)) {
   const k = cones.list[0], car = V.makeCar('saloon-rwd'); let passes = 0, vMin = 99;
   for (let pass = 0; pass < 2; pass++) {
     const y = k.y, dir = pass ? -1 : 1; V.reset(car, k.x - dir * 15, y, pass ? Math.PI : 0); car.vx = dir * 60 / 3.6; car.vy = 0;
-    for (let t = 0; t < 1.5; t += V.DT) { cones.step(car, V.DT); V.step(car, { steer: 0, throttle: 0.25, brake: 0, handbrake: 0, reverse: 0 }, V.DT); vMin = Math.min(vMin, Math.hypot(car.vx, car.vy) * 3.6); }
+    for (let t = 0; t < 1.5; t += V.PHYSICS_STEP_SECONDS) { cones.step(car, V.PHYSICS_STEP_SECONDS); V.step(car, { steer: 0, throttle: 0.25, brake: 0, handbrake: 0, reverse: 0 }, V.PHYSICS_STEP_SECONDS); vMin = Math.min(vMin, Math.hypot(car.vx, car.vy) * 3.6); }
     passes++;
     if (D.breaks && pass + 1 === D.breaks) ok(k.kind === D.into, `${kind}: broken into ${D.into} after hit ${pass + 1} (is ${k.kind})`);
     if (D.breaks === 2 && pass === 0) ok(k.kind === kind, `${kind}: survives hit 1 (is ${k.kind})`);

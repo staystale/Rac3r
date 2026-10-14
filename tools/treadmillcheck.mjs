@@ -1,7 +1,7 @@
 // treadmillcheck.mjs — HIGHWAY v2 (the treadmill, src/highway.js): does the road always climb the screen, join smoothly, stay bounded,
 // and does the guard put a reversing car back? A bench driver drives N km per preset; then a scripted reverse.
 // node tools/treadmillcheck.mjs [km] [car] [file]   (file: ../src/highway.next.js to test a patch before it goes live)
-import { makeCar, step, reset, DT } from '../src/vehicle.ts';
+import { makeCar, step, reset, PHYSICS_STEP_SECONDS } from '../src/vehicle.ts';
 import * as L from '../src/lab.js';
 import { createAutoDriver } from '../src/ai/autodrive.ts';
 import { createCones } from '../src/cones.js';
@@ -34,18 +34,18 @@ for (const preset of Object.keys(H.HW_PRESETS)) {
   let maxDev = 0, maxTurn = 0, maxDk = 0, maxK = 0, lastPt = null, behindMin = Infinity, aheadMin = Infinity;
   while (lv._hw.driven < KM * 1000 && t < KM * 200) {
     if (lv.subtrack !== sub) { sub = lv.subtrack; drv = createAutoDriver(sub); }
-    L.applyGround(car, DT); step(car, drv.drive(car, DT), DT); t += DT;
+    L.applyGround(car, PHYSICS_STEP_SECONDS); step(car, drv.drive(car, PHYSICS_STEP_SECONDS), PHYSICS_STEP_SECONDS); t += PHYSICS_STEP_SECONDS;
     const q = L.querySubtrack(sub, car.x, car.y);
-    if (q.dist > sub.width / 2) off += DT; worstOff = Math.max(worstOff, isFinite(q.dist) ? q.dist - sub.width / 2 : 999);
+    if (q.dist > sub.width / 2) off += PHYSICS_STEP_SECONDS; worstOff = Math.max(worstOff, isFinite(q.dist) ? q.dist - sub.width / 2 : 999);
     const t0 = performance.now(), ds = H.stepHighway(lv, car), ms = performance.now() - t0;
     if (ds) { rb++; rbMax = Math.max(rbMax, ms); }
     { const hw = lv._hw, t1 = performance.now(); if (hw.looseNew.length) { audit(hw.looseNew); cones.spawn(hw.looseNew); hw.looseNew.length = 0; }
       if (hw.looseCut != null) { const s0 = hw.looseCut; cones.cull((k) => k._s == null || k._s >= s0); hw.looseCut = null; }
-      cones.step(car, DT); objMs += performance.now() - t1; maxLoose = Math.max(maxLoose, cones.list.length);
+      cones.step(car, PHYSICS_STEP_SECONDS); objMs += performance.now() - t1; maxLoose = Math.max(maxLoose, cones.list.length);
       // what the PLAYER SEES: loose objects within the ~170 m view (+-85 m of the car), sampled every 5 s
-      if (process.env.VIEWDBG && Math.round(t / DT) % Math.round(5 / DT) === 0) { const near = cones.list.filter((k) => Math.hypot(k.x - car.x, k.y - car.y) < 85);
+      if (process.env.VIEWDBG && Math.round(t / PHYSICS_STEP_SECONDS) % Math.round(5 / PHYSICS_STEP_SECONDS) === 0) { const near = cones.list.filter((k) => Math.hypot(k.x - car.x, k.y - car.y) < 85);
         console.log(`    t ${t.toFixed(0)} s: ${near.length} in view [${['tyre', 'cone', 'tyrestack', 'chevron'].map((kd) => kd + ' ' + near.filter((k) => k.kind === kd).length).join(', ')}] of ${cones.list.length} live`); } }
-    if (H.highwayGuard(lv, car, DT)) { console.log('  guard fired while bench driving at', (lv._hw.driven | 0), 'm'); fails++; break; }
+    if (H.highwayGuard(lv, car, PHYSICS_STEP_SECONDS)) { console.log('  guard fired while bench driving at', (lv._hw.driven | 0), 'm'); fails++; break; }
     const P = lv._hw.pts, st = lv._hw;
     // the window's reach either side of the car (must stay far past the view, ~170 m max)
     behindMin = Math.min(behindMin, st.q.s - P[0].s); aheadMin = Math.min(aheadMin, P[P.length - 1].s - st.q.s);
@@ -77,20 +77,20 @@ for (const preset of Object.keys(H.HW_PRESETS)) {
   check(behindMin > 250 && aheadMin > 600, `${preset}: road kept well past the view both ways (view <= ~170 m)`);
   // REVERSE: stop, then back down the road -> the guard must fire within ~2 s and the respawn must be ON the road, facing up it
   car.vx = 0; car.vy = 0; let fired = null, tr = 0;
-  for (; tr < 6 && !fired; tr += DT) { L.applyGround(car, DT); step(car, { steer: 0, throttle: 0, brake: 0, handbrake: 0, reverse: 1 }, DT); H.stepHighway(lv, car); fired = H.highwayGuard(lv, car, DT); }
+  for (; tr < 6 && !fired; tr += PHYSICS_STEP_SECONDS) { L.applyGround(car, PHYSICS_STEP_SECONDS); step(car, { steer: 0, throttle: 0, brake: 0, handbrake: 0, reverse: 1 }, PHYSICS_STEP_SECONDS); H.stepHighway(lv, car); fired = H.highwayGuard(lv, car, PHYSICS_STEP_SECONDS); }
   const r = fired ? H.highwayRespawn(lv) : null, rq = r ? L.querySubtrack(lv.subtrack, r.x, r.y) : null;
   check(!!fired && tr < 3, `${preset}: reversing -> "${fired}" after ${tr.toFixed(2)} s`);
   check(!!rq && rq.dist < geo.width / 2 && Math.abs(Math.atan2(Math.sin(r.h + Math.PI / 2), Math.cos(r.h + Math.PI / 2))) < cfg.maxDeg * Math.PI / 180 + 0.05, `${preset}: respawn on the road (${rq ? rq.dist.toFixed(1) : '-'} m from centre), facing up the screen`);
   // GOING WIDE: parked 20 m past the edge -> a countdown (st.warn), no reset for ~10 s (user, 2026-10-06: longer), then the reset; back on the road cancels it
   if (!cfg.walls) {
-    reset(car, r.x, r.y, r.h); H.stepHighway(lv, car); H.highwayGuard(lv, car, DT);
+    reset(car, r.x, r.y, r.h); H.stepHighway(lv, car); H.highwayGuard(lv, car, PHYSICS_STEP_SECONDS);
     const q = lv._hw.q, nx = -q.dy, ny = q.dx;
     car.x += nx * (geo.hw + 24); car.y += ny * (geo.hw + 24); car.vx = 0; car.vy = 0;   // 24: on a bend the parked car sits nearer the road (interstate measured 15.3 m out from a 20 m push) - past OFF_NEAR 16
-    let tw = 0, out = null, warn = null; for (; tw < 12 && !out; tw += DT) { H.stepHighway(lv, car); out = H.highwayGuard(lv, car, DT); warn = warn || lv._hw.warn; }
+    let tw = 0, out = null, warn = null; for (; tw < 12 && !out; tw += PHYSICS_STEP_SECONDS) { H.stepHighway(lv, car); out = H.highwayGuard(lv, car, PHYSICS_STEP_SECONDS); warn = warn || lv._hw.warn; }
     check(!!warn && out === 'OFF THE MOTORWAY — RESET' && tw > 9.5 && tw < 10.5, `${preset}: 20 m wide -> countdown "${warn}", reset after ${tw.toFixed(2)} s`);
-    reset(car, r.x, r.y, r.h); H.stepHighway(lv, car); H.highwayGuard(lv, car, DT);
-    car.x += nx * (geo.hw + 20); car.y += ny * (geo.hw + 20); for (let k = 0; k < 360; k++) { H.stepHighway(lv, car); H.highwayGuard(lv, car, DT); }
-    car.x = r.x; car.y = r.y; H.stepHighway(lv, car); const back = H.highwayGuard(lv, car, DT);
+    reset(car, r.x, r.y, r.h); H.stepHighway(lv, car); H.highwayGuard(lv, car, PHYSICS_STEP_SECONDS);
+    car.x += nx * (geo.hw + 20); car.y += ny * (geo.hw + 20); for (let k = 0; k < 360; k++) { H.stepHighway(lv, car); H.highwayGuard(lv, car, PHYSICS_STEP_SECONDS); }
+    car.x = r.x; car.y = r.y; H.stepHighway(lv, car); const back = H.highwayGuard(lv, car, PHYSICS_STEP_SECONDS);
     check(!back && !lv._hw.warn && lv._hw.offT === 0, `${preset}: back on the road after 3 s out -> countdown cancelled`);
   } else check(lv.barriers.filter((b) => b.kind === cfg.walls).length > 10, `${preset}: continuous ${cfg.walls}s both sides (${lv.barriers.filter((b) => b.kind === cfg.walls).length} pieces in the window)`);
 }

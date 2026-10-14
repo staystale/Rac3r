@@ -6,7 +6,7 @@
 // the player cannot feel it (CLAUDE.md §3), so every one has a bar it must clear:
 //   ABS  hard brake mid-corner: no front lock, the car keeps turning; straight stop no longer than without
 //   TCS  slippery launch: less wheelspin; a provoked slide: smaller peak slip; clean cornering: grip not reduced
-import { makeCar, step, reset, DT } from '../src/vehicle.ts';
+import { makeCar, step, reset, PHYSICS_STEP_SECONDS } from '../src/vehicle.ts';
 import { SURFACES } from '../src/lab.js';
 
 const I = (o) => ({ steer: 0, throttle: 0, brake: 0, handbrake: 0, ...o });
@@ -18,7 +18,7 @@ const mk = (id, on, surf = SURFACES.tarmac, kph = 0) => {
   if (kph) { c.vx = kph / 3.6; c.gear = 3; c.rpm = c.spec.upshiftRpm * 0.7; }
   return c;
 };
-const run = (c, secs, inp, each) => { for (let t = 0; t < secs; t += DT) { c.surface = c.surface; step(c, typeof inp === 'function' ? inp(c, t) : inp, DT); if (each) each(c, t); } };
+const run = (c, secs, inp, each) => { for (let t = 0; t < secs; t += PHYSICS_STEP_SECONDS) { c.surface = c.surface; step(c, typeof inp === 'function' ? inp(c, t) : inp, PHYSICS_STEP_SECONDS); if (each) each(c, t); } };
 const beta = (c) => Math.abs(Math.atan2(c.t.vLat, Math.abs(c.t.vLong))) * 57.3;
 
 console.log('ABS — full brake while turning at 100 km/h (steer 0.15), 1.5 s');
@@ -26,7 +26,7 @@ for (const id of ['hatch-fwd', 'hatch-rwd', 'estate-4x4', 'muscle-rwd']) {
   const r = {};
   for (const on of [false, true]) {
     const c = mk(id, on, SURFACES.tarmac, 100); let lockT = 0; const h0 = c.heading;
-    run(c, 1.5, I({ steer: 0.15, brake: 1 }), (c) => { if (c.t.lockedF) lockT += DT; });
+    run(c, 1.5, I({ steer: 0.15, brake: 1 }), (c) => { if (c.t.lockedF) lockT += PHYSICS_STEP_SECONDS; });
     r[on] = { lockT, turn: Math.abs(c.heading - h0) * 57.3, v: c.t.vLong * 3.6 };
   }
   console.log(`  ${id.padEnd(11)} off: front locked ${r[false].lockT.toFixed(2)} s, turned ${r[false].turn.toFixed(0)} deg | on: locked ${r[true].lockT.toFixed(2)} s, turned ${r[true].turn.toFixed(0)} deg`);
@@ -38,7 +38,7 @@ for (const id of ['hatch-rwd', 'muscle-rwd']) for (const surf of ['tarmac', 'wet
   const d = {};
   for (const on of [false, true]) {
     const c = mk(id, on, SURFACES[surf], 100); let dist = 0;
-    run(c, 10, I({ brake: 1 }), (c) => { dist += Math.max(0, c.t.vLong) * DT; });
+    run(c, 10, I({ brake: 1 }), (c) => { dist += Math.max(0, c.t.vLong) * PHYSICS_STEP_SECONDS; });
     d[on] = dist;
   }
   console.log(`  ${id.padEnd(11)} ${surf.padEnd(7)} off ${d[false].toFixed(1)} m | on ${d[true].toFixed(1)} m`);
@@ -49,7 +49,7 @@ for (const id of ['hatch-fwd', 'hatch-rwd', 'estate-4x4']) for (const surf of ['
   const r = {};
   for (const on of [false, true]) {
     const c = mk(id, on, SURFACES[surf]); let spin = 0;
-    run(c, 3, I({ throttle: 1 }), (c) => { spin += (c.wheelSpin || 0) * DT; });
+    run(c, 3, I({ throttle: 1 }), (c) => { spin += (c.wheelSpin || 0) * PHYSICS_STEP_SECONDS; });
     r[on] = { spin, v: c.t.vLong * 3.6 };
   }
   console.log(`  ${id.padEnd(11)} ${surf.padEnd(6)} off: spin ${r[false].spin.toFixed(2)} m, ${r[false].v.toFixed(0)} km/h | on: spin ${r[true].spin.toFixed(2)} m, ${r[true].v.toFixed(0)} km/h`);
@@ -109,7 +109,7 @@ console.log('TCS must stay OUT of ordinary corners (user, 2026-10-03: "TCS is to
 // a gentle corner and 65% of a lap, cutting the engine. Now: understeer-aware reference, wider dead band, cut on oversteer only.
 for (const id of ['hatch-rwd', 'hatch-fwd', 'estate-4x4']) {
   const c = mk(id, true, SURFACES.tarmac, 72); let act = 0, cut = 0;
-  run(c, 4, I({ steer: 0.15, throttle: 0.5 }), (c) => { if (c.t.tcsWorking) act += DT; if (c.escCut < 0.95) cut += DT; });
+  run(c, 4, I({ steer: 0.15, throttle: 0.5 }), (c) => { if (c.t.tcsWorking) act += PHYSICS_STEP_SECONDS; if (c.escCut < 0.95) cut += PHYSICS_STEP_SECONDS; });
   console.log(`  ${id.padEnd(11)} gentle corner at 72 km/h: aid active ${act.toFixed(1)} of 4 s, engine cut ${cut.toFixed(1)} s`);
   check(act < 1.5 && cut < 0.2, `${id}: TCS leaves an ordinary corner alone (active < 1.5 s, no engine cut)`);
 }

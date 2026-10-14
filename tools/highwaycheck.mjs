@@ -1,7 +1,7 @@
 // highwaycheck.mjs — HIGHWAY TO HULL (src/highway.js), the endless motorway: a bench driver drives N km; does the road keep coming,
 // does the car stay on it, do props / bumps / barriers stay BOUNDED (dropped behind), and what does each rebuild cost.
 // node tools/highwaycheck.mjs [km] [car]
-import { makeCar, step, reset, DT } from '../src/vehicle.ts';
+import { makeCar, step, reset, PHYSICS_STEP_SECONDS } from '../src/vehicle.ts';
 import * as L from '../src/lab.js';
 import { stepHighway, addHighwayLevel } from '../src/highway.js';
 import { createAutoDriver } from '../src/ai/autodrive.ts';
@@ -14,9 +14,9 @@ let sub = lv.subtrack, drv = createAutoDriver(sub), t = 0, off = 0, worst = 0, r
 console.log('FLOOR', L.FLOOR, 'start window', (sub.totalDist | 0), 'm, props', lv.props.length);
 while ((lv._hw.driven || 0) < KM * 1000 && t < KM * 200) {
   if (lv.subtrack !== sub) { sub = lv.subtrack; drv = createAutoDriver(sub); }
-  L.applyGround(car, DT); step(car, drv.drive(car, DT), DT); t += DT;
+  L.applyGround(car, PHYSICS_STEP_SECONDS); step(car, drv.drive(car, PHYSICS_STEP_SECONDS), PHYSICS_STEP_SECONDS); t += PHYSICS_STEP_SECONDS;
   const q = L.querySubtrack(sub, car.x, car.y);
-  if (q.dist > sub.width / 2) off += DT; worst = Math.max(worst, isFinite(q.dist) ? q.dist - sub.width / 2 : 999);
+  if (q.dist > sub.width / 2) off += PHYSICS_STEP_SECONDS; worst = Math.max(worst, isFinite(q.dist) ? q.dist - sub.width / 2 : 999);
   const t0 = performance.now(), ds = stepHighway(lv, car, q.trackDist), ms = performance.now() - t0;
   if (ds) { rebuilds++; rbMax = Math.max(rbMax, ms); }
   maxProps = Math.max(maxProps, lv.props.length); maxBumps = Math.max(maxBumps, lv.bumps.length); maxBar = Math.max(maxBar, lv.barriers.length);

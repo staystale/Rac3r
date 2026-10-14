@@ -12,7 +12,7 @@
 // excursion, and seconds spent on each surface.
 // VERIFY BEFORE TRUSTING (CLAUDE.md rule 15): it fails loudly if it leaves the road for long or never
 // completes the lap — a driver that understeers into every wall prices everything wrongly.
-import { makeCar, step, reset, DT } from '../src/vehicle.ts';
+import { makeCar, step, reset, PHYSICS_STEP_SECONDS } from '../src/vehicle.ts';
 import * as L from '../src/lab.js';
 import { createAutoDriver } from '../src/ai/autodrive.ts';
 
@@ -31,12 +31,12 @@ let t = 0, offT = 0, worst = 0, vmax = 0;
 const onSurf = {};
 const LIMIT = 600;        // s
 while (drv.state.travelled < total && t < LIMIT) {
-  L.applyGround(car, DT);
+  L.applyGround(car, PHYSICS_STEP_SECONDS);
   const v = Math.hypot(car.vx, car.vy);
-  step(car, drv.drive(car), DT);
-  t += DT; vmax = Math.max(vmax, v);
-  const off = drv.state.lastDist - hw; if (off > 0) offT += DT; worst = Math.max(worst, off);
-  const sid = car.surface.id; onSurf[sid] = (onSurf[sid] || 0) + DT;
+  step(car, drv.drive(car), PHYSICS_STEP_SECONDS);
+  t += PHYSICS_STEP_SECONDS; vmax = Math.max(vmax, v);
+  const off = drv.state.lastDist - hw; if (off > 0) offT += PHYSICS_STEP_SECONDS; worst = Math.max(worst, off);
+  const sid = car.surface.id; onSurf[sid] = (onSurf[sid] || 0) + PHYSICS_STEP_SECONDS;
 }
 const travelled = drv.state.travelled;
 const done = travelled >= total;
@@ -60,7 +60,7 @@ let d = (L.querySubtrack(st, car.x, car.y).trackDist), travelled = 0, t = 0, off
 const onSurf = {};
 const LIMIT = 600;        // s
 while (travelled < total && t < LIMIT) {
-  L.applyGround(car, DT);
+  L.applyGround(car, PHYSICS_STEP_SECONDS);
   // PROGRESS: the nearest track point in a window just behind / ahead of where we were. MEASURED BUG in the
   // first version: it used querySubtrack, which returns dist Infinity once the car is more than a few
   // metres off the road — progress froze and the driver chased a point it had already passed.
@@ -114,10 +114,10 @@ while (travelled < total && t < LIMIT) {
   // there the Stanley cross-track term tightens the line (~42 m radius demanded in a ~100 m corner) — a DRIVER
   // limitation, not yet proven to be the car. Do not trust Test Track numbers for those three cars until that is fixed.
   const brake = v > vT + 0.5 ? Math.min(1, (v - vT) * 1.0) * Math.max(0.35, 1 - Math.abs(steer) / 0.25) : 0;
-  step(car, { steer, throttle, brake, handbrake: false }, DT);
-  t += DT; vmax = Math.max(vmax, v);
-  const off = q.dist - hw; if (off > 0) offT += DT; worst = Math.max(worst, off);
-  const sid = car.surface.id; onSurf[sid] = (onSurf[sid] || 0) + DT;
+  step(car, { steer, throttle, brake, handbrake: false }, PHYSICS_STEP_SECONDS);
+  t += PHYSICS_STEP_SECONDS; vmax = Math.max(vmax, v);
+  const off = q.dist - hw; if (off > 0) offT += PHYSICS_STEP_SECONDS; worst = Math.max(worst, off);
+  const sid = car.surface.id; onSurf[sid] = (onSurf[sid] || 0) + PHYSICS_STEP_SECONDS;
 }
 
 */

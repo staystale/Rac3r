@@ -10,7 +10,7 @@
 //   2. SPEED-SCALED — a crawl over the kerb is nothing; a fast strike takes the wheels off the ground.
 //   3. WORKS WHILE BUSY — the same strike mid-corner and mid-handbrake, with nothing suppressed.
 //   4. TRANSIENT — it must be over. Load back to ~1, body back down, car still under control.
-import { makeCar, step, reset, neutralInput, DT } from '../src/vehicle.ts';
+import { makeCar, step, reset, neutralInput, PHYSICS_STEP_SECONDS } from '../src/vehicle.ts';
 import { applyGround as edge, FLOOR, KERB_W, FENCE, LEVELS, setLevel, SURFACES } from '../src/lab.js';
 // S-B (2026-10-06): the lab's south edge moved 480 m south (past the extension's off-road area), so the edge is measured on a BARE square
 // lab floor - the same lab surface, kerb, verge and trap the old lab's south edge had at x 0, and nothing else
@@ -32,8 +32,8 @@ function strike(id, v, deg = 0, extra = {}) {
   const r = { minLoad: 1, maxLoad: 1, air: 0, maxZ: 0, peakSlip: 0, minF: 1, minR: 1 };
   let onKerb = false; const order = [];
   for (let i = 0; i < 120 * 6; i++) {
-    edge(car, DT);
-    step(car, inp, DT);
+    edge(car, PHYSICS_STEP_SECONDS);
+    step(car, inp, PHYSICS_STEP_SECONDS);
     const out = Math.max(Math.abs(car.x), Math.abs(car.y));
     if (out > FLOOR - KERB_W - 0.5) {
       onKerb = true;
@@ -43,7 +43,7 @@ function strike(id, v, deg = 0, extra = {}) {
       r.maxLoad = Math.max(r.maxLoad, car.loadK);
       r.maxZ = Math.max(r.maxZ, car.z);
       r.minF = Math.min(r.minF, car.t.loadKF); r.minR = Math.min(r.minR, car.t.loadKR);
-      if (car.loadK <= 0) r.air += DT;
+      if (car.loadK <= 0) r.air += PHYSICS_STEP_SECONDS;
       const sp = Math.hypot(car.vx, car.vy);
       if (sp > 3) r.peakSlip = Math.max(r.peakSlip, Math.abs(Math.atan2(car.t.vLat, car.t.vLong) * 57.3));
     }
@@ -96,7 +96,7 @@ for (const v of [5, 14, 25, 38]) {
   let lo = 1, hi = 1;
   for (let i = 0; i < 120 * 5; i++) {
     car.y = FLOOR - KERB_W / 2; car.vy = 0;   // pinned on the strip: this is about the ridges only
-    edge(car, DT); step(car, inp, DT);
+    edge(car, PHYSICS_STEP_SECONDS); step(car, inp, PHYSICS_STEP_SECONDS);
     // MEASURED ARTIFACT: spawning ON the crest steps the ground 0 -> 0.10 m in one step, and the ring
     // decays over ~0.31 s (1/zeta*omega). Measuring from 0.25 s read that spawn, not the ridges: it
     // reported a 0.48 swing at a 5 m/s CRAWL. Settle for 2.5 s first.
@@ -113,7 +113,7 @@ console.log('\n5. TRANSIENT: 1.5 s after a 30 m/s strike, is the car back to nor
   const inp = { ...neutralInput() };
   let crossed = -1;
   for (let i = 0; i < 120 * 6; i++) {
-    edge(car, DT); step(car, inp, DT);
+    edge(car, PHYSICS_STEP_SECONDS); step(car, inp, PHYSICS_STEP_SECONDS);
     if (crossed < 0 && Math.abs(car.y) > FLOOR) crossed = i;
     if (crossed > 0 && i === crossed + 180) {
       console.log(`   load ${car.loadK.toFixed(3)}   body z ${car.z.toFixed(3)} m   zvF ${car.zvF.toFixed(3)} m/s   (want load ~1, z ~0)`);

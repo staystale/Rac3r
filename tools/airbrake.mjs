@@ -10,7 +10,7 @@
 //
 //   node tools/airbrake.mjs          all cars, all airborne inputs   (exit code 1 on any failure)
 
-import { makeCar, step, reset, assertFinite, DT } from '../src/vehicle.ts';
+import { makeCar, step, reset, assertFinite, PHYSICS_STEP_SECONDS } from '../src/vehicle.ts';
 import { applyGround } from '../src/lab.js';
 import { CAR_IDS } from '../src/cars.ts';
 
@@ -33,9 +33,9 @@ for (const id of CAR_IDS) {
     for (let i = 0; i < 120 * 8; i++) {
       const inAir = car.air > 0;
       const inp = inAir ? airInput : { throttle: 1, brake: 0, handbrake: false, steer: 0 };
-      applyGround(car, DT);
+      applyGround(car, PHYSICS_STEP_SECONDS);
       try {
-        step(car, inp, DT);
+        step(car, inp, PHYSICS_STEP_SECONDS);
         assertFinite(car);
       } catch (e) { bad = `step ${i}: ${e.message}`; break; }
       maxAir = Math.max(maxAir, car.air);

@@ -7,16 +7,16 @@ import { createHwFlow, HW_CATCH, HW_COUNT } from '../src/highwayrace.ts';
 // the levels importing these modules used to add (task 078 made it explicit)
 H.addHighwayLevel();
 const lv = H.createHighway(4242, 'motorway'); lv.id = 'ft'; L.LEVELS.push(lv); L.setLevel(lv.id);
-const DT = 1 / 120, VIEW = 75;
+const PHYSICS_STEP_SECONDS = 1 / 120, VIEW = 75;
 function run(name, gapAt, T = 40, other = null) {
   const me = { spec: {}, _hwf: { s: 0 } }, ai = [{ spec: {}, _hwf: { s: 0 } }, { spec: {}, _hwf: { s: 0 } }];
   const vis = (c) => Math.abs(c._hwf.s - me._hwf.s) < VIEW;
   const flow = createHwFlow({ lv, cars: [{ car: me, player: true }, ...ai.map((car) => ({ car }))], visible: vis });
   let t = 0, holdT = 0, cdMin = 99, seen = new Set();
-  for (; t < T && flow.state !== 'done'; t += DT) {
+  for (; t < T && flow.state !== 'done'; t += PHYSICS_STEP_SECONDS) {
     // ai[0] = the car the scenario scripts (the slowest one when ahead); ai[1] = a faster one 30 m further on, or `other` if given
     const g = gapAt(t); me._hwf.s = 1000 + t * 40; ai[0]._hwf.s = me._hwf.s + g; ai[1]._hwf.s = me._hwf.s + (other ? other(t) : g > 0 ? g + 30 : g - 10);
-    flow.step(DT); if (flow.cdKind) { seen.add(flow.cdKind); cdMin = Math.min(cdMin, flow.cd); } if (flow.cdHold) holdT += DT;
+    flow.step(PHYSICS_STEP_SECONDS); if (flow.cdKind) { seen.add(flow.cdKind); cdMin = Math.min(cdMin, flow.cd); } if (flow.cdHold) holdT += PHYSICS_STEP_SECONDS;
   }
   console.log(`${name.padEnd(44)} ended ${flow.state === 'done' ? 'YES at ' + t.toFixed(1) + ' s' : 'no'} | kinds ${[...seen].join(',') || '-'} | held ${holdT.toFixed(1)} s | lowest ${cdMin === 99 ? '-' : cdMin.toFixed(1)}`);
   return flow.state === 'done' ? t : null;

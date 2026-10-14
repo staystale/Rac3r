@@ -1,13 +1,14 @@
 // main.js — boot, the FIXED-STEP ACCUMULATOR, and the one seam to the outside world.
 //
 // THE TWO CLOCKS (CLAUDE.md rule 5), kept explicitly separate:
-//   fixed sim step (DT = 1/120 s) : vehicle dynamics, slip, rpm, gear, skid-mark stamping
+//   fixed sim step (PHYSICS_STEP_SECONDS = 1/120 s) : vehicle dynamics, slip, rpm, gear,
+//                                     skid-mark stamping
 //   wall clock                    : camera lerp, shift-light flash, fps
 // The vehicle NEVER receives a frame delta. If the accumulator falls behind it drops the remainder
 // rather than catching up in one huge step — a background tab must not produce a 400-step lurch.
 import { lcg } from "./core/random.ts";
 
-import { makeCar, step, reset, assertFinite, DT } from './vehicle.ts';
+import { makeCar, step, reset, assertFinite, PHYSICS_STEP_SECONDS } from './vehicle.ts';
 const resetCar = reset;
 import { CAR_IDS, applyLivery, applyTyre, ROSTER } from './cars.ts';
 import { createInput } from './input.js';
@@ -523,13 +524,13 @@ function trackCut(car, near, delta) {
   if (near.dist > LEVEL.subtrack.width / 2 + CUT_OFF) {
     // where it left the road
     if (!car._cut) car._cut = { gain: 0, prog: car._prog, q: car._lastQ };
-    car._cut.gain += delta - Math.hypot(car.vx, car.vy) * DT;
+    car._cut.gain += delta - Math.hypot(car.vx, car.vy) * PHYSICS_STEP_SECONDS;
     return;
   }
   const cut = car._cut;
   car._cut = null;
   // the step back onto the road (often the big jump)
-  if (cut) cut.gain += delta - Math.hypot(car.vx, car.vy) * DT;
+  if (cut) cut.gain += delta - Math.hypot(car.vx, car.vy) * PHYSICS_STEP_SECONDS;
   if (!cut || cut.gain < CUT_MIN) return;
   car._cuts = (car._cuts || 0) + 1;
   // [m gained, where] for the tools
@@ -1384,7 +1385,7 @@ function loop(now) {
   // the AI seed). If it ever stops (stuck off the road), put it back on the track.
   if (mode !== 'menu' && startHeld()) {
     inp = game.start.rolling
-      ? { ...atPace(game.start.drv.drive(game.car, DT,
+      ? { ...atPace(game.start.drv.drive(game.car, PHYSICS_STEP_SECONDS,
         { cars: [...game.ai.map((entry) => entry.car), ...game.traffic.cars], hold: true }),
           game.car), shiftUp: false, shiftDown: false }
                              : { ...inp, throttle: 0, brake: 1, handbrake: 0, reverse: 0 };
@@ -1466,7 +1467,7 @@ function loop(now) {
     acc += wallDt;
     let steps = 0;
     const simT0 = performance.now();   // tools: game.simMs / game.drawMs (smoothed ms per frame)
-    while (acc >= DT && steps < MAX_STEPS) {
+    while (acc >= PHYSICS_STEP_SECONDS && steps < MAX_STEPS) {
       // The lab says what the ground under the car is doing; the car's own suspension answers.
       // Before step(), so the load is right for the forces computed this step rather than one step
       // stale. remember the pose BEFORE this step, for the render interpolation below
@@ -1479,14 +1480,14 @@ function loop(now) {
         barrierClamp(game.car);
         solidClamp(game.car);   // trees, planes, hangars ... (lab.js solidsFromProps)
         hit(game.car, pv0x, pv0y);
-        applyGround(game.car, DT);
+        applyGround(game.car, PHYSICS_STEP_SECONDS);
         // ROLLOVER (roll.js): a rolling / overturned car has no tyres to drive on — the body
         // tumbles or slides; RESET rights it
-        if (rolling(game.car)) stepRoll(game.car, DT,
+        if (rolling(game.car)) stepRoll(game.car, PHYSICS_STEP_SECONDS,
           (kind, side, weight) => hitRoll(game.car, kind, side, weight));
         else {
-          step(game.car, inp, DT);
-          tripCheck(game.car, DT);
+          step(game.car, inp, PHYSICS_STEP_SECONDS);
+          tripCheck(game.car, PHYSICS_STEP_SECONDS);
         }
         assertFinite(game.car);
       } catch (err) {
@@ -1497,9 +1498,9 @@ function loop(now) {
       lastGood.x = game.car.x;
       lastGood.y = game.car.y;
       lastGood.heading = game.car.heading;
-      updateRecoveryTracking(game.car, DT);
+      updateRecoveryTracking(game.car, PHYSICS_STEP_SECONDS);
       stepJoker(game.car);
-      stepStage(DT);
+      stepStage(PHYSICS_STEP_SECONDS);
       // THE ENDLESS HIGHWAY: build ahead / drop behind; when the window moves, everything
       // remembered as a road distance moves with it
       if (LEVEL.endless) {
@@ -1511,7 +1512,7 @@ function loop(now) {
         // THE TREADMILL GUARD (user, 2026-10-05: "go backwards should reset you"): wrong way /
         // dropped back / off the motorway -> put back in the left lane at the furthest point
         // reached, rolling at 60 % of the speed you had (or 15 m/s), with the reason shown
-        const why = highwayGuard(LEVEL, game.car, DT);
+        const why = highwayGuard(LEVEL, game.car, PHYSICS_STEP_SECONDS);
         // the going-wide countdown
         if (LEVEL._hw.warn) game.notice = { text: LEVEL._hw.warn, at: performance.now() };
         // the roadside LITTER + CHEVRONS (loose objects) stream with the road: new ones ahead in,
@@ -1571,32 +1572,32 @@ function loop(now) {
           game.hwBest = game.hwDist;
         }
       }
-      stepRace(game.car, DT);
+      stepRace(game.car, PHYSICS_STEP_SECONDS);
       // BREADCRUMBS for RESET on levels with no circuit. MEASURED BUG, 2026-10-03 (guide audit):
       // doReset() read this list but nothing ever wrote to it, so RESET on The Lab sent you to the
       // spawn. Every 0.5 s of sim time while moving and grounded, keep where you were and the way
       // you were TRAVELLING (not facing — mid-spin those differ); RESET uses the one ~2 s back, so
       // the spot you are put on is not the one you just crashed at.
-      lastBreadcrumbTime += DT;
+      lastBreadcrumbTime += PHYSICS_STEP_SECONDS;
       if (lastBreadcrumbTime >= 0.5 && Math.hypot(game.car.vx, game.car.vy) > 3 && !game.car.air) {
         lastBreadcrumbTime = 0;
         breadcrumbs.push({ x: game.car.x, y: game.car.y,
           heading: Math.atan2(game.car.vy, game.car.vx) });
         if (breadcrumbs.length > 12) breadcrumbs.shift();
       }
-      stepStart(DT);
+      stepStart(PHYSICS_STEP_SECONDS);
       // the HIGHWAY: every car's road frame (s, offset, speed along) once per step, for the racers,
       // the order and the countdowns
       if (LEVEL.endless && (game.ai.length || settings.autopilot)) hwFrames(LEVEL,
         [game.car, ...game.ai.map((entry) => entry.car), ...game.traffic.cars]);
-      stepAI(DT);
+      stepAI(PHYSICS_STEP_SECONDS);
       if (LEVEL.endless) {
         if (game.flow && game.flow.highway) game.position = game.flow.order();
       }
       else if ((game.ai.length || game.flow || LEVEL.stage) && LEVEL.subtrack) stepOrder();
       if (game.flow && game.start.t >= (game.start.tGreen0 ?? game.start.tGreen)) {
         const was = game.flow.state;
-        game.flow.step(DT);
+        game.flow.step(PHYSICS_STEP_SECONDS);
         if (was !== 'done' && game.flow.state === 'done') game.flowDoneAt = performance.now();
         // the HIGHWAY's END COUNTDOWNS on the notice line (user: "an AI reaching the edge of the
         // screen ahead starts a countdown")
@@ -1609,7 +1610,7 @@ function loop(now) {
       // TRAFFIC: driven after the AI (it reads where everyone is), then in the SAME contact pass as
       // you and the AI — full contact, damage
       const tcars = game.traffic.cars;
-      if (tcars.length || game.traffic.want) game.traffic.step(DT,
+      if (tcars.length || game.traffic.want) game.traffic.step(PHYSICS_STEP_SECONDS,
         { player: game.car, others: game.ai.map((entry) => entry.car), visible: onScreen });
       if (game.ai.length || tcars.length) {
         const racers = [game.car, ...game.ai.map((entry) => entry.car)], all = tcars.length
@@ -1628,7 +1629,7 @@ function loop(now) {
         const field = game.ai.length || near.length
           ? [game.car, ...game.ai.map((entry) => entry.car), ...near] : [game.car],
             startVel = field.map((racer) => [racer.vx, racer.vy]);
-        game.cones.step(field.length > 1 ? field : game.car, DT);
+        game.cones.step(field.length > 1 ? field : game.car, PHYSICS_STEP_SECONDS);
         field.forEach((racer, i) => hit(racer, startVel[i][0], startVel[i][1]));
         // DAMAGE: a torn-off wheel becomes a loose tyre, thrown from its corner with the car's
         // speed and outward
@@ -1653,8 +1654,8 @@ function loop(now) {
       game.marks.follow(game.car.x, game.car.y);
       // marks are stamped on the SIM step: a mark is world bookkeeping, not an animation
       if (!rolling(game.car)) game.marks.stamp(game.marks.wheelsOf(game.car));
-      game.marks.fade(DT);
-      acc -= DT;
+      game.marks.fade(PHYSICS_STEP_SECONDS);
+      acc -= PHYSICS_STEP_SECONDS;
       steps++;
     }
     game.simMs = (game.simMs || 0) * 0.9 + (performance.now() - simT0) * 0.1;
@@ -1684,7 +1685,7 @@ function loop(now) {
   let keepPose = null;
   if (started && prevPose && !guide.active
     && Math.hypot(car.x - prevPose.x, car.y - prevPose.y) < 5) {
-    const alpha = Math.max(0, Math.min(1, acc / DT));
+    const alpha = Math.max(0, Math.min(1, acc / PHYSICS_STEP_SECONDS));
     keepPose = { x: car.x, y: car.y, h: car.heading };
     let dHeading = car.heading - prevPose.h;
     dHeading = Math.atan2(Math.sin(dHeading), Math.cos(dHeading));
@@ -1701,7 +1702,7 @@ function loop(now) {
       ...game.traffic.cars]) {
     const prev = aiCar._p;
     if (!prev || Math.hypot(aiCar.x - prev.x, aiCar.y - prev.y) > 5) continue;
-    const alpha = Math.max(0, Math.min(1, acc / DT));
+    const alpha = Math.max(0, Math.min(1, acc / PHYSICS_STEP_SECONDS));
     aiKeep.push([aiCar, aiCar.x, aiCar.y, aiCar.heading]);
     let dHeading = aiCar.heading - prev.h;
     dHeading = Math.atan2(Math.sin(dHeading), Math.cos(dHeading));

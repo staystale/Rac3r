@@ -6,7 +6,7 @@
 //
 // Fixed step, ALWAYS. Never hand this function a frame delta (CLAUDE.md §8 / rule 4): tyre friction
 // near the grip limit is stiff, and at 60Hz / 40m/s the car moves 0.67m per step and never feels
-// the lateral force it should have. main.js accumulates into DT-sized calls.
+// the lateral force it should have. main.js accumulates into PHYSICS_STEP_SECONDS-sized calls.
 //
 // Bicycle model, per-axle friction ellipse. Body-frame integration with centripetal terms, which is
 // more stable near the limit than integrating in world frame and rotating back.
@@ -84,7 +84,7 @@ export interface Car {
   yawDampOverride?: number;
 }
 
-export const DT = 1 / 120;
+export const PHYSICS_STEP_SECONDS = 1 / 120;
 
 // slip-angle divide guard (CLAUDE.md rule 20). Stationary is frame 1 of every run.
 const EPS_SLIP = 0.5;
@@ -443,7 +443,7 @@ function ratio(carSpec: Spec, gear: number) {
 const clamp = (value: number, low: number, high: number) => (value < low ? low : value > high ? high
     : value);
 
-export function step(car: Car, input: CarInput, dt = DT) {
+export function step(car: Car, input: CarInput, dt = PHYSICS_STEP_SECONDS) {
   const carSpec = car.spec;
   const mass = carSpec.mass * car.mods.mass;
   const gravity = GRAVITY;

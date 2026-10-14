@@ -2,7 +2,7 @@
 // Brake HARD from high speed with the steering held — the realistic phone input — and check the car
 // does not spin itself backwards. The foot brake locks the rear through the same path the handbrake
 // does, so it needs its own regression test.
-import { makeCar, step, reset, neutralInput, DT } from '../src/vehicle.ts';
+import { makeCar, step, reset, neutralInput, PHYSICS_STEP_SECONDS } from '../src/vehicle.ts';
 import { CAR_IDS } from '../src/cars.ts';
 const clamp=(v,a,b)=>v<a?a:v>b?b:v;
 
@@ -12,12 +12,12 @@ function run(id, v0, steer) {
   const inp = { ...neutralInput() };
   let peak=0, minV=99, held=0;
   for (let i=0;i<120*8;i++){
-    const t=i*DT;
+    const t=i*PHYSICS_STEP_SECONDS;
     // progressive brake exactly as input.js ramps it, held down throughout
-    held += DT;
+    held += PHYSICS_STEP_SECONDS;
     inp.brake = Math.min(1, 0.28 + 0.72*(held/0.50));
     inp.steer = steer;
-    step(car,inp,DT);
+    step(car,inp,PHYSICS_STEP_SECONDS);
     // ONLY while actually moving. At the end of a stop, atan2 of two near-zero velocities is noise —
     // it reported 179 deg of "spin" for a car braking almost straight, which is how this bench lied.
     if (Math.hypot(car.vx,car.vy) > 3) {

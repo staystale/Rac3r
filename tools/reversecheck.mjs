@@ -10,7 +10,7 @@
 //      (released alone it only coasts: there is NO rolling resistance / engine braking yet — TODO step 2;
 //       MEASURED 2026-10-03: 5.5 -> 5.4 m/s in 1 s, both directions)
 //   5. reversing, press GAS               -> must stop, then drive forwards
-import { makeCar, step, reset, neutralInput, DT } from '../src/vehicle.ts';
+import { makeCar, step, reset, neutralInput, PHYSICS_STEP_SECONDS } from '../src/vehicle.ts';
 import { CAR_IDS } from '../src/cars.ts';
 
 const ramp = (held) => Math.min(1, 0.26 + 0.74 * (held / 0.50));
@@ -20,10 +20,10 @@ function sim(id, v0, phases) {
   const log = [];
   for (const [secs, inputs] of phases) {
     const held = {};
-    for (let t = 0; t < secs; t += DT) {
+    for (let t = 0; t < secs; t += PHYSICS_STEP_SECONDS) {
       const inp = { ...neutralInput() };
-      for (const k of inputs) { held[k] = (held[k] || 0) + DT; inp[k] = ramp(held[k]); }
-      step(car, inp, DT);
+      for (const k of inputs) { held[k] = (held[k] || 0) + PHYSICS_STEP_SECONDS; inp[k] = ramp(held[k]); }
+      step(car, inp, PHYSICS_STEP_SECONDS);
       log.push({ v: car.t.vLong, gear: car.gear });
     }
   }
@@ -53,7 +53,7 @@ for (const id of CAR_IDS) {
 console.log('\n4. REVERSING, RELEASE R, BRAKE — comes to rest in a forward gear, does not drive off');
 for (const id of CAR_IDS) {
   const { car, log } = sim(id, 0, [[4, ['reverse']], [1, []], [6, ['brake']], [2, []]]);
-  const fwd = max(log.slice(Math.round(4 / DT)).map((l) => l.v));
+  const fwd = max(log.slice(Math.round(4 / PHYSICS_STEP_SECONDS)).map((l) => l.v));
   row(4, id, car.gear > 0 && Math.abs(car.t.vLong) < 0.5 && fwd < 0.5, `gear ${car.gear}, ${car.t.vLong.toFixed(2)} m/s, worst forward ${fwd.toFixed(2)}`);
 }
 console.log('\n5. REVERSING, PRESS GAS — stops, then drives forwards');
