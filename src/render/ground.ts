@@ -1,11 +1,14 @@
-// the GROUND PAINTER of render.ts (phase 4 of the render.js split): floor, surface art and
-// patterns, zones, covers, wear, bumps and the runoff ring. Moved verbatim.
+// The GROUND PAINTER of the renderer: the floor, per-surface art and patterns, zones, covers,
+// wear, bumps and the runoff ring. createGround builds ONE shared context (view, camera,
+// helpers, texture cache, SURFACE_ART and the PRIM pattern primitives) and returns the painters
+// render.ts calls; each painter is a module-level function that takes that context.
 import { FLOOR, FX0, FX1, FY0, FY1, GRID, RUNOFF_W } from "../world/bounds.ts";
 import { ZONES, BUMPS, LEVEL } from "../world/state.ts";
 import { COL } from "../world/colours.ts";
 import { VERGE_W } from "../world/surfaces.ts";
 import { wearMap, WEAR_CELL, groundAt, coverCut } from "../world/wear.ts";
-import type { Cover, CoverCells, CoverId, MergedCell, MergedCover } from "../world/types.ts";
+import type { Bump, Cover, CoverCells, CoverId, MergedCell, MergedCover, Zone } from
+  "../world/types.ts";
 import type {
   ArtLayer, Cam, ForSide, PrimFn, SurfaceArt, View, WearGroup,
 } from "./types.ts";
@@ -25,249 +28,491 @@ interface GroundHelpers {
   surfaceTextures: boolean;     // default on (?tex=0 = live): pre-painted textures (textures.ts)
 }
 
-export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
-  const { PPMz, toScreenX, toScreenY, roundRect, forSide, grassEnds, surfaceTextures } = helpers;
-  const textures = createTextureCache(view);
+// what every module-level painter shares, built once by createGround
+interface GroundCtx extends GroundHelpers {
+  view: View;
+  cam: Cam;
+  textures: ReturnType<typeof createTextureCache>;
+  // how each surface is painted (see makeSurfaceArt)
+  SURFACE_ART: Record<string, SurfaceArt | null>;
+  // the pattern layer kinds (see makePrim)
+  PRIM: Record<string, PrimFn>;
+}
 
-  // ---------------------------------------------------------------- floor
-  function drawFloor() {
-    view.ctx.fillStyle = COL.outside;
-    view.ctx.fillRect(0, 0, view.W, view.H);
-    const ppm = PPMz();
+// the visible world rectangle, in metres
+interface ViewRect {
+  vx0: number;
+  vx1: number;
+  vy0: number;
+  vy1: number;
+}
 
-    // the floor RECTANGLE (S-B): FX0..FX1 x FY0..FY1, the square +-FLOOR on every level without
-    // bounds
-    const floorW = (FX1 - FX0) * ppm, floorH = (FY1 - FY0) * ppm;
-    if (LEVEL.base && LEVEL.base.id !== 'lab') {
-      view.ctx.fillStyle = artBase(LEVEL.base.id, COL.floor);
-      view.ctx.fillRect(toScreenX(FX0), toScreenY(FY0), floorW, floorH);
-      view.ctx.save();
-      view.ctx.translate(toScreenX(0), toScreenY(0));
-      paintLayers(LEVEL.base.id, FX0, FY0, FX1, FY1);
-      view.ctx.restore();
-    } else {
-      view.ctx.fillStyle = COL.floor;
-      view.ctx.fillRect(toScreenX(FX0), toScreenY(FY0), floorW, floorH);
+// most marks one pattern layer may place in one call (see speckle)
+const MARKS_MAX = 30000;
 
-      // a soft warm pool so a big pale floor is not dead flat. Since the ground TILES (2026-10-03)
-      // it is centred on the WORLD ORIGIN (the skidpad), not on the car: tiles are painted
-      // separately, so a screen-centred gradient would come out as one blotch per tile. It stays
-      // UNDER the zones.
-      const glow = view.ctx.createRadialGradient(
-        toScreenX(0), toScreenY(0), 0, toScreenX(0), toScreenY(0), FLOOR * 0.9 * ppm
+/**
+ * Paints the floor: the outside colour, then the level base surface or the lab floor.
+ *
+ * @param groundCtx the shared ground painter context
+ */
+function drawFloor(groundCtx: GroundCtx) {
+  const { view, PPMz, toScreenX, toScreenY } = groundCtx;
+  view.ctx.fillStyle = COL.outside;
+  view.ctx.fillRect(0, 0, view.W, view.H);
+  const ppm = PPMz();
+
+  // the floor RECTANGLE (S-B): FX0..FX1 x FY0..FY1, the square +-FLOOR on every level without
+  // bounds
+  const floorW = (FX1 - FX0) * ppm, floorH = (FY1 - FY0) * ppm;
+  if (LEVEL.base && LEVEL.base.id !== 'lab') {
+    view.ctx.fillStyle = artBase(groundCtx, LEVEL.base.id, COL.floor);
+    view.ctx.fillRect(toScreenX(FX0), toScreenY(FY0), floorW, floorH);
+    view.ctx.save();
+    view.ctx.translate(toScreenX(0), toScreenY(0));
+    paintLayers(groundCtx, LEVEL.base.id, FX0, FY0, FX1, FY1);
+    view.ctx.restore();
+  } else {
+    paintLabFloor(groundCtx, ppm, floorW, floorH);
+  }
+}
+
+/**
+ * Paints the lab floor: its glow pool and the on-screen grid lines.
+ *
+ * @param groundCtx the shared ground painter context
+ * @param ppm pixels per metre
+ * @param floorW floor width in pixels
+ * @param floorH floor height in pixels
+ */
+function paintLabFloor(groundCtx: GroundCtx, ppm: number, floorW: number, floorH: number) {
+  const { view, toScreenX, toScreenY } = groundCtx;
+  view.ctx.fillStyle = COL.floor;
+  view.ctx.fillRect(toScreenX(FX0), toScreenY(FY0), floorW, floorH);
+
+  // a soft warm pool so a big pale floor is not dead flat. Since the ground TILES (2026-10-03)
+  // it is centred on the WORLD ORIGIN (the skidpad), not on the car: tiles are painted
+  // separately, so a screen-centred gradient would come out as one blotch per tile. It stays
+  // UNDER the zones.
+  const glow = view.ctx.createRadialGradient(
+    toScreenX(0), toScreenY(0), 0, toScreenX(0), toScreenY(0), FLOOR * 0.9 * ppm
+  );
+  glow.addColorStop(0, 'rgba(255,252,246,0.55)');
+  glow.addColorStop(1, 'rgba(226,226,234,0)');
+  view.ctx.fillStyle = glow;
+  view.ctx.fillRect(toScreenX(FX0), toScreenY(FY0), floorW, floorH);
+
+  paintFloorGrid(groundCtx);
+}
+
+/**
+ * Strokes the world-grid lines that are on screen, clipped to the floor rectangle.
+ *
+ * @param groundCtx the shared ground painter context
+ */
+function paintFloorGrid(groundCtx: GroundCtx) {
+  const { view, cam, PPMz, toScreenX, toScreenY } = groundCtx;
+  // grid — only the lines actually on screen
+  const gridX0 = Math.floor((cam.x - view.W / 2 / PPMz()) / GRID) * GRID;
+  const gridX1 = cam.x + view.W / 2 / PPMz();
+  const gridY0 = Math.floor((cam.y - view.H / 2 / PPMz()) / GRID) * GRID;
+  const gridY1 = cam.y + view.H / 2 / PPMz();
+  view.ctx.strokeStyle = COL.grid;
+  view.ctx.lineWidth = 1;
+  view.ctx.beginPath();
+  for (let x = gridX0; x <= gridX1; x += GRID) {
+    if (x < FX0 || x > FX1) continue;
+    const lineX = Math.round(toScreenX(x)) + 0.5;
+    view.ctx.moveTo(lineX, toScreenY(Math.max(FY0, gridY0 - GRID)));
+    view.ctx.lineTo(lineX, toScreenY(Math.min(FY1, gridY1 + GRID)));
+  }
+  for (let y = gridY0; y <= gridY1; y += GRID) {
+    if (y < FY0 || y > FY1) continue;
+    const lineY = Math.round(toScreenY(y)) + 0.5;
+    view.ctx.moveTo(toScreenX(Math.max(FX0, gridX0 - GRID)), lineY);
+    view.ctx.lineTo(toScreenX(Math.min(FX1, gridX1 + GRID)), lineY);
+  }
+  view.ctx.stroke();
+}
+
+// GROUND TEXTURE. A fixed lattice (never an RNG — that crawls between frames), CULLED TO THE
+// VIEW.
+//
+// MEASURED BUG, 2026-09-28 (photographed): this looped the whole 260 m quadrant, so it could only
+// afford ~3 m spacing and the result was a field of 1 m polka dots rather than ground. Culling to
+// the visible rectangle first makes the count depend on the SCREEN, not the world, so the grain
+// can be as fine as it needs to be and costs the same at any zoom. Squares, not arcs: at grain
+// size they read identically and they are far cheaper.
+
+/**
+ * Scatters square grain over a region, culled to the view and thinned to MARKS_MAX.
+ *
+ * @param groundCtx the shared ground painter context
+ * @param minX west edge in world metres
+ * @param minY north edge in world metres
+ * @param maxX east edge in world metres
+ * @param maxY south edge in world metres
+ * @param colour the grain colour
+ * @param spacing lattice spacing in metres
+ * @param size mark size in metres
+ */
+function speckle(
+  groundCtx: GroundCtx, minX: number, minY: number, maxX: number, maxY: number,
+  colour: string, spacing: number, size: number
+) {
+  const { view, cam, PPMz } = groundCtx;
+  const ppm = PPMz();
+  const markPx = Math.max(1, size * ppm);
+  // too far out to resolve: skip it entirely
+  if (markPx < 1.1 && spacing * ppm < 3) return;
+  // intersect the region with what is actually on screen, snapped to the lattice so the pattern
+  // is world-locked and does not swim as the camera moves
+  const vx0 = Math.max(minX, cam.x - view.W / 2 / ppm),
+    vx1 = Math.min(maxX, cam.x + view.W / 2 / ppm);
+  const vy0 = Math.max(minY, cam.y - view.H / 2 / ppm),
+    vy1 = Math.min(maxY, cam.y + view.H / 2 / ppm);
+  if (vx1 <= vx0 || vy1 <= vy0) return;
+  // MARK CAP (2026-10-03): the fly-in's whole-level overview asked one call for ~188,000 squares
+  // of grass grain (1.1 s to record, 4.9 s to rasterise at 4x throttle). Any call that would
+  // place more than MARKS_MAX marks thins its lattice to fit — invisible at the zoom where it
+  // happens, since that much grain is sub-pixel noise.
+  const markCount = ((vx1 - vx0) / spacing) * ((vy1 - vy0) / spacing);
+  if (markCount > MARKS_MAX) spacing *= Math.sqrt(markCount / MARKS_MAX);
+  const startU = Math.floor(vx0 / spacing) * spacing,
+    startV = Math.floor(vy0 / spacing) * spacing;
+  view.ctx.fillStyle = colour;
+  for (let latU = startU; latU < vx1; latU += spacing) {
+    for (let latV = startV; latV < vy1; latV += spacing) {
+      // deterministic scatter from the world position, so a speck belongs to the GROUND
+      const hashA = Math.sin(latU * 12.9898 + latV * 78.233) * 43758.5453;
+      const jitterX = (hashA - Math.floor(hashA)) - 0.5;
+      const hashB = Math.sin(latU * 39.3468 + latV * 11.135) * 24634.6345;
+      const jitterY = (hashB - Math.floor(hashB)) - 0.5;
+      view.ctx.fillRect(
+        (latU + jitterX * spacing) * ppm, (latV + jitterY * spacing) * ppm, markPx, markPx
       );
-      glow.addColorStop(0, 'rgba(255,252,246,0.55)');
-      glow.addColorStop(1, 'rgba(226,226,234,0)');
-      view.ctx.fillStyle = glow;
-      view.ctx.fillRect(toScreenX(FX0), toScreenY(FY0), floorW, floorH);
-
-      // grid — only the lines actually on screen
-      const gridX0 = Math.floor((cam.x - view.W / 2 / PPMz()) / GRID) * GRID;
-      const gridX1 = cam.x + view.W / 2 / PPMz();
-      const gridY0 = Math.floor((cam.y - view.H / 2 / PPMz()) / GRID) * GRID;
-      const gridY1 = cam.y + view.H / 2 / PPMz();
-      view.ctx.strokeStyle = COL.grid;
-      view.ctx.lineWidth = 1;
-      view.ctx.beginPath();
-      for (let x = gridX0; x <= gridX1; x += GRID) {
-        if (x < FX0 || x > FX1) continue;
-        const lineX = Math.round(toScreenX(x)) + 0.5;
-        view.ctx.moveTo(lineX, toScreenY(Math.max(FY0, gridY0 - GRID)));
-        view.ctx.lineTo(lineX, toScreenY(Math.min(FY1, gridY1 + GRID)));
-      }
-      for (let y = gridY0; y <= gridY1; y += GRID) {
-        if (y < FY0 || y > FY1) continue;
-        const lineY = Math.round(toScreenY(y)) + 0.5;
-        view.ctx.moveTo(toScreenX(Math.max(FX0, gridX0 - GRID)), lineY);
-        view.ctx.lineTo(toScreenX(Math.min(FX1, gridX1 + GRID)), lineY);
-      }
-      view.ctx.stroke();
     }
   }
+}
 
-  // GROUND TEXTURE. A fixed lattice (never an RNG — that crawls between frames), CULLED TO THE
-  // VIEW.
-  //
-  // MEASURED BUG, 2026-09-28 (photographed): this looped the whole 260 m quadrant, so it could only
-  // afford ~3 m spacing and the result was a field of 1 m polka dots rather than ground. Culling to
-  // the visible rectangle first makes the count depend on the SCREEN, not the world, so the grain
-  // can be as fine as it needs to be and costs the same at any zoom. Squares, not arcs: at grain
-  // size they read identically and they are far cheaper.
-  // most marks one pattern layer may place in one call (see speckle)
-  const MARKS_MAX = 30000;
-  function speckle(
-    minX: number, minY: number, maxX: number, maxY: number,
-    colour: string, spacing: number, size: number
-  ) {
-    const ppm = PPMz();
-    const markPx = Math.max(1, size * ppm);
-    // too far out to resolve: skip it entirely
-    if (markPx < 1.1 && spacing * ppm < 3) return;
-    // intersect the region with what is actually on screen, snapped to the lattice so the pattern
-    // is world-locked and does not swim as the camera moves
-    const vx0 = Math.max(minX, cam.x - view.W / 2 / ppm),
-      vx1 = Math.min(maxX, cam.x + view.W / 2 / ppm);
-    const vy0 = Math.max(minY, cam.y - view.H / 2 / ppm),
-      vy1 = Math.min(maxY, cam.y + view.H / 2 / ppm);
-    if (vx1 <= vx0 || vy1 <= vy0) return;
-    // MARK CAP (2026-10-03): the fly-in's whole-level overview asked one call for ~188,000 squares
-    // of grass grain (1.1 s to record, 4.9 s to rasterise at 4x throttle). Any call that would
-    // place more than MARKS_MAX marks thins its lattice to fit — invisible at the zoom where it
-    // happens, since that much grain is sub-pixel noise.
-    const markCount = ((vx1 - vx0) / spacing) * ((vy1 - vy0) / spacing);
-    if (markCount > MARKS_MAX) spacing *= Math.sqrt(markCount / MARKS_MAX);
-    const startU = Math.floor(vx0 / spacing) * spacing,
-      startV = Math.floor(vy0 / spacing) * spacing;
-    view.ctx.fillStyle = colour;
-    for (let latU = startU; latU < vx1; latU += spacing) {
-      for (let latV = startV; latV < vy1; latV += spacing) {
-        // deterministic scatter from the world position, so a speck belongs to the GROUND
-        const hashA = Math.sin(latU * 12.9898 + latV * 78.233) * 43758.5453;
-        const jitterX = (hashA - Math.floor(hashA)) - 0.5;
-        const hashB = Math.sin(latU * 39.3468 + latV * 11.135) * 24634.6345;
-        const jitterY = (hashB - Math.floor(hashB)) - 0.5;
-        view.ctx.fillRect(
-          (latU + jitterX * spacing) * ppm, (latV + jitterY * spacing) * ppm, markPx, markPx
+// ---------------------------------------------------------------- SURFACE PAINTER (2026-10-03)
+// User: "All surfaces should have unique and noticeable graphics so we can easily and instantly
+// tell them apart." PHOTOGRAPHED BEFORE: every surface was a base colour plus the same square
+// speckle, so grass/short grass, tarmac/race tarmac, wet/broken, sand/gravel and mud/dirt read as
+// pairs. Colour alone does not survive a glance at speed; SHAPE does. So each surface now gets
+// its own pattern vocabulary — stripes, blades, stones, ripples, glossy blobs, cracks, sheen — on
+// top of its colour.
+//
+// Every primitive below shares the speckle rules: a FIXED world lattice (never an RNG, or it
+// crawls), CULLED to the view so cost depends on the screen not the world, skipped entirely when
+// the feature would be under ~1 px, and BATCHED into one path per layer (one fill/stroke call,
+// not one per mark). Callers have translated the context to the world origin, so coordinates are
+// world metres * p.
+
+/**
+ * Calls mark once per lattice point of a region, culled to the view.
+ *
+ * @param groundCtx the shared ground painter context
+ * @param minX west edge in world metres
+ * @param minY north edge in world metres
+ * @param maxX east edge in world metres
+ * @param maxY south edge in world metres
+ * @param spacing lattice spacing in metres
+ * @param prob chance a lattice point gets a mark
+ * @param mark called with the screen x, y, three random numbers and pixels per metre
+ */
+function lattice(
+  groundCtx: GroundCtx,
+  minX: number, minY: number, maxX: number, maxY: number, spacing: number, prob: number,
+  mark: (x: number, y: number, a: number, b: number, c: number, p: number) => void
+) {
+  const { view, cam, PPMz } = groundCtx;
+  const ppm = PPMz();
+  const vx0 = Math.max(minX, cam.x - view.W / 2 / ppm - spacing),
+    vx1 = Math.min(maxX, cam.x + view.W / 2 / ppm + spacing);
+  const vy0 = Math.max(minY, cam.y - view.H / 2 / ppm - spacing),
+    vy1 = Math.min(maxY, cam.y + view.H / 2 / ppm + spacing);
+  if (vx1 <= vx0 || vy1 <= vy0) return;
+  const markCount = ((vx1 - vx0) / spacing) * ((vy1 - vy0) / spacing) * prob;
+  // the same MARK CAP as speckle
+  if (markCount > MARKS_MAX) spacing *= Math.sqrt(markCount / MARKS_MAX);
+  const startU = Math.floor(vx0 / spacing) * spacing,
+    startV = Math.floor(vy0 / spacing) * spacing;
+  for (let latU = startU; latU < vx1; latU += spacing) {
+    for (let latV = startV; latV < vy1; latV += spacing) {
+      const hashA = Math.sin(latU * 12.9898 + latV * 78.233) * 43758.5453,
+        randA = hashA - Math.floor(hashA);
+      const hashB = Math.sin(latU * 39.3468 + latV * 11.135) * 24634.6345,
+        randB = hashB - Math.floor(hashB);
+      const hashC = Math.sin(latU * 7.1231 + latV * 51.719) * 15731.743,
+        randC = hashC - Math.floor(hashC);
+      if (randC > prob) continue;
+      mark(
+        (latU + (randA - 0.5) * spacing) * ppm, (latV + (randB - 0.5) * spacing) * ppm,
+        randA, randB, randC, ppm
+      );
+    }
+  }
+}
+
+/**
+ * Paints round (square in pixel art) stones: gravel, dirt pebbles.
+ *
+ * @param groundCtx the shared ground painter context
+ * @param layer the ArtLayer row [kind, colour, ...numbers in metres]
+ * @param minX west edge of the region in world metres
+ * @param minY north edge of the region in world metres
+ * @param maxX east edge of the region in world metres
+ * @param maxY south edge of the region in world metres
+ */
+function paintStones(
+  groundCtx: GroundCtx, layer: ArtLayer, minX: number, minY: number, maxX: number, maxY: number
+) {
+  const { view, PPMz } = groundCtx;
+  const [, col, spacing, rMin, rMax, prob = 1] = layer, ppm = PPMz();
+  if (rMax * ppm < 0.8 || spacing * ppm < 2.5) return;
+  view.ctx.fillStyle = col;
+  view.ctx.beginPath();
+  lattice(groundCtx, minX, minY, maxX, maxY, spacing, prob, (x, y, randA) => {
+    const radius = (rMin + (rMax - rMin) * randA) * ppm;
+    // square stones in pixel art
+    view.ctx.rect(x - radius, y - radius, radius * 2, radius * 2);
+  });
+  view.ctx.fill();
+}
+
+/**
+ * Paints grass blade tufts, a little V per lattice point.
+ *
+ * @param groundCtx the shared ground painter context
+ * @param layer the ArtLayer row [kind, colour, ...numbers in metres]
+ * @param minX west edge of the region in world metres
+ * @param minY north edge of the region in world metres
+ * @param maxX east edge of the region in world metres
+ * @param maxY south edge of the region in world metres
+ */
+function paintBlades(
+  groundCtx: GroundCtx, layer: ArtLayer, minX: number, minY: number, maxX: number, maxY: number
+) {
+  const { view, PPMz, grassEnds } = groundCtx;
+  const [, col, spacing, len, wid, prob = 1] = layer, ppm = PPMz();
+  if (len * ppm < 2 || spacing * ppm < 2.5) return;
+  view.ctx.strokeStyle = col;
+  view.ctx.lineWidth = Math.max(1, wid * ppm);
+  view.ctx.lineCap = grassEnds === 'square' ? 'butt' : 'round';
+  view.ctx.beginPath();
+  lattice(groundCtx, minX, minY, maxX, maxY, spacing, prob, (x, y, randA, randB) => {
+    const bladeLen = len * ppm * (0.7 + 0.6 * randB), tilt = (randA - 0.5) * 0.9;
+    view.ctx.moveTo(x, y);
+    view.ctx.lineTo(x + Math.sin(tilt - 0.35) * bladeLen, y - Math.cos(tilt - 0.35) * bladeLen);
+    view.ctx.moveTo(x, y);
+    view.ctx.lineTo(x + Math.sin(tilt + 0.35) * bladeLen, y - Math.cos(tilt + 0.35) * bladeLen);
+  });
+  view.ctx.stroke();
+  view.ctx.lineCap = 'butt';
+}
+
+/**
+ * Paints mown stripes: alternate bands along world y.
+ *
+ * @param groundCtx the shared ground painter context
+ * @param layer the ArtLayer row [kind, colour, ...numbers in metres]
+ * @param minX west edge of the region in world metres
+ * @param minY north edge of the region in world metres
+ * @param maxX east edge of the region in world metres
+ * @param maxY south edge of the region in world metres
+ */
+function paintStripes(
+  groundCtx: GroundCtx, layer: ArtLayer, minX: number, minY: number, maxX: number, maxY: number
+) {
+  const { view, cam, PPMz } = groundCtx;
+  const [, col, band] = layer, ppm = PPMz();
+  const vx0 = Math.max(minX, cam.x - view.W / 2 / ppm),
+    vx1 = Math.min(maxX, cam.x + view.W / 2 / ppm);
+  const vy0 = Math.max(minY, cam.y - view.H / 2 / ppm),
+    vy1 = Math.min(maxY, cam.y + view.H / 2 / ppm);
+  if (vx1 <= vx0 || vy1 <= vy0) return;
+  view.ctx.fillStyle = col;
+  for (let bandIdx = Math.floor(vy0 / band); bandIdx * band < vy1; bandIdx++) {
+    if (bandIdx & 1) continue;
+    view.ctx.fillRect(vx0 * ppm, bandIdx * band * ppm, (vx1 - vx0) * ppm, band * ppm);
+  }
+}
+
+/**
+ * Paints wavy lines: wind ripples in sand, ridges in thick mud.
+ *
+ * @param groundCtx the shared ground painter context
+ * @param layer the ArtLayer row [kind, colour, ...numbers in metres]
+ * @param minX west edge of the region in world metres
+ * @param minY north edge of the region in world metres
+ * @param maxX east edge of the region in world metres
+ * @param maxY south edge of the region in world metres
+ */
+function paintRipples(
+  groundCtx: GroundCtx, layer: ArtLayer, minX: number, minY: number, maxX: number, maxY: number
+) {
+  const { view, cam, PPMz } = groundCtx;
+  const [, col, spacing, amp, wave, wid] = layer, ppm = PPMz();
+  if (spacing * ppm < 4) return;
+  const vx0 = Math.max(minX, cam.x - view.W / 2 / ppm),
+    vx1 = Math.min(maxX, cam.x + view.W / 2 / ppm);
+  const vy0 = Math.max(minY, cam.y - view.H / 2 / ppm - amp),
+    vy1 = Math.min(maxY, cam.y + view.H / 2 / ppm + amp);
+  if (vx1 <= vx0 || vy1 <= vy0) return;
+  const step = wave / 6;
+  view.ctx.strokeStyle = col;
+  view.ctx.lineWidth = Math.max(1, wid * ppm);
+  view.ctx.beginPath();
+  for (let row = Math.floor(vy0 / spacing); row * spacing < vy1; row++) {
+    const phase = Math.sin(row * 12.9898) * 437.5;
+    for (
+      let x = Math.floor(vx0 / step) * step, first = true;
+      x <= vx1 + step;
+      x += step, first = false
+    ) {
+      const y = row * spacing + amp * Math.sin((x / wave) * Math.PI * 2 + phase);
+      if (first) view.ctx.moveTo(x * ppm, y * ppm);
+      else view.ctx.lineTo(x * ppm, y * ppm);
+    }
+  }
+  view.ctx.stroke();
+}
+
+/**
+ * Paints soft (square in pixel art) blobs: puddles, mud, gloss.
+ *
+ * @param groundCtx the shared ground painter context
+ * @param layer the ArtLayer row [kind, colour, ...numbers in metres]
+ * @param minX west edge of the region in world metres
+ * @param minY north edge of the region in world metres
+ * @param maxX east edge of the region in world metres
+ * @param maxY south edge of the region in world metres
+ */
+function paintBlobs(
+  groundCtx: GroundCtx, layer: ArtLayer, minX: number, minY: number, maxX: number, maxY: number
+) {
+  const { view, PPMz } = groundCtx;
+  const [, col, spacing, radiusX, radiusY, prob = 1] = layer, ppm = PPMz();
+  if (radiusY * ppm < 0.8 || spacing * ppm < 3) return;
+  view.ctx.fillStyle = col;
+  view.ctx.beginPath();
+  lattice(groundCtx, minX, minY, maxX, maxY, spacing, prob, (x, y, randA, randB) => {
+    const scale = 0.7 + 0.6 * randB;
+    const halfW = radiusX * scale * ppm, halfH = radiusY * scale * ppm;
+    // square blobs in pixel art
+    view.ctx.rect(x - halfW, y - halfH, halfW * 2, halfH * 2);
+  });
+  view.ctx.fill();
+}
+
+/**
+ * Paints jagged cracks with a side branch: ice, broken tarmac.
+ *
+ * @param groundCtx the shared ground painter context
+ * @param layer the ArtLayer row [kind, colour, ...numbers in metres]
+ * @param minX west edge of the region in world metres
+ * @param minY north edge of the region in world metres
+ * @param maxX east edge of the region in world metres
+ * @param maxY south edge of the region in world metres
+ */
+function paintCracks(
+  groundCtx: GroundCtx, layer: ArtLayer, minX: number, minY: number, maxX: number, maxY: number
+) {
+  const { view, PPMz } = groundCtx;
+  const [, col, spacing, len, wid, prob = 1] = layer, ppm = PPMz();
+  if (len * ppm < 4 || spacing * ppm < 4) return;
+  view.ctx.strokeStyle = col;
+  view.ctx.lineWidth = Math.max(1, wid * ppm);
+  view.ctx.beginPath();
+  lattice(groundCtx, minX, minY, maxX, maxY, spacing, prob, (x, y, randA, randB, randC) => {
+    let ang = randA * Math.PI * 2, penX = x, penY = y;
+    view.ctx.moveTo(penX, penY);
+    for (let seg = 0; seg < 4; seg++) {
+      ang += ((seg % 2 ? randB : randC) - 0.5) * 1.4;
+      penX += Math.cos(ang) * len * 0.3 * ppm;
+      penY += Math.sin(ang) * len * 0.3 * ppm;
+      view.ctx.lineTo(penX, penY);
+      if (seg === 1) {
+        view.ctx.lineTo(
+          penX + Math.cos(ang + 1.1) * len * 0.25 * ppm,
+          penY + Math.sin(ang + 1.1) * len * 0.25 * ppm
         );
+        view.ctx.moveTo(penX, penY);
       }
     }
-  }
+  });
+  view.ctx.stroke();
+}
 
-  // ---------------------------------------------------------------- SURFACE PAINTER (2026-10-03)
-  // User: "All surfaces should have unique and noticeable graphics so we can easily and instantly
-  // tell them apart." PHOTOGRAPHED BEFORE: every surface was a base colour plus the same square
-  // speckle, so grass/short grass, tarmac/race tarmac, wet/broken, sand/gravel and mud/dirt read as
-  // pairs. Colour alone does not survive a glance at speed; SHAPE does. So each surface now gets
-  // its own pattern vocabulary — stripes, blades, stones, ripples, glossy blobs, cracks, sheen — on
-  // top of its colour.
-  //
-  // Every primitive below shares the speckle rules: a FIXED world lattice (never an RNG, or it
-  // crawls), CULLED to the view so cost depends on the screen not the world, skipped entirely when
-  // the feature would be under ~1 px, and BATCHED into one path per layer (one fill/stroke call,
-  // not one per mark). Callers have translated the context to the world origin, so coordinates are
-  // world metres * p.
-  function lattice(
-    minX: number, minY: number, maxX: number, maxY: number, spacing: number, prob: number,
-    mark: (x: number, y: number, a: number, b: number, c: number, p: number) => void
+/**
+ * Paints long diagonal sheen bands: polish on ice, standing water.
+ *
+ * @param groundCtx the shared ground painter context
+ * @param layer the ArtLayer row [kind, colour, ...numbers in metres]
+ * @param minX west edge of the region in world metres
+ * @param minY north edge of the region in world metres
+ * @param maxX east edge of the region in world metres
+ * @param maxY south edge of the region in world metres
+ */
+function paintSheen(
+  groundCtx: GroundCtx, layer: ArtLayer, minX: number, minY: number, maxX: number, maxY: number
+) {
+  const { view, cam, PPMz } = groundCtx;
+  const [, col, spacing, wid, slope] = layer, ppm = PPMz();
+  // extended past the view by a band's width: a square-cut diagonal band ending exactly at a
+  // TILE edge left a visible notch at every tile seam (photographed 2026-10-03 on the lab ice
+  // sheet)
+  const vx0 = Math.max(minX, cam.x - view.W / 2 / ppm - wid * 2),
+    vx1 = Math.min(maxX, cam.x + view.W / 2 / ppm + wid * 2);
+  const vy0 = Math.max(minY, cam.y - view.H / 2 / ppm),
+    vy1 = Math.min(maxY, cam.y + view.H / 2 / ppm);
+  if (vx1 <= vx0 || vy1 <= vy0) return;
+  view.ctx.strokeStyle = col;
+  view.ctx.lineWidth = Math.max(1, wid * ppm);
+  view.ctx.beginPath();
+  const lineA = (vy0 - slope * Math.max(vx0, vx1)) / spacing,
+    lineB = (vy1 - slope * Math.min(vx0, vx1)) / spacing;
+  for (
+    let line = Math.floor(Math.min(lineA, lineB));
+    line <= Math.ceil(Math.max(lineA, lineB));
+    line++
   ) {
-    const ppm = PPMz();
-    const vx0 = Math.max(minX, cam.x - view.W / 2 / ppm - spacing),
-      vx1 = Math.min(maxX, cam.x + view.W / 2 / ppm + spacing);
-    const vy0 = Math.max(minY, cam.y - view.H / 2 / ppm - spacing),
-      vy1 = Math.min(maxY, cam.y + view.H / 2 / ppm + spacing);
-    if (vx1 <= vx0 || vy1 <= vy0) return;
-    const markCount = ((vx1 - vx0) / spacing) * ((vy1 - vy0) / spacing) * prob;
-    // the same MARK CAP as speckle
-    if (markCount > MARKS_MAX) spacing *= Math.sqrt(markCount / MARKS_MAX);
-    const startU = Math.floor(vx0 / spacing) * spacing,
-      startV = Math.floor(vy0 / spacing) * spacing;
-    for (let latU = startU; latU < vx1; latU += spacing) {
-      for (let latV = startV; latV < vy1; latV += spacing) {
-        const hashA = Math.sin(latU * 12.9898 + latV * 78.233) * 43758.5453,
-          randA = hashA - Math.floor(hashA);
-        const hashB = Math.sin(latU * 39.3468 + latV * 11.135) * 24634.6345,
-          randB = hashB - Math.floor(hashB);
-        const hashC = Math.sin(latU * 7.1231 + latV * 51.719) * 15731.743,
-          randC = hashC - Math.floor(hashC);
-        if (randC > prob) continue;
-        mark(
-          (latU + (randA - 0.5) * spacing) * ppm, (latV + (randB - 0.5) * spacing) * ppm,
-          randA, randB, randC, ppm
-        );
-      }
-    }
+    view.ctx.moveTo(vx0 * ppm, (line * spacing + slope * vx0) * ppm);
+    view.ctx.lineTo(vx1 * ppm, (line * spacing + slope * vx1) * ppm);
   }
-  // the layer kinds. [kind, colour, ...numbers in metres]
-  const PRIM: Record<string, PrimFn> = {
+  view.ctx.stroke();
+}
+
+/**
+ * Builds the table of layer kinds; each paints one [kind, colour, ...numbers] layer.
+ *
+ * @param groundCtx the shared ground painter context
+ */
+function makePrim(groundCtx: GroundCtx): Record<string, PrimFn> {
+  return {
     // fine square grain — aggregate, grit, sparkle
     grain(layer, minX, minY, maxX, maxY) {
-      speckle(minX, minY, maxX, maxY, layer[1], layer[2], layer[3]);
+      speckle(groundCtx, minX, minY, maxX, maxY, layer[1], layer[2], layer[3]);
     },
     // round stones, radius rMin..rMax — gravel, dirt pebbles
     stones(layer, minX, minY, maxX, maxY) {
-      const [, col, spacing, rMin, rMax, prob = 1] = layer, ppm = PPMz();
-      if (rMax * ppm < 0.8 || spacing * ppm < 2.5) return;
-      view.ctx.fillStyle = col;
-      view.ctx.beginPath();
-      lattice(minX, minY, maxX, maxY, spacing, prob, (x, y, randA) => {
-        const radius = (rMin + (rMax - rMin) * randA) * ppm;
-        // square stones in pixel art
-        view.ctx.rect(x - radius, y - radius, radius * 2, radius * 2);
-      });
-      view.ctx.fill();
+      paintStones(groundCtx, layer, minX, minY, maxX, maxY);
     },
     // grass blades — a little V tuft per lattice point
     blades(layer, minX, minY, maxX, maxY) {
-      const [, col, spacing, len, wid, prob = 1] = layer, ppm = PPMz();
-      if (len * ppm < 2 || spacing * ppm < 2.5) return;
-      view.ctx.strokeStyle = col;
-      view.ctx.lineWidth = Math.max(1, wid * ppm);
-      view.ctx.lineCap = grassEnds === 'square' ? 'butt' : 'round';
-      view.ctx.beginPath();
-      lattice(minX, minY, maxX, maxY, spacing, prob, (x, y, randA, randB) => {
-        const bladeLen = len * ppm * (0.7 + 0.6 * randB), tilt = (randA - 0.5) * 0.9;
-        view.ctx.moveTo(x, y);
-        view.ctx.lineTo(x + Math.sin(tilt - 0.35) * bladeLen, y - Math.cos(tilt - 0.35) * bladeLen);
-        view.ctx.moveTo(x, y);
-        view.ctx.lineTo(x + Math.sin(tilt + 0.35) * bladeLen, y - Math.cos(tilt + 0.35) * bladeLen);
-      });
-      view.ctx.stroke();
-      view.ctx.lineCap = 'butt';
+      paintBlades(groundCtx, layer, minX, minY, maxX, maxY);
     },
     // mown stripes: alternate bands along world y, `band` metres wide
     stripes(layer, minX, minY, maxX, maxY) {
-      const [, col, band] = layer, ppm = PPMz();
-      const vx0 = Math.max(minX, cam.x - view.W / 2 / ppm),
-        vx1 = Math.min(maxX, cam.x + view.W / 2 / ppm);
-      const vy0 = Math.max(minY, cam.y - view.H / 2 / ppm),
-        vy1 = Math.min(maxY, cam.y + view.H / 2 / ppm);
-      if (vx1 <= vx0 || vy1 <= vy0) return;
-      view.ctx.fillStyle = col;
-      for (let bandIdx = Math.floor(vy0 / band); bandIdx * band < vy1; bandIdx++) {
-        if (bandIdx & 1) continue;
-        view.ctx.fillRect(vx0 * ppm, bandIdx * band * ppm, (vx1 - vx0) * ppm, band * ppm);
-      }
+      paintStripes(groundCtx, layer, minX, minY, maxX, maxY);
     },
     // wavy lines — wind ripples in sand, ridges in thick mud
     ripples(layer, minX, minY, maxX, maxY) {
-      const [, col, spacing, amp, wave, wid] = layer, ppm = PPMz();
-      if (spacing * ppm < 4) return;
-      const vx0 = Math.max(minX, cam.x - view.W / 2 / ppm),
-        vx1 = Math.min(maxX, cam.x + view.W / 2 / ppm);
-      const vy0 = Math.max(minY, cam.y - view.H / 2 / ppm - amp),
-        vy1 = Math.min(maxY, cam.y + view.H / 2 / ppm + amp);
-      if (vx1 <= vx0 || vy1 <= vy0) return;
-      const step = wave / 6;
-      view.ctx.strokeStyle = col;
-      view.ctx.lineWidth = Math.max(1, wid * ppm);
-      view.ctx.beginPath();
-      for (let row = Math.floor(vy0 / spacing); row * spacing < vy1; row++) {
-        const phase = Math.sin(row * 12.9898) * 437.5;
-        for (
-          let x = Math.floor(vx0 / step) * step, first = true;
-          x <= vx1 + step;
-          x += step, first = false
-        ) {
-          const y = row * spacing + amp * Math.sin((x / wave) * Math.PI * 2 + phase);
-          if (first) view.ctx.moveTo(x * ppm, y * ppm);
-          else view.ctx.lineTo(x * ppm, y * ppm);
-        }
-      }
-      view.ctx.stroke();
+      paintRipples(groundCtx, layer, minX, minY, maxX, maxY);
     },
     // soft ellipses — puddles, mud pools, glossy highlights, drift shadows, repair patches
     blobs(layer, minX, minY, maxX, maxY) {
-      const [, col, spacing, radiusX, radiusY, prob = 1] = layer, ppm = PPMz();
-      if (radiusY * ppm < 0.8 || spacing * ppm < 3) return;
-      view.ctx.fillStyle = col;
-      view.ctx.beginPath();
-      lattice(minX, minY, maxX, maxY, spacing, prob, (x, y, randA, randB) => {
-        const scale = 0.7 + 0.6 * randB;
-        const halfW = radiusX * scale * ppm, halfH = radiusY * scale * ppm;
-        // square blobs in pixel art
-        view.ctx.rect(x - halfW, y - halfH, halfW * 2, halfH * 2);
-      });
-      view.ctx.fill();
+      paintBlobs(groundCtx, layer, minX, minY, maxX, maxY);
     },
     // thin rings (rain ripples) are NOT drawn in pixel art - as hollow squares they read as UI
     // glitches (photographed on the wet pad). The wet surface keeps its rings layer only because
@@ -276,70 +521,49 @@ export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
     rings() {},
     // jagged cracks with a side branch — ice, broken tarmac
     cracks(layer, minX, minY, maxX, maxY) {
-      const [, col, spacing, len, wid, prob = 1] = layer, ppm = PPMz();
-      if (len * ppm < 4 || spacing * ppm < 4) return;
-      view.ctx.strokeStyle = col;
-      view.ctx.lineWidth = Math.max(1, wid * ppm);
-      view.ctx.beginPath();
-      lattice(minX, minY, maxX, maxY, spacing, prob, (x, y, randA, randB, randC) => {
-        let ang = randA * Math.PI * 2, penX = x, penY = y;
-        view.ctx.moveTo(penX, penY);
-        for (let seg = 0; seg < 4; seg++) {
-          ang += ((seg % 2 ? randB : randC) - 0.5) * 1.4;
-          penX += Math.cos(ang) * len * 0.3 * ppm;
-          penY += Math.sin(ang) * len * 0.3 * ppm;
-          view.ctx.lineTo(penX, penY);
-          if (seg === 1) {
-            view.ctx.lineTo(
-              penX + Math.cos(ang + 1.1) * len * 0.25 * ppm,
-              penY + Math.sin(ang + 1.1) * len * 0.25 * ppm
-            );
-            view.ctx.moveTo(penX, penY);
-          }
-        }
-      });
-      view.ctx.stroke();
+      paintCracks(groundCtx, layer, minX, minY, maxX, maxY);
     },
     // long diagonal sheen bands — polish on ice, reflection on standing water
     sheen(layer, minX, minY, maxX, maxY) {
-      const [, col, spacing, wid, slope] = layer, ppm = PPMz();
-      // extended past the view by a band's width: a square-cut diagonal band ending exactly at a
-      // TILE edge left a visible notch at every tile seam (photographed 2026-10-03 on the lab ice
-      // sheet)
-      const vx0 = Math.max(minX, cam.x - view.W / 2 / ppm - wid * 2),
-        vx1 = Math.min(maxX, cam.x + view.W / 2 / ppm + wid * 2);
-      const vy0 = Math.max(minY, cam.y - view.H / 2 / ppm),
-        vy1 = Math.min(maxY, cam.y + view.H / 2 / ppm);
-      if (vx1 <= vx0 || vy1 <= vy0) return;
-      view.ctx.strokeStyle = col;
-      view.ctx.lineWidth = Math.max(1, wid * ppm);
-      view.ctx.beginPath();
-      const lineA = (vy0 - slope * Math.max(vx0, vx1)) / spacing,
-        lineB = (vy1 - slope * Math.min(vx0, vx1)) / spacing;
-      for (
-        let line = Math.floor(Math.min(lineA, lineB));
-        line <= Math.ceil(Math.max(lineA, lineB));
-        line++
-      ) {
-        view.ctx.moveTo(vx0 * ppm, (line * spacing + slope * vx0) * ppm);
-        view.ctx.lineTo(vx1 * ppm, (line * spacing + slope * vx1) * ppm);
-      }
-      view.ctx.stroke();
+      paintSheen(groundCtx, layer, minX, minY, maxX, maxY);
     },
   };
+}
 
-  // HOW EACH SURFACE IS PAINTED: a base colour, then layers drawn in order. One table — a new
-  // surface is a row here and a row in lab.js (SURFACES) and nothing else. Read by drawFloor,
-  // drawZones, drawTrackRibbon and drawWear, so a surface looks the same wherever it appears. Each
-  // surface has a SIGNATURE SHAPE so no two are told apart by colour alone:
-  //   tarmac — fine light aggregate        race tarmac — smooth, dark, long rubber streaks
-  //   broken — pale, cracked, dark patches dirt — warm brown, pale pebbles
-  //   mud — dark wet pools + gloss         thick mud — near-black, ridged ruts + gloss
-  //   gravel — dense round stones          sand — pale yellow, wind ripples
-  //   grass / short grass — mown stripes   long grass — dark, blade tufts
-  //   snow — white, blue drift shadows     ice — blue, polish sheen + white cracks
-  //   wet — dark, puddles, reflections, rain rings
+// HOW EACH SURFACE IS PAINTED: a base colour, then layers drawn in order. One table — a new
+// surface is a row here and a row in lab.js (SURFACES) and nothing else. Read by drawFloor,
+// drawZones, drawTrackRibbon and drawWear, so a surface looks the same wherever it appears. Each
+// surface has a SIGNATURE SHAPE so no two are told apart by colour alone:
+//   tarmac — fine light aggregate        race tarmac — smooth, dark, long rubber streaks
+//   broken — pale, cracked, dark patches dirt — warm brown, pale pebbles
+//   mud — dark wet pools + gloss         thick mud — near-black, ridged ruts + gloss
+//   gravel — dense round stones          sand — pale yellow, wind ripples
+//   grass / short grass — mown stripes   long grass — dark, blade tufts
+//   snow — white, blue drift shadows     ice — blue, polish sheen + white cracks
+//   wet — dark, puddles, reflections, rain rings
+
+/**
+ * Builds the SURFACE_ART table: the base colour and pattern layers of every surface.
+ *
+ * @returns the table, keyed by surface id
+ */
+function makeSurfaceArt(): Record<string, SurfaceArt | null> {
   const SURFACE_ART: Record<string, SurfaceArt | null> = {
+    ...makeHardArt(),
+    ...makeLooseArt(),
+    ...makeSoftArt(),
+  };
+  addFieldLooks(SURFACE_ART);
+  return SURFACE_ART;
+}
+
+/**
+ * Returns the art rows of the hard surfaces: lab, tarmac, race tarmac, broken, concrete.
+ *
+ * @returns the rows
+ */
+function makeHardArt(): Record<string, SurfaceArt | null> {
+  return {
     lab: null,                                   // the lab surface IS the floor colour already
     tarmac: {
       base: '#3a3c46',
@@ -371,6 +595,16 @@ export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
         ['cracks', '#8c8a83', 6.0, 3.0, 0.05],
       ],
     },
+  };
+}
+
+/**
+ * Returns the art rows of the loose surfaces: dirt, mud, thick mud, gravel, sand.
+ *
+ * @returns the rows
+ */
+function makeLooseArt(): Record<string, SurfaceArt | null> {
+  return {
     dirt: {
       base: '#8a6e50',
       layers: [
@@ -411,6 +645,16 @@ export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
         ['grain', '#f3e5bf', 0.62, 0.06],
       ],
     },
+  };
+}
+
+/**
+ * Returns the art rows of grass, snow, ice and wet tarmac.
+ *
+ * @returns the rows
+ */
+function makeSoftArt(): Record<string, SurfaceArt | null> {
+  return {
     grass: {
       base: '#7e9c5e',
       layers: [
@@ -471,6 +715,14 @@ export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
       ],
     },
   };
+}
+
+/**
+ * Adds the field looks: existing textures with only their colours swapped.
+ *
+ * @param SURFACE_ART the table to extend; it must already hold grass, grassLong and mud
+ */
+function addFieldLooks(SURFACE_ART: Record<string, SurfaceArt | null>) {
   // FIELD LOOKS (highway.js fields, zone.art; the zone DRIVES as its own surface). User,
   // 2026-10-06: "jsut reuse mud and grass or long grass textures for field, and maybe colour them"
   // - so each is an existing texture with only its COLOURS swapped (same layers). SURFACE_ART[id]!
@@ -493,517 +745,830 @@ export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
   );
   // the long-grass BORDER round each field, darker
   SURFACE_ART.hedgerow = recolour('grassLong', '#3c5a28', ['#5a7c3a', '#2c4220']);
-  // Paint one surface's layers over a region. The caller has set any clip and translated to the
-  // world origin; this only adds the pattern (the caller fills the base colour, since it knows
-  // the shape).
-  function paintLayers(artId: string, minX: number, minY: number, maxX: number, maxY: number) {
-    if (view.noPatterns) return;
-    const art = SURFACE_ART[artId];
-    if (!art) return;
-    if (surfaceTextures && paintTextured(artId, art, [minX, minY, maxX, maxY])) return;
-    for (const layer of art.layers) PRIM[layer[0]](layer, minX, minY, maxX, maxY);
+}
+
+/**
+ * Paints one surface's pattern layers over a region. The caller has set any clip and
+ * translated to the world origin; the caller fills the base colour, since it knows the
+ * shape.
+ *
+ * @param groundCtx the shared ground painter context
+ * @param artId the SURFACE_ART key
+ * @param minX west edge in world metres
+ * @param minY north edge in world metres
+ * @param maxX east edge in world metres
+ * @param maxY south edge in world metres
+ */
+function paintLayers(
+  groundCtx: GroundCtx, artId: string, minX: number, minY: number, maxX: number,
+  maxY: number
+) {
+  const { view, surfaceTextures, SURFACE_ART, PRIM } = groundCtx;
+  if (view.noPatterns) return;
+  const art = SURFACE_ART[artId];
+  if (!art) return;
+  if (surfaceTextures && paintTextured(groundCtx, artId, art, [minX, minY, maxX, maxY])) return;
+  for (const layer of art.layers) PRIM[layer[0]](layer, minX, minY, maxX, maxY);
+}
+
+// default (?tex=0 = live): one pattern fill from the pre-painted texture (see textures.ts);
+// false = draw live
+/**
+ * Fills a region with the pre-painted texture of a surface.
+ *
+ * @param groundCtx the shared ground painter context
+ * @param name the SURFACE_ART key
+ * @param art the surface art
+ * @param rect [minX, minY, maxX, maxY] in metres
+ * @returns false when no texture is available, so the caller draws live
+ */
+function paintTextured(groundCtx: GroundCtx, name: string, art: SurfaceArt, rect: number[]) {
+  const { view, PPMz, grassEnds, textures } = groundCtx;
+  const ppm = PPMz(), square = grassEnds === 'square';
+  const tex = textures.get(`${name}|${square}`, ppm,
+    (gfx, period) => paintTexture(gfx, period, ppm, art.layers, square));
+  if (!tex) return false;
+  fillTexture(view.ctx, tex, view.dpr, ppm, rect);
+  return true;
+}
+
+/**
+ * Returns the base colour of a surface.
+ *
+ * @param groundCtx the shared ground painter context
+ * @param artId the SURFACE_ART key
+ * @param fallback the colour when the surface has no art
+ * @returns the colour
+ */
+function artBase(groundCtx: GroundCtx, artId: string, fallback: string) {
+  const { SURFACE_ART } = groundCtx;
+  return SURFACE_ART[artId] ? SURFACE_ART[artId]!.base : fallback;
+}
+
+// EVERY PATCH OF SURFACE, from the same ZONES list the physics reads — so what you see is by
+// construction what you drive on, with no second copy of the layout to drift out of step. (That
+// drift is exactly the bug that cost me an afternoon in the ground sampling earlier today.)
+//
+// Drawn back to front, so the first-hit-wins order in lab.js is honoured visually too: a panel
+// laid ON a quadrant is listed first and must therefore be painted LAST.
+
+/**
+ * Paints every zone of the level, back to front, then the quarter seams.
+ *
+ * @param groundCtx the shared ground painter context
+ */
+function drawZones(groundCtx: GroundCtx) {
+  const { SURFACE_ART } = groundCtx;
+  for (let i = ZONES.length - 1; i >= 0; i--) {
+    const zone = ZONES[i];
+    // zone.art: drawn as another look (a wheat field drives as long grass)
+    const artId = zone.art || zone.surface.id, art = SURFACE_ART[artId];
+    if (!art) continue;
+    if (!isZoneOnScreen(groundCtx, zone)) continue;
+    if (zone.rounded) paintRoundedZone(groundCtx, zone, art);
+    else if (zone.rot) paintRotatedZone(groundCtx, zone, artId, art);
+    else paintPlainZone(groundCtx, zone, artId, art);
   }
-  // default (?tex=0 = live): one pattern fill from the pre-painted texture (see textures.ts);
-  // false = draw live
-  function paintTextured(name: string, art: SurfaceArt, rect: number[]) {
-    const ppm = PPMz(), square = grassEnds === 'square';
-    const tex = textures.get(`${name}|${square}`, ppm,
-      (gfx, period) => paintTexture(gfx, period, ppm, art.layers, square));
-    if (!tex) return false;
-    fillTexture(view.ctx, tex, view.dpr, ppm, rect);
-    return true;
-  }
-  const artBase = (artId: string, fallback: string) => (
-    SURFACE_ART[artId] ? SURFACE_ART[artId]!.base : fallback
+  // A soft seam where the quarters meet, so the join reads as a real transition and not a UI
+  // edge.
+  if (LEVEL.seams) paintSeams(groundCtx);
+}
+
+/**
+ * Tells whether a zone's ROTATED footprint touches the screen.
+ *
+ * @param groundCtx the shared ground painter context
+ * @param zone the zone being painted
+ * @returns true when it is on screen
+ */
+function isZoneOnScreen(groundCtx: GroundCtx, zone: Zone) {
+  const { view, toScreenX, toScreenY } = groundCtx;
+  // off screen? On the ROTATED footprint. MEASURED BUG (user, 2026-10-04: "the old runway bugs
+  // in and out of existence"): this tested the unrotated w x h box, so a long thin rotated
+  // runway (432 x 22 m at -22 deg) was skipped by every ground tile more than 11 m from its
+  // centre line — painted in some tiles, missing in others, changing as tiles reloaded.
+  const cosAbs = Math.abs(Math.cos(zone.rot || 0)), sinAbs = Math.abs(Math.sin(zone.rot || 0));
+  const extentX = (zone.w / 2) * cosAbs + (zone.h / 2) * sinAbs,
+    extentY = (zone.w / 2) * sinAbs + (zone.h / 2) * cosAbs;
+  if (
+    toScreenX(zone.x - extentX) > view.W || toScreenX(zone.x + extentX) < 0 ||
+    toScreenY(zone.y - extentY) > view.H || toScreenY(zone.y + extentY) < 0
+  ) return false;
+  return true;
+}
+
+/**
+ * Paints a rounded panel: its tarmac apron, the surface art clipped inside, rim and label.
+ *
+ * @param groundCtx the shared ground painter context
+ * @param zone the zone being painted
+ * @param art the zone's surface art
+ */
+function paintRoundedZone(groundCtx: GroundCtx, zone: Zone, art: SurfaceArt) {
+  const { view, PPMz, toScreenX, toScreenY, roundRect } = groundCtx;
+  const ppm = PPMz();
+  const left = zone.x - zone.w / 2, top = zone.y - zone.h / 2;
+  const rad = Math.min(5 * ppm, zone.w * ppm * 0.15);
+  // Outer asphalt perimeter apron
+  view.ctx.fillStyle = COL.tarmac;
+  view.ctx.beginPath();
+  // the apron is PHYSICAL tarmac (lab.js PAD_APRON, zoneAt) — change the two together
+  roundRect(
+    view.ctx, toScreenX(left - 1.2), toScreenY(top - 1.2),
+    (zone.w + 2.4) * ppm, (zone.h + 2.4) * ppm, rad + 1.2 * ppm
   );
+  view.ctx.fill();
 
-  // EVERY PATCH OF SURFACE, from the same ZONES list the physics reads — so what you see is by
-  // construction what you drive on, with no second copy of the layout to drift out of step. (That
-  // drift is exactly the bug that cost me an afternoon in the ground sampling earlier today.)
-  //
-  // Drawn back to front, so the first-hit-wins order in lab.js is honoured visually too: a panel
-  // laid ON a quadrant is listed first and must therefore be painted LAST.
-  function drawZones() {
-    const ppm = PPMz();
-    for (let i = ZONES.length - 1; i >= 0; i--) {
-      const zone = ZONES[i];
-      // zone.art: drawn as another look (a wheat field drives as long grass)
-      const artId = zone.art || zone.surface.id, art = SURFACE_ART[artId];
-      if (!art) continue;
-      const left = zone.x - zone.w / 2, top = zone.y - zone.h / 2;
-      // off screen? On the ROTATED footprint. MEASURED BUG (user, 2026-10-04: "the old runway bugs
-      // in and out of existence"): this tested the unrotated w x h box, so a long thin rotated
-      // runway (432 x 22 m at -22 deg) was skipped by every ground tile more than 11 m from its
-      // centre line — painted in some tiles, missing in others, changing as tiles reloaded.
-      const cosAbs = Math.abs(Math.cos(zone.rot || 0)), sinAbs = Math.abs(Math.sin(zone.rot || 0));
-      const extentX = (zone.w / 2) * cosAbs + (zone.h / 2) * sinAbs,
-        extentY = (zone.w / 2) * sinAbs + (zone.h / 2) * cosAbs;
-      if (
-        toScreenX(zone.x - extentX) > view.W || toScreenX(zone.x + extentX) < 0 ||
-        toScreenY(zone.y - extentY) > view.H || toScreenY(zone.y + extentY) < 0
-      ) continue;
+  view.ctx.save();
+  view.ctx.beginPath();
+  roundRect(view.ctx, toScreenX(left), toScreenY(top), zone.w * ppm, zone.h * ppm, rad);
+  view.ctx.fillStyle = art.base;
+  view.ctx.fill();
+  view.ctx.clip();
+  view.ctx.translate(toScreenX(0), toScreenY(0));
+  paintLayers(groundCtx, zone.surface.id, left, top, left + zone.w, top + zone.h);
+  view.ctx.restore();
 
-      if (zone.rounded) {
-        const rad = Math.min(5 * ppm, zone.w * ppm * 0.15);
-        // Outer asphalt perimeter apron
-        view.ctx.fillStyle = COL.tarmac;
-        view.ctx.beginPath();
-        // the apron is PHYSICAL tarmac (lab.js PAD_APRON, zoneAt) — change the two together
-        roundRect(
-          view.ctx, toScreenX(left - 1.2), toScreenY(top - 1.2),
-          (zone.w + 2.4) * ppm, (zone.h + 2.4) * ppm, rad + 1.2 * ppm
-        );
-        view.ctx.fill();
+  view.ctx.strokeStyle = 'rgba(255,255,255,0.55)';
+  view.ctx.lineWidth = Math.max(1, 0.20 * ppm);
+  view.ctx.beginPath();
+  roundRect(view.ctx, toScreenX(left), toScreenY(top), zone.w * ppm, zone.h * ppm, rad);
+  view.ctx.stroke();
 
-        view.ctx.save();
-        view.ctx.beginPath();
-        roundRect(view.ctx, toScreenX(left), toScreenY(top), zone.w * ppm, zone.h * ppm, rad);
-        view.ctx.fillStyle = art.base;
-        view.ctx.fill();
-        view.ctx.clip();
-        view.ctx.translate(toScreenX(0), toScreenY(0));
-        paintLayers(zone.surface.id, left, top, left + zone.w, top + zone.h);
-        view.ctx.restore();
-
-        view.ctx.strokeStyle = 'rgba(255,255,255,0.55)';
-        view.ctx.lineWidth = Math.max(1, 0.20 * ppm);
-        view.ctx.beginPath();
-        roundRect(view.ctx, toScreenX(left), toScreenY(top), zone.w * ppm, zone.h * ppm, rad);
-        view.ctx.stroke();
-
-        const fontPx = 3.2 * ppm;
-        if (fontPx > 7) {
-          view.ctx.font = `700 ${Math.round(fontPx)}px ui-sans-serif, system-ui, sans-serif`;
-          view.ctx.textAlign = 'center';
-          view.ctx.textBaseline = 'middle';
-          view.ctx.fillStyle = 'rgba(255,255,255,0.75)';
-          // a labelled zone
-          view.ctx.fillText(zone.surface.label!, toScreenX(zone.x), toScreenY(top + 4.5));
-        }
-        continue;
-      }
-
-      if (zone.rot) {
-        // ROTATED zone: clip in the zone's frame, then step back to the world frame (the clip
-        // stays) and paint the texture over the zone's bounding box, so it lines up with the ground
-        // exactly where zoneAt says the surface is.
-        const reach = Math.hypot(zone.w, zone.h) / 2;
-        if (
-          toScreenX(zone.x + reach) < 0 || toScreenX(zone.x - reach) > view.W ||
-          toScreenY(zone.y + reach) < 0 || toScreenY(zone.y - reach) > view.H
-        ) continue;
-        view.ctx.save();
-        view.ctx.translate(toScreenX(zone.x), toScreenY(zone.y));
-        view.ctx.rotate(zone.rot);
-        view.ctx.beginPath();
-        view.ctx.rect((-zone.w / 2) * ppm, (-zone.h / 2) * ppm, zone.w * ppm, zone.h * ppm);
-        view.ctx.fillStyle = art.base;
-        view.ctx.fill();
-        view.ctx.clip();
-        view.ctx.rotate(-zone.rot);
-        view.ctx.translate(-toScreenX(zone.x), -toScreenY(zone.y));
-        view.ctx.translate(toScreenX(0), toScreenY(0));
-        // only the part IN VIEW (in a tile: the tile). MEASURED 2026-10-04: once the culling fix
-        // let the 432 m runway into every tile it crosses, each tile repainted its whole 430 m
-        // square of texture — ground tile 22 -> 26 ms, slow frames 71 -> ~90.
-        const vx0 = cam.x - view.W / 2 / ppm, vy0 = cam.y - view.H / 2 / ppm;
-        paintLayers(
-          artId, Math.max(zone.x - reach, vx0), Math.max(zone.y - reach, vy0),
-          Math.min(zone.x + reach, vx0 + view.W / ppm),
-          Math.min(zone.y + reach, vy0 + view.H / ppm)
-        );
-        view.ctx.restore();
-        continue;
-      }
-      view.ctx.save();
-      view.ctx.beginPath();
-      view.ctx.rect(toScreenX(left), toScreenY(top), zone.w * ppm, zone.h * ppm);
-      view.ctx.fillStyle = art.base;
-      view.ctx.fill();
-      // so the texture cannot spill outside the region the physics uses
-      view.ctx.clip();
-      view.ctx.translate(toScreenX(0), toScreenY(0));
-      paintLayers(zone.surface.id, left, top, left + zone.w, top + zone.h);
-      view.ctx.restore();
-      // `boxed` marks a deliberate TEST PANEL: give it a rim and paint its FULL NAME on.
-      if (zone.boxed) {
-        view.ctx.strokeStyle = 'rgba(40,42,50,0.35)';
-        view.ctx.lineWidth = Math.max(1, 0.25 * ppm);
-        view.ctx.strokeRect(toScreenX(left), toScreenY(top), zone.w * ppm, zone.h * ppm);
-        const fontPx = 3.4 * ppm;
-        if (fontPx > 7) {
-          view.ctx.font = `700 ${Math.round(fontPx)}px ui-sans-serif, system-ui, sans-serif`;
-          view.ctx.textAlign = 'center';
-          view.ctx.textBaseline = 'middle';
-          view.ctx.fillStyle = 'rgba(30,32,40,0.32)';
-          // a boxed panel is labelled
-          view.ctx.fillText(zone.surface.label!, toScreenX(zone.x), toScreenY(top + 5.5));
-        }
-      }
-    }
-    // A soft seam where the quarters meet, so the join reads as a real transition and not a UI
-    // edge.
-    if (LEVEL.seams) {
-      view.ctx.strokeStyle = 'rgba(80,80,92,0.20)';
-      view.ctx.lineWidth = Math.max(1, 0.3 * ppm);
-      view.ctx.beginPath();
-      // the old square's quarters only (S-B: the lab's extension south of FLOOR is one floor, no
-      // quarter seam)
-      view.ctx.moveTo(toScreenX(-FLOOR), toScreenY(0));
-      view.ctx.lineTo(toScreenX(FLOOR), toScreenY(0));
-      view.ctx.moveTo(toScreenX(0), toScreenY(-FLOOR));
-      view.ctx.lineTo(toScreenX(0), toScreenY(FLOOR));
-      view.ctx.stroke();
-    }
+  const fontPx = 3.2 * ppm;
+  if (fontPx > 7) {
+    view.ctx.font = `700 ${Math.round(fontPx)}px ui-sans-serif, system-ui, sans-serif`;
+    view.ctx.textAlign = 'center';
+    view.ctx.textBaseline = 'middle';
+    view.ctx.fillStyle = 'rgba(255,255,255,0.75)';
+    // a labelled zone
+    view.ctx.fillText(zone.surface.label!, toScreenX(zone.x), toScreenY(top + 4.5));
   }
+}
 
-  // COVERS (2026-10-03) — snow, ice and puddles lying ON any surface (LEVEL.covers, lab.js).
-  // Static, so they are painted into the ground tiles. Snow and ice are opaque and use their own
-  // SURFACE_ART; a puddle is TRANSLUCENT water over whatever is under it, so you can see it is a
-  // puddle on grass, on dirt or on tarmac. When wear changes a cell under a cover (snow packed to
-  // ice, ice scrubbed through), drawWear paints that cell's new state over this. A cover is drawn
-  // as the 0.5 m world-grid squares whose centre is inside it (the same inside test as lab.js
-  // coverAt), cached per cover — squares, not ovals (user, pixel pass: "no circles"). Physics keeps
-  // the exact shape; the drawn edge is within ~0.35 m of it, the same as the square blend patches.
-  // `rim` = squares with an outside neighbour, filled as the edge line (stroking the squares would
-  // outline every one of them).
-  function coverCells(cover: Cover): CoverCells {
-    if (cover._cells) return cover._cells;
-    const cellSize = 0.5, cosRot = Math.cos(cover.rot || 0), sinRot = Math.sin(cover.rot || 0),
-      halfW = cover.w / 2, halfH = cover.h / 2;
-    // scan the ROTATED box's extents, not a square of the long side (a 160 x 14 m river was a 160 m
-    // square: 100k tests -> ~10k)
-    const reachX = halfW * Math.abs(cosRot) + halfH * Math.abs(sinRot) + cellSize,
-      reachY = halfW * Math.abs(sinRot) + halfH * Math.abs(cosRot) + cellSize;
-    const inside = (x: number, y: number) => {
-      // the river's dry band under the motorway (lab.js coverAt)
-      if (cover.cut && coverCut(cover, x, y)) return false;
-      const offX = x - cover.x, offY = y - cover.y,
-        dx = offX * cosRot + offY * sinRot, dy = -offX * sinRot + offY * cosRot;
-      return cover.shape === 'ellipse'
-        ? (dx * dx) / (halfW * halfW) + (dy * dy) / (halfH * halfH) <= 1
-        : Math.abs(dx) <= halfW && Math.abs(dy) <= halfH;
-    };
-    const all: number[] = [], rim: number[] = [];
-    for (let x = Math.floor((cover.x - reachX) / cellSize) * cellSize;
-      x < cover.x + reachX; x += cellSize)
-      for (let y = Math.floor((cover.y - reachY) / cellSize) * cellSize;
-        y < cover.y + reachY; y += cellSize) {
-        const midX = x + cellSize / 2, midY = y + cellSize / 2;
-        if (!inside(midX, midY)) continue;
-        all.push(x, y);
-        if (
-          !inside(midX + cellSize, midY) || !inside(midX - cellSize, midY) ||
-          !inside(midX, midY + cellSize) || !inside(midX, midY - cellSize)
-        ) rim.push(x, y);
-      }
-    return (cover._cells = { all, rim, G: cellSize });
+/**
+ * Paints a rotated zone: clipped in its own frame, the texture over its bounding box.
+ *
+ * @param groundCtx the shared ground painter context
+ * @param zone the zone being painted
+ * @param artId the SURFACE_ART key
+ * @param art the zone's surface art
+ */
+function paintRotatedZone(
+  groundCtx: GroundCtx, zone: Zone, artId: string, art: SurfaceArt
+) {
+  const { view, cam, PPMz, toScreenX, toScreenY } = groundCtx;
+  const ppm = PPMz();
+  // ROTATED zone: clip in the zone's frame, then step back to the world frame (the clip
+  // stays) and paint the texture over the zone's bounding box, so it lines up with the ground
+  // exactly where zoneAt says the surface is.
+  const reach = Math.hypot(zone.w, zone.h) / 2;
+  if (
+    toScreenX(zone.x + reach) < 0 || toScreenX(zone.x - reach) > view.W ||
+    toScreenY(zone.y + reach) < 0 || toScreenY(zone.y - reach) > view.H
+  ) return;
+  view.ctx.save();
+  view.ctx.translate(toScreenX(zone.x), toScreenY(zone.y));
+  view.ctx.rotate(zone.rot!);
+  view.ctx.beginPath();
+  view.ctx.rect((-zone.w / 2) * ppm, (-zone.h / 2) * ppm, zone.w * ppm, zone.h * ppm);
+  view.ctx.fillStyle = art.base;
+  view.ctx.fill();
+  view.ctx.clip();
+  view.ctx.rotate(-zone.rot!);
+  view.ctx.translate(-toScreenX(zone.x), -toScreenY(zone.y));
+  view.ctx.translate(toScreenX(0), toScreenY(0));
+  // only the part IN VIEW (in a tile: the tile). MEASURED 2026-10-04: once the culling fix
+  // let the 432 m runway into every tile it crosses, each tile repainted its whole 430 m
+  // square of texture — ground tile 22 -> 26 ms, slow frames 71 -> ~90.
+  const vx0 = cam.x - view.W / 2 / ppm, vy0 = cam.y - view.H / 2 / ppm;
+  paintLayers(
+    groundCtx, artId, Math.max(zone.x - reach, vx0), Math.max(zone.y - reach, vy0),
+    Math.min(zone.x + reach, vx0 + view.W / ppm),
+    Math.min(zone.y + reach, vy0 + view.H / ppm)
+  );
+  view.ctx.restore();
+}
+
+/**
+ * Paints an unrotated zone: its base colour and surface art clipped to the rectangle.
+ *
+ * @param groundCtx the shared ground painter context
+ * @param zone the zone being painted
+ * @param artId the SURFACE_ART key
+ * @param art the zone's surface art
+ */
+function paintPlainZone(
+  groundCtx: GroundCtx, zone: Zone, artId: string, art: SurfaceArt
+) {
+  const { view, PPMz, toScreenX, toScreenY } = groundCtx;
+  const ppm = PPMz();
+  const left = zone.x - zone.w / 2, top = zone.y - zone.h / 2;
+  view.ctx.save();
+  view.ctx.beginPath();
+  view.ctx.rect(toScreenX(left), toScreenY(top), zone.w * ppm, zone.h * ppm);
+  view.ctx.fillStyle = art.base;
+  view.ctx.fill();
+  // so the texture cannot spill outside the region the physics uses
+  view.ctx.clip();
+  view.ctx.translate(toScreenX(0), toScreenY(0));
+  paintLayers(groundCtx, zone.surface.id, left, top, left + zone.w, top + zone.h);
+  view.ctx.restore();
+  if (zone.boxed) paintBoxedZoneLabel(groundCtx, zone);
+}
+
+/**
+ * Paints the rim and the full name of a boxed test panel.
+ *
+ * @param groundCtx the shared ground painter context
+ * @param zone the zone being painted
+ */
+function paintBoxedZoneLabel(groundCtx: GroundCtx, zone: Zone) {
+  const { view, PPMz, toScreenX, toScreenY } = groundCtx;
+  const ppm = PPMz();
+  const left = zone.x - zone.w / 2, top = zone.y - zone.h / 2;
+  // `boxed` marks a deliberate TEST PANEL: give it a rim and paint its FULL NAME on.
+  view.ctx.strokeStyle = 'rgba(40,42,50,0.35)';
+  view.ctx.lineWidth = Math.max(1, 0.25 * ppm);
+  view.ctx.strokeRect(toScreenX(left), toScreenY(top), zone.w * ppm, zone.h * ppm);
+  const fontPx = 3.4 * ppm;
+  if (fontPx > 7) {
+    view.ctx.font = `700 ${Math.round(fontPx)}px ui-sans-serif, system-ui, sans-serif`;
+    view.ctx.textAlign = 'center';
+    view.ctx.textBaseline = 'middle';
+    view.ctx.fillStyle = 'rgba(30,32,40,0.32)';
+    // a boxed panel is labelled
+    view.ctx.fillText(zone.surface.label!, toScreenX(zone.x), toScreenY(top + 5.5));
   }
-  const PUDDLE_TINT: Record<string, string> = {
-    dirt: 'rgba(86,64,42,0.62)', mud: 'rgba(62,46,32,0.66)', thickMud: 'rgba(46,34,24,0.70)',
-    sand: 'rgba(150,128,90,0.55)', gravel: 'rgba(96,90,78,0.58)',
-    // on hard ground, water is a dark mirror, not blue (user, 2026-10-03: puddles on tarmac looked
-    // wrong)
-    tarmac: 'rgba(16,19,26,0.62)', racetarmac: 'rgba(12,14,20,0.62)',
-    broken: 'rgba(30,33,42,0.60)', lab: 'rgba(120,128,142,0.45)',
-    // water on grass reads BLUE (it vanished into the grass as dark green — photographed
-    // 2026-10-03)
-    grass: 'rgba(74,104,150,0.62)', grassShort: 'rgba(74,104,150,0.62)',
-    grassLong: 'rgba(66,96,140,0.64)',
+}
+
+/**
+ * Strokes the soft seam lines where the old square's quarters meet.
+ *
+ * @param groundCtx the shared ground painter context
+ */
+function paintSeams(groundCtx: GroundCtx) {
+  const { view, PPMz, toScreenX, toScreenY } = groundCtx;
+  const ppm = PPMz();
+  view.ctx.strokeStyle = 'rgba(80,80,92,0.20)';
+  view.ctx.lineWidth = Math.max(1, 0.3 * ppm);
+  view.ctx.beginPath();
+  // the old square's quarters only (S-B: the lab's extension south of FLOOR is one floor, no
+  // quarter seam)
+  view.ctx.moveTo(toScreenX(-FLOOR), toScreenY(0));
+  view.ctx.lineTo(toScreenX(FLOOR), toScreenY(0));
+  view.ctx.moveTo(toScreenX(0), toScreenY(-FLOOR));
+  view.ctx.lineTo(toScreenX(0), toScreenY(FLOOR));
+  view.ctx.stroke();
+}
+
+// COVERS (2026-10-03) — snow, ice and puddles lying ON any surface (LEVEL.covers, lab.js).
+// Static, so they are painted into the ground tiles. Snow and ice are opaque and use their own
+// SURFACE_ART; a puddle is TRANSLUCENT water over whatever is under it, so you can see it is a
+// puddle on grass, on dirt or on tarmac. When wear changes a cell under a cover (snow packed to
+// ice, ice scrubbed through), drawWear paints that cell's new state over this. A cover is drawn
+// as the 0.5 m world-grid squares whose centre is inside it (the same inside test as lab.js
+// coverAt), cached per cover — squares, not ovals (user, pixel pass: "no circles"). Physics keeps
+// the exact shape; the drawn edge is within ~0.35 m of it, the same as the square blend patches.
+// `rim` = squares with an outside neighbour, filled as the edge line (stroking the squares would
+// outline every one of them).
+
+/**
+ * Returns the 0.5 m world-grid cells whose centre is inside a cover, cached on the cover.
+ *
+ * @param cover the cover to measure
+ * @returns the cells: all of them and the rim
+ */
+function coverCells(cover: Cover): CoverCells {
+  if (cover._cells) return cover._cells;
+  const cellSize = 0.5, cosRot = Math.cos(cover.rot || 0), sinRot = Math.sin(cover.rot || 0),
+    halfW = cover.w / 2, halfH = cover.h / 2;
+  // scan the ROTATED box's extents, not a square of the long side (a 160 x 14 m river was a 160 m
+  // square: 100k tests -> ~10k)
+  const reachX = halfW * Math.abs(cosRot) + halfH * Math.abs(sinRot) + cellSize,
+    reachY = halfW * Math.abs(sinRot) + halfH * Math.abs(cosRot) + cellSize;
+  const inside = (x: number, y: number) => {
+    // the river's dry band under the motorway (lab.js coverAt)
+    if (cover.cut && coverCut(cover, x, y)) return false;
+    const offX = x - cover.x, offY = y - cover.y,
+      dx = offX * cosRot + offY * sinRot, dy = -offX * sinRot + offY * cosRot;
+    return cover.shape === 'ellipse'
+      ? (dx * dx) / (halfW * halfW) + (dy * dy) / (halfH * halfH) <= 1
+      : Math.abs(dx) <= halfW && Math.abs(dy) <= halfH;
   };
-  // RANDOM PATCHES (Grass Track, re-rolled every load — lab.js randomiseGrassTrack): small ellipses
-  // of another base surface, drawn with that surface's own SURFACE_ART so a mud spot looks like
-  // mud.
-  function drawPatches() {
-    // random spots + blend patches (lab.js prepareLevel)
-    const list = LEVEL.allPatches || LEVEL.patches;
-    if (!list || !list.length) return;
-    const ppm = PPMz();
-    for (const patch of list) {
-      const reach = Math.max(patch.w, patch.h) / 2;
+  const all: number[] = [], rim: number[] = [];
+  for (let x = Math.floor((cover.x - reachX) / cellSize) * cellSize;
+    x < cover.x + reachX; x += cellSize)
+    for (let y = Math.floor((cover.y - reachY) / cellSize) * cellSize;
+      y < cover.y + reachY; y += cellSize) {
+      const midX = x + cellSize / 2, midY = y + cellSize / 2;
+      if (!inside(midX, midY)) continue;
+      all.push(x, y);
       if (
-        toScreenX(patch.x + reach) < 0 || toScreenX(patch.x - reach) > view.W ||
-        toScreenY(patch.y + reach) < 0 || toScreenY(patch.y - reach) > view.H
-      ) continue;
-      view.ctx.save();
-      view.ctx.beginPath();
-      if (patch.sq) view.ctx.rect(
-        toScreenX(patch.x - patch.w / 2), toScreenY(patch.y - patch.h / 2), patch.w * ppm,
-          patch.h * ppm
-      );
-      else view.ctx.ellipse(
-        toScreenX(patch.x), toScreenY(patch.y), (patch.w / 2) * ppm, (patch.h / 2) * ppm,
-        patch.rot || 0, 0, Math.PI * 2
-      );
-      view.ctx.fillStyle = artBase(patch.surface.id, '#6b5644');
-      view.ctx.fill();
-      view.ctx.clip();
-      view.ctx.translate(toScreenX(0), toScreenY(0));
-      paintLayers(
-        patch.surface.id, patch.x - reach, patch.y - reach, patch.x + reach, patch.y + reach
-      );
-      view.ctx.restore();
+        !inside(midX + cellSize, midY) || !inside(midX - cellSize, midY) ||
+        !inside(midX, midY + cellSize) || !inside(midX, midY - cellSize)
+      ) rim.push(x, y);
     }
-  }
-  // MERGED COVERS (user, 2026-10-04: "puddles, streams or bodies of water should CONNECT together
-  // if touching"). Each cover used to be drawn on its own — its own translucent fill and dark rim —
-  // so overlapping puddles darkened twice and showed rims inside each other: a stream read as a
-  // string of beads. Now, per cover KIND, the union of every cover's 0.5 m cells (the same cells
-  // coverAt answers for, so it still matches the physics); each tint fills once, the pattern is
-  // clipped to the union, one rim round the outside.
-  function mergedCovers(list: Cover[]): MergedCover[] {
-    if (LEVEL._mergedOf === list) return LEVEL._merged!;   // set together with _mergedOf
-    const cellSize = 0.5, kinds = new Map<CoverId, Map<number, MergedCell>>();
-    for (const cover of list) {
-      let kindCells = kinds.get(cover.cover);
-      if (!kindCells) kinds.set(cover.cover, (kindCells = new Map()));
-      const own = coverCells(cover);
-      const tint = cover.cover === 'wet'
-        ? (PUDDLE_TINT[(groundAt(cover.x, cover.y).surface.under) || 'tarmac']
-          || 'rgba(52,66,92,0.58)')
-        : null;
-      for (let i = 0; i < own.all.length; i += 2) {
-        const gridX = Math.round(own.all[i] / cellSize),
-          gridY = Math.round(own.all[i + 1] / cellSize),
-          key = gridX * 131071 + gridY;
-        if (!kindCells.has(key))
-          kindCells.set(key, {
-            x: own.all[i], y: own.all[i + 1], gx: gridX, gy: gridY, tint,
-          });
-      }
-    }
-    const out: MergedCover[] = [];
-    for (const [kind, kindCells] of kinds) {
-      const cells = [...kindCells.values()], rim: MergedCell[] = [];
-      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-      for (const cell of cells) {
-        if (
-          !kindCells.has((cell.gx + 1) * 131071 + cell.gy) ||
-          !kindCells.has((cell.gx - 1) * 131071 + cell.gy) ||
-          !kindCells.has(cell.gx * 131071 + cell.gy + 1) ||
-          !kindCells.has(cell.gx * 131071 + cell.gy - 1)
-        ) rim.push(cell);
-        minX = Math.min(minX, cell.x);
-        minY = Math.min(minY, cell.y);
-        maxX = Math.max(maxX, cell.x + cellSize);
-        maxY = Math.max(maxY, cell.y + cellSize);
-      }
-      out.push({ kind, cells, rim, bb: [minX, minY, maxX, maxY], G: cellSize });
-    }
-    LEVEL._mergedOf = list;
-    LEVEL._merged = out;
-    return out;
-  }
-  function drawCoversMerged(list: Cover[]) {
-    const ppm = PPMz(), vx0 = cam.x - view.W / 2 / ppm, vx1 = cam.x + view.W / 2 / ppm,
-      vy0 = cam.y - view.H / 2 / ppm, vy1 = cam.y + view.H / 2 / ppm;
-    for (const grp of mergedCovers(list)) {
-      const [minX, minY, maxX, maxY] = grp.bb, cellSize = grp.G;
-      if (maxX < vx0 || minX > vx1 || maxY < vy0 || minY > vy1) continue;
-      const vis = grp.cells.filter(
-        (cell) => cell.x + cellSize >= vx0 && cell.x <= vx1 &&
-          cell.y + cellSize >= vy0 && cell.y <= vy1
-      );
-      if (!vis.length) continue;
-      const path = (cells: MergedCell[]) => {
-        view.ctx.beginPath();
-        for (const cell of cells)
-          view.ctx.rect(toScreenX(cell.x), toScreenY(cell.y), cellSize * ppm, cellSize * ppm);
-      };
-      const bx0 = Math.max(minX, vx0), by0 = Math.max(minY, vy0),
-        bx1 = Math.min(maxX, vx1), by1 = Math.min(maxY, vy1);
-      if (grp.kind === 'wet') {
-        const byTint = new Map<string | null, MergedCell[]>();
-        for (const cell of vis) {
-          let tinted = byTint.get(cell.tint);
-          if (!tinted) byTint.set(cell.tint, (tinted = []));
-          tinted.push(cell);
-        }
-        // tint! : every wet cell has a tint
-        for (const [tint, cells] of byTint) {
-          path(cells);
-          view.ctx.fillStyle = tint!;
-          view.ctx.fill();
-        }
-        view.ctx.save();
-        path(vis);
-        view.ctx.clip();
-        view.ctx.translate(toScreenX(0), toScreenY(0));
-        PRIM.sheen(['sheen', 'rgba(215,228,248,0.09)', 4.0, 0.9, -0.45], bx0, by0, bx1, by1);
-        PRIM.sheen(['sheen', 'rgba(235,242,252,0.18)', 4.0, 0.10, -0.45], bx0, by0, bx1, by1);
-        view.ctx.restore();
-        path(grp.rim.filter(
-          (cell) => cell.x + cellSize >= vx0 && cell.x <= vx1 &&
-          cell.y + cellSize >= vy0 && cell.y <= vy1
-        ));
-        view.ctx.fillStyle = 'rgba(30,40,58,0.30)';
-        view.ctx.fill();
-      } else {
-        path(vis);
-        view.ctx.fillStyle = artBase(grp.kind, '#ffffff');
-        view.ctx.fill();
-        view.ctx.save();
-        view.ctx.clip();
-        view.ctx.translate(toScreenX(0), toScreenY(0));
-        paintLayers(grp.kind, bx0, by0, bx1, by1);
-        view.ctx.restore();
-        path(grp.rim.filter(
-          (cell) => cell.x + cellSize >= vx0 && cell.x <= vx1 &&
-          cell.y + cellSize >= vy0 && cell.y <= vy1
-        ));
-        view.ctx.fillStyle = grp.kind === 'snow'
-          ? 'rgba(160,180,205,0.55)' : 'rgba(255,255,255,0.55)';
-        view.ctx.fill();
-      }
-    }
-  }
-  function drawCovers() {
-    const list = LEVEL.covers;
-    if (!list) return;
-    drawCoversMerged(list);
-  }
+  return (cover._cells = { all, rim, G: cellSize });
+}
 
-  // Dynamic surface wear patches: grass worn to short grass, dirt, and mud Drawn ON TOP OF the
-  // track ribbon and ground, but UNDER the kerbs and marks! TWO PASSES around the covers. MEASURED
-  // BUG, 2026-10-03 (user: "puddles on the grass track ... vanish when driven over and turned dirt
-  // into mud"): wear was drawn AFTER the covers, so every 1.5 m dirt cell turning to mud beside a
-  // puddle painted its square over the puddle's edge until the puddle was gone.
-  //   'base'  — cells that started with no cover (dirt -> mud ...): drawn UNDER the covers
-  //   'cover' — cells whose cover itself changed (snow packed to ice, ice scrubbed through):
-  //             drawn OVER
-  function drawWear(pass = 'base') {
-    if (!wearMap || wearMap.size === 0) return;
-    // 2026-10-03: a worn cell now LOOKS like what it has become (the same SURFACE_ART as everywhere
-    // else) instead of a flat tinted square. Visible cells are grouped by surface, and each group
-    // is one path: fill its base, clip to it, paint its layers once — so 1000 worn cells cost a
-    // handful of draw calls.
-    const groups = new Map<string, WearGroup>();
-    for (const cell of wearMap.values()) {
-      if (cell.current === cell.orig) continue;
-      const startedCovered = cell.orig === 'snow' || cell.orig === 'ice' || cell.orig === 'wet';
-      if ((pass === 'cover') !== startedCovered) continue;
-      const px0 = Math.round(toScreenX(cell.cx * WEAR_CELL)),
-        py0 = Math.round(toScreenY(cell.cy * WEAR_CELL));
-      const px1 = Math.round(toScreenX((cell.cx + 1) * WEAR_CELL)),
-        py1 = Math.round(toScreenY((cell.cy + 1) * WEAR_CELL));
-      if (px1 < 0 || px0 > view.W || py1 < 0 || py0 > view.H) continue;
-      // water on a cell is drawn as its BASE with a puddle over it, so meltwater on grass looks
-      // like water on grass cell.current! : set right after the cell is made
-      const groupKey = cell.current === 'wet' ? 'wet|' + cell.base : cell.current!;
-      let group = groups.get(groupKey);
-      if (!group) groups.set(groupKey, (group = {
-        r: [], bx0: Infinity, by0: Infinity, bx1: -Infinity, by1: -Infinity,
-      }));
-      group.r.push(px0, py0, px1 - px0, py1 - py0);
-      // world bbox of the group, so its pattern is painted over these cells only. MEASURED
-      // 2026-10-03: painting each group across the whole view (clip-only) cost the lab panels run
-      // 236 -> 192 frames.
-      group.bx0 = Math.min(group.bx0, cell.cx * WEAR_CELL);
-      group.bx1 = Math.max(group.bx1, (cell.cx + 1) * WEAR_CELL);
-      group.by0 = Math.min(group.by0, cell.cy * WEAR_CELL);
-      group.by1 = Math.max(group.by1, (cell.cy + 1) * WEAR_CELL);
-    }
-    for (const [groupKey, group] of groups) {
-      const rects = group.r;
-      const wetOn = groupKey.startsWith('wet|') ? groupKey.slice(4) : null,
-        artId = wetOn || groupKey;
-      view.ctx.save();
-      view.ctx.beginPath();
-      // a soft DISC per cell (radius 0.72 of the cell, so neighbours overlap) rather than a hard
-      // square: worn ground then spreads as organic ruts instead of a blocky staircase
-      // (photographed 2026-10-03)
-      for (let i = 0; i < rects.length; i += 4) {
-        // squares in pixel art
-        view.ctx.rect(rects[i], rects[i + 1], rects[i + 2], rects[i + 3]);
-      }
-      view.ctx.fillStyle = artBase(artId, '#6b5644');
-      view.ctx.fill();
-      view.ctx.clip();
-      view.ctx.translate(toScreenX(0), toScreenY(0));
-      paintLayers(artId, group.bx0, group.by0, group.bx1, group.by1);
-      if (wetOn) {
-        view.ctx.fillStyle = PUDDLE_TINT[wetOn] || 'rgba(52,66,92,0.58)';
-        // grown by a cell: the discs reach past the cells' squares, and the clip keeps it inside
-        // them
-        const grow = WEAR_CELL;
-        view.ctx.fillRect(
-          (group.bx0 - grow) * PPMz(), (group.by0 - grow) * PPMz(),
-          (group.bx1 - group.bx0 + 2 * grow) * PPMz(), (group.by1 - group.by0 + 2 * grow) * PPMz()
-        );
-        PRIM.sheen(
-          ['sheen', 'rgba(220,232,250,0.12)', 3.0, 0.5, -0.45],
-          group.bx0, group.by0, group.bx1, group.by1
-        );
-      }
-      view.ctx.restore();
+// the tint of a puddle by the surface under it
+const PUDDLE_TINT: Record<string, string> = {
+  dirt: 'rgba(86,64,42,0.62)', mud: 'rgba(62,46,32,0.66)', thickMud: 'rgba(46,34,24,0.70)',
+  sand: 'rgba(150,128,90,0.55)', gravel: 'rgba(96,90,78,0.58)',
+  // on hard ground, water is a dark mirror, not blue (user, 2026-10-03: puddles on tarmac looked
+  // wrong)
+  tarmac: 'rgba(16,19,26,0.62)', racetarmac: 'rgba(12,14,20,0.62)',
+  broken: 'rgba(30,33,42,0.60)', lab: 'rgba(120,128,142,0.45)',
+  // water on grass reads BLUE (it vanished into the grass as dark green — photographed
+  // 2026-10-03)
+  grass: 'rgba(74,104,150,0.62)', grassShort: 'rgba(74,104,150,0.62)',
+  grassLong: 'rgba(66,96,140,0.64)',
+};
+
+// RANDOM PATCHES (Grass Track, re-rolled every load — lab.js randomiseGrassTrack): small ellipses
+// of another base surface, drawn with that surface's own SURFACE_ART so a mud spot looks like
+// mud.
+/**
+ * Paints the random patches of another base surface, each with its own surface art.
+ *
+ * @param groundCtx the shared ground painter context
+ */
+function drawPatches(groundCtx: GroundCtx) {
+  const { view, PPMz, toScreenX, toScreenY } = groundCtx;
+  // random spots + blend patches (lab.js prepareLevel)
+  const list = LEVEL.allPatches || LEVEL.patches;
+  if (!list || !list.length) return;
+  const ppm = PPMz();
+  for (const patch of list) {
+    const reach = Math.max(patch.w, patch.h) / 2;
+    if (
+      toScreenX(patch.x + reach) < 0 || toScreenX(patch.x - reach) > view.W ||
+      toScreenY(patch.y + reach) < 0 || toScreenY(patch.y - reach) > view.H
+    ) continue;
+    view.ctx.save();
+    view.ctx.beginPath();
+    if (patch.sq) view.ctx.rect(
+      toScreenX(patch.x - patch.w / 2), toScreenY(patch.y - patch.h / 2), patch.w * ppm,
+        patch.h * ppm
+    );
+    else view.ctx.ellipse(
+      toScreenX(patch.x), toScreenY(patch.y), (patch.w / 2) * ppm, (patch.h / 2) * ppm,
+      patch.rot || 0, 0, Math.PI * 2
+    );
+    view.ctx.fillStyle = artBase(groundCtx, patch.surface.id, '#6b5644');
+    view.ctx.fill();
+    view.ctx.clip();
+    view.ctx.translate(toScreenX(0), toScreenY(0));
+    paintLayers(
+      groundCtx, patch.surface.id, patch.x - reach, patch.y - reach, patch.x + reach,
+      patch.y + reach
+    );
+    view.ctx.restore();
+  }
+}
+
+// MERGED COVERS (user, 2026-10-04: "puddles, streams or bodies of water should CONNECT together
+// if touching"). Each cover used to be drawn on its own — its own translucent fill and dark rim —
+// so overlapping puddles darkened twice and showed rims inside each other: a stream read as a
+// string of beads. Now, per cover KIND, the union of every cover's 0.5 m cells (the same cells
+// coverAt answers for, so it still matches the physics); each tint fills once, the pattern is
+// clipped to the union, one rim round the outside.
+
+/**
+ * Collects every cover's cells into one map of cells per cover kind.
+ *
+ * @param list the level covers
+ * @param cellSize the cell size in metres
+ * @returns the cells keyed by cover kind and grid position
+ */
+function collectCoverCells(
+  list: Cover[], cellSize: number
+): Map<CoverId, Map<number, MergedCell>> {
+  const kinds = new Map<CoverId, Map<number, MergedCell>>();
+  for (const cover of list) {
+    let kindCells = kinds.get(cover.cover);
+    if (!kindCells) kinds.set(cover.cover, (kindCells = new Map()));
+    const own = coverCells(cover);
+    const tint = cover.cover === 'wet'
+      ? (PUDDLE_TINT[(groundAt(cover.x, cover.y).surface.under) || 'tarmac']
+        || 'rgba(52,66,92,0.58)')
+      : null;
+    for (let i = 0; i < own.all.length; i += 2) {
+      const gridX = Math.round(own.all[i] / cellSize),
+        gridY = Math.round(own.all[i + 1] / cellSize),
+        key = gridX * 131071 + gridY;
+      if (!kindCells.has(key))
+        kindCells.set(key, {
+          x: own.all[i], y: own.all[i + 1], gx: gridX, gy: gridY, tint,
+        });
     }
   }
+  return kinds;
+}
 
-
-  // BUMPS, JUMPS AND KERBS. A top-down view has no height, so a jump you cannot SEE coming is an
-  // unfair one — and unavoidable is a bug, not difficulty (CLAUDE.md §1). Each kind gets a shape
-  // that tells you what it will do: a ramp is a wedge that brightens toward a RED LIP where the
-  // ground stops, a table has a flat bright top and two edges, a hump is a lit dome, a kerb is the
-  // familiar red and white.
-  function drawBumps() {
-    const ppm = PPMz();
-    for (const bump of BUMPS) {
+/**
+ * Builds the merged covers of each kind: its cells, the rim cells and the bounding box.
+ *
+ * @param kinds the cells of each cover kind
+ * @param cellSize the cell size in metres
+ * @returns the merged covers
+ */
+function buildMergedCovers(
+  kinds: Map<CoverId, Map<number, MergedCell>>, cellSize: number
+): MergedCover[] {
+  const out: MergedCover[] = [];
+  for (const [kind, kindCells] of kinds) {
+    const cells = [...kindCells.values()], rim: MergedCell[] = [];
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (const cell of cells) {
       if (
-        Math.abs(bump.x - cam.x) * ppm > view.W / 2 + 200 ||
-        Math.abs(bump.y - cam.y) * ppm > view.H / 2 + 200
-      ) continue;
-      view.ctx.save();
-      view.ctx.translate(toScreenX(bump.x), toScreenY(bump.y));
-      view.ctx.rotate(bump.rot || 0);
-      // TERRAIN SHAPES ARE SHOWN BY HILL-SHADING NOW (step 3, 2026-10-03; user chose "rebuild the
-      // old jumps as terrain" and "pixel hill-shading"). The hand-drawn dome / wedge / table art
-      // went: photographed together with the shading it read as two layers of mud. Kept: the KERB
-      // (it is paint, not height) and the ramp's RED LIP — the ground really does fall away there,
-      // which no shading can show, and a jump you cannot see coming is unfair (CLAUDE.md §1). kerb
-      // and ramp bumps always have len and wid (the ! below)
-      if (bump.kind === 'kerb') {
-        const stripes = Math.max(2, Math.round(bump.len! / 2.4));
-        for (let i = 0; i < stripes; i++) {
-          view.ctx.fillStyle = i % 2 ? COL.kerbB : COL.kerbA;
-          view.ctx.fillRect(
-            (-bump.len! / 2 + (i * bump.len!) / stripes) * ppm, (-bump.wid! / 2) * ppm,
-            (bump.len! / stripes) * ppm + 1, bump.wid! * ppm
-          );
-        }
-        view.ctx.fillStyle = 'rgba(255,255,255,0.35)';
-        view.ctx.fillRect((-bump.len! / 2) * ppm, -0.3 * ppm, bump.len! * ppm, 0.6 * ppm);
-      } else if (bump.kind === 'ramp') {
-        view.ctx.fillStyle = 'rgba(214,69,60,0.85)';
-        view.ctx.fillRect(
-          (bump.len! / 2 - 0.6) * ppm, (-bump.wid! / 2) * ppm, 0.6 * ppm, bump.wid! * ppm
-        );
-      }
-      view.ctx.restore();
+        !kindCells.has((cell.gx + 1) * 131071 + cell.gy) ||
+        !kindCells.has((cell.gx - 1) * 131071 + cell.gy) ||
+        !kindCells.has(cell.gx * 131071 + cell.gy + 1) ||
+        !kindCells.has(cell.gx * 131071 + cell.gy - 1)
+      ) rim.push(cell);
+      minX = Math.min(minX, cell.x);
+      minY = Math.min(minY, cell.y);
+      maxX = Math.max(maxX, cell.x + cellSize);
+      maxY = Math.max(maxY, cell.y + cellSize);
     }
+    out.push({ kind, cells, rim, bb: [minX, minY, maxX, maxY], G: cellSize });
   }
+  return out;
+}
 
-  function drawRunoff() {
-    // the lab's border ring is drawn along the WHOLE world edge: 100 km a side on the highway
-    if (LEVEL.endless) return;
-    for (let i = 0; i < 4; i++) forSide(i, (ppm, dist, halfLen) => {
-      // along: the side plus both corners; out: the fence
-      const alongEnd = halfLen + RUNOFF_W, outEnd = dist + RUNOFF_W;
-      // GRASS VERGE first — the strip between the kerb and the gravel where you can still save it.
-      view.ctx.fillStyle = COL.grass;
-      view.ctx.fillRect(-alongEnd * ppm, dist * ppm, alongEnd * 2 * ppm, VERGE_W * ppm);
-      speckle(-alongEnd, dist, alongEnd, dist + VERGE_W, COL.grassDark, 0.8, 0.16);
-      // then the TRAP: the full width of the side, plus the corner so the ring closes with no seam.
-      view.ctx.fillStyle = COL.gravel;
+/**
+ * Returns the union of the level covers per kind, cached on LEVEL.
+ *
+ * @param list the level covers
+ * @returns the merged covers
+ */
+function mergedCovers(list: Cover[]): MergedCover[] {
+  if (LEVEL._mergedOf === list) return LEVEL._merged!;   // set together with _mergedOf
+  const cellSize = 0.5;
+  const out = buildMergedCovers(collectCoverCells(list, cellSize), cellSize);
+  LEVEL._mergedOf = list;
+  LEVEL._merged = out;
+  return out;
+}
+
+/**
+ * Keeps the cells that touch the visible rectangle.
+ *
+ * @param cells the cells to test
+ * @param cellSize the cell size in metres
+ * @param viewRect the visible rectangle
+ * @returns the cells in view
+ */
+function filterCellsInView(cells: MergedCell[], cellSize: number, viewRect: ViewRect) {
+  const { vx0, vx1, vy0, vy1 } = viewRect;
+  return cells.filter(
+    (cell) => cell.x + cellSize >= vx0 && cell.x <= vx1 &&
+      cell.y + cellSize >= vy0 && cell.y <= vy1
+  );
+}
+
+/**
+ * Adds the cells as squares to a new path.
+ *
+ * @param groundCtx the shared ground painter context
+ * @param cells the cells to trace
+ * @param cellSize the cell size in metres
+ */
+function pathCells(groundCtx: GroundCtx, cells: MergedCell[], cellSize: number) {
+  const { view, PPMz, toScreenX, toScreenY } = groundCtx;
+  const ppm = PPMz();
+  view.ctx.beginPath();
+  for (const cell of cells)
+    view.ctx.rect(toScreenX(cell.x), toScreenY(cell.y), cellSize * ppm, cellSize * ppm);
+}
+
+/**
+ * Paints a merged WET cover: tinted cells, sheen bands and a dark rim.
+ *
+ * @param groundCtx the shared ground painter context
+ * @param grp the merged cover
+ * @param vis its cells in view
+ * @param viewRect the visible rectangle
+ * @param box [x0, y0, x1, y1] of its visible bounding box in metres
+ */
+function paintWetCover(
+  groundCtx: GroundCtx, grp: MergedCover, vis: MergedCell[], viewRect: ViewRect,
+  box: number[]
+) {
+  const { view, toScreenX, toScreenY, PRIM } = groundCtx;
+  const cellSize = grp.G, [bx0, by0, bx1, by1] = box;
+  const byTint = new Map<string | null, MergedCell[]>();
+  for (const cell of vis) {
+    let tinted = byTint.get(cell.tint);
+    if (!tinted) byTint.set(cell.tint, (tinted = []));
+    tinted.push(cell);
+  }
+  // tint! : every wet cell has a tint
+  for (const [tint, cells] of byTint) {
+    pathCells(groundCtx, cells, cellSize);
+    view.ctx.fillStyle = tint!;
+    view.ctx.fill();
+  }
+  view.ctx.save();
+  pathCells(groundCtx, vis, cellSize);
+  view.ctx.clip();
+  view.ctx.translate(toScreenX(0), toScreenY(0));
+  PRIM.sheen(['sheen', 'rgba(215,228,248,0.09)', 4.0, 0.9, -0.45], bx0, by0, bx1, by1);
+  PRIM.sheen(['sheen', 'rgba(235,242,252,0.18)', 4.0, 0.10, -0.45], bx0, by0, bx1, by1);
+  view.ctx.restore();
+  pathCells(groundCtx, filterCellsInView(grp.rim, cellSize, viewRect), cellSize);
+  view.ctx.fillStyle = 'rgba(30,40,58,0.30)';
+  view.ctx.fill();
+}
+
+/**
+ * Paints a merged snow or ice cover: its art clipped to the cells, and a light rim.
+ *
+ * @param groundCtx the shared ground painter context
+ * @param grp the merged cover
+ * @param vis its cells in view
+ * @param viewRect the visible rectangle
+ * @param box [x0, y0, x1, y1] of its visible bounding box in metres
+ */
+function paintSolidCover(
+  groundCtx: GroundCtx, grp: MergedCover, vis: MergedCell[], viewRect: ViewRect,
+  box: number[]
+) {
+  const { view, toScreenX, toScreenY } = groundCtx;
+  const cellSize = grp.G, [bx0, by0, bx1, by1] = box;
+  pathCells(groundCtx, vis, cellSize);
+  view.ctx.fillStyle = artBase(groundCtx, grp.kind, '#ffffff');
+  view.ctx.fill();
+  view.ctx.save();
+  view.ctx.clip();
+  view.ctx.translate(toScreenX(0), toScreenY(0));
+  paintLayers(groundCtx, grp.kind, bx0, by0, bx1, by1);
+  view.ctx.restore();
+  pathCells(groundCtx, filterCellsInView(grp.rim, cellSize, viewRect), cellSize);
+  view.ctx.fillStyle = grp.kind === 'snow'
+    ? 'rgba(160,180,205,0.55)' : 'rgba(255,255,255,0.55)';
+  view.ctx.fill();
+}
+
+/**
+ * Paints the merged covers: each kind as one fill, one pattern clip and one rim.
+ *
+ * @param groundCtx the shared ground painter context
+ * @param list the level covers
+ */
+function drawCoversMerged(groundCtx: GroundCtx, list: Cover[]) {
+  const { view, cam, PPMz } = groundCtx;
+  const ppm = PPMz();
+  const vx0 = cam.x - view.W / 2 / ppm, vx1 = cam.x + view.W / 2 / ppm,
+    vy0 = cam.y - view.H / 2 / ppm, vy1 = cam.y + view.H / 2 / ppm;
+  const viewRect: ViewRect = { vx0, vx1, vy0, vy1 };
+  for (const grp of mergedCovers(list)) {
+    const [minX, minY, maxX, maxY] = grp.bb, cellSize = grp.G;
+    if (maxX < vx0 || minX > vx1 || maxY < vy0 || minY > vy1) continue;
+    const vis = filterCellsInView(grp.cells, cellSize, viewRect);
+    if (!vis.length) continue;
+    const bx0 = Math.max(minX, vx0), by0 = Math.max(minY, vy0),
+      bx1 = Math.min(maxX, vx1), by1 = Math.min(maxY, vy1);
+    const box = [bx0, by0, bx1, by1];
+    if (grp.kind === 'wet') paintWetCover(groundCtx, grp, vis, viewRect, box);
+    else paintSolidCover(groundCtx, grp, vis, viewRect, box);
+  }
+}
+
+/**
+ * Paints the level's covers (snow, ice, puddles) lying on any surface.
+ *
+ * @param groundCtx the shared ground painter context
+ */
+function drawCovers(groundCtx: GroundCtx) {
+  const list = LEVEL.covers;
+  if (!list) return;
+  drawCoversMerged(groundCtx, list);
+}
+
+// Dynamic surface wear patches: grass worn to short grass, dirt, and mud Drawn ON TOP OF the
+// track ribbon and ground, but UNDER the kerbs and marks! TWO PASSES around the covers. MEASURED
+// BUG, 2026-10-03 (user: "puddles on the grass track ... vanish when driven over and turned dirt
+// into mud"): wear was drawn AFTER the covers, so every 1.5 m dirt cell turning to mud beside a
+// puddle painted its square over the puddle's edge until the puddle was gone.
+//   'base'  — cells that started with no cover (dirt -> mud ...): drawn UNDER the covers
+//   'cover' — cells whose cover itself changed (snow packed to ice, ice scrubbed through):
+//             drawn OVER
+
+/**
+ * Draws the dynamic surface wear patches: grass worn to short grass, dirt, and mud.
+ *
+ * @param groundCtx the shared ground painter context
+ * @param pass 'base' for cells that started with no cover, 'cover' for cells whose cover changed
+ */
+function drawWear(groundCtx: GroundCtx, pass = 'base') {
+  if (!wearMap || wearMap.size === 0) return;
+  const groups = groupWornCells(groundCtx, pass);
+  for (const [groupKey, group] of groups) paintWearGroup(groundCtx, groupKey, group);
+}
+
+/**
+ * Groups the visible worn cells of one pass by the surface each has become.
+ *
+ * @param groundCtx the shared ground painter context
+ * @param pass 'base' or 'cover', as for drawWear
+ * @returns the screen rectangles and world bounding box of each group, keyed by surface
+ */
+function groupWornCells(groundCtx: GroundCtx, pass: string) {
+  const { view, toScreenX, toScreenY } = groundCtx;
+  // 2026-10-03: a worn cell now LOOKS like what it has become (the same SURFACE_ART as everywhere
+  // else) instead of a flat tinted square. Visible cells are grouped by surface, and each group
+  // is one path: fill its base, clip to it, paint its layers once — so 1000 worn cells cost a
+  // handful of draw calls.
+  const groups = new Map<string, WearGroup>();
+  for (const cell of wearMap.values()) {
+    if (cell.current === cell.orig) continue;
+    const startedCovered = cell.orig === 'snow' || cell.orig === 'ice' || cell.orig === 'wet';
+    if ((pass === 'cover') !== startedCovered) continue;
+    const px0 = Math.round(toScreenX(cell.cx * WEAR_CELL)),
+      py0 = Math.round(toScreenY(cell.cy * WEAR_CELL));
+    const px1 = Math.round(toScreenX((cell.cx + 1) * WEAR_CELL)),
+      py1 = Math.round(toScreenY((cell.cy + 1) * WEAR_CELL));
+    if (px1 < 0 || px0 > view.W || py1 < 0 || py0 > view.H) continue;
+    // water on a cell is drawn as its BASE with a puddle over it, so meltwater on grass looks
+    // like water on grass cell.current! : set right after the cell is made
+    const groupKey = cell.current === 'wet' ? 'wet|' + cell.base : cell.current!;
+    let group = groups.get(groupKey);
+    if (!group) groups.set(groupKey, (group = {
+      r: [], bx0: Infinity, by0: Infinity, bx1: -Infinity, by1: -Infinity,
+    }));
+    group.r.push(px0, py0, px1 - px0, py1 - py0);
+    // world bbox of the group, so its pattern is painted over these cells only. MEASURED
+    // 2026-10-03: painting each group across the whole view (clip-only) cost the lab panels run
+    // 236 -> 192 frames.
+    group.bx0 = Math.min(group.bx0, cell.cx * WEAR_CELL);
+    group.bx1 = Math.max(group.bx1, (cell.cx + 1) * WEAR_CELL);
+    group.by0 = Math.min(group.by0, cell.cy * WEAR_CELL);
+    group.by1 = Math.max(group.by1, (cell.cy + 1) * WEAR_CELL);
+  }
+  return groups;
+}
+
+/**
+ * Paints one group of worn cells: its base, clipped to the cells, then its pattern layers.
+ *
+ * @param groundCtx the shared ground painter context
+ * @param groupKey the surface id, or 'wet|' plus the base surface under water
+ * @param group the cells' screen rectangles and world bounding box
+ */
+function paintWearGroup(groundCtx: GroundCtx, groupKey: string, group: WearGroup) {
+  const { view, PPMz, toScreenX, toScreenY, PRIM } = groundCtx;
+    const rects = group.r;
+    const wetOn = groupKey.startsWith('wet|') ? groupKey.slice(4) : null,
+      artId = wetOn || groupKey;
+    view.ctx.save();
+    view.ctx.beginPath();
+    // a soft DISC per cell (radius 0.72 of the cell, so neighbours overlap) rather than a hard
+    // square: worn ground then spreads as organic ruts instead of a blocky staircase
+    // (photographed 2026-10-03)
+    for (let i = 0; i < rects.length; i += 4) {
+      // squares in pixel art
+      view.ctx.rect(rects[i], rects[i + 1], rects[i + 2], rects[i + 3]);
+    }
+    view.ctx.fillStyle = artBase(groundCtx, artId, '#6b5644');
+    view.ctx.fill();
+    view.ctx.clip();
+    view.ctx.translate(toScreenX(0), toScreenY(0));
+    paintLayers(groundCtx, artId, group.bx0, group.by0, group.bx1, group.by1);
+    if (wetOn) {
+      view.ctx.fillStyle = PUDDLE_TINT[wetOn] || 'rgba(52,66,92,0.58)';
+      // grown by a cell: the discs reach past the cells' squares, and the clip keeps it inside
+      // them
+      const grow = WEAR_CELL;
       view.ctx.fillRect(
-        -alongEnd * ppm, (dist + VERGE_W) * ppm, alongEnd * 2 * ppm, (RUNOFF_W - VERGE_W) * ppm
+        (group.bx0 - grow) * PPMz(), (group.by0 - grow) * PPMz(),
+        (group.bx1 - group.bx0 + 2 * grow) * PPMz(), (group.by1 - group.by0 + 2 * grow) * PPMz()
       );
-      speckle(-alongEnd, dist + VERGE_W, alongEnd, outEnd, COL.gravelGrit, 0.85, 0.15);
-      speckle(-alongEnd, dist + VERGE_W, alongEnd, outEnd, COL.gravelDark, 2.4, 0.24);
-    });
+      PRIM.sheen(
+        ['sheen', 'rgba(220,232,250,0.12)', 3.0, 0.5, -0.45],
+        group.bx0, group.by0, group.bx1, group.by1
+      );
+    }
+    view.ctx.restore();
+}
+
+// BUMPS, JUMPS AND KERBS. A top-down view has no height, so a jump you cannot SEE coming is an
+// unfair one — and unavoidable is a bug, not difficulty (CLAUDE.md §1). Each kind gets a shape
+// that tells you what it will do: a ramp is a wedge that brightens toward a RED LIP where the
+// ground stops, a table has a flat bright top and two edges, a hump is a lit dome, a kerb is the
+// familiar red and white.
+
+/**
+ * Draws the bumps, jumps and kerbs that are near the screen.
+ *
+ * @param groundCtx the shared ground painter context
+ */
+function drawBumps(groundCtx: GroundCtx) {
+  const { view, cam, PPMz } = groundCtx;
+  const ppm = PPMz();
+  for (const bump of BUMPS) {
+    if (
+      Math.abs(bump.x - cam.x) * ppm > view.W / 2 + 200 ||
+      Math.abs(bump.y - cam.y) * ppm > view.H / 2 + 200
+    ) continue;
+    paintBump(groundCtx, bump, ppm);
   }
+}
+
+/**
+ * Paints one bump in its own rotated frame: a kerb's stripes or a ramp's red lip.
+ *
+ * @param groundCtx the shared ground painter context
+ * @param bump the bump to paint
+ * @param ppm pixels per metre
+ */
+function paintBump(groundCtx: GroundCtx, bump: Bump, ppm: number) {
+  const { view, toScreenX, toScreenY } = groundCtx;
+    view.ctx.save();
+    view.ctx.translate(toScreenX(bump.x), toScreenY(bump.y));
+    view.ctx.rotate(bump.rot || 0);
+    // TERRAIN SHAPES ARE SHOWN BY HILL-SHADING NOW (step 3, 2026-10-03; user chose "rebuild the
+    // old jumps as terrain" and "pixel hill-shading"). The hand-drawn dome / wedge / table art
+    // went: photographed together with the shading it read as two layers of mud. Kept: the KERB
+    // (it is paint, not height) and the ramp's RED LIP — the ground really does fall away there,
+    // which no shading can show, and a jump you cannot see coming is unfair (CLAUDE.md §1). kerb
+    // and ramp bumps always have len and wid (the ! below)
+    if (bump.kind === 'kerb') {
+      const stripes = Math.max(2, Math.round(bump.len! / 2.4));
+      for (let i = 0; i < stripes; i++) {
+        view.ctx.fillStyle = i % 2 ? COL.kerbB : COL.kerbA;
+        view.ctx.fillRect(
+          (-bump.len! / 2 + (i * bump.len!) / stripes) * ppm, (-bump.wid! / 2) * ppm,
+          (bump.len! / stripes) * ppm + 1, bump.wid! * ppm
+        );
+      }
+      view.ctx.fillStyle = 'rgba(255,255,255,0.35)';
+      view.ctx.fillRect((-bump.len! / 2) * ppm, -0.3 * ppm, bump.len! * ppm, 0.6 * ppm);
+    } else if (bump.kind === 'ramp') {
+      view.ctx.fillStyle = 'rgba(214,69,60,0.85)';
+      view.ctx.fillRect(
+        (bump.len! / 2 - 0.6) * ppm, (-bump.wid! / 2) * ppm, 0.6 * ppm, bump.wid! * ppm
+      );
+    }
+    view.ctx.restore();
+}
+
+/**
+ * Draws the runoff ring: the grass verge and the gravel trap round the floor.
+ *
+ * @param groundCtx the shared ground painter context
+ */
+function drawRunoff(groundCtx: GroundCtx) {
+  const { view, forSide } = groundCtx;
+  // the lab's border ring is drawn along the WHOLE world edge: 100 km a side on the highway
+  if (LEVEL.endless) return;
+  for (let i = 0; i < 4; i++) forSide(i, (ppm, dist, halfLen) => {
+    // along: the side plus both corners; out: the fence
+    const alongEnd = halfLen + RUNOFF_W, outEnd = dist + RUNOFF_W;
+    // GRASS VERGE first — the strip between the kerb and the gravel where you can still save it.
+    view.ctx.fillStyle = COL.grass;
+    view.ctx.fillRect(-alongEnd * ppm, dist * ppm, alongEnd * 2 * ppm, VERGE_W * ppm);
+    speckle(groundCtx, -alongEnd, dist, alongEnd, dist + VERGE_W, COL.grassDark, 0.8, 0.16);
+    // then the TRAP: the full width of the side, plus the corner so the ring closes with no seam.
+    view.ctx.fillStyle = COL.gravel;
+    view.ctx.fillRect(
+      -alongEnd * ppm, (dist + VERGE_W) * ppm, alongEnd * 2 * ppm, (RUNOFF_W - VERGE_W) * ppm
+    );
+    speckle(groundCtx, -alongEnd, dist + VERGE_W, alongEnd, outEnd, COL.gravelGrit, 0.85, 0.15);
+    speckle(groundCtx, -alongEnd, dist + VERGE_W, alongEnd, outEnd, COL.gravelDark, 2.4, 0.24);
+  });
+}
+
+/**
+ * Builds the ground painter of one renderer.
+ *
+ * @param view the canvas, its context and size
+ * @param cam the camera
+ * @param helpers the renderer helpers the painters call
+ * @returns the painters and the surface tables render.ts and others read
+ */
+export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
+  const groundCtx: GroundCtx = {
+    view, cam, ...helpers, textures: createTextureCache(view), SURFACE_ART: makeSurfaceArt(),
+    PRIM: {},
+  };
+  groundCtx.PRIM = makePrim(groundCtx);
+  const { SURFACE_ART } = groundCtx;
 
   return {
-    drawFloor, SURFACE_ART, paintLayers, artBase, drawZones, PUDDLE_TINT, drawPatches,
-    drawCovers, drawWear, drawBumps, drawRunoff,
+    drawFloor: () => drawFloor(groundCtx),
+    SURFACE_ART,
+    paintLayers: (artId: string, minX: number, minY: number, maxX: number, maxY: number) =>
+      paintLayers(groundCtx, artId, minX, minY, maxX, maxY),
+    artBase: (artId: string, fallback: string) => artBase(groundCtx, artId, fallback),
+    drawZones: () => drawZones(groundCtx),
+    PUDDLE_TINT,
+    drawPatches: () => drawPatches(groundCtx),
+    drawCovers: () => drawCovers(groundCtx),
+    drawWear: (pass?: string) => drawWear(groundCtx, pass),
+    drawBumps: () => drawBumps(groundCtx),
+    drawRunoff: () => drawRunoff(groundCtx),
   };
 }
