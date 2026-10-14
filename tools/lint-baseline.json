@@ -26,8 +26,6 @@
   },
   "src/cones.js": {
     "complexity": 7,
-    "id-length": 119,
-    "max-len": 94,
     "max-lines-per-function": 3,
     "no-unused-vars": 2
   },
