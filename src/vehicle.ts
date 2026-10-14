@@ -981,6 +981,24 @@ function axleForce(
  */
 function ploughingForces(car: Car, carSpec: Spec, mass: number, vLong: number, vLat: number,
     loadKF: number, loadKR: number) {
+  // PLOUGHING — what makes a gravel trap a gravel trap (user, 2026-09-28: "can the gravel
+  // trap
+  //          actually work like a gravel trap, slow you down, grab ya wheels").
+  //
+  // Lower grip alone does NOT model gravel. Gravel stops you because the wheels SINK and bulldoze a
+  // wedge of stones ahead of themselves, which is a retarding force that has nothing to do with
+  // friction at all: it does not care about vertical load the way mu*Fz does, it does not care
+  // whether you are braking, and you cannot steer out of it. The tyre friction (mu 0.55) is
+  // separate and says you also cannot brake or accelerate well — both are true at once, which is
+  // why a gravel trap works.
+  //
+  // Applied PER AXLE along that axle's own contact velocity, which gives the "grabs ya wheels" part
+  // for free: a yawed car has different velocity directions at each end, so the two forces are not
+  // parallel and their moment about the CG hauls the car straight. And because the lateral
+  // component is amplified, going in sideways digs in far harder than going in straight — which is
+  // the real behaviour, and the reason a spun car stops dead in the gravel.
+  //
+  // It reaches here only as car.surface.plough, so vehicle.js still does not know what gravel is.
   const plough = car.surface.plough || 0;
   let FpxF = 0, FpyF = 0, FpxR = 0, FpyR = 0;
   if (plough > 0) {
@@ -1265,6 +1283,14 @@ function integrateYaw(car: Car, carSpec: Spec, dt: number, axles: AxleOutcome, d
  */
 function lowSpeedBlend(car: Car, carSpec: Spec, mass: number, gravity: number, delta: number,
     throttle: number, inVLong: number, inVLat: number) {
+  // low-speed blend. Without this the car shivers and creeps at a standstill and it reads
+  //         as a bug in the friction model (PLAN.md "What would count as wrong").
+  //
+  // MEASURED BUG, 2026-09-27: this was gated on |vLong| while it zeroes vLat. A car sliding
+  // sideways at 10 m/s with only 1.2 m/s of FORWARD speed satisfied the gate, so the blend deleted
+  // the slide — 10.1 m/s to 0 in 0.1 s (10 g) at the end of every handbrake turn. Gate on the TOTAL
+  // planar speed; that is the quantity that does not vanish when the car is sideways (CLAUDE.md
+  // rule 9).
   let vLong = inVLong, vLat = inVLat;
   const speed = Math.hypot(vLong, vLat);
   // STEEP GROUND MOVES A STOPPED CAR (user, 2026-10-03: "super steep angles should still move /
@@ -1295,6 +1321,9 @@ function writeTelemetry(car: Car, carSpec: Spec, tick: AxleTick, axles: AxleOutc
     vLong: number, vLat: number, slipF: number, slipR: number, loadKF: number, loadKR: number,
     absWorking: boolean, escWorking: boolean, handbrake: number, torque: number,
     driveForce: number, accelLong: number, accelLat: number, delta: number) {
+  //      slipSpeed comes straight out of the axle function — it is the magnitude of the contact
+  //      patch's slip velocity, which is exactly what the marks layer and the squeal need. Do not
+  //      re-derive it here; two derivations of one quantity is how they drift apart.
   const telem = car.t;
   const { muBase } = tick;
   const { frontAxle, rearAxle, lockedF, lockedR, FzF, FzR } = axles;
@@ -1534,24 +1563,7 @@ export function step(car: Car, input: CarInput, dt = PHYSICS_STEP_SECONDS) {
       vLong, vLat, vLongAbs, dirSign, slipF, slipR, brakeIn, FzF, FzR, FbF, FbR, FxBrakeF, FxBrakeR,
       brakeSign, handbrake, FxDriveF, FxDriveR);
 
-  // ---- 7b. PLOUGHING — what makes a gravel trap a gravel trap (user, 2026-09-28: "can the gravel
-  // trap
-  //          actually work like a gravel trap, slow you down, grab ya wheels").
-  //
-  // Lower grip alone does NOT model gravel. Gravel stops you because the wheels SINK and bulldoze a
-  // wedge of stones ahead of themselves, which is a retarding force that has nothing to do with
-  // friction at all: it does not care about vertical load the way mu*Fz does, it does not care
-  // whether you are braking, and you cannot steer out of it. The tyre friction (mu 0.55) is
-  // separate and says you also cannot brake or accelerate well — both are true at once, which is
-  // why a gravel trap works.
-  //
-  // Applied PER AXLE along that axle's own contact velocity, which gives the "grabs ya wheels" part
-  // for free: a yawed car has different velocity directions at each end, so the two forces are not
-  // parallel and their moment about the CG hauls the car straight. And because the lateral
-  // component is amplified, going in sideways digs in far harder than going in straight — which is
-  // the real behaviour, and the reason a spun car stops dead in the gravel.
-  //
-  // It reaches here only as car.surface.plough, so vehicle.js still does not know what gravel is.
+  // ---- 7b. PLOUGHING (see ploughingForces)
   const ploughF = ploughingForces(
       car, carSpec, mass, vLong, vLat, loadKF, loadKR);
 
@@ -1569,14 +1581,7 @@ export function step(car: Car, input: CarInput, dt = PHYSICS_STEP_SECONDS) {
   vLat += (accelLat - car.yawRate * vLong) * dt;
   integrateYaw(car, carSpec, dt, axles, delta, vLong, vLat, ploughF.FpyF, ploughF.FpyR, escMz);
 
-  // ---- 9. low-speed blend. Without this the car shivers and creeps at a standstill and it reads
-  //         as a bug in the friction model (PLAN.md "What would count as wrong").
-  //
-  // MEASURED BUG, 2026-09-27: this was gated on |vLong| while it zeroes vLat. A car sliding
-  // sideways at 10 m/s with only 1.2 m/s of FORWARD speed satisfied the gate, so the blend deleted
-  // the slide — 10.1 m/s to 0 in 0.1 s (10 g) at the end of every handbrake turn. Gate on the TOTAL
-  // planar speed; that is the quantity that does not vanish when the car is sideways (CLAUDE.md
-  // rule 9).
+  // ---- 9. low-speed blend (see lowSpeedBlend)
   ({ vLong, vLat } = lowSpeedBlend(car, carSpec, mass, gravity, delta, throttle, vLong, vLat));
 
   // ---- tyre temperatures (see TYRE TEMPERATURE at the top)
@@ -1584,10 +1589,7 @@ export function step(car: Car, input: CarInput, dt = PHYSICS_STEP_SECONDS) {
 
   advanceCar(car, dt, vLong, vLat, accelLong);
 
-  // ---- telemetry
-  //      slipSpeed comes straight out of the axle function — it is the magnitude of the contact
-  //      patch's slip velocity, which is exactly what the marks layer and the squeal need. Do not
-  //      re-derive it here; two derivations of one quantity is how they drift apart.
+  // ---- telemetry (see writeTelemetry)
   writeTelemetry(car, carSpec, tick, axles, vLong, vLat, slipF, slipR, loadKF, loadKR,
       absWorking, escWorking, handbrake, torque, driveForce, accelLong, accelLat, delta);
 
