@@ -158,6 +158,29 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
     } else { state.path = main; state.i = nearestIdx(main.pts, car.x, car.y); }
   }
 
+  /** Decides the joker once per lap, takes it at the switch point; returns the speed cap. */
+  function jokerStep(car: AiCar, ctx: DriveCtx, path: typeof state.path, nearIdx: number,
+      lap: number, laps: number) {
+    const spec = car.spec;
+    let jCap = Infinity;
+    if (branches.joker && path === main) {
+      const dSw = (((branches.joker.switchI! - nearIdx) % count) + count) % count * line.sp;
+      if (dSw < 220 && state.jDecLap !== lap) decideJoker({ ...ctx, self: car }, lap, laps);
+      if (state.jWant) {
+        const jokerSpeed = profileOf(branches.joker, spec, main)[0],
+            brakeDecel = K_BRAKE * carGrip(spec).brakeG * GRAVITY * 0.8;
+        jCap = Math.sqrt(jokerSpeed * jokerSpeed + 2 * brakeDecel * dSw);
+        if (dSw <= 3) {
+          state.path = branches.joker;
+          state.i = 0;
+          state.jokers++;
+          state.jWant = false;
+        }
+      }
+    }
+    return jCap;
+  }
+
   function drive(car: AiCar, dt = 1 / 120, ctx: DriveCtx = {}) {
     state.t += dt;
     const spec = car.spec, speed = Math.hypot(car.vx, car.vy);
@@ -186,22 +209,7 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
         1 + HARDER * Math.min(1, (state.behindT || 0) / HARDER_T));
 
     // ---- JOKER: decide once per lap ~220 m before the branch; take it at the switch point
-    let jCap = Infinity;
-    if (branches.joker && path === main) {
-      const dSw = (((branches.joker.switchI! - nearIdx) % count) + count) % count * line.sp;
-      if (dSw < 220 && state.jDecLap !== lap) decideJoker({ ...ctx, self: car }, lap, laps);
-      if (state.jWant) {
-        const jokerSpeed = profileOf(branches.joker, spec, main)[0],
-            brakeDecel = K_BRAKE * carGrip(spec).brakeG * GRAVITY * 0.8;
-        jCap = Math.sqrt(jokerSpeed * jokerSpeed + 2 * brakeDecel * dSw);
-        if (dSw <= 3) {
-          state.path = branches.joker;
-          state.i = 0;
-          state.jokers++;
-          state.jWant = false;
-        }
-      }
-    }
+    const jCap = jokerStep(car, ctx, path, nearIdx, lap, laps);
 
     // ---- MISTAKES (user: "genuine subtle driving errors that lead to crashes and / or slower lap
     // times"), drawn per corner ~45 m out
