@@ -68,14 +68,19 @@ function finishPath<P extends PathPoint>(pts: P[], closed: boolean, total: numbe
   return { pts, n: count, closed, total, sp: step, prof: {} };
 }
 
-export function racingLine(level: Level): RacingLine {
-  if (level._line) return level._line;
-  // (! : a level with a lap has its subtrack by the time the AI looks)
-  const sub = level.subtrack!,
-    centre = sub.pts,
-    count = centre.length,
-    halfWidth = sub.width / 2,
-    reach = Math.max(0.5, halfWidth - LINE_MARGIN);
+/** What racingLine reads about the level's road, made once and passed to its steps. */
+interface LineCtx {
+  level: Level;
+  sub: NonNullable<Level["subtrack"]>;
+  centre: NonNullable<Level["subtrack"]>["pts"];
+  count: number;
+  halfWidth: number;
+  reach: number;
+}
+
+/** Grip across the road at every point, smoothed along the track, and the best of each row. */
+function gripMap(ctx: LineCtx) {
+  const { sub, centre, count, reach } = ctx;
   // grip across the road at every point (1 m lateral steps): mu of whatever is there
   const lat: number[] = [];
   for (let offset = -reach; offset <= reach + 1e-6; offset += 1) lat.push(+offset.toFixed(2));
@@ -97,30 +102,40 @@ export function racingLine(level: Level): RacingLine {
     return sum / (2 * smoothSpan + 1);
   }));
   const best = grip.map((row) => Math.max(...row));
+  return { lat, grip, best };
+}
+
+/** The INSIDE of a hairpin: how far across the road the line may go on each side. */
+function hairpinLimits(ctx: LineCtx) {
+  const { sub, centre, count, reach } = ctx;
   // the INSIDE of a hairpin: an offset toward the centre of a tight centreline turn past ~0.6 R
   // folds the line back on itself (MEASURED: Slidden's start hairpin, offsets flipping +3.8 / -3.3
   // m every 5 m, line R 4 m, the AI crawling at 5 m/s)
   const low = new Float64Array(count).fill(-reach), high = new Float64Array(count).fill(reach);
-  {
-    const span = Math.max(1, Math.round(4 / (sub.totalDist / count)));
-    for (let i = 0; i < count; i++) {
-      const before = centre[(i - span + count) % count],
-        after = centre[(i + span) % count],
-        headBefore = Math.atan2(centre[i].y - before.y, centre[i].x - before.x),
-        headAfter = Math.atan2(after.y - centre[i].y, after.x - centre[i].x);
-      let turn = headAfter - headBefore;
-      turn = Math.atan2(Math.sin(turn), Math.cos(turn));
-      const centreRadius = (2 * span * sub.totalDist / count) / Math.max(1e-4, Math.abs(turn)),
-        lim = Math.max(0.5, 0.6 * centreRadius);
-      // turning left (turn > 0) the centre is on the left; the normal (nx, ny) = left of travel
-      // when cross(t, n) > 0
-      const tanX = after.x - before.x,
-        tanY = after.y - before.y,
-        nLeft = tanX * centre[i].ny - tanY * centre[i].nx > 0;
-      if ((turn > 0) === nLeft) high[i] = Math.min(reach, lim);
-      else low[i] = Math.max(-reach, -lim);
-    }
+  const span = Math.max(1, Math.round(4 / (sub.totalDist / count)));
+  for (let i = 0; i < count; i++) {
+    const before = centre[(i - span + count) % count],
+      after = centre[(i + span) % count],
+      headBefore = Math.atan2(centre[i].y - before.y, centre[i].x - before.x),
+      headAfter = Math.atan2(after.y - centre[i].y, after.x - centre[i].x);
+    let turn = headAfter - headBefore;
+    turn = Math.atan2(Math.sin(turn), Math.cos(turn));
+    const centreRadius = (2 * span * sub.totalDist / count) / Math.max(1e-4, Math.abs(turn)),
+      lim = Math.max(0.5, 0.6 * centreRadius);
+    // turning left (turn > 0) the centre is on the left; the normal (nx, ny) = left of travel
+    // when cross(t, n) > 0
+    const tanX = after.x - before.x,
+      tanY = after.y - before.y,
+      nLeft = tanX * centre[i].ny - tanY * centre[i].nx > 0;
+    if ((turn > 0) === nLeft) high[i] = Math.min(reach, lim);
+    else low[i] = Math.max(-reach, -lim);
   }
+  return { low, high };
+}
+
+/** OBJECTS ON THE ROAD narrow the limits for the line. */
+function coneLimits(ctx: LineCtx, low: Float64Array, high: Float64Array) {
+  const { level, sub, centre, count, halfWidth } = ctx;
   // OBJECTS ON THE ROAD narrow it for the line (user: "try and avoid tyres and cones"): a resting
   // cone / tyre / bale inside the road pushes that side's limit in to r + OBST_CLEAR from it, over
   // its length; skipped if it would leave under 3 m (then it is a chicane of cones the line runs
@@ -148,6 +163,14 @@ export function racingLine(level: Level): RacingLine {
       }
     }
   }
+}
+
+/** Gradient descent on each lateral offset, clamped to the road; returns the offsets. */
+function smoothLine(
+  ctx: LineCtx, map: ReturnType<typeof gripMap>, low: Float64Array, high: Float64Array,
+) {
+  const { sub, centre, count, reach } = ctx;
+  const { lat, grip, best } = map;
   const off = new Float64Array(count),
     posX = new Float64Array(count),
     posY = new Float64Array(count),
@@ -197,12 +220,11 @@ export function racingLine(level: Level): RacingLine {
     smooth(gap, 300);
   }
   smooth(1, 400);
-  // (cast: finishPath, just below, sets h, R, turn and mu on these points)
-  const pts = centre.map((point, i) => ({
-    x: point.x + point.nx * off[i], y: point.y + point.ny * off[i],
-    nx: point.nx, ny: point.ny, dist: point.dist, off: off[i],
-  } as LinePoint));
-  const path = finishPath(pts, true, sub.totalDist);
+  return off;
+}
+
+/** CORNERS: runs of R < CORNER_R (scanning from a straight); apex = tightest point. */
+function findCorners(pts: LinePoint[], count: number) {
   // CORNERS: runs of R < CORNER_R (scanning from a straight so a corner across the line is one
   // run); apex = tightest point
   const cid = new Int32Array(count).fill(-1), corners: Corner[] = [];
@@ -219,7 +241,33 @@ export function racingLine(level: Level): RacingLine {
     corner.turn += pts[i].turn;
   }
   for (const corner of corners) corner.turn = Math.sign(corner.turn);
-  level._line = Object.assign(path, { hw: halfWidth, lat, mu: grip, best, cid, corners });
+  return { cid, corners };
+}
+
+/** The racing line of a level (cached on the level), with its branch paths. */
+export function racingLine(level: Level): RacingLine {
+  if (level._line) return level._line;
+  // (! : a level with a lap has its subtrack by the time the AI looks)
+  const sub = level.subtrack!,
+    centre = sub.pts,
+    count = centre.length,
+    halfWidth = sub.width / 2,
+    reach = Math.max(0.5, halfWidth - LINE_MARGIN);
+  const ctx: LineCtx = { level, sub, centre, count, halfWidth, reach };
+  const map = gripMap(ctx);
+  const { low, high } = hairpinLimits(ctx);
+  coneLimits(ctx, low, high);
+  const off = smoothLine(ctx, map, low, high);
+  // (cast: finishPath, just below, sets h, R, turn and mu on these points)
+  const pts = centre.map((point, i) => ({
+    x: point.x + point.nx * off[i], y: point.y + point.ny * off[i],
+    nx: point.nx, ny: point.ny, dist: point.dist, off: off[i],
+  } as LinePoint));
+  const path = finishPath(pts, true, sub.totalDist);
+  const { cid, corners } = findCorners(pts, count);
+  level._line = Object.assign(path, {
+    hw: halfWidth, lat: map.lat, mu: map.grip, best: map.best, cid, corners,
+  });
   level._branches = branches(level, level._line);
   return level._line;
 }
