@@ -457,20 +457,11 @@ function steerFrontWheels(car: Car, carSpec: Spec, input: CarInput, dt: number) 
   return delta;
 }
 
-export function step(car: Car, input: CarInput, dt = PHYSICS_STEP_SECONDS) {
-  const carSpec = car.spec;
-  const mass = carSpec.mass * car.mods.mass;
-  const gravity = GRAVITY;
-  const telem = car.t;
-
-  // ---- 1. to body frame
-  const cosH = Math.cos(car.heading), sinH = Math.sin(car.heading);
-  let vLong = car.vx * cosH + car.vy * sinH;
-  let vLat = -car.vx * sinH + car.vy * cosH;
-
-  // ---- 2. steering
-  const delta = steerFrontWheels(car, carSpec, input, dt);
-
+/**
+ * Powertrain section of step(): pedal mapping, reverse engagement, wheelspin, rpm and gear shifts.
+ * Returns the pedal and ratio values the rest of step() reads.
+ */
+function runPowertrain(car: Car, carSpec: Spec, input: CarInput, vLong: number, dt: number) {
   // ---- powertrain: reverse engagement (A5), shifting, rpm
   //
   // MEASURED BUG, 2026-09-27 (user: "braking still causes you to go backwards"). Holding the brake
@@ -591,6 +582,26 @@ export function step(car: Car, input: CarInput, dt = PHYSICS_STEP_SECONDS) {
       car.shiftTimer = carSpec.shiftTime * car.mods.shiftTime;
     }
   }
+  return { handbrakeRaw, inReverse, throttle, brakeIn, totalRatio };
+}
+
+export function step(car: Car, input: CarInput, dt = PHYSICS_STEP_SECONDS) {
+  const carSpec = car.spec;
+  const mass = carSpec.mass * car.mods.mass;
+  const gravity = GRAVITY;
+  const telem = car.t;
+
+  // ---- 1. to body frame
+  const cosH = Math.cos(car.heading), sinH = Math.sin(car.heading);
+  let vLong = car.vx * cosH + car.vy * sinH;
+  let vLat = -car.vx * sinH + car.vy * cosH;
+
+  // ---- 2. steering
+  const delta = steerFrontWheels(car, carSpec, input, dt);
+
+  // ---- powertrain: reverse engagement (A5), shifting, rpm
+  const { handbrakeRaw, inReverse, throttle, brakeIn, totalRatio } = runPowertrain(
+      car, carSpec, input, vLong, dt);
 
   // ---- 3. slip angles (guarded divide — rule 20)
   const vLongAbs = Math.abs(vLong);
