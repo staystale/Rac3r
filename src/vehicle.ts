@@ -930,6 +930,35 @@ function axleForce(
   };
 }
 
+/**
+ * Section 7b of step(): gravel-trap ploughing, a retarding force per axle along that axle's own
+ * contact velocity. All zero on surfaces that do not plough.
+ */
+function ploughingForces(car: Car, carSpec: Spec, mass: number, vLong: number, vLat: number,
+    loadKF: number, loadKR: number) {
+  const plough = car.surface.plough || 0;
+  let FpxF = 0, FpyF = 0, FpxR = 0, FpyR = 0;
+  if (plough > 0) {
+    // Still strong at a crawl (PLOUGH_CRAWL of full), so you get STUCK rather than gently coasting
+    // out.
+    const spAll = Math.hypot(vLong, vLat);
+    const scale = PLOUGH_CRAWL + (1 - PLOUGH_CRAWL) * Math.min(1, spAll / PLOUGH_VREF);
+    // share = static load share, lk = this end's suspension load: airborne over gravel ploughs
+    // nothing.
+    const ploughForce = (velLong: number, velLat: number, share: number, load: number) => {
+      const sp2 = Math.hypot(velLong, velLat);
+      if (sp2 < 0.05) return [0, 0];
+      const Fmag = mass * share * plough * scale * Math.min(1, load);
+      return [(-velLong / sp2) * Fmag, (-velLat / sp2) * Fmag * PLOUGH_LAT];
+    };
+    [FpxF, FpyF] = ploughForce(vLong, vLat + carSpec.lf * car.yawRate, carSpec.lr / carSpec.L,
+        loadKF);
+    [FpxR, FpyR] = ploughForce(vLong, vLat - carSpec.lr * car.yawRate, carSpec.lf / carSpec.L,
+        loadKR);
+  }
+  return { FpxF, FpyF, FpxR, FpyR };
+}
+
 export function step(car: Car, input: CarInput, dt = PHYSICS_STEP_SECONDS) {
   const carSpec = car.spec;
   const mass = carSpec.mass * car.mods.mass;
@@ -1111,26 +1140,8 @@ export function step(car: Car, input: CarInput, dt = PHYSICS_STEP_SECONDS) {
   // the real behaviour, and the reason a spun car stops dead in the gravel.
   //
   // It reaches here only as car.surface.plough, so vehicle.js still does not know what gravel is.
-  const plough = car.surface.plough || 0;
-  let FpxF = 0, FpyF = 0, FpxR = 0, FpyR = 0;
-  if (plough > 0) {
-    // Still strong at a crawl (PLOUGH_CRAWL of full), so you get STUCK rather than gently coasting
-    // out.
-    const spAll = Math.hypot(vLong, vLat);
-    const scale = PLOUGH_CRAWL + (1 - PLOUGH_CRAWL) * Math.min(1, spAll / PLOUGH_VREF);
-    // share = static load share, lk = this end's suspension load: airborne over gravel ploughs
-    // nothing.
-    const ploughForce = (velLong: number, velLat: number, share: number, load: number) => {
-      const sp2 = Math.hypot(velLong, velLat);
-      if (sp2 < 0.05) return [0, 0];
-      const Fmag = mass * share * plough * scale * Math.min(1, load);
-      return [(-velLong / sp2) * Fmag, (-velLat / sp2) * Fmag * PLOUGH_LAT];
-    };
-    [FpxF, FpyF] = ploughForce(vLong, vLat + carSpec.lf * car.yawRate, carSpec.lr / carSpec.L,
-        loadKF);
-    [FpxR, FpyR] = ploughForce(vLong, vLat - carSpec.lr * car.yawRate, carSpec.lf / carSpec.L,
-        loadKR);
-  }
+  const { FpxF, FpyF, FpxR, FpyR } = ploughingForces(
+      car, carSpec, mass, vLong, vLat, loadKF, loadKR);
 
   // ---- 8. integrate TCS, STABILITY HALF (2026-10-03; user: one TCS switch covers wheelspin AND
   // slides). Real stability control brakes ONE wheel to make a yaw moment; this model has one tyre
