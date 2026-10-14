@@ -481,6 +481,27 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
     return { vMul, dodgeT, conflict, prof };
   }
 
+  /** Steering aim, then slip, the held drift, over / understeer and the steer. */
+  function steerSlideStep(car: AiCar, path: typeof state.path, nearIdx: number,
+      idx: (pos: number) => number, speed: number, lineOff: number, latT: number) {
+    // ---- steering: Stanley on the path + latT at the front axle (the bench driver's controller)
+    const { psi, deltaS, LOCK, cap } = steerAim(car, path, nearIdx, idx, speed, latT);
+    // OVERSTEER (rear slip past ~10 deg): no cap, so it can countersteer; UNDERSTEER (front past ~8
+    // deg): more lock only scrubs, so lift and brake to get the front back (MEASURED: Sweaty Lamb's
+    // S at sF 0.27 rad, then a spin at sR -0.78) LOOSE SURFACES (user, 2026-10-04: "slow down
+    // weirdly on surface changes, dirt to tarmac — they should predict it and speed up"). loose = 0
+    // on tarmac (mu 1) .. 1 at mu 0.5. MEASURED (tools/aisurface, rally-4x4 Real): 19 of 26 Slidden
+    // surface changes lifted > 0.3 s with the target still above the speed — mostly WHEELSPIN
+    // halving the throttle (normal on dirt), then the front-slip "understeer" lift. On loose
+    // ground: no wheelspin cut, and 0.06 rad more front slip before the understeer lift -> 10 of
+    // 26; laps (Real) Knobhill 47.6 -> 45.8 hatch / 41.5 -> 40.5 4x4, Sweaty Lamb 128.5 -> 125.2 /
+    // 114.4 -> 112.7, Slidden 55.9 -> 55.1, tarmac unchanged. TRIED and REJECTED (same tool): more
+    // rear slip before lifting, a later slide catch and power through the slide — each alone
+    // harmless, together the 4x4 left the road at Knobhill / Sweaty Lamb (16-31 s off a lap).
+    const slide = slideStep(car, path, nearIdx, speed, lineOff, { deltaS, LOCK, cap });
+    return { psi, ...slide };
+  }
+
   function drive(car: AiCar, dt = 1 / 120, ctx: DriveCtx = {}) {
     state.t += dt;
     const spec = car.spec, speed = Math.hypot(car.vx, car.vy);
@@ -569,22 +590,8 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
     // off-road 142 -> 299 car-s, MEASURED). (applied in the SPEED section: every bend ahead within
     // braking distance, not only the "corners" — Naffcar's banked turns are wider than CORNER_R,
     // and tow passes on their inside slid off: off-road 0 -> 14 car-s, MEASURED)
-    // ---- steering: Stanley on the path + latT at the front axle (the bench driver's controller)
-    const { psi, deltaS, LOCK, cap } = steerAim(car, path, nearIdx, idx, speed, latT);
-    // OVERSTEER (rear slip past ~10 deg): no cap, so it can countersteer; UNDERSTEER (front past ~8
-    // deg): more lock only scrubs, so lift and brake to get the front back (MEASURED: Sweaty Lamb's
-    // S at sF 0.27 rad, then a spin at sR -0.78) LOOSE SURFACES (user, 2026-10-04: "slow down
-    // weirdly on surface changes, dirt to tarmac — they should predict it and speed up"). loose = 0
-    // on tarmac (mu 1) .. 1 at mu 0.5. MEASURED (tools/aisurface, rally-4x4 Real): 19 of 26 Slidden
-    // surface changes lifted > 0.3 s with the target still above the speed — mostly WHEELSPIN
-    // halving the throttle (normal on dirt), then the front-slip "understeer" lift. On loose
-    // ground: no wheelspin cut, and 0.06 rad more front slip before the understeer lift -> 10 of
-    // 26; laps (Real) Knobhill 47.6 -> 45.8 hatch / 41.5 -> 40.5 4x4, Sweaty Lamb 128.5 -> 125.2 /
-    // 114.4 -> 112.7, Slidden 55.9 -> 55.1, tarmac unchanged. TRIED and REJECTED (same tool): more
-    // rear slip before lifting, a later slide catch and power through the slide — each alone
-    // harmless, together the 4x4 left the road at Knobhill / Sweaty Lamb (16-31 s off a lap).
-    const slide = slideStep(car, path, nearIdx, speed, lineOff, { deltaS, LOCK, cap });
-    const { loose, slipRear, drifting, edgeRoom, over, under, steer } = slide;
+    const { psi, loose, slipRear, drifting, edgeRoom, over, under, steer } = steerSlideStep(car,
+        path, nearIdx, idx, speed, lineOff, latT);
 
     // ---- SPEED: the profile (it already brakes for what is ahead) x pace x mistakes, capped by
     // the joker approach and traffic
