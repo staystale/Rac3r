@@ -565,6 +565,605 @@ function setHudTyreHud(state, enabled) {
   } catch { /* fine */ }
 }
 
+/**
+ * Top-left: the car chip and, when open, the car and level dropdown.
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {object} state the shared HUD state
+ * @param {object} rects the layout rectangles
+ * @param {object} spec the car spec
+ * @returns {void}
+ */
+function drawHudCarChip(ctx, state, rects, spec) {
+  drawHudPanel(ctx, rects.chip);
+  drawHudLabel(ctx, spec.name, rects.chip.x + 10, rects.chip.y + rects.chip.h / 2,
+    { size: 12.5, maxW: rects.chip.w - 30 });
+  drawHudLabel(ctx, state.expanded ? '▴' : '▾', rects.chip.x + rects.chip.w - 12, rects.chip.y
+    + rects.chip.h / 2, { align: 'right', col: COL.inkSoft });
+  if (state.expanded) {
+    for (const carRow of rects.rows) {
+      const selected = carRow.id === spec.id;
+      drawHudPanel(ctx, carRow,
+        { fill: selected ? 'rgba(76,194,160,0.92)' : 'rgba(27,29,34,0.88)' });
+      const row = ROSTER.find((entry) => entry.id === carRow.id);
+      drawHudLabel(ctx, row.name, carRow.x + 10, carRow.y + carRow.h / 2,
+        { size: 12, col: selected ? '#0d1a16' : COL.hudText, maxW: carRow.w - 52 });
+      // the drive layout is the point of the roster, so it is on the row
+      const drive = row.drive === 1 ? 'FWD' : row.drive === 0 ? 'RWD' : '4WD';
+      drawHudLabel(ctx, drive, carRow.x + carRow.w - 10, carRow.y + carRow.h / 2,
+        { size: 10.5, align: 'right', col: selected ? '#0d1a16' : COL.inkSoft });
+    }
+    // ---- and the LEVELS, under the cars in the same dropdown
+    for (const levelRow of rects.levelRows) {
+      const selected = levelRow.id === LEVEL.id;
+      drawHudPanel(ctx, levelRow,
+        { fill: selected ? 'rgba(232,161,58,0.94)' : 'rgba(27,29,34,0.88)' });
+      drawHudLabel(ctx, levelRow.name, levelRow.x + 10, levelRow.y + levelRow.h / 2,
+        { size: 12, col: selected ? '#2a1405' : COL.hudText });
+      drawHudLabel(ctx, 'LEVEL', levelRow.x + levelRow.w - 10, levelRow.y + levelRow.h / 2,
+        { size: 10, align: 'right', col: selected ? '#2a1405' : COL.inkSoft });
+    }
+  }
+}
+
+/**
+ * Top-left: the TUNE chip, opening the debug panel.
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {object} state the shared HUD state
+ * @param {object} rects the layout rectangles
+ * @returns {void}
+ */
+function drawHudTuneChip(ctx, state, rects) {
+  drawHudPanel(ctx, rects.tuneChip,
+    { fill: state.tuneOpen ? 'rgba(232,161,58,0.94)' : 'rgba(27,29,34,0.88)' });
+  drawHudLabel(ctx, 'TUNE', rects.tuneChip.x + rects.tuneChip.w / 2, rects.tuneChip.y
+    + rects.tuneChip.h / 2,
+    { size: 11.5, align: 'center', col: state.tuneOpen ? '#2a1405' : COL.hudText });
+}
+
+/**
+ * Bottom-right, above the pedals: DRIVER AIDS. Green = on, dark = off, AMBER FLASH
+ * while working - the silent twin of a real ABS buzz (the phone may be muted). Flash on the wall
+ * clock (rule 5).
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {object} state the shared HUD state
+ * @param {object} rects the layout rectangles
+ * @param {object} car the car
+ * @param {object} spec the car spec
+ * @param {number} wallDt wall-clock seconds
+ * @returns {void}
+ */
+function drawHudAids(ctx, state, rects, car, spec, wallDt) {
+  if (spec.aids) {
+    for (const [key, chip, active,
+      working] of [['abs', rects.absChip, car.absOn, car.t.absWorking],
+      ['tcs', rects.tcsChip, car.tcsOn, car.t.tcsWorking]]) {
+      if (!spec.aids[key]) continue;
+      state.aidFlash[key] = working && active ? 1 : Math.max(0, state.aidFlash[key] - wallDt * 5);
+      const flash = state.aidFlash[key] * (0.6 + 0.4 * Math.sin(performance.now() / 45));
+      drawHudPanel(ctx, chip,
+        { fill: flash > 0.05 ? 'rgba(232,161,58,' + (0.55 + 0.4 * flash).toFixed(2) + ')' : active
+        ? 'rgba(76,194,160,0.90)' : 'rgba(27,29,34,0.80)' });
+      drawHudLabel(ctx, key.toUpperCase(), chip.x + chip.w / 2,
+        chip.y + chip.h / 2 - (active ? 0 : 5),
+        { size: 11.5, weight: 700, align: 'center', col: active ? '#0d1a16' : COL.inkSoft });
+      if (!active) drawHudLabel(ctx, 'OFF', chip.x + chip.w / 2, chip.y + chip.h / 2 + 7,
+        { size: 8.5, weight: 700, align: 'center', col: COL.danger });
+    }
+  }
+}
+
+/**
+ * Bottom-left: LIGHTS and indicators (the indicator buttons blink amber while
+ * on, LIGHTS lit while the headlights are on).
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {object} rects the layout rectangles
+ * @param {object} car the car
+ * @returns {void}
+ */
+function drawHudIndicators(ctx, rects, car) {
+  const blink = Math.floor(performance.now() / 333) % 2 === 0;
+  for (const [button, txt, lit] of [[rects.indL, '◄', car.indicator === -1 && blink],
+    [rects.lights, 'LIGHTS', !!car.lightsOn],
+    [rects.indR, '►', car.indicator === 1 && blink]]) {
+    drawHudPanel(ctx, button,
+      { fill: lit ? (txt === 'LIGHTS' ? 'rgba(242,230,170,0.92)' : 'rgba(232,161,58,0.92)')
+      : 'rgba(27,29,34,0.80)' });
+    drawHudLabel(ctx, txt, button.x + button.w / 2, button.y + button.h / 2,
+      { size: txt === 'LIGHTS' ? 10.5 : 14, weight: 800, align: 'center', col: lit ? '#1b1d22'
+      : COL.hudText });
+  }
+}
+
+/**
+ * Top-centre: restart / reset / clear / vol.
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {object} state the shared HUD state
+ * @param {object} game the game
+ * @param {object} rects the layout rectangles
+ * @returns {void}
+ */
+function drawHudButtonRow(ctx, state, game, rects) {
+  const audio = game.audio;
+  if (rects.vol && rects.vol.w > 0) {
+    rects.vol.label = !audio ? 'VOL' : audio.muted ? 'MUTE' : Math.round(audio.volume * 100)
+      + '%';
+  }
+  const btns = (rects.vol && rects.vol.w > 0)
+    ? [rects.restart, rects.reset, rects.clear, rects.vol]
+    : [rects.restart, rects.reset, rects.clear];
+  if (!(rects.help.row3 && (state.expanded || state.tuneOpen))) btns.push(rects.help);
+  // On a narrow screen this row sits in the car dropdown's lane (left, row two). While the
+  // dropdown is open it owns that lane — hit() already sends those taps to the dropdown — so do
+  // not draw over it.
+  const rowHidden = state.expanded && rects.restart.y > MARGIN;
+  if (!rowHidden) for (const button of btns) drawHudButton(ctx, rects, audio, button);
+}
+
+/**
+ * One button of the top-centre row.
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {object} rects the layout rectangles
+ * @param {object} audio the audio engine (may be missing)
+ * @param {object} button the button rectangle
+ * @returns {void}
+ */
+function drawHudButton(ctx, rects, audio, button) {
+  drawHudPanel(ctx, button);
+  const isMuted = button === rects.vol && audio && (audio.muted || audio.volume <= 0.001);
+  drawHudLabel(ctx, button.label, button.x + button.w / 2, button.y + button.h / 2, {
+    size: button === rects.help ? 14 : 10.5, align: 'center', weight: button === rects.help
+      ? 700 : 600,
+    col: isMuted ? COL.danger : COL.hudText,
+  });
+}
+
+/**
+ * Top-centre, under the buttons: cone tally. Reads LIVE state - it counts what is
+ * actually lying down, not what was hit (rule 10) - so standing one back up with RESET counts down
+ * again.
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {object} state the shared HUD state
+ * @param {object} game the game
+ * @param {object} rects the layout rectangles
+ * @returns {void}
+ */
+function drawHudConeTally(ctx, state, game, rects) {
+  const knocked = game.cones.knocked;
+  // ONLY ON A LEVEL THAT ASKS FOR IT (LEVEL.coneCount: the Lab + Test Track courses) — user:
+  // "only relevant when asked for, not on most race tracks"
+  if (LEVEL.coneCount && knocked > 0 && !state.tuneOpen) {
+    const tallyRect = rects.tally;
+    drawHudPanel(ctx, tallyRect, { fill: 'rgba(242,106,27,0.92)', stroke: null });
+    drawHudLabel(ctx, knocked + ' / ' + game.cones.total + ' CONES', tallyRect.x + tallyRect.w / 2,
+      tallyRect.y + tallyRect.h / 2,
+      { size: 11, align: 'center', col: '#2a1405', weight: 700 });
+  }
+}
+
+/**
+ * Top-right: speed, gear, tacho (the SILENT TWIN of the engine note - the phone may be
+ * muted).
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {object} state the shared HUD state
+ * @param {object} rects the layout rectangles
+ * @param {object} car the car
+ * @param {object} spec the car spec
+ * @param {number} wallDt wall-clock seconds
+ * @returns {void}
+ */
+function drawHudSpeedo(ctx, state, rects, car, spec, wallDt) {
+  const speedRect = rects.speed, speedWidth = speedRect.w;
+  drawHudPanel(ctx, speedRect);
+  const kph = Math.hypot(car.vx, car.vy) * 3.6;
+  drawHudLabel(ctx, String(Math.round(state.mph ? kph * 0.621371 : kph)), speedRect.x + 10,
+    speedRect.y + 19,
+    { size: 22, weight: 700 });
+  drawHudLabel(ctx, state.mph ? 'mph' : 'km/h', speedRect.x + 62, speedRect.y + 24,
+    { size: 9.5, col: COL.inkSoft });
+  // GEAR CHANGE, made obvious. The automatic box already cuts the torque for a quarter of a
+  // second, but with no sound and no needle the player had no way to know a shift had happened.
+  // Flash the gear digit and pop it up a size — on the WALL CLOCK, because it is something you
+  // watch (rule 5).
+  const gearTxt = car.gear < 0 ? 'R' : String(car.gear);
+  if (car.gear !== state.lastGear) {
+    state.gearFlash = 1;
+    state.lastGear = car.gear;
+  }
+  state.gearFlash = Math.max(0, state.gearFlash - wallDt * 2.6);
+  const gearPop = state.gearFlash * state.gearFlash;
+  if (gearPop > 0.02) {
+    ctx.globalAlpha = gearPop * 0.85;
+    ctx.fillStyle = COL.warn;
+    ctx.beginPath();
+    ctx.arc(speedRect.x + speedWidth - 22, speedRect.y + 19, 17 + gearPop * 9, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+  drawHudLabel(ctx, gearTxt, speedRect.x + speedWidth - 12, speedRect.y + 19,
+    { size: 20 + gearPop * 8, weight: 700, align: 'right', col: gearPop > 0.15 ? '#2a1405'
+      : COL.live });
+
+  // tacho bar
+  const barX = speedRect.x + 10, barY = speedRect.y + 38, barW = speedWidth - 20, barH = 7;
+  const frac = Math.max(0, Math.min(1, (car.rpm - spec.idleRpm) / (spec.redline - spec.idleRpm)));
+  const redFrac = (spec.upshiftRpm - spec.idleRpm) / (spec.redline - spec.idleRpm);
+  ctx.fillStyle = 'rgba(255,255,255,0.12)';
+  ctx.fillRect(barX, barY, barW, barH);
+  ctx.fillStyle = frac > redFrac ? COL.danger : frac > redFrac * 0.82 ? COL.warn : COL.live;
+  ctx.fillRect(barX, barY, barW * frac, barH);
+  // redline zone marker
+  ctx.fillStyle = 'rgba(216,69,60,0.55)';
+  ctx.fillRect(barX + barW * redFrac, barY - 2, 1.5, barH + 4);
+  // shift light: flashes on the WALL CLOCK (rule 5), not per physics step
+  if (frac > redFrac) state.shiftFlash = Math.min(1, state.shiftFlash + wallDt * 8);
+  else state.shiftFlash = Math.max(0, state.shiftFlash - wallDt * 6);
+  if (state.shiftFlash > 0.02) {
+    ctx.globalAlpha = state.shiftFlash * (0.55 + 0.45 * Math.sin(performance.now() / 60));
+    ctx.fillStyle = COL.danger;
+    ctx.fillRect(barX, barY - 5, barW, 2.5);
+    ctx.globalAlpha = 1;
+  }
+}
+
+/**
+ * A white ring round a punctured wheel, or a crossed-out box where the wheel is GONE.
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {object} car the car
+ * @param {number} corner 0 front -y, 1 front +y, 2 rear -y, 3 rear +y
+ * @param {number} bodyX left of the diagram body
+ * @param {number} bodyY top of the diagram body
+ * @param {number} bodyW width of the diagram body
+ * @param {number} bodyH height of the diagram body
+ * @returns {void}
+ */
+function drawHudWheelFault(ctx, car, corner, bodyX, bodyY, bodyW, bodyH) {
+  if (car.punct && car.punct[corner]) {
+    const wheelX = corner % 2 ? bodyX + bodyW - 3 : bodyX - 4, wheelY = bodyY
+      + (corner >= 2 ? bodyH - 14 : 4);
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(wheelX - 0.5, wheelY - 0.5, 8, 12);
+  }
+  // wheel GONE
+  if (car.wheelOff && car.wheelOff[corner]) {
+    const wheelX = corner % 2 ? bodyX + bodyW - 3 : bodyX - 4, wheelY = bodyY
+      + (corner >= 2 ? bodyH - 14 : 4);
+    ctx.fillStyle = '#1b1c21';
+    ctx.fillRect(wheelX, wheelY, 7, 11);
+    ctx.strokeStyle = COL.danger;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(wheelX, wheelY);
+    ctx.lineTo(wheelX + 7, wheelY + 11);
+    ctx.moveTo(wheelX + 7, wheelY);
+    ctx.lineTo(wheelX, wheelY + 11);
+    ctx.stroke();
+  }
+}
+
+/**
+ * TYRE DIAGRAM (optional HUD). A little top-down car, FRONT UP, each wheel filled
+ * with its temperature colour and its number beside it. The same body outline shows DAMAGE.
+ * vehicle.js indexes tyres by body side: 0 F+y, 1 F-y, 2 R+y, 3 R-y, and +y is the car's RIGHT.
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {object} state the shared HUD state
+ * @param {object} rects the layout rectangles
+ * @param {object} car the car
+ * @param {object} spec the car spec
+ * @returns {void}
+ */
+function drawHudTyreDiagram(ctx, state, rects, car, spec) {
+  const speedRect = rects.speed, speedWidth = speedRect.w;
+  if (state.carDiagram && car.tyreT) {
+    const [optLow, optHigh] = spec.tyreOpt || [65, 110];
+    const col = (temp) => (temp < optLow - 15 ? '#5b8fd6' : temp < optLow ? '#7fb6c9'
+      : temp <= optHigh ? COL.live : temp <= optHigh + 25 ? COL.warn : COL.danger);
+    const centreX = speedRect.x + speedWidth / 2, top = speedRect.y + 56, bodyW = 20, bodyH = 40,
+      bodyX = centreX - bodyW / 2, bodyY = top + 4;
+    // wheels first (under the body edge), then the body, then a windscreen so the FRONT is
+    // unmistakable
+    const wheels = [[1, -1, 0], [0, 1, 0], [3, -1, 1], [2, 1, 1]];
+    // ^ [tyre index, side -1 left / +1 right, rear?]
+    for (const [tyreIdx, side, rear] of wheels) {
+      const wheelX = side < 0 ? bodyX - 4 : bodyX + bodyW - 3, wheelY = bodyY
+        + (rear ? bodyH - 14 : 4);
+      // plain rectangles: panel()'s 8 px corner radius is larger than a 7 px wheel and drew
+      // mangled slants
+      ctx.fillStyle = col(car.tyreT[tyreIdx]);
+      ctx.fillRect(wheelX, wheelY, 7, 11);
+      ctx.strokeStyle = 'rgba(0,0,0,0.55)';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(wheelX + 0.5, wheelY + 0.5, 6, 10);
+      drawHudLabel(ctx, String(Math.round(car.tyreT[tyreIdx])), side < 0 ? wheelX - 4 : wheelX + 11,
+        wheelY + 6,
+        { size: 9.5, weight: 700, align: side < 0 ? 'right' : 'left',
+          col: col(car.tyreT[tyreIdx]) });
+    }
+    drawHudPanel(ctx, { x: bodyX, y: bodyY, w: bodyW, h: bodyH },
+      { fill: 'rgba(205,210,220,0.92)', stroke: 'rgba(0,0,0,0.35)' });
+    // DAMAGE (damage.js corners: 0 front -y, 1 front +y, 2 rear -y, 3 rear +y; +y = RIGHT): each
+    // body quarter amber / red with the damage there, a white-ringed wheel = a puncture
+    if (car.dmg) for (let corner = 0; corner < 4; corner++) {
+      const damage = car.dmg[corner], quarterX = corner % 2 ? bodyX + bodyW / 2 : bodyX + 1,
+        quarterY = corner < 2 ? bodyY + 1 : bodyY + bodyH / 2;
+      if (damage >= 0.05) {
+        ctx.fillStyle = damage < 0.5 ? 'rgba(232,161,58,' + (0.45 + 0.5 * damage).toFixed(2) + ')'
+          : 'rgba(216,69,60,' + (0.6 + 0.4 * damage).toFixed(2) + ')';
+        ctx.fillRect(quarterX, quarterY, bodyW / 2 - 1, bodyH / 2 - 1);
+      }
+      drawHudWheelFault(ctx, car, corner, bodyX, bodyY, bodyW, bodyH);
+    }
+    ctx.fillStyle = 'rgba(40,46,58,0.85)';
+    ctx.fillRect(bodyX + 3, bodyY + 9, bodyW - 6, 6); // windscreen near the top = the front
+    ctx.fillRect(bodyX + 4, bodyY + bodyH - 9, bodyW - 8, 4);              // rear window
+    drawHudLabel(ctx, 'FRONT', centreX, bodyY - 1,
+      { size: 6.5, weight: 700, align: 'center', col: COL.inkSoft });
+  }
+}
+
+/**
+ * HIGHWAY TO HULL lap panel: how far you have got, and your best.
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {object} game the game
+ * @param {object} lapRect the lap panel rectangle
+ * @returns {void}
+ */
+function drawHudLapEndless(ctx, game, lapRect) {
+  drawHudLabel(ctx, 'DISTANCE', lapRect.x + 8, lapRect.y + 13,
+    { size: 11, weight: 700, col: COL.live });
+  drawHudLabel(ctx, ((game.hwDist || 0) / 1000).toFixed(2) + ' KM', lapRect.x + lapRect.w - 8,
+    lapRect.y + 13, { size: 11, weight: 700, align: 'right', col: COL.hudText });
+  // in a VS AI race the second line is the gap to the car ahead (or your lead over the one
+  // behind) instead of your best
+  const flow = game.flow, player = flow && flow.highway && game.car._hwf;
+  if (player && game.ai && game.ai.length) {
+    const gaps = game.ai.map((rival) => (rival.car._hwf ? rival.car._hwf.s - player.s
+      : -Infinity)), ahead = gaps.filter((gap) => gap > 0),
+      behind = gaps.filter((gap) => gap <= 0 && isFinite(gap));
+    const txt = ahead.length ? 'AHEAD +' + Math.round(Math.min(...ahead)) + ' M'
+      : behind.length ? 'LEAD ' + Math.round(-Math.max(...behind)) + ' M' : '';
+    drawHudLabel(ctx, txt, lapRect.x + 8, lapRect.y + 26,
+      { size: 9, weight: 700, col: ahead.length ? COL.inkSoft : COL.live });
+  } else drawHudLabel(ctx, 'BEST ' + ((game.hwBest || 0) / 1000).toFixed(2) + ' KM', lapRect.x + 8,
+    lapRect.y + 26, { size: 9, weight: 600, col: COL.inkSoft });
+}
+
+/**
+ * RALLY STAGE lap panel: READY -> STAGE (running clock) -> FINISH; BEST under.
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {object} stage the stage state
+ * @param {object} lapRect the lap panel rectangle
+ * @returns {void}
+ */
+function drawHudLapStage(ctx, stage, lapRect) {
+  const run = stage.state === 'running', done = stage.state === 'done';
+  drawHudLabel(ctx, done ? 'FINISH' : 'STAGE', lapRect.x + 8, lapRect.y + 13,
+    { size: 11, weight: 700, col: COL.live });
+  drawHudLabel(ctx, fmtTime(done ? stage.last : run ? stage.t : 0), lapRect.x + lapRect.w - 8,
+    lapRect.y + 13, { size: 11, weight: done ? 700 : 600, align: 'right', col: COL.hudText });
+  const newBest = done && stage.best === stage.last;
+  drawHudLabel(ctx, newBest ? 'NEW BEST' : stage.best != null ? `BEST ${fmtTime(stage.best)}`
+    : stage.state === 'ready' ? 'CROSS THE LINE' : 'BEST --:--.--', lapRect.x + 8, lapRect.y
+    + 26, { size: 9, weight: newBest ? 700 : 600, col: newBest ? COL.live : COL.inkSoft });
+}
+
+/**
+ * RX RACE lap panel: the same panel, no new HUD lane (CLAUDE.md §4).
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {object} game the game
+ * @param {object} race the race state
+ * @param {object} lapRect the lap panel rectangle
+ * @param {number} lapNum the lap number
+ * @returns {void}
+ */
+function drawHudLapJoker(ctx, game, race, lapRect, lapNum) {
+  if (race.done) {
+    drawHudLabel(ctx, 'FINISH', lapRect.x + 8, lapRect.y + 13,
+      { size: 11, weight: 700, col: COL.live });
+    drawHudLabel(ctx, fmtTime(race.total), lapRect.x + lapRect.w - 8, lapRect.y + 13,
+      { size: 11, weight: 700, align: 'right', col: COL.hudText });
+    drawHudLabel(ctx, !race.penalty ? 'JOKER DONE' : race.jokers === 0
+      ? `+${race.penalty} s NO JOKER` : `+${race.penalty} s EXTRA JOKER`, lapRect.x + 8,
+      lapRect.y + 26, { size: 9, weight: 700, col: race.penalty ? COL.danger : COL.live });
+  } else {
+    drawHudLabel(ctx, `LAP ${Math.min(lapNum, race.laps)}/${race.laps}`, lapRect.x + 8, lapRect.y
+      + 13, { size: 11, weight: 700, col: COL.live });
+    drawHudLabel(ctx, fmtTime(race.t), lapRect.x + lapRect.w - 8, lapRect.y + 13,
+      { size: 11, weight: 600, align: 'right', col: COL.hudText });
+    // approaching the joker turn-off without it done: the line FLASHES "JOKER >" (the
+    // approach arrow's distance, lab.js jokerApproach)
+    const jokerArrow = LEVEL.joker && LEVEL.joker.arrows
+      && LEVEL.joker.arrows.find((x) => x.d != null), trackDist = game.trackD;
+    const near = race.started && !race.joker && jokerArrow && trackDist != null
+      && (((jokerArrow.d - trackDist) % LEVEL.subtrack.totalDist)
+      + LEVEL.subtrack.totalDist) % LEVEL.subtrack.totalDist < 140;
+    const flash = near && Math.floor(performance.now() / 250) % 2 === 0;
+    // the line switches as it happens: TO DO -> ››› (approaching) -> IN JOKER (on the lane)
+    // -> JOKER TAKEN ✓ (flashing 2 s) -> JOKER DONE
+    const inLane = !race.joker && game.inJokerLane, fresh = race.joker && race.jokers === 1
+      && performance.now() - (game.jokerAt || 0) < 2000;
+    const blink = Math.floor(performance.now() / 200) % 2 === 0;
+    const jTxt = race.jokers > 1 ? `JOKER x${race.jokers}: +${(race.jokers - 1) * 30} s`
+      : fresh ? 'JOKER TAKEN ✓' : race.joker ? 'JOKER DONE ✓' : inLane ? 'IN JOKER ›' : near
+      ? 'JOKER  ›››' : 'JOKER TO DO';
+    const jCol = race.jokers > 1 ? COL.danger : fresh ? (blink ? '#ffffff' : COL.live)
+      : race.joker || inLane ? COL.live : flash ? '#ffffff' : COL.warn || '#e8a13a';
+    drawHudLabel(ctx, jTxt, lapRect.x + 8, lapRect.y + 26,
+      { size: near || fresh || inLane ? 10.5 : 9, weight: 800, col: jCol });
+  }
+}
+
+/**
+ * A VS AI race lap panel (raceflow.js): LAP n/N, FINISH once you are home.
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {object} game the game
+ * @param {object} lapRect the lap panel rectangle
+ * @param {number} lapNum the lap number
+ * @returns {void}
+ */
+function drawHudLapRace(ctx, game, lapRect, lapNum) {
+  const flow = game.flow, player = flow && flow.entries.find((entry) => entry.player);
+  drawHudLabel(ctx, player
+    ? (player.finish != null ? 'FINISH'
+    : `LAP ${Math.min(flow.laps, player.lapDone + 1)}/${flow.laps}`) : `LAP ${lapNum}`,
+    lapRect.x + 8, lapRect.y + 13, { size: 11, weight: 700, col: COL.live });
+  drawHudLabel(ctx,
+    fmtTime(player ? (player.finish != null ? player.finish : flow.t) : game.lap.lapTime),
+    lapRect.x + lapRect.w - 8, lapRect.y + 13,
+    { size: 11, weight: 600, align: 'right', col: COL.hudText });
+  const bestTxt = game.lap.bestTime ? `BEST ${fmtTime(game.lap.bestTime)}` : 'BEST --:--.--';
+  drawHudLabel(ctx, bestTxt, lapRect.x + 8, lapRect.y + 26,
+    { size: 9, weight: 600, col: COL.inkSoft });
+}
+
+/**
+ * Top-right, under speed: lap counter & timer (circuit levels only).
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {object} game the game
+ * @param {object} rects the layout rectangles
+ * @returns {void}
+ */
+function drawHudLapTimer(ctx, game, rects) {
+  if (LEVEL.subtrack && game.lap) {
+    const lapRect = rects.lap;
+    drawHudPanel(ctx, lapRect);
+    if (game.ai && game.ai.length
+      && game.position) drawHudLabel(ctx, `P${game.position}/${game.ai.length + 1}`, lapRect.x
+      + lapRect.w - 8, lapRect.y + 26,
+      { size: 11, weight: 800, align: 'right', col: game.position === 1 ? '#f2c21b' : COL.live });
+    const lapNum = Math.max(1, game.lap.lap || 1);
+    const race = game.race, stage = game.stage;
+    if (LEVEL.endless) drawHudLapEndless(ctx, game, lapRect);
+    else if (LEVEL.stage && stage) drawHudLapStage(ctx, stage, lapRect);
+    else if (race && race.on && LEVEL.joker) {
+      drawHudLapJoker(ctx, game, race, lapRect, lapNum);
+    } else drawHudLapRace(ctx, game, lapRect, lapNum);
+  }
+}
+
+/**
+ * Bottom-right: pedals (touch only), the thumb stick, and the keyboard hint.
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {object} game the game
+ * @param {number} width canvas width
+ * @param {number} height canvas height
+ * @returns {void}
+ */
+function drawHudPedals(ctx, game, width, height) {
+  if (game.input.isTouch()) {
+    for (const pedal of game.input.pedalHits(width, height)) {
+      const pressed = !!game.input.pedals[pedal.name];
+      ctx.beginPath();
+      ctx.arc(pedal.x, pedal.y, pedal.r, 0, Math.PI * 2);
+      ctx.fillStyle = pressed
+        ? (pedal.name === 'throttle' ? 'rgba(76,194,160,0.92)' : pedal.name === 'brake'
+          ? 'rgba(216,69,60,0.92)' : 'rgba(232,161,58,0.92)')
+        : 'rgba(27,29,34,0.80)';
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255,255,255,0.20)';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      const txt = pedal.name === 'throttle' ? 'GAS' : pedal.name === 'brake' ? 'BRAKE'
+        : pedal.name === 'reverse' ? 'R' : 'HAND';
+      drawHudLabel(ctx, txt, pedal.x, pedal.y,
+        { size: pedal.name === 'reverse' ? 13 : 10.5, align: 'center', col: pressed ? '#0d1a16'
+        : COL.hudText });
+    }
+    // ---- bottom-left: the thumb stick, drawn where the thumb actually landed
+    const stick = game.input.stick;
+    if (stick.active) {
+      ctx.beginPath();
+      ctx.arc(stick.ox, stick.oy, 46, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(255,255,255,0.28)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      const dx = Math.max(-52, Math.min(52, stick.x - stick.ox));
+      ctx.beginPath();
+      ctx.arc(stick.ox + dx, stick.oy, 22, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(232,232,238,0.85)';
+      ctx.fill();
+    } else {
+      drawHudLabel(ctx, 'drag anywhere on the left to steer', MARGIN, height - MARGIN - 46,
+        { size: 10.5, col: 'rgba(42,44,51,0.5)' });
+    }
+  } else {
+    drawHudLabel(ctx, 'W/S drive   A/D steer   SPACE handbrake   B abs   T tcs   R reset   H help',
+      MARGIN, height - MARGIN - 46,
+      { size: 11, col: 'rgba(42,44,51,0.55)' });
+  }
+}
+
+/**
+ * Dev readout (?dev=1). Every hidden number the tyre model runs on
+ * (CLAUDE.md §3).
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {object} state the shared HUD state
+ * @param {object} game the game
+ * @param {object} car the car
+ * @param {number} height canvas height
+ * @returns {void}
+ */
+function drawHudDevReadout(ctx, state, game, car, height) {
+  if (game.dev && !state.tuneOpen) {
+    const tyreState = car.t;
+    const lines = [
+      `v ${(Math.hypot(car.vx, car.vy)).toFixed(1)} m/s   `
+        + `vLong ${tyreState.vLong.toFixed(1)}  vLat ${tyreState.vLat.toFixed(2)}`,
+      `beta ${(Math.atan2(tyreState.vLat, Math.abs(tyreState.vLong)) * 57.3).toFixed(1)}°   `
+        + `yaw ${car.yawRate.toFixed(2)}  delta ${(car.delta * 57.3).toFixed(1)}°`,
+      `slip F ${(tyreState.slipF * 57.3).toFixed(1)}°  `
+        + `R ${(tyreState.slipR * 57.3).toFixed(1)}°`,
+      `Fz  F ${tyreState.FzF.toFixed(0)}  R ${tyreState.FzR.toFixed(0)}`,
+      `Fy  F ${tyreState.FyF.toFixed(0)}/${tyreState.FyMaxF.toFixed(0)}  `
+        + `R ${tyreState.FyR.toFixed(0)}/${tyreState.FyMaxR.toFixed(0)}`,
+      `sat F ${tyreState.satF.toFixed(2)} R ${tyreState.satR.toFixed(2)}   `
+        + `ax ${tyreState.ax.toFixed(1)} ay ${tyreState.ay.toFixed(1)}`,
+      `slide F ${tyreState.slidingF ? 'Y' : '.'} R ${tyreState.slidingR ? 'Y' : '.'}   `
+        + `lock F ${tyreState.lockedF ? 'Y' : '.'} R ${tyreState.lockedR ? 'Y' : '.'}`,
+      `slipSpd F ${tyreState.slipSpeedF.toFixed(2)} R ${tyreState.slipSpeedR.toFixed(2)}  `
+        + `marks ${game.marks.stamps}`,
+      // WHAT YOU ARE STANDING ON. With ten surfaces the single most useful line in here: a
+      // handling complaint is meaningless without it, and load tells you what the suspension is
+      // doing.
+      `surf ${car.surface.id} mu ${car.surface.mu.toFixed(2)} `
+        + `peak ${(car.surface.peakK || 1).toFixed(2)} `
+        + `plough ${(car.surface.plough || 0).toFixed(1)}  `
+        + `load F ${tyreState.loadKF.toFixed(2)} R ${tyreState.loadKR.toFixed(2)}`,
+      `rpm ${car.rpm.toFixed(0)}  gear ${car.gear}  T ${tyreState.torque.toFixed(0)}Nm  `
+        + `steps/f ${game.stepsLastFrame}`,
+      `fps ${game.fps.toFixed(0)}   `
+        + `in  st ${game.in.steer.toFixed(2)} th ${game.in.throttle.toFixed(2)} `
+        + `br ${game.in.brake.toFixed(2)} hb ${game.in.handbrake ? 1 : 0}`,
+    ];
+    const readoutH = lines.length * 11 + 12;
+    const readoutRect = { x: MARGIN, y: height - MARGIN - readoutH - 22, w: 232, h: readoutH };
+    drawHudPanel(ctx, readoutRect, { fill: 'rgba(10,11,14,0.82)' });
+    lines.forEach((textLine, i) =>
+      drawHudLabel(ctx, textLine, readoutRect.x + 8, readoutRect.y + 12 + i * 11,
+        { size: 8.5, weight: 500, col: '#b9f0dd' }));
+  }
+}
+
+/**
+ * FPS, test mode: now + the worst of the last ~10 s; amber under 50, red under 30.
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {object} game the game
+ * @param {object} rects the layout rectangles
+ * @returns {void}
+ */
+function drawHudFps(ctx, game, rects) {
+  if (game.testMode && game.fps) {
+    const fpsRect = rects.fps, fpsLow = game.fpsLow || game.fps,
+      col = (value) => (value < 30 ? '#ff6a5c' : value < 50 ? '#e8a13a' : COL.live);
+    drawHudPanel(ctx, fpsRect, { fill: 'rgba(14,15,18,0.82)' });
+    drawHudLabel(ctx, Math.round(game.fps) + ' FPS', fpsRect.x + 8, fpsRect.y + fpsRect.h / 2,
+      { size: 10, weight: 800, col: col(game.fps) });
+    drawHudLabel(ctx, 'LOW ' + Math.round(fpsLow), fpsRect.x + fpsRect.w - 8,
+      fpsRect.y + fpsRect.h / 2,
+      { size: 10, weight: 800, align: 'right', col: col(fpsLow) });
+  }
+}
+
 export function createHud() {
   const state = {
     expanded: false,        // car list
@@ -597,7 +1196,6 @@ export function createHud() {
   const setTyreHud = (enabled) => setHudTyreHud(state, enabled);
   const layout = (width, height) => layoutHud(state, width, height);
   const hit = (point, width, height, car) => hitHud(state, point, width, height, car);
-  const panel = drawHudPanel, label = drawHudLabel;
 
   function draw(ctx, game, width, height, wallDt) {
     state.carDiagram = state.tyreHud
@@ -615,431 +1213,19 @@ export function createHud() {
     const car = game.car;
     const spec = car.spec;
 
-    // ---- top-left: car chip
-    panel(ctx, rects.chip);
-    label(ctx, spec.name, rects.chip.x + 10, rects.chip.y + rects.chip.h / 2,
-      { size: 12.5, maxW: rects.chip.w - 30 });
-    label(ctx, state.expanded ? '▴' : '▾', rects.chip.x + rects.chip.w - 12, rects.chip.y
-      + rects.chip.h / 2, { align: 'right', col: COL.inkSoft });
-    if (state.expanded) {
-      for (const carRow of rects.rows) {
-        const selected = carRow.id === spec.id;
-        panel(ctx, carRow, { fill: selected ? 'rgba(76,194,160,0.92)' : 'rgba(27,29,34,0.88)' });
-        const row = ROSTER.find((entry) => entry.id === carRow.id);
-        label(ctx, row.name, carRow.x + 10, carRow.y + carRow.h / 2,
-          { size: 12, col: selected ? '#0d1a16' : COL.hudText, maxW: carRow.w - 52 });
-        // the drive layout is the point of the roster, so it is on the row
-        const drive = row.drive === 1 ? 'FWD' : row.drive === 0 ? 'RWD' : '4WD';
-        label(ctx, drive, carRow.x + carRow.w - 10, carRow.y + carRow.h / 2,
-          { size: 10.5, align: 'right', col: selected ? '#0d1a16' : COL.inkSoft });
-      }
-      // ---- and the LEVELS, under the cars in the same dropdown
-      for (const levelRow of rects.levelRows) {
-        const selected = levelRow.id === LEVEL.id;
-        panel(ctx, levelRow, { fill: selected ? 'rgba(232,161,58,0.94)' : 'rgba(27,29,34,0.88)' });
-        label(ctx, levelRow.name, levelRow.x + 10, levelRow.y + levelRow.h / 2,
-          { size: 12, col: selected ? '#2a1405' : COL.hudText });
-        label(ctx, 'LEVEL', levelRow.x + levelRow.w - 10, levelRow.y + levelRow.h / 2,
-          { size: 10, align: 'right', col: selected ? '#2a1405' : COL.inkSoft });
-      }
-    }
-
-    // ---- top-left: the TUNE chip, opening the debug panel
-    panel(ctx, rects.tuneChip,
-      { fill: state.tuneOpen ? 'rgba(232,161,58,0.94)' : 'rgba(27,29,34,0.88)' });
-    label(ctx, 'TUNE', rects.tuneChip.x + rects.tuneChip.w / 2, rects.tuneChip.y
-      + rects.tuneChip.h / 2,
-      { size: 11.5, align: 'center', col: state.tuneOpen ? '#2a1405' : COL.hudText });
-
-    // ---- bottom-right, above the pedals: DRIVER AIDS. Green = on, dark = off, AMBER FLASH while
-    // working — the silent twin of a real ABS buzz (the phone may be muted). Flash on the wall
-    // clock (rule 5).
-    if (spec.aids) {
-      for (const [key, chip, active,
-        working] of [['abs', rects.absChip, car.absOn, car.t.absWorking],
-        ['tcs', rects.tcsChip, car.tcsOn, car.t.tcsWorking]]) {
-        if (!spec.aids[key]) continue;
-        state.aidFlash[key] = working && active ? 1 : Math.max(0, state.aidFlash[key] - wallDt * 5);
-        const flash = state.aidFlash[key] * (0.6 + 0.4 * Math.sin(performance.now() / 45));
-        panel(ctx, chip,
-          { fill: flash > 0.05 ? 'rgba(232,161,58,' + (0.55 + 0.4 * flash).toFixed(2) + ')' : active
-          ? 'rgba(76,194,160,0.90)' : 'rgba(27,29,34,0.80)' });
-        label(ctx, key.toUpperCase(), chip.x + chip.w / 2, chip.y + chip.h / 2 - (active ? 0 : 5),
-          { size: 11.5, weight: 700, align: 'center', col: active ? '#0d1a16' : COL.inkSoft });
-        if (!active) label(ctx, 'OFF', chip.x + chip.w / 2, chip.y + chip.h / 2 + 7,
-          { size: 8.5, weight: 700, align: 'center', col: COL.danger });
-      }
-    }
-
-    // ---- bottom-left: ◄ LIGHTS ► (the indicator buttons blink amber while on, LIGHTS lit while
-    // the headlights are on)
-    {
-      const blink = Math.floor(performance.now() / 333) % 2 === 0;
-      for (const [button, txt, lit] of [[rects.indL, '◄', car.indicator === -1 && blink],
-        [rects.lights, 'LIGHTS', !!car.lightsOn],
-        [rects.indR, '►', car.indicator === 1 && blink]]) {
-        panel(ctx, button,
-          { fill: lit ? (txt === 'LIGHTS' ? 'rgba(242,230,170,0.92)' : 'rgba(232,161,58,0.92)')
-          : 'rgba(27,29,34,0.80)' });
-        label(ctx, txt, button.x + button.w / 2, button.y + button.h / 2,
-          { size: txt === 'LIGHTS' ? 10.5 : 14, weight: 800, align: 'center', col: lit ? '#1b1d22'
-          : COL.hudText });
-      }
-    }
-
+    drawHudCarChip(ctx, state, rects, spec);
+    drawHudTuneChip(ctx, state, rects);
+    drawHudAids(ctx, state, rects, car, spec, wallDt);
+    drawHudIndicators(ctx, rects, car);
     if (state.tuneOpen) drawHudTune(ctx, state, rects, car);
-
-    // ---- top-centre: restart / reset / clear / vol
-    const audio = game.audio;
-    if (rects.vol && rects.vol.w > 0) {
-      rects.vol.label = !audio ? 'VOL' : audio.muted ? 'MUTE' : Math.round(audio.volume * 100)
-        + '%';
-    }
-    const btns = (rects.vol && rects.vol.w > 0)
-      ? [rects.restart, rects.reset, rects.clear, rects.vol]
-      : [rects.restart, rects.reset, rects.clear];
-    if (!(rects.help.row3 && (state.expanded || state.tuneOpen))) btns.push(rects.help);
-    // On a narrow screen this row sits in the car dropdown's lane (left, row two). While the
-    // dropdown is open it owns that lane — hit() already sends those taps to the dropdown — so do
-    // not draw over it.
-    const rowHidden = state.expanded && rects.restart.y > MARGIN;
-    if (!rowHidden) for (const button of btns) {
-      panel(ctx, button);
-      const isMuted = button === rects.vol && audio && (audio.muted || audio.volume <= 0.001);
-      label(ctx, button.label, button.x + button.w / 2, button.y + button.h / 2, {
-        size: button === rects.help ? 14 : 10.5, align: 'center', weight: button === rects.help
-          ? 700 : 600,
-        col: isMuted ? COL.danger : COL.hudText,
-      });
-    }
-
-    // ---- top-centre, under the buttons: cone tally. Reads LIVE state — it counts what is actually
-    // lying down, not what was hit (rule 10) — so standing one back up with RESET counts down
-    // again.
-    const knocked = game.cones.knocked;
-    // ONLY ON A LEVEL THAT ASKS FOR IT (LEVEL.coneCount: the Lab + Test Track courses) — user:
-    // "only relevant when asked for, not on most race tracks"
-    if (LEVEL.coneCount && knocked > 0 && !state.tuneOpen) {
-      const tallyRect = rects.tally;
-      panel(ctx, tallyRect, { fill: 'rgba(242,106,27,0.92)', stroke: null });
-      label(ctx, knocked + ' / ' + game.cones.total + ' CONES', tallyRect.x + tallyRect.w / 2,
-        tallyRect.y + tallyRect.h / 2,
-        { size: 11, align: 'center', col: '#2a1405', weight: 700 });
-    }
-
-    // ---- top-right: speed, gear, tacho (the SILENT TWIN of the engine note — the phone may be
-    // muted)
-    const speedRect = rects.speed, speedWidth = speedRect.w;
-    panel(ctx, speedRect);
-    const kph = Math.hypot(car.vx, car.vy) * 3.6;
-    label(ctx, String(Math.round(state.mph ? kph * 0.621371 : kph)), speedRect.x + 10,
-      speedRect.y + 19,
-      { size: 22, weight: 700 });
-    label(ctx, state.mph ? 'mph' : 'km/h', speedRect.x + 62, speedRect.y + 24,
-      { size: 9.5, col: COL.inkSoft });
-    // GEAR CHANGE, made obvious. The automatic box already cuts the torque for a quarter of a
-    // second, but with no sound and no needle the player had no way to know a shift had happened.
-    // Flash the gear digit and pop it up a size — on the WALL CLOCK, because it is something you
-    // watch (rule 5).
-    const gearTxt = car.gear < 0 ? 'R' : String(car.gear);
-    if (car.gear !== state.lastGear) {
-      state.gearFlash = 1;
-      state.lastGear = car.gear;
-    }
-    state.gearFlash = Math.max(0, state.gearFlash - wallDt * 2.6);
-    const gearPop = state.gearFlash * state.gearFlash;
-    if (gearPop > 0.02) {
-      ctx.globalAlpha = gearPop * 0.85;
-      ctx.fillStyle = COL.warn;
-      ctx.beginPath();
-      ctx.arc(speedRect.x + speedWidth - 22, speedRect.y + 19, 17 + gearPop * 9, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.globalAlpha = 1;
-    }
-    label(ctx, gearTxt, speedRect.x + speedWidth - 12, speedRect.y + 19,
-      { size: 20 + gearPop * 8, weight: 700, align: 'right', col: gearPop > 0.15 ? '#2a1405'
-        : COL.live });
-
-    // tacho bar
-    const barX = speedRect.x + 10, barY = speedRect.y + 38, barW = speedWidth - 20, barH = 7;
-    const frac = Math.max(0, Math.min(1, (car.rpm - spec.idleRpm) / (spec.redline - spec.idleRpm)));
-    const redFrac = (spec.upshiftRpm - spec.idleRpm) / (spec.redline - spec.idleRpm);
-    ctx.fillStyle = 'rgba(255,255,255,0.12)';
-    ctx.fillRect(barX, barY, barW, barH);
-    ctx.fillStyle = frac > redFrac ? COL.danger : frac > redFrac * 0.82 ? COL.warn : COL.live;
-    ctx.fillRect(barX, barY, barW * frac, barH);
-    // redline zone marker
-    ctx.fillStyle = 'rgba(216,69,60,0.55)';
-    ctx.fillRect(barX + barW * redFrac, barY - 2, 1.5, barH + 4);
-    // shift light: flashes on the WALL CLOCK (rule 5), not per physics step
-    if (frac > redFrac) state.shiftFlash = Math.min(1, state.shiftFlash + wallDt * 8);
-    else state.shiftFlash = Math.max(0, state.shiftFlash - wallDt * 6);
-    if (state.shiftFlash > 0.02) {
-      ctx.globalAlpha = state.shiftFlash * (0.55 + 0.45 * Math.sin(performance.now() / 60));
-      ctx.fillStyle = COL.danger;
-      ctx.fillRect(barX, barY - 5, barW, 2.5);
-      ctx.globalAlpha = 1;
-    }
-
-    // TYRE DIAGRAM (optional HUD). A little top-down car, FRONT UP, each wheel filled with its
-    // temperature colour and its number beside it (user, 2026-10-03: "not clear which is front and
-    // which is back — draw a little car and display the colours on the wheels"). The same body
-    // outline is where DAMAGE will be shown later. vehicle.js indexes tyres by body side: 0 F+y, 1
-    // F-y, 2 R+y, 3 R-y, and +y is the car's RIGHT.
-    if (state.carDiagram && car.tyreT) {
-      const [optLow, optHigh] = spec.tyreOpt || [65, 110];
-      const col = (temp) => (temp < optLow - 15 ? '#5b8fd6' : temp < optLow ? '#7fb6c9'
-        : temp <= optHigh ? COL.live : temp <= optHigh + 25 ? COL.warn : COL.danger);
-      const centreX = speedRect.x + speedWidth / 2, top = speedRect.y + 56, bodyW = 20, bodyH = 40,
-        bodyX = centreX - bodyW / 2, bodyY = top + 4;
-      // wheels first (under the body edge), then the body, then a windscreen so the FRONT is
-      // unmistakable
-      const wheels = [[1, -1, 0], [0, 1, 0], [3, -1, 1], [2, 1, 1]];
-      // ^ [tyre index, side -1 left / +1 right, rear?]
-      for (const [tyreIdx, side, rear] of wheels) {
-        const wheelX = side < 0 ? bodyX - 4 : bodyX + bodyW - 3, wheelY = bodyY
-          + (rear ? bodyH - 14 : 4);
-        // plain rectangles: panel()'s 8 px corner radius is larger than a 7 px wheel and drew
-        // mangled slants
-        ctx.fillStyle = col(car.tyreT[tyreIdx]);
-        ctx.fillRect(wheelX, wheelY, 7, 11);
-        ctx.strokeStyle = 'rgba(0,0,0,0.55)';
-        ctx.lineWidth = 1;
-        ctx.strokeRect(wheelX + 0.5, wheelY + 0.5, 6, 10);
-        label(ctx, String(Math.round(car.tyreT[tyreIdx])), side < 0 ? wheelX - 4 : wheelX + 11,
-          wheelY + 6,
-          { size: 9.5, weight: 700, align: side < 0 ? 'right' : 'left',
-            col: col(car.tyreT[tyreIdx]) });
-      }
-      panel(ctx, { x: bodyX, y: bodyY, w: bodyW, h: bodyH },
-        { fill: 'rgba(205,210,220,0.92)', stroke: 'rgba(0,0,0,0.35)' });
-      // DAMAGE (damage.js corners: 0 front -y, 1 front +y, 2 rear -y, 3 rear +y; +y = RIGHT): each
-      // body quarter amber / red with the damage there, a white-ringed wheel = a puncture
-      if (car.dmg) for (let corner = 0; corner < 4; corner++) {
-        const damage = car.dmg[corner], quarterX = corner % 2 ? bodyX + bodyW / 2 : bodyX + 1,
-          quarterY = corner < 2 ? bodyY + 1 : bodyY + bodyH / 2;
-        if (damage >= 0.05) {
-          ctx.fillStyle = damage < 0.5 ? 'rgba(232,161,58,' + (0.45 + 0.5 * damage).toFixed(2) + ')'
-            : 'rgba(216,69,60,' + (0.6 + 0.4 * damage).toFixed(2) + ')';
-          ctx.fillRect(quarterX, quarterY, bodyW / 2 - 1, bodyH / 2 - 1);
-        }
-        if (car.punct && car.punct[corner]) {
-          const wheelX = corner % 2 ? bodyX + bodyW - 3 : bodyX - 4, wheelY = bodyY
-            + (corner >= 2 ? bodyH - 14 : 4);
-          ctx.strokeStyle = '#ffffff';
-          ctx.lineWidth = 2;
-          ctx.strokeRect(wheelX - 0.5, wheelY - 0.5, 8, 12);
-        }
-        // wheel GONE
-        if (car.wheelOff && car.wheelOff[corner]) {
-          const wheelX = corner % 2 ? bodyX + bodyW - 3 : bodyX - 4, wheelY = bodyY
-            + (corner >= 2 ? bodyH - 14 : 4);
-          ctx.fillStyle = '#1b1c21';
-          ctx.fillRect(wheelX, wheelY, 7, 11);
-          ctx.strokeStyle = COL.danger;
-          ctx.lineWidth = 1.5;
-          ctx.beginPath();
-          ctx.moveTo(wheelX, wheelY);
-          ctx.lineTo(wheelX + 7, wheelY + 11);
-          ctx.moveTo(wheelX + 7, wheelY);
-          ctx.lineTo(wheelX, wheelY + 11);
-          ctx.stroke();
-        }
-      }
-      ctx.fillStyle = 'rgba(40,46,58,0.85)';
-      ctx.fillRect(bodyX + 3, bodyY + 9, bodyW - 6, 6); // windscreen near the top = the front
-      ctx.fillRect(bodyX + 4, bodyY + bodyH - 9, bodyW - 8, 4);              // rear window
-      label(ctx, 'FRONT', centreX, bodyY - 1,
-        { size: 6.5, weight: 700, align: 'center', col: COL.inkSoft });
-    }
-
-    // ---- top-right, under speed: lap counter & timer (circuit levels only)
-    if (LEVEL.subtrack && game.lap) {
-      const lapRect = rects.lap;
-      panel(ctx, lapRect);
-      if (game.ai && game.ai.length
-        && game.position) label(ctx, `P${game.position}/${game.ai.length + 1}`, lapRect.x
-        + lapRect.w - 8, lapRect.y + 26,
-        { size: 11, weight: 800, align: 'right', col: game.position === 1 ? '#f2c21b' : COL.live });
-      const lapNum = Math.max(1, game.lap.lap || 1);
-      const race = game.race, stage = game.stage;
-      if (LEVEL.endless) {
-        // HIGHWAY TO HULL: how far you have got, and your best
-        label(ctx, 'DISTANCE', lapRect.x + 8, lapRect.y + 13,
-          { size: 11, weight: 700, col: COL.live });
-        label(ctx, ((game.hwDist || 0) / 1000).toFixed(2) + ' KM', lapRect.x + lapRect.w - 8,
-          lapRect.y + 13, { size: 11, weight: 700, align: 'right', col: COL.hudText });
-        // in a VS AI race the second line is the gap to the car ahead (or your lead over the one
-        // behind) instead of your best
-        const flow = game.flow, player = flow && flow.highway && game.car._hwf;
-        if (player && game.ai && game.ai.length) {
-          const gaps = game.ai.map((rival) => (rival.car._hwf ? rival.car._hwf.s - player.s
-            : -Infinity)), ahead = gaps.filter((gap) => gap > 0),
-            behind = gaps.filter((gap) => gap <= 0 && isFinite(gap));
-          const txt = ahead.length ? 'AHEAD +' + Math.round(Math.min(...ahead)) + ' M'
-            : behind.length ? 'LEAD ' + Math.round(-Math.max(...behind)) + ' M' : '';
-          label(ctx, txt, lapRect.x + 8, lapRect.y + 26,
-            { size: 9, weight: 700, col: ahead.length ? COL.inkSoft : COL.live });
-        } else label(ctx, 'BEST ' + ((game.hwBest || 0) / 1000).toFixed(2) + ' KM', lapRect.x + 8,
-          lapRect.y + 26, { size: 9, weight: 600, col: COL.inkSoft });
-      } else if (LEVEL.stage && stage) {
-        // RALLY STAGE: the same panel. READY -> STAGE (running clock) -> FINISH with the run's
-        // time; BEST underneath
-        const run = stage.state === 'running', done = stage.state === 'done';
-        label(ctx, done ? 'FINISH' : 'STAGE', lapRect.x + 8, lapRect.y + 13,
-          { size: 11, weight: 700, col: COL.live });
-        label(ctx, fmtTime(done ? stage.last : run ? stage.t : 0), lapRect.x + lapRect.w - 8,
-          lapRect.y + 13, { size: 11, weight: done ? 700 : 600, align: 'right', col: COL.hudText });
-        const newBest = done && stage.best === stage.last;
-        label(ctx, newBest ? 'NEW BEST' : stage.best != null ? `BEST ${fmtTime(stage.best)}`
-          : stage.state === 'ready' ? 'CROSS THE LINE' : 'BEST --:--.--', lapRect.x + 8, lapRect.y
-          + 26, { size: 9, weight: newBest ? 700 : 600, col: newBest ? COL.live : COL.inkSoft });
-      } else if (race && race.on && LEVEL.joker) {
-        // RX RACE: the same panel, no new HUD lane (CLAUDE.md §4: the corners have owners)
-        if (race.done) {
-          label(ctx, 'FINISH', lapRect.x + 8, lapRect.y + 13,
-            { size: 11, weight: 700, col: COL.live });
-          label(ctx, fmtTime(race.total), lapRect.x + lapRect.w - 8, lapRect.y + 13,
-            { size: 11, weight: 700, align: 'right', col: COL.hudText });
-          label(ctx, !race.penalty ? 'JOKER DONE' : race.jokers === 0
-            ? `+${race.penalty} s NO JOKER` : `+${race.penalty} s EXTRA JOKER`, lapRect.x + 8,
-            lapRect.y + 26, { size: 9, weight: 700, col: race.penalty ? COL.danger : COL.live });
-        } else {
-          label(ctx, `LAP ${Math.min(lapNum, race.laps)}/${race.laps}`, lapRect.x + 8, lapRect.y
-            + 13, { size: 11, weight: 700, col: COL.live });
-          label(ctx, fmtTime(race.t), lapRect.x + lapRect.w - 8, lapRect.y + 13,
-            { size: 11, weight: 600, align: 'right', col: COL.hudText });
-          // approaching the joker turn-off without it done: the line FLASHES "JOKER >" (the
-          // approach arrow's distance, lab.js jokerApproach)
-          const jokerArrow = LEVEL.joker && LEVEL.joker.arrows
-            && LEVEL.joker.arrows.find((x) => x.d != null), trackDist = game.trackD;
-          const near = race.started && !race.joker && jokerArrow && trackDist != null
-            && (((jokerArrow.d - trackDist) % LEVEL.subtrack.totalDist)
-            + LEVEL.subtrack.totalDist) % LEVEL.subtrack.totalDist < 140;
-          const flash = near && Math.floor(performance.now() / 250) % 2 === 0;
-          // the line switches as it happens: TO DO -> ››› (approaching) -> IN JOKER (on the lane)
-          // -> JOKER TAKEN ✓ (flashing 2 s) -> JOKER DONE
-          const inLane = !race.joker && game.inJokerLane, fresh = race.joker && race.jokers === 1
-            && performance.now() - (game.jokerAt || 0) < 2000;
-          const blink = Math.floor(performance.now() / 200) % 2 === 0;
-          const jTxt = race.jokers > 1 ? `JOKER x${race.jokers}: +${(race.jokers - 1) * 30} s`
-            : fresh ? 'JOKER TAKEN ✓' : race.joker ? 'JOKER DONE ✓' : inLane ? 'IN JOKER ›' : near
-            ? 'JOKER  ›››' : 'JOKER TO DO';
-          const jCol = race.jokers > 1 ? COL.danger : fresh ? (blink ? '#ffffff' : COL.live)
-            : race.joker || inLane ? COL.live : flash ? '#ffffff' : COL.warn || '#e8a13a';
-          label(ctx, jTxt, lapRect.x + 8, lapRect.y + 26,
-            { size: near || fresh || inLane ? 10.5 : 9, weight: 800, col: jCol });
-        }
-      } else {
-        // a VS AI race (raceflow.js): LAP n/N from the race's own count, FINISH once you are home
-        const flow = game.flow, player = flow && flow.entries.find((entry) => entry.player);
-        label(ctx, player
-          ? (player.finish != null ? 'FINISH'
-          : `LAP ${Math.min(flow.laps, player.lapDone + 1)}/${flow.laps}`) : `LAP ${lapNum}`,
-          lapRect.x + 8, lapRect.y + 13, { size: 11, weight: 700, col: COL.live });
-        label(ctx,
-          fmtTime(player ? (player.finish != null ? player.finish : flow.t) : game.lap.lapTime),
-          lapRect.x + lapRect.w - 8, lapRect.y + 13,
-          { size: 11, weight: 600, align: 'right', col: COL.hudText });
-        const bestTxt = game.lap.bestTime ? `BEST ${fmtTime(game.lap.bestTime)}` : 'BEST --:--.--';
-        label(ctx, bestTxt, lapRect.x + 8, lapRect.y + 26,
-          { size: 9, weight: 600, col: COL.inkSoft });
-      }
-    }
-
-    // ---- bottom-right: pedals (touch only)
-    if (game.input.isTouch()) {
-      for (const pedal of game.input.pedalHits(width, height)) {
-        const pressed = !!game.input.pedals[pedal.name];
-        ctx.beginPath();
-        ctx.arc(pedal.x, pedal.y, pedal.r, 0, Math.PI * 2);
-        ctx.fillStyle = pressed
-          ? (pedal.name === 'throttle' ? 'rgba(76,194,160,0.92)' : pedal.name === 'brake'
-            ? 'rgba(216,69,60,0.92)' : 'rgba(232,161,58,0.92)')
-          : 'rgba(27,29,34,0.80)';
-        ctx.fill();
-        ctx.strokeStyle = 'rgba(255,255,255,0.20)';
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
-        const txt = pedal.name === 'throttle' ? 'GAS' : pedal.name === 'brake' ? 'BRAKE'
-          : pedal.name === 'reverse' ? 'R' : 'HAND';
-        label(ctx, txt, pedal.x, pedal.y,
-          { size: pedal.name === 'reverse' ? 13 : 10.5, align: 'center', col: pressed ? '#0d1a16'
-          : COL.hudText });
-      }
-      // ---- bottom-left: the thumb stick, drawn where the thumb actually landed
-      const stick = game.input.stick;
-      if (stick.active) {
-        ctx.beginPath();
-        ctx.arc(stick.ox, stick.oy, 46, 0, Math.PI * 2);
-        ctx.strokeStyle = 'rgba(255,255,255,0.28)';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-        const dx = Math.max(-52, Math.min(52, stick.x - stick.ox));
-        ctx.beginPath();
-        ctx.arc(stick.ox + dx, stick.oy, 22, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(232,232,238,0.85)';
-        ctx.fill();
-      } else {
-        label(ctx, 'drag anywhere on the left to steer', MARGIN, height - MARGIN - 46,
-          { size: 10.5, col: 'rgba(42,44,51,0.5)' });
-      }
-    } else {
-      label(ctx, 'W/S drive   A/D steer   SPACE handbrake   B abs   T tcs   R reset   H help',
-        MARGIN, height - MARGIN - 46,
-        { size: 11, col: 'rgba(42,44,51,0.55)' });
-    }
-
-    // ---- dev readout (?dev=1). Every hidden number the tyre model runs on (CLAUDE.md §3: a system
-    // the player reads by feel is one you cannot debug by feel).
-    if (game.dev && !state.tuneOpen) {
-      const tyreState = car.t;
-      const lines = [
-        `v ${(Math.hypot(car.vx, car.vy)).toFixed(1)} m/s   `
-          + `vLong ${tyreState.vLong.toFixed(1)}  vLat ${tyreState.vLat.toFixed(2)}`,
-        `beta ${(Math.atan2(tyreState.vLat, Math.abs(tyreState.vLong)) * 57.3).toFixed(1)}°   `
-          + `yaw ${car.yawRate.toFixed(2)}  delta ${(car.delta * 57.3).toFixed(1)}°`,
-        `slip F ${(tyreState.slipF * 57.3).toFixed(1)}°  `
-          + `R ${(tyreState.slipR * 57.3).toFixed(1)}°`,
-        `Fz  F ${tyreState.FzF.toFixed(0)}  R ${tyreState.FzR.toFixed(0)}`,
-        `Fy  F ${tyreState.FyF.toFixed(0)}/${tyreState.FyMaxF.toFixed(0)}  `
-          + `R ${tyreState.FyR.toFixed(0)}/${tyreState.FyMaxR.toFixed(0)}`,
-        `sat F ${tyreState.satF.toFixed(2)} R ${tyreState.satR.toFixed(2)}   `
-          + `ax ${tyreState.ax.toFixed(1)} ay ${tyreState.ay.toFixed(1)}`,
-        `slide F ${tyreState.slidingF ? 'Y' : '.'} R ${tyreState.slidingR ? 'Y' : '.'}   `
-          + `lock F ${tyreState.lockedF ? 'Y' : '.'} R ${tyreState.lockedR ? 'Y' : '.'}`,
-        `slipSpd F ${tyreState.slipSpeedF.toFixed(2)} R ${tyreState.slipSpeedR.toFixed(2)}  `
-          + `marks ${game.marks.stamps}`,
-        // WHAT YOU ARE STANDING ON. With ten surfaces the single most useful line in here: a
-        // handling complaint is meaningless without it, and load tells you what the suspension is
-        // doing.
-        `surf ${car.surface.id} mu ${car.surface.mu.toFixed(2)} `
-          + `peak ${(car.surface.peakK || 1).toFixed(2)} `
-          + `plough ${(car.surface.plough || 0).toFixed(1)}  `
-          + `load F ${tyreState.loadKF.toFixed(2)} R ${tyreState.loadKR.toFixed(2)}`,
-        `rpm ${car.rpm.toFixed(0)}  gear ${car.gear}  T ${tyreState.torque.toFixed(0)}Nm  `
-          + `steps/f ${game.stepsLastFrame}`,
-        `fps ${game.fps.toFixed(0)}   `
-          + `in  st ${game.in.steer.toFixed(2)} th ${game.in.throttle.toFixed(2)} `
-          + `br ${game.in.brake.toFixed(2)} hb ${game.in.handbrake ? 1 : 0}`,
-      ];
-      const readoutH = lines.length * 11 + 12;
-      const readoutRect = { x: MARGIN, y: height - MARGIN - readoutH - 22, w: 232, h: readoutH };
-      panel(ctx, readoutRect, { fill: 'rgba(10,11,14,0.82)' });
-      lines.forEach((textLine, i) =>
-        label(ctx, textLine, readoutRect.x + 8, readoutRect.y + 12 + i * 11,
-          { size: 8.5, weight: 500, col: '#b9f0dd' }));
-    }
-    // ---- FPS, test mode: now + the worst of the last ~10 s; amber under 50, red under 30
-    if (game.testMode && game.fps) {
-      const fpsRect = rects.fps, fpsLow = game.fpsLow || game.fps,
-        col = (value) => (value < 30 ? '#ff6a5c' : value < 50 ? '#e8a13a' : COL.live);
-      panel(ctx, fpsRect, { fill: 'rgba(14,15,18,0.82)' });
-      label(ctx, Math.round(game.fps) + ' FPS', fpsRect.x + 8, fpsRect.y + fpsRect.h / 2,
-        { size: 10, weight: 800, col: col(game.fps) });
-      label(ctx, 'LOW ' + Math.round(fpsLow), fpsRect.x + fpsRect.w - 8, fpsRect.y + fpsRect.h / 2,
-        { size: 10, weight: 800, align: 'right', col: col(fpsLow) });
-    }
+    drawHudButtonRow(ctx, state, game, rects);
+    drawHudConeTally(ctx, state, game, rects);
+    drawHudSpeedo(ctx, state, rects, car, spec, wallDt);
+    drawHudTyreDiagram(ctx, state, rects, car, spec);
+    drawHudLapTimer(ctx, game, rects);
+    drawHudPedals(ctx, game, width, height);
+    drawHudDevReadout(ctx, state, game, car, height);
+    drawHudFps(ctx, game, rects);
     if (state.drawLightsLater) {
       state.drawLightsLater();
       state.drawLightsLater = null;

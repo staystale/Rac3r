@@ -42,7 +42,7 @@
   "src/hud.js": {
     "complexity": 4,
     "max-lines": 1,
-    "max-lines-per-function": 3
+    "max-lines-per-function": 1
   },
   "src/input.js": {
     "complexity": 1,
