@@ -1,0 +1,131 @@
+﻿// zoomcheck.mjs - does a patch of ground look the same at every zoom, only bigger or smaller?
+// Per level it renders the ground around the start (cars, props and the hud skipped) at zoom
+// steps and at zooms between the steps, cuts out the SAME world square from each frame, scales
+// it to one common size, and prints how much each capture differs from the one before it
+// (% of pixels whose colour moved by more than TOL, summed over r, g, b).
+// node tools/zoomcheck.mjs --only brands-snatch      one level (keeps each run short)
+//   --out <dir>   write the common-size captures as PNGs (default: zoomcheck in the temp folder)
+//   --skip <list> extra ?skip= layers   --query <q> extra page query, e.g. "tilepx=128"
+// It rasterises on the CPU like renderhash, and shares its page-side determinism.
+import { mkdirSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { startServer, launchBrowser } from './lib/browser.mjs';
+import { openPage, launchLevel, onlyList } from './lib/determinism.mjs';
+
+const LEVELS = ['brands-snatch', 'grass-track', 'naffcar'];
+const SIZE = 320;               // common capture size, px
+const TOL = 24;                 // a pixel counts as changed above this summed channel difference
+const SETTLE_FRAMES = 30;       // frames stepped after a zoom, so the tiles are painted
+const ZOOMS = [1, 0.84, 0.71, 0.6, 0.5, 0.42, 0.35, 0.3, 0.25];
+const CPU_RASTER_ARGS = [
+  '--disable-gpu', '--disable-accelerated-2d-canvas', '--disable-gpu-rasterization',
+];
+
+/**
+ * The value of a command line option.
+ * @param {string} name option name such as "--out"
+ * @param {string} fallback value when the option is absent
+ * @returns {string} the value
+ */
+function option(name, fallback) {
+  const at = process.argv.indexOf(name);
+  return at > 0 ? process.argv[at + 1] : fallback;
+}
+
+/**
+ * Page side: cut the world square that is visible at the largest zoom out of the canvas, scale it
+ * to size x size and return it as RGBA bytes plus a PNG data URL.
+ * @param {{zoom: number, top: number, size: number}} args zoom now, largest zoom, common size
+ * @returns {{rgba: number[], url: string}} the capture
+ */
+function cut({ zoom, top, size }) {
+  const canvas = document.getElementById('c');
+  const side = Math.min(canvas.width, canvas.height) * 0.8 * zoom / top;
+  const out = document.createElement('canvas');
+  out.width = out.height = size;
+  const gfx = out.getContext('2d', { willReadFrequently: true });
+  gfx.imageSmoothingEnabled = true;
+  gfx.imageSmoothingQuality = 'high';
+  gfx.drawImage(canvas, (canvas.width - side) / 2, (canvas.height - side) / 2, side, side,
+    0, 0, size, size);
+  const rgba = Array.from(gfx.getImageData(0, 0, size, size).data);
+  return { rgba, url: out.toDataURL('image/png') };
+}
+
+/**
+ * Percent of pixels that differ by more than TOL between two captures.
+ * @param {number[]} first RGBA bytes
+ * @param {number[]} second RGBA bytes
+ * @returns {number} the percentage
+ */
+function changed(first, second) {
+  let count = 0;
+  for (let at = 0; at < first.length; at += 4) {
+    const gap = Math.abs(first[at] - second[at]) + Math.abs(first[at + 1] - second[at + 1])
+      + Math.abs(first[at + 2] - second[at + 2]);
+    if (gap > TOL) count++;
+  }
+  return 100 * count / (first.length / 4);
+}
+
+/**
+ * Capture one level at every zoom of ZOOMS.
+ * @param {import('playwright').Browser} browser the browser
+ * @param {string} base server url
+ * @param {string} id level id
+ * @param {string} outDir where the PNGs go
+ * @returns {Promise<void>} resolves when printed
+ */
+async function runLevel(browser, base, id, outDir) {
+  const errors = [];
+  const extra = '&skip=' + ['world', 'car', 'hud', option('--skip', '')].filter(Boolean).join(',')
+    + (option('--query', '') ? '&' + option('--query', '') : '');
+  const page = await openPage(browser, base, id, errors, extra);
+  await page.evaluate(launchLevel, [id, { ai: 0 }]);
+  await page.evaluate((frames) => window.__rt.step(frames), 180);
+  const shots = [];
+  for (const zoom of ZOOMS) {
+    await page.evaluate(([z]) => {
+      const game = window.__game;
+      game.renderer.debugZoom(z);
+      game.renderer.snap(game.car);
+    }, [zoom]);
+    await page.evaluate((frames) => window.__rt.step(frames), SETTLE_FRAMES);
+    const shot = await page.evaluate(cut, { zoom, top: ZOOMS[0], size: SIZE });
+    shots.push({ zoom, rgba: shot.rgba });
+    const png = Buffer.from(shot.url.split(',')[1], 'base64');
+    writeFileSync(join(outDir, `${id}-z${zoom.toFixed(3)}.png`), png);
+  }
+  await page.context().close();
+  if (errors.length) throw new Error(`${id}: page error: ${errors[0]}`);
+  const diffs = shots.slice(1).map((shot, at) => changed(shots[at].rgba, shot.rgba));
+  const rows = diffs.map((diff, at) => `${ZOOMS[at]}->${ZOOMS[at + 1]} ${diff.toFixed(1)}%`);
+  console.log(`${id}: changed vs previous zoom`);
+  for (const row of rows) console.log('  ' + row);
+  const mean = diffs.reduce((sum, diff) => sum + diff, 0) / diffs.length;
+  console.log(`  mean ${mean.toFixed(1)}%  max ${Math.max(...diffs).toFixed(1)}%`);
+}
+
+/**
+ * Run the levels asked for (--only), default all of LEVELS.
+ * @returns {Promise<void>} resolves when done
+ */
+async function main() {
+  const outDir = option('--out', join(tmpdir(), 'zoomcheck'));
+  mkdirSync(outDir, { recursive: true });
+  const only = onlyList();
+  const ids = only || LEVELS;
+  const server = await startServer();
+  let browser;
+  try {
+    browser = await launchBrowser({ args: CPU_RASTER_ARGS });
+    for (const id of ids) await runLevel(browser, server.url, id, outDir);
+  } finally {
+    await browser?.close();
+    server.stop();
+  }
+  console.log(`zoomcheck: PNGs in ${outDir}`);
+}
+
+await main();
