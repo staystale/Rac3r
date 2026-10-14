@@ -16,8 +16,7 @@
     "max-lines-per-function": 2
   },
   "src/audio.js": {
-    "complexity": 1,
-    "max-lines-per-function": 3
+    "complexity": 1
   },
   "src/cones.js": {
     "complexity": 7,
