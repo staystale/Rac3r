@@ -422,34 +422,19 @@ function makeDebugTools(ctx: RenderCtx) {
 }
 
 /**
- * Builds the renderer for a canvas.
+ * Builds the draw modules of the renderer (ground, road, particles, cars, props, objects, camera,
+ * tiles), wired to the shared view, camera and metre-to-pixel helpers.
  *
- * @param canvas the screen canvas
+ * @param view the shared drawing variables
+ * @param cam the camera
  * @param settings the game settings
- * @returns the renderer the game, the HUD and the tools use
+ * @param helpers the metre-to-pixel converters
+ * @returns every module, for the render context
  */
-export function createRenderer(canvas: HTMLCanvasElement, settings: Settings) {
-  // ?skip=<layers>: phone judder bisect. Safari records canvas commands and paints them
-  // later, outside our timing, so the meter cannot show painting cost; skipping layers can.
-  const SKIP = settings.skipLayers;
-  const skip = (name: string) =>
-    SKIP.has(name) || (SKIP.has('world') && name !== 'ground' && name !== 'car');
-  const mainCtx = canvas.getContext('2d')!;   // a fresh canvas always gives a 2d context
-  // the 7 most shared drawing variables in one object: zoom is the smoothed speed zoom,
-  // noPatterns is set while painting the fly-in overview (flat colours only). The ground cache
-  // points every draw function at an off-screen canvas by swapping view.ctx for one render.
-  const view: View = { ctx: mainCtx, W: 0, H: 0, dpr: 1, PPM: 22, zoom: 1, noPatterns: false };
-  // pixel mode: the world buffer, its device-px block size (blockPx), and the real dpr of the
-  // screen canvas
-  const pcanvas = document.createElement('canvas');
-  const pctx = pcanvas.getContext('2d')!;   // likewise
-  const state: RenderState = { blockPx: 1, realDpr: 1 };
-  const cam: Cam = { x: 0, y: 0, initialised: false };
-  // ONE place converts metres to pixels, so nothing can miss the zoom
-  const PPMz = () => view.PPM * view.zoom;
-  const toScreenX = (worldX: number) => (worldX - cam.x) * PPMz() + view.W / 2;
-  const toScreenY = (worldY: number) => (worldY - cam.y) * PPMz() + view.H / 2;
-
+function buildModules(view: View, cam: Cam, settings: Settings,
+  helpers: { PPMz: () => number, toScreenX: (x: number) => number,
+    toScreenY: (y: number) => number }) {
+  const { PPMz, toScreenX, toScreenY } = helpers;
   // createGround and createRoad need each other (forSide / paintLayers, artBase): the wrapper
   // below is only called at draw time, after createRoad has returned forSide
   const ground = createGround(view, cam, { PPMz, toScreenX, toScreenY, roundRect,
@@ -492,6 +477,40 @@ export function createRenderer(canvas: HTMLCanvasElement, settings: Settings) {
     FLY_PREFETCH: camera.FLY_PREFETCH, levelOverview: camera.levelOverview,
     artBase: ground.artBase,
   });
+  return { ground, road, particles, pixelCar, cars, props, objects, camera, tiles };
+}
+
+/**
+ * Builds the renderer for a canvas.
+ *
+ * @param canvas the screen canvas
+ * @param settings the game settings
+ * @returns the renderer the game, the HUD and the tools use
+ */
+export function createRenderer(canvas: HTMLCanvasElement, settings: Settings) {
+  // ?skip=<layers>: phone judder bisect. Safari records canvas commands and paints them
+  // later, outside our timing, so the meter cannot show painting cost; skipping layers can.
+  const SKIP = settings.skipLayers;
+  const skip = (name: string) =>
+    SKIP.has(name) || (SKIP.has('world') && name !== 'ground' && name !== 'car');
+  const mainCtx = canvas.getContext('2d')!;   // a fresh canvas always gives a 2d context
+  // the 7 most shared drawing variables in one object: zoom is the smoothed speed zoom,
+  // noPatterns is set while painting the fly-in overview (flat colours only). The ground cache
+  // points every draw function at an off-screen canvas by swapping view.ctx for one render.
+  const view: View = { ctx: mainCtx, W: 0, H: 0, dpr: 1, PPM: 22, zoom: 1, noPatterns: false };
+  // pixel mode: the world buffer, its device-px block size (blockPx), and the real dpr of the
+  // screen canvas
+  const pcanvas = document.createElement('canvas');
+  const pctx = pcanvas.getContext('2d')!;   // likewise
+  const state: RenderState = { blockPx: 1, realDpr: 1 };
+  const cam: Cam = { x: 0, y: 0, initialised: false };
+  // ONE place converts metres to pixels, so nothing can miss the zoom
+  const PPMz = () => view.PPM * view.zoom;
+  const toScreenX = (worldX: number) => (worldX - cam.x) * PPMz() + view.W / 2;
+  const toScreenY = (worldY: number) => (worldY - cam.y) * PPMz() + view.H / 2;
+
+  const { ground, road, particles, pixelCar, cars, props, objects, camera, tiles } =
+    buildModules(view, cam, settings, { PPMz, toScreenX, toScreenY });
 
   const ctx: RenderCtx = {
     canvas, view, cam, state, noLock: settings.noLock, skip, mainCtx, pcanvas, pctx, PPMz,
