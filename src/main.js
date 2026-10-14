@@ -22,10 +22,14 @@ import { createAudio } from './audio.js';
 import { createGuide, rulesSeen } from './guide.js';
 import { createMenu } from './menu.js';
 import { genStage, installStage, addStageLevels } from './stagegen.js';
-import { addHighwayLevel, stepHighway, resetHighway, highwayGuard, highwayRespawn, setHighwayPreset, roadFrame, speedCamera } from './highway.js';   // the ENDLESS motorway (registers itself in LEVELS)   // PROCEDURAL STAGES (installs the default generated stage into LEVELS)
+// the ENDLESS motorway (registers itself in LEVELS)
+// PROCEDURAL STAGES (installs the default generated stage into LEVELS)
+import { addHighwayLevel, stepHighway, resetHighway, highwayGuard, highwayRespawn, setHighwayPreset,
+  roadFrame, speedCamera } from './highway.js';
 import { createAutoDriver } from './ai/autodrive.ts';
 import { createTraffic } from './traffic.ts';   // HIGHWAY TRAFFIC (endless levels)
-import { createHwFlow, hwFrames, hwGrid, hwGridSpan, hwPutBack, HW_GREEN } from './highwayrace.ts';   // VS AI on the highway
+// VS AI on the highway
+import { createHwFlow, hwFrames, hwGrid, hwGridSpan, hwPutBack, HW_GREEN } from './highwayrace.ts';
 import { createAIDriver } from './ai/circuit.ts';
 import { aiTraits } from './ai/traits.ts';
 import { lineRun } from './ai/line.ts';
@@ -61,7 +65,10 @@ const boot = document.getElementById('boot');
 // the boot screen says "loading…" until the code runs (user, 2026-10-04: the old "THE LAB / tap to
 // drive" flashed up first); only the no-menu mode (?menu=0, the test tools) still waits for a tap
 // there
-if (!(settings.menu === '1' || (settings.menu !== '0' && !navigator.webdriver))) { boot.querySelector('h1').textContent = 'THE LAB'; boot.querySelector('p').textContent = 'tap to drive'; }
+if (!(settings.menu === '1' || (settings.menu !== '0' && !navigator.webdriver))) {
+  boot.querySelector('h1').textContent = 'THE LAB';
+  boot.querySelector('p').textContent = 'tap to drive';
+}
 
 const game = {
   dev: DEV,
@@ -89,9 +96,21 @@ let lastBreadcrumbTime = 0;
 // RX RACE (user, 2026-10-04: "5-lap race, joker once; missing it adds +5 s; free practice stays as
 // it is"). Only on a level with a joker, only when chosen in setup. Race time runs from the first
 // move off the grid; it finishes when lap 5 is complete.
-const race = { on: false, laps: 5, t: 0, started: false, joker: false, done: false, total: 0, penalty: 0 };
+const race = { on: false, laps: 5, t: 0, started: false, joker: false, done: false, total: 0,
+  penalty: 0 };
 game.race = race;
-function resetRace() { game.jokerPrev = null; game.jokerLap = null; game.jokerAt = 0; game.inJokerLane = false; game.jokerTaken = false; game.jokers = 0; game.inJokerGate = false; Object.assign(race, { t: 0, started: false, joker: false, done: false, total: 0, penalty: 0, laps: (LEVEL.joker && LEVEL.joker.laps) || 5 }); }
+function resetRace() {
+  game.jokerPrev = null;
+  game.jokerLap = null;
+  game.jokerAt = 0;
+  game.inJokerLane = false;
+  game.jokerTaken = false;
+  game.jokers = 0;
+  game.inJokerGate = false;
+  Object.assign(race,
+    { t: 0, started: false, joker: false, done: false, total: 0, penalty: 0,
+      laps: (LEVEL.joker && LEVEL.joker.laps) || 5 });
+}
 // the JOKER GATE counts in practice too (user: the arrows "vanish when the joker lap has been
 // taken"); RESTART brings them back JOKER COUNT (user, 2026-10-04: "harsh, real-ish": exactly once;
 // missed OR each extra = +30 s. FIA: a missed joker is a time penalty, extra jokers go to the
@@ -101,14 +120,33 @@ function resetRace() { game.jokerPrev = null; game.jokerLap = null; game.jokerAt
 // back round and crossing the start line starts a new run; RESTART = READY.
 const stage = { state: 'ready', t: 0, best: null, last: null, prevD: null, pen: 0 };
 game.stage = stage;
-function resetStage() { stage.state = 'ready'; stage.t = 0; stage.prevD = null; stage.pen = 0; }
+function resetStage() {
+  stage.state = 'ready';
+  stage.t = 0;
+  stage.prevD = null;
+  stage.pen = 0;
+}
 function stepStage(dt) {
-  const stageDef = LEVEL.stage, dist = game.trackD; if (!stageDef || dist == null) return;
-  const prev = stage.prevD; stage.prevD = dist; if (prev == null) return;
+  const stageDef = LEVEL.stage, dist = game.trackD;
+  if (!stageDef || dist == null) return;
+  const prev = stage.prevD;
+  stage.prevD = dist;
+  if (prev == null) return;
   const total = LEVEL.subtrack.totalDist, crossedStart = prev > total - 60 && dist < 60;
-  if (stage.state !== 'running') { if (crossedStart) { stage.state = 'running'; stage.t = 0; stage.pen = 0; } return; }
+  if (stage.state !== 'running') {
+    if (crossedStart) {
+      stage.state = 'running';
+      stage.t = 0;
+      stage.pen = 0;
+    }
+    return;
+  }
   stage.t += dt;
-  if (prev < stageDef.finish && dist >= stageDef.finish && dist - prev < 30) { stage.state = 'done'; stage.last = stage.t + (stage.pen || 0); if (stage.best == null || stage.t < stage.best) stage.best = stage.t; }
+  if (prev < stageDef.finish && dist >= stageDef.finish && dist - prev < 30) {
+    stage.state = 'done';
+    stage.last = stage.t + (stage.pen || 0);
+    if (stage.best == null || stage.t < stage.best) stage.best = stage.t;
+  }
 }
 // JOKER DETECTION = A LINE, not a circle (user, 2026-10-07: "Joker lane detection needs to be wider
 // on knob hill - it's easy to come off the road shoot wide and cause a defection bug where it
@@ -122,58 +160,96 @@ function stepStage(dt) {
 const JOKER_SPAN = 8, JOKER_ROAD = 1;
 function jokerLine(joker) {
   if (joker._line !== undefined) return joker._line;
-  const lane = (LEVEL.lanes || []).find((cand) => cand.out == null && cand.pts.some(([x, y]) => (x - joker.gate.x) ** 2 + (y - joker.gate.y) ** 2 < joker.gate.r * joker.gate.r * 4));
+  const lane = (LEVEL.lanes || []).find((cand) => cand.out == null
+    && cand.pts.some(([x, y]) => (x - joker.gate.x) ** 2 + (y - joker.gate.y) ** 2
+      < joker.gate.r * joker.gate.r * 4));
   if (!lane) return (joker._line = null);
-  let nearest = 0, bestD2 = Infinity; lane.pts.forEach(([x, y], i) => { const distSq = (x - joker.gate.x) ** 2 + (y - joker.gate.y) ** 2; if (distSq < bestD2) { bestD2 = distSq; nearest = i; } });
-  const before = lane.pts[Math.max(0, nearest - 2)], after = lane.pts[Math.min(lane.pts.length - 1, nearest + 2)], len = Math.hypot(after[0] - before[0], after[1] - before[1]) || 1;
-  return (joker._line = { x: joker.gate.x, y: joker.gate.y, tx: (after[0] - before[0]) / len, ty: (after[1] - before[1]) / len, half: lane.width / 2 + JOKER_SPAN });
+  let nearest = 0, bestD2 = Infinity;
+  lane.pts.forEach(([x, y], i) => {
+    const distSq = (x - joker.gate.x) ** 2 + (y - joker.gate.y) ** 2;
+    if (distSq < bestD2) {
+      bestD2 = distSq;
+      nearest = i;
+    }
+  });
+  const before = lane.pts[Math.max(0, nearest - 2)],
+    after = lane.pts[Math.min(lane.pts.length - 1, nearest + 2)],
+      len = Math.hypot(after[0] - before[0], after[1] - before[1]) || 1;
+  return (joker._line = { x: joker.gate.x, y: joker.gate.y, tx: (after[0] - before[0]) / len,
+    ty: (after[1] - before[1]) / len, half: lane.width / 2 + JOKER_SPAN });
 }
 // did the car cross the joker line between (px, py) and (x, y)? Exposed for tools/_jokerline.mjs.
 function crossedJoker(joker, prevX, prevY, x, y) {
   const line = jokerLine(joker);
-  if (!line) return (x - joker.gate.x) ** 2 + (y - joker.gate.y) ** 2 < joker.gate.r * joker.gate.r && !((prevX - joker.gate.x) ** 2 + (prevY - joker.gate.y) ** 2 < joker.gate.r * joker.gate.r);
-  const prevAlong = (prevX - line.x) * line.tx + (prevY - line.y) * line.ty, nowAlong = (x - line.x) * line.tx + (y - line.y) * line.ty;
+  if (!line) return (x - joker.gate.x) ** 2 + (y - joker.gate.y) ** 2 < joker.gate.r * joker.gate.r
+    && !((prevX - joker.gate.x) ** 2 + (prevY - joker.gate.y) ** 2 < joker.gate.r * joker.gate.r);
+  const prevAlong = (prevX - line.x) * line.tx + (prevY - line.y) * line.ty,
+    nowAlong = (x - line.x) * line.tx + (y - line.y) * line.ty;
   if ((prevAlong < 0) === (nowAlong < 0)) return false;
-  const frac = prevAlong / (prevAlong - nowAlong || 1), crossX = prevX + (x - prevX) * frac, crossY = prevY + (y - prevY) * frac, side = (crossX - line.x) * -line.ty + (crossY - line.y) * line.tx;
+  const frac = prevAlong / (prevAlong - nowAlong || 1), crossX = prevX + (x - prevX) * frac,
+    crossY = prevY + (y - prevY) * frac,
+      side = (crossX - line.x) * -line.ty + (crossY - line.y) * line.tx;
   if (Math.abs(side) > line.half) return false;
   return querySubtrack(LEVEL.subtrack, crossX, crossY).dist > LEVEL.subtrack.width / 2 + JOKER_ROAD;
 }
 function stepJoker(car) {
-  const joker = LEVEL.joker; if (!joker) return;
-  const prev = game.jokerPrev; game.jokerPrev = { x: car.x, y: car.y };
+  const joker = LEVEL.joker;
+  if (!joker) return;
+  const prev = game.jokerPrev;
+  game.jokerPrev = { x: car.x, y: car.y };
   const inGate = !!prev && crossedJoker(joker, prev.x, prev.y, car.x, car.y);
-  if (inGate && game.jokerLap !== lapState.lap) { game.jokerLap = lapState.lap; game.jokers = (game.jokers || 0) + 1; game.jokerTaken = true; game.jokerAt = performance.now(); }
+  if (inGate && game.jokerLap !== lapState.lap) {
+    game.jokerLap = lapState.lap;
+    game.jokers = (game.jokers || 0) + 1;
+    game.jokerTaken = true;
+    game.jokerAt = performance.now();
+  }
   // IN THE JOKER LANE (user, 2026-10-04: "the joker HUD warning should switch and show joker taken
   // when taken"): the gate sits mid-lane, so the HUD knows you are IN it from the moment you leave
   // the main road onto the lane (the lane through the gate; found once per level)
-  if (joker._lane === undefined) joker._lane = (LEVEL.lanes || []).find((cand) => cand.out == null && cand.pts.some(([x, y]) => (x - joker.gate.x) ** 2 + (y - joker.gate.y) ** 2 < joker.gate.r * joker.gate.r * 4)) || null;
+  if (joker._lane === undefined) joker._lane = (LEVEL.lanes || []).find((cand) => cand.out == null
+    && cand.pts.some(([x, y]) => (x - joker.gate.x) ** 2 + (y - joker.gate.y) ** 2
+      < joker.gate.r * joker.gate.r * 4)) || null;
   game.inJokerLane = false;
   if (joker._lane && querySubtrack(LEVEL.subtrack, car.x, car.y).dist > LEVEL.subtrack.width / 2) {
     const pts = joker._lane.pts, reach2 = (joker._lane.width / 2 + 1) ** 2;
     for (let i = 0; i + 1 < pts.length && !game.inJokerLane; i++) {
-      const [startX, startY] = pts[i], [endX, endY] = pts[i + 1], vx = endX - startX, vy = endY - startY, frac = Math.max(0, Math.min(1, ((car.x - startX) * vx + (car.y - startY) * vy) / (vx * vx + vy * vy || 1)));
-      if ((car.x - startX - frac * vx) ** 2 + (car.y - startY - frac * vy) ** 2 < reach2) game.inJokerLane = true;
+      const [startX, startY] = pts[i], [endX, endY] = pts[i + 1], vx = endX - startX,
+        vy = endY - startY,
+        frac = Math.max(0, Math.min(1,
+          ((car.x - startX) * vx + (car.y - startY) * vy) / (vx * vx + vy * vy || 1)));
+      if ((car.x - startX - frac * vx) ** 2 + (car.y - startY - frac * vy) ** 2 < reach2)
+        game.inJokerLane = true;
     }
   }
-  car._jokers = game.jokers || 0;   // the AI's joker tactics read it (covering a rival who has jokered)
+  // the AI's joker tactics read it (covering a rival who has jokered)
+  car._jokers = game.jokers || 0;
   game.inJokerGate = inGate;
 }
 function stepRace(car, dt) {
   if (!race.on || race.done || !LEVEL.joker) return;
   // timed from the GREEN when there are lights (the results time from it too — raceflow.js); else
   // from the first move
-  if (!race.started && (game.start.on ? game.start.green : Math.hypot(car.vx, car.vy) > 0.8)) race.started = true;
+  if (!race.started
+    && (game.start.on ? game.start.green : Math.hypot(car.vx, car.vy) > 0.8)) race.started = true;
   if (!race.started) return;
   race.t += dt;
-  race.joker = !!game.jokerTaken; race.jokers = game.jokers || 0;
-  if (lapState.lap > race.laps) { race.done = true; race.penalty = LEVEL.joker.penalty * (race.jokers === 0 ? 1 : race.jokers - 1); race.penalty += game.car._cutPen || 0; race.total = race.t + race.penalty; }
+  race.joker = !!game.jokerTaken;
+  race.jokers = game.jokers || 0;
+  if (lapState.lap > race.laps) {
+    race.done = true;
+    race.penalty = LEVEL.joker.penalty * (race.jokers === 0 ? 1 : race.jokers - 1);
+    race.penalty += game.car._cutPen || 0;
+    race.total = race.t + race.penalty;
+  }
 }
 // AI CARS — stage 1 (2026-10-04, user: up to 5 opponents, FULL CONTACT, the SAME car as the player
 // in different colours + numbers). Each is { car, drv }: a real car stepped by the same physics on
 // the same fixed step, driven by the autodriver for now (stage 2 makes them race). ?ai=N (0-5) puts
 // N on the grid behind the player on a circuit; they respawn on RESTART, level change and car
 // change.
-const AI_LIVERIES = [['#c8302c', '#7e1d1a'], ['#2b56b5', '#14306e'], ['#e2c13a', '#8a6d12'], ['#2f7d4f', '#174a2c'], ['#7a3fa0', '#43205a']];
+const AI_LIVERIES = [['#c8302c', '#7e1d1a'], ['#2b56b5', '#14306e'], ['#e2c13a', '#8a6d12'],
+  ['#2f7d4f', '#174a2c'], ['#7a3fa0', '#43205a']];
 let aiCount = settings.aiCount;
 // DIFFICULTY (PLAN.md §4: 0 Mobile game .. 4 Real; aidriver.js DIFFICULTIES): the centre of the
 // field's spread. ?diff=N, or setup's row.
@@ -190,9 +266,14 @@ const GRID_BIAS = [-2.2, -1.1, 0, 1.1, 2.2];
 let gridSlot = 0;
 function drawGridSlot(count) {
   if (mode === 'menu' || !count) return 0;
-  const weights = []; for (let slot = 0; slot <= count; slot++) weights.push(Math.exp(GRID_BIAS[aiDiff] * slot / count));
+  const weights = [];
+  for (let slot = 0; slot <= count; slot++)
+    weights.push(Math.exp(GRID_BIAS[aiDiff] * slot / count));
   let pick = Math.random() * weights.reduce((sum, weight) => sum + weight, 0);
-  for (let slot = 0; slot <= count; slot++) { pick -= weights[slot]; if (pick <= 0) return slot; }
+  for (let slot = 0; slot <= count; slot++) {
+    pick -= weights[slot];
+    if (pick <= 0) return slot;
+  }
   return count;
 }
 // slot 0 = pole (the spawn, or the rolling-start pole), slot k = the staggered grid behind it RALLY
@@ -204,9 +285,16 @@ function drawGridSlot(count) {
 // queue behind and go STAGE_GAP_S apart. (Was: everyone queued 6 s apart — a race in single file.)
 const STAGE_GAP_S = 30, STAGE_GAP_M = 9;
 function gridPos(slot) {
-  if (LEVEL.endless) return hwGrid(LEVEL, slot);   // the highway: 2 wide in the right-hand lanes (highwayrace.js)
-  const sub = LEVEL.subtrack, spawn = LEVEL.spawn, offLap = querySubtrack(sub, spawn.x, spawn.y).dist > sub.width / 2;
-  if (LEVEL.stage && slot > 0) { const spawnDist = querySubtrack(sub, spawn.x, spawn.y).trackDist, point = onTrack(sub, ((spawnDist - slot * STAGE_GAP_M) % sub.totalDist + sub.totalDist) % sub.totalDist, 0, {}); return { x: point.x, y: point.y, h: point.rot }; }
+  // the highway: 2 wide in the right-hand lanes (highwayrace.js)
+  if (LEVEL.endless) return hwGrid(LEVEL, slot);
+  const sub = LEVEL.subtrack, spawn = LEVEL.spawn,
+    offLap = querySubtrack(sub, spawn.x, spawn.y).dist > sub.width / 2;
+  if (LEVEL.stage && slot > 0) {
+    const spawnDist = querySubtrack(sub, spawn.x, spawn.y).trackDist,
+      point = onTrack(sub,
+        ((spawnDist - slot * STAGE_GAP_M) % sub.totalDist + sub.totalDist) % sub.totalDist, 0, {});
+    return { x: point.x, y: point.y, h: point.rot };
+  }
   // A REAL 2-WIDE STAGGERED GRID (user, 2026-10-05: "grid starts are wonky / place the player too
   // close to other cars / not in a grid formation"). MEASURED (tools/gridcheck, 5 AI): slots were
   // OUT OF ORDER (slot 2 at 4.5 m back, slot 1 at 9 m), pole sat on the CENTRELINE with its
@@ -215,16 +303,21 @@ function gridPos(slot) {
   // every slot, pole included, counts back from the SPAWN's own road distance, GRID_STEP m per
   // slot, alternating columns GRID_LAT m either side of the centre (narrower on a narrow road).
   const back = LEVEL.rollingStart ? ROLL_BACK : 0;
-  const lat = Math.max(1.6, Math.min(GRID_LAT, sub.width / 2 - 1.8)), side = slot % 2 ? lat : -lat, backDist = back + slot * GRID_STEP;
+  const lat = Math.max(1.6, Math.min(GRID_LAT, sub.width / 2 - 1.8)), side = slot % 2 ? lat : -lat,
+    backDist = back + slot * GRID_STEP;
   if (offLap) {
     // the spawn is OFF the lap (Slidden Hill's RX start straight): the grid runs straight back from
     // it along its heading
-    if (slot === 0 && !back) return { x: spawn.x - Math.sin(spawn.heading) * side, y: spawn.y + Math.cos(spawn.heading) * side, h: spawn.heading };
+    if (slot === 0 && !back) return { x: spawn.x - Math.sin(spawn.heading) * side,
+      y: spawn.y + Math.cos(spawn.heading) * side, h: spawn.heading };
     const cosH = Math.cos(spawn.heading), sinH = Math.sin(spawn.heading);
-    return { x: spawn.x - cosH * backDist - sinH * side, y: spawn.y - sinH * backDist + cosH * side, h: spawn.heading };
+    return { x: spawn.x - cosH * backDist - sinH * side, y: spawn.y - sinH * backDist + cosH * side,
+      h: spawn.heading };
   }
-  const spawnDist = querySubtrack(sub, spawn.x, spawn.y).trackDist, dist = (((spawnDist - backDist) % sub.totalDist) + sub.totalDist) % sub.totalDist;
-  const point = onTrack(sub, dist, side, {}); return { x: point.x, y: point.y, h: point.rot };
+  const spawnDist = querySubtrack(sub, spawn.x, spawn.y).trackDist,
+    dist = (((spawnDist - backDist) % sub.totalDist) + sub.totalDist) % sub.totalDist;
+  const point = onTrack(sub, dist, side, {});
+  return { x: point.x, y: point.y, h: point.rot };
 }
 // GRID_STEP: one slot back (so the same column is 2 x apart: 14 m nose to nose, ~9.5 m clear);
 // GRID_LAT: column offset from the centre
@@ -236,40 +329,65 @@ const GRID_STEP = 7, GRID_LAT = 3.2;
 // measurements stay like for like.
 let aiCarMode = 'same';
 function aiCarIds(count, seed) {
-  const base = String(game.car.spec.id).split('#')[0], myCar = ROSTER.find((entry) => entry.id === base);
+  const base = String(game.car.spec.id).split('#')[0],
+    myCar = ROSTER.find((entry) => entry.id === base);
   if (aiCarMode !== 'class' || !myCar || !myCar.cls) return Array(count).fill(base);
   // parity first: your TYPE (subclass) when it has 2+ cars (a Hatch race = hatches + the Mini, not
   // the Lamborghini), else the whole class
   const sameSub = ROSTER.filter((entry) => entry.cls === myCar.cls && entry.sub === myCar.sub);
-  const pool = (sameSub.length >= 2 ? sameSub : ROSTER.filter((entry) => entry.cls === myCar.cls)).map((entry) => entry.id);
+  const pool = (sameSub.length >= 2 ? sameSub
+    : ROSTER.filter((entry) => entry.cls === myCar.cls)).map((entry) => entry.id);
   const rnd = lcg(seed >>> 0);
   const out = [];
-  while (out.length < count) { const deck = pool.slice(); for (let i = deck.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [deck[i], deck[j]] = [deck[j], deck[i]]; } out.push(...deck); }
+  while (out.length < count) {
+    const deck = pool.slice();
+    for (let i = deck.length - 1; i > 0; i--) {
+      const j = Math.floor(rnd() * (i + 1));
+      [deck[i], deck[j]] = [deck[j], deck[i]];
+    }
+    out.push(...deck);
+  }
   return out.slice(0, count);
 }
 function spawnAI(count = aiCount) {
-  game.ai = []; game.poleCar = null;
-  const sub = LEVEL.subtrack; if (!sub || !count) return;
+  game.ai = [];
+  game.poleCar = null;
+  const sub = LEVEL.subtrack;
+  if (!sub || !count) return;
   gridSlot = drawGridSlot(count);
   const seed = 1 + Math.floor(Math.random() * 1e6), ids = aiCarIds(count, seed);
   for (let i = 0; i < count; i++) {
     const car = makeCar(ids[i]), [paint, trim] = AI_LIVERIES[i % AI_LIVERIES.length];
-    car.spec = { ...car.spec, id: car.spec.id + '#' + (i + 2), paint, trim };   // own sprite (cached by id), same physics
+    // own sprite (cached by id), same physics
+    car.spec = { ...car.spec, id: car.spec.id + '#' + (i + 2), paint, trim };
     car.num = i + 2;
-    const drv = createAIDriver(LEVEL, aiTraits(aiDiff, i, count, seed)), slot = i < gridSlot ? i : i + 1;
-    car._jokers = 0; car._prog = undefined; car._stageStart = undefined;
+    const drv = createAIDriver(LEVEL, aiTraits(aiDiff, i, count, seed)), slot = i < gridSlot ? i
+      : i + 1;
+    car._jokers = 0;
+    car._prog = undefined;
+    car._stageStart = undefined;
     if (LEVEL.stage) {
       // slot relative to yours: < 0 started before you (already on the stage), > 0 queues behind
       // you
-      const rel = slot - gridSlot; car._slot = rel;
+      const rel = slot - gridSlot;
+      car._slot = rel;
       car._predT = lineRun(LEVEL, car.spec, drv.traits.pace, Infinity, LEVEL.stage.finish).t;
       if (rel < 0) {
         const run = lineRun(LEVEL, car.spec, drv.traits.pace, -rel * STAGE_GAP_S - 4 * START_STEP);
-        reset(car, run.x, run.y, run.h); car.vx = Math.cos(run.h) * run.v; car.vy = Math.sin(run.h) * run.v;
-        car._stageStart = rel * STAGE_GAP_S; car._prog = run.dist; car._lastQ = run.dist;
-      } else { const pos = gridPos(rel); reset(car, pos.x, pos.y, pos.h); }
+        reset(car, run.x, run.y, run.h);
+        car.vx = Math.cos(run.h) * run.v;
+        car.vy = Math.sin(run.h) * run.v;
+        car._stageStart = rel * STAGE_GAP_S;
+        car._prog = run.dist;
+        car._lastQ = run.dist;
+      } else {
+        const pos = gridPos(rel);
+        reset(car, pos.x, pos.y, pos.h);
+      }
     } else {
-      const pos = gridPos(slot); reset(car, pos.x, pos.y, pos.h); car._slot = slot;
+      const pos = gridPos(slot);
+      reset(car, pos.x, pos.y, pos.h);
+      car._slot = slot;
       if (slot === 0) game.poleCar = car;
     }
     game.ai.push({ car, drv, stuckT: 0, inGate: false });
@@ -288,33 +406,44 @@ game.start = { on: false, t: 0, tGreen: 0, rolling: false, green: false };
 let autoDrv = null, autoStill = 0;   // ?autopilot=1: the player car's AI driver
 function armStart() {
   autoDrv = settings.autopilot ? createAIDriver(LEVEL, aiTraits(4, 0, 1)) : null;   // 4 = top
-  const active = mode !== 'menu' && (race.on || aiCount > 0), rolling = active && (!!LEVEL.rollingStart || !!LEVEL.endless) && !!LEVEL.subtrack;
-  game.start = { on: active, t: 0, tGreen: rolling ? Infinity : 4 * START_STEP, tGreen0: rolling ? undefined : 4 * START_STEP, rolling, green: !active,
-    drv: rolling ? (LEVEL.endless ? createAIDriver(LEVEL, aiTraits(4, 0, 1)) : createAutoDriver(LEVEL.subtrack)) : null };
+  const active = mode !== 'menu' && (race.on || aiCount > 0), rolling = active
+    && (!!LEVEL.rollingStart || !!LEVEL.endless) && !!LEVEL.subtrack;
+  game.start = { on: active, t: 0, tGreen: rolling ? Infinity : 4 * START_STEP, tGreen0: rolling
+    ? undefined : 4 * START_STEP, rolling, green: !active,
+    drv: rolling ? (LEVEL.endless ? createAIDriver(LEVEL, aiTraits(4, 0, 1))
+      : createAutoDriver(LEVEL.subtrack)) : null };
   // the HIGHWAY's rolling start has no line to cross: green HW_GREEN s in, everyone already rolling
   // in formation (highwayrace.js)
   if (rolling && LEVEL.endless) game.start.tGreen = game.start.tGreen0 = HW_GREEN;
 }
-const startHeld = () => game.start.on && !game.start.green && game.start.t < game.start.tGreen - START_EARLY;
+const startHeld = () => game.start.on && !game.start.green
+  && game.start.t < game.start.tGreen - START_EARLY;
 // a car's own release: everyone at the green, except a RALLY STAGE: a later starter (slot k > 0
 // behind you) goes k x STAGE_GAP_S after your green
-const startAtOf = (car) => (game.start.tGreen0 ?? game.start.tGreen) + (LEVEL.stage ? (car._slot || 0) * STAGE_GAP_S : 0);
-const carHeld = (car) => game.start.on && !game.start.rolling && game.start.t < startAtOf(car) - START_EARLY;
+const startAtOf = (car) => (game.start.tGreen0 ?? game.start.tGreen) + (LEVEL.stage
+  ? (car._slot || 0) * STAGE_GAP_S : 0);
+const carHeld = (car) => game.start.on && !game.start.rolling
+  && game.start.t < startAtOf(car) - START_EARLY;
 // cap a driver's output at the rolling-start pace
 function atPace(out, car) {
   const speed = Math.hypot(car.vx, car.vy);
-  return { ...out, throttle: speed > ROLL_PACE ? 0 : Math.min(out.throttle, 0.55), brake: speed > ROLL_PACE + 2 ? 0.25 : 0, handbrake: 0, reverse: 0 };
+  return { ...out, throttle: speed > ROLL_PACE ? 0 : Math.min(out.throttle, 0.55),
+    brake: speed > ROLL_PACE + 2 ? 0.25 : 0, handbrake: 0, reverse: 0 };
 }
 function stepStart(dt) {
   // the clock keeps running after green so the HUD can take the lights away 1.2 s later (user:
   // "race start lights don't vanish" — it stopped at green)
-  const startState = game.start; if (!startState.on) return;
+  const startState = game.start;
+  if (!startState.on) return;
   startState.t += dt;
   if (startState.green) return;
   if (startState.rolling && !LEVEL.endless) {
     // green as the FRONT car (the player, pole) crosses the line; reds shown from 1 s
-    const pole = game.poleCar || game.car, total = LEVEL.subtrack.totalDist, dist = pole === game.car ? game.trackD : querySubtrack(LEVEL.subtrack, pole.x, pole.y).trackDist;
-    if (startState.prevD != null && dist != null && startState.prevD > total - 60 && dist < 60 && startState.t > 2) startState.tGreen = startState.t;
+    const pole = game.poleCar || game.car, total = LEVEL.subtrack.totalDist,
+      dist = pole === game.car ? game.trackD
+        : querySubtrack(LEVEL.subtrack, pole.x, pole.y).trackDist;
+    if (startState.prevD != null && dist != null && startState.prevD > total - 60 && dist < 60
+      && startState.t > 2) startState.tGreen = startState.t;
     startState.prevD = dist;
   }
   if (startState.t >= startState.tGreen) startState.green = true;
@@ -323,20 +452,33 @@ function stepStart(dt) {
 // Each car's distance round the lap, UNWRAPPED across the line (a car behind the line on the grid
 // starts slightly negative), from the nearest centreline point; ranked.
 function progressOf(car) {
-  const sub = LEVEL.subtrack, total = sub.totalDist, near = querySubtrack(sub, car.x, car.y), along = near.trackDist;
+  const sub = LEVEL.subtrack, total = sub.totalDist, near = querySubtrack(sub, car.x, car.y),
+    along = near.trackDist;
   if (car._prog === undefined) {
     if (near.dist > sub.width / 2 + 2) return undefined;   // not on the lap yet
-    car._prog = along > total / 2 ? along - total : along; car._lastQ = along; return car._prog;
+    car._prog = along > total / 2 ? along - total : along;
+    car._lastQ = along;
+    return car._prog;
   }
   // out of the track's range (querySubtrack: dist Infinity, trackDist 0 — that 0 dragged the
   // progress back to the line): hold it there
-  if (!isFinite(near.dist)) { trackCut(car, near, 0); return car._prog; }
-  let delta = along - car._lastQ; if (delta > total / 2) delta -= total; if (delta < -total / 2) delta += total;
+  if (!isFinite(near.dist)) {
+    trackCut(car, near, 0);
+    return car._prog;
+  }
+  let delta = along - car._lastQ;
+  if (delta > total / 2) delta -= total;
+  if (delta < -total / 2) delta += total;
   // (no jump guard: crossing an infield, the nearest centreline point JUMPS to the far side in one
   // step — that jump IS the cut)
   if (trackCut(car, near, delta) === 'reset') return car._prog;
-  if (near.dist <= sub.width / 2 && near.seg != null) { const point = sub.pts[near.seg]; car._lastOn = { dist: along, off: (car.x - point.x) * point.nx + (car.y - point.y) * point.ny }; }
-  car._prog += delta; car._lastQ = along; return car._prog;
+  if (near.dist <= sub.width / 2 && near.seg != null) {
+    const point = sub.pts[near.seg];
+    car._lastOn = { dist: along, off: (car.x - point.x) * point.nx + (car.y - point.y) * point.ny };
+  }
+  car._prog += delta;
+  car._lastQ = along;
+  return car._prog;
 }
 // TRACK CUTS (user, 2026-10-04: "a time penalty for skipping track in rally / rallycross — and a
 // forced reset when skipping too large of a section in normal races"). While a car is wholly OFF
@@ -353,39 +495,66 @@ function onLane(x, y) {
   for (const lane of LEVEL.lanes || []) {
     const pts = lane.pts, reach2 = (lane.width / 2 + 1) ** 2;
     for (let i = 0; i < pts.length - 1; i++) {
-      const [startX, startY] = pts[i], [endX, endY] = pts[i + 1], vx = endX - startX, vy = endY - startY, len2 = vx * vx + vy * vy || 1;
-      const frac = Math.max(0, Math.min(1, ((x - startX) * vx + (y - startY) * vy) / len2)), missX = startX + vx * frac - x, missY = startY + vy * frac - y;
+      const [startX, startY] = pts[i], [endX, endY] = pts[i + 1], vx = endX - startX,
+        vy = endY - startY, len2 = vx * vx + vy * vy || 1;
+      const frac = Math.max(0, Math.min(1, ((x - startX) * vx + (y - startY) * vy) / len2)),
+        missX = startX + vx * frac - x, missY = startY + vy * frac - y;
       if (missX * missX + missY * missY < reach2) return true;
     }
   }
   return false;
 }
 function trackCut(car, near, delta) {
-  const live = game.flow ? game.flow.state !== 'done' && game.start.t >= (game.start.tGreen0 ?? game.start.tGreen) : LEVEL.stage && car === game.car && stage.state === 'running';
-  if (!live) { car._cut = null; return; }
+  const live = game.flow ? game.flow.state !== 'done'
+    && game.start.t >= (game.start.tGreen0 ?? game.start.tGreen) : LEVEL.stage && car === game.car
+      && stage.state === 'running';
+  if (!live) {
+    car._cut = null;
+    return;
+  }
   // LANES ARE NOT CUTS (user, 2026-10-04: "the track cut triggers on joker laps — it shouldn't, a
   // specific exclusion; the only time penalty there is the event's, for missing or multiple
   // jokers"): on the joker lane, the RX start lane or a pit lane the car is on a legal road, and an
   // excursion that touched one is dropped whole.
-  if (onLane(car.x, car.y)) { car._cut = null; return; }
+  if (onLane(car.x, car.y)) {
+    car._cut = null;
+    return;
+  }
   if (near.dist > LEVEL.subtrack.width / 2 + CUT_OFF) {
-    if (!car._cut) car._cut = { gain: 0, prog: car._prog, q: car._lastQ };   // where it left the road
+    // where it left the road
+    if (!car._cut) car._cut = { gain: 0, prog: car._prog, q: car._lastQ };
     car._cut.gain += delta - Math.hypot(car.vx, car.vy) * DT;
     return;
   }
-  const cut = car._cut; car._cut = null;
-  if (cut) cut.gain += delta - Math.hypot(car.vx, car.vy) * DT;   // the step back onto the road (often the big jump)
+  const cut = car._cut;
+  car._cut = null;
+  // the step back onto the road (often the big jump)
+  if (cut) cut.gain += delta - Math.hypot(car.vx, car.vy) * DT;
   if (!cut || cut.gain < CUT_MIN) return;
-  car._cuts = (car._cuts || 0) + 1; (car._cutLog || (car._cutLog = [])).push([+cut.gain.toFixed(1), Math.round(cut.q)]);   // [m gained, where] for the tools
+  car._cuts = (car._cuts || 0) + 1;
+  // [m gained, where] for the tools
+  (car._cutLog || (car._cutLog = [])).push([+cut.gain.toFixed(1), Math.round(cut.q)]);
   if (race.on || LEVEL.stage) {
     const pen = Math.max(2, Math.round(cut.gain / CUT_PER_S));
     car._cutPen = (car._cutPen || 0) + pen;
-    if (car === game.car) { if (LEVEL.stage) stage.pen += pen; game.notice = { text: 'TRACK CUT +' + pen + ' s', at: performance.now() }; }
+    if (car === game.car) {
+      if (LEVEL.stage) stage.pen += pen;
+      game.notice = { text: 'TRACK CUT +' + pen + ' s', at: performance.now() };
+    }
   } else if (cut.gain >= CUT_RESET) {
     const point = onTrack(LEVEL.subtrack, cut.q, 0, {});
-    resetCar(car, point.x, point.y, point.rot); car._prog = cut.prog; car._lastQ = cut.q;
-    if (car === game.car) { lastOnTrack = { dist: cut.q, off: 0 }; if (renderer && renderer.snap) renderer.snap(car); game.notice = { text: 'TRACK CUT — PUT BACK', at: performance.now() }; }
-    else { const entry = game.ai.find((x) => x.car === car); if (entry) entry.drv.relocate(); }
+    resetCar(car, point.x, point.y, point.rot);
+    car._prog = cut.prog;
+    car._lastQ = cut.q;
+    if (car === game.car) {
+      lastOnTrack = { dist: cut.q, off: 0 };
+      if (renderer && renderer.snap) renderer.snap(car);
+      game.notice = { text: 'TRACK CUT — PUT BACK', at: performance.now() };
+    }
+    else {
+      const entry = game.ai.find((x) => x.car === car);
+      if (entry) entry.drv.relocate();
+    }
     return 'reset';
   }
 }
@@ -393,7 +562,11 @@ function stepOrder() {
   const all = [game.car, ...game.ai.map((entry) => entry.car)];
   for (const car of all) progressOf(car);
   // still on the start lane = behind everyone on the lap, ordered by how far down the lane they are
-  const spawn = LEVEL.spawn, key = (car) => (car._prog === undefined ? -1e6 + (car.x - spawn.x) * Math.cos(spawn.heading) + (car.y - spawn.y) * Math.sin(spawn.heading) : car._prog);
+  const spawn = LEVEL.spawn,
+    key = (car) => (car._prog === undefined
+      ? -1e6 + (car.x - spawn.x) * Math.cos(spawn.heading)
+        + (car.y - spawn.y) * Math.sin(spawn.heading)
+      : car._prog);
   const mine = key(game.car);
   game.position = 1 + all.filter((car) => car !== game.car && key(car) > mine).length;
 }
@@ -405,71 +578,154 @@ function aiReset(entry) {
   const car = entry.car, sub = LEVEL.subtrack, rec = car._lastOn;
   // the HIGHWAY: 15 m back from where it was, in the lane with the most room, facing up the road,
   // rolling (highwayrace.js hwPutBack)
-  if (LEVEL.endless) { const all = [game.car, ...game.ai.map((other) => other.car), ...game.traffic.cars].filter((other) => other !== car), point = hwPutBack(LEVEL, (car._hwf ? car._hwf.s : 0) - 15, all);
-    const speed = Math.max(12, 0.5 * Math.hypot(car.vx, car.vy)); reset(car, point.x, point.y, point.h); car.vx = Math.cos(point.h) * speed; car.vy = Math.sin(point.h) * speed; car._hwf = null; entry.drv.relocate(); repair(car); entry.hurtWait = null; return; }
+  if (LEVEL.endless) {
+    const all = [game.car, ...game.ai.map((other) => other.car),
+      ...game.traffic.cars].filter((other) => other !== car),
+        point = hwPutBack(LEVEL, (car._hwf ? car._hwf.s : 0) - 15, all);
+    const speed = Math.max(12, 0.5 * Math.hypot(car.vx, car.vy));
+    reset(car, point.x, point.y, point.h);
+    car.vx = Math.cos(point.h) * speed;
+    car.vy = Math.sin(point.h) * speed;
+    car._hwf = null;
+    entry.drv.relocate();
+    repair(car);
+    entry.hurtWait = null;
+    return;
+  }
   if (rec) {
-    const side = Math.sign(rec.off) || (Math.random() < 0.5 ? -1 : 1), dist = (rec.dist - RESET_BACK + sub.totalDist) % sub.totalDist;
-    const point = onTrack(sub, dist, side * sub.width / 2, {}), ang = (RESET_ANG[0] + Math.random() * (RESET_ANG[1] - RESET_ANG[0])) * Math.PI / 180;
-    reset(car, point.x, point.y, point.rot - side * ang); car._lastOn = { dist: dist, off: side * (sub.width / 2 - 0.5) };
-  } else { const nearest = findNearestSubtrackPoint(sub, car.x, car.y); reset(car, nearest.x, nearest.y, nearest.heading); }
-  entry.drv.relocate(); repair(car); entry.hurtWait = null;
+    const side = Math.sign(rec.off) || (Math.random() < 0.5 ? -1 : 1),
+      dist = (rec.dist - RESET_BACK + sub.totalDist) % sub.totalDist;
+    const point = onTrack(sub, dist, side * sub.width / 2, {}),
+      ang = (RESET_ANG[0] + Math.random() * (RESET_ANG[1] - RESET_ANG[0])) * Math.PI / 180;
+    reset(car, point.x, point.y, point.rot - side * ang);
+    car._lastOn = { dist: dist, off: side * (sub.width / 2 - 0.5) };
+  } else {
+    const nearest = findNearestSubtrackPoint(sub, car.x, car.y);
+    reset(car, nearest.x, nearest.y, nearest.heading);
+  }
+  entry.drv.relocate();
+  repair(car);
+  entry.hurtWait = null;
 }
 function stepAI(dt) {
   // a RALLY STAGE: a car 3 s past the finish has gone through the stop control — off the road, so
   // it never drives back into the queue
-  if (LEVEL.stage && game.flow) game.ai = game.ai.filter((entry) => { const flowRow = game.flow.entries.find((x) => x.car === entry.car); return !(flowRow && flowRow.finish != null && game.flow.t - flowRow.finish > 3); });
+  if (LEVEL.stage && game.flow) game.ai = game.ai.filter((entry) => {
+    const flowRow = game.flow.entries.find((x) => x.car === entry.car);
+    return !(flowRow && flowRow.finish != null && game.flow.t - flowRow.finish > 3);
+  });
   for (const entry of game.ai) {
-    const car = entry.car; car._p = { x: car.x, y: car.y, h: car.heading };
+    const car = entry.car;
+    car._p = { x: car.x, y: car.y, h: car.heading };
     // DRIVER AIDS follow yours (user, 2026-10-04: "in an event if you turn TCS on and off it should
     // also turn off for the AI"): the same switch, on the cars that have that aid
-    car.absOn = !!game.car.absOn && !!(car.spec.aids && car.spec.aids.abs); car.tcsOn = !!game.car.tcsOn && !!(car.spec.aids && car.spec.aids.tcs);
+    car.absOn = !!game.car.absOn && !!(car.spec.aids && car.spec.aids.abs);
+    car.tcsOn = !!game.car.tcsOn && !!(car.spec.aids && car.spec.aids.tcs);
     try {
       const v0x = car.vx, v0y = car.vy;
-      fenceClamp(car); obstacleClamp(car); barrierClamp(car); solidClamp(car);
+      fenceClamp(car);
+      obstacleClamp(car);
+      barrierClamp(car);
+      solidClamp(car);
       hit(car, v0x, v0y);
       // TOO INJURED (user: "if an AI is too injured it should reset"): back on the road, mended —
       // the bill keeps the cost
       // TOO INJURED: a pause before the reset so the crash PLAYS OUT (user, 2026-10-04: "wait a
       // moment, the worse the damage the longer, max 2-3 s"): 1 s + 2 s x severity (mean corner
       // damage, + 0.4 for a lost wheel), coasting on light brakes meanwhile
-      if (entry.hurtWait == null && tooInjured(car)) { const dmg = car.dmg, sev = Math.min(1, (dmg[0] + dmg[1] + dmg[2] + dmg[3]) / 4 + (car.wheelOff && car.wheelOff.some(Boolean) ? 0.4 : 0)); entry.hurtWait = 1 + 2 * sev; entry.hurtT = 0; }
-      if (entry.hurtWait != null && (entry.hurtT += dt) >= entry.hurtWait) { aiReset(entry); entry.hurtWait = null; car._dmgResets = (car._dmgResets || 0) + 1; }
+      if (entry.hurtWait == null && tooInjured(car)) {
+        const dmg = car.dmg,
+          sev = Math.min(1,
+            (dmg[0] + dmg[1] + dmg[2] + dmg[3]) / 4 + (car.wheelOff && car.wheelOff.some(Boolean)
+              ? 0.4 : 0));
+        entry.hurtWait = 1 + 2 * sev;
+        entry.hurtT = 0;
+      }
+      if (entry.hurtWait != null && (entry.hurtT += dt) >= entry.hurtWait) {
+        aiReset(entry);
+        entry.hurtWait = null;
+        car._dmgResets = (car._dmgResets || 0) + 1;
+      }
       applyGround(car, dt);
       // what the AI knows: the other cars (to avoid / pass / cover), its lap (from the race order's
       // progress) and the race length (jokers)
-      const total = LEVEL.subtrack.totalDist, lap = LEVEL.endless || car._prog === undefined ? 1 : Math.max(1, Math.floor(car._prog / total) + 1);
+      const total = LEVEL.subtrack.totalDist, lap = LEVEL.endless || car._prog === undefined ? 1
+        : Math.max(1, Math.floor(car._prog / total) + 1);
       // loose objects (cones, tyres, bales) within 45 m, refreshed every 0.25 s — the AI steps
       // round them when it can (aidriver OBSTACLES)
-      if (!(entry.obsT > 0)) { entry.obsT = 0.25; const near2 = 45 * 45; entry.obs = game.cones.list.filter((obj) => (obj.x - car.x) ** 2 + (obj.y - car.y) ** 2 < near2 && !(obj.kind === 'banger' || obj.kind === 'caravan')).map((obj) => ({ x: obj.x, y: obj.y, r: obj.r })); }
+      if (!(entry.obsT > 0)) {
+        entry.obsT = 0.25;
+        const near2 = 45 * 45;
+        entry.obs = game.cones.list
+          .filter((obj) => (obj.x - car.x) ** 2 + (obj.y - car.y) ** 2 < near2
+            && !(obj.kind === 'banger' || obj.kind === 'caravan'))
+          .map((obj) => ({ x: obj.x, y: obj.y, r: obj.r }));
+      }
       entry.obsT -= dt;
       // (the highway racer also sees the TRAFFIC, and holds formation until the green)
-      let want = entry.drv.drive(car, dt, { obstacles: entry.obs, cars: [game.car, ...game.ai.map((other) => other.car), ...(LEVEL.endless ? game.traffic.cars : [])].filter((other) => other !== car), hold: startHeld(), lap, laps: game.flow ? game.flow.laps : race.on ? race.laps : (LEVEL.joker && LEVEL.joker.laps) || 5 });
-      if (entry.hurtWait != null) want = { steer: 0, throttle: 0, brake: 0.4, handbrake: 0 };   // waiting out the crash
+      let want = entry.drv.drive(car, dt,
+        { obstacles: entry.obs,
+          cars: [game.car, ...game.ai.map((other) => other.car),
+            ...(LEVEL.endless ? game.traffic.cars : [])].filter((other) => other !== car),
+              hold: startHeld(), lap, laps: game.flow ? game.flow.laps : race.on ? race.laps
+                : (LEVEL.joker && LEVEL.joker.laps) || 5 });
+      // waiting out the crash
+      if (entry.hurtWait != null) want = { steer: 0, throttle: 0, brake: 0.4, handbrake: 0 };
       const held = LEVEL.stage ? carHeld(car) : startHeld();
       if (rolling(car)) {
         stepRoll(car, dt, (kind, side, weight) => hitRoll(car, kind, side, weight));
         // an overturned AI, once it has stopped: back on its wheels on the road (as a marshal
         // would), mended
         if (car.roll && car.roll.phase !== 'rolling' && car.roll.still > 1.5) aiReset(entry);
-      } else { step(car, held ? (game.start.rolling ? atPace(want, car) : { steer: 0, throttle: 0, brake: 1, handbrake: 0, reverse: 0 }) : want, dt); if (!held) tripCheck(car, dt); }   // start lights
+      } else {
+        step(car, held ? (game.start.rolling ? atPace(want, car)
+          : { steer: 0, throttle: 0, brake: 1, handbrake: 0, reverse: 0 }) : want, dt);
+        if (!held) tripCheck(car, dt);
+      }   // start lights
       assertFinite(car);
       // the JOKER gate, counted for every AI exactly as for the player (stepJoker)
       const joker = LEVEL.joker;
       // (the same LINE as the player's, stepJoker; once per lap of this car's own progress)
-      if (joker) { const lapA = car._prog === undefined ? 0 : Math.floor(car._prog / LEVEL.subtrack.totalDist); if (crossedJoker(joker, car._p.x, car._p.y, car.x, car.y) && entry.jLap !== lapA) { entry.jLap = lapA; car._jokers++; } }
+      if (joker) {
+        const lapA = car._prog === undefined ? 0 : Math.floor(car._prog / LEVEL.subtrack.totalDist);
+        if (crossedJoker(joker, car._p.x, car._p.y, car.x, car.y) && entry.jLap !== lapA) {
+          entry.jLap = lapA;
+          car._jokers++;
+        }
+      }
       // STUCK (beached, nose in a wall, spun backwards): under 1 m/s for 3 s after the green ->
       // back on the road, as the player's RESET
       entry.stuckT = !held && Math.hypot(car.vx, car.vy) < 1 ? entry.stuckT + dt : 0;
       // the HIGHWAY: more than 8 m off the carriageway for 3 s (or 40 m out) also counts — there is
       // no lap to come back to
-      if (LEVEL.endless && car._hwf) { const out = Math.abs(car._hwf.off) - LEVEL._hw.geo.hw; entry.offT = out > 8 ? (entry.offT || 0) + dt : 0; if (entry.offT > 3 || out > 40) { entry.offT = 0; entry.stuckT = 4; } }
+      if (LEVEL.endless && car._hwf) {
+        const out = Math.abs(car._hwf.off) - LEVEL._hw.geo.hw;
+        entry.offT = out > 8 ? (entry.offT || 0) + dt : 0;
+        if (entry.offT > 3 || out > 40) {
+          entry.offT = 0;
+          entry.stuckT = 4;
+        }
+      }
       // (an AI first tries to DRIVE ITSELF OUT - aidriver.js DRIVE OUT - and gives up after three
       // tries: then this resets it)
-      if (entry.stuckT > 3 || entry.drv.state.giveUp) { aiReset(entry); entry.stuckT = 0; }
-    } catch (err) {   // an AI car that breaks is put back on the road, never allowed to stop the game
-      if (LEVEL.endless) { car.x = car._p.x; car.y = car._p.y; car.vx = car.vy = 0; try { aiReset(entry); } catch { /* next step */ } continue; }
+      if (entry.stuckT > 3 || entry.drv.state.giveUp) {
+        aiReset(entry);
+        entry.stuckT = 0;
+      }
+    // an AI car that breaks is put back on the road, never allowed to stop the game
+    } catch (err) {
+      if (LEVEL.endless) {
+        car.x = car._p.x;
+        car.y = car._p.y;
+        car.vx = car.vy = 0;
+        try {
+          aiReset(entry);
+        } catch { /* next step */ }
+        continue;
+      }
       const sub = LEVEL.subtrack, nearest = findNearestSubtrackPoint(sub, car._p.x, car._p.y);
-      reset(car, nearest.x, nearest.y, nearest.heading); entry.drv.relocate();
+      reset(car, nearest.x, nearest.y, nearest.heading);
+      entry.drv.relocate();
     }
   }
 }
@@ -554,7 +810,10 @@ function doReset() {
   // right for RESTART and a new car, but RESET is a recovery — you have not stopped driving. Put
   // the temperatures back afterwards.
   const keepT = game.car.tyreT ? game.car.tyreT.slice() : null;
-  const reset = (car, x, y, heading) => { resetCar(car, x, y, heading); if (keepT) car.tyreT = keepT.slice(); };
+  const reset = (car, x, y, heading) => {
+    resetCar(car, x, y, heading);
+    if (keepT) car.tyreT = keepT.slice();
+  };
   // CIRCUITS (user, 2026-10-04: "reset doesn't work nicely — always behind / in line with where the
   // player LEFT the track, half on half off as if corrected, a random close angle pointing back on,
   // NOT on the racing line"). Was: the nearest CENTRELINE point, dead straight — on the racing
@@ -566,7 +825,8 @@ function doReset() {
     let rec = lastOnTrack;
     if (!rec) {
       const point = findNearestSubtrackPoint(sub, game.car.x, game.car.y, trackProgress);
-      if (point) rec = { dist: point.dist, off: (game.car.x - point.x) * point.nx + (game.car.y - point.y) * point.ny };
+      if (point) rec = { dist: point.dist,
+        off: (game.car.x - point.x) * point.nx + (game.car.y - point.y) * point.ny };
     }
     if (rec) {
       const side = Math.sign(rec.off) || (Math.random() < 0.5 ? -1 : 1);
@@ -594,19 +854,44 @@ function doReset() {
 // THE RACE (AI stage 4, src/raceflow.js): any VS AI or RX race on a lap circuit (not a stage).
 // Laps: setup, else 3 / the RX laps.
 function startFlow() {
-  game.flow = null; game.flowShown = false; game.car.num = 1; game.car._jokers = 0; game.car._slot = game.ai.length && !LEVEL.stage ? gridSlot : 0;
-  if (LEVEL.stage && game.start.on) game.start.tGreen = startAtOf(game.car);   // your lights count to YOUR start
-  for (const car of [game.car, ...game.ai.map((entry) => entry.car)]) { car._cut = null; car._cutPen = 0; car._cuts = 0; }
+  game.flow = null;
+  game.flowShown = false;
+  game.car.num = 1;
+  game.car._jokers = 0;
+  game.car._slot = game.ai.length && !LEVEL.stage ? gridSlot : 0;
+  // your lights count to YOUR start
+  if (LEVEL.stage && game.start.on) game.start.tGreen = startAtOf(game.car);
+  for (const car of [game.car, ...game.ai.map((entry) => entry.car)]) {
+    car._cut = null;
+    car._cutPen = 0;
+    car._cuts = 0;
+  }
   if (mode !== 'session' || !LEVEL.subtrack || !(game.ai.length || race.on)) return;
   // the HIGHWAY: no laps — the race ends on the off-screen countdowns (highwayrace.js
   // createHwFlow); "on screen" = the renderer's real view
-  if (LEVEL.endless) { game.flow = createHwFlow({ lv: LEVEL, cars: [{ car: game.car, player: true }, ...game.ai.map((entry) => ({ car: entry.car }))], visible: (car) => onScreen(car.x, car.y) }); return; }
-  if (LEVEL.stage) { game.flow = createRaceFlow({ cars: [{ car: game.car, player: true }, ...game.ai.map((entry) => ({ car: entry.car }))], total: LEVEL.subtrack.totalDist, laps: 1, stage: { finish: LEVEL.stage.finish } }); return; }
+  if (LEVEL.endless) {
+    game.flow = createHwFlow({ lv: LEVEL,
+      cars: [{ car: game.car, player: true }, ...game.ai.map((entry) => ({ car: entry.car }))],
+        visible: (car) => onScreen(car.x, car.y) });
+    return;
+  }
+  if (LEVEL.stage) {
+    game.flow = createRaceFlow({ cars: [{ car: game.car, player: true },
+      ...game.ai.map((entry) => ({ car: entry.car }))], total: LEVEL.subtrack.totalDist, laps: 1,
+        stage: { finish: LEVEL.stage.finish } });
+    return;
+  }
   const laps = raceLaps || (LEVEL.joker && race.on ? LEVEL.joker.laps || 5 : 3);
   race.laps = laps;
-  game.flow = createRaceFlow({ cars: [{ car: game.car, player: true }, ...game.ai.map((entry) => ({ car: entry.car }))], total: LEVEL.subtrack.totalDist, laps, joker: race.on ? LEVEL.joker : null });
+  game.flow = createRaceFlow({ cars: [{ car: game.car, player: true },
+    ...game.ai.map((entry) => ({ car: entry.car }))], total: LEVEL.subtrack.totalDist, laps,
+      joker: race.on ? LEVEL.joker : null });
 }
-try { game.hwBest = +(localStorage.getItem('rac3r.hwbest') || 0); } catch { game.hwBest = 0; }
+try {
+  game.hwBest = +(localStorage.getItem('rac3r.hwbest') || 0);
+} catch {
+  game.hwBest = 0;
+}
 let camRecord = {};
 try {
   camRecord = JSON.parse(localStorage.getItem('rac3r.cams') || '{}') || {};
@@ -639,26 +924,53 @@ document.addEventListener('visibilitychange', () => {
 // frequency / density" of the roadside objects): 0..3 x, setup's LITTER slider
 game.traffic = createTraffic();
 let trafficDensity = settings.trafficDensity;
-if (settings.litter !== null) for (const level of LEVELS) if (level.endless) level.litter = settings.litter;
+if (settings.litter !== null)
+  for (const level of LEVELS) if (level.endless) level.litter = settings.litter;
 // what the camera can see right now (+ a margin): traffic only appears / goes OUTSIDE it
-function onScreen(x, y) { const margin = 14 * renderer.PPM, screenX = renderer.sx(x), screenY = renderer.sy(y); return screenX > -margin && screenX < renderer.W + margin && screenY > -margin && screenY < renderer.H + margin; }
+function onScreen(x, y) {
+  const margin = 14 * renderer.PPM, screenX = renderer.sx(x), screenY = renderer.sy(y);
+  return screenX > -margin && screenX < renderer.W + margin && screenY > -margin
+    && screenY < renderer.H + margin;
+}
 function doRestart() {
   saveRecords();
-  if (LEVEL.endless) { resetHighway(LEVEL); game.hwDist = 0; game.camFines = 0; game.camCount = 0; game.camCaught = null; }   // the same motorway from the start again
-  game.fpsClear = true;   // the FPS corner's 10 s LOW starts again: the level-load hitch is not a driving dip (MEASURED: LOW 26 from the load)
+  if (LEVEL.endless) {
+    resetHighway(LEVEL);
+    game.hwDist = 0;
+    game.camFines = 0;
+    game.camCount = 0;
+    game.camCaught = null;
+  }   // the same motorway from the start again
+  // the FPS corner's 10 s LOW starts again: the level-load hitch is not a driving dip (MEASURED:
+  // LOW 26 from the load)
+  game.fpsClear = true;
   // Full level restart: resets car to spawn, stands cones up, clears marks and wear
-  game.car._prog = undefined; game.position = 1;
-  repair(game.car); resetBill(game.car);   // DAMAGE: a fresh car and a clean bill
-  setTimeout(() => { armStart(); spawnAI();
+  game.car._prog = undefined;
+  game.position = 1;
+  repair(game.car);
+  resetBill(game.car);   // DAMAGE: a fresh car and a clean bill
+  setTimeout(() => {
+    armStart();
+    spawnAI();
     // any race grid puts YOU on your slot too — pole included (was gridSlot > 0: on pole you stayed
     // on the centreline spawn, out of formation)
-    if (game.start.rolling || (game.ai.length && !LEVEL.stage)) { const slotPos = gridPos(game.ai.length ? gridSlot : 0); reset(game.car, slotPos.x, slotPos.y, slotPos.h); if (renderer && renderer.snap) renderer.snap(game.car); }
+    if (game.start.rolling || (game.ai.length && !LEVEL.stage)) {
+      const slotPos = gridPos(game.ai.length ? gridSlot : 0);
+      reset(game.car, slotPos.x, slotPos.y, slotPos.h);
+      if (renderer && renderer.snap) renderer.snap(game.car);
+    }
     game.traffic.reset(LEVEL.endless && mode !== 'menu' ? LEVEL : null, trafficDensity);
-    if (LEVEL.endless && game.ai.length) { const [spanStart, spanEnd] = hwGridSpan(LEVEL, game.ai.length + 1); game.traffic.clearSpan(spanStart, spanEnd); }   // a clear road for the grid
+    if (LEVEL.endless && game.ai.length) {
+      const [spanStart, spanEnd] = hwGridSpan(LEVEL, game.ai.length + 1);
+      game.traffic.clearSpan(spanStart, spanEnd);
+    }   // a clear road for the grid
     // the treadmill guard measures "dropped back" from the furthest point reached (the spawn): a
     // back-row grid slot is up to ~50 m behind it, which read as WRONG WAY 5 s into the race
     // (MEASURED, tools/_tfgame). Start the record where YOU start.
-    if (LEVEL.endless && LEVEL._hw) { const frame = roadFrame(LEVEL, game.car.x, game.car.y, null); if (frame) LEVEL._hw.best = Math.min(LEVEL._hw.best, frame.s); }
+    if (LEVEL.endless && LEVEL._hw) {
+      const frame = roadFrame(LEVEL, game.car.x, game.car.y, null);
+      if (frame) LEVEL._hw.best = Math.min(LEVEL._hw.best, frame.s);
+    }
     startFlow();
   }, 0);   // after this function has put the player on the spawn
   game.car.prevWheels = null;
@@ -674,7 +986,8 @@ function doRestart() {
   game.cones.reset();
   game.marks.clear();
   clearWear();
-  if (renderer && renderer.flyIn) renderer.flyIn();   // open on the whole level, then ease in to the car
+  // open on the whole level, then ease in to the car
+  if (renderer && renderer.flyIn) renderer.flyIn();
   trackProgress = 0;
   lastOnTrack = null;
   resetRace();
@@ -696,7 +1009,8 @@ let mode = 'session', demo = null, demoStill = 0, paused = false;
 // MENU RACE (user, 2026-10-04: "just use the updated AI / 5-car race event for the menu screen"):
 // behind the menu a 5-car race runs — the camera car + DEMO_AI opponents, all on the racing AI
 // (aidriver.js) at DEMO_DIFF, no lights. Was one autodrive car on the Test Track.
-const DEMO_LEVEL = 'thruston', DEMO_CAR = 'hatch-rwd', DEMO_AI = settings.menuAi, DEMO_DIFF = 3;   // ?menuai=N: A/B the frame cost
+// ?menuai=N: A/B the frame cost
+const DEMO_LEVEL = 'thruston', DEMO_CAR = 'hatch-rwd', DEMO_AI = settings.menuAi, DEMO_DIFF = 3;
 let guidePending = false, rulesPending = null;
 const renderer = createRenderer(canvas, settings);
 const audio = createAudio();
@@ -716,7 +1030,10 @@ const input = createInput(canvas, {
     if (action.restart) doRestart();
     if (action.reset) doReset();
     if (action.clear) game.marks.clear();
-    if (action.help) { hud.close(); if (MENU) openPause(); else guide.open(); }
+    if (action.help) {
+      hud.close();
+      if (MENU) openPause(); else guide.open();
+    }
     if (action.volumeCycle) {
       if (audio.muted) {
         audio.toggleMute();
@@ -735,23 +1052,45 @@ const input = createInput(canvas, {
     if (action.toggleAbs) game.car.absOn = !game.car.absOn;
     if (action.toggleTcs) game.car.tcsOn = !game.car.tcsOn;
     if (action.toggleLights) game.car.lightsOn = !game.car.lightsOn;
-    if (action.indicate) { game.car.indicator = game.car.indicator === action.indicate ? 0 : action.indicate; game.car.indT = 0; game.car.indTurned = false; }
+    if (action.indicate) {
+      game.car.indicator = game.car.indicator === action.indicate ? 0 : action.indicate;
+      game.car.indT = 0;
+      game.car.indTurned = false;
+    }
     return true;
   },
   onKey: (key) => {
-    if (guide.active) { guide.key(key); return; }
-    if (key === 'h' && started) { hud.close(); guide.open(); return; }
-    if (MENU && mode === 'session' && (key === 'p' || key === 'escape') && !paused) { openPause(); return; }
+    if (guide.active) {
+      guide.key(key);
+      return;
+    }
+    if (key === 'h' && started) {
+      hud.close();
+      guide.open();
+      return;
+    }
+    if (MENU && mode === 'session' && (key === 'p' || key === 'escape') && !paused) {
+      openPause();
+      return;
+    }
     if (key === 'r') doReset();
     if (key === 'R' || key === 'Backspace') doRestart();
     if (key === 'c') game.marks.clear();
     if (key === 'l') cycleLevel();
     if (key === 'm') audio.toggleMute();
     // driver aids, on cars that have them (user, 2026-10-03)
-    if (key === 't' && game.car.spec.aids && game.car.spec.aids.tcs) game.car.tcsOn = !game.car.tcsOn;
-    if (key === 'g') game.car.lightsOn = !game.car.lightsOn;                                                    // headliGhts
-    if (key === 'q' || key === 'e') { const side = key === 'q' ? -1 : 1; game.car.indicator = game.car.indicator === side ? 0 : side; game.car.indT = 0; game.car.indTurned = false; }
-    if (key === 'b' && game.car.spec.aids && game.car.spec.aids.abs) game.car.absOn = !game.car.absOn;
+    if (key === 't' && game.car.spec.aids
+      && game.car.spec.aids.tcs) game.car.tcsOn = !game.car.tcsOn;
+    // headliGhts
+    if (key === 'g') game.car.lightsOn = !game.car.lightsOn;
+    if (key === 'q' || key === 'e') {
+      const side = key === 'q' ? -1 : 1;
+      game.car.indicator = game.car.indicator === side ? 0 : side;
+      game.car.indT = 0;
+      game.car.indTurned = false;
+    }
+    if (key === 'b' && game.car.spec.aids
+      && game.car.spec.aids.abs) game.car.absOn = !game.car.absOn;
     const index = '12345'.indexOf(key);
     if (index >= 0) selectCar(CAR_IDS[index]);
     if (key === '[') cycleCar(-1);
@@ -806,9 +1145,14 @@ window.__game = game;
 window.__game.selectCar = selectCar;
 window.__game.reset = doReset;
 window.__game.restart = doRestart;
-window.__game.setAI = (count) => { aiCount = Math.max(0, Math.min(5, count | 0)); spawnAI(); };   // tools
+window.__game.setAI = (count) => {
+  aiCount = Math.max(0, Math.min(5, count | 0));
+  spawnAI();
+};   // tools
 window.__game.launch = (levelId, car, opts) => launch(levelId, car, opts);
-window.__game.crossedJoker = (prevX, prevY, x, y) => (LEVEL.joker ? crossedJoker(LEVEL.joker, prevX, prevY, x, y) : null);   // tools/_jokerline.mjs   // tools: start a session (e.g. an RX race) without the menu
+// tools/_jokerline.mjs   // tools: start a session (e.g. an RX race) without the menu
+window.__game.crossedJoker = (prevX, prevY, x, y) => (LEVEL.joker
+  ? crossedJoker(LEVEL.joker, prevX, prevY, x, y) : null);
 window.__game.selectLevel = selectLevel;
 Object.defineProperty(window.__game, 'level', { get: () => LEVEL });
 window.__game.renderer = renderer;
@@ -833,28 +1177,43 @@ function start() {
   audio.init();
   doRestart();
   const guideSetting = settings.guide;
-  guidePending = guideSetting === '1' || (guideSetting !== '0' && !guide.seen && !navigator.webdriver);
+  guidePending = guideSetting === '1'
+    || (guideSetting !== '0' && !guide.seen && !navigator.webdriver);
 }
 canvas.addEventListener('pointerdown', start, { once: false });
-boot.addEventListener('pointerdown', (event) => { event.preventDefault(); start(); });
+boot.addEventListener('pointerdown', (event) => {
+  event.preventDefault();
+  start();
+});
 addEventListener('keydown', start);
 
 // ---- MENU WIRING (only with ?menu=1 for now)
 function enterMenu() {
   saveRecords();
-  mode = 'menu'; paused = false; started = true;
-  aiCount = DEMO_AI; aiDiff = DEMO_DIFF; game.ai = []; game.start = { on: false, green: true, t: 0, tGreen: 0 };
+  mode = 'menu';
+  paused = false;
+  started = true;
+  aiCount = DEMO_AI;
+  aiDiff = DEMO_DIFF;
+  game.ai = [];
+  game.start = { on: false, green: true, t: 0, tGreen: 0 };
   boot.classList.add('gone');
   hud.close();
   race.on = false;
   if (LEVEL.id !== DEMO_LEVEL) selectLevel(DEMO_LEVEL); else doRestart();
   if (game.car.spec.id !== DEMO_CAR) selectCar(DEMO_CAR);
-  demo = createAIDriver(LEVEL, aiTraits(DEMO_DIFF, 2, DEMO_AI + 1, 1 + Math.floor(Math.random() * 1e6)));
+  demo = createAIDriver(LEVEL,
+    aiTraits(DEMO_DIFF, 2, DEMO_AI + 1, 1 + Math.floor(Math.random() * 1e6)));
 }
 function launch(levelId, carId, opts = {}) {
-  mode = 'session'; demo = null; paused = false;
+  mode = 'session';
+  demo = null;
+  paused = false;
   // ROAD TYPE (endless highway, Test Mode setup): set before the restart below builds the road
-  { const level = LEVELS.find((item) => item.id === levelId); if (level && level.endless && opts.road) setHighwayPreset(level, opts.road); }
+  {
+    const level = LEVELS.find((item) => item.id === levelId);
+    if (level && level.endless && opts.road) setHighwayPreset(level, opts.road);
+  }
   aiCount = Math.max(0, Math.min(5, opts.ai | 0));
   aiDiff = settings.aiDifficulty;   // the menu race set its own
   if (opts.diff != null) aiDiff = Math.max(0, Math.min(4, opts.diff | 0));
@@ -862,20 +1221,29 @@ function launch(levelId, carId, opts = {}) {
   aiCarMode = opts.aiCars === 'class' ? 'class' : 'same';
   raceLaps = Math.max(0, Math.min(10, opts.laps | 0));
   if (opts.traffic != null) trafficDensity = Math.max(0, Math.min(1.5, +opts.traffic));
-  { const level = LEVELS.find((item) => item.id === levelId); if (level && level.endless && opts.litter != null) level.litter = Math.max(0, Math.min(3, +opts.litter)); }
+  {
+    const level = LEVELS.find((item) => item.id === levelId);
+    if (level && level.endless && opts.litter != null) level.litter = Math.max(0,
+      Math.min(3, +opts.litter));
+  }
   audio.init();
   if (LEVEL.id !== levelId) selectLevel(levelId);
   if (game.car.spec.id !== carId) selectCar(carId);
   applyLivery(game.car.spec, opts.livery);
-  applyTyre(game.car.spec, opts.tyre);       // TYRES from the garage (none = Pre-Spun, the stock car)   // PAINT + NUMBER from the garage (none = the car's own colours, no number)
+  // TYRES from the garage (none = Pre-Spun, the stock car)
+  // PAINT + NUMBER from the garage (none = the car's own colours, no number)
+  applyTyre(game.car.spec, opts.tyre);
   doRestart();
   const guideSetting = settings.guide;
-  guidePending = guideSetting === '1' || (guideSetting !== '0' && !guide.seen && !navigator.webdriver);
+  guidePending = guideSetting === '1'
+    || (guideSetting !== '0' && !guide.seen && !navigator.webdriver);
   // EVENT RULES the first time you do this kind of event (guide.js RULES); after HOW TO PLAY if
   // that is showing too. ?rules=1 forces them (photos), ?rules=0 / automation skips them, as the
   // guide.
   const rulesSetting = settings.rules, kind = eventKind();
-  rulesPending = kind && (rulesSetting === '1' || (rulesSetting !== '0' && !rulesSeen(kind) && !navigator.webdriver)) ? kind : null;
+  rulesPending = kind
+    && (rulesSetting === '1' || (rulesSetting !== '0' && !rulesSeen(kind) && !navigator.webdriver))
+      ? kind : null;
 }
 // which RULES walkthrough this session needs (guide.js RULES keys), or null
 function eventKind() {
@@ -890,31 +1258,62 @@ function openPause() {
   paused = true;
   const kind = eventKind();
   menu.pause({
-    resume: () => { paused = false; },
-    restart: () => { paused = false; doRestart(); },
-    guide: () => { paused = false; guide.open(); },
-    rules: kind ? () => { paused = false; guide.openRules(kind); } : null,
+    resume: () => {
+      paused = false;
+    },
+    restart: () => {
+      paused = false;
+      doRestart();
+    },
+    guide: () => {
+      paused = false;
+      guide.open();
+    },
+    rules: kind ? () => {
+      paused = false;
+      guide.openRules(kind);
+    } : null,
     tests: game.testMode,   // the TESTING list (src/testlist.js) in the pause menu, test mode only
     audio,                  // the SOUND slider + MUTE (menu.js pause)
-    exit: () => { paused = false; enterMenu(); },
+    exit: () => {
+      paused = false;
+      enterMenu();
+    },
   });
 }
 // thumbnails: paint every level's overview once, then put the demo level back
 function paintThumbs() {
   const out = {}, keep = LEVEL.id;
-  for (const level of LEVELS) { setLevel(level.id); out[level.id] = renderer.thumbnail(320); }
-  setLevel(keep); game.cones = createCones(); clearWear();
+  for (const level of LEVELS) {
+    setLevel(level.id);
+    out[level.id] = renderer.thumbnail(320);
+  }
+  setLevel(keep);
+  game.cones = createCones();
+  clearWear();
   return out;
 }
-const menu = MENU ? createMenu({ thumbs: paintThumbs, launch, genStage: (options) => installStage(genStage(options)), carSprite: (x, livery, wheels) => (typeof x === 'string' ? renderer.pixelCarWithWheels(applyLivery(makeCar(x).spec, livery)) : wheels ? renderer.pixelCarWithWheels(x) : renderer.pixelCar(x)) }) : null;
+const menu = MENU
+  ? createMenu({ thumbs: paintThumbs, launch,
+    genStage: (options) => installStage(genStage(options)),
+      carSprite: (x, livery, wheels) => (typeof x === 'string'
+        ? renderer.pixelCarWithWheels(applyLivery(makeCar(x).spec, livery)) : wheels
+          ? renderer.pixelCarWithWheels(x) : renderer.pixelCar(x)) }) : null;
 // RESULTS: 1.6 s after the race ends (the flag sweep), the podium then the table (menu.js results)
 function stepResults() {
-  const flow = game.flow; if (!flow || flow.state !== 'done' || game.flowShown || !menu || mode !== 'session') return;
+  const flow = game.flow;
+  if (!flow || flow.state !== 'done' || game.flowShown || !menu || mode !== 'session') return;
   if (performance.now() - (game.flowDoneAt || 0) < 1600) return;
   game.flowShown = true;
-  menu.results(flow, { name: LEVEL.name, restart: () => doRestart(), tracks: () => enterMenu(), menu: () => enterMenu() });
+  menu.results(flow,
+    { name: LEVEL.name, restart: () => doRestart(), tracks: () => enterMenu(),
+      menu: () => enterMenu() });
 }
-if (MENU) { hud.setHelpLabel('II'); enterMenu(); menu.show(); }
+if (MENU) {
+  hud.setHelpLabel('II');
+  enterMenu();
+  menu.show();
+}
 game.menuMode = MENU;
 window.__game.menu = menu;
 Object.defineProperty(window.__game, 'mode', { get: () => mode });
@@ -927,9 +1326,12 @@ const churn = settings.churn ? createChurn(settings.churn) : null;   // ?churn= 
 let meterTiles = 0;
 let meterTouches = 0;   // ?meter=1: pointer down / up / cancel events since the last frame
 if (meter) for (const evName of ['pointerdown', 'pointerup', 'pointercancel']) {
-  addEventListener(evName, () => { meterTouches++; }, { capture: true, passive: true });
+  addEventListener(evName, () => {
+    meterTouches++;
+  }, { capture: true, passive: true });
 }
-let fpsAcc = 0, fpsN = 0; const fpsHist = [];
+let fpsAcc = 0, fpsN = 0;
+const fpsHist = [];
 
 // SAFETY NET (added 2026-10-03, Claude). The airborne-brake bug showed what happens without one: a
 // single NaN in the car reached groundAt(), step() threw, and because nothing caught it
@@ -943,8 +1345,12 @@ let fpsAcc = 0, fpsN = 0; const fpsHist = [];
 let lastGood = { x: 0, y: 0, heading: 0 };
 let nanReports = 0;
 function recoverCar(why) {
-  if (nanReports++ < 5) console.error('[car sim] car state went bad — recovered with a reset. Cause:', why, { ...game.car.t });
-  game.car.x = lastGood.x; game.car.y = lastGood.y; game.car.heading = lastGood.heading;
+  if (nanReports++ < 5)
+    console.error('[car sim] car state went bad — recovered with a reset. Cause:', why,
+      { ...game.car.t });
+  game.car.x = lastGood.x;
+  game.car.y = lastGood.y;
+  game.car.heading = lastGood.heading;
   doReset();
 }
 
@@ -955,18 +1361,31 @@ function loop(now) {
   let meterSim = 0;
   const wallDt = Math.min(0.1, (now - last) / 1000);
   last = now;
-  fpsAcc += wallDt; fpsN++;
-  if (fpsAcc > 0.4) { game.fps = fpsN / fpsAcc; fpsAcc = 0; fpsN = 0;
+  fpsAcc += wallDt;
+  fpsN++;
+  if (fpsAcc > 0.4) {
+    game.fps = fpsN / fpsAcc;
+    fpsAcc = 0;
+    fpsN = 0;
     // the WORST 0.4 s window of the last ~10 s (user, 2026-10-06: an FPS counter "in the corner
     // always" to spot issues while testing; a dip lasts a moment, so the corner keeps it on screen
     // for 10 s). hud.js drawFps.
-    if (game.fpsClear) { fpsHist.length = 0; game.fpsClear = false; } else fpsHist.push(game.fps); if (fpsHist.length > 25) fpsHist.shift(); game.fpsLow = fpsHist.length ? Math.min(...fpsHist) : game.fps; }
+    if (game.fpsClear) {
+      fpsHist.length = 0;
+      game.fpsClear = false;
+    } else fpsHist.push(game.fps);
+    if (fpsHist.length > 25) fpsHist.shift();
+    game.fpsLow = fpsHist.length ? Math.min(...fpsHist) : game.fps;
+  }
 
   let inp = input.update(wallDt);
   // MENU: the demo car drives itself (src/ai/autodrive.ts — the same driver as the lap bench and
   // the AI seed). If it ever stops (stuck off the road), put it back on the track.
   if (mode !== 'menu' && startHeld()) {
-    inp = game.start.rolling ? { ...atPace(game.start.drv.drive(game.car, DT, { cars: [...game.ai.map((entry) => entry.car), ...game.traffic.cars], hold: true }), game.car), shiftUp: false, shiftDown: false }
+    inp = game.start.rolling
+      ? { ...atPace(game.start.drv.drive(game.car, DT,
+        { cars: [...game.ai.map((entry) => entry.car), ...game.traffic.cars], hold: true }),
+          game.car), shiftUp: false, shiftDown: false }
                              : { ...inp, throttle: 0, brake: 1, handbrake: 0, reverse: 0 };
   }
   // ?autopilot=1: the AI drives the player car; the phone judder test (drops) needs no fingers
@@ -992,20 +1411,38 @@ function loop(now) {
     }
   }
   if (mode === 'menu' && demo) {
-    inp = { ...demo.drive(game.car, wallDt, { cars: game.ai.map((entry) => entry.car), lap: 1, laps: 99 }), reverse: 0, shiftUp: false, shiftDown: false };
+    inp = { ...demo.drive(game.car, wallDt,
+      { cars: game.ai.map((entry) => entry.car), lap: 1, laps: 99 }), reverse: 0, shiftUp: false,
+        shiftDown: false };
     demoStill = Math.hypot(game.car.vx, game.car.vy) < 2 ? demoStill + wallDt : 0;
-    if (demoStill > 3 || demo.state.lastDist > 30) { demoStill = 0; const spot = findNearestSubtrackPoint(LEVEL.subtrack, game.car.x, game.car.y); reset(game.car, spot.x, spot.y, spot.heading); demo.relocate(); }
+    if (demoStill > 3 || demo.state.lastDist > 30) {
+      demoStill = 0;
+      const spot = findNearestSubtrackPoint(LEVEL.subtrack, game.car.x, game.car.y);
+      reset(game.car, spot.x, spot.y, spot.heading);
+      demo.relocate();
+    }
   }
   game.in = inp;
   stepResults();
   // INDICATORS cancel like a real stalk: after the wheel has been turned that way and come back, or
   // after 8 s (wall clock)
-  { const player = game.car; if (player.indicator) { player.indT = (player.indT || 0) + wallDt; const steer = inp.steer || 0;
-    if (Math.sign(steer) === player.indicator && Math.abs(steer) > 0.35) player.indTurned = true; else if (player.indTurned && Math.abs(steer) < 0.08) player.indicator = 0;
-    if (player.indT > 8) player.indicator = 0; } }
-  for (const entry of game.ai) entry.car.lightsOn = !!game.car.lightsOn;   // the field runs lights when you do
-  if (game.car.roll && game.car.roll.phase !== 'rolling' && game.car.roll.phase !== 'none' && mode === 'session')
-    game.notice = { text: game.car.roll.phase === 'roof' ? 'ON YOUR ROOF — RESET' : 'ON YOUR SIDE — RESET', at: performance.now() };
+  {
+    const player = game.car;
+    if (player.indicator) {
+      player.indT = (player.indT || 0) + wallDt;
+      const steer = inp.steer || 0;
+    if (Math.sign(steer) === player.indicator
+      && Math.abs(steer) > 0.35) player.indTurned = true; else if (player.indTurned
+        && Math.abs(steer) < 0.08) player.indicator = 0;
+    if (player.indT > 8) player.indicator = 0;
+    }
+  }
+  // the field runs lights when you do
+  for (const entry of game.ai) entry.car.lightsOn = !!game.car.lightsOn;
+  if (game.car.roll && game.car.roll.phase !== 'rolling' && game.car.roll.phase !== 'none'
+    && mode === 'session')
+    game.notice = { text: game.car.roll.phase === 'roof' ? 'ON YOUR ROOF — RESET'
+      : 'ON YOUR SIDE — RESET', at: performance.now() };
 
   // HUD taps are handled in `hudDown` at the moment of the touch, BEFORE the stick or the pedals
   // can claim the pointer — see input.js. Nothing to do here; a tap that reaches this point hit the
@@ -1014,12 +1451,20 @@ function loop(now) {
 
   // ---- fixed-step sim the guide waits for the fly-in to land on the car, then opens and PAUSES
   // the sim until it closes
-  if (guidePending && !renderer.flying) { guidePending = false; guide.open(); }
-  else if (rulesPending && !guidePending && !guide.active && !renderer.flying) { const kind = rulesPending; rulesPending = null; guide.openRules(kind); }
+  if (guidePending && !renderer.flying) {
+    guidePending = false;
+    guide.open();
+  }
+  else if (rulesPending && !guidePending && !guide.active && !renderer.flying) {
+    const kind = rulesPending;
+    rulesPending = null;
+    guide.openRules(kind);
+  }
   if (guide.active || paused) acc = 0;
   if (started && !guide.active && !paused) {
     acc += wallDt;
-    let steps = 0; const simT0 = performance.now();   // tools: game.simMs / game.drawMs (smoothed ms per frame)
+    let steps = 0;
+    const simT0 = performance.now();   // tools: game.simMs / game.drawMs (smoothed ms per frame)
     while (acc >= DT && steps < MAX_STEPS) {
       // The lab says what the ground under the car is doing; the car's own suspension answers.
       // Before step(), so the load is right for the forces computed this step rather than one step
@@ -1036,37 +1481,74 @@ function loop(now) {
         applyGround(game.car, DT);
         // ROLLOVER (roll.js): a rolling / overturned car has no tyres to drive on — the body
         // tumbles or slides; RESET rights it
-        if (rolling(game.car)) stepRoll(game.car, DT, (kind, side, weight) => hitRoll(game.car, kind, side, weight));
-        else { step(game.car, inp, DT); tripCheck(game.car, DT); }
+        if (rolling(game.car)) stepRoll(game.car, DT,
+          (kind, side, weight) => hitRoll(game.car, kind, side, weight));
+        else {
+          step(game.car, inp, DT);
+          tripCheck(game.car, DT);
+        }
         assertFinite(game.car);
       } catch (err) {
         recoverCar(err.message);
         acc = 0;
         break;
       }
-      lastGood.x = game.car.x; lastGood.y = game.car.y; lastGood.heading = game.car.heading;
+      lastGood.x = game.car.x;
+      lastGood.y = game.car.y;
+      lastGood.heading = game.car.heading;
       updateRecoveryTracking(game.car, DT);
       stepJoker(game.car);
       stepStage(DT);
       // THE ENDLESS HIGHWAY: build ahead / drop behind; when the window moves, everything
       // remembered as a road distance moves with it
-      if (LEVEL.endless) { const shift = stepHighway(LEVEL, game.car); if (shift) { if (lastOnTrack) lastOnTrack.dist -= shift; if (game.trackD != null) game.trackD -= shift; }
+      if (LEVEL.endless) {
+        const shift = stepHighway(LEVEL, game.car);
+        if (shift) {
+          if (lastOnTrack) lastOnTrack.dist -= shift;
+          if (game.trackD != null) game.trackD -= shift;
+        }
         // THE TREADMILL GUARD (user, 2026-10-05: "go backwards should reset you"): wrong way /
         // dropped back / off the motorway -> put back in the left lane at the furthest point
         // reached, rolling at 60 % of the speed you had (or 15 m/s), with the reason shown
         const why = highwayGuard(LEVEL, game.car, DT);
-        if (LEVEL._hw.warn) game.notice = { text: LEVEL._hw.warn, at: performance.now() };   // the going-wide countdown
+        // the going-wide countdown
+        if (LEVEL._hw.warn) game.notice = { text: LEVEL._hw.warn, at: performance.now() };
         // the roadside LITTER + CHEVRONS (loose objects) stream with the road: new ones ahead in,
         // the ones behind out (a tyre knocked off its stretch goes with it — it never belonged to
         // the road it rolled onto)
-        { const hwData = LEVEL._hw; if (hwData.looseNew.length) { game.cones.spawn(hwData.looseNew); hwData.looseNew.length = 0; }
-          if (hwData.looseCut != null) { const cutAt = hwData.looseCut; game.cones.cull((cone) => cone._s == null || cone._s >= cutAt); hwData.looseCut = null; }
-          if (hwData.goneFields && hwData.goneFields.size) { const gone = hwData.goneFields; game.cones.cull((cone) => cone.field == null || !gone.has(cone.field)); gone.clear(); } }
-        if (why) { const speed = Math.max(15, 0.6 * Math.hypot(game.car.vx, game.car.vy)), spot = highwayRespawn(LEVEL);
-          repair(game.car); resetCar(game.car, spot.x, spot.y, spot.h); game.car.vx = Math.cos(spot.h) * speed; game.car.vy = Math.sin(spot.h) * speed;
-          game.traffic.clearAround(spot.x, spot.y, 30);   // never put back into (or right behind) a traffic car
-          lastOnTrack = null; breadcrumbs.length = 0; if (renderer && renderer.snap) renderer.snap(game.car);
-          game.notice = { text: why, at: performance.now() }; acc = 0; break; }
+        {
+          const hwData = LEVEL._hw;
+          if (hwData.looseNew.length) {
+            game.cones.spawn(hwData.looseNew);
+            hwData.looseNew.length = 0;
+          }
+          if (hwData.looseCut != null) {
+            const cutAt = hwData.looseCut;
+            game.cones.cull((cone) => cone._s == null || cone._s >= cutAt);
+            hwData.looseCut = null;
+          }
+          if (hwData.goneFields && hwData.goneFields.size) {
+            const gone = hwData.goneFields;
+            game.cones.cull((cone) => cone.field == null || !gone.has(cone.field));
+            gone.clear();
+          }
+        }
+        if (why) {
+          const speed = Math.max(15, 0.6 * Math.hypot(game.car.vx, game.car.vy)),
+            spot = highwayRespawn(LEVEL);
+          repair(game.car);
+          resetCar(game.car, spot.x, spot.y, spot.h);
+          game.car.vx = Math.cos(spot.h) * speed;
+          game.car.vy = Math.sin(spot.h) * speed;
+          // never put back into (or right behind) a traffic car
+          game.traffic.clearAround(spot.x, spot.y, 30);
+          lastOnTrack = null;
+          breadcrumbs.length = 0;
+          if (renderer && renderer.snap) renderer.snap(game.car);
+          game.notice = { text: why, at: performance.now() };
+          acc = 0;
+          break;
+        }
         // SPEED CAMERA (highway.js speedCamera): caught = a HUD card (hud.js drawCamera) + the fine
         // on the session; fastest + count kept
         {
@@ -1097,41 +1579,76 @@ function loop(now) {
       lastBreadcrumbTime += DT;
       if (lastBreadcrumbTime >= 0.5 && Math.hypot(game.car.vx, game.car.vy) > 3 && !game.car.air) {
         lastBreadcrumbTime = 0;
-        breadcrumbs.push({ x: game.car.x, y: game.car.y, heading: Math.atan2(game.car.vy, game.car.vx) });
+        breadcrumbs.push({ x: game.car.x, y: game.car.y,
+          heading: Math.atan2(game.car.vy, game.car.vx) });
         if (breadcrumbs.length > 12) breadcrumbs.shift();
       }
       stepStart(DT);
       // the HIGHWAY: every car's road frame (s, offset, speed along) once per step, for the racers,
       // the order and the countdowns
-      if (LEVEL.endless && (game.ai.length || settings.autopilot)) hwFrames(LEVEL, [game.car, ...game.ai.map((entry) => entry.car), ...game.traffic.cars]);
+      if (LEVEL.endless && (game.ai.length || settings.autopilot)) hwFrames(LEVEL,
+        [game.car, ...game.ai.map((entry) => entry.car), ...game.traffic.cars]);
       stepAI(DT);
-      if (LEVEL.endless) { if (game.flow && game.flow.highway) game.position = game.flow.order(); }
+      if (LEVEL.endless) {
+        if (game.flow && game.flow.highway) game.position = game.flow.order();
+      }
       else if ((game.ai.length || game.flow || LEVEL.stage) && LEVEL.subtrack) stepOrder();
-      if (game.flow && game.start.t >= (game.start.tGreen0 ?? game.start.tGreen)) { const was = game.flow.state; game.flow.step(DT); if (was !== 'done' && game.flow.state === 'done') game.flowDoneAt = performance.now();
+      if (game.flow && game.start.t >= (game.start.tGreen0 ?? game.start.tGreen)) {
+        const was = game.flow.state;
+        game.flow.step(DT);
+        if (was !== 'done' && game.flow.state === 'done') game.flowDoneAt = performance.now();
         // the HIGHWAY's END COUNTDOWNS on the notice line (user: "an AI reaching the edge of the
         // screen ahead starts a countdown")
-        const flow = game.flow; if (flow.highway && flow.cdKind) game.notice = { text: (flow.cdKind === 'ahead' ? (flow.cdHold ? 'CLOSING IN  ' : 'CATCH THEM  ') : 'PULLING AWAY  ') + Math.max(1, Math.ceil(flow.cd)), at: performance.now(), good: flow.cdKind === 'behind' }; }
+        const flow = game.flow;
+        if (flow.highway
+          && flow.cdKind) game.notice = { text: (flow.cdKind === 'ahead' ? (flow.cdHold
+            ? 'CLOSING IN  ' : 'CATCH THEM  ') : 'PULLING AWAY  ') + Math.max(1,
+              Math.ceil(flow.cd)), at: performance.now(), good: flow.cdKind === 'behind' };
+      }
       // TRAFFIC: driven after the AI (it reads where everyone is), then in the SAME contact pass as
       // you and the AI — full contact, damage
       const tcars = game.traffic.cars;
-      if (tcars.length || game.traffic.want) game.traffic.step(DT, { player: game.car, others: game.ai.map((entry) => entry.car), visible: onScreen });
-      if (game.ai.length || tcars.length) { const racers = [game.car, ...game.ai.map((entry) => entry.car)], all = tcars.length ? [...racers, ...tcars] : racers, startVel = all.map((racer) => [racer.vx, racer.vy]);
-        carContacts(all); all.forEach((racer, i) => hit(racer, startVel[i][0], startVel[i][1])); if (game.ai.length) slipstream(racers); }
+      if (tcars.length || game.traffic.want) game.traffic.step(DT,
+        { player: game.car, others: game.ai.map((entry) => entry.car), visible: onScreen });
+      if (game.ai.length || tcars.length) {
+        const racers = [game.car, ...game.ai.map((entry) => entry.car)], all = tcars.length
+          ? [...racers, ...tcars] : racers, startVel = all.map((racer) => [racer.vx, racer.vy]);
+        carContacts(all);
+        all.forEach((racer, i) => hit(racer, startVel[i][0], startVel[i][1]));
+        if (game.ai.length) slipstream(racers);
+      }
       // cones are world state, so they advance on the SAME fixed step as the car (rule 5) (traffic
       // within 60 m of you knocks the litter too — a knocked tyre on the road is something they
       // then have to hit)
-      { const near = tcars.length ? tcars.filter((racer) => Math.abs(racer.x - game.car.x) < 60 && Math.abs(racer.y - game.car.y) < 60) : [];
-        const field = game.ai.length || near.length ? [game.car, ...game.ai.map((entry) => entry.car), ...near] : [game.car], startVel = field.map((racer) => [racer.vx, racer.vy]);
-        game.cones.step(field.length > 1 ? field : game.car, DT); field.forEach((racer, i) => hit(racer, startVel[i][0], startVel[i][1]));
+      {
+        const near = tcars.length
+          ? tcars.filter((racer) => Math.abs(racer.x - game.car.x) < 60
+            && Math.abs(racer.y - game.car.y) < 60) : [];
+        const field = game.ai.length || near.length
+          ? [game.car, ...game.ai.map((entry) => entry.car), ...near] : [game.car],
+            startVel = field.map((racer) => [racer.vx, racer.vy]);
+        game.cones.step(field.length > 1 ? field : game.car, DT);
+        field.forEach((racer, i) => hit(racer, startVel[i][0], startVel[i][1]));
         // DAMAGE: a torn-off wheel becomes a loose tyre, thrown from its corner with the car's
         // speed and outward
         for (const racer of field) while (racer.wheelSpawn && racer.wheelSpawn.length) {
-          const corner = racer.wheelSpawn.shift(), cosH = Math.cos(racer.heading), sinH = Math.sin(racer.heading), alongOff = (corner < 2 ? racer.spec.lf : -racer.spec.lr), sideOff = (corner % 2 ? 1 : -1) * (racer.spec.trackWidth || 1.5) / 2;
+          const corner = racer.wheelSpawn.shift(), cosH = Math.cos(racer.heading),
+            sinH = Math.sin(racer.heading),
+              alongOff = (corner < 2 ? racer.spec.lf : -racer.spec.lr),
+                sideOff = (corner % 2 ? 1 : -1) * (racer.spec.trackWidth || 1.5) / 2;
           const out = (corner % 2 ? 1 : -1) * 4;
-          game.cones.add({ x: racer.x + cosH * alongOff - sinH * sideOff, y: racer.y + sinH * alongOff + cosH * sideOff, vx: racer.vx * 0.85 - sinH * out, vy: racer.vy * 0.85 + cosH * out, ang: racer.heading, spin: (Math.random() - 0.5) * 8 });
-        } }
-      for (const entry of game.ai) if (!rolling(entry.car)) game.marks.stamp(game.marks.wheelsOf(entry.car));
-      for (const racer of tcars) if (!rolling(racer) && racer.dmg && (Math.abs(racer.t.slipR) > 0.1 || racer.t.lockedF || racer.t.lockedR)) game.marks.stamp(game.marks.wheelsOf(racer));   // a skidding / crashing traffic car marks the road
+          game.cones.add({ x: racer.x + cosH * alongOff - sinH * sideOff,
+            y: racer.y + sinH * alongOff + cosH * sideOff, vx: racer.vx * 0.85 - sinH * out,
+              vy: racer.vy * 0.85 + cosH * out, ang: racer.heading,
+                spin: (Math.random() - 0.5) * 8 });
+        }
+      }
+      for (const entry of game.ai)
+        if (!rolling(entry.car)) game.marks.stamp(game.marks.wheelsOf(entry.car));
+      // a skidding / crashing traffic car marks the road
+      for (const racer of tcars) if (!rolling(racer) && racer.dmg
+        && (Math.abs(racer.t.slipR) > 0.1 || racer.t.lockedF
+          || racer.t.lockedR)) game.marks.stamp(game.marks.wheelsOf(racer));
       game.marks.follow(game.car.x, game.car.y);
       // marks are stamped on the SIM step: a mark is world bookkeeping, not an animation
       if (!rolling(game.car)) game.marks.stamp(game.marks.wheelsOf(game.car));
@@ -1150,7 +1667,11 @@ function loop(now) {
   // its setTargetAtTime() throws — which aborted every frame BEFORE the sim could run the recovery
   // above, so the car stayed broken forever. Sound is cosmetic; it must never be able to stop the
   // game.
-  try { audio.update(game.car, wallDt); } catch (err) { if (nanReports++ < 5) console.error('[car sim] audio.update threw:', err.message); }
+  try {
+    audio.update(game.car, wallDt);
+  } catch (err) {
+    if (nanReports++ < 5) console.error('[car sim] audio.update threw:', err.message);
+  }
 
   // RENDER INTERPOLATION (user, 2026-10-03: "at high speeds the camera / car judder"). MEASURED in
   // a real browser at 200 km/h: the 120 Hz sim gave 2 steps on most frames but 3 or 5 on others, so
@@ -1160,18 +1681,33 @@ function loop(now) {
   // change) clears _p so nothing smears across the map.
   const car = game.car, prevPose = car._p;
   let keepPose = null;
-  if (started && prevPose && !guide.active && Math.hypot(car.x - prevPose.x, car.y - prevPose.y) < 5) {
+  if (started && prevPose && !guide.active
+    && Math.hypot(car.x - prevPose.x, car.y - prevPose.y) < 5) {
     const alpha = Math.max(0, Math.min(1, acc / DT));
     keepPose = { x: car.x, y: car.y, h: car.heading };
-    let dHeading = car.heading - prevPose.h; dHeading = Math.atan2(Math.sin(dHeading), Math.cos(dHeading));
-    car.x = prevPose.x + (car.x - prevPose.x) * alpha; car.y = prevPose.y + (car.y - prevPose.y) * alpha; car.heading = prevPose.h + dHeading * alpha;
+    let dHeading = car.heading - prevPose.h;
+    dHeading = Math.atan2(Math.sin(dHeading), Math.cos(dHeading));
+    car.x = prevPose.x + (car.x - prevPose.x) * alpha;
+    car.y = prevPose.y + (car.y - prevPose.y) * alpha;
+    car.heading = prevPose.h + dHeading * alpha;
   }
-  game.drawn = { x: car.x, y: car.y, t: now };      // what this frame drew (tools: judder measurement)
+  // what this frame drew (tools: judder measurement)
+  game.drawn = { x: car.x, y: car.y, t: now };
   // the AI cars are drawn between their last two poses too (same alpha)
   const aiKeep = [];
-  if (started && !guide.active) for (const aiCar of [...game.ai.map((entry) => entry.car), ...game.traffic.cars]) { const prev = aiCar._p; if (!prev || Math.hypot(aiCar.x - prev.x, aiCar.y - prev.y) > 5) continue;
-    const alpha = Math.max(0, Math.min(1, acc / DT)); aiKeep.push([aiCar, aiCar.x, aiCar.y, aiCar.heading]); let dHeading = aiCar.heading - prev.h; dHeading = Math.atan2(Math.sin(dHeading), Math.cos(dHeading));
-    aiCar.x = prev.x + (aiCar.x - prev.x) * alpha; aiCar.y = prev.y + (aiCar.y - prev.y) * alpha; aiCar.heading = prev.h + dHeading * alpha; }
+  if (started
+    && !guide.active) for (const aiCar of [...game.ai.map((entry) => entry.car),
+      ...game.traffic.cars]) {
+    const prev = aiCar._p;
+    if (!prev || Math.hypot(aiCar.x - prev.x, aiCar.y - prev.y) > 5) continue;
+    const alpha = Math.max(0, Math.min(1, acc / DT));
+    aiKeep.push([aiCar, aiCar.x, aiCar.y, aiCar.heading]);
+    let dHeading = aiCar.heading - prev.h;
+    dHeading = Math.atan2(Math.sin(dHeading), Math.cos(dHeading));
+    aiCar.x = prev.x + (aiCar.x - prev.x) * alpha;
+    aiCar.y = prev.y + (aiCar.y - prev.y) * alpha;
+    aiCar.heading = prev.h + dHeading * alpha;
+  }
   const drawT0 = performance.now();
   try {
     renderer.frame(game, wallDt, now / 1000);
@@ -1188,13 +1724,23 @@ function loop(now) {
         touches: meterTouches, slide: events.slide, overview: events.overview,
         dist: LEVEL._hw ? game.hwDist : 0 });
       meterTouches = 0;
-      meterTiles = tilesNow; meter.draw(renderer.ctx, renderer.W, renderer.H);
+      meterTiles = tilesNow;
+      meter.draw(renderer.ctx, renderer.W, renderer.H);
     }
   } finally {
-    if (keepPose) { car.x = keepPose.x; car.y = keepPose.y; car.heading = keepPose.h; }
-    for (const [aiCar, x, y, heading] of aiKeep) { aiCar.x = x; aiCar.y = y; aiCar.heading = heading; }
+    if (keepPose) {
+      car.x = keepPose.x;
+      car.y = keepPose.y;
+      car.heading = keepPose.h;
+    }
+    for (const [aiCar, x, y, heading] of aiKeep) {
+      aiCar.x = x;
+      aiCar.y = y;
+      aiCar.heading = heading;
+    }
   }
   game.drawMs = (game.drawMs || 0) * 0.9 + (performance.now() - drawT0) * 0.1;
-  guide.draw(renderer.ctx, game, hud.layout(renderer.W, renderer.H), renderer.W, renderer.H, wallDt, renderer);
+  guide.draw(renderer.ctx, game, hud.layout(renderer.W, renderer.H), renderer.W, renderer.H, wallDt,
+    renderer);
 }
 requestAnimationFrame(loop);
