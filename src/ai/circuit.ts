@@ -21,6 +21,7 @@ import { GRAVITY } from "../cars.ts";
 import { aiTraits } from "./traits.ts";
 import { K_BRAKE, OBST_CLEAR, racingLine, nearestIdx, carGrip, profileOf } from "./line.ts";
 import { roadDriver, driveOut } from "./weaver.ts";
+import { createAttackSteps, createRaceMoves } from "./racecraft.ts";
 import type { Level } from "../world/types.ts";
 import type {
   AiCar, CarsAcc, CarsEnv, CircuitState, DriveCtx, HighwayLevel, JokerCtx,
@@ -30,7 +31,6 @@ import type {
 const WANDER_EDGE = 1.1;
 // extra braking grip planned while ATTACKING (late braking into the corner)
 const ATK_KB = 0.12;
-const YIELD = 0.05;          // speed given up to a car alongside on the inside (x 1.2 - defence)
 const ALONG_GAP = 2.7;       // m kept from a car alongside by an attack or a cover move
 // handbrake turns: apex R (m, + HB_LOOSE on loose ground), corner turn (rad), pull (s).
 const HB_R = 25, HB_LOOSE = 8, HB_TURN = 1.4, HB_T = 0.25;
@@ -89,6 +89,9 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
     atk: null, atkCorner: -1, hbCorner: -1, hbUntil: 0, cover: null, covCorner: -1, leadCar: null,
         behindT: 0
     };
+
+  const attack = createAttackSteps(state, line, traits, rnd);
+  const moves = createRaceMoves(state, line, traits, rnd, attack.beyondApex);
 
   function advance(car: AiCar) {
     const path = state.path, pts = path.pts, size = path.n;
@@ -513,7 +516,6 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
     // faster car close behind -> a defensive driver covers its side a little
     const prec = traits.prec ?? 0.5;
     const latLim = path === main ? line.hw - WANDER_EDGE : 2;
-    const cosH = Math.cos(car.heading), sinH = Math.sin(car.heading);
     const myLat = state.dodge + latT;
     const cars = carsStep(car, others, path, nearIdx, idx, speed, prec, prof, lineOff, latT, startK,
         latLim, myLat);
@@ -547,75 +549,14 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
     // a defensive driver (chance = defence) moves over to COVER THE INSIDE once, and pays for the
     // tighter line (3 % slower in the corner).
     if (path === main) {
-      if (lead) state.nearT = (state.nearT || 0) + dt;
-      if (lead && lead.c === state.leadCar) state.behindT += dt;
-      else {
-        state.leadCar = lead ? lead.c : null;
-        state.behindT = 0;
-      }
-      const cur = line.cid[nearIdx]; let nextCorner = -1, nextDist = 0;
-      for (let offset = 1, limit = Math.round(150 / line.sp); offset < limit; offset++) {
-        const cid = line.cid[(nearIdx + offset) % count];
-        if (cid >= 0 && cid !== cur) {
-          nextCorner = cid;
-          nextDist = offset * line.sp;
-          break;
-        }
-      }
-      const past = (plan: { corner: number }) => plan.corner >= 0 && cur === plan.corner && (
-          (nearIdx - line.corners[plan.corner].apex + count) % count) < count / 2;
-      if (state.atk) {
-        const attack = state.atk, fwd = (attack.car.x - car.x) * cosH + (
-            attack.car.y - car.y) * sinH;
-        if (fwd < -5 || fwd > 35 || state.t - attack.t0 > (attack.corner < 0 ? 9 : 7) || past(
-            attack)) state.atk = null;
-        }
-      if (!state.atk && lead && nextCorner >= 0 && nextCorner !== state.atkCorner &&
-          nextDist > 15 && nextDist < 140 && lead.vAlong < speed + 2
-        && state.behindT > Math.max(0.15, 0.6 - 0.5 * traits.aggression)) {
-        state.atkCorner = nextCorner;
-        if (!debugValue("NOATK") && rnd() < 0.6 + 0.4 * traits.aggression) {
-          const turn = line.corners[nextCorner].turn, leadAbs = lineOff + lead.oc;
-          const attackSide = Math.sign(leadAbs) === turn && Math.abs(leadAbs) > 0.4 * latLim ?
-              -turn : turn;
-          state.atk = {
-            car: lead.c, side: attackSide, corner: nextCorner, t0: state.t
-          };
-          state.nAtk = (state.nAtk || 0) + 1;
-        }
-      }
-      // TOW PASS (ovals, long straights: no corner close enough to brake into): in the slipstream
-      // of the same car for a while -> pull out to the side with more room and drive past on the
-      // extra speed (contact.js slipstream)
-      if (!state.atk && lead && (nextCorner < 0 || nextDist > 140) && (car.dragMul ?? 1) < 0.85 &&
-          state.behindT > Math.max(0.3, 1 - 0.7 * traits.aggression)
-        && state.t - (state.towT || -99) > 4) {
-        state.towT = state.t;
-        if (!debugValue("NOATK") && rnd() < 0.6 + 0.4 * traits.aggression) {
-          const leadAbs = lineOff + lead.oc, ahead = pts[
-              idx(nearIdx + Math.round(80 / path.sp))].turn || 1;
-          const passSide = Math.abs(leadAbs) > 0.3 * latLim ? -Math.sign(leadAbs) : ahead;
-          state.atk = {
-            car: lead.c, side: passSide, corner: -1, t0: state.t
-          };
-          state.nAtk = (state.nAtk || 0) + 1;
-        }
-      }
-      // GIVING ROOM: a car alongside on the INSIDE of the corner we are entering, and we are not
-      // attacking -> concede a little (a defensive driver less), as real drivers do rather than
-      // turn in on it
-      const insideOf = cur >= 0 ? line.corners[cur].turn : nextCorner >= 0 && nextDist < 40 ?
-          line.corners[nextCorner].turn : 0;
-      if (!state.atk && side && side === insideOf) vMul *= 1 - YIELD * (1.2 - traits.defence);
-      if (state.cover && (past(state.cover) || state.t - state.cover.t0 > 6)) state.cover = null;
-      if (!state.cover && !state.atk && threat && threat.f < -5 && nextCorner >= 0 &&
-          nextCorner !== state.covCorner && nextDist < 110) {
-        state.covCorner = nextCorner;
-        if (!debugValue("NOCOV") && rnd() < (
-            0.5 + 0.5 * (traits.prec ?? 0.5)) * traits.defence) state.cover = {
-          side: line.corners[nextCorner].turn, corner: nextCorner, t0: state.t
-        };
-      }
+      const nxt = attack.scanCorners(lead, nearIdx, dt);
+      const { cur, nextCorner, nextDist } = nxt;
+      attack.endAttack(car, nearIdx, cur);
+      attack.startAttack(lead, nxt, speed, lineOff, latLim);
+      moves.towPass(car, lead, nxt, lineOff, latLim,
+          pts[idx(nearIdx + Math.round(80 / path.sp))].turn);
+      vMul = moves.yieldRoom(side, nxt, vMul);
+      moves.coverStep(threat, nxt, nearIdx);
       if (state.atk) {
         conflict = true;
         dodgeT = state.atk.side * (latLim - 1.0) - lineOff - latT;
