@@ -16,6 +16,7 @@ import type { ArtLayer } from "./types.ts";
 
 export const TEX_M = 24;        // the repeat distance in metres (owner judges it on the phone)
 export const TEX_MAX = 24;      // most textures cached (least recently used goes first)
+export const SCALED_MAX = 64;   // most pre-scaled copies cached (least recently used first)
 export const TEX_PPM = SPRITE_PPM;  // art px per metre of every texture (as the car sprites)
 
 type Mark = (
@@ -193,11 +194,14 @@ export function paintTexture(
 
 // fill [x0, x1] x [y0, y1] (world m; the context is at the world origin) with the texture: one
 // texel is ppm / TEX_PPM of the context's units, so every zoom shows the same picture, nearest
-// neighbour (smoothing off), anchored at the world origin
-export function fillTexture(gfx: Gfx, tex: HTMLCanvasElement, ppm: number, rect: number[]) {
+// neighbour (smoothing off), anchored at the world origin. texPpm: the texels per metre of `tex`
+// (TEX_PPM for the full texture, the scaled copy's own value for a scaledTexture)
+export function fillTexture(
+  gfx: Gfx, tex: HTMLCanvasElement, ppm: number, rect: number[], texPpm = TEX_PPM
+) {
   const pat = gfx.createPattern(tex, 'repeat');
   if (!pat) return;
-  const unit = ppm / TEX_PPM;
+  const unit = ppm / texPpm;
   pat.setTransform(new DOMMatrix().scale(unit, unit));
   const smooth = gfx.imageSmoothingEnabled;
   gfx.imageSmoothingEnabled = false;
@@ -211,9 +215,37 @@ export function fillTexture(gfx: Gfx, tex: HTMLCanvasElement, ppm: number, rect:
 // dropped when the level changes, at most TEX_MAX entries, least recently used evicted first
 export function createTextureCache() {
   const cache = new Map<string, HTMLCanvasElement>();
+  const scaledCache = new Map<string, HTMLCanvasElement>();
   let level: unknown = null;
+  // a copy of `tex` pre-scaled DOWN to devPpm texels per metre (smoothing on, quality high), built
+  // once per (surface, size) and kept: a zoomed-out step then samples a filtered picture, not a
+  // texture with texels dropped at random. Memory: size^2 x 4 bytes, at most 415^2 x 4
+  // = 0.69 MB each, ~1.5 MB per surface over all steps, capped at SCALED_MAX copies. The copy
+  // is the pattern wrapped over one period, so it still repeats without a seam.
+  function scaled(key: string, tex: HTMLCanvasElement, devPpm: number) {
+    const size = Math.max(1, Math.round(TEX_M * devPpm));
+    const name = `${key}|${size}`;
+    const hit = scaledCache.get(name);
+    if (hit) { scaledCache.delete(name); scaledCache.set(name, hit); }
+    else {
+      const copy = document.createElement('canvas');
+      copy.width = copy.height = size;
+      const gfx = copy.getContext('2d', { willReadFrequently: true })!;
+      const pat = gfx.createPattern(tex, 'repeat');
+      if (pat) {
+        pat.setTransform(new DOMMatrix().scale(size / tex.width, size / tex.height));
+        gfx.imageSmoothingEnabled = true;
+        gfx.imageSmoothingQuality = 'high';
+        gfx.fillStyle = pat;
+        gfx.fillRect(0, 0, size, size);
+      }
+      scaledCache.set(name, copy);
+      while (scaledCache.size > SCALED_MAX) scaledCache.delete(scaledCache.keys().next().value!);
+    }
+    return { tex: scaledCache.get(name)!, texPpm: size / (tex.width / TEX_PPM) };
+  }
   function get(key: string, paint: (gfx: Gfx, period: number) => void) {
-    if (level !== LEVEL) { cache.clear(); level = LEVEL; }
+    if (level !== LEVEL) { cache.clear(); scaledCache.clear(); level = LEVEL; }
     const hit = cache.get(key);
     if (hit) { cache.delete(key); cache.set(key, hit); return hit; }
     const size = Math.round(TEX_M * TEX_PPM);
@@ -227,5 +259,5 @@ export function createTextureCache() {
     while (cache.size > TEX_MAX) cache.delete(cache.keys().next().value!);
     return canvas;
   }
-  return { get };
+  return { get, scaled };
 }

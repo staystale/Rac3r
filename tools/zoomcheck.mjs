@@ -1,4 +1,4 @@
-﻿// zoomcheck.mjs - does a patch of ground look the same at every zoom, only bigger or smaller?
+// zoomcheck.mjs - does a patch of ground look the same at every zoom, only bigger or smaller?
 // Per level it renders the ground around the start (cars, props and the hud skipped) at zoom
 // steps and at zooms between the steps, cuts out the SAME world square from each frame, scales
 // it to one common size, and prints how much each capture differs from the one before it

@@ -262,7 +262,12 @@ function paintTextured(groundCtx: GroundCtx, name: string, art: SurfaceArt, rect
   const tex = textures.get(`${name}|${square}`,
     (gfx, period) => paintTexture(gfx, period, TEX_PPM, art.layers, square));
   if (!tex) return false;
-  fillTexture(view.ctx, tex, PPMz(), rect);
+  const ppm = PPMz(), devPpm = ppm * view.dpr;
+  // below the texture's own density: fill from a copy filtered down to this step's density
+  if (devPpm < TEX_PPM) {
+    const copy = textures.scaled(`${name}|${square}`, tex, devPpm);
+    fillTexture(view.ctx, copy.tex, ppm, rect, copy.texPpm);
+  } else fillTexture(view.ctx, tex, ppm, rect);
   return true;
 }
 
