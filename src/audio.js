@@ -208,7 +208,7 @@ export function createAudio() {
     }
   }
 
-  function update(car, wallDt) {
+  function update(car) {
     if (!ctx) return;
     if (ctx.state === 'suspended') ctx.resume().catch(() => {});
     if (ctx.state !== 'running' || muted || volume <= 0.001) return;
@@ -244,7 +244,6 @@ export function createAudio() {
     const latSlip = Math.max(Math.abs(telem.satF || 0), Math.abs(telem.satR || 0));
     const longSlip = Math.max(Math.abs(telem.slipSpeedF || 0), Math.abs(telem.slipSpeedR || 0));
     const isLocked = Boolean(telem.lockedF || telem.lockedR);
-    const isBraking = isLocked || ((car.brakeLight || 0) > 0.05 && longSlip > 1.2);
 
     // Demand: 1.0 = full friction limit reached
     const slipDemand = Math.max(

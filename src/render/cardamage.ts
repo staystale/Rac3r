@@ -155,13 +155,13 @@ export function createCarDamage(view: View) {
   // ROLLED CARS (roll.js): the other faces of the box, generated like the top sprite (art px; x
   // rear -> front as pixelCar).
   const faceCache = new Map<string, CarSprite | SideSprite>(),
-    ROLL_HP = (spec: RenderCarSpec) => Math.round(1.4 * SPRITE_PPM);
+    ROLL_HP = () => Math.round(1.4 * SPRITE_PPM);
   function sideSprite(spec: RenderCarSpec): SideSprite {
     const cacheKey = 'side:' + spec.id + spec.paint + spec.trim;
     if (faceCache.has(cacheKey)) {
       return faceCache.get(cacheKey) as SideSprite;
     }
-    const lengthPx = Math.round(spec.len * SPRITE_PPM), heightPx = ROLL_HP(spec),
+    const lengthPx = Math.round(spec.len * SPRITE_PPM), heightPx = ROLL_HP(),
         canvas = document.createElement('canvas');
     canvas.width = lengthPx + 4;
     canvas.height = heightPx + 4;

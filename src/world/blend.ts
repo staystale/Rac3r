@@ -47,7 +47,7 @@ const tri = (rng: Rng): number => rng() * rng();
 // 1.5 m on a half-metre world grid.
 const SQ_GRID = 0.5;
 const snapG = (value: number): number => Math.round(value / SQ_GRID) * SQ_GRID;
-function blendPatch(rng: Rng, x: number, y: number, surface: Surface, rot: number): Patch {
+function blendPatch(rng: Rng, x: number, y: number, surface: Surface): Patch {
   const size = SQ_GRID * (1 + Math.floor(rng() * 3));
   return { x: snapG(x), y: snapG(y), w: size, h: size, sq: true, surface, blend: true };
 }
@@ -95,7 +95,7 @@ export function buildBlend(level: Level, rng: Rng): Patch[] {
         const signed = (rng() < 0.5 ? -1 : 1) * tri(rng) * BLEND_W;
         const point = pointAt(changeDist + signed), off = (rng() - 0.5) * (subtrack.width - 1);
         const patch = blendPatch(rng, point.x + point.nx * off, point.y + point.ny * off,
-          signed < 0 ? after : before, point.heading);
+          signed < 0 ? after : before);
         patch.src = 'change';
         out.push(patch);
       }
@@ -111,7 +111,7 @@ export function buildBlend(level: Level, rng: Rng): Patch[] {
             const off = side * (halfWidth + 0.2 + tri(rng) * 1.5);
             const x = point.x + point.nx * off, y = point.y + point.ny * off;
             if (!onRoad(x, y, -0.2) && !inPad(x, y))
-              out.push(blendPatch(rng, x, y, surface, point.heading));
+              out.push(blendPatch(rng, x, y, surface));
           }
         }
       }
@@ -138,7 +138,7 @@ export function buildBlend(level: Level, rng: Rng): Patch[] {
           const offset = sign * (0.3 + tri(rng) * BLEND_W);
           const x = baseX + nx * offset, y = baseY + ny * offset;
           if (onRoad(x, y, 1.5) || inPad(x, y)) continue;
-          out.push(blendPatch(rng, x, y, surf, Math.atan2(tanY, tanX)));
+          out.push(blendPatch(rng, x, y, surf));
         }
       }
     }

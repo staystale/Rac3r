@@ -3,7 +3,7 @@
 // that roll upright on their tread, tumble/flip, wobble, and slide flat on the floor.
 
 import { CONES, LEVEL } from "./world/state.ts";
-import { FLOOR, FX0, FX1, FY0, FY1 } from "./world/bounds.ts";
+import { FX0, FX1, FY0, FY1 } from "./world/bounds.ts";
 import { BARRIER_HALF } from "./world/barriers.ts";
 const WALL_E = 0.3, WALL_SCRAPE = 0.8, OVER_V = 9, OVER_CHANCE = 0.3;
 function hitWalls(cone) {
@@ -528,7 +528,7 @@ export function createCones({ objectHits = true } = {}) {
       for (const tyre of newTyres) tyre._n = nextN++;
       list.push(...newTyres);
     }
-    if (objectHits) collideObjects(dt);
+    if (objectHits) collideObjects();
   }
 
   // A PERSISTENT GRID of the objects AT REST, built once per level (reset) — they do not move, so
@@ -602,7 +602,7 @@ export function createCones({ objectHits = true } = {}) {
     if (rel > 2 && hits.length < 24) hits.push({ x: (objA.x + objB.x) / 2, y: (objA.y + objB.y)
         / 2, speed: rel, kind: objB.kind });
   }
-  function collideObjects(dt) {
+  function collideObjects() {
     movers.length = 0;
     for (let i = 0; i < list.length; i++) {
       const obj = list[i];

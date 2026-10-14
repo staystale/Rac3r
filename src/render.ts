@@ -10,14 +10,9 @@
 // the pale floor, the front end is unmistakable (lights + screen rake + steered wheels), and the
 // thing the player must read at a glance — which way the front wheels point — is drawn at full
 // contrast.
-import { hash2d } from "./core/random.ts";
 import type { Settings } from "./core/settings.ts";
 
-import { FENCE } from "./world/bounds.ts";
-import { CONES } from "./world/state.ts";
 import { COL } from "./world/colours.ts";
-import { visualSlopeAt } from "./world/terrain.ts";
-import { MARK_PPM } from './marks.js';
 import { createCarSprite } from "./render/carsprite.ts";
 import { createCarDamage } from "./render/cardamage.ts";
 import { createCars } from "./render/cars.ts";
@@ -40,7 +35,6 @@ import type { Cam, CamCar, RenderGame, TileBudget, View } from "./render/types.t
 // orientations.
 export const PPM_MIN = 18, PPM_MAX = 26, PPM_DIV = 17;
 export const ZOOM_MIN = 0.30;   // how far out the camera pulls at high speed
-const clamp01 = (value: number) => (value < 0 ? 0 : value > 1 ? 1 : value);
 export const LOOKAHEAD = 2.6;   // seconds of road kept in view at any speed
 export const MAX_DPR = 2;
 

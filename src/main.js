@@ -45,7 +45,6 @@ import { SPAWN, LEVEL } from "./world/state.ts";
 import { applyGround, fenceClamp, obstacleClamp, clearWear } from "./world/wear.ts";
 import { barrierClamp, solidClamp } from "./world/barriers.ts";
 import { LEVELS } from "./world/levels/index.ts";
-import { FENCE } from "./world/bounds.ts";
 import { findNearestSubtrackPoint, onTrack, querySubtrack } from "./world/tyrewall.ts";
 
 // build the world, in this order: the hand-made levels (load.ts), then the levels added after them
@@ -714,7 +713,7 @@ function stepAI(dt) {
         entry.stuckT = 0;
       }
     // an AI car that breaks is put back on the road, never allowed to stop the game
-    } catch (err) {
+    } catch {
       if (LEVEL.endless) {
         car.x = car._p.x;
         car.y = car._p.y;
@@ -742,7 +741,6 @@ game.lap = lapState;
 
 function updateRecoveryTracking(car, dt) {
   const speed = Math.hypot(car.vx, car.vy);
-  const now = (typeof performance !== 'undefined' ? performance.now() : Date.now());
 
   // 1. If level has a subtrack, update track progress (the furthest point reached along the
   // circuit)

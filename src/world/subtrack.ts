@@ -32,7 +32,6 @@ export function autoKerbs(track: Subtrack, {
     turn.push(dHead > 0 ? 1 : -1);
   }
   const kerbs: CurvedKerb[] = [];
-  let i = 0;
   // start scanning at a point that is NOT in a corner, so a corner spanning the line is found
   // whole
   let start = 0;

@@ -17,21 +17,18 @@
   },
   "src/audio.js": {
     "complexity": 1,
-    "max-lines-per-function": 3,
-    "no-unused-vars": 2
+    "max-lines-per-function": 3
   },
   "src/cones.js": {
     "complexity": 7,
-    "max-lines-per-function": 3,
-    "no-unused-vars": 2
+    "max-lines-per-function": 3
   },
   "src/damage.js": {
     "complexity": 1
   },
   "src/guide.js": {
     "complexity": 1,
-    "max-lines-per-function": 2,
-    "no-unused-vars": 1
+    "max-lines-per-function": 2
   },
   "src/highway.js": {
     "complexity": 4,
@@ -45,8 +42,7 @@
   "src/hud.js": {
     "complexity": 4,
     "max-lines": 1,
-    "max-lines-per-function": 3,
-    "no-unused-vars": 2
+    "max-lines-per-function": 3
   },
   "src/input.js": {
     "complexity": 1,
@@ -55,8 +51,7 @@
   "src/main.js": {
     "complexity": 9,
     "max-lines": 1,
-    "max-lines-per-function": 2,
-    "no-unused-vars": 3
+    "max-lines-per-function": 2
   },
   "src/marks.js": {
     "complexity": 1,
@@ -72,7 +67,6 @@
     "max-lines-per-function": 1
   },
   "src/render.ts": {
-    "@typescript-eslint/no-unused-vars": 6,
     "complexity": 1,
     "max-lines-per-function": 2
   },
@@ -80,7 +74,6 @@
     "max-lines-per-function": 1
   },
   "src/render/cardamage.ts": {
-    "@typescript-eslint/no-unused-vars": 1,
     "complexity": 2,
     "max-lines-per-function": 3
   },
@@ -122,8 +115,7 @@
   },
   "src/stagegen.js": {
     "complexity": 2,
-    "max-lines-per-function": 2,
-    "no-unused-vars": 1
+    "max-lines-per-function": 2
   },
   "src/traffic.ts": {
     "complexity": 2,
@@ -139,7 +131,6 @@
     "complexity": 2
   },
   "src/world/blend.ts": {
-    "@typescript-eslint/no-unused-vars": 1,
     "complexity": 2
   },
   "src/world/levels/brands-snatch.ts": {
@@ -159,14 +150,10 @@
   "src/world/levels/slidden-hill.ts": {
     "@typescript-eslint/no-unused-vars": 4
   },
-  "src/world/levels/thruston.ts": {
-    "@typescript-eslint/no-unused-vars": 1
-  },
   "src/world/load.ts": {
     "complexity": 2
   },
   "src/world/subtrack.ts": {
-    "@typescript-eslint/no-unused-vars": 1,
     "complexity": 2,
     "max-lines-per-function": 2
   },

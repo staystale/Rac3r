@@ -69,7 +69,7 @@ const CARDS = [
   },
   {
     title: 'SPEED + GEARS',
-    text: (scene) => 'Speed, gear and revs. The gearbox is automatic; '
+    text: () => 'Speed, gear and revs. The gearbox is automatic; '
       + 'the bar flashes red at the shift point.'
       + (LEVEL.subtrack ? ' Below it: your lap time and best lap.' : ''),
     target: (scene) => LEVEL.subtrack ? union(scene.L.speed, scene.L.lap) : scene.L.speed,

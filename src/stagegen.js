@@ -14,7 +14,7 @@
 import { lcg } from "./core/random.ts";
 import { finishLevel } from "./world/load.ts";
 import { createSubtrack, ghostSegment, autoKerbs } from "./world/subtrack.ts";
-import { onTrack, querySubtrack } from "./world/tyrewall.ts";
+import { onTrack } from "./world/tyrewall.ts";
 import { alongTrack, solidsFromProps } from "./world/barriers.ts";
 import { SURFACES } from "./world/surfaces.ts";
 import { BASE_FLOOR as FLOOR } from "./world/bounds.ts";

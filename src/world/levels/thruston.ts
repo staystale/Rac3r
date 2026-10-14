@@ -140,8 +140,6 @@ const TH_PIT_LANE = alongTrack(TH_SUBTRACK, TH_PIT.d0, TH_PIT.d1,
   (along, len) => 4 + (TH_PIT.off - 4) * ss01(Math.min(along, len - along) / TH_PIT.ramp), 2);
 // garage fronts flush with the lane (a 1 m grass strip showed)
 export const TH_GAR = { d0: 1204, d1: 22, off: TH_PIT.off + TH_PIT.w / 2 + 5, depth: 10, n: 4 };
-const thSpan = (fromDist: number, toDist: number) =>
-  ((toDist - fromDist) + TH_SUBTRACK.totalDist) % TH_SUBTRACK.totalDist;
 // THE INFIELD (2026-10-04; user: "isn't there more decorating to make it look like the real race
 // track?"). Read off the map (art/ref/thruxton-map.png: paved taxiway system, paved apron, hangars,
 // grass aircraft parking) and the 1945 RAF photo (art/ref/may45.jpg). Map px -> game m exactly as

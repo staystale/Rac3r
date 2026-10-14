@@ -75,7 +75,6 @@ export function createHud() {
     // space and cannot collide with anything (CLAUDE.md §4: the four corners have owners).
     const levelRows = LEVELS.map((level,
       i) => ({ id: level.id, name: level.name, ...dAt(i, carCols), w: DROP_W, h: dStep - 2 }));
-    const clearWidth = 76;
     const tuneChip = { x: MARGIN + chip.w + 6, y: MARGIN, w: 64, h: BTN_H };
     // MEASURED BUG, 2026-09-27 (caught by tools/uicheck.mjs, not by eye): adding the TUNE chip made
     // the top row need chip 116 + TUNE 64 + RESET 76 + CLEAR 76 + the speed panel 120 = 462 px, and
@@ -508,7 +507,7 @@ export function createHud() {
         drawCamera(ctx, game, width, height);
         drawFlag(ctx, game, width, height);
       };
-    } catch (err) {}
+    } catch {}
     const rects = layout(width, height);
     const car = game.car;
     const spec = car.spec;
