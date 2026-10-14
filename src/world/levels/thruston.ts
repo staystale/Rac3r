@@ -89,7 +89,8 @@ export const TH_BUMPS = prepBumps([
   ...thBank(778, 877, -31, 4, 7, 1.3),
   ...thBank(440, 500, 27, 4, 7, 1.1),
   // spacing 4 m with r 7: at 10 m apart they photographed as a row of separate pale blobs, not a
-  // bank the perimeter banking, Club -> line -> Allard -> Complex -> Noble
+  // bank
+  // the perimeter banking, Club -> line -> Allard -> Complex -> Noble
   ...thBank(1120, 480, -33, 4, 7, 1.2),
   ...thBank(1035, 1100, -31, 4, 7, 1.4),      // Woodham Hill Bank
 ]);
@@ -132,7 +133,8 @@ export const TH_PAINT: Paint[] = [
 // Club and the line) and the photos (art/ref/: concrete lane, yellow line, low red/white/blue pit
 // wall, block garages under a red tyre-brand banner, control tower, grandstand, Armco, catch fence,
 // spectator banks). Layout only — working pit stops come later (user). Everything by DISTANCE +
-// OFFSET (+ = inside). lane leaves after Club, rejoins before Allard (R >= 67 m here)
+// OFFSET (+ = inside).
+// lane leaves after Club, rejoins before Allard (R >= 67 m here)
 export const TH_PIT = { d0: 1178, d1: 48, off: 17, w: 9, ramp: 28 };
 const TH_PIT_LANE = alongTrack(TH_SUBTRACK, TH_PIT.d0, TH_PIT.d1,
   (along, len) => 4 + (TH_PIT.off - 4) * ss01(Math.min(along, len - along) / TH_PIT.ramp), 2);

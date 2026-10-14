@@ -32,8 +32,9 @@ const HALF_PI = Math.PI / 2;
 // ANGLE (0 under ANG_MIN of the slide being sideways, 1 at fully sideways) x SPEED ((v / 60
 // mph)^4 under it, rising past it, cap x2.5) x the car's stability (track / 2 cg).
 const PCT = {
-  // high: the ground grabs a sliding car (user, 2026-10-04) SAND the HIGHEST risk (it also stops a
-  // slide fastest, so its per-cell % is highest), SNOW a close second
+  // high: the ground grabs a sliding car
+  // (user, 2026-10-04) SAND the HIGHEST risk (it also stops a slide fastest, so its per-cell % is
+  // highest), SNOW a close second
   grassLong: 5, sand: 22, mud: 5, thickMud: 7, snow: 11,
   // a GRAVEL TRAP (lab.js SURFACE_TRAP: deep, ploughing): the readiest to dig in and flip a car
   // sliding into it sideways (user)

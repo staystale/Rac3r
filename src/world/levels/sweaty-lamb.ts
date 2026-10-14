@@ -23,8 +23,8 @@ import type { Point, Cover, Lane, Cone, Prop, Paint, Barrier } from "../types.ts
 // SWEEPER round the SE corner, a TYRE CHICANE on the climb, a square left, the HAIRPIN AROUND THE
 // TREE, a left kink, HAIRPIN 2, the CREST YUMP, a right-left FLICK, a downhill left sweeper, a
 // SQUARE RIGHT junction, the HAIRPIN AT THE TOP of the second hill, the LONG FAST DESCENT, a
-// WIGGLE, the flying FINISH; then a short farm road back to the start. square left, dog-leg square
-// right
+// WIGGLE, the flying FINISH; then a short farm road back to the start.
+// square left, dog-leg square right
 const SL_STAGE: Point[] = [[-215, 205], [-175, 205], [-150, 200], [-148, 172], [-140, 160],
   [-110, 158],
   // ESSES, the SPLASH

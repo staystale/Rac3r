@@ -61,8 +61,8 @@ function blendPatch(rng: Rng, x: number, y: number, surface: Surface, rot: numbe
 // (b) loose road edges: 1 m steps (was 2 m before patches got smaller). CLEANER SIDES (user,
 //   2026-10-03: "sides of tracks should be a cleaner transition, like real life"): only a thin,
 //   sparse fringe of the road material at the edge — was 55% per metre out to ~5 m, plus the verge
-//   creeping onto the road (removed). The `rng() < 0.18` branch: the road drags a little onto the
-//   verge.
+//   creeping onto the road (removed).
+//   The `rng() < 0.18` branch: the road drags a little onto the verge.
 // (c) natural zone edges: 1 m steps (was 2 m before patches got smaller). (S-B) a zone laid in a
 //   level's EXTENSION (z.ext: beyond the original square) blends there; every other zone keeps the
 //   square rule, so the old lab's blend is bit-identical (tools/_labcheck.mjs). `sides`: outward,

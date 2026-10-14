@@ -22,8 +22,8 @@
 // the harder-hit front, a PUNCTURE (axle x0.7) from a heavy corner hit, and a WHEEL OFF from a big
 // hit on a corner already near wrecked: that axle x0.45, a hard pull, the bare corner drags
 // (rolling drag x5 per wheel). Never a DNF: the player RESETs (repairs), an AI that is tooInjured()
-// resets itself. The BILL counts every hit, repaired or not. m/s of impact velocity change below
-// which it is only a scrape (v1: 2.5 — "really hard to cause")
+// resets itself. The BILL counts every hit, repaired or not.
+// m/s of impact velocity change below which it is only a scrape (v1: 2.5 — "really hard to cause")
 export const DMG_FLOOR = 1.5;
 // m/s: a contact this small in one step is a car sliding along something
 const SCRAPE_DV = 0.12;

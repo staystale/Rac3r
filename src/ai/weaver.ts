@@ -40,8 +40,8 @@ export function driveOut(
 // SYSTEM NOT TWO THEN ONE): this was hwrace.js createHwDriver. It is now this file's road reader
 // for levels with no closed lap (level.endless), behind the ONE entry point createAIDriver; moved
 // UNCHANGED (MEASURED: weavecheck + pacesuite identical to before with __NOOUT) plus the shared
-// drive-out. Later stages share more (mistakes, skill). m/s the lateral target moves (x1.8 in an
-// emergency); traffic changes lane at 0.9
+// drive-out. Later stages share more (mistakes, skill).
+// m/s the lateral target moves (x1.8 in an emergency); traffic changes lane at 0.9
 const LAT_R = 3.0;
 const GRAVITY = 9.81;
 const IDLE = { steer: 0, throttle: 0, brake: 0.3, handbrake: 0, reverse: 0 };
@@ -172,8 +172,9 @@ export function roadDriver(level: HighwayLevel, traits: Traits, rnd: () => numbe
     // THE MIRROR: a FASTER car coming up from behind blocks a line it is on if it would arrive
     // within MIR_T s (MEASURED hwracecheck seed 77, Realish: a racer at 145 km/h moved 4.4 m left
     // into the line of one 18 m back at 177 km/h - the one behind braked on the hard shoulder,
-    // spun, and both left the road; the driver only ever looked at cars ahead, > 6 m back did not
-    // exist) (MEASURED pacesuite, 18 races: bad runs 7 -> 2, off-road car-steps 13079 -> 4006, mean
+    // spun, and both left the road; the driver only ever
+    // looked at cars ahead, > 6 m back did not exist)
+    // (MEASURED pacesuite, 18 races: bad runs 7 -> 2, off-road car-steps 13079 -> 4006, mean
     // 126.7 -> 133.4 km/h)
     const mirT = HWT.mir ?? 2.5;
     const mirror = (off: number) => {

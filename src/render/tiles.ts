@@ -296,9 +296,9 @@ export function createTiles(view: View, cam: Cam, settings: Settings, helpers: T
   // a shaded patch of grass can never snap to another surface's colour. Baked once per tile: costs
   // nothing per frame. depth: how far a full band moves a colour toward white (lit) or black
   // (shadow). MEASURED (photographed): a plain brightness MULTIPLY of 1.2 was invisible on dark
-  // race tarmac (#2d303a), so light is ADDED toward white instead. height outweighs slope so a bump
-  // reads LIGHTER overall and a dip DARKER (user) 4 bands: at 3 the Naffcar bank flipped a whole
-  // band at the turn apex and read as a seam
+  // race tarmac (#2d303a), so light is ADDED toward white instead.
+  // height outweighs slope so a bump reads LIGHTER overall and a dip DARKER (user)
+  // 4 bands: at 3 the Naffcar bank flipped a whole band at the turn apex and read as a seam
   const SHADE = {
     cellM: 0.5, maxCells: 64, gain: 3.0, bands: 4, depth: 0.36, hRef: 0.25, hGain: 0.9,
     slopeK: 0.55
@@ -517,7 +517,8 @@ export function createTiles(view: View, cam: Cam, settings: Settings, helpers: T
     }
     // HYSTERESIS on the zoom step (perf, 2026-10-03): the speed zoom wanders across step boundaries
     // all the time and every switch repaints the whole view. Stay on the current step until the
-    // zoom is 0.75 of a step away from it. flight: even steps only, finer side
+    // zoom is 0.75 of a step away from it.
+    // flight: even steps only, finer side
     let step = fly ? 2 * Math.ceil(zStepOf(view.zoom) / 2) : zStepOf(view.zoom);
     if (!fly && tileState.lastStep !== null && Math.abs(ZSTEP * Math.log2(view.zoom)
         - tileState.lastStep) < 0.75) step = tileState.lastStep;

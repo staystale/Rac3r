@@ -43,7 +43,8 @@ const WIDE = +(debugValue("WIDE") ?? 0.8), WIDE_SLOW = 2.5;
 const UNDER_LOOSE = 0.35;
 // MEASURED (aifieldsuite Realish, 24 races): before start-contacts 765, contact 231 s, resets 14,
 // passes 118; 6 s / 0.8 m: 564, 258 s, 17, 219; 9 s / 1.3 m (kept): 492, 212 s, 9, 192 (off-road
-// +12 %) s to ease from the grid lane onto the line; m more room alongside then
+// +12 %)
+// s to ease from the grid lane onto the line; m more room alongside then
 const START_BLEND = 9, START_GAP = 1.3;
 // + only in corners with an apex tighter than DRIFT_R m (hairpins / junctions)   // rad: the rear
 // slip a drifting AI holds, and where it gives up and catches it
@@ -231,7 +232,8 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
     if (state.t < state.thrUntil) thrForce = true;
 
     // ---- the line: less of its width for lower skill (lineQ), plus a slow WANDER, bigger for less
-    // skilled drivers (! : the racing line has off at every point)
+    // skilled drivers
+    // (! : the racing line has off at every point)
     const lineOff = path === main ? pts[nearIdx].off! : 0;
     latT += -lineOff * (1 - traits.lineQ);
     latT += traits.wander * (
@@ -560,7 +562,8 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
           debugValue("DRIFT") as number ?? (0.45 + 0.5 * traits.aggression));
     }
     // ... and never near the road edge (a held drift there ran a Rally car off Sweaty Lamb 12 s a
-    // lap): within EDGE_DRIFT m it catches m from the car to the nearer edge
+    // lap): within EDGE_DRIFT m it catches
+    // m from the car to the nearer edge
     const nearPt = pts[nearIdx], edgeRoom = path === main ? line.hw - Math.abs(
         lineOff + (car.x - nearPt.x) * -Math.sin(nearPt.h) + (car.y - nearPt.y) * Math.cos(
         nearPt.h)) : 0;
@@ -613,7 +616,8 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
     const looseUnder = under && loose > 0.3 && offPlan;
     if (drifting) { state.driftT = (state.driftT || 0) + dt; state.lastDrift = state.t; }
     // a drift that ran it OFF the road: it backs off drifting for DRIFT_BAN s (a driver who scares
-    // himself) off within 2 s of a drift
+    // himself)
+    // off within 2 s of a drift
     if (edgeRoom < -0.5 && state.t - (state.lastDrift ?? -99) < 2) {
       state.driftOn = false;
       state.driftBan = state.t + DRIFT_BAN;

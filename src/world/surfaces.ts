@@ -52,7 +52,8 @@ const MARK_MUD: Mark = { rgb: '58,42,30', widen: 2.6, alpha: 0.20 };
 // surface gets degraded to thick mud" - "should darken if anything"; tools/_mudtracks.mjs).
 // MEASURED: MARK_MUD (58,42,30) IS thick mud's base colour (#3a291d), so on a worn cell the same
 // tracks went 11 -> 7 luminance darker than their ground (pass 2 -> 4) and read as the ripple art
-// instead. Wetter, darker. 22,14,9 @ 0.26 photographed near-BLACK by pass 6: softened
+// instead. Wetter, darker.
+// 22,14,9 @ 0.26 photographed near-BLACK by pass 6: softened
 const MARK_THICK_MUD: Mark = { rgb: '34,23,15', widen: 2.6, alpha: 0.17 };
 const MARK_SAND: Mark = { rgb: '176,152,112', widen: 2.5, alpha: 0.14 };
 // Wet tarmac is the odd one: a tyre does not darken it, it DRIES it. So the mark is lighter than

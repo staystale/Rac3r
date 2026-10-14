@@ -11,7 +11,8 @@ import { querySubtrack } from "./tyrewall.ts";
 // numbers, which is what lets a second level lay its surfaces out completely differently for free.
 //
 // `boxed` only affects DRAWING — a rim and a painted name, for a test panel you are meant to aim
-// at. m of tarmac round a rounded test pad (drawn by render.ts drawZones)
+// at.
+// m of tarmac round a rounded test pad (drawn by render.ts drawZones)
 export const PAD_APRON = 1.2;
 // |dx|, |dy| from the centre inside a rectangle of half-size hw x hh with corner radius R
 function inRoundRect(dx: number, dy: number, halfW: number, halfH: number,

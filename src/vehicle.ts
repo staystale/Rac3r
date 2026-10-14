@@ -230,7 +230,8 @@ const ESC = { dead: 0.10, deadRel: 0.25, gain: 6, cutAt: 0.10, vMin: 10, betaLim
     betaGain: 20, underK: 0.2, hbHold: 0.6 };
 // MEASURED 2026-10-03 (tools/tyrecheck.mjs): 0.020 + 0.0022/(m/s) cooled with a ~17 s time
 // constant, so a clean 0.8 g corner held 30 s only reached 30 C. Real tyres hold heat for minutes:
-// 0.010 + 0.0010. 1/s toward ambient, always (0.010 before the "harder to build" pass)
+// 0.010 + 0.0010.
+// 1/s toward ambient, always (0.010 before the "harder to build" pass)
 const TYRE_COOL = 0.008;
 // THE GRIP CURVE (user, 2026-10-03: "cold tyres are sloppier than warm tyres, hot tyres grippier
 // still; tyres that are too hot are less grippy than hot but still grippier than cold — keep it
@@ -252,8 +253,8 @@ export function tyreGrip(temp: number, spec: Spec) {
   if (temp <= tooHot) return 1;
   return Math.max(TYRE_HOT_FLOOR, 1 - (temp - tooHot) * 0.0015);
 }          // bump stop: the most vertical load a landing can produce
-// PLOUGHING (loose surfaces). See step 7b. sideways bulldozing vs forwards. Going in sideways digs
-// in far harder.
+// PLOUGHING (loose surfaces). See step 7b.
+// sideways bulldozing vs forwards. Going in sideways digs in far harder.
 const PLOUGH_LAT = 2.2;
 const PLOUGH_VREF = 14;        // m/s at which ploughing reaches full strength
 // fraction of full force still there at walking pace, so you get STUCK
@@ -1236,8 +1237,8 @@ export function step(car: Car, input: CarInput, dt = DT) {
         * (car.surface.hard && carSpec.tyre ? carSpec.tyre.heatHard || 1 : 1);
     // tyre thermal mass scales with the car (a tractor tyre holds far more rubber than a hatch's).
     // MEASURED: at one capacity for every car the 5.2 t tractor popped in a 14 s burnout.
-    // Reference: the 1440 kg hatch. share of the slip heat that goes into the TYRE (loose ground
-    // takes most of it)
+    // Reference: the 1440 kg hatch.
+    // share of the slip heat that goes into the TYRE (loose ground takes most of it)
     const capK = TYRE_HEAT.cap * (carSpec.mass || 1440) / TYRE_HEAT.massRef;
     const wheelWork = [workF * frontShare, workF * (1 - frontShare), workR * frontShare,
         workR * (1 - frontShare)];

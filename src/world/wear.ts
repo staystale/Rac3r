@@ -166,7 +166,8 @@ function patchAt(x: number, y: number): Surface | null {
 export function layersAt(x: number, y: number): Layers {
   const zoneSurface = zoneAt(x, y);
   // `standing`: the water here is a PUDDLE (LEVEL.covers), not a damp wet zone — they dry
-  // differently kerbs are their own surface; patches never cover them
+  // differently
+  // kerbs are their own surface; patches never cover them
   const z = zoneSurface.id === 'kerb' ? zoneSurface : (patchAt(x, y) || zoneSurface);
   let base = z.id, cover: string | null = null;
   // a snow, ice OR WET zone is a cover over its `under` (default tarmac). Wet joined 2026-10-03

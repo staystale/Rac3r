@@ -130,7 +130,8 @@ export function createHwFlow(
     // 2026-10-06: "the catch them / loosing them warnings and timers should only show if the
     // slowest ai has passed you / is going off screen ahead, otherwise you should be free to
     // race"). While any rival is behind you or on screen there is no clock. (A story-mode time /
-    // distance limit can come later.) `top` = the rival you have to catch: the LAST one
+    // distance limit can come later.)
+    // `top` = the rival you have to catch: the LAST one
     const myS = sOf(myEntry), top = rivals.reduce((slowest, entry) =>
       (sOf(entry) < sOf(slowest) ? entry : slowest), rivals[0]);
     let kind = rivals.every((entry) =>
