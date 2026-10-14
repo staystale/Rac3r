@@ -67,12 +67,36 @@ export function randomiseGrassTrack(
   };
   // 1. fixed base
   sectors.length = 0;
+  buildGrassBaseSectors(sectors, total, isCorner);
+  absorbShortGrassRuns(sectors);
+  sectors[sectors.length - 1].endDist = 1e9;
+  // 2. random patches across the racing surface
+  patches.length = 0;
+  scatterGrassPatches(sub, patches, rng, headingAt, isCorner);
+  // tells the renderer its cached ground is out of date
+  sub.layoutId = (sub.layoutId || 0) + 1;
+}
+/**
+ * Builds the fixed base: every corner dirt, every straight short grass, one metre at a time.
+ * @param sectors sector list, filled in place (must be empty)
+ * @param total lap length in metres
+ * @param isCorner whether the track at a distance is a corner
+ */
+function buildGrassBaseSectors(
+  sectors: Sector[], total: number, isCorner: (dist: number) => boolean,
+): void {
   for (let dist = 0; dist < total; dist += 1) {
     const surface = isCorner(dist) ? SURFACES.dirt : SURFACES.grassShort;
     const last = sectors[sectors.length - 1];
     if (last && last.surface === surface) last.endDist = dist + 1;
     else sectors.push({ startDist: dist, endDist: dist + 1, surface });
   }
+}
+/**
+ * Absorbs base runs shorter than GO_MIN_RUN into their neighbours and merges equal neighbours.
+ * @param sectors sector list, changed in place
+ */
+function absorbShortGrassRuns(sectors: Sector[]): void {
   // absorb runs shorter than GO_MIN_RUN into their neighbours. MEASURED 2026-10-03: the raw
   // corner test flickered 1 m dirt/grass slivers at every corner boundary and left an 11 m grass
   // strip between the two bends at each end of the oval — 23 sectors where the design is 4 (two
@@ -93,9 +117,20 @@ export function randomiseGrassTrack(
     }
     if (sectors.length < 2) break;
   }
-  sectors[sectors.length - 1].endDist = 1e9;
-  // 2. random patches across the racing surface
-  patches.length = 0;
+}
+/**
+ * Scatters the GO_PATCHES random patches over the racing surface.
+ * @param sub the grass track subtrack
+ * @param patches patch list, filled in place
+ * @param rng random source
+ * @param headingAt the track point at or before a distance
+ * @param isCorner whether the track at a distance is a corner
+ */
+function scatterGrassPatches(
+  sub: Subtrack, patches: Patch[], rng: () => number,
+  headingAt: (dist: number) => Subtrack['pts'][number], isCorner: (dist: number) => boolean,
+): void {
+  const total = sub.totalDist;
   for (let patchNo = 0; patchNo < GO_PATCHES; patchNo++) {
     const dist = rng() * total, point = headingAt(dist);
     const off = (rng() - 0.5) * (sub.width - 2);
@@ -115,8 +150,6 @@ export function randomiseGrassTrack(
       });
     }
   }
-  // tells the renderer its cached ground is out of date
-  sub.layoutId = (sub.layoutId || 0) + 1;
 }
 
 export const GO_ZONES: Zone[] = [
