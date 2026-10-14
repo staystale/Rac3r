@@ -13,7 +13,7 @@ import { visualHeightAt } from "../world/terrain.ts";
 // reads LIGHTER overall and a dip DARKER. 4 bands: at 3 the Naffcar bank flipped a whole band at
 // the turn apex and read as a seam.
 const SHADE = {
-  cellM: 0.5, maxCells: 64, gain: 3.0, bands: 4, depth: 0.36, hRef: 0.25, hGain: 0.9,
+  cellM: 0.5, maxCells: 200, gain: 3.0, bands: 4, depth: 0.36, hRef: 0.25, hGain: 0.9,
   slopeK: 0.55
 };
 // toward the light, world frame (screen up-left)
@@ -177,8 +177,8 @@ export function hillShade(noShade: boolean, canvas: HTMLCanvasElement, tileWidth
     centreX: number, centreY: number) {
   if (noShade) return;
   // the cells sit on a WORLD grid (a fixed size per metre, an even index at the tile's west and
-  // north), so the same ground gets the same bands at every zoom step; only far out, where a
-  // tile holds more than maxCells, the cell doubles
+  // north), so the same ground gets the same bands at every zoom step; the cell stays 0.5 m
+  // down to about zoom 0.12 and only doubles beyond that (a tile holds more than maxCells)
   let cell: number = SHADE.cellM;
   while (tileWidth / cell + 2 > SHADE.maxCells) cell *= 2;
   const tileX = centreX - tileWidth / 2, tileY = centreY - tileWidth / 2;
