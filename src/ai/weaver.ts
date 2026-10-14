@@ -35,8 +35,8 @@ export function driveOut(
   return null;
 }
 
-// ---------------------------------------------------------------- THE HIGHWAY (endless level): the
-// road read through highway.js AI ROUND 2 stage 1 (user, 2026-10-07: "same ai"; CLAUDE.md ONE
+// ---------------------------------------------------------------- THE HIGHWAY (endless level):
+// the road read through highway.js AI ROUND 2 stage 1 (user, 2026-10-07: "same ai"; CLAUDE.md ONE
 // SYSTEM NOT TWO THEN ONE): this was hwrace.js createHwDriver. It is now this file's road reader
 // for levels with no closed lap (level.endless), behind the ONE entry point createAIDriver; moved
 // UNCHANGED (MEASURED: weavecheck + pacesuite identical to before with __NOOUT) plus the shared

@@ -40,9 +40,9 @@ export function createTiles(view: View, cam: Cam, settings: Settings, helpers: T
     getFly, FLY_HANDOVER, FLY_PREFETCH, levelOverview, artBase,
   } = helpers;
 
-  // ---------------------------------------------------------------- GROUND TILES (2026-10-03) The
-  // floor, the surface zones and the track ribbon never change while you drive (wear and marks are
-  // drawn separately, on top), so they are painted into cached TILES and each frame just blits
+  // ---------------------------------------------------------------- GROUND TILES (2026-10-03)
+  // The floor, the surface zones and the track ribbon never change while you drive (wear and marks
+  // are drawn separately, on top), so they are painted into cached TILES and each frame just blits
   // tiles.
   //
   // MEASURED, in order (Stock Car, 4x CPU throttle, 4 s full-throttle run; 240 frames = a clean

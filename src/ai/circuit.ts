@@ -56,9 +56,9 @@ const EDGE_DRIFT = 2.0, DRIFT_BAN = 60;
 // a car it PUSHES HARDER, up to HARDER faster the longer it is held.
 const HARDER = 0.03, HARDER_T = 4;
 
-// ---------------------------------------------------------------- the driver drive(car, dt, ctx):
-// ctx = { cars: [other car objects], lap: current lap (1-based), laps: race length }. Other cars
-// may carry _jokers (jokers taken) for the joker tactics.
+// ---------------------------------------------------------------- the driver
+// drive(car, dt, ctx): ctx = { cars: [other car objects], lap: current lap (1-based), laps: race
+// length }. Other cars may carry _jokers (jokers taken) for the joker tactics.
 export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
   // the ENDLESS highway has no closed lap to plan a line round: the same driver reads the road
   // frame instead (roadDriver above) (cast: an endless Level is the highway's level, whose road
