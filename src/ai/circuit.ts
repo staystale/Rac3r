@@ -117,6 +117,17 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
       advance(car);
     }
   }
+  /** TACTICS: a car close ahead (stuck behind it) / a jokered rival close behind. */
+  function jokerThreats(ctx: JokerCtx) {
+    const selfCar = ctx.self; let ahead = false, coverIt = false;
+    for (const other of ctx.cars || []) {
+      const dx = other.x - selfCar.x, dy = other.y - selfCar.y, along = dx * Math.cos(
+          selfCar.heading) + dy * Math.sin(selfCar.heading), gap = Math.hypot(dx, dy);
+      if (along > 0 && gap < 30) ahead = true;
+      if (along < 0 && gap < 25 && (other._jokers || 0) > 0) coverIt = true;
+    }
+    return { ahead, coverIt };
+  }
   function decideJoker(ctx: JokerCtx, lap: number, laps: number) {
     state.jDecLap = lap;
     if (!branches.joker || state.jokers > 0) { state.jWant = false; return; }
@@ -130,13 +141,7 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
     // aggressive); a rival right behind who has
     // already jokered -> cover them now before they gain the clean air (more likely the more
     // defensive)
-    const selfCar = ctx.self; let ahead = false, coverIt = false;
-    for (const other of ctx.cars || []) {
-      const dx = other.x - selfCar.x, dy = other.y - selfCar.y, along = dx * Math.cos(
-          selfCar.heading) + dy * Math.sin(selfCar.heading), gap = Math.hypot(dx, dy);
-      if (along > 0 && gap < 30) ahead = true;
-      if (along < 0 && gap < 25 && (other._jokers || 0) > 0) coverIt = true;
-    }
+    const { ahead, coverIt } = jokerThreats(ctx);
     state.jWant = (ahead && rnd() < 0.2 + 0.5 * traits.aggression) || (
         coverIt && rnd() < 0.2 + 0.5 * traits.defence);
   }
