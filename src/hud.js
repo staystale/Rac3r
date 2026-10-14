@@ -121,26 +121,28 @@ export function createHud() {
     const avail = bottom - top - 24;               // minus the footer button
     const rowHeight = Math.max(16, Math.min(27, Math.floor(avail / TUNE_ROWS.length)));
     const panelWidth = Math.min(272, width - MARGIN * 2);
-    const panel = { x: MARGIN, y: top, w: panelWidth, h: TUNE_ROWS.length * rowHeight + 26 };
+    const tunePanel = { x: MARGIN, y: top, w: panelWidth,
+      h: TUNE_ROWS.length * rowHeight + 26 };
     // Buttons are WIDER than they are tall. Vertical room is the binding constraint on a 390
     // px-tall landscape phone (rows get to 19 px), but there is horizontal room going spare — and a
     // wider target is easier to hit with a thumb than a square one. 44 x 19 beats 20 x 20.
     const btnHeight = Math.max(17, rowHeight - 2), btnWidth = 44;
     const tuneRows = TUNE_ROWS.map((tuneRow, i) => {
-      const y = panel.y + 2 + i * rowHeight;
+      const y = tunePanel.y + 2 + i * rowHeight;
       return {
         row: tuneRow, y, h: rowHeight,
-        minus: { x: panel.x + panelWidth - btnWidth * 2 - 12, y: y + (rowHeight - btnHeight) / 2,
-          w: btnWidth, h: btnHeight },
-        plus: { x: panel.x + panelWidth - btnWidth - 6, y: y + (rowHeight - btnHeight) / 2,
+        minus: { x: tunePanel.x + panelWidth - btnWidth * 2 - 12,
+          y: y + (rowHeight - btnHeight) / 2, w: btnWidth, h: btnHeight },
+        plus: { x: tunePanel.x + panelWidth - btnWidth - 6, y: y + (rowHeight - btnHeight) / 2,
           w: btnWidth, h: btnHeight },
       };
     });
     // footer split in two: RESET TUNING | TYRE HUD on/off
     const footerWidth = Math.floor((panelWidth - 18) / 2);
-    const tuneReset = { x: panel.x + 6, y: panel.y + 4 + TUNE_ROWS.length * rowHeight,
+    const tuneReset = { x: tunePanel.x + 6, y: tunePanel.y + 4 + TUNE_ROWS.length * rowHeight,
       w: footerWidth, h: 20 };
-    const tyreHudBtn = { x: panel.x + 12 + footerWidth, y: tuneReset.y, w: footerWidth, h: 20 };
+    const tyreHudBtn = { x: tunePanel.x + 12 + footerWidth, y: tuneReset.y, w: footerWidth,
+      h: 20 };
     // The speed/tacho panel is a control lane too. MEASURED BUG (user screenshot, 2026-09-27): on a
     // narrow screen RESET and CLEAR moved to a second row on the RIGHT and landed straight on top
     // of the speed readout. The overlap test never caught it because it only compared the buttons
@@ -178,7 +180,8 @@ export function createHud() {
       lights = { x: MARGIN + lbW + 6, y: lbY, w: lbW + 14, h: lbH },
       indR = { x: MARGIN + lbW * 2 + 26, y: lbY, w: lbW, h: lbH };
     return { chip, rows, levelRows, restart, reset, clear, vol, help, absChip, tcsChip, tuneChip,
-      panel, tuneRows, tuneReset, tyreHudBtn, speed, lap, fps, tally, indL, lights, indR };
+      panel: tunePanel, tuneRows, tuneReset, tyreHudBtn, speed, lap, fps, tally, indL, lights,
+      indR };
   }
 
   function inRect(point, rect) {

@@ -424,16 +424,16 @@ POINT`
         input.step = stepV;
         input.value = val;
         input.style.cssText = 'flex:1;min-height:34px;accent-color:#e8a13a';
-        const show = () => {
+        const showLabel = () => {
           labelEl.textContent = label + ' ' + fmt(+input.value);
         };
         input.addEventListener('input', () => {
           set(+input.value);
-        show();
+        showLabel();
         saveProfile(profile);
         });
         row.appendChild(input);
-        show();
+        showLabel();
       };
       slider('TRAFFIC', 0, 1.5, 0.05, traffic, (value) => value ? Math.round(value * 100) + '%'
         : 'OFF', (value) => {
@@ -660,7 +660,7 @@ OFF THE TOP AND IT IS OVER', 'sub') : null;
     const pick = addEl(left, 'div', '');
     pick.style.marginTop = '8px';
     const stats = addEl(right, 'div', '', 'stats');
-    const show = () => {
+    const showStats = () => {
       const car = ROSTER.find((x) => x.id === profile.active), spec = CAR_STATS[car.id] || {};
       drawLift(lift, api.carSprite(car.id, (profile.livery || {})[car.id]));
       const aids = spec.aids ? [spec.aids.abs && 'ABS', spec.aids.tcs
@@ -689,7 +689,7 @@ AIDS</span><b>${aids}</b>`
     btn(buttonRow, 'BUY CARS', () => {}, '', true, 'SOON');
     btn(buttonRow, 'UPGRADES', () => {}, '', true, 'SOON');
     btn(panel, '◀ BACK', main);
-    carPicker(pick, show);
+    carPicker(pick, showStats);
   }
   // ---- PAINT SHOP (user, 2026-10-04: "palette + number + preview"): BODY and TRIM from the
   // 16-colour PALETTE, a NUMBER 1-99 (or none), the car previewed on the lift as you go; APPLY
@@ -707,7 +707,7 @@ AIDS</span><b>${aids}</b>`
     lift.width = 360;
     lift.height = 150;
     left.appendChild(lift);
-    const show = () => {
+    const showLivery = () => {
       drawLift(lift, api.carSprite(carId, cur));
     numL.textContent = cur.num ? '#' + cur.num : 'NO NUMBER';
       for (const [field, list] of [['paint', bodyB],
@@ -722,7 +722,7 @@ margin-bottom:8px';
       return PALETTE.map((colour) => {
         const swatch = btn(grid, '', () => {
         cur[field] = colour;
-      show();
+      showLivery();
       });
       swatch.dataset.c = colour;
         swatch.style.cssText = 'background:' + colour
@@ -735,27 +735,27 @@ margin-bottom:8px';
     numRow.style.marginTop = '8px';
     btn(numRow, '−10', () => {
       cur.num = Math.max(0, cur.num - 10);
-    show();
+    showLivery();
     });
     btn(numRow, '−', () => {
       cur.num = Math.max(0, cur.num - 1);
-    show();
+    showLivery();
     });
     const numL = addEl(numRow, 'div', '');
     numL.style.cssText = 'flex:1;display:flex;align-items:center;justify-content:center;\
 font-size:15px';
     btn(numRow, '+', () => {
       cur.num = Math.min(99, cur.num + 1);
-    show();
+    showLivery();
     });
     btn(numRow, '+10', () => {
       cur.num = Math.min(99, cur.num + 10);
-    show();
+    showLivery();
     });
     const buttonRow = addEl(panel, 'div', '', 'row');
     btn(buttonRow, 'STOCK', () => {
       Object.assign(cur, { paint: car.paint, trim: car.trim, num: 0 });
-    show();
+    showLivery();
     });
     btn(buttonRow, 'APPLY ✓', () => {
       profile.livery = profile.livery || {};
@@ -764,7 +764,7 @@ font-size:15px';
     garage();
     }, 'go');
     btn(panel, '◀ BACK', garage);
-    show();
+    showLivery();
   }
   // ---- TYRES (user, 2026-10-04: 4 brands / 15 types, fit by class, prices shown, the effect shown
   // with the stats). Grouped by brand (coloured), a tyre that does not fit this car's class is
@@ -788,7 +788,7 @@ font-size:15px';
         const fits = tyre.fits.includes(car.cls);
         const tyreBtn = btn(group, tyre.name, () => {
           sel = tyre.id;
-        show();
+        showTyre();
         }, '', !fits, fits ? '' : 'NO FIT');
         tyreBtn.style.cssText = 'min-height:32px;padding:4px 9px;font-size:11px;border-left:5px \
 solid ' + brand.col;
@@ -804,7 +804,7 @@ solid ' + brand.col;
     garage();
     }, 'go');
     btn(panel, '◀ BACK', garage);
-    const show = () => {
+    const showTyre = () => {
       const tyre = tyreOf(sel), brand = TYRE_BRANDS.find((x) => x.id === tyre.brand),
         cur = tyreOf((profile.tyres || {})[carId]).id === tyre.id;
       for (const [key, tyreBtn] of Object.entries(btns)) tyreBtn.style.outline = key === sel
@@ -838,7 +838,7 @@ ${percent > 0 ? '+' : ''}${percent}%</span></div>`;
 £${tyre.price}${tyre.price ? ' · FREE IN TEST' : ''}</b></div>`;
       fitB.innerHTML = cur ? 'FITTED ✓' : 'FIT ✓';
     };
-    show();
+    showTyre();
   }
   // the workshop lift: a pixel floor, two lift arms, the car top-down on it, scaled up on whole
   // pixels
@@ -896,7 +896,7 @@ ${percent > 0 ? '+' : ''}${percent}%</span></div>`;
       slider.style.cssText = 'flex:1;min-height:34px;accent-color:#e8a13a';
       row.appendChild(slider);
       let muteBtn = null;
-      const show = () => {
+      const showSound = () => {
         label.textContent = 'SOUND ' + (audio.muted ? 'MUTED' : Math.round(audio.volume * 100)
           + '%');
       if (muteBtn) {
@@ -907,13 +907,13 @@ ${percent > 0 ? '+' : ''}${percent}%</span></div>`;
       slider.addEventListener('input', () => {
         audio.setVolume(+slider.value / 100);
       if (audio.muted && +slider.value > 0) audio.toggleMute();
-      show();
+      showSound();
       });
       muteBtn = btn(row, 'MUTE', () => {
         audio.toggleMute();
-      show();
+      showSound();
       });
-      show();
+      showSound();
     }
     btn(panel, 'RESTART SESSION', () => {
       hide();

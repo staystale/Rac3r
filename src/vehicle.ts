@@ -243,10 +243,10 @@ const TYRE_COOL = 0.008;
 // The first version dropped an overheated tyre to 0.72, BELOW cold (0.86) — the user called that
 // out.
 const TYRE_HOT_FLOOR = 0.90;
-export function tyreGrip(temp: number, spec: Spec) {
-  const [warm, tooHot] = spec.tyreOpt || [65, 110];
-  const peak = spec.tyrePeak || 90;
-  const cold = spec.tyreColdGrip ?? 0.86;
+export function tyreGrip(temp: number, carSpec: Spec) {
+  const [warm, tooHot] = carSpec.tyreOpt || [65, 110];
+  const peak = carSpec.tyrePeak || 90;
+  const cold = carSpec.tyreColdGrip ?? 0.86;
   if (temp <= warm) return cold + (0.97 - cold)
       * Math.max(0, (temp - TYRE_AMBIENT) / (warm - TYRE_AMBIENT));
   if (temp <= peak) return 0.97 + 0.03 * (temp - warm) / (peak - warm);
@@ -418,8 +418,8 @@ export function reset(car: Car, x = 0, y = 0, heading = -Math.PI / 2) {
 }
 
 // Torque at rpm from the car's curve, linearly interpolated. Off the ends, hold the end value.
-export function torqueAt(spec: Spec, rpm: number) {
-  const curve = spec.curve;
+export function torqueAt(carSpec: Spec, rpm: number) {
+  const curve = carSpec.curve;
   if (rpm <= curve[0][0]) return curve[0][1];
   for (let i = 1; i < curve.length; i++) {
     if (rpm <= curve[i][0]) {
@@ -430,14 +430,14 @@ export function torqueAt(spec: Spec, rpm: number) {
   return curve[curve.length - 1][1];
 }
 
-function ratio(spec: Spec, gear: number) {
-  if (gear < 0) return spec.reverseRatio;
+function ratio(carSpec: Spec, gear: number) {
+  if (gear < 0) return carSpec.reverseRatio;
   // CLAMPED. An out-of-range gear returns undefined, which makes the total ratio NaN, which makes
   // every force NaN, which makes the car vanish — and it does so SILENTLY (rule 20). Found when a
   // harness set gear 5 on the four-speed muscle car. The auto box cannot do this, but nothing else
   // was stopping it.
-  const index = Math.max(1, Math.min(spec.gears.length, gear | 0));
-  return spec.gears[index - 1];
+  const index = Math.max(1, Math.min(carSpec.gears.length, gear | 0));
+  return carSpec.gears[index - 1];
 }
 
 const clamp = (value: number, low: number, high: number) => (value < low ? low : value > high ? high
@@ -874,10 +874,10 @@ export function step(car: Car, input: CarInput, dt = DT) {
       // flooring sx relative to the lateral slip took it to 180 deg / 20%. The honest fix is to
       // model wheel angular velocity as a real state so longitudinal slip is derived rather than
       // approximated. Until then the drift is worth more than the smoothness.
-      const overLong = Math.max(0, demandRatio - 1);
+      const overLongSlip = Math.max(0, demandRatio - 1);
       const slipLong = forceSlide
         ? sxl
-        : -Math.sign(FxDemand) * (Math.abs(sxl) + Math.min(18, overLong * 12));
+        : -Math.sign(FxDemand) * (Math.abs(sxl) + Math.min(18, overLongSlip * 12));
       const mag = Math.hypot(slipLong, syl) + 1e-4;
       // Magnitude from the SAME curve the rolling branch uses, evaluated at this axle's COMBINED
       // slip angle. Previously this was a flat mu*slideGrip*Fz, which disagreed with the

@@ -406,15 +406,15 @@ game.start = { on: false, t: 0, tGreen: 0, rolling: false, green: false };
 let autoDrv = null, autoStill = 0;   // ?autopilot=1: the player car's AI driver
 function armStart() {
   autoDrv = settings.autopilot ? createAIDriver(LEVEL, aiTraits(4, 0, 1)) : null;   // 4 = top
-  const active = mode !== 'menu' && (race.on || aiCount > 0), rolling = active
+  const active = mode !== 'menu' && (race.on || aiCount > 0), isRolling = active
     && (!!LEVEL.rollingStart || !!LEVEL.endless) && !!LEVEL.subtrack;
-  game.start = { on: active, t: 0, tGreen: rolling ? Infinity : 4 * START_STEP, tGreen0: rolling
-    ? undefined : 4 * START_STEP, rolling, green: !active,
-    drv: rolling ? (LEVEL.endless ? createAIDriver(LEVEL, aiTraits(4, 0, 1))
+  game.start = { on: active, t: 0, tGreen: isRolling ? Infinity : 4 * START_STEP,
+    tGreen0: isRolling ? undefined : 4 * START_STEP, rolling: isRolling, green: !active,
+    drv: isRolling ? (LEVEL.endless ? createAIDriver(LEVEL, aiTraits(4, 0, 1))
       : createAutoDriver(LEVEL.subtrack)) : null };
   // the HIGHWAY's rolling start has no line to cross: green HW_GREEN s in, everyone already rolling
   // in formation (highwayrace.js)
-  if (rolling && LEVEL.endless) game.start.tGreen = game.start.tGreen0 = HW_GREEN;
+  if (isRolling && LEVEL.endless) game.start.tGreen = game.start.tGreen0 = HW_GREEN;
 }
 const startHeld = () => game.start.on && !game.start.green
   && game.start.t < game.start.tGreen - START_EARLY;
@@ -810,7 +810,7 @@ function doReset() {
   // right for RESTART and a new car, but RESET is a recovery — you have not stopped driving. Put
   // the temperatures back afterwards.
   const keepT = game.car.tyreT ? game.car.tyreT.slice() : null;
-  const reset = (car, x, y, heading) => {
+  const resetKeepingTyres = (car, x, y, heading) => {
     resetCar(car, x, y, heading);
     if (keepT) car.tyreT = keepT.slice();
   };
@@ -835,7 +835,7 @@ function doReset() {
       const ang = (RESET_ANG[0] + Math.random() * (RESET_ANG[1] - RESET_ANG[0])) * Math.PI / 180;
       // +heading turns the nose toward +normal, so a car on the +side turns by -ang to point back
       // across the road
-      reset(game.car, point.x, point.y, point.rot - side * ang);
+      resetKeepingTyres(game.car, point.x, point.y, point.rot - side * ang);
       lastOnTrack = { dist: dist, off: side * (sub.width / 2 - 0.5) };
       if (renderer && renderer.snap) renderer.snap(game.car);
       return;
@@ -843,11 +843,11 @@ function doReset() {
   }
   if (breadcrumbs.length > 0) {
     const safe = breadcrumbs[Math.max(0, breadcrumbs.length - 5)];   // ~2 s back
-    reset(game.car, safe.x, safe.y, safe.heading);
+    resetKeepingTyres(game.car, safe.x, safe.y, safe.heading);
     if (renderer && renderer.snap) renderer.snap(game.car);
     return;
   }
-  reset(game.car, SPAWN.x, SPAWN.y, SPAWN.heading);
+  resetKeepingTyres(game.car, SPAWN.x, SPAWN.y, SPAWN.heading);
   if (renderer && renderer.snap) renderer.snap(game.car);
 }
 
