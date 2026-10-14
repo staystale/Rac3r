@@ -3,7 +3,7 @@ import { SUB_CELL } from "./subtrack.ts";
 import { COURSE, GATE, GATE_SPACING, smoothPath } from "./course.ts";
 import { qsHintSub, qsHint } from "./wear.ts";
 import type {
-  Cone, Point, Prop, Subtrack, SubtrackHit, TrackPoint, TyreWallOptions, ClearBox,
+  Cone, Point, Prop, SubSeg, Subtrack, SubtrackHit, TrackPoint, TyreWallOptions, ClearBox,
 } from "./types.ts";
 
 // ---------------------------------------------------------------------------------------------
@@ -90,37 +90,66 @@ export function onTrack<T extends object>(
   };
 }
 
-export function querySubtrack(subtrack: Subtrack, probeX: number, probeY: number): SubtrackHit {
-  if (!subtrack || !subtrack.segs) return { dist: Infinity, side: 'left', trackDist: 0 };
-  const segs = subtrack.segs;
-  if (subtrack === qsHintSub) {
-    const count = segs.length, lim = (subtrack.width / 2 + 3) ** 2;
-    let bestDist2 = Infinity, bestIndex = -1, bestFrac = 0;
-    for (let shift = -21; shift <= 21; shift++) {
-      const i = (qsHint + shift + count) % count, segment = segs[i];
-      if (segment.ghost) continue;
-      let frac = ((probeX - segment.ax) * segment.dx + (probeY - segment.ay) * segment.dy)
-        / (segment.l2 || 1);
-      if (frac < 0) frac = 0; else if (frac > 1) frac = 1;
-      const errX = probeX - (segment.ax + frac * segment.dx),
-        errY = probeY - (segment.ay + frac * segment.dy), distSq = errX * errX + errY * errY;
-      if (distSq < bestDist2) { bestDist2 = distSq; bestIndex = i; bestFrac = frac; } }
-    if (bestDist2 < lim) {
-      const segment = segs[bestIndex],
-        cross = segment.dx * (probeY - segment.ay) - segment.dy * (probeX - segment.ax);
-      return {
-        dist: Math.sqrt(bestDist2), side: cross > 0 ? 'left' : 'right',
-        trackDist: subtrack.pts[bestIndex].dist + bestFrac * segment.len,
-        seg: bestIndex };
-    }
+/**
+ * Search the ~43 segments round the last hit (qsHint) for the nearest one to a probe.
+ * @param subtrack the subtrack (must be the one qsHint belongs to)
+ * @param segs the subtrack's segments
+ * @param probeX world x
+ * @param probeY world y
+ * @returns the hit, or null when nothing is within half width + 3 m
+ */
+function queryNearHint(
+  subtrack: Subtrack, segs: SubSeg[], probeX: number, probeY: number,
+): SubtrackHit | null {
+  const count = segs.length, lim = (subtrack.width / 2 + 3) ** 2;
+  let bestDist2 = Infinity, bestIndex = -1, bestFrac = 0;
+  for (let shift = -21; shift <= 21; shift++) {
+    const i = (qsHint + shift + count) % count, segment = segs[i];
+    if (segment.ghost) continue;
+    let frac = ((probeX - segment.ax) * segment.dx + (probeY - segment.ay) * segment.dy)
+      / (segment.l2 || 1);
+    if (frac < 0) frac = 0; else if (frac > 1) frac = 1;
+    const errX = probeX - (segment.ax + frac * segment.dx),
+      errY = probeY - (segment.ay + frac * segment.dy), distSq = errX * errX + errY * errY;
+    if (distSq < bestDist2) { bestDist2 = distSq; bestIndex = i; bestFrac = frac; } }
+  if (bestDist2 < lim) {
+    const segment = segs[bestIndex],
+      cross = segment.dx * (probeY - segment.ay) - segment.dy * (probeX - segment.ax);
+    return {
+      dist: Math.sqrt(bestDist2), side: cross > 0 ? 'left' : 'right',
+      trackDist: subtrack.pts[bestIndex].dist + bestFrac * segment.len,
+      seg: bestIndex };
   }
+  return null;
+}
+/**
+ * The candidate segments for a probe: the grid cell's list, or null for "scan them all".
+ * @param subtrack the subtrack
+ * @param probeX world x
+ * @param probeY world y
+ * @returns the cell's segment indices, or null when there is no grid
+ */
+function gridCandidates(subtrack: Subtrack, probeX: number, probeY: number): number[] | null {
+  return subtrack.grid
+    ? subtrack.grid.get(Math.floor(probeX / SUB_CELL) * 100003 + Math.floor(probeY / SUB_CELL))
+      || null
+    : null;
+}
+/**
+ * Scan the candidate segments for the nearest one to a probe.
+ * @param subtrack the subtrack
+ * @param segs the subtrack's segments
+ * @param cand candidate segment indices, or null to scan every segment
+ * @param probeX world x
+ * @param probeY world y
+ * @returns the nearest hit
+ */
+function scanSegments(
+  subtrack: Subtrack, segs: SubSeg[], cand: number[] | null, probeX: number, probeY: number,
+): SubtrackHit {
   let minD = Infinity;
   let bestSide: 'left' | 'right' = 'left';
   let bestTrackDist = 0, bestSeg: number | null = null;
-  const cand = subtrack.grid
-    ? subtrack.grid.get(Math.floor(probeX / SUB_CELL) * 100003 + Math.floor(probeY / SUB_CELL))
-    : null;
-  if (subtrack.grid && !cand) return { dist: Infinity, side: 'left', trackDist: 0, seg: null };
   const candCount = cand ? cand.length : segs.length;
   for (let candIdx = 0; candIdx < candCount; candIdx++) {
     const i = cand ? cand[candIdx] : candIdx;
@@ -146,6 +175,17 @@ export function querySubtrack(subtrack: Subtrack, probeX: number, probeY: number
     }
   }
   return { dist: Math.sqrt(minD), side: bestSide, trackDist: bestTrackDist, seg: bestSeg };
+}
+export function querySubtrack(subtrack: Subtrack, probeX: number, probeY: number): SubtrackHit {
+  if (!subtrack || !subtrack.segs) return { dist: Infinity, side: 'left', trackDist: 0 };
+  const segs = subtrack.segs;
+  if (subtrack === qsHintSub) {
+    const near = queryNearHint(subtrack, segs, probeX, probeY);
+    if (near) return near;
+  }
+  const cand = gridCandidates(subtrack, probeX, probeY);
+  if (subtrack.grid && !cand) return { dist: Infinity, side: 'left', trackDist: 0, seg: null };
+  return scanSegments(subtrack, segs, cand, probeX, probeY);
 }
 
 export function distToSubtrack(subtrack: Subtrack, probeX: number, probeY: number): number {
