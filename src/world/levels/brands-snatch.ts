@@ -5,7 +5,7 @@ import { SURFACES } from "../surfaces.ts";
 import { prepBumps } from "../terrain.ts";
 import { onTrack, querySubtrack } from "../tyrewall.ts";
 import { ss01, trackKit } from "./kit.ts";
-import type { Point, Lane, Trap, Cone, Prop, Barrier, Bump } from "../types.ts";
+import type { Point, Lane, Trap, Cone, Prop, Barrier, Bump, Subtrack } from "../types.ts";
 // =============================================================================================
 // BRANDS SNATCH — parody of Brands Hatch (Kent). Built 2026-10-04. Decisions (user): BOTH layouts
 // (GP + Indy) from one build, REAL-ISH hills from the contour map (art/ref/bh1.png: 115-145 m),
@@ -74,7 +74,14 @@ const BH_HILLS: Bump[] = [
 const BRANDS_DROPPED: Record<string, string[]> =
   {};
 export { BRANDS_DROPPED };
-function brandsLevel(levelId: string, name: string, mapPts: Point[]) {
+type BrandsKit = ReturnType<typeof trackKit>;
+type BrandsDOf = (pixelX: number, pixelY: number) => number;
+/**
+ * Traces the track from the map points and finds its kerbs.
+ * @param mapPts map pixel points of the layout
+ * @return the subtrack with its curved kerbs
+ */
+function buildBrandsSubtrack(mapPts: Point[]): Subtrack {
   const sub0 = createSubtrack(
     traceTrack(mapPts, { mpp: BRANDS_MAP.mpp, cx: BRANDS_MAP.cx, cy: BRANDS_MAP.cy, rMin: 15.5 }),
     13,
@@ -84,8 +91,15 @@ function brandsLevel(levelId: string, name: string, mapPts: Point[]) {
   );
   sub0.curvedKerbs = autoKerbs(
     sub0, { maxR: 70, exitR: 30, heavyR: 22, minTurn: 20, mergeGap: 12 });
-  const sub = sub0, halfWidth = sub.width / 2;
-  const dOf = (pixelX: number, pixelY: number) => {
+  return sub0;
+}
+/**
+ * Makes the function that finds the distance along the track nearest a map pixel.
+ * @param sub the track
+ * @return the distance finder
+ */
+function makeBrandsDOf(sub: Subtrack): BrandsDOf {
+  return (pixelX: number, pixelY: number) => {
     const [x, y] = bhXY(pixelX, pixelY);
     let best = 0, bestSq = Infinity;
     for (const point of sub.pts) {
@@ -94,14 +108,17 @@ function brandsLevel(levelId: string, name: string, mapPts: Point[]) {
     }
     return best;
   };
-  // PIT LANE: on the inside (+) of Brabham Straight, from Clark Curve to past the line (map: grey
-  // line)
-  const pd0 = dOf(200, 262), pd1 = dOf(915, 162);
-  const pit = alongTrack(
-    sub, pd0, pd1, (along, len) => 4 + 13 * ss01(Math.min(along, len - along) / 30), 2);
-  const PIT: Lane = { pts: pit, width: 9, surface: SURFACES.concrete };
-  // GRAVEL TRAPS on the OUTSIDE of every real corner (autoKerbs' finder: R < 45, turn > 35 deg):
-  // 12 m deep, from the apex to 30 m after
+}
+/**
+ * Builds the gravel traps on the OUTSIDE of every real corner (autoKerbs' finder: R < 45, turn >
+ * 35 deg), 12 m deep, from the apex to 30 m after.
+ * @param sub the track
+ * @param halfWidth half the track width
+ * @param pd0 pit lane start distance
+ * @param pd1 pit lane end distance
+ * @return the trap lanes
+ */
+function buildBrandsTraps(sub: Subtrack, halfWidth: number, pd0: number, pd1: number): Trap[] {
   const traps: Trap[] = [];
   for (const corner of autoKerbs(sub, { maxR: 45, exitR: 0, minTurn: 35, mergeGap: 15 })) {
     if (corner.startDist < pd1 + 5 && corner.endDist > pd0 - 5 && pd0 < pd1) continue;
@@ -115,10 +132,21 @@ function brandsLevel(levelId: string, name: string, mapPts: Point[]) {
       surface: SURFACES.gravel,
     });
   }
-  const kit = trackKit(sub, levelId.length * 1999, [PIT, ...traps]);
-  // filter only against the road + pit lane (barriers stand behind the traps)
-  const kit0 = trackKit(sub, 7, [PIT]);
-  const barriers: Barrier[] = [], cones: Cone[] = [];
+  return traps;
+}
+/**
+ * Builds the Armco behind each trap and two staggered rows of tyres in front of it.
+ * @param sub the track
+ * @param kit the track kit (road, pit lane and traps)
+ * @param halfWidth half the track width
+ * @param traps gravel trap lanes
+ * @param barriers barriers, appended to
+ * @param cones tyre stacks, appended to
+ */
+function buildBrandsTrapWalls(
+  sub: Subtrack, kit: BrandsKit, halfWidth: number, traps: Trap[], barriers: Barrier[],
+  cones: Cone[],
+): void {
   // keep barriers / tyres off EVERY part of the road (behind a trap the Armco can come near
   // another leg — barriercheck failed 2 runs): a run is split wherever it comes within half
   // width + 4 m of any road
@@ -148,6 +176,19 @@ function brandsLevel(levelId: string, name: string, mapPts: Point[]) {
       for (const [x, y] of alongTrack(sub, trap.d0 + shift, trap.d1, rowOffset, 0.95))
         if (!nearRoad(x, y)) cones.push({ x, y, kind: 'tyrestack' });
   }
+}
+/**
+ * Builds the pit wall, the garage buildings and the pit line.
+ * @param sub the track
+ * @param traps gravel trap lanes (the garages are split where a trap reaches them)
+ * @param dOf distance finder for map pixels
+ * @param pd0 pit lane start distance
+ * @param pd1 pit lane end distance
+ * @param barriers barriers, appended to
+ */
+function buildBrandsPitBarriers(
+  sub: Subtrack, traps: Trap[], dOf: BrandsDOf, pd0: number, pd1: number, barriers: Barrier[],
+): void {
   barriers.push({ kind: 'pitwall', pts: alongTrack(sub, pd0 + 30, pd1 - 30, 9.5, 2) });
   // gravel traps only
   const kitT = trackKit(sub, 3, traps);
@@ -166,6 +207,15 @@ function brandsLevel(levelId: string, name: string, mapPts: Point[]) {
   })())
     barriers.push({ kind: 'building', pts: run });
   barriers.push({ kind: 'line', pts: alongTrack(sub, pd0 + 34, pd1 - 34, 13.6, 2) });
+}
+/**
+ * Lists the fixed props: gantry, garages, stands, race control, boards, paddock trucks.
+ * @param kit0 the track kit (road and pit lane only)
+ * @param sub the track
+ * @param dOf distance finder for map pixels
+ * @return the props
+ */
+function buildBrandsProps(kit0: BrandsKit, sub: Subtrack, dOf: BrandsDOf): Prop[] {
   const props: Prop[] = [
     kit0.prop(2, 0, { kind: 'gantry', wid: 24, rot: Math.PI / 2 }),
     // garages 5 m deep, x 430-780 (photographed: 10 m deep they reached Cooper Straight, only ~34
@@ -196,14 +246,30 @@ function brandsLevel(levelId: string, name: string, mapPts: Point[]) {
       kind: 'truck', x, y, rot: 0.1,
       col: ['#c8302c', '#2b56b5', '#e2c13a'][props.length % 3],
     });
-  // WOODS: the GP loop runs through them; scattered trees elsewhere — seeded, kept off road / pit
-  // / traps
+  return props;
+}
+/**
+ * Scatters the WOODS: the GP loop runs through them; scattered trees elsewhere — seeded, kept off
+ * road / pit / traps.
+ * @param kit the track kit (road, pit lane and traps)
+ * @param props props, appended to
+ */
+function scatterBrandsTrees(kit: BrandsKit, props: Prop[]): void {
   for (let i = 0; i < 700 && props.filter((prop) => prop.kind === 'tree').length < 160; i++) {
     const x = (kit.rnd() - 0.5) * 2 * (FLOOR - 12), y = (kit.rnd() - 0.5) * 2 * (FLOOR - 12),
       woods = y > 30;
     if ((woods || kit.rnd() < 0.25) && kit.clear(x, y, 10))
       props.push({ kind: 'tree', x, y, s: 3.5 + kit.rnd() * 3, seed: i });
   }
+}
+/**
+ * Adds a marshal post outside every left or right corner.
+ * @param kit0 the track kit (road and pit lane only)
+ * @param sub the track
+ * @param halfWidth half the track width
+ * @param props props, appended to
+ */
+function addBrandsMarshals(kit0: BrandsKit, sub: Subtrack, halfWidth: number, props: Prop[]) {
   for (const corner of sub.curvedKerbs)
     if (corner.side === 'left' || corner.side === 'right')
       props.push(kit0.prop(
@@ -211,6 +277,18 @@ function brandsLevel(levelId: string, name: string, mapPts: Point[]) {
         (corner.side === 'left' ? -1 : 1) * -(halfWidth + 30),
         { kind: 'marshal' },
       ));
+}
+/**
+ * Drops the props whose footprint touches the road or a lane; keeps one tower.
+ * @param sub the track
+ * @param kit the track kit (road, pit lane and traps)
+ * @param halfWidth half the track width
+ * @param props every prop
+ * @return the props that stay
+ */
+function filterBrandsProps(
+  sub: Subtrack, kit: BrandsKit, halfWidth: number, props: Prop[],
+): Prop[] {
   // FOOTPRINT CHECK (user, 2026-10-04: "a truck across the Brands GP track", "a hut across the
   // road near the exit of Druids on the Indy"). The first filter skipped big props and tested
   // only a prop's CENTRE. Now every prop's whole box (its solid size + 1.5 m) is sampled on a 1.5
@@ -237,8 +315,29 @@ function brandsLevel(levelId: string, name: string, mapPts: Point[]) {
     return true;
   };
   let towerDone = false;
-  const okProps = props.filter((prop) => prop.kind === 'gantry' || prop.kind === 'garagerow'
+  return props.filter((prop) => prop.kind === 'gantry' || prop.kind === 'garagerow'
     || (boxClear(prop) && (prop.kind !== 'tower' || (!towerDone && (towerDone = true)))));
+}
+function brandsLevel(levelId: string, name: string, mapPts: Point[]) {
+  const sub = buildBrandsSubtrack(mapPts), halfWidth = sub.width / 2;
+  const dOf = makeBrandsDOf(sub);
+  // PIT LANE: on the inside (+) of Brabham Straight, from Clark Curve to past the line (map: grey
+  // line)
+  const pd0 = dOf(200, 262), pd1 = dOf(915, 162);
+  const pit = alongTrack(
+    sub, pd0, pd1, (along, len) => 4 + 13 * ss01(Math.min(along, len - along) / 30), 2);
+  const PIT: Lane = { pts: pit, width: 9, surface: SURFACES.concrete };
+  const traps = buildBrandsTraps(sub, halfWidth, pd0, pd1);
+  const kit = trackKit(sub, levelId.length * 1999, [PIT, ...traps]);
+  // filter only against the road + pit lane (barriers stand behind the traps)
+  const kit0 = trackKit(sub, 7, [PIT]);
+  const barriers: Barrier[] = [], cones: Cone[] = [];
+  buildBrandsTrapWalls(sub, kit, halfWidth, traps, barriers, cones);
+  buildBrandsPitBarriers(sub, traps, dOf, pd0, pd1, barriers);
+  const props = buildBrandsProps(kit0, sub, dOf);
+  scatterBrandsTrees(kit, props);
+  addBrandsMarshals(kit0, sub, halfWidth, props);
+  const okProps = filterBrandsProps(sub, kit, halfWidth, props);
   BRANDS_DROPPED[levelId] = props.filter((prop) => !okProps.includes(prop))
     .map((prop) => prop.kind).filter((kind) => kind !== 'tree' && kind !== 'tower');
   const banks = [
