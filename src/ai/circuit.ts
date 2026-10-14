@@ -475,6 +475,43 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
     return { psi, deltaS, LOCK, cap };
   }
 
+  /** RACECRAFT on the main line: attack, tow pass, giving room, cover; the target it sets. */
+  function racecraftStep(car: AiCar, path: typeof state.path, nearIdx: number,
+      idx: (pos: number) => number, speed: number, dt: number, lineOff: number, latLim: number,
+      latT: number, myLat: number, cars: CarsAcc, vMulIn: number, dodgeIn: number,
+      conflictIn: boolean, profIn: ReturnType<typeof profileOf>) {
+    const { lead, threat, side, alg } = cars, pts = path.pts, spec = car.spec;
+    let vMul = vMulIn, dodgeT = dodgeIn, conflict = conflictIn, prof = profIn;
+    const nxt = attack.scanCorners(lead, nearIdx, dt);
+    const { cur, nextCorner, nextDist } = nxt;
+    attack.endAttack(car, nearIdx, cur);
+    attack.startAttack(lead, nxt, speed, lineOff, latLim);
+    moves.towPass(car, lead, nxt, lineOff, latLim,
+        pts[idx(nearIdx + Math.round(80 / path.sp))].turn);
+    vMul = moves.yieldRoom(side, nxt, vMul);
+    moves.coverStep(threat, nxt, nearIdx);
+    if (state.atk) {
+      conflict = true;
+      dodgeT = state.atk.side * (latLim - 1.0) - lineOff - latT;
+      prof = profileOf(path, spec, main, K_BRAKE + ATK_KB);
+    }
+    else if (state.cover) {
+      conflict = true;
+      dodgeT = state.cover.side * 0.6 * latLim - lineOff - latT;
+    }
+    // never squeeze a car that is ALONGSIDE: the racecraft target keeps ALONG_GAP from it
+    // (attacks ignored it: side contact 41 -> 110 events on one Thruston run, MEASURED)
+    if (state.atk || state.cover) {
+      let target = latT + dodgeT;
+      for (const alongOther of alg) if (
+          Math.abs(target - alongOther) < ALONG_GAP) target = alongOther + Math.sign(
+          myLat - alongOther || 1) * ALONG_GAP;
+      dodgeT = target - latT;
+    }
+    state.cc = cur >= 0 ? cur : nextDist < 80 ? nextCorner : -1;
+    return { vMul, dodgeT, conflict, prof };
+  }
+
   function drive(car: AiCar, dt = 1 / 120, ctx: DriveCtx = {}) {
     state.t += dt;
     const spec = car.spec, speed = Math.hypot(car.vx, car.vy);
@@ -520,7 +557,7 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
     const cars = carsStep(car, others, path, nearIdx, idx, speed, prec, prof, lineOff, latT, startK,
         latLim, myLat);
     let dodgeT = cars.dodgeT, conflict = cars.conflict;
-    const { followCap, lead, threat, side, alg } = cars;
+    const followCap = cars.followCap;
     // ---- OBSTACLES (user, 2026-10-04: "AI need to see tyres and cones as obstacles — although
     // optional ones haha — but try and avoid them
     // on rally stages / tracks"): ctx.obstacles = loose objects near this car ({ x, y, r },
@@ -549,33 +586,8 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
     // a defensive driver (chance = defence) moves over to COVER THE INSIDE once, and pays for the
     // tighter line (3 % slower in the corner).
     if (path === main) {
-      const nxt = attack.scanCorners(lead, nearIdx, dt);
-      const { cur, nextCorner, nextDist } = nxt;
-      attack.endAttack(car, nearIdx, cur);
-      attack.startAttack(lead, nxt, speed, lineOff, latLim);
-      moves.towPass(car, lead, nxt, lineOff, latLim,
-          pts[idx(nearIdx + Math.round(80 / path.sp))].turn);
-      vMul = moves.yieldRoom(side, nxt, vMul);
-      moves.coverStep(threat, nxt, nearIdx);
-      if (state.atk) {
-        conflict = true;
-        dodgeT = state.atk.side * (latLim - 1.0) - lineOff - latT;
-        prof = profileOf(path, spec, main, K_BRAKE + ATK_KB);
-      }
-      else if (state.cover) {
-        conflict = true;
-        dodgeT = state.cover.side * 0.6 * latLim - lineOff - latT;
-      }
-      // never squeeze a car that is ALONGSIDE: the racecraft target keeps ALONG_GAP from it
-      // (attacks ignored it: side contact 41 -> 110 events on one Thruston run, MEASURED)
-      if (state.atk || state.cover) {
-        let target = latT + dodgeT;
-        for (const alongOther of alg) if (
-            Math.abs(target - alongOther) < ALONG_GAP) target = alongOther + Math.sign(
-            myLat - alongOther || 1) * ALONG_GAP;
-        dodgeT = target - latT;
-      }
-      state.cc = cur >= 0 ? cur : nextDist < 80 ? nextCorner : -1;
+      ({ vMul, dodgeT, conflict, prof } = racecraftStep(car, path, nearIdx, idx, speed, dt, lineOff,
+          latLim, latT, myLat, cars, vMul, dodgeT, conflict, prof));
     } else { state.atk = null; state.cover = null; state.cc = -1; }
     const rate = state.atk ? 3.5 : 2.5;
     state.dodge += Math.max(-rate * dt, Math.min(rate * dt, dodgeT - state.dodge)) * (
