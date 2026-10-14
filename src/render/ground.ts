@@ -1,7 +1,3 @@
-/* eslint-disable max-lines -- one statement per line and 100-column wrapping took this file past
-   800 lines (693 before); moving code out of createGround needs a new module, which samecode
-   cannot prove identical (it changes the bundle's scope order). Split it in a later task. */
-
 // the GROUND PAINTER of render.ts (phase 4 of the render.js split): floor, surface art and
 // patterns, zones, covers, wear, bumps and the runoff ring. Moved verbatim.
 import { FLOOR, FX0, FX1, FY0, FY1, GRID, RUNOFF_W } from "../world/bounds.ts";
