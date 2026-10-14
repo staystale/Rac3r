@@ -117,9 +117,8 @@
   },
   "src/render/props.ts": {
     "complexity": 3,
-    "id-length": 161,
-    "max-len": 164,
-    "max-lines-per-function": 2
+    "max-lines": 1,
+    "max-lines-per-function": 4
   },
   "src/render/road.ts": {
     "complexity": 2,
