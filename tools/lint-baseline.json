@@ -39,10 +39,15 @@
     "complexity": 1,
     "max-lines-per-function": 1
   },
-  "src/hud.js": {
-    "complexity": 4,
-    "max-lines": 1,
+  "src/hud/laps.js": {
+    "complexity": 1
+  },
+  "src/hud/layout.js": {
+    "complexity": 1,
     "max-lines-per-function": 1
+  },
+  "src/hud/overlays.js": {
+    "complexity": 2
   },
   "src/input.js": {
     "complexity": 1,
