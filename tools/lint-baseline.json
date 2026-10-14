@@ -124,12 +124,6 @@
     "max-lines": 1,
     "max-lines-per-function": 2
   },
-  "src/world/barriers.ts": {
-    "complexity": 2
-  },
-  "src/world/blend.ts": {
-    "complexity": 2
-  },
   "src/world/levels/brands-snatch.ts": {
     "complexity": 1,
     "max-lines-per-function": 1
@@ -141,26 +135,6 @@
     "complexity": 1
   },
   "src/world/levels/lab-extension.ts": {
-    "complexity": 1
-  },
-  "src/world/load.ts": {
-    "complexity": 2
-  },
-  "src/world/subtrack.ts": {
-    "complexity": 2,
-    "max-lines-per-function": 2
-  },
-  "src/world/terrain.ts": {
-    "complexity": 1
-  },
-  "src/world/tyrewall.ts": {
-    "complexity": 1
-  },
-  "src/world/wear.ts": {
-    "complexity": 2,
-    "max-lines-per-function": 1
-  },
-  "src/world/zones.ts": {
     "complexity": 1
   }
 }

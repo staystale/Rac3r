@@ -9,7 +9,7 @@ import { zoneAt } from "./zones.ts";
 import { bumpAt, slopeAt, heightAt, bankHeightAt, BUMP_STEER } from "./terrain.ts";
 import { querySubtrack } from "./tyrewall.ts";
 import type {
-  CarBody, CoverId, Cover, Ground, Layers, Patch, Subtrack, Surface, WearCell, Wheel,
+  CarBody, CoverId, Cover, Ground, Layers, Obstacle, Patch, Subtrack, Surface, WearCell, Wheel,
 } from "./types.ts";
 
 // =============================================================================================
@@ -260,52 +260,70 @@ function getCell(cellX: number, cellY: number): WearCell | null {
   }
   return cell;
 }
+/**
+ * One pass over a SNOW cell: after SNOW_TO_ICE passes it becomes ice or meltwater.
+ * @param cell the wear cell (changed in place)
+ */
+function passSnowCell(cell: WearCell): void {
+  // MELT OR FREEZE (user, 2026-10-03: "snow should have a chance to melt or turn to ice when
+  // driven over — it should still take multiple passes"). After SNOW_TO_ICE passes it becomes ICE
+  // or MELTWATER, by chance.
+  if (++cell.passes >= SNOW_TO_ICE) {
+    cell.cover = Math.random() < SNOW_MELT_CHANCE ? 'wet' : 'ice';
+    cell.passes = 0;
+    cell.standing = true;
+    cell.dry = 0;
+  }
+}
+/**
+ * One pass over a puddle (WET cover) cell: it churns into the base or dries.
+ * @param cell the wear cell (changed in place)
+ * @param tyreTemp the tyre temperature (C), for the evaporation rule
+ */
+function passWetCell(cell: WearCell, tyreTemp: number): void {
+  // CHURN vs EVAPORATE (user, 2026-10-03, fourth pass: "water on dirt ... should
+  // become mud when driven over").
+  // MEASURED BUG: a puddle on dirt only mixed after it had DRIED, and standing water only dries
+  // above 60 C, so on dirt it stayed a puddle forever. Tyres churning water INTO soft ground is
+  // not evaporation: on any base with a WATER_MIX rule, every pass of ANY tyre has
+  // WATER_CHURN_CHANCE to churn it (1-3 passes, the user's earlier "happy medium"). Hard ground
+  // (tarmac) has nothing to churn into, so it keeps the heat / weather rule. capped: the 3rd pass
+  // always churns (pure 40% measured a worst case of 9-12 passes over 200 puddles)
+  if (cell.standing && WATER_MIX[cell.base]
+    && (++cell.passes >= 3 || Math.random() < WATER_CHURN_CHANCE)) cell.dry = 1;
+  else cell.dry += dryAmount(cell.standing, tyreTemp);
+  if (cell.dry >= 1) {
+    cell.cover = null;
+    cell.base = WATER_MIX[cell.base] || cell.base;
+    cell.passes = 0;
+    cell.dry = 0;
+  }
+}
+/**
+ * One pass over a bare cell: the base wears down its chain and the ruts deepen.
+ * @param cell the wear cell (changed in place)
+ */
+function passBareCell(cell: WearCell): void {
+  const rule = BASE_WEAR[cell.base];
+  if (rule && ++cell.passes >= rule[1]) { cell.base = rule[0]; cell.passes = 0; }
+  // RUTS THAT DEEPEN (step 3; user: the "vector dips" — "mud turns to thick mud / vector dips;
+  // sand and gravel also have the chance to create vector dips"). A pass digs the cell down by
+  // RUT[base].step (sand / gravel by chance) to its max. It is real height: the suspension feels
+  // it and gravity on its sides pulls wheels into the groove.
+  const rutRule = RUT[cell.base];
+  if (rutRule && Math.random() < rutRule.chance) {
+    const was = cell.rut || 0;
+    cell.rut = Math.min(rutRule.max, was + rutRule.step);
+    // repaint the shading only when the depth crosses a 2 cm band (a repaint per pass would
+    // thrash the tile cache)
+    if (Math.floor(cell.rut / 0.02) !== Math.floor(was / 0.02)) wearDirty.push(cell);
+  }
+}
 // Apply one PASS to a cell (debounced by the caller).
 function passCell(cell: WearCell, tyreTemp = 18): void {
-  if (cell.cover === 'snow') {
-    // MELT OR FREEZE (user, 2026-10-03: "snow should have a chance to melt or turn to ice when
-    // driven over — it should still take multiple passes"). After SNOW_TO_ICE passes it becomes ICE
-    // or MELTWATER, by chance.
-    if (++cell.passes >= SNOW_TO_ICE) {
-      cell.cover = Math.random() < SNOW_MELT_CHANCE ? 'wet' : 'ice';
-      cell.passes = 0;
-      cell.standing = true;
-      cell.dry = 0;
-    }
-  } else if (cell.cover === 'wet') {
-    // CHURN vs EVAPORATE (user, 2026-10-03, fourth pass: "water on dirt ... should
-    // become mud when driven over").
-    // MEASURED BUG: a puddle on dirt only mixed after it had DRIED, and standing water only dries
-    // above 60 C, so on dirt it stayed a puddle forever. Tyres churning water INTO soft ground is
-    // not evaporation: on any base with a WATER_MIX rule, every pass of ANY tyre has
-    // WATER_CHURN_CHANCE to churn it (1-3 passes, the user's earlier "happy medium"). Hard ground
-    // (tarmac) has nothing to churn into, so it keeps the heat / weather rule. capped: the 3rd pass
-    // always churns (pure 40% measured a worst case of 9-12 passes over 200 puddles)
-    if (cell.standing && WATER_MIX[cell.base]
-      && (++cell.passes >= 3 || Math.random() < WATER_CHURN_CHANCE)) cell.dry = 1;
-    else cell.dry += dryAmount(cell.standing, tyreTemp);
-    if (cell.dry >= 1) {
-      cell.cover = null;
-      cell.base = WATER_MIX[cell.base] || cell.base;
-      cell.passes = 0;
-      cell.dry = 0;
-    }
-  } else if (!cell.cover) {
-    const rule = BASE_WEAR[cell.base];
-    if (rule && ++cell.passes >= rule[1]) { cell.base = rule[0]; cell.passes = 0; }
-    // RUTS THAT DEEPEN (step 3; user: the "vector dips" — "mud turns to thick mud / vector dips;
-    // sand and gravel also have the chance to create vector dips"). A pass digs the cell down by
-    // RUT[base].step (sand / gravel by chance) to its max. It is real height: the suspension feels
-    // it and gravity on its sides pulls wheels into the groove.
-    const rutRule = RUT[cell.base];
-    if (rutRule && Math.random() < rutRule.chance) {
-      const was = cell.rut || 0;
-      cell.rut = Math.min(rutRule.max, was + rutRule.step);
-      // repaint the shading only when the depth crosses a 2 cm band (a repaint per pass would
-      // thrash the tile cache)
-      if (Math.floor(cell.rut / 0.02) !== Math.floor(was / 0.02)) wearDirty.push(cell);
-    }
-  }
+  if (cell.cover === 'snow') passSnowCell(cell);
+  else if (cell.cover === 'wet') passWetCell(cell, tyreTemp);
+  else if (!cell.cover) passBareCell(cell);
   const now = cell.cover || cell.base;
   if (now !== cell.current) { cell.current = now; wearDirty.push(cell); }
 }
@@ -512,6 +530,61 @@ export function applyGround(car: CarBody, dt: number): void {
     car.y); qsHintSub = hit.seg != null ? st0 : null; qsHint = hit.seg ?? -1; }
   try { applyGroundInner(car, dt); } finally { qsHintSub = null; qsHint = -1; }
 }
+/**
+ * The slope force (and bump steer) on a grounded car, set into slopeLong / slopeLat / slopeYaw.
+ * @param car the car body (slope fields are written)
+ * @param cosH cos of the car heading
+ * @param sinH sin of the car heading
+ */
+function applySlopeForces(car: CarBody, cosH: number, sinH: number): void {
+  const spec = car.spec;
+  // PER AXLE, under each wheel (ruts: sampled at the centre the car sits on the ridge between two
+  // grooves and is pushed sideways; at the wheels each side is pulled back into its own groove).
+  // Each axle carries its static share of the weight, and the two axles' sideways pushes act at
+  // the axles — so an off-centre whoop or dip under the FRONT wheels tugs the nose toward the dip
+  // / away from the hump (user, 2026-10-03: "dips and whoops should gently affect steering").
+  const hw2 = (spec.trackWidth || 1.5) / 2, perpSin = -sinH, perpCos = cosH,
+    wheelbase = spec.lf + spec.lr;
+  const weight = spec.mass * car.mods.mass * 9.81;
+  let Flong = 0, Flat = 0, yawMoment = 0;
+  for (const [axleX, share, arm] of [[spec.lf, spec.lr / wheelbase, spec.lf], [-spec.lr,
+    spec.lf / wheelbase, -spec.lr]]) {
+    let slopeX = 0, slopeY = 0;
+    for (const side of [1, -1]) {
+      const slope = slopeAt(car.x + cosH * axleX + perpSin * hw2 * side,
+        car.y + sinH * axleX + perpCos * hw2 * side);
+      slopeX += slope.gx / 2;
+      slopeY += slope.gy / 2;
+    }
+    // cap at 45 deg
+    const gmag = Math.hypot(slopeX, slopeY), slopeScale = gmag > 1 ? 1 / gmag : 1;
+    const Fwx = -weight * share * slopeX * slopeScale,
+      Fwy = -weight * share * slopeY * slopeScale;
+    const forceLong = Fwx * cosH + Fwy * sinH, forceLat = -Fwx * sinH + Fwy * cosH;
+    // lateral push x lever arm = yaw
+    Flong += forceLong; Flat += forceLat; yawMoment += arm * forceLat;
+  }
+  // BUMP STEER: the front wheel that drops (into a dip, or off the far side of a whoop) tugs the
+  // nose toward its side — the tramlining a real car's steering does. +y is the car's right, and
+  // a right turn is positive yaw, so a LOWER right wheel (hL > hR) adds positive yaw. Strength
+  // BUMP_STEER x front weight x height difference (m). banking excluded: a steady cross-slope is
+  // not a bump, and the slope push already slides you down it
+  const hAt = (x: number, y: number): number => heightAt(x, y) - bankHeightAt(x, y);
+  const heightRight = hAt(car.x + cosH * spec.lf + perpSin * hw2,
+    car.y + sinH * spec.lf + perpCos * hw2);
+  const heightLeft = hAt(car.x + cosH * spec.lf - perpSin * hw2,
+    car.y + sinH * spec.lf - perpCos * hw2);
+  // BUMPS ONLY, never an even slope (user, 2026-10-03: "I think the bowl on the lab is broken"):
+  // on the bowl wall the left / right difference was PERMANENT and dragged the nose toward the
+  // middle the whole way round. Subtract what a flat plane with the local slope would give, so a
+  // steady cross-slope (bowl, hill, banking) reads zero.
+  const frontSlope = slopeAt(car.x + cosH * spec.lf, car.y + sinH * spec.lf);
+  // hL - hR on a flat tilted plane
+  const plane = -2 * hw2 * (frontSlope.gx * perpSin + frontSlope.gy * perpCos);
+  yawMoment += BUMP_STEER.k * weight * (spec.lr / wheelbase) * Math.max(-0.4, Math.min(0.4,
+    (heightLeft - heightRight) - plane));
+  car.slopeLong = Flong; car.slopeLat = Flat; car.slopeYaw = yawMoment;
+}
 function applyGroundInner(car: CarBody, dt: number): void {
   const spec = car.spec;
   const cosH = Math.cos(car.heading), sinH = Math.sin(car.heading);
@@ -549,54 +622,7 @@ function applyGroundInner(car: CarBody, dt: number): void {
   // included (fixed earlier today); banking is now real height (bankHeightAt).
   car.bankLatForce = 0; car.bankLoadFactor = 1.0;
   if (car.air > 0) { car.slopeLong = 0; car.slopeLat = 0; car.slopeYaw = 0; }
-  else {
-    // PER AXLE, under each wheel (ruts: sampled at the centre the car sits on the ridge between two
-    // grooves and is pushed sideways; at the wheels each side is pulled back into its own groove).
-    // Each axle carries its static share of the weight, and the two axles' sideways pushes act at
-    // the axles — so an off-centre whoop or dip under the FRONT wheels tugs the nose toward the dip
-    // / away from the hump (user, 2026-10-03: "dips and whoops should gently affect steering").
-    const hw2 = (spec.trackWidth || 1.5) / 2, perpSin = -sinH, perpCos = cosH,
-      wheelbase = spec.lf + spec.lr;
-    const weight = spec.mass * car.mods.mass * 9.81;
-    let Flong = 0, Flat = 0, yawMoment = 0;
-    for (const [axleX, share, arm] of [[spec.lf, spec.lr / wheelbase, spec.lf], [-spec.lr,
-      spec.lf / wheelbase, -spec.lr]]) {
-      let slopeX = 0, slopeY = 0;
-      for (const side of [1, -1]) {
-        const slope = slopeAt(car.x + cosH * axleX + perpSin * hw2 * side,
-          car.y + sinH * axleX + perpCos * hw2 * side);
-        slopeX += slope.gx / 2;
-        slopeY += slope.gy / 2;
-      }
-      // cap at 45 deg
-      const gmag = Math.hypot(slopeX, slopeY), slopeScale = gmag > 1 ? 1 / gmag : 1;
-      const Fwx = -weight * share * slopeX * slopeScale,
-        Fwy = -weight * share * slopeY * slopeScale;
-      const forceLong = Fwx * cosH + Fwy * sinH, forceLat = -Fwx * sinH + Fwy * cosH;
-      // lateral push x lever arm = yaw
-      Flong += forceLong; Flat += forceLat; yawMoment += arm * forceLat;
-    }
-    // BUMP STEER: the front wheel that drops (into a dip, or off the far side of a whoop) tugs the
-    // nose toward its side — the tramlining a real car's steering does. +y is the car's right, and
-    // a right turn is positive yaw, so a LOWER right wheel (hL > hR) adds positive yaw. Strength
-    // BUMP_STEER x front weight x height difference (m). banking excluded: a steady cross-slope is
-    // not a bump, and the slope push already slides you down it
-    const hAt = (x: number, y: number): number => heightAt(x, y) - bankHeightAt(x, y);
-    const heightRight = hAt(car.x + cosH * spec.lf + perpSin * hw2,
-      car.y + sinH * spec.lf + perpCos * hw2);
-    const heightLeft = hAt(car.x + cosH * spec.lf - perpSin * hw2,
-      car.y + sinH * spec.lf - perpCos * hw2);
-    // BUMPS ONLY, never an even slope (user, 2026-10-03: "I think the bowl on the lab is broken"):
-    // on the bowl wall the left / right difference was PERMANENT and dragged the nose toward the
-    // middle the whole way round. Subtract what a flat plane with the local slope would give, so a
-    // steady cross-slope (bowl, hill, banking) reads zero.
-    const frontSlope = slopeAt(car.x + cosH * spec.lf, car.y + sinH * spec.lf);
-    // hL - hR on a flat tilted plane
-    const plane = -2 * hw2 * (frontSlope.gx * perpSin + frontSlope.gy * perpCos);
-    yawMoment += BUMP_STEER.k * weight * (spec.lr / wheelbase) * Math.max(-0.4, Math.min(0.4,
-      (heightLeft - heightRight) - plane));
-    car.slopeLong = Flong; car.slopeLat = Flat; car.slopeYaw = yawMoment;
-  }
+  else applySlopeForces(car, cosH, sinH);
 
   // Dynamic surface wear: continuous swept tyre paths for all 4 wheels
   stepWear(car, dt);
@@ -625,45 +651,56 @@ export function fenceClamp(car: CarBody): void {
   }
 }
 
+/**
+ * Push the car out of one solid obstacle (grandstand, pit wall, marshal tower) if it is inside,
+ * bouncing it off the side of least penetration.
+ * @param car the car body
+ * @param obstacle the obstacle rectangle
+ * @param reachX how far the car reaches along x
+ * @param reachY how far the car reaches along y
+ */
+function pushOutOfObstacle(
+  car: CarBody, obstacle: Obstacle, reachX: number, reachY: number,
+): void {
+  const halfW = obstacle.w / 2, halfH = obstacle.h / 2;
+  const minX = obstacle.x - halfW - reachX;
+  const maxX = obstacle.x + halfW + reachX;
+  const minY = obstacle.y - halfH - reachY;
+  const maxY = obstacle.y + halfH + reachY;
+
+  if (car.x > minX && car.x < maxX && car.y > minY && car.y < maxY) {
+    const penLeft = car.x - minX;
+    const penRight = maxX - car.x;
+    const penTop = car.y - minY;
+    const penBottom = maxY - car.y;
+    const minPen = Math.min(penLeft, penRight, penTop, penBottom);
+
+    if (minPen === penLeft) {
+      car.x = minX;
+      if (car.vx > 0) car.vx = -car.vx * 0.35;
+    } else if (minPen === penRight) {
+      car.x = maxX;
+      if (car.vx < 0) car.vx = -car.vx * 0.35;
+    } else if (minPen === penTop) {
+      car.y = minY;
+      if (car.vy > 0) car.vy = -car.vy * 0.35;
+    } else {
+      car.y = maxY;
+      if (car.vy < 0) car.vy = -car.vy * 0.35;
+    }
+    car.yawRate *= 0.50;
+    const speed = Math.hypot(car.vx, car.vy);
+    car.shake = Math.min(1.0, (car.shake || 0) + speed * 0.12);
+  }
+}
 // Solid impactable obstacle collision (grandstands, pit divider walls, marshal towers)
 export function obstacleClamp(car: CarBody): void {
   if (!LEVEL.obstacles || !LEVEL.obstacles.length) return;
   const spec = car.spec;
   const reachX = spec.len * 0.45, reachY = spec.wid * 0.45;
 
-  for (let i = 0; i < LEVEL.obstacles.length; i++) {
-    const obstacle = LEVEL.obstacles[i];
-    const halfW = obstacle.w / 2, halfH = obstacle.h / 2;
-    const minX = obstacle.x - halfW - reachX;
-    const maxX = obstacle.x + halfW + reachX;
-    const minY = obstacle.y - halfH - reachY;
-    const maxY = obstacle.y + halfH + reachY;
-
-    if (car.x > minX && car.x < maxX && car.y > minY && car.y < maxY) {
-      const penLeft = car.x - minX;
-      const penRight = maxX - car.x;
-      const penTop = car.y - minY;
-      const penBottom = maxY - car.y;
-      const minPen = Math.min(penLeft, penRight, penTop, penBottom);
-
-      if (minPen === penLeft) {
-        car.x = minX;
-        if (car.vx > 0) car.vx = -car.vx * 0.35;
-      } else if (minPen === penRight) {
-        car.x = maxX;
-        if (car.vx < 0) car.vx = -car.vx * 0.35;
-      } else if (minPen === penTop) {
-        car.y = minY;
-        if (car.vy > 0) car.vy = -car.vy * 0.35;
-      } else {
-        car.y = maxY;
-        if (car.vy < 0) car.vy = -car.vy * 0.35;
-      }
-      car.yawRate *= 0.50;
-      const speed = Math.hypot(car.vx, car.vy);
-      car.shake = Math.min(1.0, (car.shake || 0) + speed * 0.12);
-    }
-  }
+  for (let i = 0; i < LEVEL.obstacles.length; i++)
+    pushOutOfObstacle(car, LEVEL.obstacles[i], reachX, reachY);
 }
 
 export function resetPATCH_GRID(): void { PATCH_GRID = new Map(); }
