@@ -218,6 +218,35 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
     return { latT, vMul, thrForce: state.t < state.thrUntil };
   }
 
+  /** Shapes the lateral target: racing-line share, wander and the grid lane at the start. */
+  function laneStep(car: AiCar, path: typeof state.path, nearIdx: number, speed: number,
+      latIn: number) {
+    const pts = path.pts;
+    let latT = latIn;
+    // ---- the line: less of its width for lower skill (lineQ), plus a slow WANDER, bigger for less
+    // skilled drivers
+    // (! : the racing line has off at every point)
+    const lineOff = path === main ? pts[nearIdx].off! : 0;
+    latT += -lineOff * (1 - traits.lineQ);
+    latT += traits.wander * (
+        0.6 * Math.sin(state.t * 0.37 + wanderPhaseA) + 0.4 * Math.sin(
+        state.t * 0.83 + wanderPhaseB));
+    // THE START (user, 2026-10-04: "they aim for the racing line a bit too hard at the start of
+    // races and it causes crashes — increase crash awareness a tiny bit, more willing to overtake /
+    // avoid, without slowing down"): from the moment it moves off, the car KEEPS ITS GRID LANE (its
+    // offset from the line when it set off) and eases onto the line over START_BLEND s; in that
+    // phase cars alongside get more room (START_GAP) and a car ahead is gone round rather than
+    // followed.
+    if (state.goT == null && speed > 2 && path === main) {
+      state.goT = state.t;
+      const here = pts[nearIdx];
+      state.gridLat = (car.x - here.x) * -Math.sin(here.h) + (car.y - here.y) * Math.cos(here.h);
+    }
+    const startK = state.goT == null ? 1 : Math.max(0, 1 - (state.t - state.goT) / START_BLEND);
+    if (startK > 0 && path === main && state.gridLat != null) latT += state.gridLat * startK;
+    return { latT, lineOff, startK };
+  }
+
   function drive(car: AiCar, dt = 1 / 120, ctx: DriveCtx = {}) {
     state.t += dt;
     const spec = car.spec, speed = Math.hypot(car.vx, car.vy);
@@ -251,31 +280,13 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
     // ---- MISTAKES (user: "genuine subtle driving errors that lead to crashes and / or slower lap
     // times"), drawn per corner ~45 m out
     const mistakes = mistakeStep(path, nearIdx);
-    let latT = mistakes.latT;
     let vMul = mistakes.vMul;
     const thrForce = mistakes.thrForce;
 
-    // ---- the line: less of its width for lower skill (lineQ), plus a slow WANDER, bigger for less
-    // skilled drivers
-    // (! : the racing line has off at every point)
-    const lineOff = path === main ? pts[nearIdx].off! : 0;
-    latT += -lineOff * (1 - traits.lineQ);
-    latT += traits.wander * (
-        0.6 * Math.sin(state.t * 0.37 + wanderPhaseA) + 0.4 * Math.sin(
-        state.t * 0.83 + wanderPhaseB));
-    // THE START (user, 2026-10-04: "they aim for the racing line a bit too hard at the start of
-    // races and it causes crashes — increase crash awareness a tiny bit, more willing to overtake /
-    // avoid, without slowing down"): from the moment it moves off, the car KEEPS ITS GRID LANE (its
-    // offset from the line when it set off) and eases onto the line over START_BLEND s; in that
-    // phase cars alongside get more room (START_GAP) and a car ahead is gone round rather than
-    // followed.
-    if (state.goT == null && speed > 2 && path === main) {
-      state.goT = state.t;
-      const here = pts[nearIdx];
-      state.gridLat = (car.x - here.x) * -Math.sin(here.h) + (car.y - here.y) * Math.cos(here.h);
-    }
-    const startK = state.goT == null ? 1 : Math.max(0, 1 - (state.t - state.goT) / START_BLEND);
-    if (startK > 0 && path === main && state.gridLat != null) latT += state.gridLat * startK;
+    // ---- the line, the wander and the start lane
+    const lane = laneStep(car, path, nearIdx, speed, mistakes.latT);
+    let latT = lane.latT;
+    const lineOff = lane.lineOff, startK = lane.startK;
 
     // ---- OTHER CARS (user: "avoid waiting for or crashing into other cars, deviating from its
     // chosen path"): a car ahead in the way -> pick the side with room and go round it (that IS the
