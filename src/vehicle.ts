@@ -1386,6 +1386,21 @@ function relaxAxleForces(car: Car, dt: number, vLong: number, vLat: number,
 }
 
 /**
+ * Friction work of one axle (W), from the tyre heat model: how hard its tyres scrub this step.
+ */
+function axleFrictionWork(
+  axleState: ReturnType<typeof axleForce>, syl: number, locked: boolean, load: number,
+  vLong: number, vLat: number, vLongAbs: number, muBase: number,
+) {
+  return (axleState.spinning || locked || (axleState.sliding && axleState.slipSpeed > 2))
+    ? Math.hypot(axleState.Fx, axleState.Fy) * TYRE_HEAT.slipSat
+        * Math.tanh(axleState.slipSpeed / TYRE_HEAT.slipSat)
+            / (1 + Math.hypot(vLong, vLat) / TYRE_HEAT.roadV)
+    : Math.abs(axleState.Fy) * Math.abs(syl) + Math.abs(axleState.Fx) * 0.08 * vLongAbs
+        * Math.min(1, Math.abs(axleState.Fx) / (muBase * load + 1));
+}
+
+/**
  * Sections 6/7 of step(): the tick values shared by the tyre blocks, the brake lock state and the
  * force of both axles (with the tyre relaxation lag applied to Fy). Returns the tick, the axle
  * outcome and whether ABS is working.
@@ -1462,15 +1477,8 @@ function computeAxleForces(car: Car, carSpec: Spec, mass: number, gravity: numbe
   // friction work per axle (W), taken BEFORE the relaxation lag below changes Fy. A sliding /
   // spinning / locked axle skates at slipSpeed; a rolling one scrubs at a fraction of its lateral
   // patch speed, plus ~8% longitudinal slip at its drive / brake force.
-  const work = (
-    axleState: ReturnType<typeof axleForce>, syl: number, locked: boolean, load: number,
-  ) => (axleState.spinning || locked || (axleState.sliding && axleState.slipSpeed > 2))
-    ? Math.hypot(axleState.Fx, axleState.Fy) * TYRE_HEAT.slipSat
-        * Math.tanh(axleState.slipSpeed / TYRE_HEAT.slipSat)
-            / (1 + Math.hypot(vLong, vLat) / TYRE_HEAT.roadV)
-    : Math.abs(axleState.Fy) * Math.abs(syl) + Math.abs(axleState.Fx) * 0.08 * vLongAbs
-        * Math.min(1, Math.abs(axleState.Fx) / (muBase * load + 1));
-  const workF = work(frontAxle, sylF, lockedF, FzF), workR = work(rearAxle, sylR, lockedR, FzR);
+  const workF = axleFrictionWork(frontAxle, sylF, lockedF, FzF, vLong, vLat, vLongAbs, muBase);
+  const workR = axleFrictionWork(rearAxle, sylR, lockedR, FzR, vLong, vLat, vLongAbs, muBase);
   const axles = { frontAxle, rearAxle, lockedF, lockedR, FzF, FzR, FzNomF, FzNomR, workF, workR,
     gripTF, gripTR };
 
