@@ -1,5 +1,6 @@
-// the ROAD layer of render.ts (phase 4 of the render.js split): lanes, track ribbon, lane dashes,
-// curved kerbs, paint, the floor-edge kerb, slip roads and marks. Moved verbatim.
+// The ROAD layer of the renderer: lanes, the track ribbon, lane dashes, curved kerbs, paint, the
+// floor-edge kerb, slip roads, joker arrows and the marks layer. createRoad builds one context
+// (view, camera, projection helpers) and hands it to the module-level painters below.
 import { FX0, FX1, FY0, FY1, KERB_W } from "../world/bounds.ts";
 import { PAINT, BOARDS, LEVEL } from "../world/state.ts";
 import { COL } from "../world/colours.ts";
@@ -16,535 +17,739 @@ interface RoadHelpers {
   artBase: (id: string, fallback: string) => string;
 }
 
-export function createRoad(view: View, cam: Cam, helpers: RoadHelpers) {
-  const { PPMz, toScreenX, toScreenY, paintLayers, artBase } = helpers;
+/** what every road painter reads: the view, the camera and the projection helpers */
+interface RoadCtx extends RoadHelpers {
+  view: View;
+  cam: Cam;
+}
 
-  // ---------------------------------------------------------------- lanes (pit lanes, access
-  // roads) — lab.js laneAt Drawn PIECE BY PIECE — each segment's rectangle plus a disc at every
-  // point — which is exactly the set lab.js laneAt calls lane (distance to the polyline <= half
-  // width). The first cut (one polygon, averaged normals) pinched at taxiway corners and so
-  // disagreed with the physics there. The pattern is world-anchored, so pieces join without a seam.
-  function drawLanes() {
-    if (!LEVEL.lanes) return;
-    const pxPerM = PPMz(), vx0 = cam.x - view.W / 2 / pxPerM, vx1 = cam.x + view.W / 2 / pxPerM,
-        vy0 = cam.y - view.H / 2 / pxPerM, vy1 = cam.y + view.H / 2 / pxPerM;
-    for (const lane of LEVEL.lanes) {
-      const pts = lane.pts, count = pts.length, halfWidth = lane.width / 2,
-          surfaceId = lane.surface.id;
-      if (count < 2) continue;
-      // SEGMENT CULL (2026-10-04, Castle Cum): the ring road's box is the whole map, so EVERY tile
-      // built all 48 pieces and painted a tile of pattern only to clip it away — MEASURED ground
-      // tile 45.7 ms (Thruston 26). Now only the pieces touching the view, and the pattern only
-      // over their box.
-      let bx0 = Infinity, by0 = Infinity, bx1 = -Infinity, by1 = -Infinity, any = false;
-      view.ctx.beginPath();
-      for (let i = 0; i < count - 1; i++) {
-        const [startX, startY] = pts[i], [endX, endY] = pts[i + 1];
-        const sx0 = Math.min(startX, endX) - halfWidth, sx1 = Math.max(startX, endX) + halfWidth,
-            sy0 = Math.min(startY, endY) - halfWidth, sy1 = Math.max(startY, endY) + halfWidth;
-        if (sx1 < vx0 || sx0 > vx1 || sy1 < vy0 || sy0 > vy1) continue;
-        any = true;
-        bx0 = Math.min(bx0, sx0);
-        bx1 = Math.max(bx1, sx1);
-        by0 = Math.min(by0, sy0);
-        by1 = Math.max(by1, sy1);
-        const segLen = Math.hypot(endX - startX, endY - startY) || 1, nx = -(
-            endY - startY) / segLen * halfWidth, ny = (endX - startX) / segLen * halfWidth;
-        // every piece wound the same way (nonzero fill = their union, no holes where they overlap)
-        view.ctx.moveTo(toScreenX(startX + nx), toScreenY(startY + ny));
-        view.ctx.lineTo(toScreenX(endX + nx), toScreenY(endY + ny));
-        view.ctx.lineTo(toScreenX(endX - nx), toScreenY(endY - ny));
-        view.ctx.lineTo(toScreenX(startX - nx), toScreenY(startY - ny));
-        view.ctx.closePath();
-        // a disc at each end of a visible piece (anticlockwise = the quads' winding, else holes)
-        view.ctx.moveTo(toScreenX(startX + halfWidth), toScreenY(startY));
-        view.ctx.arc(toScreenX(startX), toScreenY(startY), halfWidth * pxPerM, 0, Math.PI * 2,
-          true);
-        view.ctx.moveTo(toScreenX(endX + halfWidth), toScreenY(endY));
-        view.ctx.arc(toScreenX(endX), toScreenY(endY), halfWidth * pxPerM, 0, Math.PI * 2, true);
-      }
-      if (!any) continue;
-      view.ctx.fillStyle = artBase(surfaceId, COL.tarmac); view.ctx.fill('nonzero');
-      view.ctx.save();
-      view.ctx.clip('nonzero');
-      view.ctx.translate(toScreenX(0), toScreenY(0));
-      paintLayers(surfaceId, Math.max(bx0, vx0), Math.max(by0, vy0), Math.min(bx1, vx1), Math.min(
-          by1, vy1));
-      view.ctx.restore();
+type Sub = NonNullable<typeof LEVEL.subtrack>;
+type SubPts = Sub['pts'];
+type PaintMark = (typeof PAINT)[number];
+type JokerArrow = NonNullable<NonNullable<typeof LEVEL.joker>['arrows']>[number];
+type RibbonSpan = { surface: string; start: number; end: number };
+
+/** the world-space box of the view, in metres */
+interface ViewBox {
+  vx0: number;
+  vx1: number;
+  vy0: number;
+  vy1: number;
+}
+
+/** a world-space bounding box */
+interface WorldBox {
+  bx0: number;
+  by0: number;
+  bx1: number;
+  by1: number;
+}
+
+// ---------------------------------------------------------------- lanes (pit lanes, access
+// roads) — lab.js laneAt Drawn PIECE BY PIECE — each segment's rectangle plus a disc at every
+// point — which is exactly the set lab.js laneAt calls lane (distance to the polyline <= half
+// width). The first cut (one polygon, averaged normals) pinched at taxiway corners and so
+// disagreed with the physics there. The pattern is world-anchored, so pieces join without a seam.
+
+/**
+ * Traces the pieces (quad plus an end disc each) of one lane that touch the view into the
+ * current path. SEGMENT CULL (Castle Cum): the ring road's box is the whole map, so only the
+ * pieces touching the view are built, and the pattern is painted only over their box.
+ * @param ctx the road context
+ * @param lane the lane (pts, width)
+ * @param viewBox the view's world box
+ * @returns the box of the traced pieces, or null when none touches the view
+ */
+function traceLanePieces(
+  ctx: RoadCtx, lane: NonNullable<typeof LEVEL.lanes>[number], viewBox: ViewBox,
+): WorldBox | null {
+  const { view, PPMz, toScreenX, toScreenY } = ctx;
+  const { vx0, vx1, vy0, vy1 } = viewBox;
+  const pxPerM = PPMz();
+  const pts = lane.pts, count = pts.length, halfWidth = lane.width / 2;
+  let bx0 = Infinity, by0 = Infinity, bx1 = -Infinity, by1 = -Infinity, any = false;
+  view.ctx.beginPath();
+  for (let i = 0; i < count - 1; i++) {
+    const [startX, startY] = pts[i], [endX, endY] = pts[i + 1];
+    const sx0 = Math.min(startX, endX) - halfWidth, sx1 = Math.max(startX, endX) + halfWidth,
+        sy0 = Math.min(startY, endY) - halfWidth, sy1 = Math.max(startY, endY) + halfWidth;
+    if (sx1 < vx0 || sx0 > vx1 || sy1 < vy0 || sy0 > vy1) continue;
+    any = true;
+    bx0 = Math.min(bx0, sx0);
+    bx1 = Math.max(bx1, sx1);
+    by0 = Math.min(by0, sy0);
+    by1 = Math.max(by1, sy1);
+    const segLen = Math.hypot(endX - startX, endY - startY) || 1, nx = -(
+        endY - startY) / segLen * halfWidth, ny = (endX - startX) / segLen * halfWidth;
+    // every piece wound the same way (nonzero fill = their union, no holes where they overlap)
+    view.ctx.moveTo(toScreenX(startX + nx), toScreenY(startY + ny));
+    view.ctx.lineTo(toScreenX(endX + nx), toScreenY(endY + ny));
+    view.ctx.lineTo(toScreenX(endX - nx), toScreenY(endY - ny));
+    view.ctx.lineTo(toScreenX(startX - nx), toScreenY(startY - ny));
+    view.ctx.closePath();
+    // a disc at each end of a visible piece (anticlockwise = the quads' winding, else holes)
+    view.ctx.moveTo(toScreenX(startX + halfWidth), toScreenY(startY));
+    view.ctx.arc(toScreenX(startX), toScreenY(startY), halfWidth * pxPerM, 0, Math.PI * 2,
+      true);
+    view.ctx.moveTo(toScreenX(endX + halfWidth), toScreenY(endY));
+    view.ctx.arc(toScreenX(endX), toScreenY(endY), halfWidth * pxPerM, 0, Math.PI * 2, true);
+  }
+  return any ? { bx0, by0, bx1, by1 } : null;
+}
+
+/**
+ * Fills the traced lane path with its surface colour and paints the surface pattern over the
+ * traced box, clipped to the path.
+ * @param ctx the road context
+ * @param surfaceId the lane's surface id
+ * @param box the box of the traced pieces
+ * @param viewBox the view's world box
+ */
+function fillLanePattern(ctx: RoadCtx, surfaceId: string, box: WorldBox, viewBox: ViewBox) {
+  const { view, toScreenX, toScreenY, paintLayers, artBase } = ctx;
+  const { bx0, by0, bx1, by1 } = box;
+  const { vx0, vx1, vy0, vy1 } = viewBox;
+  view.ctx.fillStyle = artBase(surfaceId, COL.tarmac); view.ctx.fill('nonzero');
+  view.ctx.save();
+  view.ctx.clip('nonzero');
+  view.ctx.translate(toScreenX(0), toScreenY(0));
+  paintLayers(surfaceId, Math.max(bx0, vx0), Math.max(by0, vy0), Math.min(bx1, vx1), Math.min(
+      by1, vy1));
+  view.ctx.restore();
+}
+
+/**
+ * Draws the pit lanes and access roads that touch the view.
+ * @param ctx the road context
+ */
+function drawLanes(ctx: RoadCtx) {
+  const { view, cam, PPMz } = ctx;
+  if (!LEVEL.lanes) return;
+  const pxPerM = PPMz(), vx0 = cam.x - view.W / 2 / pxPerM, vx1 = cam.x + view.W / 2 / pxPerM,
+      vy0 = cam.y - view.H / 2 / pxPerM, vy1 = cam.y + view.H / 2 / pxPerM;
+  const viewBox = { vx0, vx1, vy0, vy1 };
+  for (const lane of LEVEL.lanes) {
+    if (lane.pts.length < 2) continue;
+    const box = traceLanePieces(ctx, lane, viewBox);
+    if (!box) continue;
+    fillLanePattern(ctx, lane.surface.id, box, viewBox);
+  }
+}
+
+// ---------------------------------------------------------------- circuit ribbon & curved
+// corner kerbs
+
+/**
+ * The surface id at a distance along the track; 'ghost' on a point-to-point stage's invisible
+ * return segment (lab.js ghostSegment): never drawn.
+ * @param sub the subtrack
+ * @param dist the distance along the track
+ * @returns the surface id
+ */
+function ribbonSurfaceAt(sub: Sub, dist: number) {
+  if (sub.ghost && dist >= sub.ghost.d0 && dist < sub.ghost.d1) return 'ghost';
+  const sector = sub.sectorAt ? sub.sectorAt(dist) : null;
+  return (sector && sector.surface) ? sector.surface.id : 'tarmac';
+}
+
+/**
+ * Groups contiguous samples into sector spans (one solid polygon per sector, which removes the
+ * transverse anti-aliasing seam lines across the road) and merges the wrap-around span across
+ * the start/finish line so there is no seam at index 0.
+ * @param sub the subtrack
+ * @param pts the track samples
+ * @param count the number of samples (>= 3)
+ * @returns the spans
+ */
+function buildRibbonSpans(sub: Sub, pts: SubPts, count: number) {
+  const spans: RibbonSpan[] = [];
+  let curSurface: string | null = null;
+  let curStart = 0;
+  for (let i = 0; i < count; i++) {
+    const sId = ribbonSurfaceAt(sub, pts[i].dist);
+    if (sId !== curSurface) {
+      if (curSurface !== null) spans.push({ surface: curSurface, start: curStart, end: i });
+      curSurface = sId;
+      curStart = i;
     }
   }
+  spans.push({ surface: curSurface!, start: curStart, end: count });   // n >= 3: set in the loop
 
-
-  // ---------------------------------------------------------------- circuit ribbon & curved
-  // corner kerbs
-  function drawTrackRibbon() {
-    if (!LEVEL.subtrack || !LEVEL.subtrack.pts) return;
-    const sub = LEVEL.subtrack;
-    const pts = sub.pts;
-    const count = pts.length;
-    if (count < 3) return;
-    const pxPerM = PPMz();
-    const halfW = sub.width / 2;
-
-    // 1. Continuous road ribbon with per-sector surface styling
-    // Group contiguous segments into sector spans to fill as ONE solid polygon per sector,
-    // which completely eliminates the transverse anti-aliasing seam lines across the road.
-    // the surface id at a distance; 'ghost' on a point-to-point stage's invisible return segment
-    // (lab.js ghostSegment): never drawn
-    const sidAt = (dist: number) => {
-      if (sub.ghost && dist >= sub.ghost.d0 && dist < sub.ghost.d1) return 'ghost';
-      const sector = sub.sectorAt ? sub.sectorAt(dist) : null;
-      return (sector && sector.surface) ? sector.surface.id : 'tarmac';
-    };
-    const spans: { surface: string; start: number; end: number }[] = [];
-    let curSurface: string | null = null;
-    let curStart = 0;
-    for (let i = 0; i < count; i++) {
-      const sId = sidAt(pts[i].dist);
-      if (sId !== curSurface) {
-        if (curSurface !== null) spans.push({ surface: curSurface, start: curStart, end: i });
-        curSurface = sId;
-        curStart = i;
-      }
-    }
-    spans.push({ surface: curSurface!, start: curStart, end: count });   // n >= 3: set in the loop
-
-    // Merge wrap-around span across start/finish line so there is no seam at index 0
-    if (spans.length > 1 && spans[0].surface === spans[spans.length - 1].surface) {
-      const last = spans.pop()!;   // length > 1
-      spans[0].start = last.start - count;
-    }
-
-    // the exact point where the sector changes between samples i-1 and i (bisected on sectorAt,
-    // the physics' own rule)
-    function sectorCut(i: number) {
-      const prev = pts[(((i - 1) % count) + count) % count], next = pts[
-          ((i % count) + count) % count];
-      let distA = prev.dist, distB = next.dist; if (distB < distA) distB += sub.totalDist;
-      const idOf = (dist: number) => sidAt(dist % sub.totalDist);
-      const ida = idOf(distA);
-      let low = 0, high = 1;
-      for (let step = 0; step < 20; step++) {
-        const mid = (low + high) / 2;
-        if (idOf(distA + (distB - distA) * mid) === ida) low = mid;
-        else high = mid;
-      }
-      const frac = (low + high) / 2;
-      return {
-        x: prev.x + (next.x - prev.x) * frac, y: prev.y + (next.y - prev.y) * frac, nx: prev.nx,
-            ny: prev.ny
-      };
-    }
-    for (const span of spans) {
-      if (span.surface === 'ghost') continue;
-      view.ctx.fillStyle = artBase(span.surface, COL.tarmac);
-      // world bbox of this span, so its pattern is painted over THIS span only. MEASURED
-      // 2026-10-03: painting each span across the whole view (relying on the clip) drew the screen
-      // once per span — Stock Car fell to 10 fps at 4x CPU throttle.
-      let bx0 = Infinity, by0 = Infinity, bx1 = -Infinity, by1 = -Infinity;
-      for (let i = span.start; i <= span.end; i++) {
-        const point = pts[((i % count) + count) % count];
-        bx0 = Math.min(bx0, point.x - halfW); bx1 = Math.max(bx1, point.x + halfW);
-        by0 = Math.min(by0, point.y - halfW); by1 = Math.max(by1, point.y + halfW);
-      }
-      // the span's centreline: cut at the EXACT sector boundaries. MEASURED BUG, 2026-10-03
-      // (tools/visualcheck.mjs): spans ran to the first SAMPLE past the boundary, so every sector
-      // change was drawn up to ~3 m after the point where the grip actually changes (the physics
-      // cuts at the exact track distance).
-      const line = spans.length > 1 ? [sectorCut(span.start)] : [];
-      for (let i = span.start; i < span.end; i++) line.push(pts[((i % count) + count) % count]);
-      line.push(spans.length > 1 ? sectorCut(span.end) : pts[
-          ((span.end % count) + count) % count]);
-      view.ctx.beginPath();
-      // Outer left edge along the span
-      for (let i = 0; i < line.length; i++) {
-        const point = line[i], edgeX = toScreenX(point.x + point.nx * halfW), edgeY = toScreenY(
-            point.y + point.ny * halfW);
-        if (i === 0) view.ctx.moveTo(edgeX, edgeY); else view.ctx.lineTo(edgeX, edgeY);
-      }
-      // Inner right edge along the span in reverse
-      for (let i = line.length - 1; i >= 0; i--) {
-        const point = line[i];
-        view.ctx.lineTo(toScreenX(point.x - point.nx * halfW),
-          toScreenY(point.y - point.ny * halfW));
-      }
-      view.ctx.closePath();
-      view.ctx.fill();
-      // the surface's pattern, clipped to this span (2026-10-03 — the ribbon used to be flat
-      // colour)
-      view.ctx.save();
-      view.ctx.clip();
-      view.ctx.translate(toScreenX(0), toScreenY(0));
-      paintLayers(span.surface, bx0, by0, bx1, by1);
-      view.ctx.restore();
-    }
-
-    // 2. White outer boundary lines (continuous along tarmac/broken/racetarmac, omitted on
-    // dirt/mud/grass)
-    view.ctx.strokeStyle = 'rgba(255,255,255,0.72)';
-    view.ctx.lineWidth = Math.max(1, 0.22 * pxPerM);
-    view.ctx.beginPath();
-    let leftDrawing = false;
-    for (let i = 0; i <= count; i++) {
-      const point = pts[i % count];
-      const sec = sub.sectorAt ? sub.sectorAt(point.dist) : null;
-      const sId = sec && sec.surface ? sec.surface.id : '';
-      if (sId === 'dirt' || sId === 'mud' || sId === 'grass' || sId === 'grassShort' || sidAt(
-          point.dist) === 'ghost' || sub.noLines) {
-        leftDrawing = false;
-        continue;
-      }
-      const edgeX = toScreenX(point.x + point.nx * (halfW - 0.2)), edgeY = toScreenY(
-          point.y + point.ny * (halfW - 0.2));
-      if (!leftDrawing) {
-        view.ctx.moveTo(edgeX, edgeY);
-        leftDrawing = true;
-      } else {
-        view.ctx.lineTo(edgeX, edgeY);
-      }
-    }
-    view.ctx.stroke();
-
-    view.ctx.beginPath();
-    let rightDrawing = false;
-    for (let i = 0; i <= count; i++) {
-      const point = pts[i % count];
-      const sec = sub.sectorAt ? sub.sectorAt(point.dist) : null;
-      const sId = sec && sec.surface ? sec.surface.id : '';
-      if (sId === 'dirt' || sId === 'mud' || sId === 'grass' || sId === 'grassShort' || sidAt(
-          point.dist) === 'ghost' || sub.noLines) {
-        rightDrawing = false;
-        continue;
-      }
-      const edgeX = toScreenX(point.x - point.nx * (halfW - 0.2)), edgeY = toScreenY(
-          point.y - point.ny * (halfW - 0.2));
-      if (!rightDrawing) {
-        view.ctx.moveTo(edgeX, edgeY);
-        rightDrawing = true;
-      } else {
-        view.ctx.lineTo(edgeX, edgeY);
-      }
-    }
-    view.ctx.stroke();
-
+  // Merge wrap-around span across start/finish line so there is no seam at index 0
+  if (spans.length > 1 && spans[0].surface === spans[spans.length - 1].surface) {
+    const last = spans.pop()!;   // length > 1
+    spans[0].start = last.start - count;
   }
+  return spans;
+}
 
-  // LANE DASHES (the highway, sub.laneDash = lateral offsets): white dashes 3 m on / 6 m off,
-  // phased by the road's ABSOLUTE distance (sub.sBase) so they line up across ground tiles painted
-  // before and after the road window moved
-  function drawLaneDashes() {
-    const sub = LEVEL.subtrack; if (!sub || !sub.laneDash) return;
-    const pts = sub.pts, count = pts.length, pxPerM = PPMz(), ghost = sub.ghost;
-    view.ctx.save();
-    view.ctx.strokeStyle = 'rgba(245,245,240,0.8)';
-    view.ctx.lineWidth = Math.max(1, 0.15 * pxPerM);
-    view.ctx.setLineDash([3 * pxPerM, 6 * pxPerM]);
-    view.ctx.lineDashOffset = ((sub.sBase || 0) * pxPerM) % (9 * pxPerM);
-    for (const off of sub.laneDash) { view.ctx.beginPath(); let drawing = false;
-      for (let i = 0; i < count; i++) {
-        const point = pts[i];
-        if (ghost && point.dist >= ghost.d0) break;
-        const x = toScreenX(point.x + point.nx * off), y = toScreenY(point.y + point.ny * off);
-        if (!drawing) {
-          view.ctx.moveTo(x, y);
-          drawing = true;
-        } else view.ctx.lineTo(x, y);
-      }
-      view.ctx.stroke(); }
-    view.ctx.setLineDash([]);
-    // SOLID lines (sub.laneSolid, the highway's hard-shoulder line)
-    for (const off of sub.laneSolid || []) { view.ctx.beginPath(); let drawing = false;
-      for (let i = 0; i < count; i++) {
-        const point = pts[i];
-        if (ghost && point.dist >= ghost.d0) break;
-        const x = toScreenX(point.x + point.nx * off), y = toScreenY(point.y + point.ny * off);
-        if (!drawing) {
-          view.ctx.moveTo(x, y);
-          drawing = true;
-        } else view.ctx.lineTo(x, y);
-      }
-      view.ctx.stroke(); }
-    view.ctx.restore();
+/**
+ * The exact point where the sector changes between samples i-1 and i (bisected on sectorAt, the
+ * physics' own rule).
+ * @param sub the subtrack
+ * @param pts the track samples
+ * @param count the number of samples
+ * @param i the sample index
+ * @returns the cut point and its normal
+ */
+function findSectorCut(sub: Sub, pts: SubPts, count: number, i: number) {
+  const prev = pts[(((i - 1) % count) + count) % count], next = pts[
+      ((i % count) + count) % count];
+  let distA = prev.dist, distB = next.dist; if (distB < distA) distB += sub.totalDist;
+  const idOf = (dist: number) => ribbonSurfaceAt(sub, dist % sub.totalDist);
+  const ida = idOf(distA);
+  let low = 0, high = 1;
+  for (let step = 0; step < 20; step++) {
+    const mid = (low + high) / 2;
+    if (idOf(distA + (distB - distA) * mid) === ida) low = mid;
+    else high = mid;
   }
-  // CURVED CORNER KERBS — split out of drawTrackRibbon 2026-10-03 and drawn AFTER patches, wear and
-  // covers (user, with a screenshot of churned dirt and a grass patch painted over a kerb:
-  // "surfaces shouldn't cover kerbs — kerbs should be their own surface, bumpy and slightly slippy
-  // like real race kerbs"). The physics already treats them that way (SURFACES.kerb, mu 0.70,
-  // ridges in bumpAt); now nothing can paint over them.
-  function drawCurvedKerbs() {
-    if (!LEVEL.subtrack || !LEVEL.subtrack.pts) return;
-    const sub = LEVEL.subtrack, pts = sub.pts, count = pts.length, pxPerM = PPMz(),
-        halfW = sub.width / 2;
-    if (sub.curvedKerbs) {
-      for (const kerb of sub.curvedKerbs) {
-        const sgn = kerb.side === 'left' ? 1 : -1;
-        const kerbWidth = kerb.width || 2.4;
-        const start = kerb.startDist, end = kerb.endDist;
-
-        for (let i = 0; i < count; i++) {
-          const startPt = pts[i];
-          const endPt = pts[(i + 1) % count];
-          if (startPt.dist < start || startPt.dist > end) continue;
-
-          // Red and white kerb teeth alternating every 2.0 m along the corner
-          const tooth = Math.floor(startPt.dist / 2.0) % 2;
-          view.ctx.fillStyle = tooth ? COL.kerbB : COL.kerbA;
-
-          const iaX = toScreenX(startPt.x + sgn * startPt.nx * halfW), iaY = toScreenY(
-              startPt.y + sgn * startPt.ny * halfW);
-          const ibX = toScreenX(endPt.x + sgn * endPt.nx * halfW), ibY = toScreenY(
-              endPt.y + sgn * endPt.ny * halfW);
-          const oaX = toScreenX(startPt.x + sgn * startPt.nx * (halfW + kerbWidth)),
-            oaY = toScreenY(
-              startPt.y + sgn * startPt.ny * (halfW + kerbWidth));
-          const obX = toScreenX(endPt.x + sgn * endPt.nx * (halfW + kerbWidth)), obY = toScreenY(
-              endPt.y + sgn * endPt.ny * (halfW + kerbWidth));
-
-          view.ctx.beginPath();
-          view.ctx.moveTo(iaX, iaY);
-          view.ctx.lineTo(ibX, ibY);
-          view.ctx.lineTo(obX, obY);
-          view.ctx.lineTo(oaX, oaY);
-          view.ctx.closePath();
-          view.ctx.fill();
-
-          // Outer highlight bevel along crest
-          view.ctx.strokeStyle = 'rgba(255,255,255,0.40)';
-          view.ctx.lineWidth = Math.max(1, 0.08 * pxPerM);
-          view.ctx.beginPath();
-          view.ctx.moveTo(oaX, oaY); view.ctx.lineTo(obX, obY);
-          view.ctx.stroke();
-
-          // Inner shadow joint along asphalt edge
-          view.ctx.strokeStyle = 'rgba(0,0,0,0.22)';
-          view.ctx.lineWidth = Math.max(1, 0.08 * pxPerM);
-          view.ctx.beginPath();
-          view.ctx.moveTo(iaX, iaY); view.ctx.lineTo(ibX, ibY);
-          view.ctx.stroke();
-        }
-      }
-    }
-  }
-
-  function drawPaint() {
-    for (const mark of PAINT) {
-      view.ctx.strokeStyle = COL.paint;
-      view.ctx.globalAlpha = mark.tone!;   // every painted mark has a tone
-      // MEASURED BUG, 2026-09-27 (photographed): this read p.w, which is the BOX WIDTH for a box —
-      // so the 6 m start box stroked at 96 px thick and rendered as a pale slab the size of a
-      // building. Ring stroke width is now "lw" and nothing else is overloaded.
-      view.ctx.lineWidth = Math.max(1, (mark.lw || 0.12) * PPMz());
-      if (mark.kind === 'ring') {
-        view.ctx.beginPath();
-        view.ctx.arc(toScreenX(mark.x), toScreenY(mark.y), mark.r! * PPMz(), 0,
-          Math.PI * 2);   // a ring has r
-        view.ctx.stroke();
-      } else if (mark.kind === 'box' || mark.kind === 'lane') {
-        // a box / lane has w and h
-        view.ctx.strokeRect(
-            toScreenX(mark.x - mark.w! / 2), toScreenY(mark.y - mark.h! / 2), mark.w! * PPMz(),
-              mark.h! * PPMz(
-            ));
-      } else if (mark.kind === 'chequered') {
-        const halfW = (mark.wid || 13) / 2;
-        const halfL = (mark.len || 1.6) / 2;
-        const cols = 2;
-        const rows = 16;
-        const rowH = (halfW * 2) / rows;
-
-        view.ctx.save();
-        view.ctx.translate(toScreenX(mark.x), toScreenY(mark.y));
-        view.ctx.rotate(mark.rot || 0);
-
-        // Leading and trailing boundary lines
-        view.ctx.fillStyle = '#ffffff';
-        view.ctx.fillRect(-halfL * PPMz(), -halfW * PPMz(), halfL * 2 * PPMz(), Math.max(
-            1, 0.12 * PPMz()));
-        view.ctx.fillRect(-halfL * PPMz(), (halfW - 0.12) * PPMz(), halfL * 2 * PPMz(), Math.max(
-            1, 0.12 * PPMz()));
-
-        // Alternating black and white finish line squares
-        for (let row = 0; row < rows; row++) {
-          for (let col = 0; col < cols; col++) {
-            const isWhite = (row + col) % 2 === 0;
-            view.ctx.fillStyle = isWhite ? '#ffffff' : '#14161c';
-            const sqX = (-halfL + col * (halfL * 2 / cols)) * PPMz();
-            const sqY = (-halfW + row * rowH) * PPMz();
-            const sqW = (halfL * 2 / cols) * PPMz();
-            const sqH = rowH * PPMz();
-            view.ctx.fillRect(sqX, sqY, sqW + 0.4, sqH + 0.4);
-          }
-        }
-        view.ctx.restore();
-      }
-      view.ctx.globalAlpha = 1;
-    }
-    // distance boards down the braking straight
-    view.ctx.fillStyle = COL.inkSoft;
-    view.ctx.font = `600 ${Math.round(0.9 * PPMz())}px ui-sans-serif, system-ui, sans-serif`;
-    view.ctx.textAlign = 'center'; view.ctx.textBaseline = 'middle';
-    for (const board of BOARDS) view.ctx.fillText(board.label, toScreenX(board.x),
-      toScreenY(board.y));
-  }
-
-  // JOKER ARROWS (user spec 2026-10-03: "a TRANSLUCENT WHITE ARROW, gently pulsing" at joker / pit
-  // entries). Hidden once the joker is done in an RX race. Wall clock: the pulse is something the
-  // player watches.
-  function drawArrows(game: RoadGame, wallT?: number) {
-    const joker = LEVEL.joker; if (!joker || !joker.arrows) return;
-    if (game.jokerTaken) return;
-    // stronger + OUTLINED (user: "needs to be closed and more clearly pointing") — at 0.28-0.5
-    // alpha it faded into the grey tarmac
-    const pxPerM = PPMz(), alpha = 0.45 + 0.35 * (0.5 + 0.5 * Math.sin((wallT || 0) * 3.2));
-    // ar! below: the arrows hold no null once built (the builders filter them)
-    for (const arrow of joker.arrows) {
-      if (toScreenX(arrow!.x) < -200 || toScreenX(arrow!.x) > view.W + 200 ||
-          toScreenY(arrow!.y) < -200 || toScreenY(arrow!.y) > view.H + 200) continue;
-      const arrowLen = arrow!.len || 7;
-      view.ctx.save(); view.ctx.translate(toScreenX(arrow!.x),
-        toScreenY(arrow!.y)); view.ctx.rotate(arrow!.rot);
-      view.ctx.fillStyle = `rgba(255,255,255,${alpha.toFixed(3)})`;
-      view.ctx.beginPath();
-      view.ctx.moveTo(arrowLen * 0.5 * pxPerM, 0);
-      view.ctx.lineTo(0, -arrowLen * 0.42 * pxPerM);
-      view.ctx.lineTo(0, -arrowLen * 0.16 * pxPerM);
-      view.ctx.lineTo(-arrowLen * 0.5 * pxPerM, -arrowLen * 0.16 * pxPerM);
-      view.ctx.lineTo(-arrowLen * 0.5 * pxPerM, arrowLen * 0.16 * pxPerM);
-      view.ctx.lineTo(0, arrowLen * 0.16 * pxPerM);
-      view.ctx.lineTo(0, arrowLen * 0.42 * pxPerM);
-      view.ctx.closePath();
-      view.ctx.fill();
-      view.ctx.strokeStyle = `rgba(20,22,28,${(alpha * 0.8).toFixed(3)})`;
-      view.ctx.lineWidth = Math.max(1.5, 0.25 * pxPerM);
-      view.ctx.lineJoin = "miter";
-      view.ctx.stroke();
-      view.ctx.restore();
-    }
-  }
-
-  // A4: the boundary is VISIBLE — and now it is three different things, so it has to READ as three
-  // (CLAUDE.md §4: if the player cannot find it, it does not exist). From the inside out:
-  //   the KERB, a raised rumble strip you ride over and can jump off,
-  //   the RUN-OFF, gravel you can drive on badly,
-  //   the FENCE, the only thing that actually stops you.
-  // Each side is the same drawing rotated, so the whole edge is one function of a side index.
-  //
-  // `forSide(i, fn)` hands fn a frame where +v points OUTWARD from the floor and u runs along the
-  // edge, which is what removes the four near-identical copies the old version had. S-B
-  // (2026-10-06): the floor is a RECTANGLE (lab.js FX0..FX1 x FY0..FY1). The frame is centred on
-  // it, and fn gets (p, D, Lh): D = the floor edge's distance from the centre on this side, Lh =
-  // half the edge's length (both FLOOR on a square: drawn exactly as before). Inside fn the CAMERA
-  // is moved into the side's frame (and the view made square), so speckle's view culling - which
-  // compares with cam - culls in the frame it draws in. (Before, the three rotated sides culled
-  // against the unrotated view: their grass / gravel grain only drew when the camera was somewhere
-  // else.)
-  function forSide(i: number, callback: Parameters<ForSide>[1]) {
-    const centreX = (FX0 + FX1) / 2, centreY = (FY0 + FY1) / 2, edgeDist = i % 2 ? (
-        FX1 - FX0) / 2 : (FY1 - FY0) / 2, halfLen = i % 2 ? (FY1 - FY0) / 2 : (FX1 - FX0) / 2;
-    const angle = (i * Math.PI) / 2, cosA = Math.round(Math.cos(angle)), sinA = Math.round(
-        Math.sin(angle));
-    const keep = {
-      x: cam.x, y: cam.y, W: view.W, H: view.H
-    }, dx = cam.x - centreX, dy = cam.y - centreY;
-    view.ctx.save();
-    view.ctx.translate(toScreenX(centreX), toScreenY(centreY));
-    view.ctx.rotate(angle);
-    cam.x = dx * cosA + dy * sinA;
-    cam.y = -dx * sinA + dy * cosA;
-    view.W = view.H = Math.max(view.W, view.H);
-    try { callback(PPMz(), edgeDist, halfLen); }
-    finally {
-      cam.x = keep.x;
-      cam.y = keep.y;
-      view.W = keep.W;
-      view.H = keep.H;
-      view.ctx.restore();
-    }
-  }
-
-  function drawKerb() {
-    if (LEVEL.endless) return;
-    for (let i = 0; i < 4; i++) forSide(i, (pxPerM, edgeDist, halfLen) => {
-      const inner = edgeDist - KERB_W;
-      // hazard blocks across the FULL width of the strip, so the thing you drive over is what you
-      // see
-      const blk = 2.6;                             // m per block
-      for (let along = -halfLen; along < halfLen; along += blk) {
-        const blockW = Math.min(blk, halfLen - along);
-        view.ctx.fillStyle = (Math.round((along + halfLen) / blk) % 2) ? COL.kerbB : COL.kerbA;
-        view.ctx.fillRect(along * pxPerM, inner * pxPerM, blockW * pxPerM + 1, KERB_W * pxPerM);
-      }
-      // it is RAISED: bright along the crest, shadow at the inner lip where the car climbs on
-      view.ctx.fillStyle = 'rgba(255,255,255,0.45)';
-      view.ctx.fillRect(-halfLen * pxPerM, (edgeDist - 0.5) * pxPerM, halfLen * 2 * pxPerM,
-          0.5 * pxPerM);
-      view.ctx.fillStyle = 'rgba(0,0,0,0.16)';
-      view.ctx.fillRect(-halfLen * pxPerM, inner * pxPerM, halfLen * 2 * pxPerM, 0.35 * pxPerM);
-    });
-  }
-
-  // SLIP ROAD (highway.js extras): the tarmac itself is a lane ribbon (drawLanes, ground tiles);
-  // this draws its MARKINGS - the edge lines and a row of white squares along the nose where it
-  // leaves the hard shoulder - on top, so they are never stale in a tile
-  function drawSlip(prop: Prop, pxPerM: number) {
-    const line = prop.line; if (!line || line.length < 2) return;
-    if (!prop._bb) {
-      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-      for (const [x, y] of line) {
-        minX = Math.min(minX, x);
-        maxX = Math.max(maxX, x);
-        minY = Math.min(minY, y);
-        maxY = Math.max(maxY, y);
-      }
-      prop._bb = [minX - 6, minY - 6, maxX + 6, maxY + 6];
-    }
-    if (toScreenX(prop._bb[0]) > view.W || toScreenX(prop._bb[2]) < 0 ||
-        toScreenY(prop._bb[1]) > view.H || toScreenY(prop._bb[3]) < 0) return;
-    const halfW = (prop.w || 5) / 2 - 0.3, nrm = (index: number) => {
-      const prev = line[Math.max(0, index - 1)], next = line[Math.min(line.length - 1, index + 1)],
-          heading = Math.atan2(next[1] - prev[1], next[0] - prev[0]);
-      return [-Math.sin(heading), Math.cos(heading)];
-    };
-    view.ctx.save();
-    view.ctx.strokeStyle = 'rgba(245,245,240,0.85)';
-    view.ctx.lineWidth = Math.max(1, 0.15 * pxPerM);
-    for (const sign of [-1, 1]) {
-      view.ctx.beginPath();
-      for (let index = sign > 0 ? 1 : 0; index < line.length; index++) {
-        const [x, y] = line[index], [nx, ny] = nrm(index),
-          screenX = toScreenX(x + nx * halfW * sign),
-            screenY = toScreenY(y + ny * halfW * sign);
-        if (index === (sign > 0 ? 1 : 0)) view.ctx.moveTo(screenX, screenY);
-        else view.ctx.lineTo(screenX, screenY);
-      }
-      view.ctx.stroke();
-    }
-    view.ctx.fillStyle = 'rgba(245,245,240,0.7)';
-    if (prop.nose !== false) for (let index = 1; index < Math.min(5, line.length); index++) {
-      const [x, y] = line[index], [nx, ny] = nrm(index);
-      view.ctx.fillRect(toScreenX(x + nx * halfW) - 0.3 * pxPerM,
-        toScreenY(y + ny * halfW) - 0.3 * pxPerM,
-          0.6 * pxPerM, 0.6 * pxPerM);
-    }
-    view.ctx.restore();
-  }
-
-  function drawMarks(marks: RenderMarks) {
-    // one blit of the whole world layer. imageSmoothingEnabled stays on here: the layer is 9 px/m
-    // and the screen is 16 px/m, so smoothing is what stops the marks looking like stair-stepped
-    // bitmaps.
-    const [mox, moy] = marks.origin || [0, 0], markX = toScreenX(mox - MARK_EXTENT),
-      markY = toScreenY(
-        moy - MARK_EXTENT);
-    const size = MARK_EXTENT * 2 * PPMz();
-    // smoothing OFF, so marks land on the art grid as hard blocks (photographed soft and blurry
-    // with it on, 2026-10-03 — the only smeared thing left in the world layer)
-    view.ctx.imageSmoothingEnabled = false;
-    view.ctx.drawImage(marks.canvas, markX, markY, size, size);
-    view.ctx.imageSmoothingEnabled = true;
-  }
+  const frac = (low + high) / 2;
   return {
-    drawLanes, drawTrackRibbon, drawLaneDashes, drawCurvedKerbs, drawPaint, forSide,
-    drawKerb, drawSlip, drawMarks, drawArrows,
+    x: prev.x + (next.x - prev.x) * frac, y: prev.y + (next.y - prev.y) * frac, nx: prev.nx,
+        ny: prev.ny
+  };
+}
+
+/**
+ * Fills one ribbon span as a polygon (left edge out, right edge back) and paints the surface's
+ * pattern clipped to it, over the span's own world box only. MEASURED: painting
+ * each span across the whole view (relying on the clip) drew the screen once per span.
+ * @param ctx the road context
+ * @param sub the subtrack
+ * @param spans all the spans
+ * @param span the span to draw
+ */
+function drawRibbonSpan(ctx: RoadCtx, sub: Sub, spans: RibbonSpan[], span: RibbonSpan) {
+  const { view, toScreenX, toScreenY, paintLayers, artBase } = ctx;
+  const pts = sub.pts, count = pts.length, halfW = sub.width / 2;
+  view.ctx.fillStyle = artBase(span.surface, COL.tarmac);
+  let bx0 = Infinity, by0 = Infinity, bx1 = -Infinity, by1 = -Infinity;
+  for (let i = span.start; i <= span.end; i++) {
+    const point = pts[((i % count) + count) % count];
+    bx0 = Math.min(bx0, point.x - halfW); bx1 = Math.max(bx1, point.x + halfW);
+    by0 = Math.min(by0, point.y - halfW); by1 = Math.max(by1, point.y + halfW);
+  }
+  // the span's centreline: cut at the EXACT sector boundaries (spans ran to the first SAMPLE
+  // past the boundary, so every sector change was drawn up to ~3 m after the point where the
+  // grip actually changes; the physics cuts at the exact track distance).
+  const line = spans.length > 1 ? [findSectorCut(sub, pts, count, span.start)] : [];
+  for (let i = span.start; i < span.end; i++) line.push(pts[((i % count) + count) % count]);
+  line.push(spans.length > 1 ? findSectorCut(sub, pts, count, span.end) : pts[
+      ((span.end % count) + count) % count]);
+  view.ctx.beginPath();
+  // Outer left edge along the span
+  for (let i = 0; i < line.length; i++) {
+    const point = line[i], edgeX = toScreenX(point.x + point.nx * halfW), edgeY = toScreenY(
+        point.y + point.ny * halfW);
+    if (i === 0) view.ctx.moveTo(edgeX, edgeY); else view.ctx.lineTo(edgeX, edgeY);
+  }
+  // Inner right edge along the span in reverse
+  for (let i = line.length - 1; i >= 0; i--) {
+    const point = line[i];
+    view.ctx.lineTo(toScreenX(point.x - point.nx * halfW),
+      toScreenY(point.y - point.ny * halfW));
+  }
+  view.ctx.closePath();
+  view.ctx.fill();
+  // the surface's pattern, clipped to this span
+  view.ctx.save();
+  view.ctx.clip();
+  view.ctx.translate(toScreenX(0), toScreenY(0));
+  paintLayers(span.surface, bx0, by0, bx1, by1);
+  view.ctx.restore();
+}
+
+/**
+ * Strokes one white outer boundary line of the ribbon (continuous along tarmac/broken/
+ * racetarmac, omitted on dirt/mud/grass).
+ * @param ctx the road context
+ * @param sub the subtrack
+ * @param side +1 for the left edge, -1 for the right edge
+ */
+function strokeRibbonEdge(ctx: RoadCtx, sub: Sub, side: number) {
+  const { view, toScreenX, toScreenY } = ctx;
+  const pts = sub.pts, count = pts.length, halfW = sub.width / 2;
+  view.ctx.beginPath();
+  let drawing = false;
+  for (let i = 0; i <= count; i++) {
+    const point = pts[i % count];
+    const sec = sub.sectorAt ? sub.sectorAt(point.dist) : null;
+    const sId = sec && sec.surface ? sec.surface.id : '';
+    if (sId === 'dirt' || sId === 'mud' || sId === 'grass' || sId === 'grassShort' ||
+        ribbonSurfaceAt(sub, point.dist) === 'ghost' || sub.noLines) {
+      drawing = false;
+      continue;
+    }
+    const edgeX = toScreenX(point.x + side * point.nx * (halfW - 0.2)),
+        edgeY = toScreenY(point.y + side * point.ny * (halfW - 0.2));
+    if (!drawing) {
+      view.ctx.moveTo(edgeX, edgeY);
+      drawing = true;
+    } else {
+      view.ctx.lineTo(edgeX, edgeY);
+    }
+  }
+  view.ctx.stroke();
+}
+
+/**
+ * Draws the circuit ribbon: one solid polygon per sector span with its surface pattern, then
+ * the white boundary lines on both edges.
+ * @param ctx the road context
+ */
+function drawTrackRibbon(ctx: RoadCtx) {
+  const { view, PPMz } = ctx;
+  if (!LEVEL.subtrack || !LEVEL.subtrack.pts) return;
+  const sub = LEVEL.subtrack;
+  const count = sub.pts.length;
+  if (count < 3) return;
+  const pxPerM = PPMz();
+
+  // 1. Continuous road ribbon with per-sector surface styling
+  const spans = buildRibbonSpans(sub, sub.pts, count);
+  for (const span of spans) {
+    if (span.surface === 'ghost') continue;
+    drawRibbonSpan(ctx, sub, spans, span);
+  }
+
+  // 2. White outer boundary lines (continuous along tarmac/broken/racetarmac, omitted on
+  // dirt/mud/grass)
+  view.ctx.strokeStyle = 'rgba(255,255,255,0.72)';
+  view.ctx.lineWidth = Math.max(1, 0.22 * pxPerM);
+  strokeRibbonEdge(ctx, sub, 1);
+  strokeRibbonEdge(ctx, sub, -1);
+}
+
+/**
+ * Strokes one lane line at a lateral offset along the track, stopping at the ghost segment.
+ * @param ctx the road context
+ * @param sub the subtrack
+ * @param off the lateral offset in metres
+ */
+function strokeOffsetLine(ctx: RoadCtx, sub: Sub, off: number) {
+  const { view, toScreenX, toScreenY } = ctx;
+  const pts = sub.pts, count = pts.length, ghost = sub.ghost;
+  view.ctx.beginPath(); let drawing = false;
+  for (let i = 0; i < count; i++) {
+    const point = pts[i];
+    if (ghost && point.dist >= ghost.d0) break;
+    const x = toScreenX(point.x + point.nx * off), y = toScreenY(point.y + point.ny * off);
+    if (!drawing) {
+      view.ctx.moveTo(x, y);
+      drawing = true;
+    } else view.ctx.lineTo(x, y);
+  }
+  view.ctx.stroke();
+}
+
+/**
+ * LANE DASHES (the highway, sub.laneDash = lateral offsets): white dashes 3 m on / 6 m off,
+ * phased by the road's ABSOLUTE distance (sub.sBase) so they line up across ground tiles painted
+ * before and after the road window moved; then the SOLID lines (sub.laneSolid, the highway's
+ * hard-shoulder line).
+ * @param ctx the road context
+ */
+function drawLaneDashes(ctx: RoadCtx) {
+  const { view, PPMz } = ctx;
+  const sub = LEVEL.subtrack; if (!sub || !sub.laneDash) return;
+  const pxPerM = PPMz();
+  view.ctx.save();
+  view.ctx.strokeStyle = 'rgba(245,245,240,0.8)';
+  view.ctx.lineWidth = Math.max(1, 0.15 * pxPerM);
+  view.ctx.setLineDash([3 * pxPerM, 6 * pxPerM]);
+  view.ctx.lineDashOffset = ((sub.sBase || 0) * pxPerM) % (9 * pxPerM);
+  for (const off of sub.laneDash) strokeOffsetLine(ctx, sub, off);
+  view.ctx.setLineDash([]);
+  for (const off of sub.laneSolid || []) strokeOffsetLine(ctx, sub, off);
+  view.ctx.restore();
+}
+
+// CURVED CORNER KERBS are drawn AFTER patches, wear and covers, so nothing can paint over them:
+// kerbs are their own surface, bumpy and slightly slippy like real race kerbs. The physics
+// already treats them that way (SURFACES.kerb, mu 0.70, ridges in bumpAt).
+
+/**
+ * Draws one tooth of a curved kerb between two track samples: the quad, its outer highlight
+ * bevel along the crest and the inner shadow joint along the asphalt edge.
+ * @param ctx the road context
+ * @param sub the subtrack
+ * @param kerb the curved kerb (side, width)
+ * @param index the index of the tooth's first sample
+ */
+function drawKerbTooth(
+  ctx: RoadCtx, sub: Sub, kerb: NonNullable<Sub['curvedKerbs']>[number], index: number,
+) {
+  const { view, PPMz, toScreenX, toScreenY } = ctx;
+  const pts = sub.pts, count = pts.length, pxPerM = PPMz(), halfW = sub.width / 2;
+  const sgn = kerb.side === 'left' ? 1 : -1;
+  const kerbWidth = kerb.width || 2.4;
+  const startPt = pts[index];
+  const endPt = pts[(index + 1) % count];
+
+  // Red and white kerb teeth alternating every 2.0 m along the corner
+  const tooth = Math.floor(startPt.dist / 2.0) % 2;
+  view.ctx.fillStyle = tooth ? COL.kerbB : COL.kerbA;
+
+  const iaX = toScreenX(startPt.x + sgn * startPt.nx * halfW), iaY = toScreenY(
+      startPt.y + sgn * startPt.ny * halfW);
+  const ibX = toScreenX(endPt.x + sgn * endPt.nx * halfW), ibY = toScreenY(
+      endPt.y + sgn * endPt.ny * halfW);
+  const oaX = toScreenX(startPt.x + sgn * startPt.nx * (halfW + kerbWidth)),
+    oaY = toScreenY(
+      startPt.y + sgn * startPt.ny * (halfW + kerbWidth));
+  const obX = toScreenX(endPt.x + sgn * endPt.nx * (halfW + kerbWidth)), obY = toScreenY(
+      endPt.y + sgn * endPt.ny * (halfW + kerbWidth));
+
+  view.ctx.beginPath();
+  view.ctx.moveTo(iaX, iaY);
+  view.ctx.lineTo(ibX, ibY);
+  view.ctx.lineTo(obX, obY);
+  view.ctx.lineTo(oaX, oaY);
+  view.ctx.closePath();
+  view.ctx.fill();
+
+  // Outer highlight bevel along crest
+  view.ctx.strokeStyle = 'rgba(255,255,255,0.40)';
+  view.ctx.lineWidth = Math.max(1, 0.08 * pxPerM);
+  view.ctx.beginPath();
+  view.ctx.moveTo(oaX, oaY); view.ctx.lineTo(obX, obY);
+  view.ctx.stroke();
+
+  // Inner shadow joint along asphalt edge
+  view.ctx.strokeStyle = 'rgba(0,0,0,0.22)';
+  view.ctx.lineWidth = Math.max(1, 0.08 * pxPerM);
+  view.ctx.beginPath();
+  view.ctx.moveTo(iaX, iaY); view.ctx.lineTo(ibX, ibY);
+  view.ctx.stroke();
+}
+
+/**
+ * Draws the curved corner kerbs of the subtrack.
+ * @param ctx the road context
+ */
+function drawCurvedKerbs(ctx: RoadCtx) {
+  if (!LEVEL.subtrack || !LEVEL.subtrack.pts) return;
+  const sub = LEVEL.subtrack, pts = sub.pts, count = pts.length;
+  if (sub.curvedKerbs) {
+    for (const kerb of sub.curvedKerbs) {
+      const start = kerb.startDist, end = kerb.endDist;
+      for (let i = 0; i < count; i++) {
+        const startPt = pts[i];
+        if (startPt.dist < start || startPt.dist > end) continue;
+        drawKerbTooth(ctx, sub, kerb, i);
+      }
+    }
+  }
+}
+
+/**
+ * Draws one chequered finish line mark: boundary lines, then alternating squares.
+ * @param ctx the road context
+ * @param mark the chequered mark
+ */
+function drawChequered(ctx: RoadCtx, mark: PaintMark) {
+  const { view, PPMz, toScreenX, toScreenY } = ctx;
+  const halfW = (mark.wid || 13) / 2;
+  const halfL = (mark.len || 1.6) / 2;
+  const cols = 2;
+  const rows = 16;
+  const rowH = (halfW * 2) / rows;
+
+  view.ctx.save();
+  view.ctx.translate(toScreenX(mark.x), toScreenY(mark.y));
+  view.ctx.rotate(mark.rot || 0);
+
+  // Leading and trailing boundary lines
+  view.ctx.fillStyle = '#ffffff';
+  view.ctx.fillRect(-halfL * PPMz(), -halfW * PPMz(), halfL * 2 * PPMz(), Math.max(
+      1, 0.12 * PPMz()));
+  view.ctx.fillRect(-halfL * PPMz(), (halfW - 0.12) * PPMz(), halfL * 2 * PPMz(), Math.max(
+      1, 0.12 * PPMz()));
+
+  // Alternating black and white finish line squares
+  for (let row = 0; row < rows; row++) {
+    for (let col = 0; col < cols; col++) {
+      const isWhite = (row + col) % 2 === 0;
+      view.ctx.fillStyle = isWhite ? '#ffffff' : '#14161c';
+      const sqX = (-halfL + col * (halfL * 2 / cols)) * PPMz();
+      const sqY = (-halfW + row * rowH) * PPMz();
+      const sqW = (halfL * 2 / cols) * PPMz();
+      const sqH = rowH * PPMz();
+      view.ctx.fillRect(sqX, sqY, sqW + 0.4, sqH + 0.4);
+    }
+  }
+  view.ctx.restore();
+}
+
+/**
+ * Draws the painted marks (rings, boxes, lanes, the chequered line) and the distance boards
+ * down the braking straight.
+ * @param ctx the road context
+ */
+function drawPaint(ctx: RoadCtx) {
+  const { view, PPMz, toScreenX, toScreenY } = ctx;
+  for (const mark of PAINT) {
+    view.ctx.strokeStyle = COL.paint;
+    view.ctx.globalAlpha = mark.tone!;   // every painted mark has a tone
+    // MEASURED BUG (photographed): this read p.w, which is the BOX WIDTH for a box —
+    // so the 6 m start box stroked at 96 px thick and rendered as a pale slab the size of a
+    // building. Ring stroke width is now "lw" and nothing else is overloaded.
+    view.ctx.lineWidth = Math.max(1, (mark.lw || 0.12) * PPMz());
+    if (mark.kind === 'ring') {
+      view.ctx.beginPath();
+      view.ctx.arc(toScreenX(mark.x), toScreenY(mark.y), mark.r! * PPMz(), 0,
+        Math.PI * 2);   // a ring has r
+      view.ctx.stroke();
+    } else if (mark.kind === 'box' || mark.kind === 'lane') {
+      // a box / lane has w and h
+      view.ctx.strokeRect(
+          toScreenX(mark.x - mark.w! / 2), toScreenY(mark.y - mark.h! / 2), mark.w! * PPMz(),
+            mark.h! * PPMz(
+          ));
+    } else if (mark.kind === 'chequered') {
+      drawChequered(ctx, mark);
+    }
+    view.ctx.globalAlpha = 1;
+  }
+  // distance boards down the braking straight
+  view.ctx.fillStyle = COL.inkSoft;
+  view.ctx.font = `600 ${Math.round(0.9 * PPMz())}px ui-sans-serif, system-ui, sans-serif`;
+  view.ctx.textAlign = 'center'; view.ctx.textBaseline = 'middle';
+  for (const board of BOARDS) view.ctx.fillText(board.label, toScreenX(board.x),
+    toScreenY(board.y));
+}
+
+/**
+ * Draws one joker arrow: a translucent white outlined arrow, rotated to its heading.
+ * @param ctx the road context
+ * @param arrow the arrow (x, y, rot, len)
+ * @param alpha the pulse alpha
+ * @param pxPerM pixels per metre
+ */
+function drawJokerArrow(ctx: RoadCtx, arrow: JokerArrow, alpha: number, pxPerM: number) {
+  const { view, toScreenX, toScreenY } = ctx;
+  const arrowLen = arrow!.len || 7;
+  view.ctx.save(); view.ctx.translate(toScreenX(arrow!.x),
+    toScreenY(arrow!.y)); view.ctx.rotate(arrow!.rot);
+  view.ctx.fillStyle = `rgba(255,255,255,${alpha.toFixed(3)})`;
+  view.ctx.beginPath();
+  view.ctx.moveTo(arrowLen * 0.5 * pxPerM, 0);
+  view.ctx.lineTo(0, -arrowLen * 0.42 * pxPerM);
+  view.ctx.lineTo(0, -arrowLen * 0.16 * pxPerM);
+  view.ctx.lineTo(-arrowLen * 0.5 * pxPerM, -arrowLen * 0.16 * pxPerM);
+  view.ctx.lineTo(-arrowLen * 0.5 * pxPerM, arrowLen * 0.16 * pxPerM);
+  view.ctx.lineTo(0, arrowLen * 0.16 * pxPerM);
+  view.ctx.lineTo(0, arrowLen * 0.42 * pxPerM);
+  view.ctx.closePath();
+  view.ctx.fill();
+  view.ctx.strokeStyle = `rgba(20,22,28,${(alpha * 0.8).toFixed(3)})`;
+  view.ctx.lineWidth = Math.max(1.5, 0.25 * pxPerM);
+  view.ctx.lineJoin = "miter";
+  view.ctx.stroke();
+  view.ctx.restore();
+}
+
+/**
+ * JOKER ARROWS: a translucent white arrow, gently pulsing, at joker / pit entries. Hidden once
+ * the joker is done in an RX race. Wall clock: the pulse is something the player watches.
+ * @param ctx the road context
+ * @param game the game (jokerTaken)
+ * @param wallT the wall-clock time in seconds
+ */
+function drawArrows(ctx: RoadCtx, game: RoadGame, wallT?: number) {
+  const { view, PPMz, toScreenX, toScreenY } = ctx;
+  const joker = LEVEL.joker; if (!joker || !joker.arrows) return;
+  if (game.jokerTaken) return;
+  // stronger + OUTLINED: at 0.28-0.5 alpha it faded into the grey tarmac
+  const pxPerM = PPMz(), alpha = 0.45 + 0.35 * (0.5 + 0.5 * Math.sin((wallT || 0) * 3.2));
+  // ar! below: the arrows hold no null once built (the builders filter them)
+  for (const arrow of joker.arrows) {
+    if (toScreenX(arrow!.x) < -200 || toScreenX(arrow!.x) > view.W + 200 ||
+        toScreenY(arrow!.y) < -200 || toScreenY(arrow!.y) > view.H + 200) continue;
+    drawJokerArrow(ctx, arrow, alpha, pxPerM);
+  }
+}
+
+// A4: the boundary is VISIBLE — and now it is three different things, so it has to READ as three
+// (CLAUDE.md §4: if the player cannot find it, it does not exist). From the inside out:
+//   the KERB, a raised rumble strip you ride over and can jump off,
+//   the RUN-OFF, gravel you can drive on badly,
+//   the FENCE, the only thing that actually stops you.
+// Each side is the same drawing rotated, so the whole edge is one function of a side index.
+
+/**
+ * `forSide(i, fn)` hands fn a frame where +v points OUTWARD from the floor and u runs along the
+ * edge, which is what removes the four near-identical copies the old version had. The floor is a
+ * RECTANGLE (lab.js FX0..FX1 x FY0..FY1). The frame is centred on it, and fn gets (p, D, Lh):
+ * D = the floor edge's distance from the centre on this side, Lh = half the edge's length (both
+ * FLOOR on a square). Inside fn the CAMERA is moved into the side's frame (and the view made
+ * square), so speckle's view culling - which compares with cam - culls in the frame it draws in.
+ * @param ctx the road context
+ * @param i the side index (0..3)
+ * @param callback receives px per metre, the edge distance and the half length
+ */
+function runForSide(ctx: RoadCtx, i: number, callback: Parameters<ForSide>[1]) {
+  const { view, cam, PPMz, toScreenX, toScreenY } = ctx;
+  const centreX = (FX0 + FX1) / 2, centreY = (FY0 + FY1) / 2, edgeDist = i % 2 ? (
+      FX1 - FX0) / 2 : (FY1 - FY0) / 2, halfLen = i % 2 ? (FY1 - FY0) / 2 : (FX1 - FX0) / 2;
+  const angle = (i * Math.PI) / 2, cosA = Math.round(Math.cos(angle)), sinA = Math.round(
+      Math.sin(angle));
+  const keep = {
+    x: cam.x, y: cam.y, W: view.W, H: view.H
+  }, dx = cam.x - centreX, dy = cam.y - centreY;
+  view.ctx.save();
+  view.ctx.translate(toScreenX(centreX), toScreenY(centreY));
+  view.ctx.rotate(angle);
+  cam.x = dx * cosA + dy * sinA;
+  cam.y = -dx * sinA + dy * cosA;
+  view.W = view.H = Math.max(view.W, view.H);
+  try { callback(PPMz(), edgeDist, halfLen); }
+  finally {
+    cam.x = keep.x;
+    cam.y = keep.y;
+    view.W = keep.W;
+    view.H = keep.H;
+    view.ctx.restore();
+  }
+}
+
+/**
+ * Draws the floor-edge kerb on the four sides: hazard blocks across the full width of the strip,
+ * raised: bright along the crest, shadow at the inner lip where the car climbs on.
+ * @param ctx the road context
+ */
+function drawKerb(ctx: RoadCtx) {
+  const { view } = ctx;
+  if (LEVEL.endless) return;
+  for (let i = 0; i < 4; i++) runForSide(ctx, i, (pxPerM, edgeDist, halfLen) => {
+    const inner = edgeDist - KERB_W;
+    // hazard blocks across the FULL width of the strip, so the thing you drive over is what you
+    // see
+    const blk = 2.6;                             // m per block
+    for (let along = -halfLen; along < halfLen; along += blk) {
+      const blockW = Math.min(blk, halfLen - along);
+      view.ctx.fillStyle = (Math.round((along + halfLen) / blk) % 2) ? COL.kerbB : COL.kerbA;
+      view.ctx.fillRect(along * pxPerM, inner * pxPerM, blockW * pxPerM + 1, KERB_W * pxPerM);
+    }
+    // it is RAISED: bright along the crest, shadow at the inner lip where the car climbs on
+    view.ctx.fillStyle = 'rgba(255,255,255,0.45)';
+    view.ctx.fillRect(-halfLen * pxPerM, (edgeDist - 0.5) * pxPerM, halfLen * 2 * pxPerM,
+        0.5 * pxPerM);
+    view.ctx.fillStyle = 'rgba(0,0,0,0.16)';
+    view.ctx.fillRect(-halfLen * pxPerM, inner * pxPerM, halfLen * 2 * pxPerM, 0.35 * pxPerM);
+  });
+}
+
+/**
+ * Caches the slip road's padded bounding box on the prop.
+ * @param prop the slip road prop
+ * @param line the slip road's centreline
+ */
+function cacheSlipBox(prop: Prop, line: NonNullable<Prop['line']>) {
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  for (const [x, y] of line) {
+    minX = Math.min(minX, x);
+    maxX = Math.max(maxX, x);
+    minY = Math.min(minY, y);
+    maxY = Math.max(maxY, y);
+  }
+  prop._bb = [minX - 6, minY - 6, maxX + 6, maxY + 6];
+}
+
+/**
+ * The unit normal of a slip road's centreline at a sample.
+ * @param line the centreline
+ * @param index the sample index
+ * @returns the normal [x, y]
+ */
+function slipNormal(line: NonNullable<Prop['line']>, index: number) {
+  const prev = line[Math.max(0, index - 1)], next = line[Math.min(line.length - 1, index + 1)],
+      heading = Math.atan2(next[1] - prev[1], next[0] - prev[0]);
+  return [-Math.sin(heading), Math.cos(heading)];
+}
+
+/**
+ * SLIP ROAD (highway.js extras): the tarmac itself is a lane ribbon (drawLanes, ground tiles);
+ * this draws its MARKINGS - the edge lines and a row of white squares along the nose where it
+ * leaves the hard shoulder - on top, so they are never stale in a tile.
+ * @param ctx the road context
+ * @param prop the slip road prop
+ * @param pxPerM pixels per metre
+ */
+function drawSlip(ctx: RoadCtx, prop: Prop, pxPerM: number) {
+  const { view, toScreenX, toScreenY } = ctx;
+  const line = prop.line; if (!line || line.length < 2) return;
+  if (!prop._bb) cacheSlipBox(prop, line);
+  if (toScreenX(prop._bb![0]) > view.W || toScreenX(prop._bb![2]) < 0 ||
+      toScreenY(prop._bb![1]) > view.H || toScreenY(prop._bb![3]) < 0) return;
+  const halfW = (prop.w || 5) / 2 - 0.3, nrm = (index: number) => slipNormal(line, index);
+  view.ctx.save();
+  view.ctx.strokeStyle = 'rgba(245,245,240,0.85)';
+  view.ctx.lineWidth = Math.max(1, 0.15 * pxPerM);
+  for (const sign of [-1, 1]) {
+    view.ctx.beginPath();
+    for (let index = sign > 0 ? 1 : 0; index < line.length; index++) {
+      const [x, y] = line[index], [nx, ny] = nrm(index),
+        screenX = toScreenX(x + nx * halfW * sign),
+          screenY = toScreenY(y + ny * halfW * sign);
+      if (index === (sign > 0 ? 1 : 0)) view.ctx.moveTo(screenX, screenY);
+      else view.ctx.lineTo(screenX, screenY);
+    }
+    view.ctx.stroke();
+  }
+  view.ctx.fillStyle = 'rgba(245,245,240,0.7)';
+  if (prop.nose !== false) for (let index = 1; index < Math.min(5, line.length); index++) {
+    const [x, y] = line[index], [nx, ny] = nrm(index);
+    view.ctx.fillRect(toScreenX(x + nx * halfW) - 0.3 * pxPerM,
+      toScreenY(y + ny * halfW) - 0.3 * pxPerM,
+        0.6 * pxPerM, 0.6 * pxPerM);
+  }
+  view.ctx.restore();
+}
+
+/**
+ * Blits the whole world marks layer.
+ * @param ctx the road context
+ * @param marks the marks (origin, canvas)
+ */
+function drawMarks(ctx: RoadCtx, marks: RenderMarks) {
+  const { view, PPMz, toScreenX, toScreenY } = ctx;
+  // one blit of the whole world layer. imageSmoothingEnabled stays on here: the layer is 9 px/m
+  // and the screen is 16 px/m, so smoothing is what stops the marks looking like stair-stepped
+  // bitmaps.
+  const [mox, moy] = marks.origin || [0, 0], markX = toScreenX(mox - MARK_EXTENT),
+    markY = toScreenY(
+      moy - MARK_EXTENT);
+  const size = MARK_EXTENT * 2 * PPMz();
+  // smoothing OFF, so marks land on the art grid as hard blocks (photographed soft and blurry
+  // with it on — the only smeared thing left in the world layer)
+  view.ctx.imageSmoothingEnabled = false;
+  view.ctx.drawImage(marks.canvas, markX, markY, size, size);
+  view.ctx.imageSmoothingEnabled = true;
+}
+
+/**
+ * Builds the road painters over one shared context.
+ * @param view the canvas view
+ * @param cam the camera
+ * @param helpers the projection and layer helpers
+ * @returns the road painters and forSide
+ */
+export function createRoad(view: View, cam: Cam, helpers: RoadHelpers) {
+  const roadCtx: RoadCtx = { view, cam, ...helpers };
+  const forSide = (i: number, callback: Parameters<ForSide>[1]) =>
+    runForSide(roadCtx, i, callback);
+  return {
+    drawLanes: () => drawLanes(roadCtx),
+    drawTrackRibbon: () => drawTrackRibbon(roadCtx),
+    drawLaneDashes: () => drawLaneDashes(roadCtx),
+    drawCurvedKerbs: () => drawCurvedKerbs(roadCtx),
+    drawPaint: () => drawPaint(roadCtx),
+    forSide,
+    drawKerb: () => drawKerb(roadCtx),
+    drawSlip: (prop: Prop, pxPerM: number) => drawSlip(roadCtx, prop, pxPerM),
+    drawMarks: (marks: RenderMarks) => drawMarks(roadCtx, marks),
+    drawArrows: (game: RoadGame, wallT?: number) => drawArrows(roadCtx, game, wallT),
   };
 }
