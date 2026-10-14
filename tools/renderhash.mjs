@@ -15,6 +15,7 @@
 //                                         (compare two folders with tools/shotdiff.mjs)
 // node tools/renderhash.mjs --only a,b  run only those level ids (a partial save merges into the
 //                                         reference; the verdict covers just those levels)
+// It rasterises on the CPU (no GPU): GPU canvas raster is not bit-exact between builds.
 // Not covered: the menu screens, other screen sizes, the desktop (pc) input mode.
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -34,6 +35,9 @@ const FRAMES = [['t02', 120], ['t08', 480], ['t14', 840], ['t20', 1200]];
 const STAGE_IDS = ['gen-forest-medium-mixed-1001', 'stage-sahara-sandpants'];
 const HIGHWAY_OPTS = { traffic: 1, litter: 1.5 };
 const SETTLE_MS = 300;
+const CPU_RASTER_ARGS = [
+  '--disable-gpu', '--disable-accelerated-2d-canvas', '--disable-gpu-rasterization',
+];
 
 /**
  * Page side, run before the game loads: seeded Math.random, a fake clock and a rAF queue the
@@ -259,7 +263,7 @@ async function main() {
   let browser;
   const caps = {}, levels = {};
   try {
-    browser = await launchBrowser();
+    browser = await launchBrowser({ args: CPU_RASTER_ARGS });
     for (const { id, endless } of levelList()) {
       const began = Date.now();
       const shots = await runLevel(browser, server.url, id, endless);

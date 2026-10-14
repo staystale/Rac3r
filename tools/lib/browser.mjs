@@ -42,6 +42,6 @@ export function extraQuery() {
   return extra ? "&" + extra : "";
 }
 
-export function launchBrowser() {
-  return chromium.launch({ channel: process.env.CHECK_BROWSER ?? "msedge" });
+export function launchBrowser(options = {}) {
+  return chromium.launch({ channel: process.env.CHECK_BROWSER ?? "msedge", ...options });
 }
