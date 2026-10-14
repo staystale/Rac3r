@@ -2022,16 +2022,29 @@ export function speedCamera(level, car) {
   }
   return null;
 }
-// after stepHighway: null, or WHY the car must be put back (main.js shows it and calls
-// highwayRespawn). st.warn = the off-road countdown text while one is running (main.js shows it),
-// else null.
-export function highwayGuard(level, car, dt) {
-  const state = stateOf(level),
-    loc = state.q;
-  if (!loc) return null;
+/**
+ * Time the car driving backwards along the road; true when it has gone the wrong way for too long
+ * (or is far behind the furthest point reached).
+ * @param {object} state the highway state
+ * @param {object} loc where the car is on the road (locate())
+ * @param {object} car the car (vx, vy)
+ * @param {number} dt step seconds
+ * @returns {boolean} whether the car must be reset for going the wrong way
+ */
+function checkWrongWay(state, loc, car, dt) {
   const vAlong = car.vx * loc.dx + car.vy * loc.dy;
   state.backT = vAlong < -BACK_V ? state.backT + dt : 0;
-  if (state.backT > BACK_T || loc.s < state.best - BACK_M) return 'WRONG WAY — RESET';
+  return state.backT > BACK_T || loc.s < state.best - BACK_M;
+}
+
+/**
+ * How far the car is off the road edge, and whether it is on a tarmac lane off the motorway.
+ * @param {object} state the highway state
+ * @param {object} loc where the car is on the road (locate())
+ * @param {object} car the car (x, y)
+ * @returns {{out: number, onLane: boolean}} metres past the edge (0 on the side road) and lane flag
+ */
+function measureOffRoad(state, loc, car) {
   // THE SECRET SIDE ROAD is road (its points carry sideOff, the offset of its centre to the left);
   // any OTHER lane off the motorway (an off-slip, a bridge approach) holds the countdown and only
   // the far-out reset ends it, as "EXIT TAKEN" (user: "slip roads you can take")
@@ -2043,6 +2056,19 @@ export function highwayGuard(level, car, dt) {
       Math.abs(-loc.off - pointHere.sideOff) < SIDE_W_HALF + 1;
   const out = side ? 0 : Math.abs(loc.off) - state.geo.hw;
   const onLane = out > OFF_SOFT && zoneSurfaceAt(car.x, car.y).id === 'tarmac';
+  return { out, onLane };
+}
+
+/**
+ * Run the off-road countdown one step: the speed back towards the road, the countdown, the
+ * exit-taken flag and the warning text (st.warn).
+ * @param {object} state the highway state
+ * @param {number} out metres past the road edge
+ * @param {boolean} onLane whether the car is on a tarmac lane off the motorway
+ * @param {number} dt step seconds
+ * @returns {void}
+ */
+function stepOffCountdown(state, out, onLane, dt) {
   const inRate = state.outPrev != null ? (state.outPrev - out) / dt : 0;
   state.outPrev = out;
   state.inV = (state.inV || 0) + (inRate - (state.inV || 0)) * Math.min(1, dt / 0.5);
@@ -2058,6 +2084,25 @@ export function highwayGuard(level, car, dt) {
     out > OFF_SOFT && !onLane
       ? `BACK TO THE ROAD  ${Math.max(1, Math.ceil(OFF_T - state.offT))}`
       : null;
+}
+
+/**
+ * After stepHighway: null, or WHY the car must be put back (main.js shows it and calls
+ * highwayRespawn). A runtime guard: wrong way for too long, or off the road too long / too far
+ * (or having taken an exit), ends the run. st.warn = the off-road countdown text while one is
+ * running (main.js shows it), else null.
+ * @param {object} level the highway level
+ * @param {object} car the car
+ * @param {number} dt step seconds
+ * @returns {string|null} the reset reason, or null
+ */
+export function highwayGuard(level, car, dt) {
+  const state = stateOf(level),
+    loc = state.q;
+  if (!loc) return null;
+  if (checkWrongWay(state, loc, car, dt)) return 'WRONG WAY — RESET';
+  const { out, onLane } = measureOffRoad(state, loc, car);
+  stepOffCountdown(state, out, onLane, dt);
   if (out > OFF_HARD || state.offT > OFF_T) {
     const exitTaken = state.tookExit;
     state.offT = 0;
