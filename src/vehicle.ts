@@ -756,9 +756,10 @@ function computeLongitudinalDemand(car: Car, carSpec: Spec, mass: number, gravit
   return { torque, driveForce, FxDriveF, FxDriveR, FbF, FbR, brakeSign, FxBrakeF, FxBrakeR };
 }
 
-/** Per-step values shared by both axle force blocks of step(). */
+/** Per-step values shared by the tyre and stability blocks of step(). */
 interface AxleTick {
-  muBase: number; longK: number; peakK: number; latFade: number; dt: number;
+  mass: number; gravity: number; muBase: number; longK: number; peakK: number;
+  latFade: number; dt: number;
 }
 
 /**
@@ -959,6 +960,67 @@ function ploughingForces(car: Car, carSpec: Spec, mass: number, vLong: number, v
   return { FpxF, FpyF, FpxR, FpyR };
 }
 
+/**
+ * Section 8 of step(), stability half of TCS: the yaw moment and drag of the stability aid, and
+ * the engine cut it asks for (stored in car.escCut). Returns zeros when the aid is idle.
+ */
+function stabilityControl(car: Car, carSpec: Spec, tick: AxleTick, handbrakeRaw: number,
+    inReverse: boolean, vLong: number, vLat: number, vLongAbs: number, dirSign: number,
+    delta: number, FzF: number, FzR: number) {
+  const { mass, gravity, muBase, dt } = tick;
+  let escMz = 0, escFx = 0, escWorking = false;
+  // HANDBRAKE OVERRIDES STABILITY (user, 2026-10-03: holding the handbrake should be full force,
+  // like the brake). While it is pulled, and for ESC.hbHold s after, the stability half stands down
+  // — otherwise it straightens every handbrake turn the player asked for. Traction control
+  // (wheelspin) is unaffected.
+  car.hbAfter = handbrakeRaw > 0.1 ? ESC.hbHold : Math.max(0, (car.hbAfter || 0) - dt);
+  if (car.tcsOn && !inReverse && vLongAbs > ESC.vMin && car.hbAfter <= 0) {
+    // REFERENCE YAW = the car's OWN steady-state response, understeer included (linear bicycle
+    // model: K = m/L x (lr/caF - lf/caR)). MEASURED BUG (user, 2026-10-03: "TCS is too strong,
+    // making the hatch RWD nearly undrivable"): against the pure kinematic v.tan(delta)/L every
+    // road car "understeered" in EVERY corner, so the aid ran 65% of a lap (3 of 4 s in a gentle
+    // corner) cutting the engine and nudging the car.
+    const Kus = (mass / carSpec.L) * (carSpec.lr / carSpec.caF - carSpec.lf / carSpec.caR);
+    const yawCap = (muBase * gravity) / Math.max(5, vLongAbs);
+    const yawRef = clamp((vLong * Math.tan(delta)) / (carSpec.L + Kus * vLong * vLong), -yawCap,
+        yawCap);
+    const err = car.yawRate - yawRef;
+    // a wider band in big corners: act on REAL deviations
+    const dead = ESC.dead + ESC.deadRel * Math.abs(yawRef);
+    // SLIP FIRST. MEASURED BUG in the first cut: mid-slide the car rotates LESS than the wheel
+    // asks, so a yaw-only controller "fixed understeer" by ADDING rotation — the RWD hatch's flick
+    // went from 7 to 15 deg of slip with it on. Real systems watch body slip too: once the car is
+    // sideways they only ever turn the nose back toward where it is going (sign of beta, as
+    // aeroYaw), and the add-rotation (understeer) correction is allowed only while straight.
+    const betaNow = Math.atan2(vLat, vLongAbs + 0.5);
+    let want = 0;
+    const over = Math.sign(err) === Math.sign(car.yawRate)
+        && Math.abs(car.yawRate) > Math.abs(yawRef);
+    // UNDERSTEER correction (adding rotation) is GENTLE and fades out as slip builds. MEASURED: at
+    // full gain the estate, floored on full lock at 45 km/h, went from pushing wide (3 deg) to a 16
+    // deg slide WITH the aid on.
+    if (Math.abs(err) > dead) {
+      const escScale = over ? 1 : ESC.underK * Math.max(0, 1 - Math.abs(betaNow) / ESC.betaLim);
+      want = -Math.sign(err) * (Math.abs(err) - dead) * ESC.gain * carSpec.Izz * escScale;
+    }
+    if (Math.abs(betaNow) > ESC.betaLim) want += Math.sign(betaNow)
+        * (Math.abs(betaNow) - ESC.betaLim) * ESC.betaGain * carSpec.Izz;
+    if (want !== 0) {
+      const half = (carSpec.trackWidth || 1.5) / 2;
+      const MzMax = muBase * ((FzF + FzR) / 4) * half;
+      escMz = Math.sign(want) * Math.min(MzMax, Math.abs(want));
+      escFx = -dirSign * Math.abs(escMz) / half;
+      escWorking = true;
+    }
+    // the engine is cut only for OVERSTEER (a spin starting) or a real slide — never for mild
+    // understeer
+    const cutT = (over && Math.abs(err) > dead + ESC.cutAt) || Math.abs(betaNow) > ESC.betaLim * 1.5
+        ? 0.3 : 1;
+    car.escCut += (cutT - car.escCut) * Math.min(1, 12 * dt);
+  } else car.escCut = 1;
+  return { escMz, escFx, escWorking };
+}
+
 export function step(car: Car, input: CarInput, dt = PHYSICS_STEP_SECONDS) {
   const carSpec = car.spec;
   const mass = carSpec.mass * car.mods.mass;
@@ -1032,7 +1094,7 @@ export function step(car: Car, input: CarInput, dt = PHYSICS_STEP_SECONDS) {
   // untouched (you must still be able to pull away and to brake to a stop).
   const latFade = clamp(Math.hypot(vLong, vLat) / 1.2, 0, 1);
 
-  const tick = { muBase, longK, peakK, latFade, dt };
+  const tick = { mass, gravity, muBase, longK, peakK, latFade, dt };
 
   // contact-patch velocities. Front is in the WHEEL frame (rotated by delta); rear is the body
   // frame.
@@ -1148,56 +1210,8 @@ export function step(car: Car, input: CarInput, dt = PHYSICS_STEP_SECONDS) {
   // per axle, so it applies that moment directly — capped at what one wheel braked at its grip
   // limit could give (mu x a quarter of the load x half the track) — plus the matching drag of that
   // brake, and cuts the engine while the car is rotating more than the wheel asks for.
-  let escMz = 0, escFx = 0, escWorking = false;
-  // HANDBRAKE OVERRIDES STABILITY (user, 2026-10-03: holding the handbrake should be full force,
-  // like the brake). While it is pulled, and for ESC.hbHold s after, the stability half stands down
-  // — otherwise it straightens every handbrake turn the player asked for. Traction control
-  // (wheelspin) is unaffected.
-  car.hbAfter = handbrakeRaw > 0.1 ? ESC.hbHold : Math.max(0, (car.hbAfter || 0) - dt);
-  if (car.tcsOn && !inReverse && vLongAbs > ESC.vMin && car.hbAfter <= 0) {
-    // REFERENCE YAW = the car's OWN steady-state response, understeer included (linear bicycle
-    // model: K = m/L x (lr/caF - lf/caR)). MEASURED BUG (user, 2026-10-03: "TCS is too strong,
-    // making the hatch RWD nearly undrivable"): against the pure kinematic v.tan(delta)/L every
-    // road car "understeered" in EVERY corner, so the aid ran 65% of a lap (3 of 4 s in a gentle
-    // corner) cutting the engine and nudging the car.
-    const Kus = (mass / carSpec.L) * (carSpec.lr / carSpec.caF - carSpec.lf / carSpec.caR);
-    const yawCap = (muBase * gravity) / Math.max(5, vLongAbs);
-    const yawRef = clamp((vLong * Math.tan(delta)) / (carSpec.L + Kus * vLong * vLong), -yawCap,
-        yawCap);
-    const err = car.yawRate - yawRef;
-    // a wider band in big corners: act on REAL deviations
-    const dead = ESC.dead + ESC.deadRel * Math.abs(yawRef);
-    // SLIP FIRST. MEASURED BUG in the first cut: mid-slide the car rotates LESS than the wheel
-    // asks, so a yaw-only controller "fixed understeer" by ADDING rotation — the RWD hatch's flick
-    // went from 7 to 15 deg of slip with it on. Real systems watch body slip too: once the car is
-    // sideways they only ever turn the nose back toward where it is going (sign of beta, as
-    // aeroYaw), and the add-rotation (understeer) correction is allowed only while straight.
-    const betaNow = Math.atan2(vLat, vLongAbs + 0.5);
-    let want = 0;
-    const over = Math.sign(err) === Math.sign(car.yawRate)
-        && Math.abs(car.yawRate) > Math.abs(yawRef);
-    // UNDERSTEER correction (adding rotation) is GENTLE and fades out as slip builds. MEASURED: at
-    // full gain the estate, floored on full lock at 45 km/h, went from pushing wide (3 deg) to a 16
-    // deg slide WITH the aid on.
-    if (Math.abs(err) > dead) {
-      const escScale = over ? 1 : ESC.underK * Math.max(0, 1 - Math.abs(betaNow) / ESC.betaLim);
-      want = -Math.sign(err) * (Math.abs(err) - dead) * ESC.gain * carSpec.Izz * escScale;
-    }
-    if (Math.abs(betaNow) > ESC.betaLim) want += Math.sign(betaNow)
-        * (Math.abs(betaNow) - ESC.betaLim) * ESC.betaGain * carSpec.Izz;
-    if (want !== 0) {
-      const half = (carSpec.trackWidth || 1.5) / 2;
-      const MzMax = muBase * ((FzF + FzR) / 4) * half;
-      escMz = Math.sign(want) * Math.min(MzMax, Math.abs(want));
-      escFx = -dirSign * Math.abs(escMz) / half;
-      escWorking = true;
-    }
-    // the engine is cut only for OVERSTEER (a spin starting) or a real slide — never for mild
-    // understeer
-    const cutT = (over && Math.abs(err) > dead + ESC.cutAt) || Math.abs(betaNow) > ESC.betaLim * 1.5
-        ? 0.3 : 1;
-    car.escCut += (cutT - car.escCut) * Math.min(1, 12 * dt);
-  } else car.escCut = 1;
+  const { escMz, escFx, escWorking } = stabilityControl(car, carSpec, tick, handbrakeRaw,
+      inReverse, vLong, vLat, vLongAbs, dirSign, delta, FzF, FzR);
   // dragMul: the slipstream (contact.js), 1 when alone
   const drag = -carSpec.dragC * (car.dragMul ?? 1) * vLong * vLongAbs;
   // DAMAGE: a wheel off drags its corner
