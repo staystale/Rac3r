@@ -441,6 +441,22 @@ function ratio(carSpec: Spec, gear: number) {
 const clamp = (value: number, low: number, high: number) => (value < low ? low : value > high ? high
     : value);
 
+/**
+ * Section 2 of step(): turn the front wheels toward the steer input at the steering rate, and
+ * return the effective wheel angle (damage toe included).
+ */
+function steerFrontWheels(car: Car, carSpec: Spec, input: CarInput, dt: number) {
+  // ---- 2. steering: front wheels turn and match player input directly regardless of speed or grip
+  // per-car LOCK (spec.steerMax: the drift car's angle kit); every other car the shared STEER_MAX
+  const deltaTarget = clamp(input.steer, -1, 1) * (carSpec.steerMax || STEER_MAX);
+  const dDelta = clamp(deltaTarget - car.delta, -STEER_RATE * dt, STEER_RATE * dt);
+  car.delta += dDelta;
+  // DAMAGE (damage.js): a bent front corner toes the wheels — the car pulls (car.wreck: no-op when
+  // undamaged)
+  const delta = car.delta + (car.wreck ? car.wreck.toe : 0);
+  return delta;
+}
+
 export function step(car: Car, input: CarInput, dt = PHYSICS_STEP_SECONDS) {
   const carSpec = car.spec;
   const mass = carSpec.mass * car.mods.mass;
@@ -452,14 +468,8 @@ export function step(car: Car, input: CarInput, dt = PHYSICS_STEP_SECONDS) {
   let vLong = car.vx * cosH + car.vy * sinH;
   let vLat = -car.vx * sinH + car.vy * cosH;
 
-  // ---- 2. steering: front wheels turn and match player input directly regardless of speed or grip
-  // per-car LOCK (spec.steerMax: the drift car's angle kit); every other car the shared STEER_MAX
-  const deltaTarget = clamp(input.steer, -1, 1) * (carSpec.steerMax || STEER_MAX);
-  const dDelta = clamp(deltaTarget - car.delta, -STEER_RATE * dt, STEER_RATE * dt);
-  car.delta += dDelta;
-  // DAMAGE (damage.js): a bent front corner toes the wheels — the car pulls (car.wreck: no-op when
-  // undamaged)
-  const delta = car.delta + (car.wreck ? car.wreck.toe : 0);
+  // ---- 2. steering
+  const delta = steerFrontWheels(car, carSpec, input, dt);
 
   // ---- powertrain: reverse engagement (A5), shifting, rpm
   //
