@@ -1473,6 +1473,25 @@ function bodyAccelerations(car: Car, carSpec: Spec, mass: number, gravity: numbe
   return { accelLong, accelLat };
 }
 
+/**
+ * Position section of step(): remembers the longitudinal acceleration, turns the heading and
+ * projects the body velocity back to world x/y before moving the car.
+ */
+function advanceCar(car: Car, dt: number, vLong: number, vLat: number, accelLong: number) {
+  car.aLongPrev = accelLong;
+  car.heading += car.yawRate * dt;
+  // The body-frame equations above already carry the frame rotation (the centripetal terms), so the
+  // components they produce belong to the END-of-step body frame — they must be projected back with
+  // the END heading, not the start one. The old code used the pre-rotation basis and so
+  // under-rotated the velocity vector by yawRate*dt EVERY step. Harmless going straight; a
+  // systematic error exactly when the car is rotating fast, i.e. in the slides that felt wrong.
+  const ch2 = Math.cos(car.heading), sh2 = Math.sin(car.heading);
+  car.vx = vLong * ch2 - vLat * sh2;
+  car.vy = vLong * sh2 + vLat * ch2;
+  car.x += car.vx * dt;
+  car.y += car.vy * dt;
+}
+
 export function step(car: Car, input: CarInput, dt = PHYSICS_STEP_SECONDS) {
   const carSpec = car.spec;
   const mass = carSpec.mass * car.mods.mass;
@@ -1563,18 +1582,7 @@ export function step(car: Car, input: CarInput, dt = PHYSICS_STEP_SECONDS) {
   // ---- tyre temperatures (see TYRE TEMPERATURE at the top)
   updateTyreTemps(car, carSpec, tick, axles, vLong, vLat, accelLat);
 
-  car.aLongPrev = accelLong;
-  car.heading += car.yawRate * dt;
-  // The body-frame equations above already carry the frame rotation (the centripetal terms), so the
-  // components they produce belong to the END-of-step body frame — they must be projected back with
-  // the END heading, not the start one. The old code used the pre-rotation basis and so
-  // under-rotated the velocity vector by yawRate*dt EVERY step. Harmless going straight; a
-  // systematic error exactly when the car is rotating fast, i.e. in the slides that felt wrong.
-  const ch2 = Math.cos(car.heading), sh2 = Math.sin(car.heading);
-  car.vx = vLong * ch2 - vLat * sh2;
-  car.vy = vLong * sh2 + vLat * ch2;
-  car.x += car.vx * dt;
-  car.y += car.vy * dt;
+  advanceCar(car, dt, vLong, vLat, accelLong);
 
   // ---- telemetry
   //      slipSpeed comes straight out of the axle function — it is the magnitude of the contact
