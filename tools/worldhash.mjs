@@ -124,6 +124,29 @@ function foldHighway(hash, lv) {
 }
 
 /**
+ * Do main.js's loose-object bookkeeping with a plain list: take the new objects (folding all
+ * their fields into the hash) and drop the ones behind looseCut.
+ * @param {import('node:crypto').Hash} hash running hash
+ * @param {object} hw the highway data (_hw)
+ * @param {object[]} loose the plain list of loose objects
+ * @returns {void}
+ */
+function takeLoose(hash, hw, loose) {
+  if (hw.looseNew.length) {
+    hash.update(ser(hw.looseNew));
+    loose.push(...hw.looseNew);
+    hw.looseNew.length = 0;
+  }
+  if (hw.looseCut != null) {
+    const cutAt = hw.looseCut;
+    const keep = loose.filter((cone) => cone._s == null || cone._s >= cutAt);
+    loose.length = 0;
+    loose.push(...keep);
+    hw.looseCut = null;
+  }
+}
+
+/**
  * Drive a stand-in car along the endless road the way the game does (stepHighway every step,
  * a few metres at a time, in the left lane) and fold the level data in every ~200 m.
  * @param {number} km distance to drive in km (0 = off)
@@ -139,12 +162,14 @@ function driveHighway(km) {
   const lane = lv._hw.geo.centres[0];
   const car = { x: lv.spawn.x, y: lv.spawn.y };
   const start = 300, end = start + km * 1000;
+  const loose = []; // the loose objects the game would hold (main.js: cones.spawn / cull)
   let folds = 0, shifts = 0;
   for (let dist = start, next = start + 200; dist <= end; dist += 4) {
     const pose = roadPose(lv, dist, lane);
     car.x = pose.x;
     car.y = pose.y;
     if (stepHighway(lv, car)) shifts++;
+    takeLoose(hash, lv._hw, loose);
     if (dist >= next) {
       foldHighway(hash, lv);
       folds++;
