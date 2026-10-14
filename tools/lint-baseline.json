@@ -46,8 +46,8 @@
   },
   "src/hud.js": {
     "complexity": 4,
-    "id-length": 161,
-    "max-len": 115,
+    "max-len": 9,
+    "max-lines": 1,
     "max-lines-per-function": 3,
     "no-shadow": 1,
     "no-unused-vars": 2
