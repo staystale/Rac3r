@@ -20,9 +20,8 @@ import { aiTraits } from "./traits.ts";
 import { K_BRAKE, racingLine, nearestIdx, profileOf } from "./line.ts";
 import { roadDriver, driveOut } from "./weaver.ts";
 import { createAttackSteps, createRaceMoves } from "./racecraft.ts";
-import {
-  steerAim, profileSpeed, createHandbrakeStep, createSlideStep, DRIFT_SLIP,
-} from "./driverSteps.ts";
+import { createHandbrakeStep, createSlideStep } from "./driverSteps.ts";
+import { steerSlideStep, pedalStep } from "./driverPedals.ts";
 import { jokerStep } from "./driverJoker.ts";
 import { carsStep, obstacleAvoid } from "./driverTraffic.ts";
 import type { Drv } from "./driverCtx.ts";
@@ -36,15 +35,12 @@ const WANDER_EDGE = 1.1;
 // extra braking grip planned while ATTACKING (late braking into the corner)
 const ATK_KB = 0.12;
 const ALONG_GAP = 2.7;       // m kept from a car alongside by an attack or a cover move
-// throttle kept through a front slide on loose ground (off road, dirt, gravel)
-const UNDER_LOOSE = 0.35;
 // MEASURED (aifieldsuite Realish, 24 races): before start-contacts 765, contact 231 s, resets 14,
 // passes 118; 6 s / 0.8 m: 564, 258 s, 17, 219; 9 s / 1.3 m (kept): 492, 212 s, 9, 192 (off-road
 // +12 %)
 // s to ease from the grid lane onto the line (START_GAP, m more room alongside then, is in
 // driverTraffic.ts)
 const START_BLEND = 9;
-const DRIFT_BAN = 60;
 // NEVER WAIT (user, 2026-10-07: "patience they should never really wait imo, just try harder and
 // go faster"): seconds of being held up before
 // a pass is tried were 0.3-1.5 s (by aggression), now 0.15-0.6; the chance to commit to one per
@@ -252,98 +248,6 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
     return { vMul, dodgeT, conflict, prof };
   }
 
-  /** Steering aim, then slip, the held drift, over / understeer and the steer. */
-  function steerSlideStep(car: AiCar, path: typeof state.path, nearIdx: number,
-      idx: (pos: number) => number, speed: number, lineOff: number, latT: number) {
-    // ---- steering: Stanley on the path + latT at the front axle (the bench driver's controller)
-    const { psi, deltaS, LOCK, cap } = steerAim(car, path, nearIdx, idx, speed, latT);
-    // OVERSTEER (rear slip past ~10 deg): no cap, so it can countersteer; UNDERSTEER (front past ~8
-    // deg): more lock only scrubs, so lift and brake to get the front back (MEASURED: Sweaty Lamb's
-    // S at sF 0.27 rad, then a spin at sR -0.78) LOOSE SURFACES (user, 2026-10-04: "slow down
-    // weirdly on surface changes, dirt to tarmac — they should predict it and speed up"). loose = 0
-    // on tarmac (mu 1) .. 1 at mu 0.5. MEASURED (tools/aisurface, rally-4x4 Real): 19 of 26 Slidden
-    // surface changes lifted > 0.3 s with the target still above the speed — mostly WHEELSPIN
-    // halving the throttle (normal on dirt), then the front-slip "understeer" lift. On loose
-    // ground: no wheelspin cut, and 0.06 rad more front slip before the understeer lift -> 10 of
-    // 26; laps (Real) Knobhill 47.6 -> 45.8 hatch / 41.5 -> 40.5 4x4, Sweaty Lamb 128.5 -> 125.2 /
-    // 114.4 -> 112.7, Slidden 55.9 -> 55.1, tarmac unchanged. TRIED and REJECTED (same tool): more
-    // rear slip before lifting, a later slide catch and power through the slide — each alone
-    // harmless, together the 4x4 left the road at Knobhill / Sweaty Lamb (16-31 s off a lap).
-    const slide = slideStep(car, path, nearIdx, speed, lineOff, { deltaS, LOCK, cap });
-    return { psi, ...slide };
-  }
-  type Slide = ReturnType<typeof steerSlideStep>;
-  /** Throttle for the target speed: held drift, loose understeer, over / understeer, grip. */
-  function throttleFor(speed: number, targetSpeed: number, slide: Slide, looseUnder: boolean) {
-    const { drifting, slipRear, under, over } = slide;
-    const feel = Math.max(0, 1 - Math.max(0, slipRear - 0.07) / 0.12);
-    const gap = (targetSpeed - speed) * 0.6;
-    return drifting ? Math.max(0.25, Math.min(1, 0.6 + (DRIFT_SLIP - slipRear) * 3)) * (
-        speed < targetSpeed * 1.1 ? 1 : 0.4) : looseUnder ? Math.min(
-        UNDER_LOOSE, speed < targetSpeed ? gap : 0) : under ? 0 : over ? (
-        speed < targetSpeed ? Math.min(0.2, gap) : 0) :
-        speed < targetSpeed ? Math.min(1, gap) * feel : 0;
-  }
-  /** Throttle and brake for the target speed. */
-  function pedals(speed: number, targetSpeed: number, thrForce: boolean, slide: Slide,
-      looseUnder: boolean) {
-    const { drifting, under, over, steer } = slide;
-    let throttle = throttleFor(speed, targetSpeed, slide, looseUnder);
-    if (thrForce && speed < targetSpeed * 1.1) throttle = 1;
-    let brake = speed > targetSpeed + 0.3 ? Math.min(1, (speed - targetSpeed) * 1.5) * Math.max(
-        0.6, 1 - Math.abs(steer) / 0.5) : 0;
-    if (under && !looseUnder && speed > 0.85 * targetSpeed) brake = Math.max(brake, 0.35);
-    if (over || drifting) brake = 0;
-    return { throttle, brake };
-  }
-  /** SPEED, throttle, brake and the handbrake turn: the controls the driver returns. */
-  function pedalStep(car: AiCar, path: typeof state.path, nearIdx: number,
-      idx: (pos: number) => number, speed: number, dt: number, prof: ReturnType<typeof profileOf>,
-      latT: number, lineOff: number, scale: { push: number, vMul: number, jCap: number,
-      followCap: number, thrForce: boolean }, slide: Slide) {
-    const pts = path.pts;
-    const { push, vMul, jCap, followCap, thrForce } = scale;
-    const { psi, loose, drifting, edgeRoom, under, steer } = slide;
-    // ---- SPEED: the profile (it already brakes for what is ahead) x pace x mistakes, capped by
-    // the joker approach and traffic
-    let targetSpeed = profileSpeed(main, car, path, nearIdx, idx, speed, prof, latT, lineOff);
-    targetSpeed = Math.min(targetSpeed * traits.pace * push * vMul, jCap, followCap);
-    state.vT = targetSpeed;
-    // OFF ROAD / LOOSE (user, 2026-10-04: "they still slow down like mad off road / changing
-    // surfaces"): on loose ground a sliding front is the surface, not a mistake — keep driving
-    // (UNDER_LOOSE throttle) and never brake for it. MEASURED before (aifieldcheck SURF, Brands +
-    // Castle Cum, 6 cars): on grass / dirt the AI braked 26-36 % and lifted 13-33 % of the time,
-    // front slip > 0.14 for 19-40 %. ...only OFF THE PLANNED SURFACE (the car on clearly worse
-    // ground than its racing line: off the road, onto a loose patch). On a loose line (Sweaty
-    // Lamb's gravel) the old lift + brake stays: applied there too, the 4x4 at Real left the stage
-    // 16 s a lap (MEASURED).
-    const offPlan = path === main && car.surface.mu < 0.85 * (pts[nearIdx].mu || 1);
-    const looseUnder = under && loose > 0.3 && offPlan;
-    if (drifting) { state.driftT = (state.driftT || 0) + dt; state.lastDrift = state.t; }
-    // a drift that ran it OFF the road: it backs off drifting for DRIFT_BAN s (a driver who scares
-    // himself)
-    // off within 2 s of a drift
-    if (edgeRoom < -0.5 && state.t - (state.lastDrift ?? -99) < 2) {
-      state.driftOn = false;
-      state.driftBan = state.t + DRIFT_BAN;
-    }
-    let { throttle, brake } = pedals(speed, targetSpeed, thrForce, slide, looseUnder);
-    // HANDBRAKE TURNS (user, 2026-10-04: "they should also use handbrake and drift and stuff"):
-    // into a HAIRPIN (apex R < HB_R) before the apex, a big turn still ahead (> HB_TURN rad) and
-    // moving -> one pull of HB_T s per hairpin, off the throttle, full lock that way: the rear
-    // steps out and the car pivots. The better driver times it (skill), a weaker one sometimes
-    // doesn't bother.
-    const handbrake = handbrakeStep(path, nearIdx, speed, loose);
-    if (handbrake) {
-      throttle = 0;
-      brake = 0;
-    }
-    return {
-      steer: handbrake ? Math.sign(steer || psi) * Math.max(Math.abs(steer), 0.9) : steer,
-          throttle, brake, handbrake
-    };
-  }
-
   function drive(car: AiCar, dt = 1 / 120, ctx: DriveCtx = {}) {
     state.t += dt;
     const spec = car.spec, speed = Math.hypot(car.vx, car.vy);
@@ -420,8 +324,8 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
     // off-road 142 -> 299 car-s, MEASURED). (applied in the SPEED section: every bend ahead within
     // braking distance, not only the "corners" — Naffcar's banked turns are wider than CORNER_R,
     // and tow passes on their inside slid off: off-road 0 -> 14 car-s, MEASURED)
-    const slide = steerSlideStep(car, path, nearIdx, idx, speed, lineOff, latT);
-    return pedalStep(car, path, nearIdx, idx, speed, dt, prof, latT, lineOff,
+    const slide = steerSlideStep(drv, car, path, nearIdx, idx, speed, lineOff, latT);
+    return pedalStep(drv, car, path, nearIdx, idx, speed, dt, prof, latT, lineOff,
         { push, vMul, jCap, followCap, thrForce }, slide);
   }
   // put back on the road by the game (stuck / broken): find its place again, forget the dodge and
