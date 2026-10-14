@@ -2,14 +2,14 @@
 //
 // THE FOUR CORNERS HAVE OWNERS (CLAUDE.md §4) and no two systems share a lane:
 //   top-left      car selector chip (collapsed by default; expands DOWNWARD into five rows)
-//   top-centre    RESET and CLEAR MARKS
+//   top-centre    RESET and CLEAR MARKS (the button row)
 //   top-right     speed, gear, tacho + shift light   (the silent twin of the engine note)
 //   bottom-left   thumb stick (touch) / key hints (pc)
 //   bottom-right  throttle / brake / handbrake pedals (touch)
 //   left edge     dev readout, ?dev=1 only, below the chip — nothing else may live there
 //
-// Buttons are DATA so hit-testing and drawing read the same geometry. Two copies of a rect is how a
-// button ends up visually somewhere its tap is not.
+// Buttons are DATA so hit-testing and drawing read the same geometry. Two copies of
+// a rect is how a button ends up visually somewhere its tap is not.
 
 import { ROSTER, CAR_IDS } from './cars.ts';
 import { LEVELS } from "./world/levels/index.ts";
@@ -889,20 +889,33 @@ export function createHud() {
     if (game.dev && !tuneOpen) {
       const tyreState = car.t;
       const lines = [
-        `v ${(Math.hypot(car.vx, car.vy)).toFixed(1)} m/s   vLong ${tyreState.vLong.toFixed(1)}  vLat ${tyreState.vLat.toFixed(2)}`,
-        `beta ${(Math.atan2(tyreState.vLat, Math.abs(tyreState.vLong)) * 57.3).toFixed(1)}°   yaw ${car.yawRate.toFixed(2)}  delta ${(car.delta * 57.3).toFixed(1)}°`,
-        `slip F ${(tyreState.slipF * 57.3).toFixed(1)}°  R ${(tyreState.slipR * 57.3).toFixed(1)}°`,
+        `v ${(Math.hypot(car.vx, car.vy)).toFixed(1)} m/s   `
+          + `vLong ${tyreState.vLong.toFixed(1)}  vLat ${tyreState.vLat.toFixed(2)}`,
+        `beta ${(Math.atan2(tyreState.vLat, Math.abs(tyreState.vLong)) * 57.3).toFixed(1)}°   `
+          + `yaw ${car.yawRate.toFixed(2)}  delta ${(car.delta * 57.3).toFixed(1)}°`,
+        `slip F ${(tyreState.slipF * 57.3).toFixed(1)}°  `
+          + `R ${(tyreState.slipR * 57.3).toFixed(1)}°`,
         `Fz  F ${tyreState.FzF.toFixed(0)}  R ${tyreState.FzR.toFixed(0)}`,
-        `Fy  F ${tyreState.FyF.toFixed(0)}/${tyreState.FyMaxF.toFixed(0)}  R ${tyreState.FyR.toFixed(0)}/${tyreState.FyMaxR.toFixed(0)}`,
-        `sat F ${tyreState.satF.toFixed(2)} R ${tyreState.satR.toFixed(2)}   ax ${tyreState.ax.toFixed(1)} ay ${tyreState.ay.toFixed(1)}`,
-        `slide F ${tyreState.slidingF ? 'Y' : '.'} R ${tyreState.slidingR ? 'Y' : '.'}   lock F ${tyreState.lockedF ? 'Y' : '.'} R ${tyreState.lockedR ? 'Y' : '.'}`,
-        `slipSpd F ${tyreState.slipSpeedF.toFixed(2)} R ${tyreState.slipSpeedR.toFixed(2)}  marks ${game.marks.stamps}`,
+        `Fy  F ${tyreState.FyF.toFixed(0)}/${tyreState.FyMaxF.toFixed(0)}  `
+          + `R ${tyreState.FyR.toFixed(0)}/${tyreState.FyMaxR.toFixed(0)}`,
+        `sat F ${tyreState.satF.toFixed(2)} R ${tyreState.satR.toFixed(2)}   `
+          + `ax ${tyreState.ax.toFixed(1)} ay ${tyreState.ay.toFixed(1)}`,
+        `slide F ${tyreState.slidingF ? 'Y' : '.'} R ${tyreState.slidingR ? 'Y' : '.'}   `
+          + `lock F ${tyreState.lockedF ? 'Y' : '.'} R ${tyreState.lockedR ? 'Y' : '.'}`,
+        `slipSpd F ${tyreState.slipSpeedF.toFixed(2)} R ${tyreState.slipSpeedR.toFixed(2)}  `
+          + `marks ${game.marks.stamps}`,
         // WHAT YOU ARE STANDING ON. With ten surfaces the single most useful line in here: a
         // handling complaint is meaningless without it, and load tells you what the suspension is
         // doing.
-        `surf ${car.surface.id} mu ${car.surface.mu.toFixed(2)} peak ${(car.surface.peakK || 1).toFixed(2)} plough ${(car.surface.plough || 0).toFixed(1)}  load F ${tyreState.loadKF.toFixed(2)} R ${tyreState.loadKR.toFixed(2)}`,
-        `rpm ${car.rpm.toFixed(0)}  gear ${car.gear}  T ${tyreState.torque.toFixed(0)}Nm  steps/f ${game.stepsLastFrame}`,
-        `fps ${game.fps.toFixed(0)}   in  st ${game.in.steer.toFixed(2)} th ${game.in.throttle.toFixed(2)} br ${game.in.brake.toFixed(2)} hb ${game.in.handbrake ? 1 : 0}`,
+        `surf ${car.surface.id} mu ${car.surface.mu.toFixed(2)} `
+          + `peak ${(car.surface.peakK || 1).toFixed(2)} `
+          + `plough ${(car.surface.plough || 0).toFixed(1)}  `
+          + `load F ${tyreState.loadKF.toFixed(2)} R ${tyreState.loadKR.toFixed(2)}`,
+        `rpm ${car.rpm.toFixed(0)}  gear ${car.gear}  T ${tyreState.torque.toFixed(0)}Nm  `
+          + `steps/f ${game.stepsLastFrame}`,
+        `fps ${game.fps.toFixed(0)}   `
+          + `in  st ${game.in.steer.toFixed(2)} th ${game.in.throttle.toFixed(2)} `
+          + `br ${game.in.brake.toFixed(2)} hb ${game.in.handbrake ? 1 : 0}`,
       ];
       const readoutH = lines.length * 11 + 12;
       const readoutRect = { x: MARGIN, y: height - MARGIN - readoutH - 22, w: 232, h: readoutH };

@@ -46,7 +46,6 @@
   },
   "src/hud.js": {
     "complexity": 4,
-    "max-len": 9,
     "max-lines": 1,
     "max-lines-per-function": 3,
     "no-shadow": 1,
