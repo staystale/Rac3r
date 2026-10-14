@@ -94,8 +94,7 @@
   },
   "src/render/props.ts": {
     "complexity": 3,
-    "max-lines": 1,
-    "max-lines-per-function": 4
+    "max-lines": 1
   },
   "src/render/road.ts": {
     "complexity": 2,
