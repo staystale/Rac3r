@@ -303,218 +303,351 @@ function wrap(ctx, text, maxW) {
   return out;
 }
 
-export function createGuide() {
-  let seen = false;
-  try {
-    seen = localStorage.getItem(KEY) === '1';
-  } catch { /* no storage: shows every load, which is harmless */ }
-  let idx = -1;                 // -1 = closed
-  let pulse = 0;                // wall clock (rule 5)
-  // the geometry drawn last frame — hit() tests exactly what was drawn
-  let last = null;
-  let deck = CARDS, deckKind = null;   // HOW TO PLAY, or an event's RULES (openRules)
+const guideFont = (size, weight = 600) =>
+  `${weight} ${size}px ui-sans-serif, system-ui, -apple-system, sans-serif`;
 
-  function close() {
-    idx = -1;
-    last = null;
-    if (deckKind) markRules(deckKind);
-    else {
-      seen = true;
-      try { localStorage.setItem(KEY, '1'); } catch { /* fine */ }
-    }
-    deck = CARDS; deckKind = null;
+/**
+ * Leave the guide: remember it was seen (or mark the event's rules), back to the HOW TO PLAY deck.
+ * @param {object} state the guide state made by createGuide
+ * @returns {void}
+ */
+function closeGuide(state) {
+  state.idx = -1;
+  state.last = null;
+  if (state.deckKind) markRules(state.deckKind);
+  else {
+    state.seen = true;
+    try { localStorage.setItem(KEY, '1'); } catch { /* fine */ }
   }
-  const next = () => { if (++idx >= deck.length) close(); };
+  state.deck = CARDS; state.deckKind = null;
+}
 
-  function draw(ctx, game, layout, viewW, viewH, wallDt, renderer) {
-    if (idx < 0) return;
-    pulse += wallDt;
-    const touch = game.input.isTouch();
-    // the car on screen, for the tyres card; at least a thumb's width so the hole reads as a hole
-    const half = Math.max(30, 3 * renderer.PPM);
-    const ccx = renderer.toScreenX(game.car.x), ccy = renderer.toScreenY(game.car.y);
-    const font = (size, weight = 600) =>
-      `${weight} ${size}px ui-sans-serif, system-ui, -apple-system, sans-serif`;
-    ctx.font = font(11);
-    const hintW = ctx.measureText(
-      'W/S drive   A/D steer   SPACE handbrake   B abs   T tcs   R reset   H help',
-    ).width;
-    const aids = game.car.spec.aids;
-    const aidRect = aids
-      ? [aids.abs && layout.absChip, aids.tcs && layout.tcsChip].filter(Boolean)
-      : [];
-    const scene = {
-      L: layout, W: viewW, H: viewH, touch, pedals: game.input.pedalHits(viewW, viewH),
-      carRect: { x: ccx - half, y: ccy - half, w: half * 2, h: half * 2 },
-      hint: { x: MARGIN, y: viewH - MARGIN - 18, w: hintW, h: 20 },
-      aids: aidRect.length ? union(...aidRect) : null,
-      menu: !!game.menuMode,
-    };
-    const card = deck[idx];
-    const text = card.text ? card.text(scene) : touch ? card.touch : card.pc;
-    const raw = card.target(scene);
-    const reach = 6;
-    const target = raw && {
-      x: raw.x - reach, y: raw.y - reach, w: raw.w + reach * 2, h: raw.h + reach * 2,
-    };
+/**
+ * Step to the next card, closing the guide after the last one.
+ * @param {object} state the guide state
+ * @returns {void}
+ */
+function nextGuideCard(state) { if (++state.idx >= state.deck.length) closeGuide(state); }
 
-    // ---- dim everything except the target
-    ctx.save();
+/**
+ * Measure what the cards can point at this frame (car, hint line, aid chips, layout).
+ * @param {CanvasRenderingContext2D} ctx canvas context (its font is set for measuring)
+ * @param {object} game the game
+ * @param {object} layout the HUD layout
+ * @param {number} viewW view width
+ * @param {number} viewH view height
+ * @param {object} renderer the renderer
+ * @returns {object} the scene handed to each card's target() / text()
+ */
+function buildGuideScene(ctx, game, layout, viewW, viewH, renderer) {
+  const touch = game.input.isTouch();
+  // the car on screen, for the tyres card; at least a thumb's width so the hole reads as a hole
+  const half = Math.max(30, 3 * renderer.PPM);
+  const ccx = renderer.toScreenX(game.car.x), ccy = renderer.toScreenY(game.car.y);
+  ctx.font = guideFont(11);
+  const hintW = ctx.measureText(
+    'W/S drive   A/D steer   SPACE handbrake   B abs   T tcs   R reset   H help',
+  ).width;
+  const aids = game.car.spec.aids;
+  const aidRect = aids
+    ? [aids.abs && layout.absChip, aids.tcs && layout.tcsChip].filter(Boolean)
+    : [];
+  return {
+    L: layout, W: viewW, H: viewH, touch, pedals: game.input.pedalHits(viewW, viewH),
+    carRect: { x: ccx - half, y: ccy - half, w: half * 2, h: half * 2 },
+    hint: { x: MARGIN, y: viewH - MARGIN - 18, w: hintW, h: 20 },
+    aids: aidRect.length ? union(...aidRect) : null,
+    menu: !!game.menuMode,
+  };
+}
+
+/**
+ * Dim everything except the target (the hole), then ring the hole with the pulsing rim.
+ * @param {CanvasRenderingContext2D} ctx canvas context (already saved by the caller)
+ * @param {object|null} target the rect to leave clear, or null
+ * @param {number} viewW view width
+ * @param {number} viewH view height
+ * @param {number} pulse wall-clock seconds driving the rim
+ * @returns {void}
+ */
+function dimGuideScreen(ctx, target, viewW, viewH, pulse) {
+  ctx.beginPath();
+  ctx.rect(0, 0, viewW, viewH);
+  if (target) roundedRectPath(ctx, target, 10);
+  ctx.fillStyle = 'rgba(8,9,12,0.62)';
+  ctx.fill('evenodd');
+  if (target) {
     ctx.beginPath();
-    ctx.rect(0, 0, viewW, viewH);
-    if (target) roundedRectPath(ctx, target, 10);
-    ctx.fillStyle = 'rgba(8,9,12,0.62)';
-    ctx.fill('evenodd');
-    if (target) {
-      ctx.beginPath();
-      roundedRectPath(ctx, target, 10);
-      // a DARK RIM under the amber: photographed 2026-10-03, amber alone nearly vanished on the
-      // light Lab floor
-      ctx.strokeStyle = 'rgba(20,22,27,0.85)';
-      ctx.lineWidth = 6;
-      ctx.stroke();
-      ctx.globalAlpha = 0.55 + 0.45 * Math.sin(pulse * 5);
-      ctx.strokeStyle = COL.warn;
-      ctx.lineWidth = 3;
-      ctx.stroke();
-      ctx.globalAlpha = 1;
-    }
-
-    // ---- the card: size it, then place it clear of the target
-    const cardW = Math.min(300, viewW - MARGIN * 2), pad = 12, lineH = 17;
-    ctx.font = font(13, 500);
-    const lines = wrap(ctx, text, cardW - pad * 2);
-    const btnH = 36;
-    const cardH = pad + 18 + 6 + lines.length * lineH + 10 + btnH + pad;
-    const clampX = (x) => Math.max(MARGIN, Math.min(viewW - MARGIN - cardW, x));
-    const clampY = (y) => Math.max(MARGIN, Math.min(viewH - MARGIN - cardH, y));
-    const gap = 22;   // room for the arrow
-    let box = null;
-    if (target) {
-      const tcx = target.x + target.w / 2, tcy = target.y + target.h / 2;
-      const cands = [
-        { x: clampX(tcx - cardW / 2), y: target.y + target.h + gap },
-        { x: clampX(tcx - cardW / 2), y: target.y - gap - cardH },
-        { x: target.x + target.w + gap, y: clampY(tcy - cardH / 2) },
-        { x: target.x - gap - cardW, y: clampY(tcy - cardH / 2) },
-      ];
-      box = cands.map((cand) => ({ ...cand, w: cardW, h: cardH }))
-        .find((spot) => spot.x >= MARGIN && spot.y >= MARGIN
-          && spot.x + spot.w <= viewW - MARGIN && spot.y + spot.h <= viewH - MARGIN
-          && !overlaps(spot, target));
-    }
-    // no clean spot (a target that fills the screen) or no target: centre it
-    if (!box) box = {
-      x: Math.round(viewW / 2 - cardW / 2), y: Math.round(viewH / 2 - cardH / 2),
-      w: cardW, h: cardH,
-    };
-
-    // ---- arrow from the card to the target
-    if (target && !overlaps(box, target)) {
-      const from = edgePoint(box, { x: target.x + target.w / 2, y: target.y + target.h / 2 });
-      const tip = edgePoint(target, { x: box.x + box.w / 2, y: box.y + box.h / 2 });
-      const len = Math.hypot(tip.x - from.x, tip.y - from.y);
-      if (len > 8) {
-        const dirX = (tip.x - from.x) / len, dirY = (tip.y - from.y) / len;
-        ctx.strokeStyle = COL.warn;
-        ctx.fillStyle = COL.warn;
-        ctx.lineWidth = 2.5;
-        ctx.beginPath();
-        ctx.moveTo(from.x, from.y);
-        ctx.lineTo(tip.x - dirX * 8, tip.y - dirY * 8);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(tip.x, tip.y);
-        ctx.lineTo(tip.x - dirX * 10 - dirY * 6, tip.y - dirY * 10 + dirX * 6);
-        ctx.lineTo(tip.x - dirX * 10 + dirY * 6, tip.y - dirY * 10 - dirX * 6);
-        ctx.closePath();
-        ctx.fill();
-      }
-    }
-
-    ctx.beginPath();
-    roundedRectPath(ctx, box, 10);
-    ctx.fillStyle = 'rgba(20,22,27,0.97)';
-    ctx.fill();
-    ctx.strokeStyle = 'rgba(255,255,255,0.16)';
-    ctx.lineWidth = 1;
+    roundedRectPath(ctx, target, 10);
+    // a DARK RIM under the amber: photographed 2026-10-03, amber alone nearly vanished on the
+    // light Lab floor
+    ctx.strokeStyle = 'rgba(20,22,27,0.85)';
+    ctx.lineWidth = 6;
     ctx.stroke();
-    ctx.textBaseline = 'middle';
-    ctx.textAlign = 'left';
-    ctx.fillStyle = COL.warn;
-    ctx.font = font(14, 700);
-    ctx.fillText(card.title, box.x + pad, box.y + pad + 9);
-    ctx.fillStyle = COL.hudText;
-    ctx.font = font(13, 500);
-    lines.forEach((line, i) => ctx.fillText(
-      line, box.x + pad, box.y + pad + 18 + 6 + i * lineH + lineH / 2,
-    ));
+    ctx.globalAlpha = 0.55 + 0.45 * Math.sin(pulse * 5);
+    ctx.strokeStyle = COL.warn;
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+}
 
-    // buttons: NEXT (or DONE) on the right, SKIP left of it, dots on the left
-    const btnY = box.y + box.h - pad - btnH;
-    const nextB = { x: box.x + box.w - pad - 84, y: btnY, w: 84, h: btnH };
-    const skipB = { x: nextB.x - 8 - 66, y: btnY, w: 66, h: btnH };
-    const lastCard = idx === deck.length - 1;
+/**
+ * Place the card clear of the target, or centre it when there is no clean spot.
+ * @param {object|null} target the highlighted rect, or null
+ * @param {number} cardW card width
+ * @param {number} cardH card height
+ * @param {number} viewW view width
+ * @param {number} viewH view height
+ * @returns {{x:number,y:number,w:number,h:number}} the card box
+ */
+function placeGuideBox(target, cardW, cardH, viewW, viewH) {
+  const clampX = (x) => Math.max(MARGIN, Math.min(viewW - MARGIN - cardW, x));
+  const clampY = (y) => Math.max(MARGIN, Math.min(viewH - MARGIN - cardH, y));
+  const gap = 22;   // room for the arrow
+  let box = null;
+  if (target) {
+    const tcx = target.x + target.w / 2, tcy = target.y + target.h / 2;
+    const cands = [
+      { x: clampX(tcx - cardW / 2), y: target.y + target.h + gap },
+      { x: clampX(tcx - cardW / 2), y: target.y - gap - cardH },
+      { x: target.x + target.w + gap, y: clampY(tcy - cardH / 2) },
+      { x: target.x - gap - cardW, y: clampY(tcy - cardH / 2) },
+    ];
+    box = cands.map((cand) => ({ ...cand, w: cardW, h: cardH }))
+      .find((spot) => spot.x >= MARGIN && spot.y >= MARGIN
+        && spot.x + spot.w <= viewW - MARGIN && spot.y + spot.h <= viewH - MARGIN
+        && !overlaps(spot, target));
+  }
+  // no clean spot (a target that fills the screen) or no target: centre it
+  if (!box) box = {
+    x: Math.round(viewW / 2 - cardW / 2), y: Math.round(viewH / 2 - cardH / 2),
+    w: cardW, h: cardH,
+  };
+  return box;
+}
+
+/**
+ * Draw the arrow from the card to the target.
+ * @param {CanvasRenderingContext2D} ctx canvas context
+ * @param {object} box the card box
+ * @param {object|null} target the highlighted rect, or null
+ * @returns {void}
+ */
+function drawGuideArrow(ctx, box, target) {
+  if (target && !overlaps(box, target)) {
+    const from = edgePoint(box, { x: target.x + target.w / 2, y: target.y + target.h / 2 });
+    const tip = edgePoint(target, { x: box.x + box.w / 2, y: box.y + box.h / 2 });
+    const len = Math.hypot(tip.x - from.x, tip.y - from.y);
+    if (len > 8) {
+      const dirX = (tip.x - from.x) / len, dirY = (tip.y - from.y) / len;
+      ctx.strokeStyle = COL.warn;
+      ctx.fillStyle = COL.warn;
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(from.x, from.y);
+      ctx.lineTo(tip.x - dirX * 8, tip.y - dirY * 8);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(tip.x, tip.y);
+      ctx.lineTo(tip.x - dirX * 10 - dirY * 6, tip.y - dirY * 10 + dirX * 6);
+      ctx.lineTo(tip.x - dirX * 10 + dirY * 6, tip.y - dirY * 10 - dirX * 6);
+      ctx.closePath();
+      ctx.fill();
+    }
+  }
+}
+
+/**
+ * Draw the card panel, its title and its wrapped text.
+ * @param {CanvasRenderingContext2D} ctx canvas context
+ * @param {object} card the card (title)
+ * @param {object} box the card box
+ * @param {string[]} lines the wrapped text lines
+ * @param {number} pad card padding
+ * @param {number} lineH text line height
+ * @returns {void}
+ */
+function drawGuideCardBody(ctx, card, box, lines, pad, lineH) {
+  ctx.beginPath();
+  roundedRectPath(ctx, box, 10);
+  ctx.fillStyle = 'rgba(20,22,27,0.97)';
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(255,255,255,0.16)';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+  ctx.textBaseline = 'middle';
+  ctx.textAlign = 'left';
+  ctx.fillStyle = COL.warn;
+  ctx.font = guideFont(14, 700);
+  ctx.fillText(card.title, box.x + pad, box.y + pad + 9);
+  ctx.fillStyle = COL.hudText;
+  ctx.font = guideFont(13, 500);
+  lines.forEach((line, i) => ctx.fillText(
+    line, box.x + pad, box.y + pad + 18 + 6 + i * lineH + lineH / 2,
+  ));
+}
+
+/**
+ * Draw the buttons: NEXT (or DONE) on the right, SKIP left of it.
+ * @param {CanvasRenderingContext2D} ctx canvas context
+ * @param {object} state the guide state
+ * @param {object} box the card box
+ * @param {number} pad card padding
+ * @param {number} btnH button height
+ * @returns {{nextB:object,skipB:object,lastCard:boolean,btnY:number}} the button rects
+ */
+function drawGuideButtons(ctx, state, box, pad, btnH) {
+  const btnY = box.y + box.h - pad - btnH;
+  const nextB = { x: box.x + box.w - pad - 84, y: btnY, w: 84, h: btnH };
+  const skipB = { x: nextB.x - 8 - 66, y: btnY, w: 66, h: btnH };
+  const lastCard = state.idx === state.deck.length - 1;
+  ctx.beginPath();
+  roundedRectPath(ctx, nextB, 8);
+  ctx.fillStyle = 'rgba(76,194,160,0.95)';
+  ctx.fill();
+  ctx.textAlign = 'center';
+  ctx.font = guideFont(12.5, 700);
+  ctx.fillStyle = '#0d1a16';
+  ctx.fillText(lastCard ? 'DONE' : 'NEXT', nextB.x + nextB.w / 2, nextB.y + btnH / 2);
+  if (!lastCard) {
     ctx.beginPath();
-    roundedRectPath(ctx, nextB, 8);
-    ctx.fillStyle = 'rgba(76,194,160,0.95)';
+    roundedRectPath(ctx, skipB, 8);
+    ctx.fillStyle = 'rgba(255,255,255,0.10)';
     ctx.fill();
-    ctx.textAlign = 'center';
-    ctx.font = font(12.5, 700);
-    ctx.fillStyle = '#0d1a16';
-    ctx.fillText(lastCard ? 'DONE' : 'NEXT', nextB.x + nextB.w / 2, nextB.y + btnH / 2);
-    if (!lastCard) {
-      ctx.beginPath();
-      roundedRectPath(ctx, skipB, 8);
-      ctx.fillStyle = 'rgba(255,255,255,0.10)';
-      ctx.fill();
-      ctx.fillStyle = COL.hudText;
-      ctx.font = font(12, 600);
-      ctx.fillText('SKIP', skipB.x + skipB.w / 2, skipB.y + btnH / 2);
-    }
-    const dotsW = skipB.x - box.x - pad - 6;
-    const step = Math.min(11, dotsW / deck.length);
-    for (let i = 0; i < deck.length; i++) {
-      ctx.beginPath();
-      ctx.arc(box.x + pad + 4 + i * step, btnY + btnH / 2, i === idx ? 3.5 : 2.5, 0, Math.PI * 2);
-      ctx.fillStyle = i === idx ? COL.warn : 'rgba(255,255,255,0.30)';
-      ctx.fill();
-    }
-    ctx.restore();
-    last = { box, nextB, skipB: lastCard ? null : skipB, target };
+    ctx.fillStyle = COL.hudText;
+    ctx.font = guideFont(12, 600);
+    ctx.fillText('SKIP', skipB.x + skipB.w / 2, skipB.y + btnH / 2);
   }
+  return { nextB, skipB, lastCard, btnY };
+}
 
-  // While open, EVERY tap is consumed. Only NEXT and SKIP do anything — a stray tap must not skip
-  // a card.
-  function hit(point) {
-    if (idx < 0) return false;
-    if (last && inRect(point, last.nextB)) next();
-    else if (last && inRect(point, last.skipB)) close();
-    return true;
+/**
+ * Draw the progress dots on the left of the button row.
+ * @param {CanvasRenderingContext2D} ctx canvas context
+ * @param {object} state the guide state
+ * @param {object} box the card box
+ * @param {object} skipB the SKIP button rect
+ * @param {number} pad card padding
+ * @param {number} btnY button row top
+ * @param {number} btnH button height
+ * @returns {void}
+ */
+function drawGuideDots(ctx, state, box, skipB, pad, btnY, btnH) {
+  const { deck, idx } = state;
+  const dotsW = skipB.x - box.x - pad - 6;
+  const step = Math.min(11, dotsW / deck.length);
+  for (let i = 0; i < deck.length; i++) {
+    ctx.beginPath();
+    ctx.arc(box.x + pad + 4 + i * step, btnY + btnH / 2, i === idx ? 3.5 : 2.5, 0, Math.PI * 2);
+    ctx.fillStyle = i === idx ? COL.warn : 'rgba(255,255,255,0.30)';
+    ctx.fill();
   }
+}
 
-  function key(name) {
-    if (name === 'escape') close();
-    else if (name === 'enter' || name === ' ' || name === 'arrowright') next();
-  }
+/**
+ * Draw the open guide card: dimmed screen, rim, card, arrow, buttons, dots; remember the geometry.
+ * @param {object} state the guide state
+ * @param {CanvasRenderingContext2D} ctx canvas context
+ * @param {object} game the game
+ * @param {object} layout the HUD layout
+ * @param {number} viewW view width
+ * @param {number} viewH view height
+ * @param {number} wallDt wall-clock seconds since last frame
+ * @param {object} renderer the renderer
+ * @returns {void}
+ */
+function drawGuide(state, ctx, game, layout, viewW, viewH, wallDt, renderer) {
+  if (state.idx < 0) return;
+  state.pulse += wallDt;
+  const scene = buildGuideScene(ctx, game, layout, viewW, viewH, renderer);
+  const card = state.deck[state.idx];
+  const text = card.text ? card.text(scene) : scene.touch ? card.touch : card.pc;
+  const raw = card.target(scene);
+  const reach = 6;
+  const target = raw && {
+    x: raw.x - reach, y: raw.y - reach, w: raw.w + reach * 2, h: raw.h + reach * 2,
+  };
+
+  ctx.save();
+  dimGuideScreen(ctx, target, viewW, viewH, state.pulse);
+
+  // ---- the card: size it, then place it clear of the target
+  const cardW = Math.min(300, viewW - MARGIN * 2), pad = 12, lineH = 17;
+  ctx.font = guideFont(13, 500);
+  const lines = wrap(ctx, text, cardW - pad * 2);
+  const btnH = 36;
+  const cardH = pad + 18 + 6 + lines.length * lineH + 10 + btnH + pad;
+  const box = placeGuideBox(target, cardW, cardH, viewW, viewH);
+
+  drawGuideArrow(ctx, box, target);
+  drawGuideCardBody(ctx, card, box, lines, pad, lineH);
+  // buttons: NEXT (or DONE) on the right, SKIP left of it, dots on the left
+  const { nextB, skipB, lastCard, btnY } = drawGuideButtons(ctx, state, box, pad, btnH);
+  drawGuideDots(ctx, state, box, skipB, pad, btnY, btnH);
+  ctx.restore();
+  state.last = { box, nextB, skipB: lastCard ? null : skipB, target };
+}
+
+/**
+ * While open, EVERY tap is consumed. Only NEXT and SKIP do anything — a stray tap must not skip
+ * a card.
+ * @param {object} state the guide state
+ * @param {{x:number,y:number}} point the tap
+ * @returns {boolean} true when the guide is open (the tap is consumed)
+ */
+function hitGuide(state, point) {
+  if (state.idx < 0) return false;
+  if (state.last && inRect(point, state.last.nextB)) nextGuideCard(state);
+  else if (state.last && inRect(point, state.last.skipB)) closeGuide(state);
+  return true;
+}
+
+/**
+ * Keyboard: escape closes, enter / space / right-arrow advance.
+ * @param {object} state the guide state
+ * @param {string} name the key name
+ * @returns {void}
+ */
+function keyGuide(state, name) {
+  if (name === 'escape') closeGuide(state);
+  else if (name === 'enter' || name === ' ' || name === 'arrowright') nextGuideCard(state);
+}
+
+export function createGuide() {
+  const state = {
+    seen: false,
+    idx: -1,                 // -1 = closed
+    pulse: 0,                // wall clock (rule 5)
+    // the geometry drawn last frame — hit() tests exactly what was drawn
+    last: null,
+    deck: CARDS, deckKind: null,   // HOW TO PLAY, or an event's RULES (openRules)
+  };
+  try {
+    state.seen = localStorage.getItem(KEY) === '1';
+  } catch { /* no storage: shows every load, which is harmless */ }
 
   return {
-    draw, hit, key, close,
-    open() { deck = CARDS; deckKind = null; idx = 0; pulse = 0; },
+    draw: (ctx, game, layout, viewW, viewH, wallDt, renderer) =>
+      drawGuide(state, ctx, game, layout, viewW, viewH, wallDt, renderer),
+    hit: (point) => hitGuide(state, point),
+    key: (name) => keyGuide(state, name),
+    close: () => closeGuide(state),
+    open() { state.deck = CARDS; state.deckKind = null; state.idx = 0; state.pulse = 0; },
     // an event's rules walkthrough (RULES[kind]); false if there is none
     openRules(kind) {
       if (!RULES[kind]) return false;
-      deck = RULES[kind];
-      deckKind = kind;
-      idx = 0;
-      pulse = 0;
+      state.deck = RULES[kind];
+      state.deckKind = kind;
+      state.idx = 0;
+      state.pulse = 0;
       return true;
     },
-    get kind() { return deckKind; },
-    get active() { return idx >= 0; },
-    get seen() { return seen; },
-    get card() { return idx; },
-    get last() { return last; },
-    get count() { return deck.length; },
+    get kind() { return state.deckKind; },
+    get active() { return state.idx >= 0; },
+    get seen() { return state.seen; },
+    get card() { return state.idx; },
+    get last() { return state.last; },
+    get count() { return state.deck.length; },
   };
 }
