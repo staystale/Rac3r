@@ -1206,6 +1206,34 @@ function integrateYaw(car: Car, carSpec: Spec, dt: number, axles: AxleOutcome, d
   if (ramp > 0) car.yawRate -= car.yawRate * ramp * (car.yawDampOverride ?? TUNE.yawDamp) * dt;
 }
 
+/**
+ * Section 9 of step(): the low-speed blend toward the kinematic yaw rate and the rest snap, with
+ * steep ground allowed to keep a stopped car moving. Returns the body velocity after the blend.
+ */
+function lowSpeedBlend(car: Car, carSpec: Spec, mass: number, gravity: number, delta: number,
+    throttle: number, inVLong: number, inVLat: number) {
+  let vLong = inVLong, vLat = inVLat;
+  const speed = Math.hypot(vLong, vLat);
+  // STEEP GROUND MOVES A STOPPED CAR (user, 2026-10-03: "super steep angles should still move /
+  // push / pull the car even when parked or moving"). The blend and the rest-snap below exist so a
+  // car does not shiver on FLAT ground; they used to hold it on any slope too. Now: it ROLLS along
+  // its length once the slope pull beats what a car in gear holds (SLOPE_ROLL g), and SLIDES
+  // sideways on genuinely steep ground (SLOPE_SLIDE g).
+  const mgS = mass * gravity;
+  const rollFree = Math.abs(car.slopeLong || 0) > SLOPE_ROLL * mgS;
+  const slideFree = Math.abs(car.slopeLat || 0) > SLOPE_SLIDE * mgS;
+  if (speed < LOWSPEED_BLEND) {
+    const blend = 1 - speed / LOWSPEED_BLEND;              // 1 at rest, 0 at the blend speed
+    const kinYaw = (vLong * Math.tan(delta)) / carSpec.L;
+    car.yawRate += (kinYaw - car.yawRate) * blend * 0.5;
+    if (!slideFree) vLat += (0 - vLat) * blend * 0.5;
+  }
+  if (speed < REST_SPEED && throttle < 0.05 && !rollFree && !slideFree) {
+    vLong = 0; vLat = 0; car.yawRate *= 0.5;
+  }
+  return { vLong, vLat };
+}
+
 export function step(car: Car, input: CarInput, dt = PHYSICS_STEP_SECONDS) {
   const carSpec = car.spec;
   const mass = carSpec.mass * car.mods.mass;
@@ -1394,24 +1422,7 @@ export function step(car: Car, input: CarInput, dt = PHYSICS_STEP_SECONDS) {
   // the slide — 10.1 m/s to 0 in 0.1 s (10 g) at the end of every handbrake turn. Gate on the TOTAL
   // planar speed; that is the quantity that does not vanish when the car is sideways (CLAUDE.md
   // rule 9).
-  const speed = Math.hypot(vLong, vLat);
-  // STEEP GROUND MOVES A STOPPED CAR (user, 2026-10-03: "super steep angles should still move /
-  // push / pull the car even when parked or moving"). The blend and the rest-snap below exist so a
-  // car does not shiver on FLAT ground; they used to hold it on any slope too. Now: it ROLLS along
-  // its length once the slope pull beats what a car in gear holds (SLOPE_ROLL g), and SLIDES
-  // sideways on genuinely steep ground (SLOPE_SLIDE g).
-  const mgS = mass * gravity;
-  const rollFree = Math.abs(car.slopeLong || 0) > SLOPE_ROLL * mgS;
-  const slideFree = Math.abs(car.slopeLat || 0) > SLOPE_SLIDE * mgS;
-  if (speed < LOWSPEED_BLEND) {
-    const blend = 1 - speed / LOWSPEED_BLEND;              // 1 at rest, 0 at the blend speed
-    const kinYaw = (vLong * Math.tan(delta)) / carSpec.L;
-    car.yawRate += (kinYaw - car.yawRate) * blend * 0.5;
-    if (!slideFree) vLat += (0 - vLat) * blend * 0.5;
-  }
-  if (speed < REST_SPEED && throttle < 0.05 && !rollFree && !slideFree) {
-    vLong = 0; vLat = 0; car.yawRate *= 0.5;
-  }
+  ({ vLong, vLat } = lowSpeedBlend(car, carSpec, mass, gravity, delta, throttle, vLong, vLat));
 
   // ---- tyre temperatures (see TYRE TEMPERATURE at the top)
   updateTyreTemps(car, carSpec, tick, axles, vLong, vLat, accelLat);
