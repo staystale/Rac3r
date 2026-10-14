@@ -17,7 +17,6 @@
 //                                         reference; the verdict covers just those levels)
 // It rasterises on the CPU (no GPU): GPU canvas raster is not bit-exact between builds.
 // Not covered: the menu screens, other screen sizes, the desktop (pc) input mode.
-import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -25,6 +24,9 @@ import * as L from '../src/lab.js';
 import { addStageLevels } from '../src/stagegen.js';
 import { addHighwayLevel } from '../src/highway.js';
 import { startServer, launchBrowser } from './lib/browser.mjs';
+import {
+  openPage, launchLevel, installDriver, sha, onlyList, SETTLE_MS,
+} from './lib/determinism.mjs';
 
 addStageLevels();
 addHighwayLevel();
@@ -34,68 +36,9 @@ const SEED = 0x5eed;
 const FRAMES = [['t02', 120], ['t08', 480], ['t14', 840], ['t20', 1200]];
 const STAGE_IDS = ['gen-forest-medium-mixed-1001', 'stage-sahara-sandpants'];
 const HIGHWAY_OPTS = { traffic: 1, litter: 1.5 };
-const SETTLE_MS = 300;
 const CPU_RASTER_ARGS = [
   '--disable-gpu', '--disable-accelerated-2d-canvas', '--disable-gpu-rasterization',
 ];
-
-/**
- * Page side, run before the game loads: seeded Math.random, a fake clock and a rAF queue the
- * tool steps by hand (window.__rt).
- * @returns {void}
- */
-function installDeterminism() {
-  const frameMs = 1000 / 60;
-  let clock = 1000, seed = 0, nextId = 1, queue = [];
-  Math.random = () => {
-    seed = (seed + 0x6d2b79f5) | 0;
-    let mixed = Math.imul(seed ^ (seed >>> 15), 1 | seed);
-    mixed = (mixed + Math.imul(mixed ^ (mixed >>> 7), 61 | mixed)) ^ mixed;
-    return ((mixed ^ (mixed >>> 14)) >>> 0) / 4294967296;
-  };
-  performance.now = () => clock;
-  Date.now = () => 1.7e12 + clock;
-  window.requestAnimationFrame = (callback) => {
-    queue.push({ id: nextId, callback });
-    return nextId++;
-  };
-  window.cancelAnimationFrame = (id) => {
-    queue = queue.filter((entry) => entry.id !== id);
-  };
-  window.__rt = {
-    seed: (value) => { seed = value | 0; },
-    step: (count) => {
-      for (let frame = 0; frame < count; frame++) {
-        clock += frameMs;
-        const run = queue;
-        queue = [];
-        for (const entry of run) entry.callback(clock);
-      }
-    },
-  };
-}
-
-/**
- * Page side: start a session on a level with 3 AI cars, the game's own launch path.
- * @param {[string, object]} args level id and extra launch options
- * @returns {void}
- */
-function launchLevel([id, opts]) {
-  window.__game.launch(id, 'hatch-rwd', { ai: 3, ...opts });
-}
-
-/**
- * Page side: hand the player car to the demo driver, as framecheck does.
- * @returns {Promise<void>} resolves when the driver is installed
- */
-async function installDriver() {
-  const game = window.__game;
-  const auto = await import('/src/ai/autodrive.ts');
-  const driver = auto.createAutoDriver(game.level.subtrack);
-  game.input.update = () => ({
-    ...driver.drive(game.car), reverse: 0, shiftUp: false, shiftDown: false,
-  });
-}
 
 /**
  * Page side: damage the player car the way the game's crash code does (damage.js hit from
@@ -123,15 +66,6 @@ function grabCanvas() {
 }
 
 /**
- * Sha256 of bytes or text as hex.
- * @param {Buffer|string} data input
- * @returns {string} hex digest
- */
-function sha(data) {
-  return createHash('sha256').update(data).digest('hex');
-}
-
-/**
  * Grab the canvas of a page as PNG bytes.
  * @param {import('playwright').Page} page the page
  * @returns {Promise<Buffer>} PNG bytes
@@ -139,27 +73,6 @@ function sha(data) {
 async function grab(page) {
   const url = await page.evaluate(grabCanvas);
   return Buffer.from(url.split(',')[1], 'base64');
-}
-
-/**
- * Open a fresh phone page on a level with the determinism script installed.
- * @param {import('playwright').Browser} browser the browser
- * @param {string} base server url
- * @param {string} id level id
- * @param {string[]} errors collects page errors
- * @returns {Promise<import('playwright').Page>} the page
- */
-async function openPage(browser, base, id, errors) {
-  const ctx = await browser.newContext({
-    viewport: { width: 844, height: 390 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true,
-  });
-  const page = await ctx.newPage();
-  page.on('pageerror', (err) => errors.push(String(err)));
-  await page.addInitScript(installDeterminism);
-  await page.goto(`${base}/?touch=1&guide=0&menu=0&rules=0&level=${id}`);
-  await page.waitForFunction(() => window.__game && window.__rt);
-  await page.waitForTimeout(SETTLE_MS);
-  return page;
 }
 
 /**
@@ -208,15 +121,6 @@ function levelList() {
   const ids = [...circuits.map((lv) => lv.id), ...stages];
   const all = [...ids.map((id) => ({ id, endless: false })), { id: 'highway', endless: true }];
   return only ? all.filter((lv) => only.includes(lv.id)) : all;
-}
-
-/**
- * The level ids named by --only, or null for all levels.
- * @returns {string[]|null} ids or null
- */
-function onlyList() {
-  const at = process.argv.indexOf('--only');
-  return at > 0 ? process.argv[at + 1].split(',') : null;
 }
 
 /**
