@@ -1275,9 +1275,16 @@ const SLIP_NAMES = [
   "HULL (NOT REALLY)",
   "THE NORTH",
 ];
-// scenery for road points [i0, i1): placed in WORLD coordinates (stays put when the window moves);
-// loose objects go into `loose`
-function dress(level, firstIdx, endIdx, loose) {
+/**
+ * Build the shared context of one dress() call: the road window and the two helpers every step
+ * uses (pointAt, clear).
+ * @param {object} level the highway level
+ * @param {number} firstIdx first road point to dress
+ * @param {number} endIdx end (exclusive) road point
+ * @param {object[]|null} loose where loose objects go
+ * @returns {object} the dress context
+ */
+function makeDressContext(level, firstIdx, endIdx, loose) {
   const state = stateOf(level), rand = state.rnd, halfWidth = state.geo.hw, road = state.pts;
   const pointAt = (i, off) => {
     const before = road[Math.max(0, i - 1)],
@@ -1302,119 +1309,156 @@ function dress(level, firstIdx, endIdx, loose) {
     }
     return !blocked(state.keep, x, y, radius);
   };
-  // a long road can come back across what was laid beside an EARLIER stretch: every new point cuts
-  // the approaches / rivers / slips
-  for (let j = firstIdx; j < endIdx; j += 2)
-    for (const cut of state.cuts)
-      if (!cutSkips(cut, road[j].s)) cutBy(level, cut, road[j].x, road[j].y);
-  // half the road is FARMLAND now (fields, hedges, villages: fields() above), was a third
-  const biome = (dist) =>
-    ["farm", "forest", "farm", "rocky", "farm", "forest"][Math.floor(dist / 2200) % 6];
-  for (let i = firstIdx; i < endIdx; i++) {
-    const dist = road[i].s,
-      biomeName = biome(dist),
-      mark = (obj) => {
-        obj._s = dist;
-        return obj;
-      };
-    // the side road's offset here first, so the trees below keep off it
-    sideStep(level, i, pointAt);
-    if (!NOF) fields(level, i, pointAt, clear, biomeName, loose);
-    if (i % 3 === 0) for (const side of [-1, 1]) {
-      const dens = biomeName === 'forest' ? 0.75 : biomeName === 'farm' ? 0.18 : 0.25;
-      if (rand() < dens) {
-        const pos = pointAt(
-          i,
-          side * (halfWidth + 10 + rand() * (biomeName === "forest" ? 40 : 25))
-        );
-        if (clear(pos.x, pos.y, 8))
-          level.props.push(
-            mark({ kind: "tree", x: pos.x, y: pos.y, s: 4 + rand() * 3, seed: (dist | 0) * 2 + 1 })
-          );
-      }
-      if (biomeName === "rocky" && rand() < 0.3) {
-        const pos = pointAt(i, side * (halfWidth + 6 + rand() * 30));
-        if (clear(pos.x, pos.y, 5))
-          level.props.push(
-            mark({ kind: "rock", x: pos.x, y: pos.y, s: 2 + rand() * 4, seed: (dist | 0) + 7 })
-          );
-      }
-    }
-    if (biomeName === "farm" && i % 40 === 0 && rand() < 0.4) {
-      const side = rand() < 0.5 ? -1 : 1,
-        pos = pointAt(i, side * (halfWidth + 30 + rand() * 25));
-      if (clear(pos.x, pos.y, 12))
+  return { level, state, rand, halfWidth, road, firstIdx, endIdx, loose, pointAt, clear };
+}
+
+/**
+ * Half the road is FARMLAND now (fields, hedges, villages: fields() above), was a third.
+ * @param {number} dist road distance
+ * @returns {string} the biome name there
+ */
+function biomeAtDist(dist) {
+  return ["farm", "forest", "farm", "rocky", "farm", "forest"][Math.floor(dist / 2200) % 6];
+}
+
+/**
+ * Trees (and, on rocky ground, rocks) beside the road at point i (every third point).
+ * @param {object} ctx the dress context
+ * @param {number} i road point index
+ * @param {number} dist road distance at i
+ * @param {string} biomeName biome at i
+ * @param {Function} mark tags an object with its road distance
+ * @returns {void}
+ */
+function layRoadsideTrees(ctx, i, dist, biomeName, mark) {
+  const { level, rand, halfWidth, pointAt, clear } = ctx;
+  if (i % 3 === 0) for (const side of [-1, 1]) {
+    const dens = biomeName === 'forest' ? 0.75 : biomeName === 'farm' ? 0.18 : 0.25;
+    if (rand() < dens) {
+      const pos = pointAt(
+        i,
+        side * (halfWidth + 10 + rand() * (biomeName === "forest" ? 40 : 25))
+      );
+      if (clear(pos.x, pos.y, 8))
         level.props.push(
-          mark({
-            kind: "block",
-            x: pos.x,
-            y: pos.y,
-            w: 14,
-            h: 8,
-            rot: pos.rot + rand(),
-            roof: ["#8a3a2e", "#6e6a5e", "#3f5a3a"][(rand() * 3) | 0],
-          })
+          mark({ kind: "tree", x: pos.x, y: pos.y, s: 4 + rand() * 3, seed: (dist | 0) * 2 + 1 })
         );
     }
-    // SLIP ROADS + BRIDGES (user, 2026-10-05: "off-slip every 2-4 km (tapering lane, sign, ends in
-    // fields; drivable)"; "bridges over a road, a river and a railway + a footbridge"; "rare cheeky
-    // extras"): planned on the road's own distance, placed only on near-straight road (|curv| <
-    // 1/900 over the stretch), never on top of each other. extras(lv, i, s) below. (every preset
-    // since 2026-10-06, user: "all the types of highway should have bridges and slip roads you can
-    // take")
-    if (!NOX) extras(level, i, dist, pointAt, mark);
-    // GANTRY every ~3 km, a SIGN every ~700 m (the distance to Hull GOES UP) (never with a leg /
-    // board on a slip, an approach or the side road: a gantry there moves on 40 m, a board swaps
-    // sides or is left out)
-    const freeAt = (j, off, radius) => {
-      const pos = pointAt(j, off);
-      return !(road[j].sideOff && off < 0) && !blocked(state.keep, pos.x, pos.y, radius)
-        ? pos
-        : null;
-    };
-    if (Math.floor(dist / 3000) !== Math.floor((dist - STEP) / 3000)) state.gantryDue = true;
-    if (state.gantryDue && freeAt(i, -(halfWidth + 3), 2) && freeAt(i, halfWidth + 3, 2)) {
-      state.gantryDue = false;
-      const pos = pointAt(i, 0);
-      level.props.push(
-        mark({
-          kind: "gantry",
-          x: pos.x,
-          y: pos.y,
-          rot: pos.rot + Math.PI / 2,
-          wid: state.geo.width + 6,
-        })
-      );
-    }
-    if (Math.floor(dist / 700) !== Math.floor((dist - STEP) / 700)) {
-      const count = Math.floor(dist / 700),
-        sideSign = count % 2 ? 1 : -1,
-        label =
-          count % 3 === 0
-            ? `HULL ${412 + count * 3} MI`
-            : SIGNS[(count * 7 + state.seed) % SIGNS.length];
-      const pos =
-        freeAt(i, sideSign * (halfWidth + 6), 10) || freeAt(i, -sideSign * (halfWidth + 6), 10);
-      if (pos) level.props.push(mark({ kind: 'board', x: pos.x, y: pos.y, rot: pos.rot, label }));
-    }
-    // ROLLING HILLS: a broad hump beside the road every ~250 m (the road climbs its flank)
-    if (i % 60 === 0 && rand() < 0.6) {
-      const pos = pointAt(i, (rand() < 0.5 ? -1 : 1) * (30 + rand() * 90));
-      level.bumps.push(
-        mark({
-          kind: "hump",
-          x: pos.x,
-          y: pos.y,
-          r: 110 + rand() * 160,
-          h: (biomeName === "rocky" ? 6 : 3) + rand() * 8,
-        })
-      );
+    if (biomeName === "rocky" && rand() < 0.3) {
+      const pos = pointAt(i, side * (halfWidth + 6 + rand() * 30));
+      if (clear(pos.x, pos.y, 5))
+        level.props.push(
+          mark({ kind: "rock", x: pos.x, y: pos.y, s: 2 + rand() * 4, seed: (dist | 0) + 7 })
+        );
     }
   }
-  sideFlush(level, false);
-  if (state.coversDirty) syncCovers(level);
-  // ARMCO on the OUTSIDE of the tighter bends: runs of points with |curv| > 1/400 (+curv = a
-  // right-hander -> outside = the -normal side)
+}
+
+/**
+ * A farm building block now and then (every 40th point on farmland).
+ * @param {object} ctx the dress context
+ * @param {number} i road point index
+ * @param {string} biomeName biome at i
+ * @param {Function} mark tags an object with its road distance
+ * @returns {void}
+ */
+function layFarmBlock(ctx, i, biomeName, mark) {
+  const { level, rand, halfWidth, pointAt, clear } = ctx;
+  if (biomeName === "farm" && i % 40 === 0 && rand() < 0.4) {
+    const side = rand() < 0.5 ? -1 : 1,
+      pos = pointAt(i, side * (halfWidth + 30 + rand() * 25));
+    if (clear(pos.x, pos.y, 12))
+      level.props.push(
+        mark({
+          kind: "block",
+          x: pos.x,
+          y: pos.y,
+          w: 14,
+          h: 8,
+          rot: pos.rot + rand(),
+          roof: ["#8a3a2e", "#6e6a5e", "#3f5a3a"][(rand() * 3) | 0],
+        })
+      );
+  }
+}
+
+/**
+ * GANTRY every ~3 km, a SIGN every ~700 m (the distance to Hull GOES UP) (never with a leg /
+ * board on a slip, an approach or the side road: a gantry there moves on 40 m, a board swaps
+ * sides or is left out).
+ * @param {object} ctx the dress context
+ * @param {number} i road point index
+ * @param {number} dist road distance at i
+ * @param {Function} mark tags an object with its road distance
+ * @returns {void}
+ */
+function layGantryAndSign(ctx, i, dist, mark) {
+  const { level, state, halfWidth, road, pointAt } = ctx;
+  const freeAt = (j, off, radius) => {
+    const pos = pointAt(j, off);
+    return !(road[j].sideOff && off < 0) && !blocked(state.keep, pos.x, pos.y, radius)
+      ? pos
+      : null;
+  };
+  if (Math.floor(dist / 3000) !== Math.floor((dist - STEP) / 3000)) state.gantryDue = true;
+  if (state.gantryDue && freeAt(i, -(halfWidth + 3), 2) && freeAt(i, halfWidth + 3, 2)) {
+    state.gantryDue = false;
+    const pos = pointAt(i, 0);
+    level.props.push(
+      mark({
+        kind: "gantry",
+        x: pos.x,
+        y: pos.y,
+        rot: pos.rot + Math.PI / 2,
+        wid: state.geo.width + 6,
+      })
+    );
+  }
+  if (Math.floor(dist / 700) !== Math.floor((dist - STEP) / 700)) {
+    const count = Math.floor(dist / 700),
+      sideSign = count % 2 ? 1 : -1,
+      label =
+        count % 3 === 0
+          ? `HULL ${412 + count * 3} MI`
+          : SIGNS[(count * 7 + state.seed) % SIGNS.length];
+    const pos =
+      freeAt(i, sideSign * (halfWidth + 6), 10) || freeAt(i, -sideSign * (halfWidth + 6), 10);
+    if (pos) level.props.push(mark({ kind: 'board', x: pos.x, y: pos.y, rot: pos.rot, label }));
+  }
+}
+
+/**
+ * ROLLING HILLS: a broad hump beside the road every ~250 m (the road climbs its flank).
+ * @param {object} ctx the dress context
+ * @param {number} i road point index
+ * @param {string} biomeName biome at i
+ * @param {Function} mark tags an object with its road distance
+ * @returns {void}
+ */
+function layHump(ctx, i, biomeName, mark) {
+  const { level, rand, pointAt } = ctx;
+  if (i % 60 === 0 && rand() < 0.6) {
+    const pos = pointAt(i, (rand() < 0.5 ? -1 : 1) * (30 + rand() * 90));
+    level.bumps.push(
+      mark({
+        kind: "hump",
+        x: pos.x,
+        y: pos.y,
+        r: 110 + rand() * 160,
+        h: (biomeName === "rocky" ? 6 : 3) + rand() * 8,
+      })
+    );
+  }
+}
+
+/**
+ * ARMCO on the OUTSIDE of the tighter bends: runs of points with |curv| > 1/400 (+curv = a
+ * right-hander -> outside = the -normal side).
+ * @param {object} ctx the dress context
+ * @returns {void}
+ */
+function layArmco(ctx) {
+  const { level, halfWidth, road, firstIdx, endIdx, pointAt } = ctx;
   let run = null;
   for (let i = firstIdx; i <= (level._cfg.walls ? -1 : endIdx); i++) {
     const curv = i < endIdx ? road[i].curv : 0, active = Math.abs(curv) > 1 / 400;
@@ -1438,15 +1482,170 @@ function dress(level, firstIdx, endIdx, loose) {
       run = null;
     }
   }
-  const cfg = level._cfg;
-  // LOOSE ROADSIDE (user, 2026-10-05: "as it's open sided, be LITTERED with TYRES and CONES and
-  // have appropriate CHEVRON signs for the corners"): knockable cones.js objects into `loose` (the
-  // level's cones at a restart, else streamed in by main.js), open presets only. CHEVRONS on the
-  // outside of every bend tighter than R 650, one per 48 m, 4.5 m off the edge (behind the armco
-  // where there is one), arrows pointing the way it turns; LITTER on both verges (a lone tyre, a
-  // cone, now and then on the hard shoulder); a stray TYRE STACK pile now and then; and a CONE
-  // TAPER closing the hard shoulder every ~1.6 km.
-  if (!cfg.walls && loose) {
+}
+
+/**
+ * A chevron sign on the outside of a tight bend (one per 48 m, 4.5 m off the edge).
+ * @param {object} ctx the dress context
+ * @param {Function} addLoose adds a loose object tagged with its road distance
+ * @param {number} i road point index
+ * @param {number} dist road distance at i
+ * @returns {void}
+ */
+function layChevron(ctx, addLoose, i, dist) {
+  const { road, halfWidth, pointAt } = ctx;
+  const curv = road[i].curv;
+  if (Math.abs(curv) > 1 / 650 && i % 12 === 0) {
+    const dir = Math.sign(curv),
+      pos = pointAt(i, -dir * (halfWidth + 4.5));
+    addLoose({ kind: "chevron", x: pos.x, y: pos.y, rot: pos.rot + (dir * Math.PI) / 2 }, dist);
+  }
+}
+
+/**
+ * Lone litter on both verges (~0.8 per 10 m), now and then on the hard shoulder.
+ * @param {object} ctx the dress context
+ * @param {object} loot the loose helpers (looseRand, addLoose, chance)
+ * @param {number} i road point index
+ * @param {number} dist road distance at i
+ * @returns {void}
+ */
+function layVergeLitter(ctx, loot, i, dist) {
+  const { halfWidth, pointAt } = ctx, cfg = ctx.level._cfg;
+  const { looseRand, addLoose, chance } = loot;
+  // ~0.8 per 10 m of verge (screenshot: 0.18 per 20 m read as bare)
+  if (i % 4 === 0)
+    for (const side of [-1, 1])
+      if (looseRand() < chance(0.32)) {
+        const onShoulder = side < 0 && cfg.shoulder >= 2 && looseRand() < 0.15,
+          off = onShoulder
+            ? -halfWidth + 0.4 + looseRand() * (cfg.shoulder - 0.8)
+            : side * (halfWidth + 0.8 + looseRand() * 6);
+        // (2026-10-06, user: "I want to SEE some debris"): ~1 in 2 of the litter (and of the
+        // scatters) is ROADSIDE DEBRIS (cones.js DEBRIS kinds), the rest tyres + cones
+        const pos = pointAt(i, off),
+          roll = looseRand();
+        addLoose(
+          roll < 0.45
+            ? {
+                kind: DEBRIS_PICK[(looseRand() * DEBRIS_PICK.length) | 0],
+                x: pos.x,
+                y: pos.y,
+                rot: looseRand() * 6.28,
+                col: DEBRIS_COL[(looseRand() * DEBRIS_COL.length) | 0],
+              }
+            : roll < 0.7
+              ? { kind: "tyre", x: pos.x, y: pos.y, rot: looseRand() * 6.28 }
+              : { kind: "cone", x: pos.x, y: pos.y, rot: looseRand() * 6.28 },
+          dist
+        );
+      }
+}
+
+/**
+ * DEBRIS SCATTERS (2026-10-05 screenshots: lone 0.8 m tyres barely read at the treadmill
+ * zoom): ~1 per 130 m, 4-7 mixed tyres + cones spread over 8 m of one verge, a few spilling
+ * up to the edge line.
+ * @param {object} ctx the dress context
+ * @param {object} loot the loose helpers (looseRand, addLoose, chance)
+ * @param {number} i road point index
+ * @returns {void}
+ */
+function layDebrisScatter(ctx, loot, i) {
+  const { halfWidth, road, pointAt } = ctx;
+  const { looseRand, addLoose, chance } = loot;
+  if (i % 8 === 0 && looseRand() < chance(0.25)) {
+    const side = looseRand() < 0.5 ? -1 : 1,
+      count = 4 + ((looseRand() * 4) | 0);
+    for (let idx = 0; idx < count; idx++) {
+      const j = Math.min(road.length - 1, i + ((looseRand() * 3) | 0)),
+        pos = pointAt(j, side * (halfWidth + 0.6 + looseRand() * 7));
+      {
+        const roll2 = looseRand();
+        addLoose(
+          roll2 < 0.4
+            ? {
+                kind: DEBRIS_PICK[(looseRand() * DEBRIS_PICK.length) | 0],
+                x: pos.x,
+                y: pos.y,
+                rot: looseRand() * 6.28,
+                col: DEBRIS_COL[(looseRand() * DEBRIS_COL.length) | 0],
+              }
+            : roll2 < 0.75
+              ? { kind: "tyre", x: pos.x, y: pos.y, rot: looseRand() * 6.28 }
+              : { kind: "cone", x: pos.x, y: pos.y, rot: looseRand() * 6.28 },
+          road[j].s
+        );
+      }
+    }
+  }
+}
+
+/**
+ * A stray TYRE STACK pile now and then (every 50th point).
+ * @param {object} ctx the dress context
+ * @param {object} loot the loose helpers (looseRand, addLoose, chance)
+ * @param {number} i road point index
+ * @param {number} dist road distance at i
+ * @returns {void}
+ */
+function layTyreStacks(ctx, loot, i, dist) {
+  const { halfWidth, pointAt } = ctx;
+  const { looseRand, addLoose, chance } = loot;
+  if (i % 50 === 0 && looseRand() < chance(0.22)) {
+    const side = looseRand() < 0.5 ? -1 : 1,
+      base = pointAt(i, side * (halfWidth + 3 + looseRand() * 4));
+    const count = 3 + ((looseRand() * 4) | 0);
+    for (let idx = 0; idx < count; idx++)
+      addLoose(
+        {
+          kind: "tyrestack",
+          x: base.x + (looseRand() - 0.5) * 2.4,
+          y: base.y + (looseRand() - 0.5) * 2.4,
+        },
+        dist
+      );
+  }
+}
+
+/**
+ * A CONE TAPER closing the hard shoulder every ~1.6 km.
+ * @param {object} ctx the dress context
+ * @param {object} loot the loose helpers (addLoose, density)
+ * @param {number} i road point index
+ * @param {number} dist road distance at i
+ * @returns {void}
+ */
+function layConeTaper(ctx, loot, i, dist) {
+  const { halfWidth, road, pointAt } = ctx, cfg = ctx.level._cfg;
+  const { addLoose, density } = loot;
+  if (
+    density > 0 &&
+    cfg.shoulder >= 2 &&
+    Math.floor(dist / 1600) !== Math.floor((dist - STEP) / 1600) &&
+    dist > 600
+  )
+    for (let idx = 0; idx < 8; idx++) {
+      const j = Math.min(road.length - 1, i + idx * 2),
+        pos = pointAt(j, -halfWidth + 0.4 + (cfg.shoulder - 0.6) * (idx / 7));
+      addLoose({ kind: "cone", x: pos.x, y: pos.y, rot: 0 }, road[j].s);
+    }
+}
+
+/**
+ * LOOSE ROADSIDE (user, 2026-10-05: "as it's open sided, be LITTERED with TYRES and CONES and
+ * have appropriate CHEVRON signs for the corners"): knockable cones.js objects into `loose` (the
+ * level's cones at a restart, else streamed in by main.js), open presets only. CHEVRONS on the
+ * outside of every bend tighter than R 650, one per 48 m, 4.5 m off the edge (behind the armco
+ * where there is one), arrows pointing the way it turns; LITTER on both verges (a lone tyre, a
+ * cone, now and then on the hard shoulder); a stray TYRE STACK pile now and then; and a CONE
+ * TAPER closing the hard shoulder every ~1.6 km.
+ * @param {object} ctx the dress context
+ * @returns {void}
+ */
+function layLooseRoadside(ctx) {
+  const { level, state, road, firstIdx, endIdx, loose } = ctx;
+  if (!level._cfg.walls && loose) {
     const looseRand = state.lrnd,
       addLoose = (obj, dist) => {
         obj._s = dist;
@@ -1457,124 +1656,99 @@ function dress(level, firstIdx, endIdx, loose) {
     // / density"; default 1 = as tested and seen): lv.litter x every litter chance (setup's LITTER
     // slider, 0 = none .. 3 = a scrapyard); chevrons are signs, not litter
     const density = level.litter ?? 1, chance = (prob) => Math.min(0.95, prob * density);
+    const loot = { looseRand, addLoose, chance, density };
     for (let i = firstIdx; i < endIdx; i++) {
-      const dist = road[i].s, curv = road[i].curv;
-      if (Math.abs(curv) > 1 / 650 && i % 12 === 0) {
-        const dir = Math.sign(curv),
-          pos = pointAt(i, -dir * (halfWidth + 4.5));
-        addLoose({ kind: "chevron", x: pos.x, y: pos.y, rot: pos.rot + (dir * Math.PI) / 2 }, dist);
-      }
-      // ~0.8 per 10 m of verge (screenshot: 0.18 per 20 m read as bare)
-      if (i % 4 === 0)
-        for (const side of [-1, 1])
-          if (looseRand() < chance(0.32)) {
-            const onShoulder = side < 0 && cfg.shoulder >= 2 && looseRand() < 0.15,
-              off = onShoulder
-                ? -halfWidth + 0.4 + looseRand() * (cfg.shoulder - 0.8)
-                : side * (halfWidth + 0.8 + looseRand() * 6);
-            // (2026-10-06, user: "I want to SEE some debris"): ~1 in 2 of the litter (and of the
-            // scatters) is ROADSIDE DEBRIS (cones.js DEBRIS kinds), the rest tyres + cones
-            const pos = pointAt(i, off),
-              roll = looseRand();
-            addLoose(
-              roll < 0.45
-                ? {
-                    kind: DEBRIS_PICK[(looseRand() * DEBRIS_PICK.length) | 0],
-                    x: pos.x,
-                    y: pos.y,
-                    rot: looseRand() * 6.28,
-                    col: DEBRIS_COL[(looseRand() * DEBRIS_COL.length) | 0],
-                  }
-                : roll < 0.7
-                  ? { kind: "tyre", x: pos.x, y: pos.y, rot: looseRand() * 6.28 }
-                  : { kind: "cone", x: pos.x, y: pos.y, rot: looseRand() * 6.28 },
-              dist
-            );
-          }
-      // DEBRIS SCATTERS (2026-10-05 screenshots: lone 0.8 m tyres barely read at the treadmill
-      // zoom): ~1 per 130 m, 4-7 mixed tyres + cones spread over 8 m of one verge, a few spilling
-      // up to the edge line
-      if (i % 8 === 0 && looseRand() < chance(0.25)) {
-        const side = looseRand() < 0.5 ? -1 : 1,
-          count = 4 + ((looseRand() * 4) | 0);
-        for (let idx = 0; idx < count; idx++) {
-          const j = Math.min(road.length - 1, i + ((looseRand() * 3) | 0)),
-            pos = pointAt(j, side * (halfWidth + 0.6 + looseRand() * 7));
-          {
-            const roll2 = looseRand();
-            addLoose(
-              roll2 < 0.4
-                ? {
-                    kind: DEBRIS_PICK[(looseRand() * DEBRIS_PICK.length) | 0],
-                    x: pos.x,
-                    y: pos.y,
-                    rot: looseRand() * 6.28,
-                    col: DEBRIS_COL[(looseRand() * DEBRIS_COL.length) | 0],
-                  }
-                : roll2 < 0.75
-                  ? { kind: "tyre", x: pos.x, y: pos.y, rot: looseRand() * 6.28 }
-                  : { kind: "cone", x: pos.x, y: pos.y, rot: looseRand() * 6.28 },
-              road[j].s
-            );
-          }
-        }
-      }
-      if (i % 50 === 0 && looseRand() < chance(0.22)) {
-        const side = looseRand() < 0.5 ? -1 : 1,
-          base = pointAt(i, side * (halfWidth + 3 + looseRand() * 4));
-        const count = 3 + ((looseRand() * 4) | 0);
-        for (let idx = 0; idx < count; idx++)
-          addLoose(
-            {
-              kind: "tyrestack",
-              x: base.x + (looseRand() - 0.5) * 2.4,
-              y: base.y + (looseRand() - 0.5) * 2.4,
-            },
-            dist
-          );
-      }
-      if (
-        density > 0 &&
-        cfg.shoulder >= 2 &&
-        Math.floor(dist / 1600) !== Math.floor((dist - STEP) / 1600) &&
-        dist > 600
-      )
-        for (let idx = 0; idx < 8; idx++) {
-          const j = Math.min(road.length - 1, i + idx * 2),
-            pos = pointAt(j, -halfWidth + 0.4 + (cfg.shoulder - 0.6) * (idx / 7));
-          addLoose({ kind: "cone", x: pos.x, y: pos.y, rot: 0 }, road[j].s);
-        }
+      const dist = road[i].s;
+      layChevron(ctx, addLoose, i, dist);
+      layVergeLitter(ctx, loot, i, dist);
+      layDebrisScatter(ctx, loot, i);
+      layTyreStacks(ctx, loot, i, dist);
+      layConeTaper(ctx, loot, i, dist);
     }
   }
-  // WALLS (cfg.walls): both sides, in ~120 m pieces (each dropped behind with the rest),
-  // overlapping by one point so there is no gap ... with a GAP in the left wall where a slip leaves
-  // or the side road runs (P[j].gapL)
+}
+
+/**
+ * WALLS (cfg.walls): both sides, in ~120 m pieces (each dropped behind with the rest),
+ * overlapping by one point so there is no gap ... with a GAP in the left wall where a slip leaves
+ * or the side road runs (P[j].gapL).
+ * @param {object} ctx the dress context
+ * @returns {void}
+ */
+function layWalls(ctx) {
+  const { level, halfWidth, road, firstIdx, endIdx, pointAt } = ctx, cfg = level._cfg;
   if (cfg.walls)
     for (let startIdx = Math.max(0, firstIdx - 1); startIdx < endIdx; startIdx += 30)
       for (const side of [-1, 1]) {
-    let pts = [];
-    const flush = () => {
-      if (pts.length > 1) level.barriers.push({ kind: cfg.walls, pts, _s: road[startIdx].s });
-      pts = [];
-    };
-    // (beside the SECRET SIDE ROAD the left wall swings out with it, to its far edge - it starts
-    // and ends at the normal line)
-    for (let j = startIdx; j <= Math.min(road.length - 1, startIdx + 30); j++) {
-      const sideOffset = side < 0 && road[j].sideOff;
-      if (!sideOffset && side < 0 && road[j].gapL) {
+        let pts = [];
+        const flush = () => {
+          if (pts.length > 1) level.barriers.push({ kind: cfg.walls, pts, _s: road[startIdx].s });
+          pts = [];
+        };
+        // (beside the SECRET SIDE ROAD the left wall swings out with it, to its far edge - it
+        // starts and ends at the normal line)
+        for (let j = startIdx; j <= Math.min(road.length - 1, startIdx + 30); j++) {
+          const sideOffset = side < 0 && road[j].sideOff;
+          if (!sideOffset && side < 0 && road[j].gapL) {
+            flush();
+            continue;
+          }
+          const pos = pointAt(
+            j,
+            sideOffset
+              ? -Math.max(halfWidth + cfg.wallGap, sideOffset + SLIP_W / 2 + cfg.wallGap)
+              : side * (halfWidth + cfg.wallGap)
+          );
+          pts.push([pos.x, pos.y]);
+        }
         flush();
-        continue;
       }
-      const pos = pointAt(
-        j,
-        sideOffset
-          ? -Math.max(halfWidth + cfg.wallGap, sideOffset + SLIP_W / 2 + cfg.wallGap)
-          : side * (halfWidth + cfg.wallGap)
-      );
-      pts.push([pos.x, pos.y]);
-    }
-    flush();
+}
+
+/**
+ * Scenery for road points [firstIdx, endIdx): placed in WORLD coordinates (stays put when the
+ * window moves); loose objects go into `loose`.
+ * @param {object} level the highway level
+ * @param {number} firstIdx first road point to dress
+ * @param {number} endIdx end (exclusive) road point
+ * @param {object[]|null} loose where loose objects go
+ * @returns {void}
+ */
+function dress(level, firstIdx, endIdx, loose) {
+  const ctx = makeDressContext(level, firstIdx, endIdx, loose);
+  const { state, road, pointAt, clear } = ctx;
+  // a long road can come back across what was laid beside an EARLIER stretch: every new point cuts
+  // the approaches / rivers / slips
+  for (let j = firstIdx; j < endIdx; j += 2)
+    for (const cut of state.cuts)
+      if (!cutSkips(cut, road[j].s)) cutBy(level, cut, road[j].x, road[j].y);
+  for (let i = firstIdx; i < endIdx; i++) {
+    const dist = road[i].s,
+      biomeName = biomeAtDist(dist),
+      mark = (obj) => {
+        obj._s = dist;
+        return obj;
+      };
+    // the side road's offset here first, so the trees below keep off it
+    sideStep(level, i, pointAt);
+    if (!NOF) fields(level, i, pointAt, clear, biomeName, loose);
+    layRoadsideTrees(ctx, i, dist, biomeName, mark);
+    layFarmBlock(ctx, i, biomeName, mark);
+    // SLIP ROADS + BRIDGES (user, 2026-10-05: "off-slip every 2-4 km (tapering lane, sign, ends in
+    // fields; drivable)"; "bridges over a road, a river and a railway + a footbridge"; "rare cheeky
+    // extras"): planned on the road's own distance, placed only on near-straight road (|curv| <
+    // 1/900 over the stretch), never on top of each other. extras(lv, i, s) below. (every preset
+    // since 2026-10-06, user: "all the types of highway should have bridges and slip roads you can
+    // take")
+    if (!NOX) extras(level, i, dist, pointAt, mark);
+    layGantryAndSign(ctx, i, dist, mark);
+    layHump(ctx, i, biomeName, mark);
   }
+  sideFlush(level, false);
+  if (state.coversDirty) syncCovers(level);
+  layArmco(ctx);
+  layLooseRoadside(ctx);
+  layWalls(ctx);
 }
 function rebuild(level) {
   const state = stateOf(level), road = state.pts;
