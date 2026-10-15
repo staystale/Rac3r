@@ -1178,86 +1178,137 @@ const renderer = createRenderer(canvas, settings);
 const audio = createAudio();
 game.audio = audio;
 setTuneAudio(audio);
+/**
+ * Steps the master volume round: 100% -> 50% -> 20% -> muted -> 100%.
+ */
+function cycleVolume() {
+  if (audio.muted) {
+    audio.toggleMute();
+    audio.setVolume(1.0);
+  } else if (audio.volume > 0.65) {
+    audio.setVolume(0.50);
+  } else if (audio.volume > 0.30) {
+    audio.setVolume(0.20);
+  } else {
+    audio.toggleMute();
+  }
+}
+
+/**
+ * Toggles the player's indicator on one side (-1 left, 1 right), or switches it off.
+ * @param {number} side the side to indicate
+ */
+function toggleIndicator(side) {
+  game.car.indicator = game.car.indicator === side ? 0 : side;
+  game.car.indT = 0;
+  game.car.indTurned = false;
+}
+
+/**
+ * Applies the toggles of a HUD action (aids, lights, indicator).
+ * @param {object} action the HUD action
+ */
+function hudToggles(action) {
+  if (action.toggleAbs) game.car.absOn = !game.car.absOn;
+  if (action.toggleTcs) game.car.tcsOn = !game.car.tcsOn;
+  if (action.toggleLights) game.car.lightsOn = !game.car.lightsOn;
+  if (action.indicate) toggleIndicator(action.indicate);
+}
+
+/**
+ * Applies a HUD action to the game.
+ * @param {object} action the action from hud.hit
+ */
+function applyHudAction(action) {
+  if (action.car) selectCar(action.car);
+  if (action.restart) doRestart();
+  if (action.reset) doReset();
+  if (action.clear) game.marks.clear();
+  if (action.help) {
+    hud.close();
+    if (MENU) openPause(); else guide.open();
+  }
+  if (action.volumeCycle) cycleVolume();
+  if (action.tune) nudge(game.car, action.tune, action.dir);
+  if (action.tuneReset) resetAll(game.car);
+  if (action.level) selectLevel(action.level);
+  hudToggles(action);
+}
+
+/**
+ * Handles a touch / click on the HUD (asked before the stick or the pedals claim the pointer).
+ * @param {number} tapX the x of the tap
+ * @param {number} tapY the y of the tap
+ * @returns {boolean} true if the HUD consumed the touch
+ */
+function hudDown(tapX, tapY) {
+  if (!started || mode === 'menu') return false;
+  // the guide, while open, owns every tap — before the HUD, the stick or the pedals
+  if (guide.hit({ x: tapX, y: tapY })) return true;
+  const action = hud.hit({ x: tapX, y: tapY }, renderer.W, renderer.H, game.car);
+  if (!action) return false;
+  applyHudAction(action);
+  return true;
+}
+
+/**
+ * Keys that toggle a car aid, light or indicator; one key at most is handled.
+ * @param {string} key the key
+ */
+function carToggleKey(key) {
+  // driver aids, on cars that have them (user, 2026-10-03)
+  if (key === 't' && game.car.spec.aids
+    && game.car.spec.aids.tcs) game.car.tcsOn = !game.car.tcsOn;
+  // headliGhts
+  if (key === 'g') game.car.lightsOn = !game.car.lightsOn;
+  if (key === 'q' || key === 'e') toggleIndicator(key === 'q' ? -1 : 1);
+  if (key === 'b' && game.car.spec.aids
+    && game.car.spec.aids.abs) game.car.absOn = !game.car.absOn;
+}
+
+/**
+ * Handles a key press that reaches the game (not the guide's, not the pause's).
+ * @param {string} key the key
+ */
+function gameKey(key) {
+  if (key === 'r') doReset();
+  if (key === 'R' || key === 'Backspace') doRestart();
+  if (key === 'c') game.marks.clear();
+  if (key === 'l') cycleLevel();
+  if (key === 'm') audio.toggleMute();
+  carToggleKey(key);
+  const index = '12345'.indexOf(key);
+  if (index >= 0) selectCar(CAR_IDS[index]);
+  if (key === '[') cycleCar(-1);
+  if (key === ']') cycleCar(1);
+}
+
+/**
+ * Handles a key press: the guide, help, pause, then the game keys.
+ * @param {string} key the key
+ */
+function onKey(key) {
+  if (guide.active) {
+    guide.key(key);
+    return;
+  }
+  if (key === 'h' && started) {
+    hud.close();
+    guide.open();
+    return;
+  }
+  if (MENU && mode === 'session' && (key === 'p' || key === 'escape') && !paused) {
+    openPause();
+    return;
+  }
+  gameKey(key);
+}
 const input = createInput(canvas, {
   mode: settings.inputMode,
   // Asked BEFORE the steering stick or the pedals get a chance to claim the pointer, so a control
   // always wins over the world it is drawn on top of. Returns true if the HUD consumed the touch.
-  hudDown: (tapX, tapY) => {
-    if (!started || mode === 'menu') return false;
-    // the guide, while open, owns every tap — before the HUD, the stick or the pedals
-    if (guide.hit({ x: tapX, y: tapY })) return true;
-    const action = hud.hit({ x: tapX, y: tapY }, renderer.W, renderer.H, game.car);
-    if (!action) return false;
-    if (action.car) selectCar(action.car);
-    if (action.restart) doRestart();
-    if (action.reset) doReset();
-    if (action.clear) game.marks.clear();
-    if (action.help) {
-      hud.close();
-      if (MENU) openPause(); else guide.open();
-    }
-    if (action.volumeCycle) {
-      if (audio.muted) {
-        audio.toggleMute();
-        audio.setVolume(1.0);
-      } else if (audio.volume > 0.65) {
-        audio.setVolume(0.50);
-      } else if (audio.volume > 0.30) {
-        audio.setVolume(0.20);
-      } else {
-        audio.toggleMute();
-      }
-    }
-    if (action.tune) nudge(game.car, action.tune, action.dir);
-    if (action.tuneReset) resetAll(game.car);
-    if (action.level) selectLevel(action.level);
-    if (action.toggleAbs) game.car.absOn = !game.car.absOn;
-    if (action.toggleTcs) game.car.tcsOn = !game.car.tcsOn;
-    if (action.toggleLights) game.car.lightsOn = !game.car.lightsOn;
-    if (action.indicate) {
-      game.car.indicator = game.car.indicator === action.indicate ? 0 : action.indicate;
-      game.car.indT = 0;
-      game.car.indTurned = false;
-    }
-    return true;
-  },
-  onKey: (key) => {
-    if (guide.active) {
-      guide.key(key);
-      return;
-    }
-    if (key === 'h' && started) {
-      hud.close();
-      guide.open();
-      return;
-    }
-    if (MENU && mode === 'session' && (key === 'p' || key === 'escape') && !paused) {
-      openPause();
-      return;
-    }
-    if (key === 'r') doReset();
-    if (key === 'R' || key === 'Backspace') doRestart();
-    if (key === 'c') game.marks.clear();
-    if (key === 'l') cycleLevel();
-    if (key === 'm') audio.toggleMute();
-    // driver aids, on cars that have them (user, 2026-10-03)
-    if (key === 't' && game.car.spec.aids
-      && game.car.spec.aids.tcs) game.car.tcsOn = !game.car.tcsOn;
-    // headliGhts
-    if (key === 'g') game.car.lightsOn = !game.car.lightsOn;
-    if (key === 'q' || key === 'e') {
-      const side = key === 'q' ? -1 : 1;
-      game.car.indicator = game.car.indicator === side ? 0 : side;
-      game.car.indT = 0;
-      game.car.indTurned = false;
-    }
-    if (key === 'b' && game.car.spec.aids
-      && game.car.spec.aids.abs) game.car.absOn = !game.car.absOn;
-    const index = '12345'.indexOf(key);
-    if (index >= 0) selectCar(CAR_IDS[index]);
-    if (key === '[') cycleCar(-1);
-    if (key === ']') cycleCar(1);
-  },
+  hudDown,
+  onKey,
 });
 game.input = input;
 
