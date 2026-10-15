@@ -12,7 +12,7 @@ import { shared, game } from './state.js';
 
 export const resetCar = reset;
 // START LIGHTS (requirement: all races started by lights that clearly go red to green, maybe a
-// countdown); "circuits with ROLLING starts: the game controls ALL cars, AI and player, until the
+// countdown; "circuits with ROLLING starts: the game controls ALL cars, AI and player, until the
 // start, then releases them"). Any race (VS AI or the RX race): three reds light one per second
 // with 3-2-1, then GREEN + GO!. Every car is held until GREEN - START_EARLY ("free to go at green
 // or a split second before", the same for player and AI). Rolling start (LEVEL.rollingStart, the
@@ -50,7 +50,7 @@ export function atPace(out, car) {
 }
 export function stepStart(dt) {
   // the clock keeps running after green so the HUD can take the lights away 1.2 s later
-  // (requirement: race start lights don't vanish) — it stopped at green)
+  // (requirement: race start lights don't vanish — it stopped at green)
   const startState = game.start;
   if (!startState.on) return;
   startState.t += dt;

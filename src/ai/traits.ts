@@ -48,7 +48,7 @@ export function aiTraits(diffIndex: number, i: number, fieldSize: number, seed =
   return {
     diff: difficulty.id, persona: persona.id, skill,
     // PRECISION (requirement: a little bit messy is good, but tighter, faster driving at harder
-    // difficulty, like real life); "crashing should reduce with higher difficulty"):
+    // difficulty, like real life; "crashing should reduce with higher difficulty"):
     // 0 Mobile .. 1 Real, nudged by skill. Tighter gaps, and the car ahead's braking for the
     // corner is ANTICIPATED (below) instead of reacted to.
     prec: Math.max(0, Math.min(1, (diffIndex | 0) / 4 + (skill - 0.5) * 0.2)),

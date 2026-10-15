@@ -192,9 +192,9 @@ export const SH_JOKER_RULE = (() => {
     arrows: [jokerArrow(SH_SUBTRACK, joker), jokerApproach(SH_SUBTRACK, joker)].filter(Boolean) };
 })();
 
-// SLIDDEN HILL SCENERY (requirement: same treatment) + the hill). Distances on this trace (lap 1136
-// m): joker branch 69 / rejoin 249, PADDOCK HILL 166, CHESSONS DRIFT 202-361 (dirt), DEVIL'S ELBOW
-// 511
+// SLIDDEN HILL SCENERY (requirement: the same treatment, plus the hill). Distances on this trace
+// (lap 1136 m): joker branch 69 / rejoin 249, PADDOCK HILL 166, CHESSONS DRIFT 202-361 (dirt),
+// DEVIL'S ELBOW 511
 // (a LEFT hairpin: its outside is +), NORTH BEND 742, HAIRY HILL 856, the gravel run 978-1101. + =
 // inside except at the Elbow (measured against the centroid).
 const SH_ST = SH_START.pts, SH_SDIR = (() => {

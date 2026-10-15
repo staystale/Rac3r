@@ -130,7 +130,7 @@ function tripGround(car, vLat, stability, rnd) {
   const cell = Math.floor(car.x / CELL_M) * 73856093 ^ Math.floor(car.y / CELL_M) * 19349663;
   if (cell === car._tripCell) return false;
   car._tripCell = cell;
-  // (requirement: still exist under 60 mph, diminishing to ZERO at ~39 mph); was (v / 60 mph)^4,
+  // (requirement: still exist under 60 mph, diminishing to ZERO at ~39 mph; was (v / 60 mph)^4,
   // never quite zero)
   const ang = (side - ANG_MIN) / (1 - ANG_MIN),
     spd = speed < MPH39 ? 0

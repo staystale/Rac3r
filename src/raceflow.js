@@ -23,7 +23,7 @@
 // player finishing ends the grace at once; a player who finished in the top 3 waits at most
 // WAIT_TOP3 s for the rest of the top 3.
 export const GRACE = 5, WAIT_TOP3 = 15, JOKER_LEFT = 0.6, DNF_X = 2, STAGE_WAIT = 10;
-// RALLY STAGE mode (stage = { finish }: (requirement: like real life — a time trial with staggered
+// RALLY STAGE mode (stage = { finish }) (requirement: like real life — a time trial with staggered
 // starts, each timed from their own start, so you can catch the car ahead or be caught): a car's
 // time runs from crossing the start line (progress 0) to the finish distance. The event
 // ends when YOU are through the finish and the rest are too, or STAGE_WAIT s later; a car still on

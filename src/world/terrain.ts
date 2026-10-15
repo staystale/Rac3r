@@ -247,7 +247,7 @@ export function bankHeightAt(x: number, y: number, qIn?: SubtrackHit | null): nu
   else height = 0;
   return height * (weight * weight * (3 - 2 * weight));
 }
-// TRACK CAMBER (requirement: can the Test Track get cambering across the race surface); and
+// TRACK CAMBER (requirement: can the Test Track get cambering across the race surface; and
 // earlier: camber "positive, negative, whether it's useful to drive on, which can also match real
 // tracks"). LEVEL.camber = { maxDeg, refR, crown, edge, sections: [{ from, to, deg }] } (from / to
 // in metres of track distance; deg signed: + helps you round the corner, - falls away =

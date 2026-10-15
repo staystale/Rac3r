@@ -326,7 +326,7 @@ export function makeCar(carId: string, mods = defaultMods()) {
 export function reset(car: Car, x = 0, y = 0, heading = -Math.PI / 2) {
   car._p = null;          // no render interpolation across a teleport (main.js)
   // ... and no WEAR across it. MEASURED BUG (requirement: dirt in the road on highway levels is
-  // still a bug); tools/_dirtroad.mjs): lab.js stepWear sweeps each tyre from car.prevWheels to
+  // still a bug; tools/_dirtroad.mjs): lab.js stepWear sweeps each tyre from car.prevWheels to
   // where it is now, so after a teleport (an AI / traffic respawn, the highway put-back) it wore a
   // straight line from the old spot to the new one - across the verge AND the carriageway.
   car.prevWheels = null;

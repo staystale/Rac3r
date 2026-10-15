@@ -7,8 +7,8 @@ import { trackKit } from "./kit.ts";
 import type { Point, Cover, Lane, Cone, Prop, Paint, Barrier } from "../types.ts";
 // =============================================================================================
 // KILLDER — parody of the Kielder Forest rally stages (Northumberland). Built. DECIDED
-// (user): "FAST + FLOWING"; "be LIBERAL with hay bales, tyres, cones, flags and other event
-// decorations"; a staggered-start stage like Sweaty Lamb (main.js / raceflow stage). Real Kielder:
+// (requirement: FAST + FLOWING; LIBERAL with hay bales, tyres, cones, flags and other event
+// decorations); a staggered-start stage like Sweaty Lamb (main.js / raceflow stage). Real Kielder:
 // fast gravel forest roads through dense conifer plantations, long straights into tight JUNCTION
 // hairpins, big crests and jumps, log piles at the junctions, the reservoir (Kielder Water). ~2 km
 // of stage (1966 m traced), in order: the FOREST STRAIGHT out of the start, flowing right-left

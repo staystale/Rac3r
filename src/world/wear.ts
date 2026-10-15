@@ -106,7 +106,7 @@ export function clearWear(): void {
 
 // PRUNE THE WEAR on a streamed level (highway.js stepHighway, after each rebuild). MEASURED BUG
 // (requirement: occasionally leaves patches of dirt on highway levels... after longer drives / with
-// ai on); tools/_wearleak.mjs): wear cells live at WORLD positions and were never dropped - so when
+// ai on; tools/_wearleak.mjs): wear cells live at WORLD positions and were never dropped - so when
 // the endless road was rebuilt and new ground (a field, a bridge approach, the road
 // swinging back) came down over a worn cell, that cell still drove AND drew as the old dirt / mud.
 // Spun AI chew the verge, so it showed most with AI. The map also grew for the whole drive, and
@@ -500,7 +500,7 @@ export function stepWear(car: CarBody, dt: number): void {
       const cell = getCell(Math.floor(currWheel.x / WEAR_CELL),
         Math.floor(currWheel.y / WEAR_CELL));
       // hot rubber melts ice faster: x1 at 60 C, x2 at 90 C, x3 at 120 C
-      // x1 at 60 C rising to x1.67 at 120 C (was x3: user, "hot tyres melt ice too easily")
+      // x1 at 60 C rising to x1.67 at 120 C (was x3: hot tyres melted ice too easily)
       const heatScrub = car.tyreT ? 1 + Math.min(1, Math.max(0,
         (car.tyreT[TYRE_OF_WHEEL[i]] - 60) / 90)) : 1;
       if (cell) scrubCell(cell, slip * dt * heatScrub);

@@ -142,7 +142,7 @@ export const LAB_BUMPS = prepBumps([
   ...[0, 1, 2, 3].map((i) => ({ kind: 'hump', x: 60, y: -60 - i * 14, r: 6.5, h: 0.30 })),
   { kind: 'kerb', x: 185, y: -40, rot: 0, len: 44, wid: 3.4, h: 0.11 },
   // ---- SUSPENSION TEST ZONE (requirement: add some bumps and dips to the lab level and mark it
-  // out as a suspension test zone); chose whoops + dips/compressions + washboard + banked bowl).
+  // out as a suspension test zone; chose whoops + dips/compressions + washboard + banked bowl).
   // The bare lab floor, south-west, x -245..0, y 162..214 — scanned clear of cones, panels, the
   // drag strip (y 240) and the benches. Drive WEST -> EAST. Lane 1 (y 172): WHOOPS, six round humps
   // rising 0.15 -> 0.40 m, 9 m apart.

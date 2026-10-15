@@ -212,7 +212,7 @@ export function buildBlend(level: Level, rng: Rng): Patch[] {
 }
 // Per-level preparation: re-roll random layouts, build (or reuse) the blend, index every patch in
 // the grid. SURFACE INCLUSIONS (requirement: can surfaces have a chance to contain other like
-// surfaces % wise... keep it proportional and realistic); table APPROVED as proposed). Share of
+// surfaces % wise... keep it proportional and realistic; table APPROVED as proposed). Share of
 // each surface's AREA covered by small patches of a related surface; '@x' is a COVER (puddle / snow
 // / ice) rather than a ground patch. Seeded per level (the Grass Track re-rolls with its layout).
 // Boxed test panels stay pure (the tyre / wear tools and the player's tests depend on them).

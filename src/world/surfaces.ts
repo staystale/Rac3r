@@ -21,8 +21,8 @@ const COL_GRASS_SCUFF  = '92,112,66';     // rgb of torn turf
 //           why the identical input spins you on tarmac. See vehicle.js tyreLateral.
 //   plough  m/s^2 of bulldozing drag. Nothing to do with friction: the wheel displaces material.
 //           Zero on anything hard. This is what actually stops a car in a gravel trap.
-//           MEASURED AGAINST REALITY, (user: "mud and sand seem too hard to drive in"
-//           and "should look and be accurate to real life"). These had been tuned by feel, and feel
+//           MEASURED AGAINST REALITY (requirement: mud and sand seemed too hard to drive in,
+//           and should look and be accurate to real life). These had been tuned by feel, and feel
 //           was wrong: mud was 5.2 where published rolling-resistance coefficients for deep mud
 //           (Crr 0.10-0.25) give 1.0-2.5 m/s^2, i.e. I had it at 2.1x the realistic MAXIMUM. Sand
 //           was 1.5x and gravel 2.3x. Every figure below is now Crr * g from vehicle-engineering
@@ -140,7 +140,7 @@ export const SURFACES: Record<SurfaceId, Surface> = {
     plough: 0, rough: 0.014, mark: MARK_GRASS, spray: SPRAY_GRASS },
   // LONG GRASS — un-mown pasture. Taller, deeper, more drag and height variation.
   // plough 0.10 -> 0.35 (requirement: long grass to grab slightly... until it's driven over enough
-  // to become short grass) — 2 passes, BASE_WEAR). MEASURED vs short grass, hatch-fwd / muscle:
+  // to become short grass — 2 passes, BASE_WEAR). MEASURED vs short grass, hatch-fwd / muscle:
   // 0-50 km/h 7.56 -> 8.58 s / 7.70 -> 8.88 s; coasting 50 -> 4 km/h 502 -> 205 m / 469 ->
   // 198 m. (0.10 was 368 m — barely felt; 0.5 / 0.7 tried: 162 / 127 m, 9.2 / 10.2 s — more than
   // "slightly".)

@@ -2,7 +2,7 @@
 // highway level with procedural turns and terrain". v2 THE TREADMILL (requirement: act like a
 // treadmill... always line up nicely to the previous section... spawn ahead and vanish behind,
 // always off screen... the pace is the player's car so it can never drive off the screen... going
-// backwards should reset you... top to bottom on mobile / PC); camera stays FIXED and upright,
+// backwards should reset you... top to bottom on mobile / PC; camera stays FIXED and upright,
 // "more extreme on the angle but it should vary obviously"). v1 (wandered in any compass direction,
 // curvature stepped 0 -> 1/R) is in _archive/pre-treadmill/.
 //
@@ -206,7 +206,7 @@ export function stepHighway(level, car) {
   return moved;
 }
 // SPEED CAMERAS (requirement: cameras on the gantries: flash + 'CAUGHT 187 km/h' in the HUD top
-// right, stored for missions / achievements later); HANDOVER: "flash ONLY over 70 mph; YOU GOT
+// right, stored for missions / achievements later; HANDOVER: "flash ONLY over 70 mph; YOU GOT
 // CAUGHT + your speed + a fine (-$) scaling with how far over; store fastest catch + count"). Every
 // gantry is a camera. speedCamera(lv, car) after stepHighway: the first step the car's road
 // distance passes a gantry -> null (under the limit) or { kmh, mph, fine }. A fine: $100 + $10 per

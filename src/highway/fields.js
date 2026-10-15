@@ -9,7 +9,7 @@ import { keepOut } from "./cuts.js";
 // so what you see is what you drive on): WHEAT and RAPESEED (drive as long grass, drawn as crops:
 // zone.art), MEADOW (long grass), PASTURE (grass, sheep / cows), PLOUGHED (dirt, furrows), now and
 // then a FARMYARD (gravel, barns, bales). Each is ringed by a LONG GRASS border (HEDGE_W m, a zone
-// you drive through (requirement: hedges around fields... should be long grass); the first cut was
+// you drive through (requirement: hedges around fields... should be long grass; the first cut was
 // a solid 'hedge' barrier, which beached spun racers: pacesuite 2/9 -> 3/9 BAD), a tree or
 // two in it. Now and then a VILLAGE: a lane following the road ~40 m out, houses both sides, a
 // church. Each field / village is a keep rect in st.keep with a `field` id: anything placed LATER
@@ -25,7 +25,7 @@ const FIELD_T = [
   ["yard", 0.08],
 ];
 // [physics surface, look]. Looks REUSE the grass / long grass / mud textures, recoloured
-// (requirement: jsut reuse mud and grass or long grass textures for field, and maybe colour them);
+// (requirement: jsut reuse mud and grass or long grass textures for field, and maybe colour them;
 // render.ts
 // SURFACE_ART wheat / rapeseed / pastureG / plough). Ploughed = MUD: look = grip.
 const FIELD_SURF = {

@@ -18,7 +18,7 @@ import { clearFields } from "./fields.js";
 // footbridge, a small BOAT stuck under a river bridge, a SMILEY SOLAR FARM. v2 (requirement:
 // bridges / slip roads should extend off the screen... slip roads should lead off screen not just
 // stop, although some can... and some can follow along side the main motorway and has a chance to
-// rejoin, as a secret chance path); "all the types of highway should have bridges and slip roads
+// rejoin, as a secret chance path; "all the types of highway should have bridges and slip roads
 // you can take"; "make the cars n stuff move across if you can"):
 // - every off-slip looks the same from the motorway (signs, exit board). 1 in 4 stops at a gate
 // after SLIP_LEN; 1 in 2 runs LONG (SLIP_LONG m, curving away) to a gate off screen; 1 in 4 is the

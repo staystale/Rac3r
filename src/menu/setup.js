@@ -82,8 +82,8 @@ function addRoadTypeRow(menu, panel, level, state) {
 
 /**
  * Adds the TRAFFIC + LITTER sliders of an endless level (requirement: a slider in test mode for
- * density) / "a slider for frequency / density" of the roadside objects); remembered. TRAFFIC
- * 0-150 % (100 % = 6 cars a lane), LITTER 0-3 x.
+ * traffic density, and one for the frequency / density of the roadside objects); remembered.
+ * TRAFFIC 0-150 % (100 % = 6 cars a lane), LITTER 0-3 x.
  * @param {object} menu the menu context
  * @param {HTMLElement} panel the setup pane
  * @param {object} level the chosen level

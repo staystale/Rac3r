@@ -154,7 +154,7 @@ function drawRiverBoat(
 // BRIDGES (highway.js extras): carries 'road' / 'rail' / 'foot' = a deck OVER the motorway (kind
 // 'bridge', drawn after the cars); kind 'river' = the motorway over water. Local frame: +x along
 // the deck (across the motorway). Squares only. v2 (requirement: bridges have no connecting roads
-// so it looks silly); "make the cars n stuff move across if you can... only if cheap enough"): the
+// so it looks silly; "make the cars n stuff move across if you can... only if cheap enough"): the
 // APPROACHES (highway.js approaches: lane ribbons in the ground tiles) run
 // pr.appL[0 | 1] m out from each end; their markings / rails are drawn here, and so is what MOVES
 // across: cars both ways, walkers, a train every pr.trainEvery s. Pure drawing on the wall clock

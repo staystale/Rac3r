@@ -187,7 +187,7 @@ export function layLooseRoadside(ctx) {
         return obj;
       };
     // LITTER DENSITY (requirement: they should be RANDOM and also have a SLIDER for frequency /
-    // density); default 1 = as tested and seen): lv.litter x every litter chance (setup's LITTER
+    // density; default 1 = as tested and seen): lv.litter x every litter chance (setup's LITTER
     // slider, 0 = none.. 3 = a scrapyard); chevrons are signs, not litter
     const density = level.litter ?? 1, chance = (prob) => Math.min(0.95, prob * density);
     const loot = { looseRand, addLoose, chance, density };

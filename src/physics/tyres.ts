@@ -232,7 +232,7 @@ export function axleForce(
   // the track car at gear shifts (223). Both reverted. See ENGINE.md.
   const overLong = demandRatio > 1;
 
-  // BLENDED, never switched. MEASURED BUG, (requirement: the track spec car seems juddery),
+  // BLENDED, never switched. MEASURED BUG, (requirement: the track spec car seems juddery,
   // returning after the power went up): this was a hard `if` between the rolling and sliding
   // laws, and at the boundary the two disagree by (1 - slideGrip) in magnitude AND in direction.
   // With plenty of power the demand sits right on that boundary, so the force flipped between the
@@ -261,9 +261,8 @@ export function axleForce(
  */
 export function ploughingForces(car: Car, carSpec: Spec, mass: number, vLong: number, vLat: number,
     loadKF: number, loadKR: number) {
-  // PLOUGHING — what makes a gravel trap a gravel trap (user: "can the gravel
-  // trap
-  //          actually work like a gravel trap, slow you down, grab ya wheels").
+  // PLOUGHING - what makes a gravel trap a gravel trap (requirement: the gravel trap should
+  // actually work like a gravel trap, slow you down, grab your wheels).
   //
   // Lower grip alone does NOT model gravel. Gravel stops you because the wheels SINK and bulldoze a
   // wedge of stones ahead of themselves, which is a retarding force that has nothing to do with

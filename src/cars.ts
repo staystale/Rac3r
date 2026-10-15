@@ -198,7 +198,7 @@ const CURVE_F2: Curve      = [[1500, 350], [3000, 455], [4500, 525], [6000, 580]
   [8000, 585], [9000, 495]];
 
 // CLASSES (requirement: classes... subclasses for events; the car menu filters by class then
-// subclass; upgrading never changes a car's class); split agreed as proposed). Each ROSTER row
+// subclass; upgrading never changes a car's class; split agreed as proposed). Each ROSTER row
 // carries cls + sub; events will ask for a class (and maybe a subclass).
 export const CLASSES = [
   { id: 'road', name: 'ROAD', subs: ['Hatch', 'Saloon', 'Estate', 'Sports', 'Muscle'] },
@@ -221,7 +221,7 @@ export const PALETTE = ['#f0f0ea', '#a9aeb6', '#5a5f69', '#16181d', '#c8342a', '
   '#9bc53d', '#2e7d32', '#1f4d2e', '#3fb6c9', '#2f6fd0', '#1d3f9a', '#8a4fc0', '#e86fa8'];
 // TYRES (requirement: the first upgrade — manufacturers, ranges per class; only fit what fits;
 // rally / off-road tyres on a road car = more off-road grip but heat up too quickly on tarmac;
-// wets, race... a real mix with distinct grip interactions); "4 brands, 15 types"; TODAY's grip =
+// wets, race... a real mix with distinct grip interactions; "4 brands, 15 types"; TODAY's grip =
 // the floor: "SPUM — Pre-Spun +0"). grip = x on the surface's mu per SURFACE GROUP (Pre-Spun
 // = 1 everywhere, so a stock car is exactly as before); opt / peak / cold = the heat window
 // (vehicle.js tyreGrip, hard ground only); heatHard = x heat-up on hard ground (knobbly / soft

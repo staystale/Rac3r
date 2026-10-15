@@ -52,7 +52,7 @@ export function dueKind(ctx: HwCtx, myS: number, rivals: HwEntry[], top: HwEntry
 }
 
 /**
- * GRACE (requirement: catch them timer never seems to time out it fails to count down);
+ * GRACE (requirement: catch them timer never seems to time out it fails to count down;
  * MEASURED in tools/_flowtest: a rival dipping back on screen at the edge for a moment - a
  * bend, the zoom breathing - set the clock back to the full HW_CATCH every time). A running
  * clock now survives up to GRACE s of the condition dropping; only staying back in touch longer

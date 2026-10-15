@@ -67,7 +67,7 @@ function toPx(state, worldX, worldY) {
  * Slides the layer's origin to follow a position, shifting the drawn marks.
  *
  * ONLY WHEN THE LEVEL DOES NOT FIT (requirement: top left corner of knob hill... it seems to forget
- * / cut of tyre marks in a clean line, some stay but most go); tools/_markedge.mjs). MEASURED BUG:
+ * / cut of tyre marks in a clean line, some stay but most go; tools/_markedge.mjs). MEASURED BUG:
  * follow ran on EVERY level, so past 136 m from the
  * middle (Knobhill reaches ~242 m) the layer slid over and everything beyond a straight line
  * on the far side was cut away. A square level's whole fence (+-FLOOR + RUNOFF_W) IS the

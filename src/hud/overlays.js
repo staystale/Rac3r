@@ -218,7 +218,7 @@ function noteNewFlag(state, flow, now) {
  * @returns {void}
  */
 export function drawHudFlag(state, ctx, game, width, height) {
-  // THE CHEQUERED FLAG (requirement: only when you finish a race); "look more like a real flag — an
+  // THE CHEQUERED FLAG (requirement: only when you finish a race; "look more like a real flag — an
   // overlay that WAVES in simulated 3D, shaded, detailed but still a quick pass"): a
   // cloth of NX x NY squares on a pole, every vertex lifted by a travelling wave (stronger toward
   // the free end), each square shaded by the wave's slope (light where it faces up, dark in the

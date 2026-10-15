@@ -89,10 +89,10 @@ shared.lastBreadcrumbTime = 0;
 shared.race = { on: false, laps: 5, t: 0, started: false, joker: false, done: false, total: 0,
   penalty: 0 };
 game.race = shared.race;
-// the JOKER GATE counts in practice too (user: the arrows "vanish when the joker lap has been
-// taken"); RESTART brings them back JOKER COUNT (requirement: harsh, real-ish): exactly once;
-// missed OR each extra = +30 s. FIA: a missed joker is a time penalty, extra jokers go to the
-// stewards). Counted on ENTERING the gate, so one pass is one joker however long you sit in it.
+// the JOKER GATE counts in practice too (the arrows vanish when the joker lap has been taken);
+// RESTART brings them back. JOKER COUNT (requirement: harsh, real-ish): exactly once; missed OR
+// each extra = +30 s (FIA: a missed joker is a time penalty, extra jokers go to the stewards).
+// Counted on ENTERING the gate, so one pass is one joker however long you sit in it.
 // STAGE TIMING (point-to-point, user): READY -> cross the START line (track distance
 // wraps past 0) -> RUNNING -> pass the FINISH distance -> DONE (best kept). Drive the farm road
 // back round and crossing the start line starts a new run; RESTART = READY.
@@ -145,7 +145,7 @@ document.addEventListener('visibilitychange', () => {
 });
 // TRAFFIC (requirement: traffic in every mode, a slider in test mode for density): 0..1.5 (1
 // = PER_LANE cars a lane), setup's TRAFFIC slider or ?traffic=; LITTER (requirement: a slider for
-// frequency / density) of the roadside objects): 0..3 x, setup's LITTER slider
+// the frequency / density of the roadside objects): 0..3 x, setup's LITTER slider
 game.traffic = createTraffic();
 shared.trafficDensity = shared.settings.trafficDensity;
 if (shared.settings.litter !== null)

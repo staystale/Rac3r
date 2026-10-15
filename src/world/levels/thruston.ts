@@ -21,8 +21,8 @@ import type { Point, Bump, Zone, Cone, Paint, Lane, Prop } from "../types.ts";
 // NOBLE 686 GOODWOOD 810 VILLAGE 869 CHURCH 1032 BROOKLANDS 1089
 //   WOODHAM 1285  CLUB 1343-1422.
 // INTENDED FAILURE: carrying Church's speed into a tight apex; arriving at Club too hot after the
-// fastest part of the lap; tyre heat (sustained right-handers load the left-side tyres —
-// (requirement: high tyre-heat generator). RE-LAID from the REAL MAP (Wikimedia
+// fastest part of the lap; tyre heat (sustained right-handers load the left-side tyres -
+// requirement: a high tyre-heat generator). RE-LAID from the REAL MAP (Wikimedia
 // "Thuxton_Motor_Racing_Circuit_map.svg", 369 m = 255 px), traced clockwise from the line and
 // scaled 0.47 (1254 m, measured). The first layout had the right corners in a made-up shape —
 // re-laid, not patched. RE-TRACED (requirement: kerbs still broken on tight corners, not like the
@@ -222,7 +222,7 @@ export const TH_PROPS: Prop[] = [
     { kind: 'grandstand', w: TH_STAND.d1 - TH_STAND.d0, h: 8 }),
   thProp(3, 0, { kind: 'gantry', wid: 26, rot: Math.PI / 2 }),
   // garages: ONE row that follows the lane (the first cut, 4 rotated blocks, stepped and overlapped
-  // on the curve — (requirement: messy)
+  // on the curve - requirement: messy)
   { kind: 'garagerow', brand: 'KUM TYRES', x: 0, y: 0,
     front: alongTrack(TH_SUBTRACK, TH_GAR.d0, TH_GAR.d1, TH_GAR.off - TH_GAR.depth / 2, 2.5),
     back: alongTrack(TH_SUBTRACK, TH_GAR.d0, TH_GAR.d1, TH_GAR.off + TH_GAR.depth / 2, 2.5),

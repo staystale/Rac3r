@@ -79,7 +79,7 @@ export function rxDress(
   for (const kerb of autoKerbs(sub, { maxR: 60, exitR: 0, minTurn: 25, mergeGap: 10 })) {
     const outS = kerb.side === 'left' ? -1 : 1, mid = (kerb.startDist + kerb.endDist) / 2;
     // ONLY WHERE THERE IS NO WALL YET (requirement: they should go where there isn't already Armco
-    // and tyre walls) — the first pass lined bales in front of Slidden Hill's tyre walls): skip a
+    // and tyre walls — the first pass lined bales in front of Slidden Hill's tyre walls): skip a
     // bale with an existing tyre stack within 6 m
     for (let dist = kerb.startDist - 6; dist <= kerb.endDist + 10; dist += 2.2) {
       const point = smoothOnTrack(sub, dist, outS * (halfWidth + 4.5));
