@@ -179,6 +179,29 @@ Known bugs found during the overhaul (wait until it is done, they are not caused
 
 
 
+## AFTER THE OVERHAUL - GROUND ON THE GPU (owner, 2026-10-15)
+
+Owner: the ground textures "repaint and change as zoom changes", worst "near fully zoomed out"; "normal games
+don't have this issue". Decision: fix it by changing how the ground is drawn, AFTER the code overhaul; both steps.
+
+Cause (measured): the ground is painted on the CPU into cached tiles at fixed zoom steps (ZSTEP 2 per doubling)
+in a low-res art-pixel buffer (~15 art px/m at zoom 1, ~4.6 at ZOOM_MIN 0.30), then each frame stretched or
+shrunk to the camera's exact zoom with smoothing off. Textures hold TEX_PPM 17.3 texels/m. As the zoom creeps,
+different pixels are dropped or doubled each frame = flicker. tools/zoomcheck.mjs measures it; with
+ZOOMS="0.33,0.325,0.32,0.315,0.31,0.305,0.3" (one patch, tiny zoom changes) main flickers 5.7 % of pixels.
+Tried, not kept: a halving mip of each texture (5.7 -> 4.3 %, task 224 / branch worker/224), tiles only
+stretched (3.3 %), smoothing when a tile shrinks (2.2 %, loses grain far out). Kept: one texture painting per
+surface (task 218), one water look, hill shading on a world grid with 0.5 m cells (tasks 220, 222).
+
+- [ ] A (M/L): keep the CPU tile painter, but draw the cached tiles to the screen through WebGL with mipmaps and
+      trilinear filtering (a ground canvas under the 2D canvas for cars, props and the HUD). Check the existing
+      `tileGpu` setting (src/render/tiles.ts TILE_GPU) first. Goal: zoomcheck flicker near 0 with the pixel-art
+      look kept. Phone test.
+- [ ] B (L/XL, its own phase): move the ground painting itself to the GPU (surface textures uploaded once;
+      zones, water, wear, skid marks, road, kerbs and hill shading as shaders / textured geometry). Goal: no
+      tile painting on the highway (today ~17-18 ms a tile against a 6 ms frame budget: the old highway
+      judder). Measure tools/framecheck.mjs highway and brands-snatch before and after; phone test.
+
 ## GAME NAME: RAC3R (user, 2026-10-03)
 
 ## LEVELS + EVENTS DUMP (user, 2026-10-04, after the garage) — "we need more cars and levels and events, let's focus on levels and events"
