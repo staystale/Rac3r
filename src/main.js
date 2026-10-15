@@ -1354,13 +1354,12 @@ function recoverCar(why) {
   doReset();
 }
 
-function loop(now) {
-  // Rescheduled FIRST, so a throw anywhere below can never stop the game loop again.
-  requestAnimationFrame(loop);
-  const frameMs = now - last;   // the meter's dt, before the clamp below
-  let meterSim = 0;
-  const wallDt = Math.min(0.1, (now - last) / 1000);
-  last = now;
+/**
+ * The FPS meter: accumulates the clamped frame time and, every 0.4 s, publishes the average fps
+ * and the worst recent window on `game`.
+ * @param {number} wallDt the clamped wall-clock frame time, in seconds
+ */
+function updateFpsMeter(wallDt) {
   fpsAcc += wallDt;
   fpsN++;
   if (fpsAcc > 0.4) {
@@ -1377,6 +1376,16 @@ function loop(now) {
     if (fpsHist.length > 25) fpsHist.shift();
     game.fpsLow = fpsHist.length ? Math.min(...fpsHist) : game.fps;
   }
+}
+
+function loop(now) {
+  // Rescheduled FIRST, so a throw anywhere below can never stop the game loop again.
+  requestAnimationFrame(loop);
+  const frameMs = now - last;   // the meter's dt, before the clamp below
+  let meterSim = 0;
+  const wallDt = Math.min(0.1, (now - last) / 1000);
+  last = now;
+  updateFpsMeter(wallDt);
 
   let inp = input.update(wallDt);
   // MENU: the demo car drives itself (src/ai/autodrive.ts — the same driver as the lap bench and
