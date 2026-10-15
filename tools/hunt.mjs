@@ -3,14 +3,16 @@
 // hand-written scenarios kept passing while the player kept hitting the bug.
 //   node tools/hunt.mjs            general driving
 //   node tools/hunt.mjs brake      braking-heavy
-import { chromium } from 'file:///C:/Users/Admin/Desktop/G/GamesStudio/BitterTrade/node_modules/playwright/index.mjs';
+import { startServer, launchBrowser } from './lib/browser.mjs';
+const srv = await startServer();
+process.on('exit', srv.stop);
 const MODE = process.argv[2] || 'general';
 const CAR = process.argv[3] || 'hatch-rwd';
-const b = await chromium.launch({ channel: 'msedge' });
+const b = await launchBrowser();
 const ctx = await b.newContext({ viewport: { width: 844, height: 390 } });
 const p = await ctx.newPage();
 const errs = []; p.on('pageerror', e => errs.push(e.message));
-await p.goto(`http://localhost:8080/?car=${CAR}&dev=1`);
+await p.goto(`${srv.url}/?car=${CAR}&dev=1`);
 await p.mouse.click(422, 195);
 await p.waitForTimeout(200);
 
@@ -69,3 +71,4 @@ else {
     console.log([r.t,r.kph,r.vLong,r.beta,r.yaw,r.gear,r.del,r.br,r.th,r.hb,r.st,r.lF,r.lR].map(x=>String(x).padStart(6)).join(''));
 }
 if (errs.length) console.log('\nERRORS: ' + errs.join(' | '));
+srv.stop();

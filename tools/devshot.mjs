@@ -7,10 +7,12 @@
 //
 // Playwright lives in the plant sim's node_modules (CLAUDE.md §5); launched with channel msedge.
 
-import { chromium } from 'file:///C:/Users/Admin/Desktop/G/GamesStudio/BitterTrade/node_modules/playwright/index.mjs';
+import { startServer, launchBrowser } from './lib/browser.mjs';
 import { mkdirSync } from 'node:fs';
+const srv = await startServer();
+process.on('exit', srv.stop);
 
-const BASE = 'http://localhost:8080';
+const BASE = srv.url;
 const OUT = 'shots';
 mkdirSync(OUT, { recursive: true });
 
@@ -20,7 +22,7 @@ const SIZES = {
   desktop: { width: 1280, height: 720, dpr: 1, mobile: false },
 };
 
-const browser = await chromium.launch({ channel: 'msedge' });
+const browser = await launchBrowser();
 const errors = [];
 
 async function shot(name, { size = 'phoneLand', url = '/?dev=1', drive = null, settle = 400 } = {}) {
@@ -98,3 +100,4 @@ if (errors.length) {
 } else {
   console.log('\nno console errors.');
 }
+srv.stop();

@@ -4,18 +4,20 @@
 //   node tools/spritesheet.mjs [out.png]      default: art/sprite-sheet.png
 //
 // Added 2026-10-03 for the pixel-art pass: every sprite change is reviewed on this sheet before it ships.
-import { chromium } from 'file:///C:/Users/Admin/Desktop/G/GamesStudio/BitterTrade/node_modules/playwright/index.mjs';
+import { startServer, launchBrowser } from './lib/browser.mjs';
 import { CAR_IDS } from '../src/cars.ts';
 import { fileURLToPath } from 'node:url';
+const srv = await startServer();
+process.on('exit', srv.stop);
 
 // fileURLToPath, not .pathname: the folder has a space, and .pathname kept it as %20 (wrote to a literal "car%20sim")
 const out = process.argv[2] || fileURLToPath(new URL('../art/sprite-sheet.png', import.meta.url));
-const b = await chromium.launch({ channel: 'msedge' });
+const b = await launchBrowser();
 const shots = [], errs = [];
 for (const id of CAR_IDS) {
   const p = await (await b.newContext({ viewport: { width: 520, height: 300 }, deviceScaleFactor: 2 })).newPage();
   p.on('pageerror', (e) => errs.push(id + ': ' + e.message));
-  await p.goto(`http://localhost:8080/?pc=1&car=${id}`); await p.keyboard.press('x'); await p.waitForTimeout(2300);
+  await p.goto(`${srv.url}/?pc=1&car=${id}`); await p.keyboard.press('x'); await p.waitForTimeout(2300);
   // park on the pale lab floor, nose to the right, wheels slightly steered so steering reads
   await p.evaluate(() => { const g = window.__game, c = g.car; c.x = -20; c.y = -10; c.heading = 0; c.vx = c.vy = 0; c.delta = 0.25; g.renderer.snap(c); });
   await p.waitForTimeout(600);
@@ -25,7 +27,7 @@ for (const id of CAR_IDS) {
 // RAW sprites, 6x, no wheels / shadow — for judging pixel detail
 const raw = await (async () => {
   const p = await (await b.newContext({ viewport: { width: 400, height: 300 } })).newPage();
-  await p.goto('http://localhost:8080/?pc=1'); await p.waitForTimeout(500);
+  await p.goto(srv.url + '/?pc=1'); await p.waitForTimeout(500);
   const res = await p.evaluate(async (ids) => {
     const { spec } = await import('/src/cars.ts'); const R = window.__game.renderer;
     return ids.map((id) => { const s = R.pixelCar(spec(id)), k = 6, c = document.createElement('canvas'); c.width = s.c.width * k; c.height = s.c.height * k;
@@ -40,3 +42,4 @@ const q = await b.newPage({ viewport: { width: 1680, height: 900 } });
 await q.setContent(html); await q.screenshot({ path: out, fullPage: true });
 await b.close();
 console.log('sheet ->', out, errs.length ? 'ERRORS ' + errs.join(' | ') : 'no page errors');
+srv.stop();

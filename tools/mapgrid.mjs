@@ -1,11 +1,13 @@
 // mapgrid.mjs — renders a ZOOMED, GRIDDED crop of a reference map so centreline points can be read off in map pixels (10 px minor,
 // 50 px major lines, labelled). node tools/mapgrid.mjs <map.png> <x0> <y0> <w> <h> <out.png>   (output 1000 px wide)
 // Built 2026-10-04 (Thruston re-trace; reused for Castle Cum).
-import { chromium } from 'file:///C:/Users/Admin/Desktop/G/GamesStudio/BitterTrade/node_modules/playwright/index.mjs';
+import { startServer, launchBrowser } from './lib/browser.mjs';
 import fs from 'fs';
+const srv = await startServer();
+process.on('exit', srv.stop);
 const [map, x0, y0, w, h, out] = process.argv.slice(2); const X0 = +x0, Y0 = +y0, Wm = +w, Hm = +h, z = 1000 / Wm;
 const img = 'data:image/png;base64,' + fs.readFileSync(map).toString('base64');
-const b = await chromium.launch({ channel: 'msedge' });
+const b = await launchBrowser();
 const pg = await b.newPage({ viewport: { width: 1000, height: Math.round(Hm * z) } });
 await pg.setContent(`<canvas id=c width=1000 height=${Math.round(Hm * z)}></canvas>`);
 await pg.evaluate(async ({ img, X0, Y0, Wm, Hm, z }) => {
@@ -16,3 +18,4 @@ await pg.evaluate(async ({ img, X0, Y0, Wm, Hm, z }) => {
   for (let gy = Math.ceil(Y0 / 10) * 10; gy < Y0 + Hm; gy += 10) { c.strokeStyle = gy % 50 ? 'rgba(0,120,255,.25)' : 'rgba(255,0,0,.6)'; c.beginPath(); c.moveTo(0, (gy - Y0) * z); c.lineTo(1000, (gy - Y0) * z); c.stroke(); if (gy % 50 === 0) { c.fillStyle = 'red'; c.fillText(gy, 2, (gy - Y0) * z - 2); } }
 }, { img, X0, Y0, Wm, Hm, z });
 await pg.screenshot({ path: out }); await b.close();
+srv.stop();

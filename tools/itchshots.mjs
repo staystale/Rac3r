@@ -1,11 +1,14 @@
 // itchshots.mjs — store-page screenshots for itch.io (1280x720, desktop: no touch pedals) + a 630x500 cover, into
 // ../ready-to-play/rac3r-page/ (NOT the build folder). Scenes: the menu race, a 6-car pack, rallycross, the rally stage, a crash,
 // the podium. node tools/itchshots.mjs
-import { chromium } from 'file:///C:/Users/Admin/Desktop/G/GamesStudio/BitterTrade/node_modules/playwright/index.mjs';
+import { startServer, launchBrowser } from './lib/browser.mjs';
 import { mkdirSync } from 'node:fs';
-const OUT = 'C:/Users/Admin/Desktop/G/GamesStudio/ready-to-play/rac3r-page/'; mkdirSync(OUT, { recursive: true });
-const b = await chromium.launch({ channel: 'msedge' });
-const page = async () => { const p = await (await b.newContext({ viewport: { width: 1280, height: 720 }, deviceScaleFactor: 1 })).newPage(); await p.goto('http://localhost:8080/?menu=1&guide=0'); await p.waitForTimeout(3500); return p; };
+import { repoRoot } from './lib/paths.mjs';
+const srv = await startServer();
+process.on('exit', srv.stop);
+const OUT = repoRoot + '../ready-to-play/rac3r-page/'; mkdirSync(OUT, { recursive: true });
+const b = await launchBrowser();
+const page = async () => { const p = await (await b.newContext({ viewport: { width: 1280, height: 720 }, deviceScaleFactor: 1 })).newPage(); await p.goto(srv.url + '/?menu=1&guide=0'); await p.waitForTimeout(3500); return p; };
 const race = async (p, lv, car, opts, driveDiff = 3) => p.evaluate(async ([lv, car, opts, dd]) => {
   const g = window.__game; g.menu.hide(); g.launch(lv, car, opts);
   const A = { ...await import('/src/ai/circuit.ts'), ...await import('/src/ai/traits.ts') }, L = await import('/src/lab.js'); const drv = A.createAIDriver(L.LEVEL, A.aiTraits(dd, 0, 1, 7));
@@ -32,7 +35,8 @@ const race = async (p, lv, car, opts, driveDiff = 3) => p.evaluate(async ([lv, c
   await p.waitForTimeout(700); await p.screenshot({ path: OUT + '6-podium.png' }); await p.waitForTimeout(2600); await p.screenshot({ path: OUT + '7-results.png' }); await p.close(); }
 // cover 630x500: a crop of the pack shot, scaled
 { const p = await (await b.newContext({ viewport: { width: 630, height: 500 }, deviceScaleFactor: 1 })).newPage();
-  await p.goto('http://localhost:8080/?menu=1&guide=0'); await p.waitForTimeout(3500); await race(p, 'thruston', 'hatch-rwd', { ai: 5, diff: 3, laps: 3 }); await p.waitForTimeout(9500);
+  await p.goto(srv.url + '/?menu=1&guide=0'); await p.waitForTimeout(3500); await race(p, 'thruston', 'hatch-rwd', { ai: 5, diff: 3, laps: 3 }); await p.waitForTimeout(9500);
   await p.screenshot({ path: OUT + 'cover-630x500.png' }); }
 await b.close();
 console.log('done', OUT);
+srv.stop();

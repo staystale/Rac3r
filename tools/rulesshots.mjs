@@ -1,12 +1,14 @@
 // rulesshots.mjs — photographs the EVENT RULES walkthrough (guide.js RULES, forced with ?rules=1) for a highway VS AI race at phone
 // portrait + landscape, checks the sim is paused while it shows (the lights must not run), then ends the race and photographs the
 // PODIUM. Output: shots/look/rules-<W>-<n>.png, podium-<W>.png. node tools/rulesshots.mjs
-import { chromium } from 'file:///C:/Users/Admin/Desktop/G/GamesStudio/BitterTrade/node_modules/playwright/index.mjs';
-const b = await chromium.launch({ channel: 'msedge' });
+import { startServer, launchBrowser } from './lib/browser.mjs';
+const srv = await startServer();
+process.on('exit', srv.stop);
+const b = await launchBrowser();
 for (const [W, H] of [[390, 844], [844, 390]]) {
   const p = await (await b.newContext({ viewport: { width: W, height: H }, deviceScaleFactor: 2, isMobile: true, hasTouch: true })).newPage();
   const errs = []; p.on('pageerror', (e) => errs.push(e.message));
-  await p.goto('http://localhost:8080/?touch=1&guide=0&menu=1&rules=1'); await p.waitForTimeout(2500);
+  await p.goto(srv.url + '/?touch=1&guide=0&menu=1&rules=1'); await p.waitForTimeout(2500);
   await p.evaluate(() => window.__game.menu.hide());
   await p.evaluate(() => window.__game.launch('highway', 'saloon-rwd', { ai: 3, diff: 2, traffic: 0.6 }));
   await p.waitForTimeout(4000);   // the fly-in, then the rules open
@@ -28,3 +30,4 @@ for (const [W, H] of [[390, 844], [844, 390]]) {
   console.log(`${W}x${H} errors`, errs.length ? errs.slice(0, 3).join(' || ') : 'none');
 }
 await b.close();
+srv.stop();
