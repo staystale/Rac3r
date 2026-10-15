@@ -555,7 +555,11 @@ function buildModules(view: View, cam: Cam, settings: Settings,
     PPMz, drawFloor: ground.drawFloor, drawZones: ground.drawZones, drawLanes: road.drawLanes,
     drawTrackRibbon: road.drawTrackRibbon, drawPatches: ground.drawPatches,
     drawCovers: ground.drawCovers, drawCurvedKerbs: road.drawCurvedKerbs,
-    paletteSnap: (target: HTMLCanvasElement) => tiles.paletteSnap(target),
+    // the GPU path draws the overview shrunk, and it is flat palette colours already: no CPU
+    // snap (MEASURED: ~0.5 s at CPU x4 in the fly-in's first frame)
+    paletteSnap: (target: HTMLCanvasElement) => {
+      if (!fillsOnGpu()) tiles.paletteSnap(target);
+    },
     prefetch: (...args: [number, number, number, number, TileBudget]) => tiles.prefetch(...args),
     zoomHold: settings.zoomHold,
   });
@@ -590,6 +594,17 @@ function gpuHelpers(state: RenderState, gpu: GlGround | null) {
 }
 
 /**
+ * The GPU ground under the screen canvas, or null (?glground=0, or no WebGL2).
+ *
+ * @param canvas the screen canvas
+ * @param settings the game settings (glGround, gpuPaint, keepFrame)
+ * @returns the GPU ground, or null
+ */
+function createGpuGround(canvas: HTMLCanvasElement, settings: Settings) {
+  return settings.glGround ? createGlGround(canvas, settings.gpuPaint, settings.keepFrame) : null;
+}
+
+/**
  * Builds the renderer for a canvas.
  *
  * @param canvas the screen canvas
@@ -613,7 +628,7 @@ export function createRenderer(canvas: HTMLCanvasElement, settings: Settings) {
   const pctx = pcanvas.getContext('2d')!;   // likewise
   const state: RenderState = { blockPx: 1, realDpr: 1, gpuOn: false };
   // the GPU ground (WebGL2) under the screen canvas; null = the ground stays in the art buffer
-  const gpu = settings.glGround ? createGlGround(canvas, settings.gpuPaint) : null;
+  const gpu = createGpuGround(canvas, settings);
   const cam: Cam = { x: 0, y: 0, initialised: false };
   // ONE place converts metres to pixels, so nothing can miss the zoom
   const PPMz = () => view.PPM * view.zoom;
@@ -653,7 +668,7 @@ export function createRenderer(canvas: HTMLCanvasElement, settings: Settings) {
     get PPM() { return view.PPM * view.zoom; },
     get groundRenders() { return tileState.tilesPainted; },
     get tileMs() { return tileState.tileMs; },
-    /** the GPU hill shading's chunks computed and ms spent (tools), or null */
+    warmNextTexture: () => ctx.warmNextTexture(),
     get shadeStats() { return gpu ? gpu.shadeStats() : null; },
     get staleRepaints() { return tileState.staleRepaints; },
     get tileStats() { return { ...tileState, perStep: { ...tileState.perStep } }; },

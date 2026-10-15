@@ -30,6 +30,7 @@ export interface Settings {
   meter: boolean;   // ?meter=1: on-screen frame meter (perf, phone)
   report: boolean;  // ?report=1: the meter's frames posted to the test server (ui/report.ts)
   audio: boolean;   // ?noaudio=1: never start Web Audio (phone judder test)
+  keepFrame: boolean;   // ?keepframe=1 (tools): the GPU canvas keeps its frame to be read back
   vsync: boolean;   // ?vsync=0: no frame pacing (default on: whole display refreshes, pacing.ts)
   noNatClear: boolean;   // ?nonat=1: the highway slide keeps the terrain height cache (judder test)
   skipLayers: Set<string>;   // ?skip=props,barriers: layers not drawn (phone judder bisect)
@@ -79,6 +80,7 @@ export function readSettings(search: string): Settings {
     report: params.get('report') === '1',
     vsync: params.get('vsync') !== '0',
     audio: params.get('noaudio') !== '1',
+    keepFrame: params.has('keepframe'),
     autopilot: params.get('autopilot') === '1' || autopilotKmh(params) > 0,
     autopilotKmh: autopilotKmh(params),
     churn: churnKind(params),

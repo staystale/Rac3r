@@ -299,6 +299,24 @@ export function surfaceTexture(groundCtx: GroundCtx, name: string, art: SurfaceA
 }
 
 /**
+ * Paints the next surface texture not painted yet (and makes the browser really paint it: canvas
+ * drawing is deferred until read). Called in small slices while the game is idle, so the first
+ * frames of a level (the fly-in) do not paint them: MEASURED ~0.8 s at CPU x4 in one frame.
+ *
+ * @param groundCtx the shared ground painter context
+ * @returns true while textures are left to paint
+ */
+export function warmNextTexture(groundCtx: GroundCtx) {
+  const square = groundCtx.grassEnds === 'square';
+  for (const [name, art] of Object.entries(groundCtx.SURFACE_ART)) {
+    if (!art || groundCtx.textures.has(textureKey(name, square))) continue;
+    surfaceTexture(groundCtx, name, art).getContext('2d')!.getImageData(0, 0, 1, 1);
+    return true;
+  }
+  return false;
+}
+
+/**
  * Returns the base colour of a surface.
  *
  * @param groundCtx the shared ground painter context

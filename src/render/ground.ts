@@ -6,7 +6,7 @@ import type { Cam, View } from "./types.ts";
 import { createTextureCache } from "./textures.ts";
 import type { GroundHelpers, GroundCtx } from "./ground/types.ts";
 import { makePrim } from "./ground/prims.ts";
-import { makeSurfaceArt, paintLayers, artBase } from "./ground/art.ts";
+import { makeSurfaceArt, paintLayers, artBase, warmNextTexture } from "./ground/art.ts";
 import { drawFloor, drawZones, listGroundPatches } from "./ground/zones.ts";
 import type { GroundPatch } from "./glpaint.ts";
 import { PUDDLE_TINT, drawPatches, drawCovers } from "./ground/covers.ts";
@@ -36,6 +36,7 @@ export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
     artBase: (artId: string, fallback: string) => artBase(groundCtx, artId, fallback),
     drawZones: () => drawZones(groundCtx),
     listGroundPatches: (list: GroundPatch[]) => listGroundPatches(groundCtx, list),
+    warmNextTexture: () => warmNextTexture(groundCtx),
     PUDDLE_TINT,
     drawPatches: () => drawPatches(groundCtx),
     drawCovers: () => drawCovers(groundCtx),

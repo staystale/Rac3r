@@ -294,16 +294,22 @@ function shadeCalls(shade: GlShade | null, state: SinkState) {
  * (the ground then stays in the 2D art buffer, as before).
  * @param screen the screen canvas
  * @param withPainter true to paint the floor and zones on the GPU too (glpaint.ts)
+ * @param keepFrame true (tools, ?keepframe=1) to keep each frame so it can be read back
  * @returns the GPU ground, or null
  */
-export function createGlGround(screen: HTMLCanvasElement, withPainter = false) {
+export function createGlGround(screen: HTMLCanvasElement, withPainter = false,
+    keepFrame = false) {
   const canvas = document.createElement('canvas');
   canvas.id = 'glground';
-  // preserveDrawingBuffer: the test tools read the finished frame back after it is shown
+  // preserveDrawingBuffer only for the test tools (they read the finished frame back after it is
+  // shown): on a phone it costs a copy of the whole frame every frame
   const webgl = canvas.getContext('webgl2', {
-    alpha: false, antialias: false, preserveDrawingBuffer: true, stencil: true,
+    alpha: false, antialias: false, preserveDrawingBuffer: keepFrame, stencil: true,
   });
   if (!webgl) return null;
+  // our canvases are already in the colours we want: no colour-space conversion on upload (on a
+  // wide-colour phone screen the browser may otherwise convert every texture and tile it uploads)
+  webgl.pixelStorei(webgl.UNPACK_COLORSPACE_CONVERSION_WEBGL, webgl.NONE);
   let program: WebGLProgram;
   try { program = buildProgram(webgl); } catch { return null; }
   canvas.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;z-index:0;'

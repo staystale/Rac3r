@@ -249,6 +249,12 @@ Object.defineProperty(window.__game, 'paused', { get: () => shared.paused });
 shared.acc = 0;
 shared.last = performance.now();
 shared.meter = shared.settings.meter ? createMeter() : null;   // ?meter=1 only
+// paint the surface textures while the game is idle, one per WARM_SLICE_MS, so a level's
+// fly-in does not paint them all in its first frame (render/ground/art.ts warmNextTexture)
+const WARM_SLICE_MS = 60;
+(function warmTextures() {
+  if (shared.renderer.warmNextTexture()) setTimeout(warmTextures, WARM_SLICE_MS);
+})();
 shared.pacer = shared.settings.vsync ? createFramePacer() : null;   // ?vsync=0: off (pacing.ts)
 // ?report=1: the meter's frames also go to the test server (ui/report.ts)
 shared.reporter = shared.settings.report

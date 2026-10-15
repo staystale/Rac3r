@@ -10,7 +10,6 @@
 // owner judges that on the phone). SEAMLESS = PERIODIC: the painters below round every spacing /
 // wave / band so a whole number fits in the period, hash the integer cell index wrapped mod the
 // count, and redraw the marks that cross an edge from the cells just outside it.
-import { LEVEL } from "../world/state.ts";
 import { SPRITE_PPM } from "./shared.ts";
 import type { ArtLayer } from "./types.ts";
 
@@ -207,13 +206,12 @@ export function fillTexture(gfx: Gfx, tex: HTMLCanvasElement, ppm: number, rect:
   gfx.imageSmoothingEnabled = smooth;
 }
 
-// the texture cache: key -> canvas, one painting per surface at TEX_PPM whatever the zoom or dpr,
-// dropped when the level changes, at most TEX_MAX entries, least recently used evicted first
+// the texture cache: key -> canvas, one painting per surface at TEX_PPM whatever the zoom, dpr or
+// level (a texture depends only on the surface's art, so it is kept across levels), at most
+// TEX_MAX entries, least recently used evicted first
 export function createTextureCache() {
   const cache = new Map<string, HTMLCanvasElement>();
-  let level: unknown = null;
   function get(key: string, paint: (gfx: Gfx, period: number) => void) {
-    if (level !== LEVEL) { cache.clear(); level = LEVEL; }
     const hit = cache.get(key);
     if (hit) { cache.delete(key); cache.set(key, hit); return hit; }
     const size = Math.round(TEX_M * TEX_PPM);
@@ -227,5 +225,5 @@ export function createTextureCache() {
     while (cache.size > TEX_MAX) cache.delete(cache.keys().next().value!);
     return canvas;
   }
-  return { get };
+  return { get, has: (key: string) => cache.has(key) };
 }

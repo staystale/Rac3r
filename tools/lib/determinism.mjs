@@ -75,7 +75,8 @@ export async function openPage(browser, base, id, errors, extra = '') {
   const page = await ctx.newPage();
   page.on('pageerror', (err) => errors.push(String(err)));
   await page.addInitScript(installDeterminism);
-  await page.goto(`${base}/?touch=1&guide=0&menu=0&rules=0&level=${id}${extra}`);
+  // keepframe: the GPU ground canvas keeps each frame, so the tools can read it back
+  await page.goto(`${base}/?touch=1&guide=0&menu=0&rules=0&keepframe=1&level=${id}${extra}`);
   await page.waitForFunction(() => window.__game && window.__rt);
   await page.waitForTimeout(SETTLE_MS);
   return page;
