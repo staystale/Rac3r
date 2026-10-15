@@ -30,6 +30,9 @@ export function createReporter(query: string, level: () => string) {
       const body = JSON.stringify({
         session, part: part++, query, level: level(), userAgent: navigator.userAgent,
         dpr: devicePixelRatio, width: innerWidth, height: innerHeight,
+        // opened from the home screen (a full-screen web app), not in a Safari tab
+        homeScreen: matchMedia('(display-mode: fullscreen), (display-mode: standalone)').matches
+          || (navigator as Navigator & { standalone?: boolean }).standalone === true,
         frames: frames.splice(0, frames.length),
       });
       fetch('/__report', { method: 'POST', body, keepalive: true }).catch(() => {});
