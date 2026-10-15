@@ -9,7 +9,7 @@ const DEFAULTS = {
   menuAi: 4, guide: null, rules: null, levelId: null, inputMode: 'auto', highwayDebug: null,
   noLock: false, tilePx: 256, tileGpu: false, glGround: true, gpuPaint: false, zoomHold: false,
   noShade: false,
-  grassEnds: 'round', surfaceTextures: true, meter: false, report: false,
+  grassEnds: 'round', surfaceTextures: true, meter: false, report: false, vsync: true,
   autopilot: false, autopilotKmh: 0, noNatClear: false, churn: '', skipLayers: '',   // a Set is compared as its sorted names joined by ','
 };
 
@@ -47,6 +47,8 @@ const TABLE = [
   ['?nonat=1', { noNatClear: true }],
   ['?meter=0', { meter: false }],
   ['?report=1', { meter: true, report: true }],
+  ['?vsync=1', { vsync: true }],
+  ['?vsync=0', { vsync: false }],
   ['?autopilot=1', { autopilot: true }],
   ['?autopilot=0', { autopilot: false }],
   ['?autopilot=120', { autopilot: true, autopilotKmh: 120 }],

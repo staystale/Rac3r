@@ -201,7 +201,9 @@ export function loop(now) {
   // Rescheduled FIRST, so a throw anywhere below can never stop the game loop again.
   requestAnimationFrame(loop);
   const frameMs = now - shared.last;   // the meter's dt, before the clamp below
-  const wallDt = Math.min(0.1, (now - shared.last) / 1000);
+  // whole display refreshes, not the browser's rounded timestamps (game/pacing.ts; ?vsync=0 off)
+  const gameMs = shared.pacer ? shared.pacer.step(now, shared.last) : frameMs;
+  const wallDt = Math.min(0.1, gameMs / 1000);
   shared.last = now;
   updateFpsMeter(wallDt);
 

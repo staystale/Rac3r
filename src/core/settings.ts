@@ -29,6 +29,7 @@ export interface Settings {
   surfaceTextures: boolean;       // ?tex=0: paint surfaces live, not pre-painted textures (A/B)
   meter: boolean;   // ?meter=1: on-screen frame meter (perf, phone)
   report: boolean;  // ?report=1: the meter's frames posted to the test server (ui/report.ts)
+  vsync: boolean;   // ?vsync=0: no frame pacing (default on: whole display refreshes, pacing.ts)
   noNatClear: boolean;   // ?nonat=1: the highway slide keeps the terrain height cache (judder test)
   skipLayers: Set<string>;   // ?skip=props,barriers: layers not drawn (phone judder bisect)
   churn: '' | 'pictures' | 'objects';   // ?churn=: judder mechanism test (memory churn)
@@ -75,6 +76,7 @@ export function readSettings(search: string): Settings {
     surfaceTextures: params.get('tex') !== '0',
     meter: params.get('meter') === '1' || params.get('report') === '1',
     report: params.get('report') === '1',
+    vsync: params.get('vsync') !== '0',
     autopilot: params.get('autopilot') === '1' || autopilotKmh(params) > 0,
     autopilotKmh: autopilotKmh(params),
     churn: churnKind(params),

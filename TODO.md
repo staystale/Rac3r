@@ -89,6 +89,13 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
       sandbox slow frames 29-31 (default) -> 23, p95 18.7 ms; highway worst 213-232 -> 70-90 ms but
       ~660 tiles a lap (2.7 ms + ~1.2 ms GPU upload each), slow frames 81 -> 98, median 10 -> 13 ms.
       Next: the cached height field (GC pauses), the incremental highway road build.
+- [x] FRAME PACING (default, ?vsync=0 = off): the owner's iPhone (Safari) reports frame times rounded to
+      whole ms (16 / 17 / 18, pairs like 24 + 10) while the display runs 16.68 ms; the world moved
+      unevenly = the constant fine shake on every level, the original too. game/pacing.ts advances
+      whole display refreshes. Owner: "better". Remaining: occasional whole-world hitches, ~0.5-0.8 %
+      of frames, outside our JS (sim ~1 ms, draw ~3 ms on the phone): suspect GC (~24 MB/s of garbage
+      at highway speed) - next: the allocation diet (terrain lookups, traffic contacts, HUD layout).
+- [ ] PHONE REPORTS: ?report=1 posts frame timings to serve.mjs /__report (RAC3R_REPORT_LOG).
 - [ ] THE LAB JUDDERS (owner phone test, 2026-10-15): also in the 10-08 original, circuits do not.
       Not reproduced at CPU x4 (p95 14 ms, no bursts). Owner idea for later: rebuild the Lab or split
       it into smaller levels.
