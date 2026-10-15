@@ -1378,15 +1378,61 @@ function updateFpsMeter(wallDt) {
   }
 }
 
-function loop(now) {
-  // Rescheduled FIRST, so a throw anywhere below can never stop the game loop again.
-  requestAnimationFrame(loop);
-  const frameMs = now - last;   // the meter's dt, before the clamp below
-  let meterSim = 0;
-  const wallDt = Math.min(0.1, (now - last) / 1000);
-  last = now;
-  updateFpsMeter(wallDt);
+/**
+ * ?autopilot=1: the AI drives the player car; also caps the speed (?autopilot=<kmh>) and puts a
+ * stuck car back on the track.
+ * @param {number} wallDt the clamped wall-clock frame time, in seconds
+ * @returns {object} the autopilot's input
+ */
+function autopilotInput(wallDt) {
+  const others = [...game.ai.map((rival) => rival.car), ...game.traffic.cars];
+  const inp = { ...autoDrv.drive(game.car, wallDt, { cars: others, lap: 1, laps: 99 }),
+    reverse: 0, shiftUp: false, shiftDown: false };
+  // ?autopilot=<kmh>: cap the speed (phone judder: highway vs speed)
+  if (settings.autopilotKmh > 0) {
+    const over = Math.hypot(game.car.vx, game.car.vy) - settings.autopilotKmh / 3.6;
+    if (over > 0) inp.throttle = 0;
+    if (over > 10 / 3.6) inp.brake = 0.3;
+  }
+  autoStill = Math.hypot(game.car.vx, game.car.vy) < 2 ? autoStill + wallDt : 0;
+  if (autoStill > 3) {
+    autoStill = 0;
+    if (LEVEL.endless) doReset();
+    else {
+      const spot = findNearestSubtrackPoint(LEVEL.subtrack, game.car.x, game.car.y);
+      reset(game.car, spot.x, spot.y, spot.heading);
+    }
+    autoDrv.relocate();
+  }
+  return inp;
+}
 
+/**
+ * The menu demo: the demo car drives itself; if it stops or strays it is put back on the track.
+ * @param {number} wallDt the clamped wall-clock frame time, in seconds
+ * @returns {object} the demo driver's input
+ */
+function demoInput(wallDt) {
+  const inp = { ...demo.drive(game.car, wallDt,
+    { cars: game.ai.map((entry) => entry.car), lap: 1, laps: 99 }), reverse: 0, shiftUp: false,
+      shiftDown: false };
+  demoStill = Math.hypot(game.car.vx, game.car.vy) < 2 ? demoStill + wallDt : 0;
+  if (demoStill > 3 || demo.state.lastDist > 30) {
+    demoStill = 0;
+    const spot = findNearestSubtrackPoint(LEVEL.subtrack, game.car.x, game.car.y);
+    reset(game.car, spot.x, spot.y, spot.heading);
+    demo.relocate();
+  }
+  return inp;
+}
+
+/**
+ * Reads this frame's player input: the touch / keyboard sample, overridden by the start-grid
+ * hold, the ?autopilot driver or the menu demo driver (each also unsticks its car).
+ * @param {number} wallDt the clamped wall-clock frame time, in seconds
+ * @returns {object} the input the sim steps with
+ */
+function readFrameInput(wallDt) {
   let inp = input.update(wallDt);
   // MENU: the demo car drives itself (src/ai/autodrive.ts — the same driver as the lap bench and
   // the AI seed). If it ever stops (stuck off the road), put it back on the track.
@@ -1398,39 +1444,22 @@ function loop(now) {
                              : { ...inp, throttle: 0, brake: 1, handbrake: 0, reverse: 0 };
   }
   // ?autopilot=1: the AI drives the player car; the phone judder test (drops) needs no fingers
-  if (settings.autopilot && mode !== 'menu' && !startHeld() && autoDrv) {
-    const others = [...game.ai.map((rival) => rival.car), ...game.traffic.cars];
-    inp = { ...autoDrv.drive(game.car, wallDt, { cars: others, lap: 1, laps: 99 }),
-      reverse: 0, shiftUp: false, shiftDown: false };
-    // ?autopilot=<kmh>: cap the speed (phone judder: highway vs speed)
-    if (settings.autopilotKmh > 0) {
-      const over = Math.hypot(game.car.vx, game.car.vy) - settings.autopilotKmh / 3.6;
-      if (over > 0) inp.throttle = 0;
-      if (over > 10 / 3.6) inp.brake = 0.3;
-    }
-    autoStill = Math.hypot(game.car.vx, game.car.vy) < 2 ? autoStill + wallDt : 0;
-    if (autoStill > 3) {
-      autoStill = 0;
-      if (LEVEL.endless) doReset();
-      else {
-        const spot = findNearestSubtrackPoint(LEVEL.subtrack, game.car.x, game.car.y);
-        reset(game.car, spot.x, spot.y, spot.heading);
-      }
-      autoDrv.relocate();
-    }
-  }
-  if (mode === 'menu' && demo) {
-    inp = { ...demo.drive(game.car, wallDt,
-      { cars: game.ai.map((entry) => entry.car), lap: 1, laps: 99 }), reverse: 0, shiftUp: false,
-        shiftDown: false };
-    demoStill = Math.hypot(game.car.vx, game.car.vy) < 2 ? demoStill + wallDt : 0;
-    if (demoStill > 3 || demo.state.lastDist > 30) {
-      demoStill = 0;
-      const spot = findNearestSubtrackPoint(LEVEL.subtrack, game.car.x, game.car.y);
-      reset(game.car, spot.x, spot.y, spot.heading);
-      demo.relocate();
-    }
-  }
+  if (settings.autopilot && mode !== 'menu' && !startHeld() && autoDrv)
+    inp = autopilotInput(wallDt);
+  if (mode === 'menu' && demo) inp = demoInput(wallDt);
+  return inp;
+}
+
+function loop(now) {
+  // Rescheduled FIRST, so a throw anywhere below can never stop the game loop again.
+  requestAnimationFrame(loop);
+  const frameMs = now - last;   // the meter's dt, before the clamp below
+  let meterSim = 0;
+  const wallDt = Math.min(0.1, (now - last) / 1000);
+  last = now;
+  updateFpsMeter(wallDt);
+
+  const inp = readFrameInput(wallDt);
   game.in = inp;
   stepResults();
   // INDICATORS cancel like a real stalk: after the wheel has been turned that way and come back, or
