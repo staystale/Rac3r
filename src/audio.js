@@ -441,10 +441,15 @@ function toggleMute(state) {
   return state.muted;
 }
 
-export function createAudio() {
+/**
+ * Creates the audio engine.
+ * @param {boolean} [enabled] false (?noaudio=1, a judder test): never start Web Audio at all
+ * @returns {object} the engine: init, update, volume and mute
+ */
+export function createAudio(enabled = true) {
   const AudioCtx = typeof window !== 'undefined'
     ? (window.AudioContext || window.webkitAudioContext) : null;
-  if (!AudioCtx) {
+  if (!AudioCtx || !enabled) {
     return {
       init: () => {},
       update: () => {},

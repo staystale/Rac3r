@@ -179,7 +179,7 @@ shared.DEMO_DIFF = 3;
 shared.guidePending = false;
 shared.rulesPending = null;
 shared.renderer = createRenderer(shared.canvas, shared.settings);
-shared.audio = createAudio();
+shared.audio = createAudio(shared.settings.audio);   // ?noaudio=1: no Web Audio (judder test)
 game.audio = shared.audio;
 setTuneAudio(shared.audio);
 shared.input = createInput(shared.canvas, {
