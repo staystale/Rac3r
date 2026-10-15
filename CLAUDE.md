@@ -32,14 +32,15 @@ Old versions of this file, with the full project history, are in git. Do not reb
 
 ## 2. Code standards
 
-These apply to all new and changed code. Existing code that breaks them is tracked in `TODO.md`
-under CODE QUALITY OVERHAUL. When you touch a function, bring it up to standard.
+These apply to all code. The lint gate (`tools/lint.mjs`, run by `npm run verify`) enforces the
+measurable ones with no exceptions: names of 3 or more characters, no shadowed names, lines of at
+most 100 characters, functions of at most 80 lines and complexity 15, files of at most 800 lines.
 
 ### Naming
 - Names are whole words that say what the thing is: `deltaX`, `speedMetresPerSecond`,
-  `nearestBarrierSegment`. Never `dx`, `sp`, `qx`, `k`, `g`, `cu`.
-- A single letter is allowed only for a loop index in a loop of about 3 lines, and for `x`/`y`/`z`
-  coordinates.
+  `nearestBarrierSegment`. Never `sp`, `qx`, `k`, `g`, `cu`.
+- A single letter is allowed only for a loop index in a loop of about 3 lines (`i`, `j`), and for
+  `x`/`y`/`z` coordinates. The physics pairs `dx`, `dy`, `dt`, `vx`, `vy`, `nx`, `ny` are also allowed.
 - Put units in the name or the doc comment: `lengthMetres`, `timeoutSeconds`, `angleRadians`.
 - Functions are verbs (`findNearestSegment`). Booleans read as questions (`isOnRoad`, `hasFinished`).
 - Constants are `UPPER_SNAKE_CASE` with a comment giving the unit and why that value.
