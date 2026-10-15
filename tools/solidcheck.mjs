@@ -32,6 +32,7 @@ for (const [kind, mode] of [['tree', 'head'], ['tree', 'side'], ['plane', 'head'
 }
 if (errs.length) { console.log('PAGE ERRORS', errs); fails.push('errors'); }
 console.log(fails.length ? 'FAILED: ' + fails.join(' ') : 'solids: all OK');
+if (fails.length) process.exitCode = 1;
 await b.close();
 } finally {
   await b?.close();

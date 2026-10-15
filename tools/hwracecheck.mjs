@@ -87,3 +87,4 @@ check(wreck.size === 0, `no racer wrecked (${[...wreck].join(',') || 'none'})`);
 check(lc > 5, `racers change lines (${lc})`);
 check(vMax * 3.6 > 150, `racers get going (top ${(vMax * 3.6).toFixed(0)} km/h)`);
 console.log(fails ? `\n${fails} FAIL(S)` : '\nALL OK');
+if (fails) process.exitCode = 1;

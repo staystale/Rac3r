@@ -39,6 +39,7 @@ console.log('menu text:', txt);
 const sorted = res && res.every((r, i) => i === 0 || r.dnf || res[i - 1].total <= r.total || res[i - 1].dnf === r.dnf && res[i - 1].dnf);
 const ok = st && st.state === 'done' && st.shown && res && res.length === +n + 1 && res.some((r) => r.who === 'YOU') && sorted && !errs.length;
 console.log(ok ? 'STAGE 4 RACE: OK' : 'FAILED', errs.length ? errs : '');
+if (!ok) process.exitCode = 1;
 await b.close();
 } finally {
   await b?.close();

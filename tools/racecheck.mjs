@@ -39,6 +39,7 @@ const prac = await p.evaluate((lv) => { const g = window.__game; g.launch(lv, 'r
 console.log('practice starts a race?', prac); if (prac) fails.push('practice');
 if (errs.length) { console.log('PAGE ERRORS', errs); fails.push('errors'); }
 console.log(fails.length ? 'FAILED: ' + fails.join(' ') : 'RX race: all OK');
+if (fails.length) process.exitCode = 1;
 await b.close();
 } finally {
   await b?.close();

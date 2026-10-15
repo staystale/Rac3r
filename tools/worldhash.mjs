@@ -201,6 +201,7 @@ function main() {
     bad.push(...gone);
     if (hw && saved.highway && saved.highway[hwKm] !== hw.hash) bad.push('highway-km');
     console.log(bad.length ? `worldhash: DIFFERENT (${bad.join(', ')})` : 'worldhash: SAME');
+    if (bad.length) process.exitCode = 1;
   }
   if (process.argv.includes('save')) {
     const levels = Object.fromEntries(rows.map((row) => [row.id, row.hash]));

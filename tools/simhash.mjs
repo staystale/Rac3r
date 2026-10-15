@@ -238,6 +238,7 @@ function report(all, runs) {
     console.log(`simhash: DIFFERENT in ${id}: ${detail}`);
   }
   console.log(bad.length ? `simhash: DIFFERENT (${bad.join(', ')})` : 'simhash: SAME');
+  if (bad.length) process.exitCode = 1;
 }
 
 /**

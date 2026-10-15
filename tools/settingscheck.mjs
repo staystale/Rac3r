@@ -62,4 +62,4 @@ for (const [link, want] of TABLE) {
   console.log((link || "''").padEnd(52) + (diffs.length ? 'FAIL ' + diffs.join('; ') : 'ok'));
 }
 console.log(bad ? `${bad} of ${TABLE.length} links FAILED` : `all ${TABLE.length} links ok`);
-process.exit(bad ? 1 : 0);
+process.exitCode = bad ? 1 : 0;

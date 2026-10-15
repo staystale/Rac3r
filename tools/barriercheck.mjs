@@ -19,3 +19,4 @@ for (const b of L.LEVEL.barriers || []) {
   console.log(`${ok ? 'OK  ' : 'FAIL'} ${b.kind.padEnd(8)} ${b.pts.length} pts, nearest ${minD.toFixed(1)} m from the centreline (road edge ${hw}), on a lane: ${laneHits}`);
 }
 console.log(fails.length ? 'FAILED: ' + fails.join(' ') : 'barriers: all OK');
+if (fails.length) process.exitCode = 1;

@@ -95,3 +95,4 @@ for (const preset of Object.keys(H.HW_PRESETS)) {
   } else check(lv.barriers.filter((b) => b.kind === cfg.walls).length > 10, `${preset}: continuous ${cfg.walls}s both sides (${lv.barriers.filter((b) => b.kind === cfg.walls).length} pieces in the window)`);
 }
 console.log(fails ? `\n${fails} FAIL(S)` : '\nALL OK');
+if (fails) process.exitCode = 1;

@@ -85,4 +85,4 @@ if (encHits) parts.push("encoding");
 if (!tscOk) parts.push("tsc");
 if (!lintOk) parts.push("lint");
 console.log(parts.length ? `verify: FAIL (${parts.join(", ")})` : "verify: OK");
-process.exit(parts.length ? 1 : 0);
+process.exitCode = parts.length ? 1 : 0;

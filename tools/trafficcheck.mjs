@@ -64,3 +64,4 @@ for (const preset of ['motorway', 'interstate', 'dual']) {
   check(ms / n < 0.25, `${preset}: step cost ${(ms / n * 1000).toFixed(0)} us`);
 }
 console.log(fails ? `\n${fails} FAIL(S)` : '\nALL OK');
+if (fails) process.exitCode = 1;

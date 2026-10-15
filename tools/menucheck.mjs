@@ -37,6 +37,7 @@ for (const [W, H] of [[844, 390], [390, 844]]) {
   await p.evaluate(() => window.__game.menu.pause({ resume() {}, restart() {}, guide() {}, exit() {}, tests: true }));
   await tap('TESTING'); await shot('10-testing');
   console.log(W + 'x' + H, 'demo', JSON.stringify(demo), '| session', JSON.stringify(sess), '| pause', pz.paused, 'sim frozen', pz.sim === pz2, '| errors', errs.length ? errs.slice(0, 3).join(' || ') : 'none');
+  if (errs.length) process.exitCode = 1;
 }
 await b.close();
 } finally {

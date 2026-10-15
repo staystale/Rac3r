@@ -50,6 +50,7 @@ expect('5 rapid taps leave nothing held', await held(), { thr: false, brk: false
 
 if (errs.length) { console.log('PAGE ERRORS', errs); fails.push('page errors'); }
 console.log(fails.length ? 'FAILED: ' + fails.join(', ') : 'ALL OK');
+if (fails.length) process.exitCode = 1;
 await b.close();
 } finally {
   await b?.close();

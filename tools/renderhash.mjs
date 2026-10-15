@@ -153,6 +153,7 @@ function report(all, caps) {
   else for (const key of [...keys]) if (!(key in saved.captures)) keys.delete(key);
   const bad = [...keys].filter((key) => caps[key] !== saved.captures[key]);
   console.log(bad.length ? `renderhash: DIFFERENT (${bad.join(', ')})` : 'renderhash: SAME');
+  if (bad.length) process.exitCode = 1;
 }
 
 /**

@@ -16,3 +16,4 @@ for (const lv of L.LEVELS) {
   console.log((hits.length ? 'FAIL ' : 'OK   ') + lv.id.padEnd(20), hits.length ? hits.join(' ') : '');
 }
 console.log(bad ? `FAILED: ${bad} solid props on a road` : 'props: all clear of the road');
+if (bad) process.exitCode = 1;
