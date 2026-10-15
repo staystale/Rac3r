@@ -1477,6 +1477,22 @@ function stepCarSignals(inp, wallDt) {
       : 'ON YOUR SIDE — RESET', at: performance.now() };
 }
 
+/**
+ * The guide waits for the fly-in to land on the car, then opens and PAUSES the sim until it
+ * closes; the rules card queues behind it.
+ */
+function openGuideOnLanding() {
+  if (guidePending && !renderer.flying) {
+    guidePending = false;
+    guide.open();
+  }
+  else if (rulesPending && !guidePending && !guide.active && !renderer.flying) {
+    const kind = rulesPending;
+    rulesPending = null;
+    guide.openRules(kind);
+  }
+}
+
 function loop(now) {
   // Rescheduled FIRST, so a throw anywhere below can never stop the game loop again.
   requestAnimationFrame(loop);
@@ -1496,17 +1512,8 @@ function loop(now) {
   // world.
   input.consumeTap();
 
-  // ---- fixed-step sim the guide waits for the fly-in to land on the car, then opens and PAUSES
-  // the sim until it closes
-  if (guidePending && !renderer.flying) {
-    guidePending = false;
-    guide.open();
-  }
-  else if (rulesPending && !guidePending && !guide.active && !renderer.flying) {
-    const kind = rulesPending;
-    rulesPending = null;
-    guide.openRules(kind);
-  }
+  // ---- fixed-step sim
+  openGuideOnLanding();
   if (guide.active || paused) acc = 0;
   if (started && !guide.active && !paused) {
     acc += wallDt;
