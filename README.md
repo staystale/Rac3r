@@ -30,3 +30,5 @@ npm install
 npm run verify   # syntax, encoding, TypeScript, lint
 npm run suite    # the quick regression checks (pass / fail)
 ```
+
+See `CONTRIBUTING.md` for the standards and how to prove a change.

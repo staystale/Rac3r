@@ -1,0 +1,36 @@
+name: checks
+
+# The regression suite on every push: the proof hashes (level data, simulation, pixels) are saved on
+# the base commit, then `npm run suite` compares the pushed commit against them. A change that is
+# meant to alter behaviour or looks fails here on purpose: say so in the commit, and the next push
+# compares against it.
+on:
+  push:
+  pull_request:
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      CHECK_BROWSER: chromium
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Proof references from the base commit
+        run: |
+          BASE=$(git merge-base origin/main HEAD)
+          if [ "$BASE" = "$(git rev-parse HEAD)" ]; then BASE=$(git rev-parse HEAD~1); fi
+          echo "base: $BASE"
+          git worktree add ../base "$BASE"
+          ln -s "$PWD/node_modules" ../base/node_modules
+          (cd ../base && node tools/worldhash.mjs --highway 20 save \
+            && node tools/simhash.mjs save && node tools/renderhash.mjs save)
+          cp ../base/tools/.worldhash ../base/tools/.simhash ../base/tools/.renderhash tools/
+      - run: npm run suite
