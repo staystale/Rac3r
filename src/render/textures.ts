@@ -211,35 +211,47 @@ export function fillTexture(
   gfx.imageSmoothingEnabled = smooth;
 }
 
+// `tex` shrunk to size x size by successive halving: every pass shrinks by at most 2x with
+// smoothing on, so each texel contributes (a box-filter mip chain); the last pass goes to the
+// exact size. Each pass fills a repeating pattern of the previous one, so the edges blend with
+// the opposite edge and the copy stays seamless.
+function halved(tex: HTMLCanvasElement, size: number) {
+  let src = tex;
+  while (src.width > size) {
+    const next = Math.max(size, Math.ceil(src.width / 2));
+    const copy = document.createElement('canvas');
+    copy.width = copy.height = next;
+    const gfx = copy.getContext('2d', { willReadFrequently: true })!;
+    const pat = gfx.createPattern(src, 'repeat');
+    if (!pat) return copy;
+    pat.setTransform(new DOMMatrix().scale(next / src.width, next / src.height));
+    gfx.imageSmoothingEnabled = true;
+    gfx.imageSmoothingQuality = 'high';
+    gfx.fillStyle = pat;
+    gfx.fillRect(0, 0, next, next);
+    src = copy;
+  }
+  return src;
+}
+
 // the texture cache: key -> canvas, one painting per surface at TEX_PPM whatever the zoom or dpr,
 // dropped when the level changes, at most TEX_MAX entries, least recently used evicted first
 export function createTextureCache() {
   const cache = new Map<string, HTMLCanvasElement>();
   const scaledCache = new Map<string, HTMLCanvasElement>();
   let level: unknown = null;
-  // a copy of `tex` pre-scaled DOWN to devPpm texels per metre (smoothing on, quality high), built
-  // once per (surface, size) and kept: a zoomed-out step then samples a filtered picture, not a
+  // a copy of `tex` pre-scaled DOWN to devPpm texels per metre (halved pass by pass), built once
+  // per (surface, size) and kept: a zoomed-out step then samples a filtered picture, not a
   // texture with texels dropped at random. Memory: size^2 x 4 bytes, at most 415^2 x 4
-  // = 0.69 MB each, ~1.5 MB per surface over all steps, capped at SCALED_MAX copies. The copy
-  // is the pattern wrapped over one period, so it still repeats without a seam.
+  // = 0.69 MB each, ~1.5 MB per surface over all steps, capped at SCALED_MAX copies; the
+  // in-between passes (a further third at most) are dropped once built.
   function scaled(key: string, tex: HTMLCanvasElement, devPpm: number) {
     const size = Math.max(1, Math.round(TEX_M * devPpm));
     const name = `${key}|${size}`;
     const hit = scaledCache.get(name);
     if (hit) { scaledCache.delete(name); scaledCache.set(name, hit); }
     else {
-      const copy = document.createElement('canvas');
-      copy.width = copy.height = size;
-      const gfx = copy.getContext('2d', { willReadFrequently: true })!;
-      const pat = gfx.createPattern(tex, 'repeat');
-      if (pat) {
-        pat.setTransform(new DOMMatrix().scale(size / tex.width, size / tex.height));
-        gfx.imageSmoothingEnabled = true;
-        gfx.imageSmoothingQuality = 'high';
-        gfx.fillStyle = pat;
-        gfx.fillRect(0, 0, size, size);
-      }
-      scaledCache.set(name, copy);
+      scaledCache.set(name, halved(tex, size));
       while (scaledCache.size > SCALED_MAX) scaledCache.delete(scaledCache.keys().next().value!);
     }
     return { tex: scaledCache.get(name)!, texPpm: size / (tex.width / TEX_PPM) };
