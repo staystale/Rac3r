@@ -1675,6 +1675,74 @@ function stepRaceFlow() {
   }
 }
 
+/**
+ * TRAFFIC for one sim step, then the contact pass shared by you, the AI and the traffic.
+ * @param {object[]} tcars the traffic cars
+ */
+function stepTrafficContacts(tcars) {
+  // TRAFFIC: driven after the AI (it reads where everyone is), then in the SAME contact pass as
+  // you and the AI — full contact, damage
+  if (tcars.length || game.traffic.want) game.traffic.step(PHYSICS_STEP_SECONDS,
+    { player: game.car, others: game.ai.map((entry) => entry.car), visible: onScreen });
+  if (game.ai.length || tcars.length) {
+    const racers = [game.car, ...game.ai.map((entry) => entry.car)], all = tcars.length
+      ? [...racers, ...tcars] : racers, startVel = all.map((racer) => [racer.vx, racer.vy]);
+    carContacts(all);
+    all.forEach((racer, i) => hit(racer, startVel[i][0], startVel[i][1]));
+    if (game.ai.length) slipstream(racers);
+  }
+}
+
+/**
+ * The loose cones and tyres for one sim step, and the loose tyres a torn-off wheel throws.
+ * @param {object[]} tcars the traffic cars
+ */
+function stepLooseCones(tcars) {
+  // cones are world state, so they advance on the SAME fixed step as the car (rule 5) (traffic
+  // within 60 m of you knocks the litter too — a knocked tyre on the road is something they
+  // then have to hit)
+  {
+    const near = tcars.length
+      ? tcars.filter((racer) => Math.abs(racer.x - game.car.x) < 60
+        && Math.abs(racer.y - game.car.y) < 60) : [];
+    const field = game.ai.length || near.length
+      ? [game.car, ...game.ai.map((entry) => entry.car), ...near] : [game.car],
+        startVel = field.map((racer) => [racer.vx, racer.vy]);
+    game.cones.step(field.length > 1 ? field : game.car, PHYSICS_STEP_SECONDS);
+    field.forEach((racer, i) => hit(racer, startVel[i][0], startVel[i][1]));
+    // DAMAGE: a torn-off wheel becomes a loose tyre, thrown from its corner with the car's
+    // speed and outward
+    for (const racer of field) while (racer.wheelSpawn && racer.wheelSpawn.length) {
+      const corner = racer.wheelSpawn.shift(), cosH = Math.cos(racer.heading),
+        sinH = Math.sin(racer.heading),
+          alongOff = (corner < 2 ? racer.spec.lf : -racer.spec.lr),
+            sideOff = (corner % 2 ? 1 : -1) * (racer.spec.trackWidth || 1.5) / 2;
+      const out = (corner % 2 ? 1 : -1) * 4;
+      game.cones.add({ x: racer.x + cosH * alongOff - sinH * sideOff,
+        y: racer.y + sinH * alongOff + cosH * sideOff, vx: racer.vx * 0.85 - sinH * out,
+          vy: racer.vy * 0.85 + cosH * out, ang: racer.heading,
+            spin: (Math.random() - 0.5) * 8 });
+    }
+  }
+}
+
+/**
+ * Tyre marks for one sim step: the AI, skidding traffic and the player stamp the road.
+ * @param {object[]} tcars the traffic cars
+ */
+function stepTyreMarks(tcars) {
+  for (const entry of game.ai)
+    if (!rolling(entry.car)) game.marks.stamp(game.marks.wheelsOf(entry.car));
+  // a skidding / crashing traffic car marks the road
+  for (const racer of tcars) if (!rolling(racer) && racer.dmg
+    && (Math.abs(racer.t.slipR) > 0.1 || racer.t.lockedF
+      || racer.t.lockedR)) game.marks.stamp(game.marks.wheelsOf(racer));
+  game.marks.follow(game.car.x, game.car.y);
+  // marks are stamped on the SIM step: a mark is world bookkeeping, not an animation
+  if (!rolling(game.car)) game.marks.stamp(game.marks.wheelsOf(game.car));
+  game.marks.fade(PHYSICS_STEP_SECONDS);
+}
+
 function loop(now) {
   // Rescheduled FIRST, so a throw anywhere below can never stop the game loop again.
   requestAnimationFrame(loop);
@@ -1731,54 +1799,10 @@ function loop(now) {
         [game.car, ...game.ai.map((entry) => entry.car), ...game.traffic.cars]);
       stepAI(PHYSICS_STEP_SECONDS);
       stepRaceFlow();
-      // TRAFFIC: driven after the AI (it reads where everyone is), then in the SAME contact pass as
-      // you and the AI — full contact, damage
       const tcars = game.traffic.cars;
-      if (tcars.length || game.traffic.want) game.traffic.step(PHYSICS_STEP_SECONDS,
-        { player: game.car, others: game.ai.map((entry) => entry.car), visible: onScreen });
-      if (game.ai.length || tcars.length) {
-        const racers = [game.car, ...game.ai.map((entry) => entry.car)], all = tcars.length
-          ? [...racers, ...tcars] : racers, startVel = all.map((racer) => [racer.vx, racer.vy]);
-        carContacts(all);
-        all.forEach((racer, i) => hit(racer, startVel[i][0], startVel[i][1]));
-        if (game.ai.length) slipstream(racers);
-      }
-      // cones are world state, so they advance on the SAME fixed step as the car (rule 5) (traffic
-      // within 60 m of you knocks the litter too — a knocked tyre on the road is something they
-      // then have to hit)
-      {
-        const near = tcars.length
-          ? tcars.filter((racer) => Math.abs(racer.x - game.car.x) < 60
-            && Math.abs(racer.y - game.car.y) < 60) : [];
-        const field = game.ai.length || near.length
-          ? [game.car, ...game.ai.map((entry) => entry.car), ...near] : [game.car],
-            startVel = field.map((racer) => [racer.vx, racer.vy]);
-        game.cones.step(field.length > 1 ? field : game.car, PHYSICS_STEP_SECONDS);
-        field.forEach((racer, i) => hit(racer, startVel[i][0], startVel[i][1]));
-        // DAMAGE: a torn-off wheel becomes a loose tyre, thrown from its corner with the car's
-        // speed and outward
-        for (const racer of field) while (racer.wheelSpawn && racer.wheelSpawn.length) {
-          const corner = racer.wheelSpawn.shift(), cosH = Math.cos(racer.heading),
-            sinH = Math.sin(racer.heading),
-              alongOff = (corner < 2 ? racer.spec.lf : -racer.spec.lr),
-                sideOff = (corner % 2 ? 1 : -1) * (racer.spec.trackWidth || 1.5) / 2;
-          const out = (corner % 2 ? 1 : -1) * 4;
-          game.cones.add({ x: racer.x + cosH * alongOff - sinH * sideOff,
-            y: racer.y + sinH * alongOff + cosH * sideOff, vx: racer.vx * 0.85 - sinH * out,
-              vy: racer.vy * 0.85 + cosH * out, ang: racer.heading,
-                spin: (Math.random() - 0.5) * 8 });
-        }
-      }
-      for (const entry of game.ai)
-        if (!rolling(entry.car)) game.marks.stamp(game.marks.wheelsOf(entry.car));
-      // a skidding / crashing traffic car marks the road
-      for (const racer of tcars) if (!rolling(racer) && racer.dmg
-        && (Math.abs(racer.t.slipR) > 0.1 || racer.t.lockedF
-          || racer.t.lockedR)) game.marks.stamp(game.marks.wheelsOf(racer));
-      game.marks.follow(game.car.x, game.car.y);
-      // marks are stamped on the SIM step: a mark is world bookkeeping, not an animation
-      if (!rolling(game.car)) game.marks.stamp(game.marks.wheelsOf(game.car));
-      game.marks.fade(PHYSICS_STEP_SECONDS);
+      stepTrafficContacts(tcars);
+      stepLooseCones(tcars);
+      stepTyreMarks(tcars);
       acc -= PHYSICS_STEP_SECONDS;
       steps++;
     }
