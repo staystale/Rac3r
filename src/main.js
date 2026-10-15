@@ -1002,6 +1002,39 @@ function doReset() {
   if (renderer && renderer.snap) renderer.snap(game.car);
 }
 
+/**
+ * Clears every car's track-cut state at the start of a run.
+ */
+function clearCutCounts() {
+  for (const car of [game.car, ...game.ai.map((entry) => entry.car)]) {
+    car._cut = null;
+    car._cutPen = 0;
+    car._cuts = 0;
+  }
+}
+/**
+ * Creates the race flow for the current level: the highway's, a stage's, or a lap race's.
+ * @returns {object} the new flow
+ */
+function buildFlow() {
+  // the HIGHWAY: no laps — the race ends on the off-screen countdowns (highwayrace.js
+  // createHwFlow); "on screen" = the renderer's real view
+  if (LEVEL.endless) {
+    return createHwFlow({ lv: LEVEL,
+      cars: [{ car: game.car, player: true }, ...game.ai.map((entry) => ({ car: entry.car }))],
+        visible: (car) => onScreen(car.x, car.y) });
+  }
+  if (LEVEL.stage) {
+    return createRaceFlow({ cars: [{ car: game.car, player: true },
+      ...game.ai.map((entry) => ({ car: entry.car }))], total: LEVEL.subtrack.totalDist, laps: 1,
+        stage: { finish: LEVEL.stage.finish } });
+  }
+  const laps = raceLaps || (LEVEL.joker && race.on ? LEVEL.joker.laps || 5 : 3);
+  race.laps = laps;
+  return createRaceFlow({ cars: [{ car: game.car, player: true },
+    ...game.ai.map((entry) => ({ car: entry.car }))], total: LEVEL.subtrack.totalDist, laps,
+      joker: race.on ? LEVEL.joker : null });
+}
 // THE RACE (AI stage 4, src/raceflow.js): any VS AI or RX race on a lap circuit (not a stage).
 // Laps: setup, else 3 / the RX laps.
 function startFlow() {
@@ -1012,33 +1045,10 @@ function startFlow() {
   game.car._slot = game.ai.length && !LEVEL.stage ? gridSlot : 0;
   // your lights count to YOUR start
   if (LEVEL.stage && game.start.on) game.start.tGreen = startAtOf(game.car);
-  for (const car of [game.car, ...game.ai.map((entry) => entry.car)]) {
-    car._cut = null;
-    car._cutPen = 0;
-    car._cuts = 0;
-  }
+  clearCutCounts();
   if (mode !== 'session' || !LEVEL.subtrack || !(game.ai.length || race.on)) return;
-  // the HIGHWAY: no laps — the race ends on the off-screen countdowns (highwayrace.js
-  // createHwFlow); "on screen" = the renderer's real view
-  if (LEVEL.endless) {
-    game.flow = createHwFlow({ lv: LEVEL,
-      cars: [{ car: game.car, player: true }, ...game.ai.map((entry) => ({ car: entry.car }))],
-        visible: (car) => onScreen(car.x, car.y) });
-    return;
-  }
-  if (LEVEL.stage) {
-    game.flow = createRaceFlow({ cars: [{ car: game.car, player: true },
-      ...game.ai.map((entry) => ({ car: entry.car }))], total: LEVEL.subtrack.totalDist, laps: 1,
-        stage: { finish: LEVEL.stage.finish } });
-    return;
-  }
-  const laps = raceLaps || (LEVEL.joker && race.on ? LEVEL.joker.laps || 5 : 3);
-  race.laps = laps;
-  game.flow = createRaceFlow({ cars: [{ car: game.car, player: true },
-    ...game.ai.map((entry) => ({ car: entry.car }))], total: LEVEL.subtrack.totalDist, laps,
-      joker: race.on ? LEVEL.joker : null });
-}
-try {
+  game.flow = buildFlow();
+}try {
   game.hwBest = +(localStorage.getItem('rac3r.hwbest') || 0);
 } catch {
   game.hwBest = 0;
