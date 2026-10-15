@@ -210,6 +210,21 @@ function showHighwayTable(menu, flow, act) {
 }
 
 /**
+ * The footnotes under the results grid: estimated times and time penalties.
+ * @param {HTMLElement} panel the results panel
+ * @param {object} flow the race flow
+ * @param {Array} racers the results
+ * @returns {void}
+ */
+function addResultsNotes(panel, flow, racers) {
+  if (racers.some((racer) => racer.est)) addElement(panel, 'div', flow.stage
+    ? '~ estimated: still on the stage when you finished'
+    : '~ estimated: still running when the top 3 were home', 'sub');
+  if (racers.some((racer) => racer.penalty)) addElement(panel, 'div',
+    'PEN = time penalties (joker rule, track cuts)', 'sub');
+}
+
+/**
  * The results table of a lap / stage race: position, time, gap, best lap, penalty, repair bill.
  * @param {object} menu the menu context
  * @param {object} flow the race flow (raceflow.js)
@@ -235,11 +250,7 @@ function showResultsTable(menu, flow, act) {
     addElement(grid, 'div', racer.penalty ? '+' + racer.penalty + ' s' : '', 'pen');
     addElement(grid, 'div', racer.bill ? '£' + racer.bill.toLocaleString('en-GB') : '-', cls);
   }
-  if (racers.some((racer) => racer.est)) addElement(panel, 'div', flow.stage
-    ? '~ estimated: still on the stage when you finished'
-    : '~ estimated: still running when the top 3 were home', 'sub');
-  if (racers.some((racer) => racer.penalty)) addElement(panel, 'div',
-    'PEN = time penalties (joker rule, track cuts)', 'sub');
+  addResultsNotes(panel, flow, racers);
   // DAMAGE (user: "counted cost-wise against you at the end of a race in Story mode — shown in
   // Test but never charged")
   addRepairsLine(panel, racers);
