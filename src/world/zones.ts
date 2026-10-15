@@ -1,8 +1,8 @@
 // zones.js - the ZONES section.
 import { LEVEL } from "./state.ts";
 import { SURFACES } from "./surfaces.ts";
-import type { Subtrack, Surface, Zone } from "./types.ts";
-import { querySubtrack } from "./tyrewall.ts";
+import type { Subtrack, SubtrackHit, Surface, Zone } from "./types.ts";
+import { querySubtrackInto } from "./tyrewall.ts";
 
 // ---------------------------------------------------------------------------------------------
 // ZONES — every patch of surface on the floor, as ONE mechanism. A zone is a centred rectangle with
@@ -54,6 +54,8 @@ export function laneAt(x: number, y: number): Surface | null {
   }
   return null;
 }
+// subtrackSurfaceAt's subtrack hit, reused (no allocation per lookup)
+const SURFACE_HIT: SubtrackHit = { dist: Infinity, side: 'left', trackDist: 0, seg: null };
 /**
  * The surface of the road ribbon (sector texturing) or its curved kerbs at a point.
  * @param subtrack the level's subtrack (with sectors)
@@ -62,7 +64,7 @@ export function laneAt(x: number, y: number): Surface | null {
  * @returns the ribbon / kerb surface, or null when the point is off both
  */
 function subtrackSurfaceAt(subtrack: Subtrack, x: number, y: number): Surface | null {
-  const hit = querySubtrack(subtrack, x, y);
+  const hit = querySubtrackInto(subtrack, x, y, SURFACE_HIT);
   const halfW = subtrack.width / 2;
   if (hit.dist <= halfW) {
     const sec = subtrack.sectorAt ? subtrack.sectorAt(hit.trackDist) : null;

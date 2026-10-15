@@ -46,7 +46,14 @@ import type {
 // numbers (recordWearAt said long grass -> mud in 8 passes, the game's recordWearPoint said 6), and
 // the only test exercised the copy the game never used (CLAUDE.md rule 18).
 export const WEAR_CELL = 1.5;
-export const wearMap = new Map<string, WearCell>();
+export const wearMap = new Map<number, WearCell>();
+
+// the wear map key of cell (i, j): a number, not an "i,j" string - the wheels and the ground
+// heights look cells up thousands of times a frame and every string key was garbage (allocation
+// profile, highway). Exact for |i|, |j| < 2^20 cells (+-1500 km at WEAR_CELL 1.5 m).
+const WEAR_KEY_OFFSET = 1 << 20, WEAR_KEY_SPAN = 1 << 21;
+const wearKey = (cellI: number, cellJ: number) =>
+  (cellI + WEAR_KEY_OFFSET) * WEAR_KEY_SPAN + (cellJ + WEAR_KEY_OFFSET);
 // Cells whose surface CHANGED since the renderer last looked. The renderer bakes wear into its
 // cached ground tiles and uses this to know which tiles to repaint (render.ts drawGround). Drained
 // by it.
@@ -247,7 +254,7 @@ export function surfaceOf(base: string, cover: string | null): Surface {
 }
 
 function getCell(cellX: number, cellY: number): WearCell | null {
-  const key = cellX + ',' + cellY;
+  const key = wearKey(cellX, cellY);
   let cell = wearMap.get(key);
   if (!cell) {
     const layers = layersAt((cellX + 0.5) * WEAR_CELL, (cellY + 0.5) * WEAR_CELL);
@@ -366,14 +373,20 @@ const RUT: Record<string, { step: number; max: number; chance: number }> = {
 };
 // Rut depth at a point, BILINEAR between cell centres so the groove has smooth sides (a step would
 // be an infinite slope).
+/**
+ * The rut depth of one wear cell (0 when it is not worn).
+ * @param cellI the cell column
+ * @param cellJ the cell row
+ * @returns the depth, m
+ */
+function depthAt(cellI: number, cellJ: number): number {
+  const neighbour = wearMap.get(wearKey(cellI, cellJ));
+  return neighbour && neighbour.rut ? neighbour.rut : 0;
+}
 export function rutAt(x: number, y: number): number {
   if (wearMap.size === 0) return 0;
   const gridX = x / WEAR_CELL - 0.5, gridY = y / WEAR_CELL - 0.5;
   const i = Math.floor(gridX), j = Math.floor(gridY), fracX = gridX - i, fracY = gridY - j;
-  const depthAt = (cellI: number, cellJ: number): number => {
-    const neighbour = wearMap.get(cellI + ',' + cellJ);
-    return neighbour && neighbour.rut ? neighbour.rut : 0;
-  };
   const d00 = depthAt(i, j), d10 = depthAt(i + 1, j), d01 = depthAt(i, j + 1), d11 = depthAt(i + 1,
     j + 1);
   if (!(d00 || d10 || d01 || d11)) return 0;
@@ -383,7 +396,7 @@ export function rutAt(x: number, y: number): number {
 
 export function getWornSurface(x: number, y: number): Surface | null {
   if (wearMap.size === 0) return null;
-  const cell = wearMap.get(Math.floor(x / WEAR_CELL) + ',' + Math.floor(y / WEAR_CELL));
+  const cell = wearMap.get(wearKey(Math.floor(x / WEAR_CELL), Math.floor(y / WEAR_CELL)));
   return cell ? surfaceOf(cell.base, cell.cover) : null;
 }
 

@@ -96,10 +96,11 @@ export function onTrack<T extends object>(
  * @param segs the subtrack's segments
  * @param probeX world x
  * @param probeY world y
- * @returns the hit, or null when nothing is within half width + 3 m
+ * @param out the hit to write
+ * @returns the hit (out), or null when nothing is within half width + 3 m
  */
 function queryNearHint(
-  subtrack: Subtrack, segs: SubSeg[], probeX: number, probeY: number,
+  subtrack: Subtrack, segs: SubSeg[], probeX: number, probeY: number, out: SubtrackHit,
 ): SubtrackHit | null {
   const count = segs.length, lim = (subtrack.width / 2 + 3) ** 2;
   let bestDist2 = Infinity, bestIndex = -1, bestFrac = 0;
@@ -115,10 +116,8 @@ function queryNearHint(
   if (bestDist2 < lim) {
     const segment = segs[bestIndex],
       cross = segment.dx * (probeY - segment.ay) - segment.dy * (probeX - segment.ax);
-    return {
-      dist: Math.sqrt(bestDist2), side: cross > 0 ? 'left' : 'right',
-      trackDist: subtrack.pts[bestIndex].dist + bestFrac * segment.len,
-      seg: bestIndex };
+    return writeHit(out, Math.sqrt(bestDist2), cross > 0 ? 'left' : 'right',
+      subtrack.pts[bestIndex].dist + bestFrac * segment.len, bestIndex);
   }
   return null;
 }
@@ -142,10 +141,12 @@ function gridCandidates(subtrack: Subtrack, probeX: number, probeY: number): num
  * @param cand candidate segment indices, or null to scan every segment
  * @param probeX world x
  * @param probeY world y
- * @returns the nearest hit
+ * @param out the hit to write
+ * @returns the nearest hit (out)
  */
 function scanSegments(
   subtrack: Subtrack, segs: SubSeg[], cand: number[] | null, probeX: number, probeY: number,
+  out: SubtrackHit,
 ): SubtrackHit {
   let minD = Infinity;
   let bestSide: 'left' | 'right' = 'left';
@@ -174,18 +175,59 @@ function scanSegments(
       bestSeg = i;
     }
   }
-  return { dist: Math.sqrt(minD), side: bestSide, trackDist: bestTrackDist, seg: bestSeg };
+  return writeHit(out, Math.sqrt(minD), bestSide, bestTrackDist, bestSeg);
 }
+
+/**
+ * Writes a subtrack hit into a reused object.
+ * @param out the hit to write
+ * @param dist distance from the centreline, m
+ * @param side which side of the centreline
+ * @param trackDist distance along the track, m
+ * @param seg the nearest segment, or null
+ * @returns out
+ */
+function writeHit(out: SubtrackHit, dist: number, side: 'left' | 'right', trackDist: number,
+    seg: number | null) {
+  out.dist = dist; out.side = side; out.trackDist = trackDist; out.seg = seg;
+  return out;
+}
+
+/**
+ * The nearest point of the subtrack to a probe: distance, side, distance along, segment.
+ * Allocates a fresh hit; the per-step height and surface lookups use querySubtrackInto.
+ * @param subtrack the subtrack
+ * @param probeX world x
+ * @param probeY world y
+ * @returns the hit
+ */
 export function querySubtrack(subtrack: Subtrack, probeX: number, probeY: number): SubtrackHit {
-  if (!subtrack || !subtrack.segs) return { dist: Infinity, side: 'left', trackDist: 0 };
+  return querySubtrackInto(subtrack, probeX, probeY,
+    { dist: Infinity, side: 'left', trackDist: 0, seg: null });
+}
+
+/**
+ * querySubtrack without allocating: the hit is written into `out` (CLAUDE.md: no allocation in
+ * per-frame code; the height and surface lookups run thousands of times a frame and their hit
+ * objects were the largest source of garbage while driving). The caller must use the hit before
+ * the next query into the same object.
+ * @param subtrack the subtrack
+ * @param probeX world x
+ * @param probeY world y
+ * @param out the hit to write
+ * @returns out
+ */
+export function querySubtrackInto(subtrack: Subtrack, probeX: number, probeY: number,
+    out: SubtrackHit): SubtrackHit {
+  if (!subtrack || !subtrack.segs) return writeHit(out, Infinity, 'left', 0, null);
   const segs = subtrack.segs;
   if (subtrack === qsHintSub) {
-    const near = queryNearHint(subtrack, segs, probeX, probeY);
+    const near = queryNearHint(subtrack, segs, probeX, probeY, out);
     if (near) return near;
   }
   const cand = gridCandidates(subtrack, probeX, probeY);
-  if (subtrack.grid && !cand) return { dist: Infinity, side: 'left', trackDist: 0, seg: null };
-  return scanSegments(subtrack, segs, cand, probeX, probeY);
+  if (subtrack.grid && !cand) return writeHit(out, Infinity, 'left', 0, null);
+  return scanSegments(subtrack, segs, cand, probeX, probeY, out);
 }
 
 export function distToSubtrack(subtrack: Subtrack, probeX: number, probeY: number): number {

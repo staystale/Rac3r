@@ -2,7 +2,7 @@
 // lab.js.
 import { KERB_RIDGE, KERB_RIDGE_L } from "./bounds.ts";
 import { LEVEL } from "./state.ts";
-import { querySubtrack } from "./tyrewall.ts";
+import { querySubtrack, querySubtrackInto } from "./tyrewall.ts";
 import { rutAt, layersAt } from "./wear.ts";
 import type { Bump, Camber, Level, NatCell, Slope, Subtrack, SubtrackHit } from "./types.ts";
 
@@ -183,6 +183,8 @@ function addCurvedKerbHeights(height: number, track: Subtrack, hit: SubtrackHit)
   }
   return height;
 }
+// bumpAt's subtrack hit, reused (no allocation per lookup); bumpAt never runs inside itself
+const BUMP_HIT: SubtrackHit = { dist: Infinity, side: 'left', trackDist: 0, seg: null };
 export function bumpAt(x: number, y: number, smooth = false): number {
   const list = LEVEL.bumps;
   // ONE subtrack query per lookup, shared by the banking, the camber and the curved kerbs. MEASURED
@@ -190,7 +192,7 @@ export function bumpAt(x: number, y: number, smooth = false): number {
   // tile cost ~12 ms to shade on a PC.
   const track = LEVEL.subtrack;
   const hit = track && (LEVEL.bankAngle || LEVEL.camber || (!smooth && track.curvedKerbs))
-    ? querySubtrack(track, x, y) : null;
+    ? querySubtrackInto(track, x, y, BUMP_HIT) : null;
   let height = bankHeightAt(x, y, hit) + camberHeightAt(x, y, hit) - rutAt(x, y)
     + naturalHeightAt(x, y);
   ensureBumpGrid(list);
