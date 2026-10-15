@@ -64,7 +64,12 @@ void main() {
 }`;
 
 // world positions are taken relative to the camera (camTexel, camFromPatch are computed in double
-// precision on the CPU), so a highway many km long keeps texel precision in a 32-bit float
+// precision on the CPU), so a highway many km long keeps texel precision in a 32-bit float.
+// Every texel is a FINISHED colour (the texture is baked over its base and snapped to the palette
+// on the CPU, glpaint.ts bakeSurface; a flat patch's base is snapped too; the lab glow per texel),
+// and a pixel only blends the texels under it: snapping AFTER the blend turned each texel edge's
+// one-pixel glide into whole-pixel jumps, so texels flicked between widths as they moved (owner:
+// "surface texture micro judder at certain zoom levels"). Patch edges blend the same way.
 const FRAGMENT = `#version 300 es
 precision highp float;
 uniform float canvasHeight;  // device px
@@ -75,8 +80,8 @@ uniform vec2 camTexel;       // camera position in texels, wrapped to the textur
 uniform vec2 camFromPatch;   // camera minus patch centre, m
 uniform vec4 shape;          // half width, half height (m), cos and sin of the rotation
 uniform float radius;        // corner radius, m
-uniform vec4 base;           // premultiplied RGBA
-uniform sampler2D tex;
+uniform vec4 base;           // premultiplied RGBA, snapped to the palette
+uniform sampler2D tex;       // the baked surface: base + texture, snapped, opaque
 uniform float texSize;       // texels per side (0 = no texture)
 uniform vec2 camFromOrigin;  // the camera position, m (only the lab floor reads it)
 uniform float gridSpacing;   // m, 0 = no grid
@@ -94,26 +99,6 @@ vec4 snapToPalette(vec4 shade) {
   return vec4(uvec4(packed, packed >> 8, packed >> 16, 255u) & 255u) / 255.0;
 }
 
-// the lab floor's glow pool, then its grid lines (one texel wide, on the texel grid)
-vec4 labFloor(vec4 ground, vec2 fromOrigin, float scale) {
-  if (glowRadius > 0.0) {
-    vec4 glow = mix(glowInner, glowOuter, clamp(length(fromOrigin) / glowRadius, 0.0, 1.0));
-    ground = glow + ground * (1.0 - glow.a);
-  }
-  if (gridSpacing <= 0.0) return ground;
-  vec2 nearest = floor(fromOrigin / gridSpacing + 0.5) * gridSpacing;
-  float cover;
-  if (scale >= 1.0) {
-    bvec2 onLine = equal(floor(fromOrigin * texPerMetre), floor(nearest * texPerMetre));
-    cover = any(onLine) ? 1.0 : 0.0;
-  } else {
-    // a line thinner than a pixel: its share of the pixel
-    vec2 pixels = abs(fromOrigin - nearest) * devPerMetre;
-    cover = scale * clamp(1.0 - min(pixels.x, pixels.y), 0.0, 1.0);
-  }
-  return gridColour * cover + ground * (1.0 - gridColour.a * cover);
-}
-
 // signed distance from a rounded rectangle, in the patch frame (m)
 float patchDistance(vec2 fromCamera) {
   vec2 world = fromCamera + camFromPatch;
@@ -122,31 +107,68 @@ float patchDistance(vec2 fromCamera) {
   return length(max(edge, 0.0)) + min(max(edge.x, edge.y), 0.0) - radius;
 }
 
+// a flat patch at a point: its base, or the lab floor's glow (snapped) over it
+vec4 flatGround(vec2 fromOrigin) {
+  if (glowRadius <= 0.0) return base;
+  vec4 glow = mix(glowInner, glowOuter, clamp(length(fromOrigin) / glowRadius, 0.0, 1.0));
+  return snapToPalette(glow + base * (1.0 - glow.a));
+}
+
+// one texel of the patch, by its index (camera-relative texels): the baked surface, or the flat
+// ground with the lab grid lines (one texel wide, on the texel grid)
+vec4 texelColour(vec2 index) {
+  if (texSize > 0.0) return texelFetch(tex, ivec2(mod(index, texSize)), 0);
+  vec2 fromOrigin = (index + 0.5 - camTexel) / texPerMetre + camFromOrigin;
+  vec4 ground = flatGround(fromOrigin);
+  if (gridSpacing <= 0.0) return ground;
+  vec2 nearest = floor(fromOrigin / gridSpacing + 0.5) * gridSpacing;
+  bvec2 onLine = equal(floor(fromOrigin * texPerMetre), floor(nearest * texPerMetre));
+  return any(onLine) ? gridColour + ground * (1.0 - gridColour.a) : ground;
+}
+
+// texels at least a screen pixel wide: the sharp-pixel filter's blend of the up to four texels
+// under the pixel, each counted only if its centre is inside the patch
+vec4 magnified(vec2 texel, float scale) {
+  vec2 cell = floor(texel);
+  vec2 centre = fract(texel) - 0.5;
+  vec2 region = vec2(0.5 - 0.5 / scale);
+  vec2 corner = cell + (centre - clamp(centre, -region, region)) * scale;
+  vec2 first = floor(corner), weight = corner - first;
+  vec4 sum = vec4(0.0);
+  for (int k = 0; k < 4; k++) {
+    vec2 step = vec2(float(k & 1), float(k >> 1));
+    vec2 share = mix(1.0 - weight, weight, step);
+    if (share.x * share.y <= 0.0) continue;
+    vec2 index = first + step;
+    if (patchDistance((index + 0.5 - camTexel) / texPerMetre) > 0.0) continue;
+    sum += texelColour(index) * share.x * share.y;
+  }
+  return sum;
+}
+
+// texels smaller than a pixel: the mipmapped surface (or the flat ground with the grid's share of
+// the pixel), its edge covering the pixel by the patch's distance
+vec4 minified(vec2 fromCamera, vec2 texel, float scale) {
+  float cover = clamp(0.5 - patchDistance(fromCamera) * devPerMetre, 0.0, 1.0);
+  if (texSize > 0.0) return texture(tex, texel / texSize) * cover;
+  vec2 fromOrigin = fromCamera + camFromOrigin;
+  vec4 ground = flatGround(fromOrigin);
+  if (gridSpacing > 0.0) {
+    vec2 nearest = floor(fromOrigin / gridSpacing + 0.5) * gridSpacing;
+    vec2 pixels = abs(fromOrigin - nearest) * devPerMetre;
+    float line = scale * clamp(1.0 - min(pixels.x, pixels.y), 0.0, 1.0);
+    ground = gridColour * line + ground * (1.0 - gridColour.a * line);
+  }
+  return ground * cover;
+}
+
 void main() {
   vec2 device = vec2(gl_FragCoord.x, canvasHeight - gl_FragCoord.y);
   vec2 fromCamera = (device - cameraPx) / devPerMetre;
   vec2 texel = fromCamera * texPerMetre + camTexel;
   float scale = devPerMetre / texPerMetre;
-  vec4 surface = vec4(0.0);
-  vec2 samplePoint = fromCamera;
-  if (scale >= 1.0) {
-    // sharp-pixel filter: flat inside a texel, a one-pixel blend across its edge
-    vec2 cell = floor(texel);
-    vec2 centre = fract(texel) - 0.5;
-    vec2 region = vec2(0.5 - 0.5 / scale);
-    vec2 offset = (centre - clamp(centre, -region, region)) * scale + 0.5;
-    samplePoint = (cell + 0.5 - camTexel) / texPerMetre;
-    if (patchDistance(samplePoint) > 0.0) discard;
-    if (texSize > 0.0) surface = textureLod(tex, (cell + offset) / texSize, 0.0);
-  } else {
-    if (patchDistance(fromCamera) > 0.0) discard;
-    if (texSize > 0.0) surface = texture(tex, texel / texSize);
-  }
-  colour = surface + base * (1.0 - surface.a);
-  if (gridSpacing > 0.0 || glowRadius > 0.0) {
-    colour = labFloor(colour, samplePoint + camFromOrigin, scale);
-  }
-  colour = snapToPalette(colour);
+  colour = scale >= 1.0 ? magnified(texel, scale) : minified(fromCamera, texel, scale);
+  if (colour.a <= 0.0) discard;
 }`;
 
 const UNIFORMS = [
@@ -199,29 +221,104 @@ function buildPaintQuad(webgl: WebGL2RenderingContext, program: WebGLProgram) {
 }
 
 /**
- * A surface texture on the GPU, uploaded the first time it is drawn: premultiplied, repeating,
+ * The palette colour of a pixel (the tiles' 5-bit-a-channel lookup, tilesPalette.ts).
+ * @param lookup the palette lookup, ABGR
+ * @param pixel the pixel, ABGR
+ * @returns the snapped pixel, ABGR, opaque
+ */
+const snapPixel = (lookup: Uint32Array, pixel: number) => lookup[(((pixel & 255) >> 3) << 10)
+  | ((((pixel >> 8) & 255) >> 3) << 5) | (((pixel >> 16) & 255) >> 3)];
+
+/**
+ * A surface baked for the GPU: its base colour, the texture over it, every pixel snapped to the
+ * palette - finished texels, so the shader only blends them (snapping after a blend made texel
+ * edges jump whole pixels).
+ * @param source the texture canvas (textures.ts)
+ * @param base the CSS base colour under it
+ * @param lookup the palette lookup
+ * @returns the pixels, opaque
+ */
+function bakeSurface(source: HTMLCanvasElement, base: string, lookup: Uint32Array) {
+  const canvas = document.createElement('canvas');
+  canvas.width = source.width;
+  canvas.height = source.height;
+  const gfx = canvas.getContext('2d', { willReadFrequently: true })!;
+  gfx.fillStyle = base;
+  gfx.fillRect(0, 0, canvas.width, canvas.height);
+  gfx.drawImage(source, 0, 0);
+  const image = gfx.getImageData(0, 0, canvas.width, canvas.height);
+  const pixels = new Uint32Array(image.data.buffer);
+  for (let i = 0; i < pixels.length; i++) pixels[i] = snapPixel(lookup, pixels[i]);
+  return image;
+}
+
+/**
+ * A CSS colour as RGBA 0..1 with its RGB snapped to the palette (a flat patch's base), cached.
+ * @param cache the snapped colours
+ * @param lookup the palette lookup
+ * @param parseColour CSS colour -> RGBA 0..1
+ * @param colour the CSS colour
+ * @returns the snapped RGBA
+ */
+function snappedColour(cache: Map<string, number[]>, lookup: Uint32Array,
+    parseColour: (colour: string) => number[], colour: string) {
+  let rgba = cache.get(colour);
+  if (!rgba) {
+    const [red, green, blue, alpha] = parseColour(colour);
+    const pixel = snapPixel(lookup, Math.round(red * 255) | (Math.round(green * 255) << 8)
+      | (Math.round(blue * 255) << 16));
+    rgba = [(pixel & 255) / 255, ((pixel >> 8) & 255) / 255, ((pixel >> 16) & 255) / 255, alpha];
+    cache.set(colour, rgba);
+  }
+  return rgba;
+}
+
+/**
+ * Deletes every baked surface and snapped colour (a new palette makes them all out of date).
+ * @param webgl the WebGL2 context
+ * @param textures the baked surfaces
+ * @param snapped the snapped colours
+ */
+function dropBaked(webgl: WebGL2RenderingContext, textures: SurfaceCache,
+    snapped: Map<string, number[]>) {
+  for (const byBase of textures.values()) {
+    for (const entry of byBase.values()) webgl.deleteTexture(entry.tex);
+  }
+  textures.clear();
+  snapped.clear();
+}
+
+/** The baked surfaces on the GPU: texture canvas -> base colour -> texture. */
+type SurfaceCache = Map<HTMLCanvasElement, Map<string, SurfaceTex>>;
+
+/**
+ * A baked surface on the GPU (bakeSurface), uploaded the first time it is drawn: repeating,
  * mipmapped (trilinear when a texel is smaller than a screen pixel).
  * @param webgl the WebGL2 context
- * @param cache the texture cache
- * @param source the texture canvas (textures.ts)
+ * @param cache the baked surfaces
+ * @param patch the patch (its texture and base colour)
+ * @param lookup the palette lookup
  * @param frame the frame number
  * @returns the texture, bound
  */
-function surfaceTexture(webgl: WebGL2RenderingContext, cache: Map<HTMLCanvasElement, SurfaceTex>,
-    source: HTMLCanvasElement, frame: number) {
-  let entry = cache.get(source);
+function surfaceTexture(webgl: WebGL2RenderingContext, cache: SurfaceCache, patch: GroundPatch,
+    lookup: Uint32Array, frame: number) {
+  const source = patch.texture!;
+  let byBase = cache.get(source);
+  if (!byBase) cache.set(source, byBase = new Map());
+  let entry = byBase.get(patch.base);
   if (!entry) {
     const tex = webgl.createTexture()!;
     webgl.bindTexture(webgl.TEXTURE_2D, tex);
-    webgl.pixelStorei(webgl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
-    webgl.texImage2D(webgl.TEXTURE_2D, 0, webgl.RGBA, webgl.RGBA, webgl.UNSIGNED_BYTE, source);
+    webgl.texImage2D(webgl.TEXTURE_2D, 0, webgl.RGBA, source.width, source.height, 0, webgl.RGBA,
+      webgl.UNSIGNED_BYTE, bakeSurface(source, patch.base, lookup).data);
     webgl.texParameteri(webgl.TEXTURE_2D, webgl.TEXTURE_WRAP_S, webgl.REPEAT);
     webgl.texParameteri(webgl.TEXTURE_2D, webgl.TEXTURE_WRAP_T, webgl.REPEAT);
     webgl.texParameteri(webgl.TEXTURE_2D, webgl.TEXTURE_MAG_FILTER, webgl.LINEAR);
     webgl.texParameteri(webgl.TEXTURE_2D, webgl.TEXTURE_MIN_FILTER, webgl.LINEAR_MIPMAP_LINEAR);
     webgl.generateMipmap(webgl.TEXTURE_2D);
     entry = { tex, used: frame };
-    cache.set(source, entry);
+    byBase.set(patch.base, entry);
   }
   webgl.bindTexture(webgl.TEXTURE_2D, entry.tex);
   entry.used = frame;
@@ -234,13 +331,15 @@ function surfaceTexture(webgl: WebGL2RenderingContext, cache: Map<HTMLCanvasElem
  * @param cache the texture cache
  * @param frame the frame number
  */
-function evictIdleTextures(webgl: WebGL2RenderingContext,
-    cache: Map<HTMLCanvasElement, SurfaceTex>, frame: number) {
-  for (const [source, entry] of cache) {
-    if (frame - entry.used > SURFACE_IDLE_FRAMES) {
-      webgl.deleteTexture(entry.tex);
-      cache.delete(source);
+function evictIdleTextures(webgl: WebGL2RenderingContext, cache: SurfaceCache, frame: number) {
+  for (const [source, byBase] of cache) {
+    for (const [base, entry] of byBase) {
+      if (frame - entry.used > SURFACE_IDLE_FRAMES) {
+        webgl.deleteTexture(entry.tex);
+        byBase.delete(base);
+      }
     }
+    if (!byBase.size) cache.delete(source);
   }
 }
 
@@ -313,11 +412,13 @@ export function createGlPaint(webgl: WebGL2RenderingContext,
   const vao = buildPaintQuad(webgl, program);
   const uniforms = {} as Uniforms;
   for (const name of UNIFORMS) uniforms[name] = webgl.getUniformLocation(program, name);
-  const textures = new Map<HTMLCanvasElement, SurfaceTex>();
+  const textures: SurfaceCache = new Map();
   let frameNo = 0;
   const palette: PaletteTex = { lookup: null, tex: null };
-  const premultiplied = (location: WebGLUniformLocation | null, colour: string) => {
-    const [red, green, blue, alpha] = parseColour(colour);
+  const snapped = new Map<string, number[]>();
+  const premultiplied = (location: WebGLUniformLocation | null, colour: string, snap = false) => {
+    const [red, green, blue, alpha] = snap
+      ? snappedColour(snapped, palette.lookup!, parseColour, colour) : parseColour(colour);
     webgl.uniform4f(location, red * alpha, green * alpha, blue * alpha, alpha);
   };
 
@@ -352,8 +453,8 @@ export function createGlPaint(webgl: WebGL2RenderingContext,
     webgl.uniform4f(uniforms.shape, patch.w / 2, patch.h / 2, Math.cos(patch.rot),
       Math.sin(patch.rot));
     webgl.uniform1f(uniforms.radius, Math.min(patch.radius, patch.w / 2, patch.h / 2));
-    premultiplied(uniforms.base, patch.base);
-    if (patch.texture) surfaceTexture(webgl, textures, patch.texture, frameNo);
+    premultiplied(uniforms.base, patch.base, true);
+    if (patch.texture) surfaceTexture(webgl, textures, patch, palette.lookup!, frameNo);
     webgl.uniform1f(uniforms.texSize, patch.texture ? patch.texture.width : 0);
     webgl.uniform1f(uniforms.gridSpacing, patch.gridSpacing);
     premultiplied(uniforms.gridColour, patch.gridColour);
@@ -372,6 +473,7 @@ export function createGlPaint(webgl: WebGL2RenderingContext,
      */
     paint(size: { width: number; height: number }, camera: PaintCamera, list: PaintList) {
       frameNo++;
+      if (palette.lookup !== list.palette) dropBaked(webgl, textures, snapped);
       bindPalette(webgl, palette, list.palette);
       const view: PaintView = { width: size.width, height: size.height, camera };
       frameUniforms(view);
