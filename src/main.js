@@ -865,6 +865,64 @@ const lapState = {
 };
 game.lap = lapState;
 
+/**
+ * Updates the furthest point reached along the circuit, from the car's nearest track point.
+ * @param {{dist: number}} closestPt the nearest track point
+ * @param {object} car the car
+ * @param {number} total the circuit length
+ * @returns {number} the track distance of the nearest point
+ */
+function advanceTrackProgress(closestPt, car, total) {
+  const curDist = closestPt.dist;
+  game.trackD = curDist;
+  const off = (car.x - closestPt.x) * closestPt.nx + (car.y - closestPt.y) * closestPt.ny;
+  if (Math.abs(off) <= LEVEL.subtrack.width / 2) lastOnTrack = { dist: curDist, off };
+  if (trackProgress === 0 && curDist < total * 0.20) {
+    trackProgress = curDist;
+  } else if (curDist > trackProgress && curDist - trackProgress < total * 0.30) {
+    trackProgress = curDist;
+  }
+  return curDist;
+}
+
+/**
+ * Runs the lap timer: starts it, notes the halfway mark and counts the finish-line crossing.
+ * @param {number} curDist the track distance of the car's nearest point
+ * @param {number} total the circuit length
+ * @param {number} speed the car's speed
+ */
+function stepLapTiming(curDist, total, speed) {
+  // Start timing when vehicle moves off the grid
+  if (!lapState.started && speed > 0.8 && !startHeld()) {
+    lapState.started = true;
+    lapState.lap = 1;
+    lapState.lapTime = 0;
+  }
+
+  if (lapState.started) {
+    if (trackProgress > total * 0.45) {
+      lapState.halfway = true;
+    }
+    // Crossing start/finish line: car completed circuit (> 75%) and wraps back across line (<
+    // 15%)
+    if (lapState.halfway && trackProgress > total * 0.75 && curDist < total * 0.15) {
+      lapState.lastTime = lapState.lapTime;
+      if (lapState.bestTime === null || lapState.lapTime < lapState.bestTime) {
+        lapState.bestTime = lapState.lapTime;
+      }
+      lapState.lap++;
+      lapState.lapTime = 0;
+      lapState.halfway = false;
+      trackProgress = curDist;
+    }
+  }
+}
+
+/**
+ * Tracks the car's progress along the circuit and its lap timing.
+ * @param {object} car the player car
+ * @param {number} dt the step in seconds
+ */
 function updateRecoveryTracking(car, dt) {
   const speed = Math.hypot(car.vx, car.vy);
 
@@ -883,40 +941,8 @@ function updateRecoveryTracking(car, dt) {
       }
     }
     if (closestPt && closestD2 < (LEVEL.subtrack.width * 1.6) ** 2) {
-      const curDist = closestPt.dist;
-      game.trackD = curDist;
-      const off = (car.x - closestPt.x) * closestPt.nx + (car.y - closestPt.y) * closestPt.ny;
-      if (Math.abs(off) <= LEVEL.subtrack.width / 2) lastOnTrack = { dist: curDist, off };
-      if (trackProgress === 0 && curDist < total * 0.20) {
-        trackProgress = curDist;
-      } else if (curDist > trackProgress && curDist - trackProgress < total * 0.30) {
-        trackProgress = curDist;
-      }
-
-      // Start timing when vehicle moves off the grid
-      if (!lapState.started && speed > 0.8 && !startHeld()) {
-        lapState.started = true;
-        lapState.lap = 1;
-        lapState.lapTime = 0;
-      }
-
-      if (lapState.started) {
-        if (trackProgress > total * 0.45) {
-          lapState.halfway = true;
-        }
-        // Crossing start/finish line: car completed circuit (> 75%) and wraps back across line (<
-        // 15%)
-        if (lapState.halfway && trackProgress > total * 0.75 && curDist < total * 0.15) {
-          lapState.lastTime = lapState.lapTime;
-          if (lapState.bestTime === null || lapState.lapTime < lapState.bestTime) {
-            lapState.bestTime = lapState.lapTime;
-          }
-          lapState.lap++;
-          lapState.lapTime = 0;
-          lapState.halfway = false;
-          trackProgress = curDist;
-        }
-      }
+      const curDist = advanceTrackProgress(closestPt, car, total);
+      stepLapTiming(curDist, total, speed);
     }
 
     if (lapState.started) {
