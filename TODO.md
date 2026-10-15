@@ -11,8 +11,13 @@ Foreman taking over? Also read `docs/foreman-handover.md`.
   step), `tools/renderhash.mjs` (pixels) - save the reference on the base commit, then compare.
 - Work is foremanned with Bigeon (worker PC + `node ../Bigeon/bin/bigeon.ts`); see `CLAUDE.md`.
 - Do not publish to itch.io until the owner approves the converted game.
-- Ground on the GPU: step A done (owner phone test pending); step B next (section below), then the
-  owner's queued features.
+- HANDOVER: docs/foreman-handover.md (2026-10-15 evening) - read it first. Measure judder on the
+  owner's iPhone with ?report=1 and tools/phonereport.mjs, not only on the laptop.
+- NOW: the NEW HIGHWAY, built from the ground up and phone-measured at every step (the old one hitches
+  every ~150 m of new road). Step 1 (src/world/levels/straight-outta.ts) is written but not working /
+  not registered: the road is not drawn beyond ~100 m and the game runs at 10 fps.
+- Then: ground on the GPU phase C (cars, props as GPU sprites), one canvas, delete the old tile
+  machinery (all behind ?gpupaint=1 until the owner approves). Frame pacing is done and default.
 
 ## CODE QUALITY OVERHAUL
 

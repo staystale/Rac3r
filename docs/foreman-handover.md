@@ -1,41 +1,95 @@
 # Foreman handover
 
 For the next foreman (a Claude session) taking over RAC3R. Read `CLAUDE.md`, then `TODO.md` ("Where we
-are"), then this page. `ENGINE.md` is the architecture map.
+are"), then this page. `ENGINE.md` is the architecture map. Last updated 2026-10-15 (evening).
 
-## Where things stand
+## READ FIRST: the owner's phone is the yardstick
 
-- The code quality overhaul is DONE (phases 0-10): lint 0 problems, every function under 80 lines and
-  complexity 15, every file under 800 lines, docs trimmed, CI on every push.
-- Code comments are clean: no dates, task numbers or quotes; owner reasons are "(requirement: ...)" notes.
-- GROUND ON THE GPU, step A is DONE (main): `src/render/glground.ts` draws the cached ground tiles with
-  WebGL2 at screen resolution (`?glground=0` = the old 2D path). It removed the flicker WITHIN a zoom
-  step (5.7 % -> 1.4 % of pixels per tiny zoom change). The owner still sees **tiny shifts in the surface
-  textures**: they happen when the camera crosses a ZOOM STEP, because each step's tiles are a separate
-  painting at a different resolution (zoomcheck across 0.9 -> 0.3: spikes of 4.9 / 6.1 / 9.6 % at the
-  switches, 1-3 % elsewhere). Not the palette snap, not the hill shading (both measured), and a filtered
-  texture shrink (branch worker/224) barely helps. A fade between steps was tried and REJECTED by the
-  owner ("I don't want dissolves").
-- AGREED NEXT (owner approved 2b; start it): the ground at ONE fixed pixel density drawn by the GPU every
-  frame, in world coordinates - no tiles, no zoom steps - like the car sprites (17.3 px per metre). A
-  CPU version at fixed density was estimated at ~2 M px/s to paint at highway speed fully zoomed out,
-  about what a phone-speed CPU manages (~1.7 M px/s), so the GPU is the robust route; it also removes
-  tile painting from the highway (today ~17 ms a tile, the old highway judder). Phases, each behind a
-  switch and compared by screenshot before it becomes the default:
-  - B1 (M): GPU ground skeleton: base floor and surface zones, sampling the existing pre-painted
-    surface textures (`render/textures.ts`, uploaded once, repeat + mipmaps) in world space.
-  - B2 (M/L): track ribbon, lanes, dashes, kerbs, paint, runoff, bumps as GPU geometry; pixel edges
-    snapped to the fixed world texel grid.
-  - B3 (M): wear, puddles, snow (a data texture of the wear grid, updated only where it changes),
-    patches.
-  - B4 (M): hill shading (a height texture), the palette, the fly-in, highway streaming.
-  - B5 (S/M): zoomcheck shows no step shifts, framecheck (highway especially), screenshots, the owner's
-    phone test; then make it the default and keep the 2D path as the fallback.
-  Owner phone tests after B2 and at the end. Marks, props, cars, particles and the HUD stay 2D.
-- Then the owner's queued features (TODO.md "Open items", `docs/specs/`).
-- Known failing checks that are older than the overhaul (TODO.md "Known bugs"): racecheck case C,
-  hwracecheck, trafficcheck, treadmillcheck; solidcheck is timing-dependent. The suite runner marks them
-  KNOWN-FAIL.
+The owner plays on an **iPhone 17 Pro Max, Safari (iOS 18.7)**, often from the **home-screen icon** (a
+full-screen web app; `manifest.webmanifest`). Desktop Chrome with the CPU slowed (`framecheck` and
+similar tools) did NOT reproduce what the owner sees: several changes measured better on the laptop and
+felt worse on the phone. So:
+
+- **`?report=1`** makes the phone post its frame timings to the test server every 300 frames
+  (`src/ui/report.ts` -> `serve.mjs` `/__report` -> the JSON-lines file in `RAC3R_REPORT_LOG`; the laptop's
+  test server writes `GamesStudio/tools/logs/rac3r-phone-report.jsonl`). Each frame: dt, sim ms, draw ms,
+  physics steps, tiles painted, highway slides, zoom (css px per m), GPU uploads, mipmap builds; plus
+  screen size, dpr, browser and whether it ran from the home screen.
+- **`node tools/phonereport.mjs <log> [--since <ISO time>]`** reads it: per run (session + level) the slow
+  frames (> 25 ms), whether our JS was heavy in them, and by zoom band. Log times are UTC.
+- Before proposing ANY judder test, read what was already tried: `docs/judder-assessment.md`, TODO.md
+  "HIGHWAY JUDDER" (10-13) and this page. The owner had to point out twice on 10-15 that a test had been
+  done before (memory churn, sound).
+
+## Where things stand (2026-10-15 evening)
+
+**Judder - what is known**
+- FIXED (default): **frame pacing** (`src/game/pacing.ts`, `?vsync=0` = off). Safari reports frame times
+  rounded to whole ms (16 / 17 / 18, pairs like 24 + 10) while the display runs 16.68 ms; the game moved
+  the world unevenly = the constant fine "texture dance" on every level, the 10-08 original too. Owner:
+  better.
+- KNOWN, outside our code: **Safari's touch processing** costs frames (10-13: a bare page with fingers
+  dragging 64 drops a minute, the game's handling 22, without the extra touch blockers 11, no fingers 0;
+  sound was ruled out then). Playing from the **home screen roughly halves** the slow frames (10-15). The
+  owner does NOT want an app wrapper for now.
+- On the phone our code is ~1 ms sim + ~3 ms draw a frame. Slow frames on 10-15 (home screen, GPU path):
+  Lab ~0.2-0.5 %, highway ~0.5 %.
+- **The highway still hitches about every 140-170 m of new road** (regular, at any speed, also hands-off
+  with the autopilot, and with drawing switched off on 10-13). Not GPU uploads (6 of 44 slow frames), not
+  road builds (2 of 44). Cause unknown. Desktop Chrome GC tracing could not single out garbage collection
+  (circuits collect as much and do not hitch).
+- `preserveDrawingBuffer: true` on the WebGL canvas is NEEDED on the iPhone (off: Lab 0.6 % slow, on:
+  0.37 %; owner "better"). Do not optimise it away again.
+
+**Decided, in progress: a NEW HIGHWAY built from the ground up, phone-measured at every step** (owner,
+10-13 and again 10-15). Bisect by construction: step 1 an empty endless straight; then terrain + shading,
+props and fences, fields, traffic; the step where the per-distance hitch appears is the cause. The new
+streaming must do its per-chunk work in small even slices.
+- **Step 1 status: NOT WORKING YET.** `src/world/levels/straight-outta.ts` ("Straight Outta Swindon": a
+  30 km straight on grass, built once, ghost return segment) is written but NOT registered in
+  `levels/index.ts`. First try (laptop, phone size, `?gpupaint=1`, autopilot 140): the road was not drawn
+  beyond the first ~100 m and the game ran at 10 fps - the road drawing (render/road.ts ribbon, tiles)
+  does not cope with a 30 km subtrack; and the AI drove ~60 km/h near the start (the ghost return reads
+  as a 180 deg turn in its speed profile). Next: find why (profile one frame; probably per-tile work over
+  every centreline point), or build the straight from shorter streamed chunks - which step 2 needs
+  anyway. Register the level only when it drives and draws, then give the owner the hands-off link:
+  `/?menu=0&guide=0&rules=0&level=straight-outta&autopilot=140&gpupaint=1&zoomhold=1&report=1`.
+
+**Rendering - the fundamental issue (explained to and agreed with the owner)**
+Pixel art drawn by the CPU into a low-res buffer at a constantly changing zoom: every zoom change
+re-rasterised everything, which grew the zoom-step tile cache, stand-ins, the view lock's zoom rounding,
+the CPU palette snap, budgets... The fix is the standard design: draw everything at a fixed density on
+the GPU and apply the zoom as a GPU scale. Done so far, all behind `?gpupaint=1` (the default game is
+unchanged, renderhash SAME):
+- Floor + zones on the GPU (`render/glpaint.ts`); surfaces BAKED with their base and palette on the CPU and
+  only blended in the shader (snapping after the blend made texels jump: the owner's "micro judder at
+  certain zoom levels", fixed).
+- Hill shading on the GPU (`render/glshade.ts`): a world grid of 0.5 m cells in 8 m chunks, changed chunks
+  refreshed within a 2 ms budget.
+- The remaining tile layers (track, lanes, kerbs, wear, labels) at ONE fixed density (the zoom-1 step),
+  CPU-backed tile canvases, palette snap per texel on the GPU (`glground.ts` sink), the widest view
+  prefetched one tile a frame; a stencil masks old / new tiles; no flat overview stand-in on this path.
+- Agreed plan after the highway work: **phase C** (cars, props, marks, particles as GPU sprites at a fixed
+  density), then **one canvas**, then delete the old machinery (zoom-step tiles, stand-ins, view-lock
+  zoom rounding, CPU snap). `?glground=0` and `/original/` stay as references.
+- Camera: `?zoomhold=1` (hold the zoom, glide when the target is 20 % away, 1.6 s per halving). The owner
+  tests with it; not the default yet.
+
+**References for comparison**
+- The TRUE ORIGINAL (10-08, before the overhaul): a git worktree of 857f105 at `rac3r/original` (excluded
+  in `.git/info/exclude`), served at `<tunnel>/original/`. `?glground=0` is NOT the original (the texture
+  look changed on 10-13 / 10-14).
+- Owner test link: `<tunnel>/?zoomhold=1&gpupaint=1&report=1` (the home-screen icon). The tunnel URL is in
+  `GamesStudio/tools/logs/rac3r-tunnel.err` (never in the repo). If the tunnel restarts, the owner must
+  re-add the icon.
+
+**Owner requests queued (TODO.md):** an optional minimap on every track (rally stages most of all); the
+Lab rebuild / split (it juddered in the original too).
+
+**Test server:** `node serve.mjs` in the clone serves the WORKING TREE live - uncommitted edits reach the
+phone at once (the owner's runs during an edit can see half-done code). PIDs in
+`GamesStudio/tools/logs/rac3r-pids.txt`; restart it by PID with `RAC3R_REPORT_LOG` set. Keep it and the
+tunnel running.
 
 ## The owner's standing rules
 
@@ -109,3 +163,15 @@ commit; it is not required, and it fails on purpose for intended visual / behavi
 - Comment-only edits by script: a line starting with `* ` can be code (a multiplication continued from
   the line above), and `(; ` can be a `for` loop - check with samecode.
 - Stop processes by PID, never by image name.
+
+## Lessons from 2026-10-15
+
+- Measure on the owner's phone (`?report=1`), not only on the laptop. Safari's ms-rounded timestamps, its
+  touch processing and its compositing of two stacked canvases do not show in desktop Chrome.
+- Canvas 2D drawing is deferred until read: an "upload" or "getImageData" cost in a profile is often the
+  painting itself. Paint expensive canvases while idle (the surface textures warm at boot).
+- A pattern fill from a CPU-backed texture onto a GPU-backed canvas moves the texture on every fill
+  (2.7 s in 900 highway frames): keep tiles CPU-backed on the GPU path.
+- Spreading an object with getters copies their values once: expose live counters as functions or
+  plain object references.
+- `serve.mjs` and `index.html` have CRLF line endings: match edit patterns allowing CRLF.
