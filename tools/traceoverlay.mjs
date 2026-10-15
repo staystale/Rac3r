@@ -1,9 +1,11 @@
 // traceoverlay.mjs — draws a level's centreline + road edges over its reference map, to check a trace against the real shape.
 // node tools/traceoverlay.mjs <level> <map.png> <metresPerPx> [cx cy] -> shots/look/<level>-trace.png. (Thruston: art/ref/thruxton-map.png
 // 0.47 480 338 — game (0,0) = map centre.) Built 2026-10-04 for the Thruston re-lay.
-import { chromium } from 'file:///C:/Users/Admin/Desktop/G/GamesStudio/BitterTrade/node_modules/playwright/index.mjs';
+import { startServer, launchBrowser } from './lib/browser.mjs';
 import fs from 'fs';
 import * as L from '../src/lab.js';
+const srv = await startServer();
+process.on('exit', srv.stop);
 const [lv = 'thruston', map = 'art/ref/thruxton-map.png', mpp = '0.47', cx = '480', cy = '338'] = process.argv.slice(2);
 L.setLevel(lv);
 const st = L.LEVEL.subtrack, hw = st.width / 2;
@@ -12,7 +14,7 @@ const centre = st.pts.map(p => P(p.x, p.y)), left = st.pts.map(p => P(p.x + p.nx
 const marks = st.pts.filter((p, i) => i % 1 === 0).reduce((a, p) => { const d = Math.floor(p.dist / 100); if (!a.seen.has(d)) { a.seen.add(d); a.out.push([...P(p.x, p.y), d * 100]); } return a; }, { seen: new Set(), out: [] }).out;
 // the map's own size (PNG header), not Thruston's 960 x 676 — Castle Cum's 1280 x 1080 map was squashed (2026-10-04)
 const buf = fs.readFileSync(map), MW = buf.readUInt32BE(16), MH = buf.readUInt32BE(20);
-const b = await chromium.launch({ channel: 'msedge' });
+const b = await launchBrowser();
 const pg = await b.newPage({ viewport: { width: MW, height: MH }, deviceScaleFactor: MW > 1000 ? 1.5 : 2 });
 const img = 'data:image/png;base64,' + fs.readFileSync(map).toString('base64');
 await pg.setContent(`<canvas id=c width=${MW} height=${MH}></canvas>`);
@@ -26,3 +28,4 @@ await pg.evaluate(async ({ img, centre, left, right, marks, MW, MH }) => {
 await pg.screenshot({ path: `shots/look/${lv}-trace.png` });
 await b.close();
 console.log('lap', st.totalDist.toFixed(0), 'm, points', st.pts.length);
+srv.stop();

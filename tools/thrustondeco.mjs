@@ -1,10 +1,12 @@
 // thrustondeco.mjs — photographs Thruston's surroundings at 844x390 into shots/look/ (tyre walls, pits, paddock, aircraft,
 // hangars, woods). Positions are world x,y (not track distances) so infield items can be framed. Needs the server.
-import { chromium } from 'file:///C:/Users/Admin/Desktop/G/GamesStudio/BitterTrade/node_modules/playwright/index.mjs';
-const b = await chromium.launch({ channel: 'msedge' });
+import { startServer, launchBrowser } from './lib/browser.mjs';
+const srv = await startServer();
+process.on('exit', srv.stop);
+const b = await launchBrowser();
 const p = await (await b.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2 })).newPage();
 p.on('pageerror', (e) => console.log('ERR', e.message));
-await p.goto('http://localhost:8080/?pc=1&guide=0&menu=0&level=thruston'); await p.mouse.click(400, 200); await p.waitForTimeout(2800);
+await p.goto(srv.url + '/?pc=1&guide=0&menu=0&level=thruston'); await p.mouse.click(400, 200); await p.waitForTimeout(2800);
 // [name, track distance | null, offset | world x, world y]
 const SHOTS = [['tyres-goodwood', 650, -9], ['tyres-allard', 90, -10], ['pits', 1212, 17], ['paddock', null, -126, 95], ['planes', null, 75, 50], ['hangars', null, -122, -6]];
 for (const [n, d, a, bY] of SHOTS) {
@@ -18,3 +20,4 @@ for (const [n, d, a, bY] of SHOTS) {
   await p.screenshot({ path: `shots/look/deco-${n}.png` });
 }
 await b.close();
+srv.stop();

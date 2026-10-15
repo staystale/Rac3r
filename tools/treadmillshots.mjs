@@ -1,14 +1,16 @@
 // treadmillshots.mjs — HIGHWAY v2 in a REAL browser at phone sizes: the bench driver drives ~25 s; every frame records where the car
 // is ON SCREEN (fraction of W / H) — the treadmill promise is it never leaves; photos along the way; then a scripted REVERSE must
 // show the WRONG WAY notice. node tools/treadmillshots.mjs [preset]   -> shots/look/tm-<preset>-<size>-<n>.png
-import { chromium } from 'file:///C:/Users/Admin/Desktop/G/GamesStudio/BitterTrade/node_modules/playwright/index.mjs';
+import { startServer, launchBrowser } from './lib/browser.mjs';
+const srv = await startServer();
+process.on('exit', srv.stop);
 const preset = process.argv[2] || 'motorway';
-const b = await chromium.launch({ channel: 'msedge' });
+const b = await launchBrowser();
 for (const [w, h, tag] of [[390, 844, 'port'], [844, 390, 'land']]) {
   const ctx = await b.newContext({ viewport: { width: w, height: h }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
   const p = await ctx.newPage(), errs = [];
   p.on('pageerror', (e) => errs.push(e.message));
-  await p.goto(`http://localhost:8080/?touch=1&guide=0&menu=0&level=highway&car=saloon-rwd&hw=${preset}`); await p.touchscreen.tap(w / 2, h / 2); await p.waitForTimeout(3500);
+  await p.goto(`${srv.url}/?touch=1&guide=0&menu=0&level=highway&car=saloon-rwd&hw=${preset}`); await p.touchscreen.tap(w / 2, h / 2); await p.waitForTimeout(3500);
   await p.evaluate(async () => {
     const g = window.__game, A = await import('/src/ai/autodrive.ts'); let sub = null, drv = null;
     window.__tm = { fx0: 1, fx1: 0, fy0: 1, fy1: 0, n: 0, mode: 'drive' };
@@ -29,3 +31,4 @@ for (const [w, h, tag] of [[390, 844, 'port'], [844, 390, 'land']]) {
   await ctx.close();
 }
 await b.close();
+srv.stop();

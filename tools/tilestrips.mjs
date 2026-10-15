@@ -2,12 +2,14 @@
 // Same set-up as tilediff.mjs (tiles round the spawn at zoom steps 0, -2, -3); compares render.ts debugTile
 // vs debugTileStrips pixel by pixel and prints the cost: whole tile vs sum of strips vs worst strip.
 // node tools/tilestrips.mjs [level ...]   (default: test-track killder stage-llanfairsheepdip highway)
-import { chromium } from 'file:///C:/Users/Admin/Desktop/G/GamesStudio/BitterTrade/node_modules/playwright/index.mjs';
+import { startServer, launchBrowser } from './lib/browser.mjs';
+const srv = await startServer();
+process.on('exit', srv.stop);
 const LEVELS = process.argv.length > 2 ? process.argv.slice(2) : ['test-track', 'killder', 'stage-llanfairsheepdip', 'highway'];
-const b = await chromium.launch({ channel: 'msedge' });
+const b = await launchBrowser();
 async function paint(LV) {
   const p = await (await b.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true })).newPage();
-  await p.goto(`http://localhost:8080/?touch=1&guide=0&menu=0&rules=0&level=${LV}&traffic=0&litter=0`); await p.waitForTimeout(1500);
+  await p.goto(`${srv.url}/?touch=1&guide=0&menu=0&rules=0&level=${LV}&traffic=0&litter=0`); await p.waitForTimeout(1500);
   await p.touchscreen.tap(400, 200); await p.waitForTimeout(2500);
   const out = await p.evaluate(() => { const g = window.__game, r = g.renderer, c = g.car, T = [];
     for (const k of [0, -2, -3]) { const tw = 256 / (22 * Math.pow(2, k / 2)); const i0 = Math.floor(c.x / tw), j0 = Math.floor(c.y / tw);
@@ -28,3 +30,4 @@ for (const LV of LEVELS) {
   for (const t of T) if (t.diff) console.log(`  tile k${t.k} ${t.i},${t.j}: ${t.diff} px differ`);
 }
 await b.close();
+srv.stop();

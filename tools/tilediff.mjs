@@ -2,13 +2,15 @@
 // (http://localhost:8080/) and build B (default /shots/next/, a copy of index.html + src/), then compares pixel by pixel.
 // Both builds need render.ts debugTile(). Built 2026-10-06 for the tile-painting speed-up (render.ts paintTileInner / hillShade).
 // node tools/tilediff.mjs [level highway] [B path /shots/next/]
-import { chromium } from 'file:///C:/Users/Admin/Desktop/G/GamesStudio/BitterTrade/node_modules/playwright/index.mjs';
+import { startServer, launchBrowser } from './lib/browser.mjs';
+const srv = await startServer();
+process.on('exit', srv.stop);
 const LV = process.argv[2] || 'highway', BP = process.argv[3] || '/shots/next/index.html', AQ = process.argv[4] || '';
-const b = await chromium.launch({ channel: 'msedge' });
+const b = await launchBrowser();
 async function paint(path, q = '') {
   const p = await (await b.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true })).newPage();
   const errs = []; p.on('pageerror', (e) => errs.push(e.message));
-  await p.goto(`http://localhost:8080${path}?touch=1&guide=0&menu=0&rules=0&level=${LV}&traffic=0&litter=0${q}`); await p.waitForTimeout(1500);
+  await p.goto(`${srv.url}${path}?touch=1&guide=0&menu=0&rules=0&level=${LV}&traffic=0&litter=0${q}`); await p.waitForTimeout(1500);
   await p.touchscreen.tap(400, 200); await p.waitForTimeout(2500);
   const out = await p.evaluate(() => { const g = window.__game, r = g.renderer, c = g.car, T = [];
     for (const k of [0, -2, -3]) { const tw = 256 / (22 * Math.pow(2, k / 2)); const i0 = Math.floor(c.x / tw), j0 = Math.floor(c.y / tw);
@@ -29,3 +31,4 @@ for (let n = 0; n < A.T.length; n++) {
 }
 console.log(`ALL: ${(100 * totalDiff / totalPx).toFixed(2)} % px differ, worst tile ${(100 * worst).toFixed(2)} % | errors A ${A.errs.length ? A.errs[0] : 'none'} B ${B.errs.length ? B.errs[0] : 'none'}`);
 await b.close();
+srv.stop();
