@@ -3,13 +3,15 @@
 // (y 464) pass after pass, and after passes 1, 2, 4, 6 MEASURE, on the game canvas, how much darker the rear-wheel track is than the mud
 // 2 m beside it (contrast, 0-255 luminance), what the cells under it have worn to, and their rut depth; photograph each.
 // Wrong = contrast falling to ~0 once the cells are thick mud. node tools/_mudtracks.mjs [base, e.g. shots/next/] [tag]
-import { chromium } from 'file:///C:/Users/Admin/Desktop/G/GamesStudio/BitterTrade/node_modules/playwright/index.mjs';
+import { startServer, launchBrowser } from './lib/browser.mjs';
+const srv = await startServer();
+process.on('exit', srv.stop);
 const base = (process.argv[2] || '').replace(/^live$/, ''), tag = process.argv[3] || 'live';
-const b = await chromium.launch({ channel: 'msedge' });
+const b = await launchBrowser();
 const ctx = await b.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 1, isMobile: true, hasTouch: true });
 const p = await ctx.newPage(), errs = [];
 p.on('pageerror', (e) => errs.push(e.message));
-await p.goto(`http://localhost:8080/${base}index.html?touch=1&guide=0&menu=0&level=lab&car=saloon-rwd`); await p.touchscreen.tap(422, 195); await p.waitForTimeout(3000);
+await p.goto(`${srv.url}/${base}index.html?touch=1&guide=0&menu=0&level=lab&car=saloon-rwd`); await p.touchscreen.tap(422, 195); await p.waitForTimeout(3000);
 const Y = 464;
 const put = (x, y, hd, v) => p.evaluate(([x, y, hd, v]) => { const g = window.__game, c = g.car; c.x = x; c.y = y; c.heading = hd; c.vx = v; c.vy = 0; c.yawRate = 0; c._p = null; c.prevWheels = null;
   if (g.renderer.debugZoom) g.renderer.debugZoom(1.4); if (g.renderer.snap) g.renderer.snap(c); }, [x, y, hd, v]);
@@ -49,3 +51,4 @@ for (let pass = 1; pass <= 6; pass++) {
 }
 console.log(`page errors: ${errs.length ? errs.join(' / ') : 'none'}`);
 await b.close();
+srv.stop();

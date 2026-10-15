@@ -1,12 +1,14 @@
 // scratch: the REAL game on Highway to Hull with traffic, driven by a held throttle + the bench autodriver steering via __game hooks.
 // Prints traffic stats, fps-ish step cost, page errors; photographs portrait.  node tools/_tfgame.mjs [density]
-import { chromium } from 'file:///C:/Users/Admin/Desktop/G/GamesStudio/BitterTrade/node_modules/playwright/index.mjs';
+import { startServer, launchBrowser } from './lib/browser.mjs';
+const srv = await startServer();
+process.on('exit', srv.stop);
 const dens = process.argv[2] || '1';
-const b = await chromium.launch({ channel: 'msedge' });
+const b = await launchBrowser();
 const p = await (await b.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true })).newPage();
 const errs = []; p.on('pageerror', (e) => errs.push(e.message)); p.on('console', (m) => { if (m.type() === 'error') errs.push(m.text()); });
 const AI = +(process.argv[3] || 0);
-await p.goto(`http://localhost:8080/?touch=1&guide=0&menu=0&level=highway&traffic=${dens}`); await p.waitForTimeout(1500);
+await p.goto(`${srv.url}/?touch=1&guide=0&menu=0&level=highway&traffic=${dens}`); await p.waitForTimeout(1500);
 await p.touchscreen.tap(195, 400); await p.waitForTimeout(1200);
 if (AI) { await p.evaluate((n) => window.__game.launch('highway', 'saloon-rwd', { ai: n, diff: 2, traffic: +new URLSearchParams(location.search).get('traffic') }), AI); await p.waitForTimeout(3000);
   console.log('lights', JSON.stringify(await p.evaluate(() => ({ on: window.__game.start.on, rolling: window.__game.start.rolling, tGreen: window.__game.start.tGreen, t: +window.__game.start.t.toFixed(2), ai: window.__game.ai.length, v: window.__game.ai.map((a) => Math.round(Math.hypot(a.car.vx, a.car.vy) * 3.6)), flow: !!window.__game.flow })))); }
@@ -25,3 +27,4 @@ for (let k = 0; k < 5; k++) { await p.waitForTimeout(5000);
 await p.keyboard.up('ArrowUp');
 console.log('errors', errs.length ? errs.slice(0, 5).join(' || ') : 'none');
 await b.close();
+srv.stop();

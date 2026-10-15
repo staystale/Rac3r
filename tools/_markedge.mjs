@@ -2,15 +2,17 @@
 // cut of tyre marks in a clean line, some stay but most go"). The real game on :8080, Knobhill: stamp a test mark at the BOTTOM-RIGHT, drive
 // (teleport) to the TOP-LEFT corner, let marks.follow run, come back, and check whether the bottom-right mark is still in the layer.
 // node tools/_markedge.mjs [base, e.g. shots/next/ | live]
-import { chromium } from 'file:///C:/Users/Admin/Desktop/G/GamesStudio/BitterTrade/node_modules/playwright/index.mjs';
+import { startServer, launchBrowser } from './lib/browser.mjs';
+const srv = await startServer();
+process.on('exit', srv.stop);
 const base = (process.argv[2] || '').replace(/^live$/, '');
-const b = await chromium.launch({ channel: 'msedge' });
+const b = await launchBrowser();
 const p = await (await b.newContext({ viewport: { width: 844, height: 390 }, isMobile: true, hasTouch: true })).newPage(), errs = [];
 p.on('pageerror', (e) => errs.push(e.message));
 let bad = 0;
 // the LAB is 1000 m tall (S-B) and the layer 604 m, so it MUST still follow: expected there, reported as INFO
 for (const level of ['knobhill', 'slidden-hill', 'lab']) {
-  await p.goto(`http://localhost:8080/${base}index.html?touch=1&guide=0&menu=0&level=${level}`); await p.touchscreen.tap(422, 195); await p.waitForTimeout(2500);
+  await p.goto(`${srv.url}/${base}index.html?touch=1&guide=0&menu=0&level=${level}`); await p.touchscreen.tap(422, 195); await p.waitForTimeout(2500);
   const r = await p.evaluate(async () => {
     const g = window.__game, m = g.marks, c = g.car, wait = (ms) => new Promise((r) => setTimeout(r, ms));
     const alphaAt = (wx, wy) => { const [ox, oy] = m.origin, E = m.size / 2 / 4.2, px = Math.round((wx - ox + E) * 4.2), py = Math.round((wy - oy + E) * 4.2);
@@ -30,3 +32,4 @@ for (const level of ['knobhill', 'slidden-hill', 'lab']) {
 console.log(`page errors: ${errs.length ? errs.join(' / ') : 'none'}`);
 console.log(bad ? `MARKEDGE: ${bad} BAD` : 'MARKEDGE: ALL OK');
 await b.close();
+srv.stop();

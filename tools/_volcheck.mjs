@@ -1,11 +1,13 @@
 // _volcheck.mjs — the pause menu's SOUND slider + MUTE (2026-10-07), in the real game: open pause, check the controls are there, drag the
 // slider, mute, reload, and check both were REMEMBERED; photograph the pause pane. node tools/_volcheck.mjs [base]
-import { chromium } from 'file:///C:/Users/Admin/Desktop/G/GamesStudio/BitterTrade/node_modules/playwright/index.mjs';
+import { startServer, launchBrowser } from './lib/browser.mjs';
+const srv = await startServer();
+process.on('exit', srv.stop);
 const base = (process.argv[2] || '').replace(/^live$/, '');
-const b = await chromium.launch({ channel: 'msedge' });
+const b = await launchBrowser();
 const p = await (await b.newContext({ viewport: { width: 844, height: 390 }, isMobile: true, hasTouch: true })).newPage(), errs = [];
 p.on('pageerror', (e) => errs.push(e.message));
-const url = `http://localhost:8080/${base}index.html?touch=1&guide=0&menu=1&level=lab`;
+const url = `${srv.url}/${base}index.html?touch=1&guide=0&menu=1&level=lab`;
 let bad = 0; const ok = (c, m) => { console.log((c ? 'ok   ' : 'BAD  ') + m); if (!c) bad++; };
 async function openPause() {
   await p.goto(url); await p.waitForTimeout(1500);
@@ -35,3 +37,4 @@ await p.evaluate(() => { localStorage.removeItem('rac3r.vol'); localStorage.remo
 console.log(`page errors: ${errs.length ? errs.join(' / ') : 'none'}`); if (errs.length) bad++;
 console.log(bad ? `VOLCHECK: ${bad} BAD` : 'VOLCHECK: ALL OK');
 await b.close();
+srv.stop();

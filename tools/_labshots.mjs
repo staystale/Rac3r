@@ -1,15 +1,17 @@
 // S-B (2026-10-06): PHOTOGRAPH the lab extension in the real game on :8080 (portrait + landscape): the crash lanes' object ends, the
 // lane starts with their labels, the off-road area, the new south edge; then DRIVE a car down the cone lane into the cones and down the
 // banger lane, and report what moved + fps + page errors. node tools/_labshots.mjs [base]  -> shots/look/sb-<what>-<size>.png
-import { chromium } from 'file:///C:/Users/Admin/Desktop/G/GamesStudio/BitterTrade/node_modules/playwright/index.mjs';
+import { startServer, launchBrowser } from './lib/browser.mjs';
+const srv = await startServer();
+process.on('exit', srv.stop);
 const base = process.argv[2] || '';
-const b = await chromium.launch({ channel: 'msedge' });
+const b = await launchBrowser();
 let fails = 0;
 for (const [w, h, tag] of [[390, 844, 'port'], [844, 390, 'land']]) {
   const ctx = await b.newContext({ viewport: { width: w, height: h }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
   const p = await ctx.newPage(), errs = [];
   p.on('pageerror', (e) => errs.push(e.message));
-  await p.goto(`http://localhost:8080/${base}index.html?touch=1&guide=0&menu=0&level=lab&car=saloon-rwd`); await p.touchscreen.tap(w / 2, h / 2); await p.waitForTimeout(3000);
+  await p.goto(`${srv.url}/${base}index.html?touch=1&guide=0&menu=0&level=lab&car=saloon-rwd`); await p.touchscreen.tap(w / 2, h / 2); await p.waitForTimeout(3000);
   const put = async (x, y, hd, z, ms = 1200) => {
     await p.evaluate(([x, y, hd, z]) => { const g = window.__game, c = g.car; c.x = x; c.y = y; c.heading = hd; c.vx = c.vy = 0; c._p = null; c.prevWheels = null;
       if (g.renderer.debugZoom) g.renderer.debugZoom(z); if (g.renderer.snap) g.renderer.snap(c); }, [x, y, hd, z]);
@@ -39,3 +41,4 @@ for (const [w, h, tag] of [[390, 844, 'port'], [844, 390, 'land']]) {
 }
 await b.close();
 console.log(fails ? 'FAIL' : 'ALL OK');
+srv.stop();

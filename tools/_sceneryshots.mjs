@@ -1,14 +1,16 @@
 // scratch (SCENERY v2, 2026-10-06): PHOTOGRAPH the farm scenery in the real game on :8080 - the car is teleported beside a wheat /
 // rapeseed / ploughed / pasture field, a farmyard and a village, the camera snapped (and zoomed out a touch for the wide view).
 // node tools/_sceneryshots.mjs [preset] [base]  -> shots/look/sc-<kind>-<size>.png. Fails on page errors.
-import { chromium } from 'file:///C:/Users/Admin/Desktop/G/GamesStudio/BitterTrade/node_modules/playwright/index.mjs';
+import { startServer, launchBrowser } from './lib/browser.mjs';
+const srv = await startServer();
+process.on('exit', srv.stop);
 const preset = process.argv[2] || 'motorway', base = process.argv[3] || '';
-const b = await chromium.launch({ channel: 'msedge' });
+const b = await launchBrowser();
 for (const [w, h, tag] of [[390, 844, 'port'], [844, 390, 'land']]) {
   const ctx = await b.newContext({ viewport: { width: w, height: h }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
   const p = await ctx.newPage(), errs = [];
   p.on('pageerror', (e) => errs.push(e.message));
-  await p.goto(`http://localhost:8080/${base}index.html?touch=1&guide=0&menu=0&level=highway&car=saloon-rwd&hw=${preset}&traffic=0`); await p.touchscreen.tap(w / 2, h / 2); await p.waitForTimeout(3500);
+  await p.goto(`${srv.url}/${base}index.html?touch=1&guide=0&menu=0&level=highway&car=saloon-rwd&hw=${preset}&traffic=0`); await p.touchscreen.tap(w / 2, h / 2); await p.waitForTimeout(3500);
   const want = ['wheat', 'rapeseed', 'plough', 'pasture', 'yard', 'village'], got = new Set();
   for (let hop = 0; hop < 120 && got.size < want.length; hop++) {
     const found = await p.evaluate(async ([want, got, base]) => {
@@ -34,3 +36,4 @@ for (const [w, h, tag] of [[390, 844, 'port'], [844, 390, 'land']]) {
   await ctx.close();
 }
 await b.close();
+srv.stop();
