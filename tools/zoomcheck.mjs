@@ -40,7 +40,13 @@ function option(name, fallback) {
  * @returns {{rgba: number[], url: string}} the capture
  */
 function cut({ zoom, top, size }) {
-  const canvas = document.getElementById('c');
+  // the finished frame: the GPU ground canvas (when used) with the screen canvas over it
+  const screen = document.getElementById('c'), ground = document.getElementById('glground');
+  const canvas = document.createElement('canvas');
+  canvas.width = screen.width;
+  canvas.height = screen.height;
+  if (ground) canvas.getContext('2d').drawImage(ground, 0, 0);
+  canvas.getContext('2d').drawImage(screen, 0, 0);
   const side = Math.min(canvas.width, canvas.height) * 0.8 * zoom / top;
   const out = document.createElement('canvas');
   out.width = out.height = size;

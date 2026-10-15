@@ -27,6 +27,8 @@ import { createProps } from "./render/props.ts";
 import { createObjects } from "./render/objects.ts";
 import { createTiles } from "./render/tiles.ts";
 import { createCamera } from "./render/camera.ts";
+import { createGlGround } from "./render/glground.ts";
+import type { GlGround, GroundSink } from "./render/glground.ts";
 import type { Cam, CamCar, RenderGame, TileBudget, View } from "./render/types.ts";
 
 // PPM is derived from the SHORT side of the viewport, so the car is a consistent fraction of the
@@ -52,6 +54,7 @@ const PIXEL_CSS = 1.3;
 interface RenderState {
   blockPx: number;   // pixel mode: the device-px size of one art pixel
   realDpr: number;   // the real dpr of the screen canvas
+  gpuOn: boolean;    // this frame draws the ground on the GPU canvas (art buffer transparent)
 }
 
 /** What the pixel-locked view of one frame changed, so the end of the frame can undo it. */
@@ -73,6 +76,7 @@ type RenderCtx = {
   mainCtx: CanvasRenderingContext2D;
   pcanvas: HTMLCanvasElement;
   pctx: CanvasRenderingContext2D;
+  gpu: GlGround | null;
   PPMz: () => number;
   toScreenX: (worldX: number) => number;
   toScreenY: (worldY: number) => number;
@@ -282,6 +286,8 @@ function blitWorld(ctx: RenderCtx, lock: ViewLock) {
   mainCtx.save();
   mainCtx.setTransform(1, 0, 0, 1, 0, 0);
   mainCtx.imageSmoothingEnabled = false;
+  // over the GPU ground the screen canvas is cleared, so the transparent art buffer shows it
+  if (state.gpuOn) mainCtx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
   mainCtx.drawImage(pcanvas, lock.subX, lock.subY, pcanvas.width * state.blockPx,
     pcanvas.height * state.blockPx);
   mainCtx.restore();
@@ -307,10 +313,34 @@ function drawFrame(ctx: RenderCtx, game: RenderGame, wallDt: number, wallT: numb
     ctx.updateZoom(game.car, wallDt);
   }
   const lock = applyViewLock(ctx);
+  beginGpuGround(ctx, lock);
   drawWorldLayers(ctx, game, wallDt, wallT);
   drawEffects(ctx, game, wallDt);
   drawCarLayers(ctx, game);
   blitWorld(ctx, lock);
+  if (ctx.state.gpuOn) ctx.gpu!.end();
+}
+
+/**
+ * Starts the GPU ground for this frame when it is on: the art buffer is cleared to transparent
+ * and the GPU canvas gets this frame's CSS px -> device px mapping (the pixel-locked camera and
+ * its sub-pixel shift).
+ *
+ * @param ctx the renderer context
+ * @param lock what applyViewLock changed
+ */
+function beginGpuGround(ctx: RenderCtx, lock: ViewLock) {
+  const { gpu, state, pcanvas, pctx, view, canvas } = ctx;
+  state.gpuOn = !!gpu && gpu.active && !ctx.skip('ground');
+  if (!state.gpuOn) return;
+  pctx.save();
+  pctx.setTransform(1, 0, 0, 1, 0, 0);
+  pctx.clearRect(0, 0, pcanvas.width, pcanvas.height);
+  pctx.restore();
+  gpu!.begin({
+    width: canvas.width, height: canvas.height, artDpr: view.dpr, blockPx: state.blockPx,
+    subX: lock.subX, subY: lock.subY,
+  });
 }
 
 /**
@@ -433,8 +463,8 @@ function makeDebugTools(ctx: RenderCtx) {
  */
 function buildModules(view: View, cam: Cam, settings: Settings,
   helpers: { PPMz: () => number, toScreenX: (x: number) => number,
-    toScreenY: (y: number) => number }) {
-  const { PPMz, toScreenX, toScreenY } = helpers;
+    toScreenY: (y: number) => number, groundSink: () => GroundSink | null }) {
+  const { PPMz, toScreenX, toScreenY, groundSink } = helpers;
   // createGround and createRoad need each other (forSide / paintLayers, artBase): the wrapper
   // below is only called at draw time, after createRoad has returned forSide
   const ground = createGround(view, cam, { PPMz, toScreenX, toScreenY, roundRect,
@@ -475,7 +505,7 @@ function buildModules(view: View, cam: Cam, settings: Settings,
     PUDDLE_TINT: ground.PUDDLE_TINT,
     getFly: () => camera.camState.fly, FLY_HANDOVER: camera.FLY_HANDOVER,
     FLY_PREFETCH: camera.FLY_PREFETCH, levelOverview: camera.levelOverview,
-    artBase: ground.artBase,
+    artBase: ground.artBase, groundSink,
   });
   return { ground, road, particles, pixelCar, cars, props, objects, camera, tiles };
 }
@@ -502,7 +532,9 @@ export function createRenderer(canvas: HTMLCanvasElement, settings: Settings) {
   // screen canvas
   const pcanvas = document.createElement('canvas');
   const pctx = pcanvas.getContext('2d')!;   // likewise
-  const state: RenderState = { blockPx: 1, realDpr: 1 };
+  const state: RenderState = { blockPx: 1, realDpr: 1, gpuOn: false };
+  // the GPU ground (WebGL2) under the screen canvas; null = the ground stays in the art buffer
+  const gpu = settings.glGround ? createGlGround(canvas) : null;
   const cam: Cam = { x: 0, y: 0, initialised: false };
   // ONE place converts metres to pixels, so nothing can miss the zoom
   const PPMz = () => view.PPM * view.zoom;
@@ -510,10 +542,12 @@ export function createRenderer(canvas: HTMLCanvasElement, settings: Settings) {
   const toScreenY = (worldY: number) => (worldY - cam.y) * PPMz() + view.H / 2;
 
   const { ground, road, particles, pixelCar, cars, props, objects, camera, tiles } =
-    buildModules(view, cam, settings, { PPMz, toScreenX, toScreenY });
+    buildModules(view, cam, settings, {
+      PPMz, toScreenX, toScreenY, groundSink: () => (state.gpuOn ? gpu!.sink : null),
+    });
 
   const ctx: RenderCtx = {
-    canvas, view, cam, state, noLock: settings.noLock, skip, mainCtx, pcanvas, pctx, PPMz,
+    canvas, view, cam, state, noLock: settings.noLock, skip, mainCtx, pcanvas, pctx, gpu, PPMz,
     toScreenX, toScreenY,
     ...ground, ...road, ...particles, ...cars, ...props, ...objects, ...camera, ...tiles,
   };

@@ -8,6 +8,7 @@ import { WEAR_CELL, wearDirty, wearEpoch } from "../world/wear.ts";
 import type { Level } from "../world/types.ts";
 import { buildPalette } from "./tilesPalette.ts";
 import { hillShade } from "./tilesShade.ts";
+import type { GroundSink } from "./glground.ts";
 import type {
   Cam, CamCar, Fly, Overview, SurfaceArt, Tile, TileBudget, TileState, View,
 } from "./types.ts";
@@ -33,6 +34,7 @@ interface TilesHelpers {
   FLY_PREFETCH: number;
   levelOverview: () => Overview | null;
   artBase: (id: string, fallback: string) => string;
+  groundSink: () => GroundSink | null;   // the GPU ground this frame, or null (2D art buffer)
 }
 
 /** the tile state: the public counters (TileState) plus the caches the painters share */
@@ -338,6 +340,34 @@ function countMissing(tcx: TilesCtx, step: number) {
 }
 
 /**
+ * Fills the whole view with one colour: on the GPU ground when it is on, else the art buffer.
+ * @param tcx the tile context
+ * @param colour the CSS colour
+ */
+function groundFill(tcx: TilesCtx, colour: string) {
+  const sink = tcx.helpers.groundSink();
+  if (sink) { sink.fill(colour); return; }
+  tcx.view.ctx.fillStyle = colour; tcx.view.ctx.fillRect(0, 0, tcx.view.W, tcx.view.H);
+}
+
+/**
+ * Draws a ground picture (a tile or the overview) at a CSS-px rectangle of the view: on the GPU
+ * ground when it is on, else the art buffer.
+ * @param tcx the tile context
+ * @param source the picture
+ * @param x the left edge, css px
+ * @param y the top edge, css px
+ * @param width the width, css px
+ * @param height the height, css px
+ */
+function groundImage(tcx: TilesCtx, source: HTMLCanvasElement, x: number, y: number,
+    width: number, height: number) {
+  const sink = tcx.helpers.groundSink();
+  if (sink) sink.image(source, x, y, width, height);
+  else tcx.view.ctx.drawImage(source, x, y, width, height);
+}
+
+/**
  * Draws one cached tile on the view at integer art-pixel edges.
  * @param tcx the tile context
  * @param tile the tile
@@ -356,7 +386,7 @@ function drawTileImage(tcx: TilesCtx, tile: Tile, i: number, j: number, tileWidt
   const top = Math.round(toScreenY(j * tileWidth) * view.dpr) / view.dpr,
     bottom = Math.round(toScreenY((j
       + 1) * tileWidth) * view.dpr) / view.dpr;
-  view.ctx.drawImage(tile.c, left, top, right - left, bottom - top);
+  groundImage(tcx, tile.c, left, top, right - left, bottom - top);
 }
 
 /**
@@ -501,11 +531,10 @@ function resetOnChange(tcx: TilesCtx) {
  * @param car the car, or null
  */
 function drawFlyOverview(tcx: TilesCtx, overview: Overview, car: CamCar | null) {
-  const { view } = tcx, { toScreenX, toScreenY, PPMz, FLY_HANDOVER, FLY_PREFETCH } = tcx.helpers;
-  view.ctx.fillStyle = COL.outside; view.ctx.fillRect(0, 0, view.W, view.H);
-  view.ctx.drawImage(overview.c, toScreenX(overview.x0), toScreenY(overview.y0),
-    (overview.x1 - overview.x0)
-      * PPMz(), (overview.y1 - overview.y0) * PPMz());
+  const { toScreenX, toScreenY, PPMz, FLY_HANDOVER, FLY_PREFETCH } = tcx.helpers;
+  groundFill(tcx, COL.outside);
+  groundImage(tcx, overview.c, toScreenX(overview.x0), toScreenY(overview.y0),
+    (overview.x1 - overview.x0) * PPMz(), (overview.y1 - overview.y0) * PPMz());
   if (car) {
     const budget = { n: FLY_PREFETCH };
     // the steps the camera will pass through after the hand-over, nearest-to-final first
@@ -525,10 +554,10 @@ function drawFlyOverview(tcx: TilesCtx, overview: Overview, car: CamCar | null) 
  * @param budget the frame budget
  */
 function drawStepChange(tcx: TilesCtx, step: number, budget: TileBudget) {
-  const { view, state } = tcx;
+  const { state } = tcx;
   // the stand-in: the step we were on, scaled. Drawn first, then whatever of k exists goes
   // over it.
-  view.ctx.fillStyle = standInFill(tcx); view.ctx.fillRect(0, 0, view.W, view.H);
+  groundFill(tcx, standInFill(tcx));
   blitStep(tcx, state.lastStep!, false, budget);
   const left = blitStep(tcx, step, true, budget);
   state.standIn = left > 0;
@@ -545,15 +574,13 @@ function drawStepChange(tcx: TilesCtx, step: number, budget: TileBudget) {
  * @param budget the frame budget
  */
 function drawNewGround(tcx: TilesCtx, step: number, budget: TileBudget) {
-  const { view, state } = tcx, { toScreenX, toScreenY, PPMz, levelOverview } = tcx.helpers;
+  const { state } = tcx, { toScreenX, toScreenY, PPMz, levelOverview } = tcx.helpers;
   if (countMissing(tcx, step) > 1) {
     const overview = levelOverview();
     if (overview) {
-      view.ctx.fillStyle = standInFill(tcx);
-      view.ctx.fillRect(0, 0, view.W, view.H);
-      view.ctx.drawImage(overview.c, toScreenX(overview.x0), toScreenY(overview.y0),
-        (overview.x1
-          - overview.x0) * PPMz(), (overview.y1 - overview.y0) * PPMz());
+      groundFill(tcx, standInFill(tcx));
+      groundImage(tcx, overview.c, toScreenX(overview.x0), toScreenY(overview.y0),
+        (overview.x1 - overview.x0) * PPMz(), (overview.y1 - overview.y0) * PPMz());
     }
     state.standIn = blitStep(tcx, step, true, budget) > 0;
   } else { blitStep(tcx, step, true, { n: Infinity }); state.standIn = false; }

@@ -55,7 +55,11 @@ Tried, not kept: a halving mip of each texture (5.7 -> 4.3 %, task 224 / branch 
 stretched (3.3 %), smoothing when a tile shrinks (2.2 %, loses grain far out). Kept: one texture painting per
 surface (task 218), one water look, hill shading on a world grid with 0.5 m cells (tasks 220, 222).
 
-- [ ] A (M/L): keep the CPU tile painter, but draw the cached tiles to the screen through WebGL with mipmaps and
+- [x] A DONE (owner phone test pending): src/render/glground.ts draws the cached tiles with WebGL2 at screen
+      resolution (sharp-pixel filter; mipmaps when shrunk); ?glground=0 = the old 2D path (renderhash SAME).
+      zoomcheck tiny zoom changes at full zoom-out (ZOOMS 0.33..0.30, brands-snatch): 5.7 % -> 1.4 % of
+      pixels; framecheck brands-snatch work median 10.4 -> 10.5 ms (noise), highway same.
+- [ ] (was A, for reference) keep the CPU tile painter, but draw the cached tiles to the screen through WebGL with mipmaps and
       trilinear filtering (a ground canvas under the 2D canvas for cars, props and the HUD). Check the existing
       `tileGpu` setting (src/render/tiles.ts TILE_GPU) first. Goal: zoomcheck flicker near 0 with the pixel-art
       look kept. Phone test.

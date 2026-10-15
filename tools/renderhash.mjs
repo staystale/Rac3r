@@ -23,7 +23,7 @@ import { fileURLToPath } from 'node:url';
 import * as L from '../src/lab.js';
 import { addStageLevels } from '../src/stagegen.js';
 import { addHighwayLevel } from '../src/highway.js';
-import { startServer, launchBrowser } from './lib/browser.mjs';
+import { startServer, launchBrowser, extraQuery } from './lib/browser.mjs';
 import {
   openPage, launchLevel, installDriver, sha, onlyList, SETTLE_MS,
 } from './lib/determinism.mjs';
@@ -58,11 +58,20 @@ async function damageCar() {
 }
 
 /**
- * Page side: the canvas as a PNG data URL.
+ * Page side: the finished frame as a PNG data URL - the GPU ground canvas (when the game uses
+ * it) with the screen canvas over it, as the browser shows them.
  * @returns {string} data URL
  */
 function grabCanvas() {
-  return document.getElementById('c').toDataURL('image/png');
+  const screen = document.getElementById('c'), ground = document.getElementById('glground');
+  if (!ground) return screen.toDataURL('image/png');
+  const out = document.createElement('canvas');
+  out.width = screen.width;
+  out.height = screen.height;
+  const gfx = out.getContext('2d');
+  gfx.drawImage(ground, 0, 0);
+  gfx.drawImage(screen, 0, 0);
+  return out.toDataURL('image/png');
 }
 
 /**
@@ -85,7 +94,8 @@ async function grab(page) {
  */
 async function runLevel(browser, base, id, endless) {
   const errors = [];
-  const page = await openPage(browser, base, id, errors);
+  // RAC3R_QUERY adds page-link settings, e.g. "glground=0" for the 2D ground path
+  const page = await openPage(browser, base, id, errors, extraQuery());
   await page.evaluate(() => {
     dispatchEvent(new KeyboardEvent('keydown', { key: 'x' }));
     window.__rt.step(10);
