@@ -267,9 +267,9 @@ function paintRally(spr: SpriteCtx): void {
 /** Paints the saloon: tapered nose, power domes, kidney grille and lamps. */
 function paintSaloon(spr: SpriteCtx): void {
   const { ctx, lengthPx, widthPx, mid, dark, light, NUM, block, along } = spr;
-  // BMV 3 SERIOUS — the E46's signatures from above (user: "less standard, more like the real
-  // counterpart"): a TAPERED nose, two POWER-DOME creases converging on a chrome KIDNEY
-  // grille, twin round ANGEL-EYE lamps each side, the bonnet ROUNDEL, a SUNROOF, a short boot
+  // BMV 3 SERIOUS — the E46's signatures from above (requirement: less standard, more like the real
+  // counterpart): a TAPERED nose, two POWER-DOME creases converging on a chrome KIDNEY grille, twin
+  // round ANGEL-EYE lamps each side, the bonnet ROUNDEL, a SUNROOF, a short boot
   // deck with its lip, L-shaped TAIL LIGHTS wrapping onto the flanks, silver multi-spoke
   // wheels (spec.rim) nose taper
   for (const [x, y] of [[lengthPx - 1, 0], [lengthPx - 1, 1], [lengthPx - 2, 0],

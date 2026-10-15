@@ -3,14 +3,14 @@
 import { SURFACES } from "../world/surfaces.ts";
 import { STEP } from "./presets.js";
 import { keepOut } from "./cuts.js";
-// ---- SCENERY v2 (user: "i thought we were going to vary sceneary along side the road
-// more like farms or long grass hedges and small towns"; "yeah scenery too please"). In the FARM
+// ---- SCENERY v2 (requirement: i thought we were going to vary sceneary along side the road more
+// like farms or long grass hedges and small towns); "yeah scenery too please"). In the FARM
 // stretches: a PATCHWORK of FIELDS each side - rotated zones (lab.js zoneAt / render.ts drawZones,
 // so what you see is what you drive on): WHEAT and RAPESEED (drive as long grass, drawn as crops:
 // zone.art), MEADOW (long grass), PASTURE (grass, sheep / cows), PLOUGHED (dirt, furrows), now and
 // then a FARMYARD (gravel, barns, bales). Each is ringed by a LONG GRASS border (HEDGE_W m, a zone
-// you drive through - user: "hedges around fields ... should be long grass"; the first
-// cut was a solid 'hedge' barrier, which beached spun racers: pacesuite 2/9 -> 3/9 BAD), a tree or
+// you drive through (requirement: hedges around fields... should be long grass); the first cut was
+// a solid 'hedge' barrier, which beached spun racers: pacesuite 2/9 -> 3/9 BAD), a tree or
 // two in it. Now and then a VILLAGE: a lane following the road ~40 m out, houses both sides, a
 // church. Each field / village is a keep rect in st.keep with a `field` id: anything placed LATER
 // that needs the ground (a bridge approach, a river, a slip) drops it whole (dropField); later
@@ -24,8 +24,9 @@ const FIELD_T = [
   ["pasture", 0.18],
   ["yard", 0.08],
 ];
-// [physics surface, look]. Looks REUSE the grass / long grass / mud textures, recoloured (user:
-// "jsut reuse mud and grass or long grass textures for field, and maybe colour them"; render.ts
+// [physics surface, look]. Looks REUSE the grass / long grass / mud textures, recoloured
+// (requirement: jsut reuse mud and grass or long grass textures for field, and maybe colour them);
+// render.ts
 // SURFACE_ART wheat / rapeseed / pastureG / plough). Ploughed = MUD: look = grip.
 const FIELD_SURF = {
   wheat: ["grassLong", "wheat"],

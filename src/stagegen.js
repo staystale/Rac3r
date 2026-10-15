@@ -49,8 +49,7 @@ export const LENGTHS = { short: 1300, medium: 2000, long: 2400 };
 const STYLES = { flowing: { straight: 1.2, fast: 1.6, medium: 0.9, square: 0.25, hairpin: 0.15 },
     mixed: { straight: 1, fast: 1, medium: 1, square: 1, hairpin: 1 },
   tight: { straight: 0.7, fast: 0.4, medium: 1.1, square: 1.6, hairpin: 1.8 } };
-// SILLY NAMES (user: "remember all names should be silly") — parody place names per
-// theme
+// SILLY NAMES (requirement: remember all names should be silly) — parody place names per theme
 const NAMES = {
   forest: [['Llanfair', 'Pen-y-', 'Aber', 'Glen ', 'Cwm', 'Bryn', 'Coed-y-'],
       ['sheepdip', 'cowpatt', 'muddyfoot', 'slippy-bottom', 'bogwobble', 'skidwyn', 'splatt']],
@@ -754,9 +753,9 @@ export function installStage(level) {
   return level;
 }
 export const GEN_DEFAULT = { seed: 1001, theme: 'forest', len: 'medium', style: 'mixed' };
-// THE SET STAGES (user: "rally stages should be SET, but other events might need a
-// procedural track"): the generator as a design tool — seeds picked by tools/stageseeds.mjs (2 km,
-// first attempt so each rebuilds in ~5-35 ms at boot, corners / hairpins / crests scored, then
+// THE SET STAGES (requirement: rally stages should be SET, but other events might need a procedural
+// track): the generator as a design tool — seeds picked by tools/stageseeds.mjs (2 km, first
+// attempt so each rebuilds in ~5-35 ms at boot, corners / hairpins / crests scored, then
 // looked at), registered as ordinary levels after Killder, the same road every time so it can be
 // learned.
 export const SET_STAGES = [

@@ -12,7 +12,7 @@ import { startHeld, carHeld, atPace } from './order.js';
 import { RESET_BACK, RESET_ANG } from './session.js';
 import { shared, game } from './state.js';
 
-// AI RESET (user: "reset AI should reset like the player's, at the edge of the track"):
+// AI RESET (requirement: reset AI should reset like the player's, at the edge of the track):
 // RESET_BACK m behind the last point it was on the road, centred on the edge it left by (half on /
 // half off), nose RESET_ANG deg back toward the road — as doReset does for you. No record (never on
 // the road yet): the nearest centreline point, as before.
@@ -56,11 +56,11 @@ export function aiReset(entry) {
  */
 export function stepAIInjury(entry, dt) {
   const car = entry.car;
-  // TOO INJURED (user: "if an AI is too injured it should reset"): back on the
-  // road, mended — the bill keeps the cost
-  // TOO INJURED: a pause before the reset so the crash PLAYS OUT (user: "wait a
-  // moment, the worse the damage the longer, max 2-3 s"): 1 s + 2 s x severity (mean corner
-  // damage, + 0.4 for a lost wheel), coasting on light brakes meanwhile
+  // TOO INJURED (requirement: if an AI is too injured it should reset): back on the road, mended —
+  // the bill keeps the cost
+  // TOO INJURED: a pause before the reset so the crash PLAYS OUT (requirement: wait a moment, the
+  // worse the damage the longer, max 2-3 s): 1 s + 2 s x severity (mean corner damage, + 0.4 for a
+  // lost wheel), coasting on light brakes meanwhile
   if (entry.hurtWait == null && tooInjured(car)) {
     const dmg = car.dmg,
       sev = Math.min(1,
@@ -217,8 +217,8 @@ export function recoverAI(entry) {
 export function stepAICar(entry, dt) {
   const car = entry.car;
   car._p = { x: car.x, y: car.y, h: car.heading };
-  // DRIVER AIDS follow yours (user: "in an event if you turn TCS on and off it should
-  // also turn off for the AI"): the same switch, on the cars that have that aid
+  // DRIVER AIDS follow yours (requirement: in an event if you turn TCS on and off it should also
+  // turn off for the AI): the same switch, on the cars that have that aid
   car.absOn = !!game.car.absOn && !!(car.spec.aids && car.spec.aids.abs);
   car.tcsOn = !!game.car.tcsOn && !!(car.spec.aids && car.spec.aids.tcs);
   try {

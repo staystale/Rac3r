@@ -3,11 +3,11 @@ import type { SurfaceId } from "../surfaces.ts";
 import type { Rect, Zone, Cone, Bump, Paint, Board } from "../types.ts";
 
 // =============================================================================================
-// S-B THE LAB EXTENSION (user, VERBATIM: "add some of every object laid out nicely
-// ready to test crash into ect into he lab level, maybe extend the bottom of the map ? with some
-// strips of all the different tarmacs and stuff, the objects can be at the end of the lanes make
-// it fun and useful"; Q3 "go 1k why not fill the other area with an off road test area with some
-// test hills grass and dirt with active terrain"; Q4 "ideally one for each but maybe mix some if
+// S-B THE LAB EXTENSION (requirement: add some of every object laid out nicely ready to test crash
+// into ect into he lab level, maybe extend the bottom of the map ? with some strips of all the
+// different tarmacs and stuff, the objects can be at the end of the lanes make it fun and useful);
+// Q3 "go 1k why not fill the other area with an off road test area with some test hills grass and
+// dirt with active terrain"; Q4 "ideally one for each but maybe mix some if
 // needed"). The floor goes from 520 x 520 to 520 x 1000 m: the old square is untouched
 // (tools/_labcheck.mjs proves every old metre is the same) and the new 480 m runs SOUTH of it, in
 // the lab floor.

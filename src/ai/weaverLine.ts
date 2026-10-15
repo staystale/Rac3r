@@ -32,8 +32,8 @@ function freeScore(step: Step, block: RoadBlock | null) {
   // NO QUEUEING BEHIND A RIVAL (HWT.rp): a line whose blocker is ANOTHER RACER close ahead
   // is worth less, so it pulls out and
   // races it side by side instead of sitting in its slipstream
-  // (user: "they tend to que in lanes on the highway still ... weave through
-  // traffic like a real street racer").
+  // (requirement: they tend to que in lanes on the highway still... weave through traffic like a
+  // real street racer).
   // OFF BY DEFAULT - not proven (HANDOVER §3). MEASURED pacesuite, 9 races x seed sets A
   // (4242,77,1234) / B (31,555,9001):
   // baseline 151.0 / 139.3 km/h; rp 40 + cm 12 + mvk 0.6 = 154.0 / 136.1, 0 bad, BUT

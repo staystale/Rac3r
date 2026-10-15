@@ -1,13 +1,13 @@
-// highwayrace.js — VS AI ON THE ENDLESS HIGHWAY (user: "VS AI on the highway = a normal
-// ROLLING-START race"; "an AI reaching the EDGE OF THE SCREEN ahead (what is visible differs PC /
+// highwayrace.js — VS AI ON THE ENDLESS HIGHWAY (requirement: VS AI on the highway = a normal
+// ROLLING-START race); "an AI reaching the EDGE OF THE SCREEN ahead (what is visible differs PC /
 // phone) starts a COUNTDOWN (5-10 s); if it ends and you have not caught up -> race ends, POSITIONS
 // shown. You get so far ahead the AI go off screen BEHIND -> countdown; when it ends YOU WIN";
 // traffic in every mode). (was hwrace.js until the phase 5 rename)
 //
 // The circuit AI (aidriver.js) races a precomputed line round a CLOSED lap; the treadmill's road is
 // rebuilt every ~300 m and never closes, so its driver reads the road through highway.js's road
-// frame: the WEAVER (aidriver.js roadDriver; v1 raced in lanes — the user: "ignore lanes, go fast,
-// dodge and weave through like the player would").
+// frame: the WEAVER (aidriver.js roadDriver; v1 raced in lanes — (requirement: ignore lanes, go
+// fast, dodge and weave through like the player would).
 // THE START: a 2-wide staggered grid in the two right-hand lanes behind the spawn; every car (you
 // too) is driven at the rolling pace behind red lights (main.js atPace), GREEN at HW_GREEN s. THE
 // END (flow): EVERY AI ahead of you and the slowest of them OFF SCREEN -> "CATCH THEM n" for
@@ -20,11 +20,11 @@ import { stepFlow } from "./ai/hwFlowStep.ts";
 import type { HwCtx, HwFlow, HwFlowArgs } from "./ai/hwFlowTypes.ts";
 
 export const HW_GREEN = 6, HW_COUNT = 8;
-// CATCH THEM is SOFT (user: "catch them timer should be longer on highway, also it
-// should be a bit soft if you've nearly caught up drop the timer... but let them getaway if the
-// player isnt trying"): HW_CATCH s; while you are CLOSING on the leader (gap shrinking faster than
+// CATCH THEM is SOFT (requirement: catch them timer should be longer on highway, also it should be
+// a bit soft if you've nearly caught up drop the timer... but let them getaway if the player isnt
+// trying): HW_CATCH s; while you are CLOSING on the leader (gap shrinking faster than
 // CLOSE_V, smoothed over ~1 s) it refills at REFILL x; NEAR m or less past the screen it holds;
-// otherwise it runs. PULLING AWAY (you winning) stays HW_COUNT (user: "winning is ok atm").
+// otherwise it runs. PULLING AWAY (you winning) stays HW_COUNT (requirement: winning is ok atm).
 // (hovering just past the edge holds for NEAR_T s at most: sitting there for ever is not trying
 // either)
 export const HW_CATCH = 15;
@@ -78,8 +78,8 @@ export function hwPutBack(level: HighwayLevel, dist: number, cars: AiCar[]) {
 }
 
 // (the RACER itself - the WEAVER - lives in aidriver.js since AI ROUND 2 stage 1: ONE driver,
-// createAIDriver, for circuits and the highway; user: "one engine is better and
-// cheaper". This file keeps only the RACE: grid, put-back, the CATCH THEM flow.)
+// createAIDriver, for circuits and the highway; (requirement: one engine is better and cheaper).
+// This file keeps only the RACE: grid, put-back, the CATCH THEM flow.)
 
 // THE RACE: entries [{ car, player }]; visible(car) = on screen right now. flow.step(dt) after the
 // green; flow.order -> your position. Results rows are raceflow.js-shaped (+ dist / gapM) so

@@ -13,11 +13,11 @@ import type {
 } from "./types.ts";
 
 // =============================================================================================
-// SURFACE DEGRADATION & WEAR MAP — LAYERED, rebuilt (user: "snow should compress to ice
-// after several passes; ice should wear away with heavy braking or sliding and show the surface
+// SURFACE DEGRADATION & WEAR MAP — LAYERED, rebuilt (requirement: snow should compress to ice after
+// several passes; ice should wear away with heavy braking or sliding and show the surface
 // underneath; if the surface under is grass it should behave like grass and turn to mud once
-// exposed and then driven over ... mud turns to thick mud ... puddles on any surface, ice and snow
-// on any surface").
+// exposed and then driven over... mud turns to thick mud... puddles on any surface, ice and snow on
+// any surface).
 //
 // A wear CELL (WEAR_CELL m square) holds two layers:
 // base — the ground itself. Wears down a chain by PASSES (a wheel crossing the cell, debounced):
@@ -29,9 +29,9 @@ import type {
 // ice is SCRUBBED away only by a wheel that is sliding or locked over it (slip speed above
 // ICE_SCRUB_MIN, metres of slip accumulated past ICE_SCRUB). Rolling over it does nothing.
 //                    When it goes, the base is exposed and wears by its own rules from then on.
-// wet WATER DRIES BY TYRE HEAT (user, third pass: "puddles should only go when hot
-// tyres or weather evaporate them — dry lines can still form with many passes of cold tyres but
-// happen quicker with warmer tyres"). Each pass adds dryness by tyre temperature (dryAmount):
+// wet WATER DRIES BY TYRE HEAT (requirement: puddles should only go when hot tyres or weather
+// evaporate them — dry lines can still form with many passes of cold tyres but happen quicker with
+// warmer tyres). Each pass adds dryness by tyre temperature (dryAmount):
 // STANDING water (level puddles, meltwater): cold tyres add NOTHING; hot tyres evaporate it. DAMP
 // ground (a wet zone / sector, wet tarmac): cold tyres dry a line slowly, warm ones fast.
 //                    When dry it MIXES with what it lay on
@@ -69,8 +69,8 @@ export function dryAmount(standing: boolean, tyreTemp: number): number {
   if (standing) return 0.35 * Math.max(0, Math.min(1, (tyreTemp - 60) / 60));
   return 0.06 + 0.30 * Math.max(0, Math.min(1, (tyreTemp - 40) / 60));
 }
-// (history) the rule before (user: "a happy medium — a % chance so it takes 1-3 passes"): a 40%
-// chance per pass of ANY tyre, so 1-3 passes. Replaced by dryAmount above.
+// (history) the rule before (requirement: a happy medium — a % chance so it takes 1-3 passes): a
+// 40% chance per pass of ANY tyre, so 1-3 passes. Replaced by dryAmount above.
 export const SNOW_MELT_CHANCE = 0.5;   // packed snow melts to water (else freezes to ice), per cell
 // per pass, standing water over a WATER_MIX base -> 1-3 passes
 export const WATER_CHURN_CHANCE = 0.4;
@@ -105,9 +105,9 @@ export function clearWear(): void {
 }
 
 // PRUNE THE WEAR on a streamed level (highway.js stepHighway, after each rebuild). MEASURED BUG
-// (user: "occasionally leaves patches of dirt on highway levels ... after longer drives
-// / with ai on"; tools/_wearleak.mjs): wear cells live at WORLD positions and were never dropped -
-// so when the endless road was rebuilt and new ground (a field, a bridge approach, the road
+// (requirement: occasionally leaves patches of dirt on highway levels... after longer drives / with
+// ai on); tools/_wearleak.mjs): wear cells live at WORLD positions and were never dropped - so when
+// the endless road was rebuilt and new ground (a field, a bridge approach, the road
 // swinging back) came down over a worn cell, that cell still drove AND drew as the old dirt / mud.
 // Spun AI chew the verge, so it showed most with AI. The map also grew for the whole drive, and
 // every ground-tile repaint walks it. Drop a cell if it is farther than `far` m from (x, y) or the
@@ -171,8 +171,9 @@ export function layersAt(x: number, y: number): Layers {
   const z = zoneSurface.id === 'kerb' ? zoneSurface : (patchAt(x, y) || zoneSurface);
   let base = z.id, cover: string | null = null;
   // a snow, ice OR WET zone is a cover over its `under` (default tarmac). Wet joined
-  // (user: "wet tarmac ... needs blue-ish puddles that can be removed by driving over them") — so a
-  // wet panel or wet sector now DRIES where it is driven, cell by cell, leaving a dry line through
+  // (requirement: wet tarmac... needs blue-ish puddles that can be removed by driving over them) —
+  // so a wet panel or wet sector now DRIES where it is driven, cell by cell, leaving a dry line
+  // through
   // it like a real drying track.
   if (COVER_IDS[base]) { cover = base; base = z.under || UNDER_DEFAULT; }
   const puddleCover = coverAt(x, y);
@@ -265,9 +266,9 @@ function getCell(cellX: number, cellY: number): WearCell | null {
  * @param cell the wear cell (changed in place)
  */
 function passSnowCell(cell: WearCell): void {
-  // MELT OR FREEZE (user: "snow should have a chance to melt or turn to ice when
-  // driven over — it should still take multiple passes"). After SNOW_TO_ICE passes it becomes ICE
-  // or MELTWATER, by chance.
+  // MELT OR FREEZE (requirement: snow should have a chance to melt or turn to ice when driven over
+  // — it should still take multiple passes). After SNOW_TO_ICE passes it becomes ICE or MELTWATER,
+  // by chance.
   if (++cell.passes >= SNOW_TO_ICE) {
     cell.cover = Math.random() < SNOW_MELT_CHANCE ? 'wet' : 'ice';
     cell.passes = 0;
@@ -281,8 +282,7 @@ function passSnowCell(cell: WearCell): void {
  * @param tyreTemp the tyre temperature (C), for the evaporation rule
  */
 function passWetCell(cell: WearCell, tyreTemp: number): void {
-  // CHURN vs EVAPORATE (user, fourth pass: "water on dirt ... should
-  // become mud when driven over").
+  // CHURN vs EVAPORATE (requirement: water on dirt... should become mud when driven over).
   // MEASURED BUG: a puddle on dirt only mixed after it had DRIED, and standing water only dries
   // above 60 C, so on dirt it stayed a puddle forever. Tyres churning water INTO soft ground is
   // not evaporation: on any base with a WATER_MIX rule, every pass of ANY tyre has
@@ -331,9 +331,9 @@ function passCell(cell: WearCell, tyreTemp = 18): void {
 function scrubCell(cell: WearCell, slipM: number): void {
   if (cell.cover !== 'ice') return;
   cell.scrub += slipM;
-  // scrubbed ice leaves MELTWATER, not bare ground (user: "after snow / ice water
-  // should be left") — a puddle that then churns into its base by the WATER_MIX rules, so ice over
-  // grass ends as mud.
+  // scrubbed ice leaves MELTWATER, not bare ground (requirement: after snow / ice water should be
+  // left) — a puddle that then churns into its base by the WATER_MIX rules, so ice over grass ends
+  // as mud.
   if (cell.scrub >= ICE_SCRUB) {
     cell.cover = 'wet';
     cell.standing = true;
@@ -542,7 +542,7 @@ function applySlopeForces(car: CarBody, cosH: number, sinH: number): void {
   // grooves and is pushed sideways; at the wheels each side is pulled back into its own groove).
   // Each axle carries its static share of the weight, and the two axles' sideways pushes act at
   // the axles — so an off-centre whoop or dip under the FRONT wheels tugs the nose toward the dip
-  // / away from the hump (user: "dips and whoops should gently affect steering").
+  // / away from the hump (requirement: dips and whoops should gently affect steering).
   const hw2 = (spec.trackWidth || 1.5) / 2, perpSin = -sinH, perpCos = cosH,
     wheelbase = spec.lf + spec.lr;
   const weight = spec.mass * car.mods.mass * 9.81;
@@ -574,8 +574,8 @@ function applySlopeForces(car: CarBody, cosH: number, sinH: number): void {
     car.y + sinH * spec.lf + perpCos * hw2);
   const heightLeft = hAt(car.x + cosH * spec.lf - perpSin * hw2,
     car.y + sinH * spec.lf - perpCos * hw2);
-  // BUMPS ONLY, never an even slope (user: "I think the bowl on the lab is broken"):
-  // on the bowl wall the left / right difference was PERMANENT and dragged the nose toward the
+  // BUMPS ONLY, never an even slope (requirement: I think the bowl on the lab is broken): on the
+  // bowl wall the left / right difference was PERMANENT and dragged the nose toward the
   // middle the whole way round. Subtract what a flat plane with the local slope would give, so a
   // steady cross-slope (bowl, hill, banking) reads zero.
   const frontSlope = slopeAt(car.x + cosH * spec.lf, car.y + sinH * spec.lf);
@@ -594,9 +594,9 @@ function applyGroundInner(car: CarBody, dt: number): void {
   const rearGround = groundAt(rearX, rearY);
   // The true discrete derivative, so driving ALONG a ridged kerb shakes the car for exactly the
   // same reason crossing one does. There is no separate "rumble" code anywhere, and there should
-  // not be. FIRST STEP AFTER A RESET (user: "resetting on terrain causes the car to get
-  // stuck when pulling away"). reset zeroes the ground + suspension heights, so on a hill the
-  // first derivative read the whole hill as one step: MEASURED a reset 7.5 m up Sweaty Lamb
+  // not be. FIRST STEP AFTER A RESET (requirement: resetting on terrain causes the car to get stuck
+  // when pulling away). reset zeroes the ground + suspension heights, so on a hill the first
+  // derivative read the whole hill as one step: MEASURED a reset 7.5 m up Sweaty Lamb
   // launched the car 106 m into the air (Slidden Hill 67 m; Castle Cum's 1.1 m crest 1.1 s of air).
   // Now the first step after a reset puts the ground AND the body at the local height with no
   // vertical speed.
@@ -615,9 +615,9 @@ function applyGroundInner(car: CarBody, dt: number): void {
   car.surface = rearGround.surface;
 
   // Corner banking physics (PLAN.md §3): on banked turns (e.g. Naffcar), the slope hauls the car
-  // inward SLOPE FORCE (step 3; user: "vector dips ... push in all 8 directions, out
-  // and in"). Gravity along the smooth terrain: F = -m g grad(h), world frame -> body frame. Bumps
-  // push OUT, dips and banking pull IN/DOWN. Only on the ground (an airborne car falls straight).
+  // inward SLOPE FORCE (step 3; requirement: vector dips... push in all 8 directions, out and in).
+  // Gravity along the smooth terrain: F = -m g grad(h), world frame -> body frame. Bumps push OUT,
+  // dips and banking pull IN/DOWN. Only on the ground (an airborne car falls straight).
   // Replaces the old bank FORCE, which pushed 0.3 g to the car's left anywhere past |x| 130 — grass
   // included (fixed earlier today); banking is now real height (bankHeightAt).
   car.bankLatForce = 0; car.bankLoadFactor = 1.0;

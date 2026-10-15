@@ -152,8 +152,8 @@ export function drawHudButtonRow(ctx, state, game, rects) {
  */
 export function drawHudConeTally(ctx, state, game, rects) {
   const knocked = game.cones.knocked;
-  // ONLY ON A LEVEL THAT ASKS FOR IT (LEVEL.coneCount: the Lab + Test Track courses) — user:
-  // "only relevant when asked for, not on most race tracks"
+  // ONLY ON A LEVEL THAT ASKS FOR IT (LEVEL.coneCount: the Lab + Test Track courses) (requirement:
+  // only relevant when asked for, not on most race tracks)
   if (LEVEL.coneCount && knocked > 0 && !state.tuneOpen) {
     const tallyRect = rects.tally;
     drawHudPanel(ctx, tallyRect, { fill: 'rgba(242,106,27,0.92)', stroke: null });

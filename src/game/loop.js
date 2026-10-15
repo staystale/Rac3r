@@ -154,8 +154,8 @@ export function drawMeter(frame) {
  * @returns {number} the performance.now the draw started at, for the draw-time smoothing
  */
 export function renderFrame(frame) {
-  // RENDER INTERPOLATION (user: "at high speeds the camera / car judder"). MEASURED in
-  // a real browser at 200 km/h: the 120 Hz sim gave 2 steps on most frames but 3 or 5 on others, so
+  // RENDER INTERPOLATION (requirement: at high speeds the camera / car judder). MEASURED in a real
+  // browser at 200 km/h: the 120 Hz sim gave 2 steps on most frames but 3 or 5 on others, so
   // the car jumped up to 10 px on screen (sd 1.5 px per frame) and the camera chased the jumps.
   // Draw the car BETWEEN its last two physics poses, weighted by the leftover accumulator —
   // standard fixed-step practice. The sim itself is untouched. A teleport (RESET / RESTART / car

@@ -15,10 +15,10 @@ import { clearFields } from "./fields.js";
 // (water band across, the motorway on a viaduct: parapets both sides) - drawn under the road, never
 // on it. Only their PIERS / abutments are solid, and those stand SLIP_CLEAR m outside the tarmac (+
 // off the verge strip the AI dodges on). EXTRAS (rare): a COW on a road bridge, a CONE on a
-// footbridge, a small BOAT stuck under a river bridge, a SMILEY SOLAR FARM. v2 (user:
-// "bridges / slip roads should extend off the screen ... slip roads should lead off screen not just
+// footbridge, a small BOAT stuck under a river bridge, a SMILEY SOLAR FARM. v2 (requirement:
+// bridges / slip roads should extend off the screen... slip roads should lead off screen not just
 // stop, although some can... and some can follow along side the main motorway and has a chance to
-// rejoin, as a secret chance path"; "all the types of highway should have bridges and slip roads
+// rejoin, as a secret chance path); "all the types of highway should have bridges and slip roads
 // you can take"; "make the cars n stuff move across if you can"):
 // - every off-slip looks the same from the motorway (signs, exit board). 1 in 4 stops at a gate
 // after SLIP_LEN; 1 in 2 runs LONG (SLIP_LONG m, curving away) to a gate off screen; 1 in 4 is the

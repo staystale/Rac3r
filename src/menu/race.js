@@ -17,9 +17,9 @@ export function showPause(menu, act) {
     hideMenu(menu);
   act.resume();
   }, 'go');
-  // SOUND (user: "sound needs a volume control / mute button in pause menu too please
-  // - kinda high priority"): a slider 0-100 % and MUTE; audio.js remembers both (localStorage
-  // rac3r.vol / rac3r.mute)
+  // SOUND (requirement: sound needs a volume control / mute button in pause menu too please - kinda
+  // high priority): a slider 0-100 % and MUTE; audio.js remembers both (localStorage rac3r.vol /
+  // rac3r.mute)
   if (act.audio) {
     const audio = act.audio, row = addElement(panel, 'div', '', 'row');
     row.style.alignItems = 'center';
@@ -251,15 +251,15 @@ function showResultsTable(menu, flow, act) {
     addElement(grid, 'div', racer.bill ? '£' + racer.bill.toLocaleString('en-GB') : '-', cls);
   }
   addResultsNotes(panel, flow, racers);
-  // DAMAGE (user: "counted cost-wise against you at the end of a race in Story mode — shown in
-  // Test but never charged")
+  // DAMAGE (requirement: counted cost-wise against you at the end of a race in Story mode — shown
+  // in Test but never charged)
   addRepairsLine(panel, racers);
   addResultsButtons(menu, panel, act);
 }
 
 /**
- * Adds one podium step: the car top-down with its wheels, nose UP the step (user:
- * "podium looks broken, just use normal top down cars"), name, time / distance and the step.
+ * Adds one podium step: the car top-down with its wheels, nose UP the step (requirement: podium
+ * looks broken, just use normal top down cars), name, time / distance and the step.
  * @param {object} menu the menu context
  * @param {HTMLElement} pod the podium element
  * @param {object} flow the race flow
@@ -291,7 +291,7 @@ function addPodiumStep(menu, pod, flow, racer, hgt) {
 }
 
 /**
- * RESULTS (AI stage 4; user: "podium first, then the table"): the PODIUM, 2nd, 1st, 3rd on
+ * RESULTS (AI stage 4; requirement: podium first, then the table): the PODIUM, 2nd, 1st, 3rd on
  * steps, the car on top; tap or 2.5 s -> the table. flow = raceflow.js (results sorted on time
  * incl. penalties; est = still running when the race was cut short).
  * @param {object} menu the menu context

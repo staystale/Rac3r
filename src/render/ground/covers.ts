@@ -12,8 +12,8 @@ import { paintLayers, artBase } from "./art.ts";
 // puddle on grass, on dirt or on tarmac. When wear changes a cell under a cover (snow packed to
 // ice, ice scrubbed through), drawWear paints that cell's new state over this. A cover is drawn
 // as the 0.5 m world-grid squares whose centre is inside it (the same inside test as lab.js
-// coverAt), cached per cover — squares, not ovals (user, pixel pass: "no circles"). Physics keeps
-// the exact shape; the drawn edge is within ~0.35 m of it, the same as the square blend patches.
+// coverAt), cached per cover — squares, not ovals (requirement: no circles). Physics keeps the
+// exact shape; the drawn edge is within ~0.35 m of it, the same as the square blend patches.
 // `rim` = squares with an outside neighbour, filled as the edge line (stroking the squares would
 // outline every one of them).
 
@@ -111,9 +111,9 @@ export function drawPatches(groundCtx: GroundCtx) {
   }
 }
 
-// MERGED COVERS (user: "puddles, streams or bodies of water should CONNECT together
-// if touching"). Each cover used to be drawn on its own — its own translucent fill and dark rim —
-// so overlapping puddles darkened twice and showed rims inside each other: a stream read as a
+// MERGED COVERS (requirement: puddles, streams or bodies of water should CONNECT together if
+// touching). Each cover used to be drawn on its own — its own translucent fill and dark rim — so
+// overlapping puddles darkened twice and showed rims inside each other: a stream read as a
 // string of beads. Now, per cover KIND, the union of every cover's 0.5 m cells (the same cells
 // coverAt answers for, so it still matches the physics); each tint fills once, the pattern is
 // clipped to the union, one rim round the outside.

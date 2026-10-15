@@ -141,16 +141,16 @@ export function onKey(key) {
   gameKey(key);
 }
 
-// LEVELS (user: "make it so you can switch levels between the lab and the surface
-// sandbox"). A level owns its surfaces, its bumps and its cones, so switching means rebuilding the
-// cone field and clearing the marks layer — a rut ploughed through the sandbox's mud has no
+// LEVELS (requirement: make it so you can switch levels between the lab and the surface sandbox). A
+// level owns its surfaces, its bumps and its cones, so switching means rebuilding the cone field
+// and clearing the marks layer — a rut ploughed through the sandbox's mud has no
 // business appearing on the lab floor at the same coordinates.
 export function selectLevel(levelId) {
   if (levelId === LEVEL.id) return;
   saveRecords();
   setLevel(levelId);
-  // MEASURED BUG (user: "joker lap HUD warning showing on tracks it shouldn't"): the RX
-  // race flag survived the in-game level switch, so after an RX race on Knobhill every track showed
+  // MEASURED BUG (requirement: joker lap HUD warning showing on tracks it shouldn't): the RX race
+  // flag survived the in-game level switch, so after an RX race on Knobhill every track showed
   // LAP n/5 + JOKER TO DO. A level without a joker has no RX race.
   if (!LEVEL.joker) shared.race.on = false;
   game.cones = createCones();     // cones are per-level, so the field is rebuilt from the new list

@@ -138,7 +138,7 @@ AIDS</span><b>${aids}</b>`
 }
 
 /**
- * PAINT SHOP (user: "palette + number + preview"): BODY and TRIM from the 16-colour
+ * PAINT SHOP (requirement: palette + number + preview): BODY and TRIM from the 16-colour
  * PALETTE, a NUMBER 1-99 (or none), the car previewed on the lift as you go; APPLY saves it to
  * the profile, BACK drops the changes, STOCK puts the car's own colours back.
  * @param {object} menu the menu context

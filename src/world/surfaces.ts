@@ -7,8 +7,8 @@ export type SurfaceId =
 const COL_GRAVEL_TRACK = '150,134,106';   // rgb of a rut ploughed through gravel — warm, not black
 const COL_GRASS_SCUFF  = '92,112,66';     // rgb of torn turf
 // =============================================================================================
-// SURFACES (user: "we should have road surfaces - tarmac - the lab - gravel - grass.
-// They should all affect driving conditions differently and realistically").
+// SURFACES (requirement: we should have road surfaces - tarmac - the lab - gravel - grass. They
+// should all affect driving conditions differently and realistically).
 //
 // A surface is FOUR independent physical properties, not a grip number. Getting this wrong is the
 // classic mistake: if a loose surface is only "tarmac with less mu" it feels like WET tarmac —
@@ -60,9 +60,9 @@ const MARK_SAND: Mark = { rgb: '176,152,112', widen: 2.5, alpha: 0.14 };
 // the surface, which is why the trail behind a car on a wet track is the one you can actually see.
 export const MARK_WET: Mark = { rgb: '196,199,208', widen: 1.6, alpha: 0.16 };
 
-// SPRAY — what a wheel THROWS UP off a loose surface (user: "floor with a loose surface
-// like snow mud sand or grass should particle emit and small and kick up dust / dirt / grass /
-// snow"). Read by render.ts, which never learns what any of these are; a surface without one throws
+// SPRAY — what a wheel THROWS UP off a loose surface (requirement: floor with a loose surface like
+// snow mud sand or grass should particle emit and small and kick up dust / dirt / grass / snow).
+// Read by render.ts, which never learns what any of these are; a surface without one throws
 // nothing.
 //   rgb    colour of the thrown material
 //   size   metres, roughly the radius of one clod
@@ -93,9 +93,9 @@ const SPRAY_SNOW:   Spray = { rgb: '255,255,255', size: 0.24, rate: 76, lift: 4.
 export const SPRAY_WET:    Spray = { rgb: '232,238,248', size: 0.15, rate: 54, lift: 3.0,
   life: 0.28, grow: 0.50 };
 
-// RETUNED (user: "can the floor styles feel slightly more unique to drive on - grass mud
-// and gravel feel too similar"). They WERE too similar, and the reason is instructive: all three
-// were built the same way — take grip off, add slip angle, add some drag. Three points on one line
+// RETUNED (requirement: can the floor styles feel slightly more unique to drive on - grass mud and
+// gravel feel too similar). They WERE too similar, and the reason is instructive: all three were
+// built the same way — take grip off, add slip angle, add some drag. Three points on one line
 // is one surface with three names.
 //
 // The fix is to give each a DIFFERENT DOMINANT PROPERTY, so they fail you in different ways:
@@ -139,9 +139,9 @@ export const SURFACES: Record<SurfaceId, Surface> = {
   grassShort: { id: 'grassShort', label: 'SHORT GRASS', mu: 0.34, peakK: 1.25, longK: 0.85,
     plough: 0, rough: 0.014, mark: MARK_GRASS, spray: SPRAY_GRASS },
   // LONG GRASS — un-mown pasture. Taller, deeper, more drag and height variation.
-  // plough 0.10 -> 0.35 (user: "long grass to grab slightly ... until it's driven over
-  // enough to become short grass" — 2 passes, BASE_WEAR). MEASURED vs short grass, hatch-fwd /
-  // muscle: 0-50 km/h 7.56 -> 8.58 s / 7.70 -> 8.88 s; coasting 50 -> 4 km/h 502 -> 205 m / 469 ->
+  // plough 0.10 -> 0.35 (requirement: long grass to grab slightly... until it's driven over enough
+  // to become short grass) — 2 passes, BASE_WEAR). MEASURED vs short grass, hatch-fwd / muscle:
+  // 0-50 km/h 7.56 -> 8.58 s / 7.70 -> 8.88 s; coasting 50 -> 4 km/h 502 -> 205 m / 469 ->
   // 198 m. (0.10 was 368 m — barely felt; 0.5 / 0.7 tried: 162 / 127 m, 9.2 / 10.2 s — more than
   // "slightly".)
   grassLong:  { id: 'grassLong', label: 'LONG GRASS', mu: 0.36, peakK: 1.30, longK: 0.82,
@@ -163,8 +163,8 @@ export const SURFACES: Record<SurfaceId, Surface> = {
     rough: 0.002, mark: MARK_WET, spray: SPRAY_WET, hard: true, coolK: 0.18 },
   mud:    { id: 'mud', label: 'MUD', mu: 0.45, peakK: 2.20, longK: 0.85, plough: 1.60, rough: 0.010,
     mark: MARK_MUD, spray: SPRAY_MUD },
-  // THICK MUD (user: "two types of mud ... mud turns to thick mud"). Same family as
-  // mud, but the bog: less grip, driven wheels churn, and it drags harder than mud. SIZED TO THE
+  // THICK MUD (requirement: two types of mud... mud turns to thick mud). Same family as mud, but
+  // the bog: less grip, driven wheels churn, and it drags harder than mud. SIZED TO THE
   // STALL LINE (see the plough note above): a 2WD car drives through one axle, so RWD traction ~
   // 0.5*mu*longK*g = 1.30 m/s^2, and drag at a crawl is plough*PLOUGH_CRAWL = 1.9*0.55 = 1.05 — 81%
   // of it. Bogged, never stuck dead. (First cut was mu 0.36 / longK 0.60 / plough 3.4: 1.87 drag vs

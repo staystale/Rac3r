@@ -7,11 +7,11 @@ import type {
   Point, Sector, CurvedKerb, Zone, Prop, Paint, Board, Cone, Bump, Cover, Spawn,
 } from "../types.ts";
 // ============================================================================================= THE
-// SURFACE SANDBOX — REBUILT as a real circuit (user: "rebuild the surface sandbox to
-// cover all surface types, cones, tyres and make it similar to the test track in the sense it's a
-// real track with lap timer and reset functions but unique and better. Beautiful and functional.
-// Put some mixed testing functions like wet spots and snow or ice patches, long and short grass
-// patches").
+// SURFACE SANDBOX — REBUILT as a real circuit (requirement: rebuild the surface sandbox to cover
+// all surface types, cones, tyres and make it similar to the test track in the sense it's a real
+// track with lap timer and reset functions but unique and better. Beautiful and functional. Put
+// some mixed testing functions like wet spots and snow or ice patches, long and short grass
+// patches).
 //
 // It is a SUBTRACK, like the Test Track, so the lap timer, the lap counter and RESET-to-the-track
 // all work with no new code. One lap (~1.67 km) runs through EVERY surface in the game, in an order
@@ -120,7 +120,7 @@ export const SB_ZONES: Zone[] = [
   { x: 140, y: -120, w: 50, h: 40, surface: SURFACES.grassLong },
   { x: 60, y: 160, w: 80, h: 18, surface: SURFACES.grassLong },
 ];
-// NO JUMPS on this level (user: "no jumps on the surface sandbox new level please").
+// NO JUMPS on this level (requirement: no jumps on the surface sandbox new level please).
 // The ramp, the gravel table and the dirt whoops were removed; the lab keeps its own jumps.
 export const SB_BUMPS: Bump[] = [];
 const SB_START = sbAt(0);
@@ -141,8 +141,8 @@ export const LAB_BUMPS = prepBumps([
   { kind: 'table', x: 120, y: -140, rot: Math.PI / 2, len: 26, wid: 14, h: 0.85 },
   ...[0, 1, 2, 3].map((i) => ({ kind: 'hump', x: 60, y: -60 - i * 14, r: 6.5, h: 0.30 })),
   { kind: 'kerb', x: 185, y: -40, rot: 0, len: 44, wid: 3.4, h: 0.11 },
-  // ---- SUSPENSION TEST ZONE (user: "add some bumps and dips to the lab level and mark
-  // it out as a suspension test zone"; chose whoops + dips/compressions + washboard + banked bowl).
+  // ---- SUSPENSION TEST ZONE (requirement: add some bumps and dips to the lab level and mark it
+  // out as a suspension test zone); chose whoops + dips/compressions + washboard + banked bowl).
   // The bare lab floor, south-west, x -245..0, y 162..214 — scanned clear of cones, panels, the
   // drag strip (y 240) and the benches. Drive WEST -> EAST. Lane 1 (y 172): WHOOPS, six round humps
   // rising 0.15 -> 0.40 m, 9 m apart.

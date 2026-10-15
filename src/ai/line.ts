@@ -88,9 +88,9 @@ function gripMap(ctx: LineCtx) {
     const ground = groundAt(point.x + point.nx * offset, point.y + point.ny * offset);
     return (ground.surface && ground.surface.mu) || 1;
   }));
-  // SMOOTHED ALONG THE TRACK (+-MU_SMOOTH m) before the surface bias reads it (user:
-  // "Slidden Hill dirt to tarmac, the AI still slows down!!"). Where a surface edge crosses the
-  // road at an angle, a few cross-sections are half dirt / half tarmac and the bias jerked the line
+  // SMOOTHED ALONG THE TRACK (+-MU_SMOOTH m) before the surface bias reads it (requirement: Slidden
+  // Hill dirt to tarmac, the AI still slows down!!). Where a surface edge crosses the road at an
+  // angle, a few cross-sections are half dirt / half tarmac and the bias jerked the line
   // sideways there: a KINK (R 19-26 m on a straight, R 150-2000 either side) that the speed profile
   // read as a corner — 20 -> 11 m/s at Slidden's dirt -> tarmac (d 363), the same at 3 of its 4
   // changes (MEASURED, line dump).
@@ -136,8 +136,9 @@ function hairpinLimits(ctx: LineCtx) {
 /** OBJECTS ON THE ROAD narrow the limits for the line. */
 function coneLimits(ctx: LineCtx, low: Float64Array, high: Float64Array) {
   const { level, sub, centre, count, halfWidth } = ctx;
-  // OBJECTS ON THE ROAD narrow it for the line (user: "try and avoid tyres and cones"): a resting
-  // cone / tyre / bale inside the road pushes that side's limit in to r + OBST_CLEAR from it, over
+  // OBJECTS ON THE ROAD narrow it for the line (requirement: try and avoid tyres and cones): a
+  // resting cone / tyre / bale inside the road pushes that side's limit in to r + OBST_CLEAR from
+  // it, over
   // its length; skipped if it would leave under 3 m (then it is a chicane of cones the line runs
   // through anyway). MEASURED before: Sweaty Lamb's apex tyres (0-2 m inside the edge) — 54 knocked
   // in 2 laps.

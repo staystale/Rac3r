@@ -116,9 +116,9 @@ export function showMainMenu(menu) {
 }
 
 /**
- * TEST MODE step 1: CATEGORY LIST (user: "a menu layer for circuit type, stick
- * appropriate tracks in the correct category" — "a BIG LIST", Grass Track in OVALS), then step 1b:
- * that category's track cards (overhead thumbnails).
+ * TEST MODE step 1: CATEGORY LIST (requirement: a menu layer for circuit type, stick appropriate
+ * tracks in the correct category) — "a BIG LIST", Grass Track in OVALS), then step 1b: that
+ * category's track cards (overhead thumbnails).
  * @param {object} menu the menu context
  */
 export function showTrackSelect(menu) {

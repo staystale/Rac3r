@@ -18,9 +18,9 @@ export function stateOf(level) {
 // the next road element: a STRAIGHT, a SWEEPER or a tighter BEND. A curve turns back toward
 // straight-up once the heading has wandered past half the limit, and its total turn is capped so
 // the heading never passes the limit; turning back it may swing right across to the other side (the
-// "vary obviously" swings). LEAN TARGET (user, phone: "it always aims diagonally LEFT —
-// it should go left AND right and vary"). MEASURED (tools/headingcheck): the old rule only turned
-// back past HALF the limit, so the road could sit on one side for km — the live seed leaned LEFT
+// "vary obviously" swings). LEAN TARGET (requirement: it always aims diagonally LEFT — it should go
+// left AND right and vary). MEASURED (tools/headingcheck): the old rule only turned back past HALF
+// the limit, so the road could sit on one side for km — the live seed leaned LEFT
 // (-16..-58 deg) from 0.5 to 4.5 km, seed 7 for 12.9 km. Now the road steers toward a TARGET LEAN
 // that ALTERNATES sides (35-100 % of the limit) and is held for 0.5-1.6 km; near the target it runs
 // straight or throws a small S-wiggle.

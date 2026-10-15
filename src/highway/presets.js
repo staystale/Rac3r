@@ -38,7 +38,7 @@ export const HW_PRESETS = {
     pStraight: 0.3,
     pBend: 0.25,
   },
-  // WALLED IN (user: "some levels that use this mechanic should be more walled in"):
+  // WALLED IN (requirement: some levels that use this mechanic should be more walled in):
   // `walls` = a continuous barrier kind both sides, `wallGap` m off the road edge; no trees / barns
   // inside the walls
   walled: {

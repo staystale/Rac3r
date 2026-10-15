@@ -47,9 +47,9 @@ export function trackKit(sub: Subtrack, seed: number, lanes: Lane[] = []): Track
   return { rnd, at: pointAt, rot, prop, clear, span, bank, along, onLane };
 }
 
-// RALLYCROSS DRESSING (user: "a couple more hay bales and tyres around Slidden Hill
-// and Knobhill"): knockable HAY BALES every 2.2 m along the OUTSIDE of every corner (hw + 4.5),
-// and a 2 x 3 block of TYRE STACKS on each inside apex (hw + 2.5) — kept off the road, every
+// RALLYCROSS DRESSING (requirement: a couple more hay bales and tyres around Slidden Hill and
+// Knobhill): knockable HAY BALES every 2.2 m along the OUTSIDE of every corner (hw + 4.5), and a 2
+// x 3 block of TYRE STACKS on each inside apex (hw + 2.5) — kept off the road, every
 // lane (joker, start, traps, paddock) and 1.6 m clear of any existing object.
 // lined: [[d0, d1]] stretches with bales along BOTH sides every 4.4 m
 export function rxDress(
@@ -78,8 +78,8 @@ export function rxDress(
   };
   for (const kerb of autoKerbs(sub, { maxR: 60, exitR: 0, minTurn: 25, mergeGap: 10 })) {
     const outS = kerb.side === 'left' ? -1 : 1, mid = (kerb.startDist + kerb.endDist) / 2;
-    // ONLY WHERE THERE IS NO WALL YET (user: "they should go where there isn't already Armco and
-    // tyre walls" — the first pass lined bales in front of Slidden Hill's tyre walls): skip a
+    // ONLY WHERE THERE IS NO WALL YET (requirement: they should go where there isn't already Armco
+    // and tyre walls) — the first pass lined bales in front of Slidden Hill's tyre walls): skip a
     // bale with an existing tyre stack within 6 m
     for (let dist = kerb.startDist - 6; dist <= kerb.endDist + 10; dist += 2.2) {
       const point = smoothOnTrack(sub, dist, outS * (halfWidth + 4.5));
@@ -115,9 +115,9 @@ export function rxDress(
   return out;
 }
 
-// JOKER SEPARATION (user: "hay bales between the joker section and the normal track
-// on both rallycross tracks — a clear barrier"): a line of bales in the MIDDLE of the grass strip
-// between the joker and the main road, every 2.1 m wherever that strip is at least 2.2 m wide
+// JOKER SEPARATION (requirement: hay bales between the joker section and the normal track on both
+// rallycross tracks — a clear barrier): a line of bales in the MIDDLE of the grass strip between
+// the joker and the main road, every 2.1 m wherever that strip is at least 2.2 m wide
 // (so the joker's mouth and exit stay open).
 export function jokerBales(sub: Subtrack, joker: Lane, existing: Cone[]): Cone[] {
   const halfWidth = sub.width / 2, jokerHalf = joker.width / 2,

@@ -23,9 +23,9 @@
 // player finishing ends the grace at once; a player who finished in the top 3 waits at most
 // WAIT_TOP3 s for the rest of the top 3.
 export const GRACE = 5, WAIT_TOP3 = 15, JOKER_LEFT = 0.6, DNF_X = 2, STAGE_WAIT = 10;
-// RALLY STAGE mode (stage = { finish }: user: "like real life — a time trial with
-// staggered starts, each timed from their own start, so you can catch the car ahead or be caught"):
-// a car's time runs from crossing the start line (progress 0) to the finish distance. The event
+// RALLY STAGE mode (stage = { finish }: (requirement: like real life — a time trial with staggered
+// starts, each timed from their own start, so you can catch the car ahead or be caught): a car's
+// time runs from crossing the start line (progress 0) to the finish distance. The event
 // ends when YOU are through the finish and the rest are too, or STAGE_WAIT s later; a car still on
 // the stage is ESTIMATED from its pace so far (elapsed / fraction of the stage done).
 
@@ -106,8 +106,8 @@ function stepLaps(state) {
       entry.laps.push(lapTime);
       if (entry.best == null || lapTime < entry.best) entry.best = lapTime;
       entry.lapDone = done; entry.lapT0 = flow.t;
-      // the chequered flag is for YOU crossing the line (user: "only when you finish
-      // a race"), with your place on it
+      // the chequered flag is for YOU crossing the line (requirement: only when you finish a race),
+      // with your place on it
       if (done >= laps) {
         entry.finish = flow.t;
         if (flow.firstHome == null) flow.firstHome = flow.t;
@@ -134,9 +134,8 @@ function stepRaceState(state) {
   }
   if (flow.state === 'grace') {
     const meHome = !myEntry || myEntry.finish != null;
-    // ALWAYS wait for the player (user: "races should always wait for the player to
-    // finish but cut the AI short as now");
-    // was: GRACE s after the top 3, then your time was estimated
+    // ALWAYS wait for the player (requirement: races should always wait for the player to finish
+    // but cut the AI short as now); was: GRACE s after the top 3, then your time was estimated
     if (meHome) endRace(state);
   // you won; the rest of the top 3 are far behind
   } else if (myEntry && myEntry.finish != null && flow.t - myEntry.finish >= WAIT_TOP3) {

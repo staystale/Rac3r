@@ -83,14 +83,14 @@ shared.lastOnTrack = null;
 shared.breadcrumbs = [];
 shared.lastBreadcrumbTime = 0;
 
-// RX RACE (user: "5-lap race, joker once; missing it adds +5 s; free practice stays as
-// it is"). Only on a level with a joker, only when chosen in setup. Race time runs from the first
-// move off the grid; it finishes when lap 5 is complete.
+// RX RACE (requirement: 5-lap race, joker once; missing it adds +5 s; free practice stays as it
+// is). Only on a level with a joker, only when chosen in setup. Race time runs from the first move
+// off the grid; it finishes when lap 5 is complete.
 shared.race = { on: false, laps: 5, t: 0, started: false, joker: false, done: false, total: 0,
   penalty: 0 };
 game.race = shared.race;
 // the JOKER GATE counts in practice too (user: the arrows "vanish when the joker lap has been
-// taken"); RESTART brings them back JOKER COUNT (user: "harsh, real-ish": exactly once;
+// taken"); RESTART brings them back JOKER COUNT (requirement: harsh, real-ish): exactly once;
 // missed OR each extra = +30 s. FIA: a missed joker is a time penalty, extra jokers go to the
 // stewards). Counted on ENTERING the gate, so one pass is one joker however long you sit in it.
 // STAGE TIMING (point-to-point, user): READY -> cross the START line (track distance
@@ -103,14 +103,14 @@ shared.aiCount = shared.settings.aiCount;
 // field's spread. ?diff=N, or setup's row.
 shared.aiDiff = shared.settings.aiDifficulty;
 game.ai = [];
-// RACE LENGTH (user: "choose in setup"): setup's LAPS row; 0 = the level's default (3
-// on a circuit, the joker laps on RX)
+// RACE LENGTH (requirement: choose in setup): setup's LAPS row; 0 = the level's default (3 on a
+// circuit, the joker laps on RX)
 shared.raceLaps = 0;
 game.flow = null;
 shared.gridSlot = 0;
-// AI CARS (user: "AI should race within the class, not always the same vehicle — an
-// option to force them to use your car"): 'class' = each AI draws a car of YOUR car's class (a
-// shuffled deck, so the field mixes; a one-car class repeats it); 'same' = your car. The menu
+// AI CARS (requirement: AI should race within the class, not always the same vehicle — an option to
+// force them to use your car): 'class' = each AI draws a car of YOUR car's class (a shuffled deck,
+// so the field mixes; a one-car class repeats it); 'same' = your car. The menu
 // passes its setting (default CLASS); a launch without it (tools, the menu race) keeps 'same', so
 // measurements stay like for like.
 shared.aiCarMode = 'same';
@@ -143,9 +143,9 @@ addEventListener('pagehide', saveRecords);
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) saveRecords();
 });
-// TRAFFIC (user: "traffic in every mode, a slider in test mode for density"): 0..1.5 (1
-// = PER_LANE cars a lane), setup's TRAFFIC slider or ?traffic=; LITTER (user: "a slider for
-// frequency / density" of the roadside objects): 0..3 x, setup's LITTER slider
+// TRAFFIC (requirement: traffic in every mode, a slider in test mode for density): 0..1.5 (1
+// = PER_LANE cars a lane), setup's TRAFFIC slider or ?traffic=; LITTER (requirement: a slider for
+// frequency / density) of the roadside objects): 0..3 x, setup's LITTER slider
 game.traffic = createTraffic();
 shared.trafficDensity = shared.settings.trafficDensity;
 if (shared.settings.litter !== null)
@@ -157,8 +157,8 @@ shared.hud = createHud();
 // as if no card were up. ?guide=1 forces it on (for photographing it), ?guide=0 forces it off.
 shared.guide = createGuide();
 // MENUS (user spec: main menu -> Test Mode / Garage; a live DEMO LAP behind the menu).
-// mode: 'menu' | 'session'. APPROVED (user: "sounds great") — the menu is the normal
-// start. ?menu=0 drives straight in (the old start); automation (navigator.webdriver) also skips
+// mode: 'menu' | 'session'. APPROVED (requirement: sounds great) — the menu is the normal start.
+// ?menu=0 drives straight in (the old start); automation (navigator.webdriver) also skips
 // it, so every tool that taps the HUD still lands in a session; ?menu=1 forces it.
 shared.MENU = shared.settings.menu === '1'
   || (shared.settings.menu !== '0' && !navigator.webdriver);
@@ -166,8 +166,8 @@ shared.mode = 'session';
 shared.demo = null;
 shared.demoStill = 0;
 shared.paused = false;
-// MENU RACE (user: "just use the updated AI / 5-car race event for the menu screen"):
-// behind the menu a 5-car race runs — the camera car + DEMO_AI opponents, all on the racing AI
+// MENU RACE (requirement: just use the updated AI / 5-car race event for the menu screen): behind
+// the menu a 5-car race runs — the camera car + DEMO_AI opponents, all on the racing AI
 // (aidriver.js) at DEMO_DIFF, no lights. Was one autodrive car on the Test Track.
 // ?menuai=N: A/B the frame cost
 shared.DEMO_LEVEL = 'thruston';

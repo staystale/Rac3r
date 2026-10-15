@@ -18,8 +18,8 @@ import { shared, game } from './state.js';
 // change.
 export const AI_LIVERIES = [['#c8302c', '#7e1d1a'], ['#2b56b5', '#14306e'], ['#e2c13a', '#8a6d12'],
   ['#2f7d4f', '#174a2c'], ['#7a3fa0', '#43205a']];
-// GRID (user: "starting grid position should vary randomly but bias toward the front n
-// back with difficulty"): the player's slot is drawn with weights exp(GRID_BIAS[diff] x slot / n) —
+// GRID (requirement: starting grid position should vary randomly but bias toward the front n back
+// with difficulty): the player's slot is drawn with weights exp(GRID_BIAS[diff] x slot / n) —
 // Mobile leans to the FRONT, Real to the BACK, Realish is even.
 export const GRID_BIAS = [-2.2, -1.1, 0, 1.1, 2.2];
 export function drawGridSlot(count) {
@@ -36,8 +36,8 @@ export function drawGridSlot(count) {
 }
 // slot 0 = pole (the spawn, or the rolling-start pole), slot k = the staggered grid behind it RALLY
 // STAGE (LEVEL.stage): single file back from the spawn along the road, STAGE_GAP_M apart; later
-// starters queue here, STAGE_GAP_S apart in time REAL START INTERVALS (user: "it's like
-// a normal race rather than starting IN BETWEEN other opponents on a rally stage TIME-WISE"): cars
+// starters queue here, STAGE_GAP_S apart in time REAL START INTERVALS (requirement: it's like a
+// normal race rather than starting IN BETWEEN other opponents on a rally stage TIME-WISE): cars
 // STAGE_GAP_S apart; you always start at the normal lights; those who started BEFORE you are
 // already down the stage where their own pace would have taken them (lineRun); those AFTER you
 // queue behind and go STAGE_GAP_S apart. (Was: everyone queued 6 s apart — a race in single file.)
@@ -53,8 +53,8 @@ export function gridPos(slot) {
         ((spawnDist - slot * STAGE_GAP_M) % sub.totalDist + sub.totalDist) % sub.totalDist, 0, {});
     return { x: point.x, y: point.y, h: point.rot };
   }
-  // A REAL 2-WIDE STAGGERED GRID (user: "grid starts are wonky / place the player too
-  // close to other cars / not in a grid formation"). MEASURED (tools/gridcheck, 5 AI): slots were
+  // A REAL 2-WIDE STAGGERED GRID (requirement: grid starts are wonky / place the player too close
+  // to other cars / not in a grid formation). MEASURED (tools/gridcheck, 5 AI): slots were
   // OUT OF ORDER (slot 2 at 4.5 m back, slot 1 at 9 m), pole sat on the CENTRELINE with its
   // neighbours 1.0-1.6 m away (box to box), and on the Test Track the player's pole was the spawn
   // while the rest counted back from totalDist - 15 -> the player overlapped AI 5 (-0.07 m). Now:

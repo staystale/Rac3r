@@ -11,8 +11,8 @@ import { STAGE_GAP_S } from './grid.js';
 import { shared, game } from './state.js';
 
 export const resetCar = reset;
-// START LIGHTS (user: "all races started by lights that clearly go red to green, maybe
-// a countdown"; "circuits with ROLLING starts: the game controls ALL cars, AI and player, until the
+// START LIGHTS (requirement: all races started by lights that clearly go red to green, maybe a
+// countdown); "circuits with ROLLING starts: the game controls ALL cars, AI and player, until the
 // start, then releases them"). Any race (VS AI or the RX race): three reds light one per second
 // with 3-2-1, then GREEN + GO!. Every car is held until GREEN - START_EARLY ("free to go at green
 // or a split second before", the same for player and AI). Rolling start (LEVEL.rollingStart, the
@@ -49,8 +49,8 @@ export function atPace(out, car) {
     brake: speed > ROLL_PACE + 2 ? 0.25 : 0, handbrake: 0, reverse: 0 };
 }
 export function stepStart(dt) {
-  // the clock keeps running after green so the HUD can take the lights away 1.2 s later (user:
-  // "race start lights don't vanish" — it stopped at green)
+  // the clock keeps running after green so the HUD can take the lights away 1.2 s later
+  // (requirement: race start lights don't vanish) — it stopped at green)
   const startState = game.start;
   if (!startState.on) return;
   startState.t += dt;
@@ -66,7 +66,7 @@ export function stepStart(dt) {
   }
   if (startState.t >= startState.tGreen) startState.green = true;
 }
-// RACE ORDER (user: "the lap counter area should keep track of what place you are").
+// RACE ORDER (requirement: the lap counter area should keep track of what place you are).
 // Each car's distance round the lap, UNWRAPPED across the line (a car behind the line on the grid
 // starts slightly negative), from the nearest centreline point; ranked.
 export function progressOf(car) {
@@ -98,9 +98,9 @@ export function progressOf(car) {
   car._lastQ = along;
   return car._prog;
 }
-// TRACK CUTS (user: "a time penalty for skipping track in rally / rallycross — and a
-// forced reset when skipping too large of a section in normal races"). While a car is wholly OFF
-// the road (centre > half width + CUT_OFF) it banks the track progress it gains BEYOND the distance
+// TRACK CUTS (requirement: a time penalty for skipping track in rally / rallycross — and a forced
+// reset when skipping too large of a section in normal races). While a car is wholly OFF the road
+// (centre > half width + CUT_OFF) it banks the track progress it gains BEYOND the distance
 // it actually drives — the NET over the whole excursion, so going wide 50 m and cutting 50 m back
 // gains nothing (a clamp at 0 lost a 300 m Thruston cut: the progress only jumps on rejoining,
 // after the drive had been subtracted). Back on the road: gain >= CUT_MIN -> a cut. RX race / rally
@@ -177,9 +177,9 @@ export function trackCut(car, near, delta) {
     car._cut = null;
     return;
   }
-  // LANES ARE NOT CUTS (user: "the track cut triggers on joker laps — it shouldn't, a
+  // LANES ARE NOT CUTS (requirement: the track cut triggers on joker laps — it shouldn't, a
   // specific exclusion; the only time penalty there is the event's, for missing or multiple
-  // jokers"): on the joker lane, the RX start lane or a pit lane the car is on a legal road, and an
+  // jokers): on the joker lane, the RX start lane or a pit lane the car is on a legal road, and an
   // excursion that touched one is dropped whole.
   if (onLane(car.x, car.y)) {
     car._cut = null;

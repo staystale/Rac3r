@@ -22,10 +22,9 @@ export function obstacleStep(drv: Drv, car: AiCar, ctx: DriveCtx, path: AiPath, 
   const pts = path.pts, cosH = Math.cos(car.heading), sinH = Math.sin(car.heading);
   let dodge: number | null = null;
   const onLine = path === main ? lineOff : 0;
-  // ---- OBSTACLES (user: "AI need to see tyres and cones as obstacles — although
-  // optional ones haha — but try and avoid them
-  // on rally stages / tracks"): ctx.obstacles = loose objects near this car ({ x, y, r },
-  // main.js). One in my path ahead, on the road ->
+  // ---- OBSTACLES (requirement: AI need to see tyres and cones as obstacles — although optional
+  // ones haha — but try and avoid them on rally stages / tracks): ctx.obstacles = loose objects
+  // near this car ({ x, y, r }, main.js). One in my path ahead, on the road ->
   // step round it on the side with room; no room -> drive through (optional). Cars come first:
   // only when no car is in the way. A more
   // precise driver sees it further ahead.
@@ -82,10 +81,9 @@ export function followAhead(drv: Drv, acc: CarsAcc, env: CarsEnv, fwd: number, o
   const { traits, state } = drv;
   const { car, path, idx, speed, prec, prof, lineOff, latT, latLim, myLat, clear, gapF } = env;
   acc.conflict = true;
-  // GO ROUND, DON'T QUEUE (user: "AI still seem to almost queue and wait
-  // rather than overtake and avoid blocking cars,
-  // even if it's slightly off track"): the room to pass may use WIDE m past the usual edge
-  // (wheels on the grass), WIDE_SLOW for a
+  // GO ROUND, DON'T QUEUE (requirement: AI still seem to almost queue and wait rather than overtake
+  // and avoid blocking cars, even if it's slightly off track): the room to pass may use WIDE m past
+  // the usual edge (wheels on the grass), WIDE_SLOW for a
   // car that is much slower or stopped (spun, beached); once a side is chosen it no longer
   // matches the car ahead's speed unless
   // still overlapping it close up. (Was: room inside the edge only, and it slowed to
@@ -207,10 +205,9 @@ export function obstacleAvoid(drv: Drv, car: AiCar, ctx: DriveCtx, path: AiPath,
     idx: (pos: number) => number, speed: number, prec: number, lineOff: number, myLat: number,
     latLim: number, latT: number, dt: number, cars: { dodgeT: number, conflict: boolean }) {
   let { dodgeT, conflict } = cars;
-  // ---- OBSTACLES (user: "AI need to see tyres and cones as obstacles — although
-  // optional ones haha — but try and avoid them
-  // on rally stages / tracks"): ctx.obstacles = loose objects near this car ({ x, y, r },
-  // main.js). One in my path ahead, on the road ->
+  // ---- OBSTACLES (requirement: AI need to see tyres and cones as obstacles — although optional
+  // ones haha — but try and avoid them on rally stages / tracks): ctx.obstacles = loose objects
+  // near this car ({ x, y, r }, main.js). One in my path ahead, on the road ->
   // step round it on the side with room; no room -> drive through (optional). Cars come first:
   // only when no car is in the way. A more
   // precise driver sees it further ahead.

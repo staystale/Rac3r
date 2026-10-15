@@ -153,14 +153,14 @@ function drawRiverBoat(
 
 // BRIDGES (highway.js extras): carries 'road' / 'rail' / 'foot' = a deck OVER the motorway (kind
 // 'bridge', drawn after the cars); kind 'river' = the motorway over water. Local frame: +x along
-// the deck (across the motorway). Squares only. v2 (user: "bridges have no connecting
-// roads so it looks silly"; "make the cars n stuff move across if you can ... only if cheap
-// enough"): the APPROACHES (highway.js approaches: lane ribbons in the ground tiles) run
+// the deck (across the motorway). Squares only. v2 (requirement: bridges have no connecting roads
+// so it looks silly); "make the cars n stuff move across if you can... only if cheap enough"): the
+// APPROACHES (highway.js approaches: lane ribbons in the ground tiles) run
 // pr.appL[0 | 1] m out from each end; their markings / rails are drawn here, and so is what MOVES
 // across: cars both ways, walkers, a train every pr.trainEvery s. Pure drawing on the wall clock
 // (no physics, no state): a few dozen squares per bridge on screen. The RIVER's water is now a
-// real 'wet' cover (lab.js covers: the puddle water, grip and spray, painted into the ground
-// tiles; user: "water seemed to be painted and not our water texture"), so only the boat is drawn
+// real 'wet' cover (lab.js covers: the puddle water, grip and spray, painted into the ground tiles;
+// requirement: water seemed to be painted and not our water texture), so only the boat is drawn
 // here.
 /**
  * Draws a bridge deck, or the boat of a river crossing.

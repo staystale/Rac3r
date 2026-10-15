@@ -78,7 +78,7 @@ export const SURFACE_LAB: Surface = { id: 'lab', mu: 1.0, plough: 0, hard: true 
 // Shared defaults (PLAN.md). Anything a car does not state comes from here.
 const SHARED = {
   // cgH: the tuned weight-transfer height every car shares (handling the user has approved). The
-  // per-car cg / rideH below (user: "easier to give cars cg and ride height") feed the
+  // per-car cg / rideH below (requirement: easier to give cars cg and ride height) feed the
   // ROLLOVER threshold (track / 2 x cg) and the shadow, not the handling.
   cgH: 0.52,
   wheelR: 0.30,
@@ -96,24 +96,24 @@ const SHARED = {
   // darker" was unreachable. Worse, full pedal was also the FASTEST stop (45.1 m vs 49.9 m at 85%),
   // so lock-up cost nothing and there was no threshold-braking skill. At 1.35 full pedal locks all
   // four and the optimum moves below 100%, which is what makes the marks mean something. 1.35 ->
-  // 1.8 (user: "braking effort needs to be turned up — I can no longer lock up the
-  // brakes"). MEASURED, warm tyres, ABS off, 100 km/h: at 1.35 the rally, track and naffcar could
-  // not lock at all (warm tyres grip more since flex heat); at 1.8 every car can, and stops shorten
+  // 1.8 (requirement: braking effort needs to be turned up — I can no longer lock up the brakes).
+  // MEASURED, warm tyres, ABS off, 100 km/h: at 1.35 the rally, track and naffcar could not lock at
+  // all (warm tyres grip more since flex heat); at 1.8 every car can, and stops shorten
   // 1-3 m (hatch 38.1 -> 35.3 m). 2.2 gained only ~1 m more.
   brakeMaxDecel: 1.8,
   driveEff: 0.90,
   idleRpm: 850,
-  // MEASURED (user: "it is very slow"): the hatch needed 166 m to reach 100 km/h and 637
-  // m to reach 150, in a 200 m lab — the car could never actually go fast. Torque curves were
+  // MEASURED (requirement: it is very slow): the hatch needed 166 m to reach 100 km/h and 637 m to
+  // reach 150, in a 200 m lab — the car could never actually go fast. Torque curves were
   // raised ~72% across the roster and drag cut from 0.38, which is what moves TOP speed (power
   // fights v^2). per-car below; this is the fallback. Drag is what caps TOP speed without touching
   // acceleration, so it is the knob that keeps a 620 Nm muscle car off 413 km/h while it still
   // pulls hard.
   dragC: 0.40,
   rollC: 0.015,
-  // Yaw-inertia multiplier. MEASURED (user: "the cars do not have enough weight /
-  // momentum, so it stops them from drifting right"). The box approximation m*(len^2+wid^2)/12
-  // gives the hatch 1810 kg m^2, which is realistic but makes the car dart: it starts rotating
+  // Yaw-inertia multiplier. MEASURED (requirement: the cars do not have enough weight / momentum,
+  // so it stops them from drifting right). The box approximation m*(len^2+wid^2)/12 gives the hatch
+  // 1810 kg m^2, which is realistic but makes the car dart: it starts rotating
   // instantly and stops just as fast, so a slide snaps rather than swings. A real car carries its
   // mass high and long in the body, and a drift wants a lazy, heavy rotation you can catch.
   //
@@ -131,8 +131,8 @@ const SHARED = {
   //      1.0        0.94         70 deg         55%
   //      1.4        0.91         46 deg         73%
   //      2.8        0.83         18 deg         95%
-  // At 2.8 the car could barely rotate and a drift collapsed to 18 deg (user: "drifting does not
-  // work", "the muscle car cannot do donuts"). Nothing runs backwards at any value now, so the
+  // At 2.8 the car could barely rotate and a drift collapsed to 18 deg (requirement: drifting does
+  // not work, the muscle car cannot do donuts). Nothing runs backwards at any value now, so the
   // reason 2.8 existed is gone. A constant tuned against a model that has since changed is a lie.
   izzK: 2.4,
   // multiplier on aerodynamic directional stability. A car with a big rear wing
@@ -164,14 +164,14 @@ const CURVE_RALLY: Curve  = [[1200, 537], [2200, 762], [3200, 862], [4200, 881],
   737], [7600, 587]];
 const CURVE_TRACK: Curve  = [[1500, 438], [3000, 568], [4500, 655], [6000, 723], [7000, 756], [8000,
   728], [9000, 616]];
-// (user: "a BMW 3 series 2000s and a Subaru WRX classic 2005 saloon") — game units,
-// scaled from the real figures as the roster is (the hatch peaks 488): an E46 330i-style straight
+// (requirement: a BMW 3 series 2000s and a Subaru WRX classic 2005 saloon) — game units, scaled
+// from the real figures as the roster is (the hatch peaks 488): an E46 330i-style straight
 // six (300 Nm real, ~1.5x the hatch, smooth and flat, 6500 redline) and a GD WRX-style turbo flat
 // four (300 Nm real at 3600: soft under 2500, then the boost, tailing off to 7000)
 const CURVE_SALOON: Curve = [[900, 460], [2000, 620], [3000, 700], [3500, 730], [4500, 720], [5500,
   680], [6500, 600]];
-// v2 (user: "feels a bit slow at acceleration / unable to wheelspin or drift"): +12 % boost and the
-// lag filled from 2000 rpm
+// v2 (requirement: feels a bit slow at acceleration / unable to wheelspin or drift): +12 % boost
+// and the lag filled from 2000 rpm
 const CURVE_WRZ: Curve    = [[1000, 380], [2000, 600], [2800, 790], [3600, 840], [4500, 820], [5500,
   730], [6500, 600], [7000, 540]];
 const CURVE_TRACTOR: Curve = [[600, 3600], [1000, 5200], [1500, 5800], [1900, 5400], [2200, 4200],
@@ -197,8 +197,8 @@ const CURVE_DRIFT: Curve   = [[1200, 380], [2500, 640], [3500, 800], [4500, 830]
 const CURVE_F2: Curve      = [[1500, 350], [3000, 455], [4500, 525], [6000, 580], [7000, 605],
   [8000, 585], [9000, 495]];
 
-// CLASSES (user: "classes ... subclasses for events; the car menu filters by class then
-// subclass; upgrading never changes a car's class"; split agreed as proposed). Each ROSTER row
+// CLASSES (requirement: classes... subclasses for events; the car menu filters by class then
+// subclass; upgrading never changes a car's class); split agreed as proposed). Each ROSTER row
 // carries cls + sub; events will ask for a class (and maybe a subclass).
 export const CLASSES = [
   { id: 'road', name: 'ROAD', subs: ['Hatch', 'Saloon', 'Estate', 'Sports', 'Muscle'] },
@@ -212,22 +212,22 @@ export const CLASSES = [
 ];
 export const classOf = (classId: string) => CLASSES.find((cls) => cls.id === classId);
 
-// PAINT + NUMBER (user: "palette + number + preview"): 16 colours for body and trim; a
-// race number 1-99 (0 = none). A livery is { paint, trim, num } per car id in the menu profile;
+// PAINT + NUMBER (requirement: palette + number + preview): 16 colours for body and trim; a race
+// number 1-99 (0 = none). A livery is { paint, trim, num } per car id in the menu profile;
 // applyLivery puts it on a car's spec (missing fields = the roster's own), so it follows the car
 // into every event and render.ts caches a sprite per livery.
 export const PALETTE = ['#f0f0ea', '#a9aeb6', '#5a5f69', '#16181d', '#c8342a', '#7a1d22', '#e0603a',
   '#f2a900',
   '#9bc53d', '#2e7d32', '#1f4d2e', '#3fb6c9', '#2f6fd0', '#1d3f9a', '#8a4fc0', '#e86fa8'];
-// TYRES (user: "the first upgrade — manufacturers, ranges per class; only fit what
-// fits; rally / off-road tyres on a road car = more off-road grip but heat up too quickly on
-// tarmac; wets, race... a real mix with distinct grip interactions"; "4 brands, 15 types"; TODAY's
-// grip = the floor: "SPUM — Pre-Spun +0"). grip = x on the surface's mu per SURFACE GROUP (Pre-Spun
+// TYRES (requirement: the first upgrade — manufacturers, ranges per class; only fit what fits;
+// rally / off-road tyres on a road car = more off-road grip but heat up too quickly on tarmac;
+// wets, race... a real mix with distinct grip interactions); "4 brands, 15 types"; TODAY's grip =
+// the floor: "SPUM — Pre-Spun +0"). grip = x on the surface's mu per SURFACE GROUP (Pre-Spun
 // = 1 everywhere, so a stock car is exactly as before); opt / peak / cold = the heat window
 // (vehicle.js tyreGrip, hard ground only); heatHard = x heat-up on hard ground (knobbly / soft
 // compounds cook on tarmac). fits = the classes that can run it. Prices: shown; test mode does not
-// charge. v2 (user: "tyre stats don't show all the surfaces they affect — mud etc isn't
-// shown ever"): NINE surfaces, each its own number and its own bar (v1 had 5 groups — GRASS hid mud
+// charge. v2 (requirement: tyre stats don't show all the surfaces they affect — mud etc isn't shown
+// ever): NINE surfaces, each its own number and its own bar (v1 had 5 groups — GRASS hid mud
 // + sand, GRAVEL hid dirt, SNOW hid ice). Kerbs / concrete / broken count as tarmac.
 export const TYRE_SURFS = [['tarmac', 'TARMAC'], ['wet', 'WET'], ['gravel', 'GRAVEL'], ['dirt',
   'DIRT'], ['grass', 'GRASS'], ['mud', 'MUD'], ['sand', 'SAND'], ['snow', 'SNOW'], ['ice', 'ICE']];
@@ -496,8 +496,8 @@ export const ROSTER: RosterRow[] = [
     susF: 1.10, susZ: 0.55,
     paint: '#2e7d32', trim: '#fbc02d', glass: '#37474f',
   },
-  // ---------------- NEW CARS (user: "an old classic Mini, a Lamborghini, and yeah fill
-  // those classes")
+  // ---------------- NEW CARS (requirement: an old classic Mini, a Lamborghini, and yeah fill those
+  // classes)
   {
     id: 'mini-fwd', name: 'Minnie Cooped S', kind: 'mini', cls: 'road', sub: 'Hatch',
     cg: 0.48, rideH: 0.12,

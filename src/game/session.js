@@ -112,10 +112,10 @@ export function doReset() {
     resetCar(car, x, y, heading);
     if (keepT) car.tyreT = keepT.slice();
   };
-  // CIRCUITS (user: "reset doesn't work nicely — always behind / in line with where the
+  // CIRCUITS (requirement: reset doesn't work nicely — always behind / in line with where the
   // player LEFT the track, half on half off as if corrected, a random close angle pointing back on,
-  // NOT on the racing line"). Was: the nearest CENTRELINE point, dead straight — on the racing
-  // line, and sometimes level with or past where you went off. Now: RESET_BACK m behind the last
+  // NOT on the racing line). Was: the nearest CENTRELINE point, dead straight — on the racing line,
+  // and sometimes level with or past where you went off. Now: RESET_BACK m behind the last
   // point the car was on the road, centre on the EDGE it left by (half on / half off), nose turned
   // RESET_ANG deg back toward the road. tools/resetcheck.mjs.
   if (LEVEL.subtrack) {

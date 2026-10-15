@@ -250,8 +250,8 @@ export function stepEndlessHighway() {
     if (shared.lastOnTrack) shared.lastOnTrack.dist -= shift;
     if (game.trackD != null) game.trackD -= shift;
   }
-  // THE TREADMILL GUARD (user: "go backwards should reset you"): wrong way /
-  // dropped back / off the motorway -> put back in the left lane at the furthest point
+  // THE TREADMILL GUARD (requirement: go backwards should reset you): wrong way / dropped back /
+  // off the motorway -> put back in the left lane at the furthest point
   // reached, rolling at 60 % of the speed you had (or 15 m/s), with the reason shown
   const why = highwayGuard(LEVEL, game.car, PHYSICS_STEP_SECONDS);
   // the going-wide countdown
@@ -335,8 +335,8 @@ export function stepRaceFlow() {
     const was = game.flow.state;
     game.flow.step(PHYSICS_STEP_SECONDS);
     if (was !== 'done' && game.flow.state === 'done') game.flowDoneAt = performance.now();
-    // the HIGHWAY's END COUNTDOWNS on the notice line (user: "an AI reaching the edge of the
-    // screen ahead starts a countdown")
+    // the HIGHWAY's END COUNTDOWNS on the notice line (requirement: an AI reaching the edge of the
+    // screen ahead starts a countdown)
     const flow = game.flow;
     if (flow.highway
       && flow.cdKind) game.notice = { text: (flow.cdKind === 'ahead' ? (flow.cdHold

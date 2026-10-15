@@ -59,11 +59,11 @@ export function stepStage(game, dt) {
     if (stage.best == null || stage.t < stage.best) stage.best = stage.t;
   }
 }
-// JOKER DETECTION = A LINE, not a circle (user: "Joker lane detection needs to be wider
-// on knob hill - it's easy to come off the road shoot wide and cause a defection bug where it
-// doesn't detect you've done it and then when you do it again it gives penalty for multiple
-// jokers"). MEASURED: the gate was a 7 m-radius circle at the lane's middle; the lane is 12 m wide
-// and Knobhill's loop is easy to run wide of, so a joker driven a few metres out was never counted.
+// JOKER DETECTION = A LINE, not a circle (requirement: Joker lane detection needs to be wider on
+// knob hill - it's easy to come off the road shoot wide and cause a defection bug where it doesn't
+// detect you've done it and then when you do it again it gives penalty for multiple jokers).
+// MEASURED: the gate was a 7 m-radius circle at the lane's middle; the lane is 12 m wide and
+// Knobhill's loop is easy to run wide of, so a joker driven a few metres out was never counted.
 // Now: a LINE across the lane at the gate, the lane's half width + JOKER_SPAN m out each side,
 // counted when the car CROSSES it (either way), and at most ONCE PER LAP (a second crossing in the
 // same lap - reversing back over it - never makes a second joker). Not on the main road: the line
@@ -151,9 +151,9 @@ export function stepJoker(game, car) {
     game.jokerTaken = true;
     game.jokerAt = performance.now();
   }
-  // IN THE JOKER LANE (user: "the joker HUD warning should switch and show joker taken
-  // when taken"): the gate sits mid-lane, so the HUD knows you are IN it from the moment you leave
-  // the main road onto the lane (the lane through the gate; found once per level)
+  // IN THE JOKER LANE (requirement: the joker HUD warning should switch and show joker taken when
+  // taken): the gate sits mid-lane, so the HUD knows you are IN it from the moment you leave the
+  // main road onto the lane (the lane through the gate; found once per level)
   if (joker._lane === undefined) joker._lane = (LEVEL.lanes || []).find((cand) => cand.out == null
     && cand.pts.some(([x, y]) => (x - joker.gate.x) ** 2 + (y - joker.gate.y) ** 2
       < joker.gate.r * joker.gate.r * 4)) || null;

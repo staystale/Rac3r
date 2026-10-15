@@ -6,9 +6,9 @@ import type {
 } from "./types.ts";
 
 // =============================================================================================
-// BARRIERS (user: "use aerial photos of tracks on race days for pit layouts and
-// perimeter decorations — if you need to make things like ARMCO or FENCES, do"). LEVEL.barriers: [{
-// kind, pts: [[x, y], ...] }], polylines in metres.
+// BARRIERS (requirement: use aerial photos of tracks on race days for pit layouts and perimeter
+// decorations — if you need to make things like ARMCO or FENCES, do). LEVEL.barriers: [{ kind, pts:
+// [[x, y],...] }], polylines in metres.
 //   armco    steel double rail on posts — solid
 // wall concrete — solid pitwall concrete, red / white / blue painted (Thruxton photos) — solid
 // fence catch fence, posts + mesh — solid building an invisible solid outline (props draw the
@@ -81,7 +81,7 @@ export function prepBarriers(level: { barriers?: Barrier[] }): void {
     }
   }
 }
-// SOLID PROPS (user: "make sure trees, planes etc are collidable objects").
+// SOLID PROPS (requirement: make sure trees, planes etc are collidable objects).
 // LEVEL.solids [{ x, y, w, h, rot }] — rotated boxes, tested against the car's box with the
 // separating-axis test. barrierClamp only checks the car's 4 CORNERS against segments, so a tree
 // trunk or a wing tip narrower than the car could slip between two corners; SAT cannot miss it.

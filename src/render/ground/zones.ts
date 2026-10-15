@@ -130,9 +130,9 @@ export function drawZones(groundCtx: GroundCtx) {
  */
 function isZoneOnScreen(groundCtx: GroundCtx, zone: Zone) {
   const { view, toScreenX, toScreenY } = groundCtx;
-  // off screen? On the ROTATED footprint. MEASURED BUG (user: "the old runway bugs
-  // in and out of existence"): this tested the unrotated w x h box, so a long thin rotated
-  // runway (432 x 22 m at -22 deg) was skipped by every ground tile more than 11 m from its
+  // off screen? On the ROTATED footprint. MEASURED BUG (requirement: the old runway bugs in and out
+  // of existence): this tested the unrotated w x h box, so a long thin rotated runway (432 x 22 m
+  // at -22 deg) was skipped by every ground tile more than 11 m from its
   // centre line — painted in some tiles, missing in others, changing as tiles reloaded.
   const cosAbs = Math.abs(Math.cos(zone.rot || 0)), sinAbs = Math.abs(Math.sin(zone.rot || 0));
   const extentX = (zone.w / 2) * cosAbs + (zone.h / 2) * sinAbs,

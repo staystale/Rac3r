@@ -21,13 +21,13 @@ import type { Point, Bump, Zone, Cone, Paint, Lane, Prop } from "../types.ts";
 // NOBLE 686 GOODWOOD 810 VILLAGE 869 CHURCH 1032 BROOKLANDS 1089
 //   WOODHAM 1285  CLUB 1343-1422.
 // INTENDED FAILURE: carrying Church's speed into a tight apex; arriving at Club too hot after the
-// fastest part of the lap; tyre heat (sustained right-handers load the left-side tyres — user:
-// "high tyre-heat generator"). RE-LAID from the REAL MAP (Wikimedia
+// fastest part of the lap; tyre heat (sustained right-handers load the left-side tyres —
+// (requirement: high tyre-heat generator). RE-LAID from the REAL MAP (Wikimedia
 // "Thuxton_Motor_Racing_Circuit_map.svg", 369 m = 255 px), traced clockwise from the line and
 // scaled 0.47 (1254 m, measured). The first layout had the right corners in a made-up shape —
-// re-laid, not patched. RE-TRACED (user: "kerbs still broken on tight corners, not like
-// the real corner"): centreline read off the map at 4x zoom on a 10 px grid
-// (art/ref/thruxton-map.png, 960 px wide; game (0,0) = map centre, 0.47 m per px), clockwise from
+// re-laid, not patched. RE-TRACED (requirement: kerbs still broken on tight corners, not like the
+// real corner): centreline read off the map at 4x zoom on a 10 px grid (art/ref/thruxton-map.png,
+// 960 px wide; game (0,0) = map centre, 0.47 m per px), clockwise from
 // the line, then traceTrack (no kinks, every corner R >= 12 m). Check against the map: node
 // tools/traceoverlay.mjs thruston. The previous trace (hand points through Catmull-Rom, kinked at
 // Campbell / Cobb / Club) is in _archive/; the FIRST layout is _archive/thruston-old-layout.cjs.
@@ -101,16 +101,16 @@ export const TH_ZONES: Zone[] = [
   { x: 61.1, y: -38.8, w: 245.3, h: 9, rot: -0.4036, surface: SURFACES.tarmac },
   // grass active runway (NW-SE), mown short
   { x: 11.8, y: -2.3, w: 245.1, h: 10, rot: 0.5667, surface: SURFACES.grassShort },
-  // what is left of the original runway (SW-NE). SHORTENED (user: "pits look messy"): it
-  // ran ~26 m past its real west end (map px ~118,442), out over the S/F straight and under the pit
+  // what is left of the original runway (SW-NE). SHORTENED (requirement: pits look messy): it ran
+  // ~26 m past its real west end (map px ~118,442), out over the S/F straight and under the pit
   // lane, merging both into one ragged concrete blob.
   { x: 12.4, y: -26.4, w: 395, h: 22, rot: -0.3926, surface: SURFACES.concrete },
   // and the other one (NW-SE)
   { x: 16.5, y: -27.7, w: 323.9, h: 20, rot: 0.5703, surface: SURFACES.concrete },
 ];
-// ARMCO runs (outside of the right-handers) and the TYRE WALLS in front of them (user:
-// "lots of tyres between the track and the Armco"): two staggered rows of knockable tyre stacks
-// (cones.js r 0.48 -> 0.95 m apart), rows at -14 and -15 (rail face -15.7).
+// ARMCO runs (outside of the right-handers) and the TYRE WALLS in front of them (requirement: lots
+// of tyres between the track and the Armco): two staggered rows of knockable tyre stacks (cones.js
+// r 0.48 -> 0.95 m apart), rows at -14 and -15 (rail face -15.7).
 export const TH_ARMCO = [[35, 125], [205, 250], [290, 345], [560, 760], [785, 870], [1080, 1112]];
 const TH_TYREWALL = TH_ARMCO.flatMap(([startDist, endDist]) =>
   [[-14.0, 0], [-15.0, 0.475]].flatMap(([off, shift]) =>
@@ -118,8 +118,8 @@ const TH_TYREWALL = TH_ARMCO.flatMap(([startDist, endDist]) =>
     0.95).map(([x, y]) => ({ x, y, kind: 'tyrestack' }))));
 export const TH_CONES: Cone[] = [
   ...TH_TYREWALL,
-  // CLUB: tyre markers on the outside of each flick (user: "heavy kerbing and tyre markers strictly
-  // at the final Club chicane")
+  // CLUB: tyre markers on the outside of each flick (requirement: heavy kerbing and tyre markers
+  // strictly at the final Club chicane)
   ...[1126, 1136, 1146, 1156, 1166, 1176].flatMap((dist, idx) =>
     [{ ...thAt(dist, (idx % 2 ? 12 : -12)), kind: 'tyrestack' }]),
   { ...thAt(1146, 0.5), kind: 'cone' },     // the apex cone in the middle flick
@@ -128,8 +128,8 @@ export const TH_PAINT: Paint[] = [
   { kind: 'chequered', x: TH_SUBTRACK.pts[0].x, y: TH_SUBTRACK.pts[0].y, len: 1.6, wid: 14,
     rot: TH_SUBTRACK.pts[0].heading },
 ];
-// PITS + PERIMETER (user: "aerial / race-day photos for pit layouts and perimeter
-// decorations — if you need ARMCO or FENCES, do"). From the map (pit lane on the INSIDE between
+// PITS + PERIMETER (requirement: aerial / race-day photos for pit layouts and perimeter decorations
+// — if you need ARMCO or FENCES, do). From the map (pit lane on the INSIDE between
 // Club and the line) and the photos (art/ref/: concrete lane, yellow line, low red/white/blue pit
 // wall, block garages under a red tyre-brand banner, control tower, grandstand, Armco, catch fence,
 // spectator banks). Layout only — working pit stops come later (user). Everything by DISTANCE +
@@ -140,9 +140,9 @@ const TH_PIT_LANE = alongTrack(TH_SUBTRACK, TH_PIT.d0, TH_PIT.d1,
   (along, len) => 4 + (TH_PIT.off - 4) * ss01(Math.min(along, len - along) / TH_PIT.ramp), 2);
 // garage fronts flush with the lane (a 1 m grass strip showed)
 export const TH_GAR = { d0: 1204, d1: 22, off: TH_PIT.off + TH_PIT.w / 2 + 5, depth: 10, n: 4 };
-// THE INFIELD (user: "isn't there more decorating to make it look like the real race
-// track?"). Read off the map (art/ref/thruxton-map.png: paved taxiway system, paved apron, hangars,
-// grass aircraft parking) and the 1945 RAF photo (art/ref/may45.jpg). Map px -> game m exactly as
+// THE INFIELD (requirement: isn't there more decorating to make it look like the real race track?).
+// Read off the map (art/ref/thruxton-map.png: paved taxiway system, paved apron, hangars, grass
+// aircraft parking) and the 1945 RAF photo (art/ref/may45.jpg). Map px -> game m exactly as
 // TH_MAP. Widths EXAGGERATED (the lap is ~1/3 scale, the cars full size).
 const thM = (pixelX: number, pixelY: number): Point =>
   [+((pixelX - 480) * 0.47).toFixed(2), +((pixelY - 338) * 0.47).toFixed(2)];
@@ -222,7 +222,7 @@ export const TH_PROPS: Prop[] = [
     { kind: 'grandstand', w: TH_STAND.d1 - TH_STAND.d0, h: 8 }),
   thProp(3, 0, { kind: 'gantry', wid: 26, rot: Math.PI / 2 }),
   // garages: ONE row that follows the lane (the first cut, 4 rotated blocks, stepped and overlapped
-  // on the curve — user: "messy")
+  // on the curve — (requirement: messy)
   { kind: 'garagerow', brand: 'KUM TYRES', x: 0, y: 0,
     front: alongTrack(TH_SUBTRACK, TH_GAR.d0, TH_GAR.d1, TH_GAR.off - TH_GAR.depth / 2, 2.5),
     back: alongTrack(TH_SUBTRACK, TH_GAR.d0, TH_GAR.d1, TH_GAR.off + TH_GAR.depth / 2, 2.5),
@@ -236,6 +236,6 @@ export const TH_PROPS: Prop[] = [
   thProp(1106, -27, { kind: 'grandstand', w: 26, h: 8 }),
   ...TH_HANGARS, ...TH_PLANES, ...TH_PADDOCK, ...TH_TREES, ...TH_POSTS,
   { kind: 'windsock', x: 53, y: -57, rot: 0.6 },
-  // (the sign stood ON the re-laid start straight — user: "there's a sign over the track"; now
+  // (the sign stood ON the re-laid start straight (requirement: there's a sign over the track); now
   // placed by the track, see below)
 ];

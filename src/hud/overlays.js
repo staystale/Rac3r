@@ -120,8 +120,8 @@ export function drawHudLights(ctx, game, width, height) {
     : '#ffffff' });
 }
 
-  // CHEQUERED FLAG (AI stage 4; user: "a chequered flag sweeping across the WHOLE screen for the
-  // winner and when the event ends"): each new entry in game.flow.flags sweeps a waving band of
+  // CHEQUERED FLAG (AI stage 4; requirement: a chequered flag sweeping across the WHOLE screen for
+  // the winner and when the event ends): each new entry in game.flow.flags sweeps a waving band of
   // black / white squares left to right over FLAG_S of WALL time (rule 5: watched), with WINNER
   // (the first) or FINISH (the end) in the middle. Squares, not curves (pixel rule).
 export const FLAG_S = 1.5;
@@ -218,8 +218,8 @@ function noteNewFlag(state, flow, now) {
  * @returns {void}
  */
 export function drawHudFlag(state, ctx, game, width, height) {
-  // THE CHEQUERED FLAG (user: "only when you finish a race"; "look more like a real
-  // flag — an overlay that WAVES in simulated 3D, shaded, detailed but still a quick pass"): a
+  // THE CHEQUERED FLAG (requirement: only when you finish a race); "look more like a real flag — an
+  // overlay that WAVES in simulated 3D, shaded, detailed but still a quick pass"): a
   // cloth of NX x NY squares on a pole, every vertex lifted by a travelling wave (stronger toward
   // the free end), each square shaded by the wave's slope (light where it faces up, dark in the
   // folds), swept across the screen in FLAG_S of wall time with your place under it.

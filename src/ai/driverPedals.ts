@@ -17,9 +17,9 @@ export function steerSlideStep(drv: Drv, car: AiCar, path: AiPath, nearIdx: numb
   const { psi, deltaS, LOCK, cap } = steerAim(car, path, nearIdx, idx, speed, latT);
   // OVERSTEER (rear slip past ~10 deg): no cap, so it can countersteer; UNDERSTEER (front past ~8
   // deg): more lock only scrubs, so lift and brake to get the front back (MEASURED: Sweaty Lamb's
-  // S at sF 0.27 rad, then a spin at sR -0.78) LOOSE SURFACES (user: "slow down
-  // weirdly on surface changes, dirt to tarmac — they should predict it and speed up"). loose = 0
-  // on tarmac (mu 1) .. 1 at mu 0.5. MEASURED (tools/aisurface, rally-4x4 Real): 19 of 26 Slidden
+  // S at sF 0.27 rad, then a spin at sR -0.78) LOOSE SURFACES (requirement: slow down weirdly on
+  // surface changes, dirt to tarmac — they should predict it and speed up). loose = 0 on tarmac (mu
+  // 1).. 1 at mu 0.5. MEASURED (tools/aisurface, rally-4x4 Real): 19 of 26 Slidden
   // surface changes lifted > 0.3 s with the target still above the speed — mostly WHEELSPIN
   // halving the throttle (normal on dirt), then the front-slip "understeer" lift. On loose
   // ground: no wheelspin cut, and 0.06 rad more front slip before the understeer lift -> 10 of
@@ -73,9 +73,9 @@ export function pedalStep(drv: Drv, car: AiCar, path: AiPath, nearIdx: number,
   let targetSpeed = profileSpeed(main, car, path, nearIdx, idx, speed, prof, latT, lineOff);
   targetSpeed = Math.min(targetSpeed * traits.pace * push * vMul, jCap, followCap);
   state.vT = targetSpeed;
-  // OFF ROAD / LOOSE (user: "they still slow down like mad off road / changing
-  // surfaces"): on loose ground a sliding front is the surface, not a mistake — keep driving
-  // (UNDER_LOOSE throttle) and never brake for it. MEASURED before (aifieldcheck SURF, Brands +
+  // OFF ROAD / LOOSE (requirement: they still slow down like mad off road / changing surfaces): on
+  // loose ground a sliding front is the surface, not a mistake — keep driving (UNDER_LOOSE
+  // throttle) and never brake for it. MEASURED before (aifieldcheck SURF, Brands +
   // Castle Cum, 6 cars): on grass / dirt the AI braked 26-36 % and lifted 13-33 % of the time,
   // front slip > 0.14 for 19-40 %. ...only OFF THE PLANNED SURFACE (the car on clearly worse
   // ground than its racing line: off the road, onto a loose patch). On a loose line (Sweaty
@@ -92,8 +92,8 @@ export function pedalStep(drv: Drv, car: AiCar, path: AiPath, nearIdx: number,
     state.driftBan = state.t + DRIFT_BAN;
   }
   let { throttle, brake } = pedals(drv, speed, targetSpeed, thrForce, slide, looseUnder);
-  // HANDBRAKE TURNS (user: "they should also use handbrake and drift and stuff"):
-  // into a HAIRPIN (apex R < HB_R) before the apex, a big turn still ahead (> HB_TURN rad) and
+  // HANDBRAKE TURNS (requirement: they should also use handbrake and drift and stuff): into a
+  // HAIRPIN (apex R < HB_R) before the apex, a big turn still ahead (> HB_TURN rad) and
   // moving -> one pull of HB_T s per hairpin, off the throttle, full lock that way: the rear
   // steps out and the car pivots. The better driver times it (skill), a weaker one sometimes
   // doesn't bother.

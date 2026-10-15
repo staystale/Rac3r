@@ -160,15 +160,15 @@ export const TUNE = {
 // the surface, so this file still knows no surface by name.
 // GRIP: only on a HARD surface (surface.hard), a tyre outside its working window grips less;
 // off-road grip ignores temperature, as in real life (user). Per-car window: spec.tyreOpt [lo, hi],
-// spec.tyreColdGrip. Tyres start COLD (ambient) on every reset (user: "cold, warm them up").
+// spec.tyreColdGrip. Tyres start COLD (ambient) on every reset (requirement: cold, warm them up).
 export const TYRE_AMBIENT = 18;    // deg C until weather exists
 // deg C a tyre is held at; a burst replaces this once damage exists
 export const TYRE_T_MAX = 260;
-// 3500, was 2200 — user: "temp seems a bit easy to build in tyres, it should be a bit
-// harder". With the cooling also x0.8 below, warming takes ~2x as long and settles a little cooler.
-// Measured in tools/tyrecheck.mjs. HARD TO OVERHEAT (user: "tyres heat up too easy and
-// pass the good range too easy — it should take long burnouts to pop them and excessive drifting on
-// tarmac to overheat; off-road surfaces shouldn't get them up much"). MEASURED before
+// 3500, was 2200 (requirement: temp seems a bit easy to build in tyres, it should be a bit harder).
+// With the cooling also x0.8 below, warming takes ~2x as long and settles a little cooler.
+// Measured in tools/tyrecheck.mjs. HARD TO OVERHEAT (requirement: tyres heat up too easy and pass
+// the good range too easy — it should take long burnouts to pop them and excessive drifting on
+// tarmac to overheat; off-road surfaces shouldn't get them up much). MEASURED before
 // (tools/tyrecheck.mjs section 7, hatch-rwd): a tarmac drift went warm 1.3 s / too hot 2.3 s / 260
 // C in 8 s — FASTER than a pinned burnout (260 C in 20 s) — and a gravel drift reached 260 C in 14
 // s. Sliding heat was force x slip speed with no limit and no surface factor. Three physical
@@ -201,9 +201,9 @@ export const setEngineBrake = (value: number) => { ENGINE_BRAKE = value; };   //
 const AIDS_DEFAULT = { on: true };
 export const setAidsDefault = (enabled: boolean) => { AIDS_DEFAULT.on = !!enabled; };
 // VERTICAL GRAVITY multiplier for the suspension / airtime only (grip and weight still use g). See
-// the measured note at the suspension. Exported setter for tools. 1 -> 1.4 (user: "I
-// seem to get airborne slightly too easily / stay in the air too long"). MEASURED: all airtime in
-// normal laps came from the Test Track table (hatch 0.79 s, track car 1.17 s at 90 km/h). More
+// the measured note at the suspension. Exported setter for tools. 1 -> 1.4 (requirement: I seem to
+// get airborne slightly too easily / stay in the air too long). MEASURED: all airtime in normal
+// laps came from the Test Track table (hatch 0.79 s, track car 1.17 s at 90 km/h). More
 // DAMPING made it WORSE (the damper ties the body to the lip's upward speed). Heavier vertical
 // gravity shortens flight AND raises the speed a crest needs to launch you: x1.4 -> hatch 0.79 ->
 // ~0.5 s, whoops 0.75 -> ~0.4 s. Grip and weight still use g.
@@ -216,9 +216,9 @@ export const TCS_SPIN = 1.2;
 // betaLim rad (~4 deg) of body slip stability half: rad/s dead band, 1/s gain, throttle cut
 const ESC = { dead: 0.10, deadRel: 0.25, gain: 6, cutAt: 0.10, vMin: 10, betaLim: 0.07,
     betaGain: 20, underK: 0.2, hbHold: 0.6 };
-// THE GRIP CURVE (user: "cold tyres are sloppier than warm tyres, hot tyres grippier
-// still; tyres that are too hot are less grippy than hot but still grippier than cold — keep it
-// realistic"):
+// THE GRIP CURVE (requirement: cold tyres are sloppier than warm tyres, hot tyres grippier still;
+// tyres that are too hot are less grippy than hot but still grippier than cold — keep it
+// realistic):
 //   ambient (cold) ..... tyreColdGrip (0.86)
 //   tyreOpt[0] (warm) .. 0.97          rising linearly from cold
 //   tyrePeak .......... 1.00          hot: the peak band, tyrePeak[0]..tyreOpt[1]
@@ -241,7 +241,7 @@ const CY_SIDE = 1.0;           // sideforce coefficient with the flank to the wi
 // rad/s band over which yaw damping fades in — NEVER make this a hard switch
 const YAW_DAMP_BAND = 0.30;
 
-// MEASURED (user: "the rear wheels seem to fight turning too much now"). At 1.35 the cap
+// MEASURED (requirement: the rear wheels seem to fight turning too much now). At 1.35 the cap
 // allowed 14.8 deg of lock at 20 m/s where the old hand-tuned falloff allowed 22 — a third less
 // authority to rotate the car, which read as understeer. 1.75 restores the authority while still
 // being derived from the grip limit rather than guessed.
@@ -325,14 +325,14 @@ export function makeCar(carId: string, mods = defaultMods()) {
 
 export function reset(car: Car, x = 0, y = 0, heading = -Math.PI / 2) {
   car._p = null;          // no render interpolation across a teleport (main.js)
-  // ... and no WEAR across it. MEASURED BUG (user: "dirt in the road on highway levels
-  // is still a bug"; tools/_dirtroad.mjs): lab.js stepWear sweeps each tyre from car.prevWheels to
+  // ... and no WEAR across it. MEASURED BUG (requirement: dirt in the road on highway levels is
+  // still a bug); tools/_dirtroad.mjs): lab.js stepWear sweeps each tyre from car.prevWheels to
   // where it is now, so after a teleport (an AI / traffic respawn, the highway put-back) it wore a
   // straight line from the old spot to the new one - across the verge AND the carriageway.
   car.prevWheels = null;
   // ROLLOVER (roll.js): a reset puts the car back on its wheels
   car.roll = null; car.sparks = false;
-  // tape stuck to the car goes with it (user: "resetting should remove any tape")
+  // tape stuck to the car goes with it (requirement: resetting should remove any tape)
   car.streamers = null;
   car.x = x; car.y = y;
   car.vx = 0; car.vy = 0;
@@ -421,9 +421,9 @@ function stabilityControl(car: Car, carSpec: Spec, tick: AxleTick, handbrakeRaw:
   car.hbAfter = handbrakeRaw > 0.1 ? ESC.hbHold : Math.max(0, (car.hbAfter || 0) - dt);
   if (car.tcsOn && !inReverse && vLongAbs > ESC.vMin && car.hbAfter <= 0) {
     // REFERENCE YAW = the car's OWN steady-state response, understeer included (linear bicycle
-    // model: K = m/L x (lr/caF - lf/caR)). MEASURED BUG (user: "TCS is too strong,
-    // making the hatch RWD nearly undrivable"): against the pure kinematic v.tan(delta)/L every
-    // road car "understeered" in EVERY corner, so the aid ran 65% of a lap (3 of 4 s in a gentle
+    // model: K = m/L x (lr/caF - lf/caR)). MEASURED BUG (requirement: TCS is too strong, making the
+    // hatch RWD nearly undrivable): against the pure kinematic v.tan(delta)/L every road car
+    // "understeered" in EVERY corner, so the aid ran 65% of a lap (3 of 4 s in a gentle
     // corner) cutting the engine and nudging the car.
     const Kus = (mass / carSpec.L) * (carSpec.lr / carSpec.caF - carSpec.lf / carSpec.caR);
     const yawCap = (muBase * gravity) / Math.max(5, vLongAbs);
@@ -509,8 +509,8 @@ function integrateYaw(car: Car, carSpec: Spec, dt: number, axles: AxleOutcome, d
   // It may only ever oppose yaw the car has in EXCESS of what the steering asked for, which is the
   // spin/pendulum case and nothing else.
   //
-  // AND IT MUST BE CONTINUOUS. MEASURED BUG, (user: "the track spec car seems juddery"):
-  // the sign test above was a HARD SWITCH, so when the yaw rate sat near the commanded rate it
+  // AND IT MUST BE CONTINUOUS. MEASURED BUG, (requirement: the track spec car seems juddery): the
+  // sign test above was a HARD SWITCH, so when the yaw rate sat near the commanded rate it
   // flipped every few steps and applied/removed a finite impulse each time. Dumped on the track
   // car: yaw acceleration going -0.41 -> +1.88 -> -0.26 in SINGLE steps, repeating every ~5 steps,
   // while slip angles and tyre forces evolved perfectly smoothly through it. Max jerk 268 against
@@ -539,9 +539,9 @@ function lowSpeedBlend(car: Car, carSpec: Spec, mass: number, gravity: number, d
   // rule 9).
   let vLong = inVLong, vLat = inVLat;
   const speed = Math.hypot(vLong, vLat);
-  // STEEP GROUND MOVES A STOPPED CAR (user: "super steep angles should still move /
-  // push / pull the car even when parked or moving"). The blend and the rest-snap below exist so a
-  // car does not shiver on FLAT ground; they used to hold it on any slope too. Now: it ROLLS along
+  // STEEP GROUND MOVES A STOPPED CAR (requirement: super steep angles should still move / push /
+  // pull the car even when parked or moving). The blend and the rest-snap below exist so a car does
+  // not shiver on FLAT ground; they used to hold it on any slope too. Now: it ROLLS along
   // its length once the slope pull beats what a car in gear holds (SLOPE_ROLL g), and SLIDES
   // sideways on genuinely steep ground (SLOPE_SLIDE g).
   const mgS = mass * gravity;

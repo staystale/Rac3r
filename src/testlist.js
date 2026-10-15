@@ -1,6 +1,6 @@
-// testlist.js — THE TEST QUEUE (user: "can we have a to test feature list somewhere in
-// the pause menu while we are testing it should be updated when we add new features and remove
-// approved features"). Shown in the PAUSE menu, TEST MODE only (menu.js pause -> TESTING).
+// testlist.js — THE TEST QUEUE (requirement: can we have a to test feature list somewhere in the
+// pause menu while we are testing it should be updated when we add new features and remove approved
+// features). Shown in the PAUSE menu, TEST MODE only (menu.js pause -> TESTING).
 // THE RULE (CLAUDE.md §1): every feature handed over for a phone test gets an entry here IN THE
 // SAME TASK; when the user approves it, DELETE the entry (and note the verdict in TODO.md). Keep
 // each line short: it is read on a phone, mid-session.

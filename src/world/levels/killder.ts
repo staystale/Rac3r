@@ -80,8 +80,9 @@ export const KD_BUMPS = prepBumps([
   ...KD_KIT.bank(KD_C.hp1 - 30, KD_C.hp1 + 30, -20, 6, 1.4),
     ...KD_KIT.bank(KD_C.hp2 - 30, KD_C.hp2 + 30, 20, 6, 1.4),
 ]);
-// EVENT DRESSING (user: "be liberal"): on EVERY corner chevrons on the outside, hay bales lining
-// the outside, cones on the inside apex, flags; tyre-stack walls at the junction hairpins and the
+// EVENT DRESSING (requirement: be liberal): on EVERY corner chevrons on the outside, hay bales
+// lining the outside, cones on the inside apex, flags; tyre-stack walls at the junction hairpins
+// and the
 // square; spectator tape + marquees at the hairpins and the jump; log piles.
 const kdTurn = (dist: number) => {
   const before = KD_KIT.rot(dist - 8), after = KD_KIT.rot(dist + 8);
@@ -158,7 +159,8 @@ for (let dist = 20; dist < KD_FINISH - 10; dist += 8) for (const side of [-1, 1]
     { kind: 'tree', x: pos.x, y: pos.y, s: 4.5 + KD_KIT.rnd() * 2.5,
     seed: 2 * ((dist | 0) % 50) + 1 });
 }
-// along the STRAIGHTS too (user: "be liberal"): a marshal post every ~240 m, a sponsor board every
+// along the STRAIGHTS too (requirement: be liberal): a marshal post every ~240 m, a sponsor board
+// every
 // ~300 m, a flag pair every ~120 m
 const KD_ALONG: Prop[] = [];
 for (let dist = 120; dist < KD_FINISH - 40; dist += 240) KD_ALONG.push(

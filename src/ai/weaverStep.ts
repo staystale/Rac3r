@@ -8,9 +8,9 @@ import type { AiCar, DriveCtx, RoadBlock, RoadFrame } from "./types.ts";
 function vergeLimits(wvr: Wvr, road: Road) {
   const { level } = wvr;
   const { pts, frame, vAl, hold, geo, minOff, maxOff } = road;
-  // THE VERGE DODGE (user: "ai should go off road to dodge if its quicker, just not
-  // too far obviously"): two more lines, VERGE m past each edge (half the car on the grass), only
-  // worth taking when the road is blocked: VERGE_COST + the grip it costs. Never on the outside
+  // THE VERGE DODGE (requirement: ai should go off road to dodge if its quicker, just not too far
+  // obviously): two more lines, VERGE m past each edge (half the car on the grass), only worth
+  // taking when the road is blocked: VERGE_COST + the grip it costs. Never on the outside
   // of a bend (armco there at hw + 1.8: highway.js) or on a walled preset. vLo / vHi = how far
   // the line may go.
   const kNow = (pts[Math.max(0, Math.min(pts.length - 1,

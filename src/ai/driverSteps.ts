@@ -143,8 +143,8 @@ export function createSlideStep(
   function driftHold(car: AiCar, path: AiPath, nearIdx: number, speed: number,
       lineOff: number, loose: number, slipRear: number) {
     const pts = path.pts, spec = car.spec;
-    // DRIFT HOLD (user: "really need AI to drift and handbrake sometimes / aggressive
-    // off-road driving"): on loose ground, in a corner, in a car with the drive at the back (RWD
+    // DRIFT HOLD (requirement: really need AI to drift and handbrake sometimes / aggressive
+    // off-road driving): on loose ground, in a corner, in a car with the drive at the back (RWD
     // / rear-biased AWD), a slide is HELD — the rear kept near DRIFT_SLIP with the throttle,
     // countersteer free — instead of caught at 0.18 rad (which lifted and tiptoed). Past
     // DRIFT_MAX it is caught as before. A bolder driver (aggression) drifts more often (decided

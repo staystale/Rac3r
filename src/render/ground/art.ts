@@ -52,8 +52,8 @@ function makeHardArt(): Record<string, SurfaceArt | null> {
         ['blobs', 'rgba(16,17,22,0.55)', 3.2, 1.6, 0.10, 0.6, 0.08],
       ],
     },
-    // circles (repair patches) removed — user: "the circles on broken concrete look
-    // weird, just keep the cracks"
+    // circles (repair patches) removed (requirement: the circles on broken concrete look weird,
+    // just keep the cracks)
     broken: {
       base: '#8e9099',
       layers: [
@@ -109,8 +109,8 @@ function makeLooseArt(): Record<string, SurfaceArt | null> {
         ['stones', '#7d725d', 0.85, 0.05, 0.10],
       ],
     },
-    // sand REDONE (user: "I don't love how sand looks") — the bold squiggles read as
-    // cartoon. Now fine two-tone grains with faint, long, soft wind ripples.
+    // sand REDONE (requirement: I don't love how sand looks) — the bold squiggles read as cartoon.
+    // Now fine two-tone grains with faint, long, soft wind ripples.
     sand: {
       base: '#e0c994',
       layers: [
@@ -174,8 +174,8 @@ function makeSoftArt(): Record<string, SurfaceArt | null> {
         ['cracks', 'rgba(255,255,255,0.80)', 3.6, 1.7, 0.05],
       ],
     },
-    // wet tarmac REDONE (user: "I don't love how wet tarmac looks") — the blue blobs
-    // read as paint. Real wet asphalt is DARKER tarmac with its aggregate still showing, broad soft
+    // wet tarmac REDONE (requirement: I don't love how wet tarmac looks) — the blue blobs read as
+    // paint. Real wet asphalt is DARKER tarmac with its aggregate still showing, broad soft
     // reflections and dark glossy standing water in the low spots. + BLUE-ISH PUDDLES (user,
     // "wet tarmac isn't clear enough, maybe needs blue-ish puddles")
     wet: {

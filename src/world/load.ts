@@ -79,9 +79,9 @@ function prepareLevel(): void {
   indexPatchGrid();
 }
 
-// RALLY TAPE (user: "rally tape should be contactable and easy to snap — give it
-// POSTS and tape SECTIONS — a chance to STICK to cars; used more liberally and CLOSE to the track
-// edge on rally / rallycross stages"): a tape is a run of light POSTS (loose objects, kind
+// RALLY TAPE (requirement: rally tape should be contactable and easy to snap — give it POSTS and
+// tape SECTIONS — a chance to STICK to cars; used more liberally and CLOSE to the track edge on
+// rally / rallycross stages): a tape is a run of light POSTS (loose objects, kind
 // 'tapepost', every TAPE_STEP m; cones.js strings the sections between them and snaps them). On
 // every stage / joker level: the old red spectator lines become tape, and BOTH sides of every
 // corner get a run close to the edge (inside at half width + 2.5 m, outside beyond the dressing
@@ -142,9 +142,9 @@ function tapePass(level: Level): void {
   if (!level.subtrack || !(level.stage || level.joker)) return;
   const halfWidth = level.subtrack.width / 2;
   const runs = collectTapeRuns(level, level.subtrack);
-  // ...but NEVER across a ROAD LANE (user: "tape covering joker track section
-  // entries on Knobhill"): a post within half a lane width + LANE_CLEAR of the joker / RX start /
-  // pit / service lane is left out, and the run's idx gap leaves that section open (cones.js
+  // ...but NEVER across a ROAD LANE (requirement: tape covering joker track section entries on
+  // Knobhill): a post within half a lane width + LANE_CLEAR of the joker / RX start / pit / service
+  // lane is left out, and the run's idx gap leaves that section open (cones.js
   // strings consecutive idx only). Gravel traps (lanes with an 'out' side) are run-off, not
   // road: tape may cross them.
   const roads = (level.lanes || []).filter((lane: Lane) => lane.out == null);
@@ -158,8 +158,8 @@ function tapePass(level: Level): void {
   }
   level.cones = [...(level.cones || []), ...posts];
 }
-// CHEVRONS + FLAGS are KNOCKABLE (user: "heavy but impactable"): every level's
-// chevron boards and flag poles move from the static props (drawn into the scenery, solid until
+// CHEVRONS + FLAGS are KNOCKABLE (requirement: heavy but impactable): every level's chevron boards
+// and flag poles move from the static props (drawn into the scenery, solid until
 // today) into its loose objects (cones.js: mass, topple, slide, lie flat)
 function knockPass(level: Level): void {
   const movable = (level.props || []).filter(

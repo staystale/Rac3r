@@ -7,9 +7,9 @@ import type {
 } from "./types.ts";
 
 // ---------------------------------------------------------------------------------------------
-// OUTER TYRE WALL (user: "add a tyre wall around the stock car and grass track
-// circuits"; chose LOOSE stacks on the OUTSIDE only). Returns plain `tyrestack` objects for a
-// level's `cones` list, so they are the same knockable 38 kg stacks as everywhere else — they
+// OUTER TYRE WALL (requirement: add a tyre wall around the stock car and grass track circuits);
+// chose LOOSE stacks on the OUTSIDE only). Returns plain `tyrestack` objects for a level's `cones`
+// list, so they are the same knockable 38 kg stacks as everywhere else — they
 // burst into rolling tyres when hit hard (cones.js). Nothing new in the physics; the wall is DATA
 // generated from the track's own centreline.
 //

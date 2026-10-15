@@ -13,9 +13,9 @@ import { paintLayers, artBase } from "./art.ts";
 
 // Dynamic surface wear patches: grass worn to short grass, dirt, and mud Drawn ON TOP OF the
 // track ribbon and ground, but UNDER the kerbs and marks! TWO PASSES around the covers. MEASURED
-// BUG, (user: "puddles on the grass track ... vanish when driven over and turned dirt
-// into mud"): wear was drawn AFTER the covers, so every 1.5 m dirt cell turning to mud beside a
-// puddle painted its square over the puddle's edge until the puddle was gone.
+// BUG, (requirement: puddles on the grass track... vanish when driven over and turned dirt into
+// mud): wear was drawn AFTER the covers, so every 1.5 m dirt cell turning to mud beside a puddle
+// painted its square over the puddle's edge until the puddle was gone.
 //   'base'  — cells that started with no cover (dirt -> mud ...): drawn UNDER the covers
 //   'cover' — cells whose cover itself changed (snow packed to ice, ice scrubbed through):
 //             drawn OVER

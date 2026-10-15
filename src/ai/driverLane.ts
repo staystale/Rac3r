@@ -15,9 +15,9 @@ const ALONG_GAP = 2.7;       // m kept from a car alongside by an attack or a co
 // s to ease from the grid lane onto the line (START_GAP, m more room alongside then, is in
 // driverTraffic.ts)
 const START_BLEND = 9;
-// NEVER WAIT (user: "patience they should never really wait imo, just try harder and
-// go faster"): seconds of being held up before
-// a pass is tried were 0.3-1.5 s (by aggression), now 0.15-0.6; the chance to commit to one per
+// NEVER WAIT (requirement: patience they should never really wait imo, just try harder and go
+// faster): seconds of being held up before a pass is tried were 0.3-1.5 s (by aggression), now
+// 0.15-0.6; the chance to commit to one per
 // corner 30-90 % -> 60-100 %; and sat behind
 // a car it PUSHES HARDER, up to HARDER faster the longer it is held.
 const HARDER = 0.03, HARDER_T = 4;
@@ -63,8 +63,8 @@ export function startMistake(drv: Drv, cIdx: number) {
 /** Puts a car that has no place yet on the RX start branch or the main line. */
 export function placeAtStart(drv: Drv, car: AiCar) {
   const { level, line, main, branches, state } = drv;
-  // the START: a car sitting on the RX start straight drives it (user: "the traditional
-  // start"), else the line
+  // the START: a car sitting on the RX start straight drives it (requirement: the traditional
+  // start), else the line
   if (branches.start && querySubtrack(level.subtrack!, car.x, car.y).dist > line.hw &&
       Math.hypot(...(() => {
       const nearest = nearestIdx(branches.start.pts, car.x, car.y), point = branches.start.pts[
@@ -126,10 +126,10 @@ export function laneStep(drv: Drv, car: AiCar, path: AiPath, nearIdx: number, sp
   latT += traits.wander * (
       0.6 * Math.sin(state.t * 0.37 + wanderPhaseA) + 0.4 * Math.sin(
       state.t * 0.83 + wanderPhaseB));
-  // THE START (user: "they aim for the racing line a bit too hard at the start of
-  // races and it causes crashes — increase crash awareness a tiny bit, more willing to overtake /
-  // avoid, without slowing down"): from the moment it moves off, the car KEEPS ITS GRID LANE (its
-  // offset from the line when it set off) and eases onto the line over START_BLEND s; in that
+  // THE START (requirement: they aim for the racing line a bit too hard at the start of races and
+  // it causes crashes — increase crash awareness a tiny bit, more willing to overtake / avoid,
+  // without slowing down): from the moment it moves off, the car KEEPS ITS GRID LANE (its offset
+  // from the line when it set off) and eases onto the line over START_BLEND s; in that
   // phase cars alongside get more room (START_GAP) and a car ahead is gone round rather than
   // followed.
   if (state.goT == null && speed > 2 && path === main) {
@@ -145,7 +145,7 @@ export function laneStep(drv: Drv, car: AiCar, path: AiPath, nearIdx: number, sp
 /** Flags a battle (car within 25 m); returns the push factor on the pace. */
 export function battleStep(drv: Drv, car: AiCar, others: AiCar[]) {
   const { traits, state } = drv;
-  // BATTLING (user: "scrabbling for victory"): a car within 25 m -> push a little harder, and
+  // BATTLING (requirement: scrabbling for victory): a car within 25 m -> push a little harder, and
   // err a little more
   state.pushing = others.some((other) => Math.hypot(other.x - car.x, other.y - car.y) < 25);
   return (state.pushing ? 1 + 0.02 * traits.aggression : 1) * (

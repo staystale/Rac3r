@@ -232,7 +232,7 @@ export function axleForce(
   // the track car at gear shifts (223). Both reverted. See ENGINE.md.
   const overLong = demandRatio > 1;
 
-  // BLENDED, never switched. MEASURED BUG, (user: "the track spec car seems juddery",
+  // BLENDED, never switched. MEASURED BUG, (requirement: the track spec car seems juddery),
   // returning after the power went up): this was a hard `if` between the rolling and sliding
   // laws, and at the boundary the two disagree by (1 - slideGrip) in magnitude AND in direction.
   // With plenty of power the demand sits right on that boundary, so the force flipped between the
@@ -327,18 +327,18 @@ function brakeLockState(car: Car, tick: AxleTick, brakeIn: number, vLongAbs: num
   }
   const lockedF = brakeIn > 0.05 && vLongAbs > 0.3
       && Math.abs(FbF) > muBase * FzF * car.mods.gripLong;
-  // HANDBRAKE AS A FORCE, not a boolean. MEASURED (user: "hand braking at higher speeds
-  // still feels off and ends up in the car swinging backwards"): as an instant full lock, its
-  // violence scaled with FRONT grip — and raising mu to 1.25 made every flick, at every speed, in
+  // HANDBRAKE AS A FORCE, not a boolean. MEASURED (requirement: hand braking at higher speeds still
+  // feels off and ends up in the car swinging backwards): as an instant full lock, its violence
+  // scaled with FRONT grip — and raising mu to 1.25 made every flick, at every speed, in
   // every car, reach 90 deg of body slip. Identical outcomes across different inputs is rule 1. As
   // a rear brake DEMAND it locks only when it actually exceeds rear grip, the existing over-demand
   // path handles the transition continuously, and its strength is one tunable number.
   const hbForce = handbrake * TUNE.handbrakeForce * muBase * FzR * car.mods.gripLong;
   // Does the handbrake demand actually EXCEED rear grip? If so the wheel genuinely LOCKS, and a
   // locked wheel skates at the full contact-patch speed — which is what makes it lose its lateral
-  // grip and lay rubber. MEASURED BUG, (user: "handbrake does not seem to lock up the
-  // rear wheels"): converting the handbrake from a lock into a force meant it no longer set
-  // forceSlide, so the rear's longitudinal slip was derived from how far past grip the demand was —
+  // grip and lay rubber. MEASURED BUG, (requirement: handbrake does not seem to lock up the rear
+  // wheels): converting the handbrake from a lock into a force meant it no longer set forceSlide,
+  // so the rear's longitudinal slip was derived from how far past grip the demand was —
   // 0.7 m/s at 20 m/s instead of ~20. The rear kept almost all its lateral grip and laid no marks
   // at all (the mark floor is 2.2 m/s).
   const hbLocksRear = hbForce > muBase * FzR * car.mods.gripLong * 0.98;
@@ -359,7 +359,7 @@ function relaxAxleForces(car: Car, dt: number, vLong: number, vLat: number,
   // deflect, which takes a ROLLING DISTANCE (the relaxation length, ~0.5 m) rather than a time. So
   // the lag is RELAX_LEN / v — sharp at speed, soft when slow, exactly as in a real car.
   //
-  // MEASURED BUG, (user: "braking when turning... it slides weird"): without it the
+  // MEASURED BUG, (requirement: braking when turning... it slides weird): without it the
   // FRONT reached full grip instantly at turn-in while the rear was still at zero — dumped FyF
   // 10178 N against FyR -89 N, a net yaw moment of +12658 N.m that spun the car up to 0.66 rad/s
   // before the rear contributed anything at all. Four of five cars then rotated past 90 deg. Brake
@@ -401,8 +401,8 @@ export function computeAxleForces(car: Car, carSpec: Spec, mass: number, gravity
   const tyreK = carSpec.tyre ? (carSpec.tyre.bySurf![car.surface.id] ?? 1) : 1;
   const muBase = carSpec.mu * car.surface.mu * tyreK;
   const peakK = car.surface.peakK || 1;   // loose surfaces peak much later — see tyreLateral
-  // LONGITUDINAL GRIP RELATIVE TO LATERAL. Added (user: "grass mud and gravel feel too
-  // similar") because grip, slip angle and drag alone could not separate them — all three merely
+  // LONGITUDINAL GRIP RELATIVE TO LATERAL. Added (requirement: grass mud and gravel feel too
+  // similar) because grip, slip angle and drag alone could not separate them — all three merely
   // made a surface "worse" by degrees. This one is the difference between a wheel that DIGS IN and
   // one that CHURNS. On gravel a driven wheel packs the loose stones and finds more bite than a
   // cornering wheel does (longK 1.30, so power pays even while sideways); in mud it just spins

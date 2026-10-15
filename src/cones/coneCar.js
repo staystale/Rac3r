@@ -114,8 +114,8 @@ function transferMomentum(obj, car, contact) {
 }
 
 /**
- * CHEVRONS + FLAGS (user: "flat and driven over after 2 impacts"): DISTINCT
- * impacts (contacts > 0.3 s apart; a contact spans several steps); the second leaves it flat
+ * CHEVRONS + FLAGS (requirement: flat and driven over after 2 impacts): DISTINCT impacts (contacts
+ * > 0.3 s apart; a contact spans several steps); the second leaves it flat
  * on the ground, out of the collisions.
  * @param {any} ctx the cones context
  * @param {any} obj the object

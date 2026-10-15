@@ -64,8 +64,8 @@ function engageReverse(car: Car, input: CarInput, rawThrottle: number, vLong: nu
 export function runPowertrain(car: Car, carSpec: Spec, input: CarInput, vLong: number, dt: number) {
   // ---- powertrain: reverse engagement (A5), shifting, rpm
   //
-  // MEASURED BUG, (user: "braking still causes you to go backwards"). Holding the brake
-  // at a standstill engages reverse, and in reverse the pedals SWAP — so the brake a player was
+  // MEASURED BUG, (requirement: braking still causes you to go backwards). Holding the brake at a
+  // standstill engages reverse, and in reverse the pedals SWAP — so the brake a player was
   // ALREADY holding became the accelerator and drove them backwards. Measured on every car: stops
   // at 2.6 s, reverse engages at 3.0 s, travelling backwards at 5.6 m/s, all from one continuous
   // brake press.

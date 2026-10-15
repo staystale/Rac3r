@@ -12,7 +12,7 @@ type Shape = Pick<Bump, "r" | "h" | "d" | "len" | "wid" | "amp" | "wave" | "r0" 
 type NatFamily = "small" | "medium" | "rolling" | "whoops";
 
 // ---------------------------------------------------------------------------------------------
-// BUMPS, JUMPS AND KERBS (user: "and some bumps / jumps / curbs").
+// BUMPS, JUMPS AND KERBS (requirement: and some bumps / jumps / curbs).
 //
 // All four kinds are nothing but a HEIGHT added to the ground. That is the whole implementation:
 // the suspension written for the boundary kerb already turns a height into light wheels, heavy
@@ -76,7 +76,8 @@ Object.assign(bumpKind, {
       * (0.5 + 0.5 * Math.sin((along / bump.wave!) * Math.PI * 2));
   },
   // BANKED BOWL, DUG INTO the ground: floor h below ground out to r0, then a wall rising to ground
-  // level at R. MEASURED BUG (user: "I think the bowl on the lab is broken"): the first version was
+  // level at R. MEASURED BUG (requirement: I think the bowl on the lab is broken): the first
+  // version was
   // RAISED, 2.5 m up a 6 m outer slope, so driving in at 50 km/h was a ramp — 2.17 s of airtime
   // over the whole bowl.
   bowl: (bump: Shape, along: number, lateral: number): number => {
@@ -185,8 +186,8 @@ function addCurvedKerbHeights(height: number, track: Subtrack, hit: SubtrackHit)
 export function bumpAt(x: number, y: number, smooth = false): number {
   const list = LEVEL.bumps;
   // ONE subtrack query per lookup, shared by the banking, the camber and the curved kerbs. MEASURED
-  // (user: "still seeing lag at high speeds"): three separate scans made a Test Track
-  // ground tile cost ~12 ms to shade on a PC.
+  // (requirement: still seeing lag at high speeds): three separate scans made a Test Track ground
+  // tile cost ~12 ms to shade on a PC.
   const track = LEVEL.subtrack;
   const hit = track && (LEVEL.bankAngle || LEVEL.camber || (!smooth && track.curvedKerbs))
     ? querySubtrack(track, x, y) : null;
@@ -213,9 +214,10 @@ export function bumpAt(x: number, y: number, smooth = false): number {
 // m (was 30 at first cut): a 7 m outer edge rising over 30 m is a 23% ramp at 200 km/h — a launch.
 // BACK 16 m: at 8 m the back slope was 52 deg.
 const BANK_X0 = 100, BANK_BLEND = 60, BANK_BACK = 16;
-// bump steer strength (see applyGround). Exported object so tools can sweep it. k 1 (user: "dips
-// and whoops should GENTLY affect steering"). MEASURED hands-off through a whole Lab lane, 1.5 m
-// off its line at 50 km/h: whoops turn the car 0.6 -> 3.5 deg away, dips 0.3 -> 3.3 deg into them;
+// bump steer strength (see applyGround). Exported object so tools can sweep it. k 1 (requirement:
+// dips and whoops should GENTLY affect steering). MEASURED hands-off through a whole Lab lane, 1.5
+// m off its line at 50 km/h: whoops turn the car 0.6 -> 3.5 deg away, dips 0.3 -> 3.3 deg into
+// them;
 // k 2 / 3 gave 4.8 / 5.7 deg.
 export const BUMP_STEER = { k: 1 };
 export function bankHeightAt(x: number, y: number, qIn?: SubtrackHit | null): number {
@@ -245,7 +247,7 @@ export function bankHeightAt(x: number, y: number, qIn?: SubtrackHit | null): nu
   else height = 0;
   return height * (weight * weight * (3 - 2 * weight));
 }
-// TRACK CAMBER (user: "can the Test Track get cambering across the race surface"; and
+// TRACK CAMBER (requirement: can the Test Track get cambering across the race surface); and
 // earlier: camber "positive, negative, whether it's useful to drive on, which can also match real
 // tracks"). LEVEL.camber = { maxDeg, refR, crown, edge, sections: [{ from, to, deg }] } (from / to
 // in metres of track distance; deg signed: + helps you round the corner, - falls away =

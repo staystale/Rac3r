@@ -21,8 +21,8 @@ function trafficStep(drv: Drv, car: AiCar, ctx: DriveCtx, path: AiPath, nearIdx:
   const { traits, line, main, state } = drv;
   let { latT, vMul, prof } = cur;
   const others = ctx.cars || [];
-  // ---- OTHER CARS (user: "avoid waiting for or crashing into other cars, deviating from its
-  // chosen path"): a car ahead in the way -> pick the side with room and go round it (that IS the
+  // ---- OTHER CARS (requirement: avoid waiting for or crashing into other cars, deviating from its
+  // chosen path): a car ahead in the way -> pick the side with room and go round it (that IS the
   // overtake); no room -> sit behind it, matching its speed; a car alongside -> keep a gap; a
   // faster car close behind -> a defensive driver covers its side a little
   const prec = traits.prec ?? 0.5;
@@ -35,9 +35,9 @@ function trafficStep(drv: Drv, car: AiCar, ctx: DriveCtx, path: AiPath, nearIdx:
   const avoid = obstacleAvoid(drv, car, ctx, path, nearIdx, idx, speed, prec, lineOff, myLat,
       latLim, latT, dt, { dodgeT, conflict });
   ({ dodgeT, conflict } = avoid);
-  // ---- RACECRAFT (stage 3; user: "real overtakes, real defending, scrabbling for
-  // victory"). Stage 2 only went round a car that was already in the way, so circuits were
-  // processions (aifieldsuite, Realish: 35 held passes in 12 six-car 3-lap races, Brands and
+  // ---- RACECRAFT (stage 3; requirement: real overtakes, real defending, scrabbling for victory).
+  // Stage 2 only went round a car that was already in the way, so circuits were processions
+  // (aifieldsuite, Realish: 35 held passes in 12 six-car 3-lap races, Brands and
   // Naffcar ~0). ATTACK: sat behind the same car (longer for the cautious) with a corner coming
   // -> commit to a side for that corner: the INSIDE, unless the car ahead already covers it,
   // then round the OUTSIDE for the switch-back; brake later (K_BRAKE + ATK_KB) and push a
@@ -66,10 +66,10 @@ export function drive(drv: Drv, car: AiCar, dt = 1 / 120, ctx: DriveCtx = {}) {
   const spec = car.spec, speed = Math.hypot(car.vx, car.vy);
   if (state.i === null) placeAtStart(drv, car);
   advance(drv, car);
-  // ---- DRIVE ITSELF OUT (user: "it should try to drive it self out, if it falls
-  // super far behind / stays off track too long / stays still / drives too slow for too long, ect
-  // it can reset"). Nearly still for DRIVE_OUT_T s after the green (nose in a wall, beached,
-  // tangled with a car) -> REVERSE for ~1-1.5 s with the wheel turned to swing the nose back
+  // ---- DRIVE ITSELF OUT (requirement: it should try to drive it self out, if it falls super far
+  // behind / stays off track too long / stays still / drives too slow for too long, ect it can
+  // reset). Nearly still for DRIVE_OUT_T s after the green (nose in a wall, beached, tangled with a
+  // car) -> REVERSE for ~1-1.5 s with the wheel turned to swing the nose back
   // toward the road, then drive on. The game's reset (main.js) is the LAST resort now: it waits
   // longer, so this gets two or three tries first. (! : st.i was set just above)
   {
@@ -85,8 +85,8 @@ export function drive(drv: Drv, car: AiCar, dt = 1 / 120, ctx: DriveCtx = {}) {
   // ---- JOKER: decide once per lap ~220 m before the branch; take it at the switch point
   const jCap = jokerStep(drv, car, ctx, path, nearIdx, lap, laps);
 
-  // ---- MISTAKES (user: "genuine subtle driving errors that lead to crashes and / or slower lap
-  // times"), drawn per corner ~45 m out
+  // ---- MISTAKES (requirement: genuine subtle driving errors that lead to crashes and / or slower
+  // lap times), drawn per corner ~45 m out
   const mistakes = mistakeStep(drv, path, nearIdx);
   let vMul = mistakes.vMul;
   const thrForce = mistakes.thrForce;

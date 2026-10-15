@@ -9,11 +9,11 @@ import type {
 } from "./types.ts";
 type Rng = () => number;
 // =============================================================================================
-// SURFACE BLENDING AT CHANGE POINTS (user: "sections of surfaces should rarely come
-// to abrupt changes — a blend area where random patches of the under layer show through and the
-// top layer drags over; semi random, greater at the point of blend and lower away from it, so
-// we get a natural gradient"). Generated as PATCHES (the same mechanism as the Grass Track's
-// spots — real ground: grip, wear, graphics):
+// SURFACE BLENDING AT CHANGE POINTS (requirement: sections of surfaces should rarely come to abrupt
+// changes — a blend area where random patches of the under layer show through and the top layer
+// drags over; semi random, greater at the point of blend and lower away from it, so we get a
+// natural gradient). Generated as PATCHES (the same mechanism as the Grass Track's spots — real
+// ground: grip, wear, graphics):
 //   (a) TRACK SECTOR changes: each side's surface scattered into the other along the road,
 //       triangular density peaking at the change point and reaching zero BLEND_W metres away.
 //   (b) LOOSE ROAD EDGES (dirt, gravel, grass, mud, sand, snow sectors): the road surface drags
@@ -44,8 +44,8 @@ export function seededRng(str: string): () => number {
 }
 // 0..1, dense near 0: the "greater at the point of blend" falloff
 const tri = (rng: Rng): number => rng() * rng();
-// SQUARES, not circles (user, with the pixel-art pass: "make the surface and
-// transitions squares too, no circles"): every blend patch is an axis-aligned square of 0.5, 1.0 or
+// SQUARES, not circles (requirement: make the surface and transitions squares too, no circles):
+// every blend patch is an axis-aligned square of 0.5, 1.0 or
 // 1.5 m on a half-metre world grid.
 const SQ_GRID = 0.5;
 const snapG = (value: number): number => Math.round(value / SQ_GRID) * SQ_GRID;
@@ -211,8 +211,8 @@ export function buildBlend(level: Level, rng: Rng): Patch[] {
   return out.filter((patch) => !patch.surface.hard);
 }
 // Per-level preparation: re-roll random layouts, build (or reuse) the blend, index every patch in
-// the grid. SURFACE INCLUSIONS (user: "can surfaces have a chance to contain other like
-// surfaces % wise ... keep it proportional and realistic"; table APPROVED as proposed). Share of
+// the grid. SURFACE INCLUSIONS (requirement: can surfaces have a chance to contain other like
+// surfaces % wise... keep it proportional and realistic); table APPROVED as proposed). Share of
 // each surface's AREA covered by small patches of a related surface; '@x' is a COVER (puddle / snow
 // / ice) rather than a ground patch. Seeded per level (the Grass Track re-rolls with its layout).
 // Boxed test panels stay pure (the tyre / wear tools and the player's tests depend on them).

@@ -134,7 +134,7 @@ function roundRect(
 /**
  * Quantises the zoom and snaps the camera so ground tiles blit on whole art pixels.
  *
- * PIXEL-LOCKED VIEW (user: "tracks seem to quiver and shake at speed"). MEASURED
+ * PIXEL-LOCKED VIEW (requirement: tracks seem to quiver and shake at speed). MEASURED
  * (tools/shimmercheck, Brands GP at speed): every ground tile was blitted at a FRACTIONAL
  * art-pixel position (500/500 frames) and tiles of one frame at MIXED widths (317/500) —
  * each edge was rounded separately, in CSS px not art px — so the pixel-art ground was
@@ -161,9 +161,9 @@ function applyViewLock(ctx: RenderCtx): ViewLock {
     const devPPM = view.PPM * view.zoom * view.dpr,
       halfW = (view.W * view.dpr) / 2,
       halfH = (view.H * view.dpr) / 2;
-    // SUB-PIXEL BLIT (user, after the lock: "it is still shaking or wiggling as I
-    // drive"). MEASURED (tools/wobblecheck): snapping the camera to whole art pixels made the
-    // world move in uneven 1-or-2-art-pixel steps — camera jerk median 1.46 px per frame, max
+    // SUB-PIXEL BLIT (requirement: it is still shaking or wiggling as I drive). MEASURED
+    // (tools/wobblecheck): snapping the camera to whole art pixels made the world move in uneven
+    // 1-or-2-art-pixel steps — camera jerk median 1.46 px per frame, max
     // 8.8 (unlocked: 0.03). Now the world is DRAWN at the snapped camera (crisp, no shimmer) and
     // the finished art-pixel image is shifted on screen by the leftover fraction, in device
     // pixels — so motion is as smooth as before the lock.
@@ -187,8 +187,8 @@ function applyViewLock(ctx: RenderCtx): ViewLock {
  * ORDER MATTERS. Everything that IS the ground goes down first, then the marks layer over all
  * of it, then the fence — which is a vertical object and belongs on top of everything on the
  * deck. MEASURED BUG: the run-off was filled AFTER the marks blit, so gravel tracks
- * were painted and then immediately buried under the gravel (user: "we should leave little
- * tracks in the gravel trap"). Check what a thing is drawn OVER — CLAUDE.md §4. ground = floor
+ * were painted and then immediately buried under the gravel (requirement: we should leave little
+ * tracks in the gravel trap). Check what a thing is drawn OVER — CLAUDE.md §4. ground = floor
  * + zones + ribbon + covers + WEAR, from the tile cache above
  *
  * @param ctx the renderer context

@@ -100,8 +100,8 @@ export function tripCheck(car, dt, rnd = Math.random) {
 function tripLanding(car, dt, vLat, stability, rnd) {
   const landed = !(car.air > 0) && (car._airT || 0) > 0.35;
   car._airT = car.air > 0 ? (car._airT || 0) + dt : 0;
-  // a CROOKED LANDING (user, after Killder's jump: "a little easy to roll over on
-  // landing"): was 30 % for any landing with 4 m/s sideways; now only a properly sideways one,
+  // a CROOKED LANDING (requirement: a little easy to roll over on landing): was 30 % for any
+  // landing with 4 m/s sideways; now only a properly sideways one,
   // 6+ m/s and a slide angle past 30 deg, up to 20 % at 12 m/s, x the car's stability
   if (landed) {
     const landSpeed = Math.hypot(car.vx, car.vy),
@@ -130,8 +130,8 @@ function tripGround(car, vLat, stability, rnd) {
   const cell = Math.floor(car.x / CELL_M) * 73856093 ^ Math.floor(car.y / CELL_M) * 19349663;
   if (cell === car._tripCell) return false;
   car._tripCell = cell;
-  // (user: "still exist under 60 mph, diminishing to ZERO at ~39 mph"; was (v / 60 mph)^4, never
-  // quite zero)
+  // (requirement: still exist under 60 mph, diminishing to ZERO at ~39 mph); was (v / 60 mph)^4,
+  // never quite zero)
   const ang = (side - ANG_MIN) / (1 - ANG_MIN),
     spd = speed < MPH39 ? 0
     : speed < MPH60 ? ((speed - MPH39) / (MPH60 - MPH39)) ** 2

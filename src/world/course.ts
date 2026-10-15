@@ -18,8 +18,8 @@ export const COURSE: Point[] = [
 ];
 export const GATE = 11;         // m between the two cones of a gate — wide enough to take at speed
 // m along the path between gates. 26 m left the course reading as scattered cones rather than a
-// track (user: "needs more cones or it is confusing"), so the gates are twice as dense. The path
-// is resampled, so this is one number.
+// track (requirement: needs more cones or it is confusing), so the gates are twice as dense. The
+// path is resampled, so this is one number.
 export const GATE_SPACING = 13;
 // Catmull-Rom through the apexes, so the course is a smooth closed loop rather than a polygon,
 // then resampled at a fixed spacing. Editing the shape means moving an apex in COURSE — nothing

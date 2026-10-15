@@ -135,8 +135,8 @@ export function createCones({ objectHits = true } = {}) {
       hits.length = 0;
       return copy;
     },
-    // CONES ONLY (user: "the cone counter should only count cones, not tyres too") —
-    // tyre walls, bales etc. are not the course
+    // CONES ONLY (requirement: the cone counter should only count cones, not tyres too) — tyre
+    // walls, bales etc. are not the course
     get knocked() {
       return ctx.list.reduce((count, obj) => count + (obj.kind === 'cone' && (obj.down > 0.5
           || obj.moved) ? 1 : 0), 0);

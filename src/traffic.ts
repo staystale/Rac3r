@@ -1,6 +1,6 @@
-// traffic.js — HIGHWAY TRAFFIC (user: "dumb, slightly SLOW TRAFFIC, RECYCLED when
-// overtaken and off screen (vehicle randomised and moved to the front, or replaced — whichever
-// is most efficient)"; "CRASHABLE cars WITH DAMAGE; NOT racing, just driving;
+// traffic.js — HIGHWAY TRAFFIC (requirement: dumb, slightly SLOW TRAFFIC, RECYCLED when overtaken
+// and off screen (vehicle randomised and moved to the front, or replaced — whichever is most
+// efficient)); "CRASHABLE cars WITH DAMAGE; NOT racing, just driving;
 // GENTLY AVOIDING; LANE CHANGING"; "traffic in EVERY MODE and a SLIDER in test mode for DENSITY").
 //
 // Every traffic car is a REAL car (vehicle.ts step, the same clamps, damage, rollover and contacts

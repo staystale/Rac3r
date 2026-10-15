@@ -135,8 +135,8 @@ function pairWithResting(ctx, mover) {
 }
 
 /**
- * OBJECT-OBJECT COLLISIONS (user: "tyres should hit other tyres and cones or objects
- * etc and pass impact onto them if necessary"). Every object is a circle of radius r and mass m.
+ * OBJECT-OBJECT COLLISIONS (requirement: tyres should hit other tyres and cones or objects etc and
+ * pass impact onto them if necessary). Every object is a circle of radius r and mass m.
  * Only objects that are MOVING are tested, each against the resting grid cells around it and
  * against each other. Anything that stopped since the last step is filed where it stopped.
  * @param {any} ctx the cones context

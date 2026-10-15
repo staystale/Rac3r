@@ -21,9 +21,9 @@ export const DIFFICULTIES: Difficulty[] = [
   },
   { id: 'real', name: 'Real', pace: 0.985, lineQ: 1.0, wander: 0.12, mistake: 0.015, slip: 0 },
 ];
-// the GRADIENT: each AI is one PERSONALITY (user: "some drive better / some quicker / some more
-// defensive / some more aggressive"), dealt round the field from a seed, plus a little noise, all
-// centred on the chosen difficulty.
+// the GRADIENT: each AI is one PERSONALITY (requirement: some drive better / some quicker / some
+// more defensive / some more aggressive), dealt round the field from a seed, plus a little noise,
+// all centred on the chosen difficulty.
 const PERSONAS = [
   // faster, ragged
   { id: 'quick', pace: +0.02, skill: -0.15, aggression: 0.6, defence: 0.4 },
@@ -47,8 +47,8 @@ export function aiTraits(diffIndex: number, i: number, fieldSize: number, seed =
   const loose = 1.4 - skill * 0.8;   // 0.6 (skill 1) .. 1.4 (skill 0)
   return {
     diff: difficulty.id, persona: persona.id, skill,
-    // PRECISION (user: "a little bit messy is good, but tighter, faster driving at
-    // harder difficulty, like real life"; "crashing should reduce with higher difficulty"):
+    // PRECISION (requirement: a little bit messy is good, but tighter, faster driving at harder
+    // difficulty, like real life); "crashing should reduce with higher difficulty"):
     // 0 Mobile .. 1 Real, nudged by skill. Tighter gaps, and the car ahead's braking for the
     // corner is ANTICIPATED (below) instead of reacted to.
     prec: Math.max(0, Math.min(1, (diffIndex | 0) / 4 + (skill - 0.5) * 0.2)),

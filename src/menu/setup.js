@@ -61,8 +61,8 @@ POINT`
 }
 
 /**
- * Adds the ROAD TYPE buttons (endless highway, user: "how do I test the lane presets —
- * I don't see any buttons"): lanes / width / walls.
+ * Adds the ROAD TYPE buttons (endless highway, requirement: how do I test the lane presets — I
+ * don't see any buttons): lanes / width / walls.
  * @param {object} menu the menu context
  * @param {HTMLElement} panel the setup pane
  * @param {object} level the chosen level
@@ -81,8 +81,8 @@ function addRoadTypeRow(menu, panel, level, state) {
 }
 
 /**
- * Adds the TRAFFIC + LITTER sliders of an endless level (user: "a slider in test mode
- * for density" / "a slider for frequency / density" of the roadside objects); remembered. TRAFFIC
+ * Adds the TRAFFIC + LITTER sliders of an endless level (requirement: a slider in test mode for
+ * density) / "a slider for frequency / density" of the roadside objects); remembered. TRAFFIC
  * 0-150 % (100 % = 6 cars a lane), LITTER 0-3 x.
  * @param {object} menu the menu context
  * @param {HTMLElement} panel the setup pane
@@ -209,8 +209,8 @@ function addRxRaceRow(menu, panel, level, state) {
 }
 
 /**
- * Adds the LAPS row (user: "choose in setup"): a race (VS AI or the RX race) is this
- * many laps; default 3, the RX race its joker laps. Wraps state.paint so the row follows the mode.
+ * Adds the LAPS row (requirement: choose in setup): a race (VS AI or the RX race) is this many
+ * laps; default 3, the RX race its joker laps. Wraps state.paint so the row follows the mode.
  * @param {object} menu the menu context
  * @param {HTMLElement} panel the setup pane
  * @param {object} level the chosen level

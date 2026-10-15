@@ -55,8 +55,8 @@ function layVergeLitter(ctx, loot, i, dist) {
           off = onShoulder
             ? -halfWidth + 0.4 + looseRand() * (cfg.shoulder - 0.8)
             : side * (halfWidth + 0.8 + looseRand() * 6);
-        // (user: "I want to SEE some debris"): ~1 in 2 of the litter (and of the
-        // scatters) is ROADSIDE DEBRIS (cones.js DEBRIS kinds), the rest tyres + cones
+        // (requirement: I want to SEE some debris): ~1 in 2 of the litter (and of the scatters) is
+        // ROADSIDE DEBRIS (cones.js DEBRIS kinds), the rest tyres + cones
         const pos = pointAt(i, off),
           roll = looseRand();
         addLoose(
@@ -167,9 +167,9 @@ function layConeTaper(ctx, loot, i, dist) {
 }
 
 /**
- * LOOSE ROADSIDE (user: "as it's open sided, be LITTERED with TYRES and CONES and
- * have appropriate CHEVRON signs for the corners"): knockable cones.js objects into `loose` (the
- * level's cones at a restart, else streamed in by main.js), open presets only. CHEVRONS on the
+ * LOOSE ROADSIDE (requirement: as it's open sided, be LITTERED with TYRES and CONES and have
+ * appropriate CHEVRON signs for the corners): knockable cones.js objects into `loose` (the level's
+ * cones at a restart, else streamed in by main.js), open presets only. CHEVRONS on the
  * outside of every bend tighter than R 650, one per 48 m, 4.5 m off the edge (behind the armco
  * where there is one), arrows pointing the way it turns; LITTER on both verges (a lone tyre, a
  * cone, now and then on the hard shoulder); a stray TYRE STACK pile now and then; and a CONE
@@ -186,9 +186,9 @@ export function layLooseRoadside(ctx) {
         loose.push(obj);
         return obj;
       };
-    // LITTER DENSITY (user: "they should be RANDOM and also have a SLIDER for frequency
-    // / density"; default 1 = as tested and seen): lv.litter x every litter chance (setup's LITTER
-    // slider, 0 = none .. 3 = a scrapyard); chevrons are signs, not litter
+    // LITTER DENSITY (requirement: they should be RANDOM and also have a SLIDER for frequency /
+    // density); default 1 = as tested and seen): lv.litter x every litter chance (setup's LITTER
+    // slider, 0 = none.. 3 = a scrapyard); chevrons are signs, not litter
     const density = level.litter ?? 1, chance = (prob) => Math.min(0.95, prob * density);
     const loot = { looseRand, addLoose, chance, density };
     for (let i = firstIdx; i < endIdx; i++) {

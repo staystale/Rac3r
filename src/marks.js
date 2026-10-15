@@ -66,9 +66,9 @@ function toPx(state, worldX, worldY) {
 /**
  * Slides the layer's origin to follow a position, shifting the drawn marks.
  *
- * ONLY WHEN THE LEVEL DOES NOT FIT (user: "top left corner of knob hill ... it
- * seems to forget / cut of tyre marks in a clean line, some stay but most go";
- * tools/_markedge.mjs). MEASURED BUG: follow ran on EVERY level, so past 136 m from the
+ * ONLY WHEN THE LEVEL DOES NOT FIT (requirement: top left corner of knob hill... it seems to forget
+ * / cut of tyre marks in a clean line, some stay but most go); tools/_markedge.mjs). MEASURED BUG:
+ * follow ran on EVERY level, so past 136 m from the
  * middle (Knobhill reaches ~242 m) the layer slid over and everything beyond a straight line
  * on the far side was cut away. A square level's whole fence (+-FLOOR + RUNOFF_W) IS the
  * layer, so it never needs to move; only the endless road and the tall lab rectangle still
@@ -138,8 +138,8 @@ function fadeMarks(markCtx, dt) {
  * TYRE TEMPERATURE you can SEE: a cold tyre lays a FAINT rubber mark —
  * it is not soft enough to leave much of itself behind — and reaches full strength in its
  * working window (~65 C). Ruts in loose ground do not care about tyre temperature.
- * REVISED (user: "maybe cold tyres don't really leave skid marks"): nothing below 35 C,
- * full from ~90 C. MEASURED: a locked stop from 86 km/h heats cold fronts 18 -> 59 C within
+ * REVISED (requirement: maybe cold tyres don't really leave skid marks): nothing below 35 C, full
+ * from ~90 C. MEASURED: a locked stop from 86 km/h heats cold fronts 18 -> 59 C within
  * the stop (a skidding tyre gets hot fast, as in life), so 25..70 still drew 2/3 of a warm
  * tyre's marks; 35..90 leaves only a faint tail.
  *
@@ -171,7 +171,7 @@ function strokeMark(markCtx, wheel, loose, from, dest) {
  *
  * RUBBER BALLING ("marbles") in the working window: a hard-worked warm tyre sheds little
  * balls of rubber that collect just off the line. Drawn into this same layer, so they fade
- * with the marks. REVISED (user: "rubber balling is a bit obvious"): 0.35 -> 0.08 chance,
+ * with the marks. REVISED (requirement: rubber balling is a bit obvious): 0.35 -> 0.08 chance,
  * smaller and fainter.
  *
  * @param {MarkCtx} markCtx the marks context
@@ -260,9 +260,9 @@ function stampMarks(markCtx, wheels) {
  *
  * Four contact points from the axle positions and the track width. The slip figure comes
  * straight out of the vehicle telemetry — vehicle.js computes it from the contact patch, so
- * there is exactly one derivation of it. EACH CAR'S OWN WHEEL KEYS (user: "AI
- * share tyre tracks? it gets messy quick"): the keys were just fl/fr/rl/rr, so with AI cars
- * the stamp joined one car's wheel to ANOTHER car's same wheel — long lines criss-crossing
+ * there is exactly one derivation of it. EACH CAR'S OWN WHEEL KEYS (requirement: AI share tyre
+ * tracks? it gets messy quick): the keys were just fl/fr/rl/rr, so with AI cars the stamp joined
+ * one car's wheel to ANOTHER car's same wheel — long lines criss-crossing
  * the track. Now prefixed by a per-car id.
  *
  * @param {object} car the car

@@ -142,18 +142,18 @@ export const SH_STARTWALL = (() => {
 // JOKER RULES (user,/04): once per race, mandatory, missed = time penalty; a translucent
 // white arrow, gently pulsing, at the entry. The GATE is the middle of the joker lane: drive
 // through it and the joker counts. Normal route branch -> rejoin 180 m, joker 134 m but tight and
-// on dirt (MEASURED cost: ENGINE.md). ARROWS (user: "the arrow needs to be closer and
-// more clearly pointing at the joker lap, and vanish when it has been taken"). The first cut sat at
-// the split pointing along BOTH routes (they part slowly: 1 m apart at 72 m, 11 m at 112 m,
+// on dirt (MEASURED cost: ENGINE.md). ARROWS (requirement: the arrow needs to be closer and more
+// clearly pointing at the joker lap, and vanish when it has been taken). The first cut sat at the
+// split pointing along BOTH routes (they part slowly: 1 m apart at 72 m, 11 m at 112 m,
 // measured). Now: one on the track 7 m before the split, on the joker (+) half, turned 20 deg
 // toward it; one at the joker's mouth where the routes are ~9 m apart, pointing down the joker.
 // Both 10 m long. main.js hides them once the gate is driven through. JOKER ARROW ACROSS THE
-// TRANSITION (user, phone screenshot: "joker arrows should sit across the transition to
-// highlight the joker section clearly"): centred where the joker's centre line crosses the ROAD
+// TRANSITION (requirement: joker arrows should sit across the transition to highlight the joker
+// section clearly): centred where the joker's centre line crosses the ROAD
 // EDGE (half on the tarmac, half on the dirt), aimed along the joker there. (Before: on the track
-// ~40 m before the split, aimed at the mouth.) the APPROACH arrow (user: "not sure the
-// joker suggestion is showing correctly"): the lane-mouth arrow sat just off the road and landed at
-// the screen edge at speed; this one is ON the road, 30 m before the turn-off, on the joker's side,
+// ~40 m before the split, aimed at the mouth.) the APPROACH arrow (requirement: not sure the joker
+// suggestion is showing correctly): the lane-mouth arrow sat just off the road and landed at the
+// screen edge at speed; this one is ON the road, 30 m before the turn-off, on the joker's side,
 // angled into the lane
 export function jokerApproach(sub: Subtrack, joker: Point[], len = 12) {
   const halfWidth = sub.width / 2;
@@ -187,13 +187,14 @@ export const SH_JOKER_RULE = (() => {
   // every car's joker cost.) USER (phone screenshot with a red hand-drawn arrow): "only
   // ONE arrow, placed where the red arrow is" — on the track at its right edge just before the
   // gravel splits off, pointing into the joker's mouth.
-  // PENALTY 10 -> 30 s per miss OR extra joker (user: "harsh, real-ish")
+  // PENALTY 10 -> 30 s per miss OR extra joker (requirement: harsh, real-ish)
   return { gate: { x: mid[0], y: mid[1], r: 7 }, penalty: 30, laps: 5,
     arrows: [jokerArrow(SH_SUBTRACK, joker), jokerApproach(SH_SUBTRACK, joker)].filter(Boolean) };
 })();
 
-// SLIDDEN HILL SCENERY (user: "same treatment" + the hill). Distances on this trace (lap 1136 m):
-// joker branch 69 / rejoin 249, PADDOCK HILL 166, CHESSONS DRIFT 202-361 (dirt), DEVIL'S ELBOW 511
+// SLIDDEN HILL SCENERY (requirement: same treatment) + the hill). Distances on this trace (lap 1136
+// m): joker branch 69 / rejoin 249, PADDOCK HILL 166, CHESSONS DRIFT 202-361 (dirt), DEVIL'S ELBOW
+// 511
 // (a LEFT hairpin: its outside is +), NORTH BEND 742, HAIRY HILL 856, the gravel run 978-1101. + =
 // inside except at the Elbow (measured against the centroid).
 const SH_ST = SH_START.pts, SH_SDIR = (() => {

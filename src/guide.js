@@ -114,9 +114,9 @@ const CARDS = [
   },
 ];
 
-// EVENT RULES (user: "rules to events should be EXPLAINED the FIRST TIME you do them,
-// and shown WALK-THROUGH style, if needed"). The same card overlay, pointing at the HUD that
-// matters; opened by main.js when an event STARTS for the first time on this device (remembered per
+// EVENT RULES (requirement: rules to events should be EXPLAINED the FIRST TIME you do them, and
+// shown WALK-THROUGH style, if needed). The same card overlay, pointing at the HUD that matters;
+// opened by main.js when an event STARTS for the first time on this device (remembered per
 // event in localStorage 'carsim.rulesSeen'), PAUSING the sim before the lights; replayed from the
 // pause menu. key = main.js eventKind: 'race' (VS AI, circuit), 'rx' (RX race), 'stage' (rally
 // stage), 'highway' (VS AI on the endless road), 'endless' (the endless road, solo).

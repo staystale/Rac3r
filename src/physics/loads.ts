@@ -116,7 +116,7 @@ function tractionCut(car: Car, vLongAbs: number, inReverse: boolean, dt: number)
   // HAS TCS and it is switched on.
   if (car.tcsOn && !inReverse) {
     // allowed slip = 10% of road speed (min TCS_SPIN): real systems let ~10-15% slip through, it is
-    // where traction peaks. MEASURED (user: "TCS too strong"): a flat 0.8 m/s cut in on plain
+    // where traction peaks. MEASURED (requirement: TCS too strong): a flat 0.8 m/s cut in on plain
     // tarmac in most corner exits; gentler slope too.
     const spin = car.wheelSpin || 0, allow = Math.max(TCS_SPIN, 0.10 * vLongAbs);
     const target = spin > allow ? Math.max(0.15, 1 - (spin - allow) * 0.35) : 1;
@@ -132,9 +132,9 @@ function tractionCut(car: Car, vLongAbs: number, inReverse: boolean, dt: number)
 export function computeLongitudinalDemand(car: Car, carSpec: Spec, mass: number, gravity: number,
     vLong: number, vLongAbs: number, dirSign: number, inReverse: boolean, throttle: number,
     brakeIn: number, totalRatio: number, dt: number) {
-  // ---- 5. longitudinal demand per axle CLUTCH RAMP. MEASURED BUG, (user: "still
-  // getting judder sometimes"): torque was zeroed during a shift and then restored in ONE step —
-  // dumped on the track car, FxR jumping 0 -> 6480 N on the step the shift timer expired, which via
+  // ---- 5. longitudinal demand per axle CLUTCH RAMP. MEASURED BUG, (requirement: still getting
+  // judder sometimes): torque was zeroed during a shift and then restored in ONE step — dumped on
+  // the track car, FxR jumping 0 -> 6480 N on the step the shift timer expired, which via
   // the friction ellipse instantly crushed rear lateral force 5842 -> 2232 N and kicked the yaw. A
   // real clutch takes ~0.1 s to take up. Same lesson as the yaw damping and the tyre laws: a
   // discontinuous force is always a judder. BOTH WAYS. The first cut ramped the clutch back IN but

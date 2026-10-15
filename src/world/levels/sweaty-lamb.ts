@@ -16,7 +16,7 @@ import type { Point, Cover, Lane, Cone, Prop, Paint, Barrier } from "../types.ts
 // to the start. Built as ONE closed loop (stage + liaison) so RESET, lap tracking and the
 // autodriver all work; LEVEL.stage = { finish } and main.js times start line -> finish. World
 // metres (mpp 1). Valley floor in the south, the hill rising to the north (one cos^2 hill, 18 m);
-// start in the SW farm yard. V2 (user: "a bit basic track wise — more unique corners";
+// start in the SW farm yard. V2 (requirement: a bit basic track wise — more unique corners);
 // "slightly longer, more twists and turns, same map size"; "more tyres, cones, flags so it feels
 // like a rally event"). ~2 km of stage, every corner a different kind, in order: SQUARE LEFT out of
 // the yard, DOG-LEG square right, fast ESSES along the valley, the WATER SPLASH, a long right
@@ -122,9 +122,9 @@ for (const dist of [SL_C.sqL, SL_C.sqR, SL_C.sqL2, SL_C.tree, SL_C.hp2, SL_C.sqR
   SL_DRESS.push(SL_KIT.prop(dist + 12, out * 11,
     { kind: 'flag', col: ['#c8302c', '#e2c13a', '#2b56b5', '#2f7d4f'][(dist | 0) % 4] }));
 }
-// HAY BALES round EVERY corner of the stage (user: "more hay bales around the rally
-// stage corners"): corners found from the curvature (autoKerbs' corner finder: tighter than 45 m,
-// turning > 25 deg), a knockable bale every 2.1 m along the OUTSIDE from just before the corner to
+// HAY BALES round EVERY corner of the stage (requirement: more hay bales around the rally stage
+// corners): corners found from the curvature (autoKerbs' corner finder: tighter than 45 m, turning
+// > 25 deg), a knockable bale every 2.1 m along the OUTSIDE from just before the corner to
 // 12 m after it. (First cut: 7 bales at 8 hand-picked corners.)
 for (const kerb of autoKerbs(SL_SUBTRACK, { maxR: 45, exitR: 0, minTurn: 25, mergeGap: 10 })) {
   if (kerb.startDist > SL_FINISH) continue;

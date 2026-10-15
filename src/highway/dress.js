@@ -288,12 +288,11 @@ export function dress(level, firstIdx, endIdx, loose) {
     if (!NOF) fields(level, i, pointAt, clear, biomeName, loose);
     layRoadsideTrees(ctx, i, dist, biomeName, mark);
     layFarmBlock(ctx, i, biomeName, mark);
-    // SLIP ROADS + BRIDGES (user: "off-slip every 2-4 km (tapering lane, sign, ends in
-    // fields; drivable)"; "bridges over a road, a river and a railway + a footbridge"; "rare cheeky
+    // SLIP ROADS + BRIDGES (requirement: off-slip every 2-4 km (tapering lane, sign, ends in
+    // fields; drivable)); "bridges over a road, a river and a railway + a footbridge"; "rare cheeky
     // extras"): planned on the road's own distance, placed only on near-straight road (|curv| <
     // 1/900 over the stretch), never on top of each other. extras(lv, i, s) below. (every preset
-    // since, user: "all the types of highway should have bridges and slip roads you can
-    // take")
+    // since, requirement: all the types of highway should have bridges and slip roads you can take)
     if (!NOX) extras(level, i, dist, pointAt, mark);
     layGantryAndSign(ctx, i, dist, mark);
     layHump(ctx, i, biomeName, mark);

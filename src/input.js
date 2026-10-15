@@ -8,8 +8,8 @@
 // bug, so pointers are tracked individually and never shared. Every HUD/pedal touch is CONSUMED
 // (CLAUDE.md §4).
 
-// r 36 -> 40 (user: "driving buttons slightly larger, only a small bit")
-// px; >=44px targets via r*2 = 72
+// r 36 -> 40 (requirement: driving buttons slightly larger, only a small bit) px; >=44px targets
+// via r*2 = 72
 export const PEDAL = { r: 40, gap: 12, margin: 16 };
 
 // PROGRESSIVE BRAKE. A button is 0 or 1, so on a phone you could only ever stamp on the pedal —
@@ -30,18 +30,18 @@ const BRAKE_MIN = 0.28;    // initial bite on a quick stab
 // hold floors it. RELEASE IS INSTANT on purpose: lifting off is the exit from a drift (measured —
 // it recovers every car every time), so it must stay crisp.
 const THR_MIN = 0.26;      // initial opening on a quick stab
-// 0.50 -> 0.75 (user: "it goes to max throttle slightly too quickly — it should ramp
-// up the longer you hold it, only over a very short period, but slightly longer than now"). R
-// uses the same ramp.
+// 0.50 -> 0.75 (requirement: it goes to max throttle slightly too quickly — it should ramp up the
+// longer you hold it, only over a very short period, but slightly longer than now). R uses the same
+// ramp.
 const THR_RAMP = 0.75;     // s to full throttle
 
-// HANDBRAKE: a short slew BOTH WAYS rather than a hold-ramp (user: "very short like 0.1
-// seconds"). Instant on/off is a force step, and today has repeatedly shown that a discontinuous
+// HANDBRAKE: a short slew BOTH WAYS rather than a hold-ramp (requirement: very short like 0.1
+// seconds). Instant on/off is a force step, and today has repeatedly shown that a discontinuous
 // force is a judder. 0.1 s each way smooths the edge without costing the duration control that
 // makes drift entry modulable — holding longer still means more rotation.
 const HB_SLEW = 1 / 0.10;  // units per second, up AND down
-// 0.50 -> 0.25 (user: "holding brake should be foot-to-the-floor braking"). A tap
-// still bites lightly.
+// 0.50 -> 0.25 (requirement: holding brake should be foot-to-the-floor braking). A tap still bites
+// lightly.
 const BRAKE_RAMP = 0.25;   // s to reach full pedal
 
 // 52 px meant a full-right to full-left correction was a 104 px thumb drag — too slow to catch a
@@ -86,8 +86,8 @@ function findPedalHits(width, height) {
   ];
 }
 
-// THE HUD IS TESTED FIRST. MEASURED BUG, (user: "I can't change vehicle"): the
-// steering stick claims the whole left 55% of the screen, and the car chip and RESET both live
+// THE HUD IS TESTED FIRST. MEASURED BUG, (requirement: I can't change vehicle): the steering stick
+// claims the whole left 55% of the screen, and the car chip and RESET both live
 // inside that zone — so on a phone every tap on them was swallowed as a steering drag and never
 // reached the HUD. CLAUDE.md §4 says a tap on the HUD must never also reach the world; this was
 // the same rule inverted, with the world eating the HUD. Controls win, always, and they win

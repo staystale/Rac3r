@@ -6,8 +6,8 @@ import type {
 } from "./types.ts";
 // =============================================================================================
 // SUBTRACK SYSTEM (for circuit recovery / reset and lap progress tracking) AUTO KERBS
-// (user: "check the kerbs, they look a bit broken"). MEASURED on Thruston: kerbs
-// placed by NAMED corner distances landed on the OUTSIDE of four corners and on a straight (a
+// (requirement: check the kerbs, they look a bit broken). MEASURED on Thruston: kerbs placed by
+// NAMED corner distances landed on the OUTSIDE of four corners and on a straight (a
 // naming slip in the Complex shifted them). Now kerbs come from the track's own curvature: every
 // corner tighter than maxR gets an INSIDE kerb over the part tighter than 1.6 x its tightest
 // radius; corners tighter than exitR also get an OUTSIDE exit kerb after the apex. 'left' =
@@ -410,9 +410,9 @@ export function createSubtrack(
   return { pts: sampled, segs, totalDist, width, sectors, sectorAt, curvedKerbs, grid };
 }
 
-// GHOST SEGMENT (point-to-point stages, user: "rally stages are circular often — they
-// should mostly be a LINE"). The engine's roads are closed loops (distances wrap at the start
-// line); a point-to-point stage keeps that arithmetic by closing its loop with ONE invisible
+// GHOST SEGMENT (point-to-point stages, requirement: rally stages are circular often — they should
+// mostly be a LINE). The engine's roads are closed loops (distances wrap at the start line); a
+// point-to-point stage keeps that arithmetic by closing its loop with ONE invisible
 // segment from the stop-zone end back to the run-up before the start. A ghost segment is not
 // road: it is out of the lookup grid (querySubtrack never returns it, so physics / ground /
 // resets / AI-progress never see it) and render.ts does not draw it.

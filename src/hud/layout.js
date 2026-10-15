@@ -72,8 +72,8 @@ function layoutCornerPanels(state, width, btnY, narrow) {
   const tally = { x: Math.round(width / 2 - 46), y: btnY + BTN_H + 6, w: 92, h: 24 };
   // Narrow: the left of row three belongs to the car dropdown and the TUNE panel, so the tally
   // goes top-RIGHT, under the lap panel (it is hidden while TUNE is open — that panel reaches it
-  // at 360 px). FPS (test mode, user: "in the corner always"): a slim strip right
-  // under the lap / distance panel, top right; the narrow-screen cone tally moves down under it
+  // at 360 px). FPS (test mode, requirement: in the corner always): a slim strip right under the
+  // lap / distance panel, top right; the narrow-screen cone tally moves down under it
   const fps = { x: width - MARGIN - 120, y: lap.y + lap.h + 4, w: 120, h: 18 };
   if (narrow) {
     tally.x = width - MARGIN - 92;
@@ -96,9 +96,9 @@ function layoutBottomChips(width, height) {
   const aidW = 50, aidH = 30, aidY = Math.round(yBrakeTop - 6 - aidH);
   const absChip = { x: width - PEDAL.margin - aidW * 2 - 6, y: aidY, w: aidW, h: aidH };
   const tcsChip = { x: width - PEDAL.margin - aidW, y: aidY, w: aidW, h: aidH };
-  // LIGHTS + INDICATORS (user: "a button for headlights, bottom / bottom-left, along
-  // with indicators"): a row of three at the bottom-left corner — a tap there is consumed before
-  // the steering zone sees it
+  // LIGHTS + INDICATORS (requirement: a button for headlights, bottom / bottom-left, along with
+  // indicators): a row of three at the bottom-left corner — a tap there is consumed before the
+  // steering zone sees it
   const lbW = 46, lbH = 34, lbY = height - MARGIN - lbH;
   const indL = { x: MARGIN, y: lbY, w: lbW, h: lbH },
     lights = { x: MARGIN + lbW + 6, y: lbY, w: lbW + 14, h: lbH },

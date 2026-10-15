@@ -42,9 +42,9 @@ export function updateTyreTemps(car: Car, carSpec: Spec, tick: AxleTick, out: Ax
   const capK = TYRE_HEAT.cap * (carSpec.mass || 1440) / TYRE_HEAT.massRef;
   const wheelWork = [workF * frontShare, workF * (1 - frontShare), workR * frontShare,
       workR * (1 - frontShare)];
-  // FLEX HEAT (user: "should be semi easy to get warm but you'd have to try to over
-  // heat them"). A tyre working in a corner flexes, and that warms it toward TYRE_FLEX.T — INSIDE
-  // the working window — and no further: above it this term is zero, so only sliding (the slip
+  // FLEX HEAT (requirement: should be semi easy to get warm but you'd have to try to over heat
+  // them). A tyre working in a corner flexes, and that warms it toward TYRE_FLEX.T — INSIDE the
+  // working window — and no further: above it this term is zero, so only sliding (the slip
   // work above) can overheat a tyre. Rate = how hard the axle is working (force / load) x this
   // tyre's share x speed; on loose ground x heatK like everything else. GRIPPING axles only: a
   // sliding / spinning / locked axle already heats by slip work, and adding flex on top MEASURED
@@ -54,7 +54,7 @@ export function updateTyreTemps(car: Car, carSpec: Spec, tick: AxleTick, out: Ax
   // CORNERING force only. MEASURED: with |Fx| included, holding 90 km/h on a straight (throttle
   // on, then engine braking off) warmed the rears to 46 C in 30 s; the rule is that a cruise
   // barely warms them. Drive and brake heat still arrive through the slip work above. MEASURED
-  // BUG (user: "tyres heat up like crazy if you brake or slide over jumps"): over the
+  // BUG (requirement: tyres heat up like crazy if you brake or slide over jumps): over the
   // Test Track table with the handbrake on, the fronts gained +203 C in ONE step — the axle was
   // airborne (Fz 0) but still carried 7.6 kN of lagged lateral force, so force / max(1, Fz) read
   // as ~7600 x "working hard". Now: grounded axles only, load floored at a quarter of static,
@@ -76,9 +76,9 @@ export function updateTyreTemps(car: Car, carSpec: Spec, tick: AxleTick, out: Ax
         * Math.max(0, TYRE_FLEX.T - tyreTemps[i]);
     tyreTemps[i] += ((wheelWork[i] * heatScale) / capK + flexHeat - cool
         * (tyreTemps[i] - TYRE_AMBIENT)) * dt;
-    // NaN guard ONLY. MEASURED BUG (user: "tyres that get too hot just roll over the
-    // temp table and start cold again — they should pop or hold temp until cooled"): this used to
-    // reset anything over 400 C to ambient. Now a real number is CAPPED and HELD until it cools;
+    // NaN guard ONLY. MEASURED BUG (requirement: tyres that get too hot just roll over the temp
+    // table and start cold again — they should pop or hold temp until cooled): this used to reset
+    // anything over 400 C to ambient. Now a real number is CAPPED and HELD until it cools;
     // bursting arrives with the damage system.
     if (!Number.isFinite(tyreTemps[i])) tyreTemps[i] = TYRE_AMBIENT;
     else if (tyreTemps[i] > TYRE_T_MAX) tyreTemps[i] = TYRE_T_MAX;
