@@ -1645,6 +1645,36 @@ function dropBreadcrumb() {
   }
 }
 
+/**
+ * The running order for one sim step: the highway order, or the circuit order.
+ */
+function stepRunningOrder() {
+  if (LEVEL.endless) {
+    if (game.flow && game.flow.highway) game.position = game.flow.order();
+  }
+  else if ((game.ai.length || game.flow || LEVEL.stage) && LEVEL.subtrack) stepOrder();
+}
+
+/**
+ * Race flow for one sim step: the running order, then the flow state machine (finish, and the
+ * highway end countdowns on the notice line).
+ */
+function stepRaceFlow() {
+  stepRunningOrder();
+  if (game.flow && game.start.t >= (game.start.tGreen0 ?? game.start.tGreen)) {
+    const was = game.flow.state;
+    game.flow.step(PHYSICS_STEP_SECONDS);
+    if (was !== 'done' && game.flow.state === 'done') game.flowDoneAt = performance.now();
+    // the HIGHWAY's END COUNTDOWNS on the notice line (user: "an AI reaching the edge of the
+    // screen ahead starts a countdown")
+    const flow = game.flow;
+    if (flow.highway
+      && flow.cdKind) game.notice = { text: (flow.cdKind === 'ahead' ? (flow.cdHold
+        ? 'CLOSING IN  ' : 'CATCH THEM  ') : 'PULLING AWAY  ') + Math.max(1,
+          Math.ceil(flow.cd)), at: performance.now(), good: flow.cdKind === 'behind' };
+  }
+}
+
 function loop(now) {
   // Rescheduled FIRST, so a throw anywhere below can never stop the game loop again.
   requestAnimationFrame(loop);
@@ -1700,22 +1730,7 @@ function loop(now) {
       if (LEVEL.endless && (game.ai.length || settings.autopilot)) hwFrames(LEVEL,
         [game.car, ...game.ai.map((entry) => entry.car), ...game.traffic.cars]);
       stepAI(PHYSICS_STEP_SECONDS);
-      if (LEVEL.endless) {
-        if (game.flow && game.flow.highway) game.position = game.flow.order();
-      }
-      else if ((game.ai.length || game.flow || LEVEL.stage) && LEVEL.subtrack) stepOrder();
-      if (game.flow && game.start.t >= (game.start.tGreen0 ?? game.start.tGreen)) {
-        const was = game.flow.state;
-        game.flow.step(PHYSICS_STEP_SECONDS);
-        if (was !== 'done' && game.flow.state === 'done') game.flowDoneAt = performance.now();
-        // the HIGHWAY's END COUNTDOWNS on the notice line (user: "an AI reaching the edge of the
-        // screen ahead starts a countdown")
-        const flow = game.flow;
-        if (flow.highway
-          && flow.cdKind) game.notice = { text: (flow.cdKind === 'ahead' ? (flow.cdHold
-            ? 'CLOSING IN  ' : 'CATCH THEM  ') : 'PULLING AWAY  ') + Math.max(1,
-              Math.ceil(flow.cd)), at: performance.now(), good: flow.cdKind === 'behind' };
-      }
+      stepRaceFlow();
       // TRAFFIC: driven after the AI (it reads where everyone is), then in the SAME contact pass as
       // you and the AI — full contact, damage
       const tcars = game.traffic.cars;
