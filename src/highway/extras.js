@@ -282,6 +282,36 @@ function buildBridge(level, i, dist, pointAt, mark) {
   } else approaches(level, bridge, dist);
 }
 /**
+ * Whether an off-slip is due here: 60 m of straight before and 150 m after, side road not running.
+ * @param {object} state the highway state
+ * @param {Array} road the road points
+ * @param {number} i road point index
+ * @param {number} dist road distance at i
+ * @returns {boolean} true when the slip should be built
+ */
+function slipDue(state, road, i, dist) {
+  return (
+    dist >= state.nextSlip &&
+    !state.side &&
+    i > 20 &&
+    i < road.length - 50 &&
+    straightAt(road, i, 15, 38)
+  );
+}
+/**
+ * Whether a bridge is due here: not while the side road runs beside the motorway.
+ * @param {object} state the highway state
+ * @param {Array} road the road points
+ * @param {number} i road point index
+ * @param {number} dist road distance at i
+ * @returns {boolean} true when the bridge should be built
+ */
+function bridgeDue(state, road, i, dist) {
+  return (
+    dist >= state.nextBridge && !state.side && i < road.length - 20 && straightAt(road, i, 12)
+  );
+}
+/**
  * Everything the road adds beside itself at one point, from its own random stream (state.xrnd,
  * not the road's: adding / changing an extra never re-rolls the road's shape): an off-slip, or
  * else a bridge, or else (rarely) a smiley solar farm.
@@ -306,19 +336,13 @@ export function extras(level, i, dist, pointAt, mark) {
   }
   // OFF-SLIP: needs 60 m of straight before (signs) and 150 m after; never while the side road is
   // running
-  if (
-    dist >= state.nextSlip &&
-    !state.side &&
-    i > 20 &&
-    i < road.length - 50 &&
-    straightAt(road, i, 15, 38)
-  ) {
+  if (slipDue(state, road, i, dist)) {
     buildSlip(level, i, dist, pointAt, mark);
     return;
   }
   // BRIDGES: over (road / rail / foot) or the motorway over a river. Not while the side road runs
   // beside the motorway.
-  if (dist >= state.nextBridge && !state.side && i < road.length - 20 && straightAt(road, i, 12)) {
+  if (bridgeDue(state, road, i, dist)) {
     buildBridge(level, i, dist, pointAt, mark);
     return;
   }
