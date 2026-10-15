@@ -4,7 +4,7 @@ New session? Read `CLAUDE.md`, then this file. Open items only: finished work is
 
 ## Where we are
 
-- The code quality overhaul (below) is at phase 9 (docs) of 10. Lint: 0 problems. `npm run suite` runs the
+- The code quality overhaul (below) is DONE (phases 0-10). Lint: 0 problems. `npm run suite` runs the
   quick checks (pass / fail, exit code); `node tools/runall.mjs --full` adds the slow ones.
 - Behaviour is proved unchanged by `tools/worldhash.mjs` (level data), `tools/simhash.mjs` (every car, every
   step), `tools/renderhash.mjs` (pixels) - save the reference on the base commit, then compare.
@@ -22,14 +22,11 @@ Standards: `CLAUDE.md` section 2. Behaviour must not change unless a phase says 
   lines and complexity 15, files under 800 lines; lint 0 problems.
 - [x] 8. Tools: no hardcoded user paths (`tools/lib/browser.mjs`), one-off scripts in `tools/scratch/`,
   one runner (`npm run suite`).
-- [ ] **9. Docs.** Trim `TODO.md` to open items only, and cut `ENGINE.md` to an architecture overview
-  (module map, data flow, the physics step, the `mods` seam), with details left in code comments.
-  Delete `HANDOVER.md` and fold the "where we are" section into `TODO.md`. Remove historical user
-  quotes, dated anecdotes, tunnel URLs and process IDs from all docs. Done when no doc is over about
-  400 lines and `CLAUDE.md` section 2 matches what the lint rules enforce.
-- [ ] **10. Lock it in.** Run lint and the regression suite in CI (GitHub Actions) on every push so
-  the standards cannot drift again. Add `CONTRIBUTING.md` with the standards and the one-command
-  checks, for the new collaborator.
+- [x] 9. Docs: TODO.md open items only, ENGINE.md an architecture overview, HANDOVER.md folded in
+  and removed, owner spec dumps in `docs/specs/`; no dates, task numbers or quotes in code comments
+  (owner quotes became "(requirement: ...)" notes; tools/samecode.mjs SAME).
+- [x] 10. CI: `verify` (required for `main`) and `checks` (the suite against the base commit,
+  `.github/workflows/checks.yml`) on every push; `CONTRIBUTING.md`.
 
 Owner decisions (2026-10-11):
 1. `package.json` with dev-only tools: yes. TypeScript needs a build step: esbuild, run by `node serve.mjs` before serving, so the routine stays the same. The itch.io build is one bundled file.
