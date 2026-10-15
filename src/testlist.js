@@ -10,6 +10,19 @@ export const TEST_LIST = [
   // (approved late, deleted: fields, grassedge, catchthem, slipsdual, fps - TODO.md 1c;
   // dirtroad, animals, labext)
   {
+    id: 'gpupaint',
+    added: '2026-10-15',
+    name: 'GPU ground, part 1: floor + surfaces (?gpupaint=1)',
+    where: 'The Lab surface lanes and Surface Sandbox pads, link with &gpupaint=1',
+    try:
+      'Drive slowly over the lanes / pads and let the speed zoom go in and out; compare with ' +
+      'the same link without &gpupaint=1.',
+    wrong:
+      'Surface textures jumping or shifting as the zoom changes, a surface in the wrong place, ' +
+      'a hole or seam in the ground, or slower frames. (Labels, lane rims, track and hill ' +
+      'shading still use the old path: they may still shift.)',
+  },
+  {
     id: 'sound',
     added: '2026-10-07',
     name: 'Sound slider + MUTE in pause',

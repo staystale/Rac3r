@@ -99,6 +99,10 @@ any cover (snow, ice, puddle) and the wear state of the cell.
   no pixels dropped when the zoom changes); the art buffer is cleared to transparent so the GPU ground
   shows through, and everything else stays 2D. Without WebGL2 the tiles go into the art buffer as before.
   Step B (the ground painting itself on the GPU) is in TODO.md "GROUND ON THE GPU".
+- `render/glpaint.ts` (`?gpupaint=1`, step B1): the floor and the zones painted on that GPU canvas every
+  frame in world space at TEX_PPM texels per metre (the surface textures sampled per pixel, the tile
+  palette applied by a lookup texture); `ground/zones.ts listGroundPatches` lists them, and the tiles
+  then leave those fills transparent (`view.fillsOnGpu`).
 
 ## Levels
 

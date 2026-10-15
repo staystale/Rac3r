@@ -35,6 +35,7 @@ interface TilesHelpers {
   levelOverview: () => Overview | null;
   artBase: (id: string, fallback: string) => string;
   groundSink: () => GroundSink | null;   // the GPU ground this frame, or null (2D art buffer)
+  fillsOnGpu: () => boolean;   // the GPU paints the floor and zone fills (glpaint.ts)
 }
 
 /** the tile state: the public counters (TileState) plus the caches the painters share */
@@ -43,6 +44,8 @@ interface TilesState extends TileState {
   tileDpr: number;
   tilePPM: number;
   tileLayout: number;
+  /** the tiles leave the floor and zone fills to the GPU (transparent there) */
+  tileFillsOnGpu: boolean;
   /** the pixel-mode palette lookup, built on first use */
   paletteLUT: Uint32Array | null;
   /** running average ms per tile (starts pessimistic = phone) */
@@ -143,12 +146,13 @@ const zOfStep = (step: number) => Math.pow(2, step / ZSTEP);
  * @param target the canvas to write (default: the source)
  */
 function paletteSnap(tcx: TilesCtx, source: HTMLCanvasElement, target = source) {
-  if (!tcx.state.paletteLUT) tcx.state.paletteLUT = buildPalette(tcx.helpers);
-  const paletteLUT = tcx.state.paletteLUT;
+  const paletteLUT = tcx.state.paletteLUT ??= buildPalette(tcx.helpers);
   const img = source.getContext('2d')!.getImageData(0, 0, source.width, source.height),
       d32 = new Uint32Array(img.data.buffer);
+  // over the GPU-painted fills a see-through pixel must stay see-through: snap opaque ones only
+  const minAlpha = tcx.state.tileFillsOnGpu ? 255 : 8;
   for (let i = 0; i < d32.length; i++) {
-    const pixel = d32[i]; if ((pixel >>> 24) < 8) continue;
+    const pixel = d32[i]; if ((pixel >>> 24) < minAlpha) continue;
     d32[i] = paletteLUT[(((pixel & 255) >> 3) << 10) | ((((pixel >> 8) & 255) >> 3) << 5)
         | (((pixel >> 16) & 255) >> 3)];
   }
@@ -253,6 +257,7 @@ function layersInto(tcx: TilesCtx, job: TileJob, y0px: number, y1px: number, ban
   const ctx = job.g;
   const keep = { ctx: view.ctx, W: view.W, H: view.H, zoom: view.zoom, cx: cam.x, cy: cam.y };
   view.ctx = ctx; view.W = view.H = TILE_PX; view.zoom = zOfStep(job.k);
+  view.fillsOnGpu = tcx.state.tileFillsOnGpu;
   cam.x = (job.i + 0.5) * job.tw; cam.y = (job.j + 0.5) * job.tw;
   if (band) {
     ctx.save();
@@ -264,7 +269,9 @@ function layersInto(tcx: TilesCtx, job: TileJob, y0px: number, y1px: number, ban
     drawLayerCalls(tcx);
   } finally {
     if (band) ctx.restore();
-    Object.assign(view, { ctx: keep.ctx, W: keep.W, H: keep.H, zoom: keep.zoom });
+    Object.assign(view, {
+      ctx: keep.ctx, W: keep.W, H: keep.H, zoom: keep.zoom, fillsOnGpu: false,
+    });
     cam.x = keep.cx; cam.y = keep.cy;
   }
   // canvas 2D defers drawing until pixels are read: this makes the strip's cost land in this
@@ -512,8 +519,10 @@ function resetOnChange(tcx: TilesCtx) {
   const { view, tiles, state } = tcx;
   // a re-randomised track (Grass Track)
   const layout = LEVEL.subtrack ? LEVEL.subtrack.layoutId || 0 : 0;
+  const fillsOnGpu = tcx.helpers.fillsOnGpu();
   if (state.tileLevel !== LEVEL || state.tileDpr !== view.dpr || state.tilePPM !== view.PPM
-      || state.tileLayout !== layout) {
+      || state.tileLayout !== layout || state.tileFillsOnGpu !== fillsOnGpu) {
+    state.tileFillsOnGpu = fillsOnGpu;
     tiles.clear();
     state.tileLevel = LEVEL;
     state.tileDpr = view.dpr;
@@ -691,7 +700,7 @@ export function createTiles(view: View, cam: Cam, settings: Settings, helpers: T
     lastStep: null,
     drawnN: 0,                  // art px per tile the last frame was DRAWN at (tools/hwwobble.mjs)
     standIn: false,             // this frame showed a stand-in somewhere (tools: tile pop-in)
-    tileLevel: null, tileDpr: 0, tilePPM: 0, tileLayout: 0,
+    tileLevel: null, tileDpr: 0, tilePPM: 0, tileLayout: 0, tileFillsOnGpu: false,
     paletteLUT: null,           // the pixel-mode palette lookup, built on first use
     tileAvg: 20,                // running average ms per tile (starts pessimistic = phone)
     wearDrainT: 0, seenEpoch: -1,
@@ -707,6 +716,8 @@ export function createTiles(view: View, cam: Cam, settings: Settings, helpers: T
   return {
     tileState, tiles, TILE_PX, ZSTEP, zStepOf, zOfStep,
     paletteSnap: (source: HTMLCanvasElement, target = source) => paletteSnap(tcx, source, target),
+    /** the pixel-mode palette lookup (the GPU painter snaps to the same one) */
+    paletteLUT: () => (tileState.paletteLUT ??= buildPalette(helpers)),
     paintTile: (step: number, i: number, j: number) => paintTile(tcx, step, i, j),
     startTile: (step: number, i: number, j: number) => startTile(tcx, step, i, j),
     stepTile: (job: TileJob) => stepTile(tcx, job),

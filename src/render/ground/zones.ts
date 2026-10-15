@@ -6,7 +6,12 @@ import { COL } from "../../world/colours.ts";
 import type { Zone } from "../../world/types.ts";
 import type { SurfaceArt } from "../types.ts";
 import type { GroundCtx } from "./types.ts";
-import { paintLayers, artBase } from "./art.ts";
+import { paintLayers, artBase, surfaceTexture } from "./art.ts";
+import type { GroundPatch } from "../glpaint.ts";
+
+// the lab floor's glow pool: its colour at the world origin and at FLOOR_GLOW_REACH x FLOOR
+const LAB_GLOW_INNER = 'rgba(255,252,246,0.55)', LAB_GLOW_OUTER = 'rgba(226,226,234,0)';
+const FLOOR_GLOW_REACH = 0.9;
 
 /**
  * Paints the floor: the outside colour, then the level base surface or the lab floor.
@@ -15,6 +20,8 @@ import { paintLayers, artBase } from "./art.ts";
  */
 export function drawFloor(groundCtx: GroundCtx) {
   const { view, PPMz, toScreenX, toScreenY } = groundCtx;
+  // the GPU painted the floor, the lab floor's glow and grid included (floorPatch)
+  if (view.fillsOnGpu) return;
   view.ctx.fillStyle = COL.outside;
   view.ctx.fillRect(0, 0, view.W, view.H);
   const ppm = PPMz();
@@ -52,10 +59,10 @@ function paintLabFloor(groundCtx: GroundCtx, ppm: number, floorW: number, floorH
   // separately, so a screen-centred gradient would come out as one blotch per tile. It stays
   // UNDER the zones.
   const glow = view.ctx.createRadialGradient(
-    toScreenX(0), toScreenY(0), 0, toScreenX(0), toScreenY(0), FLOOR * 0.9 * ppm
+    toScreenX(0), toScreenY(0), 0, toScreenX(0), toScreenY(0), FLOOR * FLOOR_GLOW_REACH * ppm
   );
-  glow.addColorStop(0, 'rgba(255,252,246,0.55)');
-  glow.addColorStop(1, 'rgba(226,226,234,0)');
+  glow.addColorStop(0, LAB_GLOW_INNER);
+  glow.addColorStop(1, LAB_GLOW_OUTER);
   view.ctx.fillStyle = glow;
   view.ctx.fillRect(toScreenX(FX0), toScreenY(FY0), floorW, floorH);
 
@@ -112,6 +119,12 @@ export function drawZones(groundCtx: GroundCtx) {
     const artId = zone.art || zone.surface.id, art = SURFACE_ART[artId];
     if (!art) continue;
     if (!isZoneOnScreen(groundCtx, zone)) continue;
+    // the GPU painted the fills: only the rims and labels lie over them
+    if (groundCtx.view.fillsOnGpu) {
+      if (zone.rounded) paintRoundedZoneRim(groundCtx, zone);
+      else if (!zone.rot && zone.boxed) paintBoxedZoneLabel(groundCtx, zone);
+      continue;
+    }
     if (zone.rounded) paintRoundedZone(groundCtx, zone, art);
     else if (zone.rot) paintRotatedZone(groundCtx, zone, artId, art);
     else paintPlainZone(groundCtx, zone, artId, art);
@@ -126,9 +139,10 @@ export function drawZones(groundCtx: GroundCtx) {
  *
  * @param groundCtx the shared ground painter context
  * @param zone the zone being painted
+ * @param marginPx how far off screen still counts as on it, css px
  * @returns true when it is on screen
  */
-function isZoneOnScreen(groundCtx: GroundCtx, zone: Zone) {
+function isZoneOnScreen(groundCtx: GroundCtx, zone: Zone, marginPx = 0) {
   const { view, toScreenX, toScreenY } = groundCtx;
   // off screen? On the ROTATED footprint. MEASURED BUG (requirement: the old runway bugs in and out
   // of existence): this tested the unrotated w x h box, so a long thin rotated runway (432 x 22 m
@@ -138,8 +152,8 @@ function isZoneOnScreen(groundCtx: GroundCtx, zone: Zone) {
   const extentX = (zone.w / 2) * cosAbs + (zone.h / 2) * sinAbs,
     extentY = (zone.w / 2) * sinAbs + (zone.h / 2) * cosAbs;
   if (
-    toScreenX(zone.x - extentX) > view.W || toScreenX(zone.x + extentX) < 0 ||
-    toScreenY(zone.y - extentY) > view.H || toScreenY(zone.y + extentY) < 0
+    toScreenX(zone.x - extentX) > view.W + marginPx || toScreenX(zone.x + extentX) < -marginPx ||
+    toScreenY(zone.y - extentY) > view.H + marginPx || toScreenY(zone.y + extentY) < -marginPx
   ) return false;
   return true;
 }
@@ -175,7 +189,20 @@ function paintRoundedZone(groundCtx: GroundCtx, zone: Zone, art: SurfaceArt) {
   view.ctx.translate(toScreenX(0), toScreenY(0));
   paintLayers(groundCtx, zone.surface.id, left, top, left + zone.w, top + zone.h);
   view.ctx.restore();
+  paintRoundedZoneRim(groundCtx, zone);
+}
 
+/**
+ * Paints the white rim and the label of a rounded panel.
+ *
+ * @param groundCtx the shared ground painter context
+ * @param zone the zone being painted
+ */
+function paintRoundedZoneRim(groundCtx: GroundCtx, zone: Zone) {
+  const { view, PPMz, toScreenX, toScreenY, roundRect } = groundCtx;
+  const ppm = PPMz();
+  const left = zone.x - zone.w / 2, top = zone.y - zone.h / 2;
+  const rad = Math.min(5 * ppm, zone.w * ppm * 0.15);
   view.ctx.strokeStyle = 'rgba(255,255,255,0.55)';
   view.ctx.lineWidth = Math.max(1, 0.20 * ppm);
   view.ctx.beginPath();
@@ -307,4 +334,104 @@ function paintSeams(groundCtx: GroundCtx) {
   view.ctx.moveTo(toScreenX(0), toScreenY(-FLOOR));
   view.ctx.lineTo(toScreenX(0), toScreenY(FLOOR));
   view.ctx.stroke();
+}
+
+// zones this far off screen (m) are still listed: the apron of a rounded panel reaches 1.2 m
+const PATCH_MARGIN_M = 2;
+
+// a patch with no surface, no grid and no glow: every list entry is reset to it before use
+const EMPTY_PATCH: GroundPatch = {
+  x: 0, y: 0, w: 0, h: 0, rot: 0, radius: 0, base: '#000', texture: null,
+  gridSpacing: 0, gridColour: '#000', glowRadius: 0, glowInner: '#0000', glowOuter: '#0000',
+};
+
+/**
+ * The next reusable patch of the list (the list grows once, then is reused every frame).
+ *
+ * @param list the patch list
+ * @param count how many are in use
+ * @returns the patch at index count, reset to a plain square of no surface
+ */
+function nextPatch(list: GroundPatch[], count: number): GroundPatch {
+  if (!list[count]) list[count] = { ...EMPTY_PATCH };
+  return Object.assign(list[count], EMPTY_PATCH);
+}
+
+/**
+ * Sets a patch's surface: its base colour and texture (none while patterns are off).
+ *
+ * @param groundCtx the shared ground painter context
+ * @param patch the patch
+ * @param base the base colour
+ * @param layersId the SURFACE_ART key of the pattern layers
+ */
+function setPatchSurface(groundCtx: GroundCtx, patch: GroundPatch, base: string,
+    layersId: string) {
+  const art = groundCtx.SURFACE_ART[layersId];
+  patch.base = base;
+  patch.texture = art && groundCtx.surfaceTextures && !groundCtx.view.noPatterns
+    ? surfaceTexture(groundCtx, layersId, art) : null;
+}
+
+/**
+ * The floor as a patch: the level base surface, or the lab floor with its glow and grid.
+ *
+ * @param groundCtx the shared ground painter context
+ * @param patch the patch to fill
+ */
+function floorPatch(groundCtx: GroundCtx, patch: GroundPatch) {
+  Object.assign(patch, { x: (FX0 + FX1) / 2, y: (FY0 + FY1) / 2, w: FX1 - FX0, h: FY1 - FY0 });
+  if (LEVEL.base && LEVEL.base.id !== 'lab') {
+    setPatchSurface(groundCtx, patch, artBase(groundCtx, LEVEL.base.id, COL.floor),
+      LEVEL.base.id);
+    return;
+  }
+  Object.assign(patch, {
+    base: COL.floor, gridSpacing: GRID, gridColour: COL.grid,
+    glowRadius: FLOOR * FLOOR_GLOW_REACH, glowInner: LAB_GLOW_INNER, glowOuter: LAB_GLOW_OUTER,
+  });
+}
+
+/**
+ * The patches of one zone, as drawZones paints its fills: a rounded panel's tarmac apron, then
+ * the zone. The pattern layers follow drawZones too: a rotated zone uses its art id, the others
+ * the surface's own.
+ *
+ * @param groundCtx the shared ground painter context
+ * @param zone the zone
+ * @param list the patch list
+ * @param count how many are in use
+ * @returns how many are in use after the zone's
+ */
+function zonePatches(groundCtx: GroundCtx, zone: Zone, list: GroundPatch[], count: number) {
+  const artId = zone.art || zone.surface.id, art = groundCtx.SURFACE_ART[artId];
+  // the margin covers the sub-pixel camera shift and a rounded panel's apron
+  if (!art || !isZoneOnScreen(groundCtx, zone, PATCH_MARGIN_M * groundCtx.PPMz())) return count;
+  const radius = zone.rounded ? Math.min(5, zone.w * 0.15) : 0;
+  if (zone.rounded) {
+    // the apron is PHYSICAL tarmac (lab.js PAD_APRON, zoneAt): change the two together
+    Object.assign(nextPatch(list, count++), {
+      x: zone.x, y: zone.y, w: zone.w + 2.4, h: zone.h + 2.4, radius: radius + 1.2,
+      base: COL.tarmac,
+    });
+  }
+  const patch = nextPatch(list, count++);
+  Object.assign(patch, { x: zone.x, y: zone.y, w: zone.w, h: zone.h, rot: zone.rot || 0, radius });
+  setPatchSurface(groundCtx, patch, art.base, zone.rot && !zone.rounded ? artId : zone.surface.id);
+  return count;
+}
+
+/**
+ * Lists the floor and every zone as GPU ground patches, back to front, in the order drawFloor
+ * and drawZones paint them (glpaint.ts draws them; it skips what is off screen).
+ *
+ * @param groundCtx the shared ground painter context
+ * @param list the patch list, reused between frames
+ * @returns how many patches of the list are in use
+ */
+export function listGroundPatches(groundCtx: GroundCtx, list: GroundPatch[]) {
+  let count = 0;
+  floorPatch(groundCtx, nextPatch(list, count++));
+  for (let i = ZONES.length - 1; i >= 0; i--) count = zonePatches(groundCtx, ZONES[i], list, count);
+  return count;
 }

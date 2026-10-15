@@ -6,6 +6,8 @@
 // node tools/zoomcheck.mjs --only brands-snatch      one level (keeps each run short)
 //   --out <dir>   write the common-size captures as PNGs (default: zoomcheck in the temp folder)
 //   --skip <list> extra ?skip= layers   --query <q> extra page query, e.g. "tilepx=128"
+//   --at <x,y>    look at this world point (m) instead of the start, e.g. the lab's surface lanes
+//   --zooms <list> the zooms, e.g. "0.9,0.8,0.7" (default ZOOMS)
 // It rasterises on the CPU like renderhash, and shares its page-side determinism.
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -84,6 +86,7 @@ function changed(first, second) {
  * @returns {Promise<void>} resolves when printed
  */
 async function runLevel(browser, base, id, outDir) {
+  const zooms = option('--zooms', '') ? option('--zooms', '').split(',').map(Number) : ZOOMS;
   const errors = [];
   const extra = '&skip=' + ['world', 'car', 'hud', option('--skip', '')].filter(Boolean).join(',')
     + (option('--query', '') ? '&' + option('--query', '') : '');
@@ -91,14 +94,21 @@ async function runLevel(browser, base, id, outDir) {
   await page.evaluate(launchLevel, [id, { ai: 0 }]);
   await page.evaluate((frames) => window.__rt.step(frames), 180);
   const shots = [];
-  for (const zoom of ZOOMS) {
-    await page.evaluate(([z]) => {
+  const at = option('--at', '') ? option('--at', '').split(',').map(Number) : null;
+  for (const zoom of zooms) {
+    await page.evaluate(([z, point]) => {
       const game = window.__game;
+      if (point) {
+        game.car.x = point[0];
+        game.car.y = point[1];
+        game.car.vx = 0;
+        game.car.vy = 0;
+      }
       game.renderer.debugZoom(z);
       game.renderer.snap(game.car);
-    }, [zoom]);
+    }, [zoom, at]);
     await page.evaluate((frames) => window.__rt.step(frames), SETTLE_FRAMES);
-    const shot = await page.evaluate(cut, { zoom, top: ZOOMS[0], size: SIZE });
+    const shot = await page.evaluate(cut, { zoom, top: zooms[0], size: SIZE });
     shots.push({ zoom, rgba: shot.rgba });
     const png = Buffer.from(shot.url.split(',')[1], 'base64');
     writeFileSync(join(outDir, `${id}-z${zoom.toFixed(3)}.png`), png);
@@ -106,7 +116,8 @@ async function runLevel(browser, base, id, outDir) {
   await page.context().close();
   if (errors.length) throw new Error(`${id}: page error: ${errors[0]}`);
   const diffs = shots.slice(1).map((shot, at) => changed(shots[at].rgba, shot.rgba));
-  const rows = diffs.map((diff, at) => `${ZOOMS[at]}->${ZOOMS[at + 1]} ${diff.toFixed(1)}%`);
+  const rows = diffs.map((diff, index) =>
+    `${zooms[index]}->${zooms[index + 1]} ${diff.toFixed(1)}%`);
   console.log(`${id}: changed vs previous zoom`);
   for (const row of rows) console.log('  ' + row);
   const mean = diffs.reduce((sum, diff) => sum + diff, 0) / diffs.length;

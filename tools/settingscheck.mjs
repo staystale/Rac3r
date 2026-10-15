@@ -7,7 +7,7 @@ import { readSettings } from '../src/core/settings.ts';
 const DEFAULTS = {
   dev: false, carId: null, aiCount: 0, aiDifficulty: 2, trafficDensity: 0.6, litter: null, menu: null,
   menuAi: 4, guide: null, rules: null, levelId: null, inputMode: 'auto', highwayDebug: null,
-  noLock: false, tilePx: 256, tileGpu: false, noShade: false,
+  noLock: false, tilePx: 256, tileGpu: false, glGround: true, gpuPaint: false, noShade: false,
   grassEnds: 'round', surfaceTextures: true, meter: false,
   autopilot: false, autopilotKmh: 0, noNatClear: false, churn: '', skipLayers: '',   // a Set is compared as its sorted names joined by ','
 };
@@ -26,6 +26,9 @@ const TABLE = [
   ['?dev&touch&pc&nolock&tilegpu&noshade&tilepx=128',
     { dev: true, inputMode: 'touch', noLock: true, tileGpu: true, noShade: true, tilePx: 128 }],
   ['?pc', { inputMode: 'pc' }],
+  ['?glground=0&gpupaint=1', { glGround: false, gpuPaint: true }],
+  ['?glground=1&gpupaint=0', { glGround: true, gpuPaint: false }],
+  ['?glground&gpupaint', { glGround: true, gpuPaint: false }],
   ['?tilepx=abc', { tilePx: 256 }],
   ['?tilepx=0', { tilePx: 256 }],
   ['?level=thruston&car=track-rwd', { levelId: 'thruston', carId: 'track-rwd' }],

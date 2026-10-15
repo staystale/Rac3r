@@ -5,7 +5,10 @@
 // filter: each art pixel stays a crisp square and its edges blend over one screen pixel, so the
 // ground looks the same at every zoom. Pictures shrunk below one screen pixel per pixel (the
 // fly-in overview) use mipmaps. Everything else (deck, marks, props, cars, HUD) stays 2D, drawn
-// over a transparent art buffer.
+// over a transparent art buffer. With the GPU painter (glpaint.ts, ?gpupaint=1) the floor and
+// zones are painted here in world space first, and the tiles only carry what is drawn over them.
+import { createGlPaint } from "./glpaint.ts";
+import type { GroundPatch, PaintCamera } from "./glpaint.ts";
 
 /** Where the ground pass draws: the 2D art buffer or the GPU canvas. CSS px of the view. */
 export interface GroundSink {
@@ -157,34 +160,30 @@ function buildQuad(webgl: WebGL2RenderingContext, program: WebGLProgram) {
   return { uniforms, vao };
 }
 
-/**
- * Creates the GPU ground under the screen canvas, or returns null when WebGL2 is not available
- * (the ground then stays in the 2D art buffer, as before).
- * @param screen the screen canvas
- * @returns the GPU ground, or null
- */
-export function createGlGround(screen: HTMLCanvasElement) {
-  const canvas = document.createElement('canvas');
-  canvas.id = 'glground';
-  // preserveDrawingBuffer: the test tools read the finished frame back after it is shown
-  const webgl = canvas.getContext('webgl2', {
-    alpha: false, antialias: false, preserveDrawingBuffer: true,
-  });
-  if (!webgl) return null;
-  let program: WebGLProgram;
-  try { program = buildProgram(webgl); } catch { return null; }
-  canvas.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;z-index:0;'
-    + 'touch-action:none;pointer-events:none';
-  screen.style.position = 'relative';
-  screen.style.zIndex = '1';
-  screen.parentNode!.insertBefore(canvas, screen);
-  const { uniforms, vao } = buildQuad(webgl, program);
-  const textures = new Map<HTMLCanvasElement, TexEntry>(), colours = new Map<string, number[]>();
-  const state = { lost: false, frameNo: 0, frame: null as GroundFrame | null };
-  canvas.addEventListener('webglcontextlost', () => { state.lost = true; });
+/** What the sink and the frame calls share. */
+interface SinkState {
+  lost: boolean;
+  frameNo: number;
+  frame: GroundFrame | null;
+  painted: boolean;    // the GPU painter drew the floor this frame, so a fill would wipe it
+}
 
+/**
+ * The sink the tile cache draws through: a fill colour and canvases at CSS px rectangles.
+ * @param webgl the WebGL2 context
+ * @param program the ground program
+ * @param colours the colour cache
+ * @param state the shared frame state
+ * @returns the sink and its texture cache
+ */
+function createSink(webgl: WebGL2RenderingContext, program: WebGLProgram,
+    colours: Map<string, number[]>, state: SinkState) {
+  const { uniforms, vao } = buildQuad(webgl, program);
+  const textures = new Map<HTMLCanvasElement, TexEntry>();
   const sink: GroundSink = {
     fill(colour) {
+
+      if (state.painted) return;
       const [red, green, blue] = parseColour(colours, colour);
       webgl.clearColor(red, green, blue, 1);
       webgl.clear(webgl.COLOR_BUFFER_BIT);
@@ -205,6 +204,37 @@ export function createGlGround(screen: HTMLCanvasElement) {
       webgl.drawArrays(webgl.TRIANGLE_STRIP, 0, 4);
     },
   };
+  return { sink, textures };
+}
+
+/**
+ * Creates the GPU ground under the screen canvas, or returns null when WebGL2 is not available
+ * (the ground then stays in the 2D art buffer, as before).
+ * @param screen the screen canvas
+ * @param withPainter true to paint the floor and zones on the GPU too (glpaint.ts)
+ * @returns the GPU ground, or null
+ */
+export function createGlGround(screen: HTMLCanvasElement, withPainter = false) {
+  const canvas = document.createElement('canvas');
+  canvas.id = 'glground';
+  // preserveDrawingBuffer: the test tools read the finished frame back after it is shown
+  const webgl = canvas.getContext('webgl2', {
+    alpha: false, antialias: false, preserveDrawingBuffer: true,
+  });
+  if (!webgl) return null;
+  let program: WebGLProgram;
+  try { program = buildProgram(webgl); } catch { return null; }
+  canvas.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;z-index:0;'
+    + 'touch-action:none;pointer-events:none';
+  screen.style.position = 'relative';
+  screen.style.zIndex = '1';
+  screen.parentNode!.insertBefore(canvas, screen);
+  const colours = new Map<string, number[]>();
+  const painter = withPainter
+    ? createGlPaint(webgl, (colour) => parseColour(colours, colour)) : null;
+  const state: SinkState = { lost: false, frameNo: 0, frame: null, painted: false };
+  canvas.addEventListener('webglcontextlost', () => { state.lost = true; });
+  const { sink, textures } = createSink(webgl, program, colours, state);
 
   return {
     canvas,
@@ -225,6 +255,21 @@ export function createGlGround(screen: HTMLCanvasElement) {
       webgl.blendFunc(webgl.ONE, webgl.ONE_MINUS_SRC_ALPHA);
       state.frame = frame;
       state.frameNo++;
+      state.painted = false;
+    },
+    /** true when the floor and zones are painted on the GPU (glpaint.ts) */
+    get painting() { return !!painter; },
+    /**
+     * Paints the floor and zone patches in world space, under everything the tiles draw.
+     * @param camera where the world lands on the canvas this frame
+     * @param patches the patches, back to front
+     * @param count how many of the patches to draw
+     * @param palette the pixel-mode palette lookup (tilesPalette.ts)
+     */
+    paint(camera: PaintCamera, patches: GroundPatch[], count: number, palette: Uint32Array) {
+      if (!painter || !state.frame) return;
+      painter.paint(state.frame, camera, { patches, count, palette });
+      state.painted = true;
     },
     /** Ends a frame: drops textures no tile has drawn for a while. */
     end() {

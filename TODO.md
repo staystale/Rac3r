@@ -65,6 +65,20 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
       trilinear filtering (a ground canvas under the 2D canvas for cars, props and the HUD). Check the existing
       `tileGpu` setting (src/render/tiles.ts TILE_GPU) first. Goal: zoomcheck flicker near 0 with the pixel-art
       look kept. Phone test.
+- [ ] B1 DONE behind ?gpupaint=1 (owner phone test pending): src/render/glpaint.ts paints the floor
+      (level base, or the lab floor with its glow and grid) and every zone (plain, rotated, rounded
+      with apron) on the GPU every frame at TEX_PPM texels per metre, sampling the textures.ts
+      textures in world space (sharp-pixel filter, mipmaps when a texel is under a pixel), shape edges
+      on the world texel grid, snapped to the same palette as the tiles (32^3 lookup texture). The
+      tiles leave those fills transparent and are drawn over them. The view lock no longer rounds the
+      zoom to the tile step on this path (that rounding alone made a step shift: zoomcheck GPU-only
+      ground 5.0 % -> none with it off). Measured (zoomcheck --at, 0.9 -> 0.3 in 0.05 steps): inside
+      the sandbox gravel pad the step spikes 9.4 / 12.1 / 16.1 % -> none (max 5.0 %, even across
+      steps); on the Lab lanes the panel labels and lane rims (still in the tiles) still jump at steps.
+      framecheck (CPU x4): GPU paint 0.4 ms a frame median; highway tile 17.6 -> 11.1 ms; work median
+      within noise. renderhash SAME (default and ?glground=0).
+      Still in the tiles, to move: labels and rims of boxed / rounded panels and the lab seams (to
+      per-frame 2D in B2, when the tiles go).
 - [ ] B (L/XL, its own phase): move the ground painting itself to the GPU (surface textures uploaded once;
       zones, water, wear, skid marks, road, kerbs and hill shading as shaders / textured geometry). Goal: no
       tile painting on the highway (today ~17-18 ms a tile against a 6 ms frame budget: the old highway

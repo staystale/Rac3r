@@ -12,6 +12,8 @@ export interface View {
   PPM: number;
   zoom: number;
   noPatterns: boolean;
+  // the GPU painter (glpaint.ts) draws the floor and zone fills: a tile leaves them transparent
+  fillsOnGpu: boolean;
 }
 
 // The camera object; lx / ly are undefined until follow sets them (updateFly resets them).

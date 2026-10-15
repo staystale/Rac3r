@@ -257,13 +257,45 @@ export function paintLayers(
  * @returns false when no texture is available, so the caller draws live
  */
 function paintTextured(groundCtx: GroundCtx, name: string, art: SurfaceArt, rect: number[]) {
-  const { view, PPMz, grassEnds, textures } = groundCtx;
-  const square = grassEnds === 'square';
-  const tex = textures.get(`${name}|${square}`,
-    (gfx, period) => paintTexture(gfx, period, TEX_PPM, art.layers, square));
+  const { view, PPMz } = groundCtx;
+  const tex = surfaceTexture(groundCtx, name, art);
   if (!tex) return false;
   fillTexture(view.ctx, tex, PPMz(), rect);
   return true;
+}
+
+// the texture cache key of each surface and blade-end style, built once (looked up every frame)
+const TEXTURE_KEYS = new Map<string, string>();
+
+/**
+ * The texture cache key of a surface.
+ *
+ * @param name the SURFACE_ART key
+ * @param square true for square grass blade ends
+ * @returns the key
+ */
+function textureKey(name: string, square: boolean) {
+  const lookup = square ? name + '#' : name;
+  let key = TEXTURE_KEYS.get(lookup);
+  if (!key) {
+    key = `${name}|${square}`;
+    TEXTURE_KEYS.set(lookup, key);
+  }
+  return key;
+}
+
+/**
+ * The pre-painted repeating texture of a surface (textures.ts), painted on first use.
+ *
+ * @param groundCtx the shared ground painter context
+ * @param name the SURFACE_ART key
+ * @param art the surface art
+ * @returns the texture canvas
+ */
+export function surfaceTexture(groundCtx: GroundCtx, name: string, art: SurfaceArt) {
+  const square = groundCtx.grassEnds === 'square';
+  return groundCtx.textures.get(textureKey(name, square),
+    (gfx, period) => paintTexture(gfx, period, TEX_PPM, art.layers, square));
 }
 
 /**
