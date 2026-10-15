@@ -255,6 +255,12 @@ function shadeCalls(shade: GlShade | null, state: SinkState) {
     drawShade(camera: PaintCamera) {
       if (shade && state.frame) shade.draw(state.frame, camera);
     },
+    /**
+     * The GPU hill shading's chunk count and ms (tools). A function, not a getter: this object is
+     * spread into the GPU ground, which would copy a getter's value once.
+     * @returns the stats, or null
+     */
+    shadeStats: () => (shade ? shade.stats : null),
   };
 }
 

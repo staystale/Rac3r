@@ -278,10 +278,12 @@ function stepZoom(ctx: CameraCtx, car: CamCar, wallDt: number) {
 // (tools/wobblecheck, sandbox ~100 km/h: the zoom alone moves the screen edge 0.83 px a frame), so
 // the ground swells and shrinks under a car that stays still: motion sickness. Here the zoom
 // HOLDS until the speed target is more than ZOOM_HOLD_BAND away, then glides all the way to it in
-// one eased move of ZOOM_GLIDE_SECONDS, and holds again.
+// one eased move (ZOOM_GLIDE_PER_HALVING s for each halving of the zoom, so a full zoom-out is not
+// a jump), and holds again.
 // wobblecheck, sandbox and highway: the zoom is still in 51-62 % of frames (eased zoom: 21-22 %)
 const ZOOM_HOLD_BAND = 0.2;       // fraction of the target zoom
-const ZOOM_GLIDE_SECONDS = 1.2;   // one zoom move, start to stop
+const ZOOM_GLIDE_PER_HALVING = 1.6;            // s of glide per halving (or doubling) of the zoom
+const ZOOM_GLIDE_MIN = 0.8, ZOOM_GLIDE_MAX = 3;  // s, the shortest and longest glide
 
 /**
  * Holds the zoom, or advances the current zoom glide (smoothstep from start to stop).
@@ -292,13 +294,20 @@ const ZOOM_GLIDE_SECONDS = 1.2;   // one zoom move, start to stop
 function glideZoom(ctx: CameraCtx, target: number, wallDt: number) {
   const { view, camState } = ctx;
   let glide = camState.zoomGlide;
+  // something else moved the zoom (the fly-in, a restart): a glide from its old start would jump
+  if (glide && view.zoom !== glide.last) glide = camState.zoomGlide = null;
   if (!glide) {
     if (Math.abs(target - view.zoom) <= ZOOM_HOLD_BAND * target) return;
-    glide = camState.zoomGlide = { from: view.zoom, to: target, progress: 0 };
+    const seconds = Math.min(ZOOM_GLIDE_MAX, Math.max(ZOOM_GLIDE_MIN,
+      ZOOM_GLIDE_PER_HALVING * Math.abs(Math.log2(target / view.zoom))));
+    glide = camState.zoomGlide = { from: view.zoom, to: target, progress: 0, seconds,
+      last: view.zoom };
   }
-  glide.progress = Math.min(1, glide.progress + wallDt / ZOOM_GLIDE_SECONDS);
+  glide.progress = Math.min(1, glide.progress + wallDt / glide.seconds);
   const eased = glide.progress * glide.progress * (3 - 2 * glide.progress);
-  view.zoom = glide.from + (glide.to - glide.from) * eased;
+  // geometric: each step of the glide scales the view by the same ratio (an even zoom speed)
+  view.zoom = glide.from * Math.pow(glide.to / glide.from, eased);
+  glide.last = view.zoom;
   if (glide.progress >= 1) camState.zoomGlide = null;
 }
 

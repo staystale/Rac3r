@@ -67,10 +67,13 @@ type Uniforms = Record<typeof UNIFORMS[number], WebGLUniformLocation | null>;
 /** The grid: which chunk each slot holds, and what made the cells. */
 interface ShadeGrid {
   owner: Float64Array;       // per slot: the key of the chunk it holds (NaN = none)
+  stale: Uint8Array;         // per slot: 1 = the ground height changed there, refresh in budget
   pixels: Uint8Array;        // one chunk of premultiplied RGBA, reused
   level: unknown;            // the level, track layout and wear epoch the cells were made for
   layout: number;
   epoch: number;
+  chunks: number;            // chunks computed so far (tools)
+  ms: number;                // ms spent computing them (tools)
 }
 
 /**
@@ -130,6 +133,7 @@ const chunkKey = (chunkX: number, chunkY: number) => chunkX * 1e6 + chunkY;
  */
 function computeChunk(webgl: WebGL2RenderingContext, grid: ShadeGrid, chunkX: number,
     chunkY: number) {
+  const startMs = performance.now();
   const cells = CHUNK_CELLS, cell = SHADE_CELL_M, pixels = grid.pixels;
   const minX = chunkX * CHUNK_M, minY = chunkY * CHUNK_M;
   const heights = sampleHeights(cells, cell, CHUNK_M, minX + CHUNK_M / 2, minY + CHUNK_M / 2);
@@ -150,6 +154,8 @@ function computeChunk(webgl: WebGL2RenderingContext, grid: ShadeGrid, chunkX: nu
     webgl.UNSIGNED_BYTE, pixels);
   webgl.pixelStorei(webgl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
   grid.owner[slotY * GRID_CHUNKS + slotX] = chunkKey(chunkX, chunkY);
+  grid.chunks++;
+  grid.ms += performance.now() - startMs;
 }
 
 /**
@@ -182,6 +188,7 @@ function resetOnChange(grid: ShadeGrid) {
   const layout = LEVEL.subtrack ? LEVEL.subtrack.layoutId || 0 : 0;
   if (grid.level === LEVEL && grid.layout === layout && grid.epoch === wearEpoch) return;
   grid.owner.fill(NaN);
+  grid.stale.fill(0);
   Object.assign(grid, { level: LEVEL, layout, epoch: wearEpoch });
 }
 
@@ -199,9 +206,13 @@ export function createGlShade(webgl: WebGL2RenderingContext) {
   const tex = buildGridTexture(webgl);
   const grid: ShadeGrid = {
     owner: new Float64Array(GRID_CHUNKS * GRID_CHUNKS).fill(NaN),
+    stale: new Uint8Array(GRID_CHUNKS * GRID_CHUNKS),
     pixels: new Uint8Array(CHUNK_CELLS * CHUNK_CELLS * 4), level: null, layout: 0, epoch: -1,
+    chunks: 0, ms: 0,
   };
   return {
+    /** chunks computed and the ms they took, for the tools */
+    get stats() { return { chunks: grid.chunks, ms: grid.ms }; },
     /**
      * Brings the cells up to date: everything in view now, then (within SHADE_BUDGET_MS) the
      * rest of what the widest zoom would show.
@@ -212,14 +223,18 @@ export function createGlShade(webgl: WebGL2RenderingContext) {
       resetOnChange(grid);
       webgl.bindTexture(webgl.TEXTURE_2D, tex);
       fillRect(webgl, grid, view, Infinity);
-      fillRect(webgl, grid, widest, performance.now() + SHADE_BUDGET_MS);
+      const deadline = performance.now() + SHADE_BUDGET_MS;
+      refreshStale(webgl, grid, deadline);
+      fillRect(webgl, grid, widest, deadline);
     },
     /**
-     * Forgets the chunks over a world rectangle (the ground height changed there: ruts).
+     * Marks the chunks over a world rectangle stale (the ground height changed there: ruts, or
+     * wear pruned on the highway). They keep their shading until refreshed within the budget,
+     * as the tiles do: computing them at once made frames of 30+ ms.
      * @param rect the rectangle, m; grown by a cell, since a cell's slope reads its neighbours
      */
     invalidate(rect: ShadeRect) {
-      fillOwner(grid, rect, NaN);
+      markStale(grid, rect);
     },
     /**
      * Draws the shading over everything on the GPU canvas.
@@ -248,20 +263,37 @@ export function createGlShade(webgl: WebGL2RenderingContext) {
 }
 
 /**
- * Sets the owner of every slot whose chunk overlaps a world rectangle (grown by one cell).
+ * Recomputes stale chunks until the deadline (the slot still holds the chunk that went stale).
+ * @param webgl the WebGL2 context
+ * @param grid the grid
+ * @param deadline performance.now() to stop at
+ */
+function refreshStale(webgl: WebGL2RenderingContext, grid: ShadeGrid, deadline: number) {
+  for (let slot = 0; slot < grid.stale.length; slot++) {
+    if (!grid.stale[slot]) continue;
+    if (performance.now() > deadline) return;
+    grid.stale[slot] = 0;
+    const key = grid.owner[slot];
+    if (Number.isNaN(key)) continue;
+    // chunkKey inverted: |chunkY| < 5e5, so the rounded quotient is chunkX
+    const chunkX = Math.round(key / 1e6);
+    computeChunk(webgl, grid, chunkX, key - chunkX * 1e6);
+  }
+}
+
+/**
+ * Marks stale every slot whose chunk overlaps a world rectangle (grown by one cell).
  * @param grid the grid
  * @param rect the rectangle, m
- * @param owner the new owner (NaN = none: computed again when next needed)
  */
-function fillOwner(grid: ShadeGrid, rect: ShadeRect, owner: number) {
+function markStale(grid: ShadeGrid, rect: ShadeRect) {
   const left = Math.floor((rect.x0 - SHADE_CELL_M) / CHUNK_M);
   const right = Math.floor((rect.x1 + SHADE_CELL_M) / CHUNK_M);
   const top = Math.floor((rect.y0 - SHADE_CELL_M) / CHUNK_M);
   const bottom = Math.floor((rect.y1 + SHADE_CELL_M) / CHUNK_M);
   for (let chunkY = top; chunkY <= bottom; chunkY++) {
     for (let chunkX = left; chunkX <= right; chunkX++) {
-      grid.owner[wrapIndex(chunkY, GRID_CHUNKS) * GRID_CHUNKS + wrapIndex(chunkX, GRID_CHUNKS)] =
-        owner;
+      grid.stale[wrapIndex(chunkY, GRID_CHUNKS) * GRID_CHUNKS + wrapIndex(chunkX, GRID_CHUNKS)] = 1;
     }
   }
 }

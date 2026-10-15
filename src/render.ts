@@ -653,6 +653,8 @@ export function createRenderer(canvas: HTMLCanvasElement, settings: Settings) {
     get PPM() { return view.PPM * view.zoom; },
     get groundRenders() { return tileState.tilesPainted; },
     get tileMs() { return tileState.tileMs; },
+    /** the GPU hill shading's chunks computed and ms spent (tools), or null */
+    get shadeStats() { return gpu ? gpu.shadeStats() : null; },
     get staleRepaints() { return tileState.staleRepaints; },
     get tileStats() { return { ...tileState, perStep: { ...tileState.perStep } }; },
     get drawnN() { return tileState.drawnN; },
