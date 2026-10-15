@@ -15,6 +15,7 @@ import { readSettings } from './core/settings.ts';
 import { createMarks } from './marks.js';
 import { createHud } from './hud.js';
 import { createMeter } from './ui/meter.ts';
+import { createReporter } from './ui/report.ts';
 import { createChurn } from './core/churn.ts';
 import { createCones } from './cones.js';
 import { createAudio } from './audio.js';
@@ -247,6 +248,9 @@ Object.defineProperty(window.__game, 'paused', { get: () => shared.paused });
 shared.acc = 0;
 shared.last = performance.now();
 shared.meter = shared.settings.meter ? createMeter() : null;   // ?meter=1 only
+// ?report=1: the meter's frames also go to the test server (ui/report.ts)
+shared.reporter = shared.settings.report
+  ? createReporter(location.search, () => (LEVEL ? LEVEL.id : '')) : null;
 shared.churn = shared.settings.churn ? createChurn(shared.settings.churn) : null;   // ?churn= only
 shared.meterTiles = 0;
 shared.meterTouches = 0;   // ?meter=1: pointer down / up / cancel events since the last frame

@@ -1,11 +1,33 @@
 // serve.mjs — static server, no-store so a phone refresh always gets current code (CLAUDE.md §5).
 // ONE of these at a time. Port 8080; 8070 belongs to another project on this machine.
 import { createServer } from 'node:http';
-import { readFile, stat } from 'node:fs/promises';
+import { appendFile, readFile, stat } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import { extname, join, normalize, resolve } from 'node:path';
 
 const ROOT = resolve(import.meta.dirname);
 const PORT = Number(process.env.PORT || 8080);
+// ?report=1 (src/ui/report.ts): the phone's frame timings, one JSON line per post
+const REPORT_LOG = process.env.RAC3R_REPORT_LOG || join(tmpdir(), 'rac3r-phone-report.jsonl');
+const REPORT_MAX_BYTES = 2e6;   // a post is ~20 KB; refuse anything far bigger
+
+/**
+ * Appends one phone frame report to REPORT_LOG.
+ * @param {import('node:http').IncomingMessage} req the POST
+ * @param {import('node:http').ServerResponse} res the response
+ */
+function saveReport(req, res) {
+  let body = '';
+  req.on('data', (chunk) => { body += chunk; if (body.length > REPORT_MAX_BYTES) req.destroy(); });
+  req.on('end', async () => {
+    try {
+      const report = JSON.parse(body);
+      const line = JSON.stringify({ at: new Date().toISOString(), ...report });
+      await appendFile(REPORT_LOG, line + '\n');
+      res.writeHead(204).end();
+    } catch { res.writeHead(400).end(); }
+  });
+}
 
 const TYPES = {
   '.html': 'text/html; charset=utf-8',
@@ -18,6 +40,7 @@ const TYPES = {
 };
 
 createServer(async (req, res) => {
+  if (req.method === 'POST' && req.url === '/__report') { saveReport(req, res); return; }
   try {
     let p = decodeURIComponent(new URL(req.url, 'http://x').pathname);
     if (p === '/') p = '/index.html';

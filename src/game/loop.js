@@ -143,6 +143,10 @@ export function drawMeter(frame) {
     tiles: tilesNow - shared.meterTiles, moving, touches: shared.meterTouches,
     slide: events.slide, overview: events.overview,
     dist: LEVEL._hw ? game.hwDist : 0 });
+  if (shared.reporter) {
+    shared.reporter.add([frame.frameMs, frame.meterSim, draw, steps, tilesNow - shared.meterTiles,
+      events.slide]);
+  }
   shared.meterTouches = 0;
   shared.meterTiles = tilesNow;
   shared.meter.draw(shared.renderer.ctx, shared.renderer.W, shared.renderer.H);
