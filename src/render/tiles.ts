@@ -36,6 +36,7 @@ interface TilesHelpers {
   artBase: (id: string, fallback: string) => string;
   groundSink: () => GroundSink | null;   // the GPU ground this frame, or null (2D art buffer)
   fillsOnGpu: () => boolean;   // the GPU paints the floor and zone fills (glpaint.ts)
+  heightsChanged: (rect: { x0: number; y0: number; x1: number; y1: number }) => void;
 }
 
 /** the tile state: the public counters (TileState) plus the caches the painters share */
@@ -295,7 +296,9 @@ function finishTile(tcx: TilesCtx, job: TileJob) {
   else paletteSnap(tcx, job.c);
   const th0 = performance.now();
   state.msSnap += th0 - ts0;
-  hillShade(tcx.NO_SHADE, job.c, job.tw, (job.i + 0.5) * job.tw, (job.j + 0.5) * job.tw);
+  // on the GPU path the hill shading is drawn by the GPU over every tile (glshade.ts)
+  hillShade(tcx.NO_SHADE || tcx.state.tileFillsOnGpu, job.c, job.tw, (job.i + 0.5) * job.tw,
+    (job.j + 0.5) * job.tw);
   state.msShade += performance.now() - th0;
   return job.c;
 }
@@ -454,6 +457,13 @@ function markStaleTiles(tcx: TilesCtx) {
       }
     }
   }
+  // worn cells can be rutted: the GPU hill shading is computed again there
+  for (const cell of wearDirty) {
+    const cellX = cell.cx * WEAR_CELL, cellY = cell.cy * WEAR_CELL;
+    tcx.helpers.heightsChanged({
+      x0: cellX, y0: cellY, x1: cellX + WEAR_CELL, y1: cellY + WEAR_CELL,
+    });
+  }
   wearDirty.length = 0;
 }
 
@@ -567,8 +577,21 @@ function drawStepChange(tcx: TilesCtx, step: number, budget: TileBudget) {
   // the stand-in: the step we were on, scaled. Drawn first, then whatever of k exists goes
   // over it.
   groundFill(tcx, standInFill(tcx));
-  blitStep(tcx, state.lastStep!, false, budget);
-  const left = blitStep(tcx, step, true, budget);
+  const sink = tcx.helpers.groundSink();
+  let left;
+  if (sink && state.tileFillsOnGpu) {
+    // GPU path: the tiles are see-through, so an old-step tile under a new one showed its
+    // translucent labels and rims twice for a frame (a flicker); the new step's tiles mask the
+    // old step's instead
+    sink.mask('write');
+    left = blitStep(tcx, step, true, budget);
+    sink.mask('under');
+    blitStep(tcx, state.lastStep!, false, budget);
+    sink.mask('off');
+  } else {
+    blitStep(tcx, state.lastStep!, false, budget);
+    left = blitStep(tcx, step, true, budget);
+  }
   state.standIn = left > 0;
   if (left === 0) state.lastStep = step;
 }
@@ -585,7 +608,9 @@ function drawStepChange(tcx: TilesCtx, step: number, budget: TileBudget) {
 function drawNewGround(tcx: TilesCtx, step: number, budget: TileBudget) {
   const { state } = tcx, { toScreenX, toScreenY, PPMz, levelOverview } = tcx.helpers;
   if (countMissing(tcx, step) > 1) {
-    const overview = levelOverview();
+    // not on the GPU path: the GPU ground under the tiles is already the real ground there, and the
+    // flat overview over it flashed for a frame at every zoom step (a jump in brightness)
+    const overview = state.tileFillsOnGpu ? null : levelOverview();
     if (overview) {
       groundFill(tcx, standInFill(tcx));
       groundImage(tcx, overview.c, toScreenX(overview.x0), toScreenY(overview.y0),

@@ -29,7 +29,8 @@ import { createTiles } from "./render/tiles.ts";
 import { createCamera } from "./render/camera.ts";
 import { createGlGround } from "./render/glground.ts";
 import type { GlGround, GroundSink } from "./render/glground.ts";
-import type { GroundPatch } from "./render/glpaint.ts";
+import type { ShadeRect } from "./render/glshade.ts";
+import type { GroundPatch, PaintCamera } from "./render/glpaint.ts";
 import type { Cam, CamCar, RenderGame, TileBudget, View } from "./render/types.ts";
 
 // PPM is derived from the SHORT side of the viewport, so the car is a consistent fraction of the
@@ -40,6 +41,9 @@ import type { Cam, CamCar, RenderGame, TileBudget, View } from "./render/types.t
 // orientations.
 export const PPM_MIN = 18, PPM_MAX = 26, PPM_DIV = 17;
 export const ZOOM_MIN = 0.30;   // how far out the camera pulls at high speed
+// m of hill shading kept beyond the widest view (glshade.ts), so driving never shows an unshaded
+// edge
+const SHADE_MARGIN_M = 16;
 export const LOOKAHEAD = 2.6;   // seconds of road kept in view at any speed
 export const MAX_DPR = 2;
 
@@ -79,6 +83,8 @@ type RenderCtx = {
   pctx: CanvasRenderingContext2D;
   gpu: GlGround | null;
   groundPatches: GroundPatch[];   // the GPU painter's patch list, reused every frame
+  gpuCamera: PaintCamera;         // where the world lands on the GPU canvas this frame
+  noShade: boolean;               // ?noshade: no hill shading
   PPMz: () => number;
   toScreenX: (worldX: number) => number;
   toScreenY: (worldY: number) => number;
@@ -207,6 +213,8 @@ function applyViewLock(ctx: RenderCtx): ViewLock {
 function drawWorldLayers(ctx: RenderCtx, game: RenderGame, wallDt: number, wallT: number) {
   const { skip } = ctx;
   if (!skip('ground')) ctx.drawGround(wallDt, game.car);
+  // the GPU hill shading lies over the whole ground, as the tiles baked it
+  if (ctx.state.gpuOn && ctx.gpu!.painting && isGpuShadeOn(ctx)) ctx.gpu!.drawShade(ctx.gpuCamera);
   if (!skip('deck')) {
     ctx.drawRunoff();
     ctx.drawKerb();
@@ -359,11 +367,41 @@ function paintGpuGround(ctx: RenderCtx, lock: ViewLock) {
   const { gpu, state, pcanvas, view, cam } = ctx;
   gpu!.sink.fill(COL.outside);
   const count = ctx.listGroundPatches(ctx.groundPatches);
-  gpu!.paint({
+  Object.assign(ctx.gpuCamera, {
     x: cam.x, y: cam.y, devPerMetre: ctx.PPMz() * view.dpr * state.blockPx,
     screenX: (pcanvas.width / 2) * state.blockPx + lock.subX,
     screenY: (pcanvas.height / 2) * state.blockPx + lock.subY,
-  }, ctx.groundPatches, count, ctx.paletteLUT());
+  });
+  gpu!.paint(ctx.gpuCamera, ctx.groundPatches, count, ctx.paletteLUT());
+  if (isGpuShadeOn(ctx)) updateGpuShade(ctx);
+}
+
+/**
+ * Whether the GPU hill shading is drawn this frame: not with ?noshade, and not over the fly-in's
+ * whole-level picture.
+ *
+ * @param ctx the renderer context
+ * @returns true to shade
+ */
+function isGpuShadeOn(ctx: RenderCtx) {
+  return !ctx.noShade && !(ctx.camState.fly && ctx.view.zoom < ctx.FLY_HANDOVER);
+}
+
+/**
+ * Brings the GPU hill shading's cells up to date: the view now, and what the widest zoom (plus
+ * SHADE_MARGIN_M) would show, so a zoom-out never meets ground without its shading.
+ *
+ * @param ctx the renderer context
+ */
+function updateGpuShade(ctx: RenderCtx) {
+  const { view, cam } = ctx;
+  const halfW = view.W / 2 / ctx.PPMz(), halfH = view.H / 2 / ctx.PPMz();
+  const wideW = view.W / 2 / (view.PPM * ZOOM_MIN) + SHADE_MARGIN_M;
+  const wideH = view.H / 2 / (view.PPM * ZOOM_MIN) + SHADE_MARGIN_M;
+  ctx.gpu!.updateShade(
+    { x0: cam.x - halfW, y0: cam.y - halfH, x1: cam.x + halfW, y1: cam.y + halfH },
+    { x0: cam.x - wideW, y0: cam.y - wideH, x1: cam.x + wideW, y1: cam.y + wideH },
+  );
 }
 
 /**
@@ -487,8 +525,8 @@ function makeDebugTools(ctx: RenderCtx) {
 function buildModules(view: View, cam: Cam, settings: Settings,
   helpers: { PPMz: () => number, toScreenX: (x: number) => number,
     toScreenY: (y: number) => number, groundSink: () => GroundSink | null,
-    fillsOnGpu: () => boolean }) {
-  const { PPMz, toScreenX, toScreenY, groundSink, fillsOnGpu } = helpers;
+    fillsOnGpu: () => boolean, heightsChanged: (rect: ShadeRect) => void }) {
+  const { PPMz, toScreenX, toScreenY, groundSink, fillsOnGpu, heightsChanged } = helpers;
   // createGround and createRoad need each other (forSide / paintLayers, artBase): the wrapper
   // below is only called at draw time, after createRoad has returned forSide
   const ground = createGround(view, cam, { PPMz, toScreenX, toScreenY, roundRect,
@@ -530,9 +568,25 @@ function buildModules(view: View, cam: Cam, settings: Settings,
     PUDDLE_TINT: ground.PUDDLE_TINT,
     getFly: () => camera.camState.fly, FLY_HANDOVER: camera.FLY_HANDOVER,
     FLY_PREFETCH: camera.FLY_PREFETCH, levelOverview: camera.levelOverview,
-    artBase: ground.artBase, groundSink, fillsOnGpu,
+    artBase: ground.artBase, groundSink, fillsOnGpu, heightsChanged,
   });
   return { ground, road, particles, pixelCar, cars, props, objects, camera, tiles };
+}
+
+/**
+ * What the tiles need to know of the GPU ground: where to draw, whether the GPU paints the fills,
+ * and where to report changed ground heights.
+ *
+ * @param state the render state (gpuOn this frame)
+ * @param gpu the GPU ground, or null
+ * @returns the helpers
+ */
+function gpuHelpers(state: RenderState, gpu: GlGround | null) {
+  return {
+    groundSink: () => (state.gpuOn ? gpu!.sink : null),
+    fillsOnGpu: () => state.gpuOn && gpu!.painting,
+    heightsChanged: (rect: ShadeRect) => gpu?.invalidateShade(rect),
+  };
 }
 
 /**
@@ -567,14 +621,12 @@ export function createRenderer(canvas: HTMLCanvasElement, settings: Settings) {
   const toScreenY = (worldY: number) => (worldY - cam.y) * PPMz() + view.H / 2;
 
   const { ground, road, particles, pixelCar, cars, props, objects, camera, tiles } =
-    buildModules(view, cam, settings, {
-      PPMz, toScreenX, toScreenY, groundSink: () => (state.gpuOn ? gpu!.sink : null),
-      fillsOnGpu: () => state.gpuOn && gpu!.painting,
-    });
+    buildModules(view, cam, settings, { PPMz, toScreenX, toScreenY, ...gpuHelpers(state, gpu) });
 
   const ctx: RenderCtx = {
     canvas, view, cam, state, noLock: settings.noLock, skip, mainCtx, pcanvas, pctx, gpu, PPMz,
-    groundPatches: [], toScreenX, toScreenY,
+    groundPatches: [], toScreenX, toScreenY, noShade: settings.noShade,
+    gpuCamera: { x: 0, y: 0, devPerMetre: 1, screenX: 0, screenY: 0 },
     ...ground, ...road, ...particles, ...cars, ...props, ...objects, ...camera, ...tiles,
   };
   const { camState, tileState } = ctx;

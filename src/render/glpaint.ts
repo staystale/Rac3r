@@ -42,6 +42,14 @@ interface SurfaceTex { tex: WebGLTexture; used: number }
 // texel grid and the textures stay on the world grid (a patch without a texture too)
 const WRAP_TEXELS = Math.round(TEX_M * TEX_PPM);
 
+/**
+ * A world position in texels, wrapped to WRAP_TEXELS in double precision (for the shaders).
+ * @param metres the position, m
+ * @returns the wrapped texel position
+ */
+export const wrapTexels = (metres: number) =>
+  ((metres * TEX_PPM) % WRAP_TEXELS + WRAP_TEXELS) % WRAP_TEXELS;
+
 // a surface texture not drawn for this many frames is deleted (a level change makes new ones)
 const SURFACE_IDLE_FRAMES = 120;
 
@@ -325,10 +333,7 @@ export function createGlPaint(webgl: WebGL2RenderingContext,
     webgl.uniform2f(uniforms.cameraPx, view.camera.screenX, view.camera.screenY);
     webgl.uniform1f(uniforms.devPerMetre, view.camera.devPerMetre);
     webgl.uniform1f(uniforms.texPerMetre, TEX_PPM);
-    // the camera in texels, wrapped in double precision
-    const wrap = (metres: number) =>
-      ((metres * TEX_PPM) % WRAP_TEXELS + WRAP_TEXELS) % WRAP_TEXELS;
-    webgl.uniform2f(uniforms.camTexel, wrap(view.camera.x), wrap(view.camera.y));
+    webgl.uniform2f(uniforms.camTexel, wrapTexels(view.camera.x), wrapTexels(view.camera.y));
     webgl.uniform2f(uniforms.camFromOrigin, view.camera.x, view.camera.y);
     webgl.uniform1i(uniforms.tex, 0);
     webgl.uniform1i(uniforms.palette, 1);

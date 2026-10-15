@@ -16,6 +16,8 @@ const SHADE = {
   cellM: 0.5, maxCells: 200, gain: 3.0, bands: 4, depth: 0.36, hRef: 0.25, hGain: 0.9,
   slopeK: 0.55
 };
+// the shade cell side, m (the GPU shade grid uses the same cells, glshade.ts)
+export const SHADE_CELL_M = SHADE.cellM;
 // toward the light, world frame (screen up-left)
 const LIGHT = [-Math.SQRT1_2, -Math.SQRT1_2];
 // warm (bright ground only), neutral, cool shadow
@@ -74,7 +76,7 @@ function sampleHeightsCoarse(heights: Float32Array, side: number, minX: number, 
  * @param centreY the tile centre y, m
  * @returns the (cells + 2) squared heights
  */
-function sampleHeights(cells: number, cell: number, tileWidth: number, centreX: number,
+export function sampleHeights(cells: number, cell: number, tileWidth: number, centreX: number,
     centreY: number) {
   const minX = centreX - tileWidth / 2, minY = centreY - tileWidth / 2;
   const side = cells + 2, heights = new Float32Array(side * side);
@@ -93,7 +95,7 @@ function sampleHeights(cells: number, cell: number, tileWidth: number, centreX: 
  * @param cell the cell size, m
  * @returns the levels and whether any is not zero
  */
-function shadeLevels(heights: Float32Array, cells: number, cell: number) {
+export function shadeLevels(heights: Float32Array, cells: number, cell: number) {
   const side = cells + 2;
   const levels = new Float32Array(cells * cells);
   let any = false;
@@ -113,6 +115,21 @@ function shadeLevels(heights: Float32Array, cells: number, cell: number) {
     levels[rowNum * cells + colNum] = SHADE.depth * quant;
   }
   return { levels, any };
+}
+
+/**
+ * The colour a shade cell moves toward: the warm light (only on the lab's near-white floor, where
+ * white cannot show), white, or the cool shadow.
+ * @param level the cell's shade level (+ toward the light, - toward the shadow, 0 none)
+ * @param centreX the cell centre x, m
+ * @param centreY the cell centre y, m
+ * @returns the RGB colour
+ */
+export function shadeTint(level: number, centreX: number, centreY: number) {
+  if (level < 0) return SHD;
+  // only the lab level has the near-white floor; a full ground lookup per cell cost more than the
+  // shading itself
+  return LEVEL.id === 'lab' && groundAt(centreX, centreY).surface.id === 'lab' ? LIT : LIT_N;
 }
 
 /** the shade cells: world origin and size, tile pixels per metre, pixel offset of the origin */
@@ -141,13 +158,7 @@ function groupShadeRects(canvas: HTMLCanvasElement, levels: Float32Array, cells:
   for (let rowNum = 0; rowNum < cells; rowNum++) for (let colNum = 0; colNum < cells; colNum++) {
     const level = levels[rowNum * cells + colNum];
     if (level === 0) continue;
-    let col;
-    if (level > 0) {
-      // only the lab level has the near-white floor; a full ground lookup per cell cost more
-      // than the shading itself
-      col = LEVEL.id === 'lab' && groundAt(minX + (colNum + 0.5) * cell, minY + (rowNum + 0.5)
-          * cell).surface.id === 'lab' ? LIT : LIT_N;
-    } else col = SHD;
+    const col = shadeTint(level, minX + (colNum + 0.5) * cell, minY + (rowNum + 0.5) * cell);
     const key = (col === SHD ? 0 : col === LIT ? 1 : 2) * 1000 + Math.round(Math.abs(level)
         * 1000);
     let group = groups.get(key);

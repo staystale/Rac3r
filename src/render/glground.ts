@@ -9,11 +9,15 @@
 // zones are painted here in world space first, and the tiles only carry what is drawn over them.
 import { createGlPaint } from "./glpaint.ts";
 import type { GroundPatch, PaintCamera } from "./glpaint.ts";
+import { createGlShade } from "./glshade.ts";
+import type { GlShade, ShadeRect } from "./glshade.ts";
 
 /** Where the ground pass draws: the 2D art buffer or the GPU canvas. CSS px of the view. */
 export interface GroundSink {
   fill(colour: string): void;
   image(source: HTMLCanvasElement, x: number, y: number, width: number, height: number): void;
+  /** 'write': what is drawn masks the area; 'under': draw only where nothing masked; 'off' */
+  mask(mode: 'write' | 'under' | 'off'): void;
 }
 
 /** How a CSS px of the view maps to a screen device pixel this frame. */
@@ -160,6 +164,23 @@ function buildQuad(webgl: WebGL2RenderingContext, program: WebGLProgram) {
   return { uniforms, vao };
 }
 
+/**
+ * Sets the stencil mask for what is drawn next (GroundSink.mask).
+ * @param webgl the WebGL2 context
+ * @param mode 'write' marks every pixel drawn, 'under' draws only on unmarked pixels, 'off'
+ */
+function setMask(webgl: WebGL2RenderingContext, mode: 'write' | 'under' | 'off') {
+  if (mode === 'off') { webgl.disable(webgl.STENCIL_TEST); return; }
+  webgl.enable(webgl.STENCIL_TEST);
+  if (mode === 'write') {
+    webgl.stencilFunc(webgl.ALWAYS, 1, 0xff);
+    webgl.stencilOp(webgl.KEEP, webgl.KEEP, webgl.REPLACE);
+  } else {
+    webgl.stencilFunc(webgl.EQUAL, 0, 0xff);
+    webgl.stencilOp(webgl.KEEP, webgl.KEEP, webgl.KEEP);
+  }
+}
+
 /** What the sink and the frame calls share. */
 interface SinkState {
   lost: boolean;
@@ -188,6 +209,7 @@ function createSink(webgl: WebGL2RenderingContext, program: WebGLProgram,
       webgl.clearColor(red, green, blue, 1);
       webgl.clear(webgl.COLOR_BUFFER_BIT);
     },
+    mask(mode) { setMask(webgl, mode); },
     image(source, x, y, width, height) {
       const frame = state.frame;
       if (!frame || !source.width || !source.height) return;
@@ -208,6 +230,35 @@ function createSink(webgl: WebGL2RenderingContext, program: WebGLProgram,
 }
 
 /**
+ * The GPU hill shading calls of the GPU ground (no-ops without the painter).
+ * @param shade the hill shading (glshade.ts), or null
+ * @param state the shared frame state
+ * @returns the calls
+ */
+function shadeCalls(shade: GlShade | null, state: SinkState) {
+  return {
+    /**
+     * Brings the GPU hill shading up to date (glshade.ts update).
+     * @param view the world rectangle on screen now, m
+     * @param widest the world rectangle the widest zoom would show, m
+     */
+    updateShade(view: ShadeRect, widest: ShadeRect) { shade?.update(view, widest); },
+    /**
+     * Forgets the hill shading over a world rectangle (the ground height changed there).
+     * @param rect the rectangle, m
+     */
+    invalidateShade(rect: ShadeRect) { shade?.invalidate(rect); },
+    /**
+     * Draws the hill shading over the whole GPU ground (after the tiles).
+     * @param camera where the world lands on the canvas this frame
+     */
+    drawShade(camera: PaintCamera) {
+      if (shade && state.frame) shade.draw(state.frame, camera);
+    },
+  };
+}
+
+/**
  * Creates the GPU ground under the screen canvas, or returns null when WebGL2 is not available
  * (the ground then stays in the 2D art buffer, as before).
  * @param screen the screen canvas
@@ -219,7 +270,7 @@ export function createGlGround(screen: HTMLCanvasElement, withPainter = false) {
   canvas.id = 'glground';
   // preserveDrawingBuffer: the test tools read the finished frame back after it is shown
   const webgl = canvas.getContext('webgl2', {
-    alpha: false, antialias: false, preserveDrawingBuffer: true,
+    alpha: false, antialias: false, preserveDrawingBuffer: true, stencil: true,
   });
   if (!webgl) return null;
   let program: WebGLProgram;
@@ -232,6 +283,7 @@ export function createGlGround(screen: HTMLCanvasElement, withPainter = false) {
   const colours = new Map<string, number[]>();
   const painter = withPainter
     ? createGlPaint(webgl, (colour) => parseColour(colours, colour)) : null;
+  const shade = withPainter ? createGlShade(webgl) : null;
   const state: SinkState = { lost: false, frameNo: 0, frame: null, painted: false };
   canvas.addEventListener('webglcontextlost', () => { state.lost = true; });
   const { sink, textures } = createSink(webgl, program, colours, state);
@@ -256,6 +308,7 @@ export function createGlGround(screen: HTMLCanvasElement, withPainter = false) {
       state.frame = frame;
       state.frameNo++;
       state.painted = false;
+      webgl.clear(webgl.STENCIL_BUFFER_BIT);
     },
     /** true when the floor and zones are painted on the GPU (glpaint.ts) */
     get painting() { return !!painter; },
@@ -271,6 +324,7 @@ export function createGlGround(screen: HTMLCanvasElement, withPainter = false) {
       painter.paint(state.frame, camera, { patches, count, palette });
       state.painted = true;
     },
+    ...shadeCalls(shade, state),
     /** Ends a frame: drops textures no tile has drawn for a while. */
     end() {
       for (const [source, entry] of textures) {

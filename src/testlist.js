@@ -24,15 +24,15 @@ export const TEST_LIST = [
   {
     id: 'gpupaint',
     added: '2026-10-15',
-    name: 'GPU ground, part 1: floor + surfaces (?gpupaint=1)',
+    name: 'GPU ground: floor, surfaces, hill shading (?gpupaint=1)',
     where: 'The Lab surface lanes and Surface Sandbox pads, link with &gpupaint=1',
     try:
       'Drive slowly over the lanes / pads and let the speed zoom go in and out; compare with ' +
       'the same link without &gpupaint=1.',
     wrong:
       'Surface textures jumping or shifting as the zoom changes, a surface in the wrong place, ' +
-      'a hole or seam in the ground, or slower frames. (Labels, lane rims, track and hill ' +
-      'shading still use the old path: they may still shift.)',
+      'a hole or seam in the ground, the ground flashing brighter at a zoom change, or slower ' +
+      'frames. (Labels, lane rims and the track still use the old path.)',
   },
   {
     id: 'sound',

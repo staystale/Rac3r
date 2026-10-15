@@ -79,6 +79,16 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
       within noise. renderhash SAME (default and ?glground=0).
       Still in the tiles, to move: labels and rims of boxed / rounded panels and the lab seams (to
       per-frame 2D in B2, when the tiles go).
+- [ ] B4a HILL SHADING ON THE GPU + flash fixes, behind ?gpupaint=1 (owner phone test pending; owner saw
+      the terrain flash brighter at zoom changes). src/render/glshade.ts: the tiles' shade cells (same
+      heights, bands, colours; tilesShade.ts shared) computed per 8 m chunk into a world grid texture
+      kept for the widest zoom, drawn over the ground every frame. The flash itself (tools: mean
+      brightness per frame over a 1 -> 0.35 zoom glide) was two tile stand-ins drawn over the GPU
+      ground: the flat level overview (now skipped on this path) and old + new zoom step tiles
+      stacked (now masked with the stencil). One-frame brightness jumps: knobhill 1.71 -> 0.21, lab
+      1.90 -> 0.69 (default path 0.21 / 0.65). framecheck CPU x4: highway tile 17.5 -> 5.8 ms, frames
+      over 33 ms 70-78 -> 25-68, worst 230 -> 53-71; but median work +2-3 ms (terrain height
+      lookups for the shade chunks, 832 of 1025 ms; a shared height cache could cut ~1/3).
 - [ ] ZOOM HOLD behind ?zoomhold=1 (owner phone test pending; owner: textures "shake really small
       amounts", motion sickness; highway judder). Measured: with a still camera the ground glides
       (no jumping pixels on either path); camera jerk 0.02 px; but the eased speed zoom moved the
