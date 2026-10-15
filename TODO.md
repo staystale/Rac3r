@@ -129,6 +129,11 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
 - `docs/specs/master-backlog.md` - Master backlog (triaged owner list)
 - `SPECS-2026-10-03.md`, `BRIEF.md` - the owner's original specs
 
+## OWNER REQUESTS FOR LATER
+
+- [ ] MINIMAP (owner, 2026-10-15): an optional minimap on every track, toggled on / off; rally stages
+      most of all. Not started; plan first (corner owner on the HUD, what it shows, how it is drawn).
+
 ## Open items carried over (not re-checked since they were written; some may be done)
 
 ## USER SPEC DUMP (2026-10-04, late) — recorded before any work; QUICK FIXES first, the big systems are PLAN-FIRST (discuss)
