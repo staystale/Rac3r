@@ -124,9 +124,10 @@ function zoneSurfaceAt(zone: Zone, x: number, y: number): Surface | null {
   return null;
 }
 export function zoneAt(x: number, y: number): Surface {
-  // 1. If on a circuit with defined track sectors: road ribbon has continuous sector texturing &
-  // curved kerbs
-  if (LEVEL.subtrack && LEVEL.subtrack.sectors && LEVEL.subtrack.sectors.length > 0) {
+  // 1. The road ribbon (sector surfaces) and its curved kerbs. A road with no sectors is tarmac,
+  // as render/road.ts draws it: the physics must drive what the player sees (a sector-less road
+  // drove as the level's base, grass, under a tarmac picture).
+  if (LEVEL.subtrack) {
     const trackSurface = subtrackSurfaceAt(LEVEL.subtrack, x, y);
     if (trackSurface) return trackSurface;
   }

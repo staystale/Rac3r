@@ -34,10 +34,14 @@ felt worse on the phone. So:
   owner does NOT want an app wrapper for now.
 - On the phone our code is ~1 ms sim + ~3 ms draw a frame. Slow frames on 10-15 (home screen, GPU path):
   Lab ~0.2-0.5 %, highway ~0.5 %.
-- **The highway still hitches about every 140-170 m of new road** (regular, at any speed, also hands-off
-  with the autopilot, and with drawing switched off on 10-13). Not GPU uploads (6 of 44 slow frames), not
-  road builds (2 of 44). Cause unknown. Desktop Chrome GC tracing could not single out garbage collection
-  (circuits collect as much and do not hitch).
+- **The per-distance hitch - CAUSE FOUND, fix pending the owner's phone run.** The highway hitched about
+  every 140-170 m of new road (any speed, hands-off, with drawing switched off on 10-13). The empty
+  Swindon straight did it too: one frame ~12 ms late every 3.5 s = **136 m** at 140 km/h, our JS 1-3 ms.
+  136 m = 0.45 x MARK_EXTENT: `marks.js` re-centred its 2537 x 2537 (26 MB) skid-mark canvas (a new
+  canvas + two full copies, deferred by Safari to between frames) whenever the car was 136 m from the
+  layer's centre - only on levels that do not fit the layer (the highway, the Lab rectangle, the
+  straight); circuits never, which is why they and the owner's RX run drop 0. Now a wrap-around layer
+  (no copy, no allocation). If the owner's run still shows a 136 m rhythm, this was not it.
 - `preserveDrawingBuffer: true` on the WebGL canvas is NEEDED on the iPhone (off: Lab 0.6 % slow, on:
   0.37 %; owner "better"). Do not optimise it away again.
 
@@ -46,8 +50,9 @@ felt worse on the phone. So:
 props and fences, fields, traffic; the step where the per-distance hitch appears is the cause. The new
 streaming must do its per-chunk work in small even slices.
 - **Step 1 status: WORKS, registered, OWNER PHONE TEST PENDING.** `src/world/levels/straight-outta.ts`
-  ("Straight Outta Swindon": a 30 km straight on grass, built once, ghost return segment, the floor a
-  strip 200 m round the road). The 10 fps was NOT the road (CPU profile): the floor was a 62 km square,
+  ("Straight Outta Swindon": a 30 km straight on grass running north like the old highway, built
+  once, ghost return segment, the floor a strip 200 m round the road; zoneAt now treats a road with
+  no sectors as tarmac - the first phone run drove on grass under a tarmac picture). The 10 fps was NOT the road (CPU profile): the floor was a 62 km square,
   so the inclusion scan made ~1e8 cells (30 s load) and drawPatches walked every patch per tile; and
   drawKerb filled all ~23k floor-edge kerb blocks every frame. Fixed at the root for every level
   (identical pixels elsewhere: renderhash). framecheck CPU x4: work median 35.4 -> 10.6 ms; load 2 s.

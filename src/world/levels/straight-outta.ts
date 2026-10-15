@@ -19,20 +19,25 @@ const ROAD_WIDTH_M = 12;         // two motorway lanes and a margin
 // square, 62 km a side, it held ~1e8 scan cells of surface inclusions)
 const VERGE_M = 200;
 
+const UP_HEADING = -Math.PI / 2;   // rad: up the screen (north), as the old highway runs
+const SPAWN_LANE_X = -2;           // m: the left lane, driving north
+const SPAWN_ALONG_M = 60;          // m up the road from its start
+
 /**
- * The straight centreline: from the origin due east, one point every POINT_SPACING_M.
+ * The straight centreline: from the origin due north (up the screen, -y), one point every
+ * POINT_SPACING_M.
  * @returns the points
  */
 function straightPoints(): Point[] {
   const count = Math.round((STRAIGHT_KM * 1000) / POINT_SPACING_M) + 1;
   const points: Point[] = [];
-  for (let i = 0; i < count; i++) points.push([i * POINT_SPACING_M, 0]);
+  for (let i = 0; i < count; i++) points.push([0, -i * POINT_SPACING_M]);
   return points;
 }
 
 /**
  * The road: the straight as a point-to-point track, its closing segment (end back to start) a
- * ghost, never drawn or driven (as a rally stage's).
+ * ghost, never drawn or driven (as a rally stage's). No sectors: plain tarmac.
  * @returns the subtrack
  */
 function straightRoad() {
@@ -45,7 +50,7 @@ export const STRAIGHT_OUTTA_LEVEL: Level = {
   name: 'Straight Outta Swindon',
   base: SURFACES.grass,
   floor: STRAIGHT_KM * 1000 + VERGE_M,
-  bounds: { x0: -VERGE_M, x1: STRAIGHT_KM * 1000 + VERGE_M, y0: -VERGE_M, y1: VERGE_M },
+  bounds: { x0: -VERGE_M, x1: VERGE_M, y0: -(STRAIGHT_KM * 1000 + VERGE_M), y1: VERGE_M },
   subtrack: straightRoad(),
   zones: [],
   bumps: [],
@@ -55,5 +60,5 @@ export const STRAIGHT_OUTTA_LEVEL: Level = {
   props: [],
   seams: false,
   cones: [],
-  spawn: { x: 60, y: -2, heading: 0 },
+  spawn: { x: SPAWN_LANE_X, y: -SPAWN_ALONG_M, heading: UP_HEADING },
 };

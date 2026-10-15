@@ -1,5 +1,5 @@
 // Shared render-layer shapes; the CARS / AI / GAME ones list only the fields the render code reads.
-import type { Level, Point, Spray } from "../world/types.ts";
+import type { Level, Spray } from "../world/types.ts";
 import type { Spec } from "../cars.ts";
 import type { Car } from "../vehicle.ts";
 
@@ -95,7 +95,9 @@ export interface ParticleCar extends CamCar {
 // What the particles read of the marks layer.
 export interface RenderMarks {
   wheelsOf: (car: ParticleCar) => RenderWheel[];
-  origin: Point;   // the world point the marks canvas is centred on (a getter in marks.js)
+  shiftX: number;   // layer px the window has moved (getters in marks.js; 0 = not moved)
+  shiftY: number;
+  size: number;   // the layer canvas side, px
   canvas: HTMLCanvasElement;
 }
 

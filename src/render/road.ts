@@ -4,7 +4,7 @@
 import { FX0, FX1, FY0, FY1, KERB_W } from "../world/bounds.ts";
 import { PAINT, BOARDS, LEVEL } from "../world/state.ts";
 import { COL } from "../world/colours.ts";
-import { MARK_EXTENT } from '../marks.js';
+import { MARK_EXTENT, MARK_PPM } from '../marks.js';
 import type { Prop } from "../world/types.ts";
 import type { Cam, ForSide, RenderMarks, RoadGame, View } from "./types.ts";
 
@@ -733,18 +733,45 @@ function drawSlip(ctx: RoadCtx, prop: Prop, pxPerM: number) {
  */
 function drawMarks(ctx: RoadCtx, marks: RenderMarks) {
   const { view, PPMz, toScreenX, toScreenY } = ctx;
-  // one blit of the whole world layer. imageSmoothingEnabled stays on here: the layer is 9 px/m
-  // and the screen is 16 px/m, so smoothing is what stops the marks looking like stair-stepped
-  // bitmaps.
-  const [mox, moy] = marks.origin || [0, 0], markX = toScreenX(mox - MARK_EXTENT),
-    markY = toScreenY(
-      moy - MARK_EXTENT);
-  const size = MARK_EXTENT * 2 * PPMz();
   // smoothing OFF, so marks land on the art grid as hard blocks (photographed soft and blurry
   // with it on — the only smeared thing left in the world layer)
   view.ctx.imageSmoothingEnabled = false;
-  view.ctx.drawImage(marks.canvas, markX, markY, size, size);
+  if (marks.shiftX || marks.shiftY) drawWrappedMarks(ctx, marks);
+  else {
+    // one blit of the whole layer, centred on the world origin
+    const size = MARK_EXTENT * 2 * PPMz();
+    view.ctx.drawImage(marks.canvas, toScreenX(-MARK_EXTENT), toScreenY(-MARK_EXTENT), size,
+      size);
+  }
   view.ctx.imageSmoothingEnabled = true;
+}
+
+/**
+ * Blits a wrap-around marks layer whose window has moved (marks.js "WRAP-AROUND LAYER"): up to
+ * four pieces, split where the window wraps past the layer's right and bottom edges.
+ * @param ctx the road context
+ * @param marks the marks (canvas, size, window shift)
+ */
+function drawWrappedMarks(ctx: RoadCtx, marks: RenderMarks) {
+  const { view, PPMz, toScreenX, toScreenY } = ctx;
+  const size = marks.size, screenPerPx = PPMz() / MARK_PPM;
+  const startCol = ((marks.shiftX % size) + size) % size;
+  const startRow = ((marks.shiftY % size) + size) % size;
+  for (let colPiece = 0; colPiece < 2; colPiece++) {
+    const srcX = colPiece ? 0 : startCol, width = colPiece ? startCol : size - startCol;
+    if (width <= 0) continue;
+    // the unwrapped layer px of the piece's first column, then its world x on screen
+    const left = toScreenX((marks.shiftX + (colPiece ? size - startCol : 0)) / MARK_PPM
+      - MARK_EXTENT);
+    for (let rowPiece = 0; rowPiece < 2; rowPiece++) {
+      const srcY = rowPiece ? 0 : startRow, height = rowPiece ? startRow : size - startRow;
+      if (height <= 0) continue;
+      const top = toScreenY((marks.shiftY + (rowPiece ? size - startRow : 0)) / MARK_PPM
+        - MARK_EXTENT);
+      view.ctx.drawImage(marks.canvas, srcX, srcY, width, height, left, top,
+        width * screenPerPx, height * screenPerPx);
+    }
+  }
 }
 
 /**

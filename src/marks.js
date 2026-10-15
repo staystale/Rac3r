@@ -37,9 +37,9 @@ const STAMP_STEP = 0.10;                         // m
  * @typedef {object} MarkState
  * @property {Map<string, {x: number, y: number}>} prev wheel key -> world position last step
  * @property {number} stamps how many stamps were laid since the last clear
- * @property {number} originX world x the layer is centred on; follow moves it (shifting what
- *   is drawn) once the car is past half the extent — on an ordinary level it never moves
- * @property {number} originY world y the layer is centred on
+ * @property {number} shiftX layer px the window has moved along x (0 on a level that fits)
+ * @property {number} shiftY layer px the window has moved along y
+ * @property {boolean} wraps true once the window follows the car (a wrap-around buffer)
  */
 
 /**
@@ -50,52 +50,99 @@ const STAMP_STEP = 0.10;                         // m
  * @property {MarkState} state the buffer state
  */
 
+// WRAP-AROUND LAYER. A world point is at layer px u = (x + MARK_EXTENT) * MARK_PPM (v for y),
+// stored at u mod SIZE; the layer holds the window u in [shiftX, shiftX + SIZE). On a level that
+// fits, the shift stays 0 and this is the plain mapping. On the endless road and the lab
+// rectangle the window follows the car a whole px at a time, and only the strip of new ground
+// entering it is cleared: nothing is ever copied or allocated. MEASURED (the owner's phone,
+// ?report=1): re-centring by copying the whole 26 MB layer into a new canvas each time the car
+// was 136 m (0.45 x MARK_EXTENT) from its centre stalled one frame ~12 ms, outside our JS, every
+// 136 m - the highway and lab judder.
+
 /**
- * Converts a world position to a pixel position in the layer.
+ * The remainder of value / period, from 0 up to period (also for negative values).
+ * @param {number} value the value
+ * @param {number} period the period
+ * @returns {number} the remainder
+ */
+const wrapPx = (value, period) => ((value % period) + period) % period;
+
+/**
+ * Converts a world position to an (unwrapped) pixel position in the layer.
  *
- * @param {MarkState} state the buffer state
  * @param {number} worldX world x in metres
  * @param {number} worldY world y in metres
- * @returns {number[]} the [x, y] pixel position
+ * @returns {number[]} the [u, v] pixel position
  */
-function toPx(state, worldX, worldY) {
-  return [(worldX - state.originX + MARK_EXTENT) * MARK_PPM,
-    (worldY - state.originY + MARK_EXTENT) * MARK_PPM];
+function toPx(worldX, worldY) {
+  return [(worldX + MARK_EXTENT) * MARK_PPM, (worldY + MARK_EXTENT) * MARK_PPM];
 }
 
 /**
- * Slides the layer's origin to follow a position, shifting the drawn marks.
+ * Does the whole level, fence included, fit the layer around the world origin? (Then the layer
+ * never moves.)
+ * @returns {boolean} true when it fits
+ */
+function levelFitsLayer() {
+  return -FX0 + RUNOFF_W <= MARK_EXTENT && FX1 + RUNOFF_W <= MARK_EXTENT
+    && -FY0 + RUNOFF_W <= MARK_EXTENT && FY1 + RUNOFF_W <= MARK_EXTENT;
+}
+
+/**
+ * Clears a band of whole columns or rows of the layer.
+ * @param {CanvasRenderingContext2D} ctx the layer's context
+ * @param {number} start the first column / row
+ * @param {number} count how many
+ * @param {boolean} isColumns true for columns (an x move), false for rows
+ */
+function clearBand(ctx, start, count, isColumns) {
+  if (isColumns) ctx.clearRect(start, 0, count, SIZE);
+  else ctx.clearRect(0, start, SIZE, count);
+}
+
+/**
+ * Clears what a window move from one shift to another hands over to new ground: the columns
+ * (or rows) between the two shifts, wrapped into the layer.
+ * @param {CanvasRenderingContext2D} ctx the layer's context
+ * @param {number} fromShift the old shift, layer px
+ * @param {number} toShift the new shift, layer px
+ * @param {boolean} isColumns true for an x move, false for a y move
+ */
+function clearEnteringStrip(ctx, fromShift, toShift, isColumns) {
+  const count = Math.abs(toShift - fromShift);
+  if (count === 0) return;
+  if (count >= SIZE) {
+    ctx.clearRect(0, 0, SIZE, SIZE);
+    return;
+  }
+  const start = wrapPx(Math.min(fromShift, toShift), SIZE);
+  const first = Math.min(count, SIZE - start);
+  clearBand(ctx, start, first, isColumns);
+  if (first < count) clearBand(ctx, 0, count - first, isColumns);
+}
+
+/**
+ * Moves the layer's window to stay centred on a position (the player car), clearing only the
+ * ground that enters it.
  *
  * ONLY WHEN THE LEVEL DOES NOT FIT (requirement: top left corner of knob hill... it seems to forget
- * / cut of tyre marks in a clean line, some stay but most go; tools/_markedge.mjs). MEASURED BUG:
- * follow ran on EVERY level, so past 136 m from the
- * middle (Knobhill reaches ~242 m) the layer slid over and everything beyond a straight line
- * on the far side was cut away. A square level's whole fence (+-FLOOR + RUNOFF_W) IS the
- * layer, so it never needs to move; only the endless road and the tall lab rectangle still
- * follow.
+ * / cut of tyre marks in a clean line, some stay but most go; tools/_markedge.mjs). A square
+ * level's whole fence (+-FLOOR + RUNOFF_W) IS the layer, so it never needs to move; only the
+ * endless road and levels outside the square (the lab rectangle, a long straight) follow.
  *
  * @param {MarkCtx} markCtx the marks context
  * @param {number} x world x to follow
  * @param {number} y world y to follow
  */
 function followMarks(markCtx, x, y) {
-  const { layer, ctx, state } = markCtx;
-  if (!LEVEL.endless && state.originX === 0 && state.originY === 0
-    && -FX0 + RUNOFF_W <= MARK_EXTENT && FX1 + RUNOFF_W <= MARK_EXTENT
-    && -FY0 + RUNOFF_W <= MARK_EXTENT
-    && FY1 + RUNOFF_W <= MARK_EXTENT) return;
-  if (Math.abs(x - state.originX) < MARK_EXTENT * 0.45
-    && Math.abs(y - state.originY) < MARK_EXTENT * 0.45) return;
-  const nx = Math.round(x), ny = Math.round(y), dx = (nx - state.originX) * MARK_PPM,
-    dy = (ny - state.originY) * MARK_PPM;
-  const tmp = document.createElement('canvas');
-  tmp.width = SIZE;
-  tmp.height = SIZE;
-  tmp.getContext('2d').drawImage(layer, 0, 0);
-  ctx.clearRect(0, 0, SIZE, SIZE);
-  ctx.drawImage(tmp, -dx, -dy);
-  state.originX = nx;
-  state.originY = ny;
+  const { ctx, state } = markCtx;
+  if (!LEVEL.endless && !state.wraps && levelFitsLayer()) return;
+  state.wraps = true;
+  const shiftX = Math.round(x * MARK_PPM), shiftY = Math.round(y * MARK_PPM);
+  clearEnteringStrip(ctx, state.shiftX, shiftX, true);
+  clearEnteringStrip(ctx, state.shiftY, shiftY, false);
+  state.shiftX = shiftX;
+  state.shiftY = shiftY;
 }
 
 /**
@@ -106,8 +153,9 @@ function followMarks(markCtx, x, y) {
 function clearMarks(markCtx) {
   const { ctx, state } = markCtx;
   ctx.clearRect(0, 0, SIZE, SIZE);
-  state.originX = 0;
-  state.originY = 0;
+  state.shiftX = 0;
+  state.shiftY = 0;
+  state.wraps = false;
   state.prev.clear();
   state.stamps = 0;
 }
@@ -159,11 +207,55 @@ function strokeMark(markCtx, wheel, loose, from, dest) {
   ctx.strokeStyle = `rgba(${loose ? loose.rgb : COL.mark},${alpha.toFixed(3)})`;
   // a rut is WIDER than the tyre: the wheel displaces gravel to either side of itself
   ctx.lineWidth = Math.max(2, wheel.width * (loose ? loose.widen : 1) * MARK_PPM);
-  ctx.beginPath();
-  ctx.moveTo(from[0], from[1]);
-  ctx.lineTo(dest[0], dest[1]);
-  ctx.stroke();
+  strokeSegment(markCtx, from, dest);
   state.stamps++;
+}
+
+// a wrap-around layer draws a stroke again one whole layer over where it crosses an edge, so a
+// seam never cuts a mark in half
+const WRAP_OFFSETS = [0, -SIZE, SIZE];
+
+/**
+ * Does a span of layer px, widened by `reach`, touch the layer once moved by `offset`?
+ * @param {number} low the span's low end
+ * @param {number} high the span's high end
+ * @param {number} offset the move, layer px
+ * @param {number} reach the half width to add, layer px
+ * @returns {boolean} true when it touches
+ */
+function touchesLayer(low, high, offset, reach) {
+  return high + offset + reach >= 0 && low + offset - reach <= SIZE;
+}
+
+/**
+ * Strokes the segment with the context's current style, plus its wrapped copies on a
+ * wrap-around layer.
+ * @param {MarkCtx} markCtx the marks context
+ * @param {number[]} from the [x, y] layer pixel of the start, inside the layer
+ * @param {number[]} dest the [x, y] layer pixel of the end
+ */
+function strokeSegment(markCtx, from, dest) {
+  const { ctx, state } = markCtx;
+  if (!state.wraps) {
+    ctx.beginPath();
+    ctx.moveTo(from[0], from[1]);
+    ctx.lineTo(dest[0], dest[1]);
+    ctx.stroke();
+    return;
+  }
+  const reach = ctx.lineWidth;
+  const lowX = Math.min(from[0], dest[0]), highX = Math.max(from[0], dest[0]);
+  const lowY = Math.min(from[1], dest[1]), highY = Math.max(from[1], dest[1]);
+  for (const offX of WRAP_OFFSETS) {
+    if (!touchesLayer(lowX, highX, offX, reach)) continue;
+    for (const offY of WRAP_OFFSETS) {
+      if (!touchesLayer(lowY, highY, offY, reach)) continue;
+      ctx.beginPath();
+      ctx.moveTo(from[0] + offX, from[1] + offY);
+      ctx.lineTo(dest[0] + offX, dest[1] + offY);
+      ctx.stroke();
+    }
+  }
 }
 
 /**
@@ -225,11 +317,18 @@ function stampWheel(markCtx, wheel) {
     || !Number.isFinite(last.x)) return;
   // A3: clamp to the layer. Past the fence the mark simply is not recorded — an explicit
   // decision at a known boundary rather than a silent no-op.
-  if (Math.abs(wheel.x - markCtx.state.originX) > MARK_EXTENT
-    || Math.abs(wheel.y - markCtx.state.originY) > MARK_EXTENT) return;
+  const { state } = markCtx;
+  if (Math.abs(wheel.x - state.shiftX / MARK_PPM) > MARK_EXTENT
+    || Math.abs(wheel.y - state.shiftY / MARK_PPM) > MARK_EXTENT) return;
 
-  const from = toPx(markCtx.state, last.x, last.y);
-  const dest = toPx(markCtx.state, wheel.x, wheel.y);
+  const from = toPx(last.x, last.y);
+  const dest = toPx(wheel.x, wheel.y);
+  if (state.wraps) {
+    // into the layer: the end inside it, the start moved by the same whole layers
+    const baseX = Math.floor(dest[0] / SIZE) * SIZE, baseY = Math.floor(dest[1] / SIZE) * SIZE;
+    from[0] -= baseX; dest[0] -= baseX;
+    from[1] -= baseY; dest[1] -= baseY;
+  }
   strokeMark(markCtx, wheel, loose, from, dest);
   dropRubberBall(markCtx, wheel, from, dest);
 }
@@ -295,8 +394,8 @@ function listWheels(car) {
 /**
  * Builds the skid-mark layer.
  *
- * @returns the layer: its canvas, size, origin, stamps and the follow / clear / fade / stamp /
- *   wheelsOf methods
+ * @returns the layer: its canvas, size, window shift (layer px), stamps and the follow / clear /
+ *   fade / stamp / wheelsOf methods
  */
 export function createMarks() {
   const layer = document.createElement('canvas');
@@ -309,17 +408,17 @@ export function createMarks() {
   const state = {
     prev: new Map(),   // wheel key -> {x, y} world position last step
     stamps: 0,
-    // ORIGIN (the endless highway): the layer covers MARK_EXTENT around (originX, originY), not
-    // around the world origin. follow moves it (shifting what is drawn) once the car is past
-    // half the extent — on an ordinary level the car never gets there, so nothing changes.
-    originX: 0,
-    originY: 0,
+    // the WINDOW (see "WRAP-AROUND LAYER"): 0 on a level that fits the layer
+    shiftX: 0,
+    shiftY: 0,
+    wraps: false,
   };
   const markCtx = { layer, ctx, state };
 
   return {
     canvas: layer, size: SIZE,
-    get origin() { return [state.originX, state.originY]; },
+    get shiftX() { return state.shiftX; },
+    get shiftY() { return state.shiftY; },
     follow: (x, y) => followMarks(markCtx, x, y),
     get stamps() { return state.stamps; },
     clear: () => clearMarks(markCtx),

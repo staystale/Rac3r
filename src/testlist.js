@@ -12,16 +12,16 @@ export const TEST_LIST = [
   {
     id: 'straightoutta',
     added: '2026-10-15',
-    name: 'New highway step 1: Straight Outta Swindon (one 30 km straight)',
+    name: 'Judder fix (skid-mark layer) + new highway step 1: Straight Outta Swindon',
     where:
       'Link: ?menu=0&guide=0&rules=0&level=straight-outta&autopilot=140&gpupaint=1' +
-      '&zoomhold=1&report=1 (hands off)',
+      '&zoomhold=1&report=1 (hands off); then the Lab and the old highway',
     try:
       'Let the autopilot cruise at 140 for 3-5 minutes without touching the screen. Then ' +
-      'once more driving yourself.',
+      'drive yourself with some hard braking and slides, and look at the skid marks.',
     wrong:
-      'A hitch every ~150 m like the old highway, the road missing ahead of the car, the car ' +
-      'below 140 after the first 600 m, or a slow start-up.',
+      'A hitch every ~136 m (every 3.5 s at 140), the road missing ahead, grass dust behind ' +
+      'the car on the tarmac, skid marks vanishing, jumping or cut in a straight line.',
   },
   {
     id: 'zoomhold',

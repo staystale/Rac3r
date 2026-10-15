@@ -15,15 +15,26 @@ Foreman taking over? Also read `docs/foreman-handover.md`.
   owner's iPhone with ?report=1 and tools/phonereport.mjs, not only on the laptop.
 - NOW: the NEW HIGHWAY, built from the ground up and phone-measured at every step (the old one hitches
   every ~150 m of new road). Step 1 (src/world/levels/straight-outta.ts, "Straight Outta Swindon")
-  WORKS and is registered: OWNER PHONE TEST PENDING (testlist 'straightoutta', ?report=1). The 10 fps
-  was not the road: the level's floor was a 62 km square (inclusion scan ~1e8 cells, 30 s load),
-  every patch of the level was walked per tile, and every floor-edge kerb block (23k) was filled
-  each frame. Fixed at the root: inclusions scan the floor rectangle, drawPatches reads PATCH_GRID,
-  drawKerb draws only blocks in view, the level's floor is a strip. Measured (framecheck CPU x4):
-  work median 35.4 -> 10.6 ms, load 30 s -> 2 s; autopilot holds 140 km/h from ~600 m.
+  WORKS, registered, runs NORTH (up the screen) like the old highway. The 10 fps was not the road:
+  the level's floor was a 62 km square (inclusion scan ~1e8 cells, 30 s load), every patch of the
+  level was walked per tile, and every floor-edge kerb block (23k) was filled each frame. Fixed at
+  the root: inclusions scan the floor rectangle, drawPatches reads PATCH_GRID, drawKerb draws only
+  blocks in view, the level's floor is a strip. Measured (framecheck CPU x4): work median 35.4 ->
+  10.6 ms, load 30 s -> 2 s. Owner phone test 1: the car drove on GRASS (a road with no sectors
+  drew as tarmac but zoneAt gave the base): zoneAt now treats a sector-less road as tarmac.
+  JUDDER FOUND (owner phone run, ?report=1): a stall every 3.5 s = 136 m at 140 km/h on this empty
+  straight; one frame ~12 ms late, our JS 1-3 ms. 136 m = 0.45 x MARK_EXTENT (302 m): marks.js
+  followMarks re-centres the 2537 x 2537 skid-mark canvas (a new 26 MB canvas + two full copies)
+  each time the car is 136 m from the layer's origin. Only the endless highway and the Lab
+  rectangle follow (square levels never do) - matches every earlier fact: per distance at any
+  speed, still with drawing skipped (it runs in the sim step), circuits 0 (owner RX run 0 drops),
+  the Lab judders. FIXED (owner approved): a wrap-around (toroidal) marks layer - no copy, no
+  allocation; each step clears only the 1-2 px strip of new ground entering the window; drawn in
+  up to 4 pieces. Levels that fit the layer keep the old mapping and one blit (renderhash SAME).
+  OWNER PHONE RUN PENDING: the hands-off Swindon link; want no stall every 136 m.
   Still O(track points) and fine at 3000 points, but worth fixing before longer roads: each tile
   walks every centreline point (drawTrackRibbon), and session.js updateRecoveryTracking scans
-  every point each sim step. Next: the owner's phone verdict on step 1, then step 2 (streaming).
+  every point each sim step. Next: the marks fix, then the owner's phone run, then step 2.
 - Then: ground on the GPU phase C (cars, props as GPU sprites), one canvas, delete the old tile
   machinery (all behind ?gpupaint=1 until the owner approves). Frame pacing is done and default.
 
@@ -111,7 +122,9 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
 - [ ] PHONE REPORTS: ?report=1 posts frame timings to serve.mjs /__report (RAC3R_REPORT_LOG).
 - [ ] THE LAB JUDDERS (owner phone test, 2026-10-15): also in the 10-08 original, circuits do not.
       Not reproduced at CPU x4 (p95 14 ms, no bursts). Owner idea for later: rebuild the Lab or split
-      it into smaller levels.
+      it into smaller levels. LIKELY CAUSE FOUND: the Lab rectangle does not fit the marks layer, so
+      it re-centred the 26 MB layer every 136 m (see "JUDDER FOUND" above); now a wrap-around
+      layer. Owner phone check on the Lab pending.
 - [ ] B4a HILL SHADING ON THE GPU + flash fixes, behind ?gpupaint=1 (owner phone test pending; owner saw
       the terrain flash brighter at zoom changes). src/render/glshade.ts: the tiles' shade cells (same
       heights, bands, colours; tilesShade.ts shared) computed per 8 m chunk into a world grid texture

@@ -66,6 +66,10 @@ const OV_REPAINT = 500;
 // when nothing moves), drawn scaled while zoom < FLY_HANDOVER, while the close-up tiles round the
 // car are pre-painted FLY_PREFETCH per frame - so by the hand-over they are already there.
 const FLY_HANDOVER = 0.28, FLY_PREFETCH = 2, OVERVIEW_PX = 2048;
+// px: the longest side an overview may have. The width is OVERVIEW_PX, so a tall level made a
+// tall picture: a 48 m x 30 km straight asked for 1.3 million px and ran out of memory. Every
+// other level is under this (the lab, the tallest, is 3938).
+const OVERVIEW_MAX_PX = 4096;
 
 /**
  * Camera follows with a lead in the direction of travel, smoothed on the WALL CLOCK (rule 5 -
@@ -149,7 +153,12 @@ function paintOverview(
   const { view, cam } = ctx;
   const { drawFloor, drawZones, drawLanes, drawTrackRibbon, drawPatches, drawCovers,
     drawCurvedKerbs, paletteSnap } = ctx;
-  const width = size, height = Math.max(1, Math.round(size * (bottom - top) / (right - left)));
+  const tallness = (bottom - top) / (right - left);
+  let width = size, height = Math.max(1, Math.round(size * tallness));
+  if (height > OVERVIEW_MAX_PX) {
+    height = OVERVIEW_MAX_PX;
+    width = Math.max(1, Math.round(OVERVIEW_MAX_PX / tallness));
+  }
   const canvas = document.createElement('canvas'); canvas.width = width; canvas.height = height;
   const c2d = canvas.getContext('2d')!;   // a fresh canvas always gives a 2d context
   const keep = { ctx: view.ctx, W: view.W, H: view.H, zoom: view.zoom, cx: cam.x, cy: cam.y };
