@@ -211,19 +211,81 @@ function onInputLastFinger(core, event) {
  */
 function blockInputEvent(event) { if (event.cancelable) event.preventDefault(); }
 
-export function createInput(canvas, opts = {}) {
-  const state = {
+/**
+ * The public input state object: presentation fields the HUD draws, plus the resolved axes.
+ * @param {object} opts the createInput options (mode)
+ * @returns {object} the fresh input state
+ */
+function makeInputState(opts) {
+  return {
     steer: 0, throttle: 0, brake: 0, shiftUp: false, shiftDown: false,
     // presentation only — the HUD draws these, the model never reads them
     mode: opts.mode || 'auto',        // 'touch' | 'pc' | 'auto'
     stick: { active: false, ox: 0, oy: 0, x: 0, y: 0 },
     pedals: {},                       // name -> bool, for drawing the pressed state
-    tapped: null,                     // {x,y} of a tap that no control consumed, cleared each frame
+    tapped: null,                    // {x,y} of a tap that no control consumed, cleared each frame
     brakeHeld: 0,                     // s the brake has been down, for the progressive ramp
     thrHeld: 0,                       // s the throttle has been down, for the progressive ramp
     revHeld: 0,                       // s R has been down — R ramps like the throttle
     handbrake: 0,                     // 0..1, slewed both ways (see HB_SLEW)
   };
+}
+
+/**
+ * Resolve the steering axis from the stick or the keyboard.
+ * @param {object} state the input state
+ * @param {Set} keys the held key actions
+ * @returns {void}
+ */
+function resolveInputSteer(state, keys) {
+  if (state.stick.active) {
+    const dx = state.stick.x - state.stick.ox;
+    state.steer = Math.max(-1, Math.min(1, dx / STICK_MAX));
+  } else if (!isInputTouch(state) || keys.size) {
+    state.steer = (keys.has('right') ? 1 : 0) - (keys.has('left') ? 1 : 0);
+  } else {
+    state.steer = 0;
+  }
+}
+
+/**
+ * Resolve throttle, brake, handbrake, reverse and shifts from keys and pedals for one frame.
+ * @param {object} state the input state
+ * @param {Set} keys the held key actions
+ * @param {number} wallDt wall-clock seconds since the last frame
+ * @returns {void}
+ */
+function resolveInputPedals(state, keys, wallDt) {
+  // Keyboard and stick are BOTH raw [-1..1]; the road-wheel rate limit in vehicle.js does the
+  // smoothing, so one path serves both and a keyboard player and a thumb player feel the same
+  // car.
+  const kThrottle = keys.has('up') ? 1 : 0;
+  const kBrake = keys.has('down') ? 1 : 0;
+  const thrDown = Math.max(kThrottle, state.pedals.throttle ? 1 : 0) > 0;
+  state.thrHeld = thrDown ? state.thrHeld + wallDt : 0;
+  state.throttle = thrDown
+    ? Math.min(1, THR_MIN + (1 - THR_MIN) * (state.thrHeld / THR_RAMP))
+    : 0;
+
+  const brakeDown = Math.max(kBrake, state.pedals.brake ? 1 : 0) > 0;
+  state.brakeHeld = brakeDown ? state.brakeHeld + wallDt : 0;
+  state.brake = brakeDown
+    ? Math.min(1, BRAKE_MIN + (1 - BRAKE_MIN) * (state.brakeHeld / BRAKE_RAMP))
+    : 0;
+  const hbDown = keys.has('hand') || !!state.pedals.handbrake;
+  const hbTarget = hbDown ? 1 : 0;
+  const hbStep = HB_SLEW * wallDt;
+  state.handbrake += Math.max(-hbStep, Math.min(hbStep, hbTarget - state.handbrake));
+  // R is a pedal now (hold to reverse, 2026-10-03), ramped exactly like the throttle
+  const revDown = keys.has('reverse') || !!state.pedals.reverse;
+  state.revHeld = revDown ? state.revHeld + wallDt : 0;
+  state.reverse = revDown ? Math.min(1, THR_MIN + (1 - THR_MIN) * (state.revHeld / THR_RAMP)) : 0;
+  state.shiftUp = keys.has('shiftUp');
+  state.shiftDown = keys.has('shiftDown');
+}
+
+export function createInput(canvas, opts = {}) {
+  const state = makeInputState(opts);
 
   // shared handler state: the public object above plus the closure variables the handlers share
   const core = {
@@ -273,40 +335,8 @@ export function createInput(canvas, opts = {}) {
 
   // ---------- resolve, once per frame
   state.update = function update(wallDt = 1 / 60) {
-    if (state.stick.active) {
-      const dx = state.stick.x - state.stick.ox;
-      state.steer = Math.max(-1, Math.min(1, dx / STICK_MAX));
-    } else if (!isTouch() || keys.size) {
-      state.steer = (keys.has('right') ? 1 : 0) - (keys.has('left') ? 1 : 0);
-    } else {
-      state.steer = 0;
-    }
-    // Keyboard and stick are BOTH raw [-1..1]; the road-wheel rate limit in vehicle.js does the
-    // smoothing, so one path serves both and a keyboard player and a thumb player feel the same
-    // car.
-    const kThrottle = keys.has('up') ? 1 : 0;
-    const kBrake = keys.has('down') ? 1 : 0;
-    const thrDown = Math.max(kThrottle, state.pedals.throttle ? 1 : 0) > 0;
-    state.thrHeld = thrDown ? state.thrHeld + wallDt : 0;
-    state.throttle = thrDown
-      ? Math.min(1, THR_MIN + (1 - THR_MIN) * (state.thrHeld / THR_RAMP))
-      : 0;
-
-    const brakeDown = Math.max(kBrake, state.pedals.brake ? 1 : 0) > 0;
-    state.brakeHeld = brakeDown ? state.brakeHeld + wallDt : 0;
-    state.brake = brakeDown
-      ? Math.min(1, BRAKE_MIN + (1 - BRAKE_MIN) * (state.brakeHeld / BRAKE_RAMP))
-      : 0;
-    const hbDown = keys.has('hand') || !!state.pedals.handbrake;
-    const hbTarget = hbDown ? 1 : 0;
-    const hbStep = HB_SLEW * wallDt;
-    state.handbrake += Math.max(-hbStep, Math.min(hbStep, hbTarget - state.handbrake));
-    // R is a pedal now (hold to reverse, 2026-10-03), ramped exactly like the throttle
-    const revDown = keys.has('reverse') || !!state.pedals.reverse;
-    state.revHeld = revDown ? state.revHeld + wallDt : 0;
-    state.reverse = revDown ? Math.min(1, THR_MIN + (1 - THR_MIN) * (state.revHeld / THR_RAMP)) : 0;
-    state.shiftUp = keys.has('shiftUp');
-    state.shiftDown = keys.has('shiftDown');
+    resolveInputSteer(state, keys);
+    resolveInputPedals(state, keys, wallDt);
     return state;
   };
 
