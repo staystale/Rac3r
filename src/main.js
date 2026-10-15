@@ -1525,6 +1525,92 @@ function stepCarPhysics(inp) {
   return true;
 }
 
+/**
+ * The roadside litter and chevrons stream with the road: new ones in ahead, the ones behind out.
+ */
+function streamHighwayLitter() {
+  // the roadside LITTER + CHEVRONS (loose objects) stream with the road: new ones ahead in,
+  // the ones behind out (a tyre knocked off its stretch goes with it — it never belonged to
+  // the road it rolled onto)
+  const hwData = LEVEL._hw;
+  if (hwData.looseNew.length) {
+    game.cones.spawn(hwData.looseNew);
+    hwData.looseNew.length = 0;
+  }
+  if (hwData.looseCut != null) {
+    const cutAt = hwData.looseCut;
+    game.cones.cull((cone) => cone._s == null || cone._s >= cutAt);
+    hwData.looseCut = null;
+  }
+  if (hwData.goneFields && hwData.goneFields.size) {
+    const gone = hwData.goneFields;
+    game.cones.cull((cone) => cone.field == null || !gone.has(cone.field));
+    gone.clear();
+  }
+}
+
+/**
+ * The highway speed camera: a catch is a HUD card plus a fine on the session; the fastest and
+ * the count are kept.
+ */
+function caughtBySpeedCamera() {
+  // SPEED CAMERA (highway.js speedCamera): caught = a HUD card (hud.js drawCamera) + the fine
+  // on the session; fastest + count kept
+  const cam = speedCamera(LEVEL, game.car);
+  if (cam) {
+    game.camCaught = { ...cam, at: performance.now() };
+    game.camFines = (game.camFines || 0) + cam.fine;
+    game.camCount = (game.camCount || 0) + 1;
+    // in memory only: saveRecords() writes it at a safe moment
+    camRecord.count = (camRecord.count || 0) + 1;
+    camRecord.fines = (camRecord.fines || 0) + cam.fine;
+    if (!(camRecord.fastest >= cam.kmh)) camRecord.fastest = cam.kmh;
+    camDirty = true;
+    game.camBest = camRecord.fastest;
+  }
+}
+
+/**
+ * THE ENDLESS HIGHWAY, one step: slide the road window, the treadmill guard, the litter stream,
+ * the speed camera and the distance records.
+ * @returns {boolean} false if the guard put the car back (the caller drops the step backlog)
+ */
+function stepEndlessHighway() {
+  const shift = stepHighway(LEVEL, game.car);
+  if (shift) {
+    if (lastOnTrack) lastOnTrack.dist -= shift;
+    if (game.trackD != null) game.trackD -= shift;
+  }
+  // THE TREADMILL GUARD (user, 2026-10-05: "go backwards should reset you"): wrong way /
+  // dropped back / off the motorway -> put back in the left lane at the furthest point
+  // reached, rolling at 60 % of the speed you had (or 15 m/s), with the reason shown
+  const why = highwayGuard(LEVEL, game.car, PHYSICS_STEP_SECONDS);
+  // the going-wide countdown
+  if (LEVEL._hw.warn) game.notice = { text: LEVEL._hw.warn, at: performance.now() };
+  streamHighwayLitter();
+  if (why) {
+    const speed = Math.max(15, 0.6 * Math.hypot(game.car.vx, game.car.vy)),
+      spot = highwayRespawn(LEVEL);
+    repair(game.car);
+    resetCar(game.car, spot.x, spot.y, spot.h);
+    game.car.vx = Math.cos(spot.h) * speed;
+    game.car.vy = Math.sin(spot.h) * speed;
+    // never put back into (or right behind) a traffic car
+    game.traffic.clearAround(spot.x, spot.y, 30);
+    lastOnTrack = null;
+    breadcrumbs.length = 0;
+    if (renderer && renderer.snap) renderer.snap(game.car);
+    game.notice = { text: why, at: performance.now() };
+    return false;
+  }
+  caughtBySpeedCamera();
+  game.hwDist = LEVEL._hw.driven || 0;
+  if (game.hwDist > (game.hwBest || 0)) {
+    game.hwBest = game.hwDist;
+  }
+  return true;
+}
+
 function loop(now) {
   // Rescheduled FIRST, so a throw anywhere below can never stop the game loop again.
   requestAnimationFrame(loop);
@@ -1568,74 +1654,9 @@ function loop(now) {
       stepStage(PHYSICS_STEP_SECONDS);
       // THE ENDLESS HIGHWAY: build ahead / drop behind; when the window moves, everything
       // remembered as a road distance moves with it
-      if (LEVEL.endless) {
-        const shift = stepHighway(LEVEL, game.car);
-        if (shift) {
-          if (lastOnTrack) lastOnTrack.dist -= shift;
-          if (game.trackD != null) game.trackD -= shift;
-        }
-        // THE TREADMILL GUARD (user, 2026-10-05: "go backwards should reset you"): wrong way /
-        // dropped back / off the motorway -> put back in the left lane at the furthest point
-        // reached, rolling at 60 % of the speed you had (or 15 m/s), with the reason shown
-        const why = highwayGuard(LEVEL, game.car, PHYSICS_STEP_SECONDS);
-        // the going-wide countdown
-        if (LEVEL._hw.warn) game.notice = { text: LEVEL._hw.warn, at: performance.now() };
-        // the roadside LITTER + CHEVRONS (loose objects) stream with the road: new ones ahead in,
-        // the ones behind out (a tyre knocked off its stretch goes with it — it never belonged to
-        // the road it rolled onto)
-        {
-          const hwData = LEVEL._hw;
-          if (hwData.looseNew.length) {
-            game.cones.spawn(hwData.looseNew);
-            hwData.looseNew.length = 0;
-          }
-          if (hwData.looseCut != null) {
-            const cutAt = hwData.looseCut;
-            game.cones.cull((cone) => cone._s == null || cone._s >= cutAt);
-            hwData.looseCut = null;
-          }
-          if (hwData.goneFields && hwData.goneFields.size) {
-            const gone = hwData.goneFields;
-            game.cones.cull((cone) => cone.field == null || !gone.has(cone.field));
-            gone.clear();
-          }
-        }
-        if (why) {
-          const speed = Math.max(15, 0.6 * Math.hypot(game.car.vx, game.car.vy)),
-            spot = highwayRespawn(LEVEL);
-          repair(game.car);
-          resetCar(game.car, spot.x, spot.y, spot.h);
-          game.car.vx = Math.cos(spot.h) * speed;
-          game.car.vy = Math.sin(spot.h) * speed;
-          // never put back into (or right behind) a traffic car
-          game.traffic.clearAround(spot.x, spot.y, 30);
-          lastOnTrack = null;
-          breadcrumbs.length = 0;
-          if (renderer && renderer.snap) renderer.snap(game.car);
-          game.notice = { text: why, at: performance.now() };
-          acc = 0;
-          break;
-        }
-        // SPEED CAMERA (highway.js speedCamera): caught = a HUD card (hud.js drawCamera) + the fine
-        // on the session; fastest + count kept
-        {
-          const cam = speedCamera(LEVEL, game.car);
-          if (cam) {
-            game.camCaught = { ...cam, at: performance.now() };
-            game.camFines = (game.camFines || 0) + cam.fine;
-            game.camCount = (game.camCount || 0) + 1;
-            // in memory only: saveRecords() writes it at a safe moment
-            camRecord.count = (camRecord.count || 0) + 1;
-            camRecord.fines = (camRecord.fines || 0) + cam.fine;
-            if (!(camRecord.fastest >= cam.kmh)) camRecord.fastest = cam.kmh;
-            camDirty = true;
-            game.camBest = camRecord.fastest;
-          }
-        }
-        game.hwDist = LEVEL._hw.driven || 0;
-        if (game.hwDist > (game.hwBest || 0)) {
-          game.hwBest = game.hwDist;
-        }
+      if (LEVEL.endless && !stepEndlessHighway()) {
+        acc = 0;
+        break;
       }
       stepRace(game.car, PHYSICS_STEP_SECONDS);
       // BREADCRUMBS for RESET on levels with no circuit. MEASURED BUG, 2026-10-03 (guide audit):
