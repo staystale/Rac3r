@@ -1,12 +1,17 @@
-// Records the baseline: code stats for src/*.js plus every check tool run once.
-// Usage: node tools/runall.mjs [--out <file>] [--only a,b]
+// runall.mjs - THE SUITE RUNNER: runs the check tools one after another, one line each.
+// node tools/runall.mjs                  the QUICK suite (each tool under about 2 minutes)
+// node tools/runall.mjs --full           QUICK plus the slow tools
+// node tools/runall.mjs --only a,b       just these tools (any tools/<name>.mjs file)
+// node tools/runall.mjs --list           print the suites and stop
+// node tools/runall.mjs --baseline [--out <file>] [--only a,b]
+//                                        record the code stats + tool results report instead
+// Output: "PASS name 12.3 s", "FAIL name 12.3 s" (+ the last 5 lines of the tool),
+// "KNOWN-FAIL name 12.3 s" for a tool in KNOWN (it does not fail the suite), then a total.
+// Exit code 1 when any tool failed (KNOWN-FAIL does not count).
 import { spawnSync } from 'node:child_process';
-import fs from 'node:fs';
-import os from 'node:os';
+import { existsSync } from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
-import * as acorn from 'acorn';
-import * as walk from 'acorn-walk';
+import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const args = process.argv.slice(2);
@@ -14,131 +19,176 @@ const argVal = (name) => {
   const i = args.indexOf(name);
   return i >= 0 ? args[i + 1] : null;
 };
-const out = path.resolve(ROOT, argVal('--out') || 'shots/runall/latest.md');
-const onlyArg = argVal('--only');
-const only = onlyArg ? onlyArg.split(',').map((s) => s.trim()).filter(Boolean) : null;
 
-function patternNames(node, acc) {
-  if (!node) return acc;
-  switch (node.type) {
-    case 'Identifier': acc.push(node.name); break;
-    case 'ObjectPattern':
-      for (const p of node.properties) patternNames(p.type === 'RestElement' ? p.argument : p.value, acc);
-      break;
-    case 'ArrayPattern': for (const e of node.elements) patternNames(e, acc); break;
-    case 'RestElement': patternNames(node.argument, acc); break;
-    case 'AssignmentPattern': patternNames(node.left, acc); break;
-    default: break;
-  }
-  return acc;
+// Each entry: label, tool file name, arguments.
+const entry = (tool, toolArgs = [], label = tool) => ({ label, tool, args: toolArgs });
+
+const QUICK = [
+  entry('verify'),
+  entry('worldhash', ['--highway', '20']),
+  entry('simhash'),
+  entry('renderhash'),
+  entry('inputcheck'),
+  entry('uicheck'),
+  entry('menucheck'),
+  entry('guidecheck'),
+  entry('settingscheck'),
+  entry('barriercheck'),
+  entry('propcheck'),
+  entry('highwaycheck'),
+  entry('stagegencheck'),
+];
+
+const SLOW = [
+  entry('racecheck4', ['thruston', '3', '1', 'drive', '0'], 'racecheck4 thruston'),
+  entry('racecheck4', ['knobhill', '3', '2', 'drive', '1'], 'racecheck4 knobhill'),
+  entry('aifieldsuite'),
+  entry('pacesuite'),
+  entry('weavecheck'),
+  entry('framecheck'),
+  entry('solidcheck'),
+  entry('hwracecheck'),
+  entry('trafficcheck'),
+  entry('treadmillcheck'),
+  entry('racecheck'),
+];
+
+// Tools that fail on main for older reasons (TODO.md "Known bugs"). They run and print
+// KNOWN-FAIL, and do not fail the suite.
+const KNOWN = new Set([
+  // RX race, two jokers: case C fails (stuck on lap 3, no +30 s penalty); older than the overhaul
+  'racecheck',
+  // "no racer wrecked (2)": fails on the code before the overhaul too
+  'hwracecheck',
+  // "motorway: traffic stays on the carriageway (30 car-steps off)": older than the overhaul
+  'trafficcheck',
+  // "motorway: no litter in a driving lane (2)": older than the overhaul
+  'treadmillcheck',
+  // timing-dependent: the result changes from run to run
+  'solidcheck',
+]);
+
+// The hash tools compare with a saved reference file that is not in git.
+const REFERENCE = {
+  worldhash: 'tools/.worldhash',
+  simhash: 'tools/.simhash',
+  renderhash: 'tools/.renderhash',
+};
+
+const TIMEOUT_MS = { racecheck: 40 * 60 * 1000 };
+const DEFAULT_TIMEOUT_MS = 15 * 60 * 1000;
+
+/**
+ * The last non-empty lines of some text.
+ * @param {string} text output text
+ * @param {number} count how many lines
+ * @returns {string[]} the lines
+ */
+function lastLines(text, count) {
+  return (text || '').split(/\r?\n/).filter((line) => line.trim()).slice(-count);
 }
 
-function fileStats(file) {
-  const text = fs.readFileSync(file, 'utf8');
-  const lines = text.split(/\r?\n/);
-  if (lines.length && lines[lines.length - 1] === '') lines.pop();
-  const ast = acorn.parse(text, { ecmaVersion: 'latest', sourceType: 'module', locations: true });
-  let shortNames = 0;
-  let longFns = 0;
-  const countNames = (names) => { for (const n of names) if (n.length <= 2) shortNames++; };
-  const fn = (node) => {
-    if (node.id) countNames([node.id.name]);
-    for (const p of node.params) countNames(patternNames(p, []));
-    if (node.loc.end.line - node.loc.start.line + 1 > 80) longFns++;
-  };
-  walk.full(ast, (node) => {
-    if (node.type === 'VariableDeclarator') countNames(patternNames(node.id, []));
-    else if (node.type === 'FunctionDeclaration' || node.type === 'FunctionExpression'
-      || node.type === 'ArrowFunctionExpression') fn(node);
+/**
+ * Run one tool as a child process.
+ * @param {{label: string, tool: string, args: string[]}} item the tool
+ * @returns {{ok: boolean, secs: number, tail: string[]}} the outcome
+ */
+function runTool(item) {
+  const began = Date.now();
+  const ref = REFERENCE[item.tool];
+  if (ref && !item.args.includes('save') && !existsSync(path.join(ROOT, ref))) {
+    const hint = `run: node tools/${item.tool}.mjs save on the base commit`;
+    return { ok: false, secs: 0, tail: [`no saved reference (${ref})`, hint] };
+  }
+  const file = path.join('tools', `${item.tool}.mjs`);
+  const r = spawnSync(process.execPath, [file, ...item.args], {
+    cwd: ROOT,
+    encoding: 'utf8',
+    timeout: TIMEOUT_MS[item.tool] || DEFAULT_TIMEOUT_MS,
+    maxBuffer: 256 * 1024 * 1024,
   });
-  return {
-    lines: lines.length,
-    short: shortNames,
-    wide: lines.filter((l) => l.length > 100).length,
-    long: longFns,
+  const secs = (Date.now() - began) / 1000;
+  const tail = lastLines(r.stdout, 5);
+  if (r.error) tail.push(`error: ${r.error.message}`);
+  else if (r.status !== 0) tail.push(...lastLines(r.stderr, 3));
+  return { ok: r.status === 0 && !r.error, secs, tail };
+}
+
+/**
+ * Pick the tools to run from the command line.
+ * @returns {Array<{label: string, tool: string, args: string[]}>} the tools
+ */
+function chooseTools() {
+  const all = args.includes('--full') ? [...QUICK, ...SLOW] : QUICK;
+  const onlyArg = argVal('--only');
+  if (!onlyArg) return all;
+  const names = onlyArg.split(',').map((s) => s.trim()).filter(Boolean);
+  const known = [...QUICK, ...SLOW];
+  const picked = [];
+  for (const name of names) {
+    const listed = known.filter((item) => item.tool === name);
+    if (listed.length) picked.push(...listed);
+    else picked.push(entry(name));
+  }
+  return picked;
+}
+
+/**
+ * Print the suites.
+ * @returns {void}
+ */
+function printList() {
+  const show = (item) => {
+    const extra = item.args.length ? ` ${item.args.join(' ')}` : '';
+    const mark = KNOWN.has(item.tool) ? '  (KNOWN-FAIL)' : '';
+    console.log(`  ${item.tool}${extra}${mark}`);
   };
+  console.log('quick:');
+  QUICK.forEach(show);
+  console.log('full adds:');
+  SLOW.forEach(show);
 }
 
-function codeStats() {
-  const dir = path.join(ROOT, 'src');
-  const rows = [];
-  const total = { lines: 0, short: 0, wide: 0, long: 0 };
-  for (const f of fs.readdirSync(dir).filter((n) => n.endsWith('.js')).sort()) {
-    const s = fileStats(path.join(dir, f));
-    rows.push([f, s]);
-    for (const k of Object.keys(total)) total[k] += s[k];
+/**
+ * Run the chosen tools and print one line each, then the total.
+ * @returns {void}
+ */
+function runSuite() {
+  const began = Date.now();
+  let passed = 0;
+  let failed = 0;
+  let known = 0;
+  for (const item of chooseTools()) {
+    if (!existsSync(path.join(ROOT, 'tools', `${item.tool}.mjs`))) {
+      console.log(`FAIL ${item.label} 0.0 s`);
+      console.log(`  no such tool: tools/${item.tool}.mjs`);
+      failed++;
+      continue;
+    }
+    const r = runTool(item);
+    const secs = `${r.secs.toFixed(1)} s`;
+    if (r.ok) {
+      console.log(`PASS ${item.label} ${secs}`);
+      passed++;
+      continue;
+    }
+    const isKnown = KNOWN.has(item.tool);
+    console.log(`${isKnown ? 'KNOWN-FAIL' : 'FAIL'} ${item.label} ${secs}`);
+    for (const line of r.tail) console.log(`  ${line}`);
+    if (isKnown) known++;
+    else failed++;
   }
-  rows.push(['TOTAL', total]);
-  return rows;
+  const total = ((Date.now() - began) / 1000).toFixed(1);
+  console.log(`suite: ${passed} passed, ${failed} failed, ${known} known-fail, ${total} s`);
+  process.exitCode = failed ? 1 : 0;
 }
 
-function runStep(name, tool, toolArgs) {
-  const t0 = Date.now();
-  const r = spawnSync(process.execPath, [path.join('tools', `${tool}.mjs`), ...toolArgs], {
-    cwd: ROOT, encoding: 'utf8', timeout: 900000, maxBuffer: 64 * 1024 * 1024,
-  });
-  const secs = (Date.now() - t0) / 1000;
-  const timedOut = r.error && r.error.code === 'ETIMEDOUT';
-  let exit = timedOut ? 'timeout' : r.status;
-  if (exit === null || exit === undefined) exit = r.error ? `error: ${r.error.message}` : `signal ${r.signal}`;
-  const lastLines = (s, n) => (s || '').split(/\r?\n/).filter((l) => l.trim()).slice(-n);
-  const tail = lastLines(r.stdout, tool === 'lapdriver' ? 8 : 5);
-  if (exit !== 0) tail.push(...lastLines(r.stderr, 5));
-  return { name, exit, secs, tail, ok: exit === 0 };
+if (args.includes('--list')) {
+  printList();
+} else if (args.includes('--baseline')) {
+  const { recordBaseline } = await import('./lib/baseline.mjs');
+  process.exitCode = (await recordBaseline(ROOT, args)) ? 0 : 1;
+} else {
+  runSuite();
 }
 
-async function buildPlan() {
-  const { CAR_IDS } = await import(pathToFileURL(path.join(ROOT, 'src', 'cars.ts')).href);
-  const plan = [];
-  for (const t of ['aifieldsuite']) plan.push({ tool: t, label: t, args: [] });
-  plan.push({ tool: 'pacesuite', label: 'pacesuite', args: ['baseline'] });
-  for (const t of ['weavecheck', 'barriercheck', 'solidcheck', 'propcheck', 'uicheck', 'guidecheck', 'menucheck', 'settingscheck']) {
-    plan.push({ tool: t, label: t, args: [] });
-  }
-  for (const id of CAR_IDS) plan.push({ tool: 'lapdriver', label: `lapdriver ${id}`, args: ['test-track', id] });
-  for (const t of ['framecheck', 'profile']) {
-    for (const lv of ['test-track', 'thruston', 'stock-car']) plan.push({ tool: t, label: `${t} ${lv}`, args: [lv] });
-  }
-  return plan;
-}
-
-function git(cmd) {
-  const r = spawnSync('git', cmd, { cwd: ROOT, encoding: 'utf8' });
-  return (r.stdout || '').trim() || 'unknown';
-}
-
-const stats = codeStats();
-const results = [];
-if (!only || !only.includes('stats') || only.length > 1) {
-  const plan = await buildPlan();
-  for (const p of plan) {
-    if (only && !only.includes(p.tool)) continue;
-    console.log(`running ${p.label} ...`);
-    const r = runStep(p.label, p.tool, p.args);
-    console.log(`  exit ${r.exit} in ${r.secs.toFixed(1)}s`);
-    results.push(r);
-  }
-}
-
-const md = [];
-md.push('# runall baseline', '');
-md.push(`- date: ${new Date().toISOString()}`);
-md.push(`- commit: ${git(['rev-parse', '--short', 'HEAD'])}`);
-md.push(`- node: ${process.version}`);
-md.push(`- cpu: ${os.cpus()[0].model}`, '');
-md.push('## Code stats', '');
-md.push('| file | lines | names <=2 chars | lines >100 chars | functions >80 lines |');
-md.push('|---|---|---|---|---|');
-for (const [f, s] of stats) md.push(`| ${f} | ${s.lines} | ${s.short} | ${s.wide} | ${s.long} |`);
-md.push('', '## Steps', '');
-md.push('| name | exit | s |', '|---|---|---|');
-for (const r of results) md.push(`| ${r.name} | ${r.exit} | ${r.secs.toFixed(1)} |`);
-md.push('');
-for (const r of results) md.push(`### ${r.name}`, '', '```', ...r.tail, '```', '');
-
-fs.mkdirSync(path.dirname(out), { recursive: true });
-fs.writeFileSync(out, md.join('\n'));
-const tot = stats[stats.length - 1][1];
-console.log(`TOTAL: lines ${tot.lines}, short names ${tot.short}, long lines ${tot.wide}, long functions ${tot.long}`);
-console.log(`report: ${out}`);
-process.exit(results.some((r) => !r.ok) ? 1 : 0);

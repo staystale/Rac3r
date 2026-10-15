@@ -5,7 +5,8 @@
   "scripts": {
     "verify": "node tools/verify.mjs",
     "build": "node tools/build.mjs",
-    "bundlecheck": "node tools/bundlecheck.mjs"
+    "bundlecheck": "node tools/bundlecheck.mjs",
+    "suite": "node tools/runall.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
