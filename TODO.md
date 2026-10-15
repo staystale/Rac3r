@@ -13,28 +13,26 @@ Foreman taking over? Also read `docs/foreman-handover.md`.
 - Do not publish to itch.io until the owner approves the converted game.
 - HANDOVER: docs/foreman-handover.md (2026-10-15 evening) - read it first. Measure judder on the
   owner's iPhone with ?report=1 and tools/phonereport.mjs, not only on the laptop.
-- NOW: the NEW HIGHWAY, built from the ground up and phone-measured at every step (the old one hitches
-  every ~150 m of new road). Step 1 (src/world/levels/straight-outta.ts, "Straight Outta Swindon")
-  WORKS, registered, runs NORTH (up the screen) like the old highway. The 10 fps was not the road:
-  the level's floor was a 62 km square (inclusion scan ~1e8 cells, 30 s load), every patch of the
-  level was walked per tile, and every floor-edge kerb block (23k) was filled each frame. Fixed at
-  the root: inclusions scan the floor rectangle, drawPatches reads PATCH_GRID, drawKerb draws only
-  blocks in view, the level's floor is a strip. Measured (framecheck CPU x4): work median 35.4 ->
-  10.6 ms, load 30 s -> 2 s. Owner phone test 1: the car drove on GRASS (a road with no sectors
-  drew as tarmac but zoneAt gave the base): zoneAt now treats a sector-less road as tarmac.
-  JUDDER FOUND (owner phone run, ?report=1): a stall every 3.5 s = 136 m at 140 km/h on this empty
-  straight; one frame ~12 ms late, our JS 1-3 ms. 136 m = 0.45 x MARK_EXTENT (302 m): marks.js
-  followMarks re-centres the 2537 x 2537 skid-mark canvas (a new 26 MB canvas + two full copies)
-  each time the car is 136 m from the layer's origin. Only the endless highway and the Lab
-  rectangle follow (square levels never do) - matches every earlier fact: per distance at any
-  speed, still with drawing skipped (it runs in the sim step), circuits 0 (owner RX run 0 drops),
-  the Lab judders. FIXED (owner approved): a wrap-around (toroidal) marks layer - no copy, no
-  allocation; each step clears only the 1-2 px strip of new ground entering the window; drawn in
-  up to 4 pieces. Levels that fit the layer keep the old mapping and one blit (renderhash SAME).
-  OWNER PHONE RUN PENDING: the hands-off Swindon link; want no stall every 136 m.
-  Still O(track points) and fine at 3000 points, but worth fixing before longer roads: each tile
-  walks every centreline point (drawTrackRibbon), and session.js updateRecoveryTracking scans
-  every point each sim step. Next: the marks fix, then the owner's phone run, then step 2.
+- JUDDER FIXED (owner phone runs 2026-10-15, ?report=1): the per-distance hitch of the highway
+  and the Lab was marks.js re-centring its 26 MB skid-mark canvas (a new canvas + two full copies)
+  each time the car was 136 m (0.45 x MARK_EXTENT) from the layer's centre, on levels that do not
+  fit the layer. Now a wrap-around layer (no copy, no allocation). Found on the empty Swindon
+  straight: one frame ~12 ms late every 3.5 s = 136 m at 140 km/h, our JS 1-3 ms. After the fix:
+  Swindon no rhythm (27 s clean); old highway hands-off 3 slow frames in 48 s (0.06 %, was ~0.5 %),
+  owner "no visual drops"; Lab driven by hand 0.41 % single-refresh misses (Safari tab; the owner's
+  hand-driven Knobhill run from the home screen 0.19 %), owner "much better, a couple of drops".
+  The 10-13 "inside Safari" verdict was wrong: it was our canvas copy, deferred by Safari.
+- DECIDE (owner): the HIGHWAY REBUILD and the Lab split were planned only because of this hitch.
+  Proposed: cancel the rebuild; keep Straight Outta Swindon as a measuring stick or remove it.
+- Straight Outta Swindon (src/world/levels/straight-outta.ts): a 30 km straight running north,
+  built once. Making it work fixed, for every level: the inclusion scan covers the floor
+  rectangle, drawPatches reads PATCH_GRID, drawKerb draws only blocks in view, zoneAt treats a
+  sector-less road as tarmac, the overview caps its long side at 4096 px.
+  Still O(track points) (fine at 3000 points): drawTrackRibbon walks every centreline point per
+  tile; session.js updateRecoveryTracking scans every point each sim step.
+- GRASS THROUGH THE CRACKS (owner: a and b, "like real life"): long-grass tufts in some
+  broken-tarmac flecks, and scattered on broken-tarmac / concrete ground (blend.ts, own random
+  stream: every existing patch unchanged). Owner look pending (testlist 'cracktufts').
 - Then: ground on the GPU phase C (cars, props as GPU sprites), one canvas, delete the old tile
   machinery (all behind ?gpupaint=1 until the owner approves). Frame pacing is done and default.
 

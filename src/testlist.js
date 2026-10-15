@@ -10,6 +10,17 @@ export const TEST_LIST = [
   // (approved late, deleted: fields, grassedge, catchthem, slipsdual, fps - TODO.md 1c;
   // dirtroad, animals, labext)
   {
+    id: 'cracktufts',
+    added: '2026-10-15',
+    name: 'Grass through the cracks: long-grass tufts on cracked tarmac and concrete',
+    where:
+      'Stock Car (the broken infield and turns), Thruston runways, the alpine rally stages',
+    try: 'Look for small dark-green tufts on cracked ground; drive over one.',
+    wrong:
+      'Grass on plain tarmac in the middle of a road, in a pit lane, too many / too few, or a ' +
+      'tuft that feels unfair (a big grip loss from a tiny patch).',
+  },
+  {
     id: 'straightoutta',
     added: '2026-10-15',
     name: 'Judder fix (skid-mark layer) + new highway step 1: Straight Outta Swindon',

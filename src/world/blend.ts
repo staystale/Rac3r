@@ -280,6 +280,47 @@ function addInclusionSquares(
       surface: SURFACES[pick as SurfaceId] });
   }
 }
+// GRASS THROUGH THE CRACKS (requirement: cracked concrete can contain long grass, like real life;
+// plain tarmac never has grass in the middle): a broken-tarmac fleck sometimes has a tuft of long
+// grass growing in it, and broken-tarmac and concrete ground carry scattered tufts. Real long
+// grass (grip, wear, dust). Their OWN random stream, appended after every other inclusion, so the
+// existing patches stay exactly where they were.
+const CRACK_TUFT_CHANCE = 0.4;   // share of broken-tarmac flecks that hold a tuft
+// share of the ground's area, on the INCLUDE table's scale (x INCL_RATE, at INCL_REF_SIZE)
+const GROUND_TUFT_SHARE: Record<string, number> = { broken: 0.06, concrete: 0.03 };
+const TUFT_SMALL_M = 0.5, TUFT_LARGE_M = 1;   // m: a tuft's side, on the 0.5 m world grid
+
+/**
+ * One square tuft of long grass.
+ * @param tuftRng the tufts' random source
+ * @param x world x of its centre
+ * @param y world y of its centre
+ * @returns the patch
+ */
+function grassTuft(tuftRng: Rng, x: number, y: number): Patch {
+  const side = tuftRng() < 0.5 ? TUFT_SMALL_M : TUFT_LARGE_M;
+  return { x: snapG(x), y: snapG(y), w: side, h: side, sq: true, surface: SURFACES.grassLong,
+    src: 'tuft' };
+}
+
+/**
+ * The tufts of one inclusion scan cell: one on cracked ground by chance, and one in the
+ * broken-tarmac fleck the cell just laid, by chance.
+ * @param tufts the tuft list to push to
+ * @param tuftRng the tufts' random source
+ * @param cell the cell: its ground surface id, centre, chance scale and the fleck it laid
+ */
+function addCellTufts(
+  tufts: Patch[], tuftRng: Rng,
+  cell: { groundId: string; x: number; y: number; scale: number; fleck: Patch | null },
+): void {
+  const share = GROUND_TUFT_SHARE[cell.groundId];
+  if (share && tuftRng() < share * cell.scale) tufts.push(grassTuft(tuftRng, cell.x, cell.y));
+  if (cell.fleck && tuftRng() < CRACK_TUFT_CHANCE) {
+    tufts.push(grassTuft(tuftRng, cell.fleck.x, cell.fleck.y));
+  }
+}
+
 /** A rectangle that keeps inclusions out (zone or authored cover footprint). */
 interface KeepOut { x: number; y: number; w: number; h: number }
 /**
@@ -319,21 +360,48 @@ export function buildInclusions(level: Level, rng: Rng): Inclusions {
   const lim = FLOOR - KERB_W - 2;
   const xFrom = Math.max(-lim, -(-FX0 - KERB_W - 2)), xTo = Math.min(lim, FX1 - KERB_W - 2);
   const yFrom = Math.max(-lim, -(-FY0 - KERB_W - 2)), yTo = Math.min(lim, FY1 - KERB_W - 2);
+  const found: Inclusions = { patches, covers }, scan = { cellArea, refArea, patchArea };
+  const tufts: Patch[] = [], tuftRng = seededRng(level.id + ':tuft');
+  const tuftScale = INCL_RATE * cellArea / refArea;
   for (let x = xFrom; x <= xTo; x += INCL_STEP) for (let y = yFrom; y <= yTo; y += INCL_STEP) {
     const patchX = x + (rng() - 0.5) * INCL_STEP, patchY = y + (rng() - 0.5) * INCL_STEP;
     if (isNearKeepOut(boxed, patchX, patchY, 3)) continue;
     if (isNearKeepOut(authored, patchX, patchY, 4)) continue;
     const base = zoneAt(patchX, patchY);
-    const list = base && INCLUDE[base.id];
-    if (!list) continue;
-    const pick = pickInclusion(rng, list, cellArea, refArea);
-    if (!pick) continue;
-    const width = INCL_MIN + rng() * (INCL_MAX - INCL_MIN),
-      height = INCL_MIN + rng() * (INCL_MAX - INCL_MIN), rot = rng() * Math.PI;
-    if (pick[0] === '@') { if (covers.length < INCL_COVER_CAP) covers.push({
-      x: patchX, y: patchY, w: width, h: height, rot, cover: pick.slice(1) as CoverId,
-      shape: 'ellipse' }); }
-    else addInclusionSquares(patches, rng, patchX, patchY, pick, patchArea);
+    if (!base) continue;
+    const fleck = layInclusion(found, rng, base.id, patchX, patchY, scan);
+    addCellTufts(tufts, tuftRng,
+      { groundId: base.id, x: patchX, y: patchY, scale: tuftScale, fleck });
   }
-  return { patches, covers };
+  return { patches: [...patches, ...tufts], covers };
+}
+
+/**
+ * Rolls one scan cell's inclusion (a patch cluster or a cover) from the INCLUDE table.
+ * @param found the patches and covers to push to
+ * @param rng the inclusions' random source
+ * @param groundId the surface id under the cell
+ * @param patchX the cell's x
+ * @param patchY the cell's y
+ * @param scan the scan's cell area, reference area and expected patch area (m2)
+ * @returns the last square laid when it is broken tarmac (a fleck grass may grow in), else null
+ */
+function layInclusion(
+  found: Inclusions, rng: Rng, groundId: string, patchX: number, patchY: number,
+  scan: { cellArea: number; refArea: number; patchArea: number },
+): Patch | null {
+  const list = INCLUDE[groundId];
+  if (!list) return null;
+  const pick = pickInclusion(rng, list, scan.cellArea, scan.refArea);
+  if (!pick) return null;
+  const width = INCL_MIN + rng() * (INCL_MAX - INCL_MIN),
+    height = INCL_MIN + rng() * (INCL_MAX - INCL_MIN), rot = rng() * Math.PI;
+  if (pick[0] === '@') {
+    if (found.covers.length < INCL_COVER_CAP) found.covers.push({
+      x: patchX, y: patchY, w: width, h: height, rot, cover: pick.slice(1) as CoverId,
+      shape: 'ellipse' });
+    return null;
+  }
+  addInclusionSquares(found.patches, rng, patchX, patchY, pick, scan.patchArea);
+  return pick === 'broken' ? found.patches[found.patches.length - 1] : null;
 }
