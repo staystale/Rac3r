@@ -618,6 +618,26 @@ function makeStageRock(x, y, size, extra = {}) {
   return { kind: 'rock', x, y, s: size, seed: ((x * 5 + y * 11) | 0) + 3, ...extra };
 }
 /**
+ * Fill trees and rocks over the whole floor, counts by theme.
+ * @param {object} dress dressing state
+ */
+function dressStageFill(dress) {
+  const { rand, kit, theme, props } = dress;
+  const fill = { forest: [520, 0], snow: [320, 30], alpine: [140, 110], desert: [110, 170] }[theme];
+  for (let treeIdx = 0; treeIdx < fill[0]; treeIdx++) {
+    const x = (rand() - 0.5) * 2 * (FLOOR - 10), y = (rand() - 0.5) * 2 * (FLOOR - 10);
+    if (kit.clear(x, y, 9)) props
+        .push(makeStageTree(x, y, theme === 'desert' ? 2 + rand() * 1.6 : 4 + rand() * 2.6,
+            { snow: theme === 'snow', pal: theme === 'desert' ? 'dry' : undefined }));
+  }
+  for (let rockIdx = 0; rockIdx < fill[1]; rockIdx++) {
+    const x = (rand() - 0.5) * 2 * (FLOOR - 10), y = (rand() - 0.5) * 2 * (FLOOR - 10);
+    if (kit.clear(x, y, 6)) props
+        .push(makeStageRock(x, y, 2 + rand() * 3.5,
+            { pal: theme === 'desert' ? 'red' : undefined, snow: theme === 'snow' }));
+  }
+}
+/**
  * NATURE by theme: roadside tree walls, fill trees and rocks, alpine roadside rocks.
  * @param {object} dress dressing state
  */
@@ -632,19 +652,7 @@ function dressStageNature(dress) {
         .push(makeStageTree(pos.x, pos.y, 4.5 + rand() * 2.5,
             { snow: theme === 'snow' || (theme === 'alpine' && rand() < 0.3) }));
   }
-  const fill = { forest: [520, 0], snow: [320, 30], alpine: [140, 110], desert: [110, 170] }[theme];
-  for (let treeIdx = 0; treeIdx < fill[0]; treeIdx++) {
-    const x = (rand() - 0.5) * 2 * (FLOOR - 10), y = (rand() - 0.5) * 2 * (FLOOR - 10);
-    if (kit.clear(x, y, 9)) props
-        .push(makeStageTree(x, y, theme === 'desert' ? 2 + rand() * 1.6 : 4 + rand() * 2.6,
-            { snow: theme === 'snow', pal: theme === 'desert' ? 'dry' : undefined }));
-  }
-  for (let rockIdx = 0; rockIdx < fill[1]; rockIdx++) {
-    const x = (rand() - 0.5) * 2 * (FLOOR - 10), y = (rand() - 0.5) * 2 * (FLOOR - 10);
-    if (kit.clear(x, y, 6)) props
-        .push(makeStageRock(x, y, 2 + rand() * 3.5,
-            { pal: theme === 'desert' ? 'red' : undefined, snow: theme === 'snow' }));
-  }
+  dressStageFill(dress);
   if (theme === 'alpine') for (let dist = 30; dist < FIN; dist += 9) {
     if (rand() < 0.45) continue;
     const pos = kit.at(dist, (rand() < 0.5 ? -1 : 1) * (halfWidth + 4 + rand() * 4));
