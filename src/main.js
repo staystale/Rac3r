@@ -518,11 +518,58 @@ function onLane(x, y) {
   }
   return false;
 }
-function trackCut(car, near, delta) {
-  const live = game.flow ? game.flow.state !== 'done'
+/**
+ * Whether track cuts count for this car right now (race flow running, or the stage underway).
+ * @param {object} car the car
+ * @returns {boolean} true when a cut would be judged
+ */
+function cutsLive(car) {
+  return game.flow ? game.flow.state !== 'done'
     && game.start.t >= (game.start.tGreen0 ?? game.start.tGreen) : LEVEL.stage && car === game.car
       && stage.state === 'running';
-  if (!live) {
+}
+/**
+ * Charges a finished cut as a time penalty (race or stage).
+ * @param {object} car the car that cut
+ * @param {{gain: number}} cut the finished excursion
+ */
+function penaliseCut(car, cut) {
+  const pen = Math.max(2, Math.round(cut.gain / CUT_PER_S));
+  car._cutPen = (car._cutPen || 0) + pen;
+  if (car === game.car) {
+    if (LEVEL.stage) stage.pen += pen;
+    game.notice = { text: 'TRACK CUT +' + pen + ' s', at: performance.now() };
+  }
+}
+/**
+ * Puts a car that cut big back where it left the road (free practice).
+ * @param {object} car the car that cut
+ * @param {{q: number, prog: number}} cut the finished excursion
+ */
+function putBackCut(car, cut) {
+  const point = onTrack(LEVEL.subtrack, cut.q, 0, {});
+  resetCar(car, point.x, point.y, point.rot);
+  car._prog = cut.prog;
+  car._lastQ = cut.q;
+  if (car === game.car) {
+    lastOnTrack = { dist: cut.q, off: 0 };
+    if (renderer && renderer.snap) renderer.snap(car);
+    game.notice = { text: 'TRACK CUT — PUT BACK', at: performance.now() };
+  }
+  else {
+    const entry = game.ai.find((x) => x.car === car);
+    if (entry) entry.drv.relocate();
+  }
+}
+/**
+ * Judges a car's excursion off the road: tracks it, and penalises or puts back on return.
+ * @param {object} car the car
+ * @param {{dist: number}} near the car's nearest-road query
+ * @param {number} delta the progress jump this step
+ * @returns {string|undefined} 'reset' when the car was put back
+ */
+function trackCut(car, near, delta) {
+  if (!cutsLive(car)) {
     car._cut = null;
     return;
   }
@@ -548,27 +595,9 @@ function trackCut(car, near, delta) {
   car._cuts = (car._cuts || 0) + 1;
   // [m gained, where] for the tools
   (car._cutLog || (car._cutLog = [])).push([+cut.gain.toFixed(1), Math.round(cut.q)]);
-  if (race.on || LEVEL.stage) {
-    const pen = Math.max(2, Math.round(cut.gain / CUT_PER_S));
-    car._cutPen = (car._cutPen || 0) + pen;
-    if (car === game.car) {
-      if (LEVEL.stage) stage.pen += pen;
-      game.notice = { text: 'TRACK CUT +' + pen + ' s', at: performance.now() };
-    }
-  } else if (cut.gain >= CUT_RESET) {
-    const point = onTrack(LEVEL.subtrack, cut.q, 0, {});
-    resetCar(car, point.x, point.y, point.rot);
-    car._prog = cut.prog;
-    car._lastQ = cut.q;
-    if (car === game.car) {
-      lastOnTrack = { dist: cut.q, off: 0 };
-      if (renderer && renderer.snap) renderer.snap(car);
-      game.notice = { text: 'TRACK CUT — PUT BACK', at: performance.now() };
-    }
-    else {
-      const entry = game.ai.find((x) => x.car === car);
-      if (entry) entry.drv.relocate();
-    }
+  if (race.on || LEVEL.stage) penaliseCut(car, cut);
+  else if (cut.gain >= CUT_RESET) {
+    putBackCut(car, cut);
     return 'reset';
   }
 }
