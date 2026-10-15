@@ -9,7 +9,7 @@ export const KIND = { lab: 'TEST GROUND', 'test-track': 'CIRCUIT', thruston: 'UK
   'castle-cum': 'UK CIRCUIT', 'brands-snatch': 'UK CIRCUIT · GP', knobhill: 'RALLYCROSS',
   'brands-snatch-indy': 'UK CIRCUIT · INDY', 'sweaty-lamb': 'RALLY STAGE',
   killder: 'RALLY STAGE · FOREST', 'slidden-hill': 'RALLYCROSS', 'grass-track': 'AUTOGRASS',
-  'stock-car': 'OVAL', naffcar: 'OVAL', sandbox: 'CIRCUIT' };
+  'stock-car': 'OVAL', naffcar: 'OVAL', sandbox: 'CIRCUIT', 'straight-outta': 'TEST STRAIGHT' };
 // TRACK CATEGORIES. A level's category: CAT_OF by id, else generated / set rally
 // stages -> rally, endless -> roads, anything new and unlisted -> circuits (so a new level is never
 // hidden). ALL TRACKS keeps the old flat grid one tap away.
@@ -26,7 +26,7 @@ const CAT_OF = { 'test-track': 'circuits', thruston: 'circuits', 'castle-cum': '
   'brands-snatch': 'circuits', 'brands-snatch-indy': 'circuits',
   'sweaty-lamb': 'rally', killder: 'rally', knobhill: 'rx', 'slidden-hill': 'rx',
     'grass-track': 'ovals', 'stock-car': 'ovals', naffcar: 'ovals',
-  lab: 'test', sandbox: 'test' };
+  lab: 'test', sandbox: 'test', 'straight-outta': 'test' };
 export const catOf = (level) => CAT_OF[level.id]
   || (level.gen ? 'rally' : level.endless ? 'roads' : 'circuits');
 

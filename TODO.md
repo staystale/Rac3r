@@ -22,8 +22,10 @@ Foreman taking over? Also read `docs/foreman-handover.md`.
   owner "no visual drops"; Lab driven by hand 0.41 % single-refresh misses (Safari tab; the owner's
   hand-driven Knobhill run from the home screen 0.19 %), owner "much better, a couple of drops".
   The 10-13 "inside Safari" verdict was wrong: it was our canvas copy, deferred by Safari.
-- DECIDE (owner): the HIGHWAY REBUILD and the Lab split were planned only because of this hitch.
-  Proposed: cancel the rebuild; keep Straight Outta Swindon as a measuring stick or remove it.
+- HIGHWAY REBUILD CANCELLED (owner): it was planned only because of this hitch. Straight Outta
+  Swindon stays as a measuring stick (TEST GROUNDS, "TEST STRAIGHT") while it does not get in
+  the way. NAME NOTE (owner): every highway level gets its own name; "Straight Outta Swindon" is
+  kept for a future highway level - give the test straight another name then.
 - Straight Outta Swindon (src/world/levels/straight-outta.ts): a 30 km straight running north,
   built once. Making it work fixed, for every level: the inclusion scan covers the floor
   rectangle, drawPatches reads PATCH_GRID, drawKerb draws only blocks in view, zoneAt treats a
@@ -119,10 +121,12 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
       at highway speed) - next: the allocation diet (terrain lookups, traffic contacts, HUD layout).
 - [ ] PHONE REPORTS: ?report=1 posts frame timings to serve.mjs /__report (RAC3R_REPORT_LOG).
 - [ ] THE LAB JUDDERS (owner phone test, 2026-10-15): also in the 10-08 original, circuits do not.
-      Not reproduced at CPU x4 (p95 14 ms, no bursts). Owner idea for later: rebuild the Lab or split
-      it into smaller levels. LIKELY CAUSE FOUND: the Lab rectangle does not fit the marks layer, so
-      it re-centred the 26 MB layer every 136 m (see "JUDDER FOUND" above); now a wrap-around
-      layer. Owner phone check on the Lab pending.
+      CAUSE FOUND AND FIXED: the Lab rectangle does not fit the marks layer, so it re-centred the
+      26 MB layer every 136 m (see "JUDDER FIXED" above). Owner, after the fix: "much better, a
+      couple of drops" (0.41 % in a Safari tab, hand-driven; Knobhill from the home screen 0.19 %).
+- [ ] LAB SPLIT (owner, 2026-10-15): three smaller levels from today's Lab - the four main squares
+      at the top "OG Lab", the surface strips with objects "Surface Bowling Alley", and a separate
+      off-road test area for the rest. Plan with the owner first (names, spawns, edges).
 - [ ] B4a HILL SHADING ON THE GPU + flash fixes, behind ?gpupaint=1 (owner phone test pending; owner saw
       the terrain flash brighter at zoom changes). src/render/glshade.ts: the tiles' shade cells (same
       heights, bands, colours; tilesShade.ts shared) computed per 8 m chunk into a world grid texture
