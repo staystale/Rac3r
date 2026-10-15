@@ -273,6 +273,18 @@ function updateEngineVoice(state, car, now) {
 }
 
 /**
+ * Whether a surface is loose (gravel, dirt, grass, snow ...) for tyre noise.
+ * @param {string} surfId surface id under the car
+ * @returns {boolean} true on a loose surface
+ */
+function isLooseSurface(surfId) {
+  return surfId === 'gravel' || surfId === 'rally' || surfId === 'dirt'
+    || surfId === 'mud' || surfId === 'grass' || surfId === 'grassShort'
+    || surfId === 'grassLong' || surfId === 'snow' || surfId === 'sand'
+    || surfId === 'thickMud';
+}
+
+/**
  * Tyre screech per frame: level and pitch from slip demand and surface looseness.
  * @param {object} state the audio state
  * @param {object} car the car being heard
@@ -297,10 +309,7 @@ function updateTyreNoise(state, car, now, speed, surfId) {
     isLocked ? 1.6 : 0               // locked wheels under hard brake
   );
 
-  const isLoose = surfId === 'gravel' || surfId === 'rally' || surfId === 'dirt'
-    || surfId === 'mud' || surfId === 'grass' || surfId === 'grassShort'
-    || surfId === 'grassLong' || surfId === 'snow' || surfId === 'sand'
-    || surfId === 'thickMud';
+  const isLoose = isLooseSurface(surfId);
 
   // Screech activates when cornering hard (>0.62) or braking (>0.50)
   const squealThresh = isLoose ? 0.70 : 0.62;
