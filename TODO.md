@@ -79,6 +79,19 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
       within noise. renderhash SAME (default and ?glground=0).
       Still in the tiles, to move: labels and rims of boxed / rounded panels and the lab seams (to
       per-frame 2D in B2, when the tiles go).
+- [ ] B2 OPTION A (owner chose it over GPU geometry), behind ?gpupaint=1, owner phone test pending:
+      the tiles that still carry track / lanes / kerbs / wear / labels are painted at ONE fixed
+      density (the zoom-1 step) whatever the zoom; the GPU scales them (sharp filter, mipmaps) and
+      snaps each opaque texel to the palette (no CPU readback); everything the widest zoom shows is
+      prefetched, one tile a frame. Tiles are CPU-backed canvases (a GPU tile canvas moved the
+      surface texture on every pattern fill: 2.7 s in 900 highway frames). Measured: no zoom-step
+      spikes on the Lab lanes, no brightness flash (4 levels, max jump 0.25-0.73). framecheck CPU x4:
+      sandbox slow frames 29-31 (default) -> 23, p95 18.7 ms; highway worst 213-232 -> 70-90 ms but
+      ~660 tiles a lap (2.7 ms + ~1.2 ms GPU upload each), slow frames 81 -> 98, median 10 -> 13 ms.
+      Next: the cached height field (GC pauses), the incremental highway road build.
+- [ ] THE LAB JUDDERS (owner phone test, 2026-10-15): also in the 10-08 original, circuits do not.
+      Not reproduced at CPU x4 (p95 14 ms, no bursts). Owner idea for later: rebuild the Lab or split
+      it into smaller levels.
 - [ ] B4a HILL SHADING ON THE GPU + flash fixes, behind ?gpupaint=1 (owner phone test pending; owner saw
       the terrain flash brighter at zoom changes). src/render/glshade.ts: the tiles' shade cells (same
       heights, bands, colours; tilesShade.ts shared) computed per 8 m chunk into a world grid texture

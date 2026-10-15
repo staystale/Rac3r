@@ -55,7 +55,20 @@ in vec2 uv;
 uniform sampler2D tex;
 uniform vec2 texSize;
 uniform float scale;     // screen px per texel
+uniform bool snapTexels; // GPU paint: each opaque texel snapped to the palette before blending
+uniform highp usampler3D palette;   // the palette lookup (glpaint.ts, texture unit 1)
 out vec4 colour;
+
+// PIXEL MODE on the GPU: an opaque texel as its nearest palette colour (tilesPalette.ts); the
+// CPU tiles read their pixels back to do this, about half of a tile's cost
+vec4 snappedTexel(ivec2 at) {
+  vec4 texel = texelFetch(tex, clamp(at, ivec2(0), ivec2(texSize) - 1), 0);
+  if (texel.a < 0.999) return texel;
+  ivec3 index = ivec3(floor(texel.bgr * 255.0 + 0.5)) >> 3;
+  uint packed = texelFetch(palette, index, 0).r;
+  return vec4(uvec4(packed, packed >> 8, packed >> 16, 255u) & 255u) / 255.0;
+}
+
 void main() {
   if (scale < 1.0) { colour = texture(tex, uv); return; }
   vec2 texel = uv * texSize;
@@ -63,7 +76,15 @@ void main() {
   vec2 centre = fract(texel) - 0.5;
   vec2 region = vec2(0.5 - 0.5 / scale);
   vec2 offset = (centre - clamp(centre, -region, region)) * scale + 0.5;
-  colour = texture(tex, (base + offset) / texSize);
+  if (!snapTexels) { colour = texture(tex, (base + offset) / texSize); return; }
+  // the same bilinear blend as the texture filter, of the snapped texels
+  vec2 corner = base + offset - 0.5;
+  ivec2 first = ivec2(floor(corner));
+  vec2 weight = corner - floor(corner);
+  colour = mix(
+    mix(snappedTexel(first), snappedTexel(first + ivec2(1, 0)), weight.x),
+    mix(snappedTexel(first + ivec2(0, 1)), snappedTexel(first + ivec2(1, 1)), weight.x),
+    weight.y);
 }`;
 
 /**
@@ -152,6 +173,7 @@ function buildQuad(webgl: WebGL2RenderingContext, program: WebGLProgram) {
   const where = (name: string) => webgl.getUniformLocation(program, name);
   const uniforms = {
     rect: where('rect'), screen: where('screen'), texSize: where('texSize'), scale: where('scale'),
+    snapTexels: where('snapTexels'), palette: where('palette'),
   };
   const vao = webgl.createVertexArray();
   webgl.bindVertexArray(vao);
@@ -223,6 +245,9 @@ function createSink(webgl: WebGL2RenderingContext, program: WebGLProgram,
       webgl.uniform2f(uniforms.screen, frame.width, frame.height);
       webgl.uniform2f(uniforms.texSize, source.width, source.height);
       webgl.uniform1f(uniforms.scale, scale);
+      // over the GPU painter's ground the tiles are not palette-snapped on the CPU (tiles.ts)
+      webgl.uniform1i(uniforms.snapTexels, state.painted ? 1 : 0);
+      webgl.uniform1i(uniforms.palette, 1);
       webgl.drawArrays(webgl.TRIANGLE_STRIP, 0, 4);
     },
   };

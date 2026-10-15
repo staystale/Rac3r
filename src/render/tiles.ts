@@ -12,6 +12,8 @@ import type { GroundSink } from "./glground.ts";
 import type {
   Cam, CamCar, Fly, Overview, SurfaceArt, Tile, TileBudget, TileState, View,
 } from "./types.ts";
+// ZOOM_MIN: read only inside functions (draw time), so the import cycle is harmless
+import { ZOOM_MIN } from "../render.ts";
 
 // what createTiles destructures from the renderer
 interface TilesHelpers {
@@ -102,6 +104,10 @@ const AHEAD_MAX_MS = 9, AHEAD_S = 0.6;
 // showing until repainted within TILE_BUDGET. Dirty cells are drained at most every WEAR_DRAIN s,
 // which batches a drift that changes many cells into one repaint of the tiles involved.
 const WEAR_DRAIN = 0.15;
+// GPU path: the one zoom step the tiles are painted at (zoom 1), the widest view's margin (the
+// prefetch covers the view at ZOOM_MIN / WIDE_MARGIN) and the tiles kept (the widest phone view
+// is ~70 tiles of ~120 KB; behind and ahead of it fit too)
+const FIXED_STEP = 0, WIDE_MARGIN = 1.25, FIXED_TILE_MAX = 200;
 /**
  * A fresh frame budget: `count` tiles at most, the first always, the rest inside TILE_MS.
  * @param count the most tiles this frame may paint
@@ -236,8 +242,14 @@ function startTile(tcx: TilesCtx, step: number, i: number, j: number): TileJob {
   const tileWidth = TILE_PX / (view.PPM * zOfStep(step));     // world metres per tile
   const size = Math.round(TILE_PX * view.dpr);
   const canvas = document.createElement('canvas'); canvas.width = canvas.height = size;
-  const scratch = tcx.TILE_GPU ? null : tileScratch(size);
-  const ctx = scratch ? scratch.g : canvas.getContext('2d')!;
+  // GPU path: no scratch - nothing is read back (the GPU snaps the palette, glground.ts); the
+  // tile itself is CPU-backed instead, because the surface textures are (textures.ts): on a GPU
+  // canvas every pattern fill moved the texture (MEASURED, highway: 2.7 s of fills in 900 frames)
+  // and WebGL uploads a CPU canvas with a plain copy
+  const onGpu = tcx.state.tileFillsOnGpu;
+  const scratch = tcx.TILE_GPU || onGpu ? null : tileScratch(size);
+  const ctx = scratch ? scratch.g
+    : canvas.getContext('2d', onGpu ? { willReadFrequently: true } : undefined)!;
   ctx.setTransform(view.dpr, 0, 0, view.dpr, 0, 0);
   return {
     k: step, i, j, c: canvas, sc: scratch, g: ctx, px: size, tw: tileWidth, strip: 0,
@@ -293,7 +305,7 @@ function finishTile(tcx: TilesCtx, job: TileJob) {
   const ts0 = performance.now();
   state.msLayers += ts0 - job.t0;
   if (job.sc) paletteSnap(tcx, job.sc.c, job.c);
-  else paletteSnap(tcx, job.c);
+  else if (!state.tileFillsOnGpu) paletteSnap(tcx, job.c);
   const th0 = performance.now();
   state.msSnap += th0 - ts0;
   // on the GPU path the hill shading is drawn by the GPU over every tile (glshade.ts)
@@ -627,9 +639,10 @@ function drawNewGround(tcx: TilesCtx, step: number, budget: TileBudget) {
  */
 function evictTiles(tcx: TilesCtx) {
   const { tiles } = tcx;
-  if (tiles.size > tcx.TILE_MAX) {
+  const most = tcx.state.tileFillsOnGpu ? FIXED_TILE_MAX : tcx.TILE_MAX;
+  if (tiles.size > most) {
     const old = [...tiles.entries()].sort((first, second) => first[1].used - second[1].used);
-    for (let index = 0, drop = tiles.size - tcx.TILE_MAX; index < drop; index++) {
+    for (let index = 0, drop = tiles.size - most; index < drop; index++) {
       tiles.delete(old[index][0]);
     }
   }
@@ -643,6 +656,9 @@ function evictTiles(tcx: TilesCtx) {
  */
 function groundStep(tcx: TilesCtx, fly: unknown) {
   const { view, state } = tcx;
+  // GPU path: ONE fixed density, the zoom-1 step, whatever the zoom - the GPU scales the tiles
+  // (sharp-pixel filter, mipmaps), so there are no zoom steps to shift, stand in or flash
+  if (state.tileFillsOnGpu) return FIXED_STEP;
   // flight: even steps only, finer side
   let step = fly ? 2 * Math.ceil(zStepOf(view.zoom) / 2) : zStepOf(view.zoom);
   if (!fly && state.lastStep !== null && Math.abs(ZSTEP * Math.log2(view.zoom)
@@ -659,6 +675,14 @@ function groundStep(tcx: TilesCtx, fly: unknown) {
  */
 function lookAhead(tcx: TilesCtx, step: number, fly: unknown, car: CamCar | null) {
   const { view, cam, state } = tcx;
+  // GPU path: keep everything the widest zoom (plus a margin) would show painted, one tile a frame
+  // while nothing in view is missing, so a zoom-out never meets ground without its tiles
+  if (state.tileFillsOnGpu) {
+    if (!state.standIn && !fly) {
+      prefetch(tcx, step, cam.x, cam.y, ZOOM_MIN / WIDE_MARGIN, { n: 1 });
+    }
+    return;
+  }
   // LOOK-AHEAD, GATED ON TILE COST: a big PC screen needs ~3x the tiles of a phone, so at 1 tile
   // a frame 27% of frames showed the flat stand-in. On a device that paints a tile in <
   // AHEAD_MAX_MS, a frame with NOTHING missing paints one tile from the view AHEAD of the car.
