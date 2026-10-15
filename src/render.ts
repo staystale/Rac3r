@@ -597,11 +597,11 @@ function gpuHelpers(state: RenderState, gpu: GlGround | null) {
  * The GPU ground under the screen canvas, or null (?glground=0, or no WebGL2).
  *
  * @param canvas the screen canvas
- * @param settings the game settings (glGround, gpuPaint, keepFrame)
+ * @param settings the game settings (glGround, gpuPaint)
  * @returns the GPU ground, or null
  */
 function createGpuGround(canvas: HTMLCanvasElement, settings: Settings) {
-  return settings.glGround ? createGlGround(canvas, settings.gpuPaint, settings.keepFrame) : null;
+  return settings.glGround ? createGlGround(canvas, settings.gpuPaint) : null;
 }
 
 /**

@@ -294,17 +294,17 @@ function shadeCalls(shade: GlShade | null, state: SinkState) {
  * (the ground then stays in the 2D art buffer, as before).
  * @param screen the screen canvas
  * @param withPainter true to paint the floor and zones on the GPU too (glpaint.ts)
- * @param keepFrame true (tools, ?keepframe=1) to keep each frame so it can be read back
  * @returns the GPU ground, or null
  */
-export function createGlGround(screen: HTMLCanvasElement, withPainter = false,
-    keepFrame = false) {
+export function createGlGround(screen: HTMLCanvasElement, withPainter = false) {
   const canvas = document.createElement('canvas');
   canvas.id = 'glground';
-  // preserveDrawingBuffer only for the test tools (they read the finished frame back after it is
-  // shown): on a phone it costs a copy of the whole frame every frame
+  // preserveDrawingBuffer: the test tools read the finished frame back after it is shown. It looks
+  // like a copy per frame, but turning it off made the owner's iPhone WORSE (?report=1, Lab, home
+  // screen: 0.37 % slow frames with it, 0.6 % without): Safari composites this canvas under the 2D
+  // one more smoothly when it keeps its frame
   const webgl = canvas.getContext('webgl2', {
-    alpha: false, antialias: false, preserveDrawingBuffer: keepFrame, stencil: true,
+    alpha: false, antialias: false, preserveDrawingBuffer: true, stencil: true,
   });
   if (!webgl) return null;
   // our canvases are already in the colours we want: no colour-space conversion on upload (on a
