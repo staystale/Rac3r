@@ -2,14 +2,16 @@
 // it, and then when you do it again it gives penalty for multiple jokers"). The real game: crossings of the joker lane at the gate at many
 // offsets across it (the lane is 12 m wide), and a few that must NOT count (the main road; far outside). Then the ONCE-A-LAP rule: drive
 // over the line, reverse back over it, over it again -> 1 joker. node tools/_jokerline.mjs [base]
-import { chromium } from 'file:///C:/Users/Admin/Desktop/G/GamesStudio/BitterTrade/node_modules/playwright/index.mjs';
+import { startServer, launchBrowser } from './lib/browser.mjs';
+const srv = await startServer();
+process.on('exit', srv.stop);
 const base = (process.argv[2] || '').replace(/^live$/, '');
-const b = await chromium.launch({ channel: 'msedge' });
+const b = await launchBrowser();
 const p = await (await b.newContext({ viewport: { width: 844, height: 390 }, isMobile: true, hasTouch: true })).newPage(), errs = [];
 p.on('pageerror', (e) => errs.push(e.message));
 let bad = 0; const ok = (c, m) => { console.log((c ? 'ok   ' : 'BAD  ') + m); if (!c) bad++; };
 for (const lv of ['knobhill', 'slidden-hill']) {
-  await p.goto(`http://localhost:8080/${base}index.html?touch=1&guide=0&menu=0&level=${lv}`); await p.touchscreen.tap(422, 195); await p.waitForTimeout(2500);
+  await p.goto(`${srv.url}/${base}index.html?touch=1&guide=0&menu=0&level=${lv}`); await p.touchscreen.tap(422, 195); await p.waitForTimeout(2500);
   const r = await p.evaluate(async (lv) => {
     const g = window.__game, L = await import(document.querySelector('script[type=module]') ? new URL('src/lab.js', location.href).href : '/src/lab.js');
     const J = L.LEVEL.joker, lane = (L.LEVEL.lanes || []).find((n) => n.out == null && n.pts.some(([x, y]) => (x - J.gate.x) ** 2 + (y - J.gate.y) ** 2 < J.gate.r * J.gate.r * 4));
@@ -27,7 +29,7 @@ for (const lv of ['knobhill', 'slidden-hill']) {
   ok(roadHit.length === 0, `${lv}: none counted ON the main road (${roadHit.length})`);
 }
 // ONCE A LAP, in the live loop: Knobhill, drive the car across the gate, back, across again
-await p.goto(`http://localhost:8080/${base}index.html?touch=1&guide=0&menu=0&level=knobhill`); await p.touchscreen.tap(422, 195); await p.waitForTimeout(2500);
+await p.goto(`${srv.url}/${base}index.html?touch=1&guide=0&menu=0&level=knobhill`); await p.touchscreen.tap(422, 195); await p.waitForTimeout(2500);
 const n = await p.evaluate(async () => {
   const g = window.__game, c = g.car, L = await import(new URL('src/lab.js', location.href).href), J = L.LEVEL.joker, w = (ms) => new Promise((r) => setTimeout(r, ms));
   const lane = (L.LEVEL.lanes || []).find((n) => n.out == null && n.pts.some(([x, y]) => (x - J.gate.x) ** 2 + (y - J.gate.y) ** 2 < J.gate.r * J.gate.r * 4));
@@ -44,3 +46,4 @@ ok(n.seq[3] === n.before + 1, `over, back, over again in one lap: still ONE joke
 console.log(`page errors: ${errs.length ? errs.join(' / ') : 'none'}`); if (errs.length) bad++;
 console.log(bad ? `JOKERLINE: ${bad} BAD` : 'JOKERLINE: ALL OK');
 await b.close();
+srv.stop();

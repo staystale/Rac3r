@@ -1,14 +1,16 @@
 // scratch: PHOTOGRAPH each new highway prop in the real game (served on :8080): the car is teleported 40 m short of the first slip road,
 // a road / rail / foot bridge and a river crossing in turn, the camera snapped, a photo taken at 390x844 and 844x390. Fails on page errors.
 // node tools/_bridgeshots.mjs [preset]   -> shots/look/br-<kind>-<size>.png
-import { chromium } from 'file:///C:/Users/Admin/Desktop/G/GamesStudio/BitterTrade/node_modules/playwright/index.mjs';
+import { startServer, launchBrowser } from './lib/browser.mjs';
+const srv = await startServer();
+process.on('exit', srv.stop);
 const preset = process.argv[2] || 'motorway';
-const b = await chromium.launch({ channel: 'msedge' });
+const b = await launchBrowser();
 for (const [w, h, tag] of [[390, 844, 'port'], [844, 390, 'land']]) {
   const ctx = await b.newContext({ viewport: { width: w, height: h }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
   const p = await ctx.newPage(), errs = [];
   p.on('pageerror', (e) => errs.push(e.message));
-  await p.goto(`http://localhost:8080/?touch=1&guide=0&menu=0&level=highway&car=saloon-rwd&hw=${preset}&traffic=0`); await p.touchscreen.tap(w / 2, h / 2); await p.waitForTimeout(3500);
+  await p.goto(`${srv.url}/?touch=1&guide=0&menu=0&level=highway&car=saloon-rwd&hw=${preset}&traffic=0`); await p.touchscreen.tap(w / 2, h / 2); await p.waitForTimeout(3500);
   // drive (teleport) up the road until each kind has been found, photographing it
   const want = ['slip', 'road', 'rail', 'foot', 'river', 'solarfarm'], got = new Set();
   for (let hop = 0; hop < 60 && got.size < want.length; hop++) {
@@ -32,3 +34,4 @@ for (const [w, h, tag] of [[390, 844, 'port'], [844, 390, 'land']]) {
   await ctx.close();
 }
 await b.close();
+srv.stop();

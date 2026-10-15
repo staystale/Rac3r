@@ -1,13 +1,15 @@
 // scratch: PHOTOGRAPH the roadside debris in the real game: hop up the road until a stretch with 4+ debris pieces near the car is on
 // screen, park beside it, photo at 390x844 + 844x390. Fails on page errors.  -> shots/look/deb-<size>.png
-import { chromium } from 'file:///C:/Users/Admin/Desktop/G/GamesStudio/BitterTrade/node_modules/playwright/index.mjs';
+import { startServer, launchBrowser } from './lib/browser.mjs';
+const srv = await startServer();
+process.on('exit', srv.stop);
 const KINDS = ['pallet', 'box', 'crate', 'bin', 'sandbag', 'barrel', 'exhaust', 'bumper', 'tarp'];
-const b = await chromium.launch({ channel: 'msedge' });
+const b = await launchBrowser();
 for (const [w, h, tag] of [[390, 844, 'port'], [844, 390, 'land']]) {
   const ctx = await b.newContext({ viewport: { width: w, height: h }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
   const p = await ctx.newPage(), errs = [];
   p.on('pageerror', (e) => errs.push(e.message));
-  await p.goto('http://localhost:8080/?touch=1&guide=0&menu=0&level=highway&car=saloon-rwd&traffic=0'); await p.touchscreen.tap(w / 2, h / 2); await p.waitForTimeout(3500);
+  await p.goto(srv.url + '/?touch=1&guide=0&menu=0&level=highway&car=saloon-rwd&traffic=0'); await p.touchscreen.tap(w / 2, h / 2); await p.waitForTimeout(3500);
   let res = null;
   for (let hop = 0; hop < 15 && !(res && res.n >= 4); hop++) {
     res = await p.evaluate(async (KINDS) => {
@@ -27,3 +29,4 @@ for (const [w, h, tag] of [[390, 844, 'port'], [844, 390, 'land']]) {
   await ctx.close();
 }
 await b.close();
+srv.stop();

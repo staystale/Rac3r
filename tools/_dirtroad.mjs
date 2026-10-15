@@ -1,13 +1,15 @@
 // scratch (2026-10-06, user: "dirt in the road on highway levels is still a bug"): the REAL game, highway, 5 AI + max traffic + litter,
 // the player's car driven by the highway weaver. Every second: every worn cell (current != orig) whose centre lies ON the carriageway
 // (|road offset| < half width) - what it was worn from, what it is now, what the ground there says now. node tools/_dirtroad.mjs [sec 120] [preset]
-import { chromium } from 'file:///C:/Users/Admin/Desktop/G/GamesStudio/BitterTrade/node_modules/playwright/index.mjs';
+import { startServer, launchBrowser } from './lib/browser.mjs';
+const srv = await startServer();
+process.on('exit', srv.stop);
 const SEC = +(process.argv[2] || 120), PRESET = process.argv[3] || 'motorway';
-const b = await chromium.launch({ channel: 'msedge' });
+const b = await launchBrowser();
 const ctx = await b.newContext({ viewport: { width: 844, height: 390 }, isMobile: true, hasTouch: true });
 const p = await ctx.newPage(); p.on('console', (m) => { if (m.text().startsWith('DIAG')) console.log(m.text()); });
 const errs = []; p.on('pageerror', (e) => errs.push(e.message));
-await p.goto(`http://localhost:8080/?touch=1&guide=0&menu=0&rules=0&level=highway&traffic=1.5&litter=3`); await p.waitForTimeout(1500);
+await p.goto(`${srv.url}/?touch=1&guide=0&menu=0&rules=0&level=highway&traffic=1.5&litter=3`); await p.waitForTimeout(1500);
 await p.touchscreen.tap(400, 200); await p.waitForTimeout(800);
 await p.evaluate((pr) => window.__game.launch('highway', 'saloon-rwd', { ai: 5, diff: 0, traffic: 1.5, litter: 3, road: pr }), PRESET);
 await p.waitForTimeout(2500);
@@ -56,3 +58,4 @@ for (const c of r.onRoad) console.log('  born', JSON.stringify(c));
 console.log('errors', errs.length ? errs.slice(0, 3).join(' || ') : 'none');
 console.log(r.total ? 'DIRT ON ROAD' : 'ALL OK');
 await b.close();
+srv.stop();
