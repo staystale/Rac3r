@@ -43,13 +43,13 @@ export function createHud() {
     // the replay / pause chip: '?' replays the guide; with menus on it is the PAUSE chip ('II'),
     // and How to play lives in there
     helpLabel: '?',   // a shift should be VISIBLE even on the automatic box (user)
-    // OPTIONAL TYRE / DAMAGE HUD (user, 2026-10-03: "hud should be optional, turn on and off"). Off
+    // OPTIONAL TYRE / DAMAGE HUD (user: "hud should be optional, turn on and off"). Off
     // by default — the car itself shows only realistic feedback (faint cold marks, marbles, smoke).
     // Remembered per device; storage can throw in private windows, so every access is guarded.
     // carDiagram: the tyre HUD is on, OR the car is damaged (user: "use that for damage too")
     tyreHud: false,
     carDiagram: false,
-    // SPEED UNITS (user, 2026-10-04: "tapping the speed / kph should change it to mph"), remembered
+    // SPEED UNITS (user: "tapping the speed / kph should change it to mph"), remembered
     // on the device
     mph: false,
     flagSeen: 0, flagAt: 0, flagTxt: '',

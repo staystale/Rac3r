@@ -1,5 +1,5 @@
 // highway cuts: slip road / bridge / river bookkeeping (keep-out rects, cut-short polylines, the
-// secret side road, approaches, river covers). Split out of highway.js (task 185).
+// secret side road, approaches, river covers). Split out of highway.js.
 import { SURFACES } from "../world/surfaces.ts";
 import { STEP } from "./presets.js";
 import { ease } from "./road.js";
@@ -15,7 +15,7 @@ import { clearFields } from "./fields.js";
 // (water band across, the motorway on a viaduct: parapets both sides) - drawn under the road, never
 // on it. Only their PIERS / abutments are solid, and those stand SLIP_CLEAR m outside the tarmac (+
 // off the verge strip the AI dodges on). EXTRAS (rare): a COW on a road bridge, a CONE on a
-// footbridge, a small BOAT stuck under a river bridge, a SMILEY SOLAR FARM. v2 (user, 2026-10-06:
+// footbridge, a small BOAT stuck under a river bridge, a SMILEY SOLAR FARM. v2 (user:
 // "bridges / slip roads should extend off the screen ... slip roads should lead off screen not just
 // stop, although some can... and some can follow along side the main motorway and has a chance to
 // rejoin, as a secret chance path"; "all the types of highway should have bridges and slip roads
@@ -25,10 +25,10 @@ import { clearFields } from "./fields.js";
 // SECRET SIDE ROAD (sideStep): alongside, SIDE_GAP m out, following the motorway's bends, then
 // merging back into the hard shoulder. The side road counts as ON the road (highwayGuard); on any
 // other slip the off-road countdown waits and only the far-out reset ends it ("EXIT TAKEN").
-// - road / rail / foot bridges get APPROACHES (approaches()): a lane ribbon (tarmac / gravel
+// - road / rail / foot bridges get APPROACHES (approaches): a lane ribbon (tarmac / gravel
 // ballast / dirt path) APP_LEN m out each side along the deck axis; render.ts drawBridge draws
 // their markings and the MOVING cars / walkers / trains (wall clock, no physics).
-// - a RIVER (river()) is a real 'wet' COVER (the same water as every puddle: grip, spray, drawn
+// - a RIVER (river) is a real 'wet' COVER (the same water as every puddle: grip, spray, drawn
 // into the ground tiles) with dirt banks (zones), cut out where the motorway crosses on its
 // parapets (cover.cut: lab.js coverAt + render.ts coverCells), APP_LEN m each side.
 // - anything long that leaves the road (approach, river, long slip) is CUT SHORT
@@ -78,7 +78,7 @@ export function keepOut(level, rect, dist) {
   }
 }
 // CUT SHORT. c = { pts (outward polyline, truncated in place), s, w, skip: [s0, s1] (road distances
-// never tested: its own stretch), after() }. A road point within reach of a polyline point (k >= 1)
+// never tested: its own stretch), after }. A road point within reach of a polyline point (k >= 1)
 // cuts the polyline before that point.
 export const cutSkips = (cut, dist) => dist >= cut.skip[0] && dist <= cut.skip[1];
 export function cutBy(level, cut, x, y) {
@@ -99,7 +99,7 @@ export function addCut(level, cut) {
 }
 // THE SECRET SIDE ROAD, one road point at a time (built with the road, so it follows every bend):
 // stores its centre's offset to the LEFT of the centreline as P[i].sideOff (the guard reads it).
-// Pieces are flushed at the end of each dress() call (sideFlush).
+// Pieces are flushed at the end of each dress call (sideFlush).
 export function sideStep(level, i, pointAt) {
   const state = level._hw,
     sideRoad = state.side;

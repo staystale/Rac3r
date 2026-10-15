@@ -34,7 +34,7 @@ export function driveOne(ctx: TrafficCtx, slot: TrafficCar, env: DriveEnv) {
   crossLanes(ctx, slot, env);
   leanAway(slot, env);
   const { vTarget, brakeX } = speedTarget(slot, lead, gap);
-  // ---- LOD (MEASURED 2026-10-05, tools/_tfprof: applyGround alone is ~17 us per car-step,
+  // ---- LOD (MEASURED, tools/_tfprof: applyGround alone is ~17 us per car-step,
   // 18 cars = 0.57 ms a step = a phone frame's budget gone): a car OUT OF VIEW and > PHYS_NEAR
   // m from every real car (you, the AI) is KINEMATIC — the same decisions, then carried
   // along its lane line at its speed (2 m/s^2 up, 7 down, 9 in an emergency). It becomes a

@@ -92,7 +92,7 @@ export function hudDown(tapX, tapY) {
  * @param {string} key the key
  */
 export function carToggleKey(key) {
-  // driver aids, on cars that have them (user, 2026-10-03)
+  // driver aids, on cars that have them
   if (key === 't' && game.car.spec.aids
     && game.car.spec.aids.tcs) game.car.tcsOn = !game.car.tcsOn;
   // headliGhts
@@ -141,7 +141,7 @@ export function onKey(key) {
   gameKey(key);
 }
 
-// LEVELS (user, 2026-09-28: "make it so you can switch levels between the lab and the surface
+// LEVELS (user: "make it so you can switch levels between the lab and the surface
 // sandbox"). A level owns its surfaces, its bumps and its cones, so switching means rebuilding the
 // cone field and clearing the marks layer — a rut ploughed through the sandbox's mud has no
 // business appearing on the lab floor at the same coordinates.
@@ -149,7 +149,7 @@ export function selectLevel(levelId) {
   if (levelId === LEVEL.id) return;
   saveRecords();
   setLevel(levelId);
-  // MEASURED BUG (user, 2026-10-04: "joker lap HUD warning showing on tracks it shouldn't"): the RX
+  // MEASURED BUG (user: "joker lap HUD warning showing on tracks it shouldn't"): the RX
   // race flag survived the in-game level switch, so after an RX race on Knobhill every track showed
   // LAP n/5 + JOKER TO DO. A level without a joker has no RX race.
   if (!LEVEL.joker) shared.race.on = false;

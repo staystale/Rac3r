@@ -1,7 +1,7 @@
 // PRE-PAINTED SURFACE TEXTURES (default; ?tex=0 = live). WHAT: each surface's pattern layers are
 // painted ONCE per surface, at the fixed art density TEX_PPM (the car sprites' SPRITE_PPM), into a
 // seamless, REPEATING canvas; paintLayers then fills its area with createPattern(texture,
-// 'repeat'), scaled to the zoom, in one operation. WHY (MEASURED, task 091): the floor and zones
+// 'repeat'), scaled to the zoom, in one operation. WHY (MEASURED: the floor and zones
 // layers cost 15-32 ms per tile on grass levels, ~1,800 grass strokes a tile, drawn mark by mark:
 // that is the highway / Killder / rally-stage judder. One painting also means the ground is the
 // same picture at every zoom, only bigger or smaller, never repainted.
@@ -32,7 +32,7 @@ function grid(period: number, spacing: number) {
   return { cnt, cell: period / cnt };
 }
 
-// lattice(): every cell in a band outside [0, period) (one cell, plus what the mark reaches),
+// lattice: every cell in a band outside [0, period) (one cell, plus what the mark reaches),
 // hashed by its WRAPPED integer index, so the pattern repeats exactly
 export function latticePeriodic(
   period: number, ppm: number, spacing: number, prob: number, reach: number, mark: Mark
@@ -220,7 +220,7 @@ export function createTextureCache() {
     const canvas = document.createElement('canvas');
     canvas.width = canvas.height = size;
     // CPU-backed on purpose - the tiles are painted on a CPU scratch, and a GPU texture would be
-    // read back on every pattern fill (MEASURED, task 096: rally stage tile 24 -> 10 ms at CPU x4).
+    // read back on every pattern fill (MEASURED: rally stage tile 24 -> 10 ms at CPU x4).
     const gfx = canvas.getContext('2d', { willReadFrequently: true })!;
     paint(gfx, size / TEX_PPM);
     cache.set(key, canvas);

@@ -1,5 +1,5 @@
 // hud/layout.js — HUD geometry: every rectangle for a screen size, and tap hit-testing.
-// Pure moves out of hud.js (task 173).
+// Pure moves out of hud.js.
 
 import { CAR_IDS } from '../cars.ts';
 import { LEVELS } from '../world/levels/index.ts';
@@ -57,22 +57,22 @@ function layoutTunePanel(width, height, narrow) {
  * @returns {object} speed, lap, fps and tally rects
  */
 function layoutCornerPanels(state, width, btnY, narrow) {
-  // The speed/tacho panel is a control lane too. MEASURED BUG (user screenshot, 2026-09-27): on a
+  // The speed/tacho panel is a control lane too. MEASURED BUG (user screenshot): on a
   // narrow screen RESET and CLEAR moved to a second row on the RIGHT and landed straight on top
   // of the speed readout. The overlap test never caught it because it only compared the buttons
-  // with each other, not with the panel they collided with. It is returned from layout() now so
+  // with each other, not with the panel they collided with. It is returned from layout now so
   // it can be.
   const speed = { x: width - MARGIN - 120, y: MARGIN, w: 120, h: 56 + (state.carDiagram ? 50 : 0) };
   // ^ speed grows a car diagram when on (or when damaged)
   const lap = { x: width - MARGIN - 120, y: speed.y + speed.h + 6, w: 120, h: 36 };
-  // The knocked-cone tally, under the button row. In layout() so tools/uicheck.mjs can see it.
-  // MEASURED BUG, 2026-10-03: it was placed in draw() at a fixed row two, which on a narrow
+  // The knocked-cone tally, under the button row. In layout so tools/uicheck.mjs can see it.
+  // MEASURED BUG: it was placed in draw at a fixed row two, which on a narrow
   // screen IS the RESTART/RESET/CLEAR row — invisible to the overlap test until the tyre walls
   // made it show constantly.
   const tally = { x: Math.round(width / 2 - 46), y: btnY + BTN_H + 6, w: 92, h: 24 };
   // Narrow: the left of row three belongs to the car dropdown and the TUNE panel, so the tally
   // goes top-RIGHT, under the lap panel (it is hidden while TUNE is open — that panel reaches it
-  // at 360 px). FPS (test mode, user 2026-10-06: "in the corner always"): a slim strip right
+  // at 360 px). FPS (test mode, user: "in the corner always"): a slim strip right
   // under the lap / distance panel, top right; the narrow-screen cone tally moves down under it
   const fps = { x: width - MARGIN - 120, y: lap.y + lap.h + 4, w: 120, h: 18 };
   if (narrow) {
@@ -89,14 +89,14 @@ function layoutCornerPanels(state, width, btnY, narrow) {
  * @returns {object} absChip, tcsChip, indL, lights and indR rects
  */
 function layoutBottomChips(width, height) {
-  // DRIVER AID CHIPS (user, 2026-10-03: small chips ABOVE THE PEDALS). Laid out from the same
+  // DRIVER AID CHIPS (user: small chips ABOVE THE PEDALS). Laid out from the same
   // PEDAL numbers input.js uses, clear of the brake pedal's generous 1.35r hit circle. Drawn and
   // hit-tested only on cars that have the aid.
   const yBrakeTop = height - PEDAL.margin - PEDAL.r - (PEDAL.r * 2 + PEDAL.gap) - PEDAL.r * 1.35;
   const aidW = 50, aidH = 30, aidY = Math.round(yBrakeTop - 6 - aidH);
   const absChip = { x: width - PEDAL.margin - aidW * 2 - 6, y: aidY, w: aidW, h: aidH };
   const tcsChip = { x: width - PEDAL.margin - aidW, y: aidY, w: aidW, h: aidH };
-  // LIGHTS + INDICATORS (user, 2026-10-04: "a button for headlights, bottom / bottom-left, along
+  // LIGHTS + INDICATORS (user: "a button for headlights, bottom / bottom-left, along
   // with indicators"): a row of three at the bottom-left corner — a tap there is consumed before
   // the steering zone sees it
   const lbW = 46, lbH = 34, lbY = height - MARGIN - lbH;
@@ -115,7 +115,7 @@ function layoutBottomChips(width, height) {
  */
 export function layoutHud(state, width, height) {
   const chip = { x: MARGIN, y: MARGIN, w: 116, h: BTN_H };
-  // 164, was 132. PHOTOGRAPHED 2026-10-03: "Naffcar Speedway" and "Surface Sandbox" ran into the
+  // 164, was 132. PHOTOGRAPHED: "Naffcar Speedway" and "Surface Sandbox" ran into the
   // LEVEL tag at 132. Car and level rows share the width so the dropdown stays one clean column.
   const DROP_W = 164;
   const dTop = MARGIN + BTN_H + 6, dStep = 26,
@@ -132,7 +132,7 @@ export function layoutHud(state, width, height) {
   const levelRows = LEVELS.map((level,
     i) => ({ id: level.id, name: level.name, ...dAt(i, carCols), w: DROP_W, h: dStep - 2 }));
   const tuneChip = { x: MARGIN + chip.w + 6, y: MARGIN, w: 64, h: BTN_H };
-  // MEASURED BUG, 2026-09-27 (caught by tools/uicheck.mjs, not by eye): adding the TUNE chip made
+  // MEASURED BUG, (caught by tools/uicheck.mjs, not by eye): adding the TUNE chip made
   // the top row need chip 116 + TUNE 64 + RESET 76 + CLEAR 76 + the speed panel 120 = 462 px, and
   // a portrait phone is 390. TUNE landed on top of RESET and ate its taps. On a narrow screen the
   // pair drops to a second row on the RIGHT, which is empty there. Two systems must never share a
@@ -143,8 +143,8 @@ export function layoutHud(state, width, height) {
   const totalW = wRestart + 4 + wReset + 4 + wClear + (narrow ? 0 : 4 + wVol + 4 + wHelp);
   // Ensure the center block doesn't overlap the new TCS chip on wide screens
   const minX = narrow ? MARGIN : tuneChip.x + tuneChip.w + 6;
-  // NARROW = LEFT-ALIGNED, never centred. MEASURED BUG, 2026-10-03 (tools/uicheck.mjs + photo at
-  // 390x844): centring this second row (Gemini, 2026-10-01) pushed CLEAR under the speed and lap
+  // NARROW = LEFT-ALIGNED, never centred. MEASURED BUG, (tools/uicheck.mjs + photo at
+  // 390x844): centring this second row (Gemini) pushed CLEAR under the speed and lap
   // panels, which own the top-RIGHT corner, at 360/390/412 px wide. The left of row two is free
   // on every phone.
   const startX = narrow ? MARGIN : Math.max(minX, Math.round(width / 2 - totalW / 2));
@@ -156,7 +156,7 @@ export function layoutHud(state, width, height) {
     ? { x: -200, y: -200, w: 0, h: 0, label: 'VOL' }
     : { x: startX + wRestart + 4 + wReset + 4 + wClear + 4, y: btnY, w: wVol, h: BTN_H,
       label: 'VOL' };
-  // "?" replays the HOW TO PLAY guide (user, 2026-10-03: on the button row). Wide: after VOL.
+  // "?" replays the HOW TO PLAY guide (user: on the button row). Wide: after VOL.
   // Narrow: after CLEAR when it clears the speed panel (390 px and up); at 360 px it would sit on
   // the speed panel, so it drops to row three, left — the dropdown / TUNE panel lane, so it is
   // hidden while either is open.

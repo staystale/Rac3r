@@ -20,7 +20,7 @@ import type { AxleOutcome } from './physics/tyreheat.ts';
 import { ALPHA_PEAK_MIN, computeAxleForces, ploughingForces } from './physics/tyres.ts';
 import type { AxleTick } from './physics/tyres.ts';
 
-// What step() reads from the input: steer -1..1, pedals 0..1, handbrake (on/off or 0..1), manual
+// What step reads from the input: steer -1..1, pedals 0..1, handbrake (on/off or 0..1), manual
 // shifts, reverse pedal.
 export interface CarInput {
   steer: number; throttle: number; brake: number;
@@ -29,7 +29,7 @@ export interface CarInput {
 }
 
 // The car.t telemetry (read by the dev overlay, the bench and the marks layer; never drives
-// physics). The last two lines are not in makeCar's literal: step() adds those fields.
+// physics). The last two lines are not in makeCar's literal: step adds those fields.
 export type CarTelemetry = {
   vLong: number; vLat: number; slipF: number; slipR: number;
   FzF: number; FzR: number; FyF: number; FyR: number; FyMaxF: number; FyMaxR: number;
@@ -57,7 +57,7 @@ export interface CarWheelPos { x: number; y: number }
 // Tape stuck to the car (cones.js): vehicle.ts only nulls the list.
 export interface CarStreamer { born: number }
 
-// The car: everything makeCar's literal creates, what reset() adds, and what other files set on it.
+// The car: everything makeCar's literal creates, what reset adds, and what other files set on it.
 export interface Car {
   spec: Spec; mods: Mods; surface: Surface;
   x: number; y: number; vx: number; vy: number;
@@ -75,7 +75,7 @@ export interface Car {
   align: number; clutch: number; transfer: number;
   spec0: Spec; reverseTimer: number; autoBox: boolean;
   t: CarTelemetry;
-  // added by reset(), which makeCar calls right after building the literal
+  // added by reset, which makeCar calls right after building the literal
   wheelSpin: number; tyreT: number[]; groundInit: boolean;
   _p: CarPrev | null; prevWheels: CarWheelPos[] | null;
   roll: CarRoll | null; sparks: boolean; streamers: CarStreamer[] | null;
@@ -105,7 +105,7 @@ const SLOPE_SLIDE = 0.35;
 
 
 // ---------------------------------------------------------------------------------------------
-// THE TYRE CURVE. Replaced the linear-plus-hard-clamp law on 2026-09-27, after the user reported
+// THE TYRE CURVE. Replaced the linear-plus-hard-clamp law on, after the user reported
 // "super slippy, handbrake and turning too hard create strange drift dynamics, doesn't feel good".
 //
 // MEASURED CAUSE, not guessed (occupancy over 12 s runs, CLAUDE.md rule 3):
@@ -141,7 +141,7 @@ export const TUNE = {
   yawDamp: 1.15,        // 1/s, opposes yaw IN EXCESS of what the steering asked for
   transferTau: 0.18,    // s, suspension time constant for longitudinal load transfer
   reverseSteer: 0.62,   // steering lock multiplier in reverse
-  // 0.90 — SWEPT, 2026-09-27. Handbrake at 28 m/s with the lock HELD: 0.00 and 0.55 both spun all
+  // 0.90 — SWEPT,. Handbrake at 28 m/s with the lock HELD: 0.00 and 0.55 both spun all
   // five cars backwards; 0.75 fixed four of five; 0.90 fixed all five (worst 76 deg, none
   // backwards) and left ordinary cornering yaw UNCHANGED at 0.343 rad/s. It costs nothing in normal
   // driving.
@@ -149,7 +149,7 @@ export const TUNE = {
   handbrakeForce: 1.15, // rear brake demand as a multiple of rear grip. >1 locks; below 1 it only
                         // drags, so this is a real STRENGTH rather than an on/off switch.
 };
-// TYRE TEMPERATURE (user, 2026-10-03). Four tyres, each its own temperature (deg C), indexed by
+// TYRE TEMPERATURE. Four tyres, each its own temperature (deg C), indexed by
 // side of the BODY:
 //   0 front +y, 1 front -y, 2 rear +y, 3 rear -y.
 // HEAT IN = the friction work at the contact patch (force x slip speed), per axle, split
@@ -164,9 +164,9 @@ export const TUNE = {
 export const TYRE_AMBIENT = 18;    // deg C until weather exists
 // deg C a tyre is held at; a burst replaces this once damage exists
 export const TYRE_T_MAX = 260;
-// 3500, was 2200 — user, 2026-10-03: "temp seems a bit easy to build in tyres, it should be a bit
+// 3500, was 2200 — user: "temp seems a bit easy to build in tyres, it should be a bit
 // harder". With the cooling also x0.8 below, warming takes ~2x as long and settles a little cooler.
-// Measured in tools/tyrecheck.mjs. HARD TO OVERHEAT (user, 2026-10-03: "tyres heat up too easy and
+// Measured in tools/tyrecheck.mjs. HARD TO OVERHEAT (user: "tyres heat up too easy and
 // pass the good range too easy — it should take long burnouts to pop them and excessive drifting on
 // tarmac to overheat; off-road surfaces shouldn't get them up much"). MEASURED before
 // (tools/tyrecheck.mjs section 7, hatch-rwd): a tarmac drift went warm 1.3 s / too hot 2.3 s / 260
@@ -186,22 +186,22 @@ export const TYRE_T_MAX = 260;
 //   gravel drift 25 C at 30 s               clean cornering warm at 80 s (unchanged)
 export const TYRE_HEAT = { cap: 3500, slipSat: 4, air: 0.0008, roadV: 12, massRef: 1440 };
 // Flex heat toward T (deg C, inside every car's working window) at k per s per unit of axle
-// utilisation. See the tyre-temperature block in step(). Added 2026-10-03; measured results are in
+// utilisation. See the tyre-temperature block in step. Added; measured results are in
 // tools/tyrecheck.mjs sections 2 / 2a / 7.
 export const TYRE_FLEX = { k: 0.07, T: 85, vRef: 12 };
-// Engine braking at the redline, in g of the car's weight (falls with revs). See step 5 in step().
+// Engine braking at the redline, in g of the car's weight (falls with revs). See step 5 in step.
 // MEASURED 100 -> 50 km/h lift-off: hatch 47.5 s -> 13.3 s, muscle 36.9 -> 10.3, track 30.4 -> 9.8
 // (0.12 g: 17.4 s; 0.25 g: 10.6 s).
 export let ENGINE_BRAKE = 0.18;
 export const setEngineBrake = (value: number) => { ENGINE_BRAKE = value; };   // for tools only
-// DRIVER AIDS (2026-10-03, step 2). See ABS / TCS in step(). Measured results in
+// DRIVER AIDS (step 2). See ABS / TCS in step. Measured results in
 // tools/aidcheck.mjs. Tools that measure RAW tyre / surface physics (burnouts, wheelspin, locked
 // passes) create cars with the aids OFF: with TCS on, a burnout is not a burnout. The game itself
 // never calls this.
 const AIDS_DEFAULT = { on: true };
 export const setAidsDefault = (enabled: boolean) => { AIDS_DEFAULT.on = !!enabled; };
 // VERTICAL GRAVITY multiplier for the suspension / airtime only (grip and weight still use g). See
-// the measured note at the suspension. Exported setter for tools. 1 -> 1.4 (user, 2026-10-03: "I
+// the measured note at the suspension. Exported setter for tools. 1 -> 1.4 (user: "I
 // seem to get airborne slightly too easily / stay in the air too long"). MEASURED: all airtime in
 // normal laps came from the Test Track table (hatch 0.79 s, track car 1.17 s at 90 km/h). More
 // DAMPING made it WORSE (the damper ties the body to the lip's upward speed). Heavier vertical
@@ -216,7 +216,7 @@ export const TCS_SPIN = 1.2;
 // betaLim rad (~4 deg) of body slip stability half: rad/s dead band, 1/s gain, throttle cut
 const ESC = { dead: 0.10, deadRel: 0.25, gain: 6, cutAt: 0.10, vMin: 10, betaLim: 0.07,
     betaGain: 20, underK: 0.2, hbHold: 0.6 };
-// THE GRIP CURVE (user, 2026-10-03: "cold tyres are sloppier than warm tyres, hot tyres grippier
+// THE GRIP CURVE (user: "cold tyres are sloppier than warm tyres, hot tyres grippier
 // still; tyres that are too hot are less grippy than hot but still grippier than cold — keep it
 // realistic"):
 //   ambient (cold) ..... tyreColdGrip (0.86)
@@ -241,7 +241,7 @@ const CY_SIDE = 1.0;           // sideforce coefficient with the flank to the wi
 // rad/s band over which yaw damping fades in — NEVER make this a hard switch
 const YAW_DAMP_BAND = 0.30;
 
-// MEASURED 2026-09-27 (user: "the rear wheels seem to fight turning too much now"). At 1.35 the cap
+// MEASURED (user: "the rear wheels seem to fight turning too much now"). At 1.35 the cap
 // allowed 14.8 deg of lock at 20 m/s where the old hand-tuned falloff allowed 22 — a third less
 // authority to rotate the car, which read as understeer. 1.75 restores the authority while still
 // being derived from the grip limit rather than guessed.
@@ -318,14 +318,14 @@ export function makeCar(carId: string, mods = defaultMods()) {
       torque: 0, driveForce: 0, speed: 0,
       ax: 0, ay: 0,                     // body-frame accel, m/s^2. ay/g IS the lateral grip number.
     },
-  } as Car;   // cast: reset() below fills in wheelSpin, tyreT, groundInit, _p, prevWheels, ...
+  } as Car;   // cast: reset below fills in wheelSpin, tyreT, groundInit, _p, prevWheels, ...
   reset(car);
   return car;
 }
 
 export function reset(car: Car, x = 0, y = 0, heading = -Math.PI / 2) {
   car._p = null;          // no render interpolation across a teleport (main.js)
-  // ... and no WEAR across it. MEASURED BUG (user, 2026-10-06: "dirt in the road on highway levels
+  // ... and no WEAR across it. MEASURED BUG (user: "dirt in the road on highway levels
   // is still a bug"; tools/_dirtroad.mjs): lab.js stepWear sweeps each tyre from car.prevWheels to
   // where it is now, so after a teleport (an AI / traffic respawn, the highway put-back) it wore a
   // straight line from the old spot to the new one - across the verge AND the carriageway.
@@ -406,7 +406,7 @@ function escYawDemand(carSpec: Spec, err: number, dead: number, over: boolean, b
 }
 
 /**
- * Section 8 of step(), stability half of TCS: the yaw moment and drag of the stability aid, and
+ * Section 8 of step, stability half of TCS: the yaw moment and drag of the stability aid, and
  * the engine cut it asks for (stored in car.escCut). Returns zeros when the aid is idle.
  */
 function stabilityControl(car: Car, carSpec: Spec, tick: AxleTick, handbrakeRaw: number,
@@ -414,14 +414,14 @@ function stabilityControl(car: Car, carSpec: Spec, tick: AxleTick, handbrakeRaw:
     delta: number, FzF: number, FzR: number) {
   const { mass, gravity, muBase, dt } = tick;
   let escMz = 0, escFx = 0, escWorking = false;
-  // HANDBRAKE OVERRIDES STABILITY (user, 2026-10-03: holding the handbrake should be full force,
+  // HANDBRAKE OVERRIDES STABILITY (user: holding the handbrake should be full force,
   // like the brake). While it is pulled, and for ESC.hbHold s after, the stability half stands down
   // — otherwise it straightens every handbrake turn the player asked for. Traction control
   // (wheelspin) is unaffected.
   car.hbAfter = handbrakeRaw > 0.1 ? ESC.hbHold : Math.max(0, (car.hbAfter || 0) - dt);
   if (car.tcsOn && !inReverse && vLongAbs > ESC.vMin && car.hbAfter <= 0) {
     // REFERENCE YAW = the car's OWN steady-state response, understeer included (linear bicycle
-    // model: K = m/L x (lr/caF - lf/caR)). MEASURED BUG (user, 2026-10-03: "TCS is too strong,
+    // model: K = m/L x (lr/caF - lf/caR)). MEASURED BUG (user: "TCS is too strong,
     // making the hatch RWD nearly undrivable"): against the pure kinematic v.tan(delta)/L every
     // road car "understeered" in EVERY corner, so the aid ran 65% of a lap (3 of 4 s in a gentle
     // corner) cutting the engine and nudging the car.
@@ -458,7 +458,7 @@ function stabilityControl(car: Car, carSpec: Spec, tick: AxleTick, handbrakeRaw:
 }
 
 /**
- * Yaw section of step(): aerodynamic directional stability, the tyre and ploughing yaw moment, and
+ * Yaw section of step: aerodynamic directional stability, the tyre and ploughing yaw moment, and
  * the one-sided yaw damping. Updates car.yawRate.
  */
 function integrateYaw(car: Car, carSpec: Spec, dt: number, axles: AxleOutcome, delta: number,
@@ -494,12 +494,12 @@ function integrateYaw(car: Car, carSpec: Spec, dt: number, axles: AxleOutcome, d
       * rearAxle.Fy + aeroYaw + carSpec.lf * FpyF - carSpec.lr * FpyR + escMz + (car.slopeYaw || 0);
   car.yawRate += (yawMoment / carSpec.Izz) * dt;
 
-  // Yaw damping. MEASURED 2026-09-27: a flick-and-release handbrake turn reached 92 deg, then swung
+  // Yaw damping. MEASURED: a flick-and-release handbrake turn reached 92 deg, then swung
   // BACK through centre at -1.4 rad/s and oscillated (92 -> 7 -> 37 deg). The bicycle model has no
   // tyre relaxation length and no suspension compliance, both of which damp yaw on a real car, so
   // the rotation had nothing to settle it and the car behaved like a pendulum. This term stands in
   // for them. Deliberately small — enough to settle the oscillation, not enough to stop a drift.
-  // MEASURED 2026-09-27: damping yawRate ABSOLUTELY cost 40% of the steady-state cornering rate
+  // MEASURED: damping yawRate ABSOLUTELY cost 40% of the steady-state cornering rate
   // (0.29 rad/s against a grip-limited 0.49), which the user felt as "the rear wheels fight
   // turning". Real damping opposes CHANGE, not steady cornering. Damp the deviation from the turn
   // rate the steering is actually asking for, so a held corner is untouched while a pendulum or a
@@ -509,7 +509,7 @@ function integrateYaw(car: Car, carSpec: Spec, dt: number, axles: AxleOutcome, d
   // It may only ever oppose yaw the car has in EXCESS of what the steering asked for, which is the
   // spin/pendulum case and nothing else.
   //
-  // AND IT MUST BE CONTINUOUS. MEASURED BUG, 2026-09-27 (user: "the track spec car seems juddery"):
+  // AND IT MUST BE CONTINUOUS. MEASURED BUG, (user: "the track spec car seems juddery"):
   // the sign test above was a HARD SWITCH, so when the yaw rate sat near the commanded rate it
   // flipped every few steps and applied/removed a finite impulse each time. Dumped on the track
   // car: yaw acceleration going -0.41 -> +1.88 -> -0.26 in SINGLE steps, repeating every ~5 steps,
@@ -524,7 +524,7 @@ function integrateYaw(car: Car, carSpec: Spec, dt: number, axles: AxleOutcome, d
 }
 
 /**
- * Section 9 of step(): the low-speed blend toward the kinematic yaw rate and the rest snap, with
+ * Section 9 of step: the low-speed blend toward the kinematic yaw rate and the rest snap, with
  * steep ground allowed to keep a stopped car moving. Returns the body velocity after the blend.
  */
 function lowSpeedBlend(car: Car, carSpec: Spec, mass: number, gravity: number, delta: number,
@@ -532,14 +532,14 @@ function lowSpeedBlend(car: Car, carSpec: Spec, mass: number, gravity: number, d
   // low-speed blend. Without this the car shivers and creeps at a standstill and it reads
   //         as a bug in the friction model (PLAN.md "What would count as wrong").
   //
-  // MEASURED BUG, 2026-09-27: this was gated on |vLong| while it zeroes vLat. A car sliding
+  // MEASURED BUG: this was gated on |vLong| while it zeroes vLat. A car sliding
   // sideways at 10 m/s with only 1.2 m/s of FORWARD speed satisfied the gate, so the blend deleted
   // the slide — 10.1 m/s to 0 in 0.1 s (10 g) at the end of every handbrake turn. Gate on the TOTAL
   // planar speed; that is the quantity that does not vanish when the car is sideways (CLAUDE.md
   // rule 9).
   let vLong = inVLong, vLat = inVLat;
   const speed = Math.hypot(vLong, vLat);
-  // STEEP GROUND MOVES A STOPPED CAR (user, 2026-10-03: "super steep angles should still move /
+  // STEEP GROUND MOVES A STOPPED CAR (user: "super steep angles should still move /
   // push / pull the car even when parked or moving"). The blend and the rest-snap below exist so a
   // car does not shiver on FLAT ground; they used to hold it on any slope too. Now: it ROLLS along
   // its length once the slope pull beats what a car in gear holds (SLOPE_ROLL g), and SLIDES
@@ -560,7 +560,7 @@ function lowSpeedBlend(car: Car, carSpec: Spec, mass: number, gravity: number, d
 }
 
 /**
- * Telemetry section of step(): publish this step's forces, slips and aid activity on car.t, and
+ * Telemetry section of step: publish this step's forces, slips and aid activity on car.t, and
  * remember the slip angle and peak for the next step.
  */
 function writeTelemetry(car: Car, carSpec: Spec, tick: AxleTick, axles: AxleOutcome,
@@ -606,7 +606,7 @@ function writeTelemetry(car: Car, carSpec: Spec, tick: AxleTick, axles: AxleOutc
 }
 
 /**
- * Force sum of step(): drag, rolling resistance, the axle and ploughing forces, stability drag and
+ * Force sum of step: drag, rolling resistance, the axle and ploughing forces, stability drag and
  * slopes, resolved in the body frame and divided by mass. Returns the body accelerations.
  */
 function bodyAccelerations(car: Car, carSpec: Spec, mass: number, gravity: number, delta: number,
@@ -630,7 +630,7 @@ function bodyAccelerations(car: Car, carSpec: Spec, mass: number, gravity: numbe
 }
 
 /**
- * Position section of step(): remembers the longitudinal acceleration, turns the heading and
+ * Position section of step: remembers the longitudinal acceleration, turns the heading and
  * projects the body velocity back to world x/y before moving the car.
  */
 function advanceCar(car: Car, dt: number, vLong: number, vLat: number, accelLong: number) {
@@ -694,7 +694,7 @@ export function step(car: Car, input: CarInput, dt = PHYSICS_STEP_SECONDS) {
   const ploughF = ploughingForces(
       car, carSpec, mass, vLong, vLat, loadKF, loadKR);
 
-  // ---- 8. integrate TCS, STABILITY HALF (2026-10-03; user: one TCS switch covers wheelspin AND
+  // ---- 8. integrate TCS, STABILITY HALF (user: one TCS switch covers wheelspin AND
   // slides). Real stability control brakes ONE wheel to make a yaw moment; this model has one tyre
   // per axle, so it applies that moment directly — capped at what one wheel braked at its grip
   // limit could give (mu x a quarter of the load x half the track) — plus the matching drag of that

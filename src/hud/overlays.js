@@ -1,5 +1,5 @@
 // hud/overlays.js — tune panel, signal lights, notice card, speed camera card and race flag.
-// Pure moves out of hud.js (task 173).
+// Pure moves out of hud.js.
 
 import { COL } from '../world/colours.ts';
 import { isChanged } from '../tune.js';
@@ -13,7 +13,7 @@ import { drawHudPanel, drawHudLabel } from './widgets.js';
  * @param {object} car the car read live
  * @returns {void}
  */
-// The panel. Rows are drawn from the SAME list hit() walks, so a button is never drawn somewhere
+// The panel. Rows are drawn from the SAME list hit walks, so a button is never drawn somewhere
 // its tap is not. A changed row is marked, and every value is read live off the car (rule 10).
 export function drawHudTune(ctx, state, rects, car) {
   drawHudPanel(ctx, rects.panel, { fill: "rgba(14,15,19,0.94)" });
@@ -172,7 +172,7 @@ export function drawHudCamera(ctx, game, width, height) {
     ctx.fillRect(0, 0, width, height);
   }
   // portrait: top right under the speedo; landscape: the empty left column under the top-left
-  // buttons (PHOTOGRAPHED 2026-10-06: top right in landscape covered the ABS / TCS buttons)
+  // buttons (PHOTOGRAPHED: top right in landscape covered the ABS / TCS buttons)
   const fontSize = Math.round(Math.min(width, height) * 0.035),
     boxWidth = Math.round(fontSize * 11), boxHeight = Math.round(fontSize * 3.6),
     land = width > height;
@@ -218,7 +218,7 @@ function noteNewFlag(state, flow, now) {
  * @returns {void}
  */
 export function drawHudFlag(state, ctx, game, width, height) {
-  // THE CHEQUERED FLAG (user, 2026-10-04: "only when you finish a race"; "look more like a real
+  // THE CHEQUERED FLAG (user: "only when you finish a race"; "look more like a real
   // flag — an overlay that WAVES in simulated 3D, shaded, detailed but still a quick pass"): a
   // cloth of NX x NY squares on a pole, every vertex lifted by a travelling wave (stronger toward
   // the free end), each square shaded by the wave's slope (light where it faces up, dark in the

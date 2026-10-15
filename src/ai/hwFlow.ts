@@ -39,7 +39,7 @@ export function endRace(ctx: HwCtx) {
 /**
  * Which countdown is due: 'ahead' (CATCH THEM), 'behind' (PULLING AWAY) or null.
  * CATCH THEM only when you are LAST and even the SLOWEST rival is off screen ahead (user,
- * 2026-10-06: "the catch them / loosing them warnings and timers should only show if the
+ * "the catch them / loosing them warnings and timers should only show if the
  * slowest ai has passed you / is going off screen ahead, otherwise you should be free to
  * race"). While any rival is behind you or on screen there is no clock. (A story-mode time /
  * distance limit can come later.)
@@ -52,7 +52,7 @@ export function dueKind(ctx: HwCtx, myS: number, rivals: HwEntry[], top: HwEntry
 }
 
 /**
- * GRACE (user, 2026-10-06: "catch them timer never seems to time out it fails to count down";
+ * GRACE (user: "catch them timer never seems to time out it fails to count down";
  * MEASURED in tools/_flowtest: a rival dipping back on screen at the edge for a moment - a
  * bend, the zoom breathing - set the clock back to the full HW_CATCH every time). A running
  * clock now survives up to GRACE s of the condition dropping; only staying back in touch longer

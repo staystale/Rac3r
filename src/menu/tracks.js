@@ -10,7 +10,7 @@ export const KIND = { lab: 'TEST GROUND', 'test-track': 'CIRCUIT', thruston: 'UK
   'brands-snatch-indy': 'UK CIRCUIT · INDY', 'sweaty-lamb': 'RALLY STAGE',
   killder: 'RALLY STAGE · FOREST', 'slidden-hill': 'RALLYCROSS', 'grass-track': 'AUTOGRASS',
   'stock-car': 'OVAL', naffcar: 'OVAL', sandbox: 'CIRCUIT' };
-// TRACK CATEGORIES (user, 2026-10-05). A level's category: CAT_OF by id, else generated / set rally
+// TRACK CATEGORIES. A level's category: CAT_OF by id, else generated / set rally
 // stages -> rally, endless -> roads, anything new and unlisted -> circuits (so a new level is never
 // hidden). ALL TRACKS keeps the old flat grid one tap away.
 const CATS = [
@@ -109,14 +109,14 @@ function drawRoadMap(canvas, level) {
 export function showMainMenu(menu) {
   const panel = addPane(menu, false);
   addElement(panel, 'h1', 'RAC3R');
-  addElement(panel, 'div', 'a driving sandbox', 'sub');   // the game's name (user, 2026-10-03)
+  addElement(panel, 'div', 'a driving sandbox', 'sub');   // the game's name
   addButton(menu, panel, 'TEST MODE', () => showTrackSelect(menu), 'go');
   addButton(menu, panel, 'GARAGE', () => showGarage(menu));
   addButton(menu, panel, 'STORY', () => {}, '', true, 'LOCKED');
 }
 
 /**
- * TEST MODE step 1: CATEGORY LIST (user, 2026-10-05: "a menu layer for circuit type, stick
+ * TEST MODE step 1: CATEGORY LIST (user: "a menu layer for circuit type, stick
  * appropriate tracks in the correct category" — "a BIG LIST", Grass Track in OVALS), then step 1b:
  * that category's track cards (overhead thumbnails).
  * @param {object} menu the menu context
@@ -204,7 +204,7 @@ export function showTrackList(menu, cat) {
 }
 
 /**
- * GENERATOR SETUP (user, 2026-10-04: procedural point-to-point stages): THEME, LENGTH, CORNERS,
+ * GENERATOR SETUP (user: procedural point-to-point stages): THEME, LENGTH, CORNERS,
  * SEED (◀ ▶ / NEW STAGE), the road map; every change regenerates (≤ ~0.5 s) and the setup
  * reopens on the new stage. Remembered in profile.gen.
  * @param {object} menu the menu context

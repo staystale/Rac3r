@@ -1,6 +1,6 @@
 // tune.js — THE DEBUG PANEL'S DATA. Open it, adjust, close it.
 //
-// Asked for directly by the user on 2026-09-27, and they were right to: handling feel was being
+// Asked for directly by the user on, and they were right to: handling feel was being
 // converged on by me guessing a number, measuring it headlessly and shipping a build, when the
 // person who can tell whether it feels good can find the value by hand in under a minute. This
 // is also the hidden-numbers overlay CLAUDE.md §3 asks for, made writable.

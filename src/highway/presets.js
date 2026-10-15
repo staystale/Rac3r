@@ -1,5 +1,5 @@
 // highway presets: the road types (HW_PRESETS), the window constants and the silly signs,
-// plus the tiny wrap / rng helpers every highway file shares. Split out of highway.js (task 185).
+// plus the tiny wrap / rng helpers every highway file shares. Split out of highway.js.
 import { lcg } from "../core/random.ts";
 // lanes / laneW / shoulder (left, hard shoulder; a solid line inside it when >= 2 m) / edge (right
 // margin) in m; maxDeg off straight up; sweep / bend = radius ranges (m); pStraight / pBend =
@@ -38,7 +38,7 @@ export const HW_PRESETS = {
     pStraight: 0.3,
     pBend: 0.25,
   },
-  // WALLED IN (user, 2026-10-05: "some levels that use this mechanic should be more walled in"):
+  // WALLED IN (user: "some levels that use this mechanic should be more walled in"):
   // `walls` = a continuous barrier kind both sides, `wallGap` m off the road edge; no trees / barns
   // inside the walls
   walled: {
@@ -61,7 +61,7 @@ export const HW_NAMES = {
   dual: "DUAL C/WAY",
   walled: "WALLED",
 };
-// SPAWN_S 40 -> 300 (MEASURED 2026-10-05, treadmillcheck: the road's raw START was only 40 m behind
+// SPAWN_S 40 -> 300 (MEASURED, treadmillcheck: the road's raw START was only 40 m behind
 // the car at spawn, inside a zoomed-out view); K_RATE = the fastest curvature change, 1/m per m (a
 // clothoid; 5e-5 = a 0 -> R 200 ramp over 100 m)
 export const STEP = 4,

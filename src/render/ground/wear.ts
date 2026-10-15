@@ -13,7 +13,7 @@ import { paintLayers, artBase } from "./art.ts";
 
 // Dynamic surface wear patches: grass worn to short grass, dirt, and mud Drawn ON TOP OF the
 // track ribbon and ground, but UNDER the kerbs and marks! TWO PASSES around the covers. MEASURED
-// BUG, 2026-10-03 (user: "puddles on the grass track ... vanish when driven over and turned dirt
+// BUG, (user: "puddles on the grass track ... vanish when driven over and turned dirt
 // into mud"): wear was drawn AFTER the covers, so every 1.5 m dirt cell turning to mud beside a
 // puddle painted its square over the puddle's edge until the puddle was gone.
 //   'base'  — cells that started with no cover (dirt -> mud ...): drawn UNDER the covers
@@ -41,7 +41,7 @@ export function drawWear(groundCtx: GroundCtx, pass = 'base') {
  */
 function groupWornCells(groundCtx: GroundCtx, pass: string) {
   const { view, toScreenX, toScreenY } = groundCtx;
-  // 2026-10-03: a worn cell now LOOKS like what it has become (the same SURFACE_ART as everywhere
+  // a worn cell now LOOKS like what it has become (the same SURFACE_ART as everywhere
   // else) instead of a flat tinted square. Visible cells are grouped by surface, and each group
   // is one path: fill its base, clip to it, paint its layers once — so 1000 worn cells cost a
   // handful of draw calls.
@@ -64,7 +64,7 @@ function groupWornCells(groundCtx: GroundCtx, pass: string) {
     }));
     group.r.push(px0, py0, px1 - px0, py1 - py0);
     // world bbox of the group, so its pattern is painted over these cells only. MEASURED
-    // 2026-10-03: painting each group across the whole view (clip-only) cost the lab panels run
+    // painting each group across the whole view (clip-only) cost the lab panels run
     // 236 -> 192 frames.
     group.bx0 = Math.min(group.bx0, cell.cx * WEAR_CELL);
     group.bx1 = Math.max(group.bx1, (cell.cx + 1) * WEAR_CELL);
@@ -88,7 +88,7 @@ function paintWearGroup(groundCtx: GroundCtx, groupKey: string, group: WearGroup
     view.ctx.beginPath();
     // a soft DISC per cell (radius 0.72 of the cell, so neighbours overlap) rather than a hard
     // square: worn ground then spreads as organic ruts instead of a blocky staircase
-    // (photographed 2026-10-03)
+    // (photographed)
     for (let i = 0; i < rects.length; i += 4) {
       // squares in pixel art
       view.ctx.rect(rects[i], rects[i + 1], rects[i + 2], rects[i + 3]);
@@ -136,7 +136,7 @@ function paintBump(groundCtx: GroundCtx, bump: Bump, ppm: number) {
     view.ctx.save();
     view.ctx.translate(toScreenX(bump.x), toScreenY(bump.y));
     view.ctx.rotate(bump.rot || 0);
-    // TERRAIN SHAPES ARE SHOWN BY HILL-SHADING NOW (step 3, 2026-10-03; user chose "rebuild the
+    // TERRAIN SHAPES ARE SHOWN BY HILL-SHADING NOW (step 3; user chose "rebuild the
     // old jumps as terrain" and "pixel hill-shading"). The hand-drawn dome / wedge / table art
     // went: photographed together with the shading it read as two layers of mud. Kept: the KERB
     // (it is paint, not height) and the ramp's RED LIP — the ground really does fall away there,

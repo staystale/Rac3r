@@ -1,5 +1,5 @@
 // highway dress: the per-window dressing (trees, gantries, armco, walls, litter) and the
-// NOX / NOF node-tool switches. Split out of highway.js (task 185).
+// NOX / NOF node-tool switches. Split out of highway.js.
 import { envValue } from "../core/debug.ts";
 import { STEP, SIGNS } from "./presets.js";
 import { stateOf } from "./road.js";
@@ -13,7 +13,7 @@ export const NOX = !!envValue("HWNOX");
 // node only: no FIELDS (scenery v2 A/B)
 export const NOF = !!envValue("HWNOF");
 /**
- * Build the shared context of one dress() call: the road window and the two helpers every step
+ * Build the shared context of one dress call: the road window and the two helpers every step
  * uses (pointAt, clear).
  * @param {object} level the highway level
  * @param {number} firstIdx first road point to dress
@@ -50,7 +50,7 @@ function makeDressContext(level, firstIdx, endIdx, loose) {
 }
 
 /**
- * Half the road is FARMLAND now (fields, hedges, villages: fields() above), was a third.
+ * Half the road is FARMLAND now (fields, hedges, villages: fields above), was a third.
  * @param {number} dist road distance
  * @returns {string} the biome name there
  */
@@ -288,11 +288,11 @@ export function dress(level, firstIdx, endIdx, loose) {
     if (!NOF) fields(level, i, pointAt, clear, biomeName, loose);
     layRoadsideTrees(ctx, i, dist, biomeName, mark);
     layFarmBlock(ctx, i, biomeName, mark);
-    // SLIP ROADS + BRIDGES (user, 2026-10-05: "off-slip every 2-4 km (tapering lane, sign, ends in
+    // SLIP ROADS + BRIDGES (user: "off-slip every 2-4 km (tapering lane, sign, ends in
     // fields; drivable)"; "bridges over a road, a river and a railway + a footbridge"; "rare cheeky
     // extras"): planned on the road's own distance, placed only on near-straight road (|curv| <
     // 1/900 over the stretch), never on top of each other. extras(lv, i, s) below. (every preset
-    // since 2026-10-06, user: "all the types of highway should have bridges and slip roads you can
+    // since, user: "all the types of highway should have bridges and slip roads you can
     // take")
     if (!NOX) extras(level, i, dist, pointAt, mark);
     layGantryAndSign(ctx, i, dist, mark);

@@ -13,7 +13,7 @@
 // the last highway slide (this frame included): <0.5 s, 0.5-1 s, 1-2 s, 2-3 s, 3-5 s, 5 s+,
 // or none (no slide yet). It shows whether drops come with a delay after a slide (garbage
 // collection). The bucket line is split over 2 text lines to fit 390 px wide.
-// highway.js and camera.ts call meterEvent(); main.js takes the counts once per frame.
+// highway.js and camera.ts call meterEvent; main.js takes the counts once per frame.
 
 const pending = { slide: 0, overview: 0 };
 const taken = { slide: 0, overview: 0 };   // reused: takeMeterEvents allocates nothing

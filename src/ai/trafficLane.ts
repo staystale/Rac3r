@@ -34,7 +34,7 @@ export function findLead(slot: TrafficCar, ents: TrafficEnt[]) {
 }
 
 /**
- * CLEAR for the WHOLE manoeuvre (MEASURED 2026-10-05, trafficcheck: a ~26 m look back let
+ * CLEAR for the WHOLE manoeuvre (MEASURED, trafficcheck: a ~26 m look back let
  * a car 25 km/h faster arrive alongside during the ~5 s it takes to indicate + cross ->
  * traffic-on-traffic crashes): room ahead for a slower car, and a car behind must
  * not be able to close the gap within CROSS_T

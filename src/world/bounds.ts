@@ -1,13 +1,13 @@
 import type { Rect } from "./types.ts";
 
-// bounds.js — the world edge (floor, kerb, run-off, fence, bounds). Moved verbatim out of lab.js.
+// bounds.js — the world edge (floor, kerb, run-off, fence, bounds).
 
 // MEASURED: at 100 (a 200 m floor) the hatch used 83% of the lab just reaching 100 km/h. 150 fixed
 // that but the cars then got much faster again and crossed 300 m in ~5 s (photographed, car off
 // the map).
 // the standard world (generated stages build in it, whatever level is current)
 export const BASE_FLOOR = 260;
-// let (2026-10-05): per level — LEVEL.floor (the endless highway: 100 km); setLevel sets it
+// let: per level — LEVEL.floor (the endless highway: 100 km); setLevel sets it
 // m half-extent -> a 520 x 520 m floor, ~9 s end to end at 216 km/h.
 export let FLOOR = 260;
 export const GRID = 5;           // m, faint grid spacing
@@ -20,7 +20,7 @@ export const GRID = 5;           // m, faint grid spacing
 // is waiting that you can try to clear or dodge. The fence is the only thing that actually stops
 // you.
 //
-// REWRITTEN 2026-09-28. This used to hand vehicle.js a scripted "you are airborne for 0.6 s". It
+// REWRITTEN. This used to hand vehicle.js a scripted "you are airborne for 0.6 s". It
 // now hands it nothing but a HEIGHT and a GRIP, and the car's own suspension decides what that
 // feels like. So a kerb strike works identically whether you are straight, turning, or sideways
 // on the handbrake: the edge does not know, and does not need to.
@@ -29,7 +29,7 @@ export const KERB_W = 3.5;           // m across the strip
 export const KERB_H = 0.10;
 // grip on the strip itself — painted concrete, not tarmac
 export const KERB_MU = 0.70;
-// m amplitude of the rumble ridges. MEASURED 2026-09-28: 0.013 swung vertical load by 1.90 just
+// m amplitude of the rumble ridges. MEASURED: 0.013 swung vertical load by 1.90 just
 // DRIVING ALONG the strip at 25 m/s, i.e. repeatedly airborne. A real rumble strip buzzes the
 // car, it does not unload the tyres — a tyre with a 0.30 m radius bridges most of a ridge. 0.005
 // gives a 0.35 swing, which is a shake.
@@ -38,7 +38,7 @@ export const KERB_RIDGE = 0.005;
 // per ridge); shorter ones beat badly.
 export const KERB_RIDGE_L = 1.8;
 
-// m of gravel between the kerb and the fence. MEASURED 2026-09-28: at 30 m a car entering at
+// m of gravel between the kerb and the fence. MEASURED: at 30 m a car entering at
 // 20 m/s still reached the fence at 10 m/s, so the trap never actually caught anyone — it was
 // just a slippery strip in front of a wall.
 export const RUNOFF_W = 42;
@@ -48,7 +48,7 @@ export const RUNOFF_MU = 0.55;       // gravel: you can drive on it, badly
 // punishes you here.
 export const RUNOFF_ROUGH = 0.004;
 export let FENCE = FLOOR + RUNOFF_W;   // the actual barrier (follows FLOOR)
-// THE FLOOR RECTANGLE (S-B, 2026-10-06; user: the lab "about 1 km tall and rectangular, extended
+// THE FLOOR RECTANGLE (S-B; user: the lab "about 1 km tall and rectangular, extended
 // downwards"): where the floor edge is on each side - the kerb, run-off and fence follow it
 // (groundAt, fenceClamp, render.ts drawRunoff / drawKerb / drawFence, cones.js).
 // LEVEL.bounds { x0, x1, y0, y1 }; without it the square +-FLOOR (every other level, unchanged).

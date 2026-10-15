@@ -3,7 +3,7 @@ import type { SurfaceId } from "../surfaces.ts";
 import type { Rect, Zone, Cone, Bump, Paint, Board } from "../types.ts";
 
 // =============================================================================================
-// S-B THE LAB EXTENSION (user, 2026-10-06, VERBATIM: "add some of every object laid out nicely
+// S-B THE LAB EXTENSION (user, VERBATIM: "add some of every object laid out nicely
 // ready to test crash into ect into he lab level, maybe extend the bottom of the map ? with some
 // strips of all the different tarmacs and stuff, the objects can be at the end of the lanes make
 // it fun and useful"; Q3 "go 1k why not fill the other area with an off road test area with some

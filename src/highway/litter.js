@@ -1,5 +1,5 @@
 // highway litter: the roadside debris, verge litter, tyre stacks, cone tapers and loose objects.
-// Split out of highway.js (task 185).
+// Split out of highway.js.
 import { STEP } from "./presets.js";
 // the roadside debris mix (weights by repetition: pallets / boxes / tarps are what really ends up
 // on a hard shoulder) + paint for bins, barrels, bumpers, tarps
@@ -55,7 +55,7 @@ function layVergeLitter(ctx, loot, i, dist) {
           off = onShoulder
             ? -halfWidth + 0.4 + looseRand() * (cfg.shoulder - 0.8)
             : side * (halfWidth + 0.8 + looseRand() * 6);
-        // (2026-10-06, user: "I want to SEE some debris"): ~1 in 2 of the litter (and of the
+        // (user: "I want to SEE some debris"): ~1 in 2 of the litter (and of the
         // scatters) is ROADSIDE DEBRIS (cones.js DEBRIS kinds), the rest tyres + cones
         const pos = pointAt(i, off),
           roll = looseRand();
@@ -77,7 +77,7 @@ function layVergeLitter(ctx, loot, i, dist) {
 }
 
 /**
- * DEBRIS SCATTERS (2026-10-05 screenshots: lone 0.8 m tyres barely read at the treadmill
+ * DEBRIS SCATTERS (screenshots: lone 0.8 m tyres barely read at the treadmill
  * zoom): ~1 per 130 m, 4-7 mixed tyres + cones spread over 8 m of one verge, a few spilling
  * up to the edge line.
  * @param {object} ctx the dress context
@@ -167,7 +167,7 @@ function layConeTaper(ctx, loot, i, dist) {
 }
 
 /**
- * LOOSE ROADSIDE (user, 2026-10-05: "as it's open sided, be LITTERED with TYRES and CONES and
+ * LOOSE ROADSIDE (user: "as it's open sided, be LITTERED with TYRES and CONES and
  * have appropriate CHEVRON signs for the corners"): knockable cones.js objects into `loose` (the
  * level's cones at a restart, else streamed in by main.js), open presets only. CHEVRONS on the
  * outside of every bend tighter than R 650, one per 48 m, 4.5 m off the edge (behind the armco
@@ -186,7 +186,7 @@ export function layLooseRoadside(ctx) {
         loose.push(obj);
         return obj;
       };
-    // LITTER DENSITY (user, 2026-10-05: "they should be RANDOM and also have a SLIDER for frequency
+    // LITTER DENSITY (user: "they should be RANDOM and also have a SLIDER for frequency
     // / density"; default 1 = as tested and seen): lv.litter x every litter chance (setup's LITTER
     // slider, 0 = none .. 3 = a scrapyard); chevrons are signs, not litter
     const density = level.litter ?? 1, chance = (prob) => Math.min(0.95, prob * density);

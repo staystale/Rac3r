@@ -660,7 +660,7 @@ export function createTiles(view: View, cam: Cam, settings: Settings, helpers: T
     // tiles painted because none existed at that key (tools/tilecost.mjs)
     newTiles: 0,
     perStep: {},                // tiles painted per zoom step k (tools/tilecost.mjs)
-    prefetched: 0,              // tiles painted by prefetch() (tools/tilecost.mjs)
+    prefetched: 0,              // tiles painted by prefetch (tools/tilecost.mjs)
     lastStep: null,
     drawnN: 0,                  // art px per tile the last frame was DRAWN at (tools/hwwobble.mjs)
     standIn: false,             // this frame showed a stand-in somewhere (tools: tile pop-in)

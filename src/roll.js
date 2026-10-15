@@ -1,11 +1,11 @@
-// roll.js — ROLLOVERS + SIDE / ROOF SLIDES (2026-10-04). User: "the roll over system should be
+// roll.js — ROLLOVERS + SIDE / ROOF SLIDES. User: "the roll over system should be
 // included in damage"; "can we get roll overs and side and roof slides". Backlog spec (TODO
 // MASTER BACKLOG E): a chance from impact speed, landing, slide angle and surface; landing on
 // things = high chance; can roll several times onto the side or the roof, then slide.
 //
 // car.roll = { phase: 'none' | 'rolling' | 'side' | 'roof', phi, w, still } — phi is the roll
 // angle about the car's long axis (0 = on its wheels, +-PI/2 on a side, PI on the roof), w its
-// rate. vehicle.reset() clears it (RESET puts you back on your wheels).
+// rate. vehicle.reset clears it (RESET puts you back on your wheels).
 // TRIP: a car on its wheels sliding SIDEWAYS faster than V_TRIP for its ground trips over its
 // leading side — soonest where the ground grabs the sliding tyres (gravel, dirt, sand, mud), late
 // on grass and snow, only in a big fast spin on tarmac, never on ice — scaled by the car's static
@@ -24,7 +24,7 @@ const SSF_REF = 1.44;
 const SETTLE_W = 2.4;
 const HALF_PI = Math.PI / 2;
 
-// ROLL CHANCE (user, 2026-10-04): v1 rolled most slides; v2 "a % chance per floor grid cell, by
+// ROLL CHANCE: v1 rolled most slides; v2 "a % chance per floor grid cell, by
 // surface"; v3 (this): "it's getting in the way of DRIFTING — keep it closer to 90 deg and to
 // higher speeds; below 60 mph a low chance; long grass, sand, mud, deep mud, snow higher; dirt,
 // gravel, grass medium-low; hard surfaces low, broken tarmac slightly higher than tarmac". One
@@ -33,7 +33,7 @@ const HALF_PI = Math.PI / 2;
 // mph)^4 under it, rising past it, cap x2.5) x the car's stability (track / 2 cg).
 const PCT = {
   // high: the ground grabs a sliding car
-  // (user, 2026-10-04) SAND the HIGHEST risk (it also stops a slide fastest, so its per-cell % is
+  // SAND the HIGHEST risk (it also stops a slide fastest, so its per-cell % is
   // highest), SNOW a close second
   grassLong: 5, sand: 22, mud: 5, thickMud: 7, snow: 11,
   // a GRAVEL TRAP (lab.js SURFACE_TRAP: deep, ploughing): the readiest to dig in and flip a car
@@ -100,7 +100,7 @@ export function tripCheck(car, dt, rnd = Math.random) {
 function tripLanding(car, dt, vLat, stability, rnd) {
   const landed = !(car.air > 0) && (car._airT || 0) > 0.35;
   car._airT = car.air > 0 ? (car._airT || 0) + dt : 0;
-  // a CROOKED LANDING (user, 2026-10-04, after Killder's jump: "a little easy to roll over on
+  // a CROOKED LANDING (user, after Killder's jump: "a little easy to roll over on
   // landing"): was 30 % for any landing with 4 m/s sideways; now only a properly sideways one,
   // 6+ m/s and a slide angle past 30 deg, up to 20 % at 12 m/s, x the car's stability
   if (landed) {

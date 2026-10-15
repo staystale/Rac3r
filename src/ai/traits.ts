@@ -47,7 +47,7 @@ export function aiTraits(diffIndex: number, i: number, fieldSize: number, seed =
   const loose = 1.4 - skill * 0.8;   // 0.6 (skill 1) .. 1.4 (skill 0)
   return {
     diff: difficulty.id, persona: persona.id, skill,
-    // PRECISION (user, 2026-10-04: "a little bit messy is good, but tighter, faster driving at
+    // PRECISION (user: "a little bit messy is good, but tighter, faster driving at
     // harder difficulty, like real life"; "crashing should reduce with higher difficulty"):
     // 0 Mobile .. 1 Real, nudged by skill. Tighter gaps, and the car ahead's braking for the
     // corner is ANTICIPATED (below) instead of reacted to.

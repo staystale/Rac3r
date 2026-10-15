@@ -1,4 +1,4 @@
-// cones/coneCar.js: ONE CAR vs ONE OBJECT (2026-10-04, multi-car: AI cars hit the same cones /
+// cones/coneCar.js: ONE CAR vs ONE OBJECT (multi-car: AI cars hit the same cones /
 // tyres / bales): the contact, the momentum swap, and what the hit does to the object (topple,
 // break, burst, tip, pop). Every function takes the one cones context made in cones.js.
 import {
@@ -114,7 +114,7 @@ function transferMomentum(obj, car, contact) {
 }
 
 /**
- * CHEVRONS + FLAGS (user, 2026-10-04: "flat and driven over after 2 impacts"): DISTINCT
+ * CHEVRONS + FLAGS (user: "flat and driven over after 2 impacts"): DISTINCT
  * impacts (contacts > 0.3 s apart; a contact spans several steps); the second leaves it flat
  * on the ground, out of the collisions.
  * @param {any} ctx the cones context
@@ -242,7 +242,7 @@ function afterHit(ctx, obj, car, newTyres, rel, speed) {
 }
 
 /**
- * ONE CAR vs ONE OBJECT. Lifted out of step()'s loop unchanged except continue -> return, so a
+ * ONE CAR vs ONE OBJECT. Lifted out of step's loop unchanged except continue -> return, so a
  * single car behaves exactly as before (tools/objcheck, tyrewallcheck, balecheck).
  * @param {any} ctx the cones context
  * @param {any} obj the loose object

@@ -134,7 +134,7 @@ function roundRect(
 /**
  * Quantises the zoom and snaps the camera so ground tiles blit on whole art pixels.
  *
- * PIXEL-LOCKED VIEW (user, 2026-10-04: "tracks seem to quiver and shake at speed"). MEASURED
+ * PIXEL-LOCKED VIEW (user: "tracks seem to quiver and shake at speed"). MEASURED
  * (tools/shimmercheck, Brands GP at speed): every ground tile was blitted at a FRACTIONAL
  * art-pixel position (500/500 frames) and tiles of one frame at MIXED widths (317/500) —
  * each edge was rounded separately, in CSS px not art px — so the pixel-art ground was
@@ -161,7 +161,7 @@ function applyViewLock(ctx: RenderCtx): ViewLock {
     const devPPM = view.PPM * view.zoom * view.dpr,
       halfW = (view.W * view.dpr) / 2,
       halfH = (view.H * view.dpr) / 2;
-    // SUB-PIXEL BLIT (user, 2026-10-04, after the lock: "it is still shaking or wiggling as I
+    // SUB-PIXEL BLIT (user, after the lock: "it is still shaking or wiggling as I
     // drive"). MEASURED (tools/wobblecheck): snapping the camera to whole art pixels made the
     // world move in uneven 1-or-2-art-pixel steps — camera jerk median 1.46 px per frame, max
     // 8.8 (unlocked: 0.03). Now the world is DRAWN at the snapped camera (crisp, no shimmer) and
@@ -186,7 +186,7 @@ function applyViewLock(ctx: RenderCtx): ViewLock {
  *
  * ORDER MATTERS. Everything that IS the ground goes down first, then the marks layer over all
  * of it, then the fence — which is a vertical object and belongs on top of everything on the
- * deck. MEASURED BUG, 2026-09-28: the run-off was filled AFTER the marks blit, so gravel tracks
+ * deck. MEASURED BUG: the run-off was filled AFTER the marks blit, so gravel tracks
  * were painted and then immediately buried under the gravel (user: "we should leave little
  * tracks in the gravel trap"). Check what a thing is drawn OVER — CLAUDE.md §4. ground = floor
  * + zones + ribbon + covers + WEAR, from the tile cache above
@@ -341,7 +341,7 @@ function paintFlat(
   cam.x = (minX + maxX) / 2;
   cam.y = (minY + maxY) / 2;
   view.noPatterns = true;
-  // the same ground layers frame() draws: the cached tiles' contents, then the live edge
+  // the same ground layers frame draws: the cached tiles' contents, then the live edge
   // (run-off + edge kerb)
   try {
     ctx.drawFloor();
@@ -383,10 +383,10 @@ function makeDebugTools(ctx: RenderCtx) {
       camState.pinZoom = zoom;
       if (zoom) view.zoom = zoom;
     },
-    // for tools/visualcheck.mjs (user rule, 2026-10-03: "surface visuals should be accurate to
+    // for tools/visualcheck.mjs (user rule: "surface visuals should be accurate to
     // their effects"): the level painted FLAT (each surface its base colour, no patterns, no
     // palette snap) at ppm px per metre, plus the colour each surface id is painted in, so the
-    // tool can compare every drawn pixel with groundAt().
+    // tool can compare every drawn pixel with groundAt.
     debugFlat(minX: number, minY: number, maxX: number, maxY: number, ppm: number) {
       return paintFlat(ctx, minX, minY, maxX, maxY, ppm);
     },
@@ -532,7 +532,7 @@ export function createRenderer(canvas: HTMLCanvasElement, settings: Settings) {
     snap(car: CamCar) {
       cam.x = car.x;
       cam.y = car.y;
-      // the look-ahead restarts from the car (follow() eases it back in)
+      // the look-ahead restarts from the car (follow eases it back in)
       cam.lx = 0;
       cam.ly = 0;
       cam.initialised = true;

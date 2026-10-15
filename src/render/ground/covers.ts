@@ -6,7 +6,7 @@ import type { Cover, CoverCells, CoverId, MergedCell, MergedCover } from "../../
 import type { GroundCtx, ViewRect } from "./types.ts";
 import { paintLayers, artBase } from "./art.ts";
 
-// COVERS (2026-10-03) — snow, ice and puddles lying ON any surface (LEVEL.covers, lab.js).
+// COVERS — snow, ice and puddles lying ON any surface (LEVEL.covers, lab.js).
 // Static, so they are painted into the ground tiles. Snow and ice are opaque and use their own
 // SURFACE_ART; a puddle is TRANSLUCENT water over whatever is under it, so you can see it is a
 // puddle on grass, on dirt or on tarmac. When wear changes a cell under a cover (snow packed to
@@ -60,12 +60,11 @@ function coverCells(cover: Cover): CoverCells {
 export const PUDDLE_TINT: Record<string, string> = {
   dirt: 'rgba(86,64,42,0.62)', mud: 'rgba(62,46,32,0.66)', thickMud: 'rgba(46,34,24,0.70)',
   sand: 'rgba(150,128,90,0.55)', gravel: 'rgba(96,90,78,0.58)',
-  // on hard ground, water is a dark mirror, not blue (user, 2026-10-03: puddles on tarmac looked
+  // on hard ground, water is a dark mirror, not blue (user: puddles on tarmac looked
   // wrong)
   tarmac: 'rgba(16,19,26,0.62)', racetarmac: 'rgba(12,14,20,0.62)',
   broken: 'rgba(30,33,42,0.60)', lab: 'rgba(120,128,142,0.45)',
-  // water on grass reads BLUE (it vanished into the grass as dark green — photographed
-  // 2026-10-03)
+  // water on grass reads BLUE (it vanished into the grass as dark green)
   grass: 'rgba(74,104,150,0.62)', grassShort: 'rgba(74,104,150,0.62)',
   grassLong: 'rgba(66,96,140,0.64)',
 };
@@ -112,7 +111,7 @@ export function drawPatches(groundCtx: GroundCtx) {
   }
 }
 
-// MERGED COVERS (user, 2026-10-04: "puddles, streams or bodies of water should CONNECT together
+// MERGED COVERS (user: "puddles, streams or bodies of water should CONNECT together
 // if touching"). Each cover used to be drawn on its own — its own translucent fill and dark rim —
 // so overlapping puddles darkened twice and showed rims inside each other: a stream read as a
 // string of beads. Now, per cover KIND, the union of every cover's 0.5 m cells (the same cells

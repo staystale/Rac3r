@@ -9,7 +9,7 @@ import type {
 } from "./types.ts";
 type Rng = () => number;
 // =============================================================================================
-// SURFACE BLENDING AT CHANGE POINTS (user, 2026-10-03: "sections of surfaces should rarely come
+// SURFACE BLENDING AT CHANGE POINTS (user: "sections of surfaces should rarely come
 // to abrupt changes — a blend area where random patches of the under layer show through and the
 // top layer drags over; semi random, greater at the point of blend and lower away from it, so
 // we get a natural gradient"). Generated as PATCHES (the same mechanism as the Grass Track's
@@ -26,7 +26,7 @@ type Rng = () => number;
 // every load — except levels that re-randomise (the Grass Track), whose blend is rolled again with
 // the layout.
 export const BLEND_W = 6;          // m from the change point to where the blend fades out
-// User, 2026-10-03 (after seeing it): "smaller random patches, and only LOOSE surfaces should move
+// User, (after seeing it): "smaller random patches, and only LOOSE surfaces should move
 // to hard surfaces". So patches are 0.4-1.4 m (were 1-3.2 m), twice as many to keep the coverage,
 // and a HARD surface (tarmac family, lab floor, wet tarmac) never scatters onto anything — loose
 // ground drags onto hard ground, never the reverse.
@@ -44,7 +44,7 @@ export function seededRng(str: string): () => number {
 }
 // 0..1, dense near 0: the "greater at the point of blend" falloff
 const tri = (rng: Rng): number => rng() * rng();
-// SQUARES, not circles (user, 2026-10-03, with the pixel-art pass: "make the surface and
+// SQUARES, not circles (user, with the pixel-art pass: "make the surface and
 // transitions squares too, no circles"): every blend patch is an axis-aligned square of 0.5, 1.0 or
 // 1.5 m on a half-metre world grid.
 const SQ_GRID = 0.5;
@@ -59,10 +59,10 @@ function blendPatch(rng: Rng, x: number, y: number, surface: Surface): Patch {
 //   instead of a smooth falloff.
 // (a) sector change points: `signed` is the signed distance from the change point.
 // (b) loose road edges: 1 m steps (was 2 m before patches got smaller). CLEANER SIDES (user,
-//   2026-10-03: "sides of tracks should be a cleaner transition, like real life"): only a thin,
+//   "sides of tracks should be a cleaner transition, like real life"): only a thin,
 //   sparse fringe of the road material at the edge — was 55% per metre out to ~5 m, plus the verge
 //   creeping onto the road (removed).
-//   The `rng() < 0.18` branch: the road drags a little onto the verge.
+//   The `rng < 0.18` branch: the road drags a little onto the verge.
 // (c) natural zone edges: 1 m steps (was 2 m before patches got smaller). (S-B) a zone laid in a
 //   level's EXTENSION (z.ext: beyond the original square) blends there; every other zone keeps the
 //   square rule, so the old lab's blend is bit-identical (tools/_labcheck.mjs). `sides`: outward,
@@ -211,7 +211,7 @@ export function buildBlend(level: Level, rng: Rng): Patch[] {
   return out.filter((patch) => !patch.surface.hard);
 }
 // Per-level preparation: re-roll random layouts, build (or reuse) the blend, index every patch in
-// the grid. SURFACE INCLUSIONS (user, 2026-10-03: "can surfaces have a chance to contain other like
+// the grid. SURFACE INCLUSIONS (user: "can surfaces have a chance to contain other like
 // surfaces % wise ... keep it proportional and realistic"; table APPROVED as proposed). Share of
 // each surface's AREA covered by small patches of a related surface; '@x' is a COVER (puddle / snow
 // / ice) rather than a ground patch. Seeded per level (the Grass Track re-rolls with its layout).
@@ -230,7 +230,7 @@ const INCLUDE: Record<string, [string, number][]> = {
   snow: [['@ice', 0.10]],
   ice: [['@snow', 0.10]],
 };
-// USER, after seeing it (2026-10-03): "it looks awful, too much too often — it should be like 10%
+// USER, after seeing it: "it looks awful, too much too often — it should be like 10%
 // of that, and ideally smaller patches". So: the same table, but INCL_RATE 0.1 of the patch COUNT
 // the table implies at the original 1.5-5 m size, and the patches themselves 0.75-2 m.
 const INCL_STEP = 6, INCL_MIN = 0.75, INCL_MAX = 2, INCL_COVER_CAP = 30, INCL_RATE = 0.1,
@@ -297,7 +297,7 @@ function isNearKeepOut(rects: KeepOut[], x: number, y: number, pad: number): boo
 export function buildInclusions(level: Level, rng: Rng): Inclusions {
   const patches: Patch[] = [], covers: InclusionCover[] = [];
   // ENDLESS levels (the highway, 100 km a side): the FLOOR-wide 6 m scan below is ~1e9 cells there
-  // (MEASURED 2026-10-05: froze the Test Mode menu, ran node out of heap). The road window moves
+  // (MEASURED: froze the Test Mode menu, ran node out of heap). The road window moves
   // anyway, so no inclusions on an endless level.
   if (level.endless) return { patches, covers };
   // expected patch area: ellipse of w x h, w and h uniform in [MIN, MAX] -> pi/4 x E[w]^2

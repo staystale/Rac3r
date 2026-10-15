@@ -1,5 +1,5 @@
 // highway road: the centre-line generator (elements, curvature, growTo) and the readers of it
-// (locate, roadFrame, roadPose, roadSpan). Split out of highway.js (task 185).
+// (locate, roadFrame, roadPose, roadSpan). Split out of highway.js.
 import { STEP, UP_HEADING, K_RATE, wrap } from "./presets.js";
 // lateral offsets from the centreline: - = the driver's LEFT (the -normal side; lab.js normals
 // point to the driver's right)
@@ -18,14 +18,14 @@ export function stateOf(level) {
 // the next road element: a STRAIGHT, a SWEEPER or a tighter BEND. A curve turns back toward
 // straight-up once the heading has wandered past half the limit, and its total turn is capped so
 // the heading never passes the limit; turning back it may swing right across to the other side (the
-// "vary obviously" swings). LEAN TARGET (user, 2026-10-05, phone: "it always aims diagonally LEFT —
+// "vary obviously" swings). LEAN TARGET (user, phone: "it always aims diagonally LEFT —
 // it should go left AND right and vary"). MEASURED (tools/headingcheck): the old rule only turned
 // back past HALF the limit, so the road could sit on one side for km — the live seed leaned LEFT
 // (-16..-58 deg) from 0.5 to 4.5 km, seed 7 for 12.9 km. Now the road steers toward a TARGET LEAN
 // that ALTERNATES sides (35-100 % of the limit) and is held for 0.5-1.6 km; near the target it runs
 // straight or throws a small S-wiggle.
 function nextElement(state, cfg) {
-  // the road's SHAPE has its own stream (st.grnd, 2026-10-06): it used to share st.rnd with the
+  // the road's SHAPE has its own stream (st.grnd): it used to share st.rnd with the
   // dressing, so every scenery change re-rolled the road (MEASURED: moving the slips / bridges to
   // their own stream moved seed 4242's road at 6 km by 2 km sideways)
   const rand = state.grnd, max = cfg.maxDeg * Math.PI / 180, off = wrap(state.hdg - UP_HEADING);
@@ -54,7 +54,7 @@ function nextElement(state, cfg) {
   }
   turn = Math.min(turn, Math.max(0.02, max - dir * off));
   // total turn = k * (ramp + hold); length = 2 ramp + hold. The RAMP is long enough that curvature
-  // changes no faster than K_RATE per m (MEASURED 2026-10-05, tools/treadmillcheck: a 30 m minimum
+  // changes no faster than K_RATE per m (MEASURED, tools/treadmillcheck: a 30 m minimum
   // ramp gave the dual carriageway's R 120-200 bends a 5.7e-4 jump per 4 m step and the bench
   // driver ran wide out of an S-bend); a turn too small for that ramp is made WIDER (lower k),
   // never sharper.
@@ -134,7 +134,7 @@ export function locate(state, x, y) {
     dy,
   };
 }
-// ROAD FRAME for ANY car (traffic.js, later the highway AI): like locate() but with the caller's
+// ROAD FRAME for ANY car (traffic.js, later the highway AI): like locate but with the caller's
 // own hint (an absolute road distance s, so it survives the window moving) -> { s, off (+ =
 // driver's right), dx, dy } or null before the road exists
 export function roadFrame(level, x, y, hintS) {

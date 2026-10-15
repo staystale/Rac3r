@@ -1,7 +1,7 @@
-// ai/circuit.js — the racing AI driver for circuits: createAIDriver (split from aidriver.js).
+// ai/circuit.js — the racing AI driver for circuits: createAIDriver.
 // The cautious BENCH driver stays in autodrive.js (lap tools, menu demo, pace car).
 //
-// USER SPEC (2026-10-04): AI know RACING LINES and how to overtake; SURFACE AWARENESS (stay on
+// USER SPEC: AI know RACING LINES and how to overtake; SURFACE AWARENESS (stay on
 // faster / grippier ground when quicker); the difficulty is the CENTRE of a GRADIENT across the
 // field ("some drive better, some quicker, some more defensive, some more aggressive"); VARIATION
 // OFF THE LINE grows as difficulty drops ("worse AI more random, better AI like a professional:

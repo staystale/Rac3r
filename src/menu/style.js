@@ -93,7 +93,7 @@ margin-right: 4px; }
 #menu .test .ln.bad b { color: #d8453c; }
 `;
 
-// GHOST-CLICK GUARD. MEASURED BUG (portrait, 2026-10-03): tapping the HUD pause chip opened the
+// GHOST-CLICK GUARD. MEASURED BUG (portrait): tapping the HUD pause chip opened the
 // pause pane, and the SAME tap's follow-up click landed on RESUME, which sits right under the
 // chip at 390 px — paused and resumed in one tap. Every new screen ignores clicks for GHOST_MS.
 export const GHOST_MS = 350;

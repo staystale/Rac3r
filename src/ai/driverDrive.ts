@@ -35,7 +35,7 @@ function trafficStep(drv: Drv, car: AiCar, ctx: DriveCtx, path: AiPath, nearIdx:
   const avoid = obstacleAvoid(drv, car, ctx, path, nearIdx, idx, speed, prec, lineOff, myLat,
       latLim, latT, dt, { dodgeT, conflict });
   ({ dodgeT, conflict } = avoid);
-  // ---- RACECRAFT (stage 3, 2026-10-04; user: "real overtakes, real defending, scrabbling for
+  // ---- RACECRAFT (stage 3; user: "real overtakes, real defending, scrabbling for
   // victory"). Stage 2 only went round a car that was already in the way, so circuits were
   // processions (aifieldsuite, Realish: 35 held passes in 12 six-car 3-lap races, Brands and
   // Naffcar ~0). ATTACK: sat behind the same car (longer for the cautious) with a corner coming
@@ -66,7 +66,7 @@ export function drive(drv: Drv, car: AiCar, dt = 1 / 120, ctx: DriveCtx = {}) {
   const spec = car.spec, speed = Math.hypot(car.vx, car.vy);
   if (state.i === null) placeAtStart(drv, car);
   advance(drv, car);
-  // ---- DRIVE ITSELF OUT (user, 2026-10-07: "it should try to drive it self out, if it falls
+  // ---- DRIVE ITSELF OUT (user: "it should try to drive it self out, if it falls
   // super far behind / stays off track too long / stays still / drives too slow for too long, ect
   // it can reset"). Nearly still for DRIVE_OUT_T s after the green (nose in a wall, beached,
   // tangled with a car) -> REVERSE for ~1-1.5 s with the wheel turned to swing the nose back

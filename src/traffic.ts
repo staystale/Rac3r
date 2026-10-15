@@ -1,4 +1,4 @@
-// traffic.js — HIGHWAY TRAFFIC (user, 2026-10-05: "dumb, slightly SLOW TRAFFIC, RECYCLED when
+// traffic.js — HIGHWAY TRAFFIC (user: "dumb, slightly SLOW TRAFFIC, RECYCLED when
 // overtaken and off screen (vehicle randomised and moved to the front, or replaced — whichever
 // is most efficient)"; "CRASHABLE cars WITH DAMAGE; NOT racing, just driving;
 // GENTLY AVOIDING; LANE CHANGING"; "traffic in EVERY MODE and a SLIDER in test mode for DENSITY").

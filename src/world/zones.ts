@@ -1,4 +1,4 @@
-// zones.js - the ZONES section. Moved verbatim out of lab.js.
+// zones.js - the ZONES section.
 import { LEVEL } from "./state.ts";
 import { SURFACES } from "./surfaces.ts";
 import type { Subtrack, Surface, Zone } from "./types.ts";
@@ -21,7 +21,7 @@ function inRoundRect(dx: number, dy: number, halfW: number, halfH: number,
   const insetX = dx - (halfW - radius), insetY = dy - (halfH - radius);
   return insetX <= 0 || insetY <= 0 || insetX * insetX + insetY * insetY <= radius * radius;
 }
-// LANES (2026-10-04, Thruston pit lane): LEVEL.lanes [{ pts: [[x,y]...] open polyline, width,
+// LANES (Thruston pit lane): LEVEL.lanes [{ pts: [[x,y]...] open polyline, width,
 // surface }] — a ribbon of one surface along a path, for pit lanes and access roads. Drawn by
 // render.ts drawLanes from the same pts and width.
 export function laneAt(x: number, y: number): Surface | null {
@@ -90,7 +90,7 @@ function subtrackSurfaceAt(subtrack: Subtrack, x: number, y: number): Surface | 
 function zoneSurfaceAt(zone: Zone, x: number, y: number): Surface | null {
   if (zone.rounded) {
     // ROUNDED PADS, exactly as render.ts drawZones draws them: corner radius min(5, 0.15 w) and a
-    // PAD_APRON of tarmac round the outside. MEASURED BUG, 2026-10-03 (tools/visualcheck.mjs):
+    // PAD_APRON of tarmac round the outside. MEASURED BUG, (tools/visualcheck.mjs):
     // physics was the plain rectangle, so the drawn tarmac apron drove as grass and the
     // rounded-off corners drove as the pad's surface.
     const dx = Math.abs(x - zone.x), dy = Math.abs(y - zone.y),
@@ -101,8 +101,8 @@ function zoneSurfaceAt(zone: Zone, x: number, y: number): Surface | null {
     return null;
   }
   if (zone.rot) {
-    // ROTATED zone (2026-10-03: Thruston's diagonal airfield runways, traced from the real map).
-    // Cheap reject + cached trig (2026-10-06:
+    // ROTATED zone (Thruston's diagonal airfield runways, traced from the real map).
+    // Cheap reject + cached trig (
     // the highway's fields put ~80 rotated zones in the window, tested for every wheel off the
     // road)
     const dx = x - zone.x, dy = y - zone.y;

@@ -104,7 +104,7 @@ export function doReset() {
   // Safe track/free-roam recovery: places car back on nearest track edge or recent clear spot
   game.car.prevWheels = null;
   repair(game.car);   // DAMAGE: RESET mends the car (user); the repair bill keeps counting
-  // RESET KEEPS TYRE HEAT (2026-10-03, step 2): vehicle.js reset() starts the tyres cold, which is
+  // RESET KEEPS TYRE HEAT (step 2): vehicle.js reset starts the tyres cold, which is
   // right for RESTART and a new car, but RESET is a recovery — you have not stopped driving. Put
   // the temperatures back afterwards.
   const keepT = game.car.tyreT ? game.car.tyreT.slice() : null;
@@ -112,7 +112,7 @@ export function doReset() {
     resetCar(car, x, y, heading);
     if (keepT) car.tyreT = keepT.slice();
   };
-  // CIRCUITS (user, 2026-10-04: "reset doesn't work nicely — always behind / in line with where the
+  // CIRCUITS (user: "reset doesn't work nicely — always behind / in line with where the
   // player LEFT the track, half on half off as if corrected, a random close angle pointing back on,
   // NOT on the racing line"). Was: the nearest CENTRELINE point, dead straight — on the racing
   // line, and sometimes level with or past where you went off. Now: RESET_BACK m behind the last

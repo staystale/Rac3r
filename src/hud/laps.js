@@ -1,5 +1,5 @@
 // hud/laps.js — the lap/stage/joker/race timer panel for each game mode.
-// Pure moves out of hud.js (task 173).
+// Pure moves out of hud.js.
 
 import { LEVEL } from '../world/state.ts';
 import { COL } from '../world/colours.ts';

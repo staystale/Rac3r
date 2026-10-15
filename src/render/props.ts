@@ -67,7 +67,7 @@ const PROP_DRAWERS: Record<string, PropDrawer> = {
 };
 
 // OVERHEAD props span the track ABOVE the cars and are drawn AFTER them. MEASURED BUG (user,
-// 2026-10-03: "the gantry being below cars on the naffcar track"): every prop was drawn before
+// "the gantry being below cars on the naffcar track"): every prop was drawn before
 // the car, so cars drove OVER the start gantry.
 const OVERHEAD = new Set(['gantry', 'footbridge', 'bridge']);
 /**

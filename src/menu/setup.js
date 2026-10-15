@@ -61,7 +61,7 @@ POINT`
 }
 
 /**
- * Adds the ROAD TYPE buttons (endless highway, user 2026-10-05: "how do I test the lane presets —
+ * Adds the ROAD TYPE buttons (endless highway, user: "how do I test the lane presets —
  * I don't see any buttons"): lanes / width / walls.
  * @param {object} menu the menu context
  * @param {HTMLElement} panel the setup pane
@@ -81,7 +81,7 @@ function addRoadTypeRow(menu, panel, level, state) {
 }
 
 /**
- * Adds the TRAFFIC + LITTER sliders of an endless level (user, 2026-10-05: "a slider in test mode
+ * Adds the TRAFFIC + LITTER sliders of an endless level (user: "a slider in test mode
  * for density" / "a slider for frequency / density" of the roadside objects); remembered. TRAFFIC
  * 0-150 % (100 % = 6 cars a lane), LITTER 0-3 x.
  * @param {object} menu the menu context
@@ -103,7 +103,7 @@ function addTrafficSliders(menu, panel, level, state) {
 }
 
 /**
- * Adds the SOLO / VS AI buttons and the opponent-count row. VS AI (2026-10-04, AI stage 1
+ * Adds the SOLO / VS AI buttons and the opponent-count row. VS AI (AI stage 1
  * preview): 1-5 opponents in the same car, different colours.
  * @param {object} menu the menu context
  * @param {HTMLElement} panel the setup pane
@@ -209,7 +209,7 @@ function addRxRaceRow(menu, panel, level, state) {
 }
 
 /**
- * Adds the LAPS row (user, 2026-10-04: "choose in setup"): a race (VS AI or the RX race) is this
+ * Adds the LAPS row (user: "choose in setup"): a race (VS AI or the RX race) is this
  * many laps; default 3, the RX race its joker laps. Wraps state.paint so the row follows the mode.
  * @param {object} menu the menu context
  * @param {HTMLElement} panel the setup pane

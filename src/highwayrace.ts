@@ -1,4 +1,4 @@
-// highwayrace.js — VS AI ON THE ENDLESS HIGHWAY (user, 2026-10-05: "VS AI on the highway = a normal
+// highwayrace.js — VS AI ON THE ENDLESS HIGHWAY (user: "VS AI on the highway = a normal
 // ROLLING-START race"; "an AI reaching the EDGE OF THE SCREEN ahead (what is visible differs PC /
 // phone) starts a COUNTDOWN (5-10 s); if it ends and you have not caught up -> race ends, POSITIONS
 // shown. You get so far ahead the AI go off screen BEHIND -> countdown; when it ends YOU WIN";
@@ -20,7 +20,7 @@ import { stepFlow } from "./ai/hwFlowStep.ts";
 import type { HwCtx, HwFlow, HwFlowArgs } from "./ai/hwFlowTypes.ts";
 
 export const HW_GREEN = 6, HW_COUNT = 8;
-// CATCH THEM is SOFT (user, 2026-10-06: "catch them timer should be longer on highway, also it
+// CATCH THEM is SOFT (user: "catch them timer should be longer on highway, also it
 // should be a bit soft if you've nearly caught up drop the timer... but let them getaway if the
 // player isnt trying"): HW_CATCH s; while you are CLOSING on the leader (gap shrinking faster than
 // CLOSE_V, smoothed over ~1 s) it refills at REFILL x; NEAR m or less past the screen it holds;
@@ -78,11 +78,11 @@ export function hwPutBack(level: HighwayLevel, dist: number, cars: AiCar[]) {
 }
 
 // (the RACER itself - the WEAVER - lives in aidriver.js since AI ROUND 2 stage 1: ONE driver,
-// createAIDriver, for circuits and the highway; user 2026-10-07: "one engine is better and
+// createAIDriver, for circuits and the highway; user: "one engine is better and
 // cheaper". This file keeps only the RACE: grid, put-back, the CATCH THEM flow.)
 
 // THE RACE: entries [{ car, player }]; visible(car) = on screen right now. flow.step(dt) after the
-// green; flow.order() -> your position. Results rows are raceflow.js-shaped (+ dist / gapM) so
+// green; flow.order -> your position. Results rows are raceflow.js-shaped (+ dist / gapM) so
 // menu.js can show them; flow.highway marks the distance table.
 export function createHwFlow(
   { lv, cars, visible, count = HW_COUNT, catchT = HW_CATCH }: HwFlowArgs) {

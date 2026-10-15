@@ -7,7 +7,7 @@ import { addPane, addButton, addElement, drawLift } from './widgets.js';
 import { showMainMenu } from './tracks.js';
 
 /**
- * CAR PICKER filtered CLASS -> SUBCLASS -> car (user, 2026-10-04). Only classes / subclasses you
+ * CAR PICKER filtered CLASS -> SUBCLASS -> car. Only classes / subclasses you
  * own a car in are offered ('ALL' first); the filter starts on the active car's class.
  * onPick(row) after every change. Used by race setup and the garage.
  * @param {object} menu the menu context
@@ -138,7 +138,7 @@ AIDS</span><b>${aids}</b>`
 }
 
 /**
- * PAINT SHOP (user, 2026-10-04: "palette + number + preview"): BODY and TRIM from the 16-colour
+ * PAINT SHOP (user: "palette + number + preview"): BODY and TRIM from the 16-colour
  * PALETTE, a NUMBER 1-99 (or none), the car previewed on the lift as you go; APPLY saves it to
  * the profile, BACK drops the changes, STOCK puts the car's own colours back.
  * @param {object} menu the menu context
@@ -217,7 +217,7 @@ font-size:15px';
 }
 
 /**
- * TYRES (user, 2026-10-04: 4 brands / 15 types, fit by class, prices shown, the effect shown
+ * TYRES (user: 4 brands / 15 types, fit by class, prices shown, the effect shown
  * with the stats). FIT saves it to profile.tyres[id].
  * @param {object} menu the menu context
  */

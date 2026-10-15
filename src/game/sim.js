@@ -34,7 +34,7 @@ export function updateFpsMeter(wallDt) {
     game.fps = shared.fpsN / shared.fpsAcc;
     shared.fpsAcc = 0;
     shared.fpsN = 0;
-    // the WORST 0.4 s window of the last ~10 s (user, 2026-10-06: an FPS counter "in the corner
+    // the WORST 0.4 s window of the last ~10 s (user: an FPS counter "in the corner
     // always" to spot issues while testing; a dip lasts a moment, so the corner keeps it on screen
     // for 10 s). hud.js drawFps.
     if (game.fpsClear) {
@@ -230,7 +230,7 @@ export function caughtBySpeedCamera() {
     game.camCaught = { ...cam, at: performance.now() };
     game.camFines = (game.camFines || 0) + cam.fine;
     game.camCount = (game.camCount || 0) + 1;
-    // in memory only: saveRecords() writes it at a safe moment
+    // in memory only: saveRecords writes it at a safe moment
     shared.camRecord.count = (shared.camRecord.count || 0) + 1;
     shared.camRecord.fines = (shared.camRecord.fines || 0) + cam.fine;
     if (!(shared.camRecord.fastest >= cam.kmh)) shared.camRecord.fastest = cam.kmh;
@@ -250,7 +250,7 @@ export function stepEndlessHighway() {
     if (shared.lastOnTrack) shared.lastOnTrack.dist -= shift;
     if (game.trackD != null) game.trackD -= shift;
   }
-  // THE TREADMILL GUARD (user, 2026-10-05: "go backwards should reset you"): wrong way /
+  // THE TREADMILL GUARD (user: "go backwards should reset you"): wrong way /
   // dropped back / off the motorway -> put back in the left lane at the furthest point
   // reached, rolling at 60 % of the speed you had (or 15 m/s), with the reason shown
   const why = highwayGuard(LEVEL, game.car, PHYSICS_STEP_SECONDS);
@@ -285,8 +285,8 @@ export function stepEndlessHighway() {
  * @param {number} wallDt the clamped wall-clock frame time, in seconds
  */
 export function updateAudio(wallDt) {
-  // AFTER the sim, and fenced off. MEASURED 2026-10-03: audio used to run first, and with a NaN car
-  // its setTargetAtTime() throws — which aborted every frame BEFORE the sim could run the recovery
+  // AFTER the sim, and fenced off. MEASURED: audio used to run first, and with a NaN car
+  // its setTargetAtTime throws — which aborted every frame BEFORE the sim could run the recovery
   // above, so the car stayed broken forever. Sound is cosmetic; it must never be able to stop the
   // game.
   try {
@@ -300,8 +300,8 @@ export function updateAudio(wallDt) {
  * Keeps a breadcrumb of the car's position and travel direction every 0.5 s of sim time.
  */
 export function dropBreadcrumb() {
-  // BREADCRUMBS for RESET on levels with no circuit. MEASURED BUG, 2026-10-03 (guide audit):
-  // doReset() read this list but nothing ever wrote to it, so RESET on The Lab sent you to the
+  // BREADCRUMBS for RESET on levels with no circuit. MEASURED BUG, (guide audit):
+  // doReset read this list but nothing ever wrote to it, so RESET on The Lab sent you to the
   // spawn. Every 0.5 s of sim time while moving and grounded, keep where you were and the way
   // you were TRAVELLING (not facing — mid-spin those differ); RESET uses the one ~2 s back, so
   // the spot you are put on is not the one you just crashed at.

@@ -1,15 +1,15 @@
 // highway fields: SCENERY v2, the farm fields, hedges and villages laid along the road.
-// Split out of highway.js (task 185).
+// Split out of highway.js.
 import { SURFACES } from "../world/surfaces.ts";
 import { STEP } from "./presets.js";
 import { keepOut } from "./cuts.js";
-// ---- SCENERY v2 (user, 2026-10-06: "i thought we were going to vary sceneary along side the road
+// ---- SCENERY v2 (user: "i thought we were going to vary sceneary along side the road
 // more like farms or long grass hedges and small towns"; "yeah scenery too please"). In the FARM
 // stretches: a PATCHWORK of FIELDS each side - rotated zones (lab.js zoneAt / render.ts drawZones,
 // so what you see is what you drive on): WHEAT and RAPESEED (drive as long grass, drawn as crops:
 // zone.art), MEADOW (long grass), PASTURE (grass, sheep / cows), PLOUGHED (dirt, furrows), now and
 // then a FARMYARD (gravel, barns, bales). Each is ringed by a LONG GRASS border (HEDGE_W m, a zone
-// you drive through - user, 2026-10-06: "hedges around fields ... should be long grass"; the first
+// you drive through - user: "hedges around fields ... should be long grass"; the first
 // cut was a solid 'hedge' barrier, which beached spun racers: pacesuite 2/9 -> 3/9 BAD), a tree or
 // two in it. Now and then a VILLAGE: a lane following the road ~40 m out, houses both sides, a
 // church. Each field / village is a keep rect in st.keep with a `field` id: anything placed LATER
@@ -202,7 +202,7 @@ function fieldCorner(plot, along, across) {
 /**
  * A random point well inside a field plot (draws two random numbers: along, then across).
  * @param {object} plot the field plot
- * @param {() => number} rand the field random stream
+ * @param { => number} rand the field random stream
  * @param {number} margin metres kept clear of the edges
  * @returns {number[]} [x, y]
  */
@@ -253,7 +253,7 @@ function addFieldZones(level, plot) {
  * Add the hedgerow trees on a field's far edge (1 to 3, random).
  * @param {object} level the highway level
  * @param {object} plot the field plot
- * @param {() => number} rand the field random stream
+ * @param { => number} rand the field random stream
  * @returns {void}
  */
 function addFieldTrees(level, plot, rand) {
@@ -276,7 +276,7 @@ function addFieldTrees(level, plot, rand) {
  * Wheat field: now and then a scatter of bales.
  * @param {object} level the highway level
  * @param {object} plot the field plot
- * @param {() => number} rand the field random stream
+ * @param { => number} rand the field random stream
  * @returns {void}
  */
 function addFieldBales(level, plot, rand) {
@@ -290,7 +290,7 @@ function addFieldBales(level, plot, rand) {
 /**
  * Pasture: a flock of sheep or a herd of cows (loose objects, not props).
  * @param {object} plot the field plot
- * @param {() => number} rand the field random stream
+ * @param { => number} rand the field random stream
  * @param {object[]} loose where the loose objects go
  * @returns {void}
  */
@@ -308,7 +308,7 @@ function addFieldStock(plot, rand, loose) {
  * Farm yard: two sheds and a few bales.
  * @param {object} level the highway level
  * @param {object} plot the field plot
- * @param {() => number} rand the field random stream
+ * @param { => number} rand the field random stream
  * @returns {void}
  */
 function addFieldYard(level, plot, rand) {

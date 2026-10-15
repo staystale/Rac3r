@@ -12,7 +12,7 @@ type Shape = Pick<Bump, "r" | "h" | "d" | "len" | "wid" | "amp" | "wave" | "r0" 
 type NatFamily = "small" | "medium" | "rolling" | "whoops";
 
 // ---------------------------------------------------------------------------------------------
-// BUMPS, JUMPS AND KERBS (user, 2026-09-28: "and some bumps / jumps / curbs").
+// BUMPS, JUMPS AND KERBS (user: "and some bumps / jumps / curbs").
 //
 // All four kinds are nothing but a HEIGHT added to the ground. That is the whole implementation:
 // the suspension written for the boundary kerb already turns a height into light wheels, heavy
@@ -57,9 +57,9 @@ const bumpKind: Record<string, (b: Shape, u: number, v: number) => number> = {
       + KERB_RIDGE * cosine * Math.sin((along / KERB_RIDGE_L) * Math.PI * 2);
   },
 };
-// ---- TERRAIN SHAPES (step 3, 2026-10-03). The user's "vector dips": bumps push the car OUT and
+// ---- TERRAIN SHAPES (step 3). The user's "vector dips": bumps push the car OUT and
 // dips pull it IN, in any direction — that is gravity on the slope, applied in applyGround from
-// slopeAt(). Each shape is smooth everywhere.
+// slopeAt. Each shape is smooth everywhere.
 Object.assign(bumpKind, {
   // a round hollow: the hump turned upside down. d = depth (m), r = radius.
   dip: (bump: Shape, along: number, lateral: number): number =>
@@ -114,7 +114,7 @@ const BUMP_CELL = 16, NO_BUMPS: Bump[] = [];
  * @param list the level's bumps
  */
 function ensureBumpGrid(list: Bump[]): void {
-  // BUMP GRID (2026-10-04): Thruston's earth banks took the list to 212 bumps and every height
+  // BUMP GRID: Thruston's earth banks took the list to 212 bumps and every height
   // lookup scanned them all — MEASURED ground tile 22 -> 28.7 ms, slow frames 71 -> 103 of 570 at
   // CPU x4. Now only the bumps whose reach touches this cell.
   if (LEVEL._bumpGridOf !== list) {
@@ -185,7 +185,7 @@ function addCurvedKerbHeights(height: number, track: Subtrack, hit: SubtrackHit)
 export function bumpAt(x: number, y: number, smooth = false): number {
   const list = LEVEL.bumps;
   // ONE subtrack query per lookup, shared by the banking, the camber and the curved kerbs. MEASURED
-  // (2026-10-03, user: "still seeing lag at high speeds"): three separate scans made a Test Track
+  // (user: "still seeing lag at high speeds"): three separate scans made a Test Track
   // ground tile cost ~12 ms to shade on a PC.
   const track = LEVEL.subtrack;
   const hit = track && (LEVEL.bankAngle || LEVEL.camber || (!smooth && track.curvedKerbs))
@@ -205,7 +205,7 @@ export function bumpAt(x: number, y: number, smooth = false): number {
   return height;
 }
 
-// BANKING AS REAL HEIGHT (step 3, 2026-10-03; replaces the sideways bank FORCE in applyGround). On
+// BANKING AS REAL HEIGHT (step 3; replaces the sideways bank FORCE in applyGround). On
 // a level with bankAngle, the track rises across its width in the turns: 0 at the inside edge,
 // tan(bank) x width at the outside, then a back slope down to the ground beyond the outer edge (no
 // cliff). Turns = |x| beyond BANK_X0, blended in over BANK_BLEND m so the straights stay flat with
@@ -245,7 +245,7 @@ export function bankHeightAt(x: number, y: number, qIn?: SubtrackHit | null): nu
   else height = 0;
   return height * (weight * weight * (3 - 2 * weight));
 }
-// TRACK CAMBER (user, 2026-10-03: "can the Test Track get cambering across the race surface"; and
+// TRACK CAMBER (user: "can the Test Track get cambering across the race surface"; and
 // earlier: camber "positive, negative, whether it's useful to drive on, which can also match real
 // tracks"). LEVEL.camber = { maxDeg, refR, crown, edge, sections: [{ from, to, deg }] } (from / to
 // in metres of track distance; deg signed: + helps you round the corner, - falls away =
@@ -312,7 +312,7 @@ function camberHeightAt(x: number, y: number, qIn?: SubtrackHit | null): number 
   }
   return height;
 }
-// NATURAL GROUND (user, 2026-10-03): "loose surfaces should naturally have some random light vector
+// NATURAL GROUND: "loose surfaces should naturally have some random light vector
 // dips and whoops — gravel % more likely to have SMALL dips and bumps, mud MEDIUM AGGRESSIVE dips
 // and bumps, grass AVERAGE and ROLLING HILLS vibe, sand WHOOPS or bumps and dips". Four smooth
 // noise families, each with a fixed size; every BASE surface sets how much of each it has (metres
@@ -352,13 +352,13 @@ function vnoise(x: number, y: number, seed: number): number {   // smooth value 
 }
 let natCache = new Map<number, NatCell>(), natLevel: Level | null = null, natSeed = 0;
 const NAT_CACHE_MAX = 60000;   // cap on cached cells: the endless highway would grow it forever
-// NUMBER keys (perf, 2026-10-03): string keys made every height lookup ~5x slower (0.04 -> 0.7
+// NUMBER keys (perf): string keys made every height lookup ~5x slower (0.04 -> 0.7
 // us).
 function natCell(i: number, j: number): NatCell {
   const key = (i + 32768) * 65536 + (j + 32768);
   let cell = natCache.get(key);
   if (cell) return cell;
-  // bounded (memory diet, task 104): cells are a pure function of
+  // bounded (memory diet: cells are a pure function of
   // position and level, so a cleared cell is recomputed identically
   if (natCache.size >= NAT_CACHE_MAX) natCache.clear();
   cell = { small: 0, medium: 0, rolling: 0, whoops: 0 };
@@ -385,7 +385,7 @@ function naturalHeightAt(x: number, y: number): number {
     c01 = natCell(i, j + 1), c11 = natCell(i + 1, j + 1);
   // hard ground all round: flat, no noise
   if (c00.zero && c10.zero && c01.zero && c11.zero) return 0;
-  // no allocation per call (memory diet, task 104: inline, no amp() closure)
+  // no allocation per call (memory diet: inline, no amp closure)
   const ampSmall = (c00.small * (1 - blendX) + c10.small * blendX) * (1 - blendY)
     + (c01.small * (1 - blendX) + c11.small * blendX) * blendY;
   const ampMedium = (c00.medium * (1 - blendX) + c10.medium * blendX) * (1 - blendY)

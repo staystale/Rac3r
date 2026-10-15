@@ -1,5 +1,5 @@
-// highway.js — HIGHWAY TO HULL: the ENDLESS motorway. User, 2026-10-05: "how about an infinite
-// highway level with procedural turns and terrain". v2 THE TREADMILL (user, 2026-10-05: "act like a
+// highway.js — HIGHWAY TO HULL: the ENDLESS motorway. User: "how about an infinite
+// highway level with procedural turns and terrain". v2 THE TREADMILL (user: "act like a
 // treadmill ... always line up nicely to the previous section ... spawn ahead and vanish behind,
 // always off screen ... the pace is the player's car so it can never drive off the screen ... going
 // backwards should reset you ... top to bottom on mobile / PC"; camera stays FIXED and upright,
@@ -38,10 +38,10 @@ export { laneGeo, roadFrame, roadPose, roadSpan } from "./highway/road.js";
 // for BACK_T s, or BACK_M m behind the furthest you have got, or OFF_M m past the road edge (out of
 // the scenery band, where the treadmill has no road on screen) -> put back in the LEFT lane at the
 // furthest point, with a HUD notice saying why (never unexplained, CLAUDE.md §1) GOING WIDE (user,
-// 2026-10-05: "can going wide be WIDER / have a TIMER so you have a chance to return"): was a hard
+// "can going wide be WIDER / have a TIMER so you have a chance to return"): was a hard
 // reset 35 m past the edge. Now OFF_SOFT m past the edge starts an OFF_T s countdown on the HUD
 // (back within it = cancelled); only OFF_HARD m out resets at once (the road would be leaving the
-// view). LONGER + HELD NEAR THE ROAD (user, 2026-10-06: "the off road timer should be longer / turn
+// view). LONGER + HELD NEAR THE ROAD (user: "the off road timer should be longer / turn
 // off if youre close to the road (about to get back)"): OFF_T 6 -> 10 s; it does not run while you
 // are within OFF_NEAR m of the edge or heading back to it faster than BACK_IN m/s.
 const BACK_V = 3,
@@ -128,7 +128,7 @@ export function resetHighway(level) {
   level.zones.length = 0;
   const state = level._hw;
   state.pts.push({ x: 0, y: 0, s: 0, curv: 0 });
-  // the first window's loose objects ARE the level's cones (cones.js reset() reads lv.cones on
+  // the first window's loose objects ARE the level's cones (cones.js reset reads lv.cones on
   // every restart)
   level.cones.length = 0;
   growTo(level, AHEAD + 300);
@@ -204,7 +204,7 @@ export function stepHighway(level, car) {
   pruneWear(car.x, car.y, BEHIND + AHEAD);
   return moved;
 }
-// SPEED CAMERAS (user, 2026-10-05: "cameras on the gantries: flash + 'CAUGHT 187 km/h' in the HUD
+// SPEED CAMERAS (user: "cameras on the gantries: flash + 'CAUGHT 187 km/h' in the HUD
 // top right, stored for missions / achievements later"; HANDOVER: "flash ONLY over 70 mph; YOU GOT
 // CAUGHT + your speed + a fine (-$) scaling with how far over; store fastest catch + count"). Every
 // gantry is a camera. speedCamera(lv, car) after stepHighway: the first step the car's road
@@ -239,7 +239,7 @@ export function speedCamera(level, car) {
  * Time the car driving backwards along the road; true when it has gone the wrong way for too long
  * (or is far behind the furthest point reached).
  * @param {object} state the highway state
- * @param {object} loc where the car is on the road (locate())
+ * @param {object} loc where the car is on the road (locate)
  * @param {object} car the car (vx, vy)
  * @param {number} dt step seconds
  * @returns {boolean} whether the car must be reset for going the wrong way
@@ -253,7 +253,7 @@ function checkWrongWay(state, loc, car, dt) {
 /**
  * How far the car is off the road edge, and whether it is on a tarmac lane off the motorway.
  * @param {object} state the highway state
- * @param {object} loc where the car is on the road (locate())
+ * @param {object} loc where the car is on the road (locate)
  * @param {object} car the car (x, y)
  * @returns {{out: number, onLane: boolean}} metres past the edge (0 on the side road) and lane flag
  */
@@ -335,7 +335,7 @@ export function highwayRespawn(level) {
   state.q = null;
   return { x: pos.x, y: pos.y, h: pos.rot };
 }
-// ROAD TYPE (user, 2026-10-05: "how do I test the lane presets — I don't see any buttons"): Test
+// ROAD TYPE (user: "how do I test the lane presets — I don't see any buttons"): Test
 // Mode setup offers lv.roadTypes; the launch calls this before the restart builds the road.
 // ?hw=interstate etc. still works for tools.
 export function setHighwayPreset(level, preset) {

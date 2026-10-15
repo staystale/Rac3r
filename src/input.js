@@ -8,7 +8,7 @@
 // bug, so pointers are tracked individually and never shared. Every HUD/pedal touch is CONSUMED
 // (CLAUDE.md §4).
 
-// r 36 -> 40 (user, 2026-10-04: "driving buttons slightly larger, only a small bit")
+// r 36 -> 40 (user: "driving buttons slightly larger, only a small bit")
 // px; >=44px targets via r*2 = 72
 export const PEDAL = { r: 40, gap: 12, margin: 16 };
 
@@ -19,18 +19,18 @@ export const PEDAL = { r: 40, gap: 12, margin: 16 };
 // thumb. Wall clock: this is about how long a human held a button, not about sim time (CLAUDE.md
 // rule 5).
 const BRAKE_MIN = 0.28;    // initial bite on a quick stab
-// PROGRESSIVE HANDBRAKE, for the same reason and with a sharper ramp. MEASURED 2026-09-27: as a
+// PROGRESSIVE HANDBRAKE, for the same reason and with a sharper ramp. MEASURED: as a
 // binary button the handbrake broke the rear away identically however it was used — drift angle
 // came out 95 / 95 / 95 deg at steering locks of 0.4, 0.6 and 0.9. The player's main input did
 // not change the outcome, which is CLAUDE.md rule 1 and exactly why the drift felt
 // uncontrollable. A real handbrake is modulated by how far you pull it; now a stab gives a light
-// drag and a hold gives full lock. PROGRESSIVE THROTTLE, same idea as the brake (user,
-// 2026-09-27). A button is 0 or 1, so on a phone every pull-away was a full-throttle one — which
+// drag and a hold gives full lock. PROGRESSIVE THROTTLE, same idea as the brake. A button is 0 or
+// 1, so on a phone every pull-away was a full-throttle one — which
 // on a rear-drive car is a wheelspin, not a start. Holding ramps it, so a stab feathers and a
 // hold floors it. RELEASE IS INSTANT on purpose: lifting off is the exit from a drift (measured —
 // it recovers every car every time), so it must stay crisp.
 const THR_MIN = 0.26;      // initial opening on a quick stab
-// 0.50 -> 0.75 (user, 2026-10-03: "it goes to max throttle slightly too quickly — it should ramp
+// 0.50 -> 0.75 (user: "it goes to max throttle slightly too quickly — it should ramp
 // up the longer you hold it, only over a very short period, but slightly longer than now"). R
 // uses the same ramp.
 const THR_RAMP = 0.75;     // s to full throttle
@@ -40,7 +40,7 @@ const THR_RAMP = 0.75;     // s to full throttle
 // force is a judder. 0.1 s each way smooths the edge without costing the duration control that
 // makes drift entry modulable — holding longer still means more rotation.
 const HB_SLEW = 1 / 0.10;  // units per second, up AND down
-// 0.50 -> 0.25 (user, 2026-10-03: "holding brake should be foot-to-the-floor braking"). A tap
+// 0.50 -> 0.25 (user: "holding brake should be foot-to-the-floor braking"). A tap
 // still bites lightly.
 const BRAKE_RAMP = 0.25;   // s to reach full pedal
 
@@ -86,7 +86,7 @@ function findPedalHits(width, height) {
   ];
 }
 
-// THE HUD IS TESTED FIRST. MEASURED BUG, 2026-09-27 (user: "I can't change vehicle"): the
+// THE HUD IS TESTED FIRST. MEASURED BUG, (user: "I can't change vehicle"): the
 // steering stick claims the whole left 55% of the screen, and the car chip and RESET both live
 // inside that zone — so on a phone every tap on them was swallowed as a steering drag and never
 // reached the HUD. CLAUDE.md §4 says a tap on the HUD must never also reach the world; this was
@@ -173,7 +173,7 @@ function onInputPointerUp(core, event) {
   event.preventDefault();
 }
 
-// STUCK CONTROLS ON iOS (user, 2026-10-04: rapid taps / holds / several fingers left throttle,
+// STUCK CONTROLS ON iOS (user: rapid taps / holds / several fingers left throttle,
 // brake or steering ON). When iOS takes over a touch for a system gesture (magnifier, callout,
 // pinch, edge swipe) the pointerup never comes, so the owner map keeps a pedal held for ever.
 // Three layers: (1) stop the gestures starting — non-passive touch handlers that preventDefault
@@ -276,7 +276,7 @@ function resolveInputPedals(state, keys, wallDt) {
   const hbTarget = hbDown ? 1 : 0;
   const hbStep = HB_SLEW * wallDt;
   state.handbrake += Math.max(-hbStep, Math.min(hbStep, hbTarget - state.handbrake));
-  // R is a pedal now (hold to reverse, 2026-10-03), ramped exactly like the throttle
+  // R is a pedal now (hold to reverse), ramped exactly like the throttle
   const revDown = keys.has('reverse') || !!state.pedals.reverse;
   state.revHeld = revDown ? state.revHeld + wallDt : 0;
   state.reverse = revDown ? Math.min(1, THR_MIN + (1 - THR_MIN) * (state.revHeld / THR_RAMP)) : 0;

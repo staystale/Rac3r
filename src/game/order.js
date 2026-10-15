@@ -11,7 +11,7 @@ import { STAGE_GAP_S } from './grid.js';
 import { shared, game } from './state.js';
 
 export const resetCar = reset;
-// START LIGHTS (user, 2026-10-04: "all races started by lights that clearly go red to green, maybe
+// START LIGHTS (user: "all races started by lights that clearly go red to green, maybe
 // a countdown"; "circuits with ROLLING starts: the game controls ALL cars, AI and player, until the
 // start, then releases them"). Any race (VS AI or the RX race): three reds light one per second
 // with 3-2-1, then GREEN + GO!. Every car is held until GREEN - START_EARLY ("free to go at green
@@ -66,7 +66,7 @@ export function stepStart(dt) {
   }
   if (startState.t >= startState.tGreen) startState.green = true;
 }
-// RACE ORDER (user, 2026-10-04: "the lap counter area should keep track of what place you are").
+// RACE ORDER (user: "the lap counter area should keep track of what place you are").
 // Each car's distance round the lap, UNWRAPPED across the line (a car behind the line on the grid
 // starts slightly negative), from the nearest centreline point; ranked.
 export function progressOf(car) {
@@ -98,7 +98,7 @@ export function progressOf(car) {
   car._lastQ = along;
   return car._prog;
 }
-// TRACK CUTS (user, 2026-10-04: "a time penalty for skipping track in rally / rallycross — and a
+// TRACK CUTS (user: "a time penalty for skipping track in rally / rallycross — and a
 // forced reset when skipping too large of a section in normal races"). While a car is wholly OFF
 // the road (centre > half width + CUT_OFF) it banks the track progress it gains BEYOND the distance
 // it actually drives — the NET over the whole excursion, so going wide 50 m and cutting 50 m back
@@ -177,7 +177,7 @@ export function trackCut(car, near, delta) {
     car._cut = null;
     return;
   }
-  // LANES ARE NOT CUTS (user, 2026-10-04: "the track cut triggers on joker laps — it shouldn't, a
+  // LANES ARE NOT CUTS (user: "the track cut triggers on joker laps — it shouldn't, a
   // specific exclusion; the only time penalty there is the event's, for missing or multiple
   // jokers"): on the joker lane, the RX start lane or a pit lane the car is on a legal road, and an
   // excursion that touched one is dropped whole.

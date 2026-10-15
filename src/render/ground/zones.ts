@@ -47,7 +47,7 @@ function paintLabFloor(groundCtx: GroundCtx, ppm: number, floorW: number, floorH
   view.ctx.fillStyle = COL.floor;
   view.ctx.fillRect(toScreenX(FX0), toScreenY(FY0), floorW, floorH);
 
-  // a soft warm pool so a big pale floor is not dead flat. Since the ground TILES (2026-10-03)
+  // a soft warm pool so a big pale floor is not dead flat. Since the ground TILES
   // it is centred on the WORLD ORIGIN (the skidpad), not on the car: tiles are painted
   // separately, so a screen-centred gradient would come out as one blotch per tile. It stays
   // UNDER the zones.
@@ -130,7 +130,7 @@ export function drawZones(groundCtx: GroundCtx) {
  */
 function isZoneOnScreen(groundCtx: GroundCtx, zone: Zone) {
   const { view, toScreenX, toScreenY } = groundCtx;
-  // off screen? On the ROTATED footprint. MEASURED BUG (user, 2026-10-04: "the old runway bugs
+  // off screen? On the ROTATED footprint. MEASURED BUG (user: "the old runway bugs
   // in and out of existence"): this tested the unrotated w x h box, so a long thin rotated
   // runway (432 x 22 m at -22 deg) was skipped by every ground tile more than 11 m from its
   // centre line — painted in some tiles, missing in others, changing as tiles reloaded.
@@ -225,7 +225,7 @@ function paintRotatedZone(
   view.ctx.rotate(-zone.rot!);
   view.ctx.translate(-toScreenX(zone.x), -toScreenY(zone.y));
   view.ctx.translate(toScreenX(0), toScreenY(0));
-  // only the part IN VIEW (in a tile: the tile). MEASURED 2026-10-04: once the culling fix
+  // only the part IN VIEW (in a tile: the tile). MEASURED: once the culling fix
   // let the 432 m runway into every tile it crosses, each tile repainted its whole 430 m
   // square of texture — ground tile 22 -> 26 ms, slow frames 71 -> ~90.
   const vx0 = cam.x - view.W / 2 / ppm, vy0 = cam.y - view.H / 2 / ppm;

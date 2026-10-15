@@ -1,5 +1,5 @@
 // hud/gauges.js — car/tune chips, aids, indicators, button row, cone tally, speedo, tyre diagram.
-// Pure moves out of hud.js (task 173).
+// Pure moves out of hud.js.
 
 import { ROSTER } from '../cars.ts';
 import { LEVEL } from '../world/state.ts';
@@ -134,7 +134,7 @@ export function drawHudButtonRow(ctx, state, game, rects) {
     : [rects.restart, rects.reset, rects.clear];
   if (!(rects.help.row3 && (state.expanded || state.tuneOpen))) btns.push(rects.help);
   // On a narrow screen this row sits in the car dropdown's lane (left, row two). While the
-  // dropdown is open it owns that lane — hit() already sends those taps to the dropdown — so do
+  // dropdown is open it owns that lane — hit already sends those taps to the dropdown — so do
   // not draw over it.
   const rowHidden = state.expanded && rects.restart.y > MARGIN;
   if (!rowHidden) for (const button of btns) drawHudButton(ctx, rects, audio, button);
@@ -290,7 +290,7 @@ export function drawHudTyreDiagram(ctx, state, rects, car, spec) {
     for (const [tyreIdx, side, rear] of wheels) {
       const wheelX = side < 0 ? bodyX - 4 : bodyX + bodyW - 3, wheelY = bodyY
         + (rear ? bodyH - 14 : 4);
-      // plain rectangles: panel()'s 8 px corner radius is larger than a 7 px wheel and drew
+      // plain rectangles: panel's 8 px corner radius is larger than a 7 px wheel and drew
       // mangled slants
       ctx.fillStyle = col(car.tyreT[tyreIdx]);
       ctx.fillRect(wheelX, wheelY, 7, 11);

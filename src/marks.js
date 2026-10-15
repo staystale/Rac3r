@@ -23,7 +23,7 @@ const SIZE = Math.ceil(MARK_EXTENT * 2 * MARK_PPM);
 
 // Tolerance floor (CLAUDE.md rule 8 applied to feedback): below this much slip, stamp NOTHING.
 // Without it every gentle corner smears the floor and the marks stop meaning anything.
-export const SLIP_FLOOR = 2.2;                   // m/s. MEASURED 2026-09-27 against the real game:
+export const SLIP_FLOOR = 2.2;                   // m/s. MEASURED against the real game:
 // at 1.5, ordinary cornering smeared the floor (18 stamps in a pulsed-lock corner at 25 km/h that
 // should have left nothing); at 2.2, gentle cornering leaves 0 while a handbrake turn still lays
 // 163, a full-pedal stop 390 and a muscle power-on 280. Below this, marks stop meaning anything.
@@ -37,7 +37,7 @@ const STAMP_STEP = 0.10;                         // m
  * @typedef {object} MarkState
  * @property {Map<string, {x: number, y: number}>} prev wheel key -> world position last step
  * @property {number} stamps how many stamps were laid since the last clear
- * @property {number} originX world x the layer is centred on; follow() moves it (shifting what
+ * @property {number} originX world x the layer is centred on; follow moves it (shifting what
  *   is drawn) once the car is past half the extent — on an ordinary level it never moves
  * @property {number} originY world y the layer is centred on
  */
@@ -66,7 +66,7 @@ function toPx(state, worldX, worldY) {
 /**
  * Slides the layer's origin to follow a position, shifting the drawn marks.
  *
- * ONLY WHEN THE LEVEL DOES NOT FIT (2026-10-07; user: "top left corner of knob hill ... it
+ * ONLY WHEN THE LEVEL DOES NOT FIT (user: "top left corner of knob hill ... it
  * seems to forget / cut of tyre marks in a clean line, some stay but most go";
  * tools/_markedge.mjs). MEASURED BUG: follow ran on EVERY level, so past 136 m from the
  * middle (Knobhill reaches ~242 m) the layer slid over and everything beyond a straight line
@@ -135,7 +135,7 @@ function fadeMarks(markCtx, dt) {
  * alpha ramps from the tolerance floor up over ~6 m/s of slip, per PLAN.md
  * alpha is per-stamp and marks still overlap somewhat, so this is deliberately low; a hard
  * slide lays many stamps and DEEPENS, which is what makes a heavy mark read as heavy.
- * TYRE TEMPERATURE you can SEE (user, 2026-10-03): a cold tyre lays a FAINT rubber mark —
+ * TYRE TEMPERATURE you can SEE: a cold tyre lays a FAINT rubber mark —
  * it is not soft enough to leave much of itself behind — and reaches full strength in its
  * working window (~65 C). Ruts in loose ground do not care about tyre temperature.
  * REVISED (user: "maybe cold tyres don't really leave skid marks"): nothing below 35 C,
@@ -240,7 +240,7 @@ function stampWheel(markCtx, wheel) {
  * Called once per FIXED PHYSICS STEP (sim time — a mark is world bookkeeping, not an
  * animation).
  *
- * MEASURED BUG, 2026-09-27 (photographed): stamping EVERY step painted marks that looked like
+ * MEASURED BUG, (photographed): stamping EVERY step painted marks that looked like
  * thick black ink scribbles. At 120 Hz a wheel moves ~6 cm per step, so consecutive segments
  * overlapped by ~97% and the alpha compounded to solid black within a few frames — and worse,
  * the darkness then depended on SPEED and STEP RATE rather than on how hard the tyre was
@@ -260,7 +260,7 @@ function stampMarks(markCtx, wheels) {
  *
  * Four contact points from the axle positions and the track width. The slip figure comes
  * straight out of the vehicle telemetry — vehicle.js computes it from the contact patch, so
- * there is exactly one derivation of it. EACH CAR'S OWN WHEEL KEYS (2026-10-04, user: "AI
+ * there is exactly one derivation of it. EACH CAR'S OWN WHEEL KEYS (user: "AI
  * share tyre tracks? it gets messy quick"): the keys were just fl/fr/rl/rr, so with AI cars
  * the stamp joined one car's wheel to ANOTHER car's same wheel — long lines criss-crossing
  * the track. Now prefixed by a per-car id.
@@ -310,7 +310,7 @@ export function createMarks() {
     prev: new Map(),   // wheel key -> {x, y} world position last step
     stamps: 0,
     // ORIGIN (the endless highway): the layer covers MARK_EXTENT around (originX, originY), not
-    // around the world origin. follow() moves it (shifting what is drawn) once the car is past
+    // around the world origin. follow moves it (shifting what is drawn) once the car is past
     // half the extent — on an ordinary level the car never gets there, so nothing changes.
     originX: 0,
     originY: 0,

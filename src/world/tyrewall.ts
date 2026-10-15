@@ -1,4 +1,4 @@
-// tyrewall.js - the OUTER TYRE WALL section. Moved verbatim out of lab.js.
+// tyrewall.js - the OUTER TYRE WALL section.
 import { SUB_CELL } from "./subtrack.ts";
 import { COURSE, GATE, GATE_SPACING, smoothPath } from "./course.ts";
 import { qsHintSub, qsHint } from "./wear.ts";
@@ -7,7 +7,7 @@ import type {
 } from "./types.ts";
 
 // ---------------------------------------------------------------------------------------------
-// OUTER TYRE WALL (user, 2026-10-03: "add a tyre wall around the stock car and grass track
+// OUTER TYRE WALL (user: "add a tyre wall around the stock car and grass track
 // circuits"; chose LOOSE stacks on the OUTSIDE only). Returns plain `tyrestack` objects for a
 // level's `cones` list, so they are the same knockable 38 kg stacks as everywhere else — they
 // burst into rolling tyres when hit hard (cones.js). Nothing new in the physics; the wall is DATA
@@ -76,7 +76,7 @@ export function propClearance(props: Prop[]): ClearBox[] {
   });
 }
 
-// A cover placed BY DISTANCE ALONG A TRACK (2026-10-03): \`offset\` metres to the left (+) / right
+// A cover placed BY DISTANCE ALONG A TRACK: \`offset\` metres to the left (+) / right
 // (-) of the centreline, rotated to the road. Data, so "move that puddle" is one number — and it
 // stays on the road if the track shape changes.
 export function onTrack<T extends object>(
@@ -166,7 +166,7 @@ function scanSegments(
       minD = distSq;
       const cross = segment.dx * (probeY - segment.ay) - segment.dy * (probeX - segment.ax);
       // 'left' = the +normal side (nx = -dy, ny = dx), the SAME convention render.ts
-      // drawCurvedKerbs uses. MEASURED BUG, 2026-10-03 (tools/visualcheck.mjs): this said
+      // drawCurvedKerbs uses. MEASURED BUG, (tools/visualcheck.mjs): this said
       // 'right', so every kerb you drove on was on the OPPOSITE side of the track from the kerb
       // you could see — invisible bumps on plain grass, and painted kerbs that were just grass.
       bestSide = cross > 0 ? 'left' : 'right';

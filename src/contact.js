@@ -1,4 +1,4 @@
-// contact.js — CAR-TO-CAR CONTACT (2026-10-04, AI stage 1; user: "full contact"). Every pair of
+// contact.js — CAR-TO-CAR CONTACT (AI stage 1; user: "full contact"). Every pair of
 // cars is tested as two oriented boxes with the separating-axis test (the same test solidClamp
 // uses for props). On overlap: the two are pushed apart along the axis of least overlap, split
 // by mass; if they are closing, an jolt along that axis (restitution CAR_E), a little
@@ -11,7 +11,7 @@ const CAR_SCRAPE = 0.12;
 
 // returns true if they touched (for sound / shake / tools)
 export function carContact(firstCar, secondCar) {
-  // no allocation per call (memory diet, task 104: plain locals, no axes() objects)
+  // no allocation per call (memory diet: plain locals, no axes objects)
   const aCos = Math.cos(firstCar.heading), aSin = Math.sin(firstCar.heading),
     aHl = firstCar.spec.len * 0.48, aHw = firstCar.spec.wid * 0.48;
   const bCos = Math.cos(secondCar.heading), bSin = Math.sin(secondCar.heading),
@@ -87,7 +87,7 @@ export function carContacts(cars) {
   return count;
 }
 
-// SLIPSTREAM (2026-10-04, AI stage 3): a car in another's WAKE loses drag — the tow that lets a
+// SLIPSTREAM (AI stage 3): a car in another's WAKE loses drag — the tow that lets a
 // follower close up on a straight and try a pass into the next braking zone (stage 2's circuits
 // were processions: 3 held passes in a 6-car, 3-lap race). The wake runs DRAFT_LEN m back from a
 // car above DRAFT_V m/s, DRAFT_W m wide; the cut is largest right behind it and fades to 0 at

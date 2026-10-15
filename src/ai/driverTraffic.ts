@@ -22,7 +22,7 @@ export function obstacleStep(drv: Drv, car: AiCar, ctx: DriveCtx, path: AiPath, 
   const pts = path.pts, cosH = Math.cos(car.heading), sinH = Math.sin(car.heading);
   let dodge: number | null = null;
   const onLine = path === main ? lineOff : 0;
-  // ---- OBSTACLES (user, 2026-10-04: "AI need to see tyres and cones as obstacles — although
+  // ---- OBSTACLES (user: "AI need to see tyres and cones as obstacles — although
   // optional ones haha — but try and avoid them
   // on rally stages / tracks"): ctx.obstacles = loose objects near this car ({ x, y, r },
   // main.js). One in my path ahead, on the road ->
@@ -82,7 +82,7 @@ export function followAhead(drv: Drv, acc: CarsAcc, env: CarsEnv, fwd: number, o
   const { traits, state } = drv;
   const { car, path, idx, speed, prec, prof, lineOff, latT, latLim, myLat, clear, gapF } = env;
   acc.conflict = true;
-  // GO ROUND, DON'T QUEUE (user, 2026-10-04: "AI still seem to almost queue and wait
+  // GO ROUND, DON'T QUEUE (user: "AI still seem to almost queue and wait
   // rather than overtake and avoid blocking cars,
   // even if it's slightly off track"): the room to pass may use WIDE m past the usual edge
   // (wheels on the grass), WIDE_SLOW for a
@@ -187,7 +187,7 @@ export function carsStep(drv: Drv, car: AiCar, others: AiCar[], path: AiPath, ne
     }
     if (fwd > 2.5) {
       // FOLLOWING only while closing, with a short gap: it rubs and bumps in braking zones
-      // (aifieldcheck: ~6 s of contact per 3 laps of 6 cars at Realish). USER (2026-10-04, after
+      // (aifieldcheck: ~6 s of contact per 3 laps of 6 cars at Realish). USER (after
       // testing it): "contact is ok … it felt ok before, put it back" — a strict speed-based gap
       // (zero contact, but a procession: 1 position change in 3 laps) was tried and REVERTED.
       if (speed - vAlong > -0.5 && Math.abs(otherLat - myLat) < clear) {
@@ -207,7 +207,7 @@ export function obstacleAvoid(drv: Drv, car: AiCar, ctx: DriveCtx, path: AiPath,
     idx: (pos: number) => number, speed: number, prec: number, lineOff: number, myLat: number,
     latLim: number, latT: number, dt: number, cars: { dodgeT: number, conflict: boolean }) {
   let { dodgeT, conflict } = cars;
-  // ---- OBSTACLES (user, 2026-10-04: "AI need to see tyres and cones as obstacles — although
+  // ---- OBSTACLES (user: "AI need to see tyres and cones as obstacles — although
   // optional ones haha — but try and avoid them
   // on rally stages / tracks"): ctx.obstacles = loose objects near this car ({ x, y, r },
   // main.js). One in my path ahead, on the road ->

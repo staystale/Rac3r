@@ -164,7 +164,7 @@ function groupShadeRects(canvas: HTMLCanvasElement, levels: Float32Array, cells:
  * HILL-SHADING baked into a tile, DRAWN AS TRANSLUCENT SQUARES, not per pixel: "move toward
  * white by k" IS "draw white at opacity k", so the colours are identical - but there is no
  * getImageData / putImageData readback. ONE PATH PER SHADE, not one fillRect per cell: up to 4096
- * fillRects a tile, each with a fresh rgba() string, were ~half of every ground tile. The rects
+ * fillRects a tile, each with a fresh rgba string, were ~half of every ground tile. The rects
  * abut, never overlap, so one fill blends each pixel exactly once. The warm light (for near-white
  * ground, where white cannot show) is chosen per cell from the surface underneath.
  * @param noShade perf A/B: skip the shading

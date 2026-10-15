@@ -6,13 +6,13 @@ import type {
 } from "./types.ts";
 // =============================================================================================
 // SUBTRACK SYSTEM (for circuit recovery / reset and lap progress tracking) AUTO KERBS
-// (2026-10-03; user: "check the kerbs, they look a bit broken"). MEASURED on Thruston: kerbs
+// (user: "check the kerbs, they look a bit broken"). MEASURED on Thruston: kerbs
 // placed by NAMED corner distances landed on the OUTSIDE of four corners and on a straight (a
 // naming slip in the Complex shifted them). Now kerbs come from the track's own curvature: every
 // corner tighter than maxR gets an INSIDE kerb over the part tighter than 1.6 x its tightest
 // radius; corners tighter than exitR also get an OUTSIDE exit kerb after the apex. 'left' =
 // +normal side = the inside of a RIGHT-hander (heading increasing, y-down). MERGE + MIN TURN
-// (2026-10-04, Thruston re-trace): on a traced lap the curvature still ripples, so one sweeper
+// (Thruston re-trace): on a traced lap the curvature still ripples, so one sweeper
 // came out as 3-6 kerbs with gaps. Corners turning less than minTurn deg get none (a kink is not
 // a corner); same-side kerbs closer than mergeGap m join.
 ﻿/**
@@ -99,7 +99,7 @@ function pushCornerKerbs(
   const { exitR, width, h: kerbHeight, heavyR, heavyW, heavyH } = opts;
   const heavy = minR < heavyR;
   const inside = dir > 0 ? 'left' : 'right', outside = dir > 0 ? 'right' : 'left';
-  // NO FANS (2026-10-04, photographed at Campbell / Club): a kerb on the inside of a tight
+  // NO FANS (photographed at Campbell / Club): a kerb on the inside of a tight
   // corner has its inner edge at R - half road - kerb width; at R 12.6 with a 3 m heavy kerb
   // that was 2.6 m and the blocks fanned into wedges. Cap the inside kerb so its inner edge
   // stays >= 0.7 of its outer one.
@@ -167,7 +167,7 @@ export function autoKerbs(track: Subtrack, options: AutoKerbOptions = {}): Curve
   if (!mergeGap) return kerbs;
   return mergeCloseKerbs(kerbs, mergeGap);
 }
-// TRACE A REAL MAP INTO A DRIVABLE CENTRELINE (2026-10-04; user: Thruston "kerbs still broken on
+// TRACE A REAL MAP INTO A DRIVABLE CENTRELINE (user: Thruston "kerbs still broken on
 // tight corners, not like the real corner"). The first re-lay pushed hand-read map points
 // straight through Catmull-Rom and opened only the corners that FOLDED: MEASURED Campbell/Cobb ~R
 // 11, Club R 9 (fold at 266 m), so a 3 m inside kerb had its inner edge ~1-4 m from the corner
@@ -387,7 +387,7 @@ export function createSubtrack(
     return { surface: SURFACES.tarmac };
   }
 
-  // LOOKUP GRID (perf, 2026-10-03): segment indices per SUB_CELL m square of their padded box, so
+  // LOOKUP GRID (perf): segment indices per SUB_CELL m square of their padded box, so
   // querySubtrack checks a handful of segments instead of every one. MEASURED: a shaded Test
   // Track ground tile cost 34 ms at phone-ish CPU speed.
   const grid = new Map<number, number[]>();
@@ -410,7 +410,7 @@ export function createSubtrack(
   return { pts: sampled, segs, totalDist, width, sectors, sectorAt, curvedKerbs, grid };
 }
 
-// GHOST SEGMENT (point-to-point stages, user 2026-10-04: "rally stages are circular often — they
+// GHOST SEGMENT (point-to-point stages, user: "rally stages are circular often — they
 // should mostly be a LINE"). The engine's roads are closed loops (distances wrap at the start
 // line); a point-to-point stage keeps that arithmetic by closing its loop with ONE invisible
 // segment from the stop-zone end back to the run-up before the start. A ghost segment is not

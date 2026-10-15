@@ -7,7 +7,7 @@ import { onTrack, querySubtrack } from "../tyrewall.ts";
 import { ss01, trackKit } from "./kit.ts";
 import type { Point, Lane, Trap, Cone, Prop, Barrier, Bump, Subtrack } from "../types.ts";
 // =============================================================================================
-// BRANDS SNATCH — parody of Brands Hatch (Kent). Built 2026-10-04. Decisions (user): BOTH layouts
+// BRANDS SNATCH — parody of Brands Hatch (Kent). Built. Decisions (user): BOTH layouts
 // (GP + Indy) from one build, REAL-ISH hills from the contour map (art/ref/bh1.png: 115-145 m),
 // GRAVEL TRAPS + tyre walls + Armco, grandstands, pits, woods.
 // TRACED from the official map (art/ref/bh2.png = Wikimedia "Brands_Hatch_2003.svg" at 1280 px;
@@ -289,7 +289,7 @@ function addBrandsMarshals(kit0: BrandsKit, sub: Subtrack, halfWidth: number, pr
 function filterBrandsProps(
   sub: Subtrack, kit: BrandsKit, halfWidth: number, props: Prop[],
 ): Prop[] {
-  // FOOTPRINT CHECK (user, 2026-10-04: "a truck across the Brands GP track", "a hut across the
+  // FOOTPRINT CHECK (user: "a truck across the Brands GP track", "a hut across the
   // road near the exit of Druids on the Indy"). The first filter skipped big props and tested
   // only a prop's CENTRE. Now every prop's whole box (its solid size + 1.5 m) is sampled on a 1.5
   // m grid against the road and the pit / trap lanes; anything touching is dropped. Only the

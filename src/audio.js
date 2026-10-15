@@ -1,7 +1,7 @@
 // audio.js — procedural Web Audio API engine synthesis, tyre screech, and surface textures.
 // Runs purely client-side; safely no-ops in Node or headless test runners (CLAUDE.md §5).
 
-// remembered between sessions (the pause menu's SOUND slider / MUTE, 2026-10-07)
+// remembered between sessions (the pause menu's SOUND slider / MUTE)
 /**
  * Reads a stored setting.
  * @param {string} key localStorage key
@@ -459,7 +459,7 @@ export function createAudio() {
   const state = {
     ctx: null,
     masterGain: null,
-    // remembered between sessions (the pause menu's SOUND slider / MUTE, 2026-10-07)
+    // remembered between sessions (the pause menu's SOUND slider / MUTE)
     volume: Math.max(0, Math.min(1, +load('rac3r.vol', 0.5) || 0)),
     muted: load('rac3r.mute', '0') === '1',
     // Engine audio nodes

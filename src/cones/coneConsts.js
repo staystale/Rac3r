@@ -10,7 +10,7 @@ export const TOPPLE_V = 0.8;        // m/s hit needed to knock a cone flat
 export const MAX_CONE_V = 32;       // clamp fling speed
 
 // A stack hit hard enough comes apart: it becomes one ROLLING tyre and throws out two more — one
-// cartwheeling left, one skidding flat right. Used by the car hitting a stack AND (2026-10-03) by
+// cartwheeling left, one skidding flat right. Used by the car hitting a stack AND by
 // any other object hitting one, so a tyre flung into the wall bursts the stack it lands on.
 /**
  * Burst a tyre stack into one rolling tyre plus two thrown tyres pushed onto `out`.
@@ -41,7 +41,7 @@ export function burstStack(stack, out) {
     spin: (Math.random() - 0.5) * 12, down: 1.0, flipPhase: 0, flipSpeed: 0 });
 }
 
-// OBJECT-OBJECT COLLISIONS (user, 2026-10-03: "tyres should hit other tyres and cones or objects
+// OBJECT-OBJECT COLLISIONS (user: "tyres should hit other tyres and cones or objects
 // etc and pass impact onto them if necessary"). Every object is a circle of radius r and mass m.
 // Only objects that are MOVING are tested — a wall of 600 stacks at rest costs nothing — each
 // against the whole list with a cheap box reject (see collideObjects for why not a spatial hash).
@@ -59,11 +59,11 @@ export const BALE_BURST_V = 5, BALE_DRAG = 0.22;   // restitution by kind; heavy
 // m/s relative speed that bursts a stack (same threshold as the car)
 export const STACK_BURST_V = 3.8;
 
-// what TOPPLES when hit (cones; and since 2026-10-04 rally CHEVRON boards, 45 kg on their posts,
+// what TOPPLES when hit (cones; and since rally CHEVRON boards, 45 kg on their posts,
 // and FLAG poles, 12 kg — user: "heavy but impactable", they had been solid walls, then
 // pass-through)
 export const TOPPLES = new Set(['cone', 'chevron', 'flag', 'tapepost']);
-// ROADSIDE DEBRIS (user, 2026-10-05: "pallets, boxes, crates, wheelie bins, sandbags, barrels,
+// ROADSIDE DEBRIS (user: "pallets, boxes, crates, wheelie bins, sandbags, barrels,
 // exhaust / bumper, tarps; some should BREAK or become DRIVE-OVERABLE after a hit or two, as logic
 // says per object"): mass kg, r m, hits to break (0 = never: it slides), and what it breaks INTO (a
 // flat, drive-over patch, like the burst bale's straw). Placed by highway.js LITTER (the density
@@ -81,7 +81,7 @@ export const DEBRIS = {
   tarp:     { mass: 3,  r: 0.9, breaks: 0, flat: true },
 };
 export const BROKEN = new Set(['splinters', 'cardboard', 'sand', 'fluff']);
-// ANIMALS (S-C; user 2026-10-06: "Can we make Cows and sheep impactable ? Sheep can be like a tyres
+// ANIMALS (S-C; user: "Can we make Cows and sheep impactable ? Sheep can be like a tyres
 // impact weight but burst into white particles / [cows] should stay solid and be heavier more like
 // hay bails impact weight"; Q5: "no gore ... sheep should explode into white fluff over like 30mph
 // ... cows tip over 40mph"). A SHEEP is 12 kg (a tyre): hit above SHEEP_POP_V it bursts into FLUFF
@@ -92,7 +92,7 @@ export const SHEEP_POP_V = 13.4, COW_TIP_V = 17.9;   // m/s = 30 / 40 mph
 // TAPE_SNAP_V) or its posts are pulled apart (> 1.8 x its rest length); a snapped section sticks to
 // that car with TAPE_STICK chance (render.ts trails it as a streamer)
 export const TAPE_SNAP_V = 1.5, TAPE_STICK = 0.45;
-// ...and it GOES (user, 2026-10-04: "tape should vanish into a cloud of particles after multiple
+// ...and it GOES (user: "tape should vanish into a cloud of particles after multiple
 // hits"): the snap is hit 1; the next distinct hit (a car through the gap again, >= TAPE_REHIT s
 // later, or its posts torn further apart) is hit TAPE_GONE: the stubs vanish and a PUFF is queued
 // for render.ts (red / white flecks)

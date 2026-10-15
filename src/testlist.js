@@ -1,4 +1,4 @@
-// testlist.js — THE TEST QUEUE (user, 2026-10-06: "can we have a to test feature list somewhere in
+// testlist.js — THE TEST QUEUE (user: "can we have a to test feature list somewhere in
 // the pause menu while we are testing it should be updated when we add new features and remove
 // approved features"). Shown in the PAUSE menu, TEST MODE only (menu.js pause -> TESTING).
 // THE RULE (CLAUDE.md §1): every feature handed over for a phone test gets an entry here IN THE
@@ -7,8 +7,8 @@
 //   id     stable key            added   date it went in (yyyy-mm-dd)
 //   where  how to get to it      try     what to do      wrong   what would count as a bug
 export const TEST_LIST = [
-  // (approved 2026-10-06 late, deleted: fields, grassedge, catchthem, slipsdual, fps - TODO.md 1c;
-  // 2026-10-07: dirtroad, animals, labext)
+  // (approved late, deleted: fields, grassedge, catchthem, slipsdual, fps - TODO.md 1c;
+  // dirtroad, animals, labext)
   {
     id: 'sound',
     added: '2026-10-07',

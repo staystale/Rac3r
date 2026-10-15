@@ -14,7 +14,7 @@ export interface View {
   noPatterns: boolean;
 }
 
-// The camera object; lx / ly are undefined until follow() sets them (updateFly resets them).
+// The camera object; lx / ly are undefined until follow sets them (updateFly resets them).
 export interface Cam {
   x: number;
   y: number;
@@ -157,7 +157,7 @@ export interface Chip {
   sz: number;
 }
 
-// A canvas that silhouette() caches its darker copy on (cardamage.ts).
+// A canvas that silhouette caches its darker copy on (cardamage.ts).
 export interface SilCanvas extends HTMLCanvasElement {
   _sil?: HTMLCanvasElement;
 }
@@ -263,10 +263,10 @@ export interface TapeGame {
   ai?: { car: TapeCar }[];
 }
 
-// A car as frame() hands it to every layer: drawn, smoking / chipping and trailing tape.
+// A car as frame hands it to every layer: drawn, smoking / chipping and trailing tape.
 export type GameCar = RenderCar & ParticleCar & TapeCar;
 
-// What frame() reads of the game (jokerTaken: RoadGame; cones, car, ai: TapeGame).
+// What frame reads of the game (jokerTaken: RoadGame; cones, car, ai: TapeGame).
 export interface RenderGame extends RoadGame, TapeGame {
   car: GameCar;
   ai?: { car: GameCar }[];
@@ -299,7 +299,7 @@ export interface TileState {
   standIn: boolean;
 }
 
-// How many tiles one frame may still paint (n), and the time budget of tileBudget().
+// How many tiles one frame may still paint (n), and the time budget of tileBudget.
 export interface TileBudget {
   n: number;
   first?: boolean;

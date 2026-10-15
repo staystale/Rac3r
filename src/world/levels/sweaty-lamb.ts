@@ -7,7 +7,7 @@ import { onTrack } from "../tyrewall.ts";
 import { trackKit } from "./kit.ts";
 import type { Point, Cover, Lane, Cone, Prop, Paint, Barrier } from "../types.ts";
 // =============================================================================================
-// SWEATY LAMB — parody of Sweet Lamb (mid Wales), the gravel rally stage. Built 2026-10-04.
+// SWEATY LAMB — parody of Sweet Lamb (mid Wales), the gravel rally stage. Built.
 // Decisions (user): layout INSPIRED BY THE PHOTOS (no published map — rally-maps needs a browser):
 // Sweet Lamb is 4.24 km of gravel, 373-497 m (123 m of climb), a valley side of switchbacks that
 // make the famous spectator bowl, black corrugated farm sheds round a gravel yard, a water splash,
@@ -16,7 +16,7 @@ import type { Point, Cover, Lane, Cone, Prop, Paint, Barrier } from "../types.ts
 // to the start. Built as ONE closed loop (stage + liaison) so RESET, lap tracking and the
 // autodriver all work; LEVEL.stage = { finish } and main.js times start line -> finish. World
 // metres (mpp 1). Valley floor in the south, the hill rising to the north (one cos^2 hill, 18 m);
-// start in the SW farm yard. V2 (user, 2026-10-04: "a bit basic track wise — more unique corners";
+// start in the SW farm yard. V2 (user: "a bit basic track wise — more unique corners";
 // "slightly longer, more twists and turns, same map size"; "more tyres, cones, flags so it feels
 // like a rally event"). ~2 km of stage, every corner a different kind, in order: SQUARE LEFT out of
 // the yard, DOG-LEG square right, fast ESSES along the valley, the WATER SPLASH, a long right
@@ -122,7 +122,7 @@ for (const dist of [SL_C.sqL, SL_C.sqR, SL_C.sqL2, SL_C.tree, SL_C.hp2, SL_C.sqR
   SL_DRESS.push(SL_KIT.prop(dist + 12, out * 11,
     { kind: 'flag', col: ['#c8302c', '#e2c13a', '#2b56b5', '#2f7d4f'][(dist | 0) % 4] }));
 }
-// HAY BALES round EVERY corner of the stage (user, 2026-10-04: "more hay bales around the rally
+// HAY BALES round EVERY corner of the stage (user: "more hay bales around the rally
 // stage corners"): corners found from the curvature (autoKerbs' corner finder: tighter than 45 m,
 // turning > 25 deg), a knockable bale every 2.1 m along the OUTSIDE from just before the corner to
 // 12 m after it. (First cut: 7 bales at 8 hand-picked corners.)

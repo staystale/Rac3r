@@ -15,7 +15,7 @@ const ALONG_GAP = 2.7;       // m kept from a car alongside by an attack or a co
 // s to ease from the grid lane onto the line (START_GAP, m more room alongside then, is in
 // driverTraffic.ts)
 const START_BLEND = 9;
-// NEVER WAIT (user, 2026-10-07: "patience they should never really wait imo, just try harder and
+// NEVER WAIT (user: "patience they should never really wait imo, just try harder and
 // go faster"): seconds of being held up before
 // a pass is tried were 0.3-1.5 s (by aggression), now 0.15-0.6; the chance to commit to one per
 // corner 30-90 % -> 60-100 %; and sat behind
@@ -126,7 +126,7 @@ export function laneStep(drv: Drv, car: AiCar, path: AiPath, nearIdx: number, sp
   latT += traits.wander * (
       0.6 * Math.sin(state.t * 0.37 + wanderPhaseA) + 0.4 * Math.sin(
       state.t * 0.83 + wanderPhaseB));
-  // THE START (user, 2026-10-04: "they aim for the racing line a bit too hard at the start of
+  // THE START (user: "they aim for the racing line a bit too hard at the start of
   // races and it causes crashes — increase crash awareness a tiny bit, more willing to overtake /
   // avoid, without slowing down"): from the moment it moves off, the car KEEPS ITS GRID LANE (its
   // offset from the line when it set off) and eases onto the line over START_BLEND s; in that

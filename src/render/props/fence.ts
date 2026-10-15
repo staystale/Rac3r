@@ -11,7 +11,7 @@ import type { PropCtx } from './types.ts';
  */
 export function drawPropsFence(propCtx: PropCtx) {
   const { view, cam, forSide } = propCtx;
-  // MEASURED 2026-10-05: ~133k mesh segments + posts per frame along a 100 km edge (55-105 ms
+  // MEASURED: ~133k mesh segments + posts per frame along a 100 km edge (55-105 ms
   // frames)
   if (LEVEL.endless) return;
   for (let i = 0; i < 4; i++)
@@ -143,7 +143,7 @@ function barrierPosts(
  */
 function isBarrierOffscreen(propCtx: PropCtx, barrier: Barrier) {
   const { view, toScreenX, toScreenY } = propCtx;
-  // OFF-SCREEN CULL (2026-10-04): Thruston's ~500 m of Armco was stroked + posted every frame
+  // OFF-SCREEN CULL: Thruston's ~500 m of Armco was stroked + posted every frame
   // for the whole lap
   if (!barrier._rbb) {
     let minX = Infinity,

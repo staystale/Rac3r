@@ -9,7 +9,7 @@ const MARKS_MAX = 30000;
 // GROUND TEXTURE. A fixed lattice (never an RNG — that crawls between frames), CULLED TO THE
 // VIEW.
 //
-// MEASURED BUG, 2026-09-28 (photographed): this looped the whole 260 m quadrant, so it could only
+// MEASURED BUG, (photographed): this looped the whole 260 m quadrant, so it could only
 // afford ~3 m spacing and the result was a field of 1 m polka dots rather than ground. Culling to
 // the visible rectangle first makes the count depend on the SCREEN, not the world, so the grain
 // can be as fine as it needs to be and costs the same at any zoom. Squares, not arcs: at grain
@@ -43,7 +43,7 @@ export function speckle(
   const vy0 = Math.max(minY, cam.y - view.H / 2 / ppm),
     vy1 = Math.min(maxY, cam.y + view.H / 2 / ppm);
   if (vx1 <= vx0 || vy1 <= vy0) return;
-  // MARK CAP (2026-10-03): the fly-in's whole-level overview asked one call for ~188,000 squares
+  // MARK CAP: the fly-in's whole-level overview asked one call for ~188,000 squares
   // of grass grain (1.1 s to record, 4.9 s to rasterise at 4x throttle). Any call that would
   // place more than MARKS_MAX marks thins its lattice to fit — invisible at the zoom where it
   // happens, since that much grain is sub-pixel noise.
@@ -66,7 +66,7 @@ export function speckle(
   }
 }
 
-// ---------------------------------------------------------------- SURFACE PAINTER (2026-10-03)
+// ---------------------------------------------------------------- SURFACE PAINTER
 // User: "All surfaces should have unique and noticeable graphics so we can easily and instantly
 // tell them apart." PHOTOGRAPHED BEFORE: every surface was a base colour plus the same square
 // speckle, so grass/short grass, tarmac/race tarmac, wet/broken, sand/gravel and mud/dirt read as
@@ -332,7 +332,7 @@ function paintSheen(
   const { view, cam, PPMz } = groundCtx;
   const [, col, spacing, wid, slope] = layer, ppm = PPMz();
   // extended past the view by a band's width: a square-cut diagonal band ending exactly at a
-  // TILE edge left a visible notch at every tile seam (photographed 2026-10-03 on the lab ice
+  // TILE edge left a visible notch at every tile seam (photographed on the lab ice
   // sheet)
   const vx0 = Math.max(minX, cam.x - view.W / 2 / ppm - wid * 2),
     vx1 = Math.min(maxX, cam.x + view.W / 2 / ppm + wid * 2);

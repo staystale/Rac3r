@@ -17,7 +17,7 @@ export function showPause(menu, act) {
     hideMenu(menu);
   act.resume();
   }, 'go');
-  // SOUND (user, 2026-10-07: "sound needs a volume control / mute button in pause menu too please
+  // SOUND (user: "sound needs a volume control / mute button in pause menu too please
   // - kinda high priority"): a slider 0-100 % and MUTE; audio.js remembers both (localStorage
   // rac3r.vol / rac3r.mute)
   if (act.audio) {
@@ -79,7 +79,7 @@ export function showPause(menu, act) {
 }
 
 /**
- * TESTING (user, 2026-10-06): the to-test feature list from src/testlist.js, newest first. Test
+ * TESTING: the to-test feature list from src/testlist.js, newest first. Test
  * mode only.
  * @param {object} menu the menu context
  * @param {object} act the session actions
@@ -258,7 +258,7 @@ function showResultsTable(menu, flow, act) {
 }
 
 /**
- * Adds one podium step: the car top-down with its wheels, nose UP the step (user, 2026-10-05:
+ * Adds one podium step: the car top-down with its wheels, nose UP the step (user:
  * "podium looks broken, just use normal top down cars"), name, time / distance and the step.
  * @param {object} menu the menu context
  * @param {HTMLElement} pod the podium element

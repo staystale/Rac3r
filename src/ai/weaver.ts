@@ -13,7 +13,7 @@ import { steerCmd } from "./weaverSteer.ts";
 
 // ---------------------------------------------------------------- DRIVE ITSELF OUT (both roads)
 // Nearly still for DRIVE_OUT_T s after the green (nose in a wall, beached, tangled) -> REVERSE
-// ~1-1.5 s with the wheel turned to swing the nose back toward the road direction roadH(); three
+// ~1-1.5 s with the wheel turned to swing the nose back toward the road direction roadH; three
 // tries inside 15 s and still stuck -> state.giveUp: main.js resets it (last resort). Returns the
 // reversing controls, or null = drive on. (NOOUT=1 env: node A/B only - proves the highway merge
 // changed nothing else)
@@ -78,7 +78,7 @@ export function roadDriver(level: HighwayLevel, traits: Traits, rnd: () => numbe
   // CORNER GRIP: a share of tarmac mu x the car's mu (the bench driver's 0.40; 0.38 Mobile .. 0.50
   // Real). MEASURED (hwracecheck): 0.6 x gripG planned 0.8 g at 230 km/h on an R 500 and the field
   // ran wide - the car's real grip at that speed is lower RACING, NOT A SUNDAY DRIVE (user,
-  // 2026-10-06: "they seem slow ... make them faster and just try n handle it"; MEASURED pacesuite,
+  // "they seem slow ... make them faster and just try n handle it"; MEASURED pacesuite,
   // 18 races, vs the mirror-only build: mean 133.4 -> 138.2 km/h, under-130 40 -> 35 %, bad races 2
   // -> 1; weavecheck 0 spins, 1-2 of 45 close passes clip at 150 km/h): throttle floor 0.85 (was
   // 0.6), corner share 0.42-0.54 (was 0.33-0.42), follow decel 0.55 g share, turn feathering only

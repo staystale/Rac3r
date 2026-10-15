@@ -17,7 +17,7 @@ export const GRAVITY = 9.81;
 // mods — THE ONLY SEAM between the game layer and the physics (CLAUDE.md rule 6). Every entry
 // defaults to a no-op, so a stock car drives exactly as it did before upgrades existed. Nothing in
 // vehicle.js may read a part name, an archetype or a pip. Slice 1 never sets any of these; they
-// exist so slice 3 is an afternoon instead of a rewrite. What defaultMods() returns: eight
+// exist so slice 3 is an afternoon instead of a rewrite. What defaultMods returns: eight
 // multipliers, 1 = no-op.
 export interface Mods {
   power: number; shiftTime: number; inertia: number; gripLat: number;
@@ -78,7 +78,7 @@ export const SURFACE_LAB: Surface = { id: 'lab', mu: 1.0, plough: 0, hard: true 
 // Shared defaults (PLAN.md). Anything a car does not state comes from here.
 const SHARED = {
   // cgH: the tuned weight-transfer height every car shares (handling the user has approved). The
-  // per-car cg / rideH below (user, 2026-10-04: "easier to give cars cg and ride height") feed the
+  // per-car cg / rideH below (user: "easier to give cars cg and ride height") feed the
   // ROLLOVER threshold (track / 2 x cg) and the shadow, not the handling.
   cgH: 0.52,
   wheelR: 0.30,
@@ -90,20 +90,20 @@ const SHARED = {
   // breakaway that caused the track-car judder simply stops existing.
   slideGrip: 0.85,
   shiftTime: 0.25,
-  // in g of demand at full pedal; A7 turns this into newtons. MEASURED 2026-09-27: at 1.0 the front
+  // in g of demand at full pedal; A7 turns this into newtons. MEASURED: at 1.0 the front
   // axle can NEVER lock (demand 0.65 g vs ~0.72 g of capacity under load transfer), so only the
   // rear pair ever marked and PLAN.md's acceptance shot "four straight parallel lines, front pair
   // darker" was unreachable. Worse, full pedal was also the FASTEST stop (45.1 m vs 49.9 m at 85%),
   // so lock-up cost nothing and there was no threshold-braking skill. At 1.35 full pedal locks all
   // four and the optimum moves below 100%, which is what makes the marks mean something. 1.35 ->
-  // 1.8 (user, 2026-10-03: "braking effort needs to be turned up — I can no longer lock up the
+  // 1.8 (user: "braking effort needs to be turned up — I can no longer lock up the
   // brakes"). MEASURED, warm tyres, ABS off, 100 km/h: at 1.35 the rally, track and naffcar could
   // not lock at all (warm tyres grip more since flex heat); at 1.8 every car can, and stops shorten
   // 1-3 m (hatch 38.1 -> 35.3 m). 2.2 gained only ~1 m more.
   brakeMaxDecel: 1.8,
   driveEff: 0.90,
   idleRpm: 850,
-  // MEASURED 2026-09-27 (user: "it is very slow"): the hatch needed 166 m to reach 100 km/h and 637
+  // MEASURED (user: "it is very slow"): the hatch needed 166 m to reach 100 km/h and 637
   // m to reach 150, in a 200 m lab — the car could never actually go fast. Torque curves were
   // raised ~72% across the roster and drag cut from 0.38, which is what moves TOP speed (power
   // fights v^2). per-car below; this is the fallback. Drag is what caps TOP speed without touching
@@ -111,7 +111,7 @@ const SHARED = {
   // pulls hard.
   dragC: 0.40,
   rollC: 0.015,
-  // Yaw-inertia multiplier. MEASURED 2026-09-27 (user: "the cars do not have enough weight /
+  // Yaw-inertia multiplier. MEASURED (user: "the cars do not have enough weight /
   // momentum, so it stops them from drifting right"). The box approximation m*(len^2+wid^2)/12
   // gives the hatch 1810 kg m^2, which is realistic but makes the car dart: it starts rotating
   // instantly and stops just as fast, so a slide snaps rather than swings. A real car carries its
@@ -123,7 +123,7 @@ const SHARED = {
   //   2.8  -> 30 deg, 61% kept, recovers to 1 deg   3.2 -> 23 deg, 68% (barely drifts)
   // 2.8 is a real drift angle that still carries speed. It is above the textbook box value on
   // purpose — the user asked for weight and momentum, and at the realistic figure the car simply
-  // spun. RE-MEASURED 2026-09-27 against the FINISHED model (continuous tyre curve, mu 1.25,
+  // spun. RE-MEASURED against the FINISHED model (continuous tyre curve, mu 1.25,
   // continuous yaw damping). 2.8 was set earlier the same day to stop a handbrake flick reaching 90
   // deg while keeping only 32% of its speed — but with the model as it now stands the trade-off had
   // INVERTED:
@@ -142,7 +142,7 @@ const SHARED = {
   downforceR: 0.04,     // rear aerodynamic downforce coefficient (Cl * A)
   // SUSPENSION, as the two numbers a suspension is really specified by. Per-car, because the load
   // factor a bump produces is DIMENSIONLESS — it depends only on these, not on mass. MEASURED
-  // 2026-09-28: with them global, all six cars from 815 kg to 1880 kg rode the kerb at an identical
+  // with them global, all six cars from 815 kg to 1880 kg rode the kerb at an identical
   // 0.36/1.39 load swing. Correct arithmetic, wrong game: a rally car soaking up a kerb and a track
   // car being thrown off one is the difference between the two cars existing.
   susF: 1.40,           // Hz body ride frequency. Road cars 1.0-1.5; a race car is 2+.
@@ -158,13 +158,13 @@ const CURVE_ESTATE: Curve = [[900, 415], [1800, 565], [2600, 609], [3200, 625], 
   510], [6000, 410]];
 const CURVE_MUSCLE: Curve = [[900, 1941], [1800, 2544], [2600, 2757], [3400, 2811], [4200, 2676],
   [5000, 2346], [6000, 1929]];
-// Bumped 2026-09-28 when the roster-wide grip raise stopped it breaking traction — a rally car that
+// Bumped when the roster-wide grip raise stopped it breaking traction — a rally car that
 // cannot be made to slide is the wrong car.
 const CURVE_RALLY: Curve  = [[1200, 537], [2200, 762], [3200, 862], [4200, 881], [5200, 840], [6400,
   737], [7600, 587]];
 const CURVE_TRACK: Curve  = [[1500, 438], [3000, 568], [4500, 655], [6000, 723], [7000, 756], [8000,
   728], [9000, 616]];
-// (user, 2026-10-04: "a BMW 3 series 2000s and a Subaru WRX classic 2005 saloon") — game units,
+// (user: "a BMW 3 series 2000s and a Subaru WRX classic 2005 saloon") — game units,
 // scaled from the real figures as the roster is (the hatch peaks 488): an E46 330i-style straight
 // six (300 Nm real, ~1.5x the hatch, smooth and flat, 6500 redline) and a GD WRX-style turbo flat
 // four (300 Nm real at 3600: soft under 2500, then the boost, tailing off to 7000)
@@ -176,7 +176,7 @@ const CURVE_WRZ: Curve    = [[1000, 380], [2000, 600], [2800, 790], [3600, 840],
   730], [6500, 600], [7000, 540]];
 const CURVE_TRACTOR: Curve = [[600, 3600], [1000, 5200], [1500, 5800], [1900, 5400], [2200, 4200],
   [2500, 800], [2600, 50]];
-// NEW CARS (user, 2026-10-04). Curves are on the game's scale (the roster runs ~1.7x real torque —
+// NEW CARS. Curves are on the game's scale (the roster runs ~1.7x real torque —
 // see SHARED dragC), set against the measured roster (tools/carstats.mjs), not the brochure.
 const CURVE_MINI: Curve    = [[900, 120], [2000, 160], [3000, 178], [4000, 182], [5000, 172], [6000,
   150], [6500, 132]];
@@ -197,7 +197,7 @@ const CURVE_DRIFT: Curve   = [[1200, 380], [2500, 640], [3500, 800], [4500, 830]
 const CURVE_F2: Curve      = [[1500, 350], [3000, 455], [4500, 525], [6000, 580], [7000, 605],
   [8000, 585], [9000, 495]];
 
-// CLASSES (user, 2026-10-04: "classes ... subclasses for events; the car menu filters by class then
+// CLASSES (user: "classes ... subclasses for events; the car menu filters by class then
 // subclass; upgrading never changes a car's class"; split agreed as proposed). Each ROSTER row
 // carries cls + sub; events will ask for a class (and maybe a subclass).
 export const CLASSES = [
@@ -212,21 +212,21 @@ export const CLASSES = [
 ];
 export const classOf = (classId: string) => CLASSES.find((cls) => cls.id === classId);
 
-// PAINT + NUMBER (user, 2026-10-04: "palette + number + preview"): 16 colours for body and trim; a
+// PAINT + NUMBER (user: "palette + number + preview"): 16 colours for body and trim; a
 // race number 1-99 (0 = none). A livery is { paint, trim, num } per car id in the menu profile;
 // applyLivery puts it on a car's spec (missing fields = the roster's own), so it follows the car
 // into every event and render.ts caches a sprite per livery.
 export const PALETTE = ['#f0f0ea', '#a9aeb6', '#5a5f69', '#16181d', '#c8342a', '#7a1d22', '#e0603a',
   '#f2a900',
   '#9bc53d', '#2e7d32', '#1f4d2e', '#3fb6c9', '#2f6fd0', '#1d3f9a', '#8a4fc0', '#e86fa8'];
-// TYRES (user, 2026-10-04: "the first upgrade — manufacturers, ranges per class; only fit what
+// TYRES (user: "the first upgrade — manufacturers, ranges per class; only fit what
 // fits; rally / off-road tyres on a road car = more off-road grip but heat up too quickly on
 // tarmac; wets, race... a real mix with distinct grip interactions"; "4 brands, 15 types"; TODAY's
 // grip = the floor: "SPUM — Pre-Spun +0"). grip = x on the surface's mu per SURFACE GROUP (Pre-Spun
 // = 1 everywhere, so a stock car is exactly as before); opt / peak / cold = the heat window
 // (vehicle.js tyreGrip, hard ground only); heatHard = x heat-up on hard ground (knobbly / soft
 // compounds cook on tarmac). fits = the classes that can run it. Prices: shown; test mode does not
-// charge. v2 (user, 2026-10-04: "tyre stats don't show all the surfaces they affect — mud etc isn't
+// charge. v2 (user: "tyre stats don't show all the surfaces they affect — mud etc isn't
 // shown ever"): NINE surfaces, each its own number and its own bar (v1 had 5 groups — GRASS hid mud
 // + sand, GRAVEL hid dirt, SNOW hid ice). Kerbs / concrete / broken count as tarmac.
 export const TYRE_SURFS = [['tarmac', 'TARMAC'], ['wet', 'WET'], ['gravel', 'GRAVEL'], ['dirt',
@@ -326,14 +326,14 @@ export function applyLivery(
 export const ROSTER: RosterRow[] = [
   {
     id: 'hatch-fwd', name: 'Hatch FWD', kind: 'hatch', cls: 'road', sub: 'Hatch',
-    // m: CENTRE OF GRAVITY and RIDE HEIGHT (user, 2026-10-04) — rollover (roll.js) + shadow;
+    // m: CENTRE OF GRAVITY and RIDE HEIGHT — rollover (roll.js) + shadow;
     // handling still uses cgH
     cg: 0.55, rideH: 0.14,
-    // DRIVER AIDS by real-world fit (user, 2026-10-03); ON by default, switchable
+    // DRIVER AIDS by real-world fit; ON by default, switchable
     aids: { abs: true, tcs: true },
     // The honest hatchback. Understeers on power, slides ONLY on the handbrake. The control case.
     mass: 1440, lf: 1.10, lr: 1.40, len: 4.0, wid: 1.7,
-    // Brake bias is strongly FRONT on every car. MEASURED 2026-09-27: at the old rearward figures
+    // Brake bias is strongly FRONT on every car. MEASURED: at the old rearward figures
     // the rear locked under braking, lost all its lateral grip, and the car spun — 5 of 5 past 90
     // deg when braking in a turn. Real cars run 70-85% front for exactly this reason.
     drive: 1.0, brakeBiasF: 0.84, caF: 109000, caR: 117000, mu: 1.56,
@@ -343,10 +343,10 @@ export const ROSTER: RosterRow[] = [
   },
   {
     id: 'hatch-rwd', name: 'Hatch RWD', kind: 'hatch', cls: 'road', sub: 'Hatch',
-    // m: CENTRE OF GRAVITY and RIDE HEIGHT (user, 2026-10-04) — rollover (roll.js) + shadow;
+    // m: CENTRE OF GRAVITY and RIDE HEIGHT — rollover (roll.js) + shadow;
     // handling still uses cgH
     cg: 0.53, rideH: 0.13,
-    // DRIVER AIDS by real-world fit (user, 2026-10-03); ON by default, switchable
+    // DRIVER AIDS by real-world fit; ON by default, switchable
     aids: { abs: true, tcs: true },
     // Same shell, rear drive. The drift teacher — the car the mark showcase is tuned on.
     mass: 1440, lf: 1.25, lr: 1.25, len: 4.0, wid: 1.7,
@@ -398,10 +398,10 @@ export const ROSTER: RosterRow[] = [
   },
   {
     id: 'estate-4x4', name: 'Estate 4x4', kind: 'estate', cls: 'road', sub: 'Estate',
-    // m: CENTRE OF GRAVITY and RIDE HEIGHT (user, 2026-10-04) — rollover (roll.js) + shadow;
+    // m: CENTRE OF GRAVITY and RIDE HEIGHT — rollover (roll.js) + shadow;
     // handling still uses cgH
     cg: 0.66, rideH: 0.21,
-    // DRIVER AIDS by real-world fit (user, 2026-10-03); ON by default, switchable
+    // DRIVER AIDS by real-world fit; ON by default, switchable
     aids: { abs: true, tcs: true },
     // Heavy, planted, four-wheel drive. Long lazy four-wheel slides, heavy marks, hard to stop.
     mass: 1810, lf: 1.35, lr: 1.35, len: 4.7, wid: 1.8,
@@ -412,23 +412,23 @@ export const ROSTER: RosterRow[] = [
   },
   {
     id: 'muscle-rwd', name: 'Muscle', kind: 'muscle', cls: 'road', sub: 'Muscle',
-    // m: CENTRE OF GRAVITY and RIDE HEIGHT (user, 2026-10-04) — rollover (roll.js) + shadow;
+    // m: CENTRE OF GRAVITY and RIDE HEIGHT — rollover (roll.js) + shadow;
     // handling still uses cgH
     cg: 0.5, rideH: 0.12,
-    // DRIVER AIDS by real-world fit (user, 2026-10-03); ON by default, switchable
+    // DRIVER AIDS by real-world fit; ON by default, switchable
     aids: { abs: true, tcs: false },
     // Torque far beyond the rear tyres. Power oversteer in any gear; the loudest marks in the lab.
     mass: 1880, lf: 1.30, lr: 1.30, len: 4.8, wid: 1.9,
     drive: 0.0, brakeBiasF: 0.82, caF: 119000, caR: 125000, mu: 1.58,
     curve: CURVE_MUSCLE, redline: 6000, upshiftRpm: 5500, downshiftRpm: 2200,
-    // raised with the 3x power (user, 2026-09-27) so the torque goes into
+    // raised with the 3x power so the torque goes into
     gears: [2.66, 1.78, 1.30, 1.00], finalDrive: 3.31, dragC: 1.05,
                                      // wheelspin and acceleration rather than a 390 km/h top speed
     paint: '#b3252f', trim: '#6e141b', glass: '#d0a0a4',
   },
   {
     id: 'rally-4x4', name: 'Rally', kind: 'rally', cls: 'rally', sub: 'Group B',
-    // m: CENTRE OF GRAVITY and RIDE HEIGHT (user, 2026-10-04) — rollover (roll.js) + shadow;
+    // m: CENTRE OF GRAVITY and RIDE HEIGHT — rollover (roll.js) + shadow;
     // handling still uses cgH
     cg: 0.52, rideH: 0.2,
     // Group-B-flavoured: rear-BIASED all-wheel drive (22% front / 78% rear), turbo torque low in
@@ -451,7 +451,7 @@ export const ROSTER: RosterRow[] = [
   },
   {
     id: 'track-rwd', name: 'Track spec', kind: 'track', cls: 'single', sub: 'F1',
-    // m: CENTRE OF GRAVITY and RIDE HEIGHT (user, 2026-10-04) — rollover (roll.js) + shadow;
+    // m: CENTRE OF GRAVITY and RIDE HEIGHT — rollover (roll.js) + shadow;
     // handling still uses cgH
     cg: 0.36, rideH: 0.07,
     // Formula 1 archetype: featherweight, open-wheel, huge aero downforce, wide racing slicks.
@@ -460,7 +460,7 @@ export const ROSTER: RosterRow[] = [
     curve: CURVE_TRACK, redline: 9000, upshiftRpm: 8600, downshiftRpm: 4200,
     gears: [2.90, 2.00, 1.55, 1.25, 1.05, 0.88], finalDrive: 3.90, dragC: 0.62,
     aeroK: 1.4,
-    // 0.65 / 0.95 -> 1.73 / 2.50 (user, 2026-10-03, step 2 aero check: yes). Was ClA 1.6 = ~0.38x
+    // 0.65 / 0.95 -> 1.73 / 2.50 (user, step 2 aero check: yes). Was ClA 1.6 = ~0.38x
     // weight at 200 km/h; a real F1 car makes ~its own weight there. Now 4.23 = 1.0x at 200 km/h,
     // same 41/59 balance. Drag unchanged.
     downforceF: 1.73, downforceR: 2.50,
@@ -469,7 +469,7 @@ export const ROSTER: RosterRow[] = [
   },
   {
     id: 'naffcar', name: 'Naffcar V8', kind: 'muscle', cls: 'oval', sub: 'Naffcar',
-    // m: CENTRE OF GRAVITY and RIDE HEIGHT (user, 2026-10-04) — rollover (roll.js) + shadow;
+    // m: CENTRE OF GRAVITY and RIDE HEIGHT — rollover (roll.js) + shadow;
     // handling still uses cgH
     cg: 0.48, rideH: 0.1,
     // Oval racer: heavy, massive V8 torque, 4-speed manual/auto, designed to go fast and turn left.
@@ -484,7 +484,7 @@ export const ROSTER: RosterRow[] = [
   },
   {
     id: 'tractor', name: 'Tractor', kind: 'tractor', cls: 'offroad', sub: 'Odd',
-    // m: CENTRE OF GRAVITY and RIDE HEIGHT (user, 2026-10-04) — rollover (roll.js) + shadow;
+    // m: CENTRE OF GRAVITY and RIDE HEIGHT — rollover (roll.js) + shadow;
     // handling still uses cgH
     cg: 1.05, rideH: 0.45,
     // Heavy agricultural diesel puller. High torque, wide rear stance, open-wheel styling.
@@ -496,7 +496,7 @@ export const ROSTER: RosterRow[] = [
     susF: 1.10, susZ: 0.55,
     paint: '#2e7d32', trim: '#fbc02d', glass: '#37474f',
   },
-  // ---------------- NEW CARS (user, 2026-10-04: "an old classic Mini, a Lamborghini, and yeah fill
+  // ---------------- NEW CARS (user: "an old classic Mini, a Lamborghini, and yeah fill
   // those classes")
   {
     id: 'mini-fwd', name: 'Minnie Cooped S', kind: 'mini', cls: 'road', sub: 'Hatch',

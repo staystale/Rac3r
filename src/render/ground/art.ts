@@ -52,7 +52,7 @@ function makeHardArt(): Record<string, SurfaceArt | null> {
         ['blobs', 'rgba(16,17,22,0.55)', 3.2, 1.6, 0.10, 0.6, 0.08],
       ],
     },
-    // circles (repair patches) removed 2026-10-03 — user: "the circles on broken concrete look
+    // circles (repair patches) removed — user: "the circles on broken concrete look
     // weird, just keep the cracks"
     broken: {
       base: '#8e9099',
@@ -109,7 +109,7 @@ function makeLooseArt(): Record<string, SurfaceArt | null> {
         ['stones', '#7d725d', 0.85, 0.05, 0.10],
       ],
     },
-    // sand REDONE 2026-10-03 (user: "I don't love how sand looks") — the bold squiggles read as
+    // sand REDONE (user: "I don't love how sand looks") — the bold squiggles read as
     // cartoon. Now fine two-tone grains with faint, long, soft wind ripples.
     sand: {
       base: '#e0c994',
@@ -174,10 +174,10 @@ function makeSoftArt(): Record<string, SurfaceArt | null> {
         ['cracks', 'rgba(255,255,255,0.80)', 3.6, 1.7, 0.05],
       ],
     },
-    // wet tarmac REDONE 2026-10-03 (user: "I don't love how wet tarmac looks") — the blue blobs
+    // wet tarmac REDONE (user: "I don't love how wet tarmac looks") — the blue blobs
     // read as paint. Real wet asphalt is DARKER tarmac with its aggregate still showing, broad soft
     // reflections and dark glossy standing water in the low spots. + BLUE-ISH PUDDLES (user,
-    // 2026-10-03: "wet tarmac isn't clear enough, maybe needs blue-ish puddles")
+    // "wet tarmac isn't clear enough, maybe needs blue-ish puddles")
     wet: {
       base: '#2c3039',
       layers: [
@@ -198,7 +198,7 @@ function makeSoftArt(): Record<string, SurfaceArt | null> {
  */
 function addFieldLooks(SURFACE_ART: Record<string, SurfaceArt | null>) {
   // FIELD LOOKS (highway.js fields, zone.art; the zone DRIVES as its own surface). User,
-  // 2026-10-06: "jsut reuse mud and grass or long grass textures for field, and maybe colour them"
+  // "jsut reuse mud and grass or long grass textures for field, and maybe colour them"
   // - so each is an existing texture with only its COLOURS swapped (same layers). SURFACE_ART[id]!
   // is set for the ids below; the cast: slice(2) of an ArtLayer is all numbers
   const recolour = (artId: string, base: string, cols: string[]): SurfaceArt => ({

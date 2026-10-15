@@ -1,4 +1,4 @@
-// Loads: weight transfer, axle vertical forces and the longitudinal demand of step().
+// Loads: weight transfer, axle vertical forces and the longitudinal demand of step.
 
 import type { Spec } from '../cars.ts';
 import { TUNE, VERT_G, AIR_DENSITY, TCS_SPIN, clamp, torqueAt, ENGINE_BRAKE } from '../vehicle.ts';
@@ -7,7 +7,7 @@ import { CLUTCH_RELEASE, CLUTCH_TAKEUP } from './powertrain.ts';
 import { LOAD_MAX } from './tyres.ts';
 
 /**
- * Section 4 of step(): longitudinal weight transfer, the per-axle suspension springs riding the
+ * Section 4 of step: longitudinal weight transfer, the per-axle suspension springs riding the
  * ground profile, and aero downforce. Returns the load factor and vertical force of each axle.
  */
 export function computeAxleLoads(car: Car, carSpec: Spec, mass: number, gravity: number,
@@ -25,7 +25,7 @@ export function computeAxleLoads(car: Car, carSpec: Spec, mass: number, gravity:
       * Math.min(1, dt / (TUNE.transferTau / car.mods.rigidity));
   // VERTICAL: ONE SUSPENSION DEGREE OF FREEDOM, riding a ground height profile.
   //
-  // REWRITTEN 2026-09-28. It used to be a scripted hop: the lab decided "you are now airborne for
+  // REWRITTEN. It used to be a scripted hop: the lab decided "you are now airborne for
   // 0.6 s" and the car played that out. The user was right that it read as an animation done TO the
   // car — "it should be a physics change to the state of the car that temporarily occurs rather
   // than like a jump that you make happen to it".
@@ -110,7 +110,7 @@ function axleVerticalForces(car: Car, carSpec: Spec, mass: number, gravity: numb
  * Traction half of TCS: updates car.tcsK and returns the engine cut factor of both aid halves.
  */
 function tractionCut(car: Car, vLongAbs: number, inReverse: boolean, dt: number) {
-  // TCS, TRACTION HALF (2026-10-03): when the driven wheels run more than TCS_SPIN m/s ahead of the
+  // TCS, TRACTION HALF: when the driven wheels run more than TCS_SPIN m/s ahead of the
   // road, cut the engine — smoothly, a discontinuous force is a judder — and give it back as grip
   // returns. The stability half sets car.escCut (below, from the last step). Both only when the car
   // HAS TCS and it is switched on.
@@ -126,13 +126,13 @@ function tractionCut(car: Car, vLongAbs: number, inReverse: boolean, dt: number)
 }
 
 /**
- * Section 5 of step(): clutch ramp, traction-control cut, rev limiter, engine braking, drive force
+ * Section 5 of step: clutch ramp, traction-control cut, rev limiter, engine braking, drive force
  * and brake force per axle. Returns the demands the tyre blocks start from.
  */
 export function computeLongitudinalDemand(car: Car, carSpec: Spec, mass: number, gravity: number,
     vLong: number, vLongAbs: number, dirSign: number, inReverse: boolean, throttle: number,
     brakeIn: number, totalRatio: number, dt: number) {
-  // ---- 5. longitudinal demand per axle CLUTCH RAMP. MEASURED BUG, 2026-09-27 (user: "still
+  // ---- 5. longitudinal demand per axle CLUTCH RAMP. MEASURED BUG, (user: "still
   // getting judder sometimes"): torque was zeroed during a shift and then restored in ONE step —
   // dumped on the track car, FxR jumping 0 -> 6480 N on the step the shift timer expired, which via
   // the friction ellipse instantly crushed rear lateral force 5842 -> 2232 N and kicked the yaw. A
@@ -144,7 +144,7 @@ export function computeLongitudinalDemand(car: Car, carSpec: Spec, mass: number,
     ? Math.max(0, car.clutch - dt / CLUTCH_RELEASE)
     : Math.min(1, car.clutch + dt / CLUTCH_TAKEUP);
   const aidCut = tractionCut(car, vLongAbs, inReverse, dt);
-  // REV LIMITER (2026-10-03). MEASURED BUG (tools/carstats.mjs): there was none — the engine rpm
+  // REV LIMITER. MEASURED BUG (tools/carstats.mjs): there was none — the engine rpm
   // was CLAMPED at the redline but kept making torque, so in top gear a car accelerated until drag
   // alone stopped it: the Naffcar V8 reached 759 km/h, the hatch 271. Now the engine cuts as the
   // WHEEL-derived revs pass the redline, faded over 2% so the cut is not a force step (a
@@ -155,7 +155,7 @@ export function computeLongitudinalDemand(car: Car, carSpec: Spec, mass: number,
   const limiter = clamp((carSpec.redline * 1.02 - rawRpm) / (carSpec.redline * 0.02), 0, 1);
   let torque = torqueAt(carSpec, car.rpm) * car.mods.power * (car.wreck ? car.wreck.power : 1)
       * throttle * aidCut * car.clutch * limiter;
-  // ENGINE BRAKING (2026-10-03, step 2). MEASURED before: a lift-off at 100 km/h slowed a hatch at
+  // ENGINE BRAKING (step 2). MEASURED before: a lift-off at 100 km/h slowed a hatch at
   // 0.04 g (drag + rolling resistance only) and took 47 s to reach 50 km/h; a real car in gear
   // pulls ~0.1-0.15 g. Off the gas the engine drags in proportion to revs, through the DRIVEN
   // wheels (so a RWD lift still loads the rear, as in life), and only while the car rolls the way

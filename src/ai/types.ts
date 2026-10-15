@@ -264,7 +264,7 @@ export interface Threat {
   oc: number;
 }
 
-// What the circuit driver learns from the cars around it (carsStep) and what it reads from drive().
+// What the circuit driver learns from the cars around it (carsStep) and what it reads from drive.
 export interface CarsAcc {
   dodgeT: number; followCap: number; conflict: boolean; lead: Lead | null;
   threat: Threat | null; side: number; alg: number[];

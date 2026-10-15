@@ -59,7 +59,7 @@ export function stepStage(game, dt) {
     if (stage.best == null || stage.t < stage.best) stage.best = stage.t;
   }
 }
-// JOKER DETECTION = A LINE, not a circle (user, 2026-10-07: "Joker lane detection needs to be wider
+// JOKER DETECTION = A LINE, not a circle (user: "Joker lane detection needs to be wider
 // on knob hill - it's easy to come off the road shoot wide and cause a defection bug where it
 // doesn't detect you've done it and then when you do it again it gives penalty for multiple
 // jokers"). MEASURED: the gate was a 7 m-radius circle at the lane's middle; the lane is 12 m wide
@@ -151,7 +151,7 @@ export function stepJoker(game, car) {
     game.jokerTaken = true;
     game.jokerAt = performance.now();
   }
-  // IN THE JOKER LANE (user, 2026-10-04: "the joker HUD warning should switch and show joker taken
+  // IN THE JOKER LANE (user: "the joker HUD warning should switch and show joker taken
   // when taken"): the gate sits mid-lane, so the HUD knows you are IN it from the moment you leave
   // the main road onto the lane (the lane through the gate; found once per level)
   if (joker._lane === undefined) joker._lane = (LEVEL.lanes || []).find((cand) => cand.out == null

@@ -8,7 +8,7 @@ import { openSmooth, jokerArrow, jokerApproach } from "./slidden-hill.ts";
 import { trackKit, rxDress, jokerBales } from "./kit.ts";
 import type { Point, Lane, Trap, Cone, Prop, Barrier, Bump, Subtrack } from "../types.ts";
 // =============================================================================================
-// KNOBHILL — parody of Knockhill (Fife), the rallycross layout. Built 2026-10-04. Decisions (user):
+// KNOBHILL — parody of Knockhill (Fife), the rallycross layout. Built. Decisions (user):
 // the TARMAC CIRCUIT + an INFIELD DIRT section (~40 % dirt like the real RX lap: 1.4 km, 39 %
 // dirt), DRY, hills FELT like Brands ("twists, drops and climbs 60 m"). TRACED from Wikimedia
 // "Knockhill_circuit_map.png" (art/ref/kh3.png, 800 px; 100 m = 76 px) at 0.62 game m/px. Clockwise

@@ -15,7 +15,7 @@ import {
 } from './sim.js';
 import { shared, game } from './state.js';
 
-// 5 -> 12 (2026-10-03, high-speed judder). MEASURED: frames over ~42 ms hit the 5-step cap and
+// 5 -> 12 (high-speed judder). MEASURED: frames over ~42 ms hit the 5-step cap and
 // THREW AWAY sim time, so the car fell behind real time and hitched (drawn car vs a smooth path:
 // worst 1.4 m at 200 km/h). wallDt is already capped at 0.1 s (12 steps), so this cannot become the
 // "background tab lurch" the cap was guarding against.
@@ -70,7 +70,7 @@ export function interpolateAiCars() {
  */
 export function stepWorld(inp) {
   // The lab says what the ground under the car is doing; the car's own suspension answers.
-  // Before step(), so the load is right for the forces computed this step rather than one step
+  // Before step, so the load is right for the forces computed this step rather than one step
   // stale. remember the pose BEFORE this step, for the render interpolation below
   game.car._p = { x: game.car.x, y: game.car.y, h: game.car.heading };
   if (!stepCarPhysics(inp)) return false;
@@ -151,10 +151,10 @@ export function drawMeter(frame) {
 /**
  * Draws one frame (world, HUD, overlays) at the interpolated poses, then restores the real poses.
  * @param {{now: number, wallDt: number, frameMs: number, meterSim: number}} frame this frame
- * @returns {number} the performance.now() the draw started at, for the draw-time smoothing
+ * @returns {number} the performance.now the draw started at, for the draw-time smoothing
  */
 export function renderFrame(frame) {
-  // RENDER INTERPOLATION (user, 2026-10-03: "at high speeds the camera / car judder"). MEASURED in
+  // RENDER INTERPOLATION (user: "at high speeds the camera / car judder"). MEASURED in
   // a real browser at 200 km/h: the 120 Hz sim gave 2 steps on most frames but 3 or 5 on others, so
   // the car jumped up to 10 px on screen (sd 1.5 px per frame) and the camera chased the jumps.
   // Draw the car BETWEEN its last two physics poses, weighted by the leftover accumulator —

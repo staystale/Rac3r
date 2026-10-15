@@ -50,7 +50,7 @@ shared.DEV = shared.settings.dev;
 
 shared.canvas = document.getElementById('c');
 shared.boot = document.getElementById('boot');
-// the boot screen says "loading…" until the code runs (user, 2026-10-04: the old "THE LAB / tap to
+// the boot screen says "loading…" until the code runs (user: the old "THE LAB / tap to
 // drive" flashed up first); only the no-menu mode (?menu=0, the test tools) still waits for a tap
 // there
 if (!(shared.settings.menu === '1' || (shared.settings.menu !== '0' && !navigator.webdriver))) {
@@ -67,9 +67,9 @@ Object.assign(game, {
   cones: createCones(),
   marks: createMarks(),
   fps: 0, fpsLow: 0,
-  // TEST MODE (user, 2026-10-06: the test list + the FPS corner "only in test for now"). Every
+  // TEST MODE (user: the test list + the FPS corner "only in test for now"). Every
   // session is launched from TEST MODE until Story exists (menu.js main: Story is locked); ?menu=0
-  // tool runs count too. When Story ships, launch() sets this from its opts.
+  // tool runs count too. When Story ships, launch sets this from its opts.
   testMode: true,
   stepsLastFrame: 0,
   in: null,
@@ -83,17 +83,17 @@ shared.lastOnTrack = null;
 shared.breadcrumbs = [];
 shared.lastBreadcrumbTime = 0;
 
-// RX RACE (user, 2026-10-04: "5-lap race, joker once; missing it adds +5 s; free practice stays as
+// RX RACE (user: "5-lap race, joker once; missing it adds +5 s; free practice stays as
 // it is"). Only on a level with a joker, only when chosen in setup. Race time runs from the first
 // move off the grid; it finishes when lap 5 is complete.
 shared.race = { on: false, laps: 5, t: 0, started: false, joker: false, done: false, total: 0,
   penalty: 0 };
 game.race = shared.race;
 // the JOKER GATE counts in practice too (user: the arrows "vanish when the joker lap has been
-// taken"); RESTART brings them back JOKER COUNT (user, 2026-10-04: "harsh, real-ish": exactly once;
+// taken"); RESTART brings them back JOKER COUNT (user: "harsh, real-ish": exactly once;
 // missed OR each extra = +30 s. FIA: a missed joker is a time penalty, extra jokers go to the
 // stewards). Counted on ENTERING the gate, so one pass is one joker however long you sit in it.
-// STAGE TIMING (point-to-point, user 2026-10-04): READY -> cross the START line (track distance
+// STAGE TIMING (point-to-point, user): READY -> cross the START line (track distance
 // wraps past 0) -> RUNNING -> pass the FINISH distance -> DONE (best kept). Drive the farm road
 // back round and crossing the start line starts a new run; RESTART = READY.
 shared.stage = { state: 'ready', t: 0, best: null, last: null, prevD: null, pen: 0 };
@@ -103,12 +103,12 @@ shared.aiCount = shared.settings.aiCount;
 // field's spread. ?diff=N, or setup's row.
 shared.aiDiff = shared.settings.aiDifficulty;
 game.ai = [];
-// RACE LENGTH (user, 2026-10-04: "choose in setup"): setup's LAPS row; 0 = the level's default (3
+// RACE LENGTH (user: "choose in setup"): setup's LAPS row; 0 = the level's default (3
 // on a circuit, the joker laps on RX)
 shared.raceLaps = 0;
 game.flow = null;
 shared.gridSlot = 0;
-// AI CARS (user, 2026-10-04: "AI should race within the class, not always the same vehicle — an
+// AI CARS (user: "AI should race within the class, not always the same vehicle — an
 // option to force them to use your car"): 'class' = each AI draws a car of YOUR car's class (a
 // shuffled deck, so the field mixes; a one-car class repeats it); 'same' = your car. The menu
 // passes its setting (default CLASS); a launch without it (tools, the menu race) keeps 'same', so
@@ -143,7 +143,7 @@ addEventListener('pagehide', saveRecords);
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) saveRecords();
 });
-// TRAFFIC (user, 2026-10-05: "traffic in every mode, a slider in test mode for density"): 0..1.5 (1
+// TRAFFIC (user: "traffic in every mode, a slider in test mode for density"): 0..1.5 (1
 // = PER_LANE cars a lane), setup's TRAFFIC slider or ?traffic=; LITTER (user: "a slider for
 // frequency / density" of the roadside objects): 0..3 x, setup's LITTER slider
 game.traffic = createTraffic();
@@ -152,12 +152,12 @@ if (shared.settings.litter !== null)
   for (const level of LEVELS) if (level.endless) level.litter = shared.settings.litter;
 
 shared.hud = createHud();
-// HOW TO PLAY (user, 2026-10-03). Opens by itself once per device, after the first fly-in. NOT
+// HOW TO PLAY. Opens by itself once per device, after the first fly-in. NOT
 // under automation: Playwright sets navigator.webdriver, and every harness in tools/ taps the HUD
 // as if no card were up. ?guide=1 forces it on (for photographing it), ?guide=0 forces it off.
 shared.guide = createGuide();
-// MENUS (user spec 2026-10-03: main menu -> Test Mode / Garage; a live DEMO LAP behind the menu).
-// mode: 'menu' | 'session'. APPROVED (user, 2026-10-03: "sounds great") — the menu is the normal
+// MENUS (user spec: main menu -> Test Mode / Garage; a live DEMO LAP behind the menu).
+// mode: 'menu' | 'session'. APPROVED (user: "sounds great") — the menu is the normal
 // start. ?menu=0 drives straight in (the old start); automation (navigator.webdriver) also skips
 // it, so every tool that taps the HUD still lands in a session; ?menu=1 forces it.
 shared.MENU = shared.settings.menu === '1'
@@ -166,7 +166,7 @@ shared.mode = 'session';
 shared.demo = null;
 shared.demoStill = 0;
 shared.paused = false;
-// MENU RACE (user, 2026-10-04: "just use the updated AI / 5-car race event for the menu screen"):
+// MENU RACE (user: "just use the updated AI / 5-car race event for the menu screen"):
 // behind the menu a 5-car race runs — the camera car + DEMO_AI opponents, all on the racing AI
 // (aidriver.js) at DEMO_DIFF, no lights. Was one autodrive car on the Test Track.
 // ?menuai=N: A/B the frame cost
@@ -259,14 +259,14 @@ shared.fpsAcc = 0;
 shared.fpsN = 0;
 shared.fpsHist = [];
 
-// SAFETY NET (added 2026-10-03, Claude). The airborne-brake bug showed what happens without
-// one: a single NaN in the car reached groundAt(), step() threw, and because nothing caught it
+// SAFETY NET (added, Claude). The airborne-brake bug showed what happens without
+// one: a single NaN in the car reached groundAt, step threw, and because nothing caught it
 // requestAnimationFrame was never called again — the whole game froze on its last frame and
 // every button looked dead. This is NOT a fix for physics bugs (those get fixed at source —
-// see vehicle.js axle()). It makes sure the next one costs the player a reset instead of the
+// see vehicle.js axle). It makes sure the next one costs the player a reset instead of the
 // game, and SHOUTS in the console so it is found:
 //   * the car is checked for non-finite state EVERY step (8 numbers — free), not only under ?dev=1;
-//   * on failure it is put back on the track near the last good position it had, via doReset();
+//   * on failure it is put back on the track near the last good position it had, via doReset;
 //   * the frame is always rescheduled, even if something throws.
 shared.lastGood = { x: 0, y: 0, heading: 0 };
 shared.nanReports = 0;

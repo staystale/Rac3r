@@ -105,7 +105,7 @@ function resetCones(ctx) {
 // they do not move, so it stays valid. Each step only the MOVING objects are tested: against the
 // resting objects in their 3x3 cells, and against each other directly (there are only ever a
 // handful). An object that comes to rest is filed into the cell it stopped in. MEASURED
-// 2026-10-03 (tools/objcheck.mjs, car into the Stock Car wall):
+// (tools/objcheck.mjs, car into the Stock Car wall):
 //   grid rebuilt every step ..... 446 us/step mean with debris flying
 //   movers vs whole list ........ 437-626 us (noisy; the list is 633 long)
 //   this ........................ see objcheck — the figure is written into ENGINE.md
@@ -135,7 +135,7 @@ export function createCones({ objectHits = true } = {}) {
       hits.length = 0;
       return copy;
     },
-    // CONES ONLY (user, 2026-10-04: "the cone counter should only count cones, not tyres too") —
+    // CONES ONLY (user: "the cone counter should only count cones, not tyres too") —
     // tyre walls, bales etc. are not the course
     get knocked() {
       return ctx.list.reduce((count, obj) => count + (obj.kind === 'cone' && (obj.down > 0.5
@@ -152,9 +152,9 @@ export function createCones({ objectHits = true } = {}) {
       flipPhase: 0, flipSpeed: 0, wobblePhase: 0, wobbleAmp: 0, rollDist: 0, ...extra,
         _n: ctx.nextN++ }); },
     rebuildGrid: () => rebuildRestGrid(ctx),   // for harnesses that add objects by hand
-    // STREAMED objects (the endless highway, 2026-10-05: "littered with tyres and cones, chevrons
-    // for the corners"): spawn() adds level objects as the road grows ahead; cull(keep) drops every
-    // object keep() rejects (the road behind) and refiles the rest grid
+    // STREAMED objects (the endless highway: "littered with tyres and cones, chevrons
+    // for the corners"): spawn adds level objects as the road grows ahead; cull(keep) drops every
+    // object keep rejects (the road behind) and refiles the rest grid
     spawn(objs) {
       for (const levelObj of objs) {
         const obj = live(levelObj);

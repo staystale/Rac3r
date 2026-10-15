@@ -8,7 +8,7 @@ import { ss01 } from "./kit.ts";
 import type { Point, Bump, Zone, Cone, Paint, Lane, Prop } from "../types.ts";
 // =============================================================================================
 // THRUSTON — parody of Thruxton, "the fastest circuit in the UK" (user's roster + build guide,
-// SPECS-2026-10-03.md; track list approved 2026-10-03). Clockwise, all race tarmac, an old
+// SPECS-.md; track list approved). Clockwise, all race tarmac, an old
 // airfield: S/F straight -> ALLARD (fast right) -> the COMPLEX (CAMPBELL 90 right, COBB open left,
 // SEAGRAVE flat right with "a nasty bump just before the apex") -> back straight -> NOBLE (fast
 // right) -> GOODWOOD ("very bumpy", long right) -> VILLAGE (kink) -> CHURCH (fast and "deceptively
@@ -22,13 +22,13 @@ import type { Point, Bump, Zone, Cone, Paint, Lane, Prop } from "../types.ts";
 //   WOODHAM 1285  CLUB 1343-1422.
 // INTENDED FAILURE: carrying Church's speed into a tight apex; arriving at Club too hot after the
 // fastest part of the lap; tyre heat (sustained right-handers load the left-side tyres — user:
-// "high tyre-heat generator"). RE-LAID 2026-10-03 from the REAL MAP (Wikimedia
+// "high tyre-heat generator"). RE-LAID from the REAL MAP (Wikimedia
 // "Thuxton_Motor_Racing_Circuit_map.svg", 369 m = 255 px), traced clockwise from the line and
 // scaled 0.47 (1254 m, measured). The first layout had the right corners in a made-up shape —
-// re-laid, not patched. RE-TRACED 2026-10-04 (user: "kerbs still broken on tight corners, not like
+// re-laid, not patched. RE-TRACED (user: "kerbs still broken on tight corners, not like
 // the real corner"): centreline read off the map at 4x zoom on a 10 px grid
 // (art/ref/thruxton-map.png, 960 px wide; game (0,0) = map centre, 0.47 m per px), clockwise from
-// the line, then traceTrack() (no kinks, every corner R >= 12 m). Check against the map: node
+// the line, then traceTrack (no kinks, every corner R >= 12 m). Check against the map: node
 // tools/traceoverlay.mjs thruston. The previous trace (hand points through Catmull-Rom, kinked at
 // Campbell / Cobb / Club) is in _archive/; the FIRST layout is _archive/thruston-old-layout.cjs.
 const TH_MAP: Point[] = [
@@ -80,7 +80,7 @@ const thBank = (fromDist: number, toDist: number, off: number, step: number, rad
 };
 export const TH_BUMPS = prepBumps([
   // SEAGRAVE: "a nasty bump just before the apex will unsettle the car"
-  { kind: 'hump', ...thAt(306, -1), r: 3.4, h: 0.09 },   // re-traced 2026-10-04: Seagrave apex ~315
+  { kind: 'hump', ...thAt(306, -1), r: 3.4, h: 0.09 },   // re-traced: Seagrave apex ~315
   // GOODWOOD: "a very bumpy corner" — a short field of low humps and dips across the racing line
   ...[0, 1, 2, 3, 4, 5].map((idx) => ({ kind: idx % 2 ? 'dip' : 'hump',
     ...thAt(575 + idx * 13, (idx % 3) * 3 - 3), r: 3, h: 0.06, d: 0.05 })),
@@ -101,14 +101,14 @@ export const TH_ZONES: Zone[] = [
   { x: 61.1, y: -38.8, w: 245.3, h: 9, rot: -0.4036, surface: SURFACES.tarmac },
   // grass active runway (NW-SE), mown short
   { x: 11.8, y: -2.3, w: 245.1, h: 10, rot: 0.5667, surface: SURFACES.grassShort },
-  // what is left of the original runway (SW-NE). SHORTENED 2026-10-04 (user: "pits look messy"): it
+  // what is left of the original runway (SW-NE). SHORTENED (user: "pits look messy"): it
   // ran ~26 m past its real west end (map px ~118,442), out over the S/F straight and under the pit
   // lane, merging both into one ragged concrete blob.
   { x: 12.4, y: -26.4, w: 395, h: 22, rot: -0.3926, surface: SURFACES.concrete },
   // and the other one (NW-SE)
   { x: 16.5, y: -27.7, w: 323.9, h: 20, rot: 0.5703, surface: SURFACES.concrete },
 ];
-// ARMCO runs (outside of the right-handers) and the TYRE WALLS in front of them (user, 2026-10-04:
+// ARMCO runs (outside of the right-handers) and the TYRE WALLS in front of them (user:
 // "lots of tyres between the track and the Armco"): two staggered rows of knockable tyre stacks
 // (cones.js r 0.48 -> 0.95 m apart), rows at -14 and -15 (rail face -15.7).
 export const TH_ARMCO = [[35, 125], [205, 250], [290, 345], [560, 760], [785, 870], [1080, 1112]];
@@ -128,7 +128,7 @@ export const TH_PAINT: Paint[] = [
   { kind: 'chequered', x: TH_SUBTRACK.pts[0].x, y: TH_SUBTRACK.pts[0].y, len: 1.6, wid: 14,
     rot: TH_SUBTRACK.pts[0].heading },
 ];
-// PITS + PERIMETER (2026-10-04; user: "aerial / race-day photos for pit layouts and perimeter
+// PITS + PERIMETER (user: "aerial / race-day photos for pit layouts and perimeter
 // decorations — if you need ARMCO or FENCES, do"). From the map (pit lane on the INSIDE between
 // Club and the line) and the photos (art/ref/: concrete lane, yellow line, low red/white/blue pit
 // wall, block garages under a red tyre-brand banner, control tower, grandstand, Armco, catch fence,
@@ -140,7 +140,7 @@ const TH_PIT_LANE = alongTrack(TH_SUBTRACK, TH_PIT.d0, TH_PIT.d1,
   (along, len) => 4 + (TH_PIT.off - 4) * ss01(Math.min(along, len - along) / TH_PIT.ramp), 2);
 // garage fronts flush with the lane (a 1 m grass strip showed)
 export const TH_GAR = { d0: 1204, d1: 22, off: TH_PIT.off + TH_PIT.w / 2 + 5, depth: 10, n: 4 };
-// THE INFIELD (2026-10-04; user: "isn't there more decorating to make it look like the real race
+// THE INFIELD (user: "isn't there more decorating to make it look like the real race
 // track?"). Read off the map (art/ref/thruxton-map.png: paved taxiway system, paved apron, hangars,
 // grass aircraft parking) and the 1945 RAF photo (art/ref/may45.jpg). Map px -> game m exactly as
 // TH_MAP. Widths EXAGGERATED (the lap is ~1/3 scale, the cars full size).
@@ -209,7 +209,7 @@ const TH_POSTS = [70, 230, 315, 470, 600, 700, 830, 1000, 1090, 1150].map((dist)
   const post = onTrack(TH_SUBTRACK, dist, -20, {});
   return { kind: 'marshal', x: post.x, y: post.y, rot: post.rot };
 }).filter((prop) => thClear(prop.x, prop.y, 4));
-// placed BY DISTANCE (2026-10-04 re-trace): fixed x/y left the gantry off the line and the stand
+// placed BY DISTANCE (re-trace): fixed x/y left the gantry off the line and the stand
 // off the straight when the track moved. Clockwise lap: +offset = inside (right of travel), -offset
 // = outside. Grandstand: OUTSIDE the S/F straight, opposite the pits.
 const thProp = (dist: number, off: number, spec: Omit<Prop, "x" | "y">): Prop => {

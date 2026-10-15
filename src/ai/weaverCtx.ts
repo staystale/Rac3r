@@ -6,7 +6,7 @@ import type {
 } from "./types.ts";
 
 // ---------------------------------------------------------------- THE HIGHWAY (endless level):
-// the road read through highway.js AI ROUND 2 stage 1 (user, 2026-10-07: "same ai"; CLAUDE.md ONE
+// the road read through highway.js AI ROUND 2 stage 1 (user: "same ai"; CLAUDE.md ONE
 // SYSTEM NOT TWO THEN ONE): this was hwrace.js createHwDriver. It is now this file's road reader
 // for levels with no closed lap (level.endless), behind the ONE entry point createAIDriver; moved
 // UNCHANGED (MEASURED: weavecheck + pacesuite identical to before with __NOOUT) plus the shared
@@ -15,7 +15,7 @@ import type {
 export const LAT_R = 3.0;
 export const GRAVITY = 9.81;
 export const IDLE = { steer: 0, throttle: 0, brake: 0.3, handbrake: 0, reverse: 0 };
-// the RACER — v2, a WEAVER (user, 2026-10-05: "AI on highways should IGNORE LANES and go FAST,
+// the RACER — v2, a WEAVER (user: "AI on highways should IGNORE LANES and go FAST,
 // DODGING traffic and WEAVING through like the player would"). No lanes: across the whole
 // carriageway (hard shoulder included) it tries N_LINES lateral lines a few times a second and
 // scores each by how much free road it has: every car ahead within 220 m whose body (+ a margin)

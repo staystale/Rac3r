@@ -26,7 +26,7 @@ export const GO_SUBTRACK = createSubtrack(GO_APEXES, 14, GO_SECTORS, GO_CURVED_K
 // filled by randomiseGrassTrack on every load
 export const GO_RANDOM_PATCHES: Patch[] = [];
 
-// GRASS TRACK LAYOUT (user, 2026-10-03, second pass): "it should be mostly as I asked — grass on
+// GRASS TRACK LAYOUT (user, second pass): "it should be mostly as I asked — grass on
 // the straights and dirt on the corners — however random patches, single squares etc of grass,
 // long grass or mud or dirt, randomly throughout the normal course. The course should change just
 // these random patches."
@@ -97,7 +97,7 @@ function buildGrassBaseSectors(
  * @param sectors sector list, changed in place
  */
 function absorbShortGrassRuns(sectors: Sector[]): void {
-  // absorb runs shorter than GO_MIN_RUN into their neighbours. MEASURED 2026-10-03: the raw
+  // absorb runs shorter than GO_MIN_RUN into their neighbours. MEASURED: the raw
   // corner test flickered 1 m dirt/grass slivers at every corner boundary and left an 11 m grass
   // strip between the two bends at each end of the oval — 23 sectors where the design is 4 (two
   // straights, two dirt ends).
@@ -159,7 +159,7 @@ export const GO_ZONES: Zone[] = [
   { x: 30, y: 6, w: 24, h: 20, surface: SURFACES.mud },
   { x: 0, y: 14, w: 32, h: 16, surface: SURFACES.grassShort },
   { x: 0, y: -16, w: 36, h: 18, surface: SURFACES.grassShort },
-  // (2026-10-03) three mud RECTANGLES at the outer edges were removed: with mud's new pattern
+  // three mud RECTANGLES at the outer edges were removed: with mud's new pattern
   // their hard straight sides cut across the track edge and under the tyre wall. Variety on this
   // level now comes from the random PATCHES rolled every load (randomiseGrassTrack), which the
   // user asked for instead.

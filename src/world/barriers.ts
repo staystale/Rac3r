@@ -6,7 +6,7 @@ import type {
 } from "./types.ts";
 
 // =============================================================================================
-// BARRIERS (2026-10-03; user: "use aerial photos of tracks on race days for pit layouts and
+// BARRIERS (user: "use aerial photos of tracks on race days for pit layouts and
 // perimeter decorations — if you need to make things like ARMCO or FENCES, do"). LEVEL.barriers: [{
 // kind, pts: [[x, y], ...] }], polylines in metres.
 //   armco    steel double rail on posts — solid
@@ -25,7 +25,7 @@ const BARRIER_SCRAPE = 0.85;
 // polyline offset from the subtrack centreline, startDist -> endDist (wrapping past the line),
 // `step` metres apart; offset may be a function of the distance (pit-lane entry / exit ramps). + =
 // the +normal side. INTERPOLATED point + SMOOTHED normal for paths offset from the track
-// (2026-10-04, photographed: the pit lane's edges wobbled). onTrack snaps to the sample before dist
+// (photographed: the pit lane's edges wobbled). onTrack snaps to the sample before dist
 // and uses that sample's own direction; at a 17 m offset the sample-to-sample jitter in direction
 // became metres of sideways wobble. Here: position lerped between samples, normal averaged over +-4
 // samples (~12 m).
@@ -81,7 +81,7 @@ export function prepBarriers(level: { barriers?: Barrier[] }): void {
     }
   }
 }
-// SOLID PROPS (2026-10-04; user: "make sure trees, planes etc are collidable objects").
+// SOLID PROPS (user: "make sure trees, planes etc are collidable objects").
 // LEVEL.solids [{ x, y, w, h, rot }] — rotated boxes, tested against the car's box with the
 // separating-axis test. barrierClamp only checks the car's 4 CORNERS against segments, so a tree
 // trunk or a wing tip narrower than the car could slip between two corners; SAT cannot miss it.
@@ -169,9 +169,9 @@ function addSmallSolids(out: Solid[], prop: Prop): boolean {
     case 'sculpture': box(0, 0, 2.2, 2.2); return true;
     case 'bale': box(0, 0, 1.6, 1.6); return true;
     case 'rock': box(0, 0, (prop.s || 3) * 0.7, (prop.s || 3) * 0.7); return true;
-    // (field sheep / cows are LOOSE OBJECTS since S-C, 2026-10-07 - cones.js: pushable, a sheep
+    // (field sheep / cows are LOOSE OBJECTS since S-C, - cones.js: pushable, a sheep
     // pops into fluff, a cow tips; not solid props)
-    // (chevron boards and flag poles are NOT solid since 2026-10-04: flimsy signs on stakes that
+    // (chevron boards and flag poles are NOT solid since: flimsy signs on stakes that
     // a car flattens — as solid walls they
     // tore a rally car's front wheels off and rolled it at a Killder corner exit, photographed)
     default: return false;
@@ -235,7 +235,7 @@ function satAgainstSolid(
       halfH = solid.h / 2;
   // SAT on the 4 axes: overlap = sum of projected half-extents - |centre distance on the axis|
   let best = Infinity, pushX = 0, pushY = 0;
-  // no allocation per call (memory diet, task 104: k-loop instead of an array of axis arrays)
+  // no allocation per call (memory diet: k-loop instead of an array of axis arrays)
   for (let idx = 0; idx < 4; idx++) {
     const axisX = pickAxis(idx, cosHead, -sinHead, cosRot, -sinRot);
     const axisY = pickAxis(idx, sinHead, cosHead, sinRot, cosRot);
@@ -320,7 +320,7 @@ function clampCornersToSeg(
   car: CarBody, seg: BarrierSeg, half: number, halfLen: number, halfWid: number,
   cosHead: number, sinHead: number,
 ): void {
-  // no allocation per call (memory diet, task 104: corners by idx)
+  // no allocation per call (memory diet: corners by idx)
   for (let idx = 0; idx < 4; idx++) {
     const fore = idx < 2 ? halfLen : -halfLen, lateral = (idx % 2 === 0) ? halfWid : -halfWid;
     const cornerX = car.x + cosHead * fore - sinHead * lateral, cornerY = car.y

@@ -12,9 +12,9 @@ export let BUMPS: Bump[];
 export let PROPS: Prop[];
 
 export function setActiveLevel(level: Level): void {
-  // EVERY exported per-level binding must be re-pointed here. MEASURED BUG, 2026-10-03: the
-  // PAINT/BOARDS/CONES line was deleted (DeepSeek, 2026-10-02) and every level then drew the lab's
-  // 242 cones and paint. Never push() into these arrays either — they are the level's own data,
+  // EVERY exported per-level binding must be re-pointed here. MEASURED BUG: the
+  // PAINT/BOARDS/CONES line was deleted (DeepSeek) and every level then drew the lab's
+  // 242 cones and paint. Never push into these arrays either — they are the level's own data,
   // shared across switches.
   LEVEL = level;
   PAINT = LEVEL.paint;

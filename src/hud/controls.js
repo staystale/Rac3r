@@ -1,5 +1,5 @@
 // hud/controls.js — touch pedals, the ?dev=1 readout and the fps counter.
-// Pure moves out of hud.js (task 173).
+// Pure moves out of hud.js.
 
 import { COL } from '../world/colours.ts';
 import { MARGIN, drawHudPanel, drawHudLabel } from './widgets.js';

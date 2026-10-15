@@ -48,7 +48,7 @@ export const LEVELS: Level[] = [
   {
     id: 'lab', name: 'The Lab',
     coneCount: true,      // show the knocked-cone tally (a cone course)
-    // COVERS (2026-10-03): lying ON whatever is under them; see "LAYERED" wear in this file.
+    // COVERS: lying ON whatever is under them; see "LAYERED" wear in this file.
     // The ice sheet is over GRASS on purpose — scrub it through and the grass shows, then wears
     // to mud (the user's chain).
     covers: [
@@ -87,7 +87,7 @@ export const LEVELS: Level[] = [
     coneCount: true,      // show the knocked-cone tally (a cone course)
     base: SURFACES.grassShort,
     subtrack: TT_SUBTRACK,
-    // CAMBER (user, 2026-10-03): 2% crown on the straights, up to 4 deg of positive camber in
+    // CAMBER: 2% crown on the straights, up to 4 deg of positive camber in
     // the corners (at 40 m radius or tighter). Off-camber sections can be added here as
     // { from, to, deg: -2 } (metres of track distance).
     camber: { maxDeg: 4, refR: 40, crown: 0.02, edge: 6, sections: [] },
@@ -297,18 +297,18 @@ export const LEVELS: Level[] = [
       // Infield caravan protection barrier
       { x: -18, y: -6, kind: 'tyrestack' }, { x: -18, y: -3, kind: 'tyrestack' },
       { x: -18, y: 0, kind: 'tyrestack' },
-      // Outer tyre wall (2026-10-03): loose stacks 3 m outside the track edge, gapped round
+      // Outer tyre wall: loose stacks 3 m outside the track edge, gapped round
       // the pylons
       ...outerTyreWall(GO_SUBTRACK, { margin: 3, spacing: 1.0, clear: propClearance(GO_PROPS) }),
     ],
     spawn: { x: -4, y: 38, heading: 0 },
     obstacles: [
-      { x: 0, y: 66, w: 38, h: 7 }, // Wooden covered grandstand — moved out 10 m (2026-10-02)
+      { x: 0, y: 66, w: 38, h: 7 }, // Wooden covered grandstand — moved out 10 m
     ],
   },
   {
     id: 'stock-car', name: 'Stock Car',
-    rollingStart: true,   // races start ROLLING (user, 2026-10-04: the ovals)
+    rollingStart: true,   // races start ROLLING (user: the ovals)
     base: SURFACES.grass,
     subtrack: SO_SUBTRACK,
     covers: [
@@ -335,21 +335,21 @@ export const LEVELS: Level[] = [
       // Corner apex tyre stacks
       { x: 72, y: 24, kind: 'tyrestack' }, { x: 72, y: -24, kind: 'tyrestack' },
       { x: -72, y: -24, kind: 'tyrestack' }, { x: -72, y: 24, kind: 'tyrestack' },
-      // Outer tyre wall (2026-10-03): loose stacks 2 m outside the track edge — 2, not 3, so
+      // Outer tyre wall: loose stacks 2 m outside the track edge — 2, not 3, so
       // the wall runs IN FRONT of the sponsor boards (front edge y 60.8) instead of being gapped
       // by 18 m at each
       ...outerTyreWall(SO_SUBTRACK, { margin: 2, spacing: 1.0, clear: propClearance(SO_PROPS) }),
     ],
     spawn: { x: -4, y: 48, heading: 0 },
     obstacles: [
-      // Grandstand — moved further from the track edge (2026-10-02)
+      // Grandstand — moved further from the track edge
       { x: 18, y: 76, w: 42, h: 7 },
       { x: -14, y: 64, w: 4.4, h: 3.6 }, // Marshal tower / official box
     ],
   },
   {
     id: 'naffcar', name: 'Naffcar Speedway',
-    rollingStart: true,   // races start ROLLING (user, 2026-10-04: the ovals)
+    rollingStart: true,   // races start ROLLING (user: the ovals)
     base: SURFACES.grassShort,
     subtrack: NC_SUBTRACK,
     zones: NC_ZONES,

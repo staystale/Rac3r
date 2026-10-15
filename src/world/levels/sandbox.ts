@@ -7,7 +7,7 @@ import type {
   Point, Sector, CurvedKerb, Zone, Prop, Paint, Board, Cone, Bump, Cover, Spawn,
 } from "../types.ts";
 // ============================================================================================= THE
-// SURFACE SANDBOX — REBUILT 2026-10-03 as a real circuit (user: "rebuild the surface sandbox to
+// SURFACE SANDBOX — REBUILT as a real circuit (user: "rebuild the surface sandbox to
 // cover all surface types, cones, tyres and make it similar to the test track in the sense it's a
 // real track with lap timer and reset functions but unique and better. Beautiful and functional.
 // Put some mixed testing functions like wet spots and snow or ice patches, long and short grass
@@ -25,14 +25,14 @@ import type {
 // patches of long and short grass to drive across and wear. Everything is placed BY DISTANCE ALONG
 // THE TRACK (sbAt), and kerbs / barriers find the inside or outside of a corner from the track's
 // own curvature — so moving an apex keeps them all where they belong. The old ring version
-// (2026-09-28) laid surface boxes across a circular cone course; it had no lap.
+// laid surface boxes across a circular cone course; it had no lap.
 const SB_APEXES: Point[] = [
   [-100, 190], [60, 190], [160, 170], [200, 110], [188, 48], [140, 22], [158, -32], [200, -80],
   [190, -160], [130, -200], [60, -170], [40, -110], [-20, -80], [-80, -120], [-140, -180],
   [-200, -150],
   [-210, -70], [-160, -20], [-120, 30], [-170, 80], [-200, 140], [-170, 190],
 ];
-// geometry measured 2026-10-03 (scratch design script): lap 1669 m, tightest centreline radius 11.8
+// geometry measured (scratch design script): lap 1669 m, tightest centreline radius 11.8
 // m (the chicane), closest approach of two parts of the track 49.7 m, max extent 213 m (floor edge
 // 256).
 const SB_W = 13;
@@ -120,7 +120,7 @@ export const SB_ZONES: Zone[] = [
   { x: 140, y: -120, w: 50, h: 40, surface: SURFACES.grassLong },
   { x: 60, y: 160, w: 80, h: 18, surface: SURFACES.grassLong },
 ];
-// NO JUMPS on this level (user, 2026-10-03: "no jumps on the surface sandbox new level please").
+// NO JUMPS on this level (user: "no jumps on the surface sandbox new level please").
 // The ramp, the gravel table and the dirt whoops were removed; the lab keeps its own jumps.
 export const SB_BUMPS: Bump[] = [];
 const SB_START = sbAt(0);
@@ -141,7 +141,7 @@ export const LAB_BUMPS = prepBumps([
   { kind: 'table', x: 120, y: -140, rot: Math.PI / 2, len: 26, wid: 14, h: 0.85 },
   ...[0, 1, 2, 3].map((i) => ({ kind: 'hump', x: 60, y: -60 - i * 14, r: 6.5, h: 0.30 })),
   { kind: 'kerb', x: 185, y: -40, rot: 0, len: 44, wid: 3.4, h: 0.11 },
-  // ---- SUSPENSION TEST ZONE (user, 2026-10-03: "add some bumps and dips to the lab level and mark
+  // ---- SUSPENSION TEST ZONE (user: "add some bumps and dips to the lab level and mark
   // it out as a suspension test zone"; chose whoops + dips/compressions + washboard + banked bowl).
   // The bare lab floor, south-west, x -245..0, y 162..214 — scanned clear of cones, panels, the
   // drag strip (y 240) and the benches. Drive WEST -> EAST. Lane 1 (y 172): WHOOPS, six round humps
@@ -166,7 +166,7 @@ export const LAB_PANELS: Zone[] = ([
   x: -228 + colIdx * 66, y: 74 + rowIdx * 66, w: 56, h: 56, surface: SURFACES[surfaceId],
     boxed: true,
 }))).concat([
-  // 2026-10-03: long grass was defined but on no level, and thick mud is new — so both get a test
+  // long grass was defined but on no level, and thick mud is new — so both get a test
   // panel, in the clear north-west grass quarter (scanned clear of cones, bumps, paint and the
   // spawn).
   { x: -143, y: -106, w: 56, h: 56, surface: SURFACES.grassLong, boxed: true },

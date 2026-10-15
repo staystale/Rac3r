@@ -6,7 +6,7 @@ import { onTrack, querySubtrack } from "../tyrewall.ts";
 import type { Subtrack, Lane, Point, Prop, Bump, Cone, TrackKit } from "../types.ts";
 export const ss01 = (x: number): number => (x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x));
 
-// TRACK KIT (2026-10-04, written for Castle Cum after doing Thruston endY hand): decorate a traced
+// TRACK KIT (written for Castle Cum after doing Thruston endY hand): decorate a traced
 // circuit endY DISTANCE + OFFSET (+ = right of travel; on a clockwise lap that is the INSIDE).
 // Everything generated is filtered off the road, off the given lanes and inside the floor — the
 // Thruston lesson: an outside offset on the inside of a left-hander lands on the track.
@@ -47,7 +47,7 @@ export function trackKit(sub: Subtrack, seed: number, lanes: Lane[] = []): Track
   return { rnd, at: pointAt, rot, prop, clear, span, bank, along, onLane };
 }
 
-// RALLYCROSS DRESSING (user, 2026-10-04: "a couple more hay bales and tyres around Slidden Hill
+// RALLYCROSS DRESSING (user: "a couple more hay bales and tyres around Slidden Hill
 // and Knobhill"): knockable HAY BALES every 2.2 m along the OUTSIDE of every corner (hw + 4.5),
 // and a 2 x 3 block of TYRE STACKS on each inside apex (hw + 2.5) — kept off the road, every
 // lane (joker, start, traps, paddock) and 1.6 m clear of any existing object.
@@ -115,7 +115,7 @@ export function rxDress(
   return out;
 }
 
-// JOKER SEPARATION (user, 2026-10-04: "hay bales between the joker section and the normal track
+// JOKER SEPARATION (user: "hay bales between the joker section and the normal track
 // on both rallycross tracks — a clear barrier"): a line of bales in the MIDDLE of the grass strip
 // between the joker and the main road, every 2.1 m wherever that strip is at least 2.2 m wide
 // (so the joker's mouth and exit stay open).

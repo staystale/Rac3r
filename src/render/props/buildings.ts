@@ -37,7 +37,7 @@ function drawGarageBannerText(propCtx: PropCtx, prop: Prop, ppm: number) {
   }
 }
 
-// GARAGE ROW (2026-10-04): one strip along the lane from front / back / banner polylines, so it
+// GARAGE ROW: one strip along the lane from front / back / banner polylines, so it
 // bends with the track
 /**
  * Draws one garage row strip from its front / back / banner polylines.

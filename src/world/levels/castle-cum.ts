@@ -6,8 +6,8 @@ import { prepBumps } from "../terrain.ts";
 import { ss01, trackKit } from "./kit.ts";
 import type { Point, Lane, Zone, Paint, Prop, Subtrack } from "../types.ts";
 // =============================================================================================
-// CASTLE CUM — parody of Castle Combe (Wiltshire), built 2026-10-04. Track list approved
-// 2026-10-03; decisions (user, 2026-10-04): BIGGER scale (~1250 m lap so the chicanes keep their
+// CASTLE CUM — parody of Castle Combe (Wiltshire), built. Track list approved
+// Decisions: BIGGER scale (~1250 m lap so the chicanes keep their
 // shape), Avon Rise crest FELT (light over the top; braking there can lock — the real Quarry trap),
 // all the scenery, DRY tarmac + grass. TRACED from the official map (art/ref/cc2.png, Wikimedia
 // "Castle_Combe_Circuit_track_map.svg" at 1280 px; 385 m = 448 px -> 0.859 m/px real) at 0.358 game
@@ -62,7 +62,7 @@ export const CC_PAINT: Paint[] = [{
   rot: CC_SUBTRACK.pts[0].heading,
 }];
 
-// CASTLE CUM SCENERY (all asked for, 2026-10-04). Distances measured on this trace
+// CASTLE CUM SCENERY (all asked for). Distances measured on this trace
 // (lap 1338 m): FOLLY 130, AVON RISE 313, QUARRY 384, ESSES 547-624, OLD PADDOCK 663,
 // HAMMERDOWN 795, TOWER 904, BOBBIES 997-1033, WESTWAY 1089, CAMP 1261. Pit lane from the
 // map: OUTSIDE the start straight, leaving at Camp and rejoining before Folly ("the pit exit

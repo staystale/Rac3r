@@ -32,7 +32,7 @@ function freeScore(step: Step, block: RoadBlock | null) {
   // NO QUEUEING BEHIND A RIVAL (HWT.rp): a line whose blocker is ANOTHER RACER close ahead
   // is worth less, so it pulls out and
   // races it side by side instead of sitting in its slipstream
-  // (user, 2026-10-06: "they tend to que in lanes on the highway still ... weave through
+  // (user: "they tend to que in lanes on the highway still ... weave through
   // traffic like a real street racer").
   // OFF BY DEFAULT - not proven (HANDOVER §3). MEASURED pacesuite, 9 races x seed sets A
   // (4242,77,1234) / B (31,555,9001):
@@ -73,7 +73,7 @@ function swerveCost(wvr: Wvr, step: Step, off: number, score: number) {
   // 6 m bonus let it flip between two lines
   // 3 m apart every 0.2 s and slalom into the car it was passing)
   // swerve cost x HWT.mvk, commit bonus HWT.cm (defaults = the shipped behaviour). A
-  // looser setting was tried (2026-10-06, the
+  // looser setting was tried (the
   // queueing) - MEASURED weavecheck hits of 45: cm 12 / mvk 0.6 = 9, cm 25 / mvk 0.6 = 8,
   // cm 25 / mvk 0.8 = 2, default = 0
   score -= move * (1.5 + speed * 0.05) * (HWT.mvk ?? 1)

@@ -1,4 +1,4 @@
-// stagegen.js — PROCEDURAL POINT-TO-POINT RALLY STAGES. User, 2026-10-04: "our rally stages are
+// stagegen.js — PROCEDURAL POINT-TO-POINT RALLY STAGES. User: "our rally stages are
 // circular often — they should mostly be a LINE, not a track"; "make it procedural maybe so it
 // feels infinite"; "levels are most important"; "make new things if needed, keep it pretty". A
 // seeded generator: the same { seed, theme, len, style } always builds the same stage; NEW STAGE =
@@ -49,7 +49,7 @@ export const LENGTHS = { short: 1300, medium: 2000, long: 2400 };
 const STYLES = { flowing: { straight: 1.2, fast: 1.6, medium: 0.9, square: 0.25, hairpin: 0.15 },
     mixed: { straight: 1, fast: 1, medium: 1, square: 1, hairpin: 1 },
   tight: { straight: 0.7, fast: 0.4, medium: 1.1, square: 1.6, hairpin: 1.8 } };
-// SILLY NAMES (user, 2026-10-04: "remember all names should be silly") — parody place names per
+// SILLY NAMES (user: "remember all names should be silly") — parody place names per
 // theme
 const NAMES = {
   forest: [['Llanfair', 'Pen-y-', 'Aber', 'Glen ', 'Cwm', 'Bryn', 'Coed-y-'],
@@ -120,7 +120,7 @@ function roadFits(grow, x, y, dist) {
  * START: near a random edge, facing into the box; the RUN-UP (45 m) behind it. Sets the road
  * state's x, y, hdg and dist.
  * @param {object} grow road state (see growRoad)
- * @param {function(): number} rand random source
+ * @param {function: number} rand random source
  */
 function startRoad(grow, rand) {
   const LIM = grow.LIM;
@@ -137,10 +137,10 @@ function startRoad(grow, rand) {
 }
 /**
  * Makes the weighted random picker of road element kinds.
- * @param {function(): number} rand random source
+ * @param {function: number} rand random source
  * @param {object} themeSpec the theme
  * @param {string} style the style name
- * @return {function(): string} picks a kind
+ * @return {function: string} picks a kind
  */
 function makeKindPicker(rand, themeSpec, style) {
   const weights = { ...STYLES[style] };
@@ -157,7 +157,7 @@ function makeKindPicker(rand, themeSpec, style) {
 }
 /**
  * Makes the parts (straights and arcs) of one random road element of a kind.
- * @param {function(): number} rand random source
+ * @param {function: number} rand random source
  * @param {object} themeSpec the theme
  * @param {string} kind straight / fast / medium / square / hairpin
  * @return {object[]} the parts: { len, rad, ang }
@@ -222,7 +222,7 @@ function roadCrowd(grow, posX, posY, sNow) {
  * has the most free space round it and ahead of it (not facing a wall or old road within 60 m),
  * plus a little randomness so stages still differ. This scores one candidate (lower is better).
  * @param {object} grow road state (see growRoad)
- * @param {function(): number} rand random source
+ * @param {function: number} rand random source
  * @param {{x: number, y: number, hdg: number, s: number}} cand the candidate
  * @return {number} the score
  */
@@ -251,8 +251,8 @@ function popRoadElement(grow, stack) {
 /**
  * Grows the road element by element up to the target length, backtracking when stuck.
  * @param {object} grow road state (see growRoad)
- * @param {function(): number} rand random source
- * @param {function(): string} pickKind picks an element kind
+ * @param {function: number} rand random source
+ * @param {function: string} pickKind picks an element kind
  * @param {object} themeSpec the theme
  * @param {number} target stage length (m)
  * @param {object[]} stack committed elements, filled in
@@ -321,7 +321,7 @@ function placeStopZone(grow, stack) {
  * Grows one road. The road state grow is { LIM, SEP, occ, points, x, y, hdg, dist }: the box limit,
  * the other-road separation, the occupancy grid, the points { x, y, s } (s = road distance; the
  * run-up is negative) and the head of the road.
- * @param {function(): number} rand random source
+ * @param {function: number} rand random source
  * @param {object} themeSpec the theme
  * @param {string} style the style name
  * @param {number} target stage length (m)
@@ -365,7 +365,7 @@ function chooseStageRoad(seed, themeSpec, style, target, attempt) {
 /**
  * SECTORS: the theme's road, with patches for character (alpine: broken tarmac; desert: sand;
  * forest: a dirt run).
- * @param {function(): number} rand random source
+ * @param {function: number} rand random source
  * @param {string} theme the theme name
  * @param {number} finishS finish road distance
  * @param {object} roadS the road surface
@@ -397,7 +397,7 @@ function stageTurnOf(kit, corner) {
 }
 /**
  * TERRAIN: big hills, crests + JUMPS on the longer straights.
- * @param {function(): number} rand random source
+ * @param {function: number} rand random source
  * @param {string} theme the theme name
  * @param {object} kit the track kit
  * @param {object[]} corners the corners
@@ -430,7 +430,7 @@ function buildStageTerrain(rand, theme, kit, corners, FIN) {
 }
 /**
  * COVERS: forest water splash, ice in the shade of alpine hairpins, ice patches on snow stages.
- * @param {function(): number} rand random source
+ * @param {function: number} rand random source
  * @param {string} theme the theme name
  * @param {object} kit the track kit
  * @param {object[]} corners the corners
@@ -661,7 +661,7 @@ function dressStageNature(dress) {
 }
 /**
  * Picks the silly stage name of a theme.
- * @param {function(): number} rand random source
+ * @param {function: number} rand random source
  * @param {string} theme the theme name
  * @return {string} the name
  */
@@ -754,7 +754,7 @@ export function installStage(level) {
   return level;
 }
 export const GEN_DEFAULT = { seed: 1001, theme: 'forest', len: 'medium', style: 'mixed' };
-// THE SET STAGES (user, 2026-10-04: "rally stages should be SET, but other events might need a
+// THE SET STAGES (user: "rally stages should be SET, but other events might need a
 // procedural track"): the generator as a design tool — seeds picked by tools/stageseeds.mjs (2 km,
 // first attempt so each rebuilds in ~5-35 ms at boot, corners / hairpins / crests scored, then
 // looked at), registered as ordinary levels after Killder, the same road every time so it can be

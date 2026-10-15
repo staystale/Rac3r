@@ -15,7 +15,7 @@ import type { Barrier, Cone, Lane, Level, Patch, Point, Prop, Subtrack } from ".
  * Sets LEVEL._blend, LEVEL._coversBase, LEVEL._incl and LEVEL.covers.
  */
 function buildLevelPatchSets(): void {
-  // ENDLESS levels get NO blend (MEASURED BUG, 2026-10-06, tools/_dirtroad.mjs: the highway's
+  // ENDLESS levels get NO blend (MEASURED BUG, tools/_dirtroad.mjs: the highway's
   // blend was built ONCE, against whatever road window existed at the first setLevel, then
   // cached through every restart / road type / reseed - 8209 long grass / dirt squares, many on
   // the CURRENT carriageway, which then wore to dirt: "dirt in the road on highway levels". Its
@@ -69,7 +69,7 @@ function prepareLevel(): void {
   prepBarriers(LEVEL);
   if (LEVEL.randomise) { LEVEL.randomise(); LEVEL._blend = null; }
   buildLevelPatchSets();
-  // KEEP LANES CLEAN (2026-10-04, user: Thruston "pits look messy"): blend + inclusion squares
+  // KEEP LANES CLEAN (user: Thruston "pits look messy"): blend + inclusion squares
   // picked on the grass next to a lane overlapped onto it and chewed its edge ragged. Drop any
   // generated patch that reaches a lane (authored LEVEL.patches stay).
   const gen = LEVEL.lanes
@@ -79,7 +79,7 @@ function prepareLevel(): void {
   indexPatchGrid();
 }
 
-// RALLY TAPE (user, 2026-10-04: "rally tape should be contactable and easy to snap — give it
+// RALLY TAPE (user: "rally tape should be contactable and easy to snap — give it
 // POSTS and tape SECTIONS — a chance to STICK to cars; used more liberally and CLOSE to the track
 // edge on rally / rallycross stages"): a tape is a run of light POSTS (loose objects, kind
 // 'tapepost', every TAPE_STEP m; cones.js strings the sections between them and snaps them). On
@@ -142,7 +142,7 @@ function tapePass(level: Level): void {
   if (!level.subtrack || !(level.stage || level.joker)) return;
   const halfWidth = level.subtrack.width / 2;
   const runs = collectTapeRuns(level, level.subtrack);
-  // ...but NEVER across a ROAD LANE (user, 2026-10-04: "tape covering joker track section
+  // ...but NEVER across a ROAD LANE (user: "tape covering joker track section
   // entries on Knobhill"): a post within half a lane width + LANE_CLEAR of the joker / RX start /
   // pit / service lane is left out, and the run's idx gap leaves that section open (cones.js
   // strings consecutive idx only). Gravel traps (lanes with an 'out' side) are run-off, not
@@ -158,7 +158,7 @@ function tapePass(level: Level): void {
   }
   level.cones = [...(level.cones || []), ...posts];
 }
-// CHEVRONS + FLAGS are KNOCKABLE (user, 2026-10-04: "heavy but impactable"): every level's
+// CHEVRONS + FLAGS are KNOCKABLE (user: "heavy but impactable"): every level's
 // chevron boards and flag poles move from the static props (drawn into the scenery, solid until
 // today) into its loose objects (cones.js: mass, topple, slide, lie flat)
 function knockPass(level: Level): void {
@@ -188,7 +188,7 @@ export function setLevel(levelId: string): Level {
   const next = LEVELS.find((level) => level.id === levelId);
   if (!next) return LEVEL;
   setActiveLevel(next);
-  // WORLD SIZE per level (2026-10-05)
+  // WORLD SIZE per level
   setFloor(LEVEL.floor || 260);
   applyBounds();
   prepareLevel();
@@ -211,7 +211,7 @@ export function initWorld(): void {
   for (const surface of [...Object.values(SURFACES), ...SURFACE_TRAP])
     if (surface.heatK === undefined) surface.heatK = surface.hard ? 1 : HEAT_OFFROAD;
 
-  // The first level is active from module load without a setLevel() call, so prepare it here — at
+  // The first level is active from module load without a setLevel call, so prepare it here — at
   // the END of the module, after every const it reads exists (calling it earlier threw "Cannot
   // access tri before initialization").
   applyBounds();

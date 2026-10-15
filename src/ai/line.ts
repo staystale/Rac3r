@@ -1,4 +1,4 @@
-// ai/line.js — the racing line, branch paths and speed profiles (split from aidriver.js).
+// ai/line.js — the racing line, branch paths and speed profiles.
 //
 // 1. RACING LINE, once per level (cached): lateral offsets from the centreline by MINIMUM-CURVATURE
 //    descent inside the road (half width - LINE_MARGIN; the inside of a hairpin limited to 0.6 of
@@ -88,7 +88,7 @@ function gripMap(ctx: LineCtx) {
     const ground = groundAt(point.x + point.nx * offset, point.y + point.ny * offset);
     return (ground.surface && ground.surface.mu) || 1;
   }));
-  // SMOOTHED ALONG THE TRACK (+-MU_SMOOTH m) before the surface bias reads it (user, 2026-10-04:
+  // SMOOTHED ALONG THE TRACK (+-MU_SMOOTH m) before the surface bias reads it (user:
   // "Slidden Hill dirt to tarmac, the AI still slows down!!"). Where a surface edge crosses the
   // road at an angle, a few cross-sections are half dirt / half tarmac and the bias jerked the line
   // sideways there: a KINK (R 19-26 m on a straight, R 150-2000 either side) that the speed profile

@@ -1,4 +1,4 @@
-// autodrive.js — the SCRIPTED DRIVER, in the game. Moved out of tools/lapdriver.mjs (2026-10-03,
+// autodrive.js — the SCRIPTED DRIVER, in the game. Moved out of tools/lapdriver.mjs (
 // menus) so one driver serves three jobs: the lap-time benchmark (tools/lapdriver.mjs imports
 // this), the live demo lap behind the main menu, and the seed of the AI drivers (roadmap D1).
 // One copy, so the bench always measures what the demo and the AI drive.
@@ -130,7 +130,7 @@ function pedals(car: AiCar, speed: number, targetSpeed: number, steer: number): 
 
 export function createAutoDriver(subtrack: Subtrack) {
   const pts = subtrack.pts, total = subtrack.totalDist;
-  // binary search (2026-10-04: the linear scan was 12 % of a frame with 5 AI drivers)
+  // binary search (the linear scan was 12 % of a frame with 5 AI drivers)
   const pointAt = (dist: number) => {
     dist = ((dist % total) + total) % total;
     let low = 0, high = pts.length - 1;

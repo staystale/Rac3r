@@ -1,5 +1,4 @@
-// guide.js — HOW TO PLAY: a card overlay that POINTS AT the control it is talking about (user,
-// 2026-10-03).
+// guide.js — HOW TO PLAY: a card overlay that POINTS AT the control it is talking about.
 //
 // CLAUDE.md §4: the first-run walkthrough is required, and it is UPDATED IN THE SAME TASK as any
 // mechanic or control that changes it. The cards are data (CARDS below); add or edit a row,
@@ -10,7 +9,7 @@
 // sits clear of it with an arrow. NEXT / SKIP / progress dots. Replayed from the "?" chip on the
 // button row (or H on a keyboard).
 //
-// TARGETS ARE READ FROM hud.layout() AND input.pedalHits() EVERY FRAME — the same geometry the HUD
+// TARGETS ARE READ FROM hud.layout AND input.pedalHits EVERY FRAME — the same geometry the HUD
 // draws and hit-tests with — so a highlight can never sit somewhere the control is not, in any
 // orientation.
 //
@@ -24,7 +23,7 @@ const MARGIN = 12;
 const KEY = 'carsim.guideSeen';
 
 // target(scene) returns a screen rect {x,y,w,h} or null (a card with no target sits centred).
-// scene = { L: hud layout, W, H, touch, pedals: input.pedalHits(), car screen rect,
+// scene = { L: hud layout, W, H, touch, pedals: input.pedalHits, car screen rect,
 // hint: PC key-hint rect }
 const CARDS = [
   {
@@ -55,7 +54,7 @@ const CARDS = [
     target: (scene) => scene.touch ? circles(scene.pedals, ['handbrake', 'reverse']) : scene.hint,
   },
   {
-    // DRIVER AIDS (2026-10-03). Only some cars have them, so the card points at the chips when
+    // DRIVER AIDS. Only some cars have them, so the card points at the chips when
     // this car does.
     title: 'ABS + TCS',
     text: (scene) => (scene.aids
@@ -115,11 +114,11 @@ const CARDS = [
   },
 ];
 
-// EVENT RULES (user, 2026-10-05: "rules to events should be EXPLAINED the FIRST TIME you do them,
+// EVENT RULES (user: "rules to events should be EXPLAINED the FIRST TIME you do them,
 // and shown WALK-THROUGH style, if needed"). The same card overlay, pointing at the HUD that
 // matters; opened by main.js when an event STARTS for the first time on this device (remembered per
 // event in localStorage 'carsim.rulesSeen'), PAUSING the sim before the lights; replayed from the
-// pause menu. key = main.js eventKind(): 'race' (VS AI, circuit), 'rx' (RX race), 'stage' (rally
+// pause menu. key = main.js eventKind: 'race' (VS AI, circuit), 'rx' (RX race), 'stage' (rally
 // stage), 'highway' (VS AI on the endless road), 'endless' (the endless road, solo).
 const NOTICE = (scene) => ({
   x: scene.W / 2 - Math.min(150, scene.W * 0.4), y: scene.H * 0.3 - 26,
@@ -337,7 +336,7 @@ function nextGuideCard(state) { if (++state.idx >= state.deck.length) closeGuide
  * @param {number} viewW view width
  * @param {number} viewH view height
  * @param {object} renderer the renderer
- * @returns {object} the scene handed to each card's target() / text()
+ * @returns {object} the scene handed to each card's target / text
  */
 function buildGuideScene(ctx, game, layout, viewW, viewH, renderer) {
   const touch = game.input.isTouch();
@@ -379,7 +378,7 @@ function dimGuideScreen(ctx, target, viewW, viewH, pulse) {
   if (target) {
     ctx.beginPath();
     roundedRectPath(ctx, target, 10);
-    // a DARK RIM under the amber: photographed 2026-10-03, amber alone nearly vanished on the
+    // a DARK RIM under the amber: photographed, amber alone nearly vanished on the
     // light Lab floor
     ctx.strokeStyle = 'rgba(20,22,27,0.85)';
     ctx.lineWidth = 6;
@@ -619,7 +618,7 @@ export function createGuide() {
     seen: false,
     idx: -1,                 // -1 = closed
     pulse: 0,                // wall clock (rule 5)
-    // the geometry drawn last frame — hit() tests exactly what was drawn
+    // the geometry drawn last frame — hit tests exactly what was drawn
     last: null,
     deck: CARDS, deckKind: null,   // HOW TO PLAY, or an event's RULES (openRules)
   };

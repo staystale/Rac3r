@@ -22,7 +22,7 @@ export function carryKinematic(
   // the lateral drift (lane change) yaws the nose into it, as a driven car's would; the
   // lean toward you is not used (no one is near)
   // (MEASURED: a recycled car inherited the old car's kOff -> one step of a huge sideways
-  // speed -> contacts + off the road; now fresh() clears it and the drift rate is capped
+  // speed -> contacts + off the road; now fresh clears it and the drift rate is capped
   // at the lane-change speed)
   const offK = Math.max(env.minOff, Math.min(env.maxOff, slot.laneOff)),
     latV = slot.kOff == null ? 0

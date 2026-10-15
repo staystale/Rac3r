@@ -7,7 +7,7 @@ export type SurfaceId =
 const COL_GRAVEL_TRACK = '150,134,106';   // rgb of a rut ploughed through gravel — warm, not black
 const COL_GRASS_SCUFF  = '92,112,66';     // rgb of torn turf
 // =============================================================================================
-// SURFACES (user, 2026-09-28: "we should have road surfaces - tarmac - the lab - gravel - grass.
+// SURFACES (user: "we should have road surfaces - tarmac - the lab - gravel - grass.
 // They should all affect driving conditions differently and realistically").
 //
 // A surface is FOUR independent physical properties, not a grip number. Getting this wrong is the
@@ -21,7 +21,7 @@ const COL_GRASS_SCUFF  = '92,112,66';     // rgb of torn turf
 //           why the identical input spins you on tarmac. See vehicle.js tyreLateral.
 //   plough  m/s^2 of bulldozing drag. Nothing to do with friction: the wheel displaces material.
 //           Zero on anything hard. This is what actually stops a car in a gravel trap.
-//           MEASURED AGAINST REALITY, 2026-09-28 (user: "mud and sand seem too hard to drive in"
+//           MEASURED AGAINST REALITY, (user: "mud and sand seem too hard to drive in"
 //           and "should look and be accurate to real life"). These had been tuned by feel, and feel
 //           was wrong: mud was 5.2 where published rolling-resistance coefficients for deep mud
 //           (Crr 0.10-0.25) give 1.0-2.5 m/s^2, i.e. I had it at 2.1x the realistic MAXIMUM. Sand
@@ -48,7 +48,7 @@ const MARK_GRASS_LONG: Mark = { rgb: '76,96,52', widen: 2.1, alpha: 0.14 };
 const MARK_SNOW: Mark = { rgb: '138,152,170', widen: 2.2, alpha: 0.14 };
 // deep dark ruts, the clearest of all
 const MARK_MUD: Mark = { rgb: '58,42,30', widen: 2.6, alpha: 0.20 };
-// THICK MUD's OWN, darker mark (2026-10-07; user: tracks on mud "vanish or morph weirdly as the
+// THICK MUD's OWN, darker mark (user: tracks on mud "vanish or morph weirdly as the
 // surface gets degraded to thick mud" - "should darken if anything"; tools/_mudtracks.mjs).
 // MEASURED: MARK_MUD (58,42,30) IS thick mud's base colour (#3a291d), so on a worn cell the same
 // tracks went 11 -> 7 luminance darker than their ground (pass 2 -> 4) and read as the ripple art
@@ -60,7 +60,7 @@ const MARK_SAND: Mark = { rgb: '176,152,112', widen: 2.5, alpha: 0.14 };
 // the surface, which is why the trail behind a car on a wet track is the one you can actually see.
 export const MARK_WET: Mark = { rgb: '196,199,208', widen: 1.6, alpha: 0.16 };
 
-// SPRAY — what a wheel THROWS UP off a loose surface (user, 2026-09-28: "floor with a loose surface
+// SPRAY — what a wheel THROWS UP off a loose surface (user: "floor with a loose surface
 // like snow mud sand or grass should particle emit and small and kick up dust / dirt / grass /
 // snow"). Read by render.ts, which never learns what any of these are; a surface without one throws
 // nothing.
@@ -70,7 +70,7 @@ export const MARK_WET: Mark = { rgb: '196,199,208', widen: 1.6, alpha: 0.16 };
 //   lift   how far it is flung (m/s); heavy clods drop near the car, fine dust drifts
 //   life   seconds. Dust hangs; wet spray and mud do not.
 //   grow   how much it expands as it ages. Dust blooms, a clod of mud does not.
-// MEASURED BUG, 2026-09-28 (photographed): the first set of colours was sampled FROM each surface,
+// MEASURED BUG, (photographed): the first set of colours was sampled FROM each surface,
 // so the spray came out the same tone as the ground it left and vanished into that ground's own
 // grain. A car drifting on gravel at 103 km/h was throwing ~13 particles a frame and you could not
 // see one. Thrown material is AIRBORNE — it catches light and reads PALER and hazier than the
@@ -93,7 +93,7 @@ const SPRAY_SNOW:   Spray = { rgb: '255,255,255', size: 0.24, rate: 76, lift: 4.
 export const SPRAY_WET:    Spray = { rgb: '232,238,248', size: 0.15, rate: 54, lift: 3.0,
   life: 0.28, grow: 0.50 };
 
-// RETUNED 2026-09-28 (user: "can the floor styles feel slightly more unique to drive on - grass mud
+// RETUNED (user: "can the floor styles feel slightly more unique to drive on - grass mud
 // and gravel feel too similar"). They WERE too similar, and the reason is instructive: all three
 // were built the same way — take grip off, add slip angle, add some drag. Three points on one line
 // is one surface with three names.
@@ -139,7 +139,7 @@ export const SURFACES: Record<SurfaceId, Surface> = {
   grassShort: { id: 'grassShort', label: 'SHORT GRASS', mu: 0.34, peakK: 1.25, longK: 0.85,
     plough: 0, rough: 0.014, mark: MARK_GRASS, spray: SPRAY_GRASS },
   // LONG GRASS — un-mown pasture. Taller, deeper, more drag and height variation.
-  // plough 0.10 -> 0.35 (user, 2026-10-03: "long grass to grab slightly ... until it's driven over
+  // plough 0.10 -> 0.35 (user: "long grass to grab slightly ... until it's driven over
   // enough to become short grass" — 2 passes, BASE_WEAR). MEASURED vs short grass, hatch-fwd /
   // muscle: 0-50 km/h 7.56 -> 8.58 s / 7.70 -> 8.88 s; coasting 50 -> 4 km/h 502 -> 205 m / 469 ->
   // 198 m. (0.10 was 368 m — barely felt; 0.5 / 0.7 tried: 162 / 127 m, 9.2 / 10.2 s — more than
@@ -153,7 +153,7 @@ export const SURFACES: Record<SurfaceId, Surface> = {
   // ---- THE LOW-FRICTION PANELS
   ice:    { id: 'ice', label: 'ICE', mu: 0.12, peakK: 0.70, longK: 1.00, plough: 0, rough: 0.001,
     mark: null, spray: null, coolK: 0.25 },
-  // PACKED SNOW (2026-10-04, generated snow stages: a snow road drawn white on white could not be
+  // PACKED SNOW (generated snow stages: a snow road drawn white on white could not be
   // seen): a rolled snow road, blue-grey, mu a little above loose snow; everything else as snow
   packedSnow: { id: 'packedSnow', label: 'PACKED SNOW', mu: 0.36, peakK: 1.90, longK: 1.10,
     plough: 0.6, rough: 0.005, mark: MARK_SNOW, spray: SPRAY_SNOW, coolK: 0.25 },
@@ -163,7 +163,7 @@ export const SURFACES: Record<SurfaceId, Surface> = {
     rough: 0.002, mark: MARK_WET, spray: SPRAY_WET, hard: true, coolK: 0.18 },
   mud:    { id: 'mud', label: 'MUD', mu: 0.45, peakK: 2.20, longK: 0.85, plough: 1.60, rough: 0.010,
     mark: MARK_MUD, spray: SPRAY_MUD },
-  // THICK MUD (user, 2026-10-03: "two types of mud ... mud turns to thick mud"). Same family as
+  // THICK MUD (user: "two types of mud ... mud turns to thick mud"). Same family as
   // mud, but the bog: less grip, driven wheels churn, and it drags harder than mud. SIZED TO THE
   // STALL LINE (see the plough note above): a 2WD car drives through one axle, so RWD traction ~
   // 0.5*mu*longK*g = 1.30 m/s^2, and drag at a crawl is plough*PLOUGH_CRAWL = 1.9*0.55 = 1.05 — 81%
@@ -173,17 +173,17 @@ export const SURFACES: Record<SurfaceId, Surface> = {
     rough: 0.018, mark: MARK_THICK_MUD, spray: SPRAY_MUD },
   broken: { id: 'broken', label: 'BROKEN TARMAC', mu: 0.86, peakK: 1.00, longK: 1.00, plough: 0,
     rough: 0.022, mark: null, spray: null, hard: true },
-  // CONCRETE (2026-10-03, roadmap B1: airfield runways, pit lanes, paddocks). A touch less grip
+  // CONCRETE (roadmap B1: airfield runways, pit lanes, paddocks). A touch less grip
   // than good tarmac, smooth, hard.
   concrete: { id: 'concrete', label: 'CONCRETE', mu: 0.90, peakK: 1.00, longK: 1.00, plough: 0,
     rough: 0.004, mark: null, spray: null, hard: true },
   sand:   { id: 'sand', label: 'SAND', mu: 0.55, peakK: 2.20, longK: 0.92, plough: 1.90,
     rough: 0.008, mark: MARK_SAND, spray: SPRAY_SAND },
 };
-// TYRE COOLING by surface (2026-10-03): hard surfaces (above) do not cool tyres; everything loose
+// TYRE COOLING by surface: hard surfaces (above) do not cool tyres; everything loose
 // or cold does. coolK is 1/s toward ambient, on top of the always-on cooling in vehicle.js. Stated
 // where it matters (wet, snow, ice); every other non-hard surface gets OFFROAD_COOL here, so a new
-// surface cannot silently skip it. Cold and wet ground pulls heat out faster (user, 2026-10-03):
+// surface cannot silently skip it. Cold and wet ground pulls heat out faster:
 // snow / ice 0.25, puddles 0.20, wet tarmac 0.18, thick mud 0.12, mud 0.10; dry loose ground
 // (grass, dirt, gravel, sand) OFFROAD_COOL.
 const OFFROAD_COOL = 0.06;

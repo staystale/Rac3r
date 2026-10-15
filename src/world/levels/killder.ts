@@ -6,7 +6,7 @@ import { onTrack } from "../tyrewall.ts";
 import { trackKit } from "./kit.ts";
 import type { Point, Cover, Lane, Cone, Prop, Paint, Barrier } from "../types.ts";
 // =============================================================================================
-// KILLDER — parody of the Kielder Forest rally stages (Northumberland). Built 2026-10-04. DECIDED
+// KILLDER — parody of the Kielder Forest rally stages (Northumberland). Built. DECIDED
 // (user): "FAST + FLOWING"; "be LIBERAL with hay bales, tyres, cones, flags and other event
 // decorations"; a staggered-start stage like Sweaty Lamb (main.js / raceflow stage). Real Kielder:
 // fast gravel forest roads through dense conifer plantations, long straights into tight JUNCTION
@@ -150,7 +150,7 @@ for (const [clusterX, clusterY, width, depth, count] of [[-60, 120, 70, 120, 35]
 }
 // the TREE WALLS of a forest stage (photographed v1: plantations only, so the road ran through open
 // grass): both sides, 10-16 m out, every ~8 m with gaps, along the whole stage (the corners' bales
-// / chevrons sit inside 13 m; clear() keeps 8 m off any road)
+// / chevrons sit inside 13 m; clear keeps 8 m off any road)
 for (let dist = 20; dist < KD_FINISH - 10; dist += 8) for (const side of [-1, 1]) {
   if (KD_KIT.rnd() < 0.3) continue;
   const pos = KD_KIT.at(dist + KD_KIT.rnd() * 4, side * (14 + KD_KIT.rnd() * 6));

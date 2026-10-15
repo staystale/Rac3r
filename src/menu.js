@@ -1,12 +1,12 @@
 // menu.js — MAIN MENU, TEST MODE (track select -> match setup) and the GARAGE (user spec,
-// SPECS-2026-10-03.md "UI / UX"). DOM, not canvas: lists, scrolling and taps are what the DOM is
+// SPECS-.md "UI / UX"). DOM, not canvas: lists, scrolling and taps are what the DOM is
 // for, and the game canvas keeps running the DEMO LAP behind it (user's choice). Pixel-art UI
 // style: hard 2 px outlines, square corners, hard drop shadows, the HUD's colour table (green = go
 // / interactive, amber = highlight, red = locked / danger). Everything a screen shows is READ LIVE:
 // car numbers come from src/carstats.js (measured by tools/carstats.mjs, rule 10), track pictures
 // from the real level painter.
 //
-// main.js owns the game; this file only asks it to do things through `api`: api.thumbs() -> {
+// main.js owns the game; this file only asks it to do things through `api`: api.thumbs -> {
 // levelId: canvas } (painted once, cached) api.launch(level, car) start a Test Mode session
 // api.carSprite(id) -> canvas of the generated pixel car
 import { CSS } from './menu/style.js';

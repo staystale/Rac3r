@@ -1,4 +1,4 @@
-// Powertrain: steering, reverse engagement, shifting and engine rpm of step().
+// Powertrain: steering, reverse engagement, shifting and engine rpm of step.
 
 import type { Spec } from '../cars.ts';
 import { clamp, STEER_MAX, STEER_RATE } from '../vehicle.ts';
@@ -23,7 +23,7 @@ function ratio(carSpec: Spec, gear: number) {
 }
 
 /**
- * Section 2 of step(): turn the front wheels toward the steer input at the steering rate, and
+ * Section 2 of step: turn the front wheels toward the steer input at the steering rate, and
  * return the effective wheel angle (damage toe included).
  */
 export function steerFrontWheels(car: Car, carSpec: Spec, input: CarInput, dt: number) {
@@ -58,13 +58,13 @@ function engageReverse(car: Car, input: CarInput, rawThrottle: number, vLong: nu
 }
 
 /**
- * Powertrain section of step(): pedal mapping, reverse engagement, wheelspin, rpm and gear shifts.
- * Returns the pedal and ratio values the rest of step() reads.
+ * Powertrain section of step: pedal mapping, reverse engagement, wheelspin, rpm and gear shifts.
+ * Returns the pedal and ratio values the rest of step reads.
  */
 export function runPowertrain(car: Car, carSpec: Spec, input: CarInput, vLong: number, dt: number) {
   // ---- powertrain: reverse engagement (A5), shifting, rpm
   //
-  // MEASURED BUG, 2026-09-27 (user: "braking still causes you to go backwards"). Holding the brake
+  // MEASURED BUG, (user: "braking still causes you to go backwards"). Holding the brake
   // at a standstill engages reverse, and in reverse the pedals SWAP — so the brake a player was
   // ALREADY holding became the accelerator and drove them backwards. Measured on every car: stops
   // at 2.6 s, reverse engages at 3.0 s, travelling backwards at 5.6 m/s, all from one continuous
@@ -95,7 +95,7 @@ export function runPowertrain(car: Car, carSpec: Spec, input: CarInput, vLong: n
   // A feature that keeps generating the same bug report is the wrong feature. Reverse now needs its
   // own input, so no amount of braking can ever select it. A5 is superseded.
   //
-  // HOLD R TO REVERSE (user, 2026-10-03: the guide card said "Hold R to reverse" and the user ruled
+  // HOLD R TO REVERSE (user: the guide card said "Hold R to reverse" and the user ruled
   // "it should work how the card says and the game is wrong"). It WAS a toggle, and in reverse the
   // pedals swapped (BRAKE drove you backwards, GAS braked). Now R is its own pedal, 0..1, ramped
   // like GAS (input.js), and NO PEDAL EVER SWAPS:

@@ -1,11 +1,11 @@
-// Tyre forces: the axle force blocks, brake lock state and ploughing of step().
+// Tyre forces: the axle force blocks, brake lock state and ploughing of step.
 
 import type { Spec } from '../cars.ts';
 import { TUNE, curveFactor, clamp, tyreGrip } from '../vehicle.ts';
 import type { Car } from '../vehicle.ts';
 import { axleFrictionWork } from './tyreheat.ts';
 
-// REVERTED to effectively a switch, 2026-09-27. Cross-fading the rolling and sliding laws over a
+// REVERTED to effectively a switch,. Cross-fading the rolling and sliding laws over a
 // 0.30 band DID kill the track car judder (max jerk 457 -> 210) but wrecked the thing the slice
 // exists for: a handbrake flick went from 49 deg keeping 75% of its speed to 101 deg keeping 27%
 // and running backwards. The two laws simply do not agree near the boundary — the ellipse sends
@@ -49,7 +49,7 @@ function tyreLateral(
   return -Math.sign(alpha) * curveFactor(alpha, aPeak, slideGrip) * peakForce;
 }
 
-/** Per-step values shared by the tyre and stability blocks of step(). */
+/** Per-step values shared by the tyre and stability blocks of step. */
 export interface AxleTick {
   mass: number; gravity: number; muBase: number; longK: number; peakK: number;
   latFade: number; dt: number;
@@ -72,8 +72,8 @@ function axleGrip(
   // car's balance at all — the single most important tyre property for handling, and it was
   // missing.
   //
-  // AERO FIX: Downforce adds massive Fz. If we apply standard load sensitivity to downforce, 
-  // mu plummets and the wings do nothing. We must separate mechanical load (which penalizes mu) 
+  // AERO FIX: Downforce adds massive Fz. If we apply standard load sensitivity to downforce,
+  // mu plummets and the wings do nothing. We must separate mechanical load (which penalizes mu)
   // from aero load (which just adds grip). We approximate this by limiting the load ratio.
   const loadRatio = FzNom > 1 ? axleLoad / FzNom : 1;
   // Cap the load ratio penalty so massive downforce doesn't destroy the friction coefficient.
@@ -160,7 +160,7 @@ function circleForce(
   // it up.
   const FyWant = tyreLateral(slip, muEff * axleLoad * car.mods.gripLat, caEff * car.mods.gripLat,
       carSpec.slideGrip, peakK);
-  // NOT multiplied by longK. MEASURED 2026-09-28: it was, and that inflated the SHARED friction
+  // NOT multiplied by longK. MEASURED: it was, and that inflated the SHARED friction
   // budget, which aPeak is derived from — so raising gravel longitudinal grip quietly moved its
   // lateral peak from 13.4 deg of body slip to 8.4, i.e. made the loosest surface feel tighter.
   // longK is a LONGITUDINAL property and belongs only on the longitudinal capacity below.
@@ -188,7 +188,7 @@ function circleForce(
 const NO_SLIDE = { fx: 0, fy: 0, slipSpeed: 0 };
 
 /**
- * Sections 6/7 of step(): the force one axle's tyres make. Rolling (cornering stiffness x slip
+ * Sections 6/7 of step: the force one axle's tyres make. Rolling (cornering stiffness x slip
  * angle inside the friction circle) blended into sliding (locked, handbraked or spinning).
  */
 export function axleForce(
@@ -197,7 +197,7 @@ export function axleForce(
   forceSlide: boolean, FzNom: number, latchKey: 'spinLatchF' | 'spinLatchR', gripT = 1,
 ) {
   const { muBase, longK, latFade } = tick;
-  // A TYRE IN THE AIR MAKES NO FORCE. FIXED 2026-10-03 (Claude) — the "freeze when you brake
+  // A TYRE IN THE AIR MAKES NO FORCE. FIXED (Claude) — the "freeze when you brake
   // mid-jump".
   //
   // MEASURED: driving off the lab ramp and braking while airborne turned x/y into NaN on the
@@ -205,7 +205,7 @@ export function axleForce(
   // scales cornering stiffness by load (caEff = ca * Fz/FzNom), so with Fz = 0 the sliding branch
   // computes aPeakS = 0/0 = NaN. Braking is what reaches that branch (lockedF/lockedR ->
   // forceSlide), which is why only brake-in-the-air froze it. The NaN position then made
-  // groundAt() return no surface, step() threw on `surface.mu`, and the frame loop died — the
+  // groundAt return no surface, step threw on `surface.mu`, and the frame loop died — the
   // screen froze on its last frame and RESTART/RESET looked broken because nothing was being
   // drawn any more.
   //
@@ -232,7 +232,7 @@ export function axleForce(
   // the track car at gear shifts (223). Both reverted. See ENGINE.md.
   const overLong = demandRatio > 1;
 
-  // BLENDED, never switched. MEASURED BUG, 2026-09-27 (user: "the track spec car seems juddery",
+  // BLENDED, never switched. MEASURED BUG, (user: "the track spec car seems juddery",
   // returning after the power went up): this was a hard `if` between the rolling and sliding
   // laws, and at the boundary the two disagree by (1 - slideGrip) in magnitude AND in direction.
   // With plenty of power the demand sits right on that boundary, so the force flipped between the
@@ -256,12 +256,12 @@ export function axleForce(
 }
 
 /**
- * Section 7b of step(): gravel-trap ploughing, a retarding force per axle along that axle's own
+ * Section 7b of step: gravel-trap ploughing, a retarding force per axle along that axle's own
  * contact velocity. All zero on surfaces that do not plough.
  */
 export function ploughingForces(car: Car, carSpec: Spec, mass: number, vLong: number, vLat: number,
     loadKF: number, loadKR: number) {
-  // PLOUGHING — what makes a gravel trap a gravel trap (user, 2026-09-28: "can the gravel
+  // PLOUGHING — what makes a gravel trap a gravel trap (user: "can the gravel
   // trap
   //          actually work like a gravel trap, slow you down, grab ya wheels").
   //
@@ -303,14 +303,14 @@ export function ploughingForces(car: Car, carSpec: Spec, mass: number, vLong: nu
 }
 
 /**
- * Section 6 of step(), brake side: ABS caps on each axle's brake force, the lock-up tests, and the
+ * Section 6 of step, brake side: ABS caps on each axle's brake force, the lock-up tests, and the
  * handbrake force on the rear. Returns the brake forces and lock flags the tyre blocks read.
  */
 function brakeLockState(car: Car, tick: AxleTick, brakeIn: number, vLongAbs: number, FzF: number,
     FzR: number, FbF: number, FbR: number, FxBrakeF: number, FxBrakeR: number, brakeSign: number,
     handbrake: number) {
   const { muBase } = tick;
-  // lock-up test: brake demand alone exceeding available grip ABS (2026-10-03): cap each axle's
+  // lock-up test: brake demand alone exceeding available grip ABS: cap each axle's
   // brake at ABS_K of the grip LEFT after cornering (last step's lateral force, friction ellipse),
   // so the wheels keep turning and the tyre keeps steering. Without it the lap driver locked the
   // track car's fronts at 32% pedal mid-corner and went straight on. The handbrake is not touched.
@@ -327,7 +327,7 @@ function brakeLockState(car: Car, tick: AxleTick, brakeIn: number, vLongAbs: num
   }
   const lockedF = brakeIn > 0.05 && vLongAbs > 0.3
       && Math.abs(FbF) > muBase * FzF * car.mods.gripLong;
-  // HANDBRAKE AS A FORCE, not a boolean. MEASURED 2026-09-27 (user: "hand braking at higher speeds
+  // HANDBRAKE AS A FORCE, not a boolean. MEASURED (user: "hand braking at higher speeds
   // still feels off and ends up in the car swinging backwards"): as an instant full lock, its
   // violence scaled with FRONT grip — and raising mu to 1.25 made every flick, at every speed, in
   // every car, reach 90 deg of body slip. Identical outcomes across different inputs is rule 1. As
@@ -336,7 +336,7 @@ function brakeLockState(car: Car, tick: AxleTick, brakeIn: number, vLongAbs: num
   const hbForce = handbrake * TUNE.handbrakeForce * muBase * FzR * car.mods.gripLong;
   // Does the handbrake demand actually EXCEED rear grip? If so the wheel genuinely LOCKS, and a
   // locked wheel skates at the full contact-patch speed — which is what makes it lose its lateral
-  // grip and lay rubber. MEASURED BUG, 2026-09-27 (user: "handbrake does not seem to lock up the
+  // grip and lay rubber. MEASURED BUG, (user: "handbrake does not seem to lock up the
   // rear wheels"): converting the handbrake from a lock into a force meant it no longer set
   // forceSlide, so the rear's longitudinal slip was derived from how far past grip the demand was —
   // 0.7 m/s at 20 m/s instead of ~20. The rear kept almost all its lateral grip and laid no marks
@@ -348,7 +348,7 @@ function brakeLockState(car: Car, tick: AxleTick, brakeIn: number, vLongAbs: num
 }
 
 /**
- * Tyre relaxation section of step(): lags each axle's lateral force behind its slip angle by a
+ * Tyre relaxation section of step: lags each axle's lateral force behind its slip angle by a
  * rolling distance and writes the lagged Fy back onto both axle outcomes.
  */
 function relaxAxleForces(car: Car, dt: number, vLong: number, vLat: number,
@@ -359,7 +359,7 @@ function relaxAxleForces(car: Car, dt: number, vLong: number, vLat: number,
   // deflect, which takes a ROLLING DISTANCE (the relaxation length, ~0.5 m) rather than a time. So
   // the lag is RELAX_LEN / v — sharp at speed, soft when slow, exactly as in a real car.
   //
-  // MEASURED BUG, 2026-09-27 (user: "braking when turning... it slides weird"): without it the
+  // MEASURED BUG, (user: "braking when turning... it slides weird"): without it the
   // FRONT reached full grip instantly at turn-in while the rear was still at zero — dumped FyF
   // 10178 N against FyR -89 N, a net yaw moment of +12658 N.m that spun the car up to 0.66 rad/s
   // before the rear contributed anything at all. Four of five cars then rotated past 90 deg. Brake
@@ -374,7 +374,7 @@ function relaxAxleForces(car: Car, dt: number, vLong: number, vLat: number,
 }
 
 /**
- * Sections 6/7 of step(): the tick values shared by the tyre blocks, the brake lock state and the
+ * Sections 6/7 of step: the tick values shared by the tyre blocks, the brake lock state and the
  * force of both axles (with the tyre relaxation lag applied to Fy). Returns the tick, the axle
  * outcome and whether ABS is working.
  */
@@ -385,7 +385,7 @@ export function computeAxleForces(car: Car, carSpec: Spec, mass: number, gravity
     FxDriveF: number, FxDriveR: number) {
   // ---- 6/7. per-axle tyre force.
   //
-  // MEASURED BUG, 2026-09-27: the first cut gave a locked axle its friction as pure LONGITUDINAL
+  // MEASURED BUG: the first cut gave a locked axle its friction as pure LONGITUDINAL
   // demand at 1.2*Fmax, which the ellipse then turned into FyMax = 0 — a handbraked rear axle
   // produced exactly zero lateral force (dumped: FyR = 0 N for every tick of a handbrake turn), so
   // the car scrubbed to a dead stop in 0.7 s and never passed 50 deg of yaw. A locked tyre's
@@ -401,7 +401,7 @@ export function computeAxleForces(car: Car, carSpec: Spec, mass: number, gravity
   const tyreK = carSpec.tyre ? (carSpec.tyre.bySurf![car.surface.id] ?? 1) : 1;
   const muBase = carSpec.mu * car.surface.mu * tyreK;
   const peakK = car.surface.peakK || 1;   // loose surfaces peak much later — see tyreLateral
-  // LONGITUDINAL GRIP RELATIVE TO LATERAL. Added 2026-09-28 (user: "grass mud and gravel feel too
+  // LONGITUDINAL GRIP RELATIVE TO LATERAL. Added (user: "grass mud and gravel feel too
   // similar") because grip, slip angle and drag alone could not separate them — all three merely
   // made a surface "worse" by degrees. This one is the difference between a wheel that DIGS IN and
   // one that CHURNS. On gravel a driven wheel packs the loose stones and finds more bite than a
@@ -410,7 +410,7 @@ export function computeAxleForces(car: Car, carSpec: Spec, mass: number, gravity
   // fast and mud feel bogged at almost the same mu.
   const longK = car.surface.longK || 1;
 
-  // Lateral-force speed fade. MEASURED ARTIFACT, 2026-09-27: a car parked at 0.1 m/s with the wheel
+  // Lateral-force speed fade. MEASURED ARTIFACT: a car parked at 0.1 m/s with the wheel
   // at 19 deg reported FyF = 5610 N — because slip angle is atan2(lat, |vLong| + eps) and at rest
   // the eps IS the denominator, so a stationary tyre reads a huge slip angle. The low-speed blend
   // was deleting the resulting velocity every step, i.e. hiding it rather than fixing it. No slip

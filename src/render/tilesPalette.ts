@@ -10,7 +10,7 @@ interface PaletteHelpers {
 }
 
 /**
- * Parses a #rrggbb / rgb() / rgba() colour string.
+ * Parses a #rrggbb / rgb / rgba colour string.
  * @param text the colour (anything else gives null)
  * @returns [r, g, b, a] or null
  */
