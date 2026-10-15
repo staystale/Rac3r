@@ -45,6 +45,47 @@ export function drawHudTune(ctx, state, rects, car) {
 }
 
 /**
+ * Draw the three start-light squares (dark rim, glow when lit).
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {object} box the light box: x, y, gap, size
+ * @param {boolean} green true once the lights are green
+ * @param {number} litCount how many reds are lit
+ * @returns {void}
+ */
+function drawHudLightSquares(ctx, box, green, litCount) {
+  const { x: boxX, y: boxY, gap, size: lightSize } = box;
+  for (let i = 0; i < 3; i++) {
+    const x = boxX + gap + i * (lightSize + gap), y = boxY + gap, lit = green || i < litCount;
+    const col = green ? '#3ddc84' : lit ? '#ff3b2f' : '#3a1414';
+    if (lit) {
+      ctx.fillStyle = green ? 'rgba(61,220,132,0.35)' : 'rgba(255,59,47,0.35)';
+      ctx.fillRect(x - 4, y - 4, lightSize + 8, lightSize + 8);
+    }
+    ctx.fillStyle = '#0b0c0f';
+    ctx.fillRect(x - 2, y - 2, lightSize + 4, lightSize + 4);
+    ctx.fillStyle = col;
+    ctx.fillRect(x, y, lightSize, lightSize);
+    if (lit) {
+      ctx.fillStyle = 'rgba(255,255,255,0.35)';
+      ctx.fillRect(x + lightSize * 0.15, y + lightSize * 0.15, lightSize * 0.3, lightSize * 0.18);
+    }
+  }
+}
+
+/**
+ * The count-in text under the start lights.
+ * @param {object} start the start state
+ * @param {boolean} green true once the lights are green
+ * @param {number} litCount how many reds are lit
+ * @returns {string} the text, or an empty string
+ */
+function startLightsText(start, green, litCount) {
+  return green ? 'GO!' : start.rolling ? 'ROLLING START' : litCount > 0
+    ? String(4 - litCount) : start.tGreen - start.t > 4 ? 'START IN '
+    + Math.ceil(start.tGreen - start.t) : '';
+}
+
+/**
  * Draw the start lights and the count-in text.
  * @param {CanvasRenderingContext2D} ctx
  * @param {object} game
@@ -71,25 +112,8 @@ export function drawHudLights(ctx, game, width, height) {
   const boxX = Math.round(width / 2 - boxWidth / 2), boxY = Math.round(height * 0.2);
   drawHudPanel(ctx, { x: boxX, y: boxY, w: boxWidth, h: boxHeight },
     { fill: 'rgba(14,15,18,0.92)', stroke: 'rgba(255,255,255,0.18)' });
-  for (let i = 0; i < 3; i++) {
-    const x = boxX + gap + i * (lightSize + gap), y = boxY + gap, lit = green || i < litCount;
-    const col = green ? '#3ddc84' : lit ? '#ff3b2f' : '#3a1414';
-    if (lit) {
-      ctx.fillStyle = green ? 'rgba(61,220,132,0.35)' : 'rgba(255,59,47,0.35)';
-      ctx.fillRect(x - 4, y - 4, lightSize + 8, lightSize + 8);
-    }
-    ctx.fillStyle = '#0b0c0f';
-    ctx.fillRect(x - 2, y - 2, lightSize + 4, lightSize + 4);
-    ctx.fillStyle = col;
-    ctx.fillRect(x, y, lightSize, lightSize);
-    if (lit) {
-      ctx.fillStyle = 'rgba(255,255,255,0.35)';
-      ctx.fillRect(x + lightSize * 0.15, y + lightSize * 0.15, lightSize * 0.3, lightSize * 0.18);
-    }
-  }
-  const txt = green ? 'GO!' : start.rolling ? 'ROLLING START' : litCount > 0
-    ? String(4 - litCount) : start.tGreen - start.t > 4 ? 'START IN '
-    + Math.ceil(start.tGreen - start.t) : '';
+  drawHudLightSquares(ctx, { x: boxX, y: boxY, gap, size: lightSize }, green, litCount);
+  const txt = startLightsText(start, green, litCount);
   if (txt) drawHudLabel(ctx, txt, width / 2, boxY + boxHeight + Math.round(lightSize * 0.55),
     { size: green || (!start.rolling && litCount > 0) ? Math.round(lightSize * 0.8)
     : Math.round(lightSize * 0.35), weight: 800, align: 'center', col: green ? '#3ddc84'
@@ -169,6 +193,22 @@ export function drawHudCamera(ctx, game, width, height) {
 }
 
 /**
+ * Note a new chequered-flag entry: restart the sweep and pick its text.
+ * @param {object} state the shared HUD state (flagSeen, flagAt, flagTxt)
+ * @param {object} flow the race flow
+ * @param {number} now wall time in seconds
+ * @returns {void}
+ */
+function noteNewFlag(state, flow, now) {
+  state.flagSeen = flow.flags.length;
+  state.flagAt = now;
+  const place = flow.myPlace;
+  state.flagTxt = flow.stage ? 'STAGE FINISHED' : flow.highway
+    ? (place === 1 ? 'YOU GOT AWAY!' : 'P' + place + ' — THEY GOT AWAY') : place === 1
+    ? 'YOU WIN!' : place ? 'P' + place + ' — FINISH' : 'FINISH';
+}
+
+/**
  * Draw the waving chequered flag; tracks new flags in state.
  * @param {object} state the shared HUD state (flagSeen, flagAt, flagTxt)
  * @param {CanvasRenderingContext2D} ctx
@@ -189,14 +229,7 @@ export function drawHudFlag(state, ctx, game, width, height) {
     return;
   }
   const now = performance.now() / 1000;
-  if (flow.flags.length > state.flagSeen) {
-    state.flagSeen = flow.flags.length;
-    state.flagAt = now;
-    const place = flow.myPlace;
-    state.flagTxt = flow.stage ? 'STAGE FINISHED' : flow.highway
-      ? (place === 1 ? 'YOU GOT AWAY!' : 'P' + place + ' — THEY GOT AWAY') : place === 1
-      ? 'YOU WIN!' : place ? 'P' + place + ' — FINISH' : 'FINISH';
-    }
+  if (flow.flags.length > state.flagSeen) noteNewFlag(state, flow, now);
   const progress = (now - state.flagAt) / FLAG_S;
   if (!state.flagSeen || progress > 1) return;
   const FLAG_COLS = 18, FLAG_ROWS = 11, flagWidth = Math.min(width * 0.62, height * 1.15),
