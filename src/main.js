@@ -1493,6 +1493,38 @@ function openGuideOnLanding() {
   }
 }
 
+/**
+ * One fixed physics step of the player car: the clamps, damage, ground and rollover, then the
+ * car model. A non-finite result puts the car back on the track instead of ending the game.
+ * @param {object} inp this frame's player input
+ * @returns {boolean} false if the car had to be recovered (the caller drops the step backlog)
+ */
+function stepCarPhysics(inp) {
+  try {
+    // DAMAGE (damage.js): the velocity change the clamps impose IS the impact
+    const pv0x = game.car.vx, pv0y = game.car.vy;
+    fenceClamp(game.car);
+    obstacleClamp(game.car);
+    barrierClamp(game.car);
+    solidClamp(game.car);   // trees, planes, hangars ... (lab.js solidsFromProps)
+    hit(game.car, pv0x, pv0y);
+    applyGround(game.car, PHYSICS_STEP_SECONDS);
+    // ROLLOVER (roll.js): a rolling / overturned car has no tyres to drive on — the body
+    // tumbles or slides; RESET rights it
+    if (rolling(game.car)) stepRoll(game.car, PHYSICS_STEP_SECONDS,
+      (kind, side, weight) => hitRoll(game.car, kind, side, weight));
+    else {
+      step(game.car, inp, PHYSICS_STEP_SECONDS);
+      tripCheck(game.car, PHYSICS_STEP_SECONDS);
+    }
+    assertFinite(game.car);
+  } catch (err) {
+    recoverCar(err.message);
+    return false;
+  }
+  return true;
+}
+
 function loop(now) {
   // Rescheduled FIRST, so a throw anywhere below can never stop the game loop again.
   requestAnimationFrame(loop);
@@ -1524,26 +1556,7 @@ function loop(now) {
       // Before step(), so the load is right for the forces computed this step rather than one step
       // stale. remember the pose BEFORE this step, for the render interpolation below
       game.car._p = { x: game.car.x, y: game.car.y, h: game.car.heading };
-      try {
-        // DAMAGE (damage.js): the velocity change the clamps impose IS the impact
-        const pv0x = game.car.vx, pv0y = game.car.vy;
-        fenceClamp(game.car);
-        obstacleClamp(game.car);
-        barrierClamp(game.car);
-        solidClamp(game.car);   // trees, planes, hangars ... (lab.js solidsFromProps)
-        hit(game.car, pv0x, pv0y);
-        applyGround(game.car, PHYSICS_STEP_SECONDS);
-        // ROLLOVER (roll.js): a rolling / overturned car has no tyres to drive on — the body
-        // tumbles or slides; RESET rights it
-        if (rolling(game.car)) stepRoll(game.car, PHYSICS_STEP_SECONDS,
-          (kind, side, weight) => hitRoll(game.car, kind, side, weight));
-        else {
-          step(game.car, inp, PHYSICS_STEP_SECONDS);
-          tripCheck(game.car, PHYSICS_STEP_SECONDS);
-        }
-        assertFinite(game.car);
-      } catch (err) {
-        recoverCar(err.message);
+      if (!stepCarPhysics(inp)) {
         acc = 0;
         break;
       }
