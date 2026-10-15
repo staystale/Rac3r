@@ -620,14 +620,21 @@ function runForSide(ctx: RoadCtx, i: number, callback: Parameters<ForSide>[1]) {
  * @param ctx the road context
  */
 function drawKerb(ctx: RoadCtx) {
-  const { view } = ctx;
+  const { view, cam } = ctx;
   if (LEVEL.endless) return;
   for (let i = 0; i < 4; i++) runForSide(ctx, i, (pxPerM, edgeDist, halfLen) => {
     const inner = edgeDist - KERB_W;
     // hazard blocks across the FULL width of the strip, so the thing you drive over is what you
     // see
     const blk = 2.6;                             // m per block
-    for (let along = -halfLen; along < halfLen; along += blk) {
+    // only the blocks in view (runForSide put the camera in the side's frame): every block of
+    // a 30 km floor edge was 23k fills a frame, 4.4 s of an 8 s drive at CPU x4
+    const reach = view.W / 2 / pxPerM + blk;
+    const first = Math.max(0, Math.floor((cam.x - reach + halfLen) / blk));
+    const last = Math.ceil((cam.x + reach + halfLen) / blk);
+    for (let index = first; index <= last; index++) {
+      const along = -halfLen + index * blk;
+      if (along >= halfLen) break;
       const blockW = Math.min(blk, halfLen - along);
       view.ctx.fillStyle = (Math.round((along + halfLen) / blk) % 2) ? COL.kerbB : COL.kerbA;
       view.ctx.fillRect(along * pxPerM, inner * pxPerM, blockW * pxPerM + 1, KERB_W * pxPerM);

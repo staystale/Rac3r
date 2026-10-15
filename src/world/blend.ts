@@ -1,4 +1,4 @@
-import { FLOOR, KERB_W, edgeOut } from "./bounds.ts";
+import { FLOOR, FX0, FX1, FY0, FY1, KERB_W, edgeOut } from "./bounds.ts";
 import { SURFACES } from "./surfaces.ts";
 import type { SurfaceId } from "./surfaces.ts";
 import { zoneAt } from "./zones.ts";
@@ -313,8 +313,13 @@ export function buildInclusions(level: Level, rng: Rng): Inclusions {
   const authored = (level._coversBase || []).map((cover) => ({
     x: cover.x, y: cover.y, w: Math.max(cover.w, cover.h), h: Math.max(cover.w, cover.h),
   }));
+  // the scan covers the floor RECTANGLE inside the +-FLOOR square: a long thin level (a straight
+  // road 30 km long) scanned as its square was ~1e8 cells. Where the rectangle holds the square
+  // (every level; the lab's rectangle is larger) the start and end are exactly the square's.
   const lim = FLOOR - KERB_W - 2;
-  for (let x = -lim; x <= lim; x += INCL_STEP) for (let y = -lim; y <= lim; y += INCL_STEP) {
+  const xFrom = Math.max(-lim, -(-FX0 - KERB_W - 2)), xTo = Math.min(lim, FX1 - KERB_W - 2);
+  const yFrom = Math.max(-lim, -(-FY0 - KERB_W - 2)), yTo = Math.min(lim, FY1 - KERB_W - 2);
+  for (let x = xFrom; x <= xTo; x += INCL_STEP) for (let y = yFrom; y <= yTo; y += INCL_STEP) {
     const patchX = x + (rng() - 0.5) * INCL_STEP, patchY = y + (rng() - 0.5) * INCL_STEP;
     if (isNearKeepOut(boxed, patchX, patchY, 3)) continue;
     if (isNearKeepOut(authored, patchX, patchY, 4)) continue;

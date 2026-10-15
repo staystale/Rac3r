@@ -1,8 +1,10 @@
 // The covers of the ground painter: random patches and covers such as puddles and snow,
 // merged per kind and drawn over the surface.
 import { LEVEL } from "../../world/state.ts";
-import { coverCut } from "../../world/wear.ts";
-import type { Cover, CoverCells, CoverId, MergedCell, MergedCover } from "../../world/types.ts";
+import { coverCut, PATCH_CELL, PATCH_GRID, PATCH_ORDER, patchKey } from "../../world/wear.ts";
+import type {
+  Cover, CoverCells, CoverId, MergedCell, MergedCover, Patch,
+} from "../../world/types.ts";
 import type { GroundCtx, ViewRect } from "./types.ts";
 import { paintLayers, artBase } from "./art.ts";
 
@@ -72,6 +74,50 @@ export const PUDDLE_TINT: Record<string, string> = {
 // RANDOM PATCHES (Grass Track, re-rolled every load — lab.js randomiseGrassTrack): small ellipses
 // of another base surface, drawn with that surface's own SURFACE_ART so a mud spot looks like
 // mud.
+
+// the patches one drawPatches call visits, reused (no allocation per tile)
+const visiblePatches: Patch[] = [];
+const seenPatches = new Set<Patch>();
+const byDrawOrder = (left: Patch, right: Patch) =>
+  PATCH_ORDER.get(left)! - PATCH_ORDER.get(right)!;
+
+/**
+ * The patches whose grid cells touch the view, in LEVEL.allPatches order (overlapping patches
+ * draw as before). MEASURED: walking every patch of the level for each tile was 23 s of a 60 s
+ * load-and-drive on a 30 km straight; the grid makes the cost scale with the view, not the level.
+ * The whole list when the view covers more grid cells than there are patches (a flat overview).
+ *
+ * @param groundCtx the shared ground painter context
+ * @param list LEVEL.allPatches
+ * @returns the candidates (the caller still culls each to the screen)
+ */
+function patchesInView(groundCtx: GroundCtx, list: Patch[]): Patch[] {
+  const { view, PPMz, toScreenX, toScreenY } = groundCtx;
+  const ppm = PPMz();
+  if (!PATCH_GRID.size || !(ppm > 0)) return list;
+  const originX = toScreenX(0), originY = toScreenY(0);
+  const cellX0 = Math.floor(-originX / ppm / PATCH_CELL);
+  const cellX1 = Math.floor((view.W - originX) / ppm / PATCH_CELL);
+  const cellY0 = Math.floor(-originY / ppm / PATCH_CELL);
+  const cellY1 = Math.floor((view.H - originY) / ppm / PATCH_CELL);
+  if ((cellX1 - cellX0 + 1) * (cellY1 - cellY0 + 1) > list.length) return list;
+  visiblePatches.length = 0;
+  seenPatches.clear();
+  for (let cellX = cellX0; cellX <= cellX1; cellX++) {
+    for (let cellY = cellY0; cellY <= cellY1; cellY++) {
+      const cell = PATCH_GRID.get(patchKey(cellX, cellY));
+      if (!cell) continue;
+      for (const patch of cell) {
+        if (seenPatches.has(patch)) continue;
+        seenPatches.add(patch);
+        visiblePatches.push(patch);
+      }
+    }
+  }
+  visiblePatches.sort(byDrawOrder);
+  return visiblePatches;
+}
+
 /**
  * Paints the random patches of another base surface, each with its own surface art.
  *
@@ -80,8 +126,9 @@ export const PUDDLE_TINT: Record<string, string> = {
 export function drawPatches(groundCtx: GroundCtx) {
   const { view, PPMz, toScreenX, toScreenY } = groundCtx;
   // random spots + blend patches (lab.js prepareLevel)
-  const list = LEVEL.allPatches || LEVEL.patches;
-  if (!list || !list.length) return;
+  const all = LEVEL.allPatches || LEVEL.patches;
+  if (!all || !all.length) return;
+  const list = all === LEVEL.allPatches ? patchesInView(groundCtx, all) : all;
   const ppm = PPMz();
   for (const patch of list) {
     const reach = Math.max(patch.w, patch.h) / 2;

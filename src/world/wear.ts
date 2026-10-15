@@ -148,6 +148,8 @@ export const cleanAt = (x: number, y: number): string => { const layers = layers
 // physics a handful of comparisons per query instead of a scan of the whole list.
 export const PATCH_CELL = 6;
 export let PATCH_GRID = new Map<number, Patch[]>();
+// each patch's place in LEVEL.allPatches: the draw order when the painter reads PATCH_GRID
+export let PATCH_ORDER = new Map<Patch, number>();
 export const patchKey = (gridX: number, gridY: number): number => gridX * 65536 + gridY;
 // read-only, for tools/blendcheck.mjs
 export const zoneSurfaceAt = (x: number, y: number): Surface => zoneAt(x, y);
@@ -716,4 +718,7 @@ export function obstacleClamp(car: CarBody): void {
     pushOutOfObstacle(car, LEVEL.obstacles[i], reachX, reachY);
 }
 
-export function resetPATCH_GRID(): void { PATCH_GRID = new Map(); }
+export function resetPATCH_GRID(): void {
+  PATCH_GRID = new Map();
+  PATCH_ORDER = new Map();
+}

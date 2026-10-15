@@ -45,15 +45,18 @@ felt worse on the phone. So:
 10-13 and again 10-15). Bisect by construction: step 1 an empty endless straight; then terrain + shading,
 props and fences, fields, traffic; the step where the per-distance hitch appears is the cause. The new
 streaming must do its per-chunk work in small even slices.
-- **Step 1 status: NOT WORKING YET.** `src/world/levels/straight-outta.ts` ("Straight Outta Swindon": a
-  30 km straight on grass, built once, ghost return segment) is written but NOT registered in
-  `levels/index.ts`. First try (laptop, phone size, `?gpupaint=1`, autopilot 140): the road was not drawn
-  beyond the first ~100 m and the game ran at 10 fps - the road drawing (render/road.ts ribbon, tiles)
-  does not cope with a 30 km subtrack; and the AI drove ~60 km/h near the start (the ghost return reads
-  as a 180 deg turn in its speed profile). Next: find why (profile one frame; probably per-tile work over
-  every centreline point), or build the straight from shorter streamed chunks - which step 2 needs
-  anyway. Register the level only when it drives and draws, then give the owner the hands-off link:
+- **Step 1 status: WORKS, registered, OWNER PHONE TEST PENDING.** `src/world/levels/straight-outta.ts`
+  ("Straight Outta Swindon": a 30 km straight on grass, built once, ghost return segment, the floor a
+  strip 200 m round the road). The 10 fps was NOT the road (CPU profile): the floor was a 62 km square,
+  so the inclusion scan made ~1e8 cells (30 s load) and drawPatches walked every patch per tile; and
+  drawKerb filled all ~23k floor-edge kerb blocks every frame. Fixed at the root for every level
+  (identical pixels elsewhere: renderhash). framecheck CPU x4: work median 35.4 -> 10.6 ms; load 2 s.
+  The "AI at 60 km/h" was the low frame rate: the autopilot now holds 140 from ~600 m. Owner link
+  (testlist 'straightoutta'):
   `/?menu=0&guide=0&rules=0&level=straight-outta&autopilot=140&gpupaint=1&zoomhold=1&report=1`.
+  Then read the report with tools/phonereport.mjs: a hitch every ~150 m here or not decides step 2.
+  Before longer roads: drawTrackRibbon walks every centreline point per tile, and
+  session.js updateRecoveryTracking scans every point each sim step (fine at 3000 points).
 
 **Rendering - the fundamental issue (explained to and agreed with the owner)**
 Pixel art drawn by the CPU into a low-res buffer at a constantly changing zoom: every zoom change

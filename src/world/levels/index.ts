@@ -37,6 +37,7 @@ import {
 } from "./lab-extension.ts";
 import { LAB_BUMPS, LAB_PANELS } from "./sandbox.ts";
 import { KH_LEVEL } from "./knobhill.ts";
+import { STRAIGHT_OUTTA_LEVEL } from "./straight-outta.ts";
 import { rxDress, jokerBales } from "./kit.ts";
 import { SH_TYREWALL, SH_STARTWALL } from "./slidden-hill.ts";
 import { CC_TYREWALL, CC_KIT, CC_ARMCO } from "./castle-cum.ts";
@@ -111,6 +112,7 @@ export const LEVELS: Level[] = [
     spawn: { x: -62, y: -96.48, heading: 0.0109 },
   },
   KH_LEVEL,
+  STRAIGHT_OUTTA_LEVEL,
   BH_GP_LEVEL,
   BH_INDY_LEVEL,
   {

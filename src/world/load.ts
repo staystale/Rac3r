@@ -5,7 +5,9 @@ import { alongTrack, prepBarriers } from "./barriers.ts";
 import { autoKerbs } from "./subtrack.ts";
 import { laneAt } from "./zones.ts";
 import { resetNatLevel } from "./terrain.ts";
-import { PATCH_CELL, patchKey, PATCH_GRID, resetPATCH_GRID, HEAT_OFFROAD } from "./wear.ts";
+import {
+  PATCH_CELL, patchKey, PATCH_GRID, PATCH_ORDER, resetPATCH_GRID, HEAT_OFFROAD,
+} from "./wear.ts";
 import { onTrack, querySubtrack } from "./tyrewall.ts";
 import { buildBlend, seededRng, buildInclusions } from "./blend.ts";
 import { LEVELS } from "./levels/index.ts";
@@ -53,6 +55,7 @@ function isPatchOffLane(patch: Patch): boolean {
  */
 function indexPatchGrid(): void {
   resetPATCH_GRID();
+  LEVEL.allPatches!.forEach((patch, order) => PATCH_ORDER.set(patch, order));
   for (const patch of LEVEL.allPatches!) {
     const radius = Math.max(patch.w, patch.h) / 2;
     for (let cellX = Math.floor((patch.x - radius) / PATCH_CELL);
