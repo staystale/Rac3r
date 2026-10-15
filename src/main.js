@@ -1611,6 +1611,40 @@ function stepEndlessHighway() {
   return true;
 }
 
+/**
+ * Engine and tyre sound, fenced off so a throw can never stop the frame.
+ * @param {number} wallDt the clamped wall-clock frame time, in seconds
+ */
+function updateAudio(wallDt) {
+  // AFTER the sim, and fenced off. MEASURED 2026-10-03: audio used to run first, and with a NaN car
+  // its setTargetAtTime() throws — which aborted every frame BEFORE the sim could run the recovery
+  // above, so the car stayed broken forever. Sound is cosmetic; it must never be able to stop the
+  // game.
+  try {
+    audio.update(game.car, wallDt);
+  } catch (err) {
+    if (nanReports++ < 5) console.error('[car sim] audio.update threw:', err.message);
+  }
+}
+
+/**
+ * Keeps a breadcrumb of the car's position and travel direction every 0.5 s of sim time.
+ */
+function dropBreadcrumb() {
+  // BREADCRUMBS for RESET on levels with no circuit. MEASURED BUG, 2026-10-03 (guide audit):
+  // doReset() read this list but nothing ever wrote to it, so RESET on The Lab sent you to the
+  // spawn. Every 0.5 s of sim time while moving and grounded, keep where you were and the way
+  // you were TRAVELLING (not facing — mid-spin those differ); RESET uses the one ~2 s back, so
+  // the spot you are put on is not the one you just crashed at.
+  lastBreadcrumbTime += PHYSICS_STEP_SECONDS;
+  if (lastBreadcrumbTime >= 0.5 && Math.hypot(game.car.vx, game.car.vy) > 3 && !game.car.air) {
+    lastBreadcrumbTime = 0;
+    breadcrumbs.push({ x: game.car.x, y: game.car.y,
+      heading: Math.atan2(game.car.vy, game.car.vx) });
+    if (breadcrumbs.length > 12) breadcrumbs.shift();
+  }
+}
+
 function loop(now) {
   // Rescheduled FIRST, so a throw anywhere below can never stop the game loop again.
   requestAnimationFrame(loop);
@@ -1659,18 +1693,7 @@ function loop(now) {
         break;
       }
       stepRace(game.car, PHYSICS_STEP_SECONDS);
-      // BREADCRUMBS for RESET on levels with no circuit. MEASURED BUG, 2026-10-03 (guide audit):
-      // doReset() read this list but nothing ever wrote to it, so RESET on The Lab sent you to the
-      // spawn. Every 0.5 s of sim time while moving and grounded, keep where you were and the way
-      // you were TRAVELLING (not facing — mid-spin those differ); RESET uses the one ~2 s back, so
-      // the spot you are put on is not the one you just crashed at.
-      lastBreadcrumbTime += PHYSICS_STEP_SECONDS;
-      if (lastBreadcrumbTime >= 0.5 && Math.hypot(game.car.vx, game.car.vy) > 3 && !game.car.air) {
-        lastBreadcrumbTime = 0;
-        breadcrumbs.push({ x: game.car.x, y: game.car.y,
-          heading: Math.atan2(game.car.vy, game.car.vx) });
-        if (breadcrumbs.length > 12) breadcrumbs.shift();
-      }
+      dropBreadcrumb();
       stepStart(PHYSICS_STEP_SECONDS);
       // the HIGHWAY: every car's road frame (s, offset, speed along) once per step, for the racers,
       // the order and the countdowns
@@ -1751,15 +1774,7 @@ function loop(now) {
     game.car.brakeLight = inp.brake;
   }
 
-  // AFTER the sim, and fenced off. MEASURED 2026-10-03: audio used to run first, and with a NaN car
-  // its setTargetAtTime() throws — which aborted every frame BEFORE the sim could run the recovery
-  // above, so the car stayed broken forever. Sound is cosmetic; it must never be able to stop the
-  // game.
-  try {
-    audio.update(game.car, wallDt);
-  } catch (err) {
-    if (nanReports++ < 5) console.error('[car sim] audio.update threw:', err.message);
-  }
+  updateAudio(wallDt);
 
   // RENDER INTERPOLATION (user, 2026-10-03: "at high speeds the camera / car judder"). MEASURED in
   // a real browser at 200 km/h: the 120 Hz sim gave 2 steps on most frames but 3 or 5 on others, so
