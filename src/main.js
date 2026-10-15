@@ -192,6 +192,28 @@ function crossedJoker(joker, prevX, prevY, x, y) {
   if (Math.abs(side) > line.half) return false;
   return querySubtrack(LEVEL.subtrack, crossX, crossY).dist > LEVEL.subtrack.width / 2 + JOKER_ROAD;
 }
+/**
+ * Whether a car is within reach of a joker lane's centre line.
+ * @param {{pts: number[][], width: number}} lane the joker lane
+ * @param {{x: number, y: number}} car the car
+ * @returns {boolean} true when the car is on the lane
+ */
+function nearLane(lane, car) {
+  const pts = lane.pts, reach2 = (lane.width / 2 + 1) ** 2;
+  for (let i = 0; i + 1 < pts.length; i++) {
+    const [startX, startY] = pts[i], [endX, endY] = pts[i + 1], vx = endX - startX,
+      vy = endY - startY,
+      frac = Math.max(0, Math.min(1,
+        ((car.x - startX) * vx + (car.y - startY) * vy) / (vx * vx + vy * vy || 1)));
+    if ((car.x - startX - frac * vx) ** 2 + (car.y - startY - frac * vy) ** 2 < reach2) return true;
+  }
+  return false;
+}
+/**
+ * Tracks the joker gate and lane for the player car.
+ * @param {object} car the player car
+ */
+
 function stepJoker(car) {
   const joker = LEVEL.joker;
   if (!joker) return;
@@ -212,15 +234,7 @@ function stepJoker(car) {
       < joker.gate.r * joker.gate.r * 4)) || null;
   game.inJokerLane = false;
   if (joker._lane && querySubtrack(LEVEL.subtrack, car.x, car.y).dist > LEVEL.subtrack.width / 2) {
-    const pts = joker._lane.pts, reach2 = (joker._lane.width / 2 + 1) ** 2;
-    for (let i = 0; i + 1 < pts.length && !game.inJokerLane; i++) {
-      const [startX, startY] = pts[i], [endX, endY] = pts[i + 1], vx = endX - startX,
-        vy = endY - startY,
-        frac = Math.max(0, Math.min(1,
-          ((car.x - startX) * vx + (car.y - startY) * vy) / (vx * vx + vy * vy || 1)));
-      if ((car.x - startX - frac * vx) ** 2 + (car.y - startY - frac * vy) ** 2 < reach2)
-        game.inJokerLane = true;
-    }
+    game.inJokerLane = nearLane(joker._lane, car);
   }
   // the AI's joker tactics read it (covering a rival who has jokered)
   car._jokers = game.jokers || 0;
