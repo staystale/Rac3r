@@ -8,6 +8,105 @@ import { ROWS as TUNE_ROWS } from '../tune.js';
 import { MARGIN, BTN_H } from './widgets.js';
 
 /**
+ * Tune panel geometry: the panel, its rows, the reset footer and the tyre HUD switch.
+ * @param {number} width canvas width in px
+ * @param {number} height canvas height in px
+ * @param {boolean} narrow true on a narrow screen (second button row)
+ * @returns {object} tunePanel, tuneRows, tuneReset and tyreHudBtn rects
+ */
+function layoutTunePanel(width, height, narrow) {
+  // The panel sizes itself to the space available and never runs off the bottom of a short
+  // landscape phone: the row height shrinks to fit, with a floor, and the width is capped.
+  // Checked at 844x390 and 390x844 by tools/uicheck.mjs.
+  const top = (narrow ? MARGIN + BTN_H * 2 + 12 : MARGIN + BTN_H + 6);
+  const bottom = height - MARGIN - 34; // leave the bottom-left hint line its lane
+  const avail = bottom - top - 24;               // minus the footer button
+  const rowHeight = Math.max(16, Math.min(27, Math.floor(avail / TUNE_ROWS.length)));
+  const panelWidth = Math.min(272, width - MARGIN * 2);
+  const tunePanel = { x: MARGIN, y: top, w: panelWidth,
+    h: TUNE_ROWS.length * rowHeight + 26 };
+  // Buttons are WIDER than they are tall. Vertical room is the binding constraint on a 390
+  // px-tall landscape phone (rows get to 19 px), but there is horizontal room going spare — and a
+  // wider target is easier to hit with a thumb than a square one. 44 x 19 beats 20 x 20.
+  const btnHeight = Math.max(17, rowHeight - 2), btnWidth = 44;
+  const tuneRows = TUNE_ROWS.map((tuneRow, i) => {
+    const y = tunePanel.y + 2 + i * rowHeight;
+    return {
+      row: tuneRow, y, h: rowHeight,
+      minus: { x: tunePanel.x + panelWidth - btnWidth * 2 - 12,
+        y: y + (rowHeight - btnHeight) / 2, w: btnWidth, h: btnHeight },
+      plus: { x: tunePanel.x + panelWidth - btnWidth - 6, y: y + (rowHeight - btnHeight) / 2,
+        w: btnWidth, h: btnHeight },
+    };
+  });
+  // footer split in two: RESET TUNING | TYRE HUD on/off
+  const footerWidth = Math.floor((panelWidth - 18) / 2);
+  const tuneReset = { x: tunePanel.x + 6, y: tunePanel.y + 4 + TUNE_ROWS.length * rowHeight,
+    w: footerWidth, h: 20 };
+  const tyreHudBtn = { x: tunePanel.x + 12 + footerWidth, y: tuneReset.y, w: footerWidth,
+    h: 20 };
+  return { tunePanel, tuneRows, tuneReset, tyreHudBtn };
+}
+
+/**
+ * Top-right panels and the cone tally: speed, lap, fps strip and tally rects.
+ * @param {object} state the shared HUD state (carDiagram)
+ * @param {number} width canvas width in px
+ * @param {number} btnY y of the button row
+ * @param {boolean} narrow true on a narrow screen
+ * @returns {object} speed, lap, fps and tally rects
+ */
+function layoutCornerPanels(state, width, btnY, narrow) {
+  // The speed/tacho panel is a control lane too. MEASURED BUG (user screenshot, 2026-09-27): on a
+  // narrow screen RESET and CLEAR moved to a second row on the RIGHT and landed straight on top
+  // of the speed readout. The overlap test never caught it because it only compared the buttons
+  // with each other, not with the panel they collided with. It is returned from layout() now so
+  // it can be.
+  const speed = { x: width - MARGIN - 120, y: MARGIN, w: 120, h: 56 + (state.carDiagram ? 50 : 0) };
+  // ^ speed grows a car diagram when on (or when damaged)
+  const lap = { x: width - MARGIN - 120, y: speed.y + speed.h + 6, w: 120, h: 36 };
+  // The knocked-cone tally, under the button row. In layout() so tools/uicheck.mjs can see it.
+  // MEASURED BUG, 2026-10-03: it was placed in draw() at a fixed row two, which on a narrow
+  // screen IS the RESTART/RESET/CLEAR row — invisible to the overlap test until the tyre walls
+  // made it show constantly.
+  const tally = { x: Math.round(width / 2 - 46), y: btnY + BTN_H + 6, w: 92, h: 24 };
+  // Narrow: the left of row three belongs to the car dropdown and the TUNE panel, so the tally
+  // goes top-RIGHT, under the lap panel (it is hidden while TUNE is open — that panel reaches it
+  // at 360 px). FPS (test mode, user 2026-10-06: "in the corner always"): a slim strip right
+  // under the lap / distance panel, top right; the narrow-screen cone tally moves down under it
+  const fps = { x: width - MARGIN - 120, y: lap.y + lap.h + 4, w: 120, h: 18 };
+  if (narrow) {
+    tally.x = width - MARGIN - 92;
+    tally.y = fps.y + fps.h + 6;
+  }
+  return { speed, lap, fps, tally };
+}
+
+/**
+ * Bottom corners: the ABS / TCS aid chips above the pedals and the lights / indicator row.
+ * @param {number} width canvas width in px
+ * @param {number} height canvas height in px
+ * @returns {object} absChip, tcsChip, indL, lights and indR rects
+ */
+function layoutBottomChips(width, height) {
+  // DRIVER AID CHIPS (user, 2026-10-03: small chips ABOVE THE PEDALS). Laid out from the same
+  // PEDAL numbers input.js uses, clear of the brake pedal's generous 1.35r hit circle. Drawn and
+  // hit-tested only on cars that have the aid.
+  const yBrakeTop = height - PEDAL.margin - PEDAL.r - (PEDAL.r * 2 + PEDAL.gap) - PEDAL.r * 1.35;
+  const aidW = 50, aidH = 30, aidY = Math.round(yBrakeTop - 6 - aidH);
+  const absChip = { x: width - PEDAL.margin - aidW * 2 - 6, y: aidY, w: aidW, h: aidH };
+  const tcsChip = { x: width - PEDAL.margin - aidW, y: aidY, w: aidW, h: aidH };
+  // LIGHTS + INDICATORS (user, 2026-10-04: "a button for headlights, bottom / bottom-left, along
+  // with indicators"): a row of three at the bottom-left corner — a tap there is consumed before
+  // the steering zone sees it
+  const lbW = 46, lbH = 34, lbY = height - MARGIN - lbH;
+  const indL = { x: MARGIN, y: lbY, w: lbW, h: lbH },
+    lights = { x: MARGIN + lbW + 6, y: lbY, w: lbW + 14, h: lbH },
+    indR = { x: MARGIN + lbW * 2 + 26, y: lbY, w: lbW, h: lbH };
+  return { absChip, tcsChip, indL, lights, indR };
+}
+
+/**
  * Work out every HUD rectangle for a screen size (one list for drawing and hit-testing).
  * @param {object} state the shared HUD state (helpLabel, carDiagram)
  * @param {number} width canvas width in px
@@ -69,72 +168,9 @@ export function layoutHud(state, width, height) {
     help.row3 = true;
   }
 
-  // The panel sizes itself to the space available and never runs off the bottom of a short
-  // landscape phone: the row height shrinks to fit, with a floor, and the width is capped.
-  // Checked at 844x390 and 390x844 by tools/uicheck.mjs.
-  const top = (narrow ? MARGIN + BTN_H * 2 + 12 : MARGIN + BTN_H + 6);
-  const bottom = height - MARGIN - 34; // leave the bottom-left hint line its lane
-  const avail = bottom - top - 24;               // minus the footer button
-  const rowHeight = Math.max(16, Math.min(27, Math.floor(avail / TUNE_ROWS.length)));
-  const panelWidth = Math.min(272, width - MARGIN * 2);
-  const tunePanel = { x: MARGIN, y: top, w: panelWidth,
-    h: TUNE_ROWS.length * rowHeight + 26 };
-  // Buttons are WIDER than they are tall. Vertical room is the binding constraint on a 390
-  // px-tall landscape phone (rows get to 19 px), but there is horizontal room going spare — and a
-  // wider target is easier to hit with a thumb than a square one. 44 x 19 beats 20 x 20.
-  const btnHeight = Math.max(17, rowHeight - 2), btnWidth = 44;
-  const tuneRows = TUNE_ROWS.map((tuneRow, i) => {
-    const y = tunePanel.y + 2 + i * rowHeight;
-    return {
-      row: tuneRow, y, h: rowHeight,
-      minus: { x: tunePanel.x + panelWidth - btnWidth * 2 - 12,
-        y: y + (rowHeight - btnHeight) / 2, w: btnWidth, h: btnHeight },
-      plus: { x: tunePanel.x + panelWidth - btnWidth - 6, y: y + (rowHeight - btnHeight) / 2,
-        w: btnWidth, h: btnHeight },
-    };
-  });
-  // footer split in two: RESET TUNING | TYRE HUD on/off
-  const footerWidth = Math.floor((panelWidth - 18) / 2);
-  const tuneReset = { x: tunePanel.x + 6, y: tunePanel.y + 4 + TUNE_ROWS.length * rowHeight,
-    w: footerWidth, h: 20 };
-  const tyreHudBtn = { x: tunePanel.x + 12 + footerWidth, y: tuneReset.y, w: footerWidth,
-    h: 20 };
-  // The speed/tacho panel is a control lane too. MEASURED BUG (user screenshot, 2026-09-27): on a
-  // narrow screen RESET and CLEAR moved to a second row on the RIGHT and landed straight on top
-  // of the speed readout. The overlap test never caught it because it only compared the buttons
-  // with each other, not with the panel they collided with. It is returned from layout() now so
-  // it can be.
-  const speed = { x: width - MARGIN - 120, y: MARGIN, w: 120, h: 56 + (state.carDiagram ? 50 : 0) };
-  // ^ speed grows a car diagram when on (or when damaged)
-  const lap = { x: width - MARGIN - 120, y: speed.y + speed.h + 6, w: 120, h: 36 };
-  // The knocked-cone tally, under the button row. In layout() so tools/uicheck.mjs can see it.
-  // MEASURED BUG, 2026-10-03: it was placed in draw() at a fixed row two, which on a narrow
-  // screen IS the RESTART/RESET/CLEAR row — invisible to the overlap test until the tyre walls
-  // made it show constantly.
-  const tally = { x: Math.round(width / 2 - 46), y: btnY + BTN_H + 6, w: 92, h: 24 };
-  // Narrow: the left of row three belongs to the car dropdown and the TUNE panel, so the tally
-  // goes top-RIGHT, under the lap panel (it is hidden while TUNE is open — that panel reaches it
-  // at 360 px). FPS (test mode, user 2026-10-06: "in the corner always"): a slim strip right
-  // under the lap / distance panel, top right; the narrow-screen cone tally moves down under it
-  const fps = { x: width - MARGIN - 120, y: lap.y + lap.h + 4, w: 120, h: 18 };
-  if (narrow) {
-    tally.x = width - MARGIN - 92;
-    tally.y = fps.y + fps.h + 6;
-  }
-  // DRIVER AID CHIPS (user, 2026-10-03: small chips ABOVE THE PEDALS). Laid out from the same
-  // PEDAL numbers input.js uses, clear of the brake pedal's generous 1.35r hit circle. Drawn and
-  // hit-tested only on cars that have the aid.
-  const yBrakeTop = height - PEDAL.margin - PEDAL.r - (PEDAL.r * 2 + PEDAL.gap) - PEDAL.r * 1.35;
-  const aidW = 50, aidH = 30, aidY = Math.round(yBrakeTop - 6 - aidH);
-  const absChip = { x: width - PEDAL.margin - aidW * 2 - 6, y: aidY, w: aidW, h: aidH };
-  const tcsChip = { x: width - PEDAL.margin - aidW, y: aidY, w: aidW, h: aidH };
-  // LIGHTS + INDICATORS (user, 2026-10-04: "a button for headlights, bottom / bottom-left, along
-  // with indicators"): a row of three at the bottom-left corner — a tap there is consumed before
-  // the steering zone sees it
-  const lbW = 46, lbH = 34, lbY = height - MARGIN - lbH;
-  const indL = { x: MARGIN, y: lbY, w: lbW, h: lbH },
-    lights = { x: MARGIN + lbW + 6, y: lbY, w: lbW + 14, h: lbH },
-    indR = { x: MARGIN + lbW * 2 + 26, y: lbY, w: lbW, h: lbH };
+  const { tunePanel, tuneRows, tuneReset, tyreHudBtn } = layoutTunePanel(width, height, narrow);
+  const { speed, lap, fps, tally } = layoutCornerPanels(state, width, btnY, narrow);
+  const { absChip, tcsChip, indL, lights, indR } = layoutBottomChips(width, height);
   return { chip, rows, levelRows, restart, reset, clear, vol, help, absChip, tcsChip, tuneChip,
     panel: tunePanel, tuneRows, tuneReset, tyreHudBtn, speed, lap, fps, tally, indL, lights,
     indR };
@@ -164,6 +200,33 @@ export function inRect(point, rect) {
 // main.js and never reaches the world (CLAUDE.md §4).
 export function hitHud(state, point, width, height, car) {
   const rects = layoutHud(state, width, height);
+  const aidHit = hitAidChips(rects, point, car);
+  if (aidHit) return aidHit;
+  const tuneHit = hitTunePanel(state, rects, point);
+  if (tuneHit) return tuneHit;
+  const dropHit = hitDropdown(state, rects, point);
+  if (dropHit) return dropHit;
+  if (inRect(point, rects.chip)) {
+    state.expanded = !state.expanded;
+    state.tuneOpen = false;
+    return { consumed: true };
+  }
+  if (inRect(point, rects.tuneChip)) {
+    state.tuneOpen = !state.tuneOpen;
+    state.expanded = false;
+    return { consumed: true };
+  }
+  return hitControls(state, rects, point);
+}
+
+/**
+ * Hit-test the ABS / TCS chips, lights and indicators.
+ * @param {object} rects the layout rectangles
+ * @param {{x:number,y:number}} point the tap
+ * @param {object} car the car (aids decide which chips exist)
+ * @returns {object|null} the action hit, or null
+ */
+function hitAidChips(rects, point, car) {
   if (car && car.spec.aids && car.spec.aids.abs
     && inRect(point, rects.absChip)) return { toggleAbs: true };
   if (car && car.spec.aids && car.spec.aids.tcs
@@ -171,7 +234,17 @@ export function hitHud(state, point, width, height, car) {
   if (inRect(point, rects.lights)) return { toggleLights: true };
   if (inRect(point, rects.indL)) return { indicate: -1 };
   if (inRect(point, rects.indR)) return { indicate: 1 };
+  return null;
+}
 
+/**
+ * Hit-test the open tune panel (it covers the car list, so it is checked first).
+ * @param {object} state the shared HUD state
+ * @param {object} rects the layout rectangles
+ * @param {{x:number,y:number}} point the tap
+ * @returns {object|null} the action hit, or null
+ */
+function hitTunePanel(state, rects, point) {
   // the tune panel is checked FIRST while it is open — it covers the car list's lane
   if (state.tuneOpen) {
     for (const tuneRow of rects.tuneRows) {
@@ -189,6 +262,17 @@ export function hitHud(state, point, width, height, car) {
     }
     if (inRect(point, rects.panel)) return { consumed: true }; // swallow taps on the panel body
   }
+  return null;
+}
+
+/**
+ * Hit-test the open car / level dropdown.
+ * @param {object} state the shared HUD state
+ * @param {object} rects the layout rectangles
+ * @param {{x:number,y:number}} point the tap
+ * @returns {object|null} the action hit, or null
+ */
+function hitDropdown(state, rects, point) {
   if (state.expanded) {
     for (const carRow of rects.rows) if (inRect(point, carRow)) {
       state.expanded = false;
@@ -203,16 +287,17 @@ export function hitHud(state, point, width, height, car) {
       return { consumed: true };
     }
   }
-  if (inRect(point, rects.chip)) {
-    state.expanded = !state.expanded;
-    state.tuneOpen = false;
-    return { consumed: true };
-  }
-  if (inRect(point, rects.tuneChip)) {
-    state.tuneOpen = !state.tuneOpen;
-    state.expanded = false;
-    return { consumed: true };
-  }
+  return null;
+}
+
+/**
+ * Hit-test the speed panel (units toggle) and the button row.
+ * @param {object} state the shared HUD state
+ * @param {object} rects the layout rectangles
+ * @param {{x:number,y:number}} point the tap
+ * @returns {object|null} the action hit, or null
+ */
+function hitControls(state, rects, point) {
   if (inRect(point, rects.speed)) {
     state.mph = !state.mph;
     try {
