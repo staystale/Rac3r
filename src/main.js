@@ -1418,10 +1418,12 @@ function enterMenu() {
   demo = createAIDriver(LEVEL,
     aiTraits(DEMO_DIFF, 2, DEMO_AI + 1, 1 + Math.floor(Math.random() * 1e6)));
 }
-function launch(levelId, carId, opts = {}) {
-  mode = 'session';
-  demo = null;
-  paused = false;
+/**
+ * Applies the setup options of a launch (road, AI, race, traffic, litter) before the restart.
+ * @param {string} levelId the level to launch
+ * @param {object} opts the launch options
+ */
+function applyLaunchOptions(levelId, opts) {
   // ROAD TYPE (endless highway, Test Mode setup): set before the restart below builds the road
   {
     const level = LEVELS.find((item) => item.id === levelId);
@@ -1439,6 +1441,18 @@ function launch(levelId, carId, opts = {}) {
     if (level && level.endless && opts.litter != null) level.litter = Math.max(0,
       Math.min(3, +opts.litter));
   }
+}
+/**
+ * Starts a session: mode, options, level, car, livery and tyres, then the first walkthroughs.
+ * @param {string} levelId the level to launch
+ * @param {string} carId the car to drive
+ * @param {object} opts the launch options (ai, diff, rx, laps, road, traffic, litter, ...)
+ */
+function launch(levelId, carId, opts = {}) {
+  mode = 'session';
+  demo = null;
+  paused = false;
+  applyLaunchOptions(levelId, opts);
   audio.init();
   if (LEVEL.id !== levelId) selectLevel(levelId);
   if (game.car.spec.id !== carId) selectCar(carId);
