@@ -130,7 +130,7 @@ Phases:
   - The one cast left: ai/circuit.ts "level as unknown as HighwayLevel" (a level type; goes when
     highway.js is converted).
 
-- [ ] **7. Rename pass.** Rename every abbreviated variable and parameter to a descriptive name, one
+- [x] DONE **7. Rename pass.** Rename every abbreviated variable and parameter to a descriptive name, one
   file at a time, smallest files first. Reformat dense lines to one statement per line, 100
   characters. Extract the 280-350 line functions into named steps. Done when `npm run lint` passes
   with no baseline exceptions for naming or line length, and the regression tools match baseline.
@@ -141,6 +141,9 @@ Phases:
   PHYSICS_STEP_SECONDS (owner decision); chopped and glued comments reflowed
   (tools/reflowcomments.mjs); dead code removed (task 167). Lint problems 8,655 at the start of
   phase 7 -> about 160.
+  Part 2 DONE 2026-10-15 (tasks 171-228): every function under 80 lines and complexity 15,
+  every file under 800 lines, lint 0 problems; proved unchanged with tools/worldhash.mjs,
+  tools/renderhash.mjs and tools/simhash.mjs.
   Part 2 (owner: batch by area): split the 65 functions over 80 lines, the 81 over the complexity
   limit and the 7 files over 800 lines, one area at a time - menus and HUD, levels, render, AI, car
   physics last - each batch checked with the regression suite (lap times, AI suites, tilediff
