@@ -1,6 +1,7 @@
 # RAC3R - open work
 
 New session? Read `CLAUDE.md`, then this file. Open items only: finished work is in the git history.
+Foreman taking over? Also read `docs/foreman-handover.md`.
 
 ## Where we are
 
@@ -10,7 +11,8 @@ New session? Read `CLAUDE.md`, then this file. Open items only: finished work is
   step), `tools/renderhash.mjs` (pixels) - save the reference on the base commit, then compare.
 - Work is foremanned with Bigeon (worker PC + `node ../Bigeon/bin/bigeon.ts`); see `CLAUDE.md`.
 - Do not publish to itch.io until the owner approves the converted game.
-- Next after the overhaul: the ground on the GPU (section below), then the owner's queued features.
+- Ground on the GPU: step A done (owner phone test pending); step B next (section below), then the
+  owner's queued features.
 
 ## CODE QUALITY OVERHAUL
 
