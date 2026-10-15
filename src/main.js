@@ -1450,6 +1450,33 @@ function readFrameInput(wallDt) {
   return inp;
 }
 
+/**
+ * Indicators, the field's lights and the rolled-over notice, once per frame.
+ * @param {object} inp this frame's player input
+ * @param {number} wallDt the clamped wall-clock frame time, in seconds
+ */
+function stepCarSignals(inp, wallDt) {
+  // INDICATORS cancel like a real stalk: after the wheel has been turned that way and come back, or
+  // after 8 s (wall clock)
+  {
+    const player = game.car;
+    if (player.indicator) {
+      player.indT = (player.indT || 0) + wallDt;
+      const steer = inp.steer || 0;
+      if (Math.sign(steer) === player.indicator
+        && Math.abs(steer) > 0.35) player.indTurned = true; else if (player.indTurned
+        && Math.abs(steer) < 0.08) player.indicator = 0;
+      if (player.indT > 8) player.indicator = 0;
+    }
+  }
+  // the field runs lights when you do
+  for (const entry of game.ai) entry.car.lightsOn = !!game.car.lightsOn;
+  if (game.car.roll && game.car.roll.phase !== 'rolling' && game.car.roll.phase !== 'none'
+    && mode === 'session')
+    game.notice = { text: game.car.roll.phase === 'roof' ? 'ON YOUR ROOF — RESET'
+      : 'ON YOUR SIDE — RESET', at: performance.now() };
+}
+
 function loop(now) {
   // Rescheduled FIRST, so a throw anywhere below can never stop the game loop again.
   requestAnimationFrame(loop);
@@ -1462,25 +1489,7 @@ function loop(now) {
   const inp = readFrameInput(wallDt);
   game.in = inp;
   stepResults();
-  // INDICATORS cancel like a real stalk: after the wheel has been turned that way and come back, or
-  // after 8 s (wall clock)
-  {
-    const player = game.car;
-    if (player.indicator) {
-      player.indT = (player.indT || 0) + wallDt;
-      const steer = inp.steer || 0;
-    if (Math.sign(steer) === player.indicator
-      && Math.abs(steer) > 0.35) player.indTurned = true; else if (player.indTurned
-        && Math.abs(steer) < 0.08) player.indicator = 0;
-    if (player.indT > 8) player.indicator = 0;
-    }
-  }
-  // the field runs lights when you do
-  for (const entry of game.ai) entry.car.lightsOn = !!game.car.lightsOn;
-  if (game.car.roll && game.car.roll.phase !== 'rolling' && game.car.roll.phase !== 'none'
-    && mode === 'session')
-    game.notice = { text: game.car.roll.phase === 'roof' ? 'ON YOUR ROOF — RESET'
-      : 'ON YOUR SIDE — RESET', at: performance.now() };
+  stepCarSignals(inp, wallDt);
 
   // HUD taps are handled in `hudDown` at the moment of the touch, BEFORE the stick or the pedals
   // can claim the pointer — see input.js. Nothing to do here; a tap that reaches this point hit the
