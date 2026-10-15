@@ -144,8 +144,13 @@ export function drawMeter(frame) {
     slide: events.slide, overview: events.overview,
     dist: LEVEL._hw ? game.hwDist : 0 });
   if (shared.reporter) {
+    // + the zoom (css px per metre) and this frame's GPU uploads / mipmap builds
+    const gpu = shared.renderer.gpuCounts || { uploads: 0, mipmaps: 0 };
     shared.reporter.add([frame.frameMs, frame.meterSim, draw, steps, tilesNow - shared.meterTiles,
-      events.slide]);
+      events.slide, shared.renderer.PPM, gpu.uploads - (shared.meterUploads || 0),
+      gpu.mipmaps - (shared.meterMipmaps || 0)]);
+    shared.meterUploads = gpu.uploads;
+    shared.meterMipmaps = gpu.mipmaps;
   }
   shared.meterTouches = 0;
   shared.meterTiles = tilesNow;

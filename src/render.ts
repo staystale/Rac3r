@@ -627,7 +627,6 @@ export function createRenderer(canvas: HTMLCanvasElement, settings: Settings) {
   const pcanvas = document.createElement('canvas');
   const pctx = pcanvas.getContext('2d')!;   // likewise
   const state: RenderState = { blockPx: 1, realDpr: 1, gpuOn: false };
-  // the GPU ground (WebGL2) under the screen canvas; null = the ground stays in the art buffer
   const gpu = createGpuGround(canvas, settings);
   const cam: Cam = { x: 0, y: 0, initialised: false };
   // ONE place converts metres to pixels, so nothing can miss the zoom
@@ -669,6 +668,7 @@ export function createRenderer(canvas: HTMLCanvasElement, settings: Settings) {
     get groundRenders() { return tileState.tilesPainted; },
     get tileMs() { return tileState.tileMs; },
     warmNextTexture: () => ctx.warmNextTexture(),
+    get gpuCounts() { return gpu ? gpu.counts : null; },
     get shadeStats() { return gpu ? gpu.shadeStats() : null; },
     get staleRepaints() { return tileState.staleRepaints; },
     get tileStats() { return { ...tileState, perStep: { ...tileState.perStep } }; },

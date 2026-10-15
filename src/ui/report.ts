@@ -6,8 +6,9 @@
 
 const REPORT_FRAMES = 300;   // frames per post (~5 s)
 
-/** One frame: dt, sim ms, draw ms, physics steps, tiles painted, highway slides. */
-export type ReportFrame = [number, number, number, number, number, number];
+/** One frame: dt, sim ms, draw ms, physics steps, tiles painted, highway slides, css px per
+ * metre (the zoom), GPU texture uploads, mipmap builds. */
+export type ReportFrame = [number, number, number, number, number, number, number, number, number];
 
 /**
  * Creates the reporter.

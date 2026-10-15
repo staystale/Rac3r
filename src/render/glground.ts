@@ -136,12 +136,14 @@ function parseColour(cache: Map<string, number[]>, colour: string) {
  * @param source the canvas
  * @param frame the frame number
  * @param shrunk true when drawn at less than one screen pixel per pixel
+ * @param counts uploads and mipmap builds so far (the phone report reads them)
  * @returns the texture
  */
 function textureOf(webgl: WebGL2RenderingContext, cache: Map<HTMLCanvasElement, TexEntry>,
-    source: HTMLCanvasElement, frame: number, shrunk: boolean) {
+    source: HTMLCanvasElement, frame: number, shrunk: boolean, counts: GpuCounts) {
   let entry = cache.get(source);
   if (!entry) {
+    counts.uploads++;
     const tex = webgl.createTexture()!;
     webgl.bindTexture(webgl.TEXTURE_2D, tex);
     webgl.pixelStorei(webgl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
@@ -155,6 +157,7 @@ function textureOf(webgl: WebGL2RenderingContext, cache: Map<HTMLCanvasElement, 
   }
   webgl.bindTexture(webgl.TEXTURE_2D, entry.tex);
   if (shrunk && !entry.mip) {
+    counts.mipmaps++;
     webgl.generateMipmap(webgl.TEXTURE_2D);
     webgl.texParameteri(webgl.TEXTURE_2D, webgl.TEXTURE_MIN_FILTER, webgl.LINEAR_MIPMAP_LINEAR);
     entry.mip = true;
@@ -209,7 +212,19 @@ interface SinkState {
   frameNo: number;
   frame: GroundFrame | null;
   painted: boolean;    // the GPU painter drew the floor this frame, so a fill would wipe it
+  counts: GpuCounts;   // tile / picture uploads and mipmap builds so far
 }
+
+/** Texture uploads and mipmap builds so far (the phone report, ui/report.ts). */
+export interface GpuCounts { uploads: number; mipmaps: number }
+
+/**
+ * A fresh frame state for the GPU ground.
+ * @returns the state
+ */
+const newSinkState = (): SinkState => ({
+  lost: false, frameNo: 0, frame: null, painted: false, counts: { uploads: 0, mipmaps: 0 },
+});
 
 /**
  * The sink the tile cache draws through: a fill colour and canvases at CSS px rectangles.
@@ -239,7 +254,7 @@ function createSink(webgl: WebGL2RenderingContext, program: WebGLProgram,
       const scale = (width * art) / source.width;
       webgl.useProgram(program);
       webgl.bindVertexArray(vao);
-      textureOf(webgl, textures, source, state.frameNo, scale < 1);
+      textureOf(webgl, textures, source, state.frameNo, scale < 1, state.counts);
       webgl.uniform4f(uniforms.rect, x * art + frame.subX, y * art + frame.subY, width * art,
         height * art);
       webgl.uniform2f(uniforms.screen, frame.width, frame.height);
@@ -262,6 +277,8 @@ function createSink(webgl: WebGL2RenderingContext, program: WebGLProgram,
  */
 function shadeCalls(shade: GlShade | null, state: SinkState) {
   return {
+    /** texture uploads and mipmap builds so far (the phone report; the object is live) */
+    counts: state.counts,
     /**
      * Brings the GPU hill shading up to date (glshade.ts update).
      * @param view the world rectangle on screen now, m
@@ -321,7 +338,7 @@ export function createGlGround(screen: HTMLCanvasElement, withPainter = false) {
   const painter = withPainter
     ? createGlPaint(webgl, (colour) => parseColour(colours, colour)) : null;
   const shade = withPainter ? createGlShade(webgl) : null;
-  const state: SinkState = { lost: false, frameNo: 0, frame: null, painted: false };
+  const state = newSinkState();
   canvas.addEventListener('webglcontextlost', () => { state.lost = true; });
   const { sink, textures } = createSink(webgl, program, colours, state);
 
