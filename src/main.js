@@ -1743,6 +1743,48 @@ function stepTyreMarks(tcars) {
   game.marks.fade(PHYSICS_STEP_SECONDS);
 }
 
+/**
+ * Moves the player car to its interpolated draw pose, between its last two physics poses.
+ * @returns {object|null} the real pose to put back after drawing, or null if none was moved
+ */
+function interpolateCar() {
+  const car = game.car, prevPose = car._p;
+  let keepPose = null;
+  if (started && prevPose && !guide.active
+    && Math.hypot(car.x - prevPose.x, car.y - prevPose.y) < 5) {
+    const alpha = Math.max(0, Math.min(1, acc / PHYSICS_STEP_SECONDS));
+    keepPose = { x: car.x, y: car.y, h: car.heading };
+    let dHeading = car.heading - prevPose.h;
+    dHeading = Math.atan2(Math.sin(dHeading), Math.cos(dHeading));
+    car.x = prevPose.x + (car.x - prevPose.x) * alpha;
+    car.y = prevPose.y + (car.y - prevPose.y) * alpha;
+    car.heading = prevPose.h + dHeading * alpha;
+  }
+  return keepPose;
+}
+
+/**
+ * Moves the AI and traffic cars to their interpolated draw poses (same alpha as the player).
+ * @returns {Array} [car, x, y, heading] entries to put back after drawing
+ */
+function interpolateAiCars() {
+  const aiKeep = [];
+  if (started
+    && !guide.active) for (const aiCar of [...game.ai.map((entry) => entry.car),
+      ...game.traffic.cars]) {
+    const prev = aiCar._p;
+    if (!prev || Math.hypot(aiCar.x - prev.x, aiCar.y - prev.y) > 5) continue;
+    const alpha = Math.max(0, Math.min(1, acc / PHYSICS_STEP_SECONDS));
+    aiKeep.push([aiCar, aiCar.x, aiCar.y, aiCar.heading]);
+    let dHeading = aiCar.heading - prev.h;
+    dHeading = Math.atan2(Math.sin(dHeading), Math.cos(dHeading));
+    aiCar.x = prev.x + (aiCar.x - prev.x) * alpha;
+    aiCar.y = prev.y + (aiCar.y - prev.y) * alpha;
+    aiCar.heading = prev.h + dHeading * alpha;
+  }
+  return aiKeep;
+}
+
 function loop(now) {
   // Rescheduled FIRST, so a throw anywhere below can never stop the game loop again.
   requestAnimationFrame(loop);
@@ -1821,35 +1863,11 @@ function loop(now) {
   // Draw the car BETWEEN its last two physics poses, weighted by the leftover accumulator —
   // standard fixed-step practice. The sim itself is untouched. A teleport (RESET / RESTART / car
   // change) clears _p so nothing smears across the map.
-  const car = game.car, prevPose = car._p;
-  let keepPose = null;
-  if (started && prevPose && !guide.active
-    && Math.hypot(car.x - prevPose.x, car.y - prevPose.y) < 5) {
-    const alpha = Math.max(0, Math.min(1, acc / PHYSICS_STEP_SECONDS));
-    keepPose = { x: car.x, y: car.y, h: car.heading };
-    let dHeading = car.heading - prevPose.h;
-    dHeading = Math.atan2(Math.sin(dHeading), Math.cos(dHeading));
-    car.x = prevPose.x + (car.x - prevPose.x) * alpha;
-    car.y = prevPose.y + (car.y - prevPose.y) * alpha;
-    car.heading = prevPose.h + dHeading * alpha;
-  }
+  const car = game.car, keepPose = interpolateCar();
   // what this frame drew (tools: judder measurement)
   game.drawn = { x: car.x, y: car.y, t: now };
   // the AI cars are drawn between their last two poses too (same alpha)
-  const aiKeep = [];
-  if (started
-    && !guide.active) for (const aiCar of [...game.ai.map((entry) => entry.car),
-      ...game.traffic.cars]) {
-    const prev = aiCar._p;
-    if (!prev || Math.hypot(aiCar.x - prev.x, aiCar.y - prev.y) > 5) continue;
-    const alpha = Math.max(0, Math.min(1, acc / PHYSICS_STEP_SECONDS));
-    aiKeep.push([aiCar, aiCar.x, aiCar.y, aiCar.heading]);
-    let dHeading = aiCar.heading - prev.h;
-    dHeading = Math.atan2(Math.sin(dHeading), Math.cos(dHeading));
-    aiCar.x = prev.x + (aiCar.x - prev.x) * alpha;
-    aiCar.y = prev.y + (aiCar.y - prev.y) * alpha;
-    aiCar.heading = prev.h + dHeading * alpha;
-  }
+  const aiKeep = interpolateAiCars();
   const drawT0 = performance.now();
   try {
     renderer.frame(game, wallDt, now / 1000);
