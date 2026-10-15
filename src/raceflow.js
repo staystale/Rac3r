@@ -54,6 +54,22 @@ function raceProgressOf(entry) {
 }
 
 /**
+ * One car crosses the stage finish: its time, the first home, and your chequered flag.
+ * @param {object} flow the race flow
+ * @param {object} entry the finishing entry
+ * @returns {void}
+ */
+function finishStageEntry(flow, entry) {
+  entry.finish = flow.t;
+  entry.time = entry.finish - entry.start;
+  entry.lapDone = 1;
+  if (entry.player || flow.firstHome == null) {
+    if (flow.firstHome == null) flow.firstHome = flow.t;
+  }
+  if (entry.player) flow.flags.push(flow.t);
+}
+
+/**
  * Rally stage step: start and finish timing for every car, and the end of the event.
  * @param {object} state the race-flow state
  * @returns {void}
@@ -64,13 +80,7 @@ function stepStage(state) {
     const prog = raceProgressOf(entry); if (!isFinite(prog)) continue;
     if (entry.start == null && prog >= 0) entry.start = flow.t;
     if (entry.start != null && entry.finish == null && prog >= stage.finish) {
-      entry.finish = flow.t;
-      entry.time = entry.finish - entry.start;
-      entry.lapDone = 1;
-      if (entry.player || flow.firstHome == null) {
-        if (flow.firstHome == null) flow.firstHome = flow.t;
-      }
-      if (entry.player) flow.flags.push(flow.t);
+      finishStageEntry(flow, entry);
     }
   }
   const myEntry = entries.find((entry) => entry.player);
