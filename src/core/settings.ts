@@ -23,6 +23,7 @@ export interface Settings {
   tileGpu: boolean;              // ?tilegpu: paint tiles straight on the GPU canvas
   glGround: boolean;             // ?glground=0: the ground tiles in the 2D art buffer, not WebGL
   gpuPaint: boolean;             // ?gpupaint=1: floor and zones painted by the GPU (glpaint.ts)
+  zoomHold: boolean;             // ?zoomhold=1: the speed zoom holds, then glides (camera.ts)
   noShade: boolean;              // ?noshade: skip the hill shading (perf A/B)
   grassEnds: "round" | "square";   // ?grass=square: square grass blade ends (cheaper; A/B)
   surfaceTextures: boolean;       // ?tex=0: paint surfaces live, not pre-painted textures (A/B)
@@ -67,6 +68,7 @@ export function readSettings(search: string): Settings {
     tileGpu: params.has('tilegpu'),
     glGround: params.get('glground') !== '0',
     gpuPaint: params.get('gpupaint') === '1',
+    zoomHold: params.get('zoomhold') === '1',
     noShade: params.has('noshade'),
     grassEnds: params.get('grass') === 'square' ? 'square' : 'round',
     surfaceTextures: params.get('tex') !== '0',

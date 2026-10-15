@@ -79,6 +79,11 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
       within noise. renderhash SAME (default and ?glground=0).
       Still in the tiles, to move: labels and rims of boxed / rounded panels and the lab seams (to
       per-frame 2D in B2, when the tiles go).
+- [ ] ZOOM HOLD behind ?zoomhold=1 (owner phone test pending; owner: textures "shake really small
+      amounts", motion sickness; highway judder). Measured: with a still camera the ground glides
+      (no jumping pixels on either path); camera jerk 0.02 px; but the eased speed zoom moved the
+      screen edge 0.83 px a frame and was still in only 21-22 % of frames (wobblecheck). The hold
+      keeps the zoom until the target is 20 % away, then one 1.2 s eased glide: still in 51-62 %.
 - [ ] B (L/XL, its own phase): move the ground painting itself to the GPU (surface textures uploaded once;
       zones, water, wear, skid marks, road, kerbs and hill shading as shaders / textured geometry). Goal: no
       tile painting on the highway (today ~17-18 ms a tile against a 6 ms frame budget: the old highway

@@ -57,6 +57,8 @@ export interface CamState {
   ovCache: OvCache | null;
   vZoom: number | null;
   pinZoom: number | null;
+  // ?zoomhold=1: the zoom move under way (from, to, progress 0..1), or null while the zoom holds
+  zoomGlide: { from: number; to: number; progress: number } | null;
 }
 
 // What the camera reads of a car.

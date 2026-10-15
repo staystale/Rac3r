@@ -519,6 +519,7 @@ function buildModules(view: View, cam: Cam, settings: Settings,
     drawCovers: ground.drawCovers, drawCurvedKerbs: road.drawCurvedKerbs,
     paletteSnap: (target: HTMLCanvasElement) => tiles.paletteSnap(target),
     prefetch: (...args: [number, number, number, number, TileBudget]) => tiles.prefetch(...args),
+    zoomHold: settings.zoomHold,
   });
   const tiles = createTiles(view, cam, settings, {
     PPMz, toScreenX, toScreenY, drawFloor: ground.drawFloor, drawZones: ground.drawZones,

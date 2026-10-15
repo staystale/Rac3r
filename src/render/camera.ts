@@ -18,6 +18,7 @@ interface CameraHelpers {
   drawCurvedKerbs: () => void;
   paletteSnap: (c: HTMLCanvasElement) => void;
   prefetch: (k: number, cx: number, cy: number, z: number, budget: TileBudget) => void;
+  zoomHold: boolean;   // ?zoomhold=1: hold the zoom, change it in whole glides (glideZoom)
 }
 
 // what the moved functions share
@@ -37,6 +38,7 @@ interface CameraCtx {
   drawCovers: () => void;
   drawCurvedKerbs: () => void;
   paletteSnap: (c: HTMLCanvasElement) => void;
+  zoomHold: boolean;
 }
 
 // SPEED ZOOM. Asked for by the user and by the playtesters: above ~120 km/h the car was running
@@ -267,8 +269,37 @@ function stepZoom(ctx: CameraCtx, car: CamCar, wallDt: number) {
   // CALMER (tools/wobblecheck: the zoom moved the screen edge ~1.1 px EVERY frame at speed - the
   // view breathed with every lift and squeeze): 2.5/s -> 0.9/s, and changes under 4 % of the
   // target are ignored (dead band).
+  if (ctx.zoomHold) { glideZoom(ctx, target, wallDt); return; }
   if (Math.abs(target - view.zoom) > 0.04 * target)
     view.zoom += (target - view.zoom) * (1 - Math.exp(-0.9 * wallDt));
+}
+
+// ZOOM HOLD (?zoomhold=1). The eased zoom above moves a little almost every frame while driving
+// (tools/wobblecheck, sandbox ~100 km/h: the zoom alone moves the screen edge 0.83 px a frame), so
+// the ground swells and shrinks under a car that stays still: motion sickness. Here the zoom
+// HOLDS until the speed target is more than ZOOM_HOLD_BAND away, then glides all the way to it in
+// one eased move of ZOOM_GLIDE_SECONDS, and holds again.
+// wobblecheck, sandbox and highway: the zoom is still in 51-62 % of frames (eased zoom: 21-22 %)
+const ZOOM_HOLD_BAND = 0.2;       // fraction of the target zoom
+const ZOOM_GLIDE_SECONDS = 1.2;   // one zoom move, start to stop
+
+/**
+ * Holds the zoom, or advances the current zoom glide (smoothstep from start to stop).
+ * @param ctx camera context
+ * @param target the speed zoom wanted now
+ * @param wallDt wall-clock frame time, s
+ */
+function glideZoom(ctx: CameraCtx, target: number, wallDt: number) {
+  const { view, camState } = ctx;
+  let glide = camState.zoomGlide;
+  if (!glide) {
+    if (Math.abs(target - view.zoom) <= ZOOM_HOLD_BAND * target) return;
+    glide = camState.zoomGlide = { from: view.zoom, to: target, progress: 0 };
+  }
+  glide.progress = Math.min(1, glide.progress + wallDt / ZOOM_GLIDE_SECONDS);
+  const eased = glide.progress * glide.progress * (3 - 2 * glide.progress);
+  view.zoom = glide.from + (glide.to - glide.from) * eased;
+  if (glide.progress >= 1) camState.zoomGlide = null;
 }
 
 /**
@@ -281,12 +312,14 @@ function stepZoom(ctx: CameraCtx, car: CamCar, wallDt: number) {
 export function createCamera(view: View, cam: Cam, helpers: CameraHelpers) {
   const {
     PPMz, drawFloor, drawZones, drawLanes, drawTrackRibbon, drawPatches, drawCovers,
-    drawCurvedKerbs, paletteSnap,
+    drawCurvedKerbs, paletteSnap, zoomHold,
   } = helpers;
-  const camState: CamState = { fly: null, ovCache: null, vZoom: null, pinZoom: null };
+  const camState: CamState = {
+    fly: null, ovCache: null, vZoom: null, pinZoom: null, zoomGlide: null,
+  };
   const ctx: CameraCtx = {
     view, cam, camState, PPMz, drawFloor, drawZones, drawLanes, drawTrackRibbon, drawPatches,
-    drawCovers, drawCurvedKerbs, paletteSnap,
+    drawCovers, drawCurvedKerbs, paletteSnap, zoomHold,
   };
   return {
     camState,

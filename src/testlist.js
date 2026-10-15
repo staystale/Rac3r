@@ -10,6 +10,18 @@ export const TEST_LIST = [
   // (approved late, deleted: fields, grassedge, catchthem, slipsdual, fps - TODO.md 1c;
   // dirtroad, animals, labext)
   {
+    id: 'zoomhold',
+    added: '2026-10-15',
+    name: 'Calm zoom: holds, then glides (?zoomhold=1)',
+    where: 'Highway and any circuit, link with &zoomhold=1 (also with &gpupaint=1)',
+    try:
+      'Drive normally; compare with the same link without &zoomhold=1. Watch the ground ' +
+      'textures while cruising and the highway judder.',
+    wrong:
+      'The ground still swelling / shaking while cruising, a zoom move that feels sudden, or ' +
+      'the view too tight / too wide at some speed.',
+  },
+  {
     id: 'gpupaint',
     added: '2026-10-15',
     name: 'GPU ground, part 1: floor + surfaces (?gpupaint=1)',

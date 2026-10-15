@@ -39,7 +39,7 @@ console.log(`${lv} / ${carId} CPU x${rate}: ${jerk.length} fast frames (> 54 km/
 console.log(`  frame ms: median ${pct(dts, 0.5).toFixed(1)}  p95 ${pct(dts, 0.95).toFixed(1)}  max ${Math.max(...dts).toFixed(1)}  | over 20 ms: ${dts.filter((x) => x > 20).length}`);
 console.log(`  CAMERA jerk px: median ${pct(jerk, 0.5).toFixed(2)}  p95 ${pct(jerk, 0.95).toFixed(2)}  max ${Math.max(...jerk).toFixed(1)}  | frames > 2 px: ${jerk.filter((x) => x > 2).length}`);
 console.log(`  CAR on screen moves px/frame: median ${pct(carW, 0.5).toFixed(2)}  p95 ${pct(carW, 0.95).toFixed(2)}  max ${Math.max(...carW).toFixed(1)}`);
-console.log(`  ZOOM moves the screen edge px/frame: median ${pct(zEdge, 0.5).toFixed(2)}  p95 ${pct(zEdge, 0.95).toFixed(2)}  max ${Math.max(...zEdge).toFixed(1)}`);
+console.log(`  ZOOM moves the screen edge px/frame: median ${pct(zEdge, 0.5).toFixed(2)}  p95 ${pct(zEdge, 0.95).toFixed(2)}  max ${Math.max(...zEdge).toFixed(1)}  | zoom still in ${(100 * zEdge.filter((e) => e < 0.01).length / zEdge.length).toFixed(0)} % of frames`);
 console.log(`  HEADING jitter deg/frame: median ${pct(hj, 0.5).toFixed(3)}  p95 ${pct(hj, 0.95).toFixed(3)}  max ${Math.max(...hj).toFixed(2)}`);
 await b.close();
 } finally {
