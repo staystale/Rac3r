@@ -2,7 +2,7 @@ import { FLOOR } from "../bounds.ts";
 import type { Barrier, Level } from "../types.ts";
 import { SURFACES } from "../surfaces.ts";
 import { alongTrack, solidsFromProps } from "../barriers.ts";
-import { LAB_BOUNDS, LAB_OFFROAD_BUMPS } from "./lab-extension.ts";
+import { BOWLING_ALLEY_LEVEL, ROUGH_PATCH_LEVEL } from "./lab-extension.ts";
 import { onTrack, propClearance } from "../tyrewall.ts";
 import {
   SB_SUBTRACK, SB_CONES, SB_COVERS, SB_ZONES, SB_BUMPS, SB_PAINT, SB_BOARDS, SB_PROPS, SB_SPAWN,
@@ -30,11 +30,7 @@ import {
 } from "./killder.ts";
 import { BH_GP_LEVEL, BH_INDY_LEVEL } from "./brands-snatch.ts";
 import { LAB_PAINT, LAB_BOARDS } from "../barriers.ts";
-import { prepBumps } from "../terrain.ts";
 import { courseCones, slalom, outerTyreWall } from "../tyrewall.ts";
-import {
-  LAB_LANE_ZONES, LAB_OFFROAD_ZONES, LAB_EXT_PAINT, LAB_EXT_BOARDS, LAB_CRASH_OBJECTS,
-} from "./lab-extension.ts";
 import { LAB_BUMPS, LAB_PANELS } from "./sandbox.ts";
 import { KH_LEVEL } from "./knobhill.ts";
 import { STRAIGHT_OUTTA_LEVEL } from "./straight-outta.ts";
@@ -47,7 +43,7 @@ import { TH_ARMCO } from "./thruston.ts";
 
 export const LEVELS: Level[] = [
   {
-    id: 'lab', name: 'The Lab',
+    id: 'lab', name: 'OG Lab',
     coneCount: true,      // show the knocked-cone tally (a cone course)
     // COVERS: lying ON whatever is under them; see "LAYERED" wear in this file.
     // The ice sheet is over GRASS on purpose — scrub it through and the grass shows, then wears
@@ -58,20 +54,16 @@ export const LEVELS: Level[] = [
       { x: 120, y: 60, w: 16, h: 10, cover: 'wet', shape: 'ellipse', rot: 0.3 },
     ],
     base: SURFACES.lab,
-    bounds: LAB_BOUNDS,   // S-B: 520 x 1000 m, the extension south of the old square
     zones: [
       ...LAB_PANELS,
       { x: -FLOOR / 2, y: FLOOR / 2, w: FLOOR, h: FLOOR, surface: SURFACES.lab },      // SW
       { x: FLOOR / 2, y: FLOOR / 2, w: FLOOR, h: FLOOR, surface: SURFACES.tarmac },    // SE
       { x: FLOOR / 2, y: -FLOOR / 2, w: FLOOR, h: FLOOR, surface: SURFACES.gravel },   // NE
       { x: -FLOOR / 2, y: -FLOOR / 2, w: FLOOR, h: FLOOR, surface: SURFACES.grass },   // NW
-      // S-B: AFTER the old zones, so the old blend's random stream (and every old patch) is
-      // unchanged
-      ...LAB_LANE_ZONES, ...LAB_OFFROAD_ZONES,
     ],
-    bumps: [...LAB_BUMPS, ...prepBumps(LAB_OFFROAD_BUMPS)],
-    paint: [...LAB_PAINT, ...LAB_EXT_PAINT],
-    boards: [...LAB_BOARDS, ...LAB_EXT_BOARDS],
+    bumps: LAB_BUMPS,
+    paint: LAB_PAINT,
+    boards: LAB_BOARDS,
     props: [],
     seams: true,
     cones: [
@@ -79,10 +71,12 @@ export const LEVELS: Level[] = [
       ...slalom(-150, 230, 13, 9),
       { x: 30, y: 200 }, { x: 55, y: 215 }, { x: 22, y: 222 },
       { x: 150, y: -10 }, { x: 175, y: -10 },
-      ...LAB_CRASH_OBJECTS,   // S-B: every loose object kind, at the ends of the crash lanes
     ],
     spawn: { x: -28.3, y: 28.3, heading: 0 },
   },
+  // the Lab's sister test grounds (lab-extension.ts): the surface lanes, the off-road area
+  BOWLING_ALLEY_LEVEL,
+  ROUGH_PATCH_LEVEL,
   {
     id: 'test-track', name: 'Test Track',
     coneCount: true,      // show the knocked-cone tally (a cone course)

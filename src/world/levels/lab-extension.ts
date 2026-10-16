@@ -1,23 +1,25 @@
 import { SURFACES } from "../surfaces.ts";
 import type { SurfaceId } from "../surfaces.ts";
-import type { Rect, Zone, Cone, Bump, Paint, Board } from "../types.ts";
+import { prepBumps } from "../terrain.ts";
+import type { Rect, Zone, Cone, Bump, Paint, Board, Level } from "../types.ts";
 
 // =============================================================================================
-// S-B THE LAB EXTENSION (requirement: add some of every object laid out nicely ready to test crash
-// into ect into he lab level, maybe extend the bottom of the map ? with some strips of all the
-// different tarmacs and stuff, the objects can be at the end of the lanes make it fun and useful;
-// Q3 "go 1k why not fill the other area with an off road test area with some test hills grass and
-// dirt with active terrain"; Q4 "ideally one for each but maybe mix some if
-// needed"). The floor goes from 520 x 520 to 520 x 1000 m: the old square is untouched
-// (tools/_labcheck.mjs proves every old metre is the same) and the new 480 m runs SOUTH of it, in
-// the lab floor.
-//   y 290..526  CRASH LANES: one per surface (17), 11 m wide, 460 m long, driven WEST -> EAST; at
-//               the east end of each, one object kind (two kinds where 21 kinds meet 17 lanes)
-//               laid out to drive into. Boxed: no blend, no inclusions, so each stays pure.
-//   y 548..732  OFF-ROAD AREA: grass with long grass, a mud bog, sand, gravel, a dirt loop round
+// THE LAB'S TWO SISTER TEST GROUNDS (requirement: add some of every object laid out nicely ready to
+// test crash into, strips of all the different tarmacs with the objects at the end of the lanes,
+// and an off-road test area with test hills, grass and dirt with active terrain; later: split the
+// Lab into smaller maps - the four main squares "OG Lab", the surface strips with objects
+// "Surface Bowling Alley", the off-road area its own level). They were the Lab's south extension;
+// each is now its own level on the lab floor, at the same world coordinates:
+//   y 290..526  SURFACE BOWLING ALLEY: one lane per surface (17), 11 m wide, 460 m long, driven
+//               WEST -> EAST; at the east end of each, one object kind (two kinds where 21 kinds
+//               meet 17 lanes) laid out to drive into. Boxed: no blend, no inclusions, so each
+//               stays pure. Intended failure: none - a test ground.
+//   y 548..732  THE ROUGH PATCH: grass with long grass, a mud bog, sand, gravel, a dirt loop round
 //               it and a dirt straight with jumps, plus hills and hollows. Grass / dirt / mud /
 //               sand carry the natural terrain (NAT_SURF) and all of it wears (the wear map).
-export const LAB_BOUNDS: Rect = { x0: -260, x1: 260, y0: -260, y1: 740 };
+//               Intended failure: none - a test ground.
+const ALLEY_BOUNDS: Rect = { x0: -260, x1: 260, y0: 270, y1: 540 };
+const ROUGH_BOUNDS: Rect = { x0: -260, x1: 260, y0: 530, y1: 740 };
 const LANE_Y0 = 296, LANE_PITCH = 14, LANE_H = 11, LANE_X0 = -245, LANE_X1 = 215, OBJ_X = 168;
 // [surface, object kinds at the end] - hard -> loose -> cold. Mixed pairs: exhaust + bumper,
 // chevron + flag, cow + crate, sheep + bin (S-C: the animals FIRST, so you can hit one clean).
@@ -31,7 +33,7 @@ export const LAB_LANES = ([
   ['snow', ['tarp']], ['ice', ['tapepost']],
 ] satisfies [SurfaceId, string[]][]).map(([surfaceId, kinds], i) =>
   ({ id: surfaceId, kinds, y: LANE_Y0 + i * LANE_PITCH }));
-export const LAB_LANE_ZONES: Zone[] = LAB_LANES.map((lane) => ({
+const LAB_LANE_ZONES: Zone[] = LAB_LANES.map((lane) => ({
   x: (LANE_X0 + LANE_X1) / 2, y: lane.y, w: LANE_X1 - LANE_X0, h: LANE_H,
   surface: SURFACES[lane.id], boxed: true, ext: true, lane: lane.id,
 }));
@@ -168,11 +170,11 @@ function pushLaneMarkers(
         });
   }
 }
-export const LAB_CRASH_OBJECTS: Cone[] = LAB_LANES.flatMap((lane, i) =>
+const LAB_CRASH_OBJECTS: Cone[] = LAB_LANES.flatMap((lane, i) =>
   laneObjects(lane.kinds, lane.y, i));
 // the OFF-ROAD AREA (first listed wins: the small features before the grass they sit in)
 const OR_Y = 640;
-export const LAB_OFFROAD_ZONES: Zone[] = [
+const LAB_OFFROAD_ZONES: Zone[] = [
   // the bog's deep middle
   { x: -20, y: OR_Y, w: 16, h: 12, surface: SURFACES.thickMud },
   // MUD BOG
@@ -196,7 +198,7 @@ export const LAB_OFFROAD_ZONES: Zone[] = [
   // the rest: GRASS (rolling natural terrain)
   { x: 0, y: OR_Y, w: 496, h: 184, surface: SURFACES.grass },
 ].map((zone) => ({ ...zone, ext: true }));
-export const LAB_OFFROAD_BUMPS: Bump[] = [
+const LAB_OFFROAD_BUMPS: Bump[] = [
   // the straight: a launch ramp ...
   { kind: 'ramp', x: -40, y: 600, rot: 0, len: 14, wid: 8, h: 1.2 },
   // ... then a table top
@@ -215,21 +217,56 @@ export const LAB_OFFROAD_BUMPS: Bump[] = [
   // corrugations on the loop
   { kind: 'washboard', x: -150, y: 558, rot: 0, len: 60, wid: 7, amp: 0.05, wave: 0.9 },
 ];
-export const LAB_EXT_PAINT: Paint[] = [
+const ALLEY_PAINT: Paint[] = [
   {
     kind: 'box', x: (LANE_X0 + LANE_X1) / 2,
     y: (LAB_LANES[0].y + LAB_LANES[LAB_LANES.length - 1].y) / 2,
     w: LANE_X1 - LANE_X0 + 8, h: LAB_LANES.length * LANE_PITCH + 6, tone: 0.8,
   },
-  { kind: 'box', x: 0, y: OR_Y, w: 500, h: 188, tone: 0.8 },
 ];
-export const LAB_EXT_BOARDS: Board[] = [
-  { x: -15, y: 282, label: 'CRASH TEST LANES  -  drive EAST, objects at the end' },
+const ALLEY_BOARDS: Board[] = [
+  { x: -15, y: 282, label: 'SURFACE BOWLING ALLEY  -  drive EAST, objects at the end' },
   ...LAB_LANES.map((lane) => ({
     x: LANE_X0 + 18,
     y: lane.y,
     label: lane.kinds.map((kind) => (kind === 'tapepost' ? 'TAPE' : kind.toUpperCase())).join(' + ')
       + '  >',
   })),
-  { x: 0, y: 541, label: 'OFF-ROAD TEST AREA  -  hills, grass, dirt, mud, sand, gravel' },
 ];
+const ROUGH_PAINT: Paint[] = [{ kind: 'box', x: 0, y: OR_Y, w: 500, h: 188, tone: 0.8 }];
+const ROUGH_BOARDS: Board[] = [
+  { x: 0, y: 541, label: 'THE ROUGH PATCH  -  hills, grass, dirt, mud, sand, gravel' },
+];
+
+export const BOWLING_ALLEY_LEVEL: Level = {
+  id: 'bowling-alley', name: 'Surface Bowling Alley',
+  coneCount: true,      // show the knocked-object tally
+  base: SURFACES.lab,
+  bounds: ALLEY_BOUNDS,
+  zones: LAB_LANE_ZONES,
+  bumps: [],
+  covers: [],
+  paint: ALLEY_PAINT,
+  boards: ALLEY_BOARDS,
+  props: [],
+  seams: true,
+  cones: LAB_CRASH_OBJECTS,
+  // the start of the first lane (the lab floor), facing east down it
+  spawn: { x: LANE_X0 + 6, y: LAB_LANES[0].y, heading: 0 },
+};
+
+export const ROUGH_PATCH_LEVEL: Level = {
+  id: 'rough-patch', name: 'The Rough Patch',
+  base: SURFACES.lab,
+  bounds: ROUGH_BOUNDS,
+  zones: LAB_OFFROAD_ZONES,
+  bumps: prepBumps(LAB_OFFROAD_BUMPS),
+  covers: [],
+  paint: ROUGH_PAINT,
+  boards: ROUGH_BOARDS,
+  props: [],
+  seams: true,
+  cones: [],
+  // the west end of the dirt loop's north side, facing east along it
+  spawn: { x: -200, y: 558, heading: 0 },
+};

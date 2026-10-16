@@ -10,6 +10,18 @@ export const TEST_LIST = [
   // (approved late, deleted: fields, grassedge, catchthem, slipsdual, fps - TODO.md 1c;
   // dirtroad, animals, labext)
   {
+    id: 'labsplit',
+    added: '2026-10-16',
+    name: 'The Lab split in three: OG Lab, Surface Bowling Alley, The Rough Patch',
+    where: 'Menu, TEST GROUNDS: the three new tiles',
+    try:
+      'Drive each: the four squares (OG Lab), the 17 surface lanes into the objects (Bowling ' +
+      'Alley), the hills and mud (Rough Patch). Watch for drops.',
+    wrong:
+      'A level starting off its floor, a lane or object missing, a hole in an edge, or more ' +
+      'drops than the old Lab.',
+  },
+  {
     id: 'cracktufts',
     added: '2026-10-15',
     name: 'Grass through the cracks: long-grass tufts on cracked tarmac and concrete',

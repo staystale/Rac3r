@@ -16,7 +16,7 @@
 // stage-sahara-sandpants; highway-ai (AI racers) and
 // highway-traffic (traffic 1, litter on, 3 AI); crash-thruston (the player holds full throttle
 // straight into the barrier: damage.js, roll.js) and cones-lab (the player drives into the
-// lab's cone lane: cones.js). The fake time of each run is printed on its line.
+// cone lane of the Surface Bowling Alley, the old lab extension: cones.js). The fake time of each run is printed on its line.
 // node tools/simhash.mjs                one line per run + "simhash: <all>"; SAME/DIFFERENT
 // node tools/simhash.mjs save           also writes tools/.simhash (gitignored)
 // node tools/simhash.mjs --only a,b     run only those run ids (a partial save merges into the
@@ -60,7 +60,7 @@ function runList() {
     drive('highway-ai', 'highway', { ai: 5, traffic: 0 }),
     drive('highway-traffic', 'highway', HIGHWAY_TRAFFIC),
     { id: 'crash-thruston', level: 'thruston', opts: { ai: 3 }, mode: 'held', frames: 1200 },
-    { id: 'cones-lab', level: 'lab', opts: { ai: 0 }, mode: 'cones', frames: 1200 },
+    { id: 'cones-lab', level: 'bowling-alley', opts: { ai: 0 }, mode: 'cones', frames: 1200 },
   ];
 }
 
@@ -77,7 +77,7 @@ function installHeld(held) {
 }
 
 /**
- * Page side: put the player car on the lab's cone lane at speed, for the cones run.
+ * Page side: put the player car on the Surface Bowling Alley's cone lane at speed, for the cones run.
  * @param {{x: number, y: number, heading: number, speed: number}} at where and how fast
  * @returns {void}
  */

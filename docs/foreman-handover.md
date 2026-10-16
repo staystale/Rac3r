@@ -91,8 +91,9 @@ unchanged, renderhash SAME):
   `GamesStudio/tools/logs/rac3r-tunnel.err` (never in the repo). If the tunnel restarts, the owner must
   re-add the icon.
 
-**Owner requests queued (TODO.md):** an optional minimap on every track (rally stages most of all); the
-Lab rebuild / split (it juddered in the original too).
+**Owner requests queued (TODO.md):** an optional minimap on every track (rally stages most of all; show the
+owner mockups first). The Lab split is DONE (2026-10-16: OG Lab, Surface Bowling Alley, The Rough
+Patch), owner phone test pending.
 
 **Test server:** `node serve.mjs` in the clone serves the WORKING TREE live - uncommitted edits reach the
 phone at once (the owner's runs during an edit can see half-done code). PIDs in

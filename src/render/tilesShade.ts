@@ -127,9 +127,9 @@ export function shadeLevels(heights: Float32Array, cells: number, cell: number) 
  */
 export function shadeTint(level: number, centreX: number, centreY: number) {
   if (level < 0) return SHD;
-  // only the lab level has the near-white floor; a full ground lookup per cell cost more than the
-  // shading itself
-  return LEVEL.id === 'lab' && groundAt(centreX, centreY).surface.id === 'lab' ? LIT : LIT_N;
+  // only the lab-floor levels have the near-white floor; a full ground lookup per cell cost more
+  // than the shading itself
+  return LEVEL.base!.id === 'lab' && groundAt(centreX, centreY).surface.id === 'lab' ? LIT : LIT_N;
 }
 
 /** the shade cells: world origin and size, tile pixels per metre, pixel offset of the origin */
