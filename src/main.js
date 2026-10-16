@@ -14,7 +14,9 @@ import { createRenderer } from './render.ts';
 import { readSettings } from './core/settings.ts';
 import { createMarks } from './marks.js';
 import { createHud } from './hud.js';
-import { setMinimapSource, setMinimapView, setMinimapHighway } from './hud/minimap.js';
+import {
+  setMinimapSource, setMinimapView, setMinimapHighway, setMinimapJoker,
+} from './hud/minimap.js';
 import { createMeter } from './ui/meter.ts';
 import { createReporter } from './ui/report.ts';
 import { createFramePacer } from './game/pacing.ts';
@@ -161,6 +163,7 @@ refreshMinimap();
 setMinimapSource(() => !!shared.minimapOn && shared.mode !== 'menu');
 setMinimapView(() => shared.renderer.PPM);
 setMinimapHighway(shared.settings.hwMap);
+setMinimapJoker(shared.settings.jokerFix);
 // HOW TO PLAY. Opens by itself once per device, after the first fly-in. NOT
 // under automation: Playwright sets navigator.webdriver, and every harness in tools/ taps the HUD
 // as if no card were up. ?guide=1 forces it on (for photographing it), ?guide=0 forces it off.

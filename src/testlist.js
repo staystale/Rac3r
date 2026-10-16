@@ -11,6 +11,18 @@ export const TEST_LIST = [
   // dirtroad, animals, labext, labsplit, zoomhold, gpupaint, minimap, zoomspring, grassgrip, hwmap,
   // cracktufts, sharpcars)
   {
+    id: 'jokerfix',
+    added: '2026-10-16',
+    name: 'Joker lane on the minimap; RESET in the joker puts you back on it',
+    where: 'Link: ?jokerfix=1 - Slidden Hill or Knobhill (rallycross, the joker lap)',
+    try:
+      'Watch the minimap near the joker. Take the joker, run off it onto the grass and press ' +
+      'RESET; then RESET again off the main track.',
+    wrong:
+      'No joker lane on the minimap; RESET in or beside the joker lane not putting you back on ' +
+      'it just behind where you left it; a joker counted twice or lost after a RESET.',
+  },
+  {
     id: 'sharpmarks',
     added: '2026-10-16',
     name: 'Skid marks drawn at screen resolution: no quiver',

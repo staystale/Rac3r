@@ -8,6 +8,7 @@ import { SPAWN, LEVEL } from "../world/state.ts";
 import { clearWear } from "../world/wear.ts";
 import { resetRace, resetStage } from './rules.js';
 import { findNearestSubtrackPoint, onTrack } from "../world/tyrewall.ts";
+import { jokerLane, lanePose } from "../world/joker.ts";
 import { resetCar, armStart, startHeld, startAtOf } from './order.js';
 import { gridPos, spawnAI } from './grid.js';
 import { shared, game } from './state.js';
@@ -100,6 +101,63 @@ export function updateRecoveryTracking(car, dt) {
 
 export const RESET_BACK = 4;          // m behind the exit point
 export const RESET_ANG = [5, 15];     // deg back toward the road, random in this range
+
+/**
+ * RESET IN THE JOKER LANE (?jokerfix=1; requirement: reset should put you back on the joker lane
+ * where you last came off, like any other section of track): RESET_BACK m behind the last spot
+ * the car was on the lane, centred on the edge it left by, nose turned back toward the lane. Was:
+ * the circuit reset, which put the car back on the main road before the joker.
+ * @param {(car: object, x: number, y: number, heading: number) => void} place puts the car down
+ * @returns {boolean} true when the car was put back on the joker lane
+ */
+function resetOnJoker(place) {
+  const lane = LEVEL.joker ? jokerLane(LEVEL) : null, spot = game.lastOnJoker;
+  if (!shared.settings.jokerFix || !lane || !spot) return false;
+  const side = Math.sign(spot.off) || (Math.random() < 0.5 ? -1 : 1), half = lane.width / 2;
+  const along = Math.max(0, spot.along - RESET_BACK), pose = lanePose(lane, along);
+  // the lane's +normal is (-ty, tx); a heading turned positive turns the nose toward it
+  const x = pose.x - pose.ty * side * half, y = pose.y + pose.tx * side * half;
+  const ang = (RESET_ANG[0] + Math.random() * (RESET_ANG[1] - RESET_ANG[0])) * Math.PI / 180;
+  place(game.car, x, y, pose.heading - side * ang);
+  game.lastOnJoker = { along, off: side * (half - 0.5) };
+  // the jump is not a crossing of the joker line
+  game.jokerPrev = { x, y };
+  if (shared.renderer && shared.renderer.snap) shared.renderer.snap(game.car);
+  return true;
+}
+
+/**
+ * CIRCUITS (requirement: reset doesn't work nicely — always behind / in line with where the
+ * player LEFT the track, half on half off as if corrected, a random close angle pointing back on,
+ * NOT on the racing line). Was: the nearest CENTRELINE point, dead straight — on the racing line,
+ * and sometimes level with or past where you went off. Now: RESET_BACK m behind the last
+ * point the car was on the road, centre on the EDGE it left by (half on / half off), nose turned
+ * RESET_ANG deg back toward the road. tools/resetcheck.mjs.
+ * @param {(car: object, x: number, y: number, heading: number) => void} place puts the car down
+ * @returns {boolean} true when the car was put back on the circuit
+ */
+function resetOnCircuit(place) {
+  if (!LEVEL.subtrack) return false;
+  const sub = LEVEL.subtrack;
+  let rec = shared.lastOnTrack;
+  if (!rec) {
+    const point = findNearestSubtrackPoint(sub, game.car.x, game.car.y, shared.trackProgress);
+    if (point) rec = { dist: point.dist,
+      off: (game.car.x - point.x) * point.nx + (game.car.y - point.y) * point.ny };
+  }
+  if (!rec) return false;
+  const side = Math.sign(rec.off) || (Math.random() < 0.5 ? -1 : 1);
+  const dist = (rec.dist - RESET_BACK + sub.totalDist) % sub.totalDist;
+  const point = onTrack(sub, dist, side * sub.width / 2, {});
+  const ang = (RESET_ANG[0] + Math.random() * (RESET_ANG[1] - RESET_ANG[0])) * Math.PI / 180;
+  // +heading turns the nose toward +normal, so a car on the +side turns by -ang to point back
+  // across the road
+  place(game.car, point.x, point.y, point.rot - side * ang);
+  shared.lastOnTrack = { dist: dist, off: side * (sub.width / 2 - 0.5) };
+  if (shared.renderer && shared.renderer.snap) shared.renderer.snap(game.car);
+  return true;
+}
+
 export function doReset() {
   // Safe track/free-roam recovery: places car back on nearest track edge or recent clear spot
   game.car.prevWheels = null;
@@ -112,33 +170,7 @@ export function doReset() {
     resetCar(car, x, y, heading);
     if (keepT) car.tyreT = keepT.slice();
   };
-  // CIRCUITS (requirement: reset doesn't work nicely — always behind / in line with where the
-  // player LEFT the track, half on half off as if corrected, a random close angle pointing back on,
-  // NOT on the racing line). Was: the nearest CENTRELINE point, dead straight — on the racing line,
-  // and sometimes level with or past where you went off. Now: RESET_BACK m behind the last
-  // point the car was on the road, centre on the EDGE it left by (half on / half off), nose turned
-  // RESET_ANG deg back toward the road. tools/resetcheck.mjs.
-  if (LEVEL.subtrack) {
-    const sub = LEVEL.subtrack;
-    let rec = shared.lastOnTrack;
-    if (!rec) {
-      const point = findNearestSubtrackPoint(sub, game.car.x, game.car.y, shared.trackProgress);
-      if (point) rec = { dist: point.dist,
-        off: (game.car.x - point.x) * point.nx + (game.car.y - point.y) * point.ny };
-    }
-    if (rec) {
-      const side = Math.sign(rec.off) || (Math.random() < 0.5 ? -1 : 1);
-      const dist = (rec.dist - RESET_BACK + sub.totalDist) % sub.totalDist;
-      const point = onTrack(sub, dist, side * sub.width / 2, {});
-      const ang = (RESET_ANG[0] + Math.random() * (RESET_ANG[1] - RESET_ANG[0])) * Math.PI / 180;
-      // +heading turns the nose toward +normal, so a car on the +side turns by -ang to point back
-      // across the road
-      resetKeepingTyres(game.car, point.x, point.y, point.rot - side * ang);
-      shared.lastOnTrack = { dist: dist, off: side * (sub.width / 2 - 0.5) };
-      if (shared.renderer && shared.renderer.snap) shared.renderer.snap(game.car);
-      return;
-    }
-  }
+  if (resetOnJoker(resetKeepingTyres) || resetOnCircuit(resetKeepingTyres)) return;
   if (shared.breadcrumbs.length > 0) {
     const safe = shared.breadcrumbs[Math.max(0, shared.breadcrumbs.length - 5)];   // ~2 s back
     resetKeepingTyres(game.car, safe.x, safe.y, safe.heading);

@@ -13,6 +13,7 @@
 // off in RICH, and locked off in REAL (owner).
 
 import { LEVEL } from '../world/state.ts';
+import { jokerLane } from '../world/joker.ts';
 
 const SIZE = 120;            // css px, the window's diameter
 const GAP = 10;              // css px under the buttons above it
@@ -35,6 +36,11 @@ const OPACITY = 0.85;
 const DEFAULT_ON = [true, true, true, false, false];
 const LOCKED_MODE = 4;
 const storeKey = (mode) => 'rac3r.minimap.' + mode;
+
+// the road's two strokes, css px wide: a dark rim, then the pale road (the lap and the joker lane)
+const ROAD_STROKES = [[7, 'rgba(20,20,22,0.55)'], [3.5, 'rgba(236,231,220,0.95)']];
+// the joker lane is drawn too (?jokerfix=1, setMinimapJoker)
+let jokerShown = false;
 
 /**
  * The minimap setting of a difficulty mode: the device's choice, else the mode's default.
@@ -86,6 +92,32 @@ export function setMinimapSource(source) {
  */
 export function setMinimapHighway(allowed) {
   onHighway = allowed;
+}
+
+/**
+ * Shows the joker lane on the minimap (?jokerfix=1).
+ * @param {boolean} shown drawn as road beside the lap
+ */
+export function setMinimapJoker(shown) {
+  jokerShown = shown;
+}
+
+/**
+ * Draws the level's joker lane as road (the same two strokes as the lap), under the lap so the
+ * junctions read as one road.
+ * @param {CanvasRenderingContext2D} ctx the HUD context, in world units
+ * @param {number} scale css px per m
+ */
+function drawJokerLane(ctx, scale) {
+  const lane = jokerShown && LEVEL.joker ? jokerLane(LEVEL) : null;
+  if (!lane) return;
+  for (const [width, colour] of ROAD_STROKES) {
+    ctx.lineWidth = width / scale;
+    ctx.strokeStyle = colour;
+    ctx.beginPath();
+    lane.pts.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
+    ctx.stroke();
+  }
 }
 
 /**
@@ -156,7 +188,7 @@ function drawRoad(ctx, pts, from, lap, scale, span) {
   let solidEnd = first;
   while (solidEnd < last && (solidEnd + 1 <= from || ahead(pointAt(solidEnd + 1)) <= solidTo))
     solidEnd++;
-  for (const [width, colour] of [[7, 'rgba(20,20,22,0.55)'], [3.5, 'rgba(236,231,220,0.95)']]) {
+  for (const [width, colour] of ROAD_STROKES) {
     ctx.lineWidth = width / scale;
     ctx.strokeStyle = colour;
     ctx.beginPath();
@@ -285,6 +317,7 @@ export function drawHudMinimap(ctx, hud, rects, game, wallDt) {
   ctx.translate(-car.x, -car.y);
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
+  drawJokerLane(ctx, scale);
   drawRoad(ctx, pts, idx, closed ? sub.totalDist : null, scale, span);
   ctx.globalAlpha = OPACITY;
   drawRivals(ctx, game, (radius + lead) / scale, scale);

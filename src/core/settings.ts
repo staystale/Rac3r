@@ -30,6 +30,7 @@ export interface Settings {
   hwMap: boolean;                // the minimap on the highway too; ?hwmap=0 = not there
   sharpCars: boolean;            // crisp cars on the screen canvas (render.ts); ?sharpcars=0 off
   sharpMarks: boolean;           // ?sharpmarks=1: skid marks on the screen canvas (render.ts)
+  jokerFix: boolean;             // ?jokerfix=1: joker lane on the minimap, RESET back onto it
   noShade: boolean;              // ?noshade: skip the hill shading (perf A/B)
   grassEnds: "round" | "square";   // ?grass=square: square grass blade ends (cheaper; A/B)
   surfaceTextures: boolean;       // ?tex=0: paint surfaces live, not pre-painted textures (A/B)
@@ -91,6 +92,9 @@ export function readSettings(search: string): Settings {
     sharpCars: params.get('sharpcars') !== '0',
     // ?sharpmarks=1 (owner phone test pending): the skid marks at screen resolution
     sharpMarks: params.get('sharpmarks') === '1',
+    // ?jokerfix=1 (owner phone test pending): the joker lane on the minimap; RESET puts the car
+    // back on the joker lane where it came off
+    jokerFix: params.get('jokerfix') === '1',
     noShade: params.has('noshade'),
     grassEnds: params.get('grass') === 'square' ? 'square' : 'round',
     surfaceTextures: params.get('tex') !== '0',

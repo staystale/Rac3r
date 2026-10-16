@@ -2,6 +2,7 @@
 // Every function takes the game state it works on; there is no module-level state here.
 import { LEVEL } from '../world/state.ts';
 import { querySubtrack } from '../world/tyrewall.ts';
+import { jokerLane, laneSpot } from '../world/joker.ts';
 
 /**
  * Clears the joker and RX-race state for a new run.
@@ -13,6 +14,7 @@ export function resetRace(game) {
   game.jokerLap = null;
   game.jokerAt = 0;
   game.inJokerLane = false;
+  game.lastOnJoker = null;
   game.jokerTaken = false;
   game.jokers = 0;
   game.inJokerGate = false;
@@ -76,9 +78,7 @@ const JOKER_SPAN = 8, JOKER_ROAD = 1;
  */
 function jokerLine(joker) {
   if (joker._line !== undefined) return joker._line;
-  const lane = (LEVEL.lanes || []).find((cand) => cand.out == null
-    && cand.pts.some(([x, y]) => (x - joker.gate.x) ** 2 + (y - joker.gate.y) ** 2
-      < joker.gate.r * joker.gate.r * 4));
+  const lane = jokerLane(LEVEL);
   if (!lane) return (joker._line = null);
   let nearest = 0, bestD2 = Infinity;
   lane.pts.forEach(([x, y], i) => {
@@ -153,14 +153,16 @@ export function stepJoker(game, car) {
   }
   // IN THE JOKER LANE (requirement: the joker HUD warning should switch and show joker taken when
   // taken): the gate sits mid-lane, so the HUD knows you are IN it from the moment you leave the
-  // main road onto the lane (the lane through the gate; found once per level)
-  if (joker._lane === undefined) joker._lane = (LEVEL.lanes || []).find((cand) => cand.out == null
-    && cand.pts.some(([x, y]) => (x - joker.gate.x) ** 2 + (y - joker.gate.y) ** 2
-      < joker.gate.r * joker.gate.r * 4)) || null;
-  game.inJokerLane = false;
-  if (joker._lane && querySubtrack(LEVEL.subtrack, car.x, car.y).dist > LEVEL.subtrack.width / 2) {
-    game.inJokerLane = nearLane(joker._lane, car);
-  }
+  // main road onto the lane (the lane through the gate)
+  const lane = jokerLane(LEVEL);
+  const offMain = !!lane
+    && querySubtrack(LEVEL.subtrack, car.x, car.y).dist > LEVEL.subtrack.width / 2;
+  game.inJokerLane = offMain && nearLane(lane, car);
+  // where the car last was ON the joker lane, for RESET (session.js); forgotten on the main road
+  if (game.inJokerLane) {
+    const spot = laneSpot(lane, car.x, car.y);
+    if (Math.abs(spot.off) <= lane.width / 2) game.lastOnJoker = spot;
+  } else if (lane && !offMain) game.lastOnJoker = null;
   // the AI's joker tactics read it (covering a rival who has jokered)
   car._jokers = game.jokers || 0;
   game.inJokerGate = inGate;
