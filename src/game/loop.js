@@ -154,7 +154,9 @@ export function drawMeter(frame) {
   }
   shared.meterTouches = 0;
   shared.meterTiles = tilesNow;
-  shared.meter.draw(shared.renderer.ctx, shared.renderer.W, shared.renderer.H);
+  if (shared.settings.meterOverlay) {
+    shared.meter.draw(shared.renderer.ctx, shared.renderer.W, shared.renderer.H);
+  }
 }
 
 /**

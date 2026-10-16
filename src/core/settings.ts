@@ -31,7 +31,8 @@ export interface Settings {
   noShade: boolean;              // ?noshade: skip the hill shading (perf A/B)
   grassEnds: "round" | "square";   // ?grass=square: square grass blade ends (cheaper; A/B)
   surfaceTextures: boolean;       // ?tex=0: paint surfaces live, not pre-painted textures (A/B)
-  meter: boolean;   // ?meter=1: on-screen frame meter (perf, phone)
+  meter: boolean;   // ?meter=1 or ?report=1: the frame meter records each frame
+  meterOverlay: boolean;   // ?meter=1 only: the meter's graph drawn on screen
   report: boolean;  // ?report=1: the meter's frames posted to the test server (ui/report.ts)
   audio: boolean;   // ?noaudio=1: never start Web Audio (phone judder test)
   vsync: boolean;   // ?vsync=0: no frame pacing (default on: whole display refreshes, pacing.ts)
@@ -88,6 +89,9 @@ export function readSettings(search: string): Settings {
     surfaceTextures: params.get('tex') !== '0',
     meter: params.get('meter') === '1' || params.get('report') === '1',
     report: params.get('report') === '1',
+    // ?report=1 alone records without the graph: a full-resolution graph redrawn every frame may
+    // itself cost frames on the phone (its drawing is outside the timings it reports)
+    meterOverlay: params.get('meter') === '1',
     vsync: params.get('vsync') !== '0',
     audio: params.get('noaudio') !== '1',
     autopilot: params.get('autopilot') === '1' || autopilotKmh(params) > 0,
