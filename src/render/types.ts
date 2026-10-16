@@ -60,6 +60,9 @@ export interface CamState {
   // zoom hold: the zoom move under way (from, to, progress 0..1, its length in s, the zoom it
   // set last), or null while the zoom holds
   zoomGlide: { from: number; to: number; progress: number; seconds: number; last: number } | null;
+  // ?zoomspring=1: the spring move under way (its speed in halvings per s, its way: +1 in / -1
+  // out, caught: near enough, now easing to a stop; the zoom it set last), or null while it holds
+  zoomSpring: { rate: number; way: number; caught: boolean; last: number } | null;
 }
 
 // What the camera reads of a car.

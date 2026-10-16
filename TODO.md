@@ -152,6 +152,15 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
       1.90 -> 0.69 (default path 0.21 / 0.65). framecheck CPU x4: highway tile 17.5 -> 5.8 ms, frames
       over 33 ms 70-78 -> 25-68, worst 230 -> 53-71; but median work +2-3 ms (terrain height
       lookups for the shade chunks, 832 of 1025 ms; a shared height cache could cut ~1/3).
+- [ ] SMOOTH ZOOM MOVES behind ?zoomspring=1 (owner 2026-10-16: "still a bit of chunkylumpy zoom out
+      nearly 3/4 the way fully zoomed out"; owner phone test pending, testlist zoomspring). Measured
+      (straight-outta from rest, phone size, CPU x4): the zoom hold went out in a staircase - 6
+      glides of ~0.8 s with stops of up to 1.6 s, some ending and the next starting at once - as
+      each glide ran to the target of its start while the target ran on. camera.ts springZoom: a
+      critically damped spring on log zoom that chases the target as it is now, one way only, and
+      eases to a stop within 5 % of it: from rest to full zoom-out is one move. wobblecheck sandbox:
+      zoom still in 45 % of frames (glides 64 %); a brisker spring brought a stop back. On the
+      owner's OK: make it the default, delete glideZoom.
 - [x] ZOOM HOLD, the DEFAULT since 2026-10-16 (owner approved; ?zoomhold=0 = eased; owner: textures "shake really small
       amounts", motion sickness; highway judder). Measured: with a still camera the ground glides
       (no jumping pixels on either path); camera jerk 0.02 px; but the eased speed zoom moved the
@@ -175,7 +184,11 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
 ## OWNER REQUESTS FOR LATER
 
 - [ ] MINIMAP (owner, 2026-10-15): an optional minimap on every track, toggled on / off; rally stages
-      most of all. Not started; plan first (corner owner on the HUD, what it shows, how it is drawn).
+      most of all. OWNER CHOSE (2026-10-16, from mockups A whole track / B road ahead / C stage strip):
+      B, "the map should rotate with you so it's always clear which corner etc is next": a small
+      round window (~120 px) top-left under the buttons, heading-up, the next ~330 m of road from
+      the centreline, fading at the top, your car a chevron at the bottom, a thin progress bar under
+      it; subtle (no box, ~85 % opacity), drawn on the HUD, never touchable. Plan + build next.
 
 ## Open items carried over (not re-checked since they were written; some may be done)
 

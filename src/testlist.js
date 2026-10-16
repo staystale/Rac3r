@@ -10,6 +10,18 @@ export const TEST_LIST = [
   // (approved late, deleted: fields, grassedge, catchthem, slipsdual, fps - TODO.md 1c;
   // dirtroad, animals, labext, labsplit, zoomhold, gpupaint)
   {
+    id: 'zoomspring',
+    added: '2026-10-16',
+    name: 'Smooth zoom-out: one move, no stop-start (&zoomspring=1)',
+    where: 'Any level, the plain link plus &zoomspring=1; a long straight shows it best',
+    try:
+      'Floor it from a standstill and watch the zoom-out; then a twisty track. Compare with ' +
+      'the plain link (no switch).',
+    wrong:
+      'The zoom still going out in steps or lumps, the view breathing in and out through ' +
+      'corners, or a zoom move that starts or stops with a jolt.',
+  },
+  {
     id: 'cracktufts',
     added: '2026-10-15',
     name: 'Grass through the cracks: long-grass tufts on cracked tarmac and concrete',
