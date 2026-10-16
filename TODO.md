@@ -161,6 +161,11 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
       eases to a stop within 5 % of it: from rest to full zoom-out is one move. wobblecheck sandbox:
       zoom still in 45 % of frames (glides 64 %); a brisker spring brought a stop back. On the
       owner's OK: make it the default, delete glideZoom.
+      Owner 1st look (2026-10-16): "zoom is smooth now"; asked: zoom out a bit easier with speed,
+      and no bounce at the start. The bounce was the averaged speed carrying the menu demo's
+      79 km/h into the launch (after the fly-in the zoom went out with the car still, then back):
+      the fly-in now forgets it. Zoom-out starts at 12 % off (zoom-in keeps 20 %), and the view keeps
+      1.2 x LOOKAHEAD of road: full zoom-out at 159 km/h (was ~183). All behind ?zoomspring=1.
 - [x] ZOOM HOLD, the DEFAULT since 2026-10-16 (owner approved; ?zoomhold=0 = eased; owner: textures "shake really small
       amounts", motion sickness; highway judder). Measured: with a still camera the ground glides
       (no jumping pixels on either path); camera jerk 0.02 px; but the eased speed zoom moved the

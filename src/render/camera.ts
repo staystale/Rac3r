@@ -225,6 +225,11 @@ function startFlyIn(ctx: CameraCtx) {
     ov: paintOverview(ctx, left, top, right, bottom) };
   cam.x = camState.fly.cx; cam.y = camState.fly.cy; cam.initialised = true;
   view.zoom = camState.fly.z0;
+  // ?zoomspring=1: a new start forgets the last car's speed. MEASURED (menu -> LAUNCH Thruston):
+  // the averaged speed still held the menu demo's 79 km/h, so after the fly-in landed fully in, the
+  // zoom went back out with the car standing still, then in again - the owner's "bounce" at the
+  // start
+  if (ctx.zoomSpring) { camState.vZoom = null; camState.zoomSpring = null; }
 }
 
 /**
@@ -275,7 +280,9 @@ function stepZoom(ctx: CameraCtx, car: CamCar, wallDt: number) {
   camState.vZoom = camState.vZoom === null ? vNow
     : camState.vZoom + (vNow - camState.vZoom) * (1 - Math.exp(-0.65 * wallDt));
   const speed = camState.vZoom;
-  const want = speed > 1 ? view.W / (view.PPM * speed * LOOKAHEAD) : 1;
+  // ?zoomspring=1 looks further ahead (owner: "it could maybe zoom out a bit easier with speed")
+  const lookahead = ctx.zoomSpring ? LOOKAHEAD * ZOOM_SPRING_LOOKAHEAD : LOOKAHEAD;
+  const want = speed > 1 ? view.W / (view.PPM * speed * lookahead) : 1;
   const target = Math.max(ZOOM_MIN, Math.min(1, want));
   // CALMER (tools/wobblecheck: the zoom moved the screen edge ~1.1 px EVERY frame at speed - the
   // view breathed with every lift and squeeze): 2.5/s -> 0.9/s, and changes under 4 % of the
@@ -339,6 +346,10 @@ function glideZoom(ctx: CameraCtx, target: number, wallDt: number) {
 // each move now ends smoothly instead of where it was aimed). A brisker spring (3.5) brought a stop
 // back on the straight.
 const ZOOM_CATCH = 0.05;          // fraction of the target zoom: near enough, ease to a stop
+// owner: "zoom out a bit easier with speed": a zoom-out starts sooner (a zoom-in keeps the wider
+// ZOOM_HOLD_BAND, so lifting into a corner stays calm), and the view keeps more road ahead
+const ZOOM_OUT_BAND = 0.12;       // fraction of the target zoom
+const ZOOM_SPRING_LOOKAHEAD = 1.2;  // x LOOKAHEAD: full zoom-out at ~140 km/h, not ~170
 const ZOOM_SPRING = 2.5;          // 1/s, the spring's rate (a step is ~90 % caught in 1.6 s)
 const ZOOM_RATE_MAX = 1.2;        // halvings per s, the fastest the zoom moves
 const ZOOM_STILL = 0.05;          // halvings per s: slow enough to let go
@@ -355,7 +366,8 @@ function springZoom(ctx: CameraCtx, target: number, wallDt: number) {
   // something else moved the zoom (the fly-in, a restart): start again from where it is
   if (move && view.zoom !== move.last) move = camState.zoomSpring = null;
   if (!move) {
-    if (Math.abs(target - view.zoom) <= ZOOM_HOLD_BAND * target) return;
+    const band = target < view.zoom ? ZOOM_OUT_BAND : ZOOM_HOLD_BAND;
+    if (Math.abs(target - view.zoom) <= band * target) return;
     move = camState.zoomSpring = {
       rate: 0, way: Math.sign(target - view.zoom), caught: false, last: view.zoom };
   }
