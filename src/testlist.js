@@ -11,10 +11,10 @@ export const TEST_LIST = [
   // dirtroad, animals, labext, labsplit, zoomhold, gpupaint, minimap, zoomspring, grassgrip, hwmap,
   // cracktufts)
   {
-    id: 'gpucars',
+    id: 'sharpcars',
     added: '2026-10-16',
-    name: 'Cars drawn by the GPU: crisp at any angle and zoom (mockup B)',
-    where: 'Link: ?gpucars=1&report=1 - any race with AI, then the highway; lights on once',
+    name: 'Sharp cars: crisp at any angle and zoom (mockup B), no GPU copy',
+    where: 'Link: ?sharpcars=1&report=1 - any race with AI, then the highway; lights on once',
     try:
       'Race a few laps, zoom in and out at speed, crash once, turn the lights on. Compare with ' +
       'the plain link.',

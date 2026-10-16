@@ -11,8 +11,6 @@ import { createGlPaint } from "./glpaint.ts";
 import type { GroundPatch, PaintCamera } from "./glpaint.ts";
 import { createGlShade } from "./glshade.ts";
 import { buildProgram } from "./glprogram.ts";
-import { createGlSprites } from "./glsprites.ts";
-import type { GlSprites } from "./glsprites.ts";
 import type { GlShade, ShadeRect } from "./glshade.ts";
 
 /** Where the ground pass draws: the 2D art buffer or the GPU canvas. CSS px of the view. */
@@ -286,26 +284,13 @@ function shadeCalls(shade: GlShade | null, state: SinkState) {
 }
 
 /**
- * The GPU car drawer on the ground's context (?gpucars=1), or null when its program does not
- * build (the cars then stay in the art buffer).
- * @param webgl the WebGL2 context
- * @param state the shared frame state
- * @returns the drawer, or null
- */
-function spritesOn(webgl: WebGL2RenderingContext, state: SinkState): GlSprites | null {
-  try { return createGlSprites(webgl, () => state.frame, state.counts); } catch { return null; }
-}
-
-/**
  * Creates the GPU ground under the screen canvas, or returns null when WebGL2 is not available
  * (the ground then stays in the 2D art buffer, as before).
  * @param screen the screen canvas
  * @param withPainter true to paint the floor and zones on the GPU too (glpaint.ts)
- * @param withSprites true to draw the cars on the GPU too (glsprites.ts, ?gpucars=1)
  * @returns the GPU ground, or null
  */
-export function createGlGround(screen: HTMLCanvasElement, withPainter = false,
-    withSprites = false) {
+export function createGlGround(screen: HTMLCanvasElement, withPainter = false) {
   const canvas = document.createElement('canvas');
   canvas.id = 'glground';
   // preserveDrawingBuffer: the test tools read the finished frame back after it is shown. It looks
@@ -354,8 +339,6 @@ export function createGlGround(screen: HTMLCanvasElement, withPainter = false,
       state.painted = false;
       webgl.clear(webgl.STENCIL_BUFFER_BIT);
     },
-    // the GPU car drawer (glsprites.ts), or null: the cars stay in the art buffer
-    sprites: withSprites ? spritesOn(webgl, state) : null,
     /** true when the floor and zones are painted on the GPU (glpaint.ts) */
     get painting() { return !!painter; },
     /**

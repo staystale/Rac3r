@@ -103,12 +103,11 @@ any cover (snow, ice, puddle) and the wear state of the cell.
   frame in world space at TEX_PPM texels per metre (the surface textures sampled per pixel, the tile
   palette applied by a lookup texture); `ground/zones.ts listGroundPatches` lists them, and the tiles
   then leave those fills transparent (`view.fillsOnGpu`).
-- `render/glsprites.ts` (`?gpucars=1`): the cars on that GPU canvas. The art buffer so far (deck,
-  marks, props, cones, particles) is uploaded and drawn over the ground in whole art pixels; each car
-  is painted facing +x into its own picture (`cars.ts paintCarPicture`, the same `drawPixelCar`) and
-  turned and scaled at screen resolution with the sharp-pixel filter; the art buffer is then cleared
-  for the overhead props, which the 2D blit puts above the cars. `render/glprogram.ts` builds the
-  shader programs.
+- Sharp cars (`?sharpcars=1`, render.ts `drawSharpCarLayers`): the cars on the full-resolution
+  screen canvas, not the art buffer. The art buffer under the cars is blitted, each car is painted
+  facing +x into its own picture (`cars.ts paintCarPicture`, the same `drawPixelCar`, each sprite px
+  a whole-number block) and turned and scaled onto the screen with smoothing; the art buffer then
+  takes the overhead props and is blitted again. `render/glprogram.ts` builds the ground's shader.
 
 ## Levels
 

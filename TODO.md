@@ -221,16 +221,25 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
       3. Phase C GPU sprites -> one canvas -> delete the old tile machinery; then the menu video.
          C1 MOCKUP (tools/scratch/carmock.html: A today, B GPU, C pre-turned pixel art /
          RotSprite): OWNER CHOSE B ("looks lovely", accepted that it is not strict pixel art).
-         C2 BUILT behind ?gpucars=1 (owner phone test pending, testlist 'gpucars'): the art
-         buffer (everything under the cars) is uploaded each frame and drawn over the GPU ground
-         (whole art pixels), each car is painted facing +x into its own picture by drawPixelCar
-         (shadow, wheels, damage, lamps, beams, a roll) and turned / scaled by the GPU with the
-         sharp-pixel filter (src/render/glsprites.ts); overhead props and the HUD stay 2D above.
-         Shared shader builder moved to src/render/glprogram.ts (glpaint / glshade still have
-         their own copies: fold them in).
+         C2 FIRST TRY, REMOVED: ?gpucars=1 uploaded the art buffer to WebGL every frame and drew
+         the cars there. Owner's phone: "some sort of judder that isn't on the compare link";
+         ?report=1 draw 3 -> 7-8 ms a frame (Surface Bowling Alley). Owner: "these GPU loadings
+         to save the CPU don't seem to help on mobile much - is our approach right?" It was not:
+         the phone is not CPU-bound (our JS ~4 ms of 16.7), and shuttling pixels between the 2D
+         canvas and WebGL every frame is what hurts on Safari. RULE: no per-frame copies between
+         the 2D canvas and WebGL.
+         C2 NOW behind ?sharpcars=1 (owner phone test pending, testlist 'sharpcars'): the cars
+         drawn on the full-resolution SCREEN canvas (render.ts drawSharpCarLayers): the art
+         buffer under the cars is blitted, each car painted facing +x into its own picture by
+         drawPixelCar, each sprite px a whole-number block (cars.ts paintCarPicture), then
+         turned / scaled onto the screen with smoothing; the art buffer is cleared, takes the
+         overhead props and is blitted again. No WebGL involved.
+         Shared shader builder: src/render/glprogram.ts (glpaint / glshade still have their own
+         copies: fold them in).
          NEXT ASK (owner, 2026-10-16): "tyre marks seem to quiver, I think they always have" -
-         likely the same cause (the marks layer resampled into the art grid each frame); assess
-         and propose after C2's phone test.
+         cause: the marks layer (MARK_PPM 4.2 px/m) stretched ~3.6x NEAREST into the art grid each
+         frame, so a mark pixel is 3 or 4 art px wide by camera position. Fix on the screen
+         canvas the same way (no GPU copy); propose after the sharp cars' phone test.
 - [ ] MENU VIDEO, if still wanted after the graphics update (owner: it must be a video of a race; the
       first take lagged on the phone): find why first (uneven frames from a real-time take? record
       from the deterministic runtime instead, frame by frame), test behind ?menuvideo=1 BEFORE it

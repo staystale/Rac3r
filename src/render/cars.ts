@@ -297,7 +297,7 @@ function pixelCarWithWheels(carsCtx: CarsContext, spec: RenderCarSpec) {
   return out;
 }
 
-/** A car's own picture for the GPU (?gpucars=1): the canvas and the car's centre in it, px. */
+/** A car's own picture (?sharpcars=1): the canvas and the car's centre in it, px. */
 export interface CarPicture {
   canvas: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
@@ -311,32 +311,35 @@ const BEAM_AHEAD = 192, BEAM_SIDE = 38;
 const PICTURE_PAD = 14;
 
 /**
- * Paints one car facing along +x at sprite resolution into its own picture, with drawPixelCar
- * itself (shadow, wheels, body, damage, lamps, a roll), for the GPU to turn and scale
- * (glsprites.ts). The picture reaches the headlight beams when the lights are on. The origin
- * sits so the sprite's pixels land on whole picture pixels (an exact copy).
+ * Paints one car facing along +x into its own picture, each sprite pixel a block of enlarge x
+ * enlarge, with drawPixelCar itself (shadow, wheels, body, damage, lamps, a roll), for the screen
+ * canvas to turn and scale (render.ts drawSharpCarLayers). The picture reaches the headlight
+ * beams when the lights are on. The origin sits so the sprite's pixels land on whole blocks.
  * @param carsCtx the shared view and helpers
  * @param car the car
  * @param picture the car's picture, resized when needed
+ * @param enlarge picture px per sprite px (a whole number)
  */
-function paintCarPicture(carsCtx: CarsContext, car: RenderCar, picture: CarPicture) {
+function paintCarPicture(carsCtx: CarsContext, car: RenderCar, picture: CarPicture,
+    enlarge: number) {
   const { view, pixelCar } = carsCtx;
   const sprite = pixelCar(car.spec);
   const pad = PICTURE_PAD + (car.roll && car.roll.phi ? sprite.Wp : 0);
   const back = Math.ceil(sprite.Lp / 2 + pad);
   const ahead = Math.ceil(sprite.Lp / 2 + pad + (car.lightsOn ? BEAM_AHEAD : 0));
   const side = Math.ceil(Math.max(sprite.Wp / 2 + pad, car.lightsOn ? BEAM_SIDE : 0));
-  if (picture.canvas.width !== back + ahead || picture.canvas.height !== side * 2) {
-    picture.canvas.width = back + ahead;
-    picture.canvas.height = side * 2;
+  const width = (back + ahead) * enlarge, height = side * 2 * enlarge;
+  if (picture.canvas.width !== width || picture.canvas.height !== height) {
+    picture.canvas.width = width;
+    picture.canvas.height = height;
     picture.ctx.imageSmoothingEnabled = false;
   } else {
-    picture.ctx.clearRect(0, 0, picture.canvas.width, picture.canvas.height);
+    picture.ctx.clearRect(0, 0, width, height);
   }
-  picture.originX = back + (sprite.Lp % 2) / 2;
-  picture.originY = side + (sprite.Wp % 2) / 2;
+  picture.originX = (back + (sprite.Lp % 2) / 2) * enlarge;
+  picture.originY = (side + (sprite.Wp % 2) / 2) * enlarge;
   const local: CarsContext = {
-    ...carsCtx, PPMz: () => SPRITE_PPM, toScreenX: () => picture.originX,
+    ...carsCtx, PPMz: () => SPRITE_PPM * enlarge, toScreenX: () => picture.originX,
     toScreenY: () => picture.originY,
   };
   const keep = view.ctx;
@@ -353,24 +356,25 @@ function paintCarPicture(carsCtx: CarsContext, car: RenderCar, picture: CarPictu
  */
 export function createCars(view: View, cam: Cam, helpers: CarsHelpers) {
   const carsCtx: CarsContext = { view, ...helpers };
-  // each car's GPU picture, kept while the car lives (CPU-backed: WebGL uploads it with a copy)
+  // each car's own picture (?sharpcars=1), kept while the car lives
   const pictures = new WeakMap<RenderCar, CarPicture>();
   return {
     drawPixelCar: (car: RenderCar) => drawPixelCar(carsCtx, car),
     /**
-     * Paints a car's GPU picture (?gpucars=1).
+     * Paints a car's own picture (?sharpcars=1).
      * @param car the car
+     * @param enlarge picture px per sprite px (a whole number)
      * @returns the picture
      */
-    paintCarPicture(car: RenderCar): CarPicture {
+    paintCarPicture(car: RenderCar, enlarge: number): CarPicture {
       let picture = pictures.get(car);
       if (!picture) {
         const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d', { willReadFrequently: true })!;
+        const ctx = canvas.getContext('2d')!;
         picture = { canvas, ctx, originX: 0, originY: 0 };
         pictures.set(car, picture);
       }
-      paintCarPicture(carsCtx, car, picture);
+      paintCarPicture(carsCtx, car, picture, enlarge);
       return picture;
     },
     pixelCarWithWheels: (spec: RenderCarSpec) => pixelCarWithWheels(carsCtx, spec),

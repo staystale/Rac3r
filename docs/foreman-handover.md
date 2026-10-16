@@ -71,8 +71,10 @@ the menu lag (the menu race is mostly simulation).
    judder on the owner's phone and was REVERTED - see TODO before trying again.
 3. Phase C: cars, props, marks, particles as GPU sprites, then one canvas, then delete the old tile
    machinery. Then re-record the menu video and re-check the menu lag. 10-16: the owner chose look
-   B (cars turned at screen resolution, not strict pixel art) from tools/scratch/carmock.html; C2
-   (cars) is behind ?gpucars=1 (glsprites.ts). Owner asked next: tyre marks quiver.
+   B (cars turned at screen resolution, not strict pixel art) from tools/scratch/carmock.html. A
+   WebGL version (art buffer uploaded per frame) juddered on the phone and was removed; the cars
+   are now drawn on the 2D screen canvas behind ?sharpcars=1. RULE: no per-frame copies between
+   the 2D canvas and WebGL. Owner asked next: tyre marks quiver.
 
 **Waiting for the owner**
 - Rain and water (TODO "GRASS GRIP + WATER"): rules given (wet-weather tyres clear water from hard

@@ -61,6 +61,7 @@ interface RenderState {
   blockPx: number;   // pixel mode: the device-px size of one art pixel
   realDpr: number;   // the real dpr of the screen canvas
   gpuOn: boolean;    // this frame draws the ground on the GPU canvas (art buffer transparent)
+  sharpCars: boolean;   // ?sharpcars=1: the cars on the screen canvas (drawSharpCarLayers)
 }
 
 /** What the pixel-locked view of one frame changed, so the end of the frame can undo it. */
@@ -301,48 +302,77 @@ function drawCarLayers(ctx: RenderCtx, game: RenderGame) {
 }
 
 /**
- * GPU CARS (?gpucars=1): the art buffer so far (everything under the cars) goes to the GPU canvas
- * over the ground, each car's own picture is turned and scaled there at screen resolution
- * (glsprites.ts), and the art buffer is cleared to carry only the overhead props, which the 2D
- * blit then puts over the cars.
+ * SHARP CARS (?sharpcars=1): the cars drawn on the full-resolution screen canvas instead of the
+ * art buffer, so their pixels stay crisp squares at any angle and zoom (look B, the owner's choice
+ * from tools/scratch/carmock.html), with nothing copied to WebGL. The art buffer so far
+ * (everything under the cars) is blitted first; each car's picture is painted enlarged by a whole
+ * factor (nearest), then turned and scaled onto the screen with smoothing, which blends only
+ * across its pixel edges; then the art buffer is cleared, takes the overhead props and is blitted
+ * over the cars.
  *
  * @param ctx the renderer context
  * @param game the game to draw
+ * @param lock what applyViewLock changed (the sub-pixel shift)
  */
-function drawCarLayersOnGpu(ctx: RenderCtx, game: RenderGame) {
-  const { pcanvas, pctx } = ctx, sprites = ctx.gpu!.sprites!;
-  sprites.drawLayer(pcanvas);
-  const cssPerTexel = ctx.PPMz() / SPRITE_PPM;
+function drawSharpCarLayers(ctx: RenderCtx, game: RenderGame, lock: ViewLock) {
+  const { view, state, mainCtx, pcanvas, pctx } = ctx;
+  blitArt(ctx, lock, true);
+  const devPerCss = view.dpr * state.blockPx;
+  const devPerTexel = (ctx.PPMz() / SPRITE_PPM) * devPerCss;
+  // enlarged so the final step only shrinks a little (an even edge blend); shrunk below one
+  // device px per texel the browser's high-quality filter averages instead of dropping pixels
+  const enlarge = Math.max(1, Math.ceil(devPerTexel - 0.01)), scale = devPerTexel / enlarge;
+  mainCtx.save();
+  mainCtx.imageSmoothingEnabled = true;
+  mainCtx.imageSmoothingQuality = enlarge === 1 && scale < 1 ? 'high' : 'low';
   forEachDrawnCar(ctx, game, (car) => {
-    const picture = ctx.paintCarPicture(car);
-    sprites.drawPicture(picture.canvas, {
-      x: ctx.toScreenX(car.x), y: ctx.toScreenY(car.y), angle: car.heading, cssPerTexel,
-      originX: picture.originX, originY: picture.originY,
-    });
+    const picture = ctx.paintCarPicture(car, enlarge);
+    mainCtx.setTransform(1, 0, 0, 1, 0, 0);
+    mainCtx.translate(ctx.toScreenX(car.x) * devPerCss + lock.subX,
+      ctx.toScreenY(car.y) * devPerCss + lock.subY);
+    mainCtx.rotate(car.heading);
+    mainCtx.scale(scale, scale);
+    mainCtx.drawImage(picture.canvas, -picture.originX, -picture.originY);
   });
+  mainCtx.restore();
   pctx.save();
   pctx.setTransform(1, 0, 0, 1, 0, 0);
   pctx.clearRect(0, 0, pcanvas.width, pcanvas.height);
   pctx.restore();
   if (!ctx.skip('props')) ctx.drawProps(true);
+  blitArt(ctx, lock, false);
 }
 
 /**
- * Blits the art-pixel buffer to the screen and restores the zoom and camera.
+ * Blits the art-pixel buffer to the screen, shifted by the sub-pixel remainder.
  *
  * @param ctx the renderer context
  * @param lock what applyViewLock changed
+ * @param first true for the frame's first blit (over the GPU ground it clears the screen first)
  */
-function blitWorld(ctx: RenderCtx, lock: ViewLock) {
-  const { view, cam, state, mainCtx, pcanvas } = ctx;
+function blitArt(ctx: RenderCtx, lock: ViewLock, first: boolean) {
+  const { state, mainCtx, pcanvas } = ctx;
   mainCtx.save();
   mainCtx.setTransform(1, 0, 0, 1, 0, 0);
   mainCtx.imageSmoothingEnabled = false;
   // over the GPU ground the screen canvas is cleared, so the transparent art buffer shows it
-  if (state.gpuOn) mainCtx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+  if (first && state.gpuOn) mainCtx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
   mainCtx.drawImage(pcanvas, lock.subX, lock.subY, pcanvas.width * state.blockPx,
     pcanvas.height * state.blockPx);
   mainCtx.restore();
+}
+
+/**
+ * Blits the art-pixel buffer to the screen (unless the sharp cars already did) and restores the
+ * zoom and camera.
+ *
+ * @param ctx the renderer context
+ * @param lock what applyViewLock changed
+ * @param blitted true when the art buffer is already on the screen
+ */
+function blitWorld(ctx: RenderCtx, lock: ViewLock, blitted = false) {
+  const { view, cam } = ctx;
+  if (!blitted) blitArt(ctx, lock, true);
   view.zoom = lock.keepZoom;
   if (lock.camTrue) {
     // the true camera for the next frame / tools
@@ -368,9 +398,9 @@ function drawFrame(ctx: RenderCtx, game: RenderGame, wallDt: number, wallT: numb
   beginGpuGround(ctx, lock);
   drawWorldLayers(ctx, game, wallDt, wallT);
   drawEffects(ctx, game, wallDt);
-  if (ctx.state.gpuOn && ctx.gpu!.sprites) drawCarLayersOnGpu(ctx, game);
+  if (ctx.state.sharpCars) drawSharpCarLayers(ctx, game, lock);
   else drawCarLayers(ctx, game);
-  blitWorld(ctx, lock);
+  blitWorld(ctx, lock, ctx.state.sharpCars);
   if (ctx.state.gpuOn) ctx.gpu!.end();
 }
 
@@ -638,12 +668,20 @@ function gpuHelpers(state: RenderState, gpu: GlGround | null) {
  * The GPU ground under the screen canvas, or null (?glground=0, or no WebGL2).
  *
  * @param canvas the screen canvas
- * @param settings the game settings (glGround, gpuPaint, gpuCars)
+ * @param settings the game settings (glGround, gpuPaint)
  * @returns the GPU ground, or null
  */
 function createGpuGround(canvas: HTMLCanvasElement, settings: Settings) {
-  return settings.glGround ? createGlGround(canvas, settings.gpuPaint, settings.gpuCars) : null;
+  return settings.glGround ? createGlGround(canvas, settings.gpuPaint) : null;
 }
+
+/**
+ * A fresh renderer state for these settings.
+ * @param settings the game settings (sharpCars)
+ * @returns the state
+ */
+const newRenderState = (settings: Settings): RenderState =>
+  ({ blockPx: 1, realDpr: 1, gpuOn: false, sharpCars: settings.sharpCars });
 
 /**
  * Builds the renderer for a canvas.
@@ -667,7 +705,7 @@ export function createRenderer(canvas: HTMLCanvasElement, settings: Settings) {
   // pixel mode: the world buffer, its device-px block size, the real dpr of the screen canvas
   const pcanvas = document.createElement('canvas');
   const pctx = pcanvas.getContext('2d')!;   // likewise
-  const state: RenderState = { blockPx: 1, realDpr: 1, gpuOn: false };
+  const state = newRenderState(settings);
   const gpu = createGpuGround(canvas, settings);
   const cam: Cam = { x: 0, y: 0, initialised: false };
   // ONE place converts metres to pixels, so nothing can miss the zoom

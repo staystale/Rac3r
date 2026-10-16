@@ -1,4 +1,5 @@
-// The shader program builder the GPU layers share (glground.ts, glsprites.ts).
+// The shader program builder for the GPU layers (glground.ts; glpaint.ts and glshade.ts still
+// build their own: fold them in).
 
 /**
  * Compiles and links a WebGL2 shader program.
