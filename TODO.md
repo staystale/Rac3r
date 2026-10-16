@@ -124,7 +124,7 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
       CAUSE FOUND AND FIXED: the Lab rectangle does not fit the marks layer, so it re-centred the
       26 MB layer every 136 m (see "JUDDER FIXED" above). Owner, after the fix: "much better, a
       couple of drops" (0.41 % in a Safari tab, hand-driven; Knobhill from the home screen 0.19 %).
-- [x] LAB SPLIT (owner, 2026-10-15; done 2026-10-16, owner phone test pending, testlist labsplit):
+- [x] LAB SPLIT (owner, 2026-10-15; done 2026-10-16; OWNER APPROVED on the phone 2026-10-16, 'all tested fine'):
       today's Lab is three levels on the lab floor at the same world coordinates
       (src/world/levels/lab-extension.ts). OG Lab (id 'lab'): the four squares only, its old
       520 m floor and south edge back - identical to the old Lab inside the square (renderhash
@@ -134,6 +134,9 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
       loop. Zones, hills and objects are the same values; the random blend squares and the gentle
       natural ground roll re-rolled (seeded by level id). OG Lab fits the skid-mark layer again
       (plain path); the other two lie south of the layer's centre, so they use the wrap-around.
+      Found while testing: launching any lab-family level from the menu threw in recoverAI for a
+      moment (the menu demo's AI stepped on a level with no racing line until the deferred
+      spawnAI); doRestart now clears the old field at once.
 - [ ] B4a HILL SHADING ON THE GPU + flash fixes, behind ?gpupaint=1 (owner phone test pending; owner saw
       the terrain flash brighter at zoom changes). src/render/glshade.ts: the tiles' shade cells (same
       heights, bands, colours; tilesShade.ts shared) computed per 8 m chunk into a world grid texture

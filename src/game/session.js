@@ -235,6 +235,10 @@ export function doRestart() {
   game.position = 1;
   repair(game.car);
   resetBill(game.car);   // DAMAGE: a fresh car and a clean bill
+  // the old field goes NOW: until the deferred spawnAI below builds the new grid, the last level's
+  // AI (the menu demo's) stepped on this one - on a level with no racing line (the Lab family)
+  // recoverAI threw on every step
+  game.ai = [];
   setTimeout(() => {
     armStart();
     spawnAI();
