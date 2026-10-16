@@ -208,6 +208,9 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
       endless highway have none.
       Owner: "the mini map should zoom in n out with the camera / car speed": its scale is the main
       view's / 30, so ~140 m ahead fully zoomed in, ~450 m fully out, following the camera's zoom.
+      Owner: "the car on the mini map should face the same direction as the actual car, the road
+      matching too": no longer heading-up - it faces the main view's way, the window pushed ahead
+      of the car in the direction of travel (eased), the chevron pointing where the car points.
 
 ## Open items carried over (not re-checked since they were written; some may be done)
 

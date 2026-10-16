@@ -1,8 +1,11 @@
 // hud/minimap.js — THE MINIMAP (owner, 2026-10-16, mockup B of three): a small round window under
-// the top-left buttons showing the road AHEAD, turned so ahead is always up ("the map should
-// rotate with you so it's always clear which corner etc is next"). The road ahead of the car (the
-// level's centreline fade out towards the top; your car is the chevron at the bottom, rivals in
-// the window are dots, and a thin bar under it is the stage / lap progress. No box, see-through,
+// the top-left buttons showing the road AHEAD of the car ("so it's always clear which corner etc is
+// next"). It faces the SAME WAY AS THE MAIN VIEW (owner: "the car on the mini map should face the
+// same direction as the actual car, the road matching too"; it was turned heading-up at first): the
+// window follows the car, pushed ahead of it in the direction of travel like the camera's lead. The
+// road ahead (the level's centreline) fades out at its far end; your car is the chevron, pointing
+// where the car points, rivals in the window are dots, and a thin bar under it is the stage / lap
+// progress. No box, see-through,
 // never touchable. Levels without a road (the lab floors) and the endless highway get none.
 // ON / OFF lives in the pause menu, remembered per difficulty mode: on in the easy modes, off in
 // the harder ones, and locked off in REAL (owner).
@@ -11,13 +14,15 @@ import { LEVEL } from '../world/state.ts';
 
 const SIZE = 120;            // css px, the window's diameter
 const GAP = 10;              // css px under the buttons above it
-const CAR_FROM_BOTTOM = 16;  // css px, the car's place above the window's bottom edge
+const LEAD_SHARE = 0.45;     // of the window's radius: how far ahead of the car its centre sits
 // ZOOMS WITH THE CAMERA (owner: "the mini map should zoom in n out with the camera / car speed"):
 // its scale is the main view's divided by MAP_SHRINK, so it shows ~140 m ahead fully zoomed in and
 // ~450 m fully out, and follows the camera's own smooth zoom
 const MAP_SHRINK = 30;
 const FADE_SHARE = 0.35;     // of the road ahead: the far end that fades out
-const HEADING_EASE = 6;      // 1/s: the map turns after the car smoothly (a slide does not spin it)
+// 1/s: the lead turns after the direction of travel (a slide does not swing it)
+const LEAD_EASE = 4;
+const ROAD_WIND = 1.4;       // x the straight-line reach: road shown ahead, as it winds
 const NEAR_POINTS = 40;      // centreline points searched round the last match each frame
 const LOST_M = 40;           // m off the matched point: search the whole centreline again
 const OPACITY = 0.85;
@@ -118,7 +123,7 @@ function minimapAt(rects) {
  * @param {number} from index of the car's point
  * @param {number|null} lap a lap circuit's length (it wraps), or null on a stage
  * @param {number} scale css px per m
- * @param {{ahead: number, behind: number}} span m of road shown ahead of the car and behind it
+ * @param {{ahead: number, behind: number}} span m of road drawn ahead of the car and behind it
  */
 function drawRoad(ctx, pts, from, lap, scale, span) {
   const fade = span.ahead * FADE_SHARE;
@@ -158,6 +163,53 @@ function drawRoad(ctx, pts, from, lap, scale, span) {
 }
 
 /**
+ * Draws the rivals within reach of your car as dots (world units: the window's transform is set).
+ * @param {CanvasRenderingContext2D} ctx the HUD context
+ * @param {object} game the game (car, ai)
+ * @param {number} reach m from your car
+ * @param {number} scale css px per m
+ */
+function drawRivals(ctx, game, reach, scale) {
+  const car = game.car;
+  for (const entry of game.ai || []) {
+    const rival = entry.car;
+    if (Math.hypot(rival.x - car.x, rival.y - car.y) > reach) continue;
+    ctx.beginPath();
+    ctx.arc(rival.x, rival.y, 3 / scale, 0, Math.PI * 2);
+    ctx.fillStyle = '#e9e9ec';
+    ctx.fill();
+    ctx.lineWidth = 1.2 / scale;
+    ctx.strokeStyle = '#141416';
+    ctx.stroke();
+  }
+}
+
+/**
+ * Draws your car: the chevron, pointing where the car points.
+ * @param {CanvasRenderingContext2D} ctx the HUD context (css px)
+ * @param {number} carX the car's place in the window, css px
+ * @param {number} carY the car's place in the window, css px
+ * @param {number} heading the car's heading, rad
+ */
+function drawCarMark(ctx, carX, carY, heading) {
+  ctx.save();
+  ctx.translate(carX, carY);
+  ctx.rotate(heading + Math.PI / 2);
+  ctx.beginPath();
+  ctx.moveTo(0, -6.5);
+  ctx.lineTo(5, 4);
+  ctx.lineTo(0, 1.2);
+  ctx.lineTo(-5, 4);
+  ctx.closePath();
+  ctx.fillStyle = '#f26b3a';
+  ctx.fill();
+  ctx.lineWidth = 1.4;
+  ctx.strokeStyle = '#ffffff';
+  ctx.stroke();
+  ctx.restore();
+}
+
+/**
  * Draws the minimap, when shown: road ahead, rivals, your car, progress. It gives way to the car
  * list and the tune panel, which open over the same place.
  * @param {CanvasRenderingContext2D} ctx the HUD context (css px)
@@ -173,13 +225,17 @@ export function drawHudMinimap(ctx, hud, rects, game, wallDt) {
   if (mapState.level !== LEVEL) Object.assign(mapState, { level: LEVEL, idx: 0, heading: null });
   const car = game.car, pts = sub.pts, closed = !LEVEL.stage;
   const idx = nearestPoint(pts, car.x, car.y);
-  // the map turns after the car, eased (the shortest way round)
-  if (mapState.heading === null) mapState.heading = car.heading;
-  const off = car.heading - mapState.heading, turn = Math.atan2(Math.sin(off), Math.cos(off));
-  mapState.heading += turn * (1 - Math.exp(-HEADING_EASE * wallDt));
+  // the lead follows the direction of travel (the heading when nearly still), eased the short way
+  const moving = Math.hypot(car.vx, car.vy) > 2;
+  const dir = moving ? Math.atan2(car.vy, car.vx) : car.heading;
+  if (mapState.heading === null) mapState.heading = dir;
+  const off = dir - mapState.heading, turn = Math.atan2(Math.sin(off), Math.cos(off));
+  mapState.heading += turn * (1 - Math.exp(-LEAD_EASE * wallDt));
   const { x, y } = minimapAt(rects), radius = SIZE / 2, centreX = x + radius, centreY = y + radius;
-  const carY = y + SIZE - CAR_FROM_BOTTOM, scale = viewScale() / MAP_SHRINK;
-  const span = { ahead: (carY - y) / scale, behind: (y + SIZE - carY) / scale };
+  const lead = radius * LEAD_SHARE, scale = viewScale() / MAP_SHRINK;
+  const carX = centreX - lead * Math.cos(mapState.heading);
+  const carY = centreY - lead * Math.sin(mapState.heading);
+  const span = { ahead: ROAD_WIND * (radius + lead) / scale, behind: (radius - lead) / scale };
   ctx.save();
   ctx.globalAlpha = OPACITY;
   ctx.beginPath();
@@ -187,44 +243,21 @@ export function drawHudMinimap(ctx, hud, rects, game, wallDt) {
   ctx.fillStyle = 'rgba(20,20,22,0.32)';
   ctx.fill();
   ctx.clip();
-  // world -> window: the car at (centreX, carY), its heading pointing up
+  // world -> window: the main view's way up, the car at (carX, carY)
   ctx.save();
-  ctx.translate(centreX, carY);
+  ctx.translate(carX, carY);
   ctx.scale(scale, scale);
-  ctx.rotate(-Math.PI / 2 - mapState.heading);
   ctx.translate(-car.x, -car.y);
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
   drawRoad(ctx, pts, idx, closed ? sub.totalDist : null, scale, span);
-  // rivals in the window
   ctx.globalAlpha = OPACITY;
-  for (const entry of game.ai || []) {
-    const rival = entry.car;
-    if (Math.hypot(rival.x - car.x, rival.y - car.y) > span.ahead * 1.2) continue;
-    ctx.beginPath();
-    ctx.arc(rival.x, rival.y, 3 / scale, 0, Math.PI * 2);
-    ctx.fillStyle = '#e9e9ec';
-    ctx.fill();
-    ctx.lineWidth = 1.2 / scale;
-    ctx.strokeStyle = '#141416';
-    ctx.stroke();
-  }
+  drawRivals(ctx, game, (radius + lead) / scale, scale);
   ctx.restore();
+  drawCarMark(ctx, carX, carY, car.heading);
   ctx.restore();
-  // your car: the chevron, always pointing up
   ctx.save();
   ctx.globalAlpha = OPACITY;
-  ctx.beginPath();
-  ctx.moveTo(centreX, carY - 6.5);
-  ctx.lineTo(centreX + 5, carY + 4);
-  ctx.lineTo(centreX, carY + 1.2);
-  ctx.lineTo(centreX - 5, carY + 4);
-  ctx.closePath();
-  ctx.fillStyle = '#f26b3a';
-  ctx.fill();
-  ctx.lineWidth = 1.4;
-  ctx.strokeStyle = '#ffffff';
-  ctx.stroke();
   // progress: along the stage to the finish, or round the lap
   const total = LEVEL.stage ? LEVEL.stage.finish : sub.totalDist;
   const share = Math.max(0, Math.min(1, pts[idx].dist / total));
