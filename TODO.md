@@ -241,8 +241,11 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
          copies: fold them in).
          NEXT ASK (owner, 2026-10-16): "tyre marks seem to quiver, I think they always have" -
          cause: the marks layer (MARK_PPM 4.2 px/m) stretched ~3.6x NEAREST into the art grid each
-         frame, so a mark pixel is 3 or 4 art px wide by camera position. Fix on the screen
-         canvas the same way (no GPU copy); propose after the sharp cars' phone test.
+         frame, so a mark pixel is 3 or 4 art px wide by camera position. BUILT behind
+         ?sharpmarks=1 (owner phone test pending, testlist 'sharpmarks'): the art buffer so far
+         (ground, deck) is blitted, the marks drawn on the screen canvas at device resolution
+         (an edge moves by one device px, not one art px), the buffer cleared for the layers
+         above (render/screen.ts drawMarksOnScreen). Switch off: renderhash SAME.
 - [ ] JOKER BUGS (owner, 2026-10-16; queued with the tyre marks): (1) the joker lap / joker section
       does not show on the minimap (hud/minimap.js draws the main centreline only); (2) RESET in the
       joker lane does nothing: it should put the car back on the joker lane where it came off, like

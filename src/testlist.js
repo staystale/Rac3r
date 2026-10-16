@@ -11,6 +11,17 @@ export const TEST_LIST = [
   // dirtroad, animals, labext, labsplit, zoomhold, gpupaint, minimap, zoomspring, grassgrip, hwmap,
   // cracktufts, sharpcars)
   {
+    id: 'sharpmarks',
+    added: '2026-10-16',
+    name: 'Skid marks drawn at screen resolution: no quiver',
+    where: 'Link: ?sharpmarks=1&report=1 - any track; lay rubber (handbrake, a spin)',
+    try:
+      'Leave marks, then drive past them and zoom in and out. Compare with the plain link.',
+    wrong:
+      'Marks still quivering or shimmering; marks over a fence, cone, prop, smoke or car, or ' +
+      'under the kerbs or paint they used to cover; marks in the wrong place; more judder.',
+  },
+  {
     id: 'straightoutta',
     added: '2026-10-15',
     name: 'Judder fix (skid-mark layer) + new highway step 1: Straight Outta Swindon',

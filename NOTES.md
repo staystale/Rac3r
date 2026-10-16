@@ -61,7 +61,10 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   painting itself.
 - A CPU-backed texture pattern-filled onto a GPU-backed canvas is moved on every fill.
 - The tyre marks quiver: the marks layer (4.2 px/m) is stretched ~3.6x nearest into the art grid each
-  frame, so a mark pixel is 3 or 4 art px wide by camera position.
+  frame, so a mark pixel is 3 or 4 art px wide by camera position (`?sharpmarks=1` draws them on
+  the screen canvas instead).
+- Laptop frame numbers swing with the machine (Brands work median 20 ms one hour, 38 ms the next,
+  main included): only compare A/B runs made back to back.
 - `?report=1` records without drawing the meter graph (`?meter=1` shows it).
 
 ## Routine

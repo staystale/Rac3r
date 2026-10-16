@@ -27,12 +27,14 @@ import { createProps } from "./render/props.ts";
 import { createObjects } from "./render/objects.ts";
 import { createTiles } from "./render/tiles.ts";
 import { createCamera } from "./render/camera.ts";
+import {
+  blitArt, drawCarLayers, drawMarksOnScreen, drawSharpCarLayers,
+} from "./render/screen.ts";
 import { createGlGround } from "./render/glground.ts";
 import type { GlGround, GroundSink } from "./render/glground.ts";
 import type { ShadeRect } from "./render/glshade.ts";
 import type { GroundPatch, PaintCamera } from "./render/glpaint.ts";
-import type { Cam, CamCar, RenderCar, RenderGame, TileBudget, View } from "./render/types.ts";
-import { SPRITE_PPM } from "./render/shared.ts";
+import type { Cam, CamCar, RenderGame, TileBudget, View } from "./render/types.ts";
 
 // PPM is derived from the SHORT side of the viewport, so the car is a consistent fraction of the
 // screen everywhere (a flat PPM of 16 put a 4 m car at 64 px on a 1280 px desktop, too small
@@ -61,11 +63,14 @@ interface RenderState {
   blockPx: number;   // pixel mode: the device-px size of one art pixel
   realDpr: number;   // the real dpr of the screen canvas
   gpuOn: boolean;    // this frame draws the ground on the GPU canvas (art buffer transparent)
-  sharpCars: boolean;   // ?sharpcars=1: the cars on the screen canvas (drawSharpCarLayers)
+  sharpCars: boolean;   // the cars on the screen canvas (drawSharpCarLayers); ?sharpcars=0 off
+  sharpMarks: boolean;  // ?sharpmarks=1: the skid marks on the screen canvas (drawMarksOnScreen)
+  screenBegun: boolean; // this frame has blitted the art buffer to the screen at least once
 }
 
 /** What the pixel-locked view of one frame changed, so the end of the frame can undo it. */
 interface ViewLock {
+  wallDt: number;     // the frame's wall-clock step, s
   keepZoom: number;
   subX: number;
   subY: number;
@@ -158,9 +163,10 @@ function roundRect(
  * The smoothed zoom is restored at the end of the frame.
  *
  * @param ctx the renderer context
+ * @param wallDt the frame's wall-clock step, s (carried in the lock)
  * @returns what was changed, for blitWorld to undo
  */
-function applyViewLock(ctx: RenderCtx): ViewLock {
+function applyViewLock(ctx: RenderCtx, wallDt: number): ViewLock {
   const { view, cam, state, camState, tileState, FLY_HANDOVER, TILE_PX, ZSTEP } = ctx;
   const keepZoom = view.zoom;
   let subX = 0, subY = 0, camTrue: { x: number; y: number } | null = null;
@@ -194,7 +200,7 @@ function applyViewLock(ctx: RenderCtx): ViewLock {
     subY = 0;
     camTrue = null;
   }
-  return { keepZoom, subX, subY, camTrue };
+  return { wallDt, keepZoom, subX, subY, camTrue };
 }
 
 /**
@@ -209,12 +215,12 @@ function applyViewLock(ctx: RenderCtx): ViewLock {
  *
  * @param ctx the renderer context
  * @param game the game to draw
- * @param wallDt the wall-clock step in seconds
+ * @param lock what applyViewLock changed (and this frame's wall-clock step)
  * @param wallT the wall-clock time in seconds
  */
-function drawWorldLayers(ctx: RenderCtx, game: RenderGame, wallDt: number, wallT: number) {
+function drawWorldLayers(ctx: RenderCtx, game: RenderGame, lock: ViewLock, wallT: number) {
   const { skip } = ctx;
-  if (!skip('ground')) ctx.drawGround(wallDt, game.car);
+  if (!skip('ground')) ctx.drawGround(lock.wallDt, game.car);
   // the GPU hill shading lies over the whole ground, as the tiles baked it
   if (ctx.state.gpuOn && ctx.gpu!.painting && isGpuShadeOn(ctx)) ctx.gpu!.drawShade(ctx.gpuCamera);
   if (!skip('deck')) {
@@ -224,7 +230,10 @@ function drawWorldLayers(ctx: RenderCtx, game: RenderGame, wallDt: number, wallT
     ctx.drawPaint();
     ctx.drawArrows(game, wallT);
   }
-  if (!skip('marks')) ctx.drawMarks(game.marks);
+  if (!skip('marks')) {
+    if (ctx.state.sharpMarks) drawMarksOnScreen(ctx, game, lock);
+    else ctx.drawMarks(game.marks);
+  }
   if (!skip('fence')) ctx.drawFence();
   if (!skip('barriers')) ctx.drawBarriers();
   if (!skip('props')) ctx.drawProps();
@@ -264,105 +273,6 @@ function drawEffects(ctx: RenderCtx, game: RenderGame, wallDt: number) {
 }
 
 /**
- * Calls draw for every car to draw, back to front: the highway traffic near the view, the AI
- * cars, then the player's.
- *
- * @param ctx the renderer context
- * @param game the game to draw
- * @param draw draws one car
- */
-function forEachDrawnCar(ctx: RenderCtx, game: RenderGame, draw: (car: RenderCar) => void) {
-  const { view, skip } = ctx;
-  // HIGHWAY TRAFFIC (traffic.js), only the ones near the view (they are spread over ~800 m),
-  // under the AI and the player
-  if (game.traffic && !skip('traffic')) {
-    const margin = 12 * ctx.PPMz();
-    for (const car of game.traffic.cars) {
-      const screenX = ctx.toScreenX(car.x), screenY = ctx.toScreenY(car.y);
-      if (screenX < -margin || screenX > view.W + margin
-        || screenY < -margin || screenY > view.H + margin) continue;
-      draw(car);
-    }
-  }
-  // AI cars under the player's
-  if (!skip('ai')) for (const rival of game.ai || []) draw(rival.car);
-  if (!skip('car')) draw(game.car);
-}
-
-/**
- * Draws the highway traffic, the AI cars, the player's car and the overhead props.
- *
- * @param ctx the renderer context
- * @param game the game to draw
- */
-function drawCarLayers(ctx: RenderCtx, game: RenderGame) {
-  forEachDrawnCar(ctx, game, ctx.drawPixelCar);
-  // overhead structures (gantry) pass OVER the cars
-  if (!ctx.skip('props')) ctx.drawProps(true);
-}
-
-/**
- * SHARP CARS (?sharpcars=1): the cars drawn on the full-resolution screen canvas instead of the
- * art buffer, so their pixels stay crisp squares at any angle and zoom (look B, the owner's choice
- * from tools/scratch/carmock.html), with nothing copied to WebGL. The art buffer so far
- * (everything under the cars) is blitted first; each car's picture is painted enlarged by a whole
- * factor (nearest), then turned and scaled onto the screen with smoothing, which blends only
- * across its pixel edges; then the art buffer is cleared, takes the overhead props and is blitted
- * over the cars.
- *
- * @param ctx the renderer context
- * @param game the game to draw
- * @param lock what applyViewLock changed (the sub-pixel shift)
- */
-function drawSharpCarLayers(ctx: RenderCtx, game: RenderGame, lock: ViewLock) {
-  const { view, state, mainCtx, pcanvas, pctx } = ctx;
-  blitArt(ctx, lock, true);
-  const devPerCss = view.dpr * state.blockPx;
-  const devPerTexel = (ctx.PPMz() / SPRITE_PPM) * devPerCss;
-  // enlarged so the final step only shrinks a little (an even edge blend); shrunk below one
-  // device px per texel the browser's high-quality filter averages instead of dropping pixels
-  const enlarge = Math.max(1, Math.ceil(devPerTexel - 0.01)), scale = devPerTexel / enlarge;
-  mainCtx.save();
-  mainCtx.imageSmoothingEnabled = true;
-  mainCtx.imageSmoothingQuality = enlarge === 1 && scale < 1 ? 'high' : 'low';
-  forEachDrawnCar(ctx, game, (car) => {
-    const picture = ctx.paintCarPicture(car, enlarge);
-    mainCtx.setTransform(1, 0, 0, 1, 0, 0);
-    mainCtx.translate(ctx.toScreenX(car.x) * devPerCss + lock.subX,
-      ctx.toScreenY(car.y) * devPerCss + lock.subY);
-    mainCtx.rotate(car.heading);
-    mainCtx.scale(scale, scale);
-    mainCtx.drawImage(picture.canvas, -picture.originX, -picture.originY);
-  });
-  mainCtx.restore();
-  pctx.save();
-  pctx.setTransform(1, 0, 0, 1, 0, 0);
-  pctx.clearRect(0, 0, pcanvas.width, pcanvas.height);
-  pctx.restore();
-  if (!ctx.skip('props')) ctx.drawProps(true);
-  blitArt(ctx, lock, false);
-}
-
-/**
- * Blits the art-pixel buffer to the screen, shifted by the sub-pixel remainder.
- *
- * @param ctx the renderer context
- * @param lock what applyViewLock changed
- * @param first true for the frame's first blit (over the GPU ground it clears the screen first)
- */
-function blitArt(ctx: RenderCtx, lock: ViewLock, first: boolean) {
-  const { state, mainCtx, pcanvas } = ctx;
-  mainCtx.save();
-  mainCtx.setTransform(1, 0, 0, 1, 0, 0);
-  mainCtx.imageSmoothingEnabled = false;
-  // over the GPU ground the screen canvas is cleared, so the transparent art buffer shows it
-  if (first && state.gpuOn) mainCtx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-  mainCtx.drawImage(pcanvas, lock.subX, lock.subY, pcanvas.width * state.blockPx,
-    pcanvas.height * state.blockPx);
-  mainCtx.restore();
-}
-
-/**
  * Blits the art-pixel buffer to the screen (unless the sharp cars already did) and restores the
  * zoom and camera.
  *
@@ -372,7 +282,7 @@ function blitArt(ctx: RenderCtx, lock: ViewLock, first: boolean) {
  */
 function blitWorld(ctx: RenderCtx, lock: ViewLock, blitted = false) {
   const { view, cam } = ctx;
-  if (!blitted) blitArt(ctx, lock, true);
+  if (!blitted) blitArt(ctx, lock);
   view.zoom = lock.keepZoom;
   if (lock.camTrue) {
     // the true camera for the next frame / tools
@@ -394,9 +304,10 @@ function drawFrame(ctx: RenderCtx, game: RenderGame, wallDt: number, wallT: numb
     ctx.follow(game.car, wallDt);
     ctx.updateZoom(game.car, wallDt);
   }
-  const lock = applyViewLock(ctx);
+  const lock = applyViewLock(ctx, wallDt);
+  ctx.state.screenBegun = false;
   beginGpuGround(ctx, lock);
-  drawWorldLayers(ctx, game, wallDt, wallT);
+  drawWorldLayers(ctx, game, lock, wallT);
   drawEffects(ctx, game, wallDt);
   if (ctx.state.sharpCars) drawSharpCarLayers(ctx, game, lock);
   else drawCarLayers(ctx, game);
@@ -677,11 +588,12 @@ function createGpuGround(canvas: HTMLCanvasElement, settings: Settings) {
 
 /**
  * A fresh renderer state for these settings.
- * @param settings the game settings (sharpCars)
+ * @param settings the game settings (sharpCars, sharpMarks)
  * @returns the state
  */
 const newRenderState = (settings: Settings): RenderState =>
-  ({ blockPx: 1, realDpr: 1, gpuOn: false, sharpCars: settings.sharpCars });
+  ({ blockPx: 1, realDpr: 1, gpuOn: false, sharpCars: settings.sharpCars,
+    sharpMarks: settings.sharpMarks, screenBegun: false });
 
 /**
  * Builds the renderer for a canvas.

@@ -108,6 +108,8 @@ any cover (snow, ice, puddle) and the wear state of the cell.
   facing +x into its own picture (`cars.ts paintCarPicture`, the same `drawPixelCar`, each sprite px
   a whole-number block) and turned and scaled onto the screen with smoothing; the art buffer then
   takes the overhead props and is blitted again. `render/glprogram.ts` builds the ground's shader.
+- `render/screen.ts`: the screen canvas passes of a frame (the art buffer blits, the sharp cars, and
+  with `?sharpmarks=1` the skid marks drawn on the screen between the deck and the layers above).
 
 ## Levels
 
