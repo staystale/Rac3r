@@ -209,7 +209,8 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
       plough +0.6), churning into mud / gravel and drying by tyre heat already exist; no rain or
       weather, puddles never appear / grow / join, wet ground does not wear faster. Dry grass mu
       0.34 is about a real wet-grass value: dry 0.47 makes a puddle on grass today's 0.34.
-      STEP 1 BUILT behind ?grassgrip=1 (owner phone test pending, testlist grassgrip): dry grass
+      STEP 1 DONE, OWNER APPROVED ("test passed tho for grass"), the DEFAULT since 2026-10-16
+      (?grassgrip=0 = the old grip): dry grass
       0.34 -> 0.47, long grass 0.36 -> 0.50 (surfaces.ts applyGrassGrip); a puddle on them 0.338 /
       0.360 = today's grass. Steady cornering on grass (surfacegrip, 60 km/h): hatch-rwd 0.43 ->
       0.62 g, rally-4x4 0.53 -> 0.60 g; tarmac unchanged.
@@ -241,7 +242,8 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
       (src/hud/minimap.js; owner phone test pending, testlist minimap). Pause menu MINIMAP row,
       remembered per difficulty mode: on in MOBILE / GAME / REALISH (owner 2026-10-16: REALISH, the
       default difficulty, counts as easy), off in RICH, locked off and greyed out in REAL (owner). Gives way to the car list / tune panel. The lab floors and the
-      endless highway have none.
+      endless highway have none - until the owner asked: "highway levels should have a minimap
+      too": behind ?hwmap=1 (testlist hwmap), road ahead, no progress bar.
       Owner: "the mini map should zoom in n out with the camera / car speed": its scale is the main
       view's / 30, so ~140 m ahead fully zoomed in, ~450 m fully out, following the camera's zoom.
       Owner: "the car on the mini map should face the same direction as the actual car, the road

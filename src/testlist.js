@@ -8,18 +8,14 @@
 //   where  how to get to it      try     what to do      wrong   what would count as a bug
 export const TEST_LIST = [
   // (approved late, deleted: fields, grassedge, catchthem, slipsdual, fps - TODO.md 1c;
-  // dirtroad, animals, labext, labsplit, zoomhold, gpupaint, minimap, zoomspring)
+  // dirtroad, animals, labext, labsplit, zoomhold, gpupaint, minimap, zoomspring, grassgrip)
   {
-    id: 'grassgrip',
+    id: 'hwmap',
     added: '2026-10-16',
-    name: 'Grippier dry grass (&grassgrip=1); a puddle on grass feels like grass does today',
-    where: 'Grass at any level - Thruston infield, the Grass Track, The Rough Patch',
-    try:
-      'Drive on grass and long grass, compare with the plain link; then drive through a ' +
-      'puddle on grass (Sweaty Lamb has 33): it should feel like grass does today.',
-    wrong:
-      'Grass now too grippy (like dirt or tarmac), or no different, or a puddle on grass no ' +
-      'more slippery than dry grass.',
+    name: 'Minimap on the highway too (&hwmap=1)',
+    where: 'Highway, the plain link plus &hwmap=1 (MINIMAP on in the pause menu)',
+    try: 'Drive the highway for a few km: does the minimap follow the road ahead?',
+    wrong: 'No minimap, the road in it wrong or jumping as the road streams in, or slower frames.',
   },
   {
     id: 'cracktufts',

@@ -133,9 +133,10 @@ export const SURFACES: Record<SurfaceId, Surface> = {
   gravel:     { id: 'gravel', label: 'RALLY GRAVEL', mu: 0.62, peakK: 2.40, longK: 1.30,
     plough: 0.25, rough: 0.012, mark: MARK_GRAVEL, spray: SPRAY_GRAVEL },
   // GRASS / SHORT GRASS — mown grass. Slick skin over hard ground.
-  grass:      { id: 'grass', label: 'GRASS', mu: 0.34, peakK: 1.25, longK: 0.85, plough: 0,
+  // mu 0.34 -> 0.47 (owner approved 2026-10-16; see GRASSIER GRASS below)
+  grass:      { id: 'grass', label: 'GRASS', mu: 0.47, peakK: 1.25, longK: 0.85, plough: 0,
     rough: 0.014, mark: MARK_GRASS, spray: SPRAY_GRASS },
-  grassShort: { id: 'grassShort', label: 'SHORT GRASS', mu: 0.34, peakK: 1.25, longK: 0.85,
+  grassShort: { id: 'grassShort', label: 'SHORT GRASS', mu: 0.47, peakK: 1.25, longK: 0.85,
     plough: 0, rough: 0.014, mark: MARK_GRASS, spray: SPRAY_GRASS },
   // LONG GRASS — un-mown pasture. Taller, deeper, more drag and height variation.
   // plough 0.10 -> 0.35 (requirement: long grass to grab slightly... until it's driven over enough
@@ -143,7 +144,7 @@ export const SURFACES: Record<SurfaceId, Surface> = {
   // 0-50 km/h 7.56 -> 8.58 s / 7.70 -> 8.88 s; coasting 50 -> 4 km/h 502 -> 205 m / 469 ->
   // 198 m. (0.10 was 368 m — barely felt; 0.5 / 0.7 tried: 162 / 127 m, 9.2 / 10.2 s — more than
   // "slightly".)
-  grassLong:  { id: 'grassLong', label: 'LONG GRASS', mu: 0.36, peakK: 1.30, longK: 0.82,
+  grassLong:  { id: 'grassLong', label: 'LONG GRASS', mu: 0.50, peakK: 1.30, longK: 0.82,
     plough: 0.35, rough: 0.024, mark: MARK_GRASS_LONG, spray: SPRAY_GRASS_LONG },
   // THE KERB — painted concrete. Hard, so no ploughing; slippery when you are on the paint.
   kerb:       { id: 'kerb', label: 'KERB', mu: KERB_MU, peakK: 1.00, longK: 1.00, plough: 0,
@@ -192,14 +193,15 @@ for (const surface of Object.values(SURFACES))
 // what a car spawns on by default; what a car spawns on; kept under the old name
 export const SURFACE_TARMAC = SURFACES.lab;
 
-// GRASSIER GRASS (?grassgrip=1, under test; owner 2026-10-16: grass, long grass too, "feels
-// slightly too slippy - it should become as slippery as it is now if wet"). Dry mown grass 0.34 ->
-// 0.47 and long grass 0.36 -> 0.50: a puddle on grass (x0.72, wear.ts surfaceOf) then grips as
-// grass does today (0.34 / 0.36). Everything else about grass (early peak, no plough, the skatey
-// feel) stays. Called once at start-up (main.js), before any car drives on it.
-export const GRASS_GRIP = { grass: 0.47, grassShort: 0.47, grassLong: 0.50 };
-export function applyGrassGrip(): void {
-  for (const [surfaceId, grip] of Object.entries(GRASS_GRIP))
+// GRASSIER GRASS (owner 2026-10-16: grass, long grass too, "feels slightly too slippy - it should
+// become as slippery as it is now if wet"; approved on the phone). Dry mown grass 0.34 -> 0.47 and
+// long grass 0.36 -> 0.50 (the table above): a puddle on grass (x0.72, wear.ts surfaceOf) grips as
+// grass did (0.34 / 0.36). Everything else about grass (early peak, no plough, the skatey feel)
+// stays. Steady cornering on grass at 60 km/h (tools/surfacegrip): hatch-rwd 0.43 -> 0.62 g,
+// rally-4x4 0.53 -> 0.60 g. ?grassgrip=0 puts the old grip back (main.js, at start-up).
+export const GRASS_GRIP_OLD = { grass: 0.34, grassShort: 0.34, grassLong: 0.36 };
+export function applyOldGrassGrip(): void {
+  for (const [surfaceId, grip] of Object.entries(GRASS_GRIP_OLD))
     SURFACES[surfaceId as SurfaceId].mu = grip;
 }
 

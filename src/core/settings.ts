@@ -26,7 +26,8 @@ export interface Settings {
   zoomHold: boolean;             // the speed zoom holds, then glides (camera.ts); off: ?zoomhold=0
   minimap: boolean;              // the road-ahead minimap (hud/minimap.js); off: ?minimap=0
   menuVideo: boolean;            // ?menuvideo=1 (parked): the recorded race behind the menu
-  grassGrip: boolean;            // ?grassgrip=1 (under test): grippier dry grass (surfaces.ts)
+  grassGrip: boolean;            // grippier dry grass (surfaces.ts); ?grassgrip=0 = the old grip
+  hwMap: boolean;                // ?hwmap=1 (under test): the minimap on the highway too
   noShade: boolean;              // ?noshade: skip the hill shading (perf A/B)
   grassEnds: "round" | "square";   // ?grass=square: square grass blade ends (cheaper; A/B)
   surfaceTextures: boolean;       // ?tex=0: paint surfaces live, not pre-painted textures (A/B)
@@ -79,7 +80,8 @@ export function readSettings(search: string): Settings {
     // default since 2026-10-16 (owner: "mini map tests good"); then the pause setting decides
     minimap: params.get('minimap') !== '0',
     menuVideo: params.get('menuvideo') === '1',
-    grassGrip: params.get('grassgrip') === '1',
+    grassGrip: params.get('grassgrip') !== '0',
+    hwMap: params.get('hwmap') === '1',
     noShade: params.has('noshade'),
     grassEnds: params.get('grass') === 'square' ? 'square' : 'round',
     surfaceTextures: params.get('tex') !== '0',

@@ -14,7 +14,7 @@ import { createRenderer } from './render.ts';
 import { readSettings } from './core/settings.ts';
 import { createMarks } from './marks.js';
 import { createHud } from './hud.js';
-import { setMinimapSource, setMinimapView } from './hud/minimap.js';
+import { setMinimapSource, setMinimapView, setMinimapHighway } from './hud/minimap.js';
 import { createMeter } from './ui/meter.ts';
 import { createReporter } from './ui/report.ts';
 import { createFramePacer } from './game/pacing.ts';
@@ -31,7 +31,7 @@ import { createTraffic } from './traffic.ts';
 import { setTuneAudio, snapshot } from './tune.js';
 import { TUNE } from './vehicle.ts';
 import { initWorld } from "./world/load.ts";
-import { applyGrassGrip } from "./world/surfaces.ts";
+import { applyOldGrassGrip } from "./world/surfaces.ts";
 import { LEVEL } from "./world/state.ts";
 
 import { LEVELS } from "./world/levels/index.ts";
@@ -50,7 +50,7 @@ addStageLevels();
 addHighwayLevel();
 
 shared.settings = readSettings(location.search);
-if (shared.settings.grassGrip) applyGrassGrip();   // ?grassgrip=1, under test (surfaces.ts)
+if (!shared.settings.grassGrip) applyOldGrassGrip();   // ?grassgrip=0: the old grass grip
 shared.DEV = shared.settings.dev;
 
 shared.canvas = document.getElementById('c');
@@ -160,6 +160,7 @@ shared.hud = createHud();
 refreshMinimap();
 setMinimapSource(() => !!shared.minimapOn && shared.mode !== 'menu');
 setMinimapView(() => shared.renderer.PPM);
+setMinimapHighway(shared.settings.hwMap);
 // HOW TO PLAY. Opens by itself once per device, after the first fly-in. NOT
 // under automation: Playwright sets navigator.webdriver, and every harness in tools/ taps the HUD
 // as if no card were up. ?guide=1 forces it on (for photographing it), ?guide=0 forces it off.

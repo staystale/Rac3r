@@ -6,7 +6,9 @@
 // road ahead (the level's centreline) fades out at its far end; your car is the chevron, pointing
 // where the car points, rivals in the window are dots, and a thin bar under it is the stage / lap
 // progress. No box, see-through,
-// never touchable. Levels without a road (the lab floors) and the endless highway get none.
+// never touchable. Levels without a road (the lab floors) get none; the endless highway shows the
+// road ahead without a progress bar (?hwmap=1, under test; owner: "highway levels should have a
+// minimap too").
 // ON / OFF lives in the pause menu, remembered per difficulty mode: on in MOBILE, GAME and REALISH,
 // off in RICH, and locked off in REAL (owner).
 
@@ -65,6 +67,8 @@ export function setMinimapSetting(mode, shown) {
 const mapState = { idx: 0, heading: null, level: null };
 // is it shown: main.js hands in the source (?minimap=0, the mode, the pause setting)
 let shownNow = () => false;
+// the endless highway too (?hwmap=1, under test)
+let onHighway = false;
 // the main view's css px per m (the camera zoom included)
 let viewScale = () => 20;
 
@@ -74,6 +78,14 @@ let viewScale = () => 20;
  */
 export function setMinimapSource(source) {
   shownNow = source;
+}
+
+/**
+ * Lets the minimap show on the endless highway (?hwmap=1, under test).
+ * @param {boolean} allowed shown there too
+ */
+export function setMinimapHighway(allowed) {
+  onHighway = allowed;
 }
 
 /**
@@ -211,6 +223,28 @@ function drawCarMark(ctx, carX, carY, heading) {
 }
 
 /**
+ * Draws the progress bar under the window: along the stage to the finish, or round the lap. The
+ * endless road has no finish, so none there.
+ * @param {CanvasRenderingContext2D} ctx the HUD context (css px)
+ * @param {number} x the bar's left edge, css px
+ * @param {number} y the bar's top edge, css px
+ * @param {number} dist m along the road of the car's point
+ * @param {number} lap m in a lap of the road
+ */
+function drawProgress(ctx, x, y, dist, lap) {
+  if (LEVEL.endless) return;
+  const total = LEVEL.stage ? LEVEL.stage.finish : lap;
+  const share = Math.max(0, Math.min(1, dist / total));
+  ctx.save();
+  ctx.globalAlpha = OPACITY;
+  ctx.fillStyle = 'rgba(20,20,22,0.55)';
+  ctx.fillRect(x, y, SIZE, 4);
+  ctx.fillStyle = '#f26b3a';
+  ctx.fillRect(x, y, Math.max(2, SIZE * share), 4);
+  ctx.restore();
+}
+
+/**
  * Draws the minimap, when shown: road ahead, rivals, your car, progress. It gives way to the car
  * list and the tune panel, which open over the same place.
  * @param {CanvasRenderingContext2D} ctx the HUD context (css px)
@@ -222,9 +256,9 @@ function drawCarMark(ctx, carX, carY, heading) {
 export function drawHudMinimap(ctx, hud, rects, game, wallDt) {
   const sub = LEVEL.subtrack;
   if (!shownNow() || hud.expanded || hud.tuneOpen) return;
-  if (!sub || LEVEL.endless || !sub.pts || sub.pts.length < 2) return;
+  if (!sub || (LEVEL.endless && !onHighway) || !sub.pts || sub.pts.length < 2) return;
   if (mapState.level !== LEVEL) Object.assign(mapState, { level: LEVEL, idx: 0, heading: null });
-  const car = game.car, pts = sub.pts, closed = !LEVEL.stage;
+  const car = game.car, pts = sub.pts, closed = !LEVEL.stage && !LEVEL.endless;
   const idx = nearestPoint(pts, car.x, car.y);
   // the lead follows the direction of travel (the heading when nearly still), eased the short way
   const moving = Math.hypot(car.vx, car.vy) > 2;
@@ -257,14 +291,5 @@ export function drawHudMinimap(ctx, hud, rects, game, wallDt) {
   ctx.restore();
   drawCarMark(ctx, carX, carY, car.heading);
   ctx.restore();
-  ctx.save();
-  ctx.globalAlpha = OPACITY;
-  // progress: along the stage to the finish, or round the lap
-  const total = LEVEL.stage ? LEVEL.stage.finish : sub.totalDist;
-  const share = Math.max(0, Math.min(1, pts[idx].dist / total));
-  ctx.fillStyle = 'rgba(20,20,22,0.55)';
-  ctx.fillRect(x, y + SIZE + 5, SIZE, 4);
-  ctx.fillStyle = '#f26b3a';
-  ctx.fillRect(x, y + SIZE + 5, Math.max(2, SIZE * share), 4);
-  ctx.restore();
+  drawProgress(ctx, x, y + SIZE + 5, pts[idx].dist, sub.totalDist);
 }
