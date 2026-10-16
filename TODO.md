@@ -208,17 +208,16 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
          prefetch for the widest zoom; 87 % of a tile's cost was the ribbon (3.6 s) and the kerb
          teeth (3.4 s) traced for the WHOLE track per tile and clipped by the canvas. Longer-kept
          tiles REJECTED: with no cap lap 2 paints ~0, but a Brands lap is ~1650 tiles (~190 MB of
-         canvas + about as much again in GPU textures) - too much for the phone. GPU track
-         geometry (L) not needed unless the culled tiles still cost too much. OWNER CHOSE A:
-         each tile traces only the ribbon and kerbs that reach it (src/render/ribbon.ts).
-         A BUILT behind ?ribboncull=1 (owner phone test pending, testlist 'ribboncull'). Off =
-         the old paths (renderhash SAME). On: framecheck Brands tile 5.5 -> 3.3-3.4 ms (two runs
-         each), work median 19.0 -> 17.3 ms, frames over 33 ms 228-235 -> 146-174; race profile
-         (60 s) tile painting 5.5 -> 3.0 s, kerb teeth 2.1 -> 0.06 s, ribbon 1.6 -> 0.9 s.
-         Not bit-identical: Chrome's canvas picks its anti-aliasing method by a path's point
-         count, so a few road-edge pixels change shade (renderhash shots: 0.002-0.019 % of the
-         screen, the highway's straight edge 0.1 %: one device-pixel column, no seam). Kerbs
-         unchanged. On the owner's OK: the default.
+         canvas + about as much again in GPU textures) - too much for the phone.
+         TRIED AND UNDONE (8022db6, reverted): option A, each tile traced only the ribbon / kerbs
+         in it (span outlines clipped to the tile, Sutherland-Hodgman), behind ?ribboncull=1.
+         Laptop: tile 5.5 -> 3.4 ms, frames over 33 ms 228-235 -> 146-174; not bit-identical
+         (Chrome picks its anti-aliasing method by a path's point count: a few edge pixels).
+         OWNER ON THE PHONE: "the change seems to be making tracks judder" -> "fix it or undo
+         it": undone (cause not found; one run, Castle Cum, 0.43 % slow frames, 7 of 9 painting
+         tiles, no run without the switch to compare). Before a second try: a back-to-back phone
+         A/B (?report=1 with and without), and suspect the tile budget (TILE_MS 6 ms lets a frame
+         paint MORE cheaper tiles, each a GPU upload + mipmaps) and per-tile edge shading.
       3. Phase C GPU sprites -> one canvas -> delete the old tile machinery; then the menu video.
 - [ ] MENU VIDEO, if still wanted after the graphics update (owner: it must be a video of a race; the
       first take lagged on the phone): find why first (uneven frames from a real-time take? record

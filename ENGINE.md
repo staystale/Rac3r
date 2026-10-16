@@ -88,9 +88,6 @@ any cover (snow, ice, puddle) and the wear state of the cell.
   `tilesShade.ts` hill shading on a world grid). A missing tile shows the previous step's tile scaled.
 - `render/ground/` paints into tiles: `art.ts` the per-surface art table, `prims.ts` pattern primitives,
   `zones.ts`, `covers.ts` (puddles, snow), `wear.ts` (worn cells, bumps, runoff).
-- `render/ribbon.ts` paints the track ribbon (sector spans, white edge lines) and the curved kerbs into
-  tiles from world geometry built once per subtrack; with `?ribboncull=1` a tile traces only what reaches
-  it (span outlines clipped to the tile plus a margin).
 - `render/textures.ts`: each surface's pattern is painted once at `TEX_PPM` (the car sprites' pixel
   size), seamless, and filled scaled to the zoom.
 - Layers drawn each frame over the tiles: `road.ts` (lanes, kerbs, paint, slip roads), `marks.js`,

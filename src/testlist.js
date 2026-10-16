@@ -11,17 +11,6 @@ export const TEST_LIST = [
   // dirtroad, animals, labext, labsplit, zoomhold, gpupaint, minimap, zoomspring, grassgrip, hwmap,
   // cracktufts)
   {
-    id: 'ribboncull',
-    added: '2026-10-16',
-    name: 'Cheaper ground tiles: each tile draws only the road and kerbs inside it',
-    where: 'Link: ?ribboncull=1&report=1 - Brands Snatch with AI, then Castle Cum',
-    try:
-      'Race a few laps. Watch the road edges, kerbs and white lines while zooming in and out.',
-    wrong:
-      'A road edge, kerb or white line with a gap, a step or a seam at a tile edge; a kerb ' +
-      'tooth missing; the race feeling no smoother than without the switch.',
-  },
-  {
     id: 'straightoutta',
     added: '2026-10-15',
     name: 'Judder fix (skid-mark layer) + new highway step 1: Straight Outta Swindon',
