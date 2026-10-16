@@ -28,7 +28,7 @@ export interface Settings {
   menuVideo: boolean;            // ?menuvideo=1 (parked): the recorded race behind the menu
   grassGrip: boolean;            // grippier dry grass (surfaces.ts); ?grassgrip=0 = the old grip
   hwMap: boolean;                // the minimap on the highway too; ?hwmap=0 = not there
-  sharpCars: boolean;            // ?sharpcars=1: the cars on the screen canvas, crisp (render.ts)
+  sharpCars: boolean;            // crisp cars on the screen canvas (render.ts); ?sharpcars=0 off
   noShade: boolean;              // ?noshade: skip the hill shading (perf A/B)
   grassEnds: "round" | "square";   // ?grass=square: square grass blade ends (cheaper; A/B)
   surfaceTextures: boolean;       // ?tex=0: paint surfaces live, not pre-painted textures (A/B)
@@ -85,8 +85,9 @@ export function readSettings(search: string): Settings {
     grassGrip: params.get('grassgrip') !== '0',
     // default since 2026-10-16 (owner: "highway mini map approved")
     hwMap: params.get('hwmap') !== '0',
-    // ?sharpcars=1 (owner phone test pending): the cars turned and scaled at screen resolution
-    sharpCars: params.get('sharpcars') === '1',
+    // default since 2026-10-16 (owner: "the change seems to have worked"): the cars turned and
+    // scaled at screen resolution
+    sharpCars: params.get('sharpcars') !== '0',
     noShade: params.has('noshade'),
     grassEnds: params.get('grass') === 'square' ? 'square' : 'round',
     surfaceTextures: params.get('tex') !== '0',

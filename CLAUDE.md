@@ -4,7 +4,8 @@ Top-down, phone-first racing game. Native ES modules and HTML5 canvas. No bundle
 Run: `node serve.mjs`, open http://localhost:8080. Debug flags: `?dev=1`, `?seed=N`.
 
 Where things live:
-- `TODO.md` - the live queue. Start here.
+- `NOTES.md` - the standing notes: owner rules, decisions, measured lessons, the routine. Read first.
+- `TODO.md` - the live queue.
 - `ENGINE.md` - as-built reference. Search it; do not read it end to end.
 - `BRIEF.md`, `PLAN.md`, `SPECS-*.md` - design intent.
 - `src/testlist.js` - the in-game list of features awaiting a phone test.
@@ -25,6 +26,8 @@ Old versions of this file, with the full project history, are in git. Do not reb
 - Hand over major changes as soon as they work. Do not stack features on an untested change.
 - Keep `src/testlist.js` current. Each handed-over feature gets an entry in the same task.
 - Update `TODO.md` and the as-built docs in the same change as the code. Build docs never drift.
+- New owner rules, decisions and measured lessons go in `NOTES.md` (short, edited in place). Write
+  a handover document only when the owner asks for one.
 - The live folder is live. Never leave the game broken between two edits.
 - Hard is good, unfair is not. Anything invisible, unexplained or unavoidable that punishes the
   player is a bug.

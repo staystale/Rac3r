@@ -103,7 +103,7 @@ any cover (snow, ice, puddle) and the wear state of the cell.
   frame in world space at TEX_PPM texels per metre (the surface textures sampled per pixel, the tile
   palette applied by a lookup texture); `ground/zones.ts listGroundPatches` lists them, and the tiles
   then leave those fills transparent (`view.fillsOnGpu`).
-- Sharp cars (`?sharpcars=1`, render.ts `drawSharpCarLayers`): the cars on the full-resolution
+- Sharp cars (the default; `?sharpcars=0` = off; render.ts `drawSharpCarLayers`): the cars on the full-resolution
   screen canvas, not the art buffer. The art buffer under the cars is blitted, each car is painted
   facing +x into its own picture (`cars.ts paintCarPicture`, the same `drawPixelCar`, each sprite px
   a whole-number block) and turned and scaled onto the screen with smoothing; the art buffer then

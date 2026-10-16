@@ -1,7 +1,7 @@
 # RAC3R - open work
 
-New session? Read `CLAUDE.md`, then this file. Open items only: finished work is in the git history.
-Foreman taking over? Also read `docs/foreman-handover.md`.
+New session? Read `CLAUDE.md`, then `NOTES.md`, then this file. Open items only: finished work is in
+the git history. `docs/foreman-handover.md` is the last handover (10-16), written on request.
 
 ## Where we are
 
@@ -11,8 +11,8 @@ Foreman taking over? Also read `docs/foreman-handover.md`.
   step), `tools/renderhash.mjs` (pixels) - save the reference on the base commit, then compare.
 - Work is foremanned with Bigeon (worker PC + `node ../Bigeon/bin/bigeon.ts`); see `CLAUDE.md`.
 - Do not publish to itch.io until the owner approves the converted game.
-- HANDOVER: docs/foreman-handover.md (2026-10-16 evening) - read it first. Measure judder on the
-  owner's iPhone with ?report=1 and tools/phonereport.mjs, not only on the laptop.
+- NOTES.md holds the owner's rules, decisions and lessons (handovers only on request). Measure
+  judder on the owner's iPhone with ?report=1 and tools/phonereport.mjs, not only on the laptop.
 - JUDDER FIXED (owner phone runs 2026-10-15, ?report=1): the per-distance hitch of the highway
   and the Lab was marks.js re-centring its 26 MB skid-mark canvas (a new canvas + two full copies)
   each time the car was 136 m (0.45 x MARK_EXTENT) from the layer's centre, on levels that do not
@@ -228,7 +228,10 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
          the phone is not CPU-bound (our JS ~4 ms of 16.7), and shuttling pixels between the 2D
          canvas and WebGL every frame is what hurts on Safari. RULE: no per-frame copies between
          the 2D canvas and WebGL.
-         C2 NOW behind ?sharpcars=1 (owner phone test pending, testlist 'sharpcars'): the cars
+         C2 DONE, the DEFAULT since 2026-10-16 (?sharpcars=0 = the old art-buffer cars). OWNER
+         ON THE PHONE: "seems good, no major issues ... the change seems to have worked";
+         ?report=1 back to back on Castle Cum: draw 2 ms both, slow frames 0.05 % (2 / 4195)
+         with it against 0.25 % (12 / 4791) without. How it works: the cars
          drawn on the full-resolution SCREEN canvas (render.ts drawSharpCarLayers): the art
          buffer under the cars is blitted, each car painted facing +x into its own picture by
          drawPixelCar, each sprite px a whole-number block (cars.ts paintCarPicture), then
@@ -240,6 +243,10 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
          cause: the marks layer (MARK_PPM 4.2 px/m) stretched ~3.6x NEAREST into the art grid each
          frame, so a mark pixel is 3 or 4 art px wide by camera position. Fix on the screen
          canvas the same way (no GPU copy); propose after the sharp cars' phone test.
+- [ ] JOKER BUGS (owner, 2026-10-16; queued with the tyre marks): (1) the joker lap / joker section
+      does not show on the minimap (hud/minimap.js draws the main centreline only); (2) RESET in the
+      joker lane does nothing: it should put the car back on the joker lane where it came off, like
+      any other part of the track.
 - [ ] MENU VIDEO, if still wanted after the graphics update (owner: it must be a video of a race; the
       first take lagged on the phone): find why first (uneven frames from a real-time take? record
       from the deterministic runtime instead, frame by frame), test behind ?menuvideo=1 BEFORE it

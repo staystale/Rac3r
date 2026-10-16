@@ -9,20 +9,7 @@
 export const TEST_LIST = [
   // (approved late, deleted: fields, grassedge, catchthem, slipsdual, fps - TODO.md 1c;
   // dirtroad, animals, labext, labsplit, zoomhold, gpupaint, minimap, zoomspring, grassgrip, hwmap,
-  // cracktufts)
-  {
-    id: 'sharpcars',
-    added: '2026-10-16',
-    name: 'Sharp cars: crisp at any angle and zoom (mockup B), no GPU copy',
-    where: 'Link: ?sharpcars=1&report=1 - any race with AI, then the highway; lights on once',
-    try:
-      'Race a few laps, zoom in and out at speed, crash once, turn the lights on. Compare with ' +
-      'the plain link.',
-    wrong:
-      'A car blurry, jumping or juddering; a car over a bridge or gantry it should pass under; ' +
-      'skid marks, smoke or cones over a car; missing shadow, damage, lamps or beams; more ' +
-      'judder than the plain link.',
-  },
+  // cracktufts, sharpcars)
   {
     id: 'straightoutta',
     added: '2026-10-15',
