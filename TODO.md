@@ -34,7 +34,7 @@ Foreman taking over? Also read `docs/foreman-handover.md`.
   tile; session.js updateRecoveryTracking scans every point each sim step.
 - GRASS THROUGH THE CRACKS (owner: a and b, "like real life"): long-grass tufts in some
   broken-tarmac flecks, and scattered on broken-tarmac / concrete ground (blend.ts, own random
-  stream: every existing patch unchanged). Owner look pending (testlist 'cracktufts').
+  stream: every existing patch unchanged). OWNER APPROVED 2026-10-16 (testlist entry deleted).
 - Then: ground on the GPU phase C (cars, props as GPU sprites), one canvas, delete the old tile
   machinery. The GPU ground and the zoom hold are the default since 2026-10-16 (owner approved;
   ?gpupaint=0 / ?zoomhold=0 = the old paths). Frame pacing is done and default.
@@ -197,9 +197,11 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
 - [ ] PERFORMANCE (owner-agreed order 2026-10-16; see docs/foreman-handover.md "In progress").
       MEASURED (Brands, 4 AI, CPU x4): simulation ~59 % (wheel ground checks 2.7 s / 15 s, AI 1.7 s,
       physics 2.1 s), drawing ~38 % (ground tiles 1.8 s, kerb teeth 0.5 s, HUD 0.9 s).
+      ORDER (owner, 2026-10-16): the graphics work (2, 3) FIRST; the rest of 1 after it.
       1. Ground checks: near-hint search +-4 first (tyrewall.ts NEAR_FIRST): querySubtrackInto 0.96
          -> 0.33 s, applyGround 2.68 -> 2.13 s, simhash SAME - DONE. Next: fewer samples per step
-         behind ?groundlite=1 (lap-time proof). Height map rejected; off-screen AI half rate: ask.
+         behind ?groundlite=1 (lap-time proof). Height map rejected; off-screen AI half rate: ask
+         (owner asked for a clearer explanation, 2026-10-16).
       2. Ground tiles: measure GPU track geometry vs longer-kept painted tiles, then propose.
       3. Phase C GPU sprites -> one canvas -> delete the old tile machinery; then the menu video.
 - [ ] MENU VIDEO, if still wanted after the graphics update (owner: it must be a video of a race; the
@@ -223,10 +225,14 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
       0.360 = today's grass. Steady cornering on grass (surfacegrip, 60 km/h): hatch-rwd 0.43 ->
       0.62 g, rally-4x4 0.53 -> 0.60 g; tarmac unchanged.
       OWNER RULES: wet-weather tyres clear water from hard surfaces faster than normal tyres;
-      normal tyres take 3 passes to clear water / degrade it. Open questions to the owner: grass
-      0.47 ok; rain chosen in setup or random, changing mid-race; puddles in dips only, draining
-      after; the wet-grip table per surface. Order (owner): menu slowness, then grass, then the
-      graphics plan.
+      normal tyres take 3 passes to clear water / degrade it.
+      OWNER ANSWERS (2026-10-16): RAIN is chosen as WEATHER in the event setup before the start,
+      beside the AI choices (not random). PUDDLES may form anywhere, with a higher chance in dips
+      and a lower chance on hills (slopes / crests). GRIP when wet differs PER SURFACE, and water
+      also speeds up the degrading where it combines with a surface (gravel + water, snow + water,
+      and so on). Still to settle when the work starts: whether rain can change mid-race, how
+      puddles drain afterwards, the numbers of the wet-grip / wet-wear table (bring it as a
+      table to the owner). Order (owner, 2026-10-16): the agreed graphics work first, then this.
 
 ## GAME NAME: RAC3R (user, 2026-10-03)
 

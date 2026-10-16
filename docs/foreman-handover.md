@@ -72,8 +72,10 @@ the menu lag (the menu race is mostly simulation).
 
 **Waiting for the owner**
 - Rain and water (TODO "GRASS GRIP + WATER"): rules given (wet-weather tyres clear water from hard
-  surfaces faster; normal tyres take 3 passes to clear / degrade it). Open: rain chosen in setup or
-  random, changing mid-race; puddles in dips only, draining after; the wet-grip table per surface.
+  surfaces faster; normal tyres take 3 passes to clear / degrade it). Answered 10-16: rain is a
+  WEATHER choice in the event setup (beside the AI choices); puddles more likely in dips, less on
+  hills; wet grip and faster wear per surface combination (TODO "GRASS GRIP + WATER"). After the
+  graphics work (owner order 10-16: graphics 2 and 3 first, then the rest of 1, then rain).
 
 **Workflow that works (10-16)**
 - Work in a worktree, never the served clone: `git worktree add -q --detach ../rac3r-wt HEAD`, then a

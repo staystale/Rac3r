@@ -8,18 +8,8 @@
 //   where  how to get to it      try     what to do      wrong   what would count as a bug
 export const TEST_LIST = [
   // (approved late, deleted: fields, grassedge, catchthem, slipsdual, fps - TODO.md 1c;
-  // dirtroad, animals, labext, labsplit, zoomhold, gpupaint, minimap, zoomspring, grassgrip, hwmap)
-  {
-    id: 'cracktufts',
-    added: '2026-10-15',
-    name: 'Grass through the cracks: long-grass tufts on cracked tarmac and concrete',
-    where:
-      'Stock Car (the broken infield and turns), Thruston runways, the alpine rally stages',
-    try: 'Look for small dark-green tufts on cracked ground; drive over one.',
-    wrong:
-      'Grass on plain tarmac in the middle of a road, in a pit lane, too many / too few, or a ' +
-      'tuft that feels unfair (a big grip loss from a tiny patch).',
-  },
+  // dirtroad, animals, labext, labsplit, zoomhold, gpupaint, minimap, zoomspring, grassgrip, hwmap,
+  // cracktufts)
   {
     id: 'straightoutta',
     added: '2026-10-15',
