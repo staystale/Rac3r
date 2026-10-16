@@ -177,7 +177,7 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
       tile painting on the highway (today ~17-18 ms a tile against a 6 ms frame budget: the old highway
       judder). Measure tools/framecheck.mjs highway and brands-snatch before and after; phone test.
 
-- [x] MENU SLOWNESS (owner 2026-10-16: "the first load in of the game seems a bit heavy and slow and
+- [ ] MENU SLOWNESS (owner 2026-10-16: "the first load in of the game seems a bit heavy and slow and
       the menu while the background race happens can be a bit laggy / slow if tapped quickly").
       MEASURED (CPU x4, 844x390): menu usable after 7.7 s with one 5.5 s freeze; menu frames 53 ms
       (the live 5-car race took the whole CPU); TEST MODE tap 4.0 s (thumbnails: every level built
@@ -188,10 +188,16 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
       in the background while it plays; the nine rally stages are generated on first use
       (load.ts buildLevel; identical content, only tape run ids / key order differ, so worldhash
       lists them); trackKit's onLane uses a segment grid (worldhash SAME). After: menu usable 4.2 s,
-      biggest freeze 2.8 s, TEST MODE tap 0.32 s, menu frames 18 ms. Owner phone test pending
-      (does the MP4 play on the iPhone? Low Power Mode shows the still frame).
-- [ ] RE-RECORD THE MENU VIDEO after the graphics update (owner: do it after, it must be a video of a
-      race): node tools/menuvideo.mjs [seconds] [kbps] - then commit media/ (~3.7 MB a take).
+      biggest freeze 2.8 s, TEST MODE tap 0.32 s, menu frames 18 ms. OWNER ON THE PHONE: "the video
+      plays really slowly and laggy worse than the normal one and comes in part way thru ... wind
+      back you didn't get a test first" - the live race is back (recording parked behind
+      ?menuvideo=1); kept: light thumbnails (TEST MODE tap 4.0 -> 2.2 s live), stages on first use,
+      the lane grid. Owner: hopefully the graphics update helps the intro / menu lag; work on it
+      after if not.
+- [ ] MENU VIDEO, if still wanted after the graphics update (owner: it must be a video of a race; the
+      first take lagged on the phone): find why first (uneven frames from a real-time take? record
+      from the deterministic runtime instead, frame by frame), test behind ?menuvideo=1 BEFORE it
+      becomes the default. node tools/menuvideo.mjs [seconds] [kbps].
 - [ ] GRASS GRIP + WATER AS A TOP SURFACE (owner, 2026-10-16; not now, logged; DISCUSS FIRST: check
       the code, report whether it needs major changes, ask questions). Owner: grass, long grass too,
       feels slightly too slippy - it should become as slippery as it is now only when WET. Water /

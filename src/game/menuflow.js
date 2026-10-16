@@ -47,8 +47,8 @@ export function enterMenu() {
   shared.boot.classList.add('gone');
   shared.hud.close();
   shared.race.on = false;
-  // the recording behind the menu (menuvideo.js); ?menulive=1: the live race below
-  shared.menuVideo = !shared.settings.menuLive && showMenuVideo();
+  // ?menuvideo=1 (parked): the recording behind the menu (menuvideo.js); else the live race below
+  shared.menuVideo = shared.settings.menuVideo && showMenuVideo();
   if (shared.menuVideo) {
     setTimeout(paintThumbsSoon, THUMB_START_MS);
     return;

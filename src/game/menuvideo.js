@@ -1,13 +1,16 @@
 // menuvideo.js — THE MENU'S BACKGROUND RACE IS A RECORDING (owner, 2026-10-16: "can it just be a
-// recording not a live race?"). MEASURED (CPU x4, phone size): the live 5-car race behind the menu
-// took the whole CPU - 2.9 s of every 5 s on the sim and AI, 2.2 s drawing, frames 53 ms - so menu
-// taps waited behind it, and setting it up was 1.2 s of the first load. Now media/menu-race.mp4
-// plays behind the menu and the game neither steps nor draws (loop.js). ?menulive=1 keeps the live
-// race: tools/menuvideo.mjs records it from there, so a new look is one command away.
-// The file is fetched whole and played from a blob: Safari will not play a video from a server
-// that cannot answer byte-range requests (serve.mjs cannot), and a blob needs none. Until it has
-// loaded, and whenever a phone will not autoplay (iPhone Low Power Mode), the still frame
-// (media/menu-race.jpg, the poster) shows instead.
+// recording not a live race?"). PARKED behind ?menuvideo=1 (owner on the phone, 2026-10-16: "the
+// video plays really slowly and laggy worse than the normal one and comes in part way thru" - the
+// live race is back; revisit after the graphics update). MEASURED (CPU x4, phone size): the live
+// race behind the menu took the whole CPU - 2.9 s of every 5 s on the sim and AI, 2.2 s drawing,
+// frames 53 ms - so menu taps waited behind it, and setting it up was 1.2 s of the first load. Now
+// media/menu-race.mp4 plays behind the menu and the game neither steps nor draws (loop.js).
+// tools/menuvideo.mjs records the live race, so a new look is one command away. Suspects for the
+// lag: the take is recorded while the laptop draws the race in real time (uneven frames), and 3.8
+// MB comes over the tunnel first. The file is fetched whole and played from a blob: Safari will not
+// play a video from a server that cannot answer byte-range requests (serve.mjs cannot), and a blob
+// needs none. Until it has loaded, and whenever a phone will not autoplay (iPhone Low Power Mode),
+// the still frame (media/menu-race.jpg, the poster) shows instead.
 
 const VIDEO_URL = 'media/menu-race.mp4';
 const POSTER_URL = 'media/menu-race.jpg';

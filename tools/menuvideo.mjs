@@ -1,5 +1,5 @@
 // menuvideo.mjs — RECORD THE MENU'S BACKGROUND RACE (src/game/menuvideo.js plays it): the live menu
-// race (?menulive=1) is recorded from the game's own canvases, in the browser, to
+// race (the default menu) is recorded from the game's own canvases, in the browser, to
 // media/menu-race.mp4 (H.264, plays on an iPhone) plus media/menu-race.jpg, its still frame (the
 // poster: shown while the video loads, and in iPhone Low Power Mode). Run it again whenever the
 // game's look changes.
@@ -22,7 +22,7 @@ try {
   const page = await (await browser.newContext({ viewport: { width: W, height: H },
     deviceScaleFactor: 1 })).newPage();
   page.on('pageerror', (err) => console.log('page error:', err.message));
-  await page.goto(`${srv.url}/?menu=1&menulive=1&guide=0&rules=0`);
+  await page.goto(`${srv.url}/?menu=1&guide=0&rules=0`);
   await page.waitForTimeout(SETTLE_MS);
   const out = await page.evaluate(async ([seconds, kbps]) => {
     // the menu panel is DOM over the canvases: the recording sees only the race
