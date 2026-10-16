@@ -31,6 +31,7 @@ import { createTraffic } from './traffic.ts';
 import { setTuneAudio, snapshot } from './tune.js';
 import { TUNE } from './vehicle.ts';
 import { initWorld } from "./world/load.ts";
+import { applyGrassGrip } from "./world/surfaces.ts";
 import { LEVEL } from "./world/state.ts";
 
 import { LEVELS } from "./world/levels/index.ts";
@@ -49,6 +50,7 @@ addStageLevels();
 addHighwayLevel();
 
 shared.settings = readSettings(location.search);
+if (shared.settings.grassGrip) applyGrassGrip();   // ?grassgrip=1, under test (surfaces.ts)
 shared.DEV = shared.settings.dev;
 
 shared.canvas = document.getElementById('c');

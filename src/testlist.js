@@ -10,6 +10,18 @@ export const TEST_LIST = [
   // (approved late, deleted: fields, grassedge, catchthem, slipsdual, fps - TODO.md 1c;
   // dirtroad, animals, labext, labsplit, zoomhold, gpupaint, minimap, zoomspring)
   {
+    id: 'grassgrip',
+    added: '2026-10-16',
+    name: 'Grippier dry grass (&grassgrip=1); a puddle on grass feels like grass does today',
+    where: 'Grass at any level - Thruston infield, the Grass Track, The Rough Patch',
+    try:
+      'Drive on grass and long grass, compare with the plain link; then drive through a ' +
+      'puddle on grass (Sweaty Lamb has 33): it should feel like grass does today.',
+    wrong:
+      'Grass now too grippy (like dirt or tarmac), or no different, or a puddle on grass no ' +
+      'more slippery than dry grass.',
+  },
+  {
     id: 'cracktufts',
     added: '2026-10-15',
     name: 'Grass through the cracks: long-grass tufts on cracked tarmac and concrete',

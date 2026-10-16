@@ -8,7 +8,7 @@ import { readSettings } from '../src/core/settings.ts';
 const DEFAULTS = {
   dev: false, carId: null, aiCount: 0, aiDifficulty: 2, trafficDensity: 0.6, litter: null, menu: null,
   menuAi: 4, guide: null, rules: null, levelId: null, inputMode: 'auto', highwayDebug: null,
-  noLock: false, tilePx: 256, tileGpu: false, glGround: true, gpuPaint: true, zoomHold: true, minimap: true, menuVideo: false,
+  noLock: false, tilePx: 256, tileGpu: false, glGround: true, gpuPaint: true, zoomHold: true, minimap: true, menuVideo: false, grassGrip: false,
   noShade: false,
   grassEnds: 'round', surfaceTextures: true, meter: false, report: false, vsync: true, audio: true,
   autopilot: false, autopilotKmh: 0, noNatClear: false, churn: '', skipLayers: '',   // a Set is compared as its sorted names joined by ','
@@ -39,6 +39,8 @@ const TABLE = [
   ['?minimap', { minimap: true }],
   ['?menuvideo=1', { menuVideo: true }],
   ['?menuvideo', { menuVideo: false }],
+  ['?grassgrip=1', { grassGrip: true }],
+  ['?grassgrip', { grassGrip: false }],
   ['?minimap=0', { minimap: false }],
   ['?tilepx=abc', { tilePx: 256 }],
   ['?tilepx=0', { tilePx: 256 }],
