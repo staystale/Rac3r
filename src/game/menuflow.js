@@ -15,7 +15,7 @@ import { shared, game } from './state.js';
 import { minimapSetting, setMinimapSetting } from '../hud/minimap.js';
 
 /**
- * Works out whether the minimap shows (?minimap=1, under test; then the pause setting of the
+ * Works out whether the minimap shows (not with ?minimap=0; then the pause setting of the
  * current difficulty mode) into shared.minimapOn, which the HUD reads every frame.
  */
 export function refreshMinimap() {
@@ -136,7 +136,7 @@ export function openPause() {
     } : null,
     tests: game.testMode,   // the TESTING list (src/testlist.js) in the pause menu, test mode only
     audio: shared.audio,                  // the SOUND slider + MUTE (menu.js pause)
-    // the MINIMAP row (?minimap=1): this difficulty mode's setting, locked in REAL
+    // the MINIMAP row (none with ?minimap=0): this difficulty mode's setting, locked in REAL
     minimap: shared.settings.minimap ? {
       setting: () => minimapSetting(shared.aiDiff),
       set: (shown) => {

@@ -196,12 +196,13 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
 
 ## OWNER REQUESTS FOR LATER
 
-- [ ] MINIMAP (owner, 2026-10-15): an optional minimap on every track, toggled on / off; rally stages
-      most of all. OWNER CHOSE (2026-10-16, from mockups A whole track / B road ahead / C stage strip):
+- [x] MINIMAP (owner, 2026-10-15; OWNER APPROVED on the phone 2026-10-16, "mini map tests good":
+      the DEFAULT since then, ?minimap=0 = off): an optional minimap on every track, toggled on /
+      off; rally stages most of all. OWNER CHOSE (2026-10-16, from mockups A whole track / B road ahead / C stage strip):
       B, "the map should rotate with you so it's always clear which corner etc is next": a small
       round window (~120 px) top-left under the buttons, heading-up, the next ~330 m of road from
       the centreline, fading at the top, your car a chevron at the bottom, a thin progress bar under
-      it; subtle (no box, ~85 % opacity), drawn on the HUD, never touchable. BUILT behind ?minimap=1
+      it; subtle (no box, ~85 % opacity), drawn on the HUD, never touchable. BUILT (was behind ?minimap=1)
       (src/hud/minimap.js; owner phone test pending, testlist minimap). Pause menu MINIMAP row,
       remembered per difficulty mode: on in MOBILE / GAME, off in REALISH / RICH, locked off and
       greyed out in REAL (owner). Gives way to the car list / tune panel. The lab floors and the

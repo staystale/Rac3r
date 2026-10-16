@@ -62,7 +62,7 @@ export function setMinimapSetting(mode, shown) {
 
 // across frames: the matched centreline point and the eased heading (one HUD, one minimap)
 const mapState = { idx: 0, heading: null, level: null };
-// is it shown: main.js hands in the source (the ?minimap=1 switch, the mode, the pause setting)
+// is it shown: main.js hands in the source (?minimap=0, the mode, the pause setting)
 let shownNow = () => false;
 // the main view's css px per m (the camera zoom included)
 let viewScale = () => 20;

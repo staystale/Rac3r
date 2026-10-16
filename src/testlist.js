@@ -8,20 +8,7 @@
 //   where  how to get to it      try     what to do      wrong   what would count as a bug
 export const TEST_LIST = [
   // (approved late, deleted: fields, grassedge, catchthem, slipsdual, fps - TODO.md 1c;
-  // dirtroad, animals, labext, labsplit, zoomhold, gpupaint)
-  {
-    id: 'minimap',
-    added: '2026-10-16',
-    name: 'Minimap: the road ahead, facing the same way as the main view (&minimap=1)',
-    where: 'Any circuit, rallycross or rally stage, the plain link plus &minimap=1; pause menu ' +
-      'MINIMAP row',
-    try:
-      'Drive a rally stage and a circuit: is the next corner clear, is it out of the way? Toggle ' +
-      'it in pause; set REAL difficulty in a VS AI setup: the row is greyed out.',
-    wrong:
-      'Hard to read, in the way of a thumb or a button, the arrow not pointing where the car ' +
-      'points, the road wrong or missing at the start line, or on when the mode says off.',
-  },
+  // dirtroad, animals, labext, labsplit, zoomhold, gpupaint, minimap)
   {
     id: 'zoomspring',
     added: '2026-10-16',
