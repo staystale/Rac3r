@@ -10,6 +10,9 @@
 import { createGlPaint } from "./glpaint.ts";
 import type { GroundPatch, PaintCamera } from "./glpaint.ts";
 import { createGlShade } from "./glshade.ts";
+import { buildProgram } from "./glprogram.ts";
+import { createGlSprites } from "./glsprites.ts";
+import type { GlSprites } from "./glsprites.ts";
 import type { GlShade, ShadeRect } from "./glshade.ts";
 
 /** Where the ground pass draws: the 2D art buffer or the GPU canvas. CSS px of the view. */
@@ -86,30 +89,6 @@ void main() {
     mix(snappedTexel(first + ivec2(0, 1)), snappedTexel(first + ivec2(1, 1)), weight.x),
     weight.y);
 }`;
-
-/**
- * Compiles and links the ground shader program.
- * @param webgl the WebGL2 context
- * @returns the program
- */
-function buildProgram(webgl: WebGL2RenderingContext) {
-  const program = webgl.createProgram()!;
-  for (const [kind, source] of [[webgl.VERTEX_SHADER, VERTEX], [webgl.FRAGMENT_SHADER, FRAGMENT]] as
-      const) {
-    const shader = webgl.createShader(kind)!;
-    webgl.shaderSource(shader, source);
-    webgl.compileShader(shader);
-    if (!webgl.getShaderParameter(shader, webgl.COMPILE_STATUS)) {
-      throw new Error('ground shader: ' + webgl.getShaderInfoLog(shader));
-    }
-    webgl.attachShader(program, shader);
-  }
-  webgl.linkProgram(program);
-  if (!webgl.getProgramParameter(program, webgl.LINK_STATUS)) {
-    throw new Error('ground program: ' + webgl.getProgramInfoLog(program));
-  }
-  return program;
-}
 
 /**
  * A CSS colour as RGBA in 0..1, read once through a 1x1 2D canvas and cached.
@@ -307,13 +286,26 @@ function shadeCalls(shade: GlShade | null, state: SinkState) {
 }
 
 /**
+ * The GPU car drawer on the ground's context (?gpucars=1), or null when its program does not
+ * build (the cars then stay in the art buffer).
+ * @param webgl the WebGL2 context
+ * @param state the shared frame state
+ * @returns the drawer, or null
+ */
+function spritesOn(webgl: WebGL2RenderingContext, state: SinkState): GlSprites | null {
+  try { return createGlSprites(webgl, () => state.frame, state.counts); } catch { return null; }
+}
+
+/**
  * Creates the GPU ground under the screen canvas, or returns null when WebGL2 is not available
  * (the ground then stays in the 2D art buffer, as before).
  * @param screen the screen canvas
  * @param withPainter true to paint the floor and zones on the GPU too (glpaint.ts)
+ * @param withSprites true to draw the cars on the GPU too (glsprites.ts, ?gpucars=1)
  * @returns the GPU ground, or null
  */
-export function createGlGround(screen: HTMLCanvasElement, withPainter = false) {
+export function createGlGround(screen: HTMLCanvasElement, withPainter = false,
+    withSprites = false) {
   const canvas = document.createElement('canvas');
   canvas.id = 'glground';
   // preserveDrawingBuffer: the test tools read the finished frame back after it is shown. It looks
@@ -328,15 +320,13 @@ export function createGlGround(screen: HTMLCanvasElement, withPainter = false) {
   // wide-colour phone screen the browser may otherwise convert every texture and tile it uploads)
   webgl.pixelStorei(webgl.UNPACK_COLORSPACE_CONVERSION_WEBGL, webgl.NONE);
   let program: WebGLProgram;
-  try { program = buildProgram(webgl); } catch { return null; }
+  try { program = buildProgram(webgl, VERTEX, FRAGMENT, 'ground'); } catch { return null; }
   canvas.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;z-index:0;'
     + 'touch-action:none;pointer-events:none';
-  screen.style.position = 'relative';
-  screen.style.zIndex = '1';
+  Object.assign(screen.style, { position: 'relative', zIndex: '1' });
   screen.parentNode!.insertBefore(canvas, screen);
   const colours = new Map<string, number[]>();
-  const painter = withPainter
-    ? createGlPaint(webgl, (colour) => parseColour(colours, colour)) : null;
+  const painter = withPainter ? createGlPaint(webgl, (rgb) => parseColour(colours, rgb)) : null;
   const shade = withPainter ? createGlShade(webgl) : null;
   const state = newSinkState();
   canvas.addEventListener('webglcontextlost', () => { state.lost = true; });
@@ -364,6 +354,8 @@ export function createGlGround(screen: HTMLCanvasElement, withPainter = false) {
       state.painted = false;
       webgl.clear(webgl.STENCIL_BUFFER_BIT);
     },
+    // the GPU car drawer (glsprites.ts), or null: the cars stay in the art buffer
+    sprites: withSprites ? spritesOn(webgl, state) : null,
     /** true when the floor and zones are painted on the GPU (glpaint.ts) */
     get painting() { return !!painter; },
     /**

@@ -11,6 +11,19 @@ export const TEST_LIST = [
   // dirtroad, animals, labext, labsplit, zoomhold, gpupaint, minimap, zoomspring, grassgrip, hwmap,
   // cracktufts)
   {
+    id: 'gpucars',
+    added: '2026-10-16',
+    name: 'Cars drawn by the GPU: crisp at any angle and zoom (mockup B)',
+    where: 'Link: ?gpucars=1&report=1 - any race with AI, then the highway; lights on once',
+    try:
+      'Race a few laps, zoom in and out at speed, crash once, turn the lights on. Compare with ' +
+      'the plain link.',
+    wrong:
+      'A car blurry, jumping or juddering; a car over a bridge or gantry it should pass under; ' +
+      'skid marks, smoke or cones over a car; missing shadow, damage, lamps or beams; more ' +
+      'judder than the plain link.',
+  },
+  {
     id: 'straightoutta',
     added: '2026-10-15',
     name: 'Judder fix (skid-mark layer) + new highway step 1: Straight Outta Swindon',

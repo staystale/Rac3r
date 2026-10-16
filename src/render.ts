@@ -31,7 +31,8 @@ import { createGlGround } from "./render/glground.ts";
 import type { GlGround, GroundSink } from "./render/glground.ts";
 import type { ShadeRect } from "./render/glshade.ts";
 import type { GroundPatch, PaintCamera } from "./render/glpaint.ts";
-import type { Cam, CamCar, RenderGame, TileBudget, View } from "./render/types.ts";
+import type { Cam, CamCar, RenderCar, RenderGame, TileBudget, View } from "./render/types.ts";
+import { SPRITE_PPM } from "./render/shared.ts";
 
 // PPM is derived from the SHORT side of the viewport, so the car is a consistent fraction of the
 // screen everywhere (a flat PPM of 16 put a 4 m car at 64 px on a 1280 px desktop, too small
@@ -262,13 +263,15 @@ function drawEffects(ctx: RenderCtx, game: RenderGame, wallDt: number) {
 }
 
 /**
- * Draws the highway traffic, the AI cars, the player's car and the overhead props.
+ * Calls draw for every car to draw, back to front: the highway traffic near the view, the AI
+ * cars, then the player's.
  *
  * @param ctx the renderer context
  * @param game the game to draw
+ * @param draw draws one car
  */
-function drawCarLayers(ctx: RenderCtx, game: RenderGame) {
-  const { view, skip, drawPixelCar } = ctx;
+function forEachDrawnCar(ctx: RenderCtx, game: RenderGame, draw: (car: RenderCar) => void) {
+  const { view, skip } = ctx;
   // HIGHWAY TRAFFIC (traffic.js), only the ones near the view (they are spread over ~800 m),
   // under the AI and the player
   if (game.traffic && !skip('traffic')) {
@@ -277,14 +280,51 @@ function drawCarLayers(ctx: RenderCtx, game: RenderGame) {
       const screenX = ctx.toScreenX(car.x), screenY = ctx.toScreenY(car.y);
       if (screenX < -margin || screenX > view.W + margin
         || screenY < -margin || screenY > view.H + margin) continue;
-      drawPixelCar(car);
+      draw(car);
     }
   }
   // AI cars under the player's
-  if (!skip('ai')) for (const rival of game.ai || []) { drawPixelCar(rival.car); }
-  if (!skip('car')) drawPixelCar(game.car);
+  if (!skip('ai')) for (const rival of game.ai || []) draw(rival.car);
+  if (!skip('car')) draw(game.car);
+}
+
+/**
+ * Draws the highway traffic, the AI cars, the player's car and the overhead props.
+ *
+ * @param ctx the renderer context
+ * @param game the game to draw
+ */
+function drawCarLayers(ctx: RenderCtx, game: RenderGame) {
+  forEachDrawnCar(ctx, game, ctx.drawPixelCar);
   // overhead structures (gantry) pass OVER the cars
-  if (!skip('props')) ctx.drawProps(true);
+  if (!ctx.skip('props')) ctx.drawProps(true);
+}
+
+/**
+ * GPU CARS (?gpucars=1): the art buffer so far (everything under the cars) goes to the GPU canvas
+ * over the ground, each car's own picture is turned and scaled there at screen resolution
+ * (glsprites.ts), and the art buffer is cleared to carry only the overhead props, which the 2D
+ * blit then puts over the cars.
+ *
+ * @param ctx the renderer context
+ * @param game the game to draw
+ */
+function drawCarLayersOnGpu(ctx: RenderCtx, game: RenderGame) {
+  const { pcanvas, pctx } = ctx, sprites = ctx.gpu!.sprites!;
+  sprites.drawLayer(pcanvas);
+  const cssPerTexel = ctx.PPMz() / SPRITE_PPM;
+  forEachDrawnCar(ctx, game, (car) => {
+    const picture = ctx.paintCarPicture(car);
+    sprites.drawPicture(picture.canvas, {
+      x: ctx.toScreenX(car.x), y: ctx.toScreenY(car.y), angle: car.heading, cssPerTexel,
+      originX: picture.originX, originY: picture.originY,
+    });
+  });
+  pctx.save();
+  pctx.setTransform(1, 0, 0, 1, 0, 0);
+  pctx.clearRect(0, 0, pcanvas.width, pcanvas.height);
+  pctx.restore();
+  if (!ctx.skip('props')) ctx.drawProps(true);
 }
 
 /**
@@ -328,7 +368,8 @@ function drawFrame(ctx: RenderCtx, game: RenderGame, wallDt: number, wallT: numb
   beginGpuGround(ctx, lock);
   drawWorldLayers(ctx, game, wallDt, wallT);
   drawEffects(ctx, game, wallDt);
-  drawCarLayers(ctx, game);
+  if (ctx.state.gpuOn && ctx.gpu!.sprites) drawCarLayersOnGpu(ctx, game);
+  else drawCarLayers(ctx, game);
   blitWorld(ctx, lock);
   if (ctx.state.gpuOn) ctx.gpu!.end();
 }
@@ -597,11 +638,11 @@ function gpuHelpers(state: RenderState, gpu: GlGround | null) {
  * The GPU ground under the screen canvas, or null (?glground=0, or no WebGL2).
  *
  * @param canvas the screen canvas
- * @param settings the game settings (glGround, gpuPaint)
+ * @param settings the game settings (glGround, gpuPaint, gpuCars)
  * @returns the GPU ground, or null
  */
 function createGpuGround(canvas: HTMLCanvasElement, settings: Settings) {
-  return settings.glGround ? createGlGround(canvas, settings.gpuPaint) : null;
+  return settings.glGround ? createGlGround(canvas, settings.gpuPaint, settings.gpuCars) : null;
 }
 
 /**

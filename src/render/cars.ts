@@ -209,14 +209,15 @@ function drawCarLamps(carsCtx: CarsContext, car: RenderCar, sprite: CarSprite) {
  * Draw one car: shadow, wheels, body, punctured-wheel rims and lamps (or the rolled faces).
  * @param carsCtx the shared view and helpers
  * @param car the car
+ * @param heading the heading to draw it at, radians (0 for its own GPU picture)
  */
-function drawPixelCar(carsCtx: CarsContext, car: RenderCar) {
+function drawPixelCar(carsCtx: CarsContext, car: RenderCar, heading = car.heading) {
   const { view, PPMz, toScreenX, toScreenY, pixelCar, damagedSprite, silhouette } = carsCtx;
   const spec = car.spec, sp0 = pixelCar(spec),
     sprite = car.dmg ? damagedSprite(car, sp0) : sp0, scale = PPMz() / SPRITE_PPM;
   view.ctx.save();
   view.ctx.translate(toScreenX(car.x), toScreenY(car.y));
-  view.ctx.rotate(car.heading);
+  view.ctx.rotate(heading);
   view.ctx.scale(scale, scale);
   // shadow: a darker copy of the sprite, offset down-right by the car's ride height
   // (cars.js rideH)
@@ -296,17 +297,82 @@ function pixelCarWithWheels(carsCtx: CarsContext, spec: RenderCarSpec) {
   return out;
 }
 
+/** A car's own picture for the GPU (?gpucars=1): the canvas and the car's centre in it, px. */
+export interface CarPicture {
+  canvas: HTMLCanvasElement;
+  ctx: CanvasRenderingContext2D;
+  originX: number;
+  originY: number;
+}
+
+// how far the headlight beams reach ahead of the body and to each side, sprite px (drawHeadlights)
+const BEAM_AHEAD = 192, BEAM_SIDE = 38;
+// room round the body for the wheels, the shadow and the lamps, sprite px
+const PICTURE_PAD = 14;
+
+/**
+ * Paints one car facing along +x at sprite resolution into its own picture, with drawPixelCar
+ * itself (shadow, wheels, body, damage, lamps, a roll), for the GPU to turn and scale
+ * (glsprites.ts). The picture reaches the headlight beams when the lights are on. The origin
+ * sits so the sprite's pixels land on whole picture pixels (an exact copy).
+ * @param carsCtx the shared view and helpers
+ * @param car the car
+ * @param picture the car's picture, resized when needed
+ */
+function paintCarPicture(carsCtx: CarsContext, car: RenderCar, picture: CarPicture) {
+  const { view, pixelCar } = carsCtx;
+  const sprite = pixelCar(car.spec);
+  const pad = PICTURE_PAD + (car.roll && car.roll.phi ? sprite.Wp : 0);
+  const back = Math.ceil(sprite.Lp / 2 + pad);
+  const ahead = Math.ceil(sprite.Lp / 2 + pad + (car.lightsOn ? BEAM_AHEAD : 0));
+  const side = Math.ceil(Math.max(sprite.Wp / 2 + pad, car.lightsOn ? BEAM_SIDE : 0));
+  if (picture.canvas.width !== back + ahead || picture.canvas.height !== side * 2) {
+    picture.canvas.width = back + ahead;
+    picture.canvas.height = side * 2;
+    picture.ctx.imageSmoothingEnabled = false;
+  } else {
+    picture.ctx.clearRect(0, 0, picture.canvas.width, picture.canvas.height);
+  }
+  picture.originX = back + (sprite.Lp % 2) / 2;
+  picture.originY = side + (sprite.Wp % 2) / 2;
+  const local: CarsContext = {
+    ...carsCtx, PPMz: () => SPRITE_PPM, toScreenX: () => picture.originX,
+    toScreenY: () => picture.originY,
+  };
+  const keep = view.ctx;
+  view.ctx = picture.ctx;
+  try { drawPixelCar(local, car, 0); } finally { view.ctx = keep; }
+}
+
 /**
  * Create the cars layer.
  * @param view the view holding the canvas context
  * @param cam the camera (unused by the layer itself)
  * @param helpers the renderer and sprite-layer helpers
- * @returns drawPixelCar and pixelCarWithWheels
+ * @returns drawPixelCar, paintCarPicture and pixelCarWithWheels
  */
 export function createCars(view: View, cam: Cam, helpers: CarsHelpers) {
   const carsCtx: CarsContext = { view, ...helpers };
+  // each car's GPU picture, kept while the car lives (CPU-backed: WebGL uploads it with a copy)
+  const pictures = new WeakMap<RenderCar, CarPicture>();
   return {
     drawPixelCar: (car: RenderCar) => drawPixelCar(carsCtx, car),
+    /**
+     * Paints a car's GPU picture (?gpucars=1).
+     * @param car the car
+     * @returns the picture
+     */
+    paintCarPicture(car: RenderCar): CarPicture {
+      let picture = pictures.get(car);
+      if (!picture) {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true })!;
+        picture = { canvas, ctx, originX: 0, originY: 0 };
+        pictures.set(car, picture);
+      }
+      paintCarPicture(carsCtx, car, picture);
+      return picture;
+    },
     pixelCarWithWheels: (spec: RenderCarSpec) => pixelCarWithWheels(carsCtx, spec),
   };
 }

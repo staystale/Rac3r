@@ -219,6 +219,18 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
          A/B (?report=1 with and without), and suspect the tile budget (TILE_MS 6 ms lets a frame
          paint MORE cheaper tiles, each a GPU upload + mipmaps) and per-tile edge shading.
       3. Phase C GPU sprites -> one canvas -> delete the old tile machinery; then the menu video.
+         C1 MOCKUP (tools/scratch/carmock.html: A today, B GPU, C pre-turned pixel art /
+         RotSprite): OWNER CHOSE B ("looks lovely", accepted that it is not strict pixel art).
+         C2 BUILT behind ?gpucars=1 (owner phone test pending, testlist 'gpucars'): the art
+         buffer (everything under the cars) is uploaded each frame and drawn over the GPU ground
+         (whole art pixels), each car is painted facing +x into its own picture by drawPixelCar
+         (shadow, wheels, damage, lamps, beams, a roll) and turned / scaled by the GPU with the
+         sharp-pixel filter (src/render/glsprites.ts); overhead props and the HUD stay 2D above.
+         Shared shader builder moved to src/render/glprogram.ts (glpaint / glshade still have
+         their own copies: fold them in).
+         NEXT ASK (owner, 2026-10-16): "tyre marks seem to quiver, I think they always have" -
+         likely the same cause (the marks layer resampled into the art grid each frame); assess
+         and propose after C2's phone test.
 - [ ] MENU VIDEO, if still wanted after the graphics update (owner: it must be a video of a race; the
       first take lagged on the phone): find why first (uneven frames from a real-time take? record
       from the deterministic runtime instead, frame by frame), test behind ?menuvideo=1 BEFORE it

@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Car drawing mockup</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #111; color: #eee; font: 14px system-ui, sans-serif; }
+  body { display: flex; flex-direction: column; }
+  #panes { flex: 1; display: flex; flex-direction: column; gap: 4px; min-height: 0; }
+  @media (orientation: landscape) { #panes { flex-direction: row; } }
+  .pane { position: relative; flex: 1; min-height: 0; min-width: 0; }
+  .pane canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .tag { position: absolute; left: 8px; top: 6px; background: #000a; padding: 3px 8px; border-radius: 6px;
+    font-weight: 700; pointer-events: none; }
+  #bar { display: flex; flex-wrap: wrap; gap: 6px; padding: 6px 8px calc(6px + env(safe-area-inset-bottom)); }
+  #bar button { flex: 1; min-width: 64px; min-height: 40px; border: 0; border-radius: 8px; background: #2c2f36;
+    color: #eee; font: 600 14px system-ui, sans-serif; }
+  #bar button.on { background: #3fae8a; color: #08130f; }
+</style>
+</head>
+<body>
+<div id="panes">
+  <div class="pane"><canvas id="today"></canvas><div class="tag">A · TODAY (pixel layer)</div></div>
+  <div class="pane"><canvas id="gpu"></canvas><div class="tag">B · GPU (screen resolution)</div></div>
+  <div class="pane"><canvas id="rot"></canvas><div class="tag">C · PRE-TURNED PIXEL ART</div></div>
+</div>
+<div id="bar">
+  <button data-zoom="auto" class="on">zoom auto</button>
+  <button data-zoom="1">close</button>
+  <button data-zoom="0.55">middle</button>
+  <button data-zoom="0.3">far</button>
+  <button id="pause">pause</button>
+</div>
+<script type="module">
+// Car drawing mockup (phase C1): the same cars drawn three ways (C: pre-turned pixel art), side by side, with the camera
+// following the first car round a loop and the zoom gliding like the game's speed zoom.
+// A = today: each car drawn into the low-res art-pixel buffer (render.ts), camera snapped to whole
+// art pixels and the buffer blown up with a sub-pixel shift. B = the GPU: each car's picture (the
+// same pixels) turned and scaled straight onto the screen with the ground's sharp-pixel filter.
+import { makeCar } from '/src/vehicle.ts';
+import { createCarSprite } from '/src/render/carsprite.ts';
+import { SPRITE_PPM } from '/src/render/shared.ts';
+
+const MAX_DPR = 2, PIXEL_CSS = 1.3, PPM_MIN = 18, PPM_MAX = 26, PPM_DIV = 17, ZOOM_MIN = 0.3;
+const { pixelCar } = createCarSprite();
+
+// the car picture with its wheels (as the garage lift draws it) and its shadow
+function carPicture(id) {
+  const spec = makeCar(id).spec, sprite = pixelCar(spec);
+  const tyreL = spec.kind === 'track' ? 14 : 11, tyreW = spec.kind === 'track' ? 6 : 4;
+  const halfWidth = Math.max((spec.trackWidth || 1.5) / 2 * SPRITE_PPM, sprite.Wp / 2) + (spec.kind === 'track' ? 1 : 0);
+  const padY = Math.max(0, Math.ceil(halfWidth + 4 - sprite.Wp / 2));
+  const body = document.createElement('canvas');
+  body.width = sprite.c.width + 4; body.height = sprite.c.height + padY * 2;
+  const g = body.getContext('2d'), midX = body.width / 2, midY = body.height / 2;
+  for (const [axleX, side] of [[spec.lf, -1], [spec.lf, 1], [-spec.lr, -1], [-spec.lr, 1]]) {
+    const x = Math.round(midX + axleX * SPRITE_PPM), y = Math.round(midY + side * halfWidth);
+    g.fillStyle = '#16171c'; g.fillRect(x - tyreL / 2, y - tyreW / 2, tyreL, tyreW);
+    g.fillStyle = '#3a3d47'; g.fillRect(x - tyreL / 2 + 2, y - tyreW / 2, tyreL - 4, 1);
+    if (spec.rim) { g.fillStyle = spec.rim; g.fillRect(x - 2, y - 1, 4, 2); }
+  }
+  g.drawImage(sprite.c, Math.round(midX - sprite.c.width / 2), Math.round(midY - sprite.c.height / 2));
+  const shadow = document.createElement('canvas');
+  shadow.width = body.width; shadow.height = body.height;
+  const s = shadow.getContext('2d');
+  s.drawImage(body, 0, 0); s.globalCompositeOperation = 'source-in'; s.fillStyle = '#000'; s.fillRect(0, 0, shadow.width, shadow.height);
+  return { body, shadow, shOff: 2 + Math.round((spec.rideH || 0.13) * 10) };
+}
+const CARS = ['hatch-rwd', 'wrz-awd', 'track-rwd'].map((id, i) => ({ pic: carPicture(id), lag: i * 1.1 }));
+
+// a loop 60 x 36 m; car i runs `lag` seconds behind the first
+function poseAt(t) {
+  const a = t * 0.32, x = Math.cos(a) * 30, y = Math.sin(a) * 18;
+  const dx = -Math.sin(a) * 30, dy = Math.cos(a) * 18;
+  return { x, y, heading: Math.atan2(dy, dx) };
+}
+
+// ground: a world-anchored checker of two tarmac shades (4 m squares), so motion is visible
+function groundTile() {
+  const c = document.createElement('canvas'); c.width = c.height = 64;
+  const g = c.getContext('2d');
+  g.fillStyle = '#3b3e46'; g.fillRect(0, 0, 64, 64);
+  g.fillStyle = '#353840'; g.fillRect(0, 0, 32, 32); g.fillRect(32, 32, 32, 32);
+  return c;
+}
+const GROUND = groundTile();   // 64 px = 8 m
+
+let zoomMode = 'auto', paused = false, simT = 0, lastNow = performance.now();
+function zoomAt(t) {
+  if (zoomMode !== 'auto') return +zoomMode;
+  const phase = (Math.sin(t * 0.45) + 1) / 2;   // a slow glide close -> far -> close
+  return Math.exp(Math.log(1) + (Math.log(ZOOM_MIN) - Math.log(1)) * phase);
+}
+
+// ---- A and C: the pixel layer (render.ts): the world drawn into a low-res art-pixel buffer, the
+// camera snapped to whole art pixels, the buffer blown up with the sub-pixel remainder shifted
+function makePixelPane(id) {
+  const canvas = document.getElementById(id), ctx = canvas.getContext('2d');
+  const art = document.createElement('canvas');
+  return { canvas, ctx, art, artCtx: art.getContext('2d') };
+}
+const paneA = makePixelPane('today'), paneC = makePixelPane('rot');
+function drawPixelPane(pane, W, H, dpr, zoom, drawCar) {
+  const { canvas, ctx, art, artCtx } = pane;
+  const blockPx = Math.max(2, Math.round(PIXEL_CSS * dpr));
+  canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
+  art.width = Math.ceil(canvas.width / blockPx); art.height = Math.ceil(canvas.height / blockPx);
+  const artDpr = art.width / W, PPM = Math.max(PPM_MIN, Math.min(PPM_MAX, Math.min(W, H) / PPM_DIV));
+  const ppm = PPM * zoom, devPPM = ppm * artDpr;
+  const lead = poseAt(simT);
+  const halfW = art.width / 2, halfH = art.height / 2;
+  const camX = (Math.round(lead.x * devPPM - halfW) + halfW) / devPPM;
+  const camY = (Math.round(lead.y * devPPM - halfH) + halfH) / devPPM;
+  const subX = -(lead.x - camX) * devPPM * blockPx, subY = -(lead.y - camY) * devPPM * blockPx;
+  artCtx.setTransform(artDpr, 0, 0, artDpr, 0, 0);
+  artCtx.imageSmoothingEnabled = false;
+  const sx = (wx) => (wx - camX) * ppm + W / 2, sy = (wy) => (wy - camY) * ppm + H / 2;
+  // ground (in the game it is on the GPU; here the same pattern in the layer, for reference)
+  const pat = artCtx.createPattern(GROUND, 'repeat');
+  pat.setTransform(new DOMMatrix().translate(sx(0), sy(0)).scale(8 * ppm / 64));
+  artCtx.fillStyle = pat; artCtx.fillRect(0, 0, W, H);
+  for (const car of [...CARS].reverse()) {
+    drawCar(artCtx, car, poseAt(simT - car.lag), sx, sy, ppm, artDpr);
+  }
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(art, subX, subY, art.width * blockPx, art.height * blockPx);
+}
+// A: today - the picture turned and scaled by the canvas, nearest pixel, every frame
+function drawCarToday(artCtx, car, p, sx, sy, ppm) {
+  const pic = car.pic, scale = ppm / SPRITE_PPM;
+  artCtx.save();
+  artCtx.translate(sx(p.x), sy(p.y)); artCtx.rotate(p.heading); artCtx.scale(scale, scale);
+  artCtx.globalAlpha = 0.3;
+  artCtx.drawImage(pic.shadow, -pic.body.width / 2 + pic.shOff, -pic.body.height / 2 + pic.shOff);
+  artCtx.globalAlpha = 1;
+  artCtx.drawImage(pic.body, -pic.body.width / 2, -pic.body.height / 2);
+  artCtx.restore();
+}
+
+// C: PRE-TURNED PIXEL ART (RotSprite): the picture enlarged 8x with Scale2x three times (keeps
+// diagonals clean), then for each art pixel of the turned, scaled car the MOST COMMON colour of
+// 4 x 4 samples in its footprint. Cached per angle step and per car length in art pixels, and
+// drawn on whole art pixels, so the car is the same picture every frame until it turns a step.
+const ANGLE_STEPS = 64, SAMPLES = 4;
+let buildsLeft = 1;   // new pictures this frame
+function scale2x(src, w, h) {
+  const out = new Uint32Array(w * h * 4), W2 = w * 2;
+  const at = (x, y) => src[Math.min(h - 1, Math.max(0, y)) * w + Math.min(w - 1, Math.max(0, x))];
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const P = at(x, y), A = at(x, y - 1), B = at(x + 1, y), C = at(x - 1, y), D = at(x, y + 1);
+    const o = y * 2 * W2 + x * 2;
+    out[o] = C === A && C !== D && A !== B ? A : P;
+    out[o + 1] = A === B && A !== C && B !== D ? B : P;
+    out[o + W2] = D === C && D !== B && C !== A ? C : P;
+    out[o + W2 + 1] = B === D && B !== A && D !== C ? D : P;
+  }
+  return out;
+}
+function enlarge8(canvas) {
+  const g = canvas.getContext('2d'), w = canvas.width, h = canvas.height;
+  let px = new Uint32Array(g.getImageData(0, 0, w, h).data.buffer.slice(0));
+  for (let i = 0; i < px.length; i++) if ((px[i] >>> 24) < 128) px[i] = 0;   // hard alpha
+  let cw = w, ch = h;
+  for (let k = 0; k < 3; k++) { px = scale2x(px, cw, ch); cw *= 2; ch *= 2; }
+  return { px, w: cw, h: ch };
+}
+function turnedPicture(big, srcW, srcH, angle, scale) {
+  // scale = art px per sprite texel; output box of the turned picture, in art px
+  const c = Math.cos(angle), s = Math.sin(angle);
+  const outW = Math.ceil((Math.abs(srcW * c) + Math.abs(srcH * s)) * scale) + 2;
+  const outH = Math.ceil((Math.abs(srcW * s) + Math.abs(srcH * c)) * scale) + 2;
+  const canvas = document.createElement('canvas'); canvas.width = outW; canvas.height = outH;
+  const g = canvas.getContext('2d'), img = g.createImageData(outW, outH);
+  const out = new Uint32Array(img.data.buffer), samples = new Uint32Array(SAMPLES * SAMPLES);
+  for (let oy = 0; oy < outH; oy++) for (let ox = 0; ox < outW; ox++) {
+    let n = 0, same = true;
+    for (let j = 0; j < SAMPLES; j++) for (let i = 0; i < SAMPLES; i++) {
+      // the sample in the output, relative to the centre, turned back into the picture
+      const dx = (ox + (i + 0.5) / SAMPLES - outW / 2) / scale;
+      const dy = (oy + (j + 0.5) / SAMPLES - outH / 2) / scale;
+      const u = dx * c + dy * s + srcW / 2, v = -dx * s + dy * c + srcH / 2;
+      const bx = Math.floor(u * 8), by = Math.floor(v * 8);
+      const colour = bx < 0 || by < 0 || bx >= big.w || by >= big.h ? 0 : big.px[by * big.w + bx];
+      if (n && colour !== samples[0]) same = false;
+      samples[n++] = colour;
+    }
+    if (same) { out[oy * outW + ox] = samples[0]; continue; }
+    // the most common colour (a tie goes to the opaque one)
+    let best = 0, bestN = -1;
+    for (let a = 0; a < n; a++) {
+      let count = 0;
+      for (let b = 0; b < n; b++) if (samples[b] === samples[a]) count++;
+      if (count > bestN || (count === bestN && samples[a] !== 0)) { best = samples[a]; bestN = count; }
+    }
+    out[oy * outW + ox] = best;
+  }
+  g.putImageData(img, 0, 0);
+  return canvas;
+}
+for (const car of CARS) {
+  car.bigBody = enlarge8(car.pic.body); car.turned = new Map();
+}
+function drawCarTurned(artCtx, car, p, sx, sy, ppm, artDpr) {
+  const pic = car.pic;
+  const step = ((Math.round(p.heading / (2 * Math.PI) * ANGLE_STEPS) % ANGLE_STEPS) + ANGLE_STEPS) % ANGLE_STEPS;
+  const angle = step * 2 * Math.PI / ANGLE_STEPS;
+  // the size bucket: the car's length in whole art pixels
+  const lengthPx = Math.max(4, Math.round(pic.body.width * ppm * artDpr / SPRITE_PPM));
+  const scale = lengthPx / pic.body.width, key = step + '|' + lengthPx;
+  let entry = car.turned.get(key);
+  if (!entry && buildsLeft > 0) {
+    // at most one new picture a frame; the shadow is the turned body's silhouette
+    buildsLeft--;
+    const body = turnedPicture(car.bigBody, pic.body.width, pic.body.height, angle, scale);
+    const shadow = document.createElement('canvas'); shadow.width = body.width; shadow.height = body.height;
+    const g = shadow.getContext('2d');
+    g.drawImage(body, 0, 0); g.globalCompositeOperation = 'source-in'; g.fillStyle = '#000'; g.fillRect(0, 0, body.width, body.height);
+    entry = { body, shadow, scale };
+    car.turned.set(key, entry);
+  }
+  if (!entry) {
+    // not built yet: the nearest size already built at this angle, else today's way this frame
+    for (let d = 1; d < 40 && !entry; d++) entry = car.turned.get(step + '|' + (lengthPx - d)) || car.turned.get(step + '|' + (lengthPx + d));
+    if (!entry) { drawCarToday(artCtx, car, p, sx, sy, ppm); return; }
+  }
+  const cx = Math.round(sx(p.x) * artDpr), cy = Math.round(sy(p.y) * artDpr);
+  const off = pic.shOff * entry.scale, c = Math.cos(angle), s = Math.sin(angle);
+  artCtx.save();
+  artCtx.setTransform(1, 0, 0, 1, 0, 0);
+  artCtx.globalAlpha = 0.3;
+  artCtx.drawImage(entry.shadow, Math.round(cx + off * c - off * s - entry.shadow.width / 2),
+    Math.round(cy + off * s + off * c - entry.shadow.height / 2));
+  artCtx.globalAlpha = 1;
+  artCtx.drawImage(entry.body, Math.round(cx - entry.body.width / 2), Math.round(cy - entry.body.height / 2));
+  artCtx.restore();
+}
+
+// ---- B: the GPU, screen resolution, sharp-pixel filter (glground.ts), mipmaps when shrunk
+const canvasB = document.getElementById('gpu');
+const gl = canvasB.getContext('webgl2', { premultipliedAlpha: true, antialias: false });
+const VS = `#version 300 es
+in vec2 corner;
+uniform vec2 screen, centre, halfSize; uniform float angle;
+out vec2 uv;
+void main() {
+  uv = corner * 0.5 + 0.5;
+  vec2 local = corner * halfSize, c = vec2(cos(angle), sin(angle));
+  vec2 pos = centre + vec2(local.x * c.x - local.y * c.y, local.x * c.y + local.y * c.x);
+  gl_Position = vec4(pos / screen * 2.0 - 1.0, 0.0, 1.0) * vec4(1.0, -1.0, 1.0, 1.0);
+}`;
+const FS = `#version 300 es
+precision highp float;
+in vec2 uv; uniform sampler2D tex; uniform vec2 texSize, span, texOffset; uniform float scale, alpha;
+out vec4 colour;
+void main() {
+  vec2 texel = uv * span + texOffset;
+  if (scale < 1.0) { colour = texture(tex, texel / texSize) * alpha; return; }
+  vec2 base = floor(texel), centre = fract(texel) - 0.5, region = vec2(0.5 - 0.5 / scale);
+  vec2 offset = (centre - clamp(centre, -region, region)) * scale + 0.5;
+  colour = texture(tex, (base + offset) / texSize) * alpha;
+}`;
+function shader(type, src) { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s);
+  if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s)); return s; }
+const prog = gl.createProgram();
+gl.attachShader(prog, shader(gl.VERTEX_SHADER, VS)); gl.attachShader(prog, shader(gl.FRAGMENT_SHADER, FS));
+gl.linkProgram(prog); gl.useProgram(prog);
+const U = {}; for (const n of ['screen', 'centre', 'halfSize', 'angle', 'tex', 'texSize', 'scale', 'alpha', 'texOffset', 'span'])
+  U[n] = gl.getUniformLocation(prog, n);
+const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+const loc = gl.getAttribLocation(prog, 'corner'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+function upload(canvas, repeat) {
+  const t = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, t);
+  gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, canvas);
+  gl.generateMipmap(gl.TEXTURE_2D);
+  const wrap = repeat ? gl.REPEAT : gl.CLAMP_TO_EDGE;
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, wrap); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, wrap);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+  return { t, w: canvas.width, h: canvas.height };
+}
+const groundTex = upload(GROUND, true);
+for (const car of CARS) { car.bodyTex = upload(car.pic.body); car.shadowTex = upload(car.pic.shadow); }
+function quad(tex, cx, cy, halfW, halfH, angle, scale, alpha, texOffset = [0, 0], span = [tex.w, tex.h]) {
+  gl.bindTexture(gl.TEXTURE_2D, tex.t);
+  gl.uniform2f(U.centre, cx, cy); gl.uniform2f(U.halfSize, halfW, halfH); gl.uniform1f(U.angle, angle);
+  gl.uniform2f(U.texSize, tex.w, tex.h); gl.uniform2f(U.span, span[0], span[1]); gl.uniform1f(U.scale, scale); gl.uniform1f(U.alpha, alpha);
+  gl.uniform2f(U.texOffset, texOffset[0], texOffset[1]);
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+}
+function drawGpu(W, H, dpr, zoom) {
+  canvasB.width = Math.round(W * dpr); canvasB.height = Math.round(H * dpr);
+  gl.viewport(0, 0, canvasB.width, canvasB.height);
+  gl.uniform2f(U.screen, canvasB.width, canvasB.height); gl.uniform1i(U.tex, 0);
+  const PPM = Math.max(PPM_MIN, Math.min(PPM_MAX, Math.min(W, H) / PPM_DIV)), devPPM = PPM * zoom * dpr;
+  const lead = poseAt(simT);
+  const sx = (wx) => (wx - lead.x) * devPPM + canvasB.width / 2, sy = (wy) => (wy - lead.y) * devPPM + canvasB.height / 2;
+  // ground: one quad over the screen, the pattern sampled in world space (8 m per 64 texels)
+  const texPerDev = 64 / (8 * devPPM);
+  const left = (0 - sx(0)) * texPerDev, top = (0 - sy(0)) * texPerDev;
+  quad(groundTex, canvasB.width / 2, canvasB.height / 2, canvasB.width / 2, canvasB.height / 2, 0, 1 / texPerDev, 1,
+    [left, top], [canvasB.width * texPerDev, canvasB.height * texPerDev]);
+  for (const car of [...CARS].reverse()) {
+    const p = poseAt(simT - car.lag), pic = car.pic, devPerTexel = devPPM / SPRITE_PPM;
+    const halfW = pic.body.width / 2 * devPerTexel, halfH = pic.body.height / 2 * devPerTexel;
+    const off = pic.shOff * devPerTexel, c = Math.cos(p.heading), s = Math.sin(p.heading);
+    quad(car.shadowTex, sx(p.x) + off * c - off * s, sy(p.y) + off * s + off * c, halfW, halfH, p.heading, devPerTexel, 0.3);
+    quad(car.bodyTex, sx(p.x), sy(p.y), halfW, halfH, p.heading, devPerTexel, 1);
+  }
+}
+
+function frame(now) {
+  if (!paused) simT += Math.min(0.05, (now - lastNow) / 1000);
+  lastNow = now;
+  const dpr = Math.min(MAX_DPR, devicePixelRatio || 1), zoom = zoomAt(simT);
+  buildsLeft = 1;
+  drawPixelPane(paneA, paneA.canvas.clientWidth, paneA.canvas.clientHeight, dpr, zoom, drawCarToday);
+  drawPixelPane(paneC, paneC.canvas.clientWidth, paneC.canvas.clientHeight, dpr, zoom, drawCarTurned);
+  drawGpu(canvasB.clientWidth, canvasB.clientHeight, dpr, zoom);
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+for (const b of document.querySelectorAll('[data-zoom]')) b.onclick = () => {
+  zoomMode = b.dataset.zoom;
+  for (const o of document.querySelectorAll('[data-zoom]')) o.classList.toggle('on', o === b);
+};
+document.getElementById('pause').onclick = (e) => { paused = !paused; e.target.classList.toggle('on', paused); };
+window.__mock = { setTime: (t) => { simT = t; }, pause: (v) => { paused = v; } };
+</script>
+</body>
+</html>

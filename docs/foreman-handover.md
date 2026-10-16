@@ -70,7 +70,9 @@ the menu lag (the menu race is mostly simulation).
    tiles, ~190 MB). Option A (each tile traces only its part, ?ribboncull=1, 8022db6) made tracks
    judder on the owner's phone and was REVERTED - see TODO before trying again.
 3. Phase C: cars, props, marks, particles as GPU sprites, then one canvas, then delete the old tile
-   machinery. Then re-record the menu video and re-check the menu lag.
+   machinery. Then re-record the menu video and re-check the menu lag. 10-16: the owner chose look
+   B (cars turned at screen resolution, not strict pixel art) from tools/scratch/carmock.html; C2
+   (cars) is behind ?gpucars=1 (glsprites.ts). Owner asked next: tyre marks quiver.
 
 **Waiting for the owner**
 - Rain and water (TODO "GRASS GRIP + WATER"): rules given (wet-weather tyres clear water from hard
