@@ -11,7 +11,7 @@ Foreman taking over? Also read `docs/foreman-handover.md`.
   step), `tools/renderhash.mjs` (pixels) - save the reference on the base commit, then compare.
 - Work is foremanned with Bigeon (worker PC + `node ../Bigeon/bin/bigeon.ts`); see `CLAUDE.md`.
 - Do not publish to itch.io until the owner approves the converted game.
-- HANDOVER: docs/foreman-handover.md (2026-10-15 evening) - read it first. Measure judder on the
+- HANDOVER: docs/foreman-handover.md (2026-10-16 evening) - read it first. Measure judder on the
   owner's iPhone with ?report=1 and tools/phonereport.mjs, not only on the laptop.
 - JUDDER FIXED (owner phone runs 2026-10-15, ?report=1): the per-distance hitch of the highway
   and the Lab was marks.js re-centring its 26 MB skid-mark canvas (a new canvas + two full copies)
@@ -194,6 +194,14 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
       ?menuvideo=1); kept: light thumbnails (TEST MODE tap 4.0 -> 2.2 s live), stages on first use,
       the lane grid. Owner: hopefully the graphics update helps the intro / menu lag; work on it
       after if not.
+- [ ] PERFORMANCE (owner-agreed order 2026-10-16; see docs/foreman-handover.md "In progress").
+      MEASURED (Brands, 4 AI, CPU x4): simulation ~59 % (wheel ground checks 2.7 s / 15 s, AI 1.7 s,
+      physics 2.1 s), drawing ~38 % (ground tiles 1.8 s, kerb teeth 0.5 s, HUD 0.9 s).
+      1. Ground checks: near-hint search +-4 first (tyrewall.ts NEAR_FIRST): querySubtrackInto 0.96
+         -> 0.33 s, applyGround 2.68 -> 2.13 s, simhash SAME - DONE. Next: fewer samples per step
+         behind ?groundlite=1 (lap-time proof). Height map rejected; off-screen AI half rate: ask.
+      2. Ground tiles: measure GPU track geometry vs longer-kept painted tiles, then propose.
+      3. Phase C GPU sprites -> one canvas -> delete the old tile machinery; then the menu video.
 - [ ] MENU VIDEO, if still wanted after the graphics update (owner: it must be a video of a race; the
       first take lagged on the phone): find why first (uneven frames from a real-time take? record
       from the deterministic runtime instead, frame by frame), test behind ?menuvideo=1 BEFORE it
@@ -243,7 +251,8 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
       remembered per difficulty mode: on in MOBILE / GAME / REALISH (owner 2026-10-16: REALISH, the
       default difficulty, counts as easy), off in RICH, locked off and greyed out in REAL (owner). Gives way to the car list / tune panel. The lab floors and the
       endless highway have none - until the owner asked: "highway levels should have a minimap
-      too": behind ?hwmap=1 (testlist hwmap), road ahead, no progress bar.
+      too": road ahead, no progress bar. OWNER APPROVED ("highway mini map approved"), the DEFAULT
+      since 2026-10-16 (?hwmap=0 = not there).
       Owner: "the mini map should zoom in n out with the camera / car speed": its scale is the main
       view's / 30, so ~140 m ahead fully zoomed in, ~450 m fully out, following the camera's zoom.
       Owner: "the car on the mini map should face the same direction as the actual car, the road

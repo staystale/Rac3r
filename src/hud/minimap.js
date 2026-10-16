@@ -7,8 +7,8 @@
 // where the car points, rivals in the window are dots, and a thin bar under it is the stage / lap
 // progress. No box, see-through,
 // never touchable. Levels without a road (the lab floors) get none; the endless highway shows the
-// road ahead without a progress bar (?hwmap=1, under test; owner: "highway levels should have a
-// minimap too").
+// road ahead without a progress bar (owner: "highway levels should have a minimap too"; approved;
+// ?hwmap=0 = not there).
 // ON / OFF lives in the pause menu, remembered per difficulty mode: on in MOBILE, GAME and REALISH,
 // off in RICH, and locked off in REAL (owner).
 
@@ -67,8 +67,8 @@ export function setMinimapSetting(mode, shown) {
 const mapState = { idx: 0, heading: null, level: null };
 // is it shown: main.js hands in the source (?minimap=0, the mode, the pause setting)
 let shownNow = () => false;
-// the endless highway too (?hwmap=1, under test)
-let onHighway = false;
+// the endless highway too (?hwmap=0: not there)
+let onHighway = true;
 // the main view's css px per m (the camera zoom included)
 let viewScale = () => 20;
 
@@ -81,7 +81,7 @@ export function setMinimapSource(source) {
 }
 
 /**
- * Lets the minimap show on the endless highway (?hwmap=1, under test).
+ * Lets the minimap show on the endless highway (the default; ?hwmap=0 = not there).
  * @param {boolean} allowed shown there too
  */
 export function setMinimapHighway(allowed) {

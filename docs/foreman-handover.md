@@ -1,7 +1,7 @@
 # Foreman handover
 
 For the next foreman (a Claude session) taking over RAC3R. Read `CLAUDE.md`, then `TODO.md` ("Where we
-are"), then this page. `ENGINE.md` is the architecture map. Last updated 2026-10-15 (evening).
+are"), then this page. `ENGINE.md` is the architecture map. Last updated 2026-10-16 (evening).
 
 ## READ FIRST: the owner's phone is the yardstick
 
@@ -21,89 +21,86 @@ felt worse on the phone. So:
   "HIGHWAY JUDDER" (10-13) and this page. The owner had to point out twice on 10-15 that a test had been
   done before (memory churn, sound).
 
-## Where things stand (2026-10-15 evening)
+## Where things stand (2026-10-16 evening)
 
-**Judder - what is known**
-- FIXED (default): **frame pacing** (`src/game/pacing.ts`, `?vsync=0` = off). Safari reports frame times
-  rounded to whole ms (16 / 17 / 18, pairs like 24 + 10) while the display runs 16.68 ms; the game moved
-  the world unevenly = the constant fine "texture dance" on every level, the 10-08 original too. Owner:
-  better.
-- KNOWN, outside our code: **Safari's touch processing** costs frames (10-13: a bare page with fingers
-  dragging 64 drops a minute, the game's handling 22, without the extra touch blockers 11, no fingers 0;
-  sound was ruled out then). Playing from the **home screen roughly halves** the slow frames (10-15). The
-  owner does NOT want an app wrapper for now.
-- On the phone our code is ~1 ms sim + ~3 ms draw a frame. Slow frames on 10-15 (home screen, GPU path):
-  Lab ~0.2-0.5 %, highway ~0.5 %.
-- **The per-distance hitch - CAUSE FOUND, fix pending the owner's phone run.** The highway hitched about
-  every 140-170 m of new road (any speed, hands-off, with drawing switched off on 10-13). The empty
-  Swindon straight did it too: one frame ~12 ms late every 3.5 s = **136 m** at 140 km/h, our JS 1-3 ms.
-  136 m = 0.45 x MARK_EXTENT: `marks.js` re-centred its 2537 x 2537 (26 MB) skid-mark canvas (a new
-  canvas + two full copies, deferred by Safari to between frames) whenever the car was 136 m from the
-  layer's centre - only on levels that do not fit the layer (the highway, the Lab rectangle, the
-  straight); circuits never, which is why they and the owner's RX run drop 0. Now a wrap-around layer
-  (no copy, no allocation). If the owner's run still shows a 136 m rhythm, this was not it.
-- `preserveDrawingBuffer: true` on the WebGL canvas is NEEDED on the iPhone (off: Lab 0.6 % slow, on:
-  0.37 %; owner "better"). Do not optimise it away again.
+**The plain test link is the approved game** (owner rule, 10-16). A change the owner has not yet tried
+on the phone goes behind a `?switch` - EVEN ONE THE OWNER ASKED FOR DIRECTLY (the menu recording went
+straight to the plain link, lagged on the phone, and had to be wound back: "you didn't get a test
+first"). On the owner's OK it becomes the default the same day, `=0` keeps the old path, and the
+testlist entry is deleted with the verdict noted in TODO.md. Links given to the owner: the plain
+tunnel link plus only the switch under test (`&report=1` for a measured run).
 
-**Decided, in progress: a NEW HIGHWAY built from the ground up, phone-measured at every step** (owner,
-10-13 and again 10-15). Bisect by construction: step 1 an empty endless straight; then terrain + shading,
-props and fences, fields, traffic; the step where the per-distance hitch appears is the cause. The new
-streaming must do its per-chunk work in small even slices.
-- **Step 1 status: WORKS, registered, OWNER PHONE TEST PENDING.** `src/world/levels/straight-outta.ts`
-  ("Straight Outta Swindon": a 30 km straight on grass running north like the old highway, built
-  once, ghost return segment, the floor a strip 200 m round the road; zoneAt now treats a road with
-  no sectors as tarmac - the first phone run drove on grass under a tarmac picture). The 10 fps was NOT the road (CPU profile): the floor was a 62 km square,
-  so the inclusion scan made ~1e8 cells (30 s load) and drawPatches walked every patch per tile; and
-  drawKerb filled all ~23k floor-edge kerb blocks every frame. Fixed at the root for every level
-  (identical pixels elsewhere: renderhash). framecheck CPU x4: work median 35.4 -> 10.6 ms; load 2 s.
-  The "AI at 60 km/h" was the low frame rate: the autopilot now holds 140 from ~600 m. Owner link
-  (testlist 'straightoutta'):
-  `/?menu=0&guide=0&rules=0&level=straight-outta&autopilot=140&report=1`.
-  Then read the report with tools/phonereport.mjs: a hitch every ~150 m here or not decides step 2.
-  Before longer roads: drawTrackRibbon walks every centreline point per tile, and
-  session.js updateRecoveryTracking scans every point each sim step (fine at 3000 points).
+**Approved and default (all owner-tested on the phone, 10-15 / 10-16)**
+- Ground on the GPU: floor, zones, hill shading (`?gpupaint=0` = the old tile painter; renderhash pins
+  it for speed). Frame pacing (`?vsync=0`). The skid-mark layer wraps (the 136 m highway hitch).
+- Zoom hold with SMOOTH moves (camera.ts springZoom): holds at a steady speed, follows the target as a
+  critically damped spring while it moves (no staircase), forgets the menu car's speed at a start (no
+  bounce), zooms out from 12 % off with 1.2 x LOOKAHEAD. `?zoomhold=0` = the old eased zoom.
+- Minimap (hud/minimap.js): road ahead, facing the main view's way, the window pushed ahead of the car,
+  zooms with the camera, rivals as dots, stage / lap progress bar; on the highway too (no bar). Pause
+  menu MINIMAP row per difficulty mode: on in MOBILE / GAME / REALISH, off in RICH, locked off in REAL.
+  `?minimap=0` / `?hwmap=0` turn it off.
+- The Lab split: OG Lab, Surface Bowling Alley, The Rough Patch (TEST GROUNDS).
+- Grippier grass: dry 0.47, long 0.50, so a puddle on grass grips as grass did (`?grassgrip=0`).
+- Menu: thumbnails use a light level build; the rally stages are generated on first use
+  (load.ts buildLevel); trackKit's onLane uses a segment grid. TEST MODE tap 4.0 -> 2.2 s (CPU x4).
 
-**Rendering - the fundamental issue (explained to and agreed with the owner)**
-Pixel art drawn by the CPU into a low-res buffer at a constantly changing zoom: every zoom change
-re-rasterised everything, which grew the zoom-step tile cache, stand-ins, the view lock's zoom rounding,
-the CPU palette snap, budgets... The fix is the standard design: draw everything at a fixed density on
-the GPU and apply the zoom as a GPU scale. Done so far, all the DEFAULT since 2026-10-16 (owner approved; `?gpupaint=0` = the old tile
-painter, which renderhash pins for speed):
-- Floor + zones on the GPU (`render/glpaint.ts`); surfaces BAKED with their base and palette on the CPU and
-  only blended in the shader (snapping after the blend made texels jump: the owner's "micro judder at
-  certain zoom levels", fixed).
-- Hill shading on the GPU (`render/glshade.ts`): a world grid of 0.5 m cells in 8 m chunks, changed chunks
-  refreshed within a 2 ms budget.
-- The remaining tile layers (track, lanes, kerbs, wear, labels) at ONE fixed density (the zoom-1 step),
-  CPU-backed tile canvases, palette snap per texel on the GPU (`glground.ts` sink), the widest view
-  prefetched one tile a frame; a stencil masks old / new tiles; no flat overview stand-in on this path.
-- Agreed plan after the highway work: **phase C** (cars, props, marks, particles as GPU sprites at a fixed
-  density), then **one canvas**, then delete the old machinery (zoom-step tiles, stand-ins, view-lock
-  zoom rounding, CPU snap). `?glground=0` and `/original/` stay as references.
-- Camera: zoom hold (hold the zoom, glide when the target is 20 % away, 1.6 s per halving), the default
-  since 2026-10-16; `?zoomhold=0` = the eased zoom.
+**Parked**
+- The menu RECORDING (`?menuvideo=1`, src/game/menuvideo.js, `node tools/menuvideo.mjs`): lagged on the
+  phone and came in part way. Owner: revisit after the graphics update, and it must be a video of a
+  race. Suspects: a real-time take with uneven frames (record from the deterministic runtime frame by
+  frame instead), 3.8 MB over the tunnel first. Test behind the switch first.
 
-**References for comparison**
-- The TRUE ORIGINAL (10-08, before the overhaul): a git worktree of 857f105 at `rac3r/original` (excluded
-  in `.git/info/exclude`), served at `<tunnel>/original/`. `?glground=0` is NOT the original (the texture
-  look changed on 10-13 / 10-14).
-- Owner test link: the PLAIN `<tunnel>/` (owner rule 2026-10-16: the plain link is the approved game; add
-  only the switch under test, and `?report=1` for a measured run). The old home-screen icon still works. The tunnel URL is in
-  `GamesStudio/tools/logs/rac3r-tunnel.err` (never in the repo). If the tunnel restarts, the owner must
-  re-add the icon.
+**In progress: performance, owner-agreed order (10-16)**
+MEASURED (Brands GP, 4 AI, CPU x4, 15 s profile): busy 96 %; SIMULATION ~59 % (ground checks under the
+wheels 2.7 s, AI driving 1.7 s, car physics 2.1 s), DRAWING ~38 % (ground tile painting 1.8 s, kerb
+teeth 0.5 s, HUD 0.9 s; cars, objects, marks ~0.1 s each). So the GPU sprite work alone would not fix
+the menu lag (the menu race is mostly simulation).
+1. Ground checks (each car samples the ground height ~22 times a physics step at 120 Hz, mostly the
+   slope's central differences). DONE in this commit: the near-hint segment search tries +-4 first
+   (+-21 only when the best is on that edge): querySubtrackInto 0.96 -> 0.33 s, applyGround 2.68 ->
+   2.13 s per 15 s, simhash SAME. NEXT: fewer samples per step (slope from 3 samples reusing the
+   wheel's height; the front-axle slope from the two front wheels: ~24 -> ~14) behind `?groundlite=1`,
+   proved by lap times / racing lines. A cached height map was costed and REJECTED (first-lap cost over
+   the whole track area, ruts change it, small bumps need a fine grid). Off-screen AI at half rate was
+   offered; the owner asked that changes are still detected at driving speed - ask before doing it.
+2. Ground tiles (track / kerbs / wear painted on the CPU, ~12 %, and the hitches when new ground scrolls
+   in): evidence-based choice (owner) between drawing the track as GPU geometry and keeping painted
+   tiles longer - measure both, then propose. (The owner chose painted tiles over geometry once, B2.)
+3. Phase C: cars, props, marks, particles as GPU sprites, then one canvas, then delete the old tile
+   machinery. Then re-record the menu video and re-check the menu lag.
 
-**Owner requests queued (TODO.md):** an optional minimap on every track (rally stages most of all; show the
-owner mockups first). The Lab split is DONE (2026-10-16: OG Lab, Surface Bowling Alley, The Rough
-Patch), owner phone test pending.
+**Waiting for the owner**
+- Rain and water (TODO "GRASS GRIP + WATER"): rules given (wet-weather tyres clear water from hard
+  surfaces faster; normal tyres take 3 passes to clear / degrade it). Open: rain chosen in setup or
+  random, changing mid-race; puddles in dips only, draining after; the wet-grip table per surface.
 
-**Menu background = a recording (2026-10-16):** media/menu-race.mp4 + .jpg, made by
-`node tools/menuvideo.mjs` from the live race (?menulive=1). Re-record after any change to the look
-(owner: after the graphics update). The rally stages are generated on first use (load.ts buildLevel).
+**Workflow that works (10-16)**
+- Work in a worktree, never the served clone: `git worktree add -q --detach ../rac3r-wt HEAD`, then a
+  node_modules junction (`cmd //c mklink //J ...rac3r-wt\node_modules ...rac3r\node_modules`). Clean up:
+  `cmd //c rmdir` the junction FIRST, then `git worktree remove --force ../rac3r-wt`; check the clone's
+  node_modules still has 77 entries.
+- Proof in the background: `git stash -q -u`, save the three references, `git stash pop`, `npm run
+  suite` (~13 min). Do not edit the worktree while it is stashed. A behaviour change on purpose: show
+  that the OLD path is still SAME (e.g. `RAC3R_QUERY=grassgrip=0 node tools/renderhash.mjs`), then save
+  new references before the suite.
+- After pushing main, move the served clone: `git fetch -q origin && git checkout -q --detach
+  origin/main`, then check the tunnel serves the new file.
+- Profiling a race: a CDP Profiler on `?level=brands-snatch&ai=4&autopilot=1` at CPU x4 for 15 s,
+  inclusive time by function - better than framecheck A/B runs with layers skipped (too noisy here).
 
 **Test server:** `node serve.mjs` in the clone serves the WORKING TREE live - uncommitted edits reach the
-phone at once (the owner's runs during an edit can see half-done code). PIDs in
-`GamesStudio/tools/logs/rac3r-pids.txt`; restart it by PID with `RAC3R_REPORT_LOG` set. Keep it and the
-tunnel running.
+phone at once. PIDs in `GamesStudio/tools/logs/rac3r-pids.txt`; restart it by PID with
+`RAC3R_REPORT_LOG` set. Keep it and the tunnel running. It cannot answer byte-range requests (Safari
+needs them for a <video> source; a blob URL does not).
+
+**Older notes (10-15) - judder**
+- Frame pacing fixed the constant fine shake (Safari's ms-rounded timestamps). Safari's touch
+  processing costs frames (outside our code); the home screen roughly halves slow frames.
+- `preserveDrawingBuffer: true` on the WebGL canvas is NEEDED on the iPhone. Do not optimise it away.
+- Highway rebuild CANCELLED (owner): the hitch was the skid-mark layer. Straight Outta Swindon stays as
+  a measuring stick in TEST GROUNDS; the name is kept for a future highway level.
+- References: the TRUE ORIGINAL (10-08) worktree at `rac3r/original`, served at `<tunnel>/original/`.
 
 ## The owner's standing rules
 
@@ -122,6 +119,9 @@ tunnel running.
 - Bigeon ideas and fixes go in the owner's Bigeon idea text file on the worker PC desktop (append, numbered,
   "Problem / Workaround / Fix idea (size)"); SSH to the worker PC is allowed while the worker is down.
 - Keep the test server and tunnel running unless told to stop them.
+- The plain link is the approved game; anything new goes behind a switch for a phone test first (see
+  "Where things stand"). Bring mockups before building a new piece of UI.
+- One step at a time, then pause for the owner's phone verdict; give tap-able links.
 
 ## Proving a change
 
@@ -189,3 +189,15 @@ commit; it is not required, and it fails on purpose for intended visual / behavi
 - Spreading an object with getters copies their values once: expose live counters as functions or
   plain object references.
 - `serve.mjs` and `index.html` have CRLF line endings: match edit patterns allowing CRLF.
+
+## Lessons from 2026-10-16
+
+- Test on the phone before the plain link, even when the owner asked for the change (see above).
+- Profile before planning: the "graphics" plan turned out to be mostly a SIMULATION problem.
+- Cost an idea fully before promising a saving: the cached height map looked like a win and was not
+  (area cost on the first lap, ruts, small bumps). Say so as soon as the numbers turn.
+- The live menu race runs the whole game behind the menu; anything that makes a race cheaper makes
+  the menu cheaper too.
+- worldhash hashes key ORDER and global counters (tape run ids): a lazily built level can list as
+  DIFFERENT with identical content - compare with sorted keys before believing it.
+- A testlist string with an apostrophe breaks the build: no ' inside a '...' string.

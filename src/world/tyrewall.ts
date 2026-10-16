@@ -90,8 +90,38 @@ export function onTrack<T extends object>(
   };
 }
 
+// NEAR-HINT SEARCH. The probes come from one car (its wheels, and 0.3 m either side of them for
+// the slope), so the nearest segment is almost always a few round the car's own. MEASURED (Brands,
+// 5 cars, CPU x4): the full +-21 window was 0.96 s of every 15 s of racing. The +-NEAR_FIRST window
+// is searched first; only when its best lies on that window's edge (the nearest may be further out)
+// is the full +-NEAR_FULL window searched, as before. simhash proves it gives the same answers.
+const NEAR_FIRST = 4, NEAR_FULL = 21;
+const nearBest = { dist2: Infinity, index: -1, frac: 0, shift: 0 };
 /**
- * Search the ~43 segments round the last hit (qsHint) for the nearest one to a probe.
+ * The nearest non-ghost segment to a probe among those within +-reach of qsHint (into nearBest).
+ * @param segs the subtrack's segments
+ * @param probeX world x
+ * @param probeY world y
+ * @param reach segments either side of the hint
+ */
+function nearestAroundHint(segs: SubSeg[], probeX: number, probeY: number, reach: number): void {
+  const count = segs.length;
+  nearBest.dist2 = Infinity; nearBest.index = -1; nearBest.frac = 0; nearBest.shift = 0;
+  for (let shift = -reach; shift <= reach; shift++) {
+    const i = (qsHint + shift + count) % count, segment = segs[i];
+    if (segment.ghost) continue;
+    let frac = ((probeX - segment.ax) * segment.dx + (probeY - segment.ay) * segment.dy)
+      / (segment.l2 || 1);
+    if (frac < 0) frac = 0; else if (frac > 1) frac = 1;
+    const errX = probeX - (segment.ax + frac * segment.dx),
+      errY = probeY - (segment.ay + frac * segment.dy), distSq = errX * errX + errY * errY;
+    if (distSq < nearBest.dist2) {
+      nearBest.dist2 = distSq; nearBest.index = i; nearBest.frac = frac; nearBest.shift = shift;
+    }
+  }
+}
+/**
+ * Search round the last hit (qsHint) for the nearest segment to a probe (see NEAR-HINT SEARCH).
  * @param subtrack the subtrack (must be the one qsHint belongs to)
  * @param segs the subtrack's segments
  * @param probeX world x
@@ -102,17 +132,11 @@ export function onTrack<T extends object>(
 function queryNearHint(
   subtrack: Subtrack, segs: SubSeg[], probeX: number, probeY: number, out: SubtrackHit,
 ): SubtrackHit | null {
-  const count = segs.length, lim = (subtrack.width / 2 + 3) ** 2;
-  let bestDist2 = Infinity, bestIndex = -1, bestFrac = 0;
-  for (let shift = -21; shift <= 21; shift++) {
-    const i = (qsHint + shift + count) % count, segment = segs[i];
-    if (segment.ghost) continue;
-    let frac = ((probeX - segment.ax) * segment.dx + (probeY - segment.ay) * segment.dy)
-      / (segment.l2 || 1);
-    if (frac < 0) frac = 0; else if (frac > 1) frac = 1;
-    const errX = probeX - (segment.ax + frac * segment.dx),
-      errY = probeY - (segment.ay + frac * segment.dy), distSq = errX * errX + errY * errY;
-    if (distSq < bestDist2) { bestDist2 = distSq; bestIndex = i; bestFrac = frac; } }
+  const lim = (subtrack.width / 2 + 3) ** 2;
+  nearestAroundHint(segs, probeX, probeY, NEAR_FIRST);
+  if (nearBest.index < 0 || Math.abs(nearBest.shift) === NEAR_FIRST)
+    nearestAroundHint(segs, probeX, probeY, NEAR_FULL);
+  const bestDist2 = nearBest.dist2, bestIndex = nearBest.index, bestFrac = nearBest.frac;
   if (bestDist2 < lim) {
     const segment = segs[bestIndex],
       cross = segment.dx * (probeY - segment.ay) - segment.dy * (probeX - segment.ax);

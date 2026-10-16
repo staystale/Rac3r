@@ -8,15 +8,7 @@
 //   where  how to get to it      try     what to do      wrong   what would count as a bug
 export const TEST_LIST = [
   // (approved late, deleted: fields, grassedge, catchthem, slipsdual, fps - TODO.md 1c;
-  // dirtroad, animals, labext, labsplit, zoomhold, gpupaint, minimap, zoomspring, grassgrip)
-  {
-    id: 'hwmap',
-    added: '2026-10-16',
-    name: 'Minimap on the highway too (&hwmap=1)',
-    where: 'Highway, the plain link plus &hwmap=1 (MINIMAP on in the pause menu)',
-    try: 'Drive the highway for a few km: does the minimap follow the road ahead?',
-    wrong: 'No minimap, the road in it wrong or jumping as the road streams in, or slower frames.',
-  },
+  // dirtroad, animals, labext, labsplit, zoomhold, gpupaint, minimap, zoomspring, grassgrip, hwmap)
   {
     id: 'cracktufts',
     added: '2026-10-15',
