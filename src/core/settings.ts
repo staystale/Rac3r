@@ -24,7 +24,6 @@ export interface Settings {
   glGround: boolean;             // ?glground=0: the ground tiles in the 2D art buffer, not WebGL
   gpuPaint: boolean;             // floor + zones painted by the GPU (glpaint.ts); off: ?gpupaint=0
   zoomHold: boolean;             // the speed zoom holds, then glides (camera.ts); off: ?zoomhold=0
-  zoomSpring: boolean;           // ?zoomspring=1 (under test): smooth zoom moves (camera.ts)
   minimap: boolean;              // the road-ahead minimap (hud/minimap.js); off: ?minimap=0
   noShade: boolean;              // ?noshade: skip the hill shading (perf A/B)
   grassEnds: "round" | "square";   // ?grass=square: square grass blade ends (cheaper; A/B)
@@ -75,7 +74,6 @@ export function readSettings(search: string): Settings {
     // default since 2026-10-16 (owner approved on the phone); =0 brings the old path back
     gpuPaint: params.get('gpupaint') !== '0',
     zoomHold: params.get('zoomhold') !== '0',
-    zoomSpring: params.get('zoomspring') === '1',
     // default since 2026-10-16 (owner: "mini map tests good"); then the pause setting decides
     minimap: params.get('minimap') !== '0',
     noShade: params.has('noshade'),

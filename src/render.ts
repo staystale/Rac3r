@@ -562,7 +562,6 @@ function buildModules(view: View, cam: Cam, settings: Settings,
     },
     prefetch: (...args: [number, number, number, number, TileBudget]) => tiles.prefetch(...args),
     zoomHold: settings.zoomHold,
-    zoomSpring: settings.zoomSpring,
   });
   const tiles = createTiles(view, cam, settings, {
     PPMz, toScreenX, toScreenY, drawFloor: ground.drawFloor, drawZones: ground.drawZones,

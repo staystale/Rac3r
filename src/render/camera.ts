@@ -18,8 +18,7 @@ interface CameraHelpers {
   drawCurvedKerbs: () => void;
   paletteSnap: (c: HTMLCanvasElement) => void;
   prefetch: (k: number, cx: number, cy: number, z: number, budget: TileBudget) => void;
-  zoomHold: boolean;   // hold the zoom, change it in whole glides (glideZoom); off: ?zoomhold=0
-  zoomSpring: boolean; // ?zoomspring=1: the hold's moves follow the target (springZoom)
+  zoomHold: boolean;   // hold the zoom, move it smoothly (springZoom); off: ?zoomhold=0
 }
 
 // what the moved functions share
@@ -40,7 +39,6 @@ interface CameraCtx {
   drawCurvedKerbs: () => void;
   paletteSnap: (c: HTMLCanvasElement) => void;
   zoomHold: boolean;
-  zoomSpring: boolean;
 }
 
 // SPEED ZOOM. Asked for by the user and by the playtesters: above ~120 km/h the car was running
@@ -225,11 +223,11 @@ function startFlyIn(ctx: CameraCtx) {
     ov: paintOverview(ctx, left, top, right, bottom) };
   cam.x = camState.fly.cx; cam.y = camState.fly.cy; cam.initialised = true;
   view.zoom = camState.fly.z0;
-  // ?zoomspring=1: a new start forgets the last car's speed. MEASURED (menu -> LAUNCH Thruston):
+  // the zoom hold: a new start forgets the last car's speed. MEASURED (menu -> LAUNCH Thruston):
   // the averaged speed still held the menu demo's 79 km/h, so after the fly-in landed fully in, the
   // zoom went back out with the car standing still, then in again - the owner's "bounce" at the
   // start
-  if (ctx.zoomSpring) { camState.vZoom = null; camState.zoomSpring = null; }
+  if (ctx.zoomHold) { camState.vZoom = null; camState.zoomSpring = null; }
 }
 
 /**
@@ -280,17 +278,14 @@ function stepZoom(ctx: CameraCtx, car: CamCar, wallDt: number) {
   camState.vZoom = camState.vZoom === null ? vNow
     : camState.vZoom + (vNow - camState.vZoom) * (1 - Math.exp(-0.65 * wallDt));
   const speed = camState.vZoom;
-  // ?zoomspring=1 looks further ahead (owner: "it could maybe zoom out a bit easier with speed")
-  const lookahead = ctx.zoomSpring ? LOOKAHEAD * ZOOM_SPRING_LOOKAHEAD : LOOKAHEAD;
+  // the zoom hold looks further ahead (owner: "it could maybe zoom out a bit easier with speed")
+  const lookahead = ctx.zoomHold ? LOOKAHEAD * ZOOM_SPRING_LOOKAHEAD : LOOKAHEAD;
   const want = speed > 1 ? view.W / (view.PPM * speed * lookahead) : 1;
   const target = Math.max(ZOOM_MIN, Math.min(1, want));
   // CALMER (tools/wobblecheck: the zoom moved the screen edge ~1.1 px EVERY frame at speed - the
   // view breathed with every lift and squeeze): 2.5/s -> 0.9/s, and changes under 4 % of the
   // target are ignored (dead band).
-  if (ctx.zoomHold) {
-    if (ctx.zoomSpring) springZoom(ctx, target, wallDt); else glideZoom(ctx, target, wallDt);
-    return;
-  }
+  if (ctx.zoomHold) { springZoom(ctx, target, wallDt); return; }
   if (Math.abs(target - view.zoom) > 0.04 * target)
     view.zoom += (target - view.zoom) * (1 - Math.exp(-0.9 * wallDt));
 }
@@ -298,53 +293,21 @@ function stepZoom(ctx: CameraCtx, car: CamCar, wallDt: number) {
 // ZOOM HOLD (the default; ?zoomhold=0 = the eased zoom above). The eased zoom above moves a little
 // almost every frame while driving (tools/wobblecheck, sandbox ~100 km/h: the zoom alone moves the
 // screen edge 0.83 px a frame), so the ground swells and shrinks under a car that stays still:
-// motion sickness. Here the zoom HOLDS until the speed target is more than ZOOM_HOLD_BAND away,
-// then glides all the way to it in one eased move (ZOOM_GLIDE_PER_HALVING s for each halving of the
-// zoom, so a full zoom-out is not a jump), and holds again. wobblecheck, sandbox and highway: the
-// zoom is still in 51-62 % of frames (eased zoom: 21-22 %)
+// motion sickness. Here the zoom HOLDS until the speed target is more than ZOOM_HOLD_BAND away
+// (ZOOM_OUT_BAND for a zoom-out), then MOVES, and holds again.
+// The move is a critically damped spring on the zoom's log, chasing the target as it is NOW (owner
+// 2026-10-16, "chunky lumpy zoom out"; approved "zooms good"). It was a fixed eased glide to the
+// target of its start: under hard acceleration the target ran on, so the zoom went out in a
+// staircase (straight-outta from rest: ~0.8 s glides with 0.3-1.6 s stops between, some ending and
+// the next starting at once - a lump). The spring keeps its speed while the target keeps moving and
+// starts with no jump in speed (from rest to full zoom-out: one move). It STOPS (eases to a halt,
+// then holds) once within ZOOM_CATCH of the target, or when the target turns back behind it (a lift
+// or a brake on a zoom-out): chasing to the last per cent crept after a target that drifts on for a
+// second or two after every speed change (it follows the smoothed speed). Under hard acceleration
+// the spring trails the target by more than ZOOM_CATCH, so it does not stop. wobblecheck sandbox:
+// still in 45 % of frames (the glides 64 %: each move now ends smoothly instead of where it was
+// aimed). A brisker spring (3.5) brought a stop back on the straight.
 const ZOOM_HOLD_BAND = 0.2;       // fraction of the target zoom
-const ZOOM_GLIDE_PER_HALVING = 1.6;            // s of glide per halving (or doubling) of the zoom
-const ZOOM_GLIDE_MIN = 0.8, ZOOM_GLIDE_MAX = 3;  // s, the shortest and longest glide
-
-/**
- * Holds the zoom, or advances the current zoom glide (smoothstep from start to stop).
- * @param ctx camera context
- * @param target the speed zoom wanted now
- * @param wallDt wall-clock frame time, s
- */
-function glideZoom(ctx: CameraCtx, target: number, wallDt: number) {
-  const { view, camState } = ctx;
-  let glide = camState.zoomGlide;
-  // something else moved the zoom (the fly-in, a restart): a glide from its old start would jump
-  if (glide && view.zoom !== glide.last) glide = camState.zoomGlide = null;
-  if (!glide) {
-    if (Math.abs(target - view.zoom) <= ZOOM_HOLD_BAND * target) return;
-    const seconds = Math.min(ZOOM_GLIDE_MAX, Math.max(ZOOM_GLIDE_MIN,
-      ZOOM_GLIDE_PER_HALVING * Math.abs(Math.log2(target / view.zoom))));
-    glide = camState.zoomGlide = { from: view.zoom, to: target, progress: 0, seconds,
-      last: view.zoom };
-  }
-  glide.progress = Math.min(1, glide.progress + wallDt / glide.seconds);
-  const eased = glide.progress * glide.progress * (3 - 2 * glide.progress);
-  // geometric: each step of the glide scales the view by the same ratio (an even zoom speed)
-  view.zoom = glide.from * Math.pow(glide.to / glide.from, eased);
-  glide.last = view.zoom;
-  if (glide.progress >= 1) camState.zoomGlide = null;
-}
-
-// SMOOTH ZOOM MOVES (?zoomspring=1, under test; owner 2026-10-16: "chunky lumpy zoom out"). The
-// glide above runs to the target of its START: under hard acceleration the target runs on, so the
-// zoom goes out in a staircase (straight-outta from rest: ~0.8 s glides with 0.3-1.6 s stops
-// between, some glides ending and the next starting at once - a lump). Here the move is a
-// critically damped spring on the zoom's log, chasing the target as it is NOW: it keeps its speed
-// while the target keeps moving and starts with no jump in speed (from rest to full zoom-out: one
-// move, no stop). It STOPS (eases to a halt, then holds) once within ZOOM_CATCH of the target, or
-// when the target turns back behind it (a lift or a brake on a zoom-out): chasing to the last per
-// cent crept after a target that drifts on for a second or two after every speed change (it follows
-// the smoothed speed). Under hard acceleration the spring trails the target by more than
-// ZOOM_CATCH, so it does not stop. wobblecheck sandbox: still in 45 % of frames (the glides 64 %:
-// each move now ends smoothly instead of where it was aimed). A brisker spring (3.5) brought a stop
-// back on the straight.
 const ZOOM_CATCH = 0.05;          // fraction of the target zoom: near enough, ease to a stop
 // owner: "zoom out a bit easier with speed": a zoom-out starts sooner (a zoom-in keeps the wider
 // ZOOM_HOLD_BAND, so lifting into a corner stays calm), and the view keeps more road ahead
@@ -395,14 +358,14 @@ function springZoom(ctx: CameraCtx, target: number, wallDt: number) {
 export function createCamera(view: View, cam: Cam, helpers: CameraHelpers) {
   const {
     PPMz, drawFloor, drawZones, drawLanes, drawTrackRibbon, drawPatches, drawCovers,
-    drawCurvedKerbs, paletteSnap, zoomHold, zoomSpring,
+    drawCurvedKerbs, paletteSnap, zoomHold,
   } = helpers;
   const camState: CamState = {
-    fly: null, ovCache: null, vZoom: null, pinZoom: null, zoomGlide: null, zoomSpring: null,
+    fly: null, ovCache: null, vZoom: null, pinZoom: null, zoomSpring: null,
   };
   const ctx: CameraCtx = {
     view, cam, camState, PPMz, drawFloor, drawZones, drawLanes, drawTrackRibbon, drawPatches,
-    drawCovers, drawCurvedKerbs, paletteSnap, zoomHold, zoomSpring,
+    drawCovers, drawCurvedKerbs, paletteSnap, zoomHold,
   };
   return {
     camState,

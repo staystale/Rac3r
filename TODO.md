@@ -152,8 +152,9 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
       1.90 -> 0.69 (default path 0.21 / 0.65). framecheck CPU x4: highway tile 17.5 -> 5.8 ms, frames
       over 33 ms 70-78 -> 25-68, worst 230 -> 53-71; but median work +2-3 ms (terrain height
       lookups for the shade chunks, 832 of 1025 ms; a shared height cache could cut ~1/3).
-- [ ] SMOOTH ZOOM MOVES behind ?zoomspring=1 (owner 2026-10-16: "still a bit of chunkylumpy zoom out
-      nearly 3/4 the way fully zoomed out"; owner phone test pending, testlist zoomspring). Measured
+- [x] SMOOTH ZOOM MOVES, the DEFAULT since 2026-10-16 (OWNER APPROVED: "zooms good"; was behind
+      ?zoomspring=1; glideZoom deleted, ?zoomhold=0 = the old eased zoom). Owner 2026-10-16: "still
+      a bit of chunkylumpy zoom out nearly 3/4 the way fully zoomed out". Measured
       (straight-outta from rest, phone size, CPU x4): the zoom hold went out in a staircase - 6
       glides of ~0.8 s with stops of up to 1.6 s, some ending and the next starting at once - as
       each glide ran to the target of its start while the target ran on. camera.ts springZoom: a
