@@ -14,6 +14,7 @@ import { createRenderer } from './render.ts';
 import { readSettings } from './core/settings.ts';
 import { createMarks } from './marks.js';
 import { createHud } from './hud.js';
+import { setMinimapSource, setMinimapView } from './hud/minimap.js';
 import { createMeter } from './ui/meter.ts';
 import { createReporter } from './ui/report.ts';
 import { createFramePacer } from './game/pacing.ts';
@@ -40,7 +41,7 @@ import { game, shared } from './game/state.js';
 import { spawnAI } from './game/grid.js';
 import { doReset, saveRecords, doRestart } from './game/session.js';
 import { hudDown, onKey, selectLevel, selectCar } from './game/controls.js';
-import { start, enterMenu, launch, paintThumbs } from './game/menuflow.js';
+import { start, enterMenu, launch, paintThumbs, refreshMinimap } from './game/menuflow.js';
 import { loop } from './game/loop.js';
 // build the world, in this order: the hand-made levels (load.ts), then the levels added after them
 initWorld();
@@ -154,6 +155,9 @@ if (shared.settings.litter !== null)
   for (const level of LEVELS) if (level.endless) level.litter = shared.settings.litter;
 
 shared.hud = createHud();
+refreshMinimap();
+setMinimapSource(() => !!shared.minimapOn && shared.mode !== 'menu');
+setMinimapView(() => shared.renderer.PPM);
 // HOW TO PLAY. Opens by itself once per device, after the first fly-in. NOT
 // under automation: Playwright sets navigator.webdriver, and every harness in tools/ taps the HUD
 // as if no card were up. ?guide=1 forces it on (for photographing it), ?guide=0 forces it off.

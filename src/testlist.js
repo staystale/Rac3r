@@ -10,6 +10,19 @@ export const TEST_LIST = [
   // (approved late, deleted: fields, grassedge, catchthem, slipsdual, fps - TODO.md 1c;
   // dirtroad, animals, labext, labsplit, zoomhold, gpupaint)
   {
+    id: 'minimap',
+    added: '2026-10-16',
+    name: 'Minimap: the road ahead, turning with you (&minimap=1)',
+    where: 'Any circuit, rallycross or rally stage, the plain link plus &minimap=1; pause menu ' +
+      'MINIMAP row',
+    try:
+      'Drive a rally stage and a circuit: is the next corner clear, is it out of the way? Toggle ' +
+      'it in pause; set REAL difficulty in a VS AI setup: the row is greyed out.',
+    wrong:
+      'Hard to read, in the way of a thumb or a button, spinning in a slide, the road wrong or ' +
+      'missing at the start line, or on when the mode says off.',
+  },
+  {
     id: 'zoomspring',
     added: '2026-10-16',
     name: 'Smooth zoom-out: one move, no stop-start (&zoomspring=1)',

@@ -25,6 +25,7 @@ export interface Settings {
   gpuPaint: boolean;             // floor + zones painted by the GPU (glpaint.ts); off: ?gpupaint=0
   zoomHold: boolean;             // the speed zoom holds, then glides (camera.ts); off: ?zoomhold=0
   zoomSpring: boolean;           // ?zoomspring=1 (under test): smooth zoom moves (camera.ts)
+  minimap: boolean;              // ?minimap=1 (under test): the road-ahead minimap (hud/minimap.js)
   noShade: boolean;              // ?noshade: skip the hill shading (perf A/B)
   grassEnds: "round" | "square";   // ?grass=square: square grass blade ends (cheaper; A/B)
   surfaceTextures: boolean;       // ?tex=0: paint surfaces live, not pre-painted textures (A/B)
@@ -75,6 +76,7 @@ export function readSettings(search: string): Settings {
     gpuPaint: params.get('gpupaint') !== '0',
     zoomHold: params.get('zoomhold') !== '0',
     zoomSpring: params.get('zoomspring') === '1',
+    minimap: params.get('minimap') === '1',
     noShade: params.has('noshade'),
     grassEnds: params.get('grass') === 'square' ? 'square' : 'round',
     surfaceTextures: params.get('tex') !== '0',

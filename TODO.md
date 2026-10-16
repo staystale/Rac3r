@@ -176,6 +176,14 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
       tile painting on the highway (today ~17-18 ms a tile against a 6 ms frame budget: the old highway
       judder). Measure tools/framecheck.mjs highway and brands-snatch before and after; phone test.
 
+- [ ] GRASS GRIP + WATER AS A TOP SURFACE (owner, 2026-10-16; not now, logged; DISCUSS FIRST: check
+      the code, report whether it needs major changes, ask questions). Owner: grass, long grass too,
+      feels slightly too slippy - it should become as slippery as it is now only when WET. Water /
+      rain as a surface modifier on top of any surface: rain has a chance of making puddles, puddles
+      join when they touch or get close; water makes a surface more slippy and makes it wear faster
+      where it can wear (not every surface does). Start from surfaces.ts (grip), the puddle cover
+      (load.ts / lab.js layersAt, surfaceOf: id 'puddle'), wear.ts and any rain / weather code.
+
 ## GAME NAME: RAC3R (user, 2026-10-03)
 
 ## Owner specs (moved verbatim)
@@ -193,7 +201,13 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
       B, "the map should rotate with you so it's always clear which corner etc is next": a small
       round window (~120 px) top-left under the buttons, heading-up, the next ~330 m of road from
       the centreline, fading at the top, your car a chevron at the bottom, a thin progress bar under
-      it; subtle (no box, ~85 % opacity), drawn on the HUD, never touchable. Plan + build next.
+      it; subtle (no box, ~85 % opacity), drawn on the HUD, never touchable. BUILT behind ?minimap=1
+      (src/hud/minimap.js; owner phone test pending, testlist minimap). Pause menu MINIMAP row,
+      remembered per difficulty mode: on in MOBILE / GAME, off in REALISH / RICH, locked off and
+      greyed out in REAL (owner). Gives way to the car list / tune panel. The lab floors and the
+      endless highway have none.
+      Owner: "the mini map should zoom in n out with the camera / car speed": its scale is the main
+      view's / 30, so ~140 m ahead fully zoomed in, ~450 m fully out, following the camera's zoom.
 
 ## Open items carried over (not re-checked since they were written; some may be done)
 

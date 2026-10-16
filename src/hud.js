@@ -7,6 +7,8 @@
 //   bottom-left   thumb stick (touch) / key hints (pc)
 //   bottom-right  throttle / brake / handbrake pedals (touch)
 //   left edge     dev readout, ?dev=1 only, below the chip — nothing else may live there
+//   under the top-left buttons   the MINIMAP (hud/minimap.js), when on; it gives way to the car
+//                 list and the tune panel, which open over the same place
 //
 // Buttons are DATA so hit-testing and drawing read the same geometry. Two copies of
 // a rect is how a button ends up visually somewhere its tap is not.
@@ -31,6 +33,21 @@ import {
 } from './hud/gauges.js';
 import { drawHudLapTimer } from './hud/laps.js';
 import { drawHudPedals, drawHudDevReadout, drawHudFps } from './hud/controls.js';
+import { drawHudMinimap } from './hud/minimap.js';
+
+/**
+ * Loads the HUD's per-device choices (the tyre HUD, the speed units); storage can throw in private
+ * windows, so every access is guarded.
+ * @param {object} state the HUD state (tyreHud, mph)
+ */
+function loadHudChoices(state) {
+  try {
+    state.tyreHud = localStorage.getItem('carsim.tyreHud') === '1';
+  } catch { /* no storage: stays off */ }
+  try {
+    state.mph = localStorage.getItem('carsim.units') === 'mph';
+  } catch { /* no storage: km/h */ }
+}
 
 export function createHud() {
   const state = {
@@ -55,12 +72,7 @@ export function createHud() {
     flagSeen: 0, flagAt: 0, flagTxt: '',
     drawLightsLater: null,
   };
-  try {
-    state.tyreHud = localStorage.getItem('carsim.tyreHud') === '1';
-  } catch { /* no storage: stays off */ }
-  try {
-    state.mph = localStorage.getItem('carsim.units') === 'mph';
-  } catch { /* no storage: km/h */ }
+  loadHudChoices(state);
   const setTyreHud = (enabled) => setHudTyreHud(state, enabled);
   const layout = (width, height) => layoutHud(state, width, height);
   const hit = (point, width, height, car) => hitHud(state, point, width, height, car);
@@ -91,6 +103,7 @@ export function createHud() {
     drawHudSpeedo(ctx, state, rects, car, spec, wallDt);
     drawHudTyreDiagram(ctx, state, rects, car, spec);
     drawHudLapTimer(ctx, game, rects);
+    drawHudMinimap(ctx, state, rects, game, wallDt);
     drawHudPedals(ctx, game, width, height);
     drawHudDevReadout(ctx, state, game, car, height);
     drawHudFps(ctx, game, rects);

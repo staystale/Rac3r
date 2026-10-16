@@ -53,6 +53,16 @@ export function showPause(menu, act) {
     });
     showSound();
   }
+  // MINIMAP (owner): on / off for this difficulty mode; REAL has it locked off, greyed out
+  if (act.minimap) {
+    const { on, locked } = act.minimap.setting();
+    const label = locked ? 'MINIMAP · OFF IN REAL' : 'MINIMAP · ' + (on ? 'ON' : 'OFF');
+    const button = addButton(menu, panel, label, () => {
+      act.minimap.set(!act.minimap.setting().on);
+      showPause(menu, act);
+    }, on ? 'on' : '', locked);
+    button.setAttribute('aria-pressed', String(on));
+  }
   addButton(menu, panel, 'RESTART SESSION', () => {
     hideMenu(menu);
   act.restart();

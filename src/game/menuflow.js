@@ -12,6 +12,15 @@ import { LEVELS } from "../world/levels/index.ts";
 import { saveRecords, doRestart } from './session.js';
 import { selectLevel, selectCar } from './controls.js';
 import { shared, game } from './state.js';
+import { minimapSetting, setMinimapSetting } from '../hud/minimap.js';
+
+/**
+ * Works out whether the minimap shows (?minimap=1, under test; then the pause setting of the
+ * current difficulty mode) into shared.minimapOn, which the HUD reads every frame.
+ */
+export function refreshMinimap() {
+  shared.minimapOn = !!shared.settings.minimap && minimapSetting(shared.aiDiff).on;
+}
 
 export function start() {
   if (shared.started || shared.MENU) return;
@@ -56,6 +65,7 @@ export function applyLaunchOptions(levelId, opts) {
   shared.aiCount = Math.max(0, Math.min(5, opts.ai | 0));
   shared.aiDiff = shared.settings.aiDifficulty;   // the menu race set its own
   if (opts.diff != null) shared.aiDiff = Math.max(0, Math.min(4, opts.diff | 0));
+  refreshMinimap();   // the minimap's default follows the difficulty mode
   shared.race.on = !!opts.rx;
   shared.aiCarMode = opts.aiCars === 'class' ? 'class' : 'same';
   shared.raceLaps = Math.max(0, Math.min(10, opts.laps | 0));
@@ -126,6 +136,14 @@ export function openPause() {
     } : null,
     tests: game.testMode,   // the TESTING list (src/testlist.js) in the pause menu, test mode only
     audio: shared.audio,                  // the SOUND slider + MUTE (menu.js pause)
+    // the MINIMAP row (?minimap=1): this difficulty mode's setting, locked in REAL
+    minimap: shared.settings.minimap ? {
+      setting: () => minimapSetting(shared.aiDiff),
+      set: (shown) => {
+        setMinimapSetting(shared.aiDiff, shown);
+        refreshMinimap();
+      },
+    } : null,
     exit: () => {
       shared.paused = false;
       enterMenu();
