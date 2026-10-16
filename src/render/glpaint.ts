@@ -1,12 +1,12 @@
-// The GPU ground painter (?gpupaint=1, step B of "ground on the GPU"): the floor and the surface
-// zones drawn by WebGL2 every frame at ONE fixed density, TEX_PPM texels per metre (the car
-// sprites' pixel size), anchored to the world. The CPU tiles paint each zoom step as a separate
-// picture at a different resolution, so the surface shifts when the camera crosses a step; here
-// every screen pixel samples the same pre-painted surface texture at its world position, so a
+// The GPU ground painter (the default, ?gpupaint=0 = off; step B of "ground on the GPU"): the floor
+// and the surface zones drawn by WebGL2 every frame at ONE fixed density, TEX_PPM texels per metre
+// (the car sprites' pixel size), anchored to the world. The CPU tiles paint each zoom step as a
+// separate picture at a different resolution, so the surface shifts when the camera crosses a step;
+// here every screen pixel samples the same pre-painted surface texture at its world position, so a
 // zoom change only makes the same texels bigger or smaller. Texels bigger than a screen pixel are
-// drawn with the sharp-pixel filter of glground.ts; smaller ones through mipmaps. Shape edges
-// are tested at the texel centre, so they sit on the same world texel grid at every zoom.
-// The layers not moved here yet stay in the tiles, painted over a transparent background.
+// drawn with the sharp-pixel filter of glground.ts; smaller ones through mipmaps. Shape edges are
+// tested at the texel centre, so they sit on the same world texel grid at every zoom. The layers
+// not moved here yet stay in the tiles, painted over a transparent background.
 import { TEX_M, TEX_PPM } from "./textures.ts";
 
 /** One shape of flat ground: a rectangle, maybe rotated and rounded, of one surface. */

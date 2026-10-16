@@ -168,7 +168,7 @@ function applyViewLock(ctx: RenderCtx): ViewLock {
       ? tileState.lastStep : ctx.zStepOf(view.zoom);
     const stepZoom = ctx.zOfStep(step),
       tileArt = Math.max(1, Math.round(TILE_PX * view.dpr * view.zoom / stepZoom));
-    // the GPU painter (?gpupaint=1) needs no whole-pixel tiles: the GPU draws them at screen
+    // the GPU painter (the default) needs no whole-pixel tiles: the GPU draws them at screen
     // resolution, and a zoom rounded per tile step shifts the ground at every step (zoomcheck)
     if (!ctx.gpu?.painting) view.zoom = tileArt * stepZoom / (TILE_PX * view.dpr);
     tileState.drawnN = tileArt;
@@ -357,8 +357,8 @@ function beginGpuGround(ctx: RenderCtx, lock: ViewLock) {
 }
 
 /**
- * Paints the floor and zones on the GPU (?gpupaint=1): the outside colour, then the patches,
- * placed by the same pixel-locked camera and sub-pixel shift as the art buffer.
+ * Paints the floor and zones on the GPU (the default; ?gpupaint=0 = the tiles): the outside colour,
+ * then the patches, placed by the same pixel-locked camera and sub-pixel shift as the art buffer.
  *
  * @param ctx the renderer context
  * @param lock what applyViewLock changed

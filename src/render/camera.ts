@@ -18,7 +18,7 @@ interface CameraHelpers {
   drawCurvedKerbs: () => void;
   paletteSnap: (c: HTMLCanvasElement) => void;
   prefetch: (k: number, cx: number, cy: number, z: number, budget: TileBudget) => void;
-  zoomHold: boolean;   // ?zoomhold=1: hold the zoom, change it in whole glides (glideZoom)
+  zoomHold: boolean;   // hold the zoom, change it in whole glides (glideZoom); off: ?zoomhold=0
 }
 
 // what the moved functions share
@@ -283,13 +283,13 @@ function stepZoom(ctx: CameraCtx, car: CamCar, wallDt: number) {
     view.zoom += (target - view.zoom) * (1 - Math.exp(-0.9 * wallDt));
 }
 
-// ZOOM HOLD (?zoomhold=1). The eased zoom above moves a little almost every frame while driving
-// (tools/wobblecheck, sandbox ~100 km/h: the zoom alone moves the screen edge 0.83 px a frame), so
-// the ground swells and shrinks under a car that stays still: motion sickness. Here the zoom
-// HOLDS until the speed target is more than ZOOM_HOLD_BAND away, then glides all the way to it in
-// one eased move (ZOOM_GLIDE_PER_HALVING s for each halving of the zoom, so a full zoom-out is not
-// a jump), and holds again.
-// wobblecheck, sandbox and highway: the zoom is still in 51-62 % of frames (eased zoom: 21-22 %)
+// ZOOM HOLD (the default; ?zoomhold=0 = the eased zoom above). The eased zoom above moves a little
+// almost every frame while driving (tools/wobblecheck, sandbox ~100 km/h: the zoom alone moves the
+// screen edge 0.83 px a frame), so the ground swells and shrinks under a car that stays still:
+// motion sickness. Here the zoom HOLDS until the speed target is more than ZOOM_HOLD_BAND away,
+// then glides all the way to it in one eased move (ZOOM_GLIDE_PER_HALVING s for each halving of the
+// zoom, so a full zoom-out is not a jump), and holds again. wobblecheck, sandbox and highway: the
+// zoom is still in 51-62 % of frames (eased zoom: 21-22 %)
 const ZOOM_HOLD_BAND = 0.2;       // fraction of the target zoom
 const ZOOM_GLIDE_PER_HALVING = 1.6;            // s of glide per halving (or doubling) of the zoom
 const ZOOM_GLIDE_MIN = 0.8, ZOOM_GLIDE_MAX = 3;  // s, the shortest and longest glide

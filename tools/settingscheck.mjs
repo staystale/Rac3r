@@ -2,12 +2,13 @@
 // readSettings(): a table of page links -> the values the old per-file parsing (main.js qs, highway.js QP,
 // render.ts NO_LOCK, render/tiles.ts TILE_PX/TILE_GPU/NO_SHADE) gave. Expected values are worked out from
 // that code, not from settings.ts. Only the fields named in a row are checked; the rest must be the defaults.
+// Since 2026-10-16 the GPU painter and the zoom hold are on unless =0 (owner approved).
 import { readSettings } from '../src/core/settings.ts';
 
 const DEFAULTS = {
   dev: false, carId: null, aiCount: 0, aiDifficulty: 2, trafficDensity: 0.6, litter: null, menu: null,
   menuAi: 4, guide: null, rules: null, levelId: null, inputMode: 'auto', highwayDebug: null,
-  noLock: false, tilePx: 256, tileGpu: false, glGround: true, gpuPaint: false, zoomHold: false,
+  noLock: false, tilePx: 256, tileGpu: false, glGround: true, gpuPaint: true, zoomHold: true,
   noShade: false,
   grassEnds: 'round', surfaceTextures: true, meter: false, report: false, vsync: true, audio: true,
   autopilot: false, autopilotKmh: 0, noNatClear: false, churn: '', skipLayers: '',   // a Set is compared as its sorted names joined by ','
@@ -29,9 +30,11 @@ const TABLE = [
   ['?pc', { inputMode: 'pc' }],
   ['?glground=0&gpupaint=1', { glGround: false, gpuPaint: true }],
   ['?glground=1&gpupaint=0', { glGround: true, gpuPaint: false }],
-  ['?glground&gpupaint', { glGround: true, gpuPaint: false }],
+  ['?glground&gpupaint', { glGround: true, gpuPaint: true }],
+  ['?gpupaint=0', { gpuPaint: false }],
   ['?zoomhold=1', { zoomHold: true }],
-  ['?zoomhold', { zoomHold: false }],
+  ['?zoomhold', { zoomHold: true }],
+  ['?zoomhold=0', { zoomHold: false }],
   ['?tilepx=abc', { tilePx: 256 }],
   ['?tilepx=0', { tilePx: 256 }],
   ['?level=thruston&car=track-rwd', { levelId: 'thruston', carId: 'track-rwd' }],

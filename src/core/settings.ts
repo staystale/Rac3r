@@ -22,8 +22,8 @@ export interface Settings {
   tilePx: number;                // ?tilepx=N: css px per ground tile side (default 256; A/B)
   tileGpu: boolean;              // ?tilegpu: paint tiles straight on the GPU canvas
   glGround: boolean;             // ?glground=0: the ground tiles in the 2D art buffer, not WebGL
-  gpuPaint: boolean;             // ?gpupaint=1: floor and zones painted by the GPU (glpaint.ts)
-  zoomHold: boolean;             // ?zoomhold=1: the speed zoom holds, then glides (camera.ts)
+  gpuPaint: boolean;             // floor + zones painted by the GPU (glpaint.ts); off: ?gpupaint=0
+  zoomHold: boolean;             // the speed zoom holds, then glides (camera.ts); off: ?zoomhold=0
   noShade: boolean;              // ?noshade: skip the hill shading (perf A/B)
   grassEnds: "round" | "square";   // ?grass=square: square grass blade ends (cheaper; A/B)
   surfaceTextures: boolean;       // ?tex=0: paint surfaces live, not pre-painted textures (A/B)
@@ -70,8 +70,9 @@ export function readSettings(search: string): Settings {
     tilePx: +params.get('tilepx')! || 256,
     tileGpu: params.has('tilegpu'),
     glGround: params.get('glground') !== '0',
-    gpuPaint: params.get('gpupaint') === '1',
-    zoomHold: params.get('zoomhold') === '1',
+    // default since 2026-10-16 (owner approved on the phone); =0 brings the old path back
+    gpuPaint: params.get('gpupaint') !== '0',
+    zoomHold: params.get('zoomhold') !== '0',
     noShade: params.has('noshade'),
     grassEnds: params.get('grass') === 'square' ? 'square' : 'round',
     surfaceTextures: params.get('tex') !== '0',

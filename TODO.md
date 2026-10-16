@@ -36,7 +36,12 @@ Foreman taking over? Also read `docs/foreman-handover.md`.
   broken-tarmac flecks, and scattered on broken-tarmac / concrete ground (blend.ts, own random
   stream: every existing patch unchanged). Owner look pending (testlist 'cracktufts').
 - Then: ground on the GPU phase C (cars, props as GPU sprites), one canvas, delete the old tile
-  machinery (all behind ?gpupaint=1 until the owner approves). Frame pacing is done and default.
+  machinery. The GPU ground and the zoom hold are the default since 2026-10-16 (owner approved;
+  ?gpupaint=0 / ?zoomhold=0 = the old paths). Frame pacing is done and default.
+- URL SWITCHES (owner rule, 2026-10-16): the plain link is the game with everything approved. A
+  ?switch is only for a change under test, and it becomes the default the day the owner approves
+  it; the owner's link is the plain one plus that switch. renderhash pins ?gpupaint=0 (the GPU
+  painter rasterised on the CPU is ~3.5 min a level); RAC3R_QUERY=gpupaint=1 proves the GPU path.
 
 ## CODE QUALITY OVERHAUL
 
@@ -89,7 +94,7 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
       trilinear filtering (a ground canvas under the 2D canvas for cars, props and the HUD). Check the existing
       `tileGpu` setting (src/render/tiles.ts TILE_GPU) first. Goal: zoomcheck flicker near 0 with the pixel-art
       look kept. Phone test.
-- [ ] B1 DONE behind ?gpupaint=1 (owner phone test pending): src/render/glpaint.ts paints the floor
+- [x] B1 DONE, the DEFAULT since 2026-10-16 (owner approved; ?gpupaint=0 = off): src/render/glpaint.ts paints the floor
       (level base, or the lab floor with its glow and grid) and every zone (plain, rotated, rounded
       with apron) on the GPU every frame at TEX_PPM texels per metre, sampling the textures.ts
       textures in world space (sharp-pixel filter, mipmaps when a texel is under a pixel), shape edges
@@ -103,7 +108,7 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
       within noise. renderhash SAME (default and ?glground=0).
       Still in the tiles, to move: labels and rims of boxed / rounded panels and the lab seams (to
       per-frame 2D in B2, when the tiles go).
-- [ ] B2 OPTION A (owner chose it over GPU geometry), behind ?gpupaint=1, owner phone test pending:
+- [x] B2 OPTION A (owner chose it over GPU geometry), the DEFAULT since 2026-10-16 (owner approved):
       the tiles that still carry track / lanes / kerbs / wear / labels are painted at ONE fixed
       density (the zoom-1 step) whatever the zoom; the GPU scales them (sharp filter, mipmaps) and
       snaps each opaque texel to the palette (no CPU readback); everything the widest zoom shows is
@@ -137,7 +142,7 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
       Found while testing: launching any lab-family level from the menu threw in recoverAI for a
       moment (the menu demo's AI stepped on a level with no racing line until the deferred
       spawnAI); doRestart now clears the old field at once.
-- [ ] B4a HILL SHADING ON THE GPU + flash fixes, behind ?gpupaint=1 (owner phone test pending; owner saw
+- [x] B4a HILL SHADING ON THE GPU + flash fixes, the DEFAULT since 2026-10-16 (owner approved; owner saw
       the terrain flash brighter at zoom changes). src/render/glshade.ts: the tiles' shade cells (same
       heights, bands, colours; tilesShade.ts shared) computed per 8 m chunk into a world grid texture
       kept for the widest zoom, drawn over the ground every frame. The flash itself (tools: mean
@@ -147,7 +152,7 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
       1.90 -> 0.69 (default path 0.21 / 0.65). framecheck CPU x4: highway tile 17.5 -> 5.8 ms, frames
       over 33 ms 70-78 -> 25-68, worst 230 -> 53-71; but median work +2-3 ms (terrain height
       lookups for the shade chunks, 832 of 1025 ms; a shared height cache could cut ~1/3).
-- [ ] ZOOM HOLD behind ?zoomhold=1 (owner phone test pending; owner: textures "shake really small
+- [x] ZOOM HOLD, the DEFAULT since 2026-10-16 (owner approved; ?zoomhold=0 = eased; owner: textures "shake really small
       amounts", motion sickness; highway judder). Measured: with a still camera the ground glides
       (no jumping pixels on either path); camera jerk 0.02 px; but the eased speed zoom moved the
       screen edge 0.83 px a frame and was still in only 21-22 % of frames (wobblecheck). The hold

@@ -1,10 +1,11 @@
-// HILL SHADING ON THE GPU (?gpupaint=1, step B of "ground on the GPU"). The tiles bake the hill
-// shading into each zoom step's pictures, so when the zoom reached a new step the ground showed
-// unshaded (brighter) until that step's tiles were painted. Here the same shade cells as the tiles
-// (tilesShade.ts: a SHADE_CELL_M world grid, the same heights, bands and colours) are computed once
-// per CHUNK_CELLS-square chunk on the CPU into a world-anchored grid texture that wraps every
-// GRID_CELLS cells, kept for everything the widest zoom can show (plus a margin), and drawn over
-// the ground every frame. A zoom change never needs a cell that is not there yet.
+// HILL SHADING ON THE GPU (the default, ?gpupaint=0 = off; step B of "ground on the GPU"). The
+// tiles bake the hill shading into each zoom step's pictures, so when the zoom reached a new step
+// the ground showed unshaded (brighter) until that step's tiles were painted. Here the same shade
+// cells as the tiles (tilesShade.ts: a SHADE_CELL_M world grid, the same heights, bands and
+// colours) are computed once per CHUNK_CELLS-square chunk on the CPU into a world-anchored grid
+// texture that wraps every GRID_CELLS cells, kept for everything the widest zoom can show (plus a
+// margin), and drawn over the ground every frame. A zoom change never needs a cell that is not
+// there yet.
 import { LEVEL } from "../world/state.ts";
 import { wearEpoch } from "../world/wear.ts";
 import { TEX_PPM } from "./textures.ts";

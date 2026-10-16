@@ -1,12 +1,12 @@
-// The GPU ground: the cached ground tiles drawn by WebGL2 on a canvas under the 2D canvas, at
-// full screen resolution. In the art-pixel buffer a tile is shrunk to the camera's exact zoom
-// with smoothing off, which drops a different set of pixels at every zoom (a flicker). Here a
-// tile is only ever enlarged (2-4 screen pixels per tile pixel) and drawn with a sharp-pixel
-// filter: each art pixel stays a crisp square and its edges blend over one screen pixel, so the
-// ground looks the same at every zoom. Pictures shrunk below one screen pixel per pixel (the
-// fly-in overview) use mipmaps. Everything else (deck, marks, props, cars, HUD) stays 2D, drawn
-// over a transparent art buffer. With the GPU painter (glpaint.ts, ?gpupaint=1) the floor and
-// zones are painted here in world space first, and the tiles only carry what is drawn over them.
+// The GPU ground: the cached ground tiles drawn by WebGL2 on a canvas under the 2D canvas, at full
+// screen resolution. In the art-pixel buffer a tile is shrunk to the camera's exact zoom with
+// smoothing off, which drops a different set of pixels at every zoom (a flicker). Here a tile is
+// only ever enlarged (2-4 screen pixels per tile pixel) and drawn with a sharp-pixel filter: each
+// art pixel stays a crisp square and its edges blend over one screen pixel, so the ground looks the
+// same at every zoom. Pictures shrunk below one screen pixel per pixel (the fly-in overview) use
+// mipmaps. Everything else (deck, marks, props, cars, HUD) stays 2D, drawn over a transparent art
+// buffer. With the GPU painter (glpaint.ts, the default; ?gpupaint=0 = off) the floor and zones are
+// painted here in world space first, and the tiles only carry what is drawn over them.
 import { createGlPaint } from "./glpaint.ts";
 import type { GroundPatch, PaintCamera } from "./glpaint.ts";
 import { createGlShade } from "./glshade.ts";

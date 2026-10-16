@@ -58,7 +58,7 @@ streaming must do its per-chunk work in small even slices.
   (identical pixels elsewhere: renderhash). framecheck CPU x4: work median 35.4 -> 10.6 ms; load 2 s.
   The "AI at 60 km/h" was the low frame rate: the autopilot now holds 140 from ~600 m. Owner link
   (testlist 'straightoutta'):
-  `/?menu=0&guide=0&rules=0&level=straight-outta&autopilot=140&gpupaint=1&zoomhold=1&report=1`.
+  `/?menu=0&guide=0&rules=0&level=straight-outta&autopilot=140&report=1`.
   Then read the report with tools/phonereport.mjs: a hitch every ~150 m here or not decides step 2.
   Before longer roads: drawTrackRibbon walks every centreline point per tile, and
   session.js updateRecoveryTracking scans every point each sim step (fine at 3000 points).
@@ -67,8 +67,8 @@ streaming must do its per-chunk work in small even slices.
 Pixel art drawn by the CPU into a low-res buffer at a constantly changing zoom: every zoom change
 re-rasterised everything, which grew the zoom-step tile cache, stand-ins, the view lock's zoom rounding,
 the CPU palette snap, budgets... The fix is the standard design: draw everything at a fixed density on
-the GPU and apply the zoom as a GPU scale. Done so far, all behind `?gpupaint=1` (the default game is
-unchanged, renderhash SAME):
+the GPU and apply the zoom as a GPU scale. Done so far, all the DEFAULT since 2026-10-16 (owner approved; `?gpupaint=0` = the old tile
+painter, which renderhash pins for speed):
 - Floor + zones on the GPU (`render/glpaint.ts`); surfaces BAKED with their base and palette on the CPU and
   only blended in the shader (snapping after the blend made texels jump: the owner's "micro judder at
   certain zoom levels", fixed).
@@ -80,14 +80,15 @@ unchanged, renderhash SAME):
 - Agreed plan after the highway work: **phase C** (cars, props, marks, particles as GPU sprites at a fixed
   density), then **one canvas**, then delete the old machinery (zoom-step tiles, stand-ins, view-lock
   zoom rounding, CPU snap). `?glground=0` and `/original/` stay as references.
-- Camera: `?zoomhold=1` (hold the zoom, glide when the target is 20 % away, 1.6 s per halving). The owner
-  tests with it; not the default yet.
+- Camera: zoom hold (hold the zoom, glide when the target is 20 % away, 1.6 s per halving), the default
+  since 2026-10-16; `?zoomhold=0` = the eased zoom.
 
 **References for comparison**
 - The TRUE ORIGINAL (10-08, before the overhaul): a git worktree of 857f105 at `rac3r/original` (excluded
   in `.git/info/exclude`), served at `<tunnel>/original/`. `?glground=0` is NOT the original (the texture
   look changed on 10-13 / 10-14).
-- Owner test link: `<tunnel>/?zoomhold=1&gpupaint=1&report=1` (the home-screen icon). The tunnel URL is in
+- Owner test link: the PLAIN `<tunnel>/` (owner rule 2026-10-16: the plain link is the approved game; add
+  only the switch under test, and `?report=1` for a measured run). The old home-screen icon still works. The tunnel URL is in
   `GamesStudio/tools/logs/rac3r-tunnel.err` (never in the repo). If the tunnel restarts, the owner must
   re-add the icon.
 

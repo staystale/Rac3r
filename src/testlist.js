@@ -8,7 +8,7 @@
 //   where  how to get to it      try     what to do      wrong   what would count as a bug
 export const TEST_LIST = [
   // (approved late, deleted: fields, grassedge, catchthem, slipsdual, fps - TODO.md 1c;
-  // dirtroad, animals, labext, labsplit)
+  // dirtroad, animals, labext, labsplit, zoomhold, gpupaint)
   {
     id: 'cracktufts',
     added: '2026-10-15',
@@ -25,39 +25,14 @@ export const TEST_LIST = [
     added: '2026-10-15',
     name: 'Judder fix (skid-mark layer) + new highway step 1: Straight Outta Swindon',
     where:
-      'Link: ?menu=0&guide=0&rules=0&level=straight-outta&autopilot=140&gpupaint=1' +
-      '&zoomhold=1&report=1 (hands off); then the Lab and the old highway',
+      'Link: ?menu=0&guide=0&rules=0&level=straight-outta&autopilot=140&report=1 ' +
+      '(hands off); then the Lab and the old highway',
     try:
       'Let the autopilot cruise at 140 for 3-5 minutes without touching the screen. Then ' +
       'drive yourself with some hard braking and slides, and look at the skid marks.',
     wrong:
       'A hitch every ~136 m (every 3.5 s at 140), the road missing ahead, grass dust behind ' +
       'the car on the tarmac, skid marks vanishing, jumping or cut in a straight line.',
-  },
-  {
-    id: 'zoomhold',
-    added: '2026-10-15',
-    name: 'Calm zoom: holds, then glides (?zoomhold=1)',
-    where: 'Highway and any circuit, link with &zoomhold=1 (also with &gpupaint=1)',
-    try:
-      'Drive normally; compare with the same link without &zoomhold=1. Watch the ground ' +
-      'textures while cruising and the highway judder.',
-    wrong:
-      'The ground still swelling / shaking while cruising, a zoom move that feels sudden, or ' +
-      'the view too tight / too wide at some speed.',
-  },
-  {
-    id: 'gpupaint',
-    added: '2026-10-15',
-    name: 'GPU ground: floor, surfaces, hill shading (?gpupaint=1)',
-    where: 'The Lab surface lanes and Surface Sandbox pads, link with &gpupaint=1',
-    try:
-      'Drive slowly over the lanes / pads and let the speed zoom go in and out; compare with ' +
-      'the same link without &gpupaint=1.',
-    wrong:
-      'Surface textures jumping or shifting as the zoom changes, a surface in the wrong place, ' +
-      'a hole or seam in the ground, the ground flashing brighter at a zoom change, or slower ' +
-      'frames. (Labels, lane rims and the track still use the old path.)',
   },
   {
     id: 'sound',
