@@ -10,6 +10,56 @@ export const ss01 = (x: number): number => (x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3
 // circuit endY DISTANCE + OFFSET (+ = right of travel; on a clockwise lap that is the INSIDE).
 // Everything generated is filtered off the road, off the given lanes and inside the floor — the
 // Thruston lesson: an outside offset on the inside of a left-hander lands on the track.
+// LANE INDEX. onLane is asked for every sample of every prop, bank and tree while a level is
+// built, and it walked every segment of every lane. MEASURED (first load, CPU x4): Brands GP alone
+// spent 0.94 s in it. The segments now sit in LANE_CELL m cells and a query checks only the cells
+// within its reach: the same answers (the exact distance test is unchanged), a few segments each.
+const LANE_CELL = 16;
+const LANE_KEY_OFFSET = 1 << 15, LANE_KEY_SPAN = 1 << 16;
+const laneKey = (cellX: number, cellY: number) =>
+  (cellX + LANE_KEY_OFFSET) * LANE_KEY_SPAN + (cellY + LANE_KEY_OFFSET);
+/**
+ * Builds the "is this point on a lane?" test for a set of lanes.
+ * @param lanes the lanes (pit lanes, traps)
+ * @returns onLane(x, y, pad): within half a lane's width + pad of any of its segments
+ */
+function laneIndex(lanes: Lane[]): (x: number, y: number, pad: number) => boolean {
+  const cells = new Map<number, [Lane, number][]>();
+  let widest = 0;
+  for (const lane of lanes) {
+    widest = Math.max(widest, lane.width / 2);
+    for (let i = 0; i + 1 < lane.pts.length; i++) {
+      const [startX, startY] = lane.pts[i], [endX, endY] = lane.pts[i + 1];
+      for (let cellX = Math.floor(Math.min(startX, endX) / LANE_CELL);
+        cellX <= Math.floor(Math.max(startX, endX) / LANE_CELL); cellX++)
+        for (let cellY = Math.floor(Math.min(startY, endY) / LANE_CELL);
+          cellY <= Math.floor(Math.max(startY, endY) / LANE_CELL); cellY++) {
+          const key = laneKey(cellX, cellY), cell = cells.get(key);
+          if (cell) cell.push([lane, i]);
+          else cells.set(key, [[lane, i]]);
+        }
+    }
+  }
+  const nearSegment = (lane: Lane, i: number, x: number, y: number, pad: number) => {
+    const [startX, startY] = lane.pts[i], next = lane.pts[i + 1];
+    const dx = next[0] - startX, dy = next[1] - startY, len2 = dx * dx + dy * dy || 1e-6;
+    let along = ((x - startX) * dx + (y - startY) * dy) / len2;
+    along = along < 0 ? 0 : along > 1 ? 1 : along;
+    return Math.hypot(x - startX - dx * along, y - startY - dy * along) <= lane.width / 2 + pad;
+  };
+  return (x: number, y: number, pad: number) => {
+    if (!cells.size) return false;
+    const reach = widest + pad, lastX = Math.floor((x + reach) / LANE_CELL);
+    for (let cellX = Math.floor((x - reach) / LANE_CELL); cellX <= lastX; cellX++)
+      for (let cellY = Math.floor((y - reach) / LANE_CELL);
+        cellY <= Math.floor((y + reach) / LANE_CELL); cellY++) {
+        const cell = cells.get(laneKey(cellX, cellY));
+        if (cell) for (const [lane, i] of cell) if (nearSegment(lane, i, x, y, pad)) return true;
+      }
+    return false;
+  };
+}
+
 export function trackKit(sub: Subtrack, seed: number, lanes: Lane[] = []): TrackKit {
   const rnd = parkMiller(seed);
   const pointAt = (dist: number, off: number) => smoothOnTrack(sub, dist, off);
@@ -17,15 +67,7 @@ export function trackKit(sub: Subtrack, seed: number, lanes: Lane[] = []): Track
     onTrack(sub, ((dist % sub.totalDist) + sub.totalDist) % sub.totalDist, 0, {}).rot;
   const prop = (dist: number, off: number, other: Omit<Prop, 'x' | 'y'>) =>
     ({ ...other, ...pointAt(dist, off), rot: rot(dist) + (other.rot || 0) });
-  const onLane = (x: number, y: number, pad: number) => lanes.some((lane) => lane.pts.some(
-    ([startX, startY], i) => {
-      const next = lane.pts[i + 1];
-      if (!next) return false;
-      const dx = next[0] - startX, dy = next[1] - startY, len2 = dx * dx + dy * dy || 1e-6;
-      let along = ((x - startX) * dx + (y - startY) * dy) / len2;
-      along = along < 0 ? 0 : along > 1 ? 1 : along;
-      return Math.hypot(x - startX - dx * along, y - startY - dy * along) <= lane.width / 2 + pad;
-    }));
+  const onLane = laneIndex(lanes);
   const clear = (x: number, y: number, reach: number) =>
     querySubtrack(sub, x, y).dist >= sub.width / 2 + reach
     && Math.abs(x) < FLOOR - 6 - reach

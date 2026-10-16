@@ -25,6 +25,7 @@ export interface Settings {
   gpuPaint: boolean;             // floor + zones painted by the GPU (glpaint.ts); off: ?gpupaint=0
   zoomHold: boolean;             // the speed zoom holds, then glides (camera.ts); off: ?zoomhold=0
   minimap: boolean;              // the road-ahead minimap (hud/minimap.js); off: ?minimap=0
+  menuLive: boolean;             // ?menulive=1: a live race behind the menu, not the recording
   noShade: boolean;              // ?noshade: skip the hill shading (perf A/B)
   grassEnds: "round" | "square";   // ?grass=square: square grass blade ends (cheaper; A/B)
   surfaceTextures: boolean;       // ?tex=0: paint surfaces live, not pre-painted textures (A/B)
@@ -76,6 +77,7 @@ export function readSettings(search: string): Settings {
     zoomHold: params.get('zoomhold') !== '0',
     // default since 2026-10-16 (owner: "mini map tests good"); then the pause setting decides
     minimap: params.get('minimap') !== '0',
+    menuLive: params.get('menulive') === '1',
     noShade: params.has('noshade'),
     grassEnds: params.get('grass') === 'square' ? 'square' : 'round',
     surfaceTextures: params.get('tex') !== '0',

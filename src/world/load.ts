@@ -68,9 +68,21 @@ function indexPatchGrid(): void {
       }
   }
 }
-function prepareLevel(): void {
+/**
+ * Builds the current level for driving (or, light, for a menu thumbnail).
+ * @param light a THUMBNAIL build: a level whose patches are not built yet skips them. MEASURED
+ *   (menu TEST MODE tap, CPU x4): painting the thumbnails spent 2.0 of 3.1 s building every level's
+ *   blend squares and inclusions - 0.4-3 m patches, under a pixel on a 320 px thumbnail. The next
+ *   full setLevel builds them.
+ */
+function prepareLevel(light = false): void {
   prepBarriers(LEVEL);
   if (LEVEL.randomise) { LEVEL.randomise(); LEVEL._blend = null; }
+  if (light && !LEVEL._blend) {
+    LEVEL.allPatches = [...(LEVEL.patches || [])];
+    indexPatchGrid();
+    return;
+  }
   buildLevelPatchSets();
   // KEEP LANES CLEAN (user: Thruston "pits look messy"): blend + inclusion squares
   // picked on the grass next to a lane overlapped onto it and chewed its edge ragged. Drop any
@@ -187,14 +199,34 @@ export function finishLevel(level: Level): Level {
 function applyBounds(): void {
   setRect(LEVEL.bounds);
 }
-export function setLevel(levelId: string): Level {
+/**
+ * Builds a level that waits for its first use, in place (the rally stages: stagegen.js
+ * addStageLevels): its _build makes the whole level. Anything else is returned as it is.
+ * @param level the level
+ * @returns the level, built
+ */
+export function buildLevel(level: Level): Level {
+  const build = level._build;
+  if (!build) return level;
+  delete level._build;
+  Object.assign(level, build());
+  return finishLevel(level);
+}
+/**
+ * Makes a level the current one.
+ * @param levelId the level
+ * @param opts light: a menu-thumbnail build (prepareLevel)
+ * @returns the current level
+ */
+export function setLevel(levelId: string, opts: { light?: boolean } = {}): Level {
   const next = LEVELS.find((level) => level.id === levelId);
   if (!next) return LEVEL;
+  buildLevel(next);
   setActiveLevel(next);
   // WORLD SIZE per level
   setFloor(LEVEL.floor || 260);
   applyBounds();
-  prepareLevel();
+  prepareLevel(opts.light);
   // natural-ground amplitudes are per layout (the Grass Track re-randomises every load)
   resetNatLevel();
   return LEVEL;

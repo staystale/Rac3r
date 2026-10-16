@@ -1,6 +1,6 @@
 // build.mjs — bundle src/main.js into dist/game.js (+ dist/index.html pointing at it).
 import { build } from "esbuild";
-import { rm, mkdir, readFile, writeFile, stat } from "node:fs/promises";
+import { rm, mkdir, readFile, writeFile, stat, cp } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { join } from "node:path";
 
@@ -18,6 +18,8 @@ await build({
   sourcemap: true,
   target: "es2022",
 });
+// the menu recording and its still frame (src/game/menuvideo.js; tools/menuvideo.mjs makes them)
+await cp(join(root, "media"), join(dist, "media"), { recursive: true });
 const html = await readFile(join(root, "index.html"), "utf8");
 await writeFile(join(dist, "index.html"), html.replace("./src/main.js", "./game.js"));
 const size = (await stat(join(dist, "game.js"))).size;

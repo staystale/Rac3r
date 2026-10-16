@@ -778,16 +778,23 @@ let stagesAdded = false;
 export function addStageLevels() {
   if (stagesAdded) return;
   stagesAdded = true;
-  installStage(genStage(GEN_DEFAULT));
+  // the generator's slot: its stage too is generated on first use (its track card, setLevel)
+  const { theme, len, style, seed } = GEN_DEFAULT;
+  installStage({ id: `gen-${theme}-${len}-${style}-${seed}`, name: 'Stage generator',
+    gen: { ...GEN_DEFAULT }, _build: () => genStage(GEN_DEFAULT) });
   {
     let insertAt = LEVELS.findIndex((entry) => entry.id === 'killder') + 1 || LEVELS.length;
+    // ON FIRST USE (load.ts buildLevel; MEASURED, CPU x4: all nine at start-up cost 1.95 s of the
+    // load). The menu needs only name + theme; setLevel and the setup screen build the same road.
     for (const setStage of SET_STAGES) {
-      const level = genStage({ ...setStage, len: 'medium', attempt: 0 });
-      if (setStage.name) level.name = setStage.name;
-      level.id = 'stage-' + level.name.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
-          .replace(/[^a-z]+/g, '-').replace(/-$/, '');
-      level.fixed = true;
-      LEVELS.splice(insertAt++, 0, finishLevel(level));
+      const stageId = 'stage-' + setStage.name.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+        .replace(/[^a-z]+/g, '-').replace(/-$/, '');
+      LEVELS.splice(insertAt++, 0, {
+        id: stageId, name: setStage.name, fixed: true,
+        gen: { seed: setStage.seed, theme: setStage.theme, len: 'medium', style: setStage.style },
+        _build: () => Object.assign(genStage({ ...setStage, len: 'medium', attempt: 0 }),
+          { id: stageId, name: setStage.name, fixed: true }),
+      });
     }
   }
 }

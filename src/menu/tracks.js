@@ -1,4 +1,5 @@
 import { LEVELS } from '../world/levels/index.ts';
+import { buildLevel } from '../world/load.ts';
 import { THEMES, LENGTHS } from '../stagegen.js';
 import { saveProfile } from './profile.js';
 import { addPane, addButton, addElement, copyThumb } from './widgets.js';
@@ -166,6 +167,7 @@ function addTrackCard(menu, grid, level) {
     showSetup(menu, level);
   }, 'card' + (level.id === profile.lastLevel ? ' on' : ''));
   if (level.gen && !level.fixed) {
+    buildLevel(level);   // the generator's stage is generated on first use: its road map below
     const canvas = document.createElement('canvas');
     canvas.width = 320;
     canvas.height = 200;

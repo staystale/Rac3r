@@ -96,6 +96,10 @@ painter, which renderhash pins for speed):
 owner mockups first). The Lab split is DONE (2026-10-16: OG Lab, Surface Bowling Alley, The Rough
 Patch), owner phone test pending.
 
+**Menu background = a recording (2026-10-16):** media/menu-race.mp4 + .jpg, made by
+`node tools/menuvideo.mjs` from the live race (?menulive=1). Re-record after any change to the look
+(owner: after the graphics update). The rally stages are generated on first use (load.ts buildLevel).
+
 **Test server:** `node serve.mjs` in the clone serves the WORKING TREE live - uncommitted edits reach the
 phone at once (the owner's runs during an edit can see half-done code). PIDs in
 `GamesStudio/tools/logs/rac3r-pids.txt`; restart it by PID with `RAC3R_REPORT_LOG` set. Keep it and the

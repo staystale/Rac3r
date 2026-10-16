@@ -211,6 +211,8 @@ export function loop(now) {
   const wallDt = Math.min(0.1, gameMs / 1000);
   shared.last = now;
   updateFpsMeter(wallDt);
+  // the menu recording plays behind the menu (menuvideo.js): no sim, no drawing
+  if (shared.mode === 'menu' && shared.menuVideo) return;
 
   const inp = readFrameInput(wallDt);
   game.in = inp;

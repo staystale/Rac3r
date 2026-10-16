@@ -4,6 +4,7 @@ import { addPane, addButton, addElement } from './widgets.js';
 import { KIND, catOf, showTrackList, addGenRows } from './tracks.js';
 import { showCarPicker } from './garage.js';
 import { hideMenu } from '../menu.js';
+import { buildLevel } from '../world/load.ts';
 
 // DIFFICULTY (PLAN.md §4; the centre of the field's spread — aidriver.js)
 const DIFF = [['MOBILE', 'Mobile game'], ['GAME', 'Game'], ['REALISH', 'Realish'],
@@ -52,6 +53,7 @@ function addSetupSlider(menu, panel, label, min, max, stepV, val, fmt, set) {
  * @param {object} level the chosen level
  */
 function addSetupHeader(menu, panel, level) {
+  buildLevel(level);   // a set rally stage is generated on first use: its length is read below
   addElement(panel, 'h2', level.name);
   addElement(panel, 'div', level.endless ? 'ENDLESS MOTORWAY · HOW FAR CAN YOU GET?' : level.fixed
     ? `RALLY STAGE · ${THEMES[level.gen.theme].name} · ${level.gen.km.toFixed(2)} KM · POINT TO \

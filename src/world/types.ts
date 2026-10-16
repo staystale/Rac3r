@@ -399,6 +399,8 @@ export interface Level {
   _mergedOf?: Cover[];   // ground.ts mergedCovers: the covers list _merged was built from
   _merged?: MergedCover[];   // ground.ts mergedCovers
   _line?: RacingLine;   // ai/line.ts racingLine: the racing line, cached
+  // stagegen.js addStageLevels: a rally stage, generated on first use (load.ts buildLevel)
+  _build?: () => Level;
   _branches?: Branches;   // ai/line.ts racingLine: the joker / start lane paths, cached
 }
 
