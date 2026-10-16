@@ -205,8 +205,8 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
       the centreline, fading at the top, your car a chevron at the bottom, a thin progress bar under
       it; subtle (no box, ~85 % opacity), drawn on the HUD, never touchable. BUILT (was behind ?minimap=1)
       (src/hud/minimap.js; owner phone test pending, testlist minimap). Pause menu MINIMAP row,
-      remembered per difficulty mode: on in MOBILE / GAME, off in REALISH / RICH, locked off and
-      greyed out in REAL (owner). Gives way to the car list / tune panel. The lab floors and the
+      remembered per difficulty mode: on in MOBILE / GAME / REALISH (owner 2026-10-16: REALISH, the
+      default difficulty, counts as easy), off in RICH, locked off and greyed out in REAL (owner). Gives way to the car list / tune panel. The lab floors and the
       endless highway have none.
       Owner: "the mini map should zoom in n out with the camera / car speed": its scale is the main
       view's / 30, so ~140 m ahead fully zoomed in, ~450 m fully out, following the camera's zoom.

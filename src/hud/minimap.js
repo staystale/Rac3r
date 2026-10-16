@@ -7,8 +7,8 @@
 // where the car points, rivals in the window are dots, and a thin bar under it is the stage / lap
 // progress. No box, see-through,
 // never touchable. Levels without a road (the lab floors) and the endless highway get none.
-// ON / OFF lives in the pause menu, remembered per difficulty mode: on in the easy modes, off in
-// the harder ones, and locked off in REAL (owner).
+// ON / OFF lives in the pause menu, remembered per difficulty mode: on in MOBILE, GAME and REALISH,
+// off in RICH, and locked off in REAL (owner).
 
 import { LEVEL } from '../world/state.ts';
 
@@ -28,8 +28,9 @@ const LOST_M = 40;           // m off the matched point: search the whole centre
 const OPACITY = 0.85;
 
 // DIFFICULTY MODES (menu/setup.js DIFF: MOBILE, GAME, REALISH, RICH, REAL): the default per mode,
-// and the one mode where it is locked off
-const DEFAULT_ON = [true, true, false, false, false];
+// and the one mode where it is locked off. REALISH counts as easy (owner, 2026-10-16: it is the
+// default difficulty)
+const DEFAULT_ON = [true, true, true, false, false];
 const LOCKED_MODE = 4;
 const storeKey = (mode) => 'rac3r.minimap.' + mode;
 
