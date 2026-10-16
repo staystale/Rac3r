@@ -1,12 +1,13 @@
-// The ROAD layer of the renderer: lanes, the track ribbon, lane dashes, curved kerbs, paint, the
-// floor-edge kerb, slip roads, joker arrows and the marks layer. createRoad builds one context
-// (view, camera, projection helpers) and hands it to the module-level painters below.
+// The ROAD layer of the renderer: lanes, lane dashes, paint, the floor-edge kerb, slip roads,
+// joker arrows and the marks layer (the track ribbon and curved kerbs: ribbon.ts). createRoad
+// builds one context (view, camera, projection helpers) and hands it to the painters below.
 import { FX0, FX1, FY0, FY1, KERB_W } from "../world/bounds.ts";
 import { PAINT, BOARDS, LEVEL } from "../world/state.ts";
 import { COL } from "../world/colours.ts";
 import { MARK_EXTENT, MARK_PPM } from '../marks.js';
 import type { Prop } from "../world/types.ts";
 import type { Cam, ForSide, RenderMarks, RoadGame, View } from "./types.ts";
+import { drawCurvedKerbs, drawTrackRibbon } from "./ribbon.ts";
 
 // what createRoad destructures from the renderer and the ground painter
 interface RoadHelpers {
@@ -15,6 +16,8 @@ interface RoadHelpers {
   toScreenY: (wy: number) => number;
   paintLayers: (id: string, x0: number, y0: number, x1: number, y1: number) => void;
   artBase: (id: string, fallback: string) => string;
+  /** ribbon.ts: trace only the ribbon and kerbs that reach the view (?ribboncull=1) */
+  cullRibbon: boolean;
 }
 
 /** what every road painter reads: the view, the camera and the projection helpers */
@@ -24,10 +27,8 @@ interface RoadCtx extends RoadHelpers {
 }
 
 type Sub = NonNullable<typeof LEVEL.subtrack>;
-type SubPts = Sub['pts'];
 type PaintMark = (typeof PAINT)[number];
 type JokerArrow = NonNullable<NonNullable<typeof LEVEL.joker>['arrows']>[number];
-type RibbonSpan = { surface: string; start: number; end: number };
 
 /** the world-space box of the view, in metres */
 interface ViewBox {
@@ -136,191 +137,6 @@ function drawLanes(ctx: RoadCtx) {
   }
 }
 
-// ---------------------------------------------------------------- circuit ribbon & curved
-// corner kerbs
-
-/**
- * The surface id at a distance along the track; 'ghost' on a point-to-point stage's invisible
- * return segment (lab.js ghostSegment): never drawn.
- * @param sub the subtrack
- * @param dist the distance along the track
- * @returns the surface id
- */
-function ribbonSurfaceAt(sub: Sub, dist: number) {
-  if (sub.ghost && dist >= sub.ghost.d0 && dist < sub.ghost.d1) return 'ghost';
-  const sector = sub.sectorAt ? sub.sectorAt(dist) : null;
-  return (sector && sector.surface) ? sector.surface.id : 'tarmac';
-}
-
-/**
- * Groups contiguous samples into sector spans (one solid polygon per sector, which removes the
- * transverse anti-aliasing seam lines across the road) and merges the wrap-around span across
- * the start/finish line so there is no seam at index 0.
- * @param sub the subtrack
- * @param pts the track samples
- * @param count the number of samples (>= 3)
- * @returns the spans
- */
-function buildRibbonSpans(sub: Sub, pts: SubPts, count: number) {
-  const spans: RibbonSpan[] = [];
-  let curSurface: string | null = null;
-  let curStart = 0;
-  for (let i = 0; i < count; i++) {
-    const sId = ribbonSurfaceAt(sub, pts[i].dist);
-    if (sId !== curSurface) {
-      if (curSurface !== null) spans.push({ surface: curSurface, start: curStart, end: i });
-      curSurface = sId;
-      curStart = i;
-    }
-  }
-  spans.push({ surface: curSurface!, start: curStart, end: count });   // n >= 3: set in the loop
-
-  // Merge wrap-around span across start/finish line so there is no seam at index 0
-  if (spans.length > 1 && spans[0].surface === spans[spans.length - 1].surface) {
-    const last = spans.pop()!;   // length > 1
-    spans[0].start = last.start - count;
-  }
-  return spans;
-}
-
-/**
- * The exact point where the sector changes between samples i-1 and i (bisected on sectorAt, the
- * physics' own rule).
- * @param sub the subtrack
- * @param pts the track samples
- * @param count the number of samples
- * @param i the sample index
- * @returns the cut point and its normal
- */
-function findSectorCut(sub: Sub, pts: SubPts, count: number, i: number) {
-  const prev = pts[(((i - 1) % count) + count) % count], next = pts[
-      ((i % count) + count) % count];
-  let distA = prev.dist, distB = next.dist; if (distB < distA) distB += sub.totalDist;
-  const idOf = (dist: number) => ribbonSurfaceAt(sub, dist % sub.totalDist);
-  const ida = idOf(distA);
-  let low = 0, high = 1;
-  for (let step = 0; step < 20; step++) {
-    const mid = (low + high) / 2;
-    if (idOf(distA + (distB - distA) * mid) === ida) low = mid;
-    else high = mid;
-  }
-  const frac = (low + high) / 2;
-  return {
-    x: prev.x + (next.x - prev.x) * frac, y: prev.y + (next.y - prev.y) * frac, nx: prev.nx,
-        ny: prev.ny
-  };
-}
-
-/**
- * Fills one ribbon span as a polygon (left edge out, right edge back) and paints the surface's
- * pattern clipped to it, over the span's own world box only. MEASURED: painting
- * each span across the whole view (relying on the clip) drew the screen once per span.
- * @param ctx the road context
- * @param sub the subtrack
- * @param spans all the spans
- * @param span the span to draw
- */
-function drawRibbonSpan(ctx: RoadCtx, sub: Sub, spans: RibbonSpan[], span: RibbonSpan) {
-  const { view, toScreenX, toScreenY, paintLayers, artBase } = ctx;
-  const pts = sub.pts, count = pts.length, halfW = sub.width / 2;
-  view.ctx.fillStyle = artBase(span.surface, COL.tarmac);
-  let bx0 = Infinity, by0 = Infinity, bx1 = -Infinity, by1 = -Infinity;
-  for (let i = span.start; i <= span.end; i++) {
-    const point = pts[((i % count) + count) % count];
-    bx0 = Math.min(bx0, point.x - halfW); bx1 = Math.max(bx1, point.x + halfW);
-    by0 = Math.min(by0, point.y - halfW); by1 = Math.max(by1, point.y + halfW);
-  }
-  // the span's centreline: cut at the EXACT sector boundaries (spans ran to the first SAMPLE
-  // past the boundary, so every sector change was drawn up to ~3 m after the point where the
-  // grip actually changes; the physics cuts at the exact track distance).
-  const line = spans.length > 1 ? [findSectorCut(sub, pts, count, span.start)] : [];
-  for (let i = span.start; i < span.end; i++) line.push(pts[((i % count) + count) % count]);
-  line.push(spans.length > 1 ? findSectorCut(sub, pts, count, span.end) : pts[
-      ((span.end % count) + count) % count]);
-  view.ctx.beginPath();
-  // Outer left edge along the span
-  for (let i = 0; i < line.length; i++) {
-    const point = line[i], edgeX = toScreenX(point.x + point.nx * halfW), edgeY = toScreenY(
-        point.y + point.ny * halfW);
-    if (i === 0) view.ctx.moveTo(edgeX, edgeY); else view.ctx.lineTo(edgeX, edgeY);
-  }
-  // Inner right edge along the span in reverse
-  for (let i = line.length - 1; i >= 0; i--) {
-    const point = line[i];
-    view.ctx.lineTo(toScreenX(point.x - point.nx * halfW),
-      toScreenY(point.y - point.ny * halfW));
-  }
-  view.ctx.closePath();
-  view.ctx.fill();
-  // the surface's pattern, clipped to this span
-  view.ctx.save();
-  view.ctx.clip();
-  view.ctx.translate(toScreenX(0), toScreenY(0));
-  paintLayers(span.surface, bx0, by0, bx1, by1);
-  view.ctx.restore();
-}
-
-/**
- * Strokes one white outer boundary line of the ribbon (continuous along tarmac/broken/
- * racetarmac, omitted on dirt/mud/grass).
- * @param ctx the road context
- * @param sub the subtrack
- * @param side +1 for the left edge, -1 for the right edge
- */
-function strokeRibbonEdge(ctx: RoadCtx, sub: Sub, side: number) {
-  const { view, toScreenX, toScreenY } = ctx;
-  const pts = sub.pts, count = pts.length, halfW = sub.width / 2;
-  view.ctx.beginPath();
-  let drawing = false;
-  for (let i = 0; i <= count; i++) {
-    const point = pts[i % count];
-    const sec = sub.sectorAt ? sub.sectorAt(point.dist) : null;
-    const sId = sec && sec.surface ? sec.surface.id : '';
-    if (sId === 'dirt' || sId === 'mud' || sId === 'grass' || sId === 'grassShort' ||
-        ribbonSurfaceAt(sub, point.dist) === 'ghost' || sub.noLines) {
-      drawing = false;
-      continue;
-    }
-    const edgeX = toScreenX(point.x + side * point.nx * (halfW - 0.2)),
-        edgeY = toScreenY(point.y + side * point.ny * (halfW - 0.2));
-    if (!drawing) {
-      view.ctx.moveTo(edgeX, edgeY);
-      drawing = true;
-    } else {
-      view.ctx.lineTo(edgeX, edgeY);
-    }
-  }
-  view.ctx.stroke();
-}
-
-/**
- * Draws the circuit ribbon: one solid polygon per sector span with its surface pattern, then
- * the white boundary lines on both edges.
- * @param ctx the road context
- */
-function drawTrackRibbon(ctx: RoadCtx) {
-  const { view, PPMz } = ctx;
-  if (!LEVEL.subtrack || !LEVEL.subtrack.pts) return;
-  const sub = LEVEL.subtrack;
-  const count = sub.pts.length;
-  if (count < 3) return;
-  const pxPerM = PPMz();
-
-  // 1. Continuous road ribbon with per-sector surface styling
-  const spans = buildRibbonSpans(sub, sub.pts, count);
-  for (const span of spans) {
-    if (span.surface === 'ghost') continue;
-    drawRibbonSpan(ctx, sub, spans, span);
-  }
-
-  // 2. White outer boundary lines (continuous along tarmac/broken/racetarmac, omitted on
-  // dirt/mud/grass)
-  view.ctx.strokeStyle = 'rgba(255,255,255,0.72)';
-  view.ctx.lineWidth = Math.max(1, 0.22 * pxPerM);
-  strokeRibbonEdge(ctx, sub, 1);
-  strokeRibbonEdge(ctx, sub, -1);
-}
-
 /**
  * Strokes one lane line at a lateral offset along the track, stopping at the ghost segment.
  * @param ctx the road context
@@ -363,84 +179,6 @@ function drawLaneDashes(ctx: RoadCtx) {
   view.ctx.setLineDash([]);
   for (const off of sub.laneSolid || []) strokeOffsetLine(ctx, sub, off);
   view.ctx.restore();
-}
-
-// CURVED CORNER KERBS are drawn AFTER patches, wear and covers, so nothing can paint over them:
-// kerbs are their own surface, bumpy and slightly slippy like real race kerbs. The physics
-// already treats them that way (SURFACES.kerb, mu 0.70, ridges in bumpAt).
-
-/**
- * Draws one tooth of a curved kerb between two track samples: the quad, its outer highlight
- * bevel along the crest and the inner shadow joint along the asphalt edge.
- * @param ctx the road context
- * @param sub the subtrack
- * @param kerb the curved kerb (side, width)
- * @param index the index of the tooth's first sample
- */
-function drawKerbTooth(
-  ctx: RoadCtx, sub: Sub, kerb: NonNullable<Sub['curvedKerbs']>[number], index: number,
-) {
-  const { view, PPMz, toScreenX, toScreenY } = ctx;
-  const pts = sub.pts, count = pts.length, pxPerM = PPMz(), halfW = sub.width / 2;
-  const sgn = kerb.side === 'left' ? 1 : -1;
-  const kerbWidth = kerb.width || 2.4;
-  const startPt = pts[index];
-  const endPt = pts[(index + 1) % count];
-
-  // Red and white kerb teeth alternating every 2.0 m along the corner
-  const tooth = Math.floor(startPt.dist / 2.0) % 2;
-  view.ctx.fillStyle = tooth ? COL.kerbB : COL.kerbA;
-
-  const iaX = toScreenX(startPt.x + sgn * startPt.nx * halfW), iaY = toScreenY(
-      startPt.y + sgn * startPt.ny * halfW);
-  const ibX = toScreenX(endPt.x + sgn * endPt.nx * halfW), ibY = toScreenY(
-      endPt.y + sgn * endPt.ny * halfW);
-  const oaX = toScreenX(startPt.x + sgn * startPt.nx * (halfW + kerbWidth)),
-    oaY = toScreenY(
-      startPt.y + sgn * startPt.ny * (halfW + kerbWidth));
-  const obX = toScreenX(endPt.x + sgn * endPt.nx * (halfW + kerbWidth)), obY = toScreenY(
-      endPt.y + sgn * endPt.ny * (halfW + kerbWidth));
-
-  view.ctx.beginPath();
-  view.ctx.moveTo(iaX, iaY);
-  view.ctx.lineTo(ibX, ibY);
-  view.ctx.lineTo(obX, obY);
-  view.ctx.lineTo(oaX, oaY);
-  view.ctx.closePath();
-  view.ctx.fill();
-
-  // Outer highlight bevel along crest
-  view.ctx.strokeStyle = 'rgba(255,255,255,0.40)';
-  view.ctx.lineWidth = Math.max(1, 0.08 * pxPerM);
-  view.ctx.beginPath();
-  view.ctx.moveTo(oaX, oaY); view.ctx.lineTo(obX, obY);
-  view.ctx.stroke();
-
-  // Inner shadow joint along asphalt edge
-  view.ctx.strokeStyle = 'rgba(0,0,0,0.22)';
-  view.ctx.lineWidth = Math.max(1, 0.08 * pxPerM);
-  view.ctx.beginPath();
-  view.ctx.moveTo(iaX, iaY); view.ctx.lineTo(ibX, ibY);
-  view.ctx.stroke();
-}
-
-/**
- * Draws the curved corner kerbs of the subtrack.
- * @param ctx the road context
- */
-function drawCurvedKerbs(ctx: RoadCtx) {
-  if (!LEVEL.subtrack || !LEVEL.subtrack.pts) return;
-  const sub = LEVEL.subtrack, pts = sub.pts, count = pts.length;
-  if (sub.curvedKerbs) {
-    for (const kerb of sub.curvedKerbs) {
-      const start = kerb.startDist, end = kerb.endDist;
-      for (let i = 0; i < count; i++) {
-        const startPt = pts[i];
-        if (startPt.dist < start || startPt.dist > end) continue;
-        drawKerbTooth(ctx, sub, kerb, i);
-      }
-    }
-  }
 }
 
 /**

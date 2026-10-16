@@ -65,8 +65,11 @@ the menu lag (the menu race is mostly simulation).
    the whole track area, ruts change it, small bumps need a fine grid). Off-screen AI at half rate was
    offered; the owner asked that changes are still detected at driving speed - ask before doing it.
 2. Ground tiles (track / kerbs / wear painted on the CPU, ~12 %, and the hitches when new ground scrolls
-   in): evidence-based choice (owner) between drawing the track as GPU geometry and keeping painted
-   tiles longer - measure both, then propose. (The owner chose painted tiles over geometry once, B2.)
+   in): MEASURED 10-16 (TODO PERFORMANCE 2): 98 % of tiles are prefetch, 87 % of a tile was the
+   ribbon + kerb teeth traced for the whole track; longer-kept tiles rejected (a Brands lap ~1650
+   tiles, ~190 MB). Owner chose A: `?ribboncull=1` (src/render/ribbon.ts), tile 5.5 -> 3.4 ms,
+   phone test pending. Tools: tools/tilecost.mjs (reasons), tools/scratch/_tilecost.mjs (a 4-AI
+   race with a per-layer profile), tools/scratch/_cullshots.mjs (phone-size race photos).
 3. Phase C: cars, props, marks, particles as GPU sprites, then one canvas, then delete the old tile
    machinery. Then re-record the menu video and re-check the menu lag.
 

@@ -200,9 +200,25 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
       ORDER (owner, 2026-10-16): the graphics work (2, 3) FIRST; the rest of 1 after it.
       1. Ground checks: near-hint search +-4 first (tyrewall.ts NEAR_FIRST): querySubtrackInto 0.96
          -> 0.33 s, applyGround 2.68 -> 2.13 s, simhash SAME - DONE. Next: fewer samples per step
-         behind ?groundlite=1 (lap-time proof). Height map rejected; off-screen AI half rate: ask
-         (owner asked for a clearer explanation, 2026-10-16).
-      2. Ground tiles: measure GPU track geometry vs longer-kept painted tiles, then propose.
+         behind ?groundlite=1 (lap-time proof) - OWNER: "a good idea", after the graphics work,
+         and a phone test when in doubt. Height map rejected. Off-screen AI at half rate: owner
+         "probably ok to consider if we need more performance" - SAVED for later, not now.
+      2. Ground tiles: MEASURED (2026-10-16, tools/tilecost.mjs + a race profile; Brands, 4 AI,
+         CPU x4, 90 s): tile painting ~11 % of the CPU, ~20 tiles/s at 5.7 ms; 98 % of them
+         prefetch for the widest zoom; 87 % of a tile's cost was the ribbon (3.6 s) and the kerb
+         teeth (3.4 s) traced for the WHOLE track per tile and clipped by the canvas. Longer-kept
+         tiles REJECTED: with no cap lap 2 paints ~0, but a Brands lap is ~1650 tiles (~190 MB of
+         canvas + about as much again in GPU textures) - too much for the phone. GPU track
+         geometry (L) not needed unless the culled tiles still cost too much. OWNER CHOSE A:
+         each tile traces only the ribbon and kerbs that reach it (src/render/ribbon.ts).
+         A BUILT behind ?ribboncull=1 (owner phone test pending, testlist 'ribboncull'). Off =
+         the old paths (renderhash SAME). On: framecheck Brands tile 5.5 -> 3.3-3.4 ms (two runs
+         each), work median 19.0 -> 17.3 ms, frames over 33 ms 228-235 -> 146-174; race profile
+         (60 s) tile painting 5.5 -> 3.0 s, kerb teeth 2.1 -> 0.06 s, ribbon 1.6 -> 0.9 s.
+         Not bit-identical: Chrome's canvas picks its anti-aliasing method by a path's point
+         count, so a few road-edge pixels change shade (renderhash shots: 0.002-0.019 % of the
+         screen, the highway's straight edge 0.1 %: one device-pixel column, no seam). Kerbs
+         unchanged. On the owner's OK: the default.
       3. Phase C GPU sprites -> one canvas -> delete the old tile machinery; then the menu video.
 - [ ] MENU VIDEO, if still wanted after the graphics update (owner: it must be a video of a race; the
       first take lagged on the phone): find why first (uneven frames from a real-time take? record
