@@ -235,8 +235,11 @@ export function startFlow() {
 // NO storage writes in the frame loop: a synchronous localStorage write can stall a phone frame
 // (judder). The highway best and the speed camera record live in memory while driving and are
 // saved here at safe moments: pause, restart, leaving a level, page hidden / closed.
-// TYRE WEAR (?tyrewear=1): the player's set is kept per car in the profile; only the garage fits a
-// new one. Only a set loaded from the profile is saved back (the menu's demo car never is).
+// TYRE WEAR (the default; ?tyrewear=0 off): the player's set is kept per car in the profile; only
+// the garage fits a new one. Only a set loaded from the profile is saved back (the menu's demo car
+// never is), and only when the event is over (the results, back to the menu, another car): a
+// RESTART puts the set back as it was at the event's start, a RESET keeps the race as it is
+// (owner).
 const carKey = (car) => String(car.spec.id).split('#')[0];
 /** Saves the player car's tyre wear into the profile. */
 export function saveTyreWear() {
@@ -255,10 +258,10 @@ export function loadTyreWear(car) {
   const profile = shared.menu && shared.menu.profile;
   const saved = profile && profile.tyreWear && profile.tyreWear[carKey(car)];
   car.tyreWear = saved ? [...saved] : [0, 0, 0, 0];
+  car.tyreWearStart = [...car.tyreWear];
   car.tyreWearOwned = true;
 }
 export function saveRecords() {
-  saveTyreWear();
   try {
     if ((game.hwBest | 0) > (shared.savedHwBest | 0)) {
       localStorage.setItem('rac3r.hwbest', String(game.hwBest | 0));
@@ -282,6 +285,8 @@ export function doRestart() {
   // the event's weather from its start (before the cars' tyres take the track temperature and the
   // AI plans its speeds for the wetness)
   startWeather(shared.weatherPlan || null);
+  // a restart is the event from its start: the set as it was then (owner)
+  if (game.car.tyreWearStart) game.car.tyreWear = [...game.car.tyreWearStart];
   if (LEVEL.endless) {
     resetHighway(LEVEL);
     game.hwDist = 0;

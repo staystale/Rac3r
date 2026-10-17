@@ -3,12 +3,13 @@
 // they come and go with the weather instead of being placed by hand.
 //
 // SITES: each level with a lap gets puddle sites once, from its own seeded stream: along the track
-// and just off it, more likely in a DIP of the terrain and less on a crest (water runs downhill),
-// bigger in a dip. Some sites can hold SNOW (a lower chance, owner). A site FILLS in rain once the
-// ground is soaked, DRAINS very slowly in a dry spell (faster when hot); snow SETTLES while it
-// snows below freezing and MELTS into a puddle when it warms. A site shows in STEPS sizes, so the
-// ground repaints only when one changes step; neighbours that grow into each other merge, as the
-// ground draws every cover of a kind as one union (render/ground/covers.ts).
+// and just off it, and over the whole floor (owner: anywhere), water more likely in a DIP of the
+// terrain and less on a crest (water runs downhill), bigger in a dip. SNOW can lie anywhere (a
+// site of the floor holds snow more often than water), in wider patches. A site FILLS in rain
+// once the ground is soaked, DRAINS very slowly in a dry spell (faster when hot); snow SETTLES
+// while it snows below freezing and MELTS into a puddle when it warms. A site shows in STEPS
+// sizes, so the ground repaints only when one changes step; neighbours that grow into each other
+// merge, as the ground draws every cover of a kind as one union (render/ground/covers.ts).
 //
 // The puddles the levels had are the weather's now: with ?weather=1 every hand-placed and blended
 // puddle goes, except SCENERY water (Cover.water: rivers, lakes, fords - permanent) and the Lab's
@@ -22,6 +23,7 @@
 import { LEVEL } from "./state.ts";
 import { WEATHER, weatherRandom } from "./weather.ts";
 import { heightAt } from "./terrain.ts";
+import { FX0, FX1, FY0, FY1 } from "./bounds.ts";
 import { seededRng } from "./blend.ts";
 import { wearMap, wearDirty, WEAR_CELL, layersAt, wearKey } from "./wear.ts";
 import type { Cover, CoverId, Layers, Level, PuddleSite, WearCell } from "./types.ts";
@@ -34,8 +36,12 @@ const SITE_SPACING = 22, MAX_SITES = 48;
 // the chance a candidate becomes a site: on level ground, and how much a dip / crest of DIP_REF m
 // (the ground there against the mean 6 m around) adds / takes off
 const SITE_CHANCE = 0.18, DIP_GAIN = 0.5, CREST_LOSS = 0.12, DIP_REF = 0.15, DIP_PROBE = 6;
-// the share of sites that can hold snow
+// the share of track sites that can hold snow
 const SNOW_SITE_CHANCE = 0.35;
+// THE FLOOR: about this many more sites over the rest of the level (the grid spacing follows its
+// area, at least FIELD_SPACING_MIN m), the share of floor points that can hold snow, and a snow
+// patch's size against a puddle's
+const FIELD_SITES = 110, FIELD_SPACING_MIN = 22, FIELD_SNOW_CHANCE = 0.6, SNOW_SIZE = 1.4;
 // fill a second at rain 1 (a dip's catch more; heavy rain fills one in ~75 s, owner: quicker),
 // once the ground is this wet; drain a second per C of track temperature in a dry spell (20 C:
 // ~13 min empty; 40 C: ~6)
@@ -116,15 +122,24 @@ function dipAt(x: number, y: number): number {
   return around - heightAt(x, y);
 }
 
-/**
- * The level's puddle sites, from its own seeded stream.
- * @param level the level (with a lap)
- * @returns the sites
- */
-export function buildPuddleSites(level: Level): PuddleSite[] {
-  const sub = level.subtrack;
-  if (!enabled || level.endless || !sub) return [];
-  const random = seededRng(level.id + ':puddles'), sites: PuddleSite[] = [];
+/** How likely a point gathers water: more in a dip, less on a crest. */
+function waterChance(dip: number): number {
+  return SITE_CHANCE + DIP_GAIN * Math.max(0, Math.min(1, dip))
+    - CREST_LOSS * Math.max(0, Math.min(1, -dip));
+}
+
+/** A new site at a point: its size and catch by the dip (no catch: a snow-only site). */
+function makeSite(x: number, y: number, rot: number, dip: number, wet: boolean, snowy: boolean,
+    random: () => number): PuddleSite {
+  const deep = Math.max(0, Math.min(1, dip)), big = 1 + 0.3 * deep;
+  return { x, y, w: (5 + 6 * random()) * big, h: (3 + 3 * random()) * big, rot,
+    catchK: wet ? CATCH_MAX - CATCH_SPAN + CATCH_SPAN * deep : 0, snowy, water: 0, ice: 0,
+    snow: 0, shown: '', covers: {} };
+}
+
+/** The sites along the lap: on the track and just off it. */
+function trackSites(sub: NonNullable<Level['subtrack']>, random: () => number): PuddleSite[] {
+  const sites: PuddleSite[] = [];
   for (let dist = SITE_SPACING / 2; dist < sub.totalDist && sites.length < MAX_SITES;
     dist += SITE_SPACING) {
     const point = sub.pts[Math.min(sub.pts.length - 1,
@@ -132,16 +147,39 @@ export function buildPuddleSites(level: Level): PuddleSite[] {
     const side = (random() * 2 - 1) * (sub.width / 2 + 3);
     const x = point.x + point.nx * side, y = point.y + point.ny * side;
     const dip = dipAt(x, y) / DIP_REF;
-    const chance = SITE_CHANCE + DIP_GAIN * Math.max(0, Math.min(1, dip))
-      - CREST_LOSS * Math.max(0, Math.min(1, -dip));
-    if (random() >= chance) continue;
-    const big = 1 + 0.3 * Math.max(0, Math.min(1, dip));
-    sites.push({ x, y, w: (5 + 6 * random()) * big, h: (3 + 3 * random()) * big,
-      rot: point.heading + (random() - 0.5) * 0.6,
-      catchK: CATCH_MAX - CATCH_SPAN + CATCH_SPAN * Math.max(0, Math.min(1, dip)),
-      snowy: random() < SNOW_SITE_CHANCE, water: 0, ice: 0, snow: 0, shown: '', covers: {} });
+    if (random() >= waterChance(dip)) continue;
+    sites.push(makeSite(x, y, point.heading + (random() - 0.5) * 0.6, dip, true,
+      random() < SNOW_SITE_CHANCE, random));
   }
   return sites;
+}
+
+/** The sites over the rest of the floor: a jittered grid, water by the dip, snow anywhere. */
+function floorSites(random: () => number): PuddleSite[] {
+  const sites: PuddleSite[] = [], width = FX1 - FX0, height = FY1 - FY0;
+  const spacing = Math.max(FIELD_SPACING_MIN, Math.sqrt((width * height) / (FIELD_SITES * 1.4)));
+  for (let gridX = FX0 + spacing / 2; gridX < FX1; gridX += spacing) {
+    for (let gridY = FY0 + spacing / 2; gridY < FY1; gridY += spacing) {
+      const x = gridX + (random() - 0.5) * spacing * 0.8;
+      const y = gridY + (random() - 0.5) * spacing * 0.8;
+      const dip = dipAt(x, y) / DIP_REF;
+      const wet = random() < waterChance(dip), snowy = random() < FIELD_SNOW_CHANCE;
+      if (wet || snowy) sites.push(makeSite(x, y, random() * Math.PI, dip, wet, snowy, random));
+    }
+  }
+  return sites;
+}
+
+/**
+ * The level's puddle and snow sites, from its own seeded stream: along the lap, then the floor.
+ * @param level the level (with a lap)
+ * @returns the sites
+ */
+export function buildPuddleSites(level: Level): PuddleSite[] {
+  const sub = level.subtrack;
+  if (!enabled || level.endless || !sub) return [];
+  const random = seededRng(level.id + ':puddles');
+  return [...trackSites(sub, random), ...floorSites(random)];
 }
 
 /** What a site shows now: its kind and size step ('' = nothing). */
@@ -158,16 +196,17 @@ function siteLook(site: PuddleSite): string {
 function siteCover(site: PuddleSite, look: string): Cover {
   const cached = site.covers[look];
   if (cached) return cached;
-  const step = +look.slice(-1), size = STEP_MIN + (1 - STEP_MIN) * (step / STEPS);
+  const step = +look.slice(-1), kind = look.slice(0, -1) as CoverId;
+  const size = (STEP_MIN + (1 - STEP_MIN) * (step / STEPS)) * (kind === 'snow' ? SNOW_SIZE : 1);
   const cover: Cover = { x: site.x, y: site.y, w: site.w * size, h: site.h * size,
-    cover: look.slice(0, -1) as CoverId, shape: 'ellipse', rot: site.rot };
+    cover: kind, shape: 'ellipse', rot: site.rot };
   site.covers[look] = cover;
   return cover;
 }
 
 /** The ground a site or cover can cover, as a dirty area (its full size, both axes). */
 function areaOf(shape: { x: number; y: number; w: number; h: number }): Area {
-  const reach = Math.max(shape.w, shape.h) / 2 + 1;
+  const reach = Math.max(shape.w, shape.h) * SNOW_SIZE / 2 + 1;
   return { x0: shape.x - reach, y0: shape.y - reach, x1: shape.x + reach, y1: shape.y + reach };
 }
 

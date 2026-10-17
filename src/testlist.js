@@ -18,9 +18,9 @@ export const TEST_LIST = [
     id: 'tyrewear',
     added: '2026-10-18',
     name: 'Tyre wear: sets wear over races, worn = less grip, hot / bald / debris punctures',
-    where: 'Plain link + &tyrewear=1: TYRE HUD on (pause > HUD); garage TYRES to fit a NEW SET',
+    where: 'Plain link (the default; &tyrewear=0 = off): TYRE HUD on (pause > HUD); garage TYRES',
     try: 'Race several events on one set; drive hard and overheat; try Wet tyres in the dry;'
-      + ' check the wheel colours (green, amber, red) and the garage % WORN.',
+      + ' RESTART (wear back to the start), RESET (wear kept); wheel colours; garage % WORN.',
     wrong: 'Wear too fast / slow to be a running cost, punctures out of the blue, the set not'
       + ' kept between races, the numbers not being the heat.',
   },

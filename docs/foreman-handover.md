@@ -14,7 +14,11 @@ this page.
   Before an itch.io release: record a race in the home-screen app (no Safari toolbar).
 - **Weather is done and the DEFAULT** (owner, 10-18: "weather all pass"; `?weather=0` = off).
 - **Sliding / crashing wheels wear the ground twice** - the DEFAULT (`?slidewear=0` = off).
-- **Tyre wear is built, under test** (`?tyrewear=1`; testlist `tyrewear`).
+- **Tyre wear is the DEFAULT, its test left open** (owner: "apply it to main and roll it back if
+  needed"; `?tyrewear=0` = off; testlist `tyrewear`). RESTART = the set as at the event's start,
+  RESET keeps the race as it is.
+- **Puddles and snow can build up anywhere** (sites over the whole floor, `world/covergrid.ts`
+  indexes the covers).
 - **Today's weather tweaks** (cold freezes water, puddles before the start, faster build-up, the
   SNOW button) are in the default; testlist `wintertweaks` for the owner to confirm.
 - **NEXT: LIGHTING / time of day** - approved to build, tested on its own switch. Not started.
@@ -42,7 +46,7 @@ this page.
   each a frame, fixed pools).
 - `?rain=0..1` - a fixed wet track (test tool, stays).
 
-## Tyre wear (owner's design, `?tyrewear=1`)
+## Tyre wear (owner's design; the default, `?tyrewear=0` off)
 
 `physics/tyrewear.ts`: wear from each wheel's friction work (the heat model's), faster above the
 window, on the wrong ground, rain tyres x2.5 in the dry, dry tyres x0.6 in the wet; grip -20 % at

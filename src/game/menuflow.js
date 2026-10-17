@@ -9,7 +9,7 @@ import { setLevel } from "../world/load.ts";
 import { LEVEL } from "../world/state.ts";
 import { clearWear } from "../world/wear.ts";
 import { LEVELS } from "../world/levels/index.ts";
-import { saveRecords, doRestart, loadTyreWear } from './session.js';
+import { saveRecords, doRestart, loadTyreWear, saveTyreWear } from './session.js';
 import { selectLevel, selectCar } from './controls.js';
 import { shared, game } from './state.js';
 import {
@@ -71,6 +71,7 @@ export function start() {
 // ---- MENU WIRING (only with ?menu=1 for now)
 export function enterMenu() {
   saveRecords();
+  saveTyreWear();   // the event is over: the set as worn as it is now
   shared.mode = 'menu';
   shared.paused = false;
   shared.started = true;
@@ -264,6 +265,9 @@ export function stepResults() {
     || shared.mode !== 'session') return;
   if (performance.now() - (game.flowDoneAt || 0) < 1600) return;
   game.flowShown = true;
+  // the race is over: its tyre wear is kept, and a restart from here starts on that set
+  saveTyreWear();
+  if (game.car.tyreWear) game.car.tyreWearStart = [...game.car.tyreWear];
   shared.menu.results(flow,
     { name: LEVEL.name, restart: () => doRestart(), tracks: () => enterMenu(),
       menu: () => enterMenu() });

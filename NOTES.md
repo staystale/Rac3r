@@ -57,7 +57,8 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
 - Weather (10-18): approved and the default (?weather=0 off): the season / weather setup rows,
   changing weather, wet grip per surface, the wet look, puddles and snow from the weather (scenery
   water permanent), the cold freezing water; sliding wheels wear the ground twice (?slidewear=0).
-  Tyre wear (?tyrewear=1) under test. Lighting / time of day next, its own switch.
+  Tyre wear the default too (10-18, test open; ?tyrewear=0 off; RESTART = the set at the event's
+  start, RESET keeps the race). Lighting / time of day next, its own switch.
 - Weather (10-17): a season slider sets the chances of rain / snow / dry / hot / super hot, the
   temperature and the track condition; it can change mid-race; it must add no lag. One water
   system: the existing wet / puddle cover, extended, never a second one.

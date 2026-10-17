@@ -5,6 +5,7 @@ import { SURFACES, VERGE_W, TRAP_STEPS, SURFACE_TRAP } from "./surfaces.ts";
 import { dampSurface, puddleSurface, cellDamp, dryCellLine, surfaceById, wornTo } from "./wet.ts";
 import { WEATHER } from "./weather.ts";
 import { carWheels } from "./wheels.ts";
+import { coversNear } from "./covergrid.ts";
 import { puddleClearBy, setPassTyre } from "./puddles.ts";
 import {
   FX1, FX0, FY1, FY0, KERB_W, KERB_H, KERB_RIDGE, KERB_RIDGE_L, RUNOFF_W, RUNOFF_ROUGH,
@@ -202,8 +203,8 @@ export function layersAt(x: number, y: number): Layers {
 export const HEAT_OFFROAD = 0.15;
 export const COVER_SQ = 0.5;   // m, the cover grid (render.ts coverCells uses the same 0.5)
 export function coverAt(x: number, y: number): CoverId | null {
-  const list = LEVEL.covers;
-  if (!list) return null;
+  // only the covers that can hold the point (world/covergrid.ts: same answers, fewer tests)
+  const list = coversNear(LEVEL.covers, x, y);
   for (let i = 0; i < list.length; i++) {
     const coverArea = list[i];
     // the SAME 0.5 m world-grid squares render.ts coverCells draws (user rule: visuals accurate to

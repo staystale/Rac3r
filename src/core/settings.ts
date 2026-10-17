@@ -30,7 +30,7 @@ export interface Settings {
   rain: number | null;           // ?rain=0.6: the track this wet, 0-1, and raining (weather test)
   weather: boolean;              // weather in the event setup (season, changes); ?weather=0 off
   slideWear: boolean;            // sliding / crashing wheels wear the ground twice; =0 off
-  tyreWear: boolean;             // ?tyrewear=1: tyres wear, puncture; the garage fits new sets
+  tyreWear: boolean;             // tyres wear, puncture; the garage fits new sets; =0 off
   hwMap: boolean;                // the minimap on the highway too; ?hwmap=0 = not there
   sharpCars: boolean;            // crisp cars on the screen canvas (render.ts); ?sharpcars=0 off
   sharpMarks: boolean;           // skid marks on the screen canvas (render.ts); ?sharpmarks=0 off
@@ -73,10 +73,11 @@ function rainLevel(params: URLSearchParams): number | null {
 }
 
 // the weather switches: ?rain= (a fixed wet track, a test tool); weather and the slide wear the
-// DEFAULT since 2026-10-18 (owner: "weather all pass"; =0 off); ?tyrewear=1 under test
+// DEFAULT since 2026-10-18 (owner: "weather all pass"; =0 off); tyre wear the default too
+// (owner: "apply it to main and roll it back if needed"; its test stays open; =0 off)
 function weatherSettings(params: URLSearchParams) {
   return { rain: rainLevel(params), weather: params.get('weather') !== '0',
-    slideWear: params.get('slidewear') !== '0', tyreWear: params.get('tyrewear') === '1' };
+    slideWear: params.get('slidewear') !== '0', tyreWear: params.get('tyrewear') !== '0' };
 }
 
 function churnKind(params: URLSearchParams): '' | 'pictures' | 'objects' {

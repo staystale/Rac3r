@@ -82,8 +82,8 @@ the git history. `docs/foreman-handover.md` is the last handover (10-17 evening)
   So the holds are how Safari shows the page, not our drawing. Before itch: record the
   home-screen app (no Safari toolbar over the game). Parked: fixed zoom steps (only for the
   edge dance in the lean path).
-- WEATHER DONE and the DEFAULT (10-18; "GRASS GRIP + WATER" below). TYRE WEAR built, under test
-  (?tyrewear=1). NEXT: LIGHTING / time of day (the owner's brief in docs/foreman-handover.md), on
+- WEATHER DONE and the DEFAULT (10-18; "GRASS GRIP + WATER" below). TYRE WEAR the DEFAULT, its
+  test open (?tyrewear=0 off). NEXT: LIGHTING / time of day (the owner's brief in docs/foreman-handover.md), on
   its own switch. Owner also saw a very minor jerk behind the main menu (DuckDuckGo): not looked at.
 - GRASS THROUGH THE CRACKS (owner: a and b, "like real life"): long-grass tufts in some
   broken-tarmac flecks, and scattered on broken-tarmac / concrete ground (blend.ts, own random
@@ -521,6 +521,16 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
   MEASURED (Castle Cum, hatch, busiest tyre): 3 laps ~10 % (about 9 races a set), 10 hard laps
   36 %, Wet tyres in the dry 28 % / 3 laps, dry tyres in the wet 5 %. simhash off SAME 13/13.
   SEEN, not changed: with the tyre diagram on, ABS / TCS sit under the FPS panel (layout).
+  OWNER (10-18): "apply it to main and roll it back if needed": the DEFAULT (?tyrewear=0 off), its
+  test stays open (testlist tyrewear). RESTART puts the set back as it was at the event's start,
+  RESET keeps the race as it is; the wear is saved when the event is over (results, menu, another
+  car).
+- PUDDLES / SNOW EVERYWHERE (owner 10-18): sites over the whole floor too (a jittered grid by the
+  level's area, ~100-125 a level): water by the dip, snow anywhere (60 % of floor points), snow
+  patches 1.4x a puddle. Heavy rain 5 min: 34-61 puddles a circuit; snow 5 min: 86-100 patches;
+  13-27 look changes a minute (each repaints its ground squares in view). world/covergrid.ts: a
+  grid index of the covers for coverAt (identical answers; 0.2 us a lookup at ~130 covers).
+  Proof: simhash (?tyrewear=0) SAME 13/13.
 
 ## GAME NAME: RAC3R (user, 2026-10-03)
 
