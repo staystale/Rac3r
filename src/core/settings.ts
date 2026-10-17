@@ -34,6 +34,7 @@ export interface Settings {
   morePuddles: boolean;          // ?morepuddles=1: more puddle sites than snow (under test)
   tyreFeel: boolean;             // ?tyrefeel=1: tyres warm / hold heat, slides wear (under test)
   packedWear: boolean;           // ?packedwear=1: packed snow wears to snow or ice (under test)
+  onePuddle: boolean;            // ?onepuddle=1: one puddle look, tinted by its ground (under test)
   hwMap: boolean;                // the minimap on the highway too; ?hwmap=0 = not there
   sharpCars: boolean;            // crisp cars on the screen canvas (render.ts); ?sharpcars=0 off
   sharpMarks: boolean;           // skid marks on the screen canvas (render.ts); ?sharpmarks=0 off
@@ -82,7 +83,7 @@ function weatherSettings(params: URLSearchParams) {
   return { rain: rainLevel(params), weather: params.get('weather') !== '0',
     slideWear: params.get('slidewear') !== '0', tyreWear: params.get('tyrewear') !== '0',
     morePuddles: params.get('morepuddles') === '1', tyreFeel: params.get('tyrefeel') === '1',
-    packedWear: params.get('packedwear') === '1' };
+    packedWear: params.get('packedwear') === '1', onePuddle: params.get('onepuddle') === '1' };
 }
 
 function churnKind(params: URLSearchParams): '' | 'pictures' | 'objects' {

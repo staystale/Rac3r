@@ -44,10 +44,14 @@ const SNOW_SITE_CHANCE = 0.35;
 const FIELD_SITES = 110, FIELD_SPACING_MIN = 22, FIELD_SNOW_CHANCE = 0.6, SNOW_SIZE = 1.4;
 // MORE PUDDLES (?morepuddles=1; owner: puddles more likely to form than snow, snow kept as it is):
 // water-only sites between the ones above, from their own seeded stream (every snow patch and
-// every existing puddle stays where it was): along the lap half way between the track sites, and
-// on the floor grid offset by half a cell. Their chance on level ground (a dip adds DIP_GAIN, a
-// crest takes CREST_LOSS, as above)
-const EXTRA_TRACK_CHANCE = 0.3, EXTRA_FLOOR_CHANCE = 0.38;
+// every existing puddle stays where it was): ON THE ROAD every EXTRA_TRACK_SPACING m of the lap
+// (owner: puddles should build up on the race surface; at most EXTRA_TRACK_MAX), and on the floor
+// grid offset by half a cell. Their chance on level ground (a dip adds DIP_GAIN, a crest takes
+// CREST_LOSS, as above). And while it rains, a full puddle's spots that tyres cleared fill again
+// every REFILL_S s of heavy rain (slower in light rain): the cars clear a line, the rain wins it
+// back (a cleared spot used to wait for the puddle to change size, so the line stayed dry)
+const EXTRA_TRACK_CHANCE = 0.35, EXTRA_TRACK_SPACING = 11, EXTRA_TRACK_MAX = 90;
+const EXTRA_FLOOR_CHANCE = 0.38, REFILL_S = 15;
 // fill a second at rain 1 (a dip's catch more; heavy rain fills one in ~75 s, owner: quicker),
 // once the ground is this wet; drain a second per C of track temperature in a dry spell (20 C:
 // ~13 min empty; 40 C: ~6)
@@ -192,11 +196,11 @@ function extraWaterSites(sub: NonNullable<Level['subtrack']>, random: () => numb
       sites.push(makeSite(x, y, rot, dip, true, false, random));
     }
   };
-  for (let dist = SITE_SPACING; dist < sub.totalDist && sites.length < MAX_SITES;
-    dist += SITE_SPACING) {
+  for (let dist = EXTRA_TRACK_SPACING / 2; dist < sub.totalDist && sites.length < EXTRA_TRACK_MAX;
+    dist += EXTRA_TRACK_SPACING) {
     const point = sub.pts[Math.min(sub.pts.length - 1,
       Math.round((dist / sub.totalDist) * sub.pts.length))];
-    const side = (random() * 2 - 1) * (sub.width / 2 + 3);
+    const side = (random() * 2 - 1) * Math.max(0, sub.width / 2 - 1);
     tryPoint(point.x + point.nx * side, point.y + point.ny * side,
       point.heading + (random() - 0.5) * 0.6, EXTRA_TRACK_CHANCE);
   }
@@ -443,8 +447,28 @@ export function stepPuddles(dt: number): void {
   }
   const frozen = stepSceneryWater(seconds);
   if (changed.length || frozen.length) applyLooks([...changed, ...frozen]);
+  if (morePuddles) refillCleared(seconds, changed);
   dryMud(seconds);
   freezeMud(seconds);
+}
+
+/**
+ * While it rains, every full puddle's cleared spots fill again each REFILL_S s of heavy rain
+ * (?morepuddles=1); sites that changed this tick were just re-synced by applyLooks.
+ * @param seconds sim seconds since the last tick
+ * @param changed the sites whose look changed this tick
+ */
+function refillCleared(seconds: number, changed: PuddleSite[]): void {
+  if (WEATHER.rain < 0.05) return;
+  for (const site of LEVEL._puddleSites || []) {
+    if (!site.shown.startsWith('wet') || changed.includes(site)) continue;
+    // staggered by place, so the puddles do not all refill on the same tick
+    site.refillS = (site.refillS ?? REFILL_S * (Math.abs(site.x * 0.37 + site.y * 0.61) % 1))
+      - seconds * WEATHER.rain;
+    if (site.refillS > 0) continue;
+    site.refillS = REFILL_S;
+    resyncCells(areaOf(site));
+  }
 }
 
 /**

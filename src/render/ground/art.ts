@@ -19,16 +19,34 @@ import type { GroundCtx } from "./types.ts";
 /**
  * Builds the SURFACE_ART table: the base colour and pattern layers of every surface.
  *
+ * @param onePuddle ?onepuddle=1: the puddle look (addPuddleLook)
  * @returns the table, keyed by surface id
  */
-export function makeSurfaceArt(): Record<string, SurfaceArt | null> {
+export function makeSurfaceArt(onePuddle = false): Record<string, SurfaceArt | null> {
   const SURFACE_ART: Record<string, SurfaceArt | null> = {
     ...makeHardArt(),
     ...makeLooseArt(),
     ...makeSoftArt(),
   };
   addFieldLooks(SURFACE_ART);
+  if (onePuddle) addPuddleLook(SURFACE_ART);
   return SURFACE_ART;
+}
+
+/**
+ * ONE PUDDLE LOOK (?onepuddle=1; owner: "we seem to have two types of puddle - there should only
+ * be one"): the wet tarmac's blue blobs (puddles drawn inside the wet look, so a weather puddle
+ * held puddles of its own) go, and 'puddle' is the water a puddle shows over its own ground (its
+ * sheen and rain rings only: covers.ts tints it by the ground under it). Its base is the wet
+ * base (never painted: it only keeps the palette as it was).
+ *
+ * @param SURFACE_ART the table to change; it must already hold wet
+ */
+function addPuddleLook(SURFACE_ART: Record<string, SurfaceArt | null>) {
+  const wet = SURFACE_ART.wet!;
+  const layers = wet.layers.filter((layer) => layer[0] !== 'blobs');
+  SURFACE_ART.wet = { ...wet, layers };
+  SURFACE_ART.puddle = { base: wet.base, layers: layers.filter((layer) => layer[0] !== 'grain') };
 }
 
 /**

@@ -258,6 +258,7 @@ export interface PuddleSite {
   snow: number;
   shown: string;
   covers: Record<string, Cover>;
+  refillS?: number;   // s of heavy rain until its cleared spots fill again (?morepuddles=1)
 }
 
 // The 0.5 m world-grid cells inside a cover, as x, y pairs; rim = those with an outside neighbour.
@@ -439,6 +440,7 @@ export interface MergedCell {
   y: number;
   gx: number;
   gy: number;
+  base?: string;   // the ground under it (a puddle's tint; ?onepuddle=1), looked up once
 }
 
 // All covers of one kind joined (ground.ts mergedCovers); rim = cells with an outside neighbour.

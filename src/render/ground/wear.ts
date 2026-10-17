@@ -10,6 +10,10 @@ import type { WearGroup } from "../types.ts";
 import type { GroundCtx } from "./types.ts";
 import { speckle } from "./prims.ts";
 import { paintLayers, artBase } from "./art.ts";
+import { puddleWater } from "./covers.ts";
+
+// the group key of worn cells that are now standing water over a ground (?onepuddle=1)
+const PUDDLE_KEY = 'puddle|';
 
 // Dynamic surface wear patches: grass worn to short grass, dirt, and mud Drawn ON TOP OF the
 // track ribbon and ground, but UNDER the kerbs and marks! TWO PASSES around the covers. MEASURED
@@ -63,7 +67,8 @@ function groupWornCells(groundCtx: GroundCtx, pass: string) {
     if (px1 < 0 || px0 > view.W || py1 < 0 || py0 > view.H) continue;
     // cell.current! : set right after the cell is made; water is the wet surface art, the same
     // look as a wet zone and a puddle
-    const groupKey = cell.current!;
+    const groupKey = groundCtx.onePuddle && cell.current === 'wet' ? PUDDLE_KEY + cell.base
+      : cell.current!;
     let group = groups.get(groupKey);
     if (!group) groups.set(groupKey, (group = {
       r: [], bx0: Infinity, by0: Infinity, bx1: -Infinity, by1: -Infinity,
@@ -89,7 +94,9 @@ function groupWornCells(groundCtx: GroundCtx, pass: string) {
  */
 function paintWearGroup(groundCtx: GroundCtx, groupKey: string, group: WearGroup) {
   const { view, toScreenX, toScreenY } = groundCtx;
-    const rects = group.r, artId = groupKey;
+    // standing water (?onepuddle=1): the ground under it, then the one puddle look over it
+    const water = groupKey.startsWith(PUDDLE_KEY) ? groupKey.slice(PUDDLE_KEY.length) : null;
+    const rects = group.r, artId = water ?? groupKey;
     view.ctx.save();
     view.ctx.beginPath();
     // a soft DISC per cell (radius 0.72 of the cell, so neighbours overlap) rather than a hard
@@ -104,7 +111,24 @@ function paintWearGroup(groundCtx: GroundCtx, groupKey: string, group: WearGroup
     view.ctx.clip();
     view.ctx.translate(toScreenX(0), toScreenY(0));
     paintLayers(groundCtx, artId, group.bx0, group.by0, group.bx1, group.by1);
+    if (water) paintPuddleOver(groundCtx, water, group);
     view.ctx.restore();
+}
+
+/**
+ * Paints the one puddle look over a group of worn cells already clipped to (?onepuddle=1): the
+ * water tinted by the ground under it, then its sheen and rings.
+ *
+ * @param groundCtx the shared ground painter context
+ * @param base the ground under the water
+ * @param group the cells' world bounding box
+ */
+function paintPuddleOver(groundCtx: GroundCtx, base: string, group: WearGroup) {
+  const { view, PPMz } = groundCtx, ppm = PPMz();
+  view.ctx.fillStyle = puddleWater(base);
+  view.ctx.fillRect(group.bx0 * ppm, group.by0 * ppm, (group.bx1 - group.bx0) * ppm,
+    (group.by1 - group.by0) * ppm);
+  paintLayers(groundCtx, 'puddle', group.bx0, group.by0, group.bx1, group.by1);
 }
 
 // BUMPS, JUMPS AND KERBS. A top-down view has no height, so a jump you cannot SEE coming is an

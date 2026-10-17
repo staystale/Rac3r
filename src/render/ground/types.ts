@@ -17,6 +17,7 @@ export interface GroundHelpers {
   grassEnds: 'round' | 'square';
   surfaceTextures: boolean;     // default on (?tex=0 = live): pre-painted textures (textures.ts)
   shareBlades: boolean;         // blades stroked once per shape (textures.ts); ?menufast=0 off
+  onePuddle: boolean;           // ?onepuddle=1: one puddle look, water tinted by its ground
 }
 
 // what every module-level painter shares, built once by createGround

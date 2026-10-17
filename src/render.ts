@@ -563,7 +563,7 @@ function buildModules(view: View, cam: Cam, settings: Settings,
   const ground = createGround(view, cam, { PPMz, toScreenX, toScreenY, roundRect,
     forSide: (...args) => road.forSide(...args),
     grassEnds: settings.grassEnds, surfaceTextures: settings.surfaceTextures,
-    shareBlades: settings.menuFast });
+    shareBlades: settings.menuFast, onePuddle: settings.onePuddle });
   const road = createRoad(view, cam, {
     PPMz, toScreenX, toScreenY, paintLayers: ground.paintLayers, artBase: ground.artBase,
   });

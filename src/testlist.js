@@ -8,6 +8,15 @@
 //   where  how to get to it      try     what to do      wrong   what would count as a bug
 export const TEST_LIST = [
   {
+    id: 'onepuddle',
+    added: '2026-10-18',
+    name: 'One puddle look: see-through water tinted by its ground, blue-grey on the road',
+    where: 'Plain link + &onepuddle=1&morepuddles=1: a circuit, WEATHER HEAVY RAIN',
+    try: 'Puddles on tarmac, grass, dirt: one look each (no blue squares inside); easy to see on'
+      + ' the wet road; meltwater and refilled spots look the same.',
+    wrong: 'Two looks again, puddles hard to see on the road, or too bright / blue.',
+  },
+  {
     id: 'packedwear',
     added: '2026-10-18',
     name: 'Packed snow wears: after 4 passes it breaks up into loose snow or ice, 50:50',
@@ -28,10 +37,10 @@ export const TEST_LIST = [
   {
     id: 'morepuddles',
     added: '2026-10-18',
-    name: 'More puddles: rain makes more puddles than snow makes patches; snow unchanged',
+    name: 'More puddles: more than snow, half on the road; the racing line refills in the rain',
     where: 'Plain link + &morepuddles=1: TEST MODE, a circuit, WEATHER HEAVY RAIN (then SNOW)',
-    try: 'Heavy rain a few minutes: ~100-155 puddles a level (was 34-61), dips first; SNOW: the'
-      + ' same patches as without the switch.',
+    try: 'Heavy rain: ~150-175 puddles, about half on the track; drive through: the line clears,'
+      + ' then fills again within ~15 s while it pours; SNOW: the same patches as without.',
     wrong: 'Too many / few puddles, snow looking different, the race feeling heavier in rain.',
   },
   // (approved late, deleted: fields, grassedge, catchthem, slipsdual, fps - TODO.md 1c;

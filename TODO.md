@@ -525,6 +525,26 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
   test stays open (testlist tyrewear). RESTART puts the set back as it was at the event's start,
   RESET keeps the race as it is; the wear is saved when the event is over (results, menu, another
   car).
+- WET TYRE MARKS (owner 10-18: "tyre marks in the wet need to vanish quite quickly 10-50 m").
+  NOT STARTED (next). Cause: wet marks (MARK_WET, the dried line) go into the same skid-mark layer
+  as rubber, which fades ~46 s to half for everything (marks.js fadeMarks) - ~2 km of trail at
+  race speed. Plan (owner OK 10-18): in the wet lay no marks into the layer; a short trail behind
+  each wheel (last ~10-50 m, fading over ~1-1.5 s) drawn into the art buffer - no new layer, no
+  extra full-layer fade (a second 26 MB layer was rejected for Safari).
+- ONE PUDDLE LOOK (owner 10-18: "two types of puddle - there should only be one"; puddles hardly
+  showed on tarmac). CAUSE: the weather's puddles were painted with the WET TARMAC art (opaque
+  #2c3039, its own blue 'blobs' = puddles inside each puddle; dark on a wet road). BUILT behind
+  ?onepuddle=1 (testlist onepuddle): a puddle is see-through water tinted by the ground under it
+  (covers.ts PUDDLE_WATER: the old PUDDLE_TINT, blue-grey on hard ground) with the water's sheen
+  and rings (art.ts 'puddle'); the wet art loses its blobs; meltwater / refilled wear cells the
+  same look over their ground (render/ground/wear.ts). Photographed on road and kerb.
+- MORE PUDDLES ON THE ROAD + THE LINE REFILLS (owner 10-18: puddles do not build up on the race
+  surface). MEASURED (Castle Cum, heavy rain, 4 AI, 2 min): 29 of 119 water sites on the road;
+  cars cleared a third of the road's water in 60 s and it never refilled while pouring (a cleared
+  spot waited for its puddle to change size). With ?morepuddles=1 now: the extra lap sites ON the
+  road every 11 m (chance 0.35, at most 90), and while it rains a full puddle's cleared spots
+  fill again every 15 s of heavy rain (puddles.ts refillCleared). Castle Cum 65 of 146 on the
+  road, Brands 89 of 174; road water still there after 2 min 93-94 % (was 66 %).
 - PACKED SNOW WEARS (owner 10-18: "packed snow should have a chance to degrade into snow or ice
   50:50"). BUILT behind ?packedwear=1 (testlist packedwear): world/snowwear.ts - after 4 passes a
   bare packed-snow cell takes a cover of loose snow or ice, even odds (wet: snow, the owner's wet

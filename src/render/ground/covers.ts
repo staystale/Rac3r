@@ -1,7 +1,9 @@
 // The covers of the ground painter: random patches and covers such as puddles and snow,
 // merged per kind and drawn over the surface.
 import { LEVEL } from "../../world/state.ts";
-import { coverCut, PATCH_CELL, PATCH_GRID, PATCH_ORDER, patchKey } from "../../world/wear.ts";
+import {
+  coverCut, layersAt, PATCH_CELL, PATCH_GRID, PATCH_ORDER, patchKey,
+} from "../../world/wear.ts";
 import type {
   Cover, CoverCells, CoverId, MergedCell, MergedCover, Patch,
 } from "../../world/types.ts";
@@ -70,6 +72,22 @@ export const PUDDLE_TINT: Record<string, string> = {
   grass: 'rgba(74,104,150,0.62)', grassShort: 'rgba(74,104,150,0.62)',
   grassLong: 'rgba(66,96,140,0.64)',
 };
+// ONE PUDDLE LOOK (?onepuddle=1; owner: one type of puddle, and they hardly showed on the wet race
+// surface): a puddle is translucent water tinted by the ground under it - as above, but on hard
+// ground blue-grey (the dark mirror vanished into a wet road) - with the water's sheen and rain
+// rings (art.ts 'puddle'); not the opaque wet tarmac look with its own blue blobs
+const HARD_WATER = 'rgba(78,100,140,0.58)';
+export const PUDDLE_WATER: Record<string, string> = {
+  ...PUDDLE_TINT, tarmac: HARD_WATER, racetarmac: HARD_WATER, broken: HARD_WATER,
+  concrete: HARD_WATER, kerb: HARD_WATER, lab: HARD_WATER,
+};
+
+/**
+ * The water of a puddle over this ground (?onepuddle=1).
+ * @param base the ground's surface id
+ * @returns a CSS colour
+ */
+export const puddleWater = (base: string) => PUDDLE_WATER[base] || HARD_WATER;
 
 // RANDOM PATCHES (Grass Track, re-rolled every load — lab.js randomiseGrassTrack): small ellipses
 // of another base surface, drawn with that surface's own SURFACE_ART so a mud spot looks like
@@ -271,6 +289,55 @@ function pathCells(groundCtx: GroundCtx, cells: MergedCell[], cellSize: number) 
 }
 
 /**
+ * The cells of a puddle grouped by the ground under each (looked up once per cell).
+ * @param vis the puddle's cells in view
+ * @param cellSize the cell size in metres
+ * @returns the cells of each ground
+ */
+function cellsByGround(vis: MergedCell[], cellSize: number): Map<string, MergedCell[]> {
+  const groups = new Map<string, MergedCell[]>();
+  for (const cell of vis) {
+    cell.base ??= layersAt(cell.x + cellSize / 2, cell.y + cellSize / 2).base;
+    let group = groups.get(cell.base);
+    if (!group) groups.set(cell.base, (group = []));
+    group.push(cell);
+  }
+  return groups;
+}
+
+/**
+ * Paints a merged puddle (?onepuddle=1): water tinted by the ground under each part, the water's
+ * sheen and rings, a dark rim.
+ *
+ * @param groundCtx the shared ground painter context
+ * @param grp the merged cover
+ * @param vis its cells in view
+ * @param viewRect the visible rectangle
+ * @param box [x0, y0, x1, y1] of its visible bounding box in metres
+ */
+function paintPuddleCover(
+  groundCtx: GroundCtx, grp: MergedCover, vis: MergedCell[], viewRect: ViewRect,
+  box: number[]
+) {
+  const { view, toScreenX, toScreenY } = groundCtx;
+  const cellSize = grp.G, [bx0, by0, bx1, by1] = box;
+  for (const [base, cells] of cellsByGround(vis, cellSize)) {
+    pathCells(groundCtx, cells, cellSize);
+    view.ctx.fillStyle = puddleWater(base);
+    view.ctx.fill();
+  }
+  pathCells(groundCtx, vis, cellSize);
+  view.ctx.save();
+  view.ctx.clip();
+  view.ctx.translate(toScreenX(0), toScreenY(0));
+  paintLayers(groundCtx, 'puddle', bx0, by0, bx1, by1);
+  view.ctx.restore();
+  pathCells(groundCtx, filterCellsInView(grp.rim, cellSize, viewRect), cellSize);
+  view.ctx.fillStyle = 'rgba(30,40,58,0.30)';
+  view.ctx.fill();
+}
+
+/**
  * Paints a merged WET cover: the wet surface art and a dark rim.
  *
  * @param groundCtx the shared ground painter context
@@ -348,7 +415,9 @@ function drawCoversMerged(groundCtx: GroundCtx, list: Cover[]) {
     const bx0 = Math.max(minX, vx0), by0 = Math.max(minY, vy0),
       bx1 = Math.min(maxX, vx1), by1 = Math.min(maxY, vy1);
     const box = [bx0, by0, bx1, by1];
-    if (grp.kind === 'wet') paintWetCover(groundCtx, grp, vis, viewRect, box);
+    if (grp.kind === 'wet' && groundCtx.onePuddle) {
+      paintPuddleCover(groundCtx, grp, vis, viewRect, box);
+    } else if (grp.kind === 'wet') paintWetCover(groundCtx, grp, vis, viewRect, box);
     else paintSolidCover(groundCtx, grp, vis, viewRect, box);
   }
 }
