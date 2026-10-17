@@ -2,7 +2,8 @@
 // -> LAUNCH -> session -> pause chip -> MAIN MENU -> Garage; photographs each screen into the folder given as argv[2] (or
 // skips photos). Fails on any page error. Built 2026-10-03 with the menus; caught the portrait pause GHOST-CLICK.
 import { mkdirSync } from 'node:fs';
-import { startServer, launchBrowser, extraQuery } from './lib/browser.mjs';
+import { startServer, launchBrowser, extraQuery, gotoGame } from './lib/browser.mjs';
+import { TEST_LIST } from '../src/testlist.js';
 const srv = await startServer();
 let b;
 try {
@@ -12,7 +13,7 @@ for (const [W, H] of [[844, 390], [390, 844]]) {
   const errs = []; p.on('pageerror', e => errs.push(e.message)); p.on('console', m => { if (m.type() === 'error') errs.push(m.text()); });
   const OUTDIR = process.argv[2]; if (OUTDIR) mkdirSync(OUTDIR, { recursive: true }); const shot = async (n) => { await p.waitForTimeout(500); if (OUTDIR) await p.screenshot({ path: OUTDIR + '/menu-' + W + '-' + n + '.png' }); };
   const tap = async (txt) => { await p.waitForTimeout(400); const l = p.locator('#menu button', { hasText: txt }).first(); await l.tap(); };
-  await p.goto(srv.url + '/?touch=1&menu=1&guide=0' + extraQuery()); await p.waitForTimeout(3500);
+  await gotoGame(p, srv.url + '/?touch=1&menu=1&guide=0' + extraQuery()); await p.waitForTimeout(3500);
   await shot('1-main');
   const demo = await p.evaluate(() => ({ mode: window.__game.mode, v: Math.hypot(window.__game.car.vx, window.__game.car.vy).toFixed(1), car: window.__game.car.spec.id }));
   await tap('TEST MODE'); await shot('2-types'); await tap('OVALS'); await shot('2-tracks');   // the category layer (2026-10-05)
@@ -35,7 +36,10 @@ for (const [W, H] of [[844, 390], [390, 844]]) {
   });
   await shot('9-results'); await tap('RESULTS'); await shot('9-results-table');
   await p.evaluate(() => window.__game.menu.pause({ resume() {}, restart() {}, guide() {}, exit() {}, tests: true }));
-  await tap('TESTING'); await shot('10-testing');
+  // the TESTING button shows only while the test list has entries
+  const hasTesting = (await p.locator('#menu button', { hasText: 'TESTING' }).count()) > 0;
+  if (hasTesting !== TEST_LIST.length > 0) errs.push('TESTING button ' + (hasTesting ? 'shown' : 'missing') + ' with ' + TEST_LIST.length + ' tests');
+  if (hasTesting) { await tap('TESTING'); await shot('10-testing'); }
   console.log(W + 'x' + H, 'demo', JSON.stringify(demo), '| session', JSON.stringify(sess), '| pause', pz.paused, 'sim frozen', pz.sim === pz2, '| errors', errs.length ? errs.slice(0, 3).join(' || ') : 'none');
   if (errs.length) process.exitCode = 1;
 }

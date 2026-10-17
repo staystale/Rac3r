@@ -1,7 +1,7 @@
 # RAC3R - open work
 
 New session? Read `CLAUDE.md`, then `NOTES.md`, then this file. Open items only: finished work is in
-the git history. `docs/foreman-handover.md` is the last handover (10-16), written on request.
+the git history. `docs/foreman-handover.md` is the last handover (10-17), written on request.
 
 ## Where we are
 
@@ -22,16 +22,18 @@ the git history. `docs/foreman-handover.md` is the last handover (10-16), writte
   owner "no visual drops"; Lab driven by hand 0.41 % single-refresh misses (Safari tab; the owner's
   hand-driven Knobhill run from the home screen 0.19 %), owner "much better, a couple of drops".
   The 10-13 "inside Safari" verdict was wrong: it was our canvas copy, deferred by Safari.
-- HIGHWAY REBUILD CANCELLED (owner): it was planned only because of this hitch. Straight Outta
-  Swindon stays as a measuring stick (TEST GROUNDS, "TEST STRAIGHT") while it does not get in
-  the way. NAME NOTE (owner): every highway level gets its own name; "Straight Outta Swindon" is
-  kept for a future highway level - give the test straight another name then.
-- Straight Outta Swindon (src/world/levels/straight-outta.ts): a 30 km straight running north,
-  built once. Making it work fixed, for every level: the inclusion scan covers the floor
+- HIGHWAY REBUILD CANCELLED (owner): it was planned only because of this hitch. The test
+  straight (Straight Outta Swindon) was REMOVED 2026-10-17 (owner; in git history). NAME NOTE
+  (owner): "Straight Outta Swindon" is RESERVED for a future highway level; every highway level
+  gets its own name. Fixes it brought stay, for every level: the inclusion scan covers the floor
   rectangle, drawPatches reads PATCH_GRID, drawKerb draws only blocks in view, zoneAt treats a
   sector-less road as tarmac, the overview caps its long side at 4096 px.
   Still O(track points) (fine at 3000 points): drawTrackRibbon walks every centreline point per
   tile; session.js updateRecoveryTracking scans every point each sim step.
+- TEST LIST EMPTY (owner, 2026-10-17): sound, joker, markedge, ainowait, judder all passed
+  ("we may come back to judder"; ?nolock=1 still exists).
+- NOW (owner order, 2026-10-17): 1) the ~125 ms frame just after the menu shows (measure first,
+  report the cause before fixing); 2) WEATHER (see "GRASS GRIP + WATER" below, owner answers).
 - GRASS THROUGH THE CRACKS (owner: a and b, "like real life"): long-grass tufts in some
   broken-tarmac flecks, and scattered on broken-tarmac / concrete ground (blend.ts, own random
   stream: every existing patch unchanged). OWNER APPROVED 2026-10-16 (testlist entry deleted).
@@ -373,9 +375,18 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
       beside the AI choices (not random). PUDDLES may form anywhere, with a higher chance in dips
       and a lower chance on hills (slopes / crests). GRIP when wet differs PER SURFACE, and water
       also speeds up the degrading where it combines with a surface (gravel + water, snow + water,
-      and so on). Still to settle when the work starts: whether rain can change mid-race, how
-      puddles drain afterwards, the numbers of the wet-grip / wet-wear table (bring it as a
-      table to the owner). Order (owner, 2026-10-16): the agreed graphics work first, then this.
+      and so on). Order (owner, 2026-10-16): the agreed graphics work first, then this.
+      OWNER ANSWERS (2026-10-17): WEATHER CAN CHANGE MID-RACE. A SEASON SLIDER in the event setup
+      sets the chance of each weather (rain, snow, dry, hot, super hot) and the temperature, and
+      the weather changes the track's condition. Keep it efficient: no added lag. PUDDLES DRAIN
+      very slowly by themselves, clear with normal tyres after several passes, with rain tyres
+      in one pass. THE WET LOOK may change the ground colour and add falling rain, in the game's
+      style, with performance and visibility in mind (it can be turned down). ONE WATER SYSTEM:
+      build on the existing wet / puddle cover (wear.ts surfaceOf 'puddle'), never a second one.
+      PLAN (sizes, proposed 2026-10-17): R1 wet-grip / wet-wear table per surface, signed off by
+      the owner (S, no code); R2 season slider + weather in the event setup + the rain look (M);
+      R3 wet ground plays wet, tyre rules (M); R4 puddles form / grow / join / drain (L). Snow,
+      hot and super hot: to be planned after rain (ask first). Each step behind a switch.
 
 ## GAME NAME: RAC3R (user, 2026-10-03)
 

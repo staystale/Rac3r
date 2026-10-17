@@ -2,6 +2,7 @@
 // deterministic (seeded Math.random, a fake clock, a requestAnimationFrame queue that only runs
 // when the tool steps a frame of 1000/60 ms fake time) and opens it on a level.
 import { createHash } from 'node:crypto';
+import { gotoGame } from './browser.mjs';
 
 export const SETTLE_MS = 300;
 
@@ -75,8 +76,7 @@ export async function openPage(browser, base, id, errors, extra = '') {
   const page = await ctx.newPage();
   page.on('pageerror', (err) => errors.push(String(err)));
   await page.addInitScript(installDeterminism);
-  await page.goto(`${base}/?touch=1&guide=0&menu=0&rules=0&level=${id}${extra}`);
-  await page.waitForFunction(() => window.__game && window.__rt);
+  await gotoGame(page, `${base}/?touch=1&guide=0&menu=0&rules=0&level=${id}${extra}`, 'window.__rt');
   await page.waitForTimeout(SETTLE_MS);
   return page;
 }

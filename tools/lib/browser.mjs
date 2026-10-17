@@ -45,3 +45,27 @@ export function extraQuery() {
 export function launchBrowser(options = {}) {
   return chromium.launch({ channel: process.env.CHECK_BROWSER ?? "msedge", ...options });
 }
+
+// ms between checks while waiting for the game. A timed poll, not Playwright's default
+// animation-frame poll: the determinism script replaces requestAnimationFrame, and Edge 155
+// never runs the default poll under it (measured: 8 s timeout vs ready in under 1 s).
+const READY_POLL_MS = 50;
+// ms to wait for the game before failing (a cold start under automation takes 1-3 s)
+const READY_TIMEOUT_MS = 30000;
+
+/**
+ * Open the game and wait until it is running. index.html starts the game with a dynamic
+ * import(), so the page's load event fires before window.__game exists: never read the game
+ * after goto alone.
+ * @param {import('playwright').Page} page the page
+ * @param {string} url the full game link
+ * @param {string} [ready] a page-side expression that must be truthy too, e.g. "window.__rt"
+ * @returns {Promise<void>}
+ */
+export async function gotoGame(page, url, ready = "true") {
+  await page.goto(url);
+  await page.waitForFunction(`window.__game && (${ready})`, null, {
+    polling: READY_POLL_MS,
+    timeout: READY_TIMEOUT_MS,
+  });
+}

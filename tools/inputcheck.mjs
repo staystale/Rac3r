@@ -1,7 +1,7 @@
 // inputcheck.mjs — STUCK CONTROLS (user, 2026-10-04, iOS: rapid taps / holds / several fingers left pedals or steering ON).
 // Real CDP touches at 844x390: every way a touch can go missing must leave nothing held, and an ordinary second finger
 // must NOT release the first. Starts its own server. node tools/inputcheck.mjs
-import { startServer, launchBrowser } from './lib/browser.mjs';
+import { startServer, launchBrowser, gotoGame } from './lib/browser.mjs';
 const W = 844, H = 390;
 const srv = await startServer();
 let b;
@@ -10,7 +10,7 @@ b = await launchBrowser();
 const ctx = await b.newContext({ viewport: { width: W, height: H }, deviceScaleFactor: 3, isMobile: true, hasTouch: true });
 const p = await ctx.newPage();
 const errs = []; p.on('pageerror', e => errs.push(e.message));
-await p.goto(srv.url + '/?touch=1&guide=0&menu=0');
+await gotoGame(p, srv.url + '/?touch=1&guide=0&menu=0');
 await p.touchscreen.tap(W / 2, H / 2); await p.waitForTimeout(300);
 const cdp = await ctx.newCDPSession(p);
 const touch = (type, pts) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: pts.map(([x, y], i) => ({ x, y, id: pts[i][2] ?? i })) });

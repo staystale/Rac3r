@@ -298,7 +298,7 @@ function stepZoom(ctx: CameraCtx, car: CamCar, wallDt: number) {
 // The move is a critically damped spring on the zoom's log, chasing the target as it is NOW (owner
 // 2026-10-16, "chunky lumpy zoom out"; approved "zooms good"). It was a fixed eased glide to the
 // target of its start: under hard acceleration the target ran on, so the zoom went out in a
-// staircase (straight-outta from rest: ~0.8 s glides with 0.3-1.6 s stops between, some ending and
+// staircase (a long straight from rest: ~0.8 s glides with 0.3-1.6 s stops between, some ending and
 // the next starting at once - a lump). The spring keeps its speed while the target keeps moving and
 // starts with no jump in speed (from rest to full zoom-out: one move). It STOPS (eases to a halt,
 // then holds) once within ZOOM_CATCH of the target, or when the target turns back behind it (a lift

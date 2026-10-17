@@ -47,9 +47,14 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
 - Not wanted / undone: the highway rebuild (cancelled 10-15), a fade at zoom steps, tiles tracing
   only their part of the ribbon (`?ribboncull`, undone 10-16), the WebGL cars (`?gpucars`, removed
   10-16), the menu recording (parked until after the graphics work).
-- Order (10-16): graphics first (the tyre marks quiver: done 10-17), then fewer ground lookups
-  (`?groundlookup`, default since 10-17), then rain and weather (answers in `TODO.md`). Off-screen
-  AI at half rate: saved for when more performance is needed.
+- Order (10-17): the ~125 ms frame after the menu shows (measure, report first), then weather
+  (answers and plan R1-R4 in `TODO.md` "GRASS GRIP + WATER"). Off-screen AI at half rate: saved
+  for when more performance is needed.
+- Weather (10-17): a season slider sets the chances of rain / snow / dry / hot / super hot, the
+  temperature and the track condition; it can change mid-race; it must add no lag. One water
+  system: the existing wet / puddle cover, extended, never a second one.
+- "Straight Outta Swindon" is a reserved name for a future highway level (the test straight that
+  used it was removed 10-17).
 
 ## Measured lessons
 
@@ -111,3 +116,7 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   `tools/profile.mjs`, `tools/phonereport.mjs`, `tools/renderhash.mjs` (`--only`, `--shots`),
   `tools/shotdiff.mjs`, `tools/zoomcheck.mjs`, `tools/scratch/carmock.html` (car drawing mockup),
   `tools/edgecheck.mjs` (does the white edge line move rigidly; `--control` = the noise floor).
+- Browser tools open the game with `gotoGame` (`tools/lib/browser.mjs`): the game starts by a
+  dynamic import, so the page's load event comes before `window.__game`; and Edge 155 never runs
+  Playwright's default animation-frame poll under the determinism script (use a timed poll).
+  Tools not yet moved to it may read the game too early.
