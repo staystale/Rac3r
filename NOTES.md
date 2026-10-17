@@ -59,6 +59,13 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   water permanent), the cold freezing water; sliding wheels wear the ground twice (?slidewear=0).
   Tyre wear the default too (10-18, test open; ?tyrewear=0 off; RESTART = the set at the event's
   start, RESET keeps the race). Lighting / time of day next, its own switch.
+- Weather and tyres (10-18, owner "yes all"): the defaults (=0 off) - ?tyrefeel (tyres warm
+  sooner and hold heat in their window, slides / spins / donuts wear 2-3x, hot slides more; cold
+  slides no extra), ?morepuddles (more puddles than snow, half on the road, the racing line
+  refills in the rain; snow unchanged), ?onepuddle (one puddle look: water tinted by its ground),
+  ?packedwear (packed snow breaks into snow or ice 50:50), ?wettrail (wet tyre lines fade within
+  10-50 m). Later (owner): T3 - tyres cool toward the air temperature, hot tyres clear water / ice
+  faster.
 - Weather (10-17): a season slider sets the chances of rain / snow / dry / hot / super hot, the
   temperature and the track condition; it can change mid-race; it must add no lag. One water
   system: the existing wet / puddle cover, extended, never a second one.

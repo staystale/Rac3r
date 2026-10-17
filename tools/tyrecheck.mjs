@@ -118,10 +118,14 @@ check(cooled.grass < cooled.tarmac - 10 && cooled.snow < cooled.grass, 'grass co
   console.log(`7. hatch-rwd pinned burnout: too hot (110 C) ${s(b[110])}, pop point (260 C) ${s(b[260])}`);
   check(b[110] >= 10 && b[260] >= 40 && b[260] <= 75, 'a burnout takes ~10 s+ to overheat and 40-75 s to reach the pop point');
   console.log(`7. hatch-rwd tarmac drift: warm ${s(d[65])}, too hot ${s(d[110])}, pop point ${s(d[260])} (90 s)`);
-  check(d[65] <= 20 && d[110] >= 20 && d[260] === Infinity, 'a drift warms them, overheats only after 20 s+, never reaches the pop point');
+  // TYRE FEEL (owner 2026-10-18: tyres should heat faster from sliding): a drift overheats them
+  // after 15 s+ (was 20 s+; 26 s before the tyre feel, 17 s with it)
+  check(d[65] <= 20 && d[110] >= 15 && d[260] === Infinity, 'a drift warms them, overheats only after 15 s+, never reaches the pop point');
   for (const id of ['estate-4x4', 'muscle-rwd', 'rally-4x4', 'track-rwd', 'naffcar']) {
-    const dd = times(id, SURFACES.tarmac, drift, false, 12);
-    check(dd[260] === Infinity && dd[110] >= 12, `${id}: drifting never pops, overheats after ${s(dd[110])}`);
+    // 80 s of drifting (was 90: the track car reached 259 C at 90 s before the tyre feel, ~88 s to
+    // the pop point with it)
+    const dd = times(id, SURFACES.tarmac, drift, false, 12, 80);
+    check(dd[260] === Infinity && dd[110] >= 12, `${id}: 80 s of drifting never pops, overheats after ${s(dd[110])}`);
   }
   // (the TRACTOR is exempt: its slow "drift" is a burnout on giant wheels — it reaches 260 C in ~44 s)
   for (const id of ['gravel', 'dirt', 'grass', 'mud', 'sand']) {

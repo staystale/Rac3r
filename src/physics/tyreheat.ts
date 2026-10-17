@@ -13,17 +13,19 @@ import type { AxleTick } from './tyres.ts';
 // 0.010 + 0.0010.
 // 1/s toward ambient, always (0.010 before the "harder to build" pass)
 const TYRE_COOL = 0.008;
-// TYRE FEEL (?tyrefeel=1; owner, 2026-10-18: tyres "a little bit hard to get hot" and cool "a
-// little bit too easy"; they should heat faster from sliding). MEASURED before (hatch, tarmac,
-// 18 C): 30 s of hard cornering just reaches the window, 85 C falls below it after 15 s of a
-// 90 km/h straight, AI laps in the window 43-73 % of the time. With it, while a tyre is no hotter
-// than the top of its window: the always-on and the air cooling (1/s, 1/s per m/s; less with
-// speed, which stands in for the rolling heat at speed; wet, loose and cold ground cool as before)
-// and a scrubbing axle's slip heat x FEEL_SLIDE_HEAT; the flex warm-up rate (TYRE_FLEX.k) always.
-// Above the window everything is as before, so a tyre holds its working heat but overheating (and
-// popping) takes as long as it did (requirement: you'd have to try to overheat them)
+// TYRE FEEL (the default since 2026-10-18, owner: "yes all"; ?tyrefeel=0 off; owner: tyres "a
+// little bit hard to get hot" and cool "a little bit too easy"; they should heat faster from
+// sliding). MEASURED before (hatch, tarmac, 18 C): 30 s of hard cornering just reaches the
+// window, 85 C falls below it after 15 s of a 90 km/h straight, AI laps in the window 43-73 % of
+// the time. With it, while a tyre is no hotter than the top of its window: the always-on and the
+// air cooling (1/s, 1/s per m/s; less with speed, which stands in for the rolling heat at speed;
+// wet, loose and cold ground cool as before) and a scrubbing axle's slip heat x FEEL_SLIDE_HEAT;
+// the flex warm-up rate (TYRE_FLEX.k) always. Above the window everything is as before, so a tyre
+// holds its working heat but overheating (and popping) takes as long as it did (requirement:
+// you'd have to try to overheat them)
 const FEEL_COOL = 0.0135, FEEL_AIR = 0.00025, FEEL_FLEX_K = 0.1, FEEL_SLIDE_HEAT = 1.4;
-let feelOn = false;
+// on here too, so the headless tools drive the same physics as the game
+let feelOn = true;
 // each wheel's slip speed this step while its axle scrubs (0 rolling), for the wear (reused)
 const wheelSlip = [0, 0, 0, 0];
 

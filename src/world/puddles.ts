@@ -42,7 +42,8 @@ const SNOW_SITE_CHANCE = 0.35;
 // area, at least FIELD_SPACING_MIN m), the share of floor points that can hold snow, and a snow
 // patch's size against a puddle's
 const FIELD_SITES = 110, FIELD_SPACING_MIN = 22, FIELD_SNOW_CHANCE = 0.6, SNOW_SIZE = 1.4;
-// MORE PUDDLES (?morepuddles=1; owner: puddles more likely to form than snow, snow kept as it is):
+// MORE PUDDLES (the default since 2026-10-18, ?morepuddles=0 off; owner: puddles more likely to
+// form than snow, snow kept as it is):
 // water-only sites between the ones above, from their own seeded stream (every snow patch and
 // every existing puddle stays where it was): ON THE ROAD every EXTRA_TRACK_SPACING m of the lap
 // (owner: puddles should build up on the race surface; at most EXTRA_TRACK_MAX), and on the floor

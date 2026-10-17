@@ -525,6 +525,10 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
   test stays open (testlist tyrewear). RESTART puts the set back as it was at the event's start,
   RESET keeps the race as it is; the wear is saved when the event is over (results, menu, another
   car).
+- OWNER 10-18 "YES ALL": tyre feel, more puddles (road sites + refill), one puddle look, packed
+  snow wear and wet trails are the DEFAULT (=0 off each; testlist entries deleted). tyrecheck rules
+  moved with the owner's "heat faster from sliding": drift too hot 15 s+ (was 20), 80 s drift never
+  pops (was 90). Refs re-saved. With all five =0: renderhash SAME, simhash SAME.
 - WET TYRE MARKS (owner 10-18: "tyre marks in the wet need to vanish quite quickly 10-50 m").
   Cause: wet marks (MARK_WET, the light line a tyre leaves on a wet road) went into the skid-mark
   layer with the rubber, which fades ~46 s to half (marks.js fadeMarks): ~2 km of trail at race

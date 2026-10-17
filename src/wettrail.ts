@@ -1,11 +1,11 @@
-// wettrail.ts - WET TRAILS (?wettrail=1; owner, 2026-10-18: "tyre marks in the wet need to vanish
-// quite quickly 10-50 m"). On a wet road a tyre lays no rubber: it squeezes the water aside and
-// leaves a lighter line the water closes over again (MARK_WET). Those lines went into the
-// skid-mark layer (marks.js), which fades everything ~46 s to half: about 2 km of trail at race
-// speed. Now a wet wheel keeps a short trail of points instead - one each TRAIL_STEP m, dropped
-// after TRAIL_S s or past TRAIL_M m of trail (~10 m at 36 km/h, 50 m at 180 km/h) - drawn each
-// frame where the marks are drawn, fading with age: one stroke per fade band and line width, no
-// new layer and no whole-canvas fade.
+// wettrail.ts - WET TRAILS (the default since 2026-10-18, ?wettrail=0 off; owner: "tyre marks
+// in the wet need to vanish quite quickly 10-50 m"). On a wet road a tyre lays no rubber: it
+// squeezes the water aside and leaves a lighter line the water closes over again (MARK_WET).
+// Those lines went into the skid-mark layer (marks.js), which fades everything ~46 s to half:
+// about 2 km of trail at race speed. Now a wet wheel keeps a short trail of points instead - one
+// each TRAIL_STEP m, dropped after TRAIL_S s or past TRAIL_M m of trail (~10 m at 36 km/h, 50 m
+// at 180 km/h) - drawn each frame where the marks are drawn, fading with age: one stroke per fade
+// band and line width, no new layer and no whole-canvas fade.
 import { MARK_WET } from "./world/surfaces.ts";
 
 // m between trail points; how long (s) and how far (m) a trail lasts; a longer pause than

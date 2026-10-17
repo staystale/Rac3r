@@ -72,10 +72,11 @@ export const PUDDLE_TINT: Record<string, string> = {
   grass: 'rgba(74,104,150,0.62)', grassShort: 'rgba(74,104,150,0.62)',
   grassLong: 'rgba(66,96,140,0.64)',
 };
-// ONE PUDDLE LOOK (?onepuddle=1; owner: one type of puddle, and they hardly showed on the wet race
-// surface): a puddle is translucent water tinted by the ground under it - as above, but on hard
-// ground blue-grey (the dark mirror vanished into a wet road) - with the water's sheen and rain
-// rings (art.ts 'puddle'); not the opaque wet tarmac look with its own blue blobs
+// ONE PUDDLE LOOK (the default since 2026-10-18, ?onepuddle=0 off; owner: one type of puddle,
+// and they hardly showed on the wet race surface): a puddle is translucent water tinted by the
+// ground under it - as above, but on hard ground blue-grey (the dark mirror vanished into a wet
+// road) - with the water's sheen and rain rings (art.ts 'puddle'); not the opaque wet tarmac look
+// with its own blue blobs
 const HARD_WATER = 'rgba(78,100,140,0.58)';
 export const PUDDLE_WATER: Record<string, string> = {
   ...PUDDLE_TINT, tarmac: HARD_WATER, racetarmac: HARD_WATER, broken: HARD_WATER,

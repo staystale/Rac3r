@@ -31,11 +31,11 @@ export interface Settings {
   weather: boolean;              // weather in the event setup (season, changes); ?weather=0 off
   slideWear: boolean;            // sliding / crashing wheels wear the ground twice; =0 off
   tyreWear: boolean;             // tyres wear, puncture; the garage fits new sets; =0 off
-  morePuddles: boolean;          // ?morepuddles=1: more puddle sites than snow (under test)
-  tyreFeel: boolean;             // ?tyrefeel=1: tyres warm / hold heat, slides wear (under test)
-  packedWear: boolean;           // ?packedwear=1: packed snow wears to snow or ice (under test)
-  onePuddle: boolean;            // ?onepuddle=1: one puddle look, tinted by its ground (under test)
-  wetTrail: boolean;             // ?wettrail=1: wet tyre lines fade within 10-50 m (under test)
+  morePuddles: boolean;          // more puddle sites than snow, half on the road; =0 off
+  tyreFeel: boolean;             // tyres warm sooner / hold heat, slides wear more; =0 off
+  packedWear: boolean;           // packed snow wears to snow or ice; =0 off
+  onePuddle: boolean;            // one puddle look, water tinted by its ground; =0 off
+  wetTrail: boolean;             // wet tyre lines fade within 10-50 m; =0 off
   hwMap: boolean;                // the minimap on the highway too; ?hwmap=0 = not there
   sharpCars: boolean;            // crisp cars on the screen canvas (render.ts); ?sharpcars=0 off
   sharpMarks: boolean;           // skid marks on the screen canvas (render.ts); ?sharpmarks=0 off
@@ -79,13 +79,15 @@ function rainLevel(params: URLSearchParams): number | null {
 
 // the weather switches: ?rain= (a fixed wet track, a test tool); weather and the slide wear the
 // DEFAULT since 2026-10-18 (owner: "weather all pass"; =0 off); tyre wear the default too
-// (owner: "apply it to main and roll it back if needed"; its test stays open; =0 off)
+// (owner: "apply it to main and roll it back if needed"; its test stays open; =0 off); more
+// puddles, the tyre feel, packed snow wear, one puddle look and wet trails the default since
+// 2026-10-18 (owner: "yes all"; =0 off)
 function weatherSettings(params: URLSearchParams) {
   return { rain: rainLevel(params), weather: params.get('weather') !== '0',
     slideWear: params.get('slidewear') !== '0', tyreWear: params.get('tyrewear') !== '0',
-    morePuddles: params.get('morepuddles') === '1', tyreFeel: params.get('tyrefeel') === '1',
-    packedWear: params.get('packedwear') === '1', onePuddle: params.get('onepuddle') === '1',
-    wetTrail: params.get('wettrail') === '1' };
+    morePuddles: params.get('morepuddles') !== '0', tyreFeel: params.get('tyrefeel') !== '0',
+    packedWear: params.get('packedwear') !== '0', onePuddle: params.get('onepuddle') !== '0',
+    wetTrail: params.get('wettrail') !== '0' };
 }
 
 function churnKind(params: URLSearchParams): '' | 'pictures' | 'objects' {
