@@ -284,7 +284,7 @@ export function doRestart() {
   saveRecords();
   // the event's weather from its start (before the cars' tyres take the track temperature and the
   // AI plans its speeds for the wetness)
-  startWeather(shared.weatherPlan || null);
+  startWeather(shared.weatherPlan || null, LEVEL.base?.id === 'snow');
   // a restart is the event from its start: the set as it was then (owner)
   if (game.car.tyreWearStart) game.car.tyreWear = [...game.car.tyreWearStart];
   if (LEVEL.endless) {

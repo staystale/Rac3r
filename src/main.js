@@ -35,10 +35,10 @@ import { TUNE } from './vehicle.ts';
 import { initWorld } from "./world/load.ts";
 import { applyOldGrassGrip } from "./world/surfaces.ts";
 import { setGroundLookup, setSlideWear } from "./world/wear.ts";
-import { setPackedSnowWear } from "./world/snowwear.ts";
+import { setPackedSnowWear, setWinterSnow } from "./world/snowwear.ts";
 import { setWetTrail } from "./wettrail.ts";
-import { setWetness, setRain } from "./world/weather.ts";
-import { setWeatherPuddles, setMorePuddles } from "./world/puddles.ts";
+import { setWetness, setRain, setMelt } from "./world/weather.ts";
+import { setWeatherPuddles, setMorePuddles, setLabWeather } from "./world/puddles.ts";
 import { setTyreWear } from "./physics/tyrewear.ts";
 import { setTyreFeel } from "./physics/tyreheat.ts";
 import { LEVEL } from "./world/state.ts";
@@ -66,8 +66,11 @@ setGroundLookup(shared.settings.groundLookup);   // ?groundlookup=1: fewer groun
 setSlideWear(shared.settings.slideWear);   // ?slidewear=1: sliding wheels wear the ground twice
 setPackedSnowWear(shared.settings.packedWear);   // ?packedwear=1: packed snow wears to snow / ice
 setWetTrail(shared.settings.wetTrail);   // ?wettrail=1: wet tyre lines fade within 10-50 m
+setMelt(shared.settings.winter);   // ?winter=1: snow and ice melt by temperature, water freezes
+setWinterSnow(shared.settings.winter);   // ?winter=1: snow packs, packed snow ices by temperature
 setWeatherPuddles(shared.settings.weather);   // ?weather=1: the weather makes the puddles
 setMorePuddles(shared.settings.morePuddles);   // ?morepuddles=1: more puddle sites than snow
+setLabWeather(shared.settings.labWeather);   // ?labweather=1: puddle / snow sites on lab floors
 setTyreWear(shared.settings.tyreWear);   // ?tyrewear=1: tyres wear and puncture
 setTyreFeel(shared.settings.tyreFeel);   // ?tyrefeel=1: tyres warm, hold heat, slides wear more
 // ?rain=0.6: a wet track, raining (weather test, before any level or racing line is built)

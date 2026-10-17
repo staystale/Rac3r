@@ -101,9 +101,40 @@ export interface WeatherPlan {
   seed: number;
 }
 
-// the running weather: plan, random stream, targets
+// MELTING (?winter=1; owner, 2026-10-18: snow and ice should melt in anything but the cold, faster
+// when hot; "a snow stage always runs winter weather"): a level whose ground is snow keeps its
+// weather below freezing - rain falls as snow there, a hot day is a dry one, the air at most
+// FROZEN_AIR_C and the track FROZEN_TRACK_C - so its snow and ice stay. The melting itself:
+// puddles.ts.
+const FROZEN_AIR_C = -2, FROZEN_TRACK_C = -1;
+const FROZEN_KIND: Partial<Record<WeatherKind, WeatherKind>> = {
+  rain: 'snow', heavy: 'snow', hot: 'dry', superhot: 'dry',
+};
+let melting = false;
+
+/**
+ * Turns melting by temperature on (?winter=1, at start-up).
+ * @param isOn true to melt snow and ice by temperature
+ */
+export function setMelt(isOn: boolean): void { melting = isOn; }
+
+/** Whether snow and ice melt by temperature (puddles.ts). */
+export function meltOn(): boolean { return melting; }
+
+/**
+ * The temperature snow and ice feel (snowwear.ts): the track's while an event's weather runs (a
+ * snow level's stays frozen), else 0 C - the old game had no temperature for snow.
+ * @returns C
+ */
+export function snowTempC(): number { return RUN.plan ? WEATHER.trackC : 0; }
+
+/** Whether an event's weather is running (no plan: the old dry 18 C game, nothing melts). */
+export function weatherRuns(): boolean { return !!RUN.plan; }
+
+// the running weather: plan, random stream, targets; frozen: a snow level's (?winter=1)
 const RUN = {
   plan: null as WeatherPlan | null,
+  frozen: false,
   random: (() => 0) as () => number,
   baseAirC: 18,
   nextChangeS: 0,
@@ -158,8 +189,8 @@ function dealKind(season: number): WeatherKind {
 }
 
 /** Points the sky and the temperatures at a kind of weather (they ease there). */
-function aimAt(kind: WeatherKind): void {
-  const spec = KINDS[kind];
+function aimAt(wanted: WeatherKind): void {
+  const kind = RUN.frozen ? FROZEN_KIND[wanted] ?? wanted : wanted, spec = KINDS[kind];
   WEATHER.kind = kind;
   RUN.targetRain = spec.rain;
   RUN.targetSnow = spec.snow;
@@ -167,6 +198,9 @@ function aimAt(kind: WeatherKind): void {
   RUN.targetAirC = kind === 'snow' ? Math.min(0, RUN.baseAirC + spec.airC)
     : Math.max(HOT_AIR_MIN_C[kind] ?? -50, RUN.baseAirC + spec.airC);
   RUN.targetTrackC = RUN.targetAirC + spec.sunC;
+  if (!RUN.frozen) return;
+  RUN.targetAirC = Math.min(FROZEN_AIR_C, RUN.targetAirC);
+  RUN.targetTrackC = Math.min(FROZEN_TRACK_C, RUN.targetTrackC);
 }
 
 /** The fixed kind a mode asks for, or null (SEASON: dealt by the season). */
@@ -179,10 +213,12 @@ function fixedKind(mode: WeatherMode): WeatherKind | null {
  * (fixed, or dealt by the season) and how wet the track already is.
  * @param plan the setup's choice, or null for no weather (dry, 18 C: the game as before; a
  *   weather set by hand - the ?rain test switch - is left as it is)
+ * @param snowGround whether the level's ground is snow (with ?winter=1 its weather stays frozen)
  */
-export function startWeather(plan: WeatherPlan | null): void {
+export function startWeather(plan: WeatherPlan | null, snowGround = false): void {
   const hadPlan = !!RUN.plan;
   RUN.plan = plan;
+  RUN.frozen = melting && snowGround;
   if (!plan) {
     if (hadPlan) {
       Object.assign(WEATHER, { rain: 0, snow: 0, tempC: 18, trackC: 18, kind: 'dry' });
@@ -219,7 +255,8 @@ function changeWeather(): { text: string; good: boolean } | null {
   const plan = RUN.plan!;
   RUN.nextChangeS = CHANGE_S[0] + (CHANGE_S[1] - CHANGE_S[0]) * RUN.random();
   if (RUN.random() < STAY_CHANCE) return null;
-  const was = WEATHER.kind, next = dealKind(plan.season);
+  const was = WEATHER.kind, dealt = dealKind(plan.season);
+  const next = RUN.frozen ? FROZEN_KIND[dealt] ?? dealt : dealt;
   if (next === was) return null;
   aimAt(next);
   if (KINDS[next].rain > KINDS[was].rain) {

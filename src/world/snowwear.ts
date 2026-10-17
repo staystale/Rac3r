@@ -1,38 +1,108 @@
 // PACKED SNOW WEARS (the default since 2026-10-18, owner: "yes all"; ?packedwear=0 off; owner:
 // packed snow should have a chance to degrade into snow or ice, 50:50). After PACKED_SNOW_WEAR
 // passes a bare packed-snow wear cell takes a cover of loose SNOW (churned up) or ICE
-// (polished), even odds; wet, it churns to snow, never ice
-// (the owner's wet table: wet snow turns to slush). The packed base stays under the cover, and the
-// existing rules take it from there (wear.ts): the snow packs again (passSnowCell), the ice scrubs
-// through to meltwater (scrubCell), the water clears, and the base wears again.
+// (polished), even odds; wet, it churns to snow, never ice (the owner's wet table: wet snow turns
+// to slush). The packed base stays under the cover, and the existing rules take it from there
+// (wear.ts): the snow packs again (passSnowCell), the ice scrubs through to meltwater
+// (scrubCell), the water clears, and the base wears again.
+//
+// WINTER LOGIC (?winter=1; owner, 2026-10-18: "snow driven over should have a chance of becoming
+// packed snow; packed snow a higher chance of becoming ice when degraded or cold, and a small
+// chance to degrade and just leave water on whatever surface is below - complete logical
+// interactions"). By the temperature snow feels (weather.ts snowTempC):
+//   loose SNOW, after SNOW_TO_ICE passes -> mostly PACKED SNOW (a cover over its ground); ICE more
+//     often the colder; WATER more often the warmer (wet snow: water, as before).
+//   PACKED SNOW (a cover, or a snow road), after PACKED_SNOW_WEAR passes -> mostly ICE, more so
+//     the colder; else churned back to loose SNOW; a small chance, bigger when warm, it breaks
+//     through to WATER on the ground under it (a snow road's bed is GRAVEL). Wet: water or snow.
+// Ice scrubbing, melting, freezing water and drying are in wear.ts / puddles.ts.
 import type { WearCell } from "./types.ts";
+import { snowTempC } from "./weather.ts";
 
-// passes before packed snow breaks up; the chance it goes to loose snow (else ice)
+// passes before packed snow breaks up; the chance it goes to loose snow (else ice), the old rule
 const PACKED_SNOW_WEAR = 4, PACKED_TO_SNOW_CHANCE = 0.5;
+// WINTER: loose snow's outcome at 0 C (water, ice; the rest packs) and the change per C
+const SNOW_WATER_AT_0 = 0.15, SNOW_WATER_PER_C = 0.1, SNOW_ICE_AT_0 = 0.15, SNOW_ICE_PER_C = 0.03;
+// packed snow's breakthrough to water at 0 C and per C warmer; its share of ice at 0 C and per C
+// colder (of what does not break through)
+const PACKED_WATER_AT_0 = 0.05, PACKED_WATER_PER_C = 0.08;
+const PACKED_ICE_AT_0 = 0.55, PACKED_ICE_PER_C = 0.03;
+// what is under a snow road when packed snow breaks through
+const SNOW_ROAD_BED = 'gravel';
 
-// on here too, so the headless tools wear the ground as the game does
-let enabled = true;
+let enabled = true, winter = false;
 
 /**
- * Turns packed-snow wear on (?packedwear=1, at start-up).
+ * Turns packed-snow wear on (?packedwear, at start-up; on here too, so the headless tools wear
+ * the ground as the game does).
  * @param isOn true to let packed snow wear to snow or ice
  */
 export function setPackedSnowWear(isOn: boolean): void { enabled = isOn; }
 
-/** Whether a bare base is packed snow that wears (with ?packedwear=1). */
-export function packedSnowWears(base: string): boolean {
-  return enabled && base === 'packedSnow';
+/**
+ * Turns the winter logic on (?winter=1, at start-up).
+ * @param isOn true for the temperature-led snow / packed snow / ice / water rules
+ */
+export function setWinterSnow(isOn: boolean): void { winter = isOn; }
+
+/** Whether a cell's packed snow (its cover, else its bare base) wears (with ?packedwear). */
+export function packedSnowWears(surfaceId: string): boolean {
+  return enabled && surfaceId === 'packedSnow';
+}
+
+/** A share kept between low and high. */
+const clampShare = (share: number, low: number, high: number) =>
+  Math.max(low, Math.min(high, share));
+
+/**
+ * Lays standing water on a cell (snow or packed snow broken through, or melted).
+ * @param cell the wear cell (changed in place)
+ */
+function toWater(cell: WearCell): void {
+  if (cell.cover === null && cell.base === 'packedSnow') cell.base = SNOW_ROAD_BED;
+  cell.cover = 'wet';
+  cell.standing = true;
+  cell.dry = 0;
 }
 
 /**
- * One pass over a bare packed-snow cell: after PACKED_SNOW_WEAR passes it takes a cover of loose
- * snow or ice, even odds.
+ * One pass over a loose SNOW cover with the winter logic: after SNOW_TO_ICE passes it packs, ices
+ * or melts by the temperature.
  * @param cell the wear cell (changed in place)
- * @param wet whether the cell is wet enough to wear as wet ground (then snow, never ice)
+ * @param wet whether the cell is wet enough to wear as wet ground (then water)
+ * @param snowToIce the passes snow takes (wear.ts SNOW_TO_ICE)
+ * @returns false without the winter logic (wear.ts keeps its own rule)
+ */
+export function passWinterSnow(cell: WearCell, wet: boolean, snowToIce: number): boolean {
+  if (!winter) return false;
+  if (++cell.passes < snowToIce) return true;
+  cell.passes = 0;
+  const tempC = snowTempC(), roll = Math.random();
+  const water = clampShare(SNOW_WATER_AT_0 + SNOW_WATER_PER_C * tempC, 0.05, 0.9);
+  const ice = clampShare(SNOW_ICE_AT_0 - SNOW_ICE_PER_C * tempC, 0, 0.45);
+  if (wet || roll < water) toWater(cell);
+  else cell.cover = roll < water + ice ? 'ice' : 'packedSnow';
+  return true;
+}
+
+/**
+ * One pass over packed snow (a cover, or a bare snow road): after PACKED_SNOW_WEAR passes it
+ * breaks up - the old rule: loose snow or ice, even odds (wet: snow); with the winter logic: ice
+ * more often the colder, a small chance it breaks through to water.
+ * @param cell the wear cell (changed in place)
+ * @param wet whether the cell is wet enough to wear as wet ground
  */
 export function passPackedSnowCell(cell: WearCell, wet: boolean): void {
   if (++cell.passes < PACKED_SNOW_WEAR) return;
-  cell.cover = wet || Math.random() < PACKED_TO_SNOW_CHANCE ? 'snow' : 'ice';
   cell.passes = 0;
   cell.scrub = 0;
+  if (!winter) {
+    cell.cover = wet || Math.random() < PACKED_TO_SNOW_CHANCE ? 'snow' : 'ice';
+    return;
+  }
+  const tempC = snowTempC();
+  const water = clampShare(PACKED_WATER_AT_0 + PACKED_WATER_PER_C * tempC, 0.03, 0.8);
+  if (Math.random() < water) { toWater(cell); return; }
+  const ice = wet ? 0 : clampShare(PACKED_ICE_AT_0 - PACKED_ICE_PER_C * tempC, 0.4, 0.85);
+  cell.cover = Math.random() < ice ? 'ice' : 'snow';
 }

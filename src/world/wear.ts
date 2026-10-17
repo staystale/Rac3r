@@ -7,7 +7,7 @@ import { WEATHER } from "./weather.ts";
 import { carWheels } from "./wheels.ts";
 import { coversNear } from "./covergrid.ts";
 import { puddleClearBy, setPassTyre } from "./puddles.ts";
-import { packedSnowWears, passPackedSnowCell } from "./snowwear.ts";
+import { packedSnowWears, passPackedSnowCell, passWinterSnow } from "./snowwear.ts";
 import {
   FX1, FX0, FY1, FY0, KERB_W, KERB_H, KERB_RIDGE, KERB_RIDGE_L, RUNOFF_W, RUNOFF_ROUGH,
 } from "./bounds.ts";
@@ -336,11 +336,12 @@ function passBareCell(cell: WearCell, damp: number): void {
 // Apply one PASS to a cell (debounced by the caller).
 function passCell(cell: WearCell, tyreTemp = 18): void {
   const damp = cellDamp(cell, wearClock);
-  if (cell.cover === 'snow') passSnowCell(cell, damp);
-  else if (cell.cover === 'wet') passWetCell(cell, tyreTemp);
-  else if (!cell.cover && packedSnowWears(cell.base)) {
-    passPackedSnowCell(cell, damp >= WET_WEAR_FROM);
-  } else if (!cell.cover) passBareCell(cell, damp);
+  const wet = damp >= WET_WEAR_FROM;
+  if (cell.cover === 'snow') {
+    if (!passWinterSnow(cell, wet, SNOW_TO_ICE)) passSnowCell(cell, damp);
+  } else if (cell.cover === 'wet') passWetCell(cell, tyreTemp);
+  else if (packedSnowWears(cell.cover || cell.base)) passPackedSnowCell(cell, wet);
+  else if (!cell.cover) passBareCell(cell, damp);
   // the tyre dries its line in the rain (as it dries a wet zone: dryAmount, damp ground)
   if (cell.cover !== 'wet') dryCellLine(cell, wearClock, dryAmount(false, tyreTemp));
   const now = cell.cover || cell.base;

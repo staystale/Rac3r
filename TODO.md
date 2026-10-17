@@ -525,6 +525,24 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
   test stays open (testlist tyrewear). RESTART puts the set back as it was at the event's start,
   RESET keeps the race as it is; the wear is saved when the event is over (results, menu, another
   car).
+- WINTER LOGIC (owner 10-18: snow and ice melt in anything but the cold, faster when hot; snow
+  driven over packs; packed snow ices more in the cold, a small chance it breaks to water on what
+  is under it; "complete logical interactions"; efficient on mobile). BUILT behind ?winter=1
+  (testlist winter). Loose snow (4 passes) -> packed snow / ice (colder) / slush (warmer); packed
+  snow (cover or snow road, 4 passes) -> ice (more the colder) / loose snow / water on its ground
+  (a snow road's bed: gravel). Above freezing the tyres' snow / packed snow / ice melt to water by
+  chance, faster per C and in rain; their water freezes to ice below 0 (black ice) and dries in a
+  warm dry spell; scenery water and frozen mud thaw faster per C (at 5 C as before); weather snow
+  melts faster in rain; a level's own snow / ice patches (Test Track, Sandbox, alpine stage ice)
+  melt, dry, refreeze to ice (gone on a warm start); the Lab's test features never change. Snow
+  ground (snow stages): the weather stays below freezing (rain -> snow, hot -> dry, track <= -1 C).
+  Without an event's weather nothing melts (snow logic at 0 C). MEASURED (tools/scratch/
+  _winter.mjs, 400 cells): -8 C snow -> 55 % packed / 40 % ice / 5 % slush, packed -> 81 % ice;
+  0 C 71 / 14 / 15, packed -> 52 % ice, 3 % water; 5 C 39 % packed / 61 % slush, packed 43 % water.
+  Cost: the per-second tick with 4,248 wear cells 0.12-0.19 ms (laptop) - the existing passes, no
+  new ones. LAB WEATHER behind ?labweather=1 (testlist labweather): OG Lab, Bowling Alley, Rough
+  Patch get the floor's puddle / snow sites (92-113). STILL WITHOUT weather sites: the endless
+  highway (sites would have to follow the road as it is built) - next if wanted.
 - OWNER 10-18 "YES ALL": tyre feel, more puddles (road sites + refill), one puddle look, packed
   snow wear and wet trails are the DEFAULT (=0 off each; testlist entries deleted). tyrecheck rules
   moved with the owner's "heat faster from sliding": drift too hot 15 s+ (was 20), 80 s drift never

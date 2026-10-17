@@ -237,6 +237,8 @@ export interface Cover {
   water?: boolean;   // SCENERY water (river, lake, ford): permanent in any weather (puddles.ts)
   _frozen?: boolean;   // puddles.ts: scenery water frozen over (its _iceTwin is shown)
   _iceTwin?: Cover;   // puddles.ts: the same water as ice
+  _waterTwin?: Cover;   // puddles.ts: a level's snow / ice melted to water (?winter=1)
+  _melt?: 'water' | 'ice' | 'gone';   // puddles.ts: a level's snow / ice melted, refrozen, dried
   _co?: number;   // coverAt caches for rotated covers
   _si?: number;
   _cells?: CoverCells;   // ground.ts coverCells caches the covered 0.5 m cells
