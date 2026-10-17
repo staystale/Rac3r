@@ -41,7 +41,7 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   only their part of the ribbon (`?ribboncull`, undone 10-16), the WebGL cars (`?gpucars`, removed
   10-16), the menu recording (parked until after the graphics work).
 - Order (10-16): graphics first (the tyre marks quiver: done 10-17), then fewer ground lookups
-  (`?groundlookup`, built 10-17, phone test pending), then rain and weather (answers in `TODO.md`). Off-screen
+  (`?groundlookup`, default since 10-17), then rain and weather (answers in `TODO.md`). Off-screen
   AI at half rate: saved for when more performance is needed.
 
 ## Measured lessons

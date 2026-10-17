@@ -29,7 +29,7 @@ import { fileURLToPath } from 'node:url';
 import * as L from '../src/lab.js';
 import { addStageLevels } from '../src/stagegen.js';
 import { addHighwayLevel } from '../src/highway.js';
-import { startServer, launchBrowser } from './lib/browser.mjs';
+import { startServer, launchBrowser, extraQuery } from './lib/browser.mjs';
 import {
   openPage, launchLevel, installDriver, sha, onlyList, SETTLE_MS,
 } from './lib/determinism.mjs';
@@ -40,7 +40,8 @@ addHighwayLevel();
 const SAVE_FILE = fileURLToPath(new URL('./.simhash', import.meta.url));
 const SEED = 0x5eed;
 const SAMPLE_EVERY = 30;
-const SKIP = '&skip=world,ground,car';
+// RAC3R_QUERY=<switches> (tools/lib/browser.mjs) runs it with a switch, e.g. an old path
+const SKIP = '&skip=world,ground,car' + extraQuery();
 const CIRCUITS = ['thruston', 'castle-cum', 'brands-snatch', 'naffcar', 'knobhill', 'grass-track'];
 const HIGHWAY_TRAFFIC = { ai: 3, traffic: 1, litter: 1.5 };
 const HELD = { steer: 0, throttle: 1 };

@@ -9,18 +9,8 @@
 export const TEST_LIST = [
   // (approved late, deleted: fields, grassedge, catchthem, slipsdual, fps - TODO.md 1c;
   // dirtroad, animals, labext, labsplit, zoomhold, gpupaint, minimap, zoomspring, grassgrip, hwmap,
-  // cracktufts, sharpcars, sharpmarks, jokerfix)
-  {
-    id: 'groundlookup',
-    added: '2026-10-17',
-    name: 'Fewer ground lookups under the wheels (12 a step instead of ~22): same driving',
-    where: 'Link: ?groundlookup=1&report=1 - a bumpy track (Sweaty Lamb, Knobhill), then a race',
-    try:
-      'Drive over crests, dips and kerbs, and race the AI. Compare with the plain link.',
-    wrong:
-      'The car feels different over bumps, kerbs or hills; it pulls on a camber; the AI drives ' +
-      'differently; more judder.',
-  },
+  // cracktufts, sharpcars, sharpmarks, jokerfix,
+  // groundlookup)
   {
     id: 'straightoutta',
     added: '2026-10-15',

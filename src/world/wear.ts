@@ -545,7 +545,8 @@ export function applyGround(car: CarBody, dt: number): void {
     car.y); qsHintSub = hit.seg != null ? st0 : null; qsHint = hit.seg ?? -1; }
   try { applyGroundInner(car, dt); } finally { qsHintSub = null; qsHint = -1; }
 }
-// FEWER GROUND LOOKUPS (?groundlookup=1, setGroundLookup). Every car asks for the smooth ground
+// FEWER GROUND LOOKUPS (the default since 2026-10-17, owner approved; ?groundlookup=0 = the old
+// ~22). Every car asks for the smooth ground
 // height ~22 times a physics step (120 a second): a central-difference slope (4 heights) under each
 // of the 4 wheels, 2 more heights for the bump steer and 4 for the front axle's slope - mostly
 // overlapping questions (MEASURED: Brands, 5 cars, CPU x4, applyGround 2.1 s in 15 s). With the
@@ -554,9 +555,10 @@ export function applyGround(car: CarBody, dt: number): void {
 // axle's slope is the mean of its two wheels' slopes: 12 heights a step. The same STEP, so a slope
 // is the same plane read 0.15 m off the wheel; on an even slope the answer is identical.
 const LOOKUP_STEP = 0.3;   // m, slopeAt's step
-let fewerLookups = false;
+// on here too, so the headless tools drive the same physics as the game
+let fewerLookups = true;
 /**
- * Turns the fewer ground lookups on or off (main.js, from ?groundlookup=1; tools for an A/B).
+ * Turns the fewer ground lookups on or off (main.js, from ?groundlookup; tools for an A/B).
  * @param fewer true for 12 height lookups a step instead of ~22
  */
 export function setGroundLookup(fewer: boolean): void { fewerLookups = fewer; }

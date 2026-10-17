@@ -201,8 +201,9 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
       1. Ground checks: near-hint search +-4 first (tyrewall.ts NEAR_FIRST): querySubtrackInto 0.96
          -> 0.33 s, applyGround 2.68 -> 2.13 s, simhash SAME - DONE. Next: fewer samples per step
          behind ?groundlite=1 (lap-time proof) - OWNER: "a good idea", after the graphics work,
-         and a phone test when in doubt. BUILT 2026-10-17 as ?groundlookup=1 (owner phone test
-         pending, testlist 'groundlookup'; wear.ts setGroundLookup): each wheel's slope from its
+         and a phone test when in doubt. DONE 2026-10-17 as ?groundlookup, the DEFAULT (owner:
+         "seems okay"; ?groundlookup=0 = the old ~22; wear.ts setGroundLookup, on by default
+         there too so the headless tools match the game): each wheel's slope from its
          own height + one step along x and y (forward differences, 3 lookups not 4), the bump
          steer reusing the front wheels' heights, the front axle's slope the mean of its wheels:
          12 height lookups a car a step instead of ~22. Applies to every car alike (off-screen AI
@@ -254,6 +255,15 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
          (ground, deck) is blitted, the marks drawn on the screen canvas at device resolution
          (an edge moves by one device px, not one art px), the buffer cleared for the layers
          above (render/screen.ts drawMarksOnScreen). Switch off: renderhash SAME.
+- [ ] NEXT, OWNER 2026-10-17 (assess the cause first, then propose with sizes):
+      (1) "main menu is still sluggish" - the live 5-car race runs behind the menu (game/menu
+      demo); measure it ON THE PHONE first (?report=1 does not record the menu: add that, or a
+      menu-only report), then decide (fewer demo cars, a cheaper demo, the recording again).
+      (2) "some track edges jiggle or dance like the tyre tracks were" - likely the same cause as
+      the marks: the track ribbon's white edge lines and kerbs are painted into the ground tiles
+      in art pixels and the tiles are drawn with the sharp filter, but thin lines (0.22 m) in art
+      pixels step as the camera moves; or the per-frame deck layer (runoff, floor kerb, paint)
+      drawn into the art buffer at 1.3 CSS px. Find which edges first (photos at speed).
 - [x] JOKER BUGS (owner, 2026-10-16; FIXED, the DEFAULT since 2026-10-17, owner: "tested and
       working"; ?jokerfix=0 = the old behaviour): (1) the joker lap / joker section did not show on the
       minimap (it drew the main centreline only); (2) RESET in the joker lane put the car back on
