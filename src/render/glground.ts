@@ -19,8 +19,11 @@ export interface GroundSink {
   image(source: HTMLCanvasElement, x: number, y: number, width: number, height: number): void;
   /** 'write': what is drawn masks the area; 'under': draw only where nothing masked; 'off' */
   mask(mode: 'write' | 'under' | 'off'): void;
-  /** uploads a picture (with mipmaps) without drawing it, or keeps it from expiring */
-  preload(source: HTMLCanvasElement): void;
+  /**
+   * Keeps a picture's texture from expiring; with `upload`, also uploads it (with mipmaps) if
+   * that is not done yet. Returns true when it uploaded or built mipmaps.
+   */
+  preload(source: HTMLCanvasElement, upload: boolean): boolean;
 }
 
 /** How a CSS px of the view maps to a screen device pixel this frame. */
@@ -254,7 +257,13 @@ function createSink(webgl: WebGL2RenderingContext, program: WebGLProgram,
       webgl.clear(webgl.COLOR_BUFFER_BIT);
     },
     mask(mode) { setMask(webgl, mode); },
-    preload(source) { textureOf(webgl, textures, source, state.frameNo, true, state.counts); },
+    preload(source, upload) {
+      const entry = textures.get(source);
+      if (entry) entry.used = state.frameNo;
+      if (!upload || (entry && entry.mip)) return false;
+      textureOf(webgl, textures, source, state.frameNo, true, state.counts);
+      return true;
+    },
     image(source, x, y, width, height) {
       const frame = state.frame;
       if (!frame || !source.width || !source.height) return;

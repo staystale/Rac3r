@@ -12,15 +12,5 @@ export const TEST_LIST = [
   // cracktufts, sharpcars, sharpmarks, jokerfix,
   // groundlookup, exacttiles, hudmenu, tyreoff, menufast, bundle,
   // sound, joker, markedge, ainowait, judder, texwarm; straightoutta removed with its level;
-  // stalecap undone; dpr approved)
-  {
-    id: 'startfix',
-    added: '2026-10-17',
-    name: 'Race start: no jolt as the fly-in reaches the car',
-    where: 'Castle Cum autopilot link with ?startfix=1, then without, back to back',
-    try: 'Tap to start and watch the camera fly in to the grid; then the first laps, hands off.',
-    wrong:
-      'A jolt as the fly-in ends; track, kerbs or hill shading popping in after it; tyre wear ' +
-      'not clearing at a restart.',
-  },
+  // stalecap undone; dpr, startfix approved)
 ];

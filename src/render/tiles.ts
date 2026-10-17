@@ -525,9 +525,10 @@ function drawFlyOverview(tcx: TilesCtx, overview: Overview, car: CamCar | null) 
 
 /**
  * ?startfix=1 on the GPU ground: the fly-in pre-paints only the tiles drawn after it (the fixed
- * step) over the hand-over view, and sends each to the GPU as it is painted, keeping the rest
- * from expiring. MEASURED (owner's phone): the hand-over frame uploaded every tile in view at once
- * (59 uploads, 71 mipmaps, 32 ms); the zoom steps -2 / -4 painted before are never drawn here.
+ * step) over the hand-over view, and uploads them FLY_PREFETCH a frame, keeping the rest from
+ * expiring. MEASURED (owner's phone): the hand-over frame uploaded every tile in view at once
+ * (59 uploads, 71 mipmaps, 32 ms); uploading all tiles already painted in the first fly-in frame
+ * moved it there (46 uploads, 58 mipmaps, 54 ms). Steps -2 / -4 are never drawn on the GPU path.
  * @param tcx the tile context
  * @param car the car the fly-in ends on
  */
@@ -538,10 +539,11 @@ function prefetchFlyOnGpu(tcx: TilesCtx, car: CamCar) {
   if (!sink) return;
   const tileWidth = tcx.TILE_PX / (view.PPM * zOfStep(FIXED_STEP)), ppm = view.PPM * FLY_HANDOVER;
   const halfW = view.W / 2 / ppm, halfH = view.H / 2 / ppm;
+  let uploads = FLY_PREFETCH;
   for (let i = Math.floor((car.x - halfW) / tileWidth); i * tileWidth < car.x + halfW; i++) {
     for (let j = Math.floor((car.y - halfH) / tileWidth); j * tileWidth < car.y + halfH; j++) {
       const tile = tiles.get(FIXED_STEP + '|' + i + '|' + j);
-      if (tile) sink.preload(tile.c);
+      if (tile && sink.preload(tile.c, uploads > 0)) uploads--;
     }
   }
 }
