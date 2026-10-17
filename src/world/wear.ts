@@ -7,6 +7,7 @@ import { WEATHER } from "./weather.ts";
 import { carWheels } from "./wheels.ts";
 import { coversNear } from "./covergrid.ts";
 import { puddleClearBy, setPassTyre } from "./puddles.ts";
+import { packedSnowWears, passPackedSnowCell } from "./snowwear.ts";
 import {
   FX1, FX0, FY1, FY0, KERB_W, KERB_H, KERB_RIDGE, KERB_RIDGE_L, RUNOFF_W, RUNOFF_ROUGH,
 } from "./bounds.ts";
@@ -261,7 +262,8 @@ function getCell(cellX: number, cellY: number): WearCell | null {
   if (!cell) {
     const layers = layersAt((cellX + 0.5) * WEAR_CELL, (cellY + 0.5) * WEAR_CELL);
     // nothing in this cell can ever change: do not create it (keeps the map to cells that matter)
-    if (!layers.cover && !BASE_WEAR[layers.base] && WEATHER.wetness === 0) return null;
+    if (!layers.cover && !BASE_WEAR[layers.base] && !packedSnowWears(layers.base)
+      && WEATHER.wetness === 0) return null;
     cell = { cx: cellX, cy: cellY, base: layers.base, cover: layers.cover,
       orig: layers.cover || layers.base, passes: 0, scrub: 0, dry: 0, standing: layers.standing,
       lastSeenTime: -100 };
@@ -336,7 +338,9 @@ function passCell(cell: WearCell, tyreTemp = 18): void {
   const damp = cellDamp(cell, wearClock);
   if (cell.cover === 'snow') passSnowCell(cell, damp);
   else if (cell.cover === 'wet') passWetCell(cell, tyreTemp);
-  else if (!cell.cover) passBareCell(cell, damp);
+  else if (!cell.cover && packedSnowWears(cell.base)) {
+    passPackedSnowCell(cell, damp >= WET_WEAR_FROM);
+  } else if (!cell.cover) passBareCell(cell, damp);
   // the tyre dries its line in the rain (as it dries a wet zone: dryAmount, damp ground)
   if (cell.cover !== 'wet') dryCellLine(cell, wearClock, dryAmount(false, tyreTemp));
   const now = cell.cover || cell.base;

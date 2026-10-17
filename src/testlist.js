@@ -8,6 +8,15 @@
 //   where  how to get to it      try     what to do      wrong   what would count as a bug
 export const TEST_LIST = [
   {
+    id: 'packedwear',
+    added: '2026-10-18',
+    name: 'Packed snow wears: after 4 passes it breaks up into loose snow or ice, 50:50',
+    where: 'Plain link + &packedwear=1: Surface Bowling Alley packed-snow lane, snow stages',
+    try: 'Drive the same line 4+ times: patches of snow and ice appear; ice scrubs to water,'
+      + ' snow packs again; in the wet it goes to snow only.',
+    wrong: 'Changes too soon / late, all one kind, packed snow changing with no car on it.',
+  },
+  {
     id: 'tyrefeel',
     added: '2026-10-18',
     name: 'Tyre feel: warm sooner, hold heat on straights; slides, spins and donuts wear more',

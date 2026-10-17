@@ -525,6 +525,13 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
   test stays open (testlist tyrewear). RESTART puts the set back as it was at the event's start,
   RESET keeps the race as it is; the wear is saved when the event is over (results, menu, another
   car).
+- PACKED SNOW WEARS (owner 10-18: "packed snow should have a chance to degrade into snow or ice
+  50:50"). BUILT behind ?packedwear=1 (testlist packedwear): world/snowwear.ts - after 4 passes a
+  bare packed-snow cell takes a cover of loose snow or ice, even odds (wet: snow, the owner's wet
+  table); the packed base stays under it and the existing rules go on (snow packs, ice scrubs to
+  meltwater, water clears in 3 passes). Packed snow never wore before. MEASURED
+  (tools/scratch/_packedwear.mjs, 400 lane cells): dry 201 ice / 199 snow at pass 4; wet 400 snow;
+  switch off no change.
 - TYRE FEEL (owner 10-18: wear faster sliding, faster still wheelspinning / donuts; temperature "a
   little bit hard to get hot" and cools "a little bit too easy"; heat faster from sliding but no
   extra wear for a cold slide; hot tyres wear more from sliding). BUILT behind ?tyrefeel=1

@@ -35,6 +35,7 @@ import { TUNE } from './vehicle.ts';
 import { initWorld } from "./world/load.ts";
 import { applyOldGrassGrip } from "./world/surfaces.ts";
 import { setGroundLookup, setSlideWear } from "./world/wear.ts";
+import { setPackedSnowWear } from "./world/snowwear.ts";
 import { setWetness, setRain } from "./world/weather.ts";
 import { setWeatherPuddles, setMorePuddles } from "./world/puddles.ts";
 import { setTyreWear } from "./physics/tyrewear.ts";
@@ -62,6 +63,7 @@ shared.settings = readSettings(location.search);
 if (!shared.settings.grassGrip) applyOldGrassGrip();   // ?grassgrip=0: the old grass grip
 setGroundLookup(shared.settings.groundLookup);   // ?groundlookup=1: fewer ground lookups (wear.ts)
 setSlideWear(shared.settings.slideWear);   // ?slidewear=1: sliding wheels wear the ground twice
+setPackedSnowWear(shared.settings.packedWear);   // ?packedwear=1: packed snow wears to snow / ice
 setWeatherPuddles(shared.settings.weather);   // ?weather=1: the weather makes the puddles
 setMorePuddles(shared.settings.morePuddles);   // ?morepuddles=1: more puddle sites than snow
 setTyreWear(shared.settings.tyreWear);   // ?tyrewear=1: tyres wear and puncture
