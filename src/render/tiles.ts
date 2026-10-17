@@ -7,7 +7,7 @@ import { COL } from "../world/colours.ts";
 import type { Level } from "../world/types.ts";
 import { buildPalette } from "./tilesPalette.ts";
 import { hillShade } from "./tilesShade.ts";
-import { tileBudget, takeTile, TILE_BUDGET, LITE_TILE_BUDGET } from "./tilesBudget.ts";
+import { tileBudget, takeTile } from "./tilesBudget.ts";
 import { drainWear } from "./tilesWear.ts";
 import type { GroundSink } from "./glground.ts";
 import type {
@@ -80,8 +80,6 @@ interface TilesCtx {
   WORN_ONLY: boolean;
   /** the tile canvases painted with worn cells in them */
   WORN_TILES: WeakSet<HTMLCanvasElement>;
-  /** ?drawlite=1: at most LITE_TILE_BUDGET tiles a frame */
-  LITE: boolean;
 }
 
 /** one tile being painted: its canvas, scratch, geometry and the strip it is on */
@@ -686,7 +684,7 @@ function drawGround(tcx: TilesCtx, wallDt = 0, car: CamCar | null = null) {
     return;
   }
   const step = groundStep(tcx, fly);
-  const budget = tileBudget(tcx.LITE ? LITE_TILE_BUDGET : TILE_BUDGET);
+  const budget = tileBudget();
   // count what the wanted step is missing BEFORE painting, to decide whether a stand-in is
   // needed
   if (state.lastStep !== null && state.lastStep !== step && countMissing(tcx, step) > 0) {
@@ -737,7 +735,6 @@ export function createTiles(view: View, cam: Cam, settings: Settings, helpers: T
     EXACT_TILES: settings.exactTiles,
     WORN_ONLY: settings.startFix,
     WORN_TILES: new WeakSet(),
-    LITE: settings.drawLite,
   };
   return {
     tileState, tiles, TILE_PX, ZSTEP, zStepOf, zOfStep,

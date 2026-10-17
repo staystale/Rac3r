@@ -39,7 +39,7 @@ export interface Settings {
   thumbCache: boolean;           // thumbnails saved per version (thumbcache.js); =0 painted
   texWarm: boolean;              // long-grass textures painted while loading; =0 in the menu
   startFix: boolean;             // the race start without the hand-over jolt; =0 the old
-  drawLite: boolean;             // ?drawlite=1: tiles trace only their ribbon; minimap fade steps
+  oneCanvas: boolean;            // ?onecanvas=1: the GPU ground drawn into the 2D canvas
   maxDpr: number | null;         // ?dpr=2: the sharpness cap (default render.ts MAX_DPR 1.5)
   noShade: boolean;              // ?noshade: skip the hill shading (perf A/B)
   grassEnds: "round" | "square";   // ?grass=square: square grass blade ends (cheaper; A/B)
@@ -133,7 +133,7 @@ export function readSettings(search: string): Settings {
     // default since 2026-10-17 (owner approved): long-grass textures painted while loading
     texWarm: params.get('texwarm') !== '0',
     startFix: params.get('startfix') !== '0',
-    drawLite: params.get('drawlite') === '1',
+    oneCanvas: params.get('onecanvas') === '1',
     maxDpr: maxDpr(params),
     noShade: params.has('noshade'),
     grassEnds: params.get('grass') === 'square' ? 'square' : 'round',

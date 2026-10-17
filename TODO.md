@@ -65,13 +65,14 @@ the git history. `docs/foreman-handover.md` is the last handover (10-17), writte
   Castle Cum corner 2, zoomed out): ground-square painting ~5,600 path pieces / 450 strokes / 220
   fills a frame (each square traced the WHOLE track: ~7,000 pieces a square); the minimap ~200
   strokes a frame (its fade a segment at a time); GPU ground light (~5 screens of pixels).
-  ?drawlite=1 (under test): render/ribbon.ts (the 10-16 ribbon cull, restored) traces only the
-  ribbon / edges / kerbs reaching a square, at most LITE_TILE_BUDGET (2) squares a frame; the
-  minimap fade in 12 opacity steps. drawload: square painting 5,600 -> ~980 pieces, fills 220 -> 1,
-  HUD strokes 225 -> 50. Pixels: 0.001-0.094 % differ (edge anti-aliasing; GPU path 0.01-0.025 %).
-  Next if frames are still held: the structural rebuild (the whole ground in one GPU pass).
-- NOW (owner order, 2026-10-17): the drawlite phone test (screen recording, held frames); then
-  the rebuild if needed, or WEATHER (see "GRASS GRIP + WATER"
+  ?drawlite (the ribbon cull restored + 2 squares a frame + minimap fade steps) cut that drawing
+  ~80 % but the phone held as many frames (recordings 16:28: 69 in 14 s with it, 78 in 15 s
+  without): UNDONE (git e5c8a21 has it). ?glground=0 (the old 2D ground: ONE canvas) held 9 in
+  15 s (16:40). CAUSE: Safari compositing two full-screen canvases updated every frame (the WebGL
+  ground under the 2D canvas). Fix under way: ?onecanvas=1 - the finished WebGL ground drawn into
+  the 2D canvas as its bottom layer each frame, the WebGL canvas hidden (WebGL -> 2D can stay on
+  the GPU; 2D -> WebGL each frame juddered before).
+- NOW (owner order, 2026-10-17): ?onecanvas=1 (phone recording, held frames); then WEATHER (see "GRASS GRIP + WATER"
   below, owner answers).
 - GRASS THROUGH THE CRACKS (owner: a and b, "like real life"): long-grass tufts in some
   broken-tarmac flecks, and scattered on broken-tarmac / concrete ground (blend.ts, own random

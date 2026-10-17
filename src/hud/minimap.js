@@ -46,11 +46,6 @@ const progressKey = (mode) => 'rac3r.progress.' + mode;
 const ROAD_STROKES = [[7, 'rgba(20,20,22,0.55)'], [3.5, 'rgba(236,231,220,0.95)']];
 // the joker lane is drawn too (?jokerfix=1, setMinimapJoker)
 let jokerShown = false;
-// ?drawlite=1: the fading far end is stroked in FADE_STEPS steps of opacity, not a segment at a
-// time. MEASURED (tools/drawload.mjs, Castle Cum at speed): ~200 strokes a frame, the HUD's
-// biggest cost by far; the screen canvas is painted by Safari after our JS, unseen by its timing
-const FADE_STEPS = 12;
-let fadeInSteps = false;
 
 /**
  * The minimap setting of a difficulty mode: the device's choice, else the mode's default.
@@ -131,14 +126,6 @@ export function setMinimapSource(source) {
  */
 export function setProgressSource(source) {
   progressNow = source;
-}
-
-/**
- * Strokes the road's fading end in FADE_STEPS steps (?drawlite=1).
- * @param {boolean} stepped in steps
- */
-export function setMinimapFadeSteps(stepped) {
-  fadeInSteps = stepped;
 }
 
 /**
@@ -250,46 +237,16 @@ function drawRoad(ctx, pts, from, lap, scale, span) {
     ctx.moveTo(pointAt(first).x, pointAt(first).y);
     for (let i = first + 1; i <= solidEnd; i++) ctx.lineTo(pointAt(i).x, pointAt(i).y);
     ctx.stroke();
-    if (fadeInSteps) strokeFadeSteps(ctx, { pointAt, from: solidEnd + 1, to: last, base,
-      opacityAt: (point) => Math.max(0, Math.min(1, (span.ahead - ahead(point)) / fade)) });
-    else {
-      for (let i = solidEnd + 1; i <= last; i++) {
-        const point = pointAt(i), prev = pointAt(i - 1);
-        ctx.globalAlpha = base * Math.max(0, Math.min(1, (span.ahead - ahead(point)) / fade));
-        ctx.beginPath();
-        ctx.moveTo(prev.x, prev.y);
-        ctx.lineTo(point.x, point.y);
-        ctx.stroke();
-      }
+    for (let i = solidEnd + 1; i <= last; i++) {
+      const point = pointAt(i), prev = pointAt(i - 1);
+      ctx.globalAlpha = base * Math.max(0, Math.min(1, (span.ahead - ahead(point)) / fade));
+      ctx.beginPath();
+      ctx.moveTo(prev.x, prev.y);
+      ctx.lineTo(point.x, point.y);
+      ctx.stroke();
     }
     ctx.globalAlpha = base;
   }
-}
-
-/**
- * Strokes the fading end of the road with the current stroke style: neighbouring segments whose
- * opacity rounds to the same of FADE_STEPS steps go in one stroke.
- * @param {CanvasRenderingContext2D} ctx the HUD context
- * @param {{pointAt: Function, from: number, to: number, base: number,
- *   opacityAt: Function}} road the points, the segment range (each ends at its index) and the
- *   window's opacity
- */
-function strokeFadeSteps(ctx, road) {
-  const { pointAt, from, to, base, opacityAt } = road;
-  let step = -1;
-  for (let i = from; i <= to; i++) {
-    const point = pointAt(i), prev = pointAt(i - 1);
-    const pointStep = Math.round(opacityAt(point) * FADE_STEPS);
-    if (pointStep !== step) {
-      if (step >= 0) ctx.stroke();
-      step = pointStep;
-      ctx.globalAlpha = base * (step / FADE_STEPS);
-      ctx.beginPath();
-      ctx.moveTo(prev.x, prev.y);
-    }
-    ctx.lineTo(point.x, point.y);
-  }
-  if (step >= 0) ctx.stroke();
 }
 
 /**

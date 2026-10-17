@@ -69,6 +69,7 @@ interface RenderState {
   sharpCars: boolean;   // the cars on the screen canvas (drawSharpCarLayers); ?sharpcars=0 off
   sharpMarks: boolean;  // ?sharpmarks=1: the skid marks on the screen canvas (drawMarksOnScreen)
   screenBegun: boolean; // this frame has blitted the art buffer to the screen at least once
+  oneCanvas: boolean;   // ?onecanvas=1: the GPU ground drawn into the screen canvas (blitArt)
 }
 
 /** What the pixel-locked view of one frame changed, so the end of the frame can undo it. */
@@ -542,7 +543,6 @@ function buildModules(view: View, cam: Cam, settings: Settings,
     shareBlades: settings.menuFast });
   const road = createRoad(view, cam, {
     PPMz, toScreenX, toScreenY, paintLayers: ground.paintLayers, artBase: ground.artBase,
-    cullRibbon: settings.drawLite,
   });
   const particles = createParticles(view, cam, { PPMz, toScreenX, toScreenY });
   const { pixelCar } = createCarSprite();
@@ -610,7 +610,11 @@ function gpuHelpers(state: RenderState, gpu: GlGround | null) {
  * @returns the GPU ground, or null
  */
 function createGpuGround(canvas: HTMLCanvasElement, settings: Settings) {
-  return settings.glGround ? createGlGround(canvas, settings.gpuPaint, settings.startFix) : null;
+  const gpu = settings.glGround
+    ? createGlGround(canvas, settings.gpuPaint, settings.startFix) : null;
+  // ?onecanvas=1: the GPU canvas is never shown itself; blitArt draws it into the screen canvas
+  if (gpu && settings.oneCanvas) gpu.canvas.style.display = 'none';
+  return gpu;
 }
 
 /**
@@ -620,7 +624,7 @@ function createGpuGround(canvas: HTMLCanvasElement, settings: Settings) {
  */
 const newRenderState = (settings: Settings): RenderState =>
   ({ blockPx: 1, realDpr: 1, gpuOn: false, sharpCars: settings.sharpCars,
-    sharpMarks: settings.sharpMarks, screenBegun: false });
+    sharpMarks: settings.sharpMarks, screenBegun: false, oneCanvas: settings.oneCanvas });
 
 /**
  * Builds the renderer for a canvas.

@@ -15,8 +15,7 @@ import { readSettings } from './core/settings.ts';
 import { createMarks } from './marks.js';
 import { createHud } from './hud.js';
 import {
-  setMinimapSource, setMinimapView, setMinimapHighway, setMinimapJoker, setMinimapFadeSteps,
-  setProgressSource,
+  setMinimapSource, setMinimapView, setMinimapHighway, setMinimapJoker, setProgressSource,
 } from './hud/minimap.js';
 import { createMeter } from './ui/meter.ts';
 import { createReporter } from './ui/report.ts';
@@ -172,7 +171,6 @@ setProgressSource(shared.settings.hudMenu
 setMinimapView(() => shared.renderer.PPM);
 setMinimapHighway(shared.settings.hwMap);
 setMinimapJoker(shared.settings.jokerFix);
-setMinimapFadeSteps(shared.settings.drawLite);
 // HOW TO PLAY. Opens by itself once per device, after the first fly-in. NOT
 // under automation: Playwright sets navigator.webdriver, and every harness in tools/ taps the HUD
 // as if no card were up. ?guide=1 forces it on (for photographing it), ?guide=0 forces it off.
