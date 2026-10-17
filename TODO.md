@@ -291,6 +291,10 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
       -> 5, TEST MODE 419 -> 3 ms; loading +~0.5 s (laptop; phone ~2x faster). The report now
       carries loadMs (page open -> menu shown) to compare on the phone. NEXT (owner): the
       initial load feels long - find what was tried before, propose (after this is approved).
+      LOAD DONE - the bundle and the saved thumbnails are the DEFAULT since 2026-10-17 (owner:
+      "Yes, make it default"; ?bundle=0 / ?thumbcache=0 = the old). The owner's phone (11:38Z): menu
+      shown 2.49 s (old) -> 1.15 s (first load) -> 0.53 s (saved thumbnails). Left: one ~125 ms
+      frame just after the menu shows, in every run, outside our code - next to chase.
       LOAD (owner, 2026-10-17: "the initial load in is kinda long too"). Tried before: 8ec3ad8
       (textures warmed after boot; overview snap skipped on the GPU path) and 6b6c7fa (the menu
       recording, later parked; light thumbnail builds; rally stages built on first use). MEASURED

@@ -31,10 +31,11 @@ function saveReport(req, res) {
   });
 }
 
-// THE BUNDLE (?bundle=1, index.html): the game as ONE minified file, as the itch.io build makes it,
-// instead of ~160 modules the phone fetches one round trip at a time over the tunnel (MEASURED,
-// laptop with 80 ms a request: the last module arrived at 3.2 s). Built on request, kept until one
-// of its source files changes (their modification times are checked on every request).
+// THE BUNDLE (the default, index.html; ?bundle=0 = the modules): the game as ONE minified file, as
+// the itch.io build makes it, instead of ~160 modules the phone fetches one round trip at a time
+// over the tunnel (MEASURED, laptop with 80 ms a request: the last module arrived at 3.2 s). Built
+// on request, kept until one of its source files changes (their modification times are checked on
+// every request).
 let bundleCache = null;
 
 /**

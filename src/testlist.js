@@ -10,19 +10,7 @@ export const TEST_LIST = [
   // (approved late, deleted: fields, grassedge, catchthem, slipsdual, fps - TODO.md 1c;
   // dirtroad, animals, labext, labsplit, zoomhold, gpupaint, minimap, zoomspring, grassgrip, hwmap,
   // cracktufts, sharpcars, sharpmarks, jokerfix,
-  // groundlookup, exacttiles, hudmenu, tyreoff, menufast)
-  {
-    id: 'bundle',
-    added: '2026-10-17',
-    name: 'Faster loading: the game as one file (+ saved track pictures)',
-    where: 'Links: ?bundle=1&thumbcache=1&report=1 (open it twice), then ?report=1 (compare)',
-    try:
-      'Open each link fresh (close the tab first) and wait for the menu; the first link twice ' +
-      '(the second time it reads the saved track pictures). Then TEST MODE, as normal.',
-    wrong:
-      '"could not load" on the loading screen; the game slower to appear than the compare ' +
-      'link; track pictures missing or wrong; anything behaving differently.',
-  },
+  // groundlookup, exacttiles, hudmenu, tyreoff, menufast, bundle)
   {
     id: 'straightoutta',
     added: '2026-10-15',

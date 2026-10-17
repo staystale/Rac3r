@@ -36,7 +36,7 @@ export interface Settings {
   hudMenu: boolean;              // the pause menu's HUD list (menu/race.js); ?hudmenu=0 off
   tyreOff: boolean;              // tyre / damage OFF stays off when damaged (hud.js); =0 pops up
   menuFast: boolean;             // no fly-in behind the menu, thumbnails at load; =0 the old
-  thumbCache: boolean;           // ?thumbcache=1: thumbnails saved per version (thumbcache.js)
+  thumbCache: boolean;           // thumbnails saved per version (thumbcache.js); =0 painted
   noShade: boolean;              // ?noshade: skip the hill shading (perf A/B)
   grassEnds: "round" | "square";   // ?grass=square: square grass blade ends (cheaper; A/B)
   surfaceTextures: boolean;       // ?tex=0: paint surfaces live, not pre-painted textures (A/B)
@@ -118,9 +118,10 @@ export function readSettings(search: string): Settings {
     // the car (no fly-in), the track thumbnails are painted while the game loads, not on the TEST
     // MODE tap, and the long-grass blades are stroked once for its recolours (textures.ts)
     menuFast: params.get('menufast') !== '0',
-    // ?thumbcache=1 (owner phone test pending): the menu thumbnails saved on the device per game
-    // version and read back at load instead of painted (needs the bundle: ?bundle=1)
-    thumbCache: params.get('thumbcache') === '1',
+    // default since 2026-10-17 (owner approved: the phone's menu at 2.5 -> 1.15 s, 0.53 s once
+    // saved): the menu thumbnails saved on the device per game version and read back at load
+    // instead of painted (only from the bundle, which carries the version)
+    thumbCache: params.get('thumbcache') !== '0',
     noShade: params.has('noshade'),
     grassEnds: params.get('grass') === 'square' ? 'square' : 'round',
     surfaceTextures: params.get('tex') !== '0',

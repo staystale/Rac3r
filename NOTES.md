@@ -38,7 +38,9 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   (`?sharpmarks=0`, `?jokerfix=0` = off). Ground tiles at their exact place on the GPU ground, so
   track edges hold still while zooming: default since 10-17 (`?exacttiles=0`). The pause menu's
   HUD list (each display piece on / off; controls never; tyre / damage OFF stays off when damaged):
-  default since 10-17 (`?hudmenu=0`, `?tyreoff=0`). The menu: no fly-in behind it, thumbnails
+  default since 10-17 (`?hudmenu=0`, `?tyreoff=0`). Loading: the game as one bundled file from
+  the test server and the menu thumbnails saved per version: default since 10-17 (`?bundle=0`,
+  `?thumbcache=0`); the tools (automation) always load the separate modules. The menu: no fly-in behind it, thumbnails
   painted while loading, long-grass blades stroked once (one palette shade off on ~0.2 % of
   long-grass pixels, owner accepted): default since 10-17 (`?menufast=0`). Pre-turned pixel art (RotSprite)
   was the alternative, not chosen.
@@ -77,7 +79,8 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   a screen recording shows them as a frame held twice. Not our code (2-3 ms a frame): do not chase
   them as a menu or race problem without a back-to-back A/B.
 - The test server sends the game as ~160 modules, never cached: over the tunnel that is seconds
-  of load before our code runs (`?bundle=1`: one file). Measure the phone's load with `loadMs`.
+  of load before our code runs; the bundle (one file, the default) fixed it. Measure the
+  phone's load with `loadMs` (`phonereport` prints it).
 - `?report=1` records without drawing the meter graph (`?meter=1` shows it). It records the
   menu too: `phonereport` prints a MENU run (frame times, ignored taps, slowest tap handler).
 

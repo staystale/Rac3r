@@ -201,7 +201,7 @@ export function openPause() {
 // they are painted one level at a time in the background (paintThumbsSoon); the tap paints only
 // what is still missing. Each is painted with its level current, then the level before is put back.
 const THUMB_START_MS = 1200, THUMB_STEP_MS = 120;
-// ms after the menu shows before the painted thumbnails are saved (?thumbcache=1), clear of its
+// ms after the menu shows before the painted thumbnails are saved (thumbcache.js), clear of its
 // start
 const THUMB_SAVE_MS = 4000;
 const thumbs = {};
@@ -227,7 +227,7 @@ export function paintThumbs() {
   return thumbs;
 }
 /**
- * The thumbnails at load (main.js, while the loading screen is up): with ?thumbcache=1 and this
+ * The thumbnails at load (main.js, while the loading screen is up): with ?thumbcache on and this
  * version's saved on the device, read back (a tap before they arrive paints what is missing);
  * else painted now, and saved a moment after the menu is up.
  */
