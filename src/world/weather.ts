@@ -22,7 +22,7 @@ export const WET_BANDS = 10;
 /** What the sky is doing. */
 export type WeatherKind = 'dry' | 'rain' | 'heavy' | 'snow' | 'hot' | 'superhot';
 /** The event setup's choice: follow the season (changes in the race), or a fixed weather. */
-export type WeatherMode = 'season' | 'dry' | 'hot' | 'superhot' | 'rain' | 'heavy';
+export type WeatherMode = 'season' | 'dry' | 'hot' | 'superhot' | 'rain' | 'heavy' | 'snow';
 
 /** The weather now. */
 export interface WeatherState {
@@ -38,6 +38,8 @@ export interface WeatherState {
   trackC: number;
   /** what the sky is doing */
   kind: WeatherKind;
+  /** the event's season, 0 winter .. 3 autumn (puddles.ts: did it rain before the start?) */
+  season: number;
   /** wetness in steps, 0 .. WET_BANDS */
   band: number;
   /** counts every change of band: readers that cache by wetness compare it */
@@ -45,7 +47,7 @@ export interface WeatherState {
 }
 
 export const WEATHER: WeatherState = {
-  wetness: 0, rain: 0, snow: 0, tempC: 18, trackC: 18, kind: 'dry', band: 0, epoch: 0,
+  wetness: 0, rain: 0, snow: 0, tempC: 18, trackC: 18, kind: 'dry', season: 2, band: 0, epoch: 0,
 };
 
 export const SEASON_NAMES = ['WINTER', 'SPRING', 'SUMMER', 'AUTUMN'];
@@ -132,6 +134,13 @@ export function setRain(rain: number): void {
   WEATHER.rain = Math.max(0, Math.min(1, rain));
 }
 
+/** The event's seeded random stream (puddles.ts deals the start's puddles from it: a restart
+ * replays them). */
+export function weatherRandom(): number {
+  if (!RUN.plan) return 1;
+  return RUN.random();
+}
+
 /** The wetness as a fraction in whole steps (what the surfaces are built at). */
 export function wetStep(): number {
   return WEATHER.band / WET_BANDS;
@@ -185,6 +194,7 @@ export function startWeather(plan: WeatherPlan | null): void {
   // same first weather)
   RUN.random = lcg(Math.imul(plan.seed, 2654435761) >>> 0);
   RUN.random();
+  WEATHER.season = plan.season;
   const [lowC, highC] = SEASONS[plan.season].airC;
   RUN.baseAirC = lowC + (highC - lowC) * RUN.random();
   aimAt(fixedKind(plan.mode) || dealKind(plan.season));

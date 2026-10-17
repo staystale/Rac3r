@@ -9,7 +9,7 @@ import { SEASON_NAMES, seasonForecast } from '../world/weather.ts';
 
 // WEATHER (?weather=1): follow the SEASON (its chances; it can change in the race) or a fixed sky
 const WEATHER_MODES = [['season', 'SEASON'], ['dry', 'DRY'], ['hot', 'HOT'],
-  ['superhot', 'VERY HOT'], ['rain', 'RAIN'], ['heavy', 'HEAVY RAIN']];
+  ['superhot', 'VERY HOT'], ['rain', 'RAIN'], ['heavy', 'HEAVY RAIN'], ['snow', 'SNOW']];
 // the season of a month (0 = January): winter Dec-Feb, spring Mar-May, summer Jun-Aug
 const SEASON_OF_MONTH = [0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 0];
 
@@ -259,9 +259,9 @@ OFF THE TOP AND IT IS OVER', 'sub') : null;
 }
 
 /**
- * Adds the WEATHER rows (?weather=1): SEASON / DRY / HOT / VERY HOT / RAIN / HEAVY RAIN, the season
- * slider and its
- * forecast. Remembered in the profile; the first time, the season is today's.
+ * Adds the WEATHER rows (?weather=1): SEASON / DRY / HOT / VERY HOT / RAIN / HEAVY RAIN / SNOW,
+ * the season slider and its forecast. Remembered in the profile; the first time, the season is
+ * today's.
  * @param {object} menu the menu context
  * @param {HTMLElement} panel the setup pane
  * @param {object} state the setup state (writes weather)

@@ -235,6 +235,8 @@ export interface Cover {
   rot?: number;
   cut?: CoverCut;
   water?: boolean;   // SCENERY water (river, lake, ford): permanent in any weather (puddles.ts)
+  _frozen?: boolean;   // puddles.ts: scenery water frozen over (its _iceTwin is shown)
+  _iceTwin?: Cover;   // puddles.ts: the same water as ice
   _co?: number;   // coverAt caches for rotated covers
   _si?: number;
   _cells?: CoverCells;   // ground.ts coverCells caches the covered 0.5 m cells
@@ -252,6 +254,7 @@ export interface PuddleSite {
   catchK: number;
   snowy: boolean;
   water: number;
+  ice: number;
   snow: number;
   shown: string;
   covers: Record<string, Cover>;
@@ -318,6 +321,7 @@ export interface WearCell {
   rut?: number;
   rainDry?: number;   // the dry line tyres made in the rain, 0..1 (wet.ts)
   mudDry?: number;    // how far mud has dried toward the next step, 0..1 (puddles.ts)
+  frozeMud?: boolean;   // mud frozen over in the cold (its ice cover thaws back; puddles.ts)
   rainT?: number;     // the wear clock when rainDry was set, s
 }
 

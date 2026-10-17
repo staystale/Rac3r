@@ -14,12 +14,20 @@
 // puddle goes, except SCENERY water (Cover.water: rivers, lakes, fords - permanent) and the Lab's
 // test features (levels without a lap). TYRES clear standing water in 3 passes, rain tyres in 1
 // (owner); soft ground still churns to mud. MUD dries back to dirt in a dry spell (owner).
+//
+// THE COLD (owner): below freezing a puddle turns to ICE (and thaws back above 1 C), worn mud may
+// freeze over, and scenery water may freeze over when it is properly cold. AN EVENT'S START
+// (owner: variety) may follow earlier rain - some sites already part full - or lying snow; dealt
+// from the event's seeded stream (weather.ts weatherRandom), so a restart deals the same.
 import { LEVEL } from "./state.ts";
-import { WEATHER } from "./weather.ts";
+import { WEATHER, weatherRandom } from "./weather.ts";
 import { heightAt } from "./terrain.ts";
 import { seededRng } from "./blend.ts";
 import { wearMap, wearDirty, WEAR_CELL, layersAt, wearKey } from "./wear.ts";
-import type { Cover, Layers, Level, PuddleSite, WearCell } from "./types.ts";
+import type { Cover, CoverId, Layers, Level, PuddleSite, WearCell } from "./types.ts";
+
+/** An area of ground, m. */
+type Area = { x0: number; y0: number; x1: number; y1: number };
 
 // m between candidate sites along the lap, and the most sites a level gets
 const SITE_SPACING = 22, MAX_SITES = 48;
@@ -28,13 +36,27 @@ const SITE_SPACING = 22, MAX_SITES = 48;
 const SITE_CHANCE = 0.18, DIP_GAIN = 0.5, CREST_LOSS = 0.12, DIP_REF = 0.15, DIP_PROBE = 6;
 // the share of sites that can hold snow
 const SNOW_SITE_CHANCE = 0.35;
-// fill a second at rain 1 (a dip's catch more), once the ground is this wet; drain a second per C
-// of track temperature in a dry spell (20 C: ~13 min empty; 40 C: ~6)
-const FILL_PER_S = 1 / 180, FILL_FROM_WETNESS = 0.6, DRAIN_PER_S_PER_C = 1 / (900 * 20);
-// snow a second at snow 1 while the track is below SNOW_BELOW_C; melt a second per C above it
-const SNOW_PER_S = 1 / 150, SNOW_BELOW_C = 1, MELT_PER_S_PER_C = 1 / 3000;
+// fill a second at rain 1 (a dip's catch more; heavy rain fills one in ~75 s, owner: quicker),
+// once the ground is this wet; drain a second per C of track temperature in a dry spell (20 C:
+// ~13 min empty; 40 C: ~6)
+const FILL_PER_S = 1 / 75, FILL_FROM_WETNESS = 0.4, DRAIN_PER_S_PER_C = 1 / (900 * 20);
+// snow a second at snow 1 while the track is below SNOW_BELOW_C (~1 min); melt per C above it
+const SNOW_PER_S = 1 / 60, SNOW_BELOW_C = 1, MELT_PER_S_PER_C = 1 / 3000;
+// a puddle FREEZES below FREEZE_BELOW_C (per C colder, a second; at -3 C a full one in ~15 s) and
+// THAWS above THAW_ABOVE_C
+const FREEZE_BELOW_C = 0, FREEZE_PER_S_PER_C = 1 / 60, THAW_ABOVE_C = 1, THAW_PER_S_PER_C = 1 / 120;
+// SCENERY water freezes over below this (a chance a second; at the start: likelier the colder)
+// and thaws above THAW_ABOVE_C; worn MUD likewise, cell by cell
+const WATER_FREEZE_BELOW_C = -2, WATER_FREEZE_PER_S = 1 / 240, WATER_THAW_PER_S = 1 / 120;
+const MUD_FREEZE_BELOW_C = -1, MUD_FREEZE_PER_S = 1 / 90, MUD_THAW_PER_S = 1 / 60;
+// AN EVENT'S START: the chance it rained before (winter, spring, summer, autumn), the share of
+// sites holding water then; the chance snow lies on a cold start
+const RAINED_BEFORE = [0.5, 0.45, 0.2, 0.55], PUDDLED_SHARE = 0.6, SNOW_LYING = 0.6;
 // the sizes a site shows: STEPS steps, from STEP_MIN of its full size
 const STEPS = 4, STEP_MIN = 0.45;
+// how much water a site on flat ground gathers before it shows (a dip's at once): catchK runs
+// CATCH_MAX - CATCH_SPAN .. CATCH_MAX (buildPuddleSites)
+const SHOW_FROM_FLAT = 0.3, CATCH_MAX = 1.3, CATCH_SPAN = 0.6;
 // s between updates (fills move slowly; the ground repaints at most this often)
 const TICK_S = 1;
 // MUD DRYING: a s per C of track temperature to dry one step (mud -> dirt, thick mud -> mud; 20 C:
@@ -49,7 +71,7 @@ let rainTyre = false;
 let tickS = 0;
 
 /** Areas of ground whose look changed (a puddle grew or shrank): render/tilesWear repaints them. */
-export const groundDirtyAreas: { x0: number; y0: number; x1: number; y1: number }[] = [];
+export const groundDirtyAreas: Area[] = [];
 
 /**
  * Turns weather puddles on (?weather=1, at start-up).
@@ -116,8 +138,8 @@ export function buildPuddleSites(level: Level): PuddleSite[] {
     const big = 1 + 0.3 * Math.max(0, Math.min(1, dip));
     sites.push({ x, y, w: (5 + 6 * random()) * big, h: (3 + 3 * random()) * big,
       rot: point.heading + (random() - 0.5) * 0.6,
-      catchK: 0.7 + 0.6 * Math.max(0, Math.min(1, dip)),
-      snowy: random() < SNOW_SITE_CHANCE, water: 0, snow: 0, shown: '', covers: {} });
+      catchK: CATCH_MAX - CATCH_SPAN + CATCH_SPAN * Math.max(0, Math.min(1, dip)),
+      snowy: random() < SNOW_SITE_CHANCE, water: 0, ice: 0, snow: 0, shown: '', covers: {} });
   }
   return sites;
 }
@@ -125,7 +147,10 @@ export function buildPuddleSites(level: Level): PuddleSite[] {
 /** What a site shows now: its kind and size step ('' = nothing). */
 function siteLook(site: PuddleSite): string {
   if (site.snow > 0) return 'snow' + Math.ceil(site.snow * STEPS);
-  if (site.water > 0) return 'wet' + Math.ceil(site.water * STEPS);
+  if (site.ice > 0) return 'ice' + Math.ceil(site.ice * STEPS);
+  // a dip shows its water first, flatter ground once more has gathered (not all at once)
+  const showFrom = Math.max(0.02, SHOW_FROM_FLAT * (CATCH_MAX - site.catchK) / CATCH_SPAN);
+  if (site.water > showFrom) return 'wet' + Math.ceil(site.water * STEPS);
   return '';
 }
 
@@ -135,15 +160,30 @@ function siteCover(site: PuddleSite, look: string): Cover {
   if (cached) return cached;
   const step = +look.slice(-1), size = STEP_MIN + (1 - STEP_MIN) * (step / STEPS);
   const cover: Cover = { x: site.x, y: site.y, w: site.w * size, h: site.h * size,
-    cover: look.startsWith('snow') ? 'snow' : 'wet', shape: 'ellipse', rot: site.rot };
+    cover: look.slice(0, -1) as CoverId, shape: 'ellipse', rot: site.rot };
   site.covers[look] = cover;
   return cover;
 }
 
-/** The ground a site can cover, as a dirty area (its full size, both axes). */
-function siteArea(site: PuddleSite) {
-  const reach = Math.max(site.w, site.h) / 2 + 1;
-  return { x0: site.x - reach, y0: site.y - reach, x1: site.x + reach, y1: site.y + reach };
+/** The ground a site or cover can cover, as a dirty area (its full size, both axes). */
+function areaOf(shape: { x: number; y: number; w: number; h: number }): Area {
+  const reach = Math.max(shape.w, shape.h) / 2 + 1;
+  return { x0: shape.x - reach, y0: shape.y - reach, x1: shape.x + reach, y1: shape.y + reach };
+}
+
+/**
+ * Whether a wear cell takes the cover over it now: water, snow or ice the weather laid follows it
+ * (receded, frozen, thawed); bare ground takes new snow or ice, and water when it rains (a puddle
+ * tyres cleared refills); frozen mud keeps its own ice.
+ * @param cell the wear cell
+ * @param want the cover over it now, or null
+ * @returns true to take it
+ */
+function followsCovers(cell: WearCell, want: string | null): boolean {
+  const lying = cell.cover;
+  if (!lying) return !!want && (want !== 'wet' || WEATHER.rain > 0);
+  const weatherLaid = lying === 'wet' || lying === 'snow' || lying === 'ice';
+  return cell.standing && !cell.frozeMud && weatherLaid && want !== lying;
 }
 
 /**
@@ -153,13 +193,12 @@ function siteArea(site: PuddleSite) {
  */
 function resyncCell(cell: WearCell, layers: Layers): void {
   const want = layers.cover, was = cell.cover || cell.base;
-  if (!want && cell.standing && (cell.cover === 'wet' || cell.cover === 'snow')) {
-    cell.cover = null;
-  } else if (want && !cell.cover && (want === 'snow' || WEATHER.rain > 0)) {
-    cell.cover = want;
+  if (followsCovers(cell, want)) {
+    cell.cover = want || null;
     cell.standing = true;
     cell.dry = 0;
     cell.passes = 0;
+    cell.scrub = 0;
   }
   cell.orig = want || layers.base;
   const now = cell.cover || cell.base;
@@ -170,13 +209,10 @@ function resyncCell(cell: WearCell, layers: Layers): void {
 }
 
 /**
- * The wear cells under a site follow its new look: water that receded leaves the cell, new water
- * or snow lies on a bare cell (rain refills a puddle tyres cleared), so physics and the drawn
- * ground agree with the covers.
- * @param site the site
+ * The wear cells in an area follow its covers' new looks, so physics and the drawn ground agree.
+ * @param area the area
  */
-function resyncCells(site: PuddleSite): void {
-  const area = siteArea(site);
+function resyncCells(area: Area): void {
   for (let cellI = Math.floor(area.x0 / WEAR_CELL); cellI <= area.x1 / WEAR_CELL; cellI++) {
     for (let cellJ = Math.floor(area.y0 / WEAR_CELL); cellJ <= area.y1 / WEAR_CELL; cellJ++) {
       const cell = wearMap.get(wearKey(cellI, cellJ));
@@ -190,23 +226,70 @@ function resyncCells(site: PuddleSite): void {
  * reads the grip again.
  * @param changed the sites whose look changed
  */
-function applyLooks(changed: PuddleSite[]): void {
+function applyLooks(changed: (PuddleSite | Cover)[]): void {
   const shown: Cover[] = [];
+  for (const cover of LEVEL._staticCovers || []) {
+    shown.push(cover._frozen ? iceTwin(cover) : cover);
+  }
   for (const site of LEVEL._puddleSites || []) {
     if (site.shown) shown.push(siteCover(site, site.shown));
   }
-  LEVEL.covers = [...(LEVEL._staticCovers || []), ...shown];
-  for (const site of changed) {
-    groundDirtyAreas.push(siteArea(site));
-    resyncCells(site);
+  LEVEL.covers = shown;
+  for (const shape of changed) {
+    const area = areaOf(shape);
+    groundDirtyAreas.push(area);
+    resyncCells(area);
   }
   // the AI's speed plan reads the ground's grip again (line.ts regripPath)
   if (changed.length) WEATHER.epoch++;
 }
 
+/** Scenery water as ice: the same shape (cached on the water cover). */
+function iceTwin(cover: Cover): Cover {
+  if (!cover._iceTwin) {
+    cover._iceTwin = { x: cover.x, y: cover.y, w: cover.w, h: cover.h, cover: 'ice',
+      shape: cover.shape, rot: cover.rot, cut: cover.cut };
+  }
+  return cover._iceTwin;
+}
+
+/** Freezes or thaws scenery water over a tick (a chance a second, seeded); returns the changed. */
+function stepSceneryWater(seconds: number): Cover[] {
+  const trackC = WEATHER.trackC, changed: Cover[] = [];
+  if (trackC >= WATER_FREEZE_BELOW_C && trackC <= THAW_ABOVE_C) return changed;
+  for (const cover of LEVEL._staticCovers || []) {
+    if (!cover.water) continue;
+    const freeze = !cover._frozen && trackC < WATER_FREEZE_BELOW_C
+      && weatherRandom() < WATER_FREEZE_PER_S * seconds;
+    const thaw = cover._frozen && trackC > THAW_ABOVE_C
+      && weatherRandom() < WATER_THAW_PER_S * seconds;
+    if (freeze || thaw) {
+      cover._frozen = !cover._frozen;
+      changed.push(cover);
+    }
+  }
+  return changed;
+}
+
+/** Freezes a site's water below freezing, thaws its ice above, over a tick. */
+function freezeSite(site: PuddleSite, seconds: number): void {
+  const trackC = WEATHER.trackC;
+  if (trackC < FREEZE_BELOW_C && site.water > 0) {
+    const frozen = Math.min(site.water,
+      (FREEZE_BELOW_C - trackC + 1) * FREEZE_PER_S_PER_C * seconds);
+    site.water -= frozen;
+    site.ice = Math.min(1, site.ice + frozen);
+  } else if (trackC > THAW_ABOVE_C && site.ice > 0) {
+    const thawed = Math.min(site.ice, (trackC - THAW_ABOVE_C) * THAW_PER_S_PER_C * seconds);
+    site.ice -= thawed;
+    site.water += thawed;
+  }
+}
+
 /** Moves one site's water and snow by the weather over a tick. */
 function stepSite(site: PuddleSite, seconds: number): void {
   const trackC = WEATHER.trackC;
+  freezeSite(site, seconds);
   if (WEATHER.wetness >= FILL_FROM_WETNESS) site.water += WEATHER.rain * FILL_PER_S * site.catchK
     * seconds;
   if (WEATHER.rain < 0.05) site.water -= Math.max(0, trackC) * DRAIN_PER_S_PER_C * seconds;
@@ -236,6 +319,26 @@ function dryMud(seconds: number): void {
   }
 }
 
+/** Freezes worn mud over in the cold (an ice cover a slide scrubs through), thaws it back. */
+function freezeMud(seconds: number): void {
+  const trackC = WEATHER.trackC;
+  const freezing = trackC < MUD_FREEZE_BELOW_C, thawing = trackC > THAW_ABOVE_C;
+  if (!freezing && !thawing) return;
+  for (const cell of wearMap.values()) {
+    const freeze = freezing && !cell.cover && !!MUD_DRIES_TO[cell.base]
+      && weatherRandom() < MUD_FREEZE_PER_S * seconds;
+    const thaw = thawing && !!cell.frozeMud && cell.cover === 'ice'
+      && weatherRandom() < MUD_THAW_PER_S * seconds;
+    if (!freeze && !thaw) continue;
+    cell.cover = freeze ? 'ice' : null;
+    cell.frozeMud = freeze;
+    cell.standing = true;
+    cell.scrub = 0;
+    cell.current = cell.cover || cell.base;
+    wearDirty.push(cell);
+  }
+}
+
 /**
  * One sim step of the puddles (every TICK_S they move): fill, drain, settle, melt; the level's
  * covers follow when a site changes step; mud dries.
@@ -256,24 +359,48 @@ export function stepPuddles(dt: number): void {
       changed.push(site);
     }
   }
-  if (changed.length) applyLooks(changed);
+  const frozen = stepSceneryWater(seconds);
+  if (changed.length || frozen.length) applyLooks([...changed, ...frozen]);
   dryMud(seconds);
+  freezeMud(seconds);
 }
 
 /**
- * Starts the puddles of an event (wear.ts has just been cleared): a wet start already has puddles
- * in the dips, a snowy one snow in its snow sites; a dry start none.
+ * Deals one site's start: water if it rained before (some sites, part full; frozen when cold),
+ * snow lying in a snow site on a cold start.
+ * @param site the site
+ * @param rained whether it rained before the start
+ * @param snowLying whether snow lies at the start
+ */
+function dealSite(site: PuddleSite, rained: boolean, snowLying: boolean): void {
+  const puddled = rained && weatherRandom() < PUDDLED_SHARE + (WEATHER.rain > 0 ? 0.4 : 0);
+  site.water = puddled ? Math.min(1, (0.25 + 0.6 * weatherRandom()) * site.catchK) : 0;
+  site.ice = 0;
+  if (WEATHER.trackC < FREEZE_BELOW_C) {
+    site.ice = site.water;
+    site.water = 0;
+  }
+  site.snow = snowLying && site.snowy ? 0.3 + 0.5 * weatherRandom() : 0;
+  site.shown = siteLook(site);
+}
+
+/**
+ * Starts the puddles of an event (wear.ts has just been cleared), dealt from its seeded stream:
+ * did it rain before (always when it rains or the track is still wet; else the season's chance),
+ * is snow lying, is the scenery water frozen over. The race behind the menu (no weather) is dry.
  */
 export function resetPuddles(): void {
   if (!enabled) return;
   tickS = 0;
-  const sites = LEVEL._puddleSites || [];
-  const raining = WEATHER.rain > 0 && WEATHER.wetness >= FILL_FROM_WETNESS;
-  const snowing = WEATHER.snow > 0 && WEATHER.trackC < SNOW_BELOW_C;
-  for (const site of sites) {
-    site.water = raining ? Math.min(1, 0.5 * site.catchK) : 0;
-    site.snow = snowing && site.snowy ? 0.5 : 0;
-    site.shown = siteLook(site);
+  const sites = LEVEL._puddleSites || [], trackC = WEATHER.trackC;
+  const rained = WEATHER.rain > 0 || WEATHER.wetness > 0.1
+    || weatherRandom() < RAINED_BEFORE[WEATHER.season];
+  const snowLying = trackC < SNOW_BELOW_C && (WEATHER.snow > 0 || weatherRandom() < SNOW_LYING);
+  for (const site of sites) dealSite(site, rained, snowLying);
+  const water = (LEVEL._staticCovers || []).filter((cover) => cover.water);
+  for (const cover of water) {
+    const chance = trackC <= -5 ? 0.85 : trackC <= WATER_FREEZE_BELOW_C ? 0.5 : 0;
+    cover._frozen = chance > 0 && weatherRandom() < chance;
   }
-  applyLooks(sites);
+  applyLooks([...sites, ...water]);
 }

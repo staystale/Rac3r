@@ -82,8 +82,9 @@ the git history. `docs/foreman-handover.md` is the last handover (10-17 evening)
   So the holds are how Safari shows the page, not our drawing. Before itch: record the
   home-screen app (no Safari toolbar over the game). Parked: fixed zoom steps (only for the
   edge dance in the lean path).
-- NEXT: WEATHER (see "GRASS GRIP + WATER" below, owner answers, plan R1-R4). Owner also saw a
-  very minor jerk behind the main menu (DuckDuckGo).
+- WEATHER DONE and the DEFAULT (10-18; "GRASS GRIP + WATER" below). TYRE WEAR built, under test
+  (?tyrewear=1). NEXT: LIGHTING / time of day (the owner's brief in docs/foreman-handover.md), on
+  its own switch. Owner also saw a very minor jerk behind the main menu (DuckDuckGo): not looked at.
 - GRASS THROUGH THE CRACKS (owner: a and b, "like real life"): long-grass tufts in some
   broken-tarmac flecks, and scattered on broken-tarmac / concrete ground (blend.ts, own random
   stream: every existing patch unchanged). OWNER APPROVED 2026-10-16 (testlist entry deleted).
@@ -500,10 +501,14 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
       standing water in 3 passes, rain tyres 1 (soft ground still churns to mud). Mud dries to
       dirt (thick mud to mud) in a dry spell (~4 min at 20 C). Proof: simhash weather off SAME
       (13/13); sites per circuit 2-27; browser heavy-rain race: puddles shown, no errors.
-      OWNER (10-18): WEATHER ALL PASS (weather, rain, slidewear); lighting approved to build,
-      tested separately (its own switch). Owner tweaks, then default: cold freezes water (puddles,
-      mud, scenery water: a chance), puddles before the start (variety), faster build-up, a SNOW
-      button.
+      OWNER (10-18): WEATHER ALL PASS (weather, rain, slidewear): weather and the slide wear are
+      the DEFAULT since 2026-10-18 (?weather=0 / ?slidewear=0 = off; ?rain= stays a test tool).
+      Owner tweaks, built with it (testlist wintertweaks): below 0 C a puddle turns to ice (thaws
+      above 1 C), worn mud may freeze over (a slide scrubs it), scenery water may freeze over
+      below -2 C (at the start likelier the colder); an event's start may follow earlier rain
+      (season's chance: some sites part full) or lying snow, seeded per event; faster build-up
+      (heavy rain from dry: first puddle 26 s, half the sites 48 s; dips first); a SNOW button.
+      Lighting approved to build, tested separately (its own switch): NEXT, a new session.
 - TYRE WEAR (owner answers 10-18): punctures likelier with heat and wear, small chance from crashes
   (damage.js, existed) and debris; worn tyres lose a fair bit of grip; a set lasts several races (a
   running cost and a choice, not a nag); new sets only in the garage (FIT = a new set); the HUD

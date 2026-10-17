@@ -12,7 +12,8 @@ export const TEST_LIST = [
   // cracktufts, sharpcars, sharpmarks, jokerfix,
   // groundlookup, exacttiles, hudmenu, tyreoff, menufast, bundle,
   // sound, joker, markedge, ainowait, judder, texwarm; straightoutta removed with its level;
-  // stalecap, drawlite undone; dpr, startfix approved; onecanvas paused with the lean plan)
+  // stalecap, drawlite undone; dpr, startfix approved; onecanvas paused with the lean plan;
+  // weather, rain, slidewear approved 2026-10-18)
   {
     id: 'tyrewear',
     added: '2026-10-18',
@@ -24,29 +25,12 @@ export const TEST_LIST = [
       + ' kept between races, the numbers not being the heat.',
   },
   {
-    id: 'weather',
+    id: 'wintertweaks',
     added: '2026-10-18',
-    name: 'Weather: season, rain / hot / snow, changing in the race, puddles from the weather',
-    where: 'Plain link + &weather=1: TEST MODE, a circuit, the WEATHER rows in the setup',
-    try: 'Try SEASON (each season), DRY, HOT, VERY HOT, RAIN, HEAVY RAIN; race a few laps in each;'
-      + ' fit Wet tyres (garage) in the rain; drive through puddles.',
-    wrong: 'Wet grip not real, AI crashing in the wet, tyres too hot / cold, puddles or snow where'
-      + ' they look wrong, the old level puddles still there, lag or held frames in the rain.',
-  },
-  {
-    id: 'rain',
-    added: '2026-10-18',
-    name: 'Fixed wet track to compare the wet feel and look (0 dry .. 1 soaked)',
-    where: 'Plain link + &rain=0.5 (or &rain=1), any level',
-    try: 'Drive a few laps; watch the dry line form from the light trails; compare with dry.',
-    wrong: 'Feels unreal, rain or wet ground looks wrong, judder from the rain drawing.',
-  },
-  {
-    id: 'slidewear',
-    added: '2026-10-18',
-    name: 'Sliding and crashing cars wear the ground twice as fast',
-    where: 'Plain link + &slidewear=1, a grass / dirt level',
-    try: 'Spin and slide on grass and dirt; compare how fast it wears to mud.',
-    wrong: 'Driving normally wears it faster too; wear in the wrong place.',
+    name: 'Weather tweaks: cold freezes water, puddles before the start, quicker build-up, SNOW',
+    where: 'Plain link: TEST MODE, a circuit (Killder / Sweaty Lamb for their water), WEATHER rows',
+    try: 'SNOW and WINTER: puddles turn to ice, mud freezes, the lake / stream may freeze over;'
+      + ' restart a few autumn races: some start with puddles; HEAVY RAIN: puddles in ~30-50 s.',
+    wrong: 'Ice where no water was, frozen water in the warm, puddles all at once, too many / few.',
   },
 ];
