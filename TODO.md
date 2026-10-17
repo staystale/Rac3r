@@ -302,8 +302,11 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
       the game as ONE minified gzipped file (186 KB) rebuilt when a source changes; index.html
       loads it with ?bundle=1 unless automation (the tools keep the modules); the itch build maps
       both paths to game.js. Laptop, 80 ms a request: menu 4.2 -> 1.3 s. Thumbnails: painting per
-      list does not work (the category screen shows ~15 of them): owner to choose (remember them
-      between loads per version, or keep).
+      list does not work (the category screen shows ~15 of them). Owner chose: remember them.
+      BUILT behind ?thumbcache=1 (with ?bundle=1; testlist 'bundle'): src/menu/thumbcache.js keeps
+      them in IndexedDB per version (the bundle's fingerprint of src/, tools/lib/buildid.mjs) and
+      reads them back at load; a miss paints and saves 4 s after the menu shows. Laptop, no delay:
+      menu 1722 ms (first load) -> 408 ms (second), the 18 pictures pixel-identical.
       MENU FRAME RHYTHM (owner: "the race behind stutters", screen recording 10:59Z): the phone shows
       ~2.5 % of frames twice; its reports: menu 0.7-2.4 % off-beat frames, races 1.9-4.8 %, same in
       the home-screen app. Platform cadence, not our code (2-3 ms a frame). Owner: "it's ok".

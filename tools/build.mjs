@@ -3,6 +3,7 @@ import { build } from "esbuild";
 import { rm, mkdir, readFile, writeFile, stat, cp } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { join } from "node:path";
+import { sourceHash } from "./lib/buildid.mjs";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const dist = join(root, "dist");
@@ -17,6 +18,8 @@ await build({
   minify: true,
   sourcemap: true,
   target: "es2022",
+  // the version fingerprint: the saved menu thumbnails are per version (src/menu/thumbcache.js)
+  define: { "globalThis.__RAC3R_BUILD__": JSON.stringify(await sourceHash(root)) },
 });
 // the menu recording and its still frame (src/game/menuvideo.js; tools/menuvideo.mjs makes them)
 await cp(join(root, "media"), join(dist, "media"), { recursive: true });

@@ -3,6 +3,7 @@
 import { createServer } from 'node:http';
 import { appendFile, readFile, stat } from 'node:fs/promises';
 import { gzipSync } from 'node:zlib';
+import { sourceHash } from './tools/lib/buildid.mjs';
 import { tmpdir } from 'node:os';
 import { extname, join, normalize, resolve } from 'node:path';
 
@@ -47,9 +48,12 @@ async function currentBundle() {
     if (!stale.includes(true)) return bundleCache;
   }
   const esbuild = await import('esbuild');
+  // the version fingerprint (tools/lib/buildid.mjs): the saved menu thumbnails are per version
+  const build = JSON.stringify(await sourceHash(ROOT));
   const result = await esbuild.build({
     entryPoints: [join(ROOT, 'src/main.js')], bundle: true, format: 'esm', minify: true,
     target: 'es2022', write: false, metafile: true, absWorkingDir: ROOT,
+    define: { 'globalThis.__RAC3R_BUILD__': build },
   });
   const code = Buffer.from(result.outputFiles[0].contents);
   const inputs = await Promise.all(Object.keys(result.metafile.inputs).map(async (file) => {

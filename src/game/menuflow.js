@@ -16,6 +16,7 @@ import {
   minimapSetting, setMinimapSetting, progressSetting, setProgressSetting,
 } from '../hud/minimap.js';
 import { showMenuVideo, hideMenuVideo } from './menuvideo.js';
+import { BUILD_ID, hasSavedThumbs, readThumbs, saveThumbs } from '../menu/thumbcache.js';
 
 /**
  * Works out whether the minimap and the progress bar show (not with ?minimap=0; then the pause
@@ -200,6 +201,9 @@ export function openPause() {
 // they are painted one level at a time in the background (paintThumbsSoon); the tap paints only
 // what is still missing. Each is painted with its level current, then the level before is put back.
 const THUMB_START_MS = 1200, THUMB_STEP_MS = 120;
+// ms after the menu shows before the painted thumbnails are saved (?thumbcache=1), clear of its
+// start
+const THUMB_SAVE_MS = 4000;
 const thumbs = {};
 /**
  * Paints one level's thumbnail (its level becomes current: put the old one back after).
@@ -221,6 +225,22 @@ export function paintThumbs() {
   game.cones = createCones();
   clearWear();
   return thumbs;
+}
+/**
+ * The thumbnails at load (main.js, while the loading screen is up): with ?thumbcache=1 and this
+ * version's saved on the device, read back (a tap before they arrive paints what is missing);
+ * else painted now, and saved a moment after the menu is up.
+ */
+export function prepareThumbs() {
+  const build = shared.settings.thumbCache ? BUILD_ID : null;
+  if (build && hasSavedThumbs(build)) {
+    readThumbs().then((saved) => {
+      for (const [levelId, canvas] of Object.entries(saved)) thumbs[levelId] ??= canvas;
+    }).catch(() => {});
+    return;
+  }
+  paintThumbs();
+  if (build) setTimeout(() => saveThumbs(build, thumbs).catch(() => {}), THUMB_SAVE_MS);
 }
 /** Paints the next missing thumbnail, then the next a moment later, while the recording plays. */
 function paintThumbsSoon() {

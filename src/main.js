@@ -45,7 +45,9 @@ import { game, shared } from './game/state.js';
 import { spawnAI } from './game/grid.js';
 import { doReset, saveRecords, doRestart } from './game/session.js';
 import { hudDown, onKey, selectLevel, selectCar } from './game/controls.js';
-import { start, enterMenu, launch, paintThumbs, refreshMinimap } from './game/menuflow.js';
+import {
+  start, enterMenu, launch, paintThumbs, prepareThumbs, refreshMinimap,
+} from './game/menuflow.js';
 import { loop } from './game/loop.js';
 // build the world, in this order: the hand-made levels (load.ts), then the levels added after them
 initWorld();
@@ -256,7 +258,7 @@ if (shared.MENU) {
   // the track thumbnails now, while the loading screen is up (?menufast=0: on the tap). MEASURED:
   // phone: painted on the TEST MODE tap they took 193 ms, and putting the menu's race level back
   // (wear cleared, so every ground tile stale) cost 68 ms the frame after
-  if (shared.settings.menuFast) paintThumbs();
+  if (shared.settings.menuFast) prepareThumbs();
   enterMenu();
   shared.menu.show();
   // the phone report's load time: ms from the page opening to the menu shown (ui/report.ts)
