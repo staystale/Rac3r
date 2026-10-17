@@ -31,6 +31,8 @@ export interface Settings {
   weather: boolean;              // weather in the event setup (season, changes); ?weather=0 off
   slideWear: boolean;            // sliding / crashing wheels wear the ground twice; =0 off
   tyreWear: boolean;             // tyres wear, puncture; the garage fits new sets; =0 off
+  morePuddles: boolean;          // ?morepuddles=1: more puddle sites than snow (under test)
+  tyreFeel: boolean;             // ?tyrefeel=1: tyres warm / hold heat, slides wear (under test)
   hwMap: boolean;                // the minimap on the highway too; ?hwmap=0 = not there
   sharpCars: boolean;            // crisp cars on the screen canvas (render.ts); ?sharpcars=0 off
   sharpMarks: boolean;           // skid marks on the screen canvas (render.ts); ?sharpmarks=0 off
@@ -77,7 +79,8 @@ function rainLevel(params: URLSearchParams): number | null {
 // (owner: "apply it to main and roll it back if needed"; its test stays open; =0 off)
 function weatherSettings(params: URLSearchParams) {
   return { rain: rainLevel(params), weather: params.get('weather') !== '0',
-    slideWear: params.get('slidewear') !== '0', tyreWear: params.get('tyrewear') !== '0' };
+    slideWear: params.get('slidewear') !== '0', tyreWear: params.get('tyrewear') !== '0',
+    morePuddles: params.get('morepuddles') === '1', tyreFeel: params.get('tyrefeel') === '1' };
 }
 
 function churnKind(params: URLSearchParams): '' | 'pictures' | 'objects' {

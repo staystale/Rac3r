@@ -525,6 +525,30 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
   test stays open (testlist tyrewear). RESTART puts the set back as it was at the event's start,
   RESET keeps the race as it is; the wear is saved when the event is over (results, menu, another
   car).
+- TYRE FEEL (owner 10-18: wear faster sliding, faster still wheelspinning / donuts; temperature "a
+  little bit hard to get hot" and cools "a little bit too easy"; heat faster from sliding but no
+  extra wear for a cold slide; hot tyres wear more from sliding). BUILT behind ?tyrefeel=1
+  (testlist tyrefeel): tyreheat.ts - flex warm-up 0.07 -> 0.1; while a tyre is no hotter than
+  its window's top it cools at 0.0135 + 0.00025 / (m/s) (was 0.008 + 0.0008: the same at 10 m/s,
+  less when faster) and a scrubbing axle's slip heat x1.4; above the window as before.
+  tyrewear.ts - a scrubbing wheel wears x 1 + tanh(slip / 12 m/s), the gain x 1 per 60 C above
+  the window. MEASURED (hatch, tarmac, worst tyre, %/min, off -> on): clean hard corner 3.7 ->
+  3.7, handbrake taps 7.8 -> 8.5, drift 11.6 -> 26.7, donut 16.4 -> 43.1, pinned burnout 20.3 ->
+  52.5. 85 C to below 65 on a 90 km/h straight 15 -> 22 s. AI laps 2-3 in the window: Castle Cum
+  43-52 -> 83-85 %, Brands 66-73 -> 93 %; wear a race +0.0-0.8 points. tyrecheck with it: all
+  pass but two old "hard to overheat" numbers - the hatch drift too hot at 17 s (rule 20 s+; was
+  26) and the track car's 90 s drift reaching the pop point at ~88 s (it was 259 C at 90 s):
+  the owner's "heat faster from sliding"; update those rules if it becomes the default.
+- MORE PUDDLES THAN SNOW (owner 10-18: "puddles should have more chance than snow to form; snow
+  is at a good level, don't change it"). BUILT behind ?morepuddles=1 (testlist morepuddles):
+  water-only sites from their own seeded stream (puddles.ts extraWaterSites: half way between the
+  lap's sites, chance 0.3 on level ground, and the floor grid offset half a cell, 0.38; dips add,
+  crests take off as before), so every snow patch and existing puddle stays where it was (snow
+  sites IDENTICAL on 6 circuits; Grass Track re-rolls per load anyway). Water / snow sites, 5 min
+  heavy rain all showing: castle-cum 37 -> 119 / 97, brands 53 -> 151 / 100, killder 61 -> 156 /
+  86, sweaty-lamb 49 -> 149 / 94, grass-track 34 -> 101 / 86, knobhill 40 -> 114 / 87,
+  slidden-hill 48 -> 117 / 91. Look changes in heavy rain 13-24 -> 41-55 a minute (snow 23-27;
+  each repaints its ground squares in view): watch Safari in rain.
 - PUDDLES / SNOW EVERYWHERE (owner 10-18): sites over the whole floor too (a jittered grid by the
   level's area, ~100-125 a level): water by the dip, snow anywhere (60 % of floor points), snow
   patches 1.4x a puddle. Heavy rain 5 min: 34-61 puddles a circuit; snow 5 min: 86-100 patches;

@@ -7,6 +7,24 @@
 //   id     stable key            added   date it went in (yyyy-mm-dd)
 //   where  how to get to it      try     what to do      wrong   what would count as a bug
 export const TEST_LIST = [
+  {
+    id: 'tyrefeel',
+    added: '2026-10-18',
+    name: 'Tyre feel: warm sooner, hold heat on straights; slides, spins and donuts wear more',
+    where: 'Plain link + &tyrefeel=1: TYRE HUD on (pause > HUD); any tarmac circuit',
+    try: 'Race laps: the numbers stay in the window more; a straight cools them slower; drift,'
+      + ' burnout, donut: wear climbs ~2-3x faster than before; clean laps wear as before.',
+    wrong: 'Tyres overheating in clean driving, cooling too slowly, wear too fast / slow.',
+  },
+  {
+    id: 'morepuddles',
+    added: '2026-10-18',
+    name: 'More puddles: rain makes more puddles than snow makes patches; snow unchanged',
+    where: 'Plain link + &morepuddles=1: TEST MODE, a circuit, WEATHER HEAVY RAIN (then SNOW)',
+    try: 'Heavy rain a few minutes: ~100-155 puddles a level (was 34-61), dips first; SNOW: the'
+      + ' same patches as without the switch.',
+    wrong: 'Too many / few puddles, snow looking different, the race feeling heavier in rain.',
+  },
   // (approved late, deleted: fields, grassedge, catchthem, slipsdual, fps - TODO.md 1c;
   // dirtroad, animals, labext, labsplit, zoomhold, gpupaint, minimap, zoomspring, grassgrip, hwmap,
   // cracktufts, sharpcars, sharpmarks, jokerfix,

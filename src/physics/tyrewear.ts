@@ -32,6 +32,12 @@ const WORN_GRIP = 0.2, WORN_EXP = 1.3, WORN_WET = 0.25;
 // and from wear (past WORN_RISK_FROM, ^2)
 const HEAT_MARGIN_C = 10, HEAT_SPAN_C = 40, HEAT_RISK_PER_S = 1 / 60;
 const WORN_RISK_FROM = 0.7, WORN_RISK_PER_S = 1 / 150;
+// SLIDING (?tyrefeel=1; owner, 2026-10-18: faster when sliding, faster still when wheelspinning /
+// doing donuts; hot tyres wear more from a slide, as in real life; a cold slide no extra): a
+// scrubbing wheel wears x 1 + SLIDE_WEAR x tanh(slip / SLIDE_WEAR_V), the gain itself x 1 per
+// HOT_SLIDE_PER_C above the window. The heat model's work saturates its slip at ~4 m/s and fades
+// with speed (so tyres stay hard to overheat); this puts the real slip back for the rubber.
+const SLIDE_WEAR = 1, SLIDE_WEAR_V = 12, HOT_SLIDE_PER_C = 60;
 // a hard hit on debris (m/s), its chance; driving over splinters (nails), its chance a pass
 const DEBRIS_HIT_V = 3, DEBRIS_CHANCE = 0.04, SPLINTER_CHANCE = 0.01;
 
@@ -80,10 +86,11 @@ interface WearCar {
  * @param massKg the car's mass
  * @param wheelWork each wheel's friction work this step, W
  * @param dt seconds
+ * @param wheelSlip each wheel's slip speed while it scrubs (0 rolling), m/s; null = no slide wear
  * @returns the tyre index that punctured this step, or -1
  */
 export function wearTyres(car: WearCar, tyre: WearTyre | null | undefined, window: number[],
-    massKg: number, wheelWork: number[], dt: number): number {
+    massKg: number, wheelWork: number[], dt: number, wheelSlip: number[] | null = null): number {
   if (!enabled) return -1;
   // a car without a saved set (the AI, a fresh pick) starts on new tyres
   if (!car.tyreWear) car.tyreWear = [0, 0, 0, 0];
@@ -91,8 +98,10 @@ export function wearTyres(car: WearCar, tyre: WearTyre | null | undefined, windo
   let burst = -1;
   for (let i = 0; i < 4; i++) {
     const overC = car.tyreT[i] - window[1];
+    const slide = wheelSlip && wheelSlip[i] > 0 ? 1 + SLIDE_WEAR
+      * Math.tanh(wheelSlip[i] / SLIDE_WEAR_V) * (1 + Math.max(0, overC) / HOT_SLIDE_PER_C) : 1;
     wear[i] = Math.min(1, wear[i] + wheelWork[i] * dt * WEAR_PER_J * perTonne
-      * wearFactor(tyre, car.surface, overC));
+      * wearFactor(tyre, car.surface, overC) * slide);
     const heat = Math.max(0, overC - HEAT_MARGIN_C) / HEAT_SPAN_C;
     const worn = Math.max(0, wear[i] - WORN_RISK_FROM) / (1 - WORN_RISK_FROM);
     const risk = HEAT_RISK_PER_S * heat * heat + WORN_RISK_PER_S * worn * worn;

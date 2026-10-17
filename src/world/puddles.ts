@@ -42,6 +42,12 @@ const SNOW_SITE_CHANCE = 0.35;
 // area, at least FIELD_SPACING_MIN m), the share of floor points that can hold snow, and a snow
 // patch's size against a puddle's
 const FIELD_SITES = 110, FIELD_SPACING_MIN = 22, FIELD_SNOW_CHANCE = 0.6, SNOW_SIZE = 1.4;
+// MORE PUDDLES (?morepuddles=1; owner: puddles more likely to form than snow, snow kept as it is):
+// water-only sites between the ones above, from their own seeded stream (every snow patch and
+// every existing puddle stays where it was): along the lap half way between the track sites, and
+// on the floor grid offset by half a cell. Their chance on level ground (a dip adds DIP_GAIN, a
+// crest takes CREST_LOSS, as above)
+const EXTRA_TRACK_CHANCE = 0.3, EXTRA_FLOOR_CHANCE = 0.38;
 // fill a second at rain 1 (a dip's catch more; heavy rain fills one in ~75 s, owner: quicker),
 // once the ground is this wet; drain a second per C of track temperature in a dry spell (20 C:
 // ~13 min empty; 40 C: ~6)
@@ -74,6 +80,7 @@ const RAIN_TYRE_WET = 1.2;
 
 let enabled = false;
 let rainTyre = false;
+let morePuddles = false;
 let tickS = 0;
 
 /** Areas of ground whose look changed (a puddle grew or shrank): render/tilesWear repaints them. */
@@ -84,6 +91,12 @@ export const groundDirtyAreas: Area[] = [];
  * @param isOn true to let the weather make and take puddles
  */
 export function setWeatherPuddles(isOn: boolean): void { enabled = isOn; }
+
+/**
+ * Adds the extra water-only sites (?morepuddles=1, at start-up).
+ * @param isOn true to add them
+ */
+export function setMorePuddles(isOn: boolean): void { morePuddles = isOn; }
 
 /**
  * The tyre of the car whose wheels are being passed over the ground (wear.ts stepWear).
@@ -123,8 +136,8 @@ function dipAt(x: number, y: number): number {
 }
 
 /** How likely a point gathers water: more in a dip, less on a crest. */
-function waterChance(dip: number): number {
-  return SITE_CHANCE + DIP_GAIN * Math.max(0, Math.min(1, dip))
+function waterChance(dip: number, flatChance = SITE_CHANCE): number {
+  return flatChance + DIP_GAIN * Math.max(0, Math.min(1, dip))
     - CREST_LOSS * Math.max(0, Math.min(1, -dip));
 }
 
@@ -170,6 +183,34 @@ function floorSites(random: () => number): PuddleSite[] {
   return sites;
 }
 
+/** The extra water-only sites (?morepuddles=1): between the lap's sites and the floor's. */
+function extraWaterSites(sub: NonNullable<Level['subtrack']>, random: () => number) {
+  const sites: PuddleSite[] = [];
+  const tryPoint = (x: number, y: number, rot: number, flatChance: number) => {
+    const dip = dipAt(x, y) / DIP_REF;
+    if (random() < waterChance(dip, flatChance)) {
+      sites.push(makeSite(x, y, rot, dip, true, false, random));
+    }
+  };
+  for (let dist = SITE_SPACING; dist < sub.totalDist && sites.length < MAX_SITES;
+    dist += SITE_SPACING) {
+    const point = sub.pts[Math.min(sub.pts.length - 1,
+      Math.round((dist / sub.totalDist) * sub.pts.length))];
+    const side = (random() * 2 - 1) * (sub.width / 2 + 3);
+    tryPoint(point.x + point.nx * side, point.y + point.ny * side,
+      point.heading + (random() - 0.5) * 0.6, EXTRA_TRACK_CHANCE);
+  }
+  const width = FX1 - FX0, height = FY1 - FY0;
+  const spacing = Math.max(FIELD_SPACING_MIN, Math.sqrt((width * height) / (FIELD_SITES * 1.4)));
+  for (let gridX = FX0 + spacing; gridX < FX1; gridX += spacing) {
+    for (let gridY = FY0 + spacing; gridY < FY1; gridY += spacing) {
+      tryPoint(gridX + (random() - 0.5) * spacing * 0.6, gridY + (random() - 0.5) * spacing * 0.6,
+        random() * Math.PI, EXTRA_FLOOR_CHANCE);
+    }
+  }
+  return sites;
+}
+
 /**
  * The level's puddle and snow sites, from its own seeded stream: along the lap, then the floor.
  * @param level the level (with a lap)
@@ -179,7 +220,9 @@ export function buildPuddleSites(level: Level): PuddleSite[] {
   const sub = level.subtrack;
   if (!enabled || level.endless || !sub) return [];
   const random = seededRng(level.id + ':puddles');
-  return [...trackSites(sub, random), ...floorSites(random)];
+  const sites = [...trackSites(sub, random), ...floorSites(random)];
+  if (morePuddles) sites.push(...extraWaterSites(sub, seededRng(level.id + ':morepuddles')));
+  return sites;
 }
 
 /** What a site shows now: its kind and size step ('' = nothing). */
