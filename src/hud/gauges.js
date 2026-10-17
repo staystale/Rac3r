@@ -4,7 +4,9 @@
 import { ROSTER } from '../cars.ts';
 import { LEVEL } from '../world/state.ts';
 import { COL } from '../world/colours.ts';
-import { MARGIN, drawHudPanel, drawHudLabel, drawHudButton } from './widgets.js';
+import {
+  MARGIN, DIAGRAM_H, drawHudPanel, drawHudLabel, drawHudButton,
+} from './widgets.js';
 
 /**
  * Top-left: the car chip and, when open, the car and level dropdown.
@@ -281,7 +283,9 @@ export function drawHudTyreDiagram(ctx, state, rects, car, spec) {
     const [optLow, optHigh] = spec.tyreOpt || [65, 110];
     const col = (temp) => (temp < optLow - 15 ? '#5b8fd6' : temp < optLow ? '#7fb6c9'
       : temp <= optHigh ? COL.live : temp <= optHigh + 25 ? COL.warn : COL.danger);
-    const centreX = speedRect.x + speedWidth / 2, top = speedRect.y + 56, bodyW = 20, bodyH = 40,
+    // the bottom DIAGRAM_H of the speed panel (all of it while the speedo is hidden)
+    const centreX = speedRect.x + speedWidth / 2, top = speedRect.y + speedRect.h - DIAGRAM_H;
+    const bodyW = 20, bodyH = 40,
       bodyX = centreX - bodyW / 2, bodyY = top + 4;
     // wheels first (under the body edge), then the body, then a windscreen so the FRONT is
     // unmistakable

@@ -12,6 +12,19 @@ export const TEST_LIST = [
   // cracktufts, sharpcars, sharpmarks, jokerfix,
   // groundlookup, exacttiles)
   {
+    id: 'hudmenu',
+    added: '2026-10-17',
+    name: 'HUD list in the pause menu: each HUD piece on or off',
+    where: 'Link: ?hudmenu=1 - any track; pause (II), then HUD ›',
+    try:
+      'Turn the minimap, progress bar, lap timer, speedo and tyre / damage off and on; resume ' +
+      'after each. With the minimap off and the bar on, the bar sits alone at the top left.',
+    wrong:
+      'A piece still showing when OFF (or missing when ON); a choice forgotten after a restart; ' +
+      'panels top right overlapping or leaving a gap; a control (pedals, PAUSE, ABS / TCS, ' +
+      'lights) gone.',
+  },
+  {
     id: 'straightoutta',
     added: '2026-10-15',
     name: 'Judder fix (skid-mark layer) + new highway step 1: Straight Outta Swindon',

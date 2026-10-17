@@ -10,6 +10,10 @@
 //   under the top-left buttons   the MINIMAP (hud/minimap.js), when on; it gives way to the car
 //                 list and the tune panel, which open over the same place
 //
+// HUD LIST (?hudmenu=1): the pause menu's HUD > turns each display piece on or off (the minimap,
+// the progress bar, the lap timer, the speedo, the tyre / damage diagram). Controls are never in
+// it: a hidden control would be a control the player cannot find.
+//
 // Buttons are DATA so hit-testing and drawing read the same geometry. Two copies of
 // a rect is how a button ends up visually somewhere its tap is not.
 
@@ -35,6 +39,11 @@ import { drawHudLapTimer } from './hud/laps.js';
 import { drawHudPedals, drawHudDevReadout, drawHudFps } from './hud/controls.js';
 import { drawHudMinimap } from './hud/minimap.js';
 
+// the pieces hud.js itself hides on the player's choice (the minimap and the progress bar live in
+// hud/minimap.js, the tyre diagram is state.tyreHud), and where each choice is remembered
+const HIDEABLE = ['lapTimer', 'speedo'];
+const pieceKey = (pieceId) => 'rac3r.hud.' + pieceId;
+
 /**
  * Loads the HUD's per-device choices (the tyre HUD, the speed units); storage can throw in private
  * windows, so every access is guarded.
@@ -47,10 +56,38 @@ function loadHudChoices(state) {
   try {
     state.mph = localStorage.getItem('carsim.units') === 'mph';
   } catch { /* no storage: km/h */ }
+  // the HUD list's choices count only where the list is (?hudmenu=1)
+  if (!state.hudMenu) return;
+  for (const pieceId of HIDEABLE) {
+    try {
+      if (localStorage.getItem(pieceKey(pieceId)) === '0') state.hidden.add(pieceId);
+    } catch { /* no storage: shown */ }
+  }
 }
 
-export function createHud() {
+/**
+ * Shows or hides a HUD piece (HIDEABLE) and remembers it on the device.
+ * @param {object} state the HUD state (hidden)
+ * @param {string} pieceId the piece
+ * @param {boolean} shown shown or not
+ */
+function setPieceShown(state, pieceId, shown) {
+  if (shown) state.hidden.delete(pieceId);
+  else state.hidden.add(pieceId);
+  try {
+    localStorage.setItem(pieceKey(pieceId), shown ? '1' : '0');
+  } catch { /* no storage: this session only */ }
+}
+
+/**
+ * Builds the HUD.
+ * @param {{hudMenu?: boolean}} [options] hudMenu: the pause menu's HUD list is on (?hudmenu=1)
+ * @returns {object} draw, hit, layout and the HUD's choices
+ */
+export function createHud(options = {}) {
   const state = {
+    hudMenu: !!options.hudMenu,
+    hidden: new Set(),      // HIDEABLE pieces the player turned off (?hudmenu=1 only)
     expanded: false,        // car list
     tuneOpen: false,        // debug/tuning panel — only one of the two is ever open
     shiftFlash: 0,
@@ -100,9 +137,9 @@ export function createHud() {
     if (state.tuneOpen) drawHudTune(ctx, state, rects, car);
     drawHudButtonRow(ctx, state, game, rects);
     drawHudConeTally(ctx, state, game, rects);
-    drawHudSpeedo(ctx, state, rects, car, spec, wallDt);
+    if (!state.hidden.has('speedo')) drawHudSpeedo(ctx, state, rects, car, spec, wallDt);
     drawHudTyreDiagram(ctx, state, rects, car, spec);
-    drawHudLapTimer(ctx, game, rects);
+    if (!state.hidden.has('lapTimer')) drawHudLapTimer(ctx, game, rects);
     drawHudMinimap(ctx, state, rects, game, wallDt);
     drawHudPedals(ctx, game, width, height);
     drawHudDevReadout(ctx, state, game, car, height);
@@ -116,6 +153,8 @@ export function createHud() {
   return {
     draw, hit, layout,
     get tyreHud() { return state.tyreHud; }, setTyreHud,
+    pieceShown: (pieceId) => !state.hidden.has(pieceId),
+    setPieceShown: (pieceId, shown) => setPieceShown(state, pieceId, shown),
     get expanded() { return state.expanded; },
     setHelpLabel(labelText) { state.helpLabel = labelText; },
     get tuneOpen() { return state.tuneOpen; },

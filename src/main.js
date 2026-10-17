@@ -15,7 +15,7 @@ import { readSettings } from './core/settings.ts';
 import { createMarks } from './marks.js';
 import { createHud } from './hud.js';
 import {
-  setMinimapSource, setMinimapView, setMinimapHighway, setMinimapJoker,
+  setMinimapSource, setMinimapView, setMinimapHighway, setMinimapJoker, setProgressSource,
 } from './hud/minimap.js';
 import { createMeter } from './ui/meter.ts';
 import { createReporter } from './ui/report.ts';
@@ -160,9 +160,13 @@ shared.trafficDensity = shared.settings.trafficDensity;
 if (shared.settings.litter !== null)
   for (const level of LEVELS) if (level.endless) level.litter = shared.settings.litter;
 
-shared.hud = createHud();
+shared.hud = createHud({ hudMenu: shared.settings.hudMenu });
 refreshMinimap();
 setMinimapSource(() => !!shared.minimapOn && shared.mode !== 'menu');
+// the progress bar is its own choice only with the HUD list (?hudmenu=1); else it follows the
+// window
+setProgressSource(shared.settings.hudMenu
+  ? () => !!shared.progressOn && shared.mode !== 'menu' : null);
 setMinimapView(() => shared.renderer.PPM);
 setMinimapHighway(shared.settings.hwMap);
 setMinimapJoker(shared.settings.jokerFix);

@@ -53,16 +53,7 @@ export function showPause(menu, act) {
     });
     showSound();
   }
-  // MINIMAP (owner): on / off for this difficulty mode; REAL has it locked off, greyed out
-  if (act.minimap) {
-    const { on, locked } = act.minimap.setting();
-    const label = locked ? 'MINIMAP · OFF IN REAL' : 'MINIMAP · ' + (on ? 'ON' : 'OFF');
-    const button = addButton(menu, panel, label, () => {
-      act.minimap.set(!act.minimap.setting().on);
-      showPause(menu, act);
-    }, on ? 'on' : '', locked);
-    button.setAttribute('aria-pressed', String(on));
-  }
+  addHudButton(menu, panel, act);
   addButton(menu, panel, 'RESTART SESSION', () => {
     hideMenu(menu);
   act.restart();
@@ -86,6 +77,53 @@ export function showPause(menu, act) {
     act.exit();
   showMenu(menu);
   });
+}
+
+/**
+ * Adds the HUD > button (?hudmenu=1: the HUD list), or else the MINIMAP row (owner): on / off for
+ * this difficulty mode; REAL has it locked off, greyed out.
+ * @param {object} menu the menu context
+ * @param {HTMLElement} panel the pause panel
+ * @param {object} act the session actions (hud, minimap)
+ */
+function addHudButton(menu, panel, act) {
+  if (act.hud) {
+    addButton(menu, panel, 'HUD ›', () => showHudMenu(menu, act));
+    return;
+  }
+  if (!act.minimap) return;
+  const { on, locked } = act.minimap.setting();
+  const label = locked ? 'MINIMAP · OFF IN REAL' : 'MINIMAP · ' + (on ? 'ON' : 'OFF');
+  const button = addButton(menu, panel, label, () => {
+    act.minimap.set(!act.minimap.setting().on);
+    showPause(menu, act);
+  }, on ? 'on' : '', locked);
+  button.setAttribute('aria-pressed', String(on));
+}
+
+/**
+ * HUD (?hudmenu=1): one ON / OFF button per display piece, so the player keeps only what they
+ * want; each choice is remembered (act.hud). Controls are never in the list.
+ * @param {object} menu the menu context
+ * @param {object} act the session actions (hud, resume)
+ */
+function showHudMenu(menu, act) {
+  const panel = addPane(menu, false);
+  addElement(panel, 'h2', 'HUD');
+  for (const item of act.hud.items()) {
+    const label = item.label + ' · ' + (item.locked ? 'OFF IN REAL' : item.on ? 'ON' : 'OFF');
+    const button = addButton(menu, panel, label, () => {
+      act.hud.set(item.id, !item.on);
+      showHudMenu(menu, act);
+    }, item.on ? 'on' : '', item.locked);
+    button.setAttribute('aria-pressed', String(item.on));
+  }
+  const row = addElement(panel, 'div', '', 'row');
+  addButton(menu, row, 'RESUME ▶', () => {
+    hideMenu(menu);
+    act.resume();
+  }, 'go');
+  addButton(menu, row, 'BACK', () => showPause(menu, act));
 }
 
 /**

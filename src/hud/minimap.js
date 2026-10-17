@@ -11,6 +11,10 @@
 // ?hwmap=0 = not there).
 // ON / OFF lives in the pause menu, remembered per difficulty mode: on in MOBILE, GAME and REALISH,
 // off in RICH, and locked off in REAL (owner).
+// THE PROGRESS BAR: with the pause menu's HUD list (?hudmenu=1) it is a choice of its own,
+// remembered per difficulty mode with the minimap's defaults (never locked); with the minimap
+// off it shows alone at the top of the window's place. Without the list it comes and goes with
+// the window.
 
 import { LEVEL } from '../world/state.ts';
 import { jokerLane } from '../world/joker.ts';
@@ -36,6 +40,7 @@ const OPACITY = 0.85;
 const DEFAULT_ON = [true, true, true, false, false];
 const LOCKED_MODE = 4;
 const storeKey = (mode) => 'rac3r.minimap.' + mode;
+const progressKey = (mode) => 'rac3r.progress.' + mode;
 
 // the road's two strokes, css px wide: a dark rim, then the pale road (the lap and the joker lane)
 const ROAD_STROKES = [[7, 'rgba(20,20,22,0.55)'], [3.5, 'rgba(236,231,220,0.95)']];
@@ -69,10 +74,38 @@ export function setMinimapSetting(mode, shown) {
   } catch { /* no storage: this session only */ }
 }
 
+/**
+ * The progress bar setting of a difficulty mode (?hudmenu=1): the device's choice, else the
+ * minimap's default for the mode.
+ * @param {number} mode difficulty 0 (MOBILE) .. 4 (REAL)
+ * @returns {boolean} shown
+ */
+export function progressSetting(mode) {
+  let shown = DEFAULT_ON[mode] ?? false;
+  try {
+    const stored = localStorage.getItem(progressKey(mode));
+    if (stored !== null) shown = stored === '1';
+  } catch { /* no storage: the default */ }
+  return shown;
+}
+
+/**
+ * Remembers the progress bar choice for a difficulty mode.
+ * @param {number} mode difficulty 0..4
+ * @param {boolean} shown shown or not
+ */
+export function setProgressSetting(mode, shown) {
+  try {
+    localStorage.setItem(progressKey(mode), shown ? '1' : '0');
+  } catch { /* no storage: this session only */ }
+}
+
 // across frames: the matched centreline point and the eased heading (one HUD, one minimap)
 const mapState = { idx: 0, heading: null, level: null };
 // is it shown: main.js hands in the source (?minimap=0, the mode, the pause setting)
 let shownNow = () => false;
+// is the progress bar shown: null = with the window (no HUD list); main.js hands in the source
+let progressNow = null;
 // the endless highway too (?hwmap=0: not there)
 let onHighway = true;
 // the main view's css px per m (the camera zoom included)
@@ -84,6 +117,15 @@ let viewScale = () => 20;
  */
 export function setMinimapSource(source) {
   shownNow = source;
+}
+
+/**
+ * Sets what decides, every frame, whether the progress bar shows (?hudmenu=1); null = with the
+ * window.
+ * @param {(() => boolean) | null} source true when shown
+ */
+export function setProgressSource(source) {
+  progressNow = source;
 }
 
 /**
@@ -277,8 +319,8 @@ function drawProgress(ctx, x, y, dist, lap) {
 }
 
 /**
- * Draws the minimap, when shown: road ahead, rivals, your car, progress. It gives way to the car
- * list and the tune panel, which open over the same place.
+ * Draws the minimap and the progress bar, each when shown: road ahead, rivals, your car, progress.
+ * They give way to the car list and the tune panel, which open over the same place.
  * @param {CanvasRenderingContext2D} ctx the HUD context (css px)
  * @param {object} hud the HUD state (expanded, tuneOpen)
  * @param {object} rects the HUD layout
@@ -287,18 +329,35 @@ function drawProgress(ctx, x, y, dist, lap) {
  */
 export function drawHudMinimap(ctx, hud, rects, game, wallDt) {
   const sub = LEVEL.subtrack;
-  if (!shownNow() || hud.expanded || hud.tuneOpen) return;
+  const mapShown = shownNow(), barShown = progressNow ? progressNow() : mapShown;
+  if ((!mapShown && !barShown) || hud.expanded || hud.tuneOpen) return;
   if (!sub || (LEVEL.endless && !onHighway) || !sub.pts || sub.pts.length < 2) return;
   if (mapState.level !== LEVEL) Object.assign(mapState, { level: LEVEL, idx: 0, heading: null });
-  const car = game.car, pts = sub.pts, closed = !LEVEL.stage && !LEVEL.endless;
-  const idx = nearestPoint(pts, car.x, car.y);
+  const idx = nearestPoint(sub.pts, game.car.x, game.car.y);
+  const { x, y } = minimapAt(rects);
+  if (mapShown) drawWindow(ctx, game, x, y, idx, wallDt);
+  if (barShown) drawProgress(ctx, x, mapShown ? y + SIZE + 5 : y, sub.pts[idx].dist, sub.totalDist);
+}
+
+/**
+ * Draws the minimap's window: the road ahead, rivals and your car.
+ * @param {CanvasRenderingContext2D} ctx the HUD context (css px)
+ * @param {object} game the game (car, ai)
+ * @param {number} x the window's left edge, css px
+ * @param {number} y the window's top edge, css px
+ * @param {number} idx the centreline point nearest the car
+ * @param {number} wallDt frame time, s
+ */
+function drawWindow(ctx, game, x, y, idx, wallDt) {
+  const sub = LEVEL.subtrack, car = game.car, pts = sub.pts;
+  const closed = !LEVEL.stage && !LEVEL.endless;
   // the lead follows the direction of travel (the heading when nearly still), eased the short way
   const moving = Math.hypot(car.vx, car.vy) > 2;
   const dir = moving ? Math.atan2(car.vy, car.vx) : car.heading;
   if (mapState.heading === null) mapState.heading = dir;
   const off = dir - mapState.heading, turn = Math.atan2(Math.sin(off), Math.cos(off));
   mapState.heading += turn * (1 - Math.exp(-LEAD_EASE * wallDt));
-  const { x, y } = minimapAt(rects), radius = SIZE / 2, centreX = x + radius, centreY = y + radius;
+  const radius = SIZE / 2, centreX = x + radius, centreY = y + radius;
   const lead = radius * LEAD_SHARE, scale = viewScale() / MAP_SHRINK;
   const carX = centreX - lead * Math.cos(mapState.heading);
   const carY = centreY - lead * Math.sin(mapState.heading);
@@ -324,5 +383,4 @@ export function drawHudMinimap(ctx, hud, rects, game, wallDt) {
   ctx.restore();
   drawCarMark(ctx, carX, carY, car.heading);
   ctx.restore();
-  drawProgress(ctx, x, y + SIZE + 5, pts[idx].dist, sub.totalDist);
 }

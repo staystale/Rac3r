@@ -255,6 +255,18 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
          (ground, deck) is blitted, the marks drawn on the screen canvas at device resolution
          (an edge moves by one device px, not one art px), the buffer cleared for the layers
          above (render/screen.ts drawMarksOnScreen). Switch off: renderhash SAME.
+- [ ] HUD LIST (owner, 2026-10-17: "this and mini map be in a sub menu called HUD ... all HUD
+      options can be separately toggled to match player preference ... keep it light and
+      functional"). BUILT behind ?hudmenu=1 (owner phone test pending, testlist 'hudmenu'): the
+      pause menu's MINIMAP row becomes HUD ›, an ON / OFF button each for the minimap, the progress
+      bar, the lap timer, the speedo and the tyre / damage diagram (moved out of TUNE). Minimap and
+      bar remembered per difficulty mode (the bar with the minimap's defaults, never locked; alone
+      at the top of the window's place when the minimap is off), the rest per device. Controls are
+      never in the list. The top-right stack closes up round a hidden speedo / lap timer. Without
+      ?hudmenu the stored choices do not count. Switch off: renderhash SAME; uicheck OK both ways.
+      ALSO SEEN (plain link, not caused by this): with the tyre / damage diagram on at 390 px tall,
+      the test-mode FPS strip lands on the ABS chip (the speed panel grows 50 px; uicheck only
+      checks controls). Small; fix with the HUD list's approval.
 - [ ] NEXT, OWNER 2026-10-17 (assess the cause first, then propose with sizes):
       (1) "main menu is still sluggish" - the live 5-car race runs behind the menu (game/menu
       demo); measure it ON THE PHONE first (?report=1 does not record the menu: add that, or a

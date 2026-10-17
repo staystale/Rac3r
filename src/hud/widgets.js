@@ -5,6 +5,7 @@ import { COL } from '../world/colours.ts';
 
 export const MARGIN = 12;              // minimum margin
 export const BTN_H = 34;          // >= 30px touch target; the repeated ones (pedals) are 72px
+export const DIAGRAM_H = 50;      // css px: the tyre / damage diagram under the speedo
 
 export function fmtTime(seconds) {
   if (!seconds || seconds <= 0) return '0:00.00';

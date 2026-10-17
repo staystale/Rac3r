@@ -5,7 +5,7 @@ import { CAR_IDS } from '../cars.ts';
 import { LEVELS } from '../world/levels/index.ts';
 import { PEDAL } from '../input.js';
 import { ROWS as TUNE_ROWS } from '../tune.js';
-import { MARGIN, BTN_H } from './widgets.js';
+import { MARGIN, BTN_H, DIAGRAM_H } from './widgets.js';
 
 /**
  * Tune panel geometry: the panel, its rows, the reset footer and the tyre HUD switch.
@@ -49,8 +49,17 @@ function layoutTunePanel(width, height, narrow) {
 }
 
 /**
- * Top-right panels and the cone tally: speed, lap, fps strip and tally rects.
- * @param {object} state the shared HUD state (carDiagram)
+ * Whether the player hid a HUD piece (the pause menu's HUD list, ?hudmenu=1).
+ * @param {object} state the shared HUD state (hidden)
+ * @param {string} pieceId the piece (hud.js HIDEABLE)
+ * @returns {boolean} hidden
+ */
+const isHidden = (state, pieceId) => !!state.hidden && state.hidden.has(pieceId);
+
+/**
+ * Top-right panels and the cone tally: speed, lap, fps strip and tally rects. A hidden speedo or
+ * lap timer takes no room: the panels under it move up.
+ * @param {object} state the shared HUD state (carDiagram, hidden)
  * @param {number} width canvas width in px
  * @param {number} btnY y of the button row
  * @param {boolean} narrow true on a narrow screen
@@ -62,9 +71,11 @@ function layoutCornerPanels(state, width, btnY, narrow) {
   // of the speed readout. The overlap test never caught it because it only compared the buttons
   // with each other, not with the panel they collided with. It is returned from layout now so
   // it can be.
-  const speed = { x: width - MARGIN - 120, y: MARGIN, w: 120, h: 56 + (state.carDiagram ? 50 : 0) };
-  // ^ speed grows a car diagram when on (or when damaged)
-  const lap = { x: width - MARGIN - 120, y: speed.y + speed.h + 6, w: 120, h: 36 };
+  // speed grows a car diagram when on (or when damaged), the whole panel while the speedo is hidden
+  const speedH = (isHidden(state, 'speedo') ? 0 : 56) + (state.carDiagram ? DIAGRAM_H : 0);
+  const speed = { x: width - MARGIN - 120, y: MARGIN, w: 120, h: speedH };
+  const lap = { x: width - MARGIN - 120, y: speedH ? speed.y + speedH + 6 : MARGIN, w: 120,
+    h: isHidden(state, 'lapTimer') ? 0 : 36 };
   // The knocked-cone tally, under the button row. In layout so tools/uicheck.mjs can see it.
   // MEASURED BUG: it was placed in draw at a fixed row two, which on a narrow
   // screen IS the RESTART/RESET/CLEAR row — invisible to the overlap test until the tyre walls
@@ -74,7 +85,7 @@ function layoutCornerPanels(state, width, btnY, narrow) {
   // goes top-RIGHT, under the lap panel (it is hidden while TUNE is open — that panel reaches it
   // at 360 px). FPS (test mode, requirement: in the corner always): a slim strip right under the
   // lap / distance panel, top right; the narrow-screen cone tally moves down under it
-  const fps = { x: width - MARGIN - 120, y: lap.y + lap.h + 4, w: 120, h: 18 };
+  const fps = { x: width - MARGIN - 120, y: lap.h ? lap.y + lap.h + 4 : lap.y, w: 120, h: 18 };
   if (narrow) {
     tally.x = width - MARGIN - 92;
     tally.y = fps.y + fps.h + 6;
@@ -252,7 +263,7 @@ function hitTunePanel(state, rects, point) {
       if (inRect(point, tuneRow.plus)) return { tune: tuneRow.row, dir: +1 };
     }
     if (inRect(point, rects.tuneReset)) return { tuneReset: true };
-    if (inRect(point, rects.tyreHudBtn)) {
+    if (!state.hudMenu && inRect(point, rects.tyreHudBtn)) {
       setHudTyreHud(state, !state.tyreHud);
       return { consumed: true };
     }
@@ -298,7 +309,7 @@ function hitDropdown(state, rects, point) {
  * @returns {object|null} the action hit, or null
  */
 function hitControls(state, rects, point) {
-  if (inRect(point, rects.speed)) {
+  if (!state.hidden.has('speedo') && inRect(point, rects.speed)) {
     state.mph = !state.mph;
     try {
       localStorage.setItem('carsim.units', state.mph ? 'mph' : 'kmh');

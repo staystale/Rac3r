@@ -12,15 +12,48 @@ import { LEVELS } from "../world/levels/index.ts";
 import { saveRecords, doRestart } from './session.js';
 import { selectLevel, selectCar } from './controls.js';
 import { shared, game } from './state.js';
-import { minimapSetting, setMinimapSetting } from '../hud/minimap.js';
+import {
+  minimapSetting, setMinimapSetting, progressSetting, setProgressSetting,
+} from '../hud/minimap.js';
 import { showMenuVideo, hideMenuVideo } from './menuvideo.js';
 
 /**
- * Works out whether the minimap shows (not with ?minimap=0; then the pause setting of the
- * current difficulty mode) into shared.minimapOn, which the HUD reads every frame.
+ * Works out whether the minimap and the progress bar show (not with ?minimap=0; then the pause
+ * settings of the current difficulty mode) into shared.minimapOn and shared.progressOn, which the
+ * HUD reads every frame.
  */
 export function refreshMinimap() {
   shared.minimapOn = !!shared.settings.minimap && minimapSetting(shared.aiDiff).on;
+  shared.progressOn = !!shared.settings.minimap && progressSetting(shared.aiDiff);
+}
+
+/**
+ * The pause menu's HUD list (?hudmenu=1): each piece's label, whether it shows and whether this
+ * difficulty mode locks it; set() remembers a choice and applies it at once.
+ * @returns {object} { items, set }
+ */
+function hudActions() {
+  const hud = shared.hud, mode = shared.aiDiff;
+  // the minimap and its bar only where the minimap exists (not with ?minimap=0)
+  const mapItems = () => (shared.settings.minimap ? [
+    { id: 'minimap', label: 'MINIMAP', ...minimapSetting(mode) },
+    { id: 'progress', label: 'PROGRESS BAR', on: progressSetting(mode), locked: false },
+  ] : []);
+  return {
+    items: () => [
+      ...mapItems(),
+      { id: 'lapTimer', label: 'LAP TIMER', on: hud.pieceShown('lapTimer'), locked: false },
+      { id: 'speedo', label: 'SPEEDO', on: hud.pieceShown('speedo'), locked: false },
+      { id: 'tyres', label: 'TYRE / DAMAGE', on: hud.tyreHud, locked: false },
+    ],
+    set: (pieceId, shown) => {
+      if (pieceId === 'minimap') setMinimapSetting(mode, shown);
+      else if (pieceId === 'progress') setProgressSetting(mode, shown);
+      else if (pieceId === 'tyres') hud.setTyreHud(shown);
+      else hud.setPieceShown(pieceId, shown);
+      refreshMinimap();
+    },
+  };
 }
 
 export function start() {
@@ -146,6 +179,8 @@ export function openPause() {
     tests: game.testMode,   // the TESTING list (src/testlist.js) in the pause menu, test mode only
     audio: shared.audio,                  // the SOUND slider + MUTE (menu.js pause)
     // the MINIMAP row (none with ?minimap=0): this difficulty mode's setting, locked in REAL
+    // the HUD list (?hudmenu=1) in place of the MINIMAP row
+    hud: shared.settings.hudMenu ? hudActions() : null,
     minimap: shared.settings.minimap ? {
       setting: () => minimapSetting(shared.aiDiff),
       set: (shown) => {

@@ -33,6 +33,7 @@ export interface Settings {
   jokerFix: boolean;             // joker lane on the minimap, RESET back onto it; ?jokerfix=0 off
   groundLookup: boolean;         // fewer ground lookups under the wheels (wear.ts); =0 the old
   exactTiles: boolean;           // GPU ground tiles at their exact place (tiles.ts); =0 off
+  hudMenu: boolean;              // ?hudmenu=1: the pause menu's HUD list (menu/race.js)
   noShade: boolean;              // ?noshade: skip the hill shading (perf A/B)
   grassEnds: "round" | "square";   // ?grass=square: square grass blade ends (cheaper; A/B)
   surfaceTextures: boolean;       // ?tex=0: paint surfaces live, not pre-painted textures (A/B)
@@ -104,6 +105,8 @@ export function readSettings(search: string): Settings {
     // placed exactly on the GPU ground, not on whole art pixels, so the track edges hold still
     // while the zoom moves
     exactTiles: params.get('exacttiles') !== '0',
+    // ?hudmenu=1 (owner phone test pending): HUD > in the pause menu, an ON / OFF per HUD piece
+    hudMenu: params.get('hudmenu') === '1',
     noShade: params.has('noshade'),
     grassEnds: params.get('grass') === 'square' ? 'square' : 'round',
     surfaceTextures: params.get('tex') !== '0',
