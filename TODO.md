@@ -59,8 +59,19 @@ the git history. `docs/foreman-handover.md` is the last handover (10-17), writte
   uploads moved to the first fly-in frame (46 + 58 mipmaps): now at most FLY_PREFETCH a frame.
   (b) next if wanted: wear drawn as its own GPU layer (no stale tiles at all).
   Also seen on the laptop only: the GPU ground's first frame (glground.ts parseColour ~20-25 ms).
-- NOW (owner order, 2026-10-17): mid-race judder with near-perfect frame timing (14:18 / 14:20:
-  0-2 drops a minute) - find what moves unevenly; then (b) or WEATHER (see "GRASS GRIP + WATER"
+- CORNER JUDDER (owner screen recording, 10-17 15:35): Safari HELD ~6 frames a second (50 in 8 s)
+  from corner 2 on while our rAF and physics were even. Owner switch test: no ground = judder free,
+  no props = nearly none, no hill shading = less. tools/drawload.mjs (drawing asked per frame,
+  Castle Cum corner 2, zoomed out): ground-square painting ~5,600 path pieces / 450 strokes / 220
+  fills a frame (each square traced the WHOLE track: ~7,000 pieces a square); the minimap ~200
+  strokes a frame (its fade a segment at a time); GPU ground light (~5 screens of pixels).
+  ?drawlite=1 (under test): render/ribbon.ts (the 10-16 ribbon cull, restored) traces only the
+  ribbon / edges / kerbs reaching a square, at most LITE_TILE_BUDGET (2) squares a frame; the
+  minimap fade in 12 opacity steps. drawload: square painting 5,600 -> ~980 pieces, fills 220 -> 1,
+  HUD strokes 225 -> 50. Pixels: 0.001-0.094 % differ (edge anti-aliasing; GPU path 0.01-0.025 %).
+  Next if frames are still held: the structural rebuild (the whole ground in one GPU pass).
+- NOW (owner order, 2026-10-17): the drawlite phone test (screen recording, held frames); then
+  the rebuild if needed, or WEATHER (see "GRASS GRIP + WATER"
   below, owner answers).
 - GRASS THROUGH THE CRACKS (owner: a and b, "like real life"): long-grass tufts in some
   broken-tarmac flecks, and scattered on broken-tarmac / concrete ground (blend.ts, own random

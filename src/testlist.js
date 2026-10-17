@@ -13,4 +13,14 @@ export const TEST_LIST = [
   // groundlookup, exacttiles, hudmenu, tyreoff, menufast, bundle,
   // sound, joker, markedge, ainowait, judder, texwarm; straightoutta removed with its level;
   // stalecap undone; dpr, startfix approved)
+  {
+    id: 'drawlite',
+    added: '2026-10-17',
+    name: 'Less drawing per frame: ground squares trace only their own track; minimap fade',
+    where: 'Castle Cum autopilot link with ?drawlite=1 (screen-record corners 1 and 2), then without',
+    try: 'Watch the race through corners 1 and 2, hands off, about 20 s each.',
+    wrong:
+      'Judder still at the corners; track edges, kerbs or white lines looking different; the ' +
+      'minimap road fading in visible bands.',
+  },
 ];

@@ -73,6 +73,10 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
 - Safari rounds rAF timestamps to whole ms: frame pacing (`game/pacing.ts`) fixed the constant shake.
 - The 136 m highway hitch was the skid-mark layer re-centring (26 MB copy); it now wraps.
 - `preserveDrawingBuffer: true` on the WebGL canvas is needed on the iPhone (fewer slow frames).
+- Held frames are invisible to rAF: an owner screen recording showed Safari holding ~6 frames a
+  second at Castle Cum's corners while every rAF and physics step was on time. Count held frames in a
+  recording (frames identical to the one before while things move), and count drawing work with
+  tools/drawload.mjs; frame times alone cannot see this.
 - Screen pixels cost frames on the iPhone even with our JS at 2-3 ms: sharpness 1.5 vs 2 halved
   the dropped frames in back-to-back races (4.5 vs 8.4 a minute); the owner saw no blur.
 - Chrome's canvas picks its anti-aliasing method by a path's point count: clipping a path changes a
@@ -121,7 +125,8 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
 - `tools/tilecost.mjs` (tiles by reason), `tools/framecheck.mjs <level> [query]` (frame times),
   `tools/profile.mjs`, `tools/phonereport.mjs`, `tools/renderhash.mjs` (`--only`, `--shots`),
   `tools/shotdiff.mjs`, `tools/zoomcheck.mjs`, `tools/scratch/carmock.html` (car drawing mockup),
-  `tools/edgecheck.mjs` (does the white edge line move rigidly; `--control` = the noise floor).
+  `tools/edgecheck.mjs` (does the white edge line move rigidly; `--control` = the noise floor),
+  `tools/drawload.mjs` (drawing asked per frame, per layer: what Safari paints after our JS).
 - Browser tools open the game with `gotoGame` (`tools/lib/browser.mjs`): the game starts by a
   dynamic import, so the page's load event comes before `window.__game`; and Edge 155 never runs
   Playwright's default animation-frame poll under the determinism script (use a timed poll).

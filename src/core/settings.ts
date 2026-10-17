@@ -39,6 +39,7 @@ export interface Settings {
   thumbCache: boolean;           // thumbnails saved per version (thumbcache.js); =0 painted
   texWarm: boolean;              // long-grass textures painted while loading; =0 in the menu
   startFix: boolean;             // the race start without the hand-over jolt; =0 the old
+  drawLite: boolean;             // ?drawlite=1: tiles trace only their ribbon; minimap fade steps
   maxDpr: number | null;         // ?dpr=2: the sharpness cap (default render.ts MAX_DPR 1.5)
   noShade: boolean;              // ?noshade: skip the hill shading (perf A/B)
   grassEnds: "round" | "square";   // ?grass=square: square grass blade ends (cheaper; A/B)
@@ -117,8 +118,7 @@ export function readSettings(search: string): Settings {
     // placed exactly on the GPU ground, not on whole art pixels, so the track edges hold still
     // while the zoom moves
     exactTiles: params.get('exacttiles') !== '0',
-    // default since 2026-10-17 (owner: "test approved"): HUD > in the pause menu, an ON / OFF per
-    // HUD piece
+    // default since 2026-10-17: HUD > in the pause menu, an ON / OFF per HUD piece
     hudMenu: params.get('hudmenu') !== '0',
     // default since 2026-10-17 (owner: "test passed"): the tyre / damage diagram OFF in the HUD
     // list means off, even when the car is damaged
@@ -133,6 +133,7 @@ export function readSettings(search: string): Settings {
     // default since 2026-10-17 (owner approved): long-grass textures painted while loading
     texWarm: params.get('texwarm') !== '0',
     startFix: params.get('startfix') !== '0',
+    drawLite: params.get('drawlite') === '1',
     maxDpr: maxDpr(params),
     noShade: params.has('noshade'),
     grassEnds: params.get('grass') === 'square' ? 'square' : 'round',

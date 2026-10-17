@@ -5,6 +5,9 @@ import type { TileBudget } from "./types.ts";
 // to TILE_BUDGET (a fast phone fills a gap in a frame or two, a slow one never stalls); the level
 // overview stands in for the rest.
 export const TILE_BUDGET = 4, TILE_MS = 6;
+// ?drawlite=1: tiles that trace only their own ribbon are cheap, so more of them fitted in TILE_MS
+// and their GPU uploads came in bunches (the suspected cause of the 10-16 ribbon-cull judder)
+export const LITE_TILE_BUDGET = 2;
 
 /**
  * A fresh frame budget: `count` tiles at most, the first always, the rest inside TILE_MS.

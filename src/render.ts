@@ -542,6 +542,7 @@ function buildModules(view: View, cam: Cam, settings: Settings,
     shareBlades: settings.menuFast });
   const road = createRoad(view, cam, {
     PPMz, toScreenX, toScreenY, paintLayers: ground.paintLayers, artBase: ground.artBase,
+    cullRibbon: settings.drawLite,
   });
   const particles = createParticles(view, cam, { PPMz, toScreenX, toScreenY });
   const { pixelCar } = createCarSprite();
