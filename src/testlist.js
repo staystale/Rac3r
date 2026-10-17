@@ -11,15 +11,14 @@ export const TEST_LIST = [
   // dirtroad, animals, labext, labsplit, zoomhold, gpupaint, minimap, zoomspring, grassgrip, hwmap,
   // cracktufts, sharpcars, sharpmarks, jokerfix,
   // groundlookup, exacttiles, hudmenu, tyreoff, menufast, bundle,
-  // sound, joker, markedge, ainowait, judder, texwarm; straightoutta removed with its level)
+  // sound, joker, markedge, ainowait, judder, texwarm; straightoutta removed with its level;
+  // stalecap undone)
   {
-    id: 'stalecap',
+    id: 'dpr',
     added: '2026-10-17',
-    name: 'Menu race: no hitch when zoomed out at speed (worn ground repainted one tile a frame)',
-    where: 'Link with ?stalecap=1&report=1, then the plain link with ?report=1',
-    try: 'Leave the menu up ~15 s each time, hands off, and watch once it has zoomed right out.',
-    wrong:
-      'The whole picture hitching every so often once zoomed out; tyre wear on the track ' +
-      'showing up late or patchy.',
+    name: 'Frame drops: the game drawn at lower sharpness (a measuring test, not a feature)',
+    where: 'Castle Cum autopilot links, with ?dpr=1.5 and without, back to back',
+    try: 'Watch about a minute each, hands off, then close the tab.',
+    wrong: 'Tell us which one drops frames; text and cars looking clearly blurry with ?dpr=1.5.',
   },
 ];

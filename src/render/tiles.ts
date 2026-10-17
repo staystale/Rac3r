@@ -8,7 +8,7 @@ import { WEAR_CELL, wearDirty, wearEpoch } from "../world/wear.ts";
 import type { Level } from "../world/types.ts";
 import { buildPalette } from "./tilesPalette.ts";
 import { hillShade } from "./tilesShade.ts";
-import { tileBudget, takeTile, takeStaleTile } from "./tilesBudget.ts";
+import { tileBudget, takeTile } from "./tilesBudget.ts";
 import type { GroundSink } from "./glground.ts";
 import type {
   Cam, CamCar, Fly, Overview, SurfaceArt, Tile, TileBudget, TileState, View,
@@ -56,8 +56,6 @@ interface TilesState extends TileState {
   tileAvg: number;
   wearDrainT: number;
   seenEpoch: number;
-  /** the tileFrame of the last stale repaint (?stalecap=1: one a frame) */
-  staleFrame: number;
 }
 
 /** what every moved function of the tile cache reads: the view, camera, settings and state */
@@ -78,8 +76,6 @@ interface TilesCtx {
   NO_SHADE: boolean;
   /** on the GPU ground, tiles at their exact place (drawTileImage); ?exacttiles=0 off */
   EXACT_TILES: boolean;
-  /** ?stalecap=1: at most one stale (worn) tile repainted a frame (tilesBudget.ts) */
-  STALE_CAP: boolean;
 }
 
 /** one tile being painted: its canvas, scratch, geometry and the strip it is on */
@@ -431,7 +427,7 @@ function blitStep(tcx: TilesCtx, step: number, paint: boolean, budget: TileBudge
         state.newTiles++;
       }
       // a STALE tile (wear changed under it) keeps showing until the budget lets it be repainted
-      else if (tile && tile.stale && paint && takeStaleTile(state, tcx.STALE_CAP, budget)) {
+      else if (tile && tile.stale && paint && takeTile(budget)) {
         tile.c = paintTile(tcx, step, i, j);
         tile.stale = false;
         state.staleRepaints++;
@@ -673,9 +669,7 @@ function lookAhead(tcx: TilesCtx, step: number, fly: unknown, car: CamCar | null
   // GPU path: keep everything the widest zoom (plus a margin) would show painted, one tile a frame
   // while nothing in view is missing, so a zoom-out never meets ground without its tiles
   if (state.tileFillsOnGpu) {
-    // ?stalecap=1: not in a frame that already repainted a worn tile (one tile a frame at most)
-    const repainted = tcx.STALE_CAP && state.staleFrame === state.tileFrame;
-    if (!state.standIn && !fly && !repainted) {
+    if (!state.standIn && !fly) {
       prefetch(tcx, step, cam.x, cam.y, ZOOM_MIN / WIDE_MARGIN, { n: 1 });
     }
     return;
@@ -749,7 +743,7 @@ export function createTiles(view: View, cam: Cam, settings: Settings, helpers: T
     tileLevel: null, tileDpr: 0, tilePPM: 0, tileLayout: 0, tileFillsOnGpu: false,
     paletteLUT: null,           // the pixel-mode palette lookup, built on first use
     tileAvg: 20,                // running average ms per tile (starts pessimistic = phone)
-    wearDrainT: 0, seenEpoch: -1, staleFrame: -1,
+    wearDrainT: 0, seenEpoch: -1,
   };
   const tcx: TilesCtx = {
     view, cam, helpers, state: tileState, tiles, TILE_PX,
@@ -759,7 +753,6 @@ export function createTiles(view: View, cam: Cam, settings: Settings, helpers: T
     TILE_GPU: settings.tileGpu,
     NO_SHADE: settings.noShade,
     EXACT_TILES: settings.exactTiles,
-    STALE_CAP: settings.staleCap,
   };
   return {
     tileState, tiles, TILE_PX, ZSTEP, zStepOf, zOfStep,

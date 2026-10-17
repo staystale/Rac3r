@@ -92,6 +92,7 @@ type RenderCtx = {
   groundPatches: GroundPatch[];   // the GPU painter's patch list, reused every frame
   gpuCamera: PaintCamera;         // where the world lands on the GPU canvas this frame
   noShade: boolean;               // ?noshade: no hill shading
+  maxDpr: number | null;          // ?dpr=: the sharpness cap under test, else MAX_DPR
   PPMz: () => number;
   toScreenX: (worldX: number) => number;
   toScreenY: (worldY: number) => number;
@@ -107,7 +108,7 @@ type RenderCtx = {
  */
 function resizeRenderer(ctx: RenderCtx) {
   const { canvas, view, state, mainCtx, pcanvas, pctx } = ctx;
-  state.realDpr = Math.min(MAX_DPR, devicePixelRatio || 1);
+  state.realDpr = Math.min(ctx.maxDpr ?? MAX_DPR, devicePixelRatio || 1);
   view.dpr = state.realDpr;
   view.W = canvas.clientWidth;
   view.H = canvas.clientHeight;
@@ -631,7 +632,7 @@ export function createRenderer(canvas: HTMLCanvasElement, settings: Settings) {
 
   const ctx: RenderCtx = {
     canvas, view, cam, state, noLock: settings.noLock, skip, mainCtx, pcanvas, pctx, gpu, PPMz,
-    groundPatches: [], toScreenX, toScreenY, noShade: settings.noShade,
+    groundPatches: [], toScreenX, toScreenY, noShade: settings.noShade, maxDpr: settings.maxDpr,
     gpuCamera: { x: 0, y: 0, devPerMetre: 1, screenX: 0, screenY: 0 },
     ...ground, ...road, ...particles, ...cars, ...props, ...objects, ...camera, ...tiles,
   };

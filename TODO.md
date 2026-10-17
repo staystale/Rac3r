@@ -38,16 +38,20 @@ the git history. `docs/foreman-handover.md` is the last handover (10-17), writte
   blade masks) before the idle warm-up (one texture / 60 ms) does. Owner approved trying, in
   order, with a phone test each: A texwarm (paint the blade textures while loading): phone, the
   ~125 ms frame gone (owner: felt better), the DEFAULT since 2026-10-17 (?texwarm=0 = off). B save
-  painted textures per version (like thumbcache) and C paint textures on a worker: only if they
-  help (owner), after the judder below.
-- MENU RACE HITCHES ZOOMED OUT (owner, 10-17: "whole picture hitches"): phone, our draw 16-21 ms
-  every ~9th frame once zoomed out = the wear drain (0.15 s) marking worn tiles stale, then ALL
-  repainted in one frame (with nothing missing the frame budget was unlimited). ?stalecap=1 (under
-  test): one stale repaint a frame, and no prefetch in that frame. Laptop, menu 15 s: frames
-  painting 2+ tiles 4-19 -> 1-2. Also seen: hitches while zooming out where our JS is 1-4 ms
-  (0-1 a run in the morning, 3-4 in the last two runs): re-measure after stalecap. Also seen on the laptop, not on the phone: the GPU ground's
-  first frame (glground.ts parseColour ~20-25 ms).
-- NOW (owner order, 2026-10-17): 1) the menu hitches above (stalecap under test); 2) WEATHER (see "GRASS GRIP + WATER" below, owner answers).
+  painted textures per version and C paint textures on a worker: NOT DONE - they only speed up
+  loading (texture painting is in none of the slow frames), not the judder.
+- MENU / RACE JUDDER (owner, 10-17: "whole picture hitches"): (1) menu race zoomed out, our draw
+  16-21 ms every ~9th frame = the wear drain (0.15 s) marking worn tiles stale, then all repainted
+  in one frame (with nothing missing the frame budget is unlimited). ?stalecap=1 (one stale
+  repaint a frame) cut frames painting 2+ tiles 4-19 -> 1-2 on the laptop, but the owner felt the
+  race WITH it juddery and without fine (phone data: same) - UNDONE 10-17. (2) Castle Cum autopilot
+  races back to back (13:02 / 13:03): 3-4 dropped frames a minute, 0.5-0.7 % off-beat, our JS
+  2-3 ms - the best race runs on record; the owner still sees occasional drops. Test now: ?dpr=1.5
+  (the screen sharpness cap, normally 2) vs plain, back to back: if drops fall, the screen drawing
+  load is the cause (then: the ground at its own art resolution, look kept); if not, Safari.
+  Also seen on the laptop only: the GPU ground's first frame (glground.ts parseColour ~20-25 ms).
+- NOW (owner order, 2026-10-17): 1) the ?dpr test above; 2) WEATHER (see "GRASS GRIP + WATER"
+  below, owner answers).
 - GRASS THROUGH THE CRACKS (owner: a and b, "like real life"): long-grass tufts in some
   broken-tarmac flecks, and scattered on broken-tarmac / concrete ground (blend.ts, own random
   stream: every existing patch unchanged). OWNER APPROVED 2026-10-16 (testlist entry deleted).

@@ -38,7 +38,7 @@ export interface Settings {
   menuFast: boolean;             // no fly-in behind the menu, thumbnails at load; =0 the old
   thumbCache: boolean;           // thumbnails saved per version (thumbcache.js); =0 painted
   texWarm: boolean;              // long-grass textures painted while loading; =0 in the menu
-  staleCap: boolean;             // ?stalecap=1: one worn ground tile repainted a frame
+  maxDpr: number | null;         // ?dpr=1.5: draw at most this sharpness (frame-drop test)
   noShade: boolean;              // ?noshade: skip the hill shading (perf A/B)
   grassEnds: "round" | "square";   // ?grass=square: square grass blade ends (cheaper; A/B)
   surfaceTextures: boolean;       // ?tex=0: paint surfaces live, not pre-painted textures (A/B)
@@ -62,6 +62,12 @@ function autopilotKmh(params: URLSearchParams): number {
 function churnKind(params: URLSearchParams): '' | 'pictures' | 'objects' {
   const kind = params.get('churn');
   return kind === 'pictures' || kind === 'objects' ? kind : '';
+}
+
+// ?dpr=: the screen sharpness cap under test (1-2 device px per CSS px; the game's own cap is 2)
+function maxDpr(params: URLSearchParams): number | null {
+  if (!params.has('dpr')) return null;
+  return Math.max(1, Math.min(2, +params.get('dpr')! || 2));
 }
 
 export function readSettings(search: string): Settings {
@@ -126,7 +132,7 @@ export function readSettings(search: string): Settings {
     thumbCache: params.get('thumbcache') !== '0',
     // default since 2026-10-17 (owner approved): long-grass textures painted while loading
     texWarm: params.get('texwarm') !== '0',
-    staleCap: params.get('stalecap') === '1',
+    maxDpr: maxDpr(params),
     noShade: params.has('noshade'),
     grassEnds: params.get('grass') === 'square' ? 'square' : 'round',
     surfaceTextures: params.get('tex') !== '0',
