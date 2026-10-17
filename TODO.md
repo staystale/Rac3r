@@ -241,16 +241,17 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
          copies: fold them in).
          NEXT ASK (owner, 2026-10-16): "tyre marks seem to quiver, I think they always have" -
          cause: the marks layer (MARK_PPM 4.2 px/m) stretched ~3.6x NEAREST into the art grid each
-         frame, so a mark pixel is 3 or 4 art px wide by camera position. BUILT behind
-         ?sharpmarks=1 (owner phone test pending, testlist 'sharpmarks'): the art buffer so far
+         frame, so a mark pixel is 3 or 4 art px wide by camera position. DONE, the DEFAULT
+         since 2026-10-17 (owner: "both fixes tested and working"; ?sharpmarks=0 = off): the art
+         buffer so far
          (ground, deck) is blitted, the marks drawn on the screen canvas at device resolution
          (an edge moves by one device px, not one art px), the buffer cleared for the layers
          above (render/screen.ts drawMarksOnScreen). Switch off: renderhash SAME.
-- [ ] JOKER BUGS (owner, 2026-10-16): (1) the joker lap / joker section did not show on the
+- [x] JOKER BUGS (owner, 2026-10-16; FIXED, the DEFAULT since 2026-10-17, owner: "tested and
+      working"; ?jokerfix=0 = the old behaviour): (1) the joker lap / joker section did not show on the
       minimap (it drew the main centreline only); (2) RESET in the joker lane put the car back on
       the main road (the last point ON the main track, before the joker): it should put it back on
-      the joker lane where it came off. BUILT behind ?jokerfix=1 (owner phone test pending,
-      testlist 'jokerfix'): world/joker.ts (the joker lane, a spot / pose on it, one lookup for
+      the joker lane where it came off. How: world/joker.ts (the joker lane, a spot / pose on it, one lookup for
       the rules, RESET and the minimap); rules.js stepJoker remembers the last spot ON the lane
       (forgotten on the main road); session.js resetOnJoker: 4 m back, on the lane edge the car
       left by, nose turned in; the minimap draws the lane as road. Measured (tools: a scratch

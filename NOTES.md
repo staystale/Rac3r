@@ -33,12 +33,14 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   with smooth moves, frame pacing, minimap (highway too), grippier grass, the Lab split: approved and
   default (10-15 / 10-16).
 - Cars: look B, turned and scaled at screen resolution on the 2D screen canvas (`drawSharpCarLayers`),
-  not strict pixel art; default since 10-16 (`?sharpcars=0` = off). Pre-turned pixel art (RotSprite)
+  not strict pixel art; default since 10-16 (`?sharpcars=0` = off). Skid marks drawn on the screen
+  canvas too (no quiver), and the joker lane on the minimap + RESET back onto it: default since 10-17
+  (`?sharpmarks=0`, `?jokerfix=0` = off). Pre-turned pixel art (RotSprite)
   was the alternative, not chosen.
 - Not wanted / undone: the highway rebuild (cancelled 10-15), a fade at zoom steps, tiles tracing
   only their part of the ribbon (`?ribboncull`, undone 10-16), the WebGL cars (`?gpucars`, removed
   10-16), the menu recording (parked until after the graphics work).
-- Order (10-16): graphics first (next: the tyre marks quiver), then fewer ground samples
+- Order (10-16): graphics first (the tyre marks quiver: done 10-17), then fewer ground samples
   (`?groundlite`, phone test when in doubt), then rain and weather (answers in `TODO.md`). Off-screen
   AI at half rate: saved for when more performance is needed.
 
@@ -61,8 +63,7 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   painting itself.
 - A CPU-backed texture pattern-filled onto a GPU-backed canvas is moved on every fill.
 - The tyre marks quiver: the marks layer (4.2 px/m) is stretched ~3.6x nearest into the art grid each
-  frame, so a mark pixel is 3 or 4 art px wide by camera position (`?sharpmarks=1` draws them on
-  the screen canvas instead).
+  frame, so a mark pixel is 3 or 4 art px wide by camera position; now drawn on the screen canvas.
 - Laptop frame numbers swing with the machine (Brands work median 20 ms one hour, 38 ms the next,
   main included): only compare A/B runs made back to back.
 - `?report=1` records without drawing the meter graph (`?meter=1` shows it).
