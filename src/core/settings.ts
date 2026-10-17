@@ -24,7 +24,6 @@ export interface Settings {
   glGround: boolean;             // ?glground=0: the ground tiles in the 2D art buffer, not WebGL
   gpuPaint: boolean;             // floor + zones painted by the GPU (glpaint.ts); off: ?gpupaint=0
   zoomHold: boolean;             // the speed zoom holds, then glides (camera.ts); off: ?zoomhold=0
-  zoomFix: number | null;        // ?zoomfix=0.4: the race zoom held at this level (judder test)
   minimap: boolean;              // the road-ahead minimap (hud/minimap.js); off: ?minimap=0
   menuVideo: boolean;            // ?menuvideo=1 (parked): the recorded race behind the menu
   grassGrip: boolean;            // grippier dry grass (surfaces.ts); ?grassgrip=0 = the old grip
@@ -60,12 +59,6 @@ export interface Settings {
 function autopilotKmh(params: URLSearchParams): number {
   const kmh = +(params.get('autopilot') || 0);
   return kmh > 1 ? kmh : 0;
-}
-
-// ?zoomfix=: the zoom held still for the race, 0.3 (render.ts ZOOM_MIN) to 1
-function zoomFix(params: URLSearchParams): number | null {
-  if (!params.has('zoomfix')) return null;
-  return Math.max(0.3, Math.min(1, +params.get('zoomfix')! || 0.4));
 }
 
 function churnKind(params: URLSearchParams): '' | 'pictures' | 'objects' {
@@ -104,7 +97,6 @@ export function readSettings(search: string): Settings {
     // default since 2026-10-16 (owner approved on the phone); =0 brings the old path back
     gpuPaint: params.get('gpupaint') !== '0',
     zoomHold: params.get('zoomhold') !== '0',
-    zoomFix: zoomFix(params),
     // default since 2026-10-16 (owner: "mini map tests good"); then the pause setting decides
     minimap: params.get('minimap') !== '0',
     menuVideo: params.get('menuvideo') === '1',
@@ -122,8 +114,9 @@ export function readSettings(search: string): Settings {
     jokerFix: params.get('jokerfix') !== '0',
     // default since 2026-10-17 (owner: "seems okay"): 12 ground lookups a car a step, not ~22
     groundLookup: params.get('groundlookup') !== '0',
-    // default since 2026-10-17 (owner approved): the ground tiles placed exactly on the GPU
-    // ground, not on whole art pixels, so the track edges hold still while the zoom moves
+    // default since 2026-10-17 (owner: "test passed track edges don't wiggle"): the ground tiles
+    // placed exactly on the GPU ground, not on whole art pixels, so the track edges hold still
+    // while the zoom moves
     exactTiles: params.get('exacttiles') !== '0',
     // default since 2026-10-17: HUD > in the pause menu, an ON / OFF per HUD piece
     hudMenu: params.get('hudmenu') !== '0',

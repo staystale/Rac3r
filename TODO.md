@@ -73,17 +73,17 @@ the git history. `docs/foreman-handover.md` is the last handover (10-17 evening)
   the 2D canvas as its bottom layer each frame, the WebGL canvas hidden (WebGL -> 2D can stay on
   the GPU; 2D -> WebGL each frame juddered before).
   ?onecanvas=1 held 48 (17:21); the ORIGINAL build held 0 at the corners (17:31).
-- NOW (owner decision, 2026-10-17 evening): REBUILD THE DRAWING LEAN, KEEP THE GAME - see
-  docs/foreman-handover.md: 1) ?lean=1 (one 2D canvas, CPU ground, cars / marks in the art
-  buffer); 2) the zoom style that ends the "dance" (owner chooses: fixed steps / smooth / smaller
-  range); 3) add the nicer touches back one at a time, each with a recording. Then WEATHER. (see "GRASS GRIP + WATER"
-  below, owner answers).
-  STEP 1 needs no new code: lean = ?glground=0&sharpcars=0&sharpmarks=0 (the CPU path bakes
-  the hill shading into the tiles; one blit a frame). Owner recordings 10-17 (Castle Cum,
-  autopilot): held frames 0.3-0.6 a second in 4 lean runs (default 5.2, the original 0.6);
-  ?minimap=0 and ?dpr=1.25 made no difference. Owner: still "judders like lag", edges dance,
-  marks quiver. Owner chose fixed zoom steps, but first a test: ?zoomfix=0.4 holds the zoom
-  for the race (no zoom-step tile repaints: 63 tiles painted in 11 s vs 99). Recording pending.
+- LEAN DRAWING PLAN PAUSED, DEFAULT KEPT (owner, 2026-10-17 night: "our default link is working
+  pretty good ... let's move on"). Lean = ?glground=0&sharpcars=0&sharpmarks=0 (no new code;
+  the CPU path bakes the hill shading into the tiles). Owner recordings (Castle Cum, autopilot):
+  lean held 0.3-0.6 frames a second (Safari default 4-5, the original 0.6); ?minimap=0, ?dpr=1.25
+  and a zoom held still (?zoomfix, removed) made no difference. The SAME default build in
+  DuckDuckGo (iOS WebKit too): the owner saw no holds, menu included; Safari held 42 in 10 s.
+  So the holds are how Safari shows the page, not our drawing. Before itch: record the
+  home-screen app (no Safari toolbar over the game). Parked: fixed zoom steps (only for the
+  edge dance in the lean path).
+- NEXT: WEATHER (see "GRASS GRIP + WATER" below, owner answers, plan R1-R4). Owner also saw a
+  very minor jerk behind the main menu (DuckDuckGo).
 - GRASS THROUGH THE CRACKS (owner: a and b, "like real life"): long-grass tufts in some
   broken-tarmac flecks, and scattered on broken-tarmac / concrete ground (blend.ts, own random
   stream: every existing patch unchanged). OWNER APPROVED 2026-10-16 (testlist entry deleted).

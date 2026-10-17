@@ -19,7 +19,6 @@ interface CameraHelpers {
   paletteSnap: (c: HTMLCanvasElement) => void;
   prefetch: (k: number, cx: number, cy: number, z: number, budget: TileBudget) => void;
   zoomHold: boolean;   // hold the zoom, move it smoothly (springZoom); off: ?zoomhold=0
-  zoomFix: number | null;   // ?zoomfix=: the zoom pinned for the race (a judder test), or null
 }
 
 // what the moved functions share
@@ -40,7 +39,6 @@ interface CameraCtx {
   drawCurvedKerbs: () => void;
   paletteSnap: (c: HTMLCanvasElement) => void;
   zoomHold: boolean;
-  zoomFix: number | null;
 }
 
 // SPEED ZOOM. Asked for by the user and by the playtesters: above ~120 km/h the car was running
@@ -253,10 +251,9 @@ function stepFly(ctx: CameraCtx, car: CamCar, wallDt: number) {
   const pan = 1 - Math.pow(1 - progress, 3);
   cam.x = camState.fly.cx + (targetX - camState.fly.cx) * pan;
   cam.y = camState.fly.cy + (targetY - camState.fly.cy) * pan;
-  // ease in log space: even feel; with ?zoomfix= it lands on the held zoom
-  const landZoom = ctx.zoomFix || 1;
+  // ease in log space: even feel
   view.zoom = Math.exp(Math.log(camState.fly.z0)
-    + (Math.log(landZoom) - Math.log(camState.fly.z0)) * eased);
+    + (Math.log(1) - Math.log(camState.fly.z0)) * eased);
   if (progress >= 1) camState.fly = null;
   cam.lx = undefined;
   return true;
@@ -361,15 +358,14 @@ function springZoom(ctx: CameraCtx, target: number, wallDt: number) {
 export function createCamera(view: View, cam: Cam, helpers: CameraHelpers) {
   const {
     PPMz, drawFloor, drawZones, drawLanes, drawTrackRibbon, drawPatches, drawCovers,
-    drawCurvedKerbs, paletteSnap, zoomHold, zoomFix,
+    drawCurvedKerbs, paletteSnap, zoomHold,
   } = helpers;
-  // ?zoomfix=: the speed zoom never moves the view (the fly-in still runs, then hands over to it)
   const camState: CamState = {
-    fly: null, ovCache: null, vZoom: null, pinZoom: zoomFix, zoomSpring: null,
+    fly: null, ovCache: null, vZoom: null, pinZoom: null, zoomSpring: null,
   };
   const ctx: CameraCtx = {
     view, cam, camState, PPMz, drawFloor, drawZones, drawLanes, drawTrackRibbon, drawPatches,
-    drawCovers, drawCurvedKerbs, paletteSnap, zoomHold, zoomFix,
+    drawCovers, drawCurvedKerbs, paletteSnap, zoomHold,
   };
   return {
     camState,

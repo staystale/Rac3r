@@ -51,9 +51,9 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
 - Not wanted / undone: the highway rebuild (cancelled 10-15), a fade at zoom steps, tiles tracing
   only their part of the ribbon (`?ribboncull`, undone 10-16), the WebGL cars (`?gpucars`, removed
   10-16), the menu recording (parked until after the graphics work).
-- Order (10-17 evening): rebuild the drawing lean, keep the game (handover 10-17 evening: lean
-  canvas, then the zoom style, then add touches back one at a time), then weather (answers and
-  plan R1-R4 in `TODO.md` "GRASS GRIP + WATER"). Off-screen AI at half rate: saved.
+- Order (10-17 night): the lean drawing plan is paused and today's default kept (the holds are
+  Safari's, see Measured lessons); next weather (answers and plan R1-R4 in `TODO.md` "GRASS GRIP
+  + WATER"). Off-screen AI at half rate: saved.
 - Weather (10-17): a season slider sets the chances of rain / snow / dry / hot / super hot, the
   temperature and the track condition; it can change mid-race; it must add no lag. One water
   system: the existing wet / puddle cover, extended, never a second one.
@@ -69,6 +69,10 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   smoothness there: the WebGL ground under the 2D canvas made Safari hold 48-78 frames in 15 s at
   Castle Cum's corners, the CPU ground 9, the original build 0. Every new look is a per-frame cost
   for Safari: prove each with a held-frame recording before it becomes the default.
+- The held frames are Safari's way of showing the page: the same default build in DuckDuckGo
+  (iOS WebKit too) showed the owner no holds while a Safari tab held 42 in 10 s (10-17). The
+  lean drawing only brought Safari to the original's level (0.3-0.6 a second). Test a Safari
+  look in the home-screen app too before blaming our drawing.
 - Never copy pixels between the 2D canvas and WebGL every frame: uploading the art buffer each frame
   took the phone's draw time from 3 to 7-8 ms and juddered.
 - Felt judder comes and goes on the same build (two Castle Cum runs, same link: "juddery" and "fine",
