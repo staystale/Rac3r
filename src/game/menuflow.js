@@ -81,6 +81,7 @@ export function enterMenu() {
   shared.boot.classList.add('gone');
   shared.hud.close();
   shared.race.on = false;
+  shared.weatherPlan = null;   // the race behind the menu is dry
   // ?menuvideo=1 (parked): the recording behind the menu (menuvideo.js); else the live race below
   shared.menuVideo = shared.settings.menuVideo && showMenuVideo();
   if (shared.menuVideo) {
@@ -110,6 +111,10 @@ export function applyLaunchOptions(levelId, opts) {
   shared.race.on = !!opts.rx;
   shared.aiCarMode = opts.aiCars === 'class' ? 'class' : 'same';
   shared.raceLaps = Math.max(0, Math.min(10, opts.laps | 0));
+  // WEATHER (setup, ?weather=1): the plan and the seed its random stream starts from, so a restart
+  // replays the same weather; none = the dry 18 C game
+  shared.weatherPlan = opts.weather ? { mode: opts.weather.mode, season: opts.weather.season,
+    seed: Math.floor(Math.random() * 2147483646) + 1 } : null;
   if (opts.traffic != null) shared.trafficDensity = Math.max(0, Math.min(1.5, +opts.traffic));
   {
     const level = LEVELS.find((item) => item.id === levelId);

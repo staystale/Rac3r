@@ -477,6 +477,17 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
       random stream), the existing wet spray and light "dried" tyre trails. drawload: +~420 path
       pieces in the art buffer, nothing on the screen canvas or the GPU. renderhash dry: SAME
       (against a reference re-saved on R3a). Phone held-frame recording: with the owner's look.
+      R2 BUILT behind ?weather=1: the event setup's WEATHER row (SEASON / DRY / HOT / VERY HOT /
+      RAIN / HEAVY RAIN), the SEASON slider (default: today's season) and its forecast; remembered
+      in the profile. weather.ts: per season the chance of each weather and the air temperature
+      (a British year); SEASON mode can change every 70-180 s of race (seeded: a restart replays
+      it); rain soaks the track (heavy ~1 min), a dry spell dries it by track temperature (~9 min
+      at 20 C, ~4 at 45 C); the HUD notice says RAIN STARTING / HEAVY RAIN / SNOW FALLING / RAIN
+      STOPPING / HOT TRACK. Tyres cool toward and start at the TRACK temperature (18 C without
+      weather). Hot / very hot: dirt wears to gravel. Falling snow look (render/rain.ts). Proof:
+      simhash with weather off SAME (13/13); browser races heavy / very hot / winter: no errors.
+      ?slidewear=1 (owner): a sliding wheel (slip > 4 m/s: crashes, spins, drifts) counts its
+      wear pass twice - the slip the wear step already reads, no new checks.
 
 ## GAME NAME: RAC3R (user, 2026-10-03)
 

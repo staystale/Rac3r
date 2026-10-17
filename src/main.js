@@ -34,7 +34,7 @@ import { setTuneAudio, snapshot } from './tune.js';
 import { TUNE } from './vehicle.ts';
 import { initWorld } from "./world/load.ts";
 import { applyOldGrassGrip } from "./world/surfaces.ts";
-import { setGroundLookup } from "./world/wear.ts";
+import { setGroundLookup, setSlideWear } from "./world/wear.ts";
 import { setWetness, setRain } from "./world/weather.ts";
 import { LEVEL } from "./world/state.ts";
 
@@ -58,6 +58,7 @@ addHighwayLevel();
 shared.settings = readSettings(location.search);
 if (!shared.settings.grassGrip) applyOldGrassGrip();   // ?grassgrip=0: the old grass grip
 setGroundLookup(shared.settings.groundLookup);   // ?groundlookup=1: fewer ground lookups (wear.ts)
+setSlideWear(shared.settings.slideWear);   // ?slidewear=1: sliding wheels wear the ground twice
 // ?rain=0.6: a wet track, raining (weather test, before any level or racing line is built)
 if (shared.settings.rain !== null) {
   setWetness(shared.settings.rain);
@@ -254,7 +255,7 @@ shared.boot.addEventListener('pointerdown', (event) => {
 });
 addEventListener('keydown', start);
 shared.menu = shared.MENU
-  ? createMenu({ thumbs: paintThumbs, launch,
+  ? createMenu({ thumbs: paintThumbs, launch, weather: shared.settings.weather,
     genStage: (options) => installStage(genStage(options)),
       carSprite: (x, livery, wheels) => (typeof x === 'string'
         ? shared.renderer.pixelCarWithWheels(applyLivery(makeCar(x).spec, livery)) : wheels

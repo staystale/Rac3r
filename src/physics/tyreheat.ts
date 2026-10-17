@@ -1,7 +1,8 @@
 // Tyre heat: friction work per axle and the tyre temperature update of step.
 
 import type { Spec } from '../cars.ts';
-import { clamp, TYRE_HEAT, TYRE_FLEX, TYRE_AMBIENT, TYRE_T_MAX } from '../vehicle.ts';
+import { clamp, TYRE_HEAT, TYRE_FLEX, TYRE_T_MAX } from '../vehicle.ts';
+import { WEATHER } from '../world/weather.ts';
 import type { Car } from '../vehicle.ts';
 import { axleForce } from './tyres.ts';
 import type { AxleTick } from './tyres.ts';
@@ -74,13 +75,14 @@ export function updateTyreTemps(car: Car, carSpec: Spec, tick: AxleTick, out: Ax
     // straight past 85 C to 249 C)
     const flexHeat = Math.min(1 / dt, TYRE_FLEX.k * 2 * flex[i] * speedFrac * heatScale)
         * Math.max(0, TYRE_FLEX.T - tyreTemps[i]);
+    // tyres cool toward the TRACK temperature (weather.ts; 18 C with no weather)
     tyreTemps[i] += ((wheelWork[i] * heatScale) / capK + flexHeat - cool
-        * (tyreTemps[i] - TYRE_AMBIENT)) * dt;
+        * (tyreTemps[i] - WEATHER.trackC)) * dt;
     // NaN guard ONLY. MEASURED BUG (requirement: tyres that get too hot just roll over the temp
     // table and start cold again — they should pop or hold temp until cooled): this used to reset
     // anything over 400 C to ambient. Now a real number is CAPPED and HELD until it cools;
     // bursting arrives with the damage system.
-    if (!Number.isFinite(tyreTemps[i])) tyreTemps[i] = TYRE_AMBIENT;
+    if (!Number.isFinite(tyreTemps[i])) tyreTemps[i] = WEATHER.trackC;
     else if (tyreTemps[i] > TYRE_T_MAX) tyreTemps[i] = TYRE_T_MAX;
   }
   telem.gripTF = gripTF; telem.gripTR = gripTR;

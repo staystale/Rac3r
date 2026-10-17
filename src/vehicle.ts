@@ -16,6 +16,7 @@ import type { Spec, Mods, Surface } from './cars.ts';
 import { computeAxleLoads, computeLongitudinalDemand } from './physics/loads.ts';
 import { steerFrontWheels, runPowertrain } from './physics/powertrain.ts';
 import { updateTyreTemps } from './physics/tyreheat.ts';
+import { WEATHER } from './world/weather.ts';
 import type { AxleOutcome } from './physics/tyreheat.ts';
 import { ALPHA_PEAK_MIN, computeAxleForces, ploughingForces } from './physics/tyres.ts';
 import type { AxleTick } from './physics/tyres.ts';
@@ -161,7 +162,9 @@ export const TUNE = {
 // GRIP: only on a HARD surface (surface.hard), a tyre outside its working window grips less;
 // off-road grip ignores temperature, as in real life (user). Per-car window: spec.tyreOpt [lo, hi],
 // spec.tyreColdGrip. Tyres start COLD (ambient) on every reset (requirement: cold, warm them up).
-export const TYRE_AMBIENT = 18;    // deg C until weather exists
+// deg C: a cold tyre, the reference of the warm-up grip curve (tyreGrip); the air and track
+// temperatures are the weather's (weather.ts), 18 C when there is none
+export const TYRE_AMBIENT = 18;
 // deg C a tyre is held at; a burst replaces this once damage exists
 export const TYRE_T_MAX = 260;
 // 3500, was 2200 (requirement: temp seems a bit easy to build in tyres, it should be a bit harder).
@@ -342,7 +345,9 @@ export function reset(car: Car, x = 0, y = 0, heading = -Math.PI / 2) {
   car.gear = 1; car.shiftTimer = 0;
   car.aLongPrev = 0; car.reverseTimer = 0; car.transfer = 0;
   car.wheelSpin = 0;
-  car.tyreT = [TYRE_AMBIENT, TYRE_AMBIENT, TYRE_AMBIENT, TYRE_AMBIENT];   // cold start (user)
+  // a cold start (user): at the track's temperature (weather.ts; 18 C with no weather)
+  const startC = WEATHER.trackC;
+  car.tyreT = [startC, startC, startC, startC];
   car.slipFPrev = 0;
   car.aPeakFPrev = 0.12;
   car.align = 1;

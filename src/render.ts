@@ -648,7 +648,8 @@ function createGpuGround(canvas: HTMLCanvasElement, settings: Settings) {
  */
 function rainDrawer(pctx: CanvasRenderingContext2D, state: RenderState) {
   const rain = createRain();
-  return () => rain.draw(pctx, pctx.canvas.width, pctx.canvas.height, state.wallDt, WEATHER.rain);
+  return () => rain.draw(pctx, pctx.canvas.width, pctx.canvas.height, state.wallDt, WEATHER.rain,
+    WEATHER.snow);
 }
 
 /**

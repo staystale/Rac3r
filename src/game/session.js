@@ -6,6 +6,7 @@ import { createRaceFlow } from '../raceflow.js';
 import { repair, resetBill } from '../damage.js';
 import { SPAWN, LEVEL } from "../world/state.ts";
 import { clearWear } from "../world/wear.ts";
+import { startWeather } from "../world/weather.ts";
 import { resetRace, resetStage } from './rules.js';
 import { findNearestSubtrackPoint, onTrack } from "../world/tyrewall.ts";
 import { jokerLane, lanePose } from "../world/joker.ts";
@@ -252,6 +253,9 @@ export function onScreen(x, y) {
 }
 export function doRestart() {
   saveRecords();
+  // the event's weather from its start (before the cars' tyres take the track temperature and the
+  // AI plans its speeds for the wetness)
+  startWeather(shared.weatherPlan || null);
   if (LEVEL.endless) {
     resetHighway(LEVEL);
     game.hwDist = 0;

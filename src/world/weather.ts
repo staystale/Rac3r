@@ -1,31 +1,115 @@
-// THE WEATHER: how wet the track is and how warm the air is. One small state object read by the
-// ground (wet.ts: damp surfaces, the dry line), the tyres (ambient temperature) and the AI (its
-// speed plan follows the wetness). No weather (the default) is wetness 0 and 18 C: every reader
-// then behaves exactly as before weather existed.
+// THE WEATHER: how wet the track is, how hard it rains or snows and how warm it is. One small state
+// object read by the ground (wet.ts: damp surfaces, the dry line), the tyres (they warm and cool
+// toward the TRACK temperature), the AI (its speed plan follows the wetness) and the look (rain.ts,
+// the wet ground). No weather (the default) is a dry track at 18 C: every reader then behaves
+// exactly as before weather existed.
 //
-// WETNESS is the water on the ground everywhere, 0 (dry) .. 1 (soaked): the surfaces between
-// their dry and DAMP grip (surfaces.ts WET_MU, the owner's signed-off table). It is read in
-// WET_BANDS steps, so the damp surfaces are a small cached set and the AI re-plans only when the
-// wetness moves a whole step. Puddles (standing water) are a separate cover (wear.ts), not this.
+// WETNESS is the water on the ground everywhere, 0 (dry) .. 1 (soaked): the surfaces between their
+// dry and DAMP grip (surfaces.ts WET_MU, the owner's signed-off table). It is read in WET_BANDS
+// steps, so the damp surfaces are a small cached set and the AI re-plans only when the wetness
+// moves a whole step. Puddles (standing water) are a separate cover (wear.ts), not this.
+//
+// THE SEASON (event setup) sets the chance of each kind of weather and the air temperature; in
+// SEASON mode the weather can change through the race (sim time, its own seeded random stream, so
+// a restart replays it). Rain soaks the track over about a minute (heavy) to a few (light); a dry
+// spell dries it by the track temperature (minutes in summer, a long time in winter).
+
+import { lcg } from "../core/random.ts";
 
 /** the steps wetness is read in: 0 = dry .. WET_BANDS = soaked */
 export const WET_BANDS = 10;
+
+/** What the sky is doing. */
+export type WeatherKind = 'dry' | 'rain' | 'heavy' | 'snow' | 'hot' | 'superhot';
+/** The event setup's choice: follow the season (changes in the race), or a fixed weather. */
+export type WeatherMode = 'season' | 'dry' | 'hot' | 'superhot' | 'rain' | 'heavy';
 
 /** The weather now. */
 export interface WeatherState {
   /** water on the ground everywhere, 0 (dry) .. 1 (soaked) */
   wetness: number;
-  /** how hard it is raining, 0 .. 1 (re-wets the dry line; the rain look) */
+  /** how hard it is raining, 0 .. 1 (soaks the track, re-wets the dry line; the rain look) */
   rain: number;
-  /** air temperature, C (the tyres cool toward it) */
+  /** how hard it is snowing, 0 .. 1 (the snow look; snow lying is the puddle step) */
+  snow: number;
+  /** air temperature, C */
   tempC: number;
+  /** track temperature, C: the air plus what the sun puts into the surface (tyres follow it) */
+  trackC: number;
+  /** what the sky is doing */
+  kind: WeatherKind;
   /** wetness in steps, 0 .. WET_BANDS */
   band: number;
   /** counts every change of band: readers that cache by wetness compare it */
   epoch: number;
 }
 
-export const WEATHER: WeatherState = { wetness: 0, rain: 0, tempC: 18, band: 0, epoch: 0 };
+export const WEATHER: WeatherState = {
+  wetness: 0, rain: 0, snow: 0, tempC: 18, trackC: 18, kind: 'dry', band: 0, epoch: 0,
+};
+
+export const SEASON_NAMES = ['WINTER', 'SPRING', 'SUMMER', 'AUTUMN'];
+
+// The chance of each kind of weather per season, and the air temperature range (C): a British
+// year - wet, mild winters with some snow; hot spells only in summer.
+const SEASONS: { chance: Record<WeatherKind, number>; airC: [number, number] }[] = [
+  { chance: { dry: 0.40, rain: 0.25, heavy: 0.10, snow: 0.25, hot: 0, superhot: 0 }, airC: [1, 8] },
+  { chance: { dry: 0.50, rain: 0.28, heavy: 0.10, snow: 0.02, hot: 0.10, superhot: 0 },
+    airC: [8, 16] },
+  { chance: { dry: 0.42, rain: 0.13, heavy: 0.07, snow: 0, hot: 0.28, superhot: 0.10 },
+    airC: [17, 25] },
+  { chance: { dry: 0.47, rain: 0.30, heavy: 0.15, snow: 0.03, hot: 0.05, superhot: 0 },
+    airC: [8, 15] },
+];
+
+// Each kind: how hard it rains / snows, what it does to the air (C), and what the sun adds to the
+// track surface (C; a sunny summer track runs 10-20 C above the air, a wet one near it).
+const KINDS: Record<WeatherKind, { rain: number; snow: number; airC: number; sunC: number }> = {
+  dry: { rain: 0, snow: 0, airC: 0, sunC: 8 },
+  rain: { rain: 0.45, snow: 0, airC: -2, sunC: 1 },
+  heavy: { rain: 1, snow: 0, airC: -3, sunC: 0 },
+  snow: { rain: 0, snow: 0.7, airC: -6, sunC: 0 },
+  hot: { rain: 0, snow: 0, airC: 6, sunC: 14 },
+  superhot: { rain: 0, snow: 0, airC: 12, sunC: 20 },
+};
+
+// the least air temperature (C) of a hot and a very hot day
+const HOT_AIR_MIN_C: Partial<Record<WeatherKind, number>> = { hot: 24, superhot: 32 };
+
+// wetness a second at rain 1 (heavy rain soaks the track in about a minute)
+const SOAK_PER_S = 1 / 60;
+// wetness a second a dry spell takes off per C of track temperature (20 C: ~9 min to dry a soaked
+// track; a 45 C summer track ~4 min; a 10 C winter one ~18 min)
+const DRY_PER_S_PER_C = 1 / (600 * 18);
+// how fast the rain / snow and the temperatures move to a new weather (1/s): a shower builds over
+// ~15 s, the temperature over ~1 min
+const SKY_EASE = 1 / 15, TEMP_EASE = 1 / 60;
+// s between chances of a change of weather in SEASON mode, and the chance it stays the same
+const CHANGE_S: [number, number] = [70, 180];
+const STAY_CHANCE = 0.45;
+// a dry start this soon after rain (chance, and how wet it still is)
+const DRYING_START_CHANCE = 0.3, DRYING_START_WET: [number, number] = [0.2, 0.55];
+
+/** The weather plan of an event (the setup's choice). */
+export interface WeatherPlan {
+  mode: WeatherMode;
+  /** 0 winter .. 3 autumn */
+  season: number;
+  /** the random stream's start, so a restart replays the same weather */
+  seed: number;
+}
+
+// the running weather: plan, random stream, targets
+const RUN = {
+  plan: null as WeatherPlan | null,
+  random: (() => 0) as () => number,
+  baseAirC: 18,
+  nextChangeS: 0,
+  targetRain: 0,
+  targetSnow: 0,
+  targetAirC: 18,
+  targetTrackC: 18,
+};
 
 /**
  * Sets how wet the track is (and moves the band and epoch when the step changes).
@@ -51,4 +135,127 @@ export function setRain(rain: number): void {
 /** The wetness as a fraction in whole steps (what the surfaces are built at). */
 export function wetStep(): number {
   return WEATHER.band / WET_BANDS;
+}
+
+/** The kind of weather a season deals, by its chances. */
+function dealKind(season: number): WeatherKind {
+  const chance = SEASONS[season].chance;
+  let roll = RUN.random();
+  for (const kind of Object.keys(chance) as WeatherKind[]) {
+    roll -= chance[kind];
+    if (roll < 0) return kind;
+  }
+  return 'dry';
+}
+
+/** Points the sky and the temperatures at a kind of weather (they ease there). */
+function aimAt(kind: WeatherKind): void {
+  const spec = KINDS[kind];
+  WEATHER.kind = kind;
+  RUN.targetRain = spec.rain;
+  RUN.targetSnow = spec.snow;
+  // snow needs freezing air; a hot day is hot whatever the season (chosen in winter too)
+  RUN.targetAirC = kind === 'snow' ? Math.min(0, RUN.baseAirC + spec.airC)
+    : Math.max(HOT_AIR_MIN_C[kind] ?? -50, RUN.baseAirC + spec.airC);
+  RUN.targetTrackC = RUN.targetAirC + spec.sunC;
+}
+
+/** The fixed kind a mode asks for, or null (SEASON: dealt by the season). */
+function fixedKind(mode: WeatherMode): WeatherKind | null {
+  return mode === 'season' ? null : mode;
+}
+
+/**
+ * Starts an event's weather (a launch or a restart): the season's temperature, the first weather
+ * (fixed, or dealt by the season) and how wet the track already is.
+ * @param plan the setup's choice, or null for no weather (dry, 18 C: the game as before; a
+ *   weather set by hand - the ?rain test switch - is left as it is)
+ */
+export function startWeather(plan: WeatherPlan | null): void {
+  const hadPlan = !!RUN.plan;
+  RUN.plan = plan;
+  if (!plan) {
+    if (hadPlan) {
+      Object.assign(WEATHER, { rain: 0, snow: 0, tempC: 18, trackC: 18, kind: 'dry' });
+      setWetness(0);
+    }
+    return;
+  }
+  // the seed mixed first: an LCG's first draws follow its seed closely (seeds 11, 22, 33 dealt the
+  // same first weather)
+  RUN.random = lcg(Math.imul(plan.seed, 2654435761) >>> 0);
+  RUN.random();
+  const [lowC, highC] = SEASONS[plan.season].airC;
+  RUN.baseAirC = lowC + (highC - lowC) * RUN.random();
+  aimAt(fixedKind(plan.mode) || dealKind(plan.season));
+  WEATHER.rain = RUN.targetRain;
+  WEATHER.snow = RUN.targetSnow;
+  WEATHER.tempC = RUN.targetAirC;
+  WEATHER.trackC = RUN.targetTrackC;
+  // it has been raining a while; a dry day may follow rain (a drying track); hot days are dry
+  let wetness = WEATHER.rain > 0 ? 0.6 + 0.4 * RUN.random() : 0;
+  if (WEATHER.kind === 'dry' && plan.mode === 'season' && RUN.random() < DRYING_START_CHANCE) {
+    wetness = DRYING_START_WET[0] + (DRYING_START_WET[1] - DRYING_START_WET[0]) * RUN.random();
+  }
+  setWetness(wetness);
+  RUN.nextChangeS = CHANGE_S[0] + (CHANGE_S[1] - CHANGE_S[0]) * RUN.random();
+}
+
+/**
+ * Deals the next weather in SEASON mode (or keeps this one).
+ * @returns the news for the HUD, or null
+ */
+function changeWeather(): { text: string; good: boolean } | null {
+  const plan = RUN.plan!;
+  RUN.nextChangeS = CHANGE_S[0] + (CHANGE_S[1] - CHANGE_S[0]) * RUN.random();
+  if (RUN.random() < STAY_CHANCE) return null;
+  const was = WEATHER.kind, next = dealKind(plan.season);
+  if (next === was) return null;
+  aimAt(next);
+  if (KINDS[next].rain > KINDS[was].rain) {
+    return { text: next === 'heavy' ? 'HEAVY RAIN' : 'RAIN STARTING', good: false };
+  }
+  if (next === 'snow') return { text: 'SNOW FALLING', good: false };
+  if (KINDS[was].rain > 0 && KINDS[next].rain === 0) return { text: 'RAIN STOPPING', good: true };
+  if (KINDS[next].sunC > KINDS[was].sunC + 4) return { text: 'HOT TRACK', good: false };
+  return null;
+}
+
+/** Moves a value toward a target at a rate (1/s). */
+const ease = (from: number, target: number, rate: number, dt: number) =>
+  from + (target - from) * Math.min(1, rate * dt);
+
+/**
+ * One sim step of the weather: the sky and temperatures ease to the weather, the track soaks or
+ * dries, and in SEASON mode the weather may change.
+ * @param dt sim seconds
+ * @returns the news for the HUD (a change of weather), or null
+ */
+export function stepWeather(dt: number): { text: string; good: boolean } | null {
+  const plan = RUN.plan;
+  if (!plan) return null;
+  let news = null;
+  if (plan.mode === 'season') {
+    RUN.nextChangeS -= dt;
+    if (RUN.nextChangeS <= 0) news = changeWeather();
+  }
+  WEATHER.rain = ease(WEATHER.rain, RUN.targetRain, SKY_EASE, dt);
+  WEATHER.snow = ease(WEATHER.snow, RUN.targetSnow, SKY_EASE, dt);
+  WEATHER.tempC = ease(WEATHER.tempC, RUN.targetAirC, TEMP_EASE, dt);
+  WEATHER.trackC = ease(WEATHER.trackC, RUN.targetTrackC, TEMP_EASE, dt);
+  const soak = WEATHER.rain * SOAK_PER_S;
+  const dry = WEATHER.rain > 0.05 ? 0 : Math.max(0, WEATHER.trackC) * DRY_PER_S_PER_C;
+  setWetness(WEATHER.wetness + (soak - dry) * dt);
+  return news;
+}
+
+/** A one-line forecast of a season, for the event setup. */
+export function seasonForecast(season: number): string {
+  const { chance, airC } = SEASONS[season];
+  const pct = (kinds: WeatherKind[]) =>
+    Math.round(100 * kinds.reduce((sum, kind) => sum + chance[kind], 0));
+  const parts = [`DRY ${pct(['dry'])}%`, `RAIN ${pct(['rain', 'heavy'])}%`];
+  if (chance.snow) parts.push(`SNOW ${pct(['snow'])}%`);
+  if (chance.hot || chance.superhot) parts.push(`HOT ${pct(['hot', 'superhot'])}%`);
+  return parts.join(' · ') + ` · ${airC[0]}-${airC[1]} °C`;
 }

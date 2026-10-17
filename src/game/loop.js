@@ -3,6 +3,7 @@ import { PHYSICS_STEP_SECONDS } from '../vehicle.ts';
 import { takeMeterEvents } from '../ui/meter.ts';
 import { hwFrames } from '../highwayrace.ts';
 import { LEVEL } from "../world/state.ts";
+import { stepWeather } from "../world/weather.ts";
 import { stepStage, stepJoker, stepRace } from './rules.js';
 import { stepStart } from './order.js';
 import { stepAI } from './ai.js';
@@ -93,6 +94,9 @@ export function stepWorld(inp) {
     [game.car, ...game.ai.map((entry) => entry.car), ...game.traffic.cars]);
   stepAI(PHYSICS_STEP_SECONDS);
   stepRaceFlow();
+  // the weather (weather.ts): a change of sky is news on the HUD
+  const news = stepWeather(PHYSICS_STEP_SECONDS);
+  if (news) game.notice = { text: news.text, good: news.good, at: performance.now() };
   const tcars = game.traffic.cars;
   stepTrafficContacts(tcars);
   stepLooseCones(tcars);

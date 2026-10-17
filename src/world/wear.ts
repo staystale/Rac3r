@@ -2,8 +2,9 @@
 import { LEVEL } from "./state.ts";
 import type { SurfaceId } from "./surfaces.ts";
 import { SURFACES, VERGE_W, TRAP_STEPS, SURFACE_TRAP } from "./surfaces.ts";
-import { dampSurface, puddleSurface, cellDamp, dryCellLine, surfaceById } from "./wet.ts";
+import { dampSurface, puddleSurface, cellDamp, dryCellLine, surfaceById, wornTo } from "./wet.ts";
 import { WEATHER } from "./weather.ts";
+import { carWheels } from "./wheels.ts";
 import {
   FX1, FX0, FY1, FY0, KERB_W, KERB_H, KERB_RIDGE, KERB_RIDGE_L, RUNOFF_W, RUNOFF_ROUGH,
 } from "./bounds.ts";
@@ -11,7 +12,7 @@ import { zoneAt } from "./zones.ts";
 import { bumpAt, slopeAt, heightAt, bankHeightAt, BUMP_STEER } from "./terrain.ts";
 import { querySubtrack } from "./tyrewall.ts";
 import type {
-  CarBody, CoverId, Cover, Ground, Layers, Obstacle, Patch, Subtrack, Surface, WearCell, Wheel,
+  CarBody, CoverId, Cover, Ground, Layers, Obstacle, Patch, Subtrack, Surface, WearCell,
 } from "./types.ts";
 
 // =============================================================================================
@@ -314,7 +315,7 @@ function passBareCell(cell: WearCell, damp: number): void {
   const rule = BASE_WEAR[cell.base];
   // wet ground wears a pass sooner (owner's table: grass / dirt 2 -> 1, mud 3 -> 2)
   const need = rule ? rule[1] - (damp >= WET_WEAR_FROM ? 1 : 0) : 0;
-  if (rule && ++cell.passes >= need) { cell.base = rule[0]; cell.passes = 0; }
+  if (rule && ++cell.passes >= need) { cell.base = wornTo(cell.base, rule[0]); cell.passes = 0; }
   // RUTS THAT DEEPEN (step 3; user: the "vector dips" — "mud turns to thick mud / vector dips;
   // sand and gravel also have the chance to create vector dips"). A pass digs the cell down by
   // RUT[base].step (sand / gravel by chance) to its max. It is real height: the suspension feels
@@ -459,28 +460,21 @@ export function groundAt(x: number, y: number): Ground {
     surface: dampSurface(SURFACE_TRAP[band], WEATHER.wetness) };
 }
 
-export function carWheels(car: CarBody): Wheel[] {
-  const spec = car.spec;
-  const cosH = Math.cos(car.heading), sinH = Math.sin(car.heading);
-  const halfTrack = (spec.trackWidth || 1.5) / 2;
-  const frontX = car.x + cosH * spec.lf, frontY = car.y + sinH * spec.lf;
-  const rearX = car.x - cosH * spec.lr, rearY = car.y - sinH * spec.lr;
-  return [
-    { x: frontX - sinH * halfTrack, y: frontY + cosH * halfTrack }, // FL
-    { x: frontX + sinH * halfTrack, y: frontY - cosH * halfTrack }, // FR
-    { x: rearX - sinH * halfTrack, y: rearY + cosH * halfTrack }, // RL
-    { x: rearX + sinH * halfTrack, y: rearY - cosH * halfTrack }, // RR
-  ];
-}
-
 // A HOT tyre (above HOT_TYRE) over snow or water counts its pass TWICE with HOT_EXTRA_CHANCE — it
 // melts and dries faster. On ice the slip it scrubs with is multiplied by heatScrub (see stepWear).
 const HOT_TYRE = 80, HOT_EXTRA_CHANCE = 0.5;
-function recordWearPoint(x: number, y: number, simTime: number, tyreT = 0): void {
+// m/s of slip from which a wheel is SLIDING, not driving (?slidewear=1: its passes count twice)
+const SLIDE_WEAR_MIN = 4;
+let slideWear = false;
+export function setSlideWear(enabled: boolean): void { slideWear = enabled; }
+function recordWearPoint(x: number, y: number, simTime: number, tyreT = 0, sliding = false): void {
   const cell = getCell(Math.floor(x / WEAR_CELL), Math.floor(y / WEAR_CELL));
   if (!cell) return;
   if (simTime - cell.lastSeenTime > 0.35) {
     passCell(cell, tyreT);
+    // ?slidewear=1: a sliding (crashing, spinning, drifting) wheel tears the ground: its pass
+    // counts twice
+    if (sliding) passCell(cell, tyreT);
     // a hot tyre packs / melts SNOW faster (water now dries by temperature inside passCell)
     if (tyreT > HOT_TYRE && cell.cover === 'snow' && Math.random() < HOT_EXTRA_CHANCE)
       passCell(cell, tyreT);
@@ -511,14 +505,15 @@ export function stepWear(car: CarBody, dt: number): void {
     const dist = Math.hypot(dx, dy);
     // Interpolate continuously along each tyre's swept path: zero gaps even at high speed
     const steps = Math.max(1, Math.ceil(dist / (WEAR_CELL * 0.45)));
+    const slip = i < 2 ? telemetry.slipSpeedF : telemetry.slipSpeedR;
+    const sliding = slideWear && slip > SLIDE_WEAR_MIN;
     for (let step = 0; step <= steps; step++) {
       const frac = step / steps;
       recordWearPoint(prevWheel.x + dx * frac, prevWheel.y + dy * frac, wearClock,
-        car.tyreT ? car.tyreT[TYRE_OF_WHEEL[i]] : 0);
+        car.tyreT ? car.tyreT[TYRE_OF_WHEEL[i]] : 0, sliding);
     }
     // ICE SCRUB: only a wheel that is actually sliding or locked wears ice (front axle = wheels
     // 0,1)
-    const slip = i < 2 ? telemetry.slipSpeedF : telemetry.slipSpeedR;
     if (slip > ICE_SCRUB_MIN) {
       const cell = getCell(Math.floor(currWheel.x / WEAR_CELL),
         Math.floor(currWheel.y / WEAR_CELL));

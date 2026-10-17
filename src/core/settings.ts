@@ -28,6 +28,8 @@ export interface Settings {
   menuVideo: boolean;            // ?menuvideo=1 (parked): the recorded race behind the menu
   grassGrip: boolean;            // grippier dry grass (surfaces.ts); ?grassgrip=0 = the old grip
   rain: number | null;           // ?rain=0.6: the track this wet, 0-1, and raining (weather test)
+  weather: boolean;              // ?weather=1: weather in the event setup (season, changes)
+  slideWear: boolean;            // ?slidewear=1: sliding / crashing wheels wear the ground twice
   hwMap: boolean;                // the minimap on the highway too; ?hwmap=0 = not there
   sharpCars: boolean;            // crisp cars on the screen canvas (render.ts); ?sharpcars=0 off
   sharpMarks: boolean;           // skid marks on the screen canvas (render.ts); ?sharpmarks=0 off
@@ -67,6 +69,12 @@ function rainLevel(params: URLSearchParams): number | null {
   if (!params.has('rain')) return null;
   const level = params.get('rain') === '' ? 0.6 : +params.get('rain')!;
   return Number.isFinite(level) ? Math.max(0, Math.min(1, level)) : null;
+}
+
+// the weather switches: ?rain= (a fixed wet track) and ?weather=1 (weather in the event setup)
+function weatherSettings(params: URLSearchParams) {
+  return { rain: rainLevel(params), weather: params.get('weather') === '1',
+    slideWear: params.get('slidewear') === '1' };
 }
 
 function churnKind(params: URLSearchParams): '' | 'pictures' | 'objects' {
@@ -109,7 +117,7 @@ export function readSettings(search: string): Settings {
     minimap: params.get('minimap') !== '0',
     menuVideo: params.get('menuvideo') === '1',
     grassGrip: params.get('grassgrip') !== '0',
-    rain: rainLevel(params),
+    ...weatherSettings(params),
     // default since 2026-10-16 (owner: "highway mini map approved")
     hwMap: params.get('hwmap') !== '0',
     // default since 2026-10-16 (owner: "the change seems to have worked"): the cars turned and

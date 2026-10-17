@@ -5,6 +5,13 @@ import { KIND, catOf, showTrackList, addGenRows } from './tracks.js';
 import { showCarPicker } from './garage.js';
 import { hideMenu } from '../menu.js';
 import { buildLevel } from '../world/load.ts';
+import { SEASON_NAMES, seasonForecast } from '../world/weather.ts';
+
+// WEATHER (?weather=1): follow the SEASON (its chances; it can change in the race) or a fixed sky
+const WEATHER_MODES = [['season', 'SEASON'], ['dry', 'DRY'], ['hot', 'HOT'],
+  ['superhot', 'VERY HOT'], ['rain', 'RAIN'], ['heavy', 'HEAVY RAIN']];
+// the season of a month (0 = January): winter Dec-Feb, spring Mar-May, summer Jun-Aug
+const SEASON_OF_MONTH = [0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 0];
 
 // DIFFICULTY (PLAN.md §4; the centre of the field's spread — aidriver.js)
 const DIFF = [['MOBILE', 'Mobile game'], ['GAME', 'Game'], ['REALISH', 'Realish'],
@@ -252,6 +259,47 @@ OFF THE TOP AND IT IS OVER', 'sub') : null;
 }
 
 /**
+ * Adds the WEATHER rows (?weather=1): SEASON / DRY / HOT / VERY HOT / RAIN / HEAVY RAIN, the season
+ * slider and its
+ * forecast. Remembered in the profile; the first time, the season is today's.
+ * @param {object} menu the menu context
+ * @param {HTMLElement} panel the setup pane
+ * @param {object} state the setup state (writes weather)
+ */
+function addWeatherRows(menu, panel, state) {
+  const saved = menu.profile.weather || {};
+  state.weather = { mode: saved.mode || 'season',
+    season: saved.season ?? SEASON_OF_MONTH[new Date().getMonth()] };
+  const remember = () => {
+    menu.profile.weather = { ...state.weather };
+    saveProfile(menu.profile);
+  };
+  addElement(panel, 'div', 'WEATHER', 'sub');
+  const row = addElement(panel, 'div', '', 'row');
+  const forecast = addElement(panel, 'div', '', 'sub');
+  const paint = () => {
+    buttons.forEach((button, i) => button.classList.toggle('on',
+      WEATHER_MODES[i][0] === state.weather.mode));
+    forecast.textContent = seasonForecast(state.weather.season)
+      + (state.weather.mode === 'season' ? ' · CAN CHANGE IN THE RACE' : '');
+  };
+  const buttons = WEATHER_MODES.map(([mode, label]) => addButton(menu, row, label, () => {
+    state.weather.mode = mode;
+    remember();
+    paint();
+  }));
+  addSetupSlider(menu, panel, 'SEASON', 0, 3, 1, state.weather.season,
+    (value) => SEASON_NAMES[value], (value) => {
+      state.weather.season = value;
+      remember();
+      paint();
+    });
+  // the slider row sits above the forecast line
+  panel.appendChild(forecast);
+  paint();
+}
+
+/**
  * Adds the LAUNCH button (starts the session with the chosen options) and BACK.
  * @param {object} menu the menu context
  * @param {HTMLElement} panel the setup pane
@@ -265,6 +313,7 @@ function addLaunchButtons(menu, panel, level, state) {
     menu.api.launch(level.id, profile.active,
       { rx: state.rxRace, ai: state.opponents, diff: state.diff, road: state.road,
         aiCars: state.aiCars,
+        ...(state.weather ? { weather: state.weather } : {}),
         ...(level.endless ? { traffic: state.traffic, litter: state.litter } : {}),
         laps: state.opponents || state.rxRace ? state.laps : 0,
         livery: (profile.livery || {})[profile.active],
@@ -304,6 +353,7 @@ export function showSetup(menu, level) {
   addRxRaceRow(menu, panel, level, state);
   addLapsRow(menu, panel, level, state);
   state.paint();
+  if (menu.api.weather) addWeatherRows(menu, panel, state);
   showCarPicker(menu, panel);
   addLaunchButtons(menu, panel, level, state);
 }
