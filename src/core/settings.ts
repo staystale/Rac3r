@@ -30,6 +30,7 @@ export interface Settings {
   rain: number | null;           // ?rain=0.6: the track this wet, 0-1, and raining (weather test)
   weather: boolean;              // ?weather=1: weather in the event setup (season, changes)
   slideWear: boolean;            // ?slidewear=1: sliding / crashing wheels wear the ground twice
+  tyreWear: boolean;             // ?tyrewear=1: tyres wear, puncture; the garage fits new sets
   hwMap: boolean;                // the minimap on the highway too; ?hwmap=0 = not there
   sharpCars: boolean;            // crisp cars on the screen canvas (render.ts); ?sharpcars=0 off
   sharpMarks: boolean;           // skid marks on the screen canvas (render.ts); ?sharpmarks=0 off
@@ -74,7 +75,7 @@ function rainLevel(params: URLSearchParams): number | null {
 // the weather switches: ?rain= (a fixed wet track) and ?weather=1 (weather in the event setup)
 function weatherSettings(params: URLSearchParams) {
   return { rain: rainLevel(params), weather: params.get('weather') === '1',
-    slideWear: params.get('slidewear') === '1' };
+    slideWear: params.get('slidewear') === '1', tyreWear: params.get('tyrewear') === '1' };
 }
 
 function churnKind(params: URLSearchParams): '' | 'pictures' | 'objects' {

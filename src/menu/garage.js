@@ -1,3 +1,5 @@
+import { wearColour } from '../physics/tyrewear.ts';
+import { COL } from '../world/colours.ts';
 import {
   ROSTER, CLASSES, classOf, PALETTE, TYRES, TYRE_BRANDS, TYRE_SURFS, tyreOf,
 } from '../cars.ts';
@@ -217,6 +219,34 @@ font-size:15px';
 }
 
 /**
+ * How worn a car's set of tyres is (?tyrewear=1): its most worn tyre, 0 new .. 1 bald.
+ * @param {object} menu the menu context
+ * @param {string} carId the car
+ * @returns {number} the wear
+ */
+function setWear(menu, carId) {
+  const wear = (menu.profile.tyreWear || {})[carId];
+  return wear ? Math.max(...wear) : 0;
+}
+
+/**
+ * The fitted set's wear in the tyre shop (?tyrewear=1), and the FIT button's words: a worn fitted
+ * set can be swapped for a NEW SET.
+ * @param {object} menu the menu context
+ * @param {string} carId the car
+ * @param {boolean} fitted whether the tyre shown is the one fitted
+ * @param {HTMLElement} info the shop's info panel
+ * @param {HTMLElement} fitButton the FIT button
+ */
+function showSetWear(menu, carId, fitted, info, fitButton) {
+  const worn = setWear(menu, carId);
+  fitButton.innerHTML = !fitted ? 'FIT ✓' : worn > 0.02 ? 'NEW SET ✓' : 'FITTED ✓';
+  if (!fitted || !menu.api.tyreWear) return;
+  info.innerHTML += `<div class="stats"><span>THIS SET</span>`
+    + `<b style="color:${wearColour(worn, COL)}">${Math.round(worn * 100)}% WORN</b></div>`;
+}
+
+/**
  * TYRES (user: 4 brands / 15 types, fit by class, prices shown, the effect shown
  * with the stats). FIT saves it to profile.tyres[id].
  * @param {object} menu the menu context
@@ -251,9 +281,14 @@ solid ' + brand.col;
   const fitR = addElement(panel, 'div', '', 'row');
   const fitB = addButton(menu, fitR, 'FIT ✓', () => {
     menu.profile.tyres = menu.profile.tyres || {};
-  menu.profile.tyres[carId] = sel;
-  saveProfile(menu.profile);
-  showGarage(menu);
+    menu.profile.tyres[carId] = sel;
+    // TYRE WEAR (?tyrewear=1): fitting is a NEW set - the only way to fresh tyres
+    if (menu.api.tyreWear) {
+      menu.profile.tyreWear = menu.profile.tyreWear || {};
+      menu.profile.tyreWear[carId] = [0, 0, 0, 0];
+    }
+    saveProfile(menu.profile);
+    showGarage(menu);
   }, 'go');
   addButton(menu, panel, '◀ BACK', () => showGarage(menu));
   const showTyre = () => {
@@ -288,7 +323,7 @@ ${percent > 0 ? '+' : ''}${percent}%</span></div>`;
 <span>WORKING HEAT</span><b>${opt[0]}-${opt[1]} C</b>`
       + `<span>HEATS UP</span><b>${heat}</b><span>PRICE</span><b>\
 £${tyre.price}${tyre.price ? ' · FREE IN TEST' : ''}</b></div>`;
-    fitB.innerHTML = cur ? 'FITTED ✓' : 'FIT ✓';
+    showSetWear(menu, carId, cur, info, fitB);
   };
   showTyre();
 }

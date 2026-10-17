@@ -4,6 +4,7 @@ import type { Spec, Tyre } from '../cars.ts';
 import { TUNE, curveFactor, clamp, tyreGrip } from '../vehicle.ts';
 import type { Car } from '../vehicle.ts';
 import { axleFrictionWork } from './tyreheat.ts';
+import { wornGrip } from './tyrewear.ts';
 
 // REVERTED to effectively a switch,. Cross-fading the rolling and sliding laws over a
 // 0.30 band DID kill the track car judder (max jerk 457 -> 210) but wrecked the thing the slice
@@ -377,6 +378,21 @@ function relaxAxleForces(car: Car, dt: number, vLong: number, vLat: number,
  * force of both axles (with the tyre relaxation lag applied to Fy). Returns the tick, the axle
  * outcome and whether ABS is working.
  */
+/**
+ * The grip an axle's two tyres give from their temperature (hard ground only) and, with tyre
+ * wear (?tyrewear=1), how worn they are (any ground; worse when wet).
+ * @param car the car
+ * @param carSpec its spec
+ * @param first the axle's first tyre index (0 front, 2 rear)
+ * @returns the grip factor
+ */
+function axleTyreGrip(car: Car, carSpec: Spec, first: number): number {
+  const temps = car.tyreT, worn = car.tyreWear;
+  const heat = car.surface.hard
+    ? (tyreGrip(temps[first], carSpec) + tyreGrip(temps[first + 1], carSpec)) / 2 : 1;
+  return heat * (worn ? wornGrip(worn[first], worn[first + 1], car.surface.wetK || 0) : 1);
+}
+
 export function computeAxleForces(car: Car, carSpec: Spec, mass: number, gravity: number,
     dt: number, delta: number, vLong: number, vLat: number, vLongAbs: number, dirSign: number,
     slipF: number, slipR: number, brakeIn: number, FzF: number, FzR: number, FbF: number,
@@ -437,9 +453,7 @@ export function computeAxleForces(car: Car, carSpec: Spec, mass: number, gravity
   // static axle loads
   const FzNomF = (mass * gravity * carSpec.lr) / carSpec.L,
       FzNomR = (mass * gravity * carSpec.lf) / carSpec.L;
-  const hard = !!car.surface.hard, tyreTemps = car.tyreT;
-  const gripTF = hard ? (tyreGrip(tyreTemps[0], carSpec) + tyreGrip(tyreTemps[1], carSpec)) / 2 : 1;
-  const gripTR = hard ? (tyreGrip(tyreTemps[2], carSpec) + tyreGrip(tyreTemps[3], carSpec)) / 2 : 1;
+  const gripTF = axleTyreGrip(car, carSpec, 0), gripTR = axleTyreGrip(car, carSpec, 2);
   const wreckMul = car.wreck;   // DAMAGE: axle grip (bent suspension, a puncture)
   const frontAxle = axleForce(car, carSpec, tick, FzF, sxlF, sylF, FxDriveF + FxBrakeF, slipF,
       carSpec.caF, lockedF, FzNomF, 'spinLatchF', gripTF * (wreckMul ? wreckMul.gripF : 1));

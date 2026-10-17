@@ -9,7 +9,7 @@ import { clearWear } from "../world/wear.ts";
 import { LEVELS } from "../world/levels/index.ts";
 import { spawnAI } from './grid.js';
 import { armStart } from './order.js';
-import { doReset, saveRecords, doRestart } from './session.js';
+import { doReset, saveRecords, doRestart, saveTyreWear, loadTyreWear } from './session.js';
 import { openPause } from './menuflow.js';
 import { shared, game } from './state.js';
 
@@ -168,7 +168,9 @@ export function cycleLevel() {
 // swapped, never rebuilt, so it is instant.
 export function selectCar(carId) {
   if (!carId || carId === game.car.spec.id) return;
+  saveTyreWear();   // the old car's set is kept; the new car takes its own (?tyrewear=1)
   game.car = makeCar(carId);
+  if (shared.mode === 'session') loadTyreWear(game.car);
   snapshot(game.car);     // so the tune panel can mark what has been changed from stock
   doReset();
   spawnAI();              // the AI drive the same car as the player (user)

@@ -29,6 +29,7 @@ export interface Surface {
   id: string; mu: number; plough: number; hard: boolean;
   label?: string; peakK?: number; longK?: number; rough?: number;
   mark?: Mark | null; spray?: Spray | null; coolK?: number; heatK?: number; under?: string;
+  wetK?: number;   // how wet, 0..1 (world/wet.ts damp and puddle surfaces)
 }
 
 // A torque table: [rpm, Nm] points.

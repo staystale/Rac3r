@@ -5,6 +5,7 @@ import { clamp, TYRE_HEAT, TYRE_FLEX, TYRE_T_MAX } from '../vehicle.ts';
 import { WEATHER } from '../world/weather.ts';
 import type { Car } from '../vehicle.ts';
 import { axleForce } from './tyres.ts';
+import { wearTyres } from './tyrewear.ts';
 import type { AxleTick } from './tyres.ts';
 
 // MEASURED (tools/tyrecheck.mjs): 0.020 + 0.0022/(m/s) cooled with a ~17 s time
@@ -85,6 +86,10 @@ export function updateTyreTemps(car: Car, carSpec: Spec, tick: AxleTick, out: Ax
     if (!Number.isFinite(tyreTemps[i])) tyreTemps[i] = WEATHER.trackC;
     else if (tyreTemps[i] > TYRE_T_MAX) tyreTemps[i] = TYRE_T_MAX;
   }
+  // TYRE WEAR (?tyrewear=1): the same work wears the rubber; a hot or worn tyre may burst
+  const burst = wearTyres(car, carSpec.tyre, carSpec.tyreOpt || [65, 110], carSpec.mass,
+    wheelWork, dt);
+  if (burst >= 0) car.burstTyre = burst;
   telem.gripTF = gripTF; telem.gripTR = gripTR;
 }
 

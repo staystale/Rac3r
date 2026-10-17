@@ -1,6 +1,7 @@
 // cones/coneCar.js: ONE CAR vs ONE OBJECT (multi-car: AI cars hit the same cones /
 // tyres / bales): the contact, the momentum swap, and what the hit does to the object (topple,
 // break, burst, tip, pop). Every function takes the one cones context made in cones.js.
+import { debrisPunctures } from '../physics/tyrewear.ts';
 import {
   BALE_BURST_V, BALE_DRAG, BROKEN, COW_TIP_V, DEBRIS, MAX_CONE_V, RESTITUTION, SHEEP_POP_V,
   TOPPLE_V, TOPPLES, burstStack,
@@ -252,7 +253,13 @@ function afterHit(ctx, obj, car, newTyres, rel, speed) {
 export function hitByCar(ctx, obj, car, newTyres) {
   const relX = obj.x - car.x, relY = obj.y - car.y;
   if (relX * relX + relY * relY > 16) return;
-  // a burst bale / broken debris is a flat patch: you drive through it
+  // a burst bale / broken debris is a flat patch: you drive through it - a broken pallet's nails
+  // may puncture a tyre (?tyrewear=1; once a second at most)
+  if (obj.kind === 'splinters' && relX * relX + relY * relY < 4
+    && ctx.clock - (obj._nailT ?? -9) > 1) {
+    obj._nailT = ctx.clock;
+    if (debrisPunctures(obj.kind, 0, false)) car.burstTyre = 0;
+  }
   if (obj.kind === 'straw' || BROKEN.has(obj.kind)) return;
   // dragged along a bit
   if (obj.kind === 'tarp') { dragTarp(obj, car, relX, relY); return; }
@@ -264,6 +271,10 @@ export function hitByCar(ctx, obj, car, newTyres) {
   const speed = transferMomentum(obj, car, contact);
   countChevronImpacts(ctx, obj);
   breakDebris(ctx, obj, rel);
+  // hitting debris hard may puncture the front tyre on that side (?tyrewear=1)
+  if (debrisPunctures(obj.kind, rel, !!DEBRIS[obj.kind])) {
+    car.burstTyre = -Math.sin(car.heading) * relX + Math.cos(car.heading) * relY > 0 ? 0 : 1;
+  }
   hitAnimal(ctx, obj, rel);
   afterHit(ctx, obj, car, newTyres, rel, speed);
 }

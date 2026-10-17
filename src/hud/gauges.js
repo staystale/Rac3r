@@ -4,6 +4,7 @@
 import { ROSTER } from '../cars.ts';
 import { LEVEL } from '../world/state.ts';
 import { COL } from '../world/colours.ts';
+import { tyreWearOn, wearColour } from '../physics/tyrewear.ts';
 import {
   MARGIN, DIAGRAM_H, drawHudPanel, drawHudLabel, drawHudButton,
 } from './widgets.js';
@@ -267,6 +268,41 @@ export function drawHudWheelFault(ctx, car, corner, bodyX, bodyY, bodyW, bodyH) 
 }
 
 /**
+ * One wheel of the tyre diagram: filled with its WEAR colour with tyre wear on (owner), else its
+ * heat colour; its temperature beside it in the heat colour.
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {object} car the car
+ * @param {number} tyreIdx the tyre (vehicle.js order)
+ * @param {number} side -1 left, +1 right
+ * @param {string} heatCol the tyre's temperature colour
+ * @param {number} wheelX the wheel's left, px
+ * @param {number} wheelY the wheel's top, px
+ */
+function drawDiagramWheel(ctx, car, tyreIdx, side, heatCol, wheelX, wheelY) {
+  // plain rectangles: panel's 8 px corner radius is larger than a 7 px wheel and drew mangled
+  // slants
+  ctx.fillStyle = tyreWearOn() && car.tyreWear ? wearColour(car.tyreWear[tyreIdx], COL) : heatCol;
+  ctx.fillRect(wheelX, wheelY, 7, 11);
+  ctx.strokeStyle = 'rgba(0,0,0,0.55)';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(wheelX + 0.5, wheelY + 0.5, 6, 10);
+  drawHudLabel(ctx, String(Math.round(car.tyreT[tyreIdx])), side < 0 ? wheelX - 4 : wheelX + 11,
+    wheelY + 6, { size: 9.5, weight: 700, align: side < 0 ? 'right' : 'left', col: heatCol });
+}
+
+/**
+ * A tyre temperature's colour: cold blues, the working window live, then warn and danger.
+ * @param {number} temp the tyre's temperature, C
+ * @param {number[]} window its working window [low, high], C
+ * @returns {string} a CSS colour
+ */
+function tyreTempColour(temp, [optLow, optHigh]) {
+  if (temp < optLow) return temp < optLow - 15 ? '#5b8fd6' : '#7fb6c9';
+  if (temp <= optHigh) return COL.live;
+  return temp <= optHigh + 25 ? COL.warn : COL.danger;
+}
+
+/**
  * TYRE DIAGRAM (optional HUD). A little top-down car, FRONT UP, each wheel filled
  * with its temperature colour and its number beside it. The same body outline shows DAMAGE.
  * vehicle.js indexes tyres by body side: 0 F+y, 1 F-y, 2 R+y, 3 R-y, and +y is the car's RIGHT.
@@ -280,9 +316,7 @@ export function drawHudWheelFault(ctx, car, corner, bodyX, bodyY, bodyW, bodyH) 
 export function drawHudTyreDiagram(ctx, state, rects, car, spec) {
   const speedRect = rects.speed, speedWidth = speedRect.w;
   if (state.carDiagram && car.tyreT) {
-    const [optLow, optHigh] = spec.tyreOpt || [65, 110];
-    const col = (temp) => (temp < optLow - 15 ? '#5b8fd6' : temp < optLow ? '#7fb6c9'
-      : temp <= optHigh ? COL.live : temp <= optHigh + 25 ? COL.warn : COL.danger);
+    const window = spec.tyreOpt || [65, 110], col = (temp) => tyreTempColour(temp, window);
     // the bottom DIAGRAM_H of the speed panel (all of it while the speedo is hidden)
     const centreX = speedRect.x + speedWidth / 2, top = speedRect.y + speedRect.h - DIAGRAM_H;
     const bodyW = 20, bodyH = 40,
@@ -292,19 +326,8 @@ export function drawHudTyreDiagram(ctx, state, rects, car, spec) {
     const wheels = [[1, -1, 0], [0, 1, 0], [3, -1, 1], [2, 1, 1]];
     // ^ [tyre index, side -1 left / +1 right, rear?]
     for (const [tyreIdx, side, rear] of wheels) {
-      const wheelX = side < 0 ? bodyX - 4 : bodyX + bodyW - 3, wheelY = bodyY
-        + (rear ? bodyH - 14 : 4);
-      // plain rectangles: panel's 8 px corner radius is larger than a 7 px wheel and drew
-      // mangled slants
-      ctx.fillStyle = col(car.tyreT[tyreIdx]);
-      ctx.fillRect(wheelX, wheelY, 7, 11);
-      ctx.strokeStyle = 'rgba(0,0,0,0.55)';
-      ctx.lineWidth = 1;
-      ctx.strokeRect(wheelX + 0.5, wheelY + 0.5, 6, 10);
-      drawHudLabel(ctx, String(Math.round(car.tyreT[tyreIdx])), side < 0 ? wheelX - 4 : wheelX + 11,
-        wheelY + 6,
-        { size: 9.5, weight: 700, align: side < 0 ? 'right' : 'left',
-          col: col(car.tyreT[tyreIdx]) });
+      drawDiagramWheel(ctx, car, tyreIdx, side, col(car.tyreT[tyreIdx]),
+        side < 0 ? bodyX - 4 : bodyX + bodyW - 3, bodyY + (rear ? bodyH - 14 : 4));
     }
     drawHudPanel(ctx, { x: bodyX, y: bodyY, w: bodyW, h: bodyH },
       { fill: 'rgba(205,210,220,0.92)', stroke: 'rgba(0,0,0,0.35)' });

@@ -2,7 +2,7 @@
 import { step, reset, assertFinite, PHYSICS_STEP_SECONDS } from '../vehicle.ts';
 import { stepHighway, highwayGuard, highwayRespawn, speedCamera } from '../highway.js';
 import { carContacts, slipstream } from '../contact.js';
-import { hit, hitRoll, repair } from '../damage.js';
+import { hit, hitRoll, repair, applyBurst } from '../damage.js';
 import { rolling, tripCheck, stepRoll } from '../roll.js';
 import { LEVEL } from "../world/state.ts";
 import { applyGround, fenceClamp, obstacleClamp } from "../world/wear.ts";
@@ -186,6 +186,8 @@ export function stepCarPhysics(inp) {
       step(game.car, inp, PHYSICS_STEP_SECONDS);
       tripCheck(game.car, PHYSICS_STEP_SECONDS);
     }
+    // a tyre burst (heat, wear, debris): a puncture, and news on the HUD
+    if (applyBurst(game.car)) game.notice = { text: 'PUNCTURE', at: performance.now() };
     assertFinite(game.car);
   } catch (err) {
     recoverCar(err.message);

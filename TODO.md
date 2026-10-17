@@ -500,8 +500,22 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
       standing water in 3 passes, rain tyres 1 (soft ground still churns to mud). Mud dries to
       dirt (thick mud to mud) in a dry spell (~4 min at 20 C). Proof: simhash weather off SAME
       (13/13); sites per circuit 2-27; browser heavy-rain race: puddles shown, no errors.
-      NEXT (owner to decide): LIGHT / time of day - a design to bring first (a new look: Safari);
-      TYRE WEAR - questions first (a new system).
+      OWNER (10-18): WEATHER ALL PASS (weather, rain, slidewear); lighting approved to build,
+      tested separately (its own switch). Owner tweaks, then default: cold freezes water (puddles,
+      mud, scenery water: a chance), puddles before the start (variety), faster build-up, a SNOW
+      button.
+- TYRE WEAR (owner answers 10-18): punctures likelier with heat and wear, small chance from crashes
+  (damage.js, existed) and debris; worn tyres lose a fair bit of grip; a set lasts several races (a
+  running cost and a choice, not a nag); new sets only in the garage (FIT = a new set); the HUD
+  wheel colour is the wear (green / amber / red), the numbers stay the heat. BUILT behind
+  ?tyrewear=1 (physics/tyrewear.ts): wear from each wheel's friction work (the heat model's), x
+  above the window, x wrong ground (the tyre's grip table), dry tyres x0.6 in the wet, rain tyres
+  x2.5 on dry hard ground; grip -20 % at bald (more when wet); puncture risk from heat over the
+  window and wear past 70 % only (no random draw for a healthy tyre); debris 4 % on a hard hit,
+  splinters 1 % a pass; saved per car in the profile (session only; the demo car never).
+  MEASURED (Castle Cum, hatch, busiest tyre): 3 laps ~10 % (about 9 races a set), 10 hard laps
+  36 %, Wet tyres in the dry 28 % / 3 laps, dry tyres in the wet 5 %. simhash off SAME 13/13.
+  SEEN, not changed: with the tyre diagram on, ABS / TCS sit under the FPS panel (layout).
 
 ## GAME NAME: RAC3R (user, 2026-10-03)
 

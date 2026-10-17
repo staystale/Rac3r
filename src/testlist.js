@@ -14,6 +14,16 @@ export const TEST_LIST = [
   // sound, joker, markedge, ainowait, judder, texwarm; straightoutta removed with its level;
   // stalecap, drawlite undone; dpr, startfix approved; onecanvas paused with the lean plan)
   {
+    id: 'tyrewear',
+    added: '2026-10-18',
+    name: 'Tyre wear: sets wear over races, worn = less grip, hot / bald / debris punctures',
+    where: 'Plain link + &tyrewear=1: TYRE HUD on (pause > HUD); garage TYRES to fit a NEW SET',
+    try: 'Race several events on one set; drive hard and overheat; try Wet tyres in the dry;'
+      + ' check the wheel colours (green, amber, red) and the garage % WORN.',
+    wrong: 'Wear too fast / slow to be a running cost, punctures out of the blue, the set not'
+      + ' kept between races, the numbers not being the heat.',
+  },
+  {
     id: 'weather',
     added: '2026-10-18',
     name: 'Weather: season, rain / hot / snow, changing in the race, puddles from the weather',

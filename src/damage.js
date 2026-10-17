@@ -185,6 +185,27 @@ export function hitRoll(car, kind, side, weight) {
   pushEvent(car, { c: kind === 'side' ? corners[0] : 0, amt: amt * 1.5 });
   derive(car);
 }
+// vehicle.js tyre index (0 F+y, 1 F-y, 2 R+y, 3 R-y) -> damage corner (0 F-y, 1 F+y, 2 R-y, 3 R+y)
+const CORNER_OF_TYRE = [1, 0, 3, 2];
+/**
+ * A tyre that burst this step (physics/tyrewear.ts: heat or wear; cones: debris) becomes a puncture
+ * on its corner: the axle's grip drops, the HUD shows it, a reset mends it.
+ * @param {object} car the car
+ * @returns {boolean} true when a tyre burst this step
+ */
+export function applyBurst(car) {
+  const tyre = car.burstTyre;
+  if (tyre === undefined || tyre < 0) return false;
+  car.burstTyre = -1;
+  if (!car.dmg) damageInit(car);
+  const corner = CORNER_OF_TYRE[tyre];
+  if (car.punct[corner]) return false;
+  car.punct[corner] = true;
+  car.dmgFlash = 1;
+  pushEvent(car, { c: corner, amt: 0.2 });
+  derive(car);
+  return true;
+}
 export function tooInjured(car) {
   const dmg = car.dmg;
   if (!dmg) return false;

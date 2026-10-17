@@ -9,7 +9,7 @@ import { setLevel } from "../world/load.ts";
 import { LEVEL } from "../world/state.ts";
 import { clearWear } from "../world/wear.ts";
 import { LEVELS } from "../world/levels/index.ts";
-import { saveRecords, doRestart } from './session.js';
+import { saveRecords, doRestart, loadTyreWear } from './session.js';
 import { selectLevel, selectCar } from './controls.js';
 import { shared, game } from './state.js';
 import {
@@ -142,6 +142,7 @@ export function launch(levelId, carId, opts = {}) {
   // TYRES from the garage (none = Pre-Spun, the stock car)
   // PAINT + NUMBER from the garage (none = the car's own colours, no number)
   applyTyre(game.car.spec, opts.tyre);
+  loadTyreWear(game.car);   // this car's set, as worn as it was (?tyrewear=1)
   doRestart();
   const guideSetting = shared.settings.guide;
   shared.guidePending = guideSetting === '1'
