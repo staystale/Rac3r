@@ -10,19 +10,7 @@ export const TEST_LIST = [
   // (approved late, deleted: fields, grassedge, catchthem, slipsdual, fps - TODO.md 1c;
   // dirtroad, animals, labext, labsplit, zoomhold, gpupaint, minimap, zoomspring, grassgrip, hwmap,
   // cracktufts, sharpcars, sharpmarks, jokerfix,
-  // groundlookup, exacttiles, hudmenu, tyreoff)
-  {
-    id: 'menufast',
-    added: '2026-10-17',
-    name: 'Main menu: no drops at the start, TEST MODE answers at once',
-    where: 'Links: ?menufast=1&report=1, then ?report=1 (compare), opened fresh each time',
-    try:
-      'Let the menu sit 10 s, then tap through TEST MODE, a category, a track, setup and back, ' +
-      'as you normally would. Then the same on the compare link.',
-    wrong:
-      'Drops at the start or on a button press still there; the race behind the menu missing ' +
-      'or frozen; track pictures missing in the lists; loading feeling slower.',
-  },
+  // groundlookup, exacttiles, hudmenu, tyreoff, menufast)
   {
     id: 'straightoutta',
     added: '2026-10-15',

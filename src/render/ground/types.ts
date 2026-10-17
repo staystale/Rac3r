@@ -16,7 +16,7 @@ export interface GroundHelpers {
   forSide: ForSide;
   grassEnds: 'round' | 'square';
   surfaceTextures: boolean;     // default on (?tex=0 = live): pre-painted textures (textures.ts)
-  shareBlades: boolean;         // ?menufast=1: blades stroked once per shape (textures.ts)
+  shareBlades: boolean;         // blades stroked once per shape (textures.ts); ?menufast=0 off
 }
 
 // what every module-level painter shares, built once by createGround

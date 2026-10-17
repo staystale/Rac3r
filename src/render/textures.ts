@@ -192,7 +192,7 @@ function cpuCanvas(width: number, height: number) {
 
 /**
  * A blades layer from its mask: the blades stroked ONCE in white per shape, then tinted with the
- * layer's colour and drawn over (?menufast=1). Wheat, rapeseed and hedgerow are long grass
+ * layer's colour and drawn over (?menufast=0 = off). Wheat, rapeseed and hedgerow are long grass
  * recoloured, so the same blades were stroked four times. MEASURED on the owner's phone: each
  * long-grass-shaped texture took 110-122 ms, the menu's start-up hitches. One stroke() of one
  * colour, over a transparent canvas: the tinted mask composites the same way.
@@ -223,7 +223,7 @@ function tintedBlades(gfx: Gfx, period: number, ppm: number, layer: ArtLayer, sq
 }
 
 // the whole texture of one surface: its layers in order, every kind periodic ('rings' draws
-// nothing in the live code either), so no layer stays live; with masks (?menufast=1) the blades
+// nothing in the live code either), so no layer stays live; with masks (the default) the blades
 // layers come from shared masks (tintedBlades)
 export function paintTexture(
   gfx: Gfx, period: number, ppm: number, layers: ArtLayer[], square: boolean,

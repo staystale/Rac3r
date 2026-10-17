@@ -253,7 +253,7 @@ shared.menu = shared.MENU
           ? shared.renderer.pixelCarWithWheels(x) : shared.renderer.pixelCar(x)) }) : null;
 if (shared.MENU) {
   shared.hud.setHelpLabel('II');
-  // ?menufast=1: the track thumbnails now, while the loading screen is up. MEASURED on the owner's
+  // the track thumbnails now, while the loading screen is up (?menufast=0: on the tap). MEASURED:
   // phone: painted on the TEST MODE tap they took 193 ms, and putting the menu's race level back
   // (wear cleared, so every ground tile stale) cost 68 ms the frame after
   if (shared.settings.menuFast) paintThumbs();

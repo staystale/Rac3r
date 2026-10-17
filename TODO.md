@@ -271,7 +271,12 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
       checks controls). Owner: leave it unless it helps the iPhone - it does not (portrait 440
       px wide, 732-894 tall; landscape home-screen app 440 tall; needs under 420 tall).
 - [ ] NEXT, OWNER 2026-10-17 (assess the cause first, then propose with sizes):
-      (1) "main menu is still sluggish" - the live 5-car race runs behind the menu (game/menu
+      (1) DONE - the menu fixes are the DEFAULT since 2026-10-17 (owner: "Seems to have worked
+      nice one"; ?menufast=0 = the old). Owner's run (10:28Z): menu slow frames 0.50 % (4 % on the
+      first run), no texture warm-up in a slow frame, TEST MODE instant. Left: one 124 ms frame
+      at 0.4 s in every run (not ours: 2-4 ms), and that run's load took 11.7 s (2.3-2.7 s
+      before; likely the first load of a new build through the tunnel) - for the load question.
+      "main menu is still sluggish" - the live 5-car race runs behind the menu (game/menu
       demo); measure it ON THE PHONE first, then decide (fewer demo cars, a cheaper demo, the
       recording again, slow tap handlers). MENU REPORT BUILT: ?report=1 records the menu too
       (frame [9] menu up, [10] taps ignored in a new screen's 350 ms ghost window, [11] the

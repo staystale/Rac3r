@@ -309,7 +309,7 @@ export function doRestart() {
   game.cones.reset();
   game.marks.clear();
   clearWear();
-  // open on the whole level, then ease in to the car. Not behind the menu with ?menufast=1:
+  // open on the whole level, then ease in to the car. Not behind the menu (?menufast=0 = it is):
   // MEASURED on the owner's phone (?report=1, the menu's first 1.5 s) the fly-in nobody sees there
   // cost a 113 ms frame (the whole-level picture) and a 121 ms one (28 GPU uploads at the handover)
   const behindMenu = shared.mode === 'menu' && shared.settings.menuFast;
