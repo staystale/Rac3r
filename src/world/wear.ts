@@ -5,6 +5,7 @@ import { SURFACES, VERGE_W, TRAP_STEPS, SURFACE_TRAP } from "./surfaces.ts";
 import { dampSurface, puddleSurface, cellDamp, dryCellLine, surfaceById, wornTo } from "./wet.ts";
 import { WEATHER } from "./weather.ts";
 import { carWheels } from "./wheels.ts";
+import { puddleClearBy, setPassTyre } from "./puddles.ts";
 import {
   FX1, FX0, FY1, FY0, KERB_W, KERB_H, KERB_RIDGE, KERB_RIDGE_L, RUNOFF_W, RUNOFF_ROUGH,
 } from "./bounds.ts";
@@ -55,7 +56,7 @@ export const wearMap = new Map<number, WearCell>();
 // heights look cells up thousands of times a frame and every string key was garbage (allocation
 // profile, highway). Exact for |i|, |j| < 2^20 cells (+-1500 km at WEAR_CELL 1.5 m).
 const WEAR_KEY_OFFSET = 1 << 20, WEAR_KEY_SPAN = 1 << 21;
-const wearKey = (cellI: number, cellJ: number) =>
+export const wearKey = (cellI: number, cellJ: number) =>
   (cellI + WEAR_KEY_OFFSET) * WEAR_KEY_SPAN + (cellJ + WEAR_KEY_OFFSET);
 // Cells whose surface CHANGED since the renderer last looked. The renderer bakes wear into its
 // cached ground tiles and uses this to know which tiles to repaint (render.ts drawGround). Drained
@@ -299,7 +300,7 @@ function passWetCell(cell: WearCell, tyreTemp: number): void {
   // always churns (pure 40% measured a worst case of 9-12 passes over 200 puddles)
   if (cell.standing && WATER_MIX[cell.base]
     && (++cell.passes >= 3 || Math.random() < WATER_CHURN_CHANCE)) cell.dry = 1;
-  else cell.dry += dryAmount(cell.standing, tyreTemp);
+  else cell.dry += puddleClearBy(cell.standing) ?? dryAmount(cell.standing, tyreTemp);
   if (cell.dry >= 1) {
     cell.cover = null;
     cell.base = WATER_MIX[cell.base] || cell.base;
@@ -491,6 +492,7 @@ export function stepWear(car: CarBody, dt: number): void {
   const curr = carWheels(car);
   if (!car.prevWheels) car.prevWheels = curr;
   const telemetry = car.t;
+  setPassTyre(car.spec.tyre);
   // A JUMP is not a tyre path (MEASURED BUG, "dirt in the road"; tools/_dirtroad.mjs):
   // highway traffic out of view is moved KINEMATICALLY (traffic.js, no applyGround), so prevWheels
   // went stale and the first physical step after it woke swept one straight line of wear from where

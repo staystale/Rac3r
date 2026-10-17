@@ -183,7 +183,8 @@ export interface CarBody {
   heading: number;
   yawRate: number;
   shake?: number;   // set by the first contact (contact.js, the clamps), never by makeCar
-  spec: { len: number; wid: number; lf: number; lr: number; mass: number; trackWidth?: number };
+  spec: { len: number; wid: number; lf: number; lr: number; mass: number; trackWidth?: number;
+    tyre?: { grip: Record<string, number> } | null };
   t: { slipSpeedF: number; slipSpeedR: number };
   air: number;
   surface: Pick<Surface, 'id' | 'mu'>;   // the fields both Surface types (here and cars.ts) have
@@ -233,9 +234,27 @@ export interface Cover {
   shape?: 'rect' | 'ellipse';
   rot?: number;
   cut?: CoverCut;
+  water?: boolean;   // SCENERY water (river, lake, ford): permanent in any weather (puddles.ts)
   _co?: number;   // coverAt caches for rotated covers
   _si?: number;
   _cells?: CoverCells;   // ground.ts coverCells caches the covered 0.5 m cells
+}
+
+// A place the weather makes a puddle or a snow patch (puddles.ts): its full size, how fast it
+// fills, whether it can hold snow, its water and snow (0..1), the look shown ('' / 'wet3' / ...)
+// and the cover of each look.
+export interface PuddleSite {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  rot: number;
+  catchK: number;
+  snowy: boolean;
+  water: number;
+  snow: number;
+  shown: string;
+  covers: Record<string, Cover>;
 }
 
 // The 0.5 m world-grid cells inside a cover, as x, y pairs; rim = those with an outside neighbour.
@@ -298,6 +317,7 @@ export interface WearCell {
   current?: string;   // set right after the cell is made
   rut?: number;
   rainDry?: number;   // the dry line tyres made in the rain, 0..1 (wet.ts)
+  mudDry?: number;    // how far mud has dried toward the next step, 0..1 (puddles.ts)
   rainT?: number;     // the wear clock when rainDry was set, s
 }
 
@@ -398,6 +418,8 @@ export interface Level {
   obstacles?: Obstacle[];
   endless?: boolean;   // blend.ts: the 100 km highway
   _coversBase?: Cover[];   // blend.ts: the hand-placed covers
+  _staticCovers?: Cover[];   // load.ts: the covers the weather does not move (puddles.ts)
+  _puddleSites?: PuddleSite[];   // puddles.ts: where the weather makes puddles and snow patches
   _hw?: HighwayState;   // highway.js: the endless road (only the fields the camera reads)
   _mergedOf?: Cover[];   // ground.ts mergedCovers: the covers list _merged was built from
   _merged?: MergedCover[];   // ground.ts mergedCovers

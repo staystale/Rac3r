@@ -74,19 +74,21 @@ const SL_C = { sqL: slD([-150, 200]), sqR: slD([-140, 160]), splash: slD([75, 16
   top: slD([-188, -205]), wiggle: slD([-215, 0]) };
 const SL_SPLASH = SL_KIT.at(SL_C.splash, 0);
 // WATER: the stream down to the splash and on south, plus the farm POND — drawn as one body where
-// they touch (render mergedCovers)
+// they touch (render mergedCovers); scenery water, permanent in any weather (puddles.ts)
 export const SL_STREAM: Cover[] = [];
 for (let frac = 0; frac <= 1.0001; frac += 0.03) {
   const x = 62 + 26 * frac, y = 112 + 140 * frac;
   if (Math.abs(x) < FLOOR - 8 && Math.abs(y) < FLOOR - 8) SL_STREAM.push(
-    { x, y, w: 7 + 2 * Math.sin(frac * 9), h: 5, cover: 'wet', shape: 'ellipse', rot: 1.39 });
+    { x, y, w: 7 + 2 * Math.sin(frac * 9), h: 5, cover: 'wet', water: true, shape: 'ellipse',
+      rot: 1.39 });
 }
 // the WATER SPLASH
-SL_STREAM.push({ x: SL_SPLASH.x, y: SL_SPLASH.y, w: 13, h: 9, cover: 'wet', shape: 'ellipse',
-  rot: 0.2 });
+SL_STREAM.push({ x: SL_SPLASH.x, y: SL_SPLASH.y, w: 13, h: 9, cover: 'wet', water: true,
+  shape: 'ellipse', rot: 0.2 });
 // the farm POND
-SL_STREAM.push({ x: -95, y: 228, w: 30, h: 14, cover: 'wet', shape: 'ellipse', rot: 0.1 },
-  { x: -78, y: 232, w: 16, h: 10, cover: 'wet', shape: 'ellipse', rot: -0.3 });
+SL_STREAM.push({ x: -95, y: 228, w: 30, h: 14, cover: 'wet', water: true, shape: 'ellipse',
+  rot: 0.1 },
+  { x: -78, y: 232, w: 16, h: 10, cover: 'wet', water: true, shape: 'ellipse', rot: -0.3 });
 // the farm yard / service park, south of the start
 export const SL_YARD: Lane = { pts: [[-235, 228], [-175, 230]], width: 22,
   surface: SURFACES.gravel };

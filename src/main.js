@@ -36,6 +36,7 @@ import { initWorld } from "./world/load.ts";
 import { applyOldGrassGrip } from "./world/surfaces.ts";
 import { setGroundLookup, setSlideWear } from "./world/wear.ts";
 import { setWetness, setRain } from "./world/weather.ts";
+import { setWeatherPuddles } from "./world/puddles.ts";
 import { LEVEL } from "./world/state.ts";
 
 import { LEVELS } from "./world/levels/index.ts";
@@ -59,6 +60,7 @@ shared.settings = readSettings(location.search);
 if (!shared.settings.grassGrip) applyOldGrassGrip();   // ?grassgrip=0: the old grass grip
 setGroundLookup(shared.settings.groundLookup);   // ?groundlookup=1: fewer ground lookups (wear.ts)
 setSlideWear(shared.settings.slideWear);   // ?slidewear=1: sliding wheels wear the ground twice
+setWeatherPuddles(shared.settings.weather);   // ?weather=1: the weather makes the puddles
 // ?rain=0.6: a wet track, raining (weather test, before any level or racing line is built)
 if (shared.settings.rain !== null) {
   setWetness(shared.settings.rain);

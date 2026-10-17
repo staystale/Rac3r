@@ -55,11 +55,11 @@ const KD_C = { sweep: kdD([10, 190]), crest: kdD([30, 50]), hp1: kdD([40, -14]),
     top1: kdD([90, -233]), top2: kdD([-30, -232]),
   down: kdD([-125, -180]), sb: kdD([-140, -50]) };
 // KIELDER WATER: the reservoir south-east of the dam straight (shallow edges you can drive into —
-// a wet cover), plus a forest pond
+// a wet cover, scenery water: permanent in any weather), plus a forest pond
 export const KD_WATER: Cover[] = [
-  { x: 150, y: 205, w: 170, h: 52, cover: 'wet', shape: 'ellipse', rot: -0.05 },
-  { x: 225, y: 228, w: 60, h: 40, cover: 'wet', shape: 'ellipse', rot: 0.3 },
-  { x: -40, y: -120, w: 26, h: 16, cover: 'wet', shape: 'ellipse', rot: 0.4 },
+  { x: 150, y: 205, w: 170, h: 52, cover: 'wet', water: true, shape: 'ellipse', rot: -0.05 },
+  { x: 225, y: 228, w: 60, h: 40, cover: 'wet', water: true, shape: 'ellipse', rot: 0.3 },
+  { x: -40, y: -120, w: 26, h: 16, cover: 'wet', water: true, shape: 'ellipse', rot: 0.4 },
 ];
 // the service park, south of the start
 export const KD_YARD: Lane = { pts: [[-232, 246], [-160, 246]], width: 18,

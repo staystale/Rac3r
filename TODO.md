@@ -488,6 +488,20 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
       simhash with weather off SAME (13/13); browser races heavy / very hot / winter: no errors.
       ?slidewear=1 (owner): a sliding wheel (slip > 4 m/s: crashes, spins, drifts) counts its
       wear pass twice - the slip the wear step already reads, no new checks.
+      R4 BUILT (with ?weather=1): world/puddles.ts - puddle SITES per level with a lap (seeded;
+      along and beside the track, likelier and bigger in terrain dips, rarer on crests; a third
+      to half can hold SNOW). Sites fill in rain once the ground is soaked (heavy: full in ~3 min),
+      drain slowly when dry (~13 min at 20 C), snow settles below 1 C and melts into a puddle;
+      shown in 4 size steps as the existing 'wet' / 'snow' covers (neighbours merge); changed
+      sites repaint their ground squares only (tilesWear staleCoverAreas) and re-sync the wear
+      cells (a receding puddle leaves dry ground; rain refills cleared spots). The levels' own
+      puddles (hand-placed, blend '@wet', stage) GO; scenery water stays (Cover.water: Killder
+      Water, Sweaty Lamb's stream / splash / pond) and the Lab's test features. Tyres clear
+      standing water in 3 passes, rain tyres 1 (soft ground still churns to mud). Mud dries to
+      dirt (thick mud to mud) in a dry spell (~4 min at 20 C). Proof: simhash weather off SAME
+      (13/13); sites per circuit 2-27; browser heavy-rain race: puddles shown, no errors.
+      NEXT (owner to decide): LIGHT / time of day - a design to bring first (a new look: Safari);
+      TYRE WEAR - questions first (a new system).
 
 ## GAME NAME: RAC3R (user, 2026-10-03)
 
