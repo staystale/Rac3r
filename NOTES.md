@@ -80,6 +80,10 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   second at Castle Cum's corners while every rAF and physics step was on time. Count held frames in a
   recording (frames identical to the one before while things move), and count drawing work with
   tools/drawload.mjs; frame times alone cannot see this.
+- In the recording counter (motion.html, frames shrunk to 220 px) the ground moves ~1.3 px a
+  frame: its "1.5x / 0.5x step" counts are matching noise, not judder. Trust held frames only.
+- The phone report's physics steps: 2 a frame on 97-99 % of race frames (lean, 10-17): the game
+  moves evenly; what remains is how Safari shows it.
 - Screen pixels cost frames on the iPhone even with our JS at 2-3 ms: sharpness 1.5 vs 2 halved
   the dropped frames in back-to-back races (4.5 vs 8.4 a minute); the owner saw no blur.
 - Chrome's canvas picks its anti-aliasing method by a path's point count: clipping a path changes a

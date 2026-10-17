@@ -78,6 +78,12 @@ the git history. `docs/foreman-handover.md` is the last handover (10-17 evening)
   buffer); 2) the zoom style that ends the "dance" (owner chooses: fixed steps / smooth / smaller
   range); 3) add the nicer touches back one at a time, each with a recording. Then WEATHER. (see "GRASS GRIP + WATER"
   below, owner answers).
+  STEP 1 needs no new code: lean = ?glground=0&sharpcars=0&sharpmarks=0 (the CPU path bakes
+  the hill shading into the tiles; one blit a frame). Owner recordings 10-17 (Castle Cum,
+  autopilot): held frames 0.3-0.6 a second in 4 lean runs (default 5.2, the original 0.6);
+  ?minimap=0 and ?dpr=1.25 made no difference. Owner: still "judders like lag", edges dance,
+  marks quiver. Owner chose fixed zoom steps, but first a test: ?zoomfix=0.4 holds the zoom
+  for the race (no zoom-step tile repaints: 63 tiles painted in 11 s vs 99). Recording pending.
 - GRASS THROUGH THE CRACKS (owner: a and b, "like real life"): long-grass tufts in some
   broken-tarmac flecks, and scattered on broken-tarmac / concrete ground (blend.ts, own random
   stream: every existing patch unchanged). OWNER APPROVED 2026-10-16 (testlist entry deleted).
