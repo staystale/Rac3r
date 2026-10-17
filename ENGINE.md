@@ -84,8 +84,9 @@ any cover (snow, ice, puddle) and the wear state of the cell.
 - `render/camera.ts`: follow with look-ahead, speed zoom (`ZOOM_MIN` 0.30), the level fly-in and the
   whole-level overview picture used during it.
 - `render/tiles.ts`: the static ground (floor, zones, track ribbon) is painted into cached tiles at fixed
-  zoom steps (2 per doubling) within a time budget per frame (`tilesPalette.ts` palette snap,
-  `tilesShade.ts` hill shading on a world grid). A missing tile shows the previous step's tile scaled.
+  zoom steps (2 per doubling) within a time budget per frame (`tilesBudget.ts`; `tilesPalette.ts`
+  palette snap, `tilesShade.ts` hill shading on a world grid). A missing tile shows the previous
+  step's tile scaled. Tiles under new wear go stale and are repainted (`?stalecap=1`: one a frame).
   The 2D path puts tile edges on whole art pixels; the GPU ground (`?exacttiles=0` = off) puts them at
   their exact place (it zooms smoothly, so rounded edges moved the tiles every frame of a zoom).
 - `render/ground/` paints into tiles: `art.ts` the per-surface art table, `prims.ts` pattern primitives,

@@ -8,6 +8,7 @@ import { WEAR_CELL, wearDirty, wearEpoch } from "../world/wear.ts";
 import type { Level } from "../world/types.ts";
 import { buildPalette } from "./tilesPalette.ts";
 import { hillShade } from "./tilesShade.ts";
+import { tileBudget, takeTile, takeStaleTile } from "./tilesBudget.ts";
 import type { GroundSink } from "./glground.ts";
 import type {
   Cam, CamCar, Fly, Overview, SurfaceArt, Tile, TileBudget, TileState, View,
@@ -55,6 +56,8 @@ interface TilesState extends TileState {
   tileAvg: number;
   wearDrainT: number;
   seenEpoch: number;
+  /** the tileFrame of the last stale repaint (?stalecap=1: one a frame) */
+  staleFrame: number;
 }
 
 /** what every moved function of the tile cache reads: the view, camera, settings and state */
@@ -75,6 +78,8 @@ interface TilesCtx {
   NO_SHADE: boolean;
   /** on the GPU ground, tiles at their exact place (drawTileImage); ?exacttiles=0 off */
   EXACT_TILES: boolean;
+  /** ?stalecap=1: at most one stale (worn) tile repainted a frame (tilesBudget.ts) */
+  STALE_CAP: boolean;
 }
 
 /** one tile being painted: its canvas, scratch, geometry and the strip it is on */
@@ -90,10 +95,6 @@ type TileJob = {
 // nearest step's tiles scaled (<= 13% - invisible on ground texture). A tile not ready yet is
 // painted in at most TILE_BUDGET per frame; until then the previous zoom step's tiles stand in
 // (scaled), so a zoom change never shows a hole and never repaints the whole screen in one frame.
-// Tiles painted per frame: ONE always, then more while the frame has spent < TILE_MS painting, up
-// to TILE_BUDGET (a fast phone fills a gap in a frame or two, a slow one never stalls); the level
-// overview stands in for the rest.
-const TILE_BUDGET = 4, TILE_MS = 6;
 // 3 -> 2 steps per doubling: the speed zoom crosses steps all lap and every step is a fresh set of
 // tiles. Tiles stretch up to 1.41x.
 const ZSTEP = 2;                // zoom steps per doubling: 1, 0.71, 0.5, 0.35
@@ -110,27 +111,6 @@ const WEAR_DRAIN = 0.15;
 // prefetch covers the view at ZOOM_MIN / WIDE_MARGIN) and the tiles kept (the widest phone view
 // is ~70 tiles of ~120 KB; behind and ahead of it fit too)
 const FIXED_STEP = 0, WIDE_MARGIN = 1.25, FIXED_TILE_MAX = 200;
-/**
- * A fresh frame budget: `count` tiles at most, the first always, the rest inside TILE_MS.
- * @param count the most tiles this frame may paint
- * @returns the budget object
- */
-const tileBudget = (count = TILE_BUDGET) => ({ n: count, first: true, until: performance.now()
-    + TILE_MS });
-
-/**
- * May this frame paint one more tile? (the first always; then only inside the time budget)
- * @param budget the frame budget, spent by one when a tile may be painted
- * @returns true when a tile may be painted
- */
-function takeTile(budget: TileBudget) {
-  if (budget.n <= 0 || (!budget.first && budget.until != null && performance.now()
-      > budget.until)) return false;
-  budget.n--;
-  budget.first = false;
-  return true;
-}
-
 /**
  * The zoom step nearest a zoom.
  * @param z the zoom
@@ -451,7 +431,7 @@ function blitStep(tcx: TilesCtx, step: number, paint: boolean, budget: TileBudge
         state.newTiles++;
       }
       // a STALE tile (wear changed under it) keeps showing until the budget lets it be repainted
-      else if (tile && tile.stale && paint && takeTile(budget)) {
+      else if (tile && tile.stale && paint && takeStaleTile(state, tcx.STALE_CAP, budget)) {
         tile.c = paintTile(tcx, step, i, j);
         tile.stale = false;
         state.staleRepaints++;
@@ -693,7 +673,9 @@ function lookAhead(tcx: TilesCtx, step: number, fly: unknown, car: CamCar | null
   // GPU path: keep everything the widest zoom (plus a margin) would show painted, one tile a frame
   // while nothing in view is missing, so a zoom-out never meets ground without its tiles
   if (state.tileFillsOnGpu) {
-    if (!state.standIn && !fly) {
+    // ?stalecap=1: not in a frame that already repainted a worn tile (one tile a frame at most)
+    const repainted = tcx.STALE_CAP && state.staleFrame === state.tileFrame;
+    if (!state.standIn && !fly && !repainted) {
       prefetch(tcx, step, cam.x, cam.y, ZOOM_MIN / WIDE_MARGIN, { n: 1 });
     }
     return;
@@ -767,7 +749,7 @@ export function createTiles(view: View, cam: Cam, settings: Settings, helpers: T
     tileLevel: null, tileDpr: 0, tilePPM: 0, tileLayout: 0, tileFillsOnGpu: false,
     paletteLUT: null,           // the pixel-mode palette lookup, built on first use
     tileAvg: 20,                // running average ms per tile (starts pessimistic = phone)
-    wearDrainT: 0, seenEpoch: -1,
+    wearDrainT: 0, seenEpoch: -1, staleFrame: -1,
   };
   const tcx: TilesCtx = {
     view, cam, helpers, state: tileState, tiles, TILE_PX,
@@ -777,6 +759,7 @@ export function createTiles(view: View, cam: Cam, settings: Settings, helpers: T
     TILE_GPU: settings.tileGpu,
     NO_SHADE: settings.noShade,
     EXACT_TILES: settings.exactTiles,
+    STALE_CAP: settings.staleCap,
   };
   return {
     tileState, tiles, TILE_PX, ZSTEP, zStepOf, zOfStep,

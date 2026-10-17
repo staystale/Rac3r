@@ -37,7 +37,8 @@ export interface Settings {
   tyreOff: boolean;              // tyre / damage OFF stays off when damaged (hud.js); =0 pops up
   menuFast: boolean;             // no fly-in behind the menu, thumbnails at load; =0 the old
   thumbCache: boolean;           // thumbnails saved per version (thumbcache.js); =0 painted
-  texWarm: boolean;              // ?texwarm=1: the long-grass textures painted while loading
+  texWarm: boolean;              // long-grass textures painted while loading; =0 in the menu
+  staleCap: boolean;             // ?stalecap=1: one worn ground tile repainted a frame
   noShade: boolean;              // ?noshade: skip the hill shading (perf A/B)
   grassEnds: "round" | "square";   // ?grass=square: square grass blade ends (cheaper; A/B)
   surfaceTextures: boolean;       // ?tex=0: paint surfaces live, not pre-painted textures (A/B)
@@ -123,9 +124,9 @@ export function readSettings(search: string): Settings {
     // saved): the menu thumbnails saved on the device per game version and read back at load
     // instead of painted (only from the bundle, which carries the version)
     thumbCache: params.get('thumbcache') !== '0',
-    // under test: the long-grass textures (the heaviest) painted while the loading screen is up,
-    // not in a frame of the menu (main.js)
-    texWarm: params.get('texwarm') === '1',
+    // default since 2026-10-17 (owner approved): long-grass textures painted while loading
+    texWarm: params.get('texwarm') !== '0',
+    staleCap: params.get('stalecap') === '1',
     noShade: params.has('noshade'),
     grassEnds: params.get('grass') === 'square' ? 'square' : 'round',
     surfaceTextures: params.get('tex') !== '0',

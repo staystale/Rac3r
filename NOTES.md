@@ -42,7 +42,9 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   the test server and the menu thumbnails saved per version: default since 10-17 (`?bundle=0`,
   `?thumbcache=0`); the tools (automation) always load the separate modules. The menu: no fly-in behind it, thumbnails
   painted while loading, long-grass blades stroked once (one palette shade off on ~0.2 % of
-  long-grass pixels, owner accepted): default since 10-17 (`?menufast=0`). Pre-turned pixel art (RotSprite)
+  long-grass pixels, owner accepted): default since 10-17 (`?menufast=0`). The long-grass textures
+  painted while loading (the menu's ~125 ms frame): default since 10-17 (`?texwarm=0`).
+  Pre-turned pixel art (RotSprite)
   was the alternative, not chosen.
 - Not wanted / undone: the highway rebuild (cancelled 10-15), a fade at zoom steps, tiles tracing
   only their part of the ribbon (`?ribboncull`, undone 10-16), the WebGL cars (`?gpucars`, removed

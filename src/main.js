@@ -259,7 +259,7 @@ if (shared.MENU) {
   // phone: painted on the TEST MODE tap they took 193 ms, and putting the menu's race level back
   // (wear cleared, so every ground tile stale) cost 68 ms the frame after
   if (shared.settings.menuFast) prepareThumbs();
-  // ?texwarm=1: the long-grass textures (~115 ms on the phone) now, not in a frame of the menu
+  // the long-grass textures (~115 ms on the phone) now, not in a frame of the menu (?texwarm=0)
   if (shared.settings.texWarm) shared.renderer.warmBladeTextures();
   enterMenu();
   shared.menu.show();

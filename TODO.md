@@ -36,11 +36,18 @@ the git history. `docs/foreman-handover.md` is the last handover (10-17), writte
   OUR draw (111-119 ms in the frame before the long dt; the 10-17 handover read the wrong frame):
   the ground tiles behind the menu reach the long-grass texture (textures.ts tintedBlades, its
   blade masks) before the idle warm-up (one texture / 60 ms) does. Owner approved trying, in
-  order, with a phone test each: A ?texwarm=1 (paint the blade textures while loading; laptop:
-  the 57-60 ms tintedBlades frame gone), B save painted textures per version (like thumbcache),
-  C paint textures on a worker. Also seen on the laptop, not on the phone: the GPU ground's
+  order, with a phone test each: A texwarm (paint the blade textures while loading): phone, the
+  ~125 ms frame gone (owner: felt better), the DEFAULT since 2026-10-17 (?texwarm=0 = off). B save
+  painted textures per version (like thumbcache) and C paint textures on a worker: only if they
+  help (owner), after the judder below.
+- MENU RACE HITCHES ZOOMED OUT (owner, 10-17: "whole picture hitches"): phone, our draw 16-21 ms
+  every ~9th frame once zoomed out = the wear drain (0.15 s) marking worn tiles stale, then ALL
+  repainted in one frame (with nothing missing the frame budget was unlimited). ?stalecap=1 (under
+  test): one stale repaint a frame, and no prefetch in that frame. Laptop, menu 15 s: frames
+  painting 2+ tiles 4-19 -> 1-2. Also seen: hitches while zooming out where our JS is 1-4 ms
+  (0-1 a run in the morning, 3-4 in the last two runs): re-measure after stalecap. Also seen on the laptop, not on the phone: the GPU ground's
   first frame (glground.ts parseColour ~20-25 ms).
-- NOW (owner order, 2026-10-17): 1) the menu freeze above (A under test); 2) WEATHER (see "GRASS GRIP + WATER" below, owner answers).
+- NOW (owner order, 2026-10-17): 1) the menu hitches above (stalecap under test); 2) WEATHER (see "GRASS GRIP + WATER" below, owner answers).
 - GRASS THROUGH THE CRACKS (owner: a and b, "like real life"): long-grass tufts in some
   broken-tarmac flecks, and scattered on broken-tarmac / concrete ground (blend.ts, own random
   stream: every existing patch unchanged). OWNER APPROVED 2026-10-16 (testlist entry deleted).
