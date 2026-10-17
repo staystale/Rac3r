@@ -73,7 +73,7 @@ interface TilesCtx {
   TILE_GPU: boolean;
   /** perf A/B: no hill-shading */
   NO_SHADE: boolean;
-  /** ?exacttiles=1: on the GPU ground, tiles at their exact place (drawTileImage) */
+  /** on the GPU ground, tiles at their exact place (drawTileImage); ?exacttiles=0 off */
   EXACT_TILES: boolean;
 }
 
@@ -401,7 +401,7 @@ function groundImage(tcx: TilesCtx, source: HTMLCanvasElement, x: number, y: num
  */
 function drawTileImage(tcx: TilesCtx, tile: Tile, i: number, j: number, tileWidth: number) {
   const { view } = tcx, { toScreenX, toScreenY } = tcx.helpers;
-  // EXACT TILES (?exacttiles=1). The GPU ground zooms smoothly (the zoom is not quantised to whole
+  // EXACT TILES (?exacttiles=0 = off). The GPU ground zooms smoothly (the zoom is not quantised to
   // art-pixel tiles), so whole-art-pixel edges moved each tile by up to half an art pixel (1.5
   // device px), differently every frame of a zoom move: the white edge line, the ribbon edge and
   // the kerbs jiggled against the GPU-painted grass. MEASURED (tools/edgecheck.mjs, Brands, zoom

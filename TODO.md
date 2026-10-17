@@ -259,14 +259,17 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
       (1) "main menu is still sluggish" - the live 5-car race runs behind the menu (game/menu
       demo); measure it ON THE PHONE first (?report=1 does not record the menu: add that, or a
       menu-only report), then decide (fewer demo cars, a cheaper demo, the recording again).
-      (2) "some track edges jiggle or dance like the tyre tracks were" (owner: the white line at
+      (2) DONE - the DEFAULT since 2026-10-17 (owner: "test passed track edges don't wiggle";
+      "maybe more judder but it's subtle if it was" - the owner's run: Castle Cum 0.17 % slow
+      frames, draw 2 ms, against ~0.4 % on earlier Castle Cum runs; ?exacttiles=0 = the old
+      placement).
+      "some track edges jiggle or dance like the tyre tracks were" (owner: the white line at
       the road edge). CAUSE (tools/edgecheck.mjs, Brands): only while the zoom MOVES - the tiles
       (ribbon, white lines, curved kerbs) were drawn at whole-art-pixel edges, but the GPU ground
       zooms smoothly, so each tile moved by up to 1.5 device px, differently every frame. Line
       stray frame to frame (median / p95 / max px): zoom moving 0.30 / 1.61 / 2.92, held 0.03 /
-      0.09 / 0.37; a perfect line (--control) 0.05 / 0.16 / 0.37. BUILT behind ?exacttiles=1
-      (owner phone test pending, testlist 'exacttiles'): on the GPU ground the tiles go at their
-      exact place (tiles.ts drawTileImage); zoom moving 0.03 / 0.14 / 0.44.
+      0.09 / 0.37; a perfect line (--control) 0.05 / 0.16 / 0.37. FIX: on the GPU ground the
+      tiles go at their exact place (tiles.ts drawTileImage); zoom moving 0.03 / 0.14 / 0.44.
 - [x] JOKER BUGS (owner, 2026-10-16; FIXED, the DEFAULT since 2026-10-17, owner: "tested and
       working"; ?jokerfix=0 = the old behaviour): (1) the joker lap / joker section did not show on the
       minimap (it drew the main centreline only); (2) RESET in the joker lane put the car back on
