@@ -4,11 +4,11 @@
 import { LEVEL } from "../world/state.ts";
 import type { Settings } from "../core/settings.ts";
 import { COL } from "../world/colours.ts";
-import { WEAR_CELL, wearDirty, wearEpoch } from "../world/wear.ts";
 import type { Level } from "../world/types.ts";
 import { buildPalette } from "./tilesPalette.ts";
 import { hillShade } from "./tilesShade.ts";
 import { tileBudget, takeTile } from "./tilesBudget.ts";
+import { drainWear } from "./tilesWear.ts";
 import type { GroundSink } from "./glground.ts";
 import type {
   Cam, CamCar, Fly, Overview, SurfaceArt, Tile, TileBudget, TileState, View,
@@ -28,7 +28,7 @@ interface TilesHelpers {
   drawLaneDashes: () => void;
   drawPatches: () => void;
   drawCovers: () => void;
-  drawWear: (pass?: string) => void;
+  drawWear: (pass?: string) => number;
   drawCurvedKerbs: () => void;
   SURFACE_ART: Record<string, SurfaceArt | null>;
   PUDDLE_TINT: Record<string, string>;
@@ -76,6 +76,10 @@ interface TilesCtx {
   NO_SHADE: boolean;
   /** on the GPU ground, tiles at their exact place (drawTileImage); ?exacttiles=0 off */
   EXACT_TILES: boolean;
+  /** ?startfix=1: a wear reset makes stale only the tiles holding wear (WORN_TILES) */
+  WORN_ONLY: boolean;
+  /** the tile canvases painted with worn cells in them */
+  WORN_TILES: WeakSet<HTMLCanvasElement>;
 }
 
 /** one tile being painted: its canvas, scratch, geometry and the strip it is on */
@@ -83,6 +87,7 @@ type TileJob = {
   k: number; i: number; j: number; c: HTMLCanvasElement;
   sc: ReturnType<typeof tileScratch> | null;
   g: CanvasRenderingContext2D; px: number; tw: number; strip: number; strips: number; t0: number;
+  worn: number;   // worn cells painted into it so far
 };
 
 // The floor, the surface zones and the track ribbon never change while you drive (wear and marks
@@ -99,10 +104,6 @@ const ZSTEP = 2;                // zoom steps per doubling: 1, 0.71, 0.5, 0.35
 const STRIPS = 4;
 // look-ahead painting: only below this tile cost; view shifted this many s of travel
 const AHEAD_MAX_MS = 9, AHEAD_S = 0.6;
-// Wear is baked into the tiles: a changed cell only marks the tiles over it STALE; they keep
-// showing until repainted within TILE_BUDGET. Dirty cells are drained at most every WEAR_DRAIN s,
-// which batches a drift that changes many cells into one repaint of the tiles involved.
-const WEAR_DRAIN = 0.15;
 // GPU path: the one zoom step the tiles are painted at (zoom 1), the widest view's margin (the
 // prefetch covers the view at ZOOM_MIN / WIDE_MARGIN) and the tiles kept (the widest phone view
 // is ~70 tiles of ~120 KB; behind and ahead of it fit too)
@@ -182,6 +183,7 @@ function tileScratch(size: number) {
  * The layers of a ground tile, in drawing order - ONE place, used by the whole-tile and the
  * strip path.
  * @param tcx the tile context
+ * @returns how many worn cells were painted
  */
 function drawLayerCalls(tcx: TilesCtx) {
   const { drawFloor, drawZones, drawLanes, drawWear, drawTrackRibbon, drawLaneDashes,
@@ -195,15 +197,16 @@ function drawLayerCalls(tcx: TilesCtx) {
   // but a worn verge cell's disc (0.72 x 1.5 m radius) reached ~1 m over the carriageway edge
   // and read as dirt ON the road
   const endless = !!LEVEL.endless;
-  if (endless) drawWear('base');
+  let worn = endless ? drawWear('base') : 0;
   drawTrackRibbon();
   drawLaneDashes();
   drawPatches();
-  // baked in: see wearDirty below. Under the covers ...
-  if (!endless) drawWear('base');
+  // baked in: see tilesWear.ts. Under the covers ...
+  if (!endless) worn += drawWear('base');
   drawCovers();
-  drawWear('cover');    // ... except where the cover itself has changed
+  worn += drawWear('cover');    // ... except where the cover itself has changed
   drawCurvedKerbs();    // kerbs last: no surface ever paints over a kerb
+  return worn;
 }
 
 /**
@@ -231,7 +234,7 @@ function startTile(tcx: TilesCtx, step: number, i: number, j: number): TileJob {
   ctx.setTransform(view.dpr, 0, 0, view.dpr, 0, 0);
   return {
     k: step, i, j, c: canvas, sc: scratch, g: ctx, px: size, tw: tileWidth, strip: 0,
-        strips: STRIPS, t0: startedAt
+        strips: STRIPS, t0: startedAt, worn: 0,
   };
 }
 
@@ -257,7 +260,7 @@ function layersInto(tcx: TilesCtx, job: TileJob, y0px: number, y1px: number, ban
     ctx.setTransform(view.dpr, 0, 0, view.dpr, 0, 0);
   }
   try {
-    drawLayerCalls(tcx);
+    job.worn += drawLayerCalls(tcx);
   } finally {
     if (band) ctx.restore();
     Object.assign(view, {
@@ -290,6 +293,7 @@ function finishTile(tcx: TilesCtx, job: TileJob) {
   hillShade(tcx.NO_SHADE || tcx.state.tileFillsOnGpu, job.c, job.tw, (job.i + 0.5) * job.tw,
     (job.j + 0.5) * job.tw);
   state.msShade += performance.now() - th0;
+  if (job.worn > 0) tcx.WORN_TILES.add(job.c);
   return job.c;
 }
 
@@ -441,56 +445,6 @@ function blitStep(tcx: TilesCtx, step: number, paint: boolean, budget: TileBudge
 }
 
 /**
- * Marks the tiles over the dirty wear cells stale, and clears the dirty list.
- * @param tcx the tile context
- */
-function markStaleTiles(tcx: TilesCtx) {
-  const { view, tiles } = tcx;
-  for (const [key, tile] of tiles) {
-    if (tile.stale) continue;
-    const [step, i, j] = key.split('|').map(Number);
-    const tileWidth = tcx.TILE_PX / (view.PPM * zOfStep(step)), left = i * tileWidth, top = j
-        * tileWidth;
-    for (const cell of wearDirty) {
-      const cellX = cell.cx * WEAR_CELL, cellY = cell.cy * WEAR_CELL;
-      if (cellX + WEAR_CELL >= left && cellX <= left + tileWidth && cellY + WEAR_CELL >= top
-          && cellY <= top + tileWidth) {
-        tile.stale = true;
-        break;
-      }
-    }
-  }
-  // worn cells can be rutted: the GPU hill shading is computed again there
-  for (const cell of wearDirty) {
-    const cellX = cell.cx * WEAR_CELL, cellY = cell.cy * WEAR_CELL;
-    tcx.helpers.heightsChanged({
-      x0: cellX, y0: cellY, x1: cellX + WEAR_CELL, y1: cellY + WEAR_CELL,
-    });
-  }
-  wearDirty.length = 0;
-}
-
-/**
- * Drains the dirty wear cells into stale tiles, at most every WEAR_DRAIN s; a new wear epoch
- * makes every tile stale.
- * @param tcx the tile context
- * @param wallDt the wall-clock seconds since the last frame
- */
-function drainWear(tcx: TilesCtx, wallDt: number) {
-  const { tiles, state } = tcx;
-  if (state.seenEpoch !== wearEpoch) {
-    state.seenEpoch = wearEpoch;
-    for (const tile of tiles.values()) tile.stale = true;
-    wearDirty.length = 0;
-    return;
-  }
-  state.wearDrainT += wallDt;
-  if (state.wearDrainT < WEAR_DRAIN || wearDirty.length === 0) return;
-  state.wearDrainT = 0;
-  markStaleTiles(tcx);
-}
-
-/**
  * Under a stand-in: the level's own ground colour where it has one (a missing patch reads as
  * grass, not as a hole).
  * @param tcx the tile context
@@ -557,7 +511,8 @@ function drawFlyOverview(tcx: TilesCtx, overview: Overview, car: CamCar | null) 
   groundFill(tcx, COL.outside);
   groundImage(tcx, overview.c, toScreenX(overview.x0), toScreenY(overview.y0),
     (overview.x1 - overview.x0) * PPMz(), (overview.y1 - overview.y0) * PPMz());
-  if (car) {
+  if (car && tcx.WORN_ONLY && tcx.state.tileFillsOnGpu) prefetchFlyOnGpu(tcx, car);
+  else if (car) {
     const budget = { n: FLY_PREFETCH };
     // the steps the camera will pass through after the hand-over, nearest-to-final first
     // only the EVEN steps are used during the flight (see below) - three steps, ~60 tiles,
@@ -566,6 +521,29 @@ function drawFlyOverview(tcx: TilesCtx, overview: Overview, car: CamCar | null) 
         > 0; step -= 2) prefetch(tcx, step, car.x, car.y, zOfStep(step) / 1.6, budget);
   }
   tcx.state.lastStep = null;
+}
+
+/**
+ * ?startfix=1 on the GPU ground: the fly-in pre-paints only the tiles drawn after it (the fixed
+ * step) over the hand-over view, and sends each to the GPU as it is painted, keeping the rest
+ * from expiring. MEASURED (owner's phone): the hand-over frame uploaded every tile in view at once
+ * (59 uploads, 71 mipmaps, 32 ms); the zoom steps -2 / -4 painted before are never drawn here.
+ * @param tcx the tile context
+ * @param car the car the fly-in ends on
+ */
+function prefetchFlyOnGpu(tcx: TilesCtx, car: CamCar) {
+  const { view, tiles } = tcx, { FLY_HANDOVER, FLY_PREFETCH } = tcx.helpers;
+  prefetch(tcx, FIXED_STEP, car.x, car.y, FLY_HANDOVER, { n: FLY_PREFETCH });
+  const sink = tcx.helpers.groundSink();
+  if (!sink) return;
+  const tileWidth = tcx.TILE_PX / (view.PPM * zOfStep(FIXED_STEP)), ppm = view.PPM * FLY_HANDOVER;
+  const halfW = view.W / 2 / ppm, halfH = view.H / 2 / ppm;
+  for (let i = Math.floor((car.x - halfW) / tileWidth); i * tileWidth < car.x + halfW; i++) {
+    for (let j = Math.floor((car.y - halfH) / tileWidth); j * tileWidth < car.y + halfH; j++) {
+      const tile = tiles.get(FIXED_STEP + '|' + i + '|' + j);
+      if (tile) sink.preload(tile.c);
+    }
+  }
 }
 
 /**
@@ -695,7 +673,7 @@ function lookAhead(tcx: TilesCtx, step: number, fly: unknown, car: CamCar | null
  */
 function drawGround(tcx: TilesCtx, wallDt = 0, car: CamCar | null = null) {
   const { view, state } = tcx;
-  drainWear(tcx, wallDt);
+  drainWear(tcx, wallDt, zOfStep);
   state.tileFrame++;
   resetOnChange(tcx);
   const fly = tcx.helpers.getFly();
@@ -753,6 +731,8 @@ export function createTiles(view: View, cam: Cam, settings: Settings, helpers: T
     TILE_GPU: settings.tileGpu,
     NO_SHADE: settings.noShade,
     EXACT_TILES: settings.exactTiles,
+    WORN_ONLY: settings.startFix,
+    WORN_TILES: new WeakSet(),
   };
   return {
     tileState, tiles, TILE_PX, ZSTEP, zStepOf, zOfStep,

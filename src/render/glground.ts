@@ -19,6 +19,8 @@ export interface GroundSink {
   image(source: HTMLCanvasElement, x: number, y: number, width: number, height: number): void;
   /** 'write': what is drawn masks the area; 'under': draw only where nothing masked; 'off' */
   mask(mode: 'write' | 'under' | 'off'): void;
+  /** uploads a picture (with mipmaps) without drawing it, or keeps it from expiring */
+  preload(source: HTMLCanvasElement): void;
 }
 
 /** How a CSS px of the view maps to a screen device pixel this frame. */
@@ -88,20 +90,48 @@ void main() {
     weight.y);
 }`;
 
+/** CSS colours already read, and (?startfix=1) the one canvas they are read through */
+interface ColourCache {
+  rgba: Map<string, number[]>;
+  probe: CanvasRenderingContext2D | null;
+  reuseProbe: boolean;
+}
+
+/**
+ * The 1x1 canvas a colour is read through. A fresh canvas per colour (GPU-backed, then read
+ * back) cost ~1 ms each: the GPU painter's first frame reads every surface colour, 43 ms at the
+ * race start's fly-in hand-over (laptop profile). ?startfix=1 reuses one canvas of the same kind
+ * (0.06 ms a colour), cleared and reset to a fresh canvas's fill first, so every colour reads
+ * the same (checked: all 570 colours in src/).
+ * @param cache the colour cache
+ * @returns the canvas context
+ */
+function colourProbe(cache: ColourCache) {
+  if (!cache.reuseProbe) return document.createElement('canvas').getContext('2d')!;
+  if (!cache.probe) {
+    const canvas = document.createElement('canvas');
+    canvas.width = canvas.height = 1;
+    cache.probe = canvas.getContext('2d')!;
+  }
+  cache.probe.clearRect(0, 0, 1, 1);
+  cache.probe.fillStyle = '#000000';
+  return cache.probe;
+}
+
 /**
  * A CSS colour as RGBA in 0..1, read once through a 1x1 2D canvas and cached.
  * @param cache the colour cache
  * @param colour the CSS colour
  * @returns the RGBA
  */
-function parseColour(cache: Map<string, number[]>, colour: string) {
-  let rgba = cache.get(colour);
+function parseColour(cache: ColourCache, colour: string) {
+  let rgba = cache.rgba.get(colour);
   if (!rgba) {
-    const probe = document.createElement('canvas').getContext('2d')!;
+    const probe = colourProbe(cache);
     probe.fillStyle = colour;
     probe.fillRect(0, 0, 1, 1);
     rgba = Array.from(probe.getImageData(0, 0, 1, 1).data, (value) => value / 255);
-    cache.set(colour, rgba);
+    cache.rgba.set(colour, rgba);
   }
   return rgba;
 }
@@ -212,7 +242,7 @@ const newSinkState = (): SinkState => ({
  * @returns the sink and its texture cache
  */
 function createSink(webgl: WebGL2RenderingContext, program: WebGLProgram,
-    colours: Map<string, number[]>, state: SinkState) {
+    colours: ColourCache, state: SinkState) {
   const { uniforms, vao } = buildQuad(webgl, program);
   const textures = new Map<HTMLCanvasElement, TexEntry>();
   const sink: GroundSink = {
@@ -224,6 +254,7 @@ function createSink(webgl: WebGL2RenderingContext, program: WebGLProgram,
       webgl.clear(webgl.COLOR_BUFFER_BIT);
     },
     mask(mode) { setMask(webgl, mode); },
+    preload(source) { textureOf(webgl, textures, source, state.frameNo, true, state.counts); },
     image(source, x, y, width, height) {
       const frame = state.frame;
       if (!frame || !source.width || !source.height) return;
@@ -268,6 +299,11 @@ function shadeCalls(shade: GlShade | null, state: SinkState) {
      */
     invalidateShade(rect: ShadeRect) { shade?.invalidate(rect); },
     /**
+     * Readies the hill shading over a rectangle within its budget, drawing nothing (glshade.ts).
+     * @param rect the rectangle, m
+     */
+    warmShade(rect: ShadeRect) { shade?.warm(rect); },
+    /**
      * Draws the hill shading over the whole GPU ground (after the tiles).
      * @param camera where the world lands on the canvas this frame
      */
@@ -288,9 +324,11 @@ function shadeCalls(shade: GlShade | null, state: SinkState) {
  * (the ground then stays in the 2D art buffer, as before).
  * @param screen the screen canvas
  * @param withPainter true to paint the floor and zones on the GPU too (glpaint.ts)
+ * @param reuseProbe ?startfix=1: colours read through one reused canvas (colourProbe)
  * @returns the GPU ground, or null
  */
-export function createGlGround(screen: HTMLCanvasElement, withPainter = false) {
+export function createGlGround(screen: HTMLCanvasElement, withPainter = false,
+    reuseProbe = false) {
   const canvas = document.createElement('canvas');
   canvas.id = 'glground';
   // preserveDrawingBuffer: the test tools read the finished frame back after it is shown. It looks
@@ -310,7 +348,7 @@ export function createGlGround(screen: HTMLCanvasElement, withPainter = false) {
     + 'touch-action:none;pointer-events:none';
   Object.assign(screen.style, { position: 'relative', zIndex: '1' });
   screen.parentNode!.insertBefore(canvas, screen);
-  const colours = new Map<string, number[]>();
+  const colours: ColourCache = { rgba: new Map(), probe: null, reuseProbe };
   const painter = withPainter ? createGlPaint(webgl, (rgb) => parseColour(colours, rgb)) : null;
   const shade = withPainter ? createGlShade(webgl) : null;
   const state = newSinkState();

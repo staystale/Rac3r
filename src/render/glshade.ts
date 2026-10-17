@@ -238,6 +238,16 @@ export function createGlShade(webgl: WebGL2RenderingContext) {
       markStale(grid, rect);
     },
     /**
+     * Computes missing chunks over a rectangle within SHADE_BUDGET_MS, drawing nothing: the
+     * fly-in readies the hand-over view (?startfix=1), which otherwise computed it all at once.
+     * @param rect the rectangle, m
+     */
+    warm(rect: ShadeRect) {
+      resetOnChange(grid);
+      webgl.bindTexture(webgl.TEXTURE_2D, tex);
+      fillRect(webgl, grid, rect, performance.now() + SHADE_BUDGET_MS);
+    },
+    /**
      * Draws the shading over everything on the GPU canvas.
      * @param size the canvas size, device px
      * @param camera where the world lands on the canvas this frame

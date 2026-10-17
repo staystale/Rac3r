@@ -51,8 +51,14 @@ the git history. `docs/foreman-handover.md` is the last handover (10-17), writte
   4.5 vs 8.4 drops a minute, slow frames of ours 16 vs 33. Still ours in those runs: (a) the race
   start, one 45-60 ms frame as the fly-in hands over (40-48 tiles uploaded at once); (b) worn-tile
   repaints every 9th frame (wear drain), dt 20-25. The rest: Safari.
+  (a) ?startfix=1 (under test): a wear reset stales only tiles holding wear (the race start
+  staled every tile; the hand-over repainted 48-77 in one frame); the fly-in on the GPU ground
+  pre-paints only the fixed step over the hand-over view and uploads each tile as painted; it
+  readies the hill shading in its 2 ms budget; colours are read through one reused canvas (all 27
+  the GPU ground reads are identical). Laptop race start: worst frame 83-160 ms -> 11 ms.
+  (b) next if wanted: wear drawn as its own GPU layer (no stale tiles at all).
   Also seen on the laptop only: the GPU ground's first frame (glground.ts parseColour ~20-25 ms).
-- NOW (owner order, 2026-10-17): 1) owner to choose: (a) / (b) above or WEATHER (see "GRASS GRIP + WATER"
+- NOW (owner order, 2026-10-17): 1) (a) startfix phone test; then (b) or WEATHER (see "GRASS GRIP + WATER"
   below, owner answers).
 - GRASS THROUGH THE CRACKS (owner: a and b, "like real life"): long-grass tufts in some
   broken-tarmac flecks, and scattered on broken-tarmac / concrete ground (blend.ts, own random

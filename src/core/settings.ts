@@ -38,6 +38,7 @@ export interface Settings {
   menuFast: boolean;             // no fly-in behind the menu, thumbnails at load; =0 the old
   thumbCache: boolean;           // thumbnails saved per version (thumbcache.js); =0 painted
   texWarm: boolean;              // long-grass textures painted while loading; =0 in the menu
+  startFix: boolean;             // ?startfix=1: the race-start frame (tiles.ts, glground.ts)
   maxDpr: number | null;         // ?dpr=2: the sharpness cap (default render.ts MAX_DPR 1.5)
   noShade: boolean;              // ?noshade: skip the hill shading (perf A/B)
   grassEnds: "round" | "square";   // ?grass=square: square grass blade ends (cheaper; A/B)
@@ -122,9 +123,8 @@ export function readSettings(search: string): Settings {
     // default since 2026-10-17 (owner: "test passed"): the tyre / damage diagram OFF in the HUD
     // list means off, even when the car is damaged
     tyreOff: params.get('tyreoff') !== '0',
-    // default since 2026-10-17 (owner: "Seems to have worked nice one"): the menu's race starts on
-    // the car (no fly-in), the track thumbnails are painted while the game loads, not on the TEST
-    // MODE tap, and the long-grass blades are stroked once for its recolours (textures.ts)
+    // default since 2026-10-17: the menu's race starts on the car (no fly-in), thumbnails painted
+    // while loading, long-grass blades stroked once for its recolours (textures.ts)
     menuFast: params.get('menufast') !== '0',
     // default since 2026-10-17 (owner approved: the phone's menu at 2.5 -> 1.15 s, 0.53 s once
     // saved): the menu thumbnails saved on the device per game version and read back at load
@@ -132,6 +132,7 @@ export function readSettings(search: string): Settings {
     thumbCache: params.get('thumbcache') !== '0',
     // default since 2026-10-17 (owner approved): long-grass textures painted while loading
     texWarm: params.get('texwarm') !== '0',
+    startFix: params.get('startfix') === '1',
     maxDpr: maxDpr(params),
     noShade: params.has('noshade'),
     grassEnds: params.get('grass') === 'square' ? 'square' : 'round',

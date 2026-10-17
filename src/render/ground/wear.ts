@@ -25,11 +25,17 @@ import { paintLayers, artBase } from "./art.ts";
  *
  * @param groundCtx the shared ground painter context
  * @param pass 'base' for cells that started with no cover, 'cover' for cells whose cover changed
+ * @returns how many worn cells were painted (the ground tiles remember whether they hold any)
  */
 export function drawWear(groundCtx: GroundCtx, pass = 'base') {
-  if (!wearMap || wearMap.size === 0) return;
+  if (!wearMap || wearMap.size === 0) return 0;
   const groups = groupWornCells(groundCtx, pass);
-  for (const [groupKey, group] of groups) paintWearGroup(groundCtx, groupKey, group);
+  let cells = 0;
+  for (const [groupKey, group] of groups) {
+    paintWearGroup(groundCtx, groupKey, group);
+    cells += group.r.length / 4;
+  }
+  return cells;
 }
 
 /**

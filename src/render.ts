@@ -96,6 +96,7 @@ type RenderCtx = {
   gpuCamera: PaintCamera;         // where the world lands on the GPU canvas this frame
   noShade: boolean;               // ?noshade: no hill shading
   maxDpr: number | null;          // ?dpr=: a sharpness cap in place of MAX_DPR
+  startFix: boolean;              // ?startfix=1: the fly-in readies the hand-over
   PPMz: () => number;
   toScreenX: (worldX: number) => number;
   toScreenY: (worldY: number) => number;
@@ -310,7 +311,7 @@ function drawFrame(ctx: RenderCtx, game: RenderGame, wallDt: number, wallT: numb
   }
   const lock = applyViewLock(ctx, wallDt);
   ctx.state.screenBegun = false;
-  beginGpuGround(ctx, lock);
+  beginGpuGround(ctx, lock, game.car);
   drawWorldLayers(ctx, game, lock, wallT);
   drawEffects(ctx, game, wallDt);
   if (ctx.state.sharpCars) drawSharpCarLayers(ctx, game, lock);
@@ -326,8 +327,9 @@ function drawFrame(ctx: RenderCtx, game: RenderGame, wallDt: number, wallT: numb
  *
  * @param ctx the renderer context
  * @param lock what applyViewLock changed
+ * @param car the player's car (the fly-in ends on it)
  */
-function beginGpuGround(ctx: RenderCtx, lock: ViewLock) {
+function beginGpuGround(ctx: RenderCtx, lock: ViewLock, car: CamCar) {
   const { gpu, state, pcanvas, pctx, view, canvas } = ctx;
   state.gpuOn = !!gpu && gpu.active && !ctx.skip('ground');
   if (!state.gpuOn) return;
@@ -339,7 +341,7 @@ function beginGpuGround(ctx: RenderCtx, lock: ViewLock) {
     width: canvas.width, height: canvas.height, artDpr: view.dpr, blockPx: state.blockPx,
     subX: lock.subX, subY: lock.subY,
   });
-  if (gpu!.painting) paintGpuGround(ctx, lock);
+  if (gpu!.painting) paintGpuGround(ctx, lock, car);
 }
 
 /**
@@ -348,8 +350,9 @@ function beginGpuGround(ctx: RenderCtx, lock: ViewLock) {
  *
  * @param ctx the renderer context
  * @param lock what applyViewLock changed
+ * @param car the player's car
  */
-function paintGpuGround(ctx: RenderCtx, lock: ViewLock) {
+function paintGpuGround(ctx: RenderCtx, lock: ViewLock, car: CamCar) {
   const { gpu, state, pcanvas, view, cam } = ctx;
   gpu!.sink.fill(COL.outside);
   const count = ctx.listGroundPatches(ctx.groundPatches);
@@ -360,6 +363,24 @@ function paintGpuGround(ctx: RenderCtx, lock: ViewLock) {
   });
   gpu!.paint(ctx.gpuCamera, ctx.groundPatches, count, ctx.paletteLUT());
   if (isGpuShadeOn(ctx)) updateGpuShade(ctx);
+  else if (ctx.startFix && !ctx.noShade) warmGpuShade(ctx, car);
+}
+
+/**
+ * ?startfix=1: during the fly-in (no shading drawn), readies the shading of the hand-over view
+ * round the car within the shading's budget, so the hand-over frame does not compute it all
+ * (MEASURED, laptop: 20 ms of that frame).
+ *
+ * @param ctx the renderer context
+ * @param car the car the fly-in ends on
+ */
+function warmGpuShade(ctx: RenderCtx, car: CamCar) {
+  const { view } = ctx;
+  const halfW = view.W / 2 / (view.PPM * ctx.FLY_HANDOVER) + SHADE_MARGIN_M;
+  const halfH = view.H / 2 / (view.PPM * ctx.FLY_HANDOVER) + SHADE_MARGIN_M;
+  ctx.gpu!.warmShade({
+    x0: car.x - halfW, y0: car.y - halfH, x1: car.x + halfW, y1: car.y + halfH,
+  });
 }
 
 /**
@@ -588,7 +609,7 @@ function gpuHelpers(state: RenderState, gpu: GlGround | null) {
  * @returns the GPU ground, or null
  */
 function createGpuGround(canvas: HTMLCanvasElement, settings: Settings) {
-  return settings.glGround ? createGlGround(canvas, settings.gpuPaint) : null;
+  return settings.glGround ? createGlGround(canvas, settings.gpuPaint, settings.startFix) : null;
 }
 
 /**
@@ -636,7 +657,7 @@ export function createRenderer(canvas: HTMLCanvasElement, settings: Settings) {
   const ctx: RenderCtx = {
     canvas, view, cam, state, noLock: settings.noLock, skip, mainCtx, pcanvas, pctx, gpu, PPMz,
     groundPatches: [], toScreenX, toScreenY, noShade: settings.noShade, maxDpr: settings.maxDpr,
-    gpuCamera: { x: 0, y: 0, devPerMetre: 1, screenX: 0, screenY: 0 },
+    gpuCamera: { x: 0, y: 0, devPerMetre: 1, screenX: 0, screenY: 0 }, startFix: settings.startFix,
     ...ground, ...road, ...particles, ...cars, ...props, ...objects, ...camera, ...tiles,
   };
   const { camState, tileState } = ctx;
