@@ -31,6 +31,7 @@ export interface Settings {
   sharpCars: boolean;            // crisp cars on the screen canvas (render.ts); ?sharpcars=0 off
   sharpMarks: boolean;           // skid marks on the screen canvas (render.ts); ?sharpmarks=0 off
   jokerFix: boolean;             // joker lane on the minimap, RESET back onto it; ?jokerfix=0 off
+  groundLookup: boolean;         // ?groundlookup=1: fewer ground lookups under the wheels (wear.ts)
   noShade: boolean;              // ?noshade: skip the hill shading (perf A/B)
   grassEnds: "round" | "square";   // ?grass=square: square grass blade ends (cheaper; A/B)
   surfaceTextures: boolean;       // ?tex=0: paint surfaces live, not pre-painted textures (A/B)
@@ -96,6 +97,8 @@ export function readSettings(search: string): Settings {
     // default since 2026-10-17 (owner approved): the joker lane on the minimap; RESET puts the car
     // back on the joker lane where it came off
     jokerFix: params.get('jokerfix') !== '0',
+    // ?groundlookup=1 (owner phone test pending): 12 ground lookups a car a step instead of ~22
+    groundLookup: params.get('groundlookup') === '1',
     noShade: params.has('noshade'),
     grassEnds: params.get('grass') === 'square' ? 'square' : 'round',
     surfaceTextures: params.get('tex') !== '0',

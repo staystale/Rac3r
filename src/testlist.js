@@ -11,6 +11,17 @@ export const TEST_LIST = [
   // dirtroad, animals, labext, labsplit, zoomhold, gpupaint, minimap, zoomspring, grassgrip, hwmap,
   // cracktufts, sharpcars, sharpmarks, jokerfix)
   {
+    id: 'groundlookup',
+    added: '2026-10-17',
+    name: 'Fewer ground lookups under the wheels (12 a step instead of ~22): same driving',
+    where: 'Link: ?groundlookup=1&report=1 - a bumpy track (Sweaty Lamb, Knobhill), then a race',
+    try:
+      'Drive over crests, dips and kerbs, and race the AI. Compare with the plain link.',
+    wrong:
+      'The car feels different over bumps, kerbs or hills; it pulls on a camber; the AI drives ' +
+      'differently; more judder.',
+  },
+  {
     id: 'straightoutta',
     added: '2026-10-15',
     name: 'Judder fix (skid-mark layer) + new highway step 1: Straight Outta Swindon',

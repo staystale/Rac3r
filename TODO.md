@@ -201,7 +201,14 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
       1. Ground checks: near-hint search +-4 first (tyrewall.ts NEAR_FIRST): querySubtrackInto 0.96
          -> 0.33 s, applyGround 2.68 -> 2.13 s, simhash SAME - DONE. Next: fewer samples per step
          behind ?groundlite=1 (lap-time proof) - OWNER: "a good idea", after the graphics work,
-         and a phone test when in doubt. Height map rejected. Off-screen AI at half rate: owner
+         and a phone test when in doubt. BUILT 2026-10-17 as ?groundlookup=1 (owner phone test
+         pending, testlist 'groundlookup'; wear.ts setGroundLookup): each wheel's slope from its
+         own height + one step along x and y (forward differences, 3 lookups not 4), the bump
+         steer reusing the front wheels' heights, the front axle's slope the mean of its wheels:
+         12 height lookups a car a step instead of ~22. Applies to every car alike (off-screen AI
+         included). tools/scratch/_groundlookup.mjs (AI, difficulty 4, 7 circuits, same seed):
+         2nd lap time +0.01..+0.06 s, racing line max 0.04-0.10 m apart (mean 0.01 m); ground
+         code 16-22 -> 11-16 us a car a step. Switch off: simhash SAME. Height map rejected. Off-screen AI at half rate: owner
          "probably ok to consider if we need more performance" - SAVED for later, not now.
       2. Ground tiles: MEASURED (2026-10-16, tools/tilecost.mjs + a race profile; Brands, 4 AI,
          CPU x4, 90 s): tile painting ~11 % of the CPU, ~20 tiles/s at 5.7 ms; 98 % of them

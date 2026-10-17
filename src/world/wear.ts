@@ -545,6 +545,37 @@ export function applyGround(car: CarBody, dt: number): void {
     car.y); qsHintSub = hit.seg != null ? st0 : null; qsHint = hit.seg ?? -1; }
   try { applyGroundInner(car, dt); } finally { qsHintSub = null; qsHint = -1; }
 }
+// FEWER GROUND LOOKUPS (?groundlookup=1, setGroundLookup). Every car asks for the smooth ground
+// height ~22 times a physics step (120 a second): a central-difference slope (4 heights) under each
+// of the 4 wheels, 2 more heights for the bump steer and 4 for the front axle's slope - mostly
+// overlapping questions (MEASURED: Brands, 5 cars, CPU x4, applyGround 2.1 s in 15 s). With the
+// switch each wheel's slope is a forward difference from its own height plus one step along x and
+// one along y (3 heights), the bump steer reuses the two front wheels' heights, and the front
+// axle's slope is the mean of its two wheels' slopes: 12 heights a step. The same STEP, so a slope
+// is the same plane read 0.15 m off the wheel; on an even slope the answer is identical.
+const LOOKUP_STEP = 0.3;   // m, slopeAt's step
+let fewerLookups = false;
+/**
+ * Turns the fewer ground lookups on or off (main.js, from ?groundlookup=1; tools for an A/B).
+ * @param fewer true for 12 height lookups a step instead of ~22
+ */
+export function setGroundLookup(fewer: boolean): void { fewerLookups = fewer; }
+// one wheel's smooth height and slope (fewer lookups), reused: no allocation per step
+const wheelGround = { h: 0, gx: 0, gy: 0 };
+// the front wheels' bank-free heights and the front axle's slope, kept for the bump steer
+const frontWheels = { right: 0, left: 0, gx: 0, gy: 0 };
+/**
+ * One wheel's smooth height and its slope from 3 lookups (forward differences), into wheelGround.
+ * @param x world x, m
+ * @param y world y, m
+ */
+function sampleWheelGround(x: number, y: number): void {
+  const height = bumpAt(x, y, true);
+  wheelGround.h = height;
+  wheelGround.gx = (bumpAt(x + LOOKUP_STEP, y, true) - height) / LOOKUP_STEP;
+  wheelGround.gy = (bumpAt(x, y + LOOKUP_STEP, true) - height) / LOOKUP_STEP;
+}
+
 /**
  * The slope force (and bump steer) on a grounded car, set into slopeLong / slopeLat / slopeYaw.
  * @param car the car body (slope fields are written)
@@ -566,11 +597,23 @@ function applySlopeForces(car: CarBody, cosH: number, sinH: number): void {
     spec.lf / wheelbase, -spec.lr]]) {
     let slopeX = 0, slopeY = 0;
     for (const side of [1, -1]) {
-      const slope = slopeAt(car.x + cosH * axleX + perpSin * hw2 * side,
-        car.y + sinH * axleX + perpCos * hw2 * side);
-      slopeX += slope.gx / 2;
-      slopeY += slope.gy / 2;
+      const wheelX = car.x + cosH * axleX + perpSin * hw2 * side,
+        wheelY = car.y + sinH * axleX + perpCos * hw2 * side;
+      if (fewerLookups) {
+        sampleWheelGround(wheelX, wheelY);
+        slopeX += wheelGround.gx / 2;
+        slopeY += wheelGround.gy / 2;
+        // side +1 is the car's right (the bump steer's heightRight)
+        const bankFree = wheelGround.h - bankHeightAt(wheelX, wheelY);
+        if (arm > 0 && side > 0) frontWheels.right = bankFree;
+        else if (arm > 0) frontWheels.left = bankFree;
+      } else {
+        const slope = slopeAt(wheelX, wheelY);
+        slopeX += slope.gx / 2;
+        slopeY += slope.gy / 2;
+      }
     }
+    if (arm > 0) { frontWheels.gx = slopeX; frontWheels.gy = slopeY; }
     // cap at 45 deg
     const gmag = Math.hypot(slopeX, slopeY), slopeScale = gmag > 1 ? 1 / gmag : 1;
     const Fwx = -weight * share * slopeX * slopeScale,
@@ -579,26 +622,45 @@ function applySlopeForces(car: CarBody, cosH: number, sinH: number): void {
     // lateral push x lever arm = yaw
     Flong += forceLong; Flat += forceLat; yawMoment += arm * forceLat;
   }
-  // BUMP STEER: the front wheel that drops (into a dip, or off the far side of a whoop) tugs the
-  // nose toward its side — the tramlining a real car's steering does. +y is the car's right, and
-  // a right turn is positive yaw, so a LOWER right wheel (hL > hR) adds positive yaw. Strength
-  // BUMP_STEER x front weight x height difference (m). banking excluded: a steady cross-slope is
-  // not a bump, and the slope push already slides you down it
-  const hAt = (x: number, y: number): number => heightAt(x, y) - bankHeightAt(x, y);
-  const heightRight = hAt(car.x + cosH * spec.lf + perpSin * hw2,
-    car.y + sinH * spec.lf + perpCos * hw2);
-  const heightLeft = hAt(car.x + cosH * spec.lf - perpSin * hw2,
-    car.y + sinH * spec.lf - perpCos * hw2);
-  // BUMPS ONLY, never an even slope (requirement: I think the bowl on the lab is broken): on the
-  // bowl wall the left / right difference was PERMANENT and dragged the nose toward the
-  // middle the whole way round. Subtract what a flat plane with the local slope would give, so a
-  // steady cross-slope (bowl, hill, banking) reads zero.
-  const frontSlope = slopeAt(car.x + cosH * spec.lf, car.y + sinH * spec.lf);
-  // hL - hR on a flat tilted plane
-  const plane = -2 * hw2 * (frontSlope.gx * perpSin + frontSlope.gy * perpCos);
-  yawMoment += BUMP_STEER.k * weight * (spec.lr / wheelbase) * Math.max(-0.4, Math.min(0.4,
-    (heightLeft - heightRight) - plane));
+  yawMoment += bumpSteerYaw(car, cosH, sinH, weight);
   car.slopeLong = Flong; car.slopeLat = Flat; car.slopeYaw = yawMoment;
+}
+
+/**
+ * BUMP STEER: the front wheel that drops (into a dip, or off the far side of a whoop) tugs the
+ * nose toward its side — the tramlining a real car's steering does. +y is the car's right, and
+ * a right turn is positive yaw, so a LOWER right wheel (hL > hR) adds positive yaw. Strength
+ * BUMP_STEER x front weight x height difference (m). banking excluded: a steady cross-slope is
+ * not a bump, and the slope push already slides you down it. With fewer lookups the heights and
+ * the front slope come from the slope pass (frontWheels).
+ * @param car the car body
+ * @param cosH cos of the car heading
+ * @param sinH sin of the car heading
+ * @param weight the car's weight, N
+ * @returns the yaw moment, N m
+ */
+function bumpSteerYaw(car: CarBody, cosH: number, sinH: number, weight: number): number {
+  const spec = car.spec, hw2 = (spec.trackWidth || 1.5) / 2, perpSin = -sinH, perpCos = cosH;
+  let heightRight = frontWheels.right, heightLeft = frontWheels.left;
+  let slopeX = frontWheels.gx, slopeY = frontWheels.gy;
+  if (!fewerLookups) {
+    const hAt = (x: number, y: number): number => heightAt(x, y) - bankHeightAt(x, y);
+    heightRight = hAt(car.x + cosH * spec.lf + perpSin * hw2,
+      car.y + sinH * spec.lf + perpCos * hw2);
+    heightLeft = hAt(car.x + cosH * spec.lf - perpSin * hw2,
+      car.y + sinH * spec.lf - perpCos * hw2);
+    // BUMPS ONLY, never an even slope (requirement: I think the bowl on the lab is broken): on
+    // the bowl wall the left / right difference was PERMANENT and dragged the nose toward the
+    // middle the whole way round. Subtract what a flat plane with the local slope would give, so
+    // a steady cross-slope (bowl, hill, banking) reads zero.
+    const frontSlope = slopeAt(car.x + cosH * spec.lf, car.y + sinH * spec.lf);
+    slopeX = frontSlope.gx;
+    slopeY = frontSlope.gy;
+  }
+  // hL - hR on a flat tilted plane
+  const plane = -2 * hw2 * (slopeX * perpSin + slopeY * perpCos);
+  return BUMP_STEER.k * weight * (spec.lr / (spec.lf + spec.lr)) * Math.max(-0.4, Math.min(0.4,
+    (heightLeft - heightRight) - plane));
 }
 function applyGroundInner(car: CarBody, dt: number): void {
   const spec = car.spec;
