@@ -12,6 +12,8 @@
 import { FENCE, FX0, FX1, FY0, FY1, RUNOFF_W } from "./world/bounds.ts";
 import { COL } from "./world/colours.ts";
 import { LEVEL } from "./world/state.ts";
+import { MARK_WET } from "./world/surfaces.ts";
+import { addTrailPoint, clearWetTrails, wetTrailOn } from "./wettrail.ts";
 
 // EXTENT is the FENCE, not the floor, so what happens in the run-off (gravel tracks) is
 // recorded too. The resolution is kept at 4.2 px/m so memory stays flat: a finer layer over this
@@ -158,6 +160,7 @@ function clearMarks(markCtx) {
   state.wraps = false;
   state.prev.clear();
   state.stamps = 0;
+  clearWetTrails();
 }
 
 /**
@@ -305,6 +308,13 @@ function stampWheel(markCtx, wheel) {
   // gravel is; a surface without one behaves exactly as before, which is the rule-6 no-op
   // default.
   const loose = wheel.mark;
+  // WET TRAIL (?wettrail=1): a wheel on a wet road lays a short fading trail (wettrail.ts), not a
+  // mark in this layer
+  if (loose === MARK_WET && wetTrailOn()) {
+    prev.set(wheel.key, { x: wheel.x, y: wheel.y });
+    addTrailPoint(wheel.key, wheel.x, wheel.y, wheel.width * MARK_WET.widen);
+    return;
+  }
   if (!loose && !(wheel.slip > SLIP_FLOOR)) {
     prev.set(wheel.key, { x: wheel.x, y: wheel.y });
     return;

@@ -526,11 +526,14 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
   RESET keeps the race as it is; the wear is saved when the event is over (results, menu, another
   car).
 - WET TYRE MARKS (owner 10-18: "tyre marks in the wet need to vanish quite quickly 10-50 m").
-  NOT STARTED (next). Cause: wet marks (MARK_WET, the dried line) go into the same skid-mark layer
-  as rubber, which fades ~46 s to half for everything (marks.js fadeMarks) - ~2 km of trail at
-  race speed. Plan (owner OK 10-18): in the wet lay no marks into the layer; a short trail behind
-  each wheel (last ~10-50 m, fading over ~1-1.5 s) drawn into the art buffer - no new layer, no
-  extra full-layer fade (a second 26 MB layer was rejected for Safari).
+  Cause: wet marks (MARK_WET, the light line a tyre leaves on a wet road) went into the skid-mark
+  layer with the rubber, which fades ~46 s to half (marks.js fadeMarks): ~2 km of trail at race
+  speed. BUILT behind ?wettrail=1 (testlist wettrail): src/wettrail.ts - a wet wheel keeps a
+  short trail instead (a point a metre, gone after 1 s or 50 m of trail: ~10 m at 36 km/h, 50 m
+  at 180 km/h), drawn where the marks are drawn (screen.ts / render.ts), fading in 4 bands: one
+  stroke per band and line width (~8 a frame), no new layer, no whole-layer fade (a second 26 MB
+  layer was rejected for Safari). Photographed racing in the rain: short lines behind each tyre,
+  none left down the track. Dry rubber marks unchanged.
 - ONE PUDDLE LOOK (owner 10-18: "two types of puddle - there should only be one"; puddles hardly
   showed on tarmac). CAUSE: the weather's puddles were painted with the WET TARMAC art (opaque
   #2c3039, its own blue 'blobs' = puddles inside each puddle; dark on a wet road). BUILT behind

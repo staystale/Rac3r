@@ -27,6 +27,7 @@ import { createProps } from "./render/props.ts";
 import { createObjects } from "./render/objects.ts";
 import { createTiles } from "./render/tiles.ts";
 import { createCamera } from "./render/camera.ts";
+import { drawWetTrails } from "./wettrail.ts";
 import {
   blitArt, drawCarLayers, drawMarksOnScreen, drawSharpCarLayers,
 } from "./render/screen.ts";
@@ -245,7 +246,10 @@ function drawWorldLayers(ctx: RenderCtx, game: RenderGame, lock: ViewLock, wallT
   }
   if (!skip('marks')) {
     if (ctx.state.sharpMarks) drawMarksOnScreen(ctx, game, lock);
-    else ctx.drawMarks(game.marks);
+    else {
+      ctx.drawMarks(game.marks);
+      drawWetTrails(ctx.view.ctx, ctx.toScreenX, ctx.toScreenY, ctx.PPMz());
+    }
   }
   if (!skip('fence')) ctx.drawFence();
   if (!skip('barriers')) ctx.drawBarriers();

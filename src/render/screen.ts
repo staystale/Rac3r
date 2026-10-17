@@ -3,6 +3,7 @@
 // sharp cars (the default) and, with ?sharpmarks=1, the skid marks. Everything here is the 2D
 // canvas: never copy pixels between it and WebGL per frame (NOTES.md).
 import { SPRITE_PPM } from "./shared.ts";
+import { drawWetTrails } from "../wettrail.ts";
 import type { CarPicture } from "./cars.ts";
 import type { RenderCar, RenderGame, RenderMarks, View } from "./types.ts";
 
@@ -172,7 +173,10 @@ export function drawMarksOnScreen(ctx: ScreenCtx, game: RenderGame, lock: Screen
   mainCtx.save();
   mainCtx.setTransform(devPerCss, 0, 0, devPerCss, lock.subX, lock.subY);
   view.ctx = mainCtx;
-  try { ctx.drawMarks(game.marks); } finally {
+  try {
+    ctx.drawMarks(game.marks);
+    drawWetTrails(mainCtx, ctx.toScreenX, ctx.toScreenY, ctx.PPMz());
+  } finally {
     view.ctx = keep;
     mainCtx.restore();
   }

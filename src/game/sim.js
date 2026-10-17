@@ -5,6 +5,7 @@ import { carContacts, slipstream } from '../contact.js';
 import { hit, hitRoll, repair, applyBurst } from '../damage.js';
 import { rolling, tripCheck, stepRoll } from '../roll.js';
 import { LEVEL } from "../world/state.ts";
+import { stepWetTrails } from "../wettrail.ts";
 import { applyGround, fenceClamp, obstacleClamp } from "../world/wear.ts";
 import { barrierClamp, solidClamp } from "../world/barriers.ts";
 import { findNearestSubtrackPoint } from "../world/tyrewall.ts";
@@ -413,4 +414,5 @@ export function stepTyreMarks(tcars) {
   // marks are stamped on the SIM step: a mark is world bookkeeping, not an animation
   if (!rolling(game.car)) game.marks.stamp(game.marks.wheelsOf(game.car));
   game.marks.fade(PHYSICS_STEP_SECONDS);
+  stepWetTrails(PHYSICS_STEP_SECONDS);
 }

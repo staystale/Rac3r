@@ -8,6 +8,15 @@
 //   where  how to get to it      try     what to do      wrong   what would count as a bug
 export const TEST_LIST = [
   {
+    id: 'wettrail',
+    added: '2026-10-18',
+    name: 'Wet tyre lines: the light line behind wet tyres fades within ~10-50 m',
+    where: 'Plain link + &wettrail=1: a circuit, WEATHER RAIN / HEAVY RAIN (or &rain=0.6)',
+    try: 'Drive on the wet road: a short light line follows each tyre and fades behind you'
+      + ' (~10 m slow, ~50 m fast); dry rubber marks unchanged.',
+    wrong: 'Lines lasting long, none at all, a line jumping across between puddles.',
+  },
+  {
     id: 'onepuddle',
     added: '2026-10-18',
     name: 'One puddle look: see-through water tinted by its ground, blue-grey on the road',
