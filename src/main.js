@@ -160,11 +160,10 @@ shared.trafficDensity = shared.settings.trafficDensity;
 if (shared.settings.litter !== null)
   for (const level of LEVELS) if (level.endless) level.litter = shared.settings.litter;
 
-shared.hud = createHud({ hudMenu: shared.settings.hudMenu });
+shared.hud = createHud({ hudMenu: shared.settings.hudMenu, tyreOff: shared.settings.tyreOff });
 refreshMinimap();
 setMinimapSource(() => !!shared.minimapOn && shared.mode !== 'menu');
-// the progress bar is its own choice only with the HUD list (?hudmenu=1); else it follows the
-// window
+// the progress bar is its own choice with the HUD list (?hudmenu=0: it follows the window)
 setProgressSource(shared.settings.hudMenu
   ? () => !!shared.progressOn && shared.mode !== 'menu' : null);
 setMinimapView(() => shared.renderer.PPM);

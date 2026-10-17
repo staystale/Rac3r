@@ -37,7 +37,7 @@ Older design notes and measurements are in the git history of this file.
 | `highwayrace.ts`, `traffic.ts`, `raceflow.js` | Highway race rules, highway traffic, how a race ends (results, estimates, DNF). |
 | `render.ts`, `render/` | Drawing (below). |
 | `marks.js` | The world-space skid-mark layer. |
-| `hud.js`, `hud/` | The HUD on the full-resolution canvas: `layout.js` every rectangle and tap hit-test, `gauges.js`, `laps.js`, `overlays.js`, `controls.js`, `widgets.js`, `minimap.js` (minimap + progress bar). With `?hudmenu=1` the pause menu's HUD list (`menu/race.js`, `game/menuflow.js` hudActions) turns each display piece on or off. |
+| `hud.js`, `hud/` | The HUD on the full-resolution canvas: `layout.js` every rectangle and tap hit-test, `gauges.js`, `laps.js`, `overlays.js`, `controls.js`, `widgets.js`, `minimap.js` (minimap + progress bar). The pause menu's HUD list (`?hudmenu=0` = the old MINIMAP row) (`menu/race.js`, `game/menuflow.js` hudActions) turns each display piece on or off. |
 | `menu.js`, `menu/` | Main menu, test mode, garage (paint, tyres), race setup and results. |
 | `input.js` | One normalised input state from keyboard and touch; the car never sees an event. |
 | `audio.js` | Procedural Web Audio: engine note, tyre squeal, surface sounds. |

@@ -33,7 +33,7 @@ export function drawHudTune(ctx, state, rects, car) {
         { size: 15, align: "center", weight: 700 });
     }
   }
-  // with the pause menu's HUD list (?hudmenu=1) the tyre / damage toggle lives there instead
+  // with the pause menu's HUD list (?hudmenu=0 = off) the tyre / damage toggle lives there instead
   if (!state.hudMenu) {
     drawHudPanel(ctx, rects.tyreHudBtn,
       { fill: state.tyreHud ? 'rgba(76,194,160,0.92)' : 'rgba(255,255,255,0.10)', stroke: null });

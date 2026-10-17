@@ -28,8 +28,8 @@ export function refreshMinimap() {
 }
 
 /**
- * The pause menu's HUD list (?hudmenu=1): each piece's label, whether it shows and whether this
- * difficulty mode locks it; set() remembers a choice and applies it at once.
+ * The pause menu's HUD list (?hudmenu=0 = off): each piece's label, whether it shows and whether
+ * this difficulty mode locks it; set() remembers a choice and applies it at once.
  * @returns {object} { items, set }
  */
 function hudActions() {
@@ -179,7 +179,7 @@ export function openPause() {
     tests: game.testMode,   // the TESTING list (src/testlist.js) in the pause menu, test mode only
     audio: shared.audio,                  // the SOUND slider + MUTE (menu.js pause)
     // the MINIMAP row (none with ?minimap=0): this difficulty mode's setting, locked in REAL
-    // the HUD list (?hudmenu=1) in place of the MINIMAP row
+    // the HUD list in place of the MINIMAP row (?hudmenu=0 = the old row)
     hud: shared.settings.hudMenu ? hudActions() : null,
     minimap: shared.settings.minimap ? {
       setting: () => minimapSetting(shared.aiDiff),

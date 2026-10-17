@@ -80,7 +80,7 @@ export function showPause(menu, act) {
 }
 
 /**
- * Adds the HUD > button (?hudmenu=1: the HUD list), or else the MINIMAP row (owner): on / off for
+ * Adds the HUD > button (the HUD list), or with ?hudmenu=0 the MINIMAP row (owner): on / off for
  * this difficulty mode; REAL has it locked off, greyed out.
  * @param {object} menu the menu context
  * @param {HTMLElement} panel the pause panel
@@ -102,7 +102,7 @@ function addHudButton(menu, panel, act) {
 }
 
 /**
- * HUD (?hudmenu=1): one ON / OFF button per display piece, so the player keeps only what they
+ * HUD (owner, approved): one ON / OFF button per display piece, so the player keeps only what they
  * want; each choice is remembered (act.hud). Controls are never in the list.
  * @param {object} menu the menu context
  * @param {object} act the session actions (hud, resume)

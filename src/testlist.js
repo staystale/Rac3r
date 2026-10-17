@@ -10,19 +10,16 @@ export const TEST_LIST = [
   // (approved late, deleted: fields, grassedge, catchthem, slipsdual, fps - TODO.md 1c;
   // dirtroad, animals, labext, labsplit, zoomhold, gpupaint, minimap, zoomspring, grassgrip, hwmap,
   // cracktufts, sharpcars, sharpmarks, jokerfix,
-  // groundlookup, exacttiles)
+  // groundlookup, exacttiles, hudmenu)
   {
-    id: 'hudmenu',
+    id: 'tyreoff',
     added: '2026-10-17',
-    name: 'HUD list in the pause menu: each HUD piece on or off',
-    where: 'Link: ?hudmenu=1 - any track; pause (II), then HUD ›',
-    try:
-      'Turn the minimap, progress bar, lap timer, speedo and tyre / damage off and on; resume ' +
-      'after each. With the minimap off and the bar on, the bar sits alone at the top left.',
+    name: 'Tyre / damage monitor OFF means off, even when damaged',
+    where: 'Link: ?tyreoff=1 - any track; pause (II), HUD ›, TYRE / DAMAGE OFF',
+    try: 'Crash into a wall hard enough to damage the car. Then turn it ON in the HUD list.',
     wrong:
-      'A piece still showing when OFF (or missing when ON); a choice forgotten after a restart; ' +
-      'panels top right overlapping or leaving a gap; a control (pedals, PAUSE, ABS / TCS, ' +
-      'lights) gone.',
+      'The monitor pops up after the crash while OFF; it does not stay up while ON; the damage ' +
+      'not showing on the car itself.',
   },
   {
     id: 'straightoutta',

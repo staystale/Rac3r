@@ -49,7 +49,7 @@ function layoutTunePanel(width, height, narrow) {
 }
 
 /**
- * Whether the player hid a HUD piece (the pause menu's HUD list, ?hudmenu=1).
+ * Whether the player hid a HUD piece (the pause menu's HUD list).
  * @param {object} state the shared HUD state (hidden)
  * @param {string} pieceId the piece (hud.js HIDEABLE)
  * @returns {boolean} hidden

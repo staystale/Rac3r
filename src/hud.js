@@ -10,9 +10,9 @@
 //   under the top-left buttons   the MINIMAP (hud/minimap.js), when on; it gives way to the car
 //                 list and the tune panel, which open over the same place
 //
-// HUD LIST (?hudmenu=1): the pause menu's HUD > turns each display piece on or off (the minimap,
-// the progress bar, the lap timer, the speedo, the tyre / damage diagram). Controls are never in
-// it: a hidden control would be a control the player cannot find.
+// HUD LIST (?hudmenu=0 = off): the pause menu's HUD > turns each display piece on or off (the
+// minimap, the progress bar, the lap timer, the speedo, the tyre / damage diagram). Controls are
+// never in it: a hidden control would be a control the player cannot find.
 //
 // Buttons are DATA so hit-testing and drawing read the same geometry. Two copies of
 // a rect is how a button ends up visually somewhere its tap is not.
@@ -56,7 +56,7 @@ function loadHudChoices(state) {
   try {
     state.mph = localStorage.getItem('carsim.units') === 'mph';
   } catch { /* no storage: km/h */ }
-  // the HUD list's choices count only where the list is (?hudmenu=1)
+  // the HUD list's choices count only where the list is (not with ?hudmenu=0)
   if (!state.hudMenu) return;
   for (const pieceId of HIDEABLE) {
     try {
@@ -80,14 +80,31 @@ function setPieceShown(state, pieceId, shown) {
 }
 
 /**
+ * Whether the tyre / damage diagram is drawn: the tyre HUD is on, OR the car is damaged
+ * (requirement: use that for damage too). With ?tyreoff=1 OFF in the HUD list means off, damaged
+ * or not (owner: "No, OFF means off"); the damage still shows on the car itself.
+ * @param {object} state the HUD state (tyreHud, hudMenu, tyreOff)
+ * @param {object} car the player's car (dmg, punct)
+ * @returns {boolean} drawn
+ */
+function showsCarDiagram(state, car) {
+  if (state.tyreHud) return true;
+  if (state.hudMenu && state.tyreOff) return false;
+  return !!(car.dmg && car.dmg.some((amount) => amount >= 0.05)
+    || (car.punct && car.punct.some(Boolean)));
+}
+
+/**
  * Builds the HUD.
- * @param {{hudMenu?: boolean}} [options] hudMenu: the pause menu's HUD list is on (?hudmenu=1)
+ * @param {{hudMenu?: boolean, tyreOff?: boolean}} [options] hudMenu: the pause menu's HUD list;
+ *   tyreOff: the tyre / damage diagram OFF stays off when damaged (?tyreoff=1)
  * @returns {object} draw, hit, layout and the HUD's choices
  */
 export function createHud(options = {}) {
   const state = {
     hudMenu: !!options.hudMenu,
-    hidden: new Set(),      // HIDEABLE pieces the player turned off (?hudmenu=1 only)
+    tyreOff: !!options.tyreOff,
+    hidden: new Set(),      // HIDEABLE pieces the player turned off (with the HUD list only)
     expanded: false,        // car list
     tuneOpen: false,        // debug/tuning panel — only one of the two is ever open
     shiftFlash: 0,
@@ -100,7 +117,7 @@ export function createHud(options = {}) {
     // OPTIONAL TYRE / DAMAGE HUD (requirement: hud should be optional, turn on and off). Off by
     // default — the car itself shows only realistic feedback (faint cold marks, marbles, smoke).
     // Remembered per device; storage can throw in private windows, so every access is guarded.
-    // carDiagram: the tyre HUD is on, OR the car is damaged (requirement: use that for damage too)
+    // carDiagram: whether it is drawn this frame (showsCarDiagram)
     tyreHud: false,
     carDiagram: false,
     // SPEED UNITS (requirement: tapping the speed / kph should change it to mph), remembered on the
@@ -115,9 +132,7 @@ export function createHud(options = {}) {
   const hit = (point, width, height, car) => hitHud(state, point, width, height, car);
 
   function draw(ctx, game, width, height, wallDt) {
-    state.carDiagram = state.tyreHud
-      || !!(game.car.dmg && game.car.dmg.some((amount) => amount >= 0.05)
-      || (game.car.punct && game.car.punct.some(Boolean)));
+    state.carDiagram = showsCarDiagram(state, game.car);
     try {
       state.drawLightsLater = () => {
         drawHudLights(ctx, game, width, height);

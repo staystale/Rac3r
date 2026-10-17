@@ -11,7 +11,7 @@
 // ?hwmap=0 = not there).
 // ON / OFF lives in the pause menu, remembered per difficulty mode: on in MOBILE, GAME and REALISH,
 // off in RICH, and locked off in REAL (owner).
-// THE PROGRESS BAR: with the pause menu's HUD list (?hudmenu=1) it is a choice of its own,
+// THE PROGRESS BAR: with the pause menu's HUD list (the default) it is a choice of its own,
 // remembered per difficulty mode with the minimap's defaults (never locked); with the minimap
 // off it shows alone at the top of the window's place. Without the list it comes and goes with
 // the window.
@@ -75,7 +75,7 @@ export function setMinimapSetting(mode, shown) {
 }
 
 /**
- * The progress bar setting of a difficulty mode (?hudmenu=1): the device's choice, else the
+ * The progress bar setting of a difficulty mode (the HUD list): the device's choice, else the
  * minimap's default for the mode.
  * @param {number} mode difficulty 0 (MOBILE) .. 4 (REAL)
  * @returns {boolean} shown
@@ -120,7 +120,7 @@ export function setMinimapSource(source) {
 }
 
 /**
- * Sets what decides, every frame, whether the progress bar shows (?hudmenu=1); null = with the
+ * Sets what decides, every frame, whether the progress bar shows (the HUD list); null = with the
  * window.
  * @param {(() => boolean) | null} source true when shown
  */
