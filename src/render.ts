@@ -35,6 +35,9 @@ import type { GlGround, GroundSink } from "./render/glground.ts";
 import type { ShadeRect } from "./render/glshade.ts";
 import type { GroundPatch, PaintCamera } from "./render/glpaint.ts";
 import type { Cam, CamCar, RenderGame, TileBudget, View } from "./render/types.ts";
+import { createRain } from "./render/rain.ts";
+import { wetTint } from "./render/glprogram.ts";
+import { WEATHER } from "./world/weather.ts";
 
 // PPM is derived from the SHORT side of the viewport, so the car is a consistent fraction of the
 // screen everywhere (a flat PPM of 16 put a 4 m car at 64 px on a 1280 px desktop, too small
@@ -70,6 +73,7 @@ interface RenderState {
   sharpMarks: boolean;  // ?sharpmarks=1: the skid marks on the screen canvas (drawMarksOnScreen)
   screenBegun: boolean; // this frame has blitted the art buffer to the screen at least once
   oneCanvas: boolean;   // ?onecanvas=1: the GPU ground drawn into the screen canvas (blitArt)
+  wallDt: number;       // this frame's wall-clock step, s (the rain)
 }
 
 /** What the pixel-locked view of one frame changed, so the end of the frame can undo it. */
@@ -101,6 +105,7 @@ type RenderCtx = {
   PPMz: () => number;
   toScreenX: (worldX: number) => number;
   toScreenY: (worldY: number) => number;
+  drawRain: () => void;           // the falling rain, into the art buffer (render/rain.ts)
 } & ReturnType<typeof createGround> & ReturnType<typeof createRoad>
   & ReturnType<typeof createParticles> & ReturnType<typeof createCars>
   & ReturnType<typeof createProps> & ReturnType<typeof createObjects>
@@ -227,6 +232,8 @@ function applyViewLock(ctx: RenderCtx, wallDt: number): ViewLock {
 function drawWorldLayers(ctx: RenderCtx, game: RenderGame, lock: ViewLock, wallT: number) {
   const { skip } = ctx;
   if (!skip('ground')) ctx.drawGround(lock.wallDt, game.car);
+  // the 2D ground (no GPU ground) looks wet the cheap way: one darkening fill of the art buffer
+  if (!ctx.state.gpuOn && WEATHER.wetness > 0) tintWetGround(ctx);
   // the GPU hill shading lies over the whole ground, as the tiles baked it
   if (ctx.state.gpuOn && ctx.gpu!.painting && isGpuShadeOn(ctx)) ctx.gpu!.drawShade(ctx.gpuCamera);
   if (!skip('deck')) {
@@ -247,6 +254,21 @@ function drawWorldLayers(ctx: RenderCtx, game: RenderGame, lock: ViewLock, wallT
     ctx.drawCones(game.cones.list);
     ctx.drawTape(game);
   }
+}
+
+/**
+ * Darkens the art buffer's ground to look as wet as the track (the 2D ground; the GPU ground does
+ * it in its shaders, glprogram.ts WET_GLSL).
+ * @param ctx the renderer context
+ */
+function tintWetGround(ctx: RenderCtx) {
+  const { pctx, pcanvas } = ctx;
+  pctx.save();
+  pctx.setTransform(1, 0, 0, 1, 0, 0);
+  pctx.globalCompositeOperation = 'multiply';
+  pctx.fillStyle = wetTint(WEATHER.wetness);
+  pctx.fillRect(0, 0, pcanvas.width, pcanvas.height);
+  pctx.restore();
 }
 
 /**
@@ -311,6 +333,7 @@ function drawFrame(ctx: RenderCtx, game: RenderGame, wallDt: number, wallT: numb
     ctx.updateZoom(game.car, wallDt);
   }
   const lock = applyViewLock(ctx, wallDt);
+  ctx.state.wallDt = wallDt;
   ctx.state.screenBegun = false;
   beginGpuGround(ctx, lock, game.car);
   drawWorldLayers(ctx, game, lock, wallT);
@@ -618,13 +641,25 @@ function createGpuGround(canvas: HTMLCanvasElement, settings: Settings) {
 }
 
 /**
+ * The falling rain (render/rain.ts), drawn into the art buffer at this frame's wall-clock step.
+ * @param pctx the art buffer's context
+ * @param state the renderer state (wallDt)
+ * @returns draws this frame's rain
+ */
+function rainDrawer(pctx: CanvasRenderingContext2D, state: RenderState) {
+  const rain = createRain();
+  return () => rain.draw(pctx, pctx.canvas.width, pctx.canvas.height, state.wallDt, WEATHER.rain);
+}
+
+/**
  * A fresh renderer state for these settings.
  * @param settings the game settings (sharpCars, sharpMarks)
  * @returns the state
  */
 const newRenderState = (settings: Settings): RenderState =>
   ({ blockPx: 1, realDpr: 1, gpuOn: false, sharpCars: settings.sharpCars,
-    sharpMarks: settings.sharpMarks, screenBegun: false, oneCanvas: settings.oneCanvas });
+    sharpMarks: settings.sharpMarks, screenBegun: false, oneCanvas: settings.oneCanvas,
+    wallDt: 0 });
 
 /**
  * Builds the renderer for a canvas.
@@ -655,12 +690,12 @@ export function createRenderer(canvas: HTMLCanvasElement, settings: Settings) {
   const PPMz = () => view.PPM * view.zoom;
   const toScreenX = (worldX: number) => (worldX - cam.x) * PPMz() + view.W / 2;
   const toScreenY = (worldY: number) => (worldY - cam.y) * PPMz() + view.H / 2;
-
   const { ground, road, particles, pixelCar, cars, props, objects, camera, tiles } =
     buildModules(view, cam, settings, { PPMz, toScreenX, toScreenY, ...gpuHelpers(state, gpu) });
 
   const ctx: RenderCtx = {
     canvas, view, cam, state, noLock: settings.noLock, skip, mainCtx, pcanvas, pctx, gpu, PPMz,
+    drawRain: rainDrawer(pctx, state),
     groundPatches: [], toScreenX, toScreenY, noShade: settings.noShade, maxDpr: settings.maxDpr,
     gpuCamera: { x: 0, y: 0, devPerMetre: 1, screenX: 0, screenY: 0 }, startFix: settings.startFix,
     ...ground, ...road, ...particles, ...cars, ...props, ...objects, ...camera, ...tiles,

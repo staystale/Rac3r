@@ -471,6 +471,12 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
       formula). Steady cornering (hatch, 60 km/h) tarmac dry / damp / puddle: Pre-Spun 1.38 /
       0.99 / 0.76 g, Wet 1.41 / 1.31 / 1.05, Semi-Slick 1.59 / 0.84 / 0.60. AI alone: wet laps
       13-20 % slower, less time off; AI field (7 races, 5 cars): incidents 14 wet vs 11 dry.
+      R3b BUILT (same switch): wet ground darker and cooler in the GPU ground's own shaders
+      (glprogram.ts WET_GLSL; the 2D ground one multiply fill of the art buffer), falling rain and
+      splashes (render/rain.ts: one stroke + one fill a frame into the art buffer, fixed pool, own
+      random stream), the existing wet spray and light "dried" tyre trails. drawload: +~420 path
+      pieces in the art buffer, nothing on the screen canvas or the GPU. renderhash dry: SAME
+      (against a reference re-saved on R3a). Phone held-frame recording: with the owner's look.
 
 ## GAME NAME: RAC3R (user, 2026-10-03)
 

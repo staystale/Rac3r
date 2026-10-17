@@ -8,6 +8,8 @@
 // tested at the texel centre, so they sit on the same world texel grid at every zoom. The layers
 // not moved here yet stay in the tiles, painted over a transparent background.
 import { TEX_M, TEX_PPM } from "./textures.ts";
+import { WET_GLSL } from "./glprogram.ts";
+import { WEATHER } from "../world/weather.ts";
 
 /** One shape of flat ground: a rectangle, maybe rotated and rounded, of one surface. */
 export interface GroundPatch {
@@ -91,6 +93,7 @@ uniform vec4 glowInner;      // premultiplied
 uniform vec4 glowOuter;
 uniform highp usampler3D palette;   // 32 x 32 x 32 (blue, green, red), packed RGBA
 out vec4 colour;
+${WET_GLSL}
 
 // PIXEL MODE: the nearest colour of the limited palette, as the CPU tiles snap (tilesPalette.ts)
 vec4 snapToPalette(vec4 shade) {
@@ -167,14 +170,14 @@ void main() {
   vec2 fromCamera = (device - cameraPx) / devPerMetre;
   vec2 texel = fromCamera * texPerMetre + camTexel;
   float scale = devPerMetre / texPerMetre;
-  colour = scale >= 1.0 ? magnified(texel, scale) : minified(fromCamera, texel, scale);
+  colour = wetten(scale >= 1.0 ? magnified(texel, scale) : minified(fromCamera, texel, scale));
   if (colour.a <= 0.0) discard;
 }`;
 
 const UNIFORMS = [
   'rect', 'screen', 'canvasHeight', 'cameraPx', 'devPerMetre', 'texPerMetre', 'camTexel',
   'camFromPatch', 'shape', 'radius', 'base', 'texSize', 'camFromOrigin', 'gridSpacing',
-  'gridColour', 'glowRadius', 'glowInner', 'glowOuter', 'tex', 'palette',
+  'gridColour', 'glowRadius', 'glowInner', 'glowOuter', 'tex', 'palette', 'wet',
 ] as const;
 type Uniforms = Record<typeof UNIFORMS[number], WebGLUniformLocation | null>;
 
@@ -438,6 +441,7 @@ export function createGlPaint(webgl: WebGL2RenderingContext,
     webgl.uniform2f(uniforms.camFromOrigin, view.camera.x, view.camera.y);
     webgl.uniform1i(uniforms.tex, 0);
     webgl.uniform1i(uniforms.palette, 1);
+    webgl.uniform1f(uniforms.wet, WEATHER.wetness);
   }
 
   /**

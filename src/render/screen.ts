@@ -23,6 +23,7 @@ export interface ScreenCtx {
   paintCarPicture: (car: RenderCar, enlarge: number) => CarPicture;
   drawProps: (overhead?: boolean) => void;
   drawMarks: (marks: RenderMarks) => void;
+  drawRain: () => void;
 }
 
 /** The sub-pixel camera shift of the frame, device px (render.ts ViewLock). */
@@ -66,8 +67,9 @@ export function forEachDrawnCar(ctx: ScreenCtx, game: RenderGame,
  */
 export function drawCarLayers(ctx: ScreenCtx, game: RenderGame) {
   forEachDrawnCar(ctx, game, ctx.drawPixelCar);
-  // overhead structures (gantry) pass OVER the cars
+  // overhead structures (gantry) pass OVER the cars, and the rain falls over everything
   if (!ctx.skip('props')) ctx.drawProps(true);
+  if (!ctx.skip('rain')) ctx.drawRain();
 }
 
 /**
@@ -106,6 +108,7 @@ export function drawSharpCarLayers(ctx: ScreenCtx, game: RenderGame, lock: Scree
   mainCtx.restore();
   clearArt(ctx);
   if (!ctx.skip('props')) ctx.drawProps(true);
+  if (!ctx.skip('rain')) ctx.drawRain();
   blitArt(ctx, lock);
 }
 
