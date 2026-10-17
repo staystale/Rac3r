@@ -71,7 +71,8 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   frame, so a mark pixel is 3 or 4 art px wide by camera position; now drawn on the screen canvas.
 - Laptop frame numbers swing with the machine (Brands work median 20 ms one hour, 38 ms the next,
   main included): only compare A/B runs made back to back.
-- `?report=1` records without drawing the meter graph (`?meter=1` shows it).
+- `?report=1` records without drawing the meter graph (`?meter=1` shows it). It records the
+  menu too: `phonereport` prints a MENU run (frame times, ignored taps, slowest tap handler).
 
 ## Routine
 

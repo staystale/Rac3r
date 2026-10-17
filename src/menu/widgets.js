@@ -1,5 +1,20 @@
 import { GHOST_MS } from './style.js';
 
+// MENU TAPS for the phone report (?report=1, game/loop.js): taps a new screen ignored (inside its
+// GHOST_MS window) and the slowest button handler, since the last frame took them
+const menuTaps = { ignored: 0, handlerMs: 0 };
+
+/**
+ * The menu taps since the last call, then starts counting again.
+ * @returns {{ignored: number, handlerMs: number}} taps ignored, the slowest handler in ms
+ */
+export function takeMenuTaps() {
+  const taps = { ...menuTaps };
+  menuTaps.ignored = 0;
+  menuTaps.handlerMs = 0;
+  return taps;
+}
+
 /**
  * Empties the menu root and adds a fresh pane (and stamps the ghost-click guard).
  * @param {object} menu the menu context
@@ -34,7 +49,14 @@ export function addButton(menu, parent, label, onClick, cls = '', disabled = fal
   button.disabled = disabled;
   button.addEventListener('click', (evt) => {
     evt.stopPropagation();
-    if (!disabled && performance.now() - menu.openedAt > GHOST_MS) onClick();
+    if (disabled) return;
+    const tapAt = performance.now();
+    if (tapAt - menu.openedAt <= GHOST_MS) {
+      menuTaps.ignored++;
+      return;
+    }
+    onClick();
+    menuTaps.handlerMs = Math.max(menuTaps.handlerMs, performance.now() - tapAt);
   });
   parent.appendChild(button);
   return button;

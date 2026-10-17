@@ -1,13 +1,16 @@
 // phonereport.mjs - read the owner's phone frame reports (?report=1, src/ui/report.ts; serve.mjs
 // appends them to RAC3R_REPORT_LOG). Per run (session + level): frames, frame times, our JS time,
 // slow frames (> 25 ms = a missed 60 Hz refresh) and what they coincided with; and, for reports
-// with the zoom, slow frames by zoom band.
+// with the zoom, slow frames by zoom band. Frames with the menu up (12-number frames: [9] = 1) are
+// a run of their own per session ("menu"): frame times, plus the menu taps a new screen ignored
+// (its ghost-click window) and the slowest button handlers.
 // node tools/phonereport.mjs <report.jsonl> [--since 2026-10-15T17:00]
 // Times in the log are UTC. Each run's first frames are the level start (painting), not driving.
 import { readFileSync } from 'node:fs';
 
 const SLOW_MS = 25;      // a frame this long missed a 60 Hz refresh
 const START_FRAMES = 5;  // the level start, skipped
+const SLOW_TAP_MS = 100; // a button handler this long is a tap the player feels wait
 
 const file = process.argv[2];
 const sinceAt = process.argv.indexOf('--since');
@@ -18,19 +21,49 @@ if (!file) {
 }
 
 /**
- * The runs of the log: one per session and level, frames in order.
+ * The runs of the log: one per session and level, and one per session for the menu, frames in
+ * order.
  * @returns {object[]} the runs
  */
 function readRuns() {
   const runs = new Map();
+  const addTo = (report, menu, frames) => {
+    if (!frames.length) return;
+    const key = report.session + '|' + (menu ? 'menu' : report.level);
+    if (!runs.has(key)) runs.set(key, { ...report, menu, frames: [] });
+    runs.get(key).frames.push(...frames);
+  };
   for (const line of readFileSync(file, 'utf8').trim().split('\n')) {
     const report = JSON.parse(line);
     if (report.at < since) continue;
-    const key = report.session + '|' + report.level;
-    if (!runs.has(key)) runs.set(key, { ...report, frames: [] });
-    runs.get(key).frames.push(...report.frames);
+    addTo(report, true, report.frames.filter((frame) => frame[9] === 1));
+    addTo(report, false, report.frames.filter((frame) => frame[9] !== 1));
   }
   return [...runs.values()];
+}
+
+/**
+ * The menu's run: frame times (no level start to skip, no physics steps needed), the taps the
+ * menu ignored and its slow button handlers.
+ * @param {object} run the menu run
+ */
+function printMenu(run) {
+  const frames = run.frames;
+  const slow = frames.filter((frame) => frame[0] > SLOW_MS);
+  const ours = slow.filter((frame) => frame[1] + frame[2] > 12).length;
+  const handlers = frames.map((frame) => frame[11]).filter((ms) => ms > 0);
+  const slowTaps = handlers.filter((ms) => ms > SLOW_TAP_MS);
+  const middle = (at) => median(frames.map((frame) => frame[at])).toFixed(1);
+  console.log(`${run.at.slice(0, 16)}Z MENU ${run.homeScreen ? 'HOME SCREEN' : 'tab'} `
+    + `${run.query} | ${run.width}x${run.height} dpr ${run.dpr}`);
+  console.log(`  ${frames.length} frames (${(frames.length / 60).toFixed(0)} s), dt median `
+    + `${middle(0)} ms | sim ${middle(1)} draw ${middle(2)} ms | slow ${slow.length} `
+    + `(${percent(slow.length, frames.length)}), our JS heavy ${ours}, longest frame `
+    + `${Math.round(Math.max(...frames.map((f) => f[0])))} ms`);
+  console.log(`  taps: ${handlers.length} answered, `
+    + `${frames.reduce((sum, frame) => sum + frame[10], 0)} ignored (new screen, first `
+    + `350 ms), slowest ${Math.max(0, ...handlers)} ms, over ${SLOW_TAP_MS} ms: `
+    + `${slowTaps.length ? slowTaps.join(', ') + ' ms' : 'none'}`);
 }
 
 /**
@@ -68,6 +101,10 @@ function zoomBands(frames) {
 }
 
 for (const run of readRuns()) {
+  if (run.menu) {
+    if (run.frames.length >= 30) printMenu(run);
+    continue;
+  }
   const frames = run.frames.filter((frame) => frame[3] > 0).slice(START_FRAMES);
   if (frames.length < 100) continue;
   const slow = frames.filter((frame) => frame[0] > SLOW_MS);

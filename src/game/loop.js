@@ -8,6 +8,7 @@ import { stepStart } from './order.js';
 import { stepAI } from './ai.js';
 import { updateRecoveryTracking } from './session.js';
 import { stepResults } from './menuflow.js';
+import { takeMenuTaps } from '../menu/widgets.js';
 import {
   updateFpsMeter, readFrameInput, stepCarSignals, openGuideOnLanding, stepCarPhysics,
   stepEndlessHighway, updateAudio, dropBreadcrumb, stepRaceFlow, stepTrafficContacts,
@@ -131,32 +132,45 @@ export function runSimSteps(inp, wallDt) {
 }
 
 /**
- * Draws the meter's per-frame sample and overlay.
+ * Draws the meter's per-frame sample and overlay (in a session), and reports the frame
+ * (?report=1, the menu's frames too: the owner's "main menu is still sluggish" is measured there).
  * @param {{frameMs: number, meterSim: number, drawT0: number}} frame this frame's timings
  */
 export function drawMeter(frame) {
   const tilesNow = shared.renderer.groundRenders, draw = performance.now() - frame.drawT0;
-  const steps = game.stepsLastFrame;
-  const moving = Math.hypot(game.car.vx, game.car.vy) > 5.6;   // over 20 km/h
+  const inMenu = shared.mode === 'menu';
   const events = takeMeterEvents();   // highway slides / overview repaints this frame
-  shared.meter.add({ dt: frame.frameMs, sim: frame.meterSim, draw, steps,
-    tiles: tilesNow - shared.meterTiles, moving, touches: shared.meterTouches,
-    slide: events.slide, overview: events.overview,
-    dist: LEVEL._hw ? game.hwDist : 0 });
-  if (shared.reporter) {
-    // + the zoom (css px per metre) and this frame's GPU uploads / mipmap builds
-    const gpu = shared.renderer.gpuCounts || { uploads: 0, mipmaps: 0 };
-    shared.reporter.add([frame.frameMs, frame.meterSim, draw, steps, tilesNow - shared.meterTiles,
-      events.slide, shared.renderer.PPM, gpu.uploads - (shared.meterUploads || 0),
-      gpu.mipmaps - (shared.meterMipmaps || 0)]);
-    shared.meterUploads = gpu.uploads;
-    shared.meterMipmaps = gpu.mipmaps;
+  if (!inMenu) {
+    shared.meter.add({ dt: frame.frameMs, sim: frame.meterSim, draw, steps: game.stepsLastFrame,
+      tiles: tilesNow - shared.meterTiles, touches: shared.meterTouches,
+      moving: Math.hypot(game.car.vx, game.car.vy) > 5.6,   // over 20 km/h
+      slide: events.slide, overview: events.overview, dist: LEVEL._hw ? game.hwDist : 0 });
   }
+  if (shared.reporter) reportFrame(frame, draw, tilesNow - shared.meterTiles, events.slide);
   shared.meterTouches = 0;
   shared.meterTiles = tilesNow;
-  if (shared.settings.meterOverlay) {
+  if (shared.settings.meterOverlay && !inMenu) {
     shared.meter.draw(shared.renderer.ctx, shared.renderer.W, shared.renderer.H);
   }
+}
+
+/**
+ * Adds the frame to the phone report: its timings, the zoom (css px per metre), this frame's GPU
+ * uploads / mipmap builds, whether the menu was up and what its buttons did.
+ * @param {{frameMs: number, meterSim: number}} frame this frame's timings
+ * @param {number} draw ms the draw took
+ * @param {number} tiles ground tiles painted this frame
+ * @param {number} slide highway slides this frame
+ */
+function reportFrame(frame, draw, tiles, slide) {
+  const gpu = shared.renderer.gpuCounts || { uploads: 0, mipmaps: 0 };
+  const taps = takeMenuTaps();
+  shared.reporter.add([frame.frameMs, frame.meterSim, draw, game.stepsLastFrame, tiles, slide,
+    shared.renderer.PPM, gpu.uploads - (shared.meterUploads || 0),
+    gpu.mipmaps - (shared.meterMipmaps || 0), shared.mode === 'menu' ? 1 : 0, taps.ignored,
+    Math.round(taps.handlerMs)]);
+  shared.meterUploads = gpu.uploads;
+  shared.meterMipmaps = gpu.mipmaps;
 }
 
 /**
@@ -184,7 +198,7 @@ export function renderFrame(frame) {
         frame.wallDt);
     }
     if (shared.churn) shared.churn.step(frame.wallDt, shared.renderer.ctx);   // ?churn= only
-    if (shared.meter && shared.mode !== 'menu') drawMeter({ ...frame, drawT0 });
+    if (shared.meter) drawMeter({ ...frame, drawT0 });
   } finally {
     if (keepPose) {
       car.x = keepPose.x;

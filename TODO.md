@@ -272,8 +272,12 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
       px wide, 732-894 tall; landscape home-screen app 440 tall; needs under 420 tall).
 - [ ] NEXT, OWNER 2026-10-17 (assess the cause first, then propose with sizes):
       (1) "main menu is still sluggish" - the live 5-car race runs behind the menu (game/menu
-      demo); measure it ON THE PHONE first (?report=1 does not record the menu: add that, or a
-      menu-only report), then decide (fewer demo cars, a cheaper demo, the recording again).
+      demo); measure it ON THE PHONE first, then decide (fewer demo cars, a cheaper demo, the
+      recording again, slow tap handlers). MENU REPORT BUILT: ?report=1 records the menu too
+      (frame [9] menu up, [10] taps ignored in a new screen's 350 ms ghost window, [11] the
+      slowest button handler ms); phonereport prints a MENU run per session. Laptop (390x844,
+      not the yardstick): menu 1.5 % slow frames vs 0.26 % in the race, TEST MODE tap 417 ms.
+      Waiting for the owner's phone run.
       (2) DONE - the DEFAULT since 2026-10-17 (owner: "test passed track edges don't wiggle";
       "maybe more judder but it's subtle if it was" - the owner's run: Castle Cum 0.17 % slow
       frames, draw 2 ms, against ~0.4 % on earlier Castle Cum runs; ?exacttiles=0 = the old
