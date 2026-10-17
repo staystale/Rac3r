@@ -12,13 +12,5 @@ export const TEST_LIST = [
   // cracktufts, sharpcars, sharpmarks, jokerfix,
   // groundlookup, exacttiles, hudmenu, tyreoff, menufast, bundle,
   // sound, joker, markedge, ainowait, judder, texwarm; straightoutta removed with its level;
-  // stalecap undone)
-  {
-    id: 'dpr',
-    added: '2026-10-17',
-    name: 'Frame drops: the game drawn at lower sharpness (a measuring test, not a feature)',
-    where: 'Castle Cum autopilot links, with ?dpr=1.5 and without, back to back',
-    try: 'Watch about a minute each, hands off, then close the tab.',
-    wrong: 'Tell us which one drops frames; text and cars looking clearly blurry with ?dpr=1.5.',
-  },
+  // stalecap undone; dpr approved)
 ];

@@ -48,7 +48,10 @@ export const ZOOM_MIN = 0.30;   // how far out the camera pulls at high speed
 // edge
 const SHADE_MARGIN_M = 16;
 export const LOOKAHEAD = 2.6;   // seconds of road kept in view at any speed
-export const MAX_DPR = 2;
+// device px per CSS px at most (?dpr=2: the old cap). MEASURED on the owner's iPhone (3x screen),
+// Castle Cum autopilot back to back: 1.5 vs 2 dropped about half the frames (4.5 vs 8.4 a minute)
+// and halved our slow frames; the owner saw no blur
+export const MAX_DPR = 1.5;
 
 // =============================================================================================
 // PIXEL-ART MODE — the only renderer. The WORLD is drawn into a low-resolution buffer — one art
@@ -92,7 +95,7 @@ type RenderCtx = {
   groundPatches: GroundPatch[];   // the GPU painter's patch list, reused every frame
   gpuCamera: PaintCamera;         // where the world lands on the GPU canvas this frame
   noShade: boolean;               // ?noshade: no hill shading
-  maxDpr: number | null;          // ?dpr=: the sharpness cap under test, else MAX_DPR
+  maxDpr: number | null;          // ?dpr=: a sharpness cap in place of MAX_DPR
   PPMz: () => number;
   toScreenX: (worldX: number) => number;
   toScreenY: (worldY: number) => number;

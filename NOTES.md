@@ -43,7 +43,8 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   `?thumbcache=0`); the tools (automation) always load the separate modules. The menu: no fly-in behind it, thumbnails
   painted while loading, long-grass blades stroked once (one palette shade off on ~0.2 % of
   long-grass pixels, owner accepted): default since 10-17 (`?menufast=0`). The long-grass textures
-  painted while loading (the menu's ~125 ms frame): default since 10-17 (`?texwarm=0`).
+  painted while loading (the menu's ~125 ms frame): default since 10-17 (`?texwarm=0`). Screen
+  sharpness capped at 1.5 device px per CSS px (was 2): default since 10-17 (`?dpr=2` = old).
   Pre-turned pixel art (RotSprite)
   was the alternative, not chosen.
 - Not wanted / undone: the highway rebuild (cancelled 10-15), a fade at zoom steps, tiles tracing
@@ -71,6 +72,8 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
 - Safari rounds rAF timestamps to whole ms: frame pacing (`game/pacing.ts`) fixed the constant shake.
 - The 136 m highway hitch was the skid-mark layer re-centring (26 MB copy); it now wraps.
 - `preserveDrawingBuffer: true` on the WebGL canvas is needed on the iPhone (fewer slow frames).
+- Screen pixels cost frames on the iPhone even with our JS at 2-3 ms: sharpness 1.5 vs 2 halved
+  the dropped frames in back-to-back races (4.5 vs 8.4 a minute); the owner saw no blur.
 - Chrome's canvas picks its anti-aliasing method by a path's point count: clipping a path changes a
   few edge pixels, so "same shapes" is not "same pixels".
 - Canvas 2D drawing is deferred until read: a getImageData / upload cost in a profile is often the

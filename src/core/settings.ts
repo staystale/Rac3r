@@ -38,7 +38,7 @@ export interface Settings {
   menuFast: boolean;             // no fly-in behind the menu, thumbnails at load; =0 the old
   thumbCache: boolean;           // thumbnails saved per version (thumbcache.js); =0 painted
   texWarm: boolean;              // long-grass textures painted while loading; =0 in the menu
-  maxDpr: number | null;         // ?dpr=1.5: draw at most this sharpness (frame-drop test)
+  maxDpr: number | null;         // ?dpr=2: the sharpness cap (default render.ts MAX_DPR 1.5)
   noShade: boolean;              // ?noshade: skip the hill shading (perf A/B)
   grassEnds: "round" | "square";   // ?grass=square: square grass blade ends (cheaper; A/B)
   surfaceTextures: boolean;       // ?tex=0: paint surfaces live, not pre-painted textures (A/B)
@@ -64,7 +64,7 @@ function churnKind(params: URLSearchParams): '' | 'pictures' | 'objects' {
   return kind === 'pictures' || kind === 'objects' ? kind : '';
 }
 
-// ?dpr=: the screen sharpness cap under test (1-2 device px per CSS px; the game's own cap is 2)
+// ?dpr=: the screen sharpness cap, 1-2 device px per CSS px (default render.ts MAX_DPR)
 function maxDpr(params: URLSearchParams): number | null {
   if (!params.has('dpr')) return null;
   return Math.max(1, Math.min(2, +params.get('dpr')! || 2));

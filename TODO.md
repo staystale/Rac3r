@@ -46,11 +46,13 @@ the git history. `docs/foreman-handover.md` is the last handover (10-17), writte
   repaint a frame) cut frames painting 2+ tiles 4-19 -> 1-2 on the laptop, but the owner felt the
   race WITH it juddery and without fine (phone data: same) - UNDONE 10-17. (2) Castle Cum autopilot
   races back to back (13:02 / 13:03): 3-4 dropped frames a minute, 0.5-0.7 % off-beat, our JS
-  2-3 ms - the best race runs on record; the owner still sees occasional drops. Test now: ?dpr=1.5
-  (the screen sharpness cap, normally 2) vs plain, back to back: if drops fall, the screen drawing
-  load is the cause (then: the ground at its own art resolution, look kept); if not, Safari.
+  2-3 ms - the best race runs on record; the owner still sees occasional drops. SHARPNESS 1.5
+  (was 2) is the DEFAULT since 10-17 (?dpr=2 = old; owner: "no blurrier"): two back-to-back pairs,
+  4.5 vs 8.4 drops a minute, slow frames of ours 16 vs 33. Still ours in those runs: (a) the race
+  start, one 45-60 ms frame as the fly-in hands over (40-48 tiles uploaded at once); (b) worn-tile
+  repaints every 9th frame (wear drain), dt 20-25. The rest: Safari.
   Also seen on the laptop only: the GPU ground's first frame (glground.ts parseColour ~20-25 ms).
-- NOW (owner order, 2026-10-17): 1) the ?dpr test above; 2) WEATHER (see "GRASS GRIP + WATER"
+- NOW (owner order, 2026-10-17): 1) owner to choose: (a) / (b) above or WEATHER (see "GRASS GRIP + WATER"
   below, owner answers).
 - GRASS THROUGH THE CRACKS (owner: a and b, "like real life"): long-grass tufts in some
   broken-tarmac flecks, and scattered on broken-tarmac / concrete ground (blend.ts, own random
