@@ -21,6 +21,8 @@ await build({
 // the menu recording and its still frame (src/game/menuvideo.js; tools/menuvideo.mjs makes them)
 await cp(join(root, "media"), join(dist, "media"), { recursive: true });
 const html = await readFile(join(root, "index.html"), "utf8");
-await writeFile(join(dist, "index.html"), html.replace("./src/main.js", "./game.js"));
+// the page loads either path (index.html); both are the one bundle here
+await writeFile(join(dist, "index.html"),
+  html.replaceAll("./src/main.js", "./game.js").replaceAll("./__bundle.js", "./game.js"));
 const size = (await stat(join(dist, "game.js"))).size;
 console.log(`dist/game.js ${(size / 1024).toFixed(1)} KB`);

@@ -42,6 +42,14 @@
 <canvas id="c"></canvas>
 <video id="menuvideo" muted playsinline loop aria-hidden="true"></video>
 <div id="boot"><h1>RAC3R</h1><p>loading…</p></div>
-<script type="module" src="./src/main.js"></script>
+<script type="module">
+  // ?bundle=1 (owner phone test pending): the game as ONE file the test server builds (serve.mjs
+  // /__bundle.js) instead of ~160 modules; the test tools (navigator.webdriver) always load the
+  // modules. The itch.io build replaces both paths with its own bundle (tools/build.mjs).
+  const bundled = new URLSearchParams(location.search).get('bundle') === '1' && !navigator.webdriver;
+  import(bundled ? './__bundle.js' : './src/main.js').catch((err) => {
+    document.querySelector('#boot p').textContent = 'could not load: ' + err.message;
+  });
+</script>
 </body>
 </html>

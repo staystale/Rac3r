@@ -2,6 +2,7 @@
 // ONE of these at a time. Port 8080; 8070 belongs to another project on this machine.
 import { createServer } from 'node:http';
 import { appendFile, readFile, stat } from 'node:fs/promises';
+import { gzipSync } from 'node:zlib';
 import { tmpdir } from 'node:os';
 import { extname, join, normalize, resolve } from 'node:path';
 
@@ -29,6 +30,58 @@ function saveReport(req, res) {
   });
 }
 
+// THE BUNDLE (?bundle=1, index.html): the game as ONE minified file, as the itch.io build makes it,
+// instead of ~160 modules the phone fetches one round trip at a time over the tunnel (MEASURED,
+// laptop with 80 ms a request: the last module arrived at 3.2 s). Built on request, kept until one
+// of its source files changes (their modification times are checked on every request).
+let bundleCache = null;
+
+/**
+ * The bundle, rebuilt when a source file it was built from has changed or gone.
+ * @returns {Promise<{code: Buffer, gzip: Buffer}>} the bundle and its gzipped copy
+ */
+async function currentBundle() {
+  if (bundleCache) {
+    const stale = await Promise.all(bundleCache.inputs.map(([file, mtimeMs]) =>
+      stat(file).then((info) => info.mtimeMs !== mtimeMs, () => true)));
+    if (!stale.includes(true)) return bundleCache;
+  }
+  const esbuild = await import('esbuild');
+  const result = await esbuild.build({
+    entryPoints: [join(ROOT, 'src/main.js')], bundle: true, format: 'esm', minify: true,
+    target: 'es2022', write: false, metafile: true, absWorkingDir: ROOT,
+  });
+  const code = Buffer.from(result.outputFiles[0].contents);
+  const inputs = await Promise.all(Object.keys(result.metafile.inputs).map(async (file) => {
+    const full = resolve(ROOT, file);
+    return [full, (await stat(full)).mtimeMs];
+  }));
+  bundleCache = { code, gzip: gzipSync(code), inputs };
+  return bundleCache;
+}
+
+/**
+ * Sends the bundle (gzipped when the browser takes it), never cached by the phone.
+ * @param {import('node:http').IncomingMessage} req the request
+ * @param {import('node:http').ServerResponse} res the response
+ */
+async function sendBundle(req, res) {
+  let bundle;
+  try { bundle = await currentBundle(); } catch (err) {
+    res.writeHead(500, { 'Content-Type': 'text/plain; charset=utf-8' })
+      .end(String(err && err.message || err));
+    return;
+  }
+  const zipped = /\bgzip\b/.test(req.headers['accept-encoding'] || '');
+  res.writeHead(200, {
+    'Content-Type': 'text/javascript; charset=utf-8',
+    'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
+    'Pragma': 'no-cache',
+    ...(zipped ? { 'Content-Encoding': 'gzip' } : {}),
+  });
+  res.end(zipped ? bundle.gzip : bundle.code);
+}
+
 const TYPES = {
   '.html': 'text/html; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8',
@@ -45,6 +98,7 @@ createServer(async (req, res) => {
   try {
     let p = decodeURIComponent(new URL(req.url, 'http://x').pathname);
     if (p === '/') p = '/index.html';
+    if (p === '/__bundle.js') { await sendBundle(req, res); return; }
     let full = join(ROOT, normalize(p).replace(/^(\.\.[/\\])+/, ''));
     if (!full.startsWith(ROOT)) { res.writeHead(403).end('no'); return; }
     let tsPath = null;

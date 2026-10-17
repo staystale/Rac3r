@@ -291,6 +291,22 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
       -> 5, TEST MODE 419 -> 3 ms; loading +~0.5 s (laptop; phone ~2x faster). The report now
       carries loadMs (page open -> menu shown) to compare on the phone. NEXT (owner): the
       initial load feels long - find what was tried before, propose (after this is approved).
+      LOAD (owner, 2026-10-17: "the initial load in is kinda long too"). Tried before: 8ec3ad8
+      (textures warmed after boot; overview snap skipped on the GPU path) and 6b6c7fa (the menu
+      recording, later parked; light thumbnail builds; rally stages built on first use). MEASURED
+      now (laptop, phone size): the test server sends 158 modules (3.5 MB), never cached, one round
+      trip after another: with 80 ms a request the last arrives at 3.2 s, menu at 4.2 s; then ~1 s
+      of our start-up (most of it the 18 thumbnails painted at load, the 9 rally stages generated
+      for theirs). The owner's phone: menu 2.3-2.7 s, 11.7 / 15.2 s on the first load after a push.
+      BUILT behind ?bundle=1 (owner phone test pending, testlist 'bundle'): serve.mjs /__bundle.js,
+      the game as ONE minified gzipped file (186 KB) rebuilt when a source changes; index.html
+      loads it with ?bundle=1 unless automation (the tools keep the modules); the itch build maps
+      both paths to game.js. Laptop, 80 ms a request: menu 4.2 -> 1.3 s. Thumbnails: painting per
+      list does not work (the category screen shows ~15 of them): owner to choose (remember them
+      between loads per version, or keep).
+      MENU FRAME RHYTHM (owner: "the race behind stutters", screen recording 10:59Z): the phone shows
+      ~2.5 % of frames twice; its reports: menu 0.7-2.4 % off-beat frames, races 1.9-4.8 %, same in
+      the home-screen app. Platform cadence, not our code (2-3 ms a frame). Owner: "it's ok".
       SECOND PHONE RUN (09:46Z, ?menufast=1): the fly-in gone, but the same four ~120 ms frames at
       0.4-1.4 s: three were the texture warm-up (110-122 ms of it in those frames; report [12]).
       Laptop: hedgerow / grassLong / wheat / rapeseed 32-36 ms each, every other texture 0-5 ms;

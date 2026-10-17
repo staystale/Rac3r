@@ -73,6 +73,11 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   frame, so a mark pixel is 3 or 4 art px wide by camera position; now drawn on the screen canvas.
 - Laptop frame numbers swing with the machine (Brands work median 20 ms one hour, 38 ms the next,
   main included): only compare A/B runs made back to back.
+- The phone in Safari (tab or home screen) has 1-5 % off-beat frames (early or late) in every mode;
+  a screen recording shows them as a frame held twice. Not our code (2-3 ms a frame): do not chase
+  them as a menu or race problem without a back-to-back A/B.
+- The test server sends the game as ~160 modules, never cached: over the tunnel that is seconds
+  of load before our code runs (`?bundle=1`: one file). Measure the phone's load with `loadMs`.
 - `?report=1` records without drawing the meter graph (`?meter=1` shows it). It records the
   menu too: `phonereport` prints a MENU run (frame times, ignored taps, slowest tap handler).
 

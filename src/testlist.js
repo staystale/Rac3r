@@ -12,6 +12,16 @@ export const TEST_LIST = [
   // cracktufts, sharpcars, sharpmarks, jokerfix,
   // groundlookup, exacttiles, hudmenu, tyreoff, menufast)
   {
+    id: 'bundle',
+    added: '2026-10-17',
+    name: 'Faster loading: the game as one file',
+    where: 'Links: ?bundle=1&report=1, then ?report=1 (compare), each opened fresh',
+    try: 'Open each link fresh (close the tab first) and wait for the menu. Then play as normal.',
+    wrong:
+      '"could not load" on the loading screen; the game slower to appear than the compare ' +
+      'link; anything missing or behaving differently from the compare link.',
+  },
+  {
     id: 'straightoutta',
     added: '2026-10-15',
     name: 'Judder fix (skid-mark layer) + new highway step 1: Straight Outta Swindon',
