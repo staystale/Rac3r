@@ -32,6 +32,7 @@ export interface Surface {
   coolK?: number;
   heatK?: number;
   under?: string;   // what a snow / ice / wet surface lies on; a puddle's base id
+  wetK?: number;    // how wet, 0..1 (damp / puddle surfaces, wet.ts): hard ground's tyre WET grip
 }
 
 export interface Paint {
@@ -296,6 +297,8 @@ export interface WearCell {
   lastSeenTime: number;
   current?: string;   // set right after the cell is made
   rut?: number;
+  rainDry?: number;   // the dry line tyres made in the rain, 0..1 (wet.ts)
+  rainT?: number;     // the wear clock when rainDry was set, s
 }
 
 // What layersAt returns: the static layers at a point, before any wear.

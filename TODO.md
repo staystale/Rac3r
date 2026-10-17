@@ -450,6 +450,27 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
       Owner OK'd: existing puddles change with this table (tarmac puddle 0.68 -> 0.58; Killder,
       Sweaty Lamb, the Lab). FOUND: a puddle's surface id is 'puddle', missing from tyre.bySurf,
       so every tyre counts as Pre-Spun in a puddle (rain tyres no help, slicks no penalty) - R3.
+      OWNER (2026-10-17 night): finish all of weather, then the owner looks (ask only real
+      decisions). ORDER: R3a wet physics, R3b the wet look, R2 setup + changing weather, R4
+      puddles, then LIGHT. SNOW: patches like puddles, a lower chance. HOT / SUPER HOT: raise
+      track and tyre temperature; dirt wears to GRAVEL (not mud); mud, puddles and damp ground
+      DRY over time. Rivers, lakes, scenery water: PERMANENT. The puddles levels have today
+      (hand-placed, and blend.ts '@wet' patches) GO: puddles come from the weather. LIGHT: weather
+      changes the light; time of day an option that moves slowly and realistically through a
+      race; darker in winter (shorter days); pink sunrises, orange sunsets, moonlit nights,
+      truly dark nights where headlights matter; track / street lights if not overkill (Safari:
+      measure every look). TYRE WEAR (owner): dry tyres wear slower in the wet, wets faster in
+      the dry, any tyre on ground it is not made for faster - NO tyre wear exists yet (heat
+      only): a new system, design questions to the owner before building.
+      R3a BUILT behind ?rain=0..1 (wetness and rain; ?rain = 0.6): world/weather.ts (state),
+      world/wet.ts (damp + puddle surfaces from WET_MU, cached per step; the dry line per wear
+      cell, re-wet by rain), tyres.ts tyreGripOn (wet hard ground -> WET column; the puddle fix),
+      wet wear (one pass sooner; wet snow melts; wet ice scrubs at double rate), the AI re-plans
+      per wetness step (line.ts regripPath; weaver x roadWetGrip). PROOF: simhash dry 11 SAME, 2
+      DIFFERENT only by the new puddle grip (grass-track, generated stage: SAME with the old
+      formula). Steady cornering (hatch, 60 km/h) tarmac dry / damp / puddle: Pre-Spun 1.38 /
+      0.99 / 0.76 g, Wet 1.41 / 1.31 / 1.05, Semi-Slick 1.59 / 0.84 / 0.60. AI alone: wet laps
+      13-20 % slower, less time off; AI field (7 races, 5 cars): incidents 14 wet vs 11 dry.
 
 ## GAME NAME: RAC3R (user, 2026-10-03)
 

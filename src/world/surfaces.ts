@@ -205,6 +205,33 @@ export function applyOldGrassGrip(): void {
     SURFACES[surfaceId as SurfaceId].mu = grip;
 }
 
+// WET GRIP (weather, the owner's signed-off table): mu when DAMP (rain on the ground; wetness 1)
+// and under a PUDDLE (standing water), per surface, from real-world wet friction. Hard ground
+// loses the most (water lies on the texture: race tarmac, polished floors and paint the worst,
+// rough broken tarmac drains); gravel barely changes (water binds the dust); damp SAND packs firm
+// and grips a little MORE (and ploughs less, wet.ts); wet ice is the slipperiest thing there is.
+// Read by wet.ts, which builds the damp and puddle surfaces from these.
+export const WET_MU: Record<SurfaceId, { damp: number; puddle: number }> = {
+  lab: { damp: 0.65, puddle: 0.55 },
+  racetarmac: { damp: 0.74, puddle: 0.62 },
+  tarmac: { damp: 0.72, puddle: 0.58 },
+  wet: { damp: 0.72, puddle: 0.58 },
+  concrete: { damp: 0.68, puddle: 0.56 },
+  broken: { damp: 0.69, puddle: 0.56 },
+  kerb: { damp: 0.45, puddle: 0.40 },
+  gravel: { damp: 0.59, puddle: 0.50 },
+  dirt: { damp: 0.42, puddle: 0.38 },
+  grass: { damp: 0.34, puddle: 0.34 },
+  grassShort: { damp: 0.34, puddle: 0.34 },
+  grassLong: { damp: 0.36, puddle: 0.36 },
+  mud: { damp: 0.38, puddle: 0.34 },
+  thickMud: { damp: 0.34, puddle: 0.30 },
+  sand: { damp: 0.58, puddle: 0.45 },
+  snow: { damp: 0.26, puddle: 0.22 },
+  packedSnow: { damp: 0.28, puddle: 0.24 },
+  ice: { damp: 0.06, puddle: 0.06 },
+};
+
 // THE GRAVEL TRAP is a different thing from rally gravel, and both exist. A trap is DEEP gravel
 // whose entire job is to stop you: five times the ploughing, and GRADED — shallow pea gravel at the
 // lip, deep stuff at the barrier — so the further in you go the harder it grabs. That grading is

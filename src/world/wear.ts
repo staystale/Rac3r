@@ -1,7 +1,9 @@
 // wear.js - the SURFACE DEGRADATION & WEAR MAP section.
 import { LEVEL } from "./state.ts";
 import type { SurfaceId } from "./surfaces.ts";
-import { SURFACES, MARK_WET, SPRAY_WET, VERGE_W, TRAP_STEPS, SURFACE_TRAP } from "./surfaces.ts";
+import { SURFACES, VERGE_W, TRAP_STEPS, SURFACE_TRAP } from "./surfaces.ts";
+import { dampSurface, puddleSurface, cellDamp, dryCellLine, surfaceById } from "./wet.ts";
+import { WEATHER } from "./weather.ts";
 import {
   FX1, FX0, FY1, FY0, KERB_W, KERB_H, KERB_RIDGE, KERB_RIDGE_L, RUNOFF_W, RUNOFF_ROUGH,
 } from "./bounds.ts";
@@ -67,6 +69,8 @@ const BASE_WEAR: Record<string, [string, number]> = {
   mud: ['thickMud', 3],
 };
 export const SNOW_TO_ICE = 4;      // passes to pack snow into ice
+// dampness from which wet ground wears faster, wet snow melts and wet ice scrubs in half the slip
+const WET_WEAR_FROM = 0.5;
 // dryness a pass adds, by tyre temperature tyreTemp. Measured in tools/wearcheck.mjs:
 //   damp:     0.06 + 0.30 x heat(40..100 C)  -> cold ~17 passes, 100 C ~3 passes
 //   standing: 0.35 x heat(60..120 C)          -> cold never, 90 C ~6 passes, 120 C ~3 passes
@@ -239,20 +243,13 @@ export function coverCut(coverArea: Cover, x: number, y: number): boolean {
 }
 
 // What a tyre feels for a base + cover. snow / ice replace the base outright (the tyre is on them).
-// A PUDDLE does not — water on grass is not wet tarmac — it scales the base: less grip, more drag,
-// wet marks and spray. Built once per base and cached, so physics gets a plain surface object.
-const PUDDLE: Record<string, Surface> = {};
-export function surfaceOf(base: string, cover: string | null): Surface {
-  if (!cover) return SURFACES[base as SurfaceId] || SURFACES[UNDER_DEFAULT];
-  if (cover !== 'wet') return SURFACES[cover as SurfaceId];
-  const baseSurf = SURFACES[base as SurfaceId] || SURFACES[UNDER_DEFAULT];
-  if (baseSurf.id === 'wet') return baseSurf;
-  return PUDDLE[baseSurf.id] || (PUDDLE[baseSurf.id] = {
-    ...baseSurf, id: 'puddle', under: baseSurf.id, label: 'PUDDLE (' + baseSurf.label + ')',
-    mu: baseSurf.mu * 0.72, longK: (baseSurf.longK || 1) * 0.92,
-      plough: (baseSurf.plough || 0) + 0.6, mark: MARK_WET, spray: SPRAY_WET,
-    coolK: Math.max(0.20, baseSurf.coolK || 0),
-  });
+// A PUDDLE (standing water) does not - water on grass is not wet tarmac - it is the base under
+// water (wet.ts puddleSurface); a damp wet zone, and any ground in the rain, is the base DAMP
+// (wet.ts dampSurface). Cached surface objects, so physics gets a plain surface.
+export function surfaceOf(base: string, cover: string | null, standing = true, damp = 0): Surface {
+  if (!cover) return dampSurface(surfaceById(base), damp);
+  if (cover !== 'wet') return dampSurface(SURFACES[cover as SurfaceId], damp);
+  return standing ? puddleSurface(surfaceById(base)) : dampSurface(surfaceById(base), 1);
 }
 
 function getCell(cellX: number, cellY: number): WearCell | null {
@@ -261,7 +258,7 @@ function getCell(cellX: number, cellY: number): WearCell | null {
   if (!cell) {
     const layers = layersAt((cellX + 0.5) * WEAR_CELL, (cellY + 0.5) * WEAR_CELL);
     // nothing in this cell can ever change: do not create it (keeps the map to cells that matter)
-    if (!layers.cover && !BASE_WEAR[layers.base]) return null;
+    if (!layers.cover && !BASE_WEAR[layers.base] && WEATHER.wetness === 0) return null;
     cell = { cx: cellX, cy: cellY, base: layers.base, cover: layers.cover,
       orig: layers.cover || layers.base, passes: 0, scrub: 0, dry: 0, standing: layers.standing,
       lastSeenTime: -100 };
@@ -274,12 +271,13 @@ function getCell(cellX: number, cellY: number): WearCell | null {
  * One pass over a SNOW cell: after SNOW_TO_ICE passes it becomes ice or meltwater.
  * @param cell the wear cell (changed in place)
  */
-function passSnowCell(cell: WearCell): void {
+function passSnowCell(cell: WearCell, damp: number): void {
   // MELT OR FREEZE (requirement: snow should have a chance to melt or turn to ice when driven over
   // — it should still take multiple passes). After SNOW_TO_ICE passes it becomes ICE or MELTWATER,
   // by chance.
   if (++cell.passes >= SNOW_TO_ICE) {
-    cell.cover = Math.random() < SNOW_MELT_CHANCE ? 'wet' : 'ice';
+    // wet snow (rain on it) turns to slush / water, never packs to ice
+    cell.cover = damp >= WET_WEAR_FROM || Math.random() < SNOW_MELT_CHANCE ? 'wet' : 'ice';
     cell.passes = 0;
     cell.standing = true;
     cell.dry = 0;
@@ -312,9 +310,11 @@ function passWetCell(cell: WearCell, tyreTemp: number): void {
  * One pass over a bare cell: the base wears down its chain and the ruts deepen.
  * @param cell the wear cell (changed in place)
  */
-function passBareCell(cell: WearCell): void {
+function passBareCell(cell: WearCell, damp: number): void {
   const rule = BASE_WEAR[cell.base];
-  if (rule && ++cell.passes >= rule[1]) { cell.base = rule[0]; cell.passes = 0; }
+  // wet ground wears a pass sooner (owner's table: grass / dirt 2 -> 1, mud 3 -> 2)
+  const need = rule ? rule[1] - (damp >= WET_WEAR_FROM ? 1 : 0) : 0;
+  if (rule && ++cell.passes >= need) { cell.base = rule[0]; cell.passes = 0; }
   // RUTS THAT DEEPEN (step 3; user: the "vector dips" — "mud turns to thick mud / vector dips;
   // sand and gravel also have the chance to create vector dips"). A pass digs the cell down by
   // RUT[base].step (sand / gravel by chance) to its max. It is real height: the suspension feels
@@ -330,16 +330,19 @@ function passBareCell(cell: WearCell): void {
 }
 // Apply one PASS to a cell (debounced by the caller).
 function passCell(cell: WearCell, tyreTemp = 18): void {
-  if (cell.cover === 'snow') passSnowCell(cell);
+  const damp = cellDamp(cell, wearClock);
+  if (cell.cover === 'snow') passSnowCell(cell, damp);
   else if (cell.cover === 'wet') passWetCell(cell, tyreTemp);
-  else if (!cell.cover) passBareCell(cell);
+  else if (!cell.cover) passBareCell(cell, damp);
+  // the tyre dries its line in the rain (as it dries a wet zone: dryAmount, damp ground)
+  if (cell.cover !== 'wet') dryCellLine(cell, wearClock, dryAmount(false, tyreTemp));
   const now = cell.cover || cell.base;
   if (now !== cell.current) { cell.current = now; wearDirty.push(cell); }
 }
 // Slip scrubbing a cell's ice (metres of slip this step).
 function scrubCell(cell: WearCell, slipM: number): void {
   if (cell.cover !== 'ice') return;
-  cell.scrub += slipM;
+  cell.scrub += cellDamp(cell, wearClock) >= WET_WEAR_FROM ? slipM * 2 : slipM;
   // scrubbed ice leaves MELTWATER, not bare ground (requirement: after snow / ice water should be
   // left) — a puddle that then churns into its base by the WATER_MIX rules, so ice over grass ends
   // as mud.
@@ -399,7 +402,7 @@ export function rutAt(x: number, y: number): number {
 export function getWornSurface(x: number, y: number): Surface | null {
   if (wearMap.size === 0) return null;
   const cell = wearMap.get(wearKey(Math.floor(x / WEAR_CELL), Math.floor(y / WEAR_CELL)));
-  return cell ? surfaceOf(cell.base, cell.cover) : null;
+  return cell ? surfaceOf(cell.base, cell.cover, cell.standing, cellDamp(cell, wearClock)) : null;
 }
 
 // Height noise for a surface, from its own `rough`. Two incommensurate frequencies so it does not
@@ -422,7 +425,10 @@ export function groundAt(x: number, y: number): Ground {
   if (over <= -KERB_W) {
     const worn = getWornSurface(x, y);
     let surface = worn;
-    if (!surface) { const layers = layersAt(x, y); surface = surfaceOf(layers.base, layers.cover); }
+    if (!surface) {
+      const layers = layersAt(x, y);
+      surface = surfaceOf(layers.base, layers.cover, layers.standing, WEATHER.wetness);
+    }
     return { h: roughAt(x, y, surface.rough) + bumpAt(x, y), surface: surface };
   }
 
@@ -436,19 +442,21 @@ export function groundAt(x: number, y: number): Ground {
     const along = overX > overY ? y : x;
     return {
       h: KERB_H * hump * hump + KERB_RIDGE * hump * Math.sin((along / KERB_RIDGE_L) * Math.PI * 2),
-      surface: SURFACES.kerb,
+      surface: dampSurface(SURFACES.kerb, WEATHER.wetness),
     };
   }
 
   // --- the grass verge: your one chance to gather it up
   if (over <= VERGE_W) {
-    return { h: roughAt(x, y, SURFACES.grass.rough), surface: SURFACES.grass };
+    return { h: roughAt(x, y, SURFACES.grass.rough),
+      surface: dampSurface(SURFACES.grass, WEATHER.wetness) };
   }
 
   // --- the gravel trap, graded deeper toward the fence
   const deep = Math.min(1, (over - VERGE_W) / (RUNOFF_W - VERGE_W));
   const band = Math.min(TRAP_STEPS - 1, Math.floor(deep * TRAP_STEPS));
-  return { h: roughAt(x, y, RUNOFF_ROUGH), surface: SURFACE_TRAP[band] };
+  return { h: roughAt(x, y, RUNOFF_ROUGH),
+    surface: dampSurface(SURFACE_TRAP[band], WEATHER.wetness) };
 }
 
 export function carWheels(car: CarBody): Wheel[] {

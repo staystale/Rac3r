@@ -1,6 +1,7 @@
 // ai/weaverStep.ts: the highway driver's view of one step: the road around the car, the verge
 // lines it may use, what blocks a lateral line and what the mirror shows.
 import { EDGE_M, HWT } from "./weaverCtx.ts";
+import { roadWetGrip } from "../world/wet.ts";
 import type { Road, Step, Wvr } from "./weaverCtx.ts";
 import type { AiCar, DriveCtx, RoadBlock, RoadFrame } from "./types.ts";
 
@@ -32,7 +33,9 @@ export function makeStep(
   // grass)
   const geo = level._hw.geo, minOff = -geo.hw + EDGE_M, maxOff = geo.hw - EDGE_M;
   const cars = ctx.cars || [], myW = car.spec.wid / 2;
-  const grip = 0.94 * (car.spec.mu || 1), idx0 = Math.round((frame.s - pts[0].s) / 4);
+  // a wet road (weather) grips less: the weaver plans its braking for it
+  const grip = 0.94 * (car.spec.mu || 1) * roadWetGrip(),
+    idx0 = Math.round((frame.s - pts[0].s) / 4);
   const road: Road = {
     car, dt, frame, pts, geo, speed, vAl, hold, minOff, maxOff, cars, myW, grip, idx0,
   };

@@ -12,6 +12,7 @@
 //    already brakes for everything ahead.
 import { debugValue } from "../core/debug.ts";
 import { groundAt } from "../world/wear.ts";
+import { WEATHER } from "../world/weather.ts";
 import { querySubtrack } from "../world/tyrewall.ts";
 import { GRAVITY } from "../cars.ts";
 import { CAR_STATS } from "../carstats.js";
@@ -65,7 +66,7 @@ function finishPath<P extends PathPoint>(pts: P[], closed: boolean, total: numbe
     const ground = groundAt(point.x, point.y);
     point.mu = (ground.surface && ground.surface.mu) || 1;
   }
-  return { pts, n: count, closed, total, sp: step, prof: {} };
+  return { pts, n: count, closed, total, sp: step, prof: {}, wetEpoch: WEATHER.epoch };
 }
 
 /** What racingLine reads about the level's road, made once and passed to its steps. */
@@ -418,6 +419,21 @@ export function carGrip(spec: AiCar["spec"]) {
     brakeG = stats.brake100 ? (27.78 * 27.78) / (2 * stats.brake100) / GRAVITY : gripG * 0.8;
   return { id: carId, gripG, brakeG };
 }
+/**
+ * The track got wetter or drier by a step (weather.ts): the path's grip is read again from the
+ * ground (damp surfaces, the dry line) and every car's speed plan is made again from it, so the AI
+ * brakes for the grip that is there.
+ * @param path the path (changed in place)
+ */
+function regripPath(path: Path) {
+  for (const point of path.pts) {
+    const ground = groundAt(point.x, point.y);
+    point.mu = (ground.surface && ground.surface.mu) || 1;
+  }
+  path.prof = {};
+  path.wetEpoch = WEATHER.epoch;
+}
+
 export function profileOf(
   path: Path, spec: AiCar["spec"], main?: Path, kBo?: number,
 ): SpeedProfile {
@@ -430,6 +446,7 @@ export function profileOf(
     kCorner = (debugValue("AI_K") as number || K_CORNER) * aiK,
     kBrake = (kBo || debugValue("AI_KB") as number || K_BRAKE) * aiK,
     key = carId + ':' + kCorner + ':' + kBrake;
+  if (path.wetEpoch !== WEATHER.epoch) regripPath(path);
   if (path.prof[key]) return path.prof[key];
   const count = path.n, speed = new Float64Array(count), spacing = path.sp, pts = path.pts;
   for (let i = 0; i < count; i++) {

@@ -1,6 +1,6 @@
 // Tyre forces: the axle force blocks, brake lock state and ploughing of step.
 
-import type { Spec } from '../cars.ts';
+import type { Spec, Tyre } from '../cars.ts';
 import { TUNE, curveFactor, clamp, tyreGrip } from '../vehicle.ts';
 import type { Car } from '../vehicle.ts';
 import { axleFrictionWork } from './tyreheat.ts';
@@ -397,7 +397,7 @@ export function computeAxleForces(car: Car, carSpec: Spec, mass: number, gravity
   //   SLIDING  — locked, handbraked, or spinning: mu_slide * Fz along -slipDir (breakaway, drift)
   const cosDelta = Math.cos(delta), sinDelta = Math.sin(delta);
   // TYRES (cars.js TYRES): x grip on this surface's group; none fitted (Pre-Spun) = 1
-  const tyreK = carSpec.tyre ? (carSpec.tyre.bySurf![car.surface.id] ?? 1) : 1;
+  const tyreK = carSpec.tyre ? tyreGripOn(carSpec.tyre, car.surface) : 1;
   const muBase = carSpec.mu * car.surface.mu * tyreK;
   const peakK = car.surface.peakK || 1;   // loose surfaces peak much later — see tyreLateral
   // LONGITUDINAL GRIP RELATIVE TO LATERAL. Added (requirement: grass mud and gravel feel too
@@ -456,4 +456,19 @@ export function computeAxleForces(car: Car, carSpec: Spec, mass: number, gravity
 
   relaxAxleForces(car, dt, vLong, vLat, frontAxle, rearAxle);
   return { tick, axles, absWorking };
+}
+
+/**
+ * A tyre's grip factor on a surface: its own number for the ground (a puddle or damp ground reads
+ * the ground under the water); on WET HARD ground it moves toward the tyre's WET number by how wet
+ * (rain tyres bite, slicks slide), while wet loose ground keeps the tyre's own number for it.
+ * @param tyre the fitted tyre
+ * @param surface the surface under the car
+ * @returns the grip factor (1 = Pre-Spun)
+ */
+export function tyreGripOn(tyre: Tyre,
+    surface: { id: string; under?: string; wetK?: number; hard?: boolean }): number {
+  const own = tyre.bySurf![surface.under || surface.id] ?? 1;
+  const wetK = surface.wetK || 0;
+  return wetK > 0 && surface.hard ? own + ((tyre.grip.wet ?? 1) - own) * wetK : own;
 }

@@ -184,6 +184,7 @@ export interface Path<P extends PathPoint = PathPoint> {
   total: number;
   sp: number;
   prof: Record<string, SpeedProfile>;
+  wetEpoch?: number;   // the weather's wetness step the grip (pts mu) was read at (profileOf)
   switchI?: number;   // branch: the main-line index where it leaves
   rejoin?: number;   // branch: the main-line index where it merges back
 }

@@ -35,6 +35,7 @@ import { TUNE } from './vehicle.ts';
 import { initWorld } from "./world/load.ts";
 import { applyOldGrassGrip } from "./world/surfaces.ts";
 import { setGroundLookup } from "./world/wear.ts";
+import { setWetness, setRain } from "./world/weather.ts";
 import { LEVEL } from "./world/state.ts";
 
 import { LEVELS } from "./world/levels/index.ts";
@@ -57,6 +58,11 @@ addHighwayLevel();
 shared.settings = readSettings(location.search);
 if (!shared.settings.grassGrip) applyOldGrassGrip();   // ?grassgrip=0: the old grass grip
 setGroundLookup(shared.settings.groundLookup);   // ?groundlookup=1: fewer ground lookups (wear.ts)
+// ?rain=0.6: a wet track, raining (weather test, before any level or racing line is built)
+if (shared.settings.rain !== null) {
+  setWetness(shared.settings.rain);
+  setRain(shared.settings.rain);
+}
 shared.DEV = shared.settings.dev;
 
 shared.canvas = document.getElementById('c');

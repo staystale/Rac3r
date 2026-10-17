@@ -27,6 +27,7 @@ export interface Settings {
   minimap: boolean;              // the road-ahead minimap (hud/minimap.js); off: ?minimap=0
   menuVideo: boolean;            // ?menuvideo=1 (parked): the recorded race behind the menu
   grassGrip: boolean;            // grippier dry grass (surfaces.ts); ?grassgrip=0 = the old grip
+  rain: number | null;           // ?rain=0.6: the track this wet, 0-1, and raining (weather test)
   hwMap: boolean;                // the minimap on the highway too; ?hwmap=0 = not there
   sharpCars: boolean;            // crisp cars on the screen canvas (render.ts); ?sharpcars=0 off
   sharpMarks: boolean;           // skid marks on the screen canvas (render.ts); ?sharpmarks=0 off
@@ -59,6 +60,13 @@ export interface Settings {
 function autopilotKmh(params: URLSearchParams): number {
   const kmh = +(params.get('autopilot') || 0);
   return kmh > 1 ? kmh : 0;
+}
+
+// ?rain=: how wet the track is (and how hard it rains), 0-1; ?rain alone = 0.6
+function rainLevel(params: URLSearchParams): number | null {
+  if (!params.has('rain')) return null;
+  const level = params.get('rain') === '' ? 0.6 : +params.get('rain')!;
+  return Number.isFinite(level) ? Math.max(0, Math.min(1, level)) : null;
 }
 
 function churnKind(params: URLSearchParams): '' | 'pictures' | 'objects' {
@@ -101,6 +109,7 @@ export function readSettings(search: string): Settings {
     minimap: params.get('minimap') !== '0',
     menuVideo: params.get('menuvideo') === '1',
     grassGrip: params.get('grassgrip') !== '0',
+    rain: rainLevel(params),
     // default since 2026-10-16 (owner: "highway mini map approved")
     hwMap: params.get('hwmap') !== '0',
     // default since 2026-10-16 (owner: "the change seems to have worked"): the cars turned and
@@ -114,9 +123,8 @@ export function readSettings(search: string): Settings {
     jokerFix: params.get('jokerfix') !== '0',
     // default since 2026-10-17 (owner: "seems okay"): 12 ground lookups a car a step, not ~22
     groundLookup: params.get('groundlookup') !== '0',
-    // default since 2026-10-17 (owner: "test passed track edges don't wiggle"): the ground tiles
-    // placed exactly on the GPU ground, not on whole art pixels, so the track edges hold still
-    // while the zoom moves
+    // default since 2026-10-17 (owner approved): the ground tiles placed exactly on the GPU
+    // ground, not on whole art pixels, so the track edges hold still while the zoom moves
     exactTiles: params.get('exacttiles') !== '0',
     // default since 2026-10-17: HUD > in the pause menu, an ON / OFF per HUD piece
     hudMenu: params.get('hudmenu') !== '0',
