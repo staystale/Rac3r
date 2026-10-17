@@ -81,8 +81,8 @@ function setPieceShown(state, pieceId, shown) {
 
 /**
  * Whether the tyre / damage diagram is drawn: the tyre HUD is on, OR the car is damaged
- * (requirement: use that for damage too). With ?tyreoff=1 OFF in the HUD list means off, damaged
- * or not (owner: "No, OFF means off"); the damage still shows on the car itself.
+ * (requirement: use that for damage too). With the HUD list OFF means off (?tyreoff=0: damaged
+ * shows it again) (owner: "No, OFF means off"); the damage still shows on the car itself.
  * @param {object} state the HUD state (tyreHud, hudMenu, tyreOff)
  * @param {object} car the player's car (dmg, punct)
  * @returns {boolean} drawn
@@ -97,7 +97,7 @@ function showsCarDiagram(state, car) {
 /**
  * Builds the HUD.
  * @param {{hudMenu?: boolean, tyreOff?: boolean}} [options] hudMenu: the pause menu's HUD list;
- *   tyreOff: the tyre / damage diagram OFF stays off when damaged (?tyreoff=1)
+ *   tyreOff: the tyre / damage diagram OFF stays off when damaged (?tyreoff=0 = pops up)
  * @returns {object} draw, hit, layout and the HUD's choices
  */
 export function createHud(options = {}) {

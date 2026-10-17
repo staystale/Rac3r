@@ -10,17 +10,7 @@ export const TEST_LIST = [
   // (approved late, deleted: fields, grassedge, catchthem, slipsdual, fps - TODO.md 1c;
   // dirtroad, animals, labext, labsplit, zoomhold, gpupaint, minimap, zoomspring, grassgrip, hwmap,
   // cracktufts, sharpcars, sharpmarks, jokerfix,
-  // groundlookup, exacttiles, hudmenu)
-  {
-    id: 'tyreoff',
-    added: '2026-10-17',
-    name: 'Tyre / damage monitor OFF means off, even when damaged',
-    where: 'Link: ?tyreoff=1 - any track; pause (II), HUD ›, TYRE / DAMAGE OFF',
-    try: 'Crash into a wall hard enough to damage the car. Then turn it ON in the HUD list.',
-    wrong:
-      'The monitor pops up after the crash while OFF; it does not stay up while ON; the damage ' +
-      'not showing on the car itself.',
-  },
+  // groundlookup, exacttiles, hudmenu, tyreoff)
   {
     id: 'straightoutta',
     added: '2026-10-15',

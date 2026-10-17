@@ -258,8 +258,8 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
 - [x] HUD LIST (owner, 2026-10-17: "this and mini map be in a sub menu called HUD ... all HUD
       options can be separately toggled to match player preference ... keep it light and
       functional"). The DEFAULT since 2026-10-17 (owner: "test approved"; ?hudmenu=0 = the old
-      MINIMAP row). Then (owner): tyre / damage OFF means off even when damaged - behind
-      ?tyreoff=1 (owner phone test pending, testlist 'tyreoff'). The
+      MINIMAP row). Then (owner): tyre / damage OFF means off even when damaged - the DEFAULT
+      since 2026-10-17 (owner: "test passed"; ?tyreoff=0 = it pops up on damage again). The
       pause menu's MINIMAP row becomes HUD ›, an ON / OFF button each for the minimap, the progress
       bar, the lap timer, the speedo and the tyre / damage diagram (moved out of TUNE). Minimap and
       bar remembered per difficulty mode (the bar with the minimap's defaults, never locked; alone

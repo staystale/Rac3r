@@ -34,7 +34,7 @@ export interface Settings {
   groundLookup: boolean;         // fewer ground lookups under the wheels (wear.ts); =0 the old
   exactTiles: boolean;           // GPU ground tiles at their exact place (tiles.ts); =0 off
   hudMenu: boolean;              // the pause menu's HUD list (menu/race.js); ?hudmenu=0 off
-  tyreOff: boolean;              // ?tyreoff=1: tyre / damage OFF stays off when damaged (hud.js)
+  tyreOff: boolean;              // tyre / damage OFF stays off when damaged (hud.js); =0 pops up
   noShade: boolean;              // ?noshade: skip the hill shading (perf A/B)
   grassEnds: "round" | "square";   // ?grass=square: square grass blade ends (cheaper; A/B)
   surfaceTextures: boolean;       // ?tex=0: paint surfaces live, not pre-painted textures (A/B)
@@ -109,9 +109,9 @@ export function readSettings(search: string): Settings {
     // default since 2026-10-17 (owner: "test approved"): HUD > in the pause menu, an ON / OFF per
     // HUD piece
     hudMenu: params.get('hudmenu') !== '0',
-    // ?tyreoff=1 (owner phone test pending): the tyre / damage diagram OFF in the HUD list means
-    // off, even when the car is damaged
-    tyreOff: params.get('tyreoff') === '1',
+    // default since 2026-10-17 (owner: "test passed"): the tyre / damage diagram OFF in the HUD
+    // list means off, even when the car is damaged
+    tyreOff: params.get('tyreoff') !== '0',
     noShade: params.has('noshade'),
     grassEnds: params.get('grass') === 'square' ? 'square' : 'round',
     surfaceTextures: params.get('tex') !== '0',

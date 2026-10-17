@@ -37,7 +37,8 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   canvas too (no quiver), and the joker lane on the minimap + RESET back onto it: default since 10-17
   (`?sharpmarks=0`, `?jokerfix=0` = off). Ground tiles at their exact place on the GPU ground, so
   track edges hold still while zooming: default since 10-17 (`?exacttiles=0`). The pause menu's
-  HUD list (each display piece on / off; controls never): default since 10-17 (`?hudmenu=0`). Pre-turned pixel art (RotSprite)
+  HUD list (each display piece on / off; controls never; tyre / damage OFF stays off when damaged):
+  default since 10-17 (`?hudmenu=0`, `?tyreoff=0`). Pre-turned pixel art (RotSprite)
   was the alternative, not chosen.
 - Not wanted / undone: the highway rebuild (cancelled 10-15), a fade at zoom steps, tiles tracing
   only their part of the ribbon (`?ribboncull`, undone 10-16), the WebGL cars (`?gpucars`, removed
