@@ -16,9 +16,11 @@ export type ReportFrame = [number, number, number, number, number, number, numbe
  * Creates the reporter.
  * @param query the page query (which link the owner opened)
  * @param level the level id now, read at each post
+ * @param loadMs ms from the page opening to the menu shown, or null (no menu)
  * @returns add(frame) per frame
  */
-export function createReporter(query: string, level: () => string) {
+export function createReporter(query: string, level: () => string,
+    loadMs: () => number | null = () => null) {
   const frames: ReportFrame[] = [];
   const session = Math.random().toString(36).slice(2, 8);
   let part = 0;
@@ -31,7 +33,8 @@ export function createReporter(query: string, level: () => string) {
       frames.push(frame);
       if (frames.length < REPORT_FRAMES) return;
       const body = JSON.stringify({
-        session, part: part++, query, level: level(), userAgent: navigator.userAgent,
+        session, part: part++, query, level: level(), loadMs: loadMs(),
+        userAgent: navigator.userAgent,
         dpr: devicePixelRatio, width: innerWidth, height: innerHeight,
         // opened from the home screen (a full-screen web app), not in a Safari tab
         homeScreen: matchMedia('(display-mode: fullscreen), (display-mode: standalone)').matches

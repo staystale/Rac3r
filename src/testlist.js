@@ -12,6 +12,18 @@ export const TEST_LIST = [
   // cracktufts, sharpcars, sharpmarks, jokerfix,
   // groundlookup, exacttiles, hudmenu, tyreoff)
   {
+    id: 'menufast',
+    added: '2026-10-17',
+    name: 'Main menu: no drops at the start, TEST MODE answers at once',
+    where: 'Links: ?menufast=1&report=1, then ?report=1 (compare), opened fresh each time',
+    try:
+      'Let the menu sit 10 s, then tap through TEST MODE, a category, a track, setup and back, ' +
+      'as you normally would. Then the same on the compare link.',
+    wrong:
+      'Drops at the start or on a button press still there; the race behind the menu missing ' +
+      'or frozen; track pictures missing in the lists; loading feeling slower.',
+  },
+  {
     id: 'straightoutta',
     added: '2026-10-15',
     name: 'Judder fix (skid-mark layer) + new highway step 1: Straight Outta Swindon',

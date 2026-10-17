@@ -277,7 +277,15 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
       (frame [9] menu up, [10] taps ignored in a new screen's 350 ms ghost window, [11] the
       slowest button handler ms); phonereport prints a MENU run per session. Laptop (390x844,
       not the yardstick): menu 1.5 % slow frames vs 0.26 % in the race, TEST MODE tap 417 ms.
-      Waiting for the owner's phone run.
+      OWNER'S PHONE RUN (09:20Z): the menu smooth (median 17 ms) except the menu race's fly-in
+      (a 113 ms frame painting the whole-level picture, 121 ms at the handover with 28 GPU
+      uploads, two ~120 ms frames outside our code) and the TEST MODE tap (193 ms painting every
+      thumbnail, then 68 ms: putting the menu level back clears wear, every tile stale). BUILT
+      behind ?menufast=1 (owner phone test pending, testlist 'menufast'): no fly-in behind the
+      menu; thumbnails painted while the loading screen is up. Laptop A/B: menu slow frames 14
+      -> 5, TEST MODE 419 -> 3 ms; loading +~0.5 s (laptop; phone ~2x faster). The report now
+      carries loadMs (page open -> menu shown) to compare on the phone. NEXT (owner): the
+      initial load feels long - find what was tried before, propose (after this is approved).
       (2) DONE - the DEFAULT since 2026-10-17 (owner: "test passed track edges don't wiggle";
       "maybe more judder but it's subtle if it was" - the owner's run: Castle Cum 0.17 % slow
       frames, draw 2 ms, against ~0.4 % on earlier Castle Cum runs; ?exacttiles=0 = the old

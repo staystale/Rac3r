@@ -54,8 +54,9 @@ function printMenu(run) {
   const handlers = frames.map((frame) => frame[11]).filter((ms) => ms > 0);
   const slowTaps = handlers.filter((ms) => ms > SLOW_TAP_MS);
   const middle = (at) => median(frames.map((frame) => frame[at])).toFixed(1);
+  const loaded = run.loadMs ? ` | menu shown ${run.loadMs} ms after the page opened` : '';
   console.log(`${run.at.slice(0, 16)}Z MENU ${run.homeScreen ? 'HOME SCREEN' : 'tab'} `
-    + `${run.query} | ${run.width}x${run.height} dpr ${run.dpr}`);
+    + `${run.query} | ${run.width}x${run.height} dpr ${run.dpr}${loaded}`);
   console.log(`  ${frames.length} frames (${(frames.length / 60).toFixed(0)} s), dt median `
     + `${middle(0)} ms | sim ${middle(1)} draw ${middle(2)} ms | slow ${slow.length} `
     + `(${percent(slow.length, frames.length)}), our JS heavy ${ours}, longest frame `

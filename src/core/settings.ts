@@ -35,6 +35,7 @@ export interface Settings {
   exactTiles: boolean;           // GPU ground tiles at their exact place (tiles.ts); =0 off
   hudMenu: boolean;              // the pause menu's HUD list (menu/race.js); ?hudmenu=0 off
   tyreOff: boolean;              // tyre / damage OFF stays off when damaged (hud.js); =0 pops up
+  menuFast: boolean;             // ?menufast=1: no fly-in behind the menu, thumbnails at load
   noShade: boolean;              // ?noshade: skip the hill shading (perf A/B)
   grassEnds: "round" | "square";   // ?grass=square: square grass blade ends (cheaper; A/B)
   surfaceTextures: boolean;       // ?tex=0: paint surfaces live, not pre-painted textures (A/B)
@@ -112,6 +113,9 @@ export function readSettings(search: string): Settings {
     // default since 2026-10-17 (owner: "test passed"): the tyre / damage diagram OFF in the HUD
     // list means off, even when the car is damaged
     tyreOff: params.get('tyreoff') !== '0',
+    // ?menufast=1 (owner phone test pending): the menu's race starts on the car (no fly-in) and the
+    // track thumbnails are painted while the game loads, not on the TEST MODE tap
+    menuFast: params.get('menufast') === '1',
     noShade: params.has('noshade'),
     grassEnds: params.get('grass') === 'square' ? 'square' : 'round',
     surfaceTextures: params.get('tex') !== '0',

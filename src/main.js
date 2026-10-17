@@ -253,8 +253,14 @@ shared.menu = shared.MENU
           ? shared.renderer.pixelCarWithWheels(x) : shared.renderer.pixelCar(x)) }) : null;
 if (shared.MENU) {
   shared.hud.setHelpLabel('II');
+  // ?menufast=1: the track thumbnails now, while the loading screen is up. MEASURED on the owner's
+  // phone: painted on the TEST MODE tap they took 193 ms, and putting the menu's race level back
+  // (wear cleared, so every ground tile stale) cost 68 ms the frame after
+  if (shared.settings.menuFast) paintThumbs();
   enterMenu();
   shared.menu.show();
+  // the phone report's load time: ms from the page opening to the menu shown (ui/report.ts)
+  shared.loadMs = Math.round(performance.now());
 }
 game.menuMode = shared.MENU;
 window.__game.menu = shared.menu;
@@ -273,7 +279,8 @@ const WARM_SLICE_MS = 60;
 shared.pacer = shared.settings.vsync ? createFramePacer() : null;   // ?vsync=0: off (pacing.ts)
 // ?report=1: the meter's frames also go to the test server (ui/report.ts)
 shared.reporter = shared.settings.report
-  ? createReporter(location.search, () => (LEVEL ? LEVEL.id : '')) : null;
+  ? createReporter(location.search, () => (LEVEL ? LEVEL.id : ''), () => shared.loadMs ?? null)
+  : null;
 shared.churn = shared.settings.churn ? createChurn(shared.settings.churn) : null;   // ?churn= only
 shared.meterTiles = 0;
 shared.meterTouches = 0;   // ?meter=1: pointer down / up / cancel events since the last frame
