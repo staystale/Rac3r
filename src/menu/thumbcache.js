@@ -1,8 +1,8 @@
 // thumbcache.js — THE SAVED THUMBNAILS (?thumbcache=0 = off): the menu's track thumbnails kept
 // on the device per game version, so a load paints them only the first time a version runs.
 // MEASURED: painting all 18 at load took ~0.65 s on the laptop (~0.3 s on the owner's phone),
-// most of the start-up after the bundle. The version is the bundle's fingerprint of every source file
-// (tools/lib/buildid.mjs; none when the modules are loaded one by one, as the test tools do).
+// most of the start-up after the bundle. The version is the bundle's fingerprint of every source
+// file (tools/lib/buildid.mjs; none when the modules are loaded one by one, as the test tools do).
 // Storage can fail (a private window, storage full): every caller falls back to painting.
 
 const DB_NAME = 'rac3r-thumbs', STORE = 'thumbs';
