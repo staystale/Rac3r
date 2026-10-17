@@ -113,8 +113,9 @@ export function readSettings(search: string): Settings {
     // default since 2026-10-17 (owner: "test passed"): the tyre / damage diagram OFF in the HUD
     // list means off, even when the car is damaged
     tyreOff: params.get('tyreoff') !== '0',
-    // ?menufast=1 (owner phone test pending): the menu's race starts on the car (no fly-in) and the
-    // track thumbnails are painted while the game loads, not on the TEST MODE tap
+    // ?menufast=1 (owner phone test pending): the menu's race starts on the car (no fly-in), the
+    // track thumbnails are painted while the game loads, not on the TEST MODE tap, and the
+    // long-grass blades are stroked once for its recolours (textures.ts)
     menuFast: params.get('menufast') === '1',
     noShade: params.has('noshade'),
     grassEnds: params.get('grass') === 'square' ? 'square' : 'round',

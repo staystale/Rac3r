@@ -295,7 +295,8 @@ function textureKey(name: string, square: boolean) {
 export function surfaceTexture(groundCtx: GroundCtx, name: string, art: SurfaceArt) {
   const square = groundCtx.grassEnds === 'square';
   return groundCtx.textures.get(textureKey(name, square),
-    (gfx, period) => paintTexture(gfx, period, TEX_PPM, art.layers, square));
+    (gfx, period) => paintTexture(gfx, period, TEX_PPM, art.layers, square,
+      groundCtx.bladeMasks));
 }
 
 /**

@@ -172,13 +172,69 @@ function cracks(gfx: Gfx, period: number, ppm: number, layer: ArtLayer) {
   gfx.stroke();
 }
 
+/** Blade layers painted once as white masks, keyed by their shape (see tintedBlades). */
+export type BladeMasks = Map<string, HTMLCanvasElement>;
+
+/**
+ * A CPU-backed canvas the size of a texture (a GPU one would be read back when drawn into the
+ * CPU-backed texture).
+ * @param width width, px
+ * @param height height, px
+ * @returns the canvas
+ */
+function cpuCanvas(width: number, height: number) {
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  canvas.getContext('2d', { willReadFrequently: true });
+  return canvas;
+}
+
+/**
+ * A blades layer from its mask: the blades stroked ONCE in white per shape, then tinted with the
+ * layer's colour and drawn over (?menufast=1). Wheat, rapeseed and hedgerow are long grass
+ * recoloured, so the same blades were stroked four times. MEASURED on the owner's phone: each
+ * long-grass-shaped texture took 110-122 ms, the menu's start-up hitches. One stroke() of one
+ * colour, over a transparent canvas: the tinted mask composites the same way.
+ * @param gfx the texture's context
+ * @param period the period, m
+ * @param ppm px per metre
+ * @param layer the blades layer
+ * @param square square blade ends
+ * @param masks the masks painted so far
+ */
+function tintedBlades(gfx: Gfx, period: number, ppm: number, layer: ArtLayer, square: boolean,
+  masks: BladeMasks) {
+  const { width, height } = gfx.canvas;
+  const key = [width, period, ppm, square, ...layer.slice(2)].join('|');
+  let mask = masks.get(key);
+  if (!mask) {
+    mask = cpuCanvas(width, height);
+    const white = ['blades', '#ffffff', ...layer.slice(2)] as ArtLayer;
+    blades(mask.getContext('2d')!, period, ppm, white, square);
+    masks.set(key, mask);
+  }
+  const tint = cpuCanvas(width, height), tintGfx = tint.getContext('2d')!;
+  tintGfx.drawImage(mask, 0, 0);
+  tintGfx.globalCompositeOperation = 'source-in';
+  tintGfx.fillStyle = layer[1] as string;
+  tintGfx.fillRect(0, 0, width, height);
+  gfx.drawImage(tint, 0, 0);
+}
+
 // the whole texture of one surface: its layers in order, every kind periodic ('rings' draws
-// nothing in the live code either), so no layer stays live
+// nothing in the live code either), so no layer stays live; with masks (?menufast=1) the blades
+// layers come from shared masks (tintedBlades)
 export function paintTexture(
-  gfx: Gfx, period: number, ppm: number, layers: ArtLayer[], square: boolean
+  gfx: Gfx, period: number, ppm: number, layers: ArtLayer[], square: boolean,
+  masks: BladeMasks | null = null
 ) {
   for (const layer of layers) {
     const kind = layer[0];
+    if (kind === 'blades' && masks) {
+      tintedBlades(gfx, period, ppm, layer, square, masks);
+      continue;
+    }
     if (kind === 'grain') grain(gfx, period, ppm, layer);
     else if (kind === 'stripes') stripes(gfx, period, ppm, layer);
     else if (kind === 'ripples') ripples(gfx, period, ppm, layer);

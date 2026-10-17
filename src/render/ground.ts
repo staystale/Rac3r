@@ -23,6 +23,7 @@ import { drawWear, drawBumps, drawRunoff } from "./ground/wear.ts";
 export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
   const groundCtx: GroundCtx = {
     view, cam, ...helpers, textures: createTextureCache(), SURFACE_ART: makeSurfaceArt(),
+    bladeMasks: helpers.shareBlades ? new Map() : null,
     PRIM: {},
   };
   groundCtx.PRIM = makePrim(groundCtx);

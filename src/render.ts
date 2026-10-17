@@ -513,7 +513,8 @@ function buildModules(view: View, cam: Cam, settings: Settings,
   // below is only called at draw time, after createRoad has returned forSide
   const ground = createGround(view, cam, { PPMz, toScreenX, toScreenY, roundRect,
     forSide: (...args) => road.forSide(...args),
-    grassEnds: settings.grassEnds, surfaceTextures: settings.surfaceTextures });
+    grassEnds: settings.grassEnds, surfaceTextures: settings.surfaceTextures,
+    shareBlades: settings.menuFast });
   const road = createRoad(view, cam, {
     PPMz, toScreenX, toScreenY, paintLayers: ground.paintLayers, artBase: ground.artBase,
   });

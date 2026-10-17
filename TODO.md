@@ -286,6 +286,18 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
       -> 5, TEST MODE 419 -> 3 ms; loading +~0.5 s (laptop; phone ~2x faster). The report now
       carries loadMs (page open -> menu shown) to compare on the phone. NEXT (owner): the
       initial load feels long - find what was tried before, propose (after this is approved).
+      SECOND PHONE RUN (09:46Z, ?menufast=1): the fly-in gone, but the same four ~120 ms frames at
+      0.4-1.4 s: three were the texture warm-up (110-122 ms of it in those frames; report [12]).
+      Laptop: hedgerow / grassLong / wheat / rapeseed 32-36 ms each, every other texture 0-5 ms;
+      the cost is the blades' stroke (32 ms), not building the path (2 ms). ADDED to ?menufast=1
+      (owner: A, 'accept A, test it'): the blades of each shape stroked ONCE as a white mask and
+      tinted per colour (textures.ts tintedBlades): wheat / rapeseed / hedgerow 33-36 -> 3 ms.
+      NOT pixel-identical: over the base colour at most 2 levels off at soft blade edges; after the
+      palette snap 0.13-0.3 % of a frame's pixels one shade off on long grass (renderhash with
+      menufast=1 DIFFERENT on grass levels; owner accepted). If the last hitch (grassLong itself)
+      still shows: B, texture painting on a worker (OffscreenCanvas), exact, M.
+      Owner: 'judder throughout' on that run - the frames say otherwise (490/500 at 16-18 ms);
+      the menu camera now starts fully zoomed in (ppm 26 vs ~8). Back-to-back pair asked for.
       (2) DONE - the DEFAULT since 2026-10-17 (owner: "test passed track edges don't wiggle";
       "maybe more judder but it's subtle if it was" - the owner's run: Castle Cum 0.17 % slow
       frames, draw 2 ms, against ~0.4 % on earlier Castle Cum runs; ?exacttiles=0 = the old
