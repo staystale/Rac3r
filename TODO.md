@@ -437,6 +437,19 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
       the owner (S, no code); R2 season slider + weather in the event setup + the rain look (M);
       R3 wet ground plays wet, tyre rules (M); R4 puddles form / grow / join / drain (L). Snow,
       hot and super hot: to be planned after rain (ask first). Each step behind a switch.
+      R1 SIGNED OFF (owner, 2026-10-17: realism in the numbers and the feel; owner tests). mu
+      dry / DAMP (rain) / PUDDLE (standing): race tarmac 1.06 / 0.74 / 0.62; tarmac 0.94 / 0.72 /
+      0.58; concrete 0.90 / 0.68 / 0.56; broken 0.86 / 0.69 / 0.56; kerb 0.70 / 0.45 / 0.40; lab
+      1.00 / 0.65 / 0.55; gravel 0.62 / 0.59 / 0.50; dirt 0.56 / 0.42 / 0.38; grass 0.47 / 0.34 /
+      0.34; long grass 0.50 / 0.36 / 0.36; mud 0.45 / 0.38 / 0.34; thick mud 0.38 / 0.34 / 0.30;
+      sand 0.55 / 0.58 (less plough: damp sand packs) / 0.45; snow 0.32 / 0.26 / 0.22; packed
+      snow 0.36 / 0.28 / 0.24; ice 0.12 / 0.06 / 0.06. WET WEAR: grass, long grass, dirt -> next
+      in 1 pass (dry 2); mud -> thick mud in 2 (dry 3); wet snow turns to slush / water, not ice;
+      wet ice scrubs through in half the slip; puddle churn rules as today. TYRES: wet HARD
+      ground uses the tyre's WET column; wet loose ground the tyre's own column for that ground.
+      Owner OK'd: existing puddles change with this table (tarmac puddle 0.68 -> 0.58; Killder,
+      Sweaty Lamb, the Lab). FOUND: a puddle's surface id is 'puddle', missing from tyre.bySurf,
+      so every tyre counts as Pre-Spun in a puddle (rain tyres no help, slicks no penalty) - R3.
 
 ## GAME NAME: RAC3R (user, 2026-10-03)
 
