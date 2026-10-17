@@ -17,7 +17,7 @@ export const TEST_LIST = [
     id: 'drawlite',
     added: '2026-10-17',
     name: 'Less drawing per frame: ground squares trace only their own track; minimap fade',
-    where: 'Castle Cum autopilot link with ?drawlite=1 (screen-record corners 1 and 2), then without',
+    where: 'Castle Cum autopilot link with ?drawlite=1 (record corners 1 and 2), then without',
     try: 'Watch the race through corners 1 and 2, hands off, about 20 s each.',
     wrong:
       'Judder still at the corners; track edges, kerbs or white lines looking different; the ' +
