@@ -32,8 +32,15 @@ the git history. `docs/foreman-handover.md` is the last handover (10-17), writte
   tile; session.js updateRecoveryTracking scans every point each sim step.
 - TEST LIST EMPTY (owner, 2026-10-17): sound, joker, markedge, ainowait, judder all passed
   ("we may come back to judder"; ?nolock=1 still exists).
-- NOW (owner order, 2026-10-17): 1) the ~125 ms frame just after the menu shows (measure first,
-  report the cause before fixing); 2) WEATHER (see "GRASS GRIP + WATER" below, owner answers).
+- MENU FREEZE (~125 ms, ~16 frames after the menu shows, every phone run): CAUSE FOUND 10-17 -
+  OUR draw (111-119 ms in the frame before the long dt; the 10-17 handover read the wrong frame):
+  the ground tiles behind the menu reach the long-grass texture (textures.ts tintedBlades, its
+  blade masks) before the idle warm-up (one texture / 60 ms) does. Owner approved trying, in
+  order, with a phone test each: A ?texwarm=1 (paint the blade textures while loading; laptop:
+  the 57-60 ms tintedBlades frame gone), B save painted textures per version (like thumbcache),
+  C paint textures on a worker. Also seen on the laptop, not on the phone: the GPU ground's
+  first frame (glground.ts parseColour ~20-25 ms).
+- NOW (owner order, 2026-10-17): 1) the menu freeze above (A under test); 2) WEATHER (see "GRASS GRIP + WATER" below, owner answers).
 - GRASS THROUGH THE CRACKS (owner: a and b, "like real life"): long-grass tufts in some
   broken-tarmac flecks, and scattered on broken-tarmac / concrete ground (blend.ts, own random
   stream: every existing patch unchanged). OWNER APPROVED 2026-10-16 (testlist entry deleted).

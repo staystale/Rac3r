@@ -300,6 +300,23 @@ export function surfaceTexture(groundCtx: GroundCtx, name: string, art: SurfaceA
 }
 
 /**
+ * Paints now every texture with grass blades (long grass and its recolours: wheat, rapeseed,
+ * hedgerow, sharing one set of blade masks). The heaviest texture: MEASURED 111-119 ms on the
+ * owner's phone, and the ground tiles behind the menu reached it before the idle warm-up did, so
+ * one menu frame took ~125 ms. Called while the loading screen is up (main.js, ?texwarm=1).
+ *
+ * @param groundCtx the shared ground painter context
+ */
+export function warmBladeTextures(groundCtx: GroundCtx) {
+  const square = groundCtx.grassEnds === 'square';
+  for (const [name, art] of Object.entries(groundCtx.SURFACE_ART)) {
+    if (!art || groundCtx.textures.has(textureKey(name, square))) continue;
+    if (!art.layers.some((layer) => layer[0] === 'blades')) continue;
+    surfaceTexture(groundCtx, name, art).getContext('2d')!.getImageData(0, 0, 1, 1);
+  }
+}
+
+/**
  * Paints the next surface texture not painted yet (and makes the browser really paint it: canvas
  * drawing is deferred until read). Called in small slices while the game is idle, so the first
  * frames of a level (the fly-in) do not paint them: MEASURED ~0.8 s at CPU x4 in one frame.

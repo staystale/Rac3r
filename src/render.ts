@@ -659,7 +659,7 @@ export function createRenderer(canvas: HTMLCanvasElement, settings: Settings) {
     get PPM() { return view.PPM * view.zoom; },
     get groundRenders() { return tileState.tilesPainted; },
     get tileMs() { return tileState.tileMs; },
-    warmNextTexture: () => ctx.warmNextTexture(),
+    warmNextTexture: ctx.warmNextTexture, warmBladeTextures: ctx.warmBladeTextures,
     get gpuCounts() { return gpu ? gpu.counts : null; },
     get shadeStats() { return gpu ? gpu.shadeStats() : null; },
     get staleRepaints() { return tileState.staleRepaints; },

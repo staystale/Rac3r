@@ -12,4 +12,14 @@ export const TEST_LIST = [
   // cracktufts, sharpcars, sharpmarks, jokerfix,
   // groundlookup, exacttiles, hudmenu, tyreoff, menufast, bundle,
   // sound, joker, markedge, ainowait, judder; straightoutta removed with its level)
+  {
+    id: 'texwarm',
+    added: '2026-10-17',
+    name: 'Menu: no freeze just after it shows (long grass painted while loading)',
+    where: 'Open the link with ?texwarm=1&report=1, then the plain link with ?report=1',
+    try: 'Leave the menu up ~10 s each time, hands off. Close the tab or go home after each.',
+    wrong:
+      'A stutter about a quarter-second after the menu appears; loading clearly slower; the ' +
+      'long grass, wheat or hedges looking different.',
+  },
 ];
