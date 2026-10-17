@@ -62,6 +62,8 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
 - Canvas 2D drawing is deferred until read: a getImageData / upload cost in a profile is often the
   painting itself.
 - A CPU-backed texture pattern-filled onto a GPU-backed canvas is moved on every fill.
+- Track edges jiggled only while the zoom moved: tiles placed on whole art pixels under a GPU
+  ground that zooms smoothly (up to 1.5 device px a frame). Measure motion against a control.
 - The tyre marks quiver: the marks layer (4.2 px/m) is stretched ~3.6x nearest into the art grid each
   frame, so a mark pixel is 3 or 4 art px wide by camera position; now drawn on the screen canvas.
 - Laptop frame numbers swing with the machine (Brands work median 20 ms one hour, 38 ms the next,
@@ -93,4 +95,5 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
 
 - `tools/tilecost.mjs` (tiles by reason), `tools/framecheck.mjs <level> [query]` (frame times),
   `tools/profile.mjs`, `tools/phonereport.mjs`, `tools/renderhash.mjs` (`--only`, `--shots`),
-  `tools/shotdiff.mjs`, `tools/zoomcheck.mjs`, `tools/scratch/carmock.html` (car drawing mockup).
+  `tools/shotdiff.mjs`, `tools/zoomcheck.mjs`, `tools/scratch/carmock.html` (car drawing mockup),
+  `tools/edgecheck.mjs` (does the white edge line move rigidly; `--control` = the noise floor).

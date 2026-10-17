@@ -259,11 +259,14 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
       (1) "main menu is still sluggish" - the live 5-car race runs behind the menu (game/menu
       demo); measure it ON THE PHONE first (?report=1 does not record the menu: add that, or a
       menu-only report), then decide (fewer demo cars, a cheaper demo, the recording again).
-      (2) "some track edges jiggle or dance like the tyre tracks were" - likely the same cause as
-      the marks: the track ribbon's white edge lines and kerbs are painted into the ground tiles
-      in art pixels and the tiles are drawn with the sharp filter, but thin lines (0.22 m) in art
-      pixels step as the camera moves; or the per-frame deck layer (runoff, floor kerb, paint)
-      drawn into the art buffer at 1.3 CSS px. Find which edges first (photos at speed).
+      (2) "some track edges jiggle or dance like the tyre tracks were" (owner: the white line at
+      the road edge). CAUSE (tools/edgecheck.mjs, Brands): only while the zoom MOVES - the tiles
+      (ribbon, white lines, curved kerbs) were drawn at whole-art-pixel edges, but the GPU ground
+      zooms smoothly, so each tile moved by up to 1.5 device px, differently every frame. Line
+      stray frame to frame (median / p95 / max px): zoom moving 0.30 / 1.61 / 2.92, held 0.03 /
+      0.09 / 0.37; a perfect line (--control) 0.05 / 0.16 / 0.37. BUILT behind ?exacttiles=1
+      (owner phone test pending, testlist 'exacttiles'): on the GPU ground the tiles go at their
+      exact place (tiles.ts drawTileImage); zoom moving 0.03 / 0.14 / 0.44.
 - [x] JOKER BUGS (owner, 2026-10-16; FIXED, the DEFAULT since 2026-10-17, owner: "tested and
       working"; ?jokerfix=0 = the old behaviour): (1) the joker lap / joker section did not show on the
       minimap (it drew the main centreline only); (2) RESET in the joker lane put the car back on

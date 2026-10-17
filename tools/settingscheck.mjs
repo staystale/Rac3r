@@ -9,7 +9,7 @@ const DEFAULTS = {
   dev: false, carId: null, aiCount: 0, aiDifficulty: 2, trafficDensity: 0.6, litter: null, menu: null,
   menuAi: 4, guide: null, rules: null, levelId: null, inputMode: 'auto', highwayDebug: null,
   noLock: false, tilePx: 256, tileGpu: false, glGround: true, gpuPaint: true, zoomHold: true, minimap: true, menuVideo: false, grassGrip: true, hwMap: true,
-  sharpCars: true, sharpMarks: true, jokerFix: true, groundLookup: true,
+  sharpCars: true, sharpMarks: true, jokerFix: true, groundLookup: true, exactTiles: false,
   noShade: false,
   grassEnds: 'round', surfaceTextures: true, meter: false, meterOverlay: false, report: false, vsync: true, audio: true,
   autopilot: false, autopilotKmh: 0, noNatClear: false, churn: '', skipLayers: '',   // a Set is compared as its sorted names joined by ','
@@ -51,6 +51,8 @@ const TABLE = [
   ['?jokerfix', { jokerFix: true }],
   ['?groundlookup=0', { groundLookup: false }],
   ['?groundlookup', { groundLookup: true }],
+  ['?exacttiles=1', { exactTiles: true }],
+  ['?exacttiles', { exactTiles: false }],
   ['?sharpcars', { sharpCars: true }],
   ['?minimap=0', { minimap: false }],
   ['?tilepx=abc', { tilePx: 256 }],

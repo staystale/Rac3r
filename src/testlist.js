@@ -12,6 +12,18 @@ export const TEST_LIST = [
   // cracktufts, sharpcars, sharpmarks, jokerfix,
   // groundlookup)
   {
+    id: 'exacttiles',
+    added: '2026-10-17',
+    name: 'Track edges hold still while the view zooms',
+    where: 'Link: ?exacttiles=1&report=1 - any tarmac circuit (Brands, Castle Cum)',
+    try:
+      'Speed up and brake hard so the view zooms out and in; watch the white line at the road ' +
+      'edge and the kerbs. Compare with the plain link.',
+    wrong:
+      'The white line or kerbs still jiggling as the view zooms; a thin seam or line across ' +
+      'the ground at tile edges; the road shifting against the grass; more judder.',
+  },
+  {
     id: 'straightoutta',
     added: '2026-10-15',
     name: 'Judder fix (skid-mark layer) + new highway step 1: Straight Outta Swindon',

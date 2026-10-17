@@ -73,6 +73,8 @@ interface TilesCtx {
   TILE_GPU: boolean;
   /** perf A/B: no hill-shading */
   NO_SHADE: boolean;
+  /** ?exacttiles=1: on the GPU ground, tiles at their exact place (drawTileImage) */
+  EXACT_TILES: boolean;
 }
 
 /** one tile being painted: its canvas, scratch, geometry and the strip it is on */
@@ -399,6 +401,19 @@ function groundImage(tcx: TilesCtx, source: HTMLCanvasElement, x: number, y: num
  */
 function drawTileImage(tcx: TilesCtx, tile: Tile, i: number, j: number, tileWidth: number) {
   const { view } = tcx, { toScreenX, toScreenY } = tcx.helpers;
+  // EXACT TILES (?exacttiles=1). The GPU ground zooms smoothly (the zoom is not quantised to whole
+  // art-pixel tiles), so whole-art-pixel edges moved each tile by up to half an art pixel (1.5
+  // device px), differently every frame of a zoom move: the white edge line, the ribbon edge and
+  // the kerbs jiggled against the GPU-painted grass. MEASURED (tools/edgecheck.mjs, Brands, zoom
+  // moving): the line strayed 0.30 / 1.61 / 2.92 device px frame to frame (median / p95 / max),
+  // exact 0.03 / 0.14 / 0.44 (a perfect line: 0.05 / 0.16 / 0.37). Neighbours share each edge's
+  // exact value and the GPU draws without anti-aliasing, so tiles still meet with no seam.
+  if (tcx.EXACT_TILES && tcx.helpers.fillsOnGpu()) {
+    const exactLeft = toScreenX(i * tileWidth), exactTop = toScreenY(j * tileWidth);
+    groundImage(tcx, tile.c, exactLeft, exactTop, toScreenX((i + 1) * tileWidth) - exactLeft,
+      toScreenY((j + 1) * tileWidth) - exactTop);
+    return;
+  }
   // integer edges, so neighbouring tiles meet with no hairline seam
   // edges on whole ART pixels (dpr = art px per css px); with the pixel-locked view every
   // tile is the same width
@@ -727,7 +742,7 @@ function drawGround(tcx: TilesCtx, wallDt = 0, car: CamCar | null = null) {
  * Creates the ground tile cache.
  * @param view the view
  * @param cam the camera
- * @param settings the settings (tilePx, tileGpu, noShade)
+ * @param settings the settings (tilePx, tileGpu, noShade, exactTiles)
  * @param helpers what the tiles use of the renderer
  * @returns the tile state and counters, the tile map, the zoom-step helpers and the painters
  */
@@ -761,6 +776,7 @@ export function createTiles(view: View, cam: Cam, settings: Settings, helpers: T
     TILE_MAX: Math.round(72 * (256 / TILE_PX) ** 2),
     TILE_GPU: settings.tileGpu,
     NO_SHADE: settings.noShade,
+    EXACT_TILES: settings.exactTiles,
   };
   return {
     tileState, tiles, TILE_PX, ZSTEP, zStepOf, zOfStep,
