@@ -1,83 +1,97 @@
 # Foreman handover
 
-Written on the owner's request, 2026-10-17 afternoon (main a6d421a). Read `CLAUDE.md`, then
-`NOTES.md` (the owner's rules, decisions, measured lessons and the routine - not repeated here), then
-`TODO.md`, then this page.
+Written on the owner's request, 2026-10-17 evening (main 6cc40d3, plus this page). Read `CLAUDE.md`,
+then `NOTES.md` (the owner's rules, decisions, measured lessons and the routine - not repeated
+here), then `TODO.md`, then this page.
 
-## Where things stand
+## The decision: rebuild the drawing lean, keep the game
 
-The plain test link is the approved game. Approved on the owner's phone and made the default today
-(each switch `=0` brings back the old path; the verdicts and numbers are in `TODO.md`):
+The owner agreed (17:40): **we overdid the rendering, not the game.** Physics, AI, cars and tracks
+take ~3 ms of a 16.7 ms frame on the owner's iPhone; nothing there needs rebuilding, and feel and
+function must stay exactly as they are. Since 10-15 the drawing gained layer after layer, each
+judged by its look (the ground on the GPU with its own hill-shading pass, two stacked full-screen
+canvases, cars and skid marks redrawn at screen resolution, a minimap of ~200 strokes). Safari pays
+for all of it after our JS finishes, where no frame timing can see it, and holds frames.
 
-| What | Switch |
-|---|---|
-| Track edges hold still while the view zooms: GPU ground tiles at their exact place | `exacttiles` |
-| Pause menu HUD › list: minimap, progress bar, lap timer, speedo, tyre / damage each on / off | `hudmenu` |
-| Tyre / damage OFF means off, even when damaged | `tyreoff` |
-| Menu: no fly-in behind it; thumbnails painted at load; long-grass blades stroked once | `menufast` |
-| Loading: the game as ONE bundled file from the test server (`serve.mjs` `/__bundle.js`) | `bundle` |
-| Loading: menu thumbnails saved on the device per game version (`src/menu/thumbcache.js`) | `thumbcache` |
+The plan, in order, one step at a time, each with a phone screen recording (held frames counted):
 
-The owner's phone, menu shown after: 2.49 s before, 1.15 s on the first load of a new version,
-0.53 s once the thumbnails are saved. TEST MODE answers in ~1 ms (was 193 + 68 ms). The texture
-blade masks are NOT pixel-identical (one palette shade on ~0.2 % of long-grass pixels): accepted by
-the owner; renderhash references were re-saved for it.
+1. **`?lean=1` (S-M): draw the way the old builds did.** One 2D canvas; the ground painted on the
+   CPU (the `?glground=0` path still exists and works); cars and skid marks in the art buffer (the
+   `?sharpcars=0` / `?sharpmarks=0` paths still exist); no GPU ground, no separate shading pass.
+   Gameplay identical. Target: ~0 held frames through Castle Cum corners 1 and 2.
+2. **Fix the "dance" by how the camera zooms.** The shimmer of edges and textures is pixel art
+   resized by a slightly different amount every frame of a smooth zoom; the GPU ground was our way
+   of hiding it, and it cost the smoothness. Show the owner the options side by side (a mockup or
+   switches), owner chooses: (a) zoom in a few fixed steps (3-4 levels, a quick change between):
+   each drawn at exact size, no dance, cheap - what pixel-art games do; (b) keep the smooth zoom
+   and accept a little shimmer; (c) a smaller zoom range. The zoom code: `render/camera.ts`
+   (zoom hold, the spring), the view lock in `render.ts` `applyViewLock`.
+3. **Add the nicer touches back one at a time** (sharp cars, sharp marks, minimap, hill shading,
+   texture look), each with a recording; keep only what keeps the corners smooth.
 
-Tried and dropped today (do not repeat without a new reason): painting thumbnails per list when it
-opens (the TEST MODE screen shows ~15 of the 18); reusing the blades' Path2D (the stroke is 94 % of
-the cost, not the path); chasing the menu's "judder throughout" (phone reports and a screen
-recording: 1-5 % off-beat frames in every mode, Safari's cadence, owner: "it's ok").
+Size: M-L in total, in small measured steps. Then retire the GPU ground path (`glground.ts`,
+`glpaint.ts`, `glshade.ts`) so there is one ground path again - ask the owner first.
 
-## Next (the owner has not chosen between these yet)
+## What the recordings proved (owner's iPhone, Castle Cum, ~15 s each)
 
-1. **One ~125 ms frame just after the menu shows**, in every phone run (fresh tab, home screen,
-   old link and new). Our sim + draw are 2-4 ms in it and the texture warm-up 4-7 ms, so it is
-   outside our timed code. Candidates to measure, not guess: the menu's first DOM layout / font
-   paint, a garbage collection, a WebGL program compiled on first use. Look at the frame's report
-   numbers (`phonereport`, frame fields below) and a laptop long-task trace first.
-2. **Rain and weather** (the next feature): the owner's answers are in `TODO.md` "GRASS GRIP +
-   WATER". Start by bringing the wet-grip / wet-wear table per surface to agree.
-3. Smaller: if the one long-grass texture hitch (~110 ms on the phone, now the only heavy warm-up)
-   is ever felt, the agreed option B is texture painting on a worker (OffscreenCanvas, exact
-   pixels, M; the itch build must carry the worker). Also still open from before: fold
-   `glpaint.ts` / `glshade.ts` into `render/glprogram.ts`; props, cones and barriers still drawn in
-   the art buffer (ask first); the old testlist entries (straightoutta, sound, joker, markedge,
-   ainowait, judder) wait for a verdict. The test-mode FPS strip covers the ABS chip with the tyre
-   diagram on below 420 px tall: the owner said leave it (it does not touch the iPhone).
+| Build | Held frames | Note |
+|---|---|---|
+| Today's default (GPU ground under the 2D canvas) | 78 | 15:35 run: 50 in 8 s from corner 2 |
+| `?drawlite=1` (80 % less ground painting) | 69 | undone: painting was not the cause |
+| `?onecanvas=1` (GPU ground drawn into the 2D canvas) | 48 | still on main behind the switch |
+| `?glground=0` (ground on the CPU, one canvas) | 9 | owner: "some lag", edges dance |
+| The original (10-08, owner driving, no AI) | 0 at the corners | 15 in 12 s, all on the straight while zooming |
+
+In every run the phone's own report showed rAF on time and the physics even (2 steps a frame on
+1751 of 1766 frames): the holds are Safari presenting, not our code. The owner's switch test
+(no recordings): no ground = judder free, no props = nearly none, no shading = less.
+
+## Done today (on main, defaults unless said)
+
+- Test list emptied (all passed); the test straight Straight Outta Swindon removed (name reserved).
+- Weather: the owner's answers and plan R1-R4 in `TODO.md` "GRASS GRIP + WATER" (season slider,
+  rain can change mid-race, puddles drain slowly / normal tyres several passes / rain tyres one,
+  one water system). Not started; after the rendering work.
+- Suite browser tools fixed: `tools/lib/browser.mjs` `gotoGame` (the game loads by a dynamic
+  import; Edge 155 never runs Playwright's animation-frame poll under the determinism script).
+- `texwarm`: the long-grass textures painted while loading (the menu's ~125 ms frame gone).
+- Screen sharpness capped at 1.5 (`MAX_DPR`, `?dpr=2` = old): dropped frames roughly halved.
+- `startfix`: the race start without the fly-in hand-over jolt (wear reset stales only worn tiles,
+  the fly-in uploads tiles and readies the shading ahead, colours read through one reused canvas).
+- Undone (do not repeat without a new reason): `?stalecap` (one stale repaint a frame), `?drawlite`
+  (ribbon cull + 2 tiles a frame + minimap fade steps; kept in git e5c8a21).
+- `?onecanvas=1` is on main behind its switch (testlist entry `onecanvas`); if the lean plan goes
+  ahead it can be removed with the GPU ground.
+
+## Measuring
+
+- **Held frames** (the only measure that sees this judder): the owner screen-records (Control
+  Centre) and attaches the .mov in the chat; it lands in `~/.claude/uploads/<session>/`. The
+  scripts are in this session's scratchpad
+  `AppData/Local/Temp/claude/C--Users-Admin-Desktop-G-car-sim/fff86173-0929-4ac5-b6d5-51f0de6b677a/scratchpad/`:
+  copy the video to `<dir>/rec.mov` with `video/motion.html` and `video/probe.html` beside it, then
+  `node vmotion.mjs <dir> 0 900` (ground shift per frame by block matching, ~0.25 s a frame, run in
+  the background) and `node held.mjs <dir>/motion-0.json` (held frames, 1.5x / 0.5x steps, per
+  second). `mp4times.mjs` reads the file's own frame timing; `vgrab.mjs <dir> <s>` saves a frame;
+  `vmont.mjs` puts frames side by side; `vcars.mjs` tracks the red / blue AI cars (did everything
+  freeze, or only one layer). Edge decodes the iPhone's HEVC.
+- **`tools/drawload.mjs`** (in the repo): the drawing a frame asks of the browser per layer (WebGL
+  draws and pixels per program; 2D fills, strokes, path pieces per canvas). Good for proving a
+  change cuts work on the laptop; it showed the work is not what holds frames.
+- Phone report (`?report=1`, `tools/phonereport.mjs`): times are UTC (an hour behind the phone's
+  clock in October).
+- Owner test links: Castle Cum, autopilot, 3 AI:
+  `<tunnel>/?menu=0&guide=0&rules=0&level=castle-cum&ai=3&autopilot=1&report=1` plus the switch
+  under test. The true original is at `<tunnel>/original/` (no autopilot: the owner drives).
 
 ## Picking up
 
-- Test server: `node serve.mjs` in `Desktop/G/rac3r` + the cloudflared tunnel; PIDs in
-  `GamesStudio/tools/logs/rac3r-pids.txt` (server 6236, tunnel 1408 now). **Restart the server
-  whenever `serve.mjs` changes** (it was restarted twice today): stop it by PID, then start it
-  hidden in `Desktop/G/rac3r` with `RAC3R_REPORT_LOG` set to
-  `GamesStudio/tools/logs/rac3r-phone-report.jsonl` (else the phone reports go to the temp folder),
-  stdout / stderr to `rac3r-serve.log` / `.err` in the same folder, and write the new PID to the
-  pids file. Other changes only need the served clone moved to `origin/main`.
-- The bundle: the phone gets `/__bundle.js` (rebuilt when a source file changes, gzipped ~190 KB,
-  fingerprint of `src/` from `tools/lib/buildid.mjs` as `globalThis.__RAC3R_BUILD__`). Every tool
-  runs under automation and gets the separate modules (index.html checks `navigator.webdriver`), so
-  the proofs never see the bundle. To test the bundle in Playwright, override
-  `Navigator.prototype.webdriver` to false in an init script.
-- Phone report (`?report=1`): it records the menu too, posts what is waiting when the tab is left,
-  and carries `loadMs` (page open -> menu shown). Frame fields: 0 dt, 1 sim ms, 2 draw ms, 3 steps,
-  4 tiles, 5 highway slides, 6 px per metre, 7 GPU uploads, 8 mipmaps, 9 menu up, 10 menu taps
-  ignored (ghost window), 11 slowest menu button handler ms, 12 texture warm-up ms.
-  `node tools/phonereport.mjs <log> --since <UTC>` prints MENU runs separately.
-- New tool: `tools/edgecheck.mjs` (does the white edge line move rigidly; `--control` = the noise
-  floor). Session scripts worth reusing (not in the repo) are in this session's scratchpad
-  `AppData/Local/Temp/claude/C--Users-Admin-Desktop-G-car-sim/7cf1146b-847b-4367-b9ce-df4dcaa62695/scratchpad/`:
-  `carjitter.mjs` (every car's on-screen jitter), `menustart.mjs` / `bootprofile.mjs` (long tasks
-  and a CPU profile of the start), `loadsplit2.mjs` (download vs start-up, with request latency),
-  `texcost.mjs` / `texsame.mjs` (texture cost and pixel identity), `mp4times.mjs` +
-  `video/seek.html` + `videoseek.mjs` (an owner's screen recording frame by frame; no ffmpeg on the
-  laptop, so frames are read by seeking a served page).
-- Saved references for main a6d421a: `renderhash-ref-menufast.json` in the same scratchpad (copy to
-  the worktree's `tools/.renderhash`). Physics and levels did not change today, so the `.simhash` /
-  `.worldhash` from `.../1db38863-a214-4ad6-9a79-7cde47066581/scratchpad/refs/` still apply.
-- The worktree `Desktop/G/rac3r-wt` is clean on a6d421a (remove it per the `NOTES.md` routine, or
-  reuse it after `git checkout --detach origin/main`).
-- Pushing: `gh` is not installed: read the `verify` check-run from the public API with curl. Run
-  the push chain with `set -e` and an explicit check of the verify result: a `;` chain once carried
-  on past a failed local verify today (main's protection refused the push; nothing reached main).
-- Bigeon worker: still out of OpenRouter credit; the foreman does the work and pushes to main itself.
+- Test server and tunnel running (`serve.mjs` PID 6236, cloudflared 1408, in
+  `GamesStudio/tools/logs/rac3r-pids.txt`); `serve.mjs` did not change today.
+- Worktree `Desktop/G/rac3r-wt` clean on main. Saved references: `tools/.renderhash` there (and
+  `renderhash-ref-dpr15.json` in the scratchpad above; sharpness 1.5 and every change since: SAME);
+  `.simhash` / `.worldhash` from `.../1db38863-a214-4ad6-9a79-7cde47066581/scratchpad/refs/`
+  (worldhash still lists the removed straight-outta: re-save it).
+- The worker PC was shut down on the owner's request (it will not answer SSH until switched on).
+- `checks` on GitHub had failed for 40+ commits (the browser tools); `gotoGame` fixed the suite
+  locally - look at the next `checks` run.

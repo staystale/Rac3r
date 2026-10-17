@@ -1,7 +1,7 @@
 # RAC3R - open work
 
 New session? Read `CLAUDE.md`, then `NOTES.md`, then this file. Open items only: finished work is in
-the git history. `docs/foreman-handover.md` is the last handover (10-17), written on request.
+the git history. `docs/foreman-handover.md` is the last handover (10-17 evening), written on request.
 
 ## Where we are
 
@@ -72,7 +72,11 @@ the git history. `docs/foreman-handover.md` is the last handover (10-17), writte
   ground under the 2D canvas). Fix under way: ?onecanvas=1 - the finished WebGL ground drawn into
   the 2D canvas as its bottom layer each frame, the WebGL canvas hidden (WebGL -> 2D can stay on
   the GPU; 2D -> WebGL each frame juddered before).
-- NOW (owner order, 2026-10-17): ?onecanvas=1 (phone recording, held frames); then WEATHER (see "GRASS GRIP + WATER"
+  ?onecanvas=1 held 48 (17:21); the ORIGINAL build held 0 at the corners (17:31).
+- NOW (owner decision, 2026-10-17 evening): REBUILD THE DRAWING LEAN, KEEP THE GAME - see
+  docs/foreman-handover.md: 1) ?lean=1 (one 2D canvas, CPU ground, cars / marks in the art
+  buffer); 2) the zoom style that ends the "dance" (owner chooses: fixed steps / smooth / smaller
+  range); 3) add the nicer touches back one at a time, each with a recording. Then WEATHER. (see "GRASS GRIP + WATER"
   below, owner answers).
 - GRASS THROUGH THE CRACKS (owner: a and b, "like real life"): long-grass tufts in some
   broken-tarmac flecks, and scattered on broken-tarmac / concrete ground (blend.ts, own random
