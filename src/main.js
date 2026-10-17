@@ -273,14 +273,24 @@ shared.meter = shared.settings.meter ? createMeter() : null;   // ?meter=1 only
 // paint the surface textures while the game is idle, one per WARM_SLICE_MS, so a level's
 // fly-in does not paint them all in its first frame (render/ground/art.ts warmNextTexture)
 const WARM_SLICE_MS = 60;
+shared.warmMs = 0;   // ms of texture warm-up since the last frame, for the phone report (loop.js)
 (function warmTextures() {
-  if (shared.renderer.warmNextTexture()) setTimeout(warmTextures, WARM_SLICE_MS);
+  const began = performance.now(), more = shared.renderer.warmNextTexture();
+  shared.warmMs += performance.now() - began;
+  if (more) setTimeout(warmTextures, WARM_SLICE_MS);
 })();
 shared.pacer = shared.settings.vsync ? createFramePacer() : null;   // ?vsync=0: off (pacing.ts)
 // ?report=1: the meter's frames also go to the test server (ui/report.ts)
 shared.reporter = shared.settings.report
   ? createReporter(location.search, () => (LEVEL ? LEVEL.id : ''), () => shared.loadMs ?? null)
   : null;
+// the last part-batch goes too when the page is left (a short run used to send nothing)
+if (shared.reporter) {
+  addEventListener('pagehide', () => shared.reporter.flush());
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) shared.reporter.flush();
+  });
+}
 shared.churn = shared.settings.churn ? createChurn(shared.settings.churn) : null;   // ?churn= only
 shared.meterTiles = 0;
 shared.meterTouches = 0;   // ?meter=1: pointer down / up / cancel events since the last frame

@@ -52,6 +52,8 @@ function printMenu(run) {
   const slow = frames.filter((frame) => frame[0] > SLOW_MS);
   const ours = slow.filter((frame) => frame[1] + frame[2] > 12).length;
   const handlers = frames.map((frame) => frame[11]).filter((ms) => ms > 0);
+  // [12] the texture warm-up (main.js) since the frame before
+  const warmed = slow.filter((frame) => frame[12] > 10);
   const slowTaps = handlers.filter((ms) => ms > SLOW_TAP_MS);
   const middle = (at) => median(frames.map((frame) => frame[at])).toFixed(1);
   const loaded = run.loadMs ? ` | menu shown ${run.loadMs} ms after the page opened` : '';
@@ -60,7 +62,8 @@ function printMenu(run) {
   console.log(`  ${frames.length} frames (${(frames.length / 60).toFixed(0)} s), dt median `
     + `${middle(0)} ms | sim ${middle(1)} draw ${middle(2)} ms | slow ${slow.length} `
     + `(${percent(slow.length, frames.length)}), our JS heavy ${ours}, longest frame `
-    + `${Math.round(Math.max(...frames.map((f) => f[0])))} ms`);
+    + `${Math.round(Math.max(...frames.map((f) => f[0])))} ms, slow with texture warm-up `
+    + `${warmed.length}${warmed.length ? ' (' + warmed.map((f) => f[12]).join(', ') + ' ms)' : ''}`);
   console.log(`  taps: ${handlers.length} answered, `
     + `${frames.reduce((sum, frame) => sum + frame[10], 0)} ignored (new screen, first `
     + `350 ms), slowest ${Math.max(0, ...handlers)} ms, over ${SLOW_TAP_MS} ms: `

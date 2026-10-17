@@ -156,7 +156,8 @@ export function drawMeter(frame) {
 
 /**
  * Adds the frame to the phone report: its timings, the zoom (css px per metre), this frame's GPU
- * uploads / mipmap builds, whether the menu was up and what its buttons did.
+ * uploads / mipmap builds, whether the menu was up and what its buttons did, and the texture
+ * warm-up (main.js) since the last frame.
  * @param {{frameMs: number, meterSim: number}} frame this frame's timings
  * @param {number} draw ms the draw took
  * @param {number} tiles ground tiles painted this frame
@@ -168,7 +169,8 @@ function reportFrame(frame, draw, tiles, slide) {
   shared.reporter.add([frame.frameMs, frame.meterSim, draw, game.stepsLastFrame, tiles, slide,
     shared.renderer.PPM, gpu.uploads - (shared.meterUploads || 0),
     gpu.mipmaps - (shared.meterMipmaps || 0), shared.mode === 'menu' ? 1 : 0, taps.ignored,
-    Math.round(taps.handlerMs)]);
+    Math.round(taps.handlerMs), Math.round(shared.warmMs || 0)]);
+  shared.warmMs = 0;
   shared.meterUploads = gpu.uploads;
   shared.meterMipmaps = gpu.mipmaps;
 }
