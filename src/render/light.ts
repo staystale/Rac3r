@@ -23,6 +23,10 @@ const POOL_PYLON_M = 34;
 // a lamp's glow at night: its radius, m, and its strength at darkness 1; a tail light's share of
 // a brake light's glow
 const GLOW_M = 1.8, GLOW_STRENGTH = 0.7, TAIL_GLOW = 0.35;
+// the light map reaches this many art px past every edge of the screen: it is laid at the
+// frame's sub-pixel shift (up to an art px either way), which left an undarkened strip along one
+// edge that jumped from side to side as the camera moved (owner: "light edges dancing")
+const MAP_MARGIN = 2;
 // the side of the beam and pool pictures, px
 const PICTURE_PX = 128;
 
@@ -280,8 +284,8 @@ export function createNight(parts: NightParts) {
 
   // art px per metre and a world point in art px
   const artPerMetre = () => parts.PPMz() * parts.view.dpr;
-  const artX = (worldX: number) => parts.toScreenX(worldX) * parts.view.dpr;
-  const artY = (worldY: number) => parts.toScreenY(worldY) * parts.view.dpr;
+  const artX = (worldX: number) => parts.toScreenX(worldX) * parts.view.dpr + MAP_MARGIN;
+  const artY = (worldY: number) => parts.toScreenY(worldY) * parts.view.dpr + MAP_MARGIN;
   const isNear = (x: number, y: number, reach: number) =>
     x > -reach && y > -reach && x < canvas.width + reach && y < canvas.height + reach;
 
@@ -310,9 +314,10 @@ export function createNight(parts: NightParts) {
 
   function paintLightMap(game: RenderGame) {
     const { pcanvas } = parts;
-    if (canvas.width !== pcanvas.width || canvas.height !== pcanvas.height) {
-      canvas.width = pcanvas.width;
-      canvas.height = pcanvas.height;
+    if (canvas.width !== pcanvas.width + 2 * MAP_MARGIN
+      || canvas.height !== pcanvas.height + 2 * MAP_MARGIN) {
+      canvas.width = pcanvas.width + 2 * MAP_MARGIN;
+      canvas.height = pcanvas.height + 2 * MAP_MARGIN;
     }
     if (darkFor !== DAYLIGHT.darkness || rgbFor !== DAYLIGHT.rgb) {
       darkFor = DAYLIGHT.darkness;
@@ -341,8 +346,9 @@ export function createNight(parts: NightParts) {
     // staircase that crawled as the car turned and the camera zoomed)
     mainCtx.imageSmoothingEnabled = true;
     mainCtx.imageSmoothingQuality = 'low';
-    mainCtx.drawImage(canvas, lock.subX, lock.subY, canvas.width * state.blockPx,
-      canvas.height * state.blockPx);
+    const margin = MAP_MARGIN * state.blockPx;
+    mainCtx.drawImage(canvas, lock.subX - margin, lock.subY - margin,
+      canvas.width * state.blockPx, canvas.height * state.blockPx);
     drawGlows(glows, game, lock);
     mainCtx.restore();
   };
