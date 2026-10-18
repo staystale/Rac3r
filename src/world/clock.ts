@@ -1,8 +1,8 @@
-// THE GAME CLOCK (default; ?daytime=0 off): one global time of day and season that runs while
-// you race and holds for the story (owner). 1 game day = 1 real hour; a season = 7 game days, so a year is 28
-// days (28 h of play); UK-like days (winter ~8 h of daylight, summer ~16 h); the moon waxes and
-// wanes over 8 days, so some nights are moonlit and some pitch-black; cloud and rain dim the day
-// and hide the moon. The clock gives the sky - how dark, and the colour of the dark (pink
+// THE GAME CLOCK (default; ?daytime=0 off): one global time of day and season that runs while you
+// race and holds for the story (owner). 1 game day = 1 real hour; a season = 7 game days, so a
+// year is 28 days (28 h of play); UK-like days (winter ~8 h of daylight, summer ~16 h); the moon
+// waxes and wanes over 8 days, so some nights are moonlit and some pitch-black; cloud and rain dim
+// the day and hide the moon. The clock gives the sky - how dark, and the colour of the dark (pink
 // at sunrise, orange at sunset, blue-black at night) - which the night layer draws and the lamps
 // and the field's headlights follow (world/daylight.ts). Saved in its own storage key. In TEST
 // MODE an event may start at an hour of its own (the setup's TIME slider) and runs from there.
