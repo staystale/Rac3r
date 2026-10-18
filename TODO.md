@@ -155,6 +155,9 @@ the git history. `docs/foreman-handover.md` is the last handover (10-18, cover f
   lab 12 / 22, naffcar 15 / 14, brands 7 / 8, castle cum 9 / 5, killder 0 / 3; < 8 ms a level,
   once. OWNER RULE (10-18): light comes from where the lamp's body is (a pylon's pool around the
   pylon; I had aimed them at the track: undone) - ask before changing a look like that.
+  OWNER 10-18 "ALL PASS": lamps (L2-L4: lamps, knock-downs, every level) and the game clock (T1)
+  are the DEFAULT (?lamps=0 / ?daytime=0 off; ?night= stays a test tool). Phone runs 18:36-18:38Z:
+  Castle Cum snow 0.32 %, highway 1.17 % (no lamps there), menu 0.86 %, Thruston 5.5 s only.
   NEXT L4b: the endless highway (lamps streamed with the road; a spatial grid for the clamp).
   Not yet: a clock on the HUD / pause menu; outside TEST MODE the setup's SEASON slider should
   give way to the global season (the story) - ask the owner when the story mode comes.

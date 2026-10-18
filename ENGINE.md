@@ -102,10 +102,10 @@ any cover (snow, ice, puddle) and the wear state of the cell.
   dark filled and headlight beams / floodlight pools rubbed out, laid over the screen canvas once a
   frame under the HUD. The light level is `world/daylight.ts`; the AI and traffic run headlights
   by it (`game/sim.js updateFieldHeadlights`; `?fieldlights=0` = by the player's LIGHTS).
-- Lamps (`?lamps=1`, a test): `world/lamps.ts` makes the level's street lights (`lamps` data) and
+- Lamps (default; `?lamps=0` off): `world/lamps.ts` makes the level's street lights (`lamps` data) and
   floodlight pylons into lamps with a solid post (`barriers.ts solidClamp`), lit from dusk; the night
   layer draws their pools, `render/props/lamps.ts` the street lights (overhead layer).
-- The game clock (`?daytime=1`, a test): `world/clock.ts` - a global time of day / season / moon
+- The game clock (default; `?daytime=0` off): `world/clock.ts` - a global time of day / season / moon
   (1 game day = 1 real hour, a season 7 days), saved in its own storage key, run by the sim step
   in events (`game/loop.js`); it sets the sky (`daylight.ts setSky`: darkness and the dark's
   colour) that the night layer, the lamps and the headlights follow. TEST MODE setup: TIME OF DAY.

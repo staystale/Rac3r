@@ -100,7 +100,8 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
 - Time of day (10-18): ONE global game clock that holds for the story (runs while playing,
   saved); 1 game day = 1 real hour; a season = 7 game days; UK-like days with moon phases;
   a start-hour slider in TEST MODE only; the race behind the menu follows the global time and
-  season.
+  season. Lamps (every level, knock-downs) and the clock: the DEFAULT since 10-18 (owner "all
+  pass"; ?lamps=0 / ?daytime=0 off). Light comes from where the lamp's body is (owner).
 - "Straight Outta Swindon" is a reserved name for a future highway level (the test straight that
   used it was removed 10-17).
 

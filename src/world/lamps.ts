@@ -1,6 +1,6 @@
-// The LAMPS (?lamps=1): street lights (the level's `lamps` data) and floodlight pylons (the
-// `pylon` props) as solid posts that light a pool below their head from dusk and go off in the
-// light, as real ones do. Every car is clamped against their posts (world/barriers.ts
+// The LAMPS (default; ?lamps=0 off): street lights and floodlight pylons (the level's `pylon`
+// props and world/lampplan.ts's plan) as solid posts that light a pool below their head from dusk
+// and go off in the light, as real ones do. Every car is clamped against their posts (world/barriers.ts
 // solidClamp) and a hit leans, dims or snaps them (world/lampdamage.ts); the night layer
 // (render/light.ts) draws their pools; render/props/lamps.ts the street lights, buildings.ts the
 // pylons. RESTART stands them all up again (resetLamps).

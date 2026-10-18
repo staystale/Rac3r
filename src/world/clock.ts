@@ -1,5 +1,5 @@
-// THE GAME CLOCK (?daytime=1): one global time of day and season that runs while you race and
-// holds for the story (owner). 1 game day = 1 real hour; a season = 7 game days, so a year is 28
+// THE GAME CLOCK (default; ?daytime=0 off): one global time of day and season that runs while
+// you race and holds for the story (owner). 1 game day = 1 real hour; a season = 7 game days, so a year is 28
 // days (28 h of play); UK-like days (winter ~8 h of daylight, summer ~16 h); the moon waxes and
 // wanes over 8 days, so some nights are moonlit and some pitch-black; cloud and rain dim the day
 // and hide the moon. The clock gives the sky - how dark, and the colour of the dark (pink
