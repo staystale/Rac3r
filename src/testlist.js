@@ -28,6 +28,15 @@ export const TEST_LIST = [
       + ' what you see not being what the tyre feels.',
   },
   {
+    id: 'hudunits',
+    added: '2026-10-18',
+    name: 'Track temp gauge; km/h-mph and C-F rows in the HUD list; ABS / TCS clear of the HUD',
+    where: 'Plain link + &hudunits=1: a race with weather; pause > HUD',
+    try: 'Gauge under the lap timer (portrait) / beside it (landscape); toggle SPEED and'
+      + ' TEMPERATURE in pause > HUD; tyre diagram on in landscape: ABS / TCS left of the pedals.',
+    wrong: 'The gauge in REAL / RICH by default, units not changing, anything overlapping.',
+  },
+  {
     id: 'markfade',
     added: '2026-10-18',
     name: 'Tyre marks fade away after ~2-3 min, patch by patch',

@@ -111,7 +111,9 @@ function showHudMenu(menu, act) {
   const panel = addPane(menu, false);
   addElement(panel, 'h2', 'HUD');
   for (const item of act.hud.items()) {
-    const label = item.label + ' · ' + (item.locked ? 'OFF IN REAL' : item.on ? 'ON' : 'OFF');
+    // a units row shows its value (KM/H, °F); an on / off row its state
+    const label = item.label + ' · '
+      + (item.value || (item.locked ? 'OFF IN REAL' : item.on ? 'ON' : 'OFF'));
     const button = addButton(menu, panel, label, () => {
       act.hud.set(item.id, !item.on);
       showHudMenu(menu, act);

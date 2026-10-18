@@ -6,6 +6,7 @@ import { LEVELS } from '../world/levels/index.ts';
 import { PEDAL } from '../input.js';
 import { ROWS as TUNE_ROWS } from '../tune.js';
 import { MARGIN, BTN_H, DIAGRAM_H } from './widgets.js';
+import { trackTempShown } from './tracktemp.js';
 
 /**
  * Tune panel geometry: the panel, its rows, the reset footer and the tyre HUD switch.
@@ -85,12 +86,19 @@ function layoutCornerPanels(state, width, btnY, narrow) {
   // goes top-RIGHT, under the lap panel (it is hidden while TUNE is open — that panel reaches it
   // at 360 px). FPS (test mode, requirement: in the corner always): a slim strip right under the
   // lap / distance panel, top right; the narrow-screen cone tally moves down under it
-  const fps = { x: width - MARGIN - 120, y: lap.h ? lap.y + lap.h + 4 : lap.y, w: 120, h: 18 };
+  const belowLap = lap.h ? lap.y + lap.h + 4 : lap.y;
+  // the track temperature gauge (?hudunits=1, hud/tracktemp.js): on a narrow (portrait) screen
+  // between the lap panel and FPS; wide, beside the lap panel (a landscape phone's column has no
+  // room above the ABS / TCS chips)
+  const gaugeH = trackTempShown() ? 18 : 0, inColumn = narrow && gaugeH > 0;
+  const trackTemp = inColumn ? { x: lap.x, y: belowLap, w: 120, h: gaugeH }
+    : { x: lap.x - 126, y: lap.h ? lap.y : belowLap, w: 120, h: gaugeH };
+  const fps = { x: width - MARGIN - 120, y: inColumn ? belowLap + 22 : belowLap, w: 120, h: 18 };
   if (narrow) {
     tally.x = width - MARGIN - 92;
     tally.y = fps.y + fps.h + 6;
   }
-  return { speed, lap, fps, tally };
+  return { speed, lap, trackTemp, fps, tally };
 }
 
 /**
@@ -115,6 +123,29 @@ function layoutBottomChips(width, height) {
     lights = { x: MARGIN + lbW + 6, y: lbY, w: lbW + 14, h: lbH },
     indR = { x: MARGIN + lbW * 2 + 26, y: lbY, w: lbW, h: lbH };
   return { absChip, tcsChip, indL, lights, indR };
+}
+
+/**
+ * ?hudunits=1: on a short landscape screen the top-right column (speed, tyre diagram, lap, FPS)
+ * reached down over the ABS / TCS chips (tools/scratch/_hudoverlap.mjs: 844x390 and 740x360 with
+ * the tyre diagram on); then the chips move just left of the pedals, at their height (in thumb
+ * reach, clear of the column).
+ * @param {object} absChip the ABS chip (moved in place)
+ * @param {object} tcsChip the TCS chip (moved in place)
+ * @param {number} width canvas width in px
+ * @param {number} columnBottom the column's lowest edge, px
+ * @param {object} gauge the track gauge (beside the lap panel when wide): the chips go under it
+ *   where they would meet it (740x360)
+ */
+function clearAidChips(absChip, tcsChip, width, columnBottom, gauge) {
+  if (columnBottom + 6 <= absChip.y) return;
+  // the pedal block: two columns of PEDAL.r circles, PEDAL.gap apart, PEDAL.margin from the edge
+  const pedalsLeft = width - PEDAL.margin - PEDAL.r * 4 - PEDAL.gap;
+  tcsChip.x = pedalsLeft - 6 - tcsChip.w;
+  absChip.x = tcsChip.x - 6 - absChip.w;
+  const meets = gauge.h && absChip.x < gauge.x + gauge.w && gauge.x < tcsChip.x + tcsChip.w
+    && absChip.y < gauge.y + gauge.h && gauge.y < absChip.y + absChip.h;
+  if (meets) absChip.y = tcsChip.y = gauge.y + gauge.h + 6;
 }
 
 /**
@@ -180,11 +211,14 @@ export function layoutHud(state, width, height) {
   }
 
   const { tunePanel, tuneRows, tuneReset, tyreHudBtn } = layoutTunePanel(width, height, narrow);
-  const { speed, lap, fps, tally } = layoutCornerPanels(state, width, btnY, narrow);
+  const { speed, lap, trackTemp, fps, tally } = layoutCornerPanels(state, width, btnY, narrow);
   const { absChip, tcsChip, indL, lights, indR } = layoutBottomChips(width, height);
+  if (state.unitsMenu) {
+    clearAidChips(absChip, tcsChip, width, Math.max(lap.y + lap.h, fps.y + fps.h), trackTemp);
+  }
   return { chip, rows, levelRows, restart, reset, clear, vol, help, absChip, tcsChip, tuneChip,
-    panel: tunePanel, tuneRows, tuneReset, tyreHudBtn, speed, lap, fps, tally, indL, lights,
-    indR };
+    panel: tunePanel, tuneRows, tuneReset, tyreHudBtn, speed, lap, trackTemp, fps, tally, indL,
+    lights, indR };
 }
 
 /**
@@ -302,6 +336,30 @@ function hitDropdown(state, rects, point) {
 }
 
 /**
+ * Sets the speed units and remembers them on the device (the speedo tap, the HUD list).
+ * @param {object} state the HUD state (mph)
+ * @param {boolean} mph true for mph
+ */
+export function setHudMph(state, mph) {
+  state.mph = mph;
+  try {
+    localStorage.setItem('carsim.units', mph ? 'mph' : 'kmh');
+  } catch { /* no storage: this session only */ }
+}
+
+/**
+ * Sets the temperature units and remembers them on the device (the HUD list, ?hudunits=1).
+ * @param {object} state the HUD state (tempF)
+ * @param {boolean} fahrenheit true for °F
+ */
+export function setHudTempF(state, fahrenheit) {
+  state.tempF = fahrenheit;
+  try {
+    localStorage.setItem('carsim.tempUnits', fahrenheit ? 'F' : 'C');
+  } catch { /* no storage: this session only */ }
+}
+
+/**
  * Hit-test the speed panel (units toggle) and the button row.
  * @param {object} state the shared HUD state
  * @param {object} rects the layout rectangles
@@ -310,10 +368,8 @@ function hitDropdown(state, rects, point) {
  */
 function hitControls(state, rects, point) {
   if (!state.hidden.has('speedo') && inRect(point, rects.speed)) {
-    state.mph = !state.mph;
-    try {
-      localStorage.setItem('carsim.units', state.mph ? 'mph' : 'kmh');
-    } catch { /* fine */ } return { consumed: true };
+    setHudMph(state, !state.mph);
+    return { consumed: true };
   }
   if (inRect(point, rects.restart)) return { restart: true };
   if (inRect(point, rects.reset)) return { reset: true };

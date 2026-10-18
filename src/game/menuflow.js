@@ -15,6 +15,7 @@ import { shared, game } from './state.js';
 import {
   minimapSetting, setMinimapSetting, progressSetting, setProgressSetting,
 } from '../hud/minimap.js';
+import { setTrackTempSetting, trackTempSetting } from '../hud/tracktemp.js';
 import { showMenuVideo, hideMenuVideo } from './menuvideo.js';
 import { BUILD_ID, hasSavedThumbs, readThumbs, saveThumbs } from '../menu/thumbcache.js';
 
@@ -26,6 +27,7 @@ import { BUILD_ID, hasSavedThumbs, readThumbs, saveThumbs } from '../menu/thumbc
 export function refreshMinimap() {
   shared.minimapOn = !!shared.settings.minimap && minimapSetting(shared.aiDiff).on;
   shared.progressOn = !!shared.settings.minimap && progressSetting(shared.aiDiff);
+  shared.trackTempOn = !!shared.settings.hudUnits && trackTempSetting(shared.aiDiff).on;
 }
 
 /**
@@ -40,17 +42,28 @@ function hudActions() {
     { id: 'minimap', label: 'MINIMAP', ...minimapSetting(mode) },
     { id: 'progress', label: 'PROGRESS BAR', on: progressSetting(mode), locked: false },
   ] : []);
+  // ?hudunits=1: the track temperature gauge (the minimap's rule per mode) and the units
+  const unitItems = () => (shared.settings.hudUnits ? [
+    { id: 'trackTemp', label: 'TRACK TEMP', ...trackTempSetting(mode) },
+    { id: 'speedUnits', label: 'SPEED', on: true, locked: false, value: hud.mph ? 'MPH' : 'KM/H' },
+    { id: 'tempUnits', label: 'TEMPERATURE', on: true, locked: false,
+      value: hud.tempF ? '°F' : '°C' },
+  ] : []);
   return {
     items: () => [
       ...mapItems(),
       { id: 'lapTimer', label: 'LAP TIMER', on: hud.pieceShown('lapTimer'), locked: false },
       { id: 'speedo', label: 'SPEEDO', on: hud.pieceShown('speedo'), locked: false },
       { id: 'tyres', label: 'TYRE / DAMAGE', on: hud.tyreHud, locked: false },
+      ...unitItems(),
     ],
     set: (pieceId, shown) => {
       if (pieceId === 'minimap') setMinimapSetting(mode, shown);
       else if (pieceId === 'progress') setProgressSetting(mode, shown);
       else if (pieceId === 'tyres') hud.setTyreHud(shown);
+      else if (pieceId === 'trackTemp') setTrackTempSetting(mode, shown);
+      else if (pieceId === 'speedUnits') hud.setMph(!hud.mph);
+      else if (pieceId === 'tempUnits') hud.setTempF(!hud.tempF);
       else hud.setPieceShown(pieceId, shown);
       refreshMinimap();
     },

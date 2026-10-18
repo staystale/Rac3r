@@ -5,6 +5,7 @@ import { ROSTER } from '../cars.ts';
 import { LEVEL } from '../world/state.ts';
 import { COL } from '../world/colours.ts';
 import { tyreWearOn, wearColour } from '../physics/tyrewear.ts';
+import { tempInUnits } from './tracktemp.js';
 import {
   MARGIN, DIAGRAM_H, drawHudPanel, drawHudLabel, drawHudButton,
 } from './widgets.js';
@@ -277,8 +278,9 @@ export function drawHudWheelFault(ctx, car, corner, bodyX, bodyY, bodyW, bodyH) 
  * @param {string} heatCol the tyre's temperature colour
  * @param {number} wheelX the wheel's left, px
  * @param {number} wheelY the wheel's top, px
+ * @param {boolean} fahrenheit the numbers in °F (?hudunits=1)
  */
-function drawDiagramWheel(ctx, car, tyreIdx, side, heatCol, wheelX, wheelY) {
+function drawDiagramWheel(ctx, car, tyreIdx, side, heatCol, wheelX, wheelY, fahrenheit) {
   // plain rectangles: panel's 8 px corner radius is larger than a 7 px wheel and drew mangled
   // slants
   ctx.fillStyle = tyreWearOn() && car.tyreWear ? wearColour(car.tyreWear[tyreIdx], COL) : heatCol;
@@ -286,7 +288,8 @@ function drawDiagramWheel(ctx, car, tyreIdx, side, heatCol, wheelX, wheelY) {
   ctx.strokeStyle = 'rgba(0,0,0,0.55)';
   ctx.lineWidth = 1;
   ctx.strokeRect(wheelX + 0.5, wheelY + 0.5, 6, 10);
-  drawHudLabel(ctx, String(Math.round(car.tyreT[tyreIdx])), side < 0 ? wheelX - 4 : wheelX + 11,
+  drawHudLabel(ctx, String(tempInUnits(car.tyreT[tyreIdx], fahrenheit)),
+    side < 0 ? wheelX - 4 : wheelX + 11,
     wheelY + 6, { size: 9.5, weight: 700, align: side < 0 ? 'right' : 'left', col: heatCol });
 }
 
@@ -297,7 +300,7 @@ function drawDiagramWheel(ctx, car, tyreIdx, side, heatCol, wheelX, wheelY) {
  * @returns {string} a CSS colour
  */
 function tyreTempColour(temp, [optLow, optHigh]) {
-  if (temp < optLow) return temp < optLow - 15 ? '#5b8fd6' : '#7fb6c9';
+  if (temp < optLow) return temp < optLow - 15 ? COL.cold : COL.cool;
   if (temp <= optHigh) return COL.live;
   return temp <= optHigh + 25 ? COL.warn : COL.danger;
 }
@@ -327,7 +330,7 @@ export function drawHudTyreDiagram(ctx, state, rects, car, spec) {
     // ^ [tyre index, side -1 left / +1 right, rear?]
     for (const [tyreIdx, side, rear] of wheels) {
       drawDiagramWheel(ctx, car, tyreIdx, side, col(car.tyreT[tyreIdx]),
-        side < 0 ? bodyX - 4 : bodyX + bodyW - 3, bodyY + (rear ? bodyH - 14 : 4));
+        side < 0 ? bodyX - 4 : bodyX + bodyW - 3, bodyY + (rear ? bodyH - 14 : 4), state.tempF);
     }
     drawHudPanel(ctx, { x: bodyX, y: bodyY, w: bodyW, h: bodyH },
       { fill: 'rgba(205,210,220,0.92)', stroke: 'rgba(0,0,0,0.35)' });

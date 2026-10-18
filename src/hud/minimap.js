@@ -39,8 +39,7 @@ const OPACITY = 0.85;
 // default difficulty)
 const DEFAULT_ON = [true, true, true, false, false];
 const LOCKED_MODE = 4;
-const storeKey = (mode) => 'rac3r.minimap.' + mode;
-const progressKey = (mode) => 'rac3r.progress.' + mode;
+const MINIMAP_KEY = 'rac3r.minimap.', PROGRESS_KEY = 'rac3r.progress.';
 
 // the road's two strokes, css px wide: a dark rim, then the pale road (the lap and the joker lane)
 const ROAD_STROKES = [[7, 'rgba(20,20,22,0.55)'], [3.5, 'rgba(236,231,220,0.95)']];
@@ -48,57 +47,66 @@ const ROAD_STROKES = [[7, 'rgba(20,20,22,0.55)'], [3.5, 'rgba(236,231,220,0.95)'
 let jokerShown = false;
 
 /**
- * The minimap setting of a difficulty mode: the device's choice, else the mode's default.
+ * A HUD piece's setting in a difficulty mode (the minimap, its progress bar, the track temp
+ * gauge): the device's choice, else the mode's default (DEFAULT_ON); off and locked in
+ * LOCKED_MODE when the piece is lockable.
+ * @param {string} prefix the storage key's prefix, e.g. 'rac3r.minimap.'
  * @param {number} mode difficulty 0 (MOBILE) .. 4 (REAL)
+ * @param {boolean} lockable whether REAL locks it off
  * @returns {{on: boolean, locked: boolean}} on, and whether the mode allows a change
  */
-export function minimapSetting(mode) {
-  if (mode >= LOCKED_MODE) return { on: false, locked: true };
+export function modeSetting(prefix, mode, lockable) {
+  if (lockable && mode >= LOCKED_MODE) return { on: false, locked: true };
   let shown = DEFAULT_ON[mode] ?? false;
   try {
-    const stored = localStorage.getItem(storeKey(mode));
+    const stored = localStorage.getItem(prefix + mode);
     if (stored !== null) shown = stored === '1';
   } catch { /* no storage: the default */ }
   return { on: shown, locked: false };
 }
 
 /**
- * Remembers the minimap choice for a difficulty mode (not in the locked mode).
+ * Remembers a HUD piece's choice for a difficulty mode (not where the mode locks it).
+ * @param {string} prefix the storage key's prefix
  * @param {number} mode difficulty 0..4
  * @param {boolean} shown shown or not
+ * @param {boolean} lockable whether REAL locks it off
  */
-export function setMinimapSetting(mode, shown) {
-  if (mode >= LOCKED_MODE) return;
+export function setModeSetting(prefix, mode, shown, lockable) {
+  if (lockable && mode >= LOCKED_MODE) return;
   try {
-    localStorage.setItem(storeKey(mode), shown ? '1' : '0');
+    localStorage.setItem(prefix + mode, shown ? '1' : '0');
   } catch { /* no storage: this session only */ }
 }
 
 /**
- * The progress bar setting of a difficulty mode (the HUD list): the device's choice, else the
- * minimap's default for the mode.
- * @param {number} mode difficulty 0 (MOBILE) .. 4 (REAL)
+ * The minimap setting of a difficulty mode (locked off in REAL).
+ * @param {number} mode difficulty 0..4
+ * @returns {{on: boolean, locked: boolean}} on, and whether the mode allows a change
+ */
+export const minimapSetting = (mode) => modeSetting(MINIMAP_KEY, mode, true);
+
+/**
+ * Remembers the minimap choice for a difficulty mode.
+ * @param {number} mode difficulty 0..4
+ * @param {boolean} shown shown or not
+ */
+export const setMinimapSetting = (mode, shown) => setModeSetting(MINIMAP_KEY, mode, shown, true);
+
+/**
+ * The progress bar's setting of a difficulty mode (the minimap's defaults, never locked).
+ * @param {number} mode difficulty 0..4
  * @returns {boolean} shown
  */
-export function progressSetting(mode) {
-  let shown = DEFAULT_ON[mode] ?? false;
-  try {
-    const stored = localStorage.getItem(progressKey(mode));
-    if (stored !== null) shown = stored === '1';
-  } catch { /* no storage: the default */ }
-  return shown;
-}
+export const progressSetting = (mode) => modeSetting(PROGRESS_KEY, mode, false).on;
 
 /**
  * Remembers the progress bar choice for a difficulty mode.
  * @param {number} mode difficulty 0..4
  * @param {boolean} shown shown or not
  */
-export function setProgressSetting(mode, shown) {
-  try {
-    localStorage.setItem(progressKey(mode), shown ? '1' : '0');
-  } catch { /* no storage: this session only */ }
-}
+export const setProgressSetting = (mode, shown) =>
+  setModeSetting(PROGRESS_KEY, mode, shown, false);
 
 // across frames: the matched centreline point and the eased heading (one HUD, one minimap)
 const mapState = { idx: 0, heading: null, level: null };

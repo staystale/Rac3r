@@ -595,6 +595,13 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
       Lab photo: snow settles on the ice panel. simhash SAME switches off.
       C BUILT (?markfade=1; _markfade.mjs, layer painted solid): old fade 255 after 4 min (never
       faded); block fade 101 / 38 / 16 / 5 at 1-4 min, 0.52 ms a second of play (laptop).
+      D BUILT (?hudunits=1; hud/tracktemp.js; minimap.js modeSetting shared by the minimap, its bar
+      and the gauge): TRACK gauge (portrait under the lap panel, landscape beside it), SPEED and
+      TEMPERATURE rows (tyre numbers and gauge in F). FOUND (_hudoverlap.mjs, frames drawn): on
+      landscape phones with the tyre diagram the lap / FPS strips already overlapped ABS / TCS
+      (uicheck reads the layout before a frame draws the diagram); with the switch the chips move
+      left of the pedals (under the gauge at 740x360). 6 sizes: no overlaps. Photos 390x844,
+      844x390 (C, F, HUD list).
 - NEXT ORDER (owner 10-18): mud freeze test -> 1 CHECK sand / gravel (owner: sand and gravel with
   no puddle do NOT change surface; driving may dent the terrain / make dips; today a churned
   puddle makes sand gravel (right) and gravel MUD (owner earlier: gravel -> dirt)) -> 4 CLEAN-UP

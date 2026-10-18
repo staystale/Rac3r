@@ -17,6 +17,8 @@ export const COL = {
   warn: '#e8a13a',
   danger: '#d8453c',
   live: '#4cc2a0',
+  cold: '#5b8fd6',         // freezing: ice forms (tyres far below their window, the track below 0)
+  cool: '#7fb6c9',         // cool: below the working range
   gravel: '#cfc6b4',       // the gravel trap. Warm and dead-looking against the cold lab floor.
   rally: '#c2b49a',        // rally-stage gravel — a touch browner, so the two read as different
                            // things

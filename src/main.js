@@ -13,6 +13,7 @@ import { createInput } from './input.js';
 import { createRenderer } from './render.ts';
 import { readSettings } from './core/settings.ts';
 import { createMarks, setMarkFade } from './marks.js';
+import { setTrackTempSource } from './hud/tracktemp.js';
 import { createHud } from './hud.js';
 import {
   setMinimapSource, setMinimapView, setMinimapHighway, setMinimapJoker, setProgressSource,
@@ -193,7 +194,9 @@ shared.trafficDensity = shared.settings.trafficDensity;
 if (shared.settings.litter !== null)
   for (const level of LEVELS) if (level.endless) level.litter = shared.settings.litter;
 
-shared.hud = createHud({ hudMenu: shared.settings.hudMenu, tyreOff: shared.settings.tyreOff });
+shared.hud = createHud({ hudMenu: shared.settings.hudMenu, tyreOff: shared.settings.tyreOff,
+  unitsMenu: shared.settings.hudUnits });
+setTrackTempSource(() => !!shared.trackTempOn && shared.mode !== 'menu');
 refreshMinimap();
 setMinimapSource(() => !!shared.minimapOn && shared.mode !== 'menu');
 // the progress bar is its own choice with the HUD list (?hudmenu=0: it follows the window)

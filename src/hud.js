@@ -17,7 +17,8 @@
 // Buttons are DATA so hit-testing and drawing read the same geometry. Two copies of
 // a rect is how a button ends up visually somewhere its tap is not.
 
-import { layoutHud, hitHud, setHudTyreHud } from './hud/layout.js';
+import { layoutHud, hitHud, setHudMph, setHudTempF, setHudTyreHud } from './hud/layout.js';
+import { drawHudTrackTemp } from './hud/tracktemp.js';
 import {
   drawHudTune,
   drawHudLights,
@@ -56,6 +57,9 @@ function loadHudChoices(state) {
   try {
     state.mph = localStorage.getItem('carsim.units') === 'mph';
   } catch { /* no storage: km/h */ }
+  try {
+    state.tempF = state.unitsMenu && localStorage.getItem('carsim.tempUnits') === 'F';
+  } catch { /* no storage: C */ }
   // the HUD list's choices count only where the list is (not with ?hudmenu=0)
   if (!state.hudMenu) return;
   for (const pieceId of HIDEABLE) {
@@ -95,13 +99,12 @@ function showsCarDiagram(state, car) {
 }
 
 /**
- * Builds the HUD.
- * @param {{hudMenu?: boolean, tyreOff?: boolean}} [options] hudMenu: the pause menu's HUD list;
- *   tyreOff: the tyre / damage diagram OFF stays off when damaged (?tyreoff=0 = pops up)
- * @returns {object} draw, hit, layout and the HUD's choices
+ * The HUD's state at start-up, before the device's choices are loaded.
+ * @param {{hudMenu?: boolean, tyreOff?: boolean, unitsMenu?: boolean}} options createHud's
+ * @returns {object} the state
  */
-export function createHud(options = {}) {
-  const state = {
+function newHudState(options) {
+  return {
     hudMenu: !!options.hudMenu,
     tyreOff: !!options.tyreOff,
     hidden: new Set(),      // HIDEABLE pieces the player turned off (with the HUD list only)
@@ -123,9 +126,23 @@ export function createHud(options = {}) {
     // SPEED UNITS (requirement: tapping the speed / kph should change it to mph), remembered on the
     // device
     mph: false,
+    // TEMPERATURE UNITS (?hudunits=1, the HUD list): the tyre numbers and the track gauge in °F
+    tempF: false,
+    unitsMenu: !!options.unitsMenu,
     flagSeen: 0, flagAt: 0, flagTxt: '',
     drawLightsLater: null,
   };
+}
+
+/**
+ * Builds the HUD.
+ * @param {{hudMenu?: boolean, tyreOff?: boolean, unitsMenu?: boolean}} [options] hudMenu: the
+ *   pause menu's HUD list; tyreOff: the tyre / damage diagram OFF stays off when damaged
+ *   (?tyreoff=0 = pops up); unitsMenu: the units rows and track gauge (?hudunits=1)
+ * @returns {object} draw, hit, layout and the HUD's choices
+ */
+export function createHud(options = {}) {
+  const state = newHudState(options);
   loadHudChoices(state);
   const setTyreHud = (enabled) => setHudTyreHud(state, enabled);
   const layout = (width, height) => layoutHud(state, width, height);
@@ -155,6 +172,7 @@ export function createHud(options = {}) {
     if (!state.hidden.has('speedo')) drawHudSpeedo(ctx, state, rects, car, spec, wallDt);
     drawHudTyreDiagram(ctx, state, rects, car, spec);
     if (!state.hidden.has('lapTimer')) drawHudLapTimer(ctx, game, rects);
+    drawHudTrackTemp(ctx, state, rects);
     drawHudMinimap(ctx, state, rects, game, wallDt);
     drawHudPedals(ctx, game, width, height);
     drawHudDevReadout(ctx, state, game, car, height);
@@ -168,6 +186,8 @@ export function createHud(options = {}) {
   return {
     draw, hit, layout,
     get tyreHud() { return state.tyreHud; }, setTyreHud,
+    get mph() { return state.mph; }, setMph: (mph) => setHudMph(state, mph),
+    get tempF() { return state.tempF; }, setTempF: (fahrenheit) => setHudTempF(state, fahrenheit),
     pieceShown: (pieceId) => !state.hidden.has(pieceId),
     setPieceShown: (pieceId, shown) => setPieceShown(state, pieceId, shown),
     get expanded() { return state.expanded; },
