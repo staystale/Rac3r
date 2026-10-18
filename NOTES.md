@@ -45,7 +45,8 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   long-grass pixels, owner accepted): default since 10-17 (`?menufast=0`). The long-grass textures
   painted while loading (the menu's ~125 ms frame): default since 10-17 (`?texwarm=0`). Screen
   sharpness capped at 1.5 device px per CSS px (was 2): default since 10-17 (`?dpr=2` = old). The
-  race start without the fly-in hand-over jolt: default since 10-17 (`?startfix=0`).
+  race start without the fly-in hand-over jolt: default since 10-17 (`?startfix=0`). Ground tile
+  mipmaps built with the upload (no burst at a zoom-out): default since 10-18 (`?zoomswitch=0`).
   Pre-turned pixel art (RotSprite)
   was the alternative, not chosen.
 - Not wanted / undone: the highway rebuild (cancelled 10-15), a fade at zoom steps, tiles tracing

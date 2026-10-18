@@ -52,7 +52,7 @@ export interface Settings {
   texWarm: boolean;              // long-grass textures painted while loading; =0 in the menu
   startFix: boolean;             // the race start without the hand-over jolt; =0 the old
   oneCanvas: boolean;            // ?onecanvas=1: the GPU ground drawn into the 2D canvas
-  zoomSwitch: boolean;           // ?zoomswitch=1: tile mipmaps at upload, no burst (glground.ts)
+  zoomSwitch: boolean;           // tile mipmaps at upload, no burst (glground.ts); =0 off
   maxDpr: number | null;         // ?dpr=2: the sharpness cap (default render.ts MAX_DPR 1.5)
   noShade: boolean;              // ?noshade: skip the hill shading (perf A/B)
   grassEnds: "round" | "square";   // ?grass=square: square grass blade ends (cheaper; A/B)
@@ -168,7 +168,7 @@ export function readSettings(search: string): Settings {
     texWarm: params.get('texwarm') !== '0',
     startFix: params.get('startfix') !== '0',
     oneCanvas: params.get('onecanvas') === '1',
-    zoomSwitch: params.get('zoomswitch') === '1',
+    zoomSwitch: params.get('zoomswitch') !== '0',
     maxDpr: maxDpr(params),
     noShade: params.has('noshade'),
     grassEnds: params.get('grass') === 'square' ? 'square' : 'round',

@@ -525,8 +525,9 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
   test stays open (testlist tyrewear). RESTART puts the set back as it was at the event's start,
   RESET keeps the race as it is; the wear is saved when the event is over (results, menu, another
   car).
-- [ ] ZOOM LURCH (owner 10-18: "whole picture lurches / ground repaints, now and then, zooming out
-      or in"), behind ?zoomswitch=1, owner phone test (testlist zoomswitch). MEASURED: the camera
+- [x] ZOOM LURCH (owner 10-18: "whole picture lurches / ground repaints, now and then, zooming out
+      or in"): the DEFAULT since 2026-10-18 (owner: "seems better"; ?zoomswitch=0 = old). Phone run
+      with it, Castle Cum by hand, 11,096 frames: 0.05 % slow, 0 slow of 263 frames with 8+ mipmaps. MEASURED: the camera
       and zoom are smooth (_zoomlurch: jerk <= 0.33 px zooming; phone reports: the zoom never
       reverses frame to frame). CAUSE (_zoomswitch, Castle Cum glide): a GPU tile gets mipmaps
       the first time it is drawn below 1 screen px per tile px, so the first zoom-out past that
@@ -536,7 +537,6 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
       the sharp filter reads level 0. renderhash SAME switch off and on. A one-frame look change
       at that zoom was NOT found (the 3 % at zoom 0.5000 is texels meeting whole pixels, seen with
       the fix too); a look blend was built and dropped (no measurable gain, extra GPU work).
-      Phone A/B: two ?report=1 runs back to back, &zoomswitch=1 and plain; frames with 8+ mipmaps.
 - [ ] THICK MUD FREEZES (owner 10-18): thick mud should freeze like mud does, maybe a bit slower.
       After the zoom test. Look at puddles.ts / snowwear.ts winter rules for mud first.
 - NEXT, READY TO WORK ON (owner 10-18): RAIN / WATER + DRIVING OVER IT turns SAND -> GRAVEL and
