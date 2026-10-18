@@ -22,7 +22,7 @@
 // from the event's seeded stream (weather.ts weatherRandom), so a restart deals the same.
 import { LEVEL } from "./state.ts";
 import {
-  ICE_MELT_SHARE, WEATHER, iceMeltsSlow, meltOn, weatherRandom, weatherRuns,
+  ICE_MELT_SHARE, WEATHER, coldSurfaceOn, iceMeltsSlow, meltOn, weatherRandom, weatherRuns,
 } from "./weather.ts";
 import { coverFieldOn, mudFrostOn } from "./coverfield.ts";
 import { heightAt } from "./terrain.ts";
@@ -88,13 +88,16 @@ const cellIceMeltPerC = () => (iceMeltsSlow()
 // RAIN melts snow faster (x 1 + RAIN_MELT at rain 1); the tyres' water in a cell FREEZES to ice
 // below freezing (per C colder, a chance a second: black ice)
 const RAIN_MELT = 2, CELL_WATER_FREEZE_PER_S_PER_C = 1 / 120;
+// ?coldsurface=1: rain melts ice too, less than snow (x 1 + ICE_RAIN_MELT at rain 1)
+const ICE_RAIN_MELT = 1;
 // a LEVEL's own snow / ice patch (lap levels; the Lab's test features never change) melts to water
 // as a tyre-made cell does, a warm start finds it gone (above WARM_START_C), the water refreezes
 // to ice below WATER_FREEZE_BELOW_C and dries off in a warm dry spell
 const WARM_START_C = 5;
 
 /** How much faster snow melts in this rain (?winter=1), 1 without. */
-const rainMelt = () => (meltOn() ? 1 + RAIN_MELT * WEATHER.rain : 1);
+const rainMelt = (ice = false) => (meltOn()
+  ? 1 + (ice && coldSurfaceOn() ? ICE_RAIN_MELT : RAIN_MELT) * WEATHER.rain : 1);
 
 /**
  * The chance a second something frozen thaws at this track temperature: by the C above
@@ -410,7 +413,7 @@ const meltingPatch = (cover: Cover) => meltOn() && !!LEVEL.subtrack && !cover.wa
 function stepPatch(cover: Cover, trackC: number, seconds: number): boolean {
   const perC = cover.cover === 'ice' ? cellIceMeltPerC() : CELL_SNOW_MELT_PER_S_PER_C;
   const melts = cover._melt !== 'water' && cover._melt !== 'gone' && trackC > THAW_ABOVE_C
-    && weatherRandom() < perC * (trackC - THAW_ABOVE_C) * rainMelt() * seconds;
+    && weatherRandom() < perC * (trackC - THAW_ABOVE_C) * rainMelt(cover.cover === 'ice') * seconds;
   const refreezes = cover._melt === 'water' && trackC < WATER_FREEZE_BELOW_C
     && weatherRandom() < WATER_FREEZE_PER_S * seconds;
   const dries = cover._melt === 'water' && WEATHER.rain === 0
@@ -515,7 +518,9 @@ function meltCell(cell: WearCell, trackC: number, seconds: number): boolean {
   const laid = layersAt((cell.cx + 0.5) * WEAR_CELL, (cell.cy + 0.5) * WEAR_CELL).cover;
   if (laid === kind) return false;
   const perC = kind === 'ice' ? cellIceMeltPerC() : CELL_SNOW_MELT_PER_S_PER_C;
-  if (weatherRandom() >= perC * (trackC - THAW_ABOVE_C) * rainMelt() * seconds) return false;
+  if (weatherRandom() >= perC * (trackC - THAW_ABOVE_C) * rainMelt(kind === 'ice') * seconds) {
+    return false;
+  }
   cell.cover = 'wet';
   cell.standing = true;
   cell.dry = 0;

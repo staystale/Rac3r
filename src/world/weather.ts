@@ -91,6 +91,19 @@ let winterCold = false;
 export function setWinterCold(isOn: boolean): void { winterCold = isOn; }
 
 /** Whether ice melts at ICE_MELT_SHARE of snow's rate (?wintercold=1). */
+// ONE COLD-SURFACE ORDER (?coldsurface=1): coverfield.ts (the order), snowwear.ts (driven ice),
+// puddles.ts (rain on tyre-made ice)
+let coldSurface = false;
+
+/**
+ * One cold-surface system for water, snow and ice (?coldsurface=1, at start-up).
+ * @param isOn true for the one system
+ */
+export function setColdSurface(isOn: boolean): void { coldSurface = isOn; }
+
+/** Whether water, snow and ice follow the one cold-surface system (?coldsurface=1). */
+export function coldSurfaceOn(): boolean { return coldSurface; }
+
 export function iceMeltsSlow(): boolean { return winterCold; }
 
 /**

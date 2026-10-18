@@ -19,6 +19,7 @@ import {
   frostKindOf, mudFrostOn, SNOW_SEED, WATER_SEED,
 } from "../world/coverfield.ts";
 import type { Levels } from "../world/coverfield.ts";
+import { coldSurfaceOn } from "../world/weather.ts";
 import { buildProgram } from "./glprogram.ts";
 import type { PaintCamera } from "./glpaint.ts";
 import type { ShadeRect } from "./glshade.ts";
@@ -53,6 +54,7 @@ uniform ivec2 camSq;           // the camera's square
 uniform vec4 levels;           // the weather's water, snow, ice, packed snow
 uniform vec4 areaLevels[4];    // each level area's (coverfield.ts AREA_KINDS)
 uniform vec2 frost;            // the frost on mud and on thick mud (?mudfreeze=1)
+uniform bool oneOrder;         // ?coldsurface=1: water over snow over ice (coverfield.ts)
 uniform highp sampler2D catchTex;
 uniform highp sampler2D maskTex;
 out vec4 colour;
@@ -61,8 +63,23 @@ const float SQ = ${FIELD_SQ.toFixed(2)};
 // a square this far under its level has no bare neighbour (the catch moves less per square)
 const float RIM_DEPTH = 0.2;
 ivec2 slotOf(ivec2 square) { return ((square % GRID) + GRID) % GRID; }
+// ?coldsurface=1 (coverfield.ts stackOfLevels): water, then snow / packed snow, then ice, water
+// and ice each from the lowest catch up
+int stackIn(vec4 lv, vec2 catchValue, out float depth) {
+  if (catchValue.r < lv.x) { depth = lv.x - catchValue.r; return 1; }
+  if (lv.y > 0.0 && lv.y > catchValue.g) { depth = lv.y - catchValue.g; return 3; }
+  if (lv.w > 0.0 && lv.w > catchValue.g) { depth = lv.w - catchValue.g; return 4; }
+  if (catchValue.r < lv.z) { depth = lv.z - catchValue.r; return 2; }
+  depth = 0.0;
+  return 0;
+}
+// a kind's place in the one order (coverfield.ts STACK_ORDER): water, snow, packed snow, ice
+int stackRank(int kind) {
+  return kind == 1 ? 0 : kind == 3 ? 1 : kind == 4 ? 2 : kind == 2 ? 3 : 9;
+}
 // 0 nothing, 1 water, 2 ice, 3 snow, 4 packed snow (the order of coverfield.ts coverOfLevels)
 int kindIn(vec4 lv, vec2 catchValue, out float depth) {
+  if (oneOrder) return stackIn(lv, catchValue, depth);
   if (lv.y > 0.0 && lv.y > catchValue.g) { depth = lv.y - catchValue.g; return 3; }
   if (lv.w > 0.0 && lv.w > catchValue.g) { depth = lv.w - catchValue.g; return 4; }
   if (catchValue.r < lv.x) { depth = lv.x - catchValue.r; return 1; }
@@ -78,7 +95,12 @@ int kindOf(ivec2 square, out float depth) {
   if (code == 255) return -1;
   vec2 catchValue = texelFetch(catchTex, slot, 0).rg;
   int kind = code > 0 && code < 5 ? kindIn(areaLevels[code - 1], catchValue, depth) : 0;
-  if (kind == 0) kind = kindIn(levels, catchValue, depth);
+  if (oneOrder) {
+    // the area's cover and the weather's stack by the one order (coverfield.ts stackCovers)
+    float weatherDepth;
+    int weather = kindIn(levels, catchValue, weatherDepth);
+    if (stackRank(weather) < stackRank(kind)) { kind = weather; depth = weatherDepth; }
+  } else if (kind == 0) kind = kindIn(levels, catchValue, depth);
   if (kind > 0 || code < 5) return kind;
   // bare mud (5) or thick mud (6): ice under its frost
   float frostLevel = code == 5 ? frost.x : frost.y;
@@ -120,7 +142,7 @@ void main() {
 
 const UNIFORMS = [
   'canvasHeight', 'cameraPx', 'devPerMetre', 'camInSq', 'camSq', 'levels', 'areaLevels', 'catchTex',
-  'maskTex', 'frost',
+  'maskTex', 'frost', 'oneOrder',
 ] as const;
 type Uniforms = Record<typeof UNIFORMS[number], WebGLUniformLocation | null>;
 
@@ -490,6 +512,7 @@ export function createGlField(webgl: WebGL2RenderingContext) {
       });
       webgl.uniform4fv(uniforms.areaLevels, areaLevels);
       webgl.uniform2f(uniforms.frost, FROST.mud, FROST.thickMud);
+      webgl.uniform1i(uniforms.oneOrder, coldSurfaceOn() ? 1 : 0);
       webgl.drawArrays(webgl.TRIANGLE_STRIP, 0, 4);
     },
   };

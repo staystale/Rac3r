@@ -16,24 +16,23 @@ export const TEST_LIST = [
   // weather, rain, slidewear approved 2026-10-18; morepuddles, tyrefeel, packedwear, onepuddle,
   // wettrail approved 2026-10-18; coverfield, winter approved 2026-10-18 - labweather
   // superseded by the cover field; zoomswitch, mudfreeze, sanddig, wintercold, graveldig approved
-  // 2026-10-18)
+  // 2026-10-18; tyrewear, wintertweaks passed 2026-10-18)
   {
-    id: 'tyrewear',
+    id: 'coldsurface',
     added: '2026-10-18',
-    name: 'Tyre wear: sets wear over races, worn = less grip, hot / bald / debris punctures',
-    where: 'Plain link (the default; &tyrewear=0 = off): TYRE HUD on (pause > HUD); garage TYRES',
-    try: 'Race several events on one set; drive hard and overheat; try Wet tyres in the dry;'
-      + ' RESTART (wear back to the start), RESET (wear kept); wheel colours; garage % WORN.',
-    wrong: 'Wear too fast / slow to be a running cost, punctures out of the blue, the set not'
-      + ' kept between races, the numbers not being the heat.',
+    name: 'One cold-surface system: snow on ice / snow, never on water; ice wears to water',
+    where: 'Plain link + &coldsurface=1: TEST MODE, the Lab (ice / wet panels), SNOW then RAIN',
+    try: 'Snow on the ice and wet panels (snow settles on ice, melts into water); drive ice: it'
+      + ' breaks to water, more when warm; rain melts snow faster than ice.',
+    wrong: 'Snow on water, ice spreading onto dry ground in rain, ice never wearing when driven,'
+      + ' what you see not being what the tyre feels.',
   },
   {
-    id: 'wintertweaks',
+    id: 'wearchance',
     added: '2026-10-18',
-    name: 'Weather tweaks: cold freezes water, puddles before the start, quicker build-up, SNOW',
-    where: 'Plain link: TEST MODE, a circuit (Killder / Sweaty Lamb for their water), WEATHER rows',
-    try: 'SNOW and WINTER: puddles turn to ice, mud freezes, the lake / stream may freeze over;'
-      + ' restart a few autumn races: some start with puddles; HEAVY RAIN: puddles in ~30-50 s.',
-    wrong: 'Ice where no water was, frozen water in the warm, puddles all at once, too many / few.',
+    name: 'Ground wear: dry dirt rarely turns to mud; damp sand -> gravel, damp gravel -> dirt',
+    where: 'Plain link + &wearchance=1: TEST MODE, a dirt / sand / gravel area, dry then rain',
+    try: 'Drive dry dirt (mostly stays dirt), then damp; drive damp sand and gravel a while.',
+    wrong: 'Dry dirt turning to mud as fast as before; dry sand / gravel changing surface.',
   },
 ];

@@ -17,7 +17,7 @@
 //     through to WATER on the ground under it (a snow road's bed is GRAVEL). Wet: water or snow.
 // Ice scrubbing, melting, freezing water and drying are in wear.ts / puddles.ts.
 import type { WearCell } from "./types.ts";
-import { snowTempC } from "./weather.ts";
+import { coldSurfaceOn, snowTempC } from "./weather.ts";
 
 // passes before packed snow breaks up; the chance it goes to loose snow (else ice), the old rule
 const PACKED_SNOW_WEAR = 4, PACKED_TO_SNOW_CHANCE = 0.5;
@@ -27,6 +27,10 @@ const SNOW_WATER_AT_0 = 0.15, SNOW_WATER_PER_C = 0.1, SNOW_ICE_AT_0 = 0.15, SNOW
 // colder (of what does not break through)
 const PACKED_WATER_AT_0 = 0.05, PACKED_WATER_PER_C = 0.08;
 const PACKED_ICE_AT_0 = 0.55, PACKED_ICE_PER_C = 0.03;
+// ?coldsurface=1, DRIVEN ICE (owner: every cold top surface has a chance to break to water, more
+// the warmer): after ICE_WEAR passes, water by ICE_WATER_AT_0 at 0 C and ICE_WATER_PER_C a C
+// warmer (less when colder), wet ice ICE_WATER_WET more
+const ICE_WEAR = 4, ICE_WATER_AT_0 = 0.1, ICE_WATER_PER_C = 0.08, ICE_WATER_WET = 0.2;
 // what is under a snow road when packed snow breaks through
 const SNOW_ROAD_BED = 'gravel';
 
@@ -84,6 +88,22 @@ export function passWinterSnow(cell: WearCell, wet: boolean, snowToIce: number):
   if (wet || roll < water) toWater(cell);
   else cell.cover = roll < water + ice ? 'ice' : 'packedSnow';
   return true;
+}
+
+/**
+ * One pass over an ICE cover (?coldsurface=1): after ICE_WEAR passes, a chance it breaks to water
+ * by the temperature (slides scrub it through too: wear.ts scrubCell).
+ * @param cell the wear cell (changed in place)
+ * @param wet whether the cell is wet enough to wear as wet ground
+ */
+export function passIceCell(cell: WearCell, wet: boolean): void {
+  if (!coldSurfaceOn() || ++cell.passes < ICE_WEAR) return;
+  cell.passes = 0;
+  const water = clampShare(ICE_WATER_AT_0 + ICE_WATER_PER_C * snowTempC()
+    + (wet ? ICE_WATER_WET : 0), 0.02, 0.9);
+  if (Math.random() >= water) return;
+  toWater(cell);
+  cell.scrub = 0;
 }
 
 /**

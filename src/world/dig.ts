@@ -77,3 +77,38 @@ export function digPace(base: string, wet: boolean): number {
   if (gravelDig && wet && (base === 'sand' || base === 'gravel')) return WET_LOOSE_DIG;
   return 1;
 }
+
+// GROUND WEAR CHANCES (?wearchance=1; owner): DRY dirt turns to mud only DRY_DIRT_TO_MUD of the
+// times its passes are done (wet dirt as before); DAMP sand turns to gravel and damp gravel to
+// dirt by DAMP_LOOSE_WEAR a pass (a churned puddle still more: wear.ts WATER_CHURN_CHANCE); dry
+// sand and gravel keep their surface
+const DRY_DIRT_TO_MUD = 0.25, DAMP_LOOSE_WEAR = 0.1;
+const DAMP_WORN_TO: Record<string, string> = { sand: 'gravel', gravel: 'dirt' };
+let wearChance = false;
+
+/**
+ * The ground wear chances (?wearchance=1, at start-up).
+ * @param isOn true for the chances
+ */
+export function setWearChance(isOn: boolean): void { wearChance = isOn; }
+
+/**
+ * Whether ground whose passes are done stays as it is this time (?wearchance: dry dirt 3 in 4).
+ * @param base the surface id
+ * @param wet whether the cell is wet enough to wear faster
+ * @returns true to keep the base
+ */
+export function wearHolds(base: string, wet: boolean): boolean {
+  return wearChance && !wet && base === 'dirt' && Math.random() >= DRY_DIRT_TO_MUD;
+}
+
+/**
+ * What damp loose ground turns into on this pass (?wearchance: sand -> gravel, gravel -> dirt).
+ * @param base the surface id
+ * @param wet whether the cell is wet enough to wear faster
+ * @returns the new surface id, or null to stay
+ */
+export function dampWornTo(base: string, wet: boolean): string | null {
+  if (!wearChance || !wet || !DAMP_WORN_TO[base]) return null;
+  return Math.random() < DAMP_LOOSE_WEAR ? DAMP_WORN_TO[base] : null;
+}

@@ -83,7 +83,7 @@ the git history. `docs/foreman-handover.md` is the last handover (10-18, cover f
   home-screen app (no Safari toolbar over the game). Parked: fixed zoom steps (only for the
   edge dance in the lean path).
 - WEATHER DONE and the DEFAULT (10-18; "GRASS GRIP + WATER" below). TYRE WEAR the DEFAULT, its
-  test open (?tyrewear=0 off). NEXT: LIGHTING / time of day (the owner's brief in docs/foreman-handover.md), on
+  test passed 10-18 (?tyrewear=0 off). NEXT: LIGHTING / time of day (the owner's brief in docs/foreman-handover.md), on
   its own switch. Owner also saw a very minor jerk behind the main menu (DuckDuckGo): not looked at.
 - GRASS THROUGH THE CRACKS (owner: a and b, "like real life"): long-grass tufts in some
   broken-tarmac flecks, and scattered on broken-tarmac / concrete ground (blend.ts, own random
@@ -503,7 +503,7 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
       (13/13); sites per circuit 2-27; browser heavy-rain race: puddles shown, no errors.
       OWNER (10-18): WEATHER ALL PASS (weather, rain, slidewear): weather and the slide wear are
       the DEFAULT since 2026-10-18 (?weather=0 / ?slidewear=0 = off; ?rain= stays a test tool).
-      Owner tweaks, built with it (testlist wintertweaks): below 0 C a puddle turns to ice (thaws
+      Owner tweaks, built with it (wintertweaks: PASSED 2026-10-18): below 0 C a puddle turns to ice (thaws
       above 1 C), worn mud may freeze over (a slide scrubs it), scenery water may freeze over
       below -2 C (at the start likelier the colder); an event's start may follow earlier rain
       (season's chance: some sites part full) or lying snow, seeded per event; faster build-up
@@ -522,7 +522,7 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
   36 %, Wet tyres in the dry 28 % / 3 laps, dry tyres in the wet 5 %. simhash off SAME 13/13.
   SEEN, not changed: with the tyre diagram on, ABS / TCS sit under the FPS panel (layout).
   OWNER (10-18): "apply it to main and roll it back if needed": the DEFAULT (?tyrewear=0 off), its
-  test stays open (testlist tyrewear). RESTART puts the set back as it was at the event's start,
+  test PASSED 2026-10-18. RESTART puts the set back as it was at the event's start,
   RESET keeps the race as it is; the wear is saved when the event is over (results, menu, another
   car).
 - [x] ZOOM LURCH (owner 10-18: "whole picture lurches / ground repaints, now and then, zooming out
@@ -570,6 +570,29 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
       dry too, 2 cm a pass, floor 30 cm; wet sand / gravel x1.5 (dry sand stays 4 cm). _sanddig
       (1 / 3 / 10 passes, cm): gravel dry 0.8 / 2.5 / 8.9 (was ~0), wet 1.2 / 4.1 / 12.7; sand
       wet 3.5 / 10.6 / 26.6 (dry 2.4 / 7.1 / 23.6); mud as before.
+- [ ] APPROVED PLAN (owner 10-18 "approved all"), in order, each behind its own switch:
+      A ONE COLD-SURFACE SYSTEM: driven ice gets a chance to turn to water (small below 0 C, more
+        per C above); rain melts the field's ice too (less than snow: snow x3, ice x2 in heavy
+        rain); one layer order per square - snow on ice or bare ground, never on water (snow on
+        water melts into it above 0 C; below, the water freezes first); a level area's cover no
+        longer hides the weather's snow; rain on ice sits on it (above 0) / freezes in (below), not
+        pushing the ice ring onto dry ground.
+      B GROUND WEAR CHANCES: dry dirt -> mud a 1/4 chance per completed wear (wet as now); damp
+        gravel -> dirt and damp sand -> gravel a chance per pass (puddle churn as now, higher);
+        dry sand / gravel keep their surface.
+      C TYRE MARKS FADE: the per-step fade (alpha 0.000125 on a 1/255 canvas) never removed
+        anything and filled the 26 MB layer 120x a second; instead every 0.5 s one random block
+        fades a step: patchy, gone in ~2-3 min; marks are pixels of a fixed layer (no list grows).
+      D MENU: km/h - mph and C - F rows in the pause HUD list (speedo tap kept, same setting);
+        the TRACK TEMP gauge (HUD list on / off, hidden on the harder difficulties like the
+        minimap); photos first.
+      Then the puddle-site clean-up, then T3 tyres, then a PERFORMANCE PASS (owner), then lighting.
+      A + B BUILT (?coldsurface=1, ?wearchance=1; _coldsurface.mjs, OFF -> ON): snow on a level's
+      ice area 0 -> 30 % at snow 0.5, never on water (8 -> 0 %); rain on ice 0.4 at -1 C: covered
+      25 -> 61 % before, 25 -> 25 % now; driven ice 8 passes -> water 0 / 11 / 31 of 40 at -5 / 0 /
+      5 C (was 0); heavy rain 5 C: snow half gone 321 s, ice 1925 -> 963 s; dry dirt -> mud after 2
+      passes 36 -> 9 of 40; damp sand -> gravel, damp gravel -> dirt; dry sand / gravel unchanged.
+      Lab photo: snow settles on the ice panel. simhash SAME switches off.
 - NEXT ORDER (owner 10-18): mud freeze test -> 1 CHECK sand / gravel (owner: sand and gravel with
   no puddle do NOT change surface; driving may dent the terrain / make dips; today a churned
   puddle makes sand gravel (right) and gravel MUD (owner earlier: gravel -> dirt)) -> 4 CLEAN-UP

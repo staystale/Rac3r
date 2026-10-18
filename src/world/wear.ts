@@ -8,12 +8,16 @@ import { carWheels } from "./wheels.ts";
 import { staticCoverAt, staticCoverHere } from "./coverlookup.ts";
 import { coverFieldOn, fieldLayers } from "./coverfield.ts";
 import { puddleClearBy, setPassTyre } from "./puddles.ts";
-import { packedSnowWears, passPackedSnowCell, passWinterSnow } from "./snowwear.ts";
+import {
+  packedSnowWears, passIceCell, passPackedSnowCell, passWinterSnow,
+} from "./snowwear.ts";
 import {
   FX1, FX0, FY1, FY0, KERB_W, KERB_H, KERB_RIDGE, KERB_RIDGE_L, RUNOFF_W, RUNOFF_ROUGH,
 } from "./bounds.ts";
 import { zoneAt } from "./zones.ts";
-import { churnedTo, digPace, digRuleOf, digsDry } from "./dig.ts";
+import {
+  churnedTo, dampWornTo, digPace, digRuleOf, digsDry, wearHolds,
+} from "./dig.ts";
 import { bumpAt, slopeAt, heightAt, bankHeightAt, BUMP_STEER } from "./terrain.ts";
 import { querySubtrack } from "./tyrewall.ts";
 import type {
@@ -292,7 +296,10 @@ function passBareCell(cell: WearCell, damp: number): void {
   const rule = BASE_WEAR[cell.base];
   // wet ground wears a pass sooner (owner's table: grass / dirt 2 -> 1, mud 3 -> 2)
   const need = rule ? rule[1] - (damp >= WET_WEAR_FROM ? 1 : 0) : 0;
-  if (rule && ++cell.passes >= need) { cell.base = wornTo(cell.base, rule[0]); cell.passes = 0; }
+  if (rule && ++cell.passes >= need) {
+    if (!wearHolds(cell.base, damp >= WET_WEAR_FROM)) cell.base = wornTo(cell.base, rule[0]);
+    cell.passes = 0;
+  } else if (!rule) cell.base = dampWornTo(cell.base, damp >= WET_WEAR_FROM) || cell.base;
   digRut(cell, damp);
 }
 /**
@@ -320,6 +327,7 @@ function passCell(cell: WearCell, tyreTemp = 18): void {
     if (!passWinterSnow(cell, wet, SNOW_TO_ICE)) passSnowCell(cell, damp);
   } else if (cell.cover === 'wet') passWetCell(cell, tyreTemp);
   else if (packedSnowWears(cell.cover || cell.base)) passPackedSnowCell(cell, wet);
+  else if (cell.cover === 'ice') passIceCell(cell, wet);
   else if (!cell.cover) passBareCell(cell, damp);
   // the tyre dries its line in the rain (as it dries a wet zone: dryAmount, damp ground)
   if (cell.cover !== 'wet') dryCellLine(cell, wearClock, dryAmount(false, tyreTemp));

@@ -35,11 +35,11 @@ import { TUNE } from './vehicle.ts';
 import { initWorld } from "./world/load.ts";
 import { applyOldGrassGrip } from "./world/surfaces.ts";
 import { setGroundLookup, setSlideWear } from "./world/wear.ts";
-import { setGravelDig, setSandDig } from "./world/dig.ts";
+import { setGravelDig, setSandDig, setWearChance } from "./world/dig.ts";
 import { setPackedSnowWear, setWinterSnow } from "./world/snowwear.ts";
 import { setWetTrail } from "./wettrail.ts";
 import { setCoverField, setMudFrost } from "./world/coverfield.ts";
-import { setWetness, setRain, setMelt, setWinterCold } from "./world/weather.ts";
+import { setColdSurface, setWetness, setRain, setMelt, setWinterCold } from "./world/weather.ts";
 import { setWeatherPuddles, setMorePuddles, setLabWeather } from "./world/puddles.ts";
 import { setTyreWear } from "./physics/tyrewear.ts";
 import { setTyreFeel } from "./physics/tyreheat.ts";
@@ -71,6 +71,8 @@ setWetTrail(shared.settings.wetTrail);   // ?wettrail=1: wet tyre lines fade wit
 setWinterCold(shared.settings.winterCold);   // ?wintercold=1: frosty winters, slower ice
 setGravelDig(shared.settings.gravelDig);   // ?graveldig=1: gravel digs like sand, slower
 setSandDig(shared.settings.sandDig);   // ?sanddig=1: sand dents fastest, dry too
+setColdSurface(shared.settings.coldSurface);   // ?coldsurface=1: one water / snow / ice order
+setWearChance(shared.settings.wearChance);   // ?wearchance=1: dirt / sand / gravel wear chances
 setCoverField(shared.settings.coverField);   // ?coverfield=1: water and snow build by the weather
 setMudFrost(shared.settings.mudFreeze);   // ?mudfreeze=1: all mud freezes by the field's frost
 setMelt(shared.settings.winter);   // ?winter=1: snow and ice melt by temperature, water freezes
