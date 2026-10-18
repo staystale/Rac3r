@@ -236,7 +236,11 @@ function drawWorldLayers(ctx: RenderCtx, game: RenderGame, lock: ViewLock, wallT
   // the 2D ground (no GPU ground) looks wet the cheap way: one darkening fill of the art buffer
   if (!ctx.state.gpuOn && WEATHER.wetness > 0) tintWetGround(ctx);
   // the GPU hill shading lies over the whole ground, as the tiles baked it
-  if (ctx.state.gpuOn && ctx.gpu!.painting && isGpuShadeOn(ctx)) ctx.gpu!.drawShade(ctx.gpuCamera);
+  if (ctx.state.gpuOn && ctx.gpu!.painting && isGpuShadeOn(ctx)) {
+    // the weather's water and snow (?coverfield=1), under the hill shading like the ground
+    ctx.gpu!.drawField(ctx.gpuCamera);
+    ctx.gpu!.drawShade(ctx.gpuCamera);
+  }
   if (!skip('deck')) {
     ctx.drawRunoff();
     ctx.drawKerb();
@@ -433,10 +437,10 @@ function updateGpuShade(ctx: RenderCtx) {
   const halfW = view.W / 2 / ctx.PPMz(), halfH = view.H / 2 / ctx.PPMz();
   const wideW = view.W / 2 / (view.PPM * ZOOM_MIN) + SHADE_MARGIN_M;
   const wideH = view.H / 2 / (view.PPM * ZOOM_MIN) + SHADE_MARGIN_M;
-  ctx.gpu!.updateShade(
-    { x0: cam.x - halfW, y0: cam.y - halfH, x1: cam.x + halfW, y1: cam.y + halfH },
-    { x0: cam.x - wideW, y0: cam.y - wideH, x1: cam.x + wideW, y1: cam.y + wideH },
-  );
+  const viewRect = { x0: cam.x - halfW, y0: cam.y - halfH, x1: cam.x + halfW, y1: cam.y + halfH };
+  const widest = { x0: cam.x - wideW, y0: cam.y - wideH, x1: cam.x + wideW, y1: cam.y + wideH };
+  ctx.gpu!.updateShade(viewRect, widest);
+  ctx.gpu!.updateField(viewRect, widest);
 }
 
 /**
@@ -625,7 +629,10 @@ function gpuHelpers(state: RenderState, gpu: GlGround | null) {
   return {
     groundSink: () => (state.gpuOn ? gpu!.sink : null),
     fillsOnGpu: () => state.gpuOn && gpu!.painting,
-    heightsChanged: (rect: ShadeRect) => gpu?.invalidateShade(rect),
+    heightsChanged: (rect: ShadeRect) => {
+      gpu?.invalidateShade(rect);
+      gpu?.fieldCellsChanged(rect);
+    },
   };
 }
 

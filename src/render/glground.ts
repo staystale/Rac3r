@@ -10,6 +10,8 @@
 import { createGlPaint } from "./glpaint.ts";
 import type { GroundPatch, PaintCamera } from "./glpaint.ts";
 import { createGlShade } from "./glshade.ts";
+import { createGlField } from "./glfield.ts";
+import type { GlField } from "./glfield.ts";
 import { buildProgram, WET_GLSL } from "./glprogram.ts";
 import { WEATHER } from "../world/weather.ts";
 import type { GlShade, ShadeRect } from "./glshade.ts";
@@ -294,6 +296,35 @@ function createSink(webgl: WebGL2RenderingContext, program: WebGLProgram,
 }
 
 /**
+ * The cover field calls of the GPU ground (no-ops without the painter; render/glfield.ts).
+ * @param field the field, or null
+ * @param state the shared frame state
+ * @returns the calls
+ */
+function fieldCalls(field: GlField | null, state: SinkState) {
+  return {
+    /**
+     * Brings the field's chunks up to date (glfield.ts update).
+     * @param view the world rectangle on screen now, m
+     * @param widest the world rectangle the widest zoom would show, m
+     */
+    updateField(view: ShadeRect, widest: ShadeRect) { field?.update(view, widest); },
+    /**
+     * The wear cells over a rectangle changed: the field's mask follows.
+     * @param rect the rectangle, m
+     */
+    fieldCellsChanged(rect: ShadeRect) { field?.cellsChanged(rect); },
+    /**
+     * Draws the field over the ground (before the hill shading).
+     * @param camera where the world lands on the canvas this frame
+     */
+    drawField(camera: PaintCamera) {
+      if (field && state.frame) field.draw(state.frame, camera);
+    },
+  };
+}
+
+/**
  * The GPU hill shading calls of the GPU ground (no-ops without the painter).
  * @param shade the hill shading (glshade.ts), or null
  * @param state the shared frame state
@@ -367,6 +398,7 @@ export function createGlGround(screen: HTMLCanvasElement, withPainter = false,
   const colours: ColourCache = { rgba: new Map(), probe: null, reuseProbe };
   const painter = withPainter ? createGlPaint(webgl, (rgb) => parseColour(colours, rgb)) : null;
   const shade = withPainter ? createGlShade(webgl) : null;
+  const field = withPainter ? createGlField(webgl) : null;
   const state = newSinkState();
   canvas.addEventListener('webglcontextlost', () => { state.lost = true; });
   const { sink, textures } = createSink(webgl, program, colours, state);
@@ -408,6 +440,7 @@ export function createGlGround(screen: HTMLCanvasElement, withPainter = false,
       state.painted = true;
     },
     ...shadeCalls(shade, state),
+    ...fieldCalls(field, state),
     /** Ends a frame: drops textures no tile has drawn for a while. */
     end() {
       for (const [source, entry] of textures) {

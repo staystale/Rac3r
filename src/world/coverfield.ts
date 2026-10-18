@@ -37,7 +37,10 @@ const SYNC_S = 1, REFILL_PER_S = 1 / 15;
 // spreads them so the coat grows steadily); the water's and the snow's own seeds
 const CATCH_BIG_M = 16, CATCH_SMALL_M = 5, CATCH_SMALL_K = 0.35;
 const CATCH_LOW = 0.1, CATCH_HIGH = 0.82;
-const WATER_SEED = 0x2c1b3c6d, SNOW_SEED = 0x297a2d39;
+export const WATER_SEED = 0x2c1b3c6d, SNOW_SEED = 0x297a2d39;
+// the field lies in FIELD_SQ squares, each read at its centre - the covers' grid (coverlookup.ts
+// COVER_SQ), drawn as the same squares (render/glfield.ts): what you see is what the tyre feels
+export const FIELD_SQ = 0.5;
 // a wet / snowy event's start: the levels already settled (owner): raining, a drying track, snow
 // lying - each a range, dealt from the weather's seeded stream
 const START_RAIN = [0.15, 0.5], START_DRYING = 0.35, START_SNOW = [0.2, 0.7], SNOW_LYING = 0.6;
@@ -89,7 +92,8 @@ function valueNoise(x: number, y: number, seed: number): number {
 }
 
 /**
- * How high water or snow must rise to cover a point, 0..1.
+ * How high water or snow must rise to cover a point, 0..1 in 255 steps (the GPU keeps it in a
+ * byte: the physics compares the very same numbers).
  * @param x world x, m
  * @param y world y, m
  * @param seed the water's or the snow's
@@ -98,7 +102,28 @@ function valueNoise(x: number, y: number, seed: number): number {
 export function catchAt(x: number, y: number, seed: number): number {
   const noise = (valueNoise(x / CATCH_BIG_M, y / CATCH_BIG_M, seed) * (1 - CATCH_SMALL_K)
     + valueNoise(x / CATCH_SMALL_M, y / CATCH_SMALL_M, seed + 1) * CATCH_SMALL_K);
-  return Math.max(0, Math.min(1, (noise - CATCH_LOW) / (CATCH_HIGH - CATCH_LOW)));
+  return Math.round(Math.max(0, Math.min(1, (noise - CATCH_LOW) / (CATCH_HIGH - CATCH_LOW))) * 255)
+    / 255;
+}
+
+/**
+ * Whether the tyres (or the level) own a wear cell's look: the field is not drawn there, the
+ * tiles show it (render/glfield.ts).
+ * @param cell the wear cell
+ * @returns true when the tiles show it
+ */
+export function cellOwned(cell: WearCell): boolean {
+  return !!cell.fixed || cell.cover !== (cell.laid ?? null);
+}
+
+/**
+ * Whether a wear cell's cover is the field's, untouched by the tyres (the GPU draws it; the tiles
+ * show the ground under it).
+ * @param cell the wear cell
+ * @returns true for the field's own cover
+ */
+export function fieldLaysCell(cell: WearCell): boolean {
+  return !cell.fixed && !!cell.laid && cell.cover === cell.laid;
 }
 
 /**
@@ -110,9 +135,12 @@ export function catchAt(x: number, y: number, seed: number): number {
 export function fieldCoverAt(x: number, y: number): CoverId | null {
   if (!enabled) return null;
   const { water, snow, ice } = FIELD;
-  if (snow > 0 && snow > catchAt(x, y, SNOW_SEED)) return 'snow';
+  if (snow <= 0 && water + ice <= 0) return null;
+  const squareX = (Math.floor(x / FIELD_SQ) + 0.5) * FIELD_SQ;
+  const squareY = (Math.floor(y / FIELD_SQ) + 0.5) * FIELD_SQ;
+  if (snow > 0 && snow > catchAt(squareX, squareY, SNOW_SEED)) return 'snow';
   if (water + ice <= 0) return null;
-  const waterCatch = catchAt(x, y, WATER_SEED);
+  const waterCatch = catchAt(squareX, squareY, WATER_SEED);
   if (waterCatch < water) return 'wet';
   return waterCatch < water + ice ? 'ice' : null;
 }

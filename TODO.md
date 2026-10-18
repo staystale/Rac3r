@@ -525,6 +525,19 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
   test stays open (testlist tyrewear). RESTART puts the set back as it was at the event's start,
   RESET keeps the race as it is; the wear is saved when the event is over (results, menu, another
   car).
+- COVER FIELD (owner 10-18: rain and snow build in small patches until they coat the race surface;
+  everything by weather / temperature; every level, highway included; settled at a wet start).
+  Plan F0-F4 agreed: F0 DONE (every level follows its weather). F1 + F2 BUILT behind
+  ?coverfield=1: world/coverfield.ts - each 0.5 m square's catch (world-space value noise, 255
+  steps) against three levels the weather moves (water, snow, ice); render/glfield.ts draws it on
+  the GPU ground (a catch / mask grid texture computed per 8 m chunk in a 2 ms a frame budget, one
+  texture read a pixel; the mask leaves tyre-changed cells and the level's own covers to the
+  tiles). Physics reads the same squares. MEASURED (Castle Cum race surface): heavy rain 1 % at
+  30 s, 8 % 2 min, 47 % 5 min, 98 % 10 min; light rain 100 % at 25 min; dry in ~10 min at 26 C;
+  snow 98 % at 10 min, melts in ~2-3 min at 43 C; settled starts 11 % (rain) / 44 % (snow). Cost:
+  0.48 ms a second with 5,749 wear cells. NEXT: F3 level snow / ice / water as field areas (snow
+  stages melt, the Bowling Alley wet lane evaporates; under: tarmac for roads, grass off-road),
+  F4 tyres + AI by coverage. Not on the 2D ground (?glground=0 / ?gpupaint=0): grip only.
 - WINTER LOGIC (owner 10-18: snow and ice melt in anything but the cold, faster when hot; snow
   driven over packs; packed snow ices more in the cold, a small chance it breaks to water on what
   is under it; "complete logical interactions"; efficient on mobile). BUILT behind ?winter=1

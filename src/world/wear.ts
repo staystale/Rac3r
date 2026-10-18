@@ -228,6 +228,8 @@ function getCell(cellX: number, cellY: number): WearCell | null {
     cell = { cx: cellX, cy: cellY, base: layers.base, cover: layers.cover,
       orig: layers.cover || layers.base, passes: 0, scrub: 0, dry: 0, standing: layers.standing,
       lastSeenTime: -100, fixed: layers.fixed, laid: layers.fixed ? null : layers.cover };
+    // the field's cover is not the cell's own ground: the tiles show the ground under it
+    if (!layers.fixed) cell.orig = layers.base;
     cell.current = cell.orig;
     wearMap.set(key, cell);
   }

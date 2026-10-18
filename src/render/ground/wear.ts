@@ -11,6 +11,7 @@ import type { GroundCtx } from "./types.ts";
 import { speckle } from "./prims.ts";
 import { paintLayers, artBase } from "./art.ts";
 import { puddleWater } from "./covers.ts";
+import { fieldLaysCell } from "../../world/coverfield.ts";
 
 // the group key of worn cells that are now standing water over a ground (?onepuddle=1)
 const PUDDLE_KEY = 'puddle|';
@@ -57,7 +58,9 @@ function groupWornCells(groundCtx: GroundCtx, pass: string) {
   // handful of draw calls.
   const groups = new Map<string, WearGroup>();
   for (const cell of wearMap.values()) {
-    if (cell.current === cell.orig) continue;
+    // the cover field's own water / snow is drawn on the GPU (glfield.ts): the ground under it here
+    const shows = fieldLaysCell(cell) ? cell.base : cell.current!;
+    if (shows === cell.orig) continue;
     const startedCovered = cell.orig === 'snow' || cell.orig === 'ice' || cell.orig === 'wet';
     if ((pass === 'cover') !== startedCovered) continue;
     const px0 = Math.round(toScreenX(cell.cx * WEAR_CELL)),
@@ -67,8 +70,7 @@ function groupWornCells(groundCtx: GroundCtx, pass: string) {
     if (px1 < 0 || px0 > view.W || py1 < 0 || py0 > view.H) continue;
     // cell.current! : set right after the cell is made; water is the wet surface art, the same
     // look as a wet zone and a puddle
-    const groupKey = groundCtx.onePuddle && cell.current === 'wet' ? PUDDLE_KEY + cell.base
-      : cell.current!;
+    const groupKey = groundCtx.onePuddle && shows === 'wet' ? PUDDLE_KEY + cell.base : shows;
     let group = groups.get(groupKey);
     if (!group) groups.set(groupKey, (group = {
       r: [], bx0: Infinity, by0: Infinity, bx1: -Infinity, by1: -Infinity,
