@@ -6,6 +6,8 @@ import { hit, hitRoll, repair, applyBurst } from '../damage.js';
 import { rolling, tripCheck, stepRoll } from '../roll.js';
 import { LEVEL } from "../world/state.ts";
 import { DAYLIGHT, headlightsWanted } from "../world/daylight.ts";
+import { lampsEnabled } from "../world/lamps.ts";
+import { WEATHER } from "../world/weather.ts";
 import { stepWetTrails } from "../wettrail.ts";
 import { applyGround, fenceClamp, obstacleClamp } from "../world/wear.ts";
 import { barrierClamp, solidClamp } from "../world/barriers.ts";
@@ -155,6 +157,11 @@ function updateFieldHeadlights() {
   const fieldLights = byLight ? headlightsWanted() : !!game.car.lightsOn;
   for (const entry of game.ai) entry.car.lightsOn = fieldLights;
   if (byLight) for (const car of game.traffic.cars) car.lightsOn = fieldLights;
+  // RAIN LIGHTS (?lamps=1): every racer's rear rain light is on while it rains (road traffic
+  // has none)
+  const raining = lampsEnabled() && WEATHER.rain > 0;
+  game.car.rainLight = raining;
+  for (const entry of game.ai) entry.car.rainLight = raining;
 }
 
 /**

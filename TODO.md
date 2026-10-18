@@ -109,9 +109,36 @@ the git history. `docs/foreman-handover.md` is the last handover (10-18, cover f
   them), on from darkness 0.3; render/props/lamps.ts draws them (overhead layer), pylons pale and
   without their pool when off. Castle Cum: 13 along the start straight (9 m and -20 m out).
   Measured (_lampshots.mjs): a car at 40 km/h into a post / pylon base bounces off.
-  NEXT: L3 damage (nudge = wonk + flicker; hard hit = out by degrees; snapped = a fallen post,
-  mangled per hit, easier to drive over; pylons wonk + flicker, never fall), L4 placement on
-  every level by the owner's rules, L5 time of day (mockup first).
+  [x] FIXED 10-18 (owner on the phone): light edges "dancing and wiggling" - the light map was
+  laid nearest-neighbour (art-pixel staircases crawling); now blended, beams with soft sides.
+  [ ] BUILT 10-18 (with ?night=): one beam per headlight in the dark (the car picture's old
+  yellow beam is drawn only by day now; the owner saw both); indicators / hazards GLOW amber at
+  night (render/light.ts drawGlows: an additive glow per lit corner, stronger the darker).
+  NEXT (owner asked 10-18: "street lamps are not able to be knocked over - is that coming?"):
+  L3 damage - nudge = wonk + flicker (stays lit); hard hit = out by degrees; snapped = a fallen
+  post, debris you can hit, mangled per hit, easier to drive over each time; pylons wonk +
+  flicker, never fall. Then L4 placement on every level by the owner's rules, L5 time of day
+  (mockup first).
+  [ ] BUILT 10-18 (owner: "brake lights / rain lights too?"): at night brake lights glow red,
+  tail lights dim red with the headlights; with ?lamps=1 every racer's rear RAIN LIGHT is on
+  while it rains (steady; traffic has none) and the AI's brake lights work (want.brake; they
+  were never lit).
+  TIME OF DAY - the owner's answers (10-18): ONE GLOBAL GAME CLOCK that holds for the story,
+  saved, runs while playing; 1 game day = 1 real hour; a season = 7 game days (a year = 28 h of
+  play); UK-like days (winter ~8 h daylight, summer ~16 h) and MOON PHASES (some nights moonlit,
+  some pitch-black); a TIME slider only in TEST MODE (owner: "slider is only for test mode,
+  global should hold for story"). From the brief: pink sunrises, orange sunsets, weather dims
+  the light; lamps / headlights follow it. ORDER: time of day next (owner wants to test it with
+  the slider), then L3 knock-downs, then mud M1 / grass G1.
+- MUD + GRASS (owner 10-18, plan approved "sounds good"; build after the lighting fixes):
+  M1 mud never turns to thick mud without water (today: 3 dry passes do it; BASE_WEAR mud) -
+  only damp ground or a churned puddle; worn mud already dries to dirt by track temperature in
+  a dry spell (puddles.ts dryMud, ~4 min at 20 C) keeping its ruts. OPEN QUESTION to the owner:
+  should a level's own painted mud dry in the heat too (as a snow stage melts)? Not built until
+  answered. G1 short grass vs grass (identical today): short grass a lighter drier mown look,
+  tighter stripes, no blades; grass a sparse fine blade layer; short grass dirt patches ~4 ->
+  10 % (own random stream: existing patches unchanged); short grass mu 0.47 -> 0.46, peak a touch
+  earlier, ~20 % less drag (rough). Photos first, each behind its own switch.
 - GRASS THROUGH THE CRACKS (owner: a and b, "like real life"): long-grass tufts in some
   broken-tarmac flecks, and scattered on broken-tarmac / concrete ground (blend.ts, own random
   stream: every existing patch unchanged). OWNER APPROVED 2026-10-16 (testlist entry deleted).

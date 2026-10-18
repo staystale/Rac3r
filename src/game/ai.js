@@ -6,6 +6,7 @@ import { rolling, tripCheck, stepRoll } from '../roll.js';
 import { LEVEL } from "../world/state.ts";
 import { applyGround, fenceClamp, obstacleClamp } from "../world/wear.ts";
 import { barrierClamp, solidClamp } from "../world/barriers.ts";
+import { lampsEnabled } from "../world/lamps.ts";
 import { crossedJoker } from './rules.js';
 import { findNearestSubtrackPoint, onTrack } from "../world/tyrewall.ts";
 import { startHeld, carHeld, atPace } from './order.js';
@@ -232,6 +233,8 @@ export function stepAICar(entry, dt) {
     stepAIInjury(entry, dt);
     applyGround(car, dt);
     const want = aiWant(entry, dt);
+    // the AI's brake lights show its brakes (?lamps=1; they were never lit before)
+    if (lampsEnabled()) car.brakeLight = want.brake;
     stepAIPhysics(entry, want, dt);
     assertFinite(car);
     // the JOKER gate, counted for every AI exactly as for the player (stepJoker)

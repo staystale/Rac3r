@@ -1,5 +1,6 @@
 // The CARS layer of the renderer: drawPixelCar and the garage lift sprite.
 import { SPRITE_PPM } from "./shared.ts";
+import { DAYLIGHT } from "../world/daylight.ts";
 import type {
   Cam, CarSprite, RenderCar, RenderCarSpec, RollFace, SideSprite, SilCanvas, View,
 } from "./types.ts";
@@ -141,7 +142,16 @@ export function lampLevel(car: RenderCar, corner: number) {
 }
 
 /**
- * HEADLIGHTS: two soft beams ahead (drawn in the car's frame, art px), brighter lamps.
+ * Whether the indicators are in the lit half of their blink (~1.5 Hz, wall clock).
+ * @returns true while lit
+ */
+export function indicatorBlinkOn(): boolean {
+  return Math.floor(performance.now() / 333) % 2 === 0;
+}
+
+/**
+ * HEADLIGHTS: two soft beams ahead (drawn in the car's frame, art px), brighter lamps. In the dark
+ * (?night=) only the lamps: the night layer (render/light.ts) draws the light they throw.
  * @param carsCtx the shared view and helpers
  * @param car the car
  * @param sprite the body sprite
@@ -151,6 +161,11 @@ function drawHeadlights(carsCtx: CarsContext, car: RenderCar, sprite: CarSprite)
   for (const [y, corner] of [[-sprite.Wp / 2 + 4, 0], [sprite.Wp / 2 - 4, 1]]) {
     const level = lampLevel(car, corner);
     if (!level) continue;
+    if (DAYLIGHT.darkness > 0) {
+      view.ctx.fillStyle = '#fffbe6';
+      view.ctx.fillRect(sprite.Lp / 2 - 3, y - 2, 3, 4);
+      continue;
+    }
     const beam = view.ctx.createLinearGradient(sprite.Lp / 2, 0, sprite.Lp / 2 + 190, 0);
     beam.addColorStop(0, 'rgba(255,244,200,' + (0.34 * level).toFixed(3) + ')');
     beam.addColorStop(1, 'rgba(255,244,200,0)');
@@ -177,7 +192,7 @@ function drawHeadlights(carsCtx: CarsContext, car: RenderCar, sprite: CarSprite)
 function drawIndicators(carsCtx: CarsContext, car: RenderCar, sprite: CarSprite) {
   const { view } = carsCtx;
   // (the ! below: indicator or hazard was truthy above)
-  if ((car.indicator || car.hazard) && Math.floor(performance.now() / 333) % 2 === 0)
+  if ((car.indicator || car.hazard) && indicatorBlinkOn())
   for (const ind of car.hazard ? [-1, 1] : [car.indicator!]) {
     const y = ind < 0 ? -sprite.Wp / 2 : sprite.Wp / 2 - 3;
     view.ctx.fillStyle = '#ffa630';
@@ -198,10 +213,17 @@ function drawCarLamps(carsCtx: CarsContext, car: RenderCar, sprite: CarSprite) {
   // brake lights glow when braking (a live overlay on the sprite)
   if (car.lightsOn) drawHeadlights(carsCtx, car, sprite);
   drawIndicators(carsCtx, car, sprite);
-  if (car.brakeLight! > 0.05) {   // undefined > 0.05 is false
-    view.ctx.fillStyle = '#ff4a3a';
+  // tail lights: dim red with the headlights in the dark (by day they do not show)
+  const isTail = !!car.lightsOn && DAYLIGHT.darkness > 0;
+  if (car.brakeLight! > 0.05 || isTail) {   // undefined > 0.05 is false
+    view.ctx.fillStyle = car.brakeLight! > 0.05 ? '#ff4a3a' : '#a8291f';
     if (lampLevel(car, 2)) view.ctx.fillRect(-sprite.Lp / 2, -sprite.Wp / 2 + 2, 2, 3);
     if (lampLevel(car, 3)) view.ctx.fillRect(-sprite.Lp / 2, sprite.Wp / 2 - 5, 2, 3);
+  }
+  // the rain light: one red lamp in the middle of the tail
+  if (car.rainLight) {
+    view.ctx.fillStyle = '#ff3a2a';
+    view.ctx.fillRect(-sprite.Lp / 2, -1, 2, 2);
   }
 }
 

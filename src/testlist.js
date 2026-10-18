@@ -25,7 +25,8 @@ export const TEST_LIST = [
     name: 'Street lights and floodlights: solid lamps, on from dusk',
     where: 'Plain link + &lamps=1&night=0.8 (Castle Cum start straight; Stock Car pylons);'
       + ' &lamps=1 alone for daytime',
-    try: 'At night: a pool below each head; by day: lamps off. Drive into a post or a pylon base:'
+    try: 'At night: a pool below each head, one beam per headlight, indicators glow amber; by day'
+      + ' lamps off. Drive into a post or a pylon base:'
       + ' it stops you like a wall (no knock-downs yet).',
     wrong: 'Lamps lit by day, a post you drive through, a pool off its lamp, lamps on the track.',
   },

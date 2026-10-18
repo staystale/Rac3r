@@ -6,7 +6,7 @@
 import { PROPS } from '../world/state.ts';
 import { DAYLIGHT } from '../world/daylight.ts';
 import { activeLamps, lampsEnabled, lampsLit } from '../world/lamps.ts';
-import { lampLevel } from './cars.ts';
+import { indicatorBlinkOn, lampLevel } from './cars.ts';
 import type { RenderCar, RenderGame, View } from './types.ts';
 
 // the night's dark at darkness 1: a deep blue-black this opaque (the darkest patches still show
@@ -20,6 +20,9 @@ const LAMP_SIDE_M = 0.7;
 const BEAM_STRENGTH = 0.6;
 // a floodlight pylon's pool radius without ?lamps=1, m (world/lamps.ts has the lamps' own)
 const POOL_PYLON_M = 34;
+// a lamp's glow at night: its radius, m, and its strength at darkness 1; a tail light's share of
+// a brake light's glow
+const GLOW_M = 1.8, GLOW_STRENGTH = 0.7, TAIL_GLOW = 0.35;
 // the side of the beam and pool pictures, px
 const PICTURE_PX = 128;
 
@@ -80,6 +83,131 @@ function paintBeam(pictureCtx: CanvasRenderingContext2D) {
     pictureCtx.fill();
   }
   pictureCtx.globalAlpha = 1;
+}
+
+/**
+ * A lamp's glow picture in one colour, full in the middle, fading to its rim.
+ * @param rgb the colour, 'r,g,b'
+ * @returns paints the picture
+ */
+function glowOf(rgb: string) {
+  return (pictureCtx: CanvasRenderingContext2D) => {
+    const mid = PICTURE_PX / 2;
+    const glow = pictureCtx.createRadialGradient(mid, mid, 0, mid, mid, mid);
+    glow.addColorStop(0, 'rgba(' + rgb + ',0.9)');
+    glow.addColorStop(0.3, 'rgba(' + rgb + ',0.35)');
+    glow.addColorStop(1, 'rgba(' + rgb + ',0)');
+    pictureCtx.fillStyle = glow;
+    pictureCtx.fillRect(0, 0, PICTURE_PX, PICTURE_PX);
+  };
+}
+
+/** What the indicator glows are drawn with: the screen, the glow picture and the mapping. */
+interface GlowPainter {
+  mainCtx: CanvasRenderingContext2D;
+  glow: HTMLCanvasElement;      // amber: indicators
+  redGlow: HTMLCanvasElement;   // red: brake, tail and rain lights
+  strength: number;             // this frame's glow strength (by the dark)
+  devX: (worldX: number) => number;
+  devY: (worldY: number) => number;
+  devPerMetre: () => number;
+  shift: { x: number; y: number };   // this frame's sub-pixel shift, device px
+}
+
+/**
+ * The indicator glows' painter: world points in the screen's device px, at the frame's shift.
+ * @param parts what the night layer reads from the renderer
+ * @returns the painter
+ */
+function makeGlowPainter(parts: NightParts): GlowPainter {
+  const devPerCss = () => parts.view.dpr * parts.state.blockPx;
+  const shift = { x: 0, y: 0 };
+  return { mainCtx: parts.mainCtx, glow: makePicture(glowOf('255,160,40')),
+    redGlow: makePicture(glowOf('255,40,28')), strength: 0, shift,
+    devX: (worldX) => parts.toScreenX(worldX) * devPerCss() + shift.x,
+    devY: (worldY) => parts.toScreenY(worldY) * devPerCss() + shift.y,
+    devPerMetre: () => parts.PPMz() * devPerCss() };
+}
+
+/**
+ * Adds every car's lamp glows over the laid dark (stronger the darker it is).
+ * @param painter the screen and the mapping
+ * @param game the game drawn
+ * @param lock the frame's sub-pixel shift
+ */
+function drawGlows(painter: GlowPainter, game: RenderGame, lock: NightLock) {
+  const isBlinkOn = indicatorBlinkOn();
+  painter.shift.x = lock.subX;
+  painter.shift.y = lock.subY;
+  painter.strength = GLOW_STRENGTH * DAYLIGHT.darkness;
+  painter.mainCtx.globalCompositeOperation = 'lighter';
+  if (game.traffic) for (const car of game.traffic.cars) drawCarGlows(painter, car, isBlinkOn);
+  for (const rival of game.ai || []) drawCarGlows(painter, rival.car, isBlinkOn);
+  drawCarGlows(painter, game.car, isBlinkOn);
+}
+
+/**
+ * One glow at a point of the car's body.
+ * @param painter the screen and the mapping
+ * @param car the car
+ * @param along metres ahead of the car's centre (negative: behind)
+ * @param across metres to its +y side
+ * @param picture the glow picture
+ * @param level its brightness, 0..1
+ */
+function glowAt(painter: GlowPainter, car: RenderCar, along: number, across: number,
+    picture: HTMLCanvasElement, level: number) {
+  const cos = Math.cos(car.heading), sin = Math.sin(car.heading);
+  const size = 2 * GLOW_M * painter.devPerMetre();
+  const x = painter.devX(car.x + cos * along - sin * across);
+  const y = painter.devY(car.y + sin * along + cos * across);
+  painter.mainCtx.globalAlpha = painter.strength * level;
+  painter.mainCtx.drawImage(picture, x - size / 2, y - size / 2, size, size);
+}
+
+/**
+ * One car's lamp glows over the dark: lit indicators (hazards both sides) amber; brake lights,
+ * tail lights (dimmer, with the headlights) and the rain light red. A broken lamp does not glow.
+ * @param painter the screen and the mapping
+ * @param car the car
+ * @param isBlinkOn the indicators are in the lit half of their blink
+ */
+function drawCarGlows(painter: GlowPainter, car: RenderCar, isBlinkOn: boolean) {
+  if (isBlinkOn) drawIndicatorGlows(painter, car);
+  drawRearGlows(painter, car);
+}
+
+/**
+ * A car's lit indicators glow amber (hazards: both sides).
+ * @param painter the screen and the mapping
+ * @param car the car
+ */
+function drawIndicatorGlows(painter: GlowPainter, car: RenderCar) {
+  const halfLen = car.spec.len / 2, halfWid = car.spec.wid / 2;
+  const side = car.hazard ? 0 : car.indicator || 0;
+  if (!side && !car.hazard) return;
+  // corners (damage.js): 0 front -y, 1 front +y, 2 rear -y, 3 rear +y
+  for (const along of [halfLen, -halfLen]) {
+    for (const across of side ? [side * halfWid] : [-halfWid, halfWid]) {
+      if (lampLevel(car, (along > 0 ? 0 : 2) + (across > 0 ? 1 : 0)))
+        glowAt(painter, car, along, across, painter.glow, 1);
+    }
+  }
+}
+
+/**
+ * A car's brake lights, tail lights (dimmer, with the headlights) and rain light glow red.
+ * @param painter the screen and the mapping
+ * @param car the car
+ */
+function drawRearGlows(painter: GlowPainter, car: RenderCar) {
+  const halfLen = car.spec.len / 2, halfWid = car.spec.wid / 2;
+  const rear = car.brakeLight! > 0.05 ? 1 : car.lightsOn ? TAIL_GLOW : 0;
+  if (rear) {
+    if (lampLevel(car, 2)) glowAt(painter, car, -halfLen, -halfWid * 0.7, painter.redGlow, rear);
+    if (lampLevel(car, 3)) glowAt(painter, car, -halfLen, halfWid * 0.7, painter.redGlow, rear);
+  }
+  if (car.rainLight) glowAt(painter, car, -halfLen, 0, painter.redGlow, 0.8);
 }
 
 /**
@@ -158,6 +286,7 @@ export function createNight(parts: NightParts) {
     x > -reach && y > -reach && x < canvas.width + reach && y < canvas.height + reach;
 
   const pools: PoolPainter = { lightCtx, pool, artX, artY, artPerMetre, isNear };
+  const glows = makeGlowPainter(parts);
   function drawBeams(car: RenderCar) {
     if (!car.lightsOn) return;
     const scale = artPerMetre(), cos = Math.cos(car.heading), sin = Math.sin(car.heading);
@@ -213,6 +342,7 @@ export function createNight(parts: NightParts) {
     mainCtx.imageSmoothingQuality = 'low';
     mainCtx.drawImage(canvas, lock.subX, lock.subY, canvas.width * state.blockPx,
       canvas.height * state.blockPx);
+    drawGlows(glows, game, lock);
     mainCtx.restore();
   };
 }
