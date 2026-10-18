@@ -13,6 +13,7 @@
 import { debugValue } from "../core/debug.ts";
 import { groundAt } from "../world/wear.ts";
 import { WEATHER } from "../world/weather.ts";
+import { coverEpoch } from "../world/coverfield.ts";
 import { querySubtrack } from "../world/tyrewall.ts";
 import { GRAVITY } from "../cars.ts";
 import { CAR_STATS } from "../carstats.js";
@@ -66,7 +67,7 @@ function finishPath<P extends PathPoint>(pts: P[], closed: boolean, total: numbe
     const ground = groundAt(point.x, point.y);
     point.mu = (ground.surface && ground.surface.mu) || 1;
   }
-  return { pts, n: count, closed, total, sp: step, prof: {}, wetEpoch: WEATHER.epoch };
+  return { pts, n: count, closed, total, sp: step, prof: {}, wetEpoch: groundEpoch() };
 }
 
 /** What racingLine reads about the level's road, made once and passed to its steps. */
@@ -420,6 +421,12 @@ export function carGrip(spec: AiCar["spec"]) {
   return { id: carId, gripG, brakeG };
 }
 /**
+ * The ground's grip epoch: the wetness step (weather.ts) and the cover field's (coverfield.ts).
+ * @returns a number that changes when the ground's grip may have
+ */
+const groundEpoch = () => WEATHER.epoch * 1e6 + coverEpoch();
+
+/**
  * The track got wetter or drier by a step (weather.ts): the path's grip is read again from the
  * ground (damp surfaces, the dry line) and every car's speed plan is made again from it, so the AI
  * brakes for the grip that is there.
@@ -431,7 +438,7 @@ function regripPath(path: Path) {
     point.mu = (ground.surface && ground.surface.mu) || 1;
   }
   path.prof = {};
-  path.wetEpoch = WEATHER.epoch;
+  path.wetEpoch = groundEpoch();
 }
 
 export function profileOf(
@@ -446,7 +453,7 @@ export function profileOf(
     kCorner = (debugValue("AI_K") as number || K_CORNER) * aiK,
     kBrake = (kBo || debugValue("AI_KB") as number || K_BRAKE) * aiK,
     key = carId + ':' + kCorner + ':' + kBrake;
-  if (path.wetEpoch !== WEATHER.epoch) regripPath(path);
+  if (path.wetEpoch !== groundEpoch()) regripPath(path);
   if (path.prof[key]) return path.prof[key];
   const count = path.n, speed = new Float64Array(count), spacing = path.sp, pts = path.pts;
   for (let i = 0; i < count; i++) {

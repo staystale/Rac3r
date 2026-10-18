@@ -535,9 +535,17 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
   tiles). Physics reads the same squares. MEASURED (Castle Cum race surface): heavy rain 1 % at
   30 s, 8 % 2 min, 47 % 5 min, 98 % 10 min; light rain 100 % at 25 min; dry in ~10 min at 26 C;
   snow 98 % at 10 min, melts in ~2-3 min at 43 C; settled starts 11 % (rain) / 44 % (snow). Cost:
-  0.48 ms a second with 5,749 wear cells. NEXT: F3 level snow / ice / water as field areas (snow
-  stages melt, the Bowling Alley wet lane evaporates; under: tarmac for roads, grass off-road),
-  F4 tyres + AI by coverage. Not on the 2D ground (?glground=0 / ?gpupaint=0): grip only.
+  0.48 ms a second with 5,749 wear cells. F3 BUILT: the level's own snow ground, cover zones and
+  lanes, packed snow roads and hand-placed patches are LEVEL AREAS with their own levels (full at
+  the start, the same weather rules), so a snow stage melts in a hot event and the Bowling Alley
+  wet lane dries; their ground is painted as what lies beneath (coverfield.ts areaUnder: the
+  surface's under, a road's tarmac, open snow ground's grass); scenery water stays. F4 BUILT: the
+  AI plans its speeds again when a level crosses a tenth (coverfield.ts coverEpoch, ai/line.ts);
+  tyres clear water lines (3 passes), pack and break snow by the winter rules, per wear cell (the
+  GPU mask leaves those cells to the tiles). MEASURED: Castle Cum race, 3 AI, water 0.6: 54.2 fps
+  with the field vs 55.5 without (headless laptop); a snow stage under a full field 60 fps. Not on
+  the 2D ground (?glground=0 / ?gpupaint=0): grip only. Owner test link: plain + &coverfield=1
+  &winter=1.
 - WINTER LOGIC (owner 10-18: snow and ice melt in anything but the cold, faster when hot; snow
   driven over packs; packed snow ices more in the cold, a small chance it breaks to water on what
   is under it; "complete logical interactions"; efficient on mobile). BUILT behind ?winter=1

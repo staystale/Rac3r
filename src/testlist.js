@@ -8,6 +8,16 @@
 //   where  how to get to it      try     what to do      wrong   what would count as a bug
 export const TEST_LIST = [
   {
+    id: 'coverfield',
+    added: '2026-10-18',
+    name: 'Cover field: rain / snow build in small patches until they coat the track; heat melts',
+    where: 'Plain link + &coverfield=1&winter=1: any level (highway too), WEATHER rows',
+    try: 'Heavy rain / snow: patches in ~30 s, a full coat in ~10 min; dry / hot: it shrinks back;'
+      + ' a snow stage in HOT melts to grass and tarmac; the Bowling Alley wet lane dries; drive'
+      + ' through: tyres clear water lines, pack snow.',
+    wrong: 'Patches popping or flickering, a coat that never forms / goes, lag in rain or snow.',
+  },
+  {
     id: 'labweather',
     added: '2026-10-18',
     name: 'Lab weather: puddles and snow patches on OG Lab, Bowling Alley, Rough Patch too',

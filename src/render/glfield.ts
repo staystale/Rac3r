@@ -54,6 +54,8 @@ uniform highp sampler2D maskTex;
 out vec4 colour;
 const int GRID = ${GRID_SQ};
 const float SQ = ${FIELD_SQ.toFixed(2)};
+// a square this far under its level has no bare neighbour (the catch moves less per square)
+const float RIM_DEPTH = 0.2;
 ivec2 slotOf(ivec2 square) { return ((square % GRID) + GRID) % GRID; }
 // 0 nothing, 1 water, 2 ice, 3 snow, 4 packed snow (the order of coverfield.ts coverOfLevels)
 int kindIn(vec4 lv, vec2 catchValue, out float depth) {
@@ -81,11 +83,12 @@ void main() {
   float depth, other;
   int kind = kindOf(square, depth);
   if (kind <= 0) discard;
-  // the rim: where a neighbour is bare ground (not another cover, not the tiles' own)
-  bool rim = kindOf(square + ivec2(1, 0), other) == 0
+  // the rim: where a neighbour is bare ground (not another cover, not the tiles' own); deep in a
+  // patch (the level well above the catch) no neighbour can be, and the reads are skipped
+  bool rim = depth < RIM_DEPTH && (kindOf(square + ivec2(1, 0), other) == 0
     || kindOf(square - ivec2(1, 0), other) == 0
     || kindOf(square + ivec2(0, 1), other) == 0
-    || kindOf(square - ivec2(0, 1), other) == 0;
+    || kindOf(square - ivec2(0, 1), other) == 0);
   float thick = clamp(depth * 8.0, 0.0, 1.0);
   // a faint diagonal sheen across water and ice, square by square
   float sheen = fract(float(square.x + square.y) * 0.083) < 0.12 ? 1.0 : 0.0;

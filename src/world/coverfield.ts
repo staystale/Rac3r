@@ -72,7 +72,9 @@ export const AREAS: Record<AreaKind, Levels> = {
   wet: emptyLevels(), snow: emptyLevels(), ice: emptyLevels(), packedSnow: emptyLevels(),
 };
 
-let enabled = false, syncS = 0;
+let enabled = false, syncS = 0, epoch = 0;
+// the AI plans its speeds again when a level crosses a tenth (ai/line.ts): the bands last seen
+const bandsSeen = new Int16Array((AREA_KINDS.length + 1) * 4);
 
 /**
  * Turns the cover field on (?coverfield=1, at start-up): the weather's water and snow lie by it
@@ -289,12 +291,52 @@ export function stepCoverField(dt: number): void {
   if (!enabled || !weatherRuns()) return;
   stepLevels(FIELD, dt);
   for (const kind of AREA_KINDS) stepLevels(AREAS[kind], dt);
+  noteBands();
   syncS += dt;
   if (syncS >= SYNC_S) {
     syncFieldCells(syncS);
     syncS = 0;
   }
 }
+
+/**
+ * Counts an epoch when any level (the weather's or an area's) crosses a tenth.
+ */
+function noteBands(): void {
+  let moved = noteLevels(FIELD, 0);
+  for (let kind = 0; kind < AREA_KINDS.length; kind++) {
+    if (noteLevels(AREAS[AREA_KINDS[kind]], (kind + 1) * 4)) moved = true;
+  }
+  if (moved) epoch++;
+}
+
+/**
+ * Notes one set of levels' tenths (no allocation: it runs every physics step).
+ * @param levels the levels
+ * @param first their first slot in bandsSeen
+ * @returns true when one moved
+ */
+function noteLevels(levels: Levels, first: number): boolean {
+  const water = noteBand(first, levels.water), snow = noteBand(first + 1, levels.snow);
+  const ice = noteBand(first + 2, levels.ice), packed = noteBand(first + 3, levels.packed);
+  return water || snow || ice || packed;
+}
+
+/**
+ * Notes a level's tenth in its slot.
+ * @param slot the slot in bandsSeen
+ * @param level the level
+ * @returns true when it moved
+ */
+function noteBand(slot: number, level: number): boolean {
+  const band = Math.floor(level * 10);
+  if (bandsSeen[slot] === band) return false;
+  bandsSeen[slot] = band;
+  return true;
+}
+
+/** How many times the field's levels have moved by a tenth (ai/line.ts plans again). */
+export function coverEpoch(): number { return epoch; }
 
 /**
  * One wear cell follows the field: what the field laid (and the tyres left alone) moves with it;
