@@ -12,7 +12,7 @@ const snow = await import(W + 'world/snowwear.ts');
 const field = await import(W + 'world/coverfield.ts');
 const STATE = await import(W + 'world/state.ts');
 const frost = process.argv.includes('--frost');
-Wx.setMelt(true); snow.setWinterSnow(true); P.setWeatherPuddles(true); field.setCoverField(true);
+Wx.setMelt(true); snow.setWinterSnow(true); P.setWeatherPuddles(true);
 field.setMudFrost(frost);
 L.setLevel('lab');
 const panel = (id) => STATE.LEVEL.zones.find((zone) => zone.surface && zone.surface.id === id

@@ -31,14 +31,11 @@ export interface Settings {
   weather: boolean;              // weather in the event setup (season, changes); ?weather=0 off
   slideWear: boolean;            // sliding / crashing wheels wear the ground twice; =0 off
   tyreWear: boolean;             // tyres wear, puncture; the garage fits new sets; =0 off
-  morePuddles: boolean;          // more puddle sites than snow, half on the road; =0 off
   tyreFeel: boolean;             // tyres warm sooner / hold heat, slides wear more; =0 off
   packedWear: boolean;           // packed snow wears to snow or ice; =0 off
   onePuddle: boolean;            // one puddle look, water tinted by its ground; =0 off
   wetTrail: boolean;             // wet tyre lines fade within 10-50 m; =0 off
   winter: boolean;               // snow / ice / water logic by temperature; =0 off
-  labWeather: boolean;           // ?labweather=1: puddle / snow sites on lab floors (under test)
-  coverField: boolean;           // water and snow build up by the weather, everywhere; =0 off
   hwMap: boolean;                // the minimap on the highway too; ?hwmap=0 = not there
   sharpCars: boolean;            // crisp cars on the screen canvas (render.ts); ?sharpcars=0 off
   sharpMarks: boolean;           // skid marks on the screen canvas (render.ts); ?sharpmarks=0 off
@@ -100,11 +97,10 @@ function rainLevel(params: URLSearchParams): number | null {
 function weatherSettings(params: URLSearchParams) {
   return { rain: rainLevel(params), weather: params.get('weather') !== '0',
     slideWear: params.get('slidewear') !== '0', tyreWear: params.get('tyrewear') !== '0',
-    morePuddles: params.get('morepuddles') !== '0', tyreFeel: params.get('tyrefeel') !== '0',
+    tyreFeel: params.get('tyrefeel') !== '0',
     packedWear: params.get('packedwear') !== '0', onePuddle: params.get('onepuddle') !== '0',
     wetTrail: params.get('wettrail') !== '0', winter: params.get('winter') !== '0',
-    labWeather: params.get('labweather') === '1',
-    coverField: params.get('coverfield') !== '0', mudFreeze: params.get('mudfreeze') !== '0',
+    mudFreeze: params.get('mudfreeze') !== '0',
     sandDig: params.get('sanddig') !== '0', winterCold: params.get('wintercold') !== '0',
     gravelDig: params.get('graveldig') !== '0', coldSurface: params.get('coldsurface') !== '0',
     wearChance: params.get('wearchance') !== '0', markFade: params.get('markfade') !== '0',

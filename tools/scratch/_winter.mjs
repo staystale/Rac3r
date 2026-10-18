@@ -8,7 +8,7 @@ const Wx = await import(W + 'world/weather.ts');
 const P = await import(W + 'world/puddles.ts');
 const snow = await import(W + 'world/snowwear.ts');
 const STATE = await import(W + 'world/state.ts');
-Wx.setMelt(true); snow.setWinterSnow(true); P.setWeatherPuddles(true); P.setLabWeather(true);
+Wx.setMelt(true); snow.setWinterSnow(true); P.setWeatherPuddles(true);
 
 // 1. outcomes: 400 cells of the Bowling Alley's snow lane, 4 passes (loose snow), then 4 more
 L.setLevel('bowling-alley');

@@ -237,31 +237,11 @@ export interface Cover {
   water?: boolean;   // SCENERY water (river, lake, ford): permanent in any weather (puddles.ts)
   _frozen?: boolean;   // puddles.ts: scenery water frozen over (its _iceTwin is shown)
   _iceTwin?: Cover;   // puddles.ts: the same water as ice
-  _waterTwin?: Cover;   // puddles.ts: a level's snow / ice melted to water (?winter=1)
-  _melt?: 'water' | 'ice' | 'gone';   // puddles.ts: a level's snow / ice melted, refrozen, dried
   _co?: number;   // coverAt caches for rotated covers
   _si?: number;
   _cells?: CoverCells;   // ground.ts coverCells caches the covered 0.5 m cells
 }
 
-// A place the weather makes a puddle or a snow patch (puddles.ts): its full size, how fast it
-// fills, whether it can hold snow, its water and snow (0..1), the look shown ('' / 'wet3' / ...)
-// and the cover of each look.
-export interface PuddleSite {
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-  rot: number;
-  catchK: number;
-  snowy: boolean;
-  water: number;
-  ice: number;
-  snow: number;
-  shown: string;
-  covers: Record<string, Cover>;
-  refillS?: number;   // s of heavy rain until its cleared spots fill again (?morepuddles=1)
-}
 
 // The 0.5 m world-grid cells inside a cover, as x, y pairs; rim = those with an outside neighbour.
 export interface CoverCells {
@@ -431,7 +411,6 @@ export interface Level {
   endless?: boolean;   // blend.ts: the 100 km highway
   _coversBase?: Cover[];   // blend.ts: the hand-placed covers
   _staticCovers?: Cover[];   // load.ts: the covers the weather does not move (puddles.ts)
-  _puddleSites?: PuddleSite[];   // puddles.ts: where the weather makes puddles and snow patches
   _hw?: HighwayState;   // highway.js: the endless road (only the fields the camera reads)
   _mergedOf?: Cover[];   // ground.ts mergedCovers: the covers list _merged was built from
   _merged?: MergedCover[];   // ground.ts mergedCovers

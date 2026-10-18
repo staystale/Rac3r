@@ -39,11 +39,11 @@ import { setGroundLookup, setSlideWear } from "./world/wear.ts";
 import { setGravelDig, setSandDig, setWearChance } from "./world/dig.ts";
 import { setPackedSnowWear, setWinterSnow } from "./world/snowwear.ts";
 import { setWetTrail } from "./wettrail.ts";
-import { setCoverField, setMudFrost, setOneLook } from "./world/coverfield.ts";
+import { setMudFrost, setOneLook } from "./world/coverfield.ts";
 import {
   setColdSurface, setWetness, setRain, setMelt, setWinterCold,
 } from "./world/weather.ts";
-import { setWeatherPuddles, setMorePuddles, setLabWeather } from "./world/puddles.ts";
+import { setWeatherPuddles } from "./world/puddles.ts";
 import { setTyreWear } from "./physics/tyrewear.ts";
 import { setTyreFeel } from "./physics/tyreheat.ts";
 import { LEVEL } from "./world/state.ts";
@@ -78,13 +78,10 @@ setColdSurface(shared.settings.coldSurface);   // ?coldsurface=1: one water / sn
 setMarkFade(shared.settings.markFade);   // ?markfade=1: tyre marks fade block by block
 setWearChance(shared.settings.wearChance);   // ?wearchance=1: dirt / sand / gravel wear chances
 setOneLook(shared.settings.oneLook);   // ?onelook=1: tyre-made covers in the field's look
-setCoverField(shared.settings.coverField);   // ?coverfield=1: water and snow build by the weather
 setMudFrost(shared.settings.mudFreeze);   // ?mudfreeze=1: all mud freezes by the field's frost
 setMelt(shared.settings.winter);   // ?winter=1: snow and ice melt by temperature, water freezes
 setWinterSnow(shared.settings.winter);   // ?winter=1: snow packs, packed snow ices by temperature
 setWeatherPuddles(shared.settings.weather);   // ?weather=1: the weather makes the puddles
-setMorePuddles(shared.settings.morePuddles);   // ?morepuddles=1: more puddle sites than snow
-setLabWeather(shared.settings.labWeather);   // ?labweather=1: puddle / snow sites on lab floors
 setTyreWear(shared.settings.tyreWear);   // ?tyrewear=1: tyres wear and puncture
 setTyreFeel(shared.settings.tyreFeel);   // ?tyrefeel=1: tyres warm, hold heat, slides wear more
 // ?rain=0.6: a wet track, raining (weather test, before any level or racing line is built)

@@ -97,20 +97,10 @@ export const AREAS: Record<AreaKind, Levels> = {
 };
 
 // on here too, so the headless tools drive the ground the game does
-let enabled = true, syncS = 0, epoch = 0, mudFrost = false;
+let syncS = 0, epoch = 0, mudFrost = false;
 // the AI plans its speeds again when a level crosses a tenth (ai/line.ts): the bands last seen
 // (the weather's and each area's four, then the two frosts)
 const bandsSeen = new Int16Array((AREA_KINDS.length + 1) * 4 + 2);
-
-/**
- * Turns the cover field on (?coverfield=1, at start-up): the weather's water and snow lie by it
- * instead of the puddle sites, and the level's own covers are areas of it.
- * @param isOn true for the field
- */
-export function setCoverField(isOn: boolean): void {
-  enabled = isOn;
-  fillAreas();
-}
 
 /**
  * Mud and thick mud freeze by the field's frost (?mudfreeze=1, at start-up), not cell by cell.
@@ -119,7 +109,7 @@ export function setCoverField(isOn: boolean): void {
 export function setMudFrost(isOn: boolean): void { mudFrost = isOn; }
 
 /** Whether mud freezes by the field's frost (?mudfreeze=1). */
-export function mudFrostOn(): boolean { return enabled && mudFrost; }
+export function mudFrostOn(): boolean { return mudFrost; }
 
 /**
  * The frost kind of a ground surface: mud or thick mud, else null.
@@ -129,9 +119,6 @@ export function mudFrostOn(): boolean { return enabled && mudFrost; }
 export function frostKindOf(surfaceId: string): FrostKind | null {
   return surfaceId === 'mud' || surfaceId === 'thickMud' ? surfaceId : null;
 }
-
-/** Whether the weather's water and snow lie by the field. */
-export function coverFieldOn(): boolean { return enabled; }
 
 /**
  * A grid point's noise value, 0..1 (an integer hash).
@@ -209,7 +196,7 @@ export function setOneLook(isOn: boolean): void { oneLook = isOn; }
  * @returns the cover id, or null
  */
 export function cellCoverOnGpu(cell: WearCell): string | null {
-  if (!oneLook || !enabled || cell.fixed || !cell.cover) return null;
+  if (!oneLook || cell.fixed || !cell.cover) return null;
   return GPU_COVERS.includes(cell.cover) ? cell.cover : null;
 }
 
@@ -288,7 +275,6 @@ function stackCovers(areaCover: string | null, weatherCover: string | null): str
  */
 export function fieldCoverAt(x: number, y: number, area: AreaKind | null = null,
     ground = ''): string | null {
-  if (!enabled) return null;
   const squareX = (Math.floor(x / FIELD_SQ) + 0.5) * FIELD_SQ;
   const squareY = (Math.floor(y / FIELD_SQ) + 0.5) * FIELD_SQ;
   if (coldSurfaceOn()) {
@@ -342,7 +328,7 @@ export function areaUnder(kind: AreaKind, under: string | undefined, isBase: boo
  * @returns the surface id to paint
  */
 export function paintAs(surfaceId: string, under?: string, isBase = false): string {
-  const kind = enabled ? areaKindOf(surfaceId) : null;
+  const kind = areaKindOf(surfaceId);
   return kind ? areaUnder(kind, under, isBase) : surfaceId;
 }
 
@@ -424,7 +410,7 @@ function stepLevels(levels: Levels, dt: number): void {
  * @param dt sim seconds
  */
 export function stepCoverField(dt: number): void {
-  if (!enabled || !weatherRuns()) return;
+  if (!weatherRuns()) return;
   stepLevels(FIELD, dt);
   for (const kind of AREA_KINDS) stepLevels(AREAS[kind], dt);
   if (mudFrost) stepFrost(dt);
@@ -555,7 +541,7 @@ export function resetCoverField(): void {
   fillAreas();
   Object.assign(FIELD, emptyLevels());
   FROST.mud = FROST.thickMud = 0;
-  if (!enabled || !weatherRuns()) return;
+  if (!weatherRuns()) return;
   if (mudFrost && WEATHER.trackC < MUD_FREEZE_C) {
     FROST.mud = Math.min(LEVEL_MAX, (MUD_FREEZE_C - WEATHER.trackC) * START_FROST_PER_C);
     FROST.thickMud = FROST.mud * THICK_FROST_RATE;

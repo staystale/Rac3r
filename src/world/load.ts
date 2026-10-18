@@ -11,7 +11,7 @@ import {
 import { onTrack, querySubtrack } from "./tyrewall.ts";
 import { buildBlend, seededRng, buildInclusions } from "./blend.ts";
 import { LEVELS } from "./levels/index.ts";
-import { staticCovers, buildPuddleSites } from "./puddles.ts";
+import { staticCovers } from "./puddles.ts";
 import type { Barrier, Cone, Lane, Level, Patch, Point, Prop, Subtrack } from "./types.ts";
 /**
  * Build (or reuse) the level's blend patches and surface inclusions.
@@ -36,10 +36,9 @@ function buildLevelPatchSets(): void {
       LEVEL.randomise ? Math.random : seededRng(LEVEL.id + ':incl'),
     );
   }
-  // with weather puddles (?weather=1) the level's own puddles go; the weather's sites are added
+  // with the weather (?weather=1) the level's own puddles go: the cover field lays its water
   LEVEL._staticCovers = staticCovers(LEVEL, [...LEVEL._coversBase, ...LEVEL._incl.covers]);
   LEVEL.covers = LEVEL._staticCovers;
-  if (LEVEL.randomise || !LEVEL._puddleSites) LEVEL._puddleSites = buildPuddleSites(LEVEL);
 }
 /**
  * Does a generated patch stay clear of every lane (centre and eight points round its reach)?

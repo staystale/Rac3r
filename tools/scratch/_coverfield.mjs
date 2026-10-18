@@ -7,7 +7,7 @@ const wear = await import(W + 'world/wear.ts');
 const Wx = await import(W + 'world/weather.ts');
 const F = await import(W + 'world/coverfield.ts');
 const STATE = await import(W + 'world/state.ts');
-F.setCoverField(true);
+
 L.setLevel('castle-cum');
 const sub = STATE.LEVEL.subtrack;
 // the race surface: points across the road every 1 m along the lap

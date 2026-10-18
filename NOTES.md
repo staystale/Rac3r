@@ -82,8 +82,9 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   ice, water and packed snow are field areas (start full, melt / dry); under them: the surface's
   own under, a road's tarmac, open snow ground's grass (owner: "depends on the track"; varied
   levels later). A normal track's settled start snow is about a quarter of the first try. The
-  field is now THE water / snow system: the puddle SITES (puddles.ts, ?morepuddles, ?labweather)
-  are off with it and should be deleted in a clean-up pass; scenery water stays permanent.
+  field is THE water / snow / ice system (the puddle sites, ?morepuddles, ?labweather and
+  ?coverfield=0 deleted 10-18); scenery water stays permanent (freezes in the cold). Snow is drawn
+  with opacity by depth (owner: keep).
 - Weather (10-17): a season slider sets the chances of rain / snow / dry / hot / super hot, the
   temperature and the track condition; it can change mid-race; it must add no lag. One water
   system: the existing wet / puddle cover, extended, never a second one.

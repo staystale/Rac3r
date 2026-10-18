@@ -1,101 +1,60 @@
-// WEATHER PUDDLES AND SNOW PATCHES (weather R4, ?weather=1). ONE water system: a puddle is the
-// existing standing-water cover ('wet', wear.ts), a snow patch the existing 'snow' cover; here
-// they come and go with the weather instead of being placed by hand.
-//
-// SITES: each level with a lap gets puddle sites once, from its own seeded stream: along the track
-// and just off it, and over the whole floor (owner: anywhere), water more likely in a DIP of the
-// terrain and less on a crest (water runs downhill), bigger in a dip. SNOW can lie anywhere (a
-// site of the floor holds snow more often than water), in wider patches. A site FILLS in rain
-// once the ground is soaked, DRAINS very slowly in a dry spell (faster when hot); snow SETTLES
-// while it snows below freezing and MELTS into a puddle when it warms. A site shows in STEPS
-// sizes, so the ground repaints only when one changes step; neighbours that grow into each other
-// merge, as the ground draws every cover of a kind as one union (render/ground/covers.ts).
-//
-// The puddles the levels had are the weather's now: with ?weather=1 every hand-placed and blended
-// puddle goes, except SCENERY water (Cover.water: rivers, lakes, fords - permanent) and the Lab's
-// test features (levels without a lap). TYRES clear standing water in 3 passes, rain tyres in 1
-// (owner); soft ground still churns to mud. MUD dries back to dirt in a dry spell (owner).
-//
-// THE COLD (owner): below freezing a puddle turns to ICE (and thaws back above 1 C), worn mud may
-// freeze over, and scenery water may freeze over when it is properly cold. AN EVENT'S START
-// (owner: variety) may follow earlier rain - some sites already part full - or lying snow; dealt
-// from the event's seeded stream (weather.ts weatherRandom), so a restart deals the same.
+// COLD COVERS AND WET CELLS (weather R4; the default). The weather's water, snow and ice, and the
+// level's own snow / ice / water areas, lie by the cover field (coverfield.ts: one system). Here:
+// - SCENERY water (Cover.water: rivers, lakes, fords - permanent) freezes over when it is properly
+//   cold and thaws back (owner);
+// - the WINTER rules of what the TYRES made in a wear cell: their snow, packed snow and ice melt to
+//   water above freezing (faster per C and in rain), their water freezes to black ice below it and
+//   dries off in a warm dry spell (?winter=0 off);
+// - TYRES clear standing water in 3 passes, rain tyres in 1 (owner);
+// - worn MUD dries back toward dirt in a dry spell (owner); with ?mudfreeze=0 worn mud freezes cell
+//   by cell (the default freezes all mud by the field's frost).
+// Every change rides a pass over the wear cells a tick (TICK_S), by chance, so the ground
+// repaints a few squares a tick, never a burst. An event's start deals whether the scenery water
+// is frozen from the event's seeded stream (weather.ts weatherRandom), so a restart deals the same.
+// (The puddle SITES that made the weather's water before the cover field, and the level patches'
+// own melting, were removed 2026-10-18: the field does both.)
 import { LEVEL } from "./state.ts";
 import {
   ICE_MELT_SHARE, WEATHER, coldSurfaceOn, iceMeltsSlow, meltOn, weatherRandom, weatherRuns,
 } from "./weather.ts";
-import { coverFieldOn, mudFrostOn } from "./coverfield.ts";
-import { heightAt } from "./terrain.ts";
-import { FX0, FX1, FY0, FY1 } from "./bounds.ts";
-import { seededRng } from "./blend.ts";
+import { mudFrostOn } from "./coverfield.ts";
 import { wearMap, wearDirty, WEAR_CELL, layersAt, wearKey } from "./wear.ts";
-import type { Cover, CoverId, Layers, Level, PuddleSite, WearCell } from "./types.ts";
+import type { Cover, Layers, Level, WearCell } from "./types.ts";
 
 /** An area of ground, m. */
 type Area = { x0: number; y0: number; x1: number; y1: number };
 
-// m between candidate sites along the lap, and the most sites a level gets
-const SITE_SPACING = 22, MAX_SITES = 48;
-// the chance a candidate becomes a site: on level ground, and how much a dip / crest of DIP_REF m
-// (the ground there against the mean 6 m around) adds / takes off
-const SITE_CHANCE = 0.18, DIP_GAIN = 0.5, CREST_LOSS = 0.12, DIP_REF = 0.15, DIP_PROBE = 6;
-// the share of track sites that can hold snow
-const SNOW_SITE_CHANCE = 0.35;
-// THE FLOOR: about this many more sites over the rest of the level (the grid spacing follows its
-// area, at least FIELD_SPACING_MIN m), the share of floor points that can hold snow, and a snow
-// patch's size against a puddle's
-const FIELD_SITES = 110, FIELD_SPACING_MIN = 22, FIELD_SNOW_CHANCE = 0.6, SNOW_SIZE = 1.4;
-// MORE PUDDLES (the default since 2026-10-18, ?morepuddles=0 off; owner: puddles more likely to
-// form than snow, snow kept as it is):
-// water-only sites between the ones above, from their own seeded stream (every snow patch and
-// every existing puddle stays where it was): ON THE ROAD every EXTRA_TRACK_SPACING m of the lap
-// (owner: puddles should build up on the race surface; at most EXTRA_TRACK_MAX), and on the floor
-// grid offset by half a cell. Their chance on level ground (a dip adds DIP_GAIN, a crest takes
-// CREST_LOSS, as above). And while it rains, a full puddle's spots that tyres cleared fill again
-// every REFILL_S s of heavy rain (slower in light rain): the cars clear a line, the rain wins it
-// back (a cleared spot used to wait for the puddle to change size, so the line stayed dry)
-const EXTRA_TRACK_CHANCE = 0.35, EXTRA_TRACK_SPACING = 11, EXTRA_TRACK_MAX = 90;
-const EXTRA_FLOOR_CHANCE = 0.38, REFILL_S = 15;
-// fill a second at rain 1 (a dip's catch more; heavy rain fills one in ~75 s, owner: quicker),
-// once the ground is this wet; drain a second per C of track temperature in a dry spell (20 C:
-// ~13 min empty; 40 C: ~6)
-const FILL_PER_S = 1 / 75, FILL_FROM_WETNESS = 0.4, DRAIN_PER_S_PER_C = 1 / (900 * 20);
-// snow a second at snow 1 while the track is below SNOW_BELOW_C (~1 min); melt per C above it
-const SNOW_PER_S = 1 / 60, SNOW_BELOW_C = 1, MELT_PER_S_PER_C = 1 / 3000;
-// a puddle FREEZES below FREEZE_BELOW_C (per C colder, a second; at -3 C a full one in ~15 s) and
-// THAWS above THAW_ABOVE_C
-const FREEZE_BELOW_C = 0, FREEZE_PER_S_PER_C = 1 / 60, THAW_ABOVE_C = 1, THAW_PER_S_PER_C = 1 / 120;
+// the tyres' water in a cell dries a second per C of track temperature in a dry spell (20 C:
+// ~13 min); it FREEZES below FREEZE_BELOW_C and frozen things THAW above THAW_ABOVE_C
+const DRAIN_PER_S_PER_C = 1 / (900 * 20), FREEZE_BELOW_C = 0, THAW_ABOVE_C = 1;
 // SCENERY water freezes over below this (a chance a second; at the start: likelier the colder)
-// and thaws above THAW_ABOVE_C; worn MUD likewise, cell by cell
+// and thaws above THAW_ABOVE_C; worn MUD likewise, cell by cell (?mudfreeze=0)
 const WATER_FREEZE_BELOW_C = -2, WATER_FREEZE_PER_S = 1 / 240, WATER_THAW_PER_S = 1 / 120;
 const MUD_FREEZE_BELOW_C = -1, MUD_FREEZE_PER_S = 1 / 90, MUD_THAW_PER_S = 1 / 60;
-// MELTING BY TEMPERATURE (?winter=1; owner, 2026-10-18: snow and ice should melt in anything but
-// the cold, and faster when hot): above THAW_ABOVE_C scenery water and frozen mud thaw by a
-// chance a second that grows with every C (at 5 C as before, at 20 C ~5x); snow, packed snow and
-// ice the TYRES made in a wear cell melt to water the same way (faster in rain), the tyres' water
-// freezes below freezing and dries off in a warm dry spell. Snow, ice and water the level or the
-// weather laid follow their own rules (sites above; the Lab's lanes never change). All of it
-// rides the per-tick passes over the wear cells that were already there (freezeMud, dryMud);
-// cells change one at a time, by chance, so the ground repaints a few squares a tick, never a
-// burst.
+// MELTING BY TEMPERATURE (?winter=1; owner: snow and ice melt in anything but the cold, faster when
+// hot): above THAW_ABOVE_C a chance a second per C (at 5 C as the old fixed chance, at 20 C ~5x)
 const WATER_THAW_PER_S_PER_C = 1 / 480, MUD_THAW_PER_S_PER_C = 1 / 240;
 const CELL_SNOW_MELT_PER_S_PER_C = 1 / 1500, CELL_ICE_MELT_PER_S_PER_C = 1 / 900;
-// scenery ice per C, a second (?wintercold=1: as tyre-made ice)
-const sceneryThawPerC = () => (iceMeltsSlow() ? cellIceMeltPerC() : WATER_THAW_PER_S_PER_C);
 // tyre-made ice per C, a second (?wintercold=1: ICE_MELT_SHARE of snow's)
 const cellIceMeltPerC = () => (iceMeltsSlow()
   ? CELL_SNOW_MELT_PER_S_PER_C * ICE_MELT_SHARE : CELL_ICE_MELT_PER_S_PER_C);
+// scenery ice per C, a second (?wintercold=1: as tyre-made ice)
+const sceneryThawPerC = () => (iceMeltsSlow() ? cellIceMeltPerC() : WATER_THAW_PER_S_PER_C);
 // RAIN melts snow faster (x 1 + RAIN_MELT at rain 1); the tyres' water in a cell FREEZES to ice
 // below freezing (per C colder, a chance a second: black ice)
 const RAIN_MELT = 2, CELL_WATER_FREEZE_PER_S_PER_C = 1 / 120;
 // ?coldsurface=1: rain melts ice too, less than snow (x 1 + ICE_RAIN_MELT at rain 1)
 const ICE_RAIN_MELT = 1;
-// a LEVEL's own snow / ice patch (lap levels; the Lab's test features never change) melts to water
-// as a tyre-made cell does, a warm start finds it gone (above WARM_START_C), the water refreezes
-// to ice below WATER_FREEZE_BELOW_C and dries off in a warm dry spell
-const WARM_START_C = 5;
+// s between ticks (the ground repaints at most this often)
+const TICK_S = 1;
+// MUD DRYING: a s per C of track temperature to dry one step (mud -> dirt, thick mud -> mud; 20 C:
+// ~4 min), only in a dry spell and above MUD_DRY_FROM_C
+const MUD_DRY_PER_S_PER_C = 1 / (240 * 20), MUD_DRY_FROM_C = 5, DRY_SPELL_WETNESS = 0.15;
+const MUD_DRIES_TO: Record<string, string> = { mud: 'dirt', thickMud: 'mud' };
+// a tyre's WET grip from which it is a rain tyre (cars.ts: KUM Wet 1.22, PIRRELLY Full Wet 1.35)
+const RAIN_TYRE_WET = 1.2;
 
-/** How much faster snow melts in this rain (?winter=1), 1 without. */
+/** How much faster snow (or, ?coldsurface=1, ice) melts in this rain (?winter=1), 1 without. */
 const rainMelt = (ice = false) => (meltOn()
   ? 1 + (ice && coldSurfaceOn() ? ICE_RAIN_MELT : RAIN_MELT) * WEATHER.rain : 1);
 
@@ -109,52 +68,19 @@ const rainMelt = (ice = false) => (meltOn()
  */
 const thawChance = (fixed: number, perC: number, trackC: number) =>
   meltOn() ? perC * (trackC - THAW_ABOVE_C) : fixed;
-// AN EVENT'S START: the chance it rained before (winter, spring, summer, autumn), the share of
-// sites holding water then; the chance snow lies on a cold start
-const RAINED_BEFORE = [0.5, 0.45, 0.2, 0.55], PUDDLED_SHARE = 0.6, SNOW_LYING = 0.6;
-// the sizes a site shows: STEPS steps, from STEP_MIN of its full size
-const STEPS = 4, STEP_MIN = 0.45;
-// how much water a site on flat ground gathers before it shows (a dip's at once): catchK runs
-// CATCH_MAX - CATCH_SPAN .. CATCH_MAX (buildPuddleSites)
-const SHOW_FROM_FLAT = 0.3, CATCH_MAX = 1.3, CATCH_SPAN = 0.6;
-// s between updates (fills move slowly; the ground repaints at most this often)
-const TICK_S = 1;
-// MUD DRYING: a s per C of track temperature to dry one step (mud -> dirt, thick mud -> mud; 20 C:
-// ~4 min), only in a dry spell and above MUD_DRY_FROM_C
-const MUD_DRY_PER_S_PER_C = 1 / (240 * 20), MUD_DRY_FROM_C = 5, DRY_SPELL_WETNESS = 0.15;
-const MUD_DRIES_TO: Record<string, string> = { mud: 'dirt', thickMud: 'mud' };
-// a tyre's WET grip from which it is a rain tyre (cars.ts: KUM Wet 1.22, PIRRELLY Full Wet 1.35)
-const RAIN_TYRE_WET = 1.2;
 
 let enabled = false;
 let rainTyre = false;
-let morePuddles = false;
-// LAB WEATHER (?labweather=1; owner, 2026-10-18: the surface changes on every level): levels with
-// no lap (OG Lab, Surface Bowling Alley, The Rough Patch) get the floor's puddle and snow sites
-// too; their own test features stay
-let labWeather = false;
 let tickS = 0;
 
-/** Areas of ground whose look changed (a puddle grew or shrank): render/tilesWear repaints them. */
+/** Areas of ground whose look changed (scenery water froze / thawed): render/tilesWear repaints. */
 export const groundDirtyAreas: Area[] = [];
 
 /**
- * Turns weather puddles on (?weather=1, at start-up).
- * @param isOn true to let the weather make and take puddles
+ * Turns the weather's cold covers and wet cells on (?weather=1, at start-up).
+ * @param isOn true to let the weather freeze, melt and dry them
  */
 export function setWeatherPuddles(isOn: boolean): void { enabled = isOn; }
-
-/**
- * Adds the extra water-only sites (?morepuddles=1, at start-up).
- * @param isOn true to add them
- */
-export function setMorePuddles(isOn: boolean): void { morePuddles = isOn; }
-
-/**
- * Gives the levels with no lap the floor's puddle and snow sites (?labweather=1, at start-up).
- * @param isOn true for sites on the lab floors too
- */
-export function setLabWeather(isOn: boolean): void { labWeather = isOn; }
 
 /**
  * The tyre of the car whose wheels are being passed over the ground (wear.ts stepWear).
@@ -166,7 +92,7 @@ export function setPassTyre(tyre: { grip: Record<string, number> } | null | unde
 
 /**
  * How much one tyre pass clears of a cell's standing water (owner: 3 passes, rain tyres 1), or
- * null to keep the old rule (no weather puddles, or damp ground).
+ * null to keep the old rule (no weather, or damp ground).
  * @param standing whether the water is standing (a puddle)
  * @returns the dryness the pass adds, or null
  */
@@ -186,136 +112,15 @@ export function staticCovers(level: Level, covers: Cover[]): Cover[] {
   return covers.filter((cover) => cover.cover !== 'wet' || cover.water);
 }
 
-/** How far the ground at a point sits below the mean of the ground around it, m (+ = a dip). */
-function dipAt(x: number, y: number): number {
-  const around = (heightAt(x + DIP_PROBE, y) + heightAt(x - DIP_PROBE, y)
-    + heightAt(x, y + DIP_PROBE) + heightAt(x, y - DIP_PROBE)) / 4;
-  return around - heightAt(x, y);
-}
-
-/** How likely a point gathers water: more in a dip, less on a crest. */
-function waterChance(dip: number, flatChance = SITE_CHANCE): number {
-  return flatChance + DIP_GAIN * Math.max(0, Math.min(1, dip))
-    - CREST_LOSS * Math.max(0, Math.min(1, -dip));
-}
-
-/** A new site at a point: its size and catch by the dip (no catch: a snow-only site). */
-function makeSite(x: number, y: number, rot: number, dip: number, wet: boolean, snowy: boolean,
-    random: () => number): PuddleSite {
-  const deep = Math.max(0, Math.min(1, dip)), big = 1 + 0.3 * deep;
-  return { x, y, w: (5 + 6 * random()) * big, h: (3 + 3 * random()) * big, rot,
-    catchK: wet ? CATCH_MAX - CATCH_SPAN + CATCH_SPAN * deep : 0, snowy, water: 0, ice: 0,
-    snow: 0, shown: '', covers: {} };
-}
-
-/** The sites along the lap: on the track and just off it. */
-function trackSites(sub: NonNullable<Level['subtrack']>, random: () => number): PuddleSite[] {
-  const sites: PuddleSite[] = [];
-  for (let dist = SITE_SPACING / 2; dist < sub.totalDist && sites.length < MAX_SITES;
-    dist += SITE_SPACING) {
-    const point = sub.pts[Math.min(sub.pts.length - 1,
-      Math.round((dist / sub.totalDist) * sub.pts.length))];
-    const side = (random() * 2 - 1) * (sub.width / 2 + 3);
-    const x = point.x + point.nx * side, y = point.y + point.ny * side;
-    const dip = dipAt(x, y) / DIP_REF;
-    if (random() >= waterChance(dip)) continue;
-    sites.push(makeSite(x, y, point.heading + (random() - 0.5) * 0.6, dip, true,
-      random() < SNOW_SITE_CHANCE, random));
-  }
-  return sites;
-}
-
-/** The sites over the rest of the floor: a jittered grid, water by the dip, snow anywhere. */
-function floorSites(random: () => number): PuddleSite[] {
-  const sites: PuddleSite[] = [], width = FX1 - FX0, height = FY1 - FY0;
-  const spacing = Math.max(FIELD_SPACING_MIN, Math.sqrt((width * height) / (FIELD_SITES * 1.4)));
-  for (let gridX = FX0 + spacing / 2; gridX < FX1; gridX += spacing) {
-    for (let gridY = FY0 + spacing / 2; gridY < FY1; gridY += spacing) {
-      const x = gridX + (random() - 0.5) * spacing * 0.8;
-      const y = gridY + (random() - 0.5) * spacing * 0.8;
-      const dip = dipAt(x, y) / DIP_REF;
-      const wet = random() < waterChance(dip), snowy = random() < FIELD_SNOW_CHANCE;
-      if (wet || snowy) sites.push(makeSite(x, y, random() * Math.PI, dip, wet, snowy, random));
-    }
-  }
-  return sites;
-}
-
-/** The extra water-only sites (?morepuddles=1): between the lap's sites and the floor's. */
-function extraWaterSites(sub: Level['subtrack'], random: () => number) {
-  const sites: PuddleSite[] = [];
-  const tryPoint = (x: number, y: number, rot: number, flatChance: number) => {
-    const dip = dipAt(x, y) / DIP_REF;
-    if (random() < waterChance(dip, flatChance)) {
-      sites.push(makeSite(x, y, rot, dip, true, false, random));
-    }
-  };
-  for (let dist = EXTRA_TRACK_SPACING / 2; sub && dist < sub.totalDist
-    && sites.length < EXTRA_TRACK_MAX; dist += EXTRA_TRACK_SPACING) {
-    const point = sub.pts[Math.min(sub.pts.length - 1,
-      Math.round((dist / sub.totalDist) * sub.pts.length))];
-    const side = (random() * 2 - 1) * Math.max(0, sub.width / 2 - 1);
-    tryPoint(point.x + point.nx * side, point.y + point.ny * side,
-      point.heading + (random() - 0.5) * 0.6, EXTRA_TRACK_CHANCE);
-  }
-  const width = FX1 - FX0, height = FY1 - FY0;
-  const spacing = Math.max(FIELD_SPACING_MIN, Math.sqrt((width * height) / (FIELD_SITES * 1.4)));
-  for (let gridX = FX0 + spacing; gridX < FX1; gridX += spacing) {
-    for (let gridY = FY0 + spacing; gridY < FY1; gridY += spacing) {
-      tryPoint(gridX + (random() - 0.5) * spacing * 0.6, gridY + (random() - 0.5) * spacing * 0.6,
-        random() * Math.PI, EXTRA_FLOOR_CHANCE);
-    }
-  }
-  return sites;
-}
-
-/**
- * The level's puddle and snow sites, from its own seeded stream: along the lap, then the floor.
- * @param level the level (with a lap)
- * @returns the sites
- */
-export function buildPuddleSites(level: Level): PuddleSite[] {
-  const sub = level.subtrack;
-  // the cover field lays the weather's water and snow instead (?coverfield=1)
-  if (!enabled || level.endless || (!sub && !labWeather) || coverFieldOn()) return [];
-  const random = seededRng(level.id + ':puddles');
-  const sites = sub ? [...trackSites(sub, random), ...floorSites(random)] : floorSites(random);
-  if (morePuddles) sites.push(...extraWaterSites(sub, seededRng(level.id + ':morepuddles')));
-  return sites;
-}
-
-/** What a site shows now: its kind and size step ('' = nothing). */
-function siteLook(site: PuddleSite): string {
-  if (site.snow > 0) return 'snow' + Math.ceil(site.snow * STEPS);
-  if (site.ice > 0) return 'ice' + Math.ceil(site.ice * STEPS);
-  // a dip shows its water first, flatter ground once more has gathered (not all at once)
-  const showFrom = Math.max(0.02, SHOW_FROM_FLAT * (CATCH_MAX - site.catchK) / CATCH_SPAN);
-  if (site.water > showFrom) return 'wet' + Math.ceil(site.water * STEPS);
-  return '';
-}
-
-/** The cover a site shows at a look (cached per site and look). */
-function siteCover(site: PuddleSite, look: string): Cover {
-  const cached = site.covers[look];
-  if (cached) return cached;
-  const step = +look.slice(-1), kind = look.slice(0, -1) as CoverId;
-  const size = (STEP_MIN + (1 - STEP_MIN) * (step / STEPS)) * (kind === 'snow' ? SNOW_SIZE : 1);
-  const cover: Cover = { x: site.x, y: site.y, w: site.w * size, h: site.h * size,
-    cover: kind, shape: 'ellipse', rot: site.rot };
-  site.covers[look] = cover;
-  return cover;
-}
-
-/** The ground a site or cover can cover, as a dirty area (its full size, both axes). */
+/** The ground a cover can cover, as a dirty area. */
 function areaOf(shape: { x: number; y: number; w: number; h: number }): Area {
-  const reach = Math.max(shape.w, shape.h) * SNOW_SIZE / 2 + 1;
+  const reach = Math.max(shape.w, shape.h) / 2 + 1;
   return { x0: shape.x - reach, y0: shape.y - reach, x1: shape.x + reach, y1: shape.y + reach };
 }
 
 /**
- * Whether a wear cell takes the cover over it now: water, snow or ice the weather laid follows it
- * (receded, frozen, thawed); bare ground takes new snow or ice, and water when it rains (a puddle
- * tyres cleared refills); frozen mud keeps its own ice.
+ * Whether a wear cell takes the cover over it now: water or ice the scenery laid follows it
+ * (frozen, thawed); bare ground takes new ice; frozen mud keeps its own ice.
  * @param cell the wear cell
  * @param want the cover over it now, or null
  * @returns true to take it
@@ -363,20 +168,12 @@ function resyncCells(area: Area): void {
 }
 
 /**
- * Puts the sites' looks into the level's covers; the ground over changed sites repaints, the AI
- * reads the grip again.
- * @param changed the sites whose look changed
+ * Puts the scenery water's looks (frozen or not) into the level's covers; the ground over changed
+ * covers repaints, the AI reads the grip again.
+ * @param changed the covers whose look changed
  */
-function applyLooks(changed: (PuddleSite | Cover)[]): void {
-  const shown: Cover[] = [];
-  for (const cover of LEVEL._staticCovers || []) {
-    const look = staticLook(cover);
-    if (look) shown.push(look);
-  }
-  for (const site of LEVEL._puddleSites || []) {
-    if (site.shown) shown.push(siteCover(site, site.shown));
-  }
-  LEVEL.covers = shown;
+function applyLooks(changed: Cover[]): void {
+  LEVEL.covers = (LEVEL._staticCovers || []).map(staticLook);
   for (const shape of changed) {
     const area = areaOf(shape);
     groundDirtyAreas.push(area);
@@ -386,49 +183,9 @@ function applyLooks(changed: (PuddleSite | Cover)[]): void {
   if (changed.length) WEATHER.epoch++;
 }
 
-/** A level's snow / ice melted to water: the same shape (cached on the cover). */
-function waterTwin(cover: Cover): Cover {
-  if (!cover._waterTwin) {
-    cover._waterTwin = { x: cover.x, y: cover.y, w: cover.w, h: cover.h, cover: 'wet',
-      shape: cover.shape, rot: cover.rot, cut: cover.cut };
-  }
-  return cover._waterTwin;
-}
-
-/**
- * Whether a level cover is snow or ice that melts with the weather (?winter=1): lap levels only.
- * @param cover the level cover
- * @returns true when it can melt
- */
-const meltingPatch = (cover: Cover) => meltOn() && !!LEVEL.subtrack && !cover.water
-  && (cover.cover === 'snow' || cover.cover === 'ice');
-
-/**
- * Melts, refreezes or dries a level's snow / ice patch over a tick, by chance (?winter=1).
- * @param cover the level cover (its _melt changed in place)
- * @param trackC the track temperature
- * @param seconds sim seconds since the last tick
- * @returns true when its look changed
- */
-function stepPatch(cover: Cover, trackC: number, seconds: number): boolean {
-  const perC = cover.cover === 'ice' ? cellIceMeltPerC() : CELL_SNOW_MELT_PER_S_PER_C;
-  const melts = cover._melt !== 'water' && cover._melt !== 'gone' && trackC > THAW_ABOVE_C
-    && weatherRandom() < perC * (trackC - THAW_ABOVE_C) * rainMelt(cover.cover === 'ice') * seconds;
-  const refreezes = cover._melt === 'water' && trackC < WATER_FREEZE_BELOW_C
-    && weatherRandom() < WATER_FREEZE_PER_S * seconds;
-  const dries = cover._melt === 'water' && WEATHER.rain === 0
-    && WEATHER.wetness <= DRY_SPELL_WETNESS
-    && weatherRandom() < trackC * DRAIN_PER_S_PER_C * seconds;
-  if (!melts && !refreezes && !dries) return false;
-  cover._melt = melts ? 'water' : refreezes ? 'ice' : 'gone';
-  return true;
-}
-
-/** What a level cover shows now: itself, frozen over, melted to water, or nothing. */
-function staticLook(cover: Cover): Cover | null {
-  if (cover._frozen || cover._melt === 'ice') return iceTwin(cover);
-  if (cover._melt === 'water') return waterTwin(cover);
-  return cover._melt === 'gone' ? null : cover;
+/** What a level cover shows now: itself, or (scenery water) frozen over. */
+function staticLook(cover: Cover): Cover {
+  return cover._frozen ? iceTwin(cover) : cover;
 }
 
 /** Scenery water as ice: the same shape (cached on the water cover). */
@@ -445,10 +202,6 @@ function stepSceneryWater(seconds: number): Cover[] {
   const trackC = WEATHER.trackC, changed: Cover[] = [];
   if (trackC >= WATER_FREEZE_BELOW_C && trackC <= THAW_ABOVE_C) return changed;
   for (const cover of LEVEL._staticCovers || []) {
-    if (meltingPatch(cover) && weatherRuns()) {
-      if (stepPatch(cover, trackC, seconds)) changed.push(cover);
-      continue;
-    }
     if (!cover.water) continue;
     const freeze = !cover._frozen && trackC < WATER_FREEZE_BELOW_C
       && weatherRandom() < WATER_FREEZE_PER_S * seconds;
@@ -462,42 +215,9 @@ function stepSceneryWater(seconds: number): Cover[] {
   return changed;
 }
 
-/** Freezes a site's water below freezing, thaws its ice above, over a tick. */
-function freezeSite(site: PuddleSite, seconds: number): void {
-  const trackC = WEATHER.trackC;
-  if (trackC < FREEZE_BELOW_C && site.water > 0) {
-    const frozen = Math.min(site.water,
-      (FREEZE_BELOW_C - trackC + 1) * FREEZE_PER_S_PER_C * seconds);
-    site.water -= frozen;
-    site.ice = Math.min(1, site.ice + frozen);
-  } else if (trackC > THAW_ABOVE_C && site.ice > 0) {
-    const thawed = Math.min(site.ice, (trackC - THAW_ABOVE_C) * THAW_PER_S_PER_C * seconds);
-    site.ice -= thawed;
-    site.water += thawed;
-  }
-}
-
-/** Moves one site's water and snow by the weather over a tick. */
-function stepSite(site: PuddleSite, seconds: number): void {
-  const trackC = WEATHER.trackC;
-  freezeSite(site, seconds);
-  if (WEATHER.wetness >= FILL_FROM_WETNESS) site.water += WEATHER.rain * FILL_PER_S * site.catchK
-    * seconds;
-  if (WEATHER.rain < 0.05) site.water -= Math.max(0, trackC) * DRAIN_PER_S_PER_C * seconds;
-  if (site.snowy && trackC < SNOW_BELOW_C) site.snow += WEATHER.snow * SNOW_PER_S * seconds;
-  if (site.snow > 0 && trackC > SNOW_BELOW_C) {
-    const melted = Math.min(site.snow,
-      (trackC - SNOW_BELOW_C) * MELT_PER_S_PER_C * rainMelt() * seconds);
-    site.snow -= melted;
-    site.water += melted;
-  }
-  site.water = Math.max(0, Math.min(1, site.water));
-  site.snow = Math.max(0, Math.min(1, site.snow));
-}
-
 /**
- * Whether a cell's water is the tyres' own (meltwater, scrubbed ice), not a puddle the level or
- * the weather laid.
+ * Whether a cell's water is the tyres' own (meltwater, scrubbed ice), not water the level or the
+ * weather laid.
  * @param cell the wear cell
  * @returns true for the tyres' water
  */
@@ -513,7 +233,7 @@ const tyresWater = (cell: WearCell) => cell.cover === 'wet' && cell.orig !== 'we
 function meltCell(cell: WearCell, trackC: number, seconds: number): boolean {
   const kind = cell.cover;
   const frozen = kind === 'snow' || kind === 'ice' || kind === 'packedSnow';
-  // what the level or the weather lays here now follows its own rules (a melted patch: not)
+  // what the level or the weather lays here now follows its own rules (the cover field)
   if (!frozen || cell.frozeMud) return false;
   const laid = layersAt((cell.cx + 0.5) * WEAR_CELL, (cell.cy + 0.5) * WEAR_CELL).cover;
   if (laid === kind) return false;
@@ -594,13 +314,13 @@ function freezeMud(seconds: number): void {
     // ?winter=1: the tyres' snow / ice melts above freezing, their water freezes below
     if (winter && (thawing ? meltCell(cell, trackC, seconds)
       : freezeCellWater(cell, trackC, seconds))) continue;
-    // ?mudfreeze=1: mud freezes by the cover field's frost (coverfield.ts), not cell by cell
+    // mud freezes by the cover field's frost (coverfield.ts), not cell by cell (?mudfreeze=0)
     if (!mudFrostOn()) freezeOrThawMud(cell, freezing, mudThaw, seconds);
   }
 }
 
 /**
- * Freezes one cell's worn mud over in the cold, or thaws its ice back, by chance.
+ * Freezes one cell's worn mud over in the cold, or thaws its ice back, by chance (?mudfreeze=0).
  * @param cell the wear cell (changed in place)
  * @param freezing true below MUD_FREEZE_BELOW_C (else it is above THAW_ABOVE_C)
  * @param mudThaw the chance a second frozen mud thaws
@@ -622,8 +342,8 @@ function freezeOrThawMud(cell: WearCell, freezing: boolean, mudThaw: number,
 }
 
 /**
- * One sim step of the puddles (every TICK_S they move): fill, drain, settle, melt; the level's
- * covers follow when a site changes step; mud dries.
+ * One sim step (every TICK_S the cold covers and wet cells move): scenery water freezes / thaws,
+ * the tyres' snow / ice / water melt, freeze and dry, mud dries.
  * @param dt sim seconds
  */
 export function stepPuddles(dt: number): void {
@@ -632,91 +352,25 @@ export function stepPuddles(dt: number): void {
   if (tickS < TICK_S) return;
   const seconds = tickS;
   tickS = 0;
-  const changed: PuddleSite[] = [];
-  for (const site of LEVEL._puddleSites || []) {
-    stepSite(site, seconds);
-    const look = siteLook(site);
-    if (look !== site.shown) {
-      site.shown = look;
-      changed.push(site);
-    }
-  }
   const frozen = stepSceneryWater(seconds);
-  if (changed.length || frozen.length) applyLooks([...changed, ...frozen]);
-  if (morePuddles) refillCleared(seconds, changed);
+  if (frozen.length) applyLooks(frozen);
   dryMud(seconds);
   freezeMud(seconds);
 }
 
 /**
- * While it rains, every full puddle's cleared spots fill again each REFILL_S s of heavy rain
- * (?morepuddles=1); sites that changed this tick were just re-synced by applyLooks.
- * @param seconds sim seconds since the last tick
- * @param changed the sites whose look changed this tick
- */
-function refillCleared(seconds: number, changed: PuddleSite[]): void {
-  if (WEATHER.rain < 0.05) return;
-  for (const site of LEVEL._puddleSites || []) {
-    if (!site.shown.startsWith('wet') || changed.includes(site)) continue;
-    // staggered by place, so the puddles do not all refill on the same tick
-    site.refillS = (site.refillS ?? REFILL_S * (Math.abs(site.x * 0.37 + site.y * 0.61) % 1))
-      - seconds * WEATHER.rain;
-    if (site.refillS > 0) continue;
-    site.refillS = REFILL_S;
-    resyncCells(areaOf(site));
-  }
-}
-
-/**
- * Deals one site's start: water if it rained before (some sites, part full; frozen when cold),
- * snow lying in a snow site on a cold start.
- * @param site the site
- * @param rained whether it rained before the start
- * @param snowLying whether snow lies at the start
- */
-function dealSite(site: PuddleSite, rained: boolean, snowLying: boolean): void {
-  const puddled = rained && weatherRandom() < PUDDLED_SHARE + (WEATHER.rain > 0 ? 0.4 : 0);
-  site.water = puddled ? Math.min(1, (0.25 + 0.6 * weatherRandom()) * site.catchK) : 0;
-  site.ice = 0;
-  if (WEATHER.trackC < FREEZE_BELOW_C) {
-    site.ice = site.water;
-    site.water = 0;
-  }
-  site.snow = snowLying && site.snowy ? 0.3 + 0.5 * weatherRandom() : 0;
-  site.shown = siteLook(site);
-}
-
-/**
- * Deals a level's snow / ice patches at an event's start (?winter=1): there on a cold start,
- * gone on a warm one.
- * @param trackC the track temperature
- * @returns the patches that can melt (their ground repaints)
- */
-function dealPatches(trackC: number): Cover[] {
-  const patches = (LEVEL._staticCovers || []).filter(meltingPatch);
-  for (const cover of LEVEL._staticCovers || []) cover._melt = undefined;
-  if (weatherRuns() && trackC > WARM_START_C) for (const cover of patches) cover._melt = 'gone';
-  return patches;
-}
-
-/**
- * Starts the puddles of an event (wear.ts has just been cleared), dealt from its seeded stream:
- * did it rain before (always when it rains or the track is still wet; else the season's chance),
- * is snow lying, is the scenery water frozen over. The race behind the menu (no weather) is dry.
+ * Starts an event (wear.ts has just been cleared): whether the scenery water is frozen over, dealt
+ * from the event's seeded stream (likelier the colder). The race behind the menu (no weather) is
+ * not frozen.
  */
 export function resetPuddles(): void {
   if (!enabled) return;
   tickS = 0;
-  const sites = LEVEL._puddleSites || [], trackC = WEATHER.trackC;
-  const rained = WEATHER.rain > 0 || WEATHER.wetness > 0.1
-    || weatherRandom() < RAINED_BEFORE[WEATHER.season];
-  const snowLying = trackC < SNOW_BELOW_C && (WEATHER.snow > 0 || weatherRandom() < SNOW_LYING);
-  for (const site of sites) dealSite(site, rained, snowLying);
-  const patches = dealPatches(trackC);
+  const trackC = WEATHER.trackC;
   const water = (LEVEL._staticCovers || []).filter((cover) => cover.water);
   for (const cover of water) {
     const chance = trackC <= -5 ? 0.85 : trackC <= WATER_FREEZE_BELOW_C ? 0.5 : 0;
     cover._frozen = chance > 0 && weatherRandom() < chance;
   }
-  applyLooks([...sites, ...water, ...patches]);
+  applyLooks(water);
 }

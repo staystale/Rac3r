@@ -1,4 +1,4 @@
-// THE COVER FIELD ON THE GPU (?coverfield=1; world/coverfield.ts). The weather's water, ice and
+// THE COVER FIELD ON THE GPU (world/coverfield.ts). The weather's water, ice and
 // snow lie where its levels are above each point's catch; here every FIELD_SQ square's catch (the
 // same numbers the physics reads, computed on the CPU per CHUNK_SQ-square chunk into a
 // world-anchored grid texture that wraps every GRID_SQ squares, like the hill shading) is
@@ -16,7 +16,6 @@ import {
 } from "../world/wear.ts";
 import {
   AREA_KINDS, AREAS, FIELD, FIELD_SQ, FROST, areaKindOf, catchAt, cellCoverOnGpu, cellOwned,
-  coverFieldOn,
   frostKindOf, mudFrostOn, SNOW_SEED, WATER_SEED,
 } from "../world/coverfield.ts";
 import type { Levels } from "../world/coverfield.ts";
@@ -486,7 +485,6 @@ export function createGlField(webgl: WebGL2RenderingContext) {
      * @param widest the world rectangle the widest zoom would show, with a margin, m
      */
     update(view: ShadeRect, widest: ShadeRect) {
-      if (!coverFieldOn()) return;
       resetOnChange(grid);
       const deadline = performance.now() + CHUNK_BUDGET_MS;
       fillRect(webgl, tex, grid, view, deadline);
@@ -497,7 +495,6 @@ export function createGlField(webgl: WebGL2RenderingContext) {
      * @param rect the rectangle, m
      */
     cellsChanged(rect: ShadeRect) {
-      if (!coverFieldOn()) return;
       for (let cellY = Math.floor(rect.y0 / WEAR_CELL); cellY * WEAR_CELL < rect.y1; cellY++) {
         for (let cellX = Math.floor(rect.x0 / WEAR_CELL); cellX * WEAR_CELL < rect.x1; cellX++) {
           maskCell(webgl, tex.maskTex, grid, cellX, cellY, cellMask);
@@ -511,7 +508,7 @@ export function createGlField(webgl: WebGL2RenderingContext) {
      */
     draw(size: { width: number; height: number }, camera: PaintCamera) {
       const frozen = grid.frosty && FROST.mud + FROST.thickMud > 0;
-      if (!coverFieldOn() || (!levelsShow(FIELD) && !grid.anyArea && !frozen)) return;
+      if (!levelsShow(FIELD) && !grid.anyArea && !frozen) return;
       webgl.useProgram(program);
       webgl.bindVertexArray(vao);
       webgl.activeTexture(webgl.TEXTURE2);

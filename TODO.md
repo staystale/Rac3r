@@ -575,8 +575,15 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
       tyres make (ice, snow, packed snow, water) were tile art; now the GPU field draws them with
       its own look (mask codes 7-10, a rim at bare edges) and the tiles paint the ground under;
       scenery water keeps its art. Photos (_onelook.mjs) off / on: tyre ice matches the field's.
-- CLEAN-UP APPROVED (owner 10-18): delete the puddle-site system AND ?coverfield=0 (its old
-  path); then T3, then the performance pass, then lighting.
+- [x] CLEAN-UP DONE (owner approved 10-18): the puddle sites, ?morepuddles, ?labweather and
+      ?coverfield=0 removed; puddles.ts 722 -> 376 lines (scenery water freeze, the tyres' winter
+      cell rules, mud drying kept). FOUND + removed with it: the old level snow / ice PATCH melting
+      still ran beside the cover field - on a start above 5 C it deleted the level's own snow / ice
+      before the race (owner: "ice should spawn as ice"), and swapped whole patches to water; now
+      the field alone (Test Track 31 C: its snow patch is snow at the start, melts in minutes).
+      simhash SAME, renderhash SAME (refs re-saved on main 5003d9a first). NEXT: T3, the
+      performance pass, then lighting.
+- DECISION (owner 10-18): snow's opacity by depth is kept (thin snow shows its ground).
 - [x] APPROVED PLAN A-D: all the DEFAULT since 2026-10-18 (owner: "all pass"; =0 off:
       ?coldsurface, ?wearchance, ?markfade, ?hudunits). Snow's look by depth (opacity) kept
       (owner: "opacity ... is ok"). Was, in order:

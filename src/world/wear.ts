@@ -5,8 +5,8 @@ import { SURFACES, VERGE_W, TRAP_STEPS, SURFACE_TRAP } from "./surfaces.ts";
 import { dampSurface, puddleSurface, cellDamp, dryCellLine, surfaceById, wornTo } from "./wet.ts";
 import { WEATHER } from "./weather.ts";
 import { carWheels } from "./wheels.ts";
-import { staticCoverAt, staticCoverHere } from "./coverlookup.ts";
-import { coverFieldOn, fieldLayers } from "./coverfield.ts";
+import { staticCoverHere } from "./coverlookup.ts";
+import { fieldLayers } from "./coverfield.ts";
 import { puddleClearBy, setPassTyre } from "./puddles.ts";
 import {
   packedSnowWears, passIceCell, passPackedSnowCell, passWinterSnow,
@@ -51,8 +51,8 @@ import type {
 // "puddles should vanish or mix with surfaces like grass or dirt to create mud ... sand
 // and water should mix to create gravel ... gravel and water make mud") Covers come from the level
 // (LEVEL.covers, any shape over any surface) or from a zone whose own surface is snow/ice — those
-// are treated as a cover over zone.under (default UNDER_DEFAULT), so a lab ice panel scrubs through
-// to tarmac and the same rules apply everywhere.
+// are treated as a cover over zone.under (default tarmac: coverfield.ts UNDER_DEFAULT), so a
+// lab ice panel scrubs through to tarmac and the same rules apply everywhere.
 //
 // ONE rule table. MEASURED BUG fixed here: the old code had the chain written TWICE with different
 // numbers (recordWearAt said long grass -> mud in 8 passes, the game's recordWearPoint said 6), and
@@ -109,7 +109,6 @@ export const ICE_SCRUB = 7.0;      // m of tyre slip over a cell to scrub its ic
 export const ICE_SCRUB_MIN = 2.0;  // m/s of slip below which a wheel is rolling, not scrubbing
 export const COVER_IDS: Record<CoverId, number> & Record<string, number> = { snow: 1, ice: 1,
   wet: 1 };
-const UNDER_DEFAULT = 'tarmac';
 
 // ONE wear clock for the world (sim seconds), not per car. MEASURED BUG,
 // (tools/wearcheck.mjs): the pass debounce used car.simTime, which starts at 0 for every new car —
@@ -202,17 +201,7 @@ export function layersAt(x: number, y: number): Layers {
   // differently
   const z = groundSurfaceAt(x, y);
   // the cover field: the level's own snow / ice / water are areas of it (coverfield.ts)
-  if (coverFieldOn()) return fieldLayers(z, z === LEVEL.base, staticCoverHere(x, y), x, y);
-  let base = z.id, cover: string | null = null;
-  // a snow, ice OR WET zone is a cover over its `under` (default tarmac). Wet joined
-  // (requirement: wet tarmac... needs blue-ish puddles that can be removed by driving over them) —
-  // so a wet panel or wet sector now DRIES where it is driven, cell by cell, leaving a dry line
-  // through
-  // it like a real drying track.
-  if (COVER_IDS[base]) { cover = base; base = z.under || UNDER_DEFAULT; }
-  const puddleCover = staticCoverAt(x, y);
-  if (puddleCover) cover = puddleCover;
-  return { base, cover, standing: !!puddleCover, fixed: !!cover };
+  return fieldLayers(z, z === LEVEL.base, staticCoverHere(x, y), x, y);
 }
 // LEVEL.covers: [{ x, y, w, h, cover: 'snow'|'ice'|'wet', shape: 'rect'|'ellipse', rot }] share of
 // tyre-slip heat that reaches the TYRE on loose ground (vehicle.js TYRE_HEAT). User: "off-road
