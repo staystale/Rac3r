@@ -104,6 +104,8 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   pass"; ?lamps=0 / ?daytime=0 off). Light comes from where the lamp's body is (owner).
   The lamp glows are part of the one night layer (a tint in the light map, not added on the
   screen): default since 10-18 (?glowmap=0 = old; owner: close is fine "so long as it's clear").
+  The pause menu's gold alarm clock beside MUTE (the game time; glows after dark): default
+  since 10-18 (?pauseclock=0 off).
 - Code (owner, 10-18): new modules are TypeScript (.ts); the remaining .js files are older.
 - "Straight Outta Swindon" is a reserved name for a future highway level (the test straight that
   used it was removed 10-17).

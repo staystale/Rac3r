@@ -164,11 +164,12 @@ the git history. `docs/foreman-handover.md` is the last handover (10-18, cover f
   glow's shape), then tinted with their colour in the same light map (a tighter, fuller core) -
   no 'lighter' draws on the screen canvas. Photos (_glowmapshots.mjs, Castle Cum night 0.8,
   rain, 3 AI): red glows as before, amber a little softer with a wider halo.
-  [ ] PAUSE CLOCK behind ?pauseclock=1 (owner asked: an alarm-clock style clock beside MUTE, in
+  [x] PAUSE CLOCK, the DEFAULT since 10-18 (owner: "clock pass"; ?pauseclock=0 off). Built as
+  (owner asked: an alarm-clock style clock beside MUTE, in
   the menu colours, glowing at night; picked mockup A, the gold bedside digital): menu/
   pauseclock.ts - seven-segment digits (unlit segments faint), season / day beside, the moon
   after dark when full or new; reads the event's clock (the sky's time); glows from darkness
-  0.35 (headlights on). Photos: tools/scratch/_pauseclock.mjs. Testlist pauseclock.
+  0.35 (headlights on). Photos: tools/scratch/_pauseclock.mjs.
 - [ ] SUN TEMPERATURE behind ?suntemp=1 (owner 10-18: "track temp should warm up and cool down
   with light a bit - so it can't heat up as it gets dark"; testlist suntemp): the weather's sun
   heat on the track x clock.ts sunShareNow (0 at night, sin to 1 at noon), air +-2.5 C by the same

@@ -1,4 +1,4 @@
-// _pauseclock.mjs - photographs ?pauseclock=1: the pause menu's alarm clock beside MUTE, by day
+// _pauseclock.mjs - photographs the pause menu's alarm clock beside MUTE, by day
 // (spring day 3, 13:05) and at night (22:40), at 390x844 and 844x390; prints page errors and what
 // the clock shows. The time is set through the clock's saved key before load (the page's modules
 // are not the ones a page.evaluate import reaches). Photos in the temp folder.
@@ -20,7 +20,7 @@ try {
       }, Math.round(SPRING_DAY_3 + hour * 3600));
       const page = await context.newPage();
       page.on('pageerror', (error) => console.log('ERROR ' + error));
-      await gotoGame(page, `${server.url}/?touch=1&menu=1&guide=0&rules=0&pauseclock=1`);
+      await gotoGame(page, `${server.url}/?touch=1&menu=1&guide=0&rules=0`);
       await page.waitForTimeout(500);
       await page.evaluate(() => window.__game.launch('castle-cum', 'hatch-rwd',
         { ai: 2, weather: { mode: 'dry', season: 1, seed: 4 } }));

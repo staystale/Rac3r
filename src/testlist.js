@@ -19,14 +19,5 @@ export const TEST_LIST = [
   // 2026-10-18; tyrewear, wintertweaks passed 2026-10-18;
   // coldsurface, wearchance, markfade, hudunits, onelook, tyrecool, coverlook approved
   // 2026-10-18; night (cost test) passed 2026-10-18; lamps, daytime approved 2026-10-18; suntemp
-  // approved 2026-10-18; nightjudder, glowmap passed 2026-10-18)
-  {
-    id: 'pauseclock',
-    added: '2026-10-18',
-    name: 'Alarm clock in the pause menu (beside MUTE; glows at night)',
-    where: 'Plain link + &pauseclock=1: pause in any race (day, then after dark)',
-    try: 'Gold digits show the game time (the sky\'s), with season and day beside; after dark'
-      + ' the digits glow, the moon shows when full or new.',
-    wrong: 'Wrong time vs the sky, digits cut off, the row wraps oddly, no glow at night.',
-  },
+  // approved 2026-10-18; nightjudder, glowmap, pauseclock passed 2026-10-18)
 ];
