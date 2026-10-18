@@ -186,7 +186,7 @@ the git history. `docs/foreman-handover.md` is the last handover (10-18, cover f
   only damp ground or a churned puddle; worn mud already dries to dirt by track temperature in
   a dry spell (puddles.ts dryMud, ~4 min at 20 C) keeping its ruts. OPEN QUESTION to the owner:
   should a level's own painted mud dry in the heat too (as a snow stage melts)? Not built until
-  answered. G1 short grass vs grass (identical today): short grass a lighter drier mown look,
+  answered. OWNER 10-18: YES, a level's own mud dries in the heat too. G1 short grass vs grass (identical today): short grass a lighter drier mown look,
   tighter stripes, no blades; grass a sparse fine blade layer; short grass dirt patches ~4 ->
   10 % (own random stream: existing patches unchanged); short grass mu 0.47 -> 0.46, peak a touch
   earlier, ~20 % less drag (rough). Photos first, each behind its own switch.

@@ -18,9 +18,10 @@ PERFORMANCE PASS and MUD + GRASS entries), then this page.
      photos at night (indicator, brake, rain light) before / after, then the owner's phone test.
      The look changes slightly (a tint in the dark, not an added brightening) - the owner knows.
   2. **MUD M1 + GRASS G1** (approved "sounds good"; plan in `TODO.md` MUD + GRASS), each behind its
-     own switch, photos first for the grass look. Open question there: should a level's own
-     painted mud dry in the heat too? Not built until answered.
-  3. **Highway lamps (L4b)**: lamps streamed with the road (like `highway/litter.js` loose objects:
+     own switch, photos first for the grass look. OWNER ANSWERED: a level's own painted mud
+     DOES dry in the heat too (like a snow stage melts) - one system with the worn mud.
+  3. **Highway lamps (L4b)** (owner: "yes I want them"; street lights ALTERNATING sides, not
+     paired across the road): lamps streamed with the road (like `highway/litter.js` loose objects:
      spawn ahead, cull behind) and a spatial grid for the clamp (solidClamp walks every lamp per
      car per step: fine at ~30 a level, not at hundreds).
 - **Performance pass: closed for now** (owner: "both seem good"). Highway dry 0.33-0.75 % slow,
@@ -47,7 +48,6 @@ picture's old yellow beam only by day); then the glows on top (item 1 above fold
 
 ## Open with the owner
 
-- Level mud drying in the heat (above, item 2).
 - When the story mode comes: outside TEST MODE the setup's SEASON slider should give way to the
   global season.
 
