@@ -15,10 +15,12 @@ import {
   wearMap, wearEpoch, wearKey, WEAR_CELL, groundSurfaceAt, layersAt,
 } from "../world/wear.ts";
 import {
-  AREA_KINDS, AREAS, FIELD, FIELD_SQ, FROST, areaKindOf, catchAt, cellOwned, coverFieldOn,
+  AREA_KINDS, AREAS, FIELD, FIELD_SQ, FROST, areaKindOf, catchAt, cellCoverOnGpu, cellOwned,
+  coverFieldOn,
   frostKindOf, mudFrostOn, SNOW_SEED, WATER_SEED,
 } from "../world/coverfield.ts";
 import type { Levels } from "../world/coverfield.ts";
+import type { WearCell } from "../world/types.ts";
 import { coldSurfaceOn } from "../world/weather.ts";
 import { buildProgram } from "./glprogram.ts";
 import type { PaintCamera } from "./glpaint.ts";
@@ -93,6 +95,12 @@ int kindOf(ivec2 square, out float depth) {
   int code = int(texelFetch(maskTex, slot, 0).r * 255.0 + 0.5);
   depth = 0.0;
   if (code == 255) return -1;
+  // ?onelook=1: a tyre-made cover (7 water, 8 ice, 9 snow, 10 packed snow), a rim where it meets
+  // bare ground
+  if (code >= 7) {
+    depth = RIM_DEPTH * 0.5;
+    return code == 7 ? 1 : code == 8 ? 2 : code == 9 ? 3 : 4;
+  }
   vec2 catchValue = texelFetch(catchTex, slot, 0).rg;
   int kind = code > 0 && code < 5 ? kindIn(areaLevels[code - 1], catchValue, depth) : 0;
   if (oneOrder) {
@@ -162,6 +170,19 @@ interface FieldGrid {
 
 // the mask codes of bare mud and thick mud (?mudfreeze=1; after the level areas' 1..4)
 const MUD_CODE = 5, THICK_MUD_CODE = 6;
+// ?onelook=1: a cell's tyre-made cover, drawn as is: FORCED_CODE + its index in FORCED_COVERS
+const FORCED_CODE = 7, FORCED_COVERS = ['wet', 'ice', 'snow', 'packedSnow'];
+
+/**
+ * The mask code of a wear cell: its tyre-made cover drawn by the field (?onelook=1), else 255
+ * (the tiles show it).
+ * @param cell the wear cell (one the tyres own)
+ * @returns the code
+ */
+function ownedCode(cell: WearCell): number {
+  const cover = cellCoverOnGpu(cell);
+  return cover ? FORCED_CODE + FORCED_COVERS.indexOf(cover) : 255;
+}
 
 /**
  * The mask code of a ground surface by its frost kind: mud, thick mud, else 0.
@@ -266,7 +287,7 @@ function maskWornCells(grid: FieldGrid, chunkX: number, chunkY: number) {
   for (let cellY = cellY0; cellY <= cellY1; cellY++) {
     for (let cellX = cellX0; cellX <= cellX1; cellX++) {
       const cell = wearMap.get(wearKey(cellX, cellY));
-      if (cell && cellOwned(cell)) maskCellSquares(grid, cellX, cellY, firstSq, 255);
+      if (cell && cellOwned(cell)) maskCellSquares(grid, cellX, cellY, firstSq, ownedCode(cell));
       else if (cell && grid.frosty) {
         maskCellSquares(grid, cellX, cellY, firstSq, mudCode(cell.base));
       }
@@ -289,7 +310,8 @@ function maskCellSquares(grid: FieldGrid, cellX: number, cellY: number,
     for (let col = 0; col < CELL_SQ; col++) {
       const sqX = cellX * CELL_SQ + col - firstSq.x, sqY = cellY * CELL_SQ + row - firstSq.y;
       const index = sqY * CHUNK_SQ + sqX;
-      const keep = code !== 255 && grid.maskPixels[index] > 0 && grid.maskPixels[index] < MUD_CODE;
+      const keep = code < FORCED_CODE && grid.maskPixels[index] > 0
+        && grid.maskPixels[index] < MUD_CODE;
       if (sqX >= 0 && sqX < CHUNK_SQ && sqY >= 0 && sqY < CHUNK_SQ && !keep) {
         grid.maskPixels[index] = code;
       }
@@ -369,7 +391,7 @@ function maskCell(webgl: WebGL2RenderingContext, maskTex: WebGLTexture, grid: Fi
   const slot = wrapIndex(chunkY, GRID_CHUNKS) * GRID_CHUNKS + wrapIndex(chunkX, GRID_CHUNKS);
   if (grid.owner[slot] !== chunkKey(chunkX, chunkY)) return;
   const cell = wearMap.get(wearKey(cellX, cellY));
-  if (cell && cellOwned(cell)) cellMask.fill(255);
+  if (cell && cellOwned(cell)) cellMask.fill(ownedCode(cell));
   else {
     for (let row = 0; row < CELL_SQ; row++) {
       for (let col = 0; col < CELL_SQ; col++) {

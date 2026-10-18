@@ -189,6 +189,30 @@ export function cellOwned(cell: WearCell): boolean {
   return !!cell.fixed || cell.cover !== (cell.laid ?? null);
 }
 
+// ONE LOOK (?onelook=1; owner: driven-over ice should look the same as the surface's ice - all
+// one system): the covers the tyres make in a wear cell (ice, snow, packed snow, water) are drawn
+// by the GPU field with the field's own look, the tiles showing the ground under them, as for the
+// field's covers; the level's fixed covers (scenery water) keep their tile art
+const GPU_COVERS = ['wet', 'ice', 'snow', 'packedSnow'];
+let oneLook = false;
+
+/**
+ * Tyre-made covers drawn with the field's look (?onelook=1, at start-up).
+ * @param isOn true for one look
+ */
+export function setOneLook(isOn: boolean): void { oneLook = isOn; }
+
+/**
+ * ?onelook=1: the cover the GPU field draws for a wear cell the tyres changed, or null (the tiles
+ * show it).
+ * @param cell the wear cell
+ * @returns the cover id, or null
+ */
+export function cellCoverOnGpu(cell: WearCell): string | null {
+  if (!oneLook || !enabled || cell.fixed || !cell.cover) return null;
+  return GPU_COVERS.includes(cell.cover) ? cell.cover : null;
+}
+
 /**
  * Whether a wear cell's cover is the field's, untouched by the tyres (the GPU draws it; the tiles
  * show the ground under it).

@@ -570,6 +570,13 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
       dry too, 2 cm a pass, floor 30 cm; wet sand / gravel x1.5 (dry sand stays 4 cm). _sanddig
       (1 / 3 / 10 passes, cm): gravel dry 0.8 / 2.5 / 8.9 (was ~0), wet 1.2 / 4.1 / 12.7; sand
       wet 3.5 / 10.6 / 26.6 (dry 2.4 / 7.1 / 23.6); mud as before.
+- [ ] ONE LOOK behind ?onelook=1, owner phone test (testlist onelook). Owner 10-18: driven-over
+      ice should look the same as the surface's ice, all one system (missed in A). The covers the
+      tyres make (ice, snow, packed snow, water) were tile art; now the GPU field draws them with
+      its own look (mask codes 7-10, a rim at bare edges) and the tiles paint the ground under;
+      scenery water keeps its art. Photos (_onelook.mjs) off / on: tyre ice matches the field's.
+- CLEAN-UP APPROVED (owner 10-18): delete the puddle-site system AND ?coverfield=0 (its old
+  path); then T3, then the performance pass, then lighting.
 - [x] APPROVED PLAN A-D: all the DEFAULT since 2026-10-18 (owner: "all pass"; =0 off:
       ?coldsurface, ?wearchance, ?markfade, ?hudunits). Snow's look by depth (opacity) kept
       (owner: "opacity ... is ok"). Was, in order:

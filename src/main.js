@@ -39,7 +39,7 @@ import { setGroundLookup, setSlideWear } from "./world/wear.ts";
 import { setGravelDig, setSandDig, setWearChance } from "./world/dig.ts";
 import { setPackedSnowWear, setWinterSnow } from "./world/snowwear.ts";
 import { setWetTrail } from "./wettrail.ts";
-import { setCoverField, setMudFrost } from "./world/coverfield.ts";
+import { setCoverField, setMudFrost, setOneLook } from "./world/coverfield.ts";
 import {
   setColdSurface, setWetness, setRain, setMelt, setWinterCold,
 } from "./world/weather.ts";
@@ -77,6 +77,7 @@ setSandDig(shared.settings.sandDig);   // ?sanddig=1: sand dents fastest, dry to
 setColdSurface(shared.settings.coldSurface);   // ?coldsurface=1: one water / snow / ice order
 setMarkFade(shared.settings.markFade);   // ?markfade=1: tyre marks fade block by block
 setWearChance(shared.settings.wearChance);   // ?wearchance=1: dirt / sand / gravel wear chances
+setOneLook(shared.settings.oneLook);   // ?onelook=1: tyre-made covers in the field's look
 setCoverField(shared.settings.coverField);   // ?coverfield=1: water and snow build by the weather
 setMudFrost(shared.settings.mudFreeze);   // ?mudfreeze=1: all mud freezes by the field's frost
 setMelt(shared.settings.winter);   // ?winter=1: snow and ice melt by temperature, water freezes

@@ -11,7 +11,7 @@ import type { GroundCtx } from "./types.ts";
 import { speckle } from "./prims.ts";
 import { paintLayers, artBase } from "./art.ts";
 import { puddleWater } from "./covers.ts";
-import { fieldLaysCell } from "../../world/coverfield.ts";
+import { cellCoverOnGpu, fieldLaysCell } from "../../world/coverfield.ts";
 
 // the group key of worn cells that are now standing water over a ground (?onepuddle=1)
 const PUDDLE_KEY = 'puddle|';
@@ -59,7 +59,8 @@ function groupWornCells(groundCtx: GroundCtx, pass: string) {
   const groups = new Map<string, WearGroup>();
   for (const cell of wearMap.values()) {
     // the cover field's own water / snow is drawn on the GPU (glfield.ts): the ground under it here
-    const shows = fieldLaysCell(cell) ? cell.base : cell.current!;
+    // ?onelook=1: the tyres' ice / snow / water too (one look, glfield.ts)
+    const shows = fieldLaysCell(cell) || cellCoverOnGpu(cell) ? cell.base : cell.current!;
     if (shows === cell.orig) continue;
     const startedCovered = cell.orig === 'snow' || cell.orig === 'ice' || cell.orig === 'wet';
     if ((pass === 'cover') !== startedCovered) continue;
