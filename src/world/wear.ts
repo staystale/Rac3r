@@ -269,7 +269,7 @@ function passWetCell(cell: WearCell, tyreTemp: number): void {
   // always churns (pure 40% measured a worst case of 9-12 passes over 200 puddles)
   if (cell.standing && WATER_MIX[cell.base]
     && (++cell.passes >= 3 || Math.random() < WATER_CHURN_CHANCE)) cell.dry = 1;
-  else cell.dry += puddleClearBy(cell.standing) ?? dryAmount(cell.standing, tyreTemp);
+  else cell.dry += puddleClearBy(cell.standing, tyreTemp) ?? dryAmount(cell.standing, tyreTemp);
   if (cell.dry >= 1) {
     cell.cover = null;
     cell.base = churnedTo(cell.base) || WATER_MIX[cell.base] || cell.base;
@@ -316,7 +316,7 @@ function passCell(cell: WearCell, tyreTemp = 18): void {
     if (!passWinterSnow(cell, wet, SNOW_TO_ICE)) passSnowCell(cell, damp);
   } else if (cell.cover === 'wet') passWetCell(cell, tyreTemp);
   else if (packedSnowWears(cell.cover || cell.base)) passPackedSnowCell(cell, wet);
-  else if (cell.cover === 'ice') passIceCell(cell, wet);
+  else if (cell.cover === 'ice') passIceCell(cell, wet, tyreTemp);
   else if (!cell.cover) passBareCell(cell, damp);
   // the tyre dries its line in the rain (as it dries a wet zone: dryAmount, damp ground)
   if (cell.cover !== 'wet') dryCellLine(cell, wearClock, dryAmount(false, tyreTemp));

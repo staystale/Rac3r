@@ -18,6 +18,7 @@
 // Ice scrubbing, melting, freezing water and drying are in wear.ts / puddles.ts.
 import type { WearCell } from "./types.ts";
 import { coldSurfaceOn, snowTempC } from "./weather.ts";
+import { hotTyreShare } from "../physics/tyrecool.ts";
 
 // passes before packed snow breaks up; the chance it goes to loose snow (else ice), the old rule
 const PACKED_SNOW_WEAR = 4, PACKED_TO_SNOW_CHANCE = 0.5;
@@ -31,6 +32,8 @@ const PACKED_ICE_AT_0 = 0.55, PACKED_ICE_PER_C = 0.03;
 // the warmer): after ICE_WEAR passes, water by ICE_WATER_AT_0 at 0 C and ICE_WATER_PER_C a C
 // warmer (less when colder), wet ice ICE_WATER_WET more
 const ICE_WEAR = 4, ICE_WATER_AT_0 = 0.1, ICE_WATER_PER_C = 0.08, ICE_WATER_WET = 0.2;
+// ?tyrecool=1: a hot tyre (tyreheat.ts hotTyreShare 1) adds ICE_WATER_HOT to that chance
+const ICE_WATER_HOT = 0.15;
 // what is under a snow road when packed snow breaks through
 const SNOW_ROAD_BED = 'gravel';
 
@@ -95,12 +98,13 @@ export function passWinterSnow(cell: WearCell, wet: boolean, snowToIce: number):
  * by the temperature (slides scrub it through too: wear.ts scrubCell).
  * @param cell the wear cell (changed in place)
  * @param wet whether the cell is wet enough to wear as wet ground
+ * @param tyreC the tyre's temperature, C (?tyrecool=1: hot tyres break it more often)
  */
-export function passIceCell(cell: WearCell, wet: boolean): void {
+export function passIceCell(cell: WearCell, wet: boolean, tyreC = 0): void {
   if (!coldSurfaceOn() || ++cell.passes < ICE_WEAR) return;
   cell.passes = 0;
   const water = clampShare(ICE_WATER_AT_0 + ICE_WATER_PER_C * snowTempC()
-    + (wet ? ICE_WATER_WET : 0), 0.02, 0.9);
+    + (wet ? ICE_WATER_WET : 0) + ICE_WATER_HOT * hotTyreShare(tyreC), 0.02, 0.9);
   if (Math.random() >= water) return;
   toWater(cell);
   cell.scrub = 0;

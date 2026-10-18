@@ -37,6 +37,7 @@ import { initWorld } from "./world/load.ts";
 import { applyOldGrassGrip } from "./world/surfaces.ts";
 import { setGroundLookup, setSlideWear } from "./world/wear.ts";
 import { setGravelDig, setSandDig, setWearChance } from "./world/dig.ts";
+import { setTyreCool } from "./physics/tyrecool.ts";
 import { setPackedSnowWear, setWinterSnow } from "./world/snowwear.ts";
 import { setWetTrail } from "./wettrail.ts";
 import { setMudFrost, setOneLook } from "./world/coverfield.ts";
@@ -73,6 +74,7 @@ setPackedSnowWear(shared.settings.packedWear);   // ?packedwear=1: packed snow w
 setWetTrail(shared.settings.wetTrail);   // ?wettrail=1: wet tyre lines fade within 10-50 m
 setWinterCold(shared.settings.winterCold);   // ?wintercold=1: frosty winters, slower ice
 setGravelDig(shared.settings.gravelDig);   // ?graveldig=1: gravel digs like sand, slower
+setTyreCool(shared.settings.tyreCool);   // ?tyrecool=1: tyres cool toward the track / air mix
 setSandDig(shared.settings.sandDig);   // ?sanddig=1: sand dents fastest, dry too
 setColdSurface(shared.settings.coldSurface);   // ?coldsurface=1: one water / snow / ice order
 setMarkFade(shared.settings.markFade);   // ?markfade=1: tyre marks fade block by block

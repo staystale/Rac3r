@@ -584,6 +584,14 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
       simhash SAME, renderhash SAME (refs re-saved on main 5003d9a first). NEXT: T3, the
       performance pass, then lighting.
 - DECISION (owner 10-18): snow's opacity by depth is kept (thin snow shows its ground).
+- [ ] T3 TYRE COOLING behind ?tyrecool=1, owner phone test (testlist tyrecool). Owner 10-18
+      approved: tyres cool toward a track / air mix (the air's share 0 at rest to 0.5 at 150 km/h;
+      owner: "mix if not too intense"), hot tyres clear standing water in 2 passes at 100 C (3 at
+      40 C and below), hot tyres break driven ice more often (+0.15 at 100 C). Slide scrubbing of
+      ice NOT raised (already x1.67 at 120 C, cut from x3 at the owner's earlier request).
+      physics/tyrecool.ts (no imports: the world modules read it). _tyrecool.mjs: hot day at
+      150 km/h fronts 45 -> 37 C, rears 64 -> 56; cornering 60 km/h -1..3 C; cold day 150 km/h
+      4 -> 1 / 23 -> 19. tyrecheck OK, simhash SAME switch off. NEXT: the performance pass.
 - [x] APPROVED PLAN A-D: all the DEFAULT since 2026-10-18 (owner: "all pass"; =0 off:
       ?coldsurface, ?wearchance, ?markfade, ?hudunits). Snow's look by depth (opacity) kept
       (owner: "opacity ... is ok"). Was, in order:

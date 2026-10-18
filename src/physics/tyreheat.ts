@@ -3,6 +3,7 @@
 import type { Spec } from '../cars.ts';
 import { clamp, TYRE_HEAT, TYRE_FLEX, TYRE_T_MAX } from '../vehicle.ts';
 import { WEATHER } from '../world/weather.ts';
+import { coolTowardC } from './tyrecool.ts';
 import type { Car } from '../vehicle.ts';
 import { axleForce } from './tyres.ts';
 import { wearTyres } from './tyrewear.ts';
@@ -26,6 +27,8 @@ const TYRE_COOL = 0.008;
 const FEEL_COOL = 0.0135, FEEL_AIR = 0.00025, FEEL_FLEX_K = 0.1, FEEL_SLIDE_HEAT = 1.4;
 // on here too, so the headless tools drive the same physics as the game
 let feelOn = true;
+// the temperature the tyres cool toward this step, C (updateTyreTemps; tyrecool.ts)
+let ambientC = 18;
 // each wheel's slip speed this step while its axle scrubs (0 rolling), for the wear (reused)
 const wheelSlip = [0, 0, 0, 0];
 
@@ -62,14 +65,15 @@ function fillWheelSlip(frontAxle: ReturnType<typeof axleForce>, lockedF: boolean
 
 /**
  * One tyre's temperature change, C/s: slip heat, flex heat and cooling toward the TRACK
- * temperature (weather.ts; 18 C with no weather). With the feel, a tyre no hotter than its
+ * temperature (weather.ts; 18 C with no weather; ?tyrecool=1: ambientC, the track / air mix).
+ * With the feel, a tyre no hotter than its
  * window's top holds its heat (heldCool) and a slide warms it sooner.
  */
 function tyreRate(temp: number, slipHeat: number, flexHeat: number, slip: number,
     windowTop: number, cool: number, heldCool: number): number {
   const held = feelOn && temp <= windowTop;
   const slideK = held && slip > 0 ? FEEL_SLIDE_HEAT : 1;
-  return slipHeat * slideK + flexHeat - (held ? heldCool : cool) * (temp - WEATHER.trackC);
+  return slipHeat * slideK + flexHeat - (held ? heldCool : cool) * (temp - ambientC);
 }
 
 /**
@@ -87,6 +91,7 @@ export function updateTyreTemps(car: Car, carSpec: Spec, tick: AxleTick, out: Ax
       0.9);
   const speed = Math.hypot(vLong, vLat), groundCool = car.surface.coolK || 0;
   const cool = TYRE_COOL + TYRE_HEAT.air * speed + groundCool;
+  ambientC = coolTowardC(WEATHER.trackC, WEATHER.tempC, speed);
   const heldCool = FEEL_COOL + FEEL_AIR * speed + groundCool;
   const heatScale = (car.surface.heatK ?? 1)
       * (car.surface.hard && carSpec.tyre ? carSpec.tyre.heatHard || 1 : 1);
