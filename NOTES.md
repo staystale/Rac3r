@@ -66,6 +66,15 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   ?packedwear (packed snow breaks into snow or ice 50:50), ?wettrail (wet tyre lines fade within
   10-50 m). Later (owner): T3 - tyres cool toward the air temperature, hot tyres clear water / ice
   faster.
+- Cover field + winter logic (10-18, owner "all pass"): the DEFAULT (?coverfield=0 / ?winter=0
+  off). Rain and snow build in small patches until they coat the track, heat dries / melts them
+  back, all by weather and temperature, on every level (highway too); every level follows its
+  weather (a snow stage may be played hot and melt; a desert snowed on). The level's own snow,
+  ice, water and packed snow are field areas (start full, melt / dry); under them: the surface's
+  own under, a road's tarmac, open snow ground's grass (owner: "depends on the track"; varied
+  levels later). A normal track's settled start snow is about a quarter of the first try. The
+  field is now THE water / snow system: the puddle SITES (puddles.ts, ?morepuddles, ?labweather)
+  are off with it and should be deleted in a clean-up pass; scenery water stays permanent.
 - Weather (10-17): a season slider sets the chances of rain / snow / dry / hot / super hot, the
   temperature and the track condition; it can change mid-race; it must add no lag. One water
   system: the existing wet / puddle cover, extended, never a second one.
@@ -121,6 +130,12 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   phone's load with `loadMs` (`phonereport` prints it).
 - `?report=1` records without drawing the meter graph (`?meter=1` shows it). It records the
   menu too: `phonereport` prints a MENU run (frame times, ignored taps, slowest tap handler).
+
+- simhash / renderhash run the BROWSER game (main.js applies the settings): prove an old path with
+  RAC3R_QUERY=<switch>=0, never a node wrapper that sets a module flag (main.js overrides it).
+- The cover field costs ~nothing on the laptop GPU (Castle Cum race 54.2 vs 55.5 fps, a snow stage
+  under a full coat 60): one full-screen pass reading one texel a pixel (rim reads only near
+  patch edges); the catch is computed per 8 m chunk on the CPU within 2 ms a frame.
 
 ## Routine
 

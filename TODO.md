@@ -1,7 +1,7 @@
 # RAC3R - open work
 
 New session? Read `CLAUDE.md`, then `NOTES.md`, then this file. Open items only: finished work is in
-the git history. `docs/foreman-handover.md` is the last handover (10-17 evening), written on request.
+the git history. `docs/foreman-handover.md` is the last handover (10-18, cover field), written on request.
 
 ## Where we are
 
@@ -525,6 +525,17 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
   test stays open (testlist tyrewear). RESTART puts the set back as it was at the event's start,
   RESET keeps the race as it is; the wear is saved when the event is over (results, menu, another
   car).
+- NEXT, READY TO WORK ON (owner 10-18): RAIN / WATER + DRIVING OVER IT turns SAND -> GRAVEL and
+  GRAVEL -> DIRT. Today: a churned puddle mixes sand -> gravel but gravel -> MUD (wear.ts
+  WATER_MIX), and damp ground only speeds the grass / dirt / mud chain (BASE_WEAR: sand and gravel
+  never wear by passes). To do: WATER_MIX gravel -> dirt; sand and gravel wear by passes only when
+  wet (damp ground or a puddle / field water over them): sand -> gravel, gravel -> dirt (then dirt
+  -> mud as today); pass counts to agree with the owner (suggest: like dirt, 2 passes wet, 1 in a
+  puddle). Check the hot-weather rule (wet.ts: dirt bakes to gravel) and the AI regrip.
+- OWNER 10-18 "ALL PASS OTHERWISE": the cover field and the winter logic are the DEFAULT
+  (?coverfield=0 / ?winter=0 off); a normal track's settled start snow cut to about a quarter
+  (START_SNOW 0.2-0.7 -> 0.15-0.38: ~3-20 % of the ground); the test list is empty. Refs re-saved;
+  with coverfield=0&winter=0: renderhash SAME, simhash SAME. Clean-up owed: the puddle sites.
 - COVER FIELD (owner 10-18: rain and snow build in small patches until they coat the race surface;
   everything by weather / temperature; every level, highway included; settled at a wet start).
   Plan F0-F4 agreed: F0 DONE (every level follows its weather). F1 + F2 BUILT behind

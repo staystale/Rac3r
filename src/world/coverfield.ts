@@ -1,7 +1,7 @@
-// coverfield.ts - THE COVER FIELD (?coverfield=1; owner, 2026-10-18: rain and snow build in small
-// patches that grow and join until they coat the race surface if it goes on long enough; heat
-// dries and melts them back; everything by the weather and the temperature, on every level, the
-// endless highway too; wet and snowy races start with some already settled).
+// coverfield.ts - THE COVER FIELD (the default since 2026-10-18, ?coverfield=0 off; owner: rain
+// and snow build in small patches that grow and join until they coat the race surface if it goes
+// on long enough; heat dries and melts them back; everything by the weather and the temperature,
+// on every level, the endless highway too; wet and snowy races start with some already settled).
 //
 // How: every point of the world has a CATCH, 0..1 - smooth value noise in world space (the water
 // and the snow each their own), so neighbouring points catch alike and patches have shape. The
@@ -50,8 +50,10 @@ export const WATER_SEED = 0x2c1b3c6d, SNOW_SEED = 0x297a2d39;
 // COVER_SQ), drawn as the same squares (render/glfield.ts): what you see is what the tyre feels
 export const FIELD_SQ = 0.5;
 // a wet / snowy event's start: the levels already settled (owner): raining, a drying track, snow
-// lying - each a range, dealt from the weather's seeded stream
-const START_RAIN = [0.15, 0.5], START_DRYING = 0.35, START_SNOW = [0.2, 0.7], SNOW_LYING = 0.6;
+// lying (owner: on a normal track about a quarter of what lay at first - ~3-20 % of the ground -
+// then it builds or wears with racing; a snow level's own snow is its area, full) - each a range,
+// dealt from the weather's seeded stream
+const START_RAIN = [0.15, 0.5], START_DRYING = 0.35, START_SNOW = [0.15, 0.38], SNOW_LYING = 0.6;
 // what lies under an area with no `under` of its own: open snow ground's grass, else tarmac
 const UNDER_SNOW_GROUND = 'grass', UNDER_DEFAULT = 'tarmac';
 
@@ -72,7 +74,8 @@ export const AREAS: Record<AreaKind, Levels> = {
   wet: emptyLevels(), snow: emptyLevels(), ice: emptyLevels(), packedSnow: emptyLevels(),
 };
 
-let enabled = false, syncS = 0, epoch = 0;
+// on here too, so the headless tools drive the ground the game does
+let enabled = true, syncS = 0, epoch = 0;
 // the AI plans its speeds again when a level crosses a tenth (ai/line.ts): the bands last seen
 const bandsSeen = new Int16Array((AREA_KINDS.length + 1) * 4);
 
@@ -376,6 +379,8 @@ function syncFieldCells(seconds: number): void {
     wearDirty.push(cell);
   }
 }
+
+fillAreas();
 
 /** Fills every level area to the top (the level as it was built). */
 function fillAreas(): void {

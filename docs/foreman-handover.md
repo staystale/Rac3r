@@ -1,92 +1,104 @@
 # Foreman handover
 
-Written on the owner's request, 2026-10-18 (main at the weather-default commit, plus this page).
-Read `CLAUDE.md`, then `NOTES.md` (the owner's rules, decisions, measured lessons and the routine -
-not repeated here), then `TODO.md` ("Where we are" and "GRASS GRIP + WATER" / "TYRE WEAR"), then
-this page.
+Written on the owner's request, 2026-10-18 (main at the cover-field default commit, plus this
+page). Read `CLAUDE.md`, then `NOTES.md` (the owner's rules, decisions, measured lessons and the
+routine - not repeated here), then `TODO.md` ("Where we are" and the 10-18 entries: COVER FIELD,
+WINTER LOGIC, TYRE FEEL, WET TYRE MARKS, ONE PUDDLE LOOK, PACKED SNOW), then this page.
 
 ## Where we are
 
-- **The judder question is closed (10-17 night).** The same default build in DuckDuckGo (iOS
-  WebKit too) showed the owner no held frames; a Safari tab held 42 in 10 s. The "lean" drawing
-  (`?glground=0&sharpcars=0&sharpmarks=0`) only brought Safari to the original build's level.
-  Owner: "our default link is working pretty good - let's move on". The default drawing is kept.
-  Before an itch.io release: record a race in the home-screen app (no Safari toolbar).
-- **Weather is done and the DEFAULT** (owner, 10-18: "weather all pass"; `?weather=0` = off).
-- **Sliding / crashing wheels wear the ground twice** - the DEFAULT (`?slidewear=0` = off).
-- **Tyre wear is the DEFAULT, its test left open** (owner: "apply it to main and roll it back if
-  needed"; `?tyrewear=0` = off; testlist `tyrewear`). RESTART = the set as at the event's start,
-  RESET keeps the race as it is.
-- **Puddles and snow can build up anywhere** (sites over the whole floor, `world/covergrid.ts`
-  indexes the covers).
-- **Today's weather tweaks** (cold freezes water, puddles before the start, faster build-up, the
-  SNOW button) are in the default; testlist `wintertweaks` for the owner to confirm.
-- **NEXT: LIGHTING / time of day** - approved to build, tested on its own switch. Not started.
+- **The test list is EMPTY**: everything built on 10-18 is approved and the DEFAULT, each with an
+  `=0` switch back to the old: `?tyrefeel`, `?morepuddles`, `?onepuddle`, `?packedwear`,
+  `?wettrail`, `?winter`, `?coverfield`. (`?labweather` is superseded by the cover field.)
+- The judder question stays closed (DuckDuckGo shows no holds; Safari's presentation holds frames;
+  `NOTES.md`). The owner saw no judder with the cover field.
+- **READY TO WORK ON FIRST (owner, 10-18):** rain / water + driving over it turns SAND -> GRAVEL
+  and GRAVEL -> DIRT (`TODO.md` "NEXT, READY TO WORK ON": today a churned puddle makes gravel
+  into MUD and dry-or-wet sand / gravel never wear by passes - `wear.ts WATER_MIX`, `BASE_WEAR`).
+- **Then (owner's list, in no fixed order - ask):** LIGHTING / time of day (brief below), T3 (tyres
+  cool toward the AIR temperature; hot tyres clear water / ice faster), and a clean-up pass that
+  deletes the retired puddle-site system (below).
 
-## Weather - how it is built (all in `TODO.md` with the measurements)
+## What was built 10-18 (all default)
 
-- `world/weather.ts` - the state (wetness 0-1 in 10 steps, rain, snow, air and TRACK temperature,
-  the kind of sky, the season) and the engine: the event setup's plan (SEASON / DRY / HOT / VERY
-  HOT / RAIN / HEAVY RAIN / SNOW + a season slider), changes in the race in SEASON mode (seeded:
-  a restart replays it), soaking and drying, the HUD notices. No plan (the menu's race, the
-  tools) = dry, 18 C: the old game exactly.
-- `world/wet.ts` - damp and puddle surfaces from the owner's table (`surfaces.ts WET_MU`), cached
-  per step; the dry line per wear cell; the hot-weather rule (dirt wears to gravel).
-- `world/puddles.ts` - puddle / snow / ice SITES per level (seeded; dips likelier), the start's
-  deal, freezing and thawing, scenery water freezing over (`Cover.water`: Killder Water, Sweaty
-  Lamb's stream / splash / pond - permanent water), mud drying and freezing, tyre clearing (3
-  passes, rain tyres 1). Changed sites repaint only their ground squares
-  (`render/tilesWear.ts staleCoverAreas`). The levels' own puddles go (the Lab keeps its test
-  features).
-- Tyres: `physics/tyres.ts tyreGripOn` (wet hard ground reads the WET column); tyres cool toward
-  the track temperature (`tyreheat.ts`). The AI re-plans per wetness step (`ai/line.ts`
-  `regripPath`; the highway weaver x `roadWetGrip`).
-- The look: `render/glprogram.ts WET_GLSL` (the GPU ground darker and cooler in its own shaders;
-  the 2D ground one multiply fill), `render/rain.ts` (rain streaks + splashes, snowflakes: one path
-  each a frame, fixed pools).
-- `?rain=0..1` - a fixed wet track (test tool, stays).
+- **Tyre feel** (`physics/tyreheat.ts`, `tyrewear.ts`): tyres warm sooner and hold heat inside
+  their window (cooling less with speed; above the window as before, so overheating / popping is
+  as hard as it was); a scrubbing axle's slip heat x1.4 below the window top; slides / spins /
+  donuts wear 2-3x by their real slip, hot slides more, cold slides no extra. tyrecheck's rules
+  moved with it (drift too hot 15 s+, 80 s drift never pops).
+- **Wet trails** (`src/wettrail.ts`): wet tyre lines are a short trail per wheel (a point a metre,
+  gone after 1 s or 50 m), drawn where the marks are drawn - not baked into the skid-mark layer.
+- **One puddle look** (`render/ground/covers.ts PUDDLE_WATER`, `art.ts 'puddle'`): water tinted by
+  its ground, blue-grey on hard ground; the wet art lost its blue blobs.
+- **Packed snow wear + winter logic** (`world/snowwear.ts`, `puddles.ts`, `weather.ts`): loose snow
+  packs / ices / slushes by temperature; packed snow ices more in the cold, churns to snow, or
+  breaks through to water (a snow road's bed: gravel); tyre-made snow / ice melt above freezing
+  (faster per C and in rain); tyre water freezes to black ice below 0 and dries in a warm spell;
+  scenery water and frozen mud thaw faster per C. Without an event's weather nothing melts.
+- **The cover field** (`world/coverfield.ts`, `world/coverlookup.ts`, `render/glfield.ts`) - F0-F4,
+  see below. Every level follows its weather (the snow-level freeze was removed, F0).
 
-## Tyre wear (owner's design; the default, `?tyrewear=0` off)
+## The cover field - how it works
 
-`physics/tyrewear.ts`: wear from each wheel's friction work (the heat model's), faster above the
-window, on the wrong ground, rain tyres x2.5 in the dry, dry tyres x0.6 in the wet; grip -20 % at
-bald (more when wet); punctures from heat over the window and wear past 70 % only, debris 4 % on a
-hard hit, splinters 1 %; crashes already puncture (`damage.js`). Saved per car in the profile
-(session only); the garage's FIT is a new set and shows % WORN; the HUD wheel colour is the wear
-(numbers = heat). Measured: 3 laps ~10 % of a set. SEEN, not changed: with the tyre diagram on, the
-ABS / TCS buttons sit under the FPS panel (an old layout issue).
+- Every 0.5 m square has a CATCH (world-space value noise, two octaves, 255 steps; water and snow
+  each their own seed). The weather moves LEVELS (water, snow, ice; areas also packed snow). A
+  square is covered where its level is above its catch: small patches first, then a full coat
+  (~10 min heavy rain / snow, ~25 light); drying / melting reverse it. Nothing stored per square:
+  the endless highway is covered as it is built. Settled starts: rain 0.15-0.5, snow 0.15-0.38
+  (owner: a quarter of the first try on normal tracks).
+- LEVEL AREAS: the level's own snow ground, cover zones and lanes, packed snow roads and
+  hand-placed patches have their own levels (full at the start), so a snow stage melts in patches
+  in a hot event and the Bowling Alley wet lane dries. Their ground is painted as what lies
+  beneath (`paintAs` in zones.ts / road.ts / tiles.ts; `areaUnder`: the surface's `under`, a
+  road's tarmac, open snow ground's grass). Scenery water (Cover.water) is fixed.
+- Physics: `wear.ts layersAt` -> `coverfield.ts fieldLayers` (square centres, the same 255-step
+  catch the GPU reads: what you see is what the tyre feels). Wear cells follow the field once a
+  second (`syncFieldCells`); a spot tyres cleared refills only while it rains / snows; tyre-made
+  covers keep the winter rules. The AI re-plans speeds when a level crosses a tenth
+  (`coverEpoch` + the wetness step in `ai/line.ts`).
+- Drawing: `glfield.ts` - a world grid texture (1024 squares, wrapping) of catch (RG) and a mask
+  (255 = the tiles show it: scenery water, tyre-changed cells; 1-4 = the square's area) computed
+  per 8 m chunk within 2 ms a frame (view first; a missing chunk shows no field); one full-screen
+  pass after the tiles, before the hill shading; rims only where a cover meets bare ground. Mask
+  updates ride `heightsChanged` (the wear drain). Not drawn on the 2D ground (`?glground=0`).
+- Measured: Castle Cum race, 3 AI, water 0.6: 54.2 fps with vs 55.5 without (headless laptop); a
+  snow stage under a full coat 60 fps; field + cell sync 0.48 ms a second with 5,749 cells.
 
-## LIGHTING - the owner's brief (next)
+## Clean-up owed (ask before deleting)
+
+- The puddle SITES (`puddles.ts` sites, `refillCleared`, `extraWaterSites`, `?morepuddles`,
+  `?labweather`, `covergrid.ts` use by sites) are off whenever the field is on (the default):
+  dead weight to remove. Scenery water freezing / thawing and the winter cell rules live in
+  `puddles.ts` too and must stay (or move to their own module).
+- `?winter` / `?coverfield` old paths stay until the owner says the old can go.
+
+## LIGHTING - the owner's brief (not started)
 
 Weather changes the light; time of day an option that moves slowly and realistically through a
 race; darker in winter (shorter days); pink sunrises, orange sunsets, moonlit nights, truly dark
 nights where the headlights matter (cars have beams: `render/cars.ts drawHeadlights`); track /
 street lights if not overkill. On its own switch, tested separately. THE RISK is Safari: every new
-look is a per-frame cost there (`NOTES.md`). Ideas, not decided: tint the ground in the GPU
-shaders as the wet look does (free); a low-res darkness / light map in the art buffer for night
-(one canvas, no extra layer); measure each with `tools/drawload.mjs` and an owner screen recording
-(held frames) before it becomes the default. CLAUDE.md: bring a mockup before a new look.
+look is a per-frame cost there (`NOTES.md`). Ideas, not decided: tint the ground in the GPU shaders
+as the wet look does; a low-res light map; measure each with `tools/drawload.mjs` and an owner
+screen recording (held frames). CLAUDE.md: bring a mockup before a new look.
 
 ## Proofs and references
 
-- Weather off (`?weather=0`): simhash SAME 13/13 at every step; the references were re-saved for
-  the agreed changes (puddle grip, then the weather default). renderhash: SAME for the wet-look
-  code; re-saved on the weather default. Saved in the worktree `Desktop/G/rac3r-wt/tools/`
-  (`.simhash`, `.renderhash`, `.worldhash` - gitignored).
-- Node-side wet tests: the AI tools run the game in Node without page links, so the weather is
-  set by a wrapper: scratchpad `wetrun.mjs <wetness> <tool> [args]` (session 77157c93). Other
-  scratch probes there: `wetgrip.mjs` (cornering g dry / damp / puddle per tyre), `weathersim.mjs`
-  (30 sim minutes per season), `sites.mjs` / `cold.mjs` (sites, the start's deal, freezing,
-  build-up), `tyrewearcal.mjs` (wear per race), `weatherrace.mjs` / `puddleshot.mjs` /
-  `tyrehud.mjs` (browser photos), `pxsteps.mjs`, `stalebeat.mjs`.
-- `tools/wobblecheck.mjs` no longer drives the car (its input hook); fix it only if needed.
-- The recording counter (old session fff86173 scratchpad `vmotion.mjs` / `held.mjs`): trust held
-  frames only; its "1.5x / 0.5x steps" are matching noise (`NOTES.md`).
+- simhash / renderhash references were re-saved on the cover-field default (worktree
+  `Desktop/G/rac3r-wt/tools/.simhash`, `.renderhash` - gitignored). Old paths prove SAME with
+  `RAC3R_QUERY="coverfield=0&winter=0"` (these tools run the browser game: never prove an old path
+  with a node wrapper - `NOTES.md`).
+- Probes kept in `tools/scratch/`: `_coverfield.mjs` (coverage over time, cost), `_winter.mjs`
+  (snow outcomes by temperature, melt, lab sites, cost), `_packedwear.mjs`, `_morepuddles.mjs`.
+- File-size caps bite: `render/road.ts` is at 800 lines (`wear.ts` 760 after the cover lookup
+  moved out). Long node edit scripts: write them with the Write tool, not a Bash heredoc.
 
 ## Picking up
 
-- Test server and tunnel running (`serve.mjs` PID 6236, cloudflared 1408, in
-  `GamesStudio/tools/logs/rac3r-pids.txt`); the served clone `Desktop/G/rac3r` is on main.
+- Test server and tunnel running (`serve.mjs` PID 6236, cloudflared 1408; the link in
+  `GamesStudio/tools/logs/rac3r-tunnel.err`); the served clone `Desktop/G/rac3r` is detached on
+  origin/main - never `git checkout main` there (a stale local branch); use
+  `git checkout -q --detach origin/main`.
 - Worktree `Desktop/G/rac3r-wt` on main, clean.
-- The worker PC is shut down (the owner's request).
-- `checks` on GitHub: it had failed for weeks; watch the next run after this push.
+- `gh` is not on the Bash PATH: read check-runs with curl
+  (`api.github.com/repos/staystale/Rac3r/commits/<sha>/check-runs`).

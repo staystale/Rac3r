@@ -7,34 +7,6 @@
 //   id     stable key            added   date it went in (yyyy-mm-dd)
 //   where  how to get to it      try     what to do      wrong   what would count as a bug
 export const TEST_LIST = [
-  {
-    id: 'coverfield',
-    added: '2026-10-18',
-    name: 'Cover field: rain / snow build in small patches until they coat the track; heat melts',
-    where: 'Plain link + &coverfield=1&winter=1: any level (highway too), WEATHER rows',
-    try: 'Heavy rain / snow: patches in ~30 s, a full coat in ~10 min; dry / hot: it shrinks back;'
-      + ' a snow stage in HOT melts to grass and tarmac; the Bowling Alley wet lane dries; drive'
-      + ' through: tyres clear water lines, pack snow.',
-    wrong: 'Patches popping or flickering, a coat that never forms / goes, lag in rain or snow.',
-  },
-  {
-    id: 'labweather',
-    added: '2026-10-18',
-    name: 'Lab weather: puddles and snow patches on OG Lab, Bowling Alley, Rough Patch too',
-    where: 'Plain link + &labweather=1: TEST MODE, a lab level, WEATHER HEAVY RAIN / SNOW',
-    try: 'Puddles and snow form on the lab floors as on circuits; the test lanes still work.',
-    wrong: 'No puddles / snow on the lab floors, or a test lane broken by them.',
-  },
-  {
-    id: 'winter',
-    added: '2026-10-18',
-    name: 'Winter logic: snow packs, packed snow ices in the cold, melting by heat, water freezes',
-    where: 'Plain link + &winter=1: a circuit with SNOW, then warm / HOT',
-    try: 'Drive snow: it packs (some ice / slush); packed snow goes to ice more the colder, a'
-      + ' little breaks to water; warm: snow / ice / lake melt, quicker hot or in rain; tyre water'
-      + ' freezes below 0; every level follows its weather.',
-    wrong: 'Snow never packing, melting in the cold, snow lasting in the heat.',
-  },
   // (approved late, deleted: fields, grassedge, catchthem, slipsdual, fps - TODO.md 1c;
   // dirtroad, animals, labext, labsplit, zoomhold, gpupaint, minimap, zoomspring, grassgrip, hwmap,
   // cracktufts, sharpcars, sharpmarks, jokerfix,
@@ -42,7 +14,8 @@ export const TEST_LIST = [
   // sound, joker, markedge, ainowait, judder, texwarm; straightoutta removed with its level;
   // stalecap, drawlite undone; dpr, startfix approved; onecanvas paused with the lean plan;
   // weather, rain, slidewear approved 2026-10-18; morepuddles, tyrefeel, packedwear, onepuddle,
-  // wettrail approved 2026-10-18)
+  // wettrail approved 2026-10-18; coverfield, winter approved 2026-10-18 - labweather
+  // superseded by the cover field)
   {
     id: 'tyrewear',
     added: '2026-10-18',

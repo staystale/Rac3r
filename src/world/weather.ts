@@ -101,10 +101,11 @@ export interface WeatherPlan {
   seed: number;
 }
 
-// MELTING (?winter=1; owner, 2026-10-18: snow and ice should melt in anything but the cold, faster
-// when hot; every level follows its weather - a snow level may be played hot and melt). The
-// melting itself: puddles.ts.
-let melting = false;
+// MELTING (the default since 2026-10-18, ?winter=0 off; owner: snow and ice should melt in
+// anything but the cold, faster when hot; every level follows its weather - a snow level may be
+// played hot and melt). The melting itself: puddles.ts.
+// on here too, so the headless tools melt as the game does
+let melting = true;
 
 /**
  * Turns melting by temperature on (?winter=1, at start-up).

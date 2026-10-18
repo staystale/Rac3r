@@ -6,10 +6,10 @@
 // (wear.ts): the snow packs again (passSnowCell), the ice scrubs through to meltwater
 // (scrubCell), the water clears, and the base wears again.
 //
-// WINTER LOGIC (?winter=1; owner, 2026-10-18: "snow driven over should have a chance of becoming
-// packed snow; packed snow a higher chance of becoming ice when degraded or cold, and a small
-// chance to degrade and just leave water on whatever surface is below - complete logical
-// interactions"). By the temperature snow feels (weather.ts snowTempC):
+// WINTER LOGIC (the default since 2026-10-18, ?winter=0 off; owner: "snow driven over should have
+// a chance of becoming packed snow; packed snow a higher chance of becoming ice when degraded or
+// cold, and a small chance to degrade and just leave water on whatever surface is below -
+// complete logical interactions"). By the temperature snow feels (weather.ts snowTempC):
 //   loose SNOW, after SNOW_TO_ICE passes -> mostly PACKED SNOW (a cover over its ground); ICE more
 //     often the colder; WATER more often the warmer (wet snow: water, as before).
 //   PACKED SNOW (a cover, or a snow road), after PACKED_SNOW_WEAR passes -> mostly ICE, more so
@@ -30,7 +30,8 @@ const PACKED_ICE_AT_0 = 0.55, PACKED_ICE_PER_C = 0.03;
 // what is under a snow road when packed snow breaks through
 const SNOW_ROAD_BED = 'gravel';
 
-let enabled = true, winter = false;
+// both on here too, so the headless tools wear the ground as the game does
+let enabled = true, winter = true;
 
 /**
  * Turns packed-snow wear on (?packedwear, at start-up; on here too, so the headless tools wear

@@ -36,9 +36,9 @@ export interface Settings {
   packedWear: boolean;           // packed snow wears to snow or ice; =0 off
   onePuddle: boolean;            // one puddle look, water tinted by its ground; =0 off
   wetTrail: boolean;             // wet tyre lines fade within 10-50 m; =0 off
-  winter: boolean;               // ?winter=1: snow / ice / water logic by temperature (under test)
+  winter: boolean;               // snow / ice / water logic by temperature; =0 off
   labWeather: boolean;           // ?labweather=1: puddle / snow sites on lab floors (under test)
-  coverField: boolean;           // ?coverfield=1: water and snow build up by the weather (F1)
+  coverField: boolean;           // water and snow build up by the weather, everywhere; =0 off
   hwMap: boolean;                // the minimap on the highway too; ?hwmap=0 = not there
   sharpCars: boolean;            // crisp cars on the screen canvas (render.ts); ?sharpcars=0 off
   sharpMarks: boolean;           // skid marks on the screen canvas (render.ts); ?sharpmarks=0 off
@@ -90,9 +90,9 @@ function weatherSettings(params: URLSearchParams) {
     slideWear: params.get('slidewear') !== '0', tyreWear: params.get('tyrewear') !== '0',
     morePuddles: params.get('morepuddles') !== '0', tyreFeel: params.get('tyrefeel') !== '0',
     packedWear: params.get('packedwear') !== '0', onePuddle: params.get('onepuddle') !== '0',
-    wetTrail: params.get('wettrail') !== '0', winter: params.get('winter') === '1',
+    wetTrail: params.get('wettrail') !== '0', winter: params.get('winter') !== '0',
     labWeather: params.get('labweather') === '1',
-    coverField: params.get('coverfield') === '1' };
+    coverField: params.get('coverfield') !== '0' };
 }
 
 function churnKind(params: URLSearchParams): '' | 'pictures' | 'objects' {
