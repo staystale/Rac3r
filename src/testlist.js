@@ -17,14 +17,5 @@ export const TEST_LIST = [
   // wettrail approved 2026-10-18; coverfield, winter approved 2026-10-18 - labweather
   // superseded by the cover field; zoomswitch, mudfreeze, sanddig, wintercold, graveldig approved
   // 2026-10-18; tyrewear, wintertweaks passed 2026-10-18;
-  // coldsurface, wearchance, markfade, hudunits approved 2026-10-18)
-  {
-    id: 'onelook',
-    added: '2026-10-18',
-    name: 'Ice, snow and water the tyres make look the same as the weather lays',
-    where: 'Plain link + &onelook=1: TEST MODE, SNOW (cold): drive and slide over snow and ice',
-    try: 'Packed / polished ice, churned snow and meltwater in your tracks: the same look as the'
-      + ' ice, snow and water the weather lays, with the same edges.',
-    wrong: 'Tyre-made ice / snow looking different, holes where a cover was, lakes changed.',
-  },
+  // coldsurface, wearchance, markfade, hudunits, onelook approved 2026-10-18)
 ];

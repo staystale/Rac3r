@@ -55,7 +55,7 @@ export interface Settings {
   winterCold: boolean;           // frosty winter days, ice slower than snow; =0 off
   coldSurface: boolean;          // ?coldsurface=1: one water / snow / ice order (weather.ts)
   wearChance: boolean;           // ?wearchance=1: dry dirt 1/4 to mud, damp sand / gravel wear
-  oneLook: boolean;              // ?onelook=1: tyre-made ice / snow / water drawn as the field's
+  oneLook: boolean;              // tyre-made ice / snow / water drawn as the field's; =0 off
   hudUnits: boolean;             // ?hudunits=1: units rows + track temp gauge (hud/tracktemp.js)
   markFade: boolean;             // ?markfade=1: tyre marks fade block by block (marks.js)
   gravelDig: boolean;            // gravel digs like sand, slower; both faster wet; =0 off
@@ -96,7 +96,7 @@ function rainLevel(params: URLSearchParams): number | null {
 // puddles, the tyre feel, packed snow wear, one puddle look and wet trails the default since
 // 2026-10-18 (owner: "yes all"; =0 off); mud freeze and sand dig too (owner: passes; =0 off);
 // winter cold and gravel dig too (owner: pass; =0 off); cold surface, wear chances, mark fade
-// and the HUD units too (owner: "all pass"; =0 off); ?onelook=1 under test
+// and the HUD units too (owner: "all pass"; =0 off); one look too (=0 off)
 function weatherSettings(params: URLSearchParams) {
   return { rain: rainLevel(params), weather: params.get('weather') !== '0',
     slideWear: params.get('slidewear') !== '0', tyreWear: params.get('tyrewear') !== '0',
@@ -109,7 +109,7 @@ function weatherSettings(params: URLSearchParams) {
     gravelDig: params.get('graveldig') !== '0', coldSurface: params.get('coldsurface') !== '0',
     wearChance: params.get('wearchance') !== '0', markFade: params.get('markfade') !== '0',
     hudUnits: params.get('hudunits') !== '0',
-    oneLook: params.get('onelook') === '1' };
+    oneLook: params.get('onelook') !== '0' };
 }
 
 function churnKind(params: URLSearchParams): '' | 'pictures' | 'objects' {
