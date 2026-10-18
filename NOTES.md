@@ -49,7 +49,9 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   mipmaps built with the upload (no burst at a zoom-out): default since 10-18 (`?zoomswitch=0`). All mud and
   thick mud freeze by the cover field's frost, driven or not: default since 10-18 (`?mudfreeze=0`).
   Sand dents most easily (dry too, 45 cm floor), dry mud / thick mud dent at half the wet rate,
-  a churned gravel puddle leaves dirt: default since 10-18 (`?sanddig=0`).
+  a churned gravel puddle leaves dirt: default since 10-18 (`?sanddig=0`). Gravel dents like
+  sand but slower, both faster wet (`?graveldig=0`); frosty dry winters and ice melting at half
+  snow's rate (`?wintercold=0`): default since 10-18.
   Pre-turned pixel art (RotSprite)
   was the alternative, not chosen.
 - Not wanted / undone: the highway rebuild (cancelled 10-15), a fade at zoom steps, tiles tracing

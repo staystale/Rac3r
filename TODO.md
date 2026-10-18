@@ -557,7 +557,7 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
       every sand cell: _sandcover on lab / sandbox / rough-patch / bowling-alley). Now: sand floor
       45 cm (dry 10 passes 23.6 cm mean); owner "change mud to fit": mud and thick mud dent DRY at
       half the wet rate (dry thick mud had no cells: 0); wet as before; gravel as before.
-- [ ] WINTER COLD behind ?wintercold=1, owner phone test (testlist wintercold). Owner 10-18: a dry
+- [x] WINTER COLD: the DEFAULT since 2026-10-18 (owner: pass; ?wintercold=0 = old). Owner 10-18: a dry
       cold winter race never froze water; test-map ice should start as ice and degrade; ice melted
       too fast against snow. MEASURED (_wintertemp): dry winter track 9-16 C (air 1-8 + sun 8),
       0/200 starts below 0; a level's ice half gone in 8 s at 12 C, snow 7 min. Owner chose: ice
@@ -565,7 +565,7 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
       frosty days: winter air -4..7, winter sun x0.25 (not hot days) -> track -1.9..9 C, 36/200
       below 0 (18 %, less than the "about a third" first said - offer colder if wanted).
       simhash SAME with switches off; refs re-saved on the sanddig default (rac3r-wt tools/).
-- [ ] GRAVEL DIG behind ?graveldig=1, owner phone test (testlist graveldig). Owner 10-18: gravel
+- [x] GRAVEL DIG: the DEFAULT since 2026-10-18 (owner: pass; ?graveldig=0 = old). Owner 10-18: gravel
       dents like sand but takes more passes; sand and gravel both faster when wet. Gravel: cells
       dry too, 2 cm a pass, floor 30 cm; wet sand / gravel x1.5 (dry sand stays 4 cm). _sanddig
       (1 / 3 / 10 passes, cm): gravel dry 0.8 / 2.5 / 8.9 (was ~0), wet 1.2 / 4.1 / 12.7; sand

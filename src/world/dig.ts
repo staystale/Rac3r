@@ -18,8 +18,8 @@ const RUT: Record<string, DigRule> = {
 // churned puddle on gravel leaves dirt
 const SAND_DIG: DigRule = { step: 0.04, max: 0.45, chance: 1 };
 const DIG_DRY = new Set(['sand', 'thickMud']), DRY_MUD_DIG = 0.5;
-// GRAVEL DIG (?graveldig=1, under test; owner: gravel dents like sand but takes more passes; both
-// dent faster when wet)
+// GRAVEL DIG (the default since 2026-10-18, ?graveldig=0 off; owner: gravel dents like sand but
+// takes more passes; both dent faster when wet)
 const GRAVEL_DIG: DigRule = { step: 0.02, max: 0.3, chance: 1 }, WET_LOOSE_DIG = 1.5;
 
 let sandDig = false, gravelDig = false;

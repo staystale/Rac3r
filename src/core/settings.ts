@@ -52,8 +52,8 @@ export interface Settings {
   texWarm: boolean;              // long-grass textures painted while loading; =0 in the menu
   startFix: boolean;             // the race start without the hand-over jolt; =0 the old
   oneCanvas: boolean;            // ?onecanvas=1: the GPU ground drawn into the 2D canvas
-  winterCold: boolean;           // ?wintercold=1: frosty winter days, ice slower than snow
-  gravelDig: boolean;            // ?graveldig=1: gravel digs like sand, slower; both faster wet
+  winterCold: boolean;           // frosty winter days, ice slower than snow; =0 off
+  gravelDig: boolean;            // gravel digs like sand, slower; both faster wet; =0 off
   sandDig: boolean;              // sand dents fastest, dry too (wear.ts); =0 off
   mudFreeze: boolean;            // all mud / thick mud freeze (coverfield.ts); =0 off
   zoomSwitch: boolean;           // tile mipmaps at upload, no burst (glground.ts); =0 off
@@ -90,7 +90,7 @@ function rainLevel(params: URLSearchParams): number | null {
 // (owner: "apply it to main and roll it back if needed"; its test stays open; =0 off); more
 // puddles, the tyre feel, packed snow wear, one puddle look and wet trails the default since
 // 2026-10-18 (owner: "yes all"; =0 off); mud freeze and sand dig too (owner: passes; =0 off);
-// ?wintercold=1, ?graveldig=1 under test
+// winter cold and gravel dig too (owner: pass; =0 off)
 function weatherSettings(params: URLSearchParams) {
   return { rain: rainLevel(params), weather: params.get('weather') !== '0',
     slideWear: params.get('slidewear') !== '0', tyreWear: params.get('tyrewear') !== '0',
@@ -99,8 +99,8 @@ function weatherSettings(params: URLSearchParams) {
     wetTrail: params.get('wettrail') !== '0', winter: params.get('winter') !== '0',
     labWeather: params.get('labweather') === '1',
     coverField: params.get('coverfield') !== '0', mudFreeze: params.get('mudfreeze') !== '0',
-    sandDig: params.get('sanddig') !== '0', winterCold: params.get('wintercold') === '1',
-    gravelDig: params.get('graveldig') === '1' };
+    sandDig: params.get('sanddig') !== '0', winterCold: params.get('wintercold') !== '0',
+    gravelDig: params.get('graveldig') !== '0' };
 }
 
 function churnKind(params: URLSearchParams): '' | 'pictures' | 'objects' {
