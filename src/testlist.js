@@ -17,23 +17,6 @@ export const TEST_LIST = [
   // wettrail approved 2026-10-18; coverfield, winter approved 2026-10-18 - labweather
   // superseded by the cover field; zoomswitch, mudfreeze, sanddig, wintercold, graveldig approved
   // 2026-10-18; tyrewear, wintertweaks passed 2026-10-18;
-  // coldsurface, wearchance, markfade, hudunits, onelook approved 2026-10-18)
-  {
-    id: 'coverlook',
-    added: '2026-10-18',
-    name: 'Water, ice and packed snow look more unlike each other',
-    where: 'Plain link + &coverlook=1: the Lab (ice / snow / wet panels), a snow stage, SNOW',
-    try: 'Water: darker, clearer blue; ice: glassy cyan with shine streaks; packed snow: grey-white'
-      + ' with a fine grain; fresh snow unchanged.',
-    wrong: 'Still hard to tell apart, too garish, the grain flickering when driving or zooming.',
-  },
-  {
-    id: 'tyrecool',
-    added: '2026-10-18',
-    name: 'Tyres cool toward the track and the air (more air at speed); hot tyres clear water',
-    where: 'Plain link + &tyrecool=1: TEST MODE, tyre HUD on; a hot day, a cold day, a wet track',
-    try: 'At speed on a hot day the tyres settle cooler than on the plain link; hot tyres clear a'
-      + ' puddle in 2 passes (cold: 3); driven ice breaks up sooner under hot tyres.',
-    wrong: 'Tyres too cold / hot to work with, temperatures jumping, wet or icy lines too easy.',
-  },
+  // coldsurface, wearchance, markfade, hudunits, onelook, tyrecool, coverlook approved
+  // 2026-10-18)
 ];

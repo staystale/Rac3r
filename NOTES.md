@@ -55,6 +55,9 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   over ice; snow never on water; driven ice breaks to water; `?coldsurface=0`), dry dirt -> mud
   1 in 4 and damp sand / gravel wear (`?wearchance=0`), tyre marks fading block by block
   (`?markfade=0`), the track temp gauge and km/h-mph / C-F rows (`?hudunits=0`): default 10-18.
+  Tyre-made covers drawn as the field's (`?onelook=0`), tyres cooling toward a track / air mix with
+  hot tyres clearing water / ice faster (`?tyrecool=0`), water / ice / packed snow told apart
+  (`?coverlook=0`): default 10-18.
   Pre-turned pixel art (RotSprite)
   was the alternative, not chosen.
 - Not wanted / undone: the highway rebuild (cancelled 10-15), a fade at zoom steps, tiles tracing
@@ -149,6 +152,12 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
 - The cover field costs ~nothing on the laptop GPU (Castle Cum race 54.2 vs 55.5 fps, a snow stage
   under a full coat 60): one full-screen pass reading one texel a pixel (rim reads only near
   patch edges); the catch is computed per 8 m chunk on the CPU within 2 ms a frame.
+
+- renderhash draws the CPU ground (?gpupaint=0): it does not cover the GPU field shader
+  (render/glfield.ts) - photograph GPU look changes and check page errors. tools/uicheck.mjs reads
+  the HUD layout before a frame draws the tyre diagram: tools/scratch/_hudoverlap.mjs draws frames.
+- The cover field, mud frost, mark fade and HUD gauge cost the phone nothing measurable (Castle
+  Cum in snow, 10-18: 0.10 % slow frames).
 
 ## Routine
 
