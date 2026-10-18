@@ -52,7 +52,7 @@ export interface Settings {
   texWarm: boolean;              // long-grass textures painted while loading; =0 in the menu
   startFix: boolean;             // the race start without the hand-over jolt; =0 the old
   oneCanvas: boolean;            // ?onecanvas=1: the GPU ground drawn into the 2D canvas
-  sandDig: boolean;              // ?sanddig=1: sand dents fastest, dry too (wear.ts)
+  sandDig: boolean;              // sand dents fastest, dry too (wear.ts); =0 off
   mudFreeze: boolean;            // all mud / thick mud freeze (coverfield.ts); =0 off
   zoomSwitch: boolean;           // tile mipmaps at upload, no burst (glground.ts); =0 off
   maxDpr: number | null;         // ?dpr=2: the sharpness cap (default render.ts MAX_DPR 1.5)
@@ -170,7 +170,7 @@ export function readSettings(search: string): Settings {
     oneCanvas: params.get('onecanvas') === '1',
     zoomSwitch: params.get('zoomswitch') !== '0',
     mudFreeze: params.get('mudfreeze') !== '0',
-    sandDig: params.get('sanddig') === '1',
+    sandDig: params.get('sanddig') !== '0',
     maxDpr: maxDpr(params),
     noShade: params.has('noshade'),
     grassEnds: params.get('grass') === 'square' ? 'square' : 'round',

@@ -15,17 +15,7 @@ export const TEST_LIST = [
   // stalecap, drawlite undone; dpr, startfix approved; onecanvas paused with the lean plan;
   // weather, rain, slidewear approved 2026-10-18; morepuddles, tyrefeel, packedwear, onepuddle,
   // wettrail approved 2026-10-18; coverfield, winter approved 2026-10-18 - labweather
-  // superseded by the cover field; zoomswitch, mudfreeze approved 2026-10-18)
-  {
-    id: 'sanddig',
-    added: '2026-10-18',
-    name: 'Sand dents most easily, 45 cm deep; dry mud dents at half; gravel puddle -> dirt',
-    where: 'Plain link + &sanddig=1: TEST MODE, a level with sand traps (or the Lab sand panel)',
-    try: 'Drive one line through sand / over sand bumps again and again: ruts deepen fast, bumps'
-      + ' wear down; dry mud dents slower than wet; churn a puddle on gravel (rain).',
-    wrong: 'Sand changing to another surface, sand denting slower than mud, other ground'
-      + ' behaving differently from before, slow frames in sand traps.',
-  },
+  // superseded by the cover field; zoomswitch, mudfreeze, sanddig approved 2026-10-18)
   {
     id: 'tyrewear',
     added: '2026-10-18',

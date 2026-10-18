@@ -546,7 +546,7 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
       cells follow it (the old per-cell freeze is off with it). -5 C: mud ~5 min, thick ~7; cold
       starts frozen. Proofs: simhash + renderhash SAME switch off; Grass Track photos 390x844 /
       844x390, frame times same with the frost showing (17.7 ms median).
-- [ ] SAND DIG behind ?sanddig=1, owner phone test (testlist sanddig). Owner 10-18: sand / gravel
+- [x] SAND DIG: the DEFAULT since 2026-10-18 (owner: "sand pass", "mud pass"; ?sanddig=0 = old). Owner 10-18: sand / gravel
       with no puddle keep their surface, driving may dent them; sand the EASIEST ground to dent,
       only sand changed. MEASURED (_sanddig, Lab, 50 points, dent after 1 / 3 / 10 passes): dry
       sand 0 / 0 / 0 (no wear cell is made on dry sand), wet 0.5 / 1.7 / 5.8 cm; mud 1.5 / 4.7 /

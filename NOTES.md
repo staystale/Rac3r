@@ -48,6 +48,8 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   race start without the fly-in hand-over jolt: default since 10-17 (`?startfix=0`). Ground tile
   mipmaps built with the upload (no burst at a zoom-out): default since 10-18 (`?zoomswitch=0`). All mud and
   thick mud freeze by the cover field's frost, driven or not: default since 10-18 (`?mudfreeze=0`).
+  Sand dents most easily (dry too, 45 cm floor), dry mud / thick mud dent at half the wet rate,
+  a churned gravel puddle leaves dirt: default since 10-18 (`?sanddig=0`).
   Pre-turned pixel art (RotSprite)
   was the alternative, not chosen.
 - Not wanted / undone: the highway rebuild (cancelled 10-15), a fade at zoom steps, tiles tracing
