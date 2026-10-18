@@ -10,7 +10,7 @@ const DEFAULTS = {
   menuAi: 4, guide: null, rules: null, levelId: null, inputMode: 'auto', highwayDebug: null,
   noLock: false, tilePx: 256, tileGpu: false, glGround: true, gpuPaint: true, zoomHold: true, minimap: true, menuVideo: false, grassGrip: true, rain: null, weather: true, slideWear: true, tyreWear: true, morePuddles: true, tyreFeel: true, packedWear: true, onePuddle: true, wetTrail: true, winter: true, labWeather: false, coverField: true, hwMap: true,
   sharpCars: true, sharpMarks: true, jokerFix: true, groundLookup: true, exactTiles: true,
-  hudMenu: true, tyreOff: true, menuFast: true, thumbCache: true, texWarm: true, maxDpr: null, startFix: true, oneCanvas: false, zoomSwitch: true, mudFreeze: true, sandDig: true, winterCold: true, gravelDig: true, coldSurface: false, wearChance: false,
+  hudMenu: true, tyreOff: true, menuFast: true, thumbCache: true, texWarm: true, maxDpr: null, startFix: true, oneCanvas: false, zoomSwitch: true, mudFreeze: true, sandDig: true, winterCold: true, gravelDig: true, coldSurface: false, wearChance: false, markFade: false,
   noShade: false,
   grassEnds: 'round', surfaceTextures: true, meter: false, meterOverlay: false, report: false, vsync: true, audio: true,
   autopilot: false, autopilotKmh: 0, noNatClear: false, churn: '', skipLayers: '',   // a Set is compared as its sorted names joined by ','
@@ -99,6 +99,7 @@ const TABLE = [
   ['?graveldig=0', { gravelDig: false }],
   ['?coldsurface=1', { coldSurface: true }],
   ['?wearchance=1', { wearChance: true }],
+  ['?markfade=1', { markFade: true }],
   ['?zoomswitch', { zoomSwitch: true }],
   ['?startfix', { startFix: true }],
   ['?dpr=9', { maxDpr: 2 }],

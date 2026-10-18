@@ -42,6 +42,8 @@ const STAMP_STEP = 0.10;                         // m
  * @property {number} shiftX layer px the window has moved along x (0 on a level that fits)
  * @property {number} shiftY layer px the window has moved along y
  * @property {boolean} wraps true once the window follows the car (a wrap-around buffer)
+ * @property {number} [fadeT] ?markfade=1: s since the last block faded
+ * @property {number} [fadeN] ?markfade=1: blocks faded so far (the block hash)
  */
 
 /**
@@ -163,8 +165,46 @@ function clearMarks(markCtx) {
   clearWetTrails();
 }
 
+// MARKS FADE (?markfade=1; owner: tyre marks fade after a while, a bit randomly, and are gone from
+// memory too). The old fade below took alpha 0.000125 a physics step off the whole 26 MB layer:
+// below the canvas's 1/255 step, so nothing ever faded, at 120 full-layer fills a second. Here
+// every FADE_EVERY_S one block of the layer (FADE_BLOCKS x FADE_BLOCKS, picked by a hash so the
+// game's random stream is untouched) loses FADE_STEP of its marks: blocks fade at different times,
+// a mark is gone in ~2-3 min. The marks are pixels of a fixed layer: faded pixels are empty again.
+const FADE_EVERY_S = 0.5, FADE_BLOCKS = 8, FADE_STEP = 0.5;
+let blockFade = false;
+
 /**
- * Fades every mark a little.
+ * Tyre marks fade block by block (?markfade=1, at start-up).
+ * @param {boolean} isOn true for the block fade
+ */
+export function setMarkFade(isOn) { blockFade = isOn; }
+
+/**
+ * ?markfade=1: every FADE_EVERY_S one block of the layer loses FADE_STEP of its marks.
+ * @param {MarkCtx} markCtx the marks context
+ * @param {number} dt the step in seconds
+ */
+function fadeBlocks(markCtx, dt) {
+  const { ctx, state } = markCtx;
+  state.fadeT = (state.fadeT || 0) + dt;
+  if (state.fadeT < FADE_EVERY_S) return;
+  state.fadeT -= FADE_EVERY_S;
+  state.fadeN = (state.fadeN || 0) + 1;
+  // a hash of the count, not Math.random: the tools replay the game's random stream exactly
+  let hash = Math.imul(state.fadeN, 0x9e3779b1);
+  hash = Math.imul(hash ^ (hash >>> 15), 0x85ebca6b);
+  const block = ((hash ^ (hash >>> 13)) >>> 0) % (FADE_BLOCKS * FADE_BLOCKS);
+  const side = Math.ceil(SIZE / FADE_BLOCKS);
+  ctx.save();
+  ctx.globalCompositeOperation = 'destination-out';
+  ctx.fillStyle = `rgba(0,0,0,${FADE_STEP})`;
+  ctx.fillRect((block % FADE_BLOCKS) * side, Math.floor(block / FADE_BLOCKS) * side, side, side);
+  ctx.restore();
+}
+
+/**
+ * Fades every mark a little (?markfade=1: block by block instead).
  *
  * @param {MarkCtx} markCtx the marks context
  * @param {number} dt the step in seconds
@@ -172,6 +212,10 @@ function clearMarks(markCtx) {
 function fadeMarks(markCtx, dt) {
   const { ctx, state } = markCtx;
   if (state.stamps === 0) return;
+  if (blockFade) {
+    fadeBlocks(markCtx, dt);
+    return;
+  }
   const fadeAlpha = Math.min(0.06, dt * 0.015);
   ctx.save();
   ctx.globalCompositeOperation = 'destination-out';

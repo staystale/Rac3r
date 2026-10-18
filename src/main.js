@@ -12,7 +12,7 @@ import { CAR_IDS, applyLivery } from './cars.ts';
 import { createInput } from './input.js';
 import { createRenderer } from './render.ts';
 import { readSettings } from './core/settings.ts';
-import { createMarks } from './marks.js';
+import { createMarks, setMarkFade } from './marks.js';
 import { createHud } from './hud.js';
 import {
   setMinimapSource, setMinimapView, setMinimapHighway, setMinimapJoker, setProgressSource,
@@ -72,6 +72,7 @@ setWinterCold(shared.settings.winterCold);   // ?wintercold=1: frosty winters, s
 setGravelDig(shared.settings.gravelDig);   // ?graveldig=1: gravel digs like sand, slower
 setSandDig(shared.settings.sandDig);   // ?sanddig=1: sand dents fastest, dry too
 setColdSurface(shared.settings.coldSurface);   // ?coldsurface=1: one water / snow / ice order
+setMarkFade(shared.settings.markFade);   // ?markfade=1: tyre marks fade block by block
 setWearChance(shared.settings.wearChance);   // ?wearchance=1: dirt / sand / gravel wear chances
 setCoverField(shared.settings.coverField);   // ?coverfield=1: water and snow build by the weather
 setMudFrost(shared.settings.mudFreeze);   // ?mudfreeze=1: all mud freezes by the field's frost

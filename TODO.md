@@ -593,6 +593,8 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
       5 C (was 0); heavy rain 5 C: snow half gone 321 s, ice 1925 -> 963 s; dry dirt -> mud after 2
       passes 36 -> 9 of 40; damp sand -> gravel, damp gravel -> dirt; dry sand / gravel unchanged.
       Lab photo: snow settles on the ice panel. simhash SAME switches off.
+      C BUILT (?markfade=1; _markfade.mjs, layer painted solid): old fade 255 after 4 min (never
+      faded); block fade 101 / 38 / 16 / 5 at 1-4 min, 0.52 ms a second of play (laptop).
 - NEXT ORDER (owner 10-18): mud freeze test -> 1 CHECK sand / gravel (owner: sand and gravel with
   no puddle do NOT change surface; driving may dent the terrain / make dips; today a churned
   puddle makes sand gravel (right) and gravel MUD (owner earlier: gravel -> dirt)) -> 4 CLEAN-UP

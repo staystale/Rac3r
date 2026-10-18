@@ -28,6 +28,14 @@ export const TEST_LIST = [
       + ' what you see not being what the tyre feels.',
   },
   {
+    id: 'markfade',
+    added: '2026-10-18',
+    name: 'Tyre marks fade away after ~2-3 min, patch by patch',
+    where: 'Plain link + &markfade=1: any circuit; lay marks (slides, donuts) and keep driving',
+    try: 'Watch old marks thin out and vanish over a few minutes, some patches sooner than others.',
+    wrong: 'Marks that never go, marks vanishing at once, square patch edges that look wrong, lag.',
+  },
+  {
     id: 'wearchance',
     added: '2026-10-18',
     name: 'Ground wear: dry dirt rarely turns to mud; damp sand -> gravel, damp gravel -> dirt',
