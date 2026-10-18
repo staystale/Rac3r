@@ -149,9 +149,31 @@ export function indicatorBlinkOn(): boolean {
   return Math.floor(performance.now() / 333) % 2 === 0;
 }
 
+// ONE LIGHT (?onelight=1, under test): the night layer (render/light.ts) is the only light the
+// headlights throw, at every hour - the car picture paints the lamps alone, never its own beam
+// (without it, by day the picture painted a yellow cone and from the first dusk the night layer
+// took over: two systems meeting at darkness 0)
+let oneLight = false;
+
+/**
+ * Turns the one light system on or off (main.js, at start-up).
+ * @param isOn true: no beam in the car pictures
+ */
+export function setOneLight(isOn: boolean): void { oneLight = isOn; }
+
+/**
+ * Whether the car picture paints its own headlight beam (by day, without ?onelight=1).
+ * @param car the car
+ * @returns true for a beam in the picture
+ */
+function picturesBeam(car: RenderCar): boolean {
+  return !!car.lightsOn && !oneLight && DAYLIGHT.darkness <= 0;
+}
+
 /**
  * HEADLIGHTS: two soft beams ahead (drawn in the car's frame, art px), brighter lamps. In the dark
- * (?night=) only the lamps: the night layer (render/light.ts) draws the light they throw.
+ * (?night=), and at every hour with ?onelight=1, only the lamps: the night layer
+ * (render/light.ts) draws the light they throw.
  * @param carsCtx the shared view and helpers
  * @param car the car
  * @param sprite the body sprite
@@ -161,7 +183,7 @@ function drawHeadlights(carsCtx: CarsContext, car: RenderCar, sprite: CarSprite)
   for (const [y, corner] of [[-sprite.Wp / 2 + 4, 0], [sprite.Wp / 2 - 4, 1]]) {
     const level = lampLevel(car, corner);
     if (!level) continue;
-    if (DAYLIGHT.darkness > 0) {
+    if (!picturesBeam(car)) {
       view.ctx.fillStyle = '#fffbe6';
       view.ctx.fillRect(sprite.Lp / 2 - 3, y - 2, 3, 4);
       continue;
@@ -358,7 +380,7 @@ function paintCarPicture(carsCtx: CarsContext, car: RenderCar, picture: CarPictu
   const sprite = pixelCar(car.spec);
   const pad = PICTURE_PAD + (car.roll && car.roll.phi ? sprite.Wp : 0);
   const back = Math.ceil(sprite.Lp / 2 + pad);
-  const hasBeam = !!car.lightsOn && !(nightPics && DAYLIGHT.darkness > 0);
+  const hasBeam = picturesBeam(car) || (!!car.lightsOn && !oneLight && !nightPics);
   const ahead = Math.ceil(sprite.Lp / 2 + pad + (hasBeam ? BEAM_AHEAD : 0));
   const side = Math.ceil(Math.max(sprite.Wp / 2 + pad, hasBeam ? BEAM_SIDE : 0));
   const width = (back + ahead) * enlarge, height = side * 2 * enlarge;
