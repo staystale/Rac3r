@@ -34,7 +34,7 @@ import { setTuneAudio, snapshot } from './tune.js';
 import { TUNE } from './vehicle.ts';
 import { initWorld } from "./world/load.ts";
 import { applyOldGrassGrip } from "./world/surfaces.ts";
-import { setGroundLookup, setSlideWear } from "./world/wear.ts";
+import { setGroundLookup, setSandDig, setSlideWear } from "./world/wear.ts";
 import { setPackedSnowWear, setWinterSnow } from "./world/snowwear.ts";
 import { setWetTrail } from "./wettrail.ts";
 import { setCoverField, setMudFrost } from "./world/coverfield.ts";
@@ -67,6 +67,7 @@ setGroundLookup(shared.settings.groundLookup);   // ?groundlookup=1: fewer groun
 setSlideWear(shared.settings.slideWear);   // ?slidewear=1: sliding wheels wear the ground twice
 setPackedSnowWear(shared.settings.packedWear);   // ?packedwear=1: packed snow wears to snow / ice
 setWetTrail(shared.settings.wetTrail);   // ?wettrail=1: wet tyre lines fade within 10-50 m
+setSandDig(shared.settings.sandDig);   // ?sanddig=1: sand dents fastest, dry too
 setCoverField(shared.settings.coverField);   // ?coverfield=1: water and snow build by the weather
 setMudFrost(shared.settings.mudFreeze);   // ?mudfreeze=1: all mud freezes by the field's frost
 setMelt(shared.settings.winter);   // ?winter=1: snow and ice melt by temperature, water freezes

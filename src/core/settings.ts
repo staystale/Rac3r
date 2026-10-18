@@ -52,7 +52,8 @@ export interface Settings {
   texWarm: boolean;              // long-grass textures painted while loading; =0 in the menu
   startFix: boolean;             // the race start without the hand-over jolt; =0 the old
   oneCanvas: boolean;            // ?onecanvas=1: the GPU ground drawn into the 2D canvas
-  mudFreeze: boolean;            // ?mudfreeze=1: all mud / thick mud freeze (coverfield.ts)
+  sandDig: boolean;              // ?sanddig=1: sand dents fastest, dry too (wear.ts)
+  mudFreeze: boolean;            // all mud / thick mud freeze (coverfield.ts); =0 off
   zoomSwitch: boolean;           // tile mipmaps at upload, no burst (glground.ts); =0 off
   maxDpr: number | null;         // ?dpr=2: the sharpness cap (default render.ts MAX_DPR 1.5)
   noShade: boolean;              // ?noshade: skip the hill shading (perf A/B)
@@ -144,8 +145,7 @@ export function readSettings(search: string): Settings {
     sharpCars: params.get('sharpcars') !== '0',
     // default since 2026-10-17 (owner approved): the skid marks at screen resolution
     sharpMarks: params.get('sharpmarks') !== '0',
-    // default since 2026-10-17 (owner approved): the joker lane on the minimap; RESET puts the car
-    // back on the joker lane where it came off
+    // default since 2026-10-17: the joker lane on the minimap; RESET back onto it
     jokerFix: params.get('jokerfix') !== '0',
     // default since 2026-10-17 (owner: "seems okay"): 12 ground lookups a car a step, not ~22
     groundLookup: params.get('groundlookup') !== '0',
@@ -169,7 +169,8 @@ export function readSettings(search: string): Settings {
     startFix: params.get('startfix') !== '0',
     oneCanvas: params.get('onecanvas') === '1',
     zoomSwitch: params.get('zoomswitch') !== '0',
-    mudFreeze: params.get('mudfreeze') === '1',
+    mudFreeze: params.get('mudfreeze') !== '0',
+    sandDig: params.get('sanddig') === '1',
     maxDpr: maxDpr(params),
     noShade: params.has('noshade'),
     grassEnds: params.get('grass') === 'square' ? 'square' : 'round',

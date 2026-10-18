@@ -232,7 +232,7 @@ function getCell(cellX: number, cellY: number): WearCell | null {
     const layers = layersAt((cellX + 0.5) * WEAR_CELL, (cellY + 0.5) * WEAR_CELL);
     // nothing in this cell can ever change: do not create it (keeps the map to cells that matter)
     if (!layers.cover && !BASE_WEAR[layers.base] && !packedSnowWears(layers.base)
-      && WEATHER.wetness === 0) return null;
+      && WEATHER.wetness === 0 && !(sandDig && layers.base === 'sand')) return null;
     cell = { cx: cellX, cy: cellY, base: layers.base, cover: layers.cover,
       orig: layers.cover || layers.base, passes: 0, scrub: 0, dry: 0, standing: layers.standing,
       lastSeenTime: -100, fixed: layers.fixed, laid: layers.fixed ? null : layers.cover,
@@ -278,7 +278,7 @@ function passWetCell(cell: WearCell, tyreTemp: number): void {
   else cell.dry += puddleClearBy(cell.standing) ?? dryAmount(cell.standing, tyreTemp);
   if (cell.dry >= 1) {
     cell.cover = null;
-    cell.base = WATER_MIX[cell.base] || cell.base;
+    cell.base = (sandDig && cell.base === 'gravel' ? 'dirt' : WATER_MIX[cell.base]) || cell.base;
     cell.passes = 0;
     cell.dry = 0;
   }
@@ -296,7 +296,7 @@ function passBareCell(cell: WearCell, damp: number): void {
   // sand and gravel also have the chance to create vector dips"). A pass digs the cell down by
   // RUT[base].step (sand / gravel by chance) to its max. It is real height: the suspension feels
   // it and gravity on its sides pulls wheels into the groove.
-  const rutRule = RUT[cell.base];
+  const rutRule = sandDig && cell.base === 'sand' ? SAND_DIG : RUT[cell.base];
   if (rutRule && Math.random() < rutRule.chance) {
     const was = cell.rut || 0;
     cell.rut = Math.min(rutRule.max, was + rutRule.step);
@@ -356,6 +356,12 @@ const RUT: Record<string, { step: number; max: number; chance: number }> = {
   sand: { step: 0.02, max: 0.12, chance: 0.5 },
   gravel: { step: 0.015, max: 0.08, chance: 0.35 },
 };
+// ?sanddig=1 (owner: sand the easiest ground to dent, dry or wet; the others as they are): every
+// pass digs, deeper than thick mud's; dry sand gets wear cells; churned gravel leaves dirt
+const SAND_DIG = { step: 0.04, max: 0.16, chance: 1 };
+let sandDig = false;
+/** ?sanddig=1: sand dents fastest, dry too; a churned puddle on gravel leaves dirt. */
+export function setSandDig(isOn: boolean): void { sandDig = isOn; }
 // Rut depth at a point, BILINEAR between cell centres so the groove has smooth sides (a step would
 // be an infinite slope).
 /**

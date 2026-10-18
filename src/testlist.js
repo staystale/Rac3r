@@ -15,16 +15,16 @@ export const TEST_LIST = [
   // stalecap, drawlite undone; dpr, startfix approved; onecanvas paused with the lean plan;
   // weather, rain, slidewear approved 2026-10-18; morepuddles, tyrefeel, packedwear, onepuddle,
   // wettrail approved 2026-10-18; coverfield, winter approved 2026-10-18 - labweather
-  // superseded by the cover field; zoomswitch approved 2026-10-18)
+  // superseded by the cover field; zoomswitch, mudfreeze approved 2026-10-18)
   {
-    id: 'mudfreeze',
+    id: 'sanddig',
     added: '2026-10-18',
-    name: 'All mud and thick mud freeze in the cold, driven over or not (thick mud slower)',
-    where: 'Plain link + &mudfreeze=1: TEST MODE, Grass Track, WEATHER cold (WINTER / SNOW)',
-    try: 'Start cold: the mud is iced over; let it get colder / warmer and watch it freeze / thaw'
-      + ' in patches; slide over frozen mud (it scrubs through); drive the muddy sections.',
-    wrong: 'Mud left unfrozen in the cold, ice where there is no mud, thick mud as fast as mud,'
-      + ' judder or slow frames on the muddy sections.',
+    name: 'Sand dents the most easily (dry or wet); a churned puddle on gravel leaves dirt',
+    where: 'Plain link + &sanddig=1: TEST MODE, a level with sand traps (or the Lab sand panel)',
+    try: 'Drive the same line through sand a few times: the ruts deepen fast and pull the wheels;'
+      + ' churn a puddle on gravel (rain) and look at what it leaves.',
+    wrong: 'Sand changing to another surface, sand denting slower than mud, other ground'
+      + ' behaving differently from before, slow frames in sand traps.',
   },
   {
     id: 'tyrewear',

@@ -537,7 +537,7 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
       the sharp filter reads level 0. renderhash SAME switch off and on. A one-frame look change
       at that zoom was NOT found (the 3 % at zoom 0.5000 is texels meeting whole pixels, seen with
       the fix too); a look blend was built and dropped (no measurable gain, extra GPU work).
-- [ ] MUD FREEZE behind ?mudfreeze=1, owner phone test (testlist mudfreeze). Owner 10-18: all mud and
+- [x] MUD FREEZE: the DEFAULT since 2026-10-18 (owner: "mud test pass"; ?mudfreeze=0 = old). Owner 10-18: all mud and
       all thick mud freeze alike, driven over or not; thick mud a bit slower. FOUND (_mudfreeze):
       only tyre-made wear cells froze - driven mud 100 % in 5 min at -5 C, driven thick mud 0 % (no
       wear cell is made on thick mud), undriven mud never. Now coverfield.ts FROST (mud, thick mud
@@ -546,6 +546,13 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
       cells follow it (the old per-cell freeze is off with it). -5 C: mud ~5 min, thick ~7; cold
       starts frozen. Proofs: simhash + renderhash SAME switch off; Grass Track photos 390x844 /
       844x390, frame times same with the frost showing (17.7 ms median).
+- [ ] SAND DIG behind ?sanddig=1, owner phone test (testlist sanddig). Owner 10-18: sand / gravel
+      with no puddle keep their surface, driving may dent them; sand the EASIEST ground to dent,
+      only sand changed. MEASURED (_sanddig, Lab, 50 points, dent after 1 / 3 / 10 passes): dry
+      sand 0 / 0 / 0 (no wear cell is made on dry sand), wet 0.5 / 1.7 / 5.8 cm; mud 1.5 / 4.7 /
+      13; thick mud wet 2 / 6 / 14.8, DRY 0 (same gap - owner said leave the others; ask).
+      ?sanddig=1: sand gets cells dry too and digs 4 cm a pass to 16 cm (2.4 / 7.1 / 9.5 mean);
+      a churned puddle on gravel leaves dirt (was mud). simhash SAME switch off.
 - NEXT ORDER (owner 10-18): mud freeze test -> 1 CHECK sand / gravel (owner: sand and gravel with
   no puddle do NOT change surface; driving may dent the terrain / make dips; today a churned
   puddle makes sand gravel (right) and gravel MUD (owner earlier: gravel -> dirt)) -> 4 CLEAN-UP
