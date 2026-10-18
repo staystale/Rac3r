@@ -9,6 +9,7 @@ import type {
 } from "../../world/types.ts";
 import type { GroundCtx, ViewRect } from "./types.ts";
 import { paintLayers, artBase } from "./art.ts";
+import { coverFieldOn } from "../../world/coverfield.ts";
 
 // COVERS — snow, ice and puddles lying ON any surface (LEVEL.covers, lab.js).
 // Static, so they are painted into the ground tiles. Snow and ice are opaque and use their own
@@ -431,5 +432,14 @@ function drawCoversMerged(groundCtx: GroundCtx, list: Cover[]) {
 export function drawCovers(groundCtx: GroundCtx) {
   const list = LEVEL.covers;
   if (!list) return;
-  drawCoversMerged(groundCtx, list);
+  // the cover field draws the level's own snow / ice / puddles (its areas): scenery water here
+  drawCoversMerged(groundCtx, coverFieldOn() ? sceneryWater(list) : list);
+}
+
+/** The scenery water of a covers list (cached on the list: a new list when covers change). */
+const sceneryWaterOf = new WeakMap<Cover[], Cover[]>();
+function sceneryWater(list: Cover[]): Cover[] {
+  let water = sceneryWaterOf.get(list);
+  if (!water) sceneryWaterOf.set(list, (water = list.filter((cover) => cover.water)));
+  return water;
 }

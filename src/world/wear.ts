@@ -5,8 +5,8 @@ import { SURFACES, VERGE_W, TRAP_STEPS, SURFACE_TRAP } from "./surfaces.ts";
 import { dampSurface, puddleSurface, cellDamp, dryCellLine, surfaceById, wornTo } from "./wet.ts";
 import { WEATHER } from "./weather.ts";
 import { carWheels } from "./wheels.ts";
-import { staticCoverAt } from "./coverlookup.ts";
-import { fieldCoverAt } from "./coverfield.ts";
+import { staticCoverAt, staticCoverHere } from "./coverlookup.ts";
+import { coverFieldOn, fieldLayers } from "./coverfield.ts";
 import { puddleClearBy, setPassTyre } from "./puddles.ts";
 import { packedSnowWears, passPackedSnowCell, passWinterSnow } from "./snowwear.ts";
 import {
@@ -187,6 +187,8 @@ export function layersAt(x: number, y: number): Layers {
   // differently
   // kerbs are their own surface; patches never cover them
   const z = zoneSurface.id === 'kerb' ? zoneSurface : (patchAt(x, y) || zoneSurface);
+  // the cover field: the level's own snow / ice / water are areas of it (coverfield.ts)
+  if (coverFieldOn()) return fieldLayers(z, z === LEVEL.base, staticCoverHere(x, y), x, y);
   let base = z.id, cover: string | null = null;
   // a snow, ice OR WET zone is a cover over its `under` (default tarmac). Wet joined
   // (requirement: wet tarmac... needs blue-ish puddles that can be removed by driving over them) —
@@ -194,12 +196,9 @@ export function layersAt(x: number, y: number): Layers {
   // through
   // it like a real drying track.
   if (COVER_IDS[base]) { cover = base; base = z.under || UNDER_DEFAULT; }
-  // the level's own cover (a zone's, LEVEL.covers) is fixed; the weather's (the cover field,
-  // where the level lays none) moves with it
-  const levelCover = staticCoverAt(x, y);
-  const puddleCover = levelCover ?? (cover ? null : fieldCoverAt(x, y));
+  const puddleCover = staticCoverAt(x, y);
   if (puddleCover) cover = puddleCover;
-  return { base, cover, standing: !!puddleCover, fixed: !!levelCover || (!!cover && !puddleCover) };
+  return { base, cover, standing: !!puddleCover, fixed: !!cover };
 }
 // LEVEL.covers: [{ x, y, w, h, cover: 'snow'|'ice'|'wet', shape: 'rect'|'ellipse', rot }] share of
 // tyre-slip heat that reaches the TYRE on loose ground (vehicle.js TYRE_HEAT). User: "off-road
@@ -227,7 +226,8 @@ function getCell(cellX: number, cellY: number): WearCell | null {
       && WEATHER.wetness === 0) return null;
     cell = { cx: cellX, cy: cellY, base: layers.base, cover: layers.cover,
       orig: layers.cover || layers.base, passes: 0, scrub: 0, dry: 0, standing: layers.standing,
-      lastSeenTime: -100, fixed: layers.fixed, laid: layers.fixed ? null : layers.cover };
+      lastSeenTime: -100, fixed: layers.fixed, laid: layers.fixed ? null : layers.cover,
+      area: layers.area };
     // the field's cover is not the cell's own ground: the tiles show the ground under it
     if (!layers.fixed) cell.orig = layers.base;
     cell.current = cell.orig;

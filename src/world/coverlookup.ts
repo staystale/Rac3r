@@ -13,6 +13,17 @@ export const COVER_SQ = 0.5;   // m, the cover grid (render.ts coverCells uses t
  * @returns the cover
  */
 export function staticCoverAt(x: number, y: number): CoverId | null {
+  const coverArea = staticCoverHere(x, y);
+  return coverArea ? coverArea.cover : null;
+}
+
+/**
+ * The level's own cover object at a point (LEVEL.covers), or null.
+ * @param x world x, m
+ * @param y world y, m
+ * @returns the cover
+ */
+export function staticCoverHere(x: number, y: number): Cover | null {
   // only the covers that can hold the point (world/covergrid.ts: same answers, fewer tests)
   const list = coversNear(LEVEL.covers, x, y);
   for (let i = 0; i < list.length; i++) {
@@ -38,7 +49,7 @@ export function staticCoverAt(x: number, y: number): CoverId | null {
       ? (dx * dx) / (halfW * halfW) + (dy * dy) / (halfH * halfH) <= 1
       : Math.abs(dx) <= halfW && Math.abs(dy) <= halfH) {
       if (coverArea.cut && coverCut(coverArea, x, y)) continue;
-      return coverArea.cover;
+      return coverArea;
     }
   }
   return null;
@@ -61,6 +72,6 @@ export function coverCut(coverArea: Cover, x: number, y: number): boolean {
  * @param y world y, m
  * @returns the cover, or null
  */
-export function coverAt(x: number, y: number): CoverId | null {
+export function coverAt(x: number, y: number): string | null {
   return staticCoverAt(x, y) ?? fieldCoverAt(x, y);
 }

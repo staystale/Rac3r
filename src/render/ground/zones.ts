@@ -7,11 +7,33 @@ import type { Zone } from "../../world/types.ts";
 import type { SurfaceArt } from "../types.ts";
 import type { GroundCtx } from "./types.ts";
 import { paintLayers, artBase, surfaceTexture } from "./art.ts";
+import { paintAs } from "../../world/coverfield.ts";
 import type { GroundPatch } from "../glpaint.ts";
 
 // the lab floor's glow pool: its colour at the world origin and at FLOOR_GLOW_REACH x FLOOR
 const LAB_GLOW_INNER = 'rgba(255,252,246,0.55)', LAB_GLOW_OUTER = 'rgba(226,226,234,0)';
 const FLOOR_GLOW_REACH = 0.9;
+
+/** The surface the level's floor is painted as (?coverfield=1: snow ground shows what is under). */
+const floorSurfaceId = () => paintAs(LEVEL.base!.id, LEVEL.base!.under, true);
+
+/**
+ * The surface a zone is painted as (?coverfield=1: a snow / ice / wet zone shows what is under it;
+ * the field draws its cover).
+ * @param zone the zone
+ * @returns the surface id
+ */
+const zoneSurfaceId = (zone: Zone) => paintAs(zone.surface.id, zone.surface.under);
+
+/**
+ * The look a zone is painted with: its own art, or (a level area) what lies under it.
+ * @param zone the zone
+ * @returns the art id
+ */
+const zoneArtId = (zone: Zone) => {
+  const surfaceId = zoneSurfaceId(zone);
+  return surfaceId !== zone.surface.id ? surfaceId : zone.art || zone.surface.id;
+};
 
 /**
  * Paints the floor: the outside colour, then the level base surface or the lab floor.
@@ -30,11 +52,12 @@ export function drawFloor(groundCtx: GroundCtx) {
   // bounds
   const floorW = (FX1 - FX0) * ppm, floorH = (FY1 - FY0) * ppm;
   if (LEVEL.base && LEVEL.base.id !== 'lab') {
-    view.ctx.fillStyle = artBase(groundCtx, LEVEL.base.id, COL.floor);
+    const baseId = floorSurfaceId();
+    view.ctx.fillStyle = artBase(groundCtx, baseId, COL.floor);
     view.ctx.fillRect(toScreenX(FX0), toScreenY(FY0), floorW, floorH);
     view.ctx.save();
     view.ctx.translate(toScreenX(0), toScreenY(0));
-    paintLayers(groundCtx, LEVEL.base.id, FX0, FY0, FX1, FY1);
+    paintLayers(groundCtx, baseId, FX0, FY0, FX1, FY1);
     view.ctx.restore();
   } else {
     paintLabFloor(groundCtx, ppm, floorW, floorH);
@@ -116,7 +139,7 @@ export function drawZones(groundCtx: GroundCtx) {
   for (let i = ZONES.length - 1; i >= 0; i--) {
     const zone = ZONES[i];
     // zone.art: drawn as another look (a wheat field drives as long grass)
-    const artId = zone.art || zone.surface.id, art = SURFACE_ART[artId];
+    const artId = zoneArtId(zone), art = SURFACE_ART[artId];
     if (!art) continue;
     if (!isZoneOnScreen(groundCtx, zone)) continue;
     // the GPU painted the fills: only the rims and labels lie over them
@@ -187,7 +210,7 @@ function paintRoundedZone(groundCtx: GroundCtx, zone: Zone, art: SurfaceArt) {
   view.ctx.fill();
   view.ctx.clip();
   view.ctx.translate(toScreenX(0), toScreenY(0));
-  paintLayers(groundCtx, zone.surface.id, left, top, left + zone.w, top + zone.h);
+  paintLayers(groundCtx, zoneSurfaceId(zone), left, top, left + zone.w, top + zone.h);
   view.ctx.restore();
   paintRoundedZoneRim(groundCtx, zone);
 }
@@ -286,7 +309,7 @@ function paintPlainZone(
   // so the texture cannot spill outside the region the physics uses
   view.ctx.clip();
   view.ctx.translate(toScreenX(0), toScreenY(0));
-  paintLayers(groundCtx, zone.surface.id, left, top, left + zone.w, top + zone.h);
+  paintLayers(groundCtx, zoneSurfaceId(zone), left, top, left + zone.w, top + zone.h);
   view.ctx.restore();
   if (zone.boxed) paintBoxedZoneLabel(groundCtx, zone);
 }
@@ -382,8 +405,8 @@ function setPatchSurface(groundCtx: GroundCtx, patch: GroundPatch, base: string,
 function floorPatch(groundCtx: GroundCtx, patch: GroundPatch) {
   Object.assign(patch, { x: (FX0 + FX1) / 2, y: (FY0 + FY1) / 2, w: FX1 - FX0, h: FY1 - FY0 });
   if (LEVEL.base && LEVEL.base.id !== 'lab') {
-    setPatchSurface(groundCtx, patch, artBase(groundCtx, LEVEL.base.id, COL.floor),
-      LEVEL.base.id);
+    const baseId = floorSurfaceId();
+    setPatchSurface(groundCtx, patch, artBase(groundCtx, baseId, COL.floor), baseId);
     return;
   }
   Object.assign(patch, {
@@ -404,7 +427,7 @@ function floorPatch(groundCtx: GroundCtx, patch: GroundPatch) {
  * @returns how many are in use after the zone's
  */
 function zonePatches(groundCtx: GroundCtx, zone: Zone, list: GroundPatch[], count: number) {
-  const artId = zone.art || zone.surface.id, art = groundCtx.SURFACE_ART[artId];
+  const artId = zoneArtId(zone), art = groundCtx.SURFACE_ART[artId];
   // the margin covers the sub-pixel camera shift and a rounded panel's apron
   if (!art || !isZoneOnScreen(groundCtx, zone, PATCH_MARGIN_M * groundCtx.PPMz())) return count;
   const radius = zone.rounded ? Math.min(5, zone.w * 0.15) : 0;
@@ -417,7 +440,8 @@ function zonePatches(groundCtx: GroundCtx, zone: Zone, list: GroundPatch[], coun
   }
   const patch = nextPatch(list, count++);
   Object.assign(patch, { x: zone.x, y: zone.y, w: zone.w, h: zone.h, rot: zone.rot || 0, radius });
-  setPatchSurface(groundCtx, patch, art.base, zone.rot && !zone.rounded ? artId : zone.surface.id);
+  setPatchSurface(groundCtx, patch, art.base,
+    zone.rot && !zone.rounded ? artId : zoneSurfaceId(zone));
   return count;
 }
 

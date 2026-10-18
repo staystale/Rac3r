@@ -5,17 +5,24 @@
 //
 // How: every point of the world has a CATCH, 0..1 - smooth value noise in world space (the water
 // and the snow each their own), so neighbouring points catch alike and patches have shape. The
-// weather moves three LEVELS: water, snow and ice. A point is covered where the level is above
-// its catch: the lowest-catching points first (small scattered patches), then more and more until
-// at level 1 everything is covered; drying and melting take the level down again, so patches
-// shrink and break up the same way. Nothing is stored per point, so a new piece of the endless
-// road is covered as the rest of the world at once. Water freezes from its shallow edge: with
-// water w and ice i, a point with catch < w holds water, w..w+i ice. Snow lies over both.
-// Tyres change single cells (wear.ts): those follow their own rules and the field again when the
-// weather moves (syncFieldCells).
+// weather moves LEVELS: water, snow and ice. A point is covered where the level is above its
+// catch: the lowest-catching points first (small scattered patches), then more and more until at
+// level 1 everything is covered; drying and melting take the level down again, so patches shrink
+// and break up the same way. Nothing is stored per point, so a new piece of the endless road is
+// covered as the rest of the world at once. Water freezes from its shallow edge: with water w and
+// ice i, a point with catch < w holds water, w..w+i ice. Snow lies over both.
+//
+// LEVEL AREAS (owner: snow levels start snowy and melt; the Bowling Alley's wet lane is water that
+// evaporates if the weather does not allow it): the level's own snow, ice, water and packed snow
+// (its snow ground, cover zones and lanes, packed snow roads, hand-placed patches) are areas with
+// levels of their own - full at an event's start, moved by the same rules - so the level's snow
+// melts in patches too. Their ground is painted as what lies beneath (areaUnder: a road's tarmac,
+// open snow ground's grass, or the surface's own `under`). Scenery water (Cover.water: lakes,
+// streams) stays as it is. Tyres change single cells (wear.ts): those follow their own rules and
+// the field again when the weather moves (syncFieldCells).
 import { WEATHER, weatherRandom, weatherRuns } from "./weather.ts";
 import { wearMap, wearDirty, WEAR_CELL } from "./wear.ts";
-import type { CoverId, WearCell } from "./types.ts";
+import type { Cover, Layers, Surface, WearCell } from "./types.ts";
 
 // LEVEL per second at rain 1 / snow 1 (owner: heavy coats the track in ~10 min, light in ~25;
 // the first patches within a minute)
@@ -23,8 +30,9 @@ const WATER_FILL_PER_S = 1 / 600, SNOW_FILL_PER_S = 1 / 420;
 // a dry spell takes water down per C of track (20 C: a full level in ~13 min)
 const WATER_DRY_PER_S_PER_C = 1 / (780 * 20);
 // snow settles below SNOW_SETTLE_C and melts above it per C (15 C: a full coat in ~10 min, 43 C
-// ~3 min), faster in rain; MELT_WATER of what melts is left as water
-const SNOW_SETTLE_C = 1, SNOW_MELT_PER_S_PER_C = 1 / 7000, RAIN_MELT = 2, MELT_WATER = 0.6;
+// ~3 min), packed snow slower, both faster in rain; MELT_WATER of what melts is left as water
+const SNOW_SETTLE_C = 1, SNOW_MELT_PER_S_PER_C = 1 / 7000, PACKED_MELT_PER_S_PER_C = 1 / 14000;
+const RAIN_MELT = 2, MELT_WATER = 0.6;
 // water freezes below FREEZE_C (per C colder), ice thaws above THAW_C (per C warmer)
 const FREEZE_C = 0, FREEZE_PER_S_PER_C = 1 / 60, THAW_C = 1, THAW_PER_S_PER_C = 1 / 120;
 // the top of a level: a little over 1, so a full coat stays full for a while as it dries
@@ -44,18 +52,37 @@ export const FIELD_SQ = 0.5;
 // a wet / snowy event's start: the levels already settled (owner): raining, a drying track, snow
 // lying - each a range, dealt from the weather's seeded stream
 const START_RAIN = [0.15, 0.5], START_DRYING = 0.35, START_SNOW = [0.2, 0.7], SNOW_LYING = 0.6;
+// what lies under an area with no `under` of its own: open snow ground's grass, else tarmac
+const UNDER_SNOW_GROUND = 'grass', UNDER_DEFAULT = 'tarmac';
 
-/** The weather's levels: how far up the catch water, snow and ice reach, 0..LEVEL_MAX. */
-export const FIELD = { water: 0, snow: 0, ice: 0 };
+/** How far up the catch water, snow, ice and packed snow reach, 0..LEVEL_MAX. */
+export interface Levels { water: number; snow: number; ice: number; packed: number }
+
+/** The kinds of level area, in the order of their mask codes (render/glfield.ts) from 1. */
+export const AREA_KINDS = ['wet', 'snow', 'ice', 'packedSnow'] as const;
+export type AreaKind = typeof AREA_KINDS[number];
+
+const emptyLevels = (): Levels => ({ water: 0, snow: 0, ice: 0, packed: 0 });
+
+/** The weather's levels over the whole world. */
+export const FIELD: Levels = emptyLevels();
+
+/** Each kind of level area's own levels. */
+export const AREAS: Record<AreaKind, Levels> = {
+  wet: emptyLevels(), snow: emptyLevels(), ice: emptyLevels(), packedSnow: emptyLevels(),
+};
 
 let enabled = false, syncS = 0;
 
 /**
  * Turns the cover field on (?coverfield=1, at start-up): the weather's water and snow lie by it
- * instead of the puddle sites.
+ * instead of the puddle sites, and the level's own covers are areas of it.
  * @param isOn true for the field
  */
-export function setCoverField(isOn: boolean): void { enabled = isOn; }
+export function setCoverField(isOn: boolean): void {
+  enabled = isOn;
+  fillAreas();
+}
 
 /** Whether the weather's water and snow lie by the field. */
 export function coverFieldOn(): boolean { return enabled; }
@@ -127,41 +154,115 @@ export function fieldLaysCell(cell: WearCell): boolean {
 }
 
 /**
- * What the weather lays at a point by the field: snow over ice over water, or nothing.
- * @param x world x, m
- * @param y world y, m
+ * What a set of levels lays on a square with these catches: snow, packed snow, water or ice.
+ * @param levels the levels
+ * @param x the square's centre x, m
+ * @param y the square's centre y, m
  * @returns the cover, or null
  */
-export function fieldCoverAt(x: number, y: number): CoverId | null {
-  if (!enabled) return null;
-  const { water, snow, ice } = FIELD;
-  if (snow <= 0 && water + ice <= 0) return null;
-  const squareX = (Math.floor(x / FIELD_SQ) + 0.5) * FIELD_SQ;
-  const squareY = (Math.floor(y / FIELD_SQ) + 0.5) * FIELD_SQ;
-  if (snow > 0 && snow > catchAt(squareX, squareY, SNOW_SEED)) return 'snow';
-  if (water + ice <= 0) return null;
-  const waterCatch = catchAt(squareX, squareY, WATER_SEED);
-  if (waterCatch < water) return 'wet';
-  return waterCatch < water + ice ? 'ice' : null;
+function coverOfLevels(levels: Levels, x: number, y: number): string | null {
+  if (levels.snow > 0 || levels.packed > 0) {
+    const snowCatch = catchAt(x, y, SNOW_SEED);
+    if (levels.snow > snowCatch) return 'snow';
+    if (levels.packed > snowCatch) return 'packedSnow';
+  }
+  if (levels.water + levels.ice <= 0) return null;
+  const waterCatch = catchAt(x, y, WATER_SEED);
+  if (waterCatch < levels.water) return 'wet';
+  return waterCatch < levels.water + levels.ice ? 'ice' : null;
 }
 
 /**
- * One sim step of the field: rain fills, a dry spell dries, snow settles and melts, water freezes
- * and thaws - all by the weather and the track temperature. No event weather: nothing moves.
+ * What lies at a point by the field: a level area's own cover where it still reaches, else the
+ * weather's - snow over packed snow over water over ice, or nothing.
+ * @param x world x, m
+ * @param y world y, m
+ * @param area the level area the point is in, or null
+ * @returns the cover, or null
+ */
+export function fieldCoverAt(x: number, y: number, area: AreaKind | null = null): string | null {
+  if (!enabled) return null;
+  const squareX = (Math.floor(x / FIELD_SQ) + 0.5) * FIELD_SQ;
+  const squareY = (Math.floor(y / FIELD_SQ) + 0.5) * FIELD_SQ;
+  return (area && coverOfLevels(AREAS[area], squareX, squareY))
+    || coverOfLevels(FIELD, squareX, squareY);
+}
+
+/**
+ * The level area a surface makes (its own snow, ice, water or packed snow), or null.
+ * @param surfaceId the surface id
+ * @returns the kind
+ */
+export function areaKindOf(surfaceId: string): AreaKind | null {
+  return (AREA_KINDS as readonly string[]).includes(surfaceId) ? surfaceId as AreaKind : null;
+}
+
+/**
+ * What lies under a level area: the surface's own `under`, open snow ground's grass, else tarmac
+ * (owner: a road is tarmac under its snow).
+ * @param kind the area kind
+ * @param under the surface's `under`, if any
+ * @param isBase whether it is the level's open ground (its base surface)
+ * @returns the surface id
+ */
+export function areaUnder(kind: AreaKind, under: string | undefined, isBase: boolean): string {
+  return under || (kind === 'snow' && isBase ? UNDER_SNOW_GROUND : UNDER_DEFAULT);
+}
+
+/**
+ * The surface the ground painters paint for a surface (?coverfield=1: a level area's ground is
+ * what lies beneath; the field draws the area's cover over it).
+ * @param surfaceId the surface id
+ * @param under the surface's `under`, if any
+ * @param isBase whether it is the level's open ground
+ * @returns the surface id to paint
+ */
+export function paintAs(surfaceId: string, under?: string, isBase = false): string {
+  const kind = enabled ? areaKindOf(surfaceId) : null;
+  return kind ? areaUnder(kind, under, isBase) : surfaceId;
+}
+
+/**
+ * The layers at a point with the field (wear.ts layersAt): scenery water as it is; a level area's
+ * ground is what lies beneath, its cover by the area's levels, then the weather's.
+ * @param zoneSurface the surface the zones / ribbon / base give the point
+ * @param isBase whether that is the level's open ground
+ * @param levelCover the level's own cover there (LEVEL.covers), or null
+ * @param x world x, m
+ * @param y world y, m
+ * @returns the layers
+ */
+export function fieldLayers(zoneSurface: Surface, isBase: boolean, levelCover: Cover | null,
+    x: number, y: number): Layers {
+  const zoneKind = areaKindOf(zoneSurface.id);
+  const base = zoneKind ? areaUnder(zoneKind, zoneSurface.under, isBase) : zoneSurface.id;
+  if (levelCover && levelCover.water) {
+    return { base, cover: 'wet', standing: true, fixed: true, area: null };
+  }
+  const area = levelCover ? areaKindOf(levelCover.cover) : zoneKind;
+  const cover = fieldCoverAt(x, y, area);
+  return { base, cover, standing: cover === 'wet', fixed: false, area };
+}
+
+/**
+ * Moves one set of levels by the weather over a step: rain fills, a dry spell dries, snow settles
+ * and melts (packed snow slower), water freezes and ice thaws.
+ * @param levels the levels (changed in place)
  * @param dt sim seconds
  */
-export function stepCoverField(dt: number): void {
-  if (!enabled || !weatherRuns()) return;
+function stepLevels(levels: Levels, dt: number): void {
   const trackC = WEATHER.trackC, rain = WEATHER.rain;
-  let { water, snow, ice } = FIELD;
+  let { water, snow, ice, packed } = levels;
   water += rain * WATER_FILL_PER_S * dt;
   if (rain < 0.05) water -= Math.max(0, trackC) * WATER_DRY_PER_S_PER_C * dt;
   if (trackC < SNOW_SETTLE_C) snow += WEATHER.snow * SNOW_FILL_PER_S * dt;
-  else if (snow > 0) {
-    const melted = Math.min(snow,
-      (trackC - SNOW_SETTLE_C) * SNOW_MELT_PER_S_PER_C * (1 + RAIN_MELT * rain) * dt);
-    snow -= melted;
-    water += melted * MELT_WATER;
+  else {
+    const warmth = (trackC - SNOW_SETTLE_C) * (1 + RAIN_MELT * rain) * dt;
+    const meltedSnow = Math.min(snow, warmth * SNOW_MELT_PER_S_PER_C);
+    const meltedPacked = Math.min(packed, warmth * PACKED_MELT_PER_S_PER_C);
+    snow -= meltedSnow;
+    packed -= meltedPacked;
+    water += (meltedSnow + meltedPacked) * MELT_WATER;
   }
   if (trackC < FREEZE_C && water > 0) {
     const frozen = Math.min(water, (FREEZE_C - trackC + 1) * FREEZE_PER_S_PER_C * dt);
@@ -173,9 +274,21 @@ export function stepCoverField(dt: number): void {
     water += thawed;
   }
   const clampLevel = (level: number) => Math.max(0, Math.min(LEVEL_MAX, level));
-  FIELD.water = clampLevel(water);
-  FIELD.snow = clampLevel(snow);
-  FIELD.ice = clampLevel(ice);
+  levels.water = clampLevel(water);
+  levels.snow = clampLevel(snow);
+  levels.ice = clampLevel(ice);
+  levels.packed = clampLevel(packed);
+}
+
+/**
+ * One sim step of the field: the weather's levels and every area's move by the weather and the
+ * track temperature; the wear cells follow every SYNC_S. No event weather: nothing moves.
+ * @param dt sim seconds
+ */
+export function stepCoverField(dt: number): void {
+  if (!enabled || !weatherRuns()) return;
+  stepLevels(FIELD, dt);
+  for (const kind of AREA_KINDS) stepLevels(AREAS[kind], dt);
   syncS += dt;
   if (syncS >= SYNC_S) {
     syncFieldCells(syncS);
@@ -192,7 +305,8 @@ export function stepCoverField(dt: number): void {
  * @returns true when its cover changed
  */
 function followField(cell: WearCell, seconds: number): boolean {
-  const want = fieldCoverAt((cell.cx + 0.5) * WEAR_CELL, (cell.cy + 0.5) * WEAR_CELL);
+  const want = fieldCoverAt((cell.cx + 0.5) * WEAR_CELL, (cell.cy + 0.5) * WEAR_CELL,
+    cell.area ? areaKindOf(cell.area) : null);
   if (cell.cover === want) return false;
   const untouched = cell.cover === (cell.laid ?? null);
   const falling = want === 'snow' ? WEATHER.snow : WEATHER.rain;
@@ -221,16 +335,24 @@ function syncFieldCells(seconds: number): void {
   }
 }
 
+/** Fills every level area to the top (the level as it was built). */
+function fillAreas(): void {
+  for (const kind of AREA_KINDS) Object.assign(AREAS[kind], emptyLevels());
+  AREAS.wet.water = LEVEL_MAX;
+  AREAS.snow.snow = LEVEL_MAX;
+  AREAS.ice.ice = LEVEL_MAX;
+  AREAS.packedSnow.packed = LEVEL_MAX;
+}
+
 /**
- * An event's start: the levels already settled by the weather (owner) - water while it rains or
- * the track is drying, snow lying on a cold start (cold: the water frozen). Dealt from the
- * weather's seeded stream, so a restart starts the same.
+ * An event's start: the level's own areas full; the weather's levels already settled (owner) -
+ * water while it rains or the track is drying, snow lying on a cold start (cold: the water
+ * frozen). Dealt from the weather's seeded stream, so a restart starts the same.
  */
 export function resetCoverField(): void {
   syncS = 0;
-  FIELD.water = 0;
-  FIELD.snow = 0;
-  FIELD.ice = 0;
+  fillAreas();
+  Object.assign(FIELD, emptyLevels());
   if (!enabled || !weatherRuns()) return;
   const deal = (range: number[]) => range[0] + (range[1] - range[0]) * weatherRandom();
   if (WEATHER.rain > 0) FIELD.water = deal(START_RAIN);

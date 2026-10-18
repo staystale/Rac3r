@@ -5,6 +5,7 @@ import { FX0, FX1, FY0, FY1, KERB_W } from "../world/bounds.ts";
 import { PAINT, BOARDS, LEVEL } from "../world/state.ts";
 import { COL } from "../world/colours.ts";
 import { MARK_EXTENT, MARK_PPM } from '../marks.js';
+import { paintAs } from "../world/coverfield.ts";
 import type { Prop } from "../world/types.ts";
 import type { Cam, ForSide, RenderMarks, RoadGame, View } from "./types.ts";
 
@@ -132,12 +133,11 @@ function drawLanes(ctx: RoadCtx) {
     if (lane.pts.length < 2) continue;
     const box = traceLanePieces(ctx, lane, viewBox);
     if (!box) continue;
-    fillLanePattern(ctx, lane.surface.id, box, viewBox);
+    fillLanePattern(ctx, paintAs(lane.surface.id, lane.surface.under), box, viewBox);
   }
 }
 
-// ---------------------------------------------------------------- circuit ribbon & curved
-// corner kerbs
+// -------------------------------------------- circuit ribbon & curved corner kerbs
 
 /**
  * The surface id at a distance along the track; 'ghost' on a point-to-point stage's invisible
@@ -149,7 +149,7 @@ function drawLanes(ctx: RoadCtx) {
 function ribbonSurfaceAt(sub: Sub, dist: number) {
   if (sub.ghost && dist >= sub.ghost.d0 && dist < sub.ghost.d1) return 'ghost';
   const sector = sub.sectorAt ? sub.sectorAt(dist) : null;
-  return (sector && sector.surface) ? sector.surface.id : 'tarmac';
+  return (sector && sector.surface) ? paintAs(sector.surface.id, sector.surface.under) : 'tarmac';
 }
 
 /**

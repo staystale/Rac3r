@@ -9,6 +9,7 @@ import { buildPalette } from "./tilesPalette.ts";
 import { hillShade } from "./tilesShade.ts";
 import { tileBudget, takeTile } from "./tilesBudget.ts";
 import { drainWear } from "./tilesWear.ts";
+import { paintAs } from "../world/coverfield.ts";
 import type { GroundSink } from "./glground.ts";
 import type {
   Cam, CamCar, Fly, Overview, SurfaceArt, Tile, TileBudget, TileState, View,
@@ -451,7 +452,7 @@ function blitStep(tcx: TilesCtx, step: number, paint: boolean, budget: TileBudge
  * @returns the fill colour
  */
 const standInFill = (tcx: TilesCtx) => (LEVEL.base && LEVEL.base.id !== 'lab'
-  ? tcx.helpers.artBase(LEVEL.base.id, COL.floor) : COL.outside);
+  ? tcx.helpers.artBase(paintAs(LEVEL.base.id, LEVEL.base.under, true), COL.floor) : COL.outside);
 
 /**
  * Paints (without drawing) the tiles of step k covering a view centred on (cx, cy) at zoom z.

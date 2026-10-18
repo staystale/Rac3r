@@ -328,6 +328,7 @@ export interface WearCell {
   rainT?: number;     // the wear clock when rainDry was set, s
   fixed?: boolean;    // its cover is the level's own: it never follows the cover field
   laid?: string | null;   // what the cover field last laid here (coverfield.ts syncFieldCells)
+  area?: string | null;   // the cover field's level area the cell is in (coverfield.ts)
 }
 
 // What layersAt returns: the static layers at a point, before any wear.
@@ -336,6 +337,7 @@ export interface Layers {
   cover: string | null;
   standing: boolean;
   fixed?: boolean;   // the cover is the level's own (a zone, LEVEL.covers), not the weather's
+  area?: string | null;   // the cover field's level area the point is in (coverfield.ts)
 }
 
 // What groundAt returns: height in metres and the surface there.
