@@ -147,7 +147,15 @@ the git history. `docs/foreman-handover.md` is the last handover (10-18, cover f
   flickers; hard 32 km/h lean 25 deg, light 0.73; 61 km/h snaps (car goes on, loses 35 % of its
   closing speed); fallen post 1 -> 0.55 -> 0.30 -> 0.17 -> 0.09 (flat) over 4 passes; pylons
   lean <= 0.1 rad, lose a head per hard hit, never fall; RESTART stands them up.
-  NEXT L4: lamps on every level by rules (owner: "test levels included, have fun / be logical").
+  [ ] L4 BUILT (world/lampplan.ts, by world/levels/category.ts): circuits - street lights both
+  sides of the start straight + pylons every ~140 m outside; ovals - pylons every ~70 m + the
+  straight; RX - pylons every ~110 m; rally stages - 2 pylons at the start and the finish only;
+  test grounds - a pylon ring + a LAMP ALLEY (12 street lights) nearest the spawn. Spots clear of
+  the track, lanes, solids, barriers, loose objects and test panels. Counts (_lampplan.mjs):
+  lab 12 / 22, naffcar 15 / 14, brands 7 / 8, castle cum 9 / 5, killder 0 / 3; < 8 ms a level,
+  once. OWNER RULE (10-18): light comes from where the lamp's body is (a pylon's pool around the
+  pylon; I had aimed them at the track: undone) - ask before changing a look like that.
+  NEXT L4b: the endless highway (lamps streamed with the road; a spatial grid for the clamp).
   Not yet: a clock on the HUD / pause menu; outside TEST MODE the setup's SEASON slider should
   give way to the global season (the story) - ask the owner when the story mode comes.
 - MUD + GRASS (owner 10-18, plan approved "sounds good"; build after the lighting fixes):

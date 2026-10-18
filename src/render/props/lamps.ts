@@ -9,6 +9,7 @@ import {
   activeLamps, lampsLit, STREET_ARM_M, STREET_HEIGHT_M, type Lamp,
 } from '../../world/lamps.ts';
 import { POST_LONG_M } from '../../world/lampdamage.ts';
+import { drawPylon } from './buildings.ts';
 import type { PropCtx } from './types.ts';
 
 // sizes seen from above, m: the post, the pole / arm width, the head's length and width
@@ -104,8 +105,8 @@ function drawFallen(ctx: CanvasRenderingContext2D, lamp: Lamp, ppm: number) {
 }
 
 /**
- * Draws every street light in view: the standing ones in the overhead layer, the fallen ones on
- * the ground.
+ * Draws every lamp of the lamps layer in view: standing street lights in the overhead layer,
+ * fallen ones and the planned pylons on the ground.
  * @param propCtx the view and painter helpers
  * @param ppm pixels per metre
  * @param overhead true for the overhead layer
@@ -114,13 +115,18 @@ export function drawStreetLights(propCtx: PropCtx, ppm: number, overhead: boolea
   const { view, toScreenX, toScreenY } = propCtx;
   const lit = lampsLit(), margin = 12 * ppm, ctx = view.ctx;
   for (const lamp of activeLamps()) {
-    if (lamp.kind !== 'street' || lamp.down === overhead) continue;
+    // a planned pylon stands on the ground; the level's own are props (drawn with the props)
+    const isPylon = lamp.kind === 'flood';
+    if (isPylon ? !lamp.ownDraw || overhead : lamp.down === overhead) continue;
     const screenX = toScreenX(lamp.x), screenY = toScreenY(lamp.y);
     if (screenX < -margin || screenY < -margin || screenX > view.W + margin
       || screenY > view.H + margin) continue;
     ctx.save();
     ctx.translate(screenX, screenY);
-    if (lamp.down) drawFallen(ctx, lamp, ppm);
+    if (isPylon) {
+      ctx.rotate(lamp.rot);
+      drawPylon(propCtx, lamp.prop!, ppm);
+    } else if (lamp.down) drawFallen(ctx, lamp, ppm);
     else drawStanding(ctx, lamp, ppm, lit);
     ctx.restore();
   }

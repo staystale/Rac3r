@@ -1,4 +1,5 @@
 import { LEVELS } from '../world/levels/index.ts';
+import { catOf } from '../world/levels/category.ts';
 import { buildLevel } from '../world/load.ts';
 import { THEMES, LENGTHS } from '../stagegen.js';
 import { saveProfile } from './profile.js';
@@ -12,9 +13,8 @@ export const KIND = { lab: 'TEST GROUND', 'test-track': 'CIRCUIT', thruston: 'UK
   killder: 'RALLY STAGE · FOREST', 'slidden-hill': 'RALLYCROSS', 'grass-track': 'AUTOGRASS',
   'stock-car': 'OVAL', naffcar: 'OVAL', sandbox: 'CIRCUIT',
   'bowling-alley': 'TEST GROUND', 'rough-patch': 'TEST GROUND' };
-// TRACK CATEGORIES. A level's category: CAT_OF by id, else generated / set rally
-// stages -> rally, endless -> roads, anything new and unlisted -> circuits (so a new level is never
-// hidden). ALL TRACKS keeps the old flat grid one tap away.
+// TRACK CATEGORIES (the kind of each level: world/levels/category.ts). ALL TRACKS keeps the old
+// flat grid one tap away.
 const CATS = [
   { id: 'circuits', name: 'CIRCUITS', sub: 'road racing · laps · grids' },
   { id: 'rally', name: 'RALLY STAGES', sub: 'point to point · against the clock' },
@@ -24,14 +24,7 @@ const CATS = [
   { id: 'test', name: 'TEST GROUNDS', sub: 'surfaces · physics · free play' },
   { id: 'all', name: 'ALL TRACKS', sub: 'everything in one list' },
 ];
-const CAT_OF = { 'test-track': 'circuits', thruston: 'circuits', 'castle-cum': 'circuits',
-  'brands-snatch': 'circuits', 'brands-snatch-indy': 'circuits',
-  'sweaty-lamb': 'rally', killder: 'rally', knobhill: 'rx', 'slidden-hill': 'rx',
-    'grass-track': 'ovals', 'stock-car': 'ovals', naffcar: 'ovals',
-  lab: 'test', sandbox: 'test', 'bowling-alley': 'test',
-  'rough-patch': 'test' };
-export const catOf = (level) => CAT_OF[level.id]
-  || (level.gen ? 'rally' : level.endless ? 'roads' : 'circuits');
+export { catOf };
 
 /**
  * Finds the sample point of a generated stage's track nearest a distance along it.

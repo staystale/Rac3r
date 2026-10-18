@@ -23,8 +23,8 @@ export const TEST_LIST = [
     id: 'lamps',
     added: '2026-10-18',
     name: 'Street lights and floodlights: solid lamps, on from dusk',
-    where: 'Plain link + &lamps=1&night=0.8 (Castle Cum start straight; Stock Car pylons);'
-      + ' &lamps=1 alone for daytime',
+    where: 'Plain link + &lamps=1&daytime=1 (START HOUR 22:00): every level but the highway -'
+      + ' circuits, ovals, RX, stage ends, test grounds (the Lab: a LAMP ALLEY at the start)',
     try: 'At night: a pool below each head, one beam per headlight, indicators glow amber; by day'
       + ' lamps off. Drive into a post or a pylon base:'
       + ' a nudge wonks it and it flickers; a hard hit dims it; ~50 km/h snaps it; drive over the'

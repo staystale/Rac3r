@@ -6,6 +6,7 @@
 // pylons. RESTART stands them all up again (resetLamps).
 import { LEVEL, PROPS } from './state.ts';
 import { DAYLIGHT } from './daylight.ts';
+import { planLamps } from './lampplan.ts';
 import type { CarBody, Prop, Solid } from './types.ts';
 
 // darkness at and above which the lamps are on (a light sensor: a little before the cars' lights)
@@ -27,7 +28,8 @@ export interface Lamp {
   y: number;
   headX: number;    // where the light hangs (a street light's arm reaches over the road), m
   headY: number;
-  rot: number;      // the arm's direction, radians
+  rot: number;      // the arm's direction (a pylon: the way it faces), radians
+  armM: number;     // how far out the light hangs: a street light's arm (a pylon: 0), m
   poolM: number;    // the pool's radius, m
   level: number;    // how bright it can be, 0..1 (hard hits take it down)
   shown: number;    // how bright it is this frame (level, dipping when it flickers)
@@ -40,7 +42,8 @@ export interface Lamp {
   solidity: number; // a fallen post: how much it still resists a car, 1 -> flat
   mangle: number;   // a fallen post: how many times it has been driven over
   touching: CarBody | null;   // the car on a fallen post now (one pass = one hit)
-  prop: Prop | null;          // a pylon's prop (its painter reads the lamp)
+  prop: Prop | null;          // a pylon's prop or plan entry (its painter reads the lamp)
+  ownDraw: boolean;           // a planned pylon: drawn with the lamps (the level's are props)
   solid: Solid;
 }
 
@@ -75,15 +78,14 @@ export function lampsLit(): boolean {
 }
 
 /**
- * Puts a lamp's head where its lean takes it: the top of a leaning post moves by its height
+ * Puts a lamp's light where its lean takes it: the top of a leaning post moves by its height
  * times the lean, and a street light's arm reaches on from there.
  * @param lamp the lamp (headX, headY are set)
  */
 export function placeHead(lamp: Lamp): void {
   const height = lamp.kind === 'street' ? STREET_HEIGHT_M : FLOOD_HEIGHT_M;
-  const arm = lamp.kind === 'street' ? STREET_ARM_M : 0;
-  lamp.headX = lamp.x + lamp.leanX * height + Math.cos(lamp.rot) * arm;
-  lamp.headY = lamp.y + lamp.leanY * height + Math.sin(lamp.rot) * arm;
+  lamp.headX = lamp.x + lamp.leanX * height + Math.cos(lamp.rot) * lamp.armM;
+  lamp.headY = lamp.y + lamp.leanY * height + Math.sin(lamp.rot) * lamp.armM;
 }
 
 /**
@@ -92,14 +94,17 @@ export function placeHead(lamp: Lamp): void {
  * @param kind street or flood
  * @returns the lamp
  */
-function makeLamp(prop: Prop, kind: Lamp['kind']): Lamp {
+function makeLamp(prop: Prop, kind: Lamp['kind'], ownDraw = false): Lamp {
   const rot = prop.rot || 0;
   const post = kind === 'street' ? STREET_POST_M : FLOOD_BASE_M;
   const lamp: Lamp = {
     kind, x: prop.x, y: prop.y, rot, headX: prop.x, headY: prop.y,
+    // the light is where the lamp's body is (owner): at the end of a street light's arm, on the
+    // pylon itself
+    armM: kind === 'street' ? STREET_ARM_M : 0,
     poolM: kind === 'street' ? STREET_POOL_M : FLOOD_POOL_M, level: 1, shown: 1, flicker: 0,
     leanX: 0, leanY: 0, down: false, fallX: 1, fallY: 0, solidity: 1, mangle: 0,
-    touching: null, prop: kind === 'flood' ? prop : null,
+    touching: null, prop: kind === 'flood' ? prop : null, ownDraw,
     solid: { x: prop.x, y: prop.y, w: post, h: post, rot, kind: 'lamp',
       r: Math.hypot(post, post) / 2 },
   };
@@ -115,10 +120,12 @@ export function activeLamps(): Lamp[] {
   if (!isOn || !LEVEL) return NONE;
   if (builtFor !== LEVEL) {
     builtFor = LEVEL;
+    // the level's own pylons, then the plan (world/lampplan.ts: by the level's kind)
     lamps = [
-      ...(LEVEL.lamps || []).map((prop) => makeLamp(prop, 'street')),
       ...(PROPS || []).filter((prop) => prop.kind === 'pylon')
         .map((prop) => makeLamp(prop, 'flood')),
+      ...planLamps(LEVEL).map((entry) => entry.kind === 'floodlight'
+        ? makeLamp(entry, 'flood', true) : makeLamp(entry, 'street')),
     ];
   }
   return lamps;
