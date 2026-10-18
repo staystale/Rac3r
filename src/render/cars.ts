@@ -131,7 +131,7 @@ function drawRolledCar(
  * @param corner the corner index
  * @returns the lamp's level 0..1
  */
-function lampLevel(car: RenderCar, corner: number) {
+export function lampLevel(car: RenderCar, corner: number) {
   const LAMP_OK = 0.15, LAMP_GONE = 0.35;
   const damage = car.dmg ? car.dmg[corner] : 0;
   if (damage <= LAMP_OK) return 1;

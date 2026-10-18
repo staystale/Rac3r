@@ -98,6 +98,10 @@ any cover (snow, ice, puddle) and the wear state of the cell.
   `objects.ts` (cones, tyres, tape, debris), `props.ts` + `props/` (fence, barriers, buildings, scenery,
   bridges), `cars.ts` with `carsprite.ts` (one cached sprite per livery) and `cardamage.ts`,
   `particles.ts`.
+- `render/light.ts` (`?night=`, a test): the night layer - a light map the art buffer's size, the
+  dark filled and headlight beams / floodlight pools rubbed out, laid over the screen canvas once a
+  frame under the HUD. The light level is `world/daylight.ts`; the AI and traffic run headlights
+  by it (`game/sim.js setFieldLights`).
 - `render/glground.ts` (default; `?glground=0` = the old path): the cached tiles are drawn by WebGL2 on a
   canvas UNDER the screen canvas, at full screen resolution with a sharp-pixel filter (crisp art pixels,
   no pixels dropped when the zoom changes); the art buffer is cleared to transparent so the GPU ground

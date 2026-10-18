@@ -85,6 +85,25 @@ the git history. `docs/foreman-handover.md` is the last handover (10-18, cover f
 - WEATHER DONE and the DEFAULT (10-18; "GRASS GRIP + WATER" below). TYRE WEAR the DEFAULT, its
   test passed 10-18 (?tyrewear=0 off). NEXT: LIGHTING / time of day (the owner's brief in docs/foreman-handover.md), on
   its own switch. Owner also saw a very minor jerk behind the main menu (DuckDuckGo): not looked at.
+- LIGHTING (owner 10-18: lighting FIRST; the performance pass only if the owner complains while
+  testing). Owner's rules: every light fixture is SOLID (today the floodlight `pylon` has no
+  solid); street lights knockable - a nudge wonks the post and makes it flicker (stays lit), a
+  hard hit / take-down puts it out progressively (like headlight damage); a fallen post stays as
+  debris you can hit, mangled more by each hit, easier to drive over each time (if cheap);
+  floodlight pylons solid, can wonk and flicker, never fall; a street light's light is a pool
+  BELOW it, roughly round; lamps on when the light is low, off when bright; AI and traffic
+  headlights by the light level too; the player's LIGHTS stay manual and no longer switch the
+  AI's. Placement: most tracks drivable at night (dark patches allowed - headlights); roads get
+  street lights; tracks a mix of flood and street lights; rally stages few or none off road
+  (dirt, sand, woods); the highway by cost / what looks right.
+  ORDER: L1 the COST TEST first (owner: "test if the lighting change is too intense"), then
+  features one at a time. [ ] L1 BUILT behind ?night=0..1 (?night alone 0.8; testlist night):
+  world/daylight.ts (the light level), render/light.ts (a light map the art buffer's size: the
+  dark filled, headlight beams 32 m and pylon pools 34 m rubbed out with pictures drawn once,
+  laid over the screen canvas once a frame, under the HUD); the AI / traffic lights follow the
+  dark (game/sim.js setFieldLights). Owner: a held-frame recording, Castle Cum autopilot, plain
+  vs &night=0.8 back to back. NEXT after the verdict: solid pylons + street-light props + time
+  of day (mockup first).
 - GRASS THROUGH THE CRACKS (owner: a and b, "like real life"): long-grass tufts in some
   broken-tarmac flecks, and scattered on broken-tarmac / concrete ground (blend.ts, own random
   stream: every existing patch unchanged). OWNER APPROVED 2026-10-16 (testlist entry deleted).

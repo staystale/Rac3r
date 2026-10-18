@@ -91,6 +91,11 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
 - Weather (10-17): a season slider sets the chances of rain / snow / dry / hot / super hot, the
   temperature and the track condition; it can change mid-race; it must add no lag. One water
   system: the existing wet / puddle cover, extended, never a second one.
+- Lighting (10-18): before the performance pass (that only if the owner complains); cost test
+  first, then features one at a time. Light fixtures are solid; street lights knockable (nudge =
+  wonk + flicker, hard hit = out by degrees, fallen = debris, mangled per hit); pools below a
+  lamp; lamps and AI / traffic headlights follow the light level; the player's LIGHTS stay
+  manual and do not switch anyone else's. Full list in `TODO.md` LIGHTING.
 - "Straight Outta Swindon" is a reserved name for a future highway level (the test straight that
   used it was removed 10-17).
 

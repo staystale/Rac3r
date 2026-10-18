@@ -5,6 +5,7 @@ import { carContacts, slipstream } from '../contact.js';
 import { hit, hitRoll, repair, applyBurst } from '../damage.js';
 import { rolling, tripCheck, stepRoll } from '../roll.js';
 import { LEVEL } from "../world/state.ts";
+import { DAYLIGHT, headlightsWanted } from "../world/daylight.ts";
 import { stepWetTrails } from "../wettrail.ts";
 import { applyGround, fenceClamp, obstacleClamp } from "../world/wear.ts";
 import { barrierClamp, solidClamp } from "../world/barriers.ts";
@@ -138,12 +139,21 @@ export function stepCarSignals(inp, wallDt) {
       if (player.indT > 8) player.indicator = 0;
     }
   }
-  // the field runs lights when you do
-  for (const entry of game.ai) entry.car.lightsOn = !!game.car.lightsOn;
+  setFieldLights();
   if (game.car.roll && game.car.roll.phase !== 'rolling' && game.car.roll.phase !== 'none'
     && shared.mode === 'session')
     game.notice = { text: game.car.roll.phase === 'roof' ? 'ON YOUR ROOF — RESET'
       : 'ON YOUR SIDE — RESET', at: performance.now() };
+}
+
+/**
+ * The field's headlights: by the light level when one is set (?night=; the player's LIGHTS button
+ * is their own), otherwise the AI runs lights when the player does.
+ */
+function setFieldLights() {
+  const fieldLights = DAYLIGHT.active ? headlightsWanted() : !!game.car.lightsOn;
+  for (const entry of game.ai) entry.car.lightsOn = fieldLights;
+  if (DAYLIGHT.active) for (const car of game.traffic.cars) car.lightsOn = fieldLights;
 }
 
 /**

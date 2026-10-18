@@ -37,6 +37,7 @@ import type { ShadeRect } from "./render/glshade.ts";
 import type { GroundPatch, PaintCamera } from "./render/glpaint.ts";
 import type { Cam, CamCar, RenderGame, TileBudget, View } from "./render/types.ts";
 import { createRain } from "./render/rain.ts";
+import { createNight } from "./render/light.ts";
 import { wetTint } from "./render/glprogram.ts";
 import { WEATHER } from "./world/weather.ts";
 
@@ -107,6 +108,7 @@ type RenderCtx = {
   toScreenX: (worldX: number) => number;
   toScreenY: (worldY: number) => number;
   drawRain: () => void;           // the falling rain, into the art buffer (render/rain.ts)
+  drawNight: (game: RenderGame, lock: ViewLock) => void;   // ?night= (render/light.ts)
 } & ReturnType<typeof createGround> & ReturnType<typeof createRoad>
   & ReturnType<typeof createParticles> & ReturnType<typeof createCars>
   & ReturnType<typeof createProps> & ReturnType<typeof createObjects>
@@ -314,11 +316,14 @@ function drawEffects(ctx: RenderCtx, game: RenderGame, wallDt: number) {
  *
  * @param ctx the renderer context
  * @param lock what applyViewLock changed
+ * @param game the game drawn (the night layer's lights)
  * @param blitted true when the art buffer is already on the screen
  */
-function blitWorld(ctx: RenderCtx, lock: ViewLock, blitted = false) {
+function blitWorld(ctx: RenderCtx, lock: ViewLock, game: RenderGame, blitted = false) {
   const { view, cam } = ctx;
   if (!blitted) blitArt(ctx, lock);
+  // the night over everything in the world, under the HUD, at the pixel-locked camera
+  if (!ctx.skip('night')) ctx.drawNight(game, lock);
   view.zoom = lock.keepZoom;
   if (lock.camTrue) {
     // the true camera for the next frame / tools
@@ -348,7 +353,7 @@ function drawFrame(ctx: RenderCtx, game: RenderGame, wallDt: number, wallT: numb
   drawEffects(ctx, game, wallDt);
   if (ctx.state.sharpCars) drawSharpCarLayers(ctx, game, lock);
   else drawCarLayers(ctx, game);
-  blitWorld(ctx, lock, ctx.state.sharpCars);
+  blitWorld(ctx, lock, game, ctx.state.sharpCars);
   if (ctx.state.gpuOn) ctx.gpu!.end();
 }
 
@@ -704,13 +709,13 @@ export function createRenderer(canvas: HTMLCanvasElement, settings: Settings) {
   const toScreenY = (worldY: number) => (worldY - cam.y) * PPMz() + view.H / 2;
   const { ground, road, particles, pixelCar, cars, props, objects, camera, tiles } =
     buildModules(view, cam, settings, { PPMz, toScreenX, toScreenY, ...gpuHelpers(state, gpu) });
-
   const ctx: RenderCtx = {
     canvas, view, cam, state, noLock: settings.noLock, skip, mainCtx, pcanvas, pctx, gpu, PPMz,
     drawRain: rainDrawer(pctx, state),
     groundPatches: [], toScreenX, toScreenY, noShade: settings.noShade, maxDpr: settings.maxDpr,
     gpuCamera: { x: 0, y: 0, devPerMetre: 1, screenX: 0, screenY: 0 }, startFix: settings.startFix,
     ...ground, ...road, ...particles, ...cars, ...props, ...objects, ...camera, ...tiles,
+    drawNight: createNight({ view, pcanvas, mainCtx, state, PPMz, toScreenX, toScreenY }),
   };
   const { camState, tileState } = ctx;
 

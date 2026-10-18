@@ -8,7 +8,7 @@ import { readSettings } from '../src/core/settings.ts';
 const DEFAULTS = {
   dev: false, carId: null, aiCount: 0, aiDifficulty: 2, trafficDensity: 0.6, litter: null, menu: null,
   menuAi: 4, guide: null, rules: null, levelId: null, inputMode: 'auto', highwayDebug: null,
-  noLock: false, tilePx: 256, tileGpu: false, glGround: true, gpuPaint: true, zoomHold: true, minimap: true, menuVideo: false, grassGrip: true, rain: null, weather: true, slideWear: true, tyreWear: true, tyreFeel: true, packedWear: true, onePuddle: true, wetTrail: true, winter: true, hwMap: true,
+  noLock: false, tilePx: 256, tileGpu: false, glGround: true, gpuPaint: true, zoomHold: true, minimap: true, menuVideo: false, grassGrip: true, rain: null, night: null, weather: true, slideWear: true, tyreWear: true, tyreFeel: true, packedWear: true, onePuddle: true, wetTrail: true, winter: true, hwMap: true,
   sharpCars: true, sharpMarks: true, jokerFix: true, groundLookup: true, exactTiles: true,
   hudMenu: true, tyreOff: true, menuFast: true, thumbCache: true, texWarm: true, maxDpr: null, startFix: true, oneCanvas: false, zoomSwitch: true, mudFreeze: true, sandDig: true, winterCold: true, gravelDig: true, coldSurface: true, wearChance: true, markFade: true, hudUnits: true, oneLook: true, tyreCool: true, coverLook: true,
   noShade: false,
@@ -47,6 +47,9 @@ const TABLE = [
   ['?rain', { rain: 0.6 }],
   ['?rain=3', { rain: 1 }],
   ['?rain=x', { rain: null }],
+  ['?night=0.5', { night: 0.5 }],
+  ['?night', { night: 0.8 }],
+  ['?night=x', { night: null }],
   ['?weather=0', { weather: false }],
   ['?weather', { weather: true }],
   ['?slidewear=0', { slideWear: false }],

@@ -19,4 +19,13 @@ export const TEST_LIST = [
   // 2026-10-18; tyrewear, wintertweaks passed 2026-10-18;
   // coldsurface, wearchance, markfade, hudunits, onelook, tyrecool, coverlook approved
   // 2026-10-18)
+  {
+    id: 'night',
+    added: '2026-10-18',
+    name: 'Night: the cost test (dark layer, headlight beams, floodlight pools)',
+    where: 'Plain link + &night=0.8 (any level; Castle Cum autopilot for the recording)',
+    try: 'Race, LIGHTS on and off. The AI / traffic run lights by the dark, not by your button;'
+      + ' Stock Car / Grass Track pylons light a pool. Record: held frames vs the plain link.',
+    wrong: 'More held frames or lag than the plain link, HUD darkened, light off its car.',
+  },
 ];
