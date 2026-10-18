@@ -52,6 +52,7 @@ export interface Settings {
   texWarm: boolean;              // long-grass textures painted while loading; =0 in the menu
   startFix: boolean;             // the race start without the hand-over jolt; =0 the old
   oneCanvas: boolean;            // ?onecanvas=1: the GPU ground drawn into the 2D canvas
+  mudFreeze: boolean;            // ?mudfreeze=1: all mud / thick mud freeze (coverfield.ts)
   zoomSwitch: boolean;           // tile mipmaps at upload, no burst (glground.ts); =0 off
   maxDpr: number | null;         // ?dpr=2: the sharpness cap (default render.ts MAX_DPR 1.5)
   noShade: boolean;              // ?noshade: skip the hill shading (perf A/B)
@@ -139,8 +140,7 @@ export function readSettings(search: string): Settings {
     ...weatherSettings(params),
     // default since 2026-10-16 (owner: "highway mini map approved")
     hwMap: params.get('hwmap') !== '0',
-    // default since 2026-10-16 (owner: "the change seems to have worked"): the cars turned and
-    // scaled at screen resolution
+    // default since 2026-10-16 (owner approved): the cars turned and scaled at screen resolution
     sharpCars: params.get('sharpcars') !== '0',
     // default since 2026-10-17 (owner approved): the skid marks at screen resolution
     sharpMarks: params.get('sharpmarks') !== '0',
@@ -169,6 +169,7 @@ export function readSettings(search: string): Settings {
     startFix: params.get('startfix') !== '0',
     oneCanvas: params.get('onecanvas') === '1',
     zoomSwitch: params.get('zoomswitch') !== '0',
+    mudFreeze: params.get('mudfreeze') === '1',
     maxDpr: maxDpr(params),
     noShade: params.has('noshade'),
     grassEnds: params.get('grass') === 'square' ? 'square' : 'round',

@@ -8,12 +8,15 @@
 // tyres changed (cleared, packed, polished). Squares whose chunk is not computed yet show no
 // field (masked) until it is, within CHUNK_BUDGET_MS a frame, the view first. The mask also
 // carries each square's LEVEL AREA (1..4, coverfield.ts AREA_KINDS: the level's own snow, ice,
-// water, packed snow), whose own levels are tried before the weather's.
+// water, packed snow), whose own levels are tried before the weather's; with ?mudfreeze=1 a bare
+// square of mud (5) or thick mud (6) is ice where the frost reaches (coverfield.ts FROST).
 import { LEVEL } from "../world/state.ts";
-import { wearMap, wearEpoch, wearKey, WEAR_CELL, layersAt } from "../world/wear.ts";
 import {
-  AREA_KINDS, AREAS, FIELD, FIELD_SQ, areaKindOf, catchAt, cellOwned, coverFieldOn, SNOW_SEED,
-  WATER_SEED,
+  wearMap, wearEpoch, wearKey, WEAR_CELL, groundSurfaceAt, layersAt,
+} from "../world/wear.ts";
+import {
+  AREA_KINDS, AREAS, FIELD, FIELD_SQ, FROST, areaKindOf, catchAt, cellOwned, coverFieldOn,
+  frostKindOf, mudFrostOn, SNOW_SEED, WATER_SEED,
 } from "../world/coverfield.ts";
 import type { Levels } from "../world/coverfield.ts";
 import { buildProgram } from "./glprogram.ts";
@@ -49,6 +52,7 @@ uniform vec2 camInSq;          // the camera inside its square, m
 uniform ivec2 camSq;           // the camera's square
 uniform vec4 levels;           // the weather's water, snow, ice, packed snow
 uniform vec4 areaLevels[4];    // each level area's (coverfield.ts AREA_KINDS)
+uniform vec2 frost;            // the frost on mud and on thick mud (?mudfreeze=1)
 uniform highp sampler2D catchTex;
 uniform highp sampler2D maskTex;
 out vec4 colour;
@@ -73,8 +77,14 @@ int kindOf(ivec2 square, out float depth) {
   depth = 0.0;
   if (code == 255) return -1;
   vec2 catchValue = texelFetch(catchTex, slot, 0).rg;
-  int kind = code > 0 ? kindIn(areaLevels[code - 1], catchValue, depth) : 0;
-  return kind > 0 ? kind : kindIn(levels, catchValue, depth);
+  int kind = code > 0 && code < 5 ? kindIn(areaLevels[code - 1], catchValue, depth) : 0;
+  if (kind == 0) kind = kindIn(levels, catchValue, depth);
+  if (kind > 0 || code < 5) return kind;
+  // bare mud (5) or thick mud (6): ice under its frost
+  float frostLevel = code == 5 ? frost.x : frost.y;
+  if (catchValue.r >= frostLevel) return 0;
+  depth = frostLevel - catchValue.r;
+  return 2;
 }
 void main() {
   vec2 device = vec2(gl_FragCoord.x, canvasHeight - gl_FragCoord.y);
@@ -110,7 +120,7 @@ void main() {
 
 const UNIFORMS = [
   'canvasHeight', 'cameraPx', 'devPerMetre', 'camInSq', 'camSq', 'levels', 'areaLevels', 'catchTex',
-  'maskTex',
+  'maskTex', 'frost',
 ] as const;
 type Uniforms = Record<typeof UNIFORMS[number], WebGLUniformLocation | null>;
 
@@ -125,6 +135,20 @@ interface FieldGrid {
   epoch: number;
   everywhere: boolean;       // the level's ground is a level area: every square is tested
   anyArea: boolean;          // the level has a level area anywhere (then the field is drawn always)
+  frosty: boolean;           // ?mudfreeze=1: mud squares carry their mud code
+}
+
+// the mask codes of bare mud and thick mud (?mudfreeze=1; after the level areas' 1..4)
+const MUD_CODE = 5, THICK_MUD_CODE = 6;
+
+/**
+ * The mask code of a ground surface by its frost kind: mud, thick mud, else 0.
+ * @param surfaceId the ground surface id
+ * @returns the code
+ */
+function mudCode(surfaceId: string): number {
+  const kind = frostKindOf(surfaceId);
+  return kind === 'mud' ? MUD_CODE : kind === 'thickMud' ? THICK_MUD_CODE : 0;
 }
 
 /** Whether a set of levels covers anything at all. */
@@ -220,25 +244,32 @@ function maskWornCells(grid: FieldGrid, chunkX: number, chunkY: number) {
   for (let cellY = cellY0; cellY <= cellY1; cellY++) {
     for (let cellX = cellX0; cellX <= cellX1; cellX++) {
       const cell = wearMap.get(wearKey(cellX, cellY));
-      if (cell && cellOwned(cell)) maskCellSquares(grid, cellX, cellY, firstSq);
+      if (cell && cellOwned(cell)) maskCellSquares(grid, cellX, cellY, firstSq, 255);
+      else if (cell && grid.frosty) {
+        maskCellSquares(grid, cellX, cellY, firstSq, mudCode(cell.base));
+      }
     }
   }
 }
 
 /**
- * Masks one wear cell's squares in the chunk being computed.
+ * Masks one wear cell's squares in the chunk being computed: 255 (the tiles show it), or a mud
+ * code for its ground now (only over squares with no level area: those keep theirs).
  * @param grid the grid
  * @param cellX the cell column
  * @param cellY the cell row
  * @param firstSq the chunk's first square
+ * @param code 255, or the mud code of the cell's ground (0: none)
  */
 function maskCellSquares(grid: FieldGrid, cellX: number, cellY: number,
-    firstSq: { x: number; y: number }) {
+    firstSq: { x: number; y: number }, code: number) {
   for (let row = 0; row < CELL_SQ; row++) {
     for (let col = 0; col < CELL_SQ; col++) {
       const sqX = cellX * CELL_SQ + col - firstSq.x, sqY = cellY * CELL_SQ + row - firstSq.y;
-      if (sqX >= 0 && sqX < CHUNK_SQ && sqY >= 0 && sqY < CHUNK_SQ) {
-        grid.maskPixels[sqY * CHUNK_SQ + sqX] = 255;
+      const index = sqY * CHUNK_SQ + sqX;
+      const keep = code !== 255 && grid.maskPixels[index] > 0 && grid.maskPixels[index] < MUD_CODE;
+      if (sqX >= 0 && sqX < CHUNK_SQ && sqY >= 0 && sqY < CHUNK_SQ && !keep) {
+        grid.maskPixels[index] = code;
       }
     }
   }
@@ -264,7 +295,8 @@ function computeChunk(webgl: WebGL2RenderingContext, tex: { catchTex: WebGLTextu
       const index = row * CHUNK_SQ + col;
       grid.catchPixels[index * 2] = Math.round(catchAt(x, y, WATER_SEED) * 255);
       grid.catchPixels[index * 2 + 1] = Math.round(catchAt(x, y, SNOW_SEED) * 255);
-      grid.maskPixels[index] = levelCovers ? squareCode(x, y) : 0;
+      const code = levelCovers ? squareCode(x, y) : 0;
+      grid.maskPixels[index] = code || !grid.frosty ? code : mudCode(groundSurfaceAt(x, y).id);
     }
   }
   maskWornCells(grid, chunkX, chunkY);
@@ -319,8 +351,10 @@ function maskCell(webgl: WebGL2RenderingContext, maskTex: WebGLTexture, grid: Fi
   else {
     for (let row = 0; row < CELL_SQ; row++) {
       for (let col = 0; col < CELL_SQ; col++) {
-        cellMask[row * CELL_SQ + col] = squareCode((sqX + col + 0.5) * FIELD_SQ,
-          (sqY + row + 0.5) * FIELD_SQ);
+        const x = (sqX + col + 0.5) * FIELD_SQ, y = (sqY + row + 0.5) * FIELD_SQ;
+        const code = squareCode(x, y);
+        const ground = cell ? cell.base : groundSurfaceAt(x, y).id;
+        cellMask[row * CELL_SQ + col] = code || !grid.frosty ? code : mudCode(ground);
       }
     }
   }
@@ -373,7 +407,9 @@ function resetOnChange(grid: FieldGrid) {
   const everywhere = groundIsArea();
   const anyArea = everywhere || (LEVEL.zones || []).some((zone) => areaKindOf(zone.surface.id))
     || (LEVEL._staticCovers || LEVEL.covers || []).some((cover) => !cover.water);
-  Object.assign(grid, { level: LEVEL, layout, epoch: wearEpoch, everywhere, anyArea });
+  Object.assign(grid, {
+    level: LEVEL, layout, epoch: wearEpoch, everywhere, anyArea, frosty: mudFrostOn(),
+  });
   return true;
 }
 
@@ -394,7 +430,7 @@ export function createGlField(webgl: WebGL2RenderingContext) {
     blank: new Float64Array(GRID_CHUNKS * GRID_CHUNKS).fill(NaN),
     catchPixels: new Uint8Array(CHUNK_SQ * CHUNK_SQ * 2),
     maskPixels: new Uint8Array(CHUNK_SQ * CHUNK_SQ), level: null, layout: 0, epoch: -1,
-    everywhere: false, anyArea: false,
+    everywhere: false, anyArea: false, frosty: false,
   };
   const areaLevels = new Float32Array(AREA_KINDS.length * 4);
   const cellMask = new Uint8Array(CELL_SQ * CELL_SQ);
@@ -430,7 +466,8 @@ export function createGlField(webgl: WebGL2RenderingContext) {
      * @param camera where the world lands on the canvas this frame
      */
     draw(size: { width: number; height: number }, camera: PaintCamera) {
-      if (!coverFieldOn() || (!levelsShow(FIELD) && !grid.anyArea)) return;
+      const frozen = grid.frosty && FROST.mud + FROST.thickMud > 0;
+      if (!coverFieldOn() || (!levelsShow(FIELD) && !grid.anyArea && !frozen)) return;
       webgl.useProgram(program);
       webgl.bindVertexArray(vao);
       webgl.activeTexture(webgl.TEXTURE2);
@@ -452,6 +489,7 @@ export function createGlField(webgl: WebGL2RenderingContext) {
         areaLevels.set([area.water, area.snow, area.ice, area.packed], index * 4);
       });
       webgl.uniform4fv(uniforms.areaLevels, areaLevels);
+      webgl.uniform2f(uniforms.frost, FROST.mud, FROST.thickMud);
       webgl.drawArrays(webgl.TRIANGLE_STRIP, 0, 4);
     },
   };

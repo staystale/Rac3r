@@ -54,6 +54,13 @@ export const FIELD_SQ = 0.5;
 // then it builds or wears with racing; a snow level's own snow is its area, full) - each a range,
 // dealt from the weather's seeded stream
 const START_RAIN = [0.15, 0.5], START_DRYING = 0.35, START_SNOW = [0.15, 0.38], SNOW_LYING = 0.6;
+// MUD FROST (?mudfreeze=1; owner: all mud and thick mud freeze alike, driven over or not, thick mud
+// a bit slower): a frost level per mud kind rises below MUD_FREEZE_C (per C colder) and falls
+// above THAW_C; a mud square is ice where its frost is above its water catch, so the mud ices over
+// in patches like the rest of the field (-5 C: mud fully frozen in ~5 min, thick mud ~7). A cold
+// start finds it frozen already: START_FROST_PER_C a C below MUD_FREEZE_C.
+const MUD_FREEZE_C = -1, FROST_PER_S_PER_C = 1 / 1500, FROST_THAW_PER_S_PER_C = 1 / 600;
+const THICK_FROST_RATE = 0.7, START_FROST_PER_C = 0.2;
 // what lies under an area with no `under` of its own: open snow ground's grass, else tarmac
 const UNDER_SNOW_GROUND = 'grass', UNDER_DEFAULT = 'tarmac';
 
@@ -66,6 +73,10 @@ export type AreaKind = typeof AREA_KINDS[number];
 
 const emptyLevels = (): Levels => ({ water: 0, snow: 0, ice: 0, packed: 0 });
 
+/** How far up the water catch the frost reaches on mud and on thick mud, 0..LEVEL_MAX. */
+export const FROST = { mud: 0, thickMud: 0 };
+export type FrostKind = keyof typeof FROST;
+
 /** The weather's levels over the whole world. */
 export const FIELD: Levels = emptyLevels();
 
@@ -75,9 +86,10 @@ export const AREAS: Record<AreaKind, Levels> = {
 };
 
 // on here too, so the headless tools drive the ground the game does
-let enabled = true, syncS = 0, epoch = 0;
+let enabled = true, syncS = 0, epoch = 0, mudFrost = false;
 // the AI plans its speeds again when a level crosses a tenth (ai/line.ts): the bands last seen
-const bandsSeen = new Int16Array((AREA_KINDS.length + 1) * 4);
+// (the weather's and each area's four, then the two frosts)
+const bandsSeen = new Int16Array((AREA_KINDS.length + 1) * 4 + 2);
 
 /**
  * Turns the cover field on (?coverfield=1, at start-up): the weather's water and snow lie by it
@@ -87,6 +99,24 @@ const bandsSeen = new Int16Array((AREA_KINDS.length + 1) * 4);
 export function setCoverField(isOn: boolean): void {
   enabled = isOn;
   fillAreas();
+}
+
+/**
+ * Mud and thick mud freeze by the field's frost (?mudfreeze=1, at start-up), not cell by cell.
+ * @param isOn true to freeze them by the field
+ */
+export function setMudFrost(isOn: boolean): void { mudFrost = isOn; }
+
+/** Whether mud freezes by the field's frost (?mudfreeze=1). */
+export function mudFrostOn(): boolean { return enabled && mudFrost; }
+
+/**
+ * The frost kind of a ground surface: mud or thick mud, else null.
+ * @param surfaceId the surface id
+ * @returns the kind
+ */
+export function frostKindOf(surfaceId: string): FrostKind | null {
+  return surfaceId === 'mud' || surfaceId === 'thickMud' ? surfaceId : null;
 }
 
 /** Whether the weather's water and snow lie by the field. */
@@ -183,14 +213,29 @@ function coverOfLevels(levels: Levels, x: number, y: number): string | null {
  * @param x world x, m
  * @param y world y, m
  * @param area the level area the point is in, or null
+ * @param ground the ground surface there (?mudfreeze=1: mud under its frost is ice)
  * @returns the cover, or null
  */
-export function fieldCoverAt(x: number, y: number, area: AreaKind | null = null): string | null {
+export function fieldCoverAt(x: number, y: number, area: AreaKind | null = null,
+    ground = ''): string | null {
   if (!enabled) return null;
   const squareX = (Math.floor(x / FIELD_SQ) + 0.5) * FIELD_SQ;
   const squareY = (Math.floor(y / FIELD_SQ) + 0.5) * FIELD_SQ;
   return (area && coverOfLevels(AREAS[area], squareX, squareY))
-    || coverOfLevels(FIELD, squareX, squareY);
+    || coverOfLevels(FIELD, squareX, squareY) || frostAt(squareX, squareY, ground);
+}
+
+/**
+ * ?mudfreeze=1: ice where a mud square's frost is above its water catch, else null.
+ * @param squareX the square's centre x, m
+ * @param squareY the square's centre y, m
+ * @param ground the ground surface id
+ * @returns 'ice' or null
+ */
+function frostAt(squareX: number, squareY: number, ground: string): string | null {
+  const kind = mudFrost ? frostKindOf(ground) : null;
+  if (!kind || FROST[kind] <= 0) return null;
+  return catchAt(squareX, squareY, WATER_SEED) < FROST[kind] ? 'ice' : null;
 }
 
 /**
@@ -245,7 +290,7 @@ export function fieldLayers(zoneSurface: Surface, isBase: boolean, levelCover: C
     return { base, cover: 'wet', standing: true, fixed: true, area: null };
   }
   const area = levelCover ? areaKindOf(levelCover.cover) : zoneKind;
-  const cover = fieldCoverAt(x, y, area);
+  const cover = fieldCoverAt(x, y, area, base);
   return { base, cover, standing: cover === 'wet', fixed: false, area };
 }
 
@@ -294,12 +339,27 @@ export function stepCoverField(dt: number): void {
   if (!enabled || !weatherRuns()) return;
   stepLevels(FIELD, dt);
   for (const kind of AREA_KINDS) stepLevels(AREAS[kind], dt);
+  if (mudFrost) stepFrost(dt);
   noteBands();
   syncS += dt;
   if (syncS >= SYNC_S) {
     syncFieldCells(syncS);
     syncS = 0;
   }
+}
+
+/**
+ * Moves the mud frost: up below MUD_FREEZE_C, down above THAW_C, thick mud at THICK_FROST_RATE.
+ * @param dt sim seconds
+ */
+function stepFrost(dt: number): void {
+  const trackC = WEATHER.trackC;
+  let change = 0;
+  if (trackC < MUD_FREEZE_C) change = (MUD_FREEZE_C - trackC + 1) * FROST_PER_S_PER_C * dt;
+  else if (trackC > THAW_C) change = -(trackC - THAW_C) * FROST_THAW_PER_S_PER_C * dt;
+  if (change === 0) return;
+  FROST.mud = Math.max(0, Math.min(LEVEL_MAX, FROST.mud + change));
+  FROST.thickMud = Math.max(0, Math.min(LEVEL_MAX, FROST.thickMud + change * THICK_FROST_RATE));
 }
 
 /**
@@ -310,6 +370,9 @@ function noteBands(): void {
   for (let kind = 0; kind < AREA_KINDS.length; kind++) {
     if (noteLevels(AREAS[AREA_KINDS[kind]], (kind + 1) * 4)) moved = true;
   }
+  const frostSlot = (AREA_KINDS.length + 1) * 4;
+  if (noteBand(frostSlot, FROST.mud)) moved = true;
+  if (noteBand(frostSlot + 1, FROST.thickMud)) moved = true;
   if (moved) epoch++;
 }
 
@@ -351,7 +414,7 @@ export function coverEpoch(): number { return epoch; }
  */
 function followField(cell: WearCell, seconds: number): boolean {
   const want = fieldCoverAt((cell.cx + 0.5) * WEAR_CELL, (cell.cy + 0.5) * WEAR_CELL,
-    cell.area ? areaKindOf(cell.area) : null);
+    cell.area ? areaKindOf(cell.area) : null, cell.base);
   if (cell.cover === want) return false;
   const untouched = cell.cover === (cell.laid ?? null);
   const falling = want === 'snow' ? WEATHER.snow : WEATHER.rain;
@@ -400,7 +463,12 @@ export function resetCoverField(): void {
   syncS = 0;
   fillAreas();
   Object.assign(FIELD, emptyLevels());
+  FROST.mud = FROST.thickMud = 0;
   if (!enabled || !weatherRuns()) return;
+  if (mudFrost && WEATHER.trackC < MUD_FREEZE_C) {
+    FROST.mud = Math.min(LEVEL_MAX, (MUD_FREEZE_C - WEATHER.trackC) * START_FROST_PER_C);
+    FROST.thickMud = FROST.mud * THICK_FROST_RATE;
+  }
   const deal = (range: number[]) => range[0] + (range[1] - range[0]) * weatherRandom();
   if (WEATHER.rain > 0) FIELD.water = deal(START_RAIN);
   else if (WEATHER.wetness > 0.1) FIELD.water = WEATHER.wetness * START_DRYING;

@@ -537,8 +537,23 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
       the sharp filter reads level 0. renderhash SAME switch off and on. A one-frame look change
       at that zoom was NOT found (the 3 % at zoom 0.5000 is texels meeting whole pixels, seen with
       the fix too); a look blend was built and dropped (no measurable gain, extra GPU work).
-- [ ] THICK MUD FREEZES (owner 10-18): thick mud should freeze like mud does, maybe a bit slower.
-      After the zoom test. Look at puddles.ts / snowwear.ts winter rules for mud first.
+- [ ] MUD FREEZE behind ?mudfreeze=1, owner phone test (testlist mudfreeze). Owner 10-18: all mud and
+      all thick mud freeze alike, driven over or not; thick mud a bit slower. FOUND (_mudfreeze):
+      only tyre-made wear cells froze - driven mud 100 % in 5 min at -5 C, driven thick mud 0 % (no
+      wear cell is made on thick mud), undriven mud never. Now coverfield.ts FROST (mud, thick mud
+      x0.7) rises below -1 C, falls above 1 C; a mud square is ice under its frost by the water
+      catch (patches), physics and GPU alike (glfield mask codes 5 / 6, groundSurfaceAt); wear
+      cells follow it (the old per-cell freeze is off with it). -5 C: mud ~5 min, thick ~7; cold
+      starts frozen. Proofs: simhash + renderhash SAME switch off; Grass Track photos 390x844 /
+      844x390, frame times same with the frost showing (17.7 ms median).
+- NEXT ORDER (owner 10-18): mud freeze test -> 1 CHECK sand / gravel (owner: sand and gravel with
+  no puddle do NOT change surface; driving may dent the terrain / make dips; today a churned
+  puddle makes sand gravel (right) and gravel MUD (owner earlier: gravel -> dirt)) -> 4 CLEAN-UP
+  the retired puddle-site system -> 3 T3 tyres cool toward the air temperature, hot tyres clear
+  water / ice faster -> 2 LIGHTING last.
+- [ ] HUD TRACK TEMP GAUGE (owner 10-18): a small gauge of the track temperature in the HUD, on / off
+  in the pause menu's HUD list like the rest, hidden on the harder difficulties as the minimap is.
+  Owner to place it in the order above.
 - NEXT, READY TO WORK ON (owner 10-18): RAIN / WATER + DRIVING OVER IT turns SAND -> GRAVEL and
   GRAVEL -> DIRT. Today: a churned puddle mixes sand -> gravel but gravel -> MUD (wear.ts
   WATER_MIX), and damp ground only speeds the grass / dirt / mud chain (BASE_WEAR: sand and gravel

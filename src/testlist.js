@@ -17,6 +17,16 @@ export const TEST_LIST = [
   // wettrail approved 2026-10-18; coverfield, winter approved 2026-10-18 - labweather
   // superseded by the cover field; zoomswitch approved 2026-10-18)
   {
+    id: 'mudfreeze',
+    added: '2026-10-18',
+    name: 'All mud and thick mud freeze in the cold, driven over or not (thick mud slower)',
+    where: 'Plain link + &mudfreeze=1: TEST MODE, Grass Track, WEATHER cold (WINTER / SNOW)',
+    try: 'Start cold: the mud is iced over; let it get colder / warmer and watch it freeze / thaw'
+      + ' in patches; slide over frozen mud (it scrubs through); drive the muddy sections.',
+    wrong: 'Mud left unfrozen in the cold, ice where there is no mud, thick mud as fast as mud,'
+      + ' judder or slow frames on the muddy sections.',
+  },
+  {
     id: 'tyrewear',
     added: '2026-10-18',
     name: 'Tyre wear: sets wear over races, worn = less grip, hot / bald / debris punctures',

@@ -22,7 +22,7 @@
 // from the event's seeded stream (weather.ts weatherRandom), so a restart deals the same.
 import { LEVEL } from "./state.ts";
 import { WEATHER, meltOn, weatherRandom, weatherRuns } from "./weather.ts";
-import { coverFieldOn } from "./coverfield.ts";
+import { coverFieldOn, mudFrostOn } from "./coverfield.ts";
 import { heightAt } from "./terrain.ts";
 import { FX0, FX1, FY0, FY1 } from "./bounds.ts";
 import { seededRng } from "./blend.ts";
@@ -582,7 +582,8 @@ function freezeMud(seconds: number): void {
     // ?winter=1: the tyres' snow / ice melts above freezing, their water freezes below
     if (winter && (thawing ? meltCell(cell, trackC, seconds)
       : freezeCellWater(cell, trackC, seconds))) continue;
-    freezeOrThawMud(cell, freezing, mudThaw, seconds);
+    // ?mudfreeze=1: mud freezes by the cover field's frost (coverfield.ts), not cell by cell
+    if (!mudFrostOn()) freezeOrThawMud(cell, freezing, mudThaw, seconds);
   }
 }
 

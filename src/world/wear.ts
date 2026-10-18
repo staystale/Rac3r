@@ -162,6 +162,17 @@ export let PATCH_ORDER = new Map<Patch, number>();
 export const patchKey = (gridX: number, gridY: number): number => gridX * 65536 + gridY;
 // read-only, for tools/blendcheck.mjs
 export const zoneSurfaceAt = (x: number, y: number): Surface => zoneAt(x, y);
+/**
+ * The ground surface at a point before any cover or wear: the zone / ribbon / base, or a patch
+ * over it (kerbs are their own surface; patches never cover them).
+ * @param x world x, m
+ * @param y world y, m
+ * @returns the surface
+ */
+export function groundSurfaceAt(x: number, y: number): Surface {
+  const zoneSurface = zoneAt(x, y);
+  return zoneSurface.id === 'kerb' ? zoneSurface : (patchAt(x, y) || zoneSurface);
+}
 function patchAt(x: number, y: number): Surface | null {
   if (!PATCH_GRID.size) return null;
   const list = PATCH_GRID.get(patchKey(Math.floor(x / PATCH_CELL), Math.floor(y / PATCH_CELL)));
@@ -182,11 +193,9 @@ function patchAt(x: number, y: number): Surface | null {
   return null;
 }
 export function layersAt(x: number, y: number): Layers {
-  const zoneSurface = zoneAt(x, y);
   // `standing`: the water here is a PUDDLE (LEVEL.covers), not a damp wet zone — they dry
   // differently
-  // kerbs are their own surface; patches never cover them
-  const z = zoneSurface.id === 'kerb' ? zoneSurface : (patchAt(x, y) || zoneSurface);
+  const z = groundSurfaceAt(x, y);
   // the cover field: the level's own snow / ice / water are areas of it (coverfield.ts)
   if (coverFieldOn()) return fieldLayers(z, z === LEVEL.base, staticCoverHere(x, y), x, y);
   let base = z.id, cover: string | null = null;
