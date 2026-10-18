@@ -8,6 +8,7 @@ import { SPAWN, LEVEL } from "../world/state.ts";
 import { clearWear } from "../world/wear.ts";
 import { startWeather } from "../world/weather.ts";
 import { resetPuddles } from "../world/puddles.ts";
+import { resetCoverField } from "../world/coverfield.ts";
 import { resetRace, resetStage } from './rules.js';
 import { findNearestSubtrackPoint, onTrack } from "../world/tyrewall.ts";
 import { jokerLane, lanePose } from "../world/joker.ts";
@@ -345,6 +346,7 @@ export function doRestart() {
   game.marks.clear();
   clearWear();
   resetPuddles();   // the weather's puddles and snow at the start (?weather=1)
+  resetCoverField();   // or the cover field's, already settled (?coverfield=1)
   // open on the whole level, then ease in to the car. Not behind the menu (?menufast=0 = it is):
   // MEASURED on the owner's phone (?report=1, the menu's first 1.5 s) the fly-in nobody sees there
   // cost a 113 ms frame (the whole-level picture) and a 121 ms one (28 GPU uploads at the handover)

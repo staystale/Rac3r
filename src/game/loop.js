@@ -5,6 +5,7 @@ import { hwFrames } from '../highwayrace.ts';
 import { LEVEL } from "../world/state.ts";
 import { stepWeather } from "../world/weather.ts";
 import { stepPuddles } from "../world/puddles.ts";
+import { stepCoverField } from "../world/coverfield.ts";
 import { stepStage, stepJoker, stepRace } from './rules.js';
 import { stepStart } from './order.js';
 import { stepAI } from './ai.js';
@@ -99,6 +100,7 @@ export function stepWorld(inp) {
   const news = stepWeather(PHYSICS_STEP_SECONDS);
   if (news) game.notice = { text: news.text, good: news.good, at: performance.now() };
   stepPuddles(PHYSICS_STEP_SECONDS);
+  stepCoverField(PHYSICS_STEP_SECONDS);
   const tcars = game.traffic.cars;
   stepTrafficContacts(tcars);
   stepLooseCones(tcars);

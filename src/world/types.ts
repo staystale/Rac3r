@@ -326,6 +326,8 @@ export interface WearCell {
   mudDry?: number;    // how far mud has dried toward the next step, 0..1 (puddles.ts)
   frozeMud?: boolean;   // mud frozen over in the cold (its ice cover thaws back; puddles.ts)
   rainT?: number;     // the wear clock when rainDry was set, s
+  fixed?: boolean;    // its cover is the level's own: it never follows the cover field
+  laid?: string | null;   // what the cover field last laid here (coverfield.ts syncFieldCells)
 }
 
 // What layersAt returns: the static layers at a point, before any wear.
@@ -333,6 +335,7 @@ export interface Layers {
   base: string;
   cover: string | null;
   standing: boolean;
+  fixed?: boolean;   // the cover is the level's own (a zone, LEVEL.covers), not the weather's
 }
 
 // What groundAt returns: height in metres and the surface there.

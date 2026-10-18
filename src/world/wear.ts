@@ -5,7 +5,8 @@ import { SURFACES, VERGE_W, TRAP_STEPS, SURFACE_TRAP } from "./surfaces.ts";
 import { dampSurface, puddleSurface, cellDamp, dryCellLine, surfaceById, wornTo } from "./wet.ts";
 import { WEATHER } from "./weather.ts";
 import { carWheels } from "./wheels.ts";
-import { coversNear } from "./covergrid.ts";
+import { staticCoverAt } from "./coverlookup.ts";
+import { fieldCoverAt } from "./coverfield.ts";
 import { puddleClearBy, setPassTyre } from "./puddles.ts";
 import { packedSnowWears, passPackedSnowCell, passWinterSnow } from "./snowwear.ts";
 import {
@@ -15,7 +16,7 @@ import { zoneAt } from "./zones.ts";
 import { bumpAt, slopeAt, heightAt, bankHeightAt, BUMP_STEER } from "./terrain.ts";
 import { querySubtrack } from "./tyrewall.ts";
 import type {
-  CarBody, CoverId, Cover, Ground, Layers, Obstacle, Patch, Subtrack, Surface, WearCell,
+  CarBody, CoverId, Ground, Layers, Obstacle, Patch, Subtrack, Surface, WearCell,
 } from "./types.ts";
 
 // =============================================================================================
@@ -193,59 +194,19 @@ export function layersAt(x: number, y: number): Layers {
   // through
   // it like a real drying track.
   if (COVER_IDS[base]) { cover = base; base = z.under || UNDER_DEFAULT; }
-  const puddleCover = coverAt(x, y);
+  // the level's own cover (a zone's, LEVEL.covers) is fixed; the weather's (the cover field,
+  // where the level lays none) moves with it
+  const levelCover = staticCoverAt(x, y);
+  const puddleCover = levelCover ?? (cover ? null : fieldCoverAt(x, y));
   if (puddleCover) cover = puddleCover;
-  return { base, cover, standing: !!puddleCover };
+  return { base, cover, standing: !!puddleCover, fixed: !!levelCover || (!!cover && !puddleCover) };
 }
 // LEVEL.covers: [{ x, y, w, h, cover: 'snow'|'ice'|'wet', shape: 'rect'|'ellipse', rot }] share of
 // tyre-slip heat that reaches the TYRE on loose ground (vehicle.js TYRE_HEAT). User: "off-road
 // surfaces shouldn't get them up much". MEASURED: gravel drift 260 C in 14 s before -> 25 C at 30 s
 // at 0.15.
 export const HEAT_OFFROAD = 0.15;
-export const COVER_SQ = 0.5;   // m, the cover grid (render.ts coverCells uses the same 0.5)
-export function coverAt(x: number, y: number): CoverId | null {
-  // only the covers that can hold the point (world/covergrid.ts: same answers, fewer tests)
-  const list = coversNear(LEVEL.covers, x, y);
-  for (let i = 0; i < list.length; i++) {
-    const coverArea = list[i];
-    // the SAME 0.5 m world-grid squares render.ts coverCells draws (user rule: visuals accurate to
-    // their effects): the point is tested at the centre of its square, so a cover's grip edge is
-    // exactly its drawn stepped edge
-    let dx = Math.floor(x / COVER_SQ) * COVER_SQ + COVER_SQ / 2 - coverArea.x,
-      dy = Math.floor(y / COVER_SQ) * COVER_SQ + COVER_SQ / 2 - coverArea.y;
-    // CHEAP REJECT before any trig (profiled: Sweaty Lamb's 40-puddle stream made
-    // coverAt 3.4 % of a lap); rotation cached
-    const halfW = coverArea.w / 2, halfH = coverArea.h / 2, reach = halfW > halfH ? halfW : halfH;
-    if (dx > reach || dx < -reach || dy > reach || dy < -reach) continue;
-    if (coverArea.rot) {
-      if (coverArea._co === undefined) {
-        coverArea._co = Math.cos(coverArea.rot);
-        coverArea._si = Math.sin(coverArea.rot);
-      }
-      const cosRot = coverArea._co, sinRot = coverArea._si!;   // _si is set together with _co
-      const localU = dx * cosRot + dy * sinRot; dy = -dx * sinRot + dy * cosRot; dx = localU;
-    }
-    if (coverArea.shape === 'ellipse'
-      ? (dx * dx) / (halfW * halfW) + (dy * dy) / (halfH * halfH) <= 1
-      : Math.abs(dx) <= halfW && Math.abs(dy) <= halfH) {
-      if (coverArea.cut && coverCut(coverArea, x, y)) continue;
-      return coverArea.cover;
-    }
-  }
-  return null;
-}
-// a cover's CUT-OUT (highway.js river: no water where the motorway crosses on its parapets): in the
-// frame of (cut.ox, cut.oy) along c.rot, the band |u - v tan| < e is dry. Tested at the 0.5 m
-// square's centre, like the cover itself (render.ts coverCells agrees).
-export function coverCut(coverArea: Cover, x: number, y: number): boolean {
-  const cut = coverArea.cut!, cosRot = Math.cos(coverArea.rot || 0),
-    sinRot = Math.sin(coverArea.rot || 0);
-  const offX = Math.floor(x / COVER_SQ) * COVER_SQ + COVER_SQ / 2 - cut.ox,
-    offY = Math.floor(y / COVER_SQ) * COVER_SQ + COVER_SQ / 2 - cut.oy;
-  const localU = offX * cosRot + offY * sinRot, localV = -offX * sinRot + offY * cosRot;
-  return Math.abs(localU - localV * cut.tn) < cut.e;
-}
-
+export { COVER_SQ, coverAt, coverCut } from "./coverlookup.ts";
 // What a tyre feels for a base + cover. snow / ice replace the base outright (the tyre is on them).
 // A PUDDLE (standing water) does not - water on grass is not wet tarmac - it is the base under
 // water (wet.ts puddleSurface); a damp wet zone, and any ground in the rain, is the base DAMP
@@ -266,7 +227,7 @@ function getCell(cellX: number, cellY: number): WearCell | null {
       && WEATHER.wetness === 0) return null;
     cell = { cx: cellX, cy: cellY, base: layers.base, cover: layers.cover,
       orig: layers.cover || layers.base, passes: 0, scrub: 0, dry: 0, standing: layers.standing,
-      lastSeenTime: -100 };
+      lastSeenTime: -100, fixed: layers.fixed, laid: layers.fixed ? null : layers.cover };
     cell.current = cell.orig;
     wearMap.set(key, cell);
   }

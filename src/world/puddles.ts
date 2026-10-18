@@ -22,6 +22,7 @@
 // from the event's seeded stream (weather.ts weatherRandom), so a restart deals the same.
 import { LEVEL } from "./state.ts";
 import { WEATHER, meltOn, weatherRandom, weatherRuns } from "./weather.ts";
+import { coverFieldOn } from "./coverfield.ts";
 import { heightAt } from "./terrain.ts";
 import { FX0, FX1, FY0, FY1 } from "./bounds.ts";
 import { seededRng } from "./blend.ts";
@@ -265,7 +266,8 @@ function extraWaterSites(sub: Level['subtrack'], random: () => number) {
  */
 export function buildPuddleSites(level: Level): PuddleSite[] {
   const sub = level.subtrack;
-  if (!enabled || level.endless || (!sub && !labWeather)) return [];
+  // the cover field lays the weather's water and snow instead (?coverfield=1)
+  if (!enabled || level.endless || (!sub && !labWeather) || coverFieldOn()) return [];
   const random = seededRng(level.id + ':puddles');
   const sites = sub ? [...trackSites(sub, random), ...floorSites(random)] : floorSites(random);
   if (morePuddles) sites.push(...extraWaterSites(sub, seededRng(level.id + ':morepuddles')));

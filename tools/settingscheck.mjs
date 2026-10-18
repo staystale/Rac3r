@@ -8,7 +8,7 @@ import { readSettings } from '../src/core/settings.ts';
 const DEFAULTS = {
   dev: false, carId: null, aiCount: 0, aiDifficulty: 2, trafficDensity: 0.6, litter: null, menu: null,
   menuAi: 4, guide: null, rules: null, levelId: null, inputMode: 'auto', highwayDebug: null,
-  noLock: false, tilePx: 256, tileGpu: false, glGround: true, gpuPaint: true, zoomHold: true, minimap: true, menuVideo: false, grassGrip: true, rain: null, weather: true, slideWear: true, tyreWear: true, morePuddles: true, tyreFeel: true, packedWear: true, onePuddle: true, wetTrail: true, winter: false, labWeather: false, hwMap: true,
+  noLock: false, tilePx: 256, tileGpu: false, glGround: true, gpuPaint: true, zoomHold: true, minimap: true, menuVideo: false, grassGrip: true, rain: null, weather: true, slideWear: true, tyreWear: true, morePuddles: true, tyreFeel: true, packedWear: true, onePuddle: true, wetTrail: true, winter: false, labWeather: false, coverField: false, hwMap: true,
   sharpCars: true, sharpMarks: true, jokerFix: true, groundLookup: true, exactTiles: true,
   hudMenu: true, tyreOff: true, menuFast: true, thumbCache: true, texWarm: true, maxDpr: null, startFix: true, oneCanvas: false,
   noShade: false,
@@ -65,6 +65,8 @@ const TABLE = [
   ['?winter', { winter: false }],
   ['?labweather=1', { labWeather: true }],
   ['?labweather', { labWeather: false }],
+  ['?coverfield=1', { coverField: true }],
+  ['?coverfield', { coverField: false }],
   ['?hwmap=0', { hwMap: false }],
   ['?hwmap', { hwMap: true }],
   ['?sharpcars=0', { sharpCars: false }],

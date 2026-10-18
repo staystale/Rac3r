@@ -37,6 +37,7 @@ import { applyOldGrassGrip } from "./world/surfaces.ts";
 import { setGroundLookup, setSlideWear } from "./world/wear.ts";
 import { setPackedSnowWear, setWinterSnow } from "./world/snowwear.ts";
 import { setWetTrail } from "./wettrail.ts";
+import { setCoverField } from "./world/coverfield.ts";
 import { setWetness, setRain, setMelt } from "./world/weather.ts";
 import { setWeatherPuddles, setMorePuddles, setLabWeather } from "./world/puddles.ts";
 import { setTyreWear } from "./physics/tyrewear.ts";
@@ -66,6 +67,7 @@ setGroundLookup(shared.settings.groundLookup);   // ?groundlookup=1: fewer groun
 setSlideWear(shared.settings.slideWear);   // ?slidewear=1: sliding wheels wear the ground twice
 setPackedSnowWear(shared.settings.packedWear);   // ?packedwear=1: packed snow wears to snow / ice
 setWetTrail(shared.settings.wetTrail);   // ?wettrail=1: wet tyre lines fade within 10-50 m
+setCoverField(shared.settings.coverField);   // ?coverfield=1: water and snow build by the weather
 setMelt(shared.settings.winter);   // ?winter=1: snow and ice melt by temperature, water freezes
 setWinterSnow(shared.settings.winter);   // ?winter=1: snow packs, packed snow ices by temperature
 setWeatherPuddles(shared.settings.weather);   // ?weather=1: the weather makes the puddles
