@@ -19,10 +19,10 @@ export const TEST_LIST = [
   {
     id: 'sanddig',
     added: '2026-10-18',
-    name: 'Sand dents the most easily (dry or wet); a churned puddle on gravel leaves dirt',
+    name: 'Sand dents most easily, 45 cm deep; dry mud dents at half; gravel puddle -> dirt',
     where: 'Plain link + &sanddig=1: TEST MODE, a level with sand traps (or the Lab sand panel)',
-    try: 'Drive the same line through sand a few times: the ruts deepen fast and pull the wheels;'
-      + ' churn a puddle on gravel (rain) and look at what it leaves.',
+    try: 'Drive one line through sand / over sand bumps again and again: ruts deepen fast, bumps'
+      + ' wear down; dry mud dents slower than wet; churn a puddle on gravel (rain).',
     wrong: 'Sand changing to another surface, sand denting slower than mud, other ground'
       + ' behaving differently from before, slow frames in sand traps.',
   },

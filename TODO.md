@@ -553,6 +553,10 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
       13; thick mud wet 2 / 6 / 14.8, DRY 0 (same gap - owner said leave the others; ask).
       ?sanddig=1: sand gets cells dry too and digs 4 cm a pass to 16 cm (2.4 / 7.1 / 9.5 mean);
       a churned puddle on gravel leaves dirt (was mud). simhash SAME switch off.
+      Owner 1st test: "mostly works" but some bumps never deformed = the 16 cm floor (physics dents
+      every sand cell: _sandcover on lab / sandbox / rough-patch / bowling-alley). Now: sand floor
+      45 cm (dry 10 passes 23.6 cm mean); owner "change mud to fit": mud and thick mud dent DRY at
+      half the wet rate (dry thick mud had no cells: 0); wet as before; gravel as before.
 - NEXT ORDER (owner 10-18): mud freeze test -> 1 CHECK sand / gravel (owner: sand and gravel with
   no puddle do NOT change surface; driving may dent the terrain / make dips; today a churned
   puddle makes sand gravel (right) and gravel MUD (owner earlier: gravel -> dirt)) -> 4 CLEAN-UP

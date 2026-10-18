@@ -232,7 +232,7 @@ function getCell(cellX: number, cellY: number): WearCell | null {
     const layers = layersAt((cellX + 0.5) * WEAR_CELL, (cellY + 0.5) * WEAR_CELL);
     // nothing in this cell can ever change: do not create it (keeps the map to cells that matter)
     if (!layers.cover && !BASE_WEAR[layers.base] && !packedSnowWears(layers.base)
-      && WEATHER.wetness === 0 && !(sandDig && layers.base === 'sand')) return null;
+      && WEATHER.wetness === 0 && !(sandDig && DIG_DRY.has(layers.base))) return null;
     cell = { cx: cellX, cy: cellY, base: layers.base, cover: layers.cover,
       orig: layers.cover || layers.base, passes: 0, scrub: 0, dry: 0, standing: layers.standing,
       lastSeenTime: -100, fixed: layers.fixed, laid: layers.fixed ? null : layers.cover,
@@ -299,7 +299,9 @@ function passBareCell(cell: WearCell, damp: number): void {
   const rutRule = sandDig && cell.base === 'sand' ? SAND_DIG : RUT[cell.base];
   if (rutRule && Math.random() < rutRule.chance) {
     const was = cell.rut || 0;
-    cell.rut = Math.min(rutRule.max, was + rutRule.step);
+    const dryMud = sandDig && damp < WET_WEAR_FROM
+      && (cell.base === 'mud' || cell.base === 'thickMud');
+    cell.rut = Math.min(rutRule.max, was + rutRule.step * (dryMud ? DRY_MUD_DIG : 1));
     // repaint the shading only when the depth crosses a 2 cm band (a repaint per pass would
     // thrash the tile cache)
     if (Math.floor(cell.rut / 0.02) !== Math.floor(was / 0.02)) wearDirty.push(cell);
@@ -356,9 +358,11 @@ const RUT: Record<string, { step: number; max: number; chance: number }> = {
   sand: { step: 0.02, max: 0.12, chance: 0.5 },
   gravel: { step: 0.015, max: 0.08, chance: 0.35 },
 };
-// ?sanddig=1 (owner: sand the easiest ground to dent, dry or wet; the others as they are): every
-// pass digs, deeper than thick mud's; dry sand gets wear cells; churned gravel leaves dirt
-const SAND_DIG = { step: 0.04, max: 0.16, chance: 1 };
+// ?sanddig=1 (owner: sand the easiest ground to dent, dry or wet, with a deep floor so bumps wear
+// down; mud and thick mud dent dry too, slower than wet; gravel as it was): sand digs every pass,
+// faster than thick mud; dry sand and thick mud get wear cells; churned gravel leaves dirt
+const SAND_DIG = { step: 0.04, max: 0.45, chance: 1 };
+const DIG_DRY = new Set(['sand', 'thickMud']), DRY_MUD_DIG = 0.5;
 let sandDig = false;
 /** ?sanddig=1: sand dents fastest, dry too; a churned puddle on gravel leaves dirt. */
 export function setSandDig(isOn: boolean): void { sandDig = isOn; }
