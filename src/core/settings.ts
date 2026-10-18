@@ -29,6 +29,8 @@ export interface Settings {
   grassGrip: boolean;            // grippier dry grass (surfaces.ts); ?grassgrip=0 = the old grip
   rain: number | null;           // ?rain=0.6: the track this wet, 0-1, and raining (weather test)
   night: number | null;          // ?night=0.8: this dark, 0-1 (lighting test, world/daylight.ts)
+  lamps: boolean;                // ?lamps=1: street lights / pylons as solid lamps (world/lamps.ts)
+  fieldLights: boolean;          // AI / traffic headlights by the light level; =0: as the player's
   weather: boolean;              // weather in the event setup (season, changes); ?weather=0 off
   slideWear: boolean;            // sliding / crashing wheels wear the ground twice; =0 off
   tyreWear: boolean;             // tyres wear, puncture; the garage fits new sets; =0 off
@@ -106,7 +108,8 @@ function nightLevel(params: URLSearchParams): number | null {
 // and the HUD units too (owner: "all pass"; =0 off); one look too (=0 off); tyre cooling and the
 // cover look too (owner: pass; =0 off)
 function weatherSettings(params: URLSearchParams) {
-  return { rain: rainLevel(params), night: nightLevel(params),
+  return { rain: rainLevel(params), night: nightLevel(params), lamps: params.get('lamps') === '1',
+    fieldLights: params.get('fieldlights') !== '0',
     weather: params.get('weather') !== '0',
     slideWear: params.get('slidewear') !== '0', tyreWear: params.get('tyrewear') !== '0',
     tyreFeel: params.get('tyrefeel') !== '0',

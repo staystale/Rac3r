@@ -18,14 +18,15 @@ export const TEST_LIST = [
   // superseded by the cover field; zoomswitch, mudfreeze, sanddig, wintercold, graveldig approved
   // 2026-10-18; tyrewear, wintertweaks passed 2026-10-18;
   // coldsurface, wearchance, markfade, hudunits, onelook, tyrecool, coverlook approved
-  // 2026-10-18)
+  // 2026-10-18; night (cost test) passed 2026-10-18)
   {
-    id: 'night',
+    id: 'lamps',
     added: '2026-10-18',
-    name: 'Night: the cost test (dark layer, headlight beams, floodlight pools)',
-    where: 'Plain link + &night=0.8 (any level; Castle Cum autopilot for the recording)',
-    try: 'Race, LIGHTS on and off. The AI / traffic run lights by the dark, not by your button;'
-      + ' Stock Car / Grass Track pylons light a pool. Record: held frames vs the plain link.',
-    wrong: 'More held frames or lag than the plain link, HUD darkened, light off its car.',
+    name: 'Street lights and floodlights: solid lamps, on from dusk',
+    where: 'Plain link + &lamps=1&night=0.8 (Castle Cum start straight; Stock Car pylons);'
+      + ' &lamps=1 alone for daytime',
+    try: 'At night: a pool below each head; by day: lamps off. Drive into a post or a pylon base:'
+      + ' it stops you like a wall (no knock-downs yet).',
+    wrong: 'Lamps lit by day, a post you drive through, a pool off its lamp, lamps on the track.',
   },
 ];

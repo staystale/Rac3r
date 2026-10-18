@@ -18,7 +18,8 @@ import {
   TH_SUBTRACK, TH_ZONES, TH_BUMPS, TH_PAINT, TH_PROPS, TH_CONES, TH_STAND, TH_PIT, TH_GAR,
   TH_LANES,
 } from "./thruston.ts";
-import { CC_SUBTRACK, CC_ZONES, CC_BUMPS, CC_PAINT, CC_PROPS, CC_LANES } from "./castle-cum.ts";
+import { CC_SUBTRACK, CC_ZONES, CC_BUMPS, CC_PAINT, CC_PROPS, CC_LANES, CC_LAMPS,
+} from "./castle-cum.ts";
 import {
   SH_SUBTRACK, SH_BUMPS, SH_START, SH_JOKER, SH_PADDOCK, SH_JOKER_RULE, SH_PROPS, SH_ARMCO,
 } from "./slidden-hill.ts";
@@ -194,6 +195,7 @@ export const LEVELS: Level[] = [
     paint: CC_PAINT,
     boards: [],
     props: CC_PROPS,
+    lamps: CC_LAMPS,
     seams: false,
     cones: [
       ...CC_TYREWALL,

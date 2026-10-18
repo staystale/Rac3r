@@ -1,6 +1,7 @@
 // The pit-lane buildings and trackside structures: garage rows, grandstand, official box,
 // gantry, pit wall and pylon.
 import { LEVEL } from '../../world/state.ts';
+import { lampsEnabled, lampsLit } from '../../world/lamps.ts';
 import type { Point, Prop } from '../../world/types.ts';
 import type { PropCtx } from './types.ts';
 
@@ -364,15 +365,11 @@ export function drawPitWall(propCtx: PropCtx, prop: Prop, ppm: number) {
 }
 
 /**
- * Draws the pylon prop (pylon).
- * @param propCtx the view and painter helpers
- * @param prop the prop
+ * The pylon's warm pool of light on the ground around it.
+ * @param view the canvas view
  * @param ppm pixels per metre
  */
-export function drawPylon(propCtx: PropCtx, prop: Prop, ppm: number) {
-  const { view, roundRect } = propCtx;
-  // High-output halogen floodlight pylon
-  // Warm circular ground illumination pool on the deck
+function drawPylonPool(view: PropCtx['view'], ppm: number) {
   const grad = view.ctx.createRadialGradient(0, 0, 1 * ppm, 0, 0, 18 * ppm);
   grad.addColorStop(0, 'rgba(255, 248, 220, 0.16)');
   grad.addColorStop(0.5, 'rgba(255, 244, 200, 0.08)');
@@ -381,7 +378,19 @@ export function drawPylon(propCtx: PropCtx, prop: Prop, ppm: number) {
   view.ctx.beginPath();
   view.ctx.arc(0, 0, 18 * ppm, 0, Math.PI * 2);
   view.ctx.fill();
+}
 
+/**
+ * Draws the pylon prop (pylon).
+ * @param propCtx the view and painter helpers
+ * @param prop the prop
+ * @param ppm pixels per metre
+ */
+export function drawPylon(propCtx: PropCtx, prop: Prop, ppm: number) {
+  const { view, roundRect } = propCtx;
+  // High-output halogen floodlight pylon. As a lamp (?lamps=1) it is lit only from dusk.
+  const isLit = !lampsEnabled() || lampsLit();
+  if (isLit) drawPylonPool(view, ppm);
   // Tower shadow
   view.ctx.fillStyle = 'rgba(10,12,16,0.38)';
   view.ctx.beginPath();
@@ -403,7 +412,7 @@ export function drawPylon(propCtx: PropCtx, prop: Prop, ppm: number) {
     view.ctx.fillStyle = '#e2e8f0';
     roundRect(view.ctx, headX * ppm, headY * ppm, 0.55 * ppm, 0.45 * ppm, 1.5);
     view.ctx.fill();
-    view.ctx.fillStyle = '#fffbeb';
+    view.ctx.fillStyle = isLit ? '#fffbeb' : '#aeb5bd';
     view.ctx.beginPath();
     view.ctx.arc((headX + 0.27) * ppm, (headY + 0.22) * ppm, 0.14 * ppm, 0, Math.PI * 2);
     view.ctx.fill();

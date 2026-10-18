@@ -233,6 +233,15 @@ export const CC_PROPS: Prop[] = [
 ].filter((prop) => prop.kind === 'gantry' || prop.kind === 'footbridge'
   || prop.kind === 'sculpture' || prop.kind === 'tower' || prop.kind === 'truck'
   || prop.kind === 'block' || CC_KIT.clear(prop.x, prop.y, prop.kind === 'tree' ? 9 : 3));
+// STREET LIGHTS (?lamps=1) along the start straight: the grandstand side 9 m out and behind the
+// pit lane 20 m out, ~32 m apart, each arm reaching out over the track; clear of the gantry (3)
+// and the footbridge (1195) legs
+export const CC_LAMPS: Prop[] = [
+  ...[1215, 1247, 1279, 1311, 20, 52, 84]
+    .map((dist) => CC_KIT.prop(dist, 9, { kind: 'streetlight', rot: -Math.PI / 2 })),
+  ...[1231, 1263, 1295, 1327, 36, 68]
+    .map((dist) => CC_KIT.prop(dist, -20, { kind: 'streetlight', rot: Math.PI / 2 })),
+];
 export const CC_TYREWALL = CC_ARMCO.flatMap(([from, end]) => [[-14.0, 0], [-15.0, 0.475]]
   .flatMap(([off, shift]) => alongTrack(CC_SUBTRACK, from + shift, end, off, 0.95)
     .map(([x, y]) => ({ x, y, kind: 'tyrestack' }))));

@@ -5,6 +5,7 @@ import type { Prop } from '../world/types.ts';
 import type { Cam, View } from './types.ts';
 import type { PropCtx, PropDrawer, PropsHelpers } from './props/types.ts';
 import { drawPropsFence, drawPropsBarriers } from './props/fence.ts';
+import { drawStreetLights } from './props/lamps.ts';
 import { drawBridge, drawFootbridge } from './props/bridges.ts';
 import {
   drawGarageRow,
@@ -103,8 +104,10 @@ function propVisible(view: View, prop: Prop, screenX: number, screenY: number, p
  */
 function drawPropList(propCtx: PropCtx, overhead = false) {
   const { view, PPMz, toScreenX, toScreenY, drawSlip } = propCtx;
-  if (!PROPS || !PROPS.length) return;
   const ppm = PPMz();
+  // the street lights' heads hang above the cars (?lamps=1)
+  if (overhead) drawStreetLights(propCtx, ppm);
+  if (!PROPS || !PROPS.length) return;
   for (const prop of PROPS) {
     if (OVERHEAD.has(prop.kind) !== overhead) continue;
     if (prop.kind === 'garagerow') {

@@ -1,6 +1,7 @@
 // barriers.ts - the BARRIERS section (barriers, solid props, clamps). Moved verbatim out of
 // lab.js.
 import { LEVEL } from "./state.ts";
+import { activeLamps } from "./lamps.ts";
 import type {
   Barrier, BarrierKind, BarrierSeg, CarBody, Point, Prop, Solid, Subtrack,
 } from "./types.ts";
@@ -258,20 +259,29 @@ function satAgainstSolid(
   return { best, pushX, pushY };
 }
 export function solidClamp(car: CarBody): void {
-  const list = LEVEL.solids;
-  if (!list || !list.length) return;
-  const spec = car.spec, halfLen = spec.len * 0.48, halfWid = spec.wid * 0.48,
-      carRadius = Math.hypot(halfLen, halfWid);
+  const list = LEVEL.solids, lamps = activeLamps();
+  if ((!list || !list.length) && !lamps.length) return;
+  const spec = car.spec, halfLen = spec.len * 0.48, halfWid = spec.wid * 0.48;
+  if (list) for (const solid of list) clampToSolid(car, solid, halfLen, halfWid);
+  // the lamp posts (?lamps=1)
+  for (const lamp of lamps) clampToSolid(car, lamp.solid, halfLen, halfWid);
+}
+/**
+ * Push the car out of one solid box and bounce it, when they overlap.
+ * @param car the car body
+ * @param solid the solid box
+ * @param halfLen the car's half length for clamping, m
+ * @param halfWid the car's half width for clamping, m
+ */
+function clampToSolid(car: CarBody, solid: Solid, halfLen: number, halfWid: number): void {
+  const dx = car.x - solid.x, dy = car.y - solid.y;
+  if (dx * dx + dy * dy > (Math.hypot(halfLen, halfWid) + solid.r!) ** 2) return;
   const cosHead = Math.cos(car.heading), sinHead = Math.sin(car.heading);
-  for (const solid of list) {
-    const dx = car.x - solid.x, dy = car.y - solid.y;
-    if (dx * dx + dy * dy > (carRadius + solid.r!) ** 2) continue;
-    const { best, pushX, pushY } = satAgainstSolid(car, solid, halfLen, halfWid, cosHead, sinHead);
-    if (best <= 0) continue;
-    car.x += pushX * best;
-    car.y += pushY * best;
-    bounceOffNormal(car, pushX, pushY);
-  }
+  const { best, pushX, pushY } = satAgainstSolid(car, solid, halfLen, halfWid, cosHead, sinHead);
+  if (best <= 0) return;
+  car.x += pushX * best;
+  car.y += pushY * best;
+  bounceOffNormal(car, pushX, pushY);
 }
 /**
  * Push one car corner out of a barrier segment and bounce the car if it pokes in.

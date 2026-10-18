@@ -97,13 +97,21 @@ the git history. `docs/foreman-handover.md` is the last handover (10-18, cover f
   street lights; tracks a mix of flood and street lights; rally stages few or none off road
   (dirt, sand, woods); the highway by cost / what looks right.
   ORDER: L1 the COST TEST first (owner: "test if the lighting change is too intense"), then
-  features one at a time. [ ] L1 BUILT behind ?night=0..1 (?night alone 0.8; testlist night):
-  world/daylight.ts (the light level), render/light.ts (a light map the art buffer's size: the
-  dark filled, headlight beams 32 m and pylon pools 34 m rubbed out with pictures drawn once,
-  laid over the screen canvas once a frame, under the HUD); the AI / traffic lights follow the
-  dark (game/sim.js setFieldLights). Owner: a held-frame recording, Castle Cum autopilot, plain
-  vs &night=0.8 back to back. NEXT after the verdict: solid pylons + street-light props + time
-  of day (mockup first).
+  features one at a time. [x] L1 PASSED (owner 10-18, menu-race reports: plain 1.19 % slow,
+  ?night=0.8 0.58 %, our draw 1.0 ms both): ?night=0..1 stays the darkness test tool;
+  world/daylight.ts (the light level), render/light.ts (a light map the art buffer's size, beams
+  32 m and pools rubbed out with pictures drawn once, laid over the screen once a frame under the
+  HUD). DEFAULT since 10-18: the AI / traffic headlights follow the light level (off by day), not
+  the player's LIGHTS (?fieldlights=0 = the old rule).
+  [ ] L2 BUILT behind ?lamps=1 (testlist lamps): world/lamps.ts - street lights (level data
+  `lamps`: x, y the foot, rot the arm; arm 2.4 m, pool 15 m) and the `pylon` props (pool 34 m)
+  as lamps with a solid post (0.36 m / 1.6 m base; barriers.ts solidClamp clamps every car to
+  them), on from darkness 0.3; render/props/lamps.ts draws them (overhead layer), pylons pale and
+  without their pool when off. Castle Cum: 13 along the start straight (9 m and -20 m out).
+  Measured (_lampshots.mjs): a car at 40 km/h into a post / pylon base bounces off.
+  NEXT: L3 damage (nudge = wonk + flicker; hard hit = out by degrees; snapped = a fallen post,
+  mangled per hit, easier to drive over; pylons wonk + flicker, never fall), L4 placement on
+  every level by the owner's rules, L5 time of day (mockup first).
 - GRASS THROUGH THE CRACKS (owner: a and b, "like real life"): long-grass tufts in some
   broken-tarmac flecks, and scattered on broken-tarmac / concrete ground (blend.ts, own random
   stream: every existing patch unchanged). OWNER APPROVED 2026-10-16 (testlist entry deleted).

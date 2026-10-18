@@ -5,6 +5,7 @@
 // extra full-screen image a frame, which the owner's held-frame recording measures.
 import { PROPS } from '../world/state.ts';
 import { DAYLIGHT } from '../world/daylight.ts';
+import { activeLamps, lampsEnabled, lampsLit } from '../world/lamps.ts';
 import { lampLevel } from './cars.ts';
 import type { RenderCar, RenderGame, View } from './types.ts';
 
@@ -17,7 +18,7 @@ const BEAM_START_M = 1.8, BEAM_REACH_M = 32, BEAM_HALF_M = 9;
 const LAMP_SIDE_M = 0.7;
 // how much of the dark one headlight rubs out at its brightest (two overlap to ~0.84)
 const BEAM_STRENGTH = 0.6;
-// a floodlight pylon's pool radius, m
+// a floodlight pylon's pool radius without ?lamps=1, m (world/lamps.ts has the lamps' own)
 const POOL_PYLON_M = 34;
 // the side of the beam and pool pictures, px
 const PICTURE_PX = 128;
@@ -86,6 +87,49 @@ function paintPool(pictureCtx: CanvasRenderingContext2D) {
   pictureCtx.fillRect(0, 0, PICTURE_PX, PICTURE_PX);
 }
 
+/** What the pools are painted with: the light map, the pool picture and the art-px mapping. */
+interface PoolPainter {
+  lightCtx: CanvasRenderingContext2D;
+  pool: HTMLCanvasElement;
+  artX: (worldX: number) => number;
+  artY: (worldY: number) => number;
+  artPerMetre: () => number;
+  isNear: (x: number, y: number, reach: number) => boolean;
+}
+
+/**
+ * Rubs one pool of light out of the dark when it reaches the light map.
+ * @param painter the light map and the mapping
+ * @param x the pool's centre, art px
+ * @param y the pool's centre, art px
+ * @param size its diameter, art px
+ */
+function drawPool(painter: PoolPainter, x: number, y: number, size: number) {
+  if (!painter.isNear(x, y, size / 2)) return;
+  painter.lightCtx.drawImage(painter.pool, x - size / 2, y - size / 2, size, size);
+}
+
+/**
+ * The pools of light: below each lit lamp (?lamps=1), else around each floodlight pylon.
+ * @param painter the light map and the mapping
+ */
+function drawPools(painter: PoolPainter) {
+  const { lightCtx, artX, artY, artPerMetre } = painter;
+  if (lampsEnabled()) {
+    if (!lampsLit()) return;
+    for (const lamp of activeLamps()) {
+      lightCtx.globalAlpha = lamp.level;
+      drawPool(painter, artX(lamp.headX), artY(lamp.headY), 2 * lamp.poolM * artPerMetre());
+    }
+    lightCtx.globalAlpha = 1;
+    return;
+  }
+  const size = 2 * POOL_PYLON_M * artPerMetre();
+  for (const prop of PROPS) {
+    if (prop.kind === 'pylon') drawPool(painter, artX(prop.x), artY(prop.y), size);
+  }
+}
+
 /**
  * Builds the night layer.
  * @param parts what it reads from the renderer
@@ -104,16 +148,7 @@ export function createNight(parts: NightParts) {
   const isNear = (x: number, y: number, reach: number) =>
     x > -reach && y > -reach && x < canvas.width + reach && y < canvas.height + reach;
 
-  function drawPools() {
-    const size = 2 * POOL_PYLON_M * artPerMetre();
-    for (const prop of PROPS) {
-      if (prop.kind !== 'pylon') continue;
-      const x = artX(prop.x), y = artY(prop.y);
-      if (!isNear(x, y, size / 2)) continue;
-      lightCtx.drawImage(pool, x - size / 2, y - size / 2, size, size);
-    }
-  }
-
+  const pools: PoolPainter = { lightCtx, pool, artX, artY, artPerMetre, isNear };
   function drawBeams(car: RenderCar) {
     if (!car.lightsOn) return;
     const scale = artPerMetre(), cos = Math.cos(car.heading), sin = Math.sin(car.heading);
@@ -150,7 +185,7 @@ export function createNight(parts: NightParts) {
     lightCtx.fillStyle = darkFill;
     lightCtx.fillRect(0, 0, canvas.width, canvas.height);
     lightCtx.globalCompositeOperation = 'destination-out';
-    drawPools();
+    drawPools(pools);
     if (game.traffic) for (const car of game.traffic.cars) drawBeams(car);
     for (const rival of game.ai || []) drawBeams(rival.car);
     drawBeams(game.car);

@@ -5,16 +5,26 @@
 // darkness at and above which the AI and traffic run their headlights, as drivers do at dusk
 export const HEADLIGHTS_ON_DARKNESS = 0.35;
 
-/** The light level: darkness 0..1, and whether anything sets it (off: the old rules hold). */
-export const DAYLIGHT = { darkness: 0, active: false };
+/**
+ * The light level: darkness 0..1, and whether the field's headlights follow it (the default;
+ * ?fieldlights=0: they follow the player's LIGHTS button, the old rule).
+ */
+export const DAYLIGHT = { darkness: 0, fieldLights: true };
 
 /**
- * Sets how dark the world is and turns the light rules on.
+ * Sets how dark the world is.
  * @param level darkness, 0 (day) to 1 (the darkest night)
  */
 export function setDarkness(level: number): void {
   DAYLIGHT.darkness = Math.max(0, Math.min(1, level));
-  DAYLIGHT.active = true;
+}
+
+/**
+ * Whether the AI and traffic run headlights by the light level (true) or as the player does.
+ * @param byLight true: by the light level
+ */
+export function setFieldLights(byLight: boolean): void {
+  DAYLIGHT.fieldLights = byLight;
 }
 
 /**

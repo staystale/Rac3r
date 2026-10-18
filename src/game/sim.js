@@ -139,7 +139,7 @@ export function stepCarSignals(inp, wallDt) {
       if (player.indT > 8) player.indicator = 0;
     }
   }
-  setFieldLights();
+  updateFieldHeadlights();
   if (game.car.roll && game.car.roll.phase !== 'rolling' && game.car.roll.phase !== 'none'
     && shared.mode === 'session')
     game.notice = { text: game.car.roll.phase === 'roof' ? 'ON YOUR ROOF — RESET'
@@ -147,13 +147,14 @@ export function stepCarSignals(inp, wallDt) {
 }
 
 /**
- * The field's headlights: by the light level when one is set (?night=; the player's LIGHTS button
- * is their own), otherwise the AI runs lights when the player does.
+ * The field's headlights: by the light level (the player's LIGHTS button is their own);
+ * ?fieldlights=0: the AI runs lights when the player does (the old rule).
  */
-function setFieldLights() {
-  const fieldLights = DAYLIGHT.active ? headlightsWanted() : !!game.car.lightsOn;
+function updateFieldHeadlights() {
+  const byLight = DAYLIGHT.fieldLights;
+  const fieldLights = byLight ? headlightsWanted() : !!game.car.lightsOn;
   for (const entry of game.ai) entry.car.lightsOn = fieldLights;
-  if (DAYLIGHT.active) for (const car of game.traffic.cars) car.lightsOn = fieldLights;
+  if (byLight) for (const car of game.traffic.cars) car.lightsOn = fieldLights;
 }
 
 /**

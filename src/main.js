@@ -46,7 +46,8 @@ import {
   setColdSurface, setWetness, setRain, setMelt, setWinterCold,
 } from "./world/weather.ts";
 import { setWeatherPuddles } from "./world/puddles.ts";
-import { setDarkness } from "./world/daylight.ts";
+import { setDarkness, setFieldLights } from "./world/daylight.ts";
+import { setLamps } from "./world/lamps.ts";
 import { setTyreWear } from "./physics/tyrewear.ts";
 import { setTyreFeel } from "./physics/tyreheat.ts";
 import { LEVEL } from "./world/state.ts";
@@ -96,6 +97,8 @@ if (shared.settings.rain !== null) {
 }
 // ?night=0.8: this dark (lighting test: the night layer, the field's headlights)
 if (shared.settings.night !== null) setDarkness(shared.settings.night);
+setLamps(shared.settings.lamps);   // ?lamps=1: street lights and pylons as solid lamps
+setFieldLights(shared.settings.fieldLights);   // =0: the AI's headlights follow the player's
 shared.DEV = shared.settings.dev;
 
 shared.canvas = document.getElementById('c');

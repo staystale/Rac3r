@@ -397,6 +397,7 @@ export interface Level {
   zones: Zone[];
   bumps: Bump[];
   props?: Prop[];
+  lamps?: Prop[];   // street lights (world/lamps.ts, ?lamps=1): x, y the foot, rot the arm
   bounds?: Rect;
   floor?: number;
   subtrack?: Subtrack;
