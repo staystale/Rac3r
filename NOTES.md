@@ -116,6 +116,9 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
 - Canvas 2D drawing is deferred until read: a getImageData / upload cost in a profile is often the
   painting itself.
 - A CPU-backed texture pattern-filled onto a GPU-backed canvas is moved on every fill.
+- Changing the sharpness (dpr) moves every zoom where the GPU ground changes method (1 screen px
+  per tile px / texel): 1.5 put it at zoom ~0.5, mid speed, where a mipmap burst sat. Check
+  zoom thresholds after any dpr / PPM change (tools/scratch/_zoomswitch.mjs).
 - Track edges jiggled only while the zoom moved: tiles placed on whole art pixels under a GPU
   ground that zooms smoothly (up to 1.5 device px a frame). Measure motion against a control.
 - The tyre marks quiver: the marks layer (4.2 px/m) is stretched ~3.6x nearest into the art grid each

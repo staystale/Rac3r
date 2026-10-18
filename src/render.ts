@@ -640,12 +640,12 @@ function gpuHelpers(state: RenderState, gpu: GlGround | null) {
  * The GPU ground under the screen canvas, or null (?glground=0, or no WebGL2).
  *
  * @param canvas the screen canvas
- * @param settings the game settings (glGround, gpuPaint)
+ * @param settings the game settings (glGround, gpuPaint, startFix, zoomSwitch)
  * @returns the GPU ground, or null
  */
 function createGpuGround(canvas: HTMLCanvasElement, settings: Settings) {
   const gpu = settings.glGround
-    ? createGlGround(canvas, settings.gpuPaint, settings.startFix) : null;
+    ? createGlGround(canvas, settings.gpuPaint, settings.startFix, settings.zoomSwitch) : null;
   // ?onecanvas=1: the GPU canvas is never shown itself; blitArt draws it into the screen canvas
   if (gpu && settings.oneCanvas) gpu.canvas.style.display = 'none';
   return gpu;

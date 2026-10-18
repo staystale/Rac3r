@@ -17,6 +17,14 @@ export const TEST_LIST = [
   // wettrail approved 2026-10-18; coverfield, winter approved 2026-10-18 - labweather
   // superseded by the cover field)
   {
+    id: 'zoomswitch',
+    added: '2026-10-18',
+    name: 'Zoom: no whole-picture lurch as the view zooms out past ~100 km/h',
+    where: 'Plain link + &zoomswitch=1 (and the plain link, same level, back to back)',
+    try: 'Drive corners hard: brake in (zoom in), power out past ~100 km/h (zoom out); repeat.',
+    wrong: 'The picture still lurches as the zoom moves; the zoomed-out ground looks different.',
+  },
+  {
     id: 'tyrewear',
     added: '2026-10-18',
     name: 'Tyre wear: sets wear over races, worn = less grip, hot / bald / debris punctures',

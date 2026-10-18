@@ -52,6 +52,7 @@ export interface Settings {
   texWarm: boolean;              // long-grass textures painted while loading; =0 in the menu
   startFix: boolean;             // the race start without the hand-over jolt; =0 the old
   oneCanvas: boolean;            // ?onecanvas=1: the GPU ground drawn into the 2D canvas
+  zoomSwitch: boolean;           // ?zoomswitch=1: tile mipmaps at upload, no burst (glground.ts)
   maxDpr: number | null;         // ?dpr=2: the sharpness cap (default render.ts MAX_DPR 1.5)
   noShade: boolean;              // ?noshade: skip the hill shading (perf A/B)
   grassEnds: "round" | "square";   // ?grass=square: square grass blade ends (cheaper; A/B)
@@ -141,8 +142,7 @@ export function readSettings(search: string): Settings {
     // default since 2026-10-16 (owner: "the change seems to have worked"): the cars turned and
     // scaled at screen resolution
     sharpCars: params.get('sharpcars') !== '0',
-    // default since 2026-10-17 (owner: "both fixes tested and working"): the skid marks at
-    // screen resolution
+    // default since 2026-10-17 (owner approved): the skid marks at screen resolution
     sharpMarks: params.get('sharpmarks') !== '0',
     // default since 2026-10-17 (owner approved): the joker lane on the minimap; RESET puts the car
     // back on the joker lane where it came off
@@ -168,6 +168,7 @@ export function readSettings(search: string): Settings {
     texWarm: params.get('texwarm') !== '0',
     startFix: params.get('startfix') !== '0',
     oneCanvas: params.get('onecanvas') === '1',
+    zoomSwitch: params.get('zoomswitch') === '1',
     maxDpr: maxDpr(params),
     noShade: params.has('noshade'),
     grassEnds: params.get('grass') === 'square' ? 'square' : 'round',
