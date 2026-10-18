@@ -557,6 +557,16 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
       every sand cell: _sandcover on lab / sandbox / rough-patch / bowling-alley). Now: sand floor
       45 cm (dry 10 passes 23.6 cm mean); owner "change mud to fit": mud and thick mud dent DRY at
       half the wet rate (dry thick mud had no cells: 0); wet as before; gravel as before.
+- [ ] WINTER COLD behind ?wintercold=1, owner phone test (testlist wintercold). Owner 10-18: a dry
+      cold winter race never froze water; test-map ice should start as ice and degrade; ice melted
+      too fast against snow. MEASURED (_wintertemp): dry winter track 9-16 C (air 1-8 + sun 8),
+      0/200 starts below 0; a level's ice half gone in 8 s at 12 C, snow 7 min. Owner chose: ice
+      at half snow's rate (all ice: areas, frozen puddles, tyre ice, frozen mud, scenery ice);
+      frosty days: winter air -4..7, winter sun x0.25 (not hot days) -> track -1.9..9 C, 36/200
+      below 0 (18 %, less than the "about a third" first said - offer colder if wanted).
+      simhash SAME with switches off; refs re-saved on the sanddig default (rac3r-wt tools/).
+- [ ] GRAVEL DIG (owner 10-18, next): gravel dents the terrain like sand but takes more passes;
+      sand and gravel both dent faster when wet.
 - NEXT ORDER (owner 10-18): mud freeze test -> 1 CHECK sand / gravel (owner: sand and gravel with
   no puddle do NOT change surface; driving may dent the terrain / make dips; today a churned
   puddle makes sand gravel (right) and gravel MUD (owner earlier: gravel -> dirt)) -> 4 CLEAN-UP

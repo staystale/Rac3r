@@ -21,7 +21,9 @@
 // (owner: variety) may follow earlier rain - some sites already part full - or lying snow; dealt
 // from the event's seeded stream (weather.ts weatherRandom), so a restart deals the same.
 import { LEVEL } from "./state.ts";
-import { WEATHER, meltOn, weatherRandom, weatherRuns } from "./weather.ts";
+import {
+  ICE_MELT_SHARE, WEATHER, iceMeltsSlow, meltOn, weatherRandom, weatherRuns,
+} from "./weather.ts";
 import { coverFieldOn, mudFrostOn } from "./coverfield.ts";
 import { heightAt } from "./terrain.ts";
 import { FX0, FX1, FY0, FY1 } from "./bounds.ts";
@@ -78,6 +80,11 @@ const MUD_FREEZE_BELOW_C = -1, MUD_FREEZE_PER_S = 1 / 90, MUD_THAW_PER_S = 1 / 6
 // burst.
 const WATER_THAW_PER_S_PER_C = 1 / 480, MUD_THAW_PER_S_PER_C = 1 / 240;
 const CELL_SNOW_MELT_PER_S_PER_C = 1 / 1500, CELL_ICE_MELT_PER_S_PER_C = 1 / 900;
+// scenery ice per C, a second (?wintercold=1: as tyre-made ice)
+const sceneryThawPerC = () => (iceMeltsSlow() ? cellIceMeltPerC() : WATER_THAW_PER_S_PER_C);
+// tyre-made ice per C, a second (?wintercold=1: ICE_MELT_SHARE of snow's)
+const cellIceMeltPerC = () => (iceMeltsSlow()
+  ? CELL_SNOW_MELT_PER_S_PER_C * ICE_MELT_SHARE : CELL_ICE_MELT_PER_S_PER_C);
 // RAIN melts snow faster (x 1 + RAIN_MELT at rain 1); the tyres' water in a cell FREEZES to ice
 // below freezing (per C colder, a chance a second: black ice)
 const RAIN_MELT = 2, CELL_WATER_FREEZE_PER_S_PER_C = 1 / 120;
@@ -401,7 +408,7 @@ const meltingPatch = (cover: Cover) => meltOn() && !!LEVEL.subtrack && !cover.wa
  * @returns true when its look changed
  */
 function stepPatch(cover: Cover, trackC: number, seconds: number): boolean {
-  const perC = cover.cover === 'ice' ? CELL_ICE_MELT_PER_S_PER_C : CELL_SNOW_MELT_PER_S_PER_C;
+  const perC = cover.cover === 'ice' ? cellIceMeltPerC() : CELL_SNOW_MELT_PER_S_PER_C;
   const melts = cover._melt !== 'water' && cover._melt !== 'gone' && trackC > THAW_ABOVE_C
     && weatherRandom() < perC * (trackC - THAW_ABOVE_C) * rainMelt() * seconds;
   const refreezes = cover._melt === 'water' && trackC < WATER_FREEZE_BELOW_C
@@ -443,7 +450,7 @@ function stepSceneryWater(seconds: number): Cover[] {
     const freeze = !cover._frozen && trackC < WATER_FREEZE_BELOW_C
       && weatherRandom() < WATER_FREEZE_PER_S * seconds;
     const thaw = cover._frozen && trackC > THAW_ABOVE_C
-      && weatherRandom() < thawChance(WATER_THAW_PER_S, WATER_THAW_PER_S_PER_C, trackC) * seconds;
+      && weatherRandom() < thawChance(WATER_THAW_PER_S, sceneryThawPerC(), trackC) * seconds;
     if (freeze || thaw) {
       cover._frozen = !cover._frozen;
       changed.push(cover);
@@ -507,7 +514,7 @@ function meltCell(cell: WearCell, trackC: number, seconds: number): boolean {
   if (!frozen || cell.frozeMud) return false;
   const laid = layersAt((cell.cx + 0.5) * WEAR_CELL, (cell.cy + 0.5) * WEAR_CELL).cover;
   if (laid === kind) return false;
-  const perC = kind === 'ice' ? CELL_ICE_MELT_PER_S_PER_C : CELL_SNOW_MELT_PER_S_PER_C;
+  const perC = kind === 'ice' ? cellIceMeltPerC() : CELL_SNOW_MELT_PER_S_PER_C;
   if (weatherRandom() >= perC * (trackC - THAW_ABOVE_C) * rainMelt() * seconds) return false;
   cell.cover = 'wet';
   cell.standing = true;

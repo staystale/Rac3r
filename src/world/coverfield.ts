@@ -20,7 +20,9 @@
 // open snow ground's grass, or the surface's own `under`). Scenery water (Cover.water: lakes,
 // streams) stays as it is. Tyres change single cells (wear.ts): those follow their own rules and
 // the field again when the weather moves (syncFieldCells).
-import { WEATHER, weatherRandom, weatherRuns } from "./weather.ts";
+import {
+  ICE_MELT_SHARE, WEATHER, iceMeltsSlow, weatherRandom, weatherRuns,
+} from "./weather.ts";
 import { wearMap, wearDirty, WEAR_CELL } from "./wear.ts";
 import type { Cover, Layers, Surface, WearCell } from "./types.ts";
 
@@ -294,6 +296,10 @@ export function fieldLayers(zoneSurface: Surface, isBase: boolean, levelCover: C
   return { base, cover, standing: cover === 'wet', fixed: false, area };
 }
 
+/** Ice (and frozen mud) thaws per C above THAW_C, a second: ?wintercold=1 slower than snow. */
+const iceThawPerC = () =>
+  (iceMeltsSlow() ? SNOW_MELT_PER_S_PER_C * ICE_MELT_SHARE : THAW_PER_S_PER_C);
+
 /**
  * Moves one set of levels by the weather over a step: rain fills, a dry spell dries, snow settles
  * and melts (packed snow slower), water freezes and ice thaws.
@@ -319,7 +325,7 @@ function stepLevels(levels: Levels, dt: number): void {
     water -= frozen;
     ice += frozen;
   } else if (trackC > THAW_C && ice > 0) {
-    const thawed = Math.min(ice, (trackC - THAW_C) * THAW_PER_S_PER_C * dt);
+    const thawed = Math.min(ice, (trackC - THAW_C) * iceThawPerC() * dt);
     ice -= thawed;
     water += thawed;
   }
@@ -356,7 +362,10 @@ function stepFrost(dt: number): void {
   const trackC = WEATHER.trackC;
   let change = 0;
   if (trackC < MUD_FREEZE_C) change = (MUD_FREEZE_C - trackC + 1) * FROST_PER_S_PER_C * dt;
-  else if (trackC > THAW_C) change = -(trackC - THAW_C) * FROST_THAW_PER_S_PER_C * dt;
+  else if (trackC > THAW_C) {
+    const perC = iceMeltsSlow() ? iceThawPerC() : FROST_THAW_PER_S_PER_C;
+    change = -(trackC - THAW_C) * perC * dt;
+  }
   if (change === 0) return;
   FROST.mud = Math.max(0, Math.min(LEVEL_MAX, FROST.mud + change));
   FROST.thickMud = Math.max(0, Math.min(LEVEL_MAX, FROST.thickMud + change * THICK_FROST_RATE));

@@ -75,6 +75,32 @@ const KINDS: Record<WeatherKind, { rain: number; snow: number; airC: number; sun
   superhot: { rain: 0, snow: 0, airC: 12, sunC: 20 },
 };
 
+// ?wintercold=1 (owner: a dry winter day can freeze; ice melts slower than snow): winter air
+// WINTER_COLD_AIR_C (was 1-8: a dry winter track ran 9-16 C, never freezing), a low winter sun
+// warms the track WINTER_SUN of its usual (not on a hot day: hot whatever the season); every ice
+// melts at ICE_MELT_SHARE of snow's rate (a level's ice was half gone in 8 s at 12 C, snow in 7
+// min)
+const WINTER_COLD_AIR_C: [number, number] = [-4, 7], WINTER_SUN = 0.25;
+export const ICE_MELT_SHARE = 0.5;
+let winterCold = false;
+
+/**
+ * Colder winters and slower ice (?wintercold=1, at start-up).
+ * @param isOn true for the colder winter and slower ice
+ */
+export function setWinterCold(isOn: boolean): void { winterCold = isOn; }
+
+/** Whether ice melts at ICE_MELT_SHARE of snow's rate (?wintercold=1). */
+export function iceMeltsSlow(): boolean { return winterCold; }
+
+/**
+ * A season's air temperature range (C).
+ * @param season 0 winter .. 3 autumn
+ * @returns [low, high]
+ */
+const airRange = (season: number): [number, number] =>
+  (winterCold && season === 0 ? WINTER_COLD_AIR_C : SEASONS[season].airC);
+
 // the least air temperature (C) of a hot and a very hot day
 const HOT_AIR_MIN_C: Partial<Record<WeatherKind, number>> = { hot: 24, superhot: 32 };
 
@@ -191,7 +217,8 @@ function aimAt(kind: WeatherKind): void {
   // snow needs freezing air; a hot day is hot whatever the season (chosen in winter too)
   RUN.targetAirC = kind === 'snow' ? Math.min(0, RUN.baseAirC + spec.airC)
     : Math.max(HOT_AIR_MIN_C[kind] ?? -50, RUN.baseAirC + spec.airC);
-  RUN.targetTrackC = RUN.targetAirC + spec.sunC;
+  const lowSun = winterCold && WEATHER.season === 0 && !HOT_AIR_MIN_C[kind];
+  RUN.targetTrackC = RUN.targetAirC + spec.sunC * (lowSun ? WINTER_SUN : 1);
 }
 
 /** The fixed kind a mode asks for, or null (SEASON: dealt by the season). */
@@ -220,7 +247,7 @@ export function startWeather(plan: WeatherPlan | null): void {
   RUN.random = lcg(Math.imul(plan.seed, 2654435761) >>> 0);
   RUN.random();
   WEATHER.season = plan.season;
-  const [lowC, highC] = SEASONS[plan.season].airC;
+  const [lowC, highC] = airRange(plan.season);
   RUN.baseAirC = lowC + (highC - lowC) * RUN.random();
   aimAt(fixedKind(plan.mode) || dealKind(plan.season));
   WEATHER.rain = RUN.targetRain;
@@ -286,7 +313,7 @@ export function stepWeather(dt: number): { text: string; good: boolean } | null 
 
 /** A one-line forecast of a season, for the event setup. */
 export function seasonForecast(season: number): string {
-  const { chance, airC } = SEASONS[season];
+  const { chance } = SEASONS[season], airC = airRange(season);
   const pct = (kinds: WeatherKind[]) =>
     Math.round(100 * kinds.reduce((sum, kind) => sum + chance[kind], 0));
   const parts = [`DRY ${pct(['dry'])}%`, `RAIN ${pct(['rain', 'heavy'])}%`];
