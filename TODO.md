@@ -139,6 +139,15 @@ the git history. `docs/foreman-handover.md` is the last handover (10-18, cover f
   setup: TIME OF DAY - LIVE or START HOUR (same day). The race behind the menu shows the global
   time and its season's weather (owner), its demo car runs lights by the dark. ?night= still
   overrides with a fixed dark. Measured: tools/scratch/_skycurve.mjs, _dayshots.mjs, _menusky.mjs.
+  [x] FIXED 10-18 (owner: "edges still dance"): the light map was the art buffer's size, laid at
+  the sub-pixel shift: an undarkened strip along one screen edge jumped side to side; it now
+  reaches 2 art px past every edge (_nightedge.mjs: 77 -> 0 short edges in 40 frames).
+  PHONE 10-18 17:50Z (owner, Castle Cum, ?daytime=1&lamps=1): 0.08 % slow, draw 2 ms - free.
+  [ ] L3 BUILT (world/lampdamage.ts): measured (_lamphits.mjs) nudge 14 km/h lean 7 deg, lit,
+  flickers; hard 32 km/h lean 25 deg, light 0.73; 61 km/h snaps (car goes on, loses 35 % of its
+  closing speed); fallen post 1 -> 0.55 -> 0.30 -> 0.17 -> 0.09 (flat) over 4 passes; pylons
+  lean <= 0.1 rad, lose a head per hard hit, never fall; RESTART stands them up.
+  NEXT L4: lamps on every level by rules (owner: "test levels included, have fun / be logical").
   Not yet: a clock on the HUD / pause menu; outside TEST MODE the setup's SEASON slider should
   give way to the global season (the story) - ask the owner when the story mode comes.
 - MUD + GRASS (owner 10-18, plan approved "sounds good"; build after the lighting fixes):

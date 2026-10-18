@@ -259,7 +259,8 @@ function drawPools(painter: PoolPainter) {
   if (lampsEnabled()) {
     if (!lampsLit()) return;
     for (const lamp of activeLamps()) {
-      lightCtx.globalAlpha = lamp.level;
+      if (lamp.shown <= 0) continue;
+      lightCtx.globalAlpha = lamp.shown;
       drawPool(painter, artX(lamp.headX), artY(lamp.headY), 2 * lamp.poolM * artPerMetre());
     }
     lightCtx.globalAlpha = 1;

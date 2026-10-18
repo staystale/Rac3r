@@ -7,6 +7,7 @@ import { repair, resetBill } from '../damage.js';
 import { SPAWN, LEVEL } from "../world/state.ts";
 import { clearWear } from "../world/wear.ts";
 import { startWeather } from "../world/weather.ts";
+import { resetLamps } from "../world/lamps.ts";
 import { resetPuddles } from "../world/puddles.ts";
 import { resetCoverField } from "../world/coverfield.ts";
 import { resetRace, resetStage } from './rules.js';
@@ -286,6 +287,7 @@ export function doRestart() {
   // the event's weather from its start (before the cars' tyres take the track temperature and the
   // AI plans its speeds for the wetness)
   startWeather(shared.weatherPlan || null);
+  resetLamps();   // ?lamps=1: every lamp stands again, lit
   // a restart is the event from its start: the set as it was then (owner)
   if (game.car.tyreWearStart) game.car.tyreWear = [...game.car.tyreWearStart];
   if (LEVEL.endless) {

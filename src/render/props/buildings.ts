@@ -1,7 +1,7 @@
 // The pit-lane buildings and trackside structures: garage rows, grandstand, official box,
 // gantry, pit wall and pylon.
 import { LEVEL } from '../../world/state.ts';
-import { lampsEnabled, lampsLit } from '../../world/lamps.ts';
+import { lampOfProp, lampsEnabled, lampsLit } from '../../world/lamps.ts';
 import type { Point, Prop } from '../../world/types.ts';
 import type { PropCtx } from './types.ts';
 
@@ -388,8 +388,11 @@ function drawPylonPool(view: PropCtx['view'], ppm: number) {
  */
 export function drawPylon(propCtx: PropCtx, prop: Prop, ppm: number) {
   const { view, roundRect } = propCtx;
-  // High-output halogen floodlight pylon. As a lamp (?lamps=1) it is lit only from dusk.
-  const isLit = !lampsEnabled() || lampsLit();
+  // High-output halogen floodlight pylon. As a lamp (?lamps=1) it is lit only from dusk, leans
+  // when hit (its heads move with its top), flickers and loses a head per hard hit.
+  const lamp = lampOfProp(prop);
+  const isLit = !lampsEnabled() || (lampsLit() && !!lamp && lamp.shown > 0);
+  const headsLit = lamp ? Math.round(lamp.level * 4) : 4;
   if (isLit) drawPylonPool(view, ppm);
   // Tower shadow
   view.ctx.fillStyle = 'rgba(10,12,16,0.38)';
@@ -408,11 +411,17 @@ export function drawPylon(propCtx: PropCtx, prop: Prop, ppm: number) {
     [-0.6, 0.2],
     [0.2, 0.2],
   ];
-  for (const [headX, headY] of heads) {
+  // the top of a leaning pylon, in its own (turned) frame
+  const rot = prop.rot || 0, height = 18 * ppm;
+  const topX = lamp ? (lamp.leanX * Math.cos(rot) + lamp.leanY * Math.sin(rot)) * height : 0;
+  const topY = lamp ? (lamp.leanY * Math.cos(rot) - lamp.leanX * Math.sin(rot)) * height : 0;
+  if (topX || topY) view.ctx.translate(topX, topY);
+  for (const [index, [headX, headY]] of heads.entries()) {
+    const isHeadLit = isLit && index < headsLit;
     view.ctx.fillStyle = '#e2e8f0';
     roundRect(view.ctx, headX * ppm, headY * ppm, 0.55 * ppm, 0.45 * ppm, 1.5);
     view.ctx.fill();
-    view.ctx.fillStyle = isLit ? '#fffbeb' : '#aeb5bd';
+    view.ctx.fillStyle = isHeadLit ? '#fffbeb' : '#aeb5bd';
     view.ctx.beginPath();
     view.ctx.arc((headX + 0.27) * ppm, (headY + 0.22) * ppm, 0.14 * ppm, 0, Math.PI * 2);
     view.ctx.fill();

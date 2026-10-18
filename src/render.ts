@@ -38,6 +38,7 @@ import type { GroundPatch, PaintCamera } from "./render/glpaint.ts";
 import type { Cam, CamCar, RenderGame, TileBudget, View } from "./render/types.ts";
 import { createRain } from "./render/rain.ts";
 import { createNight } from "./render/light.ts";
+import { updateLampLight } from "./world/lamps.ts";
 import { wetTint } from "./render/glprogram.ts";
 import { WEATHER } from "./world/weather.ts";
 
@@ -349,6 +350,7 @@ function drawFrame(ctx: RenderCtx, game: RenderGame, wallDt: number, wallT: numb
   ctx.state.wallDt = wallDt;
   ctx.state.screenBegun = false;
   beginGpuGround(ctx, lock, game.car);
+  updateLampLight();   // ?lamps=1: this frame's brightness of each lamp (flicker)
   drawWorldLayers(ctx, game, lock, wallT);
   drawEffects(ctx, game, wallDt);
   if (ctx.state.sharpCars) drawSharpCarLayers(ctx, game, lock);

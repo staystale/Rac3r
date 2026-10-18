@@ -1,7 +1,8 @@
 // barriers.ts - the BARRIERS section (barriers, solid props, clamps). Moved verbatim out of
 // lab.js.
 import { LEVEL } from "./state.ts";
-import { activeLamps } from "./lamps.ts";
+import { activeLamps, type Lamp } from "./lamps.ts";
+import { driveOverPost, hitLamp } from "./lampdamage.ts";
 import type {
   Barrier, BarrierKind, BarrierSeg, CarBody, Point, Prop, Solid, Subtrack,
 } from "./types.ts";
@@ -263,8 +264,11 @@ export function solidClamp(car: CarBody): void {
   if ((!list || !list.length) && !lamps.length) return;
   const spec = car.spec, halfLen = spec.len * 0.48, halfWid = spec.wid * 0.48;
   if (list) for (const solid of list) clampToSolid(car, solid, halfLen, halfWid);
-  // the lamp posts (?lamps=1)
-  for (const lamp of lamps) clampToSolid(car, lamp.solid, halfLen, halfWid);
+  // the lamp posts (?lamps=1): a hit may lean, dim or snap them; a fallen post is driven over
+  for (const lamp of lamps) {
+    if (lamp.down) driveOverPost(car, lamp);
+    else clampToSolid(car, lamp.solid, halfLen, halfWid, lamp);
+  }
 }
 /**
  * Push the car out of one solid box and bounce it, when they overlap.
@@ -272,13 +276,17 @@ export function solidClamp(car: CarBody): void {
  * @param solid the solid box
  * @param halfLen the car's half length for clamping, m
  * @param halfWid the car's half width for clamping, m
+ * @param lamp the lamp the solid is a post of (?lamps=1), if it is one
  */
-function clampToSolid(car: CarBody, solid: Solid, halfLen: number, halfWid: number): void {
+function clampToSolid(car: CarBody, solid: Solid, halfLen: number, halfWid: number,
+    lamp: Lamp | null = null): void {
   const dx = car.x - solid.x, dy = car.y - solid.y;
   if (dx * dx + dy * dy > (Math.hypot(halfLen, halfWid) + solid.r!) ** 2) return;
   const cosHead = Math.cos(car.heading), sinHead = Math.sin(car.heading);
   const { best, pushX, pushY } = satAgainstSolid(car, solid, halfLen, halfWid, cosHead, sinHead);
   if (best <= 0) return;
+  // a lamp post: the hit leans / dims it, or snaps it and the car goes through (no bounce)
+  if (lamp && hitLamp(lamp, car, -(car.vx * pushX + car.vy * pushY), pushX, pushY)) return;
   car.x += pushX * best;
   car.y += pushY * best;
   bounceOffNormal(car, pushX, pushY);

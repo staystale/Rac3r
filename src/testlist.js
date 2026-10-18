@@ -27,7 +27,8 @@ export const TEST_LIST = [
       + ' &lamps=1 alone for daytime',
     try: 'At night: a pool below each head, one beam per headlight, indicators glow amber; by day'
       + ' lamps off. Drive into a post or a pylon base:'
-      + ' it stops you like a wall (no knock-downs yet).',
+      + ' a nudge wonks it and it flickers; a hard hit dims it; ~50 km/h snaps it; drive over the'
+      + ' fallen post: it gets flatter each pass. RESTART stands them up.',
     wrong: 'Lamps lit by day, a post you drive through, a pool off its lamp, lamps on the track.',
   },
   {
