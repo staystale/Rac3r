@@ -51,7 +51,10 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   Sand dents most easily (dry too, 45 cm floor), dry mud / thick mud dent at half the wet rate,
   a churned gravel puddle leaves dirt: default since 10-18 (`?sanddig=0`). Gravel dents like
   sand but slower, both faster wet (`?graveldig=0`); frosty dry winters and ice melting at half
-  snow's rate (`?wintercold=0`): default since 10-18.
+  snow's rate (`?wintercold=0`): default since 10-18. One cold-surface order (water over snow
+  over ice; snow never on water; driven ice breaks to water; `?coldsurface=0`), dry dirt -> mud
+  1 in 4 and damp sand / gravel wear (`?wearchance=0`), tyre marks fading block by block
+  (`?markfade=0`), the track temp gauge and km/h-mph / C-F rows (`?hudunits=0`): default 10-18.
   Pre-turned pixel art (RotSprite)
   was the alternative, not chosen.
 - Not wanted / undone: the highway rebuild (cancelled 10-15), a fade at zoom steps, tiles tracing

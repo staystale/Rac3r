@@ -570,7 +570,9 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
       dry too, 2 cm a pass, floor 30 cm; wet sand / gravel x1.5 (dry sand stays 4 cm). _sanddig
       (1 / 3 / 10 passes, cm): gravel dry 0.8 / 2.5 / 8.9 (was ~0), wet 1.2 / 4.1 / 12.7; sand
       wet 3.5 / 10.6 / 26.6 (dry 2.4 / 7.1 / 23.6); mud as before.
-- [ ] APPROVED PLAN (owner 10-18 "approved all"), in order, each behind its own switch:
+- [x] APPROVED PLAN A-D: all the DEFAULT since 2026-10-18 (owner: "all pass"; =0 off:
+      ?coldsurface, ?wearchance, ?markfade, ?hudunits). Snow's look by depth (opacity) kept
+      (owner: "opacity ... is ok"). Was, in order:
       A ONE COLD-SURFACE SYSTEM: driven ice gets a chance to turn to water (small below 0 C, more
         per C above); rain melts the field's ice too (less than snow: snow x3, ice x2 in heavy
         rain); one layer order per square - snow on ice or bare ground, never on water (snow on

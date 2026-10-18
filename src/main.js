@@ -40,7 +40,9 @@ import { setGravelDig, setSandDig, setWearChance } from "./world/dig.ts";
 import { setPackedSnowWear, setWinterSnow } from "./world/snowwear.ts";
 import { setWetTrail } from "./wettrail.ts";
 import { setCoverField, setMudFrost } from "./world/coverfield.ts";
-import { setColdSurface, setWetness, setRain, setMelt, setWinterCold } from "./world/weather.ts";
+import {
+  setColdSurface, setWetness, setRain, setMelt, setWinterCold,
+} from "./world/weather.ts";
 import { setWeatherPuddles, setMorePuddles, setLabWeather } from "./world/puddles.ts";
 import { setTyreWear } from "./physics/tyrewear.ts";
 import { setTyreFeel } from "./physics/tyreheat.ts";

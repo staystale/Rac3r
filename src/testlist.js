@@ -16,40 +16,6 @@ export const TEST_LIST = [
   // weather, rain, slidewear approved 2026-10-18; morepuddles, tyrefeel, packedwear, onepuddle,
   // wettrail approved 2026-10-18; coverfield, winter approved 2026-10-18 - labweather
   // superseded by the cover field; zoomswitch, mudfreeze, sanddig, wintercold, graveldig approved
-  // 2026-10-18; tyrewear, wintertweaks passed 2026-10-18)
-  {
-    id: 'coldsurface',
-    added: '2026-10-18',
-    name: 'One cold-surface system: snow on ice / snow, never on water; ice wears to water',
-    where: 'Plain link + &coldsurface=1: TEST MODE, the Lab (ice / wet panels), SNOW then RAIN',
-    try: 'Snow on the ice and wet panels (snow settles on ice, melts into water); drive ice: it'
-      + ' breaks to water, more when warm; rain melts snow faster than ice.',
-    wrong: 'Snow on water, ice spreading onto dry ground in rain, ice never wearing when driven,'
-      + ' what you see not being what the tyre feels.',
-  },
-  {
-    id: 'hudunits',
-    added: '2026-10-18',
-    name: 'Track temp gauge; km/h-mph and C-F rows in the HUD list; ABS / TCS clear of the HUD',
-    where: 'Plain link + &hudunits=1: a race with weather; pause > HUD',
-    try: 'Gauge under the lap timer (portrait) / beside it (landscape); toggle SPEED and'
-      + ' TEMPERATURE in pause > HUD; tyre diagram on in landscape: ABS / TCS left of the pedals.',
-    wrong: 'The gauge in REAL / RICH by default, units not changing, anything overlapping.',
-  },
-  {
-    id: 'markfade',
-    added: '2026-10-18',
-    name: 'Tyre marks fade away after ~2-3 min, patch by patch',
-    where: 'Plain link + &markfade=1: any circuit; lay marks (slides, donuts) and keep driving',
-    try: 'Watch old marks thin out and vanish over a few minutes, some patches sooner than others.',
-    wrong: 'Marks that never go, marks vanishing at once, square patch edges that look wrong, lag.',
-  },
-  {
-    id: 'wearchance',
-    added: '2026-10-18',
-    name: 'Ground wear: dry dirt rarely turns to mud; damp sand -> gravel, damp gravel -> dirt',
-    where: 'Plain link + &wearchance=1: TEST MODE, a dirt / sand / gravel area, dry then rain',
-    try: 'Drive dry dirt (mostly stays dirt), then damp; drive damp sand and gravel a while.',
-    wrong: 'Dry dirt turning to mud as fast as before; dry sand / gravel changing surface.',
-  },
+  // 2026-10-18; tyrewear, wintertweaks passed 2026-10-18;
+  // coldsurface, wearchance, markfade, hudunits approved 2026-10-18)
 ];
