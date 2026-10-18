@@ -53,8 +53,13 @@ function makePicture(paint: (pictureCtx: CanvasRenderingContext2D) => void) {
   return canvas;
 }
 
+// the beam's soft sides: cones nested from the full spread inwards, each adding this much (a hard
+// cone edge stepped and crawled across the art pixels as the car turned)
+const BEAM_SPREADS = [1, 0.8, 0.6, 0.4], BEAM_LAYER_ALPHA = 0.25;
+
 /**
- * A headlight beam facing +x from the middle of the left edge: a cone, brightest near the lamp.
+ * A headlight beam facing +x from the middle of the left edge: a cone, brightest near the lamp
+ * and along its middle, fading to nothing at its sides and its end.
  * @param pictureCtx the picture's context
  */
 function paintBeam(pictureCtx: CanvasRenderingContext2D) {
@@ -64,13 +69,17 @@ function paintBeam(pictureCtx: CanvasRenderingContext2D) {
   glow.addColorStop(0.55, 'rgba(255,255,255,0.55)');
   glow.addColorStop(1, 'rgba(255,255,255,0)');
   pictureCtx.fillStyle = glow;
-  pictureCtx.beginPath();
-  pictureCtx.moveTo(0, mid - 3);
-  pictureCtx.lineTo(PICTURE_PX, 0);
-  pictureCtx.lineTo(PICTURE_PX, PICTURE_PX);
-  pictureCtx.lineTo(0, mid + 3);
-  pictureCtx.closePath();
-  pictureCtx.fill();
+  pictureCtx.globalAlpha = BEAM_LAYER_ALPHA;
+  for (const spread of BEAM_SPREADS) {
+    pictureCtx.beginPath();
+    pictureCtx.moveTo(0, mid - 3);
+    pictureCtx.lineTo(PICTURE_PX, mid - mid * spread);
+    pictureCtx.lineTo(PICTURE_PX, mid + mid * spread);
+    pictureCtx.lineTo(0, mid + 3);
+    pictureCtx.closePath();
+    pictureCtx.fill();
+  }
+  pictureCtx.globalAlpha = 1;
 }
 
 /**
@@ -198,7 +207,10 @@ export function createNight(parts: NightParts) {
     const { mainCtx, state } = parts;
     mainCtx.save();
     mainCtx.setTransform(1, 0, 0, 1, 0, 0);
-    mainCtx.imageSmoothingEnabled = false;
+    // light is smooth: scaled up with blending (nearest made every edge of a beam or pool a
+    // staircase that crawled as the car turned and the camera zoomed)
+    mainCtx.imageSmoothingEnabled = true;
+    mainCtx.imageSmoothingQuality = 'low';
     mainCtx.drawImage(canvas, lock.subX, lock.subY, canvas.width * state.blockPx,
       canvas.height * state.blockPx);
     mainCtx.restore();
