@@ -101,6 +101,18 @@ export function stepClock(dt: number, isRacing: boolean, cloud: number): void {
 }
 
 /**
+ * How much of the sun's heat reaches the ground now: 0 from sunset to sunrise, rising to 1 at
+ * solar noon (the event's time and its season's day length); 1 without the clock.
+ * @returns 0..1
+ */
+export function sunShareNow(): number {
+  if (!CLOCK.isOn) return 1;
+  const when = calendarAt(CLOCK.eventS), sun = sunTimes(when.yearFraction);
+  const share = (when.hour - sun.sunrise) / (sun.sunset - sun.sunrise);
+  return share <= 0 || share >= 1 ? 0 : Math.sin(Math.PI * share);
+}
+
+/**
  * The calendar at a moment: season, day in it, hour, moon.
  * @param timeS game seconds since the first day of the year
  * @returns the season (0 winter), the day in the season (0..6), the hour (0..24), the moon's

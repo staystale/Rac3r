@@ -43,7 +43,7 @@ import { setPackedSnowWear, setWinterSnow } from "./world/snowwear.ts";
 import { setWetTrail } from "./wettrail.ts";
 import { setMudFrost, setOneLook } from "./world/coverfield.ts";
 import {
-  setColdSurface, setWetness, setRain, setMelt, setWinterCold,
+  setColdSurface, setWetness, setRain, setMelt, setWinterCold, setSunTemp,
 } from "./world/weather.ts";
 import { setWeatherPuddles } from "./world/puddles.ts";
 import { setDarkness, setFieldLights } from "./world/daylight.ts";
@@ -102,6 +102,7 @@ setLamps(shared.settings.lamps);   // ?lamps=1: street lights and pylons as soli
 setFieldLights(shared.settings.fieldLights);   // =0: the AI's headlights follow the player's
 // ?daytime=1: the game clock drives the sky (?night= overrides it with a fixed dark); a new
 // player starts in today's season
+setSunTemp(shared.settings.sunTemp);   // ?suntemp=1: air and track follow the clock's sun
 startClock(shared.settings.daytime && shared.settings.night === null,
   Math.floor(((new Date().getMonth() + 1) % 12) / 3));
 shared.DEV = shared.settings.dev;

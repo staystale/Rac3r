@@ -14,6 +14,7 @@
 // a restart replays it). Rain soaks the track over about a minute (heavy) to a few (light); a dry
 // spell dries it by the track temperature (minutes in summer, a long time in winter).
 
+import { sunShareNow } from "./clock.ts";
 import { lcg } from "../core/random.ts";
 
 /** the steps wetness is read in: 0 = dry .. WET_BANDS = soaked */
@@ -128,6 +129,11 @@ const SKY_EASE = 1 / 15, TEMP_EASE = 1 / 60;
 // s between chances of a change of weather in SEASON mode, and the chance it stays the same
 const CHANGE_S: [number, number] = [70, 180];
 const STAY_CHANCE = 0.45;
+// SUN TEMPERATURE (?suntemp=1; owner: the track warms and cools with the light, so it cannot heat
+// up as it gets dark): the sun's heat on the track follows the clock's sun (clock.ts sunShareNow:
+// none at night, all of it at noon) and the air swings this much either side of its day's value,
+// C (night to midday); sampled every SUN_EVERY_S of sim time
+const AIR_DAY_SWING_C = 2.5, SUN_EVERY_S = 1;
 // a dry start this soon after rain (chance, and how wet it still is)
 const DRYING_START_CHANCE = 0.3, DRYING_START_WET: [number, number] = [0.2, 0.55];
 
@@ -175,7 +181,24 @@ const RUN = {
   targetSnow: 0,
   targetAirC: 18,
   targetTrackC: 18,
+  airAimC: 18,      // the weather's air, before the day's swing (?suntemp=1)
+  sunTrackC: 0,     // what a noon sun adds to the track in this weather, C
+  sinceSunS: 0,     // sim s since the sun was last sampled
 };
+let sunTemp = false;
+
+/**
+ * Turns the sun temperature on (?suntemp=1): air and track follow the clock's sun.
+ * @param isOn true for it
+ */
+export function setSunTemp(isOn: boolean): void { sunTemp = isOn; }
+
+/** Points the temperature targets at the weather and (?suntemp=1) the sun now. */
+function aimTemps(): void {
+  const share = sunTemp ? sunShareNow() : 1;
+  RUN.targetAirC = RUN.airAimC + (sunTemp ? AIR_DAY_SWING_C * (2 * share - 1) : 0);
+  RUN.targetTrackC = RUN.targetAirC + RUN.sunTrackC * share;
+}
 
 /**
  * Sets how wet the track is (and moves the band and epoch when the step changes).
@@ -228,10 +251,11 @@ function aimAt(kind: WeatherKind): void {
   RUN.targetRain = spec.rain;
   RUN.targetSnow = spec.snow;
   // snow needs freezing air; a hot day is hot whatever the season (chosen in winter too)
-  RUN.targetAirC = kind === 'snow' ? Math.min(0, RUN.baseAirC + spec.airC)
+  RUN.airAimC = kind === 'snow' ? Math.min(0, RUN.baseAirC + spec.airC)
     : Math.max(HOT_AIR_MIN_C[kind] ?? -50, RUN.baseAirC + spec.airC);
   const lowSun = winterCold && WEATHER.season === 0 && !HOT_AIR_MIN_C[kind];
-  RUN.targetTrackC = RUN.targetAirC + spec.sunC * (lowSun ? WINTER_SUN : 1);
+  RUN.sunTrackC = spec.sunC * (lowSun ? WINTER_SUN : 1);
+  aimTemps();
 }
 
 /** The fixed kind a mode asks for, or null (SEASON: dealt by the season). */
@@ -316,6 +340,11 @@ export function stepWeather(dt: number): { text: string; good: boolean } | null 
   }
   WEATHER.rain = ease(WEATHER.rain, RUN.targetRain, SKY_EASE, dt);
   WEATHER.snow = ease(WEATHER.snow, RUN.targetSnow, SKY_EASE, dt);
+  RUN.sinceSunS += dt;
+  if (sunTemp && RUN.sinceSunS >= SUN_EVERY_S) {
+    RUN.sinceSunS = 0;
+    aimTemps();
+  }
   WEATHER.tempC = ease(WEATHER.tempC, RUN.targetAirC, TEMP_EASE, dt);
   WEATHER.trackC = ease(WEATHER.trackC, RUN.targetTrackC, TEMP_EASE, dt);
   const soak = WEATHER.rain * SOAK_PER_S;

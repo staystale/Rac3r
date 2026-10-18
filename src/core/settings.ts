@@ -31,6 +31,7 @@ export interface Settings {
   night: number | null;          // ?night=0.8: this dark, 0-1 (lighting test, world/daylight.ts)
   lamps: boolean;                // street lights / pylons as solid lamps (lamps.ts); ?lamps=0 off
   daytime: boolean;              // the game clock (time of day, season, moon); ?daytime=0 off
+  sunTemp: boolean;              // ?suntemp=1: air and track temperature follow the sun
   fieldLights: boolean;          // AI / traffic headlights by the light level; =0: as the player's
   weather: boolean;              // weather in the event setup (season, changes); ?weather=0 off
   slideWear: boolean;            // sliding / crashing wheels wear the ground twice; =0 off
@@ -111,6 +112,7 @@ function nightLevel(params: URLSearchParams): number | null {
 function weatherSettings(params: URLSearchParams) {
   return { rain: rainLevel(params), night: nightLevel(params), lamps: params.get('lamps') !== '0',
     fieldLights: params.get('fieldlights') !== '0', daytime: params.get('daytime') !== '0',
+    sunTemp: params.get('suntemp') === '1',
     weather: params.get('weather') !== '0',
     slideWear: params.get('slidewear') !== '0', tyreWear: params.get('tyrewear') !== '0',
     tyreFeel: params.get('tyrefeel') !== '0',

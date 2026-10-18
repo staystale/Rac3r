@@ -19,4 +19,14 @@ export const TEST_LIST = [
   // 2026-10-18; tyrewear, wintertweaks passed 2026-10-18;
   // coldsurface, wearchance, markfade, hudunits, onelook, tyrecool, coverlook approved
   // 2026-10-18; night (cost test) passed 2026-10-18; lamps, daytime approved 2026-10-18)
+  {
+    id: 'suntemp',
+    added: '2026-10-18',
+    name: 'Track temperature follows the sun (warms by day, cools at dusk and night)',
+    where: 'Plain link + &suntemp=1: TEST MODE, START HOUR 17:00 or 06:00, watch the TRACK gauge',
+    try: 'Evening: the track cools as the sun goes; morning: it warms after sunrise. Summer dry'
+      + ' ~22 C at night to ~35 C at 13:00; the air swings +-2.5 C.',
+    wrong: 'The track still warming after dark, jumps in temperature, tyres too hot / cold at'
+      + ' night.',
+  },
 ];
