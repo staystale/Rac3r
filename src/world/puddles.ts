@@ -71,10 +71,10 @@ const MUD_FREEZE_BELOW_C = -1, MUD_FREEZE_PER_S = 1 / 90, MUD_THAW_PER_S = 1 / 6
 // chance a second that grows with every C (at 5 C as before, at 20 C ~5x); snow, packed snow and
 // ice the TYRES made in a wear cell melt to water the same way (faster in rain), the tyres' water
 // freezes below freezing and dries off in a warm dry spell. Snow, ice and water the level or the
-// weather laid follow their own rules (sites above; the Lab's lanes never change), and a snow
-// level's weather stays frozen (weather.ts). All of it rides the per-tick passes over the wear
-// cells that were already there (freezeMud, dryMud); cells change one at a time, by chance, so
-// the ground repaints a few squares a tick, never a burst.
+// weather laid follow their own rules (sites above; the Lab's lanes never change). All of it
+// rides the per-tick passes over the wear cells that were already there (freezeMud, dryMud);
+// cells change one at a time, by chance, so the ground repaints a few squares a tick, never a
+// burst.
 const WATER_THAW_PER_S_PER_C = 1 / 480, MUD_THAW_PER_S_PER_C = 1 / 240;
 const CELL_SNOW_MELT_PER_S_PER_C = 1 / 1500, CELL_ICE_MELT_PER_S_PER_C = 1 / 900;
 // RAIN melts snow faster (x 1 + RAIN_MELT at rain 1); the tyres' water in a cell FREEZES to ice

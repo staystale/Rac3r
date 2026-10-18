@@ -535,7 +535,7 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
   warm dry spell; scenery water and frozen mud thaw faster per C (at 5 C as before); weather snow
   melts faster in rain; a level's own snow / ice patches (Test Track, Sandbox, alpine stage ice)
   melt, dry, refreeze to ice (gone on a warm start); the Lab's test features never change. Snow
-  ground (snow stages): the weather stays below freezing (rain -> snow, hot -> dry, track <= -1 C).
+  ground (snow stages): F0 (owner 10-18) REMOVED the freeze - every level follows its weather.
   Without an event's weather nothing melts (snow logic at 0 C). MEASURED (tools/scratch/
   _winter.mjs, 400 cells): -8 C snow -> 55 % packed / 40 % ice / 5 % slush, packed -> 81 % ice;
   0 C 71 / 14 / 15, packed -> 52 % ice, 3 % water; 5 C 39 % packed / 61 % slush, packed 43 % water.
