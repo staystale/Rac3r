@@ -115,10 +115,11 @@ function glowOf(rgb: string, stops = GLOW_STOPS) {
   };
 }
 
-// GLOWS IN THE LIGHT MAP (?glowmap=1, under test): the glows are rubbed out of the dark with the
-// beams and pools, then their colour laid into the same map as a tint - the night stays one
-// full-screen lay a frame, with no separate additive draws on the screen canvas
-let glowMap = false;
+// GLOWS IN THE LIGHT MAP (default; ?glowmap=0 = added on the screen as before): the glows are
+// rubbed out of the dark with the beams and pools, then their colour laid into the same map as a
+// tint - the night stays one full-screen lay a frame, with no separate additive draws on the
+// screen canvas
+let glowMap = true;
 
 /**
  * Turns the glows in the light map on or off (main.js, at start-up).
@@ -307,8 +308,9 @@ function drawPools(painter: PoolPainter) {
 }
 
 /**
- * The light map's glows (?glowmap=1): the glow's shape in white rubs the dark out, then the
- * tighter coloured pictures tint it. Art px, no shift: the map is laid at the shift.
+ * The light map's glows (default; ?glowmap=0 off): the glow's shape in white rubs the dark
+ * out, then the tighter coloured pictures tint it. Art px, no shift: the map is laid at the
+ * shift.
  * @param glows the screen's glow painter (its strength and the rest are copied)
  * @param pools the light map and its art-px mapping
  * @returns paint(game): called in the map's rub-out blend; leaves it in source-over, alpha 1

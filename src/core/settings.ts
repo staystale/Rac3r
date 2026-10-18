@@ -33,7 +33,8 @@ export interface Settings {
   daytime: boolean;              // the game clock (time of day, season, moon); ?daytime=0 off
   sunTemp: boolean;              // air and track temperature follow the sun; ?suntemp=0 off
   nightPics: boolean;            // car pictures without beam room in the dark; ?nightpics=0 off
-  glowMap: boolean;              // ?glowmap=1: lamp glows in the night's light map (light.ts)
+  glowMap: boolean;              // lamp glows in the night's light map (light.ts); =0 off
+  pauseClock: boolean;           // ?pauseclock=1: the pause menu's alarm clock (pauseclock.ts)
   fieldLights: boolean;          // AI / traffic headlights by the light level; =0: as the player's
   weather: boolean;              // weather in the event setup (season, changes); ?weather=0 off
   slideWear: boolean;            // sliding / crashing wheels wear the ground twice; =0 off
@@ -115,7 +116,7 @@ function weatherSettings(params: URLSearchParams) {
   return { rain: rainLevel(params), night: nightLevel(params), lamps: params.get('lamps') !== '0',
     fieldLights: params.get('fieldlights') !== '0', daytime: params.get('daytime') !== '0',
     sunTemp: params.get('suntemp') !== '0', nightPics: params.get('nightpics') !== '0',
-    glowMap: params.get('glowmap') === '1',
+    glowMap: params.get('glowmap') !== '0', pauseClock: params.get('pauseclock') === '1',
     weather: params.get('weather') !== '0',
     slideWear: params.get('slidewear') !== '0', tyreWear: params.get('tyrewear') !== '0',
     tyreFeel: params.get('tyrefeel') !== '0',

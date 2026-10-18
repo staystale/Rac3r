@@ -193,9 +193,27 @@ export function skyNow(cloud: number): Sky {
  */
 export function clockLine(timeS: number, seasonNames: string[]): string {
   const when = calendarAt(timeS);
-  const minutes = Math.floor(when.hour * 60);
-  const clock = String(Math.floor(minutes / 60)).padStart(2, '0') + ':'
+  const moon = moonName(when.moon) ? ' · ' + moonName(when.moon) : '';
+  return seasonNames[when.season] + ' DAY ' + (when.dayInSeason + 1) + ' · '
+    + hourText(when.hour) + moon;
+}
+
+/**
+ * An hour as a 24-hour clock reads, e.g. "07:05".
+ * @param hour 0..24
+ * @returns "HH:MM"
+ */
+export function hourText(hour: number): string {
+  const minutes = Math.floor(hour * 60);
+  return String(Math.floor(minutes / 60)).padStart(2, '0') + ':'
     + String(minutes % 60).padStart(2, '0');
-  const moon = when.moon > 0.85 ? ' · FULL MOON' : when.moon < 0.15 ? ' · NO MOON' : '';
-  return seasonNames[when.season] + ' DAY ' + (when.dayInSeason + 1) + ' · ' + clock + moon;
+}
+
+/**
+ * The moon's name for the menus: full or none, else nothing.
+ * @param moon the moon's light, 0 new .. 1 full (calendarAt)
+ * @returns "FULL MOON", "NO MOON" or ""
+ */
+export function moonName(moon: number): string {
+  return moon > 0.85 ? 'FULL MOON' : moon < 0.15 ? 'NO MOON' : '';
 }

@@ -2,6 +2,7 @@ import { TEST_LIST } from '../testlist.js';
 import { addPane, addButton, addElement } from './widgets.js';
 import { showTrackSelect } from './tracks.js';
 import { showMenu, hideMenu } from '../menu.js';
+import { addPauseClock } from './pauseclock.ts';
 
 /**
  * IN-SESSION PAUSE (spec §4 step 3): the track and car stay loaded until you leave. Car swap
@@ -52,7 +53,8 @@ export function showPause(menu, act) {
     showSound();
     });
     showSound();
-  }
+    if (act.clock) addPauseClock(row);   // ?pauseclock=1: the alarm clock beside MUTE
+  } else if (act.clock) addPauseClock(addElement(panel, 'div', '', 'row'));
   addHudButton(menu, panel, act);
   addButton(menu, panel, 'RESTART SESSION', () => {
     hideMenu(menu);

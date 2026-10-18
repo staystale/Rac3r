@@ -106,7 +106,7 @@ setFieldLights(shared.settings.fieldLights);   // =0: the AI's headlights follow
 // player starts in today's season
 setSunTemp(shared.settings.sunTemp);   // air and track follow the clock's sun (?suntemp=0 off)
 setNightPics(shared.settings.nightPics);   // no beam room in car pictures at night (=0 off)
-setGlowMap(shared.settings.glowMap);   // ?glowmap=1: the lamp glows in the night's light map
+setGlowMap(shared.settings.glowMap);   // the lamp glows in the night's light map (=0 off)
 startClock(shared.settings.daytime && shared.settings.night === null,
   Math.floor(((new Date().getMonth() + 1) % 12) / 3));
 shared.DEV = shared.settings.dev;

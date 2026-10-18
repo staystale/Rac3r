@@ -91,6 +91,18 @@ opacity: .5; margin-left: 6px; }
 line-height: 1.35; } #menu .test .ln b { color: #e8a13a; font-size: 9px; letter-spacing: .1em; \
 margin-right: 4px; }
 #menu .test .ln.bad b { color: #d8453c; }
+#menu .pclock { flex: 1 1 140px; min-height: 44px; background: #111318; border: 2px solid #000; \
+box-shadow: inset 0 0 0 2px #2a2d36, 4px 4px 0 #000; display: flex; align-items: center; gap: 8px; \
+padding: 0 10px; }
+#menu .pclock .digits { display: flex; align-items: center; gap: 2px; }
+#menu .pclock svg { width: 15px; height: 26px; display: block; fill: #e8a13a; }
+#menu .pclock svg.colon { width: 5px; }
+#menu .pclock .ghost { opacity: .09; }
+#menu .pclock .side { display: flex; flex-direction: column; gap: 3px; font-size: 8px; \
+line-height: 1; color: #8a8d99; white-space: nowrap; }
+#menu .pclock .side b { color: #e8e8ee; font-size: 9px; }
+#menu .pclock.night svg { fill: #ffbe5c; filter: drop-shadow(0 0 3px rgba(255,176,60,.75)) \
+drop-shadow(0 0 7px rgba(255,176,60,.6)); }
 `;
 
 // GHOST-CLICK GUARD. MEASURED BUG (portrait): tapping the HUD pause chip opened the

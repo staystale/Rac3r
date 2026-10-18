@@ -206,6 +206,7 @@ export function openPause() {
     } : null,
     tests: game.testMode,   // the TESTING list (src/testlist.js) in the pause menu, test mode only
     audio: shared.audio,                  // the SOUND slider + MUTE (menu.js pause)
+    clock: shared.settings.pauseClock,    // ?pauseclock=1: the alarm clock (menu/pauseclock.ts)
     // the MINIMAP row (none with ?minimap=0): this difficulty mode's setting, locked in REAL
     // the HUD list in place of the MINIMAP row (?hudmenu=0 = the old row)
     hud: shared.settings.hudMenu ? hudActions() : null,
