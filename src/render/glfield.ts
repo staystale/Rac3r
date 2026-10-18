@@ -25,6 +25,15 @@ import { buildProgram } from "./glprogram.ts";
 import type { PaintCamera } from "./glpaint.ts";
 import type { ShadeRect } from "./glshade.ts";
 
+// ?coverlook=1: water, ice and packed snow told apart (the shader's newLookOf)
+let coverLook = false;
+
+/**
+ * Water, ice and packed snow drawn more unlike each other (?coverlook=1, at start-up).
+ * @param isOn true for the new look
+ */
+export function setCoverLook(isOn: boolean): void { coverLook = isOn; }
+
 const CHUNK_SQ = 16;               // squares per chunk side (8 m)
 const GRID_CHUNKS = 64;            // chunks per side of the wrapping grid: 1024 squares, 512 m
 const GRID_SQ = CHUNK_SQ * GRID_CHUNKS;
@@ -56,6 +65,7 @@ uniform vec4 levels;           // the weather's water, snow, ice, packed snow
 uniform vec4 areaLevels[4];    // each level area's (coverfield.ts AREA_KINDS)
 uniform vec2 frost;            // the frost on mud and on thick mud (?mudfreeze=1)
 uniform bool oneOrder;         // ?coldsurface=1: water over snow over ice (coverfield.ts)
+uniform bool newLook;          // ?coverlook=1: water, ice and packed snow told apart (newLookOf)
 uniform highp sampler2D catchTex;
 uniform highp sampler2D maskTex;
 out vec4 colour;
@@ -115,6 +125,29 @@ int kindOf(ivec2 square, out float depth) {
   depth = frostLevel - catchValue.r;
   return 2;
 }
+// ?coverlook=1 (owner: ice, water and packed snow looked too alike): water darker and clearer,
+// ice a glassy cyan with stronger shine streaks, packed snow a neutral grey-white with a fine
+// grain per square; fresh snow as before
+vec4 newLookOf(int kind, bool rim, float thick, float sheen, ivec2 square, vec4 old) {
+  if (kind == 1) {
+    return rim ? vec4(0.08, 0.12, 0.20, 0.45)
+      : vec4(mix(vec3(0.16, 0.26, 0.44), vec3(0.40, 0.54, 0.72), sheen * 0.3),
+        0.28 + 0.22 * thick);
+  }
+  if (kind == 2) {
+    float streak = fract(float(square.x + square.y) * 0.027) < 0.1 ? 1.0 : 0.0;
+    return rim ? vec4(0.85, 0.97, 1.0, 0.8)
+      : vec4(mix(vec3(0.55, 0.82, 0.95), vec3(0.97, 1.0, 1.0), max(sheen * 0.6, streak) * 0.6),
+        0.55 + 0.2 * thick);
+  }
+  if (kind == 4) {
+    uint hash = uint(square.x * 73856093) ^ uint(square.y * 19349663);
+    float grain = float((hash >> 7u) & 15u) / 15.0;
+    return rim ? vec4(0.55, 0.55, 0.57, 0.7)
+      : vec4(vec3(0.80, 0.80, 0.81) + (grain - 0.5) * 0.035, 0.86 + 0.12 * thick);
+  }
+  return old;
+}
 void main() {
   vec2 device = vec2(gl_FragCoord.x, canvasHeight - gl_FragCoord.y);
   vec2 fromCamera = (device - cameraPx) / devPerMetre;
@@ -144,12 +177,13 @@ void main() {
   } else {
     look = rim ? vec4(0.55, 0.60, 0.68, 0.7) : vec4(0.83, 0.86, 0.91, 0.82 + 0.16 * thick);
   }
+  if (newLook) look = newLookOf(kind, rim, thick, sheen, square, look);
   colour = vec4(look.rgb * look.a, look.a);
 }`;
 
 const UNIFORMS = [
   'canvasHeight', 'cameraPx', 'devPerMetre', 'camInSq', 'camSq', 'levels', 'areaLevels', 'catchTex',
-  'maskTex', 'frost', 'oneOrder',
+  'maskTex', 'frost', 'oneOrder', 'newLook',
 ] as const;
 type Uniforms = Record<typeof UNIFORMS[number], WebGLUniformLocation | null>;
 
@@ -532,6 +566,7 @@ export function createGlField(webgl: WebGL2RenderingContext) {
       webgl.uniform4fv(uniforms.areaLevels, areaLevels);
       webgl.uniform2f(uniforms.frost, FROST.mud, FROST.thickMud);
       webgl.uniform1i(uniforms.oneOrder, coldSurfaceOn() ? 1 : 0);
+      webgl.uniform1i(uniforms.newLook, coverLook ? 1 : 0);
       webgl.drawArrays(webgl.TRIANGLE_STRIP, 0, 4);
     },
   };

@@ -3,8 +3,22 @@
 // owner's phone does instead of guessing from a desktop browser with the CPU slowed down. A frame
 // whose dt is long while sim + draw were short points at the GPU, the compositor or a garbage
 // collection between frames, not at our code.
+import { WEATHER } from "../world/weather.ts";
+import { FIELD } from "../world/coverfield.ts";
 
 const REPORT_FRAMES = 300;   // frames per post (~5 s)
+
+/**
+ * The weather a post was measured in (tools/phonereport.mjs prints it): its kind, the track and
+ * air temperatures, rain / snow falling, the track's wetness and the cover field's levels.
+ * @returns the weather now
+ */
+function weatherNow() {
+  const round = (value: number) => Math.round(value * 100) / 100;
+  return { kind: WEATHER.kind, trackC: round(WEATHER.trackC), airC: round(WEATHER.tempC),
+    rain: round(WEATHER.rain), snow: round(WEATHER.snow), wetness: round(WEATHER.wetness),
+    field: { water: round(FIELD.water), snow: round(FIELD.snow), ice: round(FIELD.ice) } };
+}
 
 /** One frame: dt, sim ms, draw ms, physics steps, tiles painted, highway slides, css px per
  * metre (the zoom), GPU texture uploads, mipmap builds; the menu up (1 / 0), menu taps ignored
@@ -35,6 +49,7 @@ export function createReporter(query: string, level: () => string,
       // opened from the home screen (a full-screen web app), not in a Safari tab
       homeScreen: matchMedia('(display-mode: fullscreen), (display-mode: standalone)').matches
         || (navigator as Navigator & { standalone?: boolean }).standalone === true,
+      weather: weatherNow(),
       frames: frames.splice(0, frames.length),
     });
     fetch('/__report', { method: 'POST', body, keepalive: true }).catch(() => {});

@@ -19,6 +19,15 @@ export const TEST_LIST = [
   // 2026-10-18; tyrewear, wintertweaks passed 2026-10-18;
   // coldsurface, wearchance, markfade, hudunits, onelook approved 2026-10-18)
   {
+    id: 'coverlook',
+    added: '2026-10-18',
+    name: 'Water, ice and packed snow look more unlike each other',
+    where: 'Plain link + &coverlook=1: the Lab (ice / snow / wet panels), a snow stage, SNOW',
+    try: 'Water: darker, clearer blue; ice: glassy cyan with shine streaks; packed snow: grey-white'
+      + ' with a fine grain; fresh snow unchanged.',
+    wrong: 'Still hard to tell apart, too garish, the grain flickering when driving or zooming.',
+  },
+  {
     id: 'tyrecool',
     added: '2026-10-18',
     name: 'Tyres cool toward the track and the air (more air at speed); hot tyres clear water',

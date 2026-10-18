@@ -584,6 +584,15 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
       simhash SAME, renderhash SAME (refs re-saved on main 5003d9a first). NEXT: T3, the
       performance pass, then lighting.
 - DECISION (owner 10-18): snow's opacity by depth is kept (thin snow shows its ground).
+- [ ] COVER LOOK behind ?coverlook=1, owner test (testlist coverlook). Owner 10-18: ice, water and
+      packed snow looked too alike. glfield.ts newLookOf: water darker, clearer navy; ice a glassy
+      cyan with sparse shine streaks; packed snow a neutral grey-white with a light grain per
+      square; fresh snow unchanged. Photos (_coverlook.mjs): Lab ice / snow / wet panels at zoom
+      0.3 (844x390), Ikeaflatpack's packed road (390x844). ON APPROVAL: make it the default,
+      write docs/foreman-handover.md, prompt the owner to clear context (owner's instruction).
+- PHONE (owner, 10-18 14:40Z, Castle Cum in snow, ?report=1): 0.10 % slow (best Castle Cum yet:
+  the cover field and today's additions cost nothing); menu longest frame 190 ms, a 183 ms tap
+  (owner felt nothing). Reports now carry the weather (report.ts weatherNow; phonereport prints).
 - [ ] T3 TYRE COOLING behind ?tyrecool=1, owner phone test (testlist tyrecool). Owner 10-18
       approved: tyres cool toward a track / air mix (the air's share 0 at rest to 0.5 at 150 km/h;
       owner: "mix if not too intense"), hot tyres clear standing water in 2 passes at 100 C (3 at

@@ -115,6 +115,13 @@ for (const run of readRuns()) {
   const ours = slow.filter((frame) => frame[1] + frame[2] > 12).length;
   console.log(`${run.at.slice(0, 16)}Z ${run.level} ${run.homeScreen ? 'HOME SCREEN' : 'tab'} `
     + `${run.query} | ${run.width}x${run.height} dpr ${run.dpr}`);
+  // the weather the run started in (reports from 2026-10-18 carry it)
+  const sky = run.weather;
+  if (sky) {
+    console.log(`  weather ${sky.kind}, track ${sky.trackC} C, air ${sky.airC} C, rain ${sky.rain}, snow `
+      + `${sky.snow}, wet ${sky.wetness}; field water ${sky.field.water} snow ${sky.field.snow} ice `
+      + `${sky.field.ice}`);
+  }
   console.log(`  ${frames.length} frames, dt median ${median(frames.map((f) => f[0]))} ms | sim `
     + `${median(frames.map((f) => f[1]))} draw ${median(frames.map((f) => f[2]))} ms | slow `
     + `${slow.length} (${percent(slow.length, frames.length)}), our JS heavy ${ours}, with tiles `
