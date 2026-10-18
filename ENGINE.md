@@ -105,6 +105,10 @@ any cover (snow, ice, puddle) and the wear state of the cell.
 - Lamps (`?lamps=1`, a test): `world/lamps.ts` makes the level's street lights (`lamps` data) and
   floodlight pylons into lamps with a solid post (`barriers.ts solidClamp`), lit from dusk; the night
   layer draws their pools, `render/props/lamps.ts` the street lights (overhead layer).
+- The game clock (`?daytime=1`, a test): `world/clock.ts` - a global time of day / season / moon
+  (1 game day = 1 real hour, a season 7 days), saved in its own storage key, run by the sim step
+  in events (`game/loop.js`); it sets the sky (`daylight.ts setSky`: darkness and the dark's
+  colour) that the night layer, the lamps and the headlights follow. TEST MODE setup: TIME OF DAY.
 - `render/glground.ts` (default; `?glground=0` = the old path): the cached tiles are drawn by WebGL2 on a
   canvas UNDER the screen canvas, at full screen resolution with a sharp-pixel filter (crisp art pixels,
   no pixels dropped when the zoom changes); the art buffer is cleared to transparent so the GPU ground

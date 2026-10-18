@@ -130,6 +130,17 @@ the git history. `docs/foreman-handover.md` is the last handover (10-18, cover f
   global should hold for story"). From the brief: pink sunrises, orange sunsets, weather dims
   the light; lamps / headlights follow it. ORDER: time of day next (owner wants to test it with
   the slider), then L3 knock-downs, then mud M1 / grass G1.
+  [ ] T1 BUILT behind ?daytime=1 (testlist daytime): world/clock.ts - the global clock (own
+  storage key, runs in events, 24x real time), sunrise / sunset by the year (midwinter 08:08 -
+  15:53, midsummer 03:53 - 20:08; solar time), a golden hour (darkness 0.2, orange; pink at
+  dawn), dusk to full night in ~45 min (orange -> purple -> blue-black), nights 0.70 (full
+  moon) - 1.00 (new moon, 8-day cycle), cloud / rain dims the day (0.25 at rain 1) and hides the
+  moon; the night layer takes the sky's colour (daylight.ts setSky, every 0.25 s). TEST MODE
+  setup: TIME OF DAY - LIVE or START HOUR (same day). The race behind the menu shows the global
+  time and its season's weather (owner), its demo car runs lights by the dark. ?night= still
+  overrides with a fixed dark. Measured: tools/scratch/_skycurve.mjs, _dayshots.mjs, _menusky.mjs.
+  Not yet: a clock on the HUD / pause menu; outside TEST MODE the setup's SEASON slider should
+  give way to the global season (the story) - ask the owner when the story mode comes.
 - MUD + GRASS (owner 10-18, plan approved "sounds good"; build after the lighting fixes):
   M1 mud never turns to thick mud without water (today: 3 dry passes do it; BASE_WEAR mud) -
   only damp ground or a churned puddle; worn mud already dries to dirt by track temperature in

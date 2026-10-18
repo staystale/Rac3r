@@ -6,6 +6,7 @@ import { showCarPicker } from './garage.js';
 import { hideMenu } from '../menu.js';
 import { buildLevel } from '../world/load.ts';
 import { SEASON_NAMES, seasonForecast } from '../world/weather.ts';
+import { CLOCK, clockLine } from '../world/clock.ts';
 
 // WEATHER (?weather=1): follow the SEASON (its chances; it can change in the race) or a fixed sky
 const WEATHER_MODES = [['season', 'SEASON'], ['dry', 'DRY'], ['hot', 'HOT'],
@@ -314,12 +315,45 @@ function addLaunchButtons(menu, panel, level, state) {
       { rx: state.rxRace, ai: state.opponents, diff: state.diff, road: state.road,
         aiCars: state.aiCars,
         ...(state.weather ? { weather: state.weather } : {}),
+        ...(state.time !== undefined ? { time: state.time } : {}),
         ...(level.endless ? { traffic: state.traffic, litter: state.litter } : {}),
         laps: state.opponents || state.rxRace ? state.laps : 0,
         livery: (profile.livery || {})[profile.active],
         tyre: (profile.tyres || {})[profile.active] });
   }, 'go');
   addButton(menu, panel, '◀ BACK', () => showTrackList(menu, profile.lastCat || catOf(level)));
+}
+
+/**
+ * The TIME rows (?daytime=1, TEST MODE only; owner: the story holds the global clock): LIVE
+ * starts at the game clock's time, or a slider picks the hour the event starts at (the same
+ * day); time runs on through the event either way. The line under them is the game clock now.
+ * @param {object} menu the menu context
+ * @param {HTMLElement} panel the setup pane
+ * @param {object} state the setup state (writes time: null = live, or the hour)
+ */
+function addTimeRows(menu, panel, state) {
+  state.time = null;
+  addElement(panel, 'div', 'TIME OF DAY', 'sub');
+  const row = addElement(panel, 'div', '', 'row');
+  const line = addElement(panel, 'div', '', 'sub');
+  const paint = () => {
+    live.classList.toggle('on', state.time === null);
+    line.textContent = 'GAME CLOCK: ' + clockLine(CLOCK.globalS, SEASON_NAMES)
+      + (state.time === null ? '' : ' · THIS EVENT STARTS AT ' + String(state.time)
+        .padStart(2, '0') + ':00');
+  };
+  const live = addButton(menu, row, 'LIVE', () => {
+    state.time = null;
+    paint();
+  });
+  addSetupSlider(menu, panel, 'START HOUR', 0, 23, 1, 12,
+    (value) => String(value).padStart(2, '0') + ':00', (value) => {
+      state.time = value;
+      paint();
+    });
+  panel.appendChild(line);
+  paint();
 }
 
 /**
@@ -354,6 +388,7 @@ export function showSetup(menu, level) {
   addLapsRow(menu, panel, level, state);
   state.paint();
   if (menu.api.weather) addWeatherRows(menu, panel, state);
+  if (menu.api.daytime) addTimeRows(menu, panel, state);
   showCarPicker(menu, panel);
   addLaunchButtons(menu, panel, level, state);
 }

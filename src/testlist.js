@@ -30,4 +30,14 @@ export const TEST_LIST = [
       + ' it stops you like a wall (no knock-downs yet).',
     wrong: 'Lamps lit by day, a post you drive through, a pool off its lamp, lamps on the track.',
   },
+  {
+    id: 'daytime',
+    added: '2026-10-18',
+    name: 'Time of day: the game clock (1 day = 1 real hour, seasons of 7 days, moon phases)',
+    where: 'Plain link + &daytime=1&lamps=1: the menu race shows the clock; TEST MODE setup:'
+      + ' TIME OF DAY - LIVE or START HOUR (try 19:00 for a sunset, 22:00 for night)',
+    try: 'Sunset orange, sunrise pink, night dark (darker with no moon, lighter at full moon),'
+      + ' rain dims the day; lamps and AI lights come on at dusk; time moves on in the race.',
+    wrong: 'Too dark / too light, colours garish, the light jumping, time not moving, lag.',
+  },
 ];

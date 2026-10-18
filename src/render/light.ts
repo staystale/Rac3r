@@ -9,9 +9,9 @@ import { activeLamps, lampsEnabled, lampsLit } from '../world/lamps.ts';
 import { indicatorBlinkOn, lampLevel } from './cars.ts';
 import type { RenderCar, RenderGame, View } from './types.ts';
 
-// the night's dark at darkness 1: a deep blue-black this opaque (the darkest patches still show
-// the track's shape faintly)
-const NIGHT_RGB = '4,8,22', NIGHT_ALPHA = 0.9;
+// the night's dark at darkness 1 this opaque (the darkest patches still show the track's shape
+// faintly); its colour is the sky's (world/daylight.ts: blue-black, or a sunrise / sunset)
+const NIGHT_ALPHA = 0.9;
 // a headlight beam: where it starts ahead of the car's centre, its reach and half spread, m
 const BEAM_START_M = 1.8, BEAM_REACH_M = 32, BEAM_HALF_M = 9;
 // each headlight's sideways offset from the car's centre line, m
@@ -276,7 +276,7 @@ export function createNight(parts: NightParts) {
   const canvas = document.createElement('canvas');
   const lightCtx = canvas.getContext('2d')!;
   const beam = makePicture(paintBeam), pool = makePicture(paintPool);
-  let darkFill = '', darkFor = -1;
+  let darkFill = '', darkFor = -1, rgbFor = '';
 
   // art px per metre and a world point in art px
   const artPerMetre = () => parts.PPMz() * parts.view.dpr;
@@ -314,9 +314,10 @@ export function createNight(parts: NightParts) {
       canvas.width = pcanvas.width;
       canvas.height = pcanvas.height;
     }
-    if (darkFor !== DAYLIGHT.darkness) {
+    if (darkFor !== DAYLIGHT.darkness || rgbFor !== DAYLIGHT.rgb) {
       darkFor = DAYLIGHT.darkness;
-      darkFill = 'rgba(' + NIGHT_RGB + ',' + (NIGHT_ALPHA * darkFor).toFixed(3) + ')';
+      rgbFor = DAYLIGHT.rgb;
+      darkFill = 'rgba(' + rgbFor + ',' + (NIGHT_ALPHA * darkFor).toFixed(3) + ')';
     }
     lightCtx.setTransform(1, 0, 0, 1, 0, 0);
     lightCtx.globalCompositeOperation = 'copy';

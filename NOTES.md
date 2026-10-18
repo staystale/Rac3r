@@ -97,6 +97,10 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   lamp; lamps and AI / traffic headlights follow the light level; the player's LIGHTS stay
   manual and do not switch anyone else's (default since 10-18; ?fieldlights=0 = old). The night
   layer cost nothing measurable on the phone (L1 passed). Full list in `TODO.md` LIGHTING.
+- Time of day (10-18): ONE global game clock that holds for the story (runs while playing,
+  saved); 1 game day = 1 real hour; a season = 7 game days; UK-like days with moon phases;
+  a start-hour slider in TEST MODE only; the race behind the menu follows the global time and
+  season.
 - "Straight Outta Swindon" is a reserved name for a future highway level (the test straight that
   used it was removed 10-17).
 

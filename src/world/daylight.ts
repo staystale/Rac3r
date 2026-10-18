@@ -9,7 +9,7 @@ export const HEADLIGHTS_ON_DARKNESS = 0.35;
  * The light level: darkness 0..1, and whether the field's headlights follow it (the default;
  * ?fieldlights=0: they follow the player's LIGHTS button, the old rule).
  */
-export const DAYLIGHT = { darkness: 0, fieldLights: true };
+export const DAYLIGHT = { darkness: 0, fieldLights: true, rgb: '4,8,22' };
 
 /**
  * Sets how dark the world is.
@@ -17,6 +17,15 @@ export const DAYLIGHT = { darkness: 0, fieldLights: true };
  */
 export function setDarkness(level: number): void {
   DAYLIGHT.darkness = Math.max(0, Math.min(1, level));
+}
+
+/**
+ * Sets the sky from the game clock (world/clock.ts): how dark, and the colour of the dark.
+ * @param sky darkness 0..1 and the colour, 'r,g,b'
+ */
+export function setSky(sky: { darkness: number; rgb: string }): void {
+  setDarkness(sky.darkness);
+  DAYLIGHT.rgb = sky.rgb;
 }
 
 /**

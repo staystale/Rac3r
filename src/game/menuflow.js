@@ -6,6 +6,7 @@ import { setHighwayPreset } from '../highway.js';
 import { createAIDriver } from '../ai/circuit.ts';
 import { aiTraits } from '../ai/traits.ts';
 import { setLevel } from "../world/load.ts";
+import { CLOCK, calendarAt, startEventClock } from "../world/clock.ts";
 import { LEVEL } from "../world/state.ts";
 import { clearWear } from "../world/wear.ts";
 import { LEVELS } from "../world/levels/index.ts";
@@ -95,7 +96,11 @@ export function enterMenu() {
   shared.boot.classList.add('gone');
   shared.hud.close();
   shared.race.on = false;
-  shared.weatherPlan = null;   // the race behind the menu is dry
+  // the race behind the menu is dry; with the game clock (?daytime=1) it shows the global time
+  // and its season's weather (owner)
+  shared.weatherPlan = CLOCK.isOn ? { mode: 'season', season: calendarAt(CLOCK.globalS).season,
+    seed: Math.floor(Math.random() * 2147483646) + 1 } : null;
+  startEventClock(null);
   // ?menuvideo=1 (parked): the recording behind the menu (menuvideo.js); else the live race below
   shared.menuVideo = shared.settings.menuVideo && showMenuVideo();
   if (shared.menuVideo) {
@@ -127,6 +132,8 @@ export function applyLaunchOptions(levelId, opts) {
   shared.raceLaps = Math.max(0, Math.min(10, opts.laps | 0));
   // WEATHER (setup, ?weather=1): the plan and the seed its random stream starts from, so a restart
   // replays the same weather; none = the dry 18 C game
+  // the game clock (?daytime=1): the global time, or (TEST MODE) the hour the setup picked
+  startEventClock(opts.time ?? null);
   shared.weatherPlan = opts.weather ? { mode: opts.weather.mode, season: opts.weather.season,
     seed: Math.floor(Math.random() * 2147483646) + 1 } : null;
   if (opts.traffic != null) shared.trafficDensity = Math.max(0, Math.min(1.5, +opts.traffic));

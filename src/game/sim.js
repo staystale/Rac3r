@@ -157,6 +157,8 @@ function updateFieldHeadlights() {
   const fieldLights = byLight ? headlightsWanted() : !!game.car.lightsOn;
   for (const entry of game.ai) entry.car.lightsOn = fieldLights;
   if (byLight) for (const car of game.traffic.cars) car.lightsOn = fieldLights;
+  // the car the menu's demo drives runs its lights as the field does (no one to press LIGHTS)
+  if (byLight && shared.mode === 'menu') game.car.lightsOn = fieldLights;
   // RAIN LIGHTS (?lamps=1): every racer's rear rain light is on while it rains (road traffic
   // has none)
   const raining = lampsEnabled() && WEATHER.rain > 0;
