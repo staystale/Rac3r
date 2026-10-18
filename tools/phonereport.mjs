@@ -120,7 +120,8 @@ for (const run of readRuns()) {
   if (sky) {
     console.log(`  weather ${sky.kind}, track ${sky.trackC} C, air ${sky.airC} C, rain ${sky.rain}, snow `
       + `${sky.snow}, wet ${sky.wetness}; field water ${sky.field.water} snow ${sky.field.snow} ice `
-      + `${sky.field.ice}`);
+      + `${sky.field.ice}`
+      + (sky.dark !== undefined ? `; hour ${sky.hour}, dark ${sky.dark}` : ''));
   }
   console.log(`  ${frames.length} frames, dt median ${median(frames.map((f) => f[0]))} ms | sim `
     + `${median(frames.map((f) => f[1]))} draw ${median(frames.map((f) => f[2]))} ms | slow `

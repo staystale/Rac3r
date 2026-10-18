@@ -18,15 +18,15 @@ export const TEST_LIST = [
   // superseded by the cover field; zoomswitch, mudfreeze, sanddig, wintercold, graveldig approved
   // 2026-10-18; tyrewear, wintertweaks passed 2026-10-18;
   // coldsurface, wearchance, markfade, hudunits, onelook, tyrecool, coverlook approved
-  // 2026-10-18; night (cost test) passed 2026-10-18; lamps, daytime approved 2026-10-18)
+  // 2026-10-18; night (cost test) passed 2026-10-18; lamps, daytime approved 2026-10-18; suntemp
+  // approved 2026-10-18)
   {
-    id: 'suntemp',
+    id: 'nightjudder',
     added: '2026-10-18',
-    name: 'Track temperature follows the sun (warms by day, cools at dusk and night)',
-    where: 'Plain link + &suntemp=1: TEST MODE, START HOUR 17:00 or 06:00, watch the TRACK gauge',
-    try: 'Evening: the track cools as the sun goes; morning: it warms after sunrise. Summer dry'
-      + ' ~22 C at night to ~35 C at 13:00; the air swings +-2.5 C.',
-    wrong: 'The track still warming after dark, jumps in temperature, tyres too hot / cold at'
-      + ' night.',
+    name: 'Night judder check: the highway at night vs by day (the night layer\'s cost)',
+    where: 'Highway autopilot link + &night=0.9, then + &night=0 (day), back to back, &report=1'
+      + ' (reports now carry the hour and darkness)',
+    try: 'Record both 30-60 s: is the night run more juddery? What judders?',
+    wrong: 'Night clearly worse than day (then the dark layer / glows need a cheaper way).',
   },
 ];

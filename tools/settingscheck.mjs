@@ -8,7 +8,7 @@ import { readSettings } from '../src/core/settings.ts';
 const DEFAULTS = {
   dev: false, carId: null, aiCount: 0, aiDifficulty: 2, trafficDensity: 0.6, litter: null, menu: null,
   menuAi: 4, guide: null, rules: null, levelId: null, inputMode: 'auto', highwayDebug: null,
-  noLock: false, tilePx: 256, tileGpu: false, glGround: true, gpuPaint: true, zoomHold: true, minimap: true, menuVideo: false, grassGrip: true, rain: null, night: null, lamps: true, fieldLights: true, daytime: true, sunTemp: false, weather: true, slideWear: true, tyreWear: true, tyreFeel: true, packedWear: true, onePuddle: true, wetTrail: true, winter: true, hwMap: true,
+  noLock: false, tilePx: 256, tileGpu: false, glGround: true, gpuPaint: true, zoomHold: true, minimap: true, menuVideo: false, grassGrip: true, rain: null, night: null, lamps: true, fieldLights: true, daytime: true, sunTemp: true, nightPics: true, weather: true, slideWear: true, tyreWear: true, tyreFeel: true, packedWear: true, onePuddle: true, wetTrail: true, winter: true, hwMap: true,
   sharpCars: true, sharpMarks: true, jokerFix: true, groundLookup: true, exactTiles: true,
   hudMenu: true, tyreOff: true, menuFast: true, thumbCache: true, texWarm: true, maxDpr: null, startFix: true, oneCanvas: false, zoomSwitch: true, mudFreeze: true, sandDig: true, winterCold: true, gravelDig: true, coldSurface: true, wearChance: true, markFade: true, hudUnits: true, oneLook: true, tyreCool: true, coverLook: true,
   noShade: false,
@@ -54,7 +54,8 @@ const TABLE = [
   ['?lamps', { lamps: true }],
   ['?fieldlights=0', { fieldLights: false }],
   ['?daytime=0', { daytime: false }],
-  ['?suntemp=1', { sunTemp: true }],
+  ['?suntemp=0', { sunTemp: false }],
+  ['?nightpics=0', { nightPics: false }],
   ['?daytime', { daytime: true }],
   ['?weather=0', { weather: false }],
   ['?weather', { weather: true }],

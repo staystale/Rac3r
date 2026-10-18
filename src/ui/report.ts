@@ -5,6 +5,8 @@
 // collection between frames, not at our code.
 import { WEATHER } from "../world/weather.ts";
 import { FIELD } from "../world/coverfield.ts";
+import { DAYLIGHT } from "../world/daylight.ts";
+import { CLOCK, calendarAt } from "../world/clock.ts";
 
 const REPORT_FRAMES = 300;   // frames per post (~5 s)
 
@@ -17,7 +19,10 @@ function weatherNow() {
   const round = (value: number) => Math.round(value * 100) / 100;
   return { kind: WEATHER.kind, trackC: round(WEATHER.trackC), airC: round(WEATHER.tempC),
     rain: round(WEATHER.rain), snow: round(WEATHER.snow), wetness: round(WEATHER.wetness),
-    field: { water: round(FIELD.water), snow: round(FIELD.snow), ice: round(FIELD.ice) } };
+    field: { water: round(FIELD.water), snow: round(FIELD.snow), ice: round(FIELD.ice) },
+    // the time of day (the game clock) and how dark it was
+    hour: CLOCK.isOn ? round(calendarAt(CLOCK.eventS).hour) : null,
+    dark: round(DAYLIGHT.darkness) };
 }
 
 /** One frame: dt, sim ms, draw ms, physics steps, tiles painted, highway slides, css px per

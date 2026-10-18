@@ -164,8 +164,19 @@ the git history. `docs/foreman-handover.md` is the last handover (10-18, cover f
   heat on the track x clock.ts sunShareNow (0 at night, sin to 1 at noon), air +-2.5 C by the same
   share, re-aimed every sim second, eased as before (~1 min). _suntemp.mjs: dry summer 22 C at
   night -> 35 C at 13:00 (old: 32 C all day); dry winter 5 -> 18 C. simhash SAME switch off.
-- PERFORMANCE PASS (owner 10-18: "getting some judder especially on highway levels"): next after
-  the sun temperature. Owner phone 18:36Z highway (rain): 1.17 % slow, our JS 2 ms.
+  SUN TEMPERATURE the DEFAULT since 10-18 (owner: "track temp pass"; ?suntemp=0 off).
+- PERFORMANCE PASS (owner 10-18: "judder especially on highway levels"; "worse with rain at night
+  / with lights, but unsure"). MEASURED: phone highway rain 1.17 % slow (18:36Z), highway
+  autopilot 57 s 0.38 % (19:38Z), our JS 2 ms both, no slow frame with uploads; drawload: the
+  highway asks less drawing a frame than Castle Cum (tile draws 62 vs 59, off-screen path pieces
+  1570 vs 5747); framecheck x4: highway tiles 1.3 a frame (Castle Cum ~0.8). FOUND: at night every
+  car's picture kept the old beam room (~3x the area) though the beam is no longer painted:
+  _picarea.mjs highway pictures 568k px a frame by day, 1160k at night - but removing the room
+  (?nightpics=0 = old; default, same pixels) only took it to 1136k: the night's extra is the dark
+  layer + the glows (~0.8 of a screen of pixels a frame more). Owner A/B asked: highway night vs
+  day (testlist nightjudder).
+  Reports now carry the hour and the darkness. Still to do if the judder stays: a held-frame
+  recording of the highway (what judders: whole picture / traffic / ground / zoom).
   Not yet: a clock on the HUD / pause menu; outside TEST MODE the setup's SEASON slider should
   give way to the global season (the story) - ask the owner when the story mode comes.
 - MUD + GRASS (owner 10-18, plan approved "sounds good"; build after the lighting fixes):

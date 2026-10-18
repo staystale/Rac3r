@@ -329,6 +329,16 @@ export interface CarPicture {
 
 // how far the headlight beams reach ahead of the body and to each side, sprite px (drawHeadlights)
 const BEAM_AHEAD = 192, BEAM_SIDE = 38;
+// NIGHT PICTURES (?nightpics=0 off): in the dark the picture paints no beam (the night layer
+// lights the road), so it leaves out the beam's room - with every car's lights on at night the
+// room made each picture ~3x the area, painted and turned onto the screen every frame
+let nightPics = true;
+
+/**
+ * Turns the night pictures on or off (main.js, at start-up).
+ * @param isOn true: no beam room in the dark
+ */
+export function setNightPics(isOn: boolean): void { nightPics = isOn; }
 // room round the body for the wheels, the shadow and the lamps, sprite px
 const PICTURE_PAD = 14;
 
@@ -348,8 +358,9 @@ function paintCarPicture(carsCtx: CarsContext, car: RenderCar, picture: CarPictu
   const sprite = pixelCar(car.spec);
   const pad = PICTURE_PAD + (car.roll && car.roll.phi ? sprite.Wp : 0);
   const back = Math.ceil(sprite.Lp / 2 + pad);
-  const ahead = Math.ceil(sprite.Lp / 2 + pad + (car.lightsOn ? BEAM_AHEAD : 0));
-  const side = Math.ceil(Math.max(sprite.Wp / 2 + pad, car.lightsOn ? BEAM_SIDE : 0));
+  const hasBeam = !!car.lightsOn && !(nightPics && DAYLIGHT.darkness > 0);
+  const ahead = Math.ceil(sprite.Lp / 2 + pad + (hasBeam ? BEAM_AHEAD : 0));
+  const side = Math.ceil(Math.max(sprite.Wp / 2 + pad, hasBeam ? BEAM_SIDE : 0));
   const width = (back + ahead) * enlarge, height = side * 2 * enlarge;
   if (picture.canvas.width !== width || picture.canvas.height !== height) {
     picture.canvas.width = width;
