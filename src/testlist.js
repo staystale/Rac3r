@@ -17,6 +17,15 @@ export const TEST_LIST = [
   // wettrail approved 2026-10-18; coverfield, winter approved 2026-10-18 - labweather
   // superseded by the cover field; zoomswitch, mudfreeze, sanddig approved 2026-10-18)
   {
+    id: 'graveldig',
+    added: '2026-10-18',
+    name: 'Gravel dents like sand but takes more passes; sand and gravel dent faster when wet',
+    where: 'Plain link + &graveldig=1: TEST MODE, gravel traps / the Lab gravel; try rain too',
+    try: 'Drive one line over gravel again and again (dry, then wet): it dents slower than sand,'
+      + ' faster in the wet; sand also digs faster wet.',
+    wrong: 'Gravel not denting, gravel as fast as sand, wet no faster, gravel turning to mud.',
+  },
+  {
     id: 'wintercold',
     added: '2026-10-18',
     name: 'Winter: dry days can freeze (track -2 to 9 C); all ice melts at half snow\'s rate',

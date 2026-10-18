@@ -4,10 +4,11 @@
 const W = new URL('../../src/', import.meta.url).href;
 const L = await import(W + 'lab.js');
 const wear = await import(W + 'world/wear.ts');
+const dig = await import(W + 'world/dig.ts');
 const Wx = await import(W + 'world/weather.ts');
 const terrain = await import(W + 'world/terrain.ts');
 const level = process.argv[2] && !process.argv[2].startsWith('--') ? process.argv[2] : 'lab';
-if (process.argv.includes('--sanddig')) wear.setSandDig(true);
+if (process.argv.includes('--sanddig')) dig.setSandDig(true);
 L.setLevel(level);
 Wx.startWeather({ mode: 'dry', season: 2, seed: 1 });
 wear.clearWear();

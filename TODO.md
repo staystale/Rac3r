@@ -565,8 +565,11 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
       frosty days: winter air -4..7, winter sun x0.25 (not hot days) -> track -1.9..9 C, 36/200
       below 0 (18 %, less than the "about a third" first said - offer colder if wanted).
       simhash SAME with switches off; refs re-saved on the sanddig default (rac3r-wt tools/).
-- [ ] GRAVEL DIG (owner 10-18, next): gravel dents the terrain like sand but takes more passes;
-      sand and gravel both dent faster when wet.
+- [ ] GRAVEL DIG behind ?graveldig=1, owner phone test (testlist graveldig). Owner 10-18: gravel
+      dents like sand but takes more passes; sand and gravel both faster when wet. Gravel: cells
+      dry too, 2 cm a pass, floor 30 cm; wet sand / gravel x1.5 (dry sand stays 4 cm). _sanddig
+      (1 / 3 / 10 passes, cm): gravel dry 0.8 / 2.5 / 8.9 (was ~0), wet 1.2 / 4.1 / 12.7; sand
+      wet 3.5 / 10.6 / 26.6 (dry 2.4 / 7.1 / 23.6); mud as before.
 - NEXT ORDER (owner 10-18): mud freeze test -> 1 CHECK sand / gravel (owner: sand and gravel with
   no puddle do NOT change surface; driving may dent the terrain / make dips; today a churned
   puddle makes sand gravel (right) and gravel MUD (owner earlier: gravel -> dirt)) -> 4 CLEAN-UP

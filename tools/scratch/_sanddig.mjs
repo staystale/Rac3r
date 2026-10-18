@@ -4,9 +4,11 @@
 const W = new URL('../../src/', import.meta.url).href;
 const L = await import(W + 'lab.js');
 const wear = await import(W + 'world/wear.ts');
+const dig = await import(W + 'world/dig.ts');
 const Wx = await import(W + 'world/weather.ts');
 const sandDig = process.argv.includes('--sanddig');
-if (sandDig) wear.setSandDig(true);
+if (sandDig) dig.setSandDig(true);
+if (process.argv.includes('--graveldig')) dig.setGravelDig(true);
 L.setLevel('lab');
 const IDS = ['sand', 'gravel', 'mud', 'thickMud'];
 const POINTS = {};
