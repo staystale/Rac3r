@@ -50,6 +50,7 @@ import { setDarkness, setFieldLights } from "./world/daylight.ts";
 import { setLamps } from "./world/lamps.ts";
 import { CLOCK, startClock } from "./world/clock.ts";
 import { setNightPics } from "./render/cars.ts";
+import { setGlowMap } from "./render/light.ts";
 import { setTyreWear } from "./physics/tyrewear.ts";
 import { setTyreFeel } from "./physics/tyreheat.ts";
 import { LEVEL } from "./world/state.ts";
@@ -105,6 +106,7 @@ setFieldLights(shared.settings.fieldLights);   // =0: the AI's headlights follow
 // player starts in today's season
 setSunTemp(shared.settings.sunTemp);   // air and track follow the clock's sun (?suntemp=0 off)
 setNightPics(shared.settings.nightPics);   // no beam room in car pictures at night (=0 off)
+setGlowMap(shared.settings.glowMap);   // ?glowmap=1: the lamp glows in the night's light map
 startClock(shared.settings.daytime && shared.settings.night === null,
   Math.floor(((new Date().getMonth() + 1) % 12) / 3));
 shared.DEV = shared.settings.dev;

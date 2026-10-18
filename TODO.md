@@ -159,6 +159,11 @@ the git history. `docs/foreman-handover.md` is the last handover (10-18, cover f
   are the DEFAULT (?lamps=0 / ?daytime=0 off; ?night= stays a test tool). Phone runs 18:36-18:38Z:
   Castle Cum snow 0.32 %, highway 1.17 % (no lamps there), menu 0.86 %, Thruston 5.5 s only.
   NEXT L4b: the endless highway (lamps streamed with the road; a spatial grid for the clamp).
+  [ ] GLOWS IN THE LIGHT MAP behind ?glowmap=1 (owner said yes; testlist glowmap): the glows
+  are rubbed out of the dark with the beams / pools (the old glow's shape), then tinted with
+  their colour in the same light map (a tighter, fuller core) - no 'lighter' draws on the screen
+  canvas. Photos (_glowmapshots.mjs, Castle Cum night 0.8, rain, 3 AI): red glows as before,
+  amber a little softer with a wider halo; owner: "close is okay ... so long as it's clear".
 - [ ] SUN TEMPERATURE behind ?suntemp=1 (owner 10-18: "track temp should warm up and cool down
   with light a bit - so it can't heat up as it gets dark"; testlist suntemp): the weather's sun
   heat on the track x clock.ts sunShareNow (0 at night, sin to 1 at noon), air +-2.5 C by the same

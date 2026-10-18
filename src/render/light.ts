@@ -23,6 +23,8 @@ const POOL_PYLON_M = 34;
 // a lamp's glow at night: its radius, m, and its strength at darkness 1; a tail light's share of
 // a brake light's glow
 const GLOW_M = 1.8, GLOW_STRENGTH = 0.7, TAIL_GLOW = 0.35;
+// the glows' colours, 'r,g,b': indicators amber; brake, tail and rain lights red
+const AMBER = '255,160,40', RED = '255,40,28';
 // the light map reaches this many art px past every edge of the screen: it is laid at the
 // frame's sub-pixel shift (up to an art px either way), which left an undarkened strip along one
 // edge that jumped from side to side as the camera moved (owner: "light edges dancing")
@@ -89,24 +91,46 @@ function paintBeam(pictureCtx: CanvasRenderingContext2D) {
   pictureCtx.globalAlpha = 1;
 }
 
+// a glow picture's profile, [share of the radius, alpha]: the added glow (and the light map's
+// rub-out, the same shape); the light map's tint is tighter and fuller, so its colour sits on the
+// lamp as the added glow's hot core did and the rub-out alone lights the halo
+const GLOW_STOPS: [number, number][] = [[0, 0.9], [0.3, 0.35], [1, 0]];
+const TINT_STOPS: [number, number][] = [[0, 1], [0.15, 0.7], [0.5, 0]];
+
 /**
  * A lamp's glow picture in one colour, full in the middle, fading to its rim.
  * @param rgb the colour, 'r,g,b'
+ * @param stops its profile (GLOW_STOPS)
  * @returns paints the picture
  */
-function glowOf(rgb: string) {
+function glowOf(rgb: string, stops = GLOW_STOPS) {
   return (pictureCtx: CanvasRenderingContext2D) => {
     const mid = PICTURE_PX / 2;
     const glow = pictureCtx.createRadialGradient(mid, mid, 0, mid, mid, mid);
-    glow.addColorStop(0, 'rgba(' + rgb + ',0.9)');
-    glow.addColorStop(0.3, 'rgba(' + rgb + ',0.35)');
-    glow.addColorStop(1, 'rgba(' + rgb + ',0)');
+    for (const [share, alpha] of stops) {
+      glow.addColorStop(share, 'rgba(' + rgb + ',' + alpha + ')');
+    }
     pictureCtx.fillStyle = glow;
     pictureCtx.fillRect(0, 0, PICTURE_PX, PICTURE_PX);
   };
 }
 
-/** What the indicator glows are drawn with: the screen, the glow picture and the mapping. */
+// GLOWS IN THE LIGHT MAP (?glowmap=1, under test): the glows are rubbed out of the dark with the
+// beams and pools, then their colour laid into the same map as a tint - the night stays one
+// full-screen lay a frame, with no separate additive draws on the screen canvas
+let glowMap = false;
+
+/**
+ * Turns the glows in the light map on or off (main.js, at start-up).
+ * @param isOn true: the glows are part of the light map
+ */
+export function setGlowMap(isOn: boolean): void { glowMap = isOn; }
+
+/**
+ * What the lamp glows are drawn with: a canvas, the glow pictures and the mapping. The screen's
+ * painter adds the colour over the laid dark; the light map's two rub the glow out (white
+ * pictures) and then tint it (the coloured ones).
+ */
 interface GlowPainter {
   mainCtx: CanvasRenderingContext2D;
   glow: HTMLCanvasElement;      // amber: indicators
@@ -115,39 +139,49 @@ interface GlowPainter {
   devX: (worldX: number) => number;
   devY: (worldY: number) => number;
   devPerMetre: () => number;
-  shift: { x: number; y: number };   // this frame's sub-pixel shift, device px
+  shift: { x: number; y: number };   // this frame's sub-pixel shift, the canvas's px
 }
 
 /**
- * The indicator glows' painter: world points in the screen's device px, at the frame's shift.
+ * The lamp glows' painter: world points in the screen's device px, at the frame's shift.
  * @param parts what the night layer reads from the renderer
  * @returns the painter
  */
 function makeGlowPainter(parts: NightParts): GlowPainter {
   const devPerCss = () => parts.view.dpr * parts.state.blockPx;
   const shift = { x: 0, y: 0 };
-  return { mainCtx: parts.mainCtx, glow: makePicture(glowOf('255,160,40')),
-    redGlow: makePicture(glowOf('255,40,28')), strength: 0, shift,
+  return { mainCtx: parts.mainCtx, glow: makePicture(glowOf(AMBER)),
+    redGlow: makePicture(glowOf(RED)), strength: 0, shift,
     devX: (worldX) => parts.toScreenX(worldX) * devPerCss() + shift.x,
     devY: (worldY) => parts.toScreenY(worldY) * devPerCss() + shift.y,
     devPerMetre: () => parts.PPMz() * devPerCss() };
 }
 
 /**
- * Adds every car's lamp glows over the laid dark (stronger the darker it is).
+ * Draws every car's lamp glows with the painter (stronger the darker it is), in the canvas's
+ * current blend.
+ * @param painter the canvas and the mapping
+ * @param game the game drawn
+ */
+function paintGlows(painter: GlowPainter, game: RenderGame) {
+  const isBlinkOn = indicatorBlinkOn();
+  painter.strength = GLOW_STRENGTH * DAYLIGHT.darkness;
+  if (game.traffic) for (const car of game.traffic.cars) drawCarGlows(painter, car, isBlinkOn);
+  for (const rival of game.ai || []) drawCarGlows(painter, rival.car, isBlinkOn);
+  drawCarGlows(painter, game.car, isBlinkOn);
+}
+
+/**
+ * Adds every car's lamp glows over the laid dark on the screen canvas.
  * @param painter the screen and the mapping
  * @param game the game drawn
  * @param lock the frame's sub-pixel shift
  */
 function drawGlows(painter: GlowPainter, game: RenderGame, lock: NightLock) {
-  const isBlinkOn = indicatorBlinkOn();
   painter.shift.x = lock.subX;
   painter.shift.y = lock.subY;
-  painter.strength = GLOW_STRENGTH * DAYLIGHT.darkness;
   painter.mainCtx.globalCompositeOperation = 'lighter';
-  if (game.traffic) for (const car of game.traffic.cars) drawCarGlows(painter, car, isBlinkOn);
-  for (const rival of game.ai || []) drawCarGlows(painter, rival.car, isBlinkOn);
-  drawCarGlows(painter, game.car, isBlinkOn);
+  paintGlows(painter, game);
 }
 
 /**
@@ -273,6 +307,27 @@ function drawPools(painter: PoolPainter) {
 }
 
 /**
+ * The light map's glows (?glowmap=1): the glow's shape in white rubs the dark out, then the
+ * tighter coloured pictures tint it. Art px, no shift: the map is laid at the shift.
+ * @param glows the screen's glow painter (its strength and the rest are copied)
+ * @param pools the light map and its art-px mapping
+ * @returns paint(game): called in the map's rub-out blend; leaves it in source-over, alpha 1
+ */
+function makeMapGlows(glows: GlowPainter, pools: PoolPainter) {
+  const whiteGlow = makePicture(glowOf('255,255,255'));
+  const tint: GlowPainter = { ...glows, mainCtx: pools.lightCtx, shift: { x: 0, y: 0 },
+    glow: makePicture(glowOf(AMBER, TINT_STOPS)), redGlow: makePicture(glowOf(RED, TINT_STOPS)),
+    devX: pools.artX, devY: pools.artY, devPerMetre: pools.artPerMetre };
+  const out: GlowPainter = { ...tint, glow: whiteGlow, redGlow: whiteGlow };
+  return (game: RenderGame) => {
+    paintGlows(out, game);
+    pools.lightCtx.globalCompositeOperation = 'source-over';
+    paintGlows(tint, game);
+    pools.lightCtx.globalAlpha = 1;
+  };
+}
+
+/**
  * Builds the night layer.
  * @param parts what it reads from the renderer
  * @returns draw(game, lock): lays this frame's night over the screen (nothing in daylight)
@@ -292,6 +347,7 @@ export function createNight(parts: NightParts) {
 
   const pools: PoolPainter = { lightCtx, pool, artX, artY, artPerMetre, isNear };
   const glows = makeGlowPainter(parts);
+  const paintMapGlows = makeMapGlows(glows, pools);
   function drawBeams(car: RenderCar) {
     if (!car.lightsOn) return;
     const scale = artPerMetre(), cos = Math.cos(car.heading), sin = Math.sin(car.heading);
@@ -334,6 +390,7 @@ export function createNight(parts: NightParts) {
     if (game.traffic) for (const car of game.traffic.cars) drawBeams(car);
     for (const rival of game.ai || []) drawBeams(rival.car);
     drawBeams(game.car);
+    if (glowMap) paintMapGlows(game);
     lightCtx.globalCompositeOperation = 'source-over';
   }
 
@@ -350,7 +407,7 @@ export function createNight(parts: NightParts) {
     const margin = MAP_MARGIN * state.blockPx;
     mainCtx.drawImage(canvas, lock.subX - margin, lock.subY - margin,
       canvas.width * state.blockPx, canvas.height * state.blockPx);
-    drawGlows(glows, game, lock);
+    if (!glowMap) drawGlows(glows, game, lock);
     mainCtx.restore();
   };
 }

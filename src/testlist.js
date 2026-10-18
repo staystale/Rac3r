@@ -20,4 +20,13 @@ export const TEST_LIST = [
   // coldsurface, wearchance, markfade, hudunits, onelook, tyrecool, coverlook approved
   // 2026-10-18; night (cost test) passed 2026-10-18; lamps, daytime approved 2026-10-18; suntemp
   // approved 2026-10-18; nightjudder passed 2026-10-18)
+  {
+    id: 'glowmap',
+    added: '2026-10-18',
+    name: 'Lamp glows part of the night layer (one pass, no separate glow draws)',
+    where: 'Plain link + &glowmap=1 at night (TEST MODE START HOUR 22:00, or &night=0.8)',
+    try: 'Hazards / indicators (amber), brake, tail and rain lights (red) on you and the AI.'
+      + ' Close to before, a little softer. Back to back with the plain link if judder.',
+    wrong: 'A glow missing, not clear in the dark, a colour box or edge, glows off the car.',
+  },
 ];
