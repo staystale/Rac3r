@@ -19,14 +19,5 @@ export const TEST_LIST = [
   // 2026-10-18; tyrewear, wintertweaks passed 2026-10-18;
   // coldsurface, wearchance, markfade, hudunits, onelook, tyrecool, coverlook approved
   // 2026-10-18; night (cost test) passed 2026-10-18; lamps, daytime approved 2026-10-18; suntemp
-  // approved 2026-10-18)
-  {
-    id: 'nightjudder',
-    added: '2026-10-18',
-    name: 'Night judder check: the highway at night vs by day (the night layer\'s cost)',
-    where: 'Highway autopilot link + &night=0.9, then + &night=0 (day), back to back, &report=1'
-      + ' (reports now carry the hour and darkness)',
-    try: 'Record both 30-60 s: is the night run more juddery? What judders?',
-    wrong: 'Night clearly worse than day (then the dark layer / glows need a cheaper way).',
-  },
+  // approved 2026-10-18; nightjudder passed 2026-10-18)
 ];

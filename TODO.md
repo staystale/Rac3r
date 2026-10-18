@@ -174,7 +174,9 @@ the git history. `docs/foreman-handover.md` is the last handover (10-18, cover f
   _picarea.mjs highway pictures 568k px a frame by day, 1160k at night - but removing the room
   (?nightpics=0 = old; default, same pixels) only took it to 1136k: the night's extra is the dark
   layer + the glows (~0.8 of a screen of pixels a frame more). Owner A/B asked: highway night vs
-  day (testlist nightjudder).
+  day (testlist nightjudder). OWNER 10-18: night and day both fine, snow and dry both fine -
+  the pass is CLOSED for now (highway dry 0.33-0.75 %, night 0.45 %, our JS ~2 ms; the laptop
+  profile is the same dry and in rain). Possible later: the HUD text redrawn every frame (~3.5 %).
   Reports now carry the hour and the darkness. Still to do if the judder stays: a held-frame
   recording of the highway (what judders: whole picture / traffic / ground / zoom).
   Not yet: a clock on the HUD / pause menu; outside TEST MODE the setup's SEASON slider should
