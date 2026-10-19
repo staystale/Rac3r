@@ -213,9 +213,7 @@ export function layoutHud(state, width, height) {
   const { tunePanel, tuneRows, tuneReset, tyreHudBtn } = layoutTunePanel(width, height, narrow);
   const { speed, lap, trackTemp, fps, tally } = layoutCornerPanels(state, width, btnY, narrow);
   const { absChip, tcsChip, indL, lights, indR } = layoutBottomChips(width, height);
-  if (state.unitsMenu) {
-    clearAidChips(absChip, tcsChip, width, Math.max(lap.y + lap.h, fps.y + fps.h), trackTemp);
-  }
+  clearAidChips(absChip, tcsChip, width, Math.max(lap.y + lap.h, fps.y + fps.h), trackTemp);
   return { chip, rows, levelRows, restart, reset, clear, vol, help, absChip, tcsChip, tuneChip,
     panel: tunePanel, tuneRows, tuneReset, tyreHudBtn, speed, lap, trackTemp, fps, tally, indL,
     lights, indR };
@@ -297,10 +295,6 @@ function hitTunePanel(state, rects, point) {
       if (inRect(point, tuneRow.plus)) return { tune: tuneRow.row, dir: +1 };
     }
     if (inRect(point, rects.tuneReset)) return { tuneReset: true };
-    if (!state.hudMenu && inRect(point, rects.tyreHudBtn)) {
-      setHudTyreHud(state, !state.tyreHud);
-      return { consumed: true };
-    }
     if (inRect(point, rects.tuneChip)) {
       state.tuneOpen = false;
       return { consumed: true };

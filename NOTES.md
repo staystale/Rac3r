@@ -33,24 +33,26 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
 
 ## Decisions (owner)
 
+- ONE-SYSTEM CLEAN-UP (10-19, owner): every approved feature below is the only way the game does
+  that job - the old paths and their `=0` switches are deleted (TODO.md lists the groups). What
+  remain are test tools (`?night=`, `?rain=`, `?report=1`, `?skip=`, `?dpr=`, `?autopilot=`)
+  and the CPU ground (`?gpupaint=0` / `?glground=0`, a proof tool until the owner decides).
 - Ground drawn by the GPU (floor, zones, hill shading; fixed-density tiles for the rest), zoom hold
   with smooth moves, frame pacing, minimap (highway too), grippier grass, the Lab split: approved and
   default (10-15 / 10-16).
 - Cars: look B, turned and scaled at screen resolution on the 2D screen canvas (`drawSharpCarLayers`),
-  not strict pixel art; default since 10-16 (`?sharpcars=0` = off). Skid marks drawn on the screen
-  canvas too (no quiver), and the joker lane on the minimap + RESET back onto it: default since 10-17
-  (`?sharpmarks=0`, `?jokerfix=0` = off). Ground tiles at their exact place on the GPU ground, so
-  track edges hold still while zooming: default since 10-17 (`?exacttiles=0`). The pause menu's
+  not strict pixel art; default since 10-16. Skid marks drawn on the screen
+  canvas too (no quiver), and the joker lane on the minimap + RESET back onto it: default since 10-17. Ground tiles at their exact place on the GPU ground, so
+  track edges hold still while zooming: default since 10-17. The pause menu's
   HUD list (each display piece on / off; controls never; tyre / damage OFF stays off when damaged):
-  default since 10-17 (`?hudmenu=0`, `?tyreoff=0`). Loading: the game as one bundled file from
-  the test server and the menu thumbnails saved per version: default since 10-17 (`?bundle=0`,
-  `?thumbcache=0`); the tools (automation) always load the separate modules. The menu: no fly-in behind it, thumbnails
+  default since 10-17. Loading: the game as one bundled file from
+  the test server and the menu thumbnails saved per version: default since 10-17 (`?bundle=0`); the tools (automation) always load the separate modules. The menu: no fly-in behind it, thumbnails
   painted while loading, long-grass blades stroked once (one palette shade off on ~0.2 % of
-  long-grass pixels, owner accepted): default since 10-17 (`?menufast=0`). The long-grass textures
-  painted while loading (the menu's ~125 ms frame): default since 10-17 (`?texwarm=0`). Screen
+  long-grass pixels, owner accepted): default since 10-17. The long-grass textures
+  painted while loading (the menu's ~125 ms frame): default since 10-17. Screen
   sharpness capped at 1.5 device px per CSS px (was 2): default since 10-17 (`?dpr=2` = old). The
-  race start without the fly-in hand-over jolt: default since 10-17 (`?startfix=0`). Ground tile
-  mipmaps built with the upload (no burst at a zoom-out): default since 10-18 (`?zoomswitch=0`). All mud and
+  race start without the fly-in hand-over jolt: default since 10-17. Ground tile
+  mipmaps built with the upload (no burst at a zoom-out): default since 10-18. All mud and
   thick mud freeze by the cover field's frost, driven or not: default since 10-18.
   Sand dents most easily (dry too, 45 cm floor), dry mud / thick mud dent at half the wet rate,
   a churned gravel puddle leaves dirt: default since 10-18. Gravel dents like
@@ -58,7 +60,7 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   snow's rate: default since 10-18. One cold-surface order (water over snow
   over ice; snow never on water; driven ice breaks to water), dry dirt -> mud
   1 in 4 and damp sand / gravel wear, tyre marks fading block by block, the track temp gauge
-  and km/h-mph / C-F rows (`?hudunits=0`): default 10-18.
+  and km/h-mph / C-F rows: default 10-18.
   Tyre-made covers drawn as the field's, tyres cooling toward a track / air mix with
   hot tyres clearing water / ice faster, water / ice / packed snow told apart: default 10-18.
   Pre-turned pixel art (RotSprite)

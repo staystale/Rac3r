@@ -23,14 +23,10 @@ export interface Settings {
   tileGpu: boolean;              // ?tilegpu: paint tiles straight on the GPU canvas
   glGround: boolean;             // ?glground=0: the ground tiles in the 2D art buffer, not WebGL
   gpuPaint: boolean;             // floor + zones painted by the GPU (glpaint.ts); off: ?gpupaint=0
-  minimap: boolean;              // the road-ahead minimap (hud/minimap.js); off: ?minimap=0
   menuVideo: boolean;            // ?menuvideo=1 (parked): the recorded race behind the menu
   rain: number | null;           // ?rain=0.6: the track this wet, 0-1, and raining (weather test)
   night: number | null;          // ?night=0.8: this dark, 0-1 (lighting test, world/daylight.ts)
-  hudMenu: boolean;              // the pause menu's HUD list (menu/race.js); ?hudmenu=0 off
-  tyreOff: boolean;              // tyre / damage OFF stays off when damaged (hud.js); =0 pops up
   oneCanvas: boolean;            // ?onecanvas=1: the GPU ground drawn into the 2D canvas
-  hudUnits: boolean;             // ?hudunits=1: units rows + track temp gauge (hud/tracktemp.js)
   maxDpr: number | null;         // ?dpr=2: the sharpness cap (default render.ts MAX_DPR 1.5)
   noShade: boolean;              // ?noshade: skip the hill shading (perf A/B)
   grassEnds: "round" | "square";   // ?grass=square: square grass blade ends (cheaper; A/B)
@@ -64,11 +60,9 @@ function nightLevel(params: URLSearchParams): number | null {
   return Number.isFinite(level) ? Math.max(0, Math.min(1, level)) : null;
 }
 
-// the weather test tools (?rain= a fixed wet track, ?night= a fixed dark) and the HUD units
-// (=0 off)
+// the weather test tools: ?rain= a fixed wet track, ?night= a fixed dark
 function weatherSettings(params: URLSearchParams) {
-  return { rain: rainLevel(params), night: nightLevel(params),
-    hudUnits: params.get('hudunits') !== '0' };
+  return { rain: rainLevel(params), night: nightLevel(params) };
 }
 
 function churnKind(params: URLSearchParams): '' | 'pictures' | 'objects' {
@@ -106,15 +100,8 @@ export function readSettings(search: string): Settings {
     glGround: params.get('glground') !== '0',
     // default since 2026-10-16 (owner approved on the phone); =0 brings the old path back
     gpuPaint: params.get('gpupaint') !== '0',
-    // default since 2026-10-16 (owner: "mini map tests good"); then the pause setting decides
-    minimap: params.get('minimap') !== '0',
     menuVideo: params.get('menuvideo') === '1',
     ...weatherSettings(params),
-    // default since 2026-10-17: HUD > in the pause menu, an ON / OFF per HUD piece
-    hudMenu: params.get('hudmenu') !== '0',
-    // default since 2026-10-17 (owner: "test passed"): the tyre / damage diagram OFF in the HUD
-    // list means off, even when the car is damaged
-    tyreOff: params.get('tyreoff') !== '0',
     oneCanvas: params.get('onecanvas') === '1',
     maxDpr: maxDpr(params),
     noShade: params.has('noshade'),

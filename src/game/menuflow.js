@@ -21,35 +21,35 @@ import { showMenuVideo, hideMenuVideo } from './menuvideo.js';
 import { BUILD_ID, hasSavedThumbs, readThumbs, saveThumbs } from '../menu/thumbcache.js';
 
 /**
- * Works out whether the minimap and the progress bar show (not with ?minimap=0; then the pause
- * settings of the current difficulty mode) into shared.minimapOn and shared.progressOn, which the
+ * Works out whether the minimap, the progress bar and the track gauge show (the pause settings
+ * of the current difficulty mode) into shared.minimapOn, progressOn and trackTempOn, which the
  * HUD reads every frame.
  */
 export function refreshMinimap() {
-  shared.minimapOn = !!shared.settings.minimap && minimapSetting(shared.aiDiff).on;
-  shared.progressOn = !!shared.settings.minimap && progressSetting(shared.aiDiff);
-  shared.trackTempOn = !!shared.settings.hudUnits && trackTempSetting(shared.aiDiff).on;
+  shared.minimapOn = minimapSetting(shared.aiDiff).on;
+  shared.progressOn = progressSetting(shared.aiDiff);
+  shared.trackTempOn = trackTempSetting(shared.aiDiff).on;
 }
 
 /**
- * The pause menu's HUD list (?hudmenu=0 = off): each piece's label, whether it shows and whether
+ * The pause menu's HUD list: each piece's label, whether it shows and whether
  * this difficulty mode locks it; set() remembers a choice and applies it at once.
  * @returns {object} { items, set }
  */
 function hudActions() {
   const hud = shared.hud, mode = shared.aiDiff;
-  // the minimap and its bar only where the minimap exists (not with ?minimap=0)
-  const mapItems = () => (shared.settings.minimap ? [
+  // the minimap and its bar; the track temperature gauge (the minimap's rule per mode) and the
+  // units
+  const mapItems = () => [
     { id: 'minimap', label: 'MINIMAP', ...minimapSetting(mode) },
     { id: 'progress', label: 'PROGRESS BAR', on: progressSetting(mode), locked: false },
-  ] : []);
-  // ?hudunits=1: the track temperature gauge (the minimap's rule per mode) and the units
-  const unitItems = () => (shared.settings.hudUnits ? [
+  ];
+  const unitItems = () => [
     { id: 'trackTemp', label: 'TRACK TEMP', ...trackTempSetting(mode) },
     { id: 'speedUnits', label: 'SPEED', on: true, locked: false, value: hud.mph ? 'MPH' : 'KM/H' },
     { id: 'tempUnits', label: 'TEMPERATURE', on: true, locked: false,
       value: hud.tempF ? '°F' : '°C' },
-  ] : []);
+  ];
   return {
     items: () => [
       ...mapItems(),
@@ -206,16 +206,7 @@ export function openPause() {
     } : null,
     tests: game.testMode,   // the TESTING list (src/testlist.js) in the pause menu, test mode only
     audio: shared.audio,                  // the SOUND slider + MUTE (menu.js pause)
-    // the MINIMAP row (none with ?minimap=0): this difficulty mode's setting, locked in REAL
-    // the HUD list in place of the MINIMAP row (?hudmenu=0 = the old row)
-    hud: shared.settings.hudMenu ? hudActions() : null,
-    minimap: shared.settings.minimap ? {
-      setting: () => minimapSetting(shared.aiDiff),
-      set: (shown) => {
-        setMinimapSetting(shared.aiDiff, shown);
-        refreshMinimap();
-      },
-    } : null,
+    hud: hudActions(),   // the HUD list (each piece on / off for this difficulty mode)
     exit: () => {
       shared.paused = false;
       enterMenu();

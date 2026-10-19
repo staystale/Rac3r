@@ -27,12 +27,14 @@ handover, written on request.
   the GPU field photographed SAME (shotdiff: only the HUD's live FPS figure); worldhash (a node
   tool that built levels with the module defaults, the weather's puddles off) now builds what the
   game builds: on 9 levels only the level's own puddle covers are gone (the weather makes them).
-  [x] 3 DRAWING (proving): ?sharpcars, ?sharpmarks, ?exacttiles, ?zoomhold, ?zoomswitch,
+  [x] 3 DRAWING (main 86cbd8d; simhash, renderhash SAME, the GPU ground photographed SAME): ?sharpcars, ?sharpmarks, ?exacttiles, ?zoomhold, ?zoomswitch,
   ?startfix, ?texwarm, ?menufast, ?thumbcache, ?tex, ?vsync, ?hwmap, ?jokerfix deleted with their
   old paths (cars / marks in the art buffer, the eased zoom, mips at a zoom-out and the GPU
   ground shader's level-0 switch, a fresh colour probe per colour, unshared blade masks, live
   surface painting as a choice - it stays the fallback for a texture not yet painted).
-  [ ] 4 MENUS / HUD: ?hudmenu, ?tyreoff, ?hudunits, ?minimap (the pause menu's row stays).
+  [x] 4 MENUS / HUD: ?hudmenu, ?tyreoff, ?hudunits, ?minimap deleted with their old paths (the
+  pause menu's old MINIMAP row, the tune panel's TYRE HUD button, the diagram popping up when
+  damaged); the HUD list's MINIMAP / PROGRESS / TRACK TEMP rows decide.
   [ ] 5 THE CPU GROUND (?gpupaint=0 / ?glground=0): renderhash and edgecheck draw it - ASK the
   owner: delete it and point renderhash at the GPU ground (slower proofs, but they prove the
   ground the phone shows), or keep it as a proof tool.

@@ -82,25 +82,13 @@ export function showPause(menu, act) {
 }
 
 /**
- * Adds the HUD > button (the HUD list), or with ?hudmenu=0 the MINIMAP row (owner): on / off for
- * this difficulty mode; REAL has it locked off, greyed out.
+ * Adds the HUD > button (the HUD list: each display piece on / off for this difficulty mode).
  * @param {object} menu the menu context
  * @param {HTMLElement} panel the pause panel
- * @param {object} act the session actions (hud, minimap)
+ * @param {object} act the session actions (hud)
  */
 function addHudButton(menu, panel, act) {
-  if (act.hud) {
-    addButton(menu, panel, 'HUD ›', () => showHudMenu(menu, act));
-    return;
-  }
-  if (!act.minimap) return;
-  const { on, locked } = act.minimap.setting();
-  const label = locked ? 'MINIMAP · OFF IN REAL' : 'MINIMAP · ' + (on ? 'ON' : 'OFF');
-  const button = addButton(menu, panel, label, () => {
-    act.minimap.set(!act.minimap.setting().on);
-    showPause(menu, act);
-  }, on ? 'on' : '', locked);
-  button.setAttribute('aria-pressed', String(on));
+  if (act.hud) addButton(menu, panel, 'HUD ›', () => showHudMenu(menu, act));
 }
 
 /**

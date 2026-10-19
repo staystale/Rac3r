@@ -175,14 +175,12 @@ shared.trafficDensity = shared.settings.trafficDensity;
 if (shared.settings.litter !== null)
   for (const level of LEVELS) if (level.endless) level.litter = shared.settings.litter;
 
-shared.hud = createHud({ hudMenu: shared.settings.hudMenu, tyreOff: shared.settings.tyreOff,
-  unitsMenu: shared.settings.hudUnits });
+shared.hud = createHud();
 setTrackTempSource(() => !!shared.trackTempOn && shared.mode !== 'menu');
 refreshMinimap();
 setMinimapSource(() => !!shared.minimapOn && shared.mode !== 'menu');
-// the progress bar is its own choice with the HUD list (?hudmenu=0: it follows the window)
-setProgressSource(shared.settings.hudMenu
-  ? () => !!shared.progressOn && shared.mode !== 'menu' : null);
+// the progress bar is its own choice in the HUD list
+setProgressSource(() => !!shared.progressOn && shared.mode !== 'menu');
 setMinimapView(() => shared.renderer.PPM);
 // HOW TO PLAY. Opens by itself once per device, after the first fly-in. NOT
 // under automation: Playwright sets navigator.webdriver, and every harness in tools/ taps the HUD

@@ -58,10 +58,8 @@ function loadHudChoices(state) {
     state.mph = localStorage.getItem('carsim.units') === 'mph';
   } catch { /* no storage: km/h */ }
   try {
-    state.tempF = state.unitsMenu && localStorage.getItem('carsim.tempUnits') === 'F';
+    state.tempF = localStorage.getItem('carsim.tempUnits') === 'F';
   } catch { /* no storage: C */ }
-  // the HUD list's choices count only where the list is (not with ?hudmenu=0)
-  if (!state.hudMenu) return;
   for (const pieceId of HIDEABLE) {
     try {
       if (localStorage.getItem(pieceKey(pieceId)) === '0') state.hidden.add(pieceId);
@@ -84,30 +82,13 @@ function setPieceShown(state, pieceId, shown) {
 }
 
 /**
- * Whether the tyre / damage diagram is drawn: the tyre HUD is on, OR the car is damaged
- * (requirement: use that for damage too). With the HUD list OFF means off (?tyreoff=0: damaged
- * shows it again) (owner: "No, OFF means off"); the damage still shows on the car itself.
- * @param {object} state the HUD state (tyreHud, hudMenu, tyreOff)
- * @param {object} car the player's car (dmg, punct)
- * @returns {boolean} drawn
- */
-function showsCarDiagram(state, car) {
-  if (state.tyreHud) return true;
-  if (state.hudMenu && state.tyreOff) return false;
-  return !!(car.dmg && car.dmg.some((amount) => amount >= 0.05)
-    || (car.punct && car.punct.some(Boolean)));
-}
-
 /**
  * The HUD's state at start-up, before the device's choices are loaded.
- * @param {{hudMenu?: boolean, tyreOff?: boolean, unitsMenu?: boolean}} options createHud's
  * @returns {object} the state
  */
-function newHudState(options) {
+function newHudState() {
   return {
-    hudMenu: !!options.hudMenu,
-    tyreOff: !!options.tyreOff,
-    hidden: new Set(),      // HIDEABLE pieces the player turned off (with the HUD list only)
+    hidden: new Set(),      // HIDEABLE pieces the player turned off (the pause menu's HUD list)
     expanded: false,        // car list
     tuneOpen: false,        // debug/tuning panel — only one of the two is ever open
     shiftFlash: 0,
@@ -120,15 +101,15 @@ function newHudState(options) {
     // OPTIONAL TYRE / DAMAGE HUD (requirement: hud should be optional, turn on and off). Off by
     // default — the car itself shows only realistic feedback (faint cold marks, marbles, smoke).
     // Remembered per device; storage can throw in private windows, so every access is guarded.
-    // carDiagram: whether it is drawn this frame (showsCarDiagram)
+    // carDiagram: whether it is drawn this frame: the HUD list's TYRE / DAMAGE choice (owner:
+    // "No, OFF means off" - a damaged car shows its damage on itself)
     tyreHud: false,
     carDiagram: false,
     // SPEED UNITS (requirement: tapping the speed / kph should change it to mph), remembered on the
     // device
     mph: false,
-    // TEMPERATURE UNITS (?hudunits=1, the HUD list): the tyre numbers and the track gauge in °F
+    // TEMPERATURE UNITS (the HUD list): the tyre numbers and the track gauge in °F
     tempF: false,
-    unitsMenu: !!options.unitsMenu,
     flagSeen: 0, flagAt: 0, flagTxt: '',
     drawLightsLater: null,
   };
@@ -136,20 +117,17 @@ function newHudState(options) {
 
 /**
  * Builds the HUD.
- * @param {{hudMenu?: boolean, tyreOff?: boolean, unitsMenu?: boolean}} [options] hudMenu: the
- *   pause menu's HUD list; tyreOff: the tyre / damage diagram OFF stays off when damaged
- *   (?tyreoff=0 = pops up); unitsMenu: the units rows and track gauge (?hudunits=1)
  * @returns {object} draw, hit, layout and the HUD's choices
  */
-export function createHud(options = {}) {
-  const state = newHudState(options);
+export function createHud() {
+  const state = newHudState();
   loadHudChoices(state);
   const setTyreHud = (enabled) => setHudTyreHud(state, enabled);
   const layout = (width, height) => layoutHud(state, width, height);
   const hit = (point, width, height, car) => hitHud(state, point, width, height, car);
 
   function draw(ctx, game, width, height, wallDt) {
-    state.carDiagram = showsCarDiagram(state, game.car);
+    state.carDiagram = state.tyreHud;
     try {
       state.drawLightsLater = () => {
         drawHudLights(ctx, game, width, height);

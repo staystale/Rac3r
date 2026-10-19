@@ -1,7 +1,6 @@
 // hud/overlays.js — tune panel, signal lights, notice card, speed camera card and race flag.
 // Pure moves out of hud.js.
 
-import { COL } from '../world/colours.ts';
 import { isChanged } from '../tune.js';
 import { drawHudPanel, drawHudLabel } from './widgets.js';
 
@@ -32,14 +31,6 @@ export function drawHudTune(ctx, state, rects, car) {
       drawHudLabel(ctx, sign, button.x + button.w / 2, button.y + button.h / 2 + 0.5,
         { size: 15, align: "center", weight: 700 });
     }
-  }
-  // with the pause menu's HUD list (?hudmenu=0 = off) the tyre / damage toggle lives there instead
-  if (!state.hudMenu) {
-    drawHudPanel(ctx, rects.tyreHudBtn,
-      { fill: state.tyreHud ? 'rgba(76,194,160,0.92)' : 'rgba(255,255,255,0.10)', stroke: null });
-    drawHudLabel(ctx, state.tyreHud ? 'TYRE HUD: ON' : 'TYRE HUD: OFF', rects.tyreHudBtn.x
-      + rects.tyreHudBtn.w / 2, rects.tyreHudBtn.y + rects.tyreHudBtn.h / 2,
-      { size: 10, weight: 700, align: 'center', col: state.tyreHud ? '#0d1a16' : COL.hudText });
   }
   drawHudPanel(ctx, rects.tuneReset, { fill: "rgba(216,69,60,0.85)", stroke: null });
   drawHudLabel(ctx, "RESET TUNING", rects.tuneReset.x + rects.tuneReset.w / 2, rects.tuneReset.y
