@@ -53,8 +53,8 @@ export function showPause(menu, act) {
     showSound();
     });
     showSound();
-    if (act.clock) addPauseClock(row);   // the alarm clock beside MUTE (?pauseclock=0 off)
-  } else if (act.clock) addPauseClock(addElement(panel, 'div', '', 'row'));
+    addPauseClock(row);   // the alarm clock beside MUTE (menu/pauseclock.ts)
+  } else addPauseClock(addElement(panel, 'div', '', 'row'));
   addHudButton(menu, panel, act);
   addButton(menu, panel, 'RESTART SESSION', () => {
     hideMenu(menu);

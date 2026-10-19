@@ -98,14 +98,16 @@ any cover (snow, ice, puddle) and the wear state of the cell.
   `objects.ts` (cones, tyres, tape, debris), `props.ts` + `props/` (fence, barriers, buildings, scenery,
   bridges), `cars.ts` with `carsprite.ts` (one cached sprite per livery) and `cardamage.ts`,
   `particles.ts`.
-- `render/light.ts` (`?night=`, a test): the night layer - a light map the art buffer's size, the
-  dark filled and headlight beams / floodlight pools rubbed out, laid over the screen canvas once a
-  frame under the HUD. The light level is `world/daylight.ts`; the AI and traffic run headlights
-  by it (`game/sim.js updateFieldHeadlights`; `?fieldlights=0` = by the player's LIGHTS).
-- Lamps (default; `?lamps=0` off): `world/lamps.ts` makes the level's street lights (`lamps` data) and
-  floodlight pylons into lamps with a solid post (`barriers.ts solidClamp`), lit from dusk; the night
-  layer draws their pools, `render/props/lamps.ts` the street lights (overhead layer).
-- The game clock (default; `?daytime=0` off): `world/clock.ts` - a global time of day / season / moon
+- `render/light.ts`: the night layer, the ONLY light system (cars and props paint lamps, never
+  light) - a light map the art buffer's size, the dark filled, headlight beams, lamp pools and the
+  cars' lamp glows rubbed out, then the pools' warm tint and the glows' colour laid in; laid over
+  the screen canvas once a frame under the HUD (nothing by day). The light level is
+  `world/daylight.ts` (`?night=` fixes it, a test tool); the AI and traffic run headlights by it
+  (`game/sim.js updateFieldHeadlights`; the player's LIGHTS are their own).
+- Lamps: `world/lamps.ts` makes the level's street lights (`lamps` data) and floodlight pylons
+  into lamps with a solid post (`barriers.ts solidClamp`), lit from dusk; the night layer draws
+  their pools, `render/props/lamps.ts` the street lights (overhead layer).
+- The game clock: `world/clock.ts` - a global time of day / season / moon
   (1 game day = 1 real hour, a season 7 days), saved in its own storage key, run by the sim step
   in events (`game/loop.js`); it sets the sky (`daylight.ts setSky`: darkness and the dark's
   colour) that the night layer, the lamps and the headlights follow. TEST MODE setup: TIME OF DAY.

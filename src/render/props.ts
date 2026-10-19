@@ -105,7 +105,7 @@ function propVisible(view: View, prop: Prop, screenX: number, screenY: number, p
 function drawPropList(propCtx: PropCtx, overhead = false) {
   const { view, PPMz, toScreenX, toScreenY, drawSlip } = propCtx;
   const ppm = PPMz();
-  // the street lights (?lamps=1): standing heads hang above the cars, fallen posts lie under them
+  // the street lights: standing heads hang above the cars, fallen posts lie under them
   drawStreetLights(propCtx, ppm, overhead);
   if (!PROPS || !PROPS.length) return;
   for (const prop of PROPS) {

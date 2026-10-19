@@ -264,7 +264,7 @@ export function solidClamp(car: CarBody): void {
   if ((!list || !list.length) && !lamps.length) return;
   const spec = car.spec, halfLen = spec.len * 0.48, halfWid = spec.wid * 0.48;
   if (list) for (const solid of list) clampToSolid(car, solid, halfLen, halfWid);
-  // the lamp posts (?lamps=1): a hit may lean, dim or snap them; a fallen post is driven over
+  // the lamp posts: a hit may lean, dim or snap them; a fallen post is driven over
   for (const lamp of lamps) {
     if (lamp.down) driveOverPost(car, lamp);
     else clampToSolid(car, lamp.solid, halfLen, halfWid, lamp);
@@ -276,7 +276,7 @@ export function solidClamp(car: CarBody): void {
  * @param solid the solid box
  * @param halfLen the car's half length for clamping, m
  * @param halfWid the car's half width for clamping, m
- * @param lamp the lamp the solid is a post of (?lamps=1), if it is one
+ * @param lamp the lamp the solid is a post of, if it is one
  */
 function clampToSolid(car: CarBody, solid: Solid, halfLen: number, halfWid: number,
     lamp: Lamp | null = null): void {

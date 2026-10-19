@@ -9,7 +9,7 @@ import { startServer, launchBrowser, gotoGame } from '../lib/browser.mjs';
 const server = await startServer();
 const browser = await launchBrowser();
 try {
-  for (const [mode, query] of (process.argv[2] === 'map' ? [['map', '&glowmap=1']] : [['old', ''], ['map', '&glowmap=1']])) {
+  for (const [mode, query] of [['now', '']]) {
     for (const viewport of [{ width: 844, height: 390 }, { width: 390, height: 844 }]) {
       const context = await browser.newContext({ viewport, deviceScaleFactor: 3, isMobile: true,
         hasTouch: true });

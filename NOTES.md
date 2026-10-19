@@ -12,7 +12,11 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
 - One step at a time, then pause for the owner's phone verdict. Give tap-able links.
 - The plain test link is the approved game. Anything new goes behind a `?switch` for a phone test
   first, even when the owner asked for it. On the owner's OK it becomes the default the same day
-  (`=0` keeps the old path), its testlist entry is deleted and the verdict noted in `TODO.md`.
+  and the OLD PATH IS DELETED (no `=0` kept), its testlist entry is deleted and the verdict noted
+  in `TODO.md`.
+- ONE SYSTEM FOR EVERYTHING (owner, 10-18: "we don't need old systems and new systems getting
+  crossed up"): never two ways of doing one job (the car pictures' own daytime beam met the night
+  layer at dusk). Before building, check nothing already does it; extend that instead.
 - Links to the owner: the plain link plus only the switch under test, `&report=1` for a measured run.
   For a judder question ask for two runs back to back, with and without the switch, same level.
 - When the owner reports something that looks wrong, fix it; do not spend effort proving whose fault
@@ -95,17 +99,18 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   first, then features one at a time. Light fixtures are solid; street lights knockable (nudge =
   wonk + flicker, hard hit = out by degrees, fallen = debris, mangled per hit); pools below a
   lamp; lamps and AI / traffic headlights follow the light level; the player's LIGHTS stay
-  manual and do not switch anyone else's (default since 10-18; ?fieldlights=0 = old). The night
+  manual and do not switch anyone else's (10-18). The night
   layer cost nothing measurable on the phone (L1 passed). Full list in `TODO.md` LIGHTING.
 - Time of day (10-18): ONE global game clock that holds for the story (runs while playing,
   saved); 1 game day = 1 real hour; a season = 7 game days; UK-like days with moon phases;
   a start-hour slider in TEST MODE only; the race behind the menu follows the global time and
-  season. Lamps (every level, knock-downs) and the clock: the DEFAULT since 10-18 (owner "all
-  pass"; ?lamps=0 / ?daytime=0 off). Light comes from where the lamp's body is (owner).
-  The lamp glows are part of the one night layer (a tint in the light map, not added on the
-  screen): default since 10-18 (?glowmap=0 = old; owner: close is fine "so long as it's clear").
-  The pause menu's gold alarm clock beside MUTE (the game time; glows after dark): default
-  since 10-18 (?pauseclock=0 off).
+  season. Lamps (every level, knock-downs) and the clock: approved 10-18 (owner "all pass").
+  Light comes from where the lamp's body is (owner). THE NIGHT LAYER IS THE ONLY LIGHT (10-18):
+  headlight beams (no picture beam by day: owner "onelight pass"), lamp pools with their warm
+  tint (the pylon prop's own pool folded in: owner "it should all be on the new glow style"),
+  the cars' lamp glows (a tint in the light map; owner: close is fine "so long as it's clear").
+  The pause menu's gold alarm clock beside MUTE (the game time; glows after dark): 10-18.
+  Their switches are deleted (the one-system clean-up).
 - Code (owner, 10-18): new modules are TypeScript (.ts); the remaining .js files are older.
 - "Straight Outta Swindon" is a reserved name for a future highway level (the test straight that
   used it was removed 10-17).
@@ -160,6 +165,9 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
 - The test server sends the game as ~160 modules, never cached: over the tunnel that is seconds
   of load before our code runs; the bundle (one file, the default) fixed it. Measure the
   phone's load with `loadMs` (`phonereport` prints it).
+- iOS LOW POWER MODE (and a hot phone, e.g. charging hard) caps Safari at 30 fps: every frame
+  33 ms, the menu too, our JS 2-6 ms (10-18, felt as "major lag" and the ground painting falling
+  behind). `phonereport` flags such a run (CAPPED AT ~30 fps); ask about it before chasing.
 - `?report=1` records without drawing the meter graph (`?meter=1` shows it). It records the
   menu too: `phonereport` prints a MENU run (frame times, ignored taps, slowest tap handler).
 

@@ -1,4 +1,4 @@
-// THE LAMP PLAN (?lamps=1; owner: "lamps / lighting on all levels ... test levels included, have
+// THE LAMP PLAN (owner: "lamps / lighting on all levels ... test levels included, have
 // fun / be logical"): where each level's lights stand, by its kind (world/levels/category.ts),
 // worked out once when the level is first lit. Every spot must be clear: inside the floor, off
 // the track and the lanes, away from solids, barriers, loose objects, zones and other lamps.

@@ -129,7 +129,7 @@ const SKY_EASE = 1 / 15, TEMP_EASE = 1 / 60;
 // s between chances of a change of weather in SEASON mode, and the chance it stays the same
 const CHANGE_S: [number, number] = [70, 180];
 const STAY_CHANCE = 0.45;
-// SUN TEMPERATURE (?suntemp=1; owner: the track warms and cools with the light, so it cannot heat
+// SUN TEMPERATURE (owner: the track warms and cools with the light, so it cannot heat
 // up as it gets dark): the sun's heat on the track follows the clock's sun (clock.ts sunShareNow:
 // none at night, all of it at noon) and the air swings this much either side of its day's value,
 // C (night to midday); sampled every SUN_EVERY_S of sim time
@@ -181,22 +181,14 @@ const RUN = {
   targetSnow: 0,
   targetAirC: 18,
   targetTrackC: 18,
-  airAimC: 18,      // the weather's air, before the day's swing (?suntemp=1)
+  airAimC: 18,      // the weather's air, before the day's swing
   sunTrackC: 0,     // what a noon sun adds to the track in this weather, C
   sinceSunS: 0,     // sim s since the sun was last sampled
 };
-let sunTemp = false;
-
-/**
- * Turns the sun temperature on (?suntemp=1): air and track follow the clock's sun.
- * @param isOn true for it
- */
-export function setSunTemp(isOn: boolean): void { sunTemp = isOn; }
-
-/** Points the temperature targets at the weather and (?suntemp=1) the sun now. */
+/** Points the temperature targets at the weather and the sun now (air and track follow it). */
 function aimTemps(): void {
-  const share = sunTemp ? sunShareNow() : 1;
-  RUN.targetAirC = RUN.airAimC + (sunTemp ? AIR_DAY_SWING_C * (2 * share - 1) : 0);
+  const share = sunShareNow();
+  RUN.targetAirC = RUN.airAimC + AIR_DAY_SWING_C * (2 * share - 1);
   RUN.targetTrackC = RUN.targetAirC + RUN.sunTrackC * share;
 }
 
@@ -341,7 +333,7 @@ export function stepWeather(dt: number): { text: string; good: boolean } | null 
   WEATHER.rain = ease(WEATHER.rain, RUN.targetRain, SKY_EASE, dt);
   WEATHER.snow = ease(WEATHER.snow, RUN.targetSnow, SKY_EASE, dt);
   RUN.sinceSunS += dt;
-  if (sunTemp && RUN.sinceSunS >= SUN_EVERY_S) {
+  if (RUN.sinceSunS >= SUN_EVERY_S) {
     RUN.sinceSunS = 0;
     aimTemps();
   }

@@ -1,4 +1,4 @@
-// The STREET LIGHTS (?lamps=1, world/lamps.ts) seen from above. Standing (the overhead layer:
+// The STREET LIGHTS (world/lamps.ts) seen from above. Standing (the overhead layer:
 // the head hangs above the cars): the post's foot, the pole when it leans (its top moves by the
 // lean), the arm reaching out over the road and the head at its end, pale when off and glowing
 // warm when lit (dipping as it flickers). Fallen (the ground layer, under the cars): the pole
@@ -14,25 +14,18 @@ import type { PropCtx } from './types.ts';
 
 // sizes seen from above, m: the post, the pole / arm width, the head's length and width
 const POST_M = 0.3, ARM_WIDE_M = 0.14, HEAD_LONG_M = 0.8, HEAD_WIDE_M = 0.36;
-// a lit head's glow radius, m; how far one pass bends a fallen pole sideways, m
-const GLOW_M = 1.1, BEND_PER_PASS_M = 0.5;
+// how far one pass bends a fallen pole sideways, m (a lit head's glow is the night layer's)
+const BEND_PER_PASS_M = 0.5;
 const POLE = '#7d858f', POST = '#3b4048', HEAD_RIM = '#5c636c';
 
 /**
- * The lamp head: its rim and its lens, warm when lit (by this frame's brightness).
+ * The lamp head: its rim and its lens, warm when lit (by this frame's brightness; the glow
+ * round it is the night layer's, render/light.ts).
  * @param ctx the context, at the head's centre, along the arm
  * @param ppm pixels per metre
  * @param shown the lamp's brightness this frame, 0..1 (0: off)
  */
 function drawHead(ctx: CanvasRenderingContext2D, ppm: number, shown: number) {
-  if (shown > 0) {
-    ctx.globalAlpha = 0.35 * shown;
-    ctx.fillStyle = '#ffd98a';
-    ctx.beginPath();
-    ctx.arc(0, 0, GLOW_M * ppm, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.globalAlpha = 1;
-  }
   ctx.fillStyle = HEAD_RIM;
   ctx.fillRect(-HEAD_LONG_M / 2 * ppm, -HEAD_WIDE_M / 2 * ppm, HEAD_LONG_M * ppm,
     HEAD_WIDE_M * ppm);

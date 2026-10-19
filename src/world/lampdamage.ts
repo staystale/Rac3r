@@ -1,4 +1,4 @@
-// LAMP DAMAGE (?lamps=1; owner): what a car does to a lamp it hits. A NUDGE wonks the post (it
+// LAMP DAMAGE (owner): what a car does to a lamp it hits. A NUDGE wonks the post (it
 // leans away from the car) and sets its light flickering but it stays lit; a HARD hit dims it by
 // degrees until it goes out (as a car's headlights fail); a street light hit hard enough, or
 // leaning too far, SNAPS and falls the way the car was going - the car loses part of its speed

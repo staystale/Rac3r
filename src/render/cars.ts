@@ -149,58 +149,18 @@ export function indicatorBlinkOn(): boolean {
   return Math.floor(performance.now() / 333) % 2 === 0;
 }
 
-// ONE LIGHT (?onelight=1, under test): the night layer (render/light.ts) is the only light the
-// headlights throw, at every hour - the car picture paints the lamps alone, never its own beam
-// (without it, by day the picture painted a yellow cone and from the first dusk the night layer
-// took over: two systems meeting at darkness 0)
-let oneLight = false;
-
 /**
- * Turns the one light system on or off (main.js, at start-up).
- * @param isOn true: no beam in the car pictures
- */
-export function setOneLight(isOn: boolean): void { oneLight = isOn; }
-
-/**
- * Whether the car picture paints its own headlight beam (by day, without ?onelight=1).
- * @param car the car
- * @returns true for a beam in the picture
- */
-function picturesBeam(car: RenderCar): boolean {
-  return !!car.lightsOn && !oneLight && DAYLIGHT.darkness <= 0;
-}
-
-/**
- * HEADLIGHTS: two soft beams ahead (drawn in the car's frame, art px), brighter lamps. In the dark
- * (?night=), and at every hour with ?onelight=1, only the lamps: the night layer
- * (render/light.ts) draws the light they throw.
+ * HEADLIGHTS: the two lit lamps at the front. The light they throw is the night layer's
+ * (render/light.ts), at every hour: the picture paints no beam.
  * @param carsCtx the shared view and helpers
  * @param car the car
  * @param sprite the body sprite
  */
 function drawHeadlights(carsCtx: CarsContext, car: RenderCar, sprite: CarSprite) {
   const { view } = carsCtx;
+  view.ctx.fillStyle = '#fffbe6';
   for (const [y, corner] of [[-sprite.Wp / 2 + 4, 0], [sprite.Wp / 2 - 4, 1]]) {
-    const level = lampLevel(car, corner);
-    if (!level) continue;
-    if (!picturesBeam(car)) {
-      view.ctx.fillStyle = '#fffbe6';
-      view.ctx.fillRect(sprite.Lp / 2 - 3, y - 2, 3, 4);
-      continue;
-    }
-    const beam = view.ctx.createLinearGradient(sprite.Lp / 2, 0, sprite.Lp / 2 + 190, 0);
-    beam.addColorStop(0, 'rgba(255,244,200,' + (0.34 * level).toFixed(3) + ')');
-    beam.addColorStop(1, 'rgba(255,244,200,0)');
-    view.ctx.fillStyle = beam;
-    view.ctx.beginPath();
-    view.ctx.moveTo(sprite.Lp / 2 - 1, y - 2);
-    view.ctx.lineTo(sprite.Lp / 2 + 190, y - 34 + (y > 0 ? 30 : 0));
-    view.ctx.lineTo(sprite.Lp / 2 + 190, y + 34 - (y < 0 ? 30 : 0));
-    view.ctx.lineTo(sprite.Lp / 2 - 1, y + 2);
-    view.ctx.closePath();
-    view.ctx.fill();
-    view.ctx.fillStyle = '#fffbe6';
-    view.ctx.fillRect(sprite.Lp / 2 - 3, y - 2, 3, 4);
+    if (lampLevel(car, corner)) view.ctx.fillRect(sprite.Lp / 2 - 3, y - 2, 3, 4);
   }
 }
 
@@ -349,26 +309,14 @@ export interface CarPicture {
   originY: number;
 }
 
-// how far the headlight beams reach ahead of the body and to each side, sprite px (drawHeadlights)
-const BEAM_AHEAD = 192, BEAM_SIDE = 38;
-// NIGHT PICTURES (?nightpics=0 off): in the dark the picture paints no beam (the night layer
-// lights the road), so it leaves out the beam's room - with every car's lights on at night the
-// room made each picture ~3x the area, painted and turned onto the screen every frame
-let nightPics = true;
-
-/**
- * Turns the night pictures on or off (main.js, at start-up).
- * @param isOn true: no beam room in the dark
- */
-export function setNightPics(isOn: boolean): void { nightPics = isOn; }
 // room round the body for the wheels, the shadow and the lamps, sprite px
 const PICTURE_PAD = 14;
 
 /**
  * Paints one car facing along +x into its own picture, each sprite pixel a block of enlarge x
  * enlarge, with drawPixelCar itself (shadow, wheels, body, damage, lamps, a roll), for the screen
- * canvas to turn and scale (render.ts drawSharpCarLayers). The picture reaches the headlight
- * beams when the lights are on. The origin sits so the sprite's pixels land on whole blocks.
+ * canvas to turn and scale (render.ts drawSharpCarLayers). The origin sits so the sprite's
+ * pixels land on whole blocks.
  * @param carsCtx the shared view and helpers
  * @param car the car
  * @param picture the car's picture, resized when needed
@@ -380,9 +328,8 @@ function paintCarPicture(carsCtx: CarsContext, car: RenderCar, picture: CarPictu
   const sprite = pixelCar(car.spec);
   const pad = PICTURE_PAD + (car.roll && car.roll.phi ? sprite.Wp : 0);
   const back = Math.ceil(sprite.Lp / 2 + pad);
-  const hasBeam = picturesBeam(car) || (!!car.lightsOn && !oneLight && !nightPics);
-  const ahead = Math.ceil(sprite.Lp / 2 + pad + (hasBeam ? BEAM_AHEAD : 0));
-  const side = Math.ceil(Math.max(sprite.Wp / 2 + pad, hasBeam ? BEAM_SIDE : 0));
+  const ahead = Math.ceil(sprite.Lp / 2 + pad);
+  const side = Math.ceil(sprite.Wp / 2 + pad);
   const width = (back + ahead) * enlarge, height = side * 2 * enlarge;
   if (picture.canvas.width !== width || picture.canvas.height !== height) {
     picture.canvas.width = width;

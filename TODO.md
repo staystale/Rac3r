@@ -170,6 +170,17 @@ the git history. `docs/foreman-handover.md` is the last handover (10-18, cover f
   pauseclock.ts - seven-segment digits (unlit segments faint), season / day beside, the moon
   after dark when full or new; reads the event's clock (the sky's time); glows from darkness
   0.35 (headlights on). Photos: tools/scratch/_pauseclock.mjs.
+- ONE-SYSTEM CLEAN-UP (owner 10-18: "make sure we only have one system for everything ... we
+  don't need old systems and new systems getting crossed up"; approved, before the TypeScript
+  conversion): every approved switch's old path deleted, in groups, each proved SAME (worldhash,
+  simhash, renderhash vs the refs on main) - the plain game unchanged.
+  [x] 1 LIGHTS + TIME: ?lamps, ?fieldlights, ?daytime, ?suntemp, ?nightpics, ?glowmap,
+  ?pauseclock, ?onelight (owner "onelight pass": the car pictures paint lamps only, the night
+  layer is the only light at every hour) deleted; the pylon prop's own warm pool folded into the
+  night layer as every lamp pool's tint (owner). ?night= stays (a test tool, not a system).
+  [ ] 2 WEATHER / SURFACES / TYRES  [ ] 3 DRAWING  [ ] 4 MENUS / HUD
+  [ ] 5 THE CPU GROUND (?gpupaint=0 / ?glground=0): renderhash and edgecheck draw it - ASK the
+  owner (delete it and point renderhash at the GPU ground, slower proofs, or keep it as a tool).
 - [ ] SUN TEMPERATURE behind ?suntemp=1 (owner 10-18: "track temp should warm up and cool down
   with light a bit - so it can't heat up as it gets dark"; testlist suntemp): the weather's sun
   heat on the track x clock.ts sunShareNow (0 at night, sin to 1 at noon), air +-2.5 C by the same
@@ -905,150 +916,42 @@ surface (task 218), one water look, hill shading on a world grid with 0.5 m cell
       matching too": no longer heading-up - it faces the main view's way, the window pushed ahead
       of the car in the direction of travel (eased), the chevron pointing where the car points.
 
-## Open items carried over (not re-checked since they were written; some may be done)
+## STILL OPEN from the older lists (swept 2026-10-18)
 
-## USER SPEC DUMP (2026-10-04, late) — recorded before any work; QUICK FIXES first, the big systems are PLAN-FIRST (discuss)
-- [ ] MORE LEVELS + MORE CARS (user, 2026-10-04: "more levels and more cars too").
-- [ ] GARAGE SYSTEMS — DECIDED (user, 2026-10-04):
-      TYRES: "do your recommended" but 4 BRANDS / 15 TYPES (Creem is an oil brand: dropped): SPUM (budget: Pre-Spun +0 = today's floor,
-        All-Season, Mud-Plugger), KUM (road: Road Sport, Semi-Slick, Drift, Wet), DUNFLOP (rally / off-road: Gravel, Soft Gravel, Tarmac Rally,
-        Studded Snow, All-Terrain), PIRRELLY (race: Soft, Medium, Full Wet). Grip per surface group (hard / wet / loose / soft / snow) + heat;
-        fit by class; prices shown (test mode: not charged); the stats panel shows the effect.
-      CLASSES: ROAD (hatch, saloon, sports, muscle) · RALLY (1L / 2L / 2L+ / Group B) · RALLYCROSS · STOCK CAR / GRASS TRACK · OVAL ·
-        SINGLE-SEATER (F1 / F2 / FE-ish) · DRIFT · OFF-ROAD / ODD; car menu filtered class -> subclass; upgrades never change class.
-      PAINT: 16-colour palette body + trim, a NUMBER 1-99 drawn big where the car has room, PREVIEW on the lift, APPLY saves; follows the car.
-      ORDER: classes + filtered menu -> paint + number -> tyres.   [x] CLASSES done 2026-10-04 (ENGINE.md "Garage step 1")  [x] PAINT + NUMBER done 2026-10-04 ("Garage step 2"); Subaroo -> RALLY 2L+; picker grouped + coloured
-      [x] TYRES done 2026-10-04 ("Garage step 3").  [x] AI race within the class (setup toggle).  [x] joker HUD switches live.
-      [x] MORE CARS 2026-10-04: +9 (Mini, Lambo, Mikra 1L, 306 Maxxi 2L, Fiester RX, BriSKA stock, Autograss, Sylvya drift, F2).
-      Known: kit car AI 8.7 s off at Sweaty Lamb ~1712 m. NEXT: one of every EVENT type + levels (user order), then story (discuss).  Also done: lamps break with damage; tape puffs on its 2nd hit.  OPEN Q: number the AI cars too?
-      THEN (user, 2026-10-04): "after this can we do MORE CARS" — new cars right after the garage systems, before events/levels.
-- [ ] STORY MODE: ROOKIE SEASON (grass track, stock car, time trials: hillclimb / runway time trial in cones) -> ROOKIE 2 (similar events, track
-      variations, harder to win). We select which events are in. MONEY / POINTS also for NOT finishing top 3 (it's hard); REPLAYABLE events /
-      championships for higher scores + more money (finish 5th throughout, earn some, upgrade, come back and win).
-- [ ] UPGRADES limited by SERIES ELIGIBILITY: over-upgrade and the car no longer qualifies — downgrade or buy another car.
-- [ ] GARAGE: pick COLOUR; pick a NUMBER drawn clearly on the bonnet / roof (wherever free on that model) = your ID; a PREVIEW and an APPLY;
-      applied colours / number / upgrades follow the car into race and test events.
-- [ ] TYRES FIRST UPGRADE: manufacturers, ranges per class / vehicle; only fit what fits the class/car; e.g. rally / off-road tyres on a road
-      car = more off-road grip, heat up too quickly on tarmac; wets, race, intermediates — a real mix with distinct grip interactions.
-      TODAY's grip ("feels low generally, on road and off") = the FLOOR: "SPUM — pre-spun tyres, +0 grip".
-- [ ] CLASSES: rally / road / stock car / grass track / naffcar / F1 F2 FE...; drift, muscle, sports...; SUBCLASSES (rally 1L / 2L / 2L+ /
-      Class B...) for events; the car menu FILTERS by class then subclass; upgrading never changes a car's class; mods shown with the stats and
-      how they change them. Example upgrade: "Engine v2: top speed +10 mph".
+The lists written 09-27 .. 10-04 were checked against the code; what is done was deleted (git has
+it): hold-R reverse, RESET breadcrumbs, the grass track's random layout every load, the cover
+layers (snow / ice / water over any surface, melting, freezing), mud ruts and dips, tyre heat per
+wheel and cooling, weather drying water, mark fade, the speed zoom, the garage (classes, paint +
+number, the tyre brands SPUM / KUM / DUNFLOP / PIRRELLY), the bigger lab, audio, screen shake.
 
-## AI rounds 1-4, Killder all accepted.
-- [ ] NEW CARS FEEDBACK (user): "look a little less standard, more like their unique real counterparts" (both); WRZ "feels a bit SLOW at
-      acceleration / unable to WHEELSPIN or DRIFT"; BMV handling okay.
+GAME (owner decides the order):
+- [ ] STORY MODE: ROOKIE SEASON (grass track, stock car, time trials: hillclimb / runway cones) ->
+  ROOKIE 2 (similar events, track variations, harder to win); we pick the events; money / points
+  also for NOT finishing top 3; replayable events / championships for more money (finish 5th,
+  earn, upgrade, come back and win). Not started (the menu shows Story locked). Outside TEST MODE
+  the setup's SEASON slider gives way to the global season then.
+- [ ] UPGRADES + PROGRESSION: every car from base spec up (BRIEF.md's 10-pip system; the mods seam
+  exists, every multiplier 1.0); limited by SERIES ELIGIBILITY (over-upgrade and the car no longer
+  qualifies); mods shown with the stats ("Engine v2: top speed +10 mph"). Not started.
+- [ ] BRIEF.md open questions before the economy: rivals vs ghosts, the broke-player floor, fuel /
+  damage persistence, what a pip is worth in lap seconds.
+- [ ] MORE LEVELS + EVENTS: one of every event type; DIEATONA - Naffcar rebuilt as the Daytona
+  tri-oval parody (31 deg turns, 18 deg tri-oval, flat back straight, pit lane, grandstands,
+  infield lake, rolling start, "subtle skulls" in the decorations; the old Naffcar kept as
+  classic). Not started.
+- [ ] MORE CARS + car feedback (10-04; ASK if it still stands): cars "a little less standard, more
+  like their unique real counterparts"; the WRZ slow to accelerate, cannot wheelspin or drift;
+  the track car should look like an F1 car (bigger wheels, proportions).
 
-## SESSION 2026-10-04 (b) — user: "stage two is ongoing but feels ok; progress with this to do list as far as you can"
-- [ ] ITCH RULE (user, 2026-10-04): "DON'T PUSH yet — wait till we're NEARLY OUT OF CREDITS" (then re-stage + push the latest; ask for the key).
+DRIVING (ask before starting; re-measure first, these are old):
+- [ ] THE ROOT FIX: wheel angular velocity as real state (the rolling and sliding tyre laws
+  disagreed ~2.8x at breakaway; ENGINE.md has the two reverted attempts). Ask first.
+- [ ] Threshold braking regressed (full pedal optimal again; brake force wants ~1.7 g).
+- [ ] Naffcar V8 failed the lap driver on its own track (12.7 s off the road).
+- [ ] Tyre marks (rubber) adding grip on the racing line; cross-surface contamination (mud carried
+  onto tarmac). Not built - ASK if wanted.
+- [ ] Outer tyre walls (grass track, stock car): should they CATCH cars (heavier stacks / a double
+  row)? Owner decision open since 10-03.
 
-## PLAN (user notes 2026-10-04, digested) — work top to bottom; tick + record numbers as each lands
-- [ ] DAYTONA DECIDED (user, 2026-10-04): name "DIEATONA"; tri-oval + pits + scenery (31 deg turns, 18 deg tri-oval, flat back straight, pit lane,
-      grandstands, infield lake, rolling start), keep old Naffcar as classic; "slip in some SUBTLE SKULLS in the decorations layout".
-- [ ] NAFFCAR REBUILD = DAYTONA tri-oval parody (user, 2026-10-04): trace the real map, real banking (31 deg turns, 18 deg tri-oval), pits + scenery.
-- [ ] PERF: Sweaty Lamb ground tiles ~35 ms (others ~26) — A/B long grass vs grass was inside the noise today (machine load swings);
-      re-measure on a quiet machine before acting. The planned lever: paint tiles off the main thread.
-- [ ] PERF: draw resting tyre stacks into the ground tiles (Slidden Hill 113 slow frames of 570, ~870 stacks).
-- [ ] tools/wearcheck 3c is FLAKY (random churn) — make it seeded or loosen the threshold.
-
-## QUEUED — SURFACE EVOLUTION (user, 2026-10-03, verbatim then read). NOT STARTED — propose a plan first.
-- [ ] Grass Track ribbon: random dirt/grass patches along the course (currently fixed autograss sectors).
-      DECIDED (user, 2026-10-03): random, but MOSTLY GRASS on the straights and MOSTLY DIRT in the corners.
-      UPDATED (user, later 2026-10-03): "don't forget to do the grass track randomising EVERY LOAD IN" — a new
-      random layout on every load (supersedes "fixed per track").
-- [ ] Snow -> ice after several passes (EXISTS since 2026-10-02: 4 passes, lab.js wear map — verify it shows).
-- [ ] Ice wears away under heavy braking / sliding, revealing what is UNDER it; that base then wears on its
-      own rules (grass -> mud). Needs a LAYER model per wear cell: a cover (ice/snow/puddle) over a base.
-- [ ] Mud -> thick mud (second mud type) with "vector dips". Sand and gravel can also form them.
-      CHECKED 2026-10-03: the user asked whether Gemini/DeepSeek captured their description of "the vector
-      system". THEY DID NOT — no doc in either folder mentions it; the only "ruts" are painted wear cells with
-      mud grip, no height change. Waiting on the user to re-describe it before designing anything.
-- [ ] Every surface instantly distinguishable by its graphics, and keeps its own driving numbers.
-- [ ] Cover layers on ANY surface: puddles, snow, ice.
-- [ ] (user) "unless tyres are very hot" — needs the tyre-temperature model (tier 3); scale ICE_SCRUB with heat.
-- [ ] WEATHER must evaporate standing water — until weather exists, puddles only go under hot tyres.
-
-## DONE — SURFACE BLENDING AT CHANGE POINTS (user, 2026-10-03) — ENGINE.md; small patches, loose surfaces only. Covers not blended yet.
-- [ ] At every surface boundary (track sectors, zones, covers): scatter PATCHES (the Grass Track mechanism) of each
-      side into the other, density highest at the boundary and falling off with distance. Data-driven, per level.
-
-## MASTER BACKLOG — the user's long list (originally sent to DeepSeek), TRIAGED 2026-10-03 by Claude
-    - [ ] Naffcar V8 fails the lap driver on its own track (12.7 s off the road; was 13.8 before the fix) -> step 3.
-    - [ ] REVERSE (user: "it should work how the card says and the game is wrong"). Today R is a TOGGLE (<1 m/s), then
-          BRAKE drives backwards and GAS brakes (vehicle.js ~311-323). Make it: HOLD R = drive backwards (ramped like
-          GAS); BRAKE always brakes; GAS always drives forward; no pedal swap. PC: hold Z.
-    - [ ] RESET on levels with no circuit (The Lab) goes to the SPAWN, not "near where you left it": main.js reads
-          `breadcrumbs` but nothing ever records one. Fix: record the last safe spot while driving.
-    - [ ] Wording: RESTART card says "everything reset", but the Grass Track's random layout is kept; the Lab has no
-          start line. Tyres card: cold tyres only lose grip on hard surfaces (off-road ignores temperature).
-
-## Awaiting a verdict
-- [ ] **OUTER TYRE WALLS — Grass Track + Stock Car, 2026-10-03.** Loose 38 kg stacks on the OUTSIDE only (user's
-      choice), generated from the track centreline by `outerTyreWall()` in lab.js (margin/spacing per level).
-      507 + 611 stacks, 1.00 m apart, unbroken, none on the road, clear of pylons/boards/official box.
-      MEASURED: 80 km/h head-on -> punches through, loses 1.5 m/s (~7%), bursts 6-9 stacks; 36 km/h -> through.
-      Frame cost, CPU throttled 4x: draw 9.7 ms mean / 14.6 ms p95 on Stock Car (Lab 6.8 / 10.2), 58-60 fps.
-      Also: cone tally moved into layout() — it sat on RESTART/RESET/CLEAR in portrait (uicheck now covers it,
-      proven to fire). OPEN: does it need to CATCH cars? (heavier stacks / double row) — user to decide.
-- [ ] **REPAIR PASS — 2026-10-03.** (serve.mjs on 8080 from THIS folder +
-      GamesStudio/tools/cloudflared.exe). Test: jump + brake on every car; level switching; portrait HUD.
-- [ ] **HANDLING PASS 2 + DEBUG PANEL — 2026-09-27.** Tune it yourself with the TUNE chip and tell me
-      the numbers you land on; I will write them into cars.js as the new defaults.
-- [ ] **Slice 1, Steps 0–2b + touch + marks + knockable cones — DELIVERED 2026-09-27.** Cloudflare tunnel (not itch — the
-      user's call for this pass and the next): ``
-      Drive it and say how it feels. Every measured figure, and the model as built, is in `ENGINE.md`.
-
-## Queued
-- [ ] **Slice 1 remainder** — audio (engine note + squeal), and screen shake for a proper impact (a 2 kg
-      cone does not earn one). Sequential/manual box: the user said **keep it auto for now** (2026-09-27).
-- [ ] **Open question raised by the build:** the floor is 200 x 200 m and the hatch tops out at ~193
-      km/h, so a full-speed run crosses it in ~4 s. Decide whether the lab needs to be bigger, or
-      whether that does not matter for a feel box.
-- [ ] **Gamification comes after the lab**, and only once the user has driven it. Nothing from `BRIEF.md`
-      §4/§5 — garage, pips, money, tracks, rivals — is to be started before then.
-- [ ] Decide the open questions in `BRIEF.md` (rivals vs ghosts, the broke-player floor, fuel/damage
-      persistence, what a pip is worth in lap seconds). **Not needed for Slice 1** — needed before the
-      economy.
-
-## Queued — the user's next direction (2026-09-27)
-- [ ] **Progression: take every car from base spec progressively up.** This is the brief's 10-pip
-      system. The mods seam already exists and every multiplier already defaults to 1.0.
-- [ ] **Tyres as a choice, with silly brand names** (Kum / Spum / Creem as the register), each brand
-      making a range — road, dirt, etc — with real spec differences. NOT NOW; noted as spec in
-      BRIEF.md. Lands on the existing surface.mu hook, which is still a no-op waiting for exactly this.
-
-## Awaiting a verdict — 2026-09-28
-- [ ] **RALLY CAR**, bigger lab, cone race course, camera and gear-change work. Tunnel restarted (2026-10-01):
-
-## Work log — Claude (2026-10-02)
-- [ ] Wet tarmac → dry — DEFERRED to Tier 3. Requires tyre temperature (hot tyres clear wet surfaces).
-- [ ] Tyre marks increase grip — pending
-- [ ] Cross-surface contamination — pending
-- [ ] Per-tyre temperature state machine — 4 independent wheel temps
-- [ ] Hot tyres should take TIME or be VERY HOT to melt snow/ice/water. Not instant on first pass. Couple tyres to surface wear: tyre temp above a threshold AND multiple passes needed to clear wet/snow/ice.
-- [ ] Cold tyre grip penalty on tarmac. Off-road surfaces unaffected.
-- [ ] Wheelspin heats driven wheels, cornering heats fronts, drifting heats outside tyres.
-- [ ] Cooling: off-road surfaces, not driving.
-- [ ] Tyre types & tread system — multiple manufacturers, unique grip/slip/surface characteristics.
-- [ ] Test: does brake freeze still happen? Airborne brake force now zero.
-- [ ] Test: high-speed judder — SLIDE_BLEND bump should help.
-- [ ] Test: steering feel with power curve.
-- [ ] Test: camera fly-in at level start.
-      dumped the whole budget onto lateral at once. Full history in ENGINE.md.
-
-## Queued — from the playtesters, 2026-09-27 (in their order)
-- [ ] **The floor is too small for the new speeds** — 300 m is crossed in ~5 s at 216 km/h; the
-      screenshot at speed shows the car already off the map. Needs to grow with a tiled marks layer.
-- [ ] Tyre marks should FADE after a while. STILL OPEN.
-- [ ] Track car should look like an F1 car: bigger wheels, proper proportions. STILL OPEN.
-- [ ] Camera should zoom out further the faster you go.
-- [ ] Cars faster / more powerful / more weight and momentum still (user, on top of this pass).
-
-## Queued — next session
-- [ ] **THE ROOT FIX: model wheel angular velocity as a real state.** The rolling and sliding tyre laws
-      disagree by ~2.8x at breakaway (measured FyR stepping 2115 -> 5951 N in one step). That mismatch
-      is the track-car judder AND the likely reason steering lock still barely affects drift angle.
-      Deriving longitudinal slip from a real wheel speed instead of approximating it removes the seam
-      entirely. This is a substantial change to the longitudinal model — ASK BEFORE STARTING.
-      Two cheaper attempts were measured and reverted; see ENGINE.md before trying a third.
-- [ ] **Threshold braking regressed** — full pedal is optimal again. Brake force wants ~1.7 g.
+TOOLS:
+- [ ] tools/wearcheck 3c is flaky (random churn): seed it or loosen the threshold.

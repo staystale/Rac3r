@@ -1,7 +1,7 @@
 // The pit-lane buildings and trackside structures: garage rows, grandstand, official box,
 // gantry, pit wall and pylon.
 import { LEVEL } from '../../world/state.ts';
-import { lampOfProp, lampsEnabled, lampsLit } from '../../world/lamps.ts';
+import { lampOfProp, lampsLit } from '../../world/lamps.ts';
 import type { Point, Prop } from '../../world/types.ts';
 import type { PropCtx } from './types.ts';
 
@@ -365,22 +365,6 @@ export function drawPitWall(propCtx: PropCtx, prop: Prop, ppm: number) {
 }
 
 /**
- * The pylon's warm pool of light on the ground around it.
- * @param view the canvas view
- * @param ppm pixels per metre
- */
-function drawPylonPool(view: PropCtx['view'], ppm: number) {
-  const grad = view.ctx.createRadialGradient(0, 0, 1 * ppm, 0, 0, 18 * ppm);
-  grad.addColorStop(0, 'rgba(255, 248, 220, 0.16)');
-  grad.addColorStop(0.5, 'rgba(255, 244, 200, 0.08)');
-  grad.addColorStop(1, 'rgba(255, 240, 180, 0)');
-  view.ctx.fillStyle = grad;
-  view.ctx.beginPath();
-  view.ctx.arc(0, 0, 18 * ppm, 0, Math.PI * 2);
-  view.ctx.fill();
-}
-
-/**
  * Draws the pylon prop (pylon).
  * @param propCtx the view and painter helpers
  * @param prop the prop
@@ -388,12 +372,11 @@ function drawPylonPool(view: PropCtx['view'], ppm: number) {
  */
 export function drawPylon(propCtx: PropCtx, prop: Prop, ppm: number) {
   const { view, roundRect } = propCtx;
-  // High-output halogen floodlight pylon. As a lamp (?lamps=1) it is lit only from dusk, leans
+  // High-output halogen floodlight pylon. As a lamp it is lit only from dusk, leans
   // when hit (its heads move with its top), flickers and loses a head per hard hit.
   const lamp = lampOfProp(prop);
-  const isLit = !lampsEnabled() || (lampsLit() && !!lamp && lamp.shown > 0);
+  const isLit = lampsLit() && !!lamp && lamp.shown > 0;
   const headsLit = lamp ? Math.round(lamp.level * 4) : 4;
-  if (isLit) drawPylonPool(view, ppm);
   // Tower shadow
   view.ctx.fillStyle = 'rgba(10,12,16,0.38)';
   view.ctx.beginPath();

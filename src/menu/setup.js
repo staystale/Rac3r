@@ -325,7 +325,7 @@ function addLaunchButtons(menu, panel, level, state) {
 }
 
 /**
- * The TIME rows (?daytime=1, TEST MODE only; owner: the story holds the global clock): LIVE
+ * The TIME rows (TEST MODE only; owner: the story holds the global clock): LIVE
  * starts at the game clock's time, or a slider picks the hour the event starts at (the same
  * day); time runs on through the event either way. The line under them is the game clock now.
  * @param {object} menu the menu context

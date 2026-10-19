@@ -25,6 +25,20 @@ if (!file) {
  * order.
  * @returns {object[]} the runs
  */
+// a run whose median frame is this long or more was shown at 30 fps throughout: iOS Low Power Mode
+// caps Safari there, and so does a hot phone (10-18: every frame 33 ms, the menu too, our JS 2-6 ms)
+const CAPPED_MEDIAN_MS = 30;
+
+/**
+ * Prints a warning when the whole run was capped at ~30 fps (not the game: the phone).
+ * @param {number[][]} frames the run's frames ([0] the frame gap, ms)
+ */
+function noteCap(frames) {
+  if (median(frames.map((frame) => frame[0])) < CAPPED_MEDIAN_MS) return;
+  console.log('  CAPPED AT ~30 fps for the whole run: Low Power Mode on, or a hot phone? '
+    + '(not the game: turn it off / let it cool and run again)');
+}
+
 function readRuns() {
   const runs = new Map();
   const addTo = (report, menu, frames) => {
@@ -68,6 +82,7 @@ function printMenu(run) {
     + `${frames.reduce((sum, frame) => sum + frame[10], 0)} ignored (new screen, first `
     + `350 ms), slowest ${Math.max(0, ...handlers)} ms, over ${SLOW_TAP_MS} ms: `
     + `${slowTaps.length ? slowTaps.join(', ') + ' ms' : 'none'}`);
+  noteCap(frames);
 }
 
 /**
@@ -127,5 +142,6 @@ for (const run of readRuns()) {
     + `${median(frames.map((f) => f[1]))} draw ${median(frames.map((f) => f[2]))} ms | slow `
     + `${slow.length} (${percent(slow.length, frames.length)}), our JS heavy ${ours}, with tiles `
     + `${slow.filter((f) => f[4] > 0).length}, with road build ${slow.filter((f) => f[5] > 0).length}`);
+  noteCap(frames);
   zoomBands(frames);
 }

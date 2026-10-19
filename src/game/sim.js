@@ -5,8 +5,7 @@ import { carContacts, slipstream } from '../contact.js';
 import { hit, hitRoll, repair, applyBurst } from '../damage.js';
 import { rolling, tripCheck, stepRoll } from '../roll.js';
 import { LEVEL } from "../world/state.ts";
-import { DAYLIGHT, headlightsWanted } from "../world/daylight.ts";
-import { lampsEnabled } from "../world/lamps.ts";
+import { headlightsWanted } from "../world/daylight.ts";
 import { WEATHER } from "../world/weather.ts";
 import { stepWetTrails } from "../wettrail.ts";
 import { applyGround, fenceClamp, obstacleClamp } from "../world/wear.ts";
@@ -149,19 +148,16 @@ export function stepCarSignals(inp, wallDt) {
 }
 
 /**
- * The field's headlights: by the light level (the player's LIGHTS button is their own);
- * ?fieldlights=0: the AI runs lights when the player does (the old rule).
+ * The field's headlights: by the light level (the player's LIGHTS button is their own).
  */
 function updateFieldHeadlights() {
-  const byLight = DAYLIGHT.fieldLights;
-  const fieldLights = byLight ? headlightsWanted() : !!game.car.lightsOn;
+  const fieldLights = headlightsWanted();
   for (const entry of game.ai) entry.car.lightsOn = fieldLights;
-  if (byLight) for (const car of game.traffic.cars) car.lightsOn = fieldLights;
+  for (const car of game.traffic.cars) car.lightsOn = fieldLights;
   // the car the menu's demo drives runs its lights as the field does (no one to press LIGHTS)
-  if (byLight && shared.mode === 'menu') game.car.lightsOn = fieldLights;
-  // RAIN LIGHTS (?lamps=1): every racer's rear rain light is on while it rains (road traffic
-  // has none)
-  const raining = lampsEnabled() && WEATHER.rain > 0;
+  if (shared.mode === 'menu') game.car.lightsOn = fieldLights;
+  // RAIN LIGHTS: every racer's rear rain light is on while it rains (road traffic has none)
+  const raining = WEATHER.rain > 0;
   game.car.rainLight = raining;
   for (const entry of game.ai) entry.car.rainLight = raining;
 }

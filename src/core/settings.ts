@@ -29,14 +29,6 @@ export interface Settings {
   grassGrip: boolean;            // grippier dry grass (surfaces.ts); ?grassgrip=0 = the old grip
   rain: number | null;           // ?rain=0.6: the track this wet, 0-1, and raining (weather test)
   night: number | null;          // ?night=0.8: this dark, 0-1 (lighting test, world/daylight.ts)
-  lamps: boolean;                // street lights / pylons as solid lamps (lamps.ts); ?lamps=0 off
-  daytime: boolean;              // the game clock (time of day, season, moon); ?daytime=0 off
-  sunTemp: boolean;              // air and track temperature follow the sun; ?suntemp=0 off
-  nightPics: boolean;            // car pictures without beam room in the dark; ?nightpics=0 off
-  glowMap: boolean;              // lamp glows in the night's light map (light.ts); =0 off
-  pauseClock: boolean;           // the pause menu's alarm clock (pauseclock.ts); =0 off
-  oneLight: boolean;             // ?onelight=1: only the night layer lights the road (cars.ts)
-  fieldLights: boolean;          // AI / traffic headlights by the light level; =0: as the player's
   weather: boolean;              // weather in the event setup (season, changes); ?weather=0 off
   slideWear: boolean;            // sliding / crashing wheels wear the ground twice; =0 off
   tyreWear: boolean;             // tyres wear, puncture; the garage fits new sets; =0 off
@@ -114,11 +106,7 @@ function nightLevel(params: URLSearchParams): number | null {
 // and the HUD units too (owner: "all pass"; =0 off); one look too (=0 off); tyre cooling and the
 // cover look too (owner: pass; =0 off)
 function weatherSettings(params: URLSearchParams) {
-  return { rain: rainLevel(params), night: nightLevel(params), lamps: params.get('lamps') !== '0',
-    fieldLights: params.get('fieldlights') !== '0', daytime: params.get('daytime') !== '0',
-    sunTemp: params.get('suntemp') !== '0', nightPics: params.get('nightpics') !== '0',
-    glowMap: params.get('glowmap') !== '0', pauseClock: params.get('pauseclock') !== '0',
-    oneLight: params.get('onelight') === '1',
+  return { rain: rainLevel(params), night: nightLevel(params),
     weather: params.get('weather') !== '0',
     slideWear: params.get('slidewear') !== '0', tyreWear: params.get('tyrewear') !== '0',
     tyreFeel: params.get('tyrefeel') !== '0',

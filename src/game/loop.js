@@ -100,7 +100,7 @@ export function stepWorld(inp) {
   // the weather (weather.ts): a change of sky is news on the HUD
   const news = stepWeather(PHYSICS_STEP_SECONDS);
   if (news) game.notice = { text: news.text, good: news.good, at: performance.now() };
-  // the game clock (?daytime=1): runs in an event, the sky follows it
+  // the game clock: runs in an event, the sky follows it
   stepClock(PHYSICS_STEP_SECONDS, shared.mode === 'session', WEATHER.rain);
   stepPuddles(PHYSICS_STEP_SECONDS);
   stepCoverField(PHYSICS_STEP_SECONDS);

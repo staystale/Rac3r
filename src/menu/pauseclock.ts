@@ -1,4 +1,4 @@
-// THE PAUSE CLOCK (default; ?pauseclock=0 off): a bedside alarm clock beside MUTE in the pause
+// THE PAUSE CLOCK: a bedside alarm clock beside MUTE in the pause
 // menu - seven-segment digits in the menu's gold, the unlit segments faintly showing, the season,
 // day and (after dark) the moon beside it. It reads the event's game clock (the time the sky
 // shows; the clock stands still while paused) and glows once it is dark enough for headlights.

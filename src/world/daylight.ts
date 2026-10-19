@@ -1,15 +1,12 @@
 // The LIGHT LEVEL of the world: how dark it is, 0 (full day) to 1 (the darkest night). The night
-// layer (render/light.ts) draws it and the field's headlights follow it (game/sim.js). Only the
-// ?night= test switch sets it so far; a time of day will drive it later.
+// layer (render/light.ts) draws it and the field's headlights follow it (game/sim.js). The game
+// clock sets it (world/clock.ts setSky); the ?night= test tool fixes it instead.
 
 // darkness at and above which the AI and traffic run their headlights, as drivers do at dusk
 export const HEADLIGHTS_ON_DARKNESS = 0.35;
 
-/**
- * The light level: darkness 0..1, and whether the field's headlights follow it (the default;
- * ?fieldlights=0: they follow the player's LIGHTS button, the old rule).
- */
-export const DAYLIGHT = { darkness: 0, fieldLights: true, rgb: '4,8,22' };
+/** The light level: darkness 0..1 and the colour of the dark, 'r,g,b'. */
+export const DAYLIGHT = { darkness: 0, rgb: '4,8,22' };
 
 /**
  * Sets how dark the world is.
@@ -26,14 +23,6 @@ export function setDarkness(level: number): void {
 export function setSky(sky: { darkness: number; rgb: string }): void {
   setDarkness(sky.darkness);
   DAYLIGHT.rgb = sky.rgb;
-}
-
-/**
- * Whether the AI and traffic run headlights by the light level (true) or as the player does.
- * @param byLight true: by the light level
- */
-export function setFieldLights(byLight: boolean): void {
-  DAYLIGHT.fieldLights = byLight;
 }
 
 /**

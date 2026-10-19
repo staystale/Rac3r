@@ -211,7 +211,7 @@ export interface RenderCar extends CamCar, Pick<Car, 'heading' | 'delta'> {
   indicator?: number;
   hazard?: boolean;
   brakeLight?: number;
-  rainLight?: boolean;   // the rear rain light is on (game/sim.js, ?lamps=1)
+  rainLight?: boolean;   // the rear rain light is on (game/sim.js)
   // caches the car layers set on the car itself
   _dsp?: { key: string; base: CarSprite; sp: CarSprite } | null;
   _dface?: Record<string, { key: string; out: CarSprite | SideSprite }>;

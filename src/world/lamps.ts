@@ -1,4 +1,4 @@
-// The LAMPS (default; ?lamps=0 off): street lights and floodlight pylons (the level's `pylon`
+// The LAMPS: street lights and floodlight pylons (the level's `pylon`
 // props and world/lampplan.ts's plan) as solid posts that light a pool below their head from dusk
 // and go off in the light, as real ones do. Every car is clamped against their posts
 // (world/barriers.ts solidClamp) and a hit leans, dims or snaps them (world/lampdamage.ts); the
@@ -47,27 +47,9 @@ export interface Lamp {
   solid: Solid;
 }
 
-let isOn = false;
 let builtFor: object | null = null;
 let lamps: Lamp[] = [];
 const NONE: Lamp[] = [];
-
-/**
- * Turns the lamps on (?lamps=1): solid posts and pools.
- * @param enabled true for the lamps
- */
-export function setLamps(enabled: boolean): void {
-  isOn = enabled;
-  builtFor = null;
-}
-
-/**
- * Whether the lamps exist at all (?lamps=1).
- * @returns true when on
- */
-export function lampsEnabled(): boolean {
-  return isOn;
-}
 
 /**
  * Whether the lamps are lit in this light.
@@ -113,11 +95,11 @@ function makeLamp(prop: Prop, kind: Lamp['kind'], ownDraw = false): Lamp {
 }
 
 /**
- * The active level's lamps (none without ?lamps=1), built the first time a level asks.
+ * The active level's lamps, built the first time a level asks.
  * @returns the lamps
  */
 export function activeLamps(): Lamp[] {
-  if (!isOn || !LEVEL) return NONE;
+  if (!LEVEL) return NONE;
   if (builtFor !== LEVEL) {
     builtFor = LEVEL;
     // the level's own pylons, then the plan (world/lampplan.ts: by the level's kind)
@@ -139,7 +121,7 @@ export function resetLamps(): void {
 /**
  * The lamp a pylon prop is (its painter reads the lean and the light).
  * @param prop the pylon prop
- * @returns the lamp, or null without ?lamps=1
+ * @returns the lamp, or null
  */
 export function lampOfProp(prop: Prop): Lamp | null {
   for (const lamp of activeLamps()) if (lamp.prop === prop) return lamp;

@@ -43,14 +43,11 @@ import { setPackedSnowWear, setWinterSnow } from "./world/snowwear.ts";
 import { setWetTrail } from "./wettrail.ts";
 import { setMudFrost, setOneLook } from "./world/coverfield.ts";
 import {
-  setColdSurface, setWetness, setRain, setMelt, setWinterCold, setSunTemp,
+  setColdSurface, setWetness, setRain, setMelt, setWinterCold,
 } from "./world/weather.ts";
 import { setWeatherPuddles } from "./world/puddles.ts";
-import { setDarkness, setFieldLights } from "./world/daylight.ts";
-import { setLamps } from "./world/lamps.ts";
+import { setDarkness } from "./world/daylight.ts";
 import { CLOCK, startClock } from "./world/clock.ts";
-import { setNightPics, setOneLight } from "./render/cars.ts";
-import { setGlowMap } from "./render/light.ts";
 import { setTyreWear } from "./physics/tyrewear.ts";
 import { setTyreFeel } from "./physics/tyreheat.ts";
 import { LEVEL } from "./world/state.ts";
@@ -100,15 +97,9 @@ if (shared.settings.rain !== null) {
 }
 // ?night=0.8: this dark (lighting test: the night layer, the field's headlights)
 if (shared.settings.night !== null) setDarkness(shared.settings.night);
-setLamps(shared.settings.lamps);   // ?lamps=1: street lights and pylons as solid lamps
-setFieldLights(shared.settings.fieldLights);   // =0: the AI's headlights follow the player's
-// ?daytime=1: the game clock drives the sky (?night= overrides it with a fixed dark); a new
-// player starts in today's season
-setSunTemp(shared.settings.sunTemp);   // air and track follow the clock's sun (?suntemp=0 off)
-setNightPics(shared.settings.nightPics);   // no beam room in car pictures at night (=0 off)
-setOneLight(shared.settings.oneLight);   // ?onelight=1: no beam in the car pictures by day
-setGlowMap(shared.settings.glowMap);   // the lamp glows in the night's light map (=0 off)
-startClock(shared.settings.daytime && shared.settings.night === null,
+// the game clock drives the sky (?night= overrides it with a fixed dark); a new player starts
+// in today's season
+startClock(shared.settings.night === null,
   Math.floor(((new Date().getMonth() + 1) % 12) / 3));
 shared.DEV = shared.settings.dev;
 

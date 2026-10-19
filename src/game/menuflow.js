@@ -96,7 +96,7 @@ export function enterMenu() {
   shared.boot.classList.add('gone');
   shared.hud.close();
   shared.race.on = false;
-  // the race behind the menu is dry; with the game clock (?daytime=1) it shows the global time
+  // the race behind the menu is dry it shows the global time
   // and its season's weather (owner)
   shared.weatherPlan = CLOCK.isOn ? { mode: 'season', season: calendarAt(CLOCK.globalS).season,
     seed: Math.floor(Math.random() * 2147483646) + 1 } : null;
@@ -132,7 +132,7 @@ export function applyLaunchOptions(levelId, opts) {
   shared.raceLaps = Math.max(0, Math.min(10, opts.laps | 0));
   // WEATHER (setup, ?weather=1): the plan and the seed its random stream starts from, so a restart
   // replays the same weather; none = the dry 18 C game
-  // the game clock (?daytime=1): the global time, or (TEST MODE) the hour the setup picked
+  // the game clock: the global time, or (TEST MODE) the hour the setup picked
   startEventClock(opts.time ?? null);
   shared.weatherPlan = opts.weather ? { mode: opts.weather.mode, season: opts.weather.season,
     seed: Math.floor(Math.random() * 2147483646) + 1 } : null;
@@ -206,7 +206,6 @@ export function openPause() {
     } : null,
     tests: game.testMode,   // the TESTING list (src/testlist.js) in the pause menu, test mode only
     audio: shared.audio,                  // the SOUND slider + MUTE (menu.js pause)
-    clock: shared.settings.pauseClock,    // the alarm clock (menu/pauseclock.ts); =0 off
     // the MINIMAP row (none with ?minimap=0): this difficulty mode's setting, locked in REAL
     // the HUD list in place of the MINIMAP row (?hudmenu=0 = the old row)
     hud: shared.settings.hudMenu ? hudActions() : null,

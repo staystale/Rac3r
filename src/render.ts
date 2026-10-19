@@ -350,7 +350,7 @@ function drawFrame(ctx: RenderCtx, game: RenderGame, wallDt: number, wallT: numb
   ctx.state.wallDt = wallDt;
   ctx.state.screenBegun = false;
   beginGpuGround(ctx, lock, game.car);
-  updateLampLight();   // ?lamps=1: this frame's brightness of each lamp (flicker)
+  updateLampLight();   // this frame's brightness of each lamp (flicker)
   drawWorldLayers(ctx, game, lock, wallT);
   drawEffects(ctx, game, wallDt);
   if (ctx.state.sharpCars) drawSharpCarLayers(ctx, game, lock);
