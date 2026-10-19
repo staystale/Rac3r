@@ -5,8 +5,9 @@
 // art pixel stays a crisp square and its edges blend over one screen pixel, so the ground looks the
 // same at every zoom. Pictures shrunk below one screen pixel per pixel (the fly-in overview) use
 // mipmaps. Everything else (deck, marks, props, cars, HUD) stays 2D, drawn over a transparent art
-// buffer. With the GPU painter (glpaint.ts, the default; ?gpupaint=0 = off) the floor and zones are
-// painted here in world space first, and the tiles only carry what is drawn over them.
+// buffer. The floor and zones are painted here in world space first (glpaint.ts), and the tiles
+// only carry what is drawn over them. It is THE ground: the game needs WebGL2 (the iPhone's Safari
+// has it since iOS 15), and a lost context is rebuilt when the browser gives it back.
 import { createGlPaint } from "./glpaint.ts";
 import type { GroundPatch, PaintCamera } from "./glpaint.ts";
 import { createGlShade } from "./glshade.ts";
@@ -20,8 +21,6 @@ import type { GlShade, ShadeRect } from "./glshade.ts";
 export interface GroundSink {
   fill(colour: string): void;
   image(source: HTMLCanvasElement, x: number, y: number, width: number, height: number): void;
-  /** 'write': what is drawn masks the area; 'under': draw only where nothing masked; 'off' */
-  mask(mode: 'write' | 'under' | 'off'): void;
   /**
    * Keeps a picture's texture from expiring; with `upload`, also uploads it (with mipmaps) if
    * that is not done yet. Returns true when it uploaded or built mipmaps.
@@ -209,23 +208,6 @@ function buildQuad(webgl: WebGL2RenderingContext, program: WebGLProgram) {
   return { uniforms, vao };
 }
 
-/**
- * Sets the stencil mask for what is drawn next (GroundSink.mask).
- * @param webgl the WebGL2 context
- * @param mode 'write' marks every pixel drawn, 'under' draws only on unmarked pixels, 'off'
- */
-function setMask(webgl: WebGL2RenderingContext, mode: 'write' | 'under' | 'off') {
-  if (mode === 'off') { webgl.disable(webgl.STENCIL_TEST); return; }
-  webgl.enable(webgl.STENCIL_TEST);
-  if (mode === 'write') {
-    webgl.stencilFunc(webgl.ALWAYS, 1, 0xff);
-    webgl.stencilOp(webgl.KEEP, webgl.KEEP, webgl.REPLACE);
-  } else {
-    webgl.stencilFunc(webgl.EQUAL, 0, 0xff);
-    webgl.stencilOp(webgl.KEEP, webgl.KEEP, webgl.KEEP);
-  }
-}
-
 /** What the sink and the frame calls share. */
 interface SinkState {
   lost: boolean;
@@ -266,7 +248,6 @@ function createSink(webgl: WebGL2RenderingContext, program: WebGLProgram,
       webgl.clearColor(red, green, blue, 1);
       webgl.clear(webgl.COLOR_BUFFER_BIT);
     },
-    mask(mode) { setMask(webgl, mode); },
     preload(source, upload) {
       const entry = textures.get(source);
       if (entry) entry.used = state.frameNo;
@@ -297,42 +278,74 @@ function createSink(webgl: WebGL2RenderingContext, program: WebGLProgram,
   return { sink, textures };
 }
 
+/** The GPU ground's WebGL resources: built at start-up and again when a lost context is back. */
+interface GlParts {
+  sink: GroundSink;
+  textures: Map<HTMLCanvasElement, TexEntry>;
+  painter: NonNullable<ReturnType<typeof createGlPaint>>;
+  shade: GlShade;
+  field: GlField;
+}
+
 /**
- * The cover field calls of the GPU ground (no-ops without the painter; render/glfield.ts).
- * @param field the field, or null
+ * Builds every WebGL resource of the GPU ground on a (fresh or restored) context: the ground
+ * program and its quad, the floor / zone painter, the hill shading and the cover field. Textures
+ * start empty: every tile uploads again when it is next drawn.
+ * @param webgl the WebGL2 context
+ * @param colours the colour cache (CPU data: it survives a lost context)
+ * @param state the shared frame state
+ * @returns the resources
+ * @throws when a program does not compile or link
+ */
+function buildParts(webgl: WebGL2RenderingContext, colours: ColourCache,
+    state: SinkState): GlParts {
+  // our canvases are already in the colours we want: no colour-space conversion on upload (on a
+  // wide-colour phone screen the browser may otherwise convert every texture and tile it uploads)
+  webgl.pixelStorei(webgl.UNPACK_COLORSPACE_CONVERSION_WEBGL, webgl.NONE);
+  const program = buildProgram(webgl, VERTEX, FRAGMENT, 'ground');
+  const { sink, textures } = createSink(webgl, program, colours, state);
+  const painter = createGlPaint(webgl, (rgb) => parseColour(colours, rgb));
+  const shade = createGlShade(webgl), field = createGlField(webgl);
+  if (!painter || !shade || !field) throw new Error('a GPU ground program did not build');
+  return { sink, textures, painter, shade, field };
+}
+
+/**
+ * The cover field calls of the GPU ground (render/glfield.ts), on the current resources.
+ * @param parts the current resources
  * @param state the shared frame state
  * @returns the calls
  */
-function fieldCalls(field: GlField | null, state: SinkState) {
+function fieldCalls(parts: () => GlParts, state: SinkState) {
   return {
     /**
      * Brings the field's chunks up to date (glfield.ts update).
      * @param view the world rectangle on screen now, m
      * @param widest the world rectangle the widest zoom would show, m
      */
-    updateField(view: ShadeRect, widest: ShadeRect) { field?.update(view, widest); },
+    updateField(view: ShadeRect, widest: ShadeRect) { parts().field.update(view, widest); },
     /**
      * The wear cells over a rectangle changed: the field's mask follows.
      * @param rect the rectangle, m
      */
-    fieldCellsChanged(rect: ShadeRect) { field?.cellsChanged(rect); },
+    fieldCellsChanged(rect: ShadeRect) { parts().field.cellsChanged(rect); },
     /**
      * Draws the field over the ground (before the hill shading).
      * @param camera where the world lands on the canvas this frame
      */
     drawField(camera: PaintCamera) {
-      if (field && state.frame) field.draw(state.frame, camera);
+      if (state.frame) parts().field.draw(state.frame, camera);
     },
   };
 }
 
 /**
- * The GPU hill shading calls of the GPU ground (no-ops without the painter).
- * @param shade the hill shading (glshade.ts), or null
+ * The GPU hill shading calls of the GPU ground (glshade.ts), on the current resources.
+ * @param parts the current resources
  * @param state the shared frame state
  * @returns the calls
  */
-function shadeCalls(shade: GlShade | null, state: SinkState) {
+function shadeCalls(parts: () => GlParts, state: SinkState) {
   return {
     /** texture uploads and mipmap builds so far (the phone report; the object is live) */
     counts: state.counts,
@@ -341,41 +354,63 @@ function shadeCalls(shade: GlShade | null, state: SinkState) {
      * @param view the world rectangle on screen now, m
      * @param widest the world rectangle the widest zoom would show, m
      */
-    updateShade(view: ShadeRect, widest: ShadeRect) { shade?.update(view, widest); },
+    updateShade(view: ShadeRect, widest: ShadeRect) { parts().shade.update(view, widest); },
     /**
      * Forgets the hill shading over a world rectangle (the ground height changed there).
      * @param rect the rectangle, m
      */
-    invalidateShade(rect: ShadeRect) { shade?.invalidate(rect); },
+    invalidateShade(rect: ShadeRect) { parts().shade.invalidate(rect); },
     /**
      * Readies the hill shading over a rectangle within its budget, drawing nothing (glshade.ts).
      * @param rect the rectangle, m
      */
-    warmShade(rect: ShadeRect) { shade?.warm(rect); },
+    warmShade(rect: ShadeRect) { parts().shade.warm(rect); },
     /**
      * Draws the hill shading over the whole GPU ground (after the tiles).
      * @param camera where the world lands on the canvas this frame
      */
     drawShade(camera: PaintCamera) {
-      if (shade && state.frame) shade.draw(state.frame, camera);
+      if (state.frame) parts().shade.draw(state.frame, camera);
     },
     /**
      * The GPU hill shading's chunk count and ms (tools). A function, not a getter: this object is
      * spread into the GPU ground, which would copy a getter's value once.
-     * @returns the stats, or null
+     * @returns the stats
      */
-    shadeStats: () => (shade ? shade.stats : null),
+    shadeStats: () => parts().shade.stats,
   };
 }
 
 /**
- * Creates the GPU ground under the screen canvas, or returns null when WebGL2 is not available
- * (the ground then stays in the 2D art buffer, as before).
+ * Listens for the context being lost and coming back. Safari can drop a page's WebGL context
+ * (memory pressure, the app in the background); preventDefault on the loss lets the browser give
+ * it back, and then every resource is built again on it. While it is lost nothing draws on the
+ * GPU ground (the screen keeps its last frame); then the game carries on as before.
+ * @param canvas the GPU ground's canvas
+ * @param state the shared frame state (lost)
+ * @param rebuild builds the resources on the restored context
+ */
+function watchContext(canvas: HTMLCanvasElement, state: SinkState, rebuild: () => void) {
+  canvas.addEventListener('webglcontextlost', (event) => {
+    event.preventDefault();
+    state.lost = true;
+  });
+  canvas.addEventListener('webglcontextrestored', () => {
+    try {
+      rebuild();
+      state.lost = false;
+    } catch { /* it stays lost: nothing more can be done on this context */ }
+  });
+}
+
+/**
+ * Creates the GPU ground under the screen canvas: the floor and zones painted on the GPU
+ * (glpaint.ts), the tiles drawn over them, the cover field and the hill shading on top. Null when
+ * WebGL2 is not available.
  * @param screen the screen canvas
- * @param withPainter true to paint the floor and zones on the GPU too (glpaint.ts)
  * @returns the GPU ground, or null
  */
-export function createGlGround(screen: HTMLCanvasElement, withPainter = false) {
+export function createGlGround(screen: HTMLCanvasElement) {
   const canvas = document.createElement('canvas');
   canvas.id = 'glground';
   // preserveDrawingBuffer: the test tools read the finished frame back after it is shown. It looks
@@ -386,26 +421,21 @@ export function createGlGround(screen: HTMLCanvasElement, withPainter = false) {
     alpha: false, antialias: false, preserveDrawingBuffer: true, stencil: true,
   });
   if (!webgl) return null;
-  // our canvases are already in the colours we want: no colour-space conversion on upload (on a
-  // wide-colour phone screen the browser may otherwise convert every texture and tile it uploads)
-  webgl.pixelStorei(webgl.UNPACK_COLORSPACE_CONVERSION_WEBGL, webgl.NONE);
-  let program: WebGLProgram;
-  try { program = buildProgram(webgl, VERTEX, FRAGMENT, 'ground'); } catch { return null; }
+  const colours: ColourCache = { rgba: new Map(), probe: null };
+  const state = newSinkState();
+  let parts: GlParts;
+  try { parts = buildParts(webgl, colours, state); } catch { return null; }
   canvas.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;z-index:0;'
     + 'touch-action:none;pointer-events:none';
   Object.assign(screen.style, { position: 'relative', zIndex: '1' });
   screen.parentNode!.insertBefore(canvas, screen);
-  const colours: ColourCache = { rgba: new Map(), probe: null };
-  const painter = withPainter ? createGlPaint(webgl, (rgb) => parseColour(colours, rgb)) : null;
-  const shade = withPainter ? createGlShade(webgl) : null;
-  const field = withPainter ? createGlField(webgl) : null;
-  const state = newSinkState();
-  canvas.addEventListener('webglcontextlost', () => { state.lost = true; });
-  const { sink, textures } = createSink(webgl, program, colours, state);
+  watchContext(canvas, state, () => { parts = buildParts(webgl, colours, state); });
+  const current = () => parts;
   return {
     canvas,
-    sink,
-    /** true while the GPU ground can draw (no lost context) */
+    /** the sink the tiles draw through (the current context's) */
+    get sink() { return parts.sink; },
+    /** true while the GPU ground can draw (its context is not lost) */
     get active() { return !state.lost; },
     /**
      * Starts a frame: sizes the canvas to the screen and sets the CSS px -> device px mapping.
@@ -422,10 +452,7 @@ export function createGlGround(screen: HTMLCanvasElement, withPainter = false) {
       state.frame = frame;
       state.frameNo++;
       state.painted = false;
-      webgl.clear(webgl.STENCIL_BUFFER_BIT);
     },
-    /** true when the floor and zones are painted on the GPU (glpaint.ts) */
-    get painting() { return !!painter; },
     /**
      * Paints the floor and zone patches in world space, under everything the tiles draw.
      * @param camera where the world lands on the canvas this frame
@@ -434,23 +461,23 @@ export function createGlGround(screen: HTMLCanvasElement, withPainter = false) {
      * @param palette the pixel-mode palette lookup (tilesPalette.ts)
      */
     paint(camera: PaintCamera, patches: GroundPatch[], count: number, palette: Uint32Array) {
-      if (!painter || !state.frame) return;
-      painter.paint(state.frame, camera, { patches, count, palette });
+      if (!state.frame) return;
+      parts.painter.paint(state.frame, camera, { patches, count, palette });
       state.painted = true;
     },
-    ...shadeCalls(shade, state),
-    ...fieldCalls(field, state),
+    ...shadeCalls(current, state),
+    ...fieldCalls(current, state),
     /** Ends a frame: drops textures no tile has drawn for a while. */
     end() {
-      for (const [source, entry] of textures) {
+      for (const [source, entry] of parts.textures) {
         if (state.frameNo - entry.used > TEX_IDLE_FRAMES) {
           webgl.deleteTexture(entry.tex);
-          textures.delete(source);
+          parts.textures.delete(source);
         }
       }
     },
     /** how many textures are on the GPU (for the tools) */
-    get textureCount() { return textures.size; },
+    get textureCount() { return parts.textures.size; },
   };
 }
 

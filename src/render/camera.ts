@@ -16,7 +16,6 @@ interface CameraHelpers {
   drawPatches: () => void;
   drawCovers: () => void;
   drawCurvedKerbs: () => void;
-  paletteSnap: (c: HTMLCanvasElement) => void;
   prefetch: (k: number, cx: number, cy: number, z: number, budget: TileBudget) => void;
 }
 
@@ -36,7 +35,6 @@ interface CameraCtx {
   drawPatches: () => void;
   drawCovers: () => void;
   drawCurvedKerbs: () => void;
-  paletteSnap: (c: HTMLCanvasElement) => void;
 }
 
 // SPEED ZOOM. Asked for by the user and by the playtesters: above ~120 km/h the car was running
@@ -150,7 +148,7 @@ function paintOverview(
 ) {
   const { view, cam } = ctx;
   const { drawFloor, drawZones, drawLanes, drawTrackRibbon, drawPatches, drawCovers,
-    drawCurvedKerbs, paletteSnap } = ctx;
+    drawCurvedKerbs } = ctx;
   const tallness = (bottom - top) / (right - left);
   let width = size, height = Math.max(1, Math.round(size * tallness));
   if (height > OVERVIEW_MAX_PX) {
@@ -168,7 +166,6 @@ function paintOverview(
     drawCurvedKerbs(); }
   finally { view.ctx = keep.ctx; view.W = keep.W; view.H = keep.H; view.zoom = keep.zoom;
     cam.x = keep.cx; cam.y = keep.cy; view.noPatterns = false; }
-  paletteSnap(canvas);
   return { c: canvas, x0: left, y0: top, x1: right, y1: bottom };
 }
 
@@ -352,14 +349,14 @@ function springZoom(ctx: CameraCtx, target: number, wallDt: number) {
 export function createCamera(view: View, cam: Cam, helpers: CameraHelpers) {
   const {
     PPMz, drawFloor, drawZones, drawLanes, drawTrackRibbon, drawPatches, drawCovers,
-    drawCurvedKerbs, paletteSnap,
+    drawCurvedKerbs,
   } = helpers;
   const camState: CamState = {
     fly: null, ovCache: null, vZoom: null, pinZoom: null, zoomSpring: null,
   };
   const ctx: CameraCtx = {
     view, cam, camState, PPMz, drawFloor, drawZones, drawLanes, drawTrackRibbon, drawPatches,
-    drawCovers, drawCurvedKerbs, paletteSnap,
+    drawCovers, drawCurvedKerbs,
   };
   return {
     camState,

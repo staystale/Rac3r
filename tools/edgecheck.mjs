@@ -12,7 +12,6 @@
 // line makes the edge at a fixed spot on screen hop by a step as each stair passes.
 // node tools/edgecheck.mjs [--only brands-snatch,naffcar] [--frames 300] [--warm 240] [--control]
 //   --control: measure a perfect line drawn over the frame instead (the tool's noise floor)
-//   RAC3R_QUERY=gpupaint=0 for another path.
 import { startServer, launchBrowser, extraQuery } from './lib/browser.mjs';
 import {
   openPage, launchLevel, installDriver, onlyList, SETTLE_MS,

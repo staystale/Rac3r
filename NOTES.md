@@ -35,8 +35,8 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
 
 - ONE-SYSTEM CLEAN-UP (10-19, owner): every approved feature below is the only way the game does
   that job - the old paths and their `=0` switches are deleted (TODO.md lists the groups). What
-  remain are test tools (`?night=`, `?rain=`, `?report=1`, `?skip=`, `?dpr=`, `?autopilot=`)
-  and the CPU ground (`?gpupaint=0` / `?glground=0`, a proof tool until the owner decides).
+  remain are test tools (`?night=`, `?rain=`, `?report=1`, `?skip=`, `?dpr=`, `?autopilot=`).
+  The CPU ground was deleted too (10-19, owner: "do it and let me test"): WebGL2 is the ground.
 - Ground drawn by the GPU (floor, zones, hill shading; fixed-density tiles for the rest), zoom hold
   with smooth moves, frame pacing, minimap (highway too), grippier grass, the Lab split: approved and
   default (10-15 / 10-16).

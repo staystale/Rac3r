@@ -1,5 +1,5 @@
-// HILL-SHADING baked into a ground tile: stepped light and shadow bands on square cells, from the
-// same heights the physics drives on.
+// HILL-SHADING: the heights, bands and colours of the stepped light and shadow on square cells,
+// from the same heights the physics drives on (the GPU draws them over the ground, glshade.ts).
 import { BUMPS, LEVEL } from "../world/state.ts";
 import { groundAt } from "../world/wear.ts";
 import { visualHeightAt } from "../world/terrain.ts";
@@ -130,89 +130,4 @@ export function shadeTint(level: number, centreX: number, centreY: number) {
   // only the lab-floor levels have the near-white floor; a full ground lookup per cell cost more
   // than the shading itself
   return LEVEL.base!.id === 'lab' && groundAt(centreX, centreY).surface.id === 'lab' ? LIT : LIT_N;
-}
-
-/** the shade cells: world origin and size, tile pixels per metre, pixel offset of the origin */
-type ShadeGrid = {
-  minX: number; minY: number; cell: number; pxPerM: number; offX: number; offY: number;
-};
-
-/** a style of shade cell: its colour, strength and the rects (x, y, w, h runs) to fill with it */
-type ShadeGroup = { col: number[]; k: number; r: number[] };
-
-/**
- * Gathers the shaded cells into one group per style: ~9 styles (2 x SHADE.bands levels x lit /
- * lit-lab / shadow), the same integer-edged rects per style.
- * @param canvas the tile canvas
- * @param levels the shade level of every cell
- * @param cells the cells per tile side
- * @param minX the west edge of the tile, m
- * @param minY the north edge of the tile, m
- * @param cell the cell size, m
- * @returns the groups
- */
-function groupShadeRects(canvas: HTMLCanvasElement, levels: Float32Array, cells: number,
-    grid: ShadeGrid) {
-  const { minX, minY, cell, pxPerM, offX, offY } = grid;
-  const groups = new Map<number, ShadeGroup>();
-  for (let rowNum = 0; rowNum < cells; rowNum++) for (let colNum = 0; colNum < cells; colNum++) {
-    const level = levels[rowNum * cells + colNum];
-    if (level === 0) continue;
-    const col = shadeTint(level, minX + (colNum + 0.5) * cell, minY + (rowNum + 0.5) * cell);
-    const key = (col === SHD ? 0 : col === LIT ? 1 : 2) * 1000 + Math.round(Math.abs(level)
-        * 1000);
-    let group = groups.get(key);
-    if (!group) { group = { col, k: Math.abs(level), r: [] }; groups.set(key, group); }
-    const px0 = Math.round(offX + colNum * cell * pxPerM);
-    const py0 = Math.round(offY + rowNum * cell * pxPerM);
-    group.r.push(px0, py0, Math.round(offX + (colNum + 1) * cell * pxPerM) - px0,
-        Math.round(offY + (rowNum + 1) * cell * pxPerM) - py0);
-  }
-  return groups;
-}
-
-/**
- * HILL-SHADING baked into a tile, DRAWN AS TRANSLUCENT SQUARES, not per pixel: "move toward
- * white by k" IS "draw white at opacity k", so the colours are identical - but there is no
- * getImageData / putImageData readback. ONE PATH PER SHADE, not one fillRect per cell: up to 4096
- * fillRects a tile, each with a fresh rgba string, were ~half of every ground tile. The rects
- * abut, never overlap, so one fill blends each pixel exactly once. The warm light (for near-white
- * ground, where white cannot show) is chosen per cell from the surface underneath.
- * @param noShade perf A/B: skip the shading
- * @param canvas the tile canvas
- * @param tileWidth the tile width, m
- * @param centreX the tile centre x, m
- * @param centreY the tile centre y, m
- */
-export function hillShade(noShade: boolean, canvas: HTMLCanvasElement, tileWidth: number,
-    centreX: number, centreY: number) {
-  if (noShade) return;
-  // the cells sit on a WORLD grid (a fixed size per metre, an even index at the tile's west and
-  // north), so the same ground gets the same bands at every zoom step; the cell stays 0.5 m
-  // down to about zoom 0.12 and only doubles beyond that (a tile holds more than maxCells)
-  let cell: number = SHADE.cellM;
-  while (tileWidth / cell + 2 > SHADE.maxCells) cell *= 2;
-  const tileX = centreX - tileWidth / 2, tileY = centreY - tileWidth / 2;
-  const minX = 2 * cell * Math.floor(tileX / (2 * cell));
-  const minY = 2 * cell * Math.floor(tileY / (2 * cell));
-  const cells = Math.ceil((tileWidth + Math.max(tileX - minX, tileY - minY)) / cell);
-  const span = cells * cell, pxPerM = canvas.width / tileWidth;
-  const heights = sampleHeights(cells, cell, span, minX + span / 2, minY + span / 2);
-  const { levels, any } = shadeLevels(heights, cells, cell);
-  if (!any) return;                                   // flat tile: nothing to do
-  const ctx = canvas.getContext('2d')!;
-  ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0);
-  const groups = groupShadeRects(canvas, levels, cells, {
-    minX, minY, cell, pxPerM, offX: (minX - tileX) * pxPerM, offY: (minY - tileY) * pxPerM,
-  });
-  for (const group of groups.values()) {
-    ctx.fillStyle = `rgba(${group.col[0]},${group.col[1]},${group.col[2]},${
-      group.k.toFixed(3)})`;
-    ctx.beginPath();
-    const rects = group.r;
-    for (let pos = 0; pos < rects.length; pos += 4) ctx.rect(rects[pos], rects[pos + 1],
-        rects[pos + 2], rects[pos + 3]);
-    ctx.fill();
-  }
-  ctx.restore();
 }

@@ -83,13 +83,12 @@ any cover (snow, ice, puddle) and the wear state of the cell.
   leftover fraction is applied when blitting. The HUD is drawn afterwards at full resolution.
 - `render/camera.ts`: follow with look-ahead, speed zoom (`ZOOM_MIN` 0.30), the level fly-in and the
   whole-level overview picture used during it.
-- `render/tiles.ts`: the static ground (floor, zones, track ribbon) is painted into cached tiles at fixed
-  zoom steps (2 per doubling) within a time budget per frame (`tilesBudget.ts`; `tilesPalette.ts`
-  palette snap, `tilesShade.ts` hill shading on a world grid). A missing tile shows the previous
-  step's tile scaled. Tiles under new wear go stale and are repainted within the budget
-  (`tilesWear.ts`).
-  The 2D path puts tile edges on whole art pixels; the GPU ground (`?exacttiles=0` = off) puts them at
-  their exact place (it zooms smoothly, so rounded edges moved the tiles every frame of a zoom).
+- `render/tiles.ts`: what lies over the floor and zones (track ribbon, lanes, patches, covers,
+  wear, kerbs) is painted into cached tiles at ONE density (the zoom-1 step) within a time budget
+  per frame (`tilesBudget.ts`); the GPU ground scales them to any zoom and draws each at its exact
+  place. Tiles under new wear go stale and are repainted within the budget (`tilesWear.ts`).
+  `tilesPalette.ts` builds the palette the GPU snaps to; `tilesShade.ts` the hill shading's
+  heights and bands (drawn by `glshade.ts`).
 - `render/ground/` paints into tiles: `art.ts` the per-surface art table, `prims.ts` pattern primitives,
   `zones.ts`, `covers.ts` (puddles, snow), `wear.ts` (worn cells, bumps, runoff).
 - `render/textures.ts`: each surface's pattern is painted once at `TEX_PPM` (the car sprites' pixel
@@ -111,23 +110,24 @@ any cover (snow, ice, puddle) and the wear state of the cell.
   (1 game day = 1 real hour, a season 7 days), saved in its own storage key, run by the sim step
   in events (`game/loop.js`); it sets the sky (`daylight.ts setSky`: darkness and the dark's
   colour) that the night layer, the lamps and the headlights follow. TEST MODE setup: TIME OF DAY.
-- `render/glground.ts` (default; `?glground=0` = the old path): the cached tiles are drawn by WebGL2 on a
-  canvas UNDER the screen canvas, at full screen resolution with a sharp-pixel filter (crisp art pixels,
-  no pixels dropped when the zoom changes); the art buffer is cleared to transparent so the GPU ground
-  shows through, and everything else stays 2D. Without WebGL2 the tiles go into the art buffer as before.
-  Step B (the ground painting itself on the GPU) is in TODO.md "GROUND ON THE GPU".
-- `render/glpaint.ts` (`?gpupaint=1`, step B1): the floor and the zones painted on that GPU canvas every
-  frame in world space at TEX_PPM texels per metre (the surface textures sampled per pixel, the tile
-  palette applied by a lookup texture); `ground/zones.ts listGroundPatches` lists them, and the tiles
-  then leave those fills transparent (`view.fillsOnGpu`).
-- Sharp cars (the default; `?sharpcars=0` = off; render.ts `drawSharpCarLayers`): the cars on the full-resolution
+- `render/glground.ts`: THE ground (the game needs WebGL2; the iPhone's Safari has it since iOS
+  15): the cached tiles are drawn by WebGL2 on a canvas UNDER the screen canvas, at full screen
+  resolution with a sharp-pixel filter (crisp art pixels, no pixels dropped when the zoom changes);
+  the art buffer is cleared to transparent so the GPU ground shows through, and everything else stays
+  2D. A lost context (Safari under memory pressure, the app in the background) is rebuilt when the
+  browser gives it back (`watchContext`); meanwhile the ground keeps its last frame.
+- `render/glpaint.ts`: the floor and the zones painted on that GPU canvas every frame in world space
+  at TEX_PPM texels per metre (the surface textures sampled per pixel, the tile palette applied by a
+  lookup texture); `ground/zones.ts listGroundPatches` lists them, and the tiles then leave those
+  fills transparent (`view.fillsOnGpu`). `glshade.ts` the hill shading, `glfield.ts` the cover
+  field over it.
+- Sharp cars (render.ts `drawSharpCarLayers`): the cars on the full-resolution
   screen canvas, not the art buffer. The art buffer under the cars is blitted, each car is painted
   facing +x into its own picture (`cars.ts paintCarPicture`, the same `drawPixelCar`, each sprite px
   a whole-number block) and turned and scaled onto the screen with smoothing; the art buffer then
   takes the overhead props and is blitted again. `render/glprogram.ts` builds the ground's shader.
 - `render/screen.ts`: the screen canvas passes of a frame (the art buffer blits, the sharp cars, and
-  the skid marks drawn on the screen between the deck and the layers above; `?sharpmarks=0` = in
-  the art buffer as before).
+  the skid marks drawn on the screen between the deck and the layers above).
 
 ## Levels
 

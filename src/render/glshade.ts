@@ -1,4 +1,4 @@
-// HILL SHADING ON THE GPU (the default, ?gpupaint=0 = off; step B of "ground on the GPU"). The
+// HILL SHADING ON THE GPU (step B of "ground on the GPU"). The
 // tiles bake the hill shading into each zoom step's pictures, so when the zoom reached a new step
 // the ground showed unshaded (brighter) until that step's tiles were painted. Here the same shade
 // cells as the tiles (tilesShade.ts: a SHADE_CELL_M world grid, the same heights, bands and

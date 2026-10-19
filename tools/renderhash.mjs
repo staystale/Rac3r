@@ -15,8 +15,8 @@
 //                                         (compare two folders with tools/shotdiff.mjs)
 // node tools/renderhash.mjs --only a,b  run only those level ids (a partial save merges into the
 //                                         reference; the verdict covers just those levels)
-// It rasterises on the CPU (no GPU): GPU canvas raster is not bit-exact between builds. For speed
-// it draws the ground with the tile painter (?gpupaint=0); RAC3R_QUERY=gpupaint=1 for the GPU path.
+// It rasterises on the CPU (no GPU): GPU canvas raster is not bit-exact between builds. The WebGL2
+// ground is rasterised on the CPU too (SwiftShader): ~3.5 min a level.
 // Not covered: the menu screens, other screen sizes, the desktop (pc) input mode.
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -95,10 +95,8 @@ async function grab(page) {
  */
 async function runLevel(browser, base, id, endless) {
   const errors = [];
-  // RAC3R_QUERY adds page-link settings, e.g. "glground=0" for the 2D ground path. The GPU painter
-  // (the game's default since 2026-10-16) rasterises on the CPU here at ~3.5 min a level, so this
-  // proof pins the tile painter unless RAC3R_QUERY names gpupaint ("gpupaint=1": the GPU path).
-  const extra = extraQuery(), query = /[?&]gpupaint=/.test(extra) ? extra : '&gpupaint=0' + extra;
+  // RAC3R_QUERY adds page-link settings (e.g. "night=0.8")
+  const query = extraQuery();
   const page = await openPage(browser, base, id, errors, query);
   await page.evaluate(() => {
     dispatchEvent(new KeyboardEvent('keydown', { key: 'x' }));

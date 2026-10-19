@@ -36,7 +36,6 @@ import type { Cam, CamCar, RenderGame, TileBudget, View } from "./render/types.t
 import { createRain } from "./render/rain.ts";
 import { createNight } from "./render/light.ts";
 import { updateLampLight } from "./world/lamps.ts";
-import { wetTint } from "./render/glprogram.ts";
 import { WEATHER } from "./world/weather.ts";
 
 // PPM is derived from the SHORT side of the viewport, so the car is a consistent fraction of the
@@ -92,7 +91,7 @@ type RenderCtx = {
   mainCtx: CanvasRenderingContext2D;
   pcanvas: HTMLCanvasElement;
   pctx: CanvasRenderingContext2D;
-  gpu: GlGround | null;
+  gpu: GlGround;
   groundPatches: GroundPatch[];   // the GPU painter's patch list, reused every frame
   gpuCamera: PaintCamera;         // where the world lands on the GPU canvas this frame
   noShade: boolean;               // ?noshade: no hill shading
@@ -158,15 +157,13 @@ function roundRect(
 }
 
 /**
- * Quantises the zoom and snaps the camera so ground tiles blit on whole art pixels.
+ * Snaps the camera to a whole art pixel for drawing the art buffer (cars, props, marks), and
+ * keeps the leftover fraction as the frame's sub-pixel shift.
  *
  * PIXEL-LOCKED VIEW (requirement: tracks seem to quiver and shake at speed). MEASURED
- * (tools/shimmercheck, Brands GP at speed): every ground tile was blitted at a FRACTIONAL
- * art-pixel position (500/500 frames) and tiles of one frame at MIXED widths (317/500) —
- * each edge was rounded separately, in CSS px not art px — so the pixel-art ground was
- * resampled differently every frame: a shimmer.
- * For drawing only: the zoom is quantised so a tile of the current step is a WHOLE number of
- * art pixels wide (steps of ~0.5 %, invisible), and the camera snapped to a whole art pixel.
+ * (tools/shimmercheck, Brands GP at speed): pixel art drawn at a FRACTIONAL art-pixel position
+ * was resampled differently every frame: a shimmer. The GPU ground draws at screen resolution, so
+ * the zoom is not quantised (a zoom rounded per tile step shifted the ground, zoomcheck).
  * The smoothed zoom is restored at the end of the frame.
  *
  * @param ctx the renderer context
@@ -174,19 +171,12 @@ function roundRect(
  * @returns what was changed, for blitWorld to undo
  */
 function applyViewLock(ctx: RenderCtx, wallDt: number): ViewLock {
-  const { view, cam, state, camState, tileState, FLY_HANDOVER, TILE_PX, ZSTEP } = ctx;
+  const { view, cam, state, camState, tileState, FLY_HANDOVER, TILE_PX } = ctx;
   const keepZoom = view.zoom;
   let subX = 0, subY = 0, camTrue: { x: number; y: number } | null = null;
   if (!camState.fly || view.zoom >= FLY_HANDOVER) {
-    const step = (tileState.lastStep !== null
-      && Math.abs(ZSTEP * Math.log2(view.zoom) - tileState.lastStep) < 0.75)
-      ? tileState.lastStep : ctx.zStepOf(view.zoom);
-    const stepZoom = ctx.zOfStep(step),
-      tileArt = Math.max(1, Math.round(TILE_PX * view.dpr * view.zoom / stepZoom));
-    // the GPU painter (the default) needs no whole-pixel tiles: the GPU draws them at screen
-    // resolution, and a zoom rounded per tile step shifts the ground at every step (zoomcheck)
-    if (!ctx.gpu?.painting) view.zoom = tileArt * stepZoom / (TILE_PX * view.dpr);
-    tileState.drawnN = tileArt;
+    // art px a tile is drawn at (tools/hwwobble.mjs)
+    tileState.drawnN = Math.max(1, Math.round(TILE_PX * view.dpr * view.zoom));
     const devPPM = view.PPM * view.zoom * view.dpr,
       halfW = (view.W * view.dpr) / 2,
       halfH = (view.H * view.dpr) / 2;
@@ -228,13 +218,11 @@ function applyViewLock(ctx: RenderCtx, wallDt: number): ViewLock {
 function drawWorldLayers(ctx: RenderCtx, game: RenderGame, lock: ViewLock, wallT: number) {
   const { skip } = ctx;
   if (!skip('ground')) ctx.drawGround(lock.wallDt, game.car);
-  // the 2D ground (no GPU ground) looks wet the cheap way: one darkening fill of the art buffer
-  if (!ctx.state.gpuOn && WEATHER.wetness > 0) tintWetGround(ctx);
-  // the GPU hill shading lies over the whole ground, as the tiles baked it
-  if (ctx.state.gpuOn && ctx.gpu!.painting && isGpuShadeOn(ctx)) {
-    // the weather's water and snow (?coverfield=1), under the hill shading like the ground
-    ctx.gpu!.drawField(ctx.gpuCamera);
-    ctx.gpu!.drawShade(ctx.gpuCamera);
+  // the GPU hill shading lies over the whole ground
+  if (ctx.state.gpuOn && isGpuShadeOn(ctx)) {
+    // the weather's water and snow, under the hill shading like the ground
+    ctx.gpu.drawField(ctx.gpuCamera);
+    ctx.gpu.drawShade(ctx.gpuCamera);
   }
   if (!skip('deck')) {
     ctx.drawRunoff();
@@ -253,21 +241,6 @@ function drawWorldLayers(ctx: RenderCtx, game: RenderGame, lock: ViewLock, wallT
     ctx.drawCones(game.cones.list);
     ctx.drawTape(game);
   }
-}
-
-/**
- * Darkens the art buffer's ground to look as wet as the track (the 2D ground; the GPU ground does
- * it in its shaders, glprogram.ts WET_GLSL).
- * @param ctx the renderer context
- */
-function tintWetGround(ctx: RenderCtx) {
-  const { pctx, pcanvas } = ctx;
-  pctx.save();
-  pctx.setTransform(1, 0, 0, 1, 0, 0);
-  pctx.globalCompositeOperation = 'multiply';
-  pctx.fillStyle = wetTint(WEATHER.wetness);
-  pctx.fillRect(0, 0, pcanvas.width, pcanvas.height);
-  pctx.restore();
 }
 
 /**
@@ -341,11 +314,12 @@ function drawFrame(ctx: RenderCtx, game: RenderGame, wallDt: number, wallT: numb
   drawEffects(ctx, game, wallDt);
   drawSharpCarLayers(ctx, game, lock);
   blitWorld(ctx, lock, game);
-  if (ctx.state.gpuOn) ctx.gpu!.end();
+  if (ctx.state.gpuOn) ctx.gpu.end();
 }
 
 /**
- * Starts the GPU ground for this frame when it is on: the art buffer is cleared to transparent
+ * Starts the GPU ground for this frame (not while its context is lost): the art buffer is cleared
+ * to transparent
  * and the GPU canvas gets this frame's CSS px -> device px mapping (the pixel-locked camera and
  * its sub-pixel shift).
  *
@@ -355,21 +329,21 @@ function drawFrame(ctx: RenderCtx, game: RenderGame, wallDt: number, wallT: numb
  */
 function beginGpuGround(ctx: RenderCtx, lock: ViewLock, car: CamCar) {
   const { gpu, state, pcanvas, pctx, view, canvas } = ctx;
-  state.gpuOn = !!gpu && gpu.active && !ctx.skip('ground');
+  state.gpuOn = gpu.active && !ctx.skip('ground');
   if (!state.gpuOn) return;
   pctx.save();
   pctx.setTransform(1, 0, 0, 1, 0, 0);
   pctx.clearRect(0, 0, pcanvas.width, pcanvas.height);
   pctx.restore();
-  gpu!.begin({
+  gpu.begin({
     width: canvas.width, height: canvas.height, artDpr: view.dpr, blockPx: state.blockPx,
     subX: lock.subX, subY: lock.subY,
   });
-  if (gpu!.painting) paintGpuGround(ctx, lock, car);
+  paintGpuGround(ctx, lock, car);
 }
 
 /**
- * Paints the floor and zones on the GPU (the default; ?gpupaint=0 = the tiles): the outside colour,
+ * Paints the floor and zones on the GPU: the outside colour,
  * then the patches, placed by the same pixel-locked camera and sub-pixel shift as the art buffer.
  *
  * @param ctx the renderer context
@@ -378,14 +352,14 @@ function beginGpuGround(ctx: RenderCtx, lock: ViewLock, car: CamCar) {
  */
 function paintGpuGround(ctx: RenderCtx, lock: ViewLock, car: CamCar) {
   const { gpu, state, pcanvas, view, cam } = ctx;
-  gpu!.sink.fill(COL.outside);
+  gpu.sink.fill(COL.outside);
   const count = ctx.listGroundPatches(ctx.groundPatches);
   Object.assign(ctx.gpuCamera, {
     x: cam.x, y: cam.y, devPerMetre: ctx.PPMz() * view.dpr * state.blockPx,
     screenX: (pcanvas.width / 2) * state.blockPx + lock.subX,
     screenY: (pcanvas.height / 2) * state.blockPx + lock.subY,
   });
-  gpu!.paint(ctx.gpuCamera, ctx.groundPatches, count, ctx.paletteLUT());
+  gpu.paint(ctx.gpuCamera, ctx.groundPatches, count, ctx.paletteLUT());
   if (isGpuShadeOn(ctx)) updateGpuShade(ctx);
   else if (!ctx.noShade) warmGpuShade(ctx, car);
 }
@@ -402,7 +376,7 @@ function warmGpuShade(ctx: RenderCtx, car: CamCar) {
   const { view } = ctx;
   const halfW = view.W / 2 / (view.PPM * ctx.FLY_HANDOVER) + SHADE_MARGIN_M;
   const halfH = view.H / 2 / (view.PPM * ctx.FLY_HANDOVER) + SHADE_MARGIN_M;
-  ctx.gpu!.warmShade({
+  ctx.gpu.warmShade({
     x0: car.x - halfW, y0: car.y - halfH, x1: car.x + halfW, y1: car.y + halfH,
   });
 }
@@ -431,8 +405,8 @@ function updateGpuShade(ctx: RenderCtx) {
   const wideH = view.H / 2 / (view.PPM * ZOOM_MIN) + SHADE_MARGIN_M;
   const viewRect = { x0: cam.x - halfW, y0: cam.y - halfH, x1: cam.x + halfW, y1: cam.y + halfH };
   const widest = { x0: cam.x - wideW, y0: cam.y - wideH, x1: cam.x + wideW, y1: cam.y + wideH };
-  ctx.gpu!.updateShade(viewRect, widest);
-  ctx.gpu!.updateField(viewRect, widest);
+  ctx.gpu.updateShade(viewRect, widest);
+  ctx.gpu.updateField(viewRect, widest);
 }
 
 /**
@@ -556,8 +530,8 @@ function makeDebugTools(ctx: RenderCtx) {
 function buildModules(view: View, cam: Cam, settings: Settings,
   helpers: { PPMz: () => number, toScreenX: (x: number) => number,
     toScreenY: (y: number) => number, groundSink: () => GroundSink | null,
-    fillsOnGpu: () => boolean, heightsChanged: (rect: ShadeRect) => void }) {
-  const { PPMz, toScreenX, toScreenY, groundSink, fillsOnGpu, heightsChanged } = helpers;
+    heightsChanged: (rect: ShadeRect) => void }) {
+  const { PPMz, toScreenX, toScreenY, groundSink, heightsChanged } = helpers;
   // createGround and createRoad need each other (forSide / paintLayers, artBase): the wrapper
   // below is only called at draw time, after createRoad has returned forSide
   const ground = createGround(view, cam, { PPMz, toScreenX, toScreenY, roundRect,
@@ -580,17 +554,12 @@ function buildModules(view: View, cam: Cam, settings: Settings,
     PPMz, toScreenX, toScreenY, roundRect, chips: particles.chips, MAX_CHIPS: particles.MAX_CHIPS,
   });
 
-  // createCamera needs paletteSnap / prefetch from the tiles (which need the camera): the wrappers
-  // are only called at draw time, after createTiles has returned
+  // createCamera needs prefetch from the tiles (which need the camera): the wrapper is only called
+  // at draw time, after createTiles has returned
   const camera = createCamera(view, cam, {
     PPMz, drawFloor: ground.drawFloor, drawZones: ground.drawZones, drawLanes: road.drawLanes,
     drawTrackRibbon: road.drawTrackRibbon, drawPatches: ground.drawPatches,
     drawCovers: ground.drawCovers, drawCurvedKerbs: road.drawCurvedKerbs,
-    // the GPU path draws the overview shrunk, and it is flat palette colours already: no CPU
-    // snap (MEASURED: ~0.5 s at CPU x4 in the fly-in's first frame)
-    paletteSnap: (target: HTMLCanvasElement) => {
-      if (!fillsOnGpu()) tiles.paletteSnap(target);
-    },
     prefetch: (...args: [number, number, number, number, TileBudget]) => tiles.prefetch(...args),
   });
   const tiles = createTiles(view, cam, settings, {
@@ -601,41 +570,40 @@ function buildModules(view: View, cam: Cam, settings: Settings,
     drawCurvedKerbs: road.drawCurvedKerbs, SURFACE_ART: ground.SURFACE_ART,
     PUDDLE_TINT: ground.PUDDLE_TINT,
     getFly: () => camera.camState.fly, FLY_HANDOVER: camera.FLY_HANDOVER,
-    FLY_PREFETCH: camera.FLY_PREFETCH, levelOverview: camera.levelOverview,
-    artBase: ground.artBase, groundSink, fillsOnGpu, heightsChanged,
+    FLY_PREFETCH: camera.FLY_PREFETCH, artBase: ground.artBase, groundSink, heightsChanged,
   });
   return { ground, road, particles, pixelCar, cars, props, objects, camera, tiles };
 }
 
 /**
- * What the tiles need to know of the GPU ground: where to draw, whether the GPU paints the fills,
- * and where to report changed ground heights.
+ * What the tiles need to know of the GPU ground: where to draw (nothing while its context is
+ * lost) and where to report changed ground heights.
  *
  * @param state the render state (gpuOn this frame)
- * @param gpu the GPU ground, or null
+ * @param gpu the GPU ground
  * @returns the helpers
  */
-function gpuHelpers(state: RenderState, gpu: GlGround | null) {
+function gpuHelpers(state: RenderState, gpu: GlGround) {
   return {
-    groundSink: () => (state.gpuOn ? gpu!.sink : null),
-    fillsOnGpu: () => state.gpuOn && gpu!.painting,
+    groundSink: () => (state.gpuOn ? gpu.sink : null),
     heightsChanged: (rect: ShadeRect) => {
-      gpu?.invalidateShade(rect);
-      gpu?.fieldCellsChanged(rect);
+      gpu.invalidateShade(rect);
+      gpu.fieldCellsChanged(rect);
     },
   };
 }
 
 /**
- * The GPU ground under the screen canvas, or null (?glground=0, or no WebGL2).
+ * The GPU ground under the screen canvas. The ground is drawn by WebGL2 only (every phone and
+ * desktop browser the game runs on has it: the iPhone's Safari since iOS 15).
  *
  * @param canvas the screen canvas
- * @param settings the game settings (glGround, gpuPaint)
- * @returns the GPU ground, or null
+ * @returns the GPU ground
+ * @throws when this browser has no WebGL2 (index.html shows the message)
  */
-function createGpuGround(canvas: HTMLCanvasElement, settings: Settings) {
-  const gpu = settings.glGround
-    ? createGlGround(canvas, settings.gpuPaint) : null;
+function createGpuGround(canvas: HTMLCanvasElement) {
+  const gpu = createGlGround(canvas);
+  if (!gpu) throw new Error('this browser has no WebGL2, which the game needs');
   return gpu;
 }
 
@@ -681,7 +649,7 @@ export function createRenderer(canvas: HTMLCanvasElement, settings: Settings) {
   const pcanvas = document.createElement('canvas');
   const pctx = pcanvas.getContext('2d')!;   // likewise
   const state = newRenderState();
-  const gpu = createGpuGround(canvas, settings);
+  const gpu = createGpuGround(canvas);
   const cam: Cam = { x: 0, y: 0, initialised: false };
   // ONE place converts metres to pixels, so nothing can miss the zoom
   const PPMz = () => view.PPM * view.zoom;
@@ -722,8 +690,8 @@ export function createRenderer(canvas: HTMLCanvasElement, settings: Settings) {
     get groundRenders() { return tileState.tilesPainted; },
     get tileMs() { return tileState.tileMs; },
     warmNextTexture: ctx.warmNextTexture, warmBladeTextures: ctx.warmBladeTextures,
-    get gpuCounts() { return gpu ? gpu.counts : null; },
-    get shadeStats() { return gpu ? gpu.shadeStats() : null; },
+    get gpuCounts() { return gpu.counts; },
+    get shadeStats() { return gpu.shadeStats(); },
     get staleRepaints() { return tileState.staleRepaints; },
     get tileStats() { return { ...tileState, perStep: { ...tileState.perStep } }; },
     get drawnN() { return tileState.drawnN; },

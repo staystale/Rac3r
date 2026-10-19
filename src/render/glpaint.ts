@@ -1,4 +1,4 @@
-// The GPU ground painter (the default, ?gpupaint=0 = off; step B of "ground on the GPU"): the floor
+// The GPU ground painter (step B of "ground on the GPU"): the floor
 // and the surface zones drawn by WebGL2 every frame at ONE fixed density, TEX_PPM texels per metre
 // (the car sprites' pixel size), anchored to the world. The CPU tiles paint each zoom step as a
 // separate picture at a different resolution, so the surface shifts when the camera crosses a step;

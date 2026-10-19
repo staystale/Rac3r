@@ -19,8 +19,6 @@ export interface Settings {
   inputMode: "touch" | "pc" | "auto";   // ?touch / ?pc: force touch or pc controls
   highwayDebug: string | null;   // ?hw=NAME: road preset of the debug highway (tools)
   tilePx: number;                // ?tilepx=N: css px per ground tile side (default 256; A/B)
-  glGround: boolean;             // ?glground=0: the ground tiles in the 2D art buffer, not WebGL
-  gpuPaint: boolean;             // floor + zones painted by the GPU (glpaint.ts); off: ?gpupaint=0
   rain: number | null;           // ?rain=0.6: the track this wet, 0-1, and raining (weather test)
   night: number | null;          // ?night=0.8: this dark, 0-1 (lighting test, world/daylight.ts)
   maxDpr: number | null;         // ?dpr=2: the sharpness cap (default render.ts MAX_DPR 1.5)
@@ -90,9 +88,6 @@ export function readSettings(search: string): Settings {
     highwayDebug: params.get('hw'),
     // get('tilepx')!: null only means no ?tilepx=, where +null is 0 and the || falls back to 256
     tilePx: +params.get('tilepx')! || 256,
-    glGround: params.get('glground') !== '0',
-    // default since 2026-10-16 (owner approved on the phone); =0 brings the old path back
-    gpuPaint: params.get('gpupaint') !== '0',
     ...weatherSettings(params),
     maxDpr: maxDpr(params),
     noShade: params.has('noshade'),
