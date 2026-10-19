@@ -19,14 +19,6 @@ export const TEST_LIST = [
   // 2026-10-18; tyrewear, wintertweaks passed 2026-10-18;
   // coldsurface, wearchance, markfade, hudunits, onelook, tyrecool, coverlook approved
   // 2026-10-18; night (cost test) passed 2026-10-18; lamps, daytime approved 2026-10-18; suntemp
-  // approved 2026-10-18; nightjudder, glowmap, pauseclock, onelight passed 2026-10-18)
-  {
-    id: 'gpuonly',
-    added: '2026-10-19',
-    name: 'The ground on the iPhone GPU only (the old CPU ground deleted)',
-    where: 'The plain link: races, the menu, the fly-in, the highway, day and night',
-    try: 'Nothing should look different. Also leave the app in the background a while and come'
-      + ' back: the ground should be there.',
-    wrong: 'A blank or black ground, missing track, a flash, more judder than before.',
-  },
+  // approved 2026-10-18; nightjudder, glowmap, pauseclock, onelight passed 2026-10-18; gpuonly
+  // passed 2026-10-19)
 ];

@@ -38,12 +38,12 @@ handover, written on request.
   [x] EXPERIMENTS (owner: delete them if cleaner and not needed): ?menuvideo (with media/ and
   tools/menuvideo.mjs), ?onecanvas, ?tilegpu, ?grass=square, ?nolock deleted; simhash, renderhash
   SAME.
-  [ ] 5 THE CPU GROUND (owner 10-19: "do it and let me test; if it's a problem we revert"; keep
-  the iPhone GPU / WebGL2 working): ?gpupaint=0 / ?glground=0 and the 2D ground deleted (zoom
+  [x] 5 THE CPU GROUND (main 5751272; owner: "do it and let me test", then "test pass"; keep the
+  iPhone GPU / WebGL2 working): ?gpupaint=0 / ?glground=0 and the 2D ground deleted (zoom
   steps, stand-ins, CPU palette snap and hill shading, the 2D wet tint, the stencil mask); WebGL2
   is THE ground, with a lost context rebuilt when the browser gives it back (glground.ts
   watchContext); no WebGL2 = a clear message. renderhash now proves the GPU ground (~2 min a
-  level). Under the owner's test.
+  level).
 - CI: the `checks` job (the suite vs the base) has FAILED on every main commit since b2dbcf8
   (lighting L4, 10-18); `verify`, the gate for main, passes. Find the failing check (run
   `npm run suite` locally; the job's log needs a GitHub login).

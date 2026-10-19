@@ -7,8 +7,8 @@ open work only, 130 lines), then this page.
 
 ## Where we are
 
-- **Under the owner's test: `gpuonly`** (the testlist entry). The CPU ground is deleted; WebGL2
-  is THE ground. Owner: "do it and let me test - if it's a problem we revert". Revert = `git
+- **`gpuonly` PASSED (owner 10-19: "test pass"); the test list is EMPTY.** The CPU ground is
+  deleted; WebGL2 is THE ground. Owner: "do it and let me test - if it's a problem we revert". Revert = `git
   revert 5751272` (one commit; the proofs before it are on c56f656).
 - **The ONE-SYSTEM CLEAN-UP is done** (owner 10-18: "make sure we only have one system for
   everything"): every approved switch's old path deleted - groups 1 lights + time (baed231), 2
