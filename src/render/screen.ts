@@ -1,6 +1,6 @@
 // The SCREEN canvas passes of a frame: the art buffer blitted (whole art pixels, shifted by the
 // sub-pixel camera remainder), and what is drawn on the full-resolution screen between blits - the
-// sharp cars (the default) and, with ?sharpmarks=1, the skid marks. Everything here is the 2D
+// sharp cars (the default) and,, the skid marks. Everything here is the 2D
 // canvas: never copy pixels between it and WebGL per frame (NOTES.md).
 import { SPRITE_PPM } from "./shared.ts";
 import { drawWetTrails } from "../wettrail.ts";
@@ -61,20 +61,7 @@ export function forEachDrawnCar(ctx: ScreenCtx, game: RenderGame,
 }
 
 /**
- * Draws the highway traffic, the AI cars, the player's car and the overhead props.
- *
- * @param ctx the renderer context
- * @param game the game to draw
- */
-export function drawCarLayers(ctx: ScreenCtx, game: RenderGame) {
-  forEachDrawnCar(ctx, game, ctx.drawPixelCar);
-  // overhead structures (gantry) pass OVER the cars, and the rain falls over everything
-  if (!ctx.skip('props')) ctx.drawProps(true);
-  if (!ctx.skip('rain')) ctx.drawRain();
-}
-
-/**
- * SHARP CARS (?sharpcars=1): the cars drawn on the full-resolution screen canvas instead of the
+ * SHARP CARS: the cars drawn on the full-resolution screen canvas instead of the
  * art buffer, so their pixels stay crisp squares at any angle and zoom (look B, the owner's choice
  * from tools/scratch/carmock.html), with nothing copied to WebGL. The art buffer so far
  * (everything under the cars) is blitted first; each car's picture is painted enlarged by a whole
@@ -154,7 +141,7 @@ export function clearArt(ctx: ScreenCtx) {
 }
 
 /**
- * SHARP MARKS (?sharpmarks=1): the skid-mark layer drawn on the full-resolution screen canvas
+ * SHARP MARKS: the skid-mark layer drawn on the full-resolution screen canvas
  * instead of the art buffer. Its pixels (4.2 per metre) were stretched ~3.6x with no smoothing
  * into art pixels (1.3 CSS px), so a mark pixel came out 3 or 4 art px wide by camera position and
  * its edges jumped as the camera moved (the quiver). On the screen they still land as hard blocks,

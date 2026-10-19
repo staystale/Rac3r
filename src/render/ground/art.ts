@@ -254,15 +254,15 @@ export function paintLayers(
   groundCtx: GroundCtx, artId: string, minX: number, minY: number, maxX: number,
   maxY: number
 ) {
-  const { view, surfaceTextures, SURFACE_ART, PRIM } = groundCtx;
+  const { view, SURFACE_ART, PRIM } = groundCtx;
   if (view.noPatterns) return;
   const art = SURFACE_ART[artId];
   if (!art) return;
-  if (surfaceTextures && paintTextured(groundCtx, artId, art, [minX, minY, maxX, maxY])) return;
+  if (paintTextured(groundCtx, artId, art, [minX, minY, maxX, maxY])) return;
   for (const layer of art.layers) PRIM[layer[0]](layer, minX, minY, maxX, maxY);
 }
 
-// default (?tex=0 = live): one pattern fill from the pre-painted texture (see textures.ts);
+// default: one pattern fill from the pre-painted texture (see textures.ts);
 // false = draw live
 /**
  * Fills a region with the pre-painted texture of a surface.
@@ -320,7 +320,7 @@ export function surfaceTexture(groundCtx: GroundCtx, name: string, art: SurfaceA
  * Paints now every texture with grass blades (long grass and its recolours: wheat, rapeseed,
  * hedgerow, sharing one set of blade masks). The heaviest texture: MEASURED 111-119 ms on the
  * owner's phone, and the ground tiles behind the menu reached it before the idle warm-up did, so
- * one menu frame took ~125 ms. Called while the loading screen is up (main.js, ?texwarm=1).
+ * one menu frame took ~125 ms. Called while the loading screen is up (main.js).
  *
  * @param groundCtx the shared ground painter context
  */

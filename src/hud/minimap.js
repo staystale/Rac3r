@@ -7,8 +7,7 @@
 // where the car points, rivals in the window are dots, and a thin bar under it is the stage / lap
 // progress. No box, see-through,
 // never touchable. Levels without a road (the lab floors) get none; the endless highway shows the
-// road ahead without a progress bar (owner: "highway levels should have a minimap too"; approved;
-// ?hwmap=0 = not there).
+// road ahead without a progress bar (owner: "highway levels should have a minimap too"; approved).
 // ON / OFF lives in the pause menu, remembered per difficulty mode: on in MOBILE, GAME and REALISH,
 // off in RICH, and locked off in REAL (owner).
 // THE PROGRESS BAR: with the pause menu's HUD list (the default) it is a choice of its own,
@@ -43,8 +42,6 @@ const MINIMAP_KEY = 'rac3r.minimap.', PROGRESS_KEY = 'rac3r.progress.';
 
 // the road's two strokes, css px wide: a dark rim, then the pale road (the lap and the joker lane)
 const ROAD_STROKES = [[7, 'rgba(20,20,22,0.55)'], [3.5, 'rgba(236,231,220,0.95)']];
-// the joker lane is drawn too (?jokerfix=1, setMinimapJoker)
-let jokerShown = false;
 
 /**
  * A HUD piece's setting in a difficulty mode (the minimap, its progress bar, the track temp
@@ -114,8 +111,7 @@ const mapState = { idx: 0, heading: null, level: null };
 let shownNow = () => false;
 // is the progress bar shown: null = with the window (no HUD list); main.js hands in the source
 let progressNow = null;
-// the endless highway too (?hwmap=0: not there)
-let onHighway = true;
+// the endless highway too (not there)
 // the main view's css px per m (the camera zoom included)
 let viewScale = () => 20;
 
@@ -137,29 +133,13 @@ export function setProgressSource(source) {
 }
 
 /**
- * Lets the minimap show on the endless highway (the default; ?hwmap=0 = not there).
- * @param {boolean} allowed shown there too
- */
-export function setMinimapHighway(allowed) {
-  onHighway = allowed;
-}
-
-/**
- * Shows the joker lane on the minimap (?jokerfix=1).
- * @param {boolean} shown drawn as road beside the lap
- */
-export function setMinimapJoker(shown) {
-  jokerShown = shown;
-}
-
-/**
  * Draws the level's joker lane as road (the same two strokes as the lap), under the lap so the
  * junctions read as one road.
  * @param {CanvasRenderingContext2D} ctx the HUD context, in world units
  * @param {number} scale css px per m
  */
 function drawJokerLane(ctx, scale) {
-  const lane = jokerShown && LEVEL.joker ? jokerLane(LEVEL) : null;
+  const lane = LEVEL.joker ? jokerLane(LEVEL) : null;
   if (!lane) return;
   for (const [width, colour] of ROAD_STROKES) {
     ctx.lineWidth = width / scale;
@@ -339,7 +319,7 @@ export function drawHudMinimap(ctx, hud, rects, game, wallDt) {
   const sub = LEVEL.subtrack;
   const mapShown = shownNow(), barShown = progressNow ? progressNow() : mapShown;
   if ((!mapShown && !barShown) || hud.expanded || hud.tuneOpen) return;
-  if (!sub || (LEVEL.endless && !onHighway) || !sub.pts || sub.pts.length < 2) return;
+  if (!sub || !sub.pts || sub.pts.length < 2) return;
   if (mapState.level !== LEVEL) Object.assign(mapState, { level: LEVEL, idx: 0, heading: null });
   const idx = nearestPoint(sub.pts, game.car.x, game.car.y);
   const { x, y } = minimapAt(rects);

@@ -1,4 +1,4 @@
-// FRAME PACING (default; ?vsync=0 = off). Safari reports frame times rounded to whole
+// FRAME PACING. Safari reports frame times rounded to whole
 // milliseconds (MEASURED on the owner's iPhone, ?report=1: 17 ms x3217, 16 ms x1866, 18 ms x266,
 // pairs like 24 + 10, while the display ran a steady 16.68 ms). Moving the world by those numbers
 // moved it unevenly while the frames were shown evenly: the camera follows the car, so the ground

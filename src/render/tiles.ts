@@ -75,11 +75,7 @@ interface TilesCtx {
   TILE_GPU: boolean;
   /** perf A/B: no hill-shading */
   NO_SHADE: boolean;
-  /** on the GPU ground, tiles at their exact place (drawTileImage); ?exacttiles=0 off */
-  EXACT_TILES: boolean;
-  /** ?startfix=1: a wear reset makes stale only the tiles holding wear (WORN_TILES) */
-  WORN_ONLY: boolean;
-  /** the tile canvases painted with worn cells in them */
+  /** the tile canvases painted with worn cells in them (a wear reset stales only these) */
   WORN_TILES: WeakSet<HTMLCanvasElement>;
 }
 
@@ -382,14 +378,14 @@ function groundImage(tcx: TilesCtx, source: HTMLCanvasElement, x: number, y: num
  */
 function drawTileImage(tcx: TilesCtx, tile: Tile, i: number, j: number, tileWidth: number) {
   const { view } = tcx, { toScreenX, toScreenY } = tcx.helpers;
-  // EXACT TILES (?exacttiles=0 = off). The GPU ground zooms smoothly (the zoom is not quantised to
+  // EXACT TILES. The GPU ground zooms smoothly (the zoom is not quantised to
   // art-pixel tiles), so whole-art-pixel edges moved each tile by up to half an art pixel (1.5
   // device px), differently every frame of a zoom move: the white edge line, the ribbon edge and
   // the kerbs jiggled against the GPU-painted grass. MEASURED (tools/edgecheck.mjs, Brands, zoom
   // moving): the line strayed 0.30 / 1.61 / 2.92 device px frame to frame (median / p95 / max),
   // exact 0.03 / 0.14 / 0.44 (a perfect line: 0.05 / 0.16 / 0.37). Neighbours share each edge's
   // exact value and the GPU draws without anti-aliasing, so tiles still meet with no seam.
-  if (tcx.EXACT_TILES && tcx.helpers.fillsOnGpu()) {
+  if (tcx.helpers.fillsOnGpu()) {
     const exactLeft = toScreenX(i * tileWidth), exactTop = toScreenY(j * tileWidth);
     groundImage(tcx, tile.c, exactLeft, exactTop, toScreenX((i + 1) * tileWidth) - exactLeft,
       toScreenY((j + 1) * tileWidth) - exactTop);
@@ -512,7 +508,7 @@ function drawFlyOverview(tcx: TilesCtx, overview: Overview, car: CamCar | null) 
   groundFill(tcx, COL.outside);
   groundImage(tcx, overview.c, toScreenX(overview.x0), toScreenY(overview.y0),
     (overview.x1 - overview.x0) * PPMz(), (overview.y1 - overview.y0) * PPMz());
-  if (car && tcx.WORN_ONLY && tcx.state.tileFillsOnGpu) prefetchFlyOnGpu(tcx, car);
+  if (car && tcx.state.tileFillsOnGpu) prefetchFlyOnGpu(tcx, car);
   else if (car) {
     const budget = { n: FLY_PREFETCH };
     // the steps the camera will pass through after the hand-over, nearest-to-final first
@@ -525,7 +521,7 @@ function drawFlyOverview(tcx: TilesCtx, overview: Overview, car: CamCar | null) 
 }
 
 /**
- * ?startfix=1 on the GPU ground: the fly-in pre-paints only the tiles drawn after it (the fixed
+ * On the GPU ground the fly-in pre-paints only the tiles drawn after it (the fixed
  * step) over the hand-over view, and uploads them FLY_PREFETCH a frame, keeping the rest from
  * expiring. MEASURED (owner's phone): the hand-over frame uploaded every tile in view at once
  * (59 uploads, 71 mipmaps, 32 ms); uploading all tiles already painted in the first fly-in frame
@@ -699,7 +695,7 @@ function drawGround(tcx: TilesCtx, wallDt = 0, car: CamCar | null = null) {
  * Creates the ground tile cache.
  * @param view the view
  * @param cam the camera
- * @param settings the settings (tilePx, tileGpu, noShade, exactTiles)
+ * @param settings the settings (tilePx, tileGpu, noShade)
  * @param helpers what the tiles use of the renderer
  * @returns the tile state and counters, the tile map, the zoom-step helpers and the painters
  */
@@ -733,8 +729,6 @@ export function createTiles(view: View, cam: Cam, settings: Settings, helpers: T
     TILE_MAX: Math.round(72 * (256 / TILE_PX) ** 2),
     TILE_GPU: settings.tileGpu,
     NO_SHADE: settings.noShade,
-    EXACT_TILES: settings.exactTiles,
-    WORN_ONLY: settings.startFix,
     WORN_TILES: new WeakSet(),
   };
   return {

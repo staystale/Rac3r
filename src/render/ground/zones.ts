@@ -392,7 +392,7 @@ function setPatchSurface(groundCtx: GroundCtx, patch: GroundPatch, base: string,
     layersId: string) {
   const art = groundCtx.SURFACE_ART[layersId];
   patch.base = base;
-  patch.texture = art && groundCtx.surfaceTextures && !groundCtx.view.noPatterns
+  patch.texture = art && !groundCtx.view.noPatterns
     ? surfaceTexture(groundCtx, layersId, art) : null;
 }
 

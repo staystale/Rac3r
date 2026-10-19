@@ -254,20 +254,20 @@ export function paintThumbs() {
   return thumbs;
 }
 /**
- * The thumbnails at load (main.js, while the loading screen is up): with ?thumbcache on and this
- * version's saved on the device, read back (a tap before they arrive paints what is missing);
- * else painted now, and saved a moment after the menu is up.
+ * The thumbnails at load (main.js, while the loading screen is up): with this version's saved on
+ * the device, read back (a tap before they arrive paints what is missing); else painted now, and
+ * saved a moment after the menu is up.
  */
 export function prepareThumbs() {
-  const build = shared.settings.thumbCache ? BUILD_ID : null;
-  if (build && hasSavedThumbs(build)) {
+  const build = BUILD_ID;
+  if (hasSavedThumbs(build)) {
     readThumbs().then((saved) => {
       for (const [levelId, canvas] of Object.entries(saved)) thumbs[levelId] ??= canvas;
     }).catch(() => {});
     return;
   }
   paintThumbs();
-  if (build) setTimeout(() => saveThumbs(build, thumbs).catch(() => {}), THUMB_SAVE_MS);
+  setTimeout(() => saveThumbs(build, thumbs).catch(() => {}), THUMB_SAVE_MS);
 }
 /** Paints the next missing thumbnail, then the next a moment later, while the recording plays. */
 function paintThumbsSoon() {

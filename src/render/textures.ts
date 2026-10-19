@@ -1,4 +1,4 @@
-// PRE-PAINTED SURFACE TEXTURES (default; ?tex=0 = live). WHAT: each surface's pattern layers are
+// PRE-PAINTED SURFACE TEXTURES. WHAT: each surface's pattern layers are
 // painted ONCE per surface, at the fixed art density TEX_PPM (the car sprites' SPRITE_PPM), into a
 // seamless, REPEATING canvas; paintLayers then fills its area with createPattern(texture,
 // 'repeat'), scaled to the zoom, in one operation. WHY (MEASURED: the floor and zones
@@ -192,7 +192,7 @@ function cpuCanvas(width: number, height: number) {
 
 /**
  * A blades layer from its mask: the blades stroked ONCE in white per shape, then tinted with the
- * layer's colour and drawn over (?menufast=0 = off). Wheat, rapeseed and hedgerow are long grass
+ * layer's colour and drawn over. Wheat, rapeseed and hedgerow are long grass
  * recoloured, so the same blades were stroked four times. MEASURED on the owner's phone: each
  * long-grass-shaped texture took 110-122 ms, the menu's start-up hitches. One stroke() of one
  * colour, over a transparent canvas: the tinted mask composites the same way.

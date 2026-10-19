@@ -239,7 +239,7 @@ export function createGlShade(webgl: WebGL2RenderingContext) {
     },
     /**
      * Computes missing chunks over a rectangle within SHADE_BUDGET_MS, drawing nothing: the
-     * fly-in readies the hand-over view (?startfix=1), which otherwise computed it all at once.
+     * fly-in readies the hand-over view, which otherwise computed it all at once.
      * @param rect the rectangle, m
      */
     warm(rect: ShadeRect) {

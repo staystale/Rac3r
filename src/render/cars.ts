@@ -301,7 +301,7 @@ function pixelCarWithWheels(carsCtx: CarsContext, spec: RenderCarSpec) {
   return out;
 }
 
-/** A car's own picture (?sharpcars=1): the canvas and the car's centre in it, px. */
+/** A car's own picture: the canvas and the car's centre in it, px. */
 export interface CarPicture {
   canvas: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
@@ -358,12 +358,12 @@ function paintCarPicture(carsCtx: CarsContext, car: RenderCar, picture: CarPictu
  */
 export function createCars(view: View, cam: Cam, helpers: CarsHelpers) {
   const carsCtx: CarsContext = { view, ...helpers };
-  // each car's own picture (?sharpcars=1), kept while the car lives
+  // each car's own picture, kept while the car lives
   const pictures = new WeakMap<RenderCar, CarPicture>();
   return {
     drawPixelCar: (car: RenderCar) => drawPixelCar(carsCtx, car),
     /**
-     * Paints a car's own picture (?sharpcars=1).
+     * Paints a car's own picture.
      * @param car the car
      * @param enlarge picture px per sprite px (a whole number)
      * @returns the picture

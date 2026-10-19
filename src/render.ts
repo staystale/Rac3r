@@ -27,10 +27,7 @@ import { createProps } from "./render/props.ts";
 import { createObjects } from "./render/objects.ts";
 import { createTiles } from "./render/tiles.ts";
 import { createCamera } from "./render/camera.ts";
-import { drawWetTrails } from "./wettrail.ts";
-import {
-  blitArt, drawCarLayers, drawMarksOnScreen, drawSharpCarLayers,
-} from "./render/screen.ts";
+import { drawMarksOnScreen, drawSharpCarLayers } from "./render/screen.ts";
 import { createGlGround } from "./render/glground.ts";
 import type { GlGround, GroundSink } from "./render/glground.ts";
 import type { ShadeRect } from "./render/glshade.ts";
@@ -72,8 +69,6 @@ interface RenderState {
   blockPx: number;   // pixel mode: the device-px size of one art pixel
   realDpr: number;   // the real dpr of the screen canvas
   gpuOn: boolean;    // this frame draws the ground on the GPU canvas (art buffer transparent)
-  sharpCars: boolean;   // the cars on the screen canvas (drawSharpCarLayers); ?sharpcars=0 off
-  sharpMarks: boolean;  // ?sharpmarks=1: the skid marks on the screen canvas (drawMarksOnScreen)
   screenBegun: boolean; // this frame has blitted the art buffer to the screen at least once
   oneCanvas: boolean;   // ?onecanvas=1: the GPU ground drawn into the screen canvas (blitArt)
   wallDt: number;       // this frame's wall-clock step, s (the rain)
@@ -104,7 +99,6 @@ type RenderCtx = {
   gpuCamera: PaintCamera;         // where the world lands on the GPU canvas this frame
   noShade: boolean;               // ?noshade: no hill shading
   maxDpr: number | null;          // ?dpr=: a sharpness cap in place of MAX_DPR
-  startFix: boolean;              // ?startfix=1: the fly-in readies the hand-over
   PPMz: () => number;
   toScreenX: (worldX: number) => number;
   toScreenY: (worldY: number) => number;
@@ -252,11 +246,7 @@ function drawWorldLayers(ctx: RenderCtx, game: RenderGame, lock: ViewLock, wallT
     ctx.drawArrows(game, wallT);
   }
   if (!skip('marks')) {
-    if (ctx.state.sharpMarks) drawMarksOnScreen(ctx, game, lock);
-    else {
-      ctx.drawMarks(game.marks);
-      drawWetTrails(ctx.view.ctx, ctx.toScreenX, ctx.toScreenY, ctx.PPMz());
-    }
+    drawMarksOnScreen(ctx, game, lock);
   }
   if (!skip('fence')) ctx.drawFence();
   if (!skip('barriers')) ctx.drawBarriers();
@@ -312,17 +302,15 @@ function drawEffects(ctx: RenderCtx, game: RenderGame, wallDt: number) {
 }
 
 /**
- * Blits the art-pixel buffer to the screen (unless the sharp cars already did) and restores the
+ * Lays the night over the world (the sharp cars have blitted the art buffer) and restores the
  * zoom and camera.
  *
  * @param ctx the renderer context
  * @param lock what applyViewLock changed
  * @param game the game drawn (the night layer's lights)
- * @param blitted true when the art buffer is already on the screen
  */
-function blitWorld(ctx: RenderCtx, lock: ViewLock, game: RenderGame, blitted = false) {
+function blitWorld(ctx: RenderCtx, lock: ViewLock, game: RenderGame) {
   const { view, cam } = ctx;
-  if (!blitted) blitArt(ctx, lock);
   // the night over everything in the world, under the HUD, at the pixel-locked camera
   if (!ctx.skip('night')) ctx.drawNight(game, lock);
   view.zoom = lock.keepZoom;
@@ -353,9 +341,8 @@ function drawFrame(ctx: RenderCtx, game: RenderGame, wallDt: number, wallT: numb
   updateLampLight();   // this frame's brightness of each lamp (flicker)
   drawWorldLayers(ctx, game, lock, wallT);
   drawEffects(ctx, game, wallDt);
-  if (ctx.state.sharpCars) drawSharpCarLayers(ctx, game, lock);
-  else drawCarLayers(ctx, game);
-  blitWorld(ctx, lock, game, ctx.state.sharpCars);
+  drawSharpCarLayers(ctx, game, lock);
+  blitWorld(ctx, lock, game);
   if (ctx.state.gpuOn) ctx.gpu!.end();
 }
 
@@ -402,11 +389,11 @@ function paintGpuGround(ctx: RenderCtx, lock: ViewLock, car: CamCar) {
   });
   gpu!.paint(ctx.gpuCamera, ctx.groundPatches, count, ctx.paletteLUT());
   if (isGpuShadeOn(ctx)) updateGpuShade(ctx);
-  else if (ctx.startFix && !ctx.noShade) warmGpuShade(ctx, car);
+  else if (!ctx.noShade) warmGpuShade(ctx, car);
 }
 
 /**
- * ?startfix=1: during the fly-in (no shading drawn), readies the shading of the hand-over view
+ * During the fly-in (no shading drawn), readies the shading of the hand-over view
  * round the car within the shading's budget, so the hand-over frame does not compute it all
  * (MEASURED, laptop: 20 ms of that frame).
  *
@@ -577,8 +564,7 @@ function buildModules(view: View, cam: Cam, settings: Settings,
   // below is only called at draw time, after createRoad has returned forSide
   const ground = createGround(view, cam, { PPMz, toScreenX, toScreenY, roundRect,
     forSide: (...args) => road.forSide(...args),
-    grassEnds: settings.grassEnds, surfaceTextures: settings.surfaceTextures,
-    shareBlades: settings.menuFast });
+    grassEnds: settings.grassEnds });
   const road = createRoad(view, cam, {
     PPMz, toScreenX, toScreenY, paintLayers: ground.paintLayers, artBase: ground.artBase,
   });
@@ -608,7 +594,6 @@ function buildModules(view: View, cam: Cam, settings: Settings,
       if (!fillsOnGpu()) tiles.paletteSnap(target);
     },
     prefetch: (...args: [number, number, number, number, TileBudget]) => tiles.prefetch(...args),
-    zoomHold: settings.zoomHold,
   });
   const tiles = createTiles(view, cam, settings, {
     PPMz, toScreenX, toScreenY, drawFloor: ground.drawFloor, drawZones: ground.drawZones,
@@ -647,12 +632,12 @@ function gpuHelpers(state: RenderState, gpu: GlGround | null) {
  * The GPU ground under the screen canvas, or null (?glground=0, or no WebGL2).
  *
  * @param canvas the screen canvas
- * @param settings the game settings (glGround, gpuPaint, startFix, zoomSwitch)
+ * @param settings the game settings (glGround, gpuPaint)
  * @returns the GPU ground, or null
  */
 function createGpuGround(canvas: HTMLCanvasElement, settings: Settings) {
   const gpu = settings.glGround
-    ? createGlGround(canvas, settings.gpuPaint, settings.startFix, settings.zoomSwitch) : null;
+    ? createGlGround(canvas, settings.gpuPaint) : null;
   // ?onecanvas=1: the GPU canvas is never shown itself; blitArt draws it into the screen canvas
   if (gpu && settings.oneCanvas) gpu.canvas.style.display = 'none';
   return gpu;
@@ -672,12 +657,11 @@ function rainDrawer(pctx: CanvasRenderingContext2D, state: RenderState) {
 
 /**
  * A fresh renderer state for these settings.
- * @param settings the game settings (sharpCars, sharpMarks)
+ * @param settings the game settings (oneCanvas)
  * @returns the state
  */
 const newRenderState = (settings: Settings): RenderState =>
-  ({ blockPx: 1, realDpr: 1, gpuOn: false, sharpCars: settings.sharpCars,
-    sharpMarks: settings.sharpMarks, screenBegun: false, oneCanvas: settings.oneCanvas,
+  ({ blockPx: 1, realDpr: 1, gpuOn: false, screenBegun: false, oneCanvas: settings.oneCanvas,
     wallDt: 0 });
 
 /**
@@ -715,7 +699,7 @@ export function createRenderer(canvas: HTMLCanvasElement, settings: Settings) {
     canvas, view, cam, state, noLock: settings.noLock, skip, mainCtx, pcanvas, pctx, gpu, PPMz,
     drawRain: rainDrawer(pctx, state),
     groundPatches: [], toScreenX, toScreenY, noShade: settings.noShade, maxDpr: settings.maxDpr,
-    gpuCamera: { x: 0, y: 0, devPerMetre: 1, screenX: 0, screenY: 0 }, startFix: settings.startFix,
+    gpuCamera: { x: 0, y: 0, devPerMetre: 1, screenX: 0, screenY: 0 },
     ...ground, ...road, ...particles, ...cars, ...props, ...objects, ...camera, ...tiles,
     drawNight: createNight({ view, pcanvas, mainCtx, state, PPMz, toScreenX, toScreenY }),
   };

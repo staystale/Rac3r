@@ -66,7 +66,6 @@ uniform vec2 texSize;
 uniform float scale;     // screen px per texel
 uniform bool snapTexels; // GPU paint: each opaque texel snapped to the palette before blending
 uniform highp usampler3D palette;   // the palette lookup (glpaint.ts, texture unit 1)
-uniform bool levelZero;  // ?zoomswitch=1: tiles have mipmaps, so the sharp filter reads level 0
 out vec4 colour;
 ${WET_GLSL}
 
@@ -87,8 +86,8 @@ vec4 groundColour() {
   vec2 centre = fract(texel) - 0.5;
   vec2 region = vec2(0.5 - 0.5 / scale);
   vec2 offset = (centre - clamp(centre, -region, region)) * scale + 0.5;
-  if (!snapTexels && levelZero) return textureLod(tex, (base + offset) / texSize, 0.0);
-  if (!snapTexels) return texture(tex, (base + offset) / texSize);
+  // tiles have mipmaps (built with the upload), so the sharp filter reads level 0
+  if (!snapTexels) return textureLod(tex, (base + offset) / texSize, 0.0);
   // the same bilinear blend as the texture filter, of the snapped texels
   vec2 corner = base + offset - 0.5;
   ivec2 first = ivec2(floor(corner));
@@ -103,24 +102,22 @@ void main() {
   colour = wetten(groundColour());
 }`;
 
-/** CSS colours already read, and (?startfix=1) the one canvas they are read through */
+/** CSS colours already read, and the one canvas they are read through */
 interface ColourCache {
   rgba: Map<string, number[]>;
   probe: CanvasRenderingContext2D | null;
-  reuseProbe: boolean;
 }
 
 /**
  * The 1x1 canvas a colour is read through. A fresh canvas per colour (GPU-backed, then read
  * back) cost ~1 ms each: the GPU painter's first frame reads every surface colour, 43 ms at the
- * race start's fly-in hand-over (laptop profile). ?startfix=1 reuses one canvas of the same kind
+ * race start's fly-in hand-over (laptop profile). One canvas of the same kind is reused
  * (0.06 ms a colour), cleared and reset to a fresh canvas's fill first, so every colour reads
  * the same (checked: all 570 colours in src/).
  * @param cache the colour cache
  * @returns the canvas context
  */
 function colourProbe(cache: ColourCache) {
-  if (!cache.reuseProbe) return document.createElement('canvas').getContext('2d')!;
   if (!cache.probe) {
     const canvas = document.createElement('canvas');
     canvas.width = canvas.height = 1;
@@ -151,7 +148,7 @@ function parseColour(cache: ColourCache, colour: string) {
 
 /**
  * The texture of a canvas, uploaded once; mipmaps are built the first time it is drawn shrunk, or
- * with the upload (?zoomswitch=1). MEASURED (Castle Cum zoom glide): the first zoom-out past one
+ * with the upload. MEASURED (Castle Cum zoom glide): the first zoom-out past one
  * screen px per tile px built them for every tile in view in one frame (14 on a landscape phone;
  * tiles painted while zoomed in have none); sharpness 1.5 put that zoom at ~0.5, mid speed.
  * @param webgl the WebGL2 context
@@ -200,7 +197,6 @@ function buildQuad(webgl: WebGL2RenderingContext, program: WebGLProgram) {
   const uniforms = {
     rect: where('rect'), screen: where('screen'), texSize: where('texSize'), scale: where('scale'),
     snapTexels: where('snapTexels'), palette: where('palette'), wet: where('wet'),
-    levelZero: where('levelZero'),
   };
   const vao = webgl.createVertexArray();
   webgl.bindVertexArray(vao);
@@ -259,7 +255,7 @@ const newSinkState = (): SinkState => ({
  * @returns the sink and its texture cache
  */
 function createSink(webgl: WebGL2RenderingContext, program: WebGLProgram,
-    colours: ColourCache, state: SinkState, mipAtUpload: boolean) {
+    colours: ColourCache, state: SinkState) {
   const { uniforms, vao } = buildQuad(webgl, program);
   const textures = new Map<HTMLCanvasElement, TexEntry>();
   const sink: GroundSink = {
@@ -285,7 +281,7 @@ function createSink(webgl: WebGL2RenderingContext, program: WebGLProgram,
       const scale = (width * art) / source.width;
       webgl.useProgram(program);
       webgl.bindVertexArray(vao);
-      textureOf(webgl, textures, source, state.frameNo, scale < 1 || mipAtUpload, state.counts);
+      textureOf(webgl, textures, source, state.frameNo, true, state.counts);
       webgl.uniform4f(uniforms.rect, x * art + frame.subX, y * art + frame.subY, width * art,
         height * art);
       webgl.uniform2f(uniforms.screen, frame.width, frame.height);
@@ -295,7 +291,6 @@ function createSink(webgl: WebGL2RenderingContext, program: WebGLProgram,
       webgl.uniform1i(uniforms.snapTexels, state.painted ? 1 : 0);
       webgl.uniform1i(uniforms.palette, 1);
       webgl.uniform1f(uniforms.wet, WEATHER.wetness);
-      webgl.uniform1i(uniforms.levelZero, mipAtUpload ? 1 : 0);
       webgl.drawArrays(webgl.TRIANGLE_STRIP, 0, 4);
     },
   };
@@ -378,12 +373,9 @@ function shadeCalls(shade: GlShade | null, state: SinkState) {
  * (the ground then stays in the 2D art buffer, as before).
  * @param screen the screen canvas
  * @param withPainter true to paint the floor and zones on the GPU too (glpaint.ts)
- * @param reuseProbe ?startfix=1: colours read through one reused canvas (colourProbe)
- * @param mipAtUpload ?zoomswitch=1: tile mipmaps built with the upload, not at a zoom-out
  * @returns the GPU ground, or null
  */
-export function createGlGround(screen: HTMLCanvasElement, withPainter = false,
-    reuseProbe = false, mipAtUpload = false) {
+export function createGlGround(screen: HTMLCanvasElement, withPainter = false) {
   const canvas = document.createElement('canvas');
   canvas.id = 'glground';
   // preserveDrawingBuffer: the test tools read the finished frame back after it is shown. It looks
@@ -403,13 +395,13 @@ export function createGlGround(screen: HTMLCanvasElement, withPainter = false,
     + 'touch-action:none;pointer-events:none';
   Object.assign(screen.style, { position: 'relative', zIndex: '1' });
   screen.parentNode!.insertBefore(canvas, screen);
-  const colours: ColourCache = { rgba: new Map(), probe: null, reuseProbe };
+  const colours: ColourCache = { rgba: new Map(), probe: null };
   const painter = withPainter ? createGlPaint(webgl, (rgb) => parseColour(colours, rgb)) : null;
   const shade = withPainter ? createGlShade(webgl) : null;
   const field = withPainter ? createGlField(webgl) : null;
   const state = newSinkState();
   canvas.addEventListener('webglcontextlost', () => { state.lost = true; });
-  const { sink, textures } = createSink(webgl, program, colours, state, mipAtUpload);
+  const { sink, textures } = createSink(webgl, program, colours, state);
   return {
     canvas,
     sink,

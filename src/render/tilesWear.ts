@@ -11,9 +11,7 @@ export interface WearTiles {
   TILE_PX: number;
   state: { seenEpoch: number; wearDrainT: number };
   helpers: { heightsChanged: (rect: { x0: number; y0: number; x1: number; y1: number }) => void };
-  /** ?startfix=1: a wear reset makes stale only the tiles holding wear (WORN_TILES) */
-  WORN_ONLY: boolean;
-  /** the tile canvases painted with worn cells in them */
+  /** the tile canvases painted with worn cells in them (a wear reset stales only these) */
   WORN_TILES: WeakSet<HTMLCanvasElement>;
 }
 
@@ -79,7 +77,7 @@ function staleCoverAreas(tcx: WearTiles, zOfStep: (step: number) => number) {
 
 /**
  * Drains the dirty wear cells into stale tiles, at most every WEAR_DRAIN s; a new wear epoch
- * makes every tile stale - with ?startfix=1 only those holding wear. MEASURED on the owner's phone:
+ * makes every tile stale - only those holding wear. MEASURED on the owner's phone:
  * a race start (clearWear) staled every tile painted before it, and the fly-in hand-over then
  * repainted them all in one frame (48 tiles, 61 ms), with no wear in any of them.
  * @param tcx the tile cache
@@ -92,7 +90,7 @@ export function drainWear(tcx: WearTiles, wallDt: number,
   if (state.seenEpoch !== wearEpoch) {
     state.seenEpoch = wearEpoch;
     for (const tile of tiles.values()) {
-      if (!tcx.WORN_ONLY || tcx.WORN_TILES.has(tile.c)) tile.stale = true;
+      if (tcx.WORN_TILES.has(tile.c)) tile.stale = true;
     }
     wearDirty.length = 0;
     return;

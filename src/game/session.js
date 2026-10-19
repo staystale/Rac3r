@@ -108,7 +108,7 @@ export const RESET_BACK = 4;          // m behind the exit point
 export const RESET_ANG = [5, 15];     // deg back toward the road, random in this range
 
 /**
- * RESET IN THE JOKER LANE (?jokerfix=1; requirement: reset should put you back on the joker lane
+ * RESET IN THE JOKER LANE (requirement: reset should put you back on the joker lane
  * where you last came off, like any other section of track): RESET_BACK m behind the last spot
  * the car was on the lane, centred on the edge it left by, nose turned back toward the lane. Was:
  * the circuit reset, which put the car back on the main road before the joker.
@@ -117,7 +117,7 @@ export const RESET_ANG = [5, 15];     // deg back toward the road, random in thi
  */
 function resetOnJoker(place) {
   const lane = LEVEL.joker ? jokerLane(LEVEL) : null, spot = game.lastOnJoker;
-  if (!shared.settings.jokerFix || !lane || !spot) return false;
+  if (!lane || !spot) return false;
   const side = Math.sign(spot.off) || (Math.random() < 0.5 ? -1 : 1), half = lane.width / 2;
   const along = Math.max(0, spot.along - RESET_BACK), pose = lanePose(lane, along);
   // the lane's +normal is (-ty, tx); a heading turned positive turns the nose toward it
@@ -347,10 +347,10 @@ export function doRestart() {
   clearWear();
   resetPuddles();   // the weather's puddles and snow at the start
   resetCoverField();   // or the cover field's, already settled (?coverfield=1)
-  // open on the whole level, then ease in to the car. Not behind the menu (?menufast=0 = it is):
+  // open on the whole level, then ease in to the car. Not behind the menu:
   // MEASURED on the owner's phone (?report=1, the menu's first 1.5 s) the fly-in nobody sees there
   // cost a 113 ms frame (the whole-level picture) and a 121 ms one (28 GPU uploads at the handover)
-  const behindMenu = shared.mode === 'menu' && shared.settings.menuFast;
+  const behindMenu = shared.mode === 'menu';
   if (shared.renderer && shared.renderer.flyIn && !behindMenu) shared.renderer.flyIn();
   shared.trackProgress = 0;
   shared.lastOnTrack = null;

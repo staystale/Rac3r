@@ -18,7 +18,6 @@ interface CameraHelpers {
   drawCurvedKerbs: () => void;
   paletteSnap: (c: HTMLCanvasElement) => void;
   prefetch: (k: number, cx: number, cy: number, z: number, budget: TileBudget) => void;
-  zoomHold: boolean;   // hold the zoom, move it smoothly (springZoom); off: ?zoomhold=0
 }
 
 // what the moved functions share
@@ -38,7 +37,6 @@ interface CameraCtx {
   drawCovers: () => void;
   drawCurvedKerbs: () => void;
   paletteSnap: (c: HTMLCanvasElement) => void;
-  zoomHold: boolean;
 }
 
 // SPEED ZOOM. Asked for by the user and by the playtesters: above ~120 km/h the car was running
@@ -227,7 +225,8 @@ function startFlyIn(ctx: CameraCtx) {
   // the averaged speed still held the menu demo's 79 km/h, so after the fly-in landed fully in, the
   // zoom went back out with the car standing still, then in again - the owner's "bounce" at the
   // start
-  if (ctx.zoomHold) { camState.vZoom = null; camState.zoomSpring = null; }
+  camState.vZoom = null;
+  camState.zoomSpring = null;
 }
 
 /**
@@ -279,22 +278,17 @@ function stepZoom(ctx: CameraCtx, car: CamCar, wallDt: number) {
     : camState.vZoom + (vNow - camState.vZoom) * (1 - Math.exp(-0.65 * wallDt));
   const speed = camState.vZoom;
   // the zoom hold looks further ahead (owner: "it could maybe zoom out a bit easier with speed")
-  const lookahead = ctx.zoomHold ? LOOKAHEAD * ZOOM_SPRING_LOOKAHEAD : LOOKAHEAD;
+  const lookahead = LOOKAHEAD * ZOOM_SPRING_LOOKAHEAD;
   const want = speed > 1 ? view.W / (view.PPM * speed * lookahead) : 1;
   const target = Math.max(ZOOM_MIN, Math.min(1, want));
-  // CALMER (tools/wobblecheck: the zoom moved the screen edge ~1.1 px EVERY frame at speed - the
-  // view breathed with every lift and squeeze): 2.5/s -> 0.9/s, and changes under 4 % of the
-  // target are ignored (dead band).
-  if (ctx.zoomHold) { springZoom(ctx, target, wallDt); return; }
-  if (Math.abs(target - view.zoom) > 0.04 * target)
-    view.zoom += (target - view.zoom) * (1 - Math.exp(-0.9 * wallDt));
+  springZoom(ctx, target, wallDt);
 }
 
-// ZOOM HOLD (the default; ?zoomhold=0 = the eased zoom above). The eased zoom above moves a little
-// almost every frame while driving (tools/wobblecheck, sandbox ~100 km/h: the zoom alone moves the
-// screen edge 0.83 px a frame), so the ground swells and shrinks under a car that stays still:
-// motion sickness. Here the zoom HOLDS until the speed target is more than ZOOM_HOLD_BAND away
-// (ZOOM_OUT_BAND for a zoom-out), then MOVES, and holds again.
+// ZOOM HOLD. An eased zoom moved a little almost every frame while driving (tools/wobblecheck,
+// sandbox ~100 km/h: the zoom alone moved the screen edge 0.83 px a frame), so the ground swelled
+// and shrank under a car that stayed still: motion sickness. Here the zoom HOLDS until the speed
+// target is more than ZOOM_HOLD_BAND away (ZOOM_OUT_BAND for a zoom-out), then MOVES, and holds
+// again.
 // The move is a critically damped spring on the zoom's log, chasing the target as it is NOW (owner
 // 2026-10-16, "chunky lumpy zoom out"; approved "zooms good"). It was a fixed eased glide to the
 // target of its start: under hard acceleration the target ran on, so the zoom went out in a
@@ -358,14 +352,14 @@ function springZoom(ctx: CameraCtx, target: number, wallDt: number) {
 export function createCamera(view: View, cam: Cam, helpers: CameraHelpers) {
   const {
     PPMz, drawFloor, drawZones, drawLanes, drawTrackRibbon, drawPatches, drawCovers,
-    drawCurvedKerbs, paletteSnap, zoomHold,
+    drawCurvedKerbs, paletteSnap,
   } = helpers;
   const camState: CamState = {
     fly: null, ovCache: null, vZoom: null, pinZoom: null, zoomSpring: null,
   };
   const ctx: CameraCtx = {
     view, cam, camState, PPMz, drawFloor, drawZones, drawLanes, drawTrackRibbon, drawPatches,
-    drawCovers, drawCurvedKerbs, paletteSnap, zoomHold,
+    drawCovers, drawCurvedKerbs, paletteSnap,
   };
   return {
     camState,

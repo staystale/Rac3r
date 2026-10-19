@@ -16,7 +16,7 @@ import { createMarks } from './marks.js';
 import { setTrackTempSource } from './hud/tracktemp.js';
 import { createHud } from './hud.js';
 import {
-  setMinimapSource, setMinimapView, setMinimapHighway, setMinimapJoker, setProgressSource,
+  setMinimapSource, setMinimapView, setProgressSource,
 } from './hud/minimap.js';
 import { createMeter } from './ui/meter.ts';
 import { createReporter } from './ui/report.ts';
@@ -184,8 +184,6 @@ setMinimapSource(() => !!shared.minimapOn && shared.mode !== 'menu');
 setProgressSource(shared.settings.hudMenu
   ? () => !!shared.progressOn && shared.mode !== 'menu' : null);
 setMinimapView(() => shared.renderer.PPM);
-setMinimapHighway(shared.settings.hwMap);
-setMinimapJoker(shared.settings.jokerFix);
 // HOW TO PLAY. Opens by itself once per device, after the first fly-in. NOT
 // under automation: Playwright sets navigator.webdriver, and every harness in tools/ taps the HUD
 // as if no card were up. ?guide=1 forces it on (for photographing it), ?guide=0 forces it off.
@@ -271,12 +269,12 @@ shared.menu = shared.MENU
           ? shared.renderer.pixelCarWithWheels(x) : shared.renderer.pixelCar(x)) }) : null;
 if (shared.MENU) {
   shared.hud.setHelpLabel('II');
-  // the track thumbnails now, while the loading screen is up (?menufast=0: on the tap). MEASURED:
-  // phone: painted on the TEST MODE tap they took 193 ms, and putting the menu's race level back
-  // (wear cleared, so every ground tile stale) cost 68 ms the frame after
-  if (shared.settings.menuFast) prepareThumbs();
-  // the long-grass textures (~115 ms on the phone) now, not in a frame of the menu (?texwarm=0)
-  if (shared.settings.texWarm) shared.renderer.warmBladeTextures();
+  // the track thumbnails now, while the loading screen is up. MEASURED: phone: painted on the
+  // TEST MODE tap they took 193 ms, and putting the menu's race level back (wear cleared, so
+  // every ground tile stale) cost 68 ms the frame after
+  prepareThumbs();
+  // the long-grass textures (~115 ms on the phone) now, not in a frame of the menu
+  shared.renderer.warmBladeTextures();
   enterMenu();
   shared.menu.show();
   // the phone report's load time: ms from the page opening to the menu shown (ui/report.ts)
@@ -299,7 +297,7 @@ shared.warmMs = 0;   // ms of texture warm-up since the last frame, for the phon
   shared.warmMs += performance.now() - began;
   if (more) setTimeout(warmTextures, WARM_SLICE_MS);
 })();
-shared.pacer = shared.settings.vsync ? createFramePacer() : null;   // ?vsync=0: off (pacing.ts)
+shared.pacer = createFramePacer();   // whole display refreshes (pacing.ts)
 // ?report=1: the meter's frames also go to the test server (ui/report.ts)
 shared.reporter = shared.settings.report
   ? createReporter(location.search, () => (LEVEL ? LEVEL.id : ''), () => shared.loadMs ?? null)

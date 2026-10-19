@@ -15,8 +15,6 @@ export interface GroundHelpers {
   ) => void;
   forSide: ForSide;
   grassEnds: 'round' | 'square';
-  surfaceTextures: boolean;     // default on (?tex=0 = live): pre-painted textures (textures.ts)
-  shareBlades: boolean;         // blades stroked once per shape (textures.ts); ?menufast=0 off
 }
 
 // what every module-level painter shares, built once by createGround
@@ -24,8 +22,8 @@ export interface GroundCtx extends GroundHelpers {
   view: View;
   cam: Cam;
   textures: ReturnType<typeof createTextureCache>;
-  // the blade masks shared by the long-grass looks (with shareBlades), else null
-  bladeMasks: BladeMasks | null;
+  // the blade masks shared by the long-grass looks (blades stroked once per shape)
+  bladeMasks: BladeMasks;
   // how each surface is painted (see makeSurfaceArt)
   SURFACE_ART: Record<string, SurfaceArt | null>;
   // the pattern layer kinds (see makePrim)
