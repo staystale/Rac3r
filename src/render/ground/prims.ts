@@ -165,12 +165,12 @@ function paintStones(
 function paintBlades(
   groundCtx: GroundCtx, layer: ArtLayer, minX: number, minY: number, maxX: number, maxY: number
 ) {
-  const { view, PPMz, grassEnds } = groundCtx;
+  const { view, PPMz } = groundCtx;
   const [, col, spacing, len, wid, prob = 1] = layer, ppm = PPMz();
   if (len * ppm < 2 || spacing * ppm < 2.5) return;
   view.ctx.strokeStyle = col;
   view.ctx.lineWidth = Math.max(1, wid * ppm);
-  view.ctx.lineCap = grassEnds === 'square' ? 'butt' : 'round';
+  view.ctx.lineCap = 'round';
   view.ctx.beginPath();
   lattice(groundCtx, minX, minY, maxX, maxY, spacing, prob, (x, y, randA, randB) => {
     const bladeLen = len * ppm * (0.7 + 0.6 * randB), tilt = (randA - 0.5) * 0.9;

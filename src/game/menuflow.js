@@ -17,7 +17,6 @@ import {
   minimapSetting, setMinimapSetting, progressSetting, setProgressSetting,
 } from '../hud/minimap.js';
 import { setTrackTempSetting, trackTempSetting } from '../hud/tracktemp.js';
-import { showMenuVideo, hideMenuVideo } from './menuvideo.js';
 import { BUILD_ID, hasSavedThumbs, readThumbs, saveThumbs } from '../menu/thumbcache.js';
 
 /**
@@ -101,12 +100,6 @@ export function enterMenu() {
   shared.weatherPlan = CLOCK.isOn ? { mode: 'season', season: calendarAt(CLOCK.globalS).season,
     seed: Math.floor(Math.random() * 2147483646) + 1 } : null;
   startEventClock(null);
-  // ?menuvideo=1 (parked): the recording behind the menu (menuvideo.js); else the live race below
-  shared.menuVideo = shared.settings.menuVideo && showMenuVideo();
-  if (shared.menuVideo) {
-    setTimeout(paintThumbsSoon, THUMB_START_MS);
-    return;
-  }
   if (LEVEL.id !== shared.DEMO_LEVEL) selectLevel(shared.DEMO_LEVEL); else doRestart();
   if (game.car.spec.id !== shared.DEMO_CAR) selectCar(shared.DEMO_CAR);
   shared.demo = createAIDriver(LEVEL,
@@ -150,8 +143,6 @@ export function applyLaunchOptions(levelId, opts) {
  * @param {object} opts the launch options (ai, diff, rx, laps, road, traffic, litter, ...)
  */
 export function launch(levelId, carId, opts = {}) {
-  hideMenuVideo();
-  shared.menuVideo = false;
   shared.mode = 'session';
   shared.demo = null;
   shared.paused = false;
@@ -215,10 +206,8 @@ export function openPause() {
 }
 // TRACK THUMBNAILS (the menu's track lists). MEASURED (TEST MODE tap, CPU x4): painting them all on
 // the tap froze the menu 3.1 s, 2.0 s of it building ground detail a 320 px thumbnail cannot show
-// (now a light build, load.ts prepareLevel). While the menu recording plays nothing else runs, so
-// they are painted one level at a time in the background (paintThumbsSoon); the tap paints only
-// what is still missing. Each is painted with its level current, then the level before is put back.
-const THUMB_START_MS = 1200, THUMB_STEP_MS = 120;
+// (now a light build, load.ts prepareLevel). Each is painted with its level current, then the
+// level before is put back.
 // ms after the menu shows before the painted thumbnails are saved (thumbcache.js), clear of its
 // start
 const THUMB_SAVE_MS = 4000;
@@ -259,15 +248,6 @@ export function prepareThumbs() {
   }
   paintThumbs();
   setTimeout(() => saveThumbs(build, thumbs).catch(() => {}), THUMB_SAVE_MS);
-}
-/** Paints the next missing thumbnail, then the next a moment later, while the recording plays. */
-function paintThumbsSoon() {
-  const next = LEVELS.find((level) => !thumbs[level.id]);
-  if (!next || shared.mode !== 'menu' || !shared.menuVideo) return;
-  const keep = LEVEL.id;
-  paintThumb(next);
-  setLevel(keep);
-  setTimeout(paintThumbsSoon, THUMB_STEP_MS);
 }
 // RESULTS: 1.6 s after the race ends (the flag sweep), the podium then the table (menu.js results)
 export function stepResults() {

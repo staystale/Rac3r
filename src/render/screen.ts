@@ -11,7 +11,7 @@ import type { RenderCar, RenderGame, RenderMarks, View } from "./types.ts";
 export interface ScreenCtx {
   canvas: HTMLCanvasElement;
   view: View;
-  state: { blockPx: number; gpuOn: boolean; screenBegun: boolean; oneCanvas: boolean };
+  state: { blockPx: number; gpuOn: boolean; screenBegun: boolean };
   gpu: { canvas: HTMLCanvasElement } | null;
   mainCtx: CanvasRenderingContext2D;
   pcanvas: HTMLCanvasElement;
@@ -112,14 +112,9 @@ export function blitArt(ctx: ScreenCtx, lock: ScreenLock) {
   mainCtx.setTransform(1, 0, 0, 1, 0, 0);
   mainCtx.imageSmoothingEnabled = false;
   // the frame's first blit: over the GPU ground the screen canvas is cleared, so the transparent
-  // art buffer shows it. ONE CANVAS (?onecanvas=1): the finished GPU ground is drawn into the
-  // screen canvas instead, under everything, and the GPU canvas is hidden. MEASURED (owner's
-  // screen recordings, Castle Cum): with two full-screen canvases updated every frame Safari held
-  // 69-78 frames in 15 s; with the old one-canvas 2D ground, 9. WebGL into 2D can stay on the GPU
-  // (the other way, 2D into WebGL each frame, went through the CPU and juddered).
+  // art buffer shows it
   if (!state.screenBegun && state.gpuOn) {
-    if (state.oneCanvas && ctx.gpu) mainCtx.drawImage(ctx.gpu.canvas, 0, 0);
-    else mainCtx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    mainCtx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
   }
   state.screenBegun = true;
   mainCtx.drawImage(pcanvas, lock.subX, lock.subY, pcanvas.width * state.blockPx,

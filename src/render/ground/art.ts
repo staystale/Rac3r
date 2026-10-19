@@ -288,15 +288,13 @@ const TEXTURE_KEYS = new Map<string, string>();
  * The texture cache key of a surface.
  *
  * @param name the SURFACE_ART key
- * @param square true for square grass blade ends
  * @returns the key
  */
-function textureKey(name: string, square: boolean) {
-  const lookup = square ? name + '#' : name;
-  let key = TEXTURE_KEYS.get(lookup);
+function textureKey(name: string) {
+  let key = TEXTURE_KEYS.get(name);
   if (!key) {
-    key = `${name}|${square}`;
-    TEXTURE_KEYS.set(lookup, key);
+    key = `${name}|false`;
+    TEXTURE_KEYS.set(name, key);
   }
   return key;
 }
@@ -310,10 +308,8 @@ function textureKey(name: string, square: boolean) {
  * @returns the texture canvas
  */
 export function surfaceTexture(groundCtx: GroundCtx, name: string, art: SurfaceArt) {
-  const square = groundCtx.grassEnds === 'square';
-  return groundCtx.textures.get(textureKey(name, square),
-    (gfx, period) => paintTexture(gfx, period, TEX_PPM, art.layers, square,
-      groundCtx.bladeMasks));
+  return groundCtx.textures.get(textureKey(name),
+    (gfx, period) => paintTexture(gfx, period, TEX_PPM, art.layers, groundCtx.bladeMasks));
 }
 
 /**
@@ -325,9 +321,8 @@ export function surfaceTexture(groundCtx: GroundCtx, name: string, art: SurfaceA
  * @param groundCtx the shared ground painter context
  */
 export function warmBladeTextures(groundCtx: GroundCtx) {
-  const square = groundCtx.grassEnds === 'square';
   for (const [name, art] of Object.entries(groundCtx.SURFACE_ART)) {
-    if (!art || groundCtx.textures.has(textureKey(name, square))) continue;
+    if (!art || groundCtx.textures.has(textureKey(name))) continue;
     if (!art.layers.some((layer) => layer[0] === 'blades')) continue;
     surfaceTexture(groundCtx, name, art).getContext('2d')!.getImageData(0, 0, 1, 1);
   }
@@ -342,9 +337,8 @@ export function warmBladeTextures(groundCtx: GroundCtx) {
  * @returns true while textures are left to paint
  */
 export function warmNextTexture(groundCtx: GroundCtx) {
-  const square = groundCtx.grassEnds === 'square';
   for (const [name, art] of Object.entries(groundCtx.SURFACE_ART)) {
-    if (!art || groundCtx.textures.has(textureKey(name, square))) continue;
+    if (!art || groundCtx.textures.has(textureKey(name))) continue;
     surfaceTexture(groundCtx, name, art).getContext('2d')!.getImageData(0, 0, 1, 1);
     return true;
   }

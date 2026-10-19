@@ -18,18 +18,13 @@ export interface Settings {
   levelId: string | null;        // ?level=ID: the level to start on, raw (null = no ?level)
   inputMode: "touch" | "pc" | "auto";   // ?touch / ?pc: force touch or pc controls
   highwayDebug: string | null;   // ?hw=NAME: road preset of the debug highway (tools)
-  noLock: boolean;               // ?nolock: pixel-locked view off (A/B for tools/wobblecheck)
   tilePx: number;                // ?tilepx=N: css px per ground tile side (default 256; A/B)
-  tileGpu: boolean;              // ?tilegpu: paint tiles straight on the GPU canvas
   glGround: boolean;             // ?glground=0: the ground tiles in the 2D art buffer, not WebGL
   gpuPaint: boolean;             // floor + zones painted by the GPU (glpaint.ts); off: ?gpupaint=0
-  menuVideo: boolean;            // ?menuvideo=1 (parked): the recorded race behind the menu
   rain: number | null;           // ?rain=0.6: the track this wet, 0-1, and raining (weather test)
   night: number | null;          // ?night=0.8: this dark, 0-1 (lighting test, world/daylight.ts)
-  oneCanvas: boolean;            // ?onecanvas=1: the GPU ground drawn into the 2D canvas
   maxDpr: number | null;         // ?dpr=2: the sharpness cap (default render.ts MAX_DPR 1.5)
   noShade: boolean;              // ?noshade: skip the hill shading (perf A/B)
-  grassEnds: "round" | "square";   // ?grass=square: square grass blade ends (cheaper; A/B)
   meter: boolean;   // ?meter=1 or ?report=1: the frame meter records each frame
   meterOverlay: boolean;   // ?meter=1 only: the meter's graph drawn on screen
   report: boolean;  // ?report=1: the meter's frames posted to the test server (ui/report.ts)
@@ -93,19 +88,14 @@ export function readSettings(search: string): Settings {
     levelId: params.has('level') ? params.get('level') : null,
     inputMode: params.has('touch') ? 'touch' : params.has('pc') ? 'pc' : 'auto',
     highwayDebug: params.get('hw'),
-    noLock: params.has('nolock'),
     // get('tilepx')!: null only means no ?tilepx=, where +null is 0 and the || falls back to 256
     tilePx: +params.get('tilepx')! || 256,
-    tileGpu: params.has('tilegpu'),
     glGround: params.get('glground') !== '0',
     // default since 2026-10-16 (owner approved on the phone); =0 brings the old path back
     gpuPaint: params.get('gpupaint') !== '0',
-    menuVideo: params.get('menuvideo') === '1',
     ...weatherSettings(params),
-    oneCanvas: params.get('onecanvas') === '1',
     maxDpr: maxDpr(params),
     noShade: params.has('noshade'),
-    grassEnds: params.get('grass') === 'square' ? 'square' : 'round',
     meter: params.get('meter') === '1' || params.get('report') === '1',
     report: params.get('report') === '1',
     // ?report=1 alone records without the graph: a full-resolution graph redrawn every frame may

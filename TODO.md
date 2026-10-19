@@ -35,6 +35,9 @@ handover, written on request.
   [x] 4 MENUS / HUD: ?hudmenu, ?tyreoff, ?hudunits, ?minimap deleted with their old paths (the
   pause menu's old MINIMAP row, the tune panel's TYRE HUD button, the diagram popping up when
   damaged); the HUD list's MINIMAP / PROGRESS / TRACK TEMP rows decide.
+  [x] EXPERIMENTS (owner: delete them if cleaner and not needed): ?menuvideo (with media/ and
+  tools/menuvideo.mjs), ?onecanvas, ?tilegpu, ?grass=square, ?nolock deleted; simhash, renderhash
+  SAME.
   [ ] 5 THE CPU GROUND (?gpupaint=0 / ?glground=0): renderhash and edgecheck draw it - ASK the
   owner: delete it and point renderhash at the GPU ground (slower proofs, but they prove the
   ground the phone shows), or keep it as a proof tool.
@@ -79,7 +82,6 @@ handover, written on request.
 - Ground on the GPU phase C (cars and props as GPU sprites, one canvas): GPU work measured no
   speed gain on the phone and two canvases cost Safari frames; proposed dropping (owner to say).
 - The lean drawing plan (paused 10-17, default kept); fixed zoom steps (only for the lean path).
-- The menu video (owner: it must be a video of a race; the first take lagged; ?menuvideo=1).
 - The minimap may be simplified if ever needed (owner offered; no need measured).
 - Outside TEST MODE the setup's SEASON slider gives way to the global season (with Story mode).
 

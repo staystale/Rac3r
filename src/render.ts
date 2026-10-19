@@ -70,7 +70,6 @@ interface RenderState {
   realDpr: number;   // the real dpr of the screen canvas
   gpuOn: boolean;    // this frame draws the ground on the GPU canvas (art buffer transparent)
   screenBegun: boolean; // this frame has blitted the art buffer to the screen at least once
-  oneCanvas: boolean;   // ?onecanvas=1: the GPU ground drawn into the screen canvas (blitArt)
   wallDt: number;       // this frame's wall-clock step, s (the rain)
 }
 
@@ -89,7 +88,6 @@ type RenderCtx = {
   view: View;
   cam: Cam;
   state: RenderState;
-  noLock: boolean;
   skip: (name: string) => boolean;
   mainCtx: CanvasRenderingContext2D;
   pcanvas: HTMLCanvasElement;
@@ -179,7 +177,7 @@ function applyViewLock(ctx: RenderCtx, wallDt: number): ViewLock {
   const { view, cam, state, camState, tileState, FLY_HANDOVER, TILE_PX, ZSTEP } = ctx;
   const keepZoom = view.zoom;
   let subX = 0, subY = 0, camTrue: { x: number; y: number } | null = null;
-  if (!ctx.noLock && (!camState.fly || view.zoom >= FLY_HANDOVER)) {
+  if (!camState.fly || view.zoom >= FLY_HANDOVER) {
     const step = (tileState.lastStep !== null
       && Math.abs(ZSTEP * Math.log2(view.zoom) - tileState.lastStep) < 0.75)
       ? tileState.lastStep : ctx.zStepOf(view.zoom);
@@ -564,7 +562,7 @@ function buildModules(view: View, cam: Cam, settings: Settings,
   // below is only called at draw time, after createRoad has returned forSide
   const ground = createGround(view, cam, { PPMz, toScreenX, toScreenY, roundRect,
     forSide: (...args) => road.forSide(...args),
-    grassEnds: settings.grassEnds });
+ });
   const road = createRoad(view, cam, {
     PPMz, toScreenX, toScreenY, paintLayers: ground.paintLayers, artBase: ground.artBase,
   });
@@ -638,8 +636,6 @@ function gpuHelpers(state: RenderState, gpu: GlGround | null) {
 function createGpuGround(canvas: HTMLCanvasElement, settings: Settings) {
   const gpu = settings.glGround
     ? createGlGround(canvas, settings.gpuPaint) : null;
-  // ?onecanvas=1: the GPU canvas is never shown itself; blitArt draws it into the screen canvas
-  if (gpu && settings.oneCanvas) gpu.canvas.style.display = 'none';
   return gpu;
 }
 
@@ -657,12 +653,10 @@ function rainDrawer(pctx: CanvasRenderingContext2D, state: RenderState) {
 
 /**
  * A fresh renderer state for these settings.
- * @param settings the game settings (oneCanvas)
  * @returns the state
  */
-const newRenderState = (settings: Settings): RenderState =>
-  ({ blockPx: 1, realDpr: 1, gpuOn: false, screenBegun: false, oneCanvas: settings.oneCanvas,
-    wallDt: 0 });
+const newRenderState = (): RenderState =>
+  ({ blockPx: 1, realDpr: 1, gpuOn: false, screenBegun: false, wallDt: 0 });
 
 /**
  * Builds the renderer for a canvas.
@@ -686,7 +680,7 @@ export function createRenderer(canvas: HTMLCanvasElement, settings: Settings) {
   // pixel mode: the world buffer, its device-px block size, the real dpr of the screen canvas
   const pcanvas = document.createElement('canvas');
   const pctx = pcanvas.getContext('2d')!;   // likewise
-  const state = newRenderState(settings);
+  const state = newRenderState();
   const gpu = createGpuGround(canvas, settings);
   const cam: Cam = { x: 0, y: 0, initialised: false };
   // ONE place converts metres to pixels, so nothing can miss the zoom
@@ -696,7 +690,7 @@ export function createRenderer(canvas: HTMLCanvasElement, settings: Settings) {
   const { ground, road, particles, pixelCar, cars, props, objects, camera, tiles } =
     buildModules(view, cam, settings, { PPMz, toScreenX, toScreenY, ...gpuHelpers(state, gpu) });
   const ctx: RenderCtx = {
-    canvas, view, cam, state, noLock: settings.noLock, skip, mainCtx, pcanvas, pctx, gpu, PPMz,
+    canvas, view, cam, state, skip, mainCtx, pcanvas, pctx, gpu, PPMz,
     drawRain: rainDrawer(pctx, state),
     groundPatches: [], toScreenX, toScreenY, noShade: settings.noShade, maxDpr: settings.maxDpr,
     gpuCamera: { x: 0, y: 0, devPerMetre: 1, screenX: 0, screenY: 0 },

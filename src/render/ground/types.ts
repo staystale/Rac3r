@@ -14,7 +14,6 @@ export interface GroundHelpers {
     radius: number
   ) => void;
   forSide: ForSide;
-  grassEnds: 'round' | 'square';
 }
 
 // what every module-level painter shares, built once by createGround

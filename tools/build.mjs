@@ -21,8 +21,6 @@ await build({
   // the version fingerprint: the saved menu thumbnails are per version (src/menu/thumbcache.js)
   define: { "globalThis.__RAC3R_BUILD__": JSON.stringify(await sourceHash(root)) },
 });
-// the menu recording and its still frame (src/game/menuvideo.js; tools/menuvideo.mjs makes them)
-await cp(join(root, "media"), join(dist, "media"), { recursive: true });
 const html = await readFile(join(root, "index.html"), "utf8");
 // the page loads either path (index.html); both are the one bundle here
 await writeFile(join(dist, "index.html"),

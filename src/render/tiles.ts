@@ -71,8 +71,6 @@ interface TilesCtx {
   TILE_PX: number;
   /** cached tiles kept; oldest dropped first (~1 MB each at dpr 2) */
   TILE_MAX: number;
-  /** ?tilegpu=1: the old path (tiles painted + read back on their own GPU canvas) */
-  TILE_GPU: boolean;
   /** perf A/B: no hill-shading */
   NO_SHADE: boolean;
   /** the tile canvases painted with worn cells in them (a wear reset stales only these) */
@@ -225,7 +223,7 @@ function startTile(tcx: TilesCtx, step: number, i: number, j: number): TileJob {
   // canvas every pattern fill moved the texture (MEASURED, highway: 2.7 s of fills in 900 frames)
   // and WebGL uploads a CPU canvas with a plain copy
   const onGpu = tcx.state.tileFillsOnGpu;
-  const scratch = tcx.TILE_GPU || onGpu ? null : tileScratch(size);
+  const scratch = onGpu ? null : tileScratch(size);
   const ctx = scratch ? scratch.g
     : canvas.getContext('2d', onGpu ? { willReadFrequently: true } : undefined)!;
   ctx.setTransform(view.dpr, 0, 0, view.dpr, 0, 0);
@@ -695,7 +693,7 @@ function drawGround(tcx: TilesCtx, wallDt = 0, car: CamCar | null = null) {
  * Creates the ground tile cache.
  * @param view the view
  * @param cam the camera
- * @param settings the settings (tilePx, tileGpu, noShade)
+ * @param settings the settings (tilePx, noShade)
  * @param helpers what the tiles use of the renderer
  * @returns the tile state and counters, the tile map, the zoom-step helpers and the painters
  */
@@ -727,7 +725,6 @@ export function createTiles(view: View, cam: Cam, settings: Settings, helpers: T
     // cached tiles kept; oldest dropped first (~1 MB each at dpr 2). Scaled with the tile AREA, so
     // smaller tiles keep the same ground in memory.
     TILE_MAX: Math.round(72 * (256 / TILE_PX) ** 2),
-    TILE_GPU: settings.tileGpu,
     NO_SHADE: settings.noShade,
     WORN_TILES: new WeakSet(),
   };

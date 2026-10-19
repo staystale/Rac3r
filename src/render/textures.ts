@@ -136,11 +136,11 @@ function blobs(gfx: Gfx, period: number, ppm: number, layer: ArtLayer) {
   gfx.fill();
 }
 
-function blades(gfx: Gfx, period: number, ppm: number, layer: ArtLayer, square: boolean) {
+function blades(gfx: Gfx, period: number, ppm: number, layer: ArtLayer) {
   const gap = num(layer, 2), len = num(layer, 3), wid = num(layer, 4), prob = layer[5] ?? 1;
   if (len * ppm < 2 || gap * ppm < 2.5) return;
   gfx.strokeStyle = layer[1]; gfx.lineWidth = Math.max(1, wid * ppm);
-  gfx.lineCap = square ? 'butt' : 'round'; gfx.beginPath();
+  gfx.lineCap = 'round'; gfx.beginPath();
   latticePeriodic(period, ppm, gap, prob as number, len * 1.4, (posX, posY, rndA, rndB) => {
     const size = len * ppm * (0.7 + 0.6 * rndB), tilt = (rndA - 0.5) * 0.9;
     gfx.moveTo(posX, posY);
@@ -200,18 +200,16 @@ function cpuCanvas(width: number, height: number) {
  * @param period the period, m
  * @param ppm px per metre
  * @param layer the blades layer
- * @param square square blade ends
  * @param masks the masks painted so far
  */
-function tintedBlades(gfx: Gfx, period: number, ppm: number, layer: ArtLayer, square: boolean,
-  masks: BladeMasks) {
+function tintedBlades(gfx: Gfx, period: number, ppm: number, layer: ArtLayer, masks: BladeMasks) {
   const { width, height } = gfx.canvas;
-  const key = [width, period, ppm, square, ...layer.slice(2)].join('|');
+  const key = [width, period, ppm, ...layer.slice(2)].join('|');
   let mask = masks.get(key);
   if (!mask) {
     mask = cpuCanvas(width, height);
     const white = ['blades', '#ffffff', ...layer.slice(2)] as ArtLayer;
-    blades(mask.getContext('2d')!, period, ppm, white, square);
+    blades(mask.getContext('2d')!, period, ppm, white);
     masks.set(key, mask);
   }
   const tint = cpuCanvas(width, height), tintGfx = tint.getContext('2d')!;
@@ -226,13 +224,12 @@ function tintedBlades(gfx: Gfx, period: number, ppm: number, layer: ArtLayer, sq
 // nothing in the live code either), so no layer stays live; with masks (the default) the blades
 // layers come from shared masks (tintedBlades)
 export function paintTexture(
-  gfx: Gfx, period: number, ppm: number, layers: ArtLayer[], square: boolean,
-  masks: BladeMasks | null = null
+  gfx: Gfx, period: number, ppm: number, layers: ArtLayer[], masks: BladeMasks | null = null
 ) {
   for (const layer of layers) {
     const kind = layer[0];
     if (kind === 'blades' && masks) {
-      tintedBlades(gfx, period, ppm, layer, square, masks);
+      tintedBlades(gfx, period, ppm, layer, masks);
       continue;
     }
     if (kind === 'grain') grain(gfx, period, ppm, layer);
@@ -241,7 +238,7 @@ export function paintTexture(
     else if (kind === 'sheen') sheen(gfx, period, ppm, layer);
     else if (kind === 'stones') stones(gfx, period, ppm, layer);
     else if (kind === 'blobs') blobs(gfx, period, ppm, layer);
-    else if (kind === 'blades') blades(gfx, period, ppm, layer, square);
+    else if (kind === 'blades') blades(gfx, period, ppm, layer);
     else if (kind === 'cracks') cracks(gfx, period, ppm, layer);
   }
 }

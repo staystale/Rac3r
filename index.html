@@ -32,15 +32,10 @@
   #boot h1 { font-size: 22px; font-weight: 650; letter-spacing: .14em; }
   #boot p { font-size: 13px; opacity: .6; letter-spacing: .04em; }
   #boot.gone { display: none; }
-  /* the menu's background race, a recording (src/game/menuvideo.js) */
-  #menuvideo { position: fixed; inset: 0; width: 100%; height: 100%; object-fit: cover;
-    background: #1b1d22; z-index: 5; display: none; pointer-events: none; }
-  #menuvideo.on { display: block; }
 </style>
 </head>
 <body>
 <canvas id="c"></canvas>
-<video id="menuvideo" muted playsinline loop aria-hidden="true"></video>
 <div id="boot"><h1>RAC3R</h1><p>loading…</p></div>
 <script type="module">
   // the game as ONE file the test server builds (serve.mjs /__bundle.js) instead of ~160 modules
