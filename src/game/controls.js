@@ -168,7 +168,7 @@ export function cycleLevel() {
 // swapped, never rebuilt, so it is instant.
 export function selectCar(carId) {
   if (!carId || carId === game.car.spec.id) return;
-  saveTyreWear();   // the old car's set is kept; the new car takes its own (?tyrewear=1)
+  saveTyreWear();   // the old car's set is kept; the new car takes its own
   game.car = makeCar(carId);
   if (shared.mode === 'session') loadTyreWear(game.car);
   snapshot(game.car);     // so the tune panel can mark what has been changed from stock

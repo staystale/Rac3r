@@ -76,36 +76,15 @@ const KINDS: Record<WeatherKind, { rain: number; snow: number; airC: number; sun
   superhot: { rain: 0, snow: 0, airC: 12, sunC: 20 },
 };
 
-// ?wintercold=1 (owner: a dry winter day can freeze; ice melts slower than snow): winter air
+// WINTER COLD (owner: a dry winter day can freeze; ice melts slower than snow): winter air
 // WINTER_COLD_AIR_C (was 1-8: a dry winter track ran 9-16 C, never freezing), a low winter sun
 // warms the track WINTER_SUN of its usual (not on a hot day: hot whatever the season); every ice
 // melts at ICE_MELT_SHARE of snow's rate (a level's ice was half gone in 8 s at 12 C, snow in 7
 // min)
 const WINTER_COLD_AIR_C: [number, number] = [-4, 7], WINTER_SUN = 0.25;
 export const ICE_MELT_SHARE = 0.5;
-let winterCold = false;
-
-/**
- * Colder winters and slower ice (?wintercold=1, at start-up).
- * @param isOn true for the colder winter and slower ice
- */
-export function setWinterCold(isOn: boolean): void { winterCold = isOn; }
-
-/** Whether ice melts at ICE_MELT_SHARE of snow's rate (?wintercold=1). */
-// ONE COLD-SURFACE ORDER (?coldsurface=1): coverfield.ts (the order), snowwear.ts (driven ice),
-// puddles.ts (rain on tyre-made ice)
-let coldSurface = false;
-
-/**
- * One cold-surface system for water, snow and ice (?coldsurface=1, at start-up).
- * @param isOn true for the one system
- */
-export function setColdSurface(isOn: boolean): void { coldSurface = isOn; }
-
-/** Whether water, snow and ice follow the one cold-surface system (?coldsurface=1). */
-export function coldSurfaceOn(): boolean { return coldSurface; }
-
-export function iceMeltsSlow(): boolean { return winterCold; }
+// ONE COLD-SURFACE ORDER: coverfield.ts (the order), snowwear.ts (driven ice), puddles.ts (rain on
+// tyre-made ice)
 
 /**
  * A season's air temperature range (C).
@@ -113,7 +92,7 @@ export function iceMeltsSlow(): boolean { return winterCold; }
  * @returns [low, high]
  */
 const airRange = (season: number): [number, number] =>
-  (winterCold && season === 0 ? WINTER_COLD_AIR_C : SEASONS[season].airC);
+  (season === 0 ? WINTER_COLD_AIR_C : SEASONS[season].airC);
 
 // the least air temperature (C) of a hot and a very hot day
 const HOT_AIR_MIN_C: Partial<Record<WeatherKind, number>> = { hot: 24, superhot: 32 };
@@ -146,20 +125,8 @@ export interface WeatherPlan {
   seed: number;
 }
 
-// MELTING (the default since 2026-10-18, ?winter=0 off; owner: snow and ice should melt in
-// anything but the cold, faster when hot; every level follows its weather - a snow level may be
-// played hot and melt). The melting itself: puddles.ts.
-// on here too, so the headless tools melt as the game does
-let melting = true;
-
-/**
- * Turns melting by temperature on (?winter=1, at start-up).
- * @param isOn true to melt snow and ice by temperature
- */
-export function setMelt(isOn: boolean): void { melting = isOn; }
-
-/** Whether snow and ice melt by temperature (puddles.ts). */
-export function meltOn(): boolean { return melting; }
+// MELTING (owner: snow and ice should melt in anything but the cold, faster when hot; every level
+// follows its weather - a snow level may be played hot and melt). The melting itself: puddles.ts.
 
 /**
  * The temperature snow and ice feel (snowwear.ts): the track's while an event's weather runs,
@@ -245,7 +212,7 @@ function aimAt(kind: WeatherKind): void {
   // snow needs freezing air; a hot day is hot whatever the season (chosen in winter too)
   RUN.airAimC = kind === 'snow' ? Math.min(0, RUN.baseAirC + spec.airC)
     : Math.max(HOT_AIR_MIN_C[kind] ?? -50, RUN.baseAirC + spec.airC);
-  const lowSun = winterCold && WEATHER.season === 0 && !HOT_AIR_MIN_C[kind];
+  const lowSun = WEATHER.season === 0 && !HOT_AIR_MIN_C[kind];
   RUN.sunTrackC = spec.sunC * (lowSun ? WINTER_SUN : 1);
   aimTemps();
 }

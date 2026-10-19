@@ -13,7 +13,7 @@ import { paintLayers, artBase } from "./art.ts";
 import { puddleWater } from "./covers.ts";
 import { cellCoverOnGpu, fieldLaysCell } from "../../world/coverfield.ts";
 
-// the group key of worn cells that are now standing water over a ground (?onepuddle=1)
+// the group key of worn cells that are now standing water over a ground
 const PUDDLE_KEY = 'puddle|';
 
 // Dynamic surface wear patches: grass worn to short grass, dirt, and mud Drawn ON TOP OF the
@@ -59,7 +59,7 @@ function groupWornCells(groundCtx: GroundCtx, pass: string) {
   const groups = new Map<string, WearGroup>();
   for (const cell of wearMap.values()) {
     // the cover field's own water / snow is drawn on the GPU (glfield.ts): the ground under it here
-    // ?onelook=1: the tyres' ice / snow / water too (one look, glfield.ts)
+    // the tyres' ice / snow / water too (one look, glfield.ts)
     const shows = fieldLaysCell(cell) || cellCoverOnGpu(cell) ? cell.base : cell.current!;
     if (shows === cell.orig) continue;
     const startedCovered = cell.orig === 'snow' || cell.orig === 'ice' || cell.orig === 'wet';
@@ -71,7 +71,7 @@ function groupWornCells(groundCtx: GroundCtx, pass: string) {
     if (px1 < 0 || px0 > view.W || py1 < 0 || py0 > view.H) continue;
     // cell.current! : set right after the cell is made; water is the wet surface art, the same
     // look as a wet zone and a puddle
-    const groupKey = groundCtx.onePuddle && shows === 'wet' ? PUDDLE_KEY + cell.base : shows;
+    const groupKey = shows === 'wet' ? PUDDLE_KEY + cell.base : shows;
     let group = groups.get(groupKey);
     if (!group) groups.set(groupKey, (group = {
       r: [], bx0: Infinity, by0: Infinity, bx1: -Infinity, by1: -Infinity,
@@ -97,7 +97,7 @@ function groupWornCells(groundCtx: GroundCtx, pass: string) {
  */
 function paintWearGroup(groundCtx: GroundCtx, groupKey: string, group: WearGroup) {
   const { view, toScreenX, toScreenY } = groundCtx;
-    // standing water (?onepuddle=1): the ground under it, then the one puddle look over it
+    // standing water: the ground under it, then the one puddle look over it
     const water = groupKey.startsWith(PUDDLE_KEY) ? groupKey.slice(PUDDLE_KEY.length) : null;
     const rects = group.r, artId = water ?? groupKey;
     view.ctx.save();
@@ -119,7 +119,7 @@ function paintWearGroup(groundCtx: GroundCtx, groupKey: string, group: WearGroup
 }
 
 /**
- * Paints the one puddle look over a group of worn cells already clipped to (?onepuddle=1): the
+ * Paints the one puddle look over a group of worn cells already clipped to: the
  * water tinted by the ground under it, then its sheen and rings.
  *
  * @param groundCtx the shared ground painter context

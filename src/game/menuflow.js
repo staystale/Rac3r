@@ -130,7 +130,7 @@ export function applyLaunchOptions(levelId, opts) {
   shared.race.on = !!opts.rx;
   shared.aiCarMode = opts.aiCars === 'class' ? 'class' : 'same';
   shared.raceLaps = Math.max(0, Math.min(10, opts.laps | 0));
-  // WEATHER (setup, ?weather=1): the plan and the seed its random stream starts from, so a restart
+  // WEATHER (setup): the plan and the seed its random stream starts from, so a restart
   // replays the same weather; none = the dry 18 C game
   // the game clock: the global time, or (TEST MODE) the hour the setup picked
   startEventClock(opts.time ?? null);
@@ -163,7 +163,7 @@ export function launch(levelId, carId, opts = {}) {
   // TYRES from the garage (none = Pre-Spun, the stock car)
   // PAINT + NUMBER from the garage (none = the car's own colours, no number)
   applyTyre(game.car.spec, opts.tyre);
-  loadTyreWear(game.car);   // this car's set, as worn as it was (?tyrewear=1)
+  loadTyreWear(game.car);   // this car's set, as worn as it was
   doRestart();
   const guideSetting = shared.settings.guide;
   shared.guidePending = guideSetting === '1'

@@ -21,7 +21,7 @@
 // streams) stays as it is. Tyres change single cells (wear.ts): those follow their own rules and
 // the field again when the weather moves (syncFieldCells).
 import {
-  ICE_MELT_SHARE, WEATHER, coldSurfaceOn, iceMeltsSlow, weatherRandom, weatherRuns,
+  ICE_MELT_SHARE, WEATHER, weatherRandom, weatherRuns,
 } from "./weather.ts";
 import { wearMap, wearDirty, WEAR_CELL } from "./wear.ts";
 import type { Cover, Layers, Surface, WearCell } from "./types.ts";
@@ -36,8 +36,8 @@ const WATER_DRY_PER_S_PER_C = 1 / (780 * 20);
 const SNOW_SETTLE_C = 1, SNOW_MELT_PER_S_PER_C = 1 / 7000, PACKED_MELT_PER_S_PER_C = 1 / 14000;
 const RAIN_MELT = 2, MELT_WATER = 0.6;
 // water freezes below FREEZE_C (per C colder), ice thaws above THAW_C (per C warmer)
-const FREEZE_C = 0, FREEZE_PER_S_PER_C = 1 / 60, THAW_C = 1, THAW_PER_S_PER_C = 1 / 120;
-// ONE COLD-SURFACE ORDER (?coldsurface=1; owner: one coherent system - snow builds on ice and on
+const FREEZE_C = 0, FREEZE_PER_S_PER_C = 1 / 60, THAW_C = 1;
+// ONE COLD-SURFACE ORDER (owner: one coherent system - snow builds on ice and on
 // snow, never on water: snow meeting water melts into it, or the water freezes first when cold;
 // rain melts snow and ice faster, snow faster; rain on ice lies on it or freezes into it). Water
 // and ice each cover from the lowest catch up (water over ice where both reach), so rain no longer
@@ -65,12 +65,12 @@ export const FIELD_SQ = 0.5;
 // then it builds or wears with racing; a snow level's own snow is its area, full) - each a range,
 // dealt from the weather's seeded stream
 const START_RAIN = [0.15, 0.5], START_DRYING = 0.35, START_SNOW = [0.15, 0.38], SNOW_LYING = 0.6;
-// MUD FROST (?mudfreeze=1; owner: all mud and thick mud freeze alike, driven over or not, thick mud
+// MUD FROST (owner: all mud and thick mud freeze alike, driven over or not, thick mud
 // a bit slower): a frost level per mud kind rises below MUD_FREEZE_C (per C colder) and falls
 // above THAW_C; a mud square is ice where its frost is above its water catch, so the mud ices over
 // in patches like the rest of the field (-5 C: mud fully frozen in ~5 min, thick mud ~7). A cold
 // start finds it frozen already: START_FROST_PER_C a C below MUD_FREEZE_C.
-const MUD_FREEZE_C = -1, FROST_PER_S_PER_C = 1 / 1500, FROST_THAW_PER_S_PER_C = 1 / 600;
+const MUD_FREEZE_C = -1, FROST_PER_S_PER_C = 1 / 1500;
 const THICK_FROST_RATE = 0.7, START_FROST_PER_C = 0.2;
 // what lies under an area with no `under` of its own: open snow ground's grass, else tarmac
 const UNDER_SNOW_GROUND = 'grass', UNDER_DEFAULT = 'tarmac';
@@ -96,20 +96,10 @@ export const AREAS: Record<AreaKind, Levels> = {
   wet: emptyLevels(), snow: emptyLevels(), ice: emptyLevels(), packedSnow: emptyLevels(),
 };
 
-// on here too, so the headless tools drive the ground the game does
-let syncS = 0, epoch = 0, mudFrost = false;
+let syncS = 0, epoch = 0;
 // the AI plans its speeds again when a level crosses a tenth (ai/line.ts): the bands last seen
 // (the weather's and each area's four, then the two frosts)
 const bandsSeen = new Int16Array((AREA_KINDS.length + 1) * 4 + 2);
-
-/**
- * Mud and thick mud freeze by the field's frost (?mudfreeze=1, at start-up), not cell by cell.
- * @param isOn true to freeze them by the field
- */
-export function setMudFrost(isOn: boolean): void { mudFrost = isOn; }
-
-/** Whether mud freezes by the field's frost (?mudfreeze=1). */
-export function mudFrostOn(): boolean { return mudFrost; }
 
 /**
  * The frost kind of a ground surface: mud or thick mud, else null.
@@ -176,27 +166,20 @@ export function cellOwned(cell: WearCell): boolean {
   return !!cell.fixed || cell.cover !== (cell.laid ?? null);
 }
 
-// ONE LOOK (?onelook=1; owner: driven-over ice should look the same as the surface's ice - all
+// ONE LOOK (owner: driven-over ice should look the same as the surface's ice - all
 // one system): the covers the tyres make in a wear cell (ice, snow, packed snow, water) are drawn
 // by the GPU field with the field's own look, the tiles showing the ground under them, as for the
 // field's covers; the level's fixed covers (scenery water) keep their tile art
 const GPU_COVERS = ['wet', 'ice', 'snow', 'packedSnow'];
-let oneLook = false;
 
 /**
- * Tyre-made covers drawn with the field's look (?onelook=1, at start-up).
- * @param isOn true for one look
- */
-export function setOneLook(isOn: boolean): void { oneLook = isOn; }
-
-/**
- * ?onelook=1: the cover the GPU field draws for a wear cell the tyres changed, or null (the tiles
+ * The cover the GPU field draws for a wear cell the tyres changed, or null (the tiles
  * show it).
  * @param cell the wear cell
  * @returns the cover id, or null
  */
 export function cellCoverOnGpu(cell: WearCell): string | null {
-  if (!oneLook || cell.fixed || !cell.cover) return null;
+  if (cell.fixed || !cell.cover) return null;
   return GPU_COVERS.includes(cell.cover) ? cell.cover : null;
 }
 
@@ -211,34 +194,14 @@ export function fieldLaysCell(cell: WearCell): boolean {
 }
 
 /**
- * What a set of levels lays on a square with these catches: snow, packed snow, water or ice.
+ * What a set of levels lays on a square by the one order - water, then snow or packed snow,
+ * then ice; water and ice each from the lowest catch up.
  * @param levels the levels
  * @param x the square's centre x, m
  * @param y the square's centre y, m
  * @returns the cover, or null
  */
 function coverOfLevels(levels: Levels, x: number, y: number): string | null {
-  if (coldSurfaceOn()) return stackOfLevels(levels, x, y);
-  if (levels.snow > 0 || levels.packed > 0) {
-    const snowCatch = catchAt(x, y, SNOW_SEED);
-    if (levels.snow > snowCatch) return 'snow';
-    if (levels.packed > snowCatch) return 'packedSnow';
-  }
-  if (levels.water + levels.ice <= 0) return null;
-  const waterCatch = catchAt(x, y, WATER_SEED);
-  if (waterCatch < levels.water) return 'wet';
-  return waterCatch < levels.water + levels.ice ? 'ice' : null;
-}
-
-/**
- * ?coldsurface=1: what a set of levels lays on a square by the one order - water, then snow or
- * packed snow, then ice; water and ice each from the lowest catch up.
- * @param levels the levels
- * @param x the square's centre x, m
- * @param y the square's centre y, m
- * @returns the cover, or null
- */
-function stackOfLevels(levels: Levels, x: number, y: number): string | null {
   const waterCatch = levels.water + levels.ice > 0 ? catchAt(x, y, WATER_SEED) : 1;
   if (waterCatch < levels.water) return 'wet';
   if (levels.snow > 0 || levels.packed > 0) {
@@ -249,11 +212,11 @@ function stackOfLevels(levels: Levels, x: number, y: number): string | null {
   return waterCatch < levels.ice ? 'ice' : null;
 }
 
-/** The order of the covers in one stack (?coldsurface=1): the first found wins. */
+/** The order of the covers in one stack: the first found wins. */
 const STACK_ORDER = ['wet', 'snow', 'packedSnow', 'ice'];
 
 /**
- * ?coldsurface=1: a level area's cover and the weather's on one square, by the one order.
+ * A level area's cover and the weather's on one square, by the one order.
  * @param areaCover the area's cover there, or null
  * @param weatherCover the weather's, or null
  * @returns the cover on top, or null
@@ -270,30 +233,26 @@ function stackCovers(areaCover: string | null, weatherCover: string | null): str
  * @param x world x, m
  * @param y world y, m
  * @param area the level area the point is in, or null
- * @param ground the ground surface there (?mudfreeze=1: mud under its frost is ice)
+ * @param ground the ground surface there (mud under its frost is ice)
  * @returns the cover, or null
  */
 export function fieldCoverAt(x: number, y: number, area: AreaKind | null = null,
     ground = ''): string | null {
   const squareX = (Math.floor(x / FIELD_SQ) + 0.5) * FIELD_SQ;
   const squareY = (Math.floor(y / FIELD_SQ) + 0.5) * FIELD_SQ;
-  if (coldSurfaceOn()) {
-    return stackCovers(area && coverOfLevels(AREAS[area], squareX, squareY),
-      coverOfLevels(FIELD, squareX, squareY)) || frostAt(squareX, squareY, ground);
-  }
-  return (area && coverOfLevels(AREAS[area], squareX, squareY))
-    || coverOfLevels(FIELD, squareX, squareY) || frostAt(squareX, squareY, ground);
+  return stackCovers(area && coverOfLevels(AREAS[area], squareX, squareY),
+    coverOfLevels(FIELD, squareX, squareY)) || frostAt(squareX, squareY, ground);
 }
 
 /**
- * ?mudfreeze=1: ice where a mud square's frost is above its water catch, else null.
+ * Ice where a mud square's frost is above its water catch, else null.
  * @param squareX the square's centre x, m
  * @param squareY the square's centre y, m
  * @param ground the ground surface id
  * @returns 'ice' or null
  */
 function frostAt(squareX: number, squareY: number, ground: string): string | null {
-  const kind = mudFrost ? frostKindOf(ground) : null;
+  const kind = frostKindOf(ground);
   if (!kind || FROST[kind] <= 0) return null;
   return catchAt(squareX, squareY, WATER_SEED) < FROST[kind] ? 'ice' : null;
 }
@@ -354,9 +313,8 @@ export function fieldLayers(zoneSurface: Surface, isBase: boolean, levelCover: C
   return { base, cover, standing: cover === 'wet', fixed: false, area };
 }
 
-/** Ice (and frozen mud) thaws per C above THAW_C, a second: ?wintercold=1 slower than snow. */
-const iceThawPerC = () =>
-  (iceMeltsSlow() ? SNOW_MELT_PER_S_PER_C * ICE_MELT_SHARE : THAW_PER_S_PER_C);
+/** Ice (and frozen mud) thaws per C above THAW_C, a second: slower than snow. */
+const ICE_THAW_PER_S_PER_C = SNOW_MELT_PER_S_PER_C * ICE_MELT_SHARE;
 
 /**
  * Moves one set of levels by the weather over a step: rain fills, a dry spell dries, snow settles
@@ -372,7 +330,7 @@ function stepLevels(levels: Levels, dt: number): void {
   if (trackC < SNOW_SETTLE_C) {
     // the one order: snow falling on water (the water level's share) melts into it
     const fall = WEATHER.snow * SNOW_FILL_PER_S * dt;
-    const onWater = coldSurfaceOn() ? Math.min(1, water) : 0;
+    const onWater = Math.min(1, water);
     snow += fall * (1 - onWater);
     water += fall * onWater * MELT_WATER;
   }
@@ -387,11 +345,11 @@ function stepLevels(levels: Levels, dt: number): void {
   if (trackC < FREEZE_C && water > 0) {
     const frozen = Math.min(water, (FREEZE_C - trackC + 1) * FREEZE_PER_S_PER_C * dt);
     // the one order: the ice under the water reaches as far as the water did
-    ice = coldSurfaceOn() ? Math.max(ice, water) : ice + frozen;
+    ice = Math.max(ice, water);
     water -= frozen;
   } else if (trackC > THAW_C && ice > 0) {
-    const rainFactor = coldSurfaceOn() ? 1 + ICE_RAIN_MELT * rain : 1;
-    const thawed = Math.min(ice, (trackC - THAW_C) * iceThawPerC() * rainFactor * dt);
+    const rainFactor = 1 + ICE_RAIN_MELT * rain;
+    const thawed = Math.min(ice, (trackC - THAW_C) * ICE_THAW_PER_S_PER_C * rainFactor * dt);
     // the meltwater gathers from the lowest catch (the middle of a patch): with the one order it
     // lies on the ice there while the ice shrinks from its rim
     water += thawed;
@@ -413,7 +371,7 @@ export function stepCoverField(dt: number): void {
   if (!weatherRuns()) return;
   stepLevels(FIELD, dt);
   for (const kind of AREA_KINDS) stepLevels(AREAS[kind], dt);
-  if (mudFrost) stepFrost(dt);
+  stepFrost(dt);
   noteBands();
   syncS += dt;
   if (syncS >= SYNC_S) {
@@ -431,8 +389,7 @@ function stepFrost(dt: number): void {
   let change = 0;
   if (trackC < MUD_FREEZE_C) change = (MUD_FREEZE_C - trackC + 1) * FROST_PER_S_PER_C * dt;
   else if (trackC > THAW_C) {
-    const perC = iceMeltsSlow() ? iceThawPerC() : FROST_THAW_PER_S_PER_C;
-    change = -(trackC - THAW_C) * perC * dt;
+    change = -(trackC - THAW_C) * ICE_THAW_PER_S_PER_C * dt;
   }
   if (change === 0) return;
   FROST.mud = Math.max(0, Math.min(LEVEL_MAX, FROST.mud + change));
@@ -542,7 +499,7 @@ export function resetCoverField(): void {
   Object.assign(FIELD, emptyLevels());
   FROST.mud = FROST.thickMud = 0;
   if (!weatherRuns()) return;
-  if (mudFrost && WEATHER.trackC < MUD_FREEZE_C) {
+  if (WEATHER.trackC < MUD_FREEZE_C) {
     FROST.mud = Math.min(LEVEL_MAX, (MUD_FREEZE_C - WEATHER.trackC) * START_FROST_PER_C);
     FROST.thickMud = FROST.mud * THICK_FROST_RATE;
   }

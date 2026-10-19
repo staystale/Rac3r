@@ -1,4 +1,4 @@
-// wettrail.ts - WET TRAILS (the default since 2026-10-18, ?wettrail=0 off; owner: "tyre marks
+// wettrail.ts - WET TRAILS (owner: "tyre marks
 // in the wet need to vanish quite quickly 10-50 m"). On a wet road a tyre lays no rubber: it
 // squeezes the water aside and leaves a lighter line the water closes over again (MARK_WET).
 // Those lines went into the skid-mark layer (marks.js), which fades everything ~46 s to half:
@@ -18,16 +18,7 @@ const TRAIL_ALPHA = 0.3, BANDS = 4;
 interface Trail { width: number; pts: number[] }
 
 const trails = new Map<string, Trail>();
-let enabled = false, clock = 0;
-
-/**
- * Turns the wet trails on (?wettrail=1, at start-up).
- * @param isOn true for wet trails instead of wet marks in the skid-mark layer
- */
-export function setWetTrail(isOn: boolean): void { enabled = isOn; }
-
-/** Whether wet wheels lay trails (marks.js). */
-export function wetTrailOn(): boolean { return enabled; }
+let clock = 0;
 
 /**
  * A wet wheel's position this physics step (marks.js stampWheel): a new point once it has moved

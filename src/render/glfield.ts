@@ -8,7 +8,7 @@
 // tyres changed (cleared, packed, polished). Squares whose chunk is not computed yet show no
 // field (masked) until it is, within CHUNK_BUDGET_MS a frame, the view first. The mask also
 // carries each square's LEVEL AREA (1..4, coverfield.ts AREA_KINDS: the level's own snow, ice,
-// water, packed snow), whose own levels are tried before the weather's; with ?mudfreeze=1 a bare
+// water, packed snow), whose own levels are tried before the weather's; a bare
 // square of mud (5) or thick mud (6) is ice where the frost reaches (coverfield.ts FROST).
 import { LEVEL } from "../world/state.ts";
 import {
@@ -16,23 +16,14 @@ import {
 } from "../world/wear.ts";
 import {
   AREA_KINDS, AREAS, FIELD, FIELD_SQ, FROST, areaKindOf, catchAt, cellCoverOnGpu, cellOwned,
-  frostKindOf, mudFrostOn, SNOW_SEED, WATER_SEED,
+  frostKindOf, SNOW_SEED, WATER_SEED,
 } from "../world/coverfield.ts";
 import type { Levels } from "../world/coverfield.ts";
 import type { WearCell } from "../world/types.ts";
-import { coldSurfaceOn } from "../world/weather.ts";
 import { buildProgram } from "./glprogram.ts";
 import type { PaintCamera } from "./glpaint.ts";
 import type { ShadeRect } from "./glshade.ts";
 
-// ?coverlook=1: water, ice and packed snow told apart (the shader's newLookOf)
-let coverLook = false;
-
-/**
- * Water, ice and packed snow drawn more unlike each other (?coverlook=1, at start-up).
- * @param isOn true for the new look
- */
-export function setCoverLook(isOn: boolean): void { coverLook = isOn; }
 
 const CHUNK_SQ = 16;               // squares per chunk side (8 m)
 const GRID_CHUNKS = 64;            // chunks per side of the wrapping grid: 1024 squares, 512 m
@@ -63,9 +54,7 @@ uniform vec2 camInSq;          // the camera inside its square, m
 uniform ivec2 camSq;           // the camera's square
 uniform vec4 levels;           // the weather's water, snow, ice, packed snow
 uniform vec4 areaLevels[4];    // each level area's (coverfield.ts AREA_KINDS)
-uniform vec2 frost;            // the frost on mud and on thick mud (?mudfreeze=1)
-uniform bool oneOrder;         // ?coldsurface=1: water over snow over ice (coverfield.ts)
-uniform bool newLook;          // ?coverlook=1: water, ice and packed snow told apart (newLookOf)
+uniform vec2 frost;            // the frost on mud and on thick mud
 uniform highp sampler2D catchTex;
 uniform highp sampler2D maskTex;
 out vec4 colour;
@@ -74,9 +63,10 @@ const float SQ = ${FIELD_SQ.toFixed(2)};
 // a square this far under its level has no bare neighbour (the catch moves less per square)
 const float RIM_DEPTH = 0.2;
 ivec2 slotOf(ivec2 square) { return ((square % GRID) + GRID) % GRID; }
-// ?coldsurface=1 (coverfield.ts stackOfLevels): water, then snow / packed snow, then ice, water
-// and ice each from the lowest catch up
-int stackIn(vec4 lv, vec2 catchValue, out float depth) {
+// 0 nothing, 1 water, 2 ice, 3 snow, 4 packed snow, by the one order (coverfield.ts
+// coverOfLevels): water, then snow / packed snow, then ice, water and ice each from the lowest
+// catch up
+int kindIn(vec4 lv, vec2 catchValue, out float depth) {
   if (catchValue.r < lv.x) { depth = lv.x - catchValue.r; return 1; }
   if (lv.y > 0.0 && lv.y > catchValue.g) { depth = lv.y - catchValue.g; return 3; }
   if (lv.w > 0.0 && lv.w > catchValue.g) { depth = lv.w - catchValue.g; return 4; }
@@ -88,23 +78,13 @@ int stackIn(vec4 lv, vec2 catchValue, out float depth) {
 int stackRank(int kind) {
   return kind == 1 ? 0 : kind == 3 ? 1 : kind == 4 ? 2 : kind == 2 ? 3 : 9;
 }
-// 0 nothing, 1 water, 2 ice, 3 snow, 4 packed snow (the order of coverfield.ts coverOfLevels)
-int kindIn(vec4 lv, vec2 catchValue, out float depth) {
-  if (oneOrder) return stackIn(lv, catchValue, depth);
-  if (lv.y > 0.0 && lv.y > catchValue.g) { depth = lv.y - catchValue.g; return 3; }
-  if (lv.w > 0.0 && lv.w > catchValue.g) { depth = lv.w - catchValue.g; return 4; }
-  if (catchValue.r < lv.x) { depth = lv.x - catchValue.r; return 1; }
-  if (catchValue.r < lv.x + lv.z) { depth = lv.x + lv.z - catchValue.r; return 2; }
-  depth = 0.0;
-  return 0;
-}
 // -1 the tiles show it (masked); else the square's area's cover, then the weather's
 int kindOf(ivec2 square, out float depth) {
   ivec2 slot = slotOf(square);
   int code = int(texelFetch(maskTex, slot, 0).r * 255.0 + 0.5);
   depth = 0.0;
   if (code == 255) return -1;
-  // ?onelook=1: a tyre-made cover (7 water, 8 ice, 9 snow, 10 packed snow), a rim where it meets
+  // a tyre-made cover (7 water, 8 ice, 9 snow, 10 packed snow), a rim where it meets
   // bare ground
   if (code >= 7) {
     depth = RIM_DEPTH * 0.5;
@@ -112,12 +92,10 @@ int kindOf(ivec2 square, out float depth) {
   }
   vec2 catchValue = texelFetch(catchTex, slot, 0).rg;
   int kind = code > 0 && code < 5 ? kindIn(areaLevels[code - 1], catchValue, depth) : 0;
-  if (oneOrder) {
-    // the area's cover and the weather's stack by the one order (coverfield.ts stackCovers)
-    float weatherDepth;
-    int weather = kindIn(levels, catchValue, weatherDepth);
-    if (stackRank(weather) < stackRank(kind)) { kind = weather; depth = weatherDepth; }
-  } else if (kind == 0) kind = kindIn(levels, catchValue, depth);
+  // the area's cover and the weather's stack by the one order (coverfield.ts stackCovers)
+  float weatherDepth;
+  int weather = kindIn(levels, catchValue, weatherDepth);
+  if (stackRank(weather) < stackRank(kind)) { kind = weather; depth = weatherDepth; }
   if (kind > 0 || code < 5) return kind;
   // bare mud (5) or thick mud (6): ice under its frost
   float frostLevel = code == 5 ? frost.x : frost.y;
@@ -125,10 +103,10 @@ int kindOf(ivec2 square, out float depth) {
   depth = frostLevel - catchValue.r;
   return 2;
 }
-// ?coverlook=1 (owner: ice, water and packed snow looked too alike): water darker and clearer,
-// ice a glassy cyan with stronger shine streaks, packed snow a neutral grey-white with a fine
-// grain per square; fresh snow as before
-vec4 newLookOf(int kind, bool rim, float thick, float sheen, ivec2 square, vec4 old) {
+// each cover's look (owner: ice, water and packed snow looked too alike): water dark and clear,
+// ice a glassy cyan with shine streaks, packed snow a neutral grey-white with a fine grain per
+// square, fresh snow white
+vec4 lookOf(int kind, bool rim, float thick, float sheen, ivec2 square) {
   if (kind == 1) {
     return rim ? vec4(0.08, 0.12, 0.20, 0.45)
       : vec4(mix(vec3(0.16, 0.26, 0.44), vec3(0.40, 0.54, 0.72), sheen * 0.3),
@@ -146,7 +124,7 @@ vec4 newLookOf(int kind, bool rim, float thick, float sheen, ivec2 square, vec4 
     return rim ? vec4(0.55, 0.55, 0.57, 0.7)
       : vec4(vec3(0.80, 0.80, 0.81) + (grain - 0.5) * 0.035, 0.86 + 0.12 * thick);
   }
-  return old;
+  return rim ? vec4(0.63, 0.71, 0.80, 0.6) : vec4(0.94, 0.95, 0.98, 0.72 + 0.26 * thick);
 }
 void main() {
   vec2 device = vec2(gl_FragCoord.x, canvasHeight - gl_FragCoord.y);
@@ -164,26 +142,13 @@ void main() {
   float thick = clamp(depth * 8.0, 0.0, 1.0);
   // a faint diagonal sheen across water and ice, square by square
   float sheen = fract(float(square.x + square.y) * 0.083) < 0.12 ? 1.0 : 0.0;
-  vec4 look;
-  if (kind == 1) {
-    look = rim ? vec4(0.12, 0.16, 0.23, 0.42)
-      : vec4(mix(vec3(0.31, 0.39, 0.55), vec3(0.62, 0.70, 0.80), sheen * 0.35),
-        0.32 + 0.26 * thick);
-  } else if (kind == 2) {
-    look = rim ? vec4(0.92, 0.95, 0.98, 0.7)
-      : vec4(mix(vec3(0.70, 0.82, 0.90), vec3(0.92, 0.96, 1.0), sheen * 0.5), 0.62 + 0.2 * thick);
-  } else if (kind == 3) {
-    look = rim ? vec4(0.63, 0.71, 0.80, 0.6) : vec4(0.94, 0.95, 0.98, 0.72 + 0.26 * thick);
-  } else {
-    look = rim ? vec4(0.55, 0.60, 0.68, 0.7) : vec4(0.83, 0.86, 0.91, 0.82 + 0.16 * thick);
-  }
-  if (newLook) look = newLookOf(kind, rim, thick, sheen, square, look);
+  vec4 look = lookOf(kind, rim, thick, sheen, square);
   colour = vec4(look.rgb * look.a, look.a);
 }`;
 
 const UNIFORMS = [
   'canvasHeight', 'cameraPx', 'devPerMetre', 'camInSq', 'camSq', 'levels', 'areaLevels', 'catchTex',
-  'maskTex', 'frost', 'oneOrder', 'newLook',
+  'maskTex', 'frost',
 ] as const;
 type Uniforms = Record<typeof UNIFORMS[number], WebGLUniformLocation | null>;
 
@@ -198,16 +163,16 @@ interface FieldGrid {
   epoch: number;
   everywhere: boolean;       // the level's ground is a level area: every square is tested
   anyArea: boolean;          // the level has a level area anywhere (then the field is drawn always)
-  frosty: boolean;           // ?mudfreeze=1: mud squares carry their mud code
+  frosty: boolean;           // mud squares carry their mud code (a live grid; the empty one not)
 }
 
-// the mask codes of bare mud and thick mud (?mudfreeze=1; after the level areas' 1..4)
+// the mask codes of bare mud and thick mud (after the level areas' 1..4)
 const MUD_CODE = 5, THICK_MUD_CODE = 6;
-// ?onelook=1: a cell's tyre-made cover, drawn as is: FORCED_CODE + its index in FORCED_COVERS
+// a cell's tyre-made cover, drawn as is: FORCED_CODE + its index in FORCED_COVERS
 const FORCED_CODE = 7, FORCED_COVERS = ['wet', 'ice', 'snow', 'packedSnow'];
 
 /**
- * The mask code of a wear cell: its tyre-made cover drawn by the field (?onelook=1), else 255
+ * The mask code of a wear cell: its tyre-made cover drawn by the field, else 255
  * (the tiles show it).
  * @param cell the wear cell (one the tyres own)
  * @returns the code
@@ -485,7 +450,7 @@ function resetOnChange(grid: FieldGrid) {
   const anyArea = everywhere || (LEVEL.zones || []).some((zone) => areaKindOf(zone.surface.id))
     || (LEVEL._staticCovers || LEVEL.covers || []).some((cover) => !cover.water);
   Object.assign(grid, {
-    level: LEVEL, layout, epoch: wearEpoch, everywhere, anyArea, frosty: mudFrostOn(),
+    level: LEVEL, layout, epoch: wearEpoch, everywhere, anyArea, frosty: true,
   });
   return true;
 }
@@ -565,8 +530,6 @@ export function createGlField(webgl: WebGL2RenderingContext) {
       });
       webgl.uniform4fv(uniforms.areaLevels, areaLevels);
       webgl.uniform2f(uniforms.frost, FROST.mud, FROST.thickMud);
-      webgl.uniform1i(uniforms.oneOrder, coldSurfaceOn() ? 1 : 0);
-      webgl.uniform1i(uniforms.newLook, coverLook ? 1 : 0);
       webgl.drawArrays(webgl.TRIANGLE_STRIP, 0, 4);
     },
   };

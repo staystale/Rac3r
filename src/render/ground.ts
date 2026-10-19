@@ -11,7 +11,7 @@ import {
 } from "./ground/art.ts";
 import { drawFloor, drawZones, listGroundPatches } from "./ground/zones.ts";
 import type { GroundPatch } from "./glpaint.ts";
-import { PUDDLE_TINT, PUDDLE_WATER, drawPatches, drawCovers } from "./ground/covers.ts";
+import { PUDDLE_WATER, drawPatches, drawCovers } from "./ground/covers.ts";
 import { drawWear, drawBumps, drawRunoff } from "./ground/wear.ts";
 
 /**
@@ -25,7 +25,7 @@ import { drawWear, drawBumps, drawRunoff } from "./ground/wear.ts";
 export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
   const groundCtx: GroundCtx = {
     view, cam, ...helpers, textures: createTextureCache(),
-    SURFACE_ART: makeSurfaceArt(helpers.onePuddle),
+    SURFACE_ART: makeSurfaceArt(),
     bladeMasks: helpers.shareBlades ? new Map() : null,
     PRIM: {},
   };
@@ -43,7 +43,7 @@ export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
     warmNextTexture: () => warmNextTexture(groundCtx),
     warmBladeTextures: () => warmBladeTextures(groundCtx),
     // the palette blends these over each surface (tilesPalette.ts)
-    PUDDLE_TINT: helpers.onePuddle ? PUDDLE_WATER : PUDDLE_TINT,
+    PUDDLE_TINT: PUDDLE_WATER,
     drawPatches: () => drawPatches(groundCtx),
     drawCovers: () => drawCovers(groundCtx),
     drawWear: (pass?: string) => drawWear(groundCtx, pass),

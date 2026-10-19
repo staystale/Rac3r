@@ -198,12 +198,7 @@ export const SURFACE_TARMAC = SURFACES.lab;
 // long grass 0.36 -> 0.50 (the table above): a puddle on grass (x0.72, wear.ts surfaceOf) grips as
 // grass did (0.34 / 0.36). Everything else about grass (early peak, no plough, the skatey feel)
 // stays. Steady cornering on grass at 60 km/h (tools/surfacegrip): hatch-rwd 0.43 -> 0.62 g,
-// rally-4x4 0.53 -> 0.60 g. ?grassgrip=0 puts the old grip back (main.js, at start-up).
-export const GRASS_GRIP_OLD = { grass: 0.34, grassShort: 0.34, grassLong: 0.36 };
-export function applyOldGrassGrip(): void {
-  for (const [surfaceId, grip] of Object.entries(GRASS_GRIP_OLD))
-    SURFACES[surfaceId as SurfaceId].mu = grip;
-}
+// rally-4x4 0.53 -> 0.60 g.
 
 // WET GRIP (weather, the owner's signed-off table): mu when DAMP (rain on the ground; wetness 1)
 // and under a PUDDLE (standing water), per surface, from real-world wet friction. Hard ground

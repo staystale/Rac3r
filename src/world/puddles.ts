@@ -1,13 +1,13 @@
-// COLD COVERS AND WET CELLS (weather R4; the default). The weather's water, snow and ice, and the
+// COLD COVERS AND WET CELLS. The weather's water, snow and ice, and the
 // level's own snow / ice / water areas, lie by the cover field (coverfield.ts: one system). Here:
 // - SCENERY water (Cover.water: rivers, lakes, fords - permanent) freezes over when it is properly
 //   cold and thaws back (owner);
 // - the WINTER rules of what the TYRES made in a wear cell: their snow, packed snow and ice melt to
 //   water above freezing (faster per C and in rain), their water freezes to black ice below it and
-//   dries off in a warm dry spell (?winter=0 off);
+//   dries off in a warm dry spell;
 // - TYRES clear standing water in 3 passes, rain tyres in 1 (owner);
-// - worn MUD dries back toward dirt in a dry spell (owner); with ?mudfreeze=0 worn mud freezes cell
-//   by cell (the default freezes all mud by the field's frost).
+// - worn MUD dries back toward dirt in a dry spell (owner); all mud freezes by the cover field's
+//   frost (coverfield.ts), not here.
 // Every change rides a pass over the wear cells a tick (TICK_S), by chance, so the ground
 // repaints a few squares a tick, never a burst. An event's start deals whether the scenery water
 // is frozen from the event's seeded stream (weather.ts weatherRandom), so a restart deals the same.
@@ -15,9 +15,8 @@
 // own melting, were removed 2026-10-18: the field does both.)
 import { LEVEL } from "./state.ts";
 import {
-  ICE_MELT_SHARE, WEATHER, coldSurfaceOn, iceMeltsSlow, meltOn, weatherRandom, weatherRuns,
+  ICE_MELT_SHARE, WEATHER, weatherRandom, weatherRuns,
 } from "./weather.ts";
-import { mudFrostOn } from "./coverfield.ts";
 import { hotTyreShare } from "../physics/tyrecool.ts";
 import { wearMap, wearDirty, WEAR_CELL, layersAt, wearKey } from "./wear.ts";
 import type { Cover, Layers, Level, WearCell } from "./types.ts";
@@ -29,22 +28,18 @@ type Area = { x0: number; y0: number; x1: number; y1: number };
 // ~13 min); it FREEZES below FREEZE_BELOW_C and frozen things THAW above THAW_ABOVE_C
 const DRAIN_PER_S_PER_C = 1 / (900 * 20), FREEZE_BELOW_C = 0, THAW_ABOVE_C = 1;
 // SCENERY water freezes over below this (a chance a second; at the start: likelier the colder)
-// and thaws above THAW_ABOVE_C; worn MUD likewise, cell by cell (?mudfreeze=0)
-const WATER_FREEZE_BELOW_C = -2, WATER_FREEZE_PER_S = 1 / 240, WATER_THAW_PER_S = 1 / 120;
-const MUD_FREEZE_BELOW_C = -1, MUD_FREEZE_PER_S = 1 / 90, MUD_THAW_PER_S = 1 / 60;
-// MELTING BY TEMPERATURE (?winter=1; owner: snow and ice melt in anything but the cold, faster when
-// hot): above THAW_ABOVE_C a chance a second per C (at 5 C as the old fixed chance, at 20 C ~5x)
-const WATER_THAW_PER_S_PER_C = 1 / 480, MUD_THAW_PER_S_PER_C = 1 / 240;
-const CELL_SNOW_MELT_PER_S_PER_C = 1 / 1500, CELL_ICE_MELT_PER_S_PER_C = 1 / 900;
-// tyre-made ice per C, a second (?wintercold=1: ICE_MELT_SHARE of snow's)
-const cellIceMeltPerC = () => (iceMeltsSlow()
-  ? CELL_SNOW_MELT_PER_S_PER_C * ICE_MELT_SHARE : CELL_ICE_MELT_PER_S_PER_C);
-// scenery ice per C, a second (?wintercold=1: as tyre-made ice)
-const sceneryThawPerC = () => (iceMeltsSlow() ? cellIceMeltPerC() : WATER_THAW_PER_S_PER_C);
+// and thaws above THAW_ABOVE_C (mud freezes by the cover field's frost, coverfield.ts); the
+// tyres' water freezes and their snow / ice melt below / above these
+const WATER_FREEZE_BELOW_C = -2, WATER_FREEZE_PER_S = 1 / 240, MUD_FREEZE_BELOW_C = -1;
+// MELTING BY TEMPERATURE (owner: snow and ice melt in anything but the cold, faster when hot):
+// above THAW_ABOVE_C a chance a second per C
+const CELL_SNOW_MELT_PER_S_PER_C = 1 / 1500;
+// tyre-made and scenery ice per C, a second: ICE_MELT_SHARE of snow's
+const ICE_MELT_PER_S_PER_C = CELL_SNOW_MELT_PER_S_PER_C * ICE_MELT_SHARE;
 // RAIN melts snow faster (x 1 + RAIN_MELT at rain 1); the tyres' water in a cell FREEZES to ice
 // below freezing (per C colder, a chance a second: black ice)
 const RAIN_MELT = 2, CELL_WATER_FREEZE_PER_S_PER_C = 1 / 120;
-// ?coldsurface=1: rain melts ice too, less than snow (x 1 + ICE_RAIN_MELT at rain 1)
+// rain melts ice too, less than snow (x 1 + ICE_RAIN_MELT at rain 1)
 const ICE_RAIN_MELT = 1;
 // s between ticks (the ground repaints at most this often)
 const TICK_S = 1;
@@ -55,33 +50,14 @@ const MUD_DRIES_TO: Record<string, string> = { mud: 'dirt', thickMud: 'mud' };
 // a tyre's WET grip from which it is a rain tyre (cars.ts: KUM Wet 1.22, PIRRELLY Full Wet 1.35)
 const RAIN_TYRE_WET = 1.2;
 
-/** How much faster snow (or, ?coldsurface=1, ice) melts in this rain (?winter=1), 1 without. */
-const rainMelt = (ice = false) => (meltOn()
-  ? 1 + (ice && coldSurfaceOn() ? ICE_RAIN_MELT : RAIN_MELT) * WEATHER.rain : 1);
+/** How much faster snow (or ice) melts in this rain. */
+const rainMelt = (ice = false) => 1 + (ice ? ICE_RAIN_MELT : RAIN_MELT) * WEATHER.rain;
 
-/**
- * The chance a second something frozen thaws at this track temperature: by the C above
- * THAW_ABOVE_C with ?winter=1, else the old fixed chance.
- * @param fixed the old chance a second
- * @param perC the chance a second per C above THAW_ABOVE_C (?winter=1)
- * @param trackC the track temperature
- * @returns the chance a second
- */
-const thawChance = (fixed: number, perC: number, trackC: number) =>
-  meltOn() ? perC * (trackC - THAW_ABOVE_C) : fixed;
-
-let enabled = false;
 let rainTyre = false;
 let tickS = 0;
 
 /** Areas of ground whose look changed (scenery water froze / thawed): render/tilesWear repaints. */
 export const groundDirtyAreas: Area[] = [];
-
-/**
- * Turns the weather's cold covers and wet cells on (?weather=1, at start-up).
- * @param isOn true to let the weather freeze, melt and dry them
- */
-export function setWeatherPuddles(isOn: boolean): void { enabled = isOn; }
 
 /**
  * The tyre of the car whose wheels are being passed over the ground (wear.ts stepWear).
@@ -95,12 +71,12 @@ export function setPassTyre(tyre: { grip: Record<string, number> } | null | unde
  * How much one tyre pass clears of a cell's standing water (owner: 3 passes, rain tyres 1), or
  * null to keep the old rule (no weather, or damp ground).
  * @param standing whether the water is standing (a puddle)
- * @param tyreC the tyre's temperature, C (?tyrecool=1: hot tyres clear faster)
+ * @param tyreC the tyre's temperature, C (hot tyres clear faster)
  * @returns the dryness the pass adds, or null
  */
 export function puddleClearBy(standing: boolean, tyreC = 0): number | null {
-  if (!enabled || !standing) return null;
-  // ?tyrecool=1: a hot tyre clears it in 2 passes, not 3
+  if (!standing) return null;
+  // a hot tyre clears it in 2 passes, not 3
   return rainTyre ? 1 : 1 / 3 + (1 / 2 - 1 / 3) * hotTyreShare(tyreC);
 }
 
@@ -112,7 +88,7 @@ export function puddleClearBy(standing: boolean, tyreC = 0): number | null {
  * @returns the covers to keep
  */
 export function staticCovers(level: Level, covers: Cover[]): Cover[] {
-  if (!enabled || level.endless || !level.subtrack) return covers;
+  if (level.endless || !level.subtrack) return covers;
   return covers.filter((cover) => cover.cover !== 'wet' || cover.water);
 }
 
@@ -210,7 +186,7 @@ function stepSceneryWater(seconds: number): Cover[] {
     const freeze = !cover._frozen && trackC < WATER_FREEZE_BELOW_C
       && weatherRandom() < WATER_FREEZE_PER_S * seconds;
     const thaw = cover._frozen && trackC > THAW_ABOVE_C
-      && weatherRandom() < thawChance(WATER_THAW_PER_S, sceneryThawPerC(), trackC) * seconds;
+      && weatherRandom() < ICE_MELT_PER_S_PER_C * (trackC - THAW_ABOVE_C) * seconds;
     if (freeze || thaw) {
       cover._frozen = !cover._frozen;
       changed.push(cover);
@@ -228,7 +204,7 @@ function stepSceneryWater(seconds: number): Cover[] {
 const tyresWater = (cell: WearCell) => cell.cover === 'wet' && cell.orig !== 'wet';
 
 /**
- * Melts the snow or ice the tyres made in a cell to water, by chance (?winter=1, above freezing).
+ * Melts the snow or ice the tyres made in a cell to water, by chance (above freezing).
  * @param cell the wear cell (changed in place)
  * @param trackC the track temperature
  * @param seconds sim seconds since the last tick
@@ -241,7 +217,7 @@ function meltCell(cell: WearCell, trackC: number, seconds: number): boolean {
   if (!frozen || cell.frozeMud) return false;
   const laid = layersAt((cell.cx + 0.5) * WEAR_CELL, (cell.cy + 0.5) * WEAR_CELL).cover;
   if (laid === kind) return false;
-  const perC = kind === 'ice' ? cellIceMeltPerC() : CELL_SNOW_MELT_PER_S_PER_C;
+  const perC = kind === 'ice' ? ICE_MELT_PER_S_PER_C : CELL_SNOW_MELT_PER_S_PER_C;
   if (weatherRandom() >= perC * (trackC - THAW_ABOVE_C) * rainMelt(kind === 'ice') * seconds) {
     return false;
   }
@@ -256,7 +232,7 @@ function meltCell(cell: WearCell, trackC: number, seconds: number): boolean {
 }
 
 /**
- * Freezes the tyres' water in a cell to ice below freezing, by chance (?winter=1): black ice.
+ * Freezes the tyres' water in a cell to ice below freezing, by chance: black ice.
  * @param cell the wear cell (changed in place)
  * @param trackC the track temperature
  * @param seconds sim seconds since the last tick
@@ -274,7 +250,7 @@ function freezeCellWater(cell: WearCell, trackC: number, seconds: number): boole
 }
 
 /**
- * Dries the tyres' water in a cell off in a dry spell, by chance (?winter=1).
+ * Dries the tyres' water in a cell off in a dry spell, by chance.
  * @param cell the wear cell (changed in place)
  * @param trackC the track temperature
  * @param seconds sim seconds since the last tick
@@ -293,7 +269,7 @@ function dryCellWater(cell: WearCell, trackC: number, seconds: number): boolean 
 function dryMud(seconds: number): void {
   const trackC = WEATHER.trackC;
   if (WEATHER.wetness > DRY_SPELL_WETNESS || WEATHER.rain > 0 || trackC < MUD_DRY_FROM_C) return;
-  const melt = meltOn() && weatherRuns();
+  const melt = weatherRuns();
   for (const cell of wearMap.values()) {
     if (melt && dryCellWater(cell, trackC, seconds)) continue;
     const next = MUD_DRIES_TO[cell.base];
@@ -312,37 +288,12 @@ function freezeMud(seconds: number): void {
   const trackC = WEATHER.trackC;
   const freezing = trackC < MUD_FREEZE_BELOW_C, thawing = trackC > THAW_ABOVE_C;
   if (!freezing && !thawing) return;
-  const winter = meltOn() && weatherRuns();
-  const mudThaw = thawChance(MUD_THAW_PER_S, MUD_THAW_PER_S_PER_C, trackC);
+  if (!weatherRuns()) return;
   for (const cell of wearMap.values()) {
-    // ?winter=1: the tyres' snow / ice melts above freezing, their water freezes below
-    if (winter && (thawing ? meltCell(cell, trackC, seconds)
-      : freezeCellWater(cell, trackC, seconds))) continue;
-    // mud freezes by the cover field's frost (coverfield.ts), not cell by cell (?mudfreeze=0)
-    if (!mudFrostOn()) freezeOrThawMud(cell, freezing, mudThaw, seconds);
+    // the tyres' snow / ice melts above freezing, their water freezes below
+    if (thawing) meltCell(cell, trackC, seconds);
+    else freezeCellWater(cell, trackC, seconds);
   }
-}
-
-/**
- * Freezes one cell's worn mud over in the cold, or thaws its ice back, by chance (?mudfreeze=0).
- * @param cell the wear cell (changed in place)
- * @param freezing true below MUD_FREEZE_BELOW_C (else it is above THAW_ABOVE_C)
- * @param mudThaw the chance a second frozen mud thaws
- * @param seconds sim seconds since the last tick
- */
-function freezeOrThawMud(cell: WearCell, freezing: boolean, mudThaw: number,
-    seconds: number): void {
-  const freeze = freezing && !cell.cover && !!MUD_DRIES_TO[cell.base]
-    && weatherRandom() < MUD_FREEZE_PER_S * seconds;
-  const thaw = !freezing && !!cell.frozeMud && cell.cover === 'ice'
-    && weatherRandom() < mudThaw * seconds;
-  if (!freeze && !thaw) return;
-  cell.cover = freeze ? 'ice' : null;
-  cell.frozeMud = freeze;
-  cell.standing = true;
-  cell.scrub = 0;
-  cell.current = cell.cover || cell.base;
-  wearDirty.push(cell);
 }
 
 /**
@@ -351,7 +302,6 @@ function freezeOrThawMud(cell: WearCell, freezing: boolean, mudThaw: number,
  * @param dt sim seconds
  */
 export function stepPuddles(dt: number): void {
-  if (!enabled) return;
   tickS += dt;
   if (tickS < TICK_S) return;
   const seconds = tickS;
@@ -368,7 +318,6 @@ export function stepPuddles(dt: number): void {
  * not frozen.
  */
 export function resetPuddles(): void {
-  if (!enabled) return;
   tickS = 0;
   const trackC = WEATHER.trackC;
   const water = (LEVEL._staticCovers || []).filter((cover) => cover.water);

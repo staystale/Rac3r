@@ -8,7 +8,7 @@ import { buildLevel } from '../world/load.ts';
 import { SEASON_NAMES, seasonForecast } from '../world/weather.ts';
 import { CLOCK, clockLine } from '../world/clock.ts';
 
-// WEATHER (?weather=1): follow the SEASON (its chances; it can change in the race) or a fixed sky
+// WEATHER: follow the SEASON (its chances; it can change in the race) or a fixed sky
 const WEATHER_MODES = [['season', 'SEASON'], ['dry', 'DRY'], ['hot', 'HOT'],
   ['superhot', 'VERY HOT'], ['rain', 'RAIN'], ['heavy', 'HEAVY RAIN'], ['snow', 'SNOW']];
 // the season of a month (0 = January): winter Dec-Feb, spring Mar-May, summer Jun-Aug
@@ -260,7 +260,7 @@ OFF THE TOP AND IT IS OVER', 'sub') : null;
 }
 
 /**
- * Adds the WEATHER rows (?weather=1): SEASON / DRY / HOT / VERY HOT / RAIN / HEAVY RAIN / SNOW,
+ * Adds the WEATHER rows: SEASON / DRY / HOT / VERY HOT / RAIN / HEAVY RAIN / SNOW,
  * the season slider and its forecast. Remembered in the profile; the first time, the season is
  * today's.
  * @param {object} menu the menu context
@@ -387,7 +387,7 @@ export function showSetup(menu, level) {
   addRxRaceRow(menu, panel, level, state);
   addLapsRow(menu, panel, level, state);
   state.paint();
-  if (menu.api.weather) addWeatherRows(menu, panel, state);
+  addWeatherRows(menu, panel, state);
   if (menu.api.daytime) addTimeRows(menu, panel, state);
   showCarPicker(menu, panel);
   addLaunchButtons(menu, panel, level, state);

@@ -254,7 +254,7 @@ export function hitByCar(ctx, obj, car, newTyres) {
   const relX = obj.x - car.x, relY = obj.y - car.y;
   if (relX * relX + relY * relY > 16) return;
   // a burst bale / broken debris is a flat patch: you drive through it - a broken pallet's nails
-  // may puncture a tyre (?tyrewear=1; once a second at most)
+  // may puncture a tyre (once a second at most)
   if (obj.kind === 'splinters' && relX * relX + relY * relY < 4
     && ctx.clock - (obj._nailT ?? -9) > 1) {
     obj._nailT = ctx.clock;
@@ -271,7 +271,7 @@ export function hitByCar(ctx, obj, car, newTyres) {
   const speed = transferMomentum(obj, car, contact);
   countChevronImpacts(ctx, obj);
   breakDebris(ctx, obj, rel);
-  // hitting debris hard may puncture the front tyre on that side (?tyrewear=1)
+  // hitting debris hard may puncture the front tyre on that side
   if (debrisPunctures(obj.kind, rel, !!DEBRIS[obj.kind])) {
     car.burstTyre = -Math.sin(car.heading) * relX + Math.cos(car.heading) * relY > 0 ? 0 : 1;
   }

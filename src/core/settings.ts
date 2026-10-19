@@ -26,22 +26,12 @@ export interface Settings {
   zoomHold: boolean;             // the speed zoom holds, then glides (camera.ts); off: ?zoomhold=0
   minimap: boolean;              // the road-ahead minimap (hud/minimap.js); off: ?minimap=0
   menuVideo: boolean;            // ?menuvideo=1 (parked): the recorded race behind the menu
-  grassGrip: boolean;            // grippier dry grass (surfaces.ts); ?grassgrip=0 = the old grip
   rain: number | null;           // ?rain=0.6: the track this wet, 0-1, and raining (weather test)
   night: number | null;          // ?night=0.8: this dark, 0-1 (lighting test, world/daylight.ts)
-  weather: boolean;              // weather in the event setup (season, changes); ?weather=0 off
-  slideWear: boolean;            // sliding / crashing wheels wear the ground twice; =0 off
-  tyreWear: boolean;             // tyres wear, puncture; the garage fits new sets; =0 off
-  tyreFeel: boolean;             // tyres warm sooner / hold heat, slides wear more; =0 off
-  packedWear: boolean;           // packed snow wears to snow or ice; =0 off
-  onePuddle: boolean;            // one puddle look, water tinted by its ground; =0 off
-  wetTrail: boolean;             // wet tyre lines fade within 10-50 m; =0 off
-  winter: boolean;               // snow / ice / water logic by temperature; =0 off
   hwMap: boolean;                // the minimap on the highway too; ?hwmap=0 = not there
   sharpCars: boolean;            // crisp cars on the screen canvas (render.ts); ?sharpcars=0 off
   sharpMarks: boolean;           // skid marks on the screen canvas (render.ts); ?sharpmarks=0 off
   jokerFix: boolean;             // joker lane on the minimap, RESET back onto it; ?jokerfix=0 off
-  groundLookup: boolean;         // fewer ground lookups under the wheels (wear.ts); =0 the old
   exactTiles: boolean;           // GPU ground tiles at their exact place (tiles.ts); =0 off
   hudMenu: boolean;              // the pause menu's HUD list (menu/race.js); ?hudmenu=0 off
   tyreOff: boolean;              // tyre / damage OFF stays off when damaged (hud.js); =0 pops up
@@ -50,17 +40,7 @@ export interface Settings {
   texWarm: boolean;              // long-grass textures painted while loading; =0 in the menu
   startFix: boolean;             // the race start without the hand-over jolt; =0 the old
   oneCanvas: boolean;            // ?onecanvas=1: the GPU ground drawn into the 2D canvas
-  winterCold: boolean;           // frosty winter days, ice slower than snow; =0 off
-  coldSurface: boolean;          // ?coldsurface=1: one water / snow / ice order (weather.ts)
-  wearChance: boolean;           // ?wearchance=1: dry dirt 1/4 to mud, damp sand / gravel wear
-  oneLook: boolean;              // tyre-made ice / snow / water drawn as the field's; =0 off
   hudUnits: boolean;             // ?hudunits=1: units rows + track temp gauge (hud/tracktemp.js)
-  markFade: boolean;             // ?markfade=1: tyre marks fade block by block (marks.js)
-  coverLook: boolean;            // water / ice / packed snow told apart (glfield.ts); =0 off
-  tyreCool: boolean;             // tyres cool toward track + air (physics/tyrecool.ts); =0 off
-  gravelDig: boolean;            // gravel digs like sand, slower; both faster wet; =0 off
-  sandDig: boolean;              // sand dents fastest, dry too (wear.ts); =0 off
-  mudFreeze: boolean;            // all mud / thick mud freeze (coverfield.ts); =0 off
   zoomSwitch: boolean;           // tile mipmaps at upload, no burst (glground.ts); =0 off
   maxDpr: number | null;         // ?dpr=2: the sharpness cap (default render.ts MAX_DPR 1.5)
   noShade: boolean;              // ?noshade: skip the hill shading (perf A/B)
@@ -97,29 +77,11 @@ function nightLevel(params: URLSearchParams): number | null {
   return Number.isFinite(level) ? Math.max(0, Math.min(1, level)) : null;
 }
 
-// the weather switches: ?rain= (a fixed wet track, a test tool); weather and the slide wear the
-// DEFAULT since 2026-10-18 (owner: "weather all pass"; =0 off); tyre wear the default too
-// (owner: "apply it to main and roll it back if needed"; its test stays open; =0 off); more
-// puddles, the tyre feel, packed snow wear, one puddle look and wet trails the default since
-// 2026-10-18 (owner: "yes all"; =0 off); mud freeze and sand dig too (owner: passes; =0 off);
-// winter cold and gravel dig too (owner: pass; =0 off); cold surface, wear chances, mark fade
-// and the HUD units too (owner: "all pass"; =0 off); one look too (=0 off); tyre cooling and the
-// cover look too (owner: pass; =0 off)
+// the weather test tools (?rain= a fixed wet track, ?night= a fixed dark) and the HUD units
+// (=0 off)
 function weatherSettings(params: URLSearchParams) {
   return { rain: rainLevel(params), night: nightLevel(params),
-    weather: params.get('weather') !== '0',
-    slideWear: params.get('slidewear') !== '0', tyreWear: params.get('tyrewear') !== '0',
-    tyreFeel: params.get('tyrefeel') !== '0',
-    packedWear: params.get('packedwear') !== '0', onePuddle: params.get('onepuddle') !== '0',
-    wetTrail: params.get('wettrail') !== '0', winter: params.get('winter') !== '0',
-    mudFreeze: params.get('mudfreeze') !== '0',
-    sandDig: params.get('sanddig') !== '0', winterCold: params.get('wintercold') !== '0',
-    gravelDig: params.get('graveldig') !== '0', coldSurface: params.get('coldsurface') !== '0',
-    tyreCool: params.get('tyrecool') !== '0',
-    coverLook: params.get('coverlook') !== '0',
-    wearChance: params.get('wearchance') !== '0', markFade: params.get('markfade') !== '0',
-    hudUnits: params.get('hudunits') !== '0',
-    oneLook: params.get('onelook') !== '0' };
+    hudUnits: params.get('hudunits') !== '0' };
 }
 
 function churnKind(params: URLSearchParams): '' | 'pictures' | 'objects' {
@@ -161,7 +123,6 @@ export function readSettings(search: string): Settings {
     // default since 2026-10-16 (owner: "mini map tests good"); then the pause setting decides
     minimap: params.get('minimap') !== '0',
     menuVideo: params.get('menuvideo') === '1',
-    grassGrip: params.get('grassgrip') !== '0',
     ...weatherSettings(params),
     // default since 2026-10-16 (owner: "highway mini map approved")
     hwMap: params.get('hwmap') !== '0',
@@ -172,7 +133,6 @@ export function readSettings(search: string): Settings {
     // default since 2026-10-17: the joker lane on the minimap; RESET back onto it
     jokerFix: params.get('jokerfix') !== '0',
     // default since 2026-10-17 (owner: "seems okay"): 12 ground lookups a car a step, not ~22
-    groundLookup: params.get('groundlookup') !== '0',
     // default since 2026-10-17 (owner approved): the ground tiles placed exactly on the GPU
     // ground, not on whole art pixels, so the track edges hold still while the zoom moves
     exactTiles: params.get('exacttiles') !== '0',

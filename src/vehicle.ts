@@ -78,7 +78,7 @@ export interface Car {
   t: CarTelemetry;
   // added by reset, which makeCar calls right after building the literal
   wheelSpin: number; tyreT: number[]; groundInit: boolean;
-  // TYRE WEAR (physics/tyrewear.ts, ?tyrewear=1): 0 new .. 1 bald per tyre, and a tyre that burst
+  // TYRE WEAR (physics/tyrewear.ts): 0 new .. 1 bald per tyre, and a tyre that burst
   // this step (-1 none; damage.js applyBurst)
   tyreWear?: number[]; burstTyre?: number; tyreWearOwned?: boolean; tyreWearStart?: number[];
   _p: CarPrev | null; prevWheels: CarWheelPos[] | null;

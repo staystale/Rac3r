@@ -427,7 +427,7 @@ export interface MergedCell {
   y: number;
   gx: number;
   gy: number;
-  base?: string;   // the ground under it (a puddle's tint; ?onepuddle=1), looked up once
+  base?: string;   // the ground under it (a puddle's tint), looked up once
 }
 
 // All covers of one kind joined (ground.ts mergedCovers); rim = cells with an outside neighbour.

@@ -4,7 +4,7 @@
 import { ROSTER } from '../cars.ts';
 import { LEVEL } from '../world/state.ts';
 import { COL } from '../world/colours.ts';
-import { tyreWearOn, wearColour } from '../physics/tyrewear.ts';
+import { wearColour } from '../physics/tyrewear.ts';
 import { tempInUnits } from './tracktemp.js';
 import {
   MARGIN, DIAGRAM_H, drawHudPanel, drawHudLabel, drawHudButton,
@@ -283,7 +283,7 @@ export function drawHudWheelFault(ctx, car, corner, bodyX, bodyY, bodyW, bodyH) 
 function drawDiagramWheel(ctx, car, tyreIdx, side, heatCol, wheelX, wheelY, fahrenheit) {
   // plain rectangles: panel's 8 px corner radius is larger than a 7 px wheel and drew mangled
   // slants
-  ctx.fillStyle = tyreWearOn() && car.tyreWear ? wearColour(car.tyreWear[tyreIdx], COL) : heatCol;
+  ctx.fillStyle = car.tyreWear ? wearColour(car.tyreWear[tyreIdx], COL) : heatCol;
   ctx.fillRect(wheelX, wheelY, 7, 11);
   ctx.strokeStyle = 'rgba(0,0,0,0.55)';
   ctx.lineWidth = 1;

@@ -14,7 +14,7 @@ import type { AxleTick } from './tyres.ts';
 // 0.010 + 0.0010.
 // 1/s toward ambient, always (0.010 before the "harder to build" pass)
 const TYRE_COOL = 0.008;
-// TYRE FEEL (the default since 2026-10-18, owner: "yes all"; ?tyrefeel=0 off; owner: tyres "a
+// TYRE FEEL (owner: tyres "a
 // little bit hard to get hot" and cool "a little bit too easy"; they should heat faster from
 // sliding). MEASURED before (hatch, tarmac, 18 C): 30 s of hard cornering just reaches the
 // window, 85 C falls below it after 15 s of a 90 km/h straight, AI laps in the window 43-73 % of
@@ -25,19 +25,10 @@ const TYRE_COOL = 0.008;
 // holds its working heat but overheating (and popping) takes as long as it did (requirement:
 // you'd have to try to overheat them)
 const FEEL_COOL = 0.0135, FEEL_AIR = 0.00025, FEEL_FLEX_K = 0.1, FEEL_SLIDE_HEAT = 1.4;
-// on here too, so the headless tools drive the same physics as the game
-let feelOn = true;
 // the temperature the tyres cool toward this step, C (updateTyreTemps; tyrecool.ts)
 let ambientC = 18;
 // each wheel's slip speed this step while its axle scrubs (0 rolling), for the wear (reused)
 const wheelSlip = [0, 0, 0, 0];
-
-/**
- * Turns the tyre feel on (?tyrefeel=1, at start-up): quicker to warm, slower to cool, sliding
- * heats faster and wears faster (tyrewear.ts).
- * @param isOn true for the new feel
- */
-export function setTyreFeel(isOn: boolean): void { feelOn = isOn; }
 
 /**
  * Whether an axle's tyres scrub (spin, lock or slide) rather than roll: the heat model's switch
@@ -54,24 +45,23 @@ export interface AxleOutcome {
   workF: number; workR: number; gripTF: number; gripTR: number;
 }
 
-/** Fills wheelSlip: each wheel's slip speed while its axle scrubs (0 rolling, or no feel). */
+/** Fills wheelSlip: each wheel's slip speed while its axle scrubs (0 rolling). */
 function fillWheelSlip(frontAxle: ReturnType<typeof axleForce>, lockedF: boolean,
     rearAxle: ReturnType<typeof axleForce>, lockedR: boolean): void {
-  const front = feelOn && scrubs(frontAxle, lockedF) ? frontAxle.slipSpeed : 0;
-  const rear = feelOn && scrubs(rearAxle, lockedR) ? rearAxle.slipSpeed : 0;
+  const front = scrubs(frontAxle, lockedF) ? frontAxle.slipSpeed : 0;
+  const rear = scrubs(rearAxle, lockedR) ? rearAxle.slipSpeed : 0;
   wheelSlip[0] = wheelSlip[1] = front;
   wheelSlip[2] = wheelSlip[3] = rear;
 }
 
 /**
  * One tyre's temperature change, C/s: slip heat, flex heat and cooling toward the TRACK
- * temperature (weather.ts; 18 C with no weather; ?tyrecool=1: ambientC, the track / air mix).
- * With the feel, a tyre no hotter than its
- * window's top holds its heat (heldCool) and a slide warms it sooner.
+ * temperature (weather.ts; 18 C with no weather; ambientC, the track / air mix). A tyre no
+ * hotter than its window's top holds its heat (heldCool) and a slide warms it sooner.
  */
 function tyreRate(temp: number, slipHeat: number, flexHeat: number, slip: number,
     windowTop: number, cool: number, heldCool: number): number {
-  const held = feelOn && temp <= windowTop;
+  const held = temp <= windowTop;
   const slideK = held && slip > 0 ? FEEL_SLIDE_HEAT : 1;
   return slipHeat * slideK + flexHeat - (held ? heldCool : cool) * (temp - ambientC);
 }
@@ -103,7 +93,7 @@ export function updateTyreTemps(car: Car, carSpec: Spec, tick: AxleTick, out: Ax
   const wheelWork = [workF * frontShare, workF * (1 - frontShare), workR * frontShare,
       workR * (1 - frontShare)];
   fillWheelSlip(frontAxle, lockedF, rearAxle, lockedR);
-  const flexK = feelOn ? FEEL_FLEX_K : TYRE_FLEX.k;
+  const flexK = FEEL_FLEX_K;
   const window = carSpec.tyreOpt || [65, 110];
   // FLEX HEAT (requirement: should be semi easy to get warm but you'd have to try to over heat
   // them). A tyre working in a corner flexes, and that warms it toward TYRE_FLEX.T — INSIDE the
@@ -146,9 +136,8 @@ export function updateTyreTemps(car: Car, carSpec: Spec, tick: AxleTick, out: Ax
     if (!Number.isFinite(tyreTemps[i])) tyreTemps[i] = WEATHER.trackC;
     else if (tyreTemps[i] > TYRE_T_MAX) tyreTemps[i] = TYRE_T_MAX;
   }
-  // TYRE WEAR (?tyrewear=1): the same work wears the rubber; a hot or worn tyre may burst
-  const burst = wearTyres(car, carSpec.tyre, window, carSpec.mass,
-    wheelWork, dt, feelOn ? wheelSlip : null);
+  // TYRE WEAR: the same work wears the rubber; a hot or worn tyre may burst
+  const burst = wearTyres(car, carSpec.tyre, window, carSpec.mass, wheelWork, dt, wheelSlip);
   if (burst >= 0) car.burstTyre = burst;
   telem.gripTF = gripTF; telem.gripTR = gripTR;
 }

@@ -18,7 +18,7 @@ import { zoneAt } from "./zones.ts";
 import {
   churnedTo, dampWornTo, digPace, digRuleOf, digsDry, wearHolds,
 } from "./dig.ts";
-import { bumpAt, slopeAt, heightAt, bankHeightAt, BUMP_STEER } from "./terrain.ts";
+import { bumpAt, bankHeightAt, BUMP_STEER } from "./terrain.ts";
 import { querySubtrack } from "./tyrewall.ts";
 import type {
   CarBody, CoverId, Ground, Layers, Obstacle, Patch, Subtrack, Surface, WearCell,
@@ -92,7 +92,6 @@ export function dryAmount(standing: boolean, tyreTemp: number): number {
 }
 // (history) the rule before (requirement: a happy medium — a % chance so it takes 1-3 passes): a
 // 40% chance per pass of ANY tyre, so 1-3 passes. Replaced by dryAmount above.
-export const SNOW_MELT_CHANCE = 0.5;   // packed snow melts to water (else freezes to ice), per cell
 // per pass, standing water over a WATER_MIX base -> 1-3 passes
 export const WATER_CHURN_CHANCE = 0.4;
 // what a churned puddle leaves behind, by the base it lay on
@@ -239,22 +238,6 @@ function getCell(cellX: number, cellY: number): WearCell | null {
   return cell;
 }
 /**
- * One pass over a SNOW cell: after SNOW_TO_ICE passes it becomes ice or meltwater.
- * @param cell the wear cell (changed in place)
- */
-function passSnowCell(cell: WearCell, damp: number): void {
-  // MELT OR FREEZE (requirement: snow should have a chance to melt or turn to ice when driven over
-  // — it should still take multiple passes). After SNOW_TO_ICE passes it becomes ICE or MELTWATER,
-  // by chance.
-  if (++cell.passes >= SNOW_TO_ICE) {
-    // wet snow (rain on it) turns to slush / water, never packs to ice
-    cell.cover = damp >= WET_WEAR_FROM || Math.random() < SNOW_MELT_CHANCE ? 'wet' : 'ice';
-    cell.passes = 0;
-    cell.standing = true;
-    cell.dry = 0;
-  }
-}
-/**
  * One pass over a puddle (WET cover) cell: it churns into the base or dries.
  * @param cell the wear cell (changed in place)
  * @param tyreTemp the tyre temperature (C), for the evaporation rule
@@ -313,7 +296,7 @@ function passCell(cell: WearCell, tyreTemp = 18): void {
   const damp = cellDamp(cell, wearClock);
   const wet = damp >= WET_WEAR_FROM;
   if (cell.cover === 'snow') {
-    if (!passWinterSnow(cell, wet, SNOW_TO_ICE)) passSnowCell(cell, damp);
+    passWinterSnow(cell, wet, SNOW_TO_ICE);
   } else if (cell.cover === 'wet') passWetCell(cell, tyreTemp);
   else if (packedSnowWears(cell.cover || cell.base)) passPackedSnowCell(cell, wet);
   else if (cell.cover === 'ice') passIceCell(cell, wet, tyreTemp);
@@ -439,16 +422,14 @@ export function groundAt(x: number, y: number): Ground {
 // A HOT tyre (above HOT_TYRE) over snow or water counts its pass TWICE with HOT_EXTRA_CHANCE — it
 // melts and dries faster. On ice the slip it scrubs with is multiplied by heatScrub (see stepWear).
 const HOT_TYRE = 80, HOT_EXTRA_CHANCE = 0.5;
-// m/s of slip from which a wheel is SLIDING, not driving (?slidewear=1: its passes count twice)
+// m/s of slip from which a wheel is SLIDING, not driving (its passes count twice)
 const SLIDE_WEAR_MIN = 4;
-let slideWear = false;
-export function setSlideWear(enabled: boolean): void { slideWear = enabled; }
 function recordWearPoint(x: number, y: number, simTime: number, tyreT = 0, sliding = false): void {
   const cell = getCell(Math.floor(x / WEAR_CELL), Math.floor(y / WEAR_CELL));
   if (!cell) return;
   if (simTime - cell.lastSeenTime > 0.35) {
     passCell(cell, tyreT);
-    // ?slidewear=1: a sliding (crashing, spinning, drifting) wheel tears the ground: its pass
+    // a sliding (crashing, spinning, drifting) wheel tears the ground: its pass
     // counts twice
     if (sliding) passCell(cell, tyreT);
     // a hot tyre packs / melts SNOW faster (water now dries by temperature inside passCell)
@@ -483,7 +464,7 @@ export function stepWear(car: CarBody, dt: number): void {
     // Interpolate continuously along each tyre's swept path: zero gaps even at high speed
     const steps = Math.max(1, Math.ceil(dist / (WEAR_CELL * 0.45)));
     const slip = i < 2 ? telemetry.slipSpeedF : telemetry.slipSpeedR;
-    const sliding = slideWear && slip > SLIDE_WEAR_MIN;
+    const sliding = slip > SLIDE_WEAR_MIN;
     for (let step = 0; step <= steps; step++) {
       const frac = step / steps;
       recordWearPoint(prevWheel.x + dx * frac, prevWheel.y + dy * frac, wearClock,
@@ -525,8 +506,7 @@ export function applyGround(car: CarBody, dt: number): void {
     car.y); qsHintSub = hit.seg != null ? st0 : null; qsHint = hit.seg ?? -1; }
   try { applyGroundInner(car, dt); } finally { qsHintSub = null; qsHint = -1; }
 }
-// FEWER GROUND LOOKUPS (the default since 2026-10-17, owner approved; ?groundlookup=0 = the old
-// ~22). Every car asks for the smooth ground
+// FEWER GROUND LOOKUPS (owner approved). Every car asks for the smooth ground
 // height ~22 times a physics step (120 a second): a central-difference slope (4 heights) under each
 // of the 4 wheels, 2 more heights for the bump steer and 4 for the front axle's slope - mostly
 // overlapping questions (MEASURED: Brands, 5 cars, CPU x4, applyGround 2.1 s in 15 s). With the
@@ -535,13 +515,6 @@ export function applyGround(car: CarBody, dt: number): void {
 // axle's slope is the mean of its two wheels' slopes: 12 heights a step. The same STEP, so a slope
 // is the same plane read 0.15 m off the wheel; on an even slope the answer is identical.
 const LOOKUP_STEP = 0.3;   // m, slopeAt's step
-// on here too, so the headless tools drive the same physics as the game
-let fewerLookups = true;
-/**
- * Turns the fewer ground lookups on or off (main.js, from ?groundlookup; tools for an A/B).
- * @param fewer true for 12 height lookups a step instead of ~22
- */
-export function setGroundLookup(fewer: boolean): void { fewerLookups = fewer; }
 // one wheel's smooth height and slope (fewer lookups), reused: no allocation per step
 const wheelGround = { h: 0, gx: 0, gy: 0 };
 // the front wheels' bank-free heights and the front axle's slope, kept for the bump steer
@@ -581,19 +554,13 @@ function applySlopeForces(car: CarBody, cosH: number, sinH: number): void {
     for (const side of [1, -1]) {
       const wheelX = car.x + cosH * axleX + perpSin * hw2 * side,
         wheelY = car.y + sinH * axleX + perpCos * hw2 * side;
-      if (fewerLookups) {
-        sampleWheelGround(wheelX, wheelY);
-        slopeX += wheelGround.gx / 2;
-        slopeY += wheelGround.gy / 2;
-        // side +1 is the car's right (the bump steer's heightRight)
-        const bankFree = wheelGround.h - bankHeightAt(wheelX, wheelY);
-        if (arm > 0 && side > 0) frontWheels.right = bankFree;
-        else if (arm > 0) frontWheels.left = bankFree;
-      } else {
-        const slope = slopeAt(wheelX, wheelY);
-        slopeX += slope.gx / 2;
-        slopeY += slope.gy / 2;
-      }
+      sampleWheelGround(wheelX, wheelY);
+      slopeX += wheelGround.gx / 2;
+      slopeY += wheelGround.gy / 2;
+      // side +1 is the car's right (the bump steer's heightRight)
+      const bankFree = wheelGround.h - bankHeightAt(wheelX, wheelY);
+      if (arm > 0 && side > 0) frontWheels.right = bankFree;
+      else if (arm > 0) frontWheels.left = bankFree;
     }
     if (arm > 0) { frontWheels.gx = slopeX; frontWheels.gy = slopeY; }
     // cap at 45 deg
@@ -623,22 +590,12 @@ function applySlopeForces(car: CarBody, cosH: number, sinH: number): void {
  */
 function bumpSteerYaw(car: CarBody, cosH: number, sinH: number, weight: number): number {
   const spec = car.spec, hw2 = (spec.trackWidth || 1.5) / 2, perpSin = -sinH, perpCos = cosH;
-  let heightRight = frontWheels.right, heightLeft = frontWheels.left;
-  let slopeX = frontWheels.gx, slopeY = frontWheels.gy;
-  if (!fewerLookups) {
-    const hAt = (x: number, y: number): number => heightAt(x, y) - bankHeightAt(x, y);
-    heightRight = hAt(car.x + cosH * spec.lf + perpSin * hw2,
-      car.y + sinH * spec.lf + perpCos * hw2);
-    heightLeft = hAt(car.x + cosH * spec.lf - perpSin * hw2,
-      car.y + sinH * spec.lf - perpCos * hw2);
-    // BUMPS ONLY, never an even slope (requirement: I think the bowl on the lab is broken): on
-    // the bowl wall the left / right difference was PERMANENT and dragged the nose toward the
-    // middle the whole way round. Subtract what a flat plane with the local slope would give, so
-    // a steady cross-slope (bowl, hill, banking) reads zero.
-    const frontSlope = slopeAt(car.x + cosH * spec.lf, car.y + sinH * spec.lf);
-    slopeX = frontSlope.gx;
-    slopeY = frontSlope.gy;
-  }
+  const heightRight = frontWheels.right, heightLeft = frontWheels.left;
+  const slopeX = frontWheels.gx, slopeY = frontWheels.gy;
+  // BUMPS ONLY, never an even slope (requirement: I think the bowl on the lab is broken): on the
+  // bowl wall the left / right difference was PERMANENT and dragged the nose toward the middle the
+  // whole way round. Subtract what a flat plane with the local slope would give, so a steady
+  // cross-slope (bowl, hill, banking) reads zero.
   // hL - hR on a flat tilted plane
   const plane = -2 * hw2 * (slopeX * perpSin + slopeY * perpCos);
   return BUMP_STEER.k * weight * (spec.lr / (spec.lf + spec.lr)) * Math.max(-0.4, Math.min(0.4,

@@ -36,7 +36,7 @@ function buildLevelPatchSets(): void {
       LEVEL.randomise ? Math.random : seededRng(LEVEL.id + ':incl'),
     );
   }
-  // with the weather (?weather=1) the level's own puddles go: the cover field lays its water
+  // with the weather the level's own puddles go: the cover field lays its water
   LEVEL._staticCovers = staticCovers(LEVEL, [...LEVEL._coversBase, ...LEVEL._incl.covers]);
   LEVEL.covers = LEVEL._staticCovers;
 }

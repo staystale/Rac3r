@@ -16,7 +16,6 @@ import { jokerLane, lanePose } from "../world/joker.ts";
 import { resetCar, armStart, startHeld, startAtOf } from './order.js';
 import { gridPos, spawnAI } from './grid.js';
 import { shared, game } from './state.js';
-import { tyreWearOn } from '../physics/tyrewear.ts';
 import { saveProfile } from '../menu/profile.js';
 
 /**
@@ -237,7 +236,7 @@ export function startFlow() {
 // NO storage writes in the frame loop: a synchronous localStorage write can stall a phone frame
 // (judder). The highway best and the speed camera record live in memory while driving and are
 // saved here at safe moments: pause, restart, leaving a level, page hidden / closed.
-// TYRE WEAR (the default; ?tyrewear=0 off): the player's set is kept per car in the profile; only
+// TYRE WEAR (the default): the player's set is kept per car in the profile; only
 // the garage fits a new one. Only a set loaded from the profile is saved back (the menu's demo car
 // never is), and only when the event is over (the results, back to the menu, another car): a
 // RESTART puts the set back as it was at the event's start, a RESET keeps the race as it is
@@ -246,7 +245,7 @@ const carKey = (car) => String(car.spec.id).split('#')[0];
 /** Saves the player car's tyre wear into the profile. */
 export function saveTyreWear() {
   const profile = shared.menu && shared.menu.profile, car = game.car;
-  if (!tyreWearOn() || !profile || !car || !car.tyreWearOwned || !car.tyreWear) return;
+  if (!profile || !car || !car.tyreWearOwned || !car.tyreWear) return;
   profile.tyreWear = profile.tyreWear || {};
   profile.tyreWear[carKey(car)] = car.tyreWear.map((wear) => Math.round(wear * 1000) / 1000);
   saveProfile(profile);
@@ -256,7 +255,6 @@ export function saveTyreWear() {
  * @param {object} car the player's car
  */
 export function loadTyreWear(car) {
-  if (!tyreWearOn()) return;
   const profile = shared.menu && shared.menu.profile;
   const saved = profile && profile.tyreWear && profile.tyreWear[carKey(car)];
   car.tyreWear = saved ? [...saved] : [0, 0, 0, 0];
@@ -347,7 +345,7 @@ export function doRestart() {
   game.cones.reset();
   game.marks.clear();
   clearWear();
-  resetPuddles();   // the weather's puddles and snow at the start (?weather=1)
+  resetPuddles();   // the weather's puddles and snow at the start
   resetCoverField();   // or the cover field's, already settled (?coverfield=1)
   // open on the whole level, then ease in to the car. Not behind the menu (?menufast=0 = it is):
   // MEASURED on the owner's phone (?report=1, the menu's first 1.5 s) the fly-in nobody sees there

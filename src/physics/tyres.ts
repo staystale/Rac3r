@@ -380,7 +380,7 @@ function relaxAxleForces(car: Car, dt: number, vLong: number, vLat: number,
  */
 /**
  * The grip an axle's two tyres give from their temperature (hard ground only) and, with tyre
- * wear (?tyrewear=1), how worn they are (any ground; worse when wet).
+ * wear, how worn they are (any ground; worse when wet).
  * @param car the car
  * @param carSpec its spec
  * @param first the axle's first tyre index (0 front, 2 rear)

@@ -219,7 +219,7 @@ font-size:15px';
 }
 
 /**
- * How worn a car's set of tyres is (?tyrewear=1): its most worn tyre, 0 new .. 1 bald.
+ * How worn a car's set of tyres is: its most worn tyre, 0 new .. 1 bald.
  * @param {object} menu the menu context
  * @param {string} carId the car
  * @returns {number} the wear
@@ -230,7 +230,7 @@ function setWear(menu, carId) {
 }
 
 /**
- * The fitted set's wear in the tyre shop (?tyrewear=1), and the FIT button's words: a worn fitted
+ * The fitted set's wear in the tyre shop, and the FIT button's words: a worn fitted
  * set can be swapped for a NEW SET.
  * @param {object} menu the menu context
  * @param {string} carId the car
@@ -241,7 +241,7 @@ function setWear(menu, carId) {
 function showSetWear(menu, carId, fitted, info, fitButton) {
   const worn = setWear(menu, carId);
   fitButton.innerHTML = !fitted ? 'FIT ✓' : worn > 0.02 ? 'NEW SET ✓' : 'FITTED ✓';
-  if (!fitted || !menu.api.tyreWear) return;
+  if (!fitted) return;
   info.innerHTML += `<div class="stats"><span>THIS SET</span>`
     + `<b style="color:${wearColour(worn, COL)}">${Math.round(worn * 100)}% WORN</b></div>`;
 }
@@ -282,11 +282,9 @@ solid ' + brand.col;
   const fitB = addButton(menu, fitR, 'FIT ✓', () => {
     menu.profile.tyres = menu.profile.tyres || {};
     menu.profile.tyres[carId] = sel;
-    // TYRE WEAR (?tyrewear=1): fitting is a NEW set - the only way to fresh tyres
-    if (menu.api.tyreWear) {
-      menu.profile.tyreWear = menu.profile.tyreWear || {};
-      menu.profile.tyreWear[carId] = [0, 0, 0, 0];
-    }
+    // TYRE WEAR: fitting is a NEW set - the only way to fresh tyres
+    menu.profile.tyreWear = menu.profile.tyreWear || {};
+    menu.profile.tyreWear[carId] = [0, 0, 0, 0];
     saveProfile(menu.profile);
     showGarage(menu);
   }, 'go');

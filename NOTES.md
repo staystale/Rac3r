@@ -51,39 +51,37 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   sharpness capped at 1.5 device px per CSS px (was 2): default since 10-17 (`?dpr=2` = old). The
   race start without the fly-in hand-over jolt: default since 10-17 (`?startfix=0`). Ground tile
   mipmaps built with the upload (no burst at a zoom-out): default since 10-18 (`?zoomswitch=0`). All mud and
-  thick mud freeze by the cover field's frost, driven or not: default since 10-18 (`?mudfreeze=0`).
+  thick mud freeze by the cover field's frost, driven or not: default since 10-18.
   Sand dents most easily (dry too, 45 cm floor), dry mud / thick mud dent at half the wet rate,
-  a churned gravel puddle leaves dirt: default since 10-18 (`?sanddig=0`). Gravel dents like
-  sand but slower, both faster wet (`?graveldig=0`); frosty dry winters and ice melting at half
-  snow's rate (`?wintercold=0`): default since 10-18. One cold-surface order (water over snow
-  over ice; snow never on water; driven ice breaks to water; `?coldsurface=0`), dry dirt -> mud
-  1 in 4 and damp sand / gravel wear (`?wearchance=0`), tyre marks fading block by block
-  (`?markfade=0`), the track temp gauge and km/h-mph / C-F rows (`?hudunits=0`): default 10-18.
-  Tyre-made covers drawn as the field's (`?onelook=0`), tyres cooling toward a track / air mix with
-  hot tyres clearing water / ice faster (`?tyrecool=0`), water / ice / packed snow told apart
-  (`?coverlook=0`): default 10-18.
+  a churned gravel puddle leaves dirt: default since 10-18. Gravel dents like
+  sand but slower, both faster wet; frosty dry winters and ice melting at half
+  snow's rate: default since 10-18. One cold-surface order (water over snow
+  over ice; snow never on water; driven ice breaks to water), dry dirt -> mud
+  1 in 4 and damp sand / gravel wear, tyre marks fading block by block, the track temp gauge
+  and km/h-mph / C-F rows (`?hudunits=0`): default 10-18.
+  Tyre-made covers drawn as the field's, tyres cooling toward a track / air mix with
+  hot tyres clearing water / ice faster, water / ice / packed snow told apart: default 10-18.
   Pre-turned pixel art (RotSprite)
   was the alternative, not chosen.
 - Not wanted / undone: the highway rebuild (cancelled 10-15), a fade at zoom steps, tiles tracing
   only their part of the ribbon (`?ribboncull`, undone 10-16), the WebGL cars (`?gpucars`, removed
   10-16), the menu recording (parked until after the graphics work).
 - Order (10-17 night): the lean drawing plan is paused and today's default kept (the holds are
-  Safari's, see Measured lessons); next weather (answers and plan R1-R4 in `TODO.md` "GRASS GRIP
-  + WATER"). Off-screen AI at half rate: saved.
-- Weather (10-18): approved and the default (?weather=0 off): the season / weather setup rows,
+  Safari's, see Measured lessons). Off-screen AI at half rate: saved.
+- Weather (10-18): approved and the default: the season / weather setup rows,
   changing weather, wet grip per surface, the wet look, puddles and snow from the weather (scenery
-  water permanent), the cold freezing water; sliding wheels wear the ground twice (?slidewear=0).
-  Tyre wear the default too (10-18, test open; ?tyrewear=0 off; RESTART = the set at the event's
-  start, RESET keeps the race). Lighting / time of day next, its own switch.
-- Weather and tyres (10-18, owner "yes all"): the defaults (=0 off) - ?tyrefeel (tyres warm
+  water permanent), the cold freezing water; sliding wheels wear the ground twice.
+  Tyre wear the default too (10-18, test open; RESTART = the set at the event's
+  start, RESET keeps the race).
+- Weather and tyres (10-18, owner "yes all"): approved - tyrefeel (tyres warm
   sooner and hold heat in their window, slides / spins / donuts wear 2-3x, hot slides more; cold
   slides no extra), ?morepuddles (more puddles than snow, half on the road, the racing line
-  refills in the rain; snow unchanged), ?onepuddle (one puddle look: water tinted by its ground),
-  ?packedwear (packed snow breaks into snow or ice 50:50), ?wettrail (wet tyre lines fade within
+  refills in the rain; snow unchanged), onepuddle (one puddle look: water tinted by its ground),
+  packedwear (packed snow breaks into snow or ice 50:50), wettrail (wet tyre lines fade within
   10-50 m). Later (owner): T3 - tyres cool toward the air temperature, hot tyres clear water / ice
   faster.
-- Cover field + winter logic (10-18, owner "all pass"): the DEFAULT (?coverfield=0 / ?winter=0
-  off). Rain and snow build in small patches until they coat the track, heat dries / melts them
+- Cover field + winter logic (10-18, owner "all pass"): approved. Rain and snow build in small patches until they coat
+  the track, heat dries / melts them
   back, all by weather and temperature, on every level (highway too); every level follows its
   weather (a snow stage may be played hot and melt; a desert snowed on). The level's own snow,
   ice, water and packed snow are field areas (start full, melt / dry); under them: the surface's

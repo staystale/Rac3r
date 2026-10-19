@@ -12,7 +12,7 @@ import { CAR_IDS, applyLivery } from './cars.ts';
 import { createInput } from './input.js';
 import { createRenderer } from './render.ts';
 import { readSettings } from './core/settings.ts';
-import { createMarks, setMarkFade } from './marks.js';
+import { createMarks } from './marks.js';
 import { setTrackTempSource } from './hud/tracktemp.js';
 import { createHud } from './hud.js';
 import {
@@ -34,22 +34,11 @@ import { createTraffic } from './traffic.ts';
 import { setTuneAudio, snapshot } from './tune.js';
 import { TUNE } from './vehicle.ts';
 import { initWorld } from "./world/load.ts";
-import { applyOldGrassGrip } from "./world/surfaces.ts";
-import { setGroundLookup, setSlideWear } from "./world/wear.ts";
-import { setGravelDig, setSandDig, setWearChance } from "./world/dig.ts";
-import { setTyreCool } from "./physics/tyrecool.ts";
-import { setCoverLook } from "./render/glfield.ts";
-import { setPackedSnowWear, setWinterSnow } from "./world/snowwear.ts";
-import { setWetTrail } from "./wettrail.ts";
-import { setMudFrost, setOneLook } from "./world/coverfield.ts";
 import {
-  setColdSurface, setWetness, setRain, setMelt, setWinterCold,
+  setWetness, setRain,
 } from "./world/weather.ts";
-import { setWeatherPuddles } from "./world/puddles.ts";
 import { setDarkness } from "./world/daylight.ts";
 import { CLOCK, startClock } from "./world/clock.ts";
-import { setTyreWear } from "./physics/tyrewear.ts";
-import { setTyreFeel } from "./physics/tyreheat.ts";
 import { LEVEL } from "./world/state.ts";
 
 import { LEVELS } from "./world/levels/index.ts";
@@ -70,26 +59,6 @@ addStageLevels();
 addHighwayLevel();
 
 shared.settings = readSettings(location.search);
-if (!shared.settings.grassGrip) applyOldGrassGrip();   // ?grassgrip=0: the old grass grip
-setGroundLookup(shared.settings.groundLookup);   // ?groundlookup=1: fewer ground lookups (wear.ts)
-setSlideWear(shared.settings.slideWear);   // ?slidewear=1: sliding wheels wear the ground twice
-setPackedSnowWear(shared.settings.packedWear);   // ?packedwear=1: packed snow wears to snow / ice
-setWetTrail(shared.settings.wetTrail);   // ?wettrail=1: wet tyre lines fade within 10-50 m
-setWinterCold(shared.settings.winterCold);   // ?wintercold=1: frosty winters, slower ice
-setGravelDig(shared.settings.gravelDig);   // ?graveldig=1: gravel digs like sand, slower
-setCoverLook(shared.settings.coverLook);   // ?coverlook=1: water / ice / packed snow apart
-setTyreCool(shared.settings.tyreCool);   // ?tyrecool=1: tyres cool toward the track / air mix
-setSandDig(shared.settings.sandDig);   // ?sanddig=1: sand dents fastest, dry too
-setColdSurface(shared.settings.coldSurface);   // ?coldsurface=1: one water / snow / ice order
-setMarkFade(shared.settings.markFade);   // ?markfade=1: tyre marks fade block by block
-setWearChance(shared.settings.wearChance);   // ?wearchance=1: dirt / sand / gravel wear chances
-setOneLook(shared.settings.oneLook);   // ?onelook=1: tyre-made covers in the field's look
-setMudFrost(shared.settings.mudFreeze);   // ?mudfreeze=1: all mud freezes by the field's frost
-setMelt(shared.settings.winter);   // ?winter=1: snow and ice melt by temperature, water freezes
-setWinterSnow(shared.settings.winter);   // ?winter=1: snow packs, packed snow ices by temperature
-setWeatherPuddles(shared.settings.weather);   // ?weather=1: the weather makes the puddles
-setTyreWear(shared.settings.tyreWear);   // ?tyrewear=1: tyres wear and puncture
-setTyreFeel(shared.settings.tyreFeel);   // ?tyrefeel=1: tyres warm, hold heat, slides wear more
 // ?rain=0.6: a wet track, raining (weather test, before any level or racing line is built)
 if (shared.settings.rain !== null) {
   setWetness(shared.settings.rain);
@@ -294,9 +263,8 @@ shared.boot.addEventListener('pointerdown', (event) => {
 });
 addEventListener('keydown', start);
 shared.menu = shared.MENU
-  ? createMenu({ thumbs: paintThumbs, launch, weather: shared.settings.weather,
+  ? createMenu({ thumbs: paintThumbs, launch,
     daytime: CLOCK.isOn,
-    tyreWear: shared.settings.tyreWear,
     genStage: (options) => installStage(genStage(options)),
       carSprite: (x, livery, wheels) => (typeof x === 'string'
         ? shared.renderer.pixelCarWithWheels(applyLivery(makeCar(x).spec, livery)) : wheels
