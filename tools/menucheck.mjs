@@ -4,6 +4,8 @@
 // Waits for each button / screen (up to STEP_MS), not fixed sleeps: on CI the WebGL2 ground runs in software
 // (SwiftShader), several times slower, and a fixed sleep timed out there; a step that never comes is named.
 const STEP_MS = 60000;
+// the step under way, printed if one fails (the suite shows only the last lines of a tool)
+let step = 'start';
 import { mkdirSync } from 'node:fs';
 import { startServer, launchBrowser, extraQuery, gotoGame } from './lib/browser.mjs';
 import { TEST_LIST } from '../src/testlist.js';
@@ -14,8 +16,9 @@ b = await launchBrowser();
 for (const [W, H] of [[844, 390], [390, 844]]) {
   const p = await (await b.newContext({ viewport: { width: W, height: H }, deviceScaleFactor: 2, isMobile: true, hasTouch: true })).newPage();
   const errs = []; p.on('pageerror', e => errs.push(e.message)); p.on('console', m => { if (m.type() === 'error') errs.push(m.text()); });
-  const OUTDIR = process.argv[2]; if (OUTDIR) mkdirSync(OUTDIR, { recursive: true }); const shot = async (n) => { await p.waitForTimeout(500); if (OUTDIR) await p.screenshot({ path: OUTDIR + '/menu-' + W + '-' + n + '.png' }); };
+  const OUTDIR = process.argv[2]; if (OUTDIR) mkdirSync(OUTDIR, { recursive: true }); const shot = async (n) => { step = W + 'x' + H + ' photo ' + n; await p.waitForTimeout(500); if (OUTDIR) await p.screenshot({ path: OUTDIR + '/menu-' + W + '-' + n + '.png' }); };
   const tap = async (txt) => {
+    step = W + 'x' + H + ' tap ' + txt;
     await p.waitForTimeout(400);
     const button = p.locator('#menu button', { hasText: txt }).first();
     await button.waitFor({ state: 'visible', timeout: STEP_MS }).catch(() => {
@@ -25,6 +28,7 @@ for (const [W, H] of [[844, 390], [390, 844]]) {
   };
   // a timed poll, not waitForFunction's default animation-frame poll (tools/lib/browser.mjs gotoGame)
   const waitFor = async (what, test) => {
+    step = W + 'x' + H + ' wait for ' + what;
     await p.waitForFunction(test, null, { timeout: STEP_MS, polling: 250 }).catch(() => {
       throw new Error(W + 'x' + H + ': ' + what + ' never happened');
     });
@@ -64,6 +68,9 @@ for (const [W, H] of [[844, 390], [390, 844]]) {
   if (errs.length) process.exitCode = 1;
 }
 await b.close();
+} catch (error) {
+  console.log('menucheck FAILED at ' + step + ': ' + String(error && error.message).split(String.fromCharCode(10))[0]);
+  process.exitCode = 1;
 } finally {
   await b?.close();
   srv.stop();

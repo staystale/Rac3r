@@ -67,15 +67,65 @@ export function digPace(base: string, wet: boolean): number {
 const DRY_DIRT_TO_MUD = 0.25, DAMP_LOOSE_WEAR = 0.1;
 const DAMP_WORN_TO: Record<string, string> = { sand: 'gravel', gravel: 'dirt' };
 
+// ?mudwater=1 (owner): worn DRY dirt turns to mud less the hotter the track - DIRT_TO_MUD_COOL
+// at DIRT_COOL_C and below, falling evenly to DIRT_TO_MUD_HOT at DIRT_HOT_C (20 C: ~0.18, 30 C:
+// ~0.10); damp ground slides from that up to always (wet). It BAKES to gravel more the hotter:
+// none at DIRT_BAKE_FROM_C, DIRT_TO_GRAVEL_HOT at DIRT_BAKE_FULL_C and over (35 C: ~0.12), less
+// the damper. (Replaces the HOT / SUPER HOT weather kinds always baking dirt: wet.ts wornTo.)
+const DIRT_TO_MUD_COOL = 0.25, DIRT_TO_MUD_HOT = 0.03, DIRT_COOL_C = 10, DIRT_HOT_C = 40;
+const DIRT_TO_GRAVEL_HOT = 0.25, DIRT_BAKE_FROM_C = 25, DIRT_BAKE_FULL_C = 45;
+
+/** A share 0..1 of the way from one temperature to another. */
+const heatShare = (trackC: number, fromC: number, toC: number) =>
+  Math.max(0, Math.min(1, (trackC - fromC) / (toC - fromC)));
+
 /**
- * Whether ground whose passes are done stays as it is this time (dry dirt 3 in 4; dry mud
- * always under ?mudwater=1: mud thickens only with water, levelmud.ts).
+ * The chance worn dirt turns to mud when its passes are done (?mudwater=1).
+ * @param wetShare how damp the cell is, 0 (dry) .. 1 (wet enough to wear faster)
+ * @param trackC the track temperature, C
+ * @returns the chance, 0..1
+ */
+export function dirtToMudChance(wetShare: number, trackC: number): number {
+  const heat = heatShare(trackC, DIRT_COOL_C, DIRT_HOT_C);
+  const dry = DIRT_TO_MUD_COOL + (DIRT_TO_MUD_HOT - DIRT_TO_MUD_COOL) * heat;
+  const share = Math.max(0, Math.min(1, wetShare));
+  return dry + (1 - dry) * share;
+}
+
+/**
+ * The chance worn dirt bakes to gravel when its passes are done (?mudwater=1).
+ * @param wetShare how damp the cell is, 0 (dry) .. 1 (wet)
+ * @param trackC the track temperature, C
+ * @returns the chance, 0..1
+ */
+export function dirtToGravelChance(wetShare: number, trackC: number): number {
+  const dry = 1 - Math.max(0, Math.min(1, wetShare));
+  return DIRT_TO_GRAVEL_HOT * heatShare(trackC, DIRT_BAKE_FROM_C, DIRT_BAKE_FULL_C) * dry;
+}
+
+/**
+ * What worn dirt becomes when its passes are done (?mudwater=1): mud, gravel or (null) still
+ * dirt, from one draw against the two chances.
+ * @param wetShare how damp the cell is, 0 (dry) .. 1 (wet)
+ * @param trackC the track temperature, C
+ * @returns the new surface id, or null to stay dirt
+ */
+export function wornDirtTo(wetShare: number, trackC: number): string | null {
+  const draw = Math.random(), toMud = dirtToMudChance(wetShare, trackC);
+  if (draw < toMud) return 'mud';
+  return draw < toMud + dirtToGravelChance(wetShare, trackC) ? 'gravel' : null;
+}
+
+/**
+ * Whether ground whose passes are done stays as it is this time (dry dirt 3 in 4; under
+ * ?mudwater=1 dry mud always - it thickens only with water, levelmud.ts; dirt goes by
+ * wornDirtTo there instead).
  * @param base the surface id
  * @param wet whether the cell is wet enough to wear faster
  * @returns true to keep the base
  */
 export function wearHolds(base: string, wet: boolean): boolean {
-  if (!wet && base === 'mud' && mudWaterOn()) return true;
+  if (mudWaterOn()) return base === 'mud' && !wet;
   return !wet && base === 'dirt' && Math.random() >= DRY_DIRT_TO_MUD;
 }
 

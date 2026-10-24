@@ -79,6 +79,15 @@ is converted first in its own commit, proved SAME, then changed (owner: "1.a is 
    per-cell drying there costs every rebuild (pruneWear walks the cells) and every tile paint
    (render/ground/wear.ts walks the cells); options to the owner. Thick mud road stretches keep
    their white edge lines (road.ts strokeRibbonEdge omits dirt / mud / grass, not thick mud).
+   Round 2 (owner 10-24): a piece counts only cells of its own surface (the bowling alley's mud
+   lane waited on the thick mud lane next to it: edges 458 s -> 207 s at 30 C) and steps at
+   90 % of its cells; worn DIRT goes to mud by a chance falling with heat (25 % at 10 C -> 3 %
+   at 40 C) and to gravel by one rising with heat (0 at 25 C -> 25 % at 45 C), damp ground
+   towards always mud (dig.ts wornDirtTo); drying mud makes the AI read the grip again.
+   ON APPROVAL DELETE (one system): the switch (levelmud.ts setMudWater / mudWaterOn, settings
+   mudWater), dig.ts DRY_DIRT_TO_MUD and wearHolds' old dirt line, wet.ts wornTo's HOT / SUPER
+   HOT weather-kind bake, puddles.ts dryMud's fixed need of 1. NEXT: the highway's ploughed
+   fields in random blocks (approved: BSP blocks, dry-ploughed look, photos first, cost A/B).
 5. GRASS G1 (approved): short grass told apart from grass (identical today: same art, mu 0.47) -
    a lighter, drier mown look, tighter stripes, no blades, dirt patches ~4 -> 10 % (own random
    stream: existing patches unchanged), mu 0.46, peak a touch earlier, ~20 % less drag; grass

@@ -275,6 +275,7 @@ function dryMud(seconds: number): void {
   const trackC = WEATHER.trackC;
   if (WEATHER.wetness > DRY_SPELL_WETNESS || WEATHER.rain > 0 || trackC < MUD_DRY_FROM_C) return;
   const melt = weatherRuns();
+  let dried = 0;
   for (const cell of wearMap.values()) {
     if (melt && dryCellWater(cell, trackC, seconds)) continue;
     const next = MUD_DRIES_TO[cell.base];
@@ -285,8 +286,13 @@ function dryMud(seconds: number): void {
     cell.base = next;
     cell.current = next;
     wearDirty.push(cell);
+    dried++;
   }
-  groundDirtyAreas.push(...dryLevelMud(trackC * MUD_DRY_PER_S_PER_C * seconds, MUD_DRIES_TO));
+  if (!mudWaterOn()) return;
+  const areas = dryLevelMud(trackC * MUD_DRY_PER_S_PER_C * seconds, MUD_DRIES_TO);
+  groundDirtyAreas.push(...areas);
+  // the AI's speed plan reads the ground's grip again (line.ts regripPath), as for scenery water
+  if (dried || areas.length) WEATHER.epoch++;
 }
 
 /**

@@ -44,6 +44,10 @@ export function mudWaterOn(): boolean {
 // the surfaces the level's own ground can dry from
 const isMud = (surface: Surface) => surface.id === 'mud' || surface.id === 'thickMud';
 
+// a piece's edge strip dries once this share of its cells has: waiting for every last damp
+// cell left a long piece's edges muddy minutes after it looked dry (the bowling alley's lanes)
+const PIECE_STEP_SHARE = 0.9;
+
 // margin round a box, m: a rounded pad's tarmac apron and a road's kerbs lie outside the shape
 const BOX_MARGIN_M = 3;
 
@@ -184,7 +188,10 @@ function seedPiece(piece: MudSource): void {
   const cellX1 = Math.floor(box.x1 / WEAR_CELL), cellY1 = Math.floor(box.y1 / WEAR_CELL);
   for (let cellY = Math.floor(box.y0 / WEAR_CELL); cellY <= cellY1; cellY++) {
     for (let cellX = Math.floor(box.x0 / WEAR_CELL); cellX <= cellX1; cellX++) {
-      if (!isMud(groundSurfaceAt((cellX + 0.5) * WEAR_CELL, (cellY + 0.5) * WEAR_CELL))) continue;
+      // the piece's own surface only: a box reaches past its edge into a neighbour (the bowling
+      // alley's mud lane is 3 m from the thick mud lane)
+      const ground = groundSurfaceAt((cellX + 0.5) * WEAR_CELL, (cellY + 0.5) * WEAR_CELL);
+      if (ground.id !== piece.was.id) continue;
       const cell = getCell(cellX, cellY);
       if (cell) piece.cells.push(cell);
     }
@@ -213,15 +220,20 @@ export function seedLevelMud(): MudBox[] {
 }
 
 /**
- * Whether a piece is ready to dry a step: its cells have all moved past its surface, or (a
- * speck) its own drying passed its need.
+ * Whether a piece is ready to dry a step: PIECE_STEP_SHARE of its cells have moved past its
+ * surface (the cells still damp keep their own look), or (a speck) its own drying passed its
+ * need.
  * @param piece the piece (its own drying moved on)
  * @param dryBy the drying this tick
  * @returns true to step
  */
 function pieceDries(piece: MudSource, dryBy: number): boolean {
   const surfaceId = piece.holder.surface.id;
-  if (piece.cells.length) return piece.cells.every((cell) => cell.base !== surfaceId);
+  if (piece.cells.length) {
+    let passed = 0;
+    for (const cell of piece.cells) if (cell.base !== surfaceId) passed++;
+    return passed >= Math.ceil(piece.cells.length * PIECE_STEP_SHARE);
+  }
   piece.dry += dryBy;
   if (piece.dry < mudDryNeed(piece.x, piece.y)) return false;
   piece.dry = 0;

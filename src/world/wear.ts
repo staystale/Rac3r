@@ -15,8 +15,9 @@ import {
   FX1, FX0, FY1, FY0, KERB_W, KERB_H, KERB_RIDGE, KERB_RIDGE_L, RUNOFF_W, RUNOFF_ROUGH,
 } from "./bounds.ts";
 import { zoneAt } from "./zones.ts";
+import { mudWaterOn } from "./levelmud.ts";
 import {
-  churnedTo, dampWornTo, digPace, digRuleOf, digsDry, wearHolds,
+  churnedTo, dampWornTo, digPace, digRuleOf, digsDry, wearHolds, wornDirtTo,
 } from "./dig.ts";
 import { bumpAt, bankHeightAt, BUMP_STEER } from "./terrain.ts";
 import { querySubtrack } from "./tyrewall.ts";
@@ -275,7 +276,11 @@ function passBareCell(cell: WearCell, damp: number): void {
   // wet ground wears a pass sooner (owner's table: grass / dirt 2 -> 1, mud 3 -> 2)
   const need = rule ? rule[1] - (damp >= WET_WEAR_FROM ? 1 : 0) : 0;
   if (rule && ++cell.passes >= need) {
-    if (!wearHolds(cell.base, damp >= WET_WEAR_FROM)) cell.base = wornTo(cell.base, rule[0]);
+    const wet = damp >= WET_WEAR_FROM;
+    // ?mudwater=1: worn dirt goes to mud or gravel by its dampness and the track's heat (dig.ts)
+    if (mudWaterOn() && cell.base === 'dirt') {
+      cell.base = wornDirtTo(wet ? 1 : damp / WET_WEAR_FROM, WEATHER.trackC) || cell.base;
+    } else if (!wearHolds(cell.base, wet)) cell.base = wornTo(cell.base, rule[0]);
     cell.passes = 0;
   } else if (!rule) cell.base = dampWornTo(cell.base, damp >= WET_WEAR_FROM) || cell.base;
   digRut(cell, damp);
