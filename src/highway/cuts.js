@@ -288,5 +288,5 @@ export function syncCovers(level) {
   state.coversDirty = false;
   level._coversBase = state.covers;
   level.covers = [...state.covers, ...((level._incl && level._incl.covers) || [])];
-  level.covers = adoptRoadCovers(level.covers);
+  level.covers = adoptRoadCovers(level, level.covers);
 }

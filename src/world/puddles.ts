@@ -20,7 +20,8 @@ import {
   ICE_MELT_SHARE, WEATHER, weatherRandom, weatherRuns,
 } from "./weather.ts";
 import { hotTyreShare } from "../physics/tyrecool.ts";
-import { wearMap, wearDirty, WEAR_CELL, layersAt, wearKey } from "./wear.ts";
+import { wearMap, wearDirty, WEAR_CELL, getCell, layersAt, wearKey } from "./wear.ts";
+import { crackMeltFactor, isCracked, spreadCracks } from "./icecrack.ts";
 import {
   breakDrySpell, dryLevelMud, mudDryNeed, seedLevelMud,
 } from "./levelmud.ts";
@@ -234,8 +235,10 @@ function meltCell(cell: WearCell, trackC: number, seconds: number): boolean {
   // what the level or the weather lays here now follows its own rules (the cover field)
   if (!frozen || cell.frozeMud) return false;
   const laid = layersAt((cell.cx + 0.5) * WEAR_CELL, (cell.cy + 0.5) * WEAR_CELL).cover;
-  if (laid === kind) return false;
-  const perC = kind === 'ice' ? ICE_MELT_PER_S_PER_C : CELL_SNOW_MELT_PER_S_PER_C;
+  // (cracked ice melts by its own rule too, faster the more cracked: icecrack.ts)
+  if (laid === kind && !isCracked(cell)) return false;
+  const perC = kind === 'ice' ? ICE_MELT_PER_S_PER_C * crackMeltFactor(cell)
+    : CELL_SNOW_MELT_PER_S_PER_C;
   if (weatherRandom() >= perC * (trackC - THAW_ABOVE_C) * rainMelt(kind === 'ice') * seconds) {
     return false;
   }
@@ -358,6 +361,8 @@ export function stepPuddles(dt: number): void {
   if (frozen.length) applyLooks(frozen);
   dryMud(seconds);
   freezeMud(seconds);
+  // cracks spread over connected ice (icecrack.ts; by the event's seeded stream)
+  if (weatherRuns()) spreadCracks(wearMap.values(), getCell, seconds, weatherRandom, wearDirty);
 }
 
 /**
@@ -388,11 +393,14 @@ function dealFrozen(cover: Cover): void {
  * Takes the endless road's covers as they stream in (highway/cuts.js syncCovers):
  * they become the level's own, so its rivers - scenery water - freeze and thaw like any other
  * (a new one is dealt frozen or not as an event's start deals it); returns them as they look now.
+ * The road's level is given, not taken as the active one: the game builds the road's first
+ * stretch at boot, while the Lab is the active level (that wiped the Lab's own samples).
+ * @param level the highway level
  * @param covers the road's covers now
  * @returns the covers to draw and drive on
  */
-export function adoptRoadCovers(covers: Cover[]): Cover[] {
-  LEVEL._staticCovers = covers;
+export function adoptRoadCovers(level: Level, covers: Cover[]): Cover[] {
+  level._staticCovers = covers;
   for (const cover of covers) if (cover.water && cover._frozen === undefined) dealFrozen(cover);
   return covers.map(staticLook);
 }

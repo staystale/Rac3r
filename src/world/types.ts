@@ -323,6 +323,7 @@ export interface WearCell {
   fixed?: boolean;    // its cover is the level's own: it never follows the cover field
   laid?: string | null;   // what the cover field last laid here (coverfield.ts syncFieldCells)
   area?: string | null;   // the cover field's level area the cell is in (coverfield.ts)
+  crack?: number;     // how cracked its ice is, 0..1 (icecrack.ts)
 }
 
 // What layersAt returns: the static layers at a point, before any wear.

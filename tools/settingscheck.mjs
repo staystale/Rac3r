@@ -13,7 +13,7 @@ const DEFAULTS = {
   maxDpr: null,
   noShade: false,
   meter: false, meterOverlay: false, report: false, audio: true,
-  trafficSeat: false, sandboxWet: false,
+  trafficSeat: false, sandboxWet: false, meltWater: false, iceCrack: false,
   autopilot: false, autopilotKmh: 0, noNatClear: false, churn: '', skipLayers: '',   // a Set is compared as its sorted names joined by ','
 };
 
@@ -63,6 +63,8 @@ const TABLE = [
   ['?skip=props,cars', { skipLayers: 'cars,props' }],
   ['?trafficseat=1', { trafficSeat: true }],
   ['?sandboxwet=1', { sandboxWet: true }],
+  ['?meltwater=1', { meltWater: true }],
+  ['?icecrack=1', { iceCrack: true }],
 ];
 
 const norm = (v) => (v instanceof Set ? [...v].sort().join(',') : v);

@@ -41,6 +41,8 @@ import { setDarkness } from "./world/daylight.ts";
 import { CLOCK, startClock } from "./world/clock.ts";
 import { setTrafficSeat } from "./ai/trafficPhys.ts";
 import { setTestPuddles } from "./world/puddles.ts";
+import { setMeltWater } from "./world/coverfield.ts";
+import { setIceCrack } from "./world/icecrack.ts";
 import { LEVEL } from "./world/state.ts";
 
 import { LEVELS } from "./world/levels/index.ts";
@@ -77,6 +79,10 @@ shared.DEV = shared.settings.dev;
 setTrafficSeat(shared.settings.trafficSeat);
 // ?sandboxwet=1: the Sandbox keeps its sample puddles (read at each level load)
 setTestPuddles(shared.settings.sandboxWet);
+// ?meltwater=1: what the weather melts is left as water, the track soaked while it melts
+setMeltWater(shared.settings.meltWater);
+// ?icecrack=1: driven ice cracks, grips more and wears faster; the cracks spread
+setIceCrack(shared.settings.iceCrack);
 
 shared.canvas = document.getElementById('c');
 shared.boot = document.getElementById('boot');

@@ -20,6 +20,7 @@ import {
 } from "../world/coverfield.ts";
 import type { Levels } from "../world/coverfield.ts";
 import type { WearCell } from "../world/types.ts";
+import { CRACK_STEPS, crackStep } from "../world/icecrack.ts";
 import { buildProgram } from "./glprogram.ts";
 import type { PaintCamera } from "./glpaint.ts";
 import type { ShadeRect } from "./glshade.ts";
@@ -33,6 +34,8 @@ const CHUNK_M = CHUNK_SQ * FIELD_SQ;
 const CHUNK_BUDGET_MS = 2;
 // squares per wear cell side (a wear cell is 1.5 m, a square 0.5 m: they share the grid)
 const CELL_SQ = Math.round(WEAR_CELL / FIELD_SQ);
+// a cell's cracked ice (world/icecrack.ts): CRACK_CODE + its crack step - 1 (11..14)
+const CRACK_CODE = 11;
 
 // a full-screen quad without vertex data
 const VERTEX = `#version 300 es
@@ -84,11 +87,11 @@ int kindOf(ivec2 square, out float depth) {
   int code = int(texelFetch(maskTex, slot, 0).r * 255.0 + 0.5);
   depth = 0.0;
   if (code == 255) return -1;
-  // a tyre-made cover (7 water, 8 ice, 9 snow, 10 packed snow), a rim where it meets
-  // bare ground
+  // a tyre-made cover (7 water, 8 ice, 9 snow, 10 packed snow; 11..14 cracked ice), a rim where
+  // it meets bare ground
   if (code >= 7) {
     depth = RIM_DEPTH * 0.5;
-    return code == 7 ? 1 : code == 8 ? 2 : code == 9 ? 3 : 4;
+    return code == 7 ? 1 : code == 8 ? 2 : code == 9 ? 3 : code == 10 ? 4 : 2;
   }
   vec2 catchValue = texelFetch(catchTex, slot, 0).rg;
   int kind = code > 0 && code < 5 ? kindIn(areaLevels[code - 1], catchValue, depth) : 0;
@@ -126,6 +129,39 @@ vec4 lookOf(int kind, bool rim, float thick, float sheen, ivec2 square) {
   }
   return rim ? vec4(0.63, 0.71, 0.80, 0.6) : vec4(0.94, 0.95, 0.98, 0.72 + 0.26 * thick);
 }
+// a square's ice crack (world/icecrack.ts), 0..1: its mask code 11..14
+float crackOf(ivec2 square) {
+  int code = int(texelFetch(maskTex, slotOf(square), 0).r * 255.0 + 0.5);
+  return code >= ${CRACK_CODE} && code < ${CRACK_CODE + CRACK_STEPS}
+    ? float(code - ${CRACK_CODE - 1}) / ${CRACK_STEPS.toFixed(1)} : 0.0;
+}
+// a square's crack point, jittered inside it, and its 0..1 share (fewer cracks at a light crack)
+vec3 crackPoint(ivec2 square) {
+  uint hash = uint(square.x * 73856093) ^ uint(square.y * 19349663) ^ 2654435769u;
+  hash = hash * 747796405u + 2891336453u;
+  vec3 bytes = vec3(float((hash >> 8u) & 255u), float((hash >> 16u) & 255u),
+    float((hash >> 24u) & 255u)) / 255.0;
+  return vec3(bytes.xy * 0.8 + 0.1, bytes.z);
+}
+// cracked ice: a network of fine pale cracks (the edges between the squares' crack points,
+// anchored to the world), more of them and wider the more cracked, the ice a touch frostier
+vec4 crackedLook(vec4 look, float crack, ivec2 square, vec2 inSq) {
+  float nearest = 9.0, second = 9.0, share = 1.0;
+  for (int dy = -1; dy <= 1; dy++) {
+    for (int dx = -1; dx <= 1; dx++) {
+      vec3 point = crackPoint(square + ivec2(dx, dy));
+      float dist = length(vec2(dx, dy) + point.xy - inSq);
+      if (dist < nearest) { second = nearest; nearest = dist; share = point.z; }
+      else if (dist < second) second = dist;
+    }
+  }
+  vec3 frosted = mix(look.rgb, vec3(0.92, 0.97, 1.0), 0.12 * crack);
+  float width = max(0.04, 1.3 / (devPerMetre * SQ)) * (0.6 + 0.6 * crack);
+  float edge = second - nearest;
+  if (edge > width || share > 0.3 + 0.7 * crack) return vec4(frosted, look.a);
+  float line = 1.0 - edge / width;
+  return vec4(mix(frosted, vec3(0.97, 1.0, 1.0), 0.85 * line), mix(look.a, 0.85, line));
+}
 void main() {
   vec2 device = vec2(gl_FragCoord.x, canvasHeight - gl_FragCoord.y);
   vec2 fromCamera = (device - cameraPx) / devPerMetre;
@@ -143,6 +179,11 @@ void main() {
   // a faint diagonal sheen across water and ice, square by square
   float sheen = fract(float(square.x + square.y) * 0.083) < 0.12 ? 1.0 : 0.0;
   vec4 look = lookOf(kind, rim, thick, sheen, square);
+  float crack = crackOf(square);
+  if (crack > 0.0 && !rim) {
+    vec2 inSq = (fromCamera + camInSq) / SQ - vec2(square - camSq);
+    look = crackedLook(look, crack, square, inSq);
+  }
   colour = vec4(look.rgb * look.a, look.a);
 }`;
 
@@ -178,6 +219,8 @@ const FORCED_CODE = 7, FORCED_COVERS = ['wet', 'ice', 'snow', 'packedSnow'];
  * @returns the code
  */
 function ownedCode(cell: WearCell): number {
+  const step = crackStep(cell);
+  if (step) return CRACK_CODE + step - 1;
   const cover = cellCoverOnGpu(cell);
   return cover ? FORCED_CODE + FORCED_COVERS.indexOf(cover) : 255;
 }

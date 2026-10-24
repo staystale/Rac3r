@@ -237,7 +237,20 @@ E. SURFACES (S-M each): gravel -> sand by chance when dry, more when hot (the di
 cracks when driven (semi-random, spreading over connected ice; cracked ice melts and wears
 faster); snow / ice / packed snow melt to water with a chance by surface (check what exists).
 GRAVEL -> SAND DEFAULT (owner: all pass) (10-24, world/dig.ts): a dry pass 2 % at 15 C and below to
-10 % at 40 C (damp sand still turns back to gravel at 10 %). The rest of E still open.
+10 % at 40 C (damp sand still turns back to gravel at 10 %).
+UNDER TEST 10-24 (owner answers: cracked ice MORE grip and degrades faster; melt = the weather
+melting ice and snow should leave water):
+- ?meltwater=1 (coverfield.ts, weather.ts setMeltSoak). CAUSE (_meltwater.mjs, Castle Cum, a
+  full coat in a dry spell): drying ran with the melt and ate it - snow left 0-3 % of the
+  surface wet, ice at 5 C none. Now all meltwater stays, a melting coat dries as slowly as rain
+  and runs off above heavy rain's ceiling, the track's damp rises as in a 0.25 drizzle while it
+  melts: snow / ice leave water on ~22 % (heavy rain's), damp 0.88-1.0, dry off after.
+- ?icecrack=1 (world/icecrack.ts; glfield codes 11-14): a pass cracks ice 0.08 (-15 C) .. 0.2
+  (0 C) x 0.5-1.5; a cell from crack 0.35 spreads to a neighbour at 0.6 of its crack (stops ~3
+  cells, 4.8 m out: _icecrack.mjs); grip x1.5 at a full crack (mu 0.12 -> 0.18); breaks through
+  in 2 passes not 4, chance x2, scrubs in half the slide, melts x2. MEASURED 12 passes on the
+  Lab sheet: 0 C line ice left 21/27 off -> 3/27 on; 3 C 7/27 -> 0/27; -5 C no break either way.
+  Fixed ice (frozen scenery water) does not crack. Photos: _icecrackshots.mjs.
 
 F. LIGHTING (M): circuits and rallycross lit (public-road stages street lights; closed stages
 none); event lighting at starts / finishes / busy corners; floodlights off the racing line with a
@@ -350,6 +363,9 @@ DRIVING (ask before starting; re-measure first, these are old):
   was thrown 42 m into the air and drifted off the road; now seated as a reset is,
   ai/trafficPhys.ts); `hwracecheck` passes; `wobblecheck` (drives by ?autopilot=1, opens the game
   with gotoGame); `?autopilot=1` no longer throws on the Lab (no driver without a track).
+- FIXED 10-24 (a bug, no switch): the Lab's own ice sheet, snow patch and puddle were WIPED at
+  boot - the highway's first road build handed its river covers to the active level (the Lab:
+  puddles.ts adoptRoadCovers); now to the highway level (_labcovers.mjs: 0 -> 3 covers).
 
 ## Owner specs
 

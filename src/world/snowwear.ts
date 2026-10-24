@@ -19,6 +19,7 @@
 import type { WearCell } from "./types.ts";
 import { snowTempC } from "./weather.ts";
 import { hotTyreShare } from "../physics/tyrecool.ts";
+import { crackWaterFactor, crackWearPasses } from "./icecrack.ts";
 
 // passes before packed snow breaks up
 const PACKED_SNOW_WEAR = 4;
@@ -82,10 +83,12 @@ export function passWinterSnow(cell: WearCell, wet: boolean, snowToIce: number):
  * @param tyreC the tyre's temperature, C (hot tyres break it more often)
  */
 export function passIceCell(cell: WearCell, wet: boolean, tyreC = 0): void {
-  if (++cell.passes < ICE_WEAR) return;
+  // cracked ice breaks through sooner and more often (icecrack.ts)
+  if (++cell.passes < crackWearPasses(cell, ICE_WEAR)) return;
   cell.passes = 0;
-  const water = clampShare(ICE_WATER_AT_0 + ICE_WATER_PER_C * snowTempC()
-    + (wet ? ICE_WATER_WET : 0) + ICE_WATER_HOT * hotTyreShare(tyreC), 0.02, 0.9);
+  const water = clampShare((ICE_WATER_AT_0 + ICE_WATER_PER_C * snowTempC()
+    + (wet ? ICE_WATER_WET : 0) + ICE_WATER_HOT * hotTyreShare(tyreC)) * crackWaterFactor(cell),
+  0.02, 0.9);
   if (Math.random() >= water) return;
   toWater(cell);
   cell.scrub = 0;

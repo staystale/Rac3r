@@ -21,9 +21,10 @@
 // streams) stays as it is. Tyres change single cells (wear.ts): those follow their own rules and
 // the field again when the weather moves (syncFieldCells).
 import {
-  ICE_MELT_SHARE, WEATHER, weatherRandom, weatherRuns, weatherSnowy,
+  ICE_MELT_SHARE, WEATHER, setMeltSoak, weatherRandom, weatherRuns, weatherSnowy,
 } from "./weather.ts";
 import { wearMap, wearDirty, WEAR_CELL } from "./wear.ts";
+import { isCracked } from "./icecrack.ts";
 import type { Cover, Layers, Surface, WearCell } from "./types.ts";
 
 // LEVEL per second at rain 1 / snow 1 (owner: heavy coats the track in ~10 min, light in ~25;
@@ -35,6 +36,10 @@ const WATER_DRY_PER_S_PER_C = 1 / (780 * 20);
 // ~3 min), packed snow slower, both faster in rain; MELT_WATER of what melts is left as water
 const SNOW_SETTLE_C = 1, SNOW_MELT_PER_S_PER_C = 1 / 7000, PACKED_MELT_PER_S_PER_C = 1 / 14000;
 const RAIN_MELT = 2, MELT_WATER = 0.6;
+// MELTWATER (?meltwater=1; owner: weather melting ice and snow should leave water): all of it
+// stays; and a melting full coat soaks the track's damp as a drizzle of this rain would
+const MELT_SOAK_RAIN = 0.25;
+let meltWaterOn = false;
 // water freezes below FREEZE_C (per C colder), ice thaws above THAW_C (per C warmer)
 const FREEZE_C = 0, FREEZE_PER_S_PER_C = 1 / 60, THAW_C = 1;
 // ONE COLD-SURFACE ORDER (owner: one coherent system - snow builds on ice and on
@@ -174,7 +179,8 @@ export function catchAt(x: number, y: number, seed: number): number {
  * @returns true when the tiles show it
  */
 export function cellOwned(cell: WearCell): boolean {
-  return !!cell.fixed || cell.cover !== (cell.laid ?? null);
+  // a cracked cell's ice is drawn as the tyres left it (icecrack.ts)
+  return !!cell.fixed || cell.cover !== (cell.laid ?? null) || isCracked(cell);
 }
 
 // ONE LOOK (owner: driven-over ice should look the same as the surface's ice - all
@@ -336,12 +342,54 @@ const ICE_THAW_PER_S_PER_C = SNOW_MELT_PER_S_PER_C * ICE_MELT_SHARE;
  * @param dt sim seconds
  * @returns the new level (unclamped)
  */
-function stepWater(water: number, rain: number, trackC: number, dt: number): number {
+function stepWater(water: number, rain: number, trackC: number, dt: number,
+    isSoaked = false): number {
   const dry = Math.max(0, trackC) * WATER_DRY_PER_S_PER_C * dt;
-  const ceiling = rain > 0.05 ? RAIN_WATER_BASE + RAIN_WATER_PER_RAIN * rain : 0;
+  const isWetting = rain > 0.05 || isSoaked;
+  // meltwater runs off as heavy rain's does, above heavy rain's ceiling
+  const ceiling = rain > 0.05 ? RAIN_WATER_BASE + RAIN_WATER_PER_RAIN * rain
+    : isSoaked ? RAIN_WATER_BASE + RAIN_WATER_PER_RAIN : 0;
   const fill = water < ceiling ? Math.min(ceiling - water, rain * WATER_FILL_PER_S * dt) : 0;
-  const runoff = water > ceiling && rain > 0.05 ? Math.min(water - ceiling, RUNOFF_PER_S * dt) : 0;
-  return water + fill - runoff - dry * (rain > 0.05 ? RAIN_EVAP_SHARE : 1);
+  const runoff = water > ceiling && isWetting ? Math.min(water - ceiling, RUNOFF_PER_S * dt) : 0;
+  return water + fill - runoff - dry * (isWetting ? RAIN_EVAP_SHARE : 1);
+}
+
+/**
+ * Whether a set of levels has a coat melting in this warmth (?meltwater=1: the ground under a
+ * melting coat stays soaked).
+ * @param levels the levels
+ * @param trackC the track temperature, C
+ * @returns true while snow, packed snow or ice is melting
+ */
+function isMeltingCoat(levels: Levels, trackC: number): boolean {
+  return (trackC >= SNOW_SETTLE_C && (levels.snow > 0 || levels.packed > 0))
+    || (trackC > THAW_C && levels.ice > 0);
+}
+
+/**
+ * Turns MELTWATER on or off (?meltwater=1): what the weather melts is all left as water, the
+ * ground under a melting coat dries only as slowly as in the rain, and the track's damp rises as
+ * in a drizzle while it melts (weather.ts setMeltSoak).
+ * @param isWanted true for meltwater
+ */
+export function setMeltWater(isWanted: boolean): void {
+  meltWaterOn = isWanted;
+  if (!isWanted) setMeltSoak(0);
+}
+
+/**
+ * How much melting coat the field holds now, 0..1 (the most of the weather's and the level
+ * areas'), for the track's damp.
+ * @returns the share
+ */
+function meltingCoat(): number {
+  const trackC = WEATHER.trackC;
+  let most = 0;
+  for (const levels of [FIELD, ...AREA_KINDS.map((kind) => AREAS[kind])]) {
+    if (isMeltingCoat(levels, trackC))
+      most = Math.max(most, Math.min(1, levels.snow + levels.packed + levels.ice));
+  }
+  return most;
 }
 
 /**
@@ -353,7 +401,7 @@ function stepWater(water: number, rain: number, trackC: number, dt: number): num
 function stepLevels(levels: Levels, dt: number): void {
   const trackC = WEATHER.trackC, rain = WEATHER.rain;
   let { water, snow, ice, packed } = levels;
-  water = stepWater(water, rain, trackC, dt);
+  water = stepWater(water, rain, trackC, dt, meltWaterOn && isMeltingCoat(levels, trackC));
   if (trackC < SNOW_SETTLE_C) {
     // the one order: snow falling on water (the water level's share) melts into it
     const fall = WEATHER.snow * SNOW_FILL_PER_S * dt;
@@ -367,7 +415,7 @@ function stepLevels(levels: Levels, dt: number): void {
     const meltedPacked = Math.min(packed, warmth * PACKED_MELT_PER_S_PER_C);
     snow -= meltedSnow;
     packed -= meltedPacked;
-    water += (meltedSnow + meltedPacked) * MELT_WATER;
+    water += (meltedSnow + meltedPacked) * (meltWaterOn ? 1 : MELT_WATER);
   }
   if (trackC < FREEZE_C && water > 0) {
     const frozen = Math.min(water, (FREEZE_C - trackC + 1) * FREEZE_PER_S_PER_C * dt);
@@ -398,6 +446,7 @@ export function stepCoverField(dt: number): void {
   if (!weatherRuns()) return;
   stepLevels(FIELD, dt);
   for (const kind of AREA_KINDS) stepLevels(AREAS[kind], dt);
+  if (meltWaterOn) setMeltSoak(MELT_SOAK_RAIN * meltingCoat());
   stepFrost(dt);
   noteBands();
   syncS += dt;

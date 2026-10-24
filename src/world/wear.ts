@@ -21,6 +21,7 @@ import {
 import { bumpAt, bankHeightAt, BUMP_STEER } from "./terrain.ts";
 import { querySubtrack } from "./tyrewall.ts";
 import { noteHit } from "../physics/punctures.ts";
+import { crackPass, crackScrubFactor, crackedIce } from "./icecrack.ts";
 import type {
   CarBody, CoverId, Ground, Layers, Obstacle, Patch, Subtrack, Surface, WearCell,
 } from "./types.ts";
@@ -312,7 +313,10 @@ function passCell(cell: WearCell, tyreTemp = 18): void {
     passWinterSnow(cell, wet, SNOW_TO_ICE);
   } else if (cell.cover === 'wet') passWetCell(cell, tyreTemp);
   else if (packedSnowWears(cell.cover || cell.base)) passPackedSnowCell(cell, wet);
-  else if (cell.cover === 'ice') passIceCell(cell, wet, tyreTemp);
+  else if (cell.cover === 'ice') {
+    crackPass(cell, wearDirty);
+    passIceCell(cell, wet, tyreTemp);
+  }
   else if (!cell.cover) passBareCell(cell, damp);
   // the tyre dries its line in the rain (as it dries a wet zone: dryAmount, damp ground)
   if (cell.cover !== 'wet') dryCellLine(cell, wearClock, dryAmount(false, tyreTemp));
@@ -326,7 +330,7 @@ function scrubCell(cell: WearCell, slipM: number): void {
   // scrubbed ice leaves MELTWATER, not bare ground (requirement: after snow / ice water should be
   // left) — a puddle that then churns into its base by the WATER_MIX rules, so ice over grass ends
   // as mud.
-  if (cell.scrub >= ICE_SCRUB) {
+  if (cell.scrub >= ICE_SCRUB * crackScrubFactor(cell)) {
     cell.cover = 'wet';
     cell.standing = true;
     cell.dry = 0;
@@ -375,7 +379,10 @@ export function rutAt(x: number, y: number): number {
 export function getWornSurface(x: number, y: number): Surface | null {
   if (wearMap.size === 0) return null;
   const cell = wearMap.get(wearKey(Math.floor(x / WEAR_CELL), Math.floor(y / WEAR_CELL)));
-  return cell ? surfaceOf(cell.base, cell.cover, cell.standing, cellDamp(cell, wearClock)) : null;
+  if (!cell) return null;
+  // cracked ice grips more (icecrack.ts)
+  const surface = surfaceOf(cell.base, cell.cover, cell.standing, cellDamp(cell, wearClock));
+  return crackedIce(surface, cell);
 }
 
 // Height noise for a surface, from its own `rough`. Two incommensurate frequencies so it does not

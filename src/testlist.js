@@ -39,4 +39,23 @@ export const TEST_LIST = [
     try: 'Drive through both at the start of an event; they follow the weather as the Lab puddle.',
     wrong: 'No puddles there at the start, or a puddle that looks or drives unlike the others.',
   },
+  {
+    id: 'meltwater',
+    added: '2026-10-24',
+    name: 'Melting snow and ice leave water (up to heavy rain\'s puddles) and a damp track',
+    where: 'Plain link + &meltwater=1: a snowy or icy start that warms up (TEST MODE: winter /'
+      + ' spring, or a snow stage), or the Lab\'s ice and snow samples on a mild day',
+    try: 'Watch a coat melt: puddles where it went, the track damp (slower) while it melts,'
+      + ' drying off after.',
+    wrong: 'Melted snow leaving dry ground, the whole track flooded, water that never dries.',
+  },
+  {
+    id: 'icecrack',
+    added: '2026-10-24',
+    name: 'Driven ice cracks: pale crack lines, a bit more grip, wears through faster, spreads',
+    where: 'Plain link + &icecrack=1: the Lab\'s ice sheet (cold weather), any icy track',
+    try: 'Drive one line over ice a few times; then leave it a minute; then try it near 0 C.',
+    wrong: 'No cracks, cracks off the ice, cracks spreading over the whole sheet, cracked ice as'
+      + ' slippery as before, or wearing through as slowly as before.',
+  },
 ];

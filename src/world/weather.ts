@@ -122,6 +122,17 @@ const HOT_AIR_MIN_C: Partial<Record<WeatherKind, number>> = { hot: 24, superhot:
 
 // wetness a second at rain 1 (heavy rain soaks the track in about a minute)
 const SOAK_PER_S = 1 / 60;
+// a melting coat's soak as a rain of this much (coverfield.ts setMeltSoak; 0 when nothing melts)
+let meltSoak = 0;
+
+/**
+ * Sets how hard a melting coat soaks the track this step, as a rain (?meltwater=1; the cover
+ * field sets it every step). While it soaks, the track's damp does not dry.
+ * @param rainLike the rain it soaks as, 0..1
+ */
+export function setMeltSoak(rainLike: number): void {
+  meltSoak = rainLike;
+}
 // wetness a second a dry spell takes off per C of track temperature (20 C: ~9 min to dry a soaked
 // track; a 45 C summer track ~4 min; a 10 C winter one ~18 min)
 const DRY_PER_S_PER_C = 1 / (600 * 18);
@@ -265,6 +276,7 @@ function fixedKind(mode: WeatherMode): WeatherKind | null {
 export function startWeather(plan: WeatherPlan | null): void {
   const hadPlan = !!RUN.plan;
   RUN.plan = plan;
+  meltSoak = 0;
   if (!plan) {
     if (hadPlan) {
       Object.assign(WEATHER, { rain: 0, snow: 0, tempC: 18, trackC: 18, kind: 'dry' });
@@ -350,8 +362,9 @@ export function stepWeather(dt: number): { text: string; good: boolean } | null 
   }
   WEATHER.tempC = ease(WEATHER.tempC, RUN.targetAirC, TEMP_EASE, dt);
   WEATHER.trackC = ease(WEATHER.trackC, RUN.targetTrackC, TEMP_EASE, dt);
-  const soak = WEATHER.rain * SOAK_PER_S;
-  const dry = WEATHER.rain > 0.05 ? 0 : Math.max(0, WEATHER.trackC) * DRY_PER_S_PER_C;
+  const soak = (WEATHER.rain + meltSoak) * SOAK_PER_S;
+  const dry = WEATHER.rain > 0.05 || meltSoak > 0 ? 0
+    : Math.max(0, WEATHER.trackC) * DRY_PER_S_PER_C;
   setWetness(WEATHER.wetness + (soak - dry) * dt);
   return news;
 }
