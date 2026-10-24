@@ -1,6 +1,7 @@
 // hud/overlays.js — tune panel, signal lights, notice card, speed camera card and race flag.
 // Pure moves out of hud.js.
 
+import { forgetFont } from './textcache.ts';
 import { isChanged } from '../tune.js';
 import { drawHudPanel, drawHudLabel } from './widgets.js';
 
@@ -134,6 +135,7 @@ export function drawHudNotice(ctx, game, width, height) {
   if (!notice || performance.now() - notice.at > 2200) return;
   const fontSize = Math.round(Math.min(width, height) * 0.06), y = Math.round(height * 0.3);
   ctx.font = '800 ' + fontSize + 'px ui-sans-serif, system-ui, sans-serif';
+  forgetFont();
   const boxWidth = ctx.measureText(notice.text).width + fontSize * 1.4;
   // n.good = good news (green: the highway's PULLING AWAY countdown), else a warning (red)
   drawHudPanel(ctx,

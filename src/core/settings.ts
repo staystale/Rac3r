@@ -35,6 +35,7 @@ export interface Settings {
   punctKind: boolean;   // ?punctkind=1: the puncture chance by what you hit (A13)
   shortGrass: boolean;   // ?shortgrass=1: short grass its own look and feel (G1, grasslook.ts)
   grassBlades: boolean;   // ?grassblades=1: grass a sparse layer of fine blades (G1)
+  hudText: number;   // ?hudtext=1 bitmap stamps, =2 font set once (hud/textcache.ts)
 }
 
 function autopilotKmh(params: URLSearchParams): number {
@@ -108,5 +109,6 @@ export function readSettings(search: string): Settings {
     punctKind: params.get('punctkind') === '1',
     shortGrass: params.get('shortgrass') === '1',
     grassBlades: params.get('grassblades') === '1',
+    hudText: Math.max(0, Math.min(2, +(params.get('hudtext') || 0))),
   };
 }

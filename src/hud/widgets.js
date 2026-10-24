@@ -2,6 +2,7 @@
 // Pure moves out of hud.js.
 
 import { COL } from '../world/colours.ts';
+import { fittedSize, setFontOnce, stampLabel, textStateOn } from './textcache.ts';
 
 export const MARGIN = 12;              // minimum margin
 export const BTN_H = 34;          // >= 30px touch target; the repeated ones (pedals) are 72px
@@ -54,12 +55,55 @@ export function drawHudPanel(ctx, rect,
 // and the drive tag)
 export function drawHudLabel(ctx, text, x, y,
   { size = 12, col = COL.hudText, align = 'left', weight = 600, maxW = 0 } = {}) {
+  // ?hudtext=1: a label seen before is stamped from its own bitmap (hud/textcache.ts)
+  if (stampLabel(ctx, text, x, y, size, col, align, weight, maxW)) return;
+  if (textStateOn()) {
+    drawLabelLean(ctx, text, x, y, size, col, align, weight, maxW);
+    return;
+  }
   ctx.fillStyle = col;
   ctx.font = `${weight} ${size}px ui-sans-serif, system-ui, -apple-system, sans-serif`;
   if (maxW) while (size > 7 && ctx.measureText(text).width > maxW) {
     size -= 0.5;
     ctx.font = `${weight} ${size}px ui-sans-serif, system-ui, -apple-system, sans-serif`;
   }
+  ctx.textAlign = align;
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, x, y);
+}
+
+const labelFont = (weight, size) =>
+  `${weight} ${size}px ui-sans-serif, system-ui, -apple-system, sans-serif`;
+
+/**
+ * drawHudLabel under ?hudtext=2: the font set only when it changes, the shrink-to-fit size
+ * measured once per label (hud/textcache.ts).
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {string|number} text
+ * @param {number} x
+ * @param {number} y
+ * @param {number} size
+ * @param {string} col
+ * @param {string} align
+ * @param {number} weight
+ * @param {number} maxW
+ * @returns {void}
+ */
+function drawLabelLean(ctx, text, x, y, size, col, align, weight, maxW) {
+  if (maxW) {
+    size = fittedSize(text + '|' + weight + '|' + size + '|' + maxW, () => {
+      let fit = size;
+      ctx.font = labelFont(weight, fit);
+      while (fit > 7 && ctx.measureText(text).width > maxW) {
+        fit -= 0.5;
+        ctx.font = labelFont(weight, fit);
+      }
+      setFontOnce(ctx, labelFont(weight, fit));
+      return fit;
+    });
+  }
+  ctx.fillStyle = col;
+  setFontOnce(ctx, labelFont(weight, size));
   ctx.textAlign = align;
   ctx.textBaseline = 'middle';
   ctx.fillText(text, x, y);

@@ -17,6 +17,7 @@
 // Buttons are DATA so hit-testing and drawing read the same geometry. Two copies of
 // a rect is how a button ends up visually somewhere its tap is not.
 
+import { setHudTextScale } from './hud/textcache.ts';
 import { layoutHud, hitHud, setHudMph, setHudTempF, setHudTyreHud } from './hud/layout.js';
 import { drawHudTrackTemp } from './hud/tracktemp.js';
 import {
@@ -127,6 +128,8 @@ export function createHud() {
   const hit = (point, width, height, car) => hitHud(state, point, width, height, car);
 
   function draw(ctx, game, width, height, wallDt) {
+    // the labels' density (hud/textcache.ts, ?hudtext=1)
+    setHudTextScale(ctx.canvas.width / width);
     state.carDiagram = state.tyreHud;
     try {
       state.drawLightsLater = () => {

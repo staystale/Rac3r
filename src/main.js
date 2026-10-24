@@ -41,6 +41,7 @@ import { setDarkness } from "./world/daylight.ts";
 import { CLOCK, startClock } from "./world/clock.ts";
 import { setPunctKind } from "./physics/punctures.ts";
 import { setGrassBlades, setShortGrass } from "./world/grasslook.ts";
+import { setHudText } from "./hud/textcache.ts";
 import { LEVEL } from "./world/state.ts";
 
 import { LEVELS } from "./world/levels/index.ts";
@@ -78,6 +79,8 @@ setPunctKind(shared.settings.punctKind);
 // ?shortgrass=1 / ?grassblades=1: short grass told apart from grass (before any texture)
 setShortGrass(shared.settings.shortGrass);
 setGrassBlades(shared.settings.grassBlades);
+// ?hudtext=1: HUD labels drawn once into bitmaps and stamped (the HUD text fix)
+setHudText(shared.settings.hudText);
 
 shared.canvas = document.getElementById('c');
 shared.boot = document.getElementById('boot');
