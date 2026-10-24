@@ -39,7 +39,12 @@ is converted first in its own commit, proved SAME, then changed (owner: "1.a is 
 3. HUD TEXT FIX (approved; owner: "make sure it makes it better not worse"): the HUD text is
    redrawn every frame (~3.5 % of our time on the laptop profile) - draw it only when it changes.
    Measure first and after (laptop profile; a back-to-back phone ?report=1 A/B); default only if
-   it is better.
+   it is better. MEASURED 10-24 (tools/scratch/_hudcost.mjs, _hudprofile.mjs; Castle Cum, 5 AI,
+   CPU x4): hud.draw 2.2-3.1 ms a frame (~0.7 ms real), 5.4 % of all CPU; text 34 % of the HUD,
+   the minimap road 13 %, panels 10 %. Bitmap stamps (27 -> 2 text draws) were SLOWER on the
+   laptop (3.1-3.35 ms: stamping costs on a CPU raster); the font set once (2.7-2.8 ms) sits in
+   the off runs' own spread. Neither shipped: parked on branch experiment/hudtext. Only a phone
+   ?report=1 A/B could show a gain - ASKED the owner whether to try it or close this item.
 4. MUD M1 - DONE, the default 10-24 (world/levelmud.ts, fieldblocks.ts): mud thickens only
    damp (dig.ts wearHolds; 6 dry passes: 0/100 thicken, was 100/100); a level's own mud and thick
    mud get wear cells at an event's start and dry as worn mud does, in patches by the water
