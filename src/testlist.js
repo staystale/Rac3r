@@ -21,4 +21,16 @@ export const TEST_LIST = [
   // 2026-10-18; night (cost test) passed 2026-10-18; lamps, daytime approved 2026-10-18; suntemp
   // approved 2026-10-18; nightjudder, glowmap, pauseclock, onelight passed 2026-10-18; gpuonly
   // passed 2026-10-19)
+  {
+    id: 'mudwater',
+    added: '2026-10-24',
+    name: "Mud thickens only with water; a level's own mud dries in the heat (in patches)",
+    where: 'Plain link + &mudwater=1: TEST MODE, Test Track (mud pad) or Grass Track, WEATHER'
+      + ' dry and warm (hot = faster)',
+    try: 'Drive the dry mud again and again (ruts, but no thick mud); then in rain (thick mud);'
+      + ' park by the mud pad 4-8 min on a warm dry day: thick mud -> mud -> dirt in patches,'
+      + ' ruts kept; RESTART puts the mud back.',
+    wrong: 'Dry driving makes thick mud, mud that never dries, a whole pad changing at once,'
+      + ' a mud outline left round a dried pad, ruts gone when it dries, judder or slow frames.',
+  },
 ];

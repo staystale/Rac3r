@@ -52,7 +52,10 @@ handover, written on request.
 
 ## Queue (the owner orders it)
 
-1. The one-system clean-up, groups 2-5 (above).
+ORDER (owner 10-24): 4 mud M1, 5 grass G1, 3 HUD text fix, 6 highway lamps, THEN the TypeScript
+conversion (2). Anything new is written in TypeScript; a .js file a feature changes substantially
+is converted first in its own commit, proved SAME, then changed (owner: "1.a is ok").
+
 2. TYPESCRIPT CONVERSION (owner: approved; "wait until I say I'm about to sleep, then do as much
    as you can over night"; after the clean-up, so no dead code is converted): the 57 remaining
    .js files (~14k lines), converted in place with types, proved SAME (worldhash, simhash,
@@ -65,9 +68,17 @@ handover, written on request.
    redrawn every frame (~3.5 % of our time on the laptop profile) - draw it only when it changes.
    Measure first and after (laptop profile; a back-to-back phone ?report=1 A/B); default only if
    it is better.
-4. MUD M1 (approved): mud turns to thick mud only with water (damp ground, rain, a churned
-   puddle) - today 3 dry passes do it (wear.ts BASE_WEAR mud); a level's own painted mud dries in
-   the heat too, as worn mud does (puddles.ts dryMud: ~4 min at 20 C, ruts kept; owner: YES).
+4. MUD M1 - BUILT behind ?mudwater=1 (world/levelmud.ts; testlist mudwater): mud thickens only
+   damp (dig.ts wearHolds; 6 dry passes: 0/100 thicken, was 100/100); a level's own mud and thick
+   mud get wear cells at an event's start and dry as worn mud does, in patches by the water
+   catch; each piece (zone, patch, lane, road sector) steps when all its cells have, which takes
+   its sub-cell edge with it; a speck with no cell centre dries on its own timer; pieces put back
+   at the next start. Every circuit level dries fully (20 C: ~8 min). Cost: none measured
+   (framecheck sandbox alternating on / off: same tiles and frames). OPEN: the HIGHWAY's ploughed
+   fields need up to ~15 000 cells loaded (6 fields, 3.4 ha; tools/scratch/_hwplough.mjs) -
+   per-cell drying there costs every rebuild (pruneWear walks the cells) and every tile paint
+   (render/ground/wear.ts walks the cells); options to the owner. Thick mud road stretches keep
+   their white edge lines (road.ts strokeRibbonEdge omits dirt / mud / grass, not thick mud).
 5. GRASS G1 (approved): short grass told apart from grass (identical today: same art, mu 0.47) -
    a lighter, drier mown look, tighter stripes, no blades, dirt patches ~4 -> 10 % (own random
    stream: existing patches unchanged), mu 0.46, peak a touch earlier, ~20 % less drag; grass

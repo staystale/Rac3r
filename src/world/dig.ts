@@ -15,6 +15,8 @@ const RUT: Record<string, DigRule> = {
   sand: { step: 0.04, max: 0.45, chance: 1 },
   gravel: { step: 0.02, max: 0.3, chance: 1 },
 };
+import { mudWaterOn } from "./levelmud.ts";
+
 // bare dry ground that gets wear cells (it can dent); dry mud's dig pace; wet sand / gravel's
 const DIG_DRY = new Set(['sand', 'thickMud', 'gravel']), DRY_MUD_DIG = 0.5, WET_LOOSE_DIG = 1.5;
 
@@ -66,12 +68,14 @@ const DRY_DIRT_TO_MUD = 0.25, DAMP_LOOSE_WEAR = 0.1;
 const DAMP_WORN_TO: Record<string, string> = { sand: 'gravel', gravel: 'dirt' };
 
 /**
- * Whether ground whose passes are done stays as it is this time (dry dirt 3 in 4).
+ * Whether ground whose passes are done stays as it is this time (dry dirt 3 in 4; dry mud
+ * always under ?mudwater=1: mud thickens only with water, levelmud.ts).
  * @param base the surface id
  * @param wet whether the cell is wet enough to wear faster
  * @returns true to keep the base
  */
 export function wearHolds(base: string, wet: boolean): boolean {
+  if (!wet && base === 'mud' && mudWaterOn()) return true;
   return !wet && base === 'dirt' && Math.random() >= DRY_DIRT_TO_MUD;
 }
 

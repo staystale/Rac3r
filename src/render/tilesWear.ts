@@ -72,6 +72,9 @@ function staleCoverAreas(tcx: WearTiles, zOfStep: (step: number) => number) {
       }
     }
   }
+  // the ground under them may have changed (a dried mud speck): the GPU field's mud mask and
+  // the hill shading are read again there
+  for (const area of groundDirtyAreas) tcx.helpers.heightsChanged(area);
   groundDirtyAreas.length = 0;
 }
 

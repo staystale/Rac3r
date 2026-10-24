@@ -218,7 +218,13 @@ export function surfaceOf(base: string, cover: string | null, standing = true, d
   return standing ? puddleSurface(surfaceById(base)) : dampSurface(surfaceById(base), 1);
 }
 
-function getCell(cellX: number, cellY: number): WearCell | null {
+/**
+ * The wear cell of square (cellX, cellY), made from the ground there if new.
+ * @param cellX the cell's column (x / WEAR_CELL)
+ * @param cellY the cell's row
+ * @returns the cell, or null where nothing can ever change
+ */
+export function getCell(cellX: number, cellY: number): WearCell | null {
   const key = wearKey(cellX, cellY);
   let cell = wearMap.get(key);
   if (!cell) {
