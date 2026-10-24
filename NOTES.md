@@ -117,6 +117,11 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   The pause menu's gold alarm clock beside MUTE (the game time; glows after dark): 10-18.
   Their switches are deleted (the one-system clean-up).
 - Code (owner, 10-18): new modules are TypeScript (.ts); the remaining .js files are older.
+- Mud (10-24, owner "all pass"): mud thickens only with water; a level's own mud and the
+  highway's ploughed fields (random blocks) dry in the heat; worn dirt goes to mud less and to
+  gravel more the hotter and drier (one rule by temperature, not the weather kind).
+- itch.io: pushed 10-24 on the owner's say-so (recipe in docs/foreman-handover.md); push again
+  only when the owner says.
 - "Straight Outta Swindon" is a reserved name for a future highway level (the test straight that
   used it was removed 10-17).
 
