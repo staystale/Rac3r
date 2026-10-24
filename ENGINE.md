@@ -106,8 +106,8 @@ any cover (snow, ice, puddle) and the wear state of the cell.
 - Lamps: `world/lamps.ts` makes the level's street lights (`lamps` data) and floodlight pylons
   into lamps with a solid post (`barriers.ts solidClamp`), lit from dusk; the night layer draws
   their pools, `render/props/lamps.ts` the street lights (overhead layer). The highway lays its
-  own as the road grows (`highway/roadlamps.ts`, behind `?hwlamps=1`: one every 34 m on
-  alternating sides, kept in `level.lamps` by road distance and dropped behind with the window);
+  own as the road grows (`highway/roadlamps.ts`: one every 34 m on alternating sides, kept
+  in `level.lamps` by road distance and dropped behind with the window);
   `lamps.ts` keeps each streamed entry the same lamp, damage and all, while it is loaded.
 - Solid lookups: `world/solidgrid.ts` files the level's solids and lamp posts by 16 m cell
   (`core/cellgrid.ts`, the one grid helper: the cover index and the bump grid use it too), so a

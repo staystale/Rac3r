@@ -1,4 +1,4 @@
-// _hwlampshots.mjs - ?hwlamps=1: photographs the highway's street lights at ?night=0.8 and by day
+// _hwlampshots.mjs - photographs the highway's street lights at ?night=0.8 and by day
 // (844x390, 390x844) at the start and after 25 s of autopilot (the lamps streamed in ahead), then
 // drives the car into a street light at 50 km/h and prints what the post did (lean / down) and
 // the lamps loaded. node tools/scratch/_hwlampshots.mjs <out folder>
@@ -24,7 +24,7 @@ async function openHighway(query, viewport) {
 }
 
 try {
-  for (const query of ['hwlamps=1&night=0.8', 'hwlamps=1']) {
+  for (const query of ['night=0.8', '']) {
     for (const viewport of [{ width: 844, height: 390 }, { width: 390, height: 844 }]) {
       const { context, page } = await openHighway(query + '&autopilot=1', viewport);
       const tag = `${query.includes('night') ? 'night' : 'day'}-${viewport.width}`;
@@ -37,7 +37,7 @@ try {
       await context.close();
     }
   }
-  const { context, page } = await openHighway('hwlamps=1&night=0.8', { width: 844, height: 390 });
+  const { context, page } = await openHighway('night=0.8', { width: 844, height: 390 });
   const hit = await page.evaluate(async () => {
     const lamps = (await import('/src/world/lamps.ts')).activeLamps();
     const car = window.__game.car;

@@ -1,4 +1,4 @@
-// THE ROAD'S STREET LIGHTS (?hwlamps=1): the endless highway lit as a motorway is, a street light
+// THE ROAD'S STREET LIGHTS: the endless highway lit as a motorway is, a street light
 // every LAMP_GAP_M along the road on ALTERNATING sides (owner: not paired), each post
 // STREET_OUT_M off the road edge (behind the armco or the wall) with its arm out over the edge.
 // Laid with the rest of the scenery as the road grows (highway/dress.js) and dropped behind with
@@ -30,16 +30,6 @@ interface DressContext {
   firstIdx: number;
   endIdx: number;
   pointAt: (i: number, off: number) => { x: number; y: number; rot: number };
-}
-
-let isOn = false;
-
-/**
- * Turns the road's street lights on or off (?hwlamps=1; read at the next road build).
- * @param isWanted true to lay them
- */
-export function setRoadLamps(isWanted: boolean): void {
-  isOn = isWanted;
 }
 
 /**
@@ -85,7 +75,6 @@ function isClearOfScenery(props: Prop[], dist: number, x: number, y: number): bo
  * @param ctx the dress context
  */
 export function layRoadLamps(ctx: DressContext): void {
-  if (!isOn) return;
   const { level, state, road, firstIdx, endIdx, pointAt, halfWidth } = ctx;
   for (let i = firstIdx; i < endIdx; i++) {
     const dist = road[i].s, count = Math.floor(dist / LAMP_GAP_M);

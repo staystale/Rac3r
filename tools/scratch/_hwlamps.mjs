@@ -1,16 +1,14 @@
 // _hwlamps.mjs - the highway's street lights (highway/roadlamps.ts): drive N km on one road type,
 // at each rebuild count the lamps loaded, the gaps between them along the road and the side
 // pattern, the nearest scenery solid / barrier / loose object to each post, and time solidClamp
-// (us a car-step). node tools/scratch/_hwlamps.mjs [km] [preset] [on=1]
+// (us a car-step). node tools/scratch/_hwlamps.mjs [km] [preset]
 import { makeCar, step, reset, PHYSICS_STEP_SECONDS } from '../../src/vehicle.ts';
 import * as L from '../../src/lab.js';
 import { stepHighway, addHighwayLevel, setHighwayPreset, resetHighway } from '../../src/highway.js';
 import { createAutoDriver } from '../../src/ai/autodrive.ts';
 import { solidClamp } from '../../src/world/barriers.ts';
 import { activeLamps } from '../../src/world/lamps.ts';
-import { setRoadLamps } from '../../src/highway/roadlamps.ts';
 const KM = +(process.argv[2] || 4), PRESET = process.argv[3] || 'motorway';
-setRoadLamps((process.argv[4] ?? '1') === '1');
 addHighwayLevel();
 L.setLevel('highway'); const lv = L.LEVEL;
 setHighwayPreset(lv, PRESET); resetHighway(lv);

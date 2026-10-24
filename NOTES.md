@@ -84,7 +84,8 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   puddles; locked wheels heating their tyres; dry gravel turning to sand when hot.
 - Also 10-24 (owner: pass): PULLING AWAY only when you really lead; traffic eases onto its lane
   after a driven -> carried handover; punctures by what you hit (physics/punctures.ts table);
-  short grass a pale striped lawn told apart from grass, grass with fine blades.
+  short grass a pale striped lawn told apart from grass, grass with fine blades; the highway's
+  street lights (one every 34 m, alternating sides, streamed with the road).
 - Not wanted / undone: the highway rebuild (cancelled 10-15), a fade at zoom steps, tiles tracing
   only their part of the ribbon (`?ribboncull`, undone 10-16), the WebGL cars (`?gpucars`, removed
   10-16), the menu recording (parked until after the graphics work).

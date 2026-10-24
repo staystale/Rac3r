@@ -7,12 +7,13 @@ handover, written on request.
 
 ## Where we are (2026-10-24 night)
 
-- UNDER TEST: ?hwlamps=1 (highway street lights, L4b; testlist hwlamps). The solid grid that
-  came with it is on (proved identical). A11, A12, A13, grass G1 and the A fixes are DEFAULT
+- The plain link is the approved game; the test list is EMPTY. Highway street lights L4b are
+  DEFAULT (owner 10-24: "pass"; switch deleted) with the solid grid. A11, A12, A13, grass G1
+  and the A fixes are DEFAULT
   (owner 10-24: "all pass"; switches and old paths deleted): A1 sky blend, A2 bridge decks, A3
   formation (A4 with it), A5 weather only, A6 rain grip, A8 lock heat, E gravel -> sand. A7
-  needed no change (owner: keep x2). NEXT (owner 10-24): after L4b the TypeScript conversion
-  (overnight); the HUD text fix waits on the owner (phone A/B or close).
+  needed no change (owner: keep x2). NEXT (owner 10-24): the TypeScript conversion overnight;
+  meanwhile work in TypeScript wherever possible; the HUD text fix waits on the owner.
 - itch.io: build #2201136 (10-24, before the A fixes); push only when the owner says.
 - TIDY-UP noted: race levels still carry hand-placed 'wet' covers that staticCovers drops (the
   weather lays puddles): Test Track, Grass Track, Stock Car - delete the data (one system).
@@ -78,7 +79,7 @@ is converted first in its own commit, proved SAME, then changed (owner: "1.a is 
 6. HIGHWAY LAMPS L4b (owner: "yes I want them"; street lights ALTERNATING sides, not paired):
    lamps streamed with the road (spawn ahead, cull behind, like highway/litter.js) and a spatial
    grid for the clamp (solidClamp walks every lamp per car per step: fine at ~30 a level, not at
-   hundreds). BUILT 10-24, UNDER TEST behind ?hwlamps=1 (testlist hwlamps):
+   hundreds). DEFAULT (owner: pass, 10-24; the ?hwlamps switch deleted):
    highway/roadlamps.ts lays one street light every 34 m on alternating sides (each side every
    68 m), 2.5 m off the edge, arm over the edge (the circuits' lamp); a spot not clear (side road
    on the left, slip / bridge / river keep-outs, gantry legs, signs) is left dark. ~55 loaded at

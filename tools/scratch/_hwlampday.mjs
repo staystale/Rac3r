@@ -1,4 +1,4 @@
-// _hwlampday.mjs - ?hwlamps=1 by day, zoomed out (debugZoom 0.45) at 844x390 and 390x844: are
+// _hwlampday.mjs - by day, zoomed out (debugZoom 0.45) at 844x390 and 390x844: are
 // the highway's street lights there and readable by day. node tools/scratch/_hwlampday.mjs <out>
 import { join } from 'node:path';
 import { startServer, launchBrowser, gotoGame } from '../lib/browser.mjs';
@@ -12,7 +12,7 @@ try {
       hasTouch: true });
     const page = await context.newPage();
     page.on('pageerror', (error) => console.log('ERROR ' + error));
-    await gotoGame(page, `${server.url}/?touch=1&guide=0&menu=0&rules=0&hwlamps=1`);
+    await gotoGame(page, `${server.url}/?touch=1&guide=0&menu=0&rules=0`);
     await page.touchscreen.tap(viewport.width / 2, viewport.height / 2);
     await page.waitForTimeout(400);
     await page.evaluate(() => window.__game.launch('highway', 'hatch-rwd',

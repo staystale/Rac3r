@@ -5,9 +5,7 @@ import { makeCar, step, reset, PHYSICS_STEP_SECONDS } from '../../src/vehicle.ts
 import * as L from '../../src/lab.js';
 import { stepHighway, addHighwayLevel, setHighwayPreset, resetHighway } from '../../src/highway.js';
 import { createAutoDriver } from '../../src/ai/autodrive.ts';
-import { setRoadLamps } from '../../src/highway/roadlamps.ts';
 const KM = +(process.argv[2] || 3), PRESET = process.argv[3] || 'interstate';
-setRoadLamps(true);
 addHighwayLevel();
 L.setLevel('highway'); const lv = L.LEVEL;
 setHighwayPreset(lv, PRESET); resetHighway(lv);
