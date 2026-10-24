@@ -124,13 +124,45 @@ export function wearHolds(base: string, wet: boolean): boolean {
   return base === 'mud' && !wet;
 }
 
+// GRAVEL TO SAND (?gravelsand=1; owner: "gravel should have a chance to turn into sand when it's
+// dry / increased chance when hotter"): a DRY pass over gravel turns it to sand by a chance
+// rising with the track's heat - GRAVEL_SAND_COOL at GRAVEL_SAND_COOL_C and below to
+// GRAVEL_SAND_HOT at GRAVEL_SAND_HOT_C and over (damp sand turns back to gravel, above)
+const GRAVEL_SAND_COOL = 0.02, GRAVEL_SAND_HOT = 0.1, GRAVEL_SAND_COOL_C = 15;
+const GRAVEL_SAND_HOT_C = 40;
+let isGravelSandOn = false;
+
 /**
- * What damp loose ground turns into on this pass (sand -> gravel, gravel -> dirt).
+ * Turns gravel-to-sand on or off (?gravelsand=1).
+ * @param isOn true for dry gravel turning to sand
+ */
+export function setGravelSand(isOn: boolean): void {
+  isGravelSandOn = isOn;
+}
+
+/**
+ * The chance a dry pass turns gravel to sand.
+ * @param trackC the track temperature, C
+ * @returns the chance, 0..1
+ */
+export function gravelToSandChance(trackC: number): number {
+  const heat = heatShare(trackC, GRAVEL_SAND_COOL_C, GRAVEL_SAND_HOT_C);
+  return GRAVEL_SAND_COOL + (GRAVEL_SAND_HOT - GRAVEL_SAND_COOL) * heat;
+}
+
+/**
+ * What loose ground turns into on this pass: damp sand -> gravel, damp gravel -> dirt;
+ * (?gravelsand=1) dry gravel -> sand, likelier the hotter.
  * @param base the surface id
  * @param wet whether the cell is wet enough to wear faster
+ * @param trackC the track temperature, C
  * @returns the new surface id, or null to stay
  */
-export function dampWornTo(base: string, wet: boolean): string | null {
-  if (!wet || !DAMP_WORN_TO[base]) return null;
+export function dampWornTo(base: string, wet: boolean, trackC: number): string | null {
+  if (!wet) {
+    if (!isGravelSandOn || base !== 'gravel') return null;
+    return Math.random() < gravelToSandChance(trackC) ? 'sand' : null;
+  }
+  if (!DAMP_WORN_TO[base]) return null;
   return Math.random() < DAMP_LOOSE_WEAR ? DAMP_WORN_TO[base] : null;
 }

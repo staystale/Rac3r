@@ -27,6 +27,13 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   (the AI rework) keeps its own switch (10-24).
 - The owner tests in DuckDuckGo too (phone and laptop): ask before closing it on the laptop.
 - Slave FM is the owner's own project on the laptop: read it if needed, NEVER change it.
+- WEATHER ONLY (10-24): no level- or stage-drawn snow, ice or puddles - the weather lays them.
+  SCENERY WATER (lakes, rivers, fords, the highway's rivers and canals) never evaporates but can
+  freeze. The test levels' surface samples (Lab, Test Track pads, Sandbox, Lab extension, the
+  Castle Cum skid pan) stay. A level with no setting for what lies under its snow: make a
+  logical call (snow stages: the road from the stage's seed).
+- HANDBRAKE HEAT (10-24): the handbrake heats the REAR tyres; the fronts heat only by the
+  turning they do (never by the handbrake itself).
 - Every car / track / stage / brand / generated name is a parody pun.
 - No keys, tokens, tunnel URLs or process IDs in the repo. No itch.io push until the owner says so.
 - The foreman may push to `main` once the change is proven (routine below).
@@ -128,6 +135,10 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
 
 ## Measured lessons
 
+- RENDERHASH COMPARES LIKE WITH LIKE (10-24): a level's hash depends on which levels ran before
+  it in the same page - a --only list against a reference saved by --shard reads DIFFERENT on
+  every level with no code change. Prove a change by running the SAME list (same --only or
+  same --shard) on main and on the change, or against a reference saved with that list.
 - The owner's iPhone 17 Pro Max (Safari, often the home-screen app) is the yardstick, not the laptop.
   Our JS takes ~4 ms of a 16.7 ms frame there: the phone is not CPU-bound. Laptop numbers at CPU x4
   overstate our cost; use them for A/B only, never as the reason for a change the owner will feel.

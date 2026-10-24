@@ -7,6 +7,7 @@
 import { DAYLIGHT } from '../world/daylight.ts';
 import { activeLamps, lampsLit } from '../world/lamps.ts';
 import { indicatorBlinkOn, lampLevel } from './cars.ts';
+import { traceDecks } from './lightdecks.ts';
 import type { RenderCar, RenderGame, View } from './types.ts';
 
 // the night's dark at darkness 1 this opaque (the darkest patches still show the track's shape
@@ -140,12 +141,22 @@ interface GlowPainter {
  * @param game the game drawn
  */
 function paintGlows(painter: GlowPainter, game: RenderGame) {
+  paintCarGlows(painter, game);
+  if (lampsLit()) drawHeadGlows(painter);
+}
+
+/**
+ * Draws every car's lamp glows with the painter (stronger the darker it is), in the canvas's
+ * current blend.
+ * @param painter the canvas and the mapping
+ * @param game the game drawn
+ */
+function paintCarGlows(painter: GlowPainter, game: RenderGame) {
   const isBlinkOn = indicatorBlinkOn();
   painter.strength = GLOW_STRENGTH * DAYLIGHT.darkness;
   if (game.traffic) for (const car of game.traffic.cars) drawCarGlows(painter, car, isBlinkOn);
   for (const rival of game.ai || []) drawCarGlows(painter, rival.car, isBlinkOn);
   drawCarGlows(painter, game.car, isBlinkOn);
-  if (lampsLit()) drawHeadGlows(painter);
 }
 
 /**
@@ -153,6 +164,7 @@ function paintGlows(painter: GlowPainter, game: RenderGame) {
  * @param painter the light map and the mapping
  */
 function drawHeadGlows(painter: GlowPainter) {
+  painter.strength = GLOW_STRENGTH * DAYLIGHT.darkness;
   const size = 2 * HEAD_GLOW_M * painter.perMetre();
   for (const lamp of activeLamps()) {
     if (lamp.kind !== 'street' || lamp.down || lamp.shown <= 0) continue;
@@ -313,13 +325,103 @@ function makeMapGlows(pools: PoolPainter) {
     headGlow: makePicture(glowOf(WARM, TINT_STOPS)),
     mapX: pools.artX, mapY: pools.artY, perMetre: pools.artPerMetre };
   const out: GlowPainter = { ...tint, glow: whiteGlow, redGlow: whiteGlow, headGlow: whiteGlow };
-  return (game: RenderGame, tintFirst: () => void) => {
+  const paint = (game: RenderGame, tintFirst: () => void) => {
     paintGlows(out, game);
     pools.lightCtx.globalCompositeOperation = 'source-over';
     tintFirst();
     paintGlows(tint, game);
     pools.lightCtx.globalAlpha = 1;
   };
+  // the cars' glows and the lamp heads' apart, for the decks' order (paintUnderDecks)
+  const parts = {
+    rubCars: (game: RenderGame) => paintCarGlows(out, game),
+    rubHeads: () => lampsLit() && drawHeadGlows(out),
+    tintCars: (game: RenderGame) => paintCarGlows(tint, game),
+    tintHeads: () => lampsLit() && drawHeadGlows(tint),
+  };
+  return { paint, parts };
+}
+
+/**
+ * Rubs a car's headlight beams out of the dark (a broken lamp has none).
+ * @param painter the light map and the mapping
+ * @param beam the beam picture
+ * @param car the car
+ */
+function drawBeams(painter: PoolPainter, beam: HTMLCanvasElement, car: RenderCar) {
+  if (!car.lightsOn) return;
+  const { lightCtx, artX, artY } = painter;
+  const scale = painter.artPerMetre(), cos = Math.cos(car.heading), sin = Math.sin(car.heading);
+  const reach = BEAM_REACH_M * scale;
+  if (!painter.isNear(artX(car.x), artY(car.y), reach)) return;
+  const along = reach / PICTURE_PX, across = (2 * BEAM_HALF_M * scale) / PICTURE_PX;
+  for (let corner = 0; corner < 2; corner++) {
+    const level = lampLevel(car, corner);
+    if (!level) continue;
+    const side = corner === 0 ? -LAMP_SIDE_M : LAMP_SIDE_M;
+    const lampX = car.x + cos * BEAM_START_M - sin * side;
+    const lampY = car.y + sin * BEAM_START_M + cos * side;
+    lightCtx.globalAlpha = BEAM_STRENGTH * level;
+    lightCtx.setTransform(cos * along, sin * along, -sin * across, cos * across,
+      artX(lampX), artY(lampY));
+    lightCtx.drawImage(beam, 0, -PICTURE_PX / 2);
+  }
+  lightCtx.setTransform(1, 0, 0, 1, 0, 0);
+  lightCtx.globalAlpha = 1;
+}
+
+/**
+ * Rubs every car's headlight beams out of the dark: traffic, the AI, the player.
+ * @param painter the light map and the mapping
+ * @param beam the beam picture
+ * @param game the game drawn
+ */
+function drawFieldBeams(painter: PoolPainter, beam: HTMLCanvasElement, game: RenderGame) {
+  if (game.traffic) for (const car of game.traffic.cars) drawBeams(painter, beam, car);
+  for (const rival of game.ai || []) drawBeams(painter, beam, rival.car);
+  drawBeams(painter, beam, game.car);
+}
+
+/** What the decks' order paints with (createNight's parts). */
+interface DeckPainter {
+  pools: PoolPainter;
+  mapGlows: ReturnType<typeof makeMapGlows>;
+  darkFill: string;
+  drawAllBeams: (game: RenderGame) => void;
+}
+
+/**
+ * The light map with a deck on it (the decks' path traced, the map dark, in the rub-out blend):
+ * the cars' beams and glows rubbed out, the dark put back over the decks (cleared, then filled),
+ * then the lamps' pools and heads (they hang above), then the tints - the cars' kept off the
+ * decks. Leaves it in source-over, alpha 1.
+ * @param painter the light map's parts
+ * @param game the game drawn
+ */
+function paintUnderDecks(painter: DeckPainter, game: RenderGame) {
+  const { pools, mapGlows } = painter, lightCtx = pools.lightCtx, canvas = lightCtx.canvas;
+  painter.drawAllBeams(game);
+  mapGlows.parts.rubCars(game);
+  lightCtx.globalAlpha = 1;
+  lightCtx.fillStyle = '#000';
+  lightCtx.fill();
+  lightCtx.globalCompositeOperation = 'source-over';
+  lightCtx.fillStyle = painter.darkFill;
+  lightCtx.fill();
+  lightCtx.globalCompositeOperation = 'destination-out';
+  drawPools(pools, false);
+  mapGlows.parts.rubHeads();
+  lightCtx.globalCompositeOperation = 'source-over';
+  drawPools(pools, true);
+  lightCtx.save();
+  lightCtx.beginPath();
+  lightCtx.rect(0, 0, canvas.width, canvas.height);
+  traceDecks(lightCtx, pools);
+  lightCtx.clip('evenodd');
+  mapGlows.parts.tintCars(game);
+  lightCtx.restore();
+  mapGlows.parts.tintHeads();
+  lightCtx.globalAlpha = 1;
 }
 
 /**
@@ -342,27 +444,8 @@ export function createNight(parts: NightParts) {
     x > -reach && y > -reach && x < canvas.width + reach && y < canvas.height + reach;
 
   const pools: PoolPainter = { lightCtx, pool, tint, artX, artY, artPerMetre, isNear };
-  const paintMapGlows = makeMapGlows(pools);
-  function drawBeams(car: RenderCar) {
-    if (!car.lightsOn) return;
-    const scale = artPerMetre(), cos = Math.cos(car.heading), sin = Math.sin(car.heading);
-    const reach = BEAM_REACH_M * scale;
-    if (!isNear(artX(car.x), artY(car.y), reach)) return;
-    const along = reach / PICTURE_PX, across = (2 * BEAM_HALF_M * scale) / PICTURE_PX;
-    for (let corner = 0; corner < 2; corner++) {
-      const level = lampLevel(car, corner);
-      if (!level) continue;
-      const side = corner === 0 ? -LAMP_SIDE_M : LAMP_SIDE_M;
-      const lampX = car.x + cos * BEAM_START_M - sin * side;
-      const lampY = car.y + sin * BEAM_START_M + cos * side;
-      lightCtx.globalAlpha = BEAM_STRENGTH * level;
-      lightCtx.setTransform(cos * along, sin * along, -sin * across, cos * across,
-        artX(lampX), artY(lampY));
-      lightCtx.drawImage(beam, 0, -PICTURE_PX / 2);
-    }
-    lightCtx.setTransform(1, 0, 0, 1, 0, 0);
-    lightCtx.globalAlpha = 1;
-  }
+  const mapGlows = makeMapGlows(pools);
+  const drawAllBeams = (game: RenderGame) => drawFieldBeams(pools, beam, game);
 
   function paintLightMap(game: RenderGame) {
     const { pcanvas } = parts;
@@ -381,11 +464,14 @@ export function createNight(parts: NightParts) {
     lightCtx.fillStyle = darkFill;
     lightCtx.fillRect(0, 0, canvas.width, canvas.height);
     lightCtx.globalCompositeOperation = 'destination-out';
+    lightCtx.beginPath();
+    if (traceDecks(lightCtx, pools) > 0) {
+      paintUnderDecks({ pools, mapGlows, darkFill, drawAllBeams }, game);
+      return;
+    }
     drawPools(pools, false);
-    if (game.traffic) for (const car of game.traffic.cars) drawBeams(car);
-    for (const rival of game.ai || []) drawBeams(rival.car);
-    drawBeams(game.car);
-    paintMapGlows(game, () => drawPools(pools, true));
+    drawAllBeams(game);
+    mapGlows.paint(game, () => drawPools(pools, true));
   }
 
   return (game: RenderGame, lock: NightLock) => {

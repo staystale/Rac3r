@@ -21,6 +21,10 @@ import { BASE_FLOOR as FLOOR } from "./world/bounds.ts";
 import { LEVELS } from "./world/levels/index.ts";
 import { trackKit } from "./world/levels/kit.ts";
 import { prepBumps } from "./world/terrain.ts";
+import { isWeatherOnly } from "./world/weather.ts";
+import {
+  buildStageCovers, snowPatchOf, snowRoadOf, stageTurnOf,
+} from "./world/stageweather.ts";
 
 export const THEMES = {
   forest: {
@@ -368,11 +372,12 @@ function chooseStageRoad(seed, themeSpec, style, target, attempt) {
  * @param {string} theme the theme name
  * @param {number} finishS finish road distance
  * @param {object} roadS the road surface
+ * @param {string|null} snowRoad a weather-only snow stage's road (its patches), else null
  * @return {object[]} the sectors
  */
-function buildStageSectors(rand, theme, finishS, roadS) {
+function buildStageSectors(rand, theme, finishS, roadS, snowRoad) {
   const sectors = [];
-  const patchS = {
+  const patchS = snowRoad ? SURFACES[snowPatchOf(snowRoad)] : {
     alpine: SURFACES.broken, desert: SURFACES.sand, forest: SURFACES.dirt, snow: SURFACES.ice
   }[theme];
   for (let patch = 0; patch < 3; patch++) {
@@ -382,17 +387,6 @@ function buildStageSectors(rand, theme, finishS, roadS) {
   }
   sectors.push({ startDist: 0, endDist: 1e9, surface: roadS });
   return sectors;
-}
-/**
- * The signed turn of a corner.
- * @param {object} kit the track kit
- * @param {{startDist: number, endDist: number}} corner the corner
- * @return {number} the turn in radians
- */
-function stageTurnOf(kit, corner) {
-  const rotStart = kit.rot(corner.startDist), rotEnd = kit.rot(corner.endDist);
-  let turn = rotEnd - rotStart;
-  return Math.atan2(Math.sin(turn), Math.cos(turn));
 }
 /**
  * TERRAIN: big hills, crests + JUMPS on the longer straights.
@@ -426,34 +420,6 @@ function buildStageTerrain(rand, theme, kit, corners, FIN) {
     marks.push([midDist, jump ? 'JUMP' : 'CREST']);
   }
   return { bumps, straights, marks };
-}
-/**
- * COVERS: forest water splash, ice in the shade of alpine hairpins, ice patches on snow stages.
- * @param {function: number} rand random source
- * @param {string} theme the theme name
- * @param {object} kit the track kit
- * @param {object[]} corners the corners
- * @param {number[][]} straights the straights between corners
- * @param {number} FIN finish distance
- * @return {object[]} the covers
- */
-function buildStageCovers(rand, theme, kit, corners, straights, FIN) {
-  const covers = [];
-  const coverAt = (dist, cover, coverW, coverH) => {
-    const pos = kit.at(dist, 0);
-    covers.push({ x: pos.x, y: pos.y, w: coverW, h: coverH, cover, shape: 'ellipse',
-        rot: kit.rot(dist) });
-  };
-  if (theme === 'forest' && straights.length) {
-    const [segStart, segEnd] = straights[(rand() * straights.length) | 0];
-    coverAt((segStart + segEnd) / 2 + 20, 'wet', 16, 13);
-  }
-  if (theme === 'alpine') for (const corner of corners
-      .filter((item) => Math.abs(stageTurnOf(kit, item)) > 2)
-      .slice(0, 3)) coverAt((corner.startDist + corner.endDist) / 2, 'ice', 9, 7);
-  if (theme === 'snow') for (let patch = 0; patch < 4; patch++) coverAt(120 + rand() * (FIN - 200),
-      'ice', 14, 8);
-  return covers;
 }
 // ---- DRESSING (the Killder treatment). The dressing state dress is { rand, kit, sub, theme, seed,
 // width, halfWidth, FIN, endD, runD, props, cones, barriers }: the shared random source, kit and
@@ -706,8 +672,10 @@ export function genStage({ seed = 1001, theme = 'forest', len = 'medium', style 
   const runUp = road.P.filter((point) => point.s < 0),
       main = road.P.filter((point) => point.s >= 0);
   const pts = [...main, ...runUp].map((point) => [point.x, point.y]), ghostIdx = main.length - 1;
-  const width = themeSpec.width, halfWidth = width / 2, roadS = SURFACES[themeSpec.road];
-  const sectors = buildStageSectors(rand, theme, road.finishS, roadS);
+  const snowRoad = theme === 'snow' && isWeatherOnly() ? snowRoadOf(seed) : null;
+  const width = themeSpec.width, halfWidth = width / 2,
+    roadS = SURFACES[snowRoad || themeSpec.road];
+  const sectors = buildStageSectors(rand, theme, road.finishS, roadS, snowRoad);
   const sub = ghostSegment(createSubtrack(pts, width, sectors, [], true), ghostIdx);
   sub.noLines = theme !== 'alpine';   // painted edge lines only on the tarmac theme
   const FIN = sub.pts[Math.max(0, main.findIndex((point) => point.s >= road.finishS - 1e-6))].dist;
@@ -733,12 +701,12 @@ export function genStage({ seed = 1001, theme = 'forest', len = 'medium', style 
     id: `gen-${theme}-${len}-${style}-${seed}`, name, gen: {
       seed, theme, len, style, attempt: used, km: +(FIN / 1000).toFixed(2)
     },
-    base: SURFACES[themeSpec.base], subtrack: sub, camber: {
+    base: SURFACES[snowRoad ? 'grass' : themeSpec.base], subtrack: sub, camber: {
       maxDeg: 0, refR: 60, crown: 0.03, edge: 5, sections: []
     },
     zones: [], bumps: prepBumps(bumps), covers, paint, boards: [], seams: false, cones,
         props: okProps, barriers, solids: solidsFromProps(okProps), lanes: [],
-    stage: { finish: FIN },
+    stage: { finish: FIN }, ...(snowRoad ? { snowy: true } : {}),
     spawn: (() => { const pos = onTrack(sub, sub.totalDist - 6, 0, {}); return { x: pos.x, y: pos.y,
         heading: pos.rot }; })(),
   };

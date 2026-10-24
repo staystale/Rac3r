@@ -266,8 +266,9 @@ OFF THE TOP AND IT IS OVER', 'sub') : null;
  * @param {object} menu the menu context
  * @param {HTMLElement} panel the setup pane
  * @param {object} state the setup state (writes weather)
+ * @param {object} level the level (a snowy one's theme biases the forecast)
  */
-function addWeatherRows(menu, panel, state) {
+function addWeatherRows(menu, panel, state, level) {
   const saved = menu.profile.weather || {};
   state.weather = { mode: saved.mode || 'season',
     season: saved.season ?? SEASON_OF_MONTH[new Date().getMonth()] };
@@ -281,7 +282,7 @@ function addWeatherRows(menu, panel, state) {
   const paint = () => {
     buttons.forEach((button, i) => button.classList.toggle('on',
       WEATHER_MODES[i][0] === state.weather.mode));
-    forecast.textContent = seasonForecast(state.weather.season)
+    forecast.textContent = seasonForecast(state.weather.season, !!level.snowy)
       + (state.weather.mode === 'season' ? ' · CAN CHANGE IN THE RACE' : '');
   };
   const buttons = WEATHER_MODES.map(([mode, label]) => addButton(menu, row, label, () => {
@@ -387,7 +388,7 @@ export function showSetup(menu, level) {
   addRxRaceRow(menu, panel, level, state);
   addLapsRow(menu, panel, level, state);
   state.paint();
-  addWeatherRows(menu, panel, state);
+  addWeatherRows(menu, panel, state, level);
   if (menu.api.daytime) addTimeRows(menu, panel, state);
   showCarPicker(menu, panel);
   addLaunchButtons(menu, panel, level, state);

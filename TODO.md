@@ -5,50 +5,19 @@ the git history (this file was swept on 2026-10-19: every finished entry deleted
 decisions and the measured lessons live in `NOTES.md`). `docs/foreman-handover.md` is the last
 handover, written on request.
 
-## Where we are (2026-10-19)
+## Where we are (2026-10-24 evening)
 
-- The plain link is the approved game; the test list is empty. Everything approved on 10-18 is
-  in it: weather, the cover field and winter, tyre wear / feel / cooling, ground dig, lighting
-  (lamps, knock-downs, the night layer as the only light), the game clock and sun temperature,
-  the glows in the night layer, the pause menu's alarm clock.
-- ONE-SYSTEM CLEAN-UP (owner 10-18: "make sure we only have one system for everything ... we
-  don't need old systems and new systems getting crossed up"; approved, before the TypeScript
-  conversion): every approved switch's old path deleted, in groups, each proved (worldhash,
-  simhash, renderhash vs the refs on main; photos for the GPU field, which renderhash does not
-  draw) - the plain game unchanged.
-  [x] 1 LIGHTS + TIME (main baed231): ?lamps, ?fieldlights, ?daytime, ?suntemp, ?nightpics,
-  ?glowmap, ?pauseclock, ?onelight deleted; the car pictures paint lamps only; the pylon prop's
-  own pool and the street lights' head glow drawn by the night layer (a warm pool tint, a head
-  glow). ?night= stays (a test tool, not a system).
-  [x] 2 WEATHER / SURFACES / TYRES: ?weather, ?slidewear, ?tyrewear, ?tyrefeel,
-  ?packedwear, ?onepuddle, ?wettrail, ?winter, ?mudfreeze, ?sanddig, ?wintercold, ?graveldig,
-  ?coldsurface, ?tyrecool, ?coverlook, ?wearchance, ?markfade, ?onelook, ?grassgrip,
-  ?groundlookup deleted, with the cover-field shader's old order and look. simhash, renderhash SAME;
-  the GPU field photographed SAME (shotdiff: only the HUD's live FPS figure); worldhash (a node
-  tool that built levels with the module defaults, the weather's puddles off) now builds what the
-  game builds: on 9 levels only the level's own puddle covers are gone (the weather makes them).
-  [x] 3 DRAWING (main 86cbd8d; simhash, renderhash SAME, the GPU ground photographed SAME): ?sharpcars, ?sharpmarks, ?exacttiles, ?zoomhold, ?zoomswitch,
-  ?startfix, ?texwarm, ?menufast, ?thumbcache, ?tex, ?vsync, ?hwmap, ?jokerfix deleted with their
-  old paths (cars / marks in the art buffer, the eased zoom, mips at a zoom-out and the GPU
-  ground shader's level-0 switch, a fresh colour probe per colour, unshared blade masks, live
-  surface painting as a choice - it stays the fallback for a texture not yet painted).
-  [x] 4 MENUS / HUD: ?hudmenu, ?tyreoff, ?hudunits, ?minimap deleted with their old paths (the
-  pause menu's old MINIMAP row, the tune panel's TYRE HUD button, the diagram popping up when
-  damaged); the HUD list's MINIMAP / PROGRESS / TRACK TEMP rows decide.
-  [x] EXPERIMENTS (owner: delete them if cleaner and not needed): ?menuvideo (with media/ and
-  tools/menuvideo.mjs), ?onecanvas, ?tilegpu, ?grass=square, ?nolock deleted; simhash, renderhash
-  SAME.
-  [x] 5 THE CPU GROUND (main 5751272; owner: "do it and let me test", then "test pass"; keep the
-  iPhone GPU / WebGL2 working): ?gpupaint=0 / ?glground=0 and the 2D ground deleted (zoom
-  steps, stand-ins, CPU palette snap and hill shading, the 2D wet tint, the stencil mask); WebGL2
-  is THE ground, with a lost context rebuilt when the browser gives it back (glground.ts
-  watchContext); no WebGL2 = a clear message. renderhash now proves the GPU ground (~2 min a
-  level).
-- CI: the `checks` job (the suite vs the base) has FAILED on every main commit since b2dbcf8
-  (lighting L4, 10-18); `verify`, the gate for main, passes. Find the failing check (run
-  `npm run suite` locally; the job's log needs a GitHub login).
-- The laptop has ~6 GB: ONE heavy browser tool at a time. A full proof run with photo browsers
-  alongside ran it out of memory (10-18; Claude Code stopped the jobs).
+- The plain link is the approved game (mud M1 the default 10-24; itch.io build #2201136).
+- UNDER OWNER TEST (one bundled link, each its own switch - src/testlist.js): A1 ?skyblend=1,
+  A2 ?decklight=1, A3 ?formation=1 (fixes A4 too), A5 ?weatheronly=1, A6 ?raingrip=1,
+  A8 ?lockheat=1, E ?gravelsand=1. A7 needed no change (measured: every surface already wears
+  twice under a sliding wheel - locks, handbrake, wheelspin; tarmac / concrete have nothing to
+  wear to); asked the owner whether x2 is "slightly" enough. Measurements in each entry below.
+- CI: `verify` is the gate for main; the `checks` job compares each push with its parent (a
+  commit that changes behaviour on purpose fails it by design).
+- The laptop has ~6 GB: ONE heavy browser tool at a time; a full renderhash runs in 4 parts.
+- Refs (gitignored): rac3r-wt2/tools and rac3r-wt/tools hold .worldhash / .simhash /
+  .renderhash saved on main be32466 (renderhash re-saved 10-24 in 4 parts).
 
 ## Queue (the owner orders it)
 
@@ -106,29 +75,74 @@ Sizes S / M / L / XL. "Exists" = already in the game, so the item extends it (on
 
 A. FIXES AND CHECKS (S-M each; first, they change what is already there)
 - A1 Light at dawn / dusk snaps in: blend smoothly through sunrise / sunset colours
-  (world/daylight.ts); weather changes gradual too. S-M.
+  (world/daylight.ts); weather changes gradual too. S-M. BUILT ?skyblend=1 (10-24): CAUSE - under
+  cloud / rain the dark's colour switched from blue-black to the sunset / sunrise colour in one
+  step at the golden hour's edge (heavy rain: 26/255 of overlay in one frame; clear: hidden by
+  darkness 0). Now blended (< 1/255 a real s in any weather), cloud mutes the glow; rain / snow
+  ease in two stages (a shower 0.03 at 2 s, was 0.125). Probes: _skysnap.mjs, _rainease.mjs.
 - A2 Head / tail lights shine through bridges: the night layer's beams are cut under decks
-  (glow at the edge, never through). S-M.
+  (glow at the edge, never through). S-M. BUILT ?decklight=1 (10-24): render/lightdecks.ts; the
+  cars' beams / glows rubbed out, the dark put back over bridge / footbridge decks, then the
+  lamps' pools (above) - order unchanged with no deck on screen. Gantries (open trusses) pass.
 - A3 Rolling / grid starts: cars (the player too) weave oddly, crash before the race starts or
-  start off their slot - find the cause (session.js grid / rolling start). S-M.
+  start off their slot - find the cause (session.js grid / rolling start). S-M. BUILT
+  ?formation=1 (10-24): CAUSE - the circuit AI ignored "hold station" (only the highway's used
+  it): each AI raced its own line capped at the pace; the player's car was driven to the
+  centreline. MEASURED (_rollstart.mjs, both ovals, 5 AI): contact before the green in every run
+  (-1.5 m box gap), cars 5 m off their column -> none in 4 runs, closest 3.6 m, all within 1 m
+  of their column. ai/formation.ts: one scripted driver per car along its grid column, closing
+  on its slot behind the pole. Standing starts were already held (brakes, no steer).
 - A4 AI wiggle near the start / finish on the oval and stock car: likely the racing line's seam
-  where the lap closes (ai/line.ts). S.
+  where the lap closes (ai/line.ts). S. MEASURED 10-24: NOT the seam (the ovals' lines are
+  smooth where the lap closes; a lone AI never reverses steer there); after lap 1 the line zone
+  is no different from the far side (Naffcar swing 3.1 vs 3.7 m, stock car 6.1 vs 6.8 m) - the
+  wiggle was the rolling start's release: A3. (Thruston's line HAS a small seam: a 1.385 m
+  segment and a turn spike at the last point - _lineseam.mjs; not reported, harmless so far.)
 - A5 Mont Brakefade's corner ice does not melt (a generated stage's ice covers, stagegen.js) - and
   owner: weather only, no level-drawn snow / ice / packed snow (scenery water stays). Check one
   system (the cover field). Snow-themed stages then need the weather to be snowy: PROPOSED their
-  theme biases the weather odds instead. M.
+  theme biases the weather odds instead. M. BUILT ?weatheronly=1 (10-24): race tracks and stages
+  lose drawn snow / ice (puddles already went with the weather); test levels keep their samples
+  (owner); snow stages: road from the seed (tarmac / gravel / dirt, world/stageweather.ts) on
+  grass, snow x4 likelier, air -5 C, snow lying deep when cold; every stage layout identical
+  (_stagelayout.mjs); scenery water (the forest ford, highway rivers) never dries, can freeze.
 - A6 Rain too slippery: damp ground a small grip loss, puddles the real one (less for wet tyres,
   as now); fewer, smaller puddles; water evaporates slowly even in rain. Measure before / after.
-  S-M.
+  S-M. BUILT ?raingrip=1 (10-24): MEASURED before: damp tarmac x tyre wet factor left soft
+  track tyres 51 % of dry grip; Castle Cum soaked +15-22 % lap time; heavy rain flooded 98 % of
+  the race surface. Now damp takes 40 % of the loss (soft tyres 80 %; laps +5-7 %, rain tyres
+  still fastest), water rises to a ceiling by rain (heavy 22 %, light 9 % of the surface),
+  evaporates at 1/5 rate while raining. Probes: _rainlap.mjs, _coverfield.mjs (RAINGRIP=1).
 - A7 Wear faster under wheelspin / locked brakes on EVERY surface (exists for some: slidewear);
-  rolling at the normal rate - check each surface's path. S.
+  rolling at the normal rate - check each surface's path. S. CHECKED 10-24, no change: every
+  surface wears through passCell and a wheel slipping > 4 m/s counts twice (locked 81-93 % of a
+  stop, handbrake 100 %, wheelspin the spinning ~30 % of a launch; rolling normal); tarmac /
+  concrete have nothing to wear to. Asked the owner if x2 is "slightly" (_spinwear.mjs).
 - A8 Handbrake / harsh braking / sliding heat the rear tyres a little (tyre heat exists). S.
+  BUILT ?lockheat=1 (10-24): a locked axle's slide work x2 into its tyres (it saturated):
+  straight handbrake 1.5 s from 54 km/h rears +4.5 -> +9.1 C, fronts +0.6 (= rolling); a
+  handbrake TURN fronts +4.8 = cornering work (owner: fronts heat only by turning - they do).
+  Hard stops are ABS-capped (not "locked"): fronts +5.5 C already.
 - A9 AI on icy starts cannot pull away and get reset: part of B (a traction-limited launch; the
   reset tells "trying, wheels spinning" from "stuck"). S.
 - A10 ABS does not behave like real ABS: today it is an ideal limiter (physics/tyres.ts ABS_K caps
   each axle just under grip) - it never pulses, so no staggered marks. Real ABS needs the wheel
   spin speed as real state = the DRIVING "ROOT FIX" below (L, ask first). Then: pulsing,
   staggered marks, steering kept, shorter stops than locked.
+- A11 HIGHWAY: PULLING AWAY shows sometimes when you are NOT in first place (owner 10-24). Its
+  rule (ai/hwFlow.ts dueKind) is "every rival behind you and off screen"; suspects: a running
+  clock surviving GRACE (2 s) after you are passed, a rival missing from the list (wrecked /
+  reset), the road distance sOf. Reproduce first, then fix the cause. S.
+- A12 TRAFFIC (and maybe the AI everywhere) glitches into a lane: changes lane / shuffles
+  sideways into it (owner 10-24). Reproduce and find the cause (highway traffic lane following;
+  then check the circuit AI for the same). S-M.
+- A13 PUNCTURES too easy, e.g. driving on grass, even on the wrong tyres - real-life balance
+  (owner 10-24); more testing suggests HITTING OBJECTS. Today: a burst from heat / wear
+  (physics/tyrewear.ts), a hard crash (damage.js PUNCT_HIT), debris one flat 4 % per hit over
+  3 m/s whatever it is (DEBRIS_CHANCE; splinters 1 %). WANTED: a puncture chance PER OBJECT
+  KIND by what it is - tyres, tarps, cones ~none; pallets, broken glass, sign posts higher.
+  Measure today's puncture sources on a grass run first (which one fires). One table, used
+  later by C2 / C7 (glass) and D (bushes). S-M.
 
 B. AI REWORK (L) - architecture to agree first. EXISTS: the racing line, 5 difficulties as a
 centre with a spread, personalities (quick / tidy / aggressive / defensive), mistake chance per
@@ -187,6 +201,8 @@ tree types; snow settles on trees from the weather, not level art.
 E. SURFACES (S-M each): gravel -> sand by chance when dry, more when hot (the dig rules); ice
 cracks when driven (semi-random, spreading over connected ice; cracked ice melts and wears
 faster); snow / ice / packed snow melt to water with a chance by surface (check what exists).
+GRAVEL -> SAND BUILT ?gravelsand=1 (10-24, world/dig.ts): a dry pass 2 % at 15 C and below to
+10 % at 40 C (damp sand still turns back to gravel at 10 %). The rest of E still open.
 
 F. LIGHTING (M): circuits and rallycross lit (public-road stages street lights; closed stages
 none); event lighting at starts / finishes / busy corners; floodlights off the racing line with a

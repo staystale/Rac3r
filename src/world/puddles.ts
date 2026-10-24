@@ -16,8 +16,9 @@
 // own melting, were removed 2026-10-18: the field does both.)
 import { LEVEL } from "./state.ts";
 import {
-  ICE_MELT_SHARE, WEATHER, weatherRandom, weatherRuns,
+  ICE_MELT_SHARE, WEATHER, weatherRandom, weatherRuns, isWeatherOnly,
 } from "./weather.ts";
+import { catOf } from "./levels/category.ts";
 import { hotTyreShare } from "../physics/tyrecool.ts";
 import { wearMap, wearDirty, WEAR_CELL, layersAt, wearKey } from "./wear.ts";
 import {
@@ -86,15 +87,21 @@ export function puddleClearBy(standing: boolean, tyreC = 0): number | null {
 
 /**
  * The level's own covers with its puddles left out when the weather makes them (scenery water and
- * the Lab's test features stay).
+ * the Lab's test features stay); weather only (?weatheronly=1): its snow and ice too, except on
+ * the test levels (their surface samples).
  * @param level the level
  * @param covers its hand-placed and blended covers
  * @returns the covers to keep
  */
 export function staticCovers(level: Level, covers: Cover[]): Cover[] {
   if (level.endless || !level.subtrack) return covers;
-  return covers.filter((cover) => cover.cover !== 'wet' || cover.water);
+  const dropsCold = isWeatherOnly() && catOf(level) !== 'test';
+  return covers.filter((cover) => cover.water || (cover.cover !== 'wet'
+    && !(dropsCold && COLD_COVERS.has(cover.cover))));
 }
+
+// the level-drawn covers the weather makes instead (weather only)
+const COLD_COVERS = new Set(['snow', 'ice', 'packedSnow']);
 
 /** The ground a cover can cover, as a dirty area. */
 function areaOf(shape: { x: number; y: number; w: number; h: number }): Area {
@@ -354,11 +361,31 @@ export function stepPuddles(dt: number): void {
 export function resetPuddles(): void {
   tickS = 0;
   groundDirtyAreas.push(...seedLevelMud());
-  const trackC = WEATHER.trackC;
   const water = (LEVEL._staticCovers || []).filter((cover) => cover.water);
-  for (const cover of water) {
-    const chance = trackC <= -5 ? 0.85 : trackC <= WATER_FREEZE_BELOW_C ? 0.5 : 0;
-    cover._frozen = chance > 0 && weatherRandom() < chance;
-  }
+  for (const cover of water) dealFrozen(cover);
   applyLooks(water);
+}
+
+/**
+ * Deals whether scenery water starts frozen over, from the event's seeded stream (likelier the
+ * colder).
+ * @param cover the water cover
+ */
+function dealFrozen(cover: Cover): void {
+  const trackC = WEATHER.trackC;
+  const chance = trackC <= -5 ? 0.85 : trackC <= WATER_FREEZE_BELOW_C ? 0.5 : 0;
+  cover._frozen = chance > 0 && weatherRandom() < chance;
+}
+
+/**
+ * Takes the endless road's covers as they stream in (highway/cuts.js syncCovers, weather only):
+ * they become the level's own, so its rivers - scenery water - freeze and thaw like any other
+ * (a new one is dealt frozen or not as an event's start deals it); returns them as they look now.
+ * @param covers the road's covers now
+ * @returns the covers to draw and drive on
+ */
+export function adoptRoadCovers(covers: Cover[]): Cover[] {
+  LEVEL._staticCovers = covers;
+  for (const cover of covers) if (cover.water && cover._frozen === undefined) dealFrozen(cover);
+  return covers.map(staticLook);
 }

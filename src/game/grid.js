@@ -61,8 +61,7 @@ export function gridPos(slot) {
   // every slot, pole included, counts back from the SPAWN's own road distance, GRID_STEP m per
   // slot, alternating columns GRID_LAT m either side of the centre (narrower on a narrow road).
   const back = LEVEL.rollingStart ? ROLL_BACK : 0;
-  const lat = Math.max(1.6, Math.min(GRID_LAT, sub.width / 2 - 1.8)), side = slot % 2 ? lat : -lat,
-    backDist = back + slot * GRID_STEP;
+  const side = gridColumn(slot), backDist = back + slot * GRID_STEP;
   if (offLap) {
     // the spawn is OFF the lap (Slidden Hill's RX start straight): the grid runs straight back from
     // it along its heading
@@ -80,6 +79,16 @@ export function gridPos(slot) {
 // GRID_STEP: one slot back (so the same column is 2 x apart: 14 m nose to nose, ~9.5 m clear);
 // GRID_LAT: column offset from the centre
 export const GRID_STEP = 7, GRID_LAT = 3.2;
+/**
+ * A grid slot's column: its offset across the road from the centreline (narrower on a narrow
+ * road), alternating sides slot by slot.
+ * @param {number} slot the slot, 0 = pole
+ * @returns {number} the offset, m (along the road's normal)
+ */
+export function gridColumn(slot) {
+  const lat = Math.max(1.6, Math.min(GRID_LAT, LEVEL.subtrack.width / 2 - 1.8));
+  return slot % 2 ? lat : -lat;
+}
 export function aiCarIds(count, seed) {
   const base = String(game.car.spec.id).split('#')[0],
     myCar = ROSTER.find((entry) => entry.id === base);

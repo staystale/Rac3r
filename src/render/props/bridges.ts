@@ -162,6 +162,35 @@ function drawRiverBoat(
 // real 'wet' cover (lab.js covers: the puddle water, grip and spray, painted into the ground tiles;
 // requirement: water seemed to be painted and not our water texture), so only the boat is drawn
 // here.
+// a footbridge deck's half width, m (along the road below)
+const FOOT_DECK_HALF_M = 1.2;
+
+/**
+ * A bridge deck's width by what it carries, m.
+ * @param carries 'road', 'rail' or 'foot'
+ * @returns the deck's width (along the road below)
+ */
+function bridgeDeckWidth(carries: string | undefined): number {
+  return carries === 'foot' ? 2.6 : carries === 'rail' ? 7 : 9;
+}
+
+/**
+ * The deck of an overhead prop (a bridge over the motorway, a footbridge), in the prop's own
+ * frame: +x along the deck, across the road below. The night layer keeps light from below off it
+ * (render/lightdecks.ts).
+ * @param prop the prop
+ * @returns half the deck's length and half its width, m; null for a prop with no deck
+ */
+export function overheadDeck(prop: Prop): { halfLength: number; halfWidth: number } | null {
+  if (prop.kind === 'bridge') {
+    return { halfLength: (prop.wid || 30) / 2, halfWidth: bridgeDeckWidth(prop.carries) / 2 };
+  }
+  if (prop.kind === 'footbridge') {
+    return { halfLength: (prop.wid || 27) / 2, halfWidth: FOOT_DECK_HALF_M };
+  }
+  return null;
+}
+
 /**
  * Draws a bridge deck, or the boat of a river crossing.
  * @param propCtx the view and painter helpers
@@ -189,7 +218,7 @@ export function drawBridge(propCtx: PropCtx, prop: Prop, ppm: number) {
   const along = (speed: number, slot: number, gap: number, draw: (x: number) => void) =>
     // v < 0 runs -x by itself
     draw(((((clock * speed + slot * gap) % trackLen) + trackLen) % trackLen) - negEnd);
-  const deckWid = carries === 'foot' ? 2.6 : carries === 'rail' ? 7 : 9;
+  const deckWid = bridgeDeckWidth(carries);
   view.ctx.fillStyle = 'rgba(10,12,16,0.32)';
   view.ctx.fillRect(
     (-half + 1.5) * ppm,
@@ -241,7 +270,7 @@ export function drawFootbridge(propCtx: PropCtx, prop: Prop, ppm: number) {
     2 * half * ppm,
     2.4 * ppm,
   ); // shadow on the road
-  paint(-half, -1.2, 2 * half, 2.4, '#8f949c');
+  paint(-half, -FOOT_DECK_HALF_M, 2 * half, 2 * FOOT_DECK_HALF_M, '#8f949c');
   paint(-half, -1.2, 2 * half, 0.3, '#c9ccd3');
   paint(-half, 0.9, 2 * half, 0.3, '#5d626d');
   paint(-half * 0.55, -0.75, half * 1.1, 1.5, '#1c4fa0');

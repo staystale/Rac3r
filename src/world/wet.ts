@@ -24,6 +24,26 @@ const DAMP_COOL = 0.18, PUDDLE_COOL = 0.20;
 const OTHER_WET = { damp: 0.95, puddle: 0.8 };
 // 1/s of the dry line won back per unit of rain: a downpour re-wets a fully dried cell in ~20 s
 const REWET_PER_S = 0.05;
+// RAIN GRIP (?raingrip=1; owner: "rain should only slightly decrease grip and puddles are the real
+// grip reducer ... I think rain makes everything too slippy"). MEASURED before: soaked damp
+// tarmac kept 77 % of its dry grip, and the tyre's wet number stacked on it (soft track tyres
+// 51 % of dry, semi-slicks 58 %). Damp ground takes DAMP_LOSS_SHARE of the table's damp loss, and
+// of the tyre's wet number (soft track tyres ~79 %, road tyres ~91 %); a puddle keeps the table.
+const DAMP_LOSS_SHARE = 0.4;
+let isRainGripOn = false;
+
+/**
+ * Turns the gentler damp grip on or off (?raingrip=1); set before any surface is built.
+ * @param isOn true for the gentler damp grip
+ */
+export function setRainGrip(isOn: boolean): void {
+  isRainGripOn = isOn;
+}
+
+/** Whether rain grip is on (?raingrip=1: damp ground a small loss, fewer and smaller puddles). */
+export function rainGripOn(): boolean {
+  return isRainGripOn;
+}
 
 // keyed by the dry surface object, not its id: the gravel trap's depths all share id 'trap'
 const DAMP = new Map<Surface, Surface[]>();
@@ -49,11 +69,13 @@ function wetMu(surface: Surface, kind: 'damp' | 'puddle'): number {
 function buildDamp(surface: Surface, band: number): Surface {
   const damp = band / WET_BANDS, hard = !!surface.hard;
   const marked = hard && damp >= DAMP_MARK_FROM;
+  const lossShare = isRainGripOn ? DAMP_LOSS_SHARE : 1;
   return {
     ...surface,
     under: surface.under || surface.id,
     label: 'DAMP ' + (surface.label || surface.id),
-    mu: surface.mu + (wetMu(surface, 'damp') - surface.mu) * damp,
+    mu: surface.mu + (wetMu(surface, 'damp') - surface.mu) * damp * lossShare,
+    ...(isRainGripOn ? { gripWetK: damp * DAMP_LOSS_SHARE } : {}),
     peakK: hard ? surface.peakK * (1 - (1 - DAMP_PEAK_HARD) * damp) : surface.peakK,
     plough: surface.id === 'sand' ? surface.plough * (1 - (1 - DAMP_SAND_PLOUGH) * damp)
       : surface.plough,
@@ -92,7 +114,7 @@ export function puddleSurface(base: Surface): Surface {
     ...base, id: 'puddle', under: base.id, label: 'PUDDLE (' + base.label + ')',
     mu: wetMu(base, 'puddle'), longK: (base.longK || 1) * 0.92,
     plough: (base.plough || 0) + 0.6, mark: MARK_WET, spray: SPRAY_WET,
-    coolK: Math.max(PUDDLE_COOL, base.coolK || 0), wetK: 1,
+    coolK: Math.max(PUDDLE_COOL, base.coolK || 0), wetK: 1, gripWetK: 1,
   };
   PUDDLE.set(base, puddle);
   return puddle;

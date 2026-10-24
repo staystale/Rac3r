@@ -281,7 +281,9 @@ function passBareCell(cell: WearCell, damp: number): void {
       cell.base = wornDirtTo(wet ? 1 : damp / WET_WEAR_FROM, WEATHER.trackC) || cell.base;
     } else if (!wearHolds(cell.base, wet)) cell.base = rule[0];
     cell.passes = 0;
-  } else if (!rule) cell.base = dampWornTo(cell.base, damp >= WET_WEAR_FROM) || cell.base;
+  } else if (!rule) {
+    cell.base = dampWornTo(cell.base, damp >= WET_WEAR_FROM, WEATHER.trackC) || cell.base;
+  }
   digRut(cell, damp);
 }
 /**

@@ -7,7 +7,8 @@ import { aiTraits } from '../ai/traits.ts';
 
 import { LEVEL } from "../world/state.ts";
 import { onTrack, querySubtrack } from "../world/tyrewall.ts";
-import { STAGE_GAP_S } from './grid.js';
+import { STAGE_GAP_S, GRID_STEP, gridColumn } from './grid.js';
+import { formationOn, formationInput } from '../ai/formation.ts';
 import { shared, game } from './state.js';
 
 export const resetCar = reset;
@@ -47,6 +48,21 @@ export function atPace(out, car) {
   const speed = Math.hypot(car.vx, car.vy);
   return { ...out, throttle: speed > ROLL_PACE ? 0 : Math.min(out.throttle, 0.55),
     brake: speed > ROLL_PACE + 2 ? 0.25 : 0, handbrake: 0, reverse: 0 };
+}
+/**
+ * THE FORMATION (?formation=1, ai/formation.ts): a car's controls in its own grid slot before a
+ * circuit's rolling-start green - the player's and every AI's alike.
+ * @param {object} car the car
+ * @param {number} slot its grid slot (0 = pole)
+ * @param {object} keeper keeps the car's scripted driver (formDrv: the start, or the AI entry)
+ * @returns {object|null} the controls, or null (off, not rolling, or the highway)
+ */
+export function formationWant(car, slot, keeper) {
+  if (!formationOn() || !game.start.rolling || LEVEL.endless) return null;
+  keeper.formDrv ??= createAutoDriver(LEVEL.subtrack);
+  return formationInput(car, keeper.formDrv,
+    { columnM: gridColumn(slot), backM: slot * GRID_STEP },
+    game.poleCar || game.car, LEVEL.subtrack, ROLL_PACE);
 }
 export function stepStart(dt) {
   // the clock keeps running after green so the HUD can take the lights away 1.2 s later

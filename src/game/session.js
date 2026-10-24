@@ -284,7 +284,9 @@ export function doRestart() {
   saveRecords();
   // the event's weather from its start (before the cars' tyres take the track temperature and the
   // AI plans its speeds for the wetness)
-  startWeather(shared.weatherPlan || null);
+  // a snowy level's theme biases its weather (weather only: world/weather.ts)
+  startWeather(shared.weatherPlan && LEVEL.snowy ? { ...shared.weatherPlan, snowy: true }
+    : shared.weatherPlan || null);
   resetLamps();   // every lamp stands again, lit
   // a restart is the event from its start: the set as it was then (owner)
   if (game.car.tyreWearStart) game.car.tyreWear = [...game.car.tyreWearStart];

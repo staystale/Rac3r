@@ -11,7 +11,7 @@ import { stepWetTrails } from "../wettrail.ts";
 import { applyGround, fenceClamp, obstacleClamp } from "../world/wear.ts";
 import { barrierClamp, solidClamp } from "../world/barriers.ts";
 import { findNearestSubtrackPoint } from "../world/tyrewall.ts";
-import { resetCar, startHeld, atPace, stepOrder } from './order.js';
+import { resetCar, startHeld, atPace, stepOrder, formationWant } from './order.js';
 import { doReset, onScreen } from './session.js';
 import { shared, game } from './state.js';
 
@@ -107,7 +107,10 @@ export function readFrameInput(wallDt) {
   let inp = shared.input.update(wallDt);
   // MENU: the demo car drives itself (src/ai/autodrive.ts — the same driver as the lap bench and
   // the AI seed). If it ever stops (stuck off the road), put it back on the track.
-  if (shared.mode !== 'menu' && startHeld()) {
+  const formed = shared.mode !== 'menu' && startHeld() && game.start.rolling
+    && formationWant(game.car, shared.gridSlot || 0, game.start);
+  if (formed) inp = { ...inp, ...formed, reverse: 0, shiftUp: false, shiftDown: false };
+  else if (shared.mode !== 'menu' && startHeld()) {
     inp = game.start.rolling
       ? { ...atPace(game.start.drv.drive(game.car, PHYSICS_STEP_SECONDS,
         { cars: [...game.ai.map((entry) => entry.car), ...game.traffic.cars], hold: true }),

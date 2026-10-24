@@ -30,6 +30,7 @@ export interface Surface {
   label?: string; peakK?: number; longK?: number; rough?: number;
   mark?: Mark | null; spray?: Spray | null; coolK?: number; heatK?: number; under?: string;
   wetK?: number;   // how wet, 0..1 (world/wet.ts damp and puddle surfaces)
+  gripWetK?: number;   // ?raingrip=1: the tyre's WET grip share on damp ground (world/wet.ts)
 }
 
 // A torque table: [rpm, Nm] points.

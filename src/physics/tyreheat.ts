@@ -25,6 +25,24 @@ const TYRE_COOL = 0.008;
 // holds its working heat but overheating (and popping) takes as long as it did (requirement:
 // you'd have to try to overheat them)
 const FEEL_COOL = 0.0135, FEEL_AIR = 0.00025, FEEL_FLEX_K = 0.1, FEEL_SLIDE_HEAT = 1.4;
+// LOCK HEAT (?lockheat=1; owner: "hand braking should heat up the rear wheels slightly as any harsh
+// braking / sliding should"). MEASURED before (tools/scratch/_spinwear.mjs, hatch, tarmac, 18 C):
+// a 1.5 s handbrake slide from 54 km/h warmed the rears +2.7 C (the turning fronts +4.8), a locked
+// stop from 72 km/h the fronts +5.5, the rears +1.3 - a locked axle's slide work saturates. A
+// LOCKED axle (brakes or handbrake) puts LOCK_HEAT x its slide work into its tyres.
+const LOCK_HEAT = 2;
+let isLockHeatOn = false;
+
+/**
+ * Turns the locked-wheel heat on or off (?lockheat=1).
+ * @param isOn true for the extra heat of a locked axle
+ */
+export function setLockHeat(isOn: boolean): void {
+  isLockHeatOn = isOn;
+}
+
+/** A locked axle's slide-work factor for its tyres' heat: LOCK_HEAT under ?lockheat=1. */
+const lockFactor = (locked: boolean) => (isLockHeatOn && locked ? LOCK_HEAT : 1);
 // the temperature the tyres cool toward this step, C (updateTyreTemps; tyrecool.ts)
 let ambientC = 18;
 // each wheel's slip speed this step while its axle scrubs (0 rolling), for the wear (reused)
@@ -90,8 +108,9 @@ export function updateTyreTemps(car: Car, carSpec: Spec, tick: AxleTick, out: Ax
   // Reference: the 1440 kg hatch.
   // share of the slip heat that goes into the TYRE (loose ground takes most of it)
   const capK = TYRE_HEAT.cap * (carSpec.mass || 1440) / TYRE_HEAT.massRef;
-  const wheelWork = [workF * frontShare, workF * (1 - frontShare), workR * frontShare,
-      workR * (1 - frontShare)];
+  const lockF = lockFactor(lockedF), lockR = lockFactor(lockedR);
+  const wheelWork = [workF * lockF * frontShare, workF * lockF * (1 - frontShare),
+    workR * lockR * frontShare, workR * lockR * (1 - frontShare)];
   fillWheelSlip(frontAxle, lockedF, rearAxle, lockedR);
   const flexK = FEEL_FLEX_K;
   const window = carSpec.tyreOpt || [65, 110];

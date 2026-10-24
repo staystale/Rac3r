@@ -8,7 +8,7 @@ import { applyGround, fenceClamp, obstacleClamp } from "../world/wear.ts";
 import { barrierClamp, solidClamp } from "../world/barriers.ts";
 import { crossedJoker } from './rules.js';
 import { findNearestSubtrackPoint, onTrack } from "../world/tyrewall.ts";
-import { startHeld, carHeld, atPace } from './order.js';
+import { startHeld, carHeld, atPace, formationWant } from './order.js';
 import { RESET_BACK, RESET_ANG } from './session.js';
 import { shared, game } from './state.js';
 
@@ -137,8 +137,9 @@ export function stepAIPhysics(entry, want, dt) {
     // would), mended
     if (car.roll && car.roll.phase !== 'rolling' && car.roll.still > 1.5) aiReset(entry);
   } else {
-    step(car, held ? (game.start.rolling ? atPace(want, car)
-      : { steer: 0, throttle: 0, brake: 1, handbrake: 0, reverse: 0 }) : want, dt);
+    const formed = held && game.start.rolling && formationWant(car, car._slot || 0, entry);
+    step(car, formed || (held ? (game.start.rolling ? atPace(want, car)
+      : { steer: 0, throttle: 0, brake: 1, handbrake: 0, reverse: 0 }) : want), dt);
     if (!held) tripCheck(car, dt);
     applyBurst(car);
   }   // start lights

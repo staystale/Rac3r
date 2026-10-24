@@ -74,8 +74,9 @@ function progress(ctx: AutoCtx, car: AiCar) {
   return best;
 }
 
-/** STANLEY steering at the front axle. */
-function steerStep(ctx: AutoCtx, car: AiCar, best: TrackPoint | null, speed: number) {
+/** STANLEY steering at the front axle, along the centreline or offsetM to its side. */
+function steerStep(ctx: AutoCtx, car: AiCar, best: TrackPoint | null, speed: number,
+    offsetM: number) {
   const { pts, total, pointAt, state } = ctx;
   const frontX = car.x + Math.cos(car.heading) * car.spec.lf,
     frontY = car.y + Math.sin(car.heading) * car.spec.lf;
@@ -90,7 +91,8 @@ function steerStep(ctx: AutoCtx, car: AiCar, best: TrackPoint | null, speed: num
   }
   const ahead = pointAt(frontPoint.dist + 2 + speed * 0.15);
   let psi = ahead.heading - car.heading; psi = Math.atan2(Math.sin(psi), Math.cos(psi));
-  const cross = (frontX - frontPoint.x) * frontPoint.nx + (frontY - frontPoint.y) * frontPoint.ny;
+  const cross = (frontX - frontPoint.x) * frontPoint.nx + (frontY - frontPoint.y) * frontPoint.ny
+    - offsetM;
   const deltaS = psi + Math.atan2(-1.2 * cross, speed + 2)
     - 0.03 * (car.yawRate - speed * Math.tan(car.delta) / car.spec.L);
   const muHere = car.surface.mu * car.spec.mu;
@@ -150,11 +152,12 @@ export function createAutoDriver(subtrack: Subtrack) {
   const ctx: AutoCtx = { pts, total, pointAt, radiusAt, state };
 
   // Returns { steer, throttle, brake, handbrake } for this step, and keeps progress
-  // (state.d, state.travelled).
-  function drive(car: AiCar): DriveInput {
+  // (state.d, state.travelled). opts.offsetM: drive that far to the centreline's side (a grid
+  // column in the rolling start's formation, ai/formation.ts); the step is not used.
+  function drive(car: AiCar, _dt?: number, opts?: { offsetM?: number }): DriveInput {
     const best = progress(ctx, car);
     const speed = Math.hypot(car.vx, car.vy);
-    const steer = steerStep(ctx, car, best, speed);
+    const steer = steerStep(ctx, car, best, speed, opts?.offsetM || 0);
     const targetSpeed = targetSpeedAt(ctx, car, speed);
     state.vT = targetSpeed;
     return pedals(car, speed, targetSpeed, steer);

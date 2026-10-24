@@ -33,6 +33,7 @@ export interface Surface {
   heatK?: number;
   under?: string;   // what a snow / ice / wet surface lies on; a puddle's base id
   wetK?: number;    // how wet, 0..1 (damp / puddle surfaces, wet.ts): hard ground's tyre WET grip
+  gripWetK?: number;   // ?raingrip=1: the share of the tyre's WET grip a damp surface asks (wet.ts)
 }
 
 export interface Paint {
@@ -387,6 +388,7 @@ export interface Level {
   name: string;
   coneCount?: boolean;   // show the knocked-cone tally (a cone course)
   rollingStart?: boolean;   // races start rolling (the ovals)
+  snowy?: boolean;   // a snow-themed stage (weather only): its theme biases the weather
   seams?: boolean;
   randomise?: () => void;   // the Grass Track: new random patches every load
   patches?: Patch[];

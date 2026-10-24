@@ -33,6 +33,20 @@ const STORE_KEY = 'carsim.clock.v1';
 /** The clock: game seconds since the first day of the year (global), and this event's own. */
 export const CLOCK = { globalS: 0, eventS: 0, isOn: false, sinceSaveS: 0, sinceSkyS: 0 };
 
+// ?skyblend=1: the colour of the dark is the twilight's in the share of the darkness the twilight
+// makes, the cloud's (blue-black) in the rest - under cloud or rain it switched from the cloud's
+// to the sunset / sunrise colour at once at the golden hour's edge (a visible snap); clear skies
+// look as before
+let isSkyBlend = false;
+
+/**
+ * Turns the blended sky on or off (?skyblend=1).
+ * @param isOn true to blend the colour through the golden hour
+ */
+export function setSkyBlend(isOn: boolean): void {
+  isSkyBlend = isOn;
+}
+
 /** What the sky is at a moment: how dark (0..1) and the colour of the dark ('r,g,b'). */
 export interface Sky {
   darkness: number;
@@ -181,7 +195,12 @@ export function skyNow(cloud: number): Sky {
   // cloud hides the moon
   const nightDark = NIGHT_DARK - MOON_LIFT * when.moon * (1 - cloud);
   const sky = twilightSky(when.hour, sunTimes(when.yearFraction), nightDark);
-  sky.darkness = Math.min(1, Math.max(sky.darkness, CLOUD_DIM * cloud));
+  const cloudDark = CLOUD_DIM * cloud;
+  if (isSkyBlend && cloudDark > sky.darkness) {
+    const twilightShare = sky.darkness / cloudDark;
+    sky.rgb = mix(NIGHT_RGB, sky.rgb.split(',').map(Number), twilightShare);
+  }
+  sky.darkness = Math.min(1, Math.max(sky.darkness, cloudDark));
   return sky;
 }
 
