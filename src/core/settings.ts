@@ -32,10 +32,6 @@ export interface Settings {
   churn: '' | 'pictures' | 'objects';   // ?churn=: judder mechanism test (memory churn)
   autopilot: boolean;   // ?autopilot=1: the AI drives the player car (phone frame tests, no touch)
   autopilotKmh: number;   // ?autopilot=120: hold the autopilot car at this speed (0 = no cap)
-  trafficSeat: boolean;   // ?trafficseat=1: a woken traffic car is seated on the ground
-  sandboxWet: boolean;   // ?sandboxwet=1: the Sandbox keeps its sample puddles
-  meltWater: boolean;   // ?meltwater=1: the weather's melt leaves its water (owner)
-  iceCrack: boolean;   // ?icecrack=1: driven ice cracks (more grip, wears faster, spreads)
 }
 
 function autopilotKmh(params: URLSearchParams): number {
@@ -106,9 +102,5 @@ export function readSettings(search: string): Settings {
     churn: churnKind(params),
     noNatClear: params.get('nonat') === '1',
     skipLayers: new Set((params.get('skip') || '').split(',').filter(Boolean)),
-    trafficSeat: params.get('trafficseat') === '1',
-    sandboxWet: params.get('sandboxwet') === '1',
-    meltWater: params.get('meltwater') === '1',
-    iceCrack: params.get('icecrack') === '1',
   };
 }

@@ -126,7 +126,7 @@ const SOAK_PER_S = 1 / 60;
 let meltSoak = 0;
 
 /**
- * Sets how hard a melting coat soaks the track this step, as a rain (?meltwater=1; the cover
+ * Sets how hard a melting coat soaks the track this step, as a rain (the cover
  * field sets it every step). While it soaks, the track's damp does not dry.
  * @param rainLike the rain it soaks as, 0..1
  */

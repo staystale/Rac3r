@@ -1,7 +1,7 @@
-// _icecrack.mjs - ice cracks (world/icecrack.ts, ?icecrack=1) on the Lab's ice sheet in a cold dry
+// _icecrack.mjs - ice cracks (world/icecrack.ts) on the Lab's ice sheet in a cold dry
 // spell: one wheel line driven across the sheet pass after pass (a pass a second); after each
 // pass the cracks along the line, how far cracks have spread from it, the line's grip, and how
-// many of its cells have broken through to water. node tools/scratch/_icecrack.mjs [on] [trackC]
+// many of its cells have broken through to water. node tools/scratch/_icecrack.mjs [trackC]
 const W = new URL('../../src/', import.meta.url).href;
 const L = await import(W + 'lab.js');
 const wear = await import(W + 'world/wear.ts');
@@ -9,8 +9,7 @@ const Wx = await import(W + 'world/weather.ts');
 const F = await import(W + 'world/coverfield.ts');
 const P = await import(W + 'world/puddles.ts');
 const C = await import(W + 'world/icecrack.ts');
-const isOn = process.argv[2] === 'on', trackC = +(process.argv[3] ?? -5);
-C.setIceCrack(isOn);
+const trackC = +(process.argv[2] ?? -5);
 L.setLevel('lab');
 Wx.startWeather({ mode: 'dry', season: 0, seed: 11 });
 F.resetCoverField();
@@ -50,6 +49,6 @@ for (let pass = 1; pass <= 16; pass++) {
 for (let second = 0; second < 60; second++) for (let step = 0; step < 10; step++) { Wx.stepWeather(0.1); hold(); F.stepCoverField(0.1); P.stepPuddles(0.1); }
 let cracked = 0, spreadM = 0;
 for (const cell of wear.wearMap.values()) if (cell.cover === 'ice' && cell.crack > 0) { cracked++; spreadM = Math.max(spreadM, Math.abs((cell.cy + 0.5) * CELL - LINE_Y)); }
-console.log(`icecrack ${isOn ? 'ON' : 'off'} at ${trackC} C`);
+console.log(`ice cracks at ${trackC} C`);
 for (const row of rows) console.log('  ' + row);
 console.log(`  +60 s idle: cracked cells ${cracked}, out to ${spreadM.toFixed(1)} m; line water ${lineCells().filter((cell) => cell.cover === 'wet').length}`);

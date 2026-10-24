@@ -33,13 +33,13 @@ const WATER_FILL_PER_S = 1 / 600, SNOW_FILL_PER_S = 1 / 420;
 // a dry spell takes water down per C of track (20 C: a full level in ~13 min)
 const WATER_DRY_PER_S_PER_C = 1 / (780 * 20);
 // snow settles below SNOW_SETTLE_C and melts above it per C (15 C: a full coat in ~10 min, 43 C
-// ~3 min), packed snow slower, both faster in rain; MELT_WATER of what melts is left as water
+// ~3 min), packed snow slower, both faster in rain; all of what melts is left as water; snow
+// falling on water adds SNOW_INTO_WATER of itself to it
 const SNOW_SETTLE_C = 1, SNOW_MELT_PER_S_PER_C = 1 / 7000, PACKED_MELT_PER_S_PER_C = 1 / 14000;
-const RAIN_MELT = 2, MELT_WATER = 0.6;
-// MELTWATER (?meltwater=1; owner: weather melting ice and snow should leave water): all of it
-// stays; and a melting full coat soaks the track's damp as a drizzle of this rain would
+const RAIN_MELT = 2, SNOW_INTO_WATER = 0.6;
+// MELTWATER (owner: weather melting ice and snow should leave water): a melting full coat
+// dries as slowly as in the rain and soaks the track's damp as a drizzle of this rain would
 const MELT_SOAK_RAIN = 0.25;
-let meltWaterOn = false;
 // water freezes below FREEZE_C (per C colder), ice thaws above THAW_C (per C warmer)
 const FREEZE_C = 0, FREEZE_PER_S_PER_C = 1 / 60, THAW_C = 1;
 // ONE COLD-SURFACE ORDER (owner: one coherent system - snow builds on ice and on
@@ -355,7 +355,7 @@ function stepWater(water: number, rain: number, trackC: number, dt: number,
 }
 
 /**
- * Whether a set of levels has a coat melting in this warmth (?meltwater=1: the ground under a
+ * Whether a set of levels has a coat melting in this warmth (the ground under a
  * melting coat stays soaked).
  * @param levels the levels
  * @param trackC the track temperature, C
@@ -364,17 +364,6 @@ function stepWater(water: number, rain: number, trackC: number, dt: number,
 function isMeltingCoat(levels: Levels, trackC: number): boolean {
   return (trackC >= SNOW_SETTLE_C && (levels.snow > 0 || levels.packed > 0))
     || (trackC > THAW_C && levels.ice > 0);
-}
-
-/**
- * Turns MELTWATER on or off (?meltwater=1): what the weather melts is all left as water, the
- * ground under a melting coat dries only as slowly as in the rain, and the track's damp rises as
- * in a drizzle while it melts (weather.ts setMeltSoak).
- * @param isWanted true for meltwater
- */
-export function setMeltWater(isWanted: boolean): void {
-  meltWaterOn = isWanted;
-  if (!isWanted) setMeltSoak(0);
 }
 
 /**
@@ -401,13 +390,13 @@ function meltingCoat(): number {
 function stepLevels(levels: Levels, dt: number): void {
   const trackC = WEATHER.trackC, rain = WEATHER.rain;
   let { water, snow, ice, packed } = levels;
-  water = stepWater(water, rain, trackC, dt, meltWaterOn && isMeltingCoat(levels, trackC));
+  water = stepWater(water, rain, trackC, dt, isMeltingCoat(levels, trackC));
   if (trackC < SNOW_SETTLE_C) {
     // the one order: snow falling on water (the water level's share) melts into it
     const fall = WEATHER.snow * SNOW_FILL_PER_S * dt;
     const onWater = Math.min(1, water);
     snow += fall * (1 - onWater);
-    water += fall * onWater * MELT_WATER;
+    water += fall * onWater * SNOW_INTO_WATER;
   }
   else {
     const warmth = (trackC - SNOW_SETTLE_C) * (1 + RAIN_MELT * rain) * dt;
@@ -415,7 +404,7 @@ function stepLevels(levels: Levels, dt: number): void {
     const meltedPacked = Math.min(packed, warmth * PACKED_MELT_PER_S_PER_C);
     snow -= meltedSnow;
     packed -= meltedPacked;
-    water += (meltedSnow + meltedPacked) * (meltWaterOn ? 1 : MELT_WATER);
+    water += meltedSnow + meltedPacked;
   }
   if (trackC < FREEZE_C && water > 0) {
     const frozen = Math.min(water, (FREEZE_C - trackC + 1) * FREEZE_PER_S_PER_C * dt);
@@ -446,7 +435,7 @@ export function stepCoverField(dt: number): void {
   if (!weatherRuns()) return;
   stepLevels(FIELD, dt);
   for (const kind of AREA_KINDS) stepLevels(AREAS[kind], dt);
-  if (meltWaterOn) setMeltSoak(MELT_SOAK_RAIN * meltingCoat());
+  setMeltSoak(MELT_SOAK_RAIN * meltingCoat());
   stepFrost(dt);
   noteBands();
   syncS += dt;

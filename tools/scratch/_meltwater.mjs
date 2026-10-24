@@ -1,14 +1,13 @@
 // _meltwater.mjs - what the weather's melt leaves (owner: melting snow and ice should leave
 // water): from a full coat of snow (or ice) in a dry spell held at a track temperature, the share
 // of Castle Cum's race surface under snow / ice / water over time and the most water seen.
-// node tools/scratch/_meltwater.mjs [on]   (on: ?meltwater=1)
+// node tools/scratch/_meltwater.mjs
 const W = new URL('../../src/', import.meta.url).href;
 const L = await import(W + 'lab.js');
 const wear = await import(W + 'world/wear.ts');
 const Wx = await import(W + 'world/weather.ts');
 const F = await import(W + 'world/coverfield.ts');
 const STATE = await import(W + 'world/state.ts');
-F.setMeltWater(process.argv[2] === 'on');
 
 L.setLevel('castle-cum');
 const sub = STATE.LEVEL.subtrack;

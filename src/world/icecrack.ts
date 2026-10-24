@@ -1,4 +1,4 @@
-// ICE CRACKS (?icecrack=1; owner: ice cracks when driven - semi-random, spreading over connected
+// ICE CRACKS (owner: ice cracks when driven - semi-random, spreading over connected
 // ice; cracked ice has more grip and degrades faster). A wear cell's ice carries a CRACK, 0..1:
 // each pass over it adds some, by chance, more the nearer the ice is to melting (and a sliding
 // wheel's pass counts twice, wear.ts); a cracked cell spreads its cracks to the ice cells beside
@@ -24,16 +24,7 @@ export const CRACK_STEPS = 4;
 // the four neighbours a crack spreads to
 const NEIGHBOURS = [[1, 0], [-1, 0], [0, 1], [0, -1]];
 
-let isOn = false;
 const crackedSurfaces = new Map<string, Surface>();
-
-/**
- * Turns the ice cracks on or off (?icecrack=1).
- * @param isWanted true for cracks
- */
-export function setIceCrack(isWanted: boolean): void {
-  isOn = isWanted;
-}
 
 /**
  * A cell's crack in steps, 0 (none) .. CRACK_STEPS (fully cracked); 0 for anything but ice.
@@ -41,7 +32,7 @@ export function setIceCrack(isWanted: boolean): void {
  * @returns the step
  */
 export function crackStep(cell: WearCell): number {
-  if (!isOn || cell.cover !== 'ice' || cell.fixed) return 0;
+  if (cell.cover !== 'ice' || cell.fixed) return 0;
   return Math.ceil((cell.crack || 0) * CRACK_STEPS - 1e-9);
 }
 
@@ -72,7 +63,7 @@ function setCrack(cell: WearCell, crack: number, dirty: WearCell[]): void {
  * @param dirty the cells to repaint (wear.ts wearDirty)
  */
 export function crackPass(cell: WearCell, dirty: WearCell[]): void {
-  if (!isOn || cell.cover !== 'ice' || cell.fixed) return;
+  if (cell.cover !== 'ice' || cell.fixed) return;
   const warmth = Math.max(0, Math.min(1,
     (snowTempC() - CRACK_COLD_C) / (CRACK_WARM_C - CRACK_COLD_C)));
   const perPass = CRACK_PER_PASS_COLD + (CRACK_PER_PASS_WARM - CRACK_PER_PASS_COLD) * warmth;
@@ -177,7 +168,6 @@ function cellsSpreading(cells: Iterable<WearCell>, seconds: number,
 export function spreadCracks(cells: Iterable<WearCell>,
     cellAt: (cellX: number, cellY: number) => WearCell | null, seconds: number,
     random: () => number, dirty: WearCell[]): void {
-  if (!isOn) return;
   // applied after the walk: the new cells it makes are not walked in the same tick
   for (const [cell, crack] of cellsSpreading(cells, seconds, random)) {
     const [stepX, stepY] = NEIGHBOURS[Math.floor(random() * NEIGHBOURS.length)];

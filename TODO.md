@@ -7,8 +7,11 @@ handover, written on request.
 
 ## Where we are (2026-10-24 night)
 
-- The plain link is the approved game; the test list is EMPTY. Highway street lights L4b are
-  DEFAULT (owner 10-24: "pass"; switch deleted) with the solid grid. A11, A12, A13, grass G1
+- The plain link is the approved game; the test list is EMPTY. Tonight's rounds are DEFAULT
+  (owner "all pass"): highway street lights L4b + the solid grid; traffic seated when woken,
+  the Sandbox puddles, meltwater, ice cracks (E). NEXT: reverse lights (owner asked), lighting
+  at events F (mockup first), trees / bushes D (photos first), TS conversion overnight.
+  Earlier 10-24: A11, A12, A13, grass G1
   and the A fixes are DEFAULT
   (owner 10-24: "all pass"; switches and old paths deleted): A1 sky blend, A2 bridge decks, A3
   formation (A4 with it), A5 weather only, A6 rain grip, A8 lock heat, E gravel -> sand. A7
@@ -16,8 +19,8 @@ handover, written on request.
   meanwhile work in TypeScript wherever possible; the HUD text fix waits on the owner.
 - itch.io: build #2201136 (10-24, before the A fixes); push only when the owner says.
 - TIDY-UP done 10-24: the hand-placed 'wet' covers staticCovers dropped are deleted from Test
-  Track, Grass Track and Stock Car. ASKED: the Sandbox's two sample puddles are dropped the same
-  way (its ice / snow samples stay) - keep them as samples, or delete the data too?
+  Track, Grass Track and Stock Car. The Sandbox (a test level) KEEPS its two sample puddles
+  (owner; default 10-24).
 - CI: `verify` is the gate for main; the `checks` job compares each push with its parent (a
   commit that changes behaviour on purpose fails it by design).
 - The laptop has ~6 GB: ONE heavy browser tool at a time; a full renderhash runs in 4 parts.
@@ -238,14 +241,14 @@ cracks when driven (semi-random, spreading over connected ice; cracked ice melts
 faster); snow / ice / packed snow melt to water with a chance by surface (check what exists).
 GRAVEL -> SAND DEFAULT (owner: all pass) (10-24, world/dig.ts): a dry pass 2 % at 15 C and below to
 10 % at 40 C (damp sand still turns back to gravel at 10 %).
-UNDER TEST 10-24 (owner answers: cracked ice MORE grip and degrades faster; melt = the weather
+DEFAULT 10-24 (owner: "all pass"; switches deleted; owner answers: cracked ice MORE grip and degrades faster; melt = the weather
 melting ice and snow should leave water):
-- ?meltwater=1 (coverfield.ts, weather.ts setMeltSoak). CAUSE (_meltwater.mjs, Castle Cum, a
+- MELTWATER (coverfield.ts, weather.ts setMeltSoak). CAUSE (_meltwater.mjs, Castle Cum, a
   full coat in a dry spell): drying ran with the melt and ate it - snow left 0-3 % of the
   surface wet, ice at 5 C none. Now all meltwater stays, a melting coat dries as slowly as rain
   and runs off above heavy rain's ceiling, the track's damp rises as in a 0.25 drizzle while it
   melts: snow / ice leave water on ~22 % (heavy rain's), damp 0.88-1.0, dry off after.
-- ?icecrack=1 (world/icecrack.ts; glfield codes 11-14): a pass cracks ice 0.08 (-15 C) .. 0.2
+- ICE CRACKS (world/icecrack.ts; glfield codes 11-14): a pass cracks ice 0.08 (-15 C) .. 0.2
   (0 C) x 0.5-1.5; a cell from crack 0.35 spreads to a neighbour at 0.6 of its crack (stops ~3
   cells, 4.8 m out: _icecrack.mjs); grip x1.5 at a full crack (mu 0.12 -> 0.18); breaks through
   in 2 passes not 4, chance x2, scrubs in half the slide, melts x2. MEASURED 12 passes on the
@@ -357,7 +360,7 @@ DRIVING (ask before starting; re-measure first, these are old):
   rules the owner has since changed (snow packs to ice at pass 4, puddles churn to mud, mud
   thickens dry) and its "surfaces without graphics" lists every surface (a broken lookup).
   Rewrite it to today's rules (S-M) - asked the owner.
-- FIXED 10-24 (small-fixes round, owner test): `treadmillcheck` (the 2 "litter in a lane" were
+- FIXED 10-24 (small-fixes round; traffic seat DEFAULT, owner "all pass"): `treadmillcheck` (the 2 "litter in a lane" were
   a field's cows with no road segment near them: a checker bug); `trafficcheck` (a REAL bug: a
   carried traffic car woken to physics kept its suspension height - woken on a hill 4.4 m up it
   was thrown 42 m into the air and drifted off the road; now seated as a reset is,
