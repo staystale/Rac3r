@@ -141,11 +141,11 @@ function makeLooseArt(): Record<string, SurfaceArt | null> {
 }
 
 /**
- * Returns the art rows of grass, snow, ice and wet tarmac.
+ * Returns the art rows of grass and short grass (world/grasslook.ts: the G1 switches).
  *
  * @returns the rows
  */
-function makeSoftArt(): Record<string, SurfaceArt | null> {
+function makeGrassArt(): Record<string, SurfaceArt | null> {
   return {
     grass: {
       base: '#7e9c5e',
@@ -157,12 +157,13 @@ function makeSoftArt(): Record<string, SurfaceArt | null> {
       ],
     },
     grassShort: shortGrassOn() ? {
-      // ?shortgrass=1: lighter and drier, tighter mown stripes, a dry fleck, no blades
-      base: '#93a96a',
+      // ?shortgrass=1: a pale, yellow-green manicured lawn, bold tight mown stripes, a dry
+      // fleck, no blades
+      base: '#a8bc70',
       layers: [
-        ['stripes', '#a0b677', 2],
-        ['grain', '#7e9257', 1.2, 0.16],
-        ['grain', '#b8b67f', 0.9, 0.07],
+        ['stripes', '#bdd08a', 2.5],
+        ['grain', '#91a45e', 1.2, 0.14],
+        ['grain', '#d2cb90', 0.9, 0.08],
       ],
     } : {
       base: '#7e9c5e',
@@ -171,6 +172,17 @@ function makeSoftArt(): Record<string, SurfaceArt | null> {
         ['grain', '#6a8850', 1.2, 0.18],
       ],
     },
+  };
+}
+
+/**
+ * Returns the art rows of grass, snow, ice and wet tarmac.
+ *
+ * @returns the rows
+ */
+function makeSoftArt(): Record<string, SurfaceArt | null> {
+  return {
+    ...makeGrassArt(),
     grassLong: {
       base: '#4d6b33',
       layers: [
