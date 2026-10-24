@@ -1,95 +1,89 @@
 # Foreman handover
 
-Written on the owner's request, 2026-10-24 (~14:55Z; main at f3fb58c "Mud M1 the default" plus this
-page). Read `CLAUDE.md`, then `NOTES.md` (the owner's rules, decisions, measured lessons and the
-routine - not repeated here), then `TODO.md` (its "OWNER LIST 2026-10-24" section is the plan), then
-this page.
+Written on the owner's request, 2026-10-24 (~21:00Z; main at the commit that adds this page:
+"A13 and grass G1 the default"). Read `CLAUDE.md`, then `NOTES.md` (the owner's rules, decisions,
+measured lessons and the routine - not repeated here), then `TODO.md` ("Where we are", the Queue and
+the "OWNER LIST 2026-10-24" section are the plan), then this page.
 
 ## Where we are
 
-- **The plain link is the approved game; the test list is EMPTY.** Today's MUD M1 is the default
-  (owner: "all pass", circuits and highway): mud thickens only with water; a level's own mud and
-  thick mud dry in the heat in patches (world/levelmud.ts: pieces seeded as wear cells at an
-  event's start, each piece steps at 90 % of its own cells, specks dry on a timer); the highway's
-  ploughed fields dry in random blocks (world/fieldblocks.ts) and stream in as dry as the dry
-  spell so far; worn dirt goes to mud by a chance falling with heat and to gravel by one rising
-  with heat (dig.ts wornDirtTo); drying mud makes the AI read the grip again. The switch and the
-  old rules are DELETED (one system).
-- **itch.io is up to date:** https://fuzzlepun.itch.io/rac3r, channel html5, build #2201136
-  (userversion 2026-10-24-f3fb58c), pushed on the owner's say-so. Recipe below. The owner was
-  told to revoke the API keys pasted in chat; ask for a fresh wharf key next time.
-- **CI:** the pixel check now runs as 4 parallel shards (`renderhash --shard k/4`, its own job);
-  menucheck / guidecheck wait for what they check (60 s) and menucheck names a failing step.
-  The `checks` job compares each push to its parent, so a commit that changes behaviour on
-  purpose (f3fb58c: the mud default) fails there by design; the next push compares against it.
-  Watch the next run: menucheck's taps got a 60 s wait after "tap RESULTS" timed out on CI.
-- **The GitHub CLI** is installed portable at `C:/Users/Admin/tools/gh/bin/gh.exe`, logged in as
-  staystale (`gh run view <id> --log-failed -R staystale/Rac3r`; job logs via
-  `gh api --allow-escape-sequences repos/staystale/Rac3r/actions/jobs/<id>/logs`).
+- **The plain link is the approved game; the test list is EMPTY.** Today, after the mud default,
+  everything below passed the owner's phone test and is the DEFAULT, its switch and old path
+  DELETED (one system), each proved against the tested switch (simhash SAME, renderhash the same
+  per level with the same level list, worldhash differing only where expected):
+  - A1 sky: the twilight colour only in its share of the dark (no snap under cloud); rain / snow
+    ease in two stages. A2 car light kept off bridge decks (render/lightdecks.ts). A3/A4 every car
+    held in its grid slot through a circuit's rolling start (ai/formation.ts). A5 weather-only
+    snow and ice (snow stages' road from their seed: world/stageweather.ts; scenery water, the
+    highway's rivers too, never dries but freezes). A6 damp grip a small loss, fewer / smaller
+    puddles. A8 locked wheels heat their tyres. E dry gravel to sand. A7 checked, x2 kept.
+  - A11 PULLING AWAY only when you really lead (ai/hwFlow.ts: last road position kept, grace only
+    for CATCH THEM). A12 traffic eases onto its lane after a driven -> carried handover
+    (ai/trafficPhys.ts). A13 punctures by what you hit (physics/punctures.ts: one table; the
+    clamps, contacts and loose objects note the kind). G1 short grass a pale striped lawn (its own
+    grip / peak / bumpiness, extra dirt patches on their own stream), grass with fine blades.
+- **HUD text fix: measured, not shipped.** HUD ~0.7 ms a frame on the laptop (text 34 % of it);
+  bitmap stamps were slower on the laptop's CPU raster, "font set once" inside the noise. Both
+  parked on branch `experiment/hudtext`. ASKED the owner (no answer yet): a phone `?report=1`
+  A/B of the stamps, or close the item. Recommended: close.
+- **itch.io** is build #2201136 (10-24, before all of today's fixes); push only when the owner
+  says (recipe below; ask for a fresh wharf key - the key never goes in a file).
+- **CI:** `verify` is the gate for main; the `checks` job compares each push with its parent, so
+  a commit that changes behaviour on purpose fails it by design.
 
-## NEXT (agreed order, TODO.md "OWNER LIST 2026-10-24")
+## NEXT (owner's order, TODO.md)
 
-1. **A fixes, one bundled test link:** A1 dawn / dusk light blending, A2 lights through bridges,
-   A3 grid / rolling starts (cars weave, crash before the start, start off their slot - the
-   player too), A4 oval / stock car AI wiggle at the start / finish, A5 Mont Brakefade's ice
-   (weather only: no level-drawn snow / ice; snow themes bias the weather), A6 rain grip (small
-   damp loss, puddles the real one, fewer / smaller puddles), A7 wear under spin / lock on every
-   surface, A8 handbrake heat, E gravel -> sand. Each its own switch + testlist entry.
-2. **Queued before:** grass G1, the HUD text fix, highway lamps L4b.
-3. **TypeScript conversion overnight** (when the owner says they are going to sleep) - BEFORE
-   the AI rework and car systems (owner: don't do things twice).
-4. **B AI rework** (own switch): one skill number driving the existing knobs, a separate risk
-   draw, FELT GRIP instead of the grip map (owner said yes), never waiting, dodging, a cost
-   budget. Agree the architecture with the owner first; fix the broken highway AI tools on the
-   way.
-5. **C car systems**, then crash consequences; D trees and bushes; F lighting; G sound /
-   settings / Slave FM (the owner's own project on the laptop - read only, never change it;
-   stream at slaveFM.duckdns.org; ask about every sound first); H upgrades with Story; I
-   multiplayer (talk it through first). ABS realism = the driving ROOT FIX (wheel spin state).
+1. **Highway lamps L4b** (approved: street lights on ALTERNATING sides, streamed with the road like
+   highway/litter.js, a spatial grid for the clamp - solidClamp walks every lamp per car per step).
+   Not started.
+2. **TypeScript conversion overnight** when the owner says they are going to sleep (TODO item 2:
+   7 batches, proved SAME batch by batch) - before the AI rework and car systems.
+3. Then B AI rework (architecture to agree first), C car systems (punctures now have the kind
+   table C2 / C7 should use), E / D, F lighting, G sound / settings, H upgrades, I multiplayer.
 
 ## Proofs and references
 
-- Worktree `Desktop/G/rac3r-wt2` is on f3fb58c (+ this page); `rac3r-wt` is old (c56f656). The
-  served clone `Desktop/G/rac3r` is detached on origin/main.
-- References in `rac3r-wt2/tools/` (gitignored): `.simhash` = the mud default (saved with
-  ?mudwater=1 on 1a1e66b; SAME on f3fb58c); `.worldhash` re-saved on f3fb58c (the highway's zones
-  carry the field blocks). **`.renderhash` is STALE** (it predates the new dry-plough texture,
-  which shifts the seeded random stream on 11 levels): re-save it on main first, in 4 parts
-  (`node tools/renderhash.mjs save --shard k/4` for k = 1..4, one after another).
-- Probes kept (`tools/scratch/`): `_mudwater` (thicken + drying shares by level), `_mudedges`
-  (when pieces step vs their cells), `_dirtmud` (dirt -> mud / gravel by temperature),
-  `_hwplough` / `_hwblocks` (highway fields: area, blocks, rebuild cost), `_hwfieldshots`
-  (photos; pauses the sim via game/state.js shared.paused), `_mudwatershots` (drying in the
-  real game, frame times, photos), `_staticcheck` (the static build as itch serves it).
+- Worktrees: `Desktop/G/rac3r-wt` (where today's work was done) and `rac3r-wt2` (the proof
+  side: check out the commit to compare against). The served clone `Desktop/G/rac3r` is detached
+  on origin/main (`git checkout --detach origin/main` after each push).
+- References (gitignored, in `rac3r-wt/tools/`): `.worldhash` saved on today's final defaults;
+  `.simhash` saved on 084cce7 with `?punctkind=1&shortgrass=1&grassblades=1` (= the defaults);
+  `.renderhash` saved on 1f58a29 in 4 shards - grass blades and short grass changed pixels since:
+  RE-SAVE it on main in 4 parts before the next pixel proof.
+- **renderhash compares like with like** (NOTES lesson): a `--only` list against a `--shard`
+  reference reads DIFFERENT with no change. Prove a change by running the same list on both sides.
+- Probes added today (`tools/scratch/`): `_skysnap` (sky colour steps), `_rainease`, `_rollstart`
+  (formation / start-finish swing), `_lineseam`, `_stagelayout`, `_rainlap`, `_spinwear`
+  (slip / tyre heat), `_pullaway` (highway flow, scripted), `_laneshuffle` (traffic sideways
+  moves: aborts, pops, handover jumps; CLEAN=1), `_punctures` / `_puncturehit` (puncture sources
+  / chance by kind), `_grassshots`, `_hudcost` / `_hudprofile`.
 
 ## Lessons from today
 
-- **The laptop (6 GB):** a full renderhash got stopped for low memory twice; in 4 parts it runs.
-  DuckDuckGo (the owner tests in it) takes 0.5-1 GB: ASK before closing it (NOTES).
-- **Never edit `src/` in the worktree a proof runs from** (I did once; harmless, but it muddles
-  the result).
-- **A new SURFACE_ART texture moves renderhash** on most levels (the warm-up order / seeded
-  stream), with no change to what the game does: prove it by removing the texture once.
-- **Pieces of level mud must count only their own surface's cells** (a box reaches into the
-  neighbour), and wait for 90 % of them, not all: long lanes kept muddy edges for minutes.
-- **Highway fields:** you pass one in under a minute; drying takes minutes - so a field arrives
-  as dry as the dry spell so far.
+- **Check every name before writing a file** (owner): I overwrote an existing probe once with a
+  heredoc; `ls` the path first, always (memory + NOTES).
+- **Measure where the owner sees it**: the "oval wiggle" was the rolling start's release, not the
+  racing line's seam; the traffic "shuffle" was the driven -> carried handover snap, not the
+  lane-change abort - both found only by measuring with the real field.
+- **Laptop numbers can mislead for drawing**: the headless browser rasterises on the CPU, so a
+  GPU-friendly change (bitmap stamps) can measure slower here than it would be on the phone.
+- **A switch read after `initWorld`** misses whatever the world builds at start-up (the Lab's
+  patches): fine for a test switch, gone once it is the default.
 
 ## itch.io push (owner says when)
 
 1. `npm run build` in the worktree (bundles to `dist/`: index.html, game.js, game.js.map).
 2. Stage index.html, game.js, manifest.webmanifest (not the map) in a new folder under
-   `GamesStudio/ready-to-play/` (10-24: `rac3r-2026-10-24`).
-3. Test it as itch serves it: `node tools/scratch/_staticcheck.mjs <folder>` (no errors, no
-   missing files, menu and a race at 844x390 / 390x844).
+   `GamesStudio/ready-to-play/`.
+3. Test it as itch serves it: `node tools/scratch/_staticcheck.mjs <folder>`.
 4. `BUTLER_API_KEY=<wharf key from the owner> GamesStudio/tools/butler/butler.exe push <folder>
-   fuzzlepun/rac3r:html5 --userversion <date>-<commit>`; check with `butler status`. The key
-   never goes in a file.
+   fuzzlepun/rac3r:html5 --userversion <date>-<commit>`; check with `butler status`.
 
 ## Picking up
 
 - Test server `node serve.mjs` PID 6236 and cloudflared 1408 (running); the link is in
   `Desktop/G/GamesStudio/tools/logs/rac3r-tunnel.err`. Phone reports: `node tools/phonereport.mjs
   ../GamesStudio/tools/logs/rac3r-phone-report.jsonl --since <UTC>`.
-- To main: commit in a worktree, push `HEAD:refs/heads/foreman/<name>`, wait for `verify` (gh
-  run list ... -w verify), push `HEAD:refs/heads/main`, delete the branch, move the served clone.
+- To main: commit in a worktree, `npm run verify`, push `HEAD:refs/heads/foreman/<name>`, wait for
+  `verify` (`C:/Users/Admin/tools/gh/bin/gh.exe run list -R staystale/Rac3r -b <branch> -w verify`),
+  push `HEAD:refs/heads/main`, delete the branch, move the served clone.

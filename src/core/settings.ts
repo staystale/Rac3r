@@ -32,9 +32,6 @@ export interface Settings {
   churn: '' | 'pictures' | 'objects';   // ?churn=: judder mechanism test (memory churn)
   autopilot: boolean;   // ?autopilot=1: the AI drives the player car (phone frame tests, no touch)
   autopilotKmh: number;   // ?autopilot=120: hold the autopilot car at this speed (0 = no cap)
-  punctKind: boolean;   // ?punctkind=1: the puncture chance by what you hit (A13)
-  shortGrass: boolean;   // ?shortgrass=1: short grass its own look and feel (G1, grasslook.ts)
-  grassBlades: boolean;   // ?grassblades=1: grass a sparse layer of fine blades (G1)
 }
 
 function autopilotKmh(params: URLSearchParams): number {
@@ -105,8 +102,5 @@ export function readSettings(search: string): Settings {
     churn: churnKind(params),
     noNatClear: params.get('nonat') === '1',
     skipLayers: new Set((params.get('skip') || '').split(',').filter(Boolean)),
-    punctKind: params.get('punctkind') === '1',
-    shortGrass: params.get('shortgrass') === '1',
-    grassBlades: params.get('grassblades') === '1',
   };
 }

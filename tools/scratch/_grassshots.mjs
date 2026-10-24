@@ -1,6 +1,7 @@
-// _grassshots.mjs - G1 photos: short grass (?shortgrass=1) and grass blades (?grassblades=1), each
-// level plain and with both switches, at 844x390, the car parked at the start; plus where the car
-// can stand on each grass, the surface the tyres read (mu). node tools/scratch/_grassshots.mjs [dir]
+// _grassshots.mjs - G1 photos: short grass (a pale striped lawn) and grass (fine blades), each
+// level with an optional extra query, at 844x390, the car parked at the start; plus where the car
+// can stand on each grass, the surface the tyres read (mu).
+// node tools/scratch/_grassshots.mjs [dir] [extra query]
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { startServer, launchBrowser, gotoGame } from '../lib/browser.mjs';
@@ -9,7 +10,7 @@ const folder = process.argv[2] || tmpdir();
 const server = await startServer();
 const browser = await launchBrowser();
 try {
-  for (const [tag, query] of [['off', ''], ['on', '&shortgrass=1&grassblades=1']]) {
+  for (const [tag, query] of [['now', process.argv[3] ? '&' + process.argv[3] : '']]) {
     for (const level of ['naffcar', 'grass-track', 'castle-cum']) {
       const context = await browser.newContext({ viewport: { width: 844, height: 390 },
         deviceScaleFactor: 2 });

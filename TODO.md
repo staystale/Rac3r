@@ -7,8 +7,8 @@ handover, written on request.
 
 ## Where we are (2026-10-24 evening)
 
-- The plain link is the approved game. UNDER TEST: A13 ?punctkind=1, G1 ?shortgrass=1,
-  ?grassblades=1. A11, A12, the A fixes DEFAULT
+- The plain link is the approved game; the test list is EMPTY. A11, A12, A13, grass G1 and the
+  A fixes are DEFAULT
   (owner 10-24: "all pass"; switches and old paths deleted): A1 sky blend, A2 bridge decks, A3
   formation (A4 with it), A5 weather only, A6 rain grip, A8 lock heat, E gravel -> sand. A7
   needed no change (owner: keep x2). ORDER (owner 10-24): A12, A13, then grass G1, the HUD
@@ -71,10 +71,10 @@ is converted first in its own commit, proved SAME, then changed (owner: "1.a is 
 5. GRASS G1 (approved): short grass told apart from grass (identical today: same art, mu 0.47) -
    a lighter, drier mown look, tighter stripes, no blades, dirt patches ~4 -> 10 % (own random
    stream: existing patches unchanged), mu 0.46, peak a touch earlier, ~20 % less drag; grass
-   gets a sparse fine blade layer. Photos first, behind its own switch. BUILT 10-24 (world/
-   grasslook.ts): ?shortgrass=1 (base #93a96a, stripes 2 m, a dry fleck; extra dirt 6 % on its
-   own stream, blend.ts; mu 0.46, peakK 1.15, rough 0.011) and ?grassblades=1 (sparse fine
-   blades); photos sent (_grassshots.mjs). Off: worldhash, simhash, renderhash shard 2 SAME.
+   gets a sparse fine blade layer. Photos first, behind its own switch. DEFAULT (owner: pass,
+   10-24): short grass a pale striped lawn (owner: "not different enough" -> option A: base
+   #a8bc70, 2.5 m stripes, a dry fleck; extra dirt 6 % on its own stream, blend.ts; mu 0.46,
+   peakK 1.15, rough 0.011); grass a sparse layer of fine blades (_grassshots.mjs).
 6. HIGHWAY LAMPS L4b (owner: "yes I want them"; street lights ALTERNATING sides, not paired):
    lamps streamed with the road (spawn ahead, cull behind, like highway/litter.js) and a spatial
    grid for the clamp (solidClamp walks every lamp per car per step: fine at ~30 a level, not at
@@ -162,7 +162,7 @@ A. FIXES AND CHECKS (S-M each; first, they change what is already there)
   3 m/s whatever it is (DEBRIS_CHANCE; splinters 1 %). WANTED: a puncture chance PER OBJECT
   KIND by what it is - tyres, tarps, cones ~none; pallets, broken glass, sign posts higher.
   Measure today's puncture sources on a grass run first (which one fires). One table, used
-  later by C2 / C7 (glass) and D (bushes). S-M. BUILT ?punctkind=1 (10-24, table approved): CAUSE
+  later by C2 / C7 (glass) and D (bushes). S-M. DEFAULT (owner: pass, 10-24; table approved): CAUSE
   (_puncturehit.mjs) - a hit losing 40 km/h+ punctured ~50 % whatever was hit (the grass ovals'
   tyre walls as concrete); smaller hits never. physics/punctures.ts: the clamps, car contacts
   and loose objects note what was hit; the big-hit chance by kind (tyre walls / bales / cones

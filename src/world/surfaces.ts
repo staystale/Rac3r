@@ -136,8 +136,10 @@ export const SURFACES: Record<SurfaceId, Surface> = {
   // mu 0.34 -> 0.47 (owner approved 2026-10-16; see GRASSIER GRASS below)
   grass:      { id: 'grass', label: 'GRASS', mu: 0.47, peakK: 1.25, longK: 0.85, plough: 0,
     rough: 0.014, mark: MARK_GRASS, spray: SPRAY_GRASS },
-  grassShort: { id: 'grassShort', label: 'SHORT GRASS', mu: 0.47, peakK: 1.25, longK: 0.85,
-    plough: 0, rough: 0.014, mark: MARK_GRASS, spray: SPRAY_GRASS },
+  // SHORT GRASS (G1, owner-approved): told apart from grass - a touch less grip, peaking a
+  // touch earlier, ~20 % less bumpy
+  grassShort: { id: 'grassShort', label: 'SHORT GRASS', mu: 0.46, peakK: 1.15, longK: 0.85,
+    plough: 0, rough: 0.011, mark: MARK_GRASS, spray: SPRAY_GRASS },
   // LONG GRASS — un-mown pasture. Taller, deeper, more drag and height variation.
   // plough 0.10 -> 0.35 (requirement: long grass to grab slightly... until it's driven over enough
   // to become short grass — 2 passes, BASE_WEAR). MEASURED vs short grass, hatch-fwd / muscle:

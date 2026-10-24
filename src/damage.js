@@ -116,7 +116,7 @@ function hardHitCorners(car, amt, weights, endW, rnd, punctureK = 1) {
 }
 
 export function hit(car, vx0, vy0, dt = 1 / 120, rnd = Math.random) {
-  // what the car hit this step scales the puncture roll (?punctkind=1, physics/punctures.ts)
+  // what the car hit this step scales the puncture roll (physics/punctures.ts)
   const punctureK = takeHitFactor(car);
   const dvx = car.vx - vx0, dvy = car.vy - vy0, deltaV = Math.hypot(dvx, dvy);
   if (!(deltaV >= SCRAPE_DV)) return 0;

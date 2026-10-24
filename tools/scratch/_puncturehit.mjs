@@ -1,15 +1,13 @@
 // _puncturehit.mjs - A13: the chance ONE hit punctures a tyre, by how hard it is (damage.js hit:
 // the speed the car loses in the step), head-on and side-on, 1000 trials each. The game rolls
-// it the same whatever was hit (a tyre wall, armco, a tree, another car); with "kinds" it uses
-// ?punctkind=1's table for a few kinds of thing.
+// it by what was hit (physics/punctures.ts; before the table: ~50 % for anything). "kinds" shows a
+// few kinds of thing; without it, an unnoted hit (the table's unknown).
 // node tools/scratch/_puncturehit.mjs [car] [kinds]
 import { makeCar } from '../../src/vehicle.ts';
 import { hit } from '../../src/damage.js';
-import { setPunctKind } from '../../src/physics/punctures.ts';
 
 const carId = process.argv[2] || 'hatch-rwd', TRIALS = 1000;
 const byKind = process.argv[3] === 'kinds';
-setPunctKind(byKind);
 const cases = byKind ? ['tyrestack', 'car', 'armco', 'tree', 'board', 'pallet'].map((kind) => [kind,
   false, kind]) : [['head-on', false, null], ['side-on', true, null]];
 for (const [label, side, kind] of cases) {

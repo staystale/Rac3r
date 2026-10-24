@@ -3,7 +3,6 @@
 import type { ArtLayer, SurfaceArt } from "../types.ts";
 import { TEX_PPM, fillTexture, paintTexture } from "../textures.ts";
 import type { GroundCtx } from "./types.ts";
-import { grassBladesOn, shortGrassOn } from "../../world/grasslook.ts";
 
 // HOW EACH SURFACE IS PAINTED: a base colour, then layers drawn in order. One table — a new
 // surface is a row here and a row in lab.js (SURFACES) and nothing else. Read by drawFloor,
@@ -141,7 +140,7 @@ function makeLooseArt(): Record<string, SurfaceArt | null> {
 }
 
 /**
- * Returns the art rows of grass and short grass (world/grasslook.ts: the G1 switches).
+ * Returns the art rows of grass and short grass (G1, owner-approved: short grass told apart).
  *
  * @returns the rows
  */
@@ -152,24 +151,17 @@ function makeGrassArt(): Record<string, SurfaceArt | null> {
       layers: [
         ['stripes', '#89a868', 4],
         ['grain', '#6a8850', 1.2, 0.18],
-        // ?grassblades=1 (world/grasslook.ts): a sparse layer of fine blades
-        ...(grassBladesOn() ? [['blades', '#668449', 0.9, 0.22, 0.04, 0.3] as ArtLayer] : []),
+        // a sparse layer of fine blades
+        ['blades', '#668449', 0.9, 0.22, 0.04, 0.3],
       ],
     },
-    grassShort: shortGrassOn() ? {
-      // ?shortgrass=1: a pale, yellow-green manicured lawn, bold tight mown stripes, a dry
-      // fleck, no blades
+    grassShort: {
+      // a pale, yellow-green manicured lawn, bold tight mown stripes, a dry fleck, no blades
       base: '#a8bc70',
       layers: [
         ['stripes', '#bdd08a', 2.5],
         ['grain', '#91a45e', 1.2, 0.14],
         ['grain', '#d2cb90', 0.9, 0.08],
-      ],
-    } : {
-      base: '#7e9c5e',
-      layers: [
-        ['stripes', '#89a868', 4],
-        ['grain', '#6a8850', 1.2, 0.18],
       ],
     },
   };

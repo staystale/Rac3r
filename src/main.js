@@ -39,8 +39,6 @@ import {
 } from "./world/weather.ts";
 import { setDarkness } from "./world/daylight.ts";
 import { CLOCK, startClock } from "./world/clock.ts";
-import { setPunctKind } from "./physics/punctures.ts";
-import { setGrassBlades, setShortGrass } from "./world/grasslook.ts";
 import { LEVEL } from "./world/state.ts";
 
 import { LEVELS } from "./world/levels/index.ts";
@@ -73,11 +71,6 @@ if (shared.settings.night !== null) setDarkness(shared.settings.night);
 startClock(shared.settings.night === null,
   Math.floor(((new Date().getMonth() + 1) % 12) / 3));
 shared.DEV = shared.settings.dev;
-// ?punctkind=1: a big hit punctures by what was hit (tyre walls rarely, posts often)
-setPunctKind(shared.settings.punctKind);
-// ?shortgrass=1 / ?grassblades=1: short grass told apart from grass (before any texture)
-setShortGrass(shared.settings.shortGrass);
-setGrassBlades(shared.settings.grassBlades);
 
 shared.canvas = document.getElementById('c');
 shared.boot = document.getElementById('boot');

@@ -40,8 +40,8 @@ const WORN_RISK_FROM = 0.7, WORN_RISK_PER_S = 1 / 150;
 // HOT_SLIDE_PER_C above the window. The heat model's work saturates its slip at ~4 m/s and fades
 // with speed (so tyres stay hard to overheat); this puts the real slip back for the rubber.
 const SLIDE_WEAR = 1, SLIDE_WEAR_V = 12, HOT_SLIDE_PER_C = 60;
-// a hard hit on debris (m/s), its chance; driving over splinters (nails), its chance a pass
-const DEBRIS_HIT_V = 3, DEBRIS_CHANCE = 0.04, SPLINTER_CHANCE = 0.01;
+// a hit on debris this hard (m/s) may puncture (the chance by what it is: physics/punctures.ts)
+const DEBRIS_HIT_V = 3;
 
 /**
  * How much faster than normal a tyre wears on this ground at this temperature.
@@ -113,17 +113,16 @@ export function wornGrip(wearA: number, wearB: number, wetK = 0): number {
 }
 
 /**
- * Whether a hit on loose debris punctures a tyre (a small chance; owner).
+ * Whether a hit on loose debris, or a second on pallet nails, punctures a tyre (the chance by
+ * what it is: physics/punctures.ts).
  * @param kind the object's kind
  * @param closingV the closing speed, m/s
  * @param isDebris whether the object is breakable debris (cones/coneConsts.js DEBRIS)
  * @returns true to puncture
  */
 export function debrisPunctures(kind: string, closingV: number, isDebris: boolean): boolean {
-  // ?punctkind=1: by what it is (physics/punctures.ts)
-  const byKind = debrisChance(kind);
-  if (kind === 'splinters') return Math.random() < (byKind ?? SPLINTER_CHANCE);
-  return isDebris && closingV > DEBRIS_HIT_V && Math.random() < (byKind ?? DEBRIS_CHANCE);
+  if (kind === 'splinters') return Math.random() < debrisChance(kind);
+  return isDebris && closingV > DEBRIS_HIT_V && Math.random() < debrisChance(kind);
 }
 
 /**

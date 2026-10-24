@@ -4,7 +4,6 @@ import type { SurfaceId } from "./surfaces.ts";
 import { zoneAt } from "./zones.ts";
 import { COVER_IDS } from "./wear.ts";
 import { querySubtrack } from "./tyrewall.ts";
-import { SHORT_EXTRA_DIRT, shortGrassOn } from "./grasslook.ts";
 import type {
   CoverId, Level, Patch, Surface, Inclusions, InclusionCover, Sector, Subtrack,
 } from "./types.ts";
@@ -217,8 +216,9 @@ export function buildBlend(level: Level, rng: Rng): Patch[] {
 // each surface's AREA covered by small patches of a related surface; '@x' is a COVER (puddle / snow
 // / ice) rather than a ground patch. Seeded per level (the Grass Track re-rolls with its layout).
 // Boxed test panels stay pure (the tyre / wear tools and the player's tests depend on them).
-// ?shortgrass=1: short grass's extra dirt (world/grasslook.ts)
-const SHORT_DIRT: [string, number][] = [['dirt', SHORT_EXTRA_DIRT]];
+// SHORT GRASS's extra dirt patches (G1: ~4 -> 10 % of its area), laid on their own random stream
+// so the table's patches stay where they were
+const SHORT_DIRT: [string, number][] = [['dirt', 0.06]];
 const INCLUDE: Record<string, [string, number][]> = {
   gravel: [['sand', 0.08], ['dirt', 0.06]],
   dirt: [['gravel', 0.06], ['mud', 0.05]],
@@ -365,8 +365,8 @@ export function buildInclusions(level: Level, rng: Rng): Inclusions {
   const yFrom = Math.max(-lim, -(-FY0 - KERB_W - 2)), yTo = Math.min(lim, FY1 - KERB_W - 2);
   const found: Inclusions = { patches, covers }, scan = { cellArea, refArea, patchArea };
   const tufts: Patch[] = [], tuftRng = seededRng(level.id + ':tuft');
-  // ?shortgrass=1: short grass's extra dirt patches, on their own stream (world/grasslook.ts)
-  const dirtRng = shortGrassOn() ? seededRng(level.id + ':shortdirt') : null;
+  // short grass's extra dirt patches, on their own stream
+  const dirtRng = seededRng(level.id + ':shortdirt');
   const tuftScale = INCL_RATE * cellArea / refArea;
   for (let x = xFrom; x <= xTo; x += INCL_STEP) for (let y = yFrom; y <= yTo; y += INCL_STEP) {
     const patchX = x + (rng() - 0.5) * INCL_STEP, patchY = y + (rng() - 0.5) * INCL_STEP;
@@ -377,7 +377,7 @@ export function buildInclusions(level: Level, rng: Rng): Inclusions {
     const fleck = layInclusion(found, rng, base.id, patchX, patchY, scan);
     addCellTufts(tufts, tuftRng,
       { groundId: base.id, x: patchX, y: patchY, scale: tuftScale, fleck });
-    if (dirtRng && base.id === 'grassShort') {
+    if (base.id === 'grassShort') {
       const pick = pickInclusion(dirtRng, SHORT_DIRT, cellArea, refArea);
       if (pick) addInclusionSquares(tufts, dirtRng, patchX, patchY, pick, patchArea);
     }

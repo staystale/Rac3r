@@ -21,35 +21,6 @@ export const TEST_LIST = [
   // 2026-10-18; night (cost test) passed 2026-10-18; lamps, daytime approved 2026-10-18; suntemp
   // approved 2026-10-18; nightjudder, glowmap, pauseclock, onelight passed 2026-10-18; gpuonly
   // passed 2026-10-19; mudwater approved 2026-10-24; skyblend, decklight, formation, weatheronly,
-  // raingrip, lockheat, gravelsand approved 2026-10-24; hwlead, trafficease passed 2026-10-24)
-  {
-    id: 'punctkind',
-    added: '2026-10-24',
-    name: 'A13: punctures by what you hit - tyre walls and bales rarely, posts and pallets often',
-    where: 'Plain link + &punctkind=1: Grass Track / Stock Car (tyre walls), Castle Cum (armco,'
-      + ' signs), the highway (litter: pallets, crates)',
-    try: 'Hit tyre walls and bales hard (rare punctures), then armco and walls (sometimes), then'
-      + ' posts, chevrons and pallets (often).',
-    wrong: 'Tyre walls still puncturing about half the time, posts never puncturing, punctures'
-      + ' from small knocks, a puncture with nothing hit.',
-  },
-  {
-    id: 'shortgrass',
-    added: '2026-10-24',
-    name: 'G1: short grass its own look and feel - lighter, drier, tighter stripes, more dirt',
-    where: 'Plain link + &shortgrass=1: Naffcar Speedway infield, Grass Track',
-    try: 'Look at the short grass, then drive on it: a touch less grip than grass, it lets go a'
-      + ' little earlier, a little smoother ride.',
-    wrong: 'Short grass looking like grass or like dirt, patches popping in or moving, a big'
-      + ' change in grip, slow frames.',
-  },
-  {
-    id: 'grassblades',
-    added: '2026-10-24',
-    name: 'G1: grass gets a sparse layer of fine blades',
-    where: 'Plain link + &grassblades=1: any level with grass (Castle Cum, Thruston)',
-    try: 'Look at the grass verges and infields, still and while driving past.',
-    wrong: 'Blades too busy or too bold, flicker or crawl as you move, long grass looking'
-      + ' different, slow frames.',
-  },
+  // raingrip, lockheat, gravelsand approved 2026-10-24; hwlead, trafficease passed 2026-10-24;
+  // punctkind, shortgrass, grassblades passed 2026-10-24)
 ];
