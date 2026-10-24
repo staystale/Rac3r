@@ -2,6 +2,7 @@
 // node tools/runall.mjs                  the QUICK suite (each tool under about 2 minutes)
 // node tools/runall.mjs --full           QUICK plus the slow tools
 // node tools/runall.mjs --only a,b       just these tools (any tools/<name>.mjs file)
+// node tools/runall.mjs --skip a,b       the suite without these tools (CI runs renderhash apart)
 // node tools/runall.mjs --list           print the suites and stop
 // node tools/runall.mjs --baseline [--out <file>] [--only a,b]
 //                                        record the code stats + tool results report instead
@@ -75,7 +76,8 @@ const REFERENCE = {
   renderhash: 'tools/.renderhash',
 };
 
-const TIMEOUT_MS = { racecheck: 40 * 60 * 1000 };
+// renderhash: ~2 min a level on the laptop (the WebGL2 ground in software), ~30 min for all
+const TIMEOUT_MS = { racecheck: 40 * 60 * 1000, renderhash: 50 * 60 * 1000 };
 const DEFAULT_TIMEOUT_MS = 15 * 60 * 1000;
 
 /**
@@ -119,6 +121,16 @@ function runTool(item) {
  * @returns {Array<{label: string, tool: string, args: string[]}>} the tools
  */
 function chooseTools() {
+  const skipArg = argVal('--skip');
+  const skipped = new Set((skipArg || '').split(',').map((s) => s.trim()).filter(Boolean));
+  return pickTools().filter((item) => !skipped.has(item.tool));
+}
+
+/**
+ * The tools the suite flags (--full, --only) pick, before any --skip.
+ * @returns {Array<{label: string, tool: string, args: string[]}>} the tools
+ */
+function pickTools() {
   const all = args.includes('--full') ? [...QUICK, ...SLOW] : QUICK;
   const onlyArg = argVal('--only');
   if (!onlyArg) return all;

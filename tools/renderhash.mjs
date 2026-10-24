@@ -15,6 +15,8 @@
 //                                         (compare two folders with tools/shotdiff.mjs)
 // node tools/renderhash.mjs --only a,b  run only those level ids (a partial save merges into the
 //                                         reference; the verdict covers just those levels)
+// node tools/renderhash.mjs --shard 2/4  run every 4th level from the 2nd (a partial run as
+//                                         --only): CI splits the levels over parallel machines
 // It rasterises on the CPU (no GPU): GPU canvas raster is not bit-exact between builds. The WebGL2
 // ground is rasterised on the CPU too (SwiftShader): ~3.5 min a level.
 // Not covered: the menu screens, other screen sizes, the desktop (pc) input mode.
@@ -37,6 +39,16 @@ const SEED = 0x5eed;
 const FRAMES = [['t02', 120], ['t08', 480], ['t14', 840], ['t20', 1200]];
 const STAGE_IDS = ['gen-forest-medium-mixed-1001', 'stage-sahara-sandpants'];
 const HIGHWAY_OPTS = { traffic: 1, litter: 1.5 };
+// --shard k/n: this machine's share of the level list (k = 1..n), or null for all
+const SHARD = (() => {
+  const at = process.argv.indexOf('--shard');
+  if (at < 0) return null;
+  const [part, parts] = process.argv[at + 1].split('/').map(Number);
+  if (!(parts >= 1 && part >= 1 && part <= parts)) throw new Error('--shard wants k/n, 1 <= k <= n');
+  return { part, parts };
+})();
+// a run of some of the levels (--only, --shard): its save merges, its verdict covers only them
+const isPartial = () => !!onlyList() || !!SHARD;
 const CPU_RASTER_ARGS = [
   '--disable-gpu', '--disable-accelerated-2d-canvas', '--disable-gpu-rasterization',
 ];
@@ -132,7 +144,8 @@ function levelList() {
   const stages = STAGE_IDS.filter((id) => L.LEVELS.some((lv) => lv.id === id));
   const ids = [...circuits.map((lv) => lv.id), ...stages];
   const all = [...ids.map((id) => ({ id, endless: false })), { id: 'highway', endless: true }];
-  return only ? all.filter((lv) => only.includes(lv.id)) : all;
+  const picked = only ? all.filter((lv) => only.includes(lv.id)) : all;
+  return SHARD ? picked.filter((_lv, index) => index % SHARD.parts === SHARD.part - 1) : picked;
 }
 
 /**
@@ -142,7 +155,7 @@ function levelList() {
  * @returns {void}
  */
 function saveReference(caps, levels) {
-  const keep = onlyList() && existsSync(SAVE_FILE);
+  const keep = isPartial() && existsSync(SAVE_FILE);
   const old = keep ? JSON.parse(readFileSync(SAVE_FILE, 'utf8')) : null;
   const merged = { levels: { ...old?.levels, ...levels }, captures: { ...old?.captures, ...caps } };
   const rows = Object.keys(merged.levels).map((id) => id + ' ' + merged.levels[id]);
@@ -160,7 +173,7 @@ function report(all, caps) {
   if (!existsSync(SAVE_FILE)) return;
   const saved = JSON.parse(readFileSync(SAVE_FILE, 'utf8'));
   const keys = new Set(Object.keys(caps));
-  if (!onlyList()) for (const key of Object.keys(saved.captures)) keys.add(key);
+  if (!isPartial()) for (const key of Object.keys(saved.captures)) keys.add(key);
   // a partial run only judges levels the reference already holds
   else for (const key of [...keys]) if (!(key in saved.captures)) keys.delete(key);
   const bad = [...keys].filter((key) => caps[key] !== saved.captures[key]);

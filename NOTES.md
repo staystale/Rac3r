@@ -182,6 +182,14 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   the HUD layout before a frame draws the tyre diagram: tools/scratch/_hudoverlap.mjs draws frames.
 - The cover field, mud frost, mark fade and HUD gauge cost the phone nothing measurable (Castle
   Cum in snow, 10-18: 0.10 % slow frames).
+- CI runners have no GPU: the WebGL2 ground runs in SwiftShader, 3-6 min a level for renderhash
+  and the menu / guide checks several times slower than the laptop. Fixed sleeps time out there:
+  wait for the condition. renderhash runs as 4 parallel shards (`--shard k/4`).
+- framecheck A/B: alternate the order (on, off, on, off). The first run after a pause painted 3x
+  the tiles (385 vs 120) whichever side it was.
+- Wear cells cost per cell where code walks them all (pruneWear each highway rebuild, the worn
+  tiles' painter per tile): ~3 000 on a circuit measured nothing; ~15 000 (the highway's ploughed
+  fields) is why fields dry in blocks, not cells.
 
 ## Routine
 
@@ -203,6 +211,9 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
 - Long tools: run in the background, write to a file, poll it. One heavy browser tool at a time
   (6 GB laptop). Stop processes by PID only.
 - Long inline text in the Bash tool can fail to parse: write scripts to a file and run them.
+- Never edit `src/` in the worktree a proof is running from: the tools load it as they go.
+- CI logs: the portable GitHub CLI, `C:/Users/Admin/tools/gh/bin/gh.exe run view <id>
+  --log-failed -R staystale/Rac3r` (the anonymous API shows only pass / fail).
 
 ## Tools worth knowing
 

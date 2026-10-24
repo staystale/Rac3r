@@ -1,9 +1,11 @@
 name: checks
 
 # The regression suite on every push: the proof hashes (level data, simulation, pixels) are saved on
-# the base commit, then `npm run suite` compares the pushed commit against them. A change that is
-# meant to alter behaviour or looks fails here on purpose: say so in the commit, and the next push
-# compares against it.
+# the base commit, then the pushed commit is compared against them. A change that is meant to alter
+# behaviour or looks fails here on purpose: say so in the commit, and the next push compares
+# against it. The runners have no GPU: the WebGL2 ground runs in software (SwiftShader), ~3-6 min
+# a level, so the pixel check (renderhash) is its own job split over 4 machines (--shard): every
+# level on every push.
 on:
   push:
   pull_request:
@@ -11,7 +13,7 @@ on:
 jobs:
   checks:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     env:
       CHECK_BROWSER: chromium
     steps:
@@ -30,7 +32,37 @@ jobs:
           echo "base: $BASE"
           git worktree add ../base "$BASE"
           ln -s "$PWD/node_modules" ../base/node_modules
-          (cd ../base && node tools/worldhash.mjs --highway 20 save \
-            && node tools/simhash.mjs save && node tools/renderhash.mjs save)
-          cp ../base/tools/.worldhash ../base/tools/.simhash ../base/tools/.renderhash tools/
-      - run: npm run suite
+          (cd ../base && node tools/worldhash.mjs --highway 20 save && node tools/simhash.mjs save)
+          cp ../base/tools/.worldhash ../base/tools/.simhash tools/
+      - run: node tools/runall.mjs --skip renderhash
+
+  renderhash:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    env:
+      CHECK_BROWSER: chromium
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Pixel reference from the base commit (this shard's levels)
+        run: |
+          BASE=$(git merge-base origin/main HEAD)
+          if [ "$BASE" = "$(git rev-parse HEAD)" ]; then BASE=$(git rev-parse HEAD~1); fi
+          echo "base: $BASE"
+          git worktree add ../base "$BASE"
+          ln -s "$PWD/node_modules" ../base/node_modules
+          # this commit's renderhash.mjs, so a base from before --shard splits the levels the same
+          cp tools/renderhash.mjs ../base/tools/renderhash.mjs
+          (cd ../base && node tools/renderhash.mjs save --shard ${{ matrix.shard }}/4)
+          cp ../base/tools/.renderhash tools/
+      - run: node tools/renderhash.mjs --shard ${{ matrix.shard }}/4

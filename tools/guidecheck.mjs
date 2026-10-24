@@ -20,7 +20,8 @@ for (const lv of ['', '&level=grass-track']) for (const [W, H, q] of sizes) {
   await gotoGame(p, `${srv.url}/?${q}&guide=1${lv}${extraQuery()}`);
   await p.mouse.click(W / 2, H / 2);
   // wait for the fly-in, not a fixed time: MEASURED, the Grass Track fly-in takes ~2.5 s in headless Edge at 15-30 fps
-  await p.waitForFunction(() => window.__game.guide.active, null, { timeout: 8000 }).catch(() => {});
+  // 60 s: on CI the WebGL2 ground runs in software (SwiftShader), several times slower
+  await p.waitForFunction(() => window.__game.guide.active, null, { timeout: 60000, polling: 250 }).catch(() => {});
   const n = await p.evaluate(() => window.__game.guide.count);
   if (!(await p.evaluate(() => window.__game.guide.active))) { errs.push(`${tag}: guide did not open after the fly-in`); await ctx.close(); continue; }
   const t0 = await p.evaluate(() => window.__game.car.simTime);

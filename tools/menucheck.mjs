@@ -1,6 +1,9 @@
 // menucheck.mjs — drives the MENU flow (?menu=1) at 844x390 and 390x844 with real taps: main -> Test Mode -> track -> setup
 // -> LAUNCH -> session -> pause chip -> MAIN MENU -> Garage; photographs each screen into the folder given as argv[2] (or
 // skips photos). Fails on any page error. Built 2026-10-03 with the menus; caught the portrait pause GHOST-CLICK.
+// Waits for each button / screen (up to STEP_MS), not fixed sleeps: on CI the WebGL2 ground runs in software
+// (SwiftShader), several times slower, and a fixed sleep timed out there; a step that never comes is named.
+const STEP_MS = 60000;
 import { mkdirSync } from 'node:fs';
 import { startServer, launchBrowser, extraQuery, gotoGame } from './lib/browser.mjs';
 import { TEST_LIST } from '../src/testlist.js';
@@ -12,13 +15,30 @@ for (const [W, H] of [[844, 390], [390, 844]]) {
   const p = await (await b.newContext({ viewport: { width: W, height: H }, deviceScaleFactor: 2, isMobile: true, hasTouch: true })).newPage();
   const errs = []; p.on('pageerror', e => errs.push(e.message)); p.on('console', m => { if (m.type() === 'error') errs.push(m.text()); });
   const OUTDIR = process.argv[2]; if (OUTDIR) mkdirSync(OUTDIR, { recursive: true }); const shot = async (n) => { await p.waitForTimeout(500); if (OUTDIR) await p.screenshot({ path: OUTDIR + '/menu-' + W + '-' + n + '.png' }); };
-  const tap = async (txt) => { await p.waitForTimeout(400); const l = p.locator('#menu button', { hasText: txt }).first(); await l.tap(); };
-  await gotoGame(p, srv.url + '/?touch=1&menu=1&guide=0' + extraQuery()); await p.waitForTimeout(3500);
+  const tap = async (txt) => {
+    await p.waitForTimeout(400);
+    const button = p.locator('#menu button', { hasText: txt }).first();
+    await button.waitFor({ state: 'visible', timeout: STEP_MS }).catch(() => {
+      throw new Error(W + 'x' + H + ': the ' + txt + ' button never showed');
+    });
+    await button.tap();
+  };
+  // a timed poll, not waitForFunction's default animation-frame poll (tools/lib/browser.mjs gotoGame)
+  const waitFor = async (what, test) => {
+    await p.waitForFunction(test, null, { timeout: STEP_MS, polling: 250 }).catch(() => {
+      throw new Error(W + 'x' + H + ': ' + what + ' never happened');
+    });
+  };
+  await gotoGame(p, srv.url + '/?touch=1&menu=1&guide=0' + extraQuery());
+  await waitFor('the menu demo', () => window.__game.mode === 'menu');
+  await p.waitForTimeout(1500);
   await shot('1-main');
   const demo = await p.evaluate(() => ({ mode: window.__game.mode, v: Math.hypot(window.__game.car.vx, window.__game.car.vy).toFixed(1), car: window.__game.car.spec.id }));
   await tap('TEST MODE'); await shot('2-types'); await tap('OVALS'); await shot('2-tracks');   // the category layer (2026-10-05)
   await tap('Naffcar'); await shot('3-setup');
-  await tap('▶'); await tap('LAUNCH'); await p.waitForTimeout(3000); await shot('4-session');
+  await tap('▶'); await tap('LAUNCH');
+  await waitFor('the session', () => window.__game.mode === 'session' && !!window.__game.hudLayout().help);
+  await p.waitForTimeout(1500); await shot('4-session');
   const sess = await p.evaluate(() => ({ mode: window.__game.mode, level: window.__game.level.id, car: window.__game.car.spec.id }));
   const L = await p.evaluate(() => window.__game.hudLayout());
   await p.touchscreen.tap(L.help.x + L.help.w / 2, L.help.y + L.help.h / 2); await shot('5-pause');
