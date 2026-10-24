@@ -94,37 +94,22 @@ export const ICE_MELT_SHARE = 0.5;
 const airRange = (season: number): [number, number] =>
   (season === 0 ? WINTER_COLD_AIR_C : SEASONS[season].airC);
 
-// WEATHER ONLY (?weatheronly=1; owner: no level-drawn snow or ice, only the weather's - scenery
-// water stays): a SNOWY level (a snow-themed stage) has no snow of its own; its theme makes snow
-// SNOWY_SNOW_K times as likely where the season allows it (never in summer) and its mountain air
-// SNOWY_AIR_C colder (coverfield.ts: its snow starts lying deep when cold)
+// WEATHER ONLY (owner: no level-drawn snow or ice, only the weather's - scenery water stays): a
+// SNOWY level (a snow-themed stage) has no snow of its own; its theme makes snow SNOWY_SNOW_K
+// times as likely where the season allows it (never in summer) and its mountain air SNOWY_AIR_C
+// colder (coverfield.ts: its snow starts lying deep when cold)
 const SNOWY_SNOW_K = 4, SNOWY_AIR_C = -5;
-let isWeatherOnlyOn = false;
-
-/**
- * Turns weather-only on or off (?weatheronly=1): level-drawn snow and ice go, snow themes bias
- * the weather.
- * @param isOn true for weather only
- */
-export function setWeatherOnly(isOn: boolean): void {
-  isWeatherOnlyOn = isOn;
-}
-
-/** Whether only the weather lays snow and ice (?weatheronly=1). */
-export function isWeatherOnly(): boolean {
-  return isWeatherOnlyOn;
-}
 
 /**
  * A season's odds of each kind of weather and its air range, at a level: a snowy level's theme
- * biases them (weather only).
+ * biases them.
  * @param season 0 winter .. 3 autumn
  * @param isSnowy true at a snowy level
  * @returns the chances (summing to 1) and the air range, C
  */
 function seasonOdds(season: number, isSnowy: boolean) {
   const chance = SEASONS[season].chance, airC = airRange(season);
-  if (!isSnowy || !isWeatherOnlyOn) return { chance, airC };
+  if (!isSnowy) return { chance, airC };
   const biased = { ...chance, snow: chance.snow * SNOWY_SNOW_K };
   const total = Object.values(biased).reduce((sum, share) => sum + share, 0);
   for (const kind of Object.keys(biased) as WeatherKind[]) biased[kind] /= total;
@@ -143,8 +128,9 @@ const DRY_PER_S_PER_C = 1 / (600 * 18);
 // how fast the rain / snow and the temperatures move to a new weather (1/s): a shower builds over
 // ~15 s, the temperature over ~1 min
 const SKY_EASE = 1 / 15, TEMP_EASE = 1 / 60;
-// ?skyblend=1: the rain / snow ease in two stages, each twice as fast (~15 s on the whole):
-// one stage moved fastest at the very first instant, so a shower and its dimming started at once
+// the rain / snow ease in two stages, each twice as fast (~15 s on the whole; owner: weather
+// changes gradual): one stage moved fastest at the very first instant, so a shower and its
+// dimming started at once
 const BLEND_EASE = 2 * SKY_EASE;
 // s between chances of a change of weather in SEASON mode, and the chance it stays the same
 const CHANGE_S: [number, number] = [70, 180];
@@ -164,7 +150,7 @@ export interface WeatherPlan {
   season: number;
   /** the random stream's start, so a restart replays the same weather */
   seed: number;
-  /** a snowy level (a snow-themed stage, weather only): its theme biases the odds */
+  /** a snowy level (a snow-themed stage): its theme biases the odds */
   snowy?: boolean;
 }
 
@@ -178,8 +164,8 @@ export interface WeatherPlan {
  */
 export function snowTempC(): number { return RUN.plan ? WEATHER.trackC : 0; }
 
-/** Whether this event is at a snowy level whose theme biases the weather (weather only). */
-export function weatherSnowy(): boolean { return isWeatherOnlyOn && !!RUN.plan?.snowy; }
+/** Whether this event is at a snowy level whose theme biases the weather. */
+export function weatherSnowy(): boolean { return !!RUN.plan?.snowy; }
 
 /** Whether an event's weather is running (no plan: the old dry 18 C game, nothing melts). */
 export function weatherRuns(): boolean { return !!RUN.plan; }
@@ -197,19 +183,9 @@ const RUN = {
   airAimC: 18,      // the weather's air, before the day's swing
   sunTrackC: 0,     // what a noon sun adds to the track in this weather, C
   sinceSunS: 0,     // sim s since the sun was last sampled
-  frontRain: 0,     // ?skyblend=1: the rain / snow's first stage, which the falling one follows
+  frontRain: 0,     // the rain / snow's first stage, which the falling one follows
   frontSnow: 0,
 };
-// ?skyblend=1: the rain and snow ease in and out in two stages
-let isWeatherBlend = false;
-
-/**
- * Turns the two-stage rain / snow ease on or off (?skyblend=1).
- * @param isOn true for a gentle start and finish to every change of weather
- */
-export function setWeatherBlend(isOn: boolean): void {
-  isWeatherBlend = isOn;
-}
 /** Points the temperature targets at the weather and the sun now (air and track follow it). */
 function aimTemps(): void {
   const share = sunShareNow();
@@ -342,16 +318,10 @@ const ease = (from: number, target: number, rate: number, dt: number) =>
   from + (target - from) * Math.min(1, rate * dt);
 
 /**
- * Eases the rain and snow toward the weather: at once (one stage, fastest at the start), or
- * (?skyblend=1) in two stages, so a change starts and ends gently.
+ * Eases the rain and snow toward the weather in two stages, so a change starts and ends gently.
  * @param dt sim seconds
  */
 function easeSky(dt: number): void {
-  if (!isWeatherBlend) {
-    WEATHER.rain = ease(WEATHER.rain, RUN.targetRain, SKY_EASE, dt);
-    WEATHER.snow = ease(WEATHER.snow, RUN.targetSnow, SKY_EASE, dt);
-    return;
-  }
   RUN.frontRain = ease(RUN.frontRain, RUN.targetRain, BLEND_EASE, dt);
   RUN.frontSnow = ease(RUN.frontSnow, RUN.targetSnow, BLEND_EASE, dt);
   WEATHER.rain = ease(WEATHER.rain, RUN.frontRain, BLEND_EASE, dt);

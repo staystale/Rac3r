@@ -8,7 +8,7 @@ import { aiTraits } from '../ai/traits.ts';
 import { LEVEL } from "../world/state.ts";
 import { onTrack, querySubtrack } from "../world/tyrewall.ts";
 import { STAGE_GAP_S, GRID_STEP, gridColumn } from './grid.js';
-import { formationOn, formationInput } from '../ai/formation.ts';
+import { formationInput } from '../ai/formation.ts';
 import { shared, game } from './state.js';
 
 export const resetCar = reset;
@@ -29,8 +29,8 @@ export function armStart() {
     isRolling = active && (!!LEVEL.rollingStart || !!LEVEL.endless) && !!LEVEL.subtrack;
   game.start = { on: active, t: 0, tGreen: isRolling ? Infinity : 4 * START_STEP,
     tGreen0: isRolling ? undefined : 4 * START_STEP, rolling: isRolling, green: !active,
-    drv: isRolling ? (LEVEL.endless ? createAIDriver(LEVEL, aiTraits(4, 0, 1))
-      : createAutoDriver(LEVEL.subtrack)) : null };
+    // the highway's player driver until the green (a circuit's formation keeps its own, formDrv)
+    drv: isRolling && LEVEL.endless ? createAIDriver(LEVEL, aiTraits(4, 0, 1)) : null };
   // the HIGHWAY's rolling start has no line to cross: green HW_GREEN s in, everyone already rolling
   // in formation (highwayrace.js)
   if (isRolling && LEVEL.endless) game.start.tGreen = game.start.tGreen0 = HW_GREEN;
@@ -43,22 +43,24 @@ export const startAtOf = (car) => (game.start.tGreen0 ?? game.start.tGreen) + (L
   ? (car._slot || 0) * STAGE_GAP_S : 0);
 export const carHeld = (car) => game.start.on && !game.start.rolling
   && game.start.t < startAtOf(car) - START_EARLY;
-// cap a driver's output at the rolling-start pace
+// cap a driver's output at the rolling-start pace (the highway's; a circuit's cars drive in
+// formation, formationWant)
 export function atPace(out, car) {
   const speed = Math.hypot(car.vx, car.vy);
   return { ...out, throttle: speed > ROLL_PACE ? 0 : Math.min(out.throttle, 0.55),
     brake: speed > ROLL_PACE + 2 ? 0.25 : 0, handbrake: 0, reverse: 0 };
 }
 /**
- * THE FORMATION (?formation=1, ai/formation.ts): a car's controls in its own grid slot before a
- * circuit's rolling-start green - the player's and every AI's alike.
+ * THE FORMATION (ai/formation.ts): a car's controls in its own grid slot before a circuit's
+ * rolling-start green - the player's and every AI's alike (the highway's racers hold their own
+ * formation, highwayrace.ts).
  * @param {object} car the car
  * @param {number} slot its grid slot (0 = pole)
  * @param {object} keeper keeps the car's scripted driver (formDrv: the start, or the AI entry)
- * @returns {object|null} the controls, or null (off, not rolling, or the highway)
+ * @returns {object|null} the controls, or null (not rolling, or the highway)
  */
 export function formationWant(car, slot, keeper) {
-  if (!formationOn() || !game.start.rolling || LEVEL.endless) return null;
+  if (!game.start.rolling || LEVEL.endless) return null;
   keeper.formDrv ??= createAutoDriver(LEVEL.subtrack);
   return formationInput(car, keeper.formDrv,
     { columnM: gridColumn(slot), backM: slot * GRID_STEP },

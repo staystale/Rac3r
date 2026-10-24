@@ -1,9 +1,8 @@
 // _rainease.mjs - how a shower builds (world/weather.ts): rain every 2 s after a real change of
-// weather in SEASON mode (dry -> rain / heavy), the one-stage ease vs ?skyblend=1's two stages.
+// weather in SEASON mode (dry -> rain / heavy): the two-stage ease (it was one stage: 0.125 at 2 s).
 // node tools/scratch/_rainease.mjs
-import { WEATHER, startWeather, stepWeather, setWeatherBlend } from '../../src/world/weather.ts';
-for (const blend of [false, true]) {
-  setWeatherBlend(blend);
+import { WEATHER, startWeather, stepWeather } from '../../src/world/weather.ts';
+for (const blend of [true]) {
   for (let seed = 1; seed < 400; seed++) {
     startWeather({ mode: 'season', season: 3, seed });
     if (WEATHER.kind !== 'dry') continue;

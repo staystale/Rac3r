@@ -21,7 +21,6 @@ import { BASE_FLOOR as FLOOR } from "./world/bounds.ts";
 import { LEVELS } from "./world/levels/index.ts";
 import { trackKit } from "./world/levels/kit.ts";
 import { prepBumps } from "./world/terrain.ts";
-import { isWeatherOnly } from "./world/weather.ts";
 import {
   buildStageCovers, snowPatchOf, snowRoadOf, stageTurnOf,
 } from "./world/stageweather.ts";
@@ -37,8 +36,10 @@ export const THEMES = {
       straight: 0.8, fast: 0.7, medium: 1.1, square: 1, hairpin: 2.2
     }
   },
+  // the snow theme's road comes from the stage's seed (world/stageweather.ts); its snow from the
+  // weather, which the theme biases
   snow: {
-    name: 'SNOW + ICE', road: 'packedSnow', width: 9, base: 'snow', sep: 36, w: {
+    name: 'SNOW + ICE', road: null, width: 9, base: 'grass', sep: 36, w: {
       straight: 1, fast: 1.2, medium: 1, square: 0.8, hairpin: 0.6
     }
   },
@@ -372,13 +373,13 @@ function chooseStageRoad(seed, themeSpec, style, target, attempt) {
  * @param {string} theme the theme name
  * @param {number} finishS finish road distance
  * @param {object} roadS the road surface
- * @param {string|null} snowRoad a weather-only snow stage's road (its patches), else null
+ * @param {string|null} snowRoad a snow stage's road (its patches), else null
  * @return {object[]} the sectors
  */
 function buildStageSectors(rand, theme, finishS, roadS, snowRoad) {
   const sectors = [];
   const patchS = snowRoad ? SURFACES[snowPatchOf(snowRoad)] : {
-    alpine: SURFACES.broken, desert: SURFACES.sand, forest: SURFACES.dirt, snow: SURFACES.ice
+    alpine: SURFACES.broken, desert: SURFACES.sand, forest: SURFACES.dirt
   }[theme];
   for (let patch = 0; patch < 3; patch++) {
     const patchStart = 150 + rand() * (finishS - 300);
@@ -672,7 +673,7 @@ export function genStage({ seed = 1001, theme = 'forest', len = 'medium', style 
   const runUp = road.P.filter((point) => point.s < 0),
       main = road.P.filter((point) => point.s >= 0);
   const pts = [...main, ...runUp].map((point) => [point.x, point.y]), ghostIdx = main.length - 1;
-  const snowRoad = theme === 'snow' && isWeatherOnly() ? snowRoadOf(seed) : null;
+  const snowRoad = theme === 'snow' ? snowRoadOf(seed) : null;
   const width = themeSpec.width, halfWidth = width / 2,
     roadS = SURFACES[snowRoad || themeSpec.road];
   const sectors = buildStageSectors(rand, theme, road.finishS, roadS, snowRoad);
@@ -683,7 +684,7 @@ export function genStage({ seed = 1001, theme = 'forest', len = 'medium', style 
   const corners = autoKerbs(sub, { maxR: 70, exitR: 0, minTurn: 18, mergeGap: 10 })
       .filter((corner) => corner.startDist > 25 && corner.endDist < FIN - 10);
   const { bumps, straights, marks } = buildStageTerrain(rand, theme, kit, corners, FIN);
-  const covers = buildStageCovers(rand, theme, kit, corners, straights, FIN);
+  const covers = buildStageCovers(rand, theme, kit, straights);
   const dress = { rand, kit, sub, theme, seed, width, halfWidth, FIN,
     endD: sub.pts[ghostIdx].dist, runD: sub.pts[ghostIdx + 1].dist,
     props: [], cones: [], barriers: [] };
@@ -701,7 +702,7 @@ export function genStage({ seed = 1001, theme = 'forest', len = 'medium', style 
     id: `gen-${theme}-${len}-${style}-${seed}`, name, gen: {
       seed, theme, len, style, attempt: used, km: +(FIN / 1000).toFixed(2)
     },
-    base: SURFACES[snowRoad ? 'grass' : themeSpec.base], subtrack: sub, camber: {
+    base: SURFACES[themeSpec.base], subtrack: sub, camber: {
       maxDeg: 0, refR: 60, crown: 0.03, edge: 5, sections: []
     },
     zones: [], bumps: prepBumps(bumps), covers, paint, boards: [], seams: false, cones,

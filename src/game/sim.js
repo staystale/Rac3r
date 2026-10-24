@@ -111,6 +111,7 @@ export function readFrameInput(wallDt) {
     && formationWant(game.car, shared.gridSlot || 0, game.start);
   if (formed) inp = { ...inp, ...formed, reverse: 0, shiftUp: false, shiftDown: false };
   else if (shared.mode !== 'menu' && startHeld()) {
+    // the highway's rolling start (the formation drives a circuit's), else held on the grid
     inp = game.start.rolling
       ? { ...atPace(game.start.drv.drive(game.car, PHYSICS_STEP_SECONDS,
         { cars: [...game.ai.map((entry) => entry.car), ...game.traffic.cars], hold: true }),

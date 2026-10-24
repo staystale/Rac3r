@@ -1,9 +1,7 @@
 // _skysnap.mjs - the sky (darkness, colour) the game clock gives through a day, and the biggest
 // change in one real second of play: does the light snap at sunrise / sunset?
-// node tools/scratch/_skysnap.mjs [season 0..3] [cloud 0..1] [blend]
-import { setSkyBlend } from '../../src/world/clock.ts';
+// node tools/scratch/_skysnap.mjs [season 0..3] [cloud 0..1]
 import { CLOCK, skyNow, sunTimes, calendarAt, GAME_PER_REAL, DAYS_PER_SEASON } from '../../src/world/clock.ts';
-if (process.argv[4] === 'blend') setSkyBlend(true);
 const season = Number(process.argv[2] ?? 2), cloud = Number(process.argv[3] ?? 0);
 const DAY_S = 86400;
 const base = season * DAYS_PER_SEASON * DAY_S + 3 * DAY_S;

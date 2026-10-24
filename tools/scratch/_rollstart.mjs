@@ -4,7 +4,7 @@
 // launch to 25 s after the green. Per car: the side-to-side swing (sign flips of the sideways
 // speed across the road, with the swing size), the closest box gap to another car, contact, and
 // how far each car is from its own column before the green.
-// node tools/scratch/_rollstart.mjs [levels,comma] [runs] [extra query, e.g. formation=1]
+// node tools/scratch/_rollstart.mjs [levels,comma] [runs] [extra query, e.g. autopilot=1]
 import { startServer, launchBrowser, gotoGame } from '../lib/browser.mjs';
 
 const levels = (process.argv[2] || 'naffcar,stock-car').split(',');

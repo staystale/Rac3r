@@ -1,4 +1,4 @@
-// THE ROLLING START'S FORMATION (A3, ?formation=1; owner: "the cars weave sometimes oddly /
+// THE ROLLING START'S FORMATION (owner: "the cars weave sometimes oddly /
 // crash before the race even starts / start off set including the player"). MEASURED
 // (tools/scratch/_rollstart.mjs, Naffcar, 5 AI): before the green each AI drove its own RACE
 // driver capped at the pace (its racing line, attack and cover moves) - cars left their columns
@@ -15,22 +15,6 @@ const FORM_GAIN = 0.4, FORM_SPREAD = 4;
 // throttle and brake gains, per m/s off the target speed; the throttle stays gentle (a formation
 // lap, as the old pace cap's 0.55)
 const THROTTLE_GAIN = 0.5, THROTTLE_MAX = 0.55, BRAKE_GAIN = 0.4, BRAKE_MAX = 0.6;
-
-// ?formation=1: the game drives every car in formation until the green
-let isFormationOn = false;
-
-/**
- * Turns the formation on or off (?formation=1).
- * @param isOn true for the formation
- */
-export function setFormation(isOn: boolean): void {
-  isFormationOn = isOn;
-}
-
-/** Whether the rolling start drives every car in formation (?formation=1). */
-export function formationOn(): boolean {
-  return isFormationOn;
-}
 
 /** A scripted driver (autodrive.ts) that can hold a column. */
 interface ColumnDriver {

@@ -77,6 +77,11 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   hot tyres clearing water / ice faster, water / ice / packed snow told apart: default 10-18.
   Pre-turned pixel art (RotSprite)
   was the alternative, not chosen.
+- The A fixes (10-24, owner "all pass"): the sky's twilight colour only in its share of the dark
+  and rain / snow easing in two stages; car light kept off bridge decks; every car held in its
+  grid slot through a circuit's rolling start (ai/formation.ts); weather-only snow and ice
+  (snow stages' road from their seed); damp ground a small grip loss with fewer, smaller
+  puddles; locked wheels heating their tyres; dry gravel turning to sand when hot.
 - Not wanted / undone: the highway rebuild (cancelled 10-15), a fade at zoom steps, tiles tracing
   only their part of the ribbon (`?ribboncull`, undone 10-16), the WebGL cars (`?gpucars`, removed
   10-16), the menu recording (parked until after the graphics work).

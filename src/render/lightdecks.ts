@@ -6,17 +6,6 @@
 import { PROPS } from '../world/state.ts';
 import { overheadDeck } from './props/bridges.ts';
 
-// ?decklight=1: car light is kept off the decks
-let isDeckLight = false;
-
-/**
- * Turns the decks' cut on or off (?decklight=1).
- * @param isOn true to keep car light off the decks
- */
-export function setDeckLight(isOn: boolean): void {
-  isDeckLight = isOn;
-}
-
 /** The light map's mapping from world metres to its art px, and its on-map test. */
 export interface DeckMapping {
   artX: (worldX: number) => number;
@@ -29,10 +18,10 @@ export interface DeckMapping {
  * Adds every deck on the light map to the context's current path, as a closed quad each.
  * @param ctx the light map's context (identity transform)
  * @param map the world-to-art-px mapping
- * @returns how many decks were added (0: none on the map, or the cut is off)
+ * @returns how many decks were added (0: none on the map)
  */
 export function traceDecks(ctx: CanvasRenderingContext2D, map: DeckMapping): number {
-  if (!isDeckLight || !PROPS) return 0;
+  if (!PROPS) return 0;
   let count = 0;
   for (const prop of PROPS) {
     const deck = overheadDeck(prop);

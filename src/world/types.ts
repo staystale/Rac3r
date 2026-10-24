@@ -33,7 +33,7 @@ export interface Surface {
   heatK?: number;
   under?: string;   // what a snow / ice / wet surface lies on; a puddle's base id
   wetK?: number;    // how wet, 0..1 (damp / puddle surfaces, wet.ts): hard ground's tyre WET grip
-  gripWetK?: number;   // ?raingrip=1: the share of the tyre's WET grip a damp surface asks (wet.ts)
+  gripWetK?: number;   // the share of the tyre's WET grip a damp / puddle surface asks (wet.ts)
 }
 
 export interface Paint {

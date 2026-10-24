@@ -484,7 +484,7 @@ export function tyreGripOn(tyre: Tyre,
     surface: { id: string; under?: string; wetK?: number; gripWetK?: number; hard?: boolean },
 ): number {
   const own = tyre.bySurf![surface.under || surface.id] ?? 1;
-  // damp ground under ?raingrip=1 asks only a share of the wet grip (world/wet.ts)
+  // damp ground asks only a share of the wet grip, a puddle all of it (world/wet.ts)
   const wetK = surface.gripWetK ?? surface.wetK ?? 0;
   return wetK > 0 && surface.hard ? own + ((tyre.grip.wet ?? 1) - own) * wetK : own;
 }

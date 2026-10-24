@@ -6,8 +6,6 @@ const L = await import(W + 'lab.js');
 const wear = await import(W + 'world/wear.ts');
 const Wx = await import(W + 'world/weather.ts');
 const F = await import(W + 'world/coverfield.ts');
-// RAINGRIP=1: with ?raingrip=1's ceiling and evaporation (A6)
-if (process.env.RAINGRIP) (await import(W + 'world/wet.ts')).setRainGrip(true);
 const STATE = await import(W + 'world/state.ts');
 
 L.setLevel('castle-cum');

@@ -1,7 +1,6 @@
 // highway cuts: slip road / bridge / river bookkeeping (keep-out rects, cut-short polylines, the
 // secret side road, approaches, river covers). Split out of highway.js.
 import { SURFACES } from "../world/surfaces.ts";
-import { isWeatherOnly } from "../world/weather.ts";
 import { adoptRoadCovers } from "../world/puddles.ts";
 import { STEP } from "./presets.js";
 import { ease } from "./road.js";
@@ -230,8 +229,8 @@ export function river(level, bridge, dist) {
   for (const sign of [-1, 1]) {
     const water = {
       cover: "wet",
-      // weather only: SCENERY water (never dries; freezes in the cold: world/puddles.ts)
-      ...(isWeatherOnly() ? { water: true } : {}),
+      // SCENERY water (never dries; freezes in the cold: world/puddles.ts)
+      water: true,
       shape: "rect",
       rot: bridge.rot,
       h: riverW,
@@ -289,5 +288,5 @@ export function syncCovers(level) {
   state.coversDirty = false;
   level._coversBase = state.covers;
   level.covers = [...state.covers, ...((level._incl && level._incl.covers) || [])];
-  if (isWeatherOnly()) level.covers = adoptRoadCovers(level.covers);
+  level.covers = adoptRoadCovers(level.covers);
 }

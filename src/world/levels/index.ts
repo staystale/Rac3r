@@ -90,10 +90,6 @@ export const LEVELS: Level[] = [
       onTrack(TT_SUBTRACK, 250, 2, { w: 9, h: 5, cover: 'wet', shape: 'ellipse' }),
       // hairpin, tarmac
       onTrack(TT_SUBTRACK, 740, -2, { w: 7, h: 4, cover: 'wet', shape: 'ellipse' }),
-      // black ice on the dirt
-      onTrack(TT_SUBTRACK, 580, 0, { w: 14, h: 9, cover: 'ice', shape: 'ellipse' }),
-      // drift beside the hairpin
-      onTrack(TT_SUBTRACK, 700, 14, { w: 18, h: 10, cover: 'snow', shape: 'ellipse' }),
     ],
     zones: TT_ZONES,
     bumps: TT_BUMPS,

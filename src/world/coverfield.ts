@@ -24,7 +24,6 @@ import {
   ICE_MELT_SHARE, WEATHER, weatherRandom, weatherRuns, weatherSnowy,
 } from "./weather.ts";
 import { wearMap, wearDirty, WEAR_CELL } from "./wear.ts";
-import { rainGripOn } from "./wet.ts";
 import type { Cover, Layers, Surface, WearCell } from "./types.ts";
 
 // LEVEL per second at rain 1 / snow 1 (owner: heavy coats the track in ~10 min, light in ~25;
@@ -65,15 +64,15 @@ export const FIELD_SQ = 0.5;
 // lying (owner: on a normal track about a quarter of what lay at first - ~3-20 % of the ground -
 // then it builds or wears with racing; a snow level's own snow is its area, full) - each a range,
 // dealt from the weather's seeded stream
-// RAIN GRIP (?raingrip=1; owner: "less and more smaller puddles maybe like real rain"; "water
+// RAIN GRIP (owner: "less and more smaller puddles maybe like real rain"; "water
 // can still evaporate during rain just less"). MEASURED before (_coverfield.mjs, Castle Cum):
 // heavy rain left 98 % of the race surface under water in 10 min, light rain 100 % in 25. Now the
 // water rises only to RAIN_WATER_BASE + RAIN_WATER_PER_RAIN x rain (light ~0.21, heavy 0.33 of
 // the catch) and runs off above it at RUNOFF_PER_S; it evaporates in rain too, at RAIN_EVAP_SHARE
-// of a dry spell's rate; a rainy start deals START_RAIN x RAIN_START_K.
+// of a dry spell's rate; a rainy start deals START_RAIN.
 const RAIN_WATER_BASE = 0.11, RAIN_WATER_PER_RAIN = 0.22, RUNOFF_PER_S = 1 / 300;
-const RAIN_EVAP_SHARE = 0.2, RAIN_START_K = 0.5;
-const START_RAIN = [0.15, 0.5], START_DRYING = 0.35, START_SNOW = [0.15, 0.38], SNOW_LYING = 0.6;
+const RAIN_EVAP_SHARE = 0.2;
+const START_RAIN = [0.075, 0.25], START_DRYING = 0.35, START_SNOW = [0.15, 0.38], SNOW_LYING = 0.6;
 // a SNOWY level (a snow-themed stage, weather only: weather.ts) in the cold: its snow always lies,
 // deep (most of the ground) - what its own drawn snow was
 const SNOWY_START_SNOW = [0.75, 1.05];
@@ -329,9 +328,8 @@ export function fieldLayers(zoneSurface: Surface, isBase: boolean, levelCover: C
 const ICE_THAW_PER_S_PER_C = SNOW_MELT_PER_S_PER_C * ICE_MELT_SHARE;
 
 /**
- * The standing water's level over a step: rain fills it, a dry spell dries it; with rain grip
- * (?raingrip=1) it fills only to a ceiling by how hard it rains, runs off above it and
- * evaporates in the rain too, more slowly.
+ * The standing water's level over a step: rain fills it only to a ceiling by how hard it rains,
+ * it runs off above it, and it evaporates - in the rain too, more slowly.
  * @param water the water level
  * @param rain how hard it rains, 0..1
  * @param trackC the track temperature, C
@@ -340,7 +338,6 @@ const ICE_THAW_PER_S_PER_C = SNOW_MELT_PER_S_PER_C * ICE_MELT_SHARE;
  */
 function stepWater(water: number, rain: number, trackC: number, dt: number): number {
   const dry = Math.max(0, trackC) * WATER_DRY_PER_S_PER_C * dt;
-  if (!rainGripOn()) return water + rain * WATER_FILL_PER_S * dt - (rain < 0.05 ? dry : 0);
   const ceiling = rain > 0.05 ? RAIN_WATER_BASE + RAIN_WATER_PER_RAIN * rain : 0;
   const fill = water < ceiling ? Math.min(ceiling - water, rain * WATER_FILL_PER_S * dt) : 0;
   const runoff = water > ceiling && rain > 0.05 ? Math.min(water - ceiling, RUNOFF_PER_S * dt) : 0;
@@ -534,7 +531,7 @@ export function resetCoverField(): void {
     FROST.thickMud = FROST.mud * THICK_FROST_RATE;
   }
   const deal = (range: number[]) => range[0] + (range[1] - range[0]) * weatherRandom();
-  if (WEATHER.rain > 0) FIELD.water = deal(START_RAIN) * (rainGripOn() ? RAIN_START_K : 1);
+  if (WEATHER.rain > 0) FIELD.water = deal(START_RAIN);
   else if (WEATHER.wetness > 0.1) FIELD.water = WEATHER.wetness * START_DRYING;
   const cold = WEATHER.trackC < SNOW_SETTLE_C;
   const isLying = cold && (WEATHER.snow > 0 || weatherRandom() < SNOW_LYING);

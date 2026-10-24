@@ -1,20 +1,18 @@
-// A RALLY STAGE'S WEATHER SIDE (stagegen.js): what lies on a generated stage - the forest's water
-// splash, the ice in the shade of alpine hairpins and on snow stages - and, WEATHER ONLY
-// (?weatheronly=1; owner: no stage-drawn snow or ice, the weather lays it; a snow stage "might be
-// road, might be track, might be dirt"), a snow stage's road drawn from its own seed (SNOW_ROADS,
+// A RALLY STAGE'S WEATHER SIDE (stagegen.js; owner: no stage-drawn snow or ice - the weather lays
+// it; a snow stage "might be road, might be track, might be dirt"). Only the forest's ford lies on
+// a stage, as scenery water. A snow stage's road is drawn from its own seed (SNOW_ROADS,
 // cumulative shares) on grass, with that road's character patches (SNOW_PATCH); its theme biases
-// the weather instead (world/weather.ts). The road has its own random stream and the covers make
-// the same draws either way, so the stage's layout and dressing are unchanged.
+// the weather (world/weather.ts). The road has its own random stream and the stage's stream
+// keeps the draws its old ice patches made, so every layout and its dressing stay as they were.
 import { lcg } from '../core/random.ts';
-import { isWeatherOnly } from './weather.ts';
-import type { Cover, CoverId, TrackKit } from './types.ts';
+import type { Cover, TrackKit } from './types.ts';
 
 const SNOW_ROADS: [string, number][] = [['tarmac', 0.4], ['gravel', 0.8], ['dirt', 1]];
 const SNOW_PATCH: Record<string, string> = { tarmac: 'broken', gravel: 'dirt', dirt: 'gravel' };
 // mixed into the seed: a stream apart from the layout's
 const ROAD_STREAM = 0x2f6b9a41;
-// a hairpin, for the alpine ice: a turn of more than this, radians
-const HAIRPIN_TURN = 2;
+// the stage stream's draws the old snow-stage ice patches made (kept: the dressing follows them)
+const OLD_ICE_DRAWS = 4;
 
 /** A stretch of a stage by road distance (a corner from autoKerbs). */
 interface Span { startDist: number; endDist: number }
@@ -50,39 +48,22 @@ export function stageTurnOf(kit: TrackKit, corner: Span): number {
 }
 
 /**
- * COVERS: the forest's water splash, ice in the shade of alpine hairpins, ice patches on snow
- * stages. Weather only: the splash is scenery water (a ford: never dries, may freeze), the ice
- * is the weather's.
+ * COVERS: the forest's water splash, scenery water (a ford: never dries, may freeze).
  * @param rand the stage's random source
  * @param theme the theme name
  * @param kit the track kit
- * @param corners the corners
  * @param straights the straights between corners, [start, end] road distances
- * @param finish the finish's road distance
  * @returns the covers
  */
 export function buildStageCovers(rand: () => number, theme: string, kit: TrackKit,
-    corners: Span[], straights: number[][], finish: number): Cover[] {
+    straights: number[][]): Cover[] {
   const covers: Cover[] = [];
-  const weatherOnly = isWeatherOnly();
-  const coverAt = (dist: number, cover: CoverId, coverW: number, coverH: number) => {
-    if (weatherOnly && cover === 'ice') return;
-    const pos = kit.at(dist, 0);
-    covers.push({ x: pos.x, y: pos.y, w: coverW, h: coverH, cover, shape: 'ellipse',
-      rot: kit.rot(dist), ...(weatherOnly && cover === 'wet' ? { water: true } : {}) });
-  };
   if (theme === 'forest' && straights.length) {
     const [segStart, segEnd] = straights[(rand() * straights.length) | 0];
-    coverAt((segStart + segEnd) / 2 + 20, 'wet', 16, 13);
+    const dist = (segStart + segEnd) / 2 + 20, pos = kit.at(dist, 0);
+    covers.push({ x: pos.x, y: pos.y, w: 16, h: 13, cover: 'wet', shape: 'ellipse',
+      rot: kit.rot(dist), water: true });
   }
-  if (theme === 'alpine') {
-    const hairpins = corners.filter((item) => Math.abs(stageTurnOf(kit, item)) > HAIRPIN_TURN);
-    for (const corner of hairpins.slice(0, 3)) {
-      coverAt((corner.startDist + corner.endDist) / 2, 'ice', 9, 7);
-    }
-  }
-  if (theme === 'snow') {
-    for (let patch = 0; patch < 4; patch++) coverAt(120 + rand() * (finish - 200), 'ice', 14, 8);
-  }
+  if (theme === 'snow') for (let draw = 0; draw < OLD_ICE_DRAWS; draw++) rand();
   return covers;
 }

@@ -32,13 +32,6 @@ export interface Settings {
   churn: '' | 'pictures' | 'objects';   // ?churn=: judder mechanism test (memory churn)
   autopilot: boolean;   // ?autopilot=1: the AI drives the player car (phone frame tests, no touch)
   autopilotKmh: number;   // ?autopilot=120: hold the autopilot car at this speed (0 = no cap)
-  skyBlend: boolean;   // ?skyblend=1: the sky's colour and the weather blend, never snap (A1)
-  deckLight: boolean;   // ?decklight=1: car light kept off bridge decks (A2, render/lightdecks.ts)
-  weatherOnly: boolean;   // ?weatheronly=1: no level-drawn snow / ice, snow themes bias it (A5)
-  formation: boolean;   // ?formation=1: the rolling start drives every car in its slot (A3)
-  rainGrip: boolean;   // ?raingrip=1: damp a small grip loss, fewer / smaller puddles (A6)
-  lockHeat: boolean;   // ?lockheat=1: a locked axle heats its tyres more (A8)
-  gravelSand: boolean;   // ?gravelsand=1: dry gravel turns to sand, likelier hot (E)
 }
 
 function autopilotKmh(params: URLSearchParams): number {
@@ -109,12 +102,5 @@ export function readSettings(search: string): Settings {
     churn: churnKind(params),
     noNatClear: params.get('nonat') === '1',
     skipLayers: new Set((params.get('skip') || '').split(',').filter(Boolean)),
-    skyBlend: params.get('skyblend') === '1',
-    deckLight: params.get('decklight') === '1',
-    weatherOnly: params.get('weatheronly') === '1',
-    formation: params.get('formation') === '1',
-    rainGrip: params.get('raingrip') === '1',
-    lockHeat: params.get('lockheat') === '1',
-    gravelSand: params.get('gravelsand') === '1',
   };
 }

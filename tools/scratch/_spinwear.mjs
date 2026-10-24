@@ -7,8 +7,6 @@ import * as L from '../../src/lab.js';
 import { makeCar, step, reset, PHYSICS_STEP_SECONDS as DT } from '../../src/vehicle.ts';
 
 const carId = process.argv[2] || 'hatch-rwd';
-// LOCKHEAT=1: with ?lockheat=1 (A8)
-if (process.env.LOCKHEAT) (await import('../../src/physics/tyreheat.ts')).setLockHeat(true);
 L.setLevel('test-track');
 const sub = L.LEVEL.subtrack;
 const spots = { tarmac: L.onTrack(sub, 100, 0, {}), grass: L.onTrack(sub, 100, sub.width / 2 + 12, {}) };

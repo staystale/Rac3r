@@ -7,12 +7,13 @@ handover, written on request.
 
 ## Where we are (2026-10-24 evening)
 
-- The plain link is the approved game (mud M1 the default 10-24; itch.io build #2201136).
-- UNDER OWNER TEST (one bundled link, each its own switch - src/testlist.js): A1 ?skyblend=1,
-  A2 ?decklight=1, A3 ?formation=1 (fixes A4 too), A5 ?weatheronly=1, A6 ?raingrip=1,
-  A8 ?lockheat=1, E ?gravelsand=1. A7 needed no change (measured: every surface already wears
-  twice under a sliding wheel - locks, handbrake, wheelspin; tarmac / concrete have nothing to
-  wear to); asked the owner whether x2 is "slightly" enough. Measurements in each entry below.
+- The plain link is the approved game; the test list is EMPTY. The A fixes are the DEFAULT
+  (owner 10-24: "all pass"; switches and old paths deleted): A1 sky blend, A2 bridge decks, A3
+  formation (A4 with it), A5 weather only, A6 rain grip, A8 lock heat, E gravel -> sand. A7
+  needed no change. ASKED, unanswered: A7's x2 "slightly" enough? A11-A13 next?
+- itch.io: build #2201136 (10-24, before the A fixes); push only when the owner says.
+- TIDY-UP noted: race levels still carry hand-placed 'wet' covers that staticCovers drops (the
+  weather lays puddles): Test Track, Grass Track, Stock Car - delete the data (one system).
 - CI: `verify` is the gate for main; the `checks` job compares each push with its parent (a
   commit that changes behaviour on purpose fails it by design).
 - The laptop has ~6 GB: ONE heavy browser tool at a time; a full renderhash runs in 4 parts.
@@ -75,18 +76,18 @@ Sizes S / M / L / XL. "Exists" = already in the game, so the item extends it (on
 
 A. FIXES AND CHECKS (S-M each; first, they change what is already there)
 - A1 Light at dawn / dusk snaps in: blend smoothly through sunrise / sunset colours
-  (world/daylight.ts); weather changes gradual too. S-M. BUILT ?skyblend=1 (10-24): CAUSE - under
+  (world/daylight.ts); weather changes gradual too. S-M. DEFAULT (owner: all pass) (10-24): CAUSE - under
   cloud / rain the dark's colour switched from blue-black to the sunset / sunrise colour in one
   step at the golden hour's edge (heavy rain: 26/255 of overlay in one frame; clear: hidden by
   darkness 0). Now blended (< 1/255 a real s in any weather), cloud mutes the glow; rain / snow
   ease in two stages (a shower 0.03 at 2 s, was 0.125). Probes: _skysnap.mjs, _rainease.mjs.
 - A2 Head / tail lights shine through bridges: the night layer's beams are cut under decks
-  (glow at the edge, never through). S-M. BUILT ?decklight=1 (10-24): render/lightdecks.ts; the
+  (glow at the edge, never through). S-M. DEFAULT (owner: all pass) (10-24): render/lightdecks.ts; the
   cars' beams / glows rubbed out, the dark put back over bridge / footbridge decks, then the
   lamps' pools (above) - order unchanged with no deck on screen. Gantries (open trusses) pass.
 - A3 Rolling / grid starts: cars (the player too) weave oddly, crash before the race starts or
-  start off their slot - find the cause (session.js grid / rolling start). S-M. BUILT
-  ?formation=1 (10-24): CAUSE - the circuit AI ignored "hold station" (only the highway's used
+  start off their slot - find the cause (session.js grid / rolling start). S-M. DEFAULT
+  (owner: all pass) (10-24): CAUSE - the circuit AI ignored "hold station" (only the highway's used
   it): each AI raced its own line capped at the pace; the player's car was driven to the
   centreline. MEASURED (_rollstart.mjs, both ovals, 5 AI): contact before the green in every run
   (-1.5 m box gap), cars 5 m off their column -> none in 4 runs, closest 3.6 m, all within 1 m
@@ -101,14 +102,14 @@ A. FIXES AND CHECKS (S-M each; first, they change what is already there)
 - A5 Mont Brakefade's corner ice does not melt (a generated stage's ice covers, stagegen.js) - and
   owner: weather only, no level-drawn snow / ice / packed snow (scenery water stays). Check one
   system (the cover field). Snow-themed stages then need the weather to be snowy: PROPOSED their
-  theme biases the weather odds instead. M. BUILT ?weatheronly=1 (10-24): race tracks and stages
+  theme biases the weather odds instead. M. DEFAULT (owner: all pass) (10-24): race tracks and stages
   lose drawn snow / ice (puddles already went with the weather); test levels keep their samples
   (owner); snow stages: road from the seed (tarmac / gravel / dirt, world/stageweather.ts) on
   grass, snow x4 likelier, air -5 C, snow lying deep when cold; every stage layout identical
   (_stagelayout.mjs); scenery water (the forest ford, highway rivers) never dries, can freeze.
 - A6 Rain too slippery: damp ground a small grip loss, puddles the real one (less for wet tyres,
   as now); fewer, smaller puddles; water evaporates slowly even in rain. Measure before / after.
-  S-M. BUILT ?raingrip=1 (10-24): MEASURED before: damp tarmac x tyre wet factor left soft
+  S-M. DEFAULT (owner: all pass) (10-24): MEASURED before: damp tarmac x tyre wet factor left soft
   track tyres 51 % of dry grip; Castle Cum soaked +15-22 % lap time; heavy rain flooded 98 % of
   the race surface. Now damp takes 40 % of the loss (soft tyres 80 %; laps +5-7 %, rain tyres
   still fastest), water rises to a ceiling by rain (heavy 22 %, light 9 % of the surface),
@@ -119,7 +120,7 @@ A. FIXES AND CHECKS (S-M each; first, they change what is already there)
   stop, handbrake 100 %, wheelspin the spinning ~30 % of a launch; rolling normal); tarmac /
   concrete have nothing to wear to. Asked the owner if x2 is "slightly" (_spinwear.mjs).
 - A8 Handbrake / harsh braking / sliding heat the rear tyres a little (tyre heat exists). S.
-  BUILT ?lockheat=1 (10-24): a locked axle's slide work x2 into its tyres (it saturated):
+  DEFAULT (owner: all pass) (10-24): a locked axle's slide work x2 into its tyres (it saturated):
   straight handbrake 1.5 s from 54 km/h rears +4.5 -> +9.1 C, fronts +0.6 (= rolling); a
   handbrake TURN fronts +4.8 = cornering work (owner: fronts heat only by turning - they do).
   Hard stops are ABS-capped (not "locked"): fronts +5.5 C already.
@@ -201,7 +202,7 @@ tree types; snow settles on trees from the weather, not level art.
 E. SURFACES (S-M each): gravel -> sand by chance when dry, more when hot (the dig rules); ice
 cracks when driven (semi-random, spreading over connected ice; cracked ice melts and wears
 faster); snow / ice / packed snow melt to water with a chance by surface (check what exists).
-GRAVEL -> SAND BUILT ?gravelsand=1 (10-24, world/dig.ts): a dry pass 2 % at 15 C and below to
+GRAVEL -> SAND DEFAULT (owner: all pass) (10-24, world/dig.ts): a dry pass 2 % at 15 C and below to
 10 % at 40 C (damp sand still turns back to gravel at 10 %). The rest of E still open.
 
 F. LIGHTING (M): circuits and rallycross lit (public-road stages street lights; closed stages

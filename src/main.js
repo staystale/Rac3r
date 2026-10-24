@@ -35,15 +35,10 @@ import { setTuneAudio, snapshot } from './tune.js';
 import { TUNE } from './vehicle.ts';
 import { initWorld } from "./world/load.ts";
 import {
-  setWetness, setRain, setWeatherBlend, setWeatherOnly,
+  setWetness, setRain,
 } from "./world/weather.ts";
 import { setDarkness } from "./world/daylight.ts";
-import { setDeckLight } from "./render/lightdecks.ts";
-import { setFormation } from "./ai/formation.ts";
-import { setRainGrip } from "./world/wet.ts";
-import { setLockHeat } from "./physics/tyreheat.ts";
-import { setGravelSand } from "./world/dig.ts";
-import { CLOCK, startClock, setSkyBlend } from "./world/clock.ts";
+import { CLOCK, startClock } from "./world/clock.ts";
 import { LEVEL } from "./world/state.ts";
 
 import { LEVELS } from "./world/levels/index.ts";
@@ -76,21 +71,6 @@ if (shared.settings.night !== null) setDarkness(shared.settings.night);
 startClock(shared.settings.night === null,
   Math.floor(((new Date().getMonth() + 1) % 12) / 3));
 shared.DEV = shared.settings.dev;
-// ?skyblend=1: the sky's colour and the weather's changes blend in, never snap
-setSkyBlend(shared.settings.skyBlend);
-setWeatherBlend(shared.settings.skyBlend);
-// ?decklight=1: a car's light under a bridge never lights the deck's top
-setDeckLight(shared.settings.deckLight);
-// ?weatheronly=1: only the weather lays snow and ice (test levels keep their samples)
-setWeatherOnly(shared.settings.weatherOnly);
-// ?formation=1: the rolling start drives every car, the player's too, in its own grid slot
-setFormation(shared.settings.formation);
-// ?raingrip=1: damp ground a small grip loss, puddles the real one, fewer and smaller puddles
-setRainGrip(shared.settings.rainGrip);
-// ?lockheat=1: locked wheels (brakes, handbrake) heat their tyres more
-setLockHeat(shared.settings.lockHeat);
-// ?gravelsand=1: dry gravel turns to sand by a chance, likelier the hotter
-setGravelSand(shared.settings.gravelSand);
 
 shared.canvas = document.getElementById('c');
 shared.boot = document.getElementById('boot');

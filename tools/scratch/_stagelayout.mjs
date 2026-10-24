@@ -1,13 +1,11 @@
-// _stagelayout.mjs - A5: a stage's layout and dressing must not move under ?weatheronly=1 (the
-// stage covers make the same random draws; the snow road has its own stream). Per stage: a hash
-// of the road line, props, cones and barriers, plus its road / base surfaces and cover count.
-// node tools/scratch/_stagelayout.mjs [on]   (run once off, once on, and compare the hashes)
+// _stagelayout.mjs - A5: a stage's layout and dressing must not move with weather-only stages
+// (the stage covers keep the old random draws; the snow road has its own stream). Per stage: a
+// hash of the road line, props, cones and barriers, plus its road / base surfaces and covers.
+// node tools/scratch/_stagelayout.mjs   (compare the hashes with a run on an older commit)
 import { createHash } from 'node:crypto';
 import * as L from '../../src/lab.js';
 import { addStageLevels } from '../../src/stagegen.js';
-import { setWeatherOnly } from '../../src/world/weather.ts';
 
-setWeatherOnly(process.argv[2] === 'on');
 addStageLevels();
 const round = (value) => Math.round(value * 1000) / 1000;
 for (const level of L.LEVELS.filter((entry) => entry.gen)) {
