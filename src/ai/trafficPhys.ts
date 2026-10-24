@@ -3,7 +3,7 @@
 import { LAT_V } from "./trafficCtx.ts";
 import type { TrafficCtx } from "./trafficCtx.ts";
 import type { DriveEnv } from "./trafficLane.ts";
-import { gearFor } from "./trafficSpawn.ts";
+import { cruise, gearFor } from "./trafficSpawn.ts";
 import { roadPose } from "../highway.js";
 import { step } from "../vehicle.ts";
 import { applyGround, fenceClamp, obstacleClamp } from "../world/wear.ts";
@@ -11,6 +11,56 @@ import { barrierClamp, solidClamp } from "../world/barriers.ts";
 import { hit, tooInjured } from "../damage.js";
 import { rolling, tripCheck, stepRoll } from "../roll.js";
 import type { TrafficCar } from "./types.ts";
+
+// HANDOVER EASE (?trafficease=1; owner: traffic "changes lane / shuffles into lane", traffic
+// only). MEASURED (tools/scratch/_laneshuffle.mjs, highway, traffic 1.5, 180 s, undamaged cars):
+// a driven car handed back to being carried - in view too - was put straight onto its old
+// lane's line: 1-6 m sideways in one step, 3-4 times in 3 min. Now it starts where it really
+// is, takes the nearest lane when it is not changing lanes, and drifts onto the line at no
+// more than the lane-change speed, nose into the drift.
+let isEaseOn = false;
+
+/**
+ * Turns the handover ease on or off (?trafficease=1).
+ * @param isOn true to ease a handed-back car onto its lane line
+ */
+export function setTrafficEase(isOn: boolean): void {
+  isEaseOn = isOn;
+}
+
+/**
+ * A car just handed back to being carried (no carried offset yet): it carries on from where it
+ * really is (slot.off), in the nearest lane unless it is changing lanes.
+ * @param ctx the traffic
+ * @param slot the car
+ * @param env the step's road
+ */
+function takeOverFromPhysics(ctx: TrafficCtx, slot: TrafficCar, env: DriveEnv): void {
+  slot.kOff = Math.max(env.minOff, Math.min(env.maxOff, slot.off));
+  if (slot.laneT !== slot.lane) return;
+  let nearest = slot.lane;
+  env.centres.forEach((centre, lane) => {
+    if (Math.abs(centre - slot.off) < Math.abs(env.centres[nearest] - slot.off)) nearest = lane;
+  });
+  if (nearest === slot.lane) return;
+  slot.lane = slot.laneT = nearest;
+  slot.laneOff = env.centres[nearest];
+  slot.vWant = cruise(ctx, nearest, env.laneCount);
+}
+
+/**
+ * The carried offset this step: the lane line, or (?trafficease=1) a drift toward it from the
+ * last step's offset at no more than the lane-change speed.
+ * @param slot the car
+ * @param env the step's road
+ * @returns the offset, m
+ */
+function carriedOffset(slot: TrafficCar, env: DriveEnv): number {
+  const line = Math.max(env.minOff, Math.min(env.maxOff, slot.laneOff));
+  if (!isEaseOn || slot.kOff == null) return line;
+  const maxStep = LAT_V * env.dt;
+  return slot.kOff + Math.max(-maxStep, Math.min(maxStep, line - slot.kOff));
+}
 
 /** A kinematic car carried along its lane line at its speed. */
 export function carryKinematic(
@@ -24,7 +74,8 @@ export function carryKinematic(
   // (MEASURED: a recycled car inherited the old car's kOff -> one step of a huge sideways
   // speed -> contacts + off the road; now fresh clears it and the drift rate is capped
   // at the lane-change speed)
-  const offK = Math.max(env.minOff, Math.min(env.maxOff, slot.laneOff)),
+  if (isEaseOn && slot.kOff == null) takeOverFromPhysics(ctx, slot, env);
+  const offK = carriedOffset(slot, env),
     latV = slot.kOff == null ? 0
       : Math.max(-LAT_V, Math.min(LAT_V, (offK - slot.kOff) / dt));
   slot.kOff = offK;

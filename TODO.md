@@ -7,7 +7,7 @@ handover, written on request.
 
 ## Where we are (2026-10-24 evening)
 
-- The plain link is the approved game; the test list is EMPTY. A11 and the A fixes are DEFAULT
+- The plain link is the approved game. UNDER TEST: A12 ?trafficease=1. A11, the A fixes DEFAULT
   (owner 10-24: "all pass"; switches and old paths deleted): A1 sky blend, A2 bridge decks, A3
   formation (A4 with it), A5 weather only, A6 rain grip, A8 lock heat, E gravel -> sand. A7
   needed no change (owner: keep x2). ORDER (owner 10-24): A12, A13, then grass G1, the HUD
@@ -142,7 +142,11 @@ A. FIXES AND CHECKS (S-M each; first, they change what is already there)
   passed 2 s, rival crashed ahead 3.25 s, rival reset ahead 2 s -> 0 in all; leading as before.
 - A12 TRAFFIC (and maybe the AI everywhere) glitches into a lane: changes lane / shuffles
   sideways into it (owner 10-24). Reproduce and find the cause (highway traffic lane following;
-  then check the circuit AI for the same). S-M.
+  then check the circuit AI for the same). S-M. BUILT ?trafficease=1 (10-24): CAUSE (_laneshuffle.mjs, traffic 1.5,
+  180 s, undamaged cars): a traffic car handed back from driven to carried - in view too - was
+  put straight onto its old lane's line, 1-6 m sideways in one step (3-4 in 3 min; lane-change
+  aborts 0-1, not the cause; racing AI is never carried). Now it carries on from where it is, in
+  the nearest lane, drifting onto the line at the lane-change speed: 0 handover jumps.
 - A13 PUNCTURES too easy, e.g. driving on grass, even on the wrong tyres - real-life balance
   (owner 10-24); more testing suggests HITTING OBJECTS. Today: a burst from heat / wear
   (physics/tyrewear.ts), a hard crash (damage.js PUNCT_HIT), debris one flat 4 % per hit over
