@@ -120,7 +120,8 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
 - Mud (10-24, owner "all pass"): mud thickens only with water; a level's own mud and the
   highway's ploughed fields (random blocks) dry in the heat; worn dirt goes to mud less and to
   gravel more the hotter and drier (one rule by temperature, not the weather kind).
-- itch.io: pushed 10-24 on the owner's say-so (recipe in docs/foreman-handover.md); push again
+- itch.io: pushed 10-24 on the owner's say-so (recipe in docs/foreman-handover.md; page photos:
+  tools/scratch/_itchshots.mjs + _itchcover.mjs, uploaded by hand on the edit page); push again
   only when the owner says.
 - "Straight Outta Swindon" is a reserved name for a future highway level (the test straight that
   used it was removed 10-17).

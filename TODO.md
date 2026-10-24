@@ -292,6 +292,8 @@ DRIVING (ask before starting; re-measure first, these are old):
   `tools/treadmillcheck.mjs` "motorway: no litter in a driving lane (2)".
 - [ ] `tools/wearcheck.mjs` 3c is flaky (random churn): seed it or loosen the threshold.
 - [ ] `tools/wobblecheck.mjs` is broken (its input hook).
+- [ ] `?autopilot=1` throws "reading 'pts'" on a level with no track (the Lab the game boots on)
+  before a level is launched (seen 10-24 taking the itch shots, tools/scratch/_itchshots.mjs).
 
 ## Owner specs
 
