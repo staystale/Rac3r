@@ -1,4 +1,4 @@
-// MUD AND WATER (owner's M1, behind ?mudwater=1):
+// MUD AND WATER (owner's M1):
 // - mud turns to thick mud only with water - damp ground (rain, a wet spell) or a puddle churned
 //   into it (wear.ts WATER_MIX); dry passes still dig ruts (dig.ts DRY_MUD_DIG), never thicken it;
 // - the LEVEL'S OWN mud and thick mud dry in the heat as worn mud does (puddles.ts dryMud): an
@@ -22,8 +22,6 @@ import type { Level, Surface, WearCell, Zone } from "./types.ts";
 
 /** A box of the world to search for level mud, m. */
 export type MudBox = { x0: number; y0: number; x1: number; y1: number };
-
-let mudWater = false;
 
 /**
  * One piece of the level's own mud (a zone, patch, lane, road sector or field block): what it
@@ -49,15 +47,6 @@ export function breakDrySpell(): void {
 }
 const sources: MudSource[] = [];
 
-/** ?mudwater=1: mud needs water to thicken, the level's own mud dries (main.js). */
-export function setMudWater(isOn: boolean): void {
-  mudWater = isOn;
-}
-
-/** Whether ?mudwater=1 is on. */
-export function mudWaterOn(): boolean {
-  return mudWater;
-}
 
 // the surfaces the level's own ground can dry from
 const isMud = (surface: Surface) => surface.id === 'mud' || surface.id === 'thickMud';
@@ -218,7 +207,7 @@ function seedPiece(piece: MudSource): void {
 
 /**
  * An event's start (wear.ts has just been cleared): the pieces dried last time are put back,
- * then under ?mudwater=1 the level's own mud gets its wear cells.
+ * then the level's own mud gets its wear cells.
  * @returns the areas whose ground changed back (to repaint)
  */
 export function seedLevelMud(): MudBox[] {
@@ -232,7 +221,6 @@ export function seedLevelMud(): MudBox[] {
   }
   sources.length = 0;
   spellDrying = 0;
-  if (!mudWater) return restored;
   if (LEVEL.endless) {
     for (const zone of LEVEL.zones) zone.blocks = undefined;
     seedFieldBlocks(LEVEL);
@@ -286,13 +274,12 @@ export function dryLevelMud(dryBy: number, driesTo: Record<string, string>): Mud
 }
 
 /**
- * The highway's ploughed fields as drying blocks (?mudwater=1): a field streamed in since the
+ * The highway's ploughed fields as drying blocks: a field streamed in since the
  * last call is split (fieldblocks.ts) and each block becomes a piece; the pieces of fields that
  * have streamed out are dropped. Called after each road rebuild (highway.js) and at a start.
  * @param level the highway level
  */
 export function seedFieldBlocks(level: Level): void {
-  if (!mudWater) return;
   const present = new Set(level.zones);
   const kept = sources.filter((piece) => !piece.owner || present.has(piece.owner));
   sources.length = 0;

@@ -68,7 +68,7 @@ is converted first in its own commit, proved SAME, then changed (owner: "1.a is 
    redrawn every frame (~3.5 % of our time on the laptop profile) - draw it only when it changes.
    Measure first and after (laptop profile; a back-to-back phone ?report=1 A/B); default only if
    it is better.
-4. MUD M1 - BUILT behind ?mudwater=1 (world/levelmud.ts; testlist mudwater): mud thickens only
+4. MUD M1 - DONE, the default 10-24 (world/levelmud.ts, fieldblocks.ts): mud thickens only
    damp (dig.ts wearHolds; 6 dry passes: 0/100 thicken, was 100/100); a level's own mud and thick
    mud get wear cells at an event's start and dry as worn mud does, in patches by the water
    catch; each piece (zone, patch, lane, road sector) steps when all its cells have, which takes
@@ -84,9 +84,8 @@ is converted first in its own commit, proved SAME, then changed (owner: "1.a is 
    90 % of its cells; worn DIRT goes to mud by a chance falling with heat (25 % at 10 C -> 3 %
    at 40 C) and to gravel by one rising with heat (0 at 25 C -> 25 % at 45 C), damp ground
    towards always mud (dig.ts wornDirtTo); drying mud makes the AI read the grip again.
-   ON APPROVAL DELETE (one system): the switch (levelmud.ts setMudWater / mudWaterOn, settings
-   mudWater), dig.ts DRY_DIRT_TO_MUD and wearHolds' old dirt line, wet.ts wornTo's HOT / SUPER
-   HOT weather-kind bake, puddles.ts dryMud's fixed need of 1.
+   APPROVED 10-24 (owner: "all pass", highway too) and the DEFAULT: the switch, the old 25 %
+   dry-dirt rule, the HOT weather-kind bake (wet.ts wornTo) and the fixed drying need DELETED.
    Round 3: the HIGHWAY's ploughed fields dry in random blocks (world/fieldblocks.ts: a seeded
    random split, 8-24 blocks a field, each its own timer; zoneAt looks inside a field only):
    a field streams in as dry as the dry spell so far (rain resets it), a dried block drives as

@@ -1,4 +1,4 @@
-// FIELD BLOCKS (?mudwater=1, owner): a highway PLOUGHED field (a rotated mud zone,
+// FIELD BLOCKS (owner): a highway PLOUGHED field (a rotated mud zone,
 // highway/fields.js) dries in blocks, not wear cells - its ~2 500 cells a field (~15 000 in
 // view, tools/scratch/_hwplough.mjs) would cost every road rebuild and tile paint. The field is
 // cut at random into uneven rectangles (a random split, the bigger block first, mostly across

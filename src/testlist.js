@@ -20,21 +20,5 @@ export const TEST_LIST = [
   // coldsurface, wearchance, markfade, hudunits, onelook, tyrecool, coverlook approved
   // 2026-10-18; night (cost test) passed 2026-10-18; lamps, daytime approved 2026-10-18; suntemp
   // approved 2026-10-18; nightjudder, glowmap, pauseclock, onelight passed 2026-10-18; gpuonly
-  // passed 2026-10-19)
-  {
-    id: 'mudwater',
-    added: '2026-10-24',
-    name: "Mud thickens only with water; a level's own mud dries in the heat; worn dirt goes"
-      + ' to mud less and to gravel more the hotter and drier',
-    where: 'Plain link + &mudwater=1: TEST MODE, Test Track (mud pad) or Grass Track, WEATHER'
-      + ' dry and warm (hot = faster)',
-    try: 'Drive the dry mud again and again (ruts, but no thick mud); then in rain (thick mud);'
-      + ' park by the mud pad 4-8 min on a warm dry day: thick mud -> mud -> dirt in patches,'
-      + ' edges too (Bowling Alley lanes), ruts kept; RESTART puts the mud back. Wear dirt:'
-      + ' cool = some mud, hot and dry = rarely mud, some gravel, wet = mud. HIGHWAY: after a'
-      + ' few hot dry minutes the ploughed fields arrive dried in random blocks (paler).',
-    wrong: 'Dry driving makes thick mud, mud that never dries, a whole pad changing at once,'
-      + ' a mud outline left round a dried pad, ruts gone when it dries, hot dry dirt turning'
-      + ' to mud often, highway fields drying in a regular grid or all at once, judder.',
-  },
+  // passed 2026-10-19; mudwater approved 2026-10-24)
 ];

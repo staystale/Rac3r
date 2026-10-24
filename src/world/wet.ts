@@ -136,14 +136,3 @@ export function roadWetGrip(): number {
   return dampSurface(SURFACES.tarmac, WEATHER.wetness).mu / SURFACES.tarmac.mu;
 }
 
-/**
- * What a worn base becomes next (wear.ts BASE_WEAR): in hot and super hot weather dirt bakes to
- * GRAVEL rather than churning to mud (owner).
- * @param base the base now
- * @param next what the wear chain makes it
- * @returns what it becomes
- */
-export function wornTo(base: string, next: string): string {
-  const hot = WEATHER.kind === 'hot' || WEATHER.kind === 'superhot';
-  return hot && base === 'dirt' && next === 'mud' ? 'gravel' : next;
-}

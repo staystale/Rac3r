@@ -9,7 +9,6 @@ const P = await import(W + 'world/puddles.ts');
 const field = await import(W + 'world/coverfield.ts');
 const mud = await import(W + 'world/levelmud.ts');
 const levelId = process.argv[2] || 'bowling-alley', tempC = +(process.argv[3] || 30);
-mud.setMudWater(true);
 load.initWorld();
 load.setLevel(levelId);
 Wx.WEATHER.trackC = tempC; Wx.WEATHER.rain = 0; Wx.setWetness(0);

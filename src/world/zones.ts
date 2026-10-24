@@ -119,7 +119,7 @@ function zoneSurfaceAt(zone: Zone, x: number, y: number): Surface | null {
     const localU = dx * cosRot + dy * sinRot, localV = -dx * sinRot + dy * cosRot;
     if (Math.abs(localU) > zone.w / 2 || Math.abs(localV) > zone.h / 2) return null;
     if (!zone.blocks) return zone.surface;
-    // a ploughed field drying in blocks (?mudwater=1, fieldblocks.ts)
+    // a ploughed field drying in blocks (fieldblocks.ts)
     const block = blockAt(zone.blocks, localU, localV);
     return block ? block.surface : zone.surface;
   }

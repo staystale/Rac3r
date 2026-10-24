@@ -447,7 +447,7 @@ function zonePatches(groundCtx: GroundCtx, zone: Zone, list: GroundPatch[], coun
 }
 
 /**
- * The dried blocks of a ploughed field (?mudwater=1, world/fieldblocks.ts), each a patch over
+ * The dried blocks of a ploughed field (world/fieldblocks.ts), each a patch over
  * the field with its dried look; the blocks still muddy are the field's own patch.
  *
  * @param groundCtx the shared ground painter context

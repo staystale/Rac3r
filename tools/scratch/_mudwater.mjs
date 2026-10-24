@@ -1,4 +1,4 @@
-// _mudwater.mjs (node tools/scratch/_mudwater.mjs [--on]) - Mud M1 (?mudwater=1, levelmud.ts):
+// _mudwater.mjs (node tools/scratch/_mudwater.mjs) - Mud M1 (levelmud.ts):
 // A. does mud thicken with dry passes / with wet ones? The Lab's mud panel, 100 squares, each
 //    given 6 tyre passes, dry then (fresh) damp; the share that became thick mud.
 // B. does a level's own mud dry in the heat? Every level with mud: its mud squares at the start,
@@ -13,7 +13,6 @@ const field = await import(W + 'world/coverfield.ts');
 const mud = await import(W + 'world/levelmud.ts');
 const STATE = await import(W + 'world/state.ts');
 const on = process.argv.includes('--on');
-mud.setMudWater(on);
 load.initWorld();
 console.log(on ? 'MUDWATER ON' : 'MUDWATER OFF (today)');
 

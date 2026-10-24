@@ -138,7 +138,7 @@ export function resetHighway(level) {
   state.dressed = state.pts.length;
   syncCovers(level);
   rebuild(level);
-  // ?mudwater=1: the ploughed fields dry in blocks (world/levelmud.ts)
+  // the ploughed fields dry in blocks (world/levelmud.ts)
   seedFieldBlocks(level);
   state.looseNew = [];
   state.looseCut = null;

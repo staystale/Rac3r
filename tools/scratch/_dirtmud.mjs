@@ -8,7 +8,6 @@ const Wx = await import(W + 'world/weather.ts');
 const P = await import(W + 'world/puddles.ts');
 const field = await import(W + 'world/coverfield.ts');
 const mud = await import(W + 'world/levelmud.ts');
-mud.setMudWater(process.argv.includes('--on'));
 load.initWorld();
 load.setLevel('bowling-alley');
 const STATE = await import(W + 'world/state.ts');

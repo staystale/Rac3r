@@ -6,7 +6,7 @@
 //   water above freezing (faster per C and in rain), their water freezes to black ice below it and
 //   dries off in a warm dry spell;
 // - TYRES clear standing water in 3 passes, rain tyres in 1 (owner);
-// - worn MUD (and under ?mudwater=1 the level's own, levelmud.ts) dries back toward dirt in a dry
+// - worn MUD (and the level's own, levelmud.ts) dries back toward dirt in a dry
 //   spell (owner); all mud freezes by the cover field's
 //   frost (coverfield.ts), not here.
 // Every change rides a pass over the wear cells a tick (TICK_S), by chance, so the ground
@@ -21,7 +21,7 @@ import {
 import { hotTyreShare } from "../physics/tyrecool.ts";
 import { wearMap, wearDirty, WEAR_CELL, layersAt, wearKey } from "./wear.ts";
 import {
-  breakDrySpell, dryLevelMud, mudDryNeed, mudWaterOn, seedLevelMud,
+  breakDrySpell, dryLevelMud, mudDryNeed, seedLevelMud,
 } from "./levelmud.ts";
 import type { Cover, Layers, Level, WearCell } from "./types.ts";
 
@@ -270,15 +270,14 @@ function dryCellWater(cell: WearCell, trackC: number, seconds: number): boolean 
 }
 
 /**
- * Dries worn mud back toward dirt in a dry spell (owner), a tick at a time; under ?mudwater=1
- * the level's own mud too, in patches by the water catch (levelmud.ts).
+ * Dries worn mud back toward dirt in a dry spell (owner), a tick at a time; the level's own
+ * mud too, in patches by the water catch (levelmud.ts).
  */
 function dryMud(seconds: number): void {
   const trackC = WEATHER.trackC;
   if (WEATHER.rain > 0) breakDrySpell();
   if (WEATHER.wetness > DRY_SPELL_WETNESS || WEATHER.rain > 0 || trackC < MUD_DRY_FROM_C) return;
   const dried = dryMudCells(trackC, seconds);
-  if (!mudWaterOn()) return;
   const areas = dryLevelMud(trackC * MUD_DRY_PER_S_PER_C * seconds, MUD_DRIES_TO);
   groundDirtyAreas.push(...areas);
   // the AI's speed plan reads the ground's grip again (line.ts regripPath), as for scenery water
@@ -299,7 +298,7 @@ function dryMudCells(trackC: number, seconds: number): number {
     const next = MUD_DRIES_TO[cell.base];
     if (!next || cell.cover) continue;
     cell.mudDry = (cell.mudDry || 0) + trackC * MUD_DRY_PER_S_PER_C * seconds;
-    if (cell.mudDry < (mudWaterOn() ? cellDryNeed(cell) : 1)) continue;
+    if (cell.mudDry < cellDryNeed(cell)) continue;
     cell.mudDry = 0;
     cell.base = next;
     cell.current = next;
@@ -350,7 +349,7 @@ export function stepPuddles(dt: number): void {
 /**
  * Starts an event (wear.ts has just been cleared): whether the scenery water is frozen over, dealt
  * from the event's seeded stream (likelier the colder). The race behind the menu (no weather) is
- * not frozen. Under ?mudwater=1 the level's own mud gets its wear cells (it dries as worn mud).
+ * not frozen. The level's own mud gets its wear cells (it dries as worn mud).
  */
 export function resetPuddles(): void {
   tickS = 0;

@@ -38,7 +38,6 @@ import {
   setWetness, setRain,
 } from "./world/weather.ts";
 import { setDarkness } from "./world/daylight.ts";
-import { setMudWater } from "./world/levelmud.ts";
 import { CLOCK, startClock } from "./world/clock.ts";
 import { LEVEL } from "./world/state.ts";
 
@@ -72,8 +71,6 @@ if (shared.settings.night !== null) setDarkness(shared.settings.night);
 startClock(shared.settings.night === null,
   Math.floor(((new Date().getMonth() + 1) % 12) / 3));
 shared.DEV = shared.settings.dev;
-// ?mudwater=1: mud thickens only with water; the level's own mud dries in the heat
-setMudWater(shared.settings.mudWater);
 
 shared.canvas = document.getElementById('c');
 shared.boot = document.getElementById('boot');

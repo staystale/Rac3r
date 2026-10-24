@@ -2,7 +2,7 @@
 import { LEVEL } from "./state.ts";
 import type { SurfaceId } from "./surfaces.ts";
 import { SURFACES, VERGE_W, TRAP_STEPS, SURFACE_TRAP } from "./surfaces.ts";
-import { dampSurface, puddleSurface, cellDamp, dryCellLine, surfaceById, wornTo } from "./wet.ts";
+import { dampSurface, puddleSurface, cellDamp, dryCellLine, surfaceById } from "./wet.ts";
 import { WEATHER } from "./weather.ts";
 import { carWheels } from "./wheels.ts";
 import { staticCoverHere } from "./coverlookup.ts";
@@ -15,7 +15,6 @@ import {
   FX1, FX0, FY1, FY0, KERB_W, KERB_H, KERB_RIDGE, KERB_RIDGE_L, RUNOFF_W, RUNOFF_ROUGH,
 } from "./bounds.ts";
 import { zoneAt } from "./zones.ts";
-import { mudWaterOn } from "./levelmud.ts";
 import {
   churnedTo, dampWornTo, digPace, digRuleOf, digsDry, wearHolds, wornDirtTo,
 } from "./dig.ts";
@@ -277,10 +276,10 @@ function passBareCell(cell: WearCell, damp: number): void {
   const need = rule ? rule[1] - (damp >= WET_WEAR_FROM ? 1 : 0) : 0;
   if (rule && ++cell.passes >= need) {
     const wet = damp >= WET_WEAR_FROM;
-    // ?mudwater=1: worn dirt goes to mud or gravel by its dampness and the track's heat (dig.ts)
-    if (mudWaterOn() && cell.base === 'dirt') {
+    // worn dirt goes to mud or gravel by its dampness and the track's heat (dig.ts)
+    if (cell.base === 'dirt') {
       cell.base = wornDirtTo(wet ? 1 : damp / WET_WEAR_FROM, WEATHER.trackC) || cell.base;
-    } else if (!wearHolds(cell.base, wet)) cell.base = wornTo(cell.base, rule[0]);
+    } else if (!wearHolds(cell.base, wet)) cell.base = rule[0];
     cell.passes = 0;
   } else if (!rule) cell.base = dampWornTo(cell.base, damp >= WET_WEAR_FROM) || cell.base;
   digRut(cell, damp);
