@@ -3,6 +3,7 @@
 import type { ArtLayer, SurfaceArt } from "../types.ts";
 import { TEX_PPM, fillTexture, paintTexture } from "../textures.ts";
 import type { GroundCtx } from "./types.ts";
+import { grassBladesOn, shortGrassOn } from "../../world/grasslook.ts";
 
 // HOW EACH SURFACE IS PAINTED: a base colour, then layers drawn in order. One table — a new
 // surface is a row here and a row in lab.js (SURFACES) and nothing else. Read by drawFloor,
@@ -151,9 +152,19 @@ function makeSoftArt(): Record<string, SurfaceArt | null> {
       layers: [
         ['stripes', '#89a868', 4],
         ['grain', '#6a8850', 1.2, 0.18],
+        // ?grassblades=1 (world/grasslook.ts): a sparse layer of fine blades
+        ...(grassBladesOn() ? [['blades', '#668449', 0.9, 0.22, 0.04, 0.3] as ArtLayer] : []),
       ],
     },
-    grassShort: {
+    grassShort: shortGrassOn() ? {
+      // ?shortgrass=1: lighter and drier, tighter mown stripes, a dry fleck, no blades
+      base: '#93a96a',
+      layers: [
+        ['stripes', '#a0b677', 2],
+        ['grain', '#7e9257', 1.2, 0.16],
+        ['grain', '#b8b67f', 0.9, 0.07],
+      ],
+    } : {
       base: '#7e9c5e',
       layers: [
         ['stripes', '#89a868', 4],

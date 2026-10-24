@@ -33,4 +33,23 @@ export const TEST_LIST = [
     wrong: 'Tyre walls still puncturing about half the time, posts never puncturing, punctures'
       + ' from small knocks, a puncture with nothing hit.',
   },
+  {
+    id: 'shortgrass',
+    added: '2026-10-24',
+    name: 'G1: short grass its own look and feel - lighter, drier, tighter stripes, more dirt',
+    where: 'Plain link + &shortgrass=1: Naffcar Speedway infield, Grass Track',
+    try: 'Look at the short grass, then drive on it: a touch less grip than grass, it lets go a'
+      + ' little earlier, a little smoother ride.',
+    wrong: 'Short grass looking like grass or like dirt, patches popping in or moving, a big'
+      + ' change in grip, slow frames.',
+  },
+  {
+    id: 'grassblades',
+    added: '2026-10-24',
+    name: 'G1: grass gets a sparse layer of fine blades',
+    where: 'Plain link + &grassblades=1: any level with grass (Castle Cum, Thruston)',
+    try: 'Look at the grass verges and infields, still and while driving past.',
+    wrong: 'Blades too busy or too bold, flicker or crawl as you move, long grass looking'
+      + ' different, slow frames.',
+  },
 ];
