@@ -21,15 +21,5 @@ export const TEST_LIST = [
   // 2026-10-18; night (cost test) passed 2026-10-18; lamps, daytime approved 2026-10-18; suntemp
   // approved 2026-10-18; nightjudder, glowmap, pauseclock, onelight passed 2026-10-18; gpuonly
   // passed 2026-10-19; mudwater approved 2026-10-24; skyblend, decklight, formation, weatheronly,
-  // raingrip, lockheat, gravelsand approved 2026-10-24; hwlead passed 2026-10-24)
-  {
-    id: 'trafficease',
-    added: '2026-10-24',
-    name: 'A12: highway traffic never snaps sideways into its lane',
-    where: 'Plain link + &trafficease=1: the highway, traffic high, VS AI or solo',
-    try: 'Drive through traffic, nudge cars, pass close and pull away from them; watch the cars'
-      + ' you leave behind.',
-    wrong: 'A traffic car jumping or shuffling sideways into a lane, cars drifting slowly across'
-      + ' lanes for no reason, cars wandering onto the verge.',
-  },
+  // raingrip, lockheat, gravelsand approved 2026-10-24; hwlead, trafficease passed 2026-10-24)
 ];

@@ -12,21 +12,12 @@ import { hit, tooInjured } from "../damage.js";
 import { rolling, tripCheck, stepRoll } from "../roll.js";
 import type { TrafficCar } from "./types.ts";
 
-// HANDOVER EASE (?trafficease=1; owner: traffic "changes lane / shuffles into lane", traffic
+// HANDOVER EASE (owner: traffic "changes lane / shuffles into lane", traffic
 // only). MEASURED (tools/scratch/_laneshuffle.mjs, highway, traffic 1.5, 180 s, undamaged cars):
 // a driven car handed back to being carried - in view too - was put straight onto its old
 // lane's line: 1-6 m sideways in one step, 3-4 times in 3 min. Now it starts where it really
 // is, takes the nearest lane when it is not changing lanes, and drifts onto the line at no
 // more than the lane-change speed, nose into the drift.
-let isEaseOn = false;
-
-/**
- * Turns the handover ease on or off (?trafficease=1).
- * @param isOn true to ease a handed-back car onto its lane line
- */
-export function setTrafficEase(isOn: boolean): void {
-  isEaseOn = isOn;
-}
 
 /**
  * A car just handed back to being carried (no carried offset yet): it carries on from where it
@@ -49,15 +40,15 @@ function takeOverFromPhysics(ctx: TrafficCtx, slot: TrafficCar, env: DriveEnv): 
 }
 
 /**
- * The carried offset this step: the lane line, or (?trafficease=1) a drift toward it from the
- * last step's offset at no more than the lane-change speed.
+ * The carried offset this step: a drift toward the lane line from the last step's offset at no
+ * more than the lane-change speed (the line itself with no last offset).
  * @param slot the car
  * @param env the step's road
  * @returns the offset, m
  */
 function carriedOffset(slot: TrafficCar, env: DriveEnv): number {
   const line = Math.max(env.minOff, Math.min(env.maxOff, slot.laneOff));
-  if (!isEaseOn || slot.kOff == null) return line;
+  if (slot.kOff == null) return line;
   const maxStep = LAT_V * env.dt;
   return slot.kOff + Math.max(-maxStep, Math.min(maxStep, line - slot.kOff));
 }
@@ -74,7 +65,7 @@ export function carryKinematic(
   // (MEASURED: a recycled car inherited the old car's kOff -> one step of a huge sideways
   // speed -> contacts + off the road; now fresh clears it and the drift rate is capped
   // at the lane-change speed)
-  if (isEaseOn && slot.kOff == null) takeOverFromPhysics(ctx, slot, env);
+  if (slot.kOff == null) takeOverFromPhysics(ctx, slot, env);
   const offK = carriedOffset(slot, env),
     latV = slot.kOff == null ? 0
       : Math.max(-LAT_V, Math.min(LAT_V, (offK - slot.kOff) / dt));
