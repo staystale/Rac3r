@@ -1,3 +1,4 @@
+import { takeHitFactor } from './physics/punctures.ts';
 // damage.js — CAR DAMAGE. Bookkeeping on the sim step; vehicle.js reads only
 // car.wreck (multipliers, no-op by default — CLAUDE.md §2 rule 6), render.ts draws the crush /
 // dents / chips / loose wheels, hud.js the tyre diagram, the results the repair bill.
@@ -97,13 +98,15 @@ function scrape(car, dt, weights, endW, top) {
 /**
  * Spreads a hard hit of size amt over the corners: damage, crush, punctures, lost wheels.
  */
-function hardHitCorners(car, amt, weights, endW, rnd) {
+function hardHitCorners(car, amt, weights, endW, rnd, punctureK = 1) {
   for (let corner = 0; corner < 4; corner++) {
     const add = amt * weights[corner];
     car.dmg[corner] = Math.min(1, car.dmg[corner] + add);
     car.crushL[corner] = Math.min(1, car.crushL[corner] + add * endW);
     car.crushS[corner] = Math.min(1, car.crushS[corner] + add * (1 - endW));
-    if (add >= PUNCT_HIT && !car.punct[corner] && rnd() < PUNCT_P) car.punct[corner] = true;
+    if (add >= PUNCT_HIT && !car.punct[corner] && rnd() < PUNCT_P * punctureK) {
+      car.punct[corner] = true;
+    }
     if (add >= WHEEL_HIT && car.dmg[corner] >= WHEEL_AT && !car.wheelOff[corner]) {
       car.wheelOff[corner] = true;
       car.dmgBill = (car.dmgBill || 0) + 400;
@@ -113,6 +116,8 @@ function hardHitCorners(car, amt, weights, endW, rnd) {
 }
 
 export function hit(car, vx0, vy0, dt = 1 / 120, rnd = Math.random) {
+  // what the car hit this step scales the puncture roll (?punctkind=1, physics/punctures.ts)
+  const punctureK = takeHitFactor(car);
   const dvx = car.vx - vx0, dvy = car.vy - vy0, deltaV = Math.hypot(dvx, dvy);
   if (!(deltaV >= SCRAPE_DV)) return 0;
   if (!car.dmg) damageInit(car);
@@ -130,7 +135,7 @@ export function hit(car, vx0, vy0, dt = 1 / 120, rnd = Math.random) {
   // a hard hit from the SIDE may trip the car over (roll.js tripCheck): it is pushed, and rolls,
   // away from the impact
   if (Math.abs(lateral) > 0.6) car._sideKick = { dir: -Math.sign(lateral), dv: deltaV };
-  hardHitCorners(car, amt, weights, endW, rnd);
+  hardHitCorners(car, amt, weights, endW, rnd, punctureK);
   car.dmgBill = (car.dmgBill || 0) + amt * REPAIR_PER;
   car.dmgHits = (car.dmgHits || 0) + 1;
   car.dmgFlash = 1;

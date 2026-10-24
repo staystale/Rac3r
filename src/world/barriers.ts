@@ -3,6 +3,7 @@
 import { LEVEL } from "./state.ts";
 import { activeLamps, type Lamp } from "./lamps.ts";
 import { driveOverPost, hitLamp } from "./lampdamage.ts";
+import { noteHit } from "../physics/punctures.ts";
 import type {
   Barrier, BarrierKind, BarrierSeg, CarBody, Point, Prop, Solid, Subtrack,
 } from "./types.ts";
@@ -263,11 +264,19 @@ export function solidClamp(car: CarBody): void {
   const list = LEVEL.solids, lamps = activeLamps();
   if ((!list || !list.length) && !lamps.length) return;
   const spec = car.spec, halfLen = spec.len * 0.48, halfWid = spec.wid * 0.48;
-  if (list) for (const solid of list) clampToSolid(car, solid, halfLen, halfWid);
+  if (list) for (const solid of list) {
+    const vx0 = car.vx, vy0 = car.vy;
+    clampToSolid(car, solid, halfLen, halfWid);
+    if (car.vx !== vx0 || car.vy !== vy0) noteHit(car, solid.kind);
+  }
   // the lamp posts: a hit may lean, dim or snap them; a fallen post is driven over
   for (const lamp of lamps) {
     if (lamp.down) driveOverPost(car, lamp);
-    else clampToSolid(car, lamp.solid, halfLen, halfWid, lamp);
+    else {
+      const vx0 = car.vx, vy0 = car.vy;
+      clampToSolid(car, lamp.solid, halfLen, halfWid, lamp);
+      if (car.vx !== vx0 || car.vy !== vy0) noteHit(car, 'lamp');
+    }
   }
 }
 /**
@@ -354,11 +363,13 @@ export function barrierClamp(car: CarBody): void {
   for (const barrier of list) {
     const half = BARRIER_HALF[barrier.kind];
     if (!half || !barrier._segs) continue;
+    const vx0 = car.vx, vy0 = car.vy;
     for (const seg of barrier._segs) {
       if (car.x < seg.minX - spec.len || car.x > seg.maxX + spec.len
           || car.y < seg.minY - spec.len || car.y > seg.maxY + spec.len) continue;
       clampCornersToSeg(car, seg, half, halfLen, halfWid, cosHead, sinHead);
     }
+    if (car.vx !== vx0 || car.vy !== vy0) noteHit(car, barrier.kind);
   }
 }
 

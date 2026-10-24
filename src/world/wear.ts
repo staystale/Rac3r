@@ -20,6 +20,7 @@ import {
 } from "./dig.ts";
 import { bumpAt, bankHeightAt, BUMP_STEER } from "./terrain.ts";
 import { querySubtrack } from "./tyrewall.ts";
+import { noteHit } from "../physics/punctures.ts";
 import type {
   CarBody, CoverId, Ground, Layers, Obstacle, Patch, Subtrack, Surface, WearCell,
 } from "./types.ts";
@@ -674,6 +675,7 @@ export function fenceClamp(car: CarBody): void {
       if (car[velKey] * sgn > 0) {
         car[velKey] = -car[velKey] * 0.35;
         car.yawRate *= 0.65;     // kill corner pivot snagging
+        noteHit(car, 'fence');
       }
     }
   }
@@ -727,8 +729,11 @@ export function obstacleClamp(car: CarBody): void {
   const spec = car.spec;
   const reachX = spec.len * 0.45, reachY = spec.wid * 0.45;
 
+  const vx0 = car.vx, vy0 = car.vy;
   for (let i = 0; i < LEVEL.obstacles.length; i++)
     pushOutOfObstacle(car, LEVEL.obstacles[i], reachX, reachY);
+  // the obstacles are buildings and stands
+  if (car.vx !== vx0 || car.vy !== vy0) noteHit(car, 'building');
 }
 
 export function resetPATCH_GRID(): void {

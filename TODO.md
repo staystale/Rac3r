@@ -7,7 +7,7 @@ handover, written on request.
 
 ## Where we are (2026-10-24 evening)
 
-- The plain link is the approved game; the test list is EMPTY. A11, A12, the A fixes DEFAULT
+- The plain link is the approved game. UNDER TEST: A13 ?punctkind=1. A11, A12, the A fixes DEFAULT
   (owner 10-24: "all pass"; switches and old paths deleted): A1 sky blend, A2 bridge decks, A3
   formation (A4 with it), A5 weather only, A6 rain grip, A8 lock heat, E gravel -> sand. A7
   needed no change (owner: keep x2). ORDER (owner 10-24): A12, A13, then grass G1, the HUD
@@ -153,7 +153,12 @@ A. FIXES AND CHECKS (S-M each; first, they change what is already there)
   3 m/s whatever it is (DEBRIS_CHANCE; splinters 1 %). WANTED: a puncture chance PER OBJECT
   KIND by what it is - tyres, tarps, cones ~none; pallets, broken glass, sign posts higher.
   Measure today's puncture sources on a grass run first (which one fires). One table, used
-  later by C2 / C7 (glass) and D (bushes). S-M.
+  later by C2 / C7 (glass) and D (bushes). S-M. BUILT ?punctkind=1 (10-24, table approved): CAUSE
+  (_puncturehit.mjs) - a hit losing 40 km/h+ punctured ~50 % whatever was hit (the grass ovals'
+  tyre walls as concrete); smaller hits never. physics/punctures.ts: the clamps, car contacts
+  and loose objects note what was hit; the big-hit chance by kind (tyre walls / bales / cones
+  5 %, cars / armco / bins 25-28 %, walls / trees 35 %, posts / signs / pallets 50 %); debris
+  runs and pallet nails their own (pallet 15 %, nails 3 %/s). AI runs 6 min: 0 punctures.
 
 B. AI REWORK (L) - architecture to agree first. EXISTS: the racing line, 5 difficulties as a
 centre with a spread, personalities (quick / tidy / aggressive / defensive), mistake chance per

@@ -22,4 +22,15 @@ export const TEST_LIST = [
   // approved 2026-10-18; nightjudder, glowmap, pauseclock, onelight passed 2026-10-18; gpuonly
   // passed 2026-10-19; mudwater approved 2026-10-24; skyblend, decklight, formation, weatheronly,
   // raingrip, lockheat, gravelsand approved 2026-10-24; hwlead, trafficease passed 2026-10-24)
+  {
+    id: 'punctkind',
+    added: '2026-10-24',
+    name: 'A13: punctures by what you hit - tyre walls and bales rarely, posts and pallets often',
+    where: 'Plain link + &punctkind=1: Grass Track / Stock Car (tyre walls), Castle Cum (armco,'
+      + ' signs), the highway (litter: pallets, crates)',
+    try: 'Hit tyre walls and bales hard (rare punctures), then armco and walls (sometimes), then'
+      + ' posts, chevrons and pallets (often).',
+    wrong: 'Tyre walls still puncturing about half the time, posts never puncturing, punctures'
+      + ' from small knocks, a puncture with nothing hit.',
+  },
 ];

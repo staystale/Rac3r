@@ -196,6 +196,7 @@ export interface CarBody {
   heading: number;
   yawRate: number;
   shake?: number;   // set by the first contact (contact.js, the clamps), never by makeCar
+  _hitKind?: string | null;   // what it hit this step (physics/punctures.ts noteHit)
   spec: { len: number; wid: number; lf: number; lr: number; mass: number; trackWidth?: number;
     tyre?: { grip: Record<string, number> } | null };
   t: { slipSpeedF: number; slipSpeedR: number };

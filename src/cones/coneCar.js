@@ -2,6 +2,7 @@
 // tyres / bales): the contact, the momentum swap, and what the hit does to the object (topple,
 // break, burst, tip, pop). Every function takes the one cones context made in cones.js.
 import { debrisPunctures } from '../physics/tyrewear.ts';
+import { noteHit } from '../physics/punctures.ts';
 import {
   BALE_BURST_V, BALE_DRAG, BROKEN, COW_TIP_V, DEBRIS, MAX_CONE_V, RESTITUTION, SHEEP_POP_V,
   TOPPLE_V, TOPPLES, burstStack,
@@ -267,6 +268,7 @@ export function hitByCar(ctx, obj, car, newTyres) {
   if (obj.flat) return;
   const contact = bodyContact(obj, car, relX, relY);
   if (!contact) return;
+  noteHit(car, obj.kind);
   const rel = contact.rel;
   const speed = transferMomentum(obj, car, contact);
   countChevronImpacts(ctx, obj);

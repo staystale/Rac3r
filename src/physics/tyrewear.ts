@@ -8,6 +8,8 @@
 // window never punctures by chance (no random draw at all), so nothing happens out of the blue.
 // Crashes (damage.js) and debris (cones/coneCar.js) may puncture too.
 
+import { debrisChance } from './punctures.ts';
+
 /** The tyre fields wear reads (cars.ts Tyre). */
 interface WearTyre { grip: Record<string, number>; bySurf?: Record<string, number> }
 /** The surface fields wear reads. */
@@ -118,8 +120,10 @@ export function wornGrip(wearA: number, wearB: number, wetK = 0): number {
  * @returns true to puncture
  */
 export function debrisPunctures(kind: string, closingV: number, isDebris: boolean): boolean {
-  if (kind === 'splinters') return Math.random() < SPLINTER_CHANCE;
-  return isDebris && closingV > DEBRIS_HIT_V && Math.random() < DEBRIS_CHANCE;
+  // ?punctkind=1: by what it is (physics/punctures.ts)
+  const byKind = debrisChance(kind);
+  if (kind === 'splinters') return Math.random() < (byKind ?? SPLINTER_CHANCE);
+  return isDebris && closingV > DEBRIS_HIT_V && Math.random() < (byKind ?? DEBRIS_CHANCE);
 }
 
 /**

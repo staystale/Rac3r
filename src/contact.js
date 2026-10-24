@@ -1,3 +1,4 @@
+import { noteHit } from './physics/punctures.ts';
 // contact.js — CAR-TO-CAR CONTACT (AI stage 1; requirement: full contact). Every pair of cars is
 // tested as two oriented boxes with the separating-axis test (the same test solidClamp
 // uses for props). On overlap: the two are pushed apart along the axis of least overlap, split
@@ -83,7 +84,11 @@ export function carContacts(cars) {
   let count = 0;
   for (let i = 0; i < cars.length; i++)
     for (let other = i + 1; other < cars.length; other++)
-      if (carContact(cars[i], cars[other])) count++;
+      if (carContact(cars[i], cars[other])) {
+        count++;
+        noteHit(cars[i], 'car');
+        noteHit(cars[other], 'car');
+      }
   return count;
 }
 
