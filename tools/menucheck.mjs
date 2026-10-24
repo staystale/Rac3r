@@ -24,7 +24,8 @@ for (const [W, H] of [[844, 390], [390, 844]]) {
     await button.waitFor({ state: 'visible', timeout: STEP_MS }).catch(() => {
       throw new Error(W + 'x' + H + ': the ' + txt + ' button never showed');
     });
-    await button.tap();
+    // the tap waits for the button to settle (a screen easing in): slow on CI too
+    await button.tap({ timeout: STEP_MS });
   };
   // a timed poll, not waitForFunction's default animation-frame poll (tools/lib/browser.mjs gotoGame)
   const waitFor = async (what, test) => {

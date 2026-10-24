@@ -20,7 +20,9 @@ import {
 } from "./weather.ts";
 import { hotTyreShare } from "../physics/tyrecool.ts";
 import { wearMap, wearDirty, WEAR_CELL, layersAt, wearKey } from "./wear.ts";
-import { dryLevelMud, mudDryNeed, mudWaterOn, seedLevelMud } from "./levelmud.ts";
+import {
+  breakDrySpell, dryLevelMud, mudDryNeed, mudWaterOn, seedLevelMud,
+} from "./levelmud.ts";
 import type { Cover, Layers, Level, WearCell } from "./types.ts";
 
 /** An area of ground, m. */
@@ -273,7 +275,23 @@ function dryCellWater(cell: WearCell, trackC: number, seconds: number): boolean 
  */
 function dryMud(seconds: number): void {
   const trackC = WEATHER.trackC;
+  if (WEATHER.rain > 0) breakDrySpell();
   if (WEATHER.wetness > DRY_SPELL_WETNESS || WEATHER.rain > 0 || trackC < MUD_DRY_FROM_C) return;
+  const dried = dryMudCells(trackC, seconds);
+  if (!mudWaterOn()) return;
+  const areas = dryLevelMud(trackC * MUD_DRY_PER_S_PER_C * seconds, MUD_DRIES_TO);
+  groundDirtyAreas.push(...areas);
+  // the AI's speed plan reads the ground's grip again (line.ts regripPath), as for scenery water
+  if (dried || areas.length) WEATHER.epoch++;
+}
+
+/**
+ * Dries the wear cells a tick: the tyres' water and worn mud.
+ * @param trackC the track temperature, C
+ * @param seconds sim seconds this tick
+ * @returns how many mud cells dried a step
+ */
+function dryMudCells(trackC: number, seconds: number): number {
   const melt = weatherRuns();
   let dried = 0;
   for (const cell of wearMap.values()) {
@@ -288,11 +306,7 @@ function dryMud(seconds: number): void {
     wearDirty.push(cell);
     dried++;
   }
-  if (!mudWaterOn()) return;
-  const areas = dryLevelMud(trackC * MUD_DRY_PER_S_PER_C * seconds, MUD_DRIES_TO);
-  groundDirtyAreas.push(...areas);
-  // the AI's speed plan reads the ground's grip again (line.ts regripPath), as for scenery water
-  if (dried || areas.length) WEATHER.epoch++;
+  return dried;
 }
 
 /**

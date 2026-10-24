@@ -31,9 +31,10 @@ export const TEST_LIST = [
     try: 'Drive the dry mud again and again (ruts, but no thick mud); then in rain (thick mud);'
       + ' park by the mud pad 4-8 min on a warm dry day: thick mud -> mud -> dirt in patches,'
       + ' edges too (Bowling Alley lanes), ruts kept; RESTART puts the mud back. Wear dirt:'
-      + ' cool = some mud, hot and dry = rarely mud, some gravel, wet = mud.',
+      + ' cool = some mud, hot and dry = rarely mud, some gravel, wet = mud. HIGHWAY: after a'
+      + ' few hot dry minutes the ploughed fields arrive dried in random blocks (paler).',
     wrong: 'Dry driving makes thick mud, mud that never dries, a whole pad changing at once,'
       + ' a mud outline left round a dried pad, ruts gone when it dries, hot dry dirt turning'
-      + ' to mud often, judder or slow frames.',
+      + ' to mud often, highway fields drying in a regular grid or all at once, judder.',
   },
 ];

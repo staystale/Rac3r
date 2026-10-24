@@ -1,4 +1,5 @@
 // zones.js - the ZONES section.
+import { blockAt } from "./fieldblocks.ts";
 import { LEVEL } from "./state.ts";
 import { SURFACES } from "./surfaces.ts";
 import type { Subtrack, SubtrackHit, Surface, Zone } from "./types.ts";
@@ -115,9 +116,12 @@ function zoneSurfaceAt(zone: Zone, x: number, y: number): Surface | null {
     }
     if (dx * dx + dy * dy > zone._r * zone._r) return null;
     const cosRot = zone._co!, sinRot = zone._si!;   // set just above
-    if (Math.abs(dx * cosRot + dy * sinRot) <= zone.w / 2
-      && Math.abs(-dx * sinRot + dy * cosRot) <= zone.h / 2) return zone.surface;
-    return null;
+    const localU = dx * cosRot + dy * sinRot, localV = -dx * sinRot + dy * cosRot;
+    if (Math.abs(localU) > zone.w / 2 || Math.abs(localV) > zone.h / 2) return null;
+    if (!zone.blocks) return zone.surface;
+    // a ploughed field drying in blocks (?mudwater=1, fieldblocks.ts)
+    const block = blockAt(zone.blocks, localU, localV);
+    return block ? block.surface : zone.surface;
   }
   if (Math.abs(x - zone.x) <= zone.w / 2 && Math.abs(
     y - zone.y) <= zone.h / 2) return zone.surface;

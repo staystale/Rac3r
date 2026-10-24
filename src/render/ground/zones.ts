@@ -8,6 +8,7 @@ import type { SurfaceArt } from "../types.ts";
 import type { GroundCtx } from "./types.ts";
 import { paintLayers, artBase, surfaceTexture } from "./art.ts";
 import { paintAs } from "../../world/coverfield.ts";
+import { blockCentre } from "../../world/fieldblocks.ts";
 import type { GroundPatch } from "../glpaint.ts";
 
 // the lab floor's glow pool: its colour at the world origin and at FLOOR_GLOW_REACH x FLOOR
@@ -442,6 +443,30 @@ function zonePatches(groundCtx: GroundCtx, zone: Zone, list: GroundPatch[], coun
   Object.assign(patch, { x: zone.x, y: zone.y, w: zone.w, h: zone.h, rot: zone.rot || 0, radius });
   setPatchSurface(groundCtx, patch, art.base,
     zone.rot && !zone.rounded ? artId : zoneSurfaceId(zone));
+  return zone.blocks ? blockPatches(groundCtx, zone, list, count) : count;
+}
+
+/**
+ * The dried blocks of a ploughed field (?mudwater=1, world/fieldblocks.ts), each a patch over
+ * the field with its dried look; the blocks still muddy are the field's own patch.
+ *
+ * @param groundCtx the shared ground painter context
+ * @param zone the field zone
+ * @param list the patch list
+ * @param count how many are in use
+ * @returns how many are in use after the blocks'
+ */
+function blockPatches(groundCtx: GroundCtx, zone: Zone, list: GroundPatch[], count: number) {
+  for (const block of zone.blocks!) {
+    const art = block.art ? groundCtx.SURFACE_ART[block.art] : null;
+    if (!art) continue;
+    const centre = blockCentre(zone, block);
+    const patch = nextPatch(list, count++);
+    Object.assign(patch, {
+      x: centre.x, y: centre.y, w: block.u1 - block.u0, h: block.v1 - block.v0, rot: zone.rot || 0,
+    });
+    setPatchSurface(groundCtx, patch, art.base, block.art!);
+  }
   return count;
 }
 

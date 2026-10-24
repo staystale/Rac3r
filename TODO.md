@@ -86,8 +86,12 @@ is converted first in its own commit, proved SAME, then changed (owner: "1.a is 
    towards always mud (dig.ts wornDirtTo); drying mud makes the AI read the grip again.
    ON APPROVAL DELETE (one system): the switch (levelmud.ts setMudWater / mudWaterOn, settings
    mudWater), dig.ts DRY_DIRT_TO_MUD and wearHolds' old dirt line, wet.ts wornTo's HOT / SUPER
-   HOT weather-kind bake, puddles.ts dryMud's fixed need of 1. NEXT: the highway's ploughed
-   fields in random blocks (approved: BSP blocks, dry-ploughed look, photos first, cost A/B).
+   HOT weather-kind bake, puddles.ts dryMud's fixed need of 1.
+   Round 3: the HIGHWAY's ploughed fields dry in random blocks (world/fieldblocks.ts: a seeded
+   random split, 8-24 blocks a field, each its own timer; zoneAt looks inside a field only):
+   a field streams in as dry as the dry spell so far (rain resets it), a dried block drives as
+   dirt and is drawn paler (art.ts ploughDry, one GPU patch over the field). Highway 12 km at
+   40 C: rebuilds 1.8 ms mean on and off; 412 dried-block samples all drive as dirt.
 5. GRASS G1 (approved): short grass told apart from grass (identical today: same art, mu 0.47) -
    a lighter, drier mown look, tighter stripes, no blades, dirt patches ~4 -> 10 % (own random
    stream: existing patches unchanged), mu 0.46, peak a touch earlier, ~20 % less drag; grass
@@ -96,6 +100,143 @@ is converted first in its own commit, proved SAME, then changed (owner: "1.a is 
    lamps streamed with the road (spawn ahead, cull behind, like highway/litter.js) and a spatial
    grid for the clamp (solidClamp walks every lamp per car per step: fine at ~30 a level, not at
    hundreds).
+
+## OWNER LIST 2026-10-24 (digested; ORDER AGREED 10-24 - answers folded in below)
+
+Sizes S / M / L / XL. "Exists" = already in the game, so the item extends it (one system).
+
+A. FIXES AND CHECKS (S-M each; first, they change what is already there)
+- A1 Light at dawn / dusk snaps in: blend smoothly through sunrise / sunset colours
+  (world/daylight.ts); weather changes gradual too. S-M.
+- A2 Head / tail lights shine through bridges: the night layer's beams are cut under decks
+  (glow at the edge, never through). S-M.
+- A3 Rolling / grid starts: cars (the player too) weave oddly, crash before the race starts or
+  start off their slot - find the cause (session.js grid / rolling start). S-M.
+- A4 AI wiggle near the start / finish on the oval and stock car: likely the racing line's seam
+  where the lap closes (ai/line.ts). S.
+- A5 Mont Brakefade's corner ice does not melt (a generated stage's ice covers, stagegen.js) - and
+  owner: weather only, no level-drawn snow / ice / packed snow (scenery water stays). Check one
+  system (the cover field). Snow-themed stages then need the weather to be snowy: PROPOSED their
+  theme biases the weather odds instead. M.
+- A6 Rain too slippery: damp ground a small grip loss, puddles the real one (less for wet tyres,
+  as now); fewer, smaller puddles; water evaporates slowly even in rain. Measure before / after.
+  S-M.
+- A7 Wear faster under wheelspin / locked brakes on EVERY surface (exists for some: slidewear);
+  rolling at the normal rate - check each surface's path. S.
+- A8 Handbrake / harsh braking / sliding heat the rear tyres a little (tyre heat exists). S.
+- A9 AI on icy starts cannot pull away and get reset: part of B (a traction-limited launch; the
+  reset tells "trying, wheels spinning" from "stuck"). S.
+- A10 ABS does not behave like real ABS: today it is an ideal limiter (physics/tyres.ts ABS_K caps
+  each axle just under grip) - it never pulses, so no staggered marks. Real ABS needs the wheel
+  spin speed as real state = the DRIVING "ROOT FIX" below (L, ask first). Then: pulsing,
+  staggered marks, steering kept, shorter stops than locked.
+
+B. AI REWORK (L) - architecture to agree first. EXISTS: the racing line, 5 difficulties as a
+centre with a spread, personalities (quick / tidy / aggressive / defensive), mistake chance per
+corner, wander off the line, racecraft (attack, tow pass, give room, cover), resets.
+- B1 One SKILL number per driver (0-1) drives the existing knobs (pace, line use, wander,
+  mistakes) and a top-speed loss for low skill (5-10 mph max, through the mods seam). Test
+  mode: random, biased by difficulty. Story: by class and event, rising through a class, easing
+  at the start of the next; old classes keep their own limits.
+- B2 A separate RISK draw per driver (faster entries, later braking, wider lines) - the
+  existing aggression made explicit.
+- B3 Surface awareness OUT, FELT GRIP IN (proposed): no map of the grip ahead; each driver keeps a
+  running sense of grip from what its tyres feel (slip vs force, as a person does) and brakes
+  for corners by it, plus seeing a hazard (visible ice / water / snow ahead) with confidence by
+  skill. They slide, catch it or crash naturally; they do not crawl. Cheap (one number per car).
+- B4 Never wait: if blocked, go round; if not, push through slower; reverse out after a few s;
+  reset only when really stuck. Highway racers not lane-bound (traffic stays lane-bound);
+  indicators when changing lane (the car lamps exist).
+- B5 Dodge objects / barriers / cars / players: one short look-ahead probe on the existing
+  spatial grids per car per step (cost measured first).
+- B6 Budget: measure the AI's ms per car now (profile) and keep it at or below that.
+
+C. CAR SYSTEMS + DAMAGE (L; one chain - extend damage.js, no second damage model)
+- C1 Car systems state: tyres (pressure, puncture, flat, rim), radiator (water, leak), engine
+  (temperature, oil, pressure, brief power loss), drivetrain (grinding). Shown only by what is
+  seen / heard: NO written banners (owner rule, see Q2).
+- C2 Punctures: a flat that looks flat (bulging, wider), to the rim if driven on (sparks, worse
+  grip), drag on that wheel, a sudden pull at the moment it goes, a puff of air / dust (sound
+  later). See Q1.
+- C3 Radiator + engine temperature: a thermostat holds the engine at its temperature (real
+  behaviour); airflow by speed, air temperature, rain, water and mud splashes cool it (hot days
+  heat it); a damaged radiator leaks (water left on the track - the tyres' water, one water
+  system); it overheats only when the water is nearly gone. Oil leak -> pressure light -> seize.
+- C4 Speedo warning lights: engine temperature, oil pressure (greyed on cars without them).
+- C5 Exhaust smoke: pretty and minimal, from each car's exhaust spot, more with throttle, more in
+  the cold, little or none in the heat; darker puffs / backfire for a power loss.
+- C6 Oil from crashes (bigger crash = more likely; spray if it rolls): a NEW cover in the existing
+  cover / wear-cell system (not weather): drops like rain, small specks joining into puddles;
+  soaked up by sand / gravel / dirt / mud / long grass; slippery on short grass and hard ground;
+  never evaporates; oily tyres for 1-5 s after (tyre state); oily marks mildly slippery while on
+  them; a black / purple sheen look.
+- C7 Debris: a bumper / wing / panel from where the car was hit, in the car's own colours, as a
+  contactable object (the cones / props system); glass only from cars with glass: thrown a bit,
+  tiny sparkling specks, higher puncture chance, cleared in one pass.
+- C8 Penetration: small hard objects (lamp posts) hit harder at speed; flat barriers do not.
+- C9 Armco dents (barrier segments deform). M.
+- C10 Open-wheel cars: exposed wheels collide with other cars (today they pass through), can be
+  ripped off in a hard hit. M.
+- (bushes moved to D, with the trees)
+
+D. TREES, BUSHES + SEASONS (M). BUSHES: pass-through, heavy drag, wear to long grass, minor
+damage by chance (less with speed), a fairly high puncture chance (needs C2). TREES: canopy
+drawn ABOVE cars (drive under), only the trunk solid; leaves change
+colour / fall with the global season (bare in deep winter); evergreens / firs keep theirs; a few
+tree types; snow settles on trees from the weather, not level art.
+
+E. SURFACES (S-M each): gravel -> sand by chance when dry, more when hot (the dig rules); ice
+cracks when driven (semi-random, spreading over connected ice; cracked ice melts and wears
+faster); snow / ice / packed snow melt to water with a chance by surface (check what exists).
+
+F. LIGHTING (M): circuits and rallycross lit (public-road stages street lights; closed stages
+none); event lighting at starts / finishes / busy corners; floodlights off the racing line with a
+ring of tyres (e.g. inside Knobhill's top-left corner). IDEAS for the owner: festoon / fairy
+lights on grandstands and marquees, pit-lane lamps, glowing marshal posts, lit advertising
+boards, a start-gantry light bar, warm caravan windows in camping areas. Damaged lights:
+flicker, then by chance (by damage) recover or die.
+
+G. SOUND + SETTINGS (M): pause menu SOUND sub-menu (car, environment, radio channel, menu: each a
+volume + mute); a SETTINGS screen off the main menu with the same and the GENERAL DIFFICULTY;
+TEST MODE's difficulty applies to that event only; the main difficulty (settings) is for Story.
+BANNERS (owner): an option in settings; the difficulty sets its default (on for easy, fewer on
+hard, forced OFF on the hardest), changeable without changing difficulty; TEST MODE may change
+it for the event. SLAVE FM: the owner's own project on the laptop (read it, NEVER change it);
+stream at slaveFM.duckdns.org. SOUNDS: consult the owner on every sound before building it,
+and a test to approve - no running ahead.
+
+H. UPGRADES + GARAGE + TYRE PRESSURE (XL, with Story mode): every car's today = level 5 of 10;
+level 1 near scrap (worn, issues likely). Engine (top speed, acceleration, heat / seize
+resistance), Body (every damage and puncture chance; trim colour above 5), Drivetrain
+(acceleration, shift speed, grinding chance), Suspension (usable grip; how much the ground steers
+you), Quality (random faults: punctures, leaks, 1-30 s power losses with smoke). Tyre pressure in
+the garage. New garage screens. Needs C first (the systems it upgrades). Percentages: proposed
+after measuring today's chances (Q8).
+
+I. MULTIPLAYER (XL): possible on the web now - WebRTC works in Safari and inside an iPhone app
+wrapper, so it is built once. Needs a small signalling server (room codes) and a relay for strict
+networks; one phone hosts the race (best connection, measured in the lobby), the others send
+inputs and get the cars back. A SPIKE (two phones on the tunnel) before committing.
+
+ANSWERED 10-24: Q1 drag, yes. Q2 banners = a setting (above). Q3 yes. Q4 felt grip yes. Q5
+above. Q6 = A3. Q7 TypeScript conversion first, yes. Q8 later, with numbers. Q9 all four ideas
+and the lighting ideas approved (to build in their groups). Multiplayer: no rush; talk it through
+in detail when we get there. Upgrades: questions as we go, approval first.
+THE QUESTIONS AS ASKED: Q1 at the puncture "increase grip drastically" - did you mean drag (a puncture
+loses grip)? Q2 no banners: also WRONG WAY / OFF THE MOTORWAY / reset messages, or only events
+like weather and punctures? Q3 OK that snow stages are snowy only by weather (theme biases it)?
+Q4 OK with felt grip for the AI (B3)? Q5 Slave FM: the stream's address and format, and can a
+web page play it (permission / CORS)? Q6 rolling / grid starts: what goes wrong, where? Q7
+order: the TypeScript conversion BEFORE the AI rework and C (they rewrite the same .js files)?
+Q8 upgrade percentages after measuring today's. Q9 the other non-clutter ideas to approve:
+brake discs glowing when hot (night), steam from a leaking / hot radiator, mud and dust building
+up on the car body, a wet sheen on cars in rain.
+
+ORDER (agreed 10-24): 1 mud default + clean-up (now) -> 2 A fixes (S each, one test link) -> 3 grass
+G1, HUD fix, highway lamps L4b (queued) -> 4 TypeScript conversion (overnight) -> 5 B AI rework
+-> 6 C car systems (C1-C5, then C6-C10) -> 7 E surfaces + D trees and bushes -> 8 F lighting -> 9 G sound /
+settings -> 10 H upgrades with Story mode -> 11 I multiplayer (spike earlier, to keep the sim
+ready for it).
 
 ## Parked (owner)
 

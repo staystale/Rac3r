@@ -9,12 +9,16 @@
 //   when all have dried a step the piece itself steps (thick mud -> mud -> dirt), which takes its
 //   edge with it (a strip under 0.75 m wide holds no cell centre); a SPECK (no cell centre inside
 //   it) dries on its own by the same rule at its centre. The pieces are put back at the next start.
-// Endless (highway) levels are left out: their fields stream with the road.
+// The HIGHWAY's ploughed fields (they stream with the road) dry in random blocks instead
+// (fieldblocks.ts): each block a piece with its own timer, added as a field streams in and
+// dropped when it streams out.
 import { LEVEL } from "./state.ts";
 import { catchAt, WATER_SEED } from "./coverfield.ts";
 import { getCell, groundSurfaceAt, WEAR_CELL } from "./wear.ts";
 import { SURFACES, type SurfaceId } from "./surfaces.ts";
-import type { Level, Surface, WearCell } from "./types.ts";
+import { blockCentre, splitField } from "./fieldblocks.ts";
+import { parkMiller } from "../core/random.ts";
+import type { Level, Surface, WearCell, Zone } from "./types.ts";
 
 /** A box of the world to search for level mud, m. */
 export type MudBox = { x0: number; y0: number; x1: number; y1: number };
@@ -22,13 +26,27 @@ export type MudBox = { x0: number; y0: number; x1: number; y1: number };
 let mudWater = false;
 
 /**
- * One piece of the level's own mud (a zone, patch, lane or road sector): what it was built as,
- * the wear cells laid over it, its own drying (a piece with no cells: a speck) and its box.
+ * One piece of the level's own mud (a zone, patch, lane, road sector or field block): what it
+ * was built as, the wear cells laid over it, its own drying (a piece with no cells: a speck) and
+ * its box; a field block also its own need, its field and the look it dries to.
  */
 type MudSource = {
-  holder: { surface: Surface }; was: Surface; cells: WearCell[]; dry: number; box: MudBox;
-  x: number; y: number;
+  holder: { surface: Surface; art?: string }; was: Surface; cells: WearCell[]; dry: number;
+  box: MudBox; x: number; y: number; need?: number; owner?: Zone; dryArt?: string;
 };
+// the look a dried field block is drawn with, by its field's look (render/ground/art.ts)
+const FIELD_DRY_ART: Record<string, string> = { plough: 'ploughDry' };
+// a field block's drying need is its spot's (mudDryNeed) times BLOCK_NEED_MIN .. + SPAN, from
+// its field's random stream: neighbouring blocks on the same wet spot do not dry together
+const BLOCK_NEED_MIN = 0.75, BLOCK_NEED_SPAN = 0.5;
+// the drying the weather has done since the last rain (or the start): a field streaming in
+// arrives this dry - you pass a field in under a minute, its drying takes minutes
+let spellDrying = 0;
+
+/** Rain ends the dry spell (puddles.ts dryMud): fields streaming in arrive muddy again. */
+export function breakDrySpell(): void {
+  spellDrying = 0;
+}
 const sources: MudSource[] = [];
 
 /** ?mudwater=1: mud needs water to thicken, the level's own mud dries (main.js). */
@@ -208,10 +226,18 @@ export function seedLevelMud(): MudBox[] {
   for (const piece of sources) {
     if (piece.holder.surface === piece.was) continue;
     piece.holder.surface = piece.was;
+    // a field block's dried look goes (a zone's own art is its own)
+    if (piece.dryArt) piece.holder.art = undefined;
     restored.push(piece.box);
   }
   sources.length = 0;
+  spellDrying = 0;
   if (!mudWater) return restored;
+  if (LEVEL.endless) {
+    for (const zone of LEVEL.zones) zone.blocks = undefined;
+    seedFieldBlocks(LEVEL);
+    return restored;
+  }
   for (const piece of levelMudPieces()) {
     seedPiece(piece);
     sources.push(piece);
@@ -235,7 +261,7 @@ function pieceDries(piece: MudSource, dryBy: number): boolean {
     return passed >= Math.ceil(piece.cells.length * PIECE_STEP_SHARE);
   }
   piece.dry += dryBy;
-  if (piece.dry < mudDryNeed(piece.x, piece.y)) return false;
+  if (piece.dry < (piece.need ?? mudDryNeed(piece.x, piece.y))) return false;
   piece.dry = 0;
   return true;
 }
@@ -247,12 +273,49 @@ function pieceDries(piece: MudSource, dryBy: number): boolean {
  * @returns the areas whose ground changed (to repaint)
  */
 export function dryLevelMud(dryBy: number, driesTo: Record<string, string>): MudBox[] {
+  spellDrying += dryBy;
   const changed: MudBox[] = [];
   for (const piece of sources) {
     const next = driesTo[piece.holder.surface.id];
     if (!next || !pieceDries(piece, dryBy)) continue;
     piece.holder.surface = SURFACES[next as SurfaceId];
+    if (piece.dryArt && next === 'dirt') piece.holder.art = piece.dryArt;
     changed.push(piece.box);
   }
   return changed;
+}
+
+/**
+ * The highway's ploughed fields as drying blocks (?mudwater=1): a field streamed in since the
+ * last call is split (fieldblocks.ts) and each block becomes a piece; the pieces of fields that
+ * have streamed out are dropped. Called after each road rebuild (highway.js) and at a start.
+ * @param level the highway level
+ */
+export function seedFieldBlocks(level: Level): void {
+  if (!mudWater) return;
+  const present = new Set(level.zones);
+  const kept = sources.filter((piece) => !piece.owner || present.has(piece.owner));
+  sources.length = 0;
+  sources.push(...kept);
+  for (const zone of level.zones) {
+    if (zone.blocks || !zone.rot || zone.field === undefined || !isMud(zone.surface)) continue;
+    zone.blocks = splitField(zone);
+    const random = parkMiller(((zone.field * 104729) % 2147483646) + 1);
+    for (const block of zone.blocks) {
+      const centre = blockCentre(zone, block);
+      const half = Math.hypot(block.u1 - block.u0, block.v1 - block.v0) / 2;
+      const piece = pieceOf(block, boxAround(centre.x, centre.y, half, half));
+      piece.need = mudDryNeed(centre.x, centre.y) * (BLOCK_NEED_MIN + BLOCK_NEED_SPAN * random());
+      piece.owner = zone;
+      piece.dryArt = zone.art ? FIELD_DRY_ART[zone.art] : undefined;
+      piece.dry = spellDrying;
+      // already dry where the spell so far passed its need (a ploughed field is mud: one step)
+      if (piece.dry >= piece.need) {
+        block.surface = SURFACES.dirt;
+        block.art = piece.dryArt;
+        piece.dry = 0;
+      }
+      sources.push(piece);
+    }
+  }
 }

@@ -234,6 +234,11 @@ function addFieldLooks(SURFACE_ART: Record<string, SurfaceArt | null>) {
   SURFACE_ART.plough = recolour(
     'mud', '#6a4c34', ['#4e3624', 'rgba(255,238,215,0.14)', '#5a412c']
   );
+  // a ploughed field dried out (?mudwater=1, world/fieldblocks.ts): the same turned earth, paler
+  // and dustier
+  SURFACE_ART.ploughDry = recolour(
+    'mud', '#a88b66', ['#8a6e4f', 'rgba(255,246,230,0.26)', '#97795a']
+  );
   // the long-grass BORDER round each field, darker
   SURFACE_ART.hedgerow = recolour('grassLong', '#3c5a28', ['#5a7c3a', '#2c4220']);
 }

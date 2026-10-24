@@ -93,6 +93,18 @@ export interface Zone {
   _r?: number;   // zoneAt caches for rotated zones
   _co?: number;
   _si?: number;
+  blocks?: ZoneBlock[];   // ?mudwater=1: a ploughed field's drying blocks (fieldblocks.ts)
+}
+
+// One block of a field (fieldblocks.ts): a rectangle in the zone's own frame (m from its
+// centre, u along w, v along h), its own surface and, once dried, the look drawn over the field.
+export interface ZoneBlock {
+  u0: number;
+  v0: number;
+  u1: number;
+  v1: number;
+  surface: Surface;
+  art?: string;
 }
 
 export interface Bump {

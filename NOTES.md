@@ -22,6 +22,11 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
 - When the owner reports something that looks wrong, fix it; do not spend effort proving whose fault
   it was. If asked to "fix it or undo it" and the cause is not found, undo.
 - Bring mockups before building new UI or a new look (the car mockup: `tools/scratch/carmock.html`).
+- Sounds: ask the owner about each sound before building it, then a test to approve (10-24).
+- Test links may bundle several small changes (quicker for the owner); a big or important one
+  (the AI rework) keeps its own switch (10-24).
+- The owner tests in DuckDuckGo too (phone and laptop): ask before closing it on the laptop.
+- Slave FM is the owner's own project on the laptop: read it if needed, NEVER change it.
 - Every car / track / stage / brand / generated name is a parody pun.
 - No keys, tokens, tunnel URLs or process IDs in the repo. No itch.io push until the owner says so.
 - The foreman may push to `main` once the change is proven (routine below).

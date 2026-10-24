@@ -27,6 +27,7 @@ import { prepBumps, clearNaturalCache } from "./world/terrain.ts";
 import { prepBarriersOf, solidsFromProps } from "./world/barriers.ts";
 import { onTrack } from "./world/tyrewall.ts";
 import { zoneSurfaceAt, pruneWear } from "./world/wear.ts";
+import { seedFieldBlocks } from "./world/levelmud.ts";
 import { HW_PRESETS, HW_NAMES, STEP, AHEAD, BEHIND, SPAWN_S, UP_HEADING, rng }
   from "./highway/presets.js";
 import { laneGeo, stateOf, growTo, locate, roadFrame } from "./highway/road.js";
@@ -137,6 +138,8 @@ export function resetHighway(level) {
   state.dressed = state.pts.length;
   syncCovers(level);
   rebuild(level);
+  // ?mudwater=1: the ploughed fields dry in blocks (world/levelmud.ts)
+  seedFieldBlocks(level);
   state.looseNew = [];
   state.looseCut = null;
   // the LEFT lane (UK motorway)
@@ -198,6 +201,7 @@ export function stepHighway(level, car) {
   }
   if (state.coversDirty) syncCovers(level);
   rebuild(level);
+  seedFieldBlocks(level);
   // ?nonat=1 (judder test): a 9000-cell drop may force full GCs
   if (!settings.noNatClear) clearNaturalCache();
   level.solidsDirty = true;
