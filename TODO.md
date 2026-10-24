@@ -7,7 +7,7 @@ handover, written on request.
 
 ## Where we are (2026-10-24 evening)
 
-- The plain link is the approved game; the test list is EMPTY. The A fixes are the DEFAULT
+- The plain link is the approved game. UNDER TEST: A11 ?hwlead=1. The A fixes are the DEFAULT
   (owner 10-24: "all pass"; switches and old paths deleted): A1 sky blend, A2 bridge decks, A3
   formation (A4 with it), A5 weather only, A6 rain grip, A8 lock heat, E gravel -> sand. A7
   needed no change. ASKED, unanswered: A7's x2 "slightly" enough? A11-A13 next?
@@ -133,7 +133,11 @@ A. FIXES AND CHECKS (S-M each; first, they change what is already there)
 - A11 HIGHWAY: PULLING AWAY shows sometimes when you are NOT in first place (owner 10-24). Its
   rule (ai/hwFlow.ts dueKind) is "every rival behind you and off screen"; suspects: a running
   clock surviving GRACE (2 s) after you are passed, a rival missing from the list (wrecked /
-  reset), the road distance sOf. Reproduce first, then fix the cause. S.
+  reset), the road distance sOf. Reproduce first, then fix the cause. S. BUILT ?hwlead=1 (10-24):
+  CAUSE (scripted, tools/scratch/_pullaway.mjs): a rival with no road frame - reset (one step)
+  or off the road - read as -Infinity, behind you; and the 2 s GRACE (meant for CATCH THEM at
+  the screen edge) kept PULLING AWAY up after a rival passed. PULLING AWAY while not first:
+  passed 2 s, rival crashed ahead 3.25 s, rival reset ahead 2 s -> 0 in all; leading as before.
 - A12 TRAFFIC (and maybe the AI everywhere) glitches into a lane: changes lane / shuffles
   sideways into it (owner 10-24). Reproduce and find the cause (highway traffic lane following;
   then check the circuit AI for the same). S-M.

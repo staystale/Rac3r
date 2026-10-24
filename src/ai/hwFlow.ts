@@ -4,8 +4,38 @@ import type { HwCtx, HwEntry, HwFlow, HwRow } from "./hwFlowTypes.ts";
 
 const GRACE = 2;
 
-/** How far up the road an entry is (-Infinity before it has a road frame). */
-export const sOf = (entry: HwEntry) => (entry.car._hwf ? entry.car._hwf.s : -Infinity);
+// ?hwlead=1 (owner: "pulling away appears even when not in first place sometimes"). MEASURED
+// (tools/scratch/_pullaway.mjs): a rival with no road frame - reset (one step) or off the road
+// (a wreck in a field: for as long as it is there) - read as -Infinity, BEHIND you, so PULLING
+// AWAY ran while it was ahead (5 s in the script); and the GRACE kept PULLING AWAY up 2 s after
+// a rival passed you. Now a rival keeps its last road position, and only CATCH THEM has GRACE.
+let isHwLeadOn = false;
+
+/**
+ * Turns the highway lead fix on or off (?hwlead=1).
+ * @param isOn true to keep a rival's last road position and drop PULLING AWAY's grace
+ */
+export function setHwLead(isOn: boolean): void {
+  isHwLeadOn = isOn;
+}
+
+/**
+ * How far up the road an entry is: its road frame's, else (?hwlead=1) its last known, else
+ * -Infinity (before it ever had a road frame).
+ * @param entry the racer
+ * @returns road distance, m
+ */
+export const sOf = (entry: HwEntry) => (entry.car._hwf ? entry.car._hwf.s
+  : isHwLeadOn ? entry.lastS ?? -Infinity : -Infinity);
+
+/**
+ * Keeps each racer's last road position (?hwlead=1), once a step before the flow reads them.
+ * @param entries the racers
+ */
+export function noteRoadPositions(entries: HwEntry[]): void {
+  if (!isHwLeadOn) return;
+  for (const entry of entries) if (entry.car._hwf) entry.lastS = entry.car._hwf.s;
+}
 
 /** Your position: 1 + the racers ahead of you. */
 export function order(ctx: HwCtx) {
@@ -59,7 +89,8 @@ export function dueKind(ctx: HwCtx, myS: number, rivals: HwEntry[], top: HwEntry
  * cancels it.
  */
 export function withGrace(flow: HwFlow, kind: string | null, dt: number) {
+  const graced = isHwLeadOn ? flow.cdKind === 'ahead' : !!flow.cdKind;
   if (kind) flow.lostT = 0;
-  else if (flow.cdKind && (flow.lostT = (flow.lostT || 0) + dt) < GRACE) kind = flow.cdKind;
+  else if (graced && (flow.lostT = (flow.lostT || 0) + dt) < GRACE) kind = flow.cdKind;
   return kind;
 }

@@ -3,7 +3,11 @@
 import type { AiCar, HighwayLevel } from "./types.ts";
 
 // One racer of the highway race.
-export interface HwEntry { car: AiCar; player: boolean }
+export interface HwEntry {
+  car: AiCar;
+  player: boolean;
+  lastS?: number;   // ?hwlead=1: its last road position, kept while it has no road frame
+}
 // One row of the results table (raceflow.js-shaped, + dist / gapM).
 export interface HwRow {
   car: AiCar; player: boolean; num: number; paint: string; s: number; dist: number;

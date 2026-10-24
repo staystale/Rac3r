@@ -22,4 +22,13 @@ export const TEST_LIST = [
   // approved 2026-10-18; nightjudder, glowmap, pauseclock, onelight passed 2026-10-18; gpuonly
   // passed 2026-10-19; mudwater approved 2026-10-24; skyblend, decklight, formation, weatheronly,
   // raingrip, lockheat, gravelsand approved 2026-10-24)
+  {
+    id: 'hwlead',
+    added: '2026-10-24',
+    name: 'A11: highway PULLING AWAY only when you really are first',
+    where: 'Plain link + &hwlead=1: the highway race (VS AI), a few races',
+    try: 'Lead, get passed, pass rivals that crash off the road or get reset ahead of you.',
+    wrong: 'PULLING AWAY with any rival ahead of you, your position wrong after a rival crashes,'
+      + ' the clock never showing when you do lead and everyone is off screen behind.',
+  },
 ];

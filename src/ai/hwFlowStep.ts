@@ -1,6 +1,6 @@
 // ai/hwFlowStep.ts: one step of the highway race flow after the green: the CATCH THEM clock
 // (resume, gap tracking, refill / hold / count down) and the PULLING AWAY clock.
-import { endRace, sOf, withGrace, dueKind } from "./hwFlow.ts";
+import { endRace, sOf, withGrace, dueKind, noteRoadPositions } from "./hwFlow.ts";
 import type { HwCtx } from "./hwFlowTypes.ts";
 
 const CLOSE_V = 1.0, REFILL = 0.5, NEAR = 40, NEAR_T = 10, JUMP = 8;
@@ -65,6 +65,7 @@ export function stepFlow(ctx: HwCtx, dt: number) {
   const flow = ctx.flow, entries = ctx.entries;
   if (flow.state === 'done') return;
   flow.t += dt;
+  noteRoadPositions(entries);
   const myEntry = entries.find((entry) => entry.player),
     rivals = entries.filter((entry) => !entry.player);
   if (!myEntry || !rivals.length || flow.t < 3) return;
