@@ -241,7 +241,9 @@ ready for it).
 
 - Judder: the held frames are Safari's (NOTES); owner: "ignore judder, it's ok atm". Before
   itch: a screen recording from the home-screen app.
-- itch.io: not until the owner says.
+- itch.io: pushed 10-24 (build #2201136); push again only when the owner says. The PAGE PICTURES
+  are ready but not uploaded (owner: another time): GamesStudio/ready-to-play/rac3r-page-2026-10-24
+  (cover 630x500 + 8 shots); upload on the edit page (by hand, or via Claude in Chrome).
 - Ground on the GPU phase C (cars and props as GPU sprites, one canvas): GPU work measured no
   speed gain on the phone and two canvases cost Safari frames; proposed dropping (owner to say).
 - The lean drawing plan (paused 10-17, default kept); fixed zoom steps (only for the lean path).
