@@ -32,7 +32,6 @@ export interface Settings {
   churn: '' | 'pictures' | 'objects';   // ?churn=: judder mechanism test (memory churn)
   autopilot: boolean;   // ?autopilot=1: the AI drives the player car (phone frame tests, no touch)
   autopilotKmh: number;   // ?autopilot=120: hold the autopilot car at this speed (0 = no cap)
-  hwLead: boolean;   // ?hwlead=1: PULLING AWAY only when you really lead (A11, ai/hwFlow.ts)
 }
 
 function autopilotKmh(params: URLSearchParams): number {
@@ -103,6 +102,5 @@ export function readSettings(search: string): Settings {
     churn: churnKind(params),
     noNatClear: params.get('nonat') === '1',
     skipLayers: new Set((params.get('skip') || '').split(',').filter(Boolean)),
-    hwLead: params.get('hwlead') === '1',
   };
 }

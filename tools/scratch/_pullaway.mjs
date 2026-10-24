@@ -2,13 +2,11 @@
 // highway race flow (highwayrace.ts createHwFlow) with scripted road positions, no physics, as
 // _flowtest.mjs. Reports how long PULLING AWAY ('behind') shows while you are NOT first (by the
 // script's true positions: a rival with no road frame is still where the script put it).
-// node tools/scratch/_pullaway.mjs [on]   (on: with ?hwlead=1)
+// node tools/scratch/_pullaway.mjs   (before the fix: 2 s, 3.25 s and 2 s while not first)
 import * as L from '../../src/lab.js';
 import * as H from '../../src/highway.js';
 import { createHwFlow } from '../../src/highwayrace.ts';
-import { setHwLead } from '../../src/ai/hwFlow.ts';
 
-setHwLead(process.argv[2] === 'on');
 
 H.addHighwayLevel();
 const lv = H.createHighway(4242, 'motorway');

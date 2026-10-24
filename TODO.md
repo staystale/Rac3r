@@ -7,10 +7,11 @@ handover, written on request.
 
 ## Where we are (2026-10-24 evening)
 
-- The plain link is the approved game. UNDER TEST: A11 ?hwlead=1. The A fixes are the DEFAULT
+- The plain link is the approved game; the test list is EMPTY. A11 and the A fixes are DEFAULT
   (owner 10-24: "all pass"; switches and old paths deleted): A1 sky blend, A2 bridge decks, A3
   formation (A4 with it), A5 weather only, A6 rain grip, A8 lock heat, E gravel -> sand. A7
-  needed no change. ASKED, unanswered: A7's x2 "slightly" enough? A11-A13 next?
+  needed no change (owner: keep x2). ORDER (owner 10-24): A12, A13, then grass G1, the HUD
+  text fix, highway lamps L4b, then the TypeScript conversion (overnight).
 - itch.io: build #2201136 (10-24, before the A fixes); push only when the owner says.
 - TIDY-UP noted: race levels still carry hand-placed 'wet' covers that staticCovers drops (the
   weather lays puddles): Test Track, Grass Track, Stock Car - delete the data (one system).
@@ -118,7 +119,7 @@ A. FIXES AND CHECKS (S-M each; first, they change what is already there)
   rolling at the normal rate - check each surface's path. S. CHECKED 10-24, no change: every
   surface wears through passCell and a wheel slipping > 4 m/s counts twice (locked 81-93 % of a
   stop, handbrake 100 %, wheelspin the spinning ~30 % of a launch; rolling normal); tarmac /
-  concrete have nothing to wear to. Asked the owner if x2 is "slightly" (_spinwear.mjs).
+  concrete have nothing to wear to (_spinwear.mjs). Owner: keep x2. CLOSED.
 - A8 Handbrake / harsh braking / sliding heat the rear tyres a little (tyre heat exists). S.
   DEFAULT (owner: all pass) (10-24): a locked axle's slide work x2 into its tyres (it saturated):
   straight handbrake 1.5 s from 54 km/h rears +4.5 -> +9.1 C, fronts +0.6 (= rolling); a
@@ -133,7 +134,8 @@ A. FIXES AND CHECKS (S-M each; first, they change what is already there)
 - A11 HIGHWAY: PULLING AWAY shows sometimes when you are NOT in first place (owner 10-24). Its
   rule (ai/hwFlow.ts dueKind) is "every rival behind you and off screen"; suspects: a running
   clock surviving GRACE (2 s) after you are passed, a rival missing from the list (wrecked /
-  reset), the road distance sOf. Reproduce first, then fix the cause. S. BUILT ?hwlead=1 (10-24):
+  reset), the road distance sOf. Reproduce first, then fix the cause. S. DEFAULT (owner: test
+  pass, 10-24):
   CAUSE (scripted, tools/scratch/_pullaway.mjs): a rival with no road frame - reset (one step)
   or off the road - read as -Infinity, behind you; and the 2 s GRACE (meant for CATCH THEM at
   the screen edge) kept PULLING AWAY up after a rival passed. PULLING AWAY while not first:
