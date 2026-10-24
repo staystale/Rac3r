@@ -3,6 +3,7 @@
 import { LEVEL } from "./state.ts";
 import { activeLamps, type Lamp } from "./lamps.ts";
 import { driveOverPost, hitLamp } from "./lampdamage.ts";
+import { solidsNear } from "./solidgrid.ts";
 import { noteHit } from "../physics/punctures.ts";
 import type {
   Barrier, BarrierKind, BarrierSeg, CarBody, Point, Prop, Solid, Subtrack,
@@ -261,9 +262,11 @@ function satAgainstSolid(
   return { best, pushX, pushY };
 }
 export function solidClamp(car: CarBody): void {
-  const list = LEVEL.solids, lamps = activeLamps();
-  if ((!list || !list.length) && !lamps.length) return;
   const spec = car.spec, halfLen = spec.len * 0.48, halfWid = spec.wid * 0.48;
+  // the solids and posts near the car (world/solidgrid.ts), or all of them for a long body
+  const found = solidsNear(car.x, car.y, Math.hypot(halfLen, halfWid));
+  const list = found ? found.solids : LEVEL.solids, lamps = found ? found.lamps : activeLamps();
+  if ((!list || !list.length) && !lamps.length) return;
   if (list) for (const solid of list) {
     const vx0 = car.vx, vy0 = car.vy;
     clampToSolid(car, solid, halfLen, halfWid);

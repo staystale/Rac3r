@@ -1,5 +1,6 @@
 // The LAMPS: street lights and floodlight pylons (the level's `pylon`
-// props and world/lampplan.ts's plan) as solid posts that light a pool below their head from dusk
+// props and world/lampplan.ts's plan; the endless highway's streamed by highway/roadlamps.ts)
+// as solid posts that light a pool below their head from dusk
 // and go off in the light, as real ones do. Every car is clamped against their posts
 // (world/barriers.ts solidClamp) and a hit leans, dims or snaps them (world/lampdamage.ts); the
 // night layer (render/light.ts) draws their pools; render/props/lamps.ts the street lights,
@@ -7,7 +8,7 @@
 import { LEVEL, PROPS } from './state.ts';
 import { DAYLIGHT } from './daylight.ts';
 import { planLamps } from './lampplan.ts';
-import type { CarBody, Prop, Solid } from './types.ts';
+import type { CarBody, Level, Prop, Solid } from './types.ts';
 
 // darkness at and above which the lamps are on (a light sensor: a little before the cars' lights)
 export const LAMPS_ON_DARKNESS = 0.3;
@@ -49,7 +50,12 @@ export interface Lamp {
 
 let builtFor: object | null = null;
 let lamps: Lamp[] = [];
-const NONE: Lamp[] = [];
+const NONE: Lamp[] = [], NO_ENTRIES: Prop[] = [];
+// the endless road's streamed entries the lamps were last made from (their list, its length and
+// its two ends), and the lamp each entry is
+let streamedFrom: Prop[] | null = null, streamedCount = -1;
+let streamedFirst: Prop | null = null, streamedLast: Prop | null = null;
+let lampOfEntry = new WeakMap<Prop, Lamp>();
 
 /**
  * Whether the lamps are lit in this light.
@@ -100,6 +106,7 @@ function makeLamp(prop: Prop, kind: Lamp['kind'], ownDraw = false): Lamp {
  */
 export function activeLamps(): Lamp[] {
   if (!LEVEL) return NONE;
+  if (LEVEL.endless) return streamedLamps(LEVEL);
   if (builtFor !== LEVEL) {
     builtFor = LEVEL;
     // the level's own pylons, then the plan (world/lampplan.ts: by the level's kind)
@@ -113,9 +120,39 @@ export function activeLamps(): Lamp[] {
   return lamps;
 }
 
+/**
+ * The endless road's lamps: its streamed street lights (LEVEL.lamps, laid as the road grows by
+ * highway/roadlamps.ts and dropped behind with it). Each entry stays the same lamp, damage and
+ * all, while it is loaded; a new list is made only when entries came or went (the road's
+ * window moves at the front and the back).
+ * @param level the endless level
+ * @returns the lamps
+ */
+function streamedLamps(level: Level): Lamp[] {
+  const entries = level.lamps || NO_ENTRIES;
+  const first = entries[0] || null, last = entries[entries.length - 1] || null;
+  if (builtFor === level && streamedFrom === entries && streamedCount === entries.length
+    && streamedFirst === first && streamedLast === last) return lamps;
+  builtFor = level;
+  streamedFrom = entries;
+  streamedCount = entries.length;
+  streamedFirst = first;
+  streamedLast = last;
+  lamps = entries.map((entry) => {
+    let lamp = lampOfEntry.get(entry);
+    if (!lamp) {
+      lamp = makeLamp(entry, 'street');
+      lampOfEntry.set(entry, lamp);
+    }
+    return lamp;
+  });
+  return lamps;
+}
+
 /** Stands every lamp up again, undamaged (RESTART). */
 export function resetLamps(): void {
   builtFor = null;
+  lampOfEntry = new WeakMap();
 }
 
 /**

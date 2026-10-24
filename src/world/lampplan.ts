@@ -9,7 +9,8 @@
 //   rally     floodlights at the start and the finish only (the stage itself stays dark)
 //   test      floodlights round the floor's edge, and a LAMP ALLEY: two rows of street lights
 //             down an open stretch, to knock over
-//   roads     none here (the endless highway builds its own as the road grows: a later step)
+//   roads     none here (the endless highway lays its own as the road grows:
+//             highway/roadlamps.ts)
 import { FLOOR } from './bounds.ts';
 import { catOf } from './levels/category.ts';
 import type { Level, Prop, Subtrack, TrackPoint } from './types.ts';
@@ -280,7 +281,7 @@ function lightTestGround(level: Level, placed: Prop[]): void {
 }
 
 /**
- * The lamps a level gets by its kind (none on the endless highway yet).
+ * The lamps a level gets by its kind (none for the endless highway: it streams its own).
  * @param level the level
  * @returns the lamp entries (streetlight / floodlight; x, y the foot; rot toward the track)
  */

@@ -128,6 +128,7 @@ export function resetHighway(level) {
   level.solids.length = 0;
   level.lanes.length = 0;
   level.zones.length = 0;
+  level.lamps.length = 0;
   const state = level._hw;
   state.pts.push({ x: 0, y: 0, s: 0, curv: 0 });
   // the first window's loose objects ARE the level's cones (cones.js reset reads lv.cones on
@@ -182,7 +183,7 @@ export function stepHighway(level, car) {
   const startDist = road[0].s - 60;
   state.looseCut = startDist;
   const keep = (obj) => obj._s == null || obj._s >= startDist;
-  for (const listKey of ["props", "bumps", "barriers", "lanes", "zones"]) {
+  for (const listKey of ["props", "bumps", "barriers", "lanes", "zones", "lamps"]) {
     const list = level[listKey],
       kept = list.filter(keep);
     list.length = 0;
@@ -376,6 +377,8 @@ export function createHighway(seed = 4242, preset = 'motorway') {
     barriers: [],
     solids: [],
     lanes: [],
+    // the street lights (highway/roadlamps.ts)
+    lamps: [],
     spawn: { x: 0, y: 0, heading: 0 },
   };
   resetHighway(level);

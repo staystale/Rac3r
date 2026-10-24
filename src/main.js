@@ -39,6 +39,7 @@ import {
 } from "./world/weather.ts";
 import { setDarkness } from "./world/daylight.ts";
 import { CLOCK, startClock } from "./world/clock.ts";
+import { setRoadLamps } from "./highway/roadlamps.ts";
 import { LEVEL } from "./world/state.ts";
 
 import { LEVELS } from "./world/levels/index.ts";
@@ -71,6 +72,8 @@ if (shared.settings.night !== null) setDarkness(shared.settings.night);
 startClock(shared.settings.night === null,
   Math.floor(((new Date().getMonth() + 1) % 12) / 3));
 shared.DEV = shared.settings.dev;
+// ?hwlamps=1: street lights along the highway (laid from the first launch's road build)
+setRoadLamps(shared.settings.hwLamps);
 
 shared.canvas = document.getElementById('c');
 shared.boot = document.getElementById('boot');

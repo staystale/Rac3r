@@ -7,6 +7,7 @@ import { blocked, cutBy, sideStep, sideFlush, syncCovers, SLIP_W, cutSkips } fro
 import { fields } from "./fields.js";
 import { extras } from "./extras.js";
 import { layLooseRoadside } from "./litter.js";
+import { layRoadLamps } from "./roadlamps.ts";
 // node tools only: HWNOX=1 builds the road with NO slips / bridges / extras (an A/B of their effect
 // on the AI, same roads)
 export const NOX = !!envValue("HWNOX");
@@ -300,6 +301,8 @@ export function dress(level, firstIdx, endIdx, loose) {
   sideFlush(level, false);
   if (state.coversDirty) syncCovers(level);
   layArmco(ctx);
+  // the street lights, clear of the scenery laid above
+  layRoadLamps(ctx);
   layLooseRoadside(ctx);
   layWalls(ctx);
 }

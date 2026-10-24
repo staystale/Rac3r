@@ -4,6 +4,7 @@
 // physics step. Rebuilt when the covers list changes (a new array: puddles.ts applyLooks, a new
 // level). Each cell keeps the covers in the list's order, so the first match is the same cover a
 // scan of the whole list finds - the answers are identical, only quicker.
+import { addToGrid, cellAt, type CellGrid } from "../core/cellgrid.ts";
 import type { Cover } from "./types.ts";
 
 // m: a cell of the index; and the margin each cover's reach gets (coverAt tests a point at the
@@ -11,28 +12,15 @@ import type { Cover } from "./types.ts";
 const CELL_M = 16, MARGIN_M = 0.5;
 
 let indexOf: Cover[] | null = null;
-let index = new Map<number, Cover[]>();
+let index: CellGrid<Cover> = new Map();
 const NONE: Cover[] = [];
-
-const cellKey = (cellI: number, cellJ: number) => cellI * 65536 + cellJ;
 
 /** Builds the index of a covers list. */
 function build(list: Cover[]): void {
   index = new Map();
-  for (const cover of list) {
-    // coverAt's cheap reject: a match lies within the larger half side of the centre on both axes
-    const reach = Math.max(cover.w, cover.h) / 2 + MARGIN_M;
-    for (let cellI = Math.floor((cover.x - reach) / CELL_M);
-      cellI <= Math.floor((cover.x + reach) / CELL_M); cellI++) {
-      for (let cellJ = Math.floor((cover.y - reach) / CELL_M);
-        cellJ <= Math.floor((cover.y + reach) / CELL_M); cellJ++) {
-        const key = cellKey(cellI, cellJ);
-        const cell = index.get(key);
-        if (cell) cell.push(cover);
-        else index.set(key, [cover]);
-      }
-    }
-  }
+  // coverAt's cheap reject: a match lies within the larger half side of the centre on both axes
+  for (const cover of list)
+    addToGrid(index, cover, cover.x, cover.y, Math.max(cover.w, cover.h) / 2 + MARGIN_M, CELL_M);
   indexOf = list;
 }
 
@@ -46,5 +34,5 @@ function build(list: Cover[]): void {
 export function coversNear(list: Cover[] | undefined, x: number, y: number): Cover[] {
   if (!list) return NONE;
   if (list !== indexOf) build(list);
-  return index.get(cellKey(Math.floor(x / CELL_M), Math.floor(y / CELL_M))) || NONE;
+  return cellAt(index, x, y, CELL_M) || NONE;
 }

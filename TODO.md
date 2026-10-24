@@ -5,14 +5,14 @@ the git history (this file was swept on 2026-10-19: every finished entry deleted
 decisions and the measured lessons live in `NOTES.md`). `docs/foreman-handover.md` is the last
 handover, written on request.
 
-## Where we are (2026-10-24 evening)
+## Where we are (2026-10-24 night)
 
-- The plain link is the approved game; the test list is EMPTY. A11, A12, A13, grass G1 and the
-  A fixes are DEFAULT
+- UNDER TEST: ?hwlamps=1 (highway street lights, L4b; testlist hwlamps). The solid grid that
+  came with it is on (proved identical). A11, A12, A13, grass G1 and the A fixes are DEFAULT
   (owner 10-24: "all pass"; switches and old paths deleted): A1 sky blend, A2 bridge decks, A3
   formation (A4 with it), A5 weather only, A6 rain grip, A8 lock heat, E gravel -> sand. A7
-  needed no change (owner: keep x2). ORDER (owner 10-24): A12, A13, then grass G1, the HUD
-  text fix, highway lamps L4b, then the TypeScript conversion (overnight).
+  needed no change (owner: keep x2). NEXT (owner 10-24): after L4b the TypeScript conversion
+  (overnight); the HUD text fix waits on the owner (phone A/B or close).
 - itch.io: build #2201136 (10-24, before the A fixes); push only when the owner says.
 - TIDY-UP noted: race levels still carry hand-placed 'wet' covers that staticCovers drops (the
   weather lays puddles): Test Track, Grass Track, Stock Car - delete the data (one system).
@@ -78,7 +78,15 @@ is converted first in its own commit, proved SAME, then changed (owner: "1.a is 
 6. HIGHWAY LAMPS L4b (owner: "yes I want them"; street lights ALTERNATING sides, not paired):
    lamps streamed with the road (spawn ahead, cull behind, like highway/litter.js) and a spatial
    grid for the clamp (solidClamp walks every lamp per car per step: fine at ~30 a level, not at
-   hundreds).
+   hundreds). BUILT 10-24, UNDER TEST behind ?hwlamps=1 (testlist hwlamps):
+   highway/roadlamps.ts lays one street light every 34 m on alternating sides (each side every
+   68 m), 2.5 m off the edge, arm over the edge (the circuits' lamp); a spot not clear (side road
+   on the left, slip / bridge / river keep-outs, gantry legs, signs) is left dark. ~55 loaded at
+   once; same damage / pools / glows as every lamp. MEASURED (_hwlamps.mjs, 3-4 km per road
+   type): gaps 32-36 m, 68 m where one is skipped; 0 posts within 1 m of a solid or 0.5 m of a
+   barrier. The SOLID GRID (world/solidgrid.ts, core/cellgrid.ts - the cover index and bump grid
+   moved onto the same helper) is ON (identical answers): the highway's solidClamp 4.3 ->
+   0.3 us a car-step with ~250 solids, lamps included.
 
 ## OWNER LIST 2026-10-24 (digested; ORDER AGREED 10-24 - answers folded in below)
 

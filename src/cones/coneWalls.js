@@ -2,6 +2,7 @@
 // bouncing it off with a little scrape, or letting a fast one hop over (cone.over).
 import { LEVEL } from "../world/state.ts";
 import { BARRIER_HALF } from "../world/barriers.ts";
+import { solidsNear } from "../world/solidgrid.ts";
 const WALL_E = 0.3, WALL_SCRAPE = 0.8, OVER_V = 9, OVER_CHANCE = 0.3;
 
 /**
@@ -98,7 +99,9 @@ function solidContact(solid, radius, localU, localV) {
  * @param {number} speed its speed
  */
 function hitSolids(cone, radius, speed) {
-  for (const solid of LEVEL.solids || []) {
+  // the solids near it (world/solidgrid.ts), or all of them for a big object
+  const found = solidsNear(cone.x, cone.y, radius);
+  for (const solid of found ? found.solids : LEVEL.solids || []) {
     const dx = cone.x - solid.x, dy = cone.y - solid.y;
     if (dx * dx + dy * dy > (solid.r + radius) ** 2) continue;
     const cosRot = Math.cos(solid.rot), sinRot = Math.sin(solid.rot), localU = dx * cosRot + dy

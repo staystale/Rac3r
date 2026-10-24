@@ -23,4 +23,14 @@ export const TEST_LIST = [
   // passed 2026-10-19; mudwater approved 2026-10-24; skyblend, decklight, formation, weatheronly,
   // raingrip, lockheat, gravelsand approved 2026-10-24; hwlead, trafficease passed 2026-10-24;
   // punctkind, shortgrass, grassblades passed 2026-10-24)
+  {
+    id: 'hwlamps',
+    added: '2026-10-24',
+    name: 'L4b: street lights along the highway, alternating sides',
+    where: 'Plain link + &hwlamps=1: Highway to Hull (every road type), best at dusk / night'
+      + ' (TEST MODE: TIME OF DAY)',
+    try: 'Drive a few km at night; knock a few posts at different speeds; RESTART.',
+    wrong: 'Lamps in pairs or bunched, on the road, in a sign / gantry / bridge, popping in on'
+      + ' screen, posts you pass through, a stretch dark on both sides, slower frames.',
+  },
 ];

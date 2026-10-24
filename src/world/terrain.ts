@@ -1,5 +1,6 @@
 // terrain.js - the BUMPS, JUMPS AND KERBS and TERRAIN SHAPES sections. Moved verbatim out of
 // lab.js.
+import { addToGrid, cellAt } from "../core/cellgrid.ts";
 import { KERB_RIDGE, KERB_RIDGE_L } from "./bounds.ts";
 import { LEVEL } from "./state.ts";
 import { querySubtrack, querySubtrackInto } from "./tyrewall.ts";
@@ -121,18 +122,8 @@ function ensureBumpGrid(list: Bump[]): void {
   if (LEVEL._bumpGridOf !== list) {
     LEVEL._bumpGridOf = list;
     const grid = LEVEL._bumpGrid = new Map<number, Bump[]>();
-    for (const bump of list) {
-      const reach = Math.sqrt(bump.reach2!);
-      for (let cellX = Math.floor((bump.x - reach) / BUMP_CELL);
-        cellX <= Math.floor((bump.x + reach) / BUMP_CELL); cellX++)
-        for (let cellY = Math.floor((bump.y - reach) / BUMP_CELL);
-          cellY <= Math.floor((bump.y + reach) / BUMP_CELL); cellY++) {
-          const key = cellX * 100003 + cellY;
-          const bucket = grid.get(key);
-          if (bucket) bucket.push(bump);
-          else grid.set(key, [bump]);
-        }
-    }
+    for (const bump of list)
+      addToGrid(grid, bump, bump.x, bump.y, Math.sqrt(bump.reach2!), BUMP_CELL);
   }
 }
 /**
@@ -197,8 +188,7 @@ export function bumpAt(x: number, y: number, smooth = false): number {
     + naturalHeightAt(x, y);
   ensureBumpGrid(list);
   // _bumpGrid was just set above if it was stale
-  const cell = LEVEL._bumpGrid!.get(Math.floor(x / BUMP_CELL) * 100003
-    + Math.floor(y / BUMP_CELL)) || NO_BUMPS;
+  const cell = cellAt(LEVEL._bumpGrid!, x, y, BUMP_CELL) || NO_BUMPS;
   height = addBumpHeights(height, cell, x, y, smooth);
 
   // Curved rumble kerbs along corner apexes and exits
