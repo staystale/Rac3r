@@ -85,12 +85,6 @@ export const LEVELS: Level[] = [
     // the corners (at 40 m radius or tighter). Off-camber sections can be added here as
     // { from, to, deg: -2 } (metres of track distance).
     camber: { maxDeg: 4, refR: 40, crown: 0.02, edge: 6, sections: [] },
-    covers: [
-      // sweeper, tarmac
-      onTrack(TT_SUBTRACK, 250, 2, { w: 9, h: 5, cover: 'wet', shape: 'ellipse' }),
-      // hairpin, tarmac
-      onTrack(TT_SUBTRACK, 740, -2, { w: 7, h: 4, cover: 'wet', shape: 'ellipse' }),
-    ],
     zones: TT_ZONES,
     bumps: TT_BUMPS,
     paint: TT_PAINT,
@@ -265,11 +259,6 @@ export const LEVELS: Level[] = [
     // new random patches every load
     randomise: () => randomiseGrassTrack(GO_SUBTRACK, GO_SECTORS, GO_RANDOM_PATCHES),
     patches: GO_RANDOM_PATCHES,
-    covers: [
-      onTrack(GO_SUBTRACK, 100, 2, { w: 7, h: 4, cover: 'wet', shape: 'ellipse' }),
-      onTrack(GO_SUBTRACK, 300, -3, { w: 9, h: 5, cover: 'wet', shape: 'ellipse' }),
-      onTrack(GO_SUBTRACK, 380, 1.5, { w: 6, h: 3.5, cover: 'wet', shape: 'ellipse' }),
-    ],
     zones: GO_ZONES,
     bumps: [],
     paint: GO_PAINT,
@@ -301,11 +290,6 @@ export const LEVELS: Level[] = [
     rollingStart: true,   // races start ROLLING (user: the ovals)
     base: SURFACES.grass,
     subtrack: SO_SUBTRACK,
-    covers: [
-      onTrack(SO_SUBTRACK, 40, -3, { w: 8, h: 4, cover: 'wet', shape: 'ellipse' }),
-      onTrack(SO_SUBTRACK, 250, 3, { w: 10, h: 5, cover: 'wet', shape: 'ellipse' }),
-      onTrack(SO_SUBTRACK, 470, 0, { w: 6, h: 3, cover: 'wet', shape: 'ellipse' }),
-    ],
     zones: SO_ZONES,
     bumps: [],
     paint: SO_PAINT,

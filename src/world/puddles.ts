@@ -15,6 +15,7 @@
 // (The puddle SITES that made the weather's water before the cover field, and the level patches'
 // own melting, were removed 2026-10-18: the field does both.)
 import { LEVEL } from "./state.ts";
+import { catOf } from "./levels/category.ts";
 import {
   ICE_MELT_SHARE, WEATHER, weatherRandom, weatherRuns,
 } from "./weather.ts";
@@ -84,16 +85,28 @@ export function puddleClearBy(standing: boolean, tyreC = 0): number | null {
   return rainTyre ? 1 : 1 / 3 + (1 / 2 - 1 / 3) * hotTyreShare(tyreC);
 }
 
+// ?sandboxwet=1: a test level (the Sandbox) keeps its hand-placed puddles as samples
+let keepTestPuddles = false;
+
+/**
+ * Turns the test levels' sample puddles on or off (?sandboxwet=1; read at the next level load).
+ * @param isWanted true to keep them
+ */
+export function setTestPuddles(isWanted: boolean): void {
+  keepTestPuddles = isWanted;
+}
+
 /**
  * The level's own covers with its puddles left out when the weather makes them (scenery water and
  * the Lab's test features stay). Race levels and stages draw no snow or ice of their own (owner:
- * weather only); the test levels' surface samples stay.
+ * weather only); the test levels' surface samples stay, the Sandbox's puddles too (owner).
  * @param level the level
  * @param covers its hand-placed and blended covers
  * @returns the covers to keep
  */
 export function staticCovers(level: Level, covers: Cover[]): Cover[] {
-  if (level.endless || !level.subtrack) return covers;
+  if (level.endless || !level.subtrack || (keepTestPuddles && catOf(level) === 'test'))
+    return covers;
   return covers.filter((cover) => cover.cover !== 'wet' || cover.water);
 }
 

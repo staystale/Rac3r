@@ -1,9 +1,9 @@
 // wobblecheck.mjs — WHAT moves on screen when "the track shakes / wiggles as I drive" (user, 2026-10-04, after the tile fix). Phone size,
-// autodrive lap at CPU x1 and x4. Per frame: the camera (= where the world is drawn), the car relative to the camera, the car's heading,
+// autopilot lap (?autopilot=1) at CPU x1 and x4. Per frame: the camera (= where the world is drawn), the car relative to the camera, the car's heading,
 // the zoom, the frame time. Reports, in SCREEN pixels: camera jerk (how far each frame's camera move differs from the previous frame's,
 // time-corrected — a smooth pan is 0), the car's wobble on screen, heading jitter (deg per frame, second difference), and frame times.
 // node tools/wobblecheck.mjs [level] [car] [cpuRate]
-import { startServer, launchBrowser } from './lib/browser.mjs';
+import { startServer, launchBrowser, gotoGame } from './lib/browser.mjs';
 const [lv = 'brands-snatch', carId = 'hatch-rwd', rate = '1', extra = ''] = process.argv.slice(2);
 const srv = await startServer();
 let b;
@@ -11,10 +11,10 @@ try {
 b = await launchBrowser();
 const ctx = await b.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true });
 const p = await ctx.newPage(); const cdp = await ctx.newCDPSession(p); await cdp.send('Emulation.setCPUThrottlingRate', { rate: +rate });
-await p.goto(`${srv.url}/?touch=1&guide=0&menu=0&level=${lv}&car=${carId}${extra}`); await p.touchscreen.tap(400, 200); await p.waitForTimeout(4500);
+await gotoGame(p, `${srv.url}/?touch=1&guide=0&menu=0&level=${lv}&car=${carId}&autopilot=1${extra}`); await p.touchscreen.tap(400, 200); await p.waitForTimeout(4500);
 const r = await p.evaluate(() => new Promise(async (res) => {
-  const g = window.__game, R = g.renderer; const A = await import('/src/ai/autodrive.ts'); const drv = A.createAutoDriver(g.level.subtrack);
-  g.input.update = () => ({ ...drv.drive(g.car), reverse: 0, shiftUp: false, shiftDown: false });
+  // the AI drives the player car (?autopilot=1 in the link: the game's own hook)
+  const g = window.__game, R = g.renderer;
   const rows = []; let last = performance.now();
   (function f(now) {
     rows.push({ t: now, dt: now - last, cx: R.cam.x, cy: R.cam.y, ppm: R.PPM, ox: g.drawn.x - R.cam.x, oy: g.drawn.y - R.cam.y, h: g.car.heading, v: Math.hypot(g.car.vx, g.car.vy) });

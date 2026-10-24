@@ -23,4 +23,20 @@ export const TEST_LIST = [
   // passed 2026-10-19; mudwater approved 2026-10-24; skyblend, decklight, formation, weatheronly,
   // raingrip, lockheat, gravelsand approved 2026-10-24; hwlead, trafficease passed 2026-10-24;
   // punctkind, shortgrass, grassblades passed 2026-10-24; hwlamps passed 2026-10-24)
+  {
+    id: 'trafficseat',
+    added: '2026-10-24',
+    name: 'Traffic woken near you on a hill no longer flies into the air',
+    where: 'Plain link + &trafficseat=1: Highway to Hull, traffic on, hilly stretches',
+    try: 'Drive a few km in traffic; watch cars appear ahead and beside you over crests.',
+    wrong: 'A traffic car jumping, floating or drifting off the road with nothing hitting it.',
+  },
+  {
+    id: 'sandboxwet',
+    added: '2026-10-24',
+    name: 'The Sandbox keeps its two sample puddles (start straight, dirt hairpin)',
+    where: 'Plain link + &sandboxwet=1: the Sandbox (TEST MODE), dry weather',
+    try: 'Drive through both at the start of an event; they follow the weather as the Lab puddle.',
+    wrong: 'No puddles there at the start, or a puddle that looks or drives unlike the others.',
+  },
 ];

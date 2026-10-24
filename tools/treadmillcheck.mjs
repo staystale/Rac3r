@@ -28,7 +28,8 @@ for (const preset of Object.keys(H.HW_PRESETS)) {
       const side = (o.x - m.x) * inX + (o.y - m.y) * inY, rr = o.rot ?? o.ang, arrow = Math.cos(rr) * inX + Math.sin(rr) * inY;   // live objects (the first window) carry it as ang
       if (!(side < 0 && arrow > 0.8)) { chevWrong++; if (process.env.CHEVDBG) console.log(`    chev s ${o._s.toFixed(0)} curv ${(m.curv * 1e4).toFixed(2)}e-4 turn ${turn} dh ${((h2 - h1) * 57.3).toFixed(2)} deg side ${side.toFixed(1)} arrow ${arrow.toFixed(2)}`); } }
     // a driving lane = between the hard shoulder line and the right edge (the shoulder itself may hold litter / a cone taper)
-    else if (offN > -geo.hw + cfg.shoulder + 0.2 && offN < geo.hw - 0.2) inLane++; } };
+    // (an object with no road segment near it - a field's animals - is in no lane)
+    else if (q.seg != null && offN > -geo.hw + cfg.shoulder + 0.2 && offN < geo.hw - 0.2) inLane++; } };
   audit(cones.list);
   let sub = lv.subtrack, drv = createAutoDriver(sub), t = 0, off = 0, worstOff = 0, rb = 0, rbMax = 0, maxProps = 0, maxPts = 0, vSum = 0, n = 0;
   let maxDev = 0, maxTurn = 0, maxDk = 0, maxK = 0, lastPt = null, behindMin = Infinity, aheadMin = Infinity;

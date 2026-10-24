@@ -12,6 +12,17 @@ import { hit, tooInjured } from "../damage.js";
 import { rolling, tripCheck, stepRoll } from "../roll.js";
 import type { TrafficCar } from "./types.ts";
 
+// ?trafficseat=1: a carried car woken to physics is seated on the ground where it is
+let seatOnWake = false;
+
+/**
+ * Turns the seat-on-wake fix on or off (?trafficseat=1).
+ * @param isWanted true to seat woken cars
+ */
+export function setTrafficSeat(isWanted: boolean): void {
+  seatOnWake = isWanted;
+}
+
 // HANDOVER EASE (owner: traffic "changes lane / shuffles into lane", traffic
 // only). MEASURED (tools/scratch/_laneshuffle.mjs, highway, traffic 1.5, 180 s, undamaged cars):
 // a driven car handed back to being carried - in view too - was put straight onto its old
@@ -130,6 +141,10 @@ export function drivePhysics(
     slot.kin = false;
     slot.kOff = null;
     gearFor(car, slot.vAl);
+    // and seated on the ground where it is now, as a reset does (wear.ts applyGround): carried,
+    // its suspension kept the height it last drove at - MEASURED (trafficcheck): woken on a
+    // hill 4.4 m higher, the ground's jump read as 32 m/s up and threw the car 42 m in the air
+    if (seatOnWake) car.groundInit = false;
   }
   const input = physicsInput(ctx, slot, env, speed, vTarget, brakeX);
   car.indicator = slot.laneT !== slot.lane ? slot.ind : 0;

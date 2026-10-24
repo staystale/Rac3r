@@ -22,8 +22,8 @@ export const resetCar = reset;
 // the cars do). Solo practice: no lights.
 export const START_STEP = 1.0, START_EARLY = 0.12, ROLL_PACE = 16, ROLL_BACK = 120;
 export function armStart() {
-  // 4 = top
-  shared.autoDrv = shared.settings.autopilot
+  // 4 = top; only where there is a track to drive (the Lab the game boots on has none)
+  shared.autoDrv = shared.settings.autopilot && LEVEL.subtrack
     ? createAIDriver(LEVEL, aiTraits(4, 0, 1)) : null;
   const active = shared.mode !== 'menu' && (shared.race.on || shared.aiCount > 0),
     isRolling = active && (!!LEVEL.rollingStart || !!LEVEL.endless) && !!LEVEL.subtrack;

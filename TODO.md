@@ -15,8 +15,9 @@ handover, written on request.
   needed no change (owner: keep x2). NEXT (owner 10-24): the TypeScript conversion overnight;
   meanwhile work in TypeScript wherever possible; the HUD text fix waits on the owner.
 - itch.io: build #2201136 (10-24, before the A fixes); push only when the owner says.
-- TIDY-UP noted: race levels still carry hand-placed 'wet' covers that staticCovers drops (the
-  weather lays puddles): Test Track, Grass Track, Stock Car - delete the data (one system).
+- TIDY-UP done 10-24: the hand-placed 'wet' covers staticCovers dropped are deleted from Test
+  Track, Grass Track and Stock Car. ASKED: the Sandbox's two sample puddles are dropped the same
+  way (its ice / snow samples stay) - keep them as samples, or delete the data too?
 - CI: `verify` is the gate for main; the `checks` job compares each push with its parent (a
   commit that changes behaviour on purpose fails it by design).
 - The laptop has ~6 GB: ONE heavy browser tool at a time; a full renderhash runs in 4 parts.
@@ -339,13 +340,16 @@ DRIVING (ask before starting; re-measure first, these are old):
 
 ## Tools that are wrong
 
-- [ ] Highway checks failing since before the overhaul (10-12): `tools/hwracecheck.mjs` "no racer
-  wrecked (2)", `tools/trafficcheck.mjs` "motorway: traffic stays on the carriageway",
-  `tools/treadmillcheck.mjs` "motorway: no litter in a driving lane (2)".
-- [ ] `tools/wearcheck.mjs` 3c is flaky (random churn): seed it or loosen the threshold.
-- [ ] `tools/wobblecheck.mjs` is broken (its input hook).
-- [ ] `?autopilot=1` throws "reading 'pts'" on a level with no track (the Lab the game boots on)
-  before a level is launched (seen 10-24 taking the itch shots, tools/scratch/_itchshots.mjs).
+- [ ] `tools/wearcheck.mjs` is STALE, not just 3c (10-24: 13 FAILs): it still checks the old
+  rules the owner has since changed (snow packs to ice at pass 4, puddles churn to mud, mud
+  thickens dry) and its "surfaces without graphics" lists every surface (a broken lookup).
+  Rewrite it to today's rules (S-M) - asked the owner.
+- FIXED 10-24 (small-fixes round, owner test): `treadmillcheck` (the 2 "litter in a lane" were
+  a field's cows with no road segment near them: a checker bug); `trafficcheck` (a REAL bug: a
+  carried traffic car woken to physics kept its suspension height - woken on a hill 4.4 m up it
+  was thrown 42 m into the air and drifted off the road; now seated as a reset is,
+  ai/trafficPhys.ts); `hwracecheck` passes; `wobblecheck` (drives by ?autopilot=1, opens the game
+  with gotoGame); `?autopilot=1` no longer throws on the Lab (no driver without a track).
 
 ## Owner specs
 

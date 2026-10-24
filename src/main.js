@@ -39,6 +39,8 @@ import {
 } from "./world/weather.ts";
 import { setDarkness } from "./world/daylight.ts";
 import { CLOCK, startClock } from "./world/clock.ts";
+import { setTrafficSeat } from "./ai/trafficPhys.ts";
+import { setTestPuddles } from "./world/puddles.ts";
 import { LEVEL } from "./world/state.ts";
 
 import { LEVELS } from "./world/levels/index.ts";
@@ -71,6 +73,10 @@ if (shared.settings.night !== null) setDarkness(shared.settings.night);
 startClock(shared.settings.night === null,
   Math.floor(((new Date().getMonth() + 1) % 12) / 3));
 shared.DEV = shared.settings.dev;
+// ?trafficseat=1: a carried traffic car woken to physics is seated on the ground (no launch)
+setTrafficSeat(shared.settings.trafficSeat);
+// ?sandboxwet=1: the Sandbox keeps its sample puddles (read at each level load)
+setTestPuddles(shared.settings.sandboxWet);
 
 shared.canvas = document.getElementById('c');
 shared.boot = document.getElementById('boot');
