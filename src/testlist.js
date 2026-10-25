@@ -32,4 +32,14 @@ export const TEST_LIST = [
   // passed 2026-10-25; impactsparks passed 2026-10-25 (round 2: 70 %, over 25 mph,
   // directional); engine (radiator + engine heat, the leak as water, speedo lights, exhaust)
   // passed 2026-10-25)
+  {
+    id: 'oil',
+    added: '2026-10-25',
+    name: 'Oil: crash spills, sump drips, a third of the grip; spreads when driven / wet',
+    where: 'Plain link + &oil=1: any circuit (Castle Cum: hit a wall hard nose first)',
+    try: 'Crash hard (0.2+ damage spills 1-4 cells), drive over it (it spreads a little the way'
+      + ' you went), see it in the rain spread into water; a cracked sump leaves a trail.',
+    wrong: 'Oil on sand, gravel, dirt or long grass, oil that dries or washes off, grip no lower than'
+      + ' a puddle, oil spreading across the whole track, oil that is not black and purple.',
+  },
 ];

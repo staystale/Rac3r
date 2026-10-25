@@ -341,6 +341,7 @@ export interface WearCell {
   laid?: string | null;   // what the cover field last laid here (coverfield.ts syncFieldCells)
   area?: string | null;   // the cover field's level area the cell is in (coverfield.ts)
   crack?: number;     // how cracked its ice is, 0..1 (icecrack.ts)
+  oilGen?: number;    // its oil's spreads left + 1 (oil.ts)
 }
 
 // What layersAt returns: the static layers at a point, before any wear.

@@ -11,6 +11,7 @@ import {
 } from './physics/engineheat.ts';
 import { levelStingers, tyresOnStinger } from './world/stingers.ts';
 import { LEVEL } from './world/state.ts';
+import { crashOil, rollOil } from './world/oil.ts';
 import { CORNER_OF_WHEEL } from './world/wheels.ts';
 // damage.ts — CAR DAMAGE. Bookkeeping on the sim step; vehicle.ts reads only
 // car.wreck (multipliers, no-op by default — CLAUDE.md §2 rule 6), render.ts draws the crush /
@@ -225,6 +226,8 @@ export function hit(
   hardHitCorners(hurt, amt, weights, endW, rnd, punctureK);
   // the radiator (and the sump) sit behind the front: the harder-hit front corner's share
   crackOnHit(hurt as DamagedCar & EngineCar, amt * Math.max(weights[0], weights[1]), rnd);
+  // a big crash spills oil (?oil=1, world/oil.ts)
+  crashOil(car, amt, rnd);
   car.dmgBill = (car.dmgBill || 0) + amt * REPAIR_PER;
   car.dmgHits = (car.dmgHits || 0) + 1;
   car.dmgFlash = 1;
@@ -314,7 +317,11 @@ export function hitRoll(car: DamageCar, kind: string, side: number, weight: numb
   pushEvent(car, { c: kind === 'side' ? corners[0] : 0, amt: amt * 1.5 });
   // metal meeting hard ground may break it (world/metalscrape.ts); the sump may crack
   gougeImpact(car as DamageCar & ScrapeCar);
-  if (kind !== 'wheels') crackOnRoll(hurt as DamagedCar & EngineCar, Math.random);
+  // ... and a rolling car sprays some oil (?oil=1, world/oil.ts)
+  if (kind !== 'wheels') {
+    crackOnRoll(hurt as DamagedCar & EngineCar, Math.random);
+    rollOil(car);
+  }
   derive(hurt);
 }
 /**

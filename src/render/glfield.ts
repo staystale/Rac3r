@@ -34,8 +34,9 @@ const CHUNK_M = CHUNK_SQ * FIELD_SQ;
 const CHUNK_BUDGET_MS = 2;
 // squares per wear cell side (a wear cell is 1.5 m, a square 0.5 m: they share the grid)
 const CELL_SQ = Math.round(WEAR_CELL / FIELD_SQ);
-// a cell's cracked ice (world/icecrack.ts): CRACK_CODE + its crack step - 1 (11..14)
-const CRACK_CODE = 11;
+// a cell's cracked ice (world/icecrack.ts): CRACK_CODE + its crack step - 1 (11..14); a cell's
+// oil (world/oil.ts): OIL_CODE, drawn as kind 5
+const CRACK_CODE = 11, OIL_CODE = CRACK_CODE + CRACK_STEPS;
 
 // a full-screen quad without vertex data
 const VERTEX = `#version 300 es
@@ -87,10 +88,11 @@ int kindOf(ivec2 square, out float depth) {
   int code = int(texelFetch(maskTex, slot, 0).r * 255.0 + 0.5);
   depth = 0.0;
   if (code == 255) return -1;
-  // a tyre-made cover (7 water, 8 ice, 9 snow, 10 packed snow; 11..14 cracked ice), a rim where
-  // it meets bare ground
+  // a tyre-made cover (7 water, 8 ice, 9 snow, 10 packed snow; 11..14 cracked ice; oil), a rim
+  // where it meets bare ground
   if (code >= 7) {
     depth = RIM_DEPTH * 0.5;
+    if (code == ${OIL_CODE}) return 5;
     return code == 7 ? 1 : code == 8 ? 2 : code == 9 ? 3 : code == 10 ? 4 : 2;
   }
   vec2 catchValue = texelFetch(catchTex, slot, 0).rg;
@@ -108,8 +110,15 @@ int kindOf(ivec2 square, out float depth) {
 }
 // each cover's look (owner: ice, water and packed snow looked too alike): water dark and clear,
 // ice a glassy cyan with shine streaks, packed snow a neutral grey-white with a fine grain per
-// square, fresh snow white
+// square, fresh snow white; oil black with a dark purple sheen and edges (owner), the ice's
+// pixel streaks
 vec4 lookOf(int kind, bool rim, float thick, float sheen, ivec2 square) {
+  if (kind == 5) {
+    float streak = fract(float(square.x + square.y) * 0.027) < 0.1 ? 1.0 : 0.0;
+    return rim ? vec4(0.32, 0.14, 0.48, 0.9)
+      : vec4(mix(vec3(0.04, 0.02, 0.06), vec3(0.27, 0.10, 0.40), max(sheen, streak) * 0.75),
+        0.86 + 0.1 * thick);
+  }
   if (kind == 1) {
     return rim ? vec4(0.08, 0.12, 0.20, 0.45)
       : vec4(mix(vec3(0.16, 0.26, 0.44), vec3(0.40, 0.54, 0.72), sheen * 0.3),
@@ -222,6 +231,7 @@ function ownedCode(cell: WearCell): number {
   const step = crackStep(cell);
   if (step) return CRACK_CODE + step - 1;
   const cover = cellCoverOnGpu(cell);
+  if (cover === 'oil') return OIL_CODE;
   return cover ? FORCED_CODE + FORCED_COVERS.indexOf(cover) : 255;
 }
 

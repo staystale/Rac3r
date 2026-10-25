@@ -92,9 +92,36 @@ export function dampSurface(surface: Surface, damp: number): Surface {
  * @returns the puddle surface
  */
 export function puddleSurface(base: Surface): Surface {
-  if (base.id === 'wet') return base;
-  const cached = PUDDLE.get(base);
+  return PUDDLE.get(base) || makePuddle(base);
+}
+
+// OIL (oil.ts; owner: about a third of the dry grip): the base's own tyre numbers, its grip x
+// OIL_GRIP, the tyre's longitudinal bite less, no water
+const OIL_GRIP = 0.33;
+const OIL = new Map<Surface, Surface>();
+/**
+ * Oil on a base: a third of its grip. Cached per base.
+ * @param base the dry surface under the oil
+ * @returns the oil surface
+ */
+export function oilSurface(base: Surface): Surface {
+  const cached = OIL.get(base);
   if (cached) return cached;
+  const oil: Surface = {
+    ...base, id: 'oil', under: base.id, label: 'OIL (' + base.label + ')',
+    mu: base.mu * OIL_GRIP, longK: (base.longK || 1) * 0.9, wetK: 0, gripWetK: 0,
+  };
+  OIL.set(base, oil);
+  return oil;
+}
+
+/**
+ * Builds and caches a puddle surface (puddleSurface).
+ * @param base the dry surface under the water
+ * @returns the puddle surface
+ */
+function makePuddle(base: Surface): Surface {
+  if (base.id === 'wet') return base;
   const puddle: Surface = {
     ...base, id: 'puddle', under: base.id, label: 'PUDDLE (' + base.label + ')',
     mu: wetMu(base, 'puddle'), longK: (base.longK || 1) * 0.92,

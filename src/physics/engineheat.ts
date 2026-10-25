@@ -16,6 +16,7 @@
 import { WEATHER } from '../world/weather.ts';
 import { SPRAY_WET } from '../world/surfaces.ts';
 import { getCell, wearDirty, WEAR_CELL } from '../world/wear.ts';
+import { spillOil, DRIP_GEN } from '../world/oil.ts';
 
 /** The engine state on a car. */
 export interface EngineState {
@@ -28,6 +29,7 @@ export interface EngineState {
   engSeized: boolean;    // seized: no power until a reset
   engPowerK: number;     // the power share heat leaves, 1 .. 0 (damage.ts derive reads it)
   leakCells: number;     // wet cells owed by the water lost (one lands each time it passes 1)
+  oilCells: number;      // oil cells owed by the oil lost (?oil=1, world/oil.ts)
 }
 /** A car as this file reads it. */
 export interface EngineCar extends Partial<EngineState> {
@@ -63,6 +65,8 @@ export const OIL_LOW = 0.2;
 // a full radiator's water, in wear cells of water on the ground (1.5 m squares); where it
 // leaves the car (share of the length ahead of the centre)
 const WATER_CELLS = 60, LEAK_AT = 0.3;
+// a full sump's oil, in wear cells of oil on the ground (?oil=1), dripped under the engine
+const OIL_CELLS = 20;
 // the power share moves car.wreck in steps this big (derive is not run every step)
 const POWER_STEP = 0.01;
 
@@ -81,6 +85,7 @@ export function engineInit(car: EngineCar): void {
   car.engSeized = false;
   car.engPowerK = 1;
   car.leakCells = 0;
+  car.oilCells = 0;
 }
 
 /**
@@ -144,7 +149,7 @@ function wetCellAt(x: number, y: number) {
 }
 
 /**
- * Lets the water and oil out; the water lands on the ground as water.
+ * Lets the water and oil out; the water lands on the ground as water, the oil as oil.
  * @param car the car
  * @param state the engine state
  * @param dt the step, s
@@ -160,7 +165,17 @@ function stepLeaks(car: EngineCar, state: EngineState, dt: number) {
       wetCellAt(car.x + Math.cos(car.heading) * ahead, car.y + Math.sin(car.heading) * ahead);
     }
   }
-  if (state.oilLeak > 0) state.engOil = Math.max(0, state.engOil - state.oilLeak * dt);
+  if (state.oilLeak > 0 && state.engOil > 0) {
+    const lost = Math.min(state.engOil, state.oilLeak * dt);
+    state.engOil -= lost;
+    state.oilCells += lost * OIL_CELLS;
+    if (state.oilCells >= 1) {
+      state.oilCells -= 1;
+      const ahead = car.spec.len * LEAK_AT * 0.5;
+      spillOil(car.x + Math.cos(car.heading) * ahead, car.y + Math.sin(car.heading) * ahead,
+        DRIP_GEN);
+    }
+  }
 }
 
 /**

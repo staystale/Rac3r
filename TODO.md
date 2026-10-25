@@ -223,6 +223,19 @@ C. CAR SYSTEMS + DAMAGE (L; one chain - extend damage.ts, no second damage model
   soaked up by sand / gravel / dirt / mud / long grass; slippery on short grass and hard ground;
   never evaporates; oily tyres for 1-5 s after (tyre state); oily marks mildly slippery while on
   them; a black / purple sheen look.
+  BUILT 10-25 behind ?oil=1, UNDER TEST (testlist oil). Owner after the mockup
+  (claude.ai/artifact/DGC5z9Sjmk38frzgM6Zg9p): too much detail - oil ACTS LIKE WATER (one cover
+  in the wear cells, whole cells, no amounts / specks), the agreed slip (~1/3 of dry), drawn LIKE
+  ICE BUT PURPLE (pixel sheen); NO oily tyres / marks - instead a puddle driven through spreads a
+  little the way the wheel went; water spreads oil 50:50 a second. world/oil.ts (spills,
+  generations, drive-through and water spreading), wet.ts oilSurface, glfield kind 5 / OIL_CODE.
+  Sources: a cracked sump drips ~20 cells (engineheat.ts), a hit of 0.2+ damage spills 1-4 cells
+  (likelier the bigger), a rollover impact 25 %. Soaks into sand, gravel, dirt, mud, thick mud,
+  long grass, bushes, traps; never dries, rain never washes it. MEASURED (_oil.mjs, _oilgrip.mjs,
+  Castle Cum): oil racetarmac mu 0.350 (dry 1.060); the car on it reads 'oil'; one oil cell in a
+  ring of water spread 1 -> 7 in 5 s -> 10 (generations stop it); sump at 25 km/h: 19 cells;
+  20 head-on 70 km/h hits spilled 6 times (9 cells); autopilot 90 s through a 9-cell spill
+  9 -> 10 (it spreads slightly); 0 page errors. Photos 844x390 / 390x844.
 - C7 Debris: a bumper / wing / panel from where the car was hit, in the car's own colours, as a
   contactable object (the cones / props system); glass only from cars with glass: thrown a bit,
   tiny sparkling specks, higher puncture chance, cleared in one pass.

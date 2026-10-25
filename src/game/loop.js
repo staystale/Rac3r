@@ -6,6 +6,7 @@ import { LEVEL } from "../world/state.ts";
 import { WEATHER, stepWeather } from "../world/weather.ts";
 import { stepClock } from "../world/clock.ts";
 import { stepPuddles } from "../world/puddles.ts";
+import { stepOil } from "../world/oil.ts";
 import { stepCoverField } from "../world/coverfield.ts";
 import { stepStage, stepJoker, stepRace } from './rules.js';
 import { stepStart } from './order.js';
@@ -104,6 +105,8 @@ export function stepWorld(inp) {
   stepClock(PHYSICS_STEP_SECONDS, shared.mode === 'session', WEATHER.rain);
   stepPuddles(PHYSICS_STEP_SECONDS);
   stepCoverField(PHYSICS_STEP_SECONDS);
+  // oil next to water runs into it (world/oil.ts, ?oil=1)
+  stepOil(PHYSICS_STEP_SECONDS);
   const tcars = game.traffic.cars;
   stepTrafficContacts(tcars);
   stepLooseCones(tcars);
