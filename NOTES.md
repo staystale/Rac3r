@@ -258,6 +258,8 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
 
 - The tiles' palette is built from SURFACE_ART (render/tilesPalette.ts): a new look's colours
   move other pixels' nearest-colour snap. While under test, add them only with the switch on.
+- tools/framecheck.mjs does NOT drive the highway (its autodriver leaves the car parked there):
+  A/B the highway with tools/scratch/_hwframes.mjs (the autopilot, CPU x4) instead.
 - Odds rolled per wear cell scale with area (square bushes: the same per-cell puncture chance
   went 13 % -> 23 % of bushes vs round ones). Re-measure after any change of shape or size.
 

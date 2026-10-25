@@ -240,7 +240,10 @@ C. CAR SYSTEMS + DAMAGE (L; one chain - extend damage.ts, no second damage model
   ON PASS: delete car.punct's old effect (the flag path, the pale wheel block), the switch.
   STINGER (owner, to test the flats): tyre spikes on the Lab and Test Track (world/stingers.ts).
   HIGHWAY HEDGES ?hedges=1 (owner 10-25: "highways should have bushes around farmers fields"):
-  highway/hedges.ts, clumps every 3-5.5 m round each field's border, streamed with the field.
+  highway/hedges.ts, one continuous hedge of square bushes round each field's border (owner:
+  "can that whole line around the field be a bush"), streamed with the field.
+  RIM BY CHANCE (owner: "so all tyres don't degrade at the exact same moment"): a Weibull
+  wear-out over the metres run flat - 10 % by ~550 m, half by ~1 km, 90 % by ~1.5 km.
   ROUND 2 ?engine=1 - C3 radiator + engine temperature (seizes ~10 s at 130 C), C4 speedo lights
   (every car), C5 exhaust smoke; the grey nose smoke replaced by steam / engine smoke.
 

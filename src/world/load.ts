@@ -60,17 +60,22 @@ function isPatchOffLane(patch: Patch): boolean {
 function indexPatchGrid(): void {
   resetPATCH_GRID();
   LEVEL.allPatches!.forEach((patch, order) => PATCH_ORDER.set(patch, order));
-  for (const patch of LEVEL.allPatches!) {
-    const radius = Math.max(patch.w, patch.h) / 2;
-    for (let cellX = Math.floor((patch.x - radius) / PATCH_CELL);
-      cellX <= Math.floor((patch.x + radius) / PATCH_CELL); cellX++)
-      for (let cellY = Math.floor((patch.y - radius) / PATCH_CELL);
-        cellY <= Math.floor((patch.y + radius) / PATCH_CELL); cellY++) {
-        const key = patchKey(cellX, cellY), cell = PATCH_GRID.get(key);
-        if (cell) cell.push(patch);
-        else PATCH_GRID.set(key, [patch]);
-      }
-  }
+  for (const patch of LEVEL.allPatches!) gridPatch(patch);
+}
+/**
+ * Adds one patch to the patch grid's cells.
+ * @param patch the patch
+ */
+function gridPatch(patch: Patch): void {
+  const radius = Math.max(patch.w, patch.h) / 2;
+  for (let cellX = Math.floor((patch.x - radius) / PATCH_CELL);
+    cellX <= Math.floor((patch.x + radius) / PATCH_CELL); cellX++)
+    for (let cellY = Math.floor((patch.y - radius) / PATCH_CELL);
+      cellY <= Math.floor((patch.y + radius) / PATCH_CELL); cellY++) {
+      const key = patchKey(cellX, cellY), cell = PATCH_GRID.get(key);
+      if (cell) cell.push(patch);
+      else PATCH_GRID.set(key, [patch]);
+    }
 }
 /**
  * Re-indexes the active level's bushes after they changed (the highway's hedges stream with its
@@ -82,7 +87,20 @@ export function reindexBushes(level: Level): void {
   LEVEL.allPatches = LEVEL.allPatches.filter((patch) => !patch.bush).concat(LEVEL._bushes || []);
   indexPatchGrid();
 }
-
+/**
+ * Adds new bushes to the active level's patches and grid without rebuilding it (the highway's
+ * hedges arrive a field at a time): drawn after every patch already there.
+ * @param level the level they were added to (nothing to do unless it is the active one)
+ * @param bushes the new bushes (already in level._bushes)
+ */
+export function indexNewBushes(level: Level, bushes: Patch[]): void {
+  if (level !== LEVEL || !LEVEL.allPatches) return;
+  for (const bush of bushes) {
+    PATCH_ORDER.set(bush, LEVEL.allPatches.length);
+    LEVEL.allPatches.push(bush);
+    gridPatch(bush);
+  }
+}
 /**
  * Builds the current level for driving (or, light, for a menu thumbnail).
  * @param light a THUMBNAIL build: a level whose patches are not built yet skips them. MEASURED

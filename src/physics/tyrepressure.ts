@@ -2,9 +2,10 @@
 // caused them, a flat that squashes, pulls and drags, then runs to the rim). Each tyre keeps a
 // pressure (1 full .. 0 flat) and a leak rate. A big hit or a heat burst lets it go at once
 // (about half a second, with a sharp pull at the moment it goes); debris, nails or a bush let it
-// down slowly (10-30 s). Driven flat for about RIM_RUN_M (sooner when cornering hard) the rubber
-// comes off: the wheel runs on its rim - less grip again, more drag, and metal on hard ground
-// (world/metalscrape.ts: sparks, a scored line, a chance to break the surface).
+// down slowly (10-30 s). Driven flat, the rubber comes off by a CHANCE that grows with the
+// metres run flat (owner: so the tyres do not all go at the same moment): half by ~1 km, sooner
+// when cornering hard; then the wheel runs on its rim - less grip again, more drag, and metal on
+// hard ground (world/metalscrape.ts: sparks, a scored line, a chance to break the surface).
 // damage.ts owns the puncture (where it starts) and turns these numbers into car.wreck; RESET /
 // RESTART / an AI's reset mend them with the rest of the damage. Arrays are by damage CORNER
 // (0 front -y, 1 front +y, 2 rear -y, 3 rear +y), as car.punct.
@@ -31,9 +32,11 @@ const FAST_LEAK = 2;
 const SLOW_MIN_S = 10, SLOW_SPREAD_S = 20;
 // below this a tyre counts as flat: it runs toward the rim
 const FLAT_BELOW = 0.05;
-// metres driven flat in a straight line before the rubber comes off; cornering wears it sooner
-// (RIM_CORNER_K more a g of cornering): ~1 km at race speed, owner
-const RIM_RUN_M = 1000, RIM_CORNER_K = 2;
+// the run to the rim is a Weibull wear-out over the metres driven flat (a hazard rising with
+// them): shape RIM_SHAPE, scale RIM_SCALE_M - a tenth of flat tyres are on the rim by ~530 m,
+// half by ~1 km, nine tenths by ~1.5 km (owner: ~1 km). Cornering wears it sooner (RIM_CORNER_K
+// more metres a g of cornering).
+const RIM_SHAPE = 3, RIM_SCALE_M = 1130, RIM_CORNER_K = 2;
 // the sharp pull when a tyre bursts (rad of toe toward that side, dying away over KICK_TAU_S)
 const KICK_TOE = 0.04, KICK_TAU_S = 0.35;
 // grip of an axle by its softest tyre: a flat one 0.7 (the old puncture), a rim 0.45 (as a lost
@@ -87,9 +90,11 @@ export function startLeak(car: PressureCar, corner: number, fast: boolean,
  * One physics step of the tyres' air: leaks, the run to the rim, the burst pull dying away.
  * @param car the car
  * @param dt the step, s
+ * @param rnd the random source (the run to the rim)
  * @returns true when anything changed that car.wreck reads (damage.ts re-derives it)
  */
-export function stepTyrePressure(car: PressureCar, dt: number): boolean {
+export function stepTyrePressure(car: PressureCar, dt: number,
+  rnd: () => number = Math.random): boolean {
   const pressure = car.tyreP, leak = car.tyreLeak, run = car.flatRun, rim = car.onRim;
   if (!pressure || !leak || !run || !rim) return false;
   let changed = false;
@@ -106,8 +111,9 @@ export function stepTyrePressure(car: PressureCar, dt: number): boolean {
       changed = true;
     }
     if (rim[corner] || pressure[corner] > FLAT_BELOW) continue;
+    const before = run[corner];
     run[corner] += speed * dt * (1 + RIM_CORNER_K * cornerG);
-    if (run[corner] >= RIM_RUN_M) {
+    if (rnd() < rimChance(before, run[corner])) {
       rim[corner] = true;
       pressure[corner] = 0;
       pushTyreEvent(car, { corner, kind: 'shreds' });
@@ -115,6 +121,18 @@ export function stepTyrePressure(car: PressureCar, dt: number): boolean {
     }
   }
   return changed;
+}
+
+/**
+ * The chance the rubber comes off while the flat run goes from one distance to the next (the
+ * Weibull wear-out: the chance it survived to the start that it fails before the end).
+ * @param fromM metres run flat before this step
+ * @param toM metres run flat after it
+ * @returns the chance, 0..1
+ */
+function rimChance(fromM: number, toM: number): number {
+  const wearFrom = (fromM / RIM_SCALE_M) ** RIM_SHAPE, wearTo = (toM / RIM_SCALE_M) ** RIM_SHAPE;
+  return 1 - Math.exp(wearFrom - wearTo);
 }
 
 /**

@@ -89,7 +89,7 @@ heat / wear bursts, debris, nails, bushes) ends in `damage.ts`, which starts a L
 `physics/tyrepressure.ts` - a burst flat in ~0.5 s with a sharp pull, a slow one (`car.burstSlow`)
 over 10-30 s. Each tyre's pressure sets its axle's grip (1 -> 0.7 flat -> 0.45 on the rim), a pull
 toward it and extra rolling drag, folded into `car.wreck` by `damage.ts derive`; driven flat
-~1 km (sooner cornering) it runs on the rim. `damage.ts stepDamage` runs it each physics step
+the rubber comes off by a chance rising with the metres run flat (half by ~1 km). `damage.ts stepDamage` runs it each physics step
 (player `game/sim.js`, AI `game/ai.js`). METAL ON HARD GROUND (`world/metalscrape.ts`): a rim, or
 a rolled body sliding (`roll.js car.sparks`), sparks and may break each new wear cell a grade
 (race tarmac -> tarmac -> broken) through `gougeCell`; a rollover impact has its own chance; a
@@ -98,10 +98,10 @@ squashes progressively with its air, a rim bare), puffs / shreds / rim sparks in
 `render/particles.ts`, the HUD tyre ring by pressure (`hud/gauges.js`), `?dev=1` line `air`.
 Tyre spikes (a police stinger, `world/stingers.ts`, drawn by `render/stingers.ts`) on the Lab and Test Track burst every wheel that rolls on.
 
-Highway hedges (under test, `?hedges=1`): `highway/hedges.ts` lays bush clumps (the same
-`bush` patches as the other levels) round each farm field's long-grass border, streamed with
+Highway hedges (under test, `?hedges=1`): `highway/hedges.ts` lays one continuous line of square
+bushes (the same `bush` patches as the other levels) round each farm field's long-grass border, streamed with
 the field (laid in `highway/fields.js`, dropped by the slide's prune and `clearFields`) and
-indexed through `world/load.ts reindexBushes`.
+indexed through `world/load.ts indexNewBushes` (added a field at a time) and `reindexBushes`.
 
 ## Drawing (`render.ts` and `render/`)
 

@@ -2,14 +2,15 @@
 // around farmers fields"; ?hedges=1). Each field's long-grass border (highway/fields.js, HEDGE_W
 // m all round) gets clumps of the bushes the other levels have (world/bushplan.ts, the 'bush'
 // surface: drag, scratches, punctures, flattened to long grass; drawn as its square pixel clumps
-// with tufts over the cars) along all four sides, with gaps and a gateway on the road side. They
+// with tufts over the cars) as ONE CONTINUOUS HEDGE along all four sides (owner: "can that whole
+// line around the field be a bush"), a gateway left on the road side and a break at each tree. They
 // stream with the field: laid with it, dropped with it (passed, or cleared for a bridge / slip
 // road), and indexed in the patch grid (world/load.ts reindexBushes), so the ground lookup stays
 // a grid query however many are loaded. Own random stream per field: nothing else moves.
 
 import { seededRng } from '../world/blend.ts';
 import { SURFACES } from '../world/surfaces.ts';
-import { reindexBushes } from '../world/load.ts';
+import { indexNewBushes, reindexBushes } from '../world/load.ts';
 import type { Level, Patch } from '../world/types.ts';
 
 /** A field plot as highway/fields.js lays it (the parts a hedge reads). */
@@ -25,12 +26,15 @@ type HedgeLevel = Level & { _bushes?: Patch[] | null };
 
 // m: the border the hedge stands in (highway/fields.js HEDGE_W)
 const BAND_M = 2.5;
-// m between clump spots along an edge, and the chance a spot is a gap
-const STEP_MIN_M = 3, STEP_SPREAD_M = 2.5, GAP_CHANCE = 0.15;
+// m between the hedge's squares along an edge (under a square's side: no holes, even where the
+// field's edge runs diagonally to the squares)
+const STEP_M = 2;
 // m: the gateway left in the road-side hedge
 const GATE_M = 8;
-// m: a clump's main bush (its side; fits the band), the extra ones smaller
-const MAIN_MIN_M = 1.8, MAIN_SPREAD_M = 0.7;
+// m: a hedge square's side; now and then a smaller one bulging out of the line
+const SIDE_MIN_M = 2.3, SIDE_SPREAD_M = 0.5, BULGE_CHANCE = 0.2;
+// the chance one square is another kind of bush than the hedge's own
+const MIXED_CHANCE = 0.1;
 // m a bush's centre keeps from a hedgerow tree's trunk
 const TRUNK_CLEAR_M = 1.6;
 // the kinds of bush (render/ground/art.ts addBushLooks)
@@ -73,39 +77,43 @@ export function addFieldHedges(level: HedgeLevel, plot: FieldPlot): void {
     [-halfL, -halfD, halfL, -halfD, true], [-halfL, halfD, halfL, halfD, false],
     [-halfL, -halfD, -halfL, halfD, false], [halfL, -halfD, halfL, halfD, false],
   ];
+  const added: Patch[] = [];
+  const own = BUSH_LOOKS[Math.floor(rnd() * BUSH_LOOKS.length)];
   for (const [fromU, fromV, toU, toV, roadSide] of sides) {
     const length = Math.hypot(toU - fromU, toV - fromV);
-    for (let run = rnd() * STEP_MIN_M; run < length; run += STEP_MIN_M + rnd() * STEP_SPREAD_M) {
+    for (let run = 0; run <= length; run += STEP_M) {
       const along = fromU + (toU - fromU) * run / length;
       const across = fromV + (toV - fromV) * run / length;
-      if (rnd() < GAP_CHANCE || (roadSide && Math.abs(along - gateAt) < GATE_M / 2)) continue;
+      if (roadSide && Math.abs(along - gateAt) < GATE_M / 2) continue;
       const [x, y] = fieldPoint(plot, along, across);
       if (trunks.some((tree) => Math.hypot(tree.x - x, tree.y - y) < TRUNK_CLEAR_M)) continue;
-      growHedgeClump(list, plot, x, y, rnd);
+      const art = rnd() < MIXED_CHANCE ? BUSH_LOOKS[Math.floor(rnd() * BUSH_LOOKS.length)] : own;
+      addHedgeSquare(added, plot, x, y, SIDE_MIN_M + rnd() * SIDE_SPREAD_M, art);
+      if (rnd() < BULGE_CHANCE) {
+        const out = (rnd() - 0.5) * 1.4;
+        addHedgeSquare(added, plot, x + plot.nx * plot.side * out, y + plot.ny * plot.side * out,
+          SIDE_MIN_M * (0.5 + rnd() * 0.2), art);
+      }
     }
   }
-  reindexBushes(level);
+  list.push(...added);
+  indexNewBushes(level, added);
 }
 
 /**
- * One clump of the hedge: a main square bush and up to two smaller ones beside it.
- * @param list the level's bushes (added to)
+ * One square of the hedge.
+ * @param added the field's new bushes (added to)
  * @param plot the field
  * @param x world x, m
  * @param y world y, m
- * @param rnd the field's hedge random stream
+ * @param side the square's side, m
+ * @param art its kind of bush
  */
-function growHedgeClump(list: Patch[], plot: FieldPlot, x: number, y: number,
-  rnd: () => number) {
-  const main = MAIN_MIN_M + rnd() * MAIN_SPREAD_M, art = BUSH_LOOKS[Math.floor(rnd() * 3)];
-  for (let part = 0, parts = 1 + Math.floor(rnd() * 3); part < parts; part++) {
-    const side = part === 0 ? main : main * (0.55 + rnd() * 0.25);
-    const shift = part === 0 ? 0 : (rnd() - 0.5) * main;
-    const bush: HedgeBush = { x: x + plot.axisX * shift, y: y + plot.axisY * shift, w: side,
-      h: side, sq: true, surface: SURFACES.bush, bush: true, art, field: plot.fieldId,
-      _s: plot.dist };
-    list.push(bush);
-  }
+function addHedgeSquare(added: Patch[], plot: FieldPlot, x: number, y: number, side: number,
+  art: string) {
+  const bush: HedgeBush = { x, y, w: side, h: side, sq: true, surface: SURFACES.bush, bush: true,
+    art, field: plot.fieldId, _s: plot.dist };
+  added.push(bush);
 }
 
 /**
