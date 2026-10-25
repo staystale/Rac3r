@@ -5,6 +5,7 @@
 import { SPRITE_PPM } from "./shared.ts";
 import { drawWetTrails } from "../wettrail.ts";
 import { drawStingers } from "./stingers.ts";
+import { drawFlipRamps } from "./flipramps.ts";
 import type { CarPicture } from "./cars.ts";
 import type { RenderCar, RenderGame, RenderMarks, View } from "./types.ts";
 
@@ -181,6 +182,8 @@ export function drawMarksOnScreen(ctx: ScreenCtx, game: RenderGame, lock: Screen
     drawWetTrails(mainCtx, ctx.toScreenX, ctx.toScreenY, ctx.PPMz());
     // tyre spikes on the test levels
     drawStingers(mainCtx, ctx.toScreenX, ctx.toScreenY, ctx.PPMz());
+    // the flip ramps (?flipramp=1)
+    drawFlipRamps(mainCtx, ctx.toScreenX, ctx.toScreenY, ctx.PPMz());
   } finally {
     view.ctx = keep;
     mainCtx.restore();

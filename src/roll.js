@@ -17,6 +17,8 @@
 // that ground (sparks on hard ground). Sim time (rule 5): it moves the car; render.ts draws it
 // (faces, sparks), main.js hands control back on RESET (player) or resets the AI. m: body height
 // (the side face the camera sees on a rolled car)
+import { levelFlipRamps, rampFlip } from './world/flipramps.ts';
+import { LEVEL } from './world/state.ts';
 export const ROLL_H = 1.4;
 // the hatch: 1.5 / (2 x 0.52)
 const SSF_REF = 1.44;
@@ -89,6 +91,12 @@ export function tripCheck(car, dt, rnd = Math.random) {
   if (kick && kick.dv > 7 * stability
     && rnd() < Math.min(0.6, (kick.dv - 7 * stability) / 10)) {
     startRoll(car, kick.dir, kick.dv);
+    return true;
+  }
+  // a flip ramp under one side's wheels throws the car over (world/flipramps.ts, ?flipramp=1)
+  const flip = rampFlip(car, levelFlipRamps(LEVEL.id));
+  if (flip) {
+    startRoll(car, flip.dir, flip.vLat);
     return true;
   }
   if (tripLanding(car, dt, vLat, stability, rnd)) return true;
@@ -205,3 +213,4 @@ function spinStep(car, state, dt, onHit) {
   }
   return false;
 }
+
