@@ -264,6 +264,7 @@ function drawEffects(ctx: RenderCtx, game: RenderGame, wallDt: number) {
       : []),
   ]) {
     ctx.addDamageSmoke(car, wallDt);
+    ctx.addEngineSmoke(car, wallDt);
     ctx.addChips(car);
     ctx.addSparks(car, wallDt);
   }

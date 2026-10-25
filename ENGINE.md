@@ -102,6 +102,17 @@ squashes progressively with its air, a rim bare), puffs / shreds / rim sparks in
 `render/particles.ts`, the HUD tyre ring by pressure (`hud/gauges.js`), `?dev=1` line `air`.
 Tyre spikes (a police stinger, `world/stingers.ts`, drawn by `render/stingers.ts`) on the Lab and Test Track burst every wheel that rolls on. The Lab's
 flip ramp (`world/flipramps.ts`, an armco end; `roll.js tripCheck` asks it) rolls a car run up it.
+ENGINE (`?engine=1`, under test): `physics/engineheat.ts` keeps each car's engine C, radiator
+water, oil and a seize timer, stepped by `damage.ts stepDamage` (every car from the start). Heat
+in by throttle x revs (`car.throttleUsed`, set by `vehicle.ts step`); out through the radiator
+(thermostat from 87 C, the water left, airflow by speed + rain + wheel splashes) and the block.
+A front hit (`damage.ts hit`: the harder-hit front corner's share 0.15+) cracks the radiator
+(empty in 4 min .. 40 s), a hard one (0.35+) or a rollover impact may crack the sump. The
+leak is WATER: ~60 wear cells a radiator under the nose become the tyres' water (`world/puddles.ts`
+rules, the GPU field's look), closer together the worse the leak. Power fades 115 -> 130 C to half (folded into
+`car.wreck.power` by `derive`); 10 s at 130 C or with no oil SEIZES it (power 0; an AI resets:
+`tooInjured`). Speedo lights `hud/enginelights.ts`; exhaust, backfires, steam and engine smoke
+`render/enginesmoke.ts` (pipe spots per car kind, `EXHAUST_SPOTS`); `?dev=1` line `eng`.
 
 Highway hedges: `highway/hedges.ts` lays one continuous line of square
 bushes (the same `bush` patches as the other levels) round each farm field's long-grass border, streamed with

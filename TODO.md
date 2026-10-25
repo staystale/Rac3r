@@ -277,6 +277,19 @@ C. CAR SYSTEMS + DAMAGE (L; one chain - extend damage.ts, no second damage model
   harder).
   ROUND 2 ?engine=1 - C3 radiator + engine temperature (seizes ~10 s at 130 C), C4 speedo lights
   (every car), C5 exhaust smoke; the grey nose smoke replaced by steam / engine smoke.
+  BUILT 10-25, UNDER TEST (testlist engine; owner: thresholds a first cut, tune on test; lift-off
+  pops near the redline YES): physics/engineheat.ts, hud/enginelights.ts,
+  render/enginesmoke.ts. MEASURED
+  (tools/scratch/_engine.mjs): a full radiator holds 87-90 C in every case (a flat-out crawl at
+  40 C 89.5); cracked, race driving: empty in 240 / 74 / 40 s (hit 0.15 / 0.35 / 0.6), then 105 C
+  +20 s, 115 C +34 s, 130 C +73 s, seized +83 s; coasting from 120 C cools (92 C after 5 min);
+  sump cracked: oil light at 48 s, seized at 70 s. THE LEAK IS WATER (owner: the same liquid
+  as the rain, behaving the same, more the worse the leak): a radiator's water lands as ~60 wear
+  cells of the tyres' water (puddles.ts rules: grip, clearing, drying, black ice; the field's
+  look), one every ~23 m at race pace for a fast leak, ~140 m for a slow one; pools when
+  stopped. Real game (_engineshots.mjs, Castle Cum autopilot, fast leak): empty 40 s, 115 C
+  100 s, seized 172 s; an AI seized, reset and came back mended; 0 page errors. ON PASS: delete the grey nose smoke (wreck.smoke, particles.ts DSMOKE) and
+  the switch.
 
 D. TREES, BUSHES + SEASONS (M). BUSHES: pass-through, heavy drag, wear to long grass, minor
 damage by chance (less with speed), a fairly high puncture chance (needs C2). TREES: canopy

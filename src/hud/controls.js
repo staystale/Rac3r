@@ -2,6 +2,7 @@
 // Pure moves out of hud.js.
 
 import { COL } from '../world/colours.ts';
+import { engineEnabled } from '../physics/engineheat.ts';
 import { MARGIN, drawHudPanel, drawHudLabel } from './widgets.js';
 
 /**
@@ -102,6 +103,12 @@ export function drawHudDevReadout(ctx, state, game, car, height) {
     if (car.tyreP) {
       lines.push('air ' + car.tyreP.map((pressure, corner) => (car.onRim[corner] ? 'R'
         : Math.round(pressure * 100)) + '/' + Math.round(car.flatRun[corner])).join(' '));
+    }
+    // ?engine=1: engine C, radiator water %, oil %, seconds seizing, S = seized
+    if (car.engT !== undefined && engineEnabled()) {
+      lines.push(`eng ${car.engT.toFixed(1)}C water ${Math.round(car.engWater * 100)} `
+        + `oil ${Math.round(car.engOil * 100)} seize ${car.seizeT.toFixed(1)}`
+        + (car.engSeized ? ' S' : '') + ` pow ${car.engPowerK.toFixed(2)}`);
     }
     const readoutH = lines.length * 11 + 12;
     const readoutRect = { x: MARGIN, y: height - MARGIN - readoutH - 22, w: 232, h: readoutH };

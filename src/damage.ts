@@ -5,6 +5,10 @@ import {
   type PressureCar, type PressureState,
 } from './physics/tyrepressure.ts';
 import { scrapeMetal, gougeImpact, type ScrapeCar } from './world/metalscrape.ts';
+import {
+  engineInit, engineEnabled, stepEngine, crackOnHit, crackOnRoll,
+  type EngineCar, type EngineState,
+} from './physics/engineheat.ts';
 import { levelStingers, tyresOnStinger } from './world/stingers.ts';
 import { LEVEL } from './world/state.ts';
 import { CORNER_OF_WHEEL } from './world/wheels.ts';
@@ -38,6 +42,9 @@ import { CORNER_OF_WHEEL } from './world/wheels.ts';
 // car.burstSlow) over 10-30 s - and the axle grip, pull and drag follow the tyre's pressure, down
 // to the rim; stepDamage runs the air, the stingers and metal on the ground
 // (world/metalscrape.ts) each physics step.
+// ENGINE (?engine=1, physics/engineheat.ts): a front hit cracks the radiator (and maybe the sump),
+// the engine heats as the water goes, power fades when hot and it seizes; the power share it
+// leaves is folded into car.wreck.power here.
 // m/s of impact velocity change below which it is only a scrape (v1: 2.5 — "really hard to cause")
 export const DMG_FLOOR = 1.5;
 // m/s: a contact this small in one step is a car sliding along something
@@ -64,7 +71,7 @@ export interface DamageState {
   dmg: number[]; crushL: number[]; crushS: number[]; roofDmg: number; wheelOff: boolean[];
 }
 /** A car as this file reads and writes it (the tyres' air: physics/tyrepressure.ts). */
-export interface DamageCar extends Partial<DamageState>, PressureCar {
+export interface DamageCar extends Partial<DamageState>, PressureCar, Partial<EngineState> {
   vx: number; vy: number; heading: number;
   dmgBill?: number; dmgHits?: number; dmgFlash?: number;
   dmgEvents?: DamageEvent[]; wheelSpawn?: number[];
@@ -73,7 +80,7 @@ export interface DamageCar extends Partial<DamageState>, PressureCar {
   _dsp?: unknown; _scrapeT?: number; _sideKick?: { dir: number; dv: number };
 }
 /** A car whose damage state has been made (damageInit has run). */
-type DamagedCar = DamageCar & DamageState & PressureState;
+type DamagedCar = DamageCar & DamageState & PressureState & EngineState;
 
 /**
  * Makes a car's damage state new: no damage, no punctures, every wheel on. Keeps the bill.
@@ -87,6 +94,7 @@ export function damageInit(car: DamageCar): asserts car is DamagedCar {
   car.wheelOff = [false, false, false, false];
   car.dmgBill = car.dmgBill || 0;
   pressureInit(car);
+  engineInit(car as DamageCar & EngineCar);
   derive(car as DamagedCar);
 }
 /**
@@ -215,6 +223,8 @@ export function hit(
   // away from the impact
   if (Math.abs(lateral) > 0.6) car._sideKick = { dir: -Math.sign(lateral), dv: deltaV };
   hardHitCorners(hurt, amt, weights, endW, rnd, punctureK);
+  // the radiator (and the sump) sit behind the front: the harder-hit front corner's share
+  crackOnHit(hurt as DamagedCar & EngineCar, amt * Math.max(weights[0], weights[1]), rnd);
   car.dmgBill = (car.dmgBill || 0) + amt * REPAIR_PER;
   car.dmgHits = (car.dmgHits || 0) + 1;
   car.dmgFlash = 1;
@@ -249,7 +259,8 @@ function derive(car: DamagedCar) {
     // the tyres' air sets each axle's grip (a flat 0.7, a rim 0.45), bent suspension takes 20 %
     gripF: (1 - 0.2 * front) * air.gripF * (offF ? 0.45 : 1),
     gripR: (1 - 0.2 * rear) * air.gripR * (offR ? 0.45 : 1),
-    power: 1 - 0.15 * Math.max(dmg[0], dmg[1]),
+    // a bent front takes 15 %; the engine's heat (physics/engineheat.ts) the rest, 0 seized
+    power: (1 - 0.15 * Math.max(dmg[0], dmg[1])) * (car.engPowerK ?? 1),
     // a pull toward the harder-hit front (TOE 0.04 turned the car 40 deg in 3 s hands-off: 0.008
     // = 8 deg, a pull you correct), toward a soft tyre, and a missing wheel drags its corner
     toe: TOE * (dmg[1] - dmg[0]) + air.toe
@@ -260,18 +271,21 @@ function derive(car: DamagedCar) {
 }
 
 /**
- * One physics step of the car's systems: the stingers, the tyres' air, then metal on the ground
- * (rims, a body sliding on hard ground).
+ * One physics step of the car's systems: the stingers, the tyres' air, the engine (?engine=1),
+ * then metal on the ground (rims, a body sliding on hard ground).
  * @param car the car
  * @param dt the step, s
  */
-export function stepDamage(car: DamageCar & ScrapeCar, dt: number): void {
+export function stepDamage(car: DamageCar & ScrapeCar & EngineCar, dt: number): void {
   // a wheel on a stinger bursts (world/stingers.ts)
   for (const tyre of tyresOnStinger(car, levelStingers(LEVEL.id))) {
     burstCorner(car, CORNER_OF_WHEEL[tyre], true);
   }
+  // the engine runs on every car from the start (?engine=1), hit or not
+  if (!car.dmg && engineEnabled()) damageInit(car);
   if (!car.dmg) return;
-  if (stepTyrePressure(car, dt)) derive(car as DamagedCar);
+  const airMoved = stepTyrePressure(car, dt);
+  if (stepEngine(car, dt) || airMoved) derive(car as DamagedCar);
   scrapeMetal(car);
 }
 
@@ -300,8 +314,9 @@ export function hitRoll(car: DamageCar, kind: string, side: number, weight: numb
   car.dmgBill = (car.dmgBill || 0) + amt * REPAIR_PER * (kind === 'wheels' ? 0.5 : 1.5);
   car.dmgHits = (car.dmgHits || 0) + 1;
   pushEvent(car, { c: kind === 'side' ? corners[0] : 0, amt: amt * 1.5 });
-  // metal meeting hard ground may break it (world/metalscrape.ts)
+  // metal meeting hard ground may break it (world/metalscrape.ts); the sump may crack
   gougeImpact(car as DamageCar & ScrapeCar);
+  if (kind !== 'wheels') crackOnRoll(hurt as DamagedCar & EngineCar, Math.random);
   derive(hurt);
 }
 /**
@@ -367,5 +382,5 @@ export function tooInjured(car: DamageCar): boolean {
   const tyresGone = [0, 1, 2, 3].filter((corner) => isFlat(hurt, corner)).length >= 2
     || hurt.onRim.some(Boolean);
   return (dmg[0] + dmg[1] + dmg[2] + dmg[3]) / 4 > 0.6 || Math.max(...dmg) >= 0.98
-    || tyresGone || hurt.wheelOff.some(Boolean);
+    || tyresGone || hurt.wheelOff.some(Boolean) || !!hurt.engSeized;
 }

@@ -1,6 +1,8 @@
 // The PARTICLES layer of the renderer: thrown material - puffs, spray, smoke, paint chips and
 // sparks. createParticles owns the pools and returns the add / draw entry points.
 import { SPRITE_PPM, fxRandom } from "./shared.ts";
+import { emitEngineSmoke, type PuffAt, type SmokeCar } from './enginesmoke.ts';
+import { engineEnabled } from '../physics/engineheat.ts';
 import type { Spray } from "../world/types.ts";
 import type { Cam, Chip, ParticleCar, Puff, PuffHit, RenderMarks, View } from "./types.ts";
 
@@ -19,6 +21,9 @@ interface DmgEvent {
 // the mutable values the particle layer keeps between frames
 interface ParticleState {
   puffs: Puff[];
+  // OVER THE CARS: steam and engine smoke rise off the bonnet (render/enginesmoke.ts), drawn
+  // after the cars (render/screen.ts drawSharpCarLayers)
+  overPuffs: Puff[];
   // WHEEL SPRAY keeps a fractional remainder, because a rate below one particle per frame must
   // still emit at the right average rather than rounding to nothing.
   sprayDebt: number;
@@ -78,9 +83,8 @@ const DSMOKE = { rgb: '120,120,128', size: 0.5, lift: 0.7, life: 1.1, grow: 1.6 
  */
 function emitPuff(
   ctx: ParticleCtx, x: number, y: number, vx: number, vy: number,
-  spray: Omit<Spray, "rate">, scale: number,
+  spray: Omit<Spray, "rate">, scale: number, puffs: Puff[] = ctx.state.puffs,
 ) {
-  const puffs = ctx.state.puffs;
   if (puffs.length >= MAX_PUFFS) puffs.shift();          // cap; drop the oldest (§4)
   const angle = fxRandom() * 6.2832;
   const fling = spray.lift * scale * (0.35 + fxRandom() * 0.65);
@@ -172,7 +176,8 @@ function emitTyreSmoke(ctx: ParticleCtx, car: ParticleCar, marks: RenderMarks, w
  * @param wallDt wall-clock frame time
  */
 function emitDamageSmoke(ctx: ParticleCtx, car: ParticleCar, wallDt: number) {
-  if (!car.wreck || !car.wreck.smoke) return;
+  // ?engine=1: the engine's own steam and smoke (render/enginesmoke.ts) replace this
+  if (!car.wreck || !car.wreck.smoke || engineEnabled()) return;
   // a stopped wreck: a thin wisp (10/s piled into a square haze)
   car._dsDebt = (car._dsDebt || 0) + (Math.hypot(car.vx, car.vy) > 2 ? 10 : 2.5) * wallDt;
   const cosHeading = Math.cos(car.heading), sinHeading = Math.sin(car.heading),
@@ -511,10 +516,10 @@ function drawSparkPixels(
  * Move, fade and draw the puffs; expired ones are removed.
  * @param ctx particle context
  * @param wallDt wall-clock frame time
+ * @param puffs the pool: under the cars (default) or over them
  */
-function renderPuffs(ctx: ParticleCtx, wallDt: number) {
+function renderPuffs(ctx: ParticleCtx, wallDt: number, puffs: Puff[] = ctx.state.puffs) {
   const { view, PPMz, toScreenX, toScreenY } = ctx;
-  const puffs = ctx.state.puffs;
   const ppm = PPMz();
   for (let i = puffs.length - 1; i >= 0; i--) {
     const puff = puffs[i];
@@ -547,8 +552,12 @@ function renderPuffs(ctx: ParticleCtx, wallDt: number) {
  */
 export function createParticles(view: View, cam: Cam, helpers: ParticleHelpers) {
   const { PPMz, toScreenX, toScreenY } = helpers;
-  const state: ParticleState = { puffs: [], sprayDebt: 0, smokeDebt: 0, chips: [], sparks: [] };
+  const state: ParticleState = { puffs: [], overPuffs: [], sprayDebt: 0, smokeDebt: 0,
+    chips: [], sparks: [] };
   const ctx: ParticleCtx = { view, cam, PPMz, toScreenX, toScreenY, state };
+  const puffAt: PuffAt = (x, y, vx, vy, look, scale) => emitPuff(ctx, x, y, vx, vy, look, scale);
+  const puffOver: PuffAt = (x, y, vx, vy, look, scale) =>
+    emitPuff(ctx, x, y, vx, vy, look, scale, state.overPuffs);
   return {
     chips: state.chips, MAX_CHIPS, sparks: state.sparks,
     addPuffs: (hits: PuffHit[]) => addPuffsTo(ctx, hits),
@@ -557,11 +566,14 @@ export function createParticles(view: View, cam: Cam, helpers: ParticleHelpers) 
     addSmoke: (car: ParticleCar, marks: RenderMarks, wallDt: number) =>
       emitTyreSmoke(ctx, car, marks, wallDt),
     addDamageSmoke: (car: ParticleCar, wallDt: number) => emitDamageSmoke(ctx, car, wallDt),
+    addEngineSmoke: (car: SmokeCar, wallDt: number) =>
+      emitEngineSmoke(puffAt, puffOver, car, wallDt),
     addChips: (car: ParticleCar) => emitChips(ctx, car),
     addSparks: (car: ParticleCar, wallDt: number) => emitSparks(ctx, car, wallDt),
     drawChips: (wallDt: number) => renderChips(ctx, wallDt),
     drawSparks: (wallDt: number, target: CanvasRenderingContext2D) =>
       renderSparks(ctx, wallDt, target),
     drawPuffs: (wallDt: number) => renderPuffs(ctx, wallDt),
+    drawOverPuffs: (wallDt: number) => renderPuffs(ctx, wallDt, state.overPuffs),
   };
 }

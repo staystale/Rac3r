@@ -27,6 +27,7 @@ export interface ScreenCtx {
   drawProps: (overhead?: boolean) => void;
   drawMarks: (marks: RenderMarks) => void;
   drawRain: () => void;
+  drawOverPuffs: (wallDt: number) => void;
   drawSparks: (wallDt: number, target: CanvasRenderingContext2D) => void;
 }
 
@@ -100,6 +101,8 @@ export function drawSharpCarLayers(ctx: ScreenCtx, game: RenderGame, lock: Scree
   mainCtx.restore();
   clearArt(ctx);
   if (!ctx.skip('props')) ctx.drawProps(true);
+  // steam and engine smoke rise off the bonnets, over the cars (render/enginesmoke.ts)
+  if (!ctx.skip('fx')) ctx.drawOverPuffs(state.wallDt);
   if (!ctx.skip('rain')) ctx.drawRain();
   blitArt(ctx, lock);
 }

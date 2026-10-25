@@ -94,6 +94,8 @@ export interface Car {
   bankLatForce?: number; bankLoadFactor?: number;
   // set by contact.js (the slipstream) and by vehicle.ts itself (the handbrake hold)
   dragMul?: number; hbAfter?: number;
+  // set by step: the throttle the engine works at, 0..1 (engine heat, exhaust)
+  throttleUsed?: number;
   // set by damage.ts
   wreck?: CarWreck;
   wheelOff?: boolean[];
@@ -679,6 +681,8 @@ export function step(car: Car, input: CarInput, dt = PHYSICS_STEP_SECONDS) {
   // ---- powertrain: reverse engagement (A5), shifting, rpm
   const { handbrakeRaw, inReverse, throttle, brakeIn, totalRatio } = runPowertrain(
       car, carSpec, input, vLong, dt);
+  // the throttle the engine works at (physics/engineheat.ts heats by it; the exhaust puffs by it)
+  car.throttleUsed = throttle;
 
   // ---- 3. slip angles (guarded divide — rule 20)
   const vLongAbs = Math.abs(vLong);

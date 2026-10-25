@@ -31,4 +31,15 @@ export const TEST_LIST = [
   // stingers, the rim by chance) and hedges (one continuous line) passed 2026-10-25; flipramp
   // passed 2026-10-25; impactsparks passed 2026-10-25 (round 2: 70 %, over 25 mph,
   // directional))
+  {
+    id: 'engine',
+    added: '2026-10-25',
+    name: 'Engine heat: cracked radiator, steam, overheating, seizing; speedo lights; exhaust',
+    where: 'Plain link + &engine=1: any circuit (Castle Cum is quick: hit a wall nose first)',
+    try: 'Hit something head-on at 30+ km/h and keep racing: steam, water left on the road, the'
+      + ' thermometer amber then flashing red, power fading, then it seizes. RESET mends it.'
+      + ' Lift off near the redline (pops); look at the exhaust on a cold and a hot day.',
+    wrong: 'Overheating with a sound radiator, a seize with no warning, leaked water that does'
+      + ' not look / grip / dry like rain water, steam from a sound car, lights over the speed.',
+  },
 ];

@@ -38,6 +38,7 @@ import {
   setWetness, setRain,
 } from "./world/weather.ts";
 import { setDarkness } from "./world/daylight.ts";
+import { setEngine } from './physics/engineheat.ts';
 import { CLOCK, startClock } from "./world/clock.ts";
 import { LEVEL } from "./world/state.ts";
 
@@ -66,6 +67,8 @@ if (shared.settings.rain !== null) {
 }
 // ?night=0.8: this dark (lighting test: the night layer, the field's headlights)
 if (shared.settings.night !== null) setDarkness(shared.settings.night);
+// ?engine=1: radiator + engine heat, the speedo lights, the exhaust (car systems C3-C5)
+setEngine(shared.settings.engine);
 // the game clock drives the sky (?night= overrides it with a fixed dark); a new player starts
 // in today's season
 startClock(shared.settings.night === null,

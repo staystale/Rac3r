@@ -6,6 +6,7 @@ import { LEVEL } from '../world/state.ts';
 import { COL } from '../world/colours.ts';
 import { wearColour } from '../physics/tyrewear.ts';
 import { tempInUnits } from './tracktemp.js';
+import { drawEngineLights } from './enginelights.ts';
 import {
   MARGIN, DIAGRAM_H, drawHudPanel, drawHudLabel, drawHudButton,
 } from './widgets.js';
@@ -187,6 +188,8 @@ export function drawHudSpeedo(ctx, state, rects, car, spec, wallDt) {
     { size: 22, weight: 700 });
   drawHudLabel(ctx, state.mph ? 'mph' : 'km/h', speedRect.x + 62, speedRect.y + 24,
     { size: 9.5, col: COL.inkSoft });
+  // the temperature and oil lights over the units (?engine=1, hud/enginelights.ts)
+  drawEngineLights(ctx, speedRect, car);
   // GEAR CHANGE, made obvious. The automatic box already cuts the torque for a quarter of a
   // second, but with no sound and no needle the player had no way to know a shift had happened.
   // Flash the gear digit and pop it up a size — on the WALL CLOCK, because it is something you
@@ -212,7 +215,9 @@ export function drawHudSpeedo(ctx, state, rects, car, spec, wallDt) {
 
   // tacho bar
   const barX = speedRect.x + 10, barY = speedRect.y + 38, barW = speedWidth - 20, barH = 7;
-  const frac = Math.max(0, Math.min(1, (car.rpm - spec.idleRpm) / (spec.redline - spec.idleRpm)));
+  // a seized engine turns no more: the needle drops (physics/engineheat.ts)
+  const frac = car.engSeized ? 0
+    : Math.max(0, Math.min(1, (car.rpm - spec.idleRpm) / (spec.redline - spec.idleRpm)));
   const redFrac = (spec.upshiftRpm - spec.idleRpm) / (spec.redline - spec.idleRpm);
   ctx.fillStyle = 'rgba(255,255,255,0.12)';
   ctx.fillRect(barX, barY, barW, barH);
