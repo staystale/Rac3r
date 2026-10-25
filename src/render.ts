@@ -663,10 +663,10 @@ export function createRenderer(canvas: HTMLCanvasElement, settings: Settings) {
     groundPatches: [], toScreenX, toScreenY, noShade: settings.noShade, maxDpr: settings.maxDpr,
     gpuCamera: { x: 0, y: 0, devPerMetre: 1, screenX: 0, screenY: 0 },
     ...ground, ...road, ...particles, ...cars, ...props, ...objects, ...camera, ...tiles,
-    drawNight: createNight({ view, pcanvas, mainCtx, state, PPMz, toScreenX, toScreenY }),
+    drawNight: createNight({ view, pcanvas, mainCtx, state, PPMz, toScreenX, toScreenY,
+      sparks: particles.sparks }),
   };
   const { camState, tileState } = ctx;
-
   return {
     // the HUD draws on the full-resolution screen, even in pixel mode
     get ctx() { return mainCtx; },

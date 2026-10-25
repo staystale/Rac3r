@@ -10,6 +10,7 @@ import { indicatorBlinkOn, lampLevel } from './cars.ts';
 import { traceDecks } from './lightdecks.ts';
 import { drawEventGlows } from './eventglows.ts';
 import { BRAKE_GLOW, BRAKE_GLOW_HOT, BRAKE_GLOW_M, hotBrakes } from './brakeglow.ts';
+import { HALO_X, STREAK_S } from './particles.ts';
 import { traceCanopies } from './trees.ts';
 import { PROPS } from '../world/state.ts';
 import {
@@ -55,7 +56,12 @@ export interface NightParts {
   PPMz: () => number;
   toScreenX: (worldX: number) => number;
   toScreenY: (worldY: number) => number;
+  sparks: SparkLight[];   // render/particles.ts: the sparks flying now
 }
+
+/** A spark as the night reads it (render/particles.ts). */
+interface SparkLight { x: number; y: number; vx: number; vy: number; sz: number; age: number;
+  life: number }
 
 /** The sub-pixel shift the art buffer was blitted with this frame, device px. */
 export interface NightLock {
@@ -139,12 +145,36 @@ interface GlowPainter {
   reverseGlow: HTMLCanvasElement;   // reversing lights (cool white, or white)
   brakeGlow: HTMLCanvasElement;   // hot brake discs (orange, or white)
   brakeHotGlow: HTMLCanvasElement;   // the hottest brake discs (deep red, or white)
-  sparkGlow: HTMLCanvasElement;   // sparks, metal on hard ground (warm yellow, or white)
   headGlow: HTMLCanvasElement;  // a street light's head (warm, or white)
   strength: number;             // this frame's glow strength (by the dark)
   mapX: (worldX: number) => number;
   mapY: (worldY: number) => number;
   perMetre: () => number;
+  sparks?: SparkLight[];   // the rub-out painter only: sparks open the dark along their streaks
+}
+
+/**
+ * SPARKS ARE LIGHT (owner: "they should glow"; no glow patch beside the rim): each spark opens the
+ * dark along its streak, as wide as its halo, so it shows at full brightness at night and lights
+ * the road it flies over - the one light map, no second light.
+ * @param painter the rub-out painter
+ * @param sparks the sparks flying now
+ */
+function openSparks(painter: GlowPainter, sparks: SparkLight[]) {
+  if (!sparks.length) return;
+  const ctx = painter.ctx, perMetre = painter.perMetre();
+  ctx.strokeStyle = '#ffffff';
+  ctx.lineCap = 'round';
+  for (const spark of sparks) {
+    const gone = spark.age / spark.life;
+    ctx.globalAlpha = 1 - gone * gone;
+    ctx.lineWidth = Math.max(1, spark.sz * HALO_X * perMetre);
+    ctx.beginPath();
+    ctx.moveTo(painter.mapX(spark.x), painter.mapY(spark.y));
+    ctx.lineTo(painter.mapX(spark.x - spark.vx * STREAK_S),
+      painter.mapY(spark.y - spark.vy * STREAK_S));
+    ctx.stroke();
+  }
 }
 
 /**
@@ -167,6 +197,7 @@ function paintGlows(painter: GlowPainter, game: RenderGame) {
 function paintCarGlows(painter: GlowPainter, game: RenderGame) {
   const isBlinkOn = indicatorBlinkOn();
   painter.strength = GLOW_STRENGTH * DAYLIGHT.darkness;
+  if (painter.sparks) openSparks(painter, painter.sparks);
   if (game.traffic) for (const car of game.traffic.cars) drawCarGlows(painter, car, isBlinkOn);
   for (const rival of game.ai || []) drawCarGlows(painter, rival.car, isBlinkOn);
   drawCarGlows(painter, game.car, isBlinkOn);
@@ -224,37 +255,6 @@ function drawCarGlows(painter: GlowPainter, car: RenderCar, isBlinkOn: boolean) 
       BRAKE_GLOW_M);
     glowAt(painter, car, wheel.along, wheel.across, painter.brakeHotGlow, wheel.level * red,
       BRAKE_GLOW_M);
-  }
-  drawSparkGlows(painter, car);
-}
-
-// SPARKS LIGHT THE GROUND at night (owner): a warm glow flickering at each wheel on its rim over
-// hard ground and under a body sliding on it (world/metalscrape.ts car.rimSparks, roll.js
-// car.sparks) - one glow a sparking point, not one a spark, kept OFF the bodywork (owner): a
-// rim's outside its tyre, a sliding body's just behind it where its sparks trail. The flicker
-// runs on the wall clock, the same in the rub-out and the tint pass.
-const SPARK_GLOW = '255,190,90', SPARK_GLOW_M = 0.6, BODY_SPARK_GLOW_M = 1.2;
-// m out from a rim's wheel centre line, and behind a sliding body's tail
-const SPARK_OUT_M = 0.45, SPARK_BEHIND_M = 0.8;
-
-/**
- * A car's sparks glow over the dark.
- * @param painter the light map and the mapping
- * @param car the car
- */
-function drawSparkGlows(painter: GlowPainter, car: RenderCar) {
-  const rims = car.rimSparks, now = performance.now();
-  const flicker = (seed: number) => 0.65 + 0.35 * Math.abs(Math.sin(now * 0.047 + seed * 1.7));
-  if (rims) for (let corner = 0; corner < 4; corner++) {
-    if (!rims[corner]) continue;
-    const along = corner < 2 ? car.spec.lf : -car.spec.lr;
-    const across = (corner % 2 ? 1 : -1)
-      * ((car.spec.trackWidth || car.spec.wid) / 2 + SPARK_OUT_M);
-    glowAt(painter, car, along, across, painter.sparkGlow, flicker(corner), SPARK_GLOW_M);
-  }
-  if (car.sparks) {
-    glowAt(painter, car, -car.spec.len / 2 - SPARK_BEHIND_M, 0, painter.sparkGlow, flicker(5),
-      BODY_SPARK_GLOW_M);
   }
 }
 
@@ -376,7 +376,7 @@ function drawPools(painter: PoolPainter, isTint: boolean) {
  *   other tints (the pools') under the glows' once the blend is source-over; leaves it in
  *   source-over, alpha 1
  */
-function makeMapGlows(pools: PoolPainter) {
+function makeMapGlows(pools: PoolPainter, sparks: SparkLight[]) {
   const whiteGlow = makePicture(glowOf('255,255,255', GLOW_STOPS));
   const tint: GlowPainter = { ctx: pools.lightCtx, strength: 0,
     glow: makePicture(glowOf(AMBER, TINT_STOPS)), redGlow: makePicture(glowOf(RED, TINT_STOPS)),
@@ -384,11 +384,9 @@ function makeMapGlows(pools: PoolPainter) {
     reverseGlow: makePicture(glowOf(REVERSE_GLOW, TINT_STOPS)),
     brakeGlow: makePicture(glowOf(BRAKE_GLOW, TINT_STOPS)),
     brakeHotGlow: makePicture(glowOf(BRAKE_GLOW_HOT, TINT_STOPS)),
-    sparkGlow: makePicture(glowOf(SPARK_GLOW, TINT_STOPS)),
     mapX: pools.artX, mapY: pools.artY, perMetre: pools.artPerMetre };
   const out: GlowPainter = { ...tint, glow: whiteGlow, redGlow: whiteGlow, headGlow: whiteGlow,
-    reverseGlow: whiteGlow, brakeGlow: whiteGlow, brakeHotGlow: whiteGlow,
-    sparkGlow: whiteGlow };
+    reverseGlow: whiteGlow, brakeGlow: whiteGlow, brakeHotGlow: whiteGlow, sparks };
   const paint = (game: RenderGame, tintFirst: () => void) => {
     paintGlows(out, game);
     pools.lightCtx.globalCompositeOperation = 'source-over';
@@ -565,7 +563,7 @@ export function createNight(parts: NightParts) {
     x > -reach && y > -reach && x < canvas.width + reach && y < canvas.height + reach;
 
   const pools: PoolPainter = { lightCtx, pool, tint, artX, artY, artPerMetre, isNear };
-  const mapGlows = makeMapGlows(pools);
+  const mapGlows = makeMapGlows(pools, parts.sparks);
   const drawAllBeams = (game: RenderGame) => drawFieldBeams(pools, beam, game);
 
   function paintLightMap(game: RenderGame) {

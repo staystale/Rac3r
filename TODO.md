@@ -253,7 +253,10 @@ C. CAR SYSTEMS + DAMAGE (L; one chain - extend damage.ts, no second damage model
   from the other tyre (tyres.ts axleHeatGrip). SPARKS (owner: "I don't see sparks"; light at
   night; hard ground only): 0.4 m, dense, carried at ~half the car's speed, faded over their own
   life (they were never above 40 % opaque); then (owner: more random, small, fling off and fade)
-  0.1-0.2 m flecks flung back and out in a random fan, in bursts, cooling white -> orange; a warm flickering glow per sparking wheel / body in
+  0.1-0.2 m flecks flung back and out in a random fan, in bursts, cooling white -> orange; then
+  (owner: not seen, more / glow, under the car) drawn on the SCREEN canvas over the road and under
+  the cars (in the art buffer every spark was one art pixel), streaks with a halo, the night's
+  light map opening the dark along them (no glow patch beside the rim); brake glow off while rolled; a warm flickering glow per sparking wheel / body in
   the night light map (render/light.ts drawSparkGlows); hard surfaces only (tarmac, race tarmac,
   broken, concrete, kerb, lab floor, wet tarmac). Drawing has its own random stream (fxRandom).
   GLOWS OFF THE BODYWORK (owner): brake glow orange -> deep red the hotter (owner), 0.45 m, centred 0.3 m

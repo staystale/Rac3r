@@ -12,7 +12,7 @@ import type { RenderCar, RenderGame, RenderMarks, View } from "./types.ts";
 export interface ScreenCtx {
   canvas: HTMLCanvasElement;
   view: View;
-  state: { blockPx: number; gpuOn: boolean; screenBegun: boolean };
+  state: { blockPx: number; gpuOn: boolean; screenBegun: boolean; wallDt: number };
   gpu: { canvas: HTMLCanvasElement } | null;
   mainCtx: CanvasRenderingContext2D;
   pcanvas: HTMLCanvasElement;
@@ -26,6 +26,7 @@ export interface ScreenCtx {
   drawProps: (overhead?: boolean) => void;
   drawMarks: (marks: RenderMarks) => void;
   drawRain: () => void;
+  drawSparks: (wallDt: number, target: CanvasRenderingContext2D) => void;
 }
 
 /** The sub-pixel camera shift of the frame, device px (render.ts ViewLock). */
@@ -85,6 +86,7 @@ export function drawSharpCarLayers(ctx: ScreenCtx, game: RenderGame, lock: Scree
   mainCtx.save();
   mainCtx.imageSmoothingEnabled = true;
   mainCtx.imageSmoothingQuality = enlarge === 1 && scale < 1 ? 'high' : 'low';
+  drawSparksOnScreen(ctx, lock);
   forEachDrawnCar(ctx, game, (car) => {
     const picture = ctx.paintCarPicture(car, enlarge);
     mainCtx.setTransform(1, 0, 0, 1, 0, 0);
@@ -99,6 +101,24 @@ export function drawSharpCarLayers(ctx: ScreenCtx, game: RenderGame, lock: Scree
   if (!ctx.skip('props')) ctx.drawProps(true);
   if (!ctx.skip('rain')) ctx.drawRain();
   blitArt(ctx, lock);
+}
+
+/**
+ * SPARKS at screen resolution over the road and under the cars (render/particles.ts); the night's
+ * light map opens the dark along them (render/light.ts). In art px like the marks; added as
+ * light ('lighter').
+ * @param ctx the renderer context
+ * @param lock what applyViewLock changed
+ */
+export function drawSparksOnScreen(ctx: ScreenCtx, lock: ScreenLock) {
+  const { view, state, mainCtx } = ctx;
+  if (ctx.skip('fx')) return;
+  const devPerCss = view.dpr * state.blockPx;
+  mainCtx.save();
+  mainCtx.setTransform(devPerCss, 0, 0, devPerCss, lock.subX, lock.subY);
+  mainCtx.globalCompositeOperation = 'lighter';
+  ctx.drawSparks(state.wallDt, mainCtx);
+  mainCtx.restore();
 }
 
 /**

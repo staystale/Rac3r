@@ -71,7 +71,11 @@ function heatOf(car: RenderCar, now: number): BrakeHeat {
  * @returns the glowing wheels (none with cool brakes)
  */
 export function hotBrakes(car: RenderCar): { along: number; across: number; level: number }[] {
-  const heat = heatOf(car, performance.now()), out = [];
+  const heat = heatOf(car, performance.now());
+  const out: { along: number; across: number; level: number }[] = [];
+  // the glow is under the wheels: a car rolling or on its side / roof shows none (owner); back on
+  // its wheels, still-hot brakes glow again
+  if (car.roll) return out;
   const half = (car.spec.trackWidth || car.spec.wid * 0.8) / 2;
   for (const [along, axleHeat] of [[car.spec.lf, heat.front], [-car.spec.lr, heat.rear]]) {
     const level = (axleHeat - GLOW_FROM) / (1 - GLOW_FROM);
