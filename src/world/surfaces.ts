@@ -3,7 +3,7 @@ import type { Mark, Spray, Surface } from "./types.ts";
 export type SurfaceId =
   | "lab" | "racetarmac" | "tarmac" | "dirt" | "gravel" | "grass" | "grassShort" | "grassLong"
   | "kerb" | "ice" | "packedSnow" | "snow" | "wet" | "mud" | "thickMud" | "broken" | "concrete"
-  | "sand";
+  | "sand" | "bush";
 const COL_GRAVEL_TRACK = '150,134,106';   // rgb of a rut ploughed through gravel — warm, not black
 const COL_GRASS_SCUFF  = '92,112,66';     // rgb of torn turf
 // =============================================================================================
@@ -89,6 +89,9 @@ const SPRAY_SAND:   Spray = { rgb: '244,230,200', size: 0.20, rate: 70, lift: 3.
   grow: 0.95 };
 const SPRAY_SNOW:   Spray = { rgb: '255,255,255', size: 0.24, rate: 76, lift: 4.8, life: 0.75,
   grow: 0.85 };
+// torn leaves and twigs, darker than the grass spray (a bush is darker than the grass round it)
+const SPRAY_BUSH:   Spray = { rgb: '104,146,64', size: 0.20, rate: 44, lift: 3.6, life: 0.55,
+  grow: 0.12 };
 export const SPRAY_WET:    Spray = { rgb: '232,238,248', size: 0.15, rate: 54, lift: 3.0,
   life: 0.28, grow: 0.50 };
 
@@ -181,6 +184,13 @@ export const SURFACES: Record<SurfaceId, Surface> = {
     rough: 0.004, mark: null, spray: null, hard: true },
   sand:   { id: 'sand', label: 'SAND', mu: 0.55, peakK: 2.20, longK: 0.92, plough: 1.90,
     rough: 0.008, mark: MARK_SAND, spray: SPRAY_SAND },
+  // A BUSH (owner D; world/bushplan.ts places them, world/bushes.ts the scrapes and punctures):
+  // driven through, not solid. Its drag is BRUSH - stems pushed aside - growing with speed
+  // (tyres.ts), so each metre of bush costs about `brush` m/s whatever the speed: a 3 m bush
+  // takes ~17 km/h off; at a crawl it pushes through easily (plough 0.5: no bogging). The ground
+  // under it is long grass, lumpy with roots. Three passes flatten a cell to long grass (wear.ts).
+  bush: { id: 'bush', label: 'BUSH', mu: 0.48, peakK: 1.40, longK: 0.80, plough: 0.5,
+    rough: 0.035, brush: 1.6, mark: MARK_GRASS_LONG, spray: SPRAY_BUSH },
 };
 // TYRE COOLING by surface: hard surfaces (above) do not cool tyres; everything loose
 // or cold does. coolK is 1/s toward ambient, on top of the always-on cooling in vehicle.js. Stated
@@ -221,6 +231,7 @@ export const WET_MU: Record<SurfaceId, { damp: number; puddle: number }> = {
   grass: { damp: 0.34, puddle: 0.34 },
   grassShort: { damp: 0.34, puddle: 0.34 },
   grassLong: { damp: 0.36, puddle: 0.36 },
+  bush: { damp: 0.35, puddle: 0.35 },
   mud: { damp: 0.38, puddle: 0.34 },
   thickMud: { damp: 0.34, puddle: 0.30 },
   sand: { damp: 0.58, puddle: 0.45 },

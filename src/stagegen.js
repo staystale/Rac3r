@@ -20,6 +20,7 @@ import { SURFACES } from "./world/surfaces.ts";
 import { BASE_FLOOR as FLOOR } from "./world/bounds.ts";
 import { LEVELS } from "./world/levels/index.ts";
 import { trackKit } from "./world/levels/kit.ts";
+import { RALLY_BUSHES } from "./world/levels/bushes.ts";
 import { prepBumps } from "./world/terrain.ts";
 import {
   buildStageCovers, snowPatchOf, snowRoadOf, stageTurnOf,
@@ -27,12 +28,14 @@ import {
 
 export const THEMES = {
   forest: {
-    name: 'FOREST GRAVEL', road: 'gravel', width: 9, base: 'grassLong', sep: 36, w: {
+    name: 'FOREST GRAVEL', road: 'gravel', width: 9, base: 'grassLong', sep: 36,
+    bushes: RALLY_BUSHES, w: {
       straight: 1, fast: 1, medium: 1.1, square: 1, hairpin: 0.7
     }
   },
   alpine: {
-    name: 'ALPINE TARMAC', road: 'tarmac', width: 8, base: 'grass', sep: 30, w: {
+    name: 'ALPINE TARMAC', road: 'tarmac', width: 8, base: 'grass', sep: 30,
+    bushes: RALLY_BUSHES, w: {
       straight: 0.8, fast: 0.7, medium: 1.1, square: 1, hairpin: 2.2
     }
   },
@@ -708,6 +711,7 @@ export function genStage({ seed = 1001, theme = 'forest', len = 'medium', style 
     zones: [], bumps: prepBumps(bumps), covers, paint, boards: [], seams: false, cones,
         props: okProps, barriers, solids: solidsFromProps(okProps), lanes: [],
     stage: { finish: FIN }, ...(snowRoad ? { snowy: true } : {}),
+    ...(themeSpec.bushes ? { bushes: themeSpec.bushes } : {}),
     spawn: (() => { const pos = onTrack(sub, sub.totalDist - 6, 0, {}); return { x: pos.x, y: pos.y,
         heading: pos.rot }; })(),
   };

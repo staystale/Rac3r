@@ -31,6 +31,11 @@ const PLOUGH_VREF = 14;        // m/s at which ploughing reaches full strength
 // fraction of full force still there at walking pace, so you get STUCK
 const PLOUGH_CRAWL = 0.55;
 
+// BRUSH (bushes: surface.brush, 1/s): drag proportional to speed above BRUSH_VREF m/s, fading
+// to nothing at a crawl (a car pushes through a bush at walking pace; at speed it ploughs through
+// stems). Proportional to speed, so each metre of bush costs ~brush m/s at any speed.
+const BRUSH_VREF = 8;
+
 const RELAX_LEN = 0.55;        // m of rolling before a tyre develops its lateral force
 
 export const ALPHA_PEAK_MIN = 0.10;   // rad (~5.7 deg); never peak earlier than this
@@ -299,7 +304,31 @@ export function ploughingForces(car: Car, carSpec: Spec, mass: number, vLong: nu
     [FpxR, FpyR] = ploughForce(vLong, vLat - carSpec.lr * car.yawRate, carSpec.lf / carSpec.L,
         loadKR);
   }
+  const brush = car.surface.brush || 0;
+  if (brush > 0) {
+    const brushF = brushForce(mass * (carSpec.lr / carSpec.L) * brush, vLong,
+      vLat + carSpec.lf * car.yawRate);
+    const brushR = brushForce(mass * (carSpec.lf / carSpec.L) * brush, vLong,
+      vLat - carSpec.lr * car.yawRate);
+    FpxF += brushF[0]; FpyF += brushF[1]; FpxR += brushR[0]; FpyR += brushR[1];
+  }
   return { FpxF, FpyF, FpxR, FpyR };
+}
+
+/**
+ * The brush drag on one end of the car (bushes): against that end's velocity, proportional to
+ * speed above BRUSH_VREF and fading as speed squared below it. The body meets the stems, so it
+ * does not depend on the tyre load.
+ * @param massBrush the end's mass share x the surface's brush (kg/s)
+ * @param velLong the end's forward velocity, m/s
+ * @param velLat the end's sideways velocity, m/s
+ * @returns [forward, sideways] force, N
+ */
+function brushForce(massBrush: number, velLong: number, velLat: number): [number, number] {
+  const speed = Math.hypot(velLong, velLat);
+  if (speed < 0.05) return [0, 0];
+  const Fmag = massBrush * speed * Math.min(1, speed / BRUSH_VREF);
+  return [(-velLong / speed) * Fmag, (-velLat / speed) * Fmag];
 }
 
 /**

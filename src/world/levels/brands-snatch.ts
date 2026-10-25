@@ -5,6 +5,7 @@ import { SURFACES } from "../surfaces.ts";
 import { prepBumps } from "../terrain.ts";
 import { onTrack, querySubtrack } from "../tyrewall.ts";
 import { ss01, trackKit } from "./kit.ts";
+import { CIRCUIT_BUSHES } from "./bushes.ts";
 import type { Point, Lane, Trap, Cone, Prop, Barrier, Bump, Subtrack } from "../types.ts";
 // =============================================================================================
 // BRANDS SNATCH — parody of Brands Hatch (Kent). Built. Decisions (user): BOTH layouts
@@ -352,7 +353,7 @@ function brandsLevel(levelId: string, name: string, mapPts: Point[]) {
       kind: 'chequered', x: sub.pts[0].x, y: sub.pts[0].y, len: 1.6, wid: 13,
       rot: sub.pts[0].heading,
     }],
-    boards: [], seams: false, cones,
+    boards: [], seams: false, cones, bushes: CIRCUIT_BUSHES,
     lanes: [PIT, ...traps], barriers, props: okProps, solids: solidsFromProps(okProps),
     spawn: (() => {
       const start = onTrack(sub, sub.totalDist - 15, 0, {});

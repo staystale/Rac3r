@@ -16,9 +16,13 @@ handover, written on request.
   (trunk-only solid, canopies over the cars and dark at night, seasons, firs, weather snow).
   Earlier 10-24: A1-A13 fixes, grass G1, mud M1.
 - TYPESCRIPT CONVERSION: ON HOLD (owner 10-25); new code is TypeScript, old .js converted later.
-- NEXT (owner to pick; list given 10-25): bushes (D part 2), car systems C, the wearcheck
-  rewrite, AI rework B (design first; ideally after TS), sound + settings G, Story + upgrades H,
-  new levels (Dieatona), multiplayer I. The HUD text fix still waits on the owner (close?).
+- ORDER (owner 10-25): 1 BUSHES (D part 2) - UNDER TEST (?bushes=1); 2 car systems C when
+  bushes pass; 3 the wearcheck rewrite when C passes. Then (owner to order): the driving ROOT
+  FIX for real ABS (owner: "abs is needed to be fixed so yes"), AI rework B (design first),
+  sound + settings G, Story + upgrades H, new levels (Dieatona), multiplayer I.
+- BINNED 10-25 (owner: "park em : bin em"): the HUD text fix (branch experiment/hudtext - its
+  remote delete needs the owner's OK in auto mode) and the GPU ground phase C. The 10-04 car
+  feedback is out of date (owner): dropped.
 - itch.io: build #2201136 (10-24, before the A fixes); push only when the owner says.
 - TIDY-UP done 10-24: the hand-placed 'wet' covers staticCovers dropped are deleted from Test
   Track, Grass Track and Stock Car. The Sandbox (a test level) KEEPS its two sample puddles
@@ -43,15 +47,8 @@ is converted first in its own commit, proved SAME, then changed (owner: "1.a is 
    sim, session, ai, menuflow, controls, rules, order, grid), 7 top level (main, audio, guide,
    stagegen, marks, input, damage, roll, carstats, raceflow, contact, tune). New modules are .ts
    already (NOTES).
-3. HUD TEXT FIX (approved; owner: "make sure it makes it better not worse"): the HUD text is
-   redrawn every frame (~3.5 % of our time on the laptop profile) - draw it only when it changes.
-   Measure first and after (laptop profile; a back-to-back phone ?report=1 A/B); default only if
-   it is better. MEASURED 10-24 (tools/scratch/_hudcost.mjs, _hudprofile.mjs; Castle Cum, 5 AI,
-   CPU x4): hud.draw 2.2-3.1 ms a frame (~0.7 ms real), 5.4 % of all CPU; text 34 % of the HUD,
-   the minimap road 13 %, panels 10 %. Bitmap stamps (27 -> 2 text draws) were SLOWER on the
-   laptop (3.1-3.35 ms: stamping costs on a CPU raster); the font set once (2.7-2.8 ms) sits in
-   the off runs' own spread. Neither shipped: parked on branch experiment/hudtext. Only a phone
-   ?report=1 A/B could show a gain - ASKED the owner whether to try it or close this item.
+3. HUD TEXT FIX - BINNED 10-25 (owner). Measured 10-24: no clear gain on the laptop (bitmap
+   stamps slower, the font set once within noise).
 4. MUD M1 - DONE, the default 10-24 (world/levelmud.ts, fieldblocks.ts): mud thickens only
    damp (dig.ts wearHolds; 6 dry passes: 0/100 thicken, was 100/100); a level's own mud and thick
    mud get wear cells at an event's start and dry as worn mud does, in patches by the water
@@ -285,7 +282,18 @@ smash at 8 m/s, pallets thrown, beacon out), hot brakes (render/brakeglow.ts: he
 ~3 hard stops; the handbrake heats the rears; cold again on a reset, as the tyres), trees
 (world/treetrunks.ts trunk-only solid; render/trees.ts seasons, firs, weather snow, canopies
 overhead and dark at night). TS conversion ON HOLD.
-STILL OPEN in D: BUSHES (pass-through, heavy drag, wear to long grass, puncture chance).
+BUSHES (D part 2) UNDER TEST 10-25 behind ?bushes=1: the 'bush' surface (surfaces.ts: brush
+drag ~ speed, physics/tyres.ts; mu 0.48, plough 0.5), laid as square ground patches by
+world/bushplan.ts from each level's plan (world/levels/bushes.ts: rally close to the road,
+rallycross off the verges, circuits well back + at the foot of trees, sample beds on the test
+levels), flattened to long grass by passes (wear.ts BASE_WEAR); a wheel entering a bush cell may
+puncture (0.7 %) or scratch that corner by speed (world/bushes.ts, damage.js bushScratch). Look
+(owner: square pixel art like the trees, own shades of green): art.ts addBushLooks (holly, olive
+gorse, blue-green; their colours join the palette only while ?bushes=1), ground/bushes.ts.
+MEASURED (_bushes.mjs): a clump costs 21-35 km/h more than grass at 54-126 km/h. Levels: Castle
+Cum, Brands Snatch GP / Indy, Knobhill, Killder, Sweaty Lamb, the forest and alpine stages (set
++ generated), Lab, Rough Patch, Test Track, Sandbox. Not on snow / desert themes, ovals or the
+highway.
 
 G. SOUND + SETTINGS (M): pause menu SOUND sub-menu (car, environment, radio channel, menu: each a
 volume + mute); a SETTINGS screen off the main menu with the same and the GENERAL DIFFICULTY;
@@ -336,8 +344,6 @@ ready for it).
 - itch.io: pushed 10-24 (build #2201136); push again only when the owner says. The PAGE PICTURES
   are ready but not uploaded (owner: another time): GamesStudio/ready-to-play/rac3r-page-2026-10-24
   (cover 630x500 + 8 shots); upload on the edit page (by hand, or via Claude in Chrome).
-- Ground on the GPU phase C (cars and props as GPU sprites, one canvas): GPU work measured no
-  speed gain on the phone and two canvases cost Safari frames; proposed dropping (owner to say).
 - The lean drawing plan (paused 10-17, default kept); fixed zoom steps (only for the lean path).
 - The minimap may be simplified if ever needed (owner offered; no need measured).
 - Outside TEST MODE the setup's SEASON slider gives way to the global season (with Story mode).
@@ -365,19 +371,17 @@ GAME (owner decides the order):
   tri-oval parody (31 deg turns, 18 deg tri-oval, flat back straight, pit lane, grandstands,
   infield lake, rolling start, "subtle skulls" in the decorations; the old Naffcar kept as
   classic). Not started.
-- [ ] MORE CARS + car feedback (10-04; ASK if it still stands): cars "a little less standard, more
-  like their unique real counterparts"; the WRZ slow to accelerate, cannot wheelspin or drift;
-  the track car should look like an F1 car (bigger wheels, proportions).
 
 DRIVING (ask before starting; re-measure first, these are old):
 - [ ] THE ROOT FIX: wheel angular velocity as real state (the rolling and sliding tyre laws
-  disagreed ~2.8x at breakaway; ENGINE.md has the two reverted attempts). Ask first.
+  disagreed ~2.8x at breakaway; ENGINE.md has the two reverted attempts). WANTED (owner 10-25:
+  "abs is needed to be fixed so yes"): it makes real ABS possible (A10). Plan first, then build.
 - [ ] Threshold braking regressed (full pedal optimal again; brake force wants ~1.7 g).
 - [ ] Naffcar V8 failed the lap driver on its own track (12.7 s off the road).
 - [ ] Tyre marks (rubber) adding grip on the racing line; cross-surface contamination (mud carried
   onto tarmac). Not built - ASK if wanted.
 - [ ] Outer tyre walls (grass track, stock car): should they CATCH cars (heavier stacks / a double
-  row)? Owner decision open since 10-03.
+  row)? Owner decision open since 10-03; re-asked more plainly 10-25 (the owner did not follow).
 
 ## Tools that are wrong
 

@@ -3,6 +3,7 @@
 import type { ArtLayer, SurfaceArt } from "../types.ts";
 import { TEX_PPM, fillTexture, paintTexture } from "../textures.ts";
 import type { GroundCtx } from "./types.ts";
+import { bushesOn } from "../../world/bushes.ts";
 
 // HOW EACH SURFACE IS PAINTED: a base colour, then layers drawn in order. One table — a new
 // surface is a row here and a row in lab.js (SURFACES) and nothing else. Read by drawFloor,
@@ -256,6 +257,31 @@ function addFieldLooks(SURFACE_ART: Record<string, SurfaceArt | null>) {
   );
   // the long-grass BORDER round each field, darker
   SURFACE_ART.hedgerow = recolour('grassLong', '#3c5a28', ['#5a7c3a', '#2c4220']);
+  addBushLooks(SURFACE_ART);
+}
+
+/**
+ * The BUSH looks (world/bushplan.ts picks one per clump): square leaf clumps, lit leaves and
+ * specks in greens of their own, apart from the grass - deep holly, olive gorse with yellow
+ * flowers, blue-green box. Only while bushes are on (?bushes=1): their colours join the tiles'
+ * palette (tilesPalette.ts), so without them every pixel stays as it was. Their shape and
+ * volume: ground/bushes.ts.
+ *
+ * @param SURFACE_ART the table to extend
+ */
+function addBushLooks(SURFACE_ART: Record<string, SurfaceArt | null>) {
+  if (!bushesOn()) return;
+  const look = (base: string, clumps: string, lit: string, fleck: string): SurfaceArt => ({
+    base,
+    layers: [
+      ['blobs', clumps, 0.8, 0.34, 0.30, 0.9],
+      ['blobs', lit, 0.7, 0.15, 0.13, 0.55],
+      ['grain', fleck, 0.5, 0.07],
+    ],
+  });
+  SURFACE_ART.bush = look('#1f3d24', '#2f5a34', '#4f8a4a', '#78b060');
+  SURFACE_ART.bushOlive = look('#46521c', '#5f6e24', '#8a9a34', '#e0c840');
+  SURFACE_ART.bushTeal = look('#1e4040', '#2d5e58', '#4f8a7c', '#86b8a4');
 }
 
 /**

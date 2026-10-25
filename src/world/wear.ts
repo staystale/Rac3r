@@ -21,6 +21,7 @@ import {
 import { bumpAt, bankHeightAt, BUMP_STEER } from "./terrain.ts";
 import { querySubtrack } from "./tyrewall.ts";
 import { noteHit } from "../physics/punctures.ts";
+import { bushPass } from "./bushes.ts";
 import { crackPass, crackScrubFactor, crackedIce } from "./icecrack.ts";
 import type {
   CarBody, CoverId, Ground, Layers, Obstacle, Patch, Subtrack, Surface, WearCell,
@@ -74,6 +75,8 @@ export const wearKey = (cellI: number, cellJ: number) =>
 export const wearDirty: WearCell[] = [];
 // base -> [what it becomes, passes it takes]. Cumulative from long grass: 2, 4, 6, 9.
 const BASE_WEAR: Record<string, [string, number]> = {
+  // a bush is flattened into long grass (world/bushes.ts)
+  bush: ['grassLong', 3],
   grassLong: ['grassShort', 2],
   grass: ['dirt', 2],
   grassShort: ['dirt', 2],
@@ -98,7 +101,7 @@ export function dryAmount(standing: boolean, tyreTemp: number): number {
 export const WATER_CHURN_CHANCE = 0.4;
 // what a churned puddle leaves behind, by the base it lay on
 const WATER_MIX: Record<string, string> = {
-  grass: 'mud', grassShort: 'mud', grassLong: 'mud', dirt: 'mud', mud: 'thickMud',
+  grass: 'mud', grassShort: 'mud', grassLong: 'mud', bush: 'mud', dirt: 'mud', mud: 'thickMud',
   sand: 'gravel', gravel: 'mud',
 };
 // 7.0, was 2.0. User: "ice should take a couple of passes before it melts unless tyres
@@ -444,10 +447,17 @@ export function groundAt(x: number, y: number): Ground {
 const HOT_TYRE = 80, HOT_EXTRA_CHANCE = 0.5;
 // m/s of slip from which a wheel is SLIDING, not driving (its passes count twice)
 const SLIDE_WEAR_MIN = 4;
-function recordWearPoint(x: number, y: number, simTime: number, tyreT = 0, sliding = false): void {
+/**
+ * One wheel point's pass over its wear cell (debounced per cell).
+ * @returns true when the wheel pushed into a bush cell (a new pass, the bush still standing)
+ */
+function recordWearPoint(x: number, y: number, simTime: number, tyreT = 0,
+  sliding = false): boolean {
   const cell = getCell(Math.floor(x / WEAR_CELL), Math.floor(y / WEAR_CELL));
-  if (!cell) return;
+  if (!cell) return false;
+  let intoBush = false;
   if (simTime - cell.lastSeenTime > 0.35) {
+    intoBush = cell.base === 'bush';
     passCell(cell, tyreT);
     // a sliding (crashing, spinning, drifting) wheel tears the ground: its pass
     // counts twice
@@ -457,6 +467,7 @@ function recordWearPoint(x: number, y: number, simTime: number, tyreT = 0, slidi
       passCell(cell, tyreT);
   }
   cell.lastSeenTime = simTime;
+  return intoBush;
 }
 
 // carWheels order is FL, FR, RL, RR with L = +lateral; vehicle.js indexes tyres the same way
@@ -487,8 +498,9 @@ export function stepWear(car: CarBody, dt: number): void {
     const sliding = slip > SLIDE_WEAR_MIN;
     for (let step = 0; step <= steps; step++) {
       const frac = step / steps;
-      recordWearPoint(prevWheel.x + dx * frac, prevWheel.y + dy * frac, wearClock,
-        car.tyreT ? car.tyreT[TYRE_OF_WHEEL[i]] : 0, sliding);
+      if (recordWearPoint(prevWheel.x + dx * frac, prevWheel.y + dy * frac, wearClock,
+        car.tyreT ? car.tyreT[TYRE_OF_WHEEL[i]] : 0, sliding))
+        bushPass(car, TYRE_OF_WHEEL[i], Math.hypot(car.vx, car.vy));
     }
     // ICE SCRUB: only a wheel that is actually sliding or locked wears ice (front axle = wheels
     // 0,1)

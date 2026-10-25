@@ -6,6 +6,7 @@ import { prepBumps } from "../terrain.ts";
 import { onTrack, querySubtrack } from "../tyrewall.ts";
 import { openSmooth, jokerArrow, jokerApproach } from "./slidden-hill.ts";
 import { trackKit, rxDress, jokerBales } from "./kit.ts";
+import { RX_BUSHES } from "./bushes.ts";
 import type { Point, Lane, Trap, Cone, Prop, Barrier, Bump, Subtrack } from "../types.ts";
 // =============================================================================================
 // KNOBHILL — parody of Knockhill (Fife), the rallycross layout. Built. Decisions (user):
@@ -207,7 +208,7 @@ export const KH_LEVEL = (() => {
     { kind: 'hump', ...(([x, y]) => ({ x, y }))(khXY(150, 395)), r: 95, h: 4.0 },
   ];
   return {
-    id: 'knobhill', name: 'Knobhill', base: SURFACES.grass, subtrack: sub,
+    id: 'knobhill', name: 'Knobhill', base: SURFACES.grass, subtrack: sub, bushes: RX_BUSHES,
     camber: { maxDeg: 2, refR: 60, crown: 0.02, edge: 6, sections: [] },
     zones: [], bumps: prepBumps([...hills, ...kit.bank(khD(560, 402), khD(690, 495), -34, 7, 1.4),
       ...kit.bank(khD(320, 545), khD(112, 405), 34, 7, 1.3)]),

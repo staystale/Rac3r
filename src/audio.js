@@ -281,7 +281,7 @@ function isLooseSurface(surfId) {
   return surfId === 'gravel' || surfId === 'rally' || surfId === 'dirt'
     || surfId === 'mud' || surfId === 'grass' || surfId === 'grassShort'
     || surfId === 'grassLong' || surfId === 'snow' || surfId === 'sand'
-    || surfId === 'thickMud';
+    || surfId === 'thickMud' || surfId === 'bush';
 }
 
 /**
@@ -351,7 +351,8 @@ function updateSurfaceNoise(state, now, speed, surfId) {
       } else if (surfId === 'dirt' || surfId === 'mud') {
         surfTarget = Math.min(0.24, speed * 0.012);
         surfFreq = 420;
-      } else if (surfId === 'grass' || surfId === 'grassShort' || surfId === 'grassLong') {
+      } else if (surfId === 'grass' || surfId === 'grassShort' || surfId === 'grassLong'
+        || surfId === 'bush') {
         surfTarget = Math.min(0.18, speed * 0.009);
         surfFreq = 750;
       } else if (surfId === 'kerb') {

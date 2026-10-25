@@ -27,4 +27,15 @@ export const TEST_LIST = [
   // 2026-10-25 (owner: "slightly bright": beam 0.35 -> 0.25, glow 0.7); eventlights passed
   // 2026-10-25 (fairy lights moved off the road, board halo faint); carlamps, woodmarshal,
   // brakeglow, trees passed 2026-10-25 (brake heat now resets with the tyres))
+  {
+    id: 'bushes',
+    added: '2026-10-25',
+    name: 'Bushes: square pixel clumps you drive through (drag, scratches, punctures)',
+    where: 'Plain link + &bushes=1: Killder, Sweaty Lamb, forest / alpine stages, Castle Cum,'
+      + ' Brands Snatch, Knobhill, Lab, Rough Patch, Test Track, Sandbox',
+    try: 'Drive into bushes at speed and slowly; cut a stage corner through one; cross the'
+      + ' same bush 3 times.',
+    wrong: 'Bouncing off a bush, no slowing, a puncture nearly every bush, bushes on the road,'
+      + ' a flattened bush that never turns to long grass.',
+  },
 ];

@@ -1,6 +1,7 @@
 import { SURFACES } from "../surfaces.ts";
 import type { SurfaceId } from "../surfaces.ts";
 import { prepBumps } from "../terrain.ts";
+import { ROUGH_BUSHES } from "./bushes.ts";
 import type { Rect, Zone, Cone, Bump, Paint, Board, Level } from "../types.ts";
 
 // =============================================================================================
@@ -267,6 +268,7 @@ export const ROUGH_PATCH_LEVEL: Level = {
   props: [],
   seams: true,
   cones: [],
+  bushes: ROUGH_BUSHES,
   // the west end of the dirt loop's north side, facing east along it
   spawn: { x: -200, y: 558, heading: 0 },
 };

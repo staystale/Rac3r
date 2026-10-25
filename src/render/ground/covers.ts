@@ -9,6 +9,7 @@ import type {
 } from "../../world/types.ts";
 import type { GroundCtx, ViewRect } from "./types.ts";
 import { paintLayers, artBase } from "./art.ts";
+import { castBushShadow, lightBushTop, shadeBushSide } from "./bushes.ts";
 
 // COVERS — snow, ice and puddles lying ON any surface (LEVEL.covers, lab.js).
 // Static, so they are painted into the ground tiles. Snow and ice are opaque and use their own
@@ -155,6 +156,8 @@ export function drawPatches(groundCtx: GroundCtx) {
       toScreenX(patch.x + reach) < 0 || toScreenX(patch.x - reach) > view.W ||
       toScreenY(patch.y + reach) < 0 || toScreenY(patch.y - reach) > view.H
     ) continue;
+    if (patch.bush) castBushShadow(view.ctx, patch,
+      { x: toScreenX(patch.x - patch.w / 2), y: toScreenY(patch.y - patch.h / 2) }, ppm);
     view.ctx.save();
     view.ctx.beginPath();
     if (patch.sq) view.ctx.rect(
@@ -165,16 +168,34 @@ export function drawPatches(groundCtx: GroundCtx) {
       toScreenX(patch.x), toScreenY(patch.y), (patch.w / 2) * ppm, (patch.h / 2) * ppm,
       patch.rot || 0, 0, Math.PI * 2
     );
-    view.ctx.fillStyle = artBase(groundCtx, patch.surface.id, '#6b5644');
+    const artId = patch.art || patch.surface.id;
+    view.ctx.fillStyle = artBase(groundCtx, artId, '#6b5644');
     view.ctx.fill();
     view.ctx.clip();
     view.ctx.translate(toScreenX(0), toScreenY(0));
-    paintLayers(
-      groundCtx, patch.surface.id, patch.x - reach, patch.y - reach, patch.x + reach,
-      patch.y + reach
-    );
+    paintPatchInside(groundCtx, patch, artId, reach, ppm);
     view.ctx.restore();
   }
+}
+
+/**
+ * Paints a patch's pattern layers inside its clip (origin at the world's); a bush gets its lit
+ * squares under them and its shaded side over them (ground/bushes.ts).
+ *
+ * @param groundCtx the shared ground painter context
+ * @param patch the patch
+ * @param artId the look it is painted with
+ * @param reach its half size, m
+ * @param ppm px a metre
+ */
+function paintPatchInside(groundCtx: GroundCtx, patch: Patch, artId: string, reach: number,
+  ppm: number) {
+  const ctx = groundCtx.view.ctx;
+  if (patch.bush) lightBushTop(ctx, patch, ppm);
+  paintLayers(
+    groundCtx, artId, patch.x - reach, patch.y - reach, patch.x + reach, patch.y + reach
+  );
+  if (patch.bush) shadeBushSide(ctx, patch, ppm);
 }
 
 // MERGED COVERS (requirement: puddles, streams or bodies of water should CONNECT together if

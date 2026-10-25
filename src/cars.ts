@@ -31,6 +31,7 @@ export interface Surface {
   mark?: Mark | null; spray?: Spray | null; coolK?: number; heatK?: number; under?: string;
   wetK?: number;   // how wet, 0..1 (world/wet.ts damp and puddle surfaces)
   gripWetK?: number;   // the tyre's WET grip share on damp ground / a puddle (world/wet.ts)
+  brush?: number;   // 1/s: a bush's drag, growing with speed (physics/tyres.ts)
 }
 
 // A torque table: [rpm, Nm] points.
@@ -236,7 +237,8 @@ export const TYRE_SURFS = [['tarmac', 'TARMAC'], ['wet', 'WET'], ['gravel', 'GRA
 export const SURF_GROUP = { lab: 'tarmac', racetarmac: 'tarmac', tarmac: 'tarmac', kerb: 'tarmac',
   broken: 'tarmac', concrete: 'tarmac', wet: 'wet',
   gravel: 'gravel', dirt: 'dirt', grass: 'grass', grassShort: 'grass', grassLong: 'grass',
-    mud: 'mud', thickMud: 'mud', sand: 'sand', snow: 'snow', packedSnow: 'snow', ice: 'ice' };
+    bush: 'grass', mud: 'mud', thickMud: 'mud', sand: 'sand', snow: 'snow', packedSnow: 'snow',
+    ice: 'ice' };
 export const TYRE_BRANDS = [
   { id: 'spum', name: 'SPUM', col: '#9aa0aa', blurb: 'budget' },
   { id: 'kum', name: 'KUM', col: '#e0603a', blurb: 'road + track' },

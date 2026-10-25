@@ -34,6 +34,7 @@ import { courseCones, slalom, outerTyreWall } from "../tyrewall.ts";
 import { LAB_BUMPS, LAB_PANELS } from "./sandbox.ts";
 import { KH_LEVEL } from "./knobhill.ts";
 import { rxDress, jokerBales } from "./kit.ts";
+import { CIRCUIT_BUSHES, LAB_BUSHES, RALLY_BUSHES, TEST_TRACK_BUSHES } from "./bushes.ts";
 import { SH_TYREWALL, SH_STARTWALL } from "./slidden-hill.ts";
 import { CC_TYREWALL, CC_KIT, CC_ARMCO } from "./castle-cum.ts";
 import { TH_ARMCO } from "./thruston.ts";
@@ -65,6 +66,7 @@ export const LEVELS: Level[] = [
     boards: LAB_BOARDS,
     props: [],
     seams: true,
+    bushes: LAB_BUSHES,
     cones: [
       ...courseCones(),
       ...slalom(-150, 230, 13, 9),
@@ -92,6 +94,7 @@ export const LEVELS: Level[] = [
     props: [],
     seams: false,
     cones: TT_CONES,
+    bushes: TEST_TRACK_BUSHES,
     spawn: { x: -62, y: -96.48, heading: 0.0109 },
   },
   KH_LEVEL,
@@ -112,6 +115,7 @@ export const LEVELS: Level[] = [
     solids: solidsFromProps(SL_PROPS),
     lanes: [SL_YARD],
     stage: { finish: SL_FINISH },
+    bushes: RALLY_BUSHES,
     // 6 m behind the START line, facing it: the clock starts as you cross it
     spawn: (() => {
       const pose = onTrack(SL_SUBTRACK, SL_SUBTRACK.totalDist - 6, 0, {});
@@ -133,6 +137,7 @@ export const LEVELS: Level[] = [
     solids: solidsFromProps(KD_PROPS),
     lanes: [KD_YARD],
     stage: { finish: KD_FINISH },
+    bushes: RALLY_BUSHES,
     spawn: (() => {
       const pose = onTrack(KD_SUBTRACK, KD_SUBTRACK.totalDist - 6, 0, {});
       return { x: pose.x, y: pose.y, heading: pose.rot };
@@ -185,6 +190,7 @@ export const LEVELS: Level[] = [
     boards: [],
     props: CC_PROPS,
     seams: false,
+    bushes: CIRCUIT_BUSHES,
     cones: [
       ...CC_TYREWALL,
       ...[1000, 1012, 1024].map((dist, idx) => (
@@ -362,6 +368,7 @@ export const LEVELS: Level[] = [
     props: SB_PROPS,
     seams: false,
     cones: SB_CONES,
+    bushes: TEST_TRACK_BUSHES,
     spawn: SB_SPAWN,
     obstacles: [{ x: -20, y: 222, w: 60, h: 8 }],   // the grandstand is solid
   },

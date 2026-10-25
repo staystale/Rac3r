@@ -36,6 +36,8 @@ const PCT = {
   // SAND the HIGHEST risk (it also stops a slide fastest, so its per-cell % is
   // highest), SNOW a close second
   grassLong: 5, sand: 22, mud: 5, thickMud: 7, snow: 11,
+  // a bush grabs a sliding car like long grass does (its roots and stems)
+  bush: 5,
   // a GRAVEL TRAP (lab.js SURFACE_TRAP: deep, ploughing): the readiest to dig in and flip a car
   // sliding into it sideways (user)
   trap: 14,

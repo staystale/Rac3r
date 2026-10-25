@@ -34,6 +34,7 @@ export interface Surface {
   under?: string;   // what a snow / ice / wet surface lies on; a puddle's base id
   wetK?: number;    // how wet, 0..1 (damp / puddle surfaces, wet.ts): hard ground's tyre WET grip
   gripWetK?: number;   // the share of the tyre's WET grip a damp / puddle surface asks (wet.ts)
+  brush?: number;   // 1/s: drag growing with speed, plants pushed through (bushes; tyres.ts)
 }
 
 export interface Paint {
@@ -275,6 +276,17 @@ export interface Patch {
   rot?: number;
   blend?: boolean;   // blend.ts: made by buildBlend
   src?: string;   // blend.ts: 'change' for sector change points
+  bush?: boolean;   // world/bushplan.ts: a bush (drawn with its own shadow and rim)
+  art?: string;   // the look it is drawn with when not its surface's (a bush's kind)
+}
+
+// Where a level grows its bushes (world/bushplan.ts): clumps beside the road and under trees.
+export interface BushPlan {
+  every: number;   // m of road between clump spots on each side (each spot taken by chance)
+  band: [number, number];   // m beyond the road's edge a clump's centre lies, nearest .. farthest
+  clear: number;   // m every bush keeps clear of the road's edge
+  treeShare: number;   // the share of the level's trees with a clump at their foot
+  beds?: Point[];   // clumps placed by hand (the test levels' sample beds), each still checked
 }
 
 // A cover patch made by buildInclusions (cover is a CoverId name).
@@ -436,6 +448,8 @@ export interface Level {
   // stagegen.js addStageLevels: a rally stage, generated on first use (load.ts buildLevel)
   _build?: () => Level;
   _branches?: Branches;   // ai/line.ts racingLine: the joker / start lane paths, cached
+  bushes?: BushPlan;   // where its bushes grow (world/bushplan.ts; ?bushes=1)
+  _bushes?: Patch[];   // load.ts prepareLevel: its bushes, planned once
 }
 
 // One 0.5 m cell of a merged cover group.
