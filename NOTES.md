@@ -88,7 +88,9 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   street lights (one every 34 m, alternating sides, streamed with the road); a woken traffic car
   seated on the ground; the Sandbox keeps its sample puddles; melting snow / ice leaves its water
   (up to heavy rain's, the track damp while it melts); driven ice cracks (more grip, wears
-  through faster, cracks spread a few metres).
+  through faster, cracks spread a few metres). 10-25: reversing lights on every car (white
+  lamps at the tail in reverse; at night a glow and a short dim beam; owner: "slightly bright"
+  -> beam 0.25, glow 0.7 of a brake light's).
 - Not wanted / undone: the highway rebuild (cancelled 10-15), a fade at zoom steps, tiles tracing
   only their part of the ribbon (`?ribboncull`, undone 10-16), the WebGL cars (`?gpucars`, removed
   10-16), the menu recording (parked until after the graphics work).

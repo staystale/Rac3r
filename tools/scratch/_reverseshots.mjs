@@ -1,4 +1,4 @@
-// _reverseshots.mjs - ?reverselights=1 photos: the player's car held in reverse gear, parked on
+// _reverseshots.mjs - reversing light photos: the player's car held in reverse gear, parked on
 // Castle Cum's start straight, by day and at ?night=0.8 (844x390, 390x844), zoomed in.
 // node tools/scratch/_reverseshots.mjs <out folder>
 import { join } from 'node:path';
@@ -14,7 +14,7 @@ try {
         hasTouch: true });
       const page = await context.newPage();
       page.on('pageerror', (error) => console.log('ERROR ' + error));
-      await gotoGame(page, `${server.url}/?touch=1&guide=0&menu=0&rules=0&reverselights=1`
+      await gotoGame(page, `${server.url}/?touch=1&guide=0&menu=0&rules=0`
         + (night ? '&night=0.8' : ''));
       await page.touchscreen.tap(viewport.width / 2, viewport.height / 2);
       await page.waitForTimeout(400);

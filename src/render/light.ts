@@ -10,6 +10,7 @@ import { indicatorBlinkOn, lampLevel } from './cars.ts';
 import { traceDecks } from './lightdecks.ts';
 import {
   REVERSE_BEAM_HALF_M, REVERSE_BEAM_REACH_M, REVERSE_BEAM_STRENGTH, REVERSE_GLOW,
+  REVERSE_GLOW_LEVEL,
   REVERSE_SIDE_SHARE, isReversing,
 } from './reverselights.ts';
 import type { RenderCar, RenderGame, View } from './types.ts';
@@ -243,8 +244,9 @@ function drawRearGlows(painter: GlowPainter, car: RenderCar) {
   if (car.rainLight) glowAt(painter, car, -halfLen, 0, painter.redGlow, 0.8);
   if (!isReversing(car)) return;
   const side = halfWid * REVERSE_SIDE_SHARE;
-  if (lampLevel(car, 2)) glowAt(painter, car, -halfLen, -side, painter.reverseGlow, 1);
-  if (lampLevel(car, 3)) glowAt(painter, car, -halfLen, side, painter.reverseGlow, 1);
+  const level = REVERSE_GLOW_LEVEL;
+  if (lampLevel(car, 2)) glowAt(painter, car, -halfLen, -side, painter.reverseGlow, level);
+  if (lampLevel(car, 3)) glowAt(painter, car, -halfLen, side, painter.reverseGlow, level);
 }
 
 /**

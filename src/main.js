@@ -39,7 +39,6 @@ import {
 } from "./world/weather.ts";
 import { setDarkness } from "./world/daylight.ts";
 import { CLOCK, startClock } from "./world/clock.ts";
-import { setReverseLights } from "./render/reverselights.ts";
 import { LEVEL } from "./world/state.ts";
 
 import { LEVELS } from "./world/levels/index.ts";
@@ -72,8 +71,6 @@ if (shared.settings.night !== null) setDarkness(shared.settings.night);
 startClock(shared.settings.night === null,
   Math.floor(((new Date().getMonth() + 1) % 12) / 3));
 shared.DEV = shared.settings.dev;
-// ?reverselights=1: every car in reverse lights its reversing lamps
-setReverseLights(shared.settings.reverseLights);
 
 shared.canvas = document.getElementById('c');
 shared.boot = document.getElementById('boot');

@@ -9,8 +9,8 @@ handover, written on request.
 
 - The plain link is the approved game; the test list is EMPTY. Tonight's rounds are DEFAULT
   (owner "all pass"): highway street lights L4b + the solid grid; traffic seated when woken,
-  the Sandbox puddles, meltwater, ice cracks (E). NEXT: reverse lights (owner asked), lighting
-  at events F (mockup first), trees / bushes D (photos first), TS conversion overnight.
+  the Sandbox puddles, meltwater, ice cracks (E); reversing lights 10-25. NEXT: lighting
+  at events F (mockup sent: owner picks per idea), trees / bushes D (photos), TS overnight.
   Earlier 10-24: A11, A12, A13, grass G1
   and the A fixes are DEFAULT
   (owner 10-24: "all pass"; switches and old paths deleted): A1 sky blend, A2 bridge decks, A3
