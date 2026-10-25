@@ -12,7 +12,7 @@ interface ParticleHelpers {
 }
 
 // one damage event of a car
-interface DmgEvent { scrape?: boolean; amt: number; c: number }
+interface DmgEvent { scrape?: boolean; amt: number; c: number; metal?: boolean }
 
 // the mutable values the particle layer keeps between frames
 interface ParticleState {
@@ -207,6 +207,44 @@ function flingChips(ctx: ParticleCtx, car: ParticleCar, hit: DmgEvent) {
   }
 }
 
+// IMPACT SPARKS (owner: "big crashes metal on metal ... a high chance for sparks to emit from
+// the impact zones, like paint"; ?impactsparks=1): a hit on metal (physics/punctures.ts
+// hitIsMetal: another car, armco, posts, fences ...) of at least IMPACT_FROM damage throws a
+// burst of sparks out of the hurt corner - likelier and more the harder the hit
+const IMPACT_FROM = 0.04, IMPACT_CHANCE_MIN = 0.55, IMPACT_CHANCE_PER = 4;
+const IMPACT_SPARKS_MIN = 14, IMPACT_SPARKS_PER = 160, IMPACT_SPARKS_MAX = 90;
+// a crash flings them harder than dragging metal, in a wider fan
+const IMPACT_FLING = 1.6, IMPACT_FAN_EXTRA = 0.6;
+let impactSparksOn = false;
+/**
+ * ?impactsparks=1: sparks from big metal-on-metal crashes (owner test).
+ * @param isOn the switch
+ */
+export function setImpactSparks(isOn: boolean): void { impactSparksOn = isOn; }
+
+/**
+ * A burst of sparks out of a crash's hurt corner, by chance and by how hard the hit was.
+ * @param ctx particle context
+ * @param car the car
+ * @param hit the damage event
+ */
+function throwImpactSparks(ctx: ParticleCtx, car: ParticleCar, hit: DmgEvent) {
+  if (hit.amt < IMPACT_FROM) return;
+  if (fxRandom() > Math.min(0.95, IMPACT_CHANCE_MIN + IMPACT_CHANCE_PER * hit.amt)) return;
+  const spec = car.spec, cosHeading = Math.cos(car.heading), sinHeading = Math.sin(car.heading);
+  const cornerX = (hit.c < 2 ? 1 : -1) * spec.len * 0.48;
+  const cornerY = (hit.c % 2 ? 1 : -1) * spec.wid * 0.45;
+  const x = car.x + cosHeading * cornerX - sinHeading * cornerY;
+  const y = car.y + sinHeading * cornerX + cosHeading * cornerY;
+  // out of the corner, away from the car's middle
+  const out = Math.atan2(y - car.y, x - car.x);
+  const count = Math.min(IMPACT_SPARKS_MAX, Math.round(IMPACT_SPARKS_MIN + IMPACT_SPARKS_PER
+    * hit.amt));
+  for (let i = 0; i < count; i++) {
+    throwSpark(ctx, car, x, y, out + (fxRandom() * 2 - 1) * IMPACT_FAN_EXTRA, IMPACT_FLING);
+  }
+}
+
 /**
  * PAINT CHIPS: every hit (damage.ts dmgEvents) flings square pixels of the car's paint (and some
  * primer / black trim) from the hurt corner; they skid to a stop and lie on the ground a few
@@ -217,7 +255,10 @@ function flingChips(ctx: ParticleCtx, car: ParticleCar, hit: DmgEvent) {
 function emitChips(ctx: ParticleCtx, car: ParticleCar) {
   emitTyreMoments(ctx, car);
   const events = car.dmgEvents; if (!events || !events.length) return;
-  for (const hit of events) flingChips(ctx, car, hit);
+  for (const hit of events) {
+    flingChips(ctx, car, hit);
+    if (impactSparksOn && hit.metal && !hit.scrape) throwImpactSparks(ctx, car, hit);
+  }
   events.length = 0;
 }
 
@@ -302,25 +343,35 @@ const SPARK_COOLING: [number, string, string][] = [[0.25, '#fff6d6', '#ffcf6a'],
  * @param car the car
  * @param x world x, m
  * @param y world y, m
- * @param outward the side it flies out to (+1 the car's +y, -1 -y, 0 either)
+ * @param aim the direction it is flung, rad (a random fan of FAN round it)
+ * @param flingK a scale on how hard it is flung (1: metal dragging; more: a crash)
  */
-function throwSpark(ctx: ParticleCtx, car: ParticleCar, x: number, y: number, outward: number) {
+function throwSpark(ctx: ParticleCtx, car: ParticleCar, x: number, y: number, aim: number,
+  flingK = 1) {
   const sparks = ctx.state.sparks;
-  // behind the way the car is MOVING (owner: sliding, rolling - not the way its nose points),
-  // leaning out to the side the spark came from
-  const speed = Math.hypot(car.vx, car.vy);
-  const backX = speed > 1 ? -car.vx / speed : -Math.cos(car.heading);
-  const backY = speed > 1 ? -car.vy / speed : -Math.sin(car.heading);
-  const outX = -Math.sin(car.heading) * outward * OUT_LEAN, outY = Math.cos(car.heading) * outward
-    * OUT_LEAN;
-  const angle = Math.atan2(backY + outY, backX + outX) + (fxRandom() * 2 - 1) * FAN;
-  const fling = FLING_MIN + fxRandom() * fxRandom() * FLING_SPREAD;
+  const angle = aim + (fxRandom() * 2 - 1) * FAN;
+  const fling = (FLING_MIN + fxRandom() * fxRandom() * FLING_SPREAD) * flingK;
   const carry = 0.3 + fxRandom() * 0.35;
   if (sparks.length >= MAX_SPARKS) sparks.shift();
   sparks.push({ x, y, vx: car.vx * carry + Math.cos(angle) * fling,
     vy: car.vy * carry + Math.sin(angle) * fling, age: 0,
     life: SPARK_LIFE_S + fxRandom() * SPARK_LIFE_SPREAD_S, col: SPARK_COOLING[0][1],
     sz: SPARK_SIZE_M * (0.5 + fxRandom() * 0.5), fadeK: FADE_K_MIN + fxRandom() * FADE_K_SPREAD });
+}
+
+/**
+ * The way a dragging spark is flung: behind the way the car is MOVING (owner: sliding, rolling -
+ * not the way its nose points), leaning out to the side it came from.
+ * @param car the car
+ * @param outward the side (+1 the car's +y, -1 -y, 0 either)
+ * @returns the direction, rad
+ */
+function dragAim(car: ParticleCar, outward: number): number {
+  const speed = Math.hypot(car.vx, car.vy);
+  const backX = speed > 1 ? -car.vx / speed : -Math.cos(car.heading);
+  const backY = speed > 1 ? -car.vy / speed : -Math.sin(car.heading);
+  return Math.atan2(backY + Math.cos(car.heading) * outward * OUT_LEAN,
+    backX - Math.sin(car.heading) * outward * OUT_LEAN);
 }
 
 /**
@@ -353,7 +404,8 @@ function emitSparks(ctx: ParticleCtx, car: ParticleCar, wallDt: number) {
     const fromY = wheelY - sinH * SPARK_BACK_M + cosH * side * SPARK_OUT_M;
     const owed = sparksOwed(car._rimDebt || 0, RIM_SPARK_RATE, wallDt), count = Math.floor(owed);
     car._rimDebt = owed - count;
-    for (let i = 0; i < count; i++) throwSpark(ctx, car, fromX, fromY, side);
+    const aim = dragAim(car, side);
+    for (let i = 0; i < count; i++) throwSpark(ctx, car, fromX, fromY, aim);
   }
   if (!car.sparks) return;
   // from the trailing part of the body: behind its middle along the way it is moving
@@ -367,7 +419,7 @@ function emitSparks(ctx: ParticleCtx, car: ParticleCar, wallDt: number) {
     const offsetX = (fxRandom() - 0.5) * car.spec.len;
     const offsetY = (fxRandom() - 0.5) * car.spec.wid;
     throwSpark(ctx, car, car.x + trailX + cosHeading * offsetX * 0.6 - sinHeading * offsetY,
-      car.y + trailY + sinHeading * offsetX * 0.6 + cosHeading * offsetY, 0);
+      car.y + trailY + sinHeading * offsetX * 0.6 + cosHeading * offsetY, dragAim(car, 0));
   }
 }
 

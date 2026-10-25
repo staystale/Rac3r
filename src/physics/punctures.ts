@@ -35,6 +35,20 @@ const DEBRIS_CHANCE: Record<string, number> = {
 // driving over a broken pallet's nails: the chance a second on them
 const NAILS_CHANCE = 0.03;
 
+// what a car hitting it meets as METAL ON METAL (sparks fly from a big hit: render/particles.ts)
+const METAL = new Set(['car', 'banger', 'truck', 'caravan', 'armco', 'fence', 'barrel', 'gantry',
+  'pylon', 'lamp', 'chevron', 'tower', 'windsock', 'exhaust', 'bumper']);
+
+/**
+ * Whether what the car hit this step is metal (a car's body meeting it is metal on metal).
+ * Reads the step's hit without taking it (takeHitFactor does).
+ * @param car the car
+ * @returns true for metal
+ */
+export function hitIsMetal(car: HitNoter): boolean {
+  return !!car._hitKind && METAL.has(car._hitKind);
+}
+
 /**
  * The chance a big hit on this kind of thing punctures a tyre.
  * @param kind what was hit (a barrier, solid, object kind, or 'car')

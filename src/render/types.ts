@@ -88,7 +88,7 @@ export interface ParticleCar extends CamCar {
   t: { slipSpeedF: number; slipSpeedR: number; loadKF: number; loadKR: number };
   tyreT?: unknown;   // truthy when the tyre temperatures are simulated
   wreck?: { smoke?: boolean };
-  dmgEvents?: { scrape?: boolean; amt: number; c: number }[];
+  dmgEvents?: { scrape?: boolean; amt: number; c: number; metal?: boolean }[];
   sparks?: boolean;
   // tyre moments (physics/tyrepressure.ts) and rims sparking (world/metalscrape.ts)
   tyreFx?: { corner: number; kind: 'puff' | 'shreds' }[];

@@ -1,4 +1,4 @@
-import { takeHitFactor } from './physics/punctures.ts';
+import { hitIsMetal, takeHitFactor } from './physics/punctures.ts';
 import type { CarWreck } from './vehicle.ts';
 import {
   pressureInit, startLeak, stepTyrePressure, pressureWreck, isFlat, isPunctured,
@@ -54,7 +54,7 @@ const WHEEL_HIT = 0.4, WHEEL_AT = 0.85;
 export const REPAIR_PER = 1500;
 
 /** One damage event for the particles (paint chips): the corner, its size, a scrape or not. */
-export interface DamageEvent { c: number; amt: number; scrape?: boolean }
+export interface DamageEvent { c: number; amt: number; scrape?: boolean; metal?: boolean }
 /** The damage state on a car (all four arrays by corner). */
 export interface DamageState {
   dmg: number[]; crushL: number[]; crushS: number[]; roofDmg: number; wheelOff: boolean[];
@@ -188,7 +188,9 @@ function hardHitCorners(
 export function hit(
   car: DamageCar, vx0: number, vy0: number, dt = 1 / 120, rnd: () => number = Math.random,
 ): number {
-  // what the car hit this step scales the puncture roll (physics/punctures.ts)
+  // what the car hit this step: metal on metal sparks (render/particles.ts), and it scales the
+  // puncture roll (physics/punctures.ts)
+  const metal = hitIsMetal(car);
   const punctureK = takeHitFactor(car);
   const dvx = car.vx - vx0, dvy = car.vy - vy0, deltaV = Math.hypot(dvx, dvy);
   if (!(deltaV >= SCRAPE_DV)) return 0;
@@ -214,7 +216,7 @@ export function hit(
   car.dmgFlash = 1;
   // a fresh impact can knock stuck tape off (user)
   if (car.streamers && car.streamers.length && rnd() < 0.6) car.streamers.shift();
-  pushEvent(car, { c: top, amt });
+  pushEvent(car, { c: top, amt, metal });
   derive(hurt);
   return amt;
 }
