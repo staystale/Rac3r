@@ -39,7 +39,7 @@ export const TEST_LIST = [
     where: 'Plain link + &oil=1: any circuit (Castle Cum: hit a wall hard nose first)',
     try: 'Crash hard (0.2+ damage spills 1-4 cells), drive over it (it spreads a little the way'
       + ' you went), see it in the rain spread into water; a cracked sump leaves a trail.',
-    wrong: 'Oil on sand, gravel, dirt or long grass, oil that dries or washes off, grip no lower than'
-      + ' a puddle, oil spreading across the whole track, oil that is not black and purple.',
+    wrong: 'Oil on sand, gravel, dirt or long grass, oil that dries or washes off, grip no'
+      + ' lower than a puddle, oil spreading across the whole track, oil not black and purple.',
   },
 ];
