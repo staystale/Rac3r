@@ -1,4 +1,4 @@
-// stingers.ts - draws the level's tyre spikes (world/stingers.ts, ?flats=1): a grey strip with a
+// stingers.ts - draws the level's tyre spikes (world/stingers.ts): a grey strip with a
 // dark rim and rows of pale spikes, square pixels in the game's style, on the ground under the
 // cars (drawn with the marks, render/screen.ts).
 

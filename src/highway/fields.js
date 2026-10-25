@@ -379,7 +379,7 @@ function layFieldRows(level, strip, pointAt, clear, loose) {
     };
     addFieldZones(level, plot);
     addFieldTrees(level, plot, rand);
-    // hedgerow bushes round the border (?hedges=1; own random stream)
+    // a hedge of bushes round the border (highway/hedges.ts; own random stream)
     addFieldHedges(level, plot);
     addFieldBales(level, plot, rand);
     addFieldStock(plot, rand, loose);

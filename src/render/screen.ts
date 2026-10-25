@@ -159,7 +159,7 @@ export function drawMarksOnScreen(ctx: ScreenCtx, game: RenderGame, lock: Screen
   try {
     ctx.drawMarks(game.marks);
     drawWetTrails(mainCtx, ctx.toScreenX, ctx.toScreenY, ctx.PPMz());
-    // tyre spikes on the test levels (?flats=1)
+    // tyre spikes on the test levels
     drawStingers(mainCtx, ctx.toScreenX, ctx.toScreenY, ctx.PPMz());
   } finally {
     view.ctx = keep;

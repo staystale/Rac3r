@@ -1,17 +1,15 @@
-// _hedges.mjs - the highway's hedgerows (highway/hedges.ts, ?hedges=1): drive N km with the
+// _hedges.mjs - the highway's hedgerows (highway/hedges.ts): drive N km with the
 // autodriver; at each rebuild count the hedge bushes loaded, check the ground lookup finds each
 // new one as 'bush' (the patch grid is up to date), the nearest one to the road's edge, and time
-// each road slide (stepHighway) - run with on / off for the cost.
-// node tools/scratch/_hedges.mjs [km] [on|off] [preset]
+// each road slide (stepHighway).
+// node tools/scratch/_hedges.mjs [km] [preset]
 import { makeCar, step, reset, PHYSICS_STEP_SECONDS } from '../../src/vehicle.ts';
 import * as L from '../../src/lab.js';
 import { stepHighway, addHighwayLevel, setHighwayPreset, resetHighway } from '../../src/highway.js';
 import { createAutoDriver } from '../../src/ai/autodrive.ts';
-import { setHedges } from '../../src/highway/hedges.ts';
 import { groundSurfaceAt } from '../../src/world/wear.ts';
-const KM = +(process.argv[2] || 6), ON = (process.argv[3] || 'on') === 'on';
-const PRESET = process.argv[4] || 'motorway';
-setHedges(ON);
+const KM = +(process.argv[2] || 6);
+const PRESET = process.argv[3] || 'motorway';
 addHighwayLevel();
 L.setLevel('highway'); const lv = L.LEVEL;
 setHighwayPreset(lv, PRESET); resetHighway(lv);
@@ -44,7 +42,7 @@ while ((lv._hw.driven || 0) < KM * 1000 && t < KM * 200) {
     survey();
   }
 }
-console.log(`hedges ${ON ? 'ON' : 'OFF'} ${PRESET} ${(lv._hw.driven / 1000).toFixed(1)} km, ${rebuilds} slides`
+console.log(`hedges ${PRESET} ${(lv._hw.driven / 1000).toFixed(1)} km, ${rebuilds} slides`
   + ` ${(slideMs / Math.max(1, rebuilds)).toFixed(2)} ms each; hedge bushes laid ${seen.size},`
   + ` loaded max ${maxLoaded}; lookup missed ${missed}/${checked}; nearest to the road edge`
   + ` ${nearest.toFixed(1)} m; fields ${lv._hw.fieldId}`);

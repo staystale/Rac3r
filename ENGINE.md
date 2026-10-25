@@ -84,7 +84,7 @@ entering a bush cell may puncture or scratch that corner (`world/bushes.ts`). Dr
 over the `bush` art. A few leaf tufts per bush are drawn over the cars
 (`render/bushtufts.ts`, in the overhead pass).
 
-Car systems (C, under test behind `?flats=1`): every puncture source (big hits in `damage.ts`,
+Car systems (C): every puncture source (big hits in `damage.ts`,
 heat / wear bursts, debris, nails, bushes) ends in `damage.ts`, which starts a LEAK in
 `physics/tyrepressure.ts` - a burst flat in ~0.5 s with a sharp pull, a slow one (`car.burstSlow`)
 over 10-30 s. Each tyre's pressure sets its axle's grip (1 -> 0.7 flat -> 0.45 on the rim), a pull
@@ -98,7 +98,7 @@ squashes progressively with its air, a rim bare), puffs / shreds / rim sparks in
 `render/particles.ts`, the HUD tyre ring by pressure (`hud/gauges.js`), `?dev=1` line `air`.
 Tyre spikes (a police stinger, `world/stingers.ts`, drawn by `render/stingers.ts`) on the Lab and Test Track burst every wheel that rolls on.
 
-Highway hedges (under test, `?hedges=1`): `highway/hedges.ts` lays one continuous line of square
+Highway hedges: `highway/hedges.ts` lays one continuous line of square
 bushes (the same `bush` patches as the other levels) round each farm field's long-grass border, streamed with
 the field (laid in `highway/fields.js`, dropped by the slide's prune and `clearFields`) and
 indexed through `world/load.ts indexNewBushes` (added a field at a time) and `reindexBushes`.

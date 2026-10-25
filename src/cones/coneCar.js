@@ -259,7 +259,7 @@ export function hitByCar(ctx, obj, car, newTyres) {
   if (obj.kind === 'splinters' && relX * relX + relY * relY < 4
     && ctx.clock - (obj._nailT ?? -9) > 1) {
     obj._nailT = ctx.clock;
-    // nails and debris let a tyre down slowly (damage.ts applyBurst, ?flats=1)
+    // nails and debris let a tyre down slowly (damage.ts applyBurst)
     if (debrisPunctures(obj.kind, 0, false)) { car.burstTyre = 0; car.burstSlow = true; }
   }
   if (obj.kind === 'straw' || BROKEN.has(obj.kind)) return;

@@ -1,11 +1,10 @@
 // stingers.ts - TYRE SPIKES, a police stinger (owner: "a stationary object about 5 squares long
 // and 1/2 a square wide, grey and spikey; it should instantly puncture / pop any tyre that passes
-// over it - this will help me test the flats"). A strip laid across the road on the test levels,
-// under the ?flats=1 switch: every wheel that rolls onto it bursts at once (damage.ts
+// over it - this will help me test the flats"). A strip laid across the road on the test levels:
+// every wheel that rolls onto it bursts at once (damage.ts
 // burstCorner, as a big hit's puncture). Drawn by render/stingers.ts. A "square" is read as the
 // 1.5 m ground cell: 7.5 m long (a road's width), 0.75 m wide.
 
-import { flatsEnabled } from '../physics/tyrepressure.ts';
 import { carWheels, type WheelBase } from './wheels.ts';
 
 /** One stinger: its centre and the direction its LONG side runs, rad. */
@@ -27,12 +26,12 @@ const STINGERS: Record<string, Stinger[]> = {
 const onSpikes: number[] = [];
 
 /**
- * The stingers laid on a level (none without ?flats=1).
+ * The stingers laid on a level.
  * @param levelId the level
  * @returns its stingers
  */
 export function levelStingers(levelId: string): Stinger[] {
-  return flatsEnabled() ? STINGERS[levelId] ?? [] : [];
+  return STINGERS[levelId] ?? [];
 }
 
 /**

@@ -1,4 +1,4 @@
-// tyrelook.ts - how a tyre LOOKS by its air (car systems C2, ?flats=1; owner: "make them
+// tyrelook.ts - how a tyre LOOKS by its air (car systems C2; owner: "make them
 // progressive so tyre pressure is basically visible"; a flat "squishes in all directions",
 // "wobbles even" - mockup approved). In the car's sprite pixels, centred on the wheel. From full
 // (pressure 1) to flat (0), each step adds to the last:

@@ -116,6 +116,11 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
 - Binned 10-25 (owner: "park em : bin em"): the HUD text fix (no clear gain measured) and the
   GPU ground phase C (no phone gain). The 10-04 car feedback is out of date. Real ABS is wanted:
   the driving root fix (wheel spin as real state) is queued, plan first.
+- Car systems C round 1 (10-25, owner: pass): punctures are leaks (a burst flat in ~0.5 s, debris /
+  nails / bush over 10-30 s), tyres squash progressively by pressure, a flat reaches the rim by a
+  rising chance (half by ~1 km), a rim or a rolled body on hard ground sparks and may break it a
+  grade (race tarmac -> tarmac -> broken); no written PUNCTURE notice. Stingers (tyre spikes) on
+  the Lab and Test Track. Highway hedges: one continuous line of bushes round every farm field.
 - Outer tyre walls (Grass Track, Stock Car): a fast car pushing through them is fine (owner
   10-25); they stay single rows of loose tyres.
 - Order 10-25 (owner): bushes -> car systems C (when bushes pass) -> the wearcheck rewrite (when

@@ -143,7 +143,7 @@ export function stepAIPhysics(entry, want, dt) {
     if (!held) tripCheck(car, dt);
     applyBurst(car);
   }   // start lights
-  // the tyres' air and metal on the ground (?flats=1), rolled or not
+  // the stingers, the tyres' air and metal on the ground, rolled or not
   stepDamage(car, dt);
 }
 

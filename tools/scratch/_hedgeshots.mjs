@@ -1,4 +1,4 @@
-// _hedgeshots.mjs - photos of the highway's hedgerows (?hedges=1): the autopilot drives, then
+// _hedgeshots.mjs - photos of the highway's hedgerows (highway/hedges.ts): the autopilot drives, then
 // shots at two zooms, 844x390 and 390x844. node tools/scratch/_hedgeshots.mjs <out folder>
 import { join } from 'node:path';
 import { startServer, launchBrowser, gotoGame } from '../lib/browser.mjs';
@@ -12,7 +12,7 @@ try {
       isMobile: true, hasTouch: true });
     const page = await context.newPage();
     page.on('pageerror', (error) => console.log('PAGE ERROR ' + error.message));
-    await gotoGame(page, `${server.url}/?touch=1&guide=0&menu=0&rules=0&noaudio=1&hedges=1`
+    await gotoGame(page, `${server.url}/?touch=1&guide=0&menu=0&rules=0&noaudio=1`
       + '&autopilot=90');
     await page.touchscreen.tap(size.width / 2, size.height / 2);
     await page.waitForTimeout(300);

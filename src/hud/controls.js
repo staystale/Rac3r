@@ -98,7 +98,7 @@ export function drawHudDevReadout(ctx, state, game, car, height) {
         + `in  st ${game.in.steer.toFixed(2)} th ${game.in.throttle.toFixed(2)} `
         + `br ${game.in.brake.toFixed(2)} hb ${game.in.handbrake ? 1 : 0}`,
     ];
-    // ?flats=1: each tyre's air %, metres driven flat, R = on its rim (physics/tyrepressure.ts)
+    // each tyre's air %, metres driven flat, R = on its rim (physics/tyrepressure.ts)
     if (car.tyreP) {
       lines.push('air ' + car.tyreP.map((pressure, corner) => (car.onRim[corner] ? 'R'
         : Math.round(pressure * 100)) + '/' + Math.round(car.flatRun[corner])).join(' '));

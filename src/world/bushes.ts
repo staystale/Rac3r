@@ -31,7 +31,7 @@ interface BushCar { burstTyre?: number; burstSlow?: boolean }
 export function bushPass(car: object, tyre: number, speed: number,
   rnd: () => number = Math.random): void {
   if (speed < HARM_FROM) return;
-  // a thorn lets the tyre down slowly (damage.ts applyBurst, ?flats=1)
+  // a thorn lets the tyre down slowly (damage.ts applyBurst)
   if (rnd() < PUNCTURE_CHANCE) {
     (car as BushCar).burstTyre = tyre;
     (car as BushCar).burstSlow = true;

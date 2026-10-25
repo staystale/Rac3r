@@ -89,7 +89,7 @@ export interface ParticleCar extends CamCar {
   wreck?: { smoke?: boolean };
   dmgEvents?: { scrape?: boolean; amt: number; c: number }[];
   sparks?: boolean;
-  // ?flats=1: tyre moments (physics/tyrepressure.ts) and rims sparking (world/metalscrape.ts)
+  // tyre moments (physics/tyrepressure.ts) and rims sparking (world/metalscrape.ts)
   tyreFx?: { corner: number; kind: 'puff' | 'shreds' }[];
   rimSparks?: boolean[];
   _rimDebt?: number;
@@ -209,9 +209,8 @@ export interface RenderCar extends CamCar, Pick<Car, 'heading' | 'delta'> {
   crushL: number[];
   crushS: number[];
   roofDmg: number;
-  punct: boolean[];
   wheelOff: boolean[];
-  // tyre pressure (?flats=1, physics/tyrepressure.ts) and the wheels' turn (render/tyrelook.ts)
+  // tyre pressure (physics/tyrepressure.ts) and the wheels' turn (render/tyrelook.ts)
   tyreP?: number[];
   onRim?: boolean[];
   _wheelTurn?: number;

@@ -24,7 +24,7 @@ for (const [label, side, kind] of cases) {
       car.vy = 0;
       car._hitKind = kind;
       hit(car, v0x, v0y);
-      if (car.punct && car.punct.some(Boolean)) punctured++;
+      if ((car.tyreLeak || []).map((leak) => leak > 0).some(Boolean)) punctured++;
     }
     row.push(`${kmh} km/h ${(100 * punctured / TRIALS).toFixed(0)}%`);
   }

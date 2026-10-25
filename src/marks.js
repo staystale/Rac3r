@@ -411,7 +411,7 @@ function listWheels(car) {
   const cosH = Math.cos(car.heading), sinH = Math.sin(car.heading);
   const halfTrack = spec.trackWidth / 2;
   const out = [];
-  // a wheel on its rim over hard ground scores a pale line (world/metalscrape.ts, ?flats=1)
+  // a wheel on its rim over hard ground scores a pale line (world/metalscrape.ts)
   const rims = car.rimSparks;
   for (const [key, along, side, slip, corner] of [
     ['fl', spec.lf, -halfTrack, telem.slipSpeedF, 0],

@@ -216,7 +216,7 @@ function emitChips(ctx: ParticleCtx, car: ParticleCar) {
   events.length = 0;
 }
 
-// TYRE MOMENTS (?flats=1, physics/tyrepressure.ts car.tyreFx): a burst puffs air and dust from
+// TYRE MOMENTS (physics/tyrepressure.ts car.tyreFx): a burst puffs air and dust from
 // the wheel; a tyre coming off the rim throws black shreds of rubber
 const TYRE_PUFF = { rgb: '200,192,176', size: 0.3, lift: 3.0, life: 0.6, grow: 1.2 };
 const SHRED_COL = '#0d0e11';

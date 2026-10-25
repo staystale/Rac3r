@@ -8,7 +8,7 @@
 // hard ground (world/metalscrape.ts: sparks, a scored line, a chance to break the surface).
 // damage.ts owns the puncture (where it starts) and turns these numbers into car.wreck; RESET /
 // RESTART / an AI's reset mend them with the rest of the damage. Arrays are by damage CORNER
-// (0 front -y, 1 front +y, 2 rear -y, 3 rear +y), as car.punct.
+// (0 front -y, 1 front +y, 2 rear -y, 3 rear +y).
 
 /** The tyre-pressure state on a car (all four arrays by damage corner). */
 export interface PressureState {
@@ -47,14 +47,6 @@ const FLAT_GRIP = 0.7, RIM_GRIP = 0.45;
 const PULL_FRONT = 0.012, PULL_REAR = 0.005, DRAG_FLAT = 0.75, DRAG_RIM = 1.5;
 const GRAVITY = 9.81;
 
-let flatsOn = false;
-/**
- * ?flats=1: punctures go through tyre pressure (owner test).
- * @param isOn the switch
- */
-export function setFlats(isOn: boolean): void { flatsOn = isOn; }
-/** @returns true when ?flats=1 is on */
-export function flatsEnabled(): boolean { return flatsOn; }
 
 /**
  * Makes the pressure state new: four full tyres.
@@ -163,6 +155,16 @@ export function pressureWreck(car: PressureCar): PressureWreck {
     roll += rim[corner] ? DRAG_RIM : DRAG_FLAT * soft;
   }
   return { gripF: Math.min(grip[0], grip[1]), gripR: Math.min(grip[2], grip[3]), toe, roll };
+}
+
+/**
+ * Has this tyre been punctured (leaking, flat or on its rim) since the last repair?
+ * @param car the car
+ * @param corner the damage corner
+ * @returns true once a leak has started
+ */
+export function isPunctured(car: PressureCar, corner: number): boolean {
+  return !!car.tyreLeak && car.tyreLeak[corner] > 0;
 }
 
 /**

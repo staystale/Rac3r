@@ -1,5 +1,5 @@
 // hedges.ts - HEDGEROWS round the highway's farm fields (owner: "highways should have bushes
-// around farmers fields"; ?hedges=1). Each field's long-grass border (highway/fields.js, HEDGE_W
+// around farmers fields"). Each field's long-grass border (highway/fields.js, HEDGE_W
 // m all round) gets clumps of the bushes the other levels have (world/bushplan.ts, the 'bush'
 // surface: drag, scratches, punctures, flattened to long grass; drawn as its square pixel clumps
 // with tufts over the cars) as ONE CONTINUOUS HEDGE along all four sides (owner: "can that whole
@@ -40,12 +40,6 @@ const TRUNK_CLEAR_M = 1.6;
 // the kinds of bush (render/ground/art.ts addBushLooks)
 const BUSH_LOOKS = ['bush', 'bushOlive', 'bushTeal'];
 
-let hedgesOn = false;
-/**
- * ?hedges=1: hedgerows round the highway's fields (owner test).
- * @param isOn the switch
- */
-export function setHedges(isOn: boolean): void { hedgesOn = isOn; }
 
 /**
  * A point of a field by its own axes (along the road, across away from it), m.
@@ -65,7 +59,6 @@ function fieldPoint(plot: FieldPlot, along: number, across: number): [number, nu
  * @param plot the field
  */
 export function addFieldHedges(level: HedgeLevel, plot: FieldPlot): void {
-  if (!hedgesOn) return;
   const rnd = seededRng('hedge' + plot.fieldId);
   const list = level._bushes || (level._bushes = []);
   const halfL = plot.fieldLen / 2 + BAND_M / 2, halfD = plot.depth / 2 + BAND_M / 2;

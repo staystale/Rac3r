@@ -103,7 +103,8 @@ function carFields(car) {
     yawRate: num(car.yawRate), delta: num(car.delta), z: num(car.z), gear: car.gear,
     rpm: num(car.rpm), dmgBill: num(car.dmgBill || 0), dmgHits: car.dmgHits || 0,
     dmg: num(sum(car.dmg)), crush: num(sum(car.crushL) + sum(car.crushS)),
-    roofDmg: num(car.roofDmg || 0), punct: count(car.punct), wheelOff: count(car.wheelOff),
+    roofDmg: num(car.roofDmg || 0), punct: count((car.tyreLeak || []).map((leak) => leak > 0)),
+    wheelOff: count(car.wheelOff),
     roll: car.roll ? `${car.roll.phase}:${num(car.roll.phi)}` : 'none',
   };
 }

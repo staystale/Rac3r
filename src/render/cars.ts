@@ -49,7 +49,7 @@ function wheelMetrics(spec: RenderCarSpec, sprite: CarSprite) {
  * @param side -1 or 1
  * @param steer the wheel's steering angle
  * @param metrics the tyre size and half width
- * @param air the tyre's air (?flats=1), or null: pressure, on its rim, the wheels' turn
+ * @param air the tyre's air, or null: pressure, on its rim, the wheels' turn
  */
 function drawCarWheel(
   carsCtx: CarsContext, spec: RenderCarSpec, axleX: number, side: number, steer: number,
@@ -226,7 +226,7 @@ function drawCarLamps(carsCtx: CarsContext, car: RenderCar, sprite: CarSprite) {
 }
 
 /**
- * Draw one car: shadow, wheels, body, punctured-wheel rims and lamps (or the rolled faces).
+ * Draw one car: shadow, wheels (by their air), body and lamps (or the rolled faces).
  * @param carsCtx the shared view and helpers
  * @param car the car
  * @param heading the heading to draw it at, radians (0 for its own GPU picture)
@@ -251,20 +251,9 @@ function drawPixelCar(carsCtx: CarsContext, car: RenderCar, heading = car.headin
     silhouette(sprite.c), -sprite.Lp / 2 - 2 + shOff, -sprite.Wp / 2 - 2 + shOff,
   );
   view.ctx.globalAlpha = 1;
-  const halfWidth = drawCarWheels(carsCtx, car, sprite);
+  // the wheels show their own air (render/tyrelook.ts: squashed, flat, on the rim)
+  drawCarWheels(carsCtx, car, sprite);
   view.ctx.drawImage(sprite.c, -sprite.Lp / 2 - 2, -sprite.Wp / 2 - 2);
-  // DAMAGE (damage.ts): a dark crushed block on each hurt corner, growing with the damage,
-  // a pale crease along its edge; a punctured wheel shows a bright rim. Squares, not curves
-  // (pixel rule).
-  if (car.punct && !car.tyreP) for (let corner = 0; corner < 4; corner++) {
-    if (car.punct[corner]) {
-      view.ctx.fillStyle = '#c9c9d2';
-      view.ctx.fillRect(
-        Math.round((corner < 2 ? spec.lf : -spec.lr) * SPRITE_PPM) - 2,
-        Math.round((corner % 2 ? 1 : -1) * halfWidth) - 1, 4, 2,
-      );
-    }
-  }
   drawCarLamps(carsCtx, car, sprite);
   view.ctx.restore();
 }

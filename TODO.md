@@ -17,8 +17,8 @@ handover, written on request.
   Earlier 10-24: A1-A13 fixes, grass G1, mud M1.
 - TYPESCRIPT CONVERSION: ON HOLD (owner 10-25); new code is TypeScript, old .js converted later.
 - ORDER (owner 10-25): 1 BUSHES (D part 2) - DEFAULT 10-25 (owner: pass); 2 car systems C
-  (design + mockup approved 10-25; ROUND 1 C1 + C2 + metal on ground under test, ?flats=1;
-  round 2 C3-C5 next, ?engine=1); 3 the wearcheck rewrite when C passes. Then (owner to order): the driving ROOT
+  (design + mockup approved 10-25; ROUND 1 - C1 + C2, metal on ground, stingers, highway
+  hedges - DEFAULT 10-25 (owner: pass); round 2 C3-C5 next, ?engine=1); 3 the wearcheck rewrite when C passes. Then (owner to order): the driving ROOT
   FIX for real ABS (owner: "abs is needed to be fixed so yes"), AI rework B (design first),
   sound + settings G, Story + upgrades H, new levels (Dieatona), multiplayer I.
 - BINNED 10-25 (owner: "park em : bin em"): the HUD text fix (branch experiment/hudtext - its
@@ -237,9 +237,11 @@ C. CAR SYSTEMS + DAMAGE (L; one chain - extend damage.ts, no second damage model
   amber / red / silver, no written PUNCTURE notice under the switch. METAL ON HARD GROUND
   (owner, world/metalscrape.ts): a rim or a rolled body sparks, a rim scores a line, each new
   cell a small chance race tarmac -> tarmac -> broken (concrete, kerbs, Lab left alone).
-  ON PASS: delete car.punct's old effect (the flag path, the pale wheel block), the switch.
+  DEFAULT 10-25 (owner: pass): the ?flats / ?hedges switches, the car.punct flag (its 0.7 axle
+  rule, the pale wheel block, the HUD white ring) and the written PUNCTURE notice DELETED; a
+  puncture is a leak (physics/tyrepressure.ts isPunctured). Test list EMPTY.
   STINGER (owner, to test the flats): tyre spikes on the Lab and Test Track (world/stingers.ts).
-  HIGHWAY HEDGES ?hedges=1 (owner 10-25: "highways should have bushes around farmers fields"):
+  HIGHWAY HEDGES (owner 10-25: "highways should have bushes around farmers fields"):
   highway/hedges.ts, one continuous hedge of square bushes round each field's border (owner:
   "can that whole line around the field be a bush"), streamed with the field.
   RIM BY CHANCE (owner: "so all tyres don't degrade at the exact same moment"): a Weibull

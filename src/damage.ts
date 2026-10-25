@@ -1,8 +1,8 @@
 import { takeHitFactor } from './physics/punctures.ts';
 import type { CarWreck } from './vehicle.ts';
 import {
-  flatsEnabled, pressureInit, startLeak, stepTyrePressure, pressureWreck, isFlat,
-  type PressureCar,
+  pressureInit, startLeak, stepTyrePressure, pressureWreck, isFlat, isPunctured,
+  type PressureCar, type PressureState,
 } from './physics/tyrepressure.ts';
 import { scrapeMetal, gougeImpact, type ScrapeCar } from './world/metalscrape.ts';
 import { levelStingers, tyresOnStinger } from './world/stingers.ts';
@@ -28,14 +28,15 @@ import { LEVEL } from './world/state.ts';
 // crumples the right quarter the right way. Corners: 0 front / -y, 1 front / +y, 2 rear / -y, 3
 // rear / +y (car frame: +x forward; +y = the lateral of contact.js / render.ts; the car's RIGHT).
 // EFFECTS (limited): axle grip down to -20 %, power down to -15 % (front), a steering PULL toward
-// the harder-hit front, a PUNCTURE (axle x0.7) from a heavy corner hit, and a WHEEL OFF from a big
-// hit on a corner already near wrecked: that axle x0.45, a hard pull, the bare corner drags
+// the harder-hit front, a PUNCTURE (a leak, below) from a heavy corner hit, and a WHEEL OFF from a
+// big hit on a corner already near wrecked: that axle x0.45, a hard pull, the bare corner drags
 // (rolling drag x5 per wheel). Never a DNF: the player RESETs (repairs), an AI that is tooInjured
 // resets itself. The BILL counts every hit, repaired or not.
-// CAR SYSTEMS C (?flats=1, physics/tyrepressure.ts): a puncture is a LEAK - a burst (a big hit,
-// heat) flat in half a second with a sharp pull, a slow one (debris, nails, a bush: car.burstSlow)
-// over 10-30 s - and the axle grip, pull and drag follow the tyre's pressure, down to the rim;
-// stepDamage runs the air and metal on the ground (world/metalscrape.ts) each physics step.
+// CAR SYSTEMS C (physics/tyrepressure.ts): a puncture is a LEAK - a burst (a big hit, heat, a
+// stinger) flat in half a second with a sharp pull, a slow one (debris, nails, a bush:
+// car.burstSlow) over 10-30 s - and the axle grip, pull and drag follow the tyre's pressure, down
+// to the rim; stepDamage runs the air, the stingers and metal on the ground
+// (world/metalscrape.ts) each physics step.
 // m/s of impact velocity change below which it is only a scrape (v1: 2.5 — "really hard to cause")
 export const DMG_FLOOR = 1.5;
 // m/s: a contact this small in one step is a car sliding along something
@@ -55,11 +56,10 @@ export const REPAIR_PER = 1500;
 export interface DamageEvent { c: number; amt: number; scrape?: boolean }
 /** The damage state on a car (all four arrays by corner). */
 export interface DamageState {
-  dmg: number[]; crushL: number[]; crushS: number[]; roofDmg: number;
-  punct: boolean[]; wheelOff: boolean[];
+  dmg: number[]; crushL: number[]; crushS: number[]; roofDmg: number; wheelOff: boolean[];
 }
-/** A car as this file reads and writes it. */
-export interface DamageCar extends Partial<DamageState> {
+/** A car as this file reads and writes it (the tyres' air: physics/tyrepressure.ts). */
+export interface DamageCar extends Partial<DamageState>, PressureCar {
   vx: number; vy: number; heading: number;
   dmgBill?: number; dmgHits?: number; dmgFlash?: number;
   dmgEvents?: DamageEvent[]; wheelSpawn?: number[];
@@ -68,7 +68,7 @@ export interface DamageCar extends Partial<DamageState> {
   _dsp?: unknown; _scrapeT?: number; _sideKick?: { dir: number; dv: number };
 }
 /** A car whose damage state has been made (damageInit has run). */
-type DamagedCar = DamageCar & DamageState;
+type DamagedCar = DamageCar & DamageState & PressureState;
 
 /**
  * Makes a car's damage state new: no damage, no punctures, every wheel on. Keeps the bill.
@@ -79,10 +79,9 @@ export function damageInit(car: DamageCar): asserts car is DamagedCar {
   car.crushL = [0, 0, 0, 0];
   car.crushS = [0, 0, 0, 0];
   car.roofDmg = 0;
-  car.punct = [false, false, false, false];
   car.wheelOff = [false, false, false, false];
   car.dmgBill = car.dmgBill || 0;
-  if (flatsEnabled()) pressureInit(car as PressureCar);
+  pressureInit(car);
   derive(car as DamagedCar);
 }
 /**
@@ -165,9 +164,8 @@ function hardHitCorners(
     car.dmg[corner] = Math.min(1, car.dmg[corner] + add);
     car.crushL[corner] = Math.min(1, car.crushL[corner] + add * endW);
     car.crushS[corner] = Math.min(1, car.crushS[corner] + add * (1 - endW));
-    if (add >= PUNCT_HIT && !car.punct[corner] && rnd() < PUNCT_P * punctureK) {
-      car.punct[corner] = true;
-      if (flatsEnabled()) startLeak(car as DamagedCar & PressureCar, corner, true, rnd);
+    if (add >= PUNCT_HIT && !isPunctured(car, corner) && rnd() < PUNCT_P * punctureK) {
+      startLeak(car, corner, true, rnd);
     }
     if (add >= WHEEL_HIT && car.dmg[corner] >= WHEEL_AT && !car.wheelOff[corner]) {
       car.wheelOff[corner] = true;
@@ -236,55 +234,17 @@ const TOE = 0.008, TOE_OFF = 0.02;
  * @param car the car
  */
 function derive(car: DamagedCar) {
-  const dmg = car.dmg, off = car.wheelOff,
-    front = (dmg[0] + dmg[1]) / 2, rear = (dmg[2] + dmg[3]) / 2;
+  const dmg = car.dmg, off = car.wheelOff, air = pressureWreck(car);
+  const front = (dmg[0] + dmg[1]) / 2, rear = (dmg[2] + dmg[3]) / 2;
   const offF = (off[0] ? 1 : 0) + (off[1] ? 1 : 0),
     offR = (off[2] ? 1 : 0) + (off[3] ? 1 : 0);
-  if (flatsEnabled() && (car as DamagedCar & PressureCar).tyreP) {
-    deriveWithPressure(car, front, rear, offF, offR);
-  } else deriveWithPunctures(car, front, rear, offF, offR);
-}
-/**
- * derive with punctures as a flag: a punctured axle x0.7.
- * @param car the car
- * @param front the front corners' mean damage
- * @param rear the rear corners' mean damage
- * @param offF front wheels lost
- * @param offR rear wheels lost
- */
-function deriveWithPunctures(
-  car: DamagedCar, front: number, rear: number, offF: number, offR: number,
-) {
-  const dmg = car.dmg, punct = car.punct, off = car.wheelOff;
   car.wreck = {
-    gripF: (1 - 0.2 * front) * (punct[0] || punct[1] ? 0.7 : 1) * (offF ? 0.45 : 1),
-    gripR: (1 - 0.2 * rear) * (punct[2] || punct[3] ? 0.7 : 1) * (offR ? 0.45 : 1),
-    power: 1 - 0.15 * Math.max(dmg[0], dmg[1]),
-    // a pull toward the harder-hit front (TOE 0.04 turned the car 40 deg in 3 s hands-off: 0.008
-    // = 8 deg, a pull you correct); a missing wheel drags its corner: a hard pull that way
-    toe: TOE * (dmg[1] - dmg[0])
-      + TOE_OFF * ((off[1] || off[3] ? 1 : 0) - (off[0] || off[2] ? 1 : 0)),
-    roll: 1 + 4 * (offF + offR),
-    smoke: Math.max(dmg[0], dmg[1]) > 0.5,
-  };
-}
-/**
- * derive under ?flats=1: the tyres' air (physics/tyrepressure.ts) sets the axle grip, adds its
- * pull and drag; damage and lost wheels as before.
- * @param car the car
- * @param front the front corners' mean damage
- * @param rear the rear corners' mean damage
- * @param offF front wheels lost
- * @param offR rear wheels lost
- */
-function deriveWithPressure(
-  car: DamagedCar, front: number, rear: number, offF: number, offR: number,
-) {
-  const dmg = car.dmg, off = car.wheelOff, air = pressureWreck(car as DamagedCar & PressureCar);
-  car.wreck = {
+    // the tyres' air sets each axle's grip (a flat 0.7, a rim 0.45), bent suspension takes 20 %
     gripF: (1 - 0.2 * front) * air.gripF * (offF ? 0.45 : 1),
     gripR: (1 - 0.2 * rear) * air.gripR * (offR ? 0.45 : 1),
     power: 1 - 0.15 * Math.max(dmg[0], dmg[1]),
+    // a pull toward the harder-hit front (TOE 0.04 turned the car 40 deg in 3 s hands-off: 0.008
+    // = 8 deg, a pull you correct), toward a soft tyre, and a missing wheel drags its corner
     toe: TOE * (dmg[1] - dmg[0]) + air.toe
       + TOE_OFF * ((off[1] || off[3] ? 1 : 0) - (off[0] || off[2] ? 1 : 0)),
     roll: 1 + 4 * (offF + offR) + air.roll,
@@ -293,19 +253,17 @@ function deriveWithPressure(
 }
 
 /**
- * One physics step of the car's systems (?flats=1): the tyres' air, then metal on the ground
+ * One physics step of the car's systems: the stingers, the tyres' air, then metal on the ground
  * (rims, a body sliding on hard ground).
  * @param car the car
  * @param dt the step, s
  */
-export function stepDamage(car: DamageCar & PressureCar & ScrapeCar, dt: number): void {
-  if (!flatsEnabled()) return;
+export function stepDamage(car: DamageCar & ScrapeCar, dt: number): void {
   // a wheel on a stinger bursts (world/stingers.ts)
   for (const tyre of tyresOnStinger(car, levelStingers(LEVEL.id))) {
     burstCorner(car, CORNER_OF_TYRE[tyre], true);
   }
   if (!car.dmg) return;
-  if (!car.tyreP) pressureInit(car);
   if (stepTyrePressure(car, dt)) derive(car as DamagedCar);
   scrapeMetal(car);
 }
@@ -336,15 +294,15 @@ export function hitRoll(car: DamageCar, kind: string, side: number, weight: numb
   car.dmgHits = (car.dmgHits || 0) + 1;
   pushEvent(car, { c: kind === 'side' ? corners[0] : 0, amt: amt * 1.5 });
   // metal meeting hard ground may break it (world/metalscrape.ts)
-  if (flatsEnabled()) gougeImpact(car as DamageCar & ScrapeCar);
+  gougeImpact(car as DamageCar & ScrapeCar);
   derive(hurt);
 }
 // vehicle.ts tyre index (0 F+y, 1 F-y, 2 R+y, 3 R-y) -> damage corner (0 F-y, 1 F+y, 2 R-y, 3 R+y)
 const CORNER_OF_TYRE = [1, 0, 3, 2];
 /**
  * A tyre that burst this step (physics/tyrewear.ts: heat or wear; cones: debris) becomes a puncture
- * on its corner: the axle's grip drops, the HUD shows it, a reset mends it. ?flats=1: it leaks -
- * at once from heat, slowly when the source set car.burstSlow (debris, nails, a bush).
+ * on its corner: it leaks - at once from heat, slowly when the source set car.burstSlow (debris,
+ * nails, a bush) - the HUD shows it, a reset mends it.
  * @param car the car
  * @returns true when a tyre burst this step
  */
@@ -360,18 +318,16 @@ export function applyBurst(car: DamageCar): boolean {
  * HUD shows it, a reset mends it.
  * @param car the car
  * @param corner the damage corner
- * @param fast true for a burst (?flats=1: flat in half a second), false for a slow leak
+ * @param fast true for a burst (flat in half a second), false for a slow leak
  * @returns true when it was not punctured already
  */
 function burstCorner(car: DamageCar, corner: number, fast: boolean): boolean {
   if (!car.dmg) damageInit(car);
   const hurt = car as DamagedCar;
-  if (hurt.punct[corner]) return false;
-  hurt.punct[corner] = true;
+  if (isPunctured(hurt, corner)) return false;
   car.dmgFlash = 1;
-  // ?flats=1: the tyre's own puff of air (physics/tyrepressure.ts), not a paint-chip hit
-  if (flatsEnabled()) startLeak(hurt as DamagedCar & PressureCar, corner, fast);
-  else pushEvent(car, { c: corner, amt: 0.2 });
+  // the tyre's own puff of air (physics/tyrepressure.ts), not a paint-chip hit
+  startLeak(hurt, corner, fast);
   derive(hurt);
   return true;
 }
@@ -401,12 +357,10 @@ export function bushScratch(car: DamageCar, tyre: number, amt: number): void {
 export function tooInjured(car: DamageCar): boolean {
   const dmg = car.dmg;
   if (!dmg) return false;
-  const hurt = car as DamagedCar & PressureCar;
-  // ?flats=1: two flat tyres or one on its rim (a slow leak still drives)
-  const tyresGone = flatsEnabled() && hurt.tyreP
-    ? [0, 1, 2, 3].filter((corner) => isFlat(hurt, corner)).length >= 2
-      || !!hurt.onRim?.some(Boolean)
-    : hurt.punct.filter(Boolean).length >= 2;
+  const hurt = car as DamagedCar;
+  // two flat tyres or one on its rim (a slow leak still drives)
+  const tyresGone = [0, 1, 2, 3].filter((corner) => isFlat(hurt, corner)).length >= 2
+    || hurt.onRim.some(Boolean);
   return (dmg[0] + dmg[1] + dmg[2] + dmg[3]) / 4 > 0.6 || Math.max(...dmg) >= 0.98
     || tyresGone || hurt.wheelOff.some(Boolean);
 }

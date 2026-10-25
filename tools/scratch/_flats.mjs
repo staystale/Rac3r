@@ -1,4 +1,4 @@
-// _flats.mjs - car systems C1-C2 (?flats=1): the real game, your car on autopilot round a
+// _flats.mjs - car systems C1-C2 (tyre pressure): the real game, your car on autopilot round a
 // circuit. MEASURES: a slow and a fast puncture's time to flat, the grip / pull / drag the flat
 // gives (car.wreck), metres driven flat until the rim, and on the rim how many wear cells break
 // a grade per km (world/metalscrape.ts). PHOTOS: a parked car with one wheel at each state, the
@@ -19,7 +19,7 @@ async function open(level, size) {
     isMobile: true, hasTouch: true });
   const page = await context.newPage();
   page.on('pageerror', (error) => console.log('PAGE ERROR ' + error.message));
-  await gotoGame(page, `${server.url}/?touch=1&guide=0&menu=0&rules=0&noaudio=1&flats=1&autopilot=1`);
+  await gotoGame(page, `${server.url}/?touch=1&guide=0&menu=0&rules=0&noaudio=1&autopilot=1`);
   await page.touchscreen.tap(size.width / 2, size.height / 2);
   await page.waitForTimeout(300);
   await page.evaluate((id) => window.__game.launch(id, 'hatch-rwd',
@@ -103,7 +103,7 @@ try {
           if (!car.tyreP) continue;
           log.push((car.tyreP.map((pressure) => Math.round(pressure * 100)).join('/')));
         }
-        return { punct: car.punct, air: car.tyreP, log: [...new Set(log)].slice(0, 8) };
+        return { punct: (car.tyreLeak || []).map((leak) => leak > 0), air: car.tyreP, log: [...new Set(log)].slice(0, 8) };
       });
       console.log('STINGER ' + id + ': punct ' + JSON.stringify(res.punct) + ' air '
         + JSON.stringify(res.air) + ' seen ' + JSON.stringify(res.log));

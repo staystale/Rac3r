@@ -257,8 +257,8 @@ function pressureRing(car, corner) {
  * @returns {void}
  */
 export function drawHudWheelFault(ctx, car, corner, bodyX, bodyY, bodyW, bodyH) {
-  // ?flats=1: the ring follows the tyre's air (physics/tyrepressure.ts)
-  const ring = car.tyreP ? pressureRing(car, corner) : car.punct && car.punct[corner] && '#ffffff';
+  // the ring follows the tyre's air (physics/tyrepressure.ts)
+  const ring = car.tyreP && pressureRing(car, corner);
   if (ring) {
     const wheelX = corner % 2 ? bodyX + bodyW - 3 : bodyX - 4, wheelY = bodyY
       + (corner >= 2 ? bodyH - 14 : 4);

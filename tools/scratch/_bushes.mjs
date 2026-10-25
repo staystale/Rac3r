@@ -134,7 +134,7 @@ async function physics() {
       const car = window.__game.car;
       const cell = wear.wearMap.get(wear.wearKey(Math.floor(spot.x / 1.5),
         Math.floor(spot.y / 1.5)));
-      return { punct: car.punct.filter(Boolean).length,
+      return { punct: (car.tyreLeak || []).map((leak) => leak > 0).filter(Boolean).length,
         dmg: car.dmg.reduce((sum, value) => sum + value, 0), base: cell ? cell.base : null };
     }, spots[i]);
     if (after.punct) punctures++;

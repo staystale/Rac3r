@@ -27,25 +27,6 @@ export const TEST_LIST = [
   // 2026-10-25 (owner: "slightly bright": beam 0.35 -> 0.25, glow 0.7); eventlights passed
   // 2026-10-25 (fairy lights moved off the road, board halo faint); carlamps, woodmarshal,
   // brakeglow, trees passed 2026-10-25 (brake heat now resets with the tyres); bushes passed
-  // 2026-10-25 (round 2: more drag, a light dent, leaves over the cars))
-  {
-    id: 'flats',
-    added: '2026-10-25',
-    name: 'Flat tyres: leaks by cause, squashing by pressure, the rim, metal breaking tarmac',
-    where: 'Plain link + &flats=1: any circuit or stage; the Lab and Test Track have a stinger'
-      + ' (tyre spikes) 50 m past the start',
-    try: 'Drive over the stinger, burst a tyre in a big hit, pick up a slow puncture from a'
-      + ' pallet or a bush, keep driving on the flat about 1 km to the rim; roll a car on tarmac.',
-    wrong: 'A slow puncture flat in a second, no pull to the flat side, a tyre that does not'
-      + ' squash, no sparks or line on the rim, tarmac breaking in long stripes.',
-  },
-  {
-    id: 'hedges',
-    added: '2026-10-25',
-    name: 'Highway hedges: bushes round the farm fields',
-    where: 'Plain link + &hedges=1: the highway (farm stretches)',
-    try: 'Look at the fields beside the road; spin off into a field edge; drive along a hedge.',
-    wrong: 'Bushes on the road or the hard shoulder, a bare field edge, bushes left floating where'
-      + ' a bridge or slip road cut a field, stutters every few hundred metres.',
-  },
+  // 2026-10-25 (round 2: more drag, a light dent, leaves over the cars); flats (with the
+  // stingers, the rim by chance) and hedges (one continuous line) passed 2026-10-25)
 ];

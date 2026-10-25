@@ -66,7 +66,6 @@ interface WearCar {
   tyreWear?: number[];
   tyreT: number[];
   surface: WearSurface;
-  punct?: boolean[];
 }
 
 /**

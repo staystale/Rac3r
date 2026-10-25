@@ -58,7 +58,7 @@ async function watch([levelId, secs]) {
   while (performance.now() - start < secs * 1000) {
     await new Promise((done) => setTimeout(done, 100));
     cars().forEach((car, i) => {
-      const speed = Math.hypot(car.vx, car.vy), count = (car.punct || []).filter(Boolean).length;
+      const speed = Math.hypot(car.vx, car.vy), count = (car.tyreLeak || []).map((leak) => leak > 0).filter(Boolean).length;
       const before = was.get(car) || { count, speed };
       if (count > before.count) {
         events.push({ t: (performance.now() - start) / 1000, car: i ? 'AI' + i : 'YOU',
