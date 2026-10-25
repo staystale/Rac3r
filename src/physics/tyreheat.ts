@@ -1,5 +1,6 @@
 // Tyre heat: friction work per axle and the tyre temperature update of step.
 
+import { CORNER_OF_WHEEL } from '../world/wheels.ts';
 import type { Spec } from '../cars.ts';
 import { clamp, TYRE_HEAT, TYRE_FLEX, TYRE_T_MAX } from '../vehicle.ts';
 import { WEATHER } from '../world/weather.ts';
@@ -145,6 +146,8 @@ export function updateTyreTemps(car: Car, carSpec: Spec, tick: AxleTick, out: Ax
     // bursting arrives with the damage system.
     if (!Number.isFinite(tyreTemps[i])) tyreTemps[i] = WEATHER.trackC;
     else if (tyreTemps[i] > TYRE_T_MAX) tyreTemps[i] = TYRE_T_MAX;
+    // a lost wheel has no tyre (owner): it reads 0 until a repair puts one back
+    if (car.wheelOff && car.wheelOff[CORNER_OF_WHEEL[i]]) tyreTemps[i] = 0;
   }
   // TYRE WEAR: the same work wears the rubber; a hot or worn tyre may burst
   const burst = wearTyres(car, carSpec.tyre, window, carSpec.mass, wheelWork, dt, wheelSlip);

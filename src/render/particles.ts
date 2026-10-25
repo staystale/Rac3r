@@ -1,6 +1,6 @@
 // The PARTICLES layer of the renderer: thrown material - puffs, spray, smoke, paint chips and
 // sparks. createParticles owns the pools and returns the add / draw entry points.
-import { SPRITE_PPM } from "./shared.ts";
+import { SPRITE_PPM, fxRandom } from "./shared.ts";
 import type { Spray } from "../world/types.ts";
 import type { Cam, Chip, ParticleCar, Puff, PuffHit, RenderMarks, View } from "./types.ts";
 
@@ -77,12 +77,12 @@ function emitPuff(
 ) {
   const puffs = ctx.state.puffs;
   if (puffs.length >= MAX_PUFFS) puffs.shift();          // cap; drop the oldest (§4)
-  const angle = Math.random() * 6.2832;
-  const fling = spray.lift * scale * (0.35 + Math.random() * 0.65);
+  const angle = fxRandom() * 6.2832;
+  const fling = spray.lift * scale * (0.35 + fxRandom() * 0.65);
   puffs.push({
     x, y, age: 0,
-    life: spray.life * (0.7 + Math.random() * 0.6),
-    r0: spray.size * (0.7 + Math.random() * 0.7),
+    life: spray.life * (0.7 + fxRandom() * 0.6),
+    r0: spray.size * (0.7 + fxRandom() * 0.7),
     grow: spray.grow, rgb: spray.rgb,
     // thrown BACKWARDS off the contact patch plus a scatter, so it trails the car instead of
     // sitting under it - material is flung opposite to the way the wheel is travelling
@@ -99,9 +99,9 @@ function emitPuff(
 function addPuffsTo(ctx: ParticleCtx, hits: PuffHit[]) {
   for (const hit of hits) {
     if (hit.kind === 'fluff') { for (let i = 0; i < 5; i++) emitPuff(ctx, hit.x, hit.y,
-      (Math.random() - 0.5) * 4, (Math.random() - 0.5) * 4, FLUFF_PUFF, 1); continue; }
+      (fxRandom() - 0.5) * 4, (fxRandom() - 0.5) * 4, FLUFF_PUFF, 1); continue; }
     if (hit.kind === 'bale') { for (let i = 0; i < 4; i++) emitPuff(ctx, hit.x, hit.y,
-      (Math.random() - 0.5) * 3, (Math.random() - 0.5) * 3, BALE_DUST, 1); continue; }
+      (fxRandom() - 0.5) * 3, (fxRandom() - 0.5) * 3, BALE_DUST, 1); continue; }
     const count = Math.min(3, 1 + Math.floor(hit.speed / 6));
     for (let i = 0; i < count; i++) emitPuff(ctx, hit.x, hit.y, 0, 0, CONE_DUST, 1);
   }
@@ -117,23 +117,25 @@ function addPuffsTo(ctx: ParticleCtx, hits: PuffHit[]) {
  */
 function emitSpray(ctx: ParticleCtx, car: ParticleCar, marks: RenderMarks, wallDt: number) {
   const state = ctx.state;
-  const spray = car.surface.spray;
-  if (!spray) { state.sprayDebt = 0; return; }
+  // each wheel throws what is under IT (marks.js wheelsOf: world/wear.ts stepWear's sample)
+  const wheels = marks.wheelsOf(car);
+  let rate = 0;
+  for (const wheel of wheels) rate += wheel.spray ? wheel.spray.rate / 4 : 0;
+  if (!rate) { state.sprayDebt = 0; return; }
   const speed = Math.hypot(car.vx, car.vy);
   if (speed < 1.5) { state.sprayDebt = 0; return; }
   const slip = Math.max(car.t.slipSpeedF, car.t.slipSpeedR);
   const work = Math.min(1, speed / 26) * 0.55 + Math.min(1, slip / 9) * 0.75;
   // airborne wheels throw nothing - there is nothing under them to throw
   const grounded = Math.max(0, Math.min(1, (car.t.loadKF + car.t.loadKR) / 2));
-  state.sprayDebt += spray.rate * work * grounded * wallDt;
+  state.sprayDebt += rate * work * grounded * wallDt;
   let count = Math.floor(state.sprayDebt);
   state.sprayDebt -= count;
   // never let a frame spike flood the pool
   if (count > 12) count = 12;
-  const wheels = marks.wheelsOf(car);
   for (let i = 0; i < count; i++) {
-    const wheel = wheels[(Math.random() * 4) | 0];
-    emitPuff(ctx, wheel.x, wheel.y, car.vx, car.vy, spray, 0.4 + work);
+    const wheel = wheels[(fxRandom() * 4) | 0];
+    if (wheel.spray) emitPuff(ctx, wheel.x, wheel.y, car.vx, car.vy, wheel.spray, 0.4 + work);
   }
 }
 
@@ -190,15 +192,15 @@ function flingChips(ctx: ParticleCtx, car: ParticleCar, hit: DmgEvent) {
   const worldX = car.x + cosHeading * cornerX - sinHeading * cornerY,
     worldY = car.y + sinHeading * cornerX + cosHeading * cornerY;
   for (let i = 0; i < count; i++) {
-    const angle = Math.random() * 6.2832, speed = 1.5 + Math.random() * (hit.scrape ? 3
-      : 4 + 14 * hit.amt), roll = Math.random();
+    const angle = fxRandom() * 6.2832, speed = 1.5 + fxRandom() * (hit.scrape ? 3
+      : 4 + 14 * hit.amt), roll = fxRandom();
     if (chips.length >= MAX_CHIPS) chips.shift();
     chips.push({ x: worldX, y: worldY, vx: car.vx * 0.5 + Math.cos(angle) * speed,
-      vy: car.vy * 0.5 + Math.sin(angle) * speed, age: 0, life: 6 + Math.random() * 6,
+      vy: car.vy * 0.5 + Math.sin(angle) * speed, age: 0, life: 6 + fxRandom() * 6,
       // art px: visible at phone zoom
       col: roll < 0.75 ? (spec.paint
         || '#d0552f') : roll < 0.88 ? '#9a9aa2' : '#22242a',
-          sz: 2 + (Math.random() < 0.35 ? 1 : 0) });
+          sz: 2 + (fxRandom() < 0.35 ? 1 : 0) });
   }
 }
 
@@ -250,62 +252,67 @@ function emitTyreMoments(ctx: ParticleCtx, car: ParticleCar) {
       continue;
     }
     for (let i = 0; i < 16; i++) {
-      const angle = Math.random() * 6.2832, speed = 2 + Math.random() * 6;
+      const angle = fxRandom() * 6.2832, speed = 2 + fxRandom() * 6;
       if (ctx.state.chips.length >= MAX_CHIPS) ctx.state.chips.shift();
       ctx.state.chips.push({ x: wheelX, y: wheelY, vx: car.vx * 0.4 + Math.cos(angle) * speed,
-        vy: car.vy * 0.4 + Math.sin(angle) * speed, age: 0, life: 5 + Math.random() * 5,
+        vy: car.vy * 0.4 + Math.sin(angle) * speed, age: 0, life: 5 + fxRandom() * 5,
         col: SHRED_COL, sz: 2 });
     }
   }
   moments.length = 0;
 }
 
+// SPARKS: metal on hard ground (world/metalscrape.ts). MEASURED (owner: "I don't see sparks"):
+// 0.1 m squares thrown back at -0.3x the car's speed were one screen pixel at race zoom and
+// smeared 10 m behind the car in a frame. Now dense, carried on at about half the car's
+// speed so they trail close behind the metal, gone within half a second; ~0.4 m so a spark is
+// a few screen pixels even zoomed out at speed.
+const SPARK_SIZE = 7, SPARK_LIFE_S = 0.2, SPARK_LIFE_SPREAD_S = 0.3;
+// sparks a second from a wheel on its rim, and from a body sliding on its side or roof
+const RIM_SPARK_RATE = 140, BODY_SPARK_RATE = 200;
+
 /**
- * SPARKS (roll.js car.sparks: on its side / roof on hard ground): short bright pixels thrown
- * back from the body, wall clock.
+ * Throws one spark from a point of a car, carried on with it.
+ * @param ctx particle context
+ * @param car the car
+ * @param x world x, m
+ * @param y world y, m
+ */
+function throwSpark(ctx: ParticleCtx, car: ParticleCar, x: number, y: number) {
+  const chips = ctx.state.chips;
+  const angle = fxRandom() * 6.2832, speed = 1 + fxRandom() * 4;
+  const carry = 0.35 + fxRandom() * 0.3;
+  if (chips.length >= MAX_CHIPS) chips.shift();
+  chips.push({ x, y, vx: car.vx * carry + Math.cos(angle) * speed,
+    vy: car.vy * carry + Math.sin(angle) * speed, age: 0,
+    life: SPARK_LIFE_S + fxRandom() * SPARK_LIFE_SPREAD_S,
+    col: fxRandom() < 0.6 ? '#ffd85a' : '#ffffff',
+    sz: SPARK_SIZE * (0.6 + fxRandom() * 0.4) });
+}
+
+/**
+ * SPARKS from metal on hard ground: each wheel on its rim (car.rimSparks) and a body sliding on
+ * its side or roof (roll.js car.sparks), wall clock.
  * @param ctx particle context
  * @param car the car
  * @param wallDt wall-clock frame time
  */
 function emitSparks(ctx: ParticleCtx, car: ParticleCar, wallDt: number) {
-  emitRimSparks(ctx, car, wallDt);
-  const chips = ctx.state.chips;
-  if (!car.sparks) return;
-  car._spDebt = (car._spDebt || 0) + 60 * wallDt;
-  while (car._spDebt >= 1) { car._spDebt--;
-    const angle = Math.random() * 6.2832, speed = 2 + Math.random() * 6,
-      offsetX = (Math.random() - 0.5) * car.spec.len,
-        offsetY = (Math.random() - 0.5) * car.spec.wid, cosHeading = Math.cos(car.heading),
-          sinHeading = Math.sin(car.heading);
-    if (chips.length >= MAX_CHIPS) chips.shift();
-    chips.push({ x: car.x + cosHeading * offsetX - sinHeading * offsetY,
-      y: car.y + sinHeading * offsetX + cosHeading * offsetY,
-        vx: -car.vx * 0.3 + Math.cos(angle) * speed, vy: -car.vy * 0.3 + Math.sin(angle) * speed,
-          age: 0, life: 0.25 + Math.random() * 0.3,
-            col: Math.random() < 0.6 ? '#ffd85a' : '#ffffff', sz: 2 });
-  }
-}
-
-/**
- * SPARKS from each wheel running on its rim over hard ground (world/metalscrape.ts
- * car.rimSparks), thrown back from the wheel.
- * @param ctx particle context
- * @param car the car
- * @param wallDt wall-clock frame time
- */
-function emitRimSparks(ctx: ParticleCtx, car: ParticleCar, wallDt: number) {
-  const rims = car.rimSparks; if (!rims) return;
-  for (let corner = 0; corner < 4; corner++) {
+  const rims = car.rimSparks;
+  if (rims) for (let corner = 0; corner < 4; corner++) {
     if (!rims[corner]) continue;
     const [wheelX, wheelY] = wheelPlace(car, corner);
-    car._rimDebt = (car._rimDebt || 0) + 30 * wallDt;
-    while (car._rimDebt >= 1) { car._rimDebt--;
-      const angle = Math.random() * 6.2832, speed = 1 + Math.random() * 4;
-      if (ctx.state.chips.length >= MAX_CHIPS) ctx.state.chips.shift();
-      ctx.state.chips.push({ x: wheelX, y: wheelY, vx: -car.vx * 0.3 + Math.cos(angle) * speed,
-        vy: -car.vy * 0.3 + Math.sin(angle) * speed, age: 0, life: 0.2 + Math.random() * 0.25,
-        col: Math.random() < 0.6 ? '#ffd85a' : '#ffffff', sz: 1.5 });
-    }
+    car._rimDebt = (car._rimDebt || 0) + RIM_SPARK_RATE * wallDt;
+    while (car._rimDebt >= 1) { car._rimDebt--; throwSpark(ctx, car, wheelX, wheelY); }
+  }
+  if (!car.sparks) return;
+  const cosHeading = Math.cos(car.heading), sinHeading = Math.sin(car.heading);
+  car._spDebt = (car._spDebt || 0) + BODY_SPARK_RATE * wallDt;
+  while (car._spDebt >= 1) { car._spDebt--;
+    const offsetX = (fxRandom() - 0.5) * car.spec.len;
+    const offsetY = (fxRandom() - 0.5) * car.spec.wid;
+    throwSpark(ctx, car, car.x + cosHeading * offsetX - sinHeading * offsetY,
+      car.y + sinHeading * offsetX + cosHeading * offsetY);
   }
 }
 
@@ -324,7 +331,10 @@ function renderChips(ctx: ParticleCtx, wallDt: number) {
     // skid to a stop
     chip.x += chip.vx * wallDt; chip.y += chip.vy * wallDt;
     const damp = Math.max(0, 1 - 4 * wallDt); chip.vx *= damp; chip.vy *= damp;
-    view.ctx.globalAlpha = Math.min(1, chip.life - chip.age); view.ctx.fillStyle = chip.col;
+    // fade over the last second, or over the whole life of a short one (a spark lives under
+    // 0.4 s: by seconds left it was never more than 40 % opaque, so never seen)
+    view.ctx.globalAlpha = Math.min(1, (chip.life - chip.age) / Math.min(1, chip.life));
+    view.ctx.fillStyle = chip.col;
     const z = Math.max(1, Math.round(chip.sz * scale));
     view.ctx.fillRect(Math.round(toScreenX(chip.x) - z / 2),
       Math.round(toScreenY(chip.y) - z / 2), z, z);

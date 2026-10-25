@@ -138,6 +138,7 @@ interface GlowPainter {
   redGlow: HTMLCanvasElement;   // brake, tail and rain lights (red, or white)
   reverseGlow: HTMLCanvasElement;   // reversing lights (cool white, or white)
   brakeGlow: HTMLCanvasElement;   // hot brake discs (deep orange, or white)
+  sparkGlow: HTMLCanvasElement;   // sparks, metal on hard ground (warm yellow, or white)
   headGlow: HTMLCanvasElement;  // a street light's head (warm, or white)
   strength: number;             // this frame's glow strength (by the dark)
   mapX: (worldX: number) => number;
@@ -219,6 +220,30 @@ function drawCarGlows(painter: GlowPainter, car: RenderCar, isBlinkOn: boolean) 
   for (const wheel of hotBrakes(car)) {
     glowAt(painter, car, wheel.along, wheel.across, painter.brakeGlow, wheel.level, BRAKE_GLOW_M);
   }
+  drawSparkGlows(painter, car);
+}
+
+// SPARKS LIGHT THE GROUND at night (owner): a warm glow flickering at each wheel on its rim over
+// hard ground and under a body sliding on it (world/metalscrape.ts car.rimSparks, roll.js
+// car.sparks) - one glow a sparking point, not one a spark. The flicker runs on the wall clock,
+// the same in the rub-out and the tint pass.
+const SPARK_GLOW = '255,190,90', SPARK_GLOW_M = 1.6, BODY_SPARK_GLOW_M = 2.4;
+
+/**
+ * A car's sparks glow over the dark.
+ * @param painter the light map and the mapping
+ * @param car the car
+ */
+function drawSparkGlows(painter: GlowPainter, car: RenderCar) {
+  const rims = car.rimSparks, now = performance.now();
+  const flicker = (seed: number) => 0.65 + 0.35 * Math.abs(Math.sin(now * 0.047 + seed * 1.7));
+  if (rims) for (let corner = 0; corner < 4; corner++) {
+    if (!rims[corner]) continue;
+    const along = corner < 2 ? car.spec.lf : -car.spec.lr;
+    const across = (corner % 2 ? 1 : -1) * (car.spec.trackWidth || car.spec.wid) / 2;
+    glowAt(painter, car, along, across, painter.sparkGlow, flicker(corner), SPARK_GLOW_M);
+  }
+  if (car.sparks) glowAt(painter, car, 0, 0, painter.sparkGlow, flicker(5), BODY_SPARK_GLOW_M);
 }
 
 /**
@@ -346,9 +371,10 @@ function makeMapGlows(pools: PoolPainter) {
     headGlow: makePicture(glowOf(WARM, TINT_STOPS)),
     reverseGlow: makePicture(glowOf(REVERSE_GLOW, TINT_STOPS)),
     brakeGlow: makePicture(glowOf(BRAKE_GLOW, TINT_STOPS)),
+    sparkGlow: makePicture(glowOf(SPARK_GLOW, TINT_STOPS)),
     mapX: pools.artX, mapY: pools.artY, perMetre: pools.artPerMetre };
   const out: GlowPainter = { ...tint, glow: whiteGlow, redGlow: whiteGlow, headGlow: whiteGlow,
-    reverseGlow: whiteGlow, brakeGlow: whiteGlow };
+    reverseGlow: whiteGlow, brakeGlow: whiteGlow, sparkGlow: whiteGlow };
   const paint = (game: RenderGame, tintFirst: () => void) => {
     paintGlows(out, game);
     pools.lightCtx.globalCompositeOperation = 'source-over';

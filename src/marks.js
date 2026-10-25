@@ -11,8 +11,11 @@
 
 import { FENCE, FX0, FX1, FY0, FY1, RUNOFF_W } from "./world/bounds.ts";
 import { COL } from "./world/colours.ts";
+import { fxRandom } from "./render/shared.ts";
 import { LEVEL } from "./world/state.ts";
 import { MARK_WET } from "./world/surfaces.ts";
+// this file's wheel order is the damage corners' (front -y, front +y, rear -y, rear +y)
+import { CORNER_OF_WHEEL } from "./world/wheels.ts";
 import { MARK_GOUGE } from "./world/metalscrape.ts";
 import { addTrailPoint, clearWetTrails } from "./wettrail.ts";
 
@@ -306,9 +309,9 @@ function dropRubberBall(markCtx, wheel, from, dest) {
   const { ctx } = markCtx;
   const [fromX, fromY] = from, [toX, toY] = dest;
   if (!wheel.mark && wheel.heat > 65 && wheel.heat < 120 && wheel.slip > 1.2
-    && Math.random() < 0.08) {
-    const side = (Math.random() < 0.5 ? -1 : 1)
-      * (wheel.width * 1.2 + Math.random() * 0.6) * MARK_PPM;
+    && fxRandom() < 0.08) {
+    const side = (fxRandom() < 0.5 ? -1 : 1)
+      * (wheel.width * 1.2 + fxRandom() * 0.6) * MARK_PPM;
     const dx = toY - fromY, dy = fromX - toX, len = Math.hypot(dx, dy) || 1;
     ctx.fillStyle = 'rgba(28,26,30,0.30)';
     ctx.beginPath();
@@ -405,14 +408,27 @@ function stampMarks(markCtx, wheels) {
  * @param {object} car the car
  * @returns {object[]} the four wheels { key, x, y, slip, width, mark, heat }
  */
+/**
+ * The ground under one wheel: stepWear's sample, else the car's own.
+ * @param {object} car the car
+ * @param {object[]|null|undefined} under car.wheelSurf
+ * @param {number} corner this file's wheel index
+ * @returns {object} the surface
+ */
+function surfaceOfWheel(car, under, corner) {
+  return (under && under[CORNER_OF_WHEEL[corner]]) || car.surface;
+}
+
 function listWheels(car) {
   if (car._markId === undefined) car._markId = nextMarkId++;
   const spec = car.spec, telem = car.t;
   const cosH = Math.cos(car.heading), sinH = Math.sin(car.heading);
   const halfTrack = spec.trackWidth / 2;
   const out = [];
-  // a wheel on its rim over hard ground scores a pale line (world/metalscrape.ts)
-  const rims = car.rimSparks;
+  // a wheel on its rim over hard ground scores a pale line (world/metalscrape.ts); every other
+  // mark and spray comes off the ground under that wheel (world/wear.ts stepWear), the car's
+  // one sample until it has moved
+  const rims = car.rimSparks, under = car.wheelSurf;
   for (const [key, along, side, slip, corner] of [
     ['fl', spec.lf, -halfTrack, telem.slipSpeedF, 0],
     ['fr', spec.lf, halfTrack, telem.slipSpeedF, 1],
@@ -426,7 +442,8 @@ function listWheels(car) {
       slip,
       width: spec.tyreWidth,
       // set only by loose surfaces (undefined = ordinary skid marks), or a rim's score
-      mark: rims && rims[corner] ? MARK_GOUGE : car.surface.mark,
+      mark: rims && rims[corner] ? MARK_GOUGE : surfaceOfWheel(car, under, corner).mark,
+      spray: surfaceOfWheel(car, under, corner).spray,
       heat: car.tyreT ? car.tyreT[(along > 0 ? 0 : 2) + (side > 0 ? 0 : 1)] : 60,
     });
   }

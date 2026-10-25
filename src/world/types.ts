@@ -18,6 +18,9 @@ export interface Spray {
   grow: number;
 }
 
+/** What the marks and the spray read of the ground under one wheel (either Surface type). */
+export interface WheelGround { mark?: Mark | null; spray?: Spray | null }
+
 export interface Surface {
   id: string;
   label?: string;
@@ -205,6 +208,8 @@ export interface CarBody {
   surface: Pick<Surface, 'id' | 'mu'>;   // the fields both Surface types (here and cars.ts) have
   tyreT?: number[];
   prevWheels: Wheel[] | null;   // null after a reset; stepWear sets it
+  // the ground under each wheel (carWheels order), stepWear: what marks / spray read of it
+  wheelSurf?: WheelGround[] | null;
   zF: number;
   zR: number;
   zvF: number;

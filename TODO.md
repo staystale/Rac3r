@@ -246,6 +246,15 @@ C. CAR SYSTEMS + DAMAGE (L; one chain - extend damage.ts, no second damage model
   "can that whole line around the field be a bush"), streamed with the field.
   RIM BY CHANCE (owner: "so all tyres don't degrade at the exact same moment"): a Weibull
   wear-out over the metres run flat - 10 % by ~550 m, half by ~1 km, 90 % by ~1.5 km.
+  FIXES 10-25 (owner): wet trails left on dry tarmac - CAUSE: every wheel's mark and spray came
+  off car.surface, one sample between the rear wheels (leaving a puddle the fronts laid trail on
+  dry tarmac; a puddle under one side gave all four); now each wheel's own ground (wear.ts
+  stepWear car.wheelSurf). A lost wheel's tyre reads 0 C (tyreheat.ts), its axle's heat grip
+  from the other tyre (tyres.ts axleHeatGrip). SPARKS (owner: "I don't see sparks"; light at
+  night; hard ground only): 0.4 m, dense, carried at ~half the car's speed, faded over their own
+  life (they were never above 40 % opaque); a warm flickering glow per sparking wheel / body in
+  the night light map (render/light.ts drawSparkGlows); hard surfaces only (tarmac, race tarmac,
+  broken, concrete, kerb, lab floor, wet tarmac). Drawing has its own random stream (fxRandom).
   ROUND 2 ?engine=1 - C3 radiator + engine temperature (seizes ~10 s at 130 C), C4 speedo lights
   (every car), C5 exhaust smoke; the grey nose smoke replaced by steam / engine smoke.
 

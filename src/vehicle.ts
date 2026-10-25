@@ -13,6 +13,7 @@
 
 import { defaultMods, spec, SURFACE_LAB, GRAVITY } from './cars.ts';
 import type { Spec, Mods, Surface } from './cars.ts';
+import type { WheelGround } from './world/types.ts';
 import { computeAxleLoads, computeLongitudinalDemand } from './physics/loads.ts';
 import { steerFrontWheels, runPowertrain } from './physics/powertrain.ts';
 import { updateTyreTemps } from './physics/tyreheat.ts';
@@ -85,6 +86,8 @@ export interface Car {
   // this step (-1 none; damage.ts applyBurst)
   tyreWear?: number[]; burstTyre?: number; tyreWearOwned?: boolean; tyreWearStart?: number[];
   _p: CarPrev | null; prevWheels: CarWheelPos[] | null;
+  // the ground under each wheel (world/wear.ts stepWear; null after a reset)
+  wheelSurf?: WheelGround[] | null;
   roll: CarRoll | null; sparks: boolean; streamers: CarStreamer[] | null;
   // set by world/wear.ts (the slope and bank forces under the car)
   slopeLong?: number; slopeLat?: number; slopeYaw?: number;
@@ -93,6 +96,7 @@ export interface Car {
   dragMul?: number; hbAfter?: number;
   // set by damage.ts
   wreck?: CarWreck;
+  wheelOff?: boolean[];
   // set by tools / the debug panel only
   yawDampOverride?: number;
 }
@@ -338,7 +342,7 @@ export function reset(car: Car, x = 0, y = 0, heading = -Math.PI / 2) {
   // still a bug; tools/_dirtroad.mjs): lab.js stepWear sweeps each tyre from car.prevWheels to
   // where it is now, so after a teleport (an AI / traffic respawn, the highway put-back) it wore a
   // straight line from the old spot to the new one - across the verge AND the carriageway.
-  car.prevWheels = null;
+  car.prevWheels = null; car.wheelSurf = null;
   // ROLLOVER (roll.js): a reset puts the car back on its wheels
   car.roll = null; car.sparks = false;
   // tape stuck to the car goes with it (requirement: resetting should remove any tape)

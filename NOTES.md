@@ -263,6 +263,11 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
 
 - The tiles' palette is built from SURFACE_ART (render/tilesPalette.ts): a new look's colours
   move other pixels' nearest-colour snap. While under test, add them only with the switch on.
+- DRAWING NEVER USES Math.random (10-25): the tools seed ONE Math.random for the page, so a look
+  that drew from it (marbles in marks.js, sparks, puffs) shifted every later dice roll of the
+  physics and simhash read a look change as a race change. Looks use render/shared.ts fxRandom.
+- Short-lived chips fade over their own life (render/particles.ts): by seconds left a spark
+  (< 0.4 s) was never more than 40 % opaque - sparks existed but could not be seen.
 - tools/framecheck.mjs does NOT drive the highway (its autodriver leaves the car parked there):
   A/B the highway with tools/scratch/_hwframes.mjs (the autopilot, CPU x4) instead.
 - Odds rolled per wear cell scale with area (square bushes: the same per-cell puncture chance

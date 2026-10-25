@@ -6,6 +6,7 @@
 // smashed: dark. A repair (RESET / RESTART: less damage than it had) brings it back. The flicker
 // is the same for every reader in one FLICKER_SLOT_MS (the picture, the glow and the beam agree
 // within a frame). Wall clock: it is only a look.
+import { fxRandom } from "./shared.ts";
 import type { RenderCar } from './types.ts';
 
 // damage share at which a lamp starts to suffer, and at which it is smashed
@@ -49,7 +50,7 @@ export function settledLampLevel(car: RenderCar, corner: number, damage: number)
   let lamps = states.get(car);
   if (!lamps) {
     lamps = [0, 1, 2, 3].map(() => ({ seen: 0, until: 0, dead: false,
-      seed: Math.floor(Math.random() * 1e6) }));
+      seed: Math.floor(fxRandom() * 1e6) }));
     states.set(car, lamps);
   }
   const lamp = lamps[corner], now = performance.now();
@@ -59,7 +60,7 @@ export function settledLampLevel(car: RenderCar, corner: number, damage: number)
   if (damage > lamp.seen + HIT_DAMAGE) {
     lamp.seen = damage;
     if (damage > LAMP_OK && !lamp.dead) {
-      lamp.until = now + SETTLE_MIN_MS + Math.random() * (SETTLE_MAX_MS - SETTLE_MIN_MS);
+      lamp.until = now + SETTLE_MIN_MS + fxRandom() * (SETTLE_MAX_MS - SETTLE_MIN_MS);
     }
   }
   if (lamp.dead) return 0;
@@ -67,6 +68,6 @@ export function settledLampLevel(car: RenderCar, corner: number, damage: number)
   if (now < lamp.until) return flickersOff(lamp.seed, now) ? 0 : 1;
   lamp.until = 0;
   const share = Math.min(1, Math.max(0, (damage - LAMP_OK) / (LAMP_GONE - LAMP_OK)));
-  lamp.dead = Math.random() < DIE_BASE + DIE_PER_SHARE * share;
+  lamp.dead = fxRandom() < DIE_BASE + DIE_PER_SHARE * share;
   return lamp.dead ? 0 : 1;
 }

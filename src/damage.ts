@@ -7,6 +7,7 @@ import {
 import { scrapeMetal, gougeImpact, type ScrapeCar } from './world/metalscrape.ts';
 import { levelStingers, tyresOnStinger } from './world/stingers.ts';
 import { LEVEL } from './world/state.ts';
+import { CORNER_OF_WHEEL } from './world/wheels.ts';
 // damage.ts — CAR DAMAGE. Bookkeeping on the sim step; vehicle.ts reads only
 // car.wreck (multipliers, no-op by default — CLAUDE.md §2 rule 6), render.ts draws the crush /
 // dents / chips / loose wheels, hud.js the tyre diagram, the results the repair bill.
@@ -261,7 +262,7 @@ function derive(car: DamagedCar) {
 export function stepDamage(car: DamageCar & ScrapeCar, dt: number): void {
   // a wheel on a stinger bursts (world/stingers.ts)
   for (const tyre of tyresOnStinger(car, levelStingers(LEVEL.id))) {
-    burstCorner(car, CORNER_OF_TYRE[tyre], true);
+    burstCorner(car, CORNER_OF_WHEEL[tyre], true);
   }
   if (!car.dmg) return;
   if (stepTyrePressure(car, dt)) derive(car as DamagedCar);
@@ -297,8 +298,6 @@ export function hitRoll(car: DamageCar, kind: string, side: number, weight: numb
   gougeImpact(car as DamageCar & ScrapeCar);
   derive(hurt);
 }
-// vehicle.ts tyre index (0 F+y, 1 F-y, 2 R+y, 3 R-y) -> damage corner (0 F-y, 1 F+y, 2 R-y, 3 R+y)
-const CORNER_OF_TYRE = [1, 0, 3, 2];
 /**
  * A tyre that burst this step (physics/tyrewear.ts: heat or wear; cones: debris) becomes a puncture
  * on its corner: it leaks - at once from heat, slowly when the source set car.burstSlow (debris,
@@ -311,7 +310,7 @@ export function applyBurst(car: DamageCar): boolean {
   if (tyre === undefined || tyre < 0) return false;
   car.burstTyre = -1;
   car.burstSlow = false;
-  return burstCorner(car, CORNER_OF_TYRE[tyre], !slow);
+  return burstCorner(car, CORNER_OF_WHEEL[tyre], !slow);
 }
 /**
  * A tyre punctures on its corner (a burst, a stinger, a slow leak): the axle's grip drops, the
@@ -341,7 +340,7 @@ function burstCorner(car: DamageCar, corner: number, fast: boolean): boolean {
 export function bushScratch(car: DamageCar, tyre: number, amt: number): void {
   if (!car.dmg) damageInit(car);
   const hurt = car as DamagedCar;
-  const corner = CORNER_OF_TYRE[tyre];
+  const corner = CORNER_OF_WHEEL[tyre];
   hurt.dmg[corner] = Math.min(1, hurt.dmg[corner] + amt);
   // a light dent on that corner's side (branches push the panel in), so it shows
   hurt.crushS[corner] = Math.min(1, hurt.crushS[corner] + amt * 0.6);

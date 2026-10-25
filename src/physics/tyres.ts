@@ -1,5 +1,6 @@
 // Tyre forces: the axle force blocks, brake lock state and ploughing of step.
 
+import { CORNER_OF_WHEEL } from '../world/wheels.ts';
 import type { Spec, Tyre } from '../cars.ts';
 import { TUNE, curveFactor, clamp, tyreGrip } from '../vehicle.ts';
 import type { Car } from '../vehicle.ts';
@@ -417,9 +418,25 @@ function relaxAxleForces(car: Car, dt: number, vLong: number, vLat: number,
  */
 function axleTyreGrip(car: Car, carSpec: Spec, first: number): number {
   const temps = car.tyreT, worn = car.tyreWear;
-  const heat = car.surface.hard
-    ? (tyreGrip(temps[first], carSpec) + tyreGrip(temps[first + 1], carSpec)) / 2 : 1;
+  const heat = car.surface.hard ? axleHeatGrip(car, carSpec, temps, first) : 1;
   return heat * (worn ? wornGrip(worn[first], worn[first + 1], car.surface.wetK || 0) : 1);
+}
+
+/**
+ * An axle's grip by its tyres' temperatures: the mean of its two, or the one left when a wheel is
+ * lost (a lost wheel's tyre reads 0, tyreheat.ts; the loss itself is damage.ts's grip cut).
+ * @param car the car
+ * @param carSpec the car spec
+ * @param temps the four tyre temperatures, C
+ * @param first the axle's first tyre index (0 front, 2 rear)
+ * @returns the grip multiplier
+ */
+function axleHeatGrip(car: Car, carSpec: Spec, temps: number[], first: number): number {
+  const off = car.wheelOff;
+  const goneA = !!off && off[CORNER_OF_WHEEL[first]];
+  const goneB = !!off && off[CORNER_OF_WHEEL[first + 1]];
+  if (goneA !== goneB) return tyreGrip(temps[goneA ? first + 1 : first], carSpec);
+  return (tyreGrip(temps[first], carSpec) + tyreGrip(temps[first + 1], carSpec)) / 2;
 }
 
 export function computeAxleForces(car: Car, carSpec: Spec, mass: number, gravity: number,

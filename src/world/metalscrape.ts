@@ -13,7 +13,7 @@ import {
   WEAR_CELL, wearMap, wearKey, wearDirty, getCell, layersAt, getWornSurface, groundSurfaceAt,
 } from './wear.ts';
 import type { Mark, Surface } from './types.ts';
-import { carWheels } from './wheels.ts';
+import { carWheels, CORNER_OF_WHEEL } from './wheels.ts';
 
 /** A car as this file reads it. */
 export interface ScrapeCar {
@@ -36,9 +36,6 @@ const RIM_CHANCE = 0.0075;
 const BODY_CHANCE = 0.05, IMPACT_CHANCE = 0.3;
 // m/s: slower than this a rim or a body drags without sparks or gouges
 const SCRAPE_FROM = 2;
-// damage corner (0 front -y, 1 front +y, 2 rear -y, 3 rear +y) -> carWheels index (FL +y, FR -y,
-// RL +y, RR -y)
-const WHEEL_OF_CORNER = [1, 0, 3, 2];
 // the scraper slot of the body (after the four wheels)
 const BODY = 4;
 
@@ -69,7 +66,7 @@ function scrapeRims(car: ScrapeCar, rnd: () => number) {
   const wheels = carWheels(car);
   for (let corner = 0; corner < 4; corner++) {
     if (!rim[corner]) continue;
-    const { x, y } = wheels[WHEEL_OF_CORNER[corner]];
+    const { x, y } = wheels[CORNER_OF_WHEEL[corner]];
     if (!surfaceUnder(x, y).hard) continue;
     sparks[corner] = true;
     if (enteredCell(car, corner, x, y) && rnd() < RIM_CHANCE) gougeCell(x, y);

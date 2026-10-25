@@ -1,7 +1,7 @@
 // The OBJECTS layer of the renderer: pixel objects (cones, tyres), rally tape, roadside debris,
 // animals, knockable boards and flags, and the banger, caravan and podium props.
 import { parkMiller } from "../core/random.ts";
-import { SPRITE_PPM } from "./shared.ts";
+import { SPRITE_PPM, fxRandom } from "./shared.ts";
 import type { Cam, Chip, RenderCone, RenderTape, TapeCar, TapeGame, View } from "./types.ts";
 import { drawBanger, drawCaravan, drawPodium } from "./objectsProps.ts";
 import { shade } from "../render.ts";   // read only at draw time (no load-time cycle)
@@ -193,11 +193,11 @@ function drawPixelObject(env: ObjectsCtx, cone: RenderCone) {
 function puffTape(env: ObjectsCtx, x: number, y: number, vx: number, vy: number, count: number) {
   const { chips, MAX_CHIPS } = env;
   for (let i = 0; i < count; i++) {
-    const angle = Math.random() * 6.2832, speed = 0.8 + Math.random() * 3.2;
+    const angle = fxRandom() * 6.2832, speed = 0.8 + fxRandom() * 3.2;
     if (chips.length >= MAX_CHIPS) chips.shift();
-    chips.push({ x: x + (Math.random() - 0.5) * 0.6, y: y + (Math.random() - 0.5) * 0.6,
+    chips.push({ x: x + (fxRandom() - 0.5) * 0.6, y: y + (fxRandom() - 0.5) * 0.6,
       vx: vx + Math.cos(angle) * speed, vy: vy + Math.sin(angle) * speed, age: 0, life: 0.5
-      + Math.random() * 1.1, col: Math.random() < 0.5 ? '#e23b2e' : '#f2f2f2', sz: 2 });
+      + fxRandom() * 1.1, col: fxRandom() < 0.5 ? '#e23b2e' : '#f2f2f2', sz: 2 });
   }
 }
 

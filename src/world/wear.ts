@@ -399,6 +399,31 @@ function roughAt(x: number, y: number, rough: number): number {
 
 // THE GROUND under a point: its height in metres and what it grips like. Everything about the
 // world's surface is this one function; main.js reads it and vehicle.js integrates over it.
+/**
+ * The surface of the floor at a point: its worn cell, else its layers in today's weather.
+ * @param x world x, m
+ * @param y world y, m
+ * @returns the surface
+ */
+function floorSurfaceAt(x: number, y: number): Surface {
+  const worn = getWornSurface(x, y);
+  if (worn) return worn;
+  const layers = layersAt(x, y);
+  return surfaceOf(layers.base, layers.cover, layers.standing, WEATHER.wetness);
+}
+
+/**
+ * The surface a wheel touches at a point - groundAt's surface without the heights (the marks and
+ * spray of each wheel: stepWear).
+ * @param x world x, m
+ * @param y world y, m
+ * @returns the surface
+ */
+function wheelSurfaceAt(x: number, y: number): Surface {
+  const overX = Math.max(x - FX1, FX0 - x), overY = Math.max(y - FY1, FY0 - y);
+  return Math.max(overX, overY) <= -KERB_W ? floorSurfaceAt(x, y) : groundAt(x, y).surface;
+}
+
 export function groundAt(x: number, y: number): Ground {
   // e = metres past the floor edge (negative inside); on the square it is max(|x|, |y|) - FLOOR, as
   // before (S-B: any rectangle)
@@ -407,12 +432,7 @@ export function groundAt(x: number, y: number): Ground {
 
   // --- on the floor: whatever zone you are standing in, plus any bumps laid on top of it
   if (over <= -KERB_W) {
-    const worn = getWornSurface(x, y);
-    let surface = worn;
-    if (!surface) {
-      const layers = layersAt(x, y);
-      surface = surfaceOf(layers.base, layers.cover, layers.standing, WEATHER.wetness);
-    }
+    const surface = floorSurfaceAt(x, y);
     return { h: roughAt(x, y, surface.rough) + bumpAt(x, y), surface: surface };
   }
 
@@ -488,6 +508,12 @@ export function stepWear(car: CarBody, dt: number): void {
   // at 120 Hz.
   if (Math.hypot(curr[0].x - car.prevWheels[0].x,
     curr[0].y - car.prevWheels[0].y) > 3) { car.prevWheels = curr; return; }
+  // EACH WHEEL'S OWN GROUND for its mark and spray (marks.js, render/particles.ts), read before
+  // this step's pass (the water the tyre squeezes aside): car.surface is one sample between the
+  // rear wheels - leaving a puddle the fronts laid wet trails on dry tarmac, a puddle under one
+  // side gave all four wheels one
+  const wheelSurf = car.wheelSurf || (car.wheelSurf = []);
+  for (let i = 0; i < 4; i++) wheelSurf[i] = wheelSurfaceAt(curr[i].x, curr[i].y);
   for (let i = 0; i < 4; i++) {
     const prevWheel = car.prevWheels[i];
     const currWheel = curr[i];

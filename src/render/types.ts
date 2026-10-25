@@ -76,6 +76,7 @@ export interface RenderWheel {
   y: number;
   heat: number;
   slip: number;
+  spray?: Spray | null;   // what the ground under this wheel throws (marks.js)
 }
 
 // What the particles read of a car.
@@ -210,6 +211,9 @@ export interface RenderCar extends CamCar, Pick<Car, 'heading' | 'delta'> {
   crushS: number[];
   roofDmg: number;
   wheelOff: boolean[];
+  // metal on hard ground sparking (world/metalscrape.ts rims, roll.js the body): night glows
+  rimSparks?: boolean[];
+  sparks?: boolean;
   // tyre pressure (physics/tyrepressure.ts) and the wheels' turn (render/tyrelook.ts)
   tyreP?: number[];
   onRim?: boolean[];

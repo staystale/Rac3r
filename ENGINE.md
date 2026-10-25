@@ -74,7 +74,11 @@ gripLong, brakeTorque, mass, rigidity), all 1.0 by default. Upgrades and tyres c
 the model reads them and nothing else.
 
 Surfaces come from the ground under each wheel (`world/wear.ts groundAt`): the surface's grip and drag,
-any cover (snow, ice, puddle) and the wear state of the cell.
+any cover (snow, ice, puddle) and the wear state of the cell. Grip is one sample per axle (`car.surface`
+is the rear's); each wheel's MARK and SPRAY come from the ground under that wheel, read by `stepWear`
+before its pass (`car.wheelSurf`, carWheels order; `world/wheels.ts CORNER_OF_WHEEL` maps a wheel
+to its damage corner). A lost wheel's tyre reads 0 C and its axle's temperature grip is the other
+tyre's.
 
 Bushes are ground too: the `bush` surface (its `brush` drag grows with speed,
 `physics/tyres.ts`), laid as patches by `world/bushplan.ts` from each level's plan
@@ -102,6 +106,10 @@ Highway hedges: `highway/hedges.ts` lays one continuous line of square
 bushes (the same `bush` patches as the other levels) round each farm field's long-grass border, streamed with
 the field (laid in `highway/fields.js`, dropped by the slide's prune and `clearFields`) and
 indexed through `world/load.ts indexNewBushes` (added a field at a time) and `reindexBushes`.
+
+Drawing uses its own random numbers (`render/shared.ts fxRandom`, a hashed count), never
+`Math.random`, so no look can shift the physics' random stream. Sparks (`render/particles.ts`) glow in
+the night light map (`render/light.ts drawSparkGlows`).
 
 ## Drawing (`render.ts` and `render/`)
 
