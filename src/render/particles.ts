@@ -12,7 +12,9 @@ interface ParticleHelpers {
 }
 
 // one damage event of a car
-interface DmgEvent { scrape?: boolean; amt: number; c: number; metal?: boolean }
+interface DmgEvent {
+  scrape?: boolean; amt: number; c: number; metal?: boolean; aim?: number; speed?: number;
+}
 
 // the mutable values the particle layer keeps between frames
 interface ParticleState {
@@ -208,19 +210,16 @@ function flingChips(ctx: ParticleCtx, car: ParticleCar, hit: DmgEvent) {
 }
 
 // IMPACT SPARKS (owner: "big crashes metal on metal ... a high chance for sparks to emit from
-// the impact zones, like paint"; ?impactsparks=1): a hit on metal (physics/punctures.ts
-// hitIsMetal: another car, armco, posts, fences ...) of at least IMPACT_FROM damage throws a
-// burst of sparks out of the hurt corner - likelier and more the harder the hit
-const IMPACT_FROM = 0.04, IMPACT_CHANCE_MIN = 0.55, IMPACT_CHANCE_PER = 4;
+// the impact zones, like paint"): a hit on metal (physics/punctures.ts
+// hitIsMetal: another car, armco, posts, fences ...) of at least IMPACT_FROM damage, the car
+// DRIVEN into it at IMPACT_SPEED or more (owner: "only with impacts over 20-30 mph, so rolling
+// into a barrier doesn't spark but driving into it does"), throws a burst of sparks from the hurt
+// corner IMPACT_CHANCE of the time (owner: 70 %), more the harder the hit; they spray on the way
+// the car was going into it, fanned along the hit (owner: "directional with impact")
+const IMPACT_FROM = 0.04, IMPACT_SPEED = 11.2, IMPACT_CHANCE = 0.7;
 const IMPACT_SPARKS_MIN = 14, IMPACT_SPARKS_PER = 160, IMPACT_SPARKS_MAX = 90;
-// a crash flings them harder than dragging metal, in a wider fan
-const IMPACT_FLING = 1.6, IMPACT_FAN_EXTRA = 0.6;
-let impactSparksOn = false;
-/**
- * ?impactsparks=1: sparks from big metal-on-metal crashes (owner test).
- * @param isOn the switch
- */
-export function setImpactSparks(isOn: boolean): void { impactSparksOn = isOn; }
+// a crash flings them harder than dragging metal, in a wider fan (rad either side)
+const IMPACT_FLING = 1.6, IMPACT_FAN_EXTRA = 0.5;
 
 /**
  * A burst of sparks out of a crash's hurt corner, by chance and by how hard the hit was.
@@ -229,19 +228,19 @@ export function setImpactSparks(isOn: boolean): void { impactSparksOn = isOn; }
  * @param hit the damage event
  */
 function throwImpactSparks(ctx: ParticleCtx, car: ParticleCar, hit: DmgEvent) {
-  if (hit.amt < IMPACT_FROM) return;
-  if (fxRandom() > Math.min(0.95, IMPACT_CHANCE_MIN + IMPACT_CHANCE_PER * hit.amt)) return;
+  if (hit.amt < IMPACT_FROM || !((hit.speed || 0) >= IMPACT_SPEED)) return;
+  if (fxRandom() > IMPACT_CHANCE) return;
   const spec = car.spec, cosHeading = Math.cos(car.heading), sinHeading = Math.sin(car.heading);
   const cornerX = (hit.c < 2 ? 1 : -1) * spec.len * 0.48;
   const cornerY = (hit.c % 2 ? 1 : -1) * spec.wid * 0.45;
   const x = car.x + cosHeading * cornerX - sinHeading * cornerY;
   const y = car.y + sinHeading * cornerX + cosHeading * cornerY;
-  // out of the corner, away from the car's middle
-  const out = Math.atan2(y - car.y, x - car.x);
+  // on the way the car was going into the hit
+  const onward = hit.aim ?? Math.atan2(y - car.y, x - car.x);
   const count = Math.min(IMPACT_SPARKS_MAX, Math.round(IMPACT_SPARKS_MIN + IMPACT_SPARKS_PER
     * hit.amt));
   for (let i = 0; i < count; i++) {
-    throwSpark(ctx, car, x, y, out + (fxRandom() * 2 - 1) * IMPACT_FAN_EXTRA, IMPACT_FLING);
+    throwSpark(ctx, car, x, y, onward + (fxRandom() * 2 - 1) * IMPACT_FAN_EXTRA, IMPACT_FLING);
   }
 }
 
@@ -257,7 +256,7 @@ function emitChips(ctx: ParticleCtx, car: ParticleCar) {
   const events = car.dmgEvents; if (!events || !events.length) return;
   for (const hit of events) {
     flingChips(ctx, car, hit);
-    if (impactSparksOn && hit.metal && !hit.scrape) throwImpactSparks(ctx, car, hit);
+    if (hit.metal && !hit.scrape) throwImpactSparks(ctx, car, hit);
   }
   events.length = 0;
 }

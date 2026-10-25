@@ -54,7 +54,11 @@ const WHEEL_HIT = 0.4, WHEEL_AT = 0.85;
 export const REPAIR_PER = 1500;
 
 /** One damage event for the particles (paint chips): the corner, its size, a scrape or not. */
-export interface DamageEvent { c: number; amt: number; scrape?: boolean; metal?: boolean }
+export interface DamageEvent {
+  c: number; amt: number; scrape?: boolean;
+  // an impact's: what was hit was metal; the way the car was going into it (rad) and how fast
+  metal?: boolean; aim?: number; speed?: number;
+}
 /** The damage state on a car (all four arrays by corner). */
 export interface DamageState {
   dmg: number[]; crushL: number[]; crushS: number[]; roofDmg: number; wheelOff: boolean[];
@@ -216,7 +220,7 @@ export function hit(
   car.dmgFlash = 1;
   // a fresh impact can knock stuck tape off (user)
   if (car.streamers && car.streamers.length && rnd() < 0.6) car.streamers.shift();
-  pushEvent(car, { c: top, amt, metal });
+  pushEvent(car, { c: top, amt, metal, aim: Math.atan2(vy0, vx0), speed: Math.hypot(vx0, vy0) });
   derive(hurt);
   return amt;
 }

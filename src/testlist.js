@@ -29,14 +29,6 @@ export const TEST_LIST = [
   // brakeglow, trees passed 2026-10-25 (brake heat now resets with the tyres); bushes passed
   // 2026-10-25 (round 2: more drag, a light dent, leaves over the cars); flats (with the
   // stingers, the rim by chance) and hedges (one continuous line) passed 2026-10-25; flipramp
-  // passed 2026-10-25)
-  {
-    id: 'impactsparks',
-    added: '2026-10-25',
-    name: 'Crash sparks: big metal-on-metal hits throw sparks from the hit corner',
-    where: 'Plain link + &impactsparks=1: any level with armco / other cars (Castle Cum, Brands)',
-    try: 'Hit armco hard, hit another car hard, then hit a tyre wall or a bale the same way.',
-    wrong: 'No sparks from a hard armco / car hit, sparks from tyres / bales / grass banks,'
-      + ' sparks from a light touch.',
-  },
+  // passed 2026-10-25; impactsparks passed 2026-10-25 (round 2: 70 %, over 25 mph,
+  // directional))
 ];
