@@ -132,6 +132,10 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   exhaust by throttle and cold, backfires, steam and engine smoke over the car. THE LEAK IS WATER
   (owner: "the same liquid" as the rain, behaving the same, more the worse the leak): it lands as
   the tyres' water in the wear cells, never a second water look.
+- Oil, car systems C6 (10-25, owner: all pass): it ACTS LIKE WATER - one cover in the wear
+  cells, whole cells, a third of the grip, black with a dark purple sheen and edges (pixel art),
+  soaked up by loose ground, never dries; driven through it spreads a little the way the wheel
+  went, water spreads it 50:50 a second; no oily tyres or oily marks (owner).
 - Outer tyre walls (Grass Track, Stock Car): a fast car pushing through them is fine (owner
   10-25); they stay single rows of loose tyres.
 - Order 10-25 (owner): bushes -> car systems C (when bushes pass) -> the wearcheck rewrite (when

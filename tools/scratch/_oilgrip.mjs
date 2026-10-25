@@ -1,4 +1,4 @@
-// _oilgrip.mjs - is the car's own surface oil when its rear axle stands on a spill (?oil=1)?
+// _oilgrip.mjs - is the car's own surface oil when its rear axle stands on a spill?
 // node tools/scratch/_oilgrip.mjs [level] [photo folder]   (the autopilot at 25 km/h: moving);
 // with a folder, photos of a patch beside the stopped car at 844x390 and 390x844
 import { join } from 'node:path';
@@ -15,7 +15,7 @@ async function open(size) {
   const page = await context.newPage();
   page.on('pageerror', (error) => console.log('PAGE ERROR ' + error.message));
   await gotoGame(page,
-    `${server.url}/?touch=1&guide=0&menu=0&rules=0&noaudio=1&oil=1&autopilot=25`);
+    `${server.url}/?touch=1&guide=0&menu=0&rules=0&noaudio=1&autopilot=25`);
   await page.touchscreen.tap(size.width / 2, size.height / 2);
   await page.waitForTimeout(300);
   await page.evaluate((id) => window.__game.launch(id, 'hatch-rwd',

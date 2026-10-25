@@ -226,7 +226,7 @@ export function hit(
   hardHitCorners(hurt, amt, weights, endW, rnd, punctureK);
   // the radiator (and the sump) sit behind the front: the harder-hit front corner's share
   crackOnHit(hurt as DamagedCar & EngineCar, amt * Math.max(weights[0], weights[1]), rnd);
-  // a big crash spills oil (?oil=1, world/oil.ts)
+  // a big crash spills oil (world/oil.ts)
   crashOil(car, amt, rnd);
   car.dmgBill = (car.dmgBill || 0) + amt * REPAIR_PER;
   car.dmgHits = (car.dmgHits || 0) + 1;
@@ -317,7 +317,7 @@ export function hitRoll(car: DamageCar, kind: string, side: number, weight: numb
   pushEvent(car, { c: kind === 'side' ? corners[0] : 0, amt: amt * 1.5 });
   // metal meeting hard ground may break it (world/metalscrape.ts); the sump may crack
   gougeImpact(car as DamageCar & ScrapeCar);
-  // ... and a rolling car sprays some oil (?oil=1, world/oil.ts)
+  // ... and a rolling car sprays some oil (world/oil.ts)
   if (kind !== 'wheels') {
     crackOnRoll(hurt as DamagedCar & EngineCar, Math.random);
     rollOil(car);

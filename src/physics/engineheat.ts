@@ -29,7 +29,7 @@ export interface EngineState {
   engSeized: boolean;    // seized: no power until a reset
   engPowerK: number;     // the power share heat leaves, 1 .. 0 (damage.ts derive reads it)
   leakCells: number;     // wet cells owed by the water lost (one lands each time it passes 1)
-  oilCells: number;      // oil cells owed by the oil lost (?oil=1, world/oil.ts)
+  oilCells: number;      // oil cells owed by the oil lost (world/oil.ts)
 }
 /** A car as this file reads it. */
 export interface EngineCar extends Partial<EngineState> {
@@ -65,7 +65,7 @@ export const OIL_LOW = 0.2;
 // a full radiator's water, in wear cells of water on the ground (1.5 m squares); where it
 // leaves the car (share of the length ahead of the centre)
 const WATER_CELLS = 60, LEAK_AT = 0.3;
-// a full sump's oil, in wear cells of oil on the ground (?oil=1), dripped under the engine
+// a full sump's oil, in wear cells of oil on the ground, dripped under the engine
 const OIL_CELLS = 20;
 // the power share moves car.wreck in steps this big (derive is not run every step)
 const POWER_STEP = 0.01;

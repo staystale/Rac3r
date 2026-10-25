@@ -1,4 +1,4 @@
-// _oil.mjs - car systems C6 (world/oil.ts) in the real game, ?oil=1: a spill and the grip on it,
+// _oil.mjs - car systems C6 (world/oil.ts) in the real game: a spill and the grip on it,
 // the autopilot driving through it (spread the way it drove), oil beside water in the rain (50:50
 // a second), a cracked sump's drip, a crash spill, soaking into gravel; photos 844x390 / 390x844.
 // node tools/scratch/_oil.mjs <out folder> [level]
@@ -18,7 +18,7 @@ async function open(size, query = '', weather = { mode: 'dry', season: 2, seed: 
     isMobile: true, hasTouch: true });
   const page = await context.newPage();
   page.on('pageerror', (error) => { errors++; console.log('PAGE ERROR ' + error.message); });
-  await gotoGame(page, `${server.url}/?touch=1&guide=0&menu=0&rules=0&noaudio=1&oil=1&dev=1${query}`);
+  await gotoGame(page, `${server.url}/?touch=1&guide=0&menu=0&rules=0&noaudio=1&dev=1${query}`);
   await page.touchscreen.tap(size.width / 2, size.height / 2);
   await page.waitForTimeout(300);
   await page.evaluate(([id, wx]) => window.__game.launch(id, 'hatch-rwd', { ai: 0, weather: wx }),

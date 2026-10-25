@@ -105,7 +105,7 @@ export function stepWorld(inp) {
   stepClock(PHYSICS_STEP_SECONDS, shared.mode === 'session', WEATHER.rain);
   stepPuddles(PHYSICS_STEP_SECONDS);
   stepCoverField(PHYSICS_STEP_SECONDS);
-  // oil next to water runs into it (world/oil.ts, ?oil=1)
+  // oil next to water runs into it (world/oil.ts)
   stepOil(PHYSICS_STEP_SECONDS);
   const tcars = game.traffic.cars;
   stepTrafficContacts(tcars);

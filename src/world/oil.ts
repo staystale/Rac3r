@@ -28,20 +28,12 @@ const WATER_SPREAD = 0.5, SPREAD_TICK_S = 1;
 const OIL_HIT = 0.2, OIL_SPAN = 0.6, OIL_P_MIN = 0.15, OIL_PATCH = 4, OIL_REACH_M = 2;
 const OIL_ROLL_P = 0.25;
 
-let oilOn = false;
 let tickS = 0;
 // the oil cells, for the water spreading (checked against the wear map: a reset drops them)
 const oilCells = new Set<WearCell>();
 // the wheel making this pass: its motion this step, m (wear.ts stepWear notes it)
 const passMotion = { dx: 0, dy: 0 };
 
-/**
- * Turns oil on (?oil=1, main.js).
- * @param isOn on or off
- */
-export function setOil(isOn: boolean): void { oilOn = isOn; }
-/** @returns true when ?oil=1 is on */
-export function oilEnabled(): boolean { return oilOn; }
 
 /**
  * Oil lands at a point: bare ground (or water) in that wear cell becomes oil; soaking ground takes
@@ -52,7 +44,6 @@ export function oilEnabled(): boolean { return oilOn; }
  * @returns true when the cell is oil now
  */
 export function spillOil(x: number, y: number, gen: number): boolean {
-  if (!oilOn) return false;
   return oilCell(getCell(Math.floor(x / WEAR_CELL), Math.floor(y / WEAR_CELL), true), gen);
 }
 
@@ -80,7 +71,7 @@ function spillPatch(car: SpillCar, count: number, rnd: () => number): void {
  * @param rnd the random source
  */
 export function crashOil(car: SpillCar, amt: number, rnd: () => number): void {
-  if (!oilOn || amt < OIL_HIT) return;
+  if (amt < OIL_HIT) return;
   if (rnd() >= Math.min(1, OIL_P_MIN + (amt - OIL_HIT) / OIL_SPAN)) return;
   spillPatch(car, 1 + Math.floor(rnd() * Math.min(OIL_PATCH, 1 + amt * 4)), rnd);
 }
@@ -90,7 +81,7 @@ export function crashOil(car: SpillCar, amt: number, rnd: () => number): void {
  * @param car the car
  */
 export function rollOil(car: SpillCar): void {
-  if (!oilOn || Math.random() >= OIL_ROLL_P) return;
+  if (Math.random() >= OIL_ROLL_P) return;
   spillPatch(car, 1 + Math.floor(Math.random() * 2), Math.random);
 }
 
@@ -177,7 +168,7 @@ function spreadIntoWater(cell: WearCell): void {
  * @param dt the step, s
  */
 export function stepOil(dt: number): void {
-  if (!oilOn || !oilCells.size) return;
+  if (!oilCells.size) return;
   tickS += dt;
   if (tickS < SPREAD_TICK_S) return;
   tickS = 0;

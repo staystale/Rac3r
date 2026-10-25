@@ -38,7 +38,6 @@ import {
   setWetness, setRain,
 } from "./world/weather.ts";
 import { setDarkness } from "./world/daylight.ts";
-import { setOil } from './world/oil.ts';
 import { CLOCK, startClock } from "./world/clock.ts";
 import { LEVEL } from "./world/state.ts";
 
@@ -67,8 +66,6 @@ if (shared.settings.rain !== null) {
 }
 // ?night=0.8: this dark (lighting test: the night layer, the field's headlights)
 if (shared.settings.night !== null) setDarkness(shared.settings.night);
-// ?oil=1: oil on the ground (car systems C6, world/oil.ts)
-setOil(shared.settings.oil);
 // the game clock drives the sky (?night= overrides it with a fixed dark); a new player starts
 // in today's season
 startClock(shared.settings.night === null,

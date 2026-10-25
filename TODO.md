@@ -223,7 +223,7 @@ C. CAR SYSTEMS + DAMAGE (L; one chain - extend damage.ts, no second damage model
   soaked up by sand / gravel / dirt / mud / long grass; slippery on short grass and hard ground;
   never evaporates; oily tyres for 1-5 s after (tyre state); oily marks mildly slippery while on
   them; a black / purple sheen look.
-  BUILT 10-25 behind ?oil=1, UNDER TEST (testlist oil). Owner after the mockup
+  DEFAULT 10-25 (owner: "all pass"; the ?oil switch deleted). Owner after the mockup
   (claude.ai/artifact/DGC5z9Sjmk38frzgM6Zg9p): too much detail - oil ACTS LIKE WATER (one cover
   in the wear cells, whole cells, no amounts / specks), the agreed slip (~1/3 of dry), drawn LIKE
   ICE BUT PURPLE (pixel sheen); NO oily tyres / marks - instead a puddle driven through spreads a

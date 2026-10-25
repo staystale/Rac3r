@@ -113,7 +113,7 @@ rules, the GPU field's look), closer together the worse the leak. Power fades 11
 `car.wreck.power` by `derive`); 10 s at 130 C or with no oil SEIZES it (power 0; an AI resets:
 `tooInjured`). Speedo lights `hud/enginelights.ts`; exhaust, backfires, steam and engine smoke
 `render/enginesmoke.ts` (pipe spots per car kind, `EXHAUST_SPOTS`); `?dev=1` line `eng`.
-OIL (`?oil=1`, under test): `world/oil.ts` - a wear cell's cover 'oil' like the tyres' water
+OIL: `world/oil.ts` - a wear cell's cover 'oil' like the tyres' water
 (`wet.ts oilSurface`: a third of the base's grip; drawn by the GPU field as kind 5, like ice
 but purple). Spilled by a cracked sump (`engineheat.ts`), a big hit or a rollover impact
 (`damage.ts` -> `crashOil` / `rollOil`); soaked up by loose ground; never dries. A pass
