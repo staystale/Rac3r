@@ -13,11 +13,12 @@ import {
   WEAR_CELL, wearMap, wearKey, wearDirty, getCell, layersAt, getWornSurface, groundSurfaceAt,
 } from './wear.ts';
 import type { Mark, Surface } from './types.ts';
+import { carWheels } from './wheels.ts';
 
 /** A car as this file reads it. */
 export interface ScrapeCar {
   x: number; y: number; vx: number; vy: number; heading: number;
-  spec: { lf: number; lr: number; trackWidth: number };
+  spec: { lf: number; lr: number; trackWidth?: number };
   onRim?: boolean[];
   rimSparks?: boolean[];
   sparks?: boolean;
@@ -35,8 +36,9 @@ const RIM_CHANCE = 0.0075;
 const BODY_CHANCE = 0.05, IMPACT_CHANCE = 0.3;
 // m/s: slower than this a rim or a body drags without sparks or gouges
 const SCRAPE_FROM = 2;
-// the four wheels' places (along, across sign) by damage corner
-const CORNER_ALONG = [1, 1, -1, -1], CORNER_SIDE = [-1, 1, -1, 1];
+// damage corner (0 front -y, 1 front +y, 2 rear -y, 3 rear +y) -> carWheels index (FL +y, FR -y,
+// RL +y, RR -y)
+const WHEEL_OF_CORNER = [1, 0, 3, 2];
 // the scraper slot of the body (after the four wheels)
 const BODY = 4;
 
@@ -47,21 +49,30 @@ const BODY = 4;
  * @param rnd the random source
  */
 export function scrapeMetal(car: ScrapeCar, rnd: () => number = Math.random): void {
+  scrapeRims(car, rnd);
+  if (car.sparks && enteredCell(car, BODY, car.x, car.y) && rnd() < BODY_CHANCE) {
+    gougeCell(car.x, car.y);
+  }
+}
+
+/**
+ * The wheels on their rims: sparks on hard ground (car.rimSparks) and a chance per new cell to
+ * break it.
+ * @param car the car
+ * @param rnd the random source
+ */
+function scrapeRims(car: ScrapeCar, rnd: () => number) {
   const speed = Math.hypot(car.vx, car.vy), rim = car.onRim;
   const sparks = car.rimSparks || (car.rimSparks = [false, false, false, false]);
-  const cosH = Math.cos(car.heading), sinH = Math.sin(car.heading);
+  sparks.fill(false);
+  if (!rim || !rim.some(Boolean) || speed < SCRAPE_FROM) return;
+  const wheels = carWheels(car);
   for (let corner = 0; corner < 4; corner++) {
-    sparks[corner] = false;
-    if (!rim || !rim[corner] || speed < SCRAPE_FROM) continue;
-    const along = CORNER_ALONG[corner] > 0 ? car.spec.lf : -car.spec.lr,
-      across = CORNER_SIDE[corner] * car.spec.trackWidth / 2;
-    const x = car.x + along * cosH - across * sinH, y = car.y + along * sinH + across * cosH;
+    if (!rim[corner]) continue;
+    const { x, y } = wheels[WHEEL_OF_CORNER[corner]];
     if (!surfaceUnder(x, y).hard) continue;
     sparks[corner] = true;
     if (enteredCell(car, corner, x, y) && rnd() < RIM_CHANCE) gougeCell(x, y);
-  }
-  if (car.sparks && enteredCell(car, BODY, car.x, car.y) && rnd() < BODY_CHANCE) {
-    gougeCell(car.x, car.y);
   }
 }
 

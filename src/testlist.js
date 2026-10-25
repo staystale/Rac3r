@@ -32,9 +32,10 @@ export const TEST_LIST = [
     id: 'flats',
     added: '2026-10-25',
     name: 'Flat tyres: leaks by cause, squashing by pressure, the rim, metal breaking tarmac',
-    where: 'Plain link + &flats=1: any circuit or stage (Castle Cum is quick: hit the walls)',
-    try: 'Burst a tyre in a big hit, pick up a slow puncture from a pallet or a bush, keep'
-      + ' driving on the flat about 1 km to the rim; roll a car on tarmac.',
+    where: 'Plain link + &flats=1: any circuit or stage; the Lab and Test Track have a stinger'
+      + ' (tyre spikes) 50 m past the start',
+    try: 'Drive over the stinger, burst a tyre in a big hit, pick up a slow puncture from a'
+      + ' pallet or a bush, keep driving on the flat about 1 km to the rim; roll a car on tarmac.',
     wrong: 'A slow puncture flat in a second, no pull to the flat side, a tyre that does not'
       + ' squash, no sparks or line on the rim, tarmac breaking in long stripes.',
   },

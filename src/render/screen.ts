@@ -4,6 +4,7 @@
 // canvas: never copy pixels between it and WebGL per frame (NOTES.md).
 import { SPRITE_PPM } from "./shared.ts";
 import { drawWetTrails } from "../wettrail.ts";
+import { drawStingers } from "./stingers.ts";
 import type { CarPicture } from "./cars.ts";
 import type { RenderCar, RenderGame, RenderMarks, View } from "./types.ts";
 
@@ -158,6 +159,8 @@ export function drawMarksOnScreen(ctx: ScreenCtx, game: RenderGame, lock: Screen
   try {
     ctx.drawMarks(game.marks);
     drawWetTrails(mainCtx, ctx.toScreenX, ctx.toScreenY, ctx.PPMz());
+    // tyre spikes on the test levels (?flats=1)
+    drawStingers(mainCtx, ctx.toScreenX, ctx.toScreenY, ctx.PPMz());
   } finally {
     view.ctx = keep;
     mainCtx.restore();

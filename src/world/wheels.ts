@@ -1,12 +1,16 @@
 // Where a car's four wheels touch the ground (wear.ts: the tyre paths that wear the surface).
 import type { CarBody, Wheel } from "./types.ts";
 
+/** What carWheels reads of a car. */
+export type WheelBase = Pick<CarBody, 'x' | 'y' | 'heading'>
+  & { spec: { lf: number; lr: number; trackWidth?: number } };
+
 /**
  * The four wheel contact points of a car, FL FR RL RR (L = +lateral, as vehicle.js indexes tyres).
  * @param car the car
  * @returns the wheels, world m
  */
-export function carWheels(car: CarBody): Wheel[] {
+export function carWheels(car: WheelBase): Wheel[] {
   const spec = car.spec;
   const cosH = Math.cos(car.heading), sinH = Math.sin(car.heading);
   const halfTrack = (spec.trackWidth || 1.5) / 2;

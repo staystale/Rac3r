@@ -5,6 +5,8 @@
 // gouged ground, a rim sparking at speed - 844x390 and 390x844.
 // node tools/scratch/_flats.mjs physics [level]   (the autopilot is made at launch: ?autopilot=1)
 // node tools/scratch/_flats.mjs photos <out folder> [level]
+// node tools/scratch/_flats.mjs stinger <out folder>
+// node tools/scratch/_flats.mjs body [level]
 import { join } from 'node:path';
 import { startServer, launchBrowser, gotoGame } from '../lib/browser.mjs';
 
@@ -73,7 +75,43 @@ async function puncture([slow, secs]) {
 
 try {
   const level = process.argv[mode === 'photos' ? 4 : 3] || 'castle-cum';
-  if (mode === 'body') {
+  if (mode === 'stinger') {
+    // the Test Track (autopilot drives over it) and the Lab (the car rolled at it at 15 m/s):
+    // every tyre that crosses bursts; a photo of the strip close up and after the car went over
+    const out = process.argv[3] || '.';
+    for (const id of ['test-track', 'lab']) {
+      const { context, page } = await open(id, { width: 844, height: 390 });
+      // the car parked 9 m short of the strip, on its line
+      await page.evaluate(async () => {
+        const game = window.__game, car = game.car, { shared } = await import('/src/game/state.js');
+        const { levelStingers } = await import('/src/world/stingers.ts');
+        const { LEVEL } = await import('/src/world/state.ts');
+        shared.settings.autopilot = false;
+        const strip = levelStingers(LEVEL.id)[0];
+        car.x = strip.x - Math.cos(car.heading) * 5; car.y = strip.y - Math.sin(car.heading) * 5;
+        car.vx = 0; car.vy = 0; car.yawRate = 0;
+        game.renderer.debugZoom(2);
+      });
+      await page.waitForTimeout(700);
+      await page.screenshot({ path: join(out, 'stinger-' + id + '-before.png') });
+      const res = await page.evaluate(async () => {
+        const car = window.__game.car;
+        car.vx = Math.cos(car.heading) * 6; car.vy = Math.sin(car.heading) * 6;
+        const start = performance.now(), log = [];
+        while (performance.now() - start < 1750) {
+          await new Promise((done) => setTimeout(done, 250));
+          if (!car.tyreP) continue;
+          log.push((car.tyreP.map((pressure) => Math.round(pressure * 100)).join('/')));
+        }
+        return { punct: car.punct, air: car.tyreP, log: [...new Set(log)].slice(0, 8) };
+      });
+      console.log('STINGER ' + id + ': punct ' + JSON.stringify(res.punct) + ' air '
+        + JSON.stringify(res.air) + ' seen ' + JSON.stringify(res.log));
+      await page.evaluate(() => { const car = window.__game.car; car.vx = 0; car.vy = 0; });
+      await page.screenshot({ path: join(out, 'stinger-' + id + '-after.png') });
+      await context.close();
+    }
+  } else if (mode === 'body') {
     // a rolled body sliding (car.sparks) 150 m along the start straight, and 40 rollover impacts
     const { context, page } = await open(level, { width: 844, height: 390 });
     const res = await page.evaluate(async () => {

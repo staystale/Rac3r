@@ -96,6 +96,7 @@ a rolled body sliding (`roll.js car.sparks`), sparks and may break each new wear
 rim scores a pale mark (`MARK_GOUGE`, `marks.js`). Drawn by `render/tyrelook.ts` (the tyre
 squashes progressively with its air, a rim bare), puffs / shreds / rim sparks in
 `render/particles.ts`, the HUD tyre ring by pressure (`hud/gauges.js`), `?dev=1` line `air`.
+Tyre spikes (a police stinger, `world/stingers.ts`, drawn by `render/stingers.ts`) on the Lab and Test Track burst every wheel that rolls on.
 
 ## Drawing (`render.ts` and `render/`)
 

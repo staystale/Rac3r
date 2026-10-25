@@ -5,6 +5,8 @@ import {
   type PressureCar,
 } from './physics/tyrepressure.ts';
 import { scrapeMetal, gougeImpact, type ScrapeCar } from './world/metalscrape.ts';
+import { levelStingers, tyresOnStinger } from './world/stingers.ts';
+import { LEVEL } from './world/state.ts';
 // damage.ts — CAR DAMAGE. Bookkeeping on the sim step; vehicle.ts reads only
 // car.wreck (multipliers, no-op by default — CLAUDE.md §2 rule 6), render.ts draws the crush /
 // dents / chips / loose wheels, hud.js the tyre diagram, the results the repair bill.
@@ -297,7 +299,12 @@ function deriveWithPressure(
  * @param dt the step, s
  */
 export function stepDamage(car: DamageCar & PressureCar & ScrapeCar, dt: number): void {
-  if (!flatsEnabled() || !car.dmg) return;
+  if (!flatsEnabled()) return;
+  // a wheel on a stinger bursts (world/stingers.ts)
+  for (const tyre of tyresOnStinger(car, levelStingers(LEVEL.id))) {
+    burstCorner(car, CORNER_OF_TYRE[tyre], true);
+  }
+  if (!car.dmg) return;
   if (!car.tyreP) pressureInit(car);
   if (stepTyrePressure(car, dt)) derive(car as DamagedCar);
   scrapeMetal(car);
@@ -346,14 +353,25 @@ export function applyBurst(car: DamageCar): boolean {
   if (tyre === undefined || tyre < 0) return false;
   car.burstTyre = -1;
   car.burstSlow = false;
+  return burstCorner(car, CORNER_OF_TYRE[tyre], !slow);
+}
+/**
+ * A tyre punctures on its corner (a burst, a stinger, a slow leak): the axle's grip drops, the
+ * HUD shows it, a reset mends it.
+ * @param car the car
+ * @param corner the damage corner
+ * @param fast true for a burst (?flats=1: flat in half a second), false for a slow leak
+ * @returns true when it was not punctured already
+ */
+function burstCorner(car: DamageCar, corner: number, fast: boolean): boolean {
   if (!car.dmg) damageInit(car);
   const hurt = car as DamagedCar;
-  const corner = CORNER_OF_TYRE[tyre];
   if (hurt.punct[corner]) return false;
   hurt.punct[corner] = true;
-  if (flatsEnabled()) startLeak(hurt as DamagedCar & PressureCar, corner, !slow);
   car.dmgFlash = 1;
-  pushEvent(car, { c: corner, amt: 0.2 });
+  // ?flats=1: the tyre's own puff of air (physics/tyrepressure.ts), not a paint-chip hit
+  if (flatsEnabled()) startLeak(hurt as DamagedCar & PressureCar, corner, fast);
+  else pushEvent(car, { c: corner, amt: 0.2 });
   derive(hurt);
   return true;
 }
