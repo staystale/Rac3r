@@ -1,6 +1,9 @@
 // The scenery painters: planes, trucks, trees, rocks, crowds, flags, signs and the
 // other small trackside props.
 import { parkMiller } from '../../core/random.ts';
+import { isHutWrecked, woodMarshalOn } from '../../world/marshalbox.ts';
+import { treesOn } from '../../world/treetrunks.ts';
+import { drawSeasonTree } from '../trees.ts';
 import type { Prop } from '../../world/types.ts';
 import type { PropCtx } from './types.ts';
 
@@ -79,6 +82,11 @@ export function drawTruck(propCtx: PropCtx, prop: Prop, ppm: number) {
  */
 export function drawTree(propCtx: PropCtx, prop: Prop, ppm: number) {
   const { view } = propCtx;
+  // ?trees=1: leafy trees and firs by the season and the weather's snow (render/trees.ts)
+  if (treesOn()) {
+    drawSeasonTree(view.ctx, prop, (prop.s || 4) * ppm);
+    return;
+  }
   // a tree from overlapping SQUARES (pixel rule), shade per seed; long shadow first
   const size = (prop.s || 4) * ppm,
     shade = ((prop.seed! * 9301 + 49297) % 233280) / 233280;
@@ -215,10 +223,40 @@ export function drawMarshal(propCtx: PropCtx, prop: Prop, ppm: number) {
     view.ctx.fillStyle = col;
     view.ctx.fillRect(x * ppm, y * ppm, width * ppm, height * ppm);
   };
+  if (woodMarshalOn()) {
+    drawWoodenHut(paint, isHutWrecked(prop), prop);
+    return;
+  }
   view.ctx.fillStyle = 'rgba(10,12,16,0.35)';
   view.ctx.fillRect(-1.2 * ppm + 0.4 * ppm, -1 * ppm + 0.6 * ppm, 2.4 * ppm, 2 * ppm);
   paint(-1.2, -1, 2.4, 2, '#f07a1a');
   paint(-0.95, -0.75, 1.9, 1.5, '#f2f2f2');
+}
+
+/**
+ * A wooden marshal hut (?woodmarshal=1, world/marshalbox.ts): a plank roof with an orange
+ * marshal stripe; smashed, a few broken planks lie on its footprint.
+ * @param paint fills a box in metres on the prop's axes
+ * @param isWrecked smashed
+ * @param prop the hut (its position seeds the wreck's planks)
+ */
+function drawWoodenHut(paint: (x: number, y: number, width: number, height: number,
+    col: string) => void, isWrecked: boolean, prop: Prop) {
+  if (isWrecked) {
+    paint(-1.2, -1, 2.4, 2, 'rgba(40,28,18,0.35)');
+    const rand = parkMiller(Math.abs(Math.floor(prop.x * 7 + prop.y * 13)) + 1);
+    for (let plank = 0; plank < 4; plank++) {
+      const offX = rand() * 1.6 - 0.8, offY = rand() * 1.2 - 0.6;
+      paint(offX - 0.45, offY, 0.9, 0.18, plank % 2 ? '#7a5030' : '#9a6a40');
+    }
+    return;
+  }
+  paint(-1.2 + 0.35, -1 + 0.45, 2.4, 2, 'rgba(10,12,16,0.35)');
+  paint(-1.2, -1, 2.4, 2, '#7a5030');
+  for (let row = 0; row < 6; row++) {
+    paint(-1.1, -0.9 + row * 0.32, 2.2, 0.26, row % 2 ? '#9a6a40' : '#8c5e36');
+  }
+  paint(-1.2, -1, 2.4, 0.22, '#f07a1a');
 }
 
 /**

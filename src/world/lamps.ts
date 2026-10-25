@@ -8,6 +8,7 @@
 import { LEVEL, PROPS } from './state.ts';
 import { DAYLIGHT } from './daylight.ts';
 import { planLamps } from './lampplan.ts';
+import { resetMarshalHuts } from './marshalbox.ts';
 import type { CarBody, Level, Prop, Solid } from './types.ts';
 
 // darkness at and above which the lamps are on (a light sensor: a little before the cars' lights)
@@ -155,10 +156,11 @@ function streamedLamps(level: Level): Lamp[] {
   return lamps;
 }
 
-/** Stands every lamp up again, undamaged (RESTART). */
+/** Stands every lamp up again, undamaged, and every wooden marshal hut with them (RESTART). */
 export function resetLamps(): void {
   builtFor = null;
   lampOfEntry = new WeakMap();
+  resetMarshalHuts();
 }
 
 /**

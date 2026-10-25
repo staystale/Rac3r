@@ -181,6 +181,9 @@ export function weatherSnowy(): boolean { return !!RUN.plan?.snowy; }
 /** Whether an event's weather is running (no plan: the old dry 18 C game, nothing melts). */
 export function weatherRuns(): boolean { return !!RUN.plan; }
 
+/** The running event's season, 0 winter .. 3 autumn, or null with no event weather. */
+export function weatherSeason(): number | null { return RUN.plan ? RUN.plan.season : null; }
+
 // the running weather: plan, random stream, targets
 const RUN = {
   plan: null as WeatherPlan | null,

@@ -29,6 +29,10 @@ export interface Settings {
   audio: boolean;   // ?noaudio=1: never start Web Audio (phone judder test)
   noNatClear: boolean;   // ?nonat=1: the highway slide keeps the terrain height cache (judder test)
   skipLayers: Set<string>;   // ?skip=props,barriers: layers not drawn (phone judder bisect)
+  carLamps: boolean;   // ?carlamps=1: a damaged car lamp flickers, then works again or dies
+  woodMarshal: boolean;   // ?woodmarshal=1: wooden marshal huts that smash
+  brakeGlow: boolean;   // ?brakeglow=1: hot brake discs glow at night
+  trees: boolean;   // ?trees=1: trunk-only trees, canopies over the cars, seasons, weather snow
   churn: '' | 'pictures' | 'objects';   // ?churn=: judder mechanism test (memory churn)
   autopilot: boolean;   // ?autopilot=1: the AI drives the player car (phone frame tests, no touch)
   autopilotKmh: number;   // ?autopilot=120: hold the autopilot car at this speed (0 = no cap)
@@ -102,5 +106,9 @@ export function readSettings(search: string): Settings {
     churn: churnKind(params),
     noNatClear: params.get('nonat') === '1',
     skipLayers: new Set((params.get('skip') || '').split(',').filter(Boolean)),
+    carLamps: params.get('carlamps') === '1',
+    woodMarshal: params.get('woodmarshal') === '1',
+    brakeGlow: params.get('brakeglow') === '1',
+    trees: params.get('trees') === '1',
   };
 }

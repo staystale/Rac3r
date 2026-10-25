@@ -9,6 +9,10 @@ import { activeLamps, lampsLit } from '../world/lamps.ts';
 import { indicatorBlinkOn, lampLevel } from './cars.ts';
 import { traceDecks } from './lightdecks.ts';
 import { drawEventGlows } from './eventglows.ts';
+import { BRAKE_GLOW, BRAKE_GLOW_M, hotBrakes } from './brakeglow.ts';
+import { traceCanopies } from './trees.ts';
+import { treesOn } from '../world/treetrunks.ts';
+import { PROPS } from '../world/state.ts';
 import {
   REVERSE_BEAM_HALF_M, REVERSE_BEAM_REACH_M, REVERSE_BEAM_STRENGTH, REVERSE_GLOW,
   REVERSE_GLOW_LEVEL,
@@ -134,6 +138,7 @@ interface GlowPainter {
   glow: HTMLCanvasElement;      // indicators (amber, or white for the rub-out)
   redGlow: HTMLCanvasElement;   // brake, tail and rain lights (red, or white)
   reverseGlow: HTMLCanvasElement;   // reversing lights (cool white, or white)
+  brakeGlow: HTMLCanvasElement;   // hot brake discs (deep orange, or white)
   headGlow: HTMLCanvasElement;  // a street light's head (warm, or white)
   strength: number;             // this frame's glow strength (by the dark)
   mapX: (worldX: number) => number;
@@ -189,11 +194,12 @@ function drawHeadGlows(painter: GlowPainter) {
  * @param across metres to its +y side
  * @param picture the glow picture
  * @param level its brightness, 0..1
+ * @param radiusM its radius, m (a lamp's GLOW_M)
  */
 function glowAt(painter: GlowPainter, car: RenderCar, along: number, across: number,
-    picture: HTMLCanvasElement, level: number) {
+    picture: HTMLCanvasElement, level: number, radiusM = GLOW_M) {
   const cos = Math.cos(car.heading), sin = Math.sin(car.heading);
-  const size = 2 * GLOW_M * painter.perMetre();
+  const size = 2 * radiusM * painter.perMetre();
   const x = painter.mapX(car.x + cos * along - sin * across);
   const y = painter.mapY(car.y + sin * along + cos * across);
   painter.ctx.globalAlpha = painter.strength * level;
@@ -210,6 +216,10 @@ function glowAt(painter: GlowPainter, car: RenderCar, along: number, across: num
 function drawCarGlows(painter: GlowPainter, car: RenderCar, isBlinkOn: boolean) {
   if (isBlinkOn) drawIndicatorGlows(painter, car);
   drawRearGlows(painter, car);
+  // hot brake discs glow at their wheels (?brakeglow=1, render/brakeglow.ts)
+  for (const wheel of hotBrakes(car)) {
+    glowAt(painter, car, wheel.along, wheel.across, painter.brakeGlow, wheel.level, BRAKE_GLOW_M);
+  }
 }
 
 /**
@@ -336,9 +346,10 @@ function makeMapGlows(pools: PoolPainter) {
     glow: makePicture(glowOf(AMBER, TINT_STOPS)), redGlow: makePicture(glowOf(RED, TINT_STOPS)),
     headGlow: makePicture(glowOf(WARM, TINT_STOPS)),
     reverseGlow: makePicture(glowOf(REVERSE_GLOW, TINT_STOPS)),
+    brakeGlow: makePicture(glowOf(BRAKE_GLOW, TINT_STOPS)),
     mapX: pools.artX, mapY: pools.artY, perMetre: pools.artPerMetre };
   const out: GlowPainter = { ...tint, glow: whiteGlow, redGlow: whiteGlow, headGlow: whiteGlow,
-    reverseGlow: whiteGlow };
+    reverseGlow: whiteGlow, brakeGlow: whiteGlow };
   const paint = (game: RenderGame, tintFirst: () => void) => {
     paintGlows(out, game);
     pools.lightCtx.globalCompositeOperation = 'source-over';
@@ -430,6 +441,27 @@ function drawReverseBeams(painter: PoolPainter, beam: HTMLCanvasElement, car: Re
   lightCtx.globalAlpha = 1;
 }
 
+/**
+ * Puts the night's dark back over the tree canopies, after every light and tint (?trees=1): a
+ * canopy hangs above the cars, the lamps' and signs' light below it never reaches its top.
+ * @param pools the light map and its art-px mapping
+ * @param darkFill the night's dark this frame
+ */
+function darkenCanopies(pools: PoolPainter, darkFill: string) {
+  if (!treesOn() || !PROPS) return;
+  const lightCtx = pools.lightCtx;
+  lightCtx.setTransform(1, 0, 0, 1, 0, 0);
+  lightCtx.globalAlpha = 1;
+  lightCtx.beginPath();
+  if (!traceCanopies(lightCtx, PROPS, pools)) return;
+  lightCtx.globalCompositeOperation = 'destination-out';
+  lightCtx.fillStyle = '#000';
+  lightCtx.fill();
+  lightCtx.globalCompositeOperation = 'source-over';
+  lightCtx.fillStyle = darkFill;
+  lightCtx.fill();
+}
+
 /** What the decks' order paints with (createNight's parts). */
 interface DeckPainter {
   pools: PoolPainter;
@@ -517,15 +549,16 @@ export function createNight(parts: NightParts) {
     lightCtx.beginPath();
     if (traceDecks(lightCtx, pools) > 0) {
       paintUnderDecks({ pools, mapGlows, darkFill, drawAllBeams }, game);
-      return;
+    } else {
+      drawPools(pools, false);
+      drawEventGlows(pools, false, game);
+      drawAllBeams(game);
+      mapGlows.paint(game, () => {
+        drawPools(pools, true);
+        drawEventGlows(pools, true, game);
+      });
     }
-    drawPools(pools, false);
-    drawEventGlows(pools, false, game);
-    drawAllBeams(game);
-    mapGlows.paint(game, () => {
-      drawPools(pools, true);
-      drawEventGlows(pools, true, game);
-    });
+    darkenCanopies(pools, darkFill);
   }
 
   return (game: RenderGame, lock: NightLock) => {

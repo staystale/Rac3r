@@ -10,6 +10,7 @@ import { WEATHER } from "../world/weather.ts";
 import { stepWetTrails } from "../wettrail.ts";
 import { applyGround, fenceClamp, obstacleClamp } from "../world/wear.ts";
 import { barrierClamp, solidClamp } from "../world/barriers.ts";
+import { takeThrownPlanks } from "../world/marshalbox.ts";
 import { findNearestSubtrackPoint } from "../world/tyrewall.ts";
 import { resetCar, startHeld, atPace, stepOrder, formationWant } from './order.js';
 import { doReset, onScreen } from './session.js';
@@ -401,6 +402,9 @@ export function stepLooseCones(tcars) {
     const field = game.ai.length || near.length
       ? [game.car, ...game.ai.map((entry) => entry.car), ...near] : [game.car],
         startVel = field.map((racer) => [racer.vx, racer.vy]);
+    // planks a smashed marshal hut threw out join the loose objects (world/marshalbox.ts)
+    const planks = takeThrownPlanks();
+    if (planks.length) game.cones.spawn(planks);
     game.cones.step(field.length > 1 ? field : game.car, PHYSICS_STEP_SECONDS);
     field.forEach((racer, i) => hit(racer, startVel[i][0], startVel[i][1]));
     // DAMAGE: a torn-off wheel becomes a loose tyre, thrown from its corner with the car's

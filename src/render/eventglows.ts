@@ -13,6 +13,7 @@ import { lampsLit } from '../world/lamps.ts';
 import { LEVEL, PROPS } from '../world/state.ts';
 import { querySubtrack } from '../world/tyrewall.ts';
 import { stageFairyLights } from '../world/lampplan.ts';
+import { isHutWrecked } from '../world/marshalbox.ts';
 import { BOARD_H_M, BOARD_W_M } from './props/scenery.ts';
 import type { Point, Prop } from '../world/types.ts';
 import type { RenderCone, RenderGame } from './types.ts';
@@ -241,7 +242,9 @@ function propLights(painter: EventPainter, isTint: boolean, game: RenderGame): v
   for (const prop of PROPS || []) {
     const kind = prop.kind;
     if (kind === 'board') boardLight(painter, isTint, prop);
-    else if (kind === 'marshal') glow(painter, isTint, prop.x, prop.y, BEACON_M, AMBER, BEACON);
+    else if (kind === 'marshal' && !isHutWrecked(prop)) {
+      glow(painter, isTint, prop.x, prop.y, BEACON_M, AMBER, BEACON);
+    }
     else if (kind === 'grandstand' || kind === 'stadium_grandstand') {
       festoon(painter, isTint, frontEdge(prop));
     }

@@ -39,6 +39,10 @@ import {
 } from "./world/weather.ts";
 import { setDarkness } from "./world/daylight.ts";
 import { CLOCK, startClock } from "./world/clock.ts";
+import { setCarLamps } from "./render/carlamps.ts";
+import { setWoodMarshal } from "./world/marshalbox.ts";
+import { setBrakeGlow } from "./render/brakeglow.ts";
+import { setTrees } from "./world/treetrunks.ts";
 import { LEVEL } from "./world/state.ts";
 
 import { LEVELS } from "./world/levels/index.ts";
@@ -71,6 +75,14 @@ if (shared.settings.night !== null) setDarkness(shared.settings.night);
 startClock(shared.settings.night === null,
   Math.floor(((new Date().getMonth() + 1) % 12) / 3));
 shared.DEV = shared.settings.dev;
+// ?carlamps=1: a damaged car lamp flickers, then works again or dies (by its damage)
+setCarLamps(shared.settings.carLamps);
+// ?woodmarshal=1: wooden marshal huts that a hard hit smashes
+setWoodMarshal(shared.settings.woodMarshal);
+// ?brakeglow=1: hot brake discs glow at their wheels after dark
+setBrakeGlow(shared.settings.brakeGlow);
+// ?trees=1: trunk-only trees, their canopies over the cars and dark at night, by the season
+setTrees(shared.settings.trees);
 
 shared.canvas = document.getElementById('c');
 shared.boot = document.getElementById('boot');

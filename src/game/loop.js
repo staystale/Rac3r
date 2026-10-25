@@ -138,6 +138,8 @@ export function runSimSteps(inp, wallDt) {
     if (steps >= MAX_STEPS) shared.acc = 0;      // fell behind: drop it, never catch up in a lurch
     game.stepsLastFrame = steps;
     game.car.brakeLight = inp.brake;
+    // the handbrake, for its rear brakes' heat (render/brakeglow.ts)
+    game.car.handbrakeOn = inp.handbrake ? 1 : 0;
   }
   return meterSim;
 }

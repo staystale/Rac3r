@@ -235,6 +235,7 @@ export function stepAICar(entry, dt) {
     const want = aiWant(entry, dt);
     // the AI's brake lights show its brakes
     car.brakeLight = want.brake;
+    car.handbrakeOn = want.handbrake ? 1 : 0;
     stepAIPhysics(entry, want, dt);
     assertFinite(car);
     // the JOKER gate, counted for every AI exactly as for the player (stepJoker)

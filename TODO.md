@@ -278,6 +278,11 @@ lights), world/lampplan.ts (corner floodlights + tyre rings via cones.js, villag
 strings), world/lamps.ts settleLamp (3-8 s, dies 15 % + 70 % of lost light). Photos:
 _eventlightshots.mjs. Switch off: simhash SAME. TO DO after: F5b WOODEN marshal boxes,
 destructible (?woodmarshal=1).
+ROUND 2 UNDER TEST 10-25 (one link): ?carlamps=1 (render/carlamps.ts: a hit flickers 3-8 s,
+then steady or dead by damage), ?woodmarshal=1 (world/marshalbox.ts: smash at 8 m/s, pallets
+thrown, beacon out), ?brakeglow=1 (render/brakeglow.ts: heat builds over ~3 hard stops;
+handbrake heats the rears), ?trees=1 (world/treetrunks.ts trunk-only solid; render/trees.ts
+seasons, firs, weather snow, canopies overhead and dark at night). TS conversion ON HOLD.
 
 G. SOUND + SETTINGS (M): pause menu SOUND sub-menu (car, environment, radio channel, menu: each a
 volume + mute); a SETTINGS screen off the main menu with the same and the GENERAL DIFFICULTY;

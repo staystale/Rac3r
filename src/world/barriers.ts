@@ -4,6 +4,8 @@ import { LEVEL } from "./state.ts";
 import { activeLamps, type Lamp } from "./lamps.ts";
 import { driveOverPost, hitLamp } from "./lampdamage.ts";
 import { solidsNear } from "./solidgrid.ts";
+import { isSolidWrecked, noteMarshalSolid, smashHut } from "./marshalbox.ts";
+import { solidBox } from "./treetrunks.ts";
 import { noteHit } from "../physics/punctures.ts";
 import type {
   Barrier, BarrierKind, BarrierSeg, CarBody, Point, Prop, Solid, Subtrack,
@@ -125,7 +127,11 @@ function addStructureSolids(out: Solid[], prop: Prop): boolean {
     // fuselage, wing, tailplane
     case 'plane': box(0.3, 0, 7, 1); box(1.0, 0, 1.4, 9); box(-2.8, 0, 0.8,
         3.2); return true;
-    case 'marshal': box(0, 0, 2.4, 2); return true;
+    case 'marshal':
+      box(0, 0, 2.4, 2);
+      // the hut's box knows its hut (world/marshalbox.ts: smashed, it stops being solid)
+      noteMarshalSolid(out[out.length - 1], prop);
+      return true;
     case 'board': box(0, 0, 18, 1.2); return true;
     case 'windsock': box(0, 0, 0.5, 0.5); return true;
     default: return false;
@@ -269,7 +275,8 @@ export function solidClamp(car: CarBody): void {
   if ((!list || !list.length) && !lamps.length) return;
   if (list) for (const solid of list) {
     const vx0 = car.vx, vy0 = car.vy;
-    clampToSolid(car, solid, halfLen, halfWid);
+    // a tree with the reworked trees: its trunk only (world/treetrunks.ts)
+    clampToSolid(car, solidBox(solid), halfLen, halfWid);
     if (car.vx !== vx0 || car.vy !== vy0) noteHit(car, solid.kind);
   }
   // the lamp posts: a hit may lean, dim or snap them; a fallen post is driven over
@@ -294,11 +301,16 @@ function clampToSolid(car: CarBody, solid: Solid, halfLen: number, halfWid: numb
     lamp: Lamp | null = null): void {
   const dx = car.x - solid.x, dy = car.y - solid.y;
   if (dx * dx + dy * dy > (Math.hypot(halfLen, halfWid) + solid.r!) ** 2) return;
+  // a smashed hut is no longer solid
+  if (solid.kind === 'marshal' && isSolidWrecked(solid)) return;
   const cosHead = Math.cos(car.heading), sinHead = Math.sin(car.heading);
   const { best, pushX, pushY } = satAgainstSolid(car, solid, halfLen, halfWid, cosHead, sinHead);
   if (best <= 0) return;
+  const into = -(car.vx * pushX + car.vy * pushY);
   // a lamp post: the hit leans / dims it, or snaps it and the car goes through (no bounce)
-  if (lamp && hitLamp(lamp, car, -(car.vx * pushX + car.vy * pushY), pushX, pushY)) return;
+  if (lamp && hitLamp(lamp, car, into, pushX, pushY)) return;
+  // a wooden marshal hut (?woodmarshal=1): smashed, the car goes through it (world/marshalbox.ts)
+  if (solid.kind === 'marshal' && smashHut(solid, car, into, pushX, pushY)) return;
   car.x += pushX * best;
   car.y += pushY * best;
   bounceOffNormal(car, pushX, pushY);

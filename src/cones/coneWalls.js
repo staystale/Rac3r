@@ -3,6 +3,8 @@
 import { LEVEL } from "../world/state.ts";
 import { BARRIER_HALF } from "../world/barriers.ts";
 import { solidsNear } from "../world/solidgrid.ts";
+import { isSolidWrecked } from "../world/marshalbox.ts";
+import { solidBox } from "../world/treetrunks.ts";
 const WALL_E = 0.3, WALL_SCRAPE = 0.8, OVER_V = 9, OVER_CHANCE = 0.3;
 
 /**
@@ -101,7 +103,11 @@ function solidContact(solid, radius, localU, localV) {
 function hitSolids(cone, radius, speed) {
   // the solids near it (world/solidgrid.ts), or all of them for a big object
   const found = solidsNear(cone.x, cone.y, radius);
-  for (const solid of found ? found.solids : LEVEL.solids || []) {
+  for (const listed of found ? found.solids : LEVEL.solids || []) {
+    // a tree with the reworked trees: its trunk only (world/treetrunks.ts)
+    const solid = solidBox(listed);
+    // a smashed marshal hut is no longer solid (world/marshalbox.ts)
+    if (solid.kind === 'marshal' && isSolidWrecked(solid)) continue;
     const dx = cone.x - solid.x, dy = cone.y - solid.y;
     if (dx * dx + dy * dy > (solid.r + radius) ** 2) continue;
     const cosRot = Math.cos(solid.rot), sinRot = Math.sin(solid.rot), localU = dx * cosRot + dy
