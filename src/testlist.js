@@ -34,7 +34,7 @@ export const TEST_LIST = [
     where: 'Plain link + &bushes=1: Killder, Sweaty Lamb, forest / alpine stages, Castle Cum,'
       + ' Brands Snatch, Knobhill, Lab, Rough Patch, Test Track, Sandbox',
     try: 'Drive into bushes at speed and slowly; cut a stage corner through one; cross the'
-      + ' same bush 3 times.',
+      + ' same bush 3 times; stop inside one (leaves poke up over the car).',
     wrong: 'Bouncing off a bush, no slowing, a puncture nearly every bush, bushes on the road,'
       + ' a flattened bush that never turns to long grass.',
   },

@@ -6,6 +6,7 @@ import type { Cam, View } from './types.ts';
 import type { PropCtx, PropDrawer, PropsHelpers } from './props/types.ts';
 import { drawPropsFence, drawPropsBarriers } from './props/fence.ts';
 import { drawStreetLights } from './props/lamps.ts';
+import { drawBushTufts } from './bushtufts.ts';
 import { drawBridge, drawFootbridge } from './props/bridges.ts';
 import {
   drawGarageRow,
@@ -105,6 +106,8 @@ function propVisible(view: View, prop: Prop, screenX: number, screenY: number, p
 function drawPropList(propCtx: PropCtx, overhead = false) {
   const { view, PPMz, toScreenX, toScreenY, drawSlip } = propCtx;
   const ppm = PPMz();
+  // bushes' leaves poke up over the cars (under the lamp heads and the tree canopies)
+  if (overhead) drawBushTufts(propCtx, ppm);
   // the street lights: standing heads hang above the cars, fallen posts lie under them
   drawStreetLights(propCtx, ppm, overhead);
   if (!PROPS || !PROPS.length) return;

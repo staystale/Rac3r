@@ -81,7 +81,8 @@ Bushes (`?bushes=1`) are ground too: the `bush` surface (its `brush` drag grows 
 (`world/levels/bushes.ts`), flattened to long grass by passes (`wear.ts BASE_WEAR`); a wheel
 entering a bush cell may puncture or scratch that corner (`world/bushes.ts`). Drawn by
 `render/ground/bushes.ts` (squares in the trees' pixel style: shadow, lit squares, shaded side)
-over the `bush` art.
+over the `bush` art. A few leaf tufts per bush are drawn over the cars
+(`render/bushtufts.ts`, in the overhead pass).
 
 ## Drawing (`render.ts` and `render/`)
 

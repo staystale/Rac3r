@@ -290,6 +290,8 @@ levels), flattened to long grass by passes (wear.ts BASE_WEAR); a wheel entering
 puncture (0.7 %) or scratch that corner by speed (world/bushes.ts, damage.js bushScratch). Look
 (owner: square pixel art like the trees, own shades of green): art.ts addBushLooks (holly, olive
 gorse, blue-green; their colours join the palette only while ?bushes=1), ground/bushes.ts.
+Round 2 (owner): drag 2.6, a light dent, puncture 0.8 %; leaf TUFTS drawn over the cars
+(render/bushtufts.ts, the overhead pass under the canopies; gone where the bush is flattened).
 MEASURED (_bushes.mjs): a clump costs 21-35 km/h more than grass at 54-126 km/h. Levels: Castle
 Cum, Brands Snatch GP / Indy, Knobhill, Killder, Sweaty Lamb, the forest and alpine stages (set
 + generated), Lab, Rough Patch, Test Track, Sandbox. Not on snow / desert themes, ovals or the

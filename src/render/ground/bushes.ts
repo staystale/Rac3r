@@ -11,11 +11,20 @@ const SHADOW = 'rgba(10,12,16,0.32)', SHADOW_X = 0.25, SHADOW_Y = 0.35;
 // the mid square and the lit square: [left, top, side] as shares of the bush's side, as the
 // trees' canopy squares
 const MID_SQUARE = [0.12, 0.1, 0.62], LIT_SQUARE = [0.2, 0.18, 0.3];
-// each kind's [mid, lit] colours (its art: render/ground/art.ts addBushLooks)
-const KIND_SQUARES: Record<string, [string, string]> = {
-  bush: ['rgba(47,90,52,0.9)', 'rgba(120,176,96,0.6)'],
-  bushOlive: ['rgba(95,110,36,0.9)', 'rgba(176,186,72,0.6)'],
-  bushTeal: ['rgba(45,94,88,0.9)', 'rgba(134,184,164,0.55)'],
+/** One kind of bush's greens: its ground art (base, leaf clumps, lit leaves, flecks), its volume's
+ * mid and lit squares, and its tufts over the cars (render/bushtufts.ts). */
+export interface BushLook {
+  base: string; clumps: string; lit: string; fleck: string; mid: string; top: string;
+}
+// THE KINDS (world/bushplan.ts picks one per clump): deep holly, olive gorse with yellow
+// flowers, blue-green box - greens of their own, apart from the grass
+export const BUSH_LOOKS: Record<string, BushLook> = {
+  bush: { base: '#1f3d24', clumps: '#2f5a34', lit: '#4f8a4a', fleck: '#78b060',
+    mid: 'rgba(47,90,52,0.9)', top: 'rgba(120,176,96,0.6)' },
+  bushOlive: { base: '#46521c', clumps: '#5f6e24', lit: '#8a9a34', fleck: '#e0c840',
+    mid: 'rgba(95,110,36,0.9)', top: 'rgba(176,186,72,0.6)' },
+  bushTeal: { base: '#1e4040', clumps: '#2d5e58', lit: '#4f8a7c', fleck: '#86b8a4',
+    mid: 'rgba(45,94,88,0.9)', top: 'rgba(134,184,164,0.55)' },
 };
 // the dark band on the lower-right side, a share of the side wide
 const SHADE = 'rgba(8,12,6,0.45)', SHADE_BAND = 0.16;
@@ -58,10 +67,10 @@ export function castBushShadow(ctx: CanvasRenderingContext2D, patch: Patch,
  * @param ppm px a metre
  */
 export function lightBushTop(ctx: CanvasRenderingContext2D, patch: Patch, ppm: number): void {
-  const [mid, lit] = KIND_SQUARES[patch.art || 'bush'] || KIND_SQUARES.bush;
-  ctx.fillStyle = mid;
+  const look = BUSH_LOOKS[patch.art || 'bush'] || BUSH_LOOKS.bush;
+  ctx.fillStyle = look.mid;
   fillPart(ctx, patch, ppm, MID_SQUARE);
-  ctx.fillStyle = lit;
+  ctx.fillStyle = look.top;
   fillPart(ctx, patch, ppm, LIT_SQUARE);
 }
 
