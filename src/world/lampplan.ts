@@ -14,6 +14,7 @@
 import { FLOOR } from './bounds.ts';
 import { catOf } from './levels/category.ts';
 import { eventLightsOn } from './eventlights.ts';
+import { smoothOnTrack } from './barriers.ts';
 import type { Level, Point, Prop, Subtrack, TrackPoint } from './types.ts';
 
 // street lights: how far out from the track edge their posts stand, spacing, and the stretch of
@@ -51,6 +52,8 @@ const cornerCache = new WeakMap<Level, CornerSpot[]>();
 const VILLAGE_REACH_M = 40, VILLAGE_GAP_M = 30, VILLAGE_LEN_M = 60;
 // a rally stage's fairy-light strings: their length and how far off the road edge, m
 const FAIRY_LEN_M = 30, FAIRY_OUT_M = 5;
+// a fairy-light string's bulb spacing along the road, and how far off any road a bulb must be, m
+const FAIRY_STEP_M = 1.6, FAIRY_CLEAR_M = 2;
 const fairyCache = new WeakMap<Level, Point[][]>();
 
 /**
@@ -290,7 +293,8 @@ function lightVillages(level: Level, placed: Prop[]): void {
  * and the finish, and on the buildings' side through each village of a generated stage. Worked
  * out once per stage; render/eventglows.ts hangs the bulbs on them.
  * @param level the level
- * @returns each string's two ends (none off a rally stage or with the event lights off)
+ * @returns each string's bulbs, following the road edge (none off a rally stage or with the
+ *   event lights off)
  */
 export function stageFairyLights(level: Level): Point[][] {
   if (!eventLightsOn() || catOf(level) !== 'rally' || !level.subtrack) return [];
@@ -298,10 +302,16 @@ export function stageFairyLights(level: Level): Point[][] {
   if (strings) return strings;
   const sub = level.subtrack;
   const finish = level.stage ? level.stage.finish : sub.totalDist - 20;
-  const along = (from: number, side: number): Point[] => [from, from + FAIRY_LEN_M].map((dist) => {
-    const end = besideTrack(sub, dist, side, FAIRY_OUT_M, 'string');
-    return [end.x, end.y] as Point;
-  });
+  // a string follows the road edge bulb by bulb (a straight line between its ends cut across the
+  // road on a bend); a bulb that would hang over any road (a hairpin's other leg) is left out
+  const along = (from: number, side: number): Point[] => {
+    const bulbs: Point[] = [];
+    for (let dist = from; dist <= from + FAIRY_LEN_M; dist += FAIRY_STEP_M) {
+      const bulb = smoothOnTrack(sub, dist, side * (sub.width / 2 + FAIRY_OUT_M));
+      if (trackGap(sub, bulb) >= sub.width / 2 + FAIRY_CLEAR_M) bulbs.push([bulb.x, bulb.y]);
+    }
+    return bulbs;
+  };
   strings = [];
   for (const from of [5, finish - FAIRY_LEN_M / 2]) {
     for (const side of [1, -1]) strings.push(along(from, side));

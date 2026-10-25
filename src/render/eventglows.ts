@@ -1,7 +1,7 @@
 // EVENT GLOWS (?eventlights=1, world/eventlights.ts; the owner's picks 10-25): the lights the
 // level's own props give off after dark, painted into the one night layer (render/light.ts) in
 // its two passes - the rub-out (the dark wiped where the light is) and the tint (its colour).
-//   boards        backlit: the board shows at full brightness, its accent colour spilling round it
+//   boards        backlit: the board's face at full brightness, a faint neutral halo round it
 //   marshal posts an orange beacon on the roof
 //   grandstands   multi-coloured festoon bulbs along the edge facing the track
 //   rally stages  multi-coloured fairy lights at the start, the finish and through villages
@@ -14,7 +14,7 @@ import { eventLightsOn } from '../world/eventlights.ts';
 import { LEVEL, PROPS } from '../world/state.ts';
 import { querySubtrack } from '../world/tyrewall.ts';
 import { stageFairyLights } from '../world/lampplan.ts';
-import { BOARD_H_M, BOARD_W_M, boardAccent } from './props/scenery.ts';
+import { BOARD_H_M, BOARD_W_M } from './props/scenery.ts';
 import type { Point, Prop } from '../world/types.ts';
 import type { RenderCone, RenderGame } from './types.ts';
 
@@ -27,8 +27,9 @@ export interface EventPainter {
   isNear: (x: number, y: number, reach: number) => boolean;
 }
 
-// a board's backlight: the share of the dark wiped off the board, and its spill round it (m, share)
-const BOARD_LIT = 0.9, BOARD_SPILL_M = 3, BOARD_SPILL = 0.35;
+// a board's backlight: the share of the dark wiped off the board, and a faint neutral halo round
+// it (m, share; owner: the coloured 3 m spill lit nearby trees "weird" - a real sign barely spills)
+const BOARD_LIT = 0.9, BOARD_SPILL_M = 1, BOARD_SPILL = 0.15;
 // a marshal post's beacon: radius, m, brightness
 const BEACON_M = 2.6, BEACON = 0.75;
 // festoon bulbs: spacing along the stand's front edge, each glow's radius, m, brightness, and
@@ -97,16 +98,15 @@ function glow(painter: EventPainter, isTint: boolean, x: number, y: number, radi
 }
 
 /**
- * A backlit board: the board shows at full brightness (rub-out) and its accent colour spills
- * round it (tint).
+ * A backlit board: the board's face shows at full brightness in its own colours (rub-out), with
+ * a faint neutral halo just round it.
  * @param painter the light map
  * @param isTint the tint pass
  * @param prop the board
  */
 function boardLight(painter: EventPainter, isTint: boolean, prop: Prop): void {
-  const rot = prop.rot || 0, accent = boardAccent(prop);
-  const rgb = [1, 3, 5].map((start) => parseInt(accent.slice(start, start + 2), 16)).join(',');
-  glow(painter, isTint, prop.x, prop.y, BOARD_W_M / 2 + BOARD_SPILL_M, rgb, BOARD_SPILL,
+  const rot = prop.rot || 0;
+  glow(painter, isTint, prop.x, prop.y, BOARD_W_M / 2 + BOARD_SPILL_M, WHITE, BOARD_SPILL,
     { wideM: BOARD_H_M / 2 + BOARD_SPILL_M, rot });
   if (isTint) return;
   const { lightCtx, artPerMetre } = painter, scale = artPerMetre();
@@ -165,6 +165,23 @@ function festoon(painter: EventPainter, isTint: boolean, ends: Point[]): void {
     glow(painter, isTint, fromX + (toX - fromX) * share, fromY + (toY - fromY) * share, BULB_M,
       BULB_COLOURS[i % BULB_COLOURS.length], BULB);
   }
+}
+
+/**
+ * A fairy-light string whose bulbs are already placed (world/lampplan.ts: following the road
+ * edge), cycling through the colours.
+ * @param painter the light map
+ * @param isTint the tint pass
+ * @param bulbs the bulbs' places
+ */
+function fairyString(painter: EventPainter, isTint: boolean, bulbs: Point[]): void {
+  if (!bulbs.length) return;
+  const [firstX, firstY] = bulbs[0], [lastX, lastY] = bulbs[bulbs.length - 1];
+  const reach = (Math.hypot(lastX - firstX, lastY - firstY) / 2 + 6) * painter.artPerMetre();
+  if (!painter.isNear(painter.artX((firstX + lastX) / 2), painter.artY((firstY + lastY) / 2),
+    reach)) return;
+  bulbs.forEach(([x, y], i) => glow(painter, isTint, x, y, BULB_M,
+    BULB_COLOURS[i % BULB_COLOURS.length], BULB));
 }
 
 /**
@@ -258,7 +275,7 @@ function caravanLights(painter: EventPainter, isTint: boolean, cones: RenderCone
 export function drawEventGlows(painter: EventPainter, isTint: boolean, game: RenderGame): void {
   if (!eventLightsOn() || !lampsLit()) return;
   propLights(painter, isTint, game);
-  for (const ends of stageFairyLights(LEVEL)) festoon(painter, isTint, ends);
+  for (const bulbs of stageFairyLights(LEVEL)) fairyString(painter, isTint, bulbs);
   caravanLights(painter, isTint, game.cones.list);
   painter.lightCtx.globalAlpha = 1;
 }
