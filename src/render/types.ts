@@ -87,7 +87,6 @@ export interface ParticleCar extends CamCar {
   surface: { spray?: Spray | null };
   t: { slipSpeedF: number; slipSpeedR: number; loadKF: number; loadKR: number };
   tyreT?: unknown;   // truthy when the tyre temperatures are simulated
-  wreck?: { smoke?: boolean };
   dmgEvents?: { scrape?: boolean; amt: number; c: number; metal?: boolean; aim?: number;
     speed?: number }[];
   sparks?: boolean;
@@ -96,7 +95,6 @@ export interface ParticleCar extends CamCar {
   rimSparks?: boolean[];
   _rimDebt?: number;
   _spDebt?: number;
-  _dsDebt?: number;
 }
 
 // What the particles read of the marks layer.

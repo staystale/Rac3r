@@ -1,4 +1,4 @@
-// _engineshots.mjs - car systems C3-C5 in the real game (?engine=1): your car on autopilot round
+// _engineshots.mjs - car systems C3-C5 in the real game: your car on autopilot round
 // a circuit, its radiator cracked by script (a fast leak) - logs the engine (C, water, power,
 // seize) to the seize and photographs the moments: steam + drip, overheating smoke + the red
 // light, seized, close-ups of the speed panel; the exhaust on a cold day (snow) and a hot one
@@ -22,7 +22,7 @@ async function open(size, weather, ai = 0, autopilot = '1') {
   const page = await context.newPage();
   page.on('pageerror', (error) => { errors++; console.log('PAGE ERROR ' + error.message); });
   await gotoGame(page,
-    `${server.url}/?touch=1&guide=0&menu=0&rules=0&noaudio=1&autopilot=${autopilot}&engine=1&dev=1`);
+    `${server.url}/?touch=1&guide=0&menu=0&rules=0&noaudio=1&autopilot=${autopilot}&dev=1`);
   await page.touchscreen.tap(size.width / 2, size.height / 2);
   await page.waitForTimeout(300);
   await page.evaluate(([id, wx, aiCount]) => window.__game.launch(id, 'hatch-rwd',

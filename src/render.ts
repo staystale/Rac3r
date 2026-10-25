@@ -244,7 +244,7 @@ function drawWorldLayers(ctx: RenderCtx, game: RenderGame, lock: ViewLock, wallT
 }
 
 /**
- * Adds and draws the particle effects: puffs, spray, smoke, damage smoke, chips and sparks.
+ * Adds and draws the particle effects: puffs, spray, smoke, engine smoke, chips and sparks.
  *
  * @param ctx the renderer context
  * @param game the game to draw
@@ -263,7 +263,6 @@ function drawEffects(ctx: RenderCtx, game: RenderGame, wallDt: number) {
         && Math.abs(vehicle.x - game.car.x) < 90 && Math.abs(vehicle.y - game.car.y) < 90)
       : []),
   ]) {
-    ctx.addDamageSmoke(car, wallDt);
     ctx.addEngineSmoke(car, wallDt);
     ctx.addChips(car);
     ctx.addSparks(car, wallDt);

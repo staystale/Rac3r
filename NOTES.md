@@ -126,6 +126,12 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   ground only; crash sparks from metal impacts at 25 mph+ (70 %, sprayed the way the car went
   in); brake glow orange -> red the hotter, outside the wheel, none while rolled; a lost wheel's
   tyre reads 0 C; wet trails per wheel; the Lab's flip ramp (an armco end) for testing rolls.
+- Car systems C round 2 (10-25, owner: pass): engine heat - a thermostat holds ~88-90 C with a
+  sound radiator on any day; a front hit cracks the radiator, power fades 115 -> 130 C, ~10 s at
+  130 C (or no oil) SEIZES it (RESET mends; an AI resets); the speedo's thermometer and oil can;
+  exhaust by throttle and cold, backfires, steam and engine smoke over the car. THE LEAK IS WATER
+  (owner: "the same liquid" as the rain, behaving the same, more the worse the leak): it lands as
+  the tyres' water in the wear cells, never a second water look.
 - Outer tyre walls (Grass Track, Stock Car): a fast car pushing through them is fine (owner
   10-25); they stay single rows of loose tyres.
 - Order 10-25 (owner): bushes -> car systems C (when bushes pass) -> the wearcheck rewrite (when

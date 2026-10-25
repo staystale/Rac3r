@@ -1,16 +1,14 @@
-// render/enginesmoke.ts - what the ENGINE throws out (car systems C3 / C5, ?engine=1; mockup
+// render/enginesmoke.ts - what the ENGINE throws out (car systems C3 / C5; mockup
 // approved): EXHAUST from each car's pipe - more on the throttle and in the cold (white at 2 C,
 // faint at 15 C, almost nothing at 30 C), none from a seized engine; BACKFIRES (an orange pop and
 // dark puffs) at a power cut - the moment it seizes, now and then while the heat fades the
 // power, and sometimes a lift-off near the redline; STEAM from a cracked radiator's nose while
 // there is water to boil; DARK SMOKE from an overheating engine, thinning after it seizes.
-// It replaces the old grey nose smoke of a bent front (render/particles.ts) under the switch.
 // Puffs go into the particle layer's pools (render/particles.ts emitPuff): exhaust and backfires
 // at road level under the cars, steam and engine smoke OVER them (they rise off the bonnet). The
 // dice are the drawing's own (fxRandom), never the race's. Wall clock (rule 5).
 import { fxRandom } from './shared.ts';
 import { WEATHER } from '../world/weather.ts';
-import { engineEnabled } from '../physics/engineheat.ts';
 
 /** A puff's look, as render/particles.ts emitPuff takes it (size / lift m, life s). */
 interface PuffLook { rgb: string; size: number; lift: number; life: number; grow: number }
@@ -184,7 +182,7 @@ function emitNose(puffAt: PuffAt, car: SmokeCar, wallDt: number) {
 }
 
 /**
- * Everything the engine throws out this frame (?engine=1 only).
+ * Everything the engine throws out this frame.
  * @param puffAt the particle layer's emitter at road level
  * @param puffOver its emitter over the cars
  * @param car the car
@@ -192,7 +190,7 @@ function emitNose(puffAt: PuffAt, car: SmokeCar, wallDt: number) {
  */
 export function emitEngineSmoke(puffAt: PuffAt, puffOver: PuffAt, car: SmokeCar,
     wallDt: number): void {
-  if (!engineEnabled() || car.engT === undefined) return;
+  if (car.engT === undefined) return;
   if (car.engSeized && !car._wasSeized) {
     car._seizeAge = 0;
     backfire(puffAt, car);

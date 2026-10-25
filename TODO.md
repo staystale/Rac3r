@@ -18,8 +18,9 @@ handover, written on request.
 - TYPESCRIPT CONVERSION: ON HOLD (owner 10-25); new code is TypeScript, old .js converted later.
 - ORDER (owner 10-25): 1 BUSHES (D part 2) - DEFAULT 10-25 (owner: pass); 2 car systems C
   (design + mockup approved 10-25; ROUND 1 - C1 + C2, metal on ground, stingers, highway
-  hedges, sparks, crash sparks, flip ramp - DEFAULT 10-25 (owner: all pass); NEXT round 2
-  C3-C5, ?engine=1; handover docs/foreman-handover.md 10-25 night); 3 the wearcheck rewrite when C passes. Then (owner to order): the driving ROOT
+  hedges, sparks, crash sparks, flip ramp - DEFAULT 10-25 (owner: all pass); round 2
+  C3-C5 DEFAULT 10-25 (owner: pass); NEXT C6-C10); 3 the wearcheck rewrite when C passes.
+  Then (owner to order): the driving ROOT
   FIX for real ABS (owner: "abs is needed to be fixed so yes"), AI rework B (design first),
   sound + settings G, Story + upgrades H, new levels (Dieatona), multiplayer I.
 - BINNED 10-25 (owner: "park em : bin em"): the HUD text fix (branch experiment/hudtext - its
@@ -277,8 +278,8 @@ C. CAR SYSTEMS + DAMAGE (L; one chain - extend damage.ts, no second damage model
   harder).
   ROUND 2 ?engine=1 - C3 radiator + engine temperature (seizes ~10 s at 130 C), C4 speedo lights
   (every car), C5 exhaust smoke; the grey nose smoke replaced by steam / engine smoke.
-  BUILT 10-25, UNDER TEST (testlist engine; owner: thresholds a first cut, tune on test; lift-off
-  pops near the redline YES): physics/engineheat.ts, hud/enginelights.ts,
+  DEFAULT 10-25 (owner: pass; the ?engine switch and the old grey nose smoke of a bent front
+  (wreck.smoke, particles.ts DSMOKE) DELETED; lift-off pops near the redline YES): physics/engineheat.ts, hud/enginelights.ts,
   render/enginesmoke.ts. MEASURED
   (tools/scratch/_engine.mjs): a full radiator holds 87-90 C in every case (a flat-out crawl at
   40 C 89.5); cracked, race driving: empty in 240 / 74 / 40 s (hit 0.15 / 0.35 / 0.6), then 105 C
@@ -288,8 +289,7 @@ C. CAR SYSTEMS + DAMAGE (L; one chain - extend damage.ts, no second damage model
   cells of the tyres' water (puddles.ts rules: grip, clearing, drying, black ice; the field's
   look), one every ~23 m at race pace for a fast leak, ~140 m for a slow one; pools when
   stopped. Real game (_engineshots.mjs, Castle Cum autopilot, fast leak): empty 40 s, 115 C
-  100 s, seized 172 s; an AI seized, reset and came back mended; 0 page errors. ON PASS: delete the grey nose smoke (wreck.smoke, particles.ts DSMOKE) and
-  the switch.
+  100 s, seized 172 s; an AI seized, reset and came back mended; 0 page errors.. NEXT: C6 oil (design first).
 
 D. TREES, BUSHES + SEASONS (M). BUSHES: pass-through, heavy drag, wear to long grass, minor
 damage by chance (less with speed), a fairly high puncture chance (needs C2). TREES: canopy

@@ -48,10 +48,9 @@ export type CarTelemetry = {
   slipSpeedDriven?: number; delta?: number; gear?: number; rpm?: number;
 }
 
-// The damage state vehicle.ts reads (damage.ts sets car.wreck; multipliers, 1 = undamaged; smoke:
-// the nose smokes, for the particles).
+// The damage state vehicle.ts reads (damage.ts sets car.wreck; multipliers, 1 = undamaged).
 export interface CarWreck {
-  toe: number; power: number; roll: number; gripF: number; gripR: number; smoke: boolean;
+  toe: number; power: number; roll: number; gripF: number; gripR: number;
 }
 // The rollover state (roll.js): vehicle.ts only nulls it.
 export interface CarRoll { phase: string }

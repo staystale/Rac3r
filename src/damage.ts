@@ -6,7 +6,7 @@ import {
 } from './physics/tyrepressure.ts';
 import { scrapeMetal, gougeImpact, type ScrapeCar } from './world/metalscrape.ts';
 import {
-  engineInit, engineEnabled, stepEngine, crackOnHit, crackOnRoll,
+  engineInit, stepEngine, crackOnHit, crackOnRoll,
   type EngineCar, type EngineState,
 } from './physics/engineheat.ts';
 import { levelStingers, tyresOnStinger } from './world/stingers.ts';
@@ -42,7 +42,7 @@ import { CORNER_OF_WHEEL } from './world/wheels.ts';
 // car.burstSlow) over 10-30 s - and the axle grip, pull and drag follow the tyre's pressure, down
 // to the rim; stepDamage runs the air, the stingers and metal on the ground
 // (world/metalscrape.ts) each physics step.
-// ENGINE (?engine=1, physics/engineheat.ts): a front hit cracks the radiator (and maybe the sump),
+// ENGINE (physics/engineheat.ts): a front hit cracks the radiator (and maybe the sump),
 // the engine heats as the water goes, power fades when hot and it seizes; the power share it
 // leaves is folded into car.wreck.power here.
 // m/s of impact velocity change below which it is only a scrape (v1: 2.5 — "really hard to cause")
@@ -266,12 +266,11 @@ function derive(car: DamagedCar) {
     toe: TOE * (dmg[1] - dmg[0]) + air.toe
       + TOE_OFF * ((off[1] || off[3] ? 1 : 0) - (off[0] || off[2] ? 1 : 0)),
     roll: 1 + 4 * (offF + offR) + air.roll,
-    smoke: Math.max(dmg[0], dmg[1]) > 0.5,
   };
 }
 
 /**
- * One physics step of the car's systems: the stingers, the tyres' air, the engine (?engine=1),
+ * One physics step of the car's systems: the stingers, the tyres' air, the engine,
  * then metal on the ground (rims, a body sliding on hard ground).
  * @param car the car
  * @param dt the step, s
@@ -281,9 +280,8 @@ export function stepDamage(car: DamageCar & ScrapeCar & EngineCar, dt: number): 
   for (const tyre of tyresOnStinger(car, levelStingers(LEVEL.id))) {
     burstCorner(car, CORNER_OF_WHEEL[tyre], true);
   }
-  // the engine runs on every car from the start (?engine=1), hit or not
-  if (!car.dmg && engineEnabled()) damageInit(car);
-  if (!car.dmg) return;
+  // the engine runs on every car from the start, hit or not
+  if (!car.dmg) damageInit(car);
   const airMoved = stepTyrePressure(car, dt);
   if (stepEngine(car, dt) || airMoved) derive(car as DamagedCar);
   scrapeMetal(car);

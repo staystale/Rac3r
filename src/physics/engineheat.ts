@@ -66,14 +66,6 @@ const WATER_CELLS = 60, LEAK_AT = 0.3;
 // the power share moves car.wreck in steps this big (derive is not run every step)
 const POWER_STEP = 0.01;
 
-let engineOn = false;
-/**
- * Turns the engine systems on (?engine=1, main.js).
- * @param isOn on or off
- */
-export function setEngine(isOn: boolean): void { engineOn = isOn; }
-/** @returns true when ?engine=1 is on */
-export function engineEnabled(): boolean { return engineOn; }
 
 /**
  * Makes the engine state new: warm, full of water and oil, nothing leaking.
@@ -178,7 +170,7 @@ function stepLeaks(car: EngineCar, state: EngineState, dt: number) {
  * @returns true when the power share moved (damage.ts derives car.wreck again)
  */
 export function stepEngine(car: EngineCar, dt: number): boolean {
-  if (!engineOn || car.engT === undefined) return false;
+  if (car.engT === undefined) return false;
   const state = car as EngineCar & EngineState;
   stepLeaks(car, state, dt);
   const revs = Math.max(0, Math.min(1, car.rpm / car.spec.redline));
@@ -206,7 +198,7 @@ export function stepEngine(car: EngineCar, dt: number): boolean {
  * @param rnd the random source
  */
 export function crackOnHit(car: EngineCar, frontAdd: number, rnd: () => number): void {
-  if (!engineOn || car.engT === undefined || frontAdd < CRACK_HIT) return;
+  if (car.engT === undefined || frontAdd < CRACK_HIT) return;
   const state = car as EngineCar & EngineState;
   const size = Math.min(1, (frontAdd - CRACK_HIT) / CRACK_SPAN);
   const rate = 1 / SLOW_LEAK_S + size * (1 / FAST_LEAK_S - 1 / SLOW_LEAK_S);
@@ -222,7 +214,7 @@ export function crackOnHit(car: EngineCar, frontAdd: number, rnd: () => number):
  * @param rnd the random source
  */
 export function crackOnRoll(car: EngineCar, rnd: () => number): void {
-  if (!engineOn || car.engT === undefined) return;
+  if (car.engT === undefined) return;
   if (rnd() < ROLL_SUMP_P) crackSump(car as EngineCar & EngineState, rnd);
 }
 
@@ -239,10 +231,10 @@ function crackSump(state: EngineState, rnd: () => number) {
 /**
  * The speedo lights' states: 0 dim, 1 amber, 2 flashing red.
  * @param car the car
- * @returns the temperature light and the oil light, or null without the engine systems
+ * @returns the temperature light and the oil light, or null before the engine state is made
  */
 export function engineLights(car: EngineCar): { temp: number; oil: number } | null {
-  if (!engineOn || car.engT === undefined) return null;
+  if (car.engT === undefined) return null;
   const temp = car.engSeized || car.engT >= FADE_FROM_C ? 2 : car.engT >= 105 ? 1 : 0;
   const oil = car.engSeized || (car.engOil ?? 1) < OIL_LOW ? 2 : 0;
   return { temp, oil };

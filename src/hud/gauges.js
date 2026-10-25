@@ -188,7 +188,7 @@ export function drawHudSpeedo(ctx, state, rects, car, spec, wallDt) {
     { size: 22, weight: 700 });
   drawHudLabel(ctx, state.mph ? 'mph' : 'km/h', speedRect.x + 62, speedRect.y + 24,
     { size: 9.5, col: COL.inkSoft });
-  // the temperature and oil lights over the units (?engine=1, hud/enginelights.ts)
+  // the temperature and oil lights over the units (hud/enginelights.ts)
   drawEngineLights(ctx, speedRect, car);
   // GEAR CHANGE, made obvious. The automatic box already cuts the torque for a quarter of a
   // second, but with no sound and no needle the player had no way to know a shift had happened.

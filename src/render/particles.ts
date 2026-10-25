@@ -2,7 +2,6 @@
 // sparks. createParticles owns the pools and returns the add / draw entry points.
 import { SPRITE_PPM, fxRandom } from "./shared.ts";
 import { emitEngineSmoke, type PuffAt, type SmokeCar } from './enginesmoke.ts';
-import { engineEnabled } from '../physics/engineheat.ts';
 import type { Spray } from "../world/types.ts";
 import type { Cam, Chip, ParticleCar, Puff, PuffHit, RenderMarks, View } from "./types.ts";
 
@@ -67,9 +66,6 @@ const FLUFF_PUFF = { rgb: '248,247,240', size: 0.5, lift: 3.2, life: 1.5, grow: 
 // how hot and how hard - the silent twin of a squeal (CLAUDE.md §4).
 const SMOKE_T = 115;
 const SMOKE = { rgb: '225,225,230', size: 0.45, lift: 0.9, life: 1.3, grow: 1.9 };
-// a badly hit front (damage.ts wreck.smoke) trails grey smoke from the nose - the silent twin of
-// a damaged engine
-const DSMOKE = { rgb: '120,120,128', size: 0.5, lift: 0.7, life: 1.1, grow: 1.6 };
 
 /**
  * Throw one puff into the pool, dropping the oldest when it is full.
@@ -167,24 +163,6 @@ function emitTyreSmoke(ctx: ParticleCtx, car: ParticleCar, marks: RenderMarks, w
       emitPuff(ctx, wheel.x, wheel.y, car.vx * 0.6, car.vy * 0.6, SMOKE, 0.5); }
   }
   if (state.smokeDebt > 4) state.smokeDebt = 4;
-}
-
-/**
- * Trail grey smoke from the nose of a badly damaged car.
- * @param ctx particle context
- * @param car the car
- * @param wallDt wall-clock frame time
- */
-function emitDamageSmoke(ctx: ParticleCtx, car: ParticleCar, wallDt: number) {
-  // ?engine=1: the engine's own steam and smoke (render/enginesmoke.ts) replace this
-  if (!car.wreck || !car.wreck.smoke || engineEnabled()) return;
-  // a stopped wreck: a thin wisp (10/s piled into a square haze)
-  car._dsDebt = (car._dsDebt || 0) + (Math.hypot(car.vx, car.vy) > 2 ? 10 : 2.5) * wallDt;
-  const cosHeading = Math.cos(car.heading), sinHeading = Math.sin(car.heading),
-    nose = car.spec.len * 0.45;
-  while (car._dsDebt >= 1) { car._dsDebt--;
-    emitPuff(ctx, car.x + cosHeading * nose, car.y + sinHeading * nose, car.vx * 0.4,
-      car.vy * 0.4, DSMOKE, 0.6); }
 }
 
 /**
@@ -565,7 +543,6 @@ export function createParticles(view: View, cam: Cam, helpers: ParticleHelpers) 
       emitSpray(ctx, car, marks, wallDt),
     addSmoke: (car: ParticleCar, marks: RenderMarks, wallDt: number) =>
       emitTyreSmoke(ctx, car, marks, wallDt),
-    addDamageSmoke: (car: ParticleCar, wallDt: number) => emitDamageSmoke(ctx, car, wallDt),
     addEngineSmoke: (car: SmokeCar, wallDt: number) =>
       emitEngineSmoke(puffAt, puffOver, car, wallDt),
     addChips: (car: ParticleCar) => emitChips(ctx, car),

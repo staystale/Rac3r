@@ -4,7 +4,7 @@
 // 115 C, power at 130 C, the seize; coasting once empty; an oil leak to the seize; and that every
 // car kind in cars.ts has an exhaust spot (render/enginesmoke.ts).
 // node tools/scratch/_engine.mjs
-import { setEngine, engineInit, stepEngine, crackOnHit } from '../../src/physics/engineheat.ts';
+import { engineInit, stepEngine, crackOnHit } from '../../src/physics/engineheat.ts';
 import { WEATHER } from '../../src/world/weather.ts';
 import { ROSTER } from '../../src/cars.ts';
 import * as lab from '../../src/lab.js';
@@ -15,7 +15,6 @@ lab.setLevel('lab');
 lab.clearWear();
 const wetCells = () => [...wearMap.values()].filter((cell) => cell.cover === 'wet').length;
 
-setEngine(true);
 const DT = 1 / 120;
 const spec = { redline: 7000, len: 4 };
 
