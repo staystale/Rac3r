@@ -23,8 +23,9 @@ export const BRAKE_GLOW_M = 0.45;
 const GLOW_OUT_M = 0.3;
 // a frame gap longer than this (a pause, a hidden tab) is not counted, s
 const MAX_GAP_S = 0.25;
-// orange-red (owner: "more orange red"; was 255,96,24)
-export const BRAKE_GLOW = '255,60,16';
+// the glow's colour by heat (owner: "more orange red", then "the hotter the redder"): orange as
+// the discs start to glow, deep red at the hottest; light.ts blends the two by the glow level
+export const BRAKE_GLOW = '255,110,24', BRAKE_GLOW_HOT = '220,28,10';
 
 /** A car's brake heat: front and rear axles, 0..1, when it was last worked out (ms), and
  * the tyre temperatures it was worked out with (a reset gives the car new ones: brakes cold). */

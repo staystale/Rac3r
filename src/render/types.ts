@@ -168,6 +168,7 @@ export interface Chip {
   life: number;
   col: string;
   sz: number;
+  spark?: boolean;   // a spark: cools white -> yellow -> orange and shrinks as it ages
 }
 
 // A canvas that silhouette caches its darker copy on (cardamage.ts).

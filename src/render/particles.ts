@@ -262,32 +262,51 @@ function emitTyreMoments(ctx: ParticleCtx, car: ParticleCar) {
   moments.length = 0;
 }
 
-// SPARKS: metal on hard ground (world/metalscrape.ts). MEASURED (owner: "I don't see sparks"):
-// 0.1 m squares thrown back at -0.3x the car's speed were one screen pixel at race zoom and
-// smeared 10 m behind the car in a frame. Now dense, carried on at about half the car's
-// speed so they trail close behind the metal, gone within half a second; ~0.4 m so a spark is
-// a few screen pixels even zoomed out at speed.
-const SPARK_SIZE = 7, SPARK_LIFE_S = 0.2, SPARK_LIFE_SPREAD_S = 0.3;
-// sparks a second from a wheel on its rim, and from a body sliding on its side or roof
-const RIM_SPARK_RATE = 140, BODY_SPARK_RATE = 200;
+// SPARKS: metal on hard ground (world/metalscrape.ts). Owner: "I don't see sparks", then "more
+// random, small, fling off and fade like real sparks": each a small hot fleck (0.1-0.2 m, a few
+// screen px at race zoom) flung hard backwards and outward in a wide random fan, carried on at
+// about half the car's speed, cooling white -> yellow -> orange and shrinking over its own short
+// life (0.1-0.45 s), thrown in bursts rather than a steady stream.
+const SPARK_SIZE = 3.4, SPARK_LIFE_S = 0.1, SPARK_LIFE_SPREAD_S = 0.35;
+// m/s a spark is flung off the metal (on top of the carry), and the fan's half angle, rad
+const FLING_MIN = 3, FLING_SPREAD = 9, FAN = 1.2;
+// sparks a second (on average) from a wheel on its rim, and from a body sliding on its side or
+// roof; each frame's rate is this x a random burst factor 0..BURST_MAX (mean ~1)
+const RIM_SPARK_RATE = 120, BODY_SPARK_RATE = 180, BURST_MAX = 2.6;
+// what a spark looks like as it cools (by the share of its life gone)
+const SPARK_COOLING: [number, string][] = [[0.25, '#fff6d6'], [0.6, '#ffd85a'], [1, '#ff8a2a']];
 
 /**
- * Throws one spark from a point of a car, carried on with it.
+ * Throws one spark from a point of a car: carried on with it, flung backwards and out.
  * @param ctx particle context
  * @param car the car
  * @param x world x, m
  * @param y world y, m
+ * @param outward the side it flies out to (+1 the car's +y, -1 -y, 0 either)
  */
-function throwSpark(ctx: ParticleCtx, car: ParticleCar, x: number, y: number) {
+function throwSpark(ctx: ParticleCtx, car: ParticleCar, x: number, y: number, outward: number) {
   const chips = ctx.state.chips;
-  const angle = fxRandom() * 6.2832, speed = 1 + fxRandom() * 4;
-  const carry = 0.35 + fxRandom() * 0.3;
+  const back = car.heading + Math.PI, lean = outward * 0.6;
+  const angle = back + lean + (fxRandom() * 2 - 1) * FAN;
+  const fling = FLING_MIN + fxRandom() * fxRandom() * FLING_SPREAD;
+  const carry = 0.3 + fxRandom() * 0.35;
   if (chips.length >= MAX_CHIPS) chips.shift();
-  chips.push({ x, y, vx: car.vx * carry + Math.cos(angle) * speed,
-    vy: car.vy * carry + Math.sin(angle) * speed, age: 0,
-    life: SPARK_LIFE_S + fxRandom() * SPARK_LIFE_SPREAD_S,
-    col: fxRandom() < 0.6 ? '#ffd85a' : '#ffffff',
-    sz: SPARK_SIZE * (0.6 + fxRandom() * 0.4) });
+  chips.push({ x, y, vx: car.vx * carry + Math.cos(angle) * fling,
+    vy: car.vy * carry + Math.sin(angle) * fling, age: 0,
+    life: SPARK_LIFE_S + fxRandom() * SPARK_LIFE_SPREAD_S, col: SPARK_COOLING[0][1],
+    sz: SPARK_SIZE * (0.55 + fxRandom() * 0.45), spark: true });
+}
+
+/**
+ * The sparks one source owes after this frame: the rate x a random burst, kept between frames
+ * (throw the whole part now, keep the rest).
+ * @param debt the sparks owed so far
+ * @param rate sparks a second on average
+ * @param wallDt wall-clock frame time
+ * @returns the sparks owed now
+ */
+function sparksOwed(debt: number, rate: number, wallDt: number): number {
+  return debt + rate * BURST_MAX * fxRandom() * fxRandom() * 2 * wallDt;
 }
 
 /**
@@ -302,17 +321,19 @@ function emitSparks(ctx: ParticleCtx, car: ParticleCar, wallDt: number) {
   if (rims) for (let corner = 0; corner < 4; corner++) {
     if (!rims[corner]) continue;
     const [wheelX, wheelY] = wheelPlace(car, corner);
-    car._rimDebt = (car._rimDebt || 0) + RIM_SPARK_RATE * wallDt;
-    while (car._rimDebt >= 1) { car._rimDebt--; throwSpark(ctx, car, wheelX, wheelY); }
+    const owed = sparksOwed(car._rimDebt || 0, RIM_SPARK_RATE, wallDt), count = Math.floor(owed);
+    car._rimDebt = owed - count;
+    for (let i = 0; i < count; i++) throwSpark(ctx, car, wheelX, wheelY, corner % 2 ? 1 : -1);
   }
   if (!car.sparks) return;
   const cosHeading = Math.cos(car.heading), sinHeading = Math.sin(car.heading);
-  car._spDebt = (car._spDebt || 0) + BODY_SPARK_RATE * wallDt;
-  while (car._spDebt >= 1) { car._spDebt--;
+  const owed = sparksOwed(car._spDebt || 0, BODY_SPARK_RATE, wallDt), count = Math.floor(owed);
+  car._spDebt = owed - count;
+  for (let i = 0; i < count; i++) {
     const offsetX = (fxRandom() - 0.5) * car.spec.len;
     const offsetY = (fxRandom() - 0.5) * car.spec.wid;
     throwSpark(ctx, car, car.x + cosHeading * offsetX - sinHeading * offsetY,
-      car.y + sinHeading * offsetX + cosHeading * offsetY);
+      car.y + sinHeading * offsetX + cosHeading * offsetY, 0);
   }
 }
 
@@ -334,8 +355,14 @@ function renderChips(ctx: ParticleCtx, wallDt: number) {
     // fade over the last second, or over the whole life of a short one (a spark lives under
     // 0.4 s: by seconds left it was never more than 40 % opaque, so never seen)
     view.ctx.globalAlpha = Math.min(1, (chip.life - chip.age) / Math.min(1, chip.life));
+    let size = chip.sz;
+    if (chip.spark) {
+      const gone = chip.age / chip.life;
+      chip.col = SPARK_COOLING.find(([until]) => gone <= until)![1];
+      size *= 1 - 0.5 * gone;
+    }
     view.ctx.fillStyle = chip.col;
-    const z = Math.max(1, Math.round(chip.sz * scale));
+    const z = Math.max(1, Math.round(size * scale));
     view.ctx.fillRect(Math.round(toScreenX(chip.x) - z / 2),
       Math.round(toScreenY(chip.y) - z / 2), z, z);
   }
