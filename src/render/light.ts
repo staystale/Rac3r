@@ -225,9 +225,12 @@ function drawCarGlows(painter: GlowPainter, car: RenderCar, isBlinkOn: boolean) 
 
 // SPARKS LIGHT THE GROUND at night (owner): a warm glow flickering at each wheel on its rim over
 // hard ground and under a body sliding on it (world/metalscrape.ts car.rimSparks, roll.js
-// car.sparks) - one glow a sparking point, not one a spark. The flicker runs on the wall clock,
-// the same in the rub-out and the tint pass.
-const SPARK_GLOW = '255,190,90', SPARK_GLOW_M = 1.6, BODY_SPARK_GLOW_M = 2.4;
+// car.sparks) - one glow a sparking point, not one a spark, kept OFF the bodywork (owner): a
+// rim's outside its tyre, a sliding body's just behind it where its sparks trail. The flicker
+// runs on the wall clock, the same in the rub-out and the tint pass.
+const SPARK_GLOW = '255,190,90', SPARK_GLOW_M = 0.6, BODY_SPARK_GLOW_M = 1.2;
+// m out from a rim's wheel centre line, and behind a sliding body's tail
+const SPARK_OUT_M = 0.45, SPARK_BEHIND_M = 0.8;
 
 /**
  * A car's sparks glow over the dark.
@@ -240,10 +243,14 @@ function drawSparkGlows(painter: GlowPainter, car: RenderCar) {
   if (rims) for (let corner = 0; corner < 4; corner++) {
     if (!rims[corner]) continue;
     const along = corner < 2 ? car.spec.lf : -car.spec.lr;
-    const across = (corner % 2 ? 1 : -1) * (car.spec.trackWidth || car.spec.wid) / 2;
+    const across = (corner % 2 ? 1 : -1)
+      * ((car.spec.trackWidth || car.spec.wid) / 2 + SPARK_OUT_M);
     glowAt(painter, car, along, across, painter.sparkGlow, flicker(corner), SPARK_GLOW_M);
   }
-  if (car.sparks) glowAt(painter, car, 0, 0, painter.sparkGlow, flicker(5), BODY_SPARK_GLOW_M);
+  if (car.sparks) {
+    glowAt(painter, car, -car.spec.len / 2 - SPARK_BEHIND_M, 0, painter.sparkGlow, flicker(5),
+      BODY_SPARK_GLOW_M);
+  }
 }
 
 /**

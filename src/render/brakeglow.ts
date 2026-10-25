@@ -14,12 +14,17 @@ import type { RenderCar } from './types.ts';
 const HEAT_PER_MS = 0.0045, FRONT_SHARE = 1, REAR_SHARE = 0.55, HANDBRAKE_SHARE = 1;
 // cooling: a share of the heat a second at rest, and more per m/s of speed
 const COOL_PER_S = 0.01, COOL_PER_MS = 0.0008;
-// heat at which the discs start to glow (full glow at 1), and the glow's radius, m
+// heat at which the discs start to glow (full glow at 1), and the glow's radius, m: small, and
+// centred OUTSIDE the tyre's outer wall (owner: "just to the side of the wheel that's glowing, not
+// thru the body work" - a 0.7 m glow on the wheel's centre lit most of the car's side)
 const GLOW_FROM = 0.5;
-export const BRAKE_GLOW_M = 0.7;
+export const BRAKE_GLOW_M = 0.45;
+// m past the wheel's centre line, outward: the tyre's half width and a little more
+const GLOW_OUT_M = 0.3;
 // a frame gap longer than this (a pause, a hidden tab) is not counted, s
 const MAX_GAP_S = 0.25;
-export const BRAKE_GLOW = '255,96,24';
+// orange-red (owner: "more orange red"; was 255,96,24)
+export const BRAKE_GLOW = '255,60,16';
 
 /** A car's brake heat: front and rear axles, 0..1, when it was last worked out (ms), and
  * the tyre temperatures it was worked out with (a reset gives the car new ones: brakes cold). */
@@ -70,7 +75,8 @@ export function hotBrakes(car: RenderCar): { along: number; across: number; leve
   for (const [along, axleHeat] of [[car.spec.lf, heat.front], [-car.spec.lr, heat.rear]]) {
     const level = (axleHeat - GLOW_FROM) / (1 - GLOW_FROM);
     if (level <= 0) continue;
-    for (const across of [-half, half]) out.push({ along, across, level });
+    const out1 = half + GLOW_OUT_M;
+    for (const across of [-out1, out1]) out.push({ along, across, level });
   }
   return out;
 }

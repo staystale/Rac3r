@@ -255,6 +255,8 @@ C. CAR SYSTEMS + DAMAGE (L; one chain - extend damage.ts, no second damage model
   life (they were never above 40 % opaque); a warm flickering glow per sparking wheel / body in
   the night light map (render/light.ts drawSparkGlows); hard surfaces only (tarmac, race tarmac,
   broken, concrete, kerb, lab floor, wet tarmac). Drawing has its own random stream (fxRandom).
+  GLOWS OFF THE BODYWORK (owner): brake glow orange-red (255,60,16), 0.45 m, centred 0.3 m
+  outside the tyre; a rim's spark glow 0.45 m outside its tyre, a sliding body's behind it.
   ROUND 2 ?engine=1 - C3 radiator + engine temperature (seizes ~10 s at 130 C), C4 speedo lights
   (every car), C5 exhaust smoke; the grey nose smoke replaced by steam / engine smoke.
 
