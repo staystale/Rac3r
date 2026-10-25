@@ -11,7 +11,6 @@ import { traceDecks } from './lightdecks.ts';
 import { drawEventGlows } from './eventglows.ts';
 import { BRAKE_GLOW, BRAKE_GLOW_M, hotBrakes } from './brakeglow.ts';
 import { traceCanopies } from './trees.ts';
-import { treesOn } from '../world/treetrunks.ts';
 import { PROPS } from '../world/state.ts';
 import {
   REVERSE_BEAM_HALF_M, REVERSE_BEAM_REACH_M, REVERSE_BEAM_STRENGTH, REVERSE_GLOW,
@@ -216,7 +215,7 @@ function glowAt(painter: GlowPainter, car: RenderCar, along: number, across: num
 function drawCarGlows(painter: GlowPainter, car: RenderCar, isBlinkOn: boolean) {
   if (isBlinkOn) drawIndicatorGlows(painter, car);
   drawRearGlows(painter, car);
-  // hot brake discs glow at their wheels (?brakeglow=1, render/brakeglow.ts)
+  // hot brake discs glow at their wheels (render/brakeglow.ts)
   for (const wheel of hotBrakes(car)) {
     glowAt(painter, car, wheel.along, wheel.across, painter.brakeGlow, wheel.level, BRAKE_GLOW_M);
   }
@@ -442,13 +441,13 @@ function drawReverseBeams(painter: PoolPainter, beam: HTMLCanvasElement, car: Re
 }
 
 /**
- * Puts the night's dark back over the tree canopies, after every light and tint (?trees=1): a
+ * Puts the night's dark back over the tree canopies, after every light and tint: a
  * canopy hangs above the cars, the lamps' and signs' light below it never reaches its top.
  * @param pools the light map and its art-px mapping
  * @param darkFill the night's dark this frame
  */
 function darkenCanopies(pools: PoolPainter, darkFill: string) {
-  if (!treesOn() || !PROPS) return;
+  if (!PROPS) return;
   const lightCtx = pools.lightCtx;
   lightCtx.setTransform(1, 0, 0, 1, 0, 0);
   lightCtx.globalAlpha = 1;

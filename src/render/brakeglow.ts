@@ -1,4 +1,4 @@
-// HOT BRAKE GLOW (?brakeglow=1; owner's Q9: brake discs glowing when hot, at night). Each axle's
+// HOT BRAKE GLOW (owner's Q9: brake discs glowing when hot, at night). Each axle's
 // brakes heat with the braking work - how hard the brakes are on times the speed, the fronts
 // doing more of it - and cool toward the air, faster the faster the car goes (airflow), slowly
 // enough that heat BUILDS: one hard stop only warms them, several close together make them glow
@@ -21,23 +21,16 @@ export const BRAKE_GLOW_M = 0.7;
 const MAX_GAP_S = 0.25;
 export const BRAKE_GLOW = '255,96,24';
 
-/** A car's brake heat: front and rear axles, 0..1, and when it was last worked out (ms). */
+/** A car's brake heat: front and rear axles, 0..1, when it was last worked out (ms), and
+ * the tyre temperatures it was worked out with (a reset gives the car new ones: brakes cold). */
 interface BrakeHeat {
   front: number;
   rear: number;
   at: number;
+  tyres: number[] | undefined;
 }
 
-let isOn = false;
 const heats = new WeakMap<RenderCar, BrakeHeat>();
-
-/**
- * Turns the hot brake glow on or off (?brakeglow=1).
- * @param isWanted true for the glow
- */
-export function setBrakeGlow(isWanted: boolean): void {
-  isOn = isWanted;
-}
 
 /**
  * A car's brake heat now (worked out once a frame, whoever asks first).
@@ -48,9 +41,11 @@ export function setBrakeGlow(isWanted: boolean): void {
 function heatOf(car: RenderCar, now: number): BrakeHeat {
   let heat = heats.get(car);
   if (!heat) {
-    heat = { front: 0, rear: 0, at: now };
+    heat = { front: 0, rear: 0, at: now, tyres: car.tyreT };
     heats.set(car, heat);
   }
+  // RESTART / RESET (vehicle.ts reset: new tyre temperatures) starts the brakes cold, as the tyres
+  if (heat.tyres !== car.tyreT) Object.assign(heat, { front: 0, rear: 0, tyres: car.tyreT });
   const seconds = (now - heat.at) / 1000;
   if (seconds <= 0) return heat;
   heat.at = now;
@@ -67,10 +62,9 @@ function heatOf(car: RenderCar, now: number): BrakeHeat {
 /**
  * Each wheel whose brakes glow: its place on the car (ahead, to the +y side, m) and how much.
  * @param car the car
- * @returns the glowing wheels (none with the glow off, or cool brakes)
+ * @returns the glowing wheels (none with cool brakes)
  */
 export function hotBrakes(car: RenderCar): { along: number; across: number; level: number }[] {
-  if (!isOn) return [];
   const heat = heatOf(car, performance.now()), out = [];
   const half = (car.spec.trackWidth || car.spec.wid * 0.8) / 2;
   for (const [along, axleHeat] of [[car.spec.lf, heat.front], [-car.spec.lr, heat.rear]]) {

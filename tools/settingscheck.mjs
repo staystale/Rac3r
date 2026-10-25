@@ -13,7 +13,6 @@ const DEFAULTS = {
   maxDpr: null,
   noShade: false,
   meter: false, meterOverlay: false, report: false, audio: true,
-  carLamps: false, woodMarshal: false, brakeGlow: false, trees: false,
   autopilot: false, autopilotKmh: 0, noNatClear: false, churn: '', skipLayers: '',   // a Set is compared as its sorted names joined by ','
 };
 
@@ -61,10 +60,6 @@ const TABLE = [
   ['?churn=objects', { churn: 'objects' }],
   ['?churn=x', { churn: '' }],
   ['?skip=props,cars', { skipLayers: 'cars,props' }],
-  ['?carlamps=1', { carLamps: true }],
-  ['?woodmarshal=1', { woodMarshal: true }],
-  ['?brakeglow=1', { brakeGlow: true }],
-  ['?trees=1', { trees: true }],
 ];
 
 const norm = (v) => (v instanceof Set ? [...v].sort().join(',') : v);

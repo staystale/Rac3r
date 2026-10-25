@@ -96,6 +96,12 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   the start gantry's light bar and start lights, pit lamps, caravan light spill (no windows:
   top-down), floodlights in tyre rings at the tightest corners, village street lights on
   generated stages; a knocked lamp settles - steady, or dies by how much light it lost.
+- Also 10-25 (owner: pass): car lamps flicker after a hit, then work again or die by damage;
+  wooden marshal huts that a hard hit smashes (pallets thrown, beacon out); hot brakes glow at
+  night after several hard stops (handbrake: the rears), cold again on RESTART / RESET as the
+  tyres; trees with a trunk-only solid, canopies over the cars and dark at night, leafy trees by
+  the season and firs, snow from the weather (bushes still to do).
+- TypeScript conversion ON HOLD (owner 10-25): keep building in TypeScript, convert old .js later.
 - Not wanted / undone: the highway rebuild (cancelled 10-15), a fade at zoom steps, tiles tracing
   only their part of the ribbon (`?ribboncull`, undone 10-16), the WebGL cars (`?gpucars`, removed
   10-16), the menu recording (parked until after the graphics work).
@@ -252,6 +258,9 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
 - Long tools: run in the background, write to a file, poll it. One heavy browser tool at a time
   (6 GB laptop). Stop processes by PID only.
 - Long inline text in the Bash tool can fail to parse: write scripts to a file and run them.
+- `npm run verify | tail` returns tail's status: `set -o pipefail` before chaining a commit / push.
+- Deleting lines: `sed '/pattern/d'` or a node script, not an Edit whose old text starts with a
+  newline (it joined lines in CRLF-history files).
 - Never edit `src/` in the worktree a proof is running from: the tools load it as they go.
 - CI logs: the portable GitHub CLI, `C:/Users/Admin/tools/gh/bin/gh.exe run view <id>
   --log-failed -R staystale/Rac3r` (the anonymous API shows only pass / fail).

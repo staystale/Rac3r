@@ -275,7 +275,7 @@ export function solidClamp(car: CarBody): void {
   if ((!list || !list.length) && !lamps.length) return;
   if (list) for (const solid of list) {
     const vx0 = car.vx, vy0 = car.vy;
-    // a tree with the reworked trees: its trunk only (world/treetrunks.ts)
+    // a tree: its trunk only (world/treetrunks.ts)
     clampToSolid(car, solidBox(solid), halfLen, halfWid);
     if (car.vx !== vx0 || car.vy !== vy0) noteHit(car, solid.kind);
   }
@@ -309,7 +309,7 @@ function clampToSolid(car: CarBody, solid: Solid, halfLen: number, halfWid: numb
   const into = -(car.vx * pushX + car.vy * pushY);
   // a lamp post: the hit leans / dims it, or snaps it and the car goes through (no bounce)
   if (lamp && hitLamp(lamp, car, into, pushX, pushY)) return;
-  // a wooden marshal hut (?woodmarshal=1): smashed, the car goes through it (world/marshalbox.ts)
+  // a wooden marshal hut: smashed, the car goes through it (world/marshalbox.ts)
   if (solid.kind === 'marshal' && smashHut(solid, car, into, pushX, pushY)) return;
   car.x += pushX * best;
   car.y += pushY * best;

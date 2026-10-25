@@ -1,4 +1,4 @@
-// CAR LAMPS SETTLE (?carlamps=1; owner: a car's lamps should behave like the street lights -
+// CAR LAMPS SETTLE (owner: a car's lamps should behave like the street lights -
 // flicker when damaged, then by chance work normally again or fail, by how much damage there
 // is). A hit that adds damage to a lamp's corner sets it flickering for SETTLE_MIN_MS ..
 // SETTLE_MAX_MS; then it settles: steady at full, or dead, dying by DIE_BASE plus DIE_PER_SHARE
@@ -24,24 +24,7 @@ interface LampState {
   seed: number;
 }
 
-let isOn = false;
 const states = new WeakMap<RenderCar, LampState[]>();
-
-/**
- * Turns the settling car lamps on or off (?carlamps=1).
- * @param isWanted true to settle them
- */
-export function setCarLamps(isWanted: boolean): void {
-  isOn = isWanted;
-}
-
-/**
- * Whether the settling car lamps are on.
- * @returns true when on
- */
-export function carLampsSettle(): boolean {
-  return isOn;
-}
 
 /**
  * Whether a flickering lamp is off in this slot (the same answer all slot long).

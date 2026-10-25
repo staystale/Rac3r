@@ -104,7 +104,7 @@ function hitSolids(cone, radius, speed) {
   // the solids near it (world/solidgrid.ts), or all of them for a big object
   const found = solidsNear(cone.x, cone.y, radius);
   for (const listed of found ? found.solids : LEVEL.solids || []) {
-    // a tree with the reworked trees: its trunk only (world/treetrunks.ts)
+    // a tree: its trunk only (world/treetrunks.ts)
     const solid = solidBox(listed);
     // a smashed marshal hut is no longer solid (world/marshalbox.ts)
     if (solid.kind === 'marshal' && isSolidWrecked(solid)) continue;

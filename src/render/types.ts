@@ -213,6 +213,7 @@ export interface RenderCar extends CamCar, Pick<Car, 'heading' | 'delta'> {
   brakeLight?: number;
   rainLight?: boolean;   // the rear rain light is on (game/sim.js)
   handbrakeOn?: number;   // the handbrake is on, 1 (game/loop.js, game/ai.js): rear brake heat
+  tyreT?: number[];   // the tyre temperatures (vehicle.ts; a reset makes a new array)
   gear?: number;   // the gear, -1 in reverse (vehicle.ts): its reversing lights
   // caches the car layers set on the car itself
   _dsp?: { key: string; base: CarSprite; sp: CarSprite } | null;

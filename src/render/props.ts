@@ -16,7 +16,6 @@ import {
   drawPylon,
 } from './props/buildings.ts';
 import { drawGarages, drawTower, drawHangar } from './props/structures.ts';
-import { treesOn } from '../world/treetrunks.ts';
 import {
   drawPlane,
   drawWindsock,
@@ -110,8 +109,8 @@ function drawPropList(propCtx: PropCtx, overhead = false) {
   drawStreetLights(propCtx, ppm, overhead);
   if (!PROPS || !PROPS.length) return;
   for (const prop of PROPS) {
-    // with the reworked trees (?trees=1) a tree's canopy hangs over the cars too
-    const isOver = OVERHEAD.has(prop.kind) || (prop.kind === 'tree' && treesOn());
+    // a tree's canopy hangs over the cars too
+    const isOver = OVERHEAD.has(prop.kind) || prop.kind === 'tree';
     if (isOver !== overhead) continue;
     if (prop.kind === 'garagerow') {
       drawGarageRow(propCtx, prop, ppm);

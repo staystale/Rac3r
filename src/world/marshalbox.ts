@@ -1,4 +1,4 @@
-// WOODEN MARSHAL BOXES (?woodmarshal=1; owner: marshal boxes made of wood and destructible). A
+// WOODEN MARSHAL BOXES (owner: marshal boxes made of wood and destructible). A
 // marshal post is a wooden hut: a knock bounces off it as before, a hit closing at BREAK_V or
 // more SMASHES it - the car loses BREAK_LOSS of its closing speed and goes on through (no wall
 // to bounce off), the hut is drawn wrecked, its beacon goes out (render/eventglows.ts) and its
@@ -11,26 +11,9 @@ const BREAK_V = 8, BREAK_LOSS = 0.45;
 // the planks a smashed hut throws out (pallets), and how far they scatter, m
 const PLANKS = 3, PLANK_SCATTER_M = 2.2;
 
-let isOn = false;
 let wrecked = new WeakSet<Prop>();
 const propOfSolid = new WeakMap<Solid, Prop>();
 const thrown: Prop[] = [];
-
-/**
- * Turns the wooden marshal boxes on or off (?woodmarshal=1).
- * @param isWanted true for wooden, destructible huts
- */
-export function setWoodMarshal(isWanted: boolean): void {
-  isOn = isWanted;
-}
-
-/**
- * Whether the marshal huts are wooden and destructible.
- * @returns true when on
- */
-export function woodMarshalOn(): boolean {
-  return isOn;
-}
 
 /**
  * Remembers which marshal post a solid box belongs to (world/barriers.ts solidsFromProps).
@@ -47,7 +30,7 @@ export function noteMarshalSolid(solid: Solid, prop: Prop): void {
  * @returns true when wrecked
  */
 export function isHutWrecked(prop: Prop): boolean {
-  return isOn && wrecked.has(prop);
+  return wrecked.has(prop);
 }
 
 /**
@@ -72,7 +55,7 @@ export function isSolidWrecked(solid: Solid): boolean {
 export function smashHut(solid: Solid, car: CarBody, into: number, pushX: number,
     pushY: number): boolean {
   const prop = propOfSolid.get(solid);
-  if (!isOn || !prop || into < BREAK_V) return false;
+  if (!prop || into < BREAK_V) return false;
   wrecked.add(prop);
   car.vx += pushX * into * BREAK_LOSS;
   car.vy += pushY * into * BREAK_LOSS;

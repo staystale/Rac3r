@@ -5,19 +5,20 @@ the git history (this file was swept on 2026-10-19: every finished entry deleted
 decisions and the measured lessons live in `NOTES.md`). `docs/foreman-handover.md` is the last
 handover, written on request.
 
-## Where we are (2026-10-24 night)
+## Where we are (2026-10-25)
 
-- The plain link is the approved game; the test list is EMPTY. Tonight's rounds are DEFAULT
-  (owner "all pass"): highway street lights L4b + the solid grid; traffic seated when woken,
-  the Sandbox puddles, meltwater, ice cracks (E); reversing lights, event lighting F 10-25.
-  NEXT: car headlights flicker / recover / fail by damage, wooden destructible marshal boxes,
-  hot brake glow, trees / bushes D (canopies above the night light), TS overnight.
-  Earlier 10-24: A11, A12, A13, grass G1
-  and the A fixes are DEFAULT
-  (owner 10-24: "all pass"; switches and old paths deleted): A1 sky blend, A2 bridge decks, A3
-  formation (A4 with it), A5 weather only, A6 rain grip, A8 lock heat, E gravel -> sand. A7
-  needed no change (owner: keep x2). NEXT (owner 10-24): the TypeScript conversion overnight;
-  meanwhile work in TypeScript wherever possible; the HUD text fix waits on the owner.
+- The plain link is the approved game; the test list is EMPTY. DEFAULT 10-24 / 10-25 (owner
+  "all pass"; every switch and old path deleted, each proved SAME against the tested switch):
+  highway street lights L4b + the solid grid; traffic seated when woken, the Sandbox puddles,
+  meltwater, ice cracks (E); reversing lights; event lighting F; car lamps that flicker then
+  settle by damage; wooden marshal huts that smash; hot brake glow (builds over ~3 hard stops,
+  handbrake heats the rears, cold again on RESTART / RESET as the tyres); trees D part 1
+  (trunk-only solid, canopies over the cars and dark at night, seasons, firs, weather snow).
+  Earlier 10-24: A1-A13 fixes, grass G1, mud M1.
+- TYPESCRIPT CONVERSION: ON HOLD (owner 10-25); new code is TypeScript, old .js converted later.
+- NEXT (owner to pick; list given 10-25): bushes (D part 2), car systems C, the wearcheck
+  rewrite, AI rework B (design first; ideally after TS), sound + settings G, Story + upgrades H,
+  new levels (Dieatona), multiplayer I. The HUD text fix still waits on the owner (close?).
 - itch.io: build #2201136 (10-24, before the A fixes); push only when the owner says.
 - TIDY-UP done 10-24: the hand-placed 'wet' covers staticCovers dropped are deleted from Test
   Track, Grass Track and Stock Car. The Sandbox (a test level) KEEPS its two sample puddles
@@ -278,11 +279,13 @@ lights), world/lampplan.ts (corner floodlights + tyre rings via cones.js, villag
 strings), world/lamps.ts settleLamp (3-8 s, dies 15 % + 70 % of lost light). Photos:
 _eventlightshots.mjs. Switch off: simhash SAME. TO DO after: F5b WOODEN marshal boxes,
 destructible (?woodmarshal=1).
-ROUND 2 UNDER TEST 10-25 (one link): ?carlamps=1 (render/carlamps.ts: a hit flickers 3-8 s,
-then steady or dead by damage), ?woodmarshal=1 (world/marshalbox.ts: smash at 8 m/s, pallets
-thrown, beacon out), ?brakeglow=1 (render/brakeglow.ts: heat builds over ~3 hard stops;
-handbrake heats the rears), ?trees=1 (world/treetrunks.ts trunk-only solid; render/trees.ts
-seasons, firs, weather snow, canopies overhead and dark at night). TS conversion ON HOLD.
+ROUND 2 DEFAULT 10-25 (owner: all pass; switches deleted): car lamps (render/carlamps.ts: a
+hit flickers 3-8 s, then steady or dead by damage), wooden marshal huts (world/marshalbox.ts:
+smash at 8 m/s, pallets thrown, beacon out), hot brakes (render/brakeglow.ts: heat builds over
+~3 hard stops; the handbrake heats the rears; cold again on a reset, as the tyres), trees
+(world/treetrunks.ts trunk-only solid; render/trees.ts seasons, firs, weather snow, canopies
+overhead and dark at night). TS conversion ON HOLD.
+STILL OPEN in D: BUSHES (pass-through, heavy drag, wear to long grass, puncture chance).
 
 G. SOUND + SETTINGS (M): pause menu SOUND sub-menu (car, environment, radio channel, menu: each a
 volume + mute); a SETTINGS screen off the main menu with the same and the GENERAL DIFFICULTY;

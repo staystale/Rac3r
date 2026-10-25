@@ -1,4 +1,4 @@
-// TREES (?trees=1, world/treetrunks.ts; owner D): a tree is a canopy over a trunk. Only the
+// TREES (owner D): a tree is a canopy over a trunk. Only the
 // TRUNK is solid (the cars clip under the canopy: world/treetrunks.ts); the canopy is drawn ABOVE
 // the cars (props.ts's overhead layer) and blocks the light at night - no lamp, sign or headlight
 // lights a canopy's top from below (render/light.ts puts the night's dark back over it). Each tree

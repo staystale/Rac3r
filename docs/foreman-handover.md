@@ -1,74 +1,91 @@
 # Foreman handover
 
-Written on the owner's request, 2026-10-24 (~21:00Z; main at the commit that adds this page:
-"A13 and grass G1 the default"). Read `CLAUDE.md`, then `NOTES.md` (the owner's rules, decisions,
-measured lessons and the routine - not repeated here), then `TODO.md` ("Where we are", the Queue and
-the "OWNER LIST 2026-10-24" section are the plan), then this page.
+Written on the owner's request, 2026-10-25 (main at the commit that adds this page: "Car lamps,
+marshal huts, brake glow, trees the default"). Read `CLAUDE.md`, then `NOTES.md` (the owner's
+rules, decisions, measured lessons and the routine - not repeated here), then `TODO.md` ("Where
+we are" and the "OWNER LIST 2026-10-24" section are the plan), then this page.
 
 ## Where we are
 
-- **The plain link is the approved game; the test list is EMPTY.** Today, after the mud default,
-  everything below passed the owner's phone test and is the DEFAULT, its switch and old path
-  DELETED (one system), each proved against the tested switch (simhash SAME, renderhash the same
-  per level with the same level list, worldhash differing only where expected):
-  - A1 sky: the twilight colour only in its share of the dark (no snap under cloud); rain / snow
-    ease in two stages. A2 car light kept off bridge decks (render/lightdecks.ts). A3/A4 every car
-    held in its grid slot through a circuit's rolling start (ai/formation.ts). A5 weather-only
-    snow and ice (snow stages' road from their seed: world/stageweather.ts; scenery water, the
-    highway's rivers too, never dries but freezes). A6 damp grip a small loss, fewer / smaller
-    puddles. A8 locked wheels heat their tyres. E dry gravel to sand. A7 checked, x2 kept.
-  - A11 PULLING AWAY only when you really lead (ai/hwFlow.ts: last road position kept, grace only
-    for CATCH THEM). A12 traffic eases onto its lane after a driven -> carried handover
-    (ai/trafficPhys.ts). A13 punctures by what you hit (physics/punctures.ts: one table; the
-    clamps, contacts and loose objects note the kind). G1 short grass a pale striped lawn (its own
-    grip / peak / bumpiness, extra dirt patches on their own stream), grass with fine blades.
-- **HUD text fix: measured, not shipped.** HUD ~0.7 ms a frame on the laptop (text 34 % of it);
-  bitmap stamps were slower on the laptop's CPU raster, "font set once" inside the noise. Both
-  parked on branch `experiment/hudtext`. ASKED the owner (no answer yet): a phone `?report=1`
-  A/B of the stamps, or close the item. Recommended: close.
-- **itch.io** is build #2201136 (10-24, before all of today's fixes); push only when the owner
-  says (recipe below; ask for a fresh wharf key - the key never goes in a file).
-- **CI:** `verify` is the gate for main; the `checks` job compares each push with its parent, so
-  a commit that changes behaviour on purpose fails it by design.
+- **The plain link is the approved game; the test list is EMPTY.** Everything below passed the
+  owner's phone test and is the DEFAULT, its switch and old path DELETED (one system), each
+  flip proved simhash SAME against references saved on the tested commit with the switch on.
+- Since the 10-24 handover:
+  - **Highway street lights (L4b)**: one every 34 m, alternating sides, streamed with the road
+    (highway/roadlamps.ts, world/lamps.ts keeps each the same lamp while loaded). With them the
+    **solid grid** (world/solidgrid.ts on core/cellgrid.ts - the one grid helper, the cover
+    index and bump grid moved onto it): the highway's solid clamp 4.3 -> 0.3 us a car-step.
+  - **Small fixes**: traffic woken to physics is seated on the ground (it was thrown 42 m up on
+    hills); `?autopilot=1` no longer throws on the Lab; dead hand-placed puddles deleted (Test
+    Track, Grass Track, Stock Car); the Sandbox keeps its sample puddles; the Lab's own ice /
+    snow / puddle samples were wiped at boot by the highway's first road build (fixed:
+    puddles.ts adoptRoadCovers takes the highway level); wobblecheck / treadmillcheck /
+    trafficcheck pass again.
+  - **Surfaces (E)**: meltwater (melting snow / ice leave water up to heavy rain's and a damp
+    track); ice cracks (more grip, wear through faster, spread a few cells; world/icecrack.ts).
+  - **Reversing lights** (render/reverselights.ts; dimmed once: owner "slightly bright").
+  - **Event lighting (F)**, the owner's picks from the mockup
+    (claude.ai/artifact/D6k1bE4NDseZdr27dZBuCM): backlit boards (faint neutral halo), marshal
+    beacons, multi-coloured festoons on stands, rally fairy lights following the road edge,
+    the start gantry's light bar and red / green start lights, pit lamps, caravan light spill
+    (no windows: top-down), floodlights in tyre rings at the tightest corners, village street
+    lights on generated stages; a knocked lamp settles (steady, or dies by the light it lost).
+    render/eventglows.ts, world/lampplan.ts.
+  - **Round 2**: car lamps flicker after a hit then work again or die by damage
+    (render/carlamps.ts); wooden marshal huts that smash at ~30 km/h, throwing pallets
+    (world/marshalbox.ts); **hot brake glow** (render/brakeglow.ts): heat builds over ~3 hard
+    stops, the handbrake heats the rears, and - the owner's last request, in this commit - the
+    brakes are COLD again after RESTART / RESET, as the tyres (keyed to vehicle.ts reset's new
+    tyre temperatures); **trees, part 1** (world/treetrunks.ts trunk-only solid; render/trees.ts:
+    canopies over the cars and kept dark at night, leafy trees by the season, firs, weather snow).
+- **TypeScript conversion: ON HOLD** (owner 10-25). New code is TypeScript (every module above
+  is); small edits to old .js are fine; convert the old files later when the owner says.
+- **HUD text fix**: measured, not shipped (branch `experiment/hudtext`); the owner has not said
+  close or phone-test - recommended: close.
+- **itch.io** is still build #2201136 (10-24); push only when the owner says (recipe below).
 
-## NEXT (owner's order, TODO.md)
+## NEXT (owner to pick; the list given 10-25)
 
-1. **Highway lamps L4b** (approved: street lights on ALTERNATING sides, streamed with the road like
-   highway/litter.js, a spatial grid for the clamp - solidClamp walks every lamp per car per step).
-   Not started.
-2. **TypeScript conversion overnight** when the owner says they are going to sleep (TODO item 2:
-   7 batches, proved SAME batch by batch) - before the AI rework and car systems.
-3. Then B AI rework (architecture to agree first), C car systems (punctures now have the kind
-   table C2 / C7 should use), E / D, F lighting, G sound / settings, H upgrades, I multiplayer.
+Bushes (the rest of D: pass-through, heavy drag, wear to long grass, a puncture chance); car
+systems C (flat tyres that look flat, radiator / engine temperature and warning lights, exhaust
+smoke, oil from crashes, bodywork debris, armco dents, open-wheel contact); the `wearcheck`
+rewrite to today's rules (it has 13 stale checks); AI rework B (design first, ideally after the
+TS conversion); sound + settings G (agree each sound first); Story mode + upgrades H; new
+levels (the Dieatona tri-oval); multiplayer I. Mockup / photos first for any new look.
 
 ## Proofs and references
 
-- Worktrees: `Desktop/G/rac3r-wt` (where today's work was done) and `rac3r-wt2` (the proof
-  side: check out the commit to compare against). The served clone `Desktop/G/rac3r` is detached
-  on origin/main (`git checkout --detach origin/main` after each push).
-- References (gitignored, in `rac3r-wt/tools/`): `.worldhash` saved on today's final defaults;
-  `.simhash` saved on 084cce7 with `?punctkind=1&shortgrass=1&grassblades=1` (= the defaults);
-  `.renderhash` saved on 1f58a29 in 4 shards - grass blades and short grass changed pixels since:
-  RE-SAVE it on main in 4 parts before the next pixel proof.
-- **renderhash compares like with like** (NOTES lesson): a `--only` list against a `--shard`
-  reference reads DIFFERENT with no change. Prove a change by running the same list on both sides.
-- Probes added today (`tools/scratch/`): `_skysnap` (sky colour steps), `_rainease`, `_rollstart`
-  (formation / start-finish swing), `_lineseam`, `_stagelayout`, `_rainlap`, `_spinwear`
-  (slip / tyre heat), `_pullaway` (highway flow, scripted), `_laneshuffle` (traffic sideways
-  moves: aborts, pops, handover jumps; CLEAN=1), `_punctures` / `_puncturehit` (puncture sources
-  / chance by kind), `_grassshots`, `_hudcost` / `_hudprofile`.
+- Worktrees: `Desktop/G/rac3r-wt` (where the work is done) and `rac3r-wt2` (the proof side:
+  check out the tested commit and save switch-on references there with
+  `RAC3R_QUERY="<switches>" node tools/simhash.mjs save`, copy its `tools/.simhash` over). The
+  served clone `Desktop/G/rac3r` is detached on origin/main.
+- References (gitignored, `rac3r-wt/tools/`): `.simhash` = today's default (saved on be6c494
+  with the round-2 switches on; the flip read SAME). `.worldhash` re-saved on this commit.
+  `.renderhash` is STALE since 10-24 (grass, lights): re-save on main in 4 parts before the next
+  pixel proof.
 
-## Lessons from today
+## Lessons from today (also in NOTES where they last)
 
-- **Check every name before writing a file** (owner): I overwrote an existing probe once with a
-  heredoc; `ls` the path first, always (memory + NOTES).
-- **Measure where the owner sees it**: the "oval wiggle" was the rolling start's release, not the
-  racing line's seam; the traffic "shuffle" was the driven -> carried handover snap, not the
-  lane-change abort - both found only by measuring with the real field.
-- **Laptop numbers can mislead for drawing**: the headless browser rasterises on the CPU, so a
-  GPU-friendly change (bitmap stamps) can measure slower here than it would be on the phone.
-- **A switch read after `initWorld`** misses whatever the world builds at start-up (the Lab's
-  patches): fine for a test switch, gone once it is the default.
+- **The Edit tool joined lines** when an old string began with a newline, in files with CRLF
+  history: delete whole lines with `sed '/pattern/d'` or a small node script instead, and read
+  the result.
+- **`verify | tail` hides a failure** (the pipe's status is tail's): use `set -o pipefail` before
+  chaining a commit or push after it. Once a failing commit reached a branch (CI stopped it).
+- **A straight line between two road points cuts across a bend**: anything placed "along the
+  road" (fairy strings) must follow the road edge point by point (barriers.ts smoothOnTrack).
+- **The player's brakeLight is rewritten from the controls every frame**: a harness that forces
+  it measures nothing; test a look's model on a stand-in object (tools/scratch/_brakeheat.mjs).
+- **Auto mode's permission check can fail for a while** ("no verdict"): stop retrying and ask the
+  owner to switch auto mode off (Shift+Tab); edits then go to the owner for approval.
+- Measure the owner's feel before shipping a look: the brake glow first glowed after one stop -
+  the owner wanted it to take several; build the model so a single number moves it.
+
+## New probes (`tools/scratch/`)
+
+`_hwlamps` / `_hwlampgap` / `_hwlampshots` / `_hwlampday` (highway lamps), `_autopilotboot`,
+`_staticwet`, `_labcovers` (level covers at boot), `_meltwater`, `_icecrack` /
+`_icecrackshots`, `_reverseshots`, `_propkinds`, `_eventlightshots`, `_round2shots`,
+`_brakeheat`.
 
 ## itch.io push (owner says when)
 
@@ -84,6 +101,7 @@ the "OWNER LIST 2026-10-24" section are the plan), then this page.
 - Test server `node serve.mjs` PID 6236 and cloudflared 1408 (running); the link is in
   `Desktop/G/GamesStudio/tools/logs/rac3r-tunnel.err`. Phone reports: `node tools/phonereport.mjs
   ../GamesStudio/tools/logs/rac3r-phone-report.jsonl --since <UTC>`.
-- To main: commit in a worktree, `npm run verify`, push `HEAD:refs/heads/foreman/<name>`, wait for
-  `verify` (`C:/Users/Admin/tools/gh/bin/gh.exe run list -R staystale/Rac3r -b <branch> -w verify`),
-  push `HEAD:refs/heads/main`, delete the branch, move the served clone.
+- To main: commit in a worktree, `set -o pipefail; npm run verify`, push
+  `HEAD:refs/heads/foreman/<name>`, wait for the `verify` check-run (GitHub API
+  `repos/staystale/Rac3r/commits/<sha>/check-runs`), push `HEAD:refs/heads/main`, delete the
+  branch, move the served clone (`git fetch -q origin && git checkout -q --detach origin/main`).

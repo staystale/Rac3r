@@ -1,8 +1,7 @@
 // The scenery painters: planes, trucks, trees, rocks, crowds, flags, signs and the
 // other small trackside props.
 import { parkMiller } from '../../core/random.ts';
-import { isHutWrecked, woodMarshalOn } from '../../world/marshalbox.ts';
-import { treesOn } from '../../world/treetrunks.ts';
+import { isHutWrecked } from '../../world/marshalbox.ts';
 import { drawSeasonTree } from '../trees.ts';
 import type { Prop } from '../../world/types.ts';
 import type { PropCtx } from './types.ts';
@@ -81,47 +80,8 @@ export function drawTruck(propCtx: PropCtx, prop: Prop, ppm: number) {
  * @param ppm pixels per metre
  */
 export function drawTree(propCtx: PropCtx, prop: Prop, ppm: number) {
-  const { view } = propCtx;
-  // ?trees=1: leafy trees and firs by the season and the weather's snow (render/trees.ts)
-  if (treesOn()) {
-    drawSeasonTree(view.ctx, prop, (prop.s || 4) * ppm);
-    return;
-  }
-  // a tree from overlapping SQUARES (pixel rule), shade per seed; long shadow first
-  const size = (prop.s || 4) * ppm,
-    shade = ((prop.seed! * 9301 + 49297) % 233280) / 233280;
-  view.ctx.fillStyle = 'rgba(10,12,16,0.32)';
-  view.ctx.fillRect(-size / 2 + 0.25 * size, -size / 2 + 0.35 * size, size, size);
-  // pal: 'dry' = desert scrub (olive / dust), else conifer greens; snow: white caps on the
-  // upper squares (generated stages)
-  const cols =
-    prop.pal === 'dry'
-      ? shade < 0.5
-        ? ['#5b5a2e', '#6f6d38', '#8a8646']
-        : ['#64552c', '#786a36', '#948548']
-      : shade < 0.5
-        ? ['#2f5a2a', '#3d6e33', '#4f8240']
-        : ['#355f2c', '#456f36', '#5a8a45'];
-  view.ctx.fillStyle = cols[0];
-  view.ctx.fillRect(-size / 2, -size / 2, size, size);
-  view.ctx.fillStyle = prop.snow ? '#dfe7ee' : cols[1];
-  view.ctx.fillRect(
-    -size / 2 + size * 0.12,
-    -size / 2 + size * 0.1,
-    size * 0.62,
-    size * 0.62,
-  );
-  if (prop.snow) {
-    view.ctx.fillStyle = cols[1];
-    view.ctx.fillRect(
-      -size / 2 + size * 0.42,
-      -size / 2 + size * 0.42,
-      size * 0.32,
-      size * 0.32,
-    );
-  }
-  view.ctx.fillStyle = prop.snow ? '#ffffff' : cols[2];
-  view.ctx.fillRect(-size / 2 + size * 0.2, -size / 2 + size * 0.18, size * 0.3, size * 0.3);
+  // leafy trees and firs by the season and the weather's snow (render/trees.ts)
+  drawSeasonTree(propCtx.view.ctx, prop, (prop.s || 4) * ppm);
 }
 
 /**
@@ -218,23 +178,16 @@ export function drawCrowd(propCtx: PropCtx, prop: Prop, ppm: number) {
  */
 export function drawMarshal(propCtx: PropCtx, prop: Prop, ppm: number) {
   const { view } = propCtx;
-  // MARSHAL POST: small hut, white roof, orange edge
+  // MARSHAL POST: a wooden hut, an orange marshal stripe; smashed, broken planks
   const paint = (x: number, y: number, width: number, height: number, col: string) => {
     view.ctx.fillStyle = col;
     view.ctx.fillRect(x * ppm, y * ppm, width * ppm, height * ppm);
   };
-  if (woodMarshalOn()) {
-    drawWoodenHut(paint, isHutWrecked(prop), prop);
-    return;
-  }
-  view.ctx.fillStyle = 'rgba(10,12,16,0.35)';
-  view.ctx.fillRect(-1.2 * ppm + 0.4 * ppm, -1 * ppm + 0.6 * ppm, 2.4 * ppm, 2 * ppm);
-  paint(-1.2, -1, 2.4, 2, '#f07a1a');
-  paint(-0.95, -0.75, 1.9, 1.5, '#f2f2f2');
+  drawWoodenHut(paint, isHutWrecked(prop), prop);
 }
 
 /**
- * A wooden marshal hut (?woodmarshal=1, world/marshalbox.ts): a plank roof with an orange
+ * A wooden marshal hut (world/marshalbox.ts): a plank roof with an orange
  * marshal stripe; smashed, a few broken planks lie on its footprint.
  * @param paint fills a box in metres on the prop's axes
  * @param isWrecked smashed

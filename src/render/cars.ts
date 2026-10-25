@@ -2,7 +2,7 @@
 import { SPRITE_PPM } from "./shared.ts";
 import { DAYLIGHT } from "../world/daylight.ts";
 import { REVERSE_LAMP, isReversing } from "./reverselights.ts";
-import { LAMP_GONE, LAMP_OK, carLampsSettle, settledLampLevel } from "./carlamps.ts";
+import { settledLampLevel } from "./carlamps.ts";
 import type {
   Cam, CarSprite, RenderCar, RenderCarSpec, RollFace, SideSprite, SilCanvas, View,
 } from "./types.ts";
@@ -136,12 +136,8 @@ function drawRolledCar(
  */
 export function lampLevel(car: RenderCar, corner: number) {
   const damage = car.dmg ? car.dmg[corner] : 0;
-  // ?carlamps=1: a hit's flicker settles - working again, or dead (render/carlamps.ts)
-  if (carLampsSettle()) return settledLampLevel(car, corner, damage);
-  if (damage <= LAMP_OK) return 1;
-  if (damage >= LAMP_GONE) return 0;
-  const intact = 1 - (damage - LAMP_OK) / (LAMP_GONE - LAMP_OK);
-  return Math.random() < 0.1 + 0.5 * (1 - intact) ? 0 : intact;
+  // a hit's flicker settles - working again, or dead (render/carlamps.ts)
+  return settledLampLevel(car, corner, damage);
 }
 
 /**
