@@ -105,6 +105,8 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
 - Binned 10-25 (owner: "park em : bin em"): the HUD text fix (no clear gain measured) and the
   GPU ground phase C (no phone gain). The 10-04 car feedback is out of date. Real ABS is wanted:
   the driving root fix (wheel spin as real state) is queued, plan first.
+- Outer tyre walls (Grass Track, Stock Car): a fast car pushing through them is fine (owner
+  10-25); they stay single rows of loose tyres.
 - Order 10-25 (owner): bushes -> car systems C (when bushes pass) -> the wearcheck rewrite (when
   C passes).
 - Not wanted / undone: the highway rebuild (cancelled 10-15), a fade at zoom steps, tiles tracing

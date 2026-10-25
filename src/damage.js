@@ -213,7 +213,7 @@ export function applyBurst(car) {
 }
 /**
  * A scratch from pushing through a bush (world/bushes.ts): light damage on the corner of that
- * wheel, a few paint chips, no dent.
+ * wheel, a light dent, a few paint chips.
  * @param {object} car the car
  * @param {number} tyre the wheel (vehicle.js tyre index 0..3)
  * @param {number} amt the damage to add, 0..1
@@ -222,6 +222,8 @@ export function bushScratch(car, tyre, amt) {
   if (!car.dmg) damageInit(car);
   const corner = CORNER_OF_TYRE[tyre];
   car.dmg[corner] = Math.min(1, car.dmg[corner] + amt);
+  // a light dent on that corner's side (branches push the panel in), so it shows
+  car.crushS[corner] = Math.min(1, car.crushS[corner] + amt * 0.6);
   car.dmgBill = (car.dmgBill || 0) + amt * REPAIR_PER;
   pushEvent(car, { c: corner, amt: 0.04, scrape: true });
   derive(car);

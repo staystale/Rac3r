@@ -187,10 +187,11 @@ export const SURFACES: Record<SurfaceId, Surface> = {
   // A BUSH (owner D; world/bushplan.ts places them, world/bushes.ts the scrapes and punctures):
   // driven through, not solid. Its drag is BRUSH - stems pushed aside - growing with speed
   // (tyres.ts), so each metre of bush costs about `brush` m/s whatever the speed: a 3 m bush
-  // takes ~17 km/h off; at a crawl it pushes through easily (plough 0.5: no bogging). The ground
-  // under it is long grass, lumpy with roots. Three passes flatten a cell to long grass (wear.ts).
-  bush: { id: 'bush', label: 'BUSH', mu: 0.48, peakK: 1.40, longK: 0.80, plough: 0.5,
-    rough: 0.035, brush: 1.6, mark: MARK_GRASS_LONG, spray: SPRAY_BUSH },
+  // takes ~28 km/h off (owner: drag like real life; 1.6 measured a clump 18-26 km/h over grass);
+  // from a standstill inside one a RWD car creeps through at ~8 km/h (brush + plough 0.8 meet its
+  // traction). The ground under it is long grass, lumpy with roots. Passes flatten it (wear.ts).
+  bush: { id: 'bush', label: 'BUSH', mu: 0.48, peakK: 1.40, longK: 0.80, plough: 0.8,
+    rough: 0.035, brush: 2.6, mark: MARK_GRASS_LONG, spray: SPRAY_BUSH },
 };
 // TYRE COOLING by surface: hard surfaces (above) do not cool tyres; everything loose
 // or cold does. coolK is 1/s toward ambient, on top of the always-on cooling in vehicle.js. Stated

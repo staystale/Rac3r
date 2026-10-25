@@ -380,8 +380,6 @@ DRIVING (ask before starting; re-measure first, these are old):
 - [ ] Naffcar V8 failed the lap driver on its own track (12.7 s off the road).
 - [ ] Tyre marks (rubber) adding grip on the racing line; cross-surface contamination (mud carried
   onto tarmac). Not built - ASK if wanted.
-- [ ] Outer tyre walls (grass track, stock car): should they CATCH cars (heavier stacks / a double
-  row)? Owner decision open since 10-03; re-asked more plainly 10-25 (the owner did not follow).
 
 ## Tools that are wrong
 
