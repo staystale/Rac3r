@@ -29,6 +29,7 @@ export interface Settings {
   audio: boolean;   // ?noaudio=1: never start Web Audio (phone judder test)
   noNatClear: boolean;   // ?nonat=1: the highway slide keeps the terrain height cache (judder test)
   skipLayers: Set<string>;   // ?skip=props,barriers: layers not drawn (phone judder bisect)
+  eventLights: boolean;   // ?eventlights=1: lighting at events (owner's picks, TODO F)
   churn: '' | 'pictures' | 'objects';   // ?churn=: judder mechanism test (memory churn)
   autopilot: boolean;   // ?autopilot=1: the AI drives the player car (phone frame tests, no touch)
   autopilotKmh: number;   // ?autopilot=120: hold the autopilot car at this speed (0 = no cap)
@@ -102,5 +103,6 @@ export function readSettings(search: string): Settings {
     churn: churnKind(params),
     noNatClear: params.get('nonat') === '1',
     skipLayers: new Set((params.get('skip') || '').split(',').filter(Boolean)),
+    eventLights: params.get('eventlights') === '1',
   };
 }

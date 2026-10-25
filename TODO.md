@@ -261,6 +261,20 @@ ring of tyres (e.g. inside Knobhill's top-left corner). IDEAS for the owner: fes
 lights on grandstands and marquees, pit-lane lamps, glowing marshal posts, lit advertising
 boards, a start-gantry light bar, warm caravan windows in camping areas. Damaged lights:
 flicker, then by chance (by damage) recover or die.
+OWNER PICKS 10-25 (mockup claude.ai/artifact/D6k1bE4NDseZdr27dZBuCM): F1 corner floodlights on a
+ring of tyres - drawn with the EXISTING tyre-stack and floodlight-pylon art (mockup was "a bit
+off"); F2 start gantry light bar AND the start lights glowing; F3 festoon lights MULTI-COLOURED;
+F5 marshal post beacons YES and the marshal boxes WOODEN and DESTRUCTIBLE; F6 boards BACKLIT;
+F7 caravans: top-down, so NO visible windows - light spilling out round the sides only; F8
+knocked lights flicker then recover or die: yes; F9 street lights on generated stages that pass
+buildings, Sweaty Lamb / Killder stay dark: yes. F4 pit-lane lamps: yes. Owner added: rally
+stages get multi-coloured fairy lights too; HOT BRAKE GLOW (Q9) next.
+BUILT 10-25, UNDER TEST behind ?eventlights=1 (testlist eventlights): render/eventglows.ts
+(boards, marshal beacons, festoons, gantry bar + start lights, pits, caravans, stage fairy
+lights), world/lampplan.ts (corner floodlights + tyre rings via cones.js, villages, fairy
+strings), world/lamps.ts settleLamp (3-8 s, dies 15 % + 70 % of lost light). Photos:
+_eventlightshots.mjs. Switch off: simhash SAME. TO DO after: F5b WOODEN marshal boxes,
+destructible (?woodmarshal=1).
 
 G. SOUND + SETTINGS (M): pause menu SOUND sub-menu (car, environment, radio channel, menu: each a
 volume + mute); a SETTINGS screen off the main menu with the same and the GENERAL DIFFICULTY;

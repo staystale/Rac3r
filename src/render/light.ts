@@ -8,6 +8,7 @@ import { DAYLIGHT } from '../world/daylight.ts';
 import { activeLamps, lampsLit } from '../world/lamps.ts';
 import { indicatorBlinkOn, lampLevel } from './cars.ts';
 import { traceDecks } from './lightdecks.ts';
+import { drawEventGlows } from './eventglows.ts';
 import {
   REVERSE_BEAM_HALF_M, REVERSE_BEAM_REACH_M, REVERSE_BEAM_STRENGTH, REVERSE_GLOW,
   REVERSE_GLOW_LEVEL,
@@ -457,9 +458,11 @@ function paintUnderDecks(painter: DeckPainter, game: RenderGame) {
   lightCtx.fill();
   lightCtx.globalCompositeOperation = 'destination-out';
   drawPools(pools, false);
+  drawEventGlows(pools, false, game);
   mapGlows.parts.rubHeads();
   lightCtx.globalCompositeOperation = 'source-over';
   drawPools(pools, true);
+  drawEventGlows(pools, true, game);
   lightCtx.save();
   lightCtx.beginPath();
   lightCtx.rect(0, 0, canvas.width, canvas.height);
@@ -517,8 +520,12 @@ export function createNight(parts: NightParts) {
       return;
     }
     drawPools(pools, false);
+    drawEventGlows(pools, false, game);
     drawAllBeams(game);
-    mapGlows.paint(game, () => drawPools(pools, true));
+    mapGlows.paint(game, () => {
+      drawPools(pools, true);
+      drawEventGlows(pools, true, game);
+    });
   }
 
   return (game: RenderGame, lock: NightLock) => {

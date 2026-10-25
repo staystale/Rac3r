@@ -401,6 +401,7 @@ export interface Level {
   allPatches?: Patch[];   // load.ts prepareLevel
   solidsDirty?: boolean;   // highway.js
   fixed?: boolean;   // stagegen.js
+  gen?: unknown;   // stagegen.js: a generated stage's recipe (world/levels/category.ts)
   litter?: number;   // main.js, highway levels
   roadType?: string;   // highway.js
   _layout?: number;   // highway.js

@@ -81,6 +81,8 @@ export function hitLamp(lamp: Lamp, car: CarBody, into: number, pushX: number,
   }
   addLean(lamp, -pushX, -pushY, into * (isStreet ? STREET_LEAN_PER_V : FLOOD_LEAN_PER_V));
   lamp.flicker = Math.max(lamp.flicker, 0.4);
+  // each knock restarts its settling (world/lamps.ts settleLamp)
+  lamp.settleAt = 0;
   if (into >= HARD_V) {
     lamp.level = Math.max(0, lamp.level - (isStreet
       ? STREET_DIM * (into - HARD_V) / (SNAP_V - HARD_V) : FLOOD_HEAD));

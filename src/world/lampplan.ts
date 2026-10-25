@@ -13,7 +13,8 @@
 //             highway/roadlamps.ts)
 import { FLOOR } from './bounds.ts';
 import { catOf } from './levels/category.ts';
-import type { Level, Prop, Subtrack, TrackPoint } from './types.ts';
+import { eventLightsOn } from './eventlights.ts';
+import type { Level, Point, Prop, Subtrack, TrackPoint } from './types.ts';
 
 // street lights: how far out from the track edge their posts stand, spacing, and the stretch of
 // the lap round the start / finish line (m before, m after)
@@ -33,6 +34,24 @@ const PANEL_MAX_M2 = 6400;
 const END_OUTS_M = [8, 12, 16], END_SHIFTS_M = [0, -10, 10, -20, 20];
 
 type Spot = { x: number; y: number };
+type CornerSpot = { x: number; y: number; rot: number };
+
+// THE BUSY CORNERS (?eventlights=1; owner F1): a floodlight inside each of the tightest corners
+// (CORNER_COUNT by kind), off the racing line, on a ring of TYRE_RING_COUNT tyre stacks
+// TYRE_RING_M round its base; corners are read as the heading change across CORNER_SPAN_M either
+// side, sampled every CORNER_STEP_M, picked CORNER_APART_M apart; the spot is tried CORNER_OUTS_M
+// out from the inside edge
+const CORNER_COUNT: Record<string, number> = { circuits: 3, rx: 2 };
+const CORNER_SPAN_M = 20, CORNER_STEP_M = 5, CORNER_APART_M = 120;
+const CORNER_OUTS_M = [14, 18, 11, 22];
+const TYRE_RING_M = 2.8, TYRE_RING_COUNT = 10;
+const cornerCache = new WeakMap<Level, CornerSpot[]>();
+// a generated stage's villages: a building block this near the road, m, gets street lights
+// every VILLAGE_GAP_M over VILLAGE_LEN_M of road beside it
+const VILLAGE_REACH_M = 40, VILLAGE_GAP_M = 30, VILLAGE_LEN_M = 60;
+// a rally stage's fairy-light strings: their length and how far off the road edge, m
+const FAIRY_LEN_M = 30, FAIRY_OUT_M = 5;
+const fairyCache = new WeakMap<Level, Point[][]>();
 
 /**
  * The track sample at a distance along it (wrapping), for offsets from the centreline.
@@ -247,6 +266,80 @@ function placeNear(level: Level, placed: Prop[], sub: Subtrack, dist: number, si
 }
 
 /**
+ * A generated stage's villages (?eventlights=1; owner F9: public-road stages get street lights
+ * where they pass buildings; closed stages - Sweaty Lamb, Killder - stay dark): beside the road
+ * nearest each building block within VILLAGE_REACH_M, a street light on the buildings' side
+ * every VILLAGE_GAP_M over VILLAGE_LEN_M of road.
+ * @param level the level (a generated stage, with a subtrack)
+ * @param placed the lamps so far (added to)
+ */
+function lightVillages(level: Level, placed: Prop[]): void {
+  if (!eventLightsOn()) return;
+  const sub = level.subtrack!;
+  for (const village of villageStretches(level)) {
+    for (let along = -VILLAGE_LEN_M / 2; along <= VILLAGE_LEN_M / 2; along += VILLAGE_GAP_M) {
+      tryPlace(level, placed, besideTrack(sub, village.dist + along, village.side, STREET_OUT_M,
+        'streetlight'));
+    }
+  }
+}
+
+/**
+ * A rally stage's fairy lights (?eventlights=1; owner: multi-coloured, on rally stages too):
+ * strings beside the road, FAIRY_OUT_M off the edge, both sides over FAIRY_LEN_M at the start
+ * and the finish, and on the buildings' side through each village of a generated stage. Worked
+ * out once per stage; render/eventglows.ts hangs the bulbs on them.
+ * @param level the level
+ * @returns each string's two ends (none off a rally stage or with the event lights off)
+ */
+export function stageFairyLights(level: Level): Point[][] {
+  if (!eventLightsOn() || catOf(level) !== 'rally' || !level.subtrack) return [];
+  let strings = fairyCache.get(level);
+  if (strings) return strings;
+  const sub = level.subtrack;
+  const finish = level.stage ? level.stage.finish : sub.totalDist - 20;
+  const along = (from: number, side: number): Point[] => [from, from + FAIRY_LEN_M].map((dist) => {
+    const end = besideTrack(sub, dist, side, FAIRY_OUT_M, 'string');
+    return [end.x, end.y] as Point;
+  });
+  strings = [];
+  for (const from of [5, finish - FAIRY_LEN_M / 2]) {
+    for (const side of [1, -1]) strings.push(along(from, side));
+  }
+  for (const village of villageStretches(level)) {
+    strings.push(along(village.dist - FAIRY_LEN_M / 2, village.side));
+  }
+  fairyCache.set(level, strings);
+  return strings;
+}
+
+/**
+ * The stretches of a generated stage's road that pass a building block: the nearest road
+ * distance and the buildings' side.
+ * @param level the level (a generated stage)
+ * @returns the stretches
+ */
+function villageStretches(level: Level): { dist: number; side: number }[] {
+  if (!level.gen || !level.subtrack) return [];
+  const sub = level.subtrack, out: { dist: number; side: number }[] = [];
+  for (const block of (level.props || []).filter((prop) => prop.kind === 'block')) {
+    let nearest = sub.pts[0], best = Infinity;
+    for (const point of sub.pts) {
+      const gap = Math.hypot(point.x - block.x, point.y - block.y);
+      if (gap < best) {
+        best = gap;
+        nearest = point;
+      }
+    }
+    if (best > VILLAGE_REACH_M) continue;
+    const side = (block.x - nearest.x) * nearest.nx + (block.y - nearest.y) * nearest.ny >= 0
+      ? 1 : -1;
+    out.push({ dist: nearest.dist, side });
+  }
+  return out;
+}
+
+/**
  * A test ground: pylons round the floor's edge, and the lamp alley down the first clear stretch
  * nearest the spawn.
  * @param level the level
@@ -281,6 +374,106 @@ function lightTestGround(level: Level, placed: Prop[]): void {
 }
 
 /**
+ * How sharply the track turns at a distance: the heading change across CORNER_SPAN_M either side.
+ * @param sub the subtrack
+ * @param dist distance along the lap, m
+ * @returns the turn, radians (unsigned)
+ */
+function turnAt(sub: Subtrack, dist: number): number {
+  const before = sampleAt(sub, dist - CORNER_SPAN_M), here = sampleAt(sub, dist);
+  const after = sampleAt(sub, dist + CORNER_SPAN_M);
+  const headIn = Math.atan2(here.y - before.y, here.x - before.x);
+  const headOut = Math.atan2(after.y - here.y, after.x - here.x);
+  return Math.abs(Math.atan2(Math.sin(headOut - headIn), Math.cos(headOut - headIn)));
+}
+
+/**
+ * The lap distances of the track's tightest corners, CORNER_APART_M apart at least.
+ * @param sub the subtrack
+ * @param count how many
+ * @returns their apex distances, m
+ */
+function tightestCorners(sub: Subtrack, count: number): number[] {
+  const turns: [number, number][] = [];
+  for (let dist = 0; dist < sub.totalDist; dist += CORNER_STEP_M) {
+    turns.push([dist, turnAt(sub, dist)]);
+  }
+  turns.sort((first, second) => second[1] - first[1]);
+  const picked: number[] = [];
+  const apart = (first: number, second: number) => {
+    const gap = Math.abs(first - second) % sub.totalDist;
+    return Math.min(gap, sub.totalDist - gap) >= CORNER_APART_M;
+  };
+  for (const [dist] of turns) {
+    if (picked.length >= count) break;
+    if (picked.every((other) => apart(other, dist))) picked.push(dist);
+  }
+  return picked;
+}
+
+/**
+ * A clear spot inside a corner, off the racing line, for a floodlight on a ring of tyres: tried
+ * at CORNER_OUTS_M out from the track edge on the inside (the side the chord bends toward).
+ * @param level the level
+ * @param sub its subtrack
+ * @param dist the apex's distance, m
+ * @returns the spot and the way it faces (toward the apex), or null
+ */
+function cornerSpot(level: Level, sub: Subtrack, dist: number): CornerSpot | null {
+  const apex = sampleAt(sub, dist), before = sampleAt(sub, dist - CORNER_SPAN_M);
+  const after = sampleAt(sub, dist + CORNER_SPAN_M);
+  const chordX = (before.x + after.x) / 2, chordY = (before.y + after.y) / 2;
+  const side = (chordX - apex.x) * apex.nx + (chordY - apex.y) * apex.ny >= 0 ? 1 : -1;
+  for (const out of CORNER_OUTS_M) {
+    const off = side * (sub.width / 2 + out);
+    const spot = { x: apex.x + apex.nx * off, y: apex.y + apex.ny * off };
+    const inFloor = Math.abs(spot.x) < FLOOR - 12 && Math.abs(spot.y) < FLOOR - 12;
+    if (inFloor && trackGap(sub, spot) >= sub.width / 2 + TYRE_RING_M + 3
+      && isFreeOfThings(level, spot, TYRE_RING_M + 1)) {
+      return { ...spot, rot: Math.atan2(apex.y - spot.y, apex.x - spot.x) };
+    }
+  }
+  return null;
+}
+
+/**
+ * The busy corners' floodlight spots of a circuit or rallycross (?eventlights=1; owner F1): its
+ * tightest corners, each with a clear spot inside it. Worked out once per level.
+ * @param level the level
+ * @returns the spots (none elsewhere, or with the event lights off)
+ */
+export function cornerSpots(level: Level): CornerSpot[] {
+  const count = CORNER_COUNT[catOf(level)];
+  if (!eventLightsOn() || !count || !level.subtrack || level.endless) return [];
+  let spots = cornerCache.get(level);
+  if (!spots) {
+    const sub = level.subtrack;
+    spots = tightestCorners(sub, count).map((dist) => cornerSpot(level, sub, dist))
+      .filter((spot): spot is CornerSpot => !!spot);
+    cornerCache.set(level, spots);
+  }
+  return spots;
+}
+
+/**
+ * The ring of tyre stacks round each corner floodlight's base: the level's ordinary, knockable
+ * tyre stacks (cones.js adds them to the level's loose objects at a reset).
+ * @param level the level
+ * @returns the tyre stack entries
+ */
+export function cornerTyres(level: Level): Prop[] {
+  const tyres: Prop[] = [];
+  for (const spot of cornerSpots(level)) {
+    for (let i = 0; i < TYRE_RING_COUNT; i++) {
+      const angle = (i / TYRE_RING_COUNT) * Math.PI * 2;
+      tyres.push({ kind: 'tyrestack', x: spot.x + Math.cos(angle) * TYRE_RING_M,
+        y: spot.y + Math.sin(angle) * TYRE_RING_M });
+    }
+  }
+  return tyres;
+}
+
+/**
  * The lamps a level gets by its kind (none for the endless highway: it streams its own).
  * @param level the level
  * @returns the lamp entries (streetlight / floodlight; x, y the foot; rot toward the track)
@@ -290,7 +483,12 @@ export function planLamps(level: Level): Prop[] {
   if (level.endless) return [];
   if (kind === 'test') lightTestGround(level, placed);
   else if (!level.subtrack) return placed;
-  else if (kind === 'rally') lightStageEnds(level, placed);
+  else if (kind === 'rally') {
+    lightStageEnds(level, placed);
+    lightVillages(level, placed);
+  }
   else lightLap(level, placed, FLOOD_GAP_M[kind] || FLOOD_GAP_M.circuits, kind !== 'rx');
+  // the busy corners' floodlights, each inside its ring of tyres
+  for (const spot of cornerSpots(level)) placed.push({ kind: 'floodlight', ...spot });
   return placed;
 }

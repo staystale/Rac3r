@@ -282,6 +282,8 @@ export interface RenderGame extends RoadGame, TapeGame {
   traffic?: { cars: GameCar[] };   // highway traffic (traffic.js)
   cones: TapeGame["cones"] & { list: RenderCone[]; drainHits: () => PuffHit[] };
   marks: RenderMarks;
+  // the race start (game/order.js armStart): the start gantry's lights glow by it
+  start?: { on: boolean; t: number; tGreen: number; green: boolean };
 }
 
 // One cached ground tile: its canvas, the frame it was last used, and whether wear made it stale.

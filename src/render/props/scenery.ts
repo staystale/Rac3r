@@ -447,6 +447,20 @@ export function drawSolarFarm(propCtx: PropCtx, prop: Prop, ppm: number) {
     cell(cellX, cellY); // grin
 }
 
+// a board's size, m (render/light.ts backlights the same rectangle)
+export const BOARD_W_M = 18, BOARD_H_M = 2.4;
+
+/**
+ * A board's accent colour: a motorway exit sign's white, else by its sponsor.
+ * @param prop the board
+ * @returns the colour
+ */
+export function boardAccent(prop: Prop): string {
+  if (prop.blue) return '#ffffff';
+  const label = prop.label || '';
+  return label.includes('SPUM') ? '#eab308' : label.includes('CREEM') ? '#38bdf8' : '#f97316';
+}
+
 /**
  * Draws the board prop (board).
  * @param propCtx the view and painter helpers
@@ -456,8 +470,8 @@ export function drawSolarFarm(propCtx: PropCtx, prop: Prop, ppm: number) {
 export function drawBoard(propCtx: PropCtx, prop: Prop, ppm: number) {
   const { view } = propCtx;
   // Heavy timber support posts
-  const boardW = 18 * ppm,
-    boardH = 2.4 * ppm;
+  const boardW = BOARD_W_M * ppm,
+    boardH = BOARD_H_M * ppm;
   view.ctx.fillStyle = 'rgba(10,12,16,0.38)';
   view.ctx.fillRect(-boardW / 2 + 2, -boardH / 2 + 3, boardW, boardH);
   // Wooden support posts
@@ -468,13 +482,7 @@ export function drawBoard(propCtx: PropCtx, prop: Prop, ppm: number) {
   // blue = a motorway EXIT sign (highway.js slip roads)
   view.ctx.fillStyle = prop.blue ? '#1f4fa8' : '#14161c';
   view.ctx.fillRect(-boardW / 2, -boardH / 2, boardW, boardH);
-  view.ctx.strokeStyle = prop.blue
-    ? '#ffffff'
-    : prop.label!.includes('SPUM')
-      ? '#eab308'
-      : prop.label!.includes('CREEM')
-        ? '#38bdf8'
-        : '#f97316';
+  view.ctx.strokeStyle = boardAccent(prop);
   view.ctx.lineWidth = 1.8;
   view.ctx.strokeRect(-boardW / 2, -boardH / 2, boardW, boardH);
   // Sponsor typography with punchy contrast

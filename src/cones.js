@@ -4,7 +4,8 @@
 // The simulation lives in src/cones/ (coneConsts, coneWalls, coneCar, coneTape, coneGrid,
 // coneStep); this file builds the one context they share and returns the cones object.
 
-import { CONES } from "./world/state.ts";
+import { CONES, LEVEL } from "./world/state.ts";
+import { cornerTyres } from "./world/lampplan.ts";
 import { fileAtRest, rebuildRestGrid } from "./cones/coneGrid.js";
 import { stepCones } from "./cones/coneStep.js";
 import { CONE_R, DEBRIS, TOPPLES } from "./cones/coneConsts.js";
@@ -93,7 +94,8 @@ function tapeSections(list) {
  * @param {any} ctx the cones context
  */
 function resetCones(ctx) {
-  ctx.list = CONES.map(live);
+  // the level's objects, and the tyre rings round its corner floodlights (?eventlights=1)
+  ctx.list = [...CONES, ...cornerTyres(LEVEL)].map(live);
   ctx.hits.length = 0;
   ctx.list.forEach((obj, i) => { obj._n = i; }); ctx.nextN = ctx.list.length;
   // the tape SECTIONS: consecutive posts of the same tape
