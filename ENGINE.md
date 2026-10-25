@@ -76,7 +76,7 @@ the model reads them and nothing else.
 Surfaces come from the ground under each wheel (`world/wear.ts groundAt`): the surface's grip and drag,
 any cover (snow, ice, puddle) and the wear state of the cell.
 
-Bushes (`?bushes=1`) are ground too: the `bush` surface (its `brush` drag grows with speed,
+Bushes are ground too: the `bush` surface (its `brush` drag grows with speed,
 `physics/tyres.ts`), laid as patches by `world/bushplan.ts` from each level's plan
 (`world/levels/bushes.ts`), flattened to long grass by passes (`wear.ts BASE_WEAR`); a wheel
 entering a bush cell may puncture or scratch that corner (`world/bushes.ts`). Drawn by

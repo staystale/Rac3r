@@ -448,7 +448,7 @@ export interface Level {
   // stagegen.js addStageLevels: a rally stage, generated on first use (load.ts buildLevel)
   _build?: () => Level;
   _branches?: Branches;   // ai/line.ts racingLine: the joker / start lane paths, cached
-  bushes?: BushPlan;   // where its bushes grow (world/bushplan.ts; ?bushes=1)
+  bushes?: BushPlan;   // where its bushes grow (world/bushplan.ts)
   _bushes?: Patch[];   // load.ts prepareLevel: its bushes, planned once
 }
 

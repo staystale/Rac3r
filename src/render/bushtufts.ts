@@ -1,4 +1,4 @@
-// BUSH TUFTS (?bushes=1; owner: bushes "poke up past / over the car sometimes"): a few leaf
+// BUSH TUFTS (owner: bushes "poke up past / over the car sometimes"): a few leaf
 // squares of each bush drawn ABOVE the cars, in the overhead pass (render/props.ts; the art-pixel
 // buffer, so they are pixel squares like the tree canopies, and drawn under the canopies). Over
 // an empty bush they are just more of its leaves; a car pushing through shows leaves over its

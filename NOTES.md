@@ -100,7 +100,10 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   wooden marshal huts that a hard hit smashes (pallets thrown, beacon out); hot brakes glow at
   night after several hard stops (handbrake: the rears), cold again on RESTART / RESET as the
   tyres; trees with a trunk-only solid, canopies over the cars and dark at night, leafy trees by
-  the season and firs, snow from the weather (bushes still to do).
+  the season and firs, snow from the weather. Bushes (10-25, owner: pass): square pixel clumps in
+  their own greens that you drive through - heavy drag, a light dent, a puncture chance, leaves
+  poking up over the cars - flattened to long grass; on rally stages, circuits, rallycross and
+  the test levels.
 - TypeScript conversion ON HOLD (owner 10-25): keep building in TypeScript, convert old .js later.
 - Binned 10-25 (owner: "park em : bin em"): the HUD text fix (no clear gain measured) and the
   GPU ground phase C (no phone gain). The 10-04 car feedback is out of date. Real ABS is wanted:
@@ -244,6 +247,11 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
 - Wear cells cost per cell where code walks them all (pruneWear each highway rebuild, the worn
   tiles' painter per tile): ~3 000 on a circuit measured nothing; ~15 000 (the highway's ploughed
   fields) is why fields dry in blocks, not cells.
+
+- The tiles' palette is built from SURFACE_ART (render/tilesPalette.ts): a new look's colours
+  move other pixels' nearest-colour snap. While under test, add them only with the switch on.
+- Odds rolled per wear cell scale with area (square bushes: the same per-cell puncture chance
+  went 13 % -> 23 % of bushes vs round ones). Re-measure after any change of shape or size.
 
 ## Routine
 

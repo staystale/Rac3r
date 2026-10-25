@@ -3,7 +3,6 @@
 import type { ArtLayer, SurfaceArt } from "../types.ts";
 import { TEX_PPM, fillTexture, paintTexture } from "../textures.ts";
 import type { GroundCtx } from "./types.ts";
-import { bushesOn } from "../../world/bushes.ts";
 import { BUSH_LOOKS } from "./bushes.ts";
 
 // HOW EACH SURFACE IS PAINTED: a base colour, then layers drawn in order. One table — a new
@@ -263,14 +262,12 @@ function addFieldLooks(SURFACE_ART: Record<string, SurfaceArt | null>) {
 
 /**
  * The BUSH looks (ground/bushes.ts BUSH_LOOKS: one kind per clump): square leaf clumps, lit
- * leaves and specks in greens of their own. Only while bushes are on (?bushes=1): their colours
- * join the tiles' palette (tilesPalette.ts), so without them every pixel stays as it was. Their
- * shape and volume: ground/bushes.ts.
+ * leaves and specks in greens of their own (their colours are in the tiles' palette,
+ * tilesPalette.ts). Their shape and volume: ground/bushes.ts.
  *
  * @param SURFACE_ART the table to extend
  */
 function addBushLooks(SURFACE_ART: Record<string, SurfaceArt | null>) {
-  if (!bushesOn()) return;
   for (const [kind, look] of Object.entries(BUSH_LOOKS)) {
     SURFACE_ART[kind] = {
       base: look.base,

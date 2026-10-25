@@ -1,7 +1,7 @@
-// BUSHES (?bushes=1; owner D): a bush is ground you drive THROUGH - the 'bush' surface (its drag
+// BUSHES (owner D): a bush is ground you drive THROUGH - the 'bush' surface (its drag
 // in surfaces.ts / physics/tyres.ts), laid as patches by world/bushplan.ts, flattened to long
-// grass by passes like any worn ground (wear.ts BASE_WEAR). This file holds the switch and what a
-// wheel pushing into a bush does to the car: a fairly high chance of a PUNCTURE (thorns, stems,
+// grass by passes like any worn ground (wear.ts BASE_WEAR). This file holds what a wheel
+// pushing into a bush does to the car: a fairly high chance of a PUNCTURE (thorns, stems,
 // hidden wood) and a chance of a light dent on that corner, likelier the faster you go.
 import { bushScratch } from '../damage.js';
 
@@ -17,24 +17,6 @@ const SCRATCH_CHANCE = 0.03, SCRATCH_FULL = 30;
 // the damage a scratch adds, 0..1 of a corner: SCRATCH_BASE plus SCRATCH_PER per m/s (0.07 at
 // 25 m/s: a light dent; a 20 km/h head-on is ~0.15)
 const SCRATCH_BASE = 0.03, SCRATCH_PER = 0.0016;
-
-let isOn = false;
-
-/**
- * Turns the bushes on or off (?bushes=1).
- * @param isWanted true for bushes
- */
-export function setBushes(isWanted: boolean): void {
-  isOn = isWanted;
-}
-
-/**
- * Whether the bushes are on.
- * @returns true when on
- */
-export function bushesOn(): boolean {
-  return isOn;
-}
 
 /** The car field a bush sets (vehicle.ts; damage.js applyBurst skips a tyre already flat). */
 interface BushCar { burstTyre?: number }

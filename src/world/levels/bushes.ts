@@ -1,4 +1,4 @@
-// BUSH PLANS (?bushes=1; world/bushplan.ts grows them): where a level's bushes go, by kind.
+// BUSH PLANS (world/bushplan.ts grows them): where a level's bushes go, by kind.
 import type { BushPlan } from '../types.ts';
 
 // RALLY: close to the road (the bush you clip cutting a corner), 1.2 m off the edge at least

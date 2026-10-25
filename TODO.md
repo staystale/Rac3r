@@ -16,8 +16,8 @@ handover, written on request.
   (trunk-only solid, canopies over the cars and dark at night, seasons, firs, weather snow).
   Earlier 10-24: A1-A13 fixes, grass G1, mud M1.
 - TYPESCRIPT CONVERSION: ON HOLD (owner 10-25); new code is TypeScript, old .js converted later.
-- ORDER (owner 10-25): 1 BUSHES (D part 2) - UNDER TEST (?bushes=1); 2 car systems C when
-  bushes pass; 3 the wearcheck rewrite when C passes. Then (owner to order): the driving ROOT
+- ORDER (owner 10-25): 1 BUSHES (D part 2) - DEFAULT 10-25 (owner: pass); 2 car systems C
+  (NEXT: design first); 3 the wearcheck rewrite when C passes. Then (owner to order): the driving ROOT
   FIX for real ABS (owner: "abs is needed to be fixed so yes"), AI rework B (design first),
   sound + settings G, Story + upgrades H, new levels (Dieatona), multiplayer I.
 - BINNED 10-25 (owner: "park em : bin em"): the HUD text fix (branch experiment/hudtext - its
@@ -282,14 +282,15 @@ smash at 8 m/s, pallets thrown, beacon out), hot brakes (render/brakeglow.ts: he
 ~3 hard stops; the handbrake heats the rears; cold again on a reset, as the tyres), trees
 (world/treetrunks.ts trunk-only solid; render/trees.ts seasons, firs, weather snow, canopies
 overhead and dark at night). TS conversion ON HOLD.
-BUSHES (D part 2) UNDER TEST 10-25 behind ?bushes=1: the 'bush' surface (surfaces.ts: brush
-drag ~ speed, physics/tyres.ts; mu 0.48, plough 0.5), laid as square ground patches by
-world/bushplan.ts from each level's plan (world/levels/bushes.ts: rally close to the road,
-rallycross off the verges, circuits well back + at the foot of trees, sample beds on the test
+BUSHES (D part 2) DEFAULT 10-25 (owner: pass; the ?bushes switch deleted): the 'bush' surface
+(surfaces.ts: brush drag ~ speed, physics/tyres.ts; mu 0.48, brush 2.6, plough 0.8), laid as
+square ground patches by world/bushplan.ts from each level's plan (world/levels/bushes.ts: rally
+close to the road, rallycross off the verges, circuits well back + at the foot of trees,
+sample beds on the test
 levels), flattened to long grass by passes (wear.ts BASE_WEAR); a wheel entering a bush cell may
-puncture (0.7 %) or scratch that corner by speed (world/bushes.ts, damage.js bushScratch). Look
+puncture (0.8 %) or dent that corner by speed (world/bushes.ts, damage.js bushScratch). Look
 (owner: square pixel art like the trees, own shades of green): art.ts addBushLooks (holly, olive
-gorse, blue-green; their colours join the palette only while ?bushes=1), ground/bushes.ts.
+gorse, blue-green; their colours are in the tiles' palette), ground/bushes.ts.
 Round 2 (owner): drag 2.6, a light dent, puncture 0.8 %; leaf TUFTS drawn over the cars
 (render/bushtufts.ts, the overhead pass under the canopies; gone where the bush is flattened).
 MEASURED (_bushes.mjs): a clump costs 21-35 km/h more than grass at 54-126 km/h. Levels: Castle

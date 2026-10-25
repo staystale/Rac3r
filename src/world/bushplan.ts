@@ -1,4 +1,4 @@
-// WHERE BUSHES GROW (?bushes=1; owner D): each level that has a plan (Level.bushes, data in its
+// WHERE BUSHES GROW (owner D): each level that has a plan (Level.bushes, data in its
 // level file or its stage theme) gets clumps of bushes - one to three overlapping SQUARES of the
 // 'bush' surface (the trees' pixel style), as ground patches (load.ts adds them after the blend
 // and inclusions, so they draw on top and the lookup grid finds them). Two kinds of spot:

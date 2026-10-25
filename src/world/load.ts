@@ -12,7 +12,6 @@ import { onTrack, querySubtrack } from "./tyrewall.ts";
 import { buildBlend, seededRng, buildInclusions } from "./blend.ts";
 import { LEVELS } from "./levels/index.ts";
 import { staticCovers } from "./puddles.ts";
-import { bushesOn } from "./bushes.ts";
 import { planBushes } from "./bushplan.ts";
 import type { Barrier, Cone, Lane, Level, Patch, Point, Prop, Subtrack } from "./types.ts";
 /**
@@ -97,8 +96,7 @@ function prepareLevel(light = false): void {
     : [...LEVEL._blend!, ...LEVEL._incl!.patches];
   LEVEL.allPatches = [...(LEVEL.patches || []), ...gen];
   indexPatchGrid();
-  // BUSHES (?bushes=1): planned on the ground just indexed, then drawn over it
-  if (!bushesOn()) return;
+  // BUSHES: planned on the ground just indexed, then drawn over it
   if (!LEVEL._bushes) LEVEL._bushes = planBushes(LEVEL);
   if (!LEVEL._bushes.length) return;
   LEVEL.allPatches.push(...LEVEL._bushes);
