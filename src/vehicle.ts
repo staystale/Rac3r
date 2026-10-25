@@ -47,8 +47,11 @@ export type CarTelemetry = {
   slipSpeedDriven?: number; delta?: number; gear?: number; rpm?: number;
 }
 
-// The damage state vehicle.ts reads (damage.js sets car.wreck; multipliers, 1 = undamaged).
-export interface CarWreck { toe: number; power: number; roll: number; gripF: number; gripR: number }
+// The damage state vehicle.ts reads (damage.ts sets car.wreck; multipliers, 1 = undamaged; smoke:
+// the nose smokes, for the particles).
+export interface CarWreck {
+  toe: number; power: number; roll: number; gripF: number; gripR: number; smoke: boolean;
+}
 // The rollover state (roll.js): vehicle.ts only nulls it.
 export interface CarRoll { phase: string }
 // Render position of the last frame (main.js, traffic.ts): vehicle.ts only nulls it.
@@ -79,7 +82,7 @@ export interface Car {
   // added by reset, which makeCar calls right after building the literal
   wheelSpin: number; tyreT: number[]; groundInit: boolean;
   // TYRE WEAR (physics/tyrewear.ts): 0 new .. 1 bald per tyre, and a tyre that burst
-  // this step (-1 none; damage.js applyBurst)
+  // this step (-1 none; damage.ts applyBurst)
   tyreWear?: number[]; burstTyre?: number; tyreWearOwned?: boolean; tyreWearStart?: number[];
   _p: CarPrev | null; prevWheels: CarWheelPos[] | null;
   roll: CarRoll | null; sparks: boolean; streamers: CarStreamer[] | null;
@@ -88,7 +91,7 @@ export interface Car {
   bankLatForce?: number; bankLoadFactor?: number;
   // set by contact.js (the slipstream) and by vehicle.ts itself (the handbrake hold)
   dragMul?: number; hbAfter?: number;
-  // set by damage.js
+  // set by damage.ts
   wreck?: CarWreck;
   // set by tools / the debug panel only
   yawDampOverride?: number;

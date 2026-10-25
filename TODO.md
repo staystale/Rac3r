@@ -170,7 +170,7 @@ A. FIXES AND CHECKS (S-M each; first, they change what is already there)
   the nearest lane, drifting onto the line at the lane-change speed: 0 handover jumps.
 - A13 PUNCTURES too easy, e.g. driving on grass, even on the wrong tyres - real-life balance
   (owner 10-24); more testing suggests HITTING OBJECTS. Today: a burst from heat / wear
-  (physics/tyrewear.ts), a hard crash (damage.js PUNCT_HIT), debris one flat 4 % per hit over
+  (physics/tyrewear.ts), a hard crash (damage.ts PUNCT_HIT), debris one flat 4 % per hit over
   3 m/s whatever it is (DEBRIS_CHANCE; splinters 1 %). WANTED: a puncture chance PER OBJECT
   KIND by what it is - tyres, tarps, cones ~none; pallets, broken glass, sign posts higher.
   Measure today's puncture sources on a grass run first (which one fires). One table, used
@@ -201,7 +201,7 @@ corner, wander off the line, racecraft (attack, tow pass, give room, cover), res
   spatial grids per car per step (cost measured first).
 - B6 Budget: measure the AI's ms per car now (profile) and keep it at or below that.
 
-C. CAR SYSTEMS + DAMAGE (L; one chain - extend damage.js, no second damage model)
+C. CAR SYSTEMS + DAMAGE (L; one chain - extend damage.ts, no second damage model)
 - C1 Car systems state: tyres (pressure, puncture, flat, rim), radiator (water, leak), engine
   (temperature, oil, pressure, brief power loss), drivetrain (grinding). Shown only by what is
   seen / heard: NO written banners (owner rule, see Q2).
@@ -288,7 +288,7 @@ square ground patches by world/bushplan.ts from each level's plan (world/levels/
 close to the road, rallycross off the verges, circuits well back + at the foot of trees,
 sample beds on the test
 levels), flattened to long grass by passes (wear.ts BASE_WEAR); a wheel entering a bush cell may
-puncture (0.8 %) or dent that corner by speed (world/bushes.ts, damage.js bushScratch). Look
+puncture (0.8 %) or dent that corner by speed (world/bushes.ts, damage.ts bushScratch). Look
 (owner: square pixel art like the trees, own shades of green): art.ts addBushLooks (holly, olive
 gorse, blue-green; their colours are in the tiles' palette), ground/bushes.ts.
 Round 2 (owner): drag 2.6, a light dent, puncture 0.8 %; leaf TUFTS drawn over the cars

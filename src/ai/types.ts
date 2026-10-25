@@ -322,7 +322,7 @@ export interface CircuitState extends DriveOutState {
 
 // A traffic car is a real car (vehicle.ts makeCar) plus what traffic.ts puts on it.
 export type TrafficVehicle = Car & Pick<AiCar, 'traffic' | '_trOff' | '_hwS' | '_hwf'> & {
-  dmg?: number[];   // damage.js damageInit: the damage of the four corners
+  dmg?: number[];   // damage.ts damageInit: the damage of the four corners
   indicator?: number;   // traffic.ts: -1 / 0 / 1
   hazard?: boolean;   // traffic.ts: a wreck's hazard lights
   brakeLight?: number;   // traffic.ts

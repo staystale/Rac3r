@@ -105,6 +105,14 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   poking up over the cars - flattened to long grass; on rally stages, circuits, rallycross and
   the test levels.
 - TypeScript conversion ON HOLD (owner 10-25): keep building in TypeScript, convert old .js later.
+  A .js file a feature rewrites becomes .ts first, in its own commit proved SAME (damage.ts, 10-25);
+  a .js file a feature only touches gets a one-line call into new .ts code.
+- Car systems C (owner 10-25): integrate with the old systems and finish with ONE coherent system
+  (punctures, grip, pull, drag, sparks, marks, water, smoke all extended, never duplicated).
+  Answers: a burst goes flat in ~0.5 s, debris / nails / bush leak over 10-30 s; ~1 km flat to
+  the rim; an overheated engine SEIZES (RESET mends); every car has both speedo lights; tyres
+  squash progressively with pressure (mockup approved). A rim or a rolled body on hard ground
+  may break it a grade (race tarmac -> tarmac -> broken).
 - Binned 10-25 (owner: "park em : bin em"): the HUD text fix (no clear gain measured) and the
   GPU ground phase C (no phone gain). The 10-04 car feedback is out of date. Real ABS is wanted:
   the driving root fix (wheel spin as real state) is queued, plan first.

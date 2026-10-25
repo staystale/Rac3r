@@ -126,7 +126,7 @@ function drawRolledCar(
 }
 
 /**
- * LAMPS BREAK WITH DAMAGE: every lamp lives on its corner (damage.js: 0 front -y, 1 front +y,
+ * LAMPS BREAK WITH DAMAGE: every lamp lives on its corner (damage.ts: 0 front -y, 1 front +y,
  * 2 rear -y, 3 rear +y). Full up to LAMP_OK, then it flickers and dims, out from LAMP_GONE
  * (~a 25-30 km/h head-on on that corner). Headlight beam + lamp, brake light and indicator
  * alike.
@@ -242,7 +242,7 @@ function drawPixelCar(carsCtx: CarsContext, car: RenderCar, heading = car.headin
   view.ctx.globalAlpha = 1;
   const halfWidth = drawCarWheels(carsCtx, car, sprite);
   view.ctx.drawImage(sprite.c, -sprite.Lp / 2 - 2, -sprite.Wp / 2 - 2);
-  // DAMAGE (damage.js): a dark crushed block on each hurt corner, growing with the damage,
+  // DAMAGE (damage.ts): a dark crushed block on each hurt corner, growing with the damage,
   // a pale crease along its edge; a punctured wheel shows a bright rim. Squares, not curves
   // (pixel rule).
   if (car.punct) for (let corner = 0; corner < 4; corner++) {

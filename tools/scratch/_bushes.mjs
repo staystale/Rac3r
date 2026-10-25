@@ -121,7 +121,7 @@ async function physics() {
   let punctures = 0, scratched = 0, flatCells = 0;
   for (let i = 0; i < Math.min(RUNS, spots.length); i++) {
     const result = await page.evaluate(async (spot) => {
-      const damage = await import('/src/damage.js');
+      const damage = await import('/src/damage.ts');
       const wear = await import('/src/world/wear.ts');
       const car = window.__game.car;
       damage.repair(car);

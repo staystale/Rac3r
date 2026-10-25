@@ -230,7 +230,7 @@ function drawIndicatorGlows(painter: GlowPainter, car: RenderCar) {
   const halfLen = car.spec.len / 2, halfWid = car.spec.wid / 2;
   const side = car.hazard ? 0 : car.indicator || 0;
   if (!side && !car.hazard) return;
-  // corners (damage.js): 0 front -y, 1 front +y, 2 rear -y, 3 rear +y
+  // corners (damage.ts): 0 front -y, 1 front +y, 2 rear -y, 3 rear +y
   for (const along of [halfLen, -halfLen]) {
     for (const across of side ? [side * halfWid] : [-halfWid, halfWid]) {
       if (lampLevel(car, (along > 0 ? 0 : 2) + (across > 0 ? 1 : 0)))

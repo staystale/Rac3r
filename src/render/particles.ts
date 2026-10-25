@@ -57,7 +57,7 @@ const FLUFF_PUFF = { rgb: '248,247,240', size: 0.5, lift: 3.2, life: 1.5, grow: 
 // how hot and how hard - the silent twin of a squeal (CLAUDE.md §4).
 const SMOKE_T = 115;
 const SMOKE = { rgb: '225,225,230', size: 0.45, lift: 0.9, life: 1.3, grow: 1.9 };
-// a badly hit front (damage.js wreck.smoke) trails grey smoke from the nose - the silent twin of
+// a badly hit front (damage.ts wreck.smoke) trails grey smoke from the nose - the silent twin of
 // a damaged engine
 const DSMOKE = { rgb: '120,120,128', size: 0.5, lift: 0.7, life: 1.1, grow: 1.6 };
 
@@ -203,7 +203,7 @@ function flingChips(ctx: ParticleCtx, car: ParticleCar, hit: DmgEvent) {
 }
 
 /**
- * PAINT CHIPS: every hit (damage.js dmgEvents) flings square pixels of the car's paint (and some
+ * PAINT CHIPS: every hit (damage.ts dmgEvents) flings square pixels of the car's paint (and some
  * primer / black trim) from the hurt corner; they skid to a stop and lie on the ground a few
  * seconds. Wall clock (rule 5: watched). Capped, oldest dropped (§4).
  * @param ctx particle context

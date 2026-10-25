@@ -8,7 +8,7 @@ import * as L from '../src/lab.js';
 import * as H from '../src/highway.js';
 import { createTraffic } from '../src/traffic.ts';
 import { carContacts, carContact } from '../src/contact.js';
-import { hit, tooInjured } from '../src/damage.js';
+import { hit, tooInjured } from '../src/damage.ts';
 import { aiTraits } from '../src/ai/traits.ts';
 import { createAIDriver } from '../src/ai/circuit.ts';
 import { createHwFlow, hwFrames, hwGrid, hwGridSpan, HW_GREEN } from '../src/highwayrace.ts';

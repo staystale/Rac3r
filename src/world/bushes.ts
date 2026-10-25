@@ -3,7 +3,7 @@
 // grass by passes like any worn ground (wear.ts BASE_WEAR). This file holds what a wheel
 // pushing into a bush does to the car: a fairly high chance of a PUNCTURE (thorns, stems,
 // hidden wood) and a chance of a light dent on that corner, likelier the faster you go.
-import { bushScratch } from '../damage.js';
+import { bushScratch, type DamageCar } from '../damage.ts';
 
 // the chance a wheel entering one bush cell (1.5 m) punctures. MEASURED (_bushes.mjs, Killder
 // bushes at 25 m/s): 0.7 % punctured 13 of 80 (16 %); owner: "a tiny bit higher" -> 0.8 %
@@ -18,7 +18,7 @@ const SCRATCH_CHANCE = 0.03, SCRATCH_FULL = 30;
 // 25 m/s: a light dent; a 20 km/h head-on is ~0.15)
 const SCRATCH_BASE = 0.03, SCRATCH_PER = 0.0016;
 
-/** The car field a bush sets (vehicle.ts; damage.js applyBurst skips a tyre already flat). */
+/** The car field a bush sets (vehicle.ts; damage.ts applyBurst skips a tyre already flat). */
 interface BushCar { burstTyre?: number }
 
 /**
@@ -33,5 +33,7 @@ export function bushPass(car: object, tyre: number, speed: number,
   if (speed < HARM_FROM) return;
   if (rnd() < PUNCTURE_CHANCE) (car as BushCar).burstTyre = tyre;
   const share = Math.min(1, (speed - HARM_FROM) / (SCRATCH_FULL - HARM_FROM));
-  if (rnd() < SCRATCH_CHANCE * share) bushScratch(car, tyre, SCRATCH_BASE + SCRATCH_PER * speed);
+  if (rnd() < SCRATCH_CHANCE * share) {
+    bushScratch(car as DamageCar, tyre, SCRATCH_BASE + SCRATCH_PER * speed);
+  }
 }

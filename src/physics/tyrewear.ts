@@ -6,7 +6,7 @@
 // FASTER in the dry. A worn tyre loses a fair bit of grip (more on wet ground: a bald tyre
 // aquaplanes) and can puncture: the hotter and the more worn, the likelier; a healthy tyre in its
 // window never punctures by chance (no random draw at all), so nothing happens out of the blue.
-// Crashes (damage.js) and debris (cones/coneCar.js) may puncture too.
+// Crashes (damage.ts) and debris (cones/coneCar.js) may puncture too.
 
 import { debrisChance } from './punctures.ts';
 

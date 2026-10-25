@@ -1,6 +1,6 @@
 // _punctures.mjs - A13 (owner: punctures too easy, e.g. on grass; "objects should have a chance to
 // cause puncture ... relevant to the object hit"): the real game, VS AI x5 with your car on
-// autopilot, sampled every 0.1 s. Every new puncture on any car (damage.js car.punct) is tagged
+// autopilot, sampled every 0.1 s. Every new puncture on any car (damage.ts car.punct) is tagged
 // with what was beside it at that moment: the nearest loose object within 4 m (its kind: tyre
 // stacks, bales, cones, debris), another car within 5 m, else nothing (a barrier, a hot / worn
 // tyre burst, a landing), with the speed lost since the last sample.

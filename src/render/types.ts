@@ -196,7 +196,7 @@ export type RenderCarSpec =
   Pick<Spec, 'id' | 'paint' | 'trim' | 'kind' | 'lf' | 'lr' | 'len' | 'wid'>
   & Partial<Pick<Spec, 'num' | 'trackWidth' | 'wheelR' | 'rideH' | 'rim'>>;   // num: the livery
 
-// What the car layers read of a CAR (vehicle.ts Car + what damage.js / roll.js / the render
+// What the car layers read of a CAR (vehicle.ts Car + what damage.ts / roll.js / the render
 // layers add).
 export interface RenderCar extends CamCar, Pick<Car, 'heading' | 'delta'> {
   spec: RenderCarSpec;

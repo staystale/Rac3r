@@ -321,7 +321,7 @@ function drawCarStreamers(env: ObjectsCtx, car: TapeCar, clock: number, look: Ta
   // null = reset (the car was teleported): no puff, just forget the count
   if (!car.streamers) { car._stN = 0; return; }
   car.streamers = car.streamers.filter((streamer) => clock - streamer.born < 14);
-  // a streamer lost since last frame (timed out, or knocked off by an impact in damage.js)
+  // a streamer lost since last frame (timed out, or knocked off by an impact in damage.ts)
   // goes up in a puff behind the car
   if (car._stN != null && car.streamers.length < car._stN) {
     const ch0 = Math.cos(car.heading), sh0 = Math.sin(car.heading);

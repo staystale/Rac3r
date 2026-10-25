@@ -5,7 +5,7 @@
 import { makeCar, step, reset, PHYSICS_STEP_SECONDS } from '../src/vehicle.ts';
 import * as L from '../src/lab.js';
 import { carContact, slipstream } from '../src/contact.js';
-import { hit, repair, tooInjured } from '../src/damage.js';   // DMG=1: damage on, as main.js
+import { hit, repair, tooInjured } from '../src/damage.ts';   // DMG=1: damage on, as main.js
 const DMG = !!process.env.DMG;
 const { createAIDriver } = await import(process.env.AINEXT ? '../src/ai/circuit.next.js' : '../src/ai/circuit.ts'), { aiTraits } = await import('../src/ai/traits.ts');   // AINEXT=1: test a patch before it goes live
 for (const k of ['SB', 'SG']) if (process.env[k] != null) globalThis['__' + k] = +process.env[k];

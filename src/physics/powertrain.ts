@@ -32,7 +32,7 @@ export function steerFrontWheels(car: Car, carSpec: Spec, input: CarInput, dt: n
   const deltaTarget = clamp(input.steer, -1, 1) * (carSpec.steerMax || STEER_MAX);
   const dDelta = clamp(deltaTarget - car.delta, -STEER_RATE * dt, STEER_RATE * dt);
   car.delta += dDelta;
-  // DAMAGE (damage.js): a bent front corner toes the wheels — the car pulls (car.wreck: no-op when
+  // DAMAGE (damage.ts): a bent front corner toes the wheels — the car pulls (car.wreck: no-op when
   // undamaged)
   const delta = car.delta + (car.wreck ? car.wreck.toe : 0);
   return delta;

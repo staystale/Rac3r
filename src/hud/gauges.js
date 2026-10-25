@@ -334,7 +334,7 @@ export function drawHudTyreDiagram(ctx, state, rects, car, spec) {
     }
     drawHudPanel(ctx, { x: bodyX, y: bodyY, w: bodyW, h: bodyH },
       { fill: 'rgba(205,210,220,0.92)', stroke: 'rgba(0,0,0,0.35)' });
-    // DAMAGE (damage.js corners: 0 front -y, 1 front +y, 2 rear -y, 3 rear +y; +y = RIGHT): each
+    // DAMAGE (damage.ts corners: 0 front -y, 1 front +y, 2 rear -y, 3 rear +y; +y = RIGHT): each
     // body quarter amber / red with the damage there, a white-ringed wheel = a puncture
     if (car.dmg) for (let corner = 0; corner < 4; corner++) {
       const damage = car.dmg[corner], quarterX = corner % 2 ? bodyX + bodyW / 2 : bodyX + 1,

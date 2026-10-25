@@ -4,13 +4,13 @@
 // MEASURED before (tools/scratch/_puncturehit.mjs): a hit losing 40 km/h or more punctured a tyre
 // ~50 % of the time whatever was hit - a tyre wall as concrete - and a smaller one never. Each
 // step the clamps, the car contacts and the loose objects note what a car hit (the sharpest
-// wins); damage.js scales its puncture roll by that kind's chance in a big hit (BIG_HIT_FLAT =
+// wins); damage.ts scales its puncture roll by that kind's chance in a big hit (BIG_HIT_FLAT =
 // the old flat chance, x1). Running into debris and over pallet nails have chances of their own.
 
 /** A car that can note what it hit this step. */
 interface HitNoter { _hitKind?: string | null }
 
-// the chance a big hit punctured a tyre whatever was hit (damage.js PUNCT_P's scale)
+// the chance a big hit punctured a tyre whatever was hit (damage.ts PUNCT_P's scale)
 const BIG_HIT_FLAT = 0.5;
 // the chance a big hit punctures a tyre, by how sharp or hard the thing is
 const SOFT = 0.05, MEDIUM = 0.25, HARD = 0.35, SHARP = 0.5;

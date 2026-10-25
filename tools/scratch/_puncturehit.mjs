@@ -1,10 +1,10 @@
-// _puncturehit.mjs - A13: the chance ONE hit punctures a tyre, by how hard it is (damage.js hit:
+// _puncturehit.mjs - A13: the chance ONE hit punctures a tyre, by how hard it is (damage.ts hit:
 // the speed the car loses in the step), head-on and side-on, 1000 trials each. The game rolls
 // it by what was hit (physics/punctures.ts; before the table: ~50 % for anything). "kinds" shows a
 // few kinds of thing; without it, an unnoted hit (the table's unknown).
 // node tools/scratch/_puncturehit.mjs [car] [kinds]
 import { makeCar } from '../../src/vehicle.ts';
-import { hit } from '../../src/damage.js';
+import { hit } from '../../src/damage.ts';
 
 const carId = process.argv[2] || 'hatch-rwd', TRIALS = 1000;
 const byKind = process.argv[3] === 'kinds';

@@ -147,7 +147,7 @@ function crushPixel(
 }
 
 /**
- * ROOF (a rollover, roll.js -> damage.js roofDmg): the cabin pressed dark, the glass cracked
+ * ROOF (a rollover, roll.js -> damage.ts roofDmg): the cabin pressed dark, the glass cracked
  * white.
  * @param pixels the image data
  * @param geo sprite size and crush amounts
@@ -182,7 +182,7 @@ function crushRoof(
  * a corner. Each hurt corner is CRUMPLED (cut back along a jagged diagonal, deeper with
  * damage), DENTED (a darkened band behind the crush) and CHIPPED (paint pixels knocked to grey
  * primer). Seeded per car, so the same car always breaks the same way. Canvas: +x = forward
- * (front at the right), +y = the car's +y (damage.js corners). The TOP-VIEW crush pass
+ * (front at the right), +y = the car's +y (damage.ts corners). The TOP-VIEW crush pass
  * (damagedSprite uses it; the UNDERSIDE when rolled uses it too, without the roof).
  * @param car the car
  * @param sprite the undamaged top sprite

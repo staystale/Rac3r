@@ -1,7 +1,7 @@
 // REVERSING LIGHTS (owner: "reverse lights on cars"): every car in reverse gear (vehicle.ts gear
 // -1: you, the AI, traffic) lights two white lamps at its tail, inside the tail lights - drawn on
 // the car by day and night (render/cars.ts), and after dark a white glow at each and a short soft
-// beam behind the car (render/light.ts). A broken rear corner's lamp stays dark (damage.js
+// beam behind the car (render/light.ts). A broken rear corner's lamp stays dark (damage.ts
 // lampLevel, as every lamp).
 import type { RenderCar } from './types.ts';
 

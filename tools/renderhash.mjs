@@ -5,7 +5,7 @@
 // (performance.now, Date.now) and a requestAnimationFrame queue that only runs when the tool
 // steps a frame (1000/60 ms of fake time each). Per level the demo driver
 // (src/ai/autodrive.ts) drives the player car among 3 AI cars for 20 s of fake time; the canvas
-// is captured at 2, 8, 14 and 20 s, then once more with the player car damaged (src/damage.js
+// is captured at 2, 8, 14 and 20 s, then once more with the player car damaged (src/damage.ts
 // hit / hitRoll, so src/render/cardamage.ts is drawn). Levels: every circuit level, two
 // generated stages and the highway (traffic and litter on).
 // node tools/renderhash.mjs               one line per level + "renderhash: <all>";
@@ -54,12 +54,12 @@ const CPU_RASTER_ARGS = [
 ];
 
 /**
- * Page side: damage the player car the way the game's crash code does (damage.js hit from
+ * Page side: damage the player car the way the game's crash code does (damage.ts hit from
  * several sides, then a rollover roof hit), with a fixed puncture roll.
  * @returns {Promise<void>} resolves when the car is damaged
  */
 async function damageCar() {
-  const dmg = await import('/src/damage.js');
+  const dmg = await import('/src/damage.ts');
   const car = window.__game.car;
   const cos = Math.cos(car.heading), sin = Math.sin(car.heading);
   const hits = [[1, -0.3, 14], [0.2, 1, 10], [-1, 0.4, 12], [1, 0.5, 16]];

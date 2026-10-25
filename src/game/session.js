@@ -3,7 +3,7 @@ import { reset } from '../vehicle.ts';
 import { resetHighway, roadFrame } from '../highway.js';
 import { createHwFlow, hwGridSpan } from '../highwayrace.ts';
 import { createRaceFlow } from '../raceflow.js';
-import { repair, resetBill } from '../damage.js';
+import { repair, resetBill } from '../damage.ts';
 import { SPAWN, LEVEL } from "../world/state.ts";
 import { clearWear } from "../world/wear.ts";
 import { startWeather } from "../world/weather.ts";

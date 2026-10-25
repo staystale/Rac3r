@@ -1,7 +1,7 @@
 // ai.js — Stepping the AI cars: injury, driving, joker and stuck handling.
 import { step, reset, assertFinite } from '../vehicle.ts';
 import { hwPutBack } from '../highwayrace.ts';
-import { hit, hitRoll, repair, tooInjured, applyBurst } from '../damage.js';
+import { hit, hitRoll, repair, tooInjured, applyBurst } from '../damage.ts';
 import { rolling, tripCheck, stepRoll } from '../roll.js';
 import { LEVEL } from "../world/state.ts";
 import { applyGround, fenceClamp, obstacleClamp } from "../world/wear.ts";

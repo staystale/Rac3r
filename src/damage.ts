@@ -1,5 +1,6 @@
 import { takeHitFactor } from './physics/punctures.ts';
-// damage.js — CAR DAMAGE. Bookkeeping on the sim step; vehicle.js reads only
+import type { CarWreck } from './vehicle.ts';
+// damage.ts — CAR DAMAGE. Bookkeeping on the sim step; vehicle.ts reads only
 // car.wreck (multipliers, no-op by default — CLAUDE.md §2 rule 6), render.ts draws the crush /
 // dents / chips / loose wheels, hud.js the tyre diagram, the results the repair bill.
 //
@@ -39,7 +40,30 @@ const WHEEL_HIT = 0.4, WHEEL_AT = 0.85;
 // £ per 1.0 of corner damage (four wrecked corners ~ £6,000); a lost wheel +£400
 export const REPAIR_PER = 1500;
 
-export function damageInit(car) {
+/** One damage event for the particles (paint chips): the corner, its size, a scrape or not. */
+export interface DamageEvent { c: number; amt: number; scrape?: boolean }
+/** The damage state on a car (all four arrays by corner). */
+export interface DamageState {
+  dmg: number[]; crushL: number[]; crushS: number[]; roofDmg: number;
+  punct: boolean[]; wheelOff: boolean[];
+}
+/** A car as this file reads and writes it. */
+export interface DamageCar extends Partial<DamageState> {
+  vx: number; vy: number; heading: number;
+  dmgBill?: number; dmgHits?: number; dmgFlash?: number;
+  dmgEvents?: DamageEvent[]; wheelSpawn?: number[];
+  streamers?: unknown[] | null; wreck?: CarWreck;
+  burstTyre?: number; _hitKind?: string | null;
+  _dsp?: unknown; _scrapeT?: number; _sideKick?: { dir: number; dv: number };
+}
+/** A car whose damage state has been made (damageInit has run). */
+type DamagedCar = DamageCar & DamageState;
+
+/**
+ * Makes a car's damage state new: no damage, no punctures, every wheel on. Keeps the bill.
+ * @param car the car
+ */
+export function damageInit(car: DamageCar): asserts car is DamagedCar {
   car.dmg = [0, 0, 0, 0];
   car.crushL = [0, 0, 0, 0];
   car.crushS = [0, 0, 0, 0];
@@ -47,22 +71,33 @@ export function damageInit(car) {
   car.punct = [false, false, false, false];
   car.wheelOff = [false, false, false, false];
   car.dmgBill = car.dmgBill || 0;
-  derive(car);
+  derive(car as DamagedCar);
 }
-// RESET / RESTART / an AI's self-reset: the car is mended (the bill stays; resetBill clears it,
-// RESTART does)
-export function repair(car) {
+/**
+ * RESET / RESTART / an AI's self-reset: the car is mended (the bill stays; resetBill clears it,
+ * RESTART does).
+ * @param car the car
+ */
+export function repair(car: DamageCar): void {
   const bill = car.dmgBill || 0, hits = car.dmgHits || 0;
   damageInit(car);
   car.dmgBill = bill;
   car.dmgHits = hits;
   car._dsp = null;
 }
-export function resetBill(car) { car.dmgBill = 0; car.dmgHits = 0; }
+/**
+ * Clears the repair bill and the hit count.
+ * @param car the car
+ */
+export function resetBill(car: DamageCar): void { car.dmgBill = 0; car.dmgHits = 0; }
 
-// the corner shares for an impact from direction (fore, lateral) (unit, car frame, where it
-// came FROM)
-const shares = (fore, lateral) => {
+/**
+ * The corner shares for an impact from direction (fore, lateral).
+ * @param fore unit, car frame, where it came FROM, along the car
+ * @param lateral unit, car frame, across the car
+ * @returns the four corners' shares, summing to 1
+ */
+const shares = (fore: number, lateral: number): number[] => {
   const weights = [[1, -1], [1, 1], [-1, -1], [-1, 1]]
     .map(([alongFore, alongLat]) => Math.max(0, alongFore * fore + alongLat * lateral) + 0.1),
     total = weights[0] + weights[1] + weights[2] + weights[3];
@@ -71,9 +106,14 @@ const shares = (fore, lateral) => {
 
 /**
  * A SCRAPE (a hit under DMG_FLOOR): light damage on the corners by sliding speed x time.
- * @returns {number} the damage added, 0 when too slow
+ * @param car the car
+ * @param dt the step, s
+ * @param weights the corner shares
+ * @param endW how end-on the contact is, 0..1
+ * @param top the corner taking most
+ * @returns the damage added, 0 when too slow
  */
-function scrape(car, dt, weights, endW, top) {
+function scrape(car: DamagedCar, dt: number, weights: number[], endW: number, top: number) {
   // SCRAPE: light damage by sliding speed x time on the side touching, a few paint chips now
   // and then (rate-limited)
   const speed = Math.hypot(car.vx, car.vy);
@@ -97,8 +137,17 @@ function scrape(car, dt, weights, endW, top) {
 
 /**
  * Spreads a hard hit of size amt over the corners: damage, crush, punctures, lost wheels.
+ * @param car the car
+ * @param amt the hit's damage
+ * @param weights the corner shares
+ * @param endW how end-on the hit is, 0..1
+ * @param rnd the random source
+ * @param punctureK the scale on the puncture roll (what was hit)
  */
-function hardHitCorners(car, amt, weights, endW, rnd, punctureK = 1) {
+function hardHitCorners(
+  car: DamagedCar, amt: number, weights: number[], endW: number, rnd: () => number,
+  punctureK = 1,
+) {
   for (let corner = 0; corner < 4; corner++) {
     const add = amt * weights[corner];
     car.dmg[corner] = Math.min(1, car.dmg[corner] + add);
@@ -115,12 +164,24 @@ function hardHitCorners(car, amt, weights, endW, rnd, punctureK = 1) {
   }
 }
 
-export function hit(car, vx0, vy0, dt = 1 / 120, rnd = Math.random) {
+/**
+ * One resolved collision: the velocity change since (vx0, vy0) becomes a scrape or an impact.
+ * @param car the car, its velocity already changed by the collision
+ * @param vx0 velocity x before, m/s
+ * @param vy0 velocity y before, m/s
+ * @param dt the step, s
+ * @param rnd the random source
+ * @returns the damage added
+ */
+export function hit(
+  car: DamageCar, vx0: number, vy0: number, dt = 1 / 120, rnd: () => number = Math.random,
+): number {
   // what the car hit this step scales the puncture roll (physics/punctures.ts)
   const punctureK = takeHitFactor(car);
   const dvx = car.vx - vx0, dvy = car.vy - vy0, deltaV = Math.hypot(dvx, dvy);
   if (!(deltaV >= SCRAPE_DV)) return 0;
   if (!car.dmg) damageInit(car);
+  const hurt = car as DamagedCar;
   const cosH = Math.cos(car.heading), sinH = Math.sin(car.heading);
   // where it came FROM, car frame, unit
   const fore = -(dvx * cosH + dvy * sinH) / deltaV, lateral = -(-dvx * sinH + dvy * cosH) / deltaV;
@@ -129,30 +190,39 @@ export function hit(car, vx0, vy0, dt = 1 / 120, rnd = Math.random) {
   let top = 0;
   for (let corner = 1; corner < 4; corner++) if (weights[corner] > weights[top]) top = corner;
   if (deltaV < DMG_FLOOR) {
-    return scrape(car, dt, weights, endW, top);
+    return scrape(hurt, dt, weights, endW, top);
   }
   const amt = DMG_K * (deltaV - DMG_FLOOR) ** DMG_EXP;
   // a hard hit from the SIDE may trip the car over (roll.js tripCheck): it is pushed, and rolls,
   // away from the impact
   if (Math.abs(lateral) > 0.6) car._sideKick = { dir: -Math.sign(lateral), dv: deltaV };
-  hardHitCorners(car, amt, weights, endW, rnd, punctureK);
+  hardHitCorners(hurt, amt, weights, endW, rnd, punctureK);
   car.dmgBill = (car.dmgBill || 0) + amt * REPAIR_PER;
   car.dmgHits = (car.dmgHits || 0) + 1;
   car.dmgFlash = 1;
   // a fresh impact can knock stuck tape off (user)
   if (car.streamers && car.streamers.length && rnd() < 0.6) car.streamers.shift();
   pushEvent(car, { c: top, amt });
-  derive(car);
+  derive(hurt);
   return amt;
 }
-function pushEvent(car, event) {
+/**
+ * Queues a damage event for the particles, keeping the last 12.
+ * @param car the car
+ * @param event the event
+ */
+function pushEvent(car: DamageCar, event: DamageEvent) {
   const queue = car.dmgEvents || (car.dmgEvents = []);
   queue.push(event);
   if (queue.length > 12) queue.shift();
 }
 
 const TOE = 0.008, TOE_OFF = 0.02;
-function derive(car) {
+/**
+ * Works out car.wreck (the multipliers vehicle.ts reads) from the damage state.
+ * @param car the car
+ */
+function derive(car: DamagedCar) {
   const dmg = car.dmg, punct = car.punct, off = car.wheelOff,
     front = (dmg[0] + dmg[1]) / 2, rear = (dmg[2] + dmg[3]) / 2;
   const offF = (off[0] ? 1 : 0) + (off[1] ? 1 : 0),
@@ -169,68 +239,82 @@ function derive(car) {
     smoke: Math.max(dmg[0], dmg[1]) > 0.5,
   };
 }
-// ROLLOVER impacts (roll.js): the body meets the ground on a SIDE (+1 = +y, -1 = -y), the ROOF
-// or back on its wheels
-export function hitRoll(car, kind, side, weight) {
+/**
+ * ROLLOVER impacts (roll.js): the body meets the ground on a SIDE, the ROOF or back on its wheels.
+ * @param car the car
+ * @param kind 'side', 'roof' or 'wheels'
+ * @param side +1 = +y, -1 = -y (for 'side')
+ * @param weight how hard, the roll's own measure
+ */
+export function hitRoll(car: DamageCar, kind: string, side: number, weight: number): void {
   if (!car.dmg) damageInit(car);
+  const hurt = car as DamagedCar;
   const amt = 0.1 + 0.02 * weight, corners = side > 0 ? [1, 3] : [0, 2];
   if (kind === 'roof') {
-    car.roofDmg = Math.min(1, (car.roofDmg || 0) + amt * 1.4);
+    hurt.roofDmg = Math.min(1, (hurt.roofDmg || 0) + amt * 1.4);
     for (let corner = 0; corner < 4; corner++)
-      car.dmg[corner] = Math.min(1, car.dmg[corner] + amt * 0.25);
+      hurt.dmg[corner] = Math.min(1, hurt.dmg[corner] + amt * 0.25);
   } else if (kind === 'side') for (const corner of corners) {
-    car.dmg[corner] = Math.min(1, car.dmg[corner] + amt);
-    car.crushS[corner] = Math.min(1, car.crushS[corner] + amt);
+    hurt.dmg[corner] = Math.min(1, hurt.dmg[corner] + amt);
+    hurt.crushS[corner] = Math.min(1, hurt.crushS[corner] + amt);
   } else
     // back on its wheels: a thump
     for (let corner = 0; corner < 4; corner++)
-      car.dmg[corner] = Math.min(1, car.dmg[corner] + amt * 0.3);
+      hurt.dmg[corner] = Math.min(1, hurt.dmg[corner] + amt * 0.3);
   car.dmgBill = (car.dmgBill || 0) + amt * REPAIR_PER * (kind === 'wheels' ? 0.5 : 1.5);
   car.dmgHits = (car.dmgHits || 0) + 1;
   pushEvent(car, { c: kind === 'side' ? corners[0] : 0, amt: amt * 1.5 });
-  derive(car);
+  derive(hurt);
 }
-// vehicle.js tyre index (0 F+y, 1 F-y, 2 R+y, 3 R-y) -> damage corner (0 F-y, 1 F+y, 2 R-y, 3 R+y)
+// vehicle.ts tyre index (0 F+y, 1 F-y, 2 R+y, 3 R-y) -> damage corner (0 F-y, 1 F+y, 2 R-y, 3 R+y)
 const CORNER_OF_TYRE = [1, 0, 3, 2];
 /**
  * A tyre that burst this step (physics/tyrewear.ts: heat or wear; cones: debris) becomes a puncture
  * on its corner: the axle's grip drops, the HUD shows it, a reset mends it.
- * @param {object} car the car
- * @returns {boolean} true when a tyre burst this step
+ * @param car the car
+ * @returns true when a tyre burst this step
  */
-export function applyBurst(car) {
+export function applyBurst(car: DamageCar): boolean {
   const tyre = car.burstTyre;
   if (tyre === undefined || tyre < 0) return false;
   car.burstTyre = -1;
   if (!car.dmg) damageInit(car);
+  const hurt = car as DamagedCar;
   const corner = CORNER_OF_TYRE[tyre];
-  if (car.punct[corner]) return false;
-  car.punct[corner] = true;
+  if (hurt.punct[corner]) return false;
+  hurt.punct[corner] = true;
   car.dmgFlash = 1;
   pushEvent(car, { c: corner, amt: 0.2 });
-  derive(car);
+  derive(hurt);
   return true;
 }
 /**
  * A scratch from pushing through a bush (world/bushes.ts): light damage on the corner of that
  * wheel, a light dent, a few paint chips.
- * @param {object} car the car
- * @param {number} tyre the wheel (vehicle.js tyre index 0..3)
- * @param {number} amt the damage to add, 0..1
+ * @param car the car
+ * @param tyre the wheel (vehicle.ts tyre index 0..3)
+ * @param amt the damage to add, 0..1
  */
-export function bushScratch(car, tyre, amt) {
+export function bushScratch(car: DamageCar, tyre: number, amt: number): void {
   if (!car.dmg) damageInit(car);
+  const hurt = car as DamagedCar;
   const corner = CORNER_OF_TYRE[tyre];
-  car.dmg[corner] = Math.min(1, car.dmg[corner] + amt);
+  hurt.dmg[corner] = Math.min(1, hurt.dmg[corner] + amt);
   // a light dent on that corner's side (branches push the panel in), so it shows
-  car.crushS[corner] = Math.min(1, car.crushS[corner] + amt * 0.6);
+  hurt.crushS[corner] = Math.min(1, hurt.crushS[corner] + amt * 0.6);
   car.dmgBill = (car.dmgBill || 0) + amt * REPAIR_PER;
   pushEvent(car, { c: corner, amt: 0.04, scrape: true });
-  derive(car);
+  derive(hurt);
 }
-export function tooInjured(car) {
+/**
+ * Is an AI car hurt badly enough to reset itself?
+ * @param car the car
+ * @returns true when wrecked, two tyres down or a wheel off
+ */
+export function tooInjured(car: DamageCar): boolean {
   const dmg = car.dmg;
   if (!dmg) return false;
+  const hurt = car as DamagedCar;
   return (dmg[0] + dmg[1] + dmg[2] + dmg[3]) / 4 > 0.6 || Math.max(...dmg) >= 0.98
-    || car.punct.filter(Boolean).length >= 2 || car.wheelOff.some(Boolean);
+    || hurt.punct.filter(Boolean).length >= 2 || hurt.wheelOff.some(Boolean);
 }

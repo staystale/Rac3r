@@ -2,7 +2,7 @@
 import { step, reset, assertFinite, PHYSICS_STEP_SECONDS } from '../vehicle.ts';
 import { stepHighway, highwayGuard, highwayRespawn, speedCamera } from '../highway.js';
 import { carContacts, slipstream } from '../contact.js';
-import { hit, hitRoll, repair, applyBurst } from '../damage.js';
+import { hit, hitRoll, repair, applyBurst } from '../damage.ts';
 import { rolling, tripCheck, stepRoll } from '../roll.js';
 import { LEVEL } from "../world/state.ts";
 import { headlightsWanted } from "../world/daylight.ts";
@@ -192,7 +192,7 @@ export function openGuideOnLanding() {
  */
 export function stepCarPhysics(inp) {
   try {
-    // DAMAGE (damage.js): the velocity change the clamps impose IS the impact
+    // DAMAGE (damage.ts): the velocity change the clamps impose IS the impact
     const pv0x = game.car.vx, pv0y = game.car.vy;
     fenceClamp(game.car);
     obstacleClamp(game.car);

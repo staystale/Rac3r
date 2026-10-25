@@ -8,7 +8,7 @@ import { roadPose } from "../highway.js";
 import { step } from "../vehicle.ts";
 import { applyGround, fenceClamp, obstacleClamp } from "../world/wear.ts";
 import { barrierClamp, solidClamp } from "../world/barriers.ts";
-import { hit, tooInjured } from "../damage.js";
+import { hit, tooInjured } from "../damage.ts";
 import { rolling, tripCheck, stepRoll } from "../roll.js";
 import type { TrafficCar } from "./types.ts";
 

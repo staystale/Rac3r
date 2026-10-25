@@ -9,10 +9,10 @@
 // TRIP: a car on its wheels sliding SIDEWAYS faster than V_TRIP for its ground trips over its
 // leading side — soonest where the ground grabs the sliding tyres (gravel, dirt, sand, mud), late
 // on grass and snow, only in a big fast spin on tarmac, never on ice — scaled by the car's static
-// stability (track / 2 x cg height: tall cars go over sooner); a hard SIDE impact (damage.js
+// stability (track / 2 x cg height: tall cars go over sooner); a hard SIDE impact (damage.ts
 // sideKick) and a crooked LANDING can start one too. ROLLING: the rate decays at every quarter turn
 // the body hits the ground (side, roof, side, wheels), each costing speed and doing side / roof
-// damage (damage.js crushS / roofDmg) with paint chips; under SETTLE_W it settles onto the nearest
+// damage (damage.ts crushS / roofDmg) with paint chips; under SETTLE_W it settles onto the nearest
 // of wheels / side / roof. SLIDES: no tyres — the body grinds to a stop on its own friction for
 // that ground (sparks on hard ground). Sim time (rule 5): it moves the car; render.ts draws it
 // (faces, sparks), main.js hands control back on RESET (player) or resets the AI. m: body height
@@ -83,7 +83,7 @@ export function tripCheck(car, dt, rnd = Math.random) {
     stability = ssf / SSF_REF;
   const cosH = Math.cos(car.heading), sinH = Math.sin(car.heading),
     vLat = -car.vx * sinH + car.vy * cosH;
-  // a hard side impact (damage.js) or a crooked landing
+  // a hard side impact (damage.ts) or a crooked landing
   const kick = car._sideKick;
   car._sideKick = null;
   if (kick && kick.dv > 7 * stability
@@ -147,7 +147,7 @@ function tripGround(car, vLat, stability, rnd) {
 }
 
 // one sim step of a rolling / overturned car (instead of vehicle.step). onHit(kind, side) for the
-// damage (main.js -> damage.js)
+// damage (main.js -> damage.ts)
 export function stepRoll(car, dt, onHit) {
   const state = car.roll, surface = car.surface || {}, gravity = 9.81,
     speed = Math.hypot(car.vx, car.vy);
