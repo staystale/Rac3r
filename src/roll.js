@@ -171,8 +171,10 @@ export function stepRoll(car, dt, onHit) {
   car.heading += car.yawRate * dt;
   car.x += car.vx * dt;
   car.y += car.vy * dt;
-  // sparks only on hard ground (a trap is not: it was mu 0.45 = 'metal on tarmac')
-  car.sparks = state.phase !== 'rolling' && speed > 3 && !!surface.hard;
+  // metal on hard ground: sparks (render/particles.ts) and a chance to break it
+  // (world/metalscrape.ts) - tumbling as well as sliding on a side or the roof (owner: sparks
+  // while crash rolling); never on soft ground (a trap is not: mu 0.45 = 'metal on tarmac')
+  car.sparks = speed > 3 && !!surface.hard;
   state.still = speed < 0.8 ? state.still + dt : 0;
   if (car.t) { car.t.vLong = speed; }
   car.rpm = Math.max(800, (car.rpm || 800) - 3000 * dt);

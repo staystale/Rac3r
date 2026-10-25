@@ -267,6 +267,8 @@ C. CAR SYSTEMS + DAMAGE (L; one chain - extend damage.ts, no second damage model
   FLIP RAMP ?flipramp=1 (owner: an angled armco end that can flip a vehicle, near the Lab's spike
   strip, to test rolling / sliding sparks): world/flipramps.ts (roll.js tripCheck asks it),
   render/flipramps.ts. 5 m x 0.6 m rising to 0.8 m; one side's wheels up it at 7+ m/s roll the car.
+  SPARKS while crash rolling too (owner), flung behind the way the car MOVES (sliding / rolling),
+  hard ground only (roll.js car.sparks: any roll phase at 3+ m/s on hard ground).
   ROUND 2 ?engine=1 - C3 radiator + engine temperature (seizes ~10 s at 130 C), C4 speedo lights
   (every car), C5 exhaust smoke; the grey nose smoke replaced by steam / engine smoke.
 

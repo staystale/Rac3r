@@ -282,6 +282,8 @@ const HALO_ALPHA = 0.28;
 const SPARK_BACK_M = 0.3, SPARK_OUT_M = 0.15;
 // m/s a spark is flung off the metal (on top of the carry), and the fan's half angle, rad
 const FLING_MIN = 3, FLING_SPREAD = 9, FAN = 1.2;
+// how far a rim's sparks lean out to its own side (share of the backward direction)
+const OUT_LEAN = 0.6;
 // sparks a second (on average) from a wheel on its rim, and from a body sliding on its side or
 // roof; each frame's rate is this x a random burst factor 0..BURST_MAX (mean ~1)
 const RIM_SPARK_RATE = 200, BODY_SPARK_RATE = 260, BURST_MAX = 2.6;
@@ -304,8 +306,14 @@ const SPARK_COOLING: [number, string, string][] = [[0.25, '#fff6d6', '#ffcf6a'],
  */
 function throwSpark(ctx: ParticleCtx, car: ParticleCar, x: number, y: number, outward: number) {
   const sparks = ctx.state.sparks;
-  const back = car.heading + Math.PI, lean = outward * 0.6;
-  const angle = back + lean + (fxRandom() * 2 - 1) * FAN;
+  // behind the way the car is MOVING (owner: sliding, rolling - not the way its nose points),
+  // leaning out to the side the spark came from
+  const speed = Math.hypot(car.vx, car.vy);
+  const backX = speed > 1 ? -car.vx / speed : -Math.cos(car.heading);
+  const backY = speed > 1 ? -car.vy / speed : -Math.sin(car.heading);
+  const outX = -Math.sin(car.heading) * outward * OUT_LEAN, outY = Math.cos(car.heading) * outward
+    * OUT_LEAN;
+  const angle = Math.atan2(backY + outY, backX + outX) + (fxRandom() * 2 - 1) * FAN;
   const fling = FLING_MIN + fxRandom() * fxRandom() * FLING_SPREAD;
   const carry = 0.3 + fxRandom() * 0.35;
   if (sparks.length >= MAX_SPARKS) sparks.shift();
@@ -348,14 +356,18 @@ function emitSparks(ctx: ParticleCtx, car: ParticleCar, wallDt: number) {
     for (let i = 0; i < count; i++) throwSpark(ctx, car, fromX, fromY, side);
   }
   if (!car.sparks) return;
+  // from the trailing part of the body: behind its middle along the way it is moving
   const cosHeading = Math.cos(car.heading), sinHeading = Math.sin(car.heading);
+  const moving = Math.hypot(car.vx, car.vy) || 1;
+  const trailX = -car.vx / moving * car.spec.len * 0.3, trailY = -car.vy / moving * car.spec.len
+    * 0.3;
   const owed = sparksOwed(car._spDebt || 0, BODY_SPARK_RATE, wallDt), count = Math.floor(owed);
   car._spDebt = owed - count;
   for (let i = 0; i < count; i++) {
     const offsetX = (fxRandom() - 0.5) * car.spec.len;
     const offsetY = (fxRandom() - 0.5) * car.spec.wid;
-    throwSpark(ctx, car, car.x + cosHeading * offsetX - sinHeading * offsetY,
-      car.y + sinHeading * offsetX + cosHeading * offsetY, 0);
+    throwSpark(ctx, car, car.x + trailX + cosHeading * offsetX * 0.6 - sinHeading * offsetY,
+      car.y + trailY + sinHeading * offsetX * 0.6 + cosHeading * offsetY, 0);
   }
 }
 
