@@ -121,6 +121,11 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   rising chance (half by ~1 km), a rim or a rolled body on hard ground sparks and may break it a
   grade (race tarmac -> tarmac -> broken); no written PUNCTURE notice. Stingers (tyre spikes) on
   the Lab and Test Track. Highway hedges: one continuous line of bushes round every farm field.
+  Also 10-25 (owner: all pass): sparks as pixel art on the screen canvas under the cars, glowing
+  at night (no glow patch), while sliding AND crash rolling, behind the way the car moves, hard
+  ground only; crash sparks from metal impacts at 25 mph+ (70 %, sprayed the way the car went
+  in); brake glow orange -> red the hotter, outside the wheel, none while rolled; a lost wheel's
+  tyre reads 0 C; wet trails per wheel; the Lab's flip ramp (an armco end) for testing rolls.
 - Outer tyre walls (Grass Track, Stock Car): a fast car pushing through them is fine (owner
   10-25); they stay single rows of loose tyres.
 - Order 10-25 (owner): bushes -> car systems C (when bushes pass) -> the wearcheck rewrite (when

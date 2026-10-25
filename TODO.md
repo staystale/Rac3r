@@ -18,7 +18,8 @@ handover, written on request.
 - TYPESCRIPT CONVERSION: ON HOLD (owner 10-25); new code is TypeScript, old .js converted later.
 - ORDER (owner 10-25): 1 BUSHES (D part 2) - DEFAULT 10-25 (owner: pass); 2 car systems C
   (design + mockup approved 10-25; ROUND 1 - C1 + C2, metal on ground, stingers, highway
-  hedges - DEFAULT 10-25 (owner: pass); round 2 C3-C5 next, ?engine=1); 3 the wearcheck rewrite when C passes. Then (owner to order): the driving ROOT
+  hedges, sparks, crash sparks, flip ramp - DEFAULT 10-25 (owner: all pass); NEXT round 2
+  C3-C5, ?engine=1; handover docs/foreman-handover.md 10-25 night); 3 the wearcheck rewrite when C passes. Then (owner to order): the driving ROOT
   FIX for real ABS (owner: "abs is needed to be fixed so yes"), AI rework B (design first),
   sound + settings G, Story + upgrades H, new levels (Dieatona), multiplayer I.
 - BINNED 10-25 (owner: "park em : bin em"): the HUD text fix (branch experiment/hudtext - its
