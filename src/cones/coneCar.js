@@ -259,7 +259,8 @@ export function hitByCar(ctx, obj, car, newTyres) {
   if (obj.kind === 'splinters' && relX * relX + relY * relY < 4
     && ctx.clock - (obj._nailT ?? -9) > 1) {
     obj._nailT = ctx.clock;
-    if (debrisPunctures(obj.kind, 0, false)) car.burstTyre = 0;
+    // nails and debris let a tyre down slowly (damage.ts applyBurst, ?flats=1)
+    if (debrisPunctures(obj.kind, 0, false)) { car.burstTyre = 0; car.burstSlow = true; }
   }
   if (obj.kind === 'straw' || BROKEN.has(obj.kind)) return;
   // dragged along a bit
@@ -276,6 +277,7 @@ export function hitByCar(ctx, obj, car, newTyres) {
   // hitting debris hard may puncture the front tyre on that side
   if (debrisPunctures(obj.kind, rel, !!DEBRIS[obj.kind])) {
     car.burstTyre = -Math.sin(car.heading) * relX + Math.cos(car.heading) * relY > 0 ? 0 : 1;
+    car.burstSlow = true;
   }
   hitAnimal(ctx, obj, rel);
   afterHit(ctx, obj, car, newTyres, rel, speed);

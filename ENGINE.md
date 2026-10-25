@@ -84,6 +84,19 @@ entering a bush cell may puncture or scratch that corner (`world/bushes.ts`). Dr
 over the `bush` art. A few leaf tufts per bush are drawn over the cars
 (`render/bushtufts.ts`, in the overhead pass).
 
+Car systems (C, under test behind `?flats=1`): every puncture source (big hits in `damage.ts`,
+heat / wear bursts, debris, nails, bushes) ends in `damage.ts`, which starts a LEAK in
+`physics/tyrepressure.ts` - a burst flat in ~0.5 s with a sharp pull, a slow one (`car.burstSlow`)
+over 10-30 s. Each tyre's pressure sets its axle's grip (1 -> 0.7 flat -> 0.45 on the rim), a pull
+toward it and extra rolling drag, folded into `car.wreck` by `damage.ts derive`; driven flat
+~1 km (sooner cornering) it runs on the rim. `damage.ts stepDamage` runs it each physics step
+(player `game/sim.js`, AI `game/ai.js`). METAL ON HARD GROUND (`world/metalscrape.ts`): a rim, or
+a rolled body sliding (`roll.js car.sparks`), sparks and may break each new wear cell a grade
+(race tarmac -> tarmac -> broken) through `gougeCell`; a rollover impact has its own chance; a
+rim scores a pale mark (`MARK_GOUGE`, `marks.js`). Drawn by `render/tyrelook.ts` (the tyre
+squashes progressively with its air, a rim bare), puffs / shreds / rim sparks in
+`render/particles.ts`, the HUD tyre ring by pressure (`hud/gauges.js`), `?dev=1` line `air`.
+
 ## Drawing (`render.ts` and `render/`)
 
 - Pixel art: the world is drawn into a low-resolution art-pixel buffer (about 15 art px per metre at

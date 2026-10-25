@@ -227,15 +227,16 @@ export function surfaceOf(base: string, cover: string | null, standing = true, d
  * The wear cell of square (cellX, cellY), made from the ground there if new.
  * @param cellX the cell's column (x / WEAR_CELL)
  * @param cellY the cell's row
+ * @param always make it even where wheels change nothing (a gouge: world/metalscrape.ts)
  * @returns the cell, or null where nothing can ever change
  */
-export function getCell(cellX: number, cellY: number): WearCell | null {
+export function getCell(cellX: number, cellY: number, always = false): WearCell | null {
   const key = wearKey(cellX, cellY);
   let cell = wearMap.get(key);
   if (!cell) {
     const layers = layersAt((cellX + 0.5) * WEAR_CELL, (cellY + 0.5) * WEAR_CELL);
     // nothing in this cell can ever change: do not create it (keeps the map to cells that matter)
-    if (!layers.cover && !BASE_WEAR[layers.base] && !packedSnowWears(layers.base)
+    if (!always && !layers.cover && !BASE_WEAR[layers.base] && !packedSnowWears(layers.base)
       && WEATHER.wetness === 0 && !digsDry(layers.base)) return null;
     cell = { cx: cellX, cy: cellY, base: layers.base, cover: layers.cover,
       orig: layers.cover || layers.base, passes: 0, scrub: 0, dry: 0, standing: layers.standing,

@@ -28,4 +28,14 @@ export const TEST_LIST = [
   // 2026-10-25 (fairy lights moved off the road, board halo faint); carlamps, woodmarshal,
   // brakeglow, trees passed 2026-10-25 (brake heat now resets with the tyres); bushes passed
   // 2026-10-25 (round 2: more drag, a light dent, leaves over the cars))
+  {
+    id: 'flats',
+    added: '2026-10-25',
+    name: 'Flat tyres: leaks by cause, squashing by pressure, the rim, metal breaking tarmac',
+    where: 'Plain link + &flats=1: any circuit or stage (Castle Cum is quick: hit the walls)',
+    try: 'Burst a tyre in a big hit, pick up a slow puncture from a pallet or a bush, keep'
+      + ' driving on the flat about 1 km to the rim; roll a car on tarmac.',
+    wrong: 'A slow puncture flat in a second, no pull to the flat side, a tyre that does not'
+      + ' squash, no sparks or line on the rim, tarmac breaking in long stripes.',
+  },
 ];

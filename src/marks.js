@@ -13,6 +13,7 @@ import { FENCE, FX0, FX1, FY0, FY1, RUNOFF_W } from "./world/bounds.ts";
 import { COL } from "./world/colours.ts";
 import { LEVEL } from "./world/state.ts";
 import { MARK_WET } from "./world/surfaces.ts";
+import { MARK_GOUGE } from "./world/metalscrape.ts";
 import { addTrailPoint, clearWetTrails } from "./wettrail.ts";
 
 // EXTENT is the FENCE, not the floor, so what happens in the run-off (gravel tracks) is
@@ -410,10 +411,13 @@ function listWheels(car) {
   const cosH = Math.cos(car.heading), sinH = Math.sin(car.heading);
   const halfTrack = spec.trackWidth / 2;
   const out = [];
-  for (const [key, along, side, slip] of [
-    ['fl', spec.lf, -halfTrack, telem.slipSpeedF], ['fr', spec.lf, halfTrack, telem.slipSpeedF],
-    ['rl', -spec.lr, -halfTrack, telem.slipSpeedR], ['rr', -spec.lr, halfTrack,
-      telem.slipSpeedR],
+  // a wheel on its rim over hard ground scores a pale line (world/metalscrape.ts, ?flats=1)
+  const rims = car.rimSparks;
+  for (const [key, along, side, slip, corner] of [
+    ['fl', spec.lf, -halfTrack, telem.slipSpeedF, 0],
+    ['fr', spec.lf, halfTrack, telem.slipSpeedF, 1],
+    ['rl', -spec.lr, -halfTrack, telem.slipSpeedR, 2],
+    ['rr', -spec.lr, halfTrack, telem.slipSpeedR, 3],
   ]) {
     out.push({
       key: car._markId + key,
@@ -421,7 +425,8 @@ function listWheels(car) {
       y: car.y + along * sinH + side * cosH,
       slip,
       width: spec.tyreWidth,
-      mark: car.surface.mark,     // set only by loose surfaces; undefined = ordinary skid marks
+      // set only by loose surfaces (undefined = ordinary skid marks), or a rim's score
+      mark: rims && rims[corner] ? MARK_GOUGE : car.surface.mark,
       heat: car.tyreT ? car.tyreT[(along > 0 ? 0 : 2) + (side > 0 ? 0 : 1)] : 60,
     });
   }

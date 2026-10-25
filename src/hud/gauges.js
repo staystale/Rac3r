@@ -233,6 +233,19 @@ export function drawHudSpeedo(ctx, state, rects, car, spec, wallDt) {
 }
 
 /**
+ * The ring colour for a tyre by its air: none while full, amber going down, red flat, silver on
+ * the rim.
+ * @param {object} car the car (car.tyreP set)
+ * @param {number} corner the damage corner
+ * @returns {string|null} the colour, or null for no ring
+ */
+function pressureRing(car, corner) {
+  if (car.onRim && car.onRim[corner]) return '#c9c9d2';
+  const pressure = car.tyreP[corner];
+  return pressure >= 0.9 ? null : pressure > 0.2 ? COL.warn : COL.danger;
+}
+
+/**
  * A white ring round a punctured wheel, or a crossed-out box where the wheel is GONE.
  * @param {CanvasRenderingContext2D} ctx
  * @param {object} car the car
@@ -244,10 +257,12 @@ export function drawHudSpeedo(ctx, state, rects, car, spec, wallDt) {
  * @returns {void}
  */
 export function drawHudWheelFault(ctx, car, corner, bodyX, bodyY, bodyW, bodyH) {
-  if (car.punct && car.punct[corner]) {
+  // ?flats=1: the ring follows the tyre's air (physics/tyrepressure.ts)
+  const ring = car.tyreP ? pressureRing(car, corner) : car.punct && car.punct[corner] && '#ffffff';
+  if (ring) {
     const wheelX = corner % 2 ? bodyX + bodyW - 3 : bodyX - 4, wheelY = bodyY
       + (corner >= 2 ? bodyH - 14 : 4);
-    ctx.strokeStyle = '#ffffff';
+    ctx.strokeStyle = ring;
     ctx.lineWidth = 2;
     ctx.strokeRect(wheelX - 0.5, wheelY - 0.5, 8, 12);
   }

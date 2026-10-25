@@ -81,13 +81,18 @@ export interface RenderWheel {
 // What the particles read of a car.
 export interface ParticleCar extends CamCar {
   heading: number;
-  spec: { len: number; wid: number; paint?: string };
+  spec: { len: number; wid: number; paint?: string; lf?: number; lr?: number;
+    trackWidth?: number };
   surface: { spray?: Spray | null };
   t: { slipSpeedF: number; slipSpeedR: number; loadKF: number; loadKR: number };
   tyreT?: unknown;   // truthy when the tyre temperatures are simulated
   wreck?: { smoke?: boolean };
   dmgEvents?: { scrape?: boolean; amt: number; c: number }[];
   sparks?: boolean;
+  // ?flats=1: tyre moments (physics/tyrepressure.ts) and rims sparking (world/metalscrape.ts)
+  tyreFx?: { corner: number; kind: 'puff' | 'shreds' }[];
+  rimSparks?: boolean[];
+  _rimDebt?: number;
   _spDebt?: number;
   _dsDebt?: number;
 }
@@ -206,6 +211,11 @@ export interface RenderCar extends CamCar, Pick<Car, 'heading' | 'delta'> {
   roofDmg: number;
   punct: boolean[];
   wheelOff: boolean[];
+  // tyre pressure (?flats=1, physics/tyrepressure.ts) and the wheels' turn (render/tyrelook.ts)
+  tyreP?: number[];
+  onRim?: boolean[];
+  _wheelTurn?: number;
+  _wheelAt?: number;
   roll?: { phi: number } | null;
   lightsOn?: boolean;
   indicator?: number;

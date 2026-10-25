@@ -19,7 +19,7 @@ const SCRATCH_CHANCE = 0.03, SCRATCH_FULL = 30;
 const SCRATCH_BASE = 0.03, SCRATCH_PER = 0.0016;
 
 /** The car field a bush sets (vehicle.ts; damage.ts applyBurst skips a tyre already flat). */
-interface BushCar { burstTyre?: number }
+interface BushCar { burstTyre?: number; burstSlow?: boolean }
 
 /**
  * A wheel has pushed into a bush cell: it may puncture, and may scratch that corner.
@@ -31,7 +31,11 @@ interface BushCar { burstTyre?: number }
 export function bushPass(car: object, tyre: number, speed: number,
   rnd: () => number = Math.random): void {
   if (speed < HARM_FROM) return;
-  if (rnd() < PUNCTURE_CHANCE) (car as BushCar).burstTyre = tyre;
+  // a thorn lets the tyre down slowly (damage.ts applyBurst, ?flats=1)
+  if (rnd() < PUNCTURE_CHANCE) {
+    (car as BushCar).burstTyre = tyre;
+    (car as BushCar).burstSlow = true;
+  }
   const share = Math.min(1, (speed - HARM_FROM) / (SCRATCH_FULL - HARM_FROM));
   if (rnd() < SCRATCH_CHANCE * share) {
     bushScratch(car as DamageCar, tyre, SCRATCH_BASE + SCRATCH_PER * speed);

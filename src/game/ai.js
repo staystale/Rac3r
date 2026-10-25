@@ -1,7 +1,7 @@
 // ai.js — Stepping the AI cars: injury, driving, joker and stuck handling.
 import { step, reset, assertFinite } from '../vehicle.ts';
 import { hwPutBack } from '../highwayrace.ts';
-import { hit, hitRoll, repair, tooInjured, applyBurst } from '../damage.ts';
+import { hit, hitRoll, repair, tooInjured, applyBurst, stepDamage } from '../damage.ts';
 import { rolling, tripCheck, stepRoll } from '../roll.js';
 import { LEVEL } from "../world/state.ts";
 import { applyGround, fenceClamp, obstacleClamp } from "../world/wear.ts";
@@ -143,6 +143,8 @@ export function stepAIPhysics(entry, want, dt) {
     if (!held) tripCheck(car, dt);
     applyBurst(car);
   }   // start lights
+  // the tyres' air and metal on the ground (?flats=1), rolled or not
+  stepDamage(car, dt);
 }
 
 /**

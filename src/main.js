@@ -46,6 +46,7 @@ import { crossedJoker }
   from './game/rules.js';
 
 import { game, shared } from './game/state.js';
+import { setFlats } from './physics/tyrepressure.ts';
 import { spawnAI } from './game/grid.js';
 import { doReset, saveRecords, doRestart } from './game/session.js';
 import { hudDown, onKey, selectLevel, selectCar } from './game/controls.js';
@@ -71,6 +72,8 @@ if (shared.settings.night !== null) setDarkness(shared.settings.night);
 startClock(shared.settings.night === null,
   Math.floor(((new Date().getMonth() + 1) % 12) / 3));
 shared.DEV = shared.settings.dev;
+// ?flats=1: tyre pressure (car systems C1-C2): leaks, squashing flats, the rim, metal on ground
+setFlats(shared.settings.flats);
 
 shared.canvas = document.getElementById('c');
 shared.boot = document.getElementById('boot');

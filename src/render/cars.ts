@@ -3,6 +3,7 @@ import { SPRITE_PPM } from "./shared.ts";
 import { DAYLIGHT } from "../world/daylight.ts";
 import { REVERSE_LAMP, isReversing } from "./reverselights.ts";
 import { settledLampLevel } from "./carlamps.ts";
+import { drawTyreByPressure, wheelTurn } from "./tyrelook.ts";
 import type {
   Cam, CarSprite, RenderCar, RenderCarSpec, RollFace, SideSprite, SilCanvas, View,
 } from "./types.ts";
@@ -48,10 +49,12 @@ function wheelMetrics(spec: RenderCarSpec, sprite: CarSprite) {
  * @param side -1 or 1
  * @param steer the wheel's steering angle
  * @param metrics the tyre size and half width
+ * @param air the tyre's air (?flats=1), or null: pressure, on its rim, the wheels' turn
  */
 function drawCarWheel(
   carsCtx: CarsContext, spec: RenderCarSpec, axleX: number, side: number, steer: number,
   metrics: { tyreL: number; tyreW: number; halfWidth: number },
+  air: { pressure: number; isOnRim: boolean; turn: number } | null = null,
 ) {
   const { view } = carsCtx;
   const { tyreL, tyreW, halfWidth } = metrics;
@@ -61,6 +64,11 @@ function drawCarWheel(
   // tractor: huge rear wheels, yellow rims
   const big = spec.kind === 'tractor' && axleX < 0;
   const tyreLen = big ? 20 : tyreL, tyreWid = big ? 7 : tyreW;
+  // a soft tyre squashes by its air, a rim shows bare (render/tyrelook.ts)
+  if (air && drawTyreByPressure(view.ctx, tyreLen, tyreWid, air.pressure, air.isOnRim, air.turn)) {
+    view.ctx.restore();
+    return;
+  }
   view.ctx.fillStyle = '#16171c';
   view.ctx.fillRect(-tyreLen / 2, -tyreWid / 2, tyreLen, tyreWid);
   view.ctx.fillStyle = '#3a3d47';
@@ -89,6 +97,7 @@ function drawCarWheels(carsCtx: CarsContext, car: RenderCar, sprite: CarSprite) 
   const spec = car.spec;
   const metrics = wheelMetrics(spec, sprite);
   const { halfWidth } = metrics;
+  const turn = car.tyreP ? wheelTurn(car, performance.now()) : 0;
   for (const [axleX, side, steer, corner] of [
     [spec.lf, -1, car.delta, 0], [spec.lf, 1, car.delta, 1],
     [-spec.lr, -1, 0, 2], [-spec.lr, 1, 0, 3],
@@ -101,7 +110,9 @@ function drawCarWheels(carsCtx: CarsContext, car: RenderCar, sprite: CarSprite) 
       );
       continue;
     }
-    drawCarWheel(carsCtx, spec, axleX, side, steer, metrics);
+    drawCarWheel(carsCtx, spec, axleX, side, steer, metrics, car.tyreP ? {
+      pressure: car.tyreP[corner], isOnRim: !!car.onRim?.[corner], turn,
+    } : null);
   }
   return halfWidth;
 }
@@ -245,7 +256,7 @@ function drawPixelCar(carsCtx: CarsContext, car: RenderCar, heading = car.headin
   // DAMAGE (damage.ts): a dark crushed block on each hurt corner, growing with the damage,
   // a pale crease along its edge; a punctured wheel shows a bright rim. Squares, not curves
   // (pixel rule).
-  if (car.punct) for (let corner = 0; corner < 4; corner++) {
+  if (car.punct && !car.tyreP) for (let corner = 0; corner < 4; corner++) {
     if (car.punct[corner]) {
       view.ctx.fillStyle = '#c9c9d2';
       view.ctx.fillRect(

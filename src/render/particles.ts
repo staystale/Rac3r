@@ -210,9 +210,54 @@ function flingChips(ctx: ParticleCtx, car: ParticleCar, hit: DmgEvent) {
  * @param car the car
  */
 function emitChips(ctx: ParticleCtx, car: ParticleCar) {
+  emitTyreMoments(ctx, car);
   const events = car.dmgEvents; if (!events || !events.length) return;
   for (const hit of events) flingChips(ctx, car, hit);
   events.length = 0;
+}
+
+// TYRE MOMENTS (?flats=1, physics/tyrepressure.ts car.tyreFx): a burst puffs air and dust from
+// the wheel; a tyre coming off the rim throws black shreds of rubber
+const TYRE_PUFF = { rgb: '200,192,176', size: 0.3, lift: 3.0, life: 0.6, grow: 1.2 };
+const SHRED_COL = '#0d0e11';
+
+/**
+ * Where a wheel is, by damage corner (0 front -y, 1 front +y, 2 rear -y, 3 rear +y).
+ * @param car the car
+ * @param corner the damage corner
+ * @returns world x, y
+ */
+function wheelPlace(car: ParticleCar, corner: number): [number, number] {
+  const spec = car.spec, cosHeading = Math.cos(car.heading), sinHeading = Math.sin(car.heading);
+  const along = corner < 2 ? spec.lf ?? spec.len * 0.33 : -(spec.lr ?? spec.len * 0.33);
+  const across = (corner % 2 ? 1 : -1) * (spec.trackWidth ?? spec.wid) / 2;
+  return [car.x + along * cosHeading - across * sinHeading,
+    car.y + along * sinHeading + across * cosHeading];
+}
+
+/**
+ * The puff when a tyre goes and the shreds when it reaches the rim.
+ * @param ctx particle context
+ * @param car the car
+ */
+function emitTyreMoments(ctx: ParticleCtx, car: ParticleCar) {
+  const moments = car.tyreFx; if (!moments || !moments.length) return;
+  for (const moment of moments) {
+    const [wheelX, wheelY] = wheelPlace(car, moment.corner);
+    if (moment.kind === 'puff') {
+      for (let i = 0; i < 12; i++) emitPuff(ctx, wheelX, wheelY, car.vx * 0.5, car.vy * 0.5,
+        TYRE_PUFF, 1.2);
+      continue;
+    }
+    for (let i = 0; i < 16; i++) {
+      const angle = Math.random() * 6.2832, speed = 2 + Math.random() * 6;
+      if (ctx.state.chips.length >= MAX_CHIPS) ctx.state.chips.shift();
+      ctx.state.chips.push({ x: wheelX, y: wheelY, vx: car.vx * 0.4 + Math.cos(angle) * speed,
+        vy: car.vy * 0.4 + Math.sin(angle) * speed, age: 0, life: 5 + Math.random() * 5,
+        col: SHRED_COL, sz: 2 });
+    }
+  }
+  moments.length = 0;
 }
 
 /**
@@ -223,6 +268,7 @@ function emitChips(ctx: ParticleCtx, car: ParticleCar) {
  * @param wallDt wall-clock frame time
  */
 function emitSparks(ctx: ParticleCtx, car: ParticleCar, wallDt: number) {
+  emitRimSparks(ctx, car, wallDt);
   const chips = ctx.state.chips;
   if (!car.sparks) return;
   car._spDebt = (car._spDebt || 0) + 60 * wallDt;
@@ -237,6 +283,29 @@ function emitSparks(ctx: ParticleCtx, car: ParticleCar, wallDt: number) {
         vx: -car.vx * 0.3 + Math.cos(angle) * speed, vy: -car.vy * 0.3 + Math.sin(angle) * speed,
           age: 0, life: 0.25 + Math.random() * 0.3,
             col: Math.random() < 0.6 ? '#ffd85a' : '#ffffff', sz: 2 });
+  }
+}
+
+/**
+ * SPARKS from each wheel running on its rim over hard ground (world/metalscrape.ts
+ * car.rimSparks), thrown back from the wheel.
+ * @param ctx particle context
+ * @param car the car
+ * @param wallDt wall-clock frame time
+ */
+function emitRimSparks(ctx: ParticleCtx, car: ParticleCar, wallDt: number) {
+  const rims = car.rimSparks; if (!rims) return;
+  for (let corner = 0; corner < 4; corner++) {
+    if (!rims[corner]) continue;
+    const [wheelX, wheelY] = wheelPlace(car, corner);
+    car._rimDebt = (car._rimDebt || 0) + 30 * wallDt;
+    while (car._rimDebt >= 1) { car._rimDebt--;
+      const angle = Math.random() * 6.2832, speed = 1 + Math.random() * 4;
+      if (ctx.state.chips.length >= MAX_CHIPS) ctx.state.chips.shift();
+      ctx.state.chips.push({ x: wheelX, y: wheelY, vx: -car.vx * 0.3 + Math.cos(angle) * speed,
+        vy: -car.vy * 0.3 + Math.sin(angle) * speed, age: 0, life: 0.2 + Math.random() * 0.25,
+        col: Math.random() < 0.6 ? '#ffd85a' : '#ffffff', sz: 1.5 });
+    }
   }
 }
 
