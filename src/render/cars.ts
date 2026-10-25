@@ -1,6 +1,7 @@
 // The CARS layer of the renderer: drawPixelCar and the garage lift sprite.
 import { SPRITE_PPM } from "./shared.ts";
 import { DAYLIGHT } from "../world/daylight.ts";
+import { REVERSE_LAMP, isReversing } from "./reverselights.ts";
 import type {
   Cam, CarSprite, RenderCar, RenderCarSpec, RollFace, SideSprite, SilCanvas, View,
 } from "./types.ts";
@@ -206,6 +207,12 @@ function drawCarLamps(carsCtx: CarsContext, car: RenderCar, sprite: CarSprite) {
   if (car.rainLight) {
     view.ctx.fillStyle = '#ff3a2a';
     view.ctx.fillRect(-sprite.Lp / 2, -1, 2, 2);
+  }
+  // the reversing lights: two white lamps inside the tail lights (render/reverselights.ts)
+  if (isReversing(car)) {
+    view.ctx.fillStyle = REVERSE_LAMP;
+    if (lampLevel(car, 2)) view.ctx.fillRect(-sprite.Lp / 2, -sprite.Wp / 2 + 5, 2, 2);
+    if (lampLevel(car, 3)) view.ctx.fillRect(-sprite.Lp / 2, sprite.Wp / 2 - 7, 2, 2);
   }
 }
 

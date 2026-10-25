@@ -24,4 +24,13 @@ export const TEST_LIST = [
   // raingrip, lockheat, gravelsand approved 2026-10-24; hwlead, trafficease passed 2026-10-24;
   // punctkind, shortgrass, grassblades passed 2026-10-24; hwlamps passed 2026-10-24;
   // trafficseat, sandboxwet, meltwater, icecrack passed 2026-10-24)
+  {
+    id: 'reverselights',
+    added: '2026-10-25',
+    name: 'Reversing lights: two white lamps at the back in reverse; a glow and short beam at night',
+    where: 'Plain link + &reverselights=1: any level (TEST MODE: TIME OF DAY night for the beam)',
+    try: 'Hold R to reverse by day and at night; knock a rear corner and reverse again.',
+    wrong: 'Lamps lit when not reversing, red instead of white, a beam out of the front, a lamp'
+      + ' still lit on a broken rear corner.',
+  },
 ];

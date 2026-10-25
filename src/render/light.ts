@@ -8,6 +8,10 @@ import { DAYLIGHT } from '../world/daylight.ts';
 import { activeLamps, lampsLit } from '../world/lamps.ts';
 import { indicatorBlinkOn, lampLevel } from './cars.ts';
 import { traceDecks } from './lightdecks.ts';
+import {
+  REVERSE_BEAM_HALF_M, REVERSE_BEAM_REACH_M, REVERSE_BEAM_STRENGTH, REVERSE_GLOW,
+  REVERSE_SIDE_SHARE, isReversing,
+} from './reverselights.ts';
 import type { RenderCar, RenderGame, View } from './types.ts';
 
 // the night's dark at darkness 1 this opaque (the darkest patches still show the track's shape
@@ -127,6 +131,7 @@ interface GlowPainter {
   ctx: CanvasRenderingContext2D;
   glow: HTMLCanvasElement;      // indicators (amber, or white for the rub-out)
   redGlow: HTMLCanvasElement;   // brake, tail and rain lights (red, or white)
+  reverseGlow: HTMLCanvasElement;   // reversing lights (cool white, or white)
   headGlow: HTMLCanvasElement;  // a street light's head (warm, or white)
   strength: number;             // this frame's glow strength (by the dark)
   mapX: (worldX: number) => number;
@@ -236,6 +241,10 @@ function drawRearGlows(painter: GlowPainter, car: RenderCar) {
     if (lampLevel(car, 3)) glowAt(painter, car, -halfLen, halfWid * 0.7, painter.redGlow, rear);
   }
   if (car.rainLight) glowAt(painter, car, -halfLen, 0, painter.redGlow, 0.8);
+  if (!isReversing(car)) return;
+  const side = halfWid * REVERSE_SIDE_SHARE;
+  if (lampLevel(car, 2)) glowAt(painter, car, -halfLen, -side, painter.reverseGlow, 1);
+  if (lampLevel(car, 3)) glowAt(painter, car, -halfLen, side, painter.reverseGlow, 1);
 }
 
 /**
@@ -323,8 +332,10 @@ function makeMapGlows(pools: PoolPainter) {
   const tint: GlowPainter = { ctx: pools.lightCtx, strength: 0,
     glow: makePicture(glowOf(AMBER, TINT_STOPS)), redGlow: makePicture(glowOf(RED, TINT_STOPS)),
     headGlow: makePicture(glowOf(WARM, TINT_STOPS)),
+    reverseGlow: makePicture(glowOf(REVERSE_GLOW, TINT_STOPS)),
     mapX: pools.artX, mapY: pools.artY, perMetre: pools.artPerMetre };
-  const out: GlowPainter = { ...tint, glow: whiteGlow, redGlow: whiteGlow, headGlow: whiteGlow };
+  const out: GlowPainter = { ...tint, glow: whiteGlow, redGlow: whiteGlow, headGlow: whiteGlow,
+    reverseGlow: whiteGlow };
   const paint = (game: RenderGame, tintFirst: () => void) => {
     paintGlows(out, game);
     pools.lightCtx.globalCompositeOperation = 'source-over';
@@ -377,9 +388,43 @@ function drawBeams(painter: PoolPainter, beam: HTMLCanvasElement, car: RenderCar
  * @param game the game drawn
  */
 function drawFieldBeams(painter: PoolPainter, beam: HTMLCanvasElement, game: RenderGame) {
-  if (game.traffic) for (const car of game.traffic.cars) drawBeams(painter, beam, car);
-  for (const rival of game.ai || []) drawBeams(painter, beam, rival.car);
-  drawBeams(painter, beam, game.car);
+  const each = (car: RenderCar) => {
+    drawBeams(painter, beam, car);
+    drawReverseBeams(painter, beam, car);
+  };
+  if (game.traffic) for (const car of game.traffic.cars) each(car);
+  for (const rival of game.ai || []) each(rival.car);
+  each(game.car);
+}
+
+/**
+ * Rubs a reversing car's short, dim reversing beams out of the dark behind it (a broken rear
+ * lamp has none; render/reverselights.ts).
+ * @param painter the light map and the mapping
+ * @param beam the beam picture
+ * @param car the car
+ */
+function drawReverseBeams(painter: PoolPainter, beam: HTMLCanvasElement, car: RenderCar) {
+  if (!isReversing(car)) return;
+  const { lightCtx, artX, artY } = painter;
+  const scale = painter.artPerMetre(), reach = REVERSE_BEAM_REACH_M * scale;
+  if (!painter.isNear(artX(car.x), artY(car.y), reach)) return;
+  // facing backwards: the beam picture turned round
+  const cos = -Math.cos(car.heading), sin = -Math.sin(car.heading);
+  const along = reach / PICTURE_PX, across = (2 * REVERSE_BEAM_HALF_M * scale) / PICTURE_PX;
+  const halfLen = car.spec.len / 2, side = (car.spec.wid / 2) * REVERSE_SIDE_SHARE;
+  for (const [corner, offset] of [[2, side], [3, -side]]) {
+    const level = lampLevel(car, corner);
+    if (!level) continue;
+    const lampX = car.x + cos * halfLen - sin * offset;
+    const lampY = car.y + sin * halfLen + cos * offset;
+    lightCtx.globalAlpha = REVERSE_BEAM_STRENGTH * level;
+    lightCtx.setTransform(cos * along, sin * along, -sin * across, cos * across,
+      artX(lampX), artY(lampY));
+    lightCtx.drawImage(beam, 0, -PICTURE_PX / 2);
+  }
+  lightCtx.setTransform(1, 0, 0, 1, 0, 0);
+  lightCtx.globalAlpha = 1;
 }
 
 /** What the decks' order paints with (createNight's parts). */
