@@ -13,7 +13,6 @@
 //             highway/roadlamps.ts)
 import { FLOOR } from './bounds.ts';
 import { catOf } from './levels/category.ts';
-import { eventLightsOn } from './eventlights.ts';
 import { smoothOnTrack } from './barriers.ts';
 import type { Level, Point, Prop, Subtrack, TrackPoint } from './types.ts';
 
@@ -37,7 +36,7 @@ const END_OUTS_M = [8, 12, 16], END_SHIFTS_M = [0, -10, 10, -20, 20];
 type Spot = { x: number; y: number };
 type CornerSpot = { x: number; y: number; rot: number };
 
-// THE BUSY CORNERS (?eventlights=1; owner F1): a floodlight inside each of the tightest corners
+// THE BUSY CORNERS (owner F1): a floodlight inside each of the tightest corners
 // (CORNER_COUNT by kind), off the racing line, on a ring of TYRE_RING_COUNT tyre stacks
 // TYRE_RING_M round its base; corners are read as the heading change across CORNER_SPAN_M either
 // side, sampled every CORNER_STEP_M, picked CORNER_APART_M apart; the spot is tried CORNER_OUTS_M
@@ -269,7 +268,7 @@ function placeNear(level: Level, placed: Prop[], sub: Subtrack, dist: number, si
 }
 
 /**
- * A generated stage's villages (?eventlights=1; owner F9: public-road stages get street lights
+ * A generated stage's villages (owner F9: public-road stages get street lights
  * where they pass buildings; closed stages - Sweaty Lamb, Killder - stay dark): beside the road
  * nearest each building block within VILLAGE_REACH_M, a street light on the buildings' side
  * every VILLAGE_GAP_M over VILLAGE_LEN_M of road.
@@ -277,7 +276,6 @@ function placeNear(level: Level, placed: Prop[], sub: Subtrack, dist: number, si
  * @param placed the lamps so far (added to)
  */
 function lightVillages(level: Level, placed: Prop[]): void {
-  if (!eventLightsOn()) return;
   const sub = level.subtrack!;
   for (const village of villageStretches(level)) {
     for (let along = -VILLAGE_LEN_M / 2; along <= VILLAGE_LEN_M / 2; along += VILLAGE_GAP_M) {
@@ -288,16 +286,15 @@ function lightVillages(level: Level, placed: Prop[]): void {
 }
 
 /**
- * A rally stage's fairy lights (?eventlights=1; owner: multi-coloured, on rally stages too):
+ * A rally stage's fairy lights (owner: multi-coloured, on rally stages too):
  * strings beside the road, FAIRY_OUT_M off the edge, both sides over FAIRY_LEN_M at the start
  * and the finish, and on the buildings' side through each village of a generated stage. Worked
  * out once per stage; render/eventglows.ts hangs the bulbs on them.
  * @param level the level
- * @returns each string's bulbs, following the road edge (none off a rally stage or with the
- *   event lights off)
+ * @returns each string's bulbs, following the road edge (none off a rally stage)
  */
 export function stageFairyLights(level: Level): Point[][] {
-  if (!eventLightsOn() || catOf(level) !== 'rally' || !level.subtrack) return [];
+  if (catOf(level) !== 'rally' || !level.subtrack) return [];
   let strings = fairyCache.get(level);
   if (strings) return strings;
   const sub = level.subtrack;
@@ -447,14 +444,14 @@ function cornerSpot(level: Level, sub: Subtrack, dist: number): CornerSpot | nul
 }
 
 /**
- * The busy corners' floodlight spots of a circuit or rallycross (?eventlights=1; owner F1): its
+ * The busy corners' floodlight spots of a circuit or rallycross (owner F1): its
  * tightest corners, each with a clear spot inside it. Worked out once per level.
  * @param level the level
- * @returns the spots (none elsewhere, or with the event lights off)
+ * @returns the spots (none elsewhere)
  */
 export function cornerSpots(level: Level): CornerSpot[] {
   const count = CORNER_COUNT[catOf(level)];
-  if (!eventLightsOn() || !count || !level.subtrack || level.endless) return [];
+  if (!count || !level.subtrack || level.endless) return [];
   let spots = cornerCache.get(level);
   if (!spots) {
     const sub = level.subtrack;

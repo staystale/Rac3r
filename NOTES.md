@@ -91,6 +91,11 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   through faster, cracks spread a few metres). 10-25: reversing lights on every car (white
   lamps at the tail in reverse; at night a glow and a short dim beam; owner: "slightly bright"
   -> beam 0.25, glow 0.7 of a brake light's).
+- Event lighting (10-25, owner "all pass", picks in TODO F): backlit boards (faint halo), marshal
+  beacons, multi-coloured festoons on stands and rally fairy lights (following the road edge),
+  the start gantry's light bar and start lights, pit lamps, caravan light spill (no windows:
+  top-down), floodlights in tyre rings at the tightest corners, village street lights on
+  generated stages; a knocked lamp settles - steady, or dies by how much light it lost.
 - Not wanted / undone: the highway rebuild (cancelled 10-15), a fade at zoom steps, tiles tracing
   only their part of the ribbon (`?ribboncull`, undone 10-16), the WebGL cars (`?gpucars`, removed
   10-16), the menu recording (parked until after the graphics work).

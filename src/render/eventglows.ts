@@ -1,4 +1,4 @@
-// EVENT GLOWS (?eventlights=1, world/eventlights.ts; the owner's picks 10-25): the lights the
+// EVENT GLOWS (the owner's picks 10-25): the lights the
 // level's own props give off after dark, painted into the one night layer (render/light.ts) in
 // its two passes - the rub-out (the dark wiped where the light is) and the tint (its colour).
 //   boards        backlit: the board's face at full brightness, a faint neutral halo round it
@@ -10,7 +10,6 @@
 //   pits          a warm lamp over each garage door / along the pit wall
 // Only from dusk (the lamps' light sensor) and only what is near the screen.
 import { lampsLit } from '../world/lamps.ts';
-import { eventLightsOn } from '../world/eventlights.ts';
 import { LEVEL, PROPS } from '../world/state.ts';
 import { querySubtrack } from '../world/tyrewall.ts';
 import { stageFairyLights } from '../world/lampplan.ts';
@@ -266,14 +265,13 @@ function caravanLights(painter: EventPainter, isTint: boolean, cones: RenderCone
 }
 
 /**
- * Paints the event lights into the night layer, in its rub-out or its tint pass (from dusk;
- * ?eventlights=1).
+ * Paints the event lights into the night layer, in its rub-out or its tint pass (from dusk).
  * @param painter the light map
  * @param isTint the tint pass
  * @param game the game drawn
  */
 export function drawEventGlows(painter: EventPainter, isTint: boolean, game: RenderGame): void {
-  if (!eventLightsOn() || !lampsLit()) return;
+  if (!lampsLit()) return;
   propLights(painter, isTint, game);
   for (const bulbs of stageFairyLights(LEVEL)) fairyString(painter, isTint, bulbs);
   caravanLights(painter, isTint, game.cones.list);

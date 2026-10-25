@@ -24,17 +24,6 @@ export const TEST_LIST = [
   // raingrip, lockheat, gravelsand approved 2026-10-24; hwlead, trafficease passed 2026-10-24;
   // punctkind, shortgrass, grassblades passed 2026-10-24; hwlamps passed 2026-10-24;
   // trafficseat, sandboxwet, meltwater, icecrack passed 2026-10-24; reverselights passed
-  // 2026-10-25 (owner: "slightly bright": beam 0.35 -> 0.25, glow 0.7))
-  {
-    id: 'eventlights',
-    added: '2026-10-25',
-    name: 'Event lighting: boards, marshals, stands, gantry, pits, corners, caravans, stages',
-    where: 'Plain link + &eventlights=1, at night (TEST MODE: TIME OF DAY): Brands Snatch,'
-      + ' Thruston, Knobhill, Grass Track, a generated stage, Killder',
-    try: 'Look round each: boards backlit, orange marshal beacons, coloured bulbs on stands,'
-      + ' gantry light bar + red / green start lights, pit lamps, corner floodlights in tyre'
-      + ' rings, caravan glow, stage fairy lights and village street lights. Knock a few lamps.',
-    wrong: 'Lights by day, anything floating off its prop, a corner light on the racing line,'
-      + ' a knocked lamp flickering for ever, slower frames at night.',
-  },
+  // 2026-10-25 (owner: "slightly bright": beam 0.35 -> 0.25, glow 0.7); eventlights passed
+  // 2026-10-25 (fairy lights moved off the road, board halo faint))
 ];

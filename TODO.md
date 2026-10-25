@@ -9,8 +9,9 @@ handover, written on request.
 
 - The plain link is the approved game; the test list is EMPTY. Tonight's rounds are DEFAULT
   (owner "all pass"): highway street lights L4b + the solid grid; traffic seated when woken,
-  the Sandbox puddles, meltwater, ice cracks (E); reversing lights 10-25. NEXT: lighting
-  at events F (mockup sent: owner picks per idea), trees / bushes D (photos), TS overnight.
+  the Sandbox puddles, meltwater, ice cracks (E); reversing lights, event lighting F 10-25.
+  NEXT: car headlights flicker / recover / fail by damage, wooden destructible marshal boxes,
+  hot brake glow, trees / bushes D (canopies above the night light), TS overnight.
   Earlier 10-24: A11, A12, A13, grass G1
   and the A fixes are DEFAULT
   (owner 10-24: "all pass"; switches and old paths deleted): A1 sky blend, A2 bridge decks, A3
@@ -269,7 +270,9 @@ F7 caravans: top-down, so NO visible windows - light spilling out round the side
 knocked lights flicker then recover or die: yes; F9 street lights on generated stages that pass
 buildings, Sweaty Lamb / Killder stay dark: yes. F4 pit-lane lamps: yes. Owner added: rally
 stages get multi-coloured fairy lights too; HOT BRAKE GLOW (Q9) next.
-BUILT 10-25, UNDER TEST behind ?eventlights=1 (testlist eventlights): render/eventglows.ts
+DEFAULT 10-25 (owner: all pass; fairy lights moved off the road, board halo faint - owner
+note: trees glowing near boards is the tree layering, fixed with the trees rework D; switch
+deleted): render/eventglows.ts
 (boards, marshal beacons, festoons, gantry bar + start lights, pits, caravans, stage fairy
 lights), world/lampplan.ts (corner floodlights + tyre rings via cones.js, villages, fairy
 strings), world/lamps.ts settleLamp (3-8 s, dies 15 % + 70 % of lost light). Photos:

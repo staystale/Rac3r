@@ -8,7 +8,6 @@
 import { LEVEL, PROPS } from './state.ts';
 import { DAYLIGHT } from './daylight.ts';
 import { planLamps } from './lampplan.ts';
-import { eventLightsOn } from './eventlights.ts';
 import type { CarBody, Level, Prop, Solid } from './types.ts';
 
 // darkness at and above which the lamps are on (a light sensor: a little before the cars' lights)
@@ -22,7 +21,7 @@ const STREET_POST_M = 0.36;
 const FLOOD_POOL_M = 34, FLOOD_BASE_M = 1.6, FLOOD_HEIGHT_M = 18;
 // a damaged lamp's flicker: the chance a frame it dips, per unit of flicker, and how far
 const FLICKER_DIP_CHANCE = 0.3, FLICKER_DIP = 0.2;
-// ?eventlights=1 (owner: a knocked light flickers, then by chance recovers or dies): it settles
+// SETTLING (owner: a knocked light flickers, then by chance recovers or dies): it settles
 // SETTLE_MIN_MS..SETTLE_MAX_MS after its last knock, dying by DIE_BASE plus DIE_PER_LOSS of the
 // light the knocks took (a nudge alone: 15 %; a lamp knocked half dark: 50 %)
 const SETTLE_MIN_MS = 3000, SETTLE_MAX_MS = 8000, DIE_BASE = 0.15, DIE_PER_LOSS = 0.7;
@@ -40,7 +39,7 @@ export interface Lamp {
   level: number;    // how bright it can be, 0..1 (hard hits take it down)
   shown: number;    // how bright it is this frame (level, dipping when it flickers)
   flicker: number;  // how much it flickers, 0..1 (a nudge starts it)
-  settleAt: number; // wall clock, ms, when its flicker settles (0: not timed yet; eventlights)
+  settleAt: number; // wall clock, ms, when its flicker settles (0: not timed yet)
   leanX: number;    // the lean, radians, toward +x / +y (a nudge wonks the post)
   leanY: number;
   down: boolean;    // snapped: lying along (fallX, fallY), no light, no solid
@@ -177,13 +176,13 @@ export function lampOfProp(prop: Prop): Lamp | null {
  * (wall clock: once a frame, before anything draws them).
  */
 export function updateLampLight(): void {
-  const now = eventLightsOn() ? performance.now() : 0;
+  const now = performance.now();
   for (const lamp of activeLamps()) {
     if (lamp.down) {
       lamp.shown = 0;
       continue;
     }
-    if (now && lamp.flicker > 0) settleLamp(lamp, now);
+    if (lamp.flicker > 0) settleLamp(lamp, now);
     const dips = lamp.flicker > 0 && Math.random() < FLICKER_DIP_CHANCE * lamp.flicker;
     lamp.shown = dips ? lamp.level * FLICKER_DIP : lamp.level;
   }

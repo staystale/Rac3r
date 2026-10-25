@@ -94,7 +94,7 @@ function tapeSections(list) {
  * @param {any} ctx the cones context
  */
 function resetCones(ctx) {
-  // the level's objects, and the tyre rings round its corner floodlights (?eventlights=1)
+  // the level's objects, and the tyre rings round its corner floodlights
   ctx.list = [...CONES, ...cornerTyres(LEVEL)].map(live);
   ctx.hits.length = 0;
   ctx.list.forEach((obj, i) => { obj._n = i; }); ctx.nextN = ctx.list.length;
