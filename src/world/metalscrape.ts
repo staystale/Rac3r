@@ -10,7 +10,7 @@
 // the Lab floor are left alone.
 
 import {
-  WEAR_CELL, wearMap, wearKey, wearDirty, getCell, layersAt, getWornSurface, groundSurfaceAt,
+  WEAR_CELL, wearMap, wearKey, wearDirty, getCell, layersAt, groundAt,
 } from './wear.ts';
 import type { Mark, Surface } from './types.ts';
 import { carWheels, CORNER_OF_WHEEL } from './wheels.ts';
@@ -101,13 +101,15 @@ function enteredCell(car: ScrapeCar, slot: number, x: number, y: number): boolea
 }
 
 /**
- * The surface a point of the car touches: the worn ground there, else the level's.
+ * The surface a point of the car touches: the ground the wheels feel (wear.ts groundAt - verges,
+ * kerbs and the weather's covers included). The worn cell or the level's zone alone read the race
+ * tarmac under a circuit's grass verge, and rims sparked on the grass.
  * @param x world x, m
  * @param y world y, m
  * @returns the surface
  */
 function surfaceUnder(x: number, y: number): Surface {
-  return getWornSurface(x, y) || groundSurfaceAt(x, y);
+  return groundAt(x, y).surface;
 }
 
 /**
