@@ -27,7 +27,7 @@ export const TEST_LIST = [
   {
     id: 'reverselights',
     added: '2026-10-25',
-    name: 'Reversing lights: two white lamps at the back in reverse; a glow and short beam at night',
+    name: 'Reversing lights: two white lamps at the back in reverse; glow and short beam at night',
     where: 'Plain link + &reverselights=1: any level (TEST MODE: TIME OF DAY night for the beam)',
     try: 'Hold R to reverse by day and at night; knock a rear corner and reverse again.',
     wrong: 'Lamps lit when not reversing, red instead of white, a beam out of the front, a lamp'
