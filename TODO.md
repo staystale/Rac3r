@@ -19,7 +19,8 @@ handover, written on request.
 - ORDER (owner 10-25): 1 BUSHES (D part 2) - DEFAULT 10-25 (owner: pass); 2 car systems C
   (design + mockup approved 10-25; ROUND 1 - C1 + C2, metal on ground, stingers, highway
   hedges, sparks, crash sparks, flip ramp - DEFAULT 10-25 (owner: all pass); round 2
-  C3-C5 DEFAULT 10-25 (owner: pass); NEXT C6-C10); 3 the wearcheck rewrite when C passes.
+  C3-C5 DEFAULT 10-25 (owner: pass); C6 oil DEFAULT 10-25 (owner: all pass); NEXT C7 debris
+  (mockup approved, owner answers below), then C8-C10); 3 the wearcheck rewrite when C passes.
   Then (owner to order): the driving ROOT
   FIX for real ABS (owner: "abs is needed to be fixed so yes"), AI rework B (design first),
   sound + settings G, Story + upgrades H, new levels (Dieatona), multiplayer I.
@@ -239,6 +240,17 @@ C. CAR SYSTEMS + DAMAGE (L; one chain - extend damage.ts, no second damage model
 - C7 Debris: a bumper / wing / panel from where the car was hit, in the car's own colours, as a
   contactable object (the cones / props system); glass only from cars with glass: thrown a bit,
   tiny sparkling specks, higher puncture chance, cleared in one pass.
+  OWNER ANSWERS 10-25: a part comes off at ~0.3 damage on a corner (~40 km/h), likelier the
+  bigger the hit; the car's own look stays as is (dents enough, may revisit); parts STAY all
+  race, capped, the OLDEST FADES first; glass "sounds great" - it should change colour /
+  sparkle gently as the view moves. PLAN (mockup claude.ai/artifact/EbunhqrdHDfzWT6F5o2KBf,
+  APPROVED by the owner 10-25 - build next): parts through the wheelSpawn path (damage.ts queue ->
+  game/sim.js game.cones.add) as DEBRIS kinds bumper (exists) + new wing / panel with the car's
+  paint (cone.col) and trim; a fade on the oldest past the cap (render/objects.ts alpha).
+  Glass a wear-cell cover 'glass' like oil (world/oil.ts pattern; GPU field kind 6 with
+  camera-dependent glints), thrown round the hit corner, a pass clears it with a puncture
+  chance (physics/punctures.ts); no glass from the track car, banger, grass-track car.
+  Behind ?debris=1.
 - C8 Penetration: small hard objects (lamp posts) hit harder at speed; flat barriers do not.
 - C9 Armco dents (barrier segments deform). M.
 - C10 Open-wheel cars: exposed wheels collide with other cars (today they pass through), can be

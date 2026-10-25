@@ -1,82 +1,75 @@
 # Foreman handover
 
-Written on the owner's request, 2026-10-25 night (main at the commit that adds this page). Read
-`CLAUDE.md`, then `NOTES.md` (the owner's rules, decisions, measured lessons and the routine - not
-repeated here), then `TODO.md` ("Where we are" and section C are the plan), then this page.
+Written on the owner's request, 2026-10-25 late night (main at the commit that adds this page).
+Read `CLAUDE.md`, then `NOTES.md` (the owner's rules, decisions, measured lessons and the routine -
+not repeated here), then `TODO.md` ("Where we are" and section C are the plan), then this page.
 
 ## Where we are
 
 - **The plain link is the approved game; the test list is EMPTY.** Everything below passed the
   owner's phone test and is the DEFAULT, its switch and old path DELETED (one system).
-- **Car systems C, round 1 (C1 + C2) - DONE.** Design + mockup agreed first (mockup
-  claude.ai/artifact/BozNYQLMm4FpspU9SsrXAc). A puncture is a LEAK (`physics/tyrepressure.ts`):
-  a burst (big hit, heat, stinger) flat in ~0.5 s with a sharp pull and a puff; debris / nails /
-  bush (`car.burstSlow`) over 10-30 s. Axle grip 1 -> 0.7 flat -> 0.45 rim, pull and drag by
-  pressure, folded into `car.wreck` by `damage.ts derive`; the rim by a Weibull chance over the
-  metres run flat (half by ~1 km). The old `car.punct` flag, its 0.7 rule, the pale wheel block,
-  the white HUD ring and the written PUNCTURE notice are deleted. Look: `render/tyrelook.ts`
-  (progressive squash by pressure, rim bare), HUD ring amber / red / silver, `?dev=1` line `air`.
-- **Metal on hard ground** (`world/metalscrape.ts`): a rim, or a rolled body (sliding OR
-  tumbling: `roll.js car.sparks`), on hard ground sparks and may break each new wear cell a grade
-  (race tarmac -> tarmac -> broken; concrete, kerbs, Lab floor left alone); a rollover impact has
-  its own chance; a rim scores a pale mark (`MARK_GOUGE`).
-- **Sparks** (`render/particles.ts`): their own pool, drawn on the SCREEN canvas over the road and
-  under the cars (`render/screen.ts drawSparksOnScreen`) as pixel squares on the art grid - head,
-  short trail, dim halo square - cooling white -> yellow -> orange, each its own fade curve and a
-  flicker; flung behind the way the car MOVES; ~200 a second from a rim, 260 from a body, in
-  bursts. At night the light map opens the dark along each spark (`render/light.ts openSparks`).
-  **Crash sparks**: a metal impact (`physics/punctures.ts hitIsMetal`: cars, armco, fences,
-  posts, gantries ...) with 0.04+ damage, the car driven in at 25 mph+, sparks 70 % of the time,
-  sprayed the way the car went in.
-- **Brake glow** orange -> deep red the hotter, 0.45 m, just outside the wheel (not over the
-  body), none while the car is rolled.
-- **Test props:** stingers (tyre spikes) on the Lab and Test Track 50 m past the start
-  (`world/stingers.ts`); the Lab's flip ramp, an armco end beside the stinger's left end that
-  rolls a car run up it at 7+ m/s (`world/flipramps.ts`; `roll.js tripCheck` asks it).
-- **Highway hedges** (`highway/hedges.ts`): one continuous line of square bushes round every
-  farm field, streamed with the field, indexed a field at a time (`world/load.ts
-  indexNewBushes`).
-- **Fixes:** wet trails and spray now per wheel (`world/wear.ts stepWear` reads each wheel's
-  ground: `car.wheelSurf`); a lost wheel's tyre reads 0 C (its axle's heat grip from the other
-  tyre); `world/wheels.ts CORNER_OF_WHEEL` is the one wheel <-> damage corner table.
-- **Drawing never uses Math.random** (`render/shared.ts fxRandom`): the tools seed one stream for
-  the page, so a look change used to read as a race change.
-- **TypeScript:** `damage.js` became `damage.ts`; all new code is TS; the bulk conversion stays
-  ON HOLD (owner).
+- **Car systems C round 2 (C3-C5) - DONE.** `physics/engineheat.ts`: each car's engine C,
+  radiator water, oil and a seize timer, stepped by `damage.ts stepDamage` on every car (the
+  damage state is made at the first step). Heat in by throttle x revs (`car.throttleUsed`,
+  set in `vehicle.ts step`), out through the radiator (thermostat from 87 C, water left, airflow
+  by speed + rain + wheel splashes) and the block. A front hit (the harder-hit front corner's
+  share 0.15+) cracks the radiator (empty in 4 min .. 40 s), 0.35+ or a rollover impact may
+  crack the sump. Power fades 115 -> 130 C to half (folded into `car.wreck.power`); 10 s at
+  130 C or with no oil SEIZES it (RESET mends; an AI resets via `tooInjured`).
+  **The leak is water** (owner: the same liquid as the rain): ~60 wear cells a radiator become
+  the tyres' water under the nose (`puddles.ts` rules), closer together the worse the leak.
+  Speedo lights `hud/enginelights.ts` (thermometer + oil can over the units; dim / amber 105 C /
+  flashing red). `render/enginesmoke.ts`: exhaust from each car kind's pipe (`EXHAUST_SPOTS`)
+  by throttle and cold, backfires (seize, heat power cuts, lift-off near the redline), steam
+  and engine smoke drawn OVER the cars (`particles.ts overPuffs`, `screen.ts` after the
+  overhead props). The old grey nose smoke of a bent front is deleted.
+- **C6 oil - DONE.** `world/oil.ts`: a wear cell's cover 'oil' that ACTS LIKE WATER (owner:
+  whole cells, no specks; `wet.ts oilSurface` a third of the base's grip), drawn by the GPU
+  field as kind 5 (`glfield.ts OIL_CODE`): black with a dark purple sheen and purple edges.
+  Soaked up by sand, gravel, dirt, mud, long grass, bushes, traps; never dries. Sources: a
+  cracked sump drips ~20 cells, a hit of 0.2+ damage spills 1-4 cells, a rollover impact 25 %
+  (`damage.ts -> crashOil / rollOil`). Driven through it spreads a cell the way the wheel went
+  (a chance a pass; `wear.ts stepWear` notes each wheel's motion); oil beside water runs into
+  it 50:50 a second (`stepOil`); each spread a generation weaker (`cell.oilGen`). No oily tyres
+  or oily marks (owner).
+- **Fix: rims sparked on soft ground.** `world/metalscrape.ts surfaceUnder` read the wear cell
+  else the level's zone, missing the weather's snow / ice where no wheel had made a cell yet;
+  it now reads `wear.ts groundAt` (the ground the wheels feel).
+- **The tunnel was restarted** (Cloudflare had dropped the quick tunnel's name): a NEW link,
+  in `GamesStudio/tools/logs/rac3r-tunnel.err`; the pids file is updated.
 
 ## NEXT (owner's order)
 
-1. **Car systems C, round 2** behind `?engine=1` (agreed with the mockup): C3 radiator + engine
-   temperature (thermostat ~90 C; airflow, air temp, rain / splashes cool; a front hit cracks the
-   radiator, the water drips through the wet trail; overheats only when nearly empty; power fades
-   above 115 C; ~10 s at 130 C SEIZES - RESET mends; an oil leak -> pressure light -> seize), C4
-   speedo warning lights (every car: temperature + oil, dim / amber / flashing red, in the speed
-   panel), C5 exhaust smoke (each car's exhaust spot as data; more cold / on throttle, little hot;
-   dark puffs + backfire on a power cut). The grey nose smoke becomes steam / engine smoke. Round
-   1's look rules hold: no written banners.
-2. Then C6-C10 (oil, debris parts, penetration, armco dents, open wheels), then the `wearcheck`
-   rewrite, then (owner to order) the driving root fix (real ABS), AI rework B, sound G, Story H,
-   levels, multiplayer I.
+1. **C7 debris** - owner answers and the plan are in TODO.md C7; the look mockup
+   (claude.ai/artifact/EbunhqrdHDfzWT6F5o2KBf) is APPROVED (owner): build it behind
+   `?debris=1`. Parts through the `wheelSpawn` path (a queue on the car, emptied by `game/sim.js` into `game.cones.add`), as DEBRIS kinds (`bumper`
+   exists; add `wing`, `panel`) in the car's paint; past the cap the oldest fades out. Glass a
+   wear-cell cover like oil (GPU field kind 6, glints that move with the camera), a pass clears
+   it with a puncture chance; no glass from the track car, banger or grass-track car.
+2. Then C8 (lamp posts hit harder at speed), C9 (armco dents), C10 (open-wheel contact / wheels
+   ripped off), then the `wearcheck` rewrite, then (owner to order) the driving root fix
+   (real ABS), AI rework B, sound G, Story H, levels, multiplayer I.
 
 ## Proofs and references
 
-- Worktrees: `Desktop/G/rac3r-wt` (the work) and `rac3r-wt2` (proofs). The served clone
-  `Desktop/G/rac3r` is detached on origin/main.
-- `.simhash` (gitignored): saved on 1707c66 in `rac3r-wt2/tools` (copied to `rac3r-wt/tools`);
-  the commits after it read SAME. `.renderhash` is STALE (not run this session: every drawing
-  change was photographed at the owner's phone size instead).
-- When a proof reads DIFFERENT, bisect before believing it: this session the per-wheel ground
-  lookups read DIFFERENT only because the marks' marbles drew from Math.random (fixed by
-  `fxRandom`); with one line reverted a run reads SAME = the change is only that line's.
+- Worktrees: `Desktop/G/rac3r-wt` (the work, detached on main) and `rac3r-wt2` (proofs). The
+  served clone `Desktop/G/rac3r` is detached on origin/main.
+- `.simhash` in `rac3r-wt/tools` = saved on 0815f01 with `?oil=1`, which equals main (every
+  later commit read SAME). `.renderhash` is STALE (drawing changes were photographed at the
+  owner's phone sizes instead).
+- Flip routine used today: save a simhash reference WITH the switch on (`RAC3R_QUERY=x=1 node
+  tools/simhash.mjs save`, in rac3r-wt2), flip the default in rac3r-wt, run simhash there
+  against that reference -> SAME.
 
 ## Probes made today (`tools/scratch/`)
 
-`_flats.mjs` (physics | photos | stinger | body), `_rimspread.mjs`, `_hedges.mjs`,
-`_hedgeshots.mjs`, `_hwframes.mjs` (the highway frame A/B: framecheck does not drive it),
-`_hwboot.mjs`, `_wettrail.mjs` (`puddle` mode), `_wheeloffheat.mjs`, `_sparkshots.mjs`,
-`_sparkphone.mjs` (the owner's phone: 440x751 css, dpr 3), `_flipramp.mjs`,
-`_impactsparks.mjs` (`&hitspeed=N`; logs each impact's metal / speed / damage),
-`_stingerspot.mjs`.
+`_engine.mjs` (heat curves headless, every car kind has an exhaust spot), `_engineshots.mjs`
+(crack | ai | look | water | crackport: the real game), `_oil.mjs` (spill, drive-through, water
+spread, sump, crash), `_oilgrip.mjs` (the car on oil reads 'oil'; photos), `_rimsoft.mjs`,
+`_rimsoft2.mjs`, `_rimsoft3.mjs` (soft ground the old spark lookup called hard),
+`_mockshot.mjs` (a screenshot of a local mockup page). Browser probe gotchas: tap the screen
+before `launch` or the race never starts (the car reads 'lab' and stands still); `debugZoom`
+at speed loses the car off screen - use `?autopilot=25`.
 
 ## itch.io push (owner says when)
 
@@ -88,7 +81,10 @@ fuzzlepun/rac3r:html5 --userversion <date>-<commit>`. Still build #2201136 (10-2
 ## Picking up
 
 - Test server `node serve.mjs` and cloudflared (running); the link is in
-  `Desktop/G/GamesStudio/tools/logs/rac3r-tunnel.err`. Phone reports: `node tools/phonereport.mjs
+  `Desktop/G/GamesStudio/tools/logs/rac3r-tunnel.err`. If the link stops resolving, Cloudflare
+  dropped the quick tunnel: stop the cloudflared PID, start `GamesStudio/tools/cloudflared.exe
+  tunnel --url http://localhost:8080` with stderr to that log, update `rac3r-pids.txt`, give
+  the owner the new link. Phone reports: `node tools/phonereport.mjs
   ../GamesStudio/tools/logs/rac3r-phone-report.jsonl --since <UTC>`.
 - To main: commit in a worktree, `set -o pipefail; npm run verify`, push
   `HEAD:refs/heads/foreman/<name>`, wait for the `verify` check-run (GitHub API
