@@ -6,8 +6,9 @@ not repeated here), then `TODO.md` ("Where we are" and section C are the plan), 
 
 ## Where we are
 
-- **The plain link is the approved game; the test list is EMPTY.** Everything below passed the
-  owner's phone test and is the DEFAULT, its switch and old path DELETED (one system).
+- **The plain link is the approved game.** UNDER TEST: `?debris=1` (C7, testlist `debris`; see
+  NEXT). Everything else below passed the owner's phone test and is the DEFAULT, its switch and
+  old path DELETED (one system).
 - **Car systems C round 2 (C3-C5) - DONE.** `physics/engineheat.ts`: each car's engine C,
   radiator water, oil and a seize timer, stepped by `damage.ts stepDamage` on every car (the
   damage state is made at the first step). Heat in by throttle x revs (`car.throttleUsed`,
@@ -40,12 +41,16 @@ not repeated here), then `TODO.md` ("Where we are" and section C are the plan), 
 
 ## NEXT (owner's order)
 
-1. **C7 debris** - owner answers and the plan are in TODO.md C7; the look mockup
-   (claude.ai/artifact/EbunhqrdHDfzWT6F5o2KBf) is APPROVED (owner): build it behind
-   `?debris=1`. Parts through the `wheelSpawn` path (a queue on the car, emptied by `game/sim.js` into `game.cones.add`), as DEBRIS kinds (`bumper`
-   exists; add `wing`, `panel`) in the car's paint; past the cap the oldest fades out. Glass a
-   wear-cell cover like oil (GPU field kind 6, glints that move with the camera), a pass clears
-   it with a puncture chance; no glass from the track car, banger or grass-track car.
+1. **C7 debris - BUILT behind `?debris=1`, UNDER the owner's TEST** (mockup approved:
+   claude.ai/artifact/EbunhqrdHDfzWT6F5o2KBf; TODO.md C7 has the answers and the measures).
+   `world/debris.ts`: a corner's hit of 0.3+ may knock off a bumper (one an end), wing or door
+   panel in the car's paint, thrown as a loose object (`game/sim.js throwParts` -> `cones.add`);
+   past 24 the oldest fade out. A hit of 0.15+ may break a window (not the track car, banger,
+   grass car): wear cells take the cover 'glass' (GPU field kind 6, glints following the camera);
+   the first tyre over it sweeps it and may puncture (`world/pass.ts`, the one note of the wheel
+   making a pass, also used by the oil). ON PASS: flip default the same way (save a simhash ref
+   with `RAC3R_QUERY=debris=1`, delete `setDebris` / the settings row / testlist entry, prove
+   SAME), push main.
 2. Then C8 (lamp posts hit harder at speed), C9 (armco dents), C10 (open-wheel contact / wheels
    ripped off), then the `wearcheck` rewrite, then (owner to order) the driving root fix
    (real ABS), AI rework B, sound G, Story H, levels, multiplayer I.

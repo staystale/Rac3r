@@ -77,6 +77,9 @@ export const DEBRIS = {
   barrel:   { mass: 18, r: 0.42, breaks: 0 },                       // rolls away
   exhaust:  { mass: 6,  r: 0.5, breaks: 0 },                        // a lost exhaust: skitters
   bumper:   { mass: 8,  r: 0.8, breaks: 0 },
+  // a crashed car's own parts (world/debris.ts), in its paint
+  wing:     { mass: 6,  r: 0.6, breaks: 0 },
+  panel:    { mass: 7,  r: 0.65, breaks: 0 },
   // always flat: you drive over it (it drags off with you)
   tarp:     { mass: 3,  r: 0.9, breaks: 0, flat: true },
 };

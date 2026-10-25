@@ -368,7 +368,7 @@ function drawTape(env: ObjectsCtx, game: TapeGame) {
 // ROADSIDE DEBRIS (cones.js DEBRIS): top-down squares, rotated with the object; broken ones are
 // a scatter of bits (seeded by home)
 const DEBRIS_KINDS = new Set(['pallet', 'box', 'crate', 'bin', 'sandbag', 'barrel', 'exhaust',
-  'bumper', 'tarp', 'splinters', 'cardboard', 'sand', 'fluff']);
+  'bumper', 'wing', 'panel', 'tarp', 'splinters', 'cardboard', 'sand', 'fluff']);
 
 /**
  * Makes a drawer of filled rects in metres at the given pixels per metre.
@@ -443,6 +443,8 @@ function drawDebrisParts(
     return true;
     case 'bumper': shadow(1.6, 0.3);
     rect(-0.8, -0.15, 1.6, 0.3, cone.col || '#c8302c');
+    // a crashed car's own bumper (world/debris.ts) has its trim edge
+    if (cone.trim) rect(-0.8, 0.09, 1.6, 0.06, cone.trim);
     rect(-0.8, -0.15, 1.6, 0.07, 'rgba(255,255,255,0.3)');
     return true;
     case 'tarp': rect(-0.9, -0.7, 1.8, 1.4, cone.col || '#2f6fb0');
@@ -451,6 +453,34 @@ function drawDebrisParts(
     return true;
     default: return false;
   }
+}
+
+/**
+ * Draws a crashed car's wing or door panel (world/debris.ts) in its paint and trim.
+ * @param cone the part
+ * @param rect the rect drawer
+ * @param shadow the shadow drawer
+ * @returns whether the kind was one of these
+ */
+function drawCarPanels(
+  cone: RenderCone, rect: RectFn, shadow: (w: number, h: number) => void
+) {
+  const paint = cone.col || '#c8302c', trim = cone.trim || '#7a1d22';
+  if (cone.kind === 'wing') {
+    shadow(1.1, 0.7);
+    rect(-0.55, -0.35, 1.1, 0.7, paint);
+    // the wheel-arch cut out, the trim along its edge
+    rect(-0.25, 0.12, 0.5, 0.23, '#16171c');
+    rect(-0.55, -0.35, 0.1, 0.7, trim);
+    return true;
+  }
+  if (cone.kind !== 'panel') return false;
+  shadow(1.2, 0.56);
+  rect(-0.6, -0.28, 1.2, 0.56, paint);
+  // a door skin: its seam and its handle
+  rect(-0.04, -0.28, 0.08, 0.56, trim);
+  rect(0.2, -0.04, 0.22, 0.08, 'rgba(0,0,0,0.25)');
+  return true;
 }
 
 /**
@@ -485,8 +515,11 @@ function drawDebris(env: ObjectsCtx, cone: RenderCone) {
       height * ppm);
   };
   env.view.ctx.rotate(cone.ang || 0);
+  // a crashed car's part past the cap fades out (world/debris.ts)
+  if (cone.fade !== undefined && cone.fade < 1) env.view.ctx.globalAlpha = cone.fade;
   if (drawDebrisStacks(cone, rect, shadow)) return;
   if (drawDebrisParts(cone, rect, shadow)) return;
+  if (drawCarPanels(cone, rect, shadow)) return;
   drawDebrisScatter(cone, rect);   // broken: a scatter of bits in its colour
 }
 

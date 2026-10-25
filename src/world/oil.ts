@@ -12,6 +12,7 @@
 // (cell.oilGen), so a spill grows a few cells and stops.
 import { getCell, wearDirty, wearKey, wearMap, WEAR_CELL } from "./wear.ts";
 import { fieldCoverAt } from "./coverfield.ts";
+import { PASS } from "./pass.ts";
 import type { WearCell } from "./types.ts";
 
 // the ground that soaks oil up (no cover, no grip lost)
@@ -31,8 +32,6 @@ const OIL_ROLL_P = 0.25;
 let tickS = 0;
 // the oil cells, for the water spreading (checked against the wear map: a reset drops them)
 const oilCells = new Set<WearCell>();
-// the wheel making this pass: its motion this step, m (wear.ts stepWear notes it)
-const passMotion = { dx: 0, dy: 0 };
 
 
 /**
@@ -111,26 +110,16 @@ function oilCell(cell: WearCell | null, gen: number): boolean {
 }
 
 /**
- * The wheel about to pass over its cells this step (wear.ts stepWear).
- * @param dx its motion this step, x, m
- * @param dy its motion this step, y, m
- */
-export function noteWheelMotion(dx: number, dy: number): void {
-  passMotion.dx = dx;
-  passMotion.dy = dy;
-}
-
-/**
  * A tyre's pass through an oil cell (wear.ts passCell): by chance the oil spreads to the next
  * cell the way the wheel was going.
  * @param cell the oil cell
  */
 export function passOilCell(cell: WearCell): void {
   if ((cell.oilGen || 0) <= 1 || Math.random() >= DRAG_SPREAD) return;
-  const length = Math.hypot(passMotion.dx, passMotion.dy);
+  const length = Math.hypot(PASS.dx, PASS.dy);
   if (length < 1e-6) return;
-  const aheadX = (cell.cx + 0.5) * WEAR_CELL + (passMotion.dx / length) * WEAR_CELL;
-  const aheadY = (cell.cy + 0.5) * WEAR_CELL + (passMotion.dy / length) * WEAR_CELL;
+  const aheadX = (cell.cx + 0.5) * WEAR_CELL + (PASS.dx / length) * WEAR_CELL;
+  const aheadY = (cell.cy + 0.5) * WEAR_CELL + (PASS.dy / length) * WEAR_CELL;
   spillOil(aheadX, aheadY, cell.oilGen! - 1);
 }
 

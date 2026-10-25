@@ -120,6 +120,14 @@ but purple). Spilled by a cracked sump (`engineheat.ts`), a big hit or a rollove
 through it may spread it a cell the way the wheel went (`wear.ts stepWear` notes each wheel's
 motion); oil beside water runs into it 50:50 a second (`stepOil`); each spread a generation
 weaker (`cell.oilGen`).
+DEBRIS (`?debris=1`, under test): `world/debris.ts`. A corner's hit of 0.3+ may knock off a
+part (`damage.ts hardHitCorners -> crashDebris`): a bumper (end-on, one an end), a wing or a door
+panel, queued on the car (`partSpawn`) and thrown by `game/sim.js throwParts` into the loose
+objects (`cones.js`; DEBRIS kinds `bumper`, `wing`, `panel` in the car's paint and trim,
+`render/objects.ts`); past 24 the oldest fade out (`stepParts`, `cones.cull`). A hit of 0.15+
+may break a window (not the track car, banger, grass car): wear cells take the cover 'glass'
+(no grip change; GPU field kind 6, specks whose glints follow the camera); the first tyre pass
+sweeps it and may puncture that tyre (`world/pass.ts PASS`: the wheel making the pass).
 
 Highway hedges: `highway/hedges.ts` lays one continuous line of square
 bushes (the same `bush` patches as the other levels) round each farm field's long-grass border, streamed with

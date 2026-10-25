@@ -35,8 +35,8 @@ const CHUNK_BUDGET_MS = 2;
 // squares per wear cell side (a wear cell is 1.5 m, a square 0.5 m: they share the grid)
 const CELL_SQ = Math.round(WEAR_CELL / FIELD_SQ);
 // a cell's cracked ice (world/icecrack.ts): CRACK_CODE + its crack step - 1 (11..14); a cell's
-// oil (world/oil.ts): OIL_CODE, drawn as kind 5
-const CRACK_CODE = 11, OIL_CODE = CRACK_CODE + CRACK_STEPS;
+// oil (world/oil.ts): OIL_CODE, drawn as kind 5; its glass (world/debris.ts): GLASS_CODE, kind 6
+const CRACK_CODE = 11, OIL_CODE = CRACK_CODE + CRACK_STEPS, GLASS_CODE = OIL_CODE + 1;
 
 // a full-screen quad without vertex data
 const VERTEX = `#version 300 es
@@ -93,6 +93,7 @@ int kindOf(ivec2 square, out float depth) {
   if (code >= 7) {
     depth = RIM_DEPTH * 0.5;
     if (code == ${OIL_CODE}) return 5;
+    if (code == ${GLASS_CODE}) return 6;
     return code == 7 ? 1 : code == 8 ? 2 : code == 9 ? 3 : code == 10 ? 4 : 2;
   }
   vec2 catchValue = texelFetch(catchTex, slot, 0).rg;
@@ -138,6 +139,29 @@ vec4 lookOf(int kind, bool rim, float thick, float sheen, ivec2 square) {
   }
   return rim ? vec4(0.63, 0.71, 0.80, 0.6) : vec4(0.94, 0.95, 0.98, 0.72 + 0.26 * thick);
 }
+// GLASS (world/debris.ts): tiny pale specks, GLASS_PX a square side (about the art pixel), on
+// GLASS_SHARE of them; each glints by its own phase against where the CAMERA is, so as the view
+// moves the glints wander and their colour drifts gently (owner); none between the specks
+const int GLASS_PX = 8;
+const float GLASS_SHARE = 0.05;
+uint glassHash(ivec2 speck) {
+  uint hash = uint(speck.x * 73856093) ^ uint(speck.y * 19349663) ^ 3266489917u;
+  hash = hash * 747796405u + 2891336453u;
+  return hash ^ (hash >> 16u);
+}
+vec4 glassLook(ivec2 square, vec2 inSq) {
+  ivec2 speck = square * GLASS_PX + ivec2(floor(inSq * float(GLASS_PX)));
+  uint hash = glassHash(speck);
+  if (float(hash & 1023u) / 1023.0 >= GLASS_SHARE) return vec4(0.0);
+  float own = float((hash >> 10u) & 1023u) / 1023.0;
+  vec2 camera = vec2(camSq) * SQ + camInSq;
+  float glint = sin(dot(camera, vec2(0.9, 0.7)) + own * 40.0);
+  float hue = 6.2832 * (own + 0.08 * dot(camera, vec2(0.3, 0.2)));
+  vec3 tint = 0.5 + 0.5 * cos(hue + vec3(0.0, 2.1, 4.2));
+  vec3 pale = mix(vec3(0.80, 0.87, 0.93), tint, 0.3);
+  if (glint > 0.9) return vec4(mix(pale, vec3(1.0), 0.8), 1.0);
+  return vec4(pale, 0.45 + 0.3 * max(glint, 0.0));
+}
 // a square's ice crack (world/icecrack.ts), 0..1: its mask code 11..14
 float crackOf(ivec2 square) {
   int code = int(texelFetch(maskTex, slotOf(square), 0).r * 255.0 + 0.5);
@@ -178,6 +202,12 @@ void main() {
   float depth, other;
   int kind = kindOf(square, depth);
   if (kind <= 0) discard;
+  if (kind == 6) {
+    vec4 speck = glassLook(square, (fromCamera + camInSq) / SQ - vec2(square - camSq));
+    if (speck.a <= 0.0) discard;
+    colour = vec4(speck.rgb * speck.a, speck.a);
+    return;
+  }
   // the rim: where a neighbour is bare ground (not another cover, not the tiles' own); deep in a
   // patch (the level well above the catch) no neighbour can be, and the reads are skipped
   bool rim = depth < RIM_DEPTH && (kindOf(square + ivec2(1, 0), other) == 0
@@ -232,6 +262,7 @@ function ownedCode(cell: WearCell): number {
   if (step) return CRACK_CODE + step - 1;
   const cover = cellCoverOnGpu(cell);
   if (cover === 'oil') return OIL_CODE;
+  if (cover === 'glass') return GLASS_CODE;
   return cover ? FORCED_CODE + FORCED_COVERS.indexOf(cover) : 255;
 }
 

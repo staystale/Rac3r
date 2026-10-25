@@ -11,6 +11,7 @@ import { stepWetTrails } from "../wettrail.ts";
 import { applyGround, fenceClamp, obstacleClamp } from "../world/wear.ts";
 import { barrierClamp, solidClamp } from "../world/barriers.ts";
 import { takeThrownPlanks } from "../world/marshalbox.ts";
+import { throwParts, stepParts } from "../world/debris.ts";
 import { findNearestSubtrackPoint } from "../world/tyrewall.ts";
 import { resetCar, startHeld, atPace, stepOrder, formationWant } from './order.js';
 import { doReset, onScreen } from './session.js';
@@ -424,6 +425,9 @@ export function stepLooseCones(tcars) {
           vy: racer.vy * 0.85 + cosH * out, ang: racer.heading,
             spin: (Math.random() - 0.5) * 8 });
     }
+    // a knocked-off bumper / wing / panel joins them; the oldest past the cap fade (?debris=1)
+    throwParts(field, game.cones);
+    stepParts(game.cones, PHYSICS_STEP_SECONDS);
   }
 }
 

@@ -187,7 +187,7 @@ export function cellOwned(cell: WearCell): boolean {
 // one system): the covers the tyres make in a wear cell (ice, snow, packed snow, water) are drawn
 // by the GPU field with the field's own look, the tiles showing the ground under them, as for the
 // field's covers; the level's fixed covers (scenery water) keep their tile art
-const GPU_COVERS = ['wet', 'ice', 'snow', 'packedSnow', 'oil'];
+const GPU_COVERS = ['wet', 'ice', 'snow', 'packedSnow', 'oil', 'glass'];
 
 /**
  * The cover the GPU field draws for a wear cell the tyres changed, or null (the tiles

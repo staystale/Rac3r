@@ -5,7 +5,9 @@ import { SURFACES, VERGE_W, TRAP_STEPS, SURFACE_TRAP } from "./surfaces.ts";
 import {
   dampSurface, puddleSurface, oilSurface, cellDamp, dryCellLine, surfaceById,
 } from "./wet.ts";
-import { noteWheelMotion, passOilCell } from "./oil.ts";
+import { passOilCell } from "./oil.ts";
+import { passGlassCell } from "./debris.ts";
+import { notePass } from "./pass.ts";
 import { WEATHER } from "./weather.ts";
 import { carWheels } from "./wheels.ts";
 import { staticCoverHere } from "./coverlookup.ts";
@@ -221,7 +223,8 @@ export { COVER_SQ, coverAt, coverCut } from "./coverlookup.ts";
 // water (wet.ts puddleSurface); a damp wet zone, and any ground in the rain, is the base DAMP
 // (wet.ts dampSurface). Cached surface objects, so physics gets a plain surface.
 export function surfaceOf(base: string, cover: string | null, standing = true, damp = 0): Surface {
-  if (!cover) return dampSurface(surfaceById(base), damp);
+  // glass specks change no grip (debris.ts)
+  if (!cover || cover === 'glass') return dampSurface(surfaceById(base), damp);
   if (cover === 'oil') return oilSurface(surfaceById(base));
   if (cover !== 'wet') return dampSurface(SURFACES[cover as SurfaceId], damp);
   return standing ? puddleSurface(surfaceById(base)) : dampSurface(surfaceById(base), 1);
@@ -321,6 +324,7 @@ function passCell(cell: WearCell, tyreTemp = 18): void {
     passWinterSnow(cell, wet, SNOW_TO_ICE);
   } else if (cell.cover === 'wet') passWetCell(cell, tyreTemp);
   else if (cell.cover === 'oil') passOilCell(cell);
+  else if (cell.cover === 'glass') passGlassCell(cell);
   else if (packedSnowWears(cell.cover || cell.base)) passPackedSnowCell(cell, wet);
   else if (cell.cover === 'ice') {
     crackPass(cell, wearDirty);
@@ -526,7 +530,7 @@ export function stepWear(car: CarBody, dt: number): void {
     const dist = Math.hypot(dx, dy);
     // Interpolate continuously along each tyre's swept path: zero gaps even at high speed
     const steps = Math.max(1, Math.ceil(dist / (WEAR_CELL * 0.45)));
-    noteWheelMotion(dx, dy);
+    notePass(car, TYRE_OF_WHEEL[i], dx, dy);
     const slip = i < 2 ? telemetry.slipSpeedF : telemetry.slipSpeedR;
     const sliding = slip > SLIDE_WEAR_MIN;
     for (let step = 0; step <= steps; step++) {

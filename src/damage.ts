@@ -12,6 +12,7 @@ import {
 import { levelStingers, tyresOnStinger } from './world/stingers.ts';
 import { LEVEL } from './world/state.ts';
 import { crashOil, rollOil } from './world/oil.ts';
+import { crashDebris } from './world/debris.ts';
 import { CORNER_OF_WHEEL } from './world/wheels.ts';
 // damage.ts — CAR DAMAGE. Bookkeeping on the sim step; vehicle.ts reads only
 // car.wreck (multipliers, no-op by default — CLAUDE.md §2 rule 6), render.ts draws the crush /
@@ -78,6 +79,8 @@ export interface DamageCar extends Partial<DamageState>, PressureCar, Partial<En
   dmgEvents?: DamageEvent[]; wheelSpawn?: number[];
   streamers?: unknown[] | null; wreck?: CarWreck;
   burstTyre?: number; burstSlow?: boolean; _hitKind?: string | null;
+  // crash debris (world/debris.ts): a bit per corner whose part / window is gone
+  partsOff?: number; glassOut?: number;
   _dsp?: unknown; _scrapeT?: number; _sideKick?: { dir: number; dv: number };
 }
 /** A car whose damage state has been made (damageInit has run). */
@@ -94,6 +97,8 @@ export function damageInit(car: DamageCar): asserts car is DamagedCar {
   car.roofDmg = 0;
   car.wheelOff = [false, false, false, false];
   car.dmgBill = car.dmgBill || 0;
+  car.partsOff = 0;
+  car.glassOut = 0;
   pressureInit(car);
   engineInit(car as DamageCar & EngineCar);
   derive(car as DamagedCar);
@@ -181,6 +186,8 @@ function hardHitCorners(
     if (add >= PUNCT_HIT && !isPunctured(car, corner) && rnd() < PUNCT_P * punctureK) {
       startLeak(car, corner, true, rnd);
     }
+    // a part off, a window broken (?debris=1, world/debris.ts)
+    crashDebris(car, corner, add, endW, rnd);
     if (add >= WHEEL_HIT && car.dmg[corner] >= WHEEL_AT && !car.wheelOff[corner]) {
       car.wheelOff[corner] = true;
       car.dmgBill = (car.dmgBill || 0) + 400;

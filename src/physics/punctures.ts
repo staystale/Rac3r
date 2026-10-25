@@ -23,21 +23,21 @@ const BIG_HIT_CHANCE: Record<string, number> = {
   block: HARD, tower: HARD, sculpture: HARD,
   board: SHARP, chevron: SHARP, flag: SHARP, gantry: SHARP, pylon: SHARP, lamp: SHARP,
   tapepost: SHARP, windsock: SHARP, pallet: SHARP, crate: SHARP, splinters: SHARP,
-  exhaust: SHARP, bumper: SHARP,
+  exhaust: SHARP, bumper: SHARP, wing: SHARP, panel: SHARP,
 };
 // anything not in the table counts as hard
 const UNKNOWN = HARD;
 // running into a piece of roadside debris (over DEBRIS_HIT_V, physics/tyrewear.ts): its chance
 const DEBRIS_CHANCE: Record<string, number> = {
-  pallet: 0.15, crate: 0.15, exhaust: 0.08, bumper: 0.08, box: 0.01, bin: 0.01, barrel: 0.01,
-  sandbag: 0.01, tarp: 0,
+  pallet: 0.15, crate: 0.15, exhaust: 0.08, bumper: 0.08, wing: 0.08, panel: 0.08, box: 0.01,
+  bin: 0.01, barrel: 0.01, sandbag: 0.01, tarp: 0,
 };
 // driving over a broken pallet's nails: the chance a second on them
 const NAILS_CHANCE = 0.03;
 
 // what a car hitting it meets as METAL ON METAL (sparks fly from a big hit: render/particles.ts)
 const METAL = new Set(['car', 'banger', 'truck', 'caravan', 'armco', 'fence', 'barrel', 'gantry',
-  'pylon', 'lamp', 'chevron', 'tower', 'windsock', 'exhaust', 'bumper']);
+  'pylon', 'lamp', 'chevron', 'tower', 'windsock', 'exhaust', 'bumper', 'wing', 'panel']);
 
 /**
  * Whether what the car hit this step is metal (a car's body meeting it is metal on metal).

@@ -247,6 +247,8 @@ export interface RenderCone {
   tipped?: boolean;
   paint?: string;
   num?: string;
+  trim?: string;   // a crashed car's part: its trim colour (world/debris.ts)
+  fade?: number;   // a crashed car's part fading out, 1 .. 0
 }
 
 // One rally tape section between two posts.
