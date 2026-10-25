@@ -73,6 +73,17 @@ function indexPatchGrid(): void {
   }
 }
 /**
+ * Re-indexes the active level's bushes after they changed (the highway's hedges stream with its
+ * fields, highway/hedges.ts): the patch list keeps every other patch and takes the bushes now.
+ * @param level the level whose bushes changed (nothing to do unless it is the active one)
+ */
+export function reindexBushes(level: Level): void {
+  if (level !== LEVEL || !LEVEL.allPatches) return;
+  LEVEL.allPatches = LEVEL.allPatches.filter((patch) => !patch.bush).concat(LEVEL._bushes || []);
+  indexPatchGrid();
+}
+
+/**
  * Builds the current level for driving (or, light, for a menu thumbnail).
  * @param light a THUMBNAIL build: a level whose patches are not built yet skips them. MEASURED
  *   (menu TEST MODE tap, CPU x4): painting the thumbnails spent 2.0 of 3.1 s building every level's

@@ -39,4 +39,13 @@ export const TEST_LIST = [
     wrong: 'A slow puncture flat in a second, no pull to the flat side, a tyre that does not'
       + ' squash, no sparks or line on the rim, tarmac breaking in long stripes.',
   },
+  {
+    id: 'hedges',
+    added: '2026-10-25',
+    name: 'Highway hedges: bushes round the farm fields',
+    where: 'Plain link + &hedges=1: the highway (farm stretches)',
+    try: 'Look at the fields beside the road; spin off into a field edge; drive along a hedge.',
+    wrong: 'Bushes on the road or the hard shoulder, a bare field edge, bushes left floating where'
+      + ' a bridge or slip road cut a field, stutters every few hundred metres.',
+  },
 ];

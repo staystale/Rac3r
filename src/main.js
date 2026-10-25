@@ -47,6 +47,7 @@ import { crossedJoker }
 
 import { game, shared } from './game/state.js';
 import { setFlats } from './physics/tyrepressure.ts';
+import { setHedges } from './highway/hedges.ts';
 import { spawnAI } from './game/grid.js';
 import { doReset, saveRecords, doRestart } from './game/session.js';
 import { hudDown, onKey, selectLevel, selectCar } from './game/controls.js';
@@ -74,6 +75,8 @@ startClock(shared.settings.night === null,
 shared.DEV = shared.settings.dev;
 // ?flats=1: tyre pressure (car systems C1-C2): leaks, squashing flats, the rim, metal on ground
 setFlats(shared.settings.flats);
+// ?hedges=1: hedgerow bushes round the highway's farm fields
+setHedges(shared.settings.hedges);
 
 shared.canvas = document.getElementById('c');
 shared.boot = document.getElementById('boot');

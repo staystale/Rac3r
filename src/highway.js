@@ -18,6 +18,7 @@
 // continuous across every join — straight -> sweeper -> S-bend -> straight, no kinks, no sudden
 // steering. LANES are config (HW_PRESETS): a UK motorway, a wide interstate, a skinny dual
 // carriageway — the same generator for later flavour levels.
+import { pruneHedges, resetHedges } from "./highway/hedges.ts";
 import { readSettings } from "./core/settings.ts";
 import { createSubtrack, ghostSegment } from "./world/subtrack.ts";
 import { meterEvent } from "./ui/meter.ts";
@@ -129,6 +130,7 @@ export function resetHighway(level) {
   level.lanes.length = 0;
   level.zones.length = 0;
   level.lamps.length = 0;
+  resetHedges(level);
   const state = level._hw;
   state.pts.push({ x: 0, y: 0, s: 0, curv: 0 });
   // the first window's loose objects ARE the level's cones (cones.js reset reads lv.cones on
@@ -189,6 +191,7 @@ export function stepHighway(level, car) {
     list.length = 0;
     list.push(...kept);
   }
+  pruneHedges(level, startDist);
   for (const listKey of ["keep", "cuts"]) {
     const list = state[listKey],
       kept = list.filter(keep);

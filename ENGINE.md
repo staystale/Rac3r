@@ -98,6 +98,11 @@ squashes progressively with its air, a rim bare), puffs / shreds / rim sparks in
 `render/particles.ts`, the HUD tyre ring by pressure (`hud/gauges.js`), `?dev=1` line `air`.
 Tyre spikes (a police stinger, `world/stingers.ts`, drawn by `render/stingers.ts`) on the Lab and Test Track burst every wheel that rolls on.
 
+Highway hedges (under test, `?hedges=1`): `highway/hedges.ts` lays bush clumps (the same
+`bush` patches as the other levels) round each farm field's long-grass border, streamed with
+the field (laid in `highway/fields.js`, dropped by the slide's prune and `clearFields`) and
+indexed through `world/load.ts reindexBushes`.
+
 ## Drawing (`render.ts` and `render/`)
 
 - Pixel art: the world is drawn into a low-resolution art-pixel buffer (about 15 art px per metre at

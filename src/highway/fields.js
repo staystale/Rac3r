@@ -3,6 +3,7 @@
 import { SURFACES } from "../world/surfaces.ts";
 import { STEP } from "./presets.js";
 import { keepOut } from "./cuts.js";
+import { addFieldHedges, dropFieldHedges } from "./hedges.ts";
 // ---- SCENERY v2 (requirement: i thought we were going to vary sceneary along side the road more
 // like farms or long grass hedges and small towns); "yeah scenery too please"). In the FARM
 // stretches: a PATCHWORK of FIELDS each side - rotated zones (lab.js zoneAt / render.ts drawZones,
@@ -85,6 +86,7 @@ export function clearFields(level, rect) {
     }
   }
   level.solidsDirty = true;
+  dropFieldHedges(level, ids);
   const gone = (level._hw.goneFields ||= new Set());
   for (const fieldId of ids) gone.add(fieldId);
 }
@@ -377,6 +379,8 @@ function layFieldRows(level, strip, pointAt, clear, loose) {
     };
     addFieldZones(level, plot);
     addFieldTrees(level, plot, rand);
+    // hedgerow bushes round the border (?hedges=1; own random stream)
+    addFieldHedges(level, plot);
     addFieldBales(level, plot, rand);
     addFieldStock(plot, rand, loose);
     addFieldYard(level, plot, rand);

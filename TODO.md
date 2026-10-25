@@ -238,6 +238,9 @@ C. CAR SYSTEMS + DAMAGE (L; one chain - extend damage.ts, no second damage model
   (owner, world/metalscrape.ts): a rim or a rolled body sparks, a rim scores a line, each new
   cell a small chance race tarmac -> tarmac -> broken (concrete, kerbs, Lab left alone).
   ON PASS: delete car.punct's old effect (the flag path, the pale wheel block), the switch.
+  STINGER (owner, to test the flats): tyre spikes on the Lab and Test Track (world/stingers.ts).
+  HIGHWAY HEDGES ?hedges=1 (owner 10-25: "highways should have bushes around farmers fields"):
+  highway/hedges.ts, clumps every 3-5.5 m round each field's border, streamed with the field.
   ROUND 2 ?engine=1 - C3 radiator + engine temperature (seizes ~10 s at 130 C), C4 speedo lights
   (every car), C5 exhaust smoke; the grey nose smoke replaced by steam / engine smoke.
 
