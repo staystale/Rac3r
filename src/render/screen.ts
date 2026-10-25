@@ -182,7 +182,7 @@ export function drawMarksOnScreen(ctx: ScreenCtx, game: RenderGame, lock: Screen
     drawWetTrails(mainCtx, ctx.toScreenX, ctx.toScreenY, ctx.PPMz());
     // tyre spikes on the test levels
     drawStingers(mainCtx, ctx.toScreenX, ctx.toScreenY, ctx.PPMz());
-    // the flip ramps (?flipramp=1)
+    // the flip ramps on the test levels
     drawFlipRamps(mainCtx, ctx.toScreenX, ctx.toScreenY, ctx.PPMz());
   } finally {
     view.ctx = keep;

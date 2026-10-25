@@ -46,7 +46,6 @@ import { crossedJoker }
   from './game/rules.js';
 
 import { game, shared } from './game/state.js';
-import { setFlipRamps } from './world/flipramps.ts';
 import { spawnAI } from './game/grid.js';
 import { doReset, saveRecords, doRestart } from './game/session.js';
 import { hudDown, onKey, selectLevel, selectCar } from './game/controls.js';
@@ -72,8 +71,6 @@ if (shared.settings.night !== null) setDarkness(shared.settings.night);
 startClock(shared.settings.night === null,
   Math.floor(((new Date().getMonth() + 1) % 12) / 3));
 shared.DEV = shared.settings.dev;
-// ?flipramp=1: the Lab's flip ramp (an armco end that rolls a car; world/flipramps.ts)
-setFlipRamps(shared.settings.flipRamp);
 
 shared.canvas = document.getElementById('c');
 shared.boot = document.getElementById('boot');

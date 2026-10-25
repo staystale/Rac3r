@@ -1,4 +1,4 @@
-// flipramps.ts - draws the flip ramps (world/flipramps.ts, ?flipramp=1): an armco beam turned
+// flipramps.ts - draws the flip ramps (world/flipramps.ts): an armco beam turned
 // down into the ground - galvanised steel with the w-beam's two dark grooves, its shadow growing
 // toward the raised end, a post at the top - drawn with the marks, under the cars
 // (render/screen.ts). Square pixels in the game's style.

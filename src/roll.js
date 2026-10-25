@@ -93,7 +93,7 @@ export function tripCheck(car, dt, rnd = Math.random) {
     startRoll(car, kick.dir, kick.dv);
     return true;
   }
-  // a flip ramp under one side's wheels throws the car over (world/flipramps.ts, ?flipramp=1)
+  // a flip ramp under one side's wheels throws the car over (world/flipramps.ts)
   const flip = rampFlip(car, levelFlipRamps(LEVEL.id));
   if (flip) {
     startRoll(car, flip.dir, flip.vLat);

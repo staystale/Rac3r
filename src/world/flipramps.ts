@@ -3,7 +3,7 @@
 // sparks). A barrier end turned down into the ground: a steel strip rising from the road to
 // RAMP_RISE_M along its length, narrower than a car's track, so only one side's wheels run up
 // it. Driven up at speed it lifts that side and the car rolls AWAY from it - through roll.js
-// startRoll (tripCheck asks here), the one way any car starts to roll. Behind ?flipramp=1.
+// startRoll (tripCheck asks here), the one way any car starts to roll.
 // Drawn by render/flipramps.ts.
 
 import { carWheels, type WheelBase } from './wheels.ts';
@@ -23,20 +23,13 @@ const RAMPS: Record<string, FlipRamp[]> = {
   lab: [{ x: 26, y: 21.6, rot: 0 }],
 };
 
-let rampsOn = false;
 /**
- * ?flipramp=1: the Lab's flip ramp (owner test).
- * @param isOn the switch
- */
-export function setFlipRamps(isOn: boolean): void { rampsOn = isOn; }
-
-/**
- * The flip ramps laid on a level (none without ?flipramp=1).
+ * The flip ramps laid on a level.
  * @param levelId the level
  * @returns its ramps
  */
 export function levelFlipRamps(levelId: string): FlipRamp[] {
-  return rampsOn ? RAMPS[levelId] ?? [] : [];
+  return RAMPS[levelId] ?? [];
 }
 
 /** A car as the ramps read it. */

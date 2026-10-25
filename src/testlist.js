@@ -28,14 +28,6 @@ export const TEST_LIST = [
   // 2026-10-25 (fairy lights moved off the road, board halo faint); carlamps, woodmarshal,
   // brakeglow, trees passed 2026-10-25 (brake heat now resets with the tyres); bushes passed
   // 2026-10-25 (round 2: more drag, a light dent, leaves over the cars); flats (with the
-  // stingers, the rim by chance) and hedges (one continuous line) passed 2026-10-25)
-  {
-    id: 'flipramp',
-    added: '2026-10-25',
-    name: 'Flip ramp: an armco end in the Lab that rolls a car (to test rolling / sliding sparks)',
-    where: 'Plain link + &flipramp=1: the Lab, just past the left end of the stinger',
-    try: 'Run one side of the car up the ramp at 30+ km/h; slide on the roof / side on tarmac.',
-    wrong: 'Driving up it does nothing, a car flipped while driving beside it or crawling up it,'
-      + ' no sparks or no night glow while the body slides.',
-  },
+  // stingers, the rim by chance) and hedges (one continuous line) passed 2026-10-25; flipramp
+  // passed 2026-10-25)
 ];

@@ -264,7 +264,7 @@ C. CAR SYSTEMS + DAMAGE (L; one chain - extend damage.ts, no second damage model
   broken, concrete, kerb, lab floor, wet tarmac). Drawing has its own random stream (fxRandom).
   GLOWS OFF THE BODYWORK (owner): brake glow orange -> deep red the hotter (owner), 0.45 m, centred 0.3 m
   outside the tyre; a rim's spark glow 0.45 m outside its tyre, a sliding body's behind it.
-  FLIP RAMP ?flipramp=1 (owner: an angled armco end that can flip a vehicle, near the Lab's spike
+  FLIP RAMP - DEFAULT 10-25 (owner: pass; switch deleted) (owner: an angled armco end that can flip a vehicle, near the Lab's spike
   strip, to test rolling / sliding sparks): world/flipramps.ts (roll.js tripCheck asks it),
   render/flipramps.ts. 5 m x 0.6 m rising to 0.8 m; one side's wheels up it at 7+ m/s roll the car.
   SPARKS while crash rolling too (owner), flung behind the way the car MOVES (sliding / rolling),
