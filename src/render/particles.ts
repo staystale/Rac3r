@@ -284,7 +284,12 @@ const SPARK_BACK_M = 0.3, SPARK_OUT_M = 0.15;
 const FLING_MIN = 3, FLING_SPREAD = 9, FAN = 1.2;
 // sparks a second (on average) from a wheel on its rim, and from a body sliding on its side or
 // roof; each frame's rate is this x a random burst factor 0..BURST_MAX (mean ~1)
-const RIM_SPARK_RATE = 320, BODY_SPARK_RATE = 420, BURST_MAX = 2.6;
+const RIM_SPARK_RATE = 200, BODY_SPARK_RATE = 260, BURST_MAX = 2.6;
+// each spark's fade curve exponent (alpha 1 - share gone ^ k): low dims early, high stays bright
+// and snaps out - so they do not all fade alike (owner); and a flicker each frame
+const FADE_K_MIN = 0.5, FADE_K_SPREAD = 3.5, FLICKER = 0.35;
+// the most art px a streak's trail draws behind the head
+const TRAIL_MAX = 4;
 // what a spark looks like as it cools (by the share of its life gone): its core and its halo
 const SPARK_COOLING: [number, string, string][] = [[0.25, '#fff6d6', '#ffcf6a'],
   [0.6, '#ffd85a', '#ff9a2a'], [1, '#ff8a2a', '#ff4a10']];
@@ -307,7 +312,7 @@ function throwSpark(ctx: ParticleCtx, car: ParticleCar, x: number, y: number, ou
   sparks.push({ x, y, vx: car.vx * carry + Math.cos(angle) * fling,
     vy: car.vy * carry + Math.sin(angle) * fling, age: 0,
     life: SPARK_LIFE_S + fxRandom() * SPARK_LIFE_SPREAD_S, col: SPARK_COOLING[0][1],
-    sz: SPARK_SIZE_M * (0.5 + fxRandom() * 0.5) });
+    sz: SPARK_SIZE_M * (0.5 + fxRandom() * 0.5), fadeK: FADE_K_MIN + fxRandom() * FADE_K_SPREAD });
 }
 
 /**
@@ -392,31 +397,51 @@ function renderChips(ctx: ParticleCtx, wallDt: number) {
  */
 function renderSparks(ctx: ParticleCtx, wallDt: number, target: CanvasRenderingContext2D) {
   const { PPMz, toScreenX, toScreenY } = ctx, sparks = ctx.state.sparks, ppm = PPMz();
-  target.lineCap = 'round';
   for (let i = sparks.length - 1; i >= 0; i--) {
     const spark = sparks[i]; spark.age += wallDt;
     if (spark.age > spark.life) { sparks.splice(i, 1); continue; }
     spark.x += spark.vx * wallDt; spark.y += spark.vy * wallDt;
     const damp = Math.max(0, 1 - 4 * wallDt); spark.vx *= damp; spark.vy *= damp;
-    const gone = spark.age / spark.life, fade = 1 - gone * gone;
+    const gone = spark.age / spark.life;
+    const fade = (1 - gone ** (spark.fadeK || 2)) * (1 - FLICKER * fxRandom());
     const cooling = SPARK_COOLING.find(([until]) => gone <= until)!;
-    const core = Math.max(0.35, spark.sz * (1 - 0.5 * gone) * ppm);
-    const fromX = toScreenX(spark.x), fromY = toScreenY(spark.y);
-    const toX = toScreenX(spark.x - spark.vx * STREAK_S);
-    const toY = toScreenY(spark.y - spark.vy * STREAK_S);
-    // the halo, then the bright core over it
-    for (const [colour, width, alpha] of [[cooling[2], core * HALO_X, HALO_ALPHA * fade],
-      [cooling[1], core, fade]] as [string, number, number][]) {
-      target.globalAlpha = alpha;
-      target.strokeStyle = colour;
-      target.lineWidth = width;
-      target.beginPath();
-      target.moveTo(fromX, fromY);
-      target.lineTo(toX, toY);
-      target.stroke();
-    }
+    drawSparkPixels(target, spark, cooling, fade,
+      Math.max(1, Math.round(spark.sz * (1 - 0.5 * gone) * ppm)), toScreenX, toScreenY);
   }
   target.globalAlpha = 1;
+}
+
+/**
+ * One spark as pixel art (owner: "not pixelated enough"): squares on the art-pixel grid - the
+ * head, a short trail back along its flight, and a dim square one pixel bigger round the head for
+ * the glow.
+ * @param target the screen canvas in art px
+ * @param spark the spark
+ * @param cooling its colours now: [until, core, halo]
+ * @param fade its brightness now, 0..1
+ * @param size its square, art px
+ * @param toScreenX world x -> art px
+ * @param toScreenY world y -> art px
+ */
+function drawSparkPixels(
+  target: CanvasRenderingContext2D, spark: Chip, cooling: [number, string, string], fade: number,
+  size: number, toScreenX: (x: number) => number, toScreenY: (y: number) => number,
+) {
+  const headX = Math.round(toScreenX(spark.x)), headY = Math.round(toScreenY(spark.y));
+  const tailX = toScreenX(spark.x - spark.vx * STREAK_S) - headX;
+  const tailY = toScreenY(spark.y - spark.vy * STREAK_S) - headY;
+  const steps = Math.min(TRAIL_MAX, Math.round(Math.hypot(tailX, tailY) / size));
+  const half = Math.floor(size / 2);
+  target.globalAlpha = fade * HALO_ALPHA;
+  target.fillStyle = cooling[2];
+  target.fillRect(headX - half - 1, headY - half - 1, size + 2, size + 2);
+  target.fillStyle = cooling[1];
+  for (let step = steps; step >= 0; step--) {
+    const share = steps ? step / steps : 0;
+    target.globalAlpha = fade * (1 - 0.7 * share);
+    target.fillRect(headX + Math.round(tailX * share) - half, headY + Math.round(tailY * share)
+      - half, size, size);
+  }
 }
 
 /**

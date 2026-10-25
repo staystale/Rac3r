@@ -168,6 +168,7 @@ export interface Chip {
   life: number;
   col: string;
   sz: number;
+  fadeK?: number;   // a spark's own fade curve: alpha 1 - (age / life) ^ fadeK
 }
 
 // A canvas that silhouette caches its darker copy on (cardamage.ts).
