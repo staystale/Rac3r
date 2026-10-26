@@ -7,7 +7,8 @@ not repeated here), then `TODO.md` ("Where we are" and section C are the plan), 
 ## Where we are
 
 - **The plain link is the approved game; the test list is EMPTY.** C7 debris (parts and
-  glass, `world/debris.ts`), glass pops and oil wearing away are the default since 10-26.
+  glass, `world/debris.ts`), glass pops, oil wearing away and C8 post hits (lamp posts and
+  tree trunks by closing speed, in one spot: `physics/posthit.ts`) are the default since 10-26.
   Everything else below passed the owner's phone test and is the DEFAULT, its switch and old
   path DELETED (one system).
 - **Car systems C round 2 (C3-C5) - DONE.** `physics/engineheat.ts`: each car's engine C,
@@ -42,10 +43,11 @@ not repeated here), then `TODO.md` ("Where we are" and section C are the plan), 
 
 ## NEXT (owner's order)
 
-1. **C8 lamp-post penetration** next (design first; TODO.md C8). C7 debris, glass pops
+1. **C9 armco dents** next (design first; TODO.md C9). C8 post hits (`physics/posthit.ts`,
+   owner 10-26 "=1 seems best") is the DEFAULT; before it C7 debris, glass pops
    (15 % of glass punctures) and oil wearing away (75 % spread / 25 % gone) are the DEFAULT
    (owner 10-26: all pass); the test list is EMPTY.
-2. Then C9 (armco dents), C10 (open-wheel contact / wheels
+2. Then C10 (open-wheel contact / wheels
    ripped off), then the `wearcheck` rewrite, then (owner to order) the driving root fix
    (real ABS), AI rework B, sound G, Story H, levels, multiplayer I.
 
@@ -53,7 +55,7 @@ not repeated here), then `TODO.md` ("Where we are" and section C are the plan), 
 
 - Worktrees: `Desktop/G/rac3r-wt` (the work, detached on main) and `rac3r-wt2` (proofs). The
   served clone `Desktop/G/rac3r` is detached on origin/main.
-- `.simhash` in `rac3r-wt/tools` = saved on 0815f01 with `?oil=1`, which equals main (every
+- `.simhash` in `rac3r-wt/tools` = saved on 5667d77 with `?posthit=1`, which equals main (every
   later commit read SAME). `.renderhash` is STALE (drawing changes were photographed at the
   owner's phone sizes instead).
 - Flip routine used today: save a simhash reference WITH the switch on (`RAC3R_QUERY=x=1 node

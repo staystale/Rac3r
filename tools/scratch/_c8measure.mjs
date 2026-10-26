@@ -2,7 +2,7 @@
 // then into a tree trunk, at a range of closing speeds, dead centre and 0.6 m off centre. Prints
 // the damage per corner (damage.ts order: the fronts, then the rears), the total, the speed kept,
 // whether the post snapped and the radiator leak (engLeak). A fresh launch per run.
-// node tools/scratch/_c8measure.mjs [extra query, e.g. "&posthit=1"] [lamp|tree|both]
+// node tools/scratch/_c8measure.mjs [extra query] [lamp|tree|both]
 import { startServer, launchBrowser, gotoGame } from '../lib/browser.mjs';
 
 const query = process.argv[2] || '', which = process.argv[3] || 'both';

@@ -232,8 +232,8 @@ export function hit(
   // puncture roll (physics/punctures.ts)
   const metal = hitIsMetal(car);
   const punctureK = takeHitFactor(car);
-  // a street light's post or a tree's trunk (?posthit=1, physics/posthit.ts): by the closing
-  // speed, in the spot it struck
+  // a street light's post or a tree's trunk (physics/posthit.ts): by the closing speed, in the
+  // spot it struck
   const post = takePost(car);
   const dvx = car.vx - vx0, dvy = car.vy - vy0, deltaV = Math.hypot(dvx, dvy);
   if (!(deltaV >= SCRAPE_DV)) return 0;

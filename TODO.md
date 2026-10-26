@@ -19,8 +19,9 @@ handover, written on request.
 - ORDER (owner 10-25): 1 BUSHES (D part 2) - DEFAULT 10-25 (owner: pass); 2 car systems C
   (design + mockup approved 10-25; ROUND 1 - C1 + C2, metal on ground, stingers, highway
   hedges, sparks, crash sparks, flip ramp - DEFAULT 10-25 (owner: all pass); round 2
-  C3-C5 DEFAULT 10-25 (owner: pass); C6 oil DEFAULT 10-25 (owner: all pass); NEXT C7 debris
-  (mockup approved, owner answers below), then C8-C10); 3 the wearcheck rewrite when C passes.
+  C3-C5 DEFAULT 10-25 (owner: pass); C6 oil DEFAULT 10-25 (owner: all pass); C7 debris
+  DEFAULT 10-26; C8 post hits DEFAULT 10-26; NEXT C9 armco dents, then C10); 3 the wearcheck
+  rewrite when C passes.
   Then (owner to order): the driving ROOT
   FIX for real ABS (owner: "abs is needed to be fixed so yes"), AI rework B (design first),
   sound + settings G, Story + upgrades H, new levels (Dieatona), multiplayer I.
@@ -272,7 +273,7 @@ C. CAR SYSTEMS + DAMAGE (L; one chain - extend damage.ts, no second damage model
   takes): off-centre hit corner 30 / 50 / 80 km/h = 0.21 / 0.54 / 1.00 (centre: both fronts 0.13
   / 0.32 / 0.69). That is LIGHTER than a wall below ~70 km/h (tree today 50 km/h: 0.78 both
   fronts), so ?posthit=hard counts it as a wall's bounce: hit corner 0.58 / 1.00 / 1.00, never
-  lighter than a wall. Owner to pick on the phone. Switch off: simhash SAME.
+  lighter than a wall. DEFAULT 10-26 (owner: "=1 seems best"; ?posthit and =hard deleted).
 - C9 Armco dents (barrier segments deform). M.
 - C10 Open-wheel cars: exposed wheels collide with other cars (today they pass through), can be
   ripped off in a hard hit. M.

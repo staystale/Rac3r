@@ -32,13 +32,5 @@ export const TEST_LIST = [
   // passed 2026-10-25; impactsparks passed 2026-10-25 (round 2: 70 %, over 25 mph,
   // directional); engine (radiator + engine heat, the leak as water, speedo lights, exhaust)
   // passed 2026-10-25); oil passed 2026-10-25; debris passed 2026-10-26; glasspop,
-  // oilwear passed 2026-10-26)
-  {
-    id: 'posthit',
-    added: '2026-10-26',
-    name: 'Lamp posts and tree trunks hurt more the faster you hit them, in the spot they hit',
-    where: 'Plain link + &posthit=1, then &posthit=hard (never lighter than a wall): Castle Cum',
-    try: 'Hit posts at 30, 50, 80+ km/h, square and off centre: worse each time, on that corner.',
-    wrong: 'A fast snap barely dents the car, or an off-centre hit dents both fronts equally.',
-  },
+  // oilwear passed 2026-10-26; posthit passed 2026-10-26 (=1 picked over =hard))
 ];
