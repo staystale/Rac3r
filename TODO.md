@@ -290,10 +290,11 @@ C. CAR SYSTEMS + DAMAGE (L; one chain - extend damage.ts, no second damage model
   DEFAULT 10-26 (owner: "pass"; ?armcodent deleted).
 - WATER DRAGGED BY THE TYRES (owner 10-26, a C6 oil tweak): standing water driven through
   spreads as oil does - a 25 % chance a pass; then 50:50 (owner) it runs into the next cell the
-  way the wheel went or the cell's water is used up; each spread a generation weaker (3). Behind
-  ?waterspread=1 (world/waterdrag.ts; wear.ts passCell). MEASURED (_waterdrag.mjs, 20 one-cell
-  puddles on Castle Cum tarmac, a wheel down each line a round): off - 20 wet to round 2, all
-  cleared at round 3 (3 passes); on - 19 / 20 / 5 / 3 / 1 / 0 wet, reaching 2 cells (3 m) ahead.
+  way the wheel went or the cell's water is used up; each spread a generation weaker (3).
+  world/waterdrag.ts (wear.ts passCell); DEFAULT 10-26 (owner: "pass"; ?waterspread deleted).
+  MEASURED (_waterdrag.mjs, 20 one-cell puddles on Castle Cum tarmac, a wheel down each line a
+  round): before - 20 wet to round 2, all cleared at round 3 (3 passes); now - 19 / 20 / 5 / 3 /
+  1 / 0 wet, reaching 2 cells (3 m) ahead.
 - C10 Open-wheel cars: exposed wheels collide with other cars (today they pass through), can be
   ripped off in a hard hit. M.
 - (bushes moved to D, with the trees)

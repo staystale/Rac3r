@@ -151,6 +151,8 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   the rail) tears a 4 m gap the car goes through; a bit softer than a wall (bounce 0.2, 0.9 of
   the damage). RESTART straightens them. The arena's edge fence is not armco here (left out).
   Paint scuffs / bent posts not done (owner: only if easy and worthwhile).
+- Water dragged by the tyres (10-26, owner: pass): standing water driven through spreads as oil
+  does - 25 % a pass, then 50:50 on into the next cell or used up (world/waterdrag.ts).
 - Outer tyre walls (Grass Track, Stock Car): a fast car pushing through them is fine (owner
   10-25); they stay single rows of loose tyres.
 - Order 10-25 (owner): bushes -> car systems C (when bushes pass) -> the wearcheck rewrite (when

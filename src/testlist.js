@@ -33,13 +33,5 @@ export const TEST_LIST = [
   // directional); engine (radiator + engine heat, the leak as water, speedo lights, exhaust)
   // passed 2026-10-25); oil passed 2026-10-25; debris passed 2026-10-26; glasspop,
   // oilwear passed 2026-10-26; posthit passed 2026-10-26 (=1 picked over =hard); armcodent
-  // passed 2026-10-26)
-  {
-    id: 'waterspread',
-    added: '2026-10-26',
-    name: 'Water driven through spreads like oil: 50:50 it runs on ahead or is used up',
-    where: 'Plain link + &waterspread=1: a wet race, or the Sandbox puddles',
-    try: 'Drive through puddles again and again: they smear a cell or two ahead, and thin out.',
-    wrong: 'Puddles that crawl far along the line, grow without rain, or never move at all.',
-  },
+  // passed 2026-10-26; waterspread passed 2026-10-26)
 ];
