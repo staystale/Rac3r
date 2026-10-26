@@ -1,4 +1,4 @@
-// ARMCO DENTS (owner C9, ?armcodent=1): the steel rail gives where a car hits it. Measured before
+// ARMCO DENTS (owner C9): the steel rail gives where a car hits it. Measured before
 // (tools/scratch/_c9measure.mjs): armco was a concrete wall - it never moved, never gave and
 // remembered nothing. Now an impact INTO the rail (its speed along the rail's normal) pushes the
 // rail back there, a smooth bow DENT_HALF_M each side (points added every DENT_STEP_M so it curves,
@@ -28,19 +28,12 @@ const TEAR_HALF_M = 2, TEAR_LOSS = 0.4;
 export const ARMCO_E = 0.2;
 const ARMCO_GIVE = 0.9;
 
-let dentsOn = false;
 /**
- * Turns armco dents on (?armcodent=1, main.js).
- * @param isOn on or off
- */
-export function setArmcoDent(isOn: boolean): void { dentsOn = isOn; }
-
-/**
- * Whether a barrier dents (an armco rail, with the switch on).
+ * Whether a barrier dents (an armco rail).
  * @param barrier the barrier
  * @returns true when it dents
  */
-export const dents = (barrier: Barrier): boolean => dentsOn && barrier.kind === 'armco';
+export const dents = (barrier: Barrier): boolean => barrier.kind === 'armco';
 
 /**
  * The scale on a hit's damage for what was hit: an armco rail gives a little (damage.ts hit).
@@ -48,7 +41,7 @@ export const dents = (barrier: Barrier): boolean => dentsOn && barrier.kind === 
  * @returns the scale
  */
 export const railGive = (kind: string | null | undefined): number =>
-  (dentsOn && kind === 'armco' ? ARMCO_GIVE : 1);
+  (kind === 'armco' ? ARMCO_GIVE : 1);
 
 // how far each moved rail point has been pushed back, m; the points a torn gap starts at; the
 // rails as they were before their first dent (RESTART)

@@ -38,7 +38,6 @@ import {
   setWetness, setRain,
 } from "./world/weather.ts";
 import { setDarkness } from "./world/daylight.ts";
-import { setArmcoDent } from "./world/armcodent.ts";
 import { CLOCK, startClock } from "./world/clock.ts";
 import { LEVEL } from "./world/state.ts";
 
@@ -67,8 +66,6 @@ if (shared.settings.rain !== null) {
 }
 // ?night=0.8: this dark (lighting test: the night layer, the field's headlights)
 if (shared.settings.night !== null) setDarkness(shared.settings.night);
-// ?armcodent=1: armco rails dent where hit, give a little, tear on a very hard hit (owner C9)
-setArmcoDent(shared.settings.armcoDent);
 // the game clock drives the sky (?night= overrides it with a fixed dark); a new player starts
 // in today's season
 startClock(shared.settings.night === null,

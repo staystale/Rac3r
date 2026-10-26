@@ -32,7 +32,6 @@ export interface Settings {
   churn: '' | 'pictures' | 'objects';   // ?churn=: judder mechanism test (memory churn)
   autopilot: boolean;   // ?autopilot=1: the AI drives the player car (phone frame tests, no touch)
   autopilotKmh: number;   // ?autopilot=120: hold the autopilot car at this speed (0 = no cap)
-  armcoDent: boolean;   // ?armcodent=1: armco rails dent, give a little and tear (owner C9)
 }
 
 function autopilotKmh(params: URLSearchParams): number {
@@ -100,7 +99,6 @@ export function readSettings(search: string): Settings {
     audio: params.get('noaudio') !== '1',
     autopilot: params.get('autopilot') === '1' || autopilotKmh(params) > 0,
     autopilotKmh: autopilotKmh(params),
-    armcoDent: params.get('armcodent') === '1',
     churn: churnKind(params),
     noNatClear: params.get('nonat') === '1',
     skipLayers: new Set((params.get('skip') || '').split(',').filter(Boolean)),

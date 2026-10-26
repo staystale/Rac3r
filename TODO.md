@@ -20,7 +20,7 @@ handover, written on request.
   (design + mockup approved 10-25; ROUND 1 - C1 + C2, metal on ground, stingers, highway
   hedges, sparks, crash sparks, flip ramp - DEFAULT 10-25 (owner: all pass); round 2
   C3-C5 DEFAULT 10-25 (owner: pass); C6 oil DEFAULT 10-25 (owner: all pass); C7 debris
-  DEFAULT 10-26; C8 post hits DEFAULT 10-26; NEXT C9 armco dents, then C10); 3 the wearcheck
+  DEFAULT 10-26; C8 post hits, C9 armco dents DEFAULT 10-26; NEXT C10); 3 the wearcheck
   rewrite when C passes.
   Then (owner to order): the driving ROOT
   FIX for real ABS (owner: "abs is needed to be fixed so yes"), AI rework B (design first),
@@ -287,6 +287,7 @@ C. CAR SYSTEMS + DAMAGE (L; one chain - extend damage.ts, no second damage model
   car goes through losing 40 % of its speed into it; bounce 0.2 (a wall's 0.3) and 0.9 of the
   damage. _c9shots.mjs (bare rail, from 3 m): 50 / 80 / 120 km/h = 0.36 m / 0.69 m / torn 4.3 m;
   80 twice 0.79 m; RESTART straight. Damage 30 / 50 / 80 km/h = 0.16 / 0.67 / 2.12, bounce ~12 %.
+  DEFAULT 10-26 (owner: "pass"; ?armcodent deleted).
 - C10 Open-wheel cars: exposed wheels collide with other cars (today they pass through), can be
   ripped off in a hard hit. M.
 - (bushes moved to D, with the trees)

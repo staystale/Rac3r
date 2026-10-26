@@ -232,7 +232,7 @@ export function hit(
   // what the car hit this step: metal on metal sparks (render/particles.ts), and it scales the
   // puncture roll (physics/punctures.ts)
   const metal = hitIsMetal(car);
-  // an armco rail gives a little (?armcodent=1, world/armcodent.ts)
+  // an armco rail gives a little (world/armcodent.ts)
   const give = railGive(car._hitKind);
   const punctureK = takeHitFactor(car);
   // a street light's post or a tree's trunk (physics/posthit.ts): by the closing speed, in the
