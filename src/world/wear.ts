@@ -6,6 +6,7 @@ import {
   dampSurface, puddleSurface, oilSurface, cellDamp, dryCellLine, surfaceById,
 } from "./wet.ts";
 import { passOilCell } from "./oil.ts";
+import { dragWater } from "./waterdrag.ts";
 import { passGlassCell } from "./debris.ts";
 import { notePass } from "./pass.ts";
 import { WEATHER } from "./weather.ts";
@@ -322,7 +323,7 @@ function passCell(cell: WearCell, tyreTemp = 18): void {
   const wet = damp >= WET_WEAR_FROM;
   if (cell.cover === 'snow') {
     passWinterSnow(cell, wet, SNOW_TO_ICE);
-  } else if (cell.cover === 'wet') passWetCell(cell, tyreTemp);
+  } else if (cell.cover === 'wet') { if (!dragWater(cell)) passWetCell(cell, tyreTemp); }
   else if (cell.cover === 'oil') passOilCell(cell);
   else if (cell.cover === 'glass') passGlassCell(cell);
   else if (packedSnowWears(cell.cover || cell.base)) passPackedSnowCell(cell, wet);
