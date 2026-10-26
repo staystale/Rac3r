@@ -1,4 +1,4 @@
-// OPEN WHEELS (owner C10, ?openwheel=1): a single-seater's wheels stand outside its bodywork - the
+// OPEN WHEELS (owner C10): a single-seater's wheels stand outside its bodywork - the
 // F1 / F2 body box is 1.30 m wide, the wheels 2.17 m across - and every collision tested only the
 // box, so other cars, walls, armco, posts, trees and cones went through the wheels. Here each
 // EXPOSED wheel (outside the box by more than EXPOSED_BY) is a small box of its own, tyre sized:
@@ -26,13 +26,6 @@ const WHEEL_SHARE = 0.6;
 // the repair bill for a lost wheel (damage.ts)
 const LOST_WHEEL_BILL = 400;
 
-let wheelsOn = false;
-/**
- * Turns open wheels on (?openwheel=1, main.js).
- * @param isOn on or off
- */
-export function setOpenWheel(isOn: boolean): void { wheelsOn = isOn; }
-
 /** What this file reads of a car's spec. */
 interface WheelSpec {
   len: number; wid: number; lf: number; lr: number; mass: number;
@@ -50,13 +43,13 @@ export interface WheelHit { corner: number; into: number }
 interface Box { x: number; y: number; hl: number; hw: number; cos: number; sin: number }
 
 /**
- * Whether a car's wheels stand outside its body box (the single-seaters), with the switch on.
+ * Whether a car's wheels stand outside its body box (the single-seaters).
  * @param car the car
  * @returns true when they are exposed
  */
 export function hasOpenWheels(car: { spec: WheelSpec }): boolean {
   const spec = car.spec;
-  return wheelsOn && !!spec.trackWidth
+  return !!spec.trackWidth
     && spec.trackWidth / 2 + (spec.tyreWidth || 0.25) / 2 > spec.wid * 0.48 + EXPOSED_BY;
 }
 

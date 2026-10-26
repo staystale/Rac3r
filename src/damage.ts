@@ -220,7 +220,7 @@ function impactShape(post: PostNote | null, deltaV: number, fore: number, latera
 }
 
 /**
- * A hit into an open-wheeler's exposed wheel (?openwheel=1, physics/openwheel.ts): it may rip
+ * A hit into an open-wheeler's exposed wheel (physics/openwheel.ts): it may rip
  * the wheel off, and most of the hit lands on that corner.
  * @param car the car (its damage state made)
  * @param note this step's wheel hit, or null

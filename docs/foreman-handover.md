@@ -8,9 +8,9 @@ not repeated here), then `TODO.md` ("Where we are" and section C are the plan), 
 
 - **The plain link is the approved game; the test list is EMPTY.** C7 debris (parts and
   glass, `world/debris.ts`), glass pops, oil wearing away and C8 post hits (lamp posts and
-  tree trunks by closing speed, in one spot: `physics/posthit.ts`) and C9 armco dents (bow,
-  tear, a bit softer: `world/armcodent.ts`) and water dragged by the tyres (`world/waterdrag.ts`)
-  are the default since 10-26.
+  tree trunks by closing speed, in one spot: `physics/posthit.ts`), C9 armco dents (bow,
+  tear, a bit softer: `world/armcodent.ts`), water dragged by the tyres (`world/waterdrag.ts`)
+  and C10 open wheels (`physics/openwheel.ts`) are the default since 10-26.
   Everything else below passed the owner's phone test and is the DEFAULT, its switch and old
   path DELETED (one system).
 - **Car systems C round 2 (C3-C5) - DONE.** `physics/engineheat.ts`: each car's engine C,
@@ -45,19 +45,17 @@ not repeated here), then `TODO.md` ("Where we are" and section C are the plan), 
 
 ## NEXT (owner's order)
 
-1. **C10 open-wheel contact / wheels ripped off** next (design first; TODO.md C10). C9 armco
-   dents (`world/armcodent.ts`, owner 10-26 "pass") and C8 post hits (`physics/posthit.ts`,
-   owner 10-26 "=1 seems best") are the DEFAULT; before them C7 debris, glass pops
-   (15 % of glass punctures) and oil wearing away (75 % spread / 25 % gone) are the DEFAULT
-   (owner 10-26: all pass); the test list is EMPTY.
-2. Then the `wearcheck` rewrite, then (owner to order) the driving root fix
+1. **Car systems C is DONE** (C1-C10; C10 open wheels `physics/openwheel.ts`, C9 armco dents
+   `world/armcodent.ts`, C8 post hits `physics/posthit.ts`, water dragged by the tyres
+   `world/waterdrag.ts` - all owner 10-26 "pass", the DEFAULT). The test list is EMPTY.
+2. NEXT: the `wearcheck` rewrite (design first), then (owner to order) the driving root fix
    (real ABS), AI rework B, sound G, Story H, levels, multiplayer I.
 
 ## Proofs and references
 
 - Worktrees: `Desktop/G/rac3r-wt` (the work, detached on main) and `rac3r-wt2` (proofs). The
   served clone `Desktop/G/rac3r` is detached on origin/main.
-- `.simhash` in `rac3r-wt/tools` = saved on 662f9f7 with `?waterspread=1`, which equals main (every
+- `.simhash` in `rac3r-wt/tools` = saved on 549dfc6 with `?openwheel=1`, which equals main (every
   later commit read SAME). `.renderhash` is STALE (drawing changes were photographed at the
   owner's phone sizes instead).
 - Flip routine used today: save a simhash reference WITH the switch on (`RAC3R_QUERY=x=1 node

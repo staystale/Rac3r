@@ -20,8 +20,8 @@ handover, written on request.
   (design + mockup approved 10-25; ROUND 1 - C1 + C2, metal on ground, stingers, highway
   hedges, sparks, crash sparks, flip ramp - DEFAULT 10-25 (owner: all pass); round 2
   C3-C5 DEFAULT 10-25 (owner: pass); C6 oil DEFAULT 10-25 (owner: all pass); C7 debris
-  DEFAULT 10-26; C8 post hits, C9 armco dents DEFAULT 10-26; NEXT C10); 3 the wearcheck
-  rewrite when C passes.
+  DEFAULT 10-26; C8 post hits, C9 armco dents, C10 open wheels DEFAULT 10-26 - C DONE);
+  3 NEXT the wearcheck rewrite.
   Then (owner to order): the driving ROOT
   FIX for real ABS (owner: "abs is needed to be fixed so yes"), AI rework B (design first),
   sound + settings G, Story + upgrades H, new levels (Dieatona), multiplayer I.
@@ -311,6 +311,7 @@ C. CAR SYSTEMS + DAMAGE (L; one chain - extend damage.ts, no second damage model
   armco the centre keeps 1.45 m (was 1.10); a lone wheel into a tree trunk 20 tries: 30 km/h
   0 ripped, 40 km/h 5, 60 / 80 km/h 20 (a trunk strike - C8 post - wrecks the corner, which
   loses its wheel by the old rule anyway). Photo _c10shots.mjs: wheel off, 0 page errors.
+  DEFAULT 10-26 (owner: "pass"; ?openwheel deleted). CAR SYSTEMS C (C1-C10) DONE.
 - (bushes moved to D, with the trees)
 - DESIGN AGREED 10-25 (mockup claude.ai/artifact/BozNYQLMm4FpspU9SsrXAc; answers in NOTES):
   ROUND 1 ?flats=1 - C1 tyre pressure (physics/tyrepressure.ts) replaces the puncture flag's

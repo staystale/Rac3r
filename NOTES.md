@@ -153,6 +153,10 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   Paint scuffs / bent posts not done (owner: only if easy and worthwhile).
 - Water dragged by the tyres (10-26, owner: pass): standing water driven through spreads as oil
   does - 25 % a pass, then 50:50 on into the next cell or used up (world/waterdrag.ts).
+- Open wheels, car systems C10 (10-26, owner: pass): the F1 / F2's exposed wheels are boxes of
+  their own (physics/openwheel.ts) - they hit cars, walls, armco, posts, trees and cones; wheel
+  on wheel is a hard kick; a hit into a wheel rips it off by chance from 40 km/h (every time at
+  80). Car systems C (C1-C10) is finished.
 - Outer tyre walls (Grass Track, Stock Car): a fast car pushing through them is fine (owner
   10-25); they stay single rows of loose tyres.
 - Order 10-25 (owner): bushes -> car systems C (when bushes pass) -> the wearcheck rewrite (when

@@ -1,6 +1,6 @@
 // _c10.mjs - C10 open wheels measured in the game's own collision code (contact.js carContacts,
 // world/barriers.ts barrierClamp / solidClamp, damage.ts hit), two F1s (vehicle.ts makeCar
-// 'track-rwd') placed by hand and moved at 120 Hz without their engines - switch off vs on:
+// 'track-rwd') placed by hand and moved at 120 Hz without their engines:
 //  A side by side, one drifting into the other at 1.5 m/s: the closest the centres got
 //  B behind, the follower's left front wheel into the leader's right rear (bodies 1.85 m apart)
 //  C along Castle Cum's longest armco, drifting into it at 2 m/s: the closest the centre got
@@ -17,14 +17,13 @@ try {
   await page.evaluate(() => window.__game.launch('castle-cum', 'track-rwd',
     { ai: 0, weather: { mode: 'dry', season: 2, seed: 4 } }));
   await page.waitForTimeout(2500);
-  for (const on of [false, true]) {
-    const res = await page.evaluate(async (isOn) => {
+  {
+    const res = await page.evaluate(async () => {
       window.__game.paused = true;
-      const ow = await import('/src/physics/openwheel.ts'), { makeCar } = await import('/src/vehicle.ts');
+      const { makeCar } = await import('/src/vehicle.ts');
       const { carContacts } = await import('/src/contact.js');
       const bar = await import('/src/world/barriers.ts'), { hit } = await import('/src/damage.ts');
       const { LEVEL } = await import('/src/world/state.ts');
-      ow.setOpenWheel(isOn);
       const DT = 1 / 120;
       const fresh = (x, y, heading, vx, vy) => Object.assign(makeCar('track-rwd'),
         { x, y, heading, vx, vy, yawRate: 0 });
@@ -92,8 +91,8 @@ try {
       }
       window.__game.paused = false;
       return { sideBySide: near.toFixed(2) + ' m', kick, wall: wall.toFixed(2) + ' m', rips };
-    }, on);
-    console.log(on ? 'ON ' : 'OFF', JSON.stringify(res));
+    });
+    console.log(JSON.stringify(res));
   }
 } finally {
   await browser.close();
