@@ -38,7 +38,6 @@ import {
   setWetness, setRain,
 } from "./world/weather.ts";
 import { setDarkness } from "./world/daylight.ts";
-import { setDebris } from './world/debris.ts';
 import { CLOCK, startClock } from "./world/clock.ts";
 import { LEVEL } from "./world/state.ts";
 
@@ -67,8 +66,6 @@ if (shared.settings.rain !== null) {
 }
 // ?night=0.8: this dark (lighting test: the night layer, the field's headlights)
 if (shared.settings.night !== null) setDarkness(shared.settings.night);
-// ?debris=1: crash debris - parts off, glass on the road (car systems C7, world/debris.ts)
-setDebris(shared.settings.debris);
 // the game clock drives the sky (?night= overrides it with a fixed dark); a new player starts
 // in today's season
 startClock(shared.settings.night === null,

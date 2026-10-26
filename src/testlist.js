@@ -31,15 +31,5 @@ export const TEST_LIST = [
   // stingers, the rim by chance) and hedges (one continuous line) passed 2026-10-25; flipramp
   // passed 2026-10-25; impactsparks passed 2026-10-25 (round 2: 70 %, over 25 mph,
   // directional); engine (radiator + engine heat, the leak as water, speedo lights, exhaust)
-  // passed 2026-10-25); oil passed 2026-10-25)
-  {
-    id: 'debris',
-    added: '2026-10-25',
-    name: 'Crash debris: bumpers, wings, panels in your paint; glass that sparkles on the road',
-    where: 'Plain link + &debris=1: any circuit (Castle Cum: hit walls nose first and side on)',
-    try: 'Crash hard: parts fly off the hit corner, stay, and the oldest fade past 24; glass'
-      + ' glints change as you move; drive over glass (sweeps it, may give a slow puncture).',
-    wrong: 'Parts off a light tap, two bumpers from one hit, parts vanishing early, glass from'
-      + ' the F1 / banger / grass car, glass that stays after a tyre has passed over it.',
-  },
+  // passed 2026-10-25); oil passed 2026-10-25; debris passed 2026-10-26)
 ];

@@ -186,7 +186,7 @@ function hardHitCorners(
     if (add >= PUNCT_HIT && !isPunctured(car, corner) && rnd() < PUNCT_P * punctureK) {
       startLeak(car, corner, true, rnd);
     }
-    // a part off, a window broken (?debris=1, world/debris.ts)
+    // a part off, a window broken (world/debris.ts)
     crashDebris(car, corner, add, endW, rnd);
     if (add >= WHEEL_HIT && car.dmg[corner] >= WHEEL_AT && !car.wheelOff[corner]) {
       car.wheelOff[corner] = true;

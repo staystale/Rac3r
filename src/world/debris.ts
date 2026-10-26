@@ -1,4 +1,4 @@
-// debris.ts - CRASH DEBRIS (car systems C7, ?debris=1; mockup approved). Owner: parts come off
+// debris.ts - CRASH DEBRIS (car systems C7; mockup approved). Owner: parts come off
 // at ~0.3 damage on a corner, likelier the bigger the hit; the car's own look stays (its dents);
 // parts STAY all race, capped, the oldest fading out first; glass sparkles and shifts colour
 // gently as the view moves.
@@ -54,16 +54,10 @@ interface LooseObjects {
   cull(keep: (obj: PartObject) => boolean): number;
 }
 
-let debrisOn = false;
 // the parts on the ground, oldest first, and the list they were added to (a reset replaces it)
 let parts: PartObject[] = [];
 let partsList: unknown = null;
 
-/**
- * Turns crash debris on (?debris=1, main.js).
- * @param isOn on or off
- */
-export function setDebris(isOn: boolean): void { debrisOn = isOn; }
 
 /**
  * A hard hit's share on one corner (damage.ts hardHitCorners): maybe a part off, maybe a window.
@@ -75,7 +69,6 @@ export function setDebris(isOn: boolean): void { debrisOn = isOn; }
  */
 export function crashDebris(car: DebrisCar, corner: number, add: number, endW: number,
     rnd: () => number): void {
-  if (!debrisOn) return;
   partOff(car, corner, add, endW, rnd);
   windowOut(car, corner, add, rnd);
 }
@@ -182,7 +175,6 @@ export function passGlassCell(cell: WearCell): void {
  * @param loose the loose objects (cones.js)
  */
 export function throwParts(cars: DebrisCar[], loose: LooseObjects): void {
-  if (!debrisOn) return;
   if (partsList !== loose.list) {
     parts = loose.list.filter((obj) => obj.part);
     partsList = loose.list;
@@ -209,7 +201,7 @@ export function throwParts(cars: DebrisCar[], loose: LooseObjects): void {
  * @param dt the step, s
  */
 export function stepParts(loose: LooseObjects, dt: number): void {
-  if (!debrisOn || !parts.length) return;
+  if (!parts.length) return;
   let gone = false;
   for (const obj of parts) {
     if (!obj.fading) continue;

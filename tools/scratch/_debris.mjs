@@ -1,4 +1,4 @@
-// _debris.mjs - car systems C7 (world/debris.ts) in the real game, ?debris=1: head-on hits knock
+// _debris.mjs - car systems C7 (world/debris.ts) in the real game: head-on hits knock
 // parts off (count, kinds) and break glass (cells); 30 parts -> the cap fades the oldest out;
 // glass ahead of the autopilot is swept (cells cleared, punctures over many sweeps); photos of
 // parts and glass beside the stopped car, 844x390 and 390x844.
@@ -19,7 +19,7 @@ async function open(size) {
   const page = await context.newPage();
   page.on('pageerror', (error) => { errors++; console.log('PAGE ERROR ' + error.message); });
   await gotoGame(page,
-    `${server.url}/?touch=1&guide=0&menu=0&rules=0&noaudio=1&debris=1&autopilot=25`);
+    `${server.url}/?touch=1&guide=0&menu=0&rules=0&noaudio=1&autopilot=25`);
   await page.touchscreen.tap(size.width / 2, size.height / 2);
   await page.waitForTimeout(300);
   await page.evaluate((id) => window.__game.launch(id, 'hatch-rwd',

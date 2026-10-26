@@ -425,7 +425,7 @@ export function stepLooseCones(tcars) {
           vy: racer.vy * 0.85 + cosH * out, ang: racer.heading,
             spin: (Math.random() - 0.5) * 8 });
     }
-    // a knocked-off bumper / wing / panel joins them; the oldest past the cap fade (?debris=1)
+    // a knocked-off bumper / wing / panel joins them; the oldest past the cap fade
     throwParts(field, game.cones);
     stepParts(game.cones, PHYSICS_STEP_SECONDS);
   }

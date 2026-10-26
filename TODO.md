@@ -244,7 +244,7 @@ C. CAR SYSTEMS + DAMAGE (L; one chain - extend damage.ts, no second damage model
   bigger the hit; the car's own look stays as is (dents enough, may revisit); parts STAY all
   race, capped, the OLDEST FADES first; glass "sounds great" - it should change colour /
   sparkle gently as the view moves. PLAN (mockup claude.ai/artifact/EbunhqrdHDfzWT6F5o2KBf,
-  APPROVED by the owner 10-25) - BUILT 10-25 behind ?debris=1, UNDER TEST (testlist debris).
+  APPROVED by the owner 10-25) - DEFAULT 10-26 (owner: "all pass"; the ?debris switch deleted).
   MEASURED (_debris.mjs, Castle Cum): 12 hits from 50 km/h (mended between) knocked off 15 parts
   (6 bumpers - one an end - 6 panels, 3 wings) and laid 12 glass cells; 30 parts -> the oldest
   6 faded, 24 left; glass swept by the first tyre over it, the fronts picking up slow leaks

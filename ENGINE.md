@@ -120,7 +120,7 @@ but purple). Spilled by a cracked sump (`engineheat.ts`), a big hit or a rollove
 through it may spread it a cell the way the wheel went (`wear.ts stepWear` notes each wheel's
 motion); oil beside water runs into it 50:50 a second (`stepOil`); each spread a generation
 weaker (`cell.oilGen`).
-DEBRIS (`?debris=1`, under test): `world/debris.ts`. A corner's hit of 0.3+ may knock off a
+DEBRIS: `world/debris.ts`. A corner's hit of 0.3+ may knock off a
 part (`damage.ts hardHitCorners -> crashDebris`): a bumper (end-on, one an end), a wing or a door
 panel, queued on the car (`partSpawn`) and thrown by `game/sim.js throwParts` into the loose
 objects (`cones.js`; DEBRIS kinds `bumper`, `wing`, `panel` in the car's paint and trim,

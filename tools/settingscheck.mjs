@@ -13,7 +13,6 @@ const DEFAULTS = {
   maxDpr: null,
   noShade: false,
   meter: false, meterOverlay: false, report: false, audio: true,
-  debris: false,
   autopilot: false, autopilotKmh: 0, noNatClear: false, churn: '', skipLayers: '',   // a Set is compared as its sorted names joined by ','
 };
 
@@ -57,8 +56,6 @@ const TABLE = [
   ['?autopilot=1', { autopilot: true }],
   ['?autopilot=0', { autopilot: false }],
   ['?autopilot=120', { autopilot: true, autopilotKmh: 120 }],
-  ['?debris=1', { debris: true }],
-  ['?debris=0', { debris: false }],
   ['?churn=pictures', { churn: 'pictures' }],
   ['?churn=objects', { churn: 'objects' }],
   ['?churn=x', { churn: '' }],
