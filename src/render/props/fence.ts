@@ -2,6 +2,7 @@
 import { RUNOFF_W } from '../../world/bounds.ts';
 import { LEVEL } from '../../world/state.ts';
 import { BARRIER_HALF } from '../../world/barriers.ts';
+import { isTornAfter } from '../../world/armcodent.ts';
 import type { Barrier, Point } from '../../world/types.ts';
 import type { PropCtx } from './types.ts';
 
@@ -84,7 +85,8 @@ export function drawPropsFence(propCtx: PropCtx) {
 // BARRIERS (lab.js LEVEL.barriers): drawn at exactly the width the physics collides with
 // (BARRIER_HALF)
 /**
- * Traces a polyline of world points as the current canvas path.
+ * Traces a polyline of world points as the current canvas path (a torn armco rail's gap is left
+ * open: world/armcodent.ts).
  * @param propCtx the view and painter helpers
  * @param pts the world points
  */
@@ -92,8 +94,8 @@ function barrierPath(propCtx: PropCtx, pts: Point[]) {
   const { view, toScreenX, toScreenY } = propCtx;
   view.ctx.beginPath();
   pts.forEach(([x, y], i) =>
-    i ? view.ctx.lineTo(toScreenX(x), toScreenY(y)) : view.ctx.moveTo(toScreenX(x),
-      toScreenY(y)));
+    i && !isTornAfter(pts[i - 1]) ? view.ctx.lineTo(toScreenX(x), toScreenY(y))
+      : view.ctx.moveTo(toScreenX(x), toScreenY(y)));
 }
 
 /**
@@ -119,8 +121,11 @@ function barrierPosts(
   for (let i = 0; i < pts.length - 1; i++) {
     const [fromX, fromY] = pts[i],
       [toX, toY] = pts[i + 1],
-      segLen = Math.hypot(toX - fromX, toY - fromY);
+      segLen = Math.hypot(toX - fromX, toY - fromY),
+      // no posts across a torn rail's gap
+      torn = isTornAfter(pts[i]);
     for (; acc <= segLen; acc += every) {
+      if (torn) continue;
       const frac = acc / segLen,
         x = fromX + (toX - fromX) * frac,
         y = fromY + (toY - fromY) * frac;

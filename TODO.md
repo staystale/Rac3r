@@ -275,6 +275,18 @@ C. CAR SYSTEMS + DAMAGE (L; one chain - extend damage.ts, no second damage model
   fronts), so ?posthit=hard counts it as a wall's bounce: hit corner 0.58 / 1.00 / 1.00, never
   lighter than a wall. DEFAULT 10-26 (owner: "=1 seems best"; ?posthit and =hard deleted).
 - C9 Armco dents (barrier segments deform). M.
+  MEASURED 10-26 (tools/scratch/_c9measure.mjs, hatch into Castle Cum's longest armco run):
+  armco was a concrete wall - square on 30 / 50 / 80 km/h = 0.21 / 0.77 / 2.23 total, bounced
+  back at ~17 %; it never moved or remembered a hit. OWNER 10-26: softer "but only a bit" and
+  dents; very fast hits can tear it; posts / paint scuffs only if easy (not done: the posts
+  follow the bowed rail already); the arena's edge fence left out; build, photograph, test.
+  BUILT behind ?armcodent=1 (world/armcodent.ts; barriers.ts clamp, fence.ts draws the gaps,
+  RESTART straightens: barriers.ts resetTrackside): a hit INTO the rail bows it back (0.04 m per
+  m/s over 3 m/s, up to 0.8 m, 3 m each side, points every 0.5 m), a second hit deepens it; one
+  that would take it past 1.1 m tears a 4 m gap (square on from ~115 km/h at the rail) and the
+  car goes through losing 40 % of its speed into it; bounce 0.2 (a wall's 0.3) and 0.9 of the
+  damage. _c9shots.mjs (bare rail, from 3 m): 50 / 80 / 120 km/h = 0.36 m / 0.69 m / torn 4.3 m;
+  80 twice 0.79 m; RESTART straight. Damage 30 / 50 / 80 km/h = 0.16 / 0.67 / 2.12, bounce ~12 %.
 - C10 Open-wheel cars: exposed wheels collide with other cars (today they pass through), can be
   ripped off in a hard hit. M.
 - (bushes moved to D, with the trees)

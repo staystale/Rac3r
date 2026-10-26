@@ -7,7 +7,7 @@ import { repair, resetBill } from '../damage.ts';
 import { SPAWN, LEVEL } from "../world/state.ts";
 import { clearWear } from "../world/wear.ts";
 import { startWeather } from "../world/weather.ts";
-import { resetLamps } from "../world/lamps.ts";
+import { resetTrackside } from "../world/barriers.ts";
 import { resetPuddles } from "../world/puddles.ts";
 import { resetCoverField } from "../world/coverfield.ts";
 import { resetRace, resetStage } from './rules.js';
@@ -287,7 +287,7 @@ export function doRestart() {
   // a snowy level's theme biases its weather (weather only: world/weather.ts)
   startWeather(shared.weatherPlan && LEVEL.snowy ? { ...shared.weatherPlan, snowy: true }
     : shared.weatherPlan || null);
-  resetLamps();   // every lamp stands again, lit
+  resetTrackside();   // every lamp stands again, lit; every armco rail straight
   // a restart is the event from its start: the set as it was then (owner)
   if (game.car.tyreWearStart) game.car.tyreWear = [...game.car.tyreWearStart];
   if (LEVEL.endless) {

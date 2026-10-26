@@ -1,13 +1,16 @@
 // barriers.ts - the BARRIERS section (barriers, solid props, clamps). Moved verbatim out of
 // lab.js.
 import { LEVEL } from "./state.ts";
-import { activeLamps, type Lamp } from "./lamps.ts";
+import { activeLamps, resetLamps, type Lamp } from "./lamps.ts";
 import { driveOverPost, hitLamp } from "./lampdamage.ts";
 import { solidsNear } from "./solidgrid.ts";
 import { isSolidWrecked, noteMarshalSolid, smashHut } from "./marshalbox.ts";
 import { solidBox } from "./treetrunks.ts";
 import { noteHit } from "../physics/punctures.ts";
 import { isNarrow, notePost } from "../physics/posthit.ts";
+import {
+  ARMCO_E, applyRailHit, dents, isTornAfter, railContact, straightenRails,
+} from "./armcodent.ts";
 import type {
   Barrier, BarrierKind, BarrierSeg, CarBody, Point, Prop, Solid, Subtrack,
 } from "./types.ts";
@@ -71,6 +74,36 @@ export function alongTrack(
   }
   return pts;
 }
+/**
+ * Builds a barrier's segments again after its points changed (an armco dent or tear).
+ * @param barrier the barrier
+ */
+function rebuildSegs(barrier: Barrier): void {
+  barrier._segs = undefined;
+  barrier._rbb = undefined;
+  prepBarriers({ barriers: [barrier] });
+}
+/**
+ * The barrier as an armco rail that dents (world/armcodent.ts), or null.
+ * @param barrier the barrier
+ * @returns the rail or null
+ */
+const railOf = (barrier: Barrier): Barrier | null => (dents(barrier) ? barrier : null);
+/**
+ * Dents a rail with this step's hit, if any, and builds its segments again when it changed.
+ * @param rail the rail, or null
+ */
+function settleRail(rail: Barrier | null): void {
+  if (rail && applyRailHit(rail)) rebuildSegs(rail);
+}
+/**
+ * RESTART (game/session.js doRestart): every lamp stands again, lit, every wooden hut with them
+ * (world/lamps.ts), and every dented or torn armco rail is straight again.
+ */
+export function resetTrackside(): void {
+  resetLamps();
+  for (const barrier of straightenRails()) rebuildSegs(barrier);
+}
 export function prepBarriersOf(level: { barriers?: Barrier[] }): void {
   prepBarriers(level);
 }
@@ -81,10 +114,11 @@ export function prepBarriers(level: { barriers?: Barrier[] }): void {
     for (let i = 0; i < barrier.pts.length - 1; i++) {
       const [startX, startY] = barrier.pts[i], [endX, endY] = barrier.pts[i + 1];
       const dx = endX - startX, dy = endY - startY, lenSq = dx * dx + dy * dy;
-      if (lenSq < 1e-6) continue;
+      // a stretch an armco rail is torn open on is not there (world/armcodent.ts)
+      if (lenSq < 1e-6 || isTornAfter(barrier.pts[i])) continue;
       barrier._segs.push({ ax: startX, ay: startY, dx, dy, l2: lenSq,
           minX: Math.min(startX, endX) - 4, maxX: Math.max(startX, endX) + 4,
-          minY: Math.min(startY, endY) - 4, maxY: Math.max(startY, endY) + 4 });
+          minY: Math.min(startY, endY) - 4, maxY: Math.max(startY, endY) + 4, i0: i });
     }
   }
 }
@@ -210,12 +244,13 @@ function pickAxis(
  * @param car the car body (velocity, yawRate, shake are changed)
  * @param nx surface normal x (unit, pointing at the car)
  * @param ny surface normal y
+ * @param elastic the bounce (an armco rail's is softer: world/armcodent.ts)
  */
-function bounceOffNormal(car: CarBody, nx: number, ny: number): void {
+function bounceOffNormal(car: CarBody, nx: number, ny: number, elastic = BARRIER_E): void {
   const normalSpeed = car.vx * nx + car.vy * ny;
   if (normalSpeed < 0) {
     const tangX = -ny, tangY = nx, tangSpeed = car.vx * tangX + car.vy * tangY;
-    const vn2 = -normalSpeed * BARRIER_E, vt2 = tangSpeed * BARRIER_SCRAPE;
+    const vn2 = -normalSpeed * elastic, vt2 = tangSpeed * BARRIER_SCRAPE;
     car.vx = nx * vn2 + tangX * vt2;
     car.vy = ny * vn2 + tangY * vt2;
     car.yawRate *= 0.6;
@@ -325,10 +360,14 @@ function clampToSolid(car: CarBody, solid: Solid, halfLen: number, halfWid: numb
  * @param half half thickness of the barrier
  * @param cornerX world x of the car corner
  * @param cornerY world y of the car corner
+ * @param rail the armco rail the segment is part of, when it dents (world/armcodent.ts)
  */
 function clampCornerToSeg(
   car: CarBody, seg: BarrierSeg, half: number, cornerX: number, cornerY: number,
+  rail: Barrier | null,
 ): void {
+  // torn open earlier this step
+  if (seg.torn) return;
   let frac = ((cornerX - seg.ax) * seg.dx + (cornerY - seg.ay) * seg.dy) / seg.l2;
   frac = frac < 0 ? 0 : frac > 1 ? 1 : frac;
   const nearX = seg.ax + seg.dx * frac, nearY = seg.ay + seg.dy * frac;
@@ -346,10 +385,12 @@ function clampCornerToSeg(
   const side = Math.sign((car.x - nearX) * nx + (car.y - nearY) * ny) || 1;
   nx *= side;
   ny *= side;
+  // an armco rail: the hit dents it (after the clamp), or tears it and the car goes through
+  if (rail && railContact(rail, seg, frac, nx, ny, car)) return;
   const push = half - dist * side;
   car.x += nx * push;
   car.y += ny * push;
-  bounceOffNormal(car, nx, ny);
+  bounceOffNormal(car, nx, ny, rail ? ARMCO_E : BARRIER_E);
 }
 /**
  * Clamp the car's four corners against one barrier segment.
@@ -360,17 +401,18 @@ function clampCornerToSeg(
  * @param halfWid car half width
  * @param cosHead cos of the car heading
  * @param sinHead sin of the car heading
+ * @param rail the armco rail the segment is part of, when it dents
  */
 function clampCornersToSeg(
   car: CarBody, seg: BarrierSeg, half: number, halfLen: number, halfWid: number,
-  cosHead: number, sinHead: number,
+  cosHead: number, sinHead: number, rail: Barrier | null,
 ): void {
   // no allocation per call (memory diet: corners by idx)
   for (let idx = 0; idx < 4; idx++) {
     const fore = idx < 2 ? halfLen : -halfLen, lateral = (idx % 2 === 0) ? halfWid : -halfWid;
     const cornerX = car.x + cosHead * fore - sinHead * lateral, cornerY = car.y
         + sinHead * fore + cosHead * lateral;
-    clampCornerToSeg(car, seg, half, cornerX, cornerY);
+    clampCornerToSeg(car, seg, half, cornerX, cornerY, rail);
   }
 }
 export function barrierClamp(car: CarBody): void {
@@ -381,13 +423,14 @@ export function barrierClamp(car: CarBody): void {
   for (const barrier of list) {
     const half = BARRIER_HALF[barrier.kind];
     if (!half || !barrier._segs) continue;
-    const vx0 = car.vx, vy0 = car.vy;
+    const vx0 = car.vx, vy0 = car.vy, rail = railOf(barrier);
     for (const seg of barrier._segs) {
       if (car.x < seg.minX - spec.len || car.x > seg.maxX + spec.len
           || car.y < seg.minY - spec.len || car.y > seg.maxY + spec.len) continue;
-      clampCornersToSeg(car, seg, half, halfLen, halfWid, cosHead, sinHead);
+      clampCornersToSeg(car, seg, half, halfLen, halfWid, cosHead, sinHead, rail);
     }
     if (car.vx !== vx0 || car.vy !== vy0) noteHit(car, barrier.kind);
+    settleRail(rail);
   }
 }
 

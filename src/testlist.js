@@ -33,4 +33,12 @@ export const TEST_LIST = [
   // directional); engine (radiator + engine heat, the leak as water, speedo lights, exhaust)
   // passed 2026-10-25); oil passed 2026-10-25; debris passed 2026-10-26; glasspop,
   // oilwear passed 2026-10-26; posthit passed 2026-10-26 (=1 picked over =hard))
+  {
+    id: 'armcodent',
+    added: '2026-10-26',
+    name: 'Armco dents where it is hit, gives a little, and tears open on a very hard hit',
+    where: 'Plain link + &armcodent=1: Castle Cum or Thruxton armco (RESTART straightens it)',
+    try: 'Hit armco at 50, 80, 120 km/h square on, and glancing: a bow that deepens; 120 tears.',
+    wrong: 'No dent, a dent from a gentle scrape, a kinked rail, or a tear at ordinary speeds.',
+  },
 ];

@@ -17,6 +17,7 @@ import {
   takePost, postDeltaV, postShares, radiatorScale, type PostNote,
 } from './physics/posthit.ts';
 import { CORNER_OF_WHEEL } from './world/wheels.ts';
+import { railGive } from './world/armcodent.ts';
 // damage.ts — CAR DAMAGE. Bookkeeping on the sim step; vehicle.ts reads only
 // car.wreck (multipliers, no-op by default — CLAUDE.md §2 rule 6), render.ts draws the crush /
 // dents / chips / loose wheels, hud.js the tyre diagram, the results the repair bill.
@@ -231,6 +232,8 @@ export function hit(
   // what the car hit this step: metal on metal sparks (render/particles.ts), and it scales the
   // puncture roll (physics/punctures.ts)
   const metal = hitIsMetal(car);
+  // an armco rail gives a little (?armcodent=1, world/armcodent.ts)
+  const give = railGive(car._hitKind);
   const punctureK = takeHitFactor(car);
   // a street light's post or a tree's trunk (physics/posthit.ts): by the closing speed, in the
   // spot it struck
@@ -249,7 +252,7 @@ export function hit(
   if (size < DMG_FLOOR) {
     return scrape(hurt, dt, weights, endW, top);
   }
-  const amt = DMG_K * (size - DMG_FLOOR) ** DMG_EXP;
+  const amt = DMG_K * (size - DMG_FLOOR) ** DMG_EXP * give;
   // a hard hit from the SIDE may trip the car over (roll.js tripCheck): it is pushed, and rolls,
   // away from the impact
   if (Math.abs(lateral) > 0.6) car._sideKick = { dir: -Math.sign(lateral), dv: deltaV };

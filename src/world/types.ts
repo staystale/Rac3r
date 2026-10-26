@@ -372,6 +372,8 @@ export interface BarrierSeg {
   maxX: number;
   minY: number;
   maxY: number;
+  i0?: number;   // the index in the barrier's pts its start is (world/armcodent.ts)
+  torn?: boolean;   // torn open this step (world/armcodent.ts): no longer solid
 }
 
 // One entry of LEVEL.barriers; polylines in metres.
