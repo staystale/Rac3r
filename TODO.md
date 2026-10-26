@@ -262,6 +262,17 @@ C. CAR SYSTEMS + DAMAGE (L; one chain - extend damage.ts, no second damage model
   chance (physics/punctures.ts); no glass from the track car, banger, grass-track car.
   Behind ?debris=1.
 - C8 Penetration: small hard objects (lamp posts) hit harder at speed; flat barriers do not.
+  MEASURED 10-26 (tools/scratch/_c8measure.mjs, hatch into a Castle Cum street light / a tree):
+  the flat rule reads damage off the speed CHANGE, so a street light that snaps (from ~47 km/h,
+  the car keeps 65 %) did 1.44 total at 45 km/h but 0.18 at 50 (0.68 at 100); and the spot hit
+  was ignored (centre and 0.6 m off identical). OWNER 10-26: P1 one curve by closing speed, the
+  post still snaps; P2 damage where it struck - street lights and TREE TRUNKS only (floodlight
+  pylons: wide base, flat rule); P3 a post square on the nose hits the radiator harder; no V dent.
+  BUILT behind ?posthit=1 (physics/posthit.ts; barriers.ts clampToSolid notes, damage.ts hit
+  takes): off-centre hit corner 30 / 50 / 80 km/h = 0.21 / 0.54 / 1.00 (centre: both fronts 0.13
+  / 0.32 / 0.69). That is LIGHTER than a wall below ~70 km/h (tree today 50 km/h: 0.78 both
+  fronts), so ?posthit=hard counts it as a wall's bounce: hit corner 0.58 / 1.00 / 1.00, never
+  lighter than a wall. Owner to pick on the phone. Switch off: simhash SAME.
 - C9 Armco dents (barrier segments deform). M.
 - C10 Open-wheel cars: exposed wheels collide with other cars (today they pass through), can be
   ripped off in a hard hit. M.

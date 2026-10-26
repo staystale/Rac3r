@@ -13,6 +13,9 @@ import { levelStingers, tyresOnStinger } from './world/stingers.ts';
 import { LEVEL } from './world/state.ts';
 import { crashOil, rollOil } from './world/oil.ts';
 import { crashDebris } from './world/debris.ts';
+import {
+  takePost, postDeltaV, postShares, radiatorScale, type PostNote,
+} from './physics/posthit.ts';
 import { CORNER_OF_WHEEL } from './world/wheels.ts';
 // damage.ts — CAR DAMAGE. Bookkeeping on the sim step; vehicle.ts reads only
 // car.wreck (multipliers, no-op by default — CLAUDE.md §2 rule 6), render.ts draws the crush /
@@ -78,7 +81,7 @@ export interface DamageCar extends Partial<DamageState>, PressureCar, Partial<En
   dmgBill?: number; dmgHits?: number; dmgFlash?: number;
   dmgEvents?: DamageEvent[]; wheelSpawn?: number[];
   streamers?: unknown[] | null; wreck?: CarWreck;
-  burstTyre?: number; burstSlow?: boolean; _hitKind?: string | null;
+  burstTyre?: number; burstSlow?: boolean; _hitKind?: string | null; _post?: PostNote | null;
   // crash debris (world/debris.ts): a bit per corner whose part / window is gone
   partsOff?: number; glassOut?: number;
   _dsp?: unknown; _scrapeT?: number; _sideKick?: { dir: number; dv: number };
@@ -197,6 +200,23 @@ function hardHitCorners(
 }
 
 /**
+ * How a hit lands: a post hit hard enough to be an impact (physics/posthit.ts) by its closing
+ * speed in the spot it struck, else the flat rule (the speed change, shared by direction).
+ * @param post this step's post hit, or null
+ * @param deltaV the speed change, m/s
+ * @param fore where it came from along the car, unit
+ * @param lateral where it came from across the car, unit
+ * @returns the corner shares, the speed change it counts as, the scale on the radiator's crack
+ */
+function impactShape(post: PostNote | null, deltaV: number, fore: number, lateral: number):
+    { weights: number[]; size: number; radiator: number } {
+  if (post && postDeltaV(post) >= DMG_FLOOR) {
+    return { weights: postShares(post), size: postDeltaV(post), radiator: radiatorScale(post) };
+  }
+  return { weights: shares(fore, lateral), size: deltaV, radiator: 1 };
+}
+
+/**
  * One resolved collision: the velocity change since (vx0, vy0) becomes a scrape or an impact.
  * @param car the car, its velocity already changed by the collision
  * @param vx0 velocity x before, m/s
@@ -212,6 +232,9 @@ export function hit(
   // puncture roll (physics/punctures.ts)
   const metal = hitIsMetal(car);
   const punctureK = takeHitFactor(car);
+  // a street light's post or a tree's trunk (?posthit=1, physics/posthit.ts): by the closing
+  // speed, in the spot it struck
+  const post = takePost(car);
   const dvx = car.vx - vx0, dvy = car.vy - vy0, deltaV = Math.hypot(dvx, dvy);
   if (!(deltaV >= SCRAPE_DV)) return 0;
   if (!car.dmg) damageInit(car);
@@ -219,20 +242,21 @@ export function hit(
   const cosH = Math.cos(car.heading), sinH = Math.sin(car.heading);
   // where it came FROM, car frame, unit
   const fore = -(dvx * cosH + dvy * sinH) / deltaV, lateral = -(-dvx * sinH + dvy * cosH) / deltaV;
-  const weights = shares(fore, lateral),
-    endW = Math.abs(fore) / (Math.abs(fore) + Math.abs(lateral) + 1e-6);
+  const { weights, size, radiator } = impactShape(post, deltaV, fore, lateral);
+  const endW = Math.abs(fore) / (Math.abs(fore) + Math.abs(lateral) + 1e-6);
   let top = 0;
   for (let corner = 1; corner < 4; corner++) if (weights[corner] > weights[top]) top = corner;
-  if (deltaV < DMG_FLOOR) {
+  if (size < DMG_FLOOR) {
     return scrape(hurt, dt, weights, endW, top);
   }
-  const amt = DMG_K * (deltaV - DMG_FLOOR) ** DMG_EXP;
+  const amt = DMG_K * (size - DMG_FLOOR) ** DMG_EXP;
   // a hard hit from the SIDE may trip the car over (roll.js tripCheck): it is pushed, and rolls,
   // away from the impact
   if (Math.abs(lateral) > 0.6) car._sideKick = { dir: -Math.sign(lateral), dv: deltaV };
   hardHitCorners(hurt, amt, weights, endW, rnd, punctureK);
   // the radiator (and the sump) sit behind the front: the harder-hit front corner's share
-  crackOnHit(hurt as DamagedCar & EngineCar, amt * Math.max(weights[0], weights[1]), rnd);
+  crackOnHit(hurt as DamagedCar & EngineCar, amt * Math.max(weights[0], weights[1]) * radiator,
+    rnd);
   // a big crash spills oil (world/oil.ts)
   crashOil(car, amt, rnd);
   car.dmgBill = (car.dmgBill || 0) + amt * REPAIR_PER;

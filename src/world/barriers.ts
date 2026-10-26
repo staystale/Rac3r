@@ -7,6 +7,7 @@ import { solidsNear } from "./solidgrid.ts";
 import { isSolidWrecked, noteMarshalSolid, smashHut } from "./marshalbox.ts";
 import { solidBox } from "./treetrunks.ts";
 import { noteHit } from "../physics/punctures.ts";
+import { isNarrow, notePost } from "../physics/posthit.ts";
 import type {
   Barrier, BarrierKind, BarrierSeg, CarBody, Point, Prop, Solid, Subtrack,
 } from "./types.ts";
@@ -307,6 +308,8 @@ function clampToSolid(car: CarBody, solid: Solid, halfLen: number, halfWid: numb
   const { best, pushX, pushY } = satAgainstSolid(car, solid, halfLen, halfWid, cosHead, sinHead);
   if (best <= 0) return;
   const into = -(car.vx * pushX + car.vy * pushY);
+  // a street light's post or a tree's trunk takes the damage in one spot (physics/posthit.ts)
+  if (isNarrow(lamp ? lamp.kind : solid.kind)) notePost(car, solid.x, solid.y, into);
   // a lamp post: the hit leans / dims it, or snaps it and the car goes through (no bounce)
   if (lamp && hitLamp(lamp, car, into, pushX, pushY)) return;
   // a wooden marshal hut: smashed, the car goes through it (world/marshalbox.ts)
