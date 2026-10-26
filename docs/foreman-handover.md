@@ -6,8 +6,8 @@ not repeated here), then `TODO.md` ("Where we are" and section C are the plan), 
 
 ## Where we are
 
-- **The plain link is the approved game.** UNDER TEST: `?debris=1` (C7, testlist `debris`; see
-  NEXT). Everything else below passed the owner's phone test and is the DEFAULT, its switch and
+- **The plain link is the approved game.** UNDER TEST: `?glasspop=1` and `?oilwear=1` (see
+  NEXT). C7 debris (parts and glass, `world/debris.ts`) is the default since 10-26. Everything else below passed the owner's phone test and is the DEFAULT, its switch and
   old path DELETED (one system).
 - **Car systems C round 2 (C3-C5) - DONE.** `physics/engineheat.ts`: each car's engine C,
   radiator water, oil and a seize timer, stepped by `damage.ts stepDamage` on every car (the
@@ -41,16 +41,12 @@ not repeated here), then `TODO.md` ("Where we are" and section C are the plan), 
 
 ## NEXT (owner's order)
 
-1. **C7 debris - BUILT behind `?debris=1`, UNDER the owner's TEST** (mockup approved:
-   claude.ai/artifact/EbunhqrdHDfzWT6F5o2KBf; TODO.md C7 has the answers and the measures).
-   `world/debris.ts`: a corner's hit of 0.3+ may knock off a bumper (one an end), wing or door
-   panel in the car's paint, thrown as a loose object (`game/sim.js throwParts` -> `cones.add`);
-   past 24 the oldest fade out. A hit of 0.15+ may break a window (not the track car, banger,
-   grass car): wear cells take the cover 'glass' (GPU field kind 6, glints following the camera);
-   the first tyre over it sweeps it and may puncture (`world/pass.ts`, the one note of the wheel
-   making a pass, also used by the oil). ON PASS: flip default the same way (save a simhash ref
-   with `RAC3R_QUERY=debris=1`, delete `setDebris` / the settings row / testlist entry, prove
-   SAME), push main.
+1. **Owner tweaks UNDER TEST** (one link: plain + `&glasspop=1&oilwear=1`; testlist
+   glasspop, oilwear): `?glasspop=1` - a glass puncture pops (a burst) 15 % of the time
+   (`world/debris.ts`); `?oilwear=1` - oil that would spread wears away 25 % of the time
+   (`world/oil.ts wearsAway`). ON PASS: flip both default (save a simhash ref with
+   `RAC3R_QUERY=glasspop=1&oilwear=1`, delete the switches, keep only the switch-on paths).
+   C7 DEBRIS IS THE DEFAULT (owner 10-26: all pass).
 2. Then C8 (lamp posts hit harder at speed), C9 (armco dents), C10 (open-wheel contact / wheels
    ripped off), then the `wearcheck` rewrite, then (owner to order) the driving root fix
    (real ABS), AI rework B, sound G, Story H, levels, multiplayer I.

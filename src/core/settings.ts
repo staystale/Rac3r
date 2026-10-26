@@ -32,6 +32,8 @@ export interface Settings {
   churn: '' | 'pictures' | 'objects';   // ?churn=: judder mechanism test (memory churn)
   autopilot: boolean;   // ?autopilot=1: the AI drives the player car (phone frame tests, no touch)
   autopilotKmh: number;   // ?autopilot=120: hold the autopilot car at this speed (0 = no cap)
+  glassPop: boolean;   // ?glasspop=1: some glass punctures pop (a burst), not a slow leak
+  oilWear: boolean;   // ?oilwear=1: oil that would spread wears away a quarter of the time
 }
 
 function autopilotKmh(params: URLSearchParams): number {
@@ -99,6 +101,8 @@ export function readSettings(search: string): Settings {
     audio: params.get('noaudio') !== '1',
     autopilot: params.get('autopilot') === '1' || autopilotKmh(params) > 0,
     autopilotKmh: autopilotKmh(params),
+    glassPop: params.get('glasspop') === '1',
+    oilWear: params.get('oilwear') === '1',
     churn: churnKind(params),
     noNatClear: params.get('nonat') === '1',
     skipLayers: new Set((params.get('skip') || '').split(',').filter(Boolean)),

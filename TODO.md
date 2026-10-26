@@ -245,6 +245,11 @@ C. CAR SYSTEMS + DAMAGE (L; one chain - extend damage.ts, no second damage model
   race, capped, the OLDEST FADES first; glass "sounds great" - it should change colour /
   sparkle gently as the view moves. PLAN (mockup claude.ai/artifact/EbunhqrdHDfzWT6F5o2KBf,
   APPROVED by the owner 10-25) - DEFAULT 10-26 (owner: "all pass"; the ?debris switch deleted).
+  OWNER TWEAKS 10-26 UNDER TEST (testlist glasspop, oilwear; one link &glasspop=1&oilwear=1):
+  ?glasspop=1 - a glass puncture pops (a burst) 15 % of the time (400 passes: 35 slow + 5 pops;
+  off 48 slow, 0 pops); ?oilwear=1 - when oil would spread (driven through, beside water) it
+  spreads 75 %, the cell wears away 25 % (50 crash spills x 20 passes: 53 cells, 13 of 50
+  originals left; off 100 cells, 50 left). Switch off: simhash SAME.
   MEASURED (_debris.mjs, Castle Cum): 12 hits from 50 km/h (mended between) knocked off 15 parts
   (6 bumpers - one an end - 6 panels, 3 wings) and laid 12 glass cells; 30 parts -> the oldest
   6 faded, 24 left; glass swept by the first tyre over it, the fronts picking up slow leaks

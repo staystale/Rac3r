@@ -33,6 +33,15 @@ const GLASS_HIT = 0.15, GLASS_SPAN = 0.4, GLASS_P_MIN = 0.4;
 const GLASS_CELLS_MIN = 3, GLASS_CELLS_MORE = 4, GLASS_REACH_M = 2.5;
 // the chance the tyre that sweeps a glass cell is punctured (slowly) - higher than litter's 8 %
 const GLASS_PUNCTURE = 0.12;
+// ?glasspop=1 (owner): a glass puncture is a sudden POP (a burst) GLASS_POP of the time, else
+// the slow leak
+const GLASS_POP = 0.15;
+let glassPop = false;
+/**
+ * Turns glass pops on (?glasspop=1, main.js).
+ * @param isOn on or off
+ */
+export function setGlassPop(isOn: boolean): void { glassPop = isOn; }
 // car kinds with no glass to break: the open-wheel track car, the stripped banger and grass car
 const NO_GLASS = new Set(['track', 'banger', 'grass']);
 
@@ -164,7 +173,7 @@ export function passGlassCell(cell: WearCell): void {
   const car = PASS.car;
   if (car && PASS.tyre >= 0 && !((car.burstTyre ?? -1) >= 0) && Math.random() < GLASS_PUNCTURE) {
     car.burstTyre = PASS.tyre;
-    car.burstSlow = true;
+    car.burstSlow = !glassPop || Math.random() >= GLASS_POP;
   }
 }
 
