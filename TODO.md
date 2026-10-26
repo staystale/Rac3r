@@ -21,7 +21,7 @@ handover, written on request.
   hedges, sparks, crash sparks, flip ramp - DEFAULT 10-25 (owner: all pass); round 2
   C3-C5 DEFAULT 10-25 (owner: pass); C6 oil DEFAULT 10-25 (owner: all pass); C7 debris
   DEFAULT 10-26; C8 post hits, C9 armco dents, C10 open wheels DEFAULT 10-26 - C DONE);
-  3 NEXT the wearcheck rewrite.
+  3 the wearcheck rewrite - DONE 10-26 (tools only, all OK).
   Then (owner to order): the driving ROOT
   FIX for real ABS (owner: "abs is needed to be fixed so yes"), AI rework B (design first),
   sound + settings G, Story + upgrades H, new levels (Dieatona), multiplayer I.
@@ -530,10 +530,16 @@ DRIVING (ask before starting; re-measure first, these are old):
 
 ## Tools that are wrong
 
-- [ ] `tools/wearcheck.mjs` is STALE, not just 3c (10-24: 13 FAILs): it still checks the old
-  rules the owner has since changed (snow packs to ice at pass 4, puddles churn to mud, mud
-  thickens dry) and its "surfaces without graphics" lists every surface (a broken lookup).
-  Rewrite it to today's rules (S-M) - asked the owner.
+- FIXED 10-26 (owner: "do wear check only"): `tools/wearcheck.mjs` REWRITTEN to today's rules
+  (it failed 14 on a correct game: old rules, a moved art table, test puddles the cover field
+  ignored, ice found by a field the cover field no longer sets). 33 checks, all OK 3 runs in a
+  row: grass chain, worn dirt by heat / damp, mud only thickens damp, loose ground, snow / packed
+  snow / ice by temperature, the real car over the Lab's ice, puddles (3 passes, hot 2, rain
+  tyres 1; churned in on soft ground ~78 %, the rest taken by the tyres), dragged water, damp
+  drying, grip, art coverage. `tools/phase1check.mjs` 3 had the same stale "mud at 6" (fixed).
+  NOT FIXED (asked for the tool only): world/wear.ts's header comments are stale too (snow "packs
+  to ice", standing water "cold tyres add nothing", dryAmount's standing branch no longer used:
+  puddleClearBy answers every standing pass) - a comment-only tidy, ask first.
 - FIXED 10-24 (small-fixes round; traffic seat DEFAULT, owner "all pass"): `treadmillcheck` (the 2 "litter in a lane" were
   a field's cows with no road segment near them: a checker bug); `trafficcheck` (a REAL bug: a
   carried traffic car woken to physics kept its suspension height - woken on a hill 4.4 m up it

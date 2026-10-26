@@ -37,7 +37,7 @@ console.log('   Subtrack recovery: OK\n');
 console.log('3. Checking surface degradation...');
 // CORRECTED 2026-10-03: this used to wear point (12,12) while CLAIMING it was long grass — it is lab tarmac —
 // and checked the old duplicate rule table (mud at 8) that the game never used. It now wears the REAL long
-// grass test panel through lab.js's one rule table: short @2, dirt @4, mud @6 (tools/wearcheck.mjs has more).
+// grass test panel through lab.js's one rule table: short @2, dirt @4, then mud by chance (tools/wearcheck.mjs has more).
 setLevel('lab');
 clearWear();
 const wx = -143, wy = -106;
@@ -59,13 +59,14 @@ worn = getWornSurface(wx, wy);
 console.log(`   After 4 total passes: ${worn ? worn.label : 'none'}`);
 if (worn.id !== 'dirt') throw new Error(`Expected dirt, got ${worn.id}`);
 
-// 2 more passes -> should become mud (total 6)
+// 2 more passes -> worn dirt goes to mud BY CHANCE now (owner 10-24: less the hotter, always when
+// damp - world/dig.ts wornDirtTo; tools/wearcheck.mjs measures the shares), else stays dirt
 for (let p = 0; p < 2; p++) {
   recordWearAt(wx, wy, 'grassLong', tMs); tMs += 500;
 }
 worn = getWornSurface(wx, wy);
 console.log(`   After 6 total passes: ${worn ? worn.label : 'none'}`);
-if (worn.id !== 'mud') throw new Error(`Expected mud, got ${worn.id}`);
+if (worn.id !== 'mud' && worn.id !== 'dirt') throw new Error(`Expected mud or dirt, got ${worn.id}`);
 clearWear();
 console.log('   Degradation cycle: OK\n');
 

@@ -48,7 +48,8 @@ not repeated here), then `TODO.md` ("Where we are" and section C are the plan), 
 1. **Car systems C is DONE** (C1-C10; C10 open wheels `physics/openwheel.ts`, C9 armco dents
    `world/armcodent.ts`, C8 post hits `physics/posthit.ts`, water dragged by the tyres
    `world/waterdrag.ts` - all owner 10-26 "pass", the DEFAULT). The test list is EMPTY.
-2. NEXT: the `wearcheck` rewrite (design first), then (owner to order) the driving root fix
+2. The `wearcheck` rewrite is DONE (10-26: tools/wearcheck.mjs to today's rules, 33 checks all OK).
+   NEXT (owner to order): the driving root fix
    (real ABS), AI rework B, sound G, Story H, levels, multiplayer I.
 
 ## Proofs and references
