@@ -28,16 +28,10 @@ const WATER_SPREAD = 0.5, SPREAD_TICK_S = 1;
 // OIL_ROLL_P of the time, 1-2 cells
 const OIL_HIT = 0.2, OIL_SPAN = 0.6, OIL_P_MIN = 0.15, OIL_PATCH = 4, OIL_REACH_M = 2;
 const OIL_ROLL_P = 0.25;
-// ?oilwear=1 (owner): each time oil would spread (driven through, beside water) it spreads
+// OIL WEARS AWAY (owner): each time oil would spread (driven through, beside water) it spreads
 // OIL_SPREAD_SHARE of the time and the cell's oil wears away to nothing the rest, so a spill
 // thins out and goes in the end
 const OIL_SPREAD_SHARE = 0.75;
-let oilWear = false;
-/**
- * Turns oil wearing away on (?oilwear=1, main.js).
- * @param isOn on or off
- */
-export function setOilWear(isOn: boolean): void { oilWear = isOn; }
 
 let tickS = 0;
 // the oil cells, for the water spreading (checked against the wear map: a reset drops them)
@@ -125,9 +119,7 @@ function oilCell(cell: WearCell | null, gen: number): boolean {
  * @param cell the oil cell
  */
 export function passOilCell(cell: WearCell): void {
-  if (oilWear) {
-    if (Math.random() >= DRAG_SPREAD || wearsAway(cell) || (cell.oilGen || 0) <= 1) return;
-  } else if ((cell.oilGen || 0) <= 1 || Math.random() >= DRAG_SPREAD) return;
+  if (Math.random() >= DRAG_SPREAD || wearsAway(cell) || (cell.oilGen || 0) <= 1) return;
   const length = Math.hypot(PASS.dx, PASS.dy);
   if (length < 1e-6) return;
   const aheadX = (cell.cx + 0.5) * WEAR_CELL + (PASS.dx / length) * WEAR_CELL;
@@ -154,19 +146,18 @@ const NEIGHBOURS = [[1, 0], [-1, 0], [0, 1], [0, -1]];
  * @param cell the oil cell
  */
 function spreadIntoWater(cell: WearCell): void {
-  if ((cell.oilGen || 0) <= 1 && !oilWear) return;
   const wet: WearCell[] = [];
   for (const [stepX, stepY] of NEIGHBOURS) {
     const near = waterCellAt(cell.cx + stepX, cell.cy + stepY);
     if (near) wet.push(near);
   }
   if (!wet.length || Math.random() >= WATER_SPREAD) return;
-  if (oilWear && (wearsAway(cell) || (cell.oilGen || 0) <= 1)) return;
+  if (wearsAway(cell) || (cell.oilGen || 0) <= 1) return;
   oilCell(wet[Math.floor(Math.random() * wet.length)], cell.oilGen! - 1);
 }
 
 /**
- * ?oilwear=1: a spread's other outcome - by chance the cell's oil wears away to nothing.
+ * A spread's other outcome: by chance the cell's oil wears away to nothing.
  * @param cell the oil cell
  * @returns true when it wore away (no spread)
  */

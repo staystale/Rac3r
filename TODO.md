@@ -245,7 +245,7 @@ C. CAR SYSTEMS + DAMAGE (L; one chain - extend damage.ts, no second damage model
   race, capped, the OLDEST FADES first; glass "sounds great" - it should change colour /
   sparkle gently as the view moves. PLAN (mockup claude.ai/artifact/EbunhqrdHDfzWT6F5o2KBf,
   APPROVED by the owner 10-25) - DEFAULT 10-26 (owner: "all pass"; the ?debris switch deleted).
-  OWNER TWEAKS 10-26 UNDER TEST (testlist glasspop, oilwear; one link &glasspop=1&oilwear=1):
+  OWNER TWEAKS 10-26 - DEFAULT 10-26 (owner: "pass"; both switches deleted):
   ?glasspop=1 - a glass puncture pops (a burst) 15 % of the time (400 passes: 35 slow + 5 pops;
   off 48 slow, 0 pops); ?oilwear=1 - when oil would spread (driven through, beside water) it
   spreads 75 %, the cell wears away 25 % (50 crash spills x 20 passes: 53 cells, 13 of 50

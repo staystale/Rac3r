@@ -6,9 +6,10 @@ not repeated here), then `TODO.md` ("Where we are" and section C are the plan), 
 
 ## Where we are
 
-- **The plain link is the approved game.** UNDER TEST: `?glasspop=1` and `?oilwear=1` (see
-  NEXT). C7 debris (parts and glass, `world/debris.ts`) is the default since 10-26. Everything else below passed the owner's phone test and is the DEFAULT, its switch and
-  old path DELETED (one system).
+- **The plain link is the approved game; the test list is EMPTY.** C7 debris (parts and
+  glass, `world/debris.ts`), glass pops and oil wearing away are the default since 10-26.
+  Everything else below passed the owner's phone test and is the DEFAULT, its switch and old
+  path DELETED (one system).
 - **Car systems C round 2 (C3-C5) - DONE.** `physics/engineheat.ts`: each car's engine C,
   radiator water, oil and a seize timer, stepped by `damage.ts stepDamage` on every car (the
   damage state is made at the first step). Heat in by throttle x revs (`car.throttleUsed`,
@@ -41,13 +42,10 @@ not repeated here), then `TODO.md` ("Where we are" and section C are the plan), 
 
 ## NEXT (owner's order)
 
-1. **Owner tweaks UNDER TEST** (one link: plain + `&glasspop=1&oilwear=1`; testlist
-   glasspop, oilwear): `?glasspop=1` - a glass puncture pops (a burst) 15 % of the time
-   (`world/debris.ts`); `?oilwear=1` - oil that would spread wears away 25 % of the time
-   (`world/oil.ts wearsAway`). ON PASS: flip both default (save a simhash ref with
-   `RAC3R_QUERY=glasspop=1&oilwear=1`, delete the switches, keep only the switch-on paths).
-   C7 DEBRIS IS THE DEFAULT (owner 10-26: all pass).
-2. Then C8 (lamp posts hit harder at speed), C9 (armco dents), C10 (open-wheel contact / wheels
+1. **C8 lamp-post penetration** next (design first; TODO.md C8). C7 debris, glass pops
+   (15 % of glass punctures) and oil wearing away (75 % spread / 25 % gone) are the DEFAULT
+   (owner 10-26: all pass); the test list is EMPTY.
+2. Then C9 (armco dents), C10 (open-wheel contact / wheels
    ripped off), then the `wearcheck` rewrite, then (owner to order) the driving root fix
    (real ABS), AI rework B, sound G, Story H, levels, multiplayer I.
 

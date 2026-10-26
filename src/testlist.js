@@ -31,21 +31,6 @@ export const TEST_LIST = [
   // stingers, the rim by chance) and hedges (one continuous line) passed 2026-10-25; flipramp
   // passed 2026-10-25; impactsparks passed 2026-10-25 (round 2: 70 %, over 25 mph,
   // directional); engine (radiator + engine heat, the leak as water, speedo lights, exhaust)
-  // passed 2026-10-25); oil passed 2026-10-25; debris passed 2026-10-26)
-  {
-    id: 'glasspop',
-    added: '2026-10-26',
-    name: 'Glass can pop a tyre (a burst), now and then, not only a slow leak',
-    where: 'Plain link + &glasspop=1&oilwear=1: Castle Cum, crash, then drive over the glass',
-    try: 'Drive over glass several times: mostly slow leaks, about 1 puncture in 8 a sudden pop.',
-    wrong: 'Pops on every glass pass, or never a pop after many punctures.',
-  },
-  {
-    id: 'oilwear',
-    added: '2026-10-26',
-    name: 'Oil wears away: when it would spread, 75 % it spreads, 25 % that cell goes',
-    where: 'Same link: crash for a spill, then drive through it lap after lap (or in the rain)',
-    try: 'Drive through a spill again and again: it spreads a little and thins out, cells go.',
-    wrong: 'Oil that never goes, or a spill gone after one pass.',
-  },
+  // passed 2026-10-25); oil passed 2026-10-25; debris passed 2026-10-26; glasspop,
+  // oilwear passed 2026-10-26)
 ];

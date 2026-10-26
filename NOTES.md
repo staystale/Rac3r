@@ -139,7 +139,8 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
 - Debris, car systems C7 (10-26, owner: all pass): a corner's hit of ~0.3 knocks off a bumper
   (one an end), wing or door panel in the car's paint; they stay, the oldest fading past 24;
   the car's own look keeps its dents (may revisit). Glass from cars with windows lies in the
-  wear cells, glints with the view, swept by the first tyre (a puncture chance).
+  wear cells, glints with the view, swept by the first tyre (a puncture chance; 15 % of those
+  a sudden pop). Oil that would spread spreads 75 %, wears away 25 % (10-26, owner: pass).
 - Outer tyre walls (Grass Track, Stock Car): a fast car pushing through them is fine (owner
   10-25); they stay single rows of loose tyres.
 - Order 10-25 (owner): bushes -> car systems C (when bushes pass) -> the wearcheck rewrite (when

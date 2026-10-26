@@ -1,7 +1,7 @@
-// _tweaks.mjs - ?oilwear=1 and ?glasspop=1 measured in the game's own modules: 50 crash-strength
+// _tweaks.mjs - oil wearing away and glass pops measured in the game's own modules: 50 crash-strength
 // oil spills each driven over 20 times (cells left, spreads), and 400 tyre passes over glass
-// (punctures: pops vs slow leaks). Run with and without the switches.
-// node tools/scratch/_tweaks.mjs "&oilwear=1&glasspop=1"
+// (punctures: pops vs slow leaks).
+// node tools/scratch/_tweaks.mjs [extra query]
 import { startServer, launchBrowser, gotoGame } from '../lib/browser.mjs';
 const query = process.argv[2] || '';
 const server = await startServer();
