@@ -28,15 +28,6 @@ export function digsDry(base: string): boolean {
 }
 
 /**
- * What a puddle churned into this base leaves, when the dig changes it (gravel -> dirt).
- * @param base the surface id
- * @returns the surface id, or null for the usual mix
- */
-export function churnedTo(base: string): string | null {
-  return base === 'gravel' ? 'dirt' : null;
-}
-
-/**
  * The dig rule of a base, or undefined for ground that does not dent.
  * @param base the surface id
  * @returns the rule

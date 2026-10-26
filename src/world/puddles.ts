@@ -74,14 +74,12 @@ export function setPassTyre(tyre: { grip: Record<string, number> } | null | unde
 }
 
 /**
- * How much one tyre pass clears of a cell's standing water (owner: 3 passes, rain tyres 1), or
- * null to keep the old rule (no weather, or damp ground).
- * @param standing whether the water is standing (a puddle)
+ * How much one tyre pass clears of a cell's standing water (owner: 3 passes, rain tyres 1; damp
+ * ground dries by wear.ts dryAmount instead).
  * @param tyreC the tyre's temperature, C (hot tyres clear faster)
- * @returns the dryness the pass adds, or null
+ * @returns the dryness the pass adds
  */
-export function puddleClearBy(standing: boolean, tyreC = 0): number | null {
-  if (!standing) return null;
+export function puddleClearBy(tyreC = 0): number {
   // a hot tyre clears it in 2 passes, not 3
   return rainTyre ? 1 : 1 / 3 + (1 / 2 - 1 / 3) * hotTyreShare(tyreC);
 }

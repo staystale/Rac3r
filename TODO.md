@@ -537,9 +537,9 @@ DRIVING (ask before starting; re-measure first, these are old):
   snow / ice by temperature, the real car over the Lab's ice, puddles (3 passes, hot 2, rain
   tyres 1; churned in on soft ground ~78 %, the rest taken by the tyres), dragged water, damp
   drying, grip, art coverage. `tools/phase1check.mjs` 3 had the same stale "mud at 6" (fixed).
-  NOT FIXED (asked for the tool only): world/wear.ts's header comments are stale too (snow "packs
+  TIDIED 10-26 (owner: "make sure it's all tidied"): world/wear.ts's header comments were stale (snow "packs
   to ice", standing water "cold tyres add nothing", dryAmount's standing branch no longer used:
-  puddleClearBy answers every standing pass) - a comment-only tidy, ask first.
+  puddleClearBy answers every standing pass) - rewritten; dead branches removed (simhash SAME).
 - FIXED 10-24 (small-fixes round; traffic seat DEFAULT, owner "all pass"): `treadmillcheck` (the 2 "litter in a lane" were
   a field's cows with no road segment near them: a checker bug); `trafficcheck` (a REAL bug: a
   carried traffic car woken to physics kept its suspension height - woken on a hill 4.4 m up it

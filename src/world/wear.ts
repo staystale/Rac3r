@@ -1,4 +1,4 @@
-// wear.js - the SURFACE DEGRADATION & WEAR MAP section.
+// wear.ts - the SURFACE DEGRADATION & WEAR MAP (below).
 import { LEVEL } from "./state.ts";
 import type { SurfaceId } from "./surfaces.ts";
 import { SURFACES, VERGE_W, TRAP_STEPS, SURFACE_TRAP } from "./surfaces.ts";
@@ -22,7 +22,7 @@ import {
 } from "./bounds.ts";
 import { zoneAt } from "./zones.ts";
 import {
-  churnedTo, dampWornTo, digPace, digRuleOf, digsDry, wearHolds, wornDirtTo,
+  dampWornTo, digPace, digRuleOf, digsDry, wearHolds, wornDirtTo,
 } from "./dig.ts";
 import { bumpAt, bankHeightAt, BUMP_STEER } from "./terrain.ts";
 import { querySubtrack } from "./tyrewall.ts";
@@ -34,38 +34,27 @@ import type {
 } from "./types.ts";
 
 // =============================================================================================
-// SURFACE DEGRADATION & WEAR MAP — LAYERED, rebuilt (requirement: snow should compress to ice after
-// several passes; ice should wear away with heavy braking or sliding and show the surface
-// underneath; if the surface under is grass it should behave like grass and turn to mud once
-// exposed and then driven over... mud turns to thick mud... puddles on any surface, ice and snow on
-// any surface).
-//
-// A wear CELL (WEAR_CELL m square) holds two layers:
-// base — the ground itself. Wears down a chain by PASSES (a wheel crossing the cell, debounced):
-//            long grass -> short grass -> dirt -> mud -> thick mud. Counts in BASE_WEAR below.
-// cover — something lying ON the base: 'snow', 'ice' or 'wet' (a puddle). While a cover is there
-// the
-//            base cannot wear — the tyre never touches it.
-//              snow  compresses to ice after SNOW_TO_ICE passes.
-// ice is SCRUBBED away only by a wheel that is sliding or locked over it (slip speed above
-// ICE_SCRUB_MIN, metres of slip accumulated past ICE_SCRUB). Rolling over it does nothing.
-//                    When it goes, the base is exposed and wears by its own rules from then on.
-// wet WATER DRIES BY TYRE HEAT (requirement: puddles should only go when hot tyres or weather
-// evaporate them — dry lines can still form with many passes of cold tyres but happen quicker with
-// warmer tyres). Each pass adds dryness by tyre temperature (dryAmount):
-// STANDING water (level puddles, meltwater): cold tyres add NOTHING; hot tyres evaporate it. DAMP
-// ground (a wet zone / sector, wet tarmac): cold tyres dry a line slowly, warm ones fast.
-//                    When dry it MIXES with what it lay on
-// (WATER_MIX): grass / dirt -> mud, sand -> gravel, gravel -> mud; tarmac just dries. (user,
-// "puddles should vanish or mix with surfaces like grass or dirt to create mud ... sand
-// and water should mix to create gravel ... gravel and water make mud") Covers come from the level
-// (LEVEL.covers, any shape over any surface) or from a zone whose own surface is snow/ice — those
-// are treated as a cover over zone.under (default tarmac: coverfield.ts UNDER_DEFAULT), so a
-// lab ice panel scrubs through to tarmac and the same rules apply everywhere.
-//
-// ONE rule table. MEASURED BUG fixed here: the old code had the chain written TWICE with different
-// numbers (recordWearAt said long grass -> mud in 8 passes, the game's recordWearPoint said 6), and
-// the only test exercised the copy the game never used (CLAUDE.md rule 18).
+// SURFACE DEGRADATION & WEAR MAP - LAYERED (the owner's rules; tools/wearcheck.mjs proves them).
+// A wear CELL (WEAR_CELL m square) holds two layers, changed by PASSES (a wheel crossing the cell,
+// debounced: passCell):
+// base - the ground itself. Wears by BASE_WEAR below: a bush is flattened to long grass, long grass
+//   wears to short grass, grass to dirt; worn dirt goes to mud or gravel BY CHANCE with the track's
+//   heat and dampness (dig.ts wornDirtTo); mud thickens only DAMP (dig.ts wearHolds); damp ground
+//   wears a pass sooner; loose ground shifts (dig.ts dampWornTo: damp sand -> gravel, damp gravel
+//   -> dirt, dry gravel -> sand the hotter); soft ground ruts (dig.ts).
+// cover - something lying ON the base: snow, packed snow, ice, water ('wet'), oil, glass. While a
+//   cover is there the base cannot wear - the tyre never touches it.
+//   SNOW packs after SNOW_TO_ICE passes: mostly packed snow, ice the colder, water the warmer;
+//     packed snow breaks up the same way; rolling passes may break ice to water, more the warmer
+//     and with hot tyres; a SLIDING or LOCKED wheel scrubs ice through (ICE_SCRUB m of slip) to
+//     meltwater (snowwear.ts; ice cracks: icecrack.ts).
+//   WATER: standing water clears in 3 passes of any tyre, 2 hot, 1 on rain tyres (puddles.ts
+//     puddleClearBy); on soft ground it churns IN instead (WATER_MIX: grass / dirt -> mud, sand ->
+//     gravel, gravel -> dirt); a pass may drag it a cell on (waterdrag.ts); DAMP ground (no
+//     standing water) dries a line by tyre heat (dryAmount). Oil and glass: oil.ts, debris.ts.
+// The covers come from the level and the weather through the cover field (coverfield.ts: a
+// level's own snow / ice / water are its areas; a cell records what it laid: cell.laid / area).
+// ONE rule table, one pass rule: every check and the game run passCell.
 export const WEAR_CELL = 1.5;
 export const wearMap = new Map<number, WearCell>();
 
@@ -79,7 +68,8 @@ export const wearKey = (cellI: number, cellJ: number) =>
 // cached ground tiles and uses this to know which tiles to repaint (render.ts drawGround). Drained
 // by it.
 export const wearDirty: WearCell[] = [];
-// base -> [what it becomes, passes it takes]. Cumulative from long grass: 2, 4, 6, 9.
+// base -> [what it becomes, passes it takes]. Worn dirt's 'mud' is the chance's answer (dig.ts
+// wornDirtTo); mud thickens only damp (dig.ts wearHolds); damp ground takes a pass fewer.
 const BASE_WEAR: Record<string, [string, number]> = {
   // a bush is flattened into long grass (world/bushes.ts)
   bush: ['grassLong', 3],
@@ -89,32 +79,26 @@ const BASE_WEAR: Record<string, [string, number]> = {
   dirt: ['mud', 2],
   mud: ['thickMud', 3],
 };
-export const SNOW_TO_ICE = 4;      // passes to pack snow into ice
+export const SNOW_TO_ICE = 4;      // passes before loose snow packs, ices or melts (snowwear.ts)
 // dampness from which wet ground wears faster, wet snow melts and wet ice scrubs in half the slip
 const WET_WEAR_FROM = 0.5;
-// dryness a pass adds, by tyre temperature tyreTemp. Measured in tools/wearcheck.mjs:
-//   damp:     0.06 + 0.30 x heat(40..100 C)  -> cold ~17 passes, 100 C ~3 passes
-//   standing: 0.35 x heat(60..120 C)          -> cold never, 90 C ~6 passes, 120 C ~3 passes
-// (Before this: a puddle went in 1-3 passes of ANY tyre — PUDDLE_CHURN_CHANCE — which the user
-// found far too easy.)
-export function dryAmount(standing: boolean, tyreTemp: number): number {
-  if (standing) return 0.35 * Math.max(0, Math.min(1, (tyreTemp - 60) / 60));
+// the dryness a pass adds to DAMP ground (no standing water), by tyre temperature: 0.06 + 0.30 x
+// heat(40..100 C) -> a dry line in ~17 cold passes, ~3 at 100 C (tools/wearcheck.mjs). Standing
+// water clears by puddles.ts puddleClearBy instead.
+export function dryAmount(tyreTemp: number): number {
   return 0.06 + 0.30 * Math.max(0, Math.min(1, (tyreTemp - 40) / 60));
 }
-// (history) the rule before (requirement: a happy medium — a % chance so it takes 1-3 passes): a
-// 40% chance per pass of ANY tyre, so 1-3 passes. Replaced by dryAmount above.
-// per pass, standing water over a WATER_MIX base -> 1-3 passes
+// the chance a pass churns standing water into a soft (WATER_MIX) base; the 3rd pass always does
 export const WATER_CHURN_CHANCE = 0.4;
 // what a churned puddle leaves behind, by the base it lay on
 const WATER_MIX: Record<string, string> = {
   grass: 'mud', grassShort: 'mud', grassLong: 'mud', bush: 'mud', dirt: 'mud', mud: 'thickMud',
-  sand: 'gravel', gravel: 'mud',
+  sand: 'gravel', gravel: 'dirt',
 };
 // 7.0, was 2.0. User: "ice should take a couple of passes before it melts unless tyres
 // are very hot". MEASURED at 2.0: ONE locked-brake pass scrubbed 32 cells through. A locked pass
 // puts ~3 m of slip into a cell (two wheels in line, ~1.5 m each), so 7 m takes 2-3 hard passes.
-// Hot tyres melting it faster waits for the tyre-temperature model (TODO, tier 3) — it should scale
-// THIS number down, nothing else.
+// Hot tyres break ice through more often on rolling passes instead (snowwear.ts ICE_WATER_HOT).
 export const ICE_SCRUB = 7.0;      // m of tyre slip over a cell to scrub its ice through
 export const ICE_SCRUB_MIN = 2.0;  // m/s of slip below which a wheel is rolling, not scrubbing
 export const COVER_IDS: Record<CoverId, number> & Record<string, number> = { snow: 1, ice: 1,
@@ -258,24 +242,19 @@ export function getCell(cellX: number, cellY: number, always = false): WearCell 
   return cell;
 }
 /**
- * One pass over a puddle (WET cover) cell: it churns into the base or dries.
+ * One pass over a water (WET cover) cell: standing water churns into a soft base (WATER_MIX: any
+ * tyre, WATER_CHURN_CHANCE a pass, always by the 3rd) or clears (puddles.ts puddleClearBy: 3
+ * passes, 2 hot, 1 on rain tyres); damp ground dries a line by tyre heat (dryAmount).
  * @param cell the wear cell (changed in place)
- * @param tyreTemp the tyre temperature (C), for the evaporation rule
+ * @param tyreTemp the tyre temperature (C)
  */
 function passWetCell(cell: WearCell, tyreTemp: number): void {
-  // CHURN vs EVAPORATE (requirement: water on dirt... should become mud when driven over).
-  // MEASURED BUG: a puddle on dirt only mixed after it had DRIED, and standing water only dries
-  // above 60 C, so on dirt it stayed a puddle forever. Tyres churning water INTO soft ground is
-  // not evaporation: on any base with a WATER_MIX rule, every pass of ANY tyre has
-  // WATER_CHURN_CHANCE to churn it (1-3 passes, the user's earlier "happy medium"). Hard ground
-  // (tarmac) has nothing to churn into, so it keeps the heat / weather rule. capped: the 3rd pass
-  // always churns (pure 40% measured a worst case of 9-12 passes over 200 puddles)
   if (cell.standing && WATER_MIX[cell.base]
     && (++cell.passes >= 3 || Math.random() < WATER_CHURN_CHANCE)) cell.dry = 1;
-  else cell.dry += puddleClearBy(cell.standing, tyreTemp) ?? dryAmount(cell.standing, tyreTemp);
+  else cell.dry += cell.standing ? puddleClearBy(tyreTemp) : dryAmount(tyreTemp);
   if (cell.dry >= 1) {
     cell.cover = null;
-    cell.base = churnedTo(cell.base) || WATER_MIX[cell.base] || cell.base;
+    cell.base = WATER_MIX[cell.base] || cell.base;
     cell.passes = 0;
     cell.dry = 0;
   }
@@ -333,7 +312,7 @@ function passCell(cell: WearCell, tyreTemp = 18): void {
   }
   else if (!cell.cover) passBareCell(cell, damp);
   // the tyre dries its line in the rain (as it dries a wet zone: dryAmount, damp ground)
-  if (cell.cover !== 'wet') dryCellLine(cell, wearClock, dryAmount(false, tyreTemp));
+  if (cell.cover !== 'wet') dryCellLine(cell, wearClock, dryAmount(tyreTemp));
   const now = cell.cover || cell.base;
   if (now !== cell.current) { cell.current = now; wearDirty.push(cell); }
 }
