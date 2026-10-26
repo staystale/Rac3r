@@ -297,6 +297,20 @@ C. CAR SYSTEMS + DAMAGE (L; one chain - extend damage.ts, no second damage model
   1 / 0 wet, reaching 2 cells (3 m) ahead.
 - C10 Open-wheel cars: exposed wheels collide with other cars (today they pass through), can be
   ripped off in a hard hit. M.
+  FOUND 10-26 (code): only the F1 (track-rwd) and F2 (f2-rwd) have wheels outside the body box
+  (box 1.30 m wide, wheels 2.17 m across); every collision tested the box only. OWNER 10-26:
+  wheels hit everything (cars, walls, posts, trees, cones); wheel to wheel a HARD KICK (owner to
+  test); rip-off from ~40 km/h; build then photograph.
+  BUILT behind ?openwheel=1 (physics/openwheel.ts; contact.js carContacts -> wheelContacts,
+  barriers.ts wheel edges + wheel boxes vs solids, cones/coneCar.js wheelsContact, damage.ts
+  wheelImpact): each exposed wheel a tyre box (r 0.33 m); wheel on body bounce 0.25, wheel on
+  wheel 0.6 with 1.5x the spin; a hit into a wheel rips it off by chance 30 % at 40 km/h -> every
+  time at 80 km/h, and 60 % of the hit lands on that corner. MEASURED (_c10.mjs, the game's own
+  collision code, two F1s at 120 Hz): side by side they touch at 2.17 m (was 1.30 m); a front
+  wheel into a leader's rear wheel at +5 m/s spins the follower 1.12 rad/s, speeds traded; along
+  armco the centre keeps 1.45 m (was 1.10); a lone wheel into a tree trunk 20 tries: 30 km/h
+  0 ripped, 40 km/h 5, 60 / 80 km/h 20 (a trunk strike - C8 post - wrecks the corner, which
+  loses its wheel by the old rule anyway). Photo _c10shots.mjs: wheel off, 0 page errors.
 - (bushes moved to D, with the trees)
 - DESIGN AGREED 10-25 (mockup claude.ai/artifact/BozNYQLMm4FpspU9SsrXAc; answers in NOTES):
   ROUND 1 ?flats=1 - C1 tyre pressure (physics/tyrepressure.ts) replaces the puncture flag's

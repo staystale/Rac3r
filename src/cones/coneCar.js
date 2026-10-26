@@ -3,6 +3,8 @@
 // break, burst, tip, pop). Every function takes the one cones context made in cones.js.
 import { debrisPunctures } from '../physics/tyrewear.ts';
 import { noteHit } from '../physics/punctures.ts';
+import { hasOpenWheels, wheelHalf } from '../physics/openwheel.ts';
+import { CORNER_OF_WHEEL } from '../world/wheels.ts';
 import {
   BALE_BURST_V, BALE_DRAG, BROKEN, COW_TIP_V, DEBRIS, MAX_CONE_V, RESTITUTION, SHEEP_POP_V,
   TOPPLE_V, TOPPLES, burstStack,
@@ -49,13 +51,17 @@ function insideNormal(halfLen, halfWid, localX, localY) {
  * @param {any} car the car
  * @param {number} relX object x relative to the car
  * @param {number} relY object y relative to the car
+ * @param {any} [box] a box of the car's other than its body - an open wheel (fore, lateral: its
+ *   centre in the car's frame; hl, hw: its half sizes; physics/openwheel.ts)
  * @returns {any} the contact, or null when the object is clear or moving away
  */
-function bodyContact(obj, car, relX, relY) {
-  const spec = car.spec, halfLen = spec.len / 2, halfWid = spec.wid / 2,
+function bodyContact(obj, car, relX, relY, box = null) {
+  const spec = car.spec, halfLen = box ? box.hl : spec.len / 2,
+      halfWid = box ? box.hw : spec.wid / 2,
       cosH = Math.cos(car.heading), sinH = Math.sin(car.heading);
-  const localX = relX * cosH + relY * sinH;
-  const localY = -relX * sinH + relY * cosH;
+  const offX = box ? box.fore : 0, offY = box ? box.lateral : 0;
+  const localX = relX * cosH + relY * sinH - offX;
+  const localY = -relX * sinH + relY * cosH - offY;
   const nearX = Math.max(-halfLen, Math.min(halfLen, localX));
   const nearY = Math.max(-halfWid, Math.min(halfWid, localY));
   const dx = localX - nearX, dy = localY - nearY;
@@ -76,11 +82,36 @@ function bodyContact(obj, car, relX, relY) {
   const push = reach - dist + 0.01;
   obj.x += wnx * push; obj.y += wny * push;
 
-  const pvx = car.vx - car.yawRate * (nearX * sinH + nearY * cosH);
-  const pvy = car.vy + car.yawRate * (nearX * cosH - nearY * sinH);
+  // the touching point in the car's frame (a wheel's box sits off the centre)
+  const pointX = nearX + offX, pointY = nearY + offY;
+  const pvx = car.vx - car.yawRate * (pointX * sinH + pointY * cosH);
+  const pvy = car.vy + car.yawRate * (pointX * cosH - pointY * sinH);
   const rel = (pvx - obj.vx) * wnx + (pvy - obj.vy) * wny;
   if (rel <= 0) return null;
-  return { wnx, wny, nearX, nearY, pvx, pvy, rel };
+  return { wnx, wny, nearX: pointX, nearY: pointY, pvx, pvy, rel };
+}
+
+const wheelOfCar = { fore: 0, lateral: 0, hl: 0, hw: 0 };
+/**
+ * Collide the object with an open-wheeler's exposed wheels (physics/openwheel.ts), when its
+ * body missed it.
+ * @param {any} obj the object
+ * @param {any} car the car
+ * @param {number} relX object x relative to the car
+ * @param {number} relY object y relative to the car
+ * @returns {any} the contact, or null
+ */
+function wheelsContact(obj, car, relX, relY) {
+  if (!hasOpenWheels(car)) return null;
+  [wheelOfCar.hl, wheelOfCar.hw] = wheelHalf(car);
+  for (let wheel = 0; wheel < 4; wheel++) {
+    if (car.wheelOff && car.wheelOff[CORNER_OF_WHEEL[wheel]]) continue;
+    wheelOfCar.fore = wheel < 2 ? car.spec.lf : -car.spec.lr;
+    wheelOfCar.lateral = (wheel % 2 === 0 ? 1 : -1) * (car.spec.trackWidth || 1.5) / 2;
+    const contact = bodyContact(obj, car, relX, relY, wheelOfCar);
+    if (contact) return contact;
+  }
+  return null;
 }
 
 /**
@@ -267,7 +298,7 @@ export function hitByCar(ctx, obj, car, newTyres) {
   if (obj.kind === 'tarp') { dragTarp(obj, car, relX, relY); return; }
   // a chevron / flag flattened by 2 impacts: driven over
   if (obj.flat) return;
-  const contact = bodyContact(obj, car, relX, relY);
+  const contact = bodyContact(obj, car, relX, relY) || wheelsContact(obj, car, relX, relY);
   if (!contact) return;
   noteHit(car, obj.kind);
   const rel = contact.rel;

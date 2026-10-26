@@ -9,6 +9,10 @@ import { solidBox } from "./treetrunks.ts";
 import { noteHit } from "../physics/punctures.ts";
 import { isNarrow, notePost } from "../physics/posthit.ts";
 import {
+  edgeCorner, hasOpenWheels, noteWheelBump, wheelBox, wheelEdge, wheelReach,
+} from "../physics/openwheel.ts";
+import { CORNER_OF_WHEEL } from "./wheels.ts";
+import {
   ARMCO_E, applyRailHit, dents, isTornAfter, railContact, straightenRails,
 } from "./armcodent.ts";
 import type {
@@ -271,12 +275,14 @@ interface SatResult {
  * @param halfWid car half width
  * @param cosHead cos of the car heading
  * @param sinHead sin of the car heading
+ * @param centre the box's centre when it is not the car's (an open wheel: physics/openwheel.ts)
  * @returns the smallest overlap and the push direction (best = -1 when separated)
  */
 function satAgainstSolid(
   car: CarBody, solid: Solid, halfLen: number, halfWid: number, cosHead: number, sinHead: number,
+  centre: Point2 = car,
 ): SatResult {
-  const dx = car.x - solid.x, dy = car.y - solid.y;
+  const dx = centre.x - solid.x, dy = centre.y - solid.y;
   const cosRot = Math.cos(solid.rot), sinRot = Math.sin(solid.rot), halfW = solid.w / 2,
       halfH = solid.h / 2;
   // SAT on the 4 axes: overlap = sum of projected half-extents - |centre distance on the axis|
@@ -306,23 +312,69 @@ function satAgainstSolid(
 export function solidClamp(car: CarBody): void {
   const spec = car.spec, halfLen = spec.len * 0.48, halfWid = spec.wid * 0.48;
   // the solids and posts near the car (world/solidgrid.ts), or all of them for a long body
-  const found = solidsNear(car.x, car.y, Math.hypot(halfLen, halfWid));
+  const open = hasOpenWheels(car);
+  const found = solidsNear(car.x, car.y, open ? wheelReach(car) : Math.hypot(halfLen, halfWid));
   const list = found ? found.solids : LEVEL.solids, lamps = found ? found.lamps : activeLamps();
   if ((!list || !list.length) && !lamps.length) return;
-  if (list) for (const solid of list) {
-    const vx0 = car.vx, vy0 = car.vy;
-    // a tree: its trunk only (world/treetrunks.ts)
-    clampToSolid(car, solidBox(solid), halfLen, halfWid);
-    if (car.vx !== vx0 || car.vy !== vy0) noteHit(car, solid.kind);
-  }
+  // a tree: its trunk only (world/treetrunks.ts)
+  if (list) for (const solid of list) clampSolid(car, solidBox(solid), halfLen, halfWid, open);
   // the lamp posts: a hit may lean, dim or snap them; a fallen post is driven over
   for (const lamp of lamps) {
     if (lamp.down) driveOverPost(car, lamp);
-    else {
-      const vx0 = car.vx, vy0 = car.vy;
-      clampToSolid(car, lamp.solid, halfLen, halfWid, lamp);
-      if (car.vx !== vx0 || car.vy !== vy0) noteHit(car, 'lamp');
-    }
+    else clampSolid(car, lamp.solid, halfLen, halfWid, open, lamp);
+  }
+}
+/**
+ * The car's body, then its open wheels, against one solid box; the hit is noted.
+ * @param car the car
+ * @param solid the solid box
+ * @param halfLen the car's half length for clamping, m
+ * @param halfWid the car's half width for clamping, m
+ * @param open whether its wheels are exposed (physics/openwheel.ts)
+ * @param lamp the lamp the solid is a post of, if it is one
+ */
+function clampSolid(car: CarBody, solid: Solid, halfLen: number, halfWid: number, open: boolean,
+    lamp: Lamp | null = null): void {
+  const vx0 = car.vx, vy0 = car.vy;
+  clampToSolid(car, solid, halfLen, halfWid, lamp);
+  // a post snapped by the body is down: the wheels go through it too
+  if (open && !(lamp && lamp.down)) clampWheelsToSolid(car, solid, lamp);
+  if (car.vx !== vx0 || car.vy !== vy0) noteHit(car, lamp ? 'lamp' : solid.kind);
+}
+/** A point, world m. */
+type Point2 = { x: number; y: number };
+const wheelScratch = { x: 0, y: 0, hl: 0, hw: 0, cos: 1, sin: 0 }, edgeScratch = { x: 0, y: 0 };
+/**
+ * An open-wheeler's exposed wheels against one solid box (physics/openwheel.ts): each wheel's
+ * box clamps as the body's does; a hit into a wheel is noted for the damage.
+ * @param car the car
+ * @param solid the solid box
+ * @param lamp the lamp it is a post of, if it is one
+ */
+function clampWheelsToSolid(car: CarBody, solid: Solid, lamp: Lamp | null): void {
+  for (let wheel = 0; wheel < 4; wheel++) {
+    const box = wheelBox(car, wheel, wheelScratch);
+    if (!box) continue;
+    const vx0 = car.vx, vy0 = car.vy;
+    clampToSolid(car, solid, box.hl, box.hw, lamp, box);
+    noteWheelBump(car, CORNER_OF_WHEEL[wheel], vx0, vy0);
+  }
+}
+/**
+ * An open-wheeler's exposed wheels against one barrier segment: each wheel's outer edge, front
+ * and back of the tyre, clamps as a corner does.
+ * @param car the car
+ * @param seg the segment
+ * @param half half the barrier's thickness, m
+ * @param rail the armco rail it is part of, when it dents
+ */
+function clampWheelsToSeg(car: CarBody, seg: BarrierSeg, half: number, rail: Barrier | null): void {
+  for (let index = 0; index < 8; index++) {
+    const edge = wheelEdge(car, index, edgeScratch);
+    if (!edge) continue;
+    const vx0 = car.vx, vy0 = car.vy;
+    clampCornerToSeg(car, seg, half, edge.x, edge.y, rail);
+    noteWheelBump(car, edgeCorner(index), vx0, vy0);
   }
 }
 /**
@@ -332,15 +384,17 @@ export function solidClamp(car: CarBody): void {
  * @param halfLen the car's half length for clamping, m
  * @param halfWid the car's half width for clamping, m
  * @param lamp the lamp the solid is a post of, if it is one
+ * @param centre the box's centre when it is not the car's (an open wheel)
  */
 function clampToSolid(car: CarBody, solid: Solid, halfLen: number, halfWid: number,
-    lamp: Lamp | null = null): void {
-  const dx = car.x - solid.x, dy = car.y - solid.y;
+    lamp: Lamp | null = null, centre: Point2 = car): void {
+  const dx = centre.x - solid.x, dy = centre.y - solid.y;
   if (dx * dx + dy * dy > (Math.hypot(halfLen, halfWid) + solid.r!) ** 2) return;
   // a smashed hut is no longer solid
   if (solid.kind === 'marshal' && isSolidWrecked(solid)) return;
   const cosHead = Math.cos(car.heading), sinHead = Math.sin(car.heading);
-  const { best, pushX, pushY } = satAgainstSolid(car, solid, halfLen, halfWid, cosHead, sinHead);
+  const { best, pushX, pushY } =
+    satAgainstSolid(car, solid, halfLen, halfWid, cosHead, sinHead, centre);
   if (best <= 0) return;
   const into = -(car.vx * pushX + car.vy * pushY);
   // a street light's post or a tree's trunk takes the damage in one spot (physics/posthit.ts)
@@ -419,7 +473,7 @@ export function barrierClamp(car: CarBody): void {
   const list = LEVEL.barriers;
   if (!list || !list.length) return;
   const spec = car.spec, cosHead = Math.cos(car.heading), sinHead = Math.sin(car.heading);
-  const halfLen = spec.len * 0.48, halfWid = spec.wid * 0.48;
+  const halfLen = spec.len * 0.48, halfWid = spec.wid * 0.48, open = hasOpenWheels(car);
   for (const barrier of list) {
     const half = BARRIER_HALF[barrier.kind];
     if (!half || !barrier._segs) continue;
@@ -428,6 +482,7 @@ export function barrierClamp(car: CarBody): void {
       if (car.x < seg.minX - spec.len || car.x > seg.maxX + spec.len
           || car.y < seg.minY - spec.len || car.y > seg.maxY + spec.len) continue;
       clampCornersToSeg(car, seg, half, halfLen, halfWid, cosHead, sinHead, rail);
+      if (open) clampWheelsToSeg(car, seg, half, rail);
     }
     if (car.vx !== vx0 || car.vy !== vy0) noteHit(car, barrier.kind);
     settleRail(rail);

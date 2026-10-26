@@ -1,4 +1,5 @@
 import { noteHit } from './physics/punctures.ts';
+import { wheelContacts } from './physics/openwheel.ts';
 // contact.js — CAR-TO-CAR CONTACT (AI stage 1; requirement: full contact). Every pair of cars is
 // tested as two oriented boxes with the separating-axis test (the same test solidClamp
 // uses for props). On overlap: the two are pushed apart along the axis of least overlap, split
@@ -79,12 +80,13 @@ export function carContact(firstCar, secondCar) {
   return true;
 }
 
-// every pair once
+// every pair once: the bodies, then a single-seater's exposed wheels (physics/openwheel.ts)
 export function carContacts(cars) {
   let count = 0;
   for (let i = 0; i < cars.length; i++)
     for (let other = i + 1; other < cars.length; other++)
-      if (carContact(cars[i], cars[other])) {
+      // both always run (a body touch does not skip the wheels)
+      if ([carContact(cars[i], cars[other]), wheelContacts(cars[i], cars[other])].some(Boolean)) {
         count++;
         noteHit(cars[i], 'car');
         noteHit(cars[other], 'car');

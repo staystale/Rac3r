@@ -34,4 +34,12 @@ export const TEST_LIST = [
   // passed 2026-10-25); oil passed 2026-10-25; debris passed 2026-10-26; glasspop,
   // oilwear passed 2026-10-26; posthit passed 2026-10-26 (=1 picked over =hard); armcodent
   // passed 2026-10-26; waterspread passed 2026-10-26)
+  {
+    id: 'openwheel',
+    added: '2026-10-26',
+    name: 'F1 / F2 wheels collide (cars, walls, posts, cones), kick wheel to wheel, rip off',
+    where: 'Plain link + &openwheel=1: Track spec or F2, with AI; walls, armco, posts',
+    try: 'Rub wheels with other cars and walls; tap a wheel at 40+ km/h, it may tear off.',
+    wrong: 'Wheels still pass through things, a wild launch, or wheels lost to gentle taps.',
+  },
 ];

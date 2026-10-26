@@ -18,6 +18,7 @@ import {
 } from './physics/posthit.ts';
 import { CORNER_OF_WHEEL } from './world/wheels.ts';
 import { railGive } from './world/armcodent.ts';
+import { ripWheel, takeWheelHit, wheelShares, type WheelHit } from './physics/openwheel.ts';
 // damage.ts — CAR DAMAGE. Bookkeeping on the sim step; vehicle.ts reads only
 // car.wreck (multipliers, no-op by default — CLAUDE.md §2 rule 6), render.ts draws the crush /
 // dents / chips / loose wheels, hud.js the tyre diagram, the results the repair bill.
@@ -83,6 +84,7 @@ export interface DamageCar extends Partial<DamageState>, PressureCar, Partial<En
   dmgEvents?: DamageEvent[]; wheelSpawn?: number[];
   streamers?: unknown[] | null; wreck?: CarWreck;
   burstTyre?: number; burstSlow?: boolean; _hitKind?: string | null; _post?: PostNote | null;
+  _wheelHit?: WheelHit | null;
   // crash debris (world/debris.ts): a bit per corner whose part / window is gone
   partsOff?: number; glassOut?: number;
   _dsp?: unknown; _scrapeT?: number; _sideKick?: { dir: number; dv: number };
@@ -218,6 +220,22 @@ function impactShape(post: PostNote | null, deltaV: number, fore: number, latera
 }
 
 /**
+ * A hit into an open-wheeler's exposed wheel (?openwheel=1, physics/openwheel.ts): it may rip
+ * the wheel off, and most of the hit lands on that corner.
+ * @param car the car (its damage state made)
+ * @param note this step's wheel hit, or null
+ * @param weights the corner shares by the hit's direction
+ * @param rnd the random source
+ * @returns the corner shares
+ */
+function wheelImpact(car: DamagedCar, note: WheelHit | null, weights: number[],
+    rnd: () => number): number[] {
+  if (!note) return weights;
+  ripWheel(car, note, rnd);
+  return wheelShares(weights, note);
+}
+
+/**
  * One resolved collision: the velocity change since (vx0, vy0) becomes a scrape or an impact.
  * @param car the car, its velocity already changed by the collision
  * @param vx0 velocity x before, m/s
@@ -237,7 +255,7 @@ export function hit(
   const punctureK = takeHitFactor(car);
   // a street light's post or a tree's trunk (physics/posthit.ts): by the closing speed, in the
   // spot it struck
-  const post = takePost(car);
+  const post = takePost(car), wheelHit = takeWheelHit(car);
   const dvx = car.vx - vx0, dvy = car.vy - vy0, deltaV = Math.hypot(dvx, dvy);
   if (!(deltaV >= SCRAPE_DV)) return 0;
   if (!car.dmg) damageInit(car);
@@ -245,7 +263,8 @@ export function hit(
   const cosH = Math.cos(car.heading), sinH = Math.sin(car.heading);
   // where it came FROM, car frame, unit
   const fore = -(dvx * cosH + dvy * sinH) / deltaV, lateral = -(-dvx * sinH + dvy * cosH) / deltaV;
-  const { weights, size, radiator } = impactShape(post, deltaV, fore, lateral);
+  const shape = impactShape(post, deltaV, fore, lateral), { size, radiator } = shape;
+  const weights = wheelImpact(hurt, wheelHit, shape.weights, rnd);
   const endW = Math.abs(fore) / (Math.abs(fore) + Math.abs(lateral) + 1e-6);
   let top = 0;
   for (let corner = 1; corner < 4; corner++) if (weights[corner] > weights[top]) top = corner;
