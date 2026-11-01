@@ -5,8 +5,10 @@ the git history (this file was swept on 2026-10-19: every finished entry deleted
 decisions and the measured lessons live in `NOTES.md`). `docs/foreman-handover.md` is the last
 handover, written on request.
 
-## Where we are (2026-10-25)
+## Where we are (2026-11-01)
 
+- NEXT (owner 11-01): 1 the DRIVING ROOT FIX (real ABS), then 2 AI REWORK B. The owner's
+  bug / feature list of 11-01 is digested below (K1-K15): bugs proposed as one test round first.
 - The plain link is the approved game; the test list is EMPTY. DEFAULT 10-24 / 10-25 (owner
   "all pass"; every switch and old path deleted, each proved SAME against the tested switch):
   highway street lights L4b + the solid grid; traffic seated when woken, the Sandbox puddles,
@@ -37,6 +39,82 @@ handover, written on request.
 - The laptop has ~6 GB: ONE heavy browser tool at a time; a full renderhash runs in 4 parts.
 - Refs (gitignored): rac3r-wt2/tools and rac3r-wt/tools hold .worldhash / .simhash /
   .renderhash saved on main be32466 (renderhash re-saved 10-24 in 4 parts).
+
+## OWNER LIST 2026-11-01 (digested; ORDER: bugs round -> 1 DRIVING ROOT FIX -> 2 AI REWORK B)
+
+Owner 11-01: "focus on 1 (driving root fix, real ABS) and then 2 (AI rework B)". Code checked for
+each bug below (suspect = read in the code, not yet reproduced; every fix reproduced first).
+
+BUGS (S-M each; proposed as ONE test round before the root fix, owner to confirm)
+- K1 WET TRAILS ON DRY-LOOKING TARMAC (after snow / ice, or damp with no rain). CAUSE (code):
+  world/wet.ts buildDamp gives any hard ground the wet mark from dampness 0.3 up; damp lasts
+  after the rain stops and meltwater sets it to 0.88-1.0 (coverfield.ts setMeltSoak). OWNER
+  RULE: a wet trail only in a PUDDLE or while it is RAINING; elsewhere normal rubber marks.
+  Grip of damp ground unchanged (look only). S. Asked: drizzle counts as raining?
+  RAIN AND TYRES (owner asked): yes - wet ground cools tyres (damp coolK up to 0.18, a puddle
+  0.20, physics/tyreheat.ts groundCool); falling rain has no extra term. No change unless asked.
+- K2 MENU RACE: the camera car never resets for damage. CAUSE (code): game/sim.js demoInput
+  resets it only when stopped 3 s or 30 m astray, and without a repair; the menu's AI rivals
+  already use the race rule (game/ai.js stepAIInjury). Fix: the camera car uses that same rule
+  (one system). S.
+- K3 AI SLOW DOWN AND WEAVE (Thruston and others; the menu race runs on Thruston). LEADS:
+  Thruston's racing line has a seam (a 1.385 m segment and a turn spike at its last point,
+  tools/scratch/_lineseam.mjs, 10-24); the off-line corner slow-down (ai/driverDrive.ts: a car
+  inside the line slows by sqrt((R - x) / R)) and the scripted wander. Reproduce on every
+  circuit, fix the cause; anything rooted in line-following goes into B. S-M.
+- K4 TYRE MARKS FADE IN RANDOM SQUARE CHUNKS. CAUSE (code): marks.js fadeBlocks halves one
+  hashed eighth-by-eighth block of the marks layer every 0.5 s - blocks, not age. WANTED: oldest
+  first, newest last, no patches. Plan: each mark remembers when it was laid and fades by its
+  age (same ~2-3 min life); design + cost measured first. M.
+- K5 TREES AT NIGHT: a lighter edge round the canopy. Suspects: render/light.ts puts the dark
+  back over each canopy as one square (render/trees.ts traceCanopies) while the drawn canopy is
+  offset squares + a shadow offset down-right, and the light map's scaling softens the edge.
+  Night photo first, fix the cause. S.
+- K6 HIGHWAY: snow the AI drove over ahead (off screen) is fresh again when you get there.
+  SUSPECT (code): world/wear.ts pruneWear (each highway rebuild) drops any cell whose ground
+  layers no longer equal cell.orig - weather snow comes from the cover field, not layersAt, so
+  AI-made cells may be dropped as "changed". Reproduce, then fix at the cause. S-M.
+- K7 A LOST WHEEL can still leak, burst, go to the rim and wear. CAUSE (code): only
+  openwheel.ts and tyreheat.ts check car.wheelOff; tyrepressure.ts, punctures.ts, tyrewear.ts,
+  metalscrape.ts (rim), bushes / debris / stingers do not. OWNER: a hub may spark on hard
+  ground; nothing else can happen to a wheel that is gone; the car still takes damage. S.
+
+FEATURES
+- K8 MENU RACE camera car = the player's car (the garage choice / last used), not the fixed
+  hatch-rwd (main.js DEMO_CAR). Its paint / number too. S.
+- K9 AI CARS get their race NUMBER painted on (the garage's paint + number system) and brighter,
+  more varied colours (look change: mockup first). S-M.
+- K10 RANDOM AI NUMBERS (not 1, 2, 3 ...): unique per event, never the player's, the same on the
+  car and on the scoreboard / results. S. Asked: a driver keeps the number across events?
+- K11 UP TO 10 AI: setAI caps at 5 (main.js). Measure first: AI ms per car (laptop profile) and a
+  phone ?report=1 race at 10; grid slots on the shortest tracks. M. Owner to decide on numbers.
+
+FOLDED INTO 1 - THE DRIVING ROOT FIX (wheel spin as real state; plan first, then build)
+- Real ABS (A10): pulsing, staggered marks, steering kept, shorter stops than locked.
+- K12 MUD HILLS: some cars barely climb rallycross hills; stopped / reset in wet mud they cannot
+  pull away. Measure each car's climb and launch on wet mud vs real figures; with real wheel
+  spin, traction on loose ground comes from the tyre law, not a patch.
+- K13 GRIP / SPEED / TORQUE / STEERING REALISM: a measured balance pass against real figures
+  (0-100, braking g, cornering g, top speed per car); drifting a little is OK but the OWNER
+  TUNES how far (a table of the measured gaps first, owner picks).
+- K14 LOOSE-GROUND SIDE GRIP (owner idea): turning / drifting on gravel and sand (dirt a bit)
+  builds a berm of loose stuff against the tyre's sidewall - lateral grip that grows with the
+  slide instead of pure sliding. To DISCUSS: a slip-dependent "plough" side force (the surfaces
+  already carry plough / rough), scaled by surface and depth (dig.ts dents).
+
+FOLDED INTO 2 - AI REWORK B (design agreed first)
+- K15 TEST MODE AI SLIDERS: one per behaviour axis - skill, risk, pace, line precision, mistake
+  (crash) chance, aggression, defence, anything else the AI uses. OWNER: a slider raises the whole
+  field's chance but a better driver keeps a lower one (slider x the driver's own multiplier) -
+  how it works now and what is best to be discussed with the owner first.
+  HOW IT WORKS NOW (ai/traits.ts): a difficulty is the field's centre (pace, lineQ, wander,
+  mistake, slip); each AI gets a personality (quick / steady / aggressive / defensive / balanced)
+  and a skill 0-1 that scales wander, mistakes and slip (x1.4 at skill 0 .. x0.6 at skill 1) and
+  nudges lineQ and precision. Wander is a SCRIPTED sine drift off the line, and lineQ pulls the
+  target towards the track's middle - deviation is drawn, not earned.
+  OWNER OBSERVATION: off the line the AI slows to get back on it. WANTED: go fast, follow the
+  line SOFTLY from wherever they are; deviation only as a RESULT (low skill, mis-braking, too
+  fast, a crash, a less than optimal line) - emergent behaviour from simple rules. Fits B1-B3.
 
 ## Queue (the owner orders it)
 
