@@ -32,6 +32,14 @@ export interface Settings {
   churn: '' | 'pictures' | 'objects';   // ?churn=: judder mechanism test (memory churn)
   autopilot: boolean;   // ?autopilot=1: the AI drives the player car (phone frame tests, no touch)
   autopilotKmh: number;   // ?autopilot=120: hold the autopilot car at this speed (0 = no cap)
+  wheelGone: boolean;   // ?wheelgone=1: a lost wheel's tyre takes nothing more (core/fixes.ts)
+  heavyWet: boolean;    // ?heavywet=1: wet trails only in a puddle or heavy rain (core/fixes.ts)
+  menuReset: boolean;   // ?menureset=1: the menu race's camera car resets for damage (fixes.ts)
+  menuCar: boolean;     // ?menucar=1: the menu race follows the player's garage car (fixes.ts)
+  aiNumbers: boolean;   // ?ainumbers=1: AI race numbers random and painted on (fixes.ts)
+  markAge: boolean;     // ?markage=1: tyre marks fade oldest first, in small cells (fixes.ts)
+  treeNight: boolean;   // ?treenight=1: no pale rim round tree canopies at night (fixes.ts)
+  hwSnow: boolean;      // ?hwsnow=1: highway rebuilds keep tracks in weather snow (fixes.ts)
 }
 
 function autopilotKmh(params: URLSearchParams): number {
@@ -102,5 +110,13 @@ export function readSettings(search: string): Settings {
     churn: churnKind(params),
     noNatClear: params.get('nonat') === '1',
     skipLayers: new Set((params.get('skip') || '').split(',').filter(Boolean)),
+    wheelGone: params.get('wheelgone') === '1',
+    heavyWet: params.get('heavywet') === '1',
+    menuReset: params.get('menureset') === '1',
+    menuCar: params.get('menucar') === '1',
+    aiNumbers: params.get('ainumbers') === '1',
+    markAge: params.get('markage') === '1',
+    treeNight: params.get('treenight') === '1',
+    hwSnow: params.get('hwsnow') === '1',
   };
 }

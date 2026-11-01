@@ -9,6 +9,7 @@
 import { calendarAt, CLOCK } from '../world/clock.ts';
 import { FIELD } from '../world/coverfield.ts';
 import { WEATHER, weatherSeason } from '../world/weather.ts';
+import { FIX } from '../core/fixes.ts';
 import type { Prop } from '../world/types.ts';
 
 // the share of trees that are firs (by seed)
@@ -134,7 +135,13 @@ export function traceCanopies(ctx: CanvasRenderingContext2D, props: Prop[], map:
     if (prop.kind !== 'tree' || isBare(prop)) continue;
     const side = (prop.s || 4) * scale, x = map.artX(prop.x), y = map.artY(prop.y);
     if (!map.isNear(x, y, side)) continue;
-    ctx.rect(x - side / 2, y - side / 2, side, side);
+    if (FIX.treeNight) {
+      // WHOLE light-map px (owner 11-01, ?treenight=1: "a lit edge round the canopy"): the dark
+      // goes back in two fills (light.ts darkenCanopies: rub out, then fill); a part-covered edge
+      // px came out LESS dark than either, a pale rim the smooth scale-up widened
+      const left = Math.round(x - side / 2), top = Math.round(y - side / 2);
+      ctx.rect(left, top, Math.round(x + side / 2) - left, Math.round(y + side / 2) - top);
+    } else ctx.rect(x - side / 2, y - side / 2, side, side);
     count++;
   }
   return count;

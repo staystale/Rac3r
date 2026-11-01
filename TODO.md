@@ -8,7 +8,7 @@ handover, written on request.
 ## Where we are (2026-11-01)
 
 - NEXT (owner 11-01): 1 the DRIVING ROOT FIX (real ABS), then 2 AI REWORK B. The owner's
-  bug / feature list of 11-01 is digested below (K1-K15): bugs proposed as one test round first.
+  bug / feature list of 11-01 is digested below (K1-K15): bugs first as one test round (agreed).
 - The plain link is the approved game; the test list is EMPTY. DEFAULT 10-24 / 10-25 (owner
   "all pass"; every switch and old path deleted, each proved SAME against the tested switch):
   highway street lights L4b + the solid grid; traffic seated when woken, the Sandbox puddles,
@@ -40,23 +40,25 @@ handover, written on request.
 - Refs (gitignored): rac3r-wt2/tools and rac3r-wt/tools hold .worldhash / .simhash /
   .renderhash saved on main be32466 (renderhash re-saved 10-24 in 4 parts).
 
-## OWNER LIST 2026-11-01 (digested; ORDER: bugs round -> 1 DRIVING ROOT FIX -> 2 AI REWORK B)
+## OWNER LIST 2026-11-01 (digested; ORDER AGREED: bugs round -> 1 DRIVING ROOT FIX -> 2 AI B)
 
 Owner 11-01: "focus on 1 (driving root fix, real ABS) and then 2 (AI rework B)". Code checked for
 each bug below (suspect = read in the code, not yet reproduced; every fix reproduced first).
 
-BUGS (S-M each; proposed as ONE test round before the root fix, owner to confirm)
+BUGS (S-M each; ONE test round before the root fix - owner 11-01: OK)
 - K1 WET TRAILS ON DRY-LOOKING TARMAC (after snow / ice, or damp with no rain). CAUSE (code):
   world/wet.ts buildDamp gives any hard ground the wet mark from dampness 0.3 up; damp lasts
   after the rain stops and meltwater sets it to 0.88-1.0 (coverfield.ts setMeltSoak). OWNER
   RULE: a wet trail only in a PUDDLE or while it is RAINING; elsewhere normal rubber marks.
-  Grip of damp ground unchanged (look only). S. Asked: drizzle counts as raining?
+  Grip of damp ground unchanged (look only). S. OWNER 11-01: only HEAVY rain lays trails on
+  damp ground; light rain / drizzle: only puddles. BUILT ?heavywet=1 (marks.js markOf, rain
+  0.7+): soaked track, no rain / light 0.45 / heavy 1 - trail share 1/1/1 off, 0/0/1 on.
   RAIN AND TYRES (owner asked): yes - wet ground cools tyres (damp coolK up to 0.18, a puddle
   0.20, physics/tyreheat.ts groundCool); falling rain has no extra term. No change unless asked.
 - K2 MENU RACE: the camera car never resets for damage. CAUSE (code): game/sim.js demoInput
   resets it only when stopped 3 s or 30 m astray, and without a repair; the menu's AI rivals
   already use the race rule (game/ai.js stepAIInjury). Fix: the camera car uses that same rule
-  (one system). S.
+  (one system). S. BUILT ?menureset=1 (game/sim.js demoInput): wrecked -> reset + mended.
 - K3 AI SLOW DOWN AND WEAVE (Thruston and others; the menu race runs on Thruston). LEADS:
   Thruston's racing line has a seam (a 1.385 m segment and a turn spike at its last point,
   tools/scratch/_lineseam.mjs, 10-24); the off-line corner slow-down (ai/driverDrive.ts: a car
@@ -65,29 +67,48 @@ BUGS (S-M each; proposed as ONE test round before the root fix, owner to confirm
 - K4 TYRE MARKS FADE IN RANDOM SQUARE CHUNKS. CAUSE (code): marks.js fadeBlocks halves one
   hashed eighth-by-eighth block of the marks layer every 0.5 s - blocks, not age. WANTED: oldest
   first, newest last, no patches. Plan: each mark remembers when it was laid and fades by its
-  age (same ~2-3 min life); design + cost measured first. M.
+  age (same ~2-3 min life); design + cost measured first. M. OWNER 11-01: oldest first, SMALL
+  bits at a time (not the big panels), same life. BUILT ?markage=1 (marks.js fadeAged: 16 px
+  cells ~3.8 m, newest mark's age; fade from 90 s, 5 steps of 12 s): skid A at 0 s, B at 60 s -
+  A 60/22/0 % at 90/120/150 s while B stays 100 %, then B; cost 0.28 ms a game second.
 - K5 TREES AT NIGHT: a lighter edge round the canopy. Suspects: render/light.ts puts the dark
   back over each canopy as one square (render/trees.ts traceCanopies) while the drawn canopy is
   offset squares + a shadow offset down-right, and the light map's scaling softens the edge.
-  Night photo first, fix the cause. S.
+  Night photo first, fix the cause. S. CAUSE: the two fills' part-covered edge px came out
+  less dark than both (rim 154 vs grass 131, canopy 69). BUILT ?treenight=1: the canopy squares
+  on whole light-map px (render/trees.ts) - edge now 131 -> 98 -> 69, no rim.
 - K6 HIGHWAY: snow the AI drove over ahead (off screen) is fresh again when you get there.
   SUSPECT (code): world/wear.ts pruneWear (each highway rebuild) drops any cell whose ground
   layers no longer equal cell.orig - weather snow comes from the cover field, not layersAt, so
-  AI-made cells may be dropped as "changed". Reproduce, then fix at the cause. S-M.
+  AI-made cells may be dropped as "changed". Reproduce, then fix at the cause. S-M. CAUSE
+  CONFIRMED: getCell keeps the ground UNDER a field cover as orig, the prune compared the cover:
+  every cell under weather snow / water went at each rebuild. BUILT ?hwsnow=1 (wear.ts
+  groundOrig): snow highway, 3 AI - cells 410 -> 151 in 5 s off; grow 40 -> 1266 on.
 - K7 A LOST WHEEL can still leak, burst, go to the rim and wear. CAUSE (code): only
   openwheel.ts and tyreheat.ts check car.wheelOff; tyrepressure.ts, punctures.ts, tyrewear.ts,
   metalscrape.ts (rim), bushes / debris / stingers do not. OWNER: a hub may spark on hard
-  ground; nothing else can happen to a wheel that is gone; the car still takes damage. S.
+  ground; nothing else can happen to a wheel that is gone; the car still takes damage. S. BUILT
+  ?wheelgone=1 (world/wheels.ts wheelGone at tyrepressure / tyrewear / metalscrape / marks /
+  HUD): wheel off + burst asked, 20 s - off: leaks, wears; on: full, no wear, hub sparks.
 
 FEATURES
 - K8 MENU RACE camera car = the player's car (the garage choice / last used), not the fixed
-  hatch-rwd (main.js DEMO_CAR). Its paint / number too. S.
+  hatch-rwd (main.js DEMO_CAR). Its paint / number too. S. BUILT ?menucar=1 (menuflow.js
+  enterMenu: profile.active + its livery).
 - K9 AI CARS get their race NUMBER painted on (the garage's paint + number system) and brighter,
   more varied colours (look change: mockup first). S-M.
 - K10 RANDOM AI NUMBERS (not 1, 2, 3 ...): unique per event, never the player's, the same on the
-  car and on the scoreboard / results. S. Asked: a driver keeps the number across events?
+  car and on the scoreboard / results. S. OWNER 11-01: a driver KEEPS their number across
+  events (Story); TEST MODE deals random numbers each event. BUILT ?ainumbers=1 (grid.js
+  aiNumbers; also K9's painted number - spec.num): 6 deals all unique, never your #7.
 - K11 UP TO 10 AI: setAI caps at 5 (main.js). Measure first: AI ms per car (laptop profile) and a
   phone ?report=1 race at 10; grid slots on the shortest tracks. M. Owner to decide on numbers.
+
+- K16 DRIVER NAMES: every AI racer gets a name (parody puns, the NOTES rule), shown with the
+  number on the scoreboard / results; the PLAYER can set their own name in settings, with the
+  usual safeguarding (no swearing, slurs or racism; a word filter that also catches spaced /
+  leetspeak spellings). Where it shows and where the setting lives (no SETTINGS screen yet - G):
+  proposal / mockup first. S-M.
 
 FOLDED INTO 1 - THE DRIVING ROOT FIX (wheel spin as real state; plan first, then build)
 - Real ABS (A10): pulsing, staggered marks, steering kept, shorter stops than locked.
@@ -115,6 +136,8 @@ FOLDED INTO 2 - AI REWORK B (design agreed first)
   OWNER OBSERVATION: off the line the AI slows to get back on it. WANTED: go fast, follow the
   line SOFTLY from wherever they are; deviation only as a RESULT (low skill, mis-braking, too
   fast, a crash, a less than optimal line) - emergent behaviour from simple rules. Fits B1-B3.
+  OWNER 11-01: KEEP what we have, adjust it - NOT a total rebuild. Each racer may have its own
+  idea of the ideal line, and it may change to overtake, to block, or for the surface.
 
 ## Queue (the owner orders it)
 

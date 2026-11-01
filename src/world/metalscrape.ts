@@ -13,13 +13,14 @@ import {
   WEAR_CELL, wearMap, wearKey, wearDirty, getCell, layersAt, groundAt,
 } from './wear.ts';
 import type { Mark, Surface } from './types.ts';
-import { carWheels, CORNER_OF_WHEEL } from './wheels.ts';
+import { carWheels, CORNER_OF_WHEEL, wheelGone } from './wheels.ts';
 
 /** A car as this file reads it. */
 export interface ScrapeCar {
   x: number; y: number; vx: number; vy: number; heading: number;
   spec: { lf: number; lr: number; trackWidth?: number };
   onRim?: boolean[];
+  wheelOff?: boolean[];
   rimSparks?: boolean[];
   sparks?: boolean;
   _scrapeCell?: number[];
@@ -62,10 +63,12 @@ function scrapeRims(car: ScrapeCar, rnd: () => number) {
   const speed = Math.hypot(car.vx, car.vy), rim = car.onRim;
   const sparks = car.rimSparks || (car.rimSparks = [false, false, false, false]);
   sparks.fill(false);
-  if (!rim || !rim.some(Boolean) || speed < SCRAPE_FROM) return;
+  // a wheel gone drags its hub: metal on the ground as a rim is (owner 11-01: it may spark)
+  const metal = (corner: number) => (!!rim && rim[corner]) || wheelGone(car, corner);
+  if (![0, 1, 2, 3].some(metal) || speed < SCRAPE_FROM) return;
   const wheels = carWheels(car);
   for (let corner = 0; corner < 4; corner++) {
-    if (!rim[corner]) continue;
+    if (!metal(corner)) continue;
     const { x, y } = wheels[CORNER_OF_WHEEL[corner]];
     if (!surfaceUnder(x, y).hard) continue;
     sparks[corner] = true;

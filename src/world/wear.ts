@@ -11,6 +11,7 @@ import { passGlassCell } from "./debris.ts";
 import { notePass } from "./pass.ts";
 import { WEATHER } from "./weather.ts";
 import { carWheels } from "./wheels.ts";
+import { FIX } from "../core/fixes.ts";
 import { staticCoverHere } from "./coverlookup.ts";
 import { fieldLayers } from "./coverfield.ts";
 import { puddleClearBy, setPassTyre } from "./puddles.ts";
@@ -131,8 +132,7 @@ export function pruneWear(x: number, y: number, far: number): number {
   for (const [key, cell] of wearMap) {
     const cellX = (cell.cx + 0.5) * WEAR_CELL, cellY = (cell.cy + 0.5) * WEAR_CELL;
     let drop = (cellX - x) ** 2 + (cellY - y) ** 2 > far * far;
-    if (!drop) { const layers = layersAt(cellX,
-      cellY); drop = (layers.cover || layers.base) !== cell.orig; }
+    if (!drop) drop = groundOrig(layersAt(cellX, cellY)) !== cell.orig;
     if (drop) {
       wearMap.delete(key);
       dropped++;
@@ -143,6 +143,18 @@ export function pruneWear(x: number, y: number, far: number): number {
     }
   }
   return dropped;
+}
+/**
+ * What a wear cell made here now would hold as its orig (getCell): a fixed cover (scenery water)
+ * is the cell's own ground, the cover field's (weather snow, ice, water) is not - the ground under
+ * it is. Off ?hwsnow=1 the prune compared the cover with that orig: every cell under weather snow
+ * read "changed" and went at each highway rebuild, the AI's tracks ahead with it (owner 11-01).
+ * @param layers the static layers at the cell
+ * @returns the surface id
+ */
+function groundOrig(layers: Layers): string {
+  if (!FIX.hwSnow) return layers.cover || layers.base;
+  return layers.fixed ? layers.cover || layers.base : layers.base;
 }
 // tools/_wearleak.mjs: the ground with no wear
 export const cleanAt = (x: number, y: number): string => { const layers = layersAt(x,

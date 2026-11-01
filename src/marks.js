@@ -13,9 +13,11 @@ import { FENCE, FX0, FX1, FY0, FY1, RUNOFF_W } from "./world/bounds.ts";
 import { COL } from "./world/colours.ts";
 import { fxRandom } from "./render/shared.ts";
 import { LEVEL } from "./world/state.ts";
-import { MARK_WET } from "./world/surfaces.ts";
+import { MARK_WET, SURFACES } from "./world/surfaces.ts";
+import { WEATHER } from "./world/weather.ts";
+import { FIX } from "./core/fixes.ts";
 // this file's wheel order is the damage corners' (front -y, front +y, rear -y, rear +y)
-import { CORNER_OF_WHEEL } from "./world/wheels.ts";
+import { CORNER_OF_WHEEL, wheelGone } from "./world/wheels.ts";
 import { MARK_GOUGE } from "./world/metalscrape.ts";
 import { addTrailPoint, clearWetTrails } from "./wettrail.ts";
 
@@ -48,6 +50,10 @@ const STAMP_STEP = 0.10;                         // m
  * @property {boolean} wraps true once the window follows the car (a wrap-around buffer)
  * @property {number} [fadeT] s since the last block faded
  * @property {number} [fadeN] blocks faded so far (the block hash)
+ * @property {number} [clock] s of marks time (the aged fade)
+ * @property {Float64Array} [cellT] each fade cell's newest mark, marks s (the aged fade)
+ * @property {Uint8Array} [cellStep] each fade cell's fade steps done (the aged fade)
+ * @property {Set<number>} [live] the fade cells holding marks (the aged fade)
  */
 
 /**
@@ -166,6 +172,7 @@ function clearMarks(markCtx) {
   state.wraps = false;
   state.prev.clear();
   state.stamps = 0;
+  if (state.live) state.live.clear();
   clearWetTrails();
 }
 
@@ -200,13 +207,86 @@ function fadeBlocks(markCtx, dt) {
   ctx.restore();
 }
 
+// MARKS FADE OLDEST FIRST (owner 11-01, ?markage=1: "oldest first and small bits at once" - the
+// blocks above are ~100 m panels fading at random). The layer is cut into FADE_CELL px cells
+// (~3.8 m); each remembers when its NEWEST mark was laid. A cell starts fading AGED_FROM_S after
+// that, one AGED_ALPHA step every AGED_STEP_S, and is cleared at the last step: gone ~2.3 min
+// after its last mark, as before. A mark laid in one go fades in one go; ground still being
+// driven (a rutted line) keeps its marks until it is left alone.
+const FADE_CELL = 16, CELLS = Math.ceil(SIZE / FADE_CELL);
+const AGED_FROM_S = 90, AGED_STEP_S = 12, AGED_STEPS = 5, AGED_ALPHA = 0.4, AGED_TICK_S = 0.25;
+
 /**
- * Fades the marks, block by block.
+ * Notes a stroke's cells as just marked (the aged fade).
+ * @param {MarkCtx} markCtx the marks context
+ * @param {number[]} from the [x, y] layer px of the start (as drawn)
+ * @param {number[]} dest the [x, y] layer px of the end
+ * @param {number} reach px round the segment the drawing can reach
+ */
+function noteMarked(markCtx, from, dest, reach) {
+  const { state } = markCtx;
+  if (!state.cellT) {
+    state.cellT = new Float64Array(CELLS * CELLS);
+    state.cellStep = new Uint8Array(CELLS * CELLS);
+    state.live = new Set();
+    state.clock = state.clock || 0;
+  }
+  const cell = (layerPx) => (state.wraps ? Math.floor(wrapPx(layerPx, SIZE) / FADE_CELL)
+    : Math.max(0, Math.min(CELLS - 1, Math.floor(layerPx / FADE_CELL))));
+  const lowX = Math.min(from[0], dest[0]) - reach, highX = Math.max(from[0], dest[0]) + reach;
+  const lowY = Math.min(from[1], dest[1]) - reach, highY = Math.max(from[1], dest[1]) + reach;
+  for (let y = lowY; ; y = Math.min(y + FADE_CELL, highY)) {
+    for (let x = lowX; ; x = Math.min(x + FADE_CELL, highX)) {
+      const index = cell(y) * CELLS + cell(x);
+      state.cellT[index] = state.clock;
+      state.cellStep[index] = 0;
+      state.live.add(index);
+      if (x >= highX) break;
+    }
+    if (y >= highY) break;
+  }
+}
+
+/**
+ * Every AGED_TICK_S: each cell whose newest mark is old enough fades one step (the last clears).
+ * @param {MarkCtx} markCtx the marks context
+ * @param {number} dt the step in seconds
+ */
+function fadeAged(markCtx, dt) {
+  const { ctx, state } = markCtx;
+  state.clock = (state.clock || 0) + dt;
+  state.fadeT = (state.fadeT || 0) + dt;
+  if (state.fadeT < AGED_TICK_S || !state.live) return;
+  state.fadeT -= AGED_TICK_S;
+  ctx.save();
+  ctx.globalCompositeOperation = 'destination-out';
+  ctx.fillStyle = `rgba(0,0,0,${AGED_ALPHA})`;
+  for (const index of state.live) {
+    const step = state.cellStep[index];
+    if (state.clock - state.cellT[index] < AGED_FROM_S + step * AGED_STEP_S) continue;
+    const x = (index % CELLS) * FADE_CELL, y = Math.floor(index / CELLS) * FADE_CELL;
+    if (step + 1 >= AGED_STEPS) {
+      ctx.clearRect(x, y, FADE_CELL, FADE_CELL);
+      state.live.delete(index);
+    } else {
+      ctx.fillRect(x, y, FADE_CELL, FADE_CELL);
+      state.cellStep[index] = step + 1;
+    }
+  }
+  ctx.restore();
+}
+
+/**
+ * Fades the marks: oldest first by cell (?markage=1), else block by block.
  *
  * @param {MarkCtx} markCtx the marks context
  * @param {number} dt the step in seconds
  */
 function fadeMarks(markCtx, dt) {
+  if (FIX.markAge) {
+    fadeAged(markCtx, dt);
+    return;
+  }
   if (markCtx.state.stamps === 0) return;
   fadeBlocks(markCtx, dt);
 }
@@ -372,6 +452,9 @@ function stampWheel(markCtx, wheel) {
   }
   strokeMark(markCtx, wheel, loose, from, dest);
   dropRubberBall(markCtx, wheel, from, dest);
+  // the stroke's width plus how far off it a rubber ball may land
+  if (FIX.markAge) noteMarked(markCtx, from, dest, markCtx.ctx.lineWidth + (wheel.width * 1.2 + 0.7)
+    * MARK_PPM);
 }
 
 /**
@@ -419,6 +502,23 @@ function surfaceOfWheel(car, under, corner) {
   return (under && under[CORNER_OF_WHEEL[corner]]) || car.surface;
 }
 
+// WET TRAILS ONLY IN A PUDDLE OR HEAVY RAIN (owner 11-01, ?heavywet=1): damp hard ground
+// (world/wet.ts buildDamp) lays the wet trail only while it rains at least this hard (light
+// rain 0.45, heavy 1: world/weather.ts); otherwise the dry ground's own mark - rubber where a
+// tyre slips. Look only: the damp grip is unchanged.
+const HEAVY_TRAIL_RAIN = 0.7;
+/**
+ * The mark a wheel lays on a surface.
+ * @param {object} surface the ground under the wheel
+ * @returns {object|undefined} the mark (undefined = ordinary skid marks)
+ */
+function markOf(surface) {
+  if (!FIX.heavyWet || surface.mark !== MARK_WET || surface.id === 'puddle' || surface.id === 'wet'
+    || WEATHER.rain >= HEAVY_TRAIL_RAIN) return surface.mark;
+  const dry = SURFACES[surface.id];
+  return dry ? dry.mark : undefined;
+}
+
 function listWheels(car) {
   if (car._markId === undefined) car._markId = nextMarkId++;
   const spec = car.spec, telem = car.t;
@@ -435,6 +535,9 @@ function listWheels(car) {
     ['rl', -spec.lr, -halfTrack, telem.slipSpeedR, 2],
     ['rr', -spec.lr, halfTrack, telem.slipSpeedR, 3],
   ]) {
+    // a wheel gone leaves no rubber, trail or spray: only its hub's score while it sparks
+    const gone = wheelGone(car, corner), gouge = !!(rims && rims[corner]);
+    if (gone && !gouge) continue;
     out.push({
       key: car._markId + key,
       x: car.x + along * cosH - side * sinH,
@@ -442,8 +545,8 @@ function listWheels(car) {
       slip,
       width: spec.tyreWidth,
       // set only by loose surfaces (undefined = ordinary skid marks), or a rim's score
-      mark: rims && rims[corner] ? MARK_GOUGE : surfaceOfWheel(car, under, corner).mark,
-      spray: surfaceOfWheel(car, under, corner).spray,
+      mark: gouge ? MARK_GOUGE : markOf(surfaceOfWheel(car, under, corner)),
+      spray: gone ? undefined : surfaceOfWheel(car, under, corner).spray,
       heat: car.tyreT ? car.tyreT[(along > 0 ? 0 : 2) + (side > 0 ? 0 : 1)] : 60,
     });
   }

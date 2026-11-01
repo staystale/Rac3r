@@ -8,7 +8,9 @@
 // hard ground (world/metalscrape.ts: sparks, a scored line, a chance to break the surface).
 // damage.ts owns the puncture (where it starts) and turns these numbers into car.wreck; RESET /
 // RESTART / an AI's reset mend them with the rest of the damage. Arrays are by damage CORNER
-// (0 front -y, 1 front +y, 2 rear -y, 3 rear +y).
+// (0 front -y, 1 front +y, 2 rear -y, 3 rear +y). A wheel that has come off (world/wheels.ts
+// wheelGone) has no tyre: no new leak, no air lost, no run to the rim, nothing in car.wreck.
+import { wheelGone } from '../world/wheels.ts';
 
 /** The tyre-pressure state on a car (all four arrays by damage corner). */
 export interface PressureState {
@@ -22,6 +24,7 @@ export interface PressureState {
 export interface PressureCar extends Partial<PressureState> {
   vx: number; vy: number; yawRate?: number;
   tyreFx?: TyreEvent[];
+  wheelOff?: boolean[];
 }
 /** A moment the particles show: the puff when a tyre goes, the shreds when it reaches the rim. */
 export interface TyreEvent { corner: number; kind: 'puff' | 'shreds' }
@@ -69,7 +72,7 @@ export function pressureInit(car: PressureCar): void {
  */
 export function startLeak(car: PressureCar, corner: number, fast: boolean,
   rnd: () => number = Math.random): void {
-  if (!car.tyreLeak || !car.tyreP || car.tyreLeak[corner] > 0) return;
+  if (!car.tyreLeak || !car.tyreP || car.tyreLeak[corner] > 0 || wheelGone(car, corner)) return;
   car.tyreLeak[corner] = fast ? FAST_LEAK : 1 / (SLOW_MIN_S + SLOW_SPREAD_S * rnd());
   if (fast) {
     // the car pulls hard toward the side that went (+y corners 1 and 3 pull +y)
@@ -97,20 +100,38 @@ export function stepTyrePressure(car: PressureCar, dt: number,
   }
   const speed = Math.hypot(car.vx, car.vy);
   const cornerG = Math.abs((car.yawRate || 0) * speed) / GRAVITY;
+  const metres = speed * dt * (1 + RIM_CORNER_K * cornerG);
   for (let corner = 0; corner < 4; corner++) {
-    if (leak[corner] > 0 && pressure[corner] > 0) {
-      pressure[corner] = Math.max(0, pressure[corner] - leak[corner] * dt);
-      changed = true;
-    }
-    if (rim[corner] || pressure[corner] > FLAT_BELOW) continue;
-    const before = run[corner];
-    run[corner] += speed * dt * (1 + RIM_CORNER_K * cornerG);
-    if (rnd() < rimChance(before, run[corner])) {
-      rim[corner] = true;
-      pressure[corner] = 0;
-      pushTyreEvent(car, { corner, kind: 'shreds' });
-      changed = true;
-    }
+    if (!wheelGone(car, corner) && stepCorner(car, corner, metres, dt, rnd)) changed = true;
+  }
+  return changed;
+}
+
+/**
+ * One tyre's step: its leak, then (flat) the run toward the rim.
+ * @param car the car (pressureInit has run)
+ * @param corner the damage corner
+ * @param metres how far it ran this step, cornering counted
+ * @param dt seconds
+ * @param rnd the random source
+ * @returns true when anything changed that car.wreck reads
+ */
+function stepCorner(car: PressureCar, corner: number, metres: number, dt: number,
+  rnd: () => number): boolean {
+  const pressure = car.tyreP!, leak = car.tyreLeak!, run = car.flatRun!, rim = car.onRim!;
+  let changed = false;
+  if (leak[corner] > 0 && pressure[corner] > 0) {
+    pressure[corner] = Math.max(0, pressure[corner] - leak[corner] * dt);
+    changed = true;
+  }
+  if (rim[corner] || pressure[corner] > FLAT_BELOW) return changed;
+  const before = run[corner];
+  run[corner] += metres;
+  if (rnd() < rimChance(before, run[corner])) {
+    rim[corner] = true;
+    pressure[corner] = 0;
+    pushTyreEvent(car, { corner, kind: 'shreds' });
+    changed = true;
   }
   return changed;
 }
@@ -147,9 +168,12 @@ export interface PressureWreck { gripF: number; gripR: number; toe: number; roll
  */
 export function pressureWreck(car: PressureCar): PressureWreck {
   const pressure = car.tyreP!, rim = car.onRim!;
-  const grip = [0, 1, 2, 3].map((corner) => tyreGrip(pressure[corner], rim[corner]));
+  // a wheel gone counts as a full tyre here: the lost wheel's own rules (tyres.ts, damage.ts)
+  const grip = [0, 1, 2, 3].map((corner) => (wheelGone(car, corner) ? 1
+    : tyreGrip(pressure[corner], rim[corner])));
   let toe = car.tyreKick || 0, roll = 0;
   for (let corner = 0; corner < 4; corner++) {
+    if (wheelGone(car, corner)) continue;
     const soft = 1 - pressure[corner], side = corner % 2 ? 1 : -1;
     toe += (corner < 2 ? PULL_FRONT : PULL_REAR) * side * soft;
     roll += rim[corner] ? DRAG_RIM : DRAG_FLAT * soft;

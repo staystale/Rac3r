@@ -7,6 +7,7 @@ import { COL } from '../world/colours.ts';
 import { wearColour } from '../physics/tyrewear.ts';
 import { tempInUnits } from './tracktemp.js';
 import { drawEngineLights } from './enginelights.ts';
+import { wheelGone } from '../world/wheels.ts';
 import {
   MARGIN, DIAGRAM_H, drawHudPanel, drawHudLabel, drawHudButton,
 } from './widgets.js';
@@ -263,7 +264,8 @@ function pressureRing(car, corner) {
  */
 export function drawHudWheelFault(ctx, car, corner, bodyX, bodyY, bodyW, bodyH) {
   // the ring follows the tyre's air (physics/tyrepressure.ts)
-  const ring = car.tyreP && pressureRing(car, corner);
+  // (no ring round a wheel that is gone: the crossed-out box below says it)
+  const ring = car.tyreP && !wheelGone(car, corner) && pressureRing(car, corner);
   if (ring) {
     const wheelX = corner % 2 ? bodyX + bodyW - 3 : bodyX - 4, wheelY = bodyY
       + (corner >= 2 ? bodyH - 14 : 4);

@@ -9,6 +9,7 @@
 // Crashes (damage.ts) and debris (cones/coneCar.js) may puncture too.
 
 import { debrisChance } from './punctures.ts';
+import { CORNER_OF_WHEEL, wheelGone } from '../world/wheels.ts';
 
 /** The tyre fields wear reads (cars.ts Tyre). */
 interface WearTyre { grip: Record<string, number>; bySurf?: Record<string, number> }
@@ -66,6 +67,7 @@ interface WearCar {
   tyreWear?: number[];
   tyreT: number[];
   surface: WearSurface;
+  wheelOff?: boolean[];
 }
 
 /**
@@ -86,6 +88,8 @@ export function wearTyres(car: WearCar, tyre: WearTyre | null | undefined, windo
   const wear = car.tyreWear, perTonne = 1000 / Math.max(500, massKg);
   let burst = -1;
   for (let i = 0; i < 4; i++) {
+    // a wheel that has come off has no tyre to wear or burst
+    if (wheelGone(car, CORNER_OF_WHEEL[i])) continue;
     const overC = car.tyreT[i] - window[1];
     const slide = wheelSlip[i] > 0 ? 1 + SLIDE_WEAR
       * Math.tanh(wheelSlip[i] / SLIDE_WEAR_V) * (1 + Math.max(0, overC) / HOT_SLIDE_PER_C) : 1;

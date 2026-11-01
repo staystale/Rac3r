@@ -12,6 +12,7 @@ import { CAR_IDS, applyLivery } from './cars.ts';
 import { createInput } from './input.js';
 import { createRenderer } from './render.ts';
 import { readSettings } from './core/settings.ts';
+import { FIX } from './core/fixes.ts';
 import { createMarks } from './marks.js';
 import { setTrackTempSource } from './hud/tracktemp.js';
 import { createHud } from './hud.js';
@@ -59,6 +60,15 @@ addStageLevels();
 addHighwayLevel();
 
 shared.settings = readSettings(location.search);
+// the 11-01 bug round's switches (core/fixes.ts)
+FIX.wheelGone = shared.settings.wheelGone;
+FIX.heavyWet = shared.settings.heavyWet;
+FIX.menuReset = shared.settings.menuReset;
+FIX.menuCar = shared.settings.menuCar;
+FIX.aiNumbers = shared.settings.aiNumbers;
+FIX.markAge = shared.settings.markAge;
+FIX.treeNight = shared.settings.treeNight;
+FIX.hwSnow = shared.settings.hwSnow;
 // ?rain=0.6: a wet track, raining (weather test, before any level or racing line is built)
 if (shared.settings.rain !== null) {
   setWetness(shared.settings.rain);
