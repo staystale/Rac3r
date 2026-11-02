@@ -116,6 +116,23 @@ export function wornGrip(wearA: number, wearB: number, wetK = 0): number {
 }
 
 /**
+ * A set's health for the tyre shop (owner 11-02: "can it show the grip reduction / puncture %
+ * chance along with it, so a player can see it increase in between races"): the grip its worst
+ * axle has lost, dry and on soaking ground, and the chance a minute that its most worn tyre
+ * punctures from wear alone (heat above the window adds more, while driving).
+ * @param wear the four tyres' wear, 0..1 (FL FR RL RR)
+ * @returns the dry and wet grip lost (shares) and the puncture chance a minute
+ */
+export function setHealth(wear: number[]): { dryLoss: number; wetLoss: number; punctMin: number } {
+  const front = [wear[0] || 0, wear[1] || 0], rear = [wear[2] || 0, wear[3] || 0];
+  const dry = Math.min(wornGrip(front[0], front[1]), wornGrip(rear[0], rear[1]));
+  const wet = Math.min(wornGrip(front[0], front[1], 1), wornGrip(rear[0], rear[1], 1));
+  const worst = Math.max(0, Math.max(...wear) - WORN_RISK_FROM) / (1 - WORN_RISK_FROM);
+  return { dryLoss: 1 - dry, wetLoss: 1 - wet,
+    punctMin: 1 - Math.exp(-WORN_RISK_PER_S * worst * worst * 60) };
+}
+
+/**
  * Whether a hit on loose debris, or a second on pallet nails, punctures a tyre (the chance by
  * what it is: physics/punctures.ts).
  * @param kind the object's kind

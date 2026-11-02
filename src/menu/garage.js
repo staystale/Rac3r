@@ -1,4 +1,5 @@
-import { wearColour } from '../physics/tyrewear.ts';
+import { wearColour, setHealth } from '../physics/tyrewear.ts';
+import { showSpecSheet } from './specsheet.ts';
 import { COL } from '../world/colours.ts';
 import {
   ROSTER, CLASSES, classOf, PALETTE, TYRES, TYRE_BRANDS, TYRE_SURFS, tyreOf,
@@ -133,6 +134,10 @@ AIDS</span><b>${aids}</b>`
   const buttonRow = addElement(panel, 'div', '', 'row');
   addButton(menu, buttonRow, 'PAINT', () => showPaintShop(menu));
   addButton(menu, buttonRow, 'TYRES', () => showTyreShop(menu));
+  addButton(menu, buttonRow, 'SPEC SHEET', () => {
+    const car = ROSTER.find((x) => x.id === menu.profile.active);
+    showSpecSheet(menu, car.id, car.name, () => showGarage(menu));
+  });
   addButton(menu, buttonRow, 'BUY CARS', () => {}, '', true, 'SOON');
   addButton(menu, buttonRow, 'UPGRADES', () => {}, '', true, 'SOON');
   addButton(menu, panel, '◀ BACK', () => showMainMenu(menu));
@@ -242,8 +247,18 @@ function showSetWear(menu, carId, fitted, info, fitButton) {
   const worn = setWear(menu, carId);
   fitButton.innerHTML = !fitted ? 'FIT ✓' : worn > 0.02 ? 'NEW SET ✓' : 'FITTED ✓';
   if (!fitted) return;
+  // what the wear costs (physics/tyrewear.ts setHealth): grip lost, the puncture chance
+  const health = setHealth((menu.profile.tyreWear || {})[carId] || [0, 0, 0, 0]);
+  const pct = (share) => (share < 0.0005 ? '0' : (share * 100).toFixed(share < 0.1 ? 1 : 0));
   info.innerHTML += `<div class="stats"><span>THIS SET</span>`
-    + `<b style="color:${wearColour(worn, COL)}">${Math.round(worn * 100)}% WORN</b></div>`;
+    + `<b style="color:${wearColour(worn, COL)}">${Math.round(worn * 100)}% WORN</b>`
+    + `<span>GRIP LOST</span><b style="color:${wearColour(worn, COL)}">${pct(health.dryLoss)}% `
+    + `DRY · ${pct(health.wetLoss)}% WET</b>`
+    + `<span>PUNCTURE RISK</span><b style="color:${wearColour(worn, COL)}">`
+    + (health.punctMin > 0 ? `${pct(health.punctMin)}% A MINUTE` : 'NONE (UNDER 70% WORN)')
+    + `</b></div>`
+    + '<div class="sub" style="text-align:left">Hot tyres (over their window) add to the risk.'
+    + '</div>';
 }
 
 /**

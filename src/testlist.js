@@ -39,4 +39,20 @@ export const TEST_LIST = [
   // 2026-11-02; smokeover, heatease, flatgrip passed 2026-11-02; steerfeel (the SETTINGS steering:
   // curve + reach at speed) passed 2026-11-02, kept as player settings; towplus (the wake)
   // passed 2026-11-02)
+  {
+    id: 'specsheet',
+    added: '2026-11-02',
+    name: 'GARAGE > SPEC SHEET: power, torque, gears, weight split, tyres, brakes, aero ...',
+    where: 'Main menu > GARAGE > SPEC SHEET (each car)',
+    try: 'Look through a few cars; anything missing you want to see?',
+    wrong: 'A number that looks wrong for the car, or the sheet not fitting the phone.',
+  },
+  {
+    id: 'tyrehealth',
+    added: '2026-11-02',
+    name: 'Tyre shop: the fitted set shows GRIP LOST (dry / wet) and PUNCTURE RISK a minute',
+    where: 'GARAGE > TYRES, after a few races on the same set',
+    try: 'Race, come back, watch the numbers climb; fit a NEW SET and see them reset.',
+    wrong: 'Numbers that never change, or a risk shown on a nearly new set.',
+  },
 ];
