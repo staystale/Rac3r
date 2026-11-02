@@ -1,5 +1,5 @@
-// physics/wheelspin.ts - WHEEL SPEED AS REAL STATE (the driving ROOT FIX, ?wheelspin=1; owner
-// 11-02: "ok"). Each axle has a wheel speed (car.wU, m/s at the tyre's surface) that the engine,
+// physics/wheelspin.ts - WHEEL SPEED AS REAL STATE (the driving ROOT FIX; owner 11-02: "ok", then
+// "pass"). Each axle has a wheel speed (car.wU, m/s at the tyre's surface) that the engine,
 // the brakes and the tyre's own force turn. The tyre's longitudinal slip comes FROM it, so lock-ups
 // and wheelspin are what the wheel does, not a guess from demand vs grip (tyres.ts slidingLaw:
 // "we do not model wheel spin as a state"). MEASURED before (tools/scratch/_brakebase.mjs, 100
@@ -12,7 +12,16 @@
 // the two directions by their share of n. Pure cornering is exactly the old lateral curve; a
 // locked wheel (kappa -1, n ~8) slides almost straight on and steers little; a wheel held near the
 // peak (ABS) keeps a share for steering. Peaks on loose ground come later (the surface's peakK), as
-// the lateral curve's do.
+// the lateral curve's do: on gravel the tyre digs a wedge into the loose layer, so the peak
+// arrives at 15-25 deg of slip instead of the 7-8 of tarmac and the curve falls away far more
+// gently past it - why a rally driver can hold a car sideways on gravel and steer it on the
+// throttle, and why the same technique spins you on tarmac. Lowering mu alone would only make
+// gravel feel like wet tarmac: slippery, not loose.
+//
+// BEFORE (tyres.ts until 11-02): two laws - a lagged friction circle while the drive / brake
+// demand was under grip, a sliding law past it with the slip GUESSED from how far past - and an
+// ABS that capped each axle's brake just under grip. Two attempts to smooth the hand-over were
+// measured and reverted (ENGINE.md); this replaces both laws.
 //
 // ABS releases and re-applies each axle's brake as its wheel passes the peak slip (car.absP), so
 // it PULSES: staggered marks, steering kept, a shorter stop than locked.
@@ -20,12 +29,10 @@ import type { Spec } from '../cars.ts';
 import type { Car } from '../vehicle.ts';
 import { TUNE, curveFactor, clamp } from '../vehicle.ts';
 import {
-  axleGrip, axleTyreGrip, relaxAxleForces, tyreGripOn, type axleForce,
+  axleGrip, axleTyreGrip, relaxAxleForces, tyreGripOn, type AxleForce,
 } from './tyres.ts';
 import { axleFrictionWork } from './tyreheat.ts';
 
-/** One axle's force, as tyres.ts axleForce returns it. */
-type AxleResult = ReturnType<typeof axleForce>;
 
 // longitudinal slip at the peak on hard ground (real tyres 0.10-0.15); x the surface's peakK
 const KAPPA_PEAK = 0.12;
@@ -96,7 +103,7 @@ function lawForce(law: Law, wheelU: number) {
 }
 
 /**
- * The axle's grip numbers this step (axleGrip, the lateral peak as tyres.ts tyreLateral's).
+ * The axle's grip numbers this step (axleGrip, the lateral peak as the old lateral law's).
  * @param car the car
  * @param carSpec its spec
  * @param tick the step's shared values
@@ -204,7 +211,7 @@ function stepAxles(car: Car, carSpec: Spec, tick: WheelTick, inps: [AxleIn, Axle
 }
 
 /**
- * One axle's outcome in tyres.ts axleForce's shape, from its wheel at the end of the step.
+ * One axle's outcome (tyres.ts AxleForce), from its wheel at the end of the step.
  * @param car the car
  * @param tick the step's shared values
  * @param inp the axle's input
@@ -224,7 +231,7 @@ function axleOutcome(car: Car, tick: WheelTick, inp: AxleIn, law: Law, meanX: nu
   // ABS stop left no mark at all - the marks need 2.2 m/s)
   const slipSpeed = Math.hypot(slipLong, inp.syl)
       * clamp((end.slipN - MARK_FROM) / (1.1 - MARK_FROM), 0, 1);
-  const axle: AxleResult = { Fx: meanX, Fy: meanY * tick.latFade,
+  const axle: AxleForce = { Fx: meanX, Fy: meanY * tick.latFade,
     FyMax: law.FyPk * (sliding ? law.sgLat : 1), sliding, sat: Math.min(1, end.slipN), spinning,
     slipSpeed };
   const locked = Math.abs(law.vx) > 1 && Math.abs(wheelU) < 0.15 * Math.abs(law.vx);
@@ -260,7 +267,7 @@ function axleMasses(car: Car, carSpec: Spec, inp: WheelStepIn): [number, number]
 }
 
 /**
- * The step's shared values (as tyres.ts computeAxleForces makes them).
+ * The step's shared values.
  * @param car the car
  * @param carSpec its spec
  * @param inp the step's input
@@ -274,9 +281,8 @@ function wheelTick(car: Car, carSpec: Spec, inp: WheelStepIn): WheelTick {
 }
 
 /**
- * Sections 6/7 of step with real wheel speeds (?wheelspin=1): both axles' wheels and forces, the
- * lock flags, ABS, the friction work and the relaxation lag - what tyres.ts computeAxleForces
- * returns.
+ * Sections 6/7 of step: both axles' wheels and forces, the lock flags, ABS, the friction work
+ * and the relaxation lag.
  * @param car the car
  * @param carSpec its spec
  * @param inp the step's input

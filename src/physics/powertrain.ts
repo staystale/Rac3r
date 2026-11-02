@@ -4,7 +4,6 @@ import type { Spec } from '../cars.ts';
 import { clamp, STEER_MAX, STEER_RATE } from '../vehicle.ts';
 import type { Car, CarInput } from '../vehicle.ts';
 import { drivenWheelSpeed } from './wheelspin.ts';
-import { FIX } from '../core/fixes.ts';
 
 export const CLUTCH_RELEASE = 0.12;   // s to cut drive at the start of a shift
 
@@ -123,27 +122,6 @@ export function runPowertrain(car: Car, carSpec: Spec, input: CarInput, vLong: n
 }
 
 /**
- * The driven wheels' speed when it is not real state (off ?wheelspin=1): the road speed plus
- * car.wheelSpin, eased toward the last step's driven slip while the driven axle spins.
- * @param car the car
- * @param carSpec its spec
- * @param vLong the road speed along the car, m/s
- * @param dt the step, s
- * @param throttle the throttle 0..1
- * @returns m/s at the tread
- */
-function guessedWheelSpeed(car: Car, carSpec: Spec, vLong: number, dt: number,
-    throttle: number): number {
-  const tPrev = car.t;
-  const isDrivenSpinning = carSpec.drive >= 0.99 ? tPrev.spinF : carSpec.drive <= 0.01 ? tPrev.spinR
-      : (tPrev.spinF || tPrev.spinR);
-  const drivenSlip = isDrivenSpinning ? Math.max(0, tPrev.slipSpeedDriven || 0) : 0;
-  car.wheelSpin = (car.wheelSpin || 0) + (drivenSlip - (car.wheelSpin || 0)) * Math.min(1, 14 * dt);
-  if (throttle < 0.02 || !isDrivenSpinning) car.wheelSpin *= Math.exp(-18 * dt);
-  return Math.abs(vLong) + (car.wheelSpin || 0);
-}
-
-/**
  * Engine part of the powertrain section: wheelspin of the driven wheels, the rpm target from wheel
  * speed with the clutch-slip launch, and the rpm chasing it.
  */
@@ -153,9 +131,9 @@ function updateEngineRpm(car: Car, carSpec: Spec, vLong: number, dt: number, inR
   // roll with ground speed: wheelRps = |vLong| / wheelR. When driven tyres genuinely break traction
   // (wheelspin on slippery surfaces or burnout), the driven wheels spin faster than ground speed.
   // As soon as tyres grip up, wheelspin decays to zero.
-  // (?wheelspin=1: the driven wheels' real speed, physics/wheelspin.ts - it sets car.wheelSpin)
-  const wheelSpeed = FIX.wheelSpin && car.wU ? drivenWheelSpeed(car, carSpec)
-    : guessedWheelSpeed(car, carSpec, vLong, dt, throttle);
+  // the driven wheels' real speed (physics/wheelspin.ts, which sets car.wheelSpin); road speed
+  // until the wheels have stepped
+  const wheelSpeed = car.wU ? drivenWheelSpeed(car, carSpec) : Math.abs(vLong);
   const wheelRps = wheelSpeed / carSpec.wheelR;              // rad/s of the wheel
   let rpmTarget = clamp((wheelRps * totalRatio * 60) / (2 * Math.PI), carSpec.idleRpm,
       carSpec.redline);

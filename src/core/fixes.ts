@@ -20,5 +20,4 @@ function atLoad(name: string): boolean {
 export const FIX = {
   // ?evenlap=1: the traced circuits evenly spaced round the whole lap, short kinks smoothed (K3)
   evenLap: atLoad('evenlap'),
-  wheelSpin: atLoad('wheelspin'),   // ?wheelspin=1: wheel speed as real state, real ABS (root fix)
 };

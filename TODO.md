@@ -12,7 +12,8 @@ handover, written on request.
 - DEFAULT 11-02 (owner: "all tests pass"): the 11-01 round - K1 heavywet, K2 menureset, K4
   markage (round 2), K5 treenight, K6 hwsnow, K7 wheelgone (+ the K17 spray fix), K8 menucar,
   K10 ainumbers. Every switch and old path deleted; simhash SAME against main a4b5c34 with the
-  eight on (re-saved as the reference). UNDER TEST: ?evenlap=1 (K3, lap seam + short kinks).
+  eight on (re-saved as the reference). DEFAULT 11-02: the driving root fix (real wheel speed,
+  real ABS; owner "pass"). UNDER TEST: ?evenlap=1 (K3, lap seam + short kinks).
 - The plain link is the approved game. DEFAULT 10-24 / 10-25 (owner
   "all pass"; every switch and old path deleted, each proved SAME against the tested switch):
   highway street lights L4b + the solid grid; traffic seated when woken, the Sandbox puddles,
@@ -152,7 +153,8 @@ FEATURES
   approximation; measure the phone cost first (Safari holds frames). M, maybe L.
 
 FOLDED INTO 1 - THE DRIVING ROOT FIX (wheel spin as real state; plan first, then build)
-- BUILT ?wheelspin=1 (11-02, owner: "ok"; physics/wheelspin.ts): each axle's wheel speed is state
+- DEFAULT 11-02 (owner: "pass"; old law, ABS cap and switch deleted, simhash SAME against main
+  c47623c with ?wheelspin=1). BUILT ?wheelspin=1 (11-02, owner: "ok"; physics/wheelspin.ts): each axle's wheel speed is state
   (engine, brakes, tyre; 4 substeps, implicit), ONE combined slip law (kappa / alpha over their
   peaks -> the lateral curve's shape; pure cornering = the old curve), ABS that dumps / snaps /
   creeps (rear on its whole slip: EBD), AWD centre coupling, rev limiter + revs off the driven
@@ -163,7 +165,7 @@ FOLDED INTO 1 - THE DRIVING ROOT FIX (wheel spin as real state; plan first, then
   lone AI laps within 0.5 s; +1.2 us a car step. OPEN for the owner: threshold braking still no
   better than locking (the roster's brake bias 0.82 front locks the front first - K13); light
   cars slide more braking hard into a turn (0.2 lock: Mini 44 deg body slip); ABS marks faint
-  dashes (6 % of a stop past 2.2 m/s slip). Old ABS cap / guessed slip deleted at the flip.
+  dashes (6 % of a stop past 2.2 m/s slip). NEXT: re-measure carstats (the AI plans on them), K13.
 - Real ABS (A10): pulsing, staggered marks, steering kept, shorter stops than locked.
 - K12 MUD HILLS: some cars barely climb rallycross hills; stopped / reset in wet mud they cannot
   pull away. Measure each car's climb and launch on wet mud vs real figures; with real wheel

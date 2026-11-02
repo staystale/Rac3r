@@ -63,8 +63,17 @@ A top-down two-axle model with four tyre temperatures. `step(car, input, dt)`, i
 2. `runPowertrain` - reverse, gears and shifting, engine rpm, throttle and brake demand.
 3. `computeAxleLoads`, `computeLongitudinalDemand` - weight transfer and drive / brake per axle
    (`physics/loads.ts`).
-4. `computeAxleForces` - tyre forces per axle: grip from surface, load and temperature, one continuous
-   curve to the peak and a gentle slide, the friction circle, ABS, brake lock (`physics/tyres.ts`).
+4. `computeWheelForces` - each axle's WHEEL SPEED is state (`car.wU`, m/s at the tread), turned by the
+   engine (its inertia through the gearing while the clutch is in), the brakes and the tyre, in 4
+   implicit substeps (`physics/wheelspin.ts`). One combined law: longitudinal slip and slip angle,
+   each over its peak (later on loose ground: `peakK`), make one slip whose force follows the lateral
+   curve's shape (`curveFactor`: up to the peak, down to `slideGrip`), split by each one's share - pure
+   cornering is the old curve, a locked wheel slides straight on, a wheel held at the peak keeps some
+   steering. ABS dumps / snaps back / creeps (9-18 pulses a s); the rear watches its whole slip (EBD).
+   AWD axles are coupled (a viscous centre). Revs and the rev limiter follow the driven wheels. Grip
+   by load / aero / temperature, relaxation and ploughing: `physics/tyres.ts`. (Replaced 11-02: a
+   friction circle + a sliding law with the slip GUESSED from demand vs grip, and an ABS that capped
+   the brake under grip - locked = ABS stops, no steering under ABS; `tools/scratch/_rootbench.mjs`.)
 5. `ploughingForces`, `stabilityControl` - understeer plough and the ESC / TCS aids.
 6. `bodyAccelerations`, `integrateYaw`, `lowSpeedBlend` - body motion; a blend near standstill.
 7. `updateTyreTemps` (`physics/tyreheat.ts`), `advanceCar`, `writeTelemetry`.

@@ -6,7 +6,6 @@ import type { Car } from '../vehicle.ts';
 import { CLUTCH_RELEASE, CLUTCH_TAKEUP } from './powertrain.ts';
 import { LOAD_MAX } from './tyres.ts';
 import { drivenWheelSpeed } from './wheelspin.ts';
-import { FIX } from '../core/fixes.ts';
 
 /**
  * Section 4 of step: longitudinal weight transfer, the per-axle suspension springs riding the
@@ -132,7 +131,7 @@ function tractionCut(car: Car, vLongAbs: number, inReverse: boolean, dt: number)
  * and brake force per axle. Returns the demands the tyre blocks start from.
  */
 export function computeLongitudinalDemand(car: Car, carSpec: Spec, mass: number, gravity: number,
-    vLong: number, vLongAbs: number, dirSign: number, inReverse: boolean, throttle: number,
+    vLong: number, vLongAbs: number, inReverse: boolean, throttle: number,
     brakeIn: number, totalRatio: number, dt: number) {
   // ---- 5. longitudinal demand per axle CLUTCH RAMP. MEASURED BUG, (requirement: still getting
   // judder sometimes): torque was zeroed during a shift and then restored in ONE step — dumped on
@@ -150,13 +149,12 @@ export function computeLongitudinalDemand(car: Car, carSpec: Spec, mass: number,
   // was CLAMPED at the redline but kept making torque, so in top gear a car accelerated until drag
   // alone stopped it: the Naffcar V8 reached 759 km/h, the hatch 271. Now the engine cuts as the
   // WHEEL-derived revs pass the redline, faded over 2% so the cut is not a force step (a
-  // discontinuous force is a judder). revs from ROAD speed, not wheel speed: a first cut read the
-  // spinning wheels and cut the engine on every launch (muscle 0-100 km/h 3.5 -> 7.8 s). Wheelspin
-  // revs are handled by the clamp above; the limiter caps SPEED per gear.
-  // (?wheelspin=1: the DRIVEN WHEELS' real speed - physics/wheelspin.ts. The wheels are geared to
-  // the engine, so they cannot spin past the redline in a gear: a burnout bounces off the limiter.
-  // Off it, road speed: there the wheelspin was a guess, and reading it cut every launch.)
-  const revSpeed = FIX.wheelSpin && car.wU ? drivenWheelSpeed(car, carSpec) : Math.abs(vLong);
+  // discontinuous force is a judder). The revs of the DRIVEN WHEELS' real speed (physics/
+  // wheelspin.ts): they are geared to the engine, so they cannot spin past the redline in a gear -
+  // a burnout bounces off the limiter. (Before the wheels were real state the limiter read ROAD
+  // speed: the guessed wheelspin cut the engine on every launch. With them, reading road speed let
+  // a first-gear burnout spin the wheels to 3000 km/h.) Road speed until the wheels have stepped.
+  const revSpeed = car.wU ? drivenWheelSpeed(car, carSpec) : Math.abs(vLong);
   const rawRpm = ((revSpeed / carSpec.wheelR) * totalRatio * 60) / (2 * Math.PI);
   const limiter = clamp((carSpec.redline * 1.02 - rawRpm) / (carSpec.redline * 0.02), 0, 1);
   let torque = torqueAt(carSpec, car.rpm) * car.mods.power * (car.wreck ? car.wreck.power : 1)
@@ -194,8 +192,5 @@ export function computeLongitudinalDemand(car: Car, carSpec: Spec, mass: number,
   const brakeForce = carSpec.brakeMaxDecel * mass * gravity * brakeIn * car.mods.brakeTorque;
   let FbF = brakeForce * carSpec.brakeBiasF;
   let FbR = brakeForce * (1 - carSpec.brakeBiasF);
-  const brakeSign = -dirSign;                     // brakes oppose motion
-  let FxBrakeF = vLongAbs < 0.05 ? 0 : FbF * brakeSign;
-  let FxBrakeR = vLongAbs < 0.05 ? 0 : FbR * brakeSign;
-  return { torque, driveForce, FxDriveF, FxDriveR, FbF, FbR, brakeSign, FxBrakeF, FxBrakeR };
+  return { torque, driveForce, FxDriveF, FxDriveR, FbF, FbR };
 }

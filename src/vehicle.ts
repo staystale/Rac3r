@@ -19,10 +19,9 @@ import { steerFrontWheels, runPowertrain } from './physics/powertrain.ts';
 import { updateTyreTemps } from './physics/tyreheat.ts';
 import { WEATHER } from './world/weather.ts';
 import type { AxleOutcome } from './physics/tyreheat.ts';
-import { ALPHA_PEAK_MIN, computeAxleForces, ploughingForces } from './physics/tyres.ts';
+import { ALPHA_PEAK_MIN, ploughingForces } from './physics/tyres.ts';
 import type { AxleTick } from './physics/tyres.ts';
 import { computeWheelForces } from './physics/wheelspin.ts';
-import { FIX } from './core/fixes.ts';
 
 // What step reads from the input: steer -1..1, pedals 0..1, handbrake (on/off or 0..1), manual
 // shifts, reverse pedal.
@@ -71,8 +70,7 @@ export interface Car {
   rpm: number; gear: number;
   absOn: boolean; tcsOn: boolean; tcsK: number; escCut: number;
   shiftTimer: number; aLongPrev: number;
-  spinLatchF: number; spinLatchR: number;
-  // ?wheelspin=1 (physics/wheelspin.ts): each axle's wheel speed at the tread, m/s, and its ABS
+  // physics/wheelspin.ts: each axle's wheel speed at the tread, m/s, and its ABS
   // brake pressure 0..1 (undefined after a reset: the wheels start rolling with the car)
   wU?: number[]; absP?: number[];
   // ABS: the level that let go, dumping, how many releases
@@ -307,7 +305,6 @@ export function makeCar(carId: string, mods = defaultMods()) {
     shiftTimer: 0,
     aLongPrev: 0,          // last step's longitudinal accel, for weight transfer
     // lagged friction-circle scale, per axle hysteresis latches, so the spin state cannot chatter
-    spinLatchF: 1, spinLatchR: 1,
     FyFlag: 0, FyRlag: 0,  // lateral force lagged by the tyre relaxation length
     revLatch: false,       // edge-detect on the reverse control
     gearLock: 0,           // s of lockout after a forward/reverse change, so the box cannot hunt
@@ -388,8 +385,6 @@ export function reset(car: Car, x = 0, y = 0, heading = -Math.PI / 2) {
   car.revLatch = false;
   car.FyFlag = 0;
   car.FyRlag = 0;
-  car.spinLatchF = 1;
-  car.spinLatchR = 1;
   const telemetry = car.t as Record<string, number | boolean | undefined>;
   for (const field in telemetry) if (typeof telemetry[field] === 'number') telemetry[field] = 0;
   else telemetry[field] = false;
@@ -702,8 +697,8 @@ export function step(car: Car, input: CarInput, dt = PHYSICS_STEP_SECONDS) {
       car, carSpec, mass, gravity, vLong, vLat, dt);
 
   // ---- 5. longitudinal demand per axle
-  let { torque, driveForce, FxDriveF, FxDriveR, FbF, FbR, brakeSign, FxBrakeF, FxBrakeR } =
-      computeLongitudinalDemand(car, carSpec, mass, gravity, vLong, vLongAbs, dirSign, inReverse,
+  const { torque, driveForce, FxDriveF, FxDriveR, FbF, FbR } =
+      computeLongitudinalDemand(car, carSpec, mass, gravity, vLong, vLongAbs, inReverse,
           throttle, brakeIn, totalRatio, dt);
 
   // handbrake locks the rear outright 0..1, not a boolean: the handbrake is modulated (see
@@ -712,13 +707,10 @@ export function step(car: Car, input: CarInput, dt = PHYSICS_STEP_SECONDS) {
 
 
   // ---- 6/7. per-axle tyre force.
-  // (?wheelspin=1: real wheel speeds and ABS - physics/wheelspin.ts)
-  const { tick, axles, absWorking } = FIX.wheelSpin
-    ? computeWheelForces(car, carSpec, { dt, delta, vLong, vLat, vLongAbs, slipF, slipR, brakeIn,
-      FzF, FzR, FbF, FbR, handbrake, FxDriveF, FxDriveR, totalRatio, mass, gravity })
-    : computeAxleForces(car, carSpec, mass, gravity, dt, delta, vLong, vLat, vLongAbs, dirSign,
-      slipF, slipR, brakeIn, FzF, FzR, FbF, FbR, FxBrakeF, FxBrakeR, brakeSign, handbrake, FxDriveF,
-      FxDriveR);
+  // (the wheels' real speeds, the tyre law and ABS: physics/wheelspin.ts)
+  const { tick, axles, absWorking } = computeWheelForces(car, carSpec, { dt, delta, vLong, vLat,
+    vLongAbs, slipF, slipR, brakeIn, FzF, FzR, FbF, FbR, handbrake, FxDriveF, FxDriveR, totalRatio,
+    mass, gravity });
 
   // ---- 7b. PLOUGHING (see ploughingForces)
   const ploughF = ploughingForces(

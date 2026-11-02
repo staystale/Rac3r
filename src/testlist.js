@@ -35,17 +35,8 @@ export const TEST_LIST = [
   // oilwear passed 2026-10-26; posthit passed 2026-10-26 (=1 picked over =hard); armcodent
   // passed 2026-10-26; waterspread, openwheel passed 2026-10-26; the 11-01 round - heavywet,
   // menureset, markage (round 2: 8 px cells, 16 steps), treenight, hwsnow, wheelgone (+ the
-  // spray fix), menucar, ainumbers - passed 2026-11-02)
-  {
-    id: 'wheelspin',
-    added: '2026-11-02',
-    name: 'DRIVING ROOT FIX: real wheel speed - real ABS (pulses, steering while braking)',
-    where: 'Plain link + &wheelspin=1: any track, any car; try ABS on and off (B key / ABS button)',
-    try: 'Brake hard in a straight line, then brake hard and steer round something; with ABS off '
-      + 'lock the wheels; pull away on tarmac, gravel and mud; handbrake turns; a lap or two.',
-    wrong: 'No steering with ABS on while braking, steering with wheels locked, a spin from a '
-      + 'gentle swerve, judder, wheels that spin up forever, cars or AI slower than before.',
-  },
+  // spray fix), menucar, ainumbers - passed 2026-11-02; wheelspin (the driving root fix: real
+  // wheel speed, real ABS) passed 2026-11-02)
   {
     id: 'evenlap',
     added: '2026-11-02',

@@ -6,7 +6,7 @@ import { clamp, TYRE_HEAT, TYRE_FLEX, TYRE_T_MAX } from '../vehicle.ts';
 import { WEATHER } from '../world/weather.ts';
 import { coolTowardC } from './tyrecool.ts';
 import type { Car } from '../vehicle.ts';
-import { axleForce } from './tyres.ts';
+import type { AxleForce } from './tyres.ts';
 import { wearTyres } from './tyrewear.ts';
 import type { AxleTick } from './tyres.ts';
 
@@ -44,20 +44,20 @@ const wheelSlip = [0, 0, 0, 0];
  * Whether an axle's tyres scrub (spin, lock or slide) rather than roll: the heat model's switch
  * between its two friction-work laws.
  */
-export function scrubs(axleState: ReturnType<typeof axleForce>, locked: boolean): boolean {
+export function scrubs(axleState: AxleForce, locked: boolean): boolean {
   return axleState.spinning || locked || (axleState.sliding && axleState.slipSpeed > 2);
 }
 
 /** What updateTyreTemps reads from the two axle blocks of step. */
 export interface AxleOutcome {
-  frontAxle: ReturnType<typeof axleForce>; rearAxle: ReturnType<typeof axleForce>;
+  frontAxle: AxleForce; rearAxle: AxleForce;
   lockedF: boolean; lockedR: boolean; FzF: number; FzR: number; FzNomF: number; FzNomR: number;
   workF: number; workR: number; gripTF: number; gripTR: number;
 }
 
 /** Fills wheelSlip: each wheel's slip speed while its axle scrubs (0 rolling). */
-function fillWheelSlip(frontAxle: ReturnType<typeof axleForce>, lockedF: boolean,
-    rearAxle: ReturnType<typeof axleForce>, lockedR: boolean): void {
+function fillWheelSlip(frontAxle: AxleForce, lockedF: boolean,
+    rearAxle: AxleForce, lockedR: boolean): void {
   const front = scrubs(frontAxle, lockedF) ? frontAxle.slipSpeed : 0;
   const rear = scrubs(rearAxle, lockedR) ? rearAxle.slipSpeed : 0;
   wheelSlip[0] = wheelSlip[1] = front;
@@ -113,7 +113,7 @@ export function updateTyreTemps(car: Car, carSpec: Spec, tick: AxleTick, out: Ax
   // tyre's share x speed; on loose ground x heatK like everything else. GRIPPING axles only: a
   // sliding / spinning / locked axle already heats by slip work, and adding flex on top MEASURED
   // took the tarmac drift from too-hot-at-27 s to 17 s (the user wants overheating to stay hard).
-  const grips = (axleState: ReturnType<typeof axleForce>, locked: boolean) =>
+  const grips = (axleState: AxleForce, locked: boolean) =>
     !(axleState.spinning || locked || axleState.sliding);
   // CORNERING force only. MEASURED: with |Fx| included, holding 90 km/h on a straight (throttle
   // on, then engine braking off) warmed the rears to 46 C in 30 s; the rule is that a cruise
@@ -124,7 +124,7 @@ export function updateTyreTemps(car: Car, carSpec: Spec, tick: AxleTick, out: Ax
   // as ~7600 x "working hard". Now: grounded axles only, load floored at a quarter of static,
   // utilisation capped at the tyre's own grip (it cannot work harder than that).
   const utilOf = (
-    axleState: ReturnType<typeof axleForce>, locked: boolean, load: number, FzNom: number,
+    axleState: AxleForce, locked: boolean, load: number, FzNom: number,
   ) => (grips(axleState, locked) && load > 0.05 * FzNom)
     ? Math.min(muBase, Math.abs(axleState.Fy) / Math.max(0.25 * FzNom, load)) : 0;
   const utilF = utilOf(frontAxle, lockedF, FzF, FzNomF),
@@ -159,7 +159,7 @@ export function updateTyreTemps(car: Car, carSpec: Spec, tick: AxleTick, out: Ax
  * Friction work of one axle (W), from the tyre heat model: how hard its tyres scrub this step.
  */
 export function axleFrictionWork(
-  axleState: ReturnType<typeof axleForce>, syl: number, locked: boolean, load: number,
+  axleState: AxleForce, syl: number, locked: boolean, load: number,
   vLong: number, vLat: number, vLongAbs: number, muBase: number,
 ) {
   return scrubs(axleState, locked)
