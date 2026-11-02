@@ -139,7 +139,8 @@ function emitSpray(ctx: ParticleCtx, car: ParticleCar, marks: RenderMarks, wallD
   // never let a frame spike flood the pool
   if (count > 12) count = 12;
   for (let i = 0; i < count; i++) {
-    const wheel = wheels[(fxRandom() * 4) | 0];
+    // (fewer than four once a wheel has come off: marks.js lists no lost wheel)
+    const wheel = wheels[(fxRandom() * wheels.length) | 0];
     if (wheel.spray) emitPuff(ctx, wheel.x, wheel.y, car.vx, car.vy, wheel.spray, 0.4 + work);
   }
 }

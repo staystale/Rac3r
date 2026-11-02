@@ -113,7 +113,10 @@ FEATURES
   proposal / mockup first. S-M.
 
 - K17 HUD FLASHES "like crazy" driving off the track (owner 11-02, new). Not reproduced on the
-  laptop (Castle Cum grass, plain vs the round's link: same); asked which part / link / level.
+  laptop at first. Owner: test link only, after damage, off road. FIXED in ?wheelgone: with a
+  wheel off marks.js lists 3 wheels, particles.ts picked wheels[rand*4] -> undefined.spray threw
+  every few frames on loose ground, the frame died before the HUD (tools/scratch/_hudflash2.mjs:
+  3 flashes + page errors -> 0). Spray now picks from the list's length.
 - K18 MENU RACE ON A RANDOM TRACK each time, or the last track raced - highway levels too
   (owner 11-02). Today fixed to Thruston (main.js DEMO_LEVEL); the highway needs its own AI
   (weaver / hwFlow) and the camera car's driver there. M. Which: random, last, or a mix - ask.
