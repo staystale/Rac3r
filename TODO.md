@@ -15,8 +15,9 @@ handover, written on request.
   eight on (re-saved as the reference). DEFAULT 11-02: the driving root fix (real wheel speed,
   real ABS; owner "pass"). DEFAULT 11-02: ?evenlap (K3; owner "evenlap pass", simhash SAME
   against main 1316167 with it on) and the car stats re-measured on the root-fix physics (owner:
-  "update the new stats in"). Nothing under test. NOW: K13 realism table (measured, with the
-  owner to pick the dials), then K12 mud hills.
+  "update the new stats in"). UNDER TEST: the K13 realism dials ?realbrake ?reallock ?realgrip
+  ?realpower (realism.ts, 0 = now, 1 = real; my picks 1 / 1 / 0.5 / 1, owner "ok"). On the
+  owner's values: write them into the roster, delete realism.ts, re-run carstats. Then K12.
 - The plain link is the approved game. DEFAULT 10-24 / 10-25 (owner
   "all pass"; every switch and old path deleted, each proved SAME against the tested switch):
   highway street lights L4b + the solid grid; traffic seated when woken, the Sandbox puddles,
@@ -185,6 +186,11 @@ FOLDED INTO 1 - THE DRIVING ROOT FIX (wheel spin as real state; plan first, then
   (real 10-12). Six dials offered (A keep / B halfway / C real): brake balance, locked grip,
   tyre grip, power, top speed, turning circle; my picks C, C, B, C outliers, follows, A. Each
   picked dial to be built as a numeric test switch (0 = now, 1 = real) for the owner to tune.
+  BUILT 11-02 (realism.ts; all off simhash SAME). At 1 / 1 / 0.5 / 1: locked stop ~20 % longer
+  than ABS (was 4 %), ABS 32-41 m, road cars 1.1-1.3 g, hatch 0-100 6.8 s, muscle 5.3, Mini 9.9,
+  Lambo top 344; brakecheck BACK 12 -> 5 (Naffcar / F1 rotate more, none backwards);
+  aidrivecheck pro laps 8-14 % slower, no time off the road (Naffcar was off 2 s before).
+  The muscle car still tops out at 205 (its gearing; real 250).
 - K14 LOOSE-GROUND SIDE GRIP (owner idea): turning / drifting on gravel and sand (dirt a bit)
   builds a berm of loose stuff against the tyre's sidewall - lateral grip that grows with the
   slide instead of pure sliding. To DISCUSS: a slip-dependent "plough" side force (the surfaces
