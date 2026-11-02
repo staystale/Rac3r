@@ -75,6 +75,14 @@ export const TEST_LIST = [
     wrong: 'Their tracks gone (fresh snow) by the time you get there.',
   },
   {
+    id: 'evenlap',
+    added: '2026-11-02',
+    name: 'AI: no braking for nothing at the start line or twitching at small kinks',
+    where: 'Plain link + &evenlap=1: Killder, Castle Cum, Thruston (menu race too)',
+    try: 'Follow the AI over the start / finish line and through the corners.',
+    wrong: 'AI lifting or braking on the straight at the line, or a twitch mid-corner.',
+  },
+  {
     id: 'wheelgone',
     added: '2026-11-01',
     name: 'A lost wheel takes nothing more: no flat, rim, leak or wear; the hub may spark',

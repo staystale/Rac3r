@@ -40,6 +40,7 @@ export interface Settings {
   markAge: boolean;     // ?markage=1: tyre marks fade oldest first, in small cells (fixes.ts)
   treeNight: boolean;   // ?treenight=1: no pale rim round tree canopies at night (fixes.ts)
   hwSnow: boolean;      // ?hwsnow=1: highway rebuilds keep tracks in weather snow (fixes.ts)
+  evenLap: boolean;     // ?evenlap=1: circuits evenly spaced, short kinks smoothed (fixes.ts)
 }
 
 function autopilotKmh(params: URLSearchParams): number {
@@ -118,5 +119,6 @@ export function readSettings(search: string): Settings {
     markAge: params.get('markage') === '1',
     treeNight: params.get('treenight') === '1',
     hwSnow: params.get('hwsnow') === '1',
+    evenLap: params.get('evenlap') === '1',
   };
 }

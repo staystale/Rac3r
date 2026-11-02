@@ -64,6 +64,26 @@ BUGS (S-M each; ONE test round before the root fix - owner 11-01: OK)
   tools/scratch/_lineseam.mjs, 10-24); the off-line corner slow-down (ai/driverDrive.ts: a car
   inside the line slows by sqrt((R - x) / R)) and the scripted wander. Reproduce on every
   circuit, fix the cause; anything rooted in line-following goes into B. S-M.
+  FOUND 11-02 (owner: check the line / subtrack for sharp awkward turns and objects;
+  tools/scratch/_lineaudit.mjs, _seamdrive.mjs): (1) LAP SEAM - subtrack.ts resamplePath
+  leaves a stub last segment (lap not a multiple of 1.5 m: Killder 0.07 m, Sweaty Lamb 0.44,
+  Castle Cum 0.46, Slidden 0.83, Thruston 1.39); line.ts smoothLine assumes even spacing and
+  kinks the line there (R 0.6 m Killder): a lone AI brakes 11 -> 5 m/s at Killder's line,
+  28.5 -> 24 at Castle Cum's (target 50 just past it). (2) CENTRELINE KINKS the 8 m-arc rMin
+  check misses: Thruston 222 m (R 7 in a 46 m bend), Brands Indy 271 m; line kinks Castle Cum
+  583, Knobhill 739, Test Track 679 / 724. (3) OBJECTS: none on any racing line; cones /
+  tyre stacks 1.6-2.6 m off it (Test Track, Sandbox, Sweaty Lamb 558-591 m) count only for a
+  car off its line. PLAN (asked): even resample (step = lap / round(lap / 1.5)) + a short-arc
+  kink pass in traceTrack, behind a switch, then re-audit and a field run.
+  BUILT ?evenlap=1 (world/subtrack.ts resampleEven + maskKinks: 3 m-arc R < 30 and < 0.6 x
+  the 8 m R; read as core/fixes.ts loads - the circuits trace at import): audit 0 kinks / seams
+  on all 8 traced circuits; a lone AI over the line Killder 6.1 -> 17.4 m/s, Castle Cum 24.3 ->
+  31.8. 5-AI field swings off the line a lap (noisy, cars on cars): Thruston 5.6 -> 4.5, Castle
+  Cum 7.2 -> 8.3. OVALS (owner: weaves before the start / finish): no seam or kink (built from
+  apexes, not traced); a lone AI holds its line (no reversals); field swings ~1-2 a lap, 3/4
+  round other cars, spread round the lap, not at the line (_ovalswing.mjs); the rolling start
+  holds columns within 1 m. NOTE for B: Naffcar has no racecraft corners (bends R 85 > CORNER_R
+  70): tow passes only.
 - K4 TYRE MARKS FADE IN RANDOM SQUARE CHUNKS. CAUSE (code): marks.js fadeBlocks halves one
   hashed eighth-by-eighth block of the marks layer every 0.5 s - blocks, not age. WANTED: oldest
   first, newest last, no patches. Plan: each mark remembers when it was laid and fades by its

@@ -1,5 +1,6 @@
 import { SURFACES } from "./surfaces.ts";
 import { smoothPath } from "./course.ts";
+import { FIX } from "../core/fixes.ts";
 import type {
   AutoKerbOptions, CurvedKerb, Point, Sector, SubSeg, Subtrack, Surface, TraceOptions,
   TrackPoint,
@@ -242,6 +243,7 @@ function centripetalSpline(points: Point[]): Point[] {
  * @returns the resampled path
  */
 function resamplePath(points: Point[], step: number): Point[] {
+  if (FIX.evenLap) return resampleEven(points, step);
   const out: Point[] = []; const count = points.length; let carry = 0;
   for (let i = 0; i < count; i++) {
     const ptFrom = points[i], ptTo = points[(i + 1) % count],
@@ -255,6 +257,37 @@ function resamplePath(points: Point[], step: number): Point[] {
       along += step;
     }
     carry = along - segLen;
+  }
+  return out;
+}
+/**
+ * Resample a closed path to evenly spaced points ROUND THE WHOLE LAP (?evenlap=1, K3): the
+ * spacing is the lap over a whole number of steps, nearest the asked one. resamplePath's last
+ * step back to the start was whatever was left (Killder 0.07 m of 1.5): the racing line's
+ * smoothing (ai/line.ts) reads its points as evenly spaced and kinked the line there (R 0.6 m),
+ * and the AI braked for it on the straight.
+ * @param points the path
+ * @param step the wanted spacing in metres
+ * @returns the resampled path
+ */
+function resampleEven(points: Point[], step: number): Point[] {
+  const count = points.length, lens: number[] = [];
+  let lap = 0;
+  for (let i = 0; i < count; i++) {
+    const ptFrom = points[i], ptTo = points[(i + 1) % count];
+    lens.push(Math.hypot(ptTo[0] - ptFrom[0], ptTo[1] - ptFrom[1]));
+    lap += lens[i];
+  }
+  const steps = Math.max(3, Math.round(lap / step)), even = lap / steps, out: Point[] = [];
+  let seg = 0, segStart = 0;
+  for (let i = 0; i < steps; i++) {
+    const along = i * even;
+    while (seg < count - 1 && segStart + lens[seg] <= along) segStart += lens[seg++];
+    const ptFrom = points[seg], ptTo = points[(seg + 1) % count];
+    const frac = lens[seg] > 0 ? (along - segStart) / lens[seg] : 0;
+    out.push([
+      ptFrom[0] + (ptTo[0] - ptFrom[0]) * frac, ptFrom[1] + (ptTo[1] - ptFrom[1]) * frac,
+    ]);
   }
   return out;
 }
@@ -285,11 +318,11 @@ function smoothPass(
  * @param step spacing of the path in metres
  * @returns the radius per point
  */
-function tracedRadii(points: Point[], step: number): number[] {
+function tracedRadii(points: Point[], step: number, arc = 8): number[] {
   // R over an 8 m arc from SEGMENT headings (chord-to-chord angles averaged a short sharp bend
   // away: Club read 11.7 m by the chords and 6.6 m by the 8 m arc that kerbside.mjs uses — the
   // same measure now)
-  const count = points.length, half = Math.max(1, Math.round(4 / step));
+  const count = points.length, half = Math.max(1, Math.round(arc / 2 / step));
   const heads = points.map((cur, i) => {
     const nextPt = points[(i + 1) % count];
     return Math.atan2(nextPt[1] - cur[1], nextPt[0] - cur[0]);
@@ -299,6 +332,31 @@ function tracedRadii(points: Point[], step: number): number[] {
     dHead = Math.atan2(Math.sin(dHead), Math.cos(dHead));
     return (2 * half * step) / Math.max(1e-4, Math.abs(dHead));
   });
+}
+// SHORT KINKS (?evenlap=1, K3): a bend over ~3 m tighter than KINK_R and than KINK_K of the
+// bend over 8 m. The 8 m rMin check above averages a 1-2 m kink away (Thruston 222 m: R 9 over
+// 3 m inside a 19 m bend) and the AI's line and steering felt it.
+const KINK_R = 30, KINK_K = 0.6, KINK_ARC = 3;
+/**
+ * Adds the short kinks to a tight-corner mask.
+ * @param points the path
+ * @param step its spacing in metres
+ * @param rads its radii over 8 m (tracedRadii)
+ * @param mask the mask to add to (with `reach` samples either side)
+ * @param reach how many samples either side to mark
+ * @returns how many kinks
+ */
+function maskKinks(
+  points: Point[], step: number, rads: number[], mask: boolean[], reach: number,
+): number {
+  const short = tracedRadii(points, step, KINK_ARC), count = points.length;
+  let kinks = 0;
+  for (let i = 0; i < count; i++) {
+    if (!(short[i] < KINK_R && short[i] < KINK_K * rads[i])) continue;
+    kinks++;
+    for (let j = -reach; j <= reach; j++) mask[(i + j + count) % count] = true;
+  }
+  return kinks;
 }
 /**
  * Mark every point within `reach` samples of a corner tighter than rMin.
@@ -333,7 +391,8 @@ export function traceTrack(mapPts: Point[], {
     const rads = tracedRadii(path, step);
     const reach = Math.round(6 / step);
     const { mask, bad } = maskTightCorners(rads, rMin, reach);
-    if (!bad) break;
+    const kinks = FIX.evenLap ? maskKinks(path, step, rads, mask, reach) : 0;
+    if (!bad && !kinks) break;
     path = smoothPass(path, 0.5, mask);
     if (iter % 20 === 19) path = resamplePath(path, step);
   }

@@ -69,6 +69,7 @@ FIX.aiNumbers = shared.settings.aiNumbers;
 FIX.markAge = shared.settings.markAge;
 FIX.treeNight = shared.settings.treeNight;
 FIX.hwSnow = shared.settings.hwSnow;
+// (FIX.evenLap is read as core/fixes.ts loads: the circuits are traced before this line)
 // ?rain=0.6: a wet track, raining (weather test, before any level or racing line is built)
 if (shared.settings.rain !== null) {
   setWetness(shared.settings.rain);
