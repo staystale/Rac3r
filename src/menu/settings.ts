@@ -57,7 +57,21 @@ function addFeelSlider(panel: HTMLElement, key: FeelKey, name: string, help: str
 }
 
 /**
- * SETTINGS: the steering feel (more to come). BACK returns where it was opened from.
+ * The row of RESUME (pause menu only) and BACK at the foot of a settings screen.
+ * @param menu the menu context
+ * @param panel the pane
+ * @param back reopens the screen before
+ * @param resume closes the menu back to the session
+ */
+function addFootRow(menu: Menu, panel: HTMLElement, back: () => void, resume?: () => void): void {
+  const row = addElement(panel, 'div', '', 'row') as HTMLElement;
+  if (resume) addButton(menu, row, 'RESUME ▶', resume, 'go');
+  addButton(menu, row, 'BACK', back);
+}
+
+/**
+ * SETTINGS: one button per group (owner 11-02: the steering in a sub-menu "called steering
+ * controls"). BACK returns where it was opened from.
  * @param menu the menu context
  * @param back reopens the screen it came from
  * @param resume closes the menu back to the session (pause menu only)
@@ -65,7 +79,21 @@ function addFeelSlider(panel: HTMLElement, key: FeelKey, name: string, help: str
 export function showSettings(menu: Menu, back: () => void, resume?: () => void): void {
   const panel = addPane(menu, false) as HTMLElement;
   addElement(panel, 'h2', 'SETTINGS');
-  addElement(panel, 'div', 'STEERING (touch stick)', 'sub');
+  addButton(menu, panel, 'STEERING CONTROLS ›',
+    () => showSteering(menu, () => showSettings(menu, back, resume), resume));
+  addFootRow(menu, panel, back, resume);
+}
+
+/**
+ * STEERING CONTROLS: the two touch-stick settings of core/steerfeel.ts and what they do now.
+ * @param menu the menu context
+ * @param back reopens SETTINGS
+ * @param resume closes the menu back to the session (pause menu only)
+ */
+function showSteering(menu: Menu, back: () => void, resume?: () => void): void {
+  const panel = addPane(menu, false) as HTMLElement;
+  addElement(panel, 'h2', 'STEERING CONTROLS');
+  addElement(panel, 'div', 'the touch stick', 'sub');
   let preview: HTMLElement | null = null;
   const update = () => { if (preview) preview.textContent = previewText(); };
   addFeelSlider(panel, 'curve', 'STEER CURVE', 'Small thumb moves steer gently, the end of the '
@@ -75,7 +103,5 @@ export function showSettings(menu: Menu, back: () => void, resume?: () => void):
   preview = addElement(panel, 'div', '', 'sub') as HTMLElement;
   preview.style.cssText = 'text-align:left;color:#e8a13a';
   update();
-  const row = addElement(panel, 'div', '', 'row') as HTMLElement;
-  if (resume) addButton(menu, row, 'RESUME ▶', resume, 'go');
-  addButton(menu, row, 'BACK', back);
+  addFootRow(menu, panel, back, resume);
 }
