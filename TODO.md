@@ -71,6 +71,8 @@ BUGS (S-M each; ONE test round before the root fix - owner 11-01: OK)
   bits at a time (not the big panels), same life. BUILT ?markage=1 (marks.js fadeAged: 16 px
   cells ~3.8 m, newest mark's age; fade from 90 s, 5 steps of 12 s): skid A at 0 s, B at 60 s -
   A 60/22/0 % at 90/120/150 s while B stays 100 %, then B; cost 0.28 ms a game second.
+  ROUND 2 (owner 11-02: "better but still a bit chunky"): 8 px cells (~1.9 m), 16 steps of 15 %
+  every 4 s from 90 s (gone ~2.6 min): A 85/62/38/28/17/12/0 % every 10 s; 1.1 ms a game second.
 - K5 TREES AT NIGHT: a lighter edge round the canopy. Suspects: render/light.ts puts the dark
   back over each canopy as one square (render/trees.ts traceCanopies) while the drawn canopy is
   offset squares + a shadow offset down-right, and the light map's scaling softens the edge.
@@ -109,6 +111,18 @@ FEATURES
   usual safeguarding (no swearing, slurs or racism; a word filter that also catches spaced /
   leetspeak spellings). Where it shows and where the setting lives (no SETTINGS screen yet - G):
   proposal / mockup first. S-M.
+
+- K17 HUD FLASHES "like crazy" driving off the track (owner 11-02, new). Not reproduced on the
+  laptop (Castle Cum grass, plain vs the round's link: same); asked which part / link / level.
+- K18 MENU RACE ON A RANDOM TRACK each time, or the last track raced - highway levels too
+  (owner 11-02). Today fixed to Thruston (main.js DEMO_LEVEL); the highway needs its own AI
+  (weaver / hwFlow) and the camera car's driver there. M. Which: random, last, or a mix - ask.
+- K19 STORMS + LIGHTNING (owner idea 11-02): a weather kind above heavy rain - flashes lighting
+  the night layer for a frame or two, darker sky, gusts (rain angle), thunder later (sounds: ask
+  first). Design + Safari cost first. M.
+- K20 HEAT SHIMMER, subtle (owner idea 11-02): hot / superhot days, a faint wobble over hot
+  tarmac in the distance. Needs a per-frame screen distortion - a WebGL pass or a cheap 2D
+  approximation; measure the phone cost first (Safari holds frames). M, maybe L.
 
 FOLDED INTO 1 - THE DRIVING ROOT FIX (wheel spin as real state; plan first, then build)
 - Real ABS (A10): pulsing, staggered marks, steering kept, shorter stops than locked.

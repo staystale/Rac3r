@@ -53,7 +53,7 @@ export const TEST_LIST = [
   {
     id: 'markage',
     added: '2026-11-01',
-    name: 'Tyre marks fade oldest first in small bits (no big square panels)',
+    name: 'Tyre marks fade oldest first in small bits, gently (round 2: smaller, softer steps)',
     where: 'Plain link + &markage=1: any level, lay skid marks over a few minutes',
     try: 'Lay marks, wait ~2 min, lay more; watch the old ones go first.',
     wrong: 'Big squares fading at once, new marks fading first, marks never fading.',

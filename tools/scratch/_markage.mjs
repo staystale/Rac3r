@@ -37,9 +37,9 @@ try {
       skid('b', -60, -30);
       const b0 = ink(-60, -30);
       const rows = [];
-      for (let t = 60; t <= 240; t += 15) {
+      for (let t = 60; t <= 240; t += 10) {
         rows.push(`${t}s A ${Math.round(100 * ink(-60, -40) / a0)}% B ${Math.round(100 * ink(-60, -30) / b0)}%`);
-        fade(15);
+        fade(10);
       }
       // cost: marks over the whole floor, then the fade's ms a second of game time
       for (let k = 0; k < 400; k++) skid('c' + k, -150 + (k % 20) * 15, -150 + Math.floor(k / 20) * 15);

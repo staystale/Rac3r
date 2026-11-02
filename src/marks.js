@@ -209,12 +209,13 @@ function fadeBlocks(markCtx, dt) {
 
 // MARKS FADE OLDEST FIRST (owner 11-01, ?markage=1: "oldest first and small bits at once" - the
 // blocks above are ~100 m panels fading at random). The layer is cut into FADE_CELL px cells
-// (~3.8 m); each remembers when its NEWEST mark was laid. A cell starts fading AGED_FROM_S after
-// that, one AGED_ALPHA step every AGED_STEP_S, and is cleared at the last step: gone ~2.3 min
-// after its last mark, as before. A mark laid in one go fades in one go; ground still being
-// driven (a rutted line) keeps its marks until it is left alone.
-const FADE_CELL = 16, CELLS = Math.ceil(SIZE / FADE_CELL);
-const AGED_FROM_S = 90, AGED_STEP_S = 12, AGED_STEPS = 5, AGED_ALPHA = 0.4, AGED_TICK_S = 0.25;
+// (~1.9 m); each remembers when its NEWEST mark was laid. A cell starts fading AGED_FROM_S after
+// that, one gentle AGED_ALPHA step every AGED_STEP_S (owner 11-02: 3.8 m cells in 40 % steps
+// still looked chunky), and is cleared at the last step: gone ~2.6 min after its last mark. A
+// mark laid in one go fades in one go; ground still being driven (a rutted line) keeps its marks
+// until it is left alone.
+const FADE_CELL = 8, CELLS = Math.ceil(SIZE / FADE_CELL);
+const AGED_FROM_S = 90, AGED_STEP_S = 4, AGED_STEPS = 16, AGED_ALPHA = 0.15, AGED_TICK_S = 0.25;
 
 /**
  * Notes a stroke's cells as just marked (the aged fade).
