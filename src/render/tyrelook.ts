@@ -8,6 +8,8 @@
 //   below 20 %  longer again, darkest, and it flops a pixel side to side as it turns
 // On the rim: a thin silver rim with rubber shreds. physics/tyrepressure.ts holds the numbers.
 
+import { FIX } from '../core/fixes.ts';
+
 const TYRE = '#16171c', TYRE_SOFT = '#121317', TYRE_FLAT = '#0d0e11';
 const TREAD = '#26282f', TREAD_FLAT = '#1b1c22', RIM_DARK = '#7d7f88', RIM_LIT = '#c9c9d2';
 // pressure from which a tyre looks soft (above it the ordinary wheel is drawn)
@@ -15,6 +17,10 @@ const SOFT_FROM = 0.9;
 // wheel radius for the roll of the lumps, m (a ~16-17 inch wheel); the lump moves a pixel a
 // sixth of a turn
 const WHEEL_RADIUS_M = 0.31, LUMP_STEPS_PER_TURN = 6;
+// ?flatsize=1 (owner: popped tyres "seem to grow in size too much - the wobble etc is spot on and
+// some extra bulge is ok - but size should be pretty much the same as normal tyres"): the tyre
+// keeps its length; the sides round out a pixel (the bulge) and the lumps roll IN that pixel,
+// darker, instead of a second pixel further out. Before: up to 4 px longer and 4 px wider.
 
 /** A car as the tyre look reads it. */
 interface TurningCar { vx: number; vy: number; _wheelTurn?: number; _wheelAt?: number }
@@ -57,7 +63,7 @@ export function drawTyreByPressure(
   if (pressure >= SOFT_FROM) return false;
   const soft = 1 - pressure, step = Math.floor(turn);
   const lumps = soft > 0.6, flop = soft > 0.8;
-  const grow = (soft > 0.35 ? 1 : 0) + (flop ? 1 : 0);
+  const grow = FIX.flatSize ? 0 : (soft > 0.35 ? 1 : 0) + (flop ? 1 : 0);
   const wobble = flop ? [0, 1, 0, -1][Math.floor(turn / 2) % 4] : 0;
   const len = tyreLen + grow * 2, left = -Math.round(len / 2), top = -Math.round(tyreWid / 2)
     + wobble;
@@ -66,7 +72,13 @@ export function drawTyreByPressure(
   // rounded out a pixel on both sides
   ctx.fillRect(left + 1, top - 1, len - 2, 1);
   ctx.fillRect(left + 1, top + tyreWid, len - 2, 1);
-  if (lumps) {
+  if (lumps && FIX.flatSize) {
+    // the lumps roll along inside the rounded-out pixel, darker
+    ctx.fillStyle = TYRE_FLAT;
+    const lump = Math.max(1, Math.round((len - 2) / 3));
+    ctx.fillRect(left + 1 + (step % (len - 1 - lump)), top - 1, lump, 1);
+    ctx.fillRect(left + 1 + ((step + 2) % (len - 1 - lump)), top + tyreWid, lump, 1);
+  } else if (lumps) {
     // the sidewalls bulging at the ground, a lump rolling along each side
     const bulge = Math.max(1, len - 8);
     ctx.fillRect(left + 2 + (step % 5), top - 2, bulge, 1);

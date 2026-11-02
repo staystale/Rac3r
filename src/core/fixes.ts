@@ -36,4 +36,12 @@ export const FIX = {
   pedalRamp: atLoad('pedalramp'),
   // ?lockfade=1: a locked / spinning tyre grips less the faster it slides (wheelspin.ts)
   lockFade: atLoad('lockfade'),
+  // ?spinmarks=1: wheelspin heats tyres like a lock-up; cold slipping tyres still mark (faintly)
+  spinMarks: atLoad('spinmarks'),
+  // ?smokefade=1: tyre smoke's amount and opacity follow slide speed and tyre heat
+  smokeFade: atLoad('smokefade'),
+  // ?flatsize=1: a soft / flat tyre keeps its size (a pixel of bulge), still lumps and wobbles
+  flatSize: atLoad('flatsize'),
+  // ?muscle6=1: the muscle car on a 6-speed (was 4: its top gear capped it at 205 km/h)
+  muscle6: atLoad('muscle6'),
 };

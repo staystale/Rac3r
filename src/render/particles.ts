@@ -4,6 +4,7 @@ import { SPRITE_PPM, fxRandom } from "./shared.ts";
 import { emitEngineSmoke, type PuffAt, type SmokeCar } from './enginesmoke.ts';
 import type { Spray } from "../world/types.ts";
 import type { Cam, Chip, ParticleCar, Puff, PuffHit, RenderMarks, View } from "./types.ts";
+import { FIX } from '../core/fixes.ts';
 
 // what createParticles destructures from the renderer
 interface ParticleHelpers {
@@ -66,6 +67,27 @@ const FLUFF_PUFF = { rgb: '248,247,240', size: 0.5, lift: 3.2, life: 1.5, grow: 
 // how hot and how hard - the silent twin of a squeal (CLAUDE.md §4).
 const SMOKE_T = 115;
 const SMOKE = { rgb: '225,225,230', size: 0.45, lift: 0.9, life: 1.3, grow: 1.9 };
+// ?smokefade=1 (owner: smoke "should perhaps have its amount and opacity controlled by speed /
+// tyre heat"; with real wheel speed it came out too constantly): each tyre's smoke strength is
+// its heat share (SMOKE_T -> SMOKE_T + SMOKE_HEAT_SPAN, from SMOKE_HEAT_MIN) x its slide share
+// (SMOKE_SLIP_MIN -> SMOKE_SLIP_FULL m/s); the puffs a second (up to SMOKE_RATE) and their
+// opacity (from SMOKE_ALPHA_MIN) both follow it. A light slide on a hot tyre: a faint wisp; a
+// burnout or a long drift: a thick cloud.
+const SMOKE_HEAT_SPAN = 50, SMOKE_HEAT_MIN = 0.3, SMOKE_SLIP_MIN = 2, SMOKE_SLIP_FULL = 14;
+const SMOKE_RATE = 30, SMOKE_ALPHA_MIN = 0.25;
+
+/**
+ * How hard a tyre smokes (?smokefade), 0..1.
+ * @param heat the tyre's heat, C
+ * @param slip its slide speed, m/s
+ * @returns the strength
+ */
+function smokeStrength(heat: number, slip: number): number {
+  const heatK = SMOKE_HEAT_MIN + (1 - SMOKE_HEAT_MIN)
+    * Math.min(1, (heat - SMOKE_T) / SMOKE_HEAT_SPAN);
+  return heatK * Math.max(0, Math.min(1, (slip - SMOKE_SLIP_MIN)
+    / (SMOKE_SLIP_FULL - SMOKE_SLIP_MIN)));
+}
 
 /**
  * Throw one puff into the pool, dropping the oldest when it is full.
@@ -158,10 +180,13 @@ function emitTyreSmoke(ctx: ParticleCtx, car: ParticleCar, marks: RenderMarks, w
   const wheels = marks.wheelsOf(car);
   for (const wheel of wheels) {
     if (wheel.heat < SMOKE_T || wheel.slip < 1.5) continue;
-    state.smokeDebt += Math.min(1, (wheel.heat - SMOKE_T) / 40 + 0.3) * Math.min(1,
-      wheel.slip / 6) * 40 * wallDt;
+    const strength = FIX.smokeFade ? smokeStrength(wheel.heat, wheel.slip) : 0;
+    state.smokeDebt += FIX.smokeFade ? strength * SMOKE_RATE * wallDt
+      : Math.min(1, (wheel.heat - SMOKE_T) / 40 + 0.3) * Math.min(1, wheel.slip / 6) * 40 * wallDt;
     while (state.smokeDebt >= 1) { state.smokeDebt--;
-      emitPuff(ctx, wheel.x, wheel.y, car.vx * 0.6, car.vy * 0.6, SMOKE, 0.5); }
+      emitPuff(ctx, wheel.x, wheel.y, car.vx * 0.6, car.vy * 0.6, SMOKE, 0.5);
+      if (FIX.smokeFade) state.puffs[state.puffs.length - 1].alpha = SMOKE_ALPHA_MIN
+        + (1 - SMOKE_ALPHA_MIN) * strength; }
   }
   if (state.smokeDebt > 4) state.smokeDebt = 4;
 }
@@ -511,7 +536,7 @@ function renderPuffs(ctx: ParticleCtx, wallDt: number, puffs: Puff[] = ctx.state
     view.ctx.fillStyle = `rgb(${puff.rgb})`;
     // PIXEL PUFFS: a square snapped to the art-pixel grid, fading in STEPS (pixel-art smoke),
     // not a smooth disc
-    view.ctx.globalAlpha = Math.ceil((1 - fade) * 4) / 4 * 0.5;
+    view.ctx.globalAlpha = Math.ceil((1 - fade) * 4) / 4 * 0.5 * (puff.alpha ?? 1);
     const radius = Math.max(1, Math.round((puff.r0 + fade * puff.grow) * ppm * view.dpr));
     const pixelX = Math.round(toScreenX(puff.x) * view.dpr),
       pixelY = Math.round(toScreenY(puff.y) * view.dpr);

@@ -19,6 +19,7 @@ import { WEATHER } from "./world/weather.ts";
 import { CORNER_OF_WHEEL, wheelGone } from "./world/wheels.ts";
 import { MARK_GOUGE } from "./world/metalscrape.ts";
 import { addTrailPoint, clearWetTrails } from "./wettrail.ts";
+import { FIX } from "./core/fixes.ts";
 
 // EXTENT is the FENCE, not the floor, so what happens in the run-off (gravel tracks) is
 // recorded too. The resolution is kept at 4.2 px/m so memory stays flat: a finer layer over this
@@ -255,6 +256,9 @@ function fadeMarks(markCtx, dt) {
   fadeAged(markCtx, dt);
 }
 
+// ?spinmarks=1 (owner: "wheel spinning even with cold tyres should lay down some rubber"): the
+// share of a warm tyre's mark a stone-cold slipping tyre still lays (it was 0 below 35 C)
+const COLD_MARK = 0.35;
 /**
  * Strokes one mark segment from a wheel's previous position to its current one.
  *
@@ -277,7 +281,9 @@ function fadeMarks(markCtx, dt) {
  */
 function strokeMark(markCtx, wheel, loose, from, dest) {
   const { ctx, state } = markCtx;
-  const warm = loose ? 1 : Math.pow(Math.max(0, Math.min(1, (wheel.heat - 35) / 55)), 1.5);
+  const heatShare = Math.pow(Math.max(0, Math.min(1, (wheel.heat - 35) / 55)), 1.5);
+  // ?spinmarks=1: a cold tyre slipping still lays rubber, COLD_MARK of a warm one's at most
+  const warm = loose ? 1 : FIX.spinMarks ? COLD_MARK + (1 - COLD_MARK) * heatShare : heatShare;
   const alpha = loose
     // a rut, deepened by scrabbling
     ? loose.alpha * (0.6 + 0.4 * Math.min(1, wheel.slip / 6))

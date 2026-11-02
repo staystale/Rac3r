@@ -155,6 +155,7 @@ export interface Puff {
   rgb: string;
   vx: number;
   vy: number;
+  alpha?: number;   // opacity share (1 when absent): tyre smoke under ?smokefade
 }
 
 // One paint chip or spark.
