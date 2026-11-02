@@ -52,7 +52,7 @@ export type CarTelemetry = {
 // The damage state vehicle.ts reads (damage.ts sets car.wreck; multipliers, 1 = undamaged).
 export interface CarWreck {
   toe: number; power: number; roll: number; gripF: number; gripR: number;
-  // ?flatgrip: soft wheels' rolling drag, total and by side (shares of one wheel's static load)
+  // soft wheels' rolling drag, total and by side (shares of one wheel's static load)
   flatDrag?: number; flatYaw?: number;
 }
 // The rollover state (roll.js): vehicle.ts only nulls it.
@@ -479,7 +479,7 @@ function stabilityControl(car: Car, carSpec: Spec, tick: AxleTick, handbrakeRaw:
 }
 
 /**
- * The yaw moment of the flat wheels' one-sided drag (?flatgrip): drag at the +y side turns the
+ * The yaw moment of the flat wheels' one-sided drag : drag at the +y side turns the
  * car toward +y going forward (and the other way reversing).
  * @param car the car
  * @param carSpec its spec
@@ -644,7 +644,7 @@ function writeTelemetry(car: Car, carSpec: Spec, tick: AxleTick, axles: AxleOutc
 }
 
 /**
- * One wheel's static load (N) as the flat wheels' drag reads it (?flatgrip), faded in over the
+ * One wheel's static load (N) as the flat wheels' drag reads it , faded in over the
  * first 1 m/s so a car at rest is not pushed.
  * @param car the car
  * @param mass its mass, kg

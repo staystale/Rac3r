@@ -312,7 +312,8 @@ function derive(car: DamagedCar) {
   const offF = (off[0] ? 1 : 0) + (off[1] ? 1 : 0),
     offR = (off[2] ? 1 : 0) + (off[3] ? 1 : 0);
   car.wreck = {
-    // the tyres' air sets each axle's grip (a flat 0.7, a rim 0.45), bent suspension takes 20 %
+    // the tyres' air sets each axle's grip (the mean of a flat 0.9, a rim 0.45, a full 1), bent
+    // suspension takes 20 %
     gripF: (1 - 0.2 * front) * air.gripF * (offF ? 0.45 : 1),
     gripR: (1 - 0.2 * rear) * air.gripR * (offR ? 0.45 : 1),
     // a bent front takes 15 %; the engine's heat (physics/engineheat.ts) the rest, 0 seized
@@ -321,7 +322,7 @@ function derive(car: DamagedCar) {
     // = 8 deg, a pull you correct), toward a soft tyre, and a missing wheel drags its corner
     toe: TOE * (dmg[1] - dmg[0]) + air.toe
       + TOE_OFF * ((off[1] || off[3] ? 1 : 0) - (off[0] || off[2] ? 1 : 0)),
-    roll: 1 + 4 * (offF + offR) + air.roll,
+    roll: 1 + 4 * (offF + offR),
     flatDrag: air.flatDrag, flatYaw: air.flatYaw,
   };
 }

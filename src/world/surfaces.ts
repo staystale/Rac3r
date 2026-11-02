@@ -62,24 +62,21 @@ export const MARK_WET: Mark = { rgb: '196,199,208', widen: 1.6, alpha: 0.16 };
 // SPRAY — what a wheel THROWS UP off a loose surface (requirement: floor with a loose surface like
 // snow mud sand or grass should particle emit and small and kick up dust / dirt / grass / snow).
 // Read by render.ts, which never learns what any of these are; a surface without one throws
-// nothing.
-//   rgb    colour of the thrown material
-//   size   metres, roughly the radius of one clod
-//   rate   particles per second per wheel at full chat — what makes dust billow and clods scatter
-//   lift   how far it is flung (m/s); heavy clods drop near the car, fine dust drifts
-//   life   seconds. Dust hangs; wet spray and mud do not.
-//   grow   how much it expands as it ages. Dust blooms, a clod of mud does not.
-// MEASURED BUG, (photographed): the first set of colours was sampled FROM each surface,
-// so the spray came out the same tone as the ground it left and vanished into that ground's own
-// grain. A car drifting on gravel at 103 km/h was throwing ~13 particles a frame and you could not
-// see one. Thrown material is AIRBORNE — it catches light and reads PALER and hazier than the
-// packed surface beneath it, except wet clods which read darker. Pick for contrast against the
-// surface, never to match it (CLAUDE.md §4: if the player cannot find it, it does not exist).
-// DUST (passed 11-02; owner: "sand and gravels dust linger longer / be slightly more of it like
-// real life"): real dry dust hangs for seconds in a long trail; gravel, dirt and sand were gone in
-// 0.55-0.85 s. Life x2.5, rate x1.3, bloom x1.5 on all three. ?smokeover=1 (owner: "can some of
-// the tyre smoke go over the players car and same for sand / gravel / dirt dust"): DUST_OVER of
-// their puffs drift over the cars (particles.ts emitSpray).
+// nothing. rgb colour of the thrown material size metres, roughly the radius of one clod rate
+// particles per second per wheel at full chat — what makes dust billow and clods scatter lift how
+// far it is flung (m/s); heavy clods drop near the car, fine dust drifts life seconds. Dust hangs;
+// wet spray and mud do not. grow how much it expands as it ages. Dust blooms, a clod of mud does
+// not. MEASURED BUG, (photographed): the first set of colours was sampled FROM each surface, so the
+// spray came out the same tone as the ground it left and vanished into that ground's own grain. A
+// car drifting on gravel at 103 km/h was throwing ~13 particles a frame and you could not see one.
+// Thrown material is AIRBORNE — it catches light and reads PALER and hazier than the packed surface
+// beneath it, except wet clods which read darker. Pick for contrast against the surface, never to
+// match it (CLAUDE.md §4: if the player cannot find it, it does not exist). DUST (passed 11-02;
+// owner: "sand and gravels dust linger longer / be slightly more of it like real life"): real dry
+// dust hangs for seconds in a long trail; gravel, dirt and sand were gone in 0.55-0.85 s. Life
+// x2.5, rate x1.3, bloom x1.5 on all three. Smoke over (passed 11-02; owner: "can some of the tyre
+// smoke go over the players car and same for sand / gravel / dirt dust"): DUST_OVER of their puffs
+// drift over the cars (particles.ts emitSpray).
 const DUST_OVER = 0.3;
 const SPRAY_GRAVEL: Spray = { rgb: '222,210,184', size: 0.22, rate: 81, lift: 5.2, life: 1.38,
   grow: 0.90, over: DUST_OVER };

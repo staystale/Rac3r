@@ -16,7 +16,7 @@ export interface Spray {
   lift: number;
   life: number;
   grow: number;
-  over?: number;   // the share of its puffs drawn over the cars (?smokeover: fine dry dust)
+  over?: number;   // the share of its puffs drawn over the cars (fine dry dust)
 }
 
 /** What the marks and the spray read of the ground under one wheel (either Surface type). */

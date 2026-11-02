@@ -2,7 +2,8 @@
 // owner's OK a fix becomes the default, its flag here and the old path are deleted (one system).
 // (The 11-01 round - wheelgone, heavywet, menureset, menucar, ainumbers, markage, treenight,
 // hwsnow - the driving root fix (wheelspin), evenlap, flatsize and the realism round - the K13
-// dials, pedalramp, lockfade, spinmarks, smokefade, dustlinger, musclegears - passed 11-02.)
+// dials, pedalramp, lockfade, spinmarks, smokefade, dustlinger, musclegears - and smokeover,
+// heatease, flatgrip passed 11-02.)
 import { envValue } from './debug.ts';
 
 /**
@@ -33,11 +34,4 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
-  // ?smokeover=1: some tyre smoke and gravel / dirt / sand dust drifts over the cars (particles.ts)
-  smokeOver: atLoad('smokeover'),
-  // ?heatease=1: tyres heat 15 % slower from slip and flex (tyreheat.ts)
-  heatEase: atLoad('heatease'),
-  // ?flatgrip=1: a flat tyre keeps most of its grip, the axle averages its two tyres, and the
-  // flat wheel drags its own side (tyrepressure.ts, vehicle.ts)
-  flatGrip: atLoad('flatgrip'),
 };
