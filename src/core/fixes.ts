@@ -1,7 +1,7 @@
 // core/fixes.ts - FIXES UNDER TEST: each behind its own ?switch for the owner's phone test. On the
 // owner's OK a fix becomes the default, its flag here and the old path are deleted (one system).
 // (The 11-01 round - wheelgone, heavywet, menureset, menucar, ainumbers, markage, treenight,
-// hwsnow - passed 11-02 and is the game now.)
+// hwsnow - the driving root fix (wheelspin) and evenlap passed 11-02 and are the game now.)
 import { envValue } from './debug.ts';
 
 /**
@@ -10,14 +10,11 @@ import { envValue } from './debug.ts';
  * @param name the switch
  * @returns true when on
  */
-function atLoad(name: string): boolean {
+export function atLoad(name: string): boolean {
   const where = (globalThis as { location?: { search?: string } }).location;
   return new URLSearchParams((where && where.search) || '').get(name) === '1'
     || envValue(name.toUpperCase()) === '1';
 }
 
 /** The switches under test, all off on the plain link. */
-export const FIX = {
-  // ?evenlap=1: the traced circuits evenly spaced round the whole lap, short kinks smoothed (K3)
-  evenLap: atLoad('evenlap'),
-};
+export const FIX = {};

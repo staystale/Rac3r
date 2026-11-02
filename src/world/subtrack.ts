@@ -1,6 +1,5 @@
 import { SURFACES } from "./surfaces.ts";
 import { smoothPath } from "./course.ts";
-import { FIX } from "../core/fixes.ts";
 import type {
   AutoKerbOptions, CurvedKerb, Point, Sector, SubSeg, Subtrack, Surface, TraceOptions,
   TrackPoint,
@@ -237,40 +236,16 @@ function centripetalSpline(points: Point[]): Point[] {
   return out;
 }
 /**
- * Resample a closed path to evenly spaced points.
- * @param points the path
- * @param step spacing in metres
- * @returns the resampled path
- */
-function resamplePath(points: Point[], step: number): Point[] {
-  if (FIX.evenLap) return resampleEven(points, step);
-  const out: Point[] = []; const count = points.length; let carry = 0;
-  for (let i = 0; i < count; i++) {
-    const ptFrom = points[i], ptTo = points[(i + 1) % count],
-      segLen = Math.hypot(ptTo[0] - ptFrom[0], ptTo[1] - ptFrom[1]);
-    let along = carry;
-    while (along < segLen) {
-      out.push([
-        ptFrom[0] + (ptTo[0] - ptFrom[0]) * along / segLen,
-        ptFrom[1] + (ptTo[1] - ptFrom[1]) * along / segLen,
-      ]);
-      along += step;
-    }
-    carry = along - segLen;
-  }
-  return out;
-}
-/**
- * Resample a closed path to evenly spaced points ROUND THE WHOLE LAP (?evenlap=1, K3): the
- * spacing is the lap over a whole number of steps, nearest the asked one. resamplePath's last
- * step back to the start was whatever was left (Killder 0.07 m of 1.5): the racing line's
- * smoothing (ai/line.ts) reads its points as evenly spaced and kinked the line there (R 0.6 m),
- * and the AI braked for it on the straight.
+ * Resample a closed path to evenly spaced points ROUND THE WHOLE LAP (K3): the spacing is the
+ * lap over a whole number of steps, nearest the asked one. A fixed step left the last step back
+ * to the start as whatever was over (Killder 0.07 m of 1.5): the racing line's smoothing
+ * (ai/line.ts) reads its points as evenly spaced and kinked the line there (R 0.6 m), and the
+ * AI braked for it on the straight.
  * @param points the path
  * @param step the wanted spacing in metres
  * @returns the resampled path
  */
-function resampleEven(points: Point[], step: number): Point[] {
+function resamplePath(points: Point[], step: number): Point[] {
   const count = points.length, lens: number[] = [];
   let lap = 0;
   for (let i = 0; i < count; i++) {
@@ -333,7 +308,7 @@ function tracedRadii(points: Point[], step: number, arc = 8): number[] {
     return (2 * half * step) / Math.max(1e-4, Math.abs(dHead));
   });
 }
-// SHORT KINKS (?evenlap=1, K3): a bend over ~3 m tighter than KINK_R and than KINK_K of the
+// SHORT KINKS (K3): a bend over ~3 m tighter than KINK_R and than KINK_K of the
 // bend over 8 m. The 8 m rMin check above averages a 1-2 m kink away (Thruston 222 m: R 9 over
 // 3 m inside a 19 m bend) and the AI's line and steering felt it.
 const KINK_R = 30, KINK_K = 0.6, KINK_ARC = 3;
@@ -391,7 +366,7 @@ export function traceTrack(mapPts: Point[], {
     const rads = tracedRadii(path, step);
     const reach = Math.round(6 / step);
     const { mask, bad } = maskTightCorners(rads, rMin, reach);
-    const kinks = FIX.evenLap ? maskKinks(path, step, rads, mask, reach) : 0;
+    const kinks = maskKinks(path, step, rads, mask, reach);
     if (!bad && !kinks) break;
     path = smoothPass(path, 0.5, mask);
     if (iter % 20 === 19) path = resamplePath(path, step);

@@ -59,7 +59,6 @@ addStageLevels();
 addHighwayLevel();
 
 shared.settings = readSettings(location.search);
-// the 11-01 bug round's switches (core/fixes.ts)
 // ?rain=0.6: a wet track, raining (weather test, before any level or racing line is built)
 if (shared.settings.rain !== null) {
   setWetness(shared.settings.rain);

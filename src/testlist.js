@@ -36,13 +36,5 @@ export const TEST_LIST = [
   // passed 2026-10-26; waterspread, openwheel passed 2026-10-26; the 11-01 round - heavywet,
   // menureset, markage (round 2: 8 px cells, 16 steps), treenight, hwsnow, wheelgone (+ the
   // spray fix), menucar, ainumbers - passed 2026-11-02; wheelspin (the driving root fix: real
-  // wheel speed, real ABS) passed 2026-11-02)
-  {
-    id: 'evenlap',
-    added: '2026-11-02',
-    name: 'AI: no braking for nothing at the start line or twitching at small kinks',
-    where: 'Plain link + &evenlap=1: Killder, Castle Cum, Thruston (menu race too)',
-    try: 'Follow the AI over the start / finish line and through the corners.',
-    wrong: 'AI lifting or braking on the straight at the line, or a twitch mid-corner.',
-  },
+  // wheel speed, real ABS) passed 2026-11-02; evenlap passed 2026-11-02)
 ];
