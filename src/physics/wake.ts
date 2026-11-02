@@ -9,10 +9,16 @@
 //   3 THE SHAPE  the wake runs longer the faster the car making it goes (WAKE_LEN at WAKE_V,
 //                x0.6 .. x1.6) and with a wider car; it is as wide as that car.
 //   4 THE CUE    the faint air streaks along the player's car in a tow (render/particles.ts).
+// THE FADE (owner: "shouldn't the effectiveness of slipstreaming reduce the further away you are" /
+// "make it more realistic please shorter tows"): it fell in a straight line to the wake's end (25 m
+// behind at 200 km/h still cut 21 %); a real tow is strong within a car length or two and falls
+// away fast, so it now decays exponentially, over WAKE_DECAY of the wake's length: at 200 km/h
+// 8 m behind cuts ~28 %, 15 m ~15 %, 25 m ~6 %; at 100 km/h 8 m ~21 %, 15 m ~8 %.
 // Every racer, the player too (sim.js: with AI on the track).
 
 const DRAFT_V = 12, DRAFT_MAX = 0.45, NOSE_GAP = 3;
 const WAKE_LEN = 28, WAKE_V = 30, WAKE_WID_REF = 1.8;
+const WAKE_DECAY = 0.25;
 const DIRTY_MAX = 0.4;
 const PUSH_GAP = 6, PUSH_MAX = 0.08;
 
@@ -26,7 +32,8 @@ interface WakeCar {
  * Where one car sits in another's wake.
  * @param car the car behind (maybe)
  * @param other the car in front (maybe)
- * @returns closeness 0..1 along the wake x 1..0.5 across it (0 = not in it), the gap ahead, m
+ * @returns closeness along the wake (1 at the tail, decaying) and across it (0: not in it),
+ *   and the gap ahead, m
  */
 function inWake(car: WakeCar, other: WakeCar): { along: number; across: number; gap: number } {
   const none = { along: 0, across: 0, gap: Infinity };
@@ -40,7 +47,8 @@ function inWake(car: WakeCar, other: WakeCar): { along: number; across: number; 
     * Math.sqrt(wid / WAKE_WID_REF);
   const lateral = Math.abs(-relX * sinH + relY * cosH);
   if (gap < NOSE_GAP || gap > len || align < 0.9 || lateral > wid) return none;
-  return { along: 1 - (gap - NOSE_GAP) / (len - NOSE_GAP), across: 1 - lateral / wid, gap };
+  return { along: Math.exp(-(gap - NOSE_GAP) / (WAKE_DECAY * len)), across: 1 - lateral / wid,
+    gap };
 }
 
 /**

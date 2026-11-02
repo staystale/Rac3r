@@ -43,7 +43,7 @@ export const TEST_LIST = [
     added: '2026-11-02',
     name: 'Slipstream+: dirty air (wings lose grip behind), the push, longer wake, air streaks',
     where: 'Plain link + &towplus=1, a race with AI: Naffcar oval, Thruston, F1 / F2 races',
-    try: 'Sit in a tow on a straight, then follow close through fast corners; get pushed.',
+    try: 'Round 2: shorter tows (strong within 1-2 car lengths). Tow, follow close, get pushed.',
     wrong: 'No streaks or no pull in a tow; F1 cars spinning behind others; AI crashing.',
   },
 ];
