@@ -3,7 +3,7 @@
 // (The 11-01 round - wheelgone, heavywet, menureset, menucar, ainumbers, markage, treenight,
 // hwsnow - the driving root fix (wheelspin), evenlap, flatsize and the realism round - the K13
 // dials, pedalramp, lockfade, spinmarks, smokefade, dustlinger, musclegears - and smokeover,
-// heatease, flatgrip passed 11-02.)
+// heatease, flatgrip, towplus passed 11-02.)
 import { envValue } from './debug.ts';
 
 /**
@@ -34,7 +34,4 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
-  // ?towplus=1: the wake - dirty air, the push, a wake sized by speed and car, the air streaks
-  // (physics/wake.ts)
-  towPlus: atLoad('towplus'),
 };

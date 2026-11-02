@@ -73,7 +73,7 @@ export interface AiCar {
   _hwS?: number;   // traffic.ts: this racer's road distance last step
    // (the hint for its next road frame)
   _jokers?: number;   // main.js: jokers taken (the joker tactics read it)
-  dragMul?: number;   // contact.js: the slipstream (1 = no tow)
+  dragMul?: number;   // physics/wake.ts: the tow (1 = no tow)
 }
 
 // One point of the highway's road centre line (highway.js): distance along it, curvature.

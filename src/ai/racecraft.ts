@@ -87,7 +87,7 @@ export function createRaceMoves(
     const { nextCorner, nextDist } = nxt;
     // TOW PASS (ovals, long straights: no corner close enough to brake into): in the slipstream
     // of the same car for a while -> pull out to the side with more room and drive past on the
-    // extra speed (contact.js slipstream)
+    // extra speed (physics/wake.ts)
     if (!state.atk && lead && (nextCorner < 0 || nextDist > 140) && (car.dragMul ?? 1) < 0.85 &&
         state.behindT > Math.max(0.3, 1 - 0.7 * traits.aggression)
       && state.t - (state.towT || -99) > 4) {

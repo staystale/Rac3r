@@ -1,6 +1,6 @@
-// physics/wake.ts - THE WAKE (?towplus=1; owner 11-02, "you can do 1-4 behind a single switch":
-// the slipstream ideas). Replaces contact.js slipstream under the switch and keeps its tow (a car
-// in another's wake loses up to DRAFT_MAX of its drag, most right behind, none at the wake's end):
+// physics/wake.ts - THE WAKE (towplus, passed 11-02; owner: "you can do 1-4 behind a single
+// switch": the slipstream ideas). Replaced contact.js slipstream (AI stage 3) and keeps its tow:
+// a car in another's wake loses up to DRAFT_MAX of its drag, most right behind.
 //   1 DIRTY AIR  the follower's wings lose up to DIRTY_MAX of their downforce in the wake, so a
 //                single-seater (big downforce) loses front and rear grip close behind; a road car
 //                (almost none) barely notices. car.wakeDown, read by loads.ts.
@@ -8,12 +8,12 @@
 //                its own drag (the follower fills the low pressure behind it, as in a draft line).
 //   3 THE SHAPE  the wake runs longer the faster the car making it goes (WAKE_LEN at WAKE_V,
 //                x0.6 .. x1.6) and with a wider car; it is as wide as that car.
-//   4 THE CUE    the faint air streaks along the player's car in a tow (render/particles.ts).
-// THE FADE (owner: "shouldn't the effectiveness of slipstreaming reduce the further away you are" /
-// "make it more realistic please shorter tows"): it fell in a straight line to the wake's end (25 m
-// behind at 200 km/h still cut 21 %); a real tow is strong within a car length or two and falls
-// away fast, so it now decays exponentially, over WAKE_DECAY of the wake's length: at 200 km/h
-// 8 m behind cuts ~28 %, 15 m ~15 %, 25 m ~6 %; at 100 km/h 8 m ~21 %, 15 m ~8 %.
+//   4 THE CUE    faint air streaks along any racer in a tow (render/particles.ts).
+// THE FADE (owner: "shouldn't the effectiveness of slipstreaming reduce the further away you
+// are" / "make it more realistic please shorter tows"): it fell in a straight line to the wake's
+// end (25 m behind at 200 km/h still cut 21 %); a real tow is strong within a car length or two
+// and falls away fast, so it decays exponentially over WAKE_DECAY of the wake's length: at
+// 200 km/h 8 m behind cuts ~28 %, 15 m ~15 %, 25 m ~6 %; at 100 km/h 8 m ~21 %, 15 m ~8 %.
 // Every racer, the player too (sim.js: with AI on the track).
 
 const DRAFT_V = 12, DRAFT_MAX = 0.45, NOSE_GAP = 3;

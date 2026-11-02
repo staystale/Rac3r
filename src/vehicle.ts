@@ -98,7 +98,7 @@ export interface Car {
   // set by world/wear.ts (the slope and bank forces under the car)
   slopeLong?: number; slopeLat?: number; slopeYaw?: number;
   bankLatForce?: number; bankLoadFactor?: number;
-  // set by contact.js (the slipstream) and by vehicle.ts itself (the handbrake hold)
+  // set by physics/wake.ts (the tow) and by vehicle.ts itself (the handbrake hold)
   dragMul?: number; hbAfter?: number;
   wakeDown?: number;   // physics/wake.ts: the downforce kept in another car's dirty air
   // set by step: the throttle the engine works at, 0..1 (engine heat, exhaust)
@@ -667,7 +667,7 @@ function bodyAccelerations(car: Car, carSpec: Spec, mass: number, gravity: numbe
   const { frontAxle, rearAxle } = axles;
   const { FpxF, FpyF, FpxR, FpyR } = plough;
   const cosDelta = Math.cos(delta), sinDelta = Math.sin(delta);
-  // dragMul: the slipstream (contact.js), 1 when alone
+  // dragMul: the tow (physics/wake.ts), 1 when alone
   const drag = -carSpec.dragC * (car.dragMul ?? 1) * vLong * vLongAbs;
   // DAMAGE: a wheel off drags its corner
   const roll = vLongAbs < 0.05 ? 0

@@ -1,7 +1,7 @@
 // sim.js — The per-step world: car physics, highway, audio and contact stepping.
 import { step, reset, assertFinite, PHYSICS_STEP_SECONDS } from '../vehicle.ts';
 import { stepHighway, highwayGuard, highwayRespawn, speedCamera } from '../highway.js';
-import { carContacts, slipstream } from '../contact.js';
+import { carContacts } from '../contact.js';
 import { hit, hitRoll, repair, applyBurst, stepDamage } from '../damage.ts';
 import { rolling, tripCheck, stepRoll } from '../roll.js';
 import { LEVEL } from "../world/state.ts";
@@ -17,7 +17,6 @@ import { resetCar, startHeld, atPace, stepOrder, formationWant } from './order.j
 import { doReset, onScreen } from './session.js';
 import { shared, game } from './state.js';
 import { stepAIInjury } from './ai.js';
-import { FIX } from '../core/fixes.ts';
 import { wakeStep } from '../physics/wake.ts';
 
 export function recoverCar(why) {
@@ -408,7 +407,7 @@ export function stepTrafficContacts(tcars) {
       ? [...racers, ...tcars] : racers, startVel = all.map((racer) => [racer.vx, racer.vy]);
     carContacts(all);
     all.forEach((racer, i) => hit(racer, startVel[i][0], startVel[i][1]));
-    if (game.ai.length) (FIX.towPlus ? wakeStep : slipstream)(racers);
+    if (game.ai.length) wakeStep(racers);
   }
 }
 

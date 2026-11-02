@@ -37,13 +37,6 @@ export const TEST_LIST = [
   // 2026-11-02; evenlap, flatsize passed 2026-11-02; realism (K13 dials at brake 1, lock 1, grip
   // 0.5, power 1), pedalramp, lockfade, spinmarks, smokefade, musclegears, dustlinger passed
   // 2026-11-02; smokeover, heatease, flatgrip passed 2026-11-02; steerfeel (the SETTINGS steering:
-  // curve + reach at speed) passed 2026-11-02, kept as player settings)
-  {
-    id: 'towplus',
-    added: '2026-11-02',
-    name: 'Slipstream+: dirty air (wings lose grip behind), the push, longer wake, air streaks',
-    where: 'Plain link + &towplus=1, a race with AI: Naffcar oval, Thruston, F1 / F2 races',
-    try: 'Round 2: shorter tows (strong within 1-2 car lengths). Tow, follow close, get pushed.',
-    wrong: 'No streaks or no pull in a tow; F1 cars spinning behind others; AI crashing.',
-  },
+  // curve + reach at speed) passed 2026-11-02, kept as player settings; towplus (the wake)
+  // passed 2026-11-02)
 ];

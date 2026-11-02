@@ -93,29 +93,3 @@ export function carContacts(cars) {
       }
   return count;
 }
-
-// SLIPSTREAM (AI stage 3): a car in another's WAKE loses drag — the tow that lets a
-// follower close up on a straight and try a pass into the next braking zone (stage 2's circuits
-// were processions: 3 held passes in a 6-car, 3-lap race). The wake runs DRAFT_LEN m back from a
-// car above DRAFT_V m/s, DRAFT_W m wide; the cut is largest right behind it and fades to 0 at
-// the end. Sets car.dragMul (vehicle.js reads it; default 1 = no tow). Every car, the player too.
-const DRAFT_LEN = 28, DRAFT_W = 1.6, DRAFT_MAX = 0.45, DRAFT_V = 12;
-export function slipstream(cars) {
-  for (const car of cars) {
-    let cut = 0;
-    const cosHeading = Math.cos(car.heading), sinHeading = Math.sin(car.heading);
-    for (const other of cars) {
-      if (other === car || other.vx * other.vx + other.vy * other.vy < DRAFT_V * DRAFT_V) continue;
-      const relX = other.x - car.x, relY = other.y - car.y,
-        forward = relX * cosHeading + relY * sinHeading;
-      if (forward < 3 || forward > DRAFT_LEN) continue;
-      const alignment = Math.cos(other.heading) * cosHeading + Math.sin(other.heading) * sinHeading;
-      if (alignment < 0.9) continue;   // same direction only
-      const lateral = Math.abs(-relX * sinHeading + relY * cosHeading);
-      if (lateral > DRAFT_W) continue;
-      cut = Math.max(
-        cut, DRAFT_MAX * (1 - (forward - 3) / (DRAFT_LEN - 3)) * (1 - 0.5 * lateral / DRAFT_W));
-    }
-    car.dragMul = 1 - cut;
-  }
-}

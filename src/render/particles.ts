@@ -19,7 +19,7 @@ interface DmgEvent {
 
 // one air streak: where its head is, how it drifts, its age and length (m), the car's heading
 interface Streak { x: number; y: number; vx: number; vy: number; age: number; life: number;
-  len: number; heading: number }
+  len: number; heading: number; alpha: number }
 
 // the mutable values the particle layer keeps between frames
 interface ParticleState {
@@ -27,9 +27,9 @@ interface ParticleState {
   // OVER THE CARS: steam and engine smoke rise off the bonnet (render/enginesmoke.ts), drawn
   // after the cars (render/screen.ts drawSharpCarLayers)
   overPuffs: Puff[];
-  // AIR STREAKS along the player's car in a tow (?towplus), and their fractional remainder
+  // AIR STREAKS along the racers in a tow, and each car's fractional remainder
   streaks: Streak[];
-  streakDebt: number;
+  streakDebt: Map<object, number>;
   // WHEEL SPRAY keeps a fractional remainder, because a rate below one particle per frame must
   // still emit at the right average rather than rounding to nothing.
   sprayDebt: number;
@@ -576,11 +576,16 @@ function renderPuffs(ctx: ParticleCtx, wallDt: number, puffs: Puff[] = ctx.state
   view.ctx.globalAlpha = 1;
 }
 
-// THE TOW CUE (?towplus, physics/wake.ts 4): thin pale streaks flow back along the player's car
-// while it is in another's wake, more of them the stronger the tow (STREAK_RATE a second at the
-// full DRAFT cut); the air is still, so they drift at a share of the car's speed and fall behind.
-const STREAK_RATE = 26, STREAK_FULL_CUT = 0.45, STREAK_FROM = 0.06, STREAK_LIFE = 0.32;
-const STREAK_LEN = 1.6, STREAK_DRIFT = 0.55, STREAK_ALPHA = 0.45, MAX_STREAKS = 40;
+// THE TOW CUE (physics/wake.ts 4): thin pale streaks flow back along any racer in another's wake
+// (the AI in yours too: owner "it should show on ai cars when they are slipstreaming you"); the
+// air is still, so they drift at a share of the car's speed and fall behind. Round 2 (owner: "some
+// shorter some longer and more see thru with distance and less lines, more and less see thru
+// closer to the lead car"): the tow's strength (its cut over STREAK_FULL_CUT) sets how many
+// (STREAK_RATE x strength^1.5 a second) and how solid (STREAK_ALPHA_FAR .. _NEAR); lengths run
+// STREAK_LEN x 0.3 .. 1.7.
+const STREAK_RATE = 30, STREAK_FULL_CUT = 0.4, STREAK_FROM = 0.05, STREAK_LIFE = 0.32;
+const STREAK_LEN = 1.6, STREAK_DRIFT = 0.55, MAX_STREAKS = 90;
+const STREAK_ALPHA_FAR = 0.1, STREAK_ALPHA_NEAR = 0.55;
 /** What the streaks read of a car. */
 interface TowCar { x: number; y: number; vx: number; vy: number; heading: number;
   spec: { len: number; wid: number }; dragMul?: number }
@@ -588,24 +593,26 @@ interface TowCar { x: number; y: number; vx: number; vy: number; heading: number
 /**
  * Emit this frame's air streaks for a car in a tow.
  * @param ctx particle context
- * @param car the player's car
+ * @param car a racer
  * @param wallDt wall-clock frame time
  */
 function emitStreaks(ctx: ParticleCtx, car: TowCar, wallDt: number) {
   const state = ctx.state, cut = 1 - (car.dragMul ?? 1);
-  if (cut < STREAK_FROM) { state.streakDebt = 0; return; }
-  state.streakDebt += STREAK_RATE * Math.min(1, cut / STREAK_FULL_CUT) * wallDt;
+  if (cut < STREAK_FROM) { state.streakDebt.delete(car); return; }
+  const strength = Math.min(1, cut / STREAK_FULL_CUT);
+  let debt = (state.streakDebt.get(car) || 0) + STREAK_RATE * strength ** 1.5 * wallDt;
   const cosH = Math.cos(car.heading), sinH = Math.sin(car.heading);
-  while (state.streakDebt >= 1) {
-    state.streakDebt--;
+  const alpha = STREAK_ALPHA_FAR + (STREAK_ALPHA_NEAR - STREAK_ALPHA_FAR) * strength;
+  for (; debt >= 1; debt--) {
     const along = (fxRandom() - 0.3) * car.spec.len;
     const side = (fxRandom() < 0.5 ? -1 : 1) * (car.spec.wid / 2 + 0.15 + fxRandom() * 0.5);
     if (state.streaks.length >= MAX_STREAKS) state.streaks.shift();
     state.streaks.push({ x: car.x + cosH * along - sinH * side, y: car.y + sinH * along + cosH
       * side, vx: car.vx * STREAK_DRIFT, vy: car.vy * STREAK_DRIFT, age: 0,
-      life: STREAK_LIFE * (0.7 + fxRandom() * 0.6), len: STREAK_LEN * (0.6 + fxRandom() * 0.8),
-      heading: car.heading });
+      life: STREAK_LIFE * (0.7 + fxRandom() * 0.6), len: STREAK_LEN * (0.3 + fxRandom() * 1.4),
+      heading: car.heading, alpha });
   }
+  state.streakDebt.set(car, debt);
 }
 
 /**
@@ -626,7 +633,7 @@ function renderStreaks(ctx: ParticleCtx, wallDt: number) {
     streak.age += wallDt;
     if (streak.age >= streak.life) { streaks.splice(i, 1); continue; }
     streak.x += streak.vx * wallDt; streak.y += streak.vy * wallDt;
-    view.ctx.globalAlpha = STREAK_ALPHA * (1 - streak.age / streak.life);
+    view.ctx.globalAlpha = streak.alpha * (1 - streak.age / streak.life);
     const headX = Math.round(toScreenX(streak.x) * dpr),
       headY = Math.round(toScreenY(streak.y) * dpr);
     const back = streak.len * ppm * dpr;
@@ -648,7 +655,7 @@ function renderStreaks(ctx: ParticleCtx, wallDt: number) {
  */
 export function createParticles(view: View, cam: Cam, helpers: ParticleHelpers) {
   const { PPMz, toScreenX, toScreenY } = helpers;
-  const state: ParticleState = { puffs: [], overPuffs: [], streaks: [], streakDebt: 0,
+  const state: ParticleState = { puffs: [], overPuffs: [], streaks: [], streakDebt: new Map(),
     sprayDebt: 0, smokeDebt: 0,
     chips: [], sparks: [] };
   const ctx: ParticleCtx = { view, cam, PPMz, toScreenX, toScreenY, state };

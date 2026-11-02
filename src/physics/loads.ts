@@ -95,7 +95,7 @@ function axleVerticalForces(car: Car, carSpec: Spec, mass: number, gravity: numb
     vLong: number, vLat: number, loadKF: number, loadKR: number) {
   // Aerodynamic downforce scaling with v^2
   const vSqPlanar = vLong * vLong + vLat * vLat;
-  // wakeDown: the dirty air behind another car (physics/wake.ts, ?towplus), 1 in clean air
+  // wakeDown: the dirty air behind another car (physics/wake.ts), 1 in clean air
   const aero = 0.5 * AIR_DENSITY * vSqPlanar * (TUNE.aeroMul || 1) * (car.wakeDown ?? 1);
   const FdownF = aero * (carSpec.downforceF || 0);
   const FdownR = aero * (carSpec.downforceR || 0);
