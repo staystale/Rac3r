@@ -40,8 +40,8 @@ export const FIX = {
   spinMarks: atLoad('spinmarks'),
   // ?smokefade=1: tyre smoke's amount and opacity follow slide speed and tyre heat
   smokeFade: atLoad('smokefade'),
-  // ?flatsize=1: a soft / flat tyre keeps its size (a pixel of bulge), still lumps and wobbles
-  flatSize: atLoad('flatsize'),
-  // ?muscle6=1: the muscle car on a 6-speed (was 4: its top gear capped it at 205 km/h)
-  muscle6: atLoad('muscle6'),
+  // ?dustlinger=1: gravel, dirt and sand dust hangs ~2.5x longer, 30 % more of it (surfaces.ts)
+  dustLinger: atLoad('dustlinger'),
+  // ?musclegears=1: the muscle car's 4-speed with a shorter 1st and a long 4th (was capped 205)
+  muscleGears: atLoad('musclegears'),
 };

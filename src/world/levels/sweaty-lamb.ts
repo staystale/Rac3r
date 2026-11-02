@@ -178,7 +178,8 @@ export const SL_PROPS: Prop[] = [
     SL_KIT.prop(dist, off, { kind: 'block', w: 5, h: 5, roof: '#eef0f2' })),
   SL_KIT.prop(SL_FINISH + 2, -9, { kind: 'board', label: 'FINISH' }),
     SL_KIT.prop(SL_FINISH + 40, -9, { kind: 'board', label: 'STOP' }),
-  SL_KIT.prop(60, -12, { kind: 'board', label: 'SWEATY LAMB' }),
+  // 60 -> 45 m along: the evenly spaced lap (K3) moved the bend under it; an end sat on the road
+  SL_KIT.prop(45, -12, { kind: 'board', label: 'SWEATY LAMB' }),
     SL_KIT.prop(SL_C.sweep, -16, { kind: 'board', label: 'KUM TYRES' }),
   ...SL_DRESS, ...SL_TREES,
 ].filter((prop) => (prop.kind === 'block' && prop.w! > 10) || prop.kind === 'truck'

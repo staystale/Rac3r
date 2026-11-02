@@ -52,7 +52,8 @@ interface ParticleCtx {
 // blooms all come off `surface.spray`. This file never learns what snow is, which is the same
 // seam the marks layer uses.
 // raised from 40: four wheels throwing continuously needs the headroom
-const MAX_PUFFS = 220;
+// ?dustlinger=1: room for the longer dust trails
+const MAX_PUFFS = FIX.dustLinger ? 320 : 220;
 const MAX_CHIPS = 400;
 const MAX_SPARKS = 600;
 
@@ -74,7 +75,9 @@ const SMOKE = { rgb: '225,225,230', size: 0.45, lift: 0.9, life: 1.3, grow: 1.9 
 // opacity (from SMOKE_ALPHA_MIN) both follow it. A light slide on a hot tyre: a faint wisp; a
 // burnout or a long drift: a thick cloud.
 const SMOKE_HEAT_SPAN = 50, SMOKE_HEAT_MIN = 0.3, SMOKE_SLIP_MIN = 2, SMOKE_SLIP_FULL = 14;
-const SMOKE_RATE = 30, SMOKE_ALPHA_MIN = 0.25;
+// (owner: "full burn out with hot tyres should make slightly more smoke too / longer": the rate
+// 30 -> 38 and a strong puff lives up to SMOKE_LINGER longer)
+const SMOKE_RATE = 38, SMOKE_ALPHA_MIN = 0.25, SMOKE_LINGER = 0.6;
 
 /**
  * How hard a tyre smokes (?smokefade), 0..1.
@@ -185,8 +188,11 @@ function emitTyreSmoke(ctx: ParticleCtx, car: ParticleCar, marks: RenderMarks, w
       : Math.min(1, (wheel.heat - SMOKE_T) / 40 + 0.3) * Math.min(1, wheel.slip / 6) * 40 * wallDt;
     while (state.smokeDebt >= 1) { state.smokeDebt--;
       emitPuff(ctx, wheel.x, wheel.y, car.vx * 0.6, car.vy * 0.6, SMOKE, 0.5);
-      if (FIX.smokeFade) state.puffs[state.puffs.length - 1].alpha = SMOKE_ALPHA_MIN
-        + (1 - SMOKE_ALPHA_MIN) * strength; }
+      if (FIX.smokeFade) {
+        const puff = state.puffs[state.puffs.length - 1];
+        puff.alpha = SMOKE_ALPHA_MIN + (1 - SMOKE_ALPHA_MIN) * strength;
+        puff.life *= 1 + SMOKE_LINGER * strength;
+      } }
   }
   if (state.smokeDebt > 4) state.smokeDebt = 4;
 }

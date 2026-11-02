@@ -29,9 +29,11 @@ const REAL: Record<string, [number, number, number, number, number]> = {
   'f2-rwd': [1.71, 1.80, 657, 620, 0.66],
 };
 const BIAS_REAL = 0.65, BIAS_REAL_SINGLE = 0.60;
-// ?muscle6=1: the muscle car's real-style 6-speed (a Mustang GT's is too): the same first three
-// and a 1.00 fourth, then two overdrives. On 4 gears its 4th at the redline capped it at 205 km/h.
-const MUSCLE_6 = [2.66, 1.78, 1.30, 1.00, 0.80, 0.63];
+// ?musclegears=1 (owner: "keep the muscle car at 4 gears and just make 1st shorter gear and 2-4
+// longer gears ... 4 being quite long"): at the 6000 redline 1st 60 km/h (was 77), 2nd 105
+// (115), 3rd 168 (157), 4th 270 (205: its old 4th at the redline was its top speed). The V8's
+// torque (peak 3400 rpm) pulls 4th from the 3700 rpm the 3-4 shift drops to.
+const MUSCLE_GEARS = [3.42, 1.95, 1.22, 0.76];
 /** A locked or spinning tyre's grip as a share of its peak on dry tarmac, real. */
 export const LOCK_REAL = 0.70;
 
@@ -53,7 +55,7 @@ export function realGripK(carId: string): number {
  */
 export function applyRealism(out: RosterRow): void {
   const row = REAL[out.id];
-  if (FIX.muscle6 && out.id === 'muscle-rwd') out.gears = MUSCLE_6;
+  if (FIX.muscleGears && out.id === 'muscle-rwd') out.gears = MUSCLE_GEARS;
   if (DIAL.brake) {
     out.brakeBiasF = mix(out.brakeBiasF, out.cls === 'single' ? BIAS_REAL_SINGLE : BIAS_REAL,
       DIAL.brake);

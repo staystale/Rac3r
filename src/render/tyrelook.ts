@@ -2,13 +2,12 @@
 // progressive so tyre pressure is basically visible"; a flat "squishes in all directions",
 // "wobbles even" - mockup approved). In the car's sprite pixels, centred on the wheel. From full
 // (pressure 1) to flat (0), each step adds to the last:
-//   below 90 %  the sides round out a pixel (wider, rounded ends)
-//   below 65 %  longer: the contact patch spreads a pixel front and back
-//   below 40 %  the sidewalls bulge a further pixel, a lump rolling along each side; darker
-//   below 20 %  longer again, darkest, and it flops a pixel side to side as it turns
+//   below 90 %  the sides round out a pixel (the bulge)
+//   below 40 %  a darker lump rolls along inside that pixel on each side
+//   below 20 %  darkest, and it flops a pixel side to side as it turns
+// The tyre keeps its own size (owner 11-02, passed: popped tyres "grow in size too much ... size
+// should be pretty much the same as normal tyres"; they grew up to 4 px longer and wider).
 // On the rim: a thin silver rim with rubber shreds. physics/tyrepressure.ts holds the numbers.
-
-import { FIX } from '../core/fixes.ts';
 
 const TYRE = '#16171c', TYRE_SOFT = '#121317', TYRE_FLAT = '#0d0e11';
 const TREAD = '#26282f', TREAD_FLAT = '#1b1c22', RIM_DARK = '#7d7f88', RIM_LIT = '#c9c9d2';
@@ -17,10 +16,6 @@ const SOFT_FROM = 0.9;
 // wheel radius for the roll of the lumps, m (a ~16-17 inch wheel); the lump moves a pixel a
 // sixth of a turn
 const WHEEL_RADIUS_M = 0.31, LUMP_STEPS_PER_TURN = 6;
-// ?flatsize=1 (owner: popped tyres "seem to grow in size too much - the wobble etc is spot on and
-// some extra bulge is ok - but size should be pretty much the same as normal tyres"): the tyre
-// keeps its length; the sides round out a pixel (the bulge) and the lumps roll IN that pixel,
-// darker, instead of a second pixel further out. Before: up to 4 px longer and 4 px wider.
 
 /** A car as the tyre look reads it. */
 interface TurningCar { vx: number; vy: number; _wheelTurn?: number; _wheelAt?: number }
@@ -63,26 +58,20 @@ export function drawTyreByPressure(
   if (pressure >= SOFT_FROM) return false;
   const soft = 1 - pressure, step = Math.floor(turn);
   const lumps = soft > 0.6, flop = soft > 0.8;
-  const grow = FIX.flatSize ? 0 : (soft > 0.35 ? 1 : 0) + (flop ? 1 : 0);
   const wobble = flop ? [0, 1, 0, -1][Math.floor(turn / 2) % 4] : 0;
-  const len = tyreLen + grow * 2, left = -Math.round(len / 2), top = -Math.round(tyreWid / 2)
+  const len = tyreLen, left = -Math.round(len / 2), top = -Math.round(tyreWid / 2)
     + wobble;
   ctx.fillStyle = flop ? TYRE_FLAT : lumps ? TYRE_SOFT : TYRE;
   ctx.fillRect(left, top, len, tyreWid);
   // rounded out a pixel on both sides
   ctx.fillRect(left + 1, top - 1, len - 2, 1);
   ctx.fillRect(left + 1, top + tyreWid, len - 2, 1);
-  if (lumps && FIX.flatSize) {
+  if (lumps) {
     // the lumps roll along inside the rounded-out pixel, darker
     ctx.fillStyle = TYRE_FLAT;
     const lump = Math.max(1, Math.round((len - 2) / 3));
     ctx.fillRect(left + 1 + (step % (len - 1 - lump)), top - 1, lump, 1);
     ctx.fillRect(left + 1 + ((step + 2) % (len - 1 - lump)), top + tyreWid, lump, 1);
-  } else if (lumps) {
-    // the sidewalls bulging at the ground, a lump rolling along each side
-    const bulge = Math.max(1, len - 8);
-    ctx.fillRect(left + 2 + (step % 5), top - 2, bulge, 1);
-    ctx.fillRect(left + 2 + ((step + 2) % 5), top + tyreWid + 1, bulge, 1);
   }
   // tread blocks moving with the roll
   ctx.fillStyle = flop ? TREAD_FLAT : TREAD;

@@ -36,7 +36,7 @@ export const TEST_LIST = [
   // passed 2026-10-26; waterspread, openwheel passed 2026-10-26; the 11-01 round - heavywet,
   // menureset, markage (round 2: 8 px cells, 16 steps), treenight, hwsnow, wheelgone (+ the
   // spray fix), menucar, ainumbers - passed 2026-11-02; wheelspin (the driving root fix: real
-  // wheel speed, real ABS) passed 2026-11-02; evenlap passed 2026-11-02)
+  // wheel speed, real ABS) passed 2026-11-02; evenlap, flatsize passed 2026-11-02)
   {
     id: 'realism',
     added: '2026-11-02',
@@ -72,25 +72,25 @@ export const TEST_LIST = [
   {
     id: 'smokefade',
     added: '2026-11-02',
-    name: 'Tyre smoke follows slide speed and tyre heat: wisps on a light slide, clouds when hot',
+    name: 'Tyre smoke follows slide speed and heat: wisps when light, a long cloud in a burnout',
     where: 'Plain link + &smokefade=1 (best with &spinmarks=1)',
     try: 'Slide lightly, then drift hard and do a burnout; watch how thick the smoke is.',
     wrong: 'Smoke still constant, or a big burnout with no smoke.',
   },
   {
-    id: 'flatsize',
+    id: 'musclegears',
     added: '2026-11-02',
-    name: 'Soft / flat tyres keep their size: a pixel of bulge, lumps and wobble as before',
-    where: 'Plain link + &flatsize=1; stingers / damage for a puncture',
-    try: 'Get a slow puncture and a flat; drive on it.',
-    wrong: 'A flat tyre bigger than the others, or no lumps / wobble.',
-  },
-  {
-    id: 'muscle6',
-    added: '2026-11-02',
-    name: 'Muscle car on a 6-speed (was 4, its top gear capped it at 205 km/h)',
-    where: 'Plain link + &muscle6=1, Muscle (with the realism dials)',
+    name: 'Muscle car 4-speed: 1st shorter (60 km/h), 4th long (270); was 77 / 205',
+    where: 'Plain link + &musclegears=1, Muscle (with the realism dials)',
     try: 'Flat out down a long straight; the shift points.',
     wrong: 'Bogging after a shift, or a silly top speed.',
+  },
+  {
+    id: 'dustlinger',
+    added: '2026-11-02',
+    name: 'Gravel, dirt and sand dust hangs ~2.5x longer and 30 % thicker, a long trail',
+    where: 'Plain link + &dustlinger=1: Knobhill RX, Sahara stage, any gravel run-off',
+    try: 'Drive and slide on gravel / sand; follow an AI car on dirt.',
+    wrong: 'A wall of dust you cannot see through, or a frame-rate drop.',
   },
 ];
