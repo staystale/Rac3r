@@ -7,7 +7,6 @@
 // Multi-touch by pointerId — holding the stick and the throttle at once is the commonest touch
 // bug, so pointers are tracked individually and never shared. Every HUD/pedal touch is CONSUMED
 // (CLAUDE.md §4).
-import { FIX } from './core/fixes.ts';
 
 // r 36 -> 40 (requirement: driving buttons slightly larger, only a small bit) px; >=44px targets
 // via r*2 = 72
@@ -34,8 +33,8 @@ const THR_MIN = 0.26;      // initial opening on a quick stab
 // 0.50 -> 0.75 (requirement: it goes to max throttle slightly too quickly — it should ramp up the
 // longer you hold it, only over a very short period, but slightly longer than now). R uses the same
 // ramp.
-// ?pedalramp=1: 0.75 -> 1.5 (owner: "increase the throttle and brake control ramp timing")
-const THR_RAMP = FIX.pedalRamp ? 1.5 : 0.75;     // s to full throttle
+// 0.75 -> 1.5 (owner 11-02: "increase the throttle and brake control ramp timing"; passed)
+const THR_RAMP = 1.5;     // s to full throttle
 
 // HANDBRAKE: a short slew BOTH WAYS rather than a hold-ramp (requirement: very short like 0.1
 // seconds). Instant on/off is a force step, and today has repeatedly shown that a discontinuous
@@ -44,8 +43,8 @@ const THR_RAMP = FIX.pedalRamp ? 1.5 : 0.75;     // s to full throttle
 const HB_SLEW = 1 / 0.10;  // units per second, up AND down
 // 0.50 -> 0.25 (requirement: holding brake should be foot-to-the-floor braking). A tap still bites
 // lightly.
-// ?pedalramp=1: 0.25 -> 1.0 (the same ask: holding brakes harder and harder, not a stamp)
-const BRAKE_RAMP = FIX.pedalRamp ? 1.0 : 0.25;   // s to reach full pedal
+// 0.25 -> 1.0 (the same ask: holding brakes harder and harder, not a stamp; passed 11-02)
+const BRAKE_RAMP = 1.0;   // s to reach full pedal
 
 // 52 px meant a full-right to full-left correction was a 104 px thumb drag — too slow to catch a
 // slide on a phone, which is most of why a handbrake flick "could not be fought". 38 makes the

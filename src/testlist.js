@@ -36,61 +36,7 @@ export const TEST_LIST = [
   // passed 2026-10-26; waterspread, openwheel passed 2026-10-26; the 11-01 round - heavywet,
   // menureset, markage (round 2: 8 px cells, 16 steps), treenight, hwsnow, wheelgone (+ the
   // spray fix), menucar, ainumbers - passed 2026-11-02; wheelspin (the driving root fix: real
-  // wheel speed, real ABS) passed 2026-11-02; evenlap, flatsize passed 2026-11-02)
-  {
-    id: 'realism',
-    added: '2026-11-02',
-    name: 'K13 realism dials: brakes, locked wheels, tyre grip, engine power (0 = now, 1 = real)',
-    where: 'Plain link + &realbrake=1&reallock=1&realgrip=0.5&realpower=1 (change any number)',
-    try: 'Brake hard straight and into turns, launch, corner, drift; muscle, hatch, Mini, F1.',
-    wrong: 'Spins under braking, a car that will not pull away, AI off the road, no fun.',
-  },
-  {
-    id: 'pedalramp',
-    added: '2026-11-02',
-    name: 'Slower pedal ramps: throttle full after 1.5 s held (was 0.75), brake 1.0 s (was 0.25)',
-    where: 'Plain link + &pedalramp=1 (with the realism dials)',
-    try: 'Hold GAS / BRAKE: the push should build; feather a launch, brake to the edge of locking.',
-    wrong: 'Too slow to stop in time, or still feels like a stamp.',
-  },
-  {
-    id: 'lockfade',
-    added: '2026-11-02',
-    name: 'Locking up is worse: a sliding tyre grips less the faster it slides',
-    where: 'Plain link + &lockfade=1 (with the realism dials); ABS button on / off',
-    try: 'Brake hard from 100+ with ABS off, then on; also launches and handbrake turns.',
-    wrong: 'ABS and locked still stop alike; handbrake turns that cannot be caught.',
-  },
-  {
-    id: 'spinmarks',
-    added: '2026-11-02',
-    name: 'Wheelspin heats tyres like a lock-up; cold tyres slipping still leave faint marks',
-    where: 'Plain link + &spinmarks=1 (TCS off: muscle, hatch RWD)',
-    try: 'Launch flat out from cold; hold a burnout (brake + gas); a long power drift.',
-    wrong: 'No marks off the line, or drifts that overheat / pop tyres too soon.',
-  },
-  {
-    id: 'smokefade',
-    added: '2026-11-02',
-    name: 'Tyre smoke follows slide speed and heat: wisps when light, a long cloud in a burnout',
-    where: 'Plain link + &smokefade=1 (best with &spinmarks=1)',
-    try: 'Slide lightly, then drift hard and do a burnout; watch how thick the smoke is.',
-    wrong: 'Smoke still constant, or a big burnout with no smoke.',
-  },
-  {
-    id: 'musclegears',
-    added: '2026-11-02',
-    name: 'Muscle car 4-speed: 1st shorter (60 km/h), 4th long (270); was 77 / 205',
-    where: 'Plain link + &musclegears=1, Muscle (with the realism dials)',
-    try: 'Flat out down a long straight; the shift points.',
-    wrong: 'Bogging after a shift, or a silly top speed.',
-  },
-  {
-    id: 'dustlinger',
-    added: '2026-11-02',
-    name: 'Gravel, dirt and sand dust hangs ~2.5x longer and 30 % thicker, a long trail',
-    where: 'Plain link + &dustlinger=1: Knobhill RX, Sahara stage, any gravel run-off',
-    try: 'Drive and slide on gravel / sand; follow an AI car on dirt.',
-    wrong: 'A wall of dust you cannot see through, or a frame-rate drop.',
-  },
+  // wheel speed, real ABS) passed 2026-11-02; evenlap, flatsize passed 2026-11-02; realism (K13
+  // dials at brake 1, lock 1, grip 0.5, power 1), pedalramp, lockfade, spinmarks, smokefade,
+  // musclegears, dustlinger passed 2026-11-02)
 ];

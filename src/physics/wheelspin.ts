@@ -32,8 +32,6 @@ import {
   axleGrip, axleTyreGrip, relaxAxleForces, tyreGripOn, type AxleForce,
 } from './tyres.ts';
 import { axleFrictionWork } from './tyreheat.ts';
-import { DIAL, LOCK_REAL } from '../realism.ts';
-import { FIX } from '../core/fixes.ts';
 
 
 // longitudinal slip at the peak on hard ground (real tyres 0.10-0.15); x the surface's peakK
@@ -90,11 +88,12 @@ interface Law {
   FxPk: number; FyPk: number; sgLat: number; sgLong: number;
 }
 
-// ?lockfade=1: rubber sliding on tarmac grips less the faster it slides (it skates on its own
-// melt): a locked or spinning tyre's grip share falls by up to LOCK_FADE at LOCK_FADE_V of slide.
+// LOCK FADE (passed 11-02): rubber sliding on tarmac grips less the faster it slides (it
+// skates on its own melt): a locked or spinning tyre's grip share falls by up to LOCK_FADE at
+// LOCK_FADE_V of slide.
 const LOCK_FADE = 0.25, LOCK_FADE_V = 25;
 /**
- * The share of a sliding tyre's grip kept at a sliding speed (?lockfade).
+ * The share of a sliding tyre's grip kept at a sliding speed.
  * @param slideV the tyre's sliding speed along the car, m/s (wheel minus ground)
  * @returns 1 - LOCK_FADE at LOCK_FADE_V and above
  */
@@ -112,19 +111,15 @@ function lawForce(law: Law, wheelU: number) {
   const nx = (wheelU - law.vx) / law.vRef / law.kPeak, slipN = Math.hypot(nx, law.ny);
   if (slipN < 1e-6) return { fx: 0, fy: 0, slipN: 0, nx: 0 };
   const share = (nx * nx) / (slipN * slipN);
-  const sgLong = FIX.lockFade ? law.sgLong * slideFade(wheelU - law.vx) : law.sgLong;
+  const sgLong = law.sgLong * slideFade(wheelU - law.vx);
   const shape = curveFactor(slipN, 1, law.sgLat + (sgLong - law.sgLat) * share);
   return { fx: law.FxPk * shape * nx / slipN, fy: -law.FyPk * shape * law.ny / slipN, slipN, nx };
 }
 
-/**
- * A locked or spinning tyre's grip share, moved toward the real one by ?reallock (realism.ts).
- * @param slideGrip the car's share
- * @returns the share used
- */
-function lockGrip(slideGrip: number): number {
-  return DIAL.lock ? slideGrip + (LOCK_REAL - slideGrip) * DIAL.lock : slideGrip;
-}
+// A locked or spinning tyre's grip as a share of its peak on dry tarmac (K13, passed 11-02: a real
+// tyre keeps ~0.70; the car's slideGrip 0.85 made a locked stop only 4 % longer than ABS). A
+// fitted tyre's own slide factor still scales it.
+const LOCK_SHARE = 0.70;
 
 /**
  * The axle's grip numbers this step (axleGrip, the lateral peak as the old lateral law's).
@@ -144,7 +139,7 @@ function axleLaw(car: Car, carSpec: Spec, tick: { muBase: number; longK: number;
   const sgLat = carSpec.slideGrip;
   return { vx: inp.vx, vRef: Math.max(SLIP_V_MIN, Math.abs(inp.vx)), kPeak: KAPPA_PEAK * tick.peakK,
     ny: inp.slip / aPeak, FxPk: FmaxRoll, FyPk, sgLat,
-    sgLong: lockGrip(sgLat * (carSpec.tyre && carSpec.tyre.slide || 1)) };
+    sgLong: LOCK_SHARE * (carSpec.tyre && carSpec.tyre.slide || 1) };
 }
 
 /**

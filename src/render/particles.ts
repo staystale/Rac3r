@@ -4,7 +4,6 @@ import { SPRITE_PPM, fxRandom } from "./shared.ts";
 import { emitEngineSmoke, type PuffAt, type SmokeCar } from './enginesmoke.ts';
 import type { Spray } from "../world/types.ts";
 import type { Cam, Chip, ParticleCar, Puff, PuffHit, RenderMarks, View } from "./types.ts";
-import { FIX } from '../core/fixes.ts';
 
 // what createParticles destructures from the renderer
 interface ParticleHelpers {
@@ -52,8 +51,8 @@ interface ParticleCtx {
 // blooms all come off `surface.spray`. This file never learns what snow is, which is the same
 // seam the marks layer uses.
 // raised from 40: four wheels throwing continuously needs the headroom
-// ?dustlinger=1: room for the longer dust trails
-const MAX_PUFFS = FIX.dustLinger ? 320 : 220;
+// 220 -> 320: room for the long dust trails (11-02)
+const MAX_PUFFS = 320;
 const MAX_CHIPS = 400;
 const MAX_SPARKS = 600;
 
@@ -68,9 +67,10 @@ const FLUFF_PUFF = { rgb: '248,247,240', size: 0.5, lift: 3.2, life: 1.5, grow: 
 // how hot and how hard - the silent twin of a squeal (CLAUDE.md §4).
 const SMOKE_T = 115;
 const SMOKE = { rgb: '225,225,230', size: 0.45, lift: 0.9, life: 1.3, grow: 1.9 };
-// ?smokefade=1 (owner: smoke "should perhaps have its amount and opacity controlled by speed /
-// tyre heat"; with real wheel speed it came out too constantly): each tyre's smoke strength is
-// its heat share (SMOKE_T -> SMOKE_T + SMOKE_HEAT_SPAN, from SMOKE_HEAT_MIN) x its slide share
+// SMOKE STRENGTH (passed 11-02; owner: smoke "should perhaps have its amount and opacity
+// controlled by speed / tyre heat"; with real wheel speed it came out too constantly): each
+// tyre's smoke strength is its heat share (SMOKE_T -> SMOKE_T + SMOKE_HEAT_SPAN, from
+// SMOKE_HEAT_MIN) x its slide share
 // (SMOKE_SLIP_MIN -> SMOKE_SLIP_FULL m/s); the puffs a second (up to SMOKE_RATE) and their
 // opacity (from SMOKE_ALPHA_MIN) both follow it. A light slide on a hot tyre: a faint wisp; a
 // burnout or a long drift: a thick cloud.
@@ -183,16 +183,14 @@ function emitTyreSmoke(ctx: ParticleCtx, car: ParticleCar, marks: RenderMarks, w
   const wheels = marks.wheelsOf(car);
   for (const wheel of wheels) {
     if (wheel.heat < SMOKE_T || wheel.slip < 1.5) continue;
-    const strength = FIX.smokeFade ? smokeStrength(wheel.heat, wheel.slip) : 0;
-    state.smokeDebt += FIX.smokeFade ? strength * SMOKE_RATE * wallDt
-      : Math.min(1, (wheel.heat - SMOKE_T) / 40 + 0.3) * Math.min(1, wheel.slip / 6) * 40 * wallDt;
+    const strength = smokeStrength(wheel.heat, wheel.slip);
+    state.smokeDebt += strength * SMOKE_RATE * wallDt;
     while (state.smokeDebt >= 1) { state.smokeDebt--;
       emitPuff(ctx, wheel.x, wheel.y, car.vx * 0.6, car.vy * 0.6, SMOKE, 0.5);
-      if (FIX.smokeFade) {
-        const puff = state.puffs[state.puffs.length - 1];
-        puff.alpha = SMOKE_ALPHA_MIN + (1 - SMOKE_ALPHA_MIN) * strength;
-        puff.life *= 1 + SMOKE_LINGER * strength;
-      } }
+      const puff = state.puffs[state.puffs.length - 1];
+      puff.alpha = SMOKE_ALPHA_MIN + (1 - SMOKE_ALPHA_MIN) * strength;
+      puff.life *= 1 + SMOKE_LINGER * strength;
+    }
   }
   if (state.smokeDebt > 4) state.smokeDebt = 4;
 }

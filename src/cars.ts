@@ -11,7 +11,6 @@
 // Torque curves are 7-point tables, not a single peak — the shape is what makes gearing matter.
 
 import type { Mark, Spray } from './world/types.ts';
-import { applyRealism } from './realism.ts';
 
 export const GRAVITY = 9.81;
 
@@ -155,51 +154,57 @@ const SHARED = {
   reverseMaxSpeed: 5.5, // m/s (~20 km/h). Was 8.0 — too fast to keep a reversing car stable.
 };
 
-// Curve shape borrowed from the hatch and scaled/shifted per car (PLAN.md).
-const CURVE_HATCH: Curve  = [[900, 313], [2000, 430], [3000, 473], [4000, 488], [5000, 466], [6000,
-  410], [6800, 343]];
-const CURVE_ESTATE: Curve = [[900, 415], [1800, 565], [2600, 609], [3200, 625], [4000, 588], [4800,
-  510], [6000, 410]];
-const CURVE_MUSCLE: Curve = [[900, 1941], [1800, 2544], [2600, 2757], [3400, 2811], [4200, 2676],
-  [5000, 2346], [6000, 1929]];
+// TORQUE CURVES, Nm at the crank. Curve shape borrowed from the hatch and scaled/shifted per car
+// (PLAN.md). K13 (passed 11-02, ?realpower=1): the roster had run ~1.7x real torque and up to
+// 3.6x real power (Muscle 1653 hp, Naffcar 2438), held back by fat drag; every curve was scaled
+// to its car's real peak power (Hatch FWD 245 hp, RWD 340, Muscle 450, Naffcar 670, Mini 76, Lambo
+// 610 ...) and dragC set to the real body's 0.5 rho Cd A, so the hatch and the Naffcar no longer
+// share one curve with the Muscle / Hatch RWD.
+const CURVE_HATCH: Curve = [[900, 222], [2000, 305], [3000, 336], [4000, 347], [5000, 331],
+  [6000, 291], [6800, 244]];
+const CURVE_HATCH_RWD: Curve = [[900, 308], [2000, 424], [3000, 466], [4000, 481], [5000, 459],
+  [6000, 404], [6800, 338]];
+const CURVE_ESTATE: Curve = [[900, 416], [1800, 567], [2600, 611], [3200, 627], [4000, 590],
+  [4800, 511], [6000, 411]];
+const CURVE_MUSCLE: Curve = [[900, 528], [1800, 693], [2600, 751], [3400, 765], [4200, 728],
+  [5000, 639], [6000, 525]];
+const CURVE_NAFFCAR: Curve = [[900, 533], [1800, 699], [2600, 758], [3400, 773], [4200, 735],
+  [5000, 645], [6000, 530]];
 // Bumped when the roster-wide grip raise stopped it breaking traction — a rally car that
 // cannot be made to slide is the wrong car.
-const CURVE_RALLY: Curve  = [[1200, 537], [2200, 762], [3200, 862], [4200, 881], [5200, 840], [6400,
-  737], [7600, 587]];
-const CURVE_TRACK: Curve  = [[1500, 438], [3000, 568], [4500, 655], [6000, 723], [7000, 756], [8000,
-  728], [9000, 616]];
-// (requirement: a BMW 3 series 2000s and a Subaru WRX classic 2005 saloon) — game units, scaled
-// from the real figures as the roster is (the hatch peaks 488): an E46 330i-style straight
-// six (300 Nm real, ~1.5x the hatch, smooth and flat, 6500 redline) and a GD WRX-style turbo flat
-// four (300 Nm real at 3600: soft under 2500, then the boost, tailing off to 7000)
-const CURVE_SALOON: Curve = [[900, 460], [2000, 620], [3000, 700], [3500, 730], [4500, 720], [5500,
-  680], [6500, 600]];
+const CURVE_RALLY: Curve = [[1200, 406], [2200, 576], [3200, 651], [4200, 665], [5200, 634],
+  [6400, 557], [7600, 443]];
+const CURVE_TRACK: Curve = [[1500, 535], [3000, 694], [4500, 801], [6000, 884], [7000, 924],
+  [8000, 890], [9000, 753]];
+// (requirement: a BMW 3 series 2000s and a Subaru WRX classic 2005 saloon): an E46 330i-style
+// straight six (smooth and flat, 6500 redline) and a GD WRX-style turbo flat four (soft under
+// 2500, then the boost, tailing off to 7000)
+const CURVE_SALOON: Curve = [[900, 403], [2000, 543], [3000, 613], [3500, 639], [4500, 631],
+  [5500, 596], [6500, 526]];
 // v2 (requirement: feels a bit slow at acceleration / unable to wheelspin or drift): +12 % boost
 // and the lag filled from 2000 rpm
-const CURVE_WRZ: Curve    = [[1000, 380], [2000, 600], [2800, 790], [3600, 840], [4500, 820], [5500,
-  730], [6500, 600], [7000, 540]];
-const CURVE_TRACTOR: Curve = [[600, 3600], [1000, 5200], [1500, 5800], [1900, 5400], [2200, 4200],
-  [2500, 800], [2600, 50]];
-// NEW CARS. Curves are on the game's scale (the roster runs ~1.7x real torque —
-// see SHARED dragC), set against the measured roster (tools/carstats.mjs), not the brochure.
-const CURVE_MINI: Curve    = [[900, 120], [2000, 160], [3000, 178], [4000, 182], [5000, 172], [6000,
-  150], [6500, 132]];
-const CURVE_LAMBO: Curve   = [[1000, 620], [2500, 880], [4000, 990], [5500, 1060], [6500, 1070],
-  [7500, 1020], [8500, 900]];
-const CURVE_MIKRA: Curve   = [[1200, 170], [2200, 230], [3200, 255], [4200, 260], [5200, 246],
-  [6200, 217], [7000, 191]];
-const CURVE_KIT: Curve     = [[1500, 300], [3000, 420], [4500, 500], [6000, 540], [7000, 545],
-  [8000, 500], [8500, 460]];
-const CURVE_RX: Curve      = [[1500, 760], [2500, 1150], [3500, 1300], [4500, 1320], [5500, 1250],
-  [6500, 1100], [7500, 940]];
-const CURVE_BANGER: Curve  = [[900, 380], [2000, 500], [3000, 540], [4000, 545],
-  [5000, 500], [6000, 430]];
-const CURVE_GRASS: Curve   = [[1500, 200], [3000, 270], [4500, 320], [6000, 345], [7000, 350],
-  [8000, 330], [8800, 300]];
-const CURVE_DRIFT: Curve   = [[1200, 380], [2500, 640], [3500, 800], [4500, 830], [5500, 800],
-  [6500, 720], [7800, 600]];
-const CURVE_F2: Curve      = [[1500, 350], [3000, 455], [4500, 525], [6000, 580], [7000, 605],
-  [8000, 585], [9000, 495]];
+const CURVE_WRZ: Curve = [[1000, 202], [2000, 319], [2800, 420], [3600, 447], [4500, 436],
+  [5500, 388], [6500, 319], [7000, 287]];
+const CURVE_TRACTOR: Curve = [[600, 874], [1000, 1263], [1500, 1409], [1900, 1312], [2200, 1020],
+  [2500, 194], [2600, 12]];
+const CURVE_MINI: Curve = [[900, 72], [2000, 97], [3000, 107], [4000, 110], [5000, 104],
+  [6000, 90], [6500, 80]];
+const CURVE_LAMBO: Curve = [[1000, 351], [2500, 498], [4000, 560], [5500, 600], [6500, 605],
+  [7500, 577], [8500, 509]];
+const CURVE_MIKRA: Curve = [[1200, 108], [2200, 146], [3200, 162], [4200, 165], [5200, 156],
+  [6200, 138], [7000, 121]];
+const CURVE_KIT: Curve = [[1500, 149], [3000, 209], [4500, 249], [6000, 269], [7000, 272],
+  [8000, 249], [8500, 229]];
+const CURVE_RX: Curve = [[1500, 454], [2500, 687], [3500, 776], [4500, 788], [5500, 746],
+  [6500, 657], [7500, 561]];
+const CURVE_BANGER: Curve = [[900, 194], [2000, 255], [3000, 276], [4000, 278], [5000, 255],
+  [6000, 219]];
+const CURVE_GRASS: Curve = [[1500, 161], [3000, 218], [4500, 258], [6000, 278], [7000, 282],
+  [8000, 266], [8800, 242]];
+const CURVE_DRIFT: Curve = [[1200, 344], [2500, 579], [3500, 724], [4500, 751], [5500, 724],
+  [6500, 652], [7800, 543]];
+const CURVE_F2: Curve = [[1500, 330], [3000, 429], [4500, 495], [6000, 547], [7000, 571],
+  [8000, 552], [9000, 467]];
 
 // CLASSES (requirement: classes... subclasses for events; the car menu filters by class then
 // subclass; upgrading never changes a car's class; split agreed as proposed). Each ROSTER row
@@ -340,10 +345,12 @@ export const ROSTER: RosterRow[] = [
     mass: 1440, lf: 1.10, lr: 1.40, len: 4.0, wid: 1.7,
     // Brake bias is strongly FRONT on every car. MEASURED: at the old rearward figures
     // the rear locked under braking, lost all its lateral grip, and the car spun — 5 of 5 past 90
-    // deg when braking in a turn. Real cars run 70-85% front for exactly this reason.
-    drive: 1.0, brakeBiasF: 0.84, caF: 109000, caR: 117000, mu: 1.56,
+    // deg when braking in a turn. Real cars run 70-85% front for exactly this reason. K13 (passed
+    // 11-02): 0.65 front on every road car, 0.60 on single-seaters, with LOCK_SHARE 0.70
+    // (wheelspin.ts) the spin under braking is gone (brakecheck 12 -> 5 of the turns).
+    drive: 1.0, brakeBiasF: 0.65, caF: 109000, caR: 117000, mu: 1.3,
     curve: CURVE_HATCH, redline: 6800, upshiftRpm: 6200, downshiftRpm: 2600,
-    gears: [3.45, 1.95, 1.28, 0.95, 0.76], finalDrive: 4.06, dragC: 0.50,
+    gears: [3.45, 1.95, 1.28, 0.95, 0.76], finalDrive: 4.06, dragC: 0.42,
     paint: '#4a8fd4', trim: '#2b5c8f', glass: '#8fb8d8',
   },
   {
@@ -355,9 +362,9 @@ export const ROSTER: RosterRow[] = [
     aids: { abs: true, tcs: true },
     // Same shell, rear drive. The drift teacher — the car the mark showcase is tuned on.
     mass: 1440, lf: 1.25, lr: 1.25, len: 4.0, wid: 1.7,
-    drive: 0.0, brakeBiasF: 0.82, caF: 109000, caR: 114000, mu: 1.56,
-    curve: CURVE_HATCH, redline: 6800, upshiftRpm: 6200, downshiftRpm: 2600,
-    gears: [3.45, 1.95, 1.28, 0.95, 0.76], finalDrive: 4.06, dragC: 0.50,
+    drive: 0.0, brakeBiasF: 0.65, caF: 109000, caR: 114000, mu: 1.32,
+    curve: CURVE_HATCH_RWD, redline: 6800, upshiftRpm: 6200, downshiftRpm: 2600,
+    gears: [3.45, 1.95, 1.28, 0.95, 0.76], finalDrive: 4.06, dragC: 0.42,
     // Per-car yaw inertia. MEASURED: this was the ONLY car still spinning to 180 on a held-lock
     // handbrake after the self-aligning fix — it is the shortest and lightest rear-drive car, so
     // the box formula gives it roughly half the muscle car's yaw inertia while it carries similar
@@ -374,9 +381,9 @@ export const ROSTER: RosterRow[] = [
     // straight six. Calmer and more stable than the short hatch RWD (longer wheelbase, more yaw
     // inertia), but it will still hang its tail out on the throttle.
     mass: 1450, lf: 1.36, lr: 1.36, len: 4.47, wid: 1.74,
-    drive: 0.0, brakeBiasF: 0.80, caF: 112000, caR: 118000, mu: 1.58,
+    drive: 0.0, brakeBiasF: 0.65, caF: 112000, caR: 118000, mu: 1.34,
     curve: CURVE_SALOON, redline: 6500, upshiftRpm: 6100, downshiftRpm: 2600,
-    gears: [4.23, 2.52, 1.66, 1.22, 1.00], finalDrive: 3.07, dragC: 0.52,
+    gears: [4.23, 2.52, 1.66, 1.22, 1.00], finalDrive: 3.07, dragC: 0.4,
     // titanium silver, silver multi-spokes
     paint: '#a9aeb6', trim: '#4a4f58', glass: '#8fa3b8', rim: '#d6d9df',
   },
@@ -392,9 +399,9 @@ export const ROSTER: RosterRow[] = [
     // gripped and pushed — power-on gravel body slip 31 deg, yaw 44 deg/s vs the Rally's 70 / 74,
     // tools/carfeel)
     mass: 1410, lf: 1.09, lr: 1.435, len: 4.47, wid: 1.74,
-    drive: 0.36, brakeBiasF: 0.80, caF: 112000, caR: 116000, mu: 1.60,
+    drive: 0.36, brakeBiasF: 0.65, caF: 112000, caR: 116000, mu: 1.32,
     curve: CURVE_WRZ, redline: 7000, upshiftRpm: 6500, downshiftRpm: 2800,
-    gears: [3.45, 1.95, 1.37, 0.97, 0.74], finalDrive: 4.44, dragC: 0.55,
+    gears: [3.45, 1.95, 1.37, 0.97, 0.74], finalDrive: 4.44, dragC: 0.48,
     // World Rally Blue, gold wheels
     paint: '#1d3f9a', trim: '#0f2257', glass: '#93abd2', rim: '#c9a227',
     // the AI's confidence in this car's plan (aidriver profileOf). 1.0: Sweaty Lamb Real off 25 s a
@@ -410,9 +417,9 @@ export const ROSTER: RosterRow[] = [
     aids: { abs: true, tcs: true },
     // Heavy, planted, four-wheel drive. Long lazy four-wheel slides, heavy marks, hard to stop.
     mass: 1810, lf: 1.35, lr: 1.35, len: 4.7, wid: 1.8,
-    drive: 0.5, brakeBiasF: 0.82, caF: 124000, caR: 134000, mu: 1.49,
+    drive: 0.5, brakeBiasF: 0.65, caF: 124000, caR: 134000, mu: 1.24,
     curve: CURVE_ESTATE, redline: 6000, upshiftRpm: 5500, downshiftRpm: 2200,
-    gears: [3.50, 2.00, 1.35, 1.00, 0.80], finalDrive: 3.90, dragC: 0.68,
+    gears: [3.50, 2.00, 1.35, 1.00, 0.80], finalDrive: 3.90, dragC: 0.46,
     paint: '#4f6b52', trim: '#2f4433', glass: '#9fb8a4',
   },
   {
@@ -424,11 +431,11 @@ export const ROSTER: RosterRow[] = [
     aids: { abs: true, tcs: false },
     // Torque far beyond the rear tyres. Power oversteer in any gear; the loudest marks in the lab.
     mass: 1880, lf: 1.30, lr: 1.30, len: 4.8, wid: 1.9,
-    drive: 0.0, brakeBiasF: 0.82, caF: 119000, caR: 125000, mu: 1.58,
+    drive: 0.0, brakeBiasF: 0.65, caF: 119000, caR: 125000, mu: 1.34,
     curve: CURVE_MUSCLE, redline: 6000, upshiftRpm: 5500, downshiftRpm: 2200,
-    // raised with the 3x power so the torque goes into
-    gears: [2.66, 1.78, 1.30, 1.00], finalDrive: 3.31, dragC: 1.05,
-                                     // wheelspin and acceleration rather than a 390 km/h top speed
+    // (owner 11-02: "keep the muscle car at 4 gears ... 1st shorter ... 4 being quite long"):
+    // 1st 60 km/h at the redline (was 77), 4th 270 (was 205, its old top speed on the limiter)
+    gears: [3.42, 1.95, 1.22, 0.76], finalDrive: 3.31, dragC: 0.6,
     paint: '#b3252f', trim: '#6e141b', glass: '#d0a0a4',
   },
   {
@@ -443,9 +450,9 @@ export const ROSTER: RosterRow[] = [
     mass: 1250, lf: 1.20, lr: 1.30, len: 4.1, wid: 1.82,
     // 22/78 front/rear. At 0.35 the roster-wide grip raise left it unable to break traction at all,
     // and a rally car has to be the one that slides.
-    drive: 0.22, brakeBiasF: 0.80, caF: 112000, caR: 119000, mu: 1.64,
+    drive: 0.22, brakeBiasF: 0.65, caF: 112000, caR: 119000, mu: 1.41,
     curve: CURVE_RALLY, redline: 7600, upshiftRpm: 7000, downshiftRpm: 3000,
-    gears: [3.20, 2.15, 1.60, 1.25, 1.02, 0.86], finalDrive: 4.10, dragC: 0.58,
+    gears: [3.20, 2.15, 1.60, 1.25, 1.02, 0.86], finalDrive: 4.10, dragC: 0.48,
     aeroK: 1.6,           // the wing
     // Raised to realistic levels. Real rally cars generate ~300kg+ downforce at 100mph.
     downforceF: 0.90, downforceR: 1.70,
@@ -461,9 +468,9 @@ export const ROSTER: RosterRow[] = [
     cg: 0.36, rideH: 0.07,
     // Formula 1 archetype: featherweight, open-wheel, huge aero downforce, wide racing slicks.
     mass: 815, lf: 1.55, lr: 1.35, len: 4.4, wid: 1.35, trackWidth: 1.85, tyreWidth: 0.32,
-    drive: 0.0, brakeBiasF: 0.86, caF: 159000, caR: 171000, mu: 1.92,
+    drive: 0.0, brakeBiasF: 0.60, caF: 159000, caR: 171000, mu: 1.92,
     curve: CURVE_TRACK, redline: 9000, upshiftRpm: 8600, downshiftRpm: 4200,
-    gears: [2.90, 2.00, 1.55, 1.25, 1.05, 0.88], finalDrive: 3.90, dragC: 0.62,
+    gears: [2.90, 2.00, 1.55, 1.25, 1.05, 0.88], finalDrive: 3.90, dragC: 0.9,
     aeroK: 1.4,
     // 0.65 / 0.95 -> 1.73 / 2.50 (user, step 2 aero check: yes). Was ClA 1.6 = ~0.38x
     // weight at 200 km/h; a real F1 car makes ~its own weight there. Now 4.23 = 1.0x at 200 km/h,
@@ -480,9 +487,9 @@ export const ROSTER: RosterRow[] = [
     // Oval racer: heavy, massive V8 torque, 4-speed manual/auto, designed to go fast and turn left.
     // Extremely slippery on dirt/grass due to stiff setup and high power.
     mass: 1495, lf: 1.35, lr: 1.45, len: 5.1, wid: 1.95, trackWidth: 1.85,
-    drive: 0.0, brakeBiasF: 0.80, caF: 135000, caR: 145000, mu: 1.85,
-    curve: CURVE_MUSCLE, redline: 9000, upshiftRpm: 8500, downshiftRpm: 4500, idleRpm: 1500,
-    gears: [2.65, 1.80, 1.30, 1.00], finalDrive: 3.50, dragC: 0.45, // very aerodynamic body
+    drive: 0.0, brakeBiasF: 0.65, caF: 135000, caR: 145000, mu: 1.74,
+    curve: CURVE_NAFFCAR, redline: 9000, upshiftRpm: 8500, downshiftRpm: 4500, idleRpm: 1500,
+    gears: [2.65, 1.80, 1.30, 1.00], finalDrive: 3.50, dragC: 0.54, // very aerodynamic body
     aeroK: 1.1, downforceF: 0.80, downforceR: 1.20, // moderate downforce from the rear lip spoiler
     susF: 2.10, susZ: 0.35, // Stiff for banked corners
     paint: '#f2a900', trim: '#111111', glass: '#555555',
@@ -494,9 +501,9 @@ export const ROSTER: RosterRow[] = [
     cg: 1.05, rideH: 0.45,
     // Heavy agricultural diesel puller. High torque, wide rear stance, open-wheel styling.
     mass: 5200, lf: 1.50, lr: 1.10, len: 4.2, wid: 2.1,
-    drive: 0.0, brakeBiasF: 0.75, caF: 160000, caR: 280000, mu: 1.72,
+    drive: 0.0, brakeBiasF: 0.65, caF: 160000, caR: 280000, mu: 1.33,
     curve: CURVE_TRACTOR, redline: 2600, upshiftRpm: 2300, downshiftRpm: 1100, idleRpm: 750,
-    gears: [4.20, 2.70, 1.80, 1.25, 0.90], finalDrive: 4.80, dragC: 3.50,
+    gears: [4.20, 2.70, 1.80, 1.25, 0.90], finalDrive: 4.80, dragC: 2.9,
     aeroK: 0.8, downforceF: 0.0, downforceR: 0.0,
     susF: 1.10, susZ: 0.55,
     paint: '#2e7d32', trim: '#fbc02d', glass: '#37474f',
@@ -511,9 +518,9 @@ export const ROSTER: RosterRow[] = [
     // corners (a long wheelbase for its length) and 60 % on the nose. Slow in a straight line,
     // darts into corners, lifts a rear wheel and tucks in on a lift.
     mass: 690, lf: 0.82, lr: 1.22, len: 3.05, wid: 1.41, trackWidth: 1.24, wheelR: 0.27,
-    drive: 1.0, brakeBiasF: 0.76, caF: 62000, caR: 64000, mu: 1.5,
+    drive: 1.0, brakeBiasF: 0.65, caF: 62000, caR: 64000, mu: 1.18,
     curve: CURVE_MINI, redline: 6500, upshiftRpm: 6100, downshiftRpm: 2600, idleRpm: 900,
-    gears: [3.33, 2.06, 1.35, 1.0], finalDrive: 3.44, dragC: 0.42, izzK: 2.6,
+    gears: [3.33, 2.06, 1.35, 1.0], finalDrive: 3.44, dragC: 0.41, izzK: 2.6,
     // British racing green, white roof, steel wheels
     paint: '#1f4d2e', trim: '#f0f0ea', glass: '#9fb8a4', rim: '#c9ccd4',
   },
@@ -525,9 +532,9 @@ export const ROSTER: RosterRow[] = [
     // a wide low wedge, 8500 rpm.
     mass: 1420, lf: 1.49, lr: 1.13, len: 4.46, wid: 1.93, trackWidth: 1.67, tyreWidth: 0.28,
       wheelR: 0.33,
-    drive: 0.3, brakeBiasF: 0.78, caF: 128000, caR: 142000, mu: 1.72,
+    drive: 0.3, brakeBiasF: 0.65, caF: 128000, caR: 142000, mu: 1.45,
     curve: CURVE_LAMBO, redline: 8500, upshiftRpm: 8200, downshiftRpm: 4000, idleRpm: 1000,
-    gears: [3.13, 2.59, 1.96, 1.57, 1.29, 1.08, 0.88], finalDrive: 3.4, dragC: 1.08,
+    gears: [3.13, 2.59, 1.96, 1.57, 1.29, 1.08, 0.88], finalDrive: 3.4, dragC: 0.43,
     aeroK: 1.2, downforceF: 0.35, downforceR: 0.55, susF: 1.8, susZ: 0.38,
     paint: '#9bc53d', trim: '#16181d', glass: '#2a2f38', rim: '#16181d',   // verde, black wheels
   },
@@ -538,9 +545,9 @@ export const ROSTER: RosterRow[] = [
     // the entry rally car: a 1-litre turbo supermini, front drive, rally springs, short gears.
     // Slow, honest, a ladder rung.
     mass: 980, lf: 0.98, lr: 1.47, len: 3.8, wid: 1.68,
-    drive: 1.0, brakeBiasF: 0.78, caF: 92000, caR: 98000, mu: 1.52,
+    drive: 1.0, brakeBiasF: 0.65, caF: 92000, caR: 98000, mu: 1.29,
     curve: CURVE_MIKRA, redline: 7000, upshiftRpm: 6600, downshiftRpm: 3000,
-    gears: [3.5, 2.1, 1.5, 1.15, 0.92], finalDrive: 4.3, dragC: 0.5,
+    gears: [3.5, 2.1, 1.5, 1.15, 0.92], finalDrive: 4.3, dragC: 0.44,
     susF: 1.1, susZ: 0.45,
     paint: '#f0f0ea', trim: '#c8342a', glass: '#9fb0c4',
   },
@@ -552,9 +559,9 @@ export const ROSTER: RosterRow[] = [
     // huge arches over a wide track, light. On tarmac it humbles 4WD cars; on gravel it scrabbles
     // at the front.
     mass: 1000, lf: 1.0, lr: 1.58, len: 4.03, wid: 1.83, trackWidth: 1.65,
-    drive: 1.0, brakeBiasF: 0.76, caF: 114000, caR: 100000, mu: 1.6,
+    drive: 1.0, brakeBiasF: 0.65, caF: 114000, caR: 100000, mu: 1.43,
     curve: CURVE_KIT, redline: 8500, upshiftRpm: 8200, downshiftRpm: 4500, idleRpm: 1100,
-    gears: [3.0, 2.2, 1.75, 1.45, 1.22, 1.05], finalDrive: 4.2, dragC: 0.55,
+    gears: [3.0, 2.2, 1.75, 1.45, 1.22, 1.05], finalDrive: 4.2, dragC: 0.44,
     susF: 1.15, susZ: 0.44,
     paint: '#f0f0ea', trim: '#1d3f9a', glass: '#9fb0c4',
   },
@@ -565,9 +572,9 @@ export const ROSTER: RosterRow[] = [
     // a RALLYCROSS SUPERCAR: 600 hp from a 2-litre turbo in a supermini shell, 4WD (45 / 55), short
     // gears, 0-100 in under 2 s. Big wing.
     mass: 1300, lf: 1.15, lr: 1.34, len: 4.1, wid: 1.95, trackWidth: 1.7,
-    drive: 0.45, brakeBiasF: 0.78, caF: 112000, caR: 118000, mu: 1.66,
+    drive: 0.45, brakeBiasF: 0.65, caF: 112000, caR: 118000, mu: 1.48,
     curve: CURVE_RX, redline: 7500, upshiftRpm: 7100, downshiftRpm: 3500, idleRpm: 1100,
-    gears: [2.6, 1.9, 1.5, 1.2, 0.95], finalDrive: 4.0, dragC: 0.72,
+    gears: [2.6, 1.9, 1.5, 1.2, 0.95], finalDrive: 4.0, dragC: 0.6,
     aeroK: 1.4, downforceF: 0.6, downforceR: 1.2, susF: 1.1, susZ: 0.46,
     paint: '#e0603a', trim: '#16181d', glass: '#2a2f38',
   },
@@ -578,9 +585,9 @@ export const ROSTER: RosterRow[] = [
     // an F2 SHORT-OVAL STOCK CAR: a 2-litre RWD saloon shell on a steel chassis, huge front + rear
     // bumpers, nerf rails, the roof painted in your grade colour (trim). Contact is the point.
     mass: 1150, lf: 1.25, lr: 1.25, len: 4.3, wid: 1.85,
-    drive: 0.0, brakeBiasF: 0.72, caF: 108000, caR: 112000, mu: 1.55,
+    drive: 0.0, brakeBiasF: 0.65, caF: 108000, caR: 112000, mu: 1.34,
     curve: CURVE_BANGER, redline: 6500, upshiftRpm: 6000, downshiftRpm: 2600,
-    gears: [2.97, 2.01, 1.40, 1.0], finalDrive: 3.9, dragC: 0.78,
+    gears: [2.97, 2.01, 1.40, 1.0], finalDrive: 3.9, dragC: 0.66,
     susF: 1.6, susZ: 0.36,
     paint: '#c8342a', trim: '#f2a900', glass: '#2a2f38',
   },
@@ -592,9 +599,9 @@ export const ROSTER: RosterRow[] = [
     // driver, rear drive, 57 % on the back, long
     // soft springs. Light, it digs in on grass and goes sideways everywhere.
     mass: 650, lf: 1.25, lr: 0.95, len: 3.4, wid: 1.75, trackWidth: 1.6,
-    drive: 0.0, brakeBiasF: 0.7, caF: 70000, caR: 80000, mu: 1.55,
+    drive: 0.0, brakeBiasF: 0.65, caF: 70000, caR: 80000, mu: 1.38,
     curve: CURVE_GRASS, redline: 8800, upshiftRpm: 8400, downshiftRpm: 4500, idleRpm: 1100,
-    gears: [2.9, 2.1, 1.65, 1.35, 1.12], finalDrive: 4.9, dragC: 0.72,
+    gears: [2.9, 2.1, 1.65, 1.35, 1.12], finalDrive: 4.9, dragC: 0.65,
     susF: 1.0, susZ: 0.5,
     paint: '#f2a900', trim: '#16181d', glass: '#2a2f38',
   },
@@ -606,9 +613,9 @@ export const ROSTER: RosterRow[] = [
     // (steerMax 0.85 rad = 49 deg of lock; the
     // road cars 0.56), a softer rear axle (caR < caF) so it breaks loose and holds angle.
     mass: 1220, lf: 1.23, lr: 1.25, len: 4.52, wid: 1.69,
-    drive: 0.0, brakeBiasF: 0.7, caF: 116000, caR: 98000, mu: 1.56,
+    drive: 0.0, brakeBiasF: 0.65, caF: 116000, caR: 98000, mu: 1.37,
     curve: CURVE_DRIFT, redline: 7800, upshiftRpm: 7400, downshiftRpm: 3500,
-    gears: [3.32, 1.9, 1.31, 1.0, 0.75], finalDrive: 4.6, dragC: 0.6, izzK: 2.6,
+    gears: [3.32, 1.9, 1.31, 1.0, 0.75], finalDrive: 4.6, dragC: 0.42, izzK: 2.6,
     paint: '#f0f0ea', trim: '#e86fa8', glass: '#2a2f38', rim: '#c9a227',
   },
   {
@@ -617,9 +624,9 @@ export const ROSTER: RosterRow[] = [
     // the FEEDER single-seater: the F1 car's shape, ~80 % of its power and ~65 % of its downforce,
     // heavier per hp — fast, but a step down.
     mass: 755, lf: 1.55, lr: 1.35, len: 4.3, wid: 1.3, trackWidth: 1.8, tyreWidth: 0.3,
-    drive: 0.0, brakeBiasF: 0.84, caF: 150000, caR: 160000, mu: 1.85,
+    drive: 0.0, brakeBiasF: 0.60, caF: 150000, caR: 160000, mu: 1.9,
     curve: CURVE_F2, redline: 9000, upshiftRpm: 8600, downshiftRpm: 4200,
-    gears: [2.9, 2.0, 1.55, 1.25, 1.05, 0.88], finalDrive: 3.9, dragC: 1.02,
+    gears: [2.9, 2.0, 1.55, 1.25, 1.05, 0.88], finalDrive: 3.9, dragC: 0.66,
     aeroK: 1.3, downforceF: 1.12, downforceR: 1.62, susF: 2.2, susZ: 0.3,
     paint: '#2f6fd0', trim: '#16181d', glass: '#9aa0ae',
   },
@@ -633,7 +640,6 @@ export type Spec = typeof SHARED & RosterRow
 export function spec(carId: string): Spec {
   const row = ROSTER.find((car) => car.id === carId) || ROSTER[0];
   const out = { ...SHARED, ...row } as Spec;   // L and Izz are filled in just below
-  applyRealism(out);   // the K13 test dials (realism.ts), nothing with them off
   out.L = out.lf + out.lr;
   out.Izz = ((out.mass * (out.len * out.len + out.wid * out.wid)) / 12) * out.izzK;
   return out;

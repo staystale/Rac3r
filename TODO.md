@@ -15,9 +15,13 @@ handover, written on request.
   eight on (re-saved as the reference). DEFAULT 11-02: the driving root fix (real wheel speed,
   real ABS; owner "pass"). DEFAULT 11-02: ?evenlap (K3; owner "evenlap pass", simhash SAME
   against main 1316167 with it on) and the car stats re-measured on the root-fix physics (owner:
-  "update the new stats in"). UNDER TEST: the K13 realism dials ?realbrake ?reallock ?realgrip
-  ?realpower (realism.ts, 0 = now, 1 = real; my picks 1 / 1 / 0.5 / 1, owner "ok"). On the
-  owner's values: write them into the roster, delete realism.ts, re-run carstats. Then K12.
+  "update the new stats in"). DEFAULT 11-02 (owner: "all test passed"): the K13
+  realism dials at brake 1, lock 1, grip 0.5, power 1 written into the roster (cars.ts: real
+  torque curves, real drag, front brake share 0.65 / single-seaters 0.60, mu halfway to real;
+  wheelspin.ts LOCK_SHARE 0.70; realism.ts deleted; carstats re-measured, the same as the dials
+  measured: hatch 0-100 6.8 s, muscle 5.8 / 265 km/h, Mini 9.9 / 171); pedalramp (throttle 1.5 s,
+  brake 1.0 s), lockfade, spinmarks, smokefade (+ the burnout round), dustlinger, musclegears;
+  flatsize (11-02, earlier). Then the owner's round of 11-02 evening (see K21-K27), then K12.
 - The plain link is the approved game. DEFAULT 10-24 / 10-25 (owner
   "all pass"; every switch and old path deleted, each proved SAME against the tested switch):
   highway street lights L4b + the solid grid; traffic seated when woken, the Sandbox puddles,

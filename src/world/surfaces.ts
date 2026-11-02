@@ -1,6 +1,5 @@
 import { RUNOFF_MU, RUNOFF_ROUGH, KERB_MU } from "./bounds.ts";
 import type { Mark, Spray, Surface } from "./types.ts";
-import { FIX } from "../core/fixes.ts";
 export type SurfaceId =
   | "lab" | "racetarmac" | "tarmac" | "dirt" | "gravel" | "grass" | "grassShort" | "grassLong"
   | "kerb" | "ice" | "packedSnow" | "snow" | "wet" | "mud" | "thickMud" | "broken" | "concrete"
@@ -76,30 +75,21 @@ export const MARK_WET: Mark = { rgb: '196,199,208', widen: 1.6, alpha: 0.16 };
 // see one. Thrown material is AIRBORNE — it catches light and reads PALER and hazier than the
 // packed surface beneath it, except wet clods which read darker. Pick for contrast against the
 // surface, never to match it (CLAUDE.md §4: if the player cannot find it, it does not exist).
-// ?dustlinger=1 (owner: "sand and gravels dust linger longer / be slightly more of it like real
-// life"): real dry dust hangs for seconds in a long trail; ours was gone in 0.55-0.85 s.
-const DUST_LIFE = 2.5, DUST_RATE = 1.3, DUST_GROW = 1.5;
-/**
- * A dust spray as ?dustlinger has it (unchanged without it).
- * @param spray the spray
- * @returns the spray to use
- */
-function dust(spray: Spray): Spray {
-  return FIX.dustLinger ? { ...spray, life: spray.life * DUST_LIFE, rate: spray.rate * DUST_RATE,
-    grow: spray.grow * DUST_GROW } : spray;
-}
-const SPRAY_GRAVEL: Spray = dust({ rgb: '222,210,184', size: 0.22, rate: 62, lift: 5.2,
-  life: 0.55, grow: 0.60 });
+// DUST (passed 11-02; owner: "sand and gravels dust linger longer / be slightly more of it like
+// real life"): real dry dust hangs for seconds in a long trail; gravel, dirt and sand were gone in
+// 0.55-0.85 s. Life x2.5, rate x1.3, bloom x1.5 on all three.
+const SPRAY_GRAVEL: Spray = { rgb: '222,210,184', size: 0.22, rate: 81, lift: 5.2, life: 1.38,
+  grow: 0.90 };
 const SPRAY_GRASS:  Spray = { rgb: '152,190,106', size: 0.18, rate: 48, lift: 4.4, life: 0.46,
   grow: 0.22 };
-const SPRAY_DIRT:   Spray = dust({ rgb: '190,160,122', size: 0.22, rate: 66, lift: 4.8,
-  life: 0.60, grow: 0.70 });
+const SPRAY_DIRT:   Spray = { rgb: '190,160,122', size: 0.22, rate: 86, lift: 4.8, life: 1.50,
+  grow: 1.05 };
 const SPRAY_GRASS_LONG: Spray = { rgb: '136,174,90', size: 0.22, rate: 58, lift: 4.6, life: 0.50,
   grow: 0.28 };
 const SPRAY_MUD:    Spray = { rgb: '64,46,30',    size: 0.26, rate: 42, lift: 3.4, life: 0.62,
   grow: 0.10 };
-const SPRAY_SAND:   Spray = dust({ rgb: '244,230,200', size: 0.20, rate: 70, lift: 3.8,
-  life: 0.85, grow: 0.95 });
+const SPRAY_SAND:   Spray = { rgb: '244,230,200', size: 0.20, rate: 91, lift: 3.8, life: 2.13,
+  grow: 1.43 };
 const SPRAY_SNOW:   Spray = { rgb: '255,255,255', size: 0.24, rate: 76, lift: 4.8, life: 0.75,
   grow: 0.85 };
 // torn leaves and twigs, darker than the grass spray (a bush is darker than the grass round it)

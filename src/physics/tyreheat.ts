@@ -9,7 +9,6 @@ import type { Car } from '../vehicle.ts';
 import type { AxleForce } from './tyres.ts';
 import { wearTyres } from './tyrewear.ts';
 import type { AxleTick } from './tyres.ts';
-import { FIX } from '../core/fixes.ts';
 
 // MEASURED (tools/tyrecheck.mjs): 0.020 + 0.0022/(m/s) cooled with a ~17 s time
 // constant, so a clean 0.8 g corner held 30 s only reached 30 C. Real tyres hold heat for minutes:
@@ -36,14 +35,13 @@ const LOCK_HEAT = 2;
 
 /** A locked axle's slide-work factor for its tyres' heat. */
 const lockFactor = (locked: boolean) => (locked ? LOCK_HEAT : 1);
-// SPIN HEAT (?spinmarks=1; owner: "wheel spinning even with cold tyres should ... heat tyres"):
+// SPIN HEAT (passed 11-02; owner: "wheel spinning even with cold tyres should ... heat tyres"):
 // a spinning axle is scrubbed like a locked one (LOCK_HEAT) and its slip counts up to SPIN_SAT
 // m/s, not slipSat: the same rubber goes round and round through the patch. MEASURED before: 4 s
 // of full wheelspin from 20 C warmed the muscle car's rears to 34 C.
 const SPIN_SAT = 10;
-/** Whether an axle's tyres take the lock / spin heat (?spinmarks adds spinning). */
-const hotScrub = (axleState: AxleForce, locked: boolean) =>
-  locked || (FIX.spinMarks && axleState.spinning);
+/** Whether an axle's tyres take the lock / spin heat: locked or spinning. */
+const hotScrub = (axleState: AxleForce, locked: boolean) => locked || axleState.spinning;
 // the temperature the tyres cool toward this step, C (updateTyreTemps; tyrecool.ts)
 let ambientC = 18;
 // each wheel's slip speed this step while its axle scrubs (0 rolling), for the wear (reused)
@@ -172,7 +170,7 @@ export function axleFrictionWork(
   axleState: AxleForce, syl: number, locked: boolean, load: number,
   vLong: number, vLat: number, vLongAbs: number, muBase: number,
 ) {
-  const sat = FIX.spinMarks && axleState.spinning ? SPIN_SAT : TYRE_HEAT.slipSat;
+  const sat = axleState.spinning ? SPIN_SAT : TYRE_HEAT.slipSat;
   return scrubs(axleState, locked)
     ? Math.hypot(axleState.Fx, axleState.Fy) * sat * Math.tanh(axleState.slipSpeed / sat)
             / (1 + Math.hypot(vLong, vLat) / TYRE_HEAT.roadV)

@@ -1,7 +1,8 @@
 // core/fixes.ts - FIXES UNDER TEST: each behind its own ?switch for the owner's phone test. On the
 // owner's OK a fix becomes the default, its flag here and the old path are deleted (one system).
 // (The 11-01 round - wheelgone, heavywet, menureset, menucar, ainumbers, markage, treenight,
-// hwsnow - the driving root fix (wheelspin) and evenlap passed 11-02 and are the game now.)
+// hwsnow - the driving root fix (wheelspin), evenlap, flatsize and the realism round - the K13
+// dials, pedalramp, lockfade, spinmarks, smokefade, dustlinger, musclegears - passed 11-02.)
 import { envValue } from './debug.ts';
 
 /**
@@ -32,16 +33,4 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
-  // ?pedalramp=1: throttle full after 1.5 s held (was 0.75), brake after 1.0 s (was 0.25)
-  pedalRamp: atLoad('pedalramp'),
-  // ?lockfade=1: a locked / spinning tyre grips less the faster it slides (wheelspin.ts)
-  lockFade: atLoad('lockfade'),
-  // ?spinmarks=1: wheelspin heats tyres like a lock-up; cold slipping tyres still mark (faintly)
-  spinMarks: atLoad('spinmarks'),
-  // ?smokefade=1: tyre smoke's amount and opacity follow slide speed and tyre heat
-  smokeFade: atLoad('smokefade'),
-  // ?dustlinger=1: gravel, dirt and sand dust hangs ~2.5x longer, 30 % more of it (surfaces.ts)
-  dustLinger: atLoad('dustlinger'),
-  // ?musclegears=1: the muscle car's 4-speed with a shorter 1st and a long 4th (was capped 205)
-  muscleGears: atLoad('musclegears'),
 };
