@@ -322,6 +322,7 @@ function derive(car: DamagedCar) {
     toe: TOE * (dmg[1] - dmg[0]) + air.toe
       + TOE_OFF * ((off[1] || off[3] ? 1 : 0) - (off[0] || off[2] ? 1 : 0)),
     roll: 1 + 4 * (offF + offR) + air.roll,
+    flatDrag: air.flatDrag, flatYaw: air.flatYaw,
   };
 }
 

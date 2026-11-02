@@ -52,6 +52,8 @@ export type CarTelemetry = {
 // The damage state vehicle.ts reads (damage.ts sets car.wreck; multipliers, 1 = undamaged).
 export interface CarWreck {
   toe: number; power: number; roll: number; gripF: number; gripR: number;
+  // ?flatgrip: soft wheels' rolling drag, total and by side (shares of one wheel's static load)
+  flatDrag?: number; flatYaw?: number;
 }
 // The rollover state (roll.js): vehicle.ts only nulls it.
 export interface CarRoll { phase: string }
@@ -477,6 +479,22 @@ function stabilityControl(car: Car, carSpec: Spec, tick: AxleTick, handbrakeRaw:
 }
 
 /**
+ * The yaw moment of the flat wheels' one-sided drag (?flatgrip): drag at the +y side turns the
+ * car toward +y going forward (and the other way reversing).
+ * @param car the car
+ * @param carSpec its spec
+ * @param vLong its speed along itself, m/s
+ * @returns N m
+ */
+function flatYawMoment(car: Car, carSpec: Spec, vLong: number): number {
+  const yaw = car.wreck?.flatYaw;
+  if (!yaw) return 0;
+  const vLongAbs = Math.abs(vLong);
+  return Math.sign(vLong) * yaw * flatForce(car, carSpec.mass * car.mods.mass, GRAVITY, vLongAbs)
+    * (carSpec.trackWidth || 1.5) / 2;
+}
+
+/**
  * Yaw section of step: aerodynamic directional stability, the tyre and ploughing yaw moment, and
  * the one-sided yaw damping. Updates car.yawRate.
  */
@@ -510,7 +528,8 @@ function integrateYaw(car: Car, carSpec: Spec, dt: number, axles: AxleOutcome, d
   // The ploughing terms enter the yaw moment at their own axle, which is where the straightening
   // comes from — nothing is added to make gravel stabilising, it just is.
   const yawMoment = carSpec.lf * (frontAxle.Fy * cosDelta + frontAxle.Fx * sinDelta) - carSpec.lr
-      * rearAxle.Fy + aeroYaw + carSpec.lf * FpyF - carSpec.lr * FpyR + escMz + (car.slopeYaw || 0);
+      * rearAxle.Fy + aeroYaw + carSpec.lf * FpyF - carSpec.lr * FpyR + escMz + (car.slopeYaw || 0)
+      + flatYawMoment(car, carSpec, vLong);
   car.yawRate += (yawMoment / carSpec.Izz) * dt;
 
   // Yaw damping. MEASURED: a flick-and-release handbrake turn reached 92 deg, then swung
@@ -625,6 +644,19 @@ function writeTelemetry(car: Car, carSpec: Spec, tick: AxleTick, axles: AxleOutc
 }
 
 /**
+ * One wheel's static load (N) as the flat wheels' drag reads it (?flatgrip), faded in over the
+ * first 1 m/s so a car at rest is not pushed.
+ * @param car the car
+ * @param mass its mass, kg
+ * @param gravity g
+ * @param vLongAbs its speed along itself, m/s
+ * @returns N per unit of rolling coefficient
+ */
+function flatForce(car: Car, mass: number, gravity: number, vLongAbs: number): number {
+  return car.wreck?.flatDrag ? mass * gravity / 4 * Math.min(1, vLongAbs) : 0;
+}
+
+/**
  * Force sum of step: drag, rolling resistance, the axle and ploughing forces, stability drag and
  * slopes, resolved in the body frame and divided by mass. Returns the body accelerations.
  */
@@ -638,7 +670,8 @@ function bodyAccelerations(car: Car, carSpec: Spec, mass: number, gravity: numbe
   const drag = -carSpec.dragC * (car.dragMul ?? 1) * vLong * vLongAbs;
   // DAMAGE: a wheel off drags its corner
   const roll = vLongAbs < 0.05 ? 0
-      : -carSpec.rollC * mass * gravity * dirSign * (car.wreck ? car.wreck.roll : 1);
+      : -carSpec.rollC * mass * gravity * dirSign * (car.wreck ? car.wreck.roll : 1)
+        - flatForce(car, mass, gravity, vLongAbs) * dirSign * (car.wreck?.flatDrag || 0);
   const Fxbody = frontAxle.Fx * cosDelta - frontAxle.Fy * sinDelta + rearAxle.Fx + drag + roll
       + FpxF + FpxR + escFx + (car.slopeLong || 0);
   const Fybody = frontAxle.Fy * cosDelta + frontAxle.Fx * sinDelta + rearAxle.Fy + FpyF + FpyR

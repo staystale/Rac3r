@@ -11,6 +11,7 @@
 // (0 front -y, 1 front +y, 2 rear -y, 3 rear +y). A wheel that has come off (world/wheels.ts
 // wheelGone) has no tyre: no new leak, no air lost, no run to the rim, nothing in car.wreck.
 import { wheelGone } from '../world/wheels.ts';
+import { FIX } from '../core/fixes.ts';
 
 /** The tyre-pressure state on a car (all four arrays by damage corner). */
 export interface PressureState {
@@ -49,6 +50,15 @@ const FLAT_GRIP = 0.7, RIM_GRIP = 0.45;
 // extra rolling drag (share of the car's) of a flat wheel / a rim
 const PULL_FRONT = 0.012, PULL_REAR = 0.005, DRAG_FLAT = 0.75, DRAG_RIM = 1.5;
 const GRAVITY = 9.81;
+// ?flatgrip=1 (owner 11-02: "when punctured and flat but still rubber there, a tyre should be
+// nearly as grippy although not quite but it should create a reasonable amount of drag on that
+// side / currently it seems even one puncture make the whole axel slippy"; the muscle car could
+// hardly pull away on one flat rear). A flat tyre keeps FLAT_GRIP_REAL of its grip, an axle's grip
+// is the MEAN of its two tyres (was the softer one's), and a flat wheel / a rim drags at its own
+// corner with a rolling coefficient of CRR_FLAT / CRR_RIM of that wheel's static load (a good
+// tyre ~0.015): the drag slows the car and, being one side, turns it toward the flat
+// (vehicle.ts). The symmetric DRAG_FLAT / DRAG_RIM are left out under it.
+const FLAT_GRIP_REAL = 0.9, CRR_FLAT = 0.12, CRR_RIM = 0.18;
 
 
 /**
@@ -155,11 +165,17 @@ function rimChance(fromM: number, toM: number): number {
  * @returns the grip multiplier
  */
 function tyreGrip(pressure: number, isOnRim: boolean): number {
-  return isOnRim ? RIM_GRIP : 1 - (1 - FLAT_GRIP) * (1 - pressure);
+  const flat = FIX.flatGrip ? FLAT_GRIP_REAL : FLAT_GRIP;
+  return isOnRim ? RIM_GRIP : 1 - (1 - flat) * (1 - pressure);
 }
 
-/** What the tyres' air adds to car.wreck. */
-export interface PressureWreck { gripF: number; gripR: number; toe: number; roll: number }
+/**
+ * What the tyres' air adds to car.wreck. flatDrag / flatYaw (?flatgrip): the soft wheels' extra
+ * rolling coefficients summed, and summed by side (+y +), each a share of one wheel's load.
+ */
+export interface PressureWreck {
+  gripF: number; gripR: number; toe: number; roll: number; flatDrag: number; flatYaw: number;
+}
 /**
  * The axles' grip (by the softer tyre), the pull toward soft tyres plus the burst kick, and the
  * extra rolling drag.
@@ -171,14 +187,19 @@ export function pressureWreck(car: PressureCar): PressureWreck {
   // a wheel gone counts as a full tyre here: the lost wheel's own rules (tyres.ts, damage.ts)
   const grip = [0, 1, 2, 3].map((corner) => (wheelGone(car, corner) ? 1
     : tyreGrip(pressure[corner], rim[corner])));
-  let toe = car.tyreKick || 0, roll = 0;
+  let toe = car.tyreKick || 0, roll = 0, flatDrag = 0, flatYaw = 0;
   for (let corner = 0; corner < 4; corner++) {
     if (wheelGone(car, corner)) continue;
     const soft = 1 - pressure[corner], side = corner % 2 ? 1 : -1;
     toe += (corner < 2 ? PULL_FRONT : PULL_REAR) * side * soft;
-    roll += rim[corner] ? DRAG_RIM : DRAG_FLAT * soft;
+    if (!FIX.flatGrip) { roll += rim[corner] ? DRAG_RIM : DRAG_FLAT * soft; continue; }
+    const crr = rim[corner] ? CRR_RIM : CRR_FLAT * soft;
+    flatDrag += crr;
+    flatYaw += crr * side;
   }
-  return { gripF: Math.min(grip[0], grip[1]), gripR: Math.min(grip[2], grip[3]), toe, roll };
+  const axle = FIX.flatGrip ? (left: number, right: number) => (left + right) / 2 : Math.min;
+  return { gripF: axle(grip[0], grip[1]), gripR: axle(grip[2], grip[3]), toe, roll, flatDrag,
+    flatYaw };
 }
 
 /**

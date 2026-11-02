@@ -1,6 +1,7 @@
 // The PARTICLES layer of the renderer: thrown material - puffs, spray, smoke, paint chips and
 // sparks. createParticles owns the pools and returns the add / draw entry points.
 import { SPRITE_PPM, fxRandom } from "./shared.ts";
+import { FIX } from '../core/fixes.ts';
 import { emitEngineSmoke, type PuffAt, type SmokeCar } from './enginesmoke.ts';
 import type { Spray } from "../world/types.ts";
 import type { Cam, Chip, ParticleCar, Puff, PuffHit, RenderMarks, View } from "./types.ts";
@@ -78,6 +79,19 @@ const SMOKE_HEAT_SPAN = 50, SMOKE_HEAT_MIN = 0.3, SMOKE_SLIP_MIN = 2, SMOKE_SLIP
 // (owner: "full burn out with hot tyres should make slightly more smoke too / longer": the rate
 // 30 -> 38 and a strong puff lives up to SMOKE_LINGER longer)
 const SMOKE_RATE = 38, SMOKE_ALPHA_MIN = 0.25, SMOKE_LINGER = 0.6;
+// ?smokeover=1 (owner: "can some of the tyre smoke go over the players car"): this share of the
+// smoke puffs drift OVER the cars (the bonnet-steam pool), the rest under them as before
+const SMOKE_OVER = 0.35;
+
+/**
+ * The pool a puff goes in: a share of them over the cars (?smokeover), else under them.
+ * @param state the particle state
+ * @param share the share over the cars (none: all under)
+ * @returns the pool
+ */
+function overShare(state: ParticleState, share: number | undefined): Puff[] {
+  return FIX.smokeOver && share && fxRandom() < share ? state.overPuffs : state.puffs;
+}
 
 /**
  * How hard a tyre smokes (?smokefade), 0..1.
@@ -166,7 +180,10 @@ function emitSpray(ctx: ParticleCtx, car: ParticleCar, marks: RenderMarks, wallD
   for (let i = 0; i < count; i++) {
     // (fewer than four once a wheel has come off: marks.js lists no lost wheel)
     const wheel = wheels[(fxRandom() * wheels.length) | 0];
-    if (wheel.spray) emitPuff(ctx, wheel.x, wheel.y, car.vx, car.vy, wheel.spray, 0.4 + work);
+    if (wheel.spray) {
+      emitPuff(ctx, wheel.x, wheel.y, car.vx, car.vy, wheel.spray, 0.4 + work,
+        overShare(state, wheel.spray.over));
+    }
   }
 }
 
@@ -186,8 +203,9 @@ function emitTyreSmoke(ctx: ParticleCtx, car: ParticleCar, marks: RenderMarks, w
     const strength = smokeStrength(wheel.heat, wheel.slip);
     state.smokeDebt += strength * SMOKE_RATE * wallDt;
     while (state.smokeDebt >= 1) { state.smokeDebt--;
-      emitPuff(ctx, wheel.x, wheel.y, car.vx * 0.6, car.vy * 0.6, SMOKE, 0.5);
-      const puff = state.puffs[state.puffs.length - 1];
+      const pool = overShare(state, SMOKE_OVER);
+      emitPuff(ctx, wheel.x, wheel.y, car.vx * 0.6, car.vy * 0.6, SMOKE, 0.5, pool);
+      const puff = pool[pool.length - 1];
       puff.alpha = SMOKE_ALPHA_MIN + (1 - SMOKE_ALPHA_MIN) * strength;
       puff.life *= 1 + SMOKE_LINGER * strength;
     }

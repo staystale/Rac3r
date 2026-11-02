@@ -77,19 +77,22 @@ export const MARK_WET: Mark = { rgb: '196,199,208', widen: 1.6, alpha: 0.16 };
 // surface, never to match it (CLAUDE.md §4: if the player cannot find it, it does not exist).
 // DUST (passed 11-02; owner: "sand and gravels dust linger longer / be slightly more of it like
 // real life"): real dry dust hangs for seconds in a long trail; gravel, dirt and sand were gone in
-// 0.55-0.85 s. Life x2.5, rate x1.3, bloom x1.5 on all three.
+// 0.55-0.85 s. Life x2.5, rate x1.3, bloom x1.5 on all three. ?smokeover=1 (owner: "can some of
+// the tyre smoke go over the players car and same for sand / gravel / dirt dust"): DUST_OVER of
+// their puffs drift over the cars (particles.ts emitSpray).
+const DUST_OVER = 0.3;
 const SPRAY_GRAVEL: Spray = { rgb: '222,210,184', size: 0.22, rate: 81, lift: 5.2, life: 1.38,
-  grow: 0.90 };
+  grow: 0.90, over: DUST_OVER };
 const SPRAY_GRASS:  Spray = { rgb: '152,190,106', size: 0.18, rate: 48, lift: 4.4, life: 0.46,
   grow: 0.22 };
 const SPRAY_DIRT:   Spray = { rgb: '190,160,122', size: 0.22, rate: 86, lift: 4.8, life: 1.50,
-  grow: 1.05 };
+  grow: 1.05, over: DUST_OVER };
 const SPRAY_GRASS_LONG: Spray = { rgb: '136,174,90', size: 0.22, rate: 58, lift: 4.6, life: 0.50,
   grow: 0.28 };
 const SPRAY_MUD:    Spray = { rgb: '64,46,30',    size: 0.26, rate: 42, lift: 3.4, life: 0.62,
   grow: 0.10 };
 const SPRAY_SAND:   Spray = { rgb: '244,230,200', size: 0.20, rate: 91, lift: 3.8, life: 2.13,
-  grow: 1.43 };
+  grow: 1.43, over: DUST_OVER };
 const SPRAY_SNOW:   Spray = { rgb: '255,255,255', size: 0.24, rate: 76, lift: 4.8, life: 0.75,
   grow: 0.85 };
 // torn leaves and twigs, darker than the grass spray (a bush is darker than the grass round it)

@@ -8,6 +8,7 @@ import { coolTowardC } from './tyrecool.ts';
 import type { Car } from '../vehicle.ts';
 import type { AxleForce } from './tyres.ts';
 import { wearTyres } from './tyrewear.ts';
+import { FIX } from '../core/fixes.ts';
 import type { AxleTick } from './tyres.ts';
 
 // MEASURED (tools/tyrecheck.mjs): 0.020 + 0.0022/(m/s) cooled with a ~17 s time
@@ -42,6 +43,9 @@ const lockFactor = (locked: boolean) => (locked ? LOCK_HEAT : 1);
 const SPIN_SAT = 10;
 /** Whether an axle's tyres take the lock / spin heat: locked or spinning. */
 const hotScrub = (axleState: AxleForce, locked: boolean) => locked || axleState.spinning;
+// ?heatease=1 (owner 11-02: "tyres maybe heat up a tiny bit too easily"): slip and flex heat x
+// HEAT_EASE; cooling as before
+const HEAT_EASE = 0.85;
 // the temperature the tyres cool toward this step, C (updateTyreTemps; tyrecool.ts)
 let ambientC = 18;
 // each wheel's slip speed this step while its axle scrubs (0 rolling), for the wear (reused)
@@ -101,7 +105,8 @@ export function updateTyreTemps(car: Car, carSpec: Spec, tick: AxleTick, out: Ax
   ambientC = coolTowardC(WEATHER.trackC, WEATHER.tempC, speed);
   const heldCool = FEEL_COOL + FEEL_AIR * speed + groundCool;
   const heatScale = (car.surface.heatK ?? 1)
-      * (car.surface.hard && carSpec.tyre ? carSpec.tyre.heatHard || 1 : 1);
+      * (car.surface.hard && carSpec.tyre ? carSpec.tyre.heatHard || 1 : 1)
+      * (FIX.heatEase ? HEAT_EASE : 1);
   // tyre thermal mass scales with the car (a tractor tyre holds far more rubber than a hatch's).
   // MEASURED: at one capacity for every car the 5.2 t tractor popped in a 14 s burnout.
   // Reference: the 1440 kg hatch.

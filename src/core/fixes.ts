@@ -33,4 +33,11 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
+  // ?smokeover=1: some tyre smoke and gravel / dirt / sand dust drifts over the cars (particles.ts)
+  smokeOver: atLoad('smokeover'),
+  // ?heatease=1: tyres heat 15 % slower from slip and flex (tyreheat.ts)
+  heatEase: atLoad('heatease'),
+  // ?flatgrip=1: a flat tyre keeps most of its grip, the axle averages its two tyres, and the
+  // flat wheel drags its own side (tyrepressure.ts, vehicle.ts)
+  flatGrip: atLoad('flatgrip'),
 };
