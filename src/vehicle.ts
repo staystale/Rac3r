@@ -100,6 +100,7 @@ export interface Car {
   bankLatForce?: number; bankLoadFactor?: number;
   // set by contact.js (the slipstream) and by vehicle.ts itself (the handbrake hold)
   dragMul?: number; hbAfter?: number;
+  wakeDown?: number;   // physics/wake.ts: the downforce kept in another car's dirty air
   // set by step: the throttle the engine works at, 0..1 (engine heat, exhaust)
   throttleUsed?: number;
   // set by damage.ts

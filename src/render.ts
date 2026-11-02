@@ -15,6 +15,7 @@
 // thing the player must read at a glance — which way the front wheels point — is drawn at full
 // contrast.
 import type { Settings } from "./core/settings.ts";
+import { FIX } from './core/fixes.ts';
 
 import { COL } from "./world/colours.ts";
 import { createCarSprite } from "./render/carsprite.ts";
@@ -255,6 +256,7 @@ function drawEffects(ctx: RenderCtx, game: RenderGame, wallDt: number) {
   ctx.addPuffs(game.cones.drainHits());
   ctx.addSpray(game.car, game.marks, wallDt);
   ctx.addSmoke(game.car, game.marks, wallDt);
+  if (FIX.towPlus) ctx.addTowLines(game.car, wallDt);   // the tow cue (physics/wake.ts)
   for (const car of [
     game.car,
     ...(game.ai || []).map((rival) => rival.car),

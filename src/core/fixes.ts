@@ -34,4 +34,7 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
+  // ?towplus=1: the wake - dirty air, the push, a wake sized by speed and car, the air streaks
+  // (physics/wake.ts)
+  towPlus: atLoad('towplus'),
 };

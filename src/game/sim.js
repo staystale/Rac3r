@@ -17,6 +17,8 @@ import { resetCar, startHeld, atPace, stepOrder, formationWant } from './order.j
 import { doReset, onScreen } from './session.js';
 import { shared, game } from './state.js';
 import { stepAIInjury } from './ai.js';
+import { FIX } from '../core/fixes.ts';
+import { wakeStep } from '../physics/wake.ts';
 
 export function recoverCar(why) {
   if (shared.nanReports++ < 5)
@@ -406,7 +408,7 @@ export function stepTrafficContacts(tcars) {
       ? [...racers, ...tcars] : racers, startVel = all.map((racer) => [racer.vx, racer.vy]);
     carContacts(all);
     all.forEach((racer, i) => hit(racer, startVel[i][0], startVel[i][1]));
-    if (game.ai.length) slipstream(racers);
+    if (game.ai.length) (FIX.towPlus ? wakeStep : slipstream)(racers);
   }
 }
 
