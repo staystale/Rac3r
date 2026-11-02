@@ -13,7 +13,10 @@ handover, written on request.
   markage (round 2), K5 treenight, K6 hwsnow, K7 wheelgone (+ the K17 spray fix), K8 menucar,
   K10 ainumbers. Every switch and old path deleted; simhash SAME against main a4b5c34 with the
   eight on (re-saved as the reference). DEFAULT 11-02: the driving root fix (real wheel speed,
-  real ABS; owner "pass"). UNDER TEST: ?evenlap=1 (K3, lap seam + short kinks).
+  real ABS; owner "pass"). DEFAULT 11-02: ?evenlap (K3; owner "evenlap pass", simhash SAME
+  against main 1316167 with it on) and the car stats re-measured on the root-fix physics (owner:
+  "update the new stats in"). Nothing under test. NOW: K13 realism table (measured, with the
+  owner to pick the dials), then K12 mud hills.
 - The plain link is the approved game. DEFAULT 10-24 / 10-25 (owner
   "all pass"; every switch and old path deleted, each proved SAME against the tested switch):
   highway street lights L4b + the solid grid; traffic seated when woken, the Sandbox puddles,
@@ -80,7 +83,7 @@ BUGS (S-M each; ONE test round before the root fix - owner 11-01: OK)
   tyre stacks 1.6-2.6 m off it (Test Track, Sandbox, Sweaty Lamb 558-591 m) count only for a
   car off its line. PLAN (asked): even resample (step = lap / round(lap / 1.5)) + a short-arc
   kink pass in traceTrack, behind a switch, then re-audit and a field run.
-  BUILT ?evenlap=1 (world/subtrack.ts resampleEven + maskKinks: 3 m-arc R < 30 and < 0.6 x
+  DEFAULT 11-02 (owner: "evenlap pass"). BUILT ?evenlap=1 (world/subtrack.ts resampleEven + maskKinks: 3 m-arc R < 30 and < 0.6 x
   the 8 m R; read as core/fixes.ts loads - the circuits trace at import): audit 0 kinks / seams
   on all 8 traced circuits; a lone AI over the line Killder 6.1 -> 17.4 m/s, Castle Cum 24.3 ->
   31.8. 5-AI field swings off the line a lap (noisy, cars on cars): Thruston 5.6 -> 4.5, Castle
@@ -165,7 +168,7 @@ FOLDED INTO 1 - THE DRIVING ROOT FIX (wheel spin as real state; plan first, then
   lone AI laps within 0.5 s; +1.2 us a car step. OPEN for the owner: threshold braking still no
   better than locking (the roster's brake bias 0.82 front locks the front first - K13); light
   cars slide more braking hard into a turn (0.2 lock: Mini 44 deg body slip); ABS marks faint
-  dashes (6 % of a stop past 2.2 m/s slip). NEXT: re-measure carstats (the AI plans on them), K13.
+  dashes (6 % of a stop past 2.2 m/s slip). carstats re-measured and committed 11-02 (owner OK).
 - Real ABS (A10): pulsing, staggered marks, steering kept, shorter stops than locked.
 - K12 MUD HILLS: some cars barely climb rallycross hills; stopped / reset in wet mud they cannot
   pull away. Measure each car's climb and launch on wet mud vs real figures; with real wheel
@@ -173,6 +176,15 @@ FOLDED INTO 1 - THE DRIVING ROOT FIX (wheel spin as real state; plan first, then
 - K13 GRIP / SPEED / TORQUE / STEERING REALISM: a measured balance pass against real figures
   (0-100, braking g, cornering g, top speed per car); drifting a little is OK but the OWNER
   TUNES how far (a table of the measured gaps first, owner picks).
+  MEASURED 11-02 (tools/scratch/_k13.mjs brakes + grip at 60 / 150, _k13b.mjs power / circle;
+  table sent to the owner): road cars corner 1.33-1.57 g (real 0.8-1.1); several engines far
+  above real (muscle 1653 hp vs ~450, Naffcar 2438 vs ~670, tractor 1441 vs ~350, Lambo 1078 vs
+  610), top speed held by extra drag; front brake share 0.70-0.86 makes the best pedal = locked
+  (at 0.65: 1-9 m shorter, single-seaters 35 -> 26 m, threshold braking pays); a locked stop
+  only ~4 % longer than ABS (real 15-30 %); top speeds mostly within 10 %; turning circles 7-10 m
+  (real 10-12). Six dials offered (A keep / B halfway / C real): brake balance, locked grip,
+  tyre grip, power, top speed, turning circle; my picks C, C, B, C outliers, follows, A. Each
+  picked dial to be built as a numeric test switch (0 = now, 1 = real) for the owner to tune.
 - K14 LOOSE-GROUND SIDE GRIP (owner idea): turning / drifting on gravel and sand (dirt a bit)
   builds a berm of loose stuff against the tyre's sidewall - lateral grip that grows with the
   slide instead of pure sliding. To DISCUSS: a slip-dependent "plough" side force (the surfaces
