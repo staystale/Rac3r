@@ -111,6 +111,11 @@ export function demoInput(wallDt) {
   return inp;
 }
 
+/** The stick's reach follows the player car's speed (core/steerfeel.ts THROW). */
+function feedStickSpeed() {
+  if (game.car) shared.input.speed = Math.hypot(game.car.vx, game.car.vy);
+}
+
 /**
  * Reads this frame's player input: the touch / keyboard sample, overridden by the start-grid
  * hold, the ?autopilot driver or the menu demo driver (each also unsticks its car).
@@ -118,6 +123,7 @@ export function demoInput(wallDt) {
  * @returns {object} the input the sim steps with
  */
 export function readFrameInput(wallDt) {
+  feedStickSpeed();
   let inp = shared.input.update(wallDt);
   // MENU: the demo car drives itself (src/ai/autodrive.ts — the same driver as the lap bench and
   // the AI seed). If it ever stops (stuck off the road), put it back on the track.

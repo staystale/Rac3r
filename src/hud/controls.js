@@ -36,11 +36,13 @@ export function drawHudPedals(ctx, game, width, height) {
     const stick = game.input.stick;
     if (stick.active) {
       ctx.beginPath();
-      ctx.arc(stick.ox, stick.oy, 46, 0, Math.PI * 2);
+      // the ring and the knob's travel follow the stick's reach (steerfeel.ts: longer at speed)
+      const reach = game.input.stickReach || 38;
+      ctx.arc(stick.ox, stick.oy, reach + 8, 0, Math.PI * 2);
       ctx.strokeStyle = 'rgba(255,255,255,0.28)';
       ctx.lineWidth = 2;
       ctx.stroke();
-      const dx = Math.max(-52, Math.min(52, stick.x - stick.ox));
+      const dx = Math.max(-reach - 14, Math.min(reach + 14, stick.x - stick.ox));
       ctx.beginPath();
       ctx.arc(stick.ox + dx, stick.oy, 22, 0, Math.PI * 2);
       ctx.fillStyle = 'rgba(232,232,238,0.85)';

@@ -8,6 +8,8 @@
 // bug, so pointers are tracked individually and never shared. Every HUD/pedal touch is CONSUMED
 // (CLAUDE.md §4).
 
+import { curveSteer, stickReach } from './core/steerfeel.ts';
+
 // r 36 -> 40 (requirement: driving buttons slightly larger, only a small bit) px; >=44px targets
 // via r*2 = 72
 export const PEDAL = { r: 40, gap: 12, margin: 16 };
@@ -224,6 +226,8 @@ function makeInputState(opts) {
     // presentation only — the HUD draws these, the model never reads them
     mode: opts.mode || 'auto',        // 'touch' | 'pc' | 'auto'
     stick: { active: false, ox: 0, oy: 0, x: 0, y: 0 },
+    speed: 0,                         // the player car's speed, m/s (sim.js): the stick's reach
+    stickReach: STICK_MAX,            // px of thumb for full lock this frame (steerfeel.ts)
     pedals: {},                       // name -> bool, for drawing the pressed state
     tapped: null,                    // {x,y} of a tap that no control consumed, cleared each frame
     brakeHeld: 0,                     // s the brake has been down, for the progressive ramp
@@ -242,7 +246,9 @@ function makeInputState(opts) {
 function resolveInputSteer(state, keys) {
   if (state.stick.active) {
     const dx = state.stick.x - state.stick.ox;
-    state.steer = Math.max(-1, Math.min(1, dx / STICK_MAX));
+    // the player's steering feel (core/steerfeel.ts): the reach grows with speed, then the curve
+    state.stickReach = stickReach(STICK_MAX, state.speed || 0);
+    state.steer = curveSteer(Math.max(-1, Math.min(1, dx / state.stickReach)));
   } else if (!isInputTouch(state) || keys.size) {
     state.steer = (keys.has('right') ? 1 : 0) - (keys.has('left') ? 1 : 0);
   } else {

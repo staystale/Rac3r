@@ -6,6 +6,7 @@ import { saveProfile } from './profile.js';
 import { addPane, addButton, addElement, copyThumb } from './widgets.js';
 import { showSetup } from './setup.js';
 import { showGarage } from './garage.js';
+import { showSettings } from './settings.ts';
 
 export const KIND = { lab: 'TEST GROUND', 'test-track': 'CIRCUIT', thruston: 'UK CIRCUIT',
   'castle-cum': 'UK CIRCUIT', 'brands-snatch': 'UK CIRCUIT · GP', knobhill: 'RALLYCROSS',
@@ -108,6 +109,7 @@ export function showMainMenu(menu) {
   addElement(panel, 'div', 'a driving sandbox', 'sub');   // the game's name
   addButton(menu, panel, 'TEST MODE', () => showTrackSelect(menu), 'go');
   addButton(menu, panel, 'GARAGE', () => showGarage(menu));
+  addButton(menu, panel, 'SETTINGS', () => showSettings(menu, () => showMainMenu(menu)));
   addButton(menu, panel, 'STORY', () => {}, '', true, 'LOCKED');
 }
 

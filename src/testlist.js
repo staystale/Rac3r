@@ -39,4 +39,12 @@ export const TEST_LIST = [
   // wheel speed, real ABS) passed 2026-11-02; evenlap, flatsize passed 2026-11-02; realism (K13
   // dials at brake 1, lock 1, grip 0.5, power 1), pedalramp, lockfade, spinmarks, smokefade,
   // musclegears, dustlinger passed 2026-11-02; smokeover, heatease, flatgrip passed 2026-11-02)
+  {
+    id: 'steerfeel',
+    added: '2026-11-02',
+    name: 'SETTINGS screen: STEER CURVE and STEER AT SPEED for the touch stick (both OFF at first)',
+    where: 'Main menu or pause > SETTINGS; the sliders, then drive (remembered on the phone)',
+    try: 'Each alone, then both: fast sweepers at 120+, a drift catch, a hairpin, a slow park.',
+    wrong: 'Too lazy to catch a slide, full lock out of reach, or no difference you can feel.',
+  },
 ];
