@@ -10,7 +10,6 @@ import { LEVEL } from "../world/state.ts";
 import { onTrack, querySubtrack } from "../world/tyrewall.ts";
 import { START_STEP, ROLL_BACK } from './order.js';
 import { shared, game } from './state.js';
-import { FIX } from '../core/fixes.ts';
 
 // AI CARS — stage 1 (user: up to 5 opponents, FULL CONTACT, the SAME car as the player
 // in different colours + numbers). Each is { car, drv }: a real car stepped by the same physics on
@@ -112,15 +111,14 @@ export function aiCarIds(count, seed) {
   return out.slice(0, count);
 }
 /**
- * RACE NUMBERS (owner 11-01, ?ainumbers=1): each AI a different number 2-99, never the one on
+ * RACE NUMBERS (owner 11-01): each AI a different number 2-99, never the one on
  * your car, dealt at random each event (TEST MODE; Story will keep a driver's number), painted on
- * the car and shown on the scoreboard. Off the switch: 2, 3, 4 ... and none painted.
+ * the car and shown on the scoreboard.
  * @param {number} count how many AI
  * @param {number} seed the spawn's seed
  * @returns {number[]} the numbers, by AI
  */
 function aiNumbers(count, seed) {
-  if (!FIX.aiNumbers) return Array.from({ length: count }, (_unused, i) => i + 2);
   const mine = game.car.spec.num | 0, rnd = lcg((seed * 7 + 3) >>> 0);
   const deck = [];
   for (let num = 2; num <= 99; num++) if (num !== mine) deck.push(num);
@@ -143,7 +141,7 @@ export function spawnAI(count = shared.aiCount) {
     // own sprite (cached by id), same physics
     car.spec = { ...car.spec, id: car.spec.id + '#' + (i + 2), paint, trim };
     car.num = nums[i];
-    if (FIX.aiNumbers) car.spec.num = nums[i];
+    car.spec.num = nums[i];
     const drv = createAIDriver(LEVEL, aiTraits(shared.aiDiff, i, count, seed)),
       slot = i < shared.gridSlot ? i : i + 1;
     car._jokers = 0;

@@ -15,7 +15,6 @@ import { fxRandom } from "./render/shared.ts";
 import { LEVEL } from "./world/state.ts";
 import { MARK_WET, SURFACES } from "./world/surfaces.ts";
 import { WEATHER } from "./world/weather.ts";
-import { FIX } from "./core/fixes.ts";
 // this file's wheel order is the damage corners' (front -y, front +y, rear -y, rear +y)
 import { CORNER_OF_WHEEL, wheelGone } from "./world/wheels.ts";
 import { MARK_GOUGE } from "./world/metalscrape.ts";
@@ -48,8 +47,7 @@ const STAMP_STEP = 0.10;                         // m
  * @property {number} shiftX layer px the window has moved along x (0 on a level that fits)
  * @property {number} shiftY layer px the window has moved along y
  * @property {boolean} wraps true once the window follows the car (a wrap-around buffer)
- * @property {number} [fadeT] s since the last block faded
- * @property {number} [fadeN] blocks faded so far (the block hash)
+ * @property {number} [fadeT] s since the last fade tick
  * @property {number} [clock] s of marks time (the aged fade)
  * @property {Float64Array} [cellT] each fade cell's newest mark, marks s (the aged fade)
  * @property {Uint8Array} [cellStep] each fade cell's fade steps done (the aged fade)
@@ -176,39 +174,9 @@ function clearMarks(markCtx) {
   clearWetTrails();
 }
 
-// MARKS FADE (owner: tyre marks fade after a while, a bit randomly, and are gone from
-// memory too). The old fade below took alpha 0.000125 a physics step off the whole 26 MB layer:
-// below the canvas's 1/255 step, so nothing ever faded, at 120 full-layer fills a second. Here
-// every FADE_EVERY_S one block of the layer (FADE_BLOCKS x FADE_BLOCKS, picked by a hash so the
-// game's random stream is untouched) loses FADE_STEP of its marks: blocks fade at different times,
-// a mark is gone in ~2-3 min. The marks are pixels of a fixed layer: faded pixels are empty again.
-const FADE_EVERY_S = 0.5, FADE_BLOCKS = 8, FADE_STEP = 0.5;
-
-/**
- * Every FADE_EVERY_S one block of the layer loses FADE_STEP of its marks.
- * @param {MarkCtx} markCtx the marks context
- * @param {number} dt the step in seconds
- */
-function fadeBlocks(markCtx, dt) {
-  const { ctx, state } = markCtx;
-  state.fadeT = (state.fadeT || 0) + dt;
-  if (state.fadeT < FADE_EVERY_S) return;
-  state.fadeT -= FADE_EVERY_S;
-  state.fadeN = (state.fadeN || 0) + 1;
-  // a hash of the count, not Math.random: the tools replay the game's random stream exactly
-  let hash = Math.imul(state.fadeN, 0x9e3779b1);
-  hash = Math.imul(hash ^ (hash >>> 15), 0x85ebca6b);
-  const block = ((hash ^ (hash >>> 13)) >>> 0) % (FADE_BLOCKS * FADE_BLOCKS);
-  const side = Math.ceil(SIZE / FADE_BLOCKS);
-  ctx.save();
-  ctx.globalCompositeOperation = 'destination-out';
-  ctx.fillStyle = `rgba(0,0,0,${FADE_STEP})`;
-  ctx.fillRect((block % FADE_BLOCKS) * side, Math.floor(block / FADE_BLOCKS) * side, side, side);
-  ctx.restore();
-}
-
-// MARKS FADE OLDEST FIRST (owner 11-01, ?markage=1: "oldest first and small bits at once" - the
-// blocks above are ~100 m panels fading at random). The layer is cut into FADE_CELL px cells
+// MARKS FADE OLDEST FIRST (owner 11-01: "oldest first and small bits at once" - the old fade
+// took ~100 m panels at random; before that an alpha too small to fade at all). The layer is
+// cut into FADE_CELL px cells
 // (~1.9 m); each remembers when its NEWEST mark was laid. A cell starts fading AGED_FROM_S after
 // that, one gentle AGED_ALPHA step every AGED_STEP_S (owner 11-02: 3.8 m cells in 40 % steps
 // still looked chunky), and is cleared at the last step: gone ~2.6 min after its last mark. A
@@ -278,18 +246,13 @@ function fadeAged(markCtx, dt) {
 }
 
 /**
- * Fades the marks: oldest first by cell (?markage=1), else block by block.
+ * Fades the marks, oldest first by cell.
  *
  * @param {MarkCtx} markCtx the marks context
  * @param {number} dt the step in seconds
  */
 function fadeMarks(markCtx, dt) {
-  if (FIX.markAge) {
-    fadeAged(markCtx, dt);
-    return;
-  }
-  if (markCtx.state.stamps === 0) return;
-  fadeBlocks(markCtx, dt);
+  fadeAged(markCtx, dt);
 }
 
 /**
@@ -454,7 +417,7 @@ function stampWheel(markCtx, wheel) {
   strokeMark(markCtx, wheel, loose, from, dest);
   dropRubberBall(markCtx, wheel, from, dest);
   // the stroke's width plus how far off it a rubber ball may land
-  if (FIX.markAge) noteMarked(markCtx, from, dest, markCtx.ctx.lineWidth + (wheel.width * 1.2 + 0.7)
+  noteMarked(markCtx, from, dest, markCtx.ctx.lineWidth + (wheel.width * 1.2 + 0.7)
     * MARK_PPM);
 }
 
@@ -503,7 +466,7 @@ function surfaceOfWheel(car, under, corner) {
   return (under && under[CORNER_OF_WHEEL[corner]]) || car.surface;
 }
 
-// WET TRAILS ONLY IN A PUDDLE OR HEAVY RAIN (owner 11-01, ?heavywet=1): damp hard ground
+// WET TRAILS ONLY IN A PUDDLE OR HEAVY RAIN (owner 11-01): damp hard ground
 // (world/wet.ts buildDamp) lays the wet trail only while it rains at least this hard (light
 // rain 0.45, heavy 1: world/weather.ts); otherwise the dry ground's own mark - rubber where a
 // tyre slips. Look only: the damp grip is unchanged.
@@ -514,7 +477,7 @@ const HEAVY_TRAIL_RAIN = 0.7;
  * @returns {object|undefined} the mark (undefined = ordinary skid marks)
  */
 function markOf(surface) {
-  if (!FIX.heavyWet || surface.mark !== MARK_WET || surface.id === 'puddle' || surface.id === 'wet'
+  if (surface.mark !== MARK_WET || surface.id === 'puddle' || surface.id === 'wet'
     || WEATHER.rain >= HEAVY_TRAIL_RAIN) return surface.mark;
   const dry = SURFACES[surface.id];
   return dry ? dry.mark : undefined;

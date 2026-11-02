@@ -19,7 +19,6 @@ import {
 import { setTrackTempSetting, trackTempSetting } from '../hud/tracktemp.js';
 import { BUILD_ID, hasSavedThumbs, readThumbs, saveThumbs } from '../menu/thumbcache.js';
 import { loadProfile } from '../menu/profile.js';
-import { FIX } from '../core/fixes.ts';
 
 /**
  * Works out whether the minimap, the progress bar and the track gauge show (the pause settings
@@ -103,9 +102,8 @@ export function enterMenu() {
     seed: Math.floor(Math.random() * 2147483646) + 1 } : null;
   startEventClock(null);
   if (LEVEL.id !== shared.DEMO_LEVEL) selectLevel(shared.DEMO_LEVEL); else doRestart();
-  // the camera car: YOUR car from the garage, in its paint and number (owner 11-01, ?menucar=1)
-  const profile = FIX.menuCar ? loadProfile() : null, demoCar = profile ? profile.active
-    : shared.DEMO_CAR;
+  // the camera car: YOUR car from the garage, in its paint and number (owner 11-01)
+  const profile = loadProfile(), demoCar = profile ? profile.active : shared.DEMO_CAR;
   if (game.car.spec.id !== demoCar) selectCar(demoCar);
   if (profile) applyLivery(game.car.spec, (profile.livery || {})[demoCar]);
   shared.demo = createAIDriver(LEVEL,

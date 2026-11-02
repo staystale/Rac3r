@@ -17,7 +17,6 @@ import { resetCar, startHeld, atPace, stepOrder, formationWant } from './order.j
 import { doReset, onScreen } from './session.js';
 import { shared, game } from './state.js';
 import { stepAIInjury } from './ai.js';
-import { FIX } from '../core/fixes.ts';
 
 export function recoverCar(why) {
   if (shared.nanReports++ < 5)
@@ -92,18 +91,16 @@ export function demoInput(wallDt) {
     { cars: game.ai.map((entry) => entry.car), lap: 1, laps: 99 }), reverse: 0, shiftUp: false,
       shiftDown: false };
   shared.demoStill = Math.hypot(game.car.vx, game.car.vy) < 2 ? shared.demoStill + wallDt : 0;
-  // TOO INJURED (owner 11-01, ?menureset=1): the camera car resets for damage as its rivals do -
+  // TOO INJURED (owner 11-01): the camera car resets for damage as its rivals do -
   // the same pause, then back on the road and mended (game/ai.js stepAIInjury)
-  if (FIX.menuReset) {
-    const entry = shared.demoHurt && shared.demoHurt.drv === shared.demo ? shared.demoHurt
-      : (shared.demoHurt = { car: game.car, drv: shared.demo, hurtWait: null, hurtT: 0 });
-    entry.car = game.car;
-    stepAIInjury(entry, wallDt);
-    // the pause plays the crash out on light brakes, as the rivals' (game/ai.js aiWant)
-    if (entry.hurtWait != null) {
-      Object.assign(inp, { steer: 0, throttle: 0, brake: 0.4, handbrake: 0 });
-      shared.demoStill = 0;
-    }
+  const entry = shared.demoHurt && shared.demoHurt.drv === shared.demo ? shared.demoHurt
+    : (shared.demoHurt = { car: game.car, drv: shared.demo, hurtWait: null, hurtT: 0 });
+  entry.car = game.car;
+  stepAIInjury(entry, wallDt);
+  // the pause plays the crash out on light brakes, as the rivals' (game/ai.js aiWant)
+  if (entry.hurtWait != null) {
+    Object.assign(inp, { steer: 0, throttle: 0, brake: 0.4, handbrake: 0 });
+    shared.demoStill = 0;
   }
   if (shared.demoStill > 3 || shared.demo.state.lastDist > 30) {
     shared.demoStill = 0;

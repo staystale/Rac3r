@@ -11,7 +11,6 @@ import { passGlassCell } from "./debris.ts";
 import { notePass } from "./pass.ts";
 import { WEATHER } from "./weather.ts";
 import { carWheels } from "./wheels.ts";
-import { FIX } from "../core/fixes.ts";
 import { staticCoverHere } from "./coverlookup.ts";
 import { fieldLayers } from "./coverfield.ts";
 import { puddleClearBy, setPassTyre } from "./puddles.ts";
@@ -147,13 +146,12 @@ export function pruneWear(x: number, y: number, far: number): number {
 /**
  * What a wear cell made here now would hold as its orig (getCell): a fixed cover (scenery water)
  * is the cell's own ground, the cover field's (weather snow, ice, water) is not - the ground under
- * it is. Off ?hwsnow=1 the prune compared the cover with that orig: every cell under weather snow
- * read "changed" and went at each highway rebuild, the AI's tracks ahead with it (owner 11-01).
+ * it is. The prune once compared the cover with that orig: every cell under weather snow read
+ * "changed" and went at each highway rebuild, the AI's tracks ahead with it (owner 11-01).
  * @param layers the static layers at the cell
  * @returns the surface id
  */
 function groundOrig(layers: Layers): string {
-  if (!FIX.hwSnow) return layers.cover || layers.base;
   return layers.fixed ? layers.cover || layers.base : layers.base;
 }
 // tools/_wearleak.mjs: the ground with no wear
@@ -243,11 +241,9 @@ export function getCell(cellX: number, cellY: number, always = false): WearCell 
     if (!always && !layers.cover && !BASE_WEAR[layers.base] && !packedSnowWears(layers.base)
       && WEATHER.wetness === 0 && !digsDry(layers.base)) return null;
     cell = { cx: cellX, cy: cellY, base: layers.base, cover: layers.cover,
-      orig: layers.cover || layers.base, passes: 0, scrub: 0, dry: 0, standing: layers.standing,
+      orig: groundOrig(layers), passes: 0, scrub: 0, dry: 0, standing: layers.standing,
       lastSeenTime: -100, fixed: layers.fixed, laid: layers.fixed ? null : layers.cover,
       area: layers.area };
-    // the field's cover is not the cell's own ground: the tiles show the ground under it
-    if (!layers.fixed) cell.orig = layers.base;
     cell.current = cell.orig;
     wearMap.set(key, cell);
   }

@@ -1,6 +1,5 @@
 // Where a car's four wheels touch the ground (wear.ts: the tyre paths that wear the surface).
 import type { CarBody, Wheel } from "./types.ts";
-import { FIX } from "../core/fixes.ts";
 
 // carWheels / vehicle.ts tyre index (0 FL +y, 1 FR -y, 2 RL +y, 3 RR -y) <-> damage corner (0 front
 // -y, 1 front +y, 2 rear -y, 3 rear +y). It is its own inverse: the same table maps either way.
@@ -31,11 +30,11 @@ export function carWheels(car: WheelBase): Wheel[] {
 
 /**
  * Whether a corner's wheel has come off (owner 11-01: a wheel that is gone takes nothing more -
- * no air, wear, puncture or rim; its hub may still spark on hard ground). Off the switch: never.
+ * no air, wear, puncture or rim; its hub may still spark on hard ground).
  * @param car the car (damage.ts sets wheelOff)
  * @param corner the damage corner
  * @returns true when that wheel is gone
  */
 export function wheelGone(car: { wheelOff?: boolean[] }, corner: number): boolean {
-  return FIX.wheelGone && !!car.wheelOff && car.wheelOff[corner];
+  return !!car.wheelOff && car.wheelOff[corner];
 }
