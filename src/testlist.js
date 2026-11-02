@@ -45,4 +45,20 @@ export const TEST_LIST = [
     try: 'Brake hard straight and into turns, launch, corner, drift; muscle, hatch, Mini, F1.',
     wrong: 'Spins under braking, a car that will not pull away, AI off the road, no fun.',
   },
+  {
+    id: 'pedalramp',
+    added: '2026-11-02',
+    name: 'Slower pedal ramps: throttle full after 1.5 s held (was 0.75), brake 1.0 s (was 0.25)',
+    where: 'Plain link + &pedalramp=1 (with the realism dials)',
+    try: 'Hold GAS / BRAKE: the push should build; feather a launch, brake to the edge of locking.',
+    wrong: 'Too slow to stop in time, or still feels like a stamp.',
+  },
+  {
+    id: 'lockfade',
+    added: '2026-11-02',
+    name: 'Locking up is worse: a sliding tyre grips less the faster it slides',
+    where: 'Plain link + &lockfade=1 (with the realism dials); ABS button on / off',
+    try: 'Brake hard from 100+ with ABS off, then on; also launches and handbrake turns.',
+    wrong: 'ABS and locked still stop alike; handbrake turns that cannot be caught.',
+  },
 ];

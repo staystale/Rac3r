@@ -31,4 +31,9 @@ export function dialAtLoad(name: string): number {
 }
 
 /** The switches under test, all off on the plain link. */
-export const FIX = {};
+export const FIX = {
+  // ?pedalramp=1: throttle full after 1.5 s held (was 0.75), brake after 1.0 s (was 0.25)
+  pedalRamp: atLoad('pedalramp'),
+  // ?lockfade=1: a locked / spinning tyre grips less the faster it slides (wheelspin.ts)
+  lockFade: atLoad('lockfade'),
+};

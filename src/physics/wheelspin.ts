@@ -33,6 +33,7 @@ import {
 } from './tyres.ts';
 import { axleFrictionWork } from './tyreheat.ts';
 import { DIAL, LOCK_REAL } from '../realism.ts';
+import { FIX } from '../core/fixes.ts';
 
 
 // longitudinal slip at the peak on hard ground (real tyres 0.10-0.15); x the surface's peakK
@@ -89,6 +90,18 @@ interface Law {
   FxPk: number; FyPk: number; sgLat: number; sgLong: number;
 }
 
+// ?lockfade=1: rubber sliding on tarmac grips less the faster it slides (it skates on its own
+// melt): a locked or spinning tyre's grip share falls by up to LOCK_FADE at LOCK_FADE_V of slide.
+const LOCK_FADE = 0.25, LOCK_FADE_V = 25;
+/**
+ * The share of a sliding tyre's grip kept at a sliding speed (?lockfade).
+ * @param slideV the tyre's sliding speed along the car, m/s (wheel minus ground)
+ * @returns 1 - LOCK_FADE at LOCK_FADE_V and above
+ */
+function slideFade(slideV: number): number {
+  return 1 - LOCK_FADE * Math.min(1, Math.abs(slideV) / LOCK_FADE_V);
+}
+
 /**
  * The tyre's force at a wheel speed: the combined law.
  * @param law the axle's grip numbers
@@ -99,7 +112,8 @@ function lawForce(law: Law, wheelU: number) {
   const nx = (wheelU - law.vx) / law.vRef / law.kPeak, slipN = Math.hypot(nx, law.ny);
   if (slipN < 1e-6) return { fx: 0, fy: 0, slipN: 0, nx: 0 };
   const share = (nx * nx) / (slipN * slipN);
-  const shape = curveFactor(slipN, 1, law.sgLat + (law.sgLong - law.sgLat) * share);
+  const sgLong = FIX.lockFade ? law.sgLong * slideFade(wheelU - law.vx) : law.sgLong;
+  const shape = curveFactor(slipN, 1, law.sgLat + (sgLong - law.sgLat) * share);
   return { fx: law.FxPk * shape * nx / slipN, fy: -law.FyPk * shape * law.ny / slipN, slipN, nx };
 }
 
