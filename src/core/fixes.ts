@@ -34,4 +34,7 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
+  // ?aicool=1: skilled AI drivers sometimes ease off / find water or grass to cool hot tyres
+  // (ai/driverCool.ts)
+  aiCool: atLoad('aicool'),
 };

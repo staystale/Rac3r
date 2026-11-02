@@ -55,4 +55,12 @@ export const TEST_LIST = [
     try: 'Race, come back, watch the numbers climb; fit a NEW SET and see them reset.',
     wrong: 'Numbers that never change, or a risk shown on a nearly new set.',
   },
+  {
+    id: 'aicool',
+    added: '2026-11-02',
+    name: 'AI cool REALLY hot tyres by skill: a chance to ease off / use water or grass',
+    where: 'Plain link + &aicool=1: a long race, drift or muscle cars, wet tracks',
+    try: 'AI tyres 20 C+ over their window: a skilled one sometimes backs off; never in a battle.',
+    wrong: 'AI dawdling all race, braking in front of you, or diving off the road for grass.',
+  },
 ];

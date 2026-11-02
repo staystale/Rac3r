@@ -5,6 +5,7 @@ import { driveOut } from "./weaver.ts";
 import { jokerStep } from "./driverJoker.ts";
 import { carsStep, obstacleAvoid } from "./driverTraffic.ts";
 import { steerSlideStep, pedalStep } from "./driverPedals.ts";
+import { coolStep, COOL_LOOK } from './driverCool.ts';
 import {
   advance, placeAtStart, mistakeStep, laneStep, battleStep, racecraftStep,
 } from "./driverLane.ts";
@@ -95,6 +96,11 @@ export function drive(drv: Drv, car: AiCar, dt = 1 / 120, ctx: DriveCtx = {}) {
   const lane = laneStep(drv, car, path, nearIdx, speed, mistakes.latT);
   let latT = lane.latT;
   const lineOff = lane.lineOff, startK = lane.startK;
+  // ---- hot tyres: a skilled driver may ease off / find water or grass (ai/driverCool.ts)
+  const cool = coolStep(drv, car, path, idx(nearIdx + Math.round(COOL_LOOK / path.sp)),
+    path === main ? drv.line.hw - 1 : 1);
+  vMul *= cool.vMul;
+  latT += cool.lat;
 
   const traffic = trafficStep(drv, car, ctx, path, nearIdx, idx, speed, dt, lineOff, startK,
       { latT, vMul, prof });

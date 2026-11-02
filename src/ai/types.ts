@@ -311,6 +311,10 @@ export interface CircuitState extends DriveOutState {
   nearT?: number;   // drive: seconds with a car ahead
   nAtk?: number;   // drive: attacks made
   towT?: number;   // drive: the time of the last tow-pass check
+  coolNext?: number;   // driverCool.ts: when it next weighs up cooling hot tyres
+  coolUntil?: number;   // driverCool.ts: cooling until then
+  coolLat?: number;   // driverCool.ts: the offset from the line onto cooling ground
+  cools?: number;   // driverCool.ts: how many times it has cooled its tyres
   cc?: number;   // drive: the corner it is in or heading for
   driftT?: number;   // drive: seconds drifting
   lastDrift?: number;   // drive: the time it last drifted

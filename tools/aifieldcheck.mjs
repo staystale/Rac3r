@@ -4,7 +4,8 @@
 // node tools/aifieldcheck.mjs [level] [car] [diff 0-4] [n 1-6] [seed] [laps]
 import { makeCar, step, reset, PHYSICS_STEP_SECONDS } from '../src/vehicle.ts';
 import * as L from '../src/lab.js';
-import { carContact, slipstream } from '../src/contact.js';
+import { carContact } from '../src/contact.js';
+import { wakeStep } from '../src/physics/wake.ts';
 import { hit, repair, tooInjured } from '../src/damage.ts';   // DMG=1: damage on, as main.js
 const DMG = !!process.env.DMG;
 const { createAIDriver } = await import(process.env.AINEXT ? '../src/ai/circuit.next.js' : '../src/ai/circuit.ts'), { aiTraits } = await import('../src/ai/traits.ts');   // AINEXT=1: test a patch before it goes live
@@ -51,7 +52,7 @@ while (t < 200 + LAPS * 120) {
       if (q.dist > sub.width / 2 + INC_OFF) { if (!f.wellOff) { f.wellOff = true; inc.off++; f.inc = (f.inc || 0) + 1; } } else if (q.dist < sub.width / 2) f.wellOff = false;
     }
   }
-  if (!process.env.NODRAFT) slipstream(field.map((f) => f.car));
+  if (!process.env.NODRAFT) wakeStep(field.map((f) => f.car));
   const vS = DMG ? field.map((f) => [f.car.vx, f.car.vy]) : null;
   // every touching pair, classified in the REAR car's frame: NOSE-TAIL (lateral < 1.6 m) or SIDE; the first 8 s are the START
   let any = false;
