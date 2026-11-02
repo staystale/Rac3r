@@ -152,6 +152,18 @@ FEATURES
   approximation; measure the phone cost first (Safari holds frames). M, maybe L.
 
 FOLDED INTO 1 - THE DRIVING ROOT FIX (wheel spin as real state; plan first, then build)
+- BUILT ?wheelspin=1 (11-02, owner: "ok"; physics/wheelspin.ts): each axle's wheel speed is state
+  (engine, brakes, tyre; 4 substeps, implicit), ONE combined slip law (kappa / alpha over their
+  peaks -> the lateral curve's shape; pure cornering = the old curve), ABS that dumps / snaps /
+  creeps (rear on its whole slip: EBD), AWD centre coupling, rev limiter + revs off the driven
+  wheels. tools/scratch/_rootbench.mjs, all 19 cars, off -> on: ABS pulses 0 -> 9-18 a s; swerve
+  under full ABS (0.05 lock) 0.1 -> 3.5-9.7 m, body slip 1-3 deg, locked 0-0.3 m; ABS stop 2-5 %
+  shorter than locked (was = locked); launch / top within ~10 % (AWD mud same after the
+  coupling); judder (max accel step) 3-12 -> 1-5; hbcheck means within 6 deg, same BACK count;
+  lone AI laps within 0.5 s; +1.2 us a car step. OPEN for the owner: threshold braking still no
+  better than locking (the roster's brake bias 0.82 front locks the front first - K13); light
+  cars slide more braking hard into a turn (0.2 lock: Mini 44 deg body slip); ABS marks faint
+  dashes (6 % of a stop past 2.2 m/s slip). Old ABS cap / guessed slip deleted at the flip.
 - Real ABS (A10): pulsing, staggered marks, steering kept, shorter stops than locked.
 - K12 MUD HILLS: some cars barely climb rallycross hills; stopped / reset in wet mud they cannot
   pull away. Measure each car's climb and launch on wet mud vs real figures; with real wheel

@@ -33,6 +33,7 @@ export interface Settings {
   autopilot: boolean;   // ?autopilot=1: the AI drives the player car (phone frame tests, no touch)
   autopilotKmh: number;   // ?autopilot=120: hold the autopilot car at this speed (0 = no cap)
   evenLap: boolean;     // ?evenlap=1: circuits evenly spaced, short kinks smoothed (fixes.ts)
+  wheelSpin: boolean;   // ?wheelspin=1: wheel speed as real state, real ABS (fixes.ts)
 }
 
 function autopilotKmh(params: URLSearchParams): number {
@@ -104,5 +105,6 @@ export function readSettings(search: string): Settings {
     noNatClear: params.get('nonat') === '1',
     skipLayers: new Set((params.get('skip') || '').split(',').filter(Boolean)),
     evenLap: params.get('evenlap') === '1',
+    wheelSpin: params.get('wheelspin') === '1',
   };
 }

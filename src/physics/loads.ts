@@ -5,6 +5,8 @@ import { TUNE, VERT_G, AIR_DENSITY, TCS_SPIN, clamp, torqueAt, ENGINE_BRAKE } fr
 import type { Car } from '../vehicle.ts';
 import { CLUTCH_RELEASE, CLUTCH_TAKEUP } from './powertrain.ts';
 import { LOAD_MAX } from './tyres.ts';
+import { drivenWheelSpeed } from './wheelspin.ts';
+import { FIX } from '../core/fixes.ts';
 
 /**
  * Section 4 of step: longitudinal weight transfer, the per-axle suspension springs riding the
@@ -151,7 +153,11 @@ export function computeLongitudinalDemand(car: Car, carSpec: Spec, mass: number,
   // discontinuous force is a judder). revs from ROAD speed, not wheel speed: a first cut read the
   // spinning wheels and cut the engine on every launch (muscle 0-100 km/h 3.5 -> 7.8 s). Wheelspin
   // revs are handled by the clamp above; the limiter caps SPEED per gear.
-  const rawRpm = ((Math.abs(vLong) / carSpec.wheelR) * totalRatio * 60) / (2 * Math.PI);
+  // (?wheelspin=1: the DRIVEN WHEELS' real speed - physics/wheelspin.ts. The wheels are geared to
+  // the engine, so they cannot spin past the redline in a gear: a burnout bounces off the limiter.
+  // Off it, road speed: there the wheelspin was a guess, and reading it cut every launch.)
+  const revSpeed = FIX.wheelSpin && car.wU ? drivenWheelSpeed(car, carSpec) : Math.abs(vLong);
+  const rawRpm = ((revSpeed / carSpec.wheelR) * totalRatio * 60) / (2 * Math.PI);
   const limiter = clamp((carSpec.redline * 1.02 - rawRpm) / (carSpec.redline * 0.02), 0, 1);
   let torque = torqueAt(carSpec, car.rpm) * car.mods.power * (car.wreck ? car.wreck.power : 1)
       * throttle * aidCut * car.clutch * limiter;

@@ -21,6 +21,8 @@ import { WEATHER } from './world/weather.ts';
 import type { AxleOutcome } from './physics/tyreheat.ts';
 import { ALPHA_PEAK_MIN, computeAxleForces, ploughingForces } from './physics/tyres.ts';
 import type { AxleTick } from './physics/tyres.ts';
+import { computeWheelForces } from './physics/wheelspin.ts';
+import { FIX } from './core/fixes.ts';
 
 // What step reads from the input: steer -1..1, pedals 0..1, handbrake (on/off or 0..1), manual
 // shifts, reverse pedal.
@@ -70,6 +72,11 @@ export interface Car {
   absOn: boolean; tcsOn: boolean; tcsK: number; escCut: number;
   shiftTimer: number; aLongPrev: number;
   spinLatchF: number; spinLatchR: number;
+  // ?wheelspin=1 (physics/wheelspin.ts): each axle's wheel speed at the tread, m/s, and its ABS
+  // brake pressure 0..1 (undefined after a reset: the wheels start rolling with the car)
+  wU?: number[]; absP?: number[];
+  // ABS: the level that let go, dumping, how many releases
+  absMem?: number[]; absDump?: boolean[]; absPulses?: number;
   FyFlag: number; FyRlag: number;
   revLatch: boolean; gearLock: number;
   zF: number; zvF: number; zR: number; zvR: number;
@@ -356,6 +363,7 @@ export function reset(car: Car, x = 0, y = 0, heading = -Math.PI / 2) {
   car.gear = 1; car.shiftTimer = 0;
   car.aLongPrev = 0; car.reverseTimer = 0; car.transfer = 0;
   car.wheelSpin = 0;
+  car.wU = undefined; car.absP = undefined;
   // a cold start (user): at the track's temperature (weather.ts; 18 C with no weather)
   const startC = WEATHER.trackC;
   car.tyreT = [startC, startC, startC, startC];
@@ -704,9 +712,13 @@ export function step(car: Car, input: CarInput, dt = PHYSICS_STEP_SECONDS) {
 
 
   // ---- 6/7. per-axle tyre force.
-  const { tick, axles, absWorking } = computeAxleForces(car, carSpec, mass, gravity, dt, delta,
-      vLong, vLat, vLongAbs, dirSign, slipF, slipR, brakeIn, FzF, FzR, FbF, FbR, FxBrakeF, FxBrakeR,
-      brakeSign, handbrake, FxDriveF, FxDriveR);
+  // (?wheelspin=1: real wheel speeds and ABS - physics/wheelspin.ts)
+  const { tick, axles, absWorking } = FIX.wheelSpin
+    ? computeWheelForces(car, carSpec, { dt, delta, vLong, vLat, vLongAbs, slipF, slipR, brakeIn,
+      FzF, FzR, FbF, FbR, handbrake, FxDriveF, FxDriveR, totalRatio, mass, gravity })
+    : computeAxleForces(car, carSpec, mass, gravity, dt, delta, vLong, vLat, vLongAbs, dirSign,
+      slipF, slipR, brakeIn, FzF, FzR, FbF, FbR, FxBrakeF, FxBrakeR, brakeSign, handbrake, FxDriveF,
+      FxDriveR);
 
   // ---- 7b. PLOUGHING (see ploughingForces)
   const ploughF = ploughingForces(

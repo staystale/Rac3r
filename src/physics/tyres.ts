@@ -63,7 +63,7 @@ export interface AxleTick {
 }
 
 /** Load-sensitive friction and effective cornering stiffness of one axle. */
-function axleGrip(
+export function axleGrip(
   car: Car, carSpec: Spec, axleLoad: number, FzNom: number, cornering: number,
   muBase: number, longK: number, gripT: number,
 ) {
@@ -381,7 +381,7 @@ function brakeLockState(car: Car, tick: AxleTick, brakeIn: number, vLongAbs: num
  * Tyre relaxation section of step: lags each axle's lateral force behind its slip angle by a
  * rolling distance and writes the lagged Fy back onto both axle outcomes.
  */
-function relaxAxleForces(car: Car, dt: number, vLong: number, vLat: number,
+export function relaxAxleForces(car: Car, dt: number, vLong: number, vLat: number,
     frontAxle: ReturnType<typeof axleForce>, rearAxle: ReturnType<typeof axleForce>) {
   // TYRE RELAXATION LENGTH — real, standard, and its absence was the turn-in bug.
   //
@@ -416,7 +416,7 @@ function relaxAxleForces(car: Car, dt: number, vLong: number, vLat: number,
  * @param first the axle's first tyre index (0 front, 2 rear)
  * @returns the grip factor
  */
-function axleTyreGrip(car: Car, carSpec: Spec, first: number): number {
+export function axleTyreGrip(car: Car, carSpec: Spec, first: number): number {
   const temps = car.tyreT, worn = car.tyreWear;
   const heat = car.surface.hard ? axleHeatGrip(car, carSpec, temps, first) : 1;
   return heat * (worn ? wornGrip(worn[first], worn[first + 1], car.surface.wetK || 0) : 1);
