@@ -2,10 +2,10 @@
 // Re-run that tool after any change to cars.js or the vehicle model.
 export const CAR_STATS = {
   "hatch-fwd": {
-    "topKph": 250,
-    "zeroTo100": 4.8,
-    "brake100": 34.4,
-    "gripG": 1.41,
+    "topKph": 246,
+    "zeroTo100": 5.1,
+    "brake100": 33.4,
+    "gripG": 1.42,
     "massKg": 1440,
     "drive": "FWD",
     "aids": {
@@ -14,10 +14,10 @@ export const CAR_STATS = {
     }
   },
   "hatch-rwd": {
-    "topKph": 250,
-    "zeroTo100": 4.3,
+    "topKph": 246,
+    "zeroTo100": 4.6,
     "brake100": 34.4,
-    "gripG": 1.41,
+    "gripG": 1.4,
     "massKg": 1440,
     "drive": "RWD",
     "aids": {
@@ -26,10 +26,10 @@ export const CAR_STATS = {
     }
   },
   "saloon-rwd": {
-    "topKph": 242,
+    "topKph": 238,
     "zeroTo100": 3.9,
-    "brake100": 33,
-    "gripG": 1.36,
+    "brake100": 33.1,
+    "gripG": 1.43,
     "massKg": 1450,
     "drive": "RWD",
     "aids": {
@@ -38,10 +38,10 @@ export const CAR_STATS = {
     }
   },
   "wrz-awd": {
-    "topKph": 243,
-    "zeroTo100": 2.8,
-    "brake100": 32.3,
-    "gripG": 1.38,
+    "topKph": 241,
+    "zeroTo100": 2.9,
+    "brake100": 31,
+    "gripG": 1.46,
     "massKg": 1410,
     "drive": "4WD",
     "aids": {
@@ -50,10 +50,10 @@ export const CAR_STATS = {
     }
   },
   "estate-4x4": {
-    "topKph": 219,
-    "zeroTo100": 4.3,
-    "brake100": 34.7,
-    "gripG": 1.36,
+    "topKph": 217,
+    "zeroTo100": 4.5,
+    "brake100": 34.8,
+    "gripG": 1.38,
     "massKg": 1810,
     "drive": "4WD",
     "aids": {
@@ -62,10 +62,10 @@ export const CAR_STATS = {
     }
   },
   "muscle-rwd": {
-    "topKph": 208,
+    "topKph": 205,
     "zeroTo100": 3.7,
-    "brake100": 33,
-    "gripG": 1.05,
+    "brake100": 33.5,
+    "gripG": 1.36,
     "massKg": 1880,
     "drive": "RWD",
     "aids": {
@@ -74,28 +74,28 @@ export const CAR_STATS = {
     }
   },
   "rally-4x4": {
-    "topKph": 246,
-    "zeroTo100": 2.8,
-    "brake100": 31.5,
-    "gripG": 1.51,
+    "topKph": 244,
+    "zeroTo100": 2.6,
+    "brake100": 31,
+    "gripG": 1.54,
     "massKg": 1250,
     "drive": "4WD",
     "aids": null
   },
   "track-rwd": {
-    "topKph": 298,
+    "topKph": 294,
     "zeroTo100": 2.8,
-    "brake100": 31.8,
-    "gripG": 1.39,
+    "brake100": 35.6,
+    "gripG": 1.8,
     "massKg": 815,
     "drive": "RWD",
     "aids": null
   },
   "naffcar": {
-    "topKph": 296,
+    "topKph": 292,
     "zeroTo100": 3,
-    "brake100": 29.1,
-    "gripG": 1.28,
+    "brake100": 30.9,
+    "gripG": 1.59,
     "massKg": 1495,
     "drive": "RWD",
     "aids": null
@@ -103,17 +103,17 @@ export const CAR_STATS = {
   "tractor": {
     "topKph": 68,
     "zeroTo100": null,
-    "brake100": 32,
-    "gripG": 1.29,
+    "brake100": 32.8,
+    "gripG": 1.28,
     "massKg": 5200,
     "drive": "RWD",
     "aids": null
   },
   "mini-fwd": {
-    "topKph": 193,
-    "zeroTo100": 5.6,
+    "topKph": 190,
+    "zeroTo100": 6,
     "brake100": 35,
-    "gripG": 1.37,
+    "gripG": 1.39,
     "massKg": 690,
     "drive": "FWD",
     "aids": {
@@ -122,10 +122,10 @@ export const CAR_STATS = {
     }
   },
   "lambo-awd": {
-    "topKph": 312,
-    "zeroTo100": 2.4,
-    "brake100": 31.7,
-    "gripG": 1.54,
+    "topKph": 310,
+    "zeroTo100": 2.1,
+    "brake100": 30.5,
+    "gripG": 1.57,
     "massKg": 1420,
     "drive": "4WD",
     "aids": {
@@ -134,10 +134,10 @@ export const CAR_STATS = {
     }
   },
   "mikra-r1": {
-    "topKph": 201,
-    "zeroTo100": 5.2,
-    "brake100": 33.9,
-    "gripG": 1.39,
+    "topKph": 198,
+    "zeroTo100": 5.6,
+    "brake100": 33.8,
+    "gripG": 1.43,
     "massKg": 980,
     "drive": "FWD",
     "aids": {
@@ -146,10 +146,10 @@ export const CAR_STATS = {
     }
   },
   "kit-2l": {
-    "topKph": 221,
-    "zeroTo100": 4.2,
+    "topKph": 217,
+    "zeroTo100": 4.3,
     "brake100": 32.1,
-    "gripG": 1.14,
+    "gripG": 1.47,
     "massKg": 1000,
     "drive": "FWD",
     "aids": {
@@ -158,10 +158,10 @@ export const CAR_STATS = {
     }
   },
   "rx-super": {
-    "topKph": 226,
-    "zeroTo100": 2.4,
-    "brake100": 31.1,
-    "gripG": 1.33,
+    "topKph": 224,
+    "zeroTo100": 2.2,
+    "brake100": 30.7,
+    "gripG": 1.54,
     "massKg": 1300,
     "drive": "4WD",
     "aids": {
@@ -170,10 +170,10 @@ export const CAR_STATS = {
     }
   },
   "banger-f2": {
-    "topKph": 191,
+    "topKph": 187,
     "zeroTo100": 4.1,
     "brake100": 33,
-    "gripG": 1.3,
+    "gripG": 1.36,
     "massKg": 1150,
     "drive": "RWD",
     "aids": {
@@ -182,10 +182,10 @@ export const CAR_STATS = {
     }
   },
   "grass-special": {
-    "topKph": 184,
+    "topKph": 179,
     "zeroTo100": 3.5,
-    "brake100": 33.3,
-    "gripG": 1.37,
+    "brake100": 34.7,
+    "gripG": 1.41,
     "massKg": 650,
     "drive": "RWD",
     "aids": {
@@ -194,10 +194,10 @@ export const CAR_STATS = {
     }
   },
   "drift-s13": {
-    "topKph": 258,
-    "zeroTo100": 3.8,
-    "brake100": 32.9,
-    "gripG": 1.01,
+    "topKph": 252,
+    "zeroTo100": 4,
+    "brake100": 33,
+    "gripG": 1.39,
     "massKg": 1220,
     "drive": "RWD",
     "aids": {
@@ -206,10 +206,10 @@ export const CAR_STATS = {
     }
   },
   "f2-rwd": {
-    "topKph": 270,
+    "topKph": 266,
     "zeroTo100": 3,
-    "brake100": 31.3,
-    "gripG": 1.3,
+    "brake100": 35.3,
+    "gripG": 1.71,
     "massKg": 755,
     "drive": "RWD",
     "aids": null
