@@ -11,6 +11,7 @@
 // Torque curves are 7-point tables, not a single peak — the shape is what makes gearing matter.
 
 import type { Mark, Spray } from './world/types.ts';
+import { applyRealism } from './realism.ts';
 
 export const GRAVITY = 9.81;
 
@@ -632,6 +633,7 @@ export type Spec = typeof SHARED & RosterRow
 export function spec(carId: string): Spec {
   const row = ROSTER.find((car) => car.id === carId) || ROSTER[0];
   const out = { ...SHARED, ...row } as Spec;   // L and Izz are filled in just below
+  applyRealism(out);   // the K13 test dials (realism.ts), nothing with them off
   out.L = out.lf + out.lr;
   out.Izz = ((out.mass * (out.len * out.len + out.wid * out.wid)) / 12) * out.izzK;
   return out;

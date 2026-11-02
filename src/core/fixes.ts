@@ -16,5 +16,19 @@ export function atLoad(name: string): boolean {
     || envValue(name.toUpperCase()) === '1';
 }
 
+/**
+ * A numeric switch read as this module loads (a test dial): the page's ?name=0.5, or NAME=0.5
+ * for the node tools; clamped to 0..1, 0 when absent.
+ * @param name the switch
+ * @returns the dial, 0..1
+ */
+export function dialAtLoad(name: string): number {
+  const where = (globalThis as { location?: { search?: string } }).location;
+  const raw = new URLSearchParams((where && where.search) || '').get(name)
+    ?? envValue(name.toUpperCase());
+  const value = Number(raw);
+  return raw == null || !Number.isFinite(value) ? 0 : Math.min(1, Math.max(0, value));
+}
+
 /** The switches under test, all off on the plain link. */
 export const FIX = {};

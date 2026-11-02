@@ -17,6 +17,7 @@ import { coverEpoch } from "../world/coverfield.ts";
 import { querySubtrack } from "../world/tyrewall.ts";
 import { GRAVITY } from "../cars.ts";
 import { CAR_STATS } from "../carstats.js";
+import { realGripK } from "../realism.ts";
 import type { Level, Lane } from "../world/types.ts";
 import type {
   AiCar, Branches, CarStat, Corner, LinePoint, Path, PathPoint, RacingLine, SpeedProfile,
@@ -416,8 +417,10 @@ export function carGrip(spec: AiCar["spec"]) {
   // (cast: carstats.js is generated JavaScript, indexed here by a string id)
   const carId = String(spec.id).split('#')[0],
     stats = (CAR_STATS as Record<string, CarStat>)[carId] || {};
-  const gripG = stats.gripG || spec.mu * 0.9,
-    brakeG = stats.brake100 ? (27.78 * 27.78) / (2 * stats.brake100) / GRAVITY : gripG * 0.8;
+  // (?realgrip: the measured numbers scaled with the tyres until they are re-measured)
+  const gripK = realGripK(carId), gripG = (stats.gripG || spec.mu * 0.9) * gripK,
+    brakeG = stats.brake100 ? (27.78 * 27.78) / (2 * stats.brake100) / GRAVITY * gripK
+      : gripG * 0.8;
   return { id: carId, gripG, brakeG };
 }
 /**

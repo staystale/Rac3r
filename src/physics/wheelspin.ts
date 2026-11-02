@@ -32,6 +32,7 @@ import {
   axleGrip, axleTyreGrip, relaxAxleForces, tyreGripOn, type AxleForce,
 } from './tyres.ts';
 import { axleFrictionWork } from './tyreheat.ts';
+import { DIAL, LOCK_REAL } from '../realism.ts';
 
 
 // longitudinal slip at the peak on hard ground (real tyres 0.10-0.15); x the surface's peakK
@@ -103,6 +104,15 @@ function lawForce(law: Law, wheelU: number) {
 }
 
 /**
+ * A locked or spinning tyre's grip share, moved toward the real one by ?reallock (realism.ts).
+ * @param slideGrip the car's share
+ * @returns the share used
+ */
+function lockGrip(slideGrip: number): number {
+  return DIAL.lock ? slideGrip + (LOCK_REAL - slideGrip) * DIAL.lock : slideGrip;
+}
+
+/**
  * The axle's grip numbers this step (axleGrip, the lateral peak as the old lateral law's).
  * @param car the car
  * @param carSpec its spec
@@ -120,7 +130,7 @@ function axleLaw(car: Car, carSpec: Spec, tick: { muBase: number; longK: number;
   const sgLat = carSpec.slideGrip;
   return { vx: inp.vx, vRef: Math.max(SLIP_V_MIN, Math.abs(inp.vx)), kPeak: KAPPA_PEAK * tick.peakK,
     ny: inp.slip / aPeak, FxPk: FmaxRoll, FyPk, sgLat,
-    sgLong: sgLat * (carSpec.tyre && carSpec.tyre.slide || 1) };
+    sgLong: lockGrip(sgLat * (carSpec.tyre && carSpec.tyre.slide || 1)) };
 }
 
 /**

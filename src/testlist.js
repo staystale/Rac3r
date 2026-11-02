@@ -37,4 +37,12 @@ export const TEST_LIST = [
   // menureset, markage (round 2: 8 px cells, 16 steps), treenight, hwsnow, wheelgone (+ the
   // spray fix), menucar, ainumbers - passed 2026-11-02; wheelspin (the driving root fix: real
   // wheel speed, real ABS) passed 2026-11-02; evenlap passed 2026-11-02)
+  {
+    id: 'realism',
+    added: '2026-11-02',
+    name: 'K13 realism dials: brakes, locked wheels, tyre grip, engine power (0 = now, 1 = real)',
+    where: 'Plain link + &realbrake=1&reallock=1&realgrip=0.5&realpower=1 (change any number)',
+    try: 'Brake hard straight and into turns, launch, corner, drift; muscle, hatch, Mini, F1.',
+    wrong: 'Spins under braking, a car that will not pull away, AI off the road, no fun.',
+  },
 ];
