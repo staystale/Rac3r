@@ -7,6 +7,7 @@ import type { Spec, Tyre } from '../cars.ts';
 import { TUNE, tyreGrip } from '../vehicle.ts';
 import type { Car } from '../vehicle.ts';
 import { wornGrip } from './tyrewear.ts';
+import { FIX } from '../core/fixes.ts';
 
 // Suspension rate and damping are PER CAR, in cars.js (susF / susZ) — see the note there.
 export const LOAD_MAX = 2.6;
@@ -107,7 +108,9 @@ export function ploughingForces(car: Car, carSpec: Spec, mass: number, vLong: nu
   // the real behaviour, and the reason a spun car stops dead in the gravel.
   //
   // It reaches here only as car.surface.plough, so vehicle.js still does not know what gravel is.
-  const plough = car.surface.plough || 0;
+  // ?k12: a mud tread ploughs less (cars.ts ploughK)
+  const plough = (car.surface.plough || 0)
+    * (FIX.k12 && carSpec.tyre && carSpec.tyre.ploughK ? carSpec.tyre.ploughK : 1);
   let FpxF = 0, FpyF = 0, FpxR = 0, FpyR = 0;
   if (plough > 0) {
     // Still strong at a crawl (PLOUGH_CRAWL of full), so you get STUCK rather than gently coasting

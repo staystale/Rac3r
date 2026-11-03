@@ -37,4 +37,8 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
+  // ?k12=1: MUD (owner 11-03: "cars struggle too much in mud ... even Subarus"): rain leaves
+  // packed dirt wet dirt (dig.ts), mud and thick mud plough far less (surfaces.ts), mud tyres
+  // plough less again (cars.ts ploughK, physics/tyres.ts)
+  k12: atLoad('k12'),
 };

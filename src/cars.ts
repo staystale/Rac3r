@@ -44,6 +44,7 @@ export interface Tyre {
   grip: Record<string, number>; bySurf?: Record<string, number>;
   opt?: [number, number]; peak?: number; cold?: number; slide?: number; heatHard?: number;
   note?: string;
+  ploughK?: number;   // x the ground's plough (?k12: a self-cleaning mud tread cuts through)
   rims?: [number, number];   // the rim sizes it is made in, inches
 }
 
@@ -239,6 +240,7 @@ export const TYRES = [
     note: 'a little better at everything' }),
   makeTyre('mud-plugger', 'spum', 'Mud-Plugger', 380, ['road', 'rally', 'rx', 'stock', 'drift',
     'offroad'], [0.92, 0.95, 1.1, 1.14, 1.22, 1.35, 1.12, 1.1, 0.95], { rims: [13, 17],
+    ploughK: 0.7,
     heatHard: 1.6,
     opt: [50, 95], note: 'mud + grass; cooks on tarmac' }),
   makeTyre('road-sport', 'kum', 'Road Sport', 520, ['road', 'stock', 'drift'],
@@ -273,7 +275,7 @@ export const TYRES = [
     note: 'snow + ice; noisy and slow on tarmac' }),
   makeTyre('all-terrain', 'dunflop', 'All-Terrain', 500, ['road', 'rally', 'rx', 'stock',
     'offroad'], [0.98, 1, 1.12, 1.12, 1.15, 1.18, 1.15, 1.08, 1.02],
-    { rims: [15, 18],
+    { rims: [15, 18], ploughK: 0.85,
     note: 'off the road and back' }),
   makeTyre('p-soft', 'pirrelly', 'Soft', 1400, ['single', 'oval'],
     [1.28, 0.85, 0.85, 0.85, 0.82, 0.75, 0.8, 0.7, 0.65], { rims: [13, 18],

@@ -54,7 +54,9 @@ handover, written on request.
   atm, even Subarus struggle to get up the hill at Knob hill in the rain"), then the AI rework
   (owner: "see if we can get up to 20 cars in a race without performance issues" - MEASURED 11-03,
   Thruston, laptop: sim ms a frame 5 AI 1.9, 10 AI 4.2, 15 AI 5.3, 20 AI 17.5: the 20-car jump is
-  the thing to find and cut; MAX_AI is 10 until then), then the upgrade system, sound, story.
+  the thing to find and cut; MAX_AI is 10 until then), then the upgrade system, sound, story. SPARKS ON BARE RIMS (owner 11-03): a wheel spinning on its
+  rim (no tyre left) throws sparks by its own wheel speed, the normal spark look taking over once
+  it rolls.
   MENU REDESIGN (owner 11-03, mockup agreed over rounds - build behind a switch, one screen at a
   time: main menu, then garage + upgrades): LOGO = the owner's own image (pixel shard letters,
   burst, electric blue 3) with its sub line changed to "A DRIVING SANDBOX" in the same chunky

@@ -1,5 +1,9 @@
 import { RUNOFF_MU, RUNOFF_ROUGH, KERB_MU } from "./bounds.ts";
 import type { Mark, Spray, Surface } from "./types.ts";
+import { FIX } from "../core/fixes.ts";
+
+// ?k12: what mud and thick mud plough (tools/scratch/_mudpull: 4x4 vs 2WD targets)
+const MUD_PLOUGH = 0.35, THICK_MUD_PLOUGH = 0.9;
 export type SurfaceId =
   | "lab" | "racetarmac" | "tarmac" | "dirt" | "gravel" | "grass" | "grassShort" | "grassLong"
   | "kerb" | "ice" | "packedSnow" | "snow" | "wet" | "mud" | "thickMud" | "broken" | "concrete"
@@ -169,7 +173,11 @@ export const SURFACES: Record<SurfaceId, Surface> = {
     rough: 0.006, mark: MARK_SNOW, spray: SPRAY_SNOW, coolK: 0.25 },
   wet:    { id: 'wet', label: 'WET TARMAC', mu: 0.72, peakK: 0.95, longK: 0.92, plough: 0,
     rough: 0.002, mark: MARK_WET, spray: SPRAY_WET, hard: true, coolK: 0.18 },
-  mud:    { id: 'mud', label: 'MUD', mu: 0.45, peakK: 2.20, longK: 0.85, plough: 1.60, rough: 0.010,
+  // ?k12: ploughs MUD_PLOUGH (was 1.60: a 0.09-0.16 g brake that never let go - 2WD road cars
+  // could not reach 50 km/h on the FLAT, the Chevvy stuck)
+  mud:    { id: 'mud', label: 'MUD', mu: 0.45, peakK: 2.20, longK: 0.85,
+    plough: FIX.k12 ? MUD_PLOUGH : 1.60,
+    rough: 0.010,
     mark: MARK_MUD, spray: SPRAY_MUD },
   // THICK MUD (requirement: two types of mud... mud turns to thick mud). Same family as mud, but
   // the bog: less grip, driven wheels churn, and it drags harder than mud. SIZED TO THE
@@ -177,7 +185,8 @@ export const SURFACES: Record<SurfaceId, Surface> = {
   // 0.5*mu*longK*g = 1.30 m/s^2, and drag at a crawl is plough*PLOUGH_CRAWL = 1.9*0.55 = 1.05 — 81%
   // of it. Bogged, never stuck dead. (First cut was mu 0.36 / longK 0.60 / plough 3.4: 1.87 drag vs
   // 1.06 traction = a RWD car cannot move.)
-  thickMud: { id: 'thickMud', label: 'THICK MUD', mu: 0.38, peakK: 2.40, longK: 0.70, plough: 1.90,
+  thickMud: { id: 'thickMud', label: 'THICK MUD', mu: 0.38, peakK: 2.40, longK: 0.70,
+    plough: FIX.k12 ? THICK_MUD_PLOUGH : 1.90,
     rough: 0.018, mark: MARK_THICK_MUD, spray: SPRAY_MUD },
   broken: { id: 'broken', label: 'BROKEN TARMAC', mu: 0.86, peakK: 1.00, longK: 1.00, plough: 0,
     rough: 0.022, mark: null, spray: null, hard: true },
