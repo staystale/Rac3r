@@ -45,13 +45,5 @@ export const TEST_LIST: TestEntry[] = [
   // curve + reach at speed) passed 2026-11-02, kept as player settings; towplus (the wake)
   // passed 2026-11-02; aicool, smokeearly, airfx, smokelinger, aidust, realcars, jokerhint,
   // puffpool, tyrehealth, pitsolid, muscletyres,
-  // namefix, bhbridges, menustyle, testgarage passed 2026-11-03; specsheet removed)
-  {
-    id: 'ai10',
-    added: '2026-11-03',
-    name: 'Up to 10 AI cars, picked with a - / + ticker; ten liveries',
-    where: 'Plain link + &ai10=1: TEST MODE > a circuit > VS AI, nudge the AI count up to 10',
-    try: 'Race 10 AI on a few circuits: the frame rate, the start, the pack.',
-    wrong: 'Stutter with 10, cars stacked at the start, or two AI in the same colours.',
-  },
+  // namefix, bhbridges, menustyle, testgarage, ai10 passed 2026-11-03; specsheet removed)
 ];

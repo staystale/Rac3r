@@ -20,7 +20,7 @@ import type { GameCar } from './state.ts';
 // change.
 export const AI_LIVERIES = [['#c8302c', '#7e1d1a'], ['#2b56b5', '#14306e'], ['#e2c13a', '#8a6d12'],
   ['#2f7d4f', '#174a2c'], ['#7a3fa0', '#43205a'],
-  // ?ai10: five more, so ten cars all differ (cars.ts PALETTE)
+  // five more, so ten cars all differ (cars.ts PALETTE)
   ['#e86fa8', '#8a2f5e'], ['#3fb6c9', '#1d6a76'], ['#f0f0ea', '#5a5f69'], ['#e0603a', '#8a3414'],
   ['#9bc53d', '#4a6a14']];
 // GRID (requirement: starting grid position should vary randomly but bias toward the front n back

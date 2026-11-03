@@ -1,7 +1,10 @@
 // Every page-link setting (?name=value), read ONCE from location.search into one typed object.
 // Parses and defaults are exactly what main.ts, highway.ts, render.ts and render/tiles.ts
 // each did on their own.
-import { MAX_AI } from './fixes.ts';
+
+// the most AI cars a race takes (ai10, passed 11-03: was 5; 20 measured too costly - sim 17 ms
+// a frame on the laptop, x3 the 15-car cost)
+export const MAX_AI = 10;
 
 export interface Settings {
   dev: boolean;                  // ?dev: developer mode

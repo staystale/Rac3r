@@ -54,7 +54,7 @@ import {
   start, enterMenu, launch, paintThumbs, prepareThumbs, refreshMinimap,
 } from './game/menuflow.ts';
 import { loop } from './game/loop.ts';
-import { MAX_AI } from './core/fixes.ts';
+import { MAX_AI } from './core/settings.ts';
 // build the world, in this order: the hand-made levels (load.ts), then the levels added after them
 initWorld();
 addStageLevels();

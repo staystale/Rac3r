@@ -50,7 +50,11 @@ handover, written on request.
   and a pedestrian bridge; the pits too tight and not solid); K12 mud hills (owner: ok). NEXT TIME
   WE WORK ON NEW VEHICLES OR VISUALS: make sure every car LOOKS like its real counterpart (shape,
   proportions, lights, details - as close as the names). More vehicles later (owner). ORDER
-  (owner 11-03): AI rework first, then the upgrade system, then sound, then story.
+  (owner 11-03, updated): K12 MUD / 4x4 / OFF-ROAD first (owner: "cars struggle too much in mud
+  atm, even Subarus struggle to get up the hill at Knob hill in the rain"), then the AI rework
+  (owner: "see if we can get up to 20 cars in a race without performance issues" - MEASURED 11-03,
+  Thruston, laptop: sim ms a frame 5 AI 1.9, 10 AI 4.2, 15 AI 5.3, 20 AI 17.5: the 20-car jump is
+  the thing to find and cut; MAX_AI is 10 until then), then the upgrade system, sound, story.
   MENU REDESIGN (owner 11-03, mockup agreed over rounds - build behind a switch, one screen at a
   time: main menu, then garage + upgrades): LOGO = the owner's own image (pixel shard letters,
   burst, electric blue 3) with its sub line changed to "A DRIVING SANDBOX" in the same chunky
