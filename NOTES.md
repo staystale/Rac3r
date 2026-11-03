@@ -38,6 +38,16 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   counterpart, close to the real thing but different (owner 11-03): BMV 3 Serious (BMW 3 Series),
   Subaroo WRZ, Lamburghini Hurrikan, Folksvagon Gulf GTEye. Every car is based on a real car
   (its ROSTER row in cars.ts: its weight, engine, gears, tyres and drag; realcars.ts the helpers).
+- ONE PARODY PER REAL NAME (owner 11-03: "make sure all our naming conventions are consistent ...
+  dont go generating similar different ones if we already have that name parody"). Check this
+  register before naming anything; reuse the entry; add every new one here.
+  BRANDS: Dunlop = DUNFLOP (the Castle Cum footbridge still says DUMLOP: to fix), Kumho = KUM,
+  Pirelli = PIRRELLY, SPUM (budget tyres / oil), CREEM OIL, Goodyear = GOOD YEAH (owner 11-03).
+  CARS: VW = Folksvagon, BMW = BMV, Subaru = Subaroo, Volvo = Volvoh, Chevrolet = Chevvy, Audi =
+  Ordi, JCB = JCBee, Mini = Minnie, Lamborghini = Lamburghini, Nissan = Nissun, Peugeot =
+  Pugeot, Ford = Fjord, NASCAR = Naffcar, Formula One / Two = Formula Won / Too, BriSCA = BriSKA.
+  TRACKS: Thruxton = Thruston, Castle Combe = Castle Cum, Brands Hatch = Brands Snatch,
+  Knockhill = Knobhill, Lydden Hill = Slidden Hill, Kielder = Killder, Daytona = Dieatona.
 - No keys, tokens, tunnel URLs or process IDs in the repo. No itch.io push until the owner says so.
 - The foreman may push to `main` once the change is proven (routine below).
 - Keep the test server and the tunnel running.
