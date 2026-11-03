@@ -24,10 +24,13 @@ last handover, written on request.
   hills); RESET puts the car all four wheels on the road; BELLY drag (ground clearance in mud /
   sand / ruts, world/belly.ts); the tractor on FIRESTONED Field Luggers and 4WD like the real
   Fastrac.
-- NEXT (owner order 11-03): 1 the AI REWORK (design first, agreed before building; GOAL: 20 cars
-  in a race without performance issues - MEASURED, Thruston, laptop, sim ms a frame: 5 AI 1.9,
-  10 AI 4.2, 15 AI 5.3, 20 AI 17.5: find and cut the 20-car jump, likely the car-to-car checks;
-  MAX_AI in core/settings.ts is 10 until then); 2 the UPGRADE SYSTEM with the agreed garage
+- UNDER TEST (11-03 late): ?ai20 (up to 20 AI, ten more liveries) + ?aifast (resting loose
+  objects skipped, smoke skips far cars; simhash SAME to prove). Owner's run: Thruston, 20 AI,
+  &report=1. The AI REWORK design is docs/specs/ai-rework.md (rounds R0-R7) - owner to OK.
+- NEXT (owner order 11-03; 11-03 late: "let's work on AI only"): 1 the AI REWORK (design first,
+  agreed before building; GOAL: 20 cars in a race without performance issues, PHONE first, laptop
+  too. MEASURED 11-03 late (_aiprof): NO 20-car jump - ~0.15 ms a car a physics step, linear; the
+  17.5 ms was the catch-up loop on a flat-out laptop; see the design page); 2 the UPGRADE SYSTEM with the agreed garage
   (below); 3 SOUND (ask about every sound first); 4 STORY (its garage, money, BUY & FIT, "buy
   what you last tested" with tick / untick).
 - OWNER IDEAS / WAITING (not ordered yet): SPARKS ON BARE RIMS (a wheel spinning on its rim
@@ -36,6 +39,12 @@ last handover, written on request.
   Snatch's bridges done); CARS LOOK LIKE THEIR REAL COUNTERPARTS (next time we do vehicles or
   visuals); MORE VEHICLES (e.g. an M3 as its own car); SUSPENSION TRAVEL (with the suspension
   upgrade: bottoming out, and it takes clearance in mud - world/belly.ts).
+- OWNER 11-03 late, AFTER THE AI: BRANDS SNATCH INDY AT REAL SCALE and at 3/4 scale (two test
+  levels: the track surface to scale + AI to race, no full scenery; the circuits are 0.41-0.48 of
+  real so their corners are tighter than real - "the full size might be too big still but who
+  knows"; needs the world / tyre-mark layer bigger than the shared 520 m). CAR COLOURS: every
+  vehicle gets a SECOND and maybe a THIRD colour, changeable in the garage paint (and the AI
+  liveries use them, so a 20-car field all differ) - mockup first.
 - THE AGREED GARAGE (owner 11-03, mockup "RAC3R Menu Redesign"; MENU REDESIGN just below): the menu
   look is DONE (default); the garage LAYOUT (upgrade bars heading each section, a stat opens its
   upgrade screen, TOUGHNESS, TRAVEL, the units chip) comes with the upgrade system; TEST garage

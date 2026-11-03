@@ -37,4 +37,11 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
+  // ?ai20=1: up to 20 AI cars (core/settings.ts MAX_AI; 10 on the plain link) and ten more
+  // liveries (game/grid.ts), for the phone's 20-car run (the AI rework's goal)
+  ai20: atLoad('ai20'),
+  // ?aifast=1: the same sim, less work - a resting loose object whose spot and grid cell have not
+  // changed since its last step is skipped (cones/coneStep.ts), and a smoke / dust puff skips a
+  // car it is nowhere near before any trig (render/airflow.ts stir)
+  aifast: atLoad('aifast'),
 };

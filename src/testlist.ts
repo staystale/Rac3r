@@ -47,4 +47,20 @@ export const TEST_LIST: TestEntry[] = [
   // puffpool, tyrehealth, pitsolid, muscletyres,
   // namefix, bhbridges, menustyle, testgarage, ai10, k12 passed
   // 2026-11-03; resetin, belly, agtyre passed 2026-11-03; specsheet removed)
+  {
+    id: 'ai20',
+    added: '2026-11-03',
+    name: 'Up to 20 AI cars (10 on the plain link); ten more liveries',
+    where: 'Test link + &ai20=1&aifast=1&report=1: TEST MODE > Thruston > VS AI, ticker to 20',
+    try: 'Race 20 AI for a few laps; then other circuits. The report sends the frame times.',
+    wrong: 'Stutter, cars stacked at the start, a grid off the road, a scoreboard that overflows.',
+  },
+  {
+    id: 'aifast',
+    added: '2026-11-03',
+    name: 'Same game, less work: resting cones skipped, smoke skips far cars',
+    where: 'Any test link + &aifast=1',
+    try: 'Knock cones and tyre stacks, drive through smoke and dust behind other cars.',
+    wrong: 'A cone that will not move when hit, smoke that ignores a car blasting through it.',
+  },
 ];

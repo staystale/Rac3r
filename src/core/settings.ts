@@ -2,9 +2,11 @@
 // Parses and defaults are exactly what main.ts, highway.ts, render.ts and render/tiles.ts
 // each did on their own.
 
-// the most AI cars a race takes (ai10, passed 11-03: was 5; 20 measured too costly - sim 17 ms
-// a frame on the laptop, x3 the 15-car cost)
-export const MAX_AI = 10;
+import { FIX } from './fixes.ts';
+
+// the most AI cars a race takes (ai10, passed 11-03: was 5); ?ai20: 20 (the 11-03 17 ms a frame
+// at 20 was the catch-up loop on a busy laptop - the AI cost is ~0.15 ms a car a step, linear)
+export const MAX_AI = FIX.ai20 ? 20 : 10;
 
 export interface Settings {
   dev: boolean;                  // ?dev: developer mode

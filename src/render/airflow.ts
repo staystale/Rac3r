@@ -18,6 +18,7 @@
 import { WEATHER } from '../world/weather.ts';
 import { LEVEL } from '../world/state.ts';
 import type { Puff } from './types.ts';
+import { FIX } from '../core/fixes.ts';
 
 const SPREAD = 2.4, SETTLE = 2.6;
 const WIND_BY_KIND: Record<string, number> = { dry: 1.4, hot: 0.9, superhot: 0.6, rain: 2.6,
@@ -79,6 +80,12 @@ export function airOf(look: { grow: number; air?: number }): number {
  * @param wallDt wall-clock frame time
  */
 function stir(puff: Puff, car: AirCar, airK: number, wallDt: number): void {
+  // ?aifast: a puff past the stir zone's reach on either axis (+1 m) cannot be stirred - skip the
+  // trig (MEASURED, 20 AI: up to 640 puffs x 21 cars a frame was the top render cost)
+  if (FIX.aifast) {
+    const reach = car.spec.len / 2 + STIR_BACK + car.spec.wid + 1;
+    if (Math.abs(puff.x - car.x) > reach || Math.abs(puff.y - car.y) > reach) return;
+  }
   const speed = Math.hypot(car.vx, car.vy);
   if (speed < STIR_FROM_V) return;
   const cosH = Math.cos(car.heading), sinH = Math.sin(car.heading);

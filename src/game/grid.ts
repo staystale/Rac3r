@@ -22,7 +22,11 @@ export const AI_LIVERIES = [['#c8302c', '#7e1d1a'], ['#2b56b5', '#14306e'], ['#e
   ['#2f7d4f', '#174a2c'], ['#7a3fa0', '#43205a'],
   // five more, so ten cars all differ (cars.ts PALETTE)
   ['#e86fa8', '#8a2f5e'], ['#3fb6c9', '#1d6a76'], ['#f0f0ea', '#5a5f69'], ['#e0603a', '#8a3414'],
-  ['#9bc53d', '#4a6a14']];
+  ['#9bc53d', '#4a6a14'],
+  // ten more for a 20-car field (?ai20; owner 11-03: 20 liveries), two-tone from the paint palette
+  ['#a9aeb6', '#5a5f69'], ['#16181d', '#e2c13a'], ['#7a1d22', '#3d0e11'], ['#f2a900', '#16181d'],
+  ['#1f4d2e', '#9bc53d'], ['#1d3f9a', '#f0f0ea'], ['#f0f0ea', '#c8342a'], ['#3fb6c9', '#16181d'],
+  ['#8a4fc0', '#f2a900'], ['#c8302c', '#f0f0ea']];
 // GRID (requirement: starting grid position should vary randomly but bias toward the front n back
 // with difficulty): the player's slot is drawn with weights exp(GRID_BIAS[diff] x slot / n) —
 // Mobile leans to the FRONT, Real to the BACK, Realish is even.
