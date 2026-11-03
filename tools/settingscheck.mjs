@@ -1,5 +1,5 @@
 // node tools/settingscheck.mjs
-// readSettings(): a table of page links -> the values the old per-file parsing (main.js qs, highway.js QP,
+// readSettings(): a table of page links -> the values the old per-file parsing (main.js qs, highway.ts QP,
 // render.ts NO_LOCK, render/tiles.ts TILE_PX/TILE_GPU/NO_SHADE) gave. Expected values are worked out from
 // that code, not from settings.ts. Only the fields named in a row are checked; the rest must be the defaults.
 // Since 2026-10-16 the GPU painter and the zoom hold are on unless =0 (owner approved).

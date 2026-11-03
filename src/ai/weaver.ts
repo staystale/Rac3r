@@ -3,7 +3,7 @@ import { envValue } from "../core/debug.ts";
 import type {
   AiCar, DriveCtx, DriveInput, DriveOutState, HighwayLevel, Traits, WeaverState,
 } from "./types.ts";
-import { roadPose, roadSpan } from "../highway.js";
+import { roadPose, roadSpan } from "../highway.ts";
 import { HWT, IDLE, MARGIN } from "./weaverCtx.ts";
 import type { Wvr } from "./weaverCtx.ts";
 import { makeStep } from "./weaverStep.ts";

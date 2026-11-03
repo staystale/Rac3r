@@ -1,6 +1,6 @@
 // sim.js — The per-step world: car physics, highway, audio and contact stepping.
 import { step, reset, assertFinite, PHYSICS_STEP_SECONDS } from '../vehicle.ts';
-import { stepHighway, highwayGuard, highwayRespawn, speedCamera } from '../highway.js';
+import { stepHighway, highwayGuard, highwayRespawn, speedCamera } from '../highway.ts';
 import { carContacts } from '../contact.ts';
 import { hit, hitRoll, repair, applyBurst, stepDamage } from '../damage.ts';
 import { rolling, tripCheck, stepRoll } from '../roll.ts';
@@ -271,7 +271,7 @@ export function streamHighwayLitter() {
  * the count are kept.
  */
 export function caughtBySpeedCamera() {
-  // SPEED CAMERA (highway.js speedCamera): caught = a HUD card (hud.ts drawCamera) + the fine
+  // SPEED CAMERA (highway.ts speedCamera): caught = a HUD card (hud.ts drawCamera) + the fine
   // on the session; fastest + count kept
   const cam = speedCamera(LEVEL, game.car);
   if (cam) {

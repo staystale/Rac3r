@@ -2,7 +2,7 @@
 import { applyLivery, applyTyre } from '../cars.ts';
 import { createCones } from '../cones.ts';
 import { rulesSeen } from '../guide.ts';
-import { setHighwayPreset } from '../highway.js';
+import { setHighwayPreset } from '../highway.ts';
 import { createAIDriver } from '../ai/circuit.ts';
 import { aiTraits } from '../ai/traits.ts';
 import { setLevel } from "../world/load.ts";

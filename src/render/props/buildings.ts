@@ -258,7 +258,7 @@ export function drawGantry(propCtx: PropCtx, prop: Prop, ppm: number) {
   view.ctx.fillStyle = '#eab308';
   view.ctx.fillRect(-gantryW / 2 - 0.6 * ppm, -0.9 * ppm, 1.2 * ppm, 0.4 * ppm);
   view.ctx.fillRect(gantryW / 2 - 0.6 * ppm, -0.9 * ppm, 1.2 * ppm, 0.4 * ppm);
-  // SPEED CAMERA (highway gantries, highway.js speedCamera): a yellow box on the beam over
+  // SPEED CAMERA (highway gantries, highway.ts speedCamera): a yellow box on the beam over
   // the left lanes; flashes white when it
   // catches you (pr._flash, wall clock)
   if (LEVEL.endless) {

@@ -1,10 +1,12 @@
 // highway cuts: slip road / bridge / river bookkeeping (keep-out rects, cut-short polylines, the
-// secret side road, approaches, river covers). Split out of highway.js.
+// secret side road, approaches, river covers). Split out of highway.ts.
 import { SURFACES } from "../world/surfaces.ts";
 import { adoptRoadCovers } from "../world/puddles.ts";
 import { STEP } from "./presets.ts";
-import { ease } from "./road.js";
-import { clearFields } from "./fields.js";
+import { ease } from "./road.ts";
+import { clearFields } from "./fields.ts";
+import type { HwPose, KeepRect, HwCut, HwLevel, Bridge } from './hwtypes.ts';
+import type { Point, Lane, Zone, Cover } from '../world/types.ts';
 // ---- SLIP ROADS, BRIDGES, CHEEKY EXTRAS. Each is ONE prop (render.ts draws it, physics reads it):
 // no new system. OFF-SLIP (kind 'slip'): leaves the LEFT edge (the hard shoulder side) at SLIP_DEG,
 // a tapering lane 5 m wide, SLIP_LEN m long, ending in a field gate; its surface is tarmac (lab.ts
@@ -53,7 +55,7 @@ export const SIDE_W_HALF = 2.5,
   APP_STEP = 8;
 // KEEP-OUT areas for scenery (trees, rocks, barns, solar farms): rects { x, y, ax, ay (unit axis),
 // hu, hv }
-export function blocked(keep, x, y, radius) {
+export function blocked(keep: KeepRect[], x: number, y: number, radius: number) {
   for (const rect of keep) {
     const dx = x - rect.x,
       dy = y - rect.y,
@@ -63,8 +65,8 @@ export function blocked(keep, x, y, radius) {
   }
   return false;
 }
-const SCENERY = { tree: 3, rock: 3, block: 8, solarfarm: 16 };
-export function keepOut(level, rect, dist) {
+const SCENERY: Record<string, number> = { tree: 3, rock: 3, block: 8, solarfarm: 16 };
+export function keepOut(level: HwLevel, rect: KeepRect, dist: number) {
   // a feature that needs the GROUND (approach, river, slip) drops any field / village under it,
   // whole (scenery, fieldsA below)
   if (rect.field == null) clearFields(level, rect);
@@ -81,8 +83,8 @@ export function keepOut(level, rect, dist) {
 // CUT SHORT. c = { pts (outward polyline, truncated in place), s, w, skip: [s0, s1] (road distances
 // never tested: its own stretch), after }. A road point within reach of a polyline point (k >= 1)
 // cuts the polyline before that point.
-export const cutSkips = (cut, dist) => dist >= cut.skip[0] && dist <= cut.skip[1];
-export function cutBy(level, cut, x, y) {
+export const cutSkips = (cut: HwCut, dist: number) => dist >= cut.skip[0] && dist <= cut.skip[1];
+export function cutBy(level: HwLevel, cut: HwCut, x: number, y: number) {
   const thr = (level._hw.geo.hw + cut.w / 2 + 3) ** 2, road = cut.pts;
   for (let idx = 1; idx < road.length; idx++)
     if ((road[idx][0] - x) ** 2 + (road[idx][1] - y) ** 2 < thr) {
@@ -91,7 +93,7 @@ export function cutBy(level, cut, x, y) {
       return;
     }
 }
-export function addCut(level, cut) {
+export function addCut(level: HwLevel, cut: HwCut) {
   const state = level._hw;
   cut._s = cut.s;
   state.cuts.push(cut);
@@ -101,7 +103,7 @@ export function addCut(level, cut) {
 // THE SECRET SIDE ROAD, one road point at a time (built with the road, so it follows every bend):
 // stores its centre's offset to the LEFT of the centreline as P[i].sideOff (the guard reads it).
 // Pieces are flushed at the end of each dress call (sideFlush).
-export function sideStep(level, i, pointAt) {
+export function sideStep(level: HwLevel, i: number, pointAt: (i: number, off: number) => HwPose) {
   const state = level._hw,
     sideRoad = state.side;
   if (!sideRoad) return;
@@ -112,7 +114,7 @@ export function sideStep(level, i, pointAt) {
   if (along > total) {
     sideFlush(level, true);
     state.side = null;
-    state.nextBridge = Math.max(state.nextBridge, road[i].s + 150);
+    state.nextBridge = Math.max(state.nextBridge!, road[i].s + 150);
     return;
   }
   const blend =
@@ -133,7 +135,7 @@ export function sideStep(level, i, pointAt) {
   // vanish while its end was on screen)
   if (sideRoad.pts.length >= 9) sideFlush(level, false, road[i].s);
 }
-export function sideFlush(level, end, sNext) {
+export function sideFlush(level: HwLevel, end: boolean, sNext?: number) {
   const state = level._hw,
     sideRoad = state.side;
   if (!sideRoad) return;
@@ -165,7 +167,7 @@ export function sideFlush(level, end, sNext) {
 }
 // a bridge's APPROACHES: straight on along the deck axis from the outer face of each abutment (cut
 // short where the road comes back)
-export function approaches(level, bridge, dist) {
+export function approaches(level: HwLevel, bridge: Bridge, dist: number) {
   const half = bridge.wid / 2,
     carries = bridge.carries,
     axisX = Math.cos(bridge.rot),
@@ -173,7 +175,7 @@ export function approaches(level, bridge, dist) {
   const width = carries === "road" ? 7 : carries === "rail" ? 5.5 : 2.4,
     surface =
       carries === "road" ? SURFACES.tarmac : carries === "rail" ? SURFACES.gravel : SURFACES.dirt;
-  bridge.appL = [APP_LEN, APP_LEN];
+  const appL = bridge.appL = [APP_LEN, APP_LEN];
   bridge.appW = width;
   bridge.reach = half + 3 + APP_LEN;
   keepOut(
@@ -182,12 +184,12 @@ export function approaches(level, bridge, dist) {
     dist
   );
   [-1, 1].forEach((sign, sideIdx) => {
-    const pts = [];
+    const pts: Point[] = [];
     for (let along = 0; along <= APP_LEN + 1e-6; along += APP_STEP) {
       const offset = sign * (half + 3 + along);
       pts.push([bridge.x + axisX * offset, bridge.y + axisY * offset]);
     }
-    const lane = { pts, width: width, surface, _s: dist };
+    const lane: Lane = { pts, width: width, surface, _s: dist };
     level.lanes.push(lane);
     addCut(level, {
       pts,
@@ -195,8 +197,8 @@ export function approaches(level, bridge, dist) {
       w: width,
       skip: [dist - 80, dist + 80],
       after: () => {
-        lane._segs = null;
-        bridge.appL[sideIdx] = Math.max(0, (pts.length - 1) * APP_STEP);
+        lane._segs = undefined;
+        appL[sideIdx] = Math.max(0, (pts.length - 1) * APP_STEP);
       },
     });
   });
@@ -205,9 +207,9 @@ export function approaches(level, bridge, dist) {
 // the parapet to APP_LEN m beyond it. The cover's `cut` removes the part under the motorway exactly
 // (lab.ts coverAt + render.ts coverCells): in the river's frame the road edges are u = v tan(skew)
 // +- e.
-export function river(level, bridge, dist) {
+export function river(level: HwLevel, bridge: Bridge, dist: number) {
   const state = level._hw,
-    riverW = bridge.ww,
+    riverW = bridge.ww!,
     tanSkew = Math.tan(bridge.skew),
     roadEdge = bridge.roadHw / Math.cos(bridge.skew),
     axisX = Math.cos(bridge.rot),
@@ -236,21 +238,21 @@ export function river(level, bridge, dist) {
       h: riverW,
       cut: { ox: bridge.x, oy: bridge.y, tn: tanSkew, e: roadEdge },
       _s: dist,
-    };
+    } as Cover;   // x, y, w set by put below, before it is pushed
     const banks = [-1, 1].map((bankSide) => ({
       surface: SURFACES.dirt,
       rot: bridge.rot,
       h: 1.2,
       _s: dist,
       sv: bankSide,
-    }));
-    const put = (len) => {
+    } as Zone));   // x, y, w set by put below
+    const put = (len: number) => {
       const along = sign * (coverStart + len / 2);
       Object.assign(water, { x: bridge.x + axisX * along, y: bridge.y + axisY * along, w: len });
       delete water._cells;
       // the banks start at the parapet line (never on the motorway's tarmac)
       for (const bank of banks) {
-        const across = bank.sv * (riverW / 2 + 0.6),
+        const across = bank.sv! * (riverW / 2 + 0.6),
           alongBank =
             sign *
             (roadEdge +
@@ -267,7 +269,7 @@ export function river(level, bridge, dist) {
     put(roadEdge - coverStart + APP_LEN);
     state.covers.push(water);
     level.zones.push(...banks);
-    const pts = [];
+    const pts: Point[] = [];
     for (let along = 0; along <= APP_LEN + 1e-6; along += 10) {
       const offset = sign * (roadEdge + along);
       pts.push([bridge.x + axisX * offset, bridge.y + axisY * offset]);
@@ -283,7 +285,7 @@ export function river(level, bridge, dist) {
 }
 // the level's covers = the highway's own (rivers) + the level's generated inclusions; a NEW array
 // so render.ts re-merges them
-export function syncCovers(level) {
+export function syncCovers(level: HwLevel) {
   const state = level._hw;
   state.coversDirty = false;
   level._coversBase = state.covers;

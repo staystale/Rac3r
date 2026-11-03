@@ -266,7 +266,7 @@ export function drawBlock(propCtx: PropCtx, prop: Prop, ppm: number) {
   paint(-halfW + 0.4, -halfH + 0.4, prop.w! - 0.8, prop.h! - 0.8, prop.roof || '#5b626b');
   paint(halfW - 4, -halfH + 1.2, 2.4, 1.8, '#9aa0a8');
   paint(halfW - 3.6, -halfH + 1.5, 1.6, 1.2, '#7c828a');
-  // a CHURCH (highway.js village): a square tower at the west end of the nave, with a little
+  // a CHURCH (highway.ts village): a square tower at the west end of the nave, with a little
   // cross; a HOUSE: a ridge line, no rooftop plant
   if (prop.church) {
     paint(-halfW - 2.6, -2, 4, 4, '#3b4047');
@@ -470,7 +470,7 @@ export function drawBoard(propCtx: PropCtx, prop: Prop, ppm: number) {
   view.ctx.fillRect(-boardW / 2 + 1 * ppm, -boardH / 2, 0.4 * ppm, boardH + 2);
   view.ctx.fillRect(boardW / 2 - 1.4 * ppm, -boardH / 2, 0.4 * ppm, boardH + 2);
   // Signboard body with colored accent border
-  // blue = a motorway EXIT sign (highway.js slip roads)
+  // blue = a motorway EXIT sign (highway.ts slip roads)
   view.ctx.fillStyle = prop.blue ? '#1f4fa8' : '#14161c';
   view.ctx.fillRect(-boardW / 2, -boardH / 2, boardW, boardH);
   view.ctx.strokeStyle = boardAccent(prop);

@@ -1,5 +1,5 @@
 // FIELD BLOCKS (owner): a highway PLOUGHED field (a rotated mud zone,
-// highway/fields.js) dries in blocks, not wear cells - its ~2 500 cells a field (~15 000 in
+// highway/fields.ts) dries in blocks, not wear cells - its ~2 500 cells a field (~15 000 in
 // view, tools/scratch/_hwplough.mjs) would cost every road rebuild and tile paint. The field is
 // cut at random into uneven rectangles (a random split, the bigger block first, mostly across
 // its longer side, at 30-70 %: no regular grid), seeded by the field's id so a field always

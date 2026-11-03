@@ -4,7 +4,7 @@ import { LAT_V } from "./trafficCtx.ts";
 import type { TrafficCtx } from "./trafficCtx.ts";
 import type { DriveEnv } from "./trafficLane.ts";
 import { cruise, gearFor } from "./trafficSpawn.ts";
-import { roadPose } from "../highway.js";
+import { roadPose } from "../highway.ts";
 import { step } from "../vehicle.ts";
 import { applyGround, fenceClamp, obstacleClamp } from "../world/wear.ts";
 import { barrierClamp, solidClamp } from "../world/barriers.ts";
@@ -70,11 +70,11 @@ export function carryKinematic(
     latV = slot.kOff == null ? 0
       : Math.max(-LAT_V, Math.min(LAT_V, (offK - slot.kOff) / dt));
   slot.kOff = offK;
-  const pose = roadPose(ctx.level, slot.s + slot.vAl * dt, offK),
+  const pose = roadPose(ctx.level!, slot.s + slot.vAl * dt, offK),
     heading = pose.h + Math.atan2(latV, Math.max(3, slot.vAl));
   // yaw rate + steering held at what the BEND needs (MEASURED: woken with both 0 in a
   // bend, a car ran 0.3 m off the edge for 1.2 s)
-  const poseAhead = roadPose(ctx.level, slot.s + slot.vAl * dt + 4, offK);
+  const poseAhead = roadPose(ctx.level!, slot.s + slot.vAl * dt + 4, offK);
   let dHead = poseAhead.h - pose.h;
   dHead = Math.atan2(Math.sin(dHead), Math.cos(dHead));
   const kRoad = dHead / 4;
@@ -104,7 +104,7 @@ function physicsInput(
   // PURE PURSUIT on the lane line (+ the lean), kept inside the carriageway
   const offT = Math.max(env.minOff, Math.min(env.maxOff, slot.laneOff + slot.bias)),
     lookAhead = Math.max(10, Math.min(32, 8 + 0.5 * speed)),
-    target = roadPose(ctx.level, slot.s + lookAhead, offT);
+    target = roadPose(ctx.level!, slot.s + lookAhead, offT);
   const cosH = Math.cos(car.heading), sinH = Math.sin(car.heading),
     toX = target.x - car.x, toY = target.y - car.y,
     xLocal = toX * cosH + toY * sinH, yLocal = -toX * sinH + toY * cosH;

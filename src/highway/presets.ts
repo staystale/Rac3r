@@ -1,10 +1,11 @@
 // highway presets: the road types (HW_PRESETS), the window constants and the silly signs,
-// plus the tiny wrap / rng helpers every highway file shares. Split out of highway.js.
+// plus the tiny wrap / rng helpers every highway file shares. Split out of highway.ts.
 import { lcg } from "../core/random.ts";
+import type { HwCfg } from "./hwtypes.ts";
 // lanes / laneW / shoulder (left, hard shoulder; a solid line inside it when >= 2 m) / edge (right
 // margin) in m; maxDeg off straight up; sweep / bend = radius ranges (m); pStraight / pBend =
 // chance an element is a straight / a tight bend (else a sweeper)
-export const HW_PRESETS = {
+export const HW_PRESETS: Record<string, HwCfg> = {
   motorway: {
     lanes: 3,
     laneW: 3.65,
@@ -55,7 +56,7 @@ export const HW_PRESETS = {
     wallGap: 1.2,
   },
 };
-export const HW_NAMES = {
+export const HW_NAMES: Record<string, string> = {
   motorway: "MOTORWAY",
   interstate: "INTERSTATE",
   dual: "DUAL C/WAY",

@@ -246,8 +246,9 @@ is converted first in its own commit, proved SAME, then changed (owner: "1.a is 
    main, each batch proved against main 10a3f89 (simhash SAME, worldhash SAME, renderhash SAME on
    test-track / knobhill / highway where it draws; menucheck / uicheck / inputcheck / garage
    where it applies): batch 1 (13 leaf files), 2 cones (6), 3 HUD (7), 4 menus (4), 5b input,
-   roll, raceflow, 5c audio, guide, carstats (the generator writes typed TS), marks - 37 files.
-   LEFT (13 files, ~5.7k lines): the HIGHWAY (7, stashed in rac3r-wt as "ts batch 5 highway":
+   roll, raceflow, 5c audio, guide, carstats (the generator writes typed TS), marks, the
+   highway (7) - 44 files.
+   LEFT (6 files... see below; the highway was DONE 11-03): (was: the HIGHWAY (7, stashed:
    it builds lanes / zones / covers in shapes world/types.ts does not allow - [x, y] lane points,
    _s tags - so those world types are widened first); the GAME FLOW (state, grid, controls,
    rules, order, ai, loop, menuflow, session, sim) + main.js - they share game / shared from
@@ -289,7 +290,7 @@ is converted first in its own commit, proved SAME, then changed (owner: "1.a is 
    #a8bc70, 2.5 m stripes, a dry fleck; extra dirt 6 % on its own stream, blend.ts; mu 0.46,
    peakK 1.15, rough 0.011); grass a sparse layer of fine blades (_grassshots.mjs).
 6. HIGHWAY LAMPS L4b (owner: "yes I want them"; street lights ALTERNATING sides, not paired):
-   lamps streamed with the road (spawn ahead, cull behind, like highway/litter.js) and a spatial
+   lamps streamed with the road (spawn ahead, cull behind, like highway/litter.ts) and a spatial
    grid for the clamp (solidClamp walks every lamp per car per step: fine at ~30 a level, not at
    hundreds). DEFAULT (owner: pass, 10-24; the ?hwlamps switch deleted):
    highway/roadlamps.ts lays one street light every 34 m on alternating sides (each side every

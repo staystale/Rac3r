@@ -689,7 +689,7 @@ function slipOffscreen(ctx: RoadCtx, prop: Prop) {
 }
 
 /**
- * SLIP ROAD (highway.js extras): the tarmac itself is a lane ribbon (drawLanes, ground tiles);
+ * SLIP ROAD (highway.ts extras): the tarmac itself is a lane ribbon (drawLanes, ground tiles);
  * this draws its MARKINGS - the edge lines and a row of white squares along the nose where it
  * leaves the hard shoulder - on top, so they are never stale in a tile.
  * @param ctx the road context

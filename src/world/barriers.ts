@@ -195,7 +195,7 @@ function addFurnitureSolids(out: Solid[], prop: Prop): boolean {
     // stair towers
     case 'footbridge': box(-(prop.wid || 27) / 2, 0, 1.6, 3.0); box((prop.wid || 27)
         / 2, 0, 1.6, 3.0); return true;
-    // highway BRIDGES (highway.js extras): the two ABUTMENTS (4 m blocks) at the ends of the
+    // highway BRIDGES (highway.ts extras): the two ABUTMENTS (4 m blocks) at the ends of the
     // span, out on the grass; the deck is overhead
     case 'bridge': box(-(prop.wid || 30) / 2 - 2, 0, 4, prop.carries === 'foot' ? 3.8
         : 8); box((prop.wid || 30) / 2 + 2, 0, 4, prop.carries === 'foot' ? 3.8

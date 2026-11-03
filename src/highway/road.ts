@@ -1,9 +1,10 @@
 // highway road: the centre-line generator (elements, curvature, growTo) and the readers of it
-// (locate, roadFrame, roadPose, roadSpan). Split out of highway.js.
+// (locate, roadFrame, roadPose, roadSpan). Split out of highway.ts.
 import { STEP, UP_HEADING, K_RATE, wrap } from "./presets.ts";
+import type { HwCfg, HwPoint, HwElem, HwState, HwLevel } from './hwtypes.ts';
 // lateral offsets from the centreline: - = the driver's LEFT (the -normal side; lab.ts normals
 // point to the driver's right)
-export function laneGeo(cfg) {
+export function laneGeo(cfg: HwCfg) {
   const width = cfg.shoulder + cfg.lanes * cfg.laneW + cfg.edge,
     halfWidth = width / 2,
     base = -halfWidth + cfg.shoulder;
@@ -12,7 +13,7 @@ export function laneGeo(cfg) {
     dashes: Array.from({ length: cfg.lanes - 1 }, (item, idx) => base + cfg.laneW * (idx + 1)),
     solid: cfg.shoulder >= 2 ? [base] : [] };
 }
-export function stateOf(level) {
+export function stateOf(level: HwLevel) {
   return level._hw;
 }
 // the next road element: a STRAIGHT, a SWEEPER or a tighter BEND. A curve turns back toward
@@ -24,7 +25,7 @@ export function stateOf(level) {
 // (-16..-58 deg) from 0.5 to 4.5 km, seed 7 for 12.9 km. Now the road steers toward a TARGET LEAN
 // that ALTERNATES sides (35-100 % of the limit) and is held for 0.5-1.6 km; near the target it runs
 // straight or throws a small S-wiggle.
-function nextElement(state, cfg) {
+function nextElement(state: HwState, cfg: HwCfg) {
   // the road's SHAPE has its own stream (st.grnd): it used to share st.rnd with the
   // dressing, so every scenery change re-rolled the road (MEASURED: moving the slips / bridges to
   // their own stream moved seed 4242's road at 6 km by 2 km sideways)
@@ -66,7 +67,7 @@ function nextElement(state, cfg) {
   const hold = Math.max(0, turn / curv - ramp);
   return { len: 2 * ramp + hold, k: dir * curv, ramp, hold };
 }
-const curvAt = (elem, along) =>
+const curvAt = (elem: HwElem, along: number) =>
   !elem.k
     ? 0
     : along < elem.ramp
@@ -74,7 +75,7 @@ const curvAt = (elem, along) =>
       : along < elem.ramp + elem.hold
         ? elem.k
         : (elem.k * Math.max(0, elem.len - along)) / elem.ramp;
-export function growTo(level, sTarget) {
+export function growTo(level: HwLevel, sTarget: number) {
   const state = stateOf(level);
   while (state.s < sTarget) {
     if (!state.plan.length) state.plan.push(nextElement(state, level._cfg));
@@ -92,20 +93,23 @@ export function growTo(level, sTarget) {
     if (elem.done >= elem.len - 1e-6) state.plan.shift();
   }
 }
-export const straightAt = (road, i, back, fwd = back) => {
+export const straightAt = (road: HwPoint[], i: number, back: number, fwd = back) => {
   for (let j = Math.max(0, i - back); j < Math.min(road.length, i + fwd); j++)
     if (Math.abs(road[j].curv || 0) > 1 / 900) return false;
   return true;
 };
-export const ease = (prog) => (prog <= 0 ? 0 : prog >= 1 ? 1 : prog * prog * (3 - 2 * prog));
+export const ease = (prog: number) =>
+  (prog <= 0 ? 0 : prog >= 1 ? 1 : prog * prog * (3 - 2 * prog));
 // where the car is along the window: nearest road point (searched round last step's index first),
 // absolute road distance s, signed offset (+ = driver's right) and the road direction there
-export function locate(state, x, y) {
+/** Where a point is along the road: the nearest point's index, distance, offset, direction. */
+export type RoadLoc = ReturnType<typeof locate>;
+export function locate(state: HwState, x: number, y: number) {
   const road = state.pts,
     count = road.length;
   let bestIdx = 0,
     bestD2 = Infinity;
-  const scan = (begin, stop) => {
+  const scan = (begin: number, stop: number) => {
     for (let i = Math.max(0, begin); i < Math.min(count, stop); i++) {
       const dist2 = (road[i].x - x) ** 2 + (road[i].y - y) ** 2;
       if (dist2 < bestD2) {
@@ -137,12 +141,12 @@ export function locate(state, x, y) {
 // ROAD FRAME for ANY car (traffic.js, later the highway AI): like locate but with the caller's
 // own hint (an absolute road distance s, so it survives the window moving) -> { s, off (+ =
 // driver's right), dx, dy } or null before the road exists
-export function roadFrame(level, x, y, hintS) {
+export function roadFrame(level: HwLevel, x: number, y: number, hintS?: number | null) {
   const road = level._hw.pts,
     count = road.length;
   if (count < 2) return null;
   let bestIdx = 0, bestD2 = Infinity;
-  const scan = (begin, stop) => {
+  const scan = (begin: number, stop: number) => {
     for (let i = Math.max(0, begin); i < Math.min(count, stop); i++) {
       const dist2 = (road[i].x - x) ** 2 + (road[i].y - y) ** 2;
       if (dist2 < bestD2) {
@@ -169,7 +173,7 @@ export function roadFrame(level, x, y, hintS) {
 }
 // a POSE on the road at absolute distance s (clamped into the window) and lateral offset off -> {
 // x, y, h }
-export function roadPose(level, dist, off) {
+export function roadPose(level: HwLevel, dist: number, off: number) {
   const road = level._hw.pts,
     count = road.length,
     fracIdx = (dist - road[0].s) / STEP,
@@ -183,7 +187,7 @@ export function roadPose(level, dist, off) {
   };
 }
 // the road that exists right now: [s0, s1] absolute
-export function roadSpan(level) {
+export function roadSpan(level: HwLevel) {
   const road = level._hw.pts;
   return { s0: road[0].s, s1: road[road.length - 1].s };
 }

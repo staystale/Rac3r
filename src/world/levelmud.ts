@@ -276,7 +276,7 @@ export function dryLevelMud(dryBy: number, driesTo: Record<string, string>): Mud
 /**
  * The highway's ploughed fields as drying blocks: a field streamed in since the
  * last call is split (fieldblocks.ts) and each block becomes a piece; the pieces of fields that
- * have streamed out are dropped. Called after each road rebuild (highway.js) and at a start.
+ * have streamed out are dropped. Called after each road rebuild (highway.ts) and at a start.
  * @param level the highway level
  */
 export function seedFieldBlocks(level: Level): void {

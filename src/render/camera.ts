@@ -88,7 +88,7 @@ function followCar(ctx: CameraCtx, car: CamCar, wallDt: number) {
   // drifts as speed / direction change.
   let leadX = car.vx * lead, leadY = car.vy * lead;
   // THE TREADMILL (endless highway): the camera stays rigid on the car (as everywhere) but the
-  // lead points UP THE ROAD (highway.js camDir, the next ~60 m), not along the velocity, and is a
+  // lead points UP THE ROAD (highway.ts camDir, the next ~60 m), not along the velocity, and is a
   // share of the view: the car sits ~3/4 down the screen with the road ahead above it. Capped
   // sideways so a 60 deg bend cannot push the car off the side of a narrow portrait screen.
   const hwy = LEVEL.endless && LEVEL._hw;

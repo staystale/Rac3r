@@ -27,7 +27,7 @@ import { createAudio } from './audio.ts';
 import { createGuide } from './guide.ts';
 import { createMenu } from './menu.ts';
 import { genStage, installStage, addStageLevels } from './stagegen.js';
-import { addHighwayLevel } from './highway.js';
+import { addHighwayLevel } from './highway.ts';
 
 import { createTraffic } from './traffic.ts';
 

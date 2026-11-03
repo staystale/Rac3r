@@ -161,7 +161,7 @@ export function drawHudNotice(ctx: CanvasRenderingContext2D, game: HudGame, widt
  * @param height
  * @returns {void}
  */
-// SPEED CAMERA CARD (highway.js speedCamera): 'YOU GOT CAUGHT' + your speed + the fine, top right
+// SPEED CAMERA CARD (highway.ts speedCamera): 'YOU GOT CAUGHT' + your speed + the fine, top right
 // under the speedo, 3.2 s; a white screen FLASH for the first 0.12 s (the camera going off -
 // squares, no glow)
 export function drawHudCamera(ctx: CanvasRenderingContext2D, game: HudGame, width: number,

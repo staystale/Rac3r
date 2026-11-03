@@ -1,6 +1,6 @@
 // session.js — Session: lap timing, reset, restart, records and the race flow.
 import { reset } from '../vehicle.ts';
-import { resetHighway, roadFrame } from '../highway.js';
+import { resetHighway, roadFrame } from '../highway.ts';
 import { createHwFlow, hwGridSpan } from '../highwayrace.ts';
 import { createRaceFlow } from '../raceflow.ts';
 import { repair, resetBill } from '../damage.ts';

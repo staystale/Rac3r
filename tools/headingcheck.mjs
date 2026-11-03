@@ -1,9 +1,9 @@
-// headingcheck.mjs — HIGHWAY (src/highway.js): which way does the road LEAN? User, 2026-10-05: "it always aims diagonally left, it
+// headingcheck.mjs — HIGHWAY (src/highway.ts): which way does the road LEAN? User, 2026-10-05: "it always aims diagonally left, it
 // should go left and right and vary". Grows N km of road per seed + preset (no driving) and reports the share of distance leaning
 // LEFT / RIGHT of straight up, the mean lean, the longest run on one side, and how many times it swaps side.
 // node tools/headingcheck.mjs [km] [file]
 import * as L from '../src/lab.ts';
-const KM = +(process.argv[2] || 30), H = await import(process.argv[3] || '../src/highway.js');
+const KM = +(process.argv[2] || 30), H = await import(process.argv[3] || '../src/highway.ts');
 // the levels importing these modules used to add (task 078 made it explicit)
 H.addHighwayLevel();
 const car = { x: 0, y: 0, vx: 0, vy: 0 };

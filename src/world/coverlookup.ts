@@ -54,7 +54,7 @@ export function staticCoverHere(x: number, y: number): Cover | null {
   }
   return null;
 }
-// a cover's CUT-OUT (highway.js river: no water where the motorway crosses on its parapets): in the
+// a cover's CUT-OUT (highway.ts river: no water where the motorway crosses on its parapets): in the
 // frame of (cut.ox, cut.oy) along c.rot, the band |u - v tan| < e is dry. Tested at the 0.5 m
 // square's centre, like the cover itself (render.ts coverCells agrees).
 export function coverCut(coverArea: Cover, x: number, y: number): boolean {

@@ -72,6 +72,7 @@ export interface Cone {
   col?: string;
   tape?: string | number;   // load.ts tapePass numbers its tapes
   idx?: number;
+  field?: number;   // highway/fields.ts: a field's animals go when the field is cleared
 }
 
 export interface Spawn {
@@ -92,10 +93,11 @@ export interface Zone {
   lane?: string;
   rounded?: boolean;
   rot?: number;
-  art?: string;
+  art?: string | null;   // null: the surface's own look (highway/fields.ts)
   hedge?: boolean;
   field?: number;
   _s?: number;
+  sv?: number;   // highway.ts river banks: which side of the river (-1 / 1)
   _r?: number;   // zoneAt caches for rotated zones
   _co?: number;
   _si?: number;
@@ -131,6 +133,7 @@ export interface Bump {
   r0?: number;
   R?: number;
   B?: number;
+  _s?: number;   // highway.ts: the road distance it is dropped behind with
 }
 
 export interface Prop {
@@ -167,17 +170,21 @@ export interface Prop {
   snow?: boolean;
   pal?: string;
   carries?: string;
-  boat?: boolean;   // highway.js bridges: a river bridge with a boat
-  roadHw?: number;   // highway.js river bridges
-  skew?: number;   // highway.js river bridges
-  appL?: number[];   // highway.js bridges: the approach lengths [0 | 1]
-  phase?: number;   // highway.js bridges
-  cow?: boolean;   // highway.js road bridges
-  cars?: number;   // highway.js road bridges
-  trainEvery?: number;   // highway.js rail bridges
-  cone?: boolean;   // highway.js foot bridges
-  people?: number;   // highway.js foot bridges
+  boat?: boolean;   // highway.ts bridges: a river bridge with a boat
+  roadHw?: number;   // highway.ts river bridges
+  skew?: number;   // highway.ts river bridges
+  appL?: number[];   // highway.ts bridges: the approach lengths [0 | 1]
+  appW?: number;   // highway.ts bridges: the approaches' width
+  type?: string;   // highway.ts slips: 'short', 'long' or 'side'
+  ww?: number;   // highway.ts river bridges: the river's width
+  phase?: number;   // highway.ts bridges
+  cow?: boolean;   // highway.ts road bridges
+  cars?: number;   // highway.ts road bridges
+  trainEvery?: number;   // highway.ts rail bridges
+  cone?: boolean;   // highway.ts foot bridges
+  people?: number;   // highway.ts foot bridges
   reach?: number;   // gantry / overhead props: how far they span the track (level data)
+  _camHit?: number;   // highway.ts: a speed-camera gantry already passed (1)
   _flash?: number;   // render/props/buildings.ts reads it: when a camera flashed (set by the game)
 }
 
@@ -237,7 +244,7 @@ export interface Wheel {
 // A cover lying on the ground (LEVEL.covers); 'wet' is a puddle.
 export type CoverId = 'snow' | 'ice' | 'wet';
 
-// A cover's cut-out band (highway.js river parapets).
+// A cover's cut-out band (highway.ts river parapets).
 export interface CoverCut {
   ox: number;
   oy: number;
@@ -255,6 +262,7 @@ export interface Cover {
   shape?: 'rect' | 'ellipse';
   rot?: number;
   cut?: CoverCut;
+  _s?: number;   // highway.ts: the road distance it is dropped behind with
   water?: boolean;   // SCENERY water (river, lake, ford): permanent in any weather (puddles.ts)
   _frozen?: boolean;   // puddles.ts: scenery water frozen over (its _iceTwin is shown)
   _iceTwin?: Cover;   // puddles.ts: the same water as ice
@@ -388,8 +396,9 @@ export interface Barrier {
   kind: BarrierKind;
   pts: Point[];
   col?: string;
-  _s?: number;   // highway.js
+  _s?: number;   // highway.ts
   _segs?: BarrierSeg[];   // added by prepBarriers
+  field?: number;   // highway/fields.ts: the field (village) it belongs to
   _rbb?: [number, number, number, number];   // render/props/fence.ts caches the padded box
 }
 
@@ -428,13 +437,13 @@ export interface Level {
   _blend?: Patch[] | null;   // load.ts prepareLevel
   _incl?: Inclusions;   // load.ts prepareLevel
   allPatches?: Patch[];   // load.ts prepareLevel
-  solidsDirty?: boolean;   // highway.js
+  solidsDirty?: boolean;   // highway.ts
   fixed?: boolean;   // stagegen.js
   gen?: StageRecipe;   // stagegen.js: a generated stage's recipe (world/levels/category.ts)
-  roadTypes?: Record<string, string>;   // highway.js: the road types setup offers, key -> name
+  roadTypes?: Record<string, string>;   // highway.ts: the road types setup offers, key -> name
   litter?: number;   // main.js, highway levels
-  roadType?: string;   // highway.js
-  _layout?: number;   // highway.js
+  roadType?: string;   // highway.ts
+  _layout?: number;   // highway.ts
   barriers?: Barrier[];
   solids?: Solid[];
   paint: Paint[];
@@ -459,7 +468,7 @@ export interface Level {
   endless?: boolean;   // blend.ts: the 100 km highway
   _coversBase?: Cover[];   // blend.ts: the hand-placed covers
   _staticCovers?: Cover[];   // load.ts: the covers the weather does not move (puddles.ts)
-  _hw?: HighwayState;   // highway.js: the endless road (only the fields the camera reads)
+  _hw?: HighwayState;   // highway.ts: the endless road (only the fields the camera reads)
   _mergedOf?: Cover[];   // ground.ts mergedCovers: the covers list _merged was built from
   _merged?: MergedCover[];   // ground.ts mergedCovers
   _line?: RacingLine;   // ai/line.ts racingLine: the racing line, cached
@@ -552,12 +561,12 @@ export interface Subtrack {
   grid: Map<number, number[]>;
   ghost?: { d0: number; d1: number };   // ghostSegment
   noLines?: boolean;   // stagegen.js
-  laneDash?: number[];   // highway.js
-  laneSolid?: number[];   // highway.js
-  sBase?: number;   // highway.js
+  laneDash?: number[];   // highway.ts
+  laneSolid?: number[];   // highway.ts
+  sBase?: number;   // highway.ts
   _camber?: Float32Array;   // terrain.ts camberHeightAt
   _camberCfg?: Camber;   // terrain.ts camberHeightAt
-  layoutId?: number;   // highway.js, grass-track.js: a new value means cached ground is stale
+  layoutId?: number;   // highway.ts, grass-track.js: a new value means cached ground is stale
 }
 
 // Options of autoKerbs (all optional; defaults in subtrack.ts).
@@ -590,6 +599,8 @@ export interface Lane {
   width: number;
   surface: Surface;
   out?: number;   // gravel traps only (see Trap)
+  _s?: number;   // highway.ts: the road distance it is dropped behind with
+  field?: number;   // highway/fields.ts: the field (village) it belongs to
   _segs?: { ax: number; ay: number; dx: number; dy: number; l2: number }[];
   _bb?: [number, number, number, number];
 }

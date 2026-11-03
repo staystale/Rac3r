@@ -5,7 +5,7 @@
 // node tools/hwracecheck.mjs [seconds] [diff 0-4] [traffic 0-1.5] [preset]
 import { makeCar, step, reset, PHYSICS_STEP_SECONDS } from '../src/vehicle.ts';
 import * as L from '../src/lab.ts';
-import * as H from '../src/highway.js';
+import * as H from '../src/highway.ts';
 import { createTraffic } from '../src/traffic.ts';
 import { carContacts, carContact } from '../src/contact.ts';
 import { hit, tooInjured } from '../src/damage.ts';

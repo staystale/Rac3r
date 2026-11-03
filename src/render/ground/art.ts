@@ -184,7 +184,7 @@ function makeSoftArt(): Record<string, SurfaceArt | null> {
       ],
     },
     // (field looks: added below SURFACE_ART - the grass / long grass / mud textures recoloured,
-    // highway.js FIELD_SURF)
+    // highway.ts FIELD_SURF)
     snow: {
       base: '#f3f7fb',
       layers: [
@@ -230,7 +230,7 @@ function makeSoftArt(): Record<string, SurfaceArt | null> {
  * @param SURFACE_ART the table to extend; it must already hold grass, grassLong and mud
  */
 function addFieldLooks(SURFACE_ART: Record<string, SurfaceArt | null>) {
-  // FIELD LOOKS (highway.js fields, zone.art; the zone DRIVES as its own surface). User,
+  // FIELD LOOKS (highway.ts fields, zone.art; the zone DRIVES as its own surface). User,
   // "jsut reuse mud and grass or long grass textures for field, and maybe colour them"
   // - so each is an existing texture with only its COLOURS swapped (same layers). SURFACE_ART[id]!
   // is set for the ids below; the cast: slice(2) of an ArtLayer is all numbers

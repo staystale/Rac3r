@@ -1,6 +1,6 @@
 // ai/trafficStep.ts: one physics step of the highway traffic: everyone in road coordinates,
 // recycling the cars that are out of view, the physics / kinematic choice, and driving each car.
-import { roadFrame, roadSpan } from "../highway.js";
+import { roadFrame, roadSpan } from "../highway.ts";
 import { rolling } from "../roll.ts";
 import type { AiCar, TrafficCar, TrafficEnt } from "./types.ts";
 import {
@@ -48,7 +48,7 @@ function collectEnts(ctx: TrafficCtx, args: StepArgs) {
 
 /** RECYCLE (out of view only) + place the parked slots; true if the live cars changed. */
 function recycle(ctx: TrafficCtx, ents: TrafficEnt[], playerS: number, vis: VisFn) {
-  const { s0: roadStart, s1: roadEnd } = roadSpan(ctx.level), laneCount = geo(ctx).centres.length;
+  const { s0: roadStart, s1: roadEnd } = roadSpan(ctx.level!), laneCount = geo(ctx).centres.length;
   let changed = false;
   const drop = (slot: TrafficCar) => {
     const i = ents.findIndex((ent) => ent.t === slot);

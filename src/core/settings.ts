@@ -1,5 +1,5 @@
 // Every page-link setting (?name=value), read ONCE from location.search into one typed object.
-// Parses and defaults are exactly what main.js, highway.js, render.ts and render/tiles.ts
+// Parses and defaults are exactly what main.js, highway.ts, render.ts and render/tiles.ts
 // each did on their own.
 
 export interface Settings {

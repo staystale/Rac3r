@@ -1,5 +1,5 @@
 // hedges.ts - HEDGEROWS round the highway's farm fields (owner: "highways should have bushes
-// around farmers fields"). Each field's long-grass border (highway/fields.js, HEDGE_W
+// around farmers fields"). Each field's long-grass border (highway/fields.ts, HEDGE_W
 // m all round) gets clumps of the bushes the other levels have (world/bushplan.ts, the 'bush'
 // surface: drag, scratches, punctures, flattened to long grass; drawn as its square pixel clumps
 // with tufts over the cars) as ONE CONTINUOUS HEDGE along all four sides (owner: "can that whole
@@ -13,7 +13,7 @@ import { SURFACES } from '../world/surfaces.ts';
 import { indexNewBushes, reindexBushes } from '../world/load.ts';
 import type { Level, Patch } from '../world/types.ts';
 
-/** A field plot as highway/fields.js lays it (the parts a hedge reads). */
+/** A field plot as highway/fields.ts lays it (the parts a hedge reads). */
 export interface FieldPlot {
   centre: { x: number; y: number };
   axisX: number; axisY: number; nx: number; ny: number; side: number;
@@ -24,7 +24,7 @@ type HedgeBush = Patch & { field: number; _s: number };
 /** The highway level as the hedges read it. */
 type HedgeLevel = Level & { _bushes?: Patch[] | null };
 
-// m: the border the hedge stands in (highway/fields.js HEDGE_W)
+// m: the border the hedge stands in (highway/fields.ts HEDGE_W)
 const BAND_M = 2.5;
 // m between the hedge's squares along an edge (under a square's side: no holes, even where the
 // field's edge runs diagonally to the squares)
@@ -54,7 +54,7 @@ function fieldPoint(plot: FieldPlot, along: number, across: number): [number, nu
 }
 
 /**
- * Lays the hedge round one field (after its trees: highway/fields.js).
+ * Lays the hedge round one field (after its trees: highway/fields.ts).
  * @param level the highway level
  * @param plot the field
  */
@@ -120,7 +120,7 @@ export function resetHedges(level: HedgeLevel): void {
 }
 
 /**
- * Drops the hedges the road has left behind (highway.js slide: what is before startDist).
+ * Drops the hedges the road has left behind (highway.ts slide: what is before startDist).
  * @param level the highway level
  * @param startDist the road distance everything before is dropped, m
  */
@@ -129,7 +129,7 @@ export function pruneHedges(level: HedgeLevel, startDist: number): void {
 }
 
 /**
- * Drops the hedges of fields cleared for a later feature (highway/fields.js clearFields).
+ * Drops the hedges of fields cleared for a later feature (highway/fields.ts clearFields).
  * @param level the highway level
  * @param fieldIds the cleared fields
  */

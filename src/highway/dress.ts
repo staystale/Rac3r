@@ -1,13 +1,16 @@
 // highway dress: the per-window dressing (trees, gantries, armco, walls, litter) and the
-// NOX / NOF node-tool switches. Split out of highway.js.
+// NOX / NOF node-tool switches. Split out of highway.ts.
 import { envValue } from "../core/debug.ts";
 import { STEP, SIGNS } from "./presets.ts";
-import { stateOf } from "./road.js";
-import { blocked, cutBy, sideStep, sideFlush, syncCovers, SLIP_W, cutSkips } from "./cuts.js";
-import { fields } from "./fields.js";
-import { extras } from "./extras.js";
-import { layLooseRoadside } from "./litter.js";
+import { stateOf } from "./road.ts";
+import { blocked, cutBy, sideStep, sideFlush, syncCovers, SLIP_W, cutSkips } from "./cuts.ts";
+import { fields } from "./fields.ts";
+import { extras } from "./extras.ts";
+import { layLooseRoadside } from "./litter.ts";
 import { layRoadLamps } from "./roadlamps.ts";
+import type { LevelObj } from '../cones/coneTypes.ts';
+import type { Point, BarrierKind } from '../world/types.ts';
+import type { HwPose, HwLevel, DressCtx, Stamp } from './hwtypes.ts';
 // node tools only: HWNOX=1 builds the road with NO slips / bridges / extras (an A/B of their effect
 // on the AI, same roads)
 export const NOX = !!envValue("HWNOX");
@@ -16,15 +19,15 @@ export const NOF = !!envValue("HWNOF");
 /**
  * Build the shared context of one dress call: the road window and the two helpers every step
  * uses (pointAt, clear).
- * @param {object} level the highway level
- * @param {number} firstIdx first road point to dress
- * @param {number} endIdx end (exclusive) road point
- * @param {object[]|null} loose where loose objects go
- * @returns {object} the dress context
+ * @param level the highway level
+ * @param firstIdx first road point to dress
+ * @param endIdx end (exclusive) road point
+ * @param loose where loose objects go
+ * @returns the dress context
  */
-function makeDressContext(level, firstIdx, endIdx, loose) {
+function makeDressContext(level: HwLevel, firstIdx: number, endIdx: number, loose: LevelObj[]) {
   const state = stateOf(level), rand = state.rnd, halfWidth = state.geo.hw, road = state.pts;
-  const pointAt = (i, off) => {
+  const pointAt = (i: number, off: number): HwPose => {
     const before = road[Math.max(0, i - 1)],
       after = road[Math.min(road.length - 1, i + 1)],
       heading = Math.atan2(after.y - before.y, after.x - before.x);
@@ -36,12 +39,12 @@ function makeDressContext(level, firstIdx, endIdx, loose) {
   };
   // clear of the road AND of every approach / river / slip (st.keep) AND of the secret side road
   // (its points carry sideOff)
-  const clear = (x, y, radius) => {
+  const clear = (x: number, y: number, radius: number) => {
     for (let j = Math.max(0, firstIdx - 60); j < Math.min(road.length, endIdx + 60); j += 2) {
       const dist2 = (road[j].x - x) ** 2 + (road[j].y - y) ** 2;
       if (
         dist2 < (halfWidth + radius) ** 2 ||
-        (road[j].sideOff && dist2 < (road[j].sideOff + SLIP_W / 2 + radius) ** 2)
+        (road[j].sideOff && dist2 < (road[j].sideOff! + SLIP_W / 2 + radius) ** 2)
       )
         return false;
     }
@@ -52,23 +55,23 @@ function makeDressContext(level, firstIdx, endIdx, loose) {
 
 /**
  * Half the road is FARMLAND now (fields, hedges, villages: fields above), was a third.
- * @param {number} dist road distance
- * @returns {string} the biome name there
+ * @param dist road distance
+ * @returns the biome name there
  */
-function biomeAtDist(dist) {
+function biomeAtDist(dist: number) {
   return ["farm", "forest", "farm", "rocky", "farm", "forest"][Math.floor(dist / 2200) % 6];
 }
 
 /**
  * Trees (and, on rocky ground, rocks) beside the road at point i (every third point).
- * @param {object} ctx the dress context
- * @param {number} i road point index
- * @param {number} dist road distance at i
- * @param {string} biomeName biome at i
- * @param {Function} mark tags an object with its road distance
+ * @param ctx the dress context
+ * @param i road point index
+ * @param dist road distance at i
+ * @param biomeName biome at i
+ * @param mark tags an object with its road distance
  * @returns {void}
  */
-function layRoadsideTrees(ctx, i, dist, biomeName, mark) {
+function layRoadsideTrees(ctx: DressCtx, i: number, dist: number, biomeName: string, mark: Stamp) {
   const { level, rand, halfWidth, pointAt, clear } = ctx;
   if (i % 3 === 0) for (const side of [-1, 1]) {
     const dens = biomeName === 'forest' ? 0.75 : biomeName === 'farm' ? 0.18 : 0.25;
@@ -94,13 +97,13 @@ function layRoadsideTrees(ctx, i, dist, biomeName, mark) {
 
 /**
  * A farm building block now and then (every 40th point on farmland).
- * @param {object} ctx the dress context
- * @param {number} i road point index
- * @param {string} biomeName biome at i
- * @param {Function} mark tags an object with its road distance
+ * @param ctx the dress context
+ * @param i road point index
+ * @param biomeName biome at i
+ * @param mark tags an object with its road distance
  * @returns {void}
  */
-function layFarmBlock(ctx, i, biomeName, mark) {
+function layFarmBlock(ctx: DressCtx, i: number, biomeName: string, mark: Stamp) {
   const { level, rand, halfWidth, pointAt, clear } = ctx;
   if (biomeName === "farm" && i % 40 === 0 && rand() < 0.4) {
     const side = rand() < 0.5 ? -1 : 1,
@@ -124,15 +127,15 @@ function layFarmBlock(ctx, i, biomeName, mark) {
  * GANTRY every ~3 km, a SIGN every ~700 m (the distance to Hull GOES UP) (never with a leg /
  * board on a slip, an approach or the side road: a gantry there moves on 40 m, a board swaps
  * sides or is left out).
- * @param {object} ctx the dress context
- * @param {number} i road point index
- * @param {number} dist road distance at i
- * @param {Function} mark tags an object with its road distance
+ * @param ctx the dress context
+ * @param i road point index
+ * @param dist road distance at i
+ * @param mark tags an object with its road distance
  * @returns {void}
  */
-function layGantryAndSign(ctx, i, dist, mark) {
+function layGantryAndSign(ctx: DressCtx, i: number, dist: number, mark: Stamp) {
   const { level, state, halfWidth, road, pointAt } = ctx;
-  const freeAt = (j, off, radius) => {
+  const freeAt = (j: number, off: number, radius: number) => {
     const pos = pointAt(j, off);
     return !(road[j].sideOff && off < 0) && !blocked(state.keep, pos.x, pos.y, radius)
       ? pos
@@ -167,13 +170,13 @@ function layGantryAndSign(ctx, i, dist, mark) {
 
 /**
  * ROLLING HILLS: a broad hump beside the road every ~250 m (the road climbs its flank).
- * @param {object} ctx the dress context
- * @param {number} i road point index
- * @param {string} biomeName biome at i
- * @param {Function} mark tags an object with its road distance
+ * @param ctx the dress context
+ * @param i road point index
+ * @param biomeName biome at i
+ * @param mark tags an object with its road distance
  * @returns {void}
  */
-function layHump(ctx, i, biomeName, mark) {
+function layHump(ctx: DressCtx, i: number, biomeName: string, mark: Stamp) {
   const { level, rand, pointAt } = ctx;
   if (i % 60 === 0 && rand() < 0.6) {
     const pos = pointAt(i, (rand() < 0.5 ? -1 : 1) * (30 + rand() * 90));
@@ -192,28 +195,29 @@ function layHump(ctx, i, biomeName, mark) {
 /**
  * ARMCO on the OUTSIDE of the tighter bends: runs of points with |curv| > 1/400 (+curv = a
  * right-hander -> outside = the -normal side).
- * @param {object} ctx the dress context
+ * @param ctx the dress context
  * @returns {void}
  */
-function layArmco(ctx) {
+function layArmco(ctx: DressCtx) {
   const { level, halfWidth, road, firstIdx, endIdx, pointAt } = ctx;
-  let run = null;
+  let run: { a: number; side: number } | null = null;
   for (let i = firstIdx; i <= (level._cfg.walls ? -1 : endIdx); i++) {
     const curv = i < endIdx ? road[i].curv : 0, active = Math.abs(curv) > 1 / 400;
     if (active && !run) run = { a: i, side: -Math.sign(curv) };
     // (left-side armco breaks where a slip leaves or the side road runs: P[j].gapL)
     if ((!active || i === endIdx) && run) {
-      let pts = [];
+      let pts: Point[] = [];
+      const runNow = run;
       const flush = () => {
-        if (pts.length > 2) level.barriers.push({ kind: "armco", pts, _s: road[run.a].s });
+        if (pts.length > 2) level.barriers.push({ kind: "armco", pts, _s: road[runNow.a].s });
         pts = [];
       };
       for (let j = Math.max(0, run.a - 8); j < Math.min(road.length, i + 8); j += 2) {
-        if (run.side < 0 && road[j].gapL) {
+        if (runNow.side < 0 && road[j].gapL) {
           flush();
           continue;
         }
-        const pos = pointAt(j, run.side * (halfWidth + 1.8));
+        const pos = pointAt(j, runNow.side * (halfWidth + 1.8));
         pts.push([pos.x, pos.y]);
       }
       flush();
@@ -227,17 +231,18 @@ function layArmco(ctx) {
  * WALLS (cfg.walls): both sides, in ~120 m pieces (each dropped behind with the rest),
  * overlapping by one point so there is no gap ... with a GAP in the left wall where a slip leaves
  * or the side road runs (P[j].gapL).
- * @param {object} ctx the dress context
+ * @param ctx the dress context
  * @returns {void}
  */
-function layWalls(ctx) {
+function layWalls(ctx: DressCtx) {
   const { level, halfWidth, road, firstIdx, endIdx, pointAt } = ctx, cfg = level._cfg;
-  if (cfg.walls)
+  const walls = cfg.walls as BarrierKind | undefined, wallGap = cfg.wallGap || 0;
+  if (walls)
     for (let startIdx = Math.max(0, firstIdx - 1); startIdx < endIdx; startIdx += 30)
       for (const side of [-1, 1]) {
-        let pts = [];
+        let pts: Point[] = [];
         const flush = () => {
-          if (pts.length > 1) level.barriers.push({ kind: cfg.walls, pts, _s: road[startIdx].s });
+          if (pts.length > 1) level.barriers.push({ kind: walls, pts, _s: road[startIdx].s });
           pts = [];
         };
         // (beside the SECRET SIDE ROAD the left wall swings out with it, to its far edge - it
@@ -251,8 +256,8 @@ function layWalls(ctx) {
           const pos = pointAt(
             j,
             sideOffset
-              ? -Math.max(halfWidth + cfg.wallGap, sideOffset + SLIP_W / 2 + cfg.wallGap)
-              : side * (halfWidth + cfg.wallGap)
+              ? -Math.max(halfWidth + wallGap, sideOffset + SLIP_W / 2 + wallGap)
+              : side * (halfWidth + wallGap)
           );
           pts.push([pos.x, pos.y]);
         }
@@ -263,13 +268,13 @@ function layWalls(ctx) {
 /**
  * Scenery for road points [firstIdx, endIdx): placed in WORLD coordinates (stays put when the
  * window moves); loose objects go into `loose`.
- * @param {object} level the highway level
- * @param {number} firstIdx first road point to dress
- * @param {number} endIdx end (exclusive) road point
- * @param {object[]|null} loose where loose objects go
+ * @param level the highway level
+ * @param firstIdx first road point to dress
+ * @param endIdx end (exclusive) road point
+ * @param loose where loose objects go
  * @returns {void}
  */
-export function dress(level, firstIdx, endIdx, loose) {
+export function dress(level: HwLevel, firstIdx: number, endIdx: number, loose: LevelObj[]) {
   const ctx = makeDressContext(level, firstIdx, endIdx, loose);
   const { state, road, pointAt, clear } = ctx;
   // a long road can come back across what was laid beside an EARLIER stretch: every new point cuts
@@ -280,10 +285,10 @@ export function dress(level, firstIdx, endIdx, loose) {
   for (let i = firstIdx; i < endIdx; i++) {
     const dist = road[i].s,
       biomeName = biomeAtDist(dist),
-      mark = (obj) => {
+      mark = ((obj: { _s?: number }) => {
         obj._s = dist;
         return obj;
-      };
+      }) as unknown as Stamp;   // it stamps whatever it is given and hands it back
     // the side road's offset here first, so the trees below keep off it
     sideStep(level, i, pointAt);
     if (!NOF) fields(level, i, pointAt, clear, biomeName, loose);

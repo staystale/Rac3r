@@ -72,7 +72,7 @@ export const TOPPLES = new Set(['cone', 'chevron', 'flag', 'tapepost']);
 // ROADSIDE DEBRIS (requirement: pallets, boxes, crates, wheelie bins, sandbags, barrels, exhaust /
 // bumper, tarps; some should BREAK or become DRIVE-OVERABLE after a hit or two, as logic says per
 // object): mass kg, r m, hits to break (0 = never: it slides), and what it breaks INTO (a flat,
-// drive-over patch, like the burst bale's straw). Placed by highway.js LITTER (the density
+// drive-over patch, like the burst bale's straw). Placed by highway.ts LITTER (the density
 // slider).
 export const DEBRIS: Record<string, DebrisKind> = {
   pallet:   { mass: 20, r: 0.6, breaks: 1, into: 'splinters' },   // snaps first hit

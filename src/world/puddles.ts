@@ -376,7 +376,7 @@ function dealFrozen(cover: Cover): void {
 }
 
 /**
- * Takes the endless road's covers as they stream in (highway/cuts.js syncCovers):
+ * Takes the endless road's covers as they stream in (highway/cuts.ts syncCovers):
  * they become the level's own, so its rivers - scenery water - freeze and thaw like any other
  * (a new one is dealt frozen or not as an event's start deals it); returns them as they look now.
  * The road's level is given, not taken as the active one: the game builds the road's first

@@ -1,6 +1,6 @@
 // ai/trafficReset.ts: restarting the highway traffic (cars spread round the spawn) and
 // making room by sending cars off the road.
-import { roadFrame } from "../highway.js";
+import { roadFrame } from "../highway.ts";
 import type { HighwayLevel, TrafficCar } from "./types.ts";
 import { MAX_CARS, PER_LANE, geo } from "./trafficCtx.ts";
 import type { TrafficCtx } from "./trafficCtx.ts";

@@ -1,14 +1,15 @@
 // THE ROAD'S STREET LIGHTS: the endless highway lit as a motorway is, a street light
 // every LAMP_GAP_M along the road on ALTERNATING sides (owner: not paired), each post
 // STREET_OUT_M off the road edge (behind the armco or the wall) with its arm out over the edge.
-// Laid with the rest of the scenery as the road grows (highway/dress.js) and dropped behind with
-// it (highway.js keeps level.lamps by road distance); world/lamps.ts makes each entry a lamp
+// Laid with the rest of the scenery as the road grows (highway/dress.ts) and dropped behind with
+// it (highway.ts keeps level.lamps by road distance); world/lamps.ts makes each entry a lamp
 // (solid, knockable, lit from dusk) and keeps it, damage and all, while it is loaded. A spot
 // that is not clear (a slip road, a bridge, a river, a gantry leg, a sign) is left dark.
 import { solidsFromProps } from '../world/barriers.ts';
-import type { Level, Prop } from '../world/types.ts';
-import { blocked } from './cuts.js';
+import { blocked } from './cuts.ts';
 import { STEP } from './presets.ts';
+import type { KeepRect } from './hwtypes.ts';
+import type { Prop } from '../world/types.ts';
 
 // the gap from one street light to the next, m (the sides alternate: each side every 68 m); the
 // circuits' start-straight spacing
@@ -21,10 +22,10 @@ const ROAD_CLEAR_M = 1, SOLID_CLEAR_M = 1.5;
 // points either side of the post's own that it must be clear of (60 x 4 m: as the dress context)
 const NEAR_ALONG_M = 40, NEAR_POINTS = 60;
 
-/** The parts of highway/dress.js's dress context the lamps use. */
+/** The parts of highway/dress.ts's dress context the lamps use. */
 interface DressContext {
-  level: Level & { lamps: Prop[]; props: Prop[] };
-  state: { keep: object[] };
+  level: { lamps: Prop[]; props: Prop[] };
+  state: { keep: KeepRect[] };
   halfWidth: number;
   road: { x: number; y: number; s: number; sideOff?: number }[];
   firstIdx: number;

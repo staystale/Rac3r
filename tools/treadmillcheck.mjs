@@ -1,4 +1,4 @@
-// treadmillcheck.mjs — HIGHWAY v2 (the treadmill, src/highway.js): does the road always climb the screen, join smoothly, stay bounded,
+// treadmillcheck.mjs — HIGHWAY v2 (the treadmill, src/highway.ts): does the road always climb the screen, join smoothly, stay bounded,
 // and does the guard put a reversing car back? A bench driver drives N km per preset; then a scripted reverse.
 // node tools/treadmillcheck.mjs [km] [car] [file]   (file: ../src/highway.next.js to test a patch before it goes live)
 import { makeCar, step, reset, PHYSICS_STEP_SECONDS } from '../src/vehicle.ts';
@@ -6,7 +6,7 @@ import * as L from '../src/lab.ts';
 import { createAutoDriver } from '../src/ai/autodrive.ts';
 import { createCones } from '../src/cones.ts';
 const KM = +(process.argv[2] || 10), carId = process.argv[3] || 'saloon-rwd';
-const H = await import(process.argv[4] || '../src/highway.js');
+const H = await import(process.argv[4] || '../src/highway.ts');
 // the levels importing these modules used to add (task 078 made it explicit)
 H.addHighwayLevel();
 const deg = (r) => (r * 180 / Math.PI).toFixed(1);

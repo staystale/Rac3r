@@ -5,7 +5,7 @@
 // node tools/trafficcheck.mjs [density 0..1.5] [seconds per phase]
 import { makeCar, PHYSICS_STEP_SECONDS } from '../src/vehicle.ts';
 import * as L from '../src/lab.ts';
-import * as H from '../src/highway.js';
+import * as H from '../src/highway.ts';
 import { createTraffic } from '../src/traffic.ts';
 import { carContact } from '../src/contact.ts';
 // the levels importing these modules used to add (task 078 made it explicit)

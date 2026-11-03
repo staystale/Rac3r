@@ -5,7 +5,7 @@
 // node tools/weavecheck.mjs [diff]
 import { makeCar, step, reset, PHYSICS_STEP_SECONDS } from '../src/vehicle.ts';
 import * as L from '../src/lab.ts';
-import * as H from '../src/highway.js';
+import * as H from '../src/highway.ts';
 import { aiTraits } from '../src/ai/traits.ts';
 import { createAIDriver } from '../src/ai/circuit.ts';
 import { hwFrames } from '../src/highwayrace.ts';

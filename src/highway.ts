@@ -1,4 +1,4 @@
-// highway.js — HIGHWAY TO HULL: the ENDLESS motorway. User: "how about an infinite
+// highway.ts — HIGHWAY TO HULL: the ENDLESS motorway. User: "how about an infinite
 // highway level with procedural turns and terrain". v2 THE TREADMILL (requirement: act like a
 // treadmill... always line up nicely to the previous section... spawn ahead and vanish behind,
 // always off screen... the pace is the player's car so it can never drive off the screen... going
@@ -31,11 +31,14 @@ import { zoneSurfaceAt, pruneWear } from "./world/wear.ts";
 import { seedFieldBlocks } from "./world/levelmud.ts";
 import { HW_PRESETS, HW_NAMES, STEP, AHEAD, BEHIND, SPAWN_S, UP_HEADING, rng }
   from "./highway/presets.ts";
-import { laneGeo, stateOf, growTo, locate, roadFrame } from "./highway/road.js";
-import { syncCovers, SIDE_W_HALF } from "./highway/cuts.js";
-import { dress } from "./highway/dress.js";
+import { laneGeo, stateOf, growTo, locate, roadFrame } from "./highway/road.ts";
+import { syncCovers, SIDE_W_HALF } from "./highway/cuts.ts";
+import { dress } from "./highway/dress.ts";
+import type { HwState, HwLevel, HwCar } from './highway/hwtypes.ts';
+import type { RoadLoc } from './highway/road.ts';
+import type { Level } from './world/types.ts';
 export { HW_PRESETS, HW_NAMES } from "./highway/presets.ts";
-export { laneGeo, roadFrame, roadPose, roadSpan } from "./highway/road.js";
+export { laneGeo, roadFrame, roadPose, roadSpan } from "./highway/road.ts";
 // THE GUARD (requirement: go backwards should reset you): rolling BACK down the road faster than
 // BACK_V for BACK_T s, or BACK_M m behind the furthest you have got, or OFF_M m past the road edge
 // (out of
@@ -55,7 +58,7 @@ const BACK_V = 3,
   OFF_HARD = 70,
   OFF_NEAR = 16,
   BACK_IN = 1.5;
-function rebuild(level) {
+function rebuild(level: HwLevel) {
   const state = stateOf(level), road = state.pts;
   const sub = createSubtrack(
     road.map((point) => [point.x, point.y]),
@@ -82,7 +85,7 @@ function rebuild(level) {
 }
 // first window (also RESTART: the same seed builds the same motorway, so cached ground tiles stay
 // right)
-export function resetHighway(level) {
+export function resetHighway(level: HwLevel) {
   const rand = rng(level.seed);
   level._hw = {
     seed: level.seed,
@@ -146,7 +149,7 @@ export function resetHighway(level) {
   state.looseNew = [];
   state.looseCut = null;
   // the LEFT lane (UK motorway)
-  const pos = onTrack(level.subtrack, SPAWN_S, state.geo.centres[0], {});
+  const pos = onTrack(level.subtrack!, SPAWN_S, state.geo.centres[0], {});
   Object.assign(level.spawn, { x: pos.x, y: pos.y, heading: pos.rot });
   state.ci = Math.round(SPAWN_S / STEP);
   level.solidsDirty = true;
@@ -154,7 +157,7 @@ export function resetHighway(level) {
 // call every physics step with the car: tracks progress + the camera's road direction, extends
 // ahead / drops behind when the car has moved on. Returns the distance the window start moved
 // (subtract it from any remembered road distance), or 0.
-export function stepHighway(level, car) {
+export function stepHighway(level: HwLevel, car: HwCar) {
   const state = stateOf(level), loc = locate(state, car.x, car.y), road = state.pts;
   state.q = loc;
   state.driven = Math.max(state.driven, loc.s - SPAWN_S);
@@ -173,7 +176,7 @@ export function stepHighway(level, car) {
   // (game.cones.spawn / cull — the live objects belong to the game, not the level)
   growTo(level, state.s + 300);
   meterEvent('slide');
-  dress(level, state.dressed, road.length, state.looseNew);
+  dress(level, state.dressed, road.length, state.looseNew!);
   state.dressed = road.length;
   let cut = 0;
   while (cut < road.length && road[cut].s < loc.s - BEHIND) cut++;
@@ -184,17 +187,17 @@ export function stepHighway(level, car) {
   loc.i = state.ci;
   const startDist = road[0].s - 60;
   state.looseCut = startDist;
-  const keep = (obj) => obj._s == null || obj._s >= startDist;
-  for (const listKey of ["props", "bumps", "barriers", "lanes", "zones", "lamps"]) {
-    const list = level[listKey],
-      kept = list.filter(keep);
+  const keep = (obj: { _s?: number }) => obj._s == null || obj._s >= startDist;
+  const dropBehind = <T extends { _s?: number }>(list: T[]) => {
+    const kept = list.filter(keep);
     list.length = 0;
     list.push(...kept);
-  }
+  };
+  dropBehind(level.props); dropBehind(level.bumps); dropBehind(level.barriers);
+  dropBehind(level.lanes); dropBehind(level.zones); dropBehind(level.lamps);
   pruneHedges(level, startDist);
-  for (const listKey of ["keep", "cuts"]) {
-    const list = state[listKey],
-      kept = list.filter(keep);
+  for (const list of [state.keep, state.cuts] as { _s?: number }[][]) {
+    const kept = list.filter(keep);
     list.length = 0;
     list.push(...kept);
   }
@@ -220,7 +223,7 @@ export function stepHighway(level, car) {
 // distance passes a gantry -> null (under the limit) or { kmh, mph, fine }. A fine: $100 + $10 per
 // mph over, x2 past 100 mph over (UK-ish).
 export const CAM_MPH = 70;
-export function speedCamera(level, car) {
+export function speedCamera(level: HwLevel, car: HwCar) {
   const state = stateOf(level),
     loc = state.q;
   if (!loc) return null;
@@ -247,13 +250,13 @@ export function speedCamera(level, car) {
 /**
  * Time the car driving backwards along the road; true when it has gone the wrong way for too long
  * (or is far behind the furthest point reached).
- * @param {object} state the highway state
- * @param {object} loc where the car is on the road (locate)
- * @param {object} car the car (vx, vy)
- * @param {number} dt step seconds
- * @returns {boolean} whether the car must be reset for going the wrong way
+ * @param state the highway state
+ * @param loc where the car is on the road (locate)
+ * @param car the car (vx, vy)
+ * @param dt step seconds
+ * @returns whether the car must be reset for going the wrong way
  */
-function checkWrongWay(state, loc, car, dt) {
+function checkWrongWay(state: HwState, loc: RoadLoc, car: HwCar, dt: number) {
   const vAlong = car.vx * loc.dx + car.vy * loc.dy;
   state.backT = vAlong < -BACK_V ? state.backT + dt : 0;
   return state.backT > BACK_T || loc.s < state.best - BACK_M;
@@ -261,12 +264,12 @@ function checkWrongWay(state, loc, car, dt) {
 
 /**
  * How far the car is off the road edge, and whether it is on a tarmac lane off the motorway.
- * @param {object} state the highway state
- * @param {object} loc where the car is on the road (locate)
- * @param {object} car the car (x, y)
+ * @param state the highway state
+ * @param loc where the car is on the road (locate)
+ * @param car the car (x, y)
  * @returns {{out: number, onLane: boolean}} metres past the edge (0 on the side road) and lane flag
  */
-function measureOffRoad(state, loc, car) {
+function measureOffRoad(state: HwState, loc: RoadLoc, car: HwCar) {
   // THE SECRET SIDE ROAD is road (its points carry sideOff, the offset of its centre to the left);
   // any OTHER lane off the motorway (an off-slip, a bridge approach) holds the countdown and only
   // the far-out reset ends it, as "EXIT TAKEN" (requirement: slip roads you can take)
@@ -284,13 +287,13 @@ function measureOffRoad(state, loc, car) {
 /**
  * Run the off-road countdown one step: the speed back towards the road, the countdown, the
  * exit-taken flag and the warning text (st.warn).
- * @param {object} state the highway state
- * @param {number} out metres past the road edge
- * @param {boolean} onLane whether the car is on a tarmac lane off the motorway
- * @param {number} dt step seconds
+ * @param state the highway state
+ * @param out metres past the road edge
+ * @param onLane whether the car is on a tarmac lane off the motorway
+ * @param dt step seconds
  * @returns {void}
  */
-function stepOffCountdown(state, out, onLane, dt) {
+function stepOffCountdown(state: HwState, out: number, onLane: boolean, dt: number) {
   const inRate = state.outPrev != null ? (state.outPrev - out) / dt : 0;
   state.outPrev = out;
   state.inV = (state.inV || 0) + (inRate - (state.inV || 0)) * Math.min(1, dt / 0.5);
@@ -313,12 +316,12 @@ function stepOffCountdown(state, out, onLane, dt) {
  * highwayRespawn). A runtime guard: wrong way for too long, or off the road too long / too far
  * (or having taken an exit), ends the run. st.warn = the off-road countdown text while one is
  * running (main.js shows it), else null.
- * @param {object} level the highway level
- * @param {object} car the car
- * @param {number} dt step seconds
- * @returns {string|null} the reset reason, or null
+ * @param level the highway level
+ * @param car the car
+ * @param dt step seconds
+ * @returns the reset reason, or null
  */
-export function highwayGuard(level, car, dt) {
+export function highwayGuard(level: HwLevel, car: HwCar, dt: number) {
   const state = stateOf(level),
     loc = state.q;
   if (!loc) return null;
@@ -336,9 +339,9 @@ export function highwayGuard(level, car, dt) {
 }
 // the put-back pose: the LEFT lane, a few metres short of the furthest point reached, facing up the
 // road
-export function highwayRespawn(level) {
+export function highwayRespawn(level: HwLevel) {
   const state = stateOf(level), dist = Math.max(0, state.best - 6 - state.pts[0].s);
-  const pos = onTrack(level.subtrack, dist, state.geo.centres[0], {});
+  const pos = onTrack(level.subtrack!, dist, state.geo.centres[0], {});
   state.backT = 0;
   state.ci = Math.min(state.pts.length - 1, Math.round(dist / STEP));
   state.q = null;
@@ -347,7 +350,7 @@ export function highwayRespawn(level) {
 // ROAD TYPE (requirement: how do I test the lane presets — I don't see any buttons): Test
 // Mode setup offers lv.roadTypes; the launch calls this before the restart builds the road.
 // ?hw=interstate etc. still works for tools.
-export function setHighwayPreset(level, preset) {
+export function setHighwayPreset(level: HwLevel, preset: string) {
   if (!HW_PRESETS[preset] || level.roadType === preset) return;
   level.roadType = preset;
   level._cfg = HW_PRESETS[preset];
@@ -355,7 +358,7 @@ export function setHighwayPreset(level, preset) {
 }
 const settings = readSettings(typeof location !== 'undefined' ? location.search : '');
 const QUERY_PRESET = typeof location !== 'undefined' ? settings.highwayDebug : null;
-export function createHighway(seed = 4242, preset = 'motorway') {
+export function createHighway(seed: number = 4242, preset: string = 'motorway') {
   if (!HW_PRESETS[preset]) preset = 'motorway';
   const level = {
     id: "highway",
@@ -383,7 +386,7 @@ export function createHighway(seed = 4242, preset = 'motorway') {
     // the street lights (highway/roadlamps.ts)
     lamps: [],
     spawn: { x: 0, y: 0, heading: 0 },
-  };
+  } as unknown as HwLevel;   // its road state (_hw) is built by resetHighway just below
   resetHighway(level);
   return level;
 }
@@ -392,6 +395,6 @@ let highwayAdded = false;
 export function addHighwayLevel() {
   if (highwayAdded) return;
   highwayAdded = true;
-  LEVELS.push(createHighway(4242, QUERY_PRESET || 'motorway'));
+  LEVELS.push(createHighway(4242, QUERY_PRESET || 'motorway') as unknown as Level);
 }
 

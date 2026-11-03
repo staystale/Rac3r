@@ -1,20 +1,23 @@
 // highway extras: the off-slip signs, slip roads, bridges and the other cheeky extras.
-// Split out of highway.js.
+// Split out of highway.ts.
 import { SURFACES } from "../world/surfaces.ts";
 import { STEP } from "./presets.ts";
-import { straightAt, ease } from "./road.js";
+import { straightAt, ease } from "./road.ts";
 import { blocked, keepOut, addCut, sideStep, approaches, river, SLIP_EVERY, BRIDGE_EVERY, SLIP_LEN,
-  SLIP_DEG, SLIP_W, PIER, SLIP_LONG, SIDE_RUN } from "./cuts.js";
+  SLIP_DEG, SLIP_W, PIER, SLIP_LONG, SIDE_RUN } from "./cuts.ts";
+import type { Prop, Point, Lane } from '../world/types.ts';
+import type { HwPoint, HwPose, HwState, HwLevel, Stamp, Bridge } from './hwtypes.ts';
 /**
  * The signs before an off-slip, the SAME for every type: 180 / 120 / 60 m posts + the exit board.
- * @param {object} level the highway level
- * @param {number} i road point index of the slip
- * @param {Function} pointAt road point at (index, offset)
- * @param {Function} mark stamps a prop with its road distance
- * @param {string} label the place name on the board
+ * @param level the highway level
+ * @param i road point index of the slip
+ * @param pointAt road point at (index, offset)
+ * @param mark stamps a prop with its road distance
+ * @param label the place name on the board
  * @returns {void}
  */
-function addSlipSigns(level, i, pointAt, mark, label) {
+function addSlipSigns(level: HwLevel, i: number, pointAt: (i: number, off: number) => HwPose,
+  mark: Stamp, label: string) {
   const halfWidth = level._hw.geo.hw;
   // the signs before it, the SAME for every type (you cannot tell which one comes back): 180 /
   // 120 / 60 m posts + the exit board
@@ -48,16 +51,16 @@ function addSlipSigns(level, i, pointAt, mark, label) {
 /**
  * The centreline of an off-slip: along the road, drifting out at SLIP_DEG (eased in over 60 m);
  * a long one then bends on away after 80 m.
- * @param {object} start the slip's first point {x, y, rot}
- * @param {number} len slip length in metres
- * @param {number} away degrees off the motorway at the end
- * @returns {number[][]} the line, a point every 10 m
+ * @param start the slip's first point {x, y, rot}
+ * @param len slip length in metres
+ * @param away degrees off the motorway at the end
+ * @returns the line, a point every 10 m
  */
-function slipCentreline(start, len, away) {
+function slipCentreline(start: HwPose, len: number, away: number): Point[] {
   let x = start.x,
     y = start.y,
     heading = start.rot;
-  const line = [[x, y]];
+  const line: Point[] = [[x, y]];
   for (let along = 10; along <= len; along += 10) {
     heading =
       start.rot -
@@ -71,15 +74,20 @@ function slipCentreline(start, len, away) {
   }
   return line;
 }
+/** A slip road once built: its centre line, lane, prop, gate placer, length and road distance. */
+interface BuiltSlip {
+  line: Point[]; lane: Lane; prop: Prop; putGate: () => void; len: number; dist: number;
+}
+
 /**
  * The gate at the end of a slip, in a field (it moves back if the slip is cut short by the road
  * coming back).
- * @param {object} level the highway level
- * @param {number[][]} line the slip's centreline
- * @param {Function} mark stamps a prop with its road distance
- * @returns {Function} putGate: places the gate at the current end of the line
+ * @param level the highway level
+ * @param line the slip's centreline
+ * @param mark stamps a prop with its road distance
+ * @returns putGate: places the gate at the current end of the line
  */
-function addSlipGate(level, line, mark) {
+function addSlipGate(level: HwLevel, line: Point[], mark: Stamp) {
   const gate = mark({ kind: 'gate', x: 0, y: 0, rot: 0 });
   const putGate = () => {
     const count = line.length,
@@ -98,11 +106,11 @@ function addSlipGate(level, line, mark) {
 }
 /**
  * A long slip that the road swings back across is cut short there.
- * @param {object} level the highway level
- * @param {object} slip {line, lane, slip, putGate, len, dist}: the built slip
+ * @param level the highway level
+ * @param slip the built slip: its line, lane, prop, gate placer, length and road distance
  * @returns {void}
  */
-function addSlipCut(level, slip) {
+function addSlipCut(level: HwLevel, slip: BuiltSlip) {
   const { line, lane, prop, putGate, len, dist } = slip;
   addCut(level, {
     pts: line,
@@ -111,8 +119,8 @@ function addSlipCut(level, slip) {
     skip: [dist - 40, dist + len + 40],
     after: () => {
       lane.pts.length = line.length;
-      lane._segs = null;
-      prop._bb = null;
+      lane._segs = undefined;
+      prop._bb = undefined;
       putGate();
       level.solidsDirty = true;
     },
@@ -121,14 +129,15 @@ function addSlipCut(level, slip) {
 /**
  * An off-slip: signs, then a side road (type "side") or a slip lane with its gate, keep-out
  * area and, for a long one, the cut where the road swings back across it.
- * @param {object} level the highway level
- * @param {number} i road point index
- * @param {number} dist road distance at i
- * @param {Function} pointAt road point at (index, offset)
- * @param {Function} mark stamps a prop with its road distance
+ * @param level the highway level
+ * @param i road point index
+ * @param dist road distance at i
+ * @param pointAt road point at (index, offset)
+ * @param mark stamps a prop with its road distance
  * @returns {void}
  */
-function buildSlip(level, i, dist, pointAt, mark) {
+function buildSlip(level: HwLevel, i: number, dist: number, pointAt: (i: number,
+  off: number) => HwPose, mark: Stamp) {
   const state = level._hw,
     road = state.pts,
     halfWidth = state.geo.hw,
@@ -138,7 +147,7 @@ function buildSlip(level, i, dist, pointAt, mark) {
   const roll = rand(), type = roll < 0.25 ? 'side' : roll < 0.75 ? 'long' : 'short';
   // keep a bridge (and its approaches) clear of the slip; after a side road the next bridge waits
   // for its end (sideStep)
-  if (dist > state.nextBridge - 450) state.nextBridge = dist + 450;
+  if (dist > state.nextBridge! - 450) state.nextBridge = dist + 450;
   const label = SLIP_NAMES[(Math.floor(dist / 1000) + state.seed) % SLIP_NAMES.length];
   addSlipSigns(level, i, pointAt, mark, label);
   if (type === "side") {
@@ -177,7 +186,7 @@ function buildSlip(level, i, dist, pointAt, mark) {
   // 12 m back and 2.6 m INSIDE the edge so its round end lies under the motorway ribbon
   // (PHOTOGRAPHED: starting outside the edge left a stub in the verge)
   const lanePt = pointAt(Math.max(0, i - 3), -halfWidth + 2.6),
-    lane = {
+    lane: Lane = {
       pts: [[lanePt.x, lanePt.y], ...line.slice(1)],
       width: SLIP_W,
       surface: SURFACES.tarmac,
@@ -201,16 +210,17 @@ function buildSlip(level, i, dist, pointAt, mark) {
 }
 /**
  * Add the motorway's own parapets either side of a river bridge (lab walls).
- * @param {object} level the highway level
- * @param {number} i road point index at the bridge
- * @param {number} dist road distance at i
- * @param {Function} pointAt road point at (index, offset)
+ * @param level the highway level
+ * @param i road point index at the bridge
+ * @param dist road distance at i
+ * @param pointAt road point at (index, offset)
  * @returns {void}
  */
-function addRiverParapets(level, i, dist, pointAt) {
+function addRiverParapets(level: HwLevel, i: number, dist: number, pointAt: (i: number,
+  off: number) => HwPose) {
   const road = level._hw.pts, halfWidth = level._hw.geo.hw;
   for (const side of [-1, 1]) {
-    const pts = [];
+    const pts: Point[] = [];
     for (let step = -6; step <= 6; step++) {
       const j = Math.max(0, Math.min(road.length - 1, i + step)),
         pos = pointAt(j, side * (halfWidth + 1.2));
@@ -222,25 +232,26 @@ function addRiverParapets(level, i, dist, pointAt) {
 /**
  * A bridge: over (road / rail / foot) or the motorway over a river, with its cheeky extras and
  * what moves across it, then the approaches (or the river and its parapets).
- * @param {object} level the highway level
- * @param {number} i road point index
- * @param {number} dist road distance at i
- * @param {Function} pointAt road point at (index, offset)
- * @param {Function} mark stamps a prop with its road distance
+ * @param level the highway level
+ * @param i road point index
+ * @param dist road distance at i
+ * @param pointAt road point at (index, offset)
+ * @param mark stamps a prop with its road distance
  * @returns {void}
  */
-function buildBridge(level, i, dist, pointAt, mark) {
+function buildBridge(level: HwLevel, i: number, dist: number, pointAt: (i: number,
+  off: number) => HwPose, mark: Stamp) {
   const state = level._hw,
     halfWidth = state.geo.hw,
     rand = state.xrnd,
     walled = !!level._cfg.walls;
   state.nextBridge = dist + BRIDGE_EVERY[0] + rand() * (BRIDGE_EVERY[1] - BRIDGE_EVERY[0]);
   // no slip under a bridge's approach
-  if (dist > state.nextSlip - 400) state.nextSlip = dist + 400;
+  if (dist > state.nextSlip! - 400) state.nextSlip = dist + 400;
   const roll = rand(),
     kind = roll < 0.38 ? "road" : roll < 0.62 ? "rail" : roll < 0.82 ? "foot" : "river";
   // walled: the wall stands wallGap off the edge - the span and the parapets clear it
-  const wallOff = walled ? level._cfg.wallGap : 0,
+  const wallOff = walled ? level._cfg.wallGap! : 0,
     centre = pointAt(i, 0),
     skew = (rand() - 0.5) * 0.5,
     span = 2 * halfWidth + 2 * PIER + 6 + 2 * wallOff;
@@ -254,7 +265,7 @@ function buildBridge(level, i, dist, pointAt, mark) {
     seed: dist | 0,
     skew,
     roadHw: halfWidth + 1.2 + wallOff,
-  });
+  }) as Bridge;
   // CHEEKY EXTRAS, rare (each ~1 in 6 of its bridge type)
   const extra = rand() < 1 / 6;
   if (kind === "road") {
@@ -283,15 +294,15 @@ function buildBridge(level, i, dist, pointAt, mark) {
 }
 /**
  * Whether an off-slip is due here: 60 m of straight before and 150 m after, side road not running.
- * @param {object} state the highway state
- * @param {Array} road the road points
- * @param {number} i road point index
- * @param {number} dist road distance at i
- * @returns {boolean} true when the slip should be built
+ * @param state the highway state
+ * @param road the road points
+ * @param i road point index
+ * @param dist road distance at i
+ * @returns true when the slip should be built
  */
-function slipDue(state, road, i, dist) {
+function slipDue(state: HwState, road: HwPoint[], i: number, dist: number) {
   return (
-    dist >= state.nextSlip &&
+    dist >= state.nextSlip! &&
     !state.side &&
     i > 20 &&
     i < road.length - 50 &&
@@ -300,29 +311,30 @@ function slipDue(state, road, i, dist) {
 }
 /**
  * Whether a bridge is due here: not while the side road runs beside the motorway.
- * @param {object} state the highway state
- * @param {Array} road the road points
- * @param {number} i road point index
- * @param {number} dist road distance at i
- * @returns {boolean} true when the bridge should be built
+ * @param state the highway state
+ * @param road the road points
+ * @param i road point index
+ * @param dist road distance at i
+ * @returns true when the bridge should be built
  */
-function bridgeDue(state, road, i, dist) {
+function bridgeDue(state: HwState, road: HwPoint[], i: number, dist: number) {
   return (
-    dist >= state.nextBridge && !state.side && i < road.length - 20 && straightAt(road, i, 12)
+    dist >= state.nextBridge! && !state.side && i < road.length - 20 && straightAt(road, i, 12)
   );
 }
 /**
  * Everything the road adds beside itself at one point, from its own random stream (state.xrnd,
  * not the road's: adding / changing an extra never re-rolls the road's shape): an off-slip, or
  * else a bridge, or else (rarely) a smiley solar farm.
- * @param {object} level the highway level
- * @param {number} i road point index
- * @param {number} dist road distance at i
- * @param {Function} pointAt road point at (index, offset)
- * @param {Function} mark stamps a prop with its road distance
+ * @param level the highway level
+ * @param i road point index
+ * @param dist road distance at i
+ * @param pointAt road point at (index, offset)
+ * @param mark stamps a prop with its road distance
  * @returns {void}
  */
-export function extras(level, i, dist, pointAt, mark) {
+export function extras(level: HwLevel, i: number, dist: number, pointAt: (i: number,
+  off: number) => HwPose, mark: Stamp) {
   // every random choice here draws from st.xrnd (not the road's st.rnd): adding / changing an extra
   // never re-rolls the road's shape
   const state = level._hw,

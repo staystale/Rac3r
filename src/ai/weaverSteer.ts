@@ -2,7 +2,7 @@
 // the lateral target, with yaw damping and counter-steer.
 import { GRAVITY } from "./weaverCtx.ts";
 import type { Step, Wvr } from "./weaverCtx.ts";
-import { roadPose } from "../highway.js";
+import { roadPose } from "../highway.ts";
 
 /** The steering command (and the road's own yaw rate, which the throttle reads). */
 export function steerCmd(wvr: Wvr, step: Step) {

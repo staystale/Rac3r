@@ -1,9 +1,10 @@
 // The AI's shared shapes. Car shapes describe ONLY the fields src/ai/ and src/highwayrace.ts read
 // (types from vehicle.ts / cars.ts); road-level shapes come from JavaScript not converted yet
 // (highway.js).
-import type { Lane, Spawn } from "../world/types.ts";
+import type { Lane } from "../world/types.ts";
 import type { Spec, Surface } from "../cars.ts";
 import type { Car, CarTelemetry } from "../vehicle.ts";
+import type { HwLevel } from '../highway/hwtypes.ts';
 
 // One row of DIFFICULTIES: the centre of a difficulty's spread.
 export interface Difficulty {
@@ -90,16 +91,9 @@ export interface RoadQ {
   dy: number;
 }
 
-// A highway level (highway.js), the fields highwayrace.ts, the weaver and traffic.ts read.
-export interface HighwayLevel {
-  spawn: Spawn;
-  endless?: boolean;
-  _hw: {
-    geo: { centres: number[]; hw: number }; pts: RoadPoint[];
-    q?: RoadQ | null;   // highway.js stepHighway: where the player is on the road
-  };
-  _cfg: { walls?: string; shoulder: number };
-}
+// A highway level (highway.ts; highway/hwtypes.ts): highwayrace.ts, the weaver and traffic.ts
+// read its road.
+export type HighwayLevel = HwLevel;
 
 // What a driver is told each step: hold = keep station (the rolling start), cars = everyone else.
 export interface DriveCtx {

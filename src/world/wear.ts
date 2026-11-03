@@ -118,7 +118,7 @@ export function clearWear(): void {
 
 }
 
-// PRUNE THE WEAR on a streamed level (highway.js stepHighway, after each rebuild). MEASURED BUG
+// PRUNE THE WEAR on a streamed level (highway.ts stepHighway, after each rebuild). MEASURED BUG
 // (requirement: occasionally leaves patches of dirt on highway levels... after longer drives / with
 // ai on; tools/_wearleak.mjs): wear cells live at WORLD positions and were never dropped - so when
 // the endless road was rebuilt and new ground (a field, a bridge approach, the road

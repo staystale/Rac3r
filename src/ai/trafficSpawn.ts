@@ -2,7 +2,7 @@
 // paint, placing a fresh car, finding a free off-screen spot, restarting and clearing room.
 import { makeCar, reset } from "../vehicle.ts";
 import { ROSTER } from "../cars.ts";
-import { roadPose, roadSpan } from "../highway.js";
+import { roadPose, roadSpan } from "../highway.ts";
 import type { TrafficCar, TrafficVehicle } from "./types.ts";
 import { PAINTS, SPAWN_AHEAD, SPAWN_BEHIND, VEH, geo } from "./trafficCtx.ts";
 import type { TrafficCtx, VisFn } from "./trafficCtx.ts";
@@ -48,7 +48,7 @@ export function fresh(
   car.traffic = true;
   car.absOn = !!(car.spec.aids && car.spec.aids.abs);
   car.tcsOn = !!(car.spec.aids && car.spec.aids.tcs);
-  const off = geo(ctx).centres[lane], pose = roadPose(ctx.level, dist, off);
+  const off = geo(ctx).centres[lane], pose = roadPose(ctx.level!, dist, off);
   reset(car, pose.x, pose.y, pose.h);
   car.vx = Math.cos(pose.h) * speed;
   car.vy = Math.sin(pose.h) * speed;
@@ -91,7 +91,7 @@ export function spot(
   ctx: TrafficCtx, ents: { s: number; off: number }[], playerS: number, from: string,
   vis: VisFn,
 ) {
-  const { s0: roadStart, s1: roadEnd } = roadSpan(ctx.level),
+  const { s0: roadStart, s1: roadEnd } = roadSpan(ctx.level!),
     [near, far] = from === 'ahead' ? SPAWN_AHEAD : SPAWN_BEHIND,
     laneCount = geo(ctx).centres.length;
   for (let attempt = 0; attempt < 8; attempt++) {
@@ -99,7 +99,7 @@ export function spot(
       lane = (ctx.rnd() * laneCount) | 0;
     if (dist < roadStart + 60 || dist > roadEnd - 60 || !roomAt(ctx, ents, dist, lane))
       continue;
-    const pose = roadPose(ctx.level, dist, geo(ctx).centres[lane]);
+    const pose = roadPose(ctx.level!, dist, geo(ctx).centres[lane]);
     if (vis(pose.x, pose.y, dist)) continue;
     return { s: dist, lane };
   }

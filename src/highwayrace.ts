@@ -5,7 +5,7 @@
 // traffic in every mode). (was hwrace.js until the phase 5 rename)
 //
 // The circuit AI (aidriver.js) races a precomputed line round a CLOSED lap; the treadmill's road is
-// rebuilt every ~300 m and never closes, so its driver reads the road through highway.js's road
+// rebuilt every ~300 m and never closes, so its driver reads the road through highway.ts's road
 // frame: the WEAVER (aidriver.js roadDriver; v1 raced in lanes - requirement: ignore lanes, go
 // fast, dodge and weave through like the player would).
 // THE START: a 2-wide staggered grid in the two right-hand lanes behind the spawn; every car (you
@@ -13,7 +13,7 @@
 // END (flow): EVERY AI ahead of you and the slowest of them OFF SCREEN -> "CATCH THEM n" for
 // HW_CATCH s (back on screen = cancelled), at 0 the race ends. Every AI behind you AND off screen
 // -> "PULLING AWAY n"; at 0 the race ends and you have won. Positions = how far up the road.
-import { roadFrame, roadPose, roadSpan } from './highway.js';
+import { roadFrame, roadPose, roadSpan } from './highway.ts';
 import type { AiCar, HighwayLevel } from "./ai/types.ts";
 import { endRace, order } from "./ai/hwFlow.ts";
 import { stepFlow } from "./ai/hwFlowStep.ts";
