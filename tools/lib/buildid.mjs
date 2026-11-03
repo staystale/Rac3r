@@ -1,7 +1,7 @@
 // buildid.mjs - a fingerprint of the game's code: sha-256 of every file under src/ (path + content,
 // sorted), first 12 hex digits. serve.mjs and tools/build.mjs put it in the bundle as
 // globalThis.__RAC3R_BUILD__, so the game can tell one version from the next (the menu's saved
-// thumbnails, src/menu/thumbcache.js).
+// thumbnails, src/menu/thumbcache.ts).
 import { createHash } from 'node:crypto';
 import { readdir, readFile } from 'node:fs/promises';
 import { join, relative } from 'node:path';

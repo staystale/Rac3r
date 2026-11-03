@@ -1,7 +1,7 @@
 // cones/coneStep.js: one simulation step of the loose objects: motion by mode (roll, flip,
 // wobble, flat slide), spin, the floor, the cars' hits, then the object-object collisions.
 import { FX0, FX1, FY0, FY1 } from "../world/bounds.ts";
-import { BROKEN, DRAG, REST_V, SPIN_DRAG } from "./coneConsts.js";
+import { BROKEN, DRAG, REST_V, SPIN_DRAG } from "./coneConsts.ts";
 import { hitWalls } from "./coneWalls.js";
 import { hitByCar } from "./coneCar.js";
 import { stepTape } from "./coneTape.js";

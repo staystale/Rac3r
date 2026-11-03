@@ -18,7 +18,7 @@
 // a rect is how a button ends up visually somewhere its tap is not.
 
 import { layoutHud, hitHud, setHudMph, setHudTempF, setHudTyreHud } from './hud/layout.js';
-import { drawHudTrackTemp } from './hud/tracktemp.js';
+import { drawHudTrackTemp } from './hud/tracktemp.ts';
 import {
   drawHudTune,
   drawHudLights,

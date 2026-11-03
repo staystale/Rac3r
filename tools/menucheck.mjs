@@ -8,7 +8,7 @@ const STEP_MS = 60000;
 let step = 'start';
 import { mkdirSync } from 'node:fs';
 import { startServer, launchBrowser, extraQuery, gotoGame } from './lib/browser.mjs';
-import { TEST_LIST } from '../src/testlist.js';
+import { TEST_LIST } from '../src/testlist.ts';
 const srv = await startServer();
 let b;
 try {

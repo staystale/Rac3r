@@ -1,4 +1,4 @@
-// hud/tracktemp.js — THE TRACK TEMPERATURE GAUGE and the temperature units (?hudunits=1; owner,
+// hud/tracktemp.ts — THE TRACK TEMPERATURE GAUGE and the temperature units (?hudunits=1; owner,
 // 2026-10-18: a small gauge of the track temperature, on / off in the pause menu's HUD list like
 // the rest, not shown in the harder difficulty modes as the minimap is not; °C / °F and km/h / mph
 // on toggles in the menu). A slim strip in the top-right column under the lap timer: "TRACK 12°C"
@@ -6,7 +6,7 @@
 // event's weather runs (a test floor with no weather has no temperature to show).
 import { COL } from '../world/colours.ts';
 import { WEATHER, weatherRuns } from '../world/weather.ts';
-import { drawHudLabel, drawHudPanel } from './widgets.js';
+import { drawHudLabel, drawHudPanel, type HudRect } from './widgets.ts';
 import { modeSetting, setModeSetting } from './minimap.js';
 
 const TRACK_TEMP_KEY = 'rac3r.tracktemp.';
@@ -21,56 +21,57 @@ let shownNow = () => false;
 
 /**
  * Hands the gauge the test of whether it shows (main.js).
- * @param {() => boolean} source true while the gauge shows
+ * @param source true while the gauge shows
  */
-export function setTrackTempSource(source) { shownNow = source; }
+export function setTrackTempSource(source: () => boolean): void { shownNow = source; }
 
 /**
  * Whether the gauge shows this frame (layout.js reserves its strip).
- * @returns {boolean} shown
+ * @returns shown
  */
 export const trackTempShown = () => shownNow() && weatherRuns();
 
 /**
  * The gauge's setting in a difficulty mode: the minimap's defaults, locked off in REAL.
- * @param {number} mode difficulty 0..4
+ * @param mode difficulty 0..4
  * @returns {{on: boolean, locked: boolean}} on, and whether the mode allows a change
  */
-export const trackTempSetting = (mode) => modeSetting(TRACK_TEMP_KEY, mode, true);
+export const trackTempSetting = (mode: number): { on: boolean; locked: boolean } =>
+  modeSetting(TRACK_TEMP_KEY, mode, true);
 
 /**
  * Remembers the gauge's choice for a difficulty mode.
- * @param {number} mode difficulty 0..4
- * @param {boolean} shown shown or not
+ * @param mode difficulty 0..4
+ * @param shown shown or not
  */
-export const setTrackTempSetting = (mode, shown) =>
+export const setTrackTempSetting = (mode: number, shown: boolean): void =>
   setModeSetting(TRACK_TEMP_KEY, mode, shown, true);
 
 /**
  * A temperature in the player's units, rounded.
- * @param {number} celsius the temperature, C
- * @param {boolean} fahrenheit in °F
- * @returns {number} the number shown
+ * @param celsius the temperature, C
+ * @param fahrenheit in °F
+ * @returns the number shown
  */
-export const tempInUnits = (celsius, fahrenheit) =>
+export const tempInUnits = (celsius: number, fahrenheit: boolean): number =>
   Math.round(fahrenheit ? celsius * 9 / 5 + 32 : celsius);
 
 /**
  * A temperature as the player reads it.
- * @param {number} celsius the temperature, C
- * @param {boolean} fahrenheit show °F
- * @returns {string} e.g. "12°C" or "54°F"
+ * @param celsius the temperature, C
+ * @param fahrenheit show °F
+ * @returns e.g. "12°C" or "54°F"
  */
-export function formatTemp(celsius, fahrenheit) {
+export function formatTemp(celsius: number, fahrenheit: boolean): string {
   return tempInUnits(celsius, fahrenheit) + (fahrenheit ? '°F' : '°C');
 }
 
 /**
  * The gauge's colour for a track temperature (the colour table's meanings).
- * @param {number} celsius the track temperature, C
- * @returns {string} the colour
+ * @param celsius the track temperature, C
+ * @returns the colour
  */
-function trackTempColour(celsius) {
+function trackTempColour(celsius: number): string {
   if (celsius < FREEZE_C) return COL.cold;
   if (celsius < COOL_C) return COL.cool;
   if (celsius <= WARM_C) return COL.live;
@@ -79,11 +80,12 @@ function trackTempColour(celsius) {
 
 /**
  * Draws the gauge in its strip (layout.js rects.trackTemp), when it shows.
- * @param {CanvasRenderingContext2D} ctx the HUD context
- * @param {object} state the HUD state (tempF)
- * @param {object} rects the layout rectangles
+ * @param ctx the HUD context
+ * @param state the HUD state (tempF)
+ * @param rects the layout rectangles
  */
-export function drawHudTrackTemp(ctx, state, rects) {
+export function drawHudTrackTemp(ctx: CanvasRenderingContext2D, state: { tempF: boolean },
+  rects: { trackTemp?: HudRect }): void {
   const rect = rects.trackTemp;
   if (!rect || !rect.h) return;
   const celsius = WEATHER.trackC, colour = trackTempColour(celsius);

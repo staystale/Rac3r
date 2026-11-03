@@ -2,7 +2,7 @@
 // should go left and right and vary". Grows N km of road per seed + preset (no driving) and reports the share of distance leaning
 // LEFT / RIGHT of straight up, the mean lean, the longest run on one side, and how many times it swaps side.
 // node tools/headingcheck.mjs [km] [file]
-import * as L from '../src/lab.js';
+import * as L from '../src/lab.ts';
 const KM = +(process.argv[2] || 30), H = await import(process.argv[3] || '../src/highway.js');
 // the levels importing these modules used to add (task 078 made it explicit)
 H.addHighwayLevel();

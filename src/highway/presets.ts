@@ -70,8 +70,8 @@ export const STEP = 4,
   SPAWN_S = 300,
   UP_HEADING = -Math.PI / 2,
   K_RATE = 5e-5;
-export const wrap = (angle) => Math.atan2(Math.sin(angle), Math.cos(angle));
-export const rng = (seed) => lcg((seed >>> 0) || 1);
+export const wrap = (angle: number) => Math.atan2(Math.sin(angle), Math.cos(angle));
+export const rng = (seed: number) => lcg((seed >>> 0) || 1);
 // SILLY SIGNS (the distance to Hull goes UP — you never get there)
 export const SIGNS = [
   "SERVICES 2 MI (CLOSED)",

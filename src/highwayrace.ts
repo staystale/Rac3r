@@ -83,7 +83,7 @@ export function hwPutBack(level: HighwayLevel, dist: number, cars: AiCar[]) {
 
 // THE RACE: entries [{ car, player }]; visible(car) = on screen right now. flow.step(dt) after the
 // green; flow.order -> your position. Results rows are raceflow.js-shaped (+ dist / gapM) so
-// menu.js can show them; flow.highway marks the distance table.
+// menu.ts can show them; flow.highway marks the distance table.
 export function createHwFlow(
   { lv, cars, visible, count = HW_COUNT, catchT = HW_CATCH }: HwFlowArgs) {
   const sRef = roadFrame(lv, lv.spawn.x, lv.spawn.y, null)!.s;   // ! : null before the road exists

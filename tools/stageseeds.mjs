@@ -2,7 +2,7 @@
 // length, the attempt that won (0 = cheap to rebuild at boot), corners / hairpins / crests+jumps; prints the best few per theme.
 // node tools/stageseeds.mjs [N]
 import { genStage, addStageLevels } from '../src/stagegen.js';
-import { autoKerbs, onTrack } from '../src/lab.js';
+import { autoKerbs, onTrack } from '../src/lab.ts';
 // the levels importing these modules used to add (task 078 made it explicit)
 addStageLevels();
 const N = +(process.argv[2] || 60);

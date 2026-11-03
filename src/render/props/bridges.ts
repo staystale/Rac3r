@@ -159,7 +159,7 @@ function drawRiverBoat(
 // pr.appL[0 | 1] m out from each end; their markings / rails are drawn here, and so is what MOVES
 // across: cars both ways, walkers, a train every pr.trainEvery s. Pure drawing on the wall clock
 // (no physics, no state): a few dozen squares per bridge on screen. The RIVER's water is now a
-// real 'wet' cover (lab.js covers: the puddle water, grip and spray, painted into the ground tiles;
+// real 'wet' cover (lab.ts covers: the puddle water, grip and spray, painted into the ground tiles;
 // requirement: water seemed to be painted and not our water texture), so only the boat is drawn
 // here.
 // a footbridge deck's half width, m (along the road below)

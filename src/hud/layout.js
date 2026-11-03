@@ -4,9 +4,9 @@
 import { CAR_IDS } from '../cars.ts';
 import { LEVELS } from '../world/levels/index.ts';
 import { PEDAL } from '../input.js';
-import { ROWS as TUNE_ROWS } from '../tune.js';
-import { MARGIN, BTN_H, DIAGRAM_H } from './widgets.js';
-import { trackTempShown } from './tracktemp.js';
+import { ROWS as TUNE_ROWS } from '../tune.ts';
+import { MARGIN, BTN_H, DIAGRAM_H } from './widgets.ts';
+import { trackTempShown } from './tracktemp.ts';
 
 /**
  * Tune panel geometry: the panel, its rows, the reset footer and the tyre HUD switch.
@@ -87,7 +87,7 @@ function layoutCornerPanels(state, width, btnY, narrow) {
   // at 360 px). FPS (test mode, requirement: in the corner always): a slim strip right under the
   // lap / distance panel, top right; the narrow-screen cone tally moves down under it
   const belowLap = lap.h ? lap.y + lap.h + 4 : lap.y;
-  // the track temperature gauge (?hudunits=1, hud/tracktemp.js): on a narrow (portrait) screen
+  // the track temperature gauge (?hudunits=1, hud/tracktemp.ts): on a narrow (portrait) screen
   // between the lap panel and FPS; wide, beside the lap panel (a landscape phone's column has no
   // room above the ABS / TCS chips)
   const gaugeH = trackTempShown() ? 18 : 0, inColumn = narrow && gaugeH > 0;

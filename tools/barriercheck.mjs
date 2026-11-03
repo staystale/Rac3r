@@ -1,6 +1,6 @@
 // barriercheck.mjs — every SOLID barrier point must be clear of the road (>= half width + 2 m from the centreline) and off every
 // lane; lanes must not cross the road except where they join it. node tools/barriercheck.mjs [level]. Built 2026-10-04 (Thruston pits).
-import * as L from '../src/lab.js';
+import * as L from '../src/lab.ts';
 const lv = process.argv[2] || 'thruston';
 L.setLevel(lv);
 const st = L.LEVEL.subtrack, hw = st.width / 2;

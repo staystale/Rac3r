@@ -4,7 +4,7 @@
 // holding back: wheelspin / slide feel), understeer lift, oversteer catch, braking.
 // node tools/aislow.mjs [level] [car] [diff]
 import { makeCar, step, reset, PHYSICS_STEP_SECONDS } from '../src/vehicle.ts';
-import * as L from '../src/lab.js';
+import * as L from '../src/lab.ts';
 const { createAIDriver } = await import(process.env.AINEXT ? '../src/ai/circuit.next.js' : '../src/ai/circuit.ts'), { aiTraits } = await import('../src/ai/traits.ts'), { racingLine } = await import('../src/ai/line.ts');
 const [lv = 'slidden-hill', carId = 'rally-4x4', d = '4'] = process.argv.slice(2);
 for (const k of ['LF', 'LW']) if (process.env[k] != null) globalThis['__' + k] = +process.env[k];

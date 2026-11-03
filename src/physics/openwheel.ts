@@ -2,7 +2,7 @@
 // F1 / F2 body box is 1.30 m wide, the wheels 2.17 m across - and every collision tested only the
 // box, so other cars, walls, armco, posts, trees and cones went through the wheels. Here each
 // EXPOSED wheel (outside the box by more than EXPOSED_BY) is a small box of its own, tyre sized:
-//  - against another car's body or wheels (contact.js carContacts -> wheelContacts), pushed at
+//  - against another car's body or wheels (contact.ts carContacts -> wheelContacts), pushed at
 //    the wheel so a wheel tap turns the car; wheel against wheel is a HARD KICK (owner: rubber
 //    on rubber, the wheels turning against each other - bouncier, with a spin);
 //  - against walls / armco (world/barriers.ts: its outer edge, corner by corner), posts, trees,
@@ -15,8 +15,8 @@ import { CORNER_OF_WHEEL } from '../world/wheels.ts';
 
 // a tyre's radius (its box's half length), m; a wheel this far past the body box is exposed, m
 const WHEEL_R = 0.33, EXPOSED_BY = 0.1;
-// the bounce of a wheel on a car body (contact.js CAR_E) and of wheel on wheel (the kick), and the
-// extra spin of the kick (x its impulse's own); the side scrub (contact.js CAR_SCRAPE)
+// the bounce of a wheel on a car body (contact.ts CAR_E) and of wheel on wheel (the kick), and the
+// extra spin of the kick (x its impulse's own); the side scrub (contact.ts CAR_SCRAPE)
 const WHEEL_BODY_E = 0.25, WHEEL_WHEEL_E = 0.6, KICK_SPIN = 1.5, WHEEL_SCRAPE = 0.12;
 // ripped off: a chance from RIP_FROM m/s into the wheel (40 km/h), RIP_P0 there, rising to every
 // time RIP_SPAN m/s further (80 km/h)
@@ -191,7 +191,7 @@ const bodyBox: Box = { x: 0, y: 0, hl: 0, hw: 0, cos: 1, sin: 0 };
 const sat = { best: 0, nx: 0, ny: 0 };
 
 /**
- * A car's body box, as contact.js tests it, into out.
+ * A car's body box, as contact.ts tests it, into out.
  * @param car the car
  * @param out the box to fill
  * @returns out
@@ -237,7 +237,7 @@ function overlapBoxes(first: Box, second: Box): boolean {
 }
 
 /**
- * Pushes two overlapping cars apart and bounces them at the boxes' meeting point (contact.js's
+ * Pushes two overlapping cars apart and bounces them at the boxes' meeting point (contact.ts's
  * response, at the wheel instead of half way between the centres).
  * @param first the first car
  * @param firstBox its box that touched
@@ -317,7 +317,7 @@ function wheelsInto(owner: WheelCar, other: WheelCar, otherWheels: boolean): boo
 }
 
 /**
- * Two cars' exposed wheels (contact.js carContacts, after their bodies): each one's wheels
+ * Two cars' exposed wheels (contact.ts carContacts, after their bodies): each one's wheels
  * against the other's body and wheels.
  * @param first a car
  * @param second another

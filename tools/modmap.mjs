@@ -1,4 +1,4 @@
-// node tools/modmap.mjs src/lab.js [--out file]
+// node tools/modmap.mjs src/lab.ts [--out file]
 // Survey of one ES module, to plan splitting it: top-level items, mutable (live-binding) exports, who imports what,
 // the internal call graph and the level data. Report only; changes nothing.
 // Limits: scope handling is by declared names in enclosing functions/blocks (good enough for a survey); a
@@ -11,7 +11,7 @@ import * as walk from 'acorn-walk';
 const args = process.argv.slice(2);
 const oi = args.indexOf('--out');
 const outFile = oi >= 0 ? args[oi + 1] : null;
-const target = resolve(args.find((a, i) => !a.startsWith('--') && i !== oi + 1) || 'src/lab.js');
+const target = resolve(args.find((a, i) => !a.startsWith('--') && i !== oi + 1) || 'src/lab.ts');
 const LEVEL_IDS = ['lab', 'test-track', 'knobhill', 'brands-snatch', 'brands-snatch-indy', 'sweaty-lamb', 'killder', 'slidden-hill',
   'castle-cum', 'thruston', 'grass-track', 'stock-car', 'naffcar', 'sandbox'];
 const OPTS = { ecmaVersion: 'latest', sourceType: 'module', locations: true };

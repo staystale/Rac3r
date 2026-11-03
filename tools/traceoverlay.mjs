@@ -3,7 +3,7 @@
 // 0.47 480 338 — game (0,0) = map centre.) Built 2026-10-04 for the Thruston re-lay.
 import { startServer, launchBrowser } from './lib/browser.mjs';
 import fs from 'fs';
-import * as L from '../src/lab.js';
+import * as L from '../src/lab.ts';
 const srv = await startServer();
 process.on('exit', srv.stop);
 const [lv = 'thruston', map = 'art/ref/thruxton-map.png', mpp = '0.47', cx = '480', cy = '338'] = process.argv.slice(2);

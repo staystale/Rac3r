@@ -4,7 +4,7 @@
 import fs from 'fs';
 import { makeCar, step, reset, PHYSICS_STEP_SECONDS } from '../src/vehicle.ts';
 import { CAR_IDS } from '../src/cars.ts';
-import { SURFACES } from '../src/lab.js';
+import { SURFACES } from '../src/lab.ts';
 const out = {};
 for (const id of CAR_IDS) {
   const s = makeCar(id).spec;

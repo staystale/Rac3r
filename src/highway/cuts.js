@@ -2,12 +2,12 @@
 // secret side road, approaches, river covers). Split out of highway.js.
 import { SURFACES } from "../world/surfaces.ts";
 import { adoptRoadCovers } from "../world/puddles.ts";
-import { STEP } from "./presets.js";
+import { STEP } from "./presets.ts";
 import { ease } from "./road.js";
 import { clearFields } from "./fields.js";
 // ---- SLIP ROADS, BRIDGES, CHEEKY EXTRAS. Each is ONE prop (render.ts draws it, physics reads it):
 // no new system. OFF-SLIP (kind 'slip'): leaves the LEFT edge (the hard shoulder side) at SLIP_DEG,
-// a tapering lane 5 m wide, SLIP_LEN m long, ending in a field gate; its surface is tarmac (lab.js
+// a tapering lane 5 m wide, SLIP_LEN m long, ending in a field gate; its surface is tarmac (lab.ts
 // zoneAt reads lv.lanes - the existing pit-lane ribbons), a SLIP sign + a countdown board (3 / 2 /
 // 1 bars) before it. Driving up it is off the motorway (the guard's OFF countdown applies, by
 // design: it goes nowhere). BRIDGES (kind 'bridge'): drawn OVER everything (render.ts OVERHEAD),
@@ -31,7 +31,7 @@ import { clearFields } from "./fields.js";
 // their markings and the MOVING cars / walkers / trains (wall clock, no physics).
 // - a RIVER (river) is a real 'wet' COVER (the same water as every puddle: grip, spray, drawn
 // into the ground tiles) with dirt banks (zones), cut out where the motorway crosses on its
-// parapets (cover.cut: lab.js coverAt + render.ts coverCells), APP_LEN m each side.
+// parapets (cover.cut: lab.ts coverAt + render.ts coverCells), APP_LEN m each side.
 // - anything long that leaves the road (approach, river, long slip) is CUT SHORT
 // where the road later swings back across it (cuts).
 // - the WALLED preset gets them too: a gap in the left wall / armco where a slip leaves or the side
@@ -203,7 +203,7 @@ export function approaches(level, bridge, dist) {
 }
 // a RIVER under the motorway: per side, one water cover + two dirt bank strips, from just inside
 // the parapet to APP_LEN m beyond it. The cover's `cut` removes the part under the motorway exactly
-// (lab.js coverAt + render.ts coverCells): in the river's frame the road edges are u = v tan(skew)
+// (lab.ts coverAt + render.ts coverCells): in the river's frame the road edges are u = v tan(skew)
 // +- e.
 export function river(level, bridge, dist) {
   const state = level._hw,

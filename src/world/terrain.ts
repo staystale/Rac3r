@@ -1,5 +1,5 @@
 // terrain.js - the BUMPS, JUMPS AND KERBS and TERRAIN SHAPES sections. Moved verbatim out of
-// lab.js.
+// lab.ts.
 import { addToGrid, cellAt } from "../core/cellgrid.ts";
 import { KERB_RIDGE, KERB_RIDGE_L } from "./bounds.ts";
 import { LEVEL } from "./state.ts";

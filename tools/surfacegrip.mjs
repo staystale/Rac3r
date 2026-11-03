@@ -3,7 +3,7 @@
 // mu(reference). User (2026-10-04): "AI still slow down on transition change, and drive slow on slippy surfaces".
 // node tools/surfacegrip.mjs [cars] [beta rad]
 import { makeCar, step, reset, PHYSICS_STEP_SECONDS } from '../src/vehicle.ts';
-import { SURFACES } from '../src/lab.js';
+import { SURFACES } from '../src/lab.ts';
 const cars = (process.argv[2] || 'hatch-rwd,rally-4x4,track-rwd').split(','), BETA = +(process.argv[3] || 0.2);
 const surfs = ['racetarmac', 'tarmac', 'concrete', 'wet', 'gravel', 'dirt', 'sand', 'mud', 'grass', 'snow'];
 function grip(id, S, v0 = 16.7) {

@@ -1,5 +1,5 @@
 // barriers.ts - the BARRIERS section (barriers, solid props, clamps). Moved verbatim out of
-// lab.js.
+// lab.ts.
 import { LEVEL } from "./state.ts";
 import { activeLamps, resetLamps, type Lamp } from "./lamps.ts";
 import { driveOverPost, hitLamp } from "./lampdamage.ts";

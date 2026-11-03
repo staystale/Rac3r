@@ -1,6 +1,6 @@
 // highway litter: the roadside debris, verge litter, tyre stacks, cone tapers and loose objects.
 // Split out of highway.js.
-import { STEP } from "./presets.js";
+import { STEP } from "./presets.ts";
 // the roadside debris mix (weights by repetition: pallets / boxes / tarps are what really ends up
 // on a hard shoulder) + paint for bins, barrels, bumpers, tarps
 const DEBRIS_PICK = [

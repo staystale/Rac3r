@@ -1,7 +1,7 @@
 // highway road: the centre-line generator (elements, curvature, growTo) and the readers of it
 // (locate, roadFrame, roadPose, roadSpan). Split out of highway.js.
-import { STEP, UP_HEADING, K_RATE, wrap } from "./presets.js";
-// lateral offsets from the centreline: - = the driver's LEFT (the -normal side; lab.js normals
+import { STEP, UP_HEADING, K_RATE, wrap } from "./presets.ts";
+// lateral offsets from the centreline: - = the driver's LEFT (the -normal side; lab.ts normals
 // point to the driver's right)
 export function laneGeo(cfg) {
   const width = cfg.shoulder + cfg.lanes * cfg.laneW + cfg.edge,

@@ -4,7 +4,7 @@
 // (a spin starts ~0.25 rad), worst distance past the line limits, and the speed kept. Tuning via env (HWT='{"aLat":0.3,...}').
 // node tools/weavecheck.mjs [diff]
 import { makeCar, step, reset, PHYSICS_STEP_SECONDS } from '../src/vehicle.ts';
-import * as L from '../src/lab.js';
+import * as L from '../src/lab.ts';
 import * as H from '../src/highway.js';
 import { aiTraits } from '../src/ai/traits.ts';
 import { createAIDriver } from '../src/ai/circuit.ts';

@@ -1,4 +1,4 @@
-// thumbcache.js — THE SAVED THUMBNAILS: the menu's track thumbnails kept
+// thumbcache.ts — THE SAVED THUMBNAILS: the menu's track thumbnails kept
 // on the device per game version, so a load paints them only the first time a version runs.
 // MEASURED: painting all 18 at load took ~0.65 s on the laptop (~0.3 s on the owner's phone),
 // most of the start-up after the bundle. The version is the bundle's fingerprint of every source
@@ -9,15 +9,15 @@ const DB_NAME = 'rac3r-thumbs', STORE = 'thumbs';
 const SAVED_KEY = 'rac3r.thumbs.build';   // localStorage: the version whose thumbnails are saved
 
 /** This game version's fingerprint, or null (modules loaded one by one: no version known). */
-export const BUILD_ID = typeof globalThis.__RAC3R_BUILD__ === 'string'
-  ? globalThis.__RAC3R_BUILD__ : null;
+const built = (globalThis as { __RAC3R_BUILD__?: unknown }).__RAC3R_BUILD__;
+export const BUILD_ID = typeof built === 'string' ? built : null;
 
 /**
  * Whether this version's thumbnails are saved on the device (a quick check at load).
- * @param {string} build the version
- * @returns {boolean} saved
+ * @param build the version
+ * @returns saved
  */
-export function hasSavedThumbs(build) {
+export function hasSavedThumbs(build: string): boolean {
   try {
     return localStorage.getItem(SAVED_KEY) === build;
   } catch {
@@ -27,9 +27,9 @@ export function hasSavedThumbs(build) {
 
 /**
  * Opens the thumbnail database.
- * @returns {Promise<IDBDatabase>} the database
+ * @returns the database
  */
-function openThumbDb() {
+function openThumbDb(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, 1);
     request.onupgradeneeded = () => request.result.createObjectStore(STORE);
@@ -40,17 +40,17 @@ function openThumbDb() {
 
 /**
  * Every saved thumbnail as [level id, PNG blob].
- * @param {IDBDatabase} database the database
- * @returns {Promise<Array<[string, Blob]>>} the entries
+ * @param database the database
+ * @returns the entries
  */
-function readEntries(database) {
+function readEntries(database: IDBDatabase): Promise<[string, Blob][]> {
   return new Promise((resolve, reject) => {
-    const entries = [];
+    const entries: [string, Blob][] = [];
     const request = database.transaction(STORE, 'readonly').objectStore(STORE).openCursor();
     request.onsuccess = () => {
       const cursor = request.result;
       if (!cursor) { resolve(entries); return; }
-      entries.push([String(cursor.key), cursor.value]);
+      entries.push([String(cursor.key), cursor.value as Blob]);
       cursor.continue();
     };
     request.onerror = () => reject(request.error);
@@ -59,19 +59,19 @@ function readEntries(database) {
 
 /**
  * Reads the saved thumbnails back into canvases (decoded off the main thread).
- * @returns {Promise<Record<string, HTMLCanvasElement>>} level id -> thumbnail
+ * @returns level id -> thumbnail
  */
-export async function readThumbs() {
+export async function readThumbs(): Promise<Record<string, HTMLCanvasElement>> {
   const database = await openThumbDb();
   const entries = await readEntries(database);
   database.close();
-  const thumbs = {};
+  const thumbs: Record<string, HTMLCanvasElement> = {};
   await Promise.all(entries.map(async ([levelId, blob]) => {
     const bitmap = await createImageBitmap(blob, { colorSpaceConversion: 'none' });
     const canvas = document.createElement('canvas');
     canvas.width = bitmap.width;
     canvas.height = bitmap.height;
-    canvas.getContext('2d').drawImage(bitmap, 0, 0);
+    canvas.getContext('2d')!.drawImage(bitmap, 0, 0);
     bitmap.close();
     thumbs[levelId] = canvas;
   }));
@@ -80,20 +80,22 @@ export async function readThumbs() {
 
 /**
  * Saves the thumbnails for a version (replacing any older version's), then marks it saved.
- * @param {string} build the version
- * @param {Record<string, HTMLCanvasElement>} thumbs level id -> thumbnail
- * @returns {Promise<void>} resolves when saved
+ * @param build the version
+ * @param thumbs level id -> thumbnail
+ * @returns resolves when saved
  */
-export async function saveThumbs(build, thumbs) {
+export async function saveThumbs(build: string,
+  thumbs: Record<string, HTMLCanvasElement>): Promise<void> {
   const blobs = await Promise.all(Object.entries(thumbs).map(([levelId, canvas]) =>
-    new Promise((resolve) => canvas.toBlob((blob) => resolve([levelId, blob]), 'image/png'))));
+    new Promise<[string, Blob | null]>((resolve) =>
+      canvas.toBlob((blob) => resolve([levelId, blob]), 'image/png'))));
   const database = await openThumbDb();
-  await new Promise((resolve, reject) => {
+  await new Promise<void>((resolve, reject) => {
     const transaction = database.transaction(STORE, 'readwrite');
     const store = transaction.objectStore(STORE);
     store.clear();
     for (const [levelId, blob] of blobs) if (blob) store.put(blob, levelId);
-    transaction.oncomplete = resolve;
+    transaction.oncomplete = () => resolve();
     transaction.onerror = () => reject(transaction.error);
   });
   database.close();

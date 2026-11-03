@@ -16,9 +16,9 @@ import { shared, game } from './state.js';
 import {
   minimapSetting, setMinimapSetting, progressSetting, setProgressSetting,
 } from '../hud/minimap.js';
-import { setTrackTempSetting, trackTempSetting } from '../hud/tracktemp.js';
-import { BUILD_ID, hasSavedThumbs, readThumbs, saveThumbs } from '../menu/thumbcache.js';
-import { loadProfile } from '../menu/profile.js';
+import { setTrackTempSetting, trackTempSetting } from '../hud/tracktemp.ts';
+import { BUILD_ID, hasSavedThumbs, readThumbs, saveThumbs } from '../menu/thumbcache.ts';
+import { loadProfile } from '../menu/profile.ts';
 
 /**
  * Works out whether the minimap, the progress bar and the track gauge show (the pause settings
@@ -199,8 +199,8 @@ export function openPause() {
       shared.paused = false;
       shared.guide.openRules(kind);
     } : null,
-    tests: game.testMode,   // the TESTING list (src/testlist.js) in the pause menu, test mode only
-    audio: shared.audio,                  // the SOUND slider + MUTE (menu.js pause)
+    tests: game.testMode,   // the TESTING list (src/testlist.ts) in the pause menu, test mode only
+    audio: shared.audio,                  // the SOUND slider + MUTE (menu.ts pause)
     hud: hudActions(),   // the HUD list (each piece on / off for this difficulty mode)
     exit: () => {
       shared.paused = false;
@@ -253,7 +253,7 @@ export function prepareThumbs() {
   paintThumbs();
   setTimeout(() => saveThumbs(build, thumbs).catch(() => {}), THUMB_SAVE_MS);
 }
-// RESULTS: 1.6 s after the race ends (the flag sweep), the podium then the table (menu.js results)
+// RESULTS: 1.6 s after the race ends (the flag sweep), the podium then the table (menu.ts results)
 export function stepResults() {
   const flow = game.flow;
   if (!flow || flow.state !== 'done' || game.flowShown || !shared.menu

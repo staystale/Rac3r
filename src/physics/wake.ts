@@ -1,5 +1,5 @@
 // physics/wake.ts - THE WAKE (towplus, passed 11-02; owner: "you can do 1-4 behind a single
-// switch": the slipstream ideas). Replaced contact.js slipstream (AI stage 3) and keeps its tow:
+// switch": the slipstream ideas). Replaced contact.ts slipstream (AI stage 3) and keeps its tow:
 // a car in another's wake loses up to DRAFT_MAX of its drag, most right behind.
 //   1 DIRTY AIR  the follower's wings lose up to DIRTY_MAX of their downforce in the wake, so a
 //                single-seater (big downforce) loses front and rear grip close behind; a road car

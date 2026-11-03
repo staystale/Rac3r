@@ -2,7 +2,7 @@
 // Pure moves out of hud.js.
 
 import { COL } from '../world/colours.ts';
-import { MARGIN, drawHudPanel, drawHudLabel } from './widgets.js';
+import { MARGIN, drawHudPanel, drawHudLabel } from './widgets.ts';
 
 /**
  * Bottom-right: pedals (touch only), the thumb stick, and the keyboard hint.

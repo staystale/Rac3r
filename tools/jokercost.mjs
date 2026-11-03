@@ -1,7 +1,7 @@
 // jokercost.mjs — how much time does the JOKER cost? Laps the autodriver on the normal lap and on the same lap with the branch ->
 // rejoin stretch swapped for the joker lane, per car. Real RX jokers cost ~1-2 s. node tools/jokercost.mjs [level]
 import { makeCar, step, reset, PHYSICS_STEP_SECONDS } from '../src/vehicle.ts';
-import * as L from '../src/lab.js';
+import * as L from '../src/lab.ts';
 import { createAutoDriver } from '../src/ai/autodrive.ts';
 const lv = process.argv[2] || 'slidden-hill';
 L.setLevel(lv);

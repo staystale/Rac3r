@@ -1,7 +1,7 @@
 // highway dress: the per-window dressing (trees, gantries, armco, walls, litter) and the
 // NOX / NOF node-tool switches. Split out of highway.js.
 import { envValue } from "../core/debug.ts";
-import { STEP, SIGNS } from "./presets.js";
+import { STEP, SIGNS } from "./presets.ts";
 import { stateOf } from "./road.js";
 import { blocked, cutBy, sideStep, sideFlush, syncCovers, SLIP_W, cutSkips } from "./cuts.js";
 import { fields } from "./fields.js";

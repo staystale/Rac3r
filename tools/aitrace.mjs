@@ -1,7 +1,7 @@
 // aitrace.mjs — one racing-AI run traced (debugging aidriver.js): every 0.5 s the lap distance, speed vs target, line radius / offset,
 // distance from the line and from the centreline. node tools/aitrace.mjs <level> <car> <diff 0-4> [seconds]
 import { makeCar, step, reset, PHYSICS_STEP_SECONDS } from '../src/vehicle.ts';
-import * as L from '../src/lab.js';
+import * as L from '../src/lab.ts';
 import { createAIDriver } from '../src/ai/circuit.ts';
 import { aiTraits } from '../src/ai/traits.ts';
 const [lv = 'naffcar', carId = 'hatch-rwd', d = '4', secs = '60'] = process.argv.slice(2);

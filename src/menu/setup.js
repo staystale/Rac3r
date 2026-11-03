@@ -1,9 +1,9 @@
 import { THEMES } from '../stagegen.js';
-import { saveProfile } from './profile.js';
-import { addPane, addButton, addElement } from './widgets.js';
+import { saveProfile } from './profile.ts';
+import { addPane, addButton, addElement } from './widgets.ts';
 import { KIND, catOf, showTrackList, addGenRows } from './tracks.js';
 import { showCarPicker } from './garage.js';
-import { hideMenu } from '../menu.js';
+import { hideMenu } from '../menu.ts';
 import { buildLevel } from '../world/load.ts';
 import { SEASON_NAMES, seasonForecast } from '../world/weather.ts';
 import { CLOCK, clockLine } from '../world/clock.ts';

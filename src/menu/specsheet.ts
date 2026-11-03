@@ -4,7 +4,7 @@
 // measured results (top speed, 0-100, braking, grip) stay on the garage's own panel.
 import { spec, type Spec } from '../cars.ts';
 import { torqueAt, STEER_MAX, AIR_DENSITY } from '../vehicle.ts';
-import { addPane, addButton, addElement } from './widgets.js';
+import { addPane, addButton, addElement } from './widgets.ts';
 
 interface Menu { root: HTMLElement; openedAt: number }
 const HP_PER_W = 1 / 745.7, KMH_PER_MS = 3.6;

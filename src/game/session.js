@@ -16,7 +16,7 @@ import { jokerLane, lanePose } from "../world/joker.ts";
 import { resetCar, armStart, startHeld, startAtOf } from './order.js';
 import { gridPos, spawnAI } from './grid.js';
 import { shared, game } from './state.js';
-import { saveProfile } from '../menu/profile.js';
+import { saveProfile } from '../menu/profile.ts';
 
 /**
  * Updates the furthest point reached along the circuit, from the car's nearest track point.

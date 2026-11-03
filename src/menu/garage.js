@@ -5,8 +5,8 @@ import {
   ROSTER, CLASSES, classOf, PALETTE, TYRES, TYRE_BRANDS, TYRE_SURFS, tyreOf,
 } from '../cars.ts';
 import { CAR_STATS } from '../carstats.js';
-import { saveProfile } from './profile.js';
-import { addPane, addButton, addElement, drawLift } from './widgets.js';
+import { saveProfile } from './profile.ts';
+import { addPane, addButton, addElement, drawLift } from './widgets.ts';
 import { showMainMenu } from './tracks.js';
 
 /**

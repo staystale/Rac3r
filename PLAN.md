@@ -29,7 +29,7 @@ are cute realistic detailed and clear"*. Seven gaps in the spec above, each one 
 be unpicked later rather than decided now. **These override the sections below where they collide.**
 
 **A1 — ART DIRECTION CHANGED: no low-res pixel buffer.** `BRIEF.md` §1 asks for "retro 2D pixel art (crisp
-nearest-neighbour scaling)" and the Step 0 / `lab.js` sections below implement it as a `320×180`-ish buffer
+nearest-neighbour scaling)" and the Step 0 / `lab.ts` sections below implement it as a `320×180`-ish buffer
 upscaled by an integer. That is directly incompatible with *cute, realistic, detailed and clear*: at 844×390
 the buffer is 422×195, which makes a 4 m car about 40 px long and throws away every detail we would draw on
 it. **We render at device resolution instead** (DPR capped at 2), with cars drawn as procedural canvas art —
@@ -97,7 +97,7 @@ car sim/
     vehicle.js          THE MODEL. Knows nothing about upgrades, cones, or rendering.
     cars.js             base stats (hatch) + the default mods table
     marks.js            world-space skid-mark layer + stamping rules
-    lab.js              the scene: floor extents, cone layout as data, reset
+    lab.ts              the scene: floor extents, cone layout as data, reset
     render.js           low-res buffer, camera, sprites, marks blit, particles
     hud.js              speed / tacho / gear / shift light, touch overlay drawing, dev overlay
     audio.js            OPTIONAL, last (see Step 6)
@@ -236,7 +236,7 @@ world position. Per step, per wheel:
 
 ---
 
-## The lab scene (`lab.js`)
+## The lab scene (`lab.ts`)
 
 - **White floor**, a very pale cool grey (`#f2f2f4`) with a faint 5 m grid (`#e6e6ea`) so speed and drift
   angle are readable, and a subtle vignette. Marks and cones must pop against it — that is the whole point of

@@ -8,7 +8,7 @@
 import { solidsFromProps } from '../world/barriers.ts';
 import type { Level, Prop } from '../world/types.ts';
 import { blocked } from './cuts.js';
-import { STEP } from './presets.js';
+import { STEP } from './presets.ts';
 
 // the gap from one street light to the next, m (the sides alternate: each side every 68 m); the
 // circuits' start-straight spacing

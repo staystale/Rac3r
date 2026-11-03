@@ -3,7 +3,7 @@
 
 import { LEVEL } from '../world/state.ts';
 import { COL } from '../world/colours.ts';
-import { fmtTime, drawHudPanel, drawHudLabel } from './widgets.js';
+import { fmtTime, drawHudPanel, drawHudLabel } from './widgets.ts';
 
 /**
  * HIGHWAY TO HULL lap panel: how far you have got, and your best.
@@ -128,7 +128,7 @@ function drawHudLapJokerLive(ctx, game, race, lapRect, lapNum) {
   drawHudLabel(ctx, fmtTime(race.t), lapRect.x + lapRect.w - 8, lapRect.y + 13,
     { size: 11, weight: 600, align: 'right', col: COL.hudText });
   // approaching the joker turn-off without it done: the line FLASHES "JOKER >" (the
-  // approach arrow's distance, lab.js jokerApproach)
+  // approach arrow's distance, lab.ts jokerApproach)
   const near = jokerIsNear(game, race);
   const flash = near && Math.floor(performance.now() / 250) % 2 === 0;
   // the line switches as it happens: TO DO -> ››› (approaching) -> IN JOKER (on the lane)

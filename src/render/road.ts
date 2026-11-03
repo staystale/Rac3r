@@ -47,8 +47,8 @@ interface WorldBox {
 }
 
 // ---------------------------------------------------------------- lanes (pit lanes, access
-// roads) — lab.js laneAt Drawn PIECE BY PIECE — each segment's rectangle plus a disc at every
-// point — which is exactly the set lab.js laneAt calls lane (distance to the polyline <= half
+// roads) — lab.ts laneAt Drawn PIECE BY PIECE — each segment's rectangle plus a disc at every
+// point — which is exactly the set lab.ts laneAt calls lane (distance to the polyline <= half
 // width). The first cut (one polygon, averaged normals) pinched at taxiway corners and so
 // disagreed with the physics there. The pattern is world-anchored, so pieces join without a seam.
 
@@ -141,7 +141,7 @@ function drawLanes(ctx: RoadCtx) {
 
 /**
  * The surface id at a distance along the track; 'ghost' on a point-to-point stage's invisible
- * return segment (lab.js ghostSegment): never drawn.
+ * return segment (lab.ts ghostSegment): never drawn.
  * @param sub the subtrack
  * @param dist the distance along the track
  * @returns the surface id
@@ -581,7 +581,7 @@ function drawArrows(ctx: RoadCtx, game: RoadGame, wallT?: number) {
 /**
  * `forSide(i, fn)` hands fn a frame where +v points OUTWARD from the floor and u runs along the
  * edge, which is what removes the four near-identical copies the old version had. The floor is a
- * RECTANGLE (lab.js FX0..FX1 x FY0..FY1). The frame is centred on it, and fn gets (p, D, Lh):
+ * RECTANGLE (lab.ts FX0..FX1 x FY0..FY1). The frame is centred on it, and fn gets (p, D, Lh):
  * D = the floor edge's distance from the centre on this side, Lh = half the edge's length (both
  * FLOOR on a square). Inside fn the CAMERA is moved into the side's frame (and the view made
  * square), so speckle's view culling - which compares with cam - culls in the frame it draws in.

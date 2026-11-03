@@ -384,7 +384,7 @@ function stampWheel(markCtx, wheel) {
     return;
   }
   // A LOOSE SURFACE MARKS WHETHER YOU SLIP OR NOT — a rolling wheel still cuts a rut through
-  // gravel. `w.mark` comes off the surface itself (lab.js), so this file has no idea what
+  // gravel. `w.mark` comes off the surface itself (lab.ts), so this file has no idea what
   // gravel is; a surface without one behaves exactly as before, which is the rule-6 no-op
   // default.
   const loose = wheel.mark;

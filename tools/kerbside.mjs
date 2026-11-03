@@ -1,7 +1,7 @@
 // kerbside.mjs — for every curved kerb on a level: is it on the INSIDE (apex) or OUTSIDE of its corner, and where is the road
 // tighter than half its width (the ribbon folds)? node tools/kerbside.mjs <level>. Built 2026-10-03 (Thruston kerbs "look broken").
 // for each curved kerb: is it on the INSIDE (apex) or the OUTSIDE of its corner? And where does the ribbon fold (R < half width)?
-import * as L from '../src/lab.js';
+import * as L from '../src/lab.ts';
 const lv = process.argv[2] || 'thruston';
 L.setLevel(lv);
 const st = L.LEVEL.subtrack, pts = st.pts, n = pts.length, hw = st.width / 2;

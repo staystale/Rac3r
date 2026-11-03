@@ -1,12 +1,12 @@
 // highway fields: SCENERY v2, the farm fields, hedges and villages laid along the road.
 // Split out of highway.js.
 import { SURFACES } from "../world/surfaces.ts";
-import { STEP } from "./presets.js";
+import { STEP } from "./presets.ts";
 import { keepOut } from "./cuts.js";
 import { addFieldHedges, dropFieldHedges } from "./hedges.ts";
 // ---- SCENERY v2 (requirement: i thought we were going to vary sceneary along side the road more
 // like farms or long grass hedges and small towns); "yeah scenery too please"). In the FARM
-// stretches: a PATCHWORK of FIELDS each side - rotated zones (lab.js zoneAt / render.ts drawZones,
+// stretches: a PATCHWORK of FIELDS each side - rotated zones (lab.ts zoneAt / render.ts drawZones,
 // so what you see is what you drive on): WHEAT and RAPESEED (drive as long grass, drawn as crops:
 // zone.art), MEADOW (long grass), PASTURE (grass, sheep / cows), PLOUGHED (dirt, furrows), now and
 // then a FARMYARD (gravel, barns, bales). Each is ringed by a LONG GRASS border (HEDGE_W m, a zone

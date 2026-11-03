@@ -127,7 +127,7 @@ function paintFloorGrid(groundCtx: GroundCtx) {
 // construction what you drive on, with no second copy of the layout to drift out of step. (That
 // drift is exactly the bug that cost me an afternoon in the ground sampling earlier today.)
 //
-// Drawn back to front, so the first-hit-wins order in lab.js is honoured visually too: a panel
+// Drawn back to front, so the first-hit-wins order in lab.ts is honoured visually too: a panel
 // laid ON a quadrant is listed first and must therefore be painted LAST.
 
 /**
@@ -197,7 +197,7 @@ function paintRoundedZone(groundCtx: GroundCtx, zone: Zone, art: SurfaceArt) {
   // Outer asphalt perimeter apron
   view.ctx.fillStyle = COL.tarmac;
   view.ctx.beginPath();
-  // the apron is PHYSICAL tarmac (lab.js PAD_APRON, zoneAt) — change the two together
+  // the apron is PHYSICAL tarmac (lab.ts PAD_APRON, zoneAt) — change the two together
   roundRect(
     view.ctx, toScreenX(left - 1.2), toScreenY(top - 1.2),
     (zone.w + 2.4) * ppm, (zone.h + 2.4) * ppm, rad + 1.2 * ppm
@@ -433,7 +433,7 @@ function zonePatches(groundCtx: GroundCtx, zone: Zone, list: GroundPatch[], coun
   if (!art || !isZoneOnScreen(groundCtx, zone, PATCH_MARGIN_M * groundCtx.PPMz())) return count;
   const radius = zone.rounded ? Math.min(5, zone.w * 0.15) : 0;
   if (zone.rounded) {
-    // the apron is PHYSICAL tarmac (lab.js PAD_APRON, zoneAt): change the two together
+    // the apron is PHYSICAL tarmac (lab.ts PAD_APRON, zoneAt): change the two together
     Object.assign(nextPatch(list, count++), {
       x: zone.x, y: zone.y, w: zone.w + 2.4, h: zone.h + 2.4, radius: radius + 1.2,
       base: COL.tarmac,

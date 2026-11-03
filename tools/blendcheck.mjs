@@ -1,4 +1,4 @@
-// blendcheck.mjs — proves SURFACE BLENDING at change points (lab.js buildBlend, 2026-10-03) by measurement.
+// blendcheck.mjs — proves SURFACE BLENDING at change points (lab.ts buildBlend, 2026-10-03) by measurement.
 //
 //   node tools/blendcheck.mjs        exit code 1 on any failure
 //
@@ -7,7 +7,7 @@
 // 3. no patch ever changes a KERB (kerbs win) and none lands inside a boxed / rounded TEST PAD
 // 4. the blend is real ground: a blend patch is felt by the physics as its own surface
 // 5. the physics cost of patch lookups stays negligible with every patch in place
-import * as L from '../src/lab.js';
+import * as L from '../src/lab.ts';
 
 const fails = [];
 const check = (ok, msg) => { console.log((ok ? '  ok   ' : '  FAIL ') + msg); if (!ok) fails.push(msg); };

@@ -82,7 +82,7 @@ export function drawPropsFence(propCtx: PropCtx) {
 }
 
 // ---------------------------------------------------------------- trackside scenery & props
-// BARRIERS (lab.js LEVEL.barriers): drawn at exactly the width the physics collides with
+// BARRIERS (lab.ts LEVEL.barriers): drawn at exactly the width the physics collides with
 // (BARRIER_HALF)
 /**
  * Traces a polyline of world points as the current canvas path (a torn armco rail's gap is left

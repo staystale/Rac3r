@@ -3,7 +3,7 @@
 // node tools/resetterraincheck.mjs
 let fails = 0;
 import { makeCar, step, reset, PHYSICS_STEP_SECONDS } from '../src/vehicle.ts';
-import * as L from '../src/lab.js';
+import * as L from '../src/lab.ts';
 for (const [lv, d] of [['sweaty-lamb', 900], ['sweaty-lamb', 100], ['slidden-hill', 742], ['castle-cum', 296], ['thruston', 600]]) {
   L.setLevel(lv); const st = L.LEVEL.subtrack, p = L.onTrack(st, d, 0, {});
   const car = makeCar('hatch-rwd'); reset(car, p.x, p.y, p.rot);

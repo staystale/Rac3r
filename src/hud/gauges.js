@@ -5,12 +5,12 @@ import { ROSTER } from '../cars.ts';
 import { LEVEL } from '../world/state.ts';
 import { COL } from '../world/colours.ts';
 import { wearColour } from '../physics/tyrewear.ts';
-import { tempInUnits } from './tracktemp.js';
+import { tempInUnits } from './tracktemp.ts';
 import { drawEngineLights } from './enginelights.ts';
 import { wheelGone } from '../world/wheels.ts';
 import {
   MARGIN, DIAGRAM_H, drawHudPanel, drawHudLabel, drawHudButton,
-} from './widgets.js';
+} from './widgets.ts';
 
 /**
  * Top-left: the car chip and, when open, the car and level dropdown.

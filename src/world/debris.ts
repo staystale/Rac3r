@@ -13,7 +13,7 @@
 // pass sweeps the cell clean and may puncture that tyre slowly (PASS: world/pass.ts).
 import { getCell, wearDirty, WEAR_CELL } from "./wear.ts";
 import { PASS } from "./pass.ts";
-import { DEBRIS } from "../cones/coneConsts.js";
+import { DEBRIS } from "../cones/coneConsts.ts";
 import type { WearCell } from "./types.ts";
 
 // a corner's hit of PART_HIT+ knocks its part off PART_P_MIN of the time, surely at

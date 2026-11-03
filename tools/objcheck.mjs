@@ -9,7 +9,7 @@
 // 4. a car into the Stock Car tyre wall now knocks more over than the car touches (debris chains)
 // 5. cost per step with a burst of moving debris
 import { makeCar, step, reset, PHYSICS_STEP_SECONDS } from '../src/vehicle.ts';
-import * as L from '../src/lab.js';
+import * as L from '../src/lab.ts';
 import { createCones } from '../src/cones.js';
 
 const fails = [];

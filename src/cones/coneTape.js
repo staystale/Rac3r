@@ -1,6 +1,6 @@
 // cones/coneTape.js: RALLY TAPE: the sections between posts snap when a car crosses them or
 // their posts are pulled apart, stick to the car as a streamer, and finally puff away.
-import { TAPE_GONE, TAPE_REHIT, TAPE_SNAP_V, TAPE_STICK } from "./coneConsts.js";
+import { TAPE_GONE, TAPE_REHIT, TAPE_SNAP_V, TAPE_STICK } from "./coneConsts.ts";
 
 /**
  * Does the segment (fromX, fromY)-(toX, toY) cross the car's box? (Liang-Barsky in the car's

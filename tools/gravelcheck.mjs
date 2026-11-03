@@ -10,7 +10,7 @@
 //   4. YOU GET STUCK — full throttle from rest in gravel must barely move the car.
 //   5. IT DOES NOT TOUCH THE TARMAC. Every number on the floor is unchanged.
 import { makeCar, step, reset, neutralInput, PHYSICS_STEP_SECONDS } from '../src/vehicle.ts';
-import { applyGround, groundAt, FLOOR, FENCE, RUNOFF_MU, SURFACE_TARMAC, LEVELS, setLevel, SURFACES } from '../src/lab.js';
+import { applyGround, groundAt, FLOOR, FENCE, RUNOFF_MU, SURFACE_TARMAC, LEVELS, setLevel, SURFACES } from '../src/lab.ts';
 // S-B (2026-10-06): the lab's south edge moved 480 m south, so the trap is measured on a BARE square lab floor (kerbcheck.mjs the same)
 { const lab = LEVELS.find((l) => l.id === 'lab');   // the old lab's quarters + its blend / inclusion patches; no extension, no bounds
   LEVELS.push({ id: 'edge-test', name: 'edge', base: SURFACES.lab, zones: lab.zones.filter((z) => !z.ext), bumps: [], paint: [], boards: [], cones: [], props: [], spawn: { x: 0, y: 0, heading: 0 }, _blend: lab._blend, _incl: lab._incl, _coversBase: lab._coversBase });

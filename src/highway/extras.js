@@ -1,7 +1,7 @@
 // highway extras: the off-slip signs, slip roads, bridges and the other cheeky extras.
 // Split out of highway.js.
 import { SURFACES } from "../world/surfaces.ts";
-import { STEP } from "./presets.js";
+import { STEP } from "./presets.ts";
 import { straightAt, ease } from "./road.js";
 import { blocked, keepOut, addCut, sideStep, approaches, river, SLIP_EVERY, BRIDGE_EVERY, SLIP_LEN,
   SLIP_DEG, SLIP_W, PIER, SLIP_LONG, SIDE_RUN } from "./cuts.js";
@@ -173,7 +173,7 @@ function buildSlip(level, i, dist, pointAt, mark) {
     type,
   });
   level.props.push(prop);
-  // the tarmac: a lane ribbon (lab.js laneAt + render.ts drawLanes, as the pit lanes), starting
+  // the tarmac: a lane ribbon (lab.ts laneAt + render.ts drawLanes, as the pit lanes), starting
   // 12 m back and 2.6 m INSIDE the edge so its round end lies under the motorway ribbon
   // (PHOTOGRAPHED: starting outside the edge left a stub in the verge)
   const lanePt = pointAt(Math.max(0, i - 3), -halfWidth + 2.6),

@@ -38,7 +38,7 @@ import { ripWheel, takeWheelHit, wheelShares, type WheelHit } from './physics/op
 // floor)^DMG_EXP, shared over the four corners by where it came from. Each corner keeps HOW it was
 // hit: crushL (end-on: shortens the car) and crushS (side-on: pushes the side in), so the sprite
 // crumples the right quarter the right way. Corners: 0 front / -y, 1 front / +y, 2 rear / -y, 3
-// rear / +y (car frame: +x forward; +y = the lateral of contact.js / render.ts; the car's RIGHT).
+// rear / +y (car frame: +x forward; +y = the lateral of contact.ts / render.ts; the car's RIGHT).
 // EFFECTS (limited): axle grip down to -20 %, power down to -15 % (front), a steering PULL toward
 // the harder-hit front, a PUNCTURE (a leak, below) from a heavy corner hit, and a WHEEL OFF from a
 // big hit on a corner already near wrecked: that axle x0.45, a hard pull, the bare corner drags

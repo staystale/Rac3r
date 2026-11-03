@@ -6,7 +6,7 @@
 // node tools/carfeel.mjs [cars]
 import { makeCar, step, reset, PHYSICS_STEP_SECONDS } from '../src/vehicle.ts';
 if (process.env.CNEXT) { const C = await import('../src/cars.next.js'), C0 = await import('../src/cars.ts'); for (const r of C.ROSTER) { const o = C0.ROSTER.find((x) => x.id === r.id); if (o) Object.assign(o, r); } }
-import { SURFACES } from '../src/lab.js';
+import { SURFACES } from '../src/lab.ts';
 const cars = (process.argv[2] || 'hatch-rwd,saloon-rwd,wrz-awd,rally-4x4').split(',');
 const warm = (c) => { c.tyreT = [85, 85, 85, 85]; };
 for (const id of cars) {

@@ -8,7 +8,7 @@ import { CONES, LEVEL } from "./world/state.ts";
 import { cornerTyres } from "./world/lampplan.ts";
 import { fileAtRest, rebuildRestGrid } from "./cones/coneGrid.js";
 import { stepCones } from "./cones/coneStep.js";
-import { CONE_R, DEBRIS, TOPPLES } from "./cones/coneConsts.js";
+import { CONE_R, DEBRIS, TOPPLES } from "./cones/coneConsts.ts";
 
 export { DEBRIS };
 

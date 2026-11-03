@@ -8,7 +8,7 @@ import { CORNER_OF_WHEEL } from '../world/wheels.ts';
 import {
   BALE_BURST_V, BALE_DRAG, BROKEN, COW_TIP_V, DEBRIS, MAX_CONE_V, RESTITUTION, SHEEP_POP_V,
   TOPPLE_V, TOPPLES, burstStack,
-} from "./coneConsts.js";
+} from "./coneConsts.ts";
 
 /**
  * Drag a tarp along a little; a tarp never collides.

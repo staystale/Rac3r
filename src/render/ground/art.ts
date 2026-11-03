@@ -6,7 +6,7 @@ import type { GroundCtx } from "./types.ts";
 import { BUSH_LOOKS } from "./bushes.ts";
 
 // HOW EACH SURFACE IS PAINTED: a base colour, then layers drawn in order. One table — a new
-// surface is a row here and a row in lab.js (SURFACES) and nothing else. Read by drawFloor,
+// surface is a row here and a row in lab.ts (SURFACES) and nothing else. Read by drawFloor,
 // drawZones, drawTrackRibbon and drawWear, so a surface looks the same wherever it appears. Each
 // surface has a SIGNATURE SHAPE so no two are told apart by colour alone:
 //   tarmac — fine light aggregate        race tarmac — smooth, dark, long rubber streaks

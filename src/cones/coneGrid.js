@@ -1,7 +1,7 @@
 // cones/coneGrid.js: the persistent grid of loose objects at rest, and the object-object
 // collisions of the ones that move (impulse along the contact normal, stack bursts, dust).
 // Every function takes the one cones context made in cones.js (createCones).
-import { BROKEN, OBJ_REST, STACK_BURST_V, TOPPLE_V, TOPPLES, burstStack } from "./coneConsts.js";
+import { BROKEN, OBJ_REST, STACK_BURST_V, TOPPLE_V, TOPPLES, burstStack } from "./coneConsts.ts";
 
 export const OBJ_CELL = 2.5;              // m; larger than any moving object's diameter
 

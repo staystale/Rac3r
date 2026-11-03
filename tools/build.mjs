@@ -18,7 +18,7 @@ await build({
   minify: true,
   sourcemap: true,
   target: "es2022",
-  // the version fingerprint: the saved menu thumbnails are per version (src/menu/thumbcache.js)
+  // the version fingerprint: the saved menu thumbnails are per version (src/menu/thumbcache.ts)
   define: { "globalThis.__RAC3R_BUILD__": JSON.stringify(await sourceHash(root)) },
 });
 const html = await readFile(join(root, "index.html"), "utf8");

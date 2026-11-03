@@ -9,7 +9,7 @@
 // HOW: the road is generated AHEAD of you and dropped BEHIND, in a WINDOW (AHEAD 1100 / BEHIND 450
 // m — both far past the edge of the view, which is at most ~170 m tall). Every time the window
 // moves the road's subtrack is rebuilt from the window's points, its loop closed by ONE ghost
-// segment (lab.js ghostSegment: never drawn, never road). Distances in the rebuilt subtrack are
+// segment (lab.ts ghostSegment: never drawn, never road). Distances in the rebuilt subtrack are
 // relative to the window start: stepHighway returns how far that start moved, and main.js shifts
 // what it remembers (the reset point) by it.
 // UP THE SCREEN: the heading never strays more than cfg.maxDeg from straight UP (-y), so the road
@@ -30,11 +30,11 @@ import { onTrack } from "./world/tyrewall.ts";
 import { zoneSurfaceAt, pruneWear } from "./world/wear.ts";
 import { seedFieldBlocks } from "./world/levelmud.ts";
 import { HW_PRESETS, HW_NAMES, STEP, AHEAD, BEHIND, SPAWN_S, UP_HEADING, rng }
-  from "./highway/presets.js";
+  from "./highway/presets.ts";
 import { laneGeo, stateOf, growTo, locate, roadFrame } from "./highway/road.js";
 import { syncCovers, SIDE_W_HALF } from "./highway/cuts.js";
 import { dress } from "./highway/dress.js";
-export { HW_PRESETS, HW_NAMES } from "./highway/presets.js";
+export { HW_PRESETS, HW_NAMES } from "./highway/presets.ts";
 export { laneGeo, roadFrame, roadPose, roadSpan } from "./highway/road.js";
 // THE GUARD (requirement: go backwards should reset you): rolling BACK down the road faster than
 // BACK_V for BACK_T s, or BACK_M m behind the furthest you have got, or OFF_M m past the road edge
@@ -209,7 +209,7 @@ export function stepHighway(level, car) {
   // ?nonat=1 (judder test): a 9000-cell drop may force full GCs
   if (!settings.noNatClear) clearNaturalCache();
   level.solidsDirty = true;
-  // wear left behind, or under ground that has changed, goes (lab.js pruneWear)
+  // wear left behind, or under ground that has changed, goes (lab.ts pruneWear)
   pruneWear(car.x, car.y, BEHIND + AHEAD);
   return moved;
 }

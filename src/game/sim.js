@@ -1,7 +1,7 @@
 // sim.js — The per-step world: car physics, highway, audio and contact stepping.
 import { step, reset, assertFinite, PHYSICS_STEP_SECONDS } from '../vehicle.ts';
 import { stepHighway, highwayGuard, highwayRespawn, speedCamera } from '../highway.js';
-import { carContacts } from '../contact.js';
+import { carContacts } from '../contact.ts';
 import { hit, hitRoll, repair, applyBurst, stepDamage } from '../damage.ts';
 import { rolling, tripCheck, stepRoll } from '../roll.js';
 import { LEVEL } from "../world/state.ts";
@@ -217,7 +217,7 @@ export function stepCarPhysics(inp) {
     fenceClamp(game.car);
     obstacleClamp(game.car);
     barrierClamp(game.car);
-    solidClamp(game.car);   // trees, planes, hangars ... (lab.js solidsFromProps)
+    solidClamp(game.car);   // trees, planes, hangars ... (lab.ts solidsFromProps)
     hit(game.car, pv0x, pv0y);
     applyGround(game.car, PHYSICS_STEP_SECONDS);
     // ROLLOVER (roll.js): a rolling / overturned car has no tyres to drive on — the body

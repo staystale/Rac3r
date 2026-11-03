@@ -1,8 +1,8 @@
 // hud/overlays.js — tune panel, signal lights, notice card, speed camera card and race flag.
 // Pure moves out of hud.js.
 
-import { isChanged } from '../tune.js';
-import { drawHudPanel, drawHudLabel } from './widgets.js';
+import { isChanged } from '../tune.ts';
+import { drawHudPanel, drawHudLabel } from './widgets.ts';
 
 /**
  * Draw the TUNE panel: rows, +/- buttons, tyre HUD toggle and reset.

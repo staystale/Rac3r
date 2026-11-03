@@ -119,7 +119,7 @@ function drawLayerCalls(tcx: TilesCtx) {
     drawPatches, drawCovers, drawCurvedKerbs } = tcx.helpers;
   drawFloor();
   drawZones();
-  // UNDER the ribbon: where a lane meets the track, the track wins (lab.js zoneAt does the
+  // UNDER the ribbon: where a lane meets the track, the track wins (lab.ts zoneAt does the
   // same)
   drawLanes();
   // ENDLESS: wear UNDER the ribbon: the motorway is all tarmac (it never wears),

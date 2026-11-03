@@ -2,7 +2,7 @@
 // there, the lowest load factor (1 = normal, 0 = wheels off the ground) and seconds airborne. Built 2026-10-04 for Castle Cum's
 // Avon Rise (user: "felt — light over the top", not flying). node tools/crestcheck.mjs [level] [d0-d1,...]
 import { makeCar, step, reset, PHYSICS_STEP_SECONDS } from '../src/vehicle.ts';
-import * as L from '../src/lab.js';
+import * as L from '../src/lab.ts';
 import { createAutoDriver } from '../src/ai/autodrive.ts';
 import { CAR_IDS } from '../src/cars.ts';
 const lv = process.argv[2] || 'castle-cum';

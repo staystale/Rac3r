@@ -2,7 +2,7 @@
 // Exists because "I can't change vehicle" shipped: every harness tested logic, none tested whether a
 // thumb could actually reach the control (CLAUDE.md §3, the layout-harness lesson).
 import { startServer, launchBrowser, extraQuery, gotoGame } from './lib/browser.mjs';
-import { SPAWN } from '../src/lab.js';
+import { SPAWN } from '../src/lab.ts';
 const srv = await startServer();
 let b, b2;
 try {

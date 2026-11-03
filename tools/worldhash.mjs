@@ -9,7 +9,7 @@
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import * as L from '../src/lab.js';
+import * as L from '../src/lab.ts';
 import { addStageLevels } from '../src/stagegen.js';
 import { addHighwayLevel, resetHighway, stepHighway, roadPose } from '../src/highway.js';
 

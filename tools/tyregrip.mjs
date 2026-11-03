@@ -3,7 +3,7 @@
 // how hot the tyres get in 30 s of hard tarmac cornering (heatHard). Also proves Pre-Spun == stock (the floor, user 2026-10-04).
 // node tools/tyregrip.mjs [car] [tyre,tyre,...]
 import { makeCar, step, reset, PHYSICS_STEP_SECONDS } from '../src/vehicle.ts';
-import { SURFACES } from '../src/lab.js';
+import { SURFACES } from '../src/lab.ts';
 import { TYRES, applyTyre } from '../src/cars.ts';
 const car = process.argv[2] || 'hatch-rwd', BETA = 0.2;
 const list = process.argv[3] ? process.argv[3].split(',') : TYRES.map((t) => t.id);

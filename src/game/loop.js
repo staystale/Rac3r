@@ -13,7 +13,7 @@ import { stepStart } from './order.js';
 import { stepAI } from './ai.js';
 import { updateRecoveryTracking } from './session.js';
 import { stepResults } from './menuflow.js';
-import { takeMenuTaps } from '../menu/widgets.js';
+import { takeMenuTaps } from '../menu/widgets.ts';
 import {
   updateFpsMeter, readFrameInput, stepCarSignals, openGuideOnLanding, stepCarPhysics,
   stepEndlessHighway, updateAudio, dropBreadcrumb, stepRaceFlow, stepTrafficContacts,

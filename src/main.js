@@ -13,7 +13,7 @@ import { createInput } from './input.js';
 import { createRenderer } from './render.ts';
 import { readSettings } from './core/settings.ts';
 import { createMarks } from './marks.js';
-import { setTrackTempSource } from './hud/tracktemp.js';
+import { setTrackTempSource } from './hud/tracktemp.ts';
 import { createHud } from './hud.js';
 import {
   setMinimapSource, setMinimapView, setProgressSource,
@@ -25,13 +25,13 @@ import { createChurn } from './core/churn.ts';
 import { createCones } from './cones.js';
 import { createAudio } from './audio.js';
 import { createGuide } from './guide.js';
-import { createMenu } from './menu.js';
+import { createMenu } from './menu.ts';
 import { genStage, installStage, addStageLevels } from './stagegen.js';
 import { addHighwayLevel } from './highway.js';
 
 import { createTraffic } from './traffic.ts';
 
-import { setTuneAudio, snapshot } from './tune.js';
+import { setTuneAudio, snapshot } from './tune.ts';
 import { TUNE } from './vehicle.ts';
 import { initWorld } from "./world/load.ts";
 import {
@@ -92,7 +92,7 @@ Object.assign(game, {
   marks: createMarks(),
   fps: 0, fpsLow: 0,
   // TEST MODE (user: the test list + the FPS corner "only in test for now"). Every
-  // session is launched from TEST MODE until Story exists (menu.js main: Story is locked); ?menu=0
+  // session is launched from TEST MODE until Story exists (menu.ts main: Story is locked); ?menu=0
   // tool runs count too. When Story ships, launch sets this from its opts.
   testMode: true,
   stepsLastFrame: 0,

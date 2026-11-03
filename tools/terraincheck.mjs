@@ -2,7 +2,7 @@
 // car (user: "vector dips ... push in all 8 directions, OUT of bumps and IN to dips"), and render.ts shades it.
 // Checks the PUSH directions, the suspension zone in the Lab, the Naffcar banking, and the cost.
 import { makeCar, step, reset, PHYSICS_STEP_SECONDS } from '../src/vehicle.ts';
-import * as L from '../src/lab.js';
+import * as L from '../src/lab.ts';
 const fails = [];
 const check = (ok, msg) => { console.log(`  ${ok ? 'ok  ' : 'FAIL'} ${msg}`); if (!ok) fails.push(msg); };
 const dot = (a, b) => a[0] * b[0] + a[1] * b[1];

@@ -1,6 +1,6 @@
 // airbrake.mjs — REGRESSION TEST for "the game freezes if you brake while jumping" (fixed 2026-10-03).
 //
-// Every car drives at the lab launch ramp (lab.js LAB_BUMPS, x 120 / y -80), goes airborne, and then
+// Every car drives at the lab launch ramp (lab.ts LAB_BUMPS, x 120 / y -80), goes airborne, and then
 // does each of the things a player might do in the air: brake, handbrake, throttle, brake+steer. The
 // car's state is asserted finite EVERY step, and the car must land and still be drivable afterwards.
 //
@@ -11,7 +11,7 @@
 //   node tools/airbrake.mjs          all cars, all airborne inputs   (exit code 1 on any failure)
 
 import { makeCar, step, reset, assertFinite, PHYSICS_STEP_SECONDS } from '../src/vehicle.ts';
-import { applyGround } from '../src/lab.js';
+import { applyGround } from '../src/lab.ts';
 import { CAR_IDS } from '../src/cars.ts';
 
 const AIR_INPUTS = {

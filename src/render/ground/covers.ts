@@ -11,12 +11,12 @@ import type { GroundCtx, ViewRect } from "./types.ts";
 import { paintLayers, artBase } from "./art.ts";
 import { castBushShadow, lightBushTop, shadeBushSide } from "./bushes.ts";
 
-// COVERS — snow, ice and puddles lying ON any surface (LEVEL.covers, lab.js).
+// COVERS — snow, ice and puddles lying ON any surface (LEVEL.covers, lab.ts).
 // Static, so they are painted into the ground tiles. Snow and ice are opaque and use their own
 // SURFACE_ART; a puddle is TRANSLUCENT water over whatever is under it, so you can see it is a
 // puddle on grass, on dirt or on tarmac. When wear changes a cell under a cover (snow packed to
 // ice, ice scrubbed through), drawWear paints that cell's new state over this. A cover is drawn
-// as the 0.5 m world-grid squares whose centre is inside it (the same inside test as lab.js
+// as the 0.5 m world-grid squares whose centre is inside it (the same inside test as lab.ts
 // coverAt), cached per cover — squares, not ovals (requirement: no circles). Physics keeps the
 // exact shape; the drawn edge is within ~0.35 m of it, the same as the square blend patches.
 // `rim` = squares with an outside neighbour, filled as the edge line (stroking the squares would
@@ -37,7 +37,7 @@ function coverCells(cover: Cover): CoverCells {
   const reachX = halfW * Math.abs(cosRot) + halfH * Math.abs(sinRot) + cellSize,
     reachY = halfW * Math.abs(sinRot) + halfH * Math.abs(cosRot) + cellSize;
   const inside = (x: number, y: number) => {
-    // the river's dry band under the motorway (lab.js coverAt)
+    // the river's dry band under the motorway (lab.ts coverAt)
     if (cover.cut && coverCut(cover, x, y)) return false;
     const offX = x - cover.x, offY = y - cover.y,
       dx = offX * cosRot + offY * sinRot, dy = -offX * sinRot + offY * cosRot;
@@ -91,7 +91,7 @@ export const PUDDLE_WATER: Record<string, string> = {
  */
 export const puddleWater = (base: string) => PUDDLE_WATER[base] || HARD_WATER;
 
-// RANDOM PATCHES (Grass Track, re-rolled every load — lab.js randomiseGrassTrack): small ellipses
+// RANDOM PATCHES (Grass Track, re-rolled every load — lab.ts randomiseGrassTrack): small ellipses
 // of another base surface, drawn with that surface's own SURFACE_ART so a mud spot looks like
 // mud.
 
@@ -145,7 +145,7 @@ function patchesInView(groundCtx: GroundCtx, list: Patch[]): Patch[] {
  */
 export function drawPatches(groundCtx: GroundCtx) {
   const { view, PPMz, toScreenX, toScreenY } = groundCtx;
-  // random spots + blend patches (lab.js prepareLevel)
+  // random spots + blend patches (lab.ts prepareLevel)
   const all = LEVEL.allPatches || LEVEL.patches;
   if (!all || !all.length) return;
   const list = all === LEVEL.allPatches ? patchesInView(groundCtx, all) : all;

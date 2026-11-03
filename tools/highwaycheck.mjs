@@ -2,7 +2,7 @@
 // does the car stay on it, do props / bumps / barriers stay BOUNDED (dropped behind), and what does each rebuild cost.
 // node tools/highwaycheck.mjs [km] [car]
 import { makeCar, step, reset, PHYSICS_STEP_SECONDS } from '../src/vehicle.ts';
-import * as L from '../src/lab.js';
+import * as L from '../src/lab.ts';
 import { stepHighway, addHighwayLevel } from '../src/highway.js';
 import { createAutoDriver } from '../src/ai/autodrive.ts';
 // the levels importing these modules used to add (task 078 made it explicit)

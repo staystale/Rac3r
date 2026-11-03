@@ -23,7 +23,7 @@
 // 11. coverage: every surface has art (render/ground/art.ts makeSurfaceArt)
 // Shares measured over many cells are checked against the rule's own numbers +- a margin.
 import { makeCar, step, reset, PHYSICS_STEP_SECONDS, setAidsDefault } from '../src/vehicle.ts';
-import * as L from '../src/lab.js';
+import * as L from '../src/lab.ts';
 import { WEATHER, setWetness, setRain, startWeather } from '../src/world/weather.ts';
 import { dirtToMudChance, dirtToGravelChance, gravelToSandChance } from '../src/world/dig.ts';
 import { setPassTyre } from '../src/world/puddles.ts';

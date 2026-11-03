@@ -10,7 +10,7 @@
 // out at 15-25 deg, which is what lets you point the car with the throttle. So this measures the whole
 // grip-versus-slip-angle curve on each surface, not just its maximum.
 import { makeCar, step, reset, neutralInput, PHYSICS_STEP_SECONDS } from '../src/vehicle.ts';
-import { SURFACES, groundAt, applyGround, ZONES, FLOOR, FENCE, FY1 } from '../src/lab.js';
+import { SURFACES, groundAt, applyGround, ZONES, FLOOR, FENCE, FY1 } from '../src/lab.ts';
 import { CAR_IDS } from '../src/cars.ts';
 
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);

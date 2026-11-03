@@ -13,7 +13,7 @@
 // VERIFY BEFORE TRUSTING (CLAUDE.md rule 15): it fails loudly if it leaves the road for long or never
 // completes the lap — a driver that understeers into every wall prices everything wrongly.
 import { makeCar, step, reset, PHYSICS_STEP_SECONDS } from '../src/vehicle.ts';
-import * as L from '../src/lab.js';
+import * as L from '../src/lab.ts';
 import { createAutoDriver } from '../src/ai/autodrive.ts';
 
 const levelId = process.argv[2] || 'sandbox', carId = process.argv[3] || 'hatch-rwd';

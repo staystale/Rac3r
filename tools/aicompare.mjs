@@ -1,7 +1,7 @@
 // aicompare.mjs — where the racing AI loses / gains time against the bench driver: speed per 25 m of lap (2nd lap), side by side,
 // with the surface mu there. node tools/aicompare.mjs <level> <car> [diff 0-4]
 import { makeCar, step, reset, PHYSICS_STEP_SECONDS } from '../src/vehicle.ts';
-import * as L from '../src/lab.js';
+import * as L from '../src/lab.ts';
 import { createAutoDriver } from '../src/ai/autodrive.ts';
 import { createAIDriver } from '../src/ai/circuit.ts';
 import { aiTraits } from '../src/ai/traits.ts';

@@ -1,7 +1,7 @@
-import { TEST_LIST } from '../testlist.js';
-import { addPane, addButton, addElement } from './widgets.js';
+import { TEST_LIST } from '../testlist.ts';
+import { addPane, addButton, addElement } from './widgets.ts';
 import { showTrackSelect } from './tracks.js';
-import { showMenu, hideMenu } from '../menu.js';
+import { showMenu, hideMenu } from '../menu.ts';
 import { addPauseClock } from './pauseclock.ts';
 import { showSettings } from './settings.ts';
 
@@ -70,7 +70,7 @@ export function showPause(menu, act) {
   act.guide();
   });
   if (act.tests && TEST_LIST.length) addButton(menu, panel, 'TESTING · ' + TEST_LIST.length,
-    () => showTesting(menu, act));   // the test queue (src/testlist.js)
+    () => showTesting(menu, act));   // the test queue (src/testlist.ts)
   if (act.rules) addButton(menu, panel, 'EVENT RULES', () => {
     hideMenu(menu);
   act.rules();
@@ -124,7 +124,7 @@ function showHudMenu(menu, act) {
 }
 
 /**
- * TESTING: the to-test feature list from src/testlist.js, newest first. Test
+ * TESTING: the to-test feature list from src/testlist.ts, newest first. Test
  * mode only.
  * @param {object} menu the menu context
  * @param {object} act the session actions

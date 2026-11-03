@@ -1,5 +1,5 @@
 // raceflow.js — AI STAGE 4: HOW A RACE ENDS. Pure bookkeeping on the sim step; main.js
-// feeds it, hud.js draws the flag, menu.js shows the podium + results.
+// feeds it, hud.js draws the flag, menu.ts shows the podium + results.
 //
 // USER SPEC: a CHEQUERED FLAG sweeps the WHOLE screen for the winner and when the
 // event ends; once the TOP 3 have finished the race is CUT SHORT and everyone else takes their

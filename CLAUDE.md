@@ -8,7 +8,7 @@ Where things live:
 - `TODO.md` - the live queue.
 - `ENGINE.md` - as-built reference. Search it; do not read it end to end.
 - `BRIEF.md`, `PLAN.md`, `SPECS-*.md` - design intent.
-- `src/testlist.js` - the in-game list of features awaiting a phone test.
+- `src/testlist.ts` - the in-game list of features awaiting a phone test.
 - `tools/` - headless checks and screenshot scripts.
 
 Git, GitHub, itch.io, tunnels and where secrets live are documented in `../README.md`.
@@ -24,7 +24,7 @@ Old versions of this file, with the full project history, are in git. Do not reb
 - The owner playtests on a phone. End each piece of work with what to look at and what would count
   as wrong. State the scope limit first (for example "circuits only").
 - Hand over major changes as soon as they work. Do not stack features on an untested change.
-- Keep `src/testlist.js` current. Each handed-over feature gets an entry in the same task.
+- Keep `src/testlist.ts` current. Each handed-over feature gets an entry in the same task.
 - Update `TODO.md` and the as-built docs in the same change as the code. Build docs never drift.
 - New owner rules, decisions and measured lessons go in `NOTES.md` (short, edited in place). Write
   a handover document only when the owner asks for one.
@@ -171,7 +171,7 @@ Tools for tracing a real track (`mapgrid`, `traceoverlay`, `kerbside`) and check
   write output to a file, and poll it.
 - Edit through the editor tool, in chunks of about 6000 characters or fewer. Put comments on their
   own line: a trailing `//` on a patched line swallows the rest of that line.
-- `lab.js` is order-sensitive (a `const` must be declared before use). Check each new name's
+- `lab.ts` is order-sensitive (a `const` must be declared before use). Check each new name's
   declaration order before saving.
 - One dev server (`serve.mjs`) at a time. Start and stop processes by PID. Never kill by image
   name: other projects share this machine.

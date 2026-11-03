@@ -8,7 +8,7 @@
 // the old flat chance, x1). Running into debris and over pallet nails have chances of their own.
 
 /** A car that can note what it hit this step. */
-interface HitNoter { _hitKind?: string | null }
+export interface HitNoter { _hitKind?: string | null }
 
 // the chance a big hit punctured a tyre whatever was hit (damage.ts PUNCT_P's scale)
 const BIG_HIT_FLAT = 0.5;

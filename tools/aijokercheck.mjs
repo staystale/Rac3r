@@ -3,7 +3,7 @@
 // and on Slidden Hill whether the start was driven down the RX start straight (the furthest it got from the start lane,
 // until it reaches the lane's end, must be under the lane's half width). node tools/aijokercheck.mjs [levels] [car] [diff 0-4] [seeds e.g. 1,2,3,4,5]
 import { makeCar, step, reset, PHYSICS_STEP_SECONDS } from '../src/vehicle.ts';
-import * as L from '../src/lab.js';
+import * as L from '../src/lab.ts';
 import { createAIDriver } from '../src/ai/circuit.ts';
 import { aiTraits } from '../src/ai/traits.ts';
 import { aiPaths } from '../src/ai/line.ts';

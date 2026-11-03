@@ -1,4 +1,4 @@
-// lab.js — THE SCENE, as data (PLAN.md / CLAUDE.md §6: never hard-code a position that should be a
+// lab.ts — THE SCENE, as data (PLAN.md / CLAUDE.md §6: never hard-code a position that should be a
 // number in a file; the first request after the first drive is "move that three metres closer").
 //
 // A proving-ground floor: pale, bounded by a hazard kerb (A4), with painted figures that give the

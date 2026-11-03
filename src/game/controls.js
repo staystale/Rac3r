@@ -2,7 +2,7 @@
 import { makeCar } from '../vehicle.ts';
 import { CAR_IDS } from '../cars.ts';
 import { createCones } from '../cones.js';
-import { nudge, resetAll, snapshot } from '../tune.js';
+import { nudge, resetAll, snapshot } from '../tune.ts';
 import { setLevel } from "../world/load.ts";
 import { LEVEL } from "../world/state.ts";
 import { clearWear } from "../world/wear.ts";

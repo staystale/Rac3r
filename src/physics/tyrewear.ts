@@ -137,7 +137,7 @@ export function setHealth(wear: number[]): { dryLoss: number; wetLoss: number; p
  * what it is: physics/punctures.ts).
  * @param kind the object's kind
  * @param closingV the closing speed, m/s
- * @param isDebris whether the object is breakable debris (cones/coneConsts.js DEBRIS)
+ * @param isDebris whether the object is breakable debris (cones/coneConsts.ts DEBRIS)
  * @returns true to puncture
  */
 export function debrisPunctures(kind: string, closingV: number, isDebris: boolean): boolean {

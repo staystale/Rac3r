@@ -40,7 +40,7 @@ const PCT = {
   grassLong: 5, sand: 22, mud: 5, thickMud: 7, snow: 11,
   // a bush grabs a sliding car like long grass does (its roots and stems)
   bush: 5,
-  // a GRAVEL TRAP (lab.js SURFACE_TRAP: deep, ploughing): the readiest to dig in and flip a car
+  // a GRAVEL TRAP (lab.ts SURFACE_TRAP: deep, ploughing): the readiest to dig in and flip a car
   // sliding into it sideways (user)
   trap: 14,
   dirt: 2.2, gravel: 2.6, grass: 1.8, grassShort: 1.8, kerb: 1.5, puddle: 1, water: 1,

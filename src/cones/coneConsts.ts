@@ -1,4 +1,4 @@
-// cones/coneConsts.js: the tuning constants, the roadside debris table and the tyre-stack burst
+// cones/coneConsts.ts: the tuning constants, the roadside debris table and the tyre-stack burst
 // shared by the cone, tyre and loose-object simulation (cones.js and the files beside this one).
 
 export const CONE_R = 0.20;         // metres base radius
@@ -9,15 +9,27 @@ export const REST_V = 0.05;         // m/s to snap to zero
 export const TOPPLE_V = 0.8;        // m/s hit needed to knock a cone flat
 export const MAX_CONE_V = 32;       // clamp fling speed
 
+/** A loose object of the cone simulation (cones.js): the fields a burst reads and sets. */
+export interface LooseThing {
+  kind: string; mode?: string; mass: number; r: number; down?: number;
+  x: number; y: number; vx: number; vy: number;
+  hx?: number; hy?: number; _s?: number;   // its home spot; the road distance it belongs to
+  [field: string]: unknown;
+}
+/** One kind of roadside debris: mass kg, radius m, hits to break (0 never), what it breaks into. */
+export interface DebrisKind {
+  mass: number; r: number; breaks: number; into?: string; flat?: boolean;
+}
+
 // A stack hit hard enough comes apart: it becomes one ROLLING tyre and throws out two more — one
 // cartwheeling left, one skidding flat right. Used by the car hitting a stack AND by
 // any other object hitting one, so a tyre flung into the wall bursts the stack it lands on.
 /**
  * Burst a tyre stack into one rolling tyre plus two thrown tyres pushed onto `out`.
- * @param {any} stack the stack (becomes the rolling tyre)
- * @param {any[]} out receives the two new tyres
+ * @param stack the stack (becomes the rolling tyre)
+ * @param out receives the two new tyres
  */
-export function burstStack(stack, out) {
+export function burstStack(stack: LooseThing, out: LooseThing[]): void {
   stack.kind = 'tyre';
   stack.mode = 'roll';
   stack.mass = 12;
@@ -49,7 +61,7 @@ export function burstStack(stack, out) {
 // plus positional correction so objects never sit inside each other. Consequences match the car
 // path: a stack hit hard bursts, a cone hit hard topples, everything hit counts as knocked (moved)
 // for the tally, and hard hits throw dust.
-export const OBJ_REST = {
+export const OBJ_REST: Record<string, number> = {
   cone: 0.45, tyre: 0.35, tyrestack: 0.25, bale: 0.08, sheep: 0.2, cow: 0.1,
 };
 // BALE: 250 kg (a real round bale is 250-350), r 0.8. A hit above BALE_BURST_V bursts it: a flat
@@ -68,7 +80,7 @@ export const TOPPLES = new Set(['cone', 'chevron', 'flag', 'tapepost']);
 // object): mass kg, r m, hits to break (0 = never: it slides), and what it breaks INTO (a flat,
 // drive-over patch, like the burst bale's straw). Placed by highway.js LITTER (the density
 // slider).
-export const DEBRIS = {
+export const DEBRIS: Record<string, DebrisKind> = {
   pallet:   { mass: 20, r: 0.6, breaks: 1, into: 'splinters' },   // snaps first hit
   box:      { mass: 4,  r: 0.4, breaks: 1, into: 'cardboard' },   // flattened
   crate:    { mass: 30, r: 0.55, breaks: 2, into: 'splinters' },

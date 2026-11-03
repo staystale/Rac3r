@@ -1,4 +1,4 @@
-// tune.js — THE DEBUG PANEL'S DATA. Open it, adjust, close it.
+// tune.ts — THE DEBUG PANEL'S DATA. Open it, adjust, close it.
 //
 // Asked for directly by the user on, and they were right to: handling feel was being
 // converged on by me guessing a number, measuring it headlessly and shipping a build, when the
@@ -13,20 +13,35 @@
 // and are discarded when you switch car), `car.mods` (the upgrade seam), or `TUNE` (global
 // model shape).
 
-import { TUNE } from './vehicle.ts';
+import { TUNE, type Car } from './vehicle.ts';
 
-let tuneAudio = null;   // the game's audio, handed over by main.js (setTuneAudio)
-export function setTuneAudio(audio) { tuneAudio = audio; }
+/** A car the panel edits (the base values it compares against, by row label). */
+export type TuneCar = Car & { __tuneBase?: Map<string, number> };
+/** One row of the panel: how to read it off the car, write it back, step it and show it. */
+export interface TuneRow {
+  label: string; hint: string;
+  get: (car: TuneCar) => number; set: (car: TuneCar, value: number) => void;
+  step: number; min: number; max: number; fmt: (value: number) => string;
+}
+/** What the panel reads of the game's audio. */
+interface TuneAudio { volume: number; setVolume: (value: number) => void }
+
+let tuneAudio: TuneAudio | null = null;   // the game's audio, handed over by main.js
+/**
+ * Hands the panel the game's audio (main.js).
+ * @param audio the audio engine
+ */
+export function setTuneAudio(audio: TuneAudio): void { tuneAudio = audio; }
 
 // Izz depends on mass AND izzK, so anything touching either has to rebuild it.
-function recalcIzz(car) {
+function recalcIzz(car: TuneCar): void {
   const spec = car.spec;
   spec.Izz = ((spec.mass * (spec.len * spec.len + spec.wid * spec.wid)) / 12) * spec.izzK;
 }
 
-const drive3 = (value) => (value >= 0.99 ? 'FWD' : value <= 0.01 ? 'RWD' : '4WD');
+const drive3 = (value: number) => (value >= 0.99 ? 'FWD' : value <= 0.01 ? 'RWD' : '4WD');
 
-export const ROWS = [
+export const ROWS: TuneRow[] = [
   { label: 'Grip', hint: 'mu',
     get: (car) => car.spec.mu, set: (car, value) => { car.spec.mu = value; },
     step: 0.05, min: 0.40, max: 2.20, fmt: (value) => value.toFixed(2) },
@@ -103,17 +118,26 @@ export const ROWS = [
 
 const TUNE_DEFAULTS = { ...TUNE };
 
-// Put everything back exactly as cars.js and vehicle.js shipped it.
-export function resetAll(car) {
+/**
+ * Put everything back exactly as cars.ts and vehicle.ts shipped it.
+ * @param car the car
+ */
+export function resetAll(car: TuneCar): void {
   Object.assign(TUNE, TUNE_DEFAULTS);
   const keep = { x: car.x, y: car.y, heading: car.heading };
   Object.assign(car.spec, car.spec0);
-  for (const key in car.mods) car.mods[key] = 1.0;
+  for (const key of Object.keys(car.mods) as (keyof typeof car.mods)[]) car.mods[key] = 1.0;
   recalcIzz(car);
   Object.assign(car, keep);
 }
 
-export function nudge(car, row, dir) {
+/**
+ * One step of a row up or down, kept in its range.
+ * @param car the car
+ * @param row the row
+ * @param dir +1 or -1
+ */
+export function nudge(car: TuneCar, row: TuneRow, dir: number): void {
   const value = row.get(car) + dir * row.step;
   row.set(car, Math.max(row.min, Math.min(row.max, +value.toFixed(6))));
 }
@@ -121,14 +145,24 @@ export function nudge(car, row, dir) {
 // Is this row currently away from the value the car shipped with? Drives the "changed" marker,
 // so the panel reports what is ON the car rather than what you think you set (CLAUDE.md rule
 // 10).
-export function isChanged(car, row) {
+/**
+ * Whether a row is away from the value the car shipped with.
+ * @param car the car
+ * @param row the row
+ * @returns changed
+ */
+export function isChanged(car: TuneCar, row: TuneRow): boolean {
   const cur = row.get(car);
   const before = car.__tuneBase?.get(row.label);
   return before !== undefined && Math.abs(cur - before) > 1e-9;
 }
 
-export function snapshot(car) {
-  const baseValues = new Map();
+/**
+ * Remembers every row's value now, as the base the changed markers compare against.
+ * @param car the car
+ */
+export function snapshot(car: TuneCar): void {
+  const baseValues = new Map<string, number>();
   for (const row of ROWS) baseValues.set(row.label, row.get(car));
   car.__tuneBase = baseValues;
 }

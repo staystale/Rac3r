@@ -2,7 +2,7 @@
 // and does the guard put a reversing car back? A bench driver drives N km per preset; then a scripted reverse.
 // node tools/treadmillcheck.mjs [km] [car] [file]   (file: ../src/highway.next.js to test a patch before it goes live)
 import { makeCar, step, reset, PHYSICS_STEP_SECONDS } from '../src/vehicle.ts';
-import * as L from '../src/lab.js';
+import * as L from '../src/lab.ts';
 import { createAutoDriver } from '../src/ai/autodrive.ts';
 import { createCones } from '../src/cones.js';
 const KM = +(process.argv[2] || 10), carId = process.argv[3] || 'saloon-rwd';

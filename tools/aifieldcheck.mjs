@@ -1,10 +1,10 @@
-// aifieldcheck.mjs — a whole FIELD of racing AI, node only, full contact (contact.js), from a standing grid laid out like main.js spawnAI:
+// aifieldcheck.mjs — a whole FIELD of racing AI, node only, full contact (contact.ts), from a standing grid laid out like main.js spawnAI:
 // per car its persona, laps done, best lap; for the field: contact-seconds (time any pair is touching), contact EVENTS (new touches),
 // overtakes (order changes on track), stuck resets, seconds off the road. Difficulty and seed decide the mix.
 // node tools/aifieldcheck.mjs [level] [car] [diff 0-4] [n 1-6] [seed] [laps]
 import { makeCar, step, reset, PHYSICS_STEP_SECONDS } from '../src/vehicle.ts';
-import * as L from '../src/lab.js';
-import { carContact } from '../src/contact.js';
+import * as L from '../src/lab.ts';
+import { carContact } from '../src/contact.ts';
 import { wakeStep } from '../src/physics/wake.ts';
 import { hit, repair, tooInjured } from '../src/damage.ts';   // DMG=1: damage on, as main.js
 const DMG = !!process.env.DMG;

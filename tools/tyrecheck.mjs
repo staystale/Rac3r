@@ -12,7 +12,7 @@ import { makeCar, step, reset, PHYSICS_STEP_SECONDS, TYRE_AMBIENT } from '../src
 import { setAidsDefault } from '../src/vehicle.ts';
 // RAW physics: driver aids OFF (with TCS on, a burnout is not a burnout; with ABS on, a locked pass cannot lock).
 setAidsDefault(false);
-import { SURFACES } from '../src/lab.js';
+import { SURFACES } from '../src/lab.ts';
 
 const fails = [];
 const check = (ok, msg) => { console.log((ok ? '  ok   ' : '  FAIL ') + msg); if (!ok) fails.push(msg); };
@@ -139,7 +139,7 @@ check(cooled.grass < cooled.tarmac - 10 && cooled.snow < cooled.grass, 'grass co
 // with the handbrake on (airborne axle, lagged lateral force / ~0 load). A jump or a surface change may warm a tyre a
 // little; no single step may add more than 2 C and the whole event no more than 15 C.
 {
-  const Lmod = await import('../src/lab.js');
+  const Lmod = await import('../src/lab.ts');
   Lmod.setLevel('test-track');
   const tb = Lmod.LEVEL.bumps.find((b) => b.kind === 'table');
   for (const [lab, inp, prep] of [

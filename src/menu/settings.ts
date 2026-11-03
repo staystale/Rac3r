@@ -2,10 +2,10 @@
 // switch in the settings menu ... maybe this can be the first thing that goes in"; TODO G: sound,
 // difficulty and the rest join it later). Opened from the main menu and the pause menu; each
 // setting is remembered on the device. STEERING: the two stick settings of core/steerfeel.ts.
-import { addPane, addButton, addElement } from './widgets.js';
+import { addPane, addButton, addElement } from './widgets.ts';
 import { STEER_FEEL, setSteerFeel, stickReach, curveSteer } from '../core/steerfeel.ts';
 
-// what one menu context needs here (menu.js builds it)
+// what one menu context needs here (menu.ts builds it)
 interface Menu { root: HTMLElement; openedAt: number }
 const STICK_PX = 38, LOCK_DEG = 32, SHOW_V = 120 / 3.6;
 type FeelKey = keyof typeof STEER_FEEL;

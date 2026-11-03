@@ -2,7 +2,7 @@
 // is the stage vs the target, how long does it take, how much dressing, and is the road clean (no other road within SEP except near it).
 // node tools/stagegencheck.mjs [seeds]
 import { genStage, THEMES, LENGTHS, addStageLevels } from '../src/stagegen.js';
-import { querySubtrack } from '../src/lab.js';
+import { querySubtrack } from '../src/lab.ts';
 // the levels importing these modules used to add (task 078 made it explicit)
 addStageLevels();
 const N = +(process.argv[2] || 6);

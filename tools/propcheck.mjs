@@ -1,7 +1,7 @@
 // propcheck.mjs — no SOLID prop on any road, on EVERY level (user, 2026-10-04: a truck across Brands GP, a hut across the road at Druids).
 // Samples each solid box (LEVEL.solids) on a 1 m grid; reports any sample inside the road (half width - 0.5). Gantries / footbridges
 // span the road by design and are skipped. node tools/propcheck.mjs
-import * as L from '../src/lab.js';
+import * as L from '../src/lab.ts';
 let bad = 0;
 for (const lv of L.LEVELS) {
   L.setLevel(lv.id); const st = L.LEVEL.subtrack; if (!st) continue; const hw = st.width / 2, hits = [];

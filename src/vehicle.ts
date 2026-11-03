@@ -200,7 +200,7 @@ export const TYRE_T_MAX = 260;
 //   roadV:   sliding over FRESH road dumps heat into it; the tyre's share is
 //            1 / (1 + ground speed / roadV). A pinned burnout (speed 0) keeps it all — so
 //            burnouts pop, drifts only overheat. Rolling scrub is unaffected.
-//   surface.heatK (lab.js): on loose ground the slip is IN the ground — the tyre gets HEAT_OFFROAD
+//   surface.heatK (lab.ts): on loose ground the slip is IN the ground — the tyre gets HEAT_OFFROAD
 //            of it
 // Swept 48 combinations (tools/_tyresweep, deleted); the only one meeting every target is below.
 // MEASURED after:
@@ -347,7 +347,7 @@ export function makeCar(carId: string, mods = defaultMods()) {
 export function reset(car: Car, x = 0, y = 0, heading = -Math.PI / 2) {
   car._p = null;          // no render interpolation across a teleport (main.js)
   // ... and no WEAR across it. MEASURED BUG (requirement: dirt in the road on highway levels is
-  // still a bug; tools/_dirtroad.mjs): lab.js stepWear sweeps each tyre from car.prevWheels to
+  // still a bug; tools/_dirtroad.mjs): lab.ts stepWear sweeps each tyre from car.prevWheels to
   // where it is now, so after a teleport (an AI / traffic respawn, the highway put-back) it wore a
   // straight line from the old spot to the new one - across the verge AND the carriageway.
   car.prevWheels = null; car.wheelSurf = null;

@@ -5,9 +5,9 @@
 // a new seed.
 //
 // HOW: a self-avoiding road grown element by element (straights, fast sweepers, medium corners,
-// squares, hairpins, chicanes) inside the world box (lab.js FLOOR — step 2 of the plan gives levels
+// squares, hairpins, chicanes) inside the world box (lab.ts FLOOR — step 2 of the plan gives levels
 // a bigger world), with backtracking when it paints itself into a corner. The road is RUN-UP ->
-// START -> stage -> FINISH -> STOP ZONE; the engine's loop is closed by ONE ghost segment (lab.js
+// START -> stage -> FINISH -> STOP ZONE; the engine's loop is closed by ONE ghost segment (lab.ts
 // ghostSegment) from the stop-zone end to the run-up, so the start line stays at distance 0 and
 // timing / grid / AI / resets all work unchanged. Then the dressing, by theme: trees / rocks /
 // crowds / chevrons / bales / tape / flags / marshals / boards / gantries / ice / water.
@@ -475,7 +475,7 @@ function dressSharpCorner(dress, turn, mid, out) {
 }
 /**
  * Dresses every corner: chevrons + bales outside, cones on the apex, flags; hairpins / squares
- * get tyre walls, tape (-> rally tape posts, lab.js) and a CROWD; tarmac fast corners get ARMCO.
+ * get tyre walls, tape (-> rally tape posts, lab.ts) and a CROWD; tarmac fast corners get ARMCO.
  * @param {object} dress dressing state
  * @param {object[]} corners the corners
  */

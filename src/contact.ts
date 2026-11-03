@@ -1,6 +1,6 @@
-import { noteHit } from './physics/punctures.ts';
-import { wheelContacts } from './physics/openwheel.ts';
-// contact.js — CAR-TO-CAR CONTACT (AI stage 1; requirement: full contact). Every pair of cars is
+import { noteHit, type HitNoter } from './physics/punctures.ts';
+import { wheelContacts, type WheelCar } from './physics/openwheel.ts';
+// contact.ts — CAR-TO-CAR CONTACT (AI stage 1; requirement: full contact). Every pair of cars is
 // tested as two oriented boxes with the separating-axis test (the same test solidClamp
 // uses for props). On overlap: the two are pushed apart along the axis of least overlap, split
 // by mass; if they are closing, an jolt along that axis (restitution CAR_E), a little
@@ -11,8 +11,20 @@ const CAR_E = 0.25;         // bounciness of a car-to-car hit
 // share of the sideways relative speed removed per contact (door-rubbing friction)
 const CAR_SCRAPE = 0.12;
 
-// returns true if they touched (for sound / shake / tools)
-export function carContact(firstCar, secondCar) {
+/** What a car-to-car contact reads and moves. */
+export interface ContactCar {
+  x: number; y: number; vx: number; vy: number; heading: number; yawRate: number;
+  spec: { len: number; wid: number; mass: number };
+  shake?: number;   // the camera shake a hit adds to
+}
+
+/**
+ * One pair of cars: pushed apart and given the jolt of a hit if they overlap.
+ * @param firstCar one car
+ * @param secondCar the other
+ * @returns true if they touched (for sound / shake / tools)
+ */
+export function carContact(firstCar: ContactCar, secondCar: ContactCar): boolean {
   // no allocation per call (memory diet: plain locals, no axes objects)
   const aCos = Math.cos(firstCar.heading), aSin = Math.sin(firstCar.heading),
     aHl = firstCar.spec.len * 0.48, aHw = firstCar.spec.wid * 0.48;
@@ -80,8 +92,12 @@ export function carContact(firstCar, secondCar) {
   return true;
 }
 
-// every pair once: the bodies, then a single-seater's exposed wheels (physics/openwheel.ts)
-export function carContacts(cars) {
+/**
+ * Every pair once: the bodies, then a single-seater's exposed wheels (physics/openwheel.ts).
+ * @param cars the cars
+ * @returns how many pairs touched
+ */
+export function carContacts(cars: (ContactCar & WheelCar & HitNoter)[]): number {
   let count = 0;
   for (let i = 0; i < cars.length; i++)
     for (let other = i + 1; other < cars.length; other++)

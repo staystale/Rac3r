@@ -7,7 +7,7 @@
 //   ABS  hard brake mid-corner: no front lock, the car keeps turning; straight stop no longer than without
 //   TCS  slippery launch: less wheelspin; a provoked slide: smaller peak slip; clean cornering: grip not reduced
 import { makeCar, step, reset, PHYSICS_STEP_SECONDS } from '../src/vehicle.ts';
-import { SURFACES } from '../src/lab.js';
+import { SURFACES } from '../src/lab.ts';
 
 const I = (o) => ({ steer: 0, throttle: 0, brake: 0, handbrake: 0, ...o });
 const fails = [];

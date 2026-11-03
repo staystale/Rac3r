@@ -1,12 +1,15 @@
-import { GHOST_MS } from './style.js';
+import { GHOST_MS } from './style.ts';
 
 // MENU TAPS for the phone report (?report=1, game/loop.js): taps a new screen ignored (inside its
 // GHOST_MS window) and the slowest button handler, since the last frame took them
 const menuTaps = { ignored: 0, handlerMs: 0 };
 
+/** What the widgets read of the menu context (menu.ts builds it). */
+export interface MenuCtx { root: HTMLElement; openedAt: number }
+
 /**
  * The menu taps since the last call, then starts counting again.
- * @returns {{ignored: number, handlerMs: number}} taps ignored, the slowest handler in ms
+ * @returns taps ignored, the slowest handler in ms
  */
 export function takeMenuTaps() {
   const taps = { ...menuTaps };
@@ -17,11 +20,11 @@ export function takeMenuTaps() {
 
 /**
  * Empties the menu root and adds a fresh pane (and stamps the ghost-click guard).
- * @param {object} menu the menu context
- * @param {boolean} wide true for the 720 px pane, false for the 320 px one
- * @returns {HTMLElement} the new pane element
+ * @param menu the menu context
+ * @param wide true for the 720 px pane, false for the 320 px one
+ * @returns the new pane element
  */
-export function addPane(menu, wide) {
+export function addPane(menu: MenuCtx, wide: boolean): HTMLElement {
   menu.openedAt = performance.now();
   menu.root.innerHTML = '';
   const panel = document.createElement('div');
@@ -33,16 +36,17 @@ export function addPane(menu, wide) {
 
 /**
  * Adds a menu button; its click is ignored while disabled or inside the ghost-click window.
- * @param {object} menu the menu context
- * @param {HTMLElement} parent element to append to
- * @param {string} label button HTML
- * @param {Function} onClick click handler
- * @param {string} [cls] class name
- * @param {boolean} [disabled] true to lock the button
- * @param {string} [tag] small red tag after the label
- * @returns {HTMLButtonElement} the button
+ * @param menu the menu context
+ * @param parent element to append to
+ * @param label button HTML
+ * @param onClick click handler
+ * @param [cls] class name
+ * @param [disabled] true to lock the button
+ * @param [tag] small red tag after the label
+ * @returns the button
  */
-export function addButton(menu, parent, label, onClick, cls = '', disabled = false, tag = '') {
+export function addButton(menu: MenuCtx, parent: HTMLElement, label: string, onClick: () => void,
+  cls = '', disabled = false, tag = ''): HTMLButtonElement {
   const button = document.createElement('button');
   button.innerHTML = label + (tag ? `<span class="tag">${tag}</span>` : '');
   if (cls) button.className = cls;
@@ -64,13 +68,14 @@ export function addButton(menu, parent, label, onClick, cls = '', disabled = fal
 
 /**
  * Creates an element with HTML content and an optional class, and appends it to parent.
- * @param {HTMLElement} parent element to append to
- * @param {string} tag tag name
- * @param {string} html inner HTML
- * @param {string} [cls] class name
- * @returns {HTMLElement} the new element
+ * @param parent element to append to
+ * @param tag tag name
+ * @param html inner HTML
+ * @param [cls] class name
+ * @returns the new element
  */
-export function addElement(parent, tag, html, cls) {
+export function addElement(parent: HTMLElement, tag: string, html: string,
+  cls?: string): HTMLElement {
   const elem = document.createElement(tag);
   elem.innerHTML = html;
   if (cls) elem.className = cls;
@@ -80,25 +85,25 @@ export function addElement(parent, tag, html, cls) {
 
 /**
  * Draws a level's painted thumbnail into a new canvas and returns it.
- * @param {object} thumb the cached thumbnail canvas
- * @returns {HTMLCanvasElement} a canvas holding a copy of the thumbnail
+ * @param thumb the cached thumbnail canvas
+ * @returns a canvas holding a copy of the thumbnail
  */
-export function copyThumb(thumb) {
+export function copyThumb(thumb: HTMLCanvasElement): HTMLCanvasElement {
   const canvas = document.createElement('canvas');
   canvas.width = thumb.width;
   canvas.height = thumb.height;
-  canvas.getContext('2d').drawImage(thumb, 0, 0);
+  canvas.getContext('2d')!.drawImage(thumb, 0, 0);
   return canvas;
 }
 
 /**
  * Draws the workshop lift: a pixel floor, two lift arms, the car top-down on it, scaled up on
  * whole pixels.
- * @param {HTMLCanvasElement} canvas canvas to draw into
- * @param {object} spr the car sprite ({ c: canvas })
+ * @param canvas canvas to draw into
+ * @param spr the car sprite ({ c: canvas })
  */
-export function drawLift(canvas, spr) {
-  const ctx = canvas.getContext('2d');
+export function drawLift(canvas: HTMLCanvasElement, spr: { c: HTMLCanvasElement }): void {
+  const ctx = canvas.getContext('2d')!;
   ctx.imageSmoothingEnabled = false;
   ctx.fillStyle = '#23262e';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
