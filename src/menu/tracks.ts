@@ -115,19 +115,25 @@ function drawRoadMap(canvas: HTMLCanvasElement, level: Level) {
  */
 export function showMainMenu(menu: Menu) {
   const panel = addPane(menu, false);
+  let buttons: HTMLElement = panel;
   if (FIX.menuStyle) {
-    // ?menustyle: the owner's logo, its sub line "A DRIVING SANDBOX" (menu/pixelstyle.ts)
-    const logo = addElement(panel, 'img', '', 'logo') as HTMLImageElement;
+    // ?menustyle: the owner's logo up top, the buttons at the bottom, the demo race between
+    // (owner: the pane hid the car being watched) - menu/pixelstyle.ts .mainmenu
+    panel.classList.add('mainmenu');
+    panel.style.width = '';
+    const logoBox = addElement(panel, 'div', '', 'logobox');
+    const logo = addElement(logoBox, 'img', '', 'logo') as HTMLImageElement;
     logo.src = 'assets/logo.jpg';
     logo.alt = 'RAC3R - a driving sandbox';
+    buttons = addElement(panel, 'div', '', 'btns');
   } else {
     addElement(panel, 'h1', 'RAC3R');
     addElement(panel, 'div', 'a driving sandbox', 'sub');   // the game's name
   }
-  addButton(menu, panel, 'TEST MODE', () => showTrackSelect(menu), 'go');
-  addButton(menu, panel, 'GARAGE', () => showGarage(menu));
-  addButton(menu, panel, 'SETTINGS', () => showSettings(menu, () => showMainMenu(menu)));
-  addButton(menu, panel, 'STORY', () => {}, '', true, 'LOCKED');
+  addButton(menu, buttons, 'TEST MODE', () => showTrackSelect(menu), 'go');
+  addButton(menu, buttons, 'GARAGE', () => showGarage(menu));
+  addButton(menu, buttons, 'SETTINGS', () => showSettings(menu, () => showMainMenu(menu)));
+  addButton(menu, buttons, 'STORY', () => {}, '', true, 'LOCKED');
 }
 
 /**

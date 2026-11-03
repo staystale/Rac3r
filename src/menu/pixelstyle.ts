@@ -94,8 +94,23 @@ export const MENU_PIXEL_CSS = FACES + `
 #menu .podium .step { background: ${DULL}; color: #ff7a2a; font-family: R3Head, monospace; }
 #menu .test .nm { color: #4fd8ff; } #menu .test .ln b { color: #ff7a2a; font-size: 15px; }
 #menu .lift { background: #17141b; }
-#menu .logo { display: block; width: 100%; max-width: 420px; height: auto; margin: 0 auto -4px;
+#menu .logo { display: block; width: 100%; max-width: 420px; height: auto; margin: 0 auto;
   image-rendering: auto; }
+/* THE MAIN MENU: the logo in a box up top, the buttons in a box at the bottom, the demo race
+   (the camera's car at the screen's middle) clear between them */
+#menu .pane.mainmenu { background: none; box-shadow: none; border: 0; padding: 0;
+  width: min(440px, calc(100% - 24px)); height: calc(100% - 24px); max-height: none;
+  justify-content: space-between; overflow: visible; pointer-events: none; }
+#menu .mainmenu .logobox, #menu .mainmenu .btns { pointer-events: auto;
+  background: rgba(12,11,16,.95);
+  border: 2px solid #000; box-shadow: inset 0 0 0 2px #3a2018, 6px 6px 0 rgba(0,0,0,.6); }
+#menu .mainmenu .logobox { padding: 6px; }
+#menu .mainmenu .btns { display: flex; flex-direction: column; gap: 10px; padding: 12px; }
+/* landscape: the menu in the left side, clear of the camera's car at the middle */
+@media (max-height: 500px) {
+  #menu .pane.mainmenu { width: min(360px, 42vw); }
+  #menu .mainmenu .btns { display: grid; grid-template-columns: 1fr 1fr; }
+}
 #menu .tagline { display: none; }
 /* a picked (blue) card or row: its side line dark on the blue, not grey */
 #menu button.on .k, #menu button.on .sub { color: #0a2a60; }

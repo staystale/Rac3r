@@ -72,7 +72,11 @@ export function addButton(menu: MenuCtx, parent: HTMLElement, label: string, onC
     // ?menustyle: the press shows - electric blue, two blinks - then the button acts
     if (button.classList.contains('hit')) return;
     button.classList.add('hit');
-    setTimeout(() => { button.classList.remove('hit'); act(); }, PRESS_BLINK_MS);
+    setTimeout(() => {
+      button.classList.remove('hit');
+      // only if its screen is still up (a race may finish, or a tool open results, mid-blink)
+      if (button.isConnected) act();
+    }, PRESS_BLINK_MS);
   });
   parent.appendChild(button);
   return button;
