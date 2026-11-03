@@ -50,8 +50,8 @@ export const TEST_LIST: TestEntry[] = [
     id: 'k12',
     added: '2026-11-03',
     name: 'MUD: rain leaves dirt wet dirt (not mud), mud drags far less, mud tyres plough less',
-    where: 'Plain link + &k12=1: Knobhill in RAIN; The Rough Patch mud hills (west mud, middle thick)',
-    try: 'Knobhill wet in the Subaroo; the hills in a 4x4 vs a hatch: 4x4 climbs both, 2WD mud only.',
+    where: 'Plain link + &k12=1: Knobhill in RAIN; The Rough Patch mud hills (west, middle)',
+    try: 'Knobhill wet in the Subaroo; the hills in a 4x4 vs a hatch: 4x4 climbs both, 2WD one.',
     wrong: 'Wet dirt as sticky as before, a 4x4 stuck on a mud hill, or 2WD cars flying through.',
   },
 ];
