@@ -21,6 +21,8 @@ await build({
   // the version fingerprint: the saved menu thumbnails are per version (src/menu/thumbcache.ts)
   define: { "globalThis.__RAC3R_BUILD__": JSON.stringify(await sourceHash(root)) },
 });
+// the static files the page loads (menu logo, pixel fonts: menu/pixelstyle.ts)
+await cp(join(root, "assets"), join(dist, "assets"), { recursive: true });
 const html = await readFile(join(root, "index.html"), "utf8");
 // the page loads either path (index.html); both are the one bundle here
 await writeFile(join(dist, "index.html"),

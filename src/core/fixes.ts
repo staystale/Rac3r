@@ -41,4 +41,7 @@ export const FIX = {
   // ?muscletyres=1: tyres fit by RIM SIZE as well as class; period tyres for the Chevvy (its
   // factory set the Good Yeah Polyglass GT), a drag radial and a street radial (cars.ts)
   muscleTyres: atLoad('muscletyres'),
+  // ?menustyle=1: the pixel menu style - the owner's logo, its colours, pixel-shaded buttons,
+  // pixel type with one set of digits (menu/pixelstyle.ts)
+  menuStyle: atLoad('menustyle'),
 };

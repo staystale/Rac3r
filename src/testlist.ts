@@ -61,4 +61,12 @@ export const TEST_LIST: TestEntry[] = [
     try: 'Drive under it and read it.',
     wrong: 'Still DUMLOP, or the text not fitting the bridge.',
   },
+  {
+    id: 'menustyle',
+    added: '2026-11-03',
+    name: 'The new pixel menu style: your logo, its colours, pixel-shaded buttons, pixel type',
+    where: 'Plain link + &menustyle=1: the main menu, then every menu screen (garage, test mode)',
+    try: 'Read everything at arm-length; every number should use the same digits.',
+    wrong: 'Text too small or clipped, a screen still in the old look, or a font not loading.',
+  },
 ];

@@ -10,6 +10,7 @@ import { addPane, addButton, addElement, copyThumb } from './widgets.ts';
 import { showSetup } from './setup.ts';
 import { showGarage } from './garage.ts';
 import { showSettings } from './settings.ts';
+import { FIX } from '../core/fixes.ts';
 import type { Menu } from '../menu.ts';
 import type { Level, StageRecipe } from '../world/types.ts';
 
@@ -113,8 +114,15 @@ function drawRoadMap(canvas: HTMLCanvasElement, level: Level) {
  */
 export function showMainMenu(menu: Menu) {
   const panel = addPane(menu, false);
-  addElement(panel, 'h1', 'RAC3R');
-  addElement(panel, 'div', 'a driving sandbox', 'sub');   // the game's name
+  if (FIX.menuStyle) {
+    // ?menustyle: the owner's logo, its sub line "A DRIVING SANDBOX" (menu/pixelstyle.ts)
+    const logo = addElement(panel, 'img', '', 'logo') as HTMLImageElement;
+    logo.src = 'assets/logo.jpg';
+    logo.alt = 'RAC3R - a driving sandbox';
+  } else {
+    addElement(panel, 'h1', 'RAC3R');
+    addElement(panel, 'div', 'a driving sandbox', 'sub');   // the game's name
+  }
   addButton(menu, panel, 'TEST MODE', () => showTrackSelect(menu), 'go');
   addButton(menu, panel, 'GARAGE', () => showGarage(menu));
   addButton(menu, panel, 'SETTINGS', () => showSettings(menu, () => showMainMenu(menu)));
