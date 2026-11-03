@@ -6,7 +6,7 @@
 // heatease, flatgrip, towplus passed 11-02;
 // aicool, smokeearly, airfx, smokelinger, aidust, realcars, jokerhint, puffpool, pitsolid,
 // muscletyres, namefix, bhbridges,
-// menustyle, testgarage, ai10, k12 passed 11-03.)
+// menustyle, testgarage, ai10, k12, resetin, belly, agtyre passed 11-03.)
 import { envValue } from './debug.ts';
 
 /**
@@ -37,13 +37,4 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
-  // ?resetin=1: a mid-race RESET puts the car all four wheels on the road (was: its centre on the
-  // edge, half on half off - a low car like the F1 sat in the gravel) (game/session.ts)
-  resetIn: atLoad('resetin'),
-  // ?belly=1: GROUND CLEARANCE in soft ground - the car sinks into mud / sand and its ruts; what
-  // is deeper than its ride height drags its underside (world/wear.ts bellyDepth, physics/tyres.ts)
-  belly: atLoad('belly'),
-  // ?agtyre=1: the tractor leaves the factory on FIRESTONED Field Lugger tractor tyres (cars.ts):
-  // mud, grass and dirt grip, half the mud's drag (was the road Pre-Spun - stuck on thick mud)
-  agTyre: atLoad('agtyre'),
 };

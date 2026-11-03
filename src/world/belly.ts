@@ -1,10 +1,11 @@
-// world/belly.ts - GROUND CLEARANCE in soft ground (?belly): how deep a car's underside is in
+// world/belly.ts - GROUND CLEARANCE in soft ground (belly, passed 11-03): how deep a car's
+// underside is in
 // the ground, from what it sinks into and the ruts its wheels run in (world/wear.ts sets
 // car.bellyDepth each step; physics/tyres.ts drags it).
 import { rutAt } from "./wear.ts";
 import type { CarBody } from "./types.ts";
 
-// ?belly (owner 11-03: "can suspension travel / ground clearance affect mud's drag?"): a car SINKS
+// (owner 11-03: "can suspension travel / ground clearance affect mud's drag?"): a car SINKS
 // into soft ground by BELLY_SINK (the wheels' contact under its top), and further by the ruts its
 // wheels run in, against the ground between them (the ridge, sampled at the centre). What that
 // takes past its ride height (spec.rideH) is its UNDERSIDE in the ground: physics/tyres.ts
@@ -13,7 +14,7 @@ import type { CarBody } from "./types.ts";
 const BELLY_SINK: Record<string, number> = { mud: 0.08, thickMud: 0.16, sand: 0.07 };
 
 /**
- * How deep the car's underside is in the ground (?belly), m.
+ * How deep the car's underside is in the ground, m.
  * @param car the car body
  * @param cosH cos of the car heading
  * @param sinH sin of the car heading

@@ -7,7 +7,6 @@ import type { Spec, Tyre } from '../cars.ts';
 import { TUNE, tyreGrip } from '../vehicle.ts';
 import type { Car } from '../vehicle.ts';
 import { wornGrip } from './tyrewear.ts';
-import { FIX } from '../core/fixes.ts';
 
 // Suspension rate and damping are PER CAR, in cars.js (susF / susZ) — see the note there.
 export const LOAD_MAX = 2.6;
@@ -21,7 +20,8 @@ const PLOUGH_VREF = 14;        // m/s at which ploughing reaches full strength
 // fraction of full force still there at walking pace, so you get STUCK
 const PLOUGH_CRAWL = 0.55;
 
-// ?belly: the plough of an underside dragged through the ground, at full depth (BELLY_FULL_M of
+// BELLY (passed 11-03): the plough of an underside dragged through the ground, at full depth
+// (BELLY_FULL_M of
 // it in the ground: beached - on top of mud's own 0.35 a 2WD car stops dead)
 const BELLY_PLOUGH = 2.4, BELLY_FULL_M = 0.12;
 
@@ -115,8 +115,8 @@ export function ploughingForces(car: Car, carSpec: Spec, mass: number, vLong: nu
   // a mud tread ploughs less (cars.ts ploughK; K12, passed 11-03)
   const plough = (car.surface.plough || 0)
     * (carSpec.tyre && carSpec.tyre.ploughK ? carSpec.tyre.ploughK : 1)
-    // ?belly: the underside in the ground ploughs too, by how deep (beached at BELLY_FULL_M)
-    + (FIX.belly ? BELLY_PLOUGH * Math.min(1, (car.bellyDepth || 0) / BELLY_FULL_M) : 0);
+    // the underside in the ground ploughs too, by how deep (beached at BELLY_FULL_M)
+    + BELLY_PLOUGH * Math.min(1, (car.bellyDepth || 0) / BELLY_FULL_M);
   let FpxF = 0, FpyF = 0, FpxR = 0, FpyR = 0;
   if (plough > 0) {
     // Still strong at a crawl (PLOUGH_CRAWL of full), so you get STUCK rather than gently coasting

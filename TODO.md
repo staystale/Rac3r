@@ -2,63 +2,47 @@
 
 New session? Read `CLAUDE.md`, then `NOTES.md`, then this file. Open items only: finished work is in
 the git history (this file was swept on 2026-10-19: every finished entry deleted; the owner's
-decisions and the measured lessons live in `NOTES.md`). `docs/foreman-handover.md` is the last
-handover, written on request.
+decisions and the measured lessons live in `NOTES.md`). `docs/handover-2026-11-03.md` is the
+last handover, written on request.
 
-## Where we are (2026-11-02)
+## Where we are (2026-11-03, end of session)
 
-- NEXT (owner 11-01): 1 the DRIVING ROOT FIX (real ABS), then 2 AI REWORK B. The owner's
-  bug / feature list of 11-01 is digested below (K1-K20).
-- DEFAULT 11-02 (owner: "all tests pass"): the 11-01 round - K1 heavywet, K2 menureset, K4
-  markage (round 2), K5 treenight, K6 hwsnow, K7 wheelgone (+ the K17 spray fix), K8 menucar,
-  K10 ainumbers. Every switch and old path deleted; simhash SAME against main a4b5c34 with the
-  eight on (re-saved as the reference). DEFAULT 11-02: the driving root fix (real wheel speed,
-  real ABS; owner "pass"). DEFAULT 11-02: ?evenlap (K3; owner "evenlap pass", simhash SAME
-  against main 1316167 with it on) and the car stats re-measured on the root-fix physics (owner:
-  "update the new stats in"). DEFAULT 11-02 (owner: "all test passed"): the K13
-  realism dials at brake 1, lock 1, grip 0.5, power 1 written into the roster (cars.ts: real
-  torque curves, real drag, front brake share 0.65 / single-seaters 0.60, mu halfway to real;
-  wheelspin.ts LOCK_SHARE 0.70; realism.ts deleted; carstats re-measured, the same as the dials
-  measured: hatch 0-100 6.8 s, muscle 5.8 / 265 km/h, Mini 9.9 / 171); pedalramp (throttle 1.5 s,
-  brake 1.0 s), lockfade, spinmarks, smokefade (+ the burnout round), dustlinger, musclegears;
-  flatsize (11-02, earlier). DEFAULT 11-02 evening (owner: all pass): smokeover (35 % of
-  tyre smoke, 30 % of dust over the cars), heatease (tyre heat x0.85), flatgrip (a flat keeps 0.9,
-  axle = mean of its tyres, one-sided drag + pull); towplus (physics/wake.ts: dirty air, the push,
-  wake sized by speed and car, exponential fade, air streaks on every racer in a tow). PLAYER
-  SETTINGS 11-02 (owner: pass): SETTINGS > STEERING CONTROLS, STEER CURVE + STEER AT SPEED
-  (core/steerfeel.ts; the first SETTINGS screen, TODO G adds sound / difficulty). DEFAULT 11-03
-  (owner: all pass): aicool (skilled AI cool REALLY hot tyres, never in a battle), smokeearly
-  (tyre smoke from 60 C, faint when cool), airfx (render/airflow.ts: spread, wind, cars stir);
-  GARAGE SPEC SHEET + tyre health under test. TYPESCRIPT CONVERSION DONE 11-03 (src/ is all
-  TypeScript). DEFAULT 11-03 (owner: pass): smokelinger (smoke hangs, dust cannot evict it),
-  aidust (AI cars near you throw smoke / dust / spray), realcars (REAL CARS, owner "anything
-  real is fine": every car on its real counterpart - weight, engine from the maker's peak torque /
-  power, gears, tyre size, 0.5 rho Cd A - with its sources on its ROSTER row and a name close to
-  the real one; realcars.ts holds the helpers; most within ~5 % of the real top speed / 0-100; the
-  Muscle runs 0-100 in 4.5 s, real ~6.5 - its tyres grip too well off the line).
-  DEFAULT 11-03 (owner: all pass): jokerhint (the lap panel's joker hint works out the
-  turn-off), puffpool (a full puff pool lets go of puffs off screen, then the AI's farthest, and
-  holds 640: with AI near, 0 % of your puffs cut
-  on screen, was up to 2/3). OPEN: the owner still saw dust vanish instantly a couple of times
-  with NO AI - not the pool (a 60 s Knobhill RX race lost no puff early, the pool peaked at 303);
-  the owner will find the condition. SPEC SHEET removed (owner: "too much ... get rid of it").
-  OWNER 11-03 (plans to discuss / mockups first): GARAGE STATS under the car - more detail
-  (suspension stiffness / travel ...) and each upgradeable part's level with its effect on top
-  speed and the other stats as it is upgraded; MUSCLE TYRES - period tyres that suit it and sizes
-  that do not fit (as other cars); TRACK REALISM - every track checked against the real one and
-  raised in detail (Brands Snatch: the bridges over the track - the real Indy map shows two bridges
-  and a pedestrian bridge; the pits too tight and not solid); K12 mud hills (owner: ok). NEXT TIME
-  WE WORK ON NEW VEHICLES OR VISUALS: make sure every car LOOKS like its real counterpart (shape,
-  proportions, lights, details - as close as the names). More vehicles later (owner). ORDER
-  (owner 11-03, updated): K12 MUD / 4x4 / OFF-ROAD first (owner: "cars struggle too much in mud
-  atm, even Subarus struggle to get up the hill at Knob hill in the rain"), then the AI rework
-  (owner: "see if we can get up to 20 cars in a race without performance issues" - MEASURED 11-03,
-  Thruston, laptop: sim ms a frame 5 AI 1.9, 10 AI 4.2, 15 AI 5.3, 20 AI 17.5: the 20-car jump is
-  the thing to find and cut; MAX_AI is 10 until then), then the upgrade system, sound, story. SPARKS ON BARE RIMS (owner 11-03): a wheel spinning on its
-  rim (no tyre left) throws sparks by its own wheel speed, the normal spark look taking over once
-  it rolls.
-  MENU REDESIGN (owner 11-03, mockup agreed over rounds - build behind a switch, one screen at a
-  time: main menu, then garage + upgrades): LOGO = the owner's own image (pixel shard letters,
+- NOTHING UNDER TEST: the plain link is the whole approved game; src/testlist.ts is empty.
+- DEFAULT 11-03 (owner: pass; every switch and old path deleted, each proved against its tested
+  switch - simhash SAME, menucheck, phone shots): REAL CARS (every car on its real counterpart,
+  parody names, best-launch 0-100 in the garage); smokelinger, aidust, puffpool (smoke / dust no
+  longer evicted early); jokerhint; pit garages solid all round; muscle tyres (fit by class AND
+  rim; the Chevvy on Good Yeah Polyglass GT; Micky Tomson ET Streat, BF Goodwrench Radial T/A);
+  Castle Cum's DUNFLOP footbridge; Brands Snatch's bridges (Hailwood Hill footbridge, two GP road
+  bridges); THE PIXEL MENUS (the owner's logo + "A DRIVING SANDBOX", logo colours, pixel-art
+  shaded buttons, ember = locked in, electric-blue blink on press, Silkscreen / Press Start 2P /
+  VT323 with one set of digits, landscape a finger in from the notch); THE TEST GARAGE (main
+  menu STORY / TEST MODE / SETTINGS; test setup names SELECTED CAR above GARAGE and keeps its
+  choices; SELECT locks a car in; TRY + BUY (greyed) in the shops; stock + the tried difference
+  in ember); up to 10 AI (a - / + ticker, ten liveries); K12 MUD (rain leaves packed dirt wet
+  dirt, mud ploughs 0.35 / thick 0.9, mud tyres plough less, The Rough Patch mud + thick mud
+  hills); RESET puts the car all four wheels on the road; BELLY drag (ground clearance in mud /
+  sand / ruts, world/belly.ts); the tractor on FIRESTONED Field Luggers and 4WD like the real
+  Fastrac.
+- NEXT (owner order 11-03): 1 the AI REWORK (design first, agreed before building; GOAL: 20 cars
+  in a race without performance issues - MEASURED, Thruston, laptop, sim ms a frame: 5 AI 1.9,
+  10 AI 4.2, 15 AI 5.3, 20 AI 17.5: find and cut the 20-car jump, likely the car-to-car checks;
+  MAX_AI in core/settings.ts is 10 until then); 2 the UPGRADE SYSTEM with the agreed garage
+  (below); 3 SOUND (ask about every sound first); 4 STORY (its garage, money, BUY & FIT, "buy
+  what you last tested" with tick / untick).
+- OWNER IDEAS / WAITING (not ordered yet): SPARKS ON BARE RIMS (a wheel spinning on its rim
+  throws sparks by its own speed, the normal spark look once it rolls); TRACK REALISM for every
+  circuit (each against its real map + photos, a gap list and screenshots first - Brands
+  Snatch's bridges done); CARS LOOK LIKE THEIR REAL COUNTERPARTS (next time we do vehicles or
+  visuals); MORE VEHICLES (e.g. an M3 as its own car); SUSPENSION TRAVEL (with the suspension
+  upgrade: bottoming out, and it takes clearance in mud - world/belly.ts).
+- THE AGREED GARAGE (owner 11-03, mockup "RAC3R Menu Redesign"; MENU REDESIGN just below): the menu
+  look is DONE (default); the garage LAYOUT (upgrade bars heading each section, a stat opens its
+  upgrade screen, TOUGHNESS, TRAVEL, the units chip) comes with the upgrade system; TEST garage
+  TRY vs STORY garage BUY, test wear never reaches story, paint costs in story.
+
+- MENU REDESIGN (owner 11-03, the agreed design; the look is DONE, the garage part comes with the
+  upgrade system): LOGO = the owner's own image (pixel shard letters,
   burst, electric blue 3) with its sub line changed to "A DRIVING SANDBOX" in the same chunky
   pixel type. COLOURS = the logo's: near-black, ember red to orange for actions, burnt brown edges,
   electric blue (the 3) for selected / better. NO smooth gradients: buttons PIXEL-ART SHADED (flat
@@ -187,7 +171,7 @@ FEATURES
   car and on the scoreboard / results. S. OWNER 11-01: a driver KEEPS their number across
   events (Story); TEST MODE deals random numbers each event. BUILT ?ainumbers=1 (grid.js
   aiNumbers; also K9's painted number - spec.num): 6 deals all unique, never your #7.
-- K11 UP TO 10 AI: setAI caps at 5 (main.ts). Measure first: AI ms per car (laptop profile) and a
+- K11 [DEFAULT 11-03: up to 10 AI, a ticker; 20 is the AI rework goal] UP TO 10 AI: setAI caps at 5 (main.ts). Measure first: AI ms per car (laptop profile) and a
   phone ?report=1 race at 10; grid slots on the shortest tracks. M. Owner to decide on numbers.
 
 - K16 DRIVER NAMES: every AI racer gets a name (parody puns, the NOTES rule), shown with the
@@ -226,7 +210,7 @@ FOLDED INTO 1 - THE DRIVING ROOT FIX (wheel spin as real state; plan first, then
   cars slide more braking hard into a turn (0.2 lock: Mini 44 deg body slip); ABS marks faint
   dashes (6 % of a stop past 2.2 m/s slip). carstats re-measured and committed 11-02 (owner OK).
 - Real ABS (A10): pulsing, staggered marks, steering kept, shorter stops than locked.
-- K12 MUD HILLS: some cars barely climb rallycross hills; stopped / reset in wet mud they cannot
+- K12 [DEFAULT 11-03, owner: pass - see Where we are] MUD HILLS: some cars barely climb rallycross hills; stopped / reset in wet mud they cannot
   pull away. Measure each car's climb and launch on wet mud vs real figures; with real wheel
   spin, traction on loose ground comes from the tyre law, not a patch.
 - K13 GRIP / SPEED / TORQUE / STEERING REALISM: a measured balance pass against real figures

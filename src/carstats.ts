@@ -105,10 +105,10 @@ export const CAR_STATS: Record<string, CarStat> = {
   "tractor": {
     "topKph": 70,
     "zeroTo100": null,
-    "brake100": 51.4,
-    "gripG": 0.93,
+    "brake100": 59.1,
+    "gripG": 0.94,
     "massKg": 11400,
-    "drive": "RWD",
+    "drive": "4WD",
     "aids": null
   },
   "mini-fwd": {

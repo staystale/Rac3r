@@ -9,7 +9,6 @@ import { SPAWN, LEVEL } from "../world/state.ts";
 import { clearWear } from "../world/wear.ts";
 import { startWeather } from "../world/weather.ts";
 import { resetTrackside } from "../world/barriers.ts";
-import { FIX } from '../core/fixes.ts';
 import { resetPuddles } from "../world/puddles.ts";
 import { resetCoverField } from "../world/coverfield.ts";
 import { resetRace, resetStage } from './rules.ts';
@@ -110,18 +109,18 @@ export function updateRecoveryTracking(car: GameCar, dt: number) {
 
 export const RESET_BACK = 4;          // m behind the exit point
 export const RESET_ANG = [5, 15];     // deg back toward the road, random in this range
-// ?resetin (owner 11-03: "place cars just a tiny bit more on the road / track so f1 cars don't
+// RESET IN (passed 11-03; owner: "place cars just a tiny bit more on the road / track so f1 cars
+// don't
 // get stuck after resetting"): the centre moves in from the edge so all four wheels stand on the
 // road - half the car's track, plus its rear's swing out at the reset angle, plus this margin
 const RESET_IN_MARGIN = 0.15;
 
 /**
- * How far in from the road's edge a reset puts the car's centre (?resetin), else 0 (on it).
+ * How far in from the road's edge a reset puts the car's centre.
  * @param ang the reset angle, rad
  * @returns m in from the edge
  */
 function resetInset(ang: number): number {
-  if (!FIX.resetIn) return 0;
   const spec = game.car.spec;
   return (spec.trackWidth || 1.5) / 2 + spec.lr * Math.sin(ang) + RESET_IN_MARGIN;
 }

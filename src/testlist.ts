@@ -46,29 +46,5 @@ export const TEST_LIST: TestEntry[] = [
   // passed 2026-11-02; aicool, smokeearly, airfx, smokelinger, aidust, realcars, jokerhint,
   // puffpool, tyrehealth, pitsolid, muscletyres,
   // namefix, bhbridges, menustyle, testgarage, ai10, k12 passed
-  // 2026-11-03; specsheet removed)
-  {
-    id: 'resetin',
-    added: '2026-11-03',
-    name: 'RESET mid-race puts the car all four wheels on the road (was half on, half off)',
-    where: 'Plain link + &resetin=1: any circuit, a low car (Formula Won), off into the gravel',
-    try: 'Go off, press RESET: the car should sit just inside the edge and drive straight away.',
-    wrong: 'Still half in the gravel, or put down in the middle of the road in the way.',
-  },
-  {
-    id: 'belly',
-    added: '2026-11-03',
-    name: 'Ground clearance in mud / sand: a low car sinks to its belly and drags (or beaches)',
-    where: 'Plain link + &belly=1: The Rough Patch mud hills (west mud, middle thick mud), sand',
-    try: 'Formula Won / Lamburghini vs Volvoh up the thick mud hill; drive the same ruts again.',
-    wrong: 'A high car dragging, a low car untroubled in thick mud, or beached on hard ground.',
-  },
-  {
-    id: 'agtyre',
-    added: '2026-11-03',
-    name: 'The tractor on FIRESTONED Field Lugger tractor tyres, and 4WD like the real Fastrac',
-    where: 'Plain link + &agtyre=1 (with &belly=1): the JCBee on The Rough Patch mud hills',
-    try: 'Up the thick mud hill flat out; then on tarmac (slower, skittish on ice).',
-    wrong: 'The tractor still stuck in mud, or quick on tarmac.',
-  },
+  // 2026-11-03; resetin, belly, agtyre passed 2026-11-03; specsheet removed)
 ];
