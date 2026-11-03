@@ -36,4 +36,9 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
+  // ?namefix=1: the Castle Cum footbridge says DUNFLOP, our one Dunlop parody (it said DUMLOP)
+  nameFix: atLoad('namefix'),
+  // ?muscletyres=1: tyres fit by RIM SIZE as well as class; period tyres for the Chevvy (its
+  // factory set the Good Yeah Polyglass GT), a drag radial and a street radial (cars.ts)
+  muscleTyres: atLoad('muscletyres'),
 };

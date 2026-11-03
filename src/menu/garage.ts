@@ -1,9 +1,10 @@
 import { wearColour, setHealth } from '../physics/tyrewear.ts';
 import { COL } from '../world/colours.ts';
 import {
-  ROSTER, CLASSES, classOf, PALETTE, TYRES, TYRE_BRANDS, TYRE_SURFS, tyreOf,
+  ROSTER, CLASSES, classOf, PALETTE, TYRES, TYRE_BRANDS, TYRE_SURFS, tyreOf, tyreFits,
+  fittedTyre,
 } from '../cars.ts';
-import { CAR_STATS } from '../carstats.ts';
+import { STATS } from '../carstatsof.ts';
 import type { CarStat } from '../ai/types.ts';
 import type { Livery } from './profile.ts';
 import type { RosterRow } from '../cars.ts';
@@ -115,14 +116,16 @@ export function showGarage(menu: Menu) {
   const stats = addElement(right, 'div', '', 'stats');
   const showStats = () => {
     const car = ROSTER.find((x) => x.id === menu.profile.active)!,
-      spec: Partial<CarStat> = CAR_STATS[car.id] || {};
+      spec: Partial<CarStat> = STATS[car.id] || {};
     drawLift(lift, menu.api.carSprite(car.id, (menu.profile.livery || {})[car.id]));
     const aids = spec.aids ? [spec.aids.abs && 'ABS', spec.aids.tcs
       && 'TCS'].filter(Boolean).join(' + ') || 'NONE' : 'NONE';
     stats.innerHTML = `<span>TOP SPEED</span><b>${spec.topKph ?? '—'} KM/H</b><span>0-100 \
 KM/H</span><b>${spec.zeroTo100 != null ? spec.zeroTo100 + ' S' : '—'}</b>`
       + `<span>100-0 BRAKING</span><b>${spec.brake100 ?? '—'} M</b><span>GRIP</span><b>${(() => {
-        const tarmacGrip = tyreOf((menu.profile.tyres || {})[car.id]).grip.tarmac;
+        // the table is measured on the stock set: the fitted set's grip against that
+        const tarmacGrip = fittedTyre(car, (menu.profile.tyres || {})[car.id]).grip.tarmac
+          / fittedTyre(car).grip.tarmac;
         return spec.gripG == null ? '—' : tarmacGrip === 1 ? spec.gripG + ' G'
           : (spec.gripG * tarmacGrip).toFixed(2) + ' G <span style="color:#9aa0aa;\
 font-size:10px">STOCK ' + spec.gripG + '</span>';
@@ -131,7 +134,7 @@ font-size:10px">STOCK ' + spec.gripG + '</span>';
 AIDS</span><b>${aids}</b>`
       + `<span>CLASS</span><b>${classOf(car.cls)!.name} · ${car.sub.toUpperCase()}</b>`
       + (() => {
-        const tyre = tyreOf((menu.profile.tyres || {})[car.id]),
+        const tyre = fittedTyre(car, (menu.profile.tyres || {})[car.id]),
           brand = TYRE_BRANDS.find((x) => x.id === tyre.brand)!;
         return `<span>TYRES</span><b style="color:${brand.col}">${brand.name} \
 · ${tyre.name.toUpperCase()}</b>`;
@@ -275,8 +278,8 @@ function showSetWear(menu: Menu, carId: string, fitted: boolean, info: HTMLEleme
 function showTyreShop(menu: Menu) {
   const panel = addPane(menu, true), carId = menu.profile.active,
     car = ROSTER.find((x) => x.id === carId)!,
-    spec: Partial<CarStat> = CAR_STATS[carId] || {};
-  let sel = tyreOf((menu.profile.tyres || {})[carId]).id;
+    spec: Partial<CarStat> = STATS[carId] || {};
+  let sel = fittedTyre(car, (menu.profile.tyres || {})[carId]).id;
   addElement(panel, 'h2', 'TYRES · ' + car.name);
   const box = addElement(panel, 'div', '', 'garage'), left = addElement(box, 'div', ''),
     right = addElement(box, 'div', '');
@@ -288,7 +291,7 @@ function showTyreShop(menu: Menu) {
     const group = addElement(left, 'div', '');
     group.style.cssText = 'display:flex;flex-wrap:wrap;gap:5px';
     for (const tyre of TYRES.filter((x) => x.brand === brand.id)) {
-      const fits = tyre.fits.includes(car.cls);
+      const fits = tyreFits(tyre, car);
       const tyreBtn = addButton(menu, group, tyre.name, () => {
         sel = tyre.id;
       showTyre();
@@ -312,7 +315,7 @@ solid ' + brand.col;
   addButton(menu, panel, '◀ BACK', () => showGarage(menu));
   const showTyre = () => {
     const tyre = tyreOf(sel), brand = TYRE_BRANDS.find((x) => x.id === tyre.brand)!,
-      cur = tyreOf((menu.profile.tyres || {})[carId]).id === tyre.id;
+      cur = fittedTyre(car, (menu.profile.tyres || {})[carId]).id === tyre.id;
     for (const [key, tyreBtn] of Object.entries(btns)) tyreBtn.style.outline = key === sel
       ? '3px solid #e8a13a' : 'none';
     const bar = (lbl: string, surf: string) => {

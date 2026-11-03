@@ -41,7 +41,7 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
 - ONE PARODY PER REAL NAME (owner 11-03: "make sure all our naming conventions are consistent ...
   dont go generating similar different ones if we already have that name parody"). Check this
   register before naming anything; reuse the entry; add every new one here.
-  BRANDS: Dunlop = DUNFLOP (the Castle Cum footbridge still says DUMLOP: to fix), Kumho = KUM,
+  BRANDS: Dunlop = DUNFLOP (the Castle Cum footbridge said DUMLOP: ?namefix), Avon = AVAN, Kumho = KUM,
   Pirelli = PIRRELLY, SPUM (budget tyres / oil), CREEM OIL, Goodyear = GOOD YEAH (owner 11-03).
   CARS: VW = Folksvagon, BMW = BMV, Subaru = Subaroo, Volvo = Volvoh, Chevrolet = Chevvy, Audi =
   Ordi, JCB = JCBee, Mini = Minnie, Lamborghini = Lamburghini, Nissan = Nissun, Peugeot =

@@ -45,4 +45,20 @@ export const TEST_LIST: TestEntry[] = [
   // curve + reach at speed) passed 2026-11-02, kept as player settings; towplus (the wake)
   // passed 2026-11-02; aicool, smokeearly, airfx, smokelinger, aidust, realcars, jokerhint,
   // puffpool, tyrehealth, pitsolid passed 2026-11-03; specsheet removed)
+  {
+    id: 'muscletyres',
+    added: '2026-11-03',
+    name: 'Tyres fit by rim size; the Chevvy on period tyres (Good Yeah Polyglass GT stock)',
+    where: 'Plain link + &muscletyres=1: GARAGE > TYRES on the Chevvy, then race it',
+    try: 'Feather the throttle off the line (flat out just smokes). Try ET Streat and Radial T/A.',
+    wrong: 'A modern tyre fitting the 14-inch Chevvy, or launches that feel nothing like before.',
+  },
+  {
+    id: 'namefix',
+    added: '2026-11-03',
+    name: 'Castle Cum footbridge says DUNFLOP (it said DUMLOP)',
+    where: 'Plain link + &namefix=1: Castle Cum, the footbridge after Old Paddock',
+    try: 'Drive under it and read it.',
+    wrong: 'Still DUMLOP, or the text not fitting the bridge.',
+  },
 ];

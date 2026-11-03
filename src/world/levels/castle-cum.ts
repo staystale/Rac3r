@@ -3,6 +3,7 @@ import { FLOOR } from "../bounds.ts";
 import { autoKerbs, createSubtrack, traceTrack } from "../subtrack.ts";
 import { SURFACES } from "../surfaces.ts";
 import { prepBumps } from "../terrain.ts";
+import { FIX } from "../../core/fixes.ts";
 import { ss01, trackKit } from "./kit.ts";
 import type { Point, Lane, Zone, Paint, Prop, Subtrack } from "../types.ts";
 // =============================================================================================
@@ -205,8 +206,9 @@ export const CC_PROPS: Prop[] = [
   CC_KIT.prop(1325, -11.3, { kind: 'sculpture' }),
   // AVON footbridge over Dean Straight
   CC_KIT.prop(1195, 0, { kind: 'footbridge', wid: 27, label: 'AVAN TYRES', rot: Math.PI / 2 }),
-  // DUNLOP footbridge after Old Paddock
-  CC_KIT.prop(712, 0, { kind: 'footbridge', wid: 27, label: 'DUMLOP', rot: Math.PI / 2 }),
+  // DUNLOP footbridge after Old Paddock (?namefix: DUNFLOP, the one Dunlop parody - NOTES)
+  CC_KIT.prop(712, 0, { kind: 'footbridge', wid: 27, label: FIX.nameFix ? 'DUNFLOP' : 'DUMLOP',
+    rot: Math.PI / 2 }),
   // the clubhouse
   CC_KIT.prop(20, -62, { kind: 'block', w: 26, h: 12, roof: '#7a5a48', label: 'TAVERN' }),
   // circuit administration
