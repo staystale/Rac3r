@@ -3,7 +3,7 @@
 // for, and the game canvas keeps running the DEMO LAP behind it (user's choice). Pixel-art UI
 // style: hard 2 px outlines, square corners, hard drop shadows, the HUD's colour table (green = go
 // / interactive, amber = highlight, red = locked / danger). Everything a screen shows is READ LIVE:
-// car numbers come from src/carstats.js (measured by tools/carstats.mjs, rule 10), track pictures
+// car numbers come from src/carstats.ts (measured by tools/carstats.mjs, rule 10), track pictures
 // from the real level painter.
 //
 // main.js owns the game; this file only asks it to do things through `api`: api.thumbs -> {

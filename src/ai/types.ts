@@ -214,7 +214,7 @@ export interface Branches {
   startLane?: Lane;
 }
 
-// The measured numbers of one car model (carstats.js, tools/carstats.mjs): carGrip reads the
+// The measured numbers of one car model (carstats.ts, tools/carstats.mjs): carGrip reads the
 // grip and braking, the garage all of them.
 export interface CarStat {
   gripG?: number;

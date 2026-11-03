@@ -8,7 +8,7 @@
 //    lane (an RX start straight off the lap), resampled and rounded, each with its
 //    own speed profile.
 // 3. SPEED PROFILE per car model (cached per path): sqrt(K_CORNER x mu x gripG x g x R) from the
-//    car's MEASURED grip (carstats.js), then a backward braking pass, so the target at any point
+//    car's MEASURED grip (carstats.ts), then a backward braking pass, so the target at any point
 //    already brakes for everything ahead.
 import { debugValue } from "../core/debug.ts";
 import { groundAt } from "../world/wear.ts";
@@ -16,7 +16,7 @@ import { WEATHER } from "../world/weather.ts";
 import { coverEpoch } from "../world/coverfield.ts";
 import { querySubtrack } from "../world/tyrewall.ts";
 import { GRAVITY } from "../cars.ts";
-import { CAR_STATS } from "../carstats.js";
+import { CAR_STATS } from "../carstats.ts";
 import type { Level, Lane } from "../world/types.ts";
 import type {
   AiCar, Branches, CarStat, Corner, LinePoint, Path, PathPoint, RacingLine, SpeedProfile,
@@ -410,12 +410,11 @@ export function aiPaths(level: Level) {
 }
 
 // ------------------------------------------------ the speed profile (per path, per car model)
-// from the car's MEASURED numbers (src/carstats.js, lab surface mu 1.0): gripG = steady cornering
+// from the car's MEASURED numbers (src/carstats.ts, lab surface mu 1.0): gripG = steady cornering
 // g, brake100 = metres from 100 km/h
 export function carGrip(spec: AiCar["spec"]) {
-  // (cast: carstats.js is generated JavaScript, indexed here by a string id)
   const carId = String(spec.id).split('#')[0],
-    stats = (CAR_STATS as Record<string, CarStat>)[carId] || {};
+    stats: CarStat = CAR_STATS[carId] || {};
   const gripG = stats.gripG || spec.mu * 0.9,
     brakeG = stats.brake100 ? (27.78 * 27.78) / (2 * stats.brake100) / GRAVITY : gripG * 0.8;
   return { id: carId, gripG, brakeG };

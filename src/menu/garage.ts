@@ -4,7 +4,7 @@ import { COL } from '../world/colours.ts';
 import {
   ROSTER, CLASSES, classOf, PALETTE, TYRES, TYRE_BRANDS, TYRE_SURFS, tyreOf,
 } from '../cars.ts';
-import { CAR_STATS } from '../carstats.js';
+import { CAR_STATS } from '../carstats.ts';
 import type { CarStat } from '../ai/types.ts';
 import type { Livery } from './profile.ts';
 import type { RosterRow } from '../cars.ts';
@@ -13,8 +13,6 @@ import { addPane, addButton, addElement, drawLift } from './widgets.ts';
 import { showMainMenu } from './tracks.ts';
 import type { Menu } from '../menu.ts';
 
-// the measured stats by car id (carstats.js is generated JavaScript)
-const STATS = CAR_STATS as Record<string, CarStat>;
 
 /**
  * CAR PICKER filtered CLASS -> SUBCLASS -> car. Only classes / subclasses you
@@ -118,7 +116,7 @@ export function showGarage(menu: Menu) {
   const stats = addElement(right, 'div', '', 'stats');
   const showStats = () => {
     const car = ROSTER.find((x) => x.id === menu.profile.active)!,
-      spec: Partial<CarStat> = STATS[car.id] || {};
+      spec: Partial<CarStat> = CAR_STATS[car.id] || {};
     drawLift(lift, menu.api.carSprite(car.id, (menu.profile.livery || {})[car.id]));
     const aids = spec.aids ? [spec.aids.abs && 'ABS', spec.aids.tcs
       && 'TCS'].filter(Boolean).join(' + ') || 'NONE' : 'NONE';
@@ -282,7 +280,7 @@ function showSetWear(menu: Menu, carId: string, fitted: boolean, info: HTMLEleme
 function showTyreShop(menu: Menu) {
   const panel = addPane(menu, true), carId = menu.profile.active,
     car = ROSTER.find((x) => x.id === carId)!,
-    spec: Partial<CarStat> = STATS[carId] || {};
+    spec: Partial<CarStat> = CAR_STATS[carId] || {};
   let sel = tyreOf((menu.profile.tyres || {})[carId]).id;
   addElement(panel, 'h2', 'TYRES · ' + car.name);
   const box = addElement(panel, 'div', '', 'garage'), left = addElement(box, 'div', ''),
