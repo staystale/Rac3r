@@ -404,10 +404,13 @@ export function showSetup(menu: Menu, level: Level, kept: Partial<SetupState> = 
   addWeatherRows(menu, panel, state, level);
   if (menu.api.daytime) addTimeRows(menu, panel, state);
   if (FIX.testGarage) {
-    // ?testgarage (owner 11-03): no car picker here - the GARAGE (your car on it) picks it, and
-    // comes back to this setup with every choice as it was (AI, laps, RX, the hour)
+    // ?testgarage (owner 11-03): no car picker here - the GARAGE picks it (your car named
+    // above), and comes back to this setup with every choice as it was (AI, laps, RX, the hour)
     const car = ROSTER.find((row) => row.id === menu.profile.active)!;
-    addButton(menu, panel, `GARAGE · ${car.name} ›`, () => {
+    // the car you have, named above the button (owner: not inside it)
+    addElement(panel, 'div', 'SELECTED CAR', 'sub');
+    addElement(panel, 'div', car.name, 'selcar');
+    addButton(menu, panel, 'GARAGE ›', () => {
       const { road, traffic, litter, opponents, aiN, diff, aiCars, rxRace, laps, time } = state;
       const choices = { road, traffic, litter, opponents, aiN, diff, aiCars, rxRace, laps, time };
       showGarage(menu, () => showSetup(menu, level, choices));

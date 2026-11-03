@@ -117,6 +117,7 @@ export const MENU_PIXEL_CSS = FACES + `
   #menu .mainmenu .btns button { min-height: 40px; padding-block: 8px; }
 }
 #menu .tagline { display: none; }
+#menu .selcar { font-size: 17px; color: #f6eee6; margin-top: -6px; }   /* setup: your car */
 /* a picked (ember) card or row: its side line dark on the ember, not grey */
 #menu button.on .k, #menu button.on .sub { color: #3a1006; }
 /* PRESSED: electric blue at once, two blinks, then the button acts (widgets.ts addButton) */
