@@ -101,6 +101,18 @@ function integrate(ctx: ConesCtx, obj: Loose, dt: number, speed: number) {
 }
 
 /**
+ * ?aifast: AT REST since its last step - still, not spinning or settling, the same spot and the
+ * same filed cell - so this step would change nothing and test no car (MEASURED, 20 AI on
+ * Thruston: ~1100 objects stepped for nothing were 0.2 ms of a 4.6 ms physics step).
+ * @param obj the object
+ * @returns true when its step can be skipped
+ */
+function stillAtRest(obj: Loose) {
+  return obj._restX === obj.x && obj._restY === obj.y && obj._restCk === obj._ck
+    && !obj.vx && !obj.vy && !obj.spin && !(obj.down > 0 && obj.down < 1);
+}
+
+/**
  * Move one object for the step and test it against every car if it is moving.
  * @param ctx the cones context
  * @param obj the object
@@ -109,11 +121,7 @@ function integrate(ctx: ConesCtx, obj: Loose, dt: number, speed: number) {
  * @param newTyres receives the tyres a burst stack throws out
  */
 function stepObject(ctx: ConesCtx, obj: Loose, cars: ConeCar[], dt: number, newTyres: Loose[]) {
-  // ?aifast: AT REST since its last step - still, not spinning or settling, the same spot and the
-  // same filed cell - this step would change nothing and test no car (MEASURED, 20 AI on Thruston:
-  // ~1100 objects stepped for nothing were 0.2 ms of a 4.6 ms physics step)
-  if (FIX.aifast && obj._restX === obj.x && obj._restY === obj.y && obj._restCk === obj._ck
-    && !obj.vx && !obj.vy && !obj.spin && !(obj.down > 0 && obj.down < 1)) return;
+  if (FIX.aifast && stillAtRest(obj)) return;
   const speed = Math.hypot(obj.vx, obj.vy);
 
   if (obj.vx || obj.vy) integrate(ctx, obj, dt, speed);
