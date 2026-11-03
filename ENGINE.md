@@ -40,8 +40,8 @@ Older design notes and measurements are in the git history of this file.
 | `hud.ts`, `hud/` | The HUD on the full-resolution canvas: `layout.js` every rectangle and tap hit-test, `gauges.js`, `laps.js`, `overlays.js`, `controls.js`, `widgets.js`, `minimap.js` (minimap + progress bar). The pause menu's HUD list (`?hudmenu=0` = the old MINIMAP row) (`menu/race.ts`, `game/menuflow.js` hudActions) turns each display piece on or off. |
 | `menu.ts`, `menu/` | Main menu, test mode, garage (paint, tyres), race setup and results. |
 | `input.ts` | One normalised input state from keyboard and touch; the car never sees an event. |
-| `audio.js` | Procedural Web Audio: engine note, tyre squeal, surface sounds. |
-| `guide.js`, `testlist.ts`, `tune.ts` | How-to-play cards, the owner's to-test list, the debug tuning panel. |
+| `audio.ts` | Procedural Web Audio: engine note, tyre squeal, surface sounds. |
+| `guide.ts`, `testlist.ts`, `tune.ts` | How-to-play cards, the owner's to-test list, the debug tuning panel. |
 
 ## One frame
 

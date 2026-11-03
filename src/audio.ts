@@ -1,14 +1,44 @@
-// audio.js — procedural Web Audio API engine synthesis, tyre screech, and surface textures.
+// audio.ts — procedural Web Audio API engine synthesis, tyre screech, and surface textures.
 // Runs purely client-side; safely no-ops in Node or headless test runners (CLAUDE.md §5).
 
 // remembered between sessions (the pause menu's SOUND slider / MUTE)
+/** The engine voice: oscillators -> shaper -> filter -> formant -> gain. */
+interface EngineVoice {
+  gain: GainNode; filter: BiquadFilterNode; formant: BiquadFilterNode; shaper: WaveShaperNode;
+  oscCore: OscillatorNode; oscSub: OscillatorNode; oscHarmonic: OscillatorNode;
+}
+/** A noise voice: looping noise -> filter -> gain. */
+interface NoiseVoice {
+  noiseSource: AudioBufferSourceNode; filter: BiquadFilterNode; gain: GainNode;
+}
+/** The audio state. The voices' nodes are built by initAudio before any update reads them. */
+interface AudioState {
+  ctx: AudioContext | null; masterGain: GainNode | null;
+  volume: number; muted: boolean;   // remembered between sessions
+  engine: EngineVoice; tyre: NoiseVoice; surface: NoiseVoice;
+  bump: { filter: BiquadFilterNode; gain: GainNode };
+}
+/** The audio state once its context and master gain exist. */
+type LiveAudio = AudioState & { ctx: AudioContext; masterGain: GainNode };
+/** What the audio reads of the car. */
+interface AudioCar {
+  vx: number; vy: number; rpm: number; gear: number;
+  brakeLight?: number;   // the reverse throttle while backing up (gear < 0)
+  groundVF?: number; groundVR?: number;   // the axles' vertical speed over bumps, m/s
+  in?: { throttle: number };
+  spec: { id: string; redline: number; idleRpm: number; cyl?: number };
+  surface?: { id: string };
+  t?: { satF?: number; satR?: number; slipSpeedF?: number; slipSpeedR?: number; lockedF?: boolean;
+    lockedR?: boolean };
+}
+
 /**
  * Reads a stored setting.
- * @param {string} key localStorage key
- * @param {string} fallback value when nothing is stored or storage is blocked
- * @returns {string} the stored or fallback value
+ * @param key localStorage key
+ * @param fallback value when nothing is stored or storage is blocked
+ * @returns the stored or fallback value
  */
-function load(key, fallback) {
+function load(key: string, fallback: string | number) {
   try {
     const stored = localStorage.getItem(key);
     return stored === null ? fallback : stored;
@@ -17,10 +47,10 @@ function load(key, fallback) {
 
 /**
  * Stores the volume and mute settings.
- * @param {object} state the audio state
+ * @param state the audio state
  * @returns {void}
  */
-function save(state) {
+function save(state: AudioState) {
   try {
     localStorage.setItem('rac3r.vol', String(state.volume));
     localStorage.setItem('rac3r.mute', state.muted ? '1' : '0');
@@ -30,10 +60,10 @@ function save(state) {
 // Sigmoid soft-clipping saturation curve for warm combustion rumble (eliminates harsh buzz)
 /**
  * Builds the wave-shaper curve.
- * @param {number} amount sharpness
- * @returns {Float32Array} the curve
+ * @param amount sharpness
+ * @returns the curve
  */
-function makeSaturationCurve(amount = 8) {
+function makeSaturationCurve(amount: number = 8) {
   const sharpness = amount;
   const samples = 1024;
   const curve = new Float32Array(samples);
@@ -46,10 +76,10 @@ function makeSaturationCurve(amount = 8) {
 
 /**
  * Builds the engine voice (oscillators -> shaper -> filter -> formant -> gain -> master).
- * @param {object} state the audio state
+ * @param state the audio state
  * @returns {void}
  */
-function buildEngineVoice(state) {
+function buildEngineVoice(state: LiveAudio) {
   const { ctx, masterGain, engine } = state;
   // --- 1. ENGINE SYNTHESIS (Warm, wave-shaped combustion rumble + dual formants) ---
   engine.gain = ctx.createGain();
@@ -98,10 +128,10 @@ function buildEngineVoice(state) {
 
 /**
  * Builds the shared 2 s looping white-noise buffer.
- * @param {object} state the audio state
- * @returns {AudioBuffer} the noise buffer
+ * @param state the audio state
+ * @returns the noise buffer
  */
-function buildNoiseBuffer(state) {
+function buildNoiseBuffer(state: LiveAudio) {
   const { ctx } = state;
   // --- 2. NOISE BUFFER (Used for tyre screech, surface textures, and bumps) ---
   const bufSize = ctx.sampleRate * 2; // 2s looping white noise
@@ -115,11 +145,11 @@ function buildNoiseBuffer(state) {
 
 /**
  * Builds the tyre screech and braking scrub voice.
- * @param {object} state the audio state
- * @param {AudioBuffer} noiseBuf the noise buffer
+ * @param state the audio state
+ * @param noiseBuf the noise buffer
  * @returns {void}
  */
-function buildTyreNoise(state, noiseBuf) {
+function buildTyreNoise(state: LiveAudio, noiseBuf: AudioBuffer) {
   const { ctx, masterGain, tyre } = state;
   // --- 2A. TYRE SCREECH & BRAKING SCRUB ---
   tyre.noiseSource = ctx.createBufferSource();
@@ -143,11 +173,11 @@ function buildTyreNoise(state, noiseBuf) {
 
 /**
  * Builds the continuous surface rolling texture voice.
- * @param {object} state the audio state
- * @param {AudioBuffer} noiseBuf the noise buffer
+ * @param state the audio state
+ * @param noiseBuf the noise buffer
  * @returns {void}
  */
-function buildSurfaceNoise(state, noiseBuf) {
+function buildSurfaceNoise(state: LiveAudio, noiseBuf: AudioBuffer) {
   const { ctx, masterGain, surface } = state;
   // --- 2B. CONTINUOUS SURFACE ROLLING TEXTURE (Gravel crunch / dirt roar / grass swish) ---
   surface.noiseSource = ctx.createBufferSource();
@@ -171,11 +201,11 @@ function buildSurfaceNoise(state, noiseBuf) {
 
 /**
  * Builds the surface bump and kerb chatter voice.
- * @param {object} state the audio state
- * @param {AudioBuffer} noiseBuf the noise buffer
+ * @param state the audio state
+ * @param noiseBuf the noise buffer
  * @returns {void}
  */
-function buildBumpVoice(state, noiseBuf) {
+function buildBumpVoice(state: LiveAudio, noiseBuf: AudioBuffer) {
   const { ctx, masterGain, bump } = state;
   // --- 2C. SURFACE BUMPS & KERB CHATTER ---
   const bumpNoiseSource = ctx.createBufferSource();
@@ -198,11 +228,11 @@ function buildBumpVoice(state, noiseBuf) {
 
 /**
  * Creates the context on first call (later calls just resume it) and builds every voice.
- * @param {object} state the audio state
- * @param {Function} AudioCtx the AudioContext constructor
+ * @param state the audio state
+ * @param AudioCtx the AudioContext constructor
  * @returns {void}
  */
-function initAudio(state, AudioCtx) {
+function initAudio(state: AudioState, AudioCtx: typeof AudioContext) {
   if (state.ctx) {
     if (state.ctx.state === 'suspended') state.ctx.resume().catch(() => {});
     return;
@@ -229,11 +259,12 @@ function initAudio(state, AudioCtx) {
       }
     }
 
-    buildEngineVoice(state);
-    const noiseBuf = buildNoiseBuffer(state);
-    buildTyreNoise(state, noiseBuf);
-    buildSurfaceNoise(state, noiseBuf);
-    buildBumpVoice(state, noiseBuf);
+    const live = state as LiveAudio;   // ctx and masterGain set just above
+    buildEngineVoice(live);
+    const noiseBuf = buildNoiseBuffer(live);
+    buildTyreNoise(live, noiseBuf);
+    buildSurfaceNoise(live, noiseBuf);
+    buildBumpVoice(live, noiseBuf);
   } catch {
     // AudioContext policy blocked or unsupported
   }
@@ -241,12 +272,12 @@ function initAudio(state, AudioCtx) {
 
 /**
  * Engine voice per frame: pitch glide, intake filter and gain from rpm and throttle.
- * @param {object} state the audio state
- * @param {object} car the car being heard
- * @param {number} now audio clock time
+ * @param state the audio state
+ * @param car the car being heard
+ * @param now audio clock time
  * @returns {void}
  */
-function updateEngineVoice(state, car, now) {
+function updateEngineVoice(state: LiveAudio, car: AudioCar, now: number) {
   const { engine } = state;
   const spec = car.spec;
   const rpm = Math.max(spec.idleRpm * 0.9, car.rpm || spec.idleRpm);
@@ -274,10 +305,10 @@ function updateEngineVoice(state, car, now) {
 
 /**
  * Whether a surface is loose (gravel, dirt, grass, snow ...) for tyre noise.
- * @param {string} surfId surface id under the car
- * @returns {boolean} true on a loose surface
+ * @param surfId surface id under the car
+ * @returns true on a loose surface
  */
-function isLooseSurface(surfId) {
+function isLooseSurface(surfId: string) {
   return surfId === 'gravel' || surfId === 'rally' || surfId === 'dirt'
     || surfId === 'mud' || surfId === 'grass' || surfId === 'grassShort'
     || surfId === 'grassLong' || surfId === 'snow' || surfId === 'sand'
@@ -286,18 +317,19 @@ function isLooseSurface(surfId) {
 
 /**
  * Tyre screech per frame: level and pitch from slip demand and surface looseness.
- * @param {object} state the audio state
- * @param {object} car the car being heard
- * @param {number} now audio clock time
- * @param {number} speed car speed
- * @param {string} surfId surface id under the car
+ * @param state the audio state
+ * @param car the car being heard
+ * @param now audio clock time
+ * @param speed car speed
+ * @param surfId surface id under the car
  * @returns {void}
  */
-function updateTyreNoise(state, car, now, speed, surfId) {
+function updateTyreNoise(state: LiveAudio, car: AudioCar, now: number, speed: number,
+  surfId: string) {
   const { tyre } = state;
   // --- 2. RESPONSIVE TYRE SCREECH (From Turning, Braking, and Burnouts) ---
   // Reads telemetry `car.t` (rule 10: live physical state)
-  const telem = car.t || {};
+  const telem: NonNullable<AudioCar['t']> = car.t || {};
   const latSlip = Math.max(Math.abs(telem.satF || 0), Math.abs(telem.satR || 0));
   const longSlip = Math.max(Math.abs(telem.slipSpeedF || 0), Math.abs(telem.slipSpeedR || 0));
   const isLocked = Boolean(telem.lockedF || telem.lockedR);
@@ -331,13 +363,13 @@ function updateTyreNoise(state, car, now, speed, surfId) {
 
 /**
  * Continuous surface rolling texture per frame: level and pitch from surface and speed.
- * @param {object} state the audio state
- * @param {number} now audio clock time
- * @param {number} speed car speed
- * @param {string} surfId surface id under the car
+ * @param state the audio state
+ * @param now audio clock time
+ * @param speed car speed
+ * @param surfId surface id under the car
  * @returns {void}
  */
-function updateSurfaceNoise(state, now, speed, surfId) {
+function updateSurfaceNoise(state: LiveAudio, now: number, speed: number, surfId: string) {
   const { surface } = state;
   // --- 3. CONTINUOUS SURFACE ROLLING TEXTURES ---
   if (surface.gain && surface.filter) {
@@ -371,14 +403,15 @@ function updateSurfaceNoise(state, now, speed, surfId) {
 
 /**
  * Bump and kerb vertical impacts per frame.
- * @param {object} state the audio state
- * @param {object} car the car being heard
- * @param {number} now audio clock time
- * @param {number} speed car speed
- * @param {string} surfId surface id under the car
+ * @param state the audio state
+ * @param car the car being heard
+ * @param now audio clock time
+ * @param speed car speed
+ * @param surfId surface id under the car
  * @returns {void}
  */
-function updateBumpVoice(state, car, now, speed, surfId) {
+function updateBumpVoice(state: LiveAudio, car: AudioCar, now: number, speed: number,
+  surfId: string) {
   const { bump } = state;
   // --- 4. BUMP & KERB VERTICAL IMPACTS ---
   const vertSpeed = Math.abs(car.groundVF || 0) + Math.abs(car.groundVR || 0);
@@ -392,11 +425,11 @@ function updateBumpVoice(state, car, now, speed, surfId) {
 
 /**
  * Per-frame audio update: resumes the context and drives every voice from the car.
- * @param {object} state the audio state
- * @param {object} car the car being heard
+ * @param state the audio state
+ * @param car the car being heard
  * @returns {void}
  */
-function updateAudio(state, car) {
+function updateAudio(state: AudioState, car: AudioCar) {
   const { ctx } = state;
   if (!ctx) return;
   if (ctx.state === 'suspended') ctx.resume().catch(() => {});
@@ -404,20 +437,21 @@ function updateAudio(state, car) {
 
   const now = ctx.currentTime;
   const speed = Math.hypot(car.vx, car.vy);
-  updateEngineVoice(state, car, now);
+  const live = state as LiveAudio;   // initAudio made the context and the master gain together
+  updateEngineVoice(live, car, now);
   const surfId = car.surface ? car.surface.id : 'tarmac';
-  updateTyreNoise(state, car, now, speed, surfId);
-  updateSurfaceNoise(state, now, speed, surfId);
-  updateBumpVoice(state, car, now, speed, surfId);
+  updateTyreNoise(live, car, now, speed, surfId);
+  updateSurfaceNoise(live, now, speed, surfId);
+  updateBumpVoice(live, car, now, speed, surfId);
 }
 
 /**
  * Sets and stores the master volume.
- * @param {object} state the audio state
- * @param {number} level 0..1
- * @returns {number} the clamped volume
+ * @param state the audio state
+ * @param level 0..1
+ * @returns the clamped volume
  */
-function setVolume(state, level) {
+function setVolume(state: AudioState, level: number) {
   state.volume = Math.max(0, Math.min(1, level));
   save(state);
   if (state.masterGain && state.ctx) {
@@ -429,10 +463,10 @@ function setVolume(state, level) {
 
 /**
  * Toggles and stores the mute flag.
- * @param {object} state the audio state
- * @returns {boolean} the new muted flag
+ * @param state the audio state
+ * @returns the new muted flag
  */
-function toggleMute(state) {
+function toggleMute(state: AudioState) {
   state.muted = !state.muted;
   save(state);
   if (state.masterGain && state.ctx) {
@@ -444,12 +478,14 @@ function toggleMute(state) {
 
 /**
  * Creates the audio engine.
- * @param {boolean} [enabled] false (?noaudio=1, a judder test): never start Web Audio at all
- * @returns {object} the engine: init, update, volume and mute
+ * @param enabled false (?noaudio=1, a judder test): never start Web Audio at all
+ * @returns the engine: init, update, volume and mute
  */
-export function createAudio(enabled = true) {
+export function createAudio(enabled: boolean = true) {
   const AudioCtx = typeof window !== 'undefined'
-    ? (window.AudioContext || window.webkitAudioContext) : null;
+    ? (window.AudioContext
+      || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext)
+    : null;
   if (!AudioCtx || !enabled) {
     return {
       init: () => {},
@@ -477,12 +513,12 @@ export function createAudio(enabled = true) {
     surface: { noiseSource: null, filter: null, gain: null },
     // Surface bump & kerb chatter nodes
     bump: { filter: null, gain: null },
-  };
+  } as unknown as AudioState;   // the voices are built by initAudio
 
   return {
     init: () => initAudio(state, AudioCtx),
-    update: (car) => updateAudio(state, car),
-    setVolume: (level) => setVolume(state, level),
+    update: (car: AudioCar) => updateAudio(state, car),
+    setVolume: (level: number) => setVolume(state, level),
     toggleMute: () => toggleMute(state),
     get volume() { return state.volume; },
     get muted() { return state.muted; },

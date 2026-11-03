@@ -1,4 +1,4 @@
-// guide.js — HOW TO PLAY: a card overlay that POINTS AT the control it is talking about.
+// guide.ts — HOW TO PLAY: a card overlay that POINTS AT the control it is talking about.
 //
 // CLAUDE.md §4: the first-run walkthrough is required, and it is UPDATED IN THE SAME TASK as any
 // mechanic or control that changes it. The cards are data (CARDS below); add or edit a row,
@@ -18,6 +18,39 @@
 
 import { COL } from "./world/colours.ts";
 import { LEVEL } from "./world/state.ts";
+import type { HudRects } from './hud/layout.ts';
+
+/** A screen rectangle, css px. */
+interface Rect { x: number; y: number; w: number; h: number }
+/** A pedal's circle (input.ts findPedalHits). */
+interface Pedal { name: string; x: number; y: number; r: number }
+/** What a card can point at this frame (buildGuideScene). */
+interface GuideScene {
+  L: HudRects; W: number; H: number; touch: boolean; pedals: Pedal[];
+  carRect: Rect; hint: Rect; aids: Rect | null; menu: boolean;
+}
+/** One card: its title, its words (touch / pc, or worked out from the scene) and its target. */
+interface GuideCard {
+  title: string; touch?: string; pc?: string;
+  text?: (scene: GuideScene) => string;
+  target: ((scene: GuideScene) => Rect | null) | null;
+}
+/** The guide's state: the deck shown, the card, and the geometry drawn last frame. */
+interface GuideState {
+  seen: boolean; idx: number; pulse: number;
+  last: { box: Rect; nextB: Rect; skipB: Rect | null; target: Rect | null } | null;
+  deck: GuideCard[]; deckKind: string | null;
+}
+/** What the guide reads of the game. */
+interface GuideGame {
+  input: { isTouch: () => boolean; pedalHits: (width: number, height: number) => Pedal[] };
+  car: { x: number; y: number; spec: { aids?: { abs: boolean; tcs: boolean } } };
+  menuMode?: boolean;
+}
+/** What the guide reads of the renderer: the scale and world -> screen. */
+interface GuideView {
+  PPM: number; toScreenX: (x: number) => number; toScreenY: (y: number) => number;
+}
 
 const MARGIN = 12;
 const KEY = 'carsim.guideSeen';
@@ -25,13 +58,13 @@ const KEY = 'carsim.guideSeen';
 // target(scene) returns a screen rect {x,y,w,h} or null (a card with no target sits centred).
 // scene = { L: hud layout, W, H, touch, pedals: input.pedalHits, car screen rect,
 // hint: PC key-hint rect }
-const CARDS = [
+const CARDS: GuideCard[] = [
   {
     title: 'STEER',
     touch: 'Drag anywhere on the left half of the screen to steer. '
       + 'Small thumb moves make small corrections.',
     pc: 'A / D or the arrow keys steer.',
-    target: (scene) => scene.touch
+    target: (scene: GuideScene) => scene.touch
       ? {
         x: MARGIN, y: scene.H * 0.42, w: scene.W * 0.55 - MARGIN * 2, h: scene.H * 0.58 - MARGIN,
       }
@@ -43,7 +76,8 @@ const CARDS = [
       + 'Lift off the gas to catch a slide.',
     pc: 'W / S, or up / down. Hold to press harder; a tap feathers. '
       + 'Lift off the gas to catch a slide.',
-    target: (scene) => scene.touch ? circles(scene.pedals, ['throttle', 'brake']) : scene.hint,
+    target: (scene: GuideScene) => scene.touch ? circles(scene.pedals, ['throttle',
+      'brake']) : scene.hint,
   },
   {
     title: 'HANDBRAKE + REVERSE',
@@ -51,33 +85,35 @@ const CARDS = [
       + 'Hold R to reverse: it brakes first if you are still rolling.',
     pc: 'SPACE is the handbrake: flick it to start a slide. '
       + 'Hold Z to reverse: it brakes first if you are still rolling.',
-    target: (scene) => scene.touch ? circles(scene.pedals, ['handbrake', 'reverse']) : scene.hint,
+    target: (scene: GuideScene) => scene.touch ? circles(scene.pedals, ['handbrake',
+      'reverse']) : scene.hint,
   },
   {
     // DRIVER AIDS. Only some cars have them, so the card points at the chips when
     // this car does.
     title: 'ABS + TCS',
-    text: (scene) => (scene.aids
+    text: (scene: GuideScene) => (scene.aids
       ? 'Driver aids. ABS stops the wheels locking when you brake. '
         + 'TCS stops wheelspin and catches slides. They flash when working. '
         + 'Tap to switch them off for the real challenge'
         + (scene.touch ? '.' : ' (or B / T).')
       : 'Some cars have driver aids: ABS stops the wheels locking, TCS stops wheelspin and '
         + 'catches slides. This one has none — it is all you.'),
-    target: (scene) => scene.aids,
+    target: (scene: GuideScene) => scene.aids,
   },
   {
     title: 'SPEED + GEARS',
     text: () => 'Speed, gear and revs. The gearbox is automatic; '
       + 'the bar flashes red at the shift point.'
       + (LEVEL.subtrack ? ' Below it: your lap time and best lap.' : ''),
-    target: (scene) => LEVEL.subtrack ? union(scene.L.speed, scene.L.lap) : scene.L.speed,
+    target: (scene: GuideScene) => LEVEL.subtrack ? union(scene.L.speed,
+      scene.L.lap) : scene.L.speed,
   },
   {
     title: 'CAR + TRACK',
     text: () => 'Tap here to pick a car and a level. '
       + 'Each car drives differently: front, rear or four-wheel drive.',
-    target: (scene) => scene.L.chip,
+    target: (scene: GuideScene) => scene.L.chip,
   },
   {
     title: 'RESTART / RESET / CLEAR',
@@ -87,30 +123,30 @@ const CARDS = [
         ? 'onto the track near where you left it.'
         : 'to where you were a couple of seconds ago.')
       + ' CLEAR: wipe the tyre marks.',
-    target: (scene) => union(scene.L.restart, scene.L.reset, scene.L.clear),
+    target: (scene: GuideScene) => union(scene.L.restart, scene.L.reset, scene.L.clear),
   },
   {
     title: 'TYRES + SURFACES',
     text: () => 'Tyres start COLD: on tarmac they need warming up for full grip (off-road it '
       + 'makes no difference). Every surface grips differently, and snow, ice and water change '
       + 'as you drive over them. TUNE > TYRE HUD shows tyre temperatures.',
-    target: (scene) => scene.carRect,
+    target: (scene: GuideScene) => scene.carRect,
   },
   {
     title: 'DAMAGE + TRACK LIMITS',
     text: () => 'Big hits DAMAGE the car (pull, less grip and power, punctures); the little car '
       + 'by your speed shows where. RESET mends it; hits still go on the REPAIR bill. '
       + 'Cutting the track costs time or puts you back.',
-    target: (scene) => scene.carRect,
+    target: (scene: GuideScene) => scene.carRect,
   },
   {
     title: 'THAT\'S IT',
-    text: (scene) => scene.menu
+    text: (scene: GuideScene) => scene.menu
       ? 'Tap II to pause: restart, change track, or see this again under HOW TO PLAY.'
       : scene.touch
         ? 'Tap ? any time to see this again.'
         : 'Press H or click ? any time to see this again.',
-    target: (scene) => scene.L.help,
+    target: (scene: GuideScene) => scene.L.help,
   },
 ];
 
@@ -120,15 +156,15 @@ const CARDS = [
 // event in localStorage 'carsim.rulesSeen'), PAUSING the sim before the lights; replayed from the
 // pause menu. key = main.js eventKind: 'race' (VS AI, circuit), 'rx' (RX race), 'stage' (rally
 // stage), 'highway' (VS AI on the endless road), 'endless' (the endless road, solo).
-const NOTICE = (scene) => ({
+const NOTICE = (scene: GuideScene) => ({
   x: scene.W / 2 - Math.min(150, scene.W * 0.4), y: scene.H * 0.3 - 26,
   w: Math.min(300, scene.W * 0.8), h: 52,
 });
-const LIGHTS = (scene) => ({
+const LIGHTS = (scene: GuideScene) => ({
   x: scene.W / 2 - Math.min(scene.W, scene.H) * 0.22, y: scene.H * 0.2,
   w: Math.min(scene.W, scene.H) * 0.44, h: Math.min(scene.W, scene.H) * 0.19,
 });
-export const RULES = {
+export const RULES: Record<string, GuideCard[]> = {
   highway: [
     {
       title: 'HIGHWAY RACE',
@@ -140,7 +176,7 @@ export const RULES = {
       title: 'NO LAPS, NO FINISH LINE',
       text: () => 'The road never ends. You win by GETTING AWAY: weave through the traffic and '
         + 'leave every rival off the BOTTOM of the screen.',
-      target: (scene) => scene.carRect,
+      target: (scene: GuideScene) => scene.carRect,
     },
     {
       title: 'THE COUNTDOWNS',
@@ -154,13 +190,13 @@ export const RULES = {
       title: 'YOUR POSITION',
       text: () => 'Here: your place, the distance, and the gap to the car ahead (AHEAD) or your '
         + 'lead over the one behind (LEAD).',
-      target: (scene) => scene.L.lap,
+      target: (scene: GuideScene) => scene.L.lap,
     },
     {
       title: 'TRAFFIC IS REAL',
       text: () => 'The traffic is not racing — it drives, changes lane (watch the indicators) '
         + 'and brakes. Hit it and you both take damage. A wreck stops with its hazards on.',
-      target: (scene) => scene.carRect,
+      target: (scene: GuideScene) => scene.carRect,
     },
   ],
   endless: [
@@ -168,7 +204,7 @@ export const RULES = {
       title: 'HIGHWAY TO HULL',
       text: () => 'An endless motorway. Drive as far as you can — the DISTANCE and your BEST are '
         + 'here. Hull never gets closer.',
-      target: (scene) => scene.L.lap,
+      target: (scene: GuideScene) => scene.L.lap,
     },
     {
       title: 'STAY ON IT',
@@ -181,13 +217,13 @@ export const RULES = {
       title: 'TRAFFIC IS REAL',
       text: () => 'The traffic drives, changes lane (watch the indicators) and brakes. '
         + 'Hit it and you both take damage.',
-      target: (scene) => scene.carRect,
+      target: (scene: GuideScene) => scene.carRect,
     },
     {
       title: 'SPEED CAMERAS',
       text: () => 'Every gantry has a camera. Go under one over 70 mph and you are CAUGHT: your '
         + 'speed and a fine (the faster, the bigger). Your fastest catch is kept.',
-      target: (scene) => scene.carRect,
+      target: (scene: GuideScene) => scene.carRect,
     },
   ],
   race: [
@@ -200,7 +236,7 @@ export const RULES = {
       title: 'POSITION + LAPS',
       text: () => 'Your place and lap are here. The race ends once the top three are home — '
         + 'it always waits for you to finish.',
-      target: (scene) => scene.L.lap,
+      target: (scene: GuideScene) => scene.L.lap,
     },
     {
       title: 'TRACK LIMITS',
@@ -214,13 +250,13 @@ export const RULES = {
       title: 'RALLYCROSS',
       text: () => 'A race of laps on mixed surfaces from the lights. '
         + 'Your lap and the JOKER status are here.',
-      target: (scene) => scene.L.lap,
+      target: (scene: GuideScene) => scene.L.lap,
     },
     {
       title: 'THE JOKER LAP',
       text: () => 'Once in the race you MUST take the JOKER — the longer branch with the arrows. '
         + 'Miss it, or take it twice, and it costs +30 s.',
-      target: (scene) => scene.L.lap,
+      target: (scene: GuideScene) => scene.L.lap,
     },
   ],
   stage: [
@@ -228,7 +264,7 @@ export const RULES = {
       title: 'RALLY STAGE',
       text: () => 'Point to point against the clock, cars starting 30 s apart. '
         + 'Your time runs from the START line to the FINISH.',
-      target: (scene) => scene.L.lap,
+      target: (scene: GuideScene) => scene.L.lap,
     },
     {
       title: 'CUTS COST TIME',
@@ -238,12 +274,12 @@ export const RULES = {
   ],
 };
 const RULES_KEY = 'carsim.rulesSeen';
-export function rulesSeen(kind) {
+export function rulesSeen(kind: string) {
   try {
     return (JSON.parse(localStorage.getItem(RULES_KEY) || '{}'))[kind] === 1;
   } catch { return false; }
 }
-function markRules(kind) {
+function markRules(kind: string) {
   try {
     const seenKinds = JSON.parse(localStorage.getItem(RULES_KEY) || '{}');
     seenKinds[kind] = 1;
@@ -251,25 +287,27 @@ function markRules(kind) {
   } catch { /* fine */ }
 }
 
-function union(...rects) {
+function union(...rects: Rect[]): Rect {
   const left = Math.min(...rects.map((rect) => rect.x)),
     top = Math.min(...rects.map((rect) => rect.y));
   const right = Math.max(...rects.map((rect) => rect.x + rect.w)),
     bottom = Math.max(...rects.map((rect) => rect.y + rect.h));
   return { x: left, y: top, w: right - left, h: bottom - top };
 }
-function circles(pedals, names) {
+function circles(pedals: Pedal[], names: string[]) {
   return union(...pedals.filter((pedal) => names.includes(pedal.name)).map((pedal) => ({
     x: pedal.x - pedal.r, y: pedal.y - pedal.r, w: pedal.r * 2, h: pedal.r * 2,
   })));
 }
-const inRect = (point, rect) => rect && point.x >= rect.x && point.x <= rect.x + rect.w
+const inRect = (point: { x: number; y: number },
+  rect: Rect | null) => rect && point.x >= rect.x && point.x <= rect.x + rect.w
   && point.y >= rect.y && point.y <= rect.y + rect.h;
-const overlaps = (first, second) => first.x < second.x + second.w && second.x < first.x + first.w
+const overlaps = (first: Rect,
+  second: Rect) => first.x < second.x + second.w && second.x < first.x + first.w
   && first.y < second.y + second.h && second.y < first.y + first.h;
 
 // where a ray from rect's centre towards point target leaves rect
-function edgePoint(rect, target) {
+function edgePoint(rect: Rect, target: { x: number; y: number }) {
   const midX = rect.x + rect.w / 2, midY = rect.y + rect.h / 2,
     dx = target.x - midX, dy = target.y - midY;
   const scale = Math.min(
@@ -279,7 +317,7 @@ function edgePoint(rect, target) {
   return { x: midX + dx * scale, y: midY + dy * scale };
 }
 
-function roundedRectPath(ctx, rect, rad) {
+function roundedRectPath(ctx: CanvasRenderingContext2D, rect: Rect, rad: number) {
   ctx.moveTo(rect.x + rad, rect.y);
   ctx.arcTo(rect.x + rect.w, rect.y, rect.x + rect.w, rect.y + rect.h, rad);
   ctx.arcTo(rect.x + rect.w, rect.y + rect.h, rect.x, rect.y + rect.h, rad);
@@ -288,7 +326,7 @@ function roundedRectPath(ctx, rect, rad) {
   ctx.closePath();
 }
 
-function wrap(ctx, text, maxW) {
+function wrap(ctx: CanvasRenderingContext2D, text: string, maxW: number) {
   const out = [];
   let line = '';
   for (const word of text.split(' ')) {
@@ -302,15 +340,15 @@ function wrap(ctx, text, maxW) {
   return out;
 }
 
-const guideFont = (size, weight = 600) =>
+const guideFont = (size: number, weight = 600) =>
   `${weight} ${size}px ui-sans-serif, system-ui, -apple-system, sans-serif`;
 
 /**
  * Leave the guide: remember it was seen (or mark the event's rules), back to the HOW TO PLAY deck.
- * @param {object} state the guide state made by createGuide
+ * @param state the guide state made by createGuide
  * @returns {void}
  */
-function closeGuide(state) {
+function closeGuide(state: GuideState) {
   state.idx = -1;
   state.last = null;
   if (state.deckKind) markRules(state.deckKind);
@@ -323,22 +361,25 @@ function closeGuide(state) {
 
 /**
  * Step to the next card, closing the guide after the last one.
- * @param {object} state the guide state
+ * @param state the guide state
  * @returns {void}
  */
-function nextGuideCard(state) { if (++state.idx >= state.deck.length) closeGuide(state); }
+function nextGuideCard(state: GuideState) {
+  if (++state.idx >= state.deck.length) closeGuide(state);
+}
 
 /**
  * Measure what the cards can point at this frame (car, hint line, aid chips, layout).
- * @param {CanvasRenderingContext2D} ctx canvas context (its font is set for measuring)
- * @param {object} game the game
- * @param {object} layout the HUD layout
- * @param {number} viewW view width
- * @param {number} viewH view height
- * @param {object} renderer the renderer
- * @returns {object} the scene handed to each card's target / text
+ * @param ctx canvas context (its font is set for measuring)
+ * @param game the game
+ * @param layout the HUD layout
+ * @param viewW view width
+ * @param viewH view height
+ * @param renderer the renderer
+ * @returns the scene handed to each card's target / text
  */
-function buildGuideScene(ctx, game, layout, viewW, viewH, renderer) {
+function buildGuideScene(ctx: CanvasRenderingContext2D, game: GuideGame, layout: HudRects,
+  viewW: number, viewH: number, renderer: GuideView) {
   const touch = game.input.isTouch();
   // the car on screen, for the tyres card; at least a thumb's width so the hole reads as a hole
   const half = Math.max(30, 3 * renderer.PPM);
@@ -349,7 +390,8 @@ function buildGuideScene(ctx, game, layout, viewW, viewH, renderer) {
   ).width;
   const aids = game.car.spec.aids;
   const aidRect = aids
-    ? [aids.abs && layout.absChip, aids.tcs && layout.tcsChip].filter(Boolean)
+    ? [aids.abs && layout.absChip, aids.tcs && layout.tcsChip]
+      .filter((rect): rect is HudRects['absChip'] => !!rect)
     : [];
   return {
     L: layout, W: viewW, H: viewH, touch, pedals: game.input.pedalHits(viewW, viewH),
@@ -362,14 +404,15 @@ function buildGuideScene(ctx, game, layout, viewW, viewH, renderer) {
 
 /**
  * Dim everything except the target (the hole), then ring the hole with the pulsing rim.
- * @param {CanvasRenderingContext2D} ctx canvas context (already saved by the caller)
- * @param {object|null} target the rect to leave clear, or null
- * @param {number} viewW view width
- * @param {number} viewH view height
- * @param {number} pulse wall-clock seconds driving the rim
+ * @param ctx canvas context (already saved by the caller)
+ * @param target the rect to leave clear, or null
+ * @param viewW view width
+ * @param viewH view height
+ * @param pulse wall-clock seconds driving the rim
  * @returns {void}
  */
-function dimGuideScreen(ctx, target, viewW, viewH, pulse) {
+function dimGuideScreen(ctx: CanvasRenderingContext2D, target: Rect | null, viewW: number,
+  viewH: number, pulse: number) {
   ctx.beginPath();
   ctx.rect(0, 0, viewW, viewH);
   if (target) roundedRectPath(ctx, target, 10);
@@ -393,16 +436,17 @@ function dimGuideScreen(ctx, target, viewW, viewH, pulse) {
 
 /**
  * Place the card clear of the target, or centre it when there is no clean spot.
- * @param {object|null} target the highlighted rect, or null
- * @param {number} cardW card width
- * @param {number} cardH card height
- * @param {number} viewW view width
- * @param {number} viewH view height
+ * @param target the highlighted rect, or null
+ * @param cardW card width
+ * @param cardH card height
+ * @param viewW view width
+ * @param viewH view height
  * @returns {{x:number,y:number,w:number,h:number}} the card box
  */
-function placeGuideBox(target, cardW, cardH, viewW, viewH) {
-  const clampX = (x) => Math.max(MARGIN, Math.min(viewW - MARGIN - cardW, x));
-  const clampY = (y) => Math.max(MARGIN, Math.min(viewH - MARGIN - cardH, y));
+function placeGuideBox(target: Rect | null, cardW: number, cardH: number, viewW: number,
+  viewH: number) {
+  const clampX = (x: number) => Math.max(MARGIN, Math.min(viewW - MARGIN - cardW, x));
+  const clampY = (y: number) => Math.max(MARGIN, Math.min(viewH - MARGIN - cardH, y));
   const gap = 22;   // room for the arrow
   let box = null;
   if (target) {
@@ -428,12 +472,12 @@ function placeGuideBox(target, cardW, cardH, viewW, viewH) {
 
 /**
  * Draw the arrow from the card to the target.
- * @param {CanvasRenderingContext2D} ctx canvas context
- * @param {object} box the card box
- * @param {object|null} target the highlighted rect, or null
+ * @param ctx canvas context
+ * @param box the card box
+ * @param target the highlighted rect, or null
  * @returns {void}
  */
-function drawGuideArrow(ctx, box, target) {
+function drawGuideArrow(ctx: CanvasRenderingContext2D, box: Rect, target: Rect | null) {
   if (target && !overlaps(box, target)) {
     const from = edgePoint(box, { x: target.x + target.w / 2, y: target.y + target.h / 2 });
     const tip = edgePoint(target, { x: box.x + box.w / 2, y: box.y + box.h / 2 });
@@ -459,15 +503,16 @@ function drawGuideArrow(ctx, box, target) {
 
 /**
  * Draw the card panel, its title and its wrapped text.
- * @param {CanvasRenderingContext2D} ctx canvas context
- * @param {object} card the card (title)
- * @param {object} box the card box
- * @param {string[]} lines the wrapped text lines
- * @param {number} pad card padding
- * @param {number} lineH text line height
+ * @param ctx canvas context
+ * @param card the card (title)
+ * @param box the card box
+ * @param lines the wrapped text lines
+ * @param pad card padding
+ * @param lineH text line height
  * @returns {void}
  */
-function drawGuideCardBody(ctx, card, box, lines, pad, lineH) {
+function drawGuideCardBody(ctx: CanvasRenderingContext2D, card: GuideCard, box: Rect,
+  lines: string[], pad: number, lineH: number) {
   ctx.beginPath();
   roundedRectPath(ctx, box, 10);
   ctx.fillStyle = 'rgba(20,22,27,0.97)';
@@ -489,14 +534,15 @@ function drawGuideCardBody(ctx, card, box, lines, pad, lineH) {
 
 /**
  * Draw the buttons: NEXT (or DONE) on the right, SKIP left of it.
- * @param {CanvasRenderingContext2D} ctx canvas context
- * @param {object} state the guide state
- * @param {object} box the card box
- * @param {number} pad card padding
- * @param {number} btnH button height
+ * @param ctx canvas context
+ * @param state the guide state
+ * @param box the card box
+ * @param pad card padding
+ * @param btnH button height
  * @returns {{nextB:object,skipB:object,lastCard:boolean,btnY:number}} the button rects
  */
-function drawGuideButtons(ctx, state, box, pad, btnH) {
+function drawGuideButtons(ctx: CanvasRenderingContext2D, state: GuideState, box: Rect, pad: number,
+  btnH: number) {
   const btnY = box.y + box.h - pad - btnH;
   const nextB = { x: box.x + box.w - pad - 84, y: btnY, w: 84, h: btnH };
   const skipB = { x: nextB.x - 8 - 66, y: btnY, w: 66, h: btnH };
@@ -523,18 +569,19 @@ function drawGuideButtons(ctx, state, box, pad, btnH) {
 
 /**
  * Draw the progress dots on the left of the button row.
- * @param {CanvasRenderingContext2D} ctx canvas context
- * @param {object} state the guide state
- * @param {object} box the card box
- * @param {object} skipB the SKIP button rect
- * @param {number} pad card padding
- * @param {number} btnY button row top
- * @param {number} btnH button height
+ * @param ctx canvas context
+ * @param state the guide state
+ * @param box the card box
+ * @param skipB the SKIP button rect
+ * @param pad card padding
+ * @param btnY button row top
+ * @param btnH button height
  * @returns {void}
  */
-function drawGuideDots(ctx, state, box, skipB, pad, btnY, btnH) {
+function drawGuideDots(ctx: CanvasRenderingContext2D, state: GuideState, box: Rect,
+  skipB: Rect | null, pad: number, btnY: number, btnH: number) {
   const { deck, idx } = state;
-  const dotsW = skipB.x - box.x - pad - 6;
+  const dotsW = skipB!.x - box.x - pad - 6;
   const step = Math.min(11, dotsW / deck.length);
   for (let i = 0; i < deck.length; i++) {
     ctx.beginPath();
@@ -546,23 +593,24 @@ function drawGuideDots(ctx, state, box, skipB, pad, btnY, btnH) {
 
 /**
  * Draw the open guide card: dimmed screen, rim, card, arrow, buttons, dots; remember the geometry.
- * @param {object} state the guide state
- * @param {CanvasRenderingContext2D} ctx canvas context
- * @param {object} game the game
- * @param {object} layout the HUD layout
- * @param {number} viewW view width
- * @param {number} viewH view height
- * @param {number} wallDt wall-clock seconds since last frame
- * @param {object} renderer the renderer
+ * @param state the guide state
+ * @param ctx canvas context
+ * @param game the game
+ * @param layout the HUD layout
+ * @param viewW view width
+ * @param viewH view height
+ * @param wallDt wall-clock seconds since last frame
+ * @param renderer the renderer
  * @returns {void}
  */
-function drawGuide(state, ctx, game, layout, viewW, viewH, wallDt, renderer) {
+function drawGuide(state: GuideState, ctx: CanvasRenderingContext2D, game: GuideGame,
+  layout: HudRects, viewW: number, viewH: number, wallDt: number, renderer: GuideView) {
   if (state.idx < 0) return;
   state.pulse += wallDt;
   const scene = buildGuideScene(ctx, game, layout, viewW, viewH, renderer);
   const card = state.deck[state.idx];
   const text = card.text ? card.text(scene) : scene.touch ? card.touch : card.pc;
-  const raw = card.target(scene);
+  const raw = card.target ? card.target(scene) : null;
   const reach = 6;
   const target = raw && {
     x: raw.x - reach, y: raw.y - reach, w: raw.w + reach * 2, h: raw.h + reach * 2,
@@ -574,7 +622,7 @@ function drawGuide(state, ctx, game, layout, viewW, viewH, wallDt, renderer) {
   // ---- the card: size it, then place it clear of the target
   const cardW = Math.min(300, viewW - MARGIN * 2), pad = 12, lineH = 17;
   ctx.font = guideFont(13, 500);
-  const lines = wrap(ctx, text, cardW - pad * 2);
+  const lines = wrap(ctx, text || '', cardW - pad * 2);
   const btnH = 36;
   const cardH = pad + 18 + 6 + lines.length * lineH + 10 + btnH + pad;
   const box = placeGuideBox(target, cardW, cardH, viewW, viewH);
@@ -591,11 +639,11 @@ function drawGuide(state, ctx, game, layout, viewW, viewH, wallDt, renderer) {
 /**
  * While open, EVERY tap is consumed. Only NEXT and SKIP do anything — a stray tap must not skip
  * a card.
- * @param {object} state the guide state
+ * @param state the guide state
  * @param {{x:number,y:number}} point the tap
- * @returns {boolean} true when the guide is open (the tap is consumed)
+ * @returns true when the guide is open (the tap is consumed)
  */
-function hitGuide(state, point) {
+function hitGuide(state: GuideState, point: { x: number; y: number }) {
   if (state.idx < 0) return false;
   if (state.last && inRect(point, state.last.nextB)) nextGuideCard(state);
   else if (state.last && inRect(point, state.last.skipB)) closeGuide(state);
@@ -604,17 +652,17 @@ function hitGuide(state, point) {
 
 /**
  * Keyboard: escape closes, enter / space / right-arrow advance.
- * @param {object} state the guide state
- * @param {string} name the key name
+ * @param state the guide state
+ * @param name the key name
  * @returns {void}
  */
-function keyGuide(state, name) {
+function keyGuide(state: GuideState, name: string) {
   if (name === 'escape') closeGuide(state);
   else if (name === 'enter' || name === ' ' || name === 'arrowright') nextGuideCard(state);
 }
 
 export function createGuide() {
-  const state = {
+  const state: GuideState = {
     seen: false,
     idx: -1,                 // -1 = closed
     pulse: 0,                // wall clock (rule 5)
@@ -627,14 +675,15 @@ export function createGuide() {
   } catch { /* no storage: shows every load, which is harmless */ }
 
   return {
-    draw: (ctx, game, layout, viewW, viewH, wallDt, renderer) =>
+    draw: (ctx: CanvasRenderingContext2D, game: GuideGame, layout: HudRects, viewW: number,
+      viewH: number, wallDt: number, renderer: GuideView) =>
       drawGuide(state, ctx, game, layout, viewW, viewH, wallDt, renderer),
-    hit: (point) => hitGuide(state, point),
-    key: (name) => keyGuide(state, name),
+    hit: (point: { x: number; y: number }) => hitGuide(state, point),
+    key: (name: string) => keyGuide(state, name),
     close: () => closeGuide(state),
     open() { state.deck = CARDS; state.deckKind = null; state.idx = 0; state.pulse = 0; },
     // an event's rules walkthrough (RULES[kind]); false if there is none
-    openRules(kind) {
+    openRules(kind: string) {
       if (!RULES[kind]) return false;
       state.deck = RULES[kind];
       state.deckKind = kind;

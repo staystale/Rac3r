@@ -5,7 +5,7 @@ import type { Car } from '../vehicle.ts';
 /** One row of the pause menu's HUD list (game/menuflow.js hudActions). */
 export interface HudItem { id: string; label: string; on: boolean; locked: boolean; value?: string }
 
-/** What the pause menu's SOUND row reads and sets (audio.js). */
+/** What the pause menu's SOUND row reads and sets (audio.ts). */
 export interface MenuAudio {
   volume: number; muted: boolean;
   setVolume: (value: number) => void; toggleMute: () => void;

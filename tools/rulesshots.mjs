@@ -1,4 +1,4 @@
-// rulesshots.mjs — photographs the EVENT RULES walkthrough (guide.js RULES, forced with ?rules=1) for a highway VS AI race at phone
+// rulesshots.mjs — photographs the EVENT RULES walkthrough (guide.ts RULES, forced with ?rules=1) for a highway VS AI race at phone
 // portrait + landscape, checks the sim is paused while it shows (the lights must not run), then ends the race and photographs the
 // PODIUM. Output: shots/look/rules-<W>-<n>.png, podium-<W>.png. node tools/rulesshots.mjs
 import { startServer, launchBrowser } from './lib/browser.mjs';

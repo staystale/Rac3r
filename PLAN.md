@@ -100,7 +100,7 @@ car sim/
     lab.ts              the scene: floor extents, cone layout as data, reset
     render.js           low-res buffer, camera, sprites, marks blit, particles
     hud.ts              speed / tacho / gear / shift light, touch overlay drawing, dev overlay
-    audio.js            OPTIONAL, last (see Step 6)
+    audio.ts            OPTIONAL, last (see Step 6)
   tools/
     probe.mjs           headless physics bench — the instrument. Node, no canvas.
     devshot.mjs         CDP screenshots, 3 sizes × 2 input modes
@@ -313,7 +313,7 @@ photograph both modes at all three sizes.
 
 **Step 6 — the last 10 %.** Knockable cones (circle vs car body, impulse out, friction to a stop), a small
 screen shake and a dust puff on impact, both on the **wall clock**. Then, only if everything above passes:
-`audio.js` — one oscillator for engine note tied to rpm, filtered noise for squeal driven by the slip speed
+`audio.ts` — one oscillator for engine note tied to rpm, filtered noise for squeal driven by the slip speed
 you already compute, behind a tap-to-enable. Audio is the first thing to cut if the slice is getting big.
 
 **Step 7 — deliver.** Push to itch (`CLAUDE.md` §5) or serve a tunnel, hand over the link, a short list of

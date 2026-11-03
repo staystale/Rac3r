@@ -1,7 +1,7 @@
 // menuflow.js — Menu, launch, pause and the results screen flow.
 import { applyLivery, applyTyre } from '../cars.ts';
 import { createCones } from '../cones.ts';
-import { rulesSeen } from '../guide.js';
+import { rulesSeen } from '../guide.ts';
 import { setHighwayPreset } from '../highway.js';
 import { createAIDriver } from '../ai/circuit.ts';
 import { aiTraits } from '../ai/traits.ts';
@@ -163,7 +163,7 @@ export function launch(levelId, carId, opts = {}) {
   const guideSetting = shared.settings.guide;
   shared.guidePending = guideSetting === '1'
     || (guideSetting !== '0' && !shared.guide.seen && !navigator.webdriver);
-  // EVENT RULES the first time you do this kind of event (guide.js RULES); after HOW TO PLAY if
+  // EVENT RULES the first time you do this kind of event (guide.ts RULES); after HOW TO PLAY if
   // that is showing too. ?rules=1 forces them (photos), ?rules=0 / automation skips them, as the
   // guide.
   const rulesSetting = shared.settings.rules, kind = eventKind();
@@ -171,7 +171,7 @@ export function launch(levelId, carId, opts = {}) {
     && (rulesSetting === '1' || (rulesSetting !== '0' && !rulesSeen(kind) && !navigator.webdriver))
       ? kind : null;
 }
-// which RULES walkthrough this session needs (guide.js RULES keys), or null
+// which RULES walkthrough this session needs (guide.ts RULES keys), or null
 export function eventKind() {
   if (LEVEL.endless) return game.ai.length || shared.aiCount ? 'highway' : 'endless';
   if (LEVEL.stage && (shared.aiCount || game.ai.length)) return 'stage';

@@ -22,7 +22,7 @@ export function showPause(menu: Menu, act: PauseActions) {
   act.resume();
   }, 'go');
   // SOUND (requirement: sound needs a volume control / mute button in pause menu too please - kinda
-  // high priority): a slider 0-100 % and MUTE; audio.js remembers both (localStorage rac3r.vol /
+  // high priority): a slider 0-100 % and MUTE; audio.ts remembers both (localStorage rac3r.vol /
   // rac3r.mute)
   if (act.audio) {
     const audio = act.audio, row = addElement(panel, 'div', '', 'row');
@@ -76,7 +76,7 @@ export function showPause(menu: Menu, act: PauseActions) {
   if (act.rules) addButton(menu, panel, 'EVENT RULES', () => {
     hideMenu(menu);
   act.rules!();
-  });   // the walkthrough for THIS event (guide.js RULES)
+  });   // the walkthrough for THIS event (guide.ts RULES)
   addButton(menu, panel, 'TRACK SELECT', () => {
     act.exit();
   showMenu(menu);

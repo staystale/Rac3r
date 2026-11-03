@@ -1,4 +1,4 @@
-// guidecheck.mjs — the HOW TO PLAY guide (src/guide.js), driven with real taps at 6 screen sizes.
+// guidecheck.mjs — the HOW TO PLAY guide (src/guide.ts), driven with real taps at 6 screen sizes.
 // Checks, for every card: the card is fully on screen, it does NOT cover the thing it points at, NEXT is inside
 // it. Plus: a stray tap on the world neither advances a card nor steers; the sim is paused while it is open;
 // DONE closes it and marks it seen; the "?" chip reopens it. Starts its own server.
