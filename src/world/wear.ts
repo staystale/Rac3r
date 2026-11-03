@@ -11,7 +11,8 @@ import { dragWater } from "./waterdrag.ts";
 import { passGlassCell } from "./debris.ts";
 import { notePass } from "./pass.ts";
 import { WEATHER } from "./weather.ts";
-import { carWheels } from "./wheels.ts";
+import { carWheels, CORNER_OF_WHEEL, metalCorner } from "./wheels.ts";
+import { FIX } from "../core/fixes.ts";
 import { staticCoverHere } from "./coverlookup.ts";
 import { fieldLayers } from "./coverfield.ts";
 import { puddleClearBy, setPassTyre } from "./puddles.ts";
@@ -306,7 +307,7 @@ function digRut(cell: WearCell, damp: number): void {
   if (Math.floor(cell.rut / 0.02) !== Math.floor(was / 0.02)) wearDirty.push(cell);
 }
 // Apply one PASS to a cell (debounced by the caller).
-function passCell(cell: WearCell, tyreTemp = 18): void {
+export function passCell(cell: WearCell, tyreTemp = 18): void {
   const damp = cellDamp(cell, wearClock);
   const wet = damp >= WET_WEAR_FROM;
   if (cell.cover === 'snow') {
@@ -471,12 +472,13 @@ const SLIDE_WEAR_MIN = 4;
  * @returns true when the wheel pushed into a bush cell (a new pass, the bush still standing)
  */
 function recordWearPoint(x: number, y: number, simTime: number, tyreT = 0,
-  sliding = false): boolean {
+  sliding = false, metal = false): boolean {
   const cell = getCell(Math.floor(x / WEAR_CELL), Math.floor(y / WEAR_CELL));
   if (!cell) return false;
   let intoBush = false;
   if (simTime - cell.lastSeenTime > 0.35) {
     intoBush = cell.base === 'bush';
+    if (metal) { cell.lastSeenTime = simTime; return intoBush; }   // ?rimsoft: a bush only
     passCell(cell, tyreT);
     // a sliding (crashing, spinning, drifting) wheel tears the ground: its pass
     // counts twice
@@ -522,25 +524,35 @@ export function stepWear(car: CarBody, dt: number): void {
     notePass(car, TYRE_OF_WHEEL[i], dx, dy);
     const slip = i < 2 ? telemetry.slipSpeedF : telemetry.slipSpeedR;
     const sliding = slip > SLIDE_WEAR_MIN;
+    const metal = FIX.rimsoft && metalCorner(car, CORNER_OF_WHEEL[i]);
     for (let step = 0; step <= steps; step++) {
       const frac = step / steps;
       if (recordWearPoint(prevWheel.x + dx * frac, prevWheel.y + dy * frac, wearClock,
-        car.tyreT ? car.tyreT[TYRE_OF_WHEEL[i]] : 0, sliding))
+        car.tyreT ? car.tyreT[TYRE_OF_WHEEL[i]] : 0, sliding, metal))
         bushPass(car, TYRE_OF_WHEEL[i], Math.hypot(car.vx, car.vy));
     }
-    // ICE SCRUB: only a wheel that is actually sliding or locked wears ice (front axle = wheels
-    // 0,1)
-    if (slip > ICE_SCRUB_MIN) {
-      const cell = getCell(Math.floor(currWheel.x / WEAR_CELL),
-        Math.floor(currWheel.y / WEAR_CELL));
-      // hot rubber melts ice faster: x1 at 60 C, x2 at 90 C, x3 at 120 C
-      // x1 at 60 C rising to x1.67 at 120 C (was x3: hot tyres melted ice too easily)
-      const heatScrub = car.tyreT ? 1 + Math.min(1, Math.max(0,
-        (car.tyreT[TYRE_OF_WHEEL[i]] - 60) / 90)) : 1;
-      if (cell) scrubCell(cell, slip * dt * heatScrub);
-    }
+    if (!metal) scrubIceUnder(car, currWheel, i, slip, dt);
   }
   car.prevWheels = curr;
+}
+
+/**
+ * ICE SCRUB: only a wheel that is actually sliding or locked wears ice (front axle = wheels 0, 1).
+ * @param car the car
+ * @param wheel the wheel's spot now
+ * @param i the wheel (carWheels order)
+ * @param slip its axle's slip speed, m/s
+ * @param dt the step, s
+ */
+function scrubIceUnder(car: CarBody, wheel: { x: number; y: number }, i: number, slip: number,
+    dt: number) {
+  if (slip <= ICE_SCRUB_MIN) return;
+  const cell = getCell(Math.floor(wheel.x / WEAR_CELL), Math.floor(wheel.y / WEAR_CELL));
+  // hot rubber melts ice faster: x1 at 60 C rising to x1.67 at 120 C (was x3: hot tyres melted
+  // ice too easily)
+  const heatScrub = car.tyreT ? 1 + Math.min(1, Math.max(0,
+    (car.tyreT[TYRE_OF_WHEEL[i]] - 60) / 90)) : 1;
+  if (cell) scrubCell(cell, slip * dt * heatScrub);
 }
 
 // Put the ground under the car. Lives HERE, not in main.ts, so the game and every harness run the

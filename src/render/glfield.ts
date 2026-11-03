@@ -11,6 +11,7 @@
 // water, packed snow), whose own levels are tried before the weather's; a bare
 // square of mud (5) or thick mud (6) is ice where the frost reaches (coverfield.ts FROST).
 import { LEVEL } from "../world/state.ts";
+import { FIX } from "../core/fixes.ts";
 import {
   wearMap, wearEpoch, wearKey, WEAR_CELL, groundSurfaceAt, layersAt,
 } from "../world/wear.ts";
@@ -244,6 +245,7 @@ interface FieldGrid {
   everywhere: boolean;       // the level's ground is a level area: every square is tested
   anyArea: boolean;          // the level has a level area anywhere (then the field is drawn always)
   frosty: boolean;           // mud squares carry their mud code (a live grid; the empty one not)
+  owned: boolean;            // ?drycover: a tyre-made cover (oil, glass, leaked water) masked in
 }
 
 // the mask codes of bare mud and thick mud (after the level areas' 1..4)
@@ -369,7 +371,11 @@ function maskWornCells(grid: FieldGrid, chunkX: number, chunkY: number) {
   for (let cellY = cellY0; cellY <= cellY1; cellY++) {
     for (let cellX = cellX0; cellX <= cellX1; cellX++) {
       const cell = wearMap.get(wearKey(cellX, cellY));
-      if (cell && cellOwned(cell)) maskCellSquares(grid, cellX, cellY, firstSq, ownedCode(cell));
+      if (cell && cellOwned(cell)) {
+        const code = ownedCode(cell);
+        if (code !== 255) grid.owned = true;
+        maskCellSquares(grid, cellX, cellY, firstSq, code);
+      }
       else if (cell && grid.frosty) {
         maskCellSquares(grid, cellX, cellY, firstSq, mudCode(cell.base));
       }
@@ -473,7 +479,11 @@ function maskCell(webgl: WebGL2RenderingContext, maskTex: WebGLTexture, grid: Fi
   const slot = wrapIndex(chunkY, GRID_CHUNKS) * GRID_CHUNKS + wrapIndex(chunkX, GRID_CHUNKS);
   if (grid.owner[slot] !== chunkKey(chunkX, chunkY)) return;
   const cell = wearMap.get(wearKey(cellX, cellY));
-  if (cell && cellOwned(cell)) cellMask.fill(ownedCode(cell));
+  if (cell && cellOwned(cell)) {
+    const code = ownedCode(cell);
+    if (code !== 255) grid.owned = true;
+    cellMask.fill(code);
+  }
   else {
     for (let row = 0; row < CELL_SQ; row++) {
       for (let col = 0; col < CELL_SQ; col++) {
@@ -534,7 +544,7 @@ function resetOnChange(grid: FieldGrid) {
   const anyArea = everywhere || (LEVEL.zones || []).some((zone) => areaKindOf(zone.surface.id))
     || (LEVEL._staticCovers || LEVEL.covers || []).some((cover) => !cover.water);
   Object.assign(grid, {
-    level: LEVEL, layout, epoch: wearEpoch, everywhere, anyArea, frosty: true,
+    level: LEVEL, layout, epoch: wearEpoch, everywhere, anyArea, frosty: true, owned: false,
   });
   return true;
 }
@@ -556,7 +566,7 @@ export function createGlField(webgl: WebGL2RenderingContext) {
     blank: new Float64Array(GRID_CHUNKS * GRID_CHUNKS).fill(NaN),
     catchPixels: new Uint8Array(CHUNK_SQ * CHUNK_SQ * 2),
     maskPixels: new Uint8Array(CHUNK_SQ * CHUNK_SQ), level: null, layout: 0, epoch: -1,
-    everywhere: false, anyArea: false, frosty: false,
+    everywhere: false, anyArea: false, frosty: false, owned: false,
   };
   const areaLevels = new Float32Array(AREA_KINDS.length * 4);
   const cellMask = new Uint8Array(CELL_SQ * CELL_SQ);
@@ -591,7 +601,10 @@ export function createGlField(webgl: WebGL2RenderingContext) {
      */
     draw(size: { width: number; height: number }, camera: PaintCamera) {
       const frozen = grid.frosty && FROST.mud + FROST.thickMud > 0;
-      if (!levelsShow(FIELD) && !grid.anyArea && !frozen) return;
+      // ?drycover: the tyre-made covers are drawn here too - oil, glass, a radiator's water - so
+      // with one masked in, a dry day draws the field (MEASURED 11-03: skipped, every leak and
+      // spill on a dry track was there, slippery, and never drawn)
+      if (!levelsShow(FIELD) && !grid.anyArea && !frozen && !(FIX.drycover && grid.owned)) return;
       webgl.useProgram(program);
       webgl.bindVertexArray(vao);
       webgl.activeTexture(webgl.TEXTURE2);

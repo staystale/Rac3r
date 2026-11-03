@@ -204,6 +204,7 @@ export interface Rect {
 // The part of the car (vehicle.ts Car) the world code touches; the real Car satisfies it.
 export interface CarBody {
   bellyDepth?: number;   // m of the underside in the ground (world/belly.ts)
+  wheelOff?: boolean[]; onRim?: boolean[];   // wheels gone / tyres on the rim, by corner
   x: number;
   y: number;
   vx: number;

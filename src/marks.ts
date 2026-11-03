@@ -16,7 +16,8 @@ import { LEVEL } from "./world/state.ts";
 import { MARK_WET, SURFACES } from "./world/surfaces.ts";
 import { WEATHER } from "./world/weather.ts";
 // this file's wheel order is the damage corners' (front -y, front +y, rear -y, rear +y)
-import { CORNER_OF_WHEEL, wheelGone } from "./world/wheels.ts";
+import { CORNER_OF_WHEEL, wheelGone, metalCorner } from "./world/wheels.ts";
+import { FIX } from "./core/fixes.ts";
 import { MARK_GOUGE } from "./world/metalscrape.ts";
 import { addTrailPoint, clearWetTrails } from "./wettrail.ts";
 import type { Mark, Spray, Surface, WheelGround } from './world/types.ts';
@@ -72,7 +73,7 @@ interface MarkCar {
   spec: { lf: number; lr: number; trackWidth: number; tyreWidth: number };
   t: { slipSpeedF: number; slipSpeedR: number };
   surface: MarkSurface; wheelSurf?: (MarkSurface | null)[] | null;   // the ground under each wheel
-  tyreT?: number[]; rimSparks?: boolean[]; wheelOff?: boolean[];
+  tyreT?: number[]; rimSparks?: boolean[]; wheelOff?: boolean[]; onRim?: boolean[];
   _markId?: number;
 }
 
@@ -506,6 +507,19 @@ function markOf(surface: MarkSurface) {
   return dry ? dry.mark : undefined;
 }
 
+/**
+ * A wheel that lays no mark here (it still throws its spray): ?rimsoft a rim or a hub off hard
+ * ground (no rubber, no rut); ?bushmark a wheel in a standing bush - the bush is drawn under this
+ * layer, so its marks lay over the leaves (owner 11-03); flattened, it is long grass and marks.
+ * @param car the car
+ * @param corner the damage corner
+ * @param ground the ground under the wheel
+ * @returns true when it marks nothing
+ */
+function marksNothing(car: MarkCar, corner: number, ground: MarkSurface): boolean {
+  return (FIX.rimsoft && metalCorner(car, corner)) || (FIX.bushmark && ground.id === 'bush');
+}
+
 function listWheels(car: MarkCar): MarkWheel[] {
   if (car._markId === undefined) car._markId = nextMarkId++;
   const spec = car.spec, telem = car.t;
@@ -525,15 +539,17 @@ function listWheels(car: MarkCar): MarkWheel[] {
     // a wheel gone leaves no rubber, trail or spray: only its hub's score while it sparks
     const gone = wheelGone(car, corner), gouge = !!(rims && rims[corner]);
     if (gone && !gouge) continue;
+    const ground = surfaceOfWheel(car, under, corner), bare = !gouge && marksNothing(car, corner,
+      ground);
     out.push({
       key: car._markId + key,
       x: car.x + along * cosH - side * sinH,
       y: car.y + along * sinH + side * cosH,
-      slip,
+      slip: bare ? 0 : slip,
       width: spec.tyreWidth,
       // set only by loose surfaces (undefined = ordinary skid marks), or a rim's score
-      mark: gouge ? MARK_GOUGE : markOf(surfaceOfWheel(car, under, corner)),
-      spray: gone ? undefined : surfaceOfWheel(car, under, corner).spray,
+      mark: gouge ? MARK_GOUGE : bare ? null : markOf(ground),
+      spray: gone ? undefined : ground.spray,
       heat: car.tyreT ? car.tyreT[(along > 0 ? 0 : 2) + (side > 0 ? 0 : 1)] : 60,
     });
   }

@@ -38,3 +38,18 @@ export function carWheels(car: WheelBase): Wheel[] {
 export function wheelGone(car: { wheelOff?: boolean[] }, corner: number): boolean {
   return !!car.wheelOff && car.wheelOff[corner];
 }
+
+/**
+ * ?rimsoft: METAL at a corner - a wheel gone (its hub) or a tyre run to the rim: no rubber there,
+ * so it wears and marks no ground (owner 11-03: rims and hubs must not mark soft ground); on hard
+ * ground world/metalscrape.ts scores it.
+ * @param car the car
+ * @param car.wheelOff the wheels gone, by corner
+ * @param car.onRim the tyres run to the rim, by corner
+ * @param corner the damage corner
+ * @returns true when metal touches the ground there
+ */
+export function metalCorner(car: { wheelOff?: boolean[]; onRim?: boolean[] },
+    corner: number): boolean {
+  return wheelGone(car, corner) || (!!car.onRim && car.onRim[corner]);
+}

@@ -47,4 +47,36 @@ export const TEST_LIST: TestEntry[] = [
   // puffpool, tyrehealth, pitsolid, muscletyres,
   // namefix, bhbridges, menustyle, testgarage, ai10, k12 passed
   // 2026-11-03; resetin, belly, agtyre, ai20, aifast, aisafe passed 2026-11-03; specsheet removed)
+  {
+    id: 'drycover',
+    added: '2026-11-03',
+    name: 'Oil, glass and radiator drips show on a DRY track',
+    where: 'Test link + &drycover=1: any circuit, dry weather, a few AI',
+    try: 'Crash hard (oil, glass), or follow a car with a cracked radiator.',
+    wrong: 'No black oil / blue drips / glass on dry tarmac, or a dark band over the road.',
+  },
+  {
+    id: 'rimsoft',
+    added: '2026-11-03',
+    name: 'A rim or a hub leaves no tyre mark off tarmac; it digs soft ground faster',
+    where: 'Test link + &rimsoft=1: Grass Track, a tyre to the rim or a wheel ripped off',
+    try: 'Drive on grass / dirt on the rim or hub, then on tarmac.',
+    wrong: 'A tyre mark from the bare corner on grass, or no dug trench; no sparks on tarmac.',
+  },
+  {
+    id: 'bushmark',
+    added: '2026-11-03',
+    name: 'Tyre marks no longer lie over a standing bush',
+    where: 'Test link + &bushmark=1: Killder (bushes by the stage)',
+    try: 'Drive through bushes; look back at them.',
+    wrong: 'Dark tyre marks over the leaves of a bush still standing.',
+  },
+  {
+    id: 'leafpop',
+    added: '2026-11-03',
+    name: 'A car body ploughing into a bush throws a burst of leaf pixels',
+    where: 'Test link + &leafpop=1: Killder, drive into bushes',
+    try: 'Hit bushes at different speeds; watch leaves go over the car and settle.',
+    wrong: 'No leaves, leaves from the wheels only, or leaves staying under the car while high.',
+  },
 ];

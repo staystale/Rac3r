@@ -33,6 +33,15 @@ last handover, written on request.
   (canvases ~90 MB + JS 35 MB, flat). Owner waived simhash for this round; plain link checked
   with 20 AI, no page errors.
 - THE AI REWORK design: docs/specs/ai-rework.md (rounds R0-R7; R0 done above) - owner to OK.
+- UNDER TEST (11-03 late, owner's reports): ?drycover - oil / glass / radiator drips never DRAWN
+  on a dry track (render/glfield.ts draw skipped the whole field with no weather cover; the
+  cells were there and slippery; leaks themselves fine: _leakwatch 4 radiators / 21 cars a min,
+  resets mend them - owner: keep). ?rimsoft - a rim or hub (no tyre) laid tyre marks and
+  ordinary wear on soft ground: now no mark, and it DIGS (owner: "degrade soft surfaces faster")
+  3 passes a cell - _rimwear: 12 of 12 cells worn a grade vs tyres 5 of 14 (was 1 of 11).
+  ?bushmark - the bush surface's long-grass mark stamped the marks layer OVER standing bushes
+  (_bushshot: 676 -> 536 stamps). ?leafpop - a car BODY ploughing into a bush (owner: the
+  body, not the wheels) throws leaf pixels: over the cars while high, then under (render only).
 - NEXT (owner order 11-03; 11-03 late: "let's work on AI only"): 1 the AI REWORK (design first,
   agreed before building; GOAL: 20 cars in a race without performance issues, PHONE first, laptop
   too. MEASURED 11-03 late (_aiprof): NO 20-car jump - ~0.15 ms a car a physics step, linear; the

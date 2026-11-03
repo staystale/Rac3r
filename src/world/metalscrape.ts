@@ -10,8 +10,9 @@
 // the Lab floor are left alone.
 
 import {
-  WEAR_CELL, wearMap, wearKey, wearDirty, getCell, layersAt, groundAt,
+  WEAR_CELL, wearMap, wearKey, wearDirty, getCell, layersAt, groundAt, passCell,
 } from './wear.ts';
+import { FIX } from '../core/fixes.ts';
 import type { Mark, Surface } from './types.ts';
 import { carWheels, CORNER_OF_WHEEL, wheelGone } from './wheels.ts';
 
@@ -37,6 +38,10 @@ const RIM_CHANCE = 0.0075;
 const BODY_CHANCE = 0.05, IMPACT_CHANCE = 0.3;
 // m/s: slower than this a rim or a body drags without sparks or gouges
 const SCRAPE_FROM = 2;
+// ?rimsoft: a rim or a hub on SOFT ground digs: each new wear cell it enters takes RIM_DIG tyre
+// passes at once (a rolling tyre 1, a sliding one 2) - grass wears to dirt, ruts deepen faster;
+// it lays no tyre mark there (marks.ts) and no ordinary pass (wear.ts)
+const RIM_DIG = 3;
 // the scraper slot of the body (after the four wheels)
 const BODY = 4;
 
@@ -70,10 +75,24 @@ function scrapeRims(car: ScrapeCar, rnd: () => number) {
   for (let corner = 0; corner < 4; corner++) {
     if (!metal(corner)) continue;
     const { x, y } = wheels[CORNER_OF_WHEEL[corner]];
-    if (!surfaceUnder(x, y).hard) continue;
+    if (!surfaceUnder(x, y).hard) {
+      if (FIX.rimsoft && enteredCell(car, corner, x, y)) digCell(x, y);
+      continue;
+    }
     sparks[corner] = true;
     if (enteredCell(car, corner, x, y) && rnd() < RIM_CHANCE) gougeCell(x, y);
   }
+}
+
+/**
+ * ?rimsoft: metal digs soft bare ground - RIM_DIG passes on its wear cell (a covered one is left).
+ * @param x world x, m
+ * @param y world y, m
+ */
+function digCell(x: number, y: number): void {
+  const cell = getCell(Math.floor(x / WEAR_CELL), Math.floor(y / WEAR_CELL), true);
+  if (!cell || cell.cover || cell.fixed) return;
+  for (let pass = 0; pass < RIM_DIG; pass++) passCell(cell);
 }
 
 /**
