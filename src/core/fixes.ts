@@ -44,4 +44,7 @@ export const FIX = {
   // changed since its last step is skipped (cones/coneStep.ts), and a smoke / dust puff skips a
   // car it is nowhere near before any trig (render/airflow.ts stir)
   aifast: atLoad('aifast'),
+  // ?aisafe=1: an AI car reset earlier in its step is not checked against the joker line, and
+  // its recovery uses where it is (game/ai.ts) - the 20-AI Knobhill page error
+  aisafe: atLoad('aisafe'),
 };

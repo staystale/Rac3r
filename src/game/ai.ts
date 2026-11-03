@@ -1,5 +1,6 @@
 // ai.ts — Stepping the AI cars: injury, driving, joker and stuck handling.
 import { hwLevel } from './state.ts';
+import { FIX } from '../core/fixes.ts';
 import { step, reset, assertFinite } from '../vehicle.ts';
 import { hwPutBack } from '../highwayrace.ts';
 import { hit, hitRoll, repair, tooInjured, applyBurst, stepDamage } from '../damage.ts';
@@ -161,7 +162,12 @@ export function stepAIJoker(entry: AiEntry) {
   // (the same LINE as the player's, stepJoker; once per lap of this car's own progress)
   if (joker) {
     const lapA = car._prog === undefined ? 0 : Math.floor(car._prog / LEVEL.subtrack!.totalDist);
-    if (crossedJoker(joker, car._p!.x, car._p!.y, car.x, car.y) && entry.jLap !== lapA) {
+    // ?aisafe: a car reset earlier this step (a crash, a roll: reset() clears _p) was put there,
+    // it did not cross the line - as the player's check (rules.ts: !!prev). MEASURED 11-03: on
+    // Knobhill with 20 AI the null _p threw here, and recoverAI threw again on it out of the loop
+    const prev = car._p;
+    if (FIX.aisafe && !prev) return;
+    if (crossedJoker(joker, prev!.x, prev!.y, car.x, car.y) && entry.jLap !== lapA) {
       entry.jLap = lapA;
       car._jokers = car._jokers! + 1;   // (grid.ts zeroes it)
     }
@@ -203,16 +209,18 @@ export function stepAIStuck(entry: AiEntry, dt: number) {
  */
 export function recoverAI(entry: AiEntry) {
   const car = entry.car;
+  // (?aisafe: reset this step, so no pose from before it - where it is now, the reset spot)
+  const from = FIX.aisafe ? car._p ?? car : car._p!;
   if (LEVEL.endless) {
-    car.x = car._p!.x;
-    car.y = car._p!.y;
+    car.x = from.x;
+    car.y = from.y;
     car.vx = car.vy = 0;
     try {
       aiReset(entry);
     } catch { /* next step */ }
     return;
   }
-  const sub = LEVEL.subtrack!, nearest = findNearestSubtrackPoint(sub, car._p!.x, car._p!.y)!;
+  const sub = LEVEL.subtrack!, nearest = findNearestSubtrackPoint(sub, from.x, from.y)!;
   reset(car, nearest.x, nearest.y, nearest.heading);
   entry.drv.relocate();
 }

@@ -63,4 +63,12 @@ export const TEST_LIST: TestEntry[] = [
     try: 'Knock cones and tyre stacks, drive through smoke and dust behind other cars.',
     wrong: 'A cone that will not move when hit, smoke that ignores a car blasting through it.',
   },
+  {
+    id: 'aisafe',
+    added: '2026-11-03',
+    name: 'An AI car reset mid-step no longer throws on joker tracks',
+    where: 'Test link + &aisafe=1: Knobhill or Slidden Hill, 20 AI (with &ai20=1)',
+    try: 'Race a few laps with lots of crashes; watch the joker counts on the scoreboard.',
+    wrong: 'A HUD flash or a frozen frame in a pile-up, or an AI joker counted after a reset.',
+  },
 ];

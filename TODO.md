@@ -27,6 +27,14 @@ last handover, written on request.
 - UNDER TEST (11-03 late): ?ai20 (up to 20 AI, ten more liveries) + ?aifast (resting loose
   objects skipped, smoke skips far cars; simhash SAME to prove). Owner's run: Thruston, 20 AI,
   &report=1. The AI REWORK design is docs/specs/ai-rework.md (rounds R0-R7) - owner to OK.
+  OWNER RUN 11-03 (phone, ?ai20&aifast&report): Thruston 20 AI ~3.5 min - sim 2 / draw 2 ms a
+  frame, 0.22 % slow frames ("mostly fine, a bit slow when lots of crashes at once"); then
+  Knobhill 35 s and the PAGE RELOADED to the menu (a fresh page in the report: the browser
+  dropped the tab - no slowdown before it). Laptop at the phone's size (_memprobe): canvases
+  ~90 MB + JS 35 MB, flat - no leak found (tiles capped at 200, damage sprites ~2 MB). FOUND on
+  the way: a page error on joker tracks - an AI reset mid-step left _p null for stepAIJoker,
+  and recoverAI threw on it out of the loop: ?aisafe (game/ai.ts). Reload cause still open:
+  watch for it again.
 - NEXT (owner order 11-03; 11-03 late: "let's work on AI only"): 1 the AI REWORK (design first,
   agreed before building; GOAL: 20 cars in a race without performance issues, PHONE first, laptop
   too. MEASURED 11-03 late (_aiprof): NO 20-car jump - ~0.15 ms a car a physics step, linear; the
