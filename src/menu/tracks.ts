@@ -8,8 +8,6 @@ const THEME_NAMES = THEMES as Record<string, { name: string }>;
 import { saveProfile } from './profile.ts';
 import { addPane, addButton, addElement, copyThumb } from './widgets.ts';
 import { showSetup } from './setup.ts';
-import { showGarage } from './garage.ts';
-import { FIX } from '../core/fixes.ts';
 import { showSettings } from './settings.ts';
 import type { Menu } from '../menu.ts';
 import type { Level, StageRecipe } from '../world/types.ts';
@@ -124,13 +122,10 @@ export function showMainMenu(menu: Menu) {
   logo.src = 'assets/logo.jpg';
   logo.alt = 'RAC3R - a driving sandbox';
   const buttons = addElement(panel, 'div', '', 'btns');
-  // ?testgarage: STORY on top, locked for now (owner 11-03)
-  if (FIX.testGarage) addButton(menu, buttons, 'STORY', () => {}, '', true, 'LOCKED');
+  // STORY on top, locked for now; the garage lives in test (and story), not here (owner 11-03)
+  addButton(menu, buttons, 'STORY', () => {}, '', true, 'LOCKED');
   addButton(menu, buttons, 'TEST MODE', () => showTrackSelect(menu), 'go');
-  // ?testgarage: the garage lives in test (and story) - not here (owner 11-03)
-  if (!FIX.testGarage) addButton(menu, buttons, 'GARAGE', () => showGarage(menu));
   addButton(menu, buttons, 'SETTINGS', () => showSettings(menu, () => showMainMenu(menu)));
-  if (!FIX.testGarage) addButton(menu, buttons, 'STORY', () => {}, '', true, 'LOCKED');
 }
 
 /**

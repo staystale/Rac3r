@@ -13,7 +13,6 @@ import { addPane, addButton, addElement, drawLift } from './widgets.ts';
 import { showMainMenu } from './tracks.ts';
 import type { Menu } from '../menu.ts';
 import { MENU_COL } from './palette.ts';
-import { FIX } from '../core/fixes.ts';
 
 
 /**
@@ -25,7 +24,7 @@ import { FIX } from '../core/fixes.ts';
  * @param onPick called with the car after every change
  */
 export function showCarPicker(menu: Menu, panel: HTMLElement,
-  onPick: (car: RosterRow) => void = () => {}, pickCar: CarSlot = yourCar(menu)) {
+  onPick: (car: RosterRow) => void, pickCar: CarSlot) {
   const owned = () => ROSTER.filter((car) => menu.profile.unlocked.includes(car.id));
   const cur = () => ROSTER.find((car) => car.id === pickCar.get())!;
   let filterClass = cur().cls, filterSub = 'ALL';
@@ -98,19 +97,11 @@ export function showCarPicker(menu: Menu, panel: HTMLElement,
 /** Which car a picker moves: get the id, set a new one. */
 interface CarSlot { get: () => string; set: (carId: string) => void }
 /**
- * Your car: the profile's active car, saved as it changes.
- * @param menu the menu context
- * @returns the slot
- */
-const yourCar = (menu: Menu): CarSlot => ({ get: () => menu.profile.active,
-  set: (carId) => { menu.profile.active = carId; saveProfile(menu.profile); } });
-/**
- * The car the garage shows (?testgarage: the one being looked at, not yet yours), else yours.
+ * The car the garage shows: the one being looked at (not yours until SELECT).
  * @param menu the menu context
  * @returns the car id
  */
-const garageCarId = (menu: Menu) => (FIX.testGarage && menu.garage ? menu.garage.viewing
-  : menu.profile.active);
+const garageCarId = (menu: Menu) => (menu.garage ? menu.garage.viewing : menu.profile.active);
 
 /**
  * GARAGE (spec §3; user chose: the TOP-DOWN car on a workshop LIFT). Browse owned cars, measured
@@ -118,12 +109,14 @@ const garageCarId = (menu: Menu) => (FIX.testGarage && menu.garage ? menu.garage
  * @param menu the menu context
  */
 export function showGarage(menu: Menu, back?: () => void) {
-  // ?testgarage: opened from test setup it looks at your car, and goes back there
-  if (FIX.testGarage && back) menu.garage = { viewing: menu.profile.active, back };
-  const session = FIX.testGarage ? menu.garage : null;
+  // THE TEST GARAGE (passed 11-03): opened from test setup it shows your car, and goes back there
+  if (back || !menu.garage) {
+    menu.garage = { viewing: menu.profile.active, back: back || (() => showMainMenu(menu)) };
+  }
+  const session = menu.garage;
   const panel = addPane(menu, true);
   addElement(panel, 'h2', 'GARAGE');
-  if (session) addElement(panel, 'div', 'TEST GARAGE · free to try', 'sub');
+  addElement(panel, 'div', 'TEST GARAGE · free to try', 'sub');
   const box = addElement(panel, 'div', '', 'garage');
   const left = addElement(box, 'div', ''), right = addElement(box, 'div', '');
   const lift = document.createElement('canvas');
@@ -146,17 +139,14 @@ KM/H</span><b>${spec.zeroTo100 != null ? spec.zeroTo100 + ' S' : '—'}</b>`
         // the table is measured on the stock set: the fitted set's grip against that
         const tarmacGrip = fittedTyre(car, (menu.profile.tyres || {})[car.id]).grip.tarmac
           / fittedTyre(car).grip.tarmac;
-        if (FIX.testGarage && spec.gripG != null && tarmacGrip !== 1) {
-          // ?testgarage (owner 11-03): the stock figure, and what the set on it adds or takes,
+        if (spec.gripG != null && tarmacGrip !== 1) {
+          // (owner 11-03) the stock figure, and what the set on it adds or takes,
           // in ember
           const diff = spec.gripG * tarmacGrip - spec.gripG;
           return spec.gripG + ' G <span style="color:' + MENU_COL.accent + '">'
             + (diff > 0 ? '+' : '−') + Math.abs(diff).toFixed(2) + '</span>';
         }
-        return spec.gripG == null ? '—' : tarmacGrip === 1 ? spec.gripG + ' G'
-          : (spec.gripG * tarmacGrip).toFixed(2) + ' G <span style="color:' + MENU_COL.dim
-            + ';font-size:'
-            + MENU_COL.small + '">STOCK ' + spec.gripG + '</span>';
+        return spec.gripG == null ? '—' : spec.gripG + ' G';
       })()}</b>`
       + `<span>WEIGHT</span><b>${spec.massKg} KG</b><span>DRIVE</span><b>${spec.drive}</b><span>\
 AIDS</span><b>${aids}</b>`
@@ -173,27 +163,22 @@ AIDS</span><b>${aids}</b>`
   addButton(menu, buttonRow, 'TYRES', () => showTyreShop(menu));
   addButton(menu, buttonRow, 'BUY CARS', () => {}, '', true, 'SOON');
   addButton(menu, buttonRow, 'UPGRADES', () => {}, '', true, 'SOON');
-  if (session) {
-    // SELECT locks the car in as yours (owner 11-03); browsing alone changes nothing
-    const row = addElement(panel, 'div', '', 'row');
-    const select = addButton(menu, row, 'SELECT ✓', () => {
-      if (session.viewing === menu.profile.active) return;
-      menu.profile.active = session.viewing;
-      saveProfile(menu.profile);
-      session.back();
-    });
-    addButton(menu, row, '◀ BACK', () => session.back());
-    const showSelect = () => {
-      const yours = session.viewing === menu.profile.active;
-      select.textContent = yours ? 'SELECTED ✓' : 'SELECT ✓';
-      select.className = yours ? 'on' : 'go';
-    };
-    showCarPicker(menu, pick, (car) => { showStats(); showSelect(); return car; }, {
-      get: () => session.viewing, set: (carId) => { session.viewing = carId; } });
-    return;
-  }
-  addButton(menu, panel, '◀ BACK', () => showMainMenu(menu));
-  showCarPicker(menu, pick, showStats);
+  // SELECT locks the car in as yours (owner 11-03); browsing alone changes nothing
+  const row = addElement(panel, 'div', '', 'row');
+  const select = addButton(menu, row, 'SELECT ✓', () => {
+    // (SELECTED on your own car confirms it and goes back too - not a dead end)
+    menu.profile.active = session.viewing;
+    saveProfile(menu.profile);
+    session.back();
+  });
+  addButton(menu, row, '◀ BACK', () => session.back());
+  const showSelect = () => {
+    const yours = session.viewing === menu.profile.active;
+    select.textContent = yours ? 'SELECTED ✓' : 'SELECT ✓';
+    select.className = yours ? 'on' : 'go';
+  };
+  showCarPicker(menu, pick, (car) => { showStats(); showSelect(); return car; }, {
+    get: () => session.viewing, set: (carId) => { session.viewing = carId; } });
 }
 
 /**
@@ -267,13 +252,14 @@ font-size:15px';
     Object.assign(cur, { paint: car.paint, trim: car.trim, num: 0 });
   showLivery();
   });
-  addButton(menu, buttonRow, FIX.testGarage ? 'TRY ✓' : 'APPLY ✓', () => {
+  addButton(menu, buttonRow, 'TRY ✓', () => {
     menu.profile.livery = menu.profile.livery || {};
   menu.profile.livery[carId] = { ...cur };
   saveProfile(menu.profile);
   showGarage(menu);
   }, 'go');
-  if (FIX.testGarage) addButton(menu, buttonRow, 'BUY', () => {}, '', true, 'STORY');
+  // BUY (keeps it for story) comes with story mode's money - shown, greyed
+  addButton(menu, buttonRow, 'BUY', () => {}, '', true, 'STORY');
   addButton(menu, panel, '◀ BACK', () => showGarage(menu));
   showLivery();
 }
@@ -301,8 +287,7 @@ function setWear(menu: Menu, carId: string) {
 function showSetWear(menu: Menu, carId: string, fitted: boolean, info: HTMLElement,
   fitButton: HTMLButtonElement) {
   const worn = setWear(menu, carId);
-  fitButton.innerHTML = !fitted ? (FIX.testGarage ? 'TRY ✓' : 'FIT ✓') : worn > 0.02 ? 'NEW SET ✓'
-    : (FIX.testGarage ? 'ON THE CAR ✓' : 'FITTED ✓');
+  fitButton.innerHTML = !fitted ? 'TRY ✓' : worn > 0.02 ? 'NEW SET ✓' : 'ON THE CAR ✓';
   if (!fitted) return;
   // what the wear costs (physics/tyrewear.ts setHealth): grip lost, the puncture chance
   const health = setHealth((menu.profile.tyreWear || {})[carId] || [0, 0, 0, 0]);
@@ -320,16 +305,16 @@ function showSetWear(menu: Menu, carId: string, fitted: boolean, info: HTMLEleme
 }
 
 /**
- * One surface's grip bar in the tyre shop: the white line is the stock set; ?testgarage: the car's
- * own stock set, the difference in ember.
+ * One surface's grip bar in the tyre shop: the white line is the car's own stock set, the
+ * difference in ember.
  * @param lbl the surface's label
  * @param surf the surface group
  * @param tyre the tyre shown
- * @param stockSet the car's stock set (?testgarage), else null (Pre-Spun = 1)
+ * @param stockSet the car's stock set
  * @returns the bar's markup
  */
-function tyreBar(lbl: string, surf: string, tyre: Tyre, stockSet: Tyre | null): string {
-  const grip = tyre.grip[surf] / (stockSet ? stockSet.grip[surf] : 1),
+function tyreBar(lbl: string, surf: string, tyre: Tyre, stockSet: Tyre): string {
+  const grip = tyre.grip[surf] / stockSet.grip[surf],
     percent = Math.round((grip - 1) * 100),
     width = Math.max(4, Math.min(100, grip / 1.6 * 100)),
     tone = grip > 1.001 ? MENU_COL.good : grip < 0.999 ? MENU_COL.bad : MENU_COL.dim;
@@ -342,7 +327,7 @@ position:relative"><div style="position:absolute;left:62.5%;top:-3px;bottom:-3px
 background:${MENU_COL.fg}"></div><div style="height:100%;width:${width}%;\
 background:${tone}"></div></div>`
         + `<span style="width:${MENU_COL.valueW};text-align:right;font-size:${MENU_COL.value};\
-color:${stockSet && percent !== 0 ? MENU_COL.accent : tone}">\
+color:${percent !== 0 ? MENU_COL.accent : tone}">\
 ${percent > 0 ? '+' : ''}${percent}%</span></div>`;
 }
 
@@ -380,7 +365,7 @@ solid ' + brand.col;
   }
   const info = addElement(right, 'div', '');
   const fitR = addElement(panel, 'div', '', 'row');
-  const fitB = addButton(menu, fitR, FIX.testGarage ? 'TRY ✓' : 'FIT ✓', () => {
+  const fitB = addButton(menu, fitR, 'TRY ✓', () => {
     menu.profile.tyres = menu.profile.tyres || {};
     menu.profile.tyres[carId] = sel;
     // TYRE WEAR: fitting is a NEW set - the only way to fresh tyres
@@ -389,16 +374,16 @@ solid ' + brand.col;
     saveProfile(menu.profile);
     showGarage(menu);
   }, 'go');
-  // ?testgarage: BUY (keeps it for story) comes with story mode's money - shown, greyed
-  if (FIX.testGarage) addButton(menu, fitR, 'BUY', () => {}, '', true, 'STORY');
+  // BUY (keeps it for story) comes with story mode's money - shown, greyed
+  addButton(menu, fitR, 'BUY', () => {}, '', true, 'STORY');
   addButton(menu, panel, '◀ BACK', () => showGarage(menu));
   const showTyre = () => {
     const tyre = tyreOf(sel), brand = TYRE_BRANDS.find((x) => x.id === tyre.brand)!,
       cur = fittedTyre(car, (menu.profile.tyres || {})[carId]).id === tyre.id;
     for (const [key, tyreBtn] of Object.entries(btns)) tyreBtn.style.outline = key === sel
       ? '3px solid ' + MENU_COL.pick : 'none';
-    // ?testgarage: against the car's own stock set (the Chevvy's Polyglass, not Pre-Spun)
-    const stockSet = FIX.testGarage ? fittedTyre(car) : null;
+    // against the car's own stock set (the Chevvy's Polyglass, not Pre-Spun)
+    const stockSet = fittedTyre(car);
     const bar = (lbl: string, surf: string) => tyreBar(lbl, surf, tyre, stockSet);
     const opt = tyre.opt || [65, 110], heat = (tyre.heatHard || 1) > 1.05 ? 'FAST on tarmac'
       : (tyre.heatHard || 1) < 0.95 ? 'slow' : 'normal';
@@ -407,7 +392,7 @@ solid ' + brand.col;
 · ${tyre.name.toUpperCase()}</div>`
       + `<div class="sub" style="margin:2px 0 6px">${tyre.note || ''}</div>`
       + '<div class="sub" style="font-size:' + MENU_COL.note
-        + '">white line = STOCK (' + (stockSet ? stockSet.name : 'PRE-SPUN').toUpperCase()
+        + '">white line = STOCK (' + stockSet.name.toUpperCase()
         + ')</div>'
         + TYRE_SURFS.map(([surf, lbl]) => bar(lbl, surf)).join('')
       + `<div class="stats" style="margin-top:6px"><span>GRIP (TARMAC)</span><b>${tarmacG}</b>\

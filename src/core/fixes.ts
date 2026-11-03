@@ -6,7 +6,7 @@
 // heatease, flatgrip, towplus passed 11-02;
 // aicool, smokeearly, airfx, smokelinger, aidust, realcars, jokerhint, puffpool, pitsolid,
 // muscletyres, namefix, bhbridges,
-// menustyle passed 11-03.)
+// menustyle, testgarage passed 11-03.)
 import { envValue } from './debug.ts';
 
 /**
@@ -37,7 +37,4 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
-  // ?testgarage=1: the garage lives in test mode (setup's GARAGE button, back to that setup);
-  // browsing a car no longer changes yours - SELECT locks it in; the shops TRY (free in test)
-  testGarage: atLoad('testgarage'),
 };

@@ -19,7 +19,9 @@ for (const [W, H] of [[844, 390], [390, 844]]) {
   const OUTDIR = process.argv[2]; if (OUTDIR) mkdirSync(OUTDIR, { recursive: true }); const shot = async (n) => { step = W + 'x' + H + ' photo ' + n; await p.waitForTimeout(500); if (OUTDIR) await p.screenshot({ path: OUTDIR + '/menu-' + W + '-' + n + '.png' }); };
   const tap = async (txt) => {
     step = W + 'x' + H + ' tap ' + txt;
-    await p.waitForTimeout(400);
+    // a press blinks 160 ms before its screen opens, and a new screen ignores taps for GHOST_MS
+    // (350): 600 ms clears both
+    await p.waitForTimeout(600);
     const button = p.locator('#menu button', { hasText: txt }).first();
     await button.waitFor({ state: 'visible', timeout: STEP_MS }).catch(() => {
       throw new Error(W + 'x' + H + ': the ' + txt + ' button never showed');
@@ -41,7 +43,8 @@ for (const [W, H] of [[844, 390], [390, 844]]) {
   const demo = await p.evaluate(() => ({ mode: window.__game.mode, v: Math.hypot(window.__game.car.vx, window.__game.car.vy).toFixed(1), car: window.__game.car.spec.id }));
   await tap('TEST MODE'); await shot('2-types'); await tap('OVALS'); await shot('2-tracks');   // the category layer (2026-10-05)
   await tap('Naffcar'); await shot('3-setup');
-  await tap('▶'); await tap('LAUNCH');
+  // the car is picked in the garage now (from setup; SELECT comes back here)
+  await tap('GARAGE'); await tap('▶'); await tap('SELECT'); await tap('LAUNCH');
   await waitFor('the session', () => window.__game.mode === 'session' && !!window.__game.hudLayout().help);
   await p.waitForTimeout(1500); await shot('4-session');
   const sess = await p.evaluate(() => ({ mode: window.__game.mode, level: window.__game.level.id, car: window.__game.car.spec.id }));
@@ -49,7 +52,9 @@ for (const [W, H] of [[844, 390], [390, 844]]) {
   await p.touchscreen.tap(L.help.x + L.help.w / 2, L.help.y + L.help.h / 2); await shot('5-pause');
   const pz = await p.evaluate(() => ({ paused: window.__game.paused, sim: window.__game.car.simTime }));
   await p.waitForTimeout(400); const pz2 = await p.evaluate(() => window.__game.car.simTime);
-  await tap('MAIN MENU'); await p.waitForTimeout(800); await tap('GARAGE'); await shot('6-garage');
+  await tap('MAIN MENU'); await p.waitForTimeout(800);
+  // the garage lives in test mode (owner 11-03): main menu > TEST MODE > a track > GARAGE
+  await tap('TEST MODE'); await tap('OVALS'); await tap('Naffcar'); await tap('GARAGE'); await shot('6-garage');
   await tap('PAINT'); await shot('7-paint'); await tap('BACK');   // paint shop, back to the garage with its BACK button
   await tap('TYRES'); await shot('8-tyres'); await tap('BACK');
   // RESULTS and TESTING are not reachable by a tap from the menu (a finished race / the pause chip open them), but the game

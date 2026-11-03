@@ -45,13 +45,5 @@ export const TEST_LIST: TestEntry[] = [
   // curve + reach at speed) passed 2026-11-02, kept as player settings; towplus (the wake)
   // passed 2026-11-02; aicool, smokeearly, airfx, smokelinger, aidust, realcars, jokerhint,
   // puffpool, tyrehealth, pitsolid, muscletyres,
-  // namefix, bhbridges, menustyle passed 2026-11-03; specsheet removed)
-  {
-    id: 'testgarage',
-    added: '2026-11-03',
-    name: 'Garage in test mode: setup GARAGE (no picker), SELECT locks a car in, TRY / BUY',
-    where: 'Plain link + &testgarage=1: TEST MODE > a track > GARAGE (no GARAGE on the main menu)',
-    try: 'Set VS AI, open GARAGE, SELECT a car: back to setup with AI on. TRY tyres / paint.',
-    wrong: 'Your car changing just by browsing, or SELECT / BACK landing anywhere but the setup.',
-  },
+  // namefix, bhbridges, menustyle, testgarage passed 2026-11-03; specsheet removed)
 ];

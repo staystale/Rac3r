@@ -5,8 +5,7 @@ const THEME_NAMES = THEMES as Record<string, { name: string }>;
 import { saveProfile } from './profile.ts';
 import { addPane, addButton, addElement } from './widgets.ts';
 import { KIND, catOf, showTrackList, addGenRows } from './tracks.ts';
-import { showCarPicker, showGarage } from './garage.ts';
-import { FIX } from '../core/fixes.ts';
+import { showGarage } from './garage.ts';
 import { hideMenu } from '../menu.ts';
 import { buildLevel } from '../world/load.ts';
 import { SEASON_NAMES, seasonForecast } from '../world/weather.ts';
@@ -373,7 +372,7 @@ function addTimeRows(menu: Menu, panel: HTMLElement, state: SetupState) {
  * car picker and LAUNCH.
  * @param menu the menu context
  * @param level the chosen level
- * @param kept the choices to start from (?testgarage: as they were before a garage visit)
+ * @param kept the choices to start from (as they were before a garage visit)
  */
 export function showSetup(menu: Menu, level: Level, kept: Partial<SetupState> = {}) {
   const panel = addPane(menu, false);
@@ -403,18 +402,16 @@ export function showSetup(menu: Menu, level: Level, kept: Partial<SetupState> = 
   state.paint();
   addWeatherRows(menu, panel, state, level);
   if (menu.api.daytime) addTimeRows(menu, panel, state);
-  if (FIX.testGarage) {
-    // ?testgarage (owner 11-03): no car picker here - the GARAGE picks it (your car named
-    // above), and comes back to this setup with every choice as it was (AI, laps, RX, the hour)
-    const car = ROSTER.find((row) => row.id === menu.profile.active)!;
-    // the car you have, named above the button (owner: not inside it)
-    addElement(panel, 'div', 'SELECTED CAR', 'sub');
-    addElement(panel, 'div', car.name, 'selcar');
-    addButton(menu, panel, 'GARAGE ›', () => {
-      const { road, traffic, litter, opponents, aiN, diff, aiCars, rxRace, laps, time } = state;
-      const choices = { road, traffic, litter, opponents, aiN, diff, aiCars, rxRace, laps, time };
-      showGarage(menu, () => showSetup(menu, level, choices));
-    });
-  } else showCarPicker(menu, panel);
+  // (owner 11-03) no car picker here - the GARAGE picks it (your car named
+  // above), and comes back to this setup with every choice as it was (AI, laps, RX, the hour)
+  const car = ROSTER.find((row) => row.id === menu.profile.active)!;
+  // the car you have, named above the button (owner: not inside it)
+  addElement(panel, 'div', 'SELECTED CAR', 'sub');
+  addElement(panel, 'div', car.name, 'selcar');
+  addButton(menu, panel, 'GARAGE ›', () => {
+    const { road, traffic, litter, opponents, aiN, diff, aiCars, rxRace, laps, time } = state;
+    const choices = { road, traffic, litter, opponents, aiN, diff, aiCars, rxRace, laps, time };
+    showGarage(menu, () => showSetup(menu, level, choices));
+  });
   addLaunchButtons(menu, panel, level, state);
 }
