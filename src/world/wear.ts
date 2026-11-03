@@ -1,5 +1,7 @@
 // wear.ts - the SURFACE DEGRADATION & WEAR MAP (below).
 import { LEVEL } from "./state.ts";
+import { FIX } from "../core/fixes.ts";
+import { bellyDepth } from "./belly.ts";
 import type { SurfaceId } from "./surfaces.ts";
 import { SURFACES, VERGE_W, TRAP_STEPS, SURFACE_TRAP } from "./surfaces.ts";
 import {
@@ -696,6 +698,7 @@ function applyGroundInner(car: CarBody, dt: number): void {
   car.bankLatForce = 0; car.bankLoadFactor = 1.0;
   if (car.air > 0) { car.slopeLong = 0; car.slopeLat = 0; car.slopeYaw = 0; }
   else applySlopeForces(car, cosH, sinH);
+  car.bellyDepth = FIX.belly && !(car.air > 0) ? bellyDepth(car, cosH, sinH) : 0;
 
   // Dynamic surface wear: continuous swept tyre paths for all 4 wheels
   stepWear(car, dt);

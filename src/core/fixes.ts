@@ -40,4 +40,7 @@ export const FIX = {
   // ?resetin=1: a mid-race RESET puts the car all four wheels on the road (was: its centre on the
   // edge, half on half off - a low car like the F1 sat in the gravel) (game/session.ts)
   resetIn: atLoad('resetin'),
+  // ?belly=1: GROUND CLEARANCE in soft ground - the car sinks into mud / sand and its ruts; what
+  // is deeper than its ride height drags its underside (world/wear.ts bellyDepth, physics/tyres.ts)
+  belly: atLoad('belly'),
 };

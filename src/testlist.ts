@@ -55,4 +55,12 @@ export const TEST_LIST: TestEntry[] = [
     try: 'Go off, press RESET: the car should sit just inside the edge and drive straight away.',
     wrong: 'Still half in the gravel, or put down in the middle of the road in the way.',
   },
+  {
+    id: 'belly',
+    added: '2026-11-03',
+    name: 'Ground clearance in mud / sand: a low car sinks to its belly and drags (or beaches)',
+    where: 'Plain link + &belly=1: The Rough Patch mud hills (west mud, middle thick mud), sand',
+    try: 'Formula Won / Lamburghini vs Volvoh up the thick mud hill; drive the same ruts again.',
+    wrong: 'A high car dragging, a low car untroubled in thick mud, or beached on hard ground.',
+  },
 ];

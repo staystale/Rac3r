@@ -99,6 +99,7 @@ export interface Car {
   roll: CarRoll | null; sparks: boolean; streamers: Streamer[] | null;
   // set by world/wear.ts (the slope and bank forces under the car)
   slopeLong?: number; slopeLat?: number; slopeYaw?: number;
+  bellyDepth?: number;   // ?belly: m of the underside in the ground (world/wear.ts)
   bankLatForce?: number; bankLoadFactor?: number;
   // set by physics/wake.ts (the tow) and by vehicle.ts itself (the handbrake hold)
   dragMul?: number; hbAfter?: number;
