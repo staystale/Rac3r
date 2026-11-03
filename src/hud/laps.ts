@@ -4,7 +4,6 @@
 import { LEVEL } from '../world/state.ts';
 import { COL } from '../world/colours.ts';
 import { querySubtrack } from '../world/tyrewall.ts';
-import { FIX } from '../core/fixes.ts';
 import { fmtTime, drawHudPanel, drawHudLabel } from './widgets.ts';
 import type { HudRace, HudStage, HudGame } from './hudtypes.ts';
 import type { HudRects } from './layout.ts';
@@ -101,20 +100,12 @@ interface JokerFlags {
  */
 function jokerIsNear(game: HudGame, race: HudRace) {
   const trackDist = game.trackD;
-  if (FIX.jokerHint) {
-    const turnDist = jokerTurnDist(), total = LEVEL.subtrack ? LEVEL.subtrack.totalDist : 0;
-    return race.started && !race.joker && turnDist != null && trackDist != null && total > 0
-      && (((turnDist - trackDist) % total) + total) % total < 140;
-  }
-  const jokerArrow = LEVEL.joker && LEVEL.joker.arrows
-    && LEVEL.joker.arrows.find((x) => x && x.d != null);
-  const near = race.started && !race.joker && jokerArrow && trackDist != null
-    && (((jokerArrow.d! - trackDist) % LEVEL.subtrack!.totalDist)
-    + LEVEL.subtrack!.totalDist) % LEVEL.subtrack!.totalDist < 140;
-  return near;
+  const turnDist = jokerTurnDist(), total = LEVEL.subtrack ? LEVEL.subtrack.totalDist : 0;
+  return race.started && !race.joker && turnDist != null && trackDist != null && total > 0
+    && (((turnDist - trackDist) % total) + total) % total < 140;
 }
 
-// ?jokerhint=1 (owner 11-03: "yes", fix it): the hint read each arrow's track distance d, which
+// JOKER HINT (passed 11-03): the hint read each arrow's track distance d, which
 // nothing ever set, so it never showed. The turn-off's distance round the track is now worked out
 // once per level from the earliest arrow (the approach arrow at the split: world/levels
 // jokerApproach; Slidden Hill 73 m, its branch 69 m).

@@ -1,5 +1,4 @@
 import { wearColour, setHealth } from '../physics/tyrewear.ts';
-import { showSpecSheet } from './specsheet.ts';
 import { COL } from '../world/colours.ts';
 import {
   ROSTER, CLASSES, classOf, PALETTE, TYRES, TYRE_BRANDS, TYRE_SURFS, tyreOf,
@@ -141,10 +140,6 @@ AIDS</span><b>${aids}</b>`
   const buttonRow = addElement(panel, 'div', '', 'row');
   addButton(menu, buttonRow, 'PAINT', () => showPaintShop(menu));
   addButton(menu, buttonRow, 'TYRES', () => showTyreShop(menu));
-  addButton(menu, buttonRow, 'SPEC SHEET', () => {
-    const car = ROSTER.find((x) => x.id === menu.profile.active)!;
-    showSpecSheet(menu, car.id, car.name, () => showGarage(menu));
-  });
   addButton(menu, buttonRow, 'BUY CARS', () => {}, '', true, 'SOON');
   addButton(menu, buttonRow, 'UPGRADES', () => {}, '', true, 'SOON');
   addButton(menu, panel, '◀ BACK', () => showMainMenu(menu));

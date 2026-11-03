@@ -38,16 +38,8 @@ export const TEST_LIST = [
   // 0.5, power 1), pedalramp, lockfade, spinmarks, smokefade, musclegears, dustlinger passed
   // 2026-11-02; smokeover, heatease, flatgrip passed 2026-11-02; steerfeel (the SETTINGS steering:
   // curve + reach at speed) passed 2026-11-02, kept as player settings; towplus (the wake)
-  // passed 2026-11-02; aicool, smokeearly, airfx, smokelinger, aidust, realcars passed
-  // 2026-11-03)
-  {
-    id: 'specsheet',
-    added: '2026-11-02',
-    name: 'GARAGE > SPEC SHEET: power, torque, gears, weight split, tyres, brakes, aero ...',
-    where: 'Main menu > GARAGE > SPEC SHEET (each car)',
-    try: 'Look through a few cars; anything missing you want to see?',
-    wrong: 'A number that looks wrong for the car, or the sheet not fitting the phone.',
-  },
+  // passed 2026-11-02; aicool, smokeearly, airfx, smokelinger, aidust, realcars, jokerhint,
+  // puffpool passed 2026-11-03)
   {
     id: 'tyrehealth',
     added: '2026-11-02',
@@ -55,21 +47,5 @@ export const TEST_LIST = [
     where: 'GARAGE > TYRES, after a few races on the same set',
     try: 'Race, come back, watch the numbers climb; fit a NEW SET and see them reset.',
     wrong: 'Numbers that never change, or a risk shown on a nearly new set.',
-  },
-  {
-    id: 'jokerhint',
-    added: '2026-11-03',
-    name: 'Joker hint fixed: the lap panel flashes ››› as you near the joker turn-off',
-    where: 'Plain link + &jokerhint=1: a RALLYCROSS race (Knobhill RX, Slidden Hill RX)',
-    try: 'Before taking the joker, watch the lap panel in the 140 m before the split.',
-    wrong: 'No hint, a hint far from the split, or one still showing after the joker.',
-  },
-  {
-    id: 'puffpool',
-    added: '2026-11-03',
-    name: 'Smoke and dust no longer vanish with AI cars near (their dust goes first; 2x room)',
-    where: 'Plain link + &puffpool=1: a gravel or sand race or stage with 5+ AI, in the pack',
-    try: 'Slide hot tyres, then ease off: your smoke and dust should fade out, not blink out.',
-    wrong: 'Trails still vanishing near the AI, or the frame rate dropping in a dusty pack.',
   },
 ];

@@ -1,7 +1,6 @@
 // The PARTICLES layer of the renderer: thrown material - puffs, spray, smoke, paint chips and
 // sparks. createParticles owns the pools and returns the add / draw entry points.
 import { SPRITE_PPM, fxRandom } from "./shared.ts";
-import { FIX } from '../core/fixes.ts';
 import { emitEngineSmoke, type PuffAt, type SmokeCar } from './enginesmoke.ts';
 import type { Spray } from "../world/types.ts";
 import { airMove, airOf, windNow, type AirCar } from './airflow.ts';
@@ -40,7 +39,7 @@ interface ParticleState {
   smokeDebt: number;
   // each car's own fractional remainders (AI cars near you throw too)
   carDebts: Map<object, [number, number]>;
-  // the car throwing now is an AI car (its puffs are let go of first: ?puffpool)
+  // the car throwing now is an AI car (its puffs are let go of first: makeRoom)
   aiThrowing: boolean;
   // PAINT CHIPS: capped, oldest dropped (§4)
   chips: Chip[];
@@ -66,8 +65,9 @@ interface ParticleCtx {
 // blooms all come off `surface.spray`. This file never learns what snow is, which is the same
 // seam the marks layer uses.
 // raised from 40: four wheels throwing continuously needs the headroom
-// 220 -> 320: room for the long dust trails (11-02); ?puffpool: 640 (the AI cars throw too)
-const MAX_PUFFS = FIX.puffPool ? 640 : 320;
+// 220 -> 320: room for the long dust trails (11-02); 640: the AI cars throw too (puffpool,
+// passed 11-03)
+const MAX_PUFFS = 640;
 const MAX_CHIPS = 400;
 const MAX_SPARKS = 600;
 
@@ -141,7 +141,7 @@ function dropOldest(puffs: Puff[], rgb: string): void {
   puffs.splice(same < 0 ? 0 : same, 1);
 }
 
-// ?puffpool=1 (owner 11-03: "dust / smoke trails still seem to vanish some times"). MEASURED
+// PUFF POOL (passed 11-03; owner: "dust / smoke trails still seem to vanish some times"). MEASURED
 // (tools/scratch/_pool.mjs): since the AI cars near you throw too, their dust filled the pools
 // and each new puff threw out one of YOURS before its time - 7 AI on gravel cut 68 % of your
 // dust and 51 % of your smoke short, 3 on sand 61 % / 38 %. So a full pool lets go of the
@@ -149,13 +149,12 @@ function dropOldest(puffs: Puff[], rgb: string): void {
 // the camera, and only then the oldest of the new one's kind; and it has twice the room.
 
 /**
- * Make room in a full pool (?puffpool: off screen first, then the AI's, then the oldest).
+ * Make room in a full pool: off screen first, then the AI's, then the oldest.
  * @param ctx particle context (the camera and screen)
  * @param puffs the pool, oldest first
  * @param rgb the new puff's colour (its kind)
  */
 function makeRoom(ctx: ParticleCtx, puffs: Puff[], rgb: string): void {
-  if (!FIX.puffPool) { dropOldest(puffs, rgb); return; }
   const { view, cam, toScreenX, toScreenY } = ctx, ppm = ctx.PPMz();
   let offAt = -1, offFar = -1, aiAt = -1, aiFar = -1;
   for (let i = 0; i < puffs.length; i++) {
@@ -712,7 +711,7 @@ function renderStreaks(ctx: ParticleCtx, wallDt: number) {
  * @param state the particle state
  * @param car the car
  * @param emit the emitter
- * @param byAi an AI car (its puffs marked: ?puffpool)
+ * @param byAi an AI car (its puffs marked: makeRoom)
  */
 function withCarDebts(state: ParticleState, car: object, emit: () => void, byAi = false): void {
   const debts = state.carDebts.get(car) || [0, 0];

@@ -35,11 +35,22 @@ handover, written on request.
   real is fine": every car on its real counterpart - weight, engine from the maker's peak torque /
   power, gears, tyre size, 0.5 rho Cd A - with its sources on its ROSTER row and a name close to
   the real one; realcars.ts holds the helpers; most within ~5 % of the real top speed / 0-100; the
-  Muscle runs 0-100 in 4.5 s, real ~6.5 - its tyres grip too well off the line). UNDER TEST:
-  ?jokerhint, ?puffpool (smoke / dust still vanished with AI cars near: the shared 320-puff pools
-  overflowed - 7 AI on gravel cut ~2/3 of your dust and half your smoke short; a full pool now lets
-  go of puffs off screen, then the AI's farthest, and holds 640: 0 % cut on screen; ~+1.7 ms a
-  frame at the worst - check on the phone with ?report=1). More vehicles later (owner). Then K12.
+  Muscle runs 0-100 in 4.5 s, real ~6.5 - its tyres grip too well off the line).
+  DEFAULT 11-03 (owner: all pass): jokerhint (the lap panel's joker hint works out the
+  turn-off), puffpool (a full puff pool lets go of puffs off screen, then the AI's farthest, and
+  holds 640: with AI near, 0 % of your puffs cut
+  on screen, was up to 2/3). OPEN: the owner still saw dust vanish instantly a couple of times
+  with NO AI - not the pool (a 60 s Knobhill RX race lost no puff early, the pool peaked at 303);
+  the owner will find the condition. SPEC SHEET removed (owner: "too much ... get rid of it").
+  OWNER 11-03 (plans to discuss / mockups first): GARAGE STATS under the car - more detail
+  (suspension stiffness / travel ...) and each upgradeable part's level with its effect on top
+  speed and the other stats as it is upgraded; MUSCLE TYRES - period tyres that suit it and sizes
+  that do not fit (as other cars); TRACK REALISM - every track checked against the real one and
+  raised in detail (Brands Snatch: the bridges over the track - the real Indy map shows two bridges
+  and a pedestrian bridge; the pits too tight and not solid); K12 mud hills (owner: ok). NEXT TIME
+  WE WORK ON NEW VEHICLES OR VISUALS: make sure every car LOOKS like its real counterpart (shape,
+  proportions, lights, details - as close as the names). More vehicles later (owner). ORDER
+  (owner 11-03): AI rework first, then the upgrade system, then sound, then story.
 - The plain link is the approved game. DEFAULT 10-24 / 10-25 (owner
   "all pass"; every switch and old path deleted, each proved SAME against the tested switch):
   highway street lights L4b + the solid grid; traffic seated when woken, the Sandbox puddles,
