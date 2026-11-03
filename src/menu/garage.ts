@@ -7,7 +7,7 @@ import {
 import { CAR_STATS } from '../carstats.ts';
 import type { CarStat } from '../ai/types.ts';
 import type { Livery } from './profile.ts';
-import type { RosterRow } from '../cars.ts';
+import type { RosterRow, Tyre } from '../cars.ts';
 import { saveProfile } from './profile.ts';
 import { addPane, addButton, addElement, drawLift } from './widgets.ts';
 import { showMainMenu } from './tracks.ts';
@@ -146,6 +146,13 @@ KM/H</span><b>${spec.zeroTo100 != null ? spec.zeroTo100 + ' S' : '—'}</b>`
         // the table is measured on the stock set: the fitted set's grip against that
         const tarmacGrip = fittedTyre(car, (menu.profile.tyres || {})[car.id]).grip.tarmac
           / fittedTyre(car).grip.tarmac;
+        if (FIX.testGarage && spec.gripG != null && tarmacGrip !== 1) {
+          // ?testgarage (owner 11-03): the stock figure, and what the set on it adds or takes,
+          // in ember
+          const diff = spec.gripG * tarmacGrip - spec.gripG;
+          return spec.gripG + ' G <span style="color:' + MENU_COL.accent + '">'
+            + (diff > 0 ? '+' : '−') + Math.abs(diff).toFixed(2) + '</span>';
+        }
         return spec.gripG == null ? '—' : tarmacGrip === 1 ? spec.gripG + ' G'
           : (spec.gripG * tarmacGrip).toFixed(2) + ' G <span style="color:' + MENU_COL.dim
             + ';font-size:'
@@ -313,6 +320,33 @@ function showSetWear(menu: Menu, carId: string, fitted: boolean, info: HTMLEleme
 }
 
 /**
+ * One surface's grip bar in the tyre shop: the white line is the stock set; ?testgarage: the car's
+ * own stock set, the difference in ember.
+ * @param lbl the surface's label
+ * @param surf the surface group
+ * @param tyre the tyre shown
+ * @param stockSet the car's stock set (?testgarage), else null (Pre-Spun = 1)
+ * @returns the bar's markup
+ */
+function tyreBar(lbl: string, surf: string, tyre: Tyre, stockSet: Tyre | null): string {
+  const grip = tyre.grip[surf] / (stockSet ? stockSet.grip[surf] : 1),
+    percent = Math.round((grip - 1) * 100),
+    width = Math.max(4, Math.min(100, grip / 1.6 * 100)),
+    tone = grip > 1.001 ? MENU_COL.good : grip < 0.999 ? MENU_COL.bad : MENU_COL.dim;
+  return `<div style="display:flex;align-items:center;gap:6px;margin:2px 0"><span \
+style="width:${MENU_COL.labelW};font-size:${MENU_COL.label}">${lbl}</span>`
+
+
+        + `<div style="flex:1;height:10px;background:${MENU_COL.well};border:1px solid #000;\
+position:relative"><div style="position:absolute;left:62.5%;top:-3px;bottom:-3px;width:2px;\
+background:${MENU_COL.fg}"></div><div style="height:100%;width:${width}%;\
+background:${tone}"></div></div>`
+        + `<span style="width:${MENU_COL.valueW};text-align:right;font-size:${MENU_COL.value};\
+color:${stockSet && percent !== 0 ? MENU_COL.accent : tone}">\
+${percent > 0 ? '+' : ''}${percent}%</span></div>`;
+}
+
+/**
  * TYRES (user: 4 brands / 15 types, fit by class, prices shown, the effect shown
  * with the stats). FIT saves it to profile.tyres[id].
  * @param menu the menu context
@@ -363,22 +397,9 @@ solid ' + brand.col;
       cur = fittedTyre(car, (menu.profile.tyres || {})[carId]).id === tyre.id;
     for (const [key, tyreBtn] of Object.entries(btns)) tyreBtn.style.outline = key === sel
       ? '3px solid ' + MENU_COL.pick : 'none';
-    const bar = (lbl: string, surf: string) => {
-      const grip = tyre.grip[surf], percent = Math.round((grip - 1) * 100),
-        width = Math.max(4, Math.min(100, grip / 1.6 * 100)),
-        tone = grip > 1.001 ? MENU_COL.good : grip < 0.999 ? MENU_COL.bad : MENU_COL.dim;
-      return `<div style="display:flex;align-items:center;gap:6px;margin:2px 0"><span \
-style="width:${MENU_COL.labelW};font-size:${MENU_COL.label}">${lbl}</span>`
-
-
-            + `<div style="flex:1;height:10px;background:${MENU_COL.well};border:1px solid #000;\
-position:relative"><div style="position:absolute;left:62.5%;top:-3px;bottom:-3px;width:2px;\
-background:${MENU_COL.fg}"></div><div style="height:100%;width:${width}%;\
-background:${tone}"></div></div>`
-            + `<span style="width:${MENU_COL.valueW};text-align:right;font-size:${MENU_COL.value};\
-color:${tone}">\
-${percent > 0 ? '+' : ''}${percent}%</span></div>`;
-      };
+    // ?testgarage: against the car's own stock set (the Chevvy's Polyglass, not Pre-Spun)
+    const stockSet = FIX.testGarage ? fittedTyre(car) : null;
+    const bar = (lbl: string, surf: string) => tyreBar(lbl, surf, tyre, stockSet);
     const opt = tyre.opt || [65, 110], heat = (tyre.heatHard || 1) > 1.05 ? 'FAST on tarmac'
       : (tyre.heatHard || 1) < 0.95 ? 'slow' : 'normal';
     const tarmacG = spec.gripG ? (spec.gripG * tyre.grip.tarmac).toFixed(2) + ' G' : '—';
@@ -386,7 +407,8 @@ ${percent > 0 ? '+' : ''}${percent}%</span></div>`;
 · ${tyre.name.toUpperCase()}</div>`
       + `<div class="sub" style="margin:2px 0 6px">${tyre.note || ''}</div>`
       + '<div class="sub" style="font-size:' + MENU_COL.note
-        + '">white line = STOCK (PRE-SPUN)</div>'
+        + '">white line = STOCK (' + (stockSet ? stockSet.name : 'PRE-SPUN').toUpperCase()
+        + ')</div>'
         + TYRE_SURFS.map(([surf, lbl]) => bar(lbl, surf)).join('')
       + `<div class="stats" style="margin-top:6px"><span>GRIP (TARMAC)</span><b>${tarmacG}</b>\
 <span>WORKING HEAT</span><b>${opt[0]}-${opt[1]} C</b>`
