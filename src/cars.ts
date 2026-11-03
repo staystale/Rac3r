@@ -11,6 +11,8 @@
 // Torque curves are 7-point tables, not a single peak — the shape is what makes gearing matter.
 
 import type { Mark, Spray } from './world/types.ts';
+import { FIX } from './core/fixes.ts';
+import { applyRealCars } from './realcars.ts';
 
 export const GRAVITY = 9.81;
 
@@ -637,6 +639,9 @@ export type Spec = typeof SHARED & RosterRow
   & { L: number; Izz: number; tyre?: Tyre | null; num?: number };
 
 // Resolve a roster row into a full spec: SHARED defaults + computed wheelbase and yaw inertia.
+// ?realcars=1: each car on its real counterpart (realcars.ts)
+if (FIX.realCars) applyRealCars(ROSTER);
+
 export function spec(carId: string): Spec {
   const row = ROSTER.find((car) => car.id === carId) || ROSTER[0];
   const out = { ...SHARED, ...row } as Spec;   // L and Izz are filled in just below

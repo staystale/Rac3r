@@ -15,7 +15,6 @@
 // thing the player must read at a glance — which way the front wheels point — is drawn at full
 // contrast.
 import type { Settings } from "./core/settings.ts";
-import { FIX } from './core/fixes.ts';
 
 import { COL } from "./world/colours.ts";
 import { createCarSprite } from "./render/carsprite.ts";
@@ -244,7 +243,7 @@ function drawWorldLayers(ctx: RenderCtx, game: RenderGame, lock: ViewLock, wallT
   }
 }
 
-// m from the player's car: the AI cars that throw smoke and dust (?aidust; off screen beyond)
+// m from the player's car: the AI cars that throw smoke and dust (off screen beyond)
 const AI_DUST_M = 90;
 
 /**
@@ -259,15 +258,13 @@ function drawEffects(ctx: RenderCtx, game: RenderGame, wallDt: number) {
   ctx.addPuffs(game.cones.drainHits());
   ctx.addSpray(game.car, game.marks, wallDt);
   ctx.addSmoke(game.car, game.marks, wallDt);
-  // ?aidust=1 (owner 11-03: "yes" - AI cars throw no smoke or dust): the AI cars near you too
-  if (FIX.aiDust) {
-    for (const rival of game.ai || []) {
-      const car = rival.car;
-      if (Math.abs(car.x - game.car.x) > AI_DUST_M
-        || Math.abs(car.y - game.car.y) > AI_DUST_M) continue;
-      ctx.addSpray(car, game.marks, wallDt);
-      ctx.addSmoke(car, game.marks, wallDt);
-    }
+  // the AI cars near you too (owner 11-03: AI cars threw no smoke or dust)
+  for (const rival of game.ai || []) {
+    const car = rival.car;
+    if (Math.abs(car.x - game.car.x) > AI_DUST_M
+      || Math.abs(car.y - game.car.y) > AI_DUST_M) continue;
+    ctx.addSpray(car, game.marks, wallDt);
+    ctx.addSmoke(car, game.marks, wallDt);
   }
   const effectCars = [
     game.car,

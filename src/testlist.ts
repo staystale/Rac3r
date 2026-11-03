@@ -38,7 +38,7 @@ export const TEST_LIST = [
   // 0.5, power 1), pedalramp, lockfade, spinmarks, smokefade, musclegears, dustlinger passed
   // 2026-11-02; smokeover, heatease, flatgrip passed 2026-11-02; steerfeel (the SETTINGS steering:
   // curve + reach at speed) passed 2026-11-02, kept as player settings; towplus (the wake)
-  // passed 2026-11-02)
+  // passed 2026-11-02; aicool, smokeearly, airfx, smokelinger, aidust passed 2026-11-03)
   {
     id: 'specsheet',
     added: '2026-11-02',
@@ -56,12 +56,12 @@ export const TEST_LIST = [
     wrong: 'Numbers that never change, or a risk shown on a nearly new set.',
   },
   {
-    id: 'smokelinger',
+    id: 'realcars',
     added: '2026-11-03',
-    name: 'Tyre smoke lingers ~2x longer and no longer vanishes when you drive onto dust',
-    where: 'Plain link + &smokelinger=1: a drift that runs onto gravel / dirt / sand, a lift-off',
-    try: 'Smoke up the tyres, then ease off or slide onto the gravel: the cloud should hang.',
-    wrong: 'Smoke still blinking out, or a cloud that never clears.',
+    name: 'REAL CARS: each car on its real one (weight, engine, gears, tyres, drag), names',
+    where: 'Plain link + &realcars=1: the garage (names), then drive a few - Mini, saloon, Muscle',
+    try: 'Top speed and the pull in each gear: like the real car? The Mini tops out ~160 km/h.',
+    wrong: 'A car that will not pull top gear, revs that sound wrong, or one handling oddly.',
   },
   {
     id: 'jokerhint',
@@ -70,13 +70,5 @@ export const TEST_LIST = [
     where: 'Plain link + &jokerhint=1: a RALLYCROSS race (Knobhill RX, Slidden Hill RX)',
     try: 'Before taking the joker, watch the lap panel in the 140 m before the split.',
     wrong: 'No hint, a hint far from the split, or one still showing after the joker.',
-  },
-  {
-    id: 'aidust',
-    added: '2026-11-03',
-    name: 'AI cars throw tyre smoke, dust and spray too (the ones near you)',
-    where: 'Plain link + &aidust=1: a race on gravel / dirt / sand, or a drift battle',
-    try: 'Follow AI cars on loose ground and through slides; check the frame rate.',
-    wrong: 'No dust behind AI cars, your view lost in a cloud, or a frame-rate drop.',
   },
 ];

@@ -34,7 +34,10 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   logical call (snow stages: the road from the stage's seed).
 - HANDBRAKE HEAT (10-24): the handbrake heats the REAR tyres; the fronts heat only by the
   turning they do (never by the handbrake itself).
-- Every car / track / stage / brand / generated name is a parody pun.
+- Every car / track / stage / brand / generated name is a parody pun. A car is named after its REAL
+  counterpart, close to the real thing but different (owner 11-03): BMV 3 Serious (BMW 3 Series),
+  Subaroo WRZ, Lamburghini Hurrikan, Folksvagon Gulf GTEye. Every car is based on a real car
+  (realcars.ts: its weight, engine, gears, tyres and drag).
 - No keys, tokens, tunnel URLs or process IDs in the repo. No itch.io push until the owner says so.
 - The foreman may push to `main` once the change is proven (routine below).
 - Keep the test server and the tunnel running.

@@ -3,7 +3,6 @@
 import { SPRITE_PPM, fxRandom } from "./shared.ts";
 import { emitEngineSmoke, type PuffAt, type SmokeCar } from './enginesmoke.ts';
 import type { Spray } from "../world/types.ts";
-import { FIX } from '../core/fixes.ts';
 import { airMove, airOf, windNow, type AirCar } from './airflow.ts';
 import type { Cam, Chip, ParticleCar, Puff, PuffHit, RenderMarks, View } from "./types.ts";
 
@@ -38,7 +37,7 @@ interface ParticleState {
   // still emit at the right average rather than rounding to nothing.
   sprayDebt: number;
   smokeDebt: number;
-  // ?aidust: each car's own fractional remainders (several cars throw now)
+  // each car's own fractional remainders (AI cars near you throw too)
   carDebts: Map<object, [number, number]>;
   // PAINT CHIPS: capped, oldest dropped (§4)
   chips: Chip[];
@@ -120,22 +119,22 @@ function smokeStrength(heat: number, slip: number): number {
     / (SMOKE_SLIP_FULL - SMOKE_SLIP_MIN)));
 }
 
-// ?smokelinger=1 (owner 11-03: "tyre smoke vanishes sometimes ... when easing off or changing
+// SMOKE LINGERS (owner 11-03: "tyre smoke vanishes sometimes ... when easing off or changing
 // surface ... tyre smoke should linger normally even if you change surface or stop generating more
 // smoke"). MEASURED cause: the pool is shared and capped (MAX_PUFFS) and a full pool dropped its
 // OLDEST puff - on gravel / dirt / sand the long dust trails (~100 puffs a second, 1.4-2.1 s each)
-// fill it, so every new dust puff threw out the oldest smoke. Under the switch a full pool drops
+// fill it, so every new dust puff threw out the oldest smoke. So a full pool drops
 // the oldest puff OF THE SAME KIND (colour) as the new one, so dust only ever displaces dust; and
 // tyre smoke lives SMOKE_LIFE_K x longer (a hot slide's cloud hangs ~3-5 s, not ~1.5-2).
 const SMOKE_LIFE_K = 2.2;
 
 /**
- * Make room in a full pool: the oldest puff of the new one's kind (?smokelinger), else the oldest.
+ * Make room in a full pool: the oldest puff of the new one's kind, else the oldest.
  * @param puffs the pool, oldest first
  * @param rgb the new puff's colour (its kind)
  */
 function dropOldest(puffs: Puff[], rgb: string): void {
-  const same = FIX.smokeLinger ? puffs.findIndex((puff) => puff.rgb === rgb) : -1;
+  const same = puffs.findIndex((puff) => puff.rgb === rgb);
   puffs.splice(same < 0 ? 0 : same, 1);
 }
 
@@ -240,7 +239,7 @@ function emitTyreSmoke(ctx: ParticleCtx, car: ParticleCar, marks: RenderMarks, w
       emitPuff(ctx, wheel.x, wheel.y, car.vx * 0.6, car.vy * 0.6, SMOKE, 0.5, pool);
       const puff = pool[pool.length - 1];
       puff.alpha = SMOKE_ALPHA_EARLY + (1 - SMOKE_ALPHA_EARLY) * strength;
-      puff.life *= FIX.smokeLinger ? SMOKE_LIFE_K : 1;
+      puff.life *= SMOKE_LIFE_K;
       puff.life *= 1 + SMOKE_LINGER * strength;
     }
   }
@@ -675,14 +674,13 @@ function renderStreaks(ctx: ParticleCtx, wallDt: number) {
 }
 
 /**
- * Runs an emitter with this car's own spray / smoke remainders (?aidust: several cars throw, and
- * one shared remainder would hand one car's half-puff to the next); without the switch, as before.
+ * Runs an emitter with this car's own spray / smoke remainders (several cars throw, and one
+ * shared remainder would hand one car's half-puff to the next).
  * @param state the particle state
  * @param car the car
  * @param emit the emitter
  */
 function withCarDebts(state: ParticleState, car: object, emit: () => void): void {
-  if (!FIX.aiDust) { emit(); return; }
   const debts = state.carDebts.get(car) || [0, 0];
   [state.sprayDebt, state.smokeDebt] = debts;
   emit();
