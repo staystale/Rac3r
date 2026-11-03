@@ -15,6 +15,7 @@ import type { Menu } from '../menu.ts';
 import type { Level } from '../world/types.ts';
 import type { SetupState, SetupUi } from './menutypes.ts';
 import { MENU_COL } from './palette.ts';
+import { ROSTER } from '../cars.ts';
 
 // WEATHER: follow the SEASON (its chances; it can change in the race) or a fixed sky
 const WEATHER_MODES = [['season', 'SEASON'], ['dry', 'DRY'], ['hot', 'HOT'],
@@ -218,12 +219,12 @@ function addRxRaceRow(menu: Menu, panel: HTMLElement, level: Level, state: Setup
       state.rxRace = false;
       practiceBtn.classList.add('on');
       rxBtn.classList.remove('on');
-    }, 'on');
+    }, state.rxRace ? '' : 'on');
     const rxBtn = addButton(menu, rxRow, `RX RACE · ${level.joker.laps} LAPS`, () => {
       state.rxRace = true;
       rxBtn.classList.add('on');
       practiceBtn.classList.remove('on');
-    });
+    }, state.rxRace ? 'on' : '');
   }
 }
 
@@ -344,7 +345,7 @@ function addLaunchButtons(menu: Menu, panel: HTMLElement, level: Level, state: S
  * @param state the setup state (writes time: null = live, or the hour)
  */
 function addTimeRows(menu: Menu, panel: HTMLElement, state: SetupState) {
-  state.time = null;
+  state.time = state.time ?? null;
   addElement(panel, 'div', 'TIME OF DAY', 'sub');
   const row = addElement(panel, 'div', '', 'row');
   const line = addElement(panel, 'div', '', 'sub');
@@ -358,7 +359,7 @@ function addTimeRows(menu: Menu, panel: HTMLElement, state: SetupState) {
     state.time = null;
     paint();
   });
-  addSetupSlider(menu, panel, 'START HOUR', 0, 23, 1, 12,
+  addSetupSlider(menu, panel, 'START HOUR', 0, 23, 1, state.time ?? 12,
     (value) => String(value).padStart(2, '0') + ':00', (value) => {
       state.time = value;
       paint();
@@ -372,8 +373,9 @@ function addTimeRows(menu: Menu, panel: HTMLElement, state: SetupState) {
  * car picker and LAUNCH.
  * @param menu the menu context
  * @param level the chosen level
+ * @param kept the choices to start from (?testgarage: as they were before a garage visit)
  */
-export function showSetup(menu: Menu, level: Level) {
+export function showSetup(menu: Menu, level: Level, kept: Partial<SetupState> = {}) {
   const panel = addPane(menu, false);
   addSetupHeader(menu, panel, level);
   const state = {
@@ -386,6 +388,7 @@ export function showSetup(menu: Menu, level: Level) {
     aiCars: 'class',   // AI cars: class or same
     rxRace: false,   // the RX race (joker level) rather than practice
     laps: level.joker ? level.joker.laps || 5 : 3,   // laps of a race
+    ...kept,
     ui: {},   // the opponent / difficulty widgets paintSetupOpponents updates
     paint: () => {},   // repaints the setup rows (wrapped by the laps row)
   };
@@ -400,10 +403,15 @@ export function showSetup(menu: Menu, level: Level) {
   state.paint();
   addWeatherRows(menu, panel, state, level);
   if (menu.api.daytime) addTimeRows(menu, panel, state);
-  showCarPicker(menu, panel);
-  // ?testgarage: the garage from here, and back to this setup (owner 11-03)
   if (FIX.testGarage) {
-    addButton(menu, panel, 'GARAGE ›', () => showGarage(menu, () => showSetup(menu, level)));
-  }
+    // ?testgarage (owner 11-03): no car picker here - the GARAGE (your car on it) picks it, and
+    // comes back to this setup with every choice as it was (AI, laps, RX, the hour)
+    const car = ROSTER.find((row) => row.id === menu.profile.active)!;
+    addButton(menu, panel, `GARAGE · ${car.name} ›`, () => {
+      const { road, traffic, litter, opponents, aiN, diff, aiCars, rxRace, laps, time } = state;
+      const choices = { road, traffic, litter, opponents, aiN, diff, aiCars, rxRace, laps, time };
+      showGarage(menu, () => showSetup(menu, level, choices));
+    });
+  } else showCarPicker(menu, panel);
   addLaunchButtons(menu, panel, level, state);
 }

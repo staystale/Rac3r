@@ -266,6 +266,7 @@ font-size:15px';
   saveProfile(menu.profile);
   showGarage(menu);
   }, 'go');
+  if (FIX.testGarage) addButton(menu, buttonRow, 'BUY', () => {}, '', true, 'STORY');
   addButton(menu, panel, '◀ BACK', () => showGarage(menu));
   showLivery();
 }
@@ -293,7 +294,8 @@ function setWear(menu: Menu, carId: string) {
 function showSetWear(menu: Menu, carId: string, fitted: boolean, info: HTMLElement,
   fitButton: HTMLButtonElement) {
   const worn = setWear(menu, carId);
-  fitButton.innerHTML = !fitted ? 'FIT ✓' : worn > 0.02 ? 'NEW SET ✓' : 'FITTED ✓';
+  fitButton.innerHTML = !fitted ? (FIX.testGarage ? 'TRY ✓' : 'FIT ✓') : worn > 0.02 ? 'NEW SET ✓'
+    : (FIX.testGarage ? 'ON THE CAR ✓' : 'FITTED ✓');
   if (!fitted) return;
   // what the wear costs (physics/tyrewear.ts setHealth): grip lost, the puncture chance
   const health = setHealth((menu.profile.tyreWear || {})[carId] || [0, 0, 0, 0]);
@@ -353,6 +355,8 @@ solid ' + brand.col;
     saveProfile(menu.profile);
     showGarage(menu);
   }, 'go');
+  // ?testgarage: BUY (keeps it for story) comes with story mode's money - shown, greyed
+  if (FIX.testGarage) addButton(menu, fitR, 'BUY', () => {}, '', true, 'STORY');
   addButton(menu, panel, '◀ BACK', () => showGarage(menu));
   const showTyre = () => {
     const tyre = tyreOf(sel), brand = TYRE_BRANDS.find((x) => x.id === tyre.brand)!,

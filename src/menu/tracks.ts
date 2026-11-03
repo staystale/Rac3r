@@ -124,11 +124,13 @@ export function showMainMenu(menu: Menu) {
   logo.src = 'assets/logo.jpg';
   logo.alt = 'RAC3R - a driving sandbox';
   const buttons = addElement(panel, 'div', '', 'btns');
+  // ?testgarage: STORY on top, locked for now (owner 11-03)
+  if (FIX.testGarage) addButton(menu, buttons, 'STORY', () => {}, '', true, 'LOCKED');
   addButton(menu, buttons, 'TEST MODE', () => showTrackSelect(menu), 'go');
   // ?testgarage: the garage lives in test (and story) - not here (owner 11-03)
   if (!FIX.testGarage) addButton(menu, buttons, 'GARAGE', () => showGarage(menu));
   addButton(menu, buttons, 'SETTINGS', () => showSettings(menu, () => showMainMenu(menu)));
-  addButton(menu, buttons, 'STORY', () => {}, '', true, 'LOCKED');
+  if (!FIX.testGarage) addButton(menu, buttons, 'STORY', () => {}, '', true, 'LOCKED');
 }
 
 /**
