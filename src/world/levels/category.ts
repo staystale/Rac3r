@@ -1,6 +1,6 @@
 // TRACK CATEGORIES: a level's kind, by id, else generated / set rally stages -> rally, endless ->
 // roads, anything new and unlisted -> circuits (so a new level is never hidden). The menu groups
-// the track list by it (menu/tracks.js) and the lamp plan lights each kind its own way
+// the track list by it (menu/tracks.ts) and the lamp plan lights each kind its own way
 // (world/lampplan.ts).
 
 const CAT_OF: Record<string, string> = { 'test-track': 'circuits', thruston: 'circuits',

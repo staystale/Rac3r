@@ -378,6 +378,11 @@ export interface BarrierSeg {
   torn?: boolean;   // torn open this step (world/armcodent.ts): no longer solid
 }
 
+/** A generated rally stage's recipe (stagegen.js genStage); km once built. */
+export interface StageRecipe {
+  seed: number; theme: string; len: string; style: string; attempt?: number; km?: number;
+}
+
 // One entry of LEVEL.barriers; polylines in metres.
 export interface Barrier {
   kind: BarrierKind;
@@ -424,7 +429,8 @@ export interface Level {
   allPatches?: Patch[];   // load.ts prepareLevel
   solidsDirty?: boolean;   // highway.js
   fixed?: boolean;   // stagegen.js
-  gen?: unknown;   // stagegen.js: a generated stage's recipe (world/levels/category.ts)
+  gen?: StageRecipe;   // stagegen.js: a generated stage's recipe (world/levels/category.ts)
+  roadTypes?: Record<string, string>;   // highway.js: the road types setup offers, key -> name
   litter?: number;   // main.js, highway levels
   roadType?: string;   // highway.js
   _layout?: number;   // highway.js

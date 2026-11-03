@@ -36,7 +36,7 @@ const NEAR_POINTS = 40;      // centreline points searched round the last match 
 const LOST_M = 40;           // m off the matched point: search the whole centreline again
 const OPACITY = 0.85;
 
-// DIFFICULTY MODES (menu/setup.js DIFF: MOBILE, GAME, REALISH, RICH, REAL): the default per mode,
+// DIFFICULTY MODES (menu/setup.ts DIFF: MOBILE, GAME, REALISH, RICH, REAL): the default per mode,
 // and the one mode where it is locked off. REALISH counts as easy (owner, 2026-10-16: it is the
 // default difficulty)
 const DEFAULT_ON = [true, true, true, false, false];

@@ -11,20 +11,22 @@
 // api.carSprite(id) -> canvas of the generated pixel car
 import { CSS } from './menu/style.ts';
 import { loadProfile } from './menu/profile.ts';
-import { showMainMenu } from './menu/tracks.js';
-import { showPause, showResults } from './menu/race.js';
+import { showMainMenu } from './menu/tracks.ts';
+import { showPause, showResults } from './menu/race.ts';
 import type { Profile, Livery } from './menu/profile.ts';
 import type { Spec } from './cars.ts';
-import type { Level } from './world/types.ts';
+import type { PauseActions, ResultsActions, ResultsFlow } from './menu/menutypes.ts';
+import type { Level, StageRecipe } from './world/types.ts';
 
 /** What main.js offers the menu. */
 export interface MenuApi {
   thumbs: () => Record<string, HTMLCanvasElement>;   // the level thumbnails, painted once
   launch: (levelId: string, carId: string, opts?: Record<string, unknown>) => void;   // a session
   daytime: boolean;   // the clock runs (setup shows the time rows)
-  genStage: (options: Record<string, unknown>) => Level;   // a generated stage, installed
+  genStage: (options: Partial<StageRecipe>) => Level;   // a generated stage, installed
   // a car's pixel sprite: by id (with a livery) or from a spec (with its wheels or not)
-  carSprite: (car: string | Spec, livery?: Livery, wheels?: boolean) => { c: HTMLCanvasElement };
+  carSprite: (car: string | Spec, livery?: Livery | null,
+    wheels?: boolean) => { c: HTMLCanvasElement };
 }
 
 /** The menu context every screen shares. */
@@ -79,8 +81,8 @@ export function createMenu(api: MenuApi) {
   return {
     show: () => showMenu(menu),
     hide: () => hideMenu(menu),
-    pause: (act: object) => showPause(menu, act),
-    results: (flow: object, act: object) => showResults(menu, flow, act),
+    pause: (act: PauseActions) => showPause(menu, act),
+    results: (flow: ResultsFlow, act: ResultsActions) => showResults(menu, flow, act),
     profile,
     get open() {
       return root.className !== 'gone';

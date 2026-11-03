@@ -2,13 +2,19 @@ import { LEVELS } from '../world/levels/index.ts';
 import { catOf } from '../world/levels/category.ts';
 import { buildLevel } from '../world/load.ts';
 import { THEMES, LENGTHS } from '../stagegen.js';
+
+// the stage themes by key (stagegen.js is JavaScript)
+const THEME_NAMES = THEMES as Record<string, { name: string }>;
 import { saveProfile } from './profile.ts';
 import { addPane, addButton, addElement, copyThumb } from './widgets.ts';
-import { showSetup } from './setup.js';
-import { showGarage } from './garage.js';
+import { showSetup } from './setup.ts';
+import { showGarage } from './garage.ts';
 import { showSettings } from './settings.ts';
+import type { Menu } from '../menu.ts';
+import type { Level, StageRecipe } from '../world/types.ts';
 
-export const KIND = { lab: 'TEST GROUND', 'test-track': 'CIRCUIT', thruston: 'UK CIRCUIT',
+export const KIND: Record<string, string> = { lab: 'TEST GROUND', 'test-track': 'CIRCUIT',
+  thruston: 'UK CIRCUIT',
   'castle-cum': 'UK CIRCUIT', 'brands-snatch': 'UK CIRCUIT · GP', knobhill: 'RALLYCROSS',
   'brands-snatch-indy': 'UK CIRCUIT · INDY', 'sweaty-lamb': 'RALLY STAGE',
   killder: 'RALLY STAGE · FOREST', 'slidden-hill': 'RALLYCROSS', 'grass-track': 'AUTOGRASS',
@@ -29,12 +35,12 @@ export { catOf };
 
 /**
  * Finds the sample point of a generated stage's track nearest a distance along it.
- * @param {object} level a generated level (level.subtrack.pts)
- * @param {number} dist distance along the track
- * @returns {object} the nearest track point
+ * @param level a generated level (level.subtrack.pts)
+ * @param dist distance along the track
+ * @returns the nearest track point
  */
-function findTrackPoint(level, dist) {
-  const points = level.subtrack.pts;
+function findTrackPoint(level: Level, dist: number) {
+  const points = level.subtrack!.pts;
   let best = points[0];
   for (const point of points) if (Math.abs(point.dist - dist)
     < Math.abs(best.dist - dist)) best = point;
@@ -44,15 +50,16 @@ function findTrackPoint(level, dist) {
 /**
  * Draws a generated stage's ROAD MAP: the theme's ground, the road (not the ghost return), START
  * green, FINISH chequered.
- * @param {HTMLCanvasElement} canvas canvas to draw into
- * @param {object} level the generated level
+ * @param canvas canvas to draw into
+ * @param level the generated level
  */
-function drawRoadMap(canvas, level) {
-  const ctx = canvas.getContext('2d'), sub = level.subtrack, points = sub.pts, ghost = sub.ghost;
-  const ground = { forest: '#2c3b27', alpine: '#3a4434', snow: '#cfd8df',
-    desert: '#b89a68' }[level.gen.theme] || '#2c3b27';
-  const roadCol = { forest: '#8a7a5c', alpine: '#4a4d55', snow: '#f4f7fa',
-    desert: '#d8bf8c' }[level.gen.theme] || '#888';
+function drawRoadMap(canvas: HTMLCanvasElement, level: Level) {
+  const ctx = canvas.getContext('2d')!, sub = level.subtrack!, points = sub.pts,
+    ghost = sub.ghost;
+  const ground = ({ forest: '#2c3b27', alpine: '#3a4434', snow: '#cfd8df',
+    desert: '#b89a68' } as Record<string, string>)[level.gen!.theme] || '#2c3b27';
+  const roadCol = ({ forest: '#8a7a5c', alpine: '#4a4d55', snow: '#f4f7fa',
+    desert: '#d8bf8c' } as Record<string, string>)[level.gen!.theme] || '#888';
   ctx.fillStyle = ground;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
@@ -63,13 +70,14 @@ function drawRoadMap(canvas, level) {
   maxY = Math.max(maxY, point.y);
   }
   const scale = Math.min((canvas.width - 24) / (maxX - minX || 1), (canvas.height - 24)
-    / (maxY - minY || 1)), mapX = (x) => 12 + (x - minX) * scale
-    + ((canvas.width - 24) - (maxX - minX) * scale) / 2, mapY = (y) => 12 + (y - minY) * scale
+    / (maxY - minY || 1)), mapX = (x: number) => 12 + (x - minX) * scale
+    + ((canvas.width - 24) - (maxX - minX) * scale) / 2,
+      mapY = (y: number) => 12 + (y - minY) * scale
     + ((canvas.height - 24) - (maxY - minY) * scale) / 2;
-  const isG = (i) => ghost && points[i].dist >= ghost.d0 - 0.01 && points[i].dist < ghost.d1
+  const isG = (i: number) => ghost && points[i].dist >= ghost.d0 - 0.01 && points[i].dist < ghost.d1
     - 0.01;
   for (const [lineWidth, col] of [[Math.max(4, sub.width * scale + 3), 'rgba(0,0,0,0.45)'],
-    [Math.max(2.5, sub.width * scale), roadCol]]) {
+    [Math.max(2.5, sub.width * scale), roadCol]] as [number, string][]) {
     ctx.strokeStyle = col;
     ctx.lineWidth = lineWidth;
     ctx.lineCap = 'round';
@@ -88,7 +96,7 @@ function drawRoadMap(canvas, level) {
     ctx.lineTo(mapX(points[0].x), mapY(points[0].y));
     ctx.stroke();
   }
-  const finish = findTrackPoint(level, level.stage.finish);
+  const finish = findTrackPoint(level, level.stage!.finish);
   ctx.fillStyle = '#4cc2a0';
   ctx.beginPath();
   ctx.arc(mapX(points[0].x), mapY(points[0].y), 5, 0, 7);
@@ -101,9 +109,9 @@ function drawRoadMap(canvas, level) {
 
 /**
  * MAIN MENU (spec §2): Story locked, Garage, Test Mode (primary).
- * @param {object} menu the menu context
+ * @param menu the menu context
  */
-export function showMainMenu(menu) {
+export function showMainMenu(menu: Menu) {
   const panel = addPane(menu, false);
   addElement(panel, 'h1', 'RAC3R');
   addElement(panel, 'div', 'a driving sandbox', 'sub');   // the game's name
@@ -117,9 +125,9 @@ export function showMainMenu(menu) {
  * TEST MODE step 1: CATEGORY LIST (requirement: a menu layer for circuit type, stick appropriate
  * tracks in the correct category — "a BIG LIST", Grass Track in OVALS), then step 1b: that
  * category's track cards (overhead thumbnails).
- * @param {object} menu the menu context
+ * @param menu the menu context
  */
-export function showTrackSelect(menu) {
+export function showTrackSelect(menu: Menu) {
   const profile = menu.profile;
   const panel = addPane(menu, true);
   addElement(panel, 'h2', 'TEST MODE · CHOOSE A TYPE');
@@ -135,7 +143,7 @@ export function showTrackSelect(menu) {
     }, 'cat' + (category.id === profile.lastCat ? ' on' : ''));
     const strip = addElement(button, 'div', '', 'strip');
     for (const level of lvs.slice(0, 3)) {
-      const thumb = menu.thumbs[level.id];
+      const thumb = menu.thumbs![level.id];
       if (!thumb) continue;
       strip.appendChild(copyThumb(thumb));
     }
@@ -150,11 +158,11 @@ export function showTrackSelect(menu) {
 
 /**
  * Adds one level's card to the track grid.
- * @param {object} menu the menu context
- * @param {HTMLElement} grid the card grid
- * @param {object} level the level the card stands for
+ * @param menu the menu context
+ * @param grid the card grid
+ * @param level the level the card stands for
  */
-function addTrackCard(menu, grid, level) {
+function addTrackCard(menu: Menu, grid: HTMLElement, level: Level) {
   const profile = menu.profile;
   const button = addButton(menu, grid, '', () => {
     profile.lastLevel = level.id;
@@ -172,27 +180,27 @@ function addTrackCard(menu, grid, level) {
     addElement(button, 'span', 'RALLY STAGE · NEW EVERY TIME', 'k');
     return;
   }
-  const thumb = menu.thumbs[level.id];
+  const thumb = menu.thumbs![level.id];
   if (thumb) button.appendChild(copyThumb(thumb));
   addElement(button, 'span', level.name, 'nm');
   addElement(button, 'span', level.endless ? 'ENDLESS MOTORWAY' : level.fixed ? 'RALLY STAGE · '
-    + THEMES[level.gen.theme].name.split(' ')[0] : KIND[level.id] || 'TRACK', 'k');
+    + THEME_NAMES[level.gen!.theme].name.split(' ')[0] : KIND[level.id] || 'TRACK', 'k');
 }
 
 /**
  * TEST MODE step 1b: the track cards of one category.
- * @param {object} menu the menu context
- * @param {string} cat the category id (CATS)
+ * @param menu the menu context
+ * @param cat the category id (CATS)
  */
-export function showTrackList(menu, cat) {
+export function showTrackList(menu: Menu, cat: string) {
   const panel = addPane(menu, true), catEntry = CATS.find((entry) => entry.id === cat)
     || CATS[CATS.length - 1];
   addElement(panel, 'h2', 'TEST MODE · ' + catEntry.name);
   if (!menu.thumbs) menu.thumbs = menu.api.thumbs();
   {
     const cur = LEVELS.find((entry) => entry.gen && !entry.fixed), savedGen = menu.profile.gen;
-    if (cur && savedGen && ['seed', 'theme', 'len', 'style'].some((key) => savedGen[key]
-      !== cur.gen[key])) menu.api.genStage(savedGen);
+    if (cur && savedGen && (['seed', 'theme', 'len', 'style'] as const).some((key) => savedGen[key]
+      !== cur.gen![key])) menu.api.genStage(savedGen);
   }
   const grid = addElement(panel, 'div', '', 'grid');
   for (const level of LEVELS.filter((entry) => cat === 'all' || catOf(entry) === cat)) {
@@ -206,12 +214,12 @@ export function showTrackList(menu, cat) {
  * GENERATOR SETUP (user: procedural point-to-point stages): THEME, LENGTH, CORNERS,
  * SEED (◀ ▶ / NEW STAGE), the road map; every change regenerates (≤ ~0.5 s) and the setup
  * reopens on the new stage. Remembered in profile.gen.
- * @param {object} menu the menu context
- * @param {HTMLElement} panel the setup pane
- * @param {object} level the generated level
+ * @param menu the menu context
+ * @param panel the setup pane
+ * @param level the generated level
  */
-export function addGenRows(menu, panel, level) {
-  const gen = { ...level.gen };
+export function addGenRows(menu: Menu, panel: HTMLElement, level: Level) {
+  const gen = { ...level.gen! };
   const map = document.createElement('canvas');
   map.width = 320;
   map.height = 200;
@@ -219,8 +227,8 @@ export function addGenRows(menu, panel, level) {
   panel.appendChild(map);
   drawRoadMap(map, level);
   addElement(panel, 'div',
-    `${THEMES[gen.theme].name} · ${level.gen.km.toFixed(2)} KM · SEED ${gen.seed}`, 'sub');
-  const regen = (changes) => {
+    `${THEME_NAMES[gen.theme].name} · ${level.gen!.km!.toFixed(2)} KM · SEED ${gen.seed}`, 'sub');
+  const regen = (changes: Partial<StageRecipe>) => {
     Object.assign(gen, changes);
   menu.profile.gen = { theme: gen.theme, len: gen.len, style: gen.style, seed: gen.seed };
   saveProfile(menu.profile);
@@ -229,14 +237,16 @@ export function addGenRows(menu, panel, level) {
   saveProfile(menu.profile);
   showSetup(menu, newLevel);
   };
-  const row = (opts, cur, key) => {
+  const row = (opts: [string, string][], cur: string, key: keyof StageRecipe) => {
     const rowEl = addElement(panel, 'div', '', 'row');
-  for (const [value, label] of opts) addButton(menu, rowEl, label, () => regen({ [key]: value }),
+  for (const [value, label] of opts) addButton(menu, rowEl, label,
+    () => regen({ [key]: value } as Partial<StageRecipe>),
       value === cur ? 'on' : '');
   };
-  row(Object.entries(THEMES).map(([key, theme]) => [key, theme.name.split(' ')[0]]), gen.theme,
+  row(Object.entries(THEME_NAMES).map(([key, theme]) => [key, theme.name.split(' ')[0]]), gen.theme,
     'theme');
-  row(Object.keys(LENGTHS).map((key) => [key, key.toUpperCase()]), gen.len, 'len');
+  row(Object.keys(LENGTHS).map((key): [string, string] => [key, key.toUpperCase()]), gen.len,
+    'len');
   row([['flowing', 'FLOWING'], ['mixed', 'MIXED'], ['tight', 'TIGHT']], gen.style, 'style');
   const seedRow = addElement(panel, 'div', '', 'row');
   addButton(menu, seedRow, '◀', () => regen({ seed: Math.max(1, gen.seed - 1) }));

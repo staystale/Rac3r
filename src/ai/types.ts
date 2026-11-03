@@ -214,10 +214,13 @@ export interface Branches {
   startLane?: Lane;
 }
 
-// The measured numbers of one car model (carstats.js) that carGrip reads.
+// The measured numbers of one car model (carstats.js, tools/carstats.mjs): carGrip reads the
+// grip and braking, the garage all of them.
 export interface CarStat {
   gripG?: number;
   brake100?: number;
+  topKph?: number; zeroTo100?: number | null; massKg?: number; drive?: string;
+  aids?: { abs: boolean; tcs: boolean } | null;
 }
 
 // A mistake in progress: drawn per corner, ends once through the corner.

@@ -1,12 +1,18 @@
 import { THEMES } from '../stagegen.js';
+
+// the stage themes by key (stagegen.js is JavaScript)
+const THEME_NAMES = THEMES as Record<string, { name: string }>;
 import { saveProfile } from './profile.ts';
 import { addPane, addButton, addElement } from './widgets.ts';
-import { KIND, catOf, showTrackList, addGenRows } from './tracks.js';
-import { showCarPicker } from './garage.js';
+import { KIND, catOf, showTrackList, addGenRows } from './tracks.ts';
+import { showCarPicker } from './garage.ts';
 import { hideMenu } from '../menu.ts';
 import { buildLevel } from '../world/load.ts';
 import { SEASON_NAMES, seasonForecast } from '../world/weather.ts';
 import { CLOCK, clockLine } from '../world/clock.ts';
+import type { Menu } from '../menu.ts';
+import type { Level } from '../world/types.ts';
+import type { SetupState, SetupUi } from './menutypes.ts';
 
 // WEATHER: follow the SEASON (its chances; it can change in the race) or a fixed sky
 const WEATHER_MODES = [['season', 'SEASON'], ['dry', 'DRY'], ['hot', 'HOT'],
@@ -20,27 +26,28 @@ const DIFF = [['MOBILE', 'Mobile game'], ['GAME', 'Game'], ['REALISH', 'Realish'
 
 /**
  * Adds one labelled range slider row to the setup panel.
- * @param {object} menu the menu context
- * @param {HTMLElement} panel the setup pane
- * @param {string} label slider name
- * @param {number} min lowest value
- * @param {number} max highest value
- * @param {number} stepV step
- * @param {number} val start value
- * @param {Function} fmt value -> label text
- * @param {Function} set called with the new value on every input
+ * @param menu the menu context
+ * @param panel the setup pane
+ * @param label slider name
+ * @param min lowest value
+ * @param max highest value
+ * @param stepV step
+ * @param val start value
+ * @param fmt value -> label text
+ * @param set called with the new value on every input
  */
-function addSetupSlider(menu, panel, label, min, max, stepV, val, fmt, set) {
+function addSetupSlider(menu: Menu, panel: HTMLElement, label: string, min: number, max: number,
+  stepV: number, val: number, fmt: (value: number) => string, set: (value: number) => void) {
   const row = addElement(panel, 'div', '', 'row');
   row.style.alignItems = 'center';
   const labelEl = addElement(row, 'div', '');
   labelEl.style.cssText = 'width:120px;font-size:12px';
   const input = document.createElement('input');
   input.type = 'range';
-  input.min = min;
-  input.max = max;
-  input.step = stepV;
-  input.value = val;
+  input.min = String(min);
+  input.max = String(max);
+  input.step = String(stepV);
+  input.value = String(val);
   input.style.cssText = 'flex:1;min-height:34px;accent-color:#e8a13a';
   const showLabel = () => {
     labelEl.textContent = label + ' ' + fmt(+input.value);
@@ -56,16 +63,16 @@ function addSetupSlider(menu, panel, label, min, max, stepV, val, fmt, set) {
 
 /**
  * Adds the setup title, the track description line and (generated stages) the generator rows.
- * @param {object} menu the menu context
- * @param {HTMLElement} panel the setup pane
- * @param {object} level the chosen level
+ * @param menu the menu context
+ * @param panel the setup pane
+ * @param level the chosen level
  */
-function addSetupHeader(menu, panel, level) {
+function addSetupHeader(menu: Menu, panel: HTMLElement, level: Level) {
   buildLevel(level);   // a set rally stage is generated on first use: its length is read below
   addElement(panel, 'h2', level.name);
   addElement(panel, 'div', level.endless ? 'ENDLESS MOTORWAY · HOW FAR CAN YOU GET?' : level.fixed
-    ? `RALLY STAGE · ${THEMES[level.gen.theme].name} · ${level.gen.km.toFixed(2)} KM · POINT TO \
-POINT`
+    ? `RALLY STAGE · ${THEME_NAMES[level.gen!.theme].name} · `
+      + `${level.gen!.km!.toFixed(2)} KM · POINT TO POINT`
     : level.gen ? 'GENERATED RALLY STAGE · POINT TO POINT' : KIND[level.id] || 'TRACK', 'sub');
   if (level.gen && !level.fixed) addGenRows(menu, panel, level);
 }
@@ -73,19 +80,19 @@ POINT`
 /**
  * Adds the ROAD TYPE buttons (endless highway, requirement: how do I test the lane presets — I
  * don't see any buttons): lanes / width / walls.
- * @param {object} menu the menu context
- * @param {HTMLElement} panel the setup pane
- * @param {object} level the chosen level
- * @param {object} state the setup state (reads / writes road)
+ * @param menu the menu context
+ * @param panel the setup pane
+ * @param level the chosen level
+ * @param state the setup state (reads / writes road)
  */
-function addRoadTypeRow(menu, panel, level, state) {
+function addRoadTypeRow(menu: Menu, panel: HTMLElement, level: Level, state: SetupState) {
   if (level.roadTypes) {
     const roadRow = addElement(panel, 'div', '', 'row');
     const roadBtns = Object.entries(level.roadTypes).map(([roadKey, name]) => addButton(menu,
       roadRow, name, () => {
         state.road = roadKey;
         roadBtns.forEach((button, i) => button.classList.toggle('on',
-          Object.keys(level.roadTypes)[i] === state.road));
+          Object.keys(level.roadTypes!)[i] === state.road));
       }, roadKey === state.road ? 'on' : ''));
   }
 }
@@ -94,19 +101,19 @@ function addRoadTypeRow(menu, panel, level, state) {
  * Adds the TRAFFIC + LITTER sliders of an endless level (requirement: a slider in test mode for
  * traffic density, and one for the frequency / density of the roadside objects); remembered.
  * TRAFFIC 0-150 % (100 % = 6 cars a lane), LITTER 0-3 x.
- * @param {object} menu the menu context
- * @param {HTMLElement} panel the setup pane
- * @param {object} level the chosen level
- * @param {object} state the setup state (reads / writes traffic, litter)
+ * @param menu the menu context
+ * @param panel the setup pane
+ * @param level the chosen level
+ * @param state the setup state (reads / writes traffic, litter)
  */
-function addTrafficSliders(menu, panel, level, state) {
+function addTrafficSliders(menu: Menu, panel: HTMLElement, level: Level, state: SetupState) {
   if (level.endless) {
-    addSetupSlider(menu, panel, 'TRAFFIC', 0, 1.5, 0.05, state.traffic, (value) => value
-      ? Math.round(value * 100) + '%' : 'OFF', (value) => {
+    addSetupSlider(menu, panel, 'TRAFFIC', 0, 1.5, 0.05, state.traffic, (value: number) => value
+      ? Math.round(value * 100) + '%' : 'OFF', (value: number) => {
       state.traffic = menu.profile.traffic = value;
     });
-    addSetupSlider(menu, panel, 'LITTER', 0, 3, 0.1, state.litter, (value) => value
-      ? value.toFixed(1) + 'x' : 'OFF', (value) => {
+    addSetupSlider(menu, panel, 'LITTER', 0, 3, 0.1, state.litter, (value: number) => value
+      ? value.toFixed(1) + 'x' : 'OFF', (value: number) => {
       state.litter = menu.profile.litter = value;
     });
   }
@@ -115,11 +122,11 @@ function addTrafficSliders(menu, panel, level, state) {
 /**
  * Adds the SOLO / VS AI buttons and the opponent-count row. VS AI (AI stage 1
  * preview): 1-5 opponents in the same car, different colours.
- * @param {object} menu the menu context
- * @param {HTMLElement} panel the setup pane
- * @param {object} state the setup state (reads / writes opponents, aiN; fills ui)
+ * @param menu the menu context
+ * @param panel the setup pane
+ * @param state the setup state (reads / writes opponents, aiN; fills ui)
  */
-function addOpponentCountRows(menu, panel, state) {
+function addOpponentCountRows(menu: Menu, panel: HTMLElement, state: SetupState) {
   const modeRow = addElement(panel, 'div', '', 'row');
   state.ui.bSolo = addButton(menu, modeRow, 'SOLO', () => {
     state.opponents = 0;
@@ -130,7 +137,7 @@ function addOpponentCountRows(menu, panel, state) {
     state.paint();
   });
   state.ui.nRow = addElement(panel, 'div', '', 'row');
-  state.ui.nBtns = [1, 2, 3, 4, 5].map((count) => addButton(menu, state.ui.nRow, String(count),
+  state.ui.nBtns = [1, 2, 3, 4, 5].map((count) => addButton(menu, state.ui.nRow!, String(count),
     () => {
       state.aiN = count;
       state.opponents = count;
@@ -141,17 +148,17 @@ function addOpponentCountRows(menu, panel, state) {
 /**
  * Adds the DIFFICULTY row and its name line, and the AI CARS row: CLASS (each AI a car of your
  * class) or YOUR CAR (all the same as you); remembered.
- * @param {object} menu the menu context
- * @param {HTMLElement} panel the setup pane
- * @param {object} state the setup state (reads / writes diff, aiCars; fills ui)
+ * @param menu the menu context
+ * @param panel the setup pane
+ * @param state the setup state (reads / writes diff, aiCars; fills ui)
  */
-function addDifficultyRows(menu, panel, state) {
+function addDifficultyRows(menu: Menu, panel: HTMLElement, state: SetupState) {
   try {
     const stored = localStorage.getItem('carsim.aidiff');
     if (stored != null) state.diff = Math.max(0, Math.min(4, +stored));
   } catch { /* default */ }
   state.ui.dRow = addElement(panel, 'div', '', 'row');
-  state.ui.dBtns = DIFF.map(([name], i) => addButton(menu, state.ui.dRow, name, () => {
+  state.ui.dBtns = DIFF.map(([name], i) => addButton(menu, state.ui.dRow!, name, () => {
     state.diff = i;
     try {
       localStorage.setItem('carsim.aidiff', String(i));
@@ -177,10 +184,10 @@ function addDifficultyRows(menu, panel, state) {
 
 /**
  * Shows / hides and highlights the opponent, difficulty and AI-car rows from the setup state.
- * @param {object} state the setup state
+ * @param state the setup state
  */
-function paintSetupOpponents(state) {
-  const wid = state.ui;
+function paintSetupOpponents(state: SetupState) {
+  const wid = state.ui as Required<SetupUi>;
   wid.bSolo.classList.toggle('on', state.opponents === 0);
   wid.bAI.classList.toggle('on', state.opponents > 0);
   wid.nRow.style.display = state.opponents ? '' : 'none';
@@ -197,12 +204,12 @@ function paintSetupOpponents(state) {
 /**
  * Adds the PRACTICE / RX RACE choice of a JOKER level: the RX race (5 laps from the grid, joker
  * once, missed = +5 s) next to free practice.
- * @param {object} menu the menu context
- * @param {HTMLElement} panel the setup pane
- * @param {object} level the chosen level
- * @param {object} state the setup state (writes rxRace)
+ * @param menu the menu context
+ * @param panel the setup pane
+ * @param level the chosen level
+ * @param state the setup state (writes rxRace)
  */
-function addRxRaceRow(menu, panel, level, state) {
+function addRxRaceRow(menu: Menu, panel: HTMLElement, level: Level, state: SetupState) {
   if (level.joker) {
     const rxRow = addElement(panel, 'div', '', 'row');
     const practiceBtn = addButton(menu, rxRow, 'PRACTICE', () => {
@@ -221,12 +228,12 @@ function addRxRaceRow(menu, panel, level, state) {
 /**
  * Adds the LAPS row (requirement: choose in setup): a race (VS AI or the RX race) is this many
  * laps; default 3, the RX race its joker laps. Wraps state.paint so the row follows the mode.
- * @param {object} menu the menu context
- * @param {HTMLElement} panel the setup pane
- * @param {object} level the chosen level
- * @param {object} state the setup state (reads / writes laps, paint)
+ * @param menu the menu context
+ * @param panel the setup pane
+ * @param level the chosen level
+ * @param state the setup state (reads / writes laps, paint)
  */
-function addLapsRow(menu, panel, level, state) {
+function addLapsRow(menu: Menu, panel: HTMLElement, level: Level, state: SetupState) {
   const lRow = addElement(panel, 'div', '', 'row'), lLbl = addElement(lRow, 'div', '');
   lLbl.style.cssText = 'flex:1;display:flex;align-items:center;justify-content:center;\
 font-size:14px';
@@ -263,15 +270,16 @@ OFF THE TOP AND IT IS OVER', 'sub') : null;
  * Adds the WEATHER rows: SEASON / DRY / HOT / VERY HOT / RAIN / HEAVY RAIN / SNOW,
  * the season slider and its forecast. Remembered in the profile; the first time, the season is
  * today's.
- * @param {object} menu the menu context
- * @param {HTMLElement} panel the setup pane
- * @param {object} state the setup state (writes weather)
- * @param {object} level the level (a snowy one's theme biases the forecast)
+ * @param menu the menu context
+ * @param panel the setup pane
+ * @param state the setup state (writes weather)
+ * @param level the level (a snowy one's theme biases the forecast)
  */
-function addWeatherRows(menu, panel, state, level) {
-  const saved = menu.profile.weather || {};
-  state.weather = { mode: saved.mode || 'season',
+function addWeatherRows(menu: Menu, panel: HTMLElement, state: SetupState, level: Level) {
+  const saved = (menu.profile.weather || {}) as { mode?: string; season?: number };
+  const weather = { mode: saved.mode || 'season',
     season: saved.season ?? SEASON_OF_MONTH[new Date().getMonth()] };
+  state.weather = weather;
   const remember = () => {
     menu.profile.weather = { ...state.weather };
     saveProfile(menu.profile);
@@ -281,18 +289,18 @@ function addWeatherRows(menu, panel, state, level) {
   const forecast = addElement(panel, 'div', '', 'sub');
   const paint = () => {
     buttons.forEach((button, i) => button.classList.toggle('on',
-      WEATHER_MODES[i][0] === state.weather.mode));
-    forecast.textContent = seasonForecast(state.weather.season, !!level.snowy)
-      + (state.weather.mode === 'season' ? ' · CAN CHANGE IN THE RACE' : '');
+      WEATHER_MODES[i][0] === weather.mode));
+    forecast.textContent = seasonForecast(weather.season, !!level.snowy)
+      + (weather.mode === 'season' ? ' · CAN CHANGE IN THE RACE' : '');
   };
   const buttons = WEATHER_MODES.map(([mode, label]) => addButton(menu, row, label, () => {
-    state.weather.mode = mode;
+    weather.mode = mode;
     remember();
     paint();
   }));
-  addSetupSlider(menu, panel, 'SEASON', 0, 3, 1, state.weather.season,
+  addSetupSlider(menu, panel, 'SEASON', 0, 3, 1, weather.season,
     (value) => SEASON_NAMES[value], (value) => {
-      state.weather.season = value;
+      weather.season = value;
       remember();
       paint();
     });
@@ -303,12 +311,12 @@ function addWeatherRows(menu, panel, state, level) {
 
 /**
  * Adds the LAUNCH button (starts the session with the chosen options) and BACK.
- * @param {object} menu the menu context
- * @param {HTMLElement} panel the setup pane
- * @param {object} level the chosen level
- * @param {object} state the setup state
+ * @param menu the menu context
+ * @param panel the setup pane
+ * @param level the chosen level
+ * @param state the setup state
  */
-function addLaunchButtons(menu, panel, level, state) {
+function addLaunchButtons(menu: Menu, panel: HTMLElement, level: Level, state: SetupState) {
   const profile = menu.profile;
   addButton(menu, panel, 'LAUNCH ▶', () => {
     hideMenu(menu);
@@ -329,11 +337,11 @@ function addLaunchButtons(menu, panel, level, state) {
  * The TIME rows (TEST MODE only; owner: the story holds the global clock): LIVE
  * starts at the game clock's time, or a slider picks the hour the event starts at (the same
  * day); time runs on through the event either way. The line under them is the game clock now.
- * @param {object} menu the menu context
- * @param {HTMLElement} panel the setup pane
- * @param {object} state the setup state (writes time: null = live, or the hour)
+ * @param menu the menu context
+ * @param panel the setup pane
+ * @param state the setup state (writes time: null = live, or the hour)
  */
-function addTimeRows(menu, panel, state) {
+function addTimeRows(menu: Menu, panel: HTMLElement, state: SetupState) {
   state.time = null;
   addElement(panel, 'div', 'TIME OF DAY', 'sub');
   const row = addElement(panel, 'div', '', 'row');
@@ -360,10 +368,10 @@ function addTimeRows(menu, panel, state) {
 /**
  * TEST MODE step 2 (spec §4): the match setup of a level - solo or VS AI, laps, difficulty, the
  * car picker and LAUNCH.
- * @param {object} menu the menu context
- * @param {object} level the chosen level
+ * @param menu the menu context
+ * @param level the chosen level
  */
-export function showSetup(menu, level) {
+export function showSetup(menu: Menu, level: Level) {
   const panel = addPane(menu, false);
   addSetupHeader(menu, panel, level);
   const state = {
