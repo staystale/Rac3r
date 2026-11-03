@@ -38,4 +38,7 @@ export const FIX = {
   // ?jokerhint=1: the lap panel's joker "approaching" hint works out where the turn-off is
   // (hud/laps.ts)
   jokerHint: atLoad('jokerhint'),
+  // ?puffpool=1: a full puff pool lets go of the puffs off screen, then the AI's farthest from
+  // you, before yours; twice the room (render/particles.ts)
+  puffPool: atLoad('puffpool'),
 };

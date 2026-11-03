@@ -263,8 +263,8 @@ function drawEffects(ctx: RenderCtx, game: RenderGame, wallDt: number) {
     const car = rival.car;
     if (Math.abs(car.x - game.car.x) > AI_DUST_M
       || Math.abs(car.y - game.car.y) > AI_DUST_M) continue;
-    ctx.addSpray(car, game.marks, wallDt);
-    ctx.addSmoke(car, game.marks, wallDt);
+    ctx.addSpray(car, game.marks, wallDt, true);
+    ctx.addSmoke(car, game.marks, wallDt, true);
   }
   const effectCars = [
     game.car,

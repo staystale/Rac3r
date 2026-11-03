@@ -64,4 +64,12 @@ export const TEST_LIST = [
     try: 'Before taking the joker, watch the lap panel in the 140 m before the split.',
     wrong: 'No hint, a hint far from the split, or one still showing after the joker.',
   },
+  {
+    id: 'puffpool',
+    added: '2026-11-03',
+    name: 'Smoke and dust no longer vanish with AI cars near (their dust goes first; 2x room)',
+    where: 'Plain link + &puffpool=1: a gravel or sand race or stage with 5+ AI, in the pack',
+    try: 'Slide hot tyres, then ease off: your smoke and dust should fade out, not blink out.',
+    wrong: 'Trails still vanishing near the AI, or the frame rate dropping in a dusty pack.',
+  },
 ];
