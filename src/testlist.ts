@@ -6,7 +6,12 @@
 // each line short: it is read on a phone, mid-session.
 //   id     stable key            added   date it went in (yyyy-mm-dd)
 //   where  how to get to it      try     what to do      wrong   what would count as a bug
-export const TEST_LIST = [
+/** One feature under test, as the pause menu lists it. */
+export interface TestEntry {
+  id: string; added: string; name: string; where: string; try: string; wrong: string;
+}
+
+export const TEST_LIST: TestEntry[] = [
   // (approved late, deleted: fields, grassedge, catchthem, slipsdual, fps - TODO.md 1c; dirtroad,
   // animals, labext, labsplit, zoomhold, gpupaint, minimap, zoomspring, grassgrip, hwmap,
   // cracktufts, sharpcars, sharpmarks, jokerfix, groundlookup, exacttiles, hudmenu, tyreoff,
@@ -39,13 +44,5 @@ export const TEST_LIST = [
   // 2026-11-02; smokeover, heatease, flatgrip passed 2026-11-02; steerfeel (the SETTINGS steering:
   // curve + reach at speed) passed 2026-11-02, kept as player settings; towplus (the wake)
   // passed 2026-11-02; aicool, smokeearly, airfx, smokelinger, aidust, realcars, jokerhint,
-  // puffpool, tyrehealth passed 2026-11-03; specsheet removed)
-  {
-    id: 'pitsolid',
-    added: '2026-11-03',
-    name: 'Pit garages solid all round: no more driving into them from the track side',
-    where: 'Plain link + &pitsolid=1: Brands Snatch and Thruston, drive at the back of the garages',
-    try: 'Hit the back and the ends of the garage row: you should stop at the wall you see.',
-    wrong: 'Driving into a garage, or an invisible wall where nothing is drawn.',
-  },
+  // puffpool, tyrehealth, pitsolid passed 2026-11-03; specsheet removed)
 ];

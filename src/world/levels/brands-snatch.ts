@@ -191,22 +191,7 @@ function buildBrandsPitBarriers(
   sub: Subtrack, traps: Trap[], dOf: BrandsDOf, pd0: number, pd1: number, barriers: Barrier[],
 ): void {
   barriers.push({ kind: 'pitwall', pts: alongTrack(sub, pd0 + 30, pd1 - 30, 9.5, 2) });
-  // gravel traps only
-  const kitT = trackKit(sub, 3, traps);
-  // the garages are solid (split where a gravel trap reaches them — Indy's McLaren trap)
-  for (const run of (() => {
-    const out: Point[][] = [];
-    let cur: Point[] = [];
-    for (const point of alongTrack(sub, dOf(480, 155), dOf(780, 158), 22.1, 2)) {
-      if (kitT.onLane(point[0], point[1], 0.5)) {
-        if (cur.length > 1) out.push(cur);
-        cur = [];
-      } else cur.push(point);
-    }
-    if (cur.length > 1) out.push(cur);
-    return out;
-  })())
-    barriers.push({ kind: 'building', pts: run });
+  // (the garages: solid all round from their drawn outline, world/load.ts garagePass)
   barriers.push({ kind: 'line', pts: alongTrack(sub, pd0 + 34, pd1 - 34, 13.6, 2) });
 }
 /**

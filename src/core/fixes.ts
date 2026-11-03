@@ -4,8 +4,8 @@
 // hwsnow - the driving root fix (wheelspin), evenlap, flatsize and the realism round - the K13
 // dials, pedalramp, lockfade, spinmarks, smokefade, dustlinger, musclegears - and smokeover,
 // heatease, flatgrip, towplus passed 11-02;
-// aicool, smokeearly, airfx, smokelinger, aidust, realcars, jokerhint, puffpool passed
-// 11-03.)
+// aicool, smokeearly, airfx, smokelinger, aidust, realcars, jokerhint, puffpool, pitsolid
+// passed 11-03.)
 import { envValue } from './debug.ts';
 
 /**
@@ -36,7 +36,4 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
-  // ?pitsolid=1: a pit garage row is solid all round, as drawn - it was only along its pit-lane
-  // face, so from the track you drove into it (world/load.ts garagePass)
-  pitSolid: atLoad('pitsolid'),
 };

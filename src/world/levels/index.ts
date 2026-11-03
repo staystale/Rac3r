@@ -15,7 +15,7 @@ import {
 import { SO_SUBTRACK, SO_ZONES, SO_PROPS, SO_PAINT, SO_BOARDS } from "./stock-car.ts";
 import { NC_SUBTRACK, NC_ZONES, NC_PROPS, NC_PAINT, NC_BOARDS } from "./naffcar.ts";
 import {
-  TH_SUBTRACK, TH_ZONES, TH_BUMPS, TH_PAINT, TH_PROPS, TH_CONES, TH_STAND, TH_PIT, TH_GAR,
+  TH_SUBTRACK, TH_ZONES, TH_BUMPS, TH_PAINT, TH_PROPS, TH_CONES, TH_STAND, TH_PIT,
   TH_LANES,
 } from "./thruston.ts";
 import { CC_SUBTRACK, CC_ZONES, CC_BUMPS, CC_PAINT, CC_PROPS, CC_LANES } from "./castle-cum.ts";
@@ -244,10 +244,7 @@ export const LEVELS: Level[] = [
       { kind: 'pitwall', pts: alongTrack(TH_SUBTRACK, 1201, 25, 10, 2) },
       // the yellow line
       { kind: 'line', pts: alongTrack(TH_SUBTRACK, 1206, 20, TH_PIT.off - 1.5, 2) },
-      {
-        kind: 'building',
-        pts: alongTrack(TH_SUBTRACK, TH_GAR.d0, TH_GAR.d1, TH_GAR.off - TH_GAR.depth / 2 + 0.3, 2),
-      },
+      // (the garages: solid all round from their drawn outline, world/load.ts garagePass)
       // ARMCO on the OUTSIDE of the right-handers (an inside offset of a tight corner
       // self-intersects)
       ...TH_ARMCO.map(([begin, end]): Barrier =>
