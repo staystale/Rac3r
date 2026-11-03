@@ -3,7 +3,8 @@
 // (The 11-01 round - wheelgone, heavywet, menureset, menucar, ainumbers, markage, treenight,
 // hwsnow - the driving root fix (wheelspin), evenlap, flatsize and the realism round - the K13
 // dials, pedalramp, lockfade, spinmarks, smokefade, dustlinger, musclegears - and smokeover,
-// heatease, flatgrip, towplus passed 11-02.)
+// heatease, flatgrip, towplus passed 11-02;
+// aicool, smokeearly, airfx passed 11-03.)
 import { envValue } from './debug.ts';
 
 /**
@@ -34,12 +35,7 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
-  // ?aicool=1: skilled AI drivers sometimes ease off / find water or grass to cool hot tyres
-  // (ai/driverCool.ts)
-  aiCool: atLoad('aicool'),
-  // ?smokeearly=1: tyre smoke from ~60 C, faint and sparse when cool, thick when hot
-  smokeEarly: atLoad('smokeearly'),
-  // ?airfx=1: puffs spread with age, drift on a gentle wind, are stirred by passing cars
-  // (render/airflow.ts)
-  airFx: atLoad('airfx'),
+  // ?smokelinger=1: tyre smoke hangs ~2x longer and dust can no longer push it out of the pool
+  // (render/particles.ts)
+  smokeLinger: atLoad('smokelinger'),
 };

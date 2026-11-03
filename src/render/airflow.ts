@@ -1,10 +1,10 @@
-// render/airflow.ts - THE AIR the puffs hang in (?airfx=1; owner 11-02: smoke, dirt, sand and dust
-// "can it have slightly more varied deviation from its normal path the further away from the car
-// it gets - like real life so it can spread out ... maybe we can make wind / wind direction
-// slightly affect this stuff as long as small ... effects of slip stream?" and "make sure exhaust
-// smoke behaves correctly too / engine steam / anything else I've forgotten"). Every puff of the
-// shared pools takes it: tyre smoke, wheel dust / spray / clods, exhaust, pops, steam, engine
-// smoke, cone / bale dust, sheep fluff. Render only - the sim never reads it.
+// render/airflow.ts - THE AIR the puffs hang in (airfx, passed 11-03; owner 11-02: smoke, dirt,
+// sand and dust "can it have slightly more varied deviation from its normal path the further away
+// from the car it gets - like real life so it can spread out ... maybe we can make wind / wind
+// direction slightly affect this stuff as long as small ... effects of slip stream?" and "make sure
+// exhaust smoke behaves correctly too / engine steam / anything else I've forgotten"). Every puff
+// of the shared pools takes it: tyre smoke, wheel dust / spray / clods, exhaust, pops, steam,
+// engine smoke, cone / bale dust, sheep fluff. Render only - the sim never reads it.
 //   SPREAD  a random-walk kick on each puff that grows with its age (SPREAD m/s per root second
 //           at the end of its life): it leaves the car on its path, then fans out and breaks up.
 //   WIND    each session a gentle wind (WIND_BY_KIND for the weather, x0.5 .. x1.5, a random

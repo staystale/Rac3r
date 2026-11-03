@@ -1,8 +1,8 @@
-// ai/driverCool.ts - TYRE COOLING BY SKILL (?aicool=1; owner 11-02: "ai should generally just drive
-// and if their tyres wear so be it - although maybe we can build it into driver skill so skilled
-// drivers try a little bit to cool tyres if too hot by slowing or driving in water / grass / mud
-// anything that would cool, but this should be on a gradient so they don't do it 100 % of the time,
-// just they have a chance to, and that chance is higher with a more skilled driver"). Round 2
+// ai/driverCool.ts - TYRE COOLING BY SKILL (aicool, passed 11-03; owner 11-02: "ai should generally
+// just drive and if their tyres wear so be it - although maybe we can build it into driver skill so
+// skilled drivers try a little bit to cool tyres if too hot by slowing or driving in water / grass
+// / mud anything that would cool, but this should be on a gradient so they don't do it 100 % of the
+// time, just they have a chance to, and that chance is higher with a more skilled driver"). Round 2
 // (owner: "ai should only cool tyres if they are really hot! otherwise they race like normal"): 8
 // -> 20 C over. While its hottest tyre is COOL_OVER_C above the top of its window, a driver weighs
 // it up every COOL_CHECK_S: with a chance of COOL_CHANCE_MIN (skill 0) .. COOL_CHANCE_MAX (skill 1)
@@ -12,7 +12,6 @@
 // car within 25 m: battleStep's state.pushing): MEASURED without that rule, cars easing off with a
 // rival right behind were run into (Thruston, 6 drift cars: nose-to-tail touches 37 -> 56, time off
 // the road 14 -> 48 car-s); it ends a cool early too.
-import { FIX } from '../core/fixes.ts';
 import { groundAt } from '../world/wear.ts';
 import type { AiCar } from './types.ts';
 import type { Drv, AiPath } from './driverCtx.ts';
@@ -63,7 +62,6 @@ function coolLane(path: AiPath, aheadIdx: number, latLim: number): number {
  */
 export function coolStep(drv: Drv, car: AiCar, path: AiPath, aheadIdx: number, latLim: number) {
   const state = drv.state;
-  if (!FIX.aiCool) return { vMul: 1, lat: 0 };
   if (state.pushing) { state.coolUntil = 0; return { vMul: 1, lat: 0 }; }
   if (state.t < (state.coolUntil || 0)) return { vMul: COOL_PACE, lat: state.coolLat || 0 };
   if (overC(car) < COOL_OVER_C || state.t < (state.coolNext || 0)) return { vMul: 1, lat: 0 };

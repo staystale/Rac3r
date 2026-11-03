@@ -26,7 +26,11 @@ handover, written on request.
   axle = mean of its tyres, one-sided drag + pull); towplus (physics/wake.ts: dirty air, the push,
   wake sized by speed and car, exponential fade, air streaks on every racer in a tow). PLAYER
   SETTINGS 11-02 (owner: pass): SETTINGS > STEERING CONTROLS, STEER CURVE + STEER AT SPEED
-  (core/steerfeel.ts; the first SETTINGS screen, TODO G adds sound / difficulty). NEXT: REAL CARS
+  (core/steerfeel.ts; the first SETTINGS screen, TODO G adds sound / difficulty). DEFAULT 11-03
+  (owner: all pass): aicool (skilled AI cool REALLY hot tyres, never in a battle), smokeearly
+  (tyre smoke from 60 C, faint when cool), airfx (render/airflow.ts: spread, wind, cars stir);
+  GARAGE SPEC SHEET + tyre health under test. UNDER TEST: ?smokelinger. THEN (owner 11-03): the
+  TYPESCRIPT CONVERSION (plan below, item 2), overnight. After it: REAL CARS
   (owner: "anything real is fine"): each car based on one real car - power curve, weight, gears,
   tyre size, drag - checked against its real 0-100 / top speed, a table first, behind one switch
   (the Mini's 10-inch wheels with it). Then K12.

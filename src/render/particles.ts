@@ -29,7 +29,7 @@ interface ParticleState {
   // OVER THE CARS: steam and engine smoke rise off the bonnet (render/enginesmoke.ts), drawn
   // after the cars (render/screen.ts drawSharpCarLayers)
   overPuffs: Puff[];
-  // the cars stirring the air this frame (?airfx, render/airflow.ts)
+  // the cars stirring the air this frame (render/airflow.ts)
   airCars: AirCar[];
   // AIR STREAKS along the racers in a tow, and each car's fractional remainder
   streaks: Streak[];
@@ -74,25 +74,21 @@ const BALE_DUST = { rgb: '214,190,128', size: 0.55, lift: 1.6, life: 1.4, grow: 
 // a popped SHEEP (S-C): a white FLUFF cloud, no gore
 const FLUFF_PUFF = { rgb: '248,247,240', size: 0.5, lift: 3.2, life: 1.5, grow: 1.0 };
 
-// TYRE SMOKE. Each tyre over SMOKE_T that is also slipping puffs white-grey smoke at a rate set by
-// how hot and how hard - the silent twin of a squeal (CLAUDE.md §4).
-const SMOKE_T = 115;
+// TYRE SMOKE. Each hot tyre that is also slipping puffs white-grey smoke at a rate set by how hot
+// and how hard - the silent twin of a squeal (CLAUDE.md §4).
 const SMOKE = { rgb: '225,225,230', size: 0.45, lift: 0.9, life: 1.3, grow: 1.9 };
 // SMOKE STRENGTH (passed 11-02; owner: smoke "should perhaps have its amount and opacity
-// controlled by speed / tyre heat"; with real wheel speed it came out too constantly): each
-// tyre's smoke strength is its heat share (SMOKE_T -> SMOKE_T + SMOKE_HEAT_SPAN, from
-// SMOKE_HEAT_MIN) x its slide share
-// (SMOKE_SLIP_MIN -> SMOKE_SLIP_FULL m/s); the puffs a second (up to SMOKE_RATE) and their
-// opacity (from SMOKE_ALPHA_MIN) both follow it. A light slide on a hot tyre: a faint wisp; a
-// burnout or a long drift: a thick cloud.
-const SMOKE_HEAT_SPAN = 50, SMOKE_HEAT_MIN = 0.3, SMOKE_SLIP_MIN = 2, SMOKE_SLIP_FULL = 14;
-// (owner: "full burn out with hot tyres should make slightly more smoke too / longer": the rate
-// 30 -> 38 and a strong puff lives up to SMOKE_LINGER longer)
-const SMOKE_RATE = 38, SMOKE_ALPHA_MIN = 0.25, SMOKE_LINGER = 0.6;
-// ?smokeearly=1 (owner: "can tyre smoke begin more progressively so less smoke and less opaque
-// when tyres cooler but starting earlier, rather than only at like 110 C plus"): smoke from
-// SMOKE_T_EARLY, its heat share rising as a curve (SMOKE_EARLY_POW) to full at SMOKE_T_FULL, the
-// faintest puff SMOKE_ALPHA_EARLY: a hard slide at 80 C ~7 % of full, 110 C ~36 %, 140 C ~67 %.
+// controlled by speed / tyre heat"): each tyre's strength is its heat share x its slide share
+// (SMOKE_SLIP_MIN -> SMOKE_SLIP_FULL m/s); the puffs a second (up to SMOKE_RATE), their opacity
+// and how long a strong one lives (up to SMOKE_LINGER longer: owner "full burn out with hot tyres
+// should make slightly more smoke too / longer") all follow it.
+const SMOKE_SLIP_MIN = 2, SMOKE_SLIP_FULL = 14;
+const SMOKE_RATE = 38, SMOKE_LINGER = 0.6;
+// SMOKE EARLY (passed 11-03; owner: "can tyre smoke begin more progressively so less smoke and
+// less opaque when tyres cooler but starting earlier, rather than only at like 110 C plus"; it
+// had started at 115 C at 30 % strength): smoke from SMOKE_T_EARLY, its heat share rising as a
+// curve (SMOKE_EARLY_POW) to full at SMOKE_T_FULL, the faintest puff SMOKE_ALPHA_EARLY: a hard
+// slide at 80 C ~7 % of full, 110 C ~36 %, 140 C ~67 %.
 const SMOKE_T_EARLY = 60, SMOKE_T_FULL = 165, SMOKE_EARLY_POW = 1.6, SMOKE_ALPHA_EARLY = 0.08;
 // SMOKE OVER (passed 11-02; owner: "can some of the tyre smoke go over the players car"): this
 // share of the smoke puffs drift OVER the cars (the bonnet-steam pool), the rest under them as
@@ -110,17 +106,35 @@ function overShare(state: ParticleState, share: number | undefined): Puff[] {
 }
 
 /**
- * How hard a tyre smokes (?smokefade), 0..1.
+ * How hard a tyre smokes, 0..1.
  * @param heat the tyre's heat, C
  * @param slip its slide speed, m/s
  * @returns the strength
  */
 function smokeStrength(heat: number, slip: number): number {
-  const heatK = FIX.smokeEarly ? Math.min(1, Math.max(0, (heat - SMOKE_T_EARLY)
-      / (SMOKE_T_FULL - SMOKE_T_EARLY))) ** SMOKE_EARLY_POW
-    : SMOKE_HEAT_MIN + (1 - SMOKE_HEAT_MIN) * Math.min(1, (heat - SMOKE_T) / SMOKE_HEAT_SPAN);
+  const heatK = Math.min(1, Math.max(0, (heat - SMOKE_T_EARLY)
+      / (SMOKE_T_FULL - SMOKE_T_EARLY))) ** SMOKE_EARLY_POW;
   return heatK * Math.max(0, Math.min(1, (slip - SMOKE_SLIP_MIN)
     / (SMOKE_SLIP_FULL - SMOKE_SLIP_MIN)));
+}
+
+// ?smokelinger=1 (owner 11-03: "tyre smoke vanishes sometimes ... when easing off or changing
+// surface ... tyre smoke should linger normally even if you change surface or stop generating more
+// smoke"). MEASURED cause: the pool is shared and capped (MAX_PUFFS) and a full pool dropped its
+// OLDEST puff - on gravel / dirt / sand the long dust trails (~100 puffs a second, 1.4-2.1 s each)
+// fill it, so every new dust puff threw out the oldest smoke. Under the switch a full pool drops
+// the oldest puff OF THE SAME KIND (colour) as the new one, so dust only ever displaces dust; and
+// tyre smoke lives SMOKE_LIFE_K x longer (a hot slide's cloud hangs ~3-5 s, not ~1.5-2).
+const SMOKE_LIFE_K = 2.2;
+
+/**
+ * Make room in a full pool: the oldest puff of the new one's kind (?smokelinger), else the oldest.
+ * @param puffs the pool, oldest first
+ * @param rgb the new puff's colour (its kind)
+ */
+function dropOldest(puffs: Puff[], rgb: string): void {
+  const same = FIX.smokeLinger ? puffs.findIndex((puff) => puff.rgb === rgb) : -1;
+  puffs.splice(same < 0 ? 0 : same, 1);
 }
 
 /**
@@ -137,7 +151,7 @@ function emitPuff(
   ctx: ParticleCtx, x: number, y: number, vx: number, vy: number,
   spray: Omit<Spray, "rate">, scale: number, puffs: Puff[] = ctx.state.puffs,
 ) {
-  if (puffs.length >= MAX_PUFFS) puffs.shift();          // cap; drop the oldest (§4)
+  if (puffs.length >= MAX_PUFFS) dropOldest(puffs, spray.rgb);   // cap (§4)
   const angle = fxRandom() * 6.2832;
   const fling = spray.lift * scale * (0.35 + fxRandom() * 0.65);
   puffs.push({
@@ -216,15 +230,15 @@ function emitTyreSmoke(ctx: ParticleCtx, car: ParticleCar, marks: RenderMarks, w
   if (!car.tyreT) return;
   const wheels = marks.wheelsOf(car);
   for (const wheel of wheels) {
-    if (wheel.heat < (FIX.smokeEarly ? SMOKE_T_EARLY : SMOKE_T) || wheel.slip < 1.5) continue;
+    if (wheel.heat < SMOKE_T_EARLY || wheel.slip < 1.5) continue;
     const strength = smokeStrength(wheel.heat, wheel.slip);
     state.smokeDebt += strength * SMOKE_RATE * wallDt;
     while (state.smokeDebt >= 1) { state.smokeDebt--;
       const pool = overShare(state, SMOKE_OVER);
       emitPuff(ctx, wheel.x, wheel.y, car.vx * 0.6, car.vy * 0.6, SMOKE, 0.5, pool);
       const puff = pool[pool.length - 1];
-      const alphaMin = FIX.smokeEarly ? SMOKE_ALPHA_EARLY : SMOKE_ALPHA_MIN;
-      puff.alpha = alphaMin + (1 - alphaMin) * strength;
+      puff.alpha = SMOKE_ALPHA_EARLY + (1 - SMOKE_ALPHA_EARLY) * strength;
+      puff.life *= FIX.smokeLinger ? SMOKE_LIFE_K : 1;
       puff.life *= 1 + SMOKE_LINGER * strength;
     }
   }
@@ -565,17 +579,15 @@ function drawSparkPixels(
 function renderPuffs(ctx: ParticleCtx, wallDt: number, puffs: Puff[] = ctx.state.puffs) {
   const { view, PPMz, toScreenX, toScreenY } = ctx;
   const ppm = PPMz();
-  const air = FIX.airFx ? windNow(puffs === ctx.state.puffs ? wallDt : 0) : null;
+  const air = windNow(puffs === ctx.state.puffs ? wallDt : 0);
   for (let i = puffs.length - 1; i >= 0; i--) {
     const puff = puffs[i];
     puff.age += wallDt;
     if (puff.age >= puff.life) { puffs.splice(i, 1); continue; }
     const fade = puff.age / puff.life;
     puff.x += puff.vx * wallDt; puff.y += puff.vy * wallDt;
-    // the air (?airfx: spread, wind, the cars' stir - render/airflow.ts), else plain drag: clods
-    // slow and settle
-    if (air) airMove(puff, wallDt, air, ctx.state.airCars, fxRandom);
-    else { puff.vx *= 1 - 2.6 * wallDt; puff.vy *= 1 - 2.6 * wallDt; }
+    // the air: spread, wind, the cars' stir (render/airflow.ts; was a plain drag to still air)
+    airMove(puff, wallDt, air, ctx.state.airCars, fxRandom);
     view.ctx.fillStyle = `rgb(${puff.rgb})`;
     // PIXEL PUFFS: a square snapped to the art-pixel grid, fading in STEPS (pixel-art smoke),
     // not a smooth disc
