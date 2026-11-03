@@ -39,13 +39,13 @@ export const TEST_LIST = [
   // 2026-11-02; smokeover, heatease, flatgrip passed 2026-11-02; steerfeel (the SETTINGS steering:
   // curve + reach at speed) passed 2026-11-02, kept as player settings; towplus (the wake)
   // passed 2026-11-02; aicool, smokeearly, airfx, smokelinger, aidust, realcars, jokerhint,
-  // puffpool passed 2026-11-03)
+  // puffpool, tyrehealth passed 2026-11-03; specsheet removed)
   {
-    id: 'tyrehealth',
-    added: '2026-11-02',
-    name: 'Tyre shop: the fitted set shows GRIP LOST (dry / wet) and PUNCTURE RISK a minute',
-    where: 'GARAGE > TYRES, after a few races on the same set',
-    try: 'Race, come back, watch the numbers climb; fit a NEW SET and see them reset.',
-    wrong: 'Numbers that never change, or a risk shown on a nearly new set.',
+    id: 'pitsolid',
+    added: '2026-11-03',
+    name: 'Pit garages solid all round: no more driving into them from the track side',
+    where: 'Plain link + &pitsolid=1: Brands Snatch and Thruston, drive at the back of the garages',
+    try: 'Hit the back and the ends of the garage row: you should stop at the wall you see.',
+    wrong: 'Driving into a garage, or an invisible wall where nothing is drawn.',
   },
 ];

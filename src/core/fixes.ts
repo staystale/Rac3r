@@ -36,4 +36,7 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
+  // ?pitsolid=1: a pit garage row is solid all round, as drawn - it was only along its pit-lane
+  // face, so from the track you drove into it (world/load.ts garagePass)
+  pitSolid: atLoad('pitsolid'),
 };

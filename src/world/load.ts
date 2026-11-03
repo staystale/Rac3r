@@ -2,6 +2,7 @@ import { setFloor, setRect } from "./bounds.ts";
 import { LEVEL, setActiveLevel } from "./state.ts";
 import { SURFACES, SURFACE_TRAP } from "./surfaces.ts";
 import { alongTrack, prepBarriers } from "./barriers.ts";
+import { FIX } from "../core/fixes.ts";
 import { autoKerbs } from "./subtrack.ts";
 import { laneAt } from "./zones.ts";
 import { resetNatLevel } from "./terrain.ts";
@@ -226,10 +227,24 @@ function knockPass(level: Level): void {
       { x: prop.x, y: prop.y, kind: prop.kind, rot: prop.rot || 0, col: prop.col })),
   ];
 }
+// ?pitsolid=1 (owner 11-03: "the back side of the garages in the pits from the track? You seem to
+// be able to drive thru them"): a garage row's only solid was one line along its pit-lane face
+// (Brands Snatch, Thruston), so from the track side you drove in through the back. Every garage
+// row is now solid all round: its drawn outline, front, back and both ends, is a building wall.
+function garagePass(level: Level): void {
+  if (!FIX.pitSolid) return;
+  for (const prop of level.props || []) {
+    if (prop.kind !== 'garagerow' || !prop.front || !prop.back || prop._walled) continue;
+    prop._walled = true;
+    const outline = [...prop.front, ...prop.back.slice().reverse(), prop.front[0]];
+    level.barriers = [...(level.barriers || []), { kind: 'building', pts: outline }];
+  }
+}
 // the post-passes every level gets (tape, knockable signs) — exported for generated levels
 // (stagegen.ts)
 export function finishLevel(level: Level): Level {
   tapePass(level);
+  garagePass(level);
   knockPass(level);
   return level;
 }

@@ -153,6 +153,7 @@ export interface Prop {
   brand?: string;
   front?: Point[];
   back?: Point[];
+  _walled?: boolean;   // its outline made a solid wall (world/load.ts garagePass)
   banner?: Point[];
   roof?: string;
   paint?: string;
