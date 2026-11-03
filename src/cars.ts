@@ -44,7 +44,7 @@ export interface Tyre {
   grip: Record<string, number>; bySurf?: Record<string, number>;
   opt?: [number, number]; peak?: number; cold?: number; slide?: number; heatHard?: number;
   note?: string;
-  ploughK?: number;   // x the ground's plough (?k12: a self-cleaning mud tread cuts through)
+  ploughK?: number;   // x the ground's plough (a self-cleaning mud tread cuts through)
   rims?: [number, number];   // the rim sizes it is made in, inches
 }
 

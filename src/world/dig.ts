@@ -1,7 +1,6 @@
 // dig.ts - HOW THE GROUND DENTS: the rut each tyre pass digs into soft ground (wear.ts digRut
 // applies it to the wear cells; terrain.ts bumpAt lowers the ground by it), and which bare ground
 // gets wear cells when dry so it can dent.
-import { FIX } from '../core/fixes.ts';
 
 /** One ground's dig: m per pass, the floor (m), and the chance a pass digs at all. */
 export interface DigRule { step: number; max: number; chance: number }
@@ -62,7 +61,7 @@ const DAMP_WORN_TO: Record<string, string> = { sand: 'gravel', gravel: 'dirt' };
 // none at DIRT_BAKE_FROM_C, DIRT_TO_GRAVEL_HOT at DIRT_BAKE_FULL_C and over (35 C: ~0.12), less
 // the damper.
 const DIRT_TO_MUD_COOL = 0.25, DIRT_TO_MUD_HOT = 0.03, DIRT_COOL_C = 10, DIRT_HOT_C = 40;
-// ?k12 (MEASURED 11-03: in rain every worn dirt cell turned to mud - Knobhill's whole racing
+// K12 (passed 11-03; MEASURED: in rain every worn dirt cell turned to mud - Knobhill's whole racing
 // line on the first lap): packed dirt stays (wet) dirt; a soaked pass churns it with only this
 // share of the old chance; puddles on it still churn to mud (wear.ts WATER_MIX)
 const DIRT_WET_MUD_K = 0.12;
@@ -81,7 +80,7 @@ const heatShare = (trackC: number, fromC: number, toC: number) =>
 export function dirtToMudChance(wetShare: number, trackC: number): number {
   const heat = heatShare(trackC, DIRT_COOL_C, DIRT_HOT_C);
   const dry = DIRT_TO_MUD_COOL + (DIRT_TO_MUD_HOT - DIRT_TO_MUD_COOL) * heat;
-  const share = Math.max(0, Math.min(1, wetShare)) * (FIX.k12 ? DIRT_WET_MUD_K : 1);
+  const share = Math.max(0, Math.min(1, wetShare)) * DIRT_WET_MUD_K;
   return dry + (1 - dry) * share;
 }
 

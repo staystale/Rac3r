@@ -3,7 +3,6 @@ import type { SurfaceId } from "../surfaces.ts";
 import { prepBumps } from "../terrain.ts";
 import { ROUGH_BUSHES } from "./bushes.ts";
 import type { Rect, Zone, Cone, Bump, Paint, Board, Level } from "../types.ts";
-import { FIX } from '../../core/fixes.ts';
 
 // =============================================================================================
 // THE LAB'S TWO SISTER TEST GROUNDS (requirement: add some of every object laid out nicely ready to
@@ -177,12 +176,10 @@ const LAB_CRASH_OBJECTS: Cone[] = LAB_LANES.flatMap((lane, i) =>
 // the OFF-ROAD AREA (first listed wins: the small features before the grass they sit in)
 const OR_Y = 640;
 const LAB_OFFROAD_ZONES: Zone[] = [
-  // ?k12 MUD HILLS (owner 11-03: 4x4 vs 2WD in mud): the west hill (3.5 m, ~20 % at its steepest)
+  // MUD HILLS (K12, passed 11-03: 4x4 vs 2WD in mud): the west hill (3.5 m, ~20 % at its steepest)
   // in MUD, the middle hill (2.2 m, ~16 %) in THICK MUD
-  ...(FIX.k12 ? [
-    { x: -60, y: 688, w: 60, h: 60, surface: SURFACES.mud, rounded: true },
-    { x: 60, y: 690, w: 48, h: 48, surface: SURFACES.thickMud, rounded: true },
-  ] : []),
+  { x: -60, y: 688, w: 60, h: 60, surface: SURFACES.mud, rounded: true },
+  { x: 60, y: 690, w: 48, h: 48, surface: SURFACES.thickMud, rounded: true },
   // the bog's deep middle
   { x: -20, y: OR_Y, w: 16, h: 12, surface: SURFACES.thickMud },
   // MUD BOG

@@ -45,13 +45,6 @@ export const TEST_LIST: TestEntry[] = [
   // curve + reach at speed) passed 2026-11-02, kept as player settings; towplus (the wake)
   // passed 2026-11-02; aicool, smokeearly, airfx, smokelinger, aidust, realcars, jokerhint,
   // puffpool, tyrehealth, pitsolid, muscletyres,
-  // namefix, bhbridges, menustyle, testgarage, ai10 passed 2026-11-03; specsheet removed)
-  {
-    id: 'k12',
-    added: '2026-11-03',
-    name: 'MUD: rain leaves dirt wet dirt (not mud), mud drags far less, mud tyres plough less',
-    where: 'Plain link + &k12=1: Knobhill in RAIN; The Rough Patch mud hills (west, middle)',
-    try: 'Knobhill wet in the Subaroo; the hills in a 4x4 vs a hatch: 4x4 climbs both, 2WD one.',
-    wrong: 'Wet dirt as sticky as before, a 4x4 stuck on a mud hill, or 2WD cars flying through.',
-  },
+  // namefix, bhbridges, menustyle, testgarage, ai10, k12 passed
+  // 2026-11-03; specsheet removed)
 ];
