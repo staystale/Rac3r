@@ -4,8 +4,8 @@
 // hwsnow - the driving root fix (wheelspin), evenlap, flatsize and the realism round - the K13
 // dials, pedalramp, lockfade, spinmarks, smokefade, dustlinger, musclegears - and smokeover,
 // heatease, flatgrip, towplus passed 11-02;
-// aicool, smokeearly, airfx, smokelinger, aidust, realcars, jokerhint, puffpool, pitsolid
-// passed 11-03.)
+// aicool, smokeearly, airfx, smokelinger, aidust, realcars, jokerhint, puffpool, pitsolid,
+// muscletyres, namefix, bhbridges passed 11-03.)
 import { envValue } from './debug.ts';
 
 /**
@@ -36,11 +36,6 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
-  // ?namefix=1: the Castle Cum footbridge says DUNFLOP, our one Dunlop parody (it said DUMLOP)
-  nameFix: atLoad('namefix'),
-  // ?muscletyres=1: tyres fit by RIM SIZE as well as class; period tyres for the Chevvy (its
-  // factory set the Good Yeah Polyglass GT), a drag radial and a street radial (cars.ts)
-  muscleTyres: atLoad('muscletyres'),
   // ?menustyle=1: the pixel menu style - the owner's logo, its colours, pixel-shaded buttons,
   // pixel type with one set of digits (menu/pixelstyle.ts)
   menuStyle: atLoad('menustyle'),

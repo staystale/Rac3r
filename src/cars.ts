@@ -11,7 +11,6 @@
 // Torque curves are 7-point tables, not a single peak — the shape is what makes gearing matter.
 
 import type { Mark, Spray } from './world/types.ts';
-import { FIX } from './core/fixes.ts';
 import { dragOf, realCurve, tyreR } from './realcars.ts';
 
 export const GRAVITY = 9.81;
@@ -45,7 +44,7 @@ export interface Tyre {
   grip: Record<string, number>; bySurf?: Record<string, number>;
   opt?: [number, number]; peak?: number; cold?: number; slide?: number; heatHard?: number;
   note?: string;
-  rims?: [number, number];   // the rim sizes it is made in, inches (?muscletyres)
+  rims?: [number, number];   // the rim sizes it is made in, inches
 }
 
 // One ROSTER entry: the fields every car states, and the optional ones only some cars state.
@@ -62,7 +61,7 @@ export interface RosterRow {
   susF?: number; susZ?: number; trackWidth?: number; tyreWidth?: number; idleRpm?: number;
   wheelR?: number; cyl?: number; steerMax?: number;
   tyreOpt?: [number, number]; tyrePeak?: number; tyreColdGrip?: number;
-  rimIn?: number; stockTyre?: string;   // ?muscletyres: its rim; its factory set
+  rimIn?: number; stockTyre?: string;   // its rim, inches; its own factory set
 }
 
 export function defaultMods(): Mods {
@@ -218,13 +217,11 @@ export const TYRE_BRANDS = [
   { id: 'kum', name: 'KUM', col: '#e0603a', blurb: 'road + track' },
   { id: 'dunflop', name: 'DUNFLOP', col: '#4c8fd4', blurb: 'rally + off-road' },
   { id: 'pirrelly', name: 'PIRRELLY', col: '#f2c21b', blurb: 'race' },
-  // ?muscletyres: period and drag tyres (NOTES register: Goodyear = GOOD YEAH, Mickey Thompson
-  // = MICKY TOMSON, BFGoodrich = BF GOODWRENCH)
-  ...(FIX.muscleTyres ? [
-    { id: 'goodyeah', name: 'GOOD YEAH', col: '#7aa8ff', blurb: 'classic' },
-    { id: 'tomson', name: 'MICKY TOMSON', col: '#d8453c', blurb: 'drag' },
-    { id: 'goodwrench', name: 'BF GOODWRENCH', col: '#e8e8ee', blurb: 'street' },
-  ] : []),
+  // period and drag tyres (muscletyres, passed 11-03; NOTES register: Goodyear = GOOD YEAH,
+  // Mickey Thompson = MICKY TOMSON, BFGoodrich = BF GOODWRENCH)
+  { id: 'goodyeah', name: 'GOOD YEAH', col: '#7aa8ff', blurb: 'classic' },
+  { id: 'tomson', name: 'MICKY TOMSON', col: '#d8453c', blurb: 'drag' },
+  { id: 'goodwrench', name: 'BF GOODWRENCH', col: '#e8e8ee', blurb: 'street' },
 ];
 const ALLC = ['road', 'rally', 'rx', 'stock', 'oval', 'single', 'drift', 'offroad'];
 // grip x per surface, in TYRE_SURFS order: tarmac wet gravel dirt grass mud sand snow ice
@@ -290,21 +287,20 @@ export const TYRES = [
     [1.02, 1.35, 0.95, 0.95, 0.95, 0.92, 0.92, 0.85, 0.8], { rims: [13, 18],
     opt: [40, 80], peak: 60,
     note: 'standing water; dies on a dry line' }),
-  // ?muscletyres (owner 11-03: "suitable tyres for the muscle car / some that don't fit"):
+  // MUSCLE TYRES (passed 11-03; owner: "suitable tyres for the muscle car / some that don't
+  // fit"):
   // BIAS-BELTED Polyglass GT, the 1970 Chevelle SS's own F70-14 - far less grip than a modern
   // radial, so the car launches like the real one; a DRAG RADIAL (launches, scared of rain); a
   // 1970s street RADIAL. 13-15 / 14-17 inch rims: the old cars only.
-  ...(FIX.muscleTyres ? [
-    makeTyre('polyglass', 'goodyeah', 'Polyglass GT', 180, ['road', 'stock', 'drift'],
-      [0.85, 0.78, 0.92, 0.92, 0.9, 0.88, 0.9, 0.85, 0.85], { rims: [13, 15], slide: 0.95,
-      note: 'bias-belted 1970: the muscle car\'s factory set' }),
-    makeTyre('radial-ta', 'goodwrench', 'Radial T/A', 340, ['road', 'stock', 'drift'],
-      [0.88, 0.9, 0.98, 0.98, 0.95, 0.92, 0.95, 0.9, 0.9], { rims: [13, 17],
-      note: 'the first street radial: more grip, same look' }),
-    makeTyre('et-street', 'tomson', 'ET Streat', 560, ['road', 'stock', 'drift'],
-      [1.06, 0.7, 0.85, 0.85, 0.82, 0.75, 0.8, 0.6, 0.6], { rims: [14, 17], opt: [60, 110],
-      peak: 85, cold: 0.85, heatHard: 1.3, note: 'drag radial: hooks off the line, hates rain' }),
-  ] : []),
+  makeTyre('polyglass', 'goodyeah', 'Polyglass GT', 180, ['road', 'stock', 'drift'],
+    [0.85, 0.78, 0.92, 0.92, 0.9, 0.88, 0.9, 0.85, 0.85], { rims: [13, 15], slide: 0.95,
+    note: 'bias-belted 1970: the muscle car\'s factory set' }),
+  makeTyre('radial-ta', 'goodwrench', 'Radial T/A', 340, ['road', 'stock', 'drift'],
+    [0.88, 0.9, 0.98, 0.98, 0.95, 0.92, 0.95, 0.9, 0.9], { rims: [13, 17],
+    note: 'the first street radial: more grip, same look' }),
+  makeTyre('et-street', 'tomson', 'ET Streat', 560, ['road', 'stock', 'drift'],
+    [1.06, 0.7, 0.85, 0.85, 0.82, 0.75, 0.8, 0.6, 0.6], { rims: [14, 17], opt: [60, 110],
+    peak: 85, cold: 0.85, heatHard: 1.3, note: 'drag radial: hooks off the line, hates rain' }),
 ];
 for (const tyre of TYRES) {
   tyre.bySurf = {};
@@ -312,7 +308,7 @@ for (const tyre of TYRES) {
 }
 export const tyreOf = (tyreId: string) => TYRES.find((tyre) => tyre.id === tyreId) || TYRES[0];
 /**
- * Whether a tyre fits a car: its class, and (?muscletyres) its rim size; a car with its own
+ * Whether a tyre fits a car: its class and its rim size; a car with its own
  * factory set (stockTyre) does not take the generic Pre-Spun.
  * @param tyre the tyre
  * @param row the car's roster row
@@ -320,31 +316,30 @@ export const tyreOf = (tyreId: string) => TYRES.find((tyre) => tyre.id === tyreI
  */
 export function tyreFits(tyre: Tyre, row: RosterRow): boolean {
   if (!tyre.fits.includes(row.cls)) return false;
-  if (!FIX.muscleTyres) return true;
   if (row.stockTyre && tyre.id === 'pre-spun') return false;
   return !tyre.rims || !row.rimIn || (row.rimIn >= tyre.rims[0] && row.rimIn <= tyre.rims[1]);
 }
 /**
  * The tyre a car runs for a set asked for: the stock set (none, unknown, Pre-Spun) is the car's
- * own factory set when it has one (?muscletyres), else Pre-Spun.
+ * own factory set when it has one, else Pre-Spun.
  * @param row the car's roster row
  * @param tyreId the set asked for
  * @returns the tyre id
  */
 function fittedId(row: RosterRow, tyreId: string): string {
   const stock = !tyreId || tyreId === 'pre-spun' || !TYRES.some((x) => x.id === tyreId);
-  return stock && FIX.muscleTyres && row.stockTyre ? row.stockTyre : tyreId;
+  return stock && row.stockTyre ? row.stockTyre : tyreId;
 }
 /**
  * The tyre a car is on for a set asked for (the garage's FITTED: its own factory set when none
- * was bought, ?muscletyres).
+ * was bought).
  * @param row the car's roster row
  * @param tyreId the set asked for (none: the stock set)
  * @returns the tyre
  */
 export const fittedTyre = (row: RosterRow, tyreId?: string) => tyreOf(fittedId(row, tyreId || ''));
 // fit a tyre to a spec (null / unknown / 'pre-spun' = stock: no tyre object, the roster's own heat
-// window — physics exactly as before; ?muscletyres: a car's own factory set when it has one)
+// window — physics exactly as before; a car's own factory set when it has one)
 export function applyTyre(carSpec: Spec, tyreId: string): Spec {
   const row = ROSTER.find((rosterRow) => rosterRow.id === String(carSpec.id).split('#')[0])
     || ({} as RosterRow);
@@ -373,7 +368,7 @@ export function applyLivery(
 export const ROSTER: RosterRow[] = [
   {
     id: 'hatch-fwd', name: 'Folksvagon Gulf GTEye', kind: 'hatch', cls: 'road', sub: 'Hatch',
-    rimIn: 18,   // its real rim, inches (?muscletyres: what fits)
+    rimIn: 18,   // its real rim, inches (what tyres fit)
     // VW Golf GTI Mk7 (2013): 220 PS @ 4500-6200, 350 Nm @ 1500-4400, 1351 kg, 6MT (ratios EST),
     // 225/40 R18, Cd 0.32 x 2.19 m^2; 246 km/h
     // m: CENTRE OF GRAVITY and RIDE HEIGHT — rollover (roll.ts) + shadow;
@@ -397,7 +392,7 @@ export const ROSTER: RosterRow[] = [
   },
   {
     id: 'hatch-rwd', name: 'BMV Em135Aye', kind: 'hatch', cls: 'road', sub: 'Hatch',
-    rimIn: 18,   // its real rim, inches (?muscletyres: what fits)
+    rimIn: 18,   // its real rim, inches (what tyres fit)
     // BMW M135i (F20, 2012): 320 hp @ 5800, 450 Nm @ 1300-4500, 1425 kg, 6MT (1st 4.11; rest
     // EST), 245/35 R18, Cd 0.33 x 2.2; 250 km/h (governed)
     // m: CENTRE OF GRAVITY and RIDE HEIGHT — rollover (roll.ts) + shadow;
@@ -421,7 +416,7 @@ export const ROSTER: RosterRow[] = [
   },
   {
     id: 'saloon-rwd', name: 'BMV 3 Serious', kind: 'saloon', cls: 'road', sub: 'Saloon',
-    rimIn: 17,   // its real rim, inches (?muscletyres: what fits)
+    rimIn: 17,   // its real rim, inches (what tyres fit)
     // BMW 330i (E46): 231 PS @ 5900, 300 Nm @ 3500, 1450 kg, Getrag 5MT, 3.07, 225/45 R17,
     // Cd 0.30 x 2.13; 250 km/h
     // m: CENTRE OF GRAVITY and RIDE HEIGHT — rollover (roll.ts) + shadow; handling still uses cgH
@@ -441,7 +436,7 @@ export const ROSTER: RosterRow[] = [
   },
   {
     id: 'wrz-awd', name: 'Subaroo WRZ', kind: 'wrz', cls: 'rally', sub: '2L+',
-    rimIn: 17,   // its real rim, inches (?muscletyres: what fits)
+    rimIn: 17,   // its real rim, inches (what tyres fit)
     // Subaru Impreza WRX STI (GD, 2005): 206 kW @ 6400, 407 Nm @ 4000, 1495 kg, 6MT 3.636 2.375
     // 1.761 1.346 0.971 0.756, 3.90, 225/45 R17, Cd 0.35 x 2.1; 255 km/h
     // m: CENTRE OF GRAVITY and RIDE HEIGHT — rollover (roll.ts) + shadow; handling still uses cgH
@@ -467,7 +462,7 @@ export const ROSTER: RosterRow[] = [
   },
   {
     id: 'estate-4x4', name: 'Volvoh V70 Arr', kind: 'estate', cls: 'road', sub: 'Estate',
-    rimIn: 18,   // its real rim, inches (?muscletyres: what fits)
+    rimIn: 18,   // its real rim, inches (what tyres fit)
     // Volvo V70 R (2004): 300 PS @ 5500, 400 Nm @ 1950-5250, 1665 kg, 6MT (EST), 235/40 R18,
     // Cd 0.33 x 2.3; 250 km/h
     // m: CENTRE OF GRAVITY and RIDE HEIGHT — rollover (roll.ts) + shadow;
@@ -486,7 +481,7 @@ export const ROSTER: RosterRow[] = [
   },
   {
     id: 'muscle-rwd', name: 'Chevvy Shovelle SS 454', kind: 'muscle', cls: 'road', sub: 'Muscle',
-    rimIn: 14, stockTyre: 'polyglass',   // ?muscletyres: its rim; its factory set
+    rimIn: 14, stockTyre: 'polyglass',   // its rim; its own factory set
     // Chevrolet Chevelle SS 454 LS6 (1970): 450 hp gross (~360 net, what reaches the road) @ 5600,
     // 500 lb-ft (678 Nm) @ 3600, ~1730 kg, M22 4MT 2.20 1.64 1.28 1.00, 3.31, F70-14, Cd 0.50 x 2.2
     // m: CENTRE OF GRAVITY and RIDE HEIGHT — rollover (roll.ts) + shadow;
@@ -507,7 +502,7 @@ export const ROSTER: RosterRow[] = [
   },
   {
     id: 'rally-4x4', name: 'Ordi Sport Kwattro S1', kind: 'rally', cls: 'rally', sub: 'Group B',
-    rimIn: 15,   // its real rim, inches (?muscletyres: what fits)
+    rimIn: 15,   // its real rim, inches (what tyres fit)
     // Audi Sport quattro S1 E2 (1985): ~350 kW (factory 470 hp) @ 8000, 590 Nm @ 5500, 1090 kg,
     // 6MT (EST, geared for the stages: ~235 km/h), Cd 0.40 x 2.0 with its wings
     // m: CENTRE OF GRAVITY and RIDE HEIGHT — rollover (roll.ts) + shadow;
@@ -535,7 +530,7 @@ export const ROSTER: RosterRow[] = [
   },
   {
     id: 'track-rwd', name: 'Formula Won', kind: 'track', cls: 'single', sub: 'F1',
-    rimIn: 18,   // its real rim, inches (?muscletyres: what fits)
+    rimIn: 18,   // its real rim, inches (what tyres fit)
     // a Formula 1 car (2022 rules): ~1000 hp with the hybrid (746 kW) @ 11500, 798 kg with the
     // driver, 8-speed (EST), 18-inch tyres (0.36 m), Cd A ~1.1 m^2; ~340 km/h
     // m: CENTRE OF GRAVITY and RIDE HEIGHT — rollover (roll.ts) + shadow;
@@ -560,7 +555,7 @@ export const ROSTER: RosterRow[] = [
   },
   {
     id: 'naffcar', name: 'Naffcar V8', kind: 'muscle', cls: 'oval', sub: 'Naffcar',
-    rimIn: 18,   // its real rim, inches (?muscletyres: what fits)
+    rimIn: 18,   // its real rim, inches (what tyres fit)
     // a NASCAR Cup car (Next Gen): 670 hp (500 kW) @ 9000, ~610 Nm, 1542 kg, 5-speed sequential
     // (EST), 18-inch, Cd A ~0.9 m^2; ~320 km/h unrestricted
     // m: CENTRE OF GRAVITY and RIDE HEIGHT — rollover (roll.ts) + shadow;
@@ -582,7 +577,7 @@ export const ROSTER: RosterRow[] = [
   },
   {
     id: 'tractor', name: 'JCBee Fastrack 8330', kind: 'tractor', cls: 'offroad', sub: 'Odd',
-    rimIn: 30,   // its real rim, inches (?muscletyres: what fits)
+    rimIn: 30,   // its real rim, inches (what tyres fit)
     // JCB Fastrac 8330: 348 hp (260 kW) @ 2100, 1440 Nm @ 1500, ~11 400 kg, 70 km/h, 600/70 R30
     // (0.80 m), Cd 0.9 x 7 m^2 (its CVT as five steps)
     // m: CENTRE OF GRAVITY and RIDE HEIGHT — rollover (roll.ts) + shadow;
@@ -604,7 +599,7 @@ export const ROSTER: RosterRow[] = [
   // classes)
   {
     id: 'mini-fwd', name: 'Minnie Cooped S', kind: 'mini', cls: 'road', sub: 'Hatch',
-    rimIn: 10,   // its real rim, inches (?muscletyres: what fits)
+    rimIn: 10,   // its real rim, inches (what tyres fit)
     // Mini Cooper S 1275 (Mk1): 76 hp @ 5800, 107 Nm @ 3000, ~650 kg, 4MT 3.33 2.09 1.35 1.00,
     // 3.44, 145/80 R10, Cd 0.48 x 1.6; 156 km/h
     cg: 0.48, rideH: 0.12,
@@ -625,7 +620,7 @@ export const ROSTER: RosterRow[] = [
   },
   {
     id: 'lambo-awd', name: 'Lamburghini Hurrikan', kind: 'lambo', cls: 'road', sub: 'Sports',
-    rimIn: 20,   // its real rim, inches (?muscletyres: what fits)
+    rimIn: 20,   // its real rim, inches (what tyres fit)
     // Lamborghini Huracan LP 610-4: 610 PS @ 8250, 560 Nm @ 6500, 1553 kg, 7DCT 3.133 2.083 1.575
     // 1.244 0.979 0.788 0.677, 4.89, 305/30 R20, Cd 0.39 x 1.95; 325 km/h
     cg: 0.45, rideH: 0.1, cyl: 10,
@@ -645,7 +640,7 @@ export const ROSTER: RosterRow[] = [
   },
   {
     id: 'mikra-r1', name: 'Nissun Mikra R1', kind: 'mikra', cls: 'rally', sub: '1L',
-    rimIn: 15,   // its real rim, inches (?muscletyres: what fits)
+    rimIn: 15,   // its real rim, inches (what tyres fit)
     cg: 0.52, rideH: 0.18,
     aids: { abs: false, tcs: false },
     // the entry rally car: a 1-litre turbo supermini, front drive, rally springs, short gears.
@@ -659,7 +654,7 @@ export const ROSTER: RosterRow[] = [
   },
   {
     id: 'kit-2l', name: 'Pugeot 306 Maxxi', kind: 'kit', cls: 'rally', sub: '2L',
-    rimIn: 15,   // its real rim, inches (?muscletyres: what fits)
+    rimIn: 15,   // its real rim, inches (what tyres fit)
     // Peugeot 306 Maxi (F2 kit car, 1996): 960 kg
     cg: 0.5, rideH: 0.17,
     aids: { abs: false, tcs: false },
@@ -675,7 +670,7 @@ export const ROSTER: RosterRow[] = [
   },
   {
     id: 'rx-super', name: 'Fjord Fiester RX', kind: 'rxcar', cls: 'rx', sub: 'Supercar',
-    rimIn: 17,   // its real rim, inches (?muscletyres: what fits)
+    rimIn: 17,   // its real rim, inches (what tyres fit)
     // Ford Fiesta RX (World RX supercar): 600 hp, 900 Nm, 1300 kg
     cg: 0.5, rideH: 0.2,
     aids: { abs: false, tcs: false },
@@ -692,7 +687,7 @@ export const ROSTER: RosterRow[] = [
   },
   {
     id: 'banger-f2', name: 'BriSKA F2 Stocker', kind: 'banger', cls: 'stock', sub: 'Stock car',
-    rimIn: 13,   // its real rim, inches (?muscletyres: what fits)
+    rimIn: 13,   // its real rim, inches (what tyres fit)
     cg: 0.5, rideH: 0.14,
     aids: { abs: false, tcs: false },
     // an F2 SHORT-OVAL STOCK CAR: a 2-litre RWD saloon shell on a steel chassis, huge front + rear
@@ -706,7 +701,7 @@ export const ROSTER: RosterRow[] = [
   },
   {
     id: 'grass-special', name: 'Autograss Special', kind: 'grass', cls: 'stock', sub: 'Grass track',
-    rimIn: 13,   // its real rim, inches (?muscletyres: what fits)
+    rimIn: 13,   // its real rim, inches (what tyres fit)
     cg: 0.42, rideH: 0.2,
     aids: { abs: false, tcs: false },
     // a GRASS-TRACK SPECIAL (autograss Class 8-ish): a space-frame buggy, a 1.6 16v behind the
@@ -721,7 +716,7 @@ export const ROSTER: RosterRow[] = [
   },
   {
     id: 'drift-s13', name: 'Nissun Sylvya S13 D', kind: 'drift', cls: 'drift', sub: 'Pro',
-    rimIn: 17,   // its real rim, inches (?muscletyres: what fits)
+    rimIn: 17,   // its real rim, inches (what tyres fit)
     cg: 0.5, rideH: 0.11, steerMax: 0.85,
     aids: { abs: false, tcs: false },
     // a PRO DRIFT build of the 1990 coupe: a big-turbo 2-litre, RWD, a welded diff, ANGLE KIT
@@ -735,7 +730,7 @@ export const ROSTER: RosterRow[] = [
   },
   {
     id: 'f2-rwd', name: 'Formula Too', kind: 'track', cls: 'single', sub: 'F2',
-    rimIn: 18,   // its real rim, inches (?muscletyres: what fits)
+    rimIn: 18,   // its real rim, inches (what tyres fit)
     // Dallara F2 (2018): 620 hp @ 8750, 755 kg with the driver, final drive EST, Cd A ~0.95 m^2;
     // ~335 km/h
     cg: 0.36, rideH: 0.07, cyl: 6,
@@ -761,8 +756,8 @@ export function spec(carId: string): Spec {
   const out = { ...SHARED, ...row } as Spec;   // L and Izz are filled in just below
   out.L = out.lf + out.lr;
   out.Izz = ((out.mass * (out.len * out.len + out.wid * out.wid)) / 12) * out.izzK;
-  // ?muscletyres: a car with its own factory set leaves the garage on it
-  if (FIX.muscleTyres && row.stockTyre) applyTyre(out, row.stockTyre);
+  // a car with its own factory set leaves the garage on it
+  if (row.stockTyre) applyTyre(out, row.stockTyre);
   return out;
 }
 

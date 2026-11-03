@@ -4,7 +4,7 @@ import {
   ROSTER, CLASSES, classOf, PALETTE, TYRES, TYRE_BRANDS, TYRE_SURFS, tyreOf, tyreFits,
   fittedTyre,
 } from '../cars.ts';
-import { STATS } from '../carstatsof.ts';
+import { CAR_STATS } from '../carstats.ts';
 import type { CarStat } from '../ai/types.ts';
 import type { Livery } from './profile.ts';
 import type { RosterRow } from '../cars.ts';
@@ -116,7 +116,7 @@ export function showGarage(menu: Menu) {
   const stats = addElement(right, 'div', '', 'stats');
   const showStats = () => {
     const car = ROSTER.find((x) => x.id === menu.profile.active)!,
-      spec: Partial<CarStat> = STATS[car.id] || {};
+      spec: Partial<CarStat> = CAR_STATS[car.id] || {};
     drawLift(lift, menu.api.carSprite(car.id, (menu.profile.livery || {})[car.id]));
     const aids = spec.aids ? [spec.aids.abs && 'ABS', spec.aids.tcs
       && 'TCS'].filter(Boolean).join(' + ') || 'NONE' : 'NONE';
@@ -278,7 +278,7 @@ function showSetWear(menu: Menu, carId: string, fitted: boolean, info: HTMLEleme
 function showTyreShop(menu: Menu) {
   const panel = addPane(menu, true), carId = menu.profile.active,
     car = ROSTER.find((x) => x.id === carId)!,
-    spec: Partial<CarStat> = STATS[carId] || {};
+    spec: Partial<CarStat> = CAR_STATS[carId] || {};
   let sel = fittedTyre(car, (menu.profile.tyres || {})[carId]).id;
   addElement(panel, 'h2', 'TYRES · ' + car.name);
   const box = addElement(panel, 'div', '', 'garage'), left = addElement(box, 'div', ''),

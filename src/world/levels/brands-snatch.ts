@@ -302,7 +302,50 @@ function filterBrandsProps(
   };
   let towerDone = false;
   return props.filter((prop) => prop.kind === 'gantry' || prop.kind === 'garagerow'
+    || prop.kind === 'footbridge' || prop.kind === 'bridge'
     || (boxClear(prop) && (prop.kind !== 'tower' || (!towerDone && (towerDone = true)))));
+}
+// BRIDGES (passed 11-03; owner: "doesn't brands hatch have a bridge over the track?"): the official
+// Indy map (docs.msv.com, art/ref/bh-indy-msv.png) shows a PEDESTRIAN BRIDGE over Hailwood Hill
+// and, on the GP loop, two road BRIDGES - at the foot of Hawthorn Hill after Pilgrims Drop, and on
+// the run from Stirlings to Clearways. Map pixels (art/ref/bh2.png); a GP bridge only where this
+// layout's road passes. A road bridge gets short tarmac approaches so its deck meets a road.
+const BH_BRIDGES: { at: Point; kind: 'footbridge' | 'bridge'; label?: string }[] = [
+  { at: [1060, 495], kind: 'footbridge', label: 'BRANDS SNATCH' },
+  { at: [885, 965], kind: 'bridge' },
+  { at: [480, 775], kind: 'bridge' },
+];
+const BH_BRIDGE_SPAN = 20, BH_APPROACH_M = 30;
+/**
+ * Brands Snatch's bridges over this layout's road and the road bridges' approaches.
+ * @param sub the track
+ * @param kit0 the track kit (road and pit lane)
+ * @param dOf distance finder for map pixels
+ * @returns the bridge props and the approach lanes
+ */
+function brandsBridges(
+  sub: Subtrack, kit0: BrandsKit, dOf: BrandsDOf,
+): { props: Prop[]; lanes: Lane[] } {
+  const props: Prop[] = [], lanes: Lane[] = [];
+  for (const bridge of BH_BRIDGES) {
+    const [mapX, mapY] = bhXY(bridge.at[0], bridge.at[1]);
+    if (querySubtrack(sub, mapX, mapY).dist > 12) continue;   // not this layout's road
+    const span = sub.width + BH_BRIDGE_SPAN;
+    const prop = kit0.prop(dOf(bridge.at[0], bridge.at[1]), 0, { kind: bridge.kind, wid: span,
+      rot: Math.PI / 2, seed: bridge.at[0], ...(bridge.label ? { label: bridge.label } : {}),
+      ...(bridge.kind === 'bridge' ? { carries: 'road' } : {}) });
+    props.push(prop);
+    if (bridge.kind !== 'bridge') continue;
+    const dirX = Math.cos(prop.rot!), dirY = Math.sin(prop.rot!), end = span / 2 + 2;
+    for (const side of [-1, 1]) {
+      lanes.push({ width: 7, surface: SURFACES.tarmac, pts: [
+        [prop.x + dirX * side * end, prop.y + dirY * side * end],
+        [prop.x + dirX * side * (end + BH_APPROACH_M),
+          prop.y + dirY * side * (end + BH_APPROACH_M)],
+      ] });
+    }
+  }
+  return { props, lanes };
 }
 function brandsLevel(levelId: string, name: string, mapPts: Point[]) {
   const sub = buildBrandsSubtrack(mapPts), halfWidth = sub.width / 2;
@@ -320,7 +363,8 @@ function brandsLevel(levelId: string, name: string, mapPts: Point[]) {
   const barriers: Barrier[] = [], cones: Cone[] = [];
   buildBrandsTrapWalls(sub, kit, halfWidth, traps, barriers, cones);
   buildBrandsPitBarriers(sub, traps, dOf, pd0, pd1, barriers);
-  const props = buildBrandsProps(kit0, sub, dOf);
+  const bridges = brandsBridges(sub, kit0, dOf);
+  const props = [...buildBrandsProps(kit0, sub, dOf), ...bridges.props];
   scatterBrandsTrees(kit, props);
   addBrandsMarshals(kit0, sub, halfWidth, props);
   const okProps = filterBrandsProps(sub, kit, halfWidth, props);
@@ -339,7 +383,8 @@ function brandsLevel(levelId: string, name: string, mapPts: Point[]) {
       rot: sub.pts[0].heading,
     }],
     boards: [], seams: false, cones, bushes: CIRCUIT_BUSHES,
-    lanes: [PIT, ...traps], barriers, props: okProps, solids: solidsFromProps(okProps),
+    lanes: [PIT, ...traps, ...bridges.lanes], barriers, props: okProps,
+    solids: solidsFromProps(okProps),
     spawn: (() => {
       const start = onTrack(sub, sub.totalDist - 15, 0, {});
       return { x: start.x, y: start.y, heading: start.rot };

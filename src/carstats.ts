@@ -5,7 +5,7 @@ import type { CarStat } from './ai/types.ts';
 export const CAR_STATS: Record<string, CarStat> = {
   "hatch-fwd": {
     "topKph": 238,
-    "zeroTo100": 6.7,
+    "zeroTo100": 6.4,
     "brake100": 37.4,
     "gripG": 1.19,
     "massKg": 1351,
@@ -17,7 +17,7 @@ export const CAR_STATS: Record<string, CarStat> = {
   },
   "hatch-rwd": {
     "topKph": 269,
-    "zeroTo100": 5.2,
+    "zeroTo100": 4.9,
     "brake100": 37.1,
     "gripG": 1.19,
     "massKg": 1425,
@@ -64,10 +64,10 @@ export const CAR_STATS: Record<string, CarStat> = {
     }
   },
   "muscle-rwd": {
-    "topKph": 243,
-    "zeroTo100": 4.5,
-    "brake100": 36.5,
-    "gripG": 1.21,
+    "topKph": 242,
+    "zeroTo100": 6,
+    "brake100": 42.6,
+    "gripG": 1.04,
     "massKg": 1730,
     "drive": "RWD",
     "aids": {
@@ -77,7 +77,7 @@ export const CAR_STATS: Record<string, CarStat> = {
   },
   "rally-4x4": {
     "topKph": 234,
-    "zeroTo100": 3.3,
+    "zeroTo100": 3.1,
     "brake100": 47.8,
     "gripG": 1.33,
     "massKg": 1090,
@@ -86,7 +86,7 @@ export const CAR_STATS: Record<string, CarStat> = {
   },
   "track-rwd": {
     "topKph": 347,
-    "zeroTo100": 4,
+    "zeroTo100": 2.8,
     "brake100": 32.3,
     "gripG": 1.83,
     "massKg": 798,
@@ -149,7 +149,7 @@ export const CAR_STATS: Record<string, CarStat> = {
   },
   "kit-2l": {
     "topKph": 217,
-    "zeroTo100": 5.5,
+    "zeroTo100": 4.9,
     "brake100": 49.1,
     "gripG": 1.32,
     "massKg": 960,
@@ -161,7 +161,7 @@ export const CAR_STATS: Record<string, CarStat> = {
   },
   "rx-super": {
     "topKph": 224,
-    "zeroTo100": 3.1,
+    "zeroTo100": 2.7,
     "brake100": 46.5,
     "gripG": 1.38,
     "massKg": 1300,
@@ -185,7 +185,7 @@ export const CAR_STATS: Record<string, CarStat> = {
   },
   "grass-special": {
     "topKph": 179,
-    "zeroTo100": 4.8,
+    "zeroTo100": 3.9,
     "brake100": 48.1,
     "gripG": 1.25,
     "massKg": 650,
@@ -209,7 +209,7 @@ export const CAR_STATS: Record<string, CarStat> = {
   },
   "f2-rwd": {
     "topKph": 315,
-    "zeroTo100": 4,
+    "zeroTo100": 3,
     "brake100": 31.1,
     "gripG": 1.78,
     "massKg": 755,
