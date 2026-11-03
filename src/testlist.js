@@ -63,4 +63,20 @@ export const TEST_LIST = [
     try: 'AI tyres 20 C+ over their window: a skilled one sometimes backs off; never in a battle.',
     wrong: 'AI dawdling all race, braking in front of you, or diving off the road for grass.',
   },
+  {
+    id: 'smokeearly',
+    added: '2026-11-03',
+    name: 'Tyre smoke starts at ~60 C: faint and sparse when cool, building to thick when hot',
+    where: 'Plain link + &smokeearly=1 (best with &airfx=1)',
+    try: 'Slide on cold tyres, then keep at it as they heat: a wisp that grows into a cloud.',
+    wrong: 'Smoke off cold tyres that looks thick, or still nothing until 110 C.',
+  },
+  {
+    id: 'airfx',
+    added: '2026-11-03',
+    name: 'The air: smoke / dust / exhaust / steam spread as they drift, gentle wind, cars stir it',
+    where: 'Plain link + &airfx=1: drifts, gravel / sand stages, an engine boiling, a race',
+    try: 'Watch a dust trail fan out; drive through a cloud; note the wind drifting it one way.',
+    wrong: 'Puffs flying off oddly, a wind that is too strong, or a frame-rate drop.',
+  },
 ];

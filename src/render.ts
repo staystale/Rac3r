@@ -255,14 +255,16 @@ function drawEffects(ctx: RenderCtx, game: RenderGame, wallDt: number) {
   ctx.addPuffs(game.cones.drainHits());
   ctx.addSpray(game.car, game.marks, wallDt);
   ctx.addSmoke(game.car, game.marks, wallDt);
-  for (const car of [
+  const effectCars = [
     game.car,
     ...(game.ai || []).map((rival) => rival.car),
     ...(game.traffic
       ? game.traffic.cars.filter((vehicle) => vehicle.dmg
         && Math.abs(vehicle.x - game.car.x) < 90 && Math.abs(vehicle.y - game.car.y) < 90)
       : []),
-  ]) {
+  ];
+  ctx.setAirCars(effectCars);   // the cars stirring the air (render/airflow.ts)
+  for (const car of effectCars) {
     ctx.addEngineSmoke(car, wallDt);
     ctx.addTowLines(car, wallDt);   // the tow cue (physics/wake.ts)
     ctx.addChips(car);

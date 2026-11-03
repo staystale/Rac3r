@@ -3,6 +3,8 @@
 import { SPRITE_PPM, fxRandom } from "./shared.ts";
 import { emitEngineSmoke, type PuffAt, type SmokeCar } from './enginesmoke.ts';
 import type { Spray } from "../world/types.ts";
+import { FIX } from '../core/fixes.ts';
+import { airMove, airOf, windNow, type AirCar } from './airflow.ts';
 import type { Cam, Chip, ParticleCar, Puff, PuffHit, RenderMarks, View } from "./types.ts";
 
 // what createParticles destructures from the renderer
@@ -27,6 +29,8 @@ interface ParticleState {
   // OVER THE CARS: steam and engine smoke rise off the bonnet (render/enginesmoke.ts), drawn
   // after the cars (render/screen.ts drawSharpCarLayers)
   overPuffs: Puff[];
+  // the cars stirring the air this frame (?airfx, render/airflow.ts)
+  airCars: AirCar[];
   // AIR STREAKS along the racers in a tow, and each car's fractional remainder
   streaks: Streak[];
   streakDebt: Map<object, number>;
@@ -85,6 +89,11 @@ const SMOKE_HEAT_SPAN = 50, SMOKE_HEAT_MIN = 0.3, SMOKE_SLIP_MIN = 2, SMOKE_SLIP
 // (owner: "full burn out with hot tyres should make slightly more smoke too / longer": the rate
 // 30 -> 38 and a strong puff lives up to SMOKE_LINGER longer)
 const SMOKE_RATE = 38, SMOKE_ALPHA_MIN = 0.25, SMOKE_LINGER = 0.6;
+// ?smokeearly=1 (owner: "can tyre smoke begin more progressively so less smoke and less opaque
+// when tyres cooler but starting earlier, rather than only at like 110 C plus"): smoke from
+// SMOKE_T_EARLY, its heat share rising as a curve (SMOKE_EARLY_POW) to full at SMOKE_T_FULL, the
+// faintest puff SMOKE_ALPHA_EARLY: a hard slide at 80 C ~7 % of full, 110 C ~36 %, 140 C ~67 %.
+const SMOKE_T_EARLY = 60, SMOKE_T_FULL = 165, SMOKE_EARLY_POW = 1.6, SMOKE_ALPHA_EARLY = 0.08;
 // SMOKE OVER (passed 11-02; owner: "can some of the tyre smoke go over the players car"): this
 // share of the smoke puffs drift OVER the cars (the bonnet-steam pool), the rest under them as
 // before
@@ -107,8 +116,9 @@ function overShare(state: ParticleState, share: number | undefined): Puff[] {
  * @returns the strength
  */
 function smokeStrength(heat: number, slip: number): number {
-  const heatK = SMOKE_HEAT_MIN + (1 - SMOKE_HEAT_MIN)
-    * Math.min(1, (heat - SMOKE_T) / SMOKE_HEAT_SPAN);
+  const heatK = FIX.smokeEarly ? Math.min(1, Math.max(0, (heat - SMOKE_T_EARLY)
+      / (SMOKE_T_FULL - SMOKE_T_EARLY))) ** SMOKE_EARLY_POW
+    : SMOKE_HEAT_MIN + (1 - SMOKE_HEAT_MIN) * Math.min(1, (heat - SMOKE_T) / SMOKE_HEAT_SPAN);
   return heatK * Math.max(0, Math.min(1, (slip - SMOKE_SLIP_MIN)
     / (SMOKE_SLIP_FULL - SMOKE_SLIP_MIN)));
 }
@@ -134,7 +144,7 @@ function emitPuff(
     x, y, age: 0,
     life: spray.life * (0.7 + fxRandom() * 0.6),
     r0: spray.size * (0.7 + fxRandom() * 0.7),
-    grow: spray.grow, rgb: spray.rgb,
+    grow: spray.grow, rgb: spray.rgb, air: airOf(spray),
     // thrown BACKWARDS off the contact patch plus a scatter, so it trails the car instead of
     // sitting under it - material is flung opposite to the way the wheel is travelling
     vx: -vx * 0.28 + Math.cos(angle) * fling,
@@ -206,14 +216,15 @@ function emitTyreSmoke(ctx: ParticleCtx, car: ParticleCar, marks: RenderMarks, w
   if (!car.tyreT) return;
   const wheels = marks.wheelsOf(car);
   for (const wheel of wheels) {
-    if (wheel.heat < SMOKE_T || wheel.slip < 1.5) continue;
+    if (wheel.heat < (FIX.smokeEarly ? SMOKE_T_EARLY : SMOKE_T) || wheel.slip < 1.5) continue;
     const strength = smokeStrength(wheel.heat, wheel.slip);
     state.smokeDebt += strength * SMOKE_RATE * wallDt;
     while (state.smokeDebt >= 1) { state.smokeDebt--;
       const pool = overShare(state, SMOKE_OVER);
       emitPuff(ctx, wheel.x, wheel.y, car.vx * 0.6, car.vy * 0.6, SMOKE, 0.5, pool);
       const puff = pool[pool.length - 1];
-      puff.alpha = SMOKE_ALPHA_MIN + (1 - SMOKE_ALPHA_MIN) * strength;
+      const alphaMin = FIX.smokeEarly ? SMOKE_ALPHA_EARLY : SMOKE_ALPHA_MIN;
+      puff.alpha = alphaMin + (1 - alphaMin) * strength;
       puff.life *= 1 + SMOKE_LINGER * strength;
     }
   }
@@ -554,14 +565,17 @@ function drawSparkPixels(
 function renderPuffs(ctx: ParticleCtx, wallDt: number, puffs: Puff[] = ctx.state.puffs) {
   const { view, PPMz, toScreenX, toScreenY } = ctx;
   const ppm = PPMz();
+  const air = FIX.airFx ? windNow(puffs === ctx.state.puffs ? wallDt : 0) : null;
   for (let i = puffs.length - 1; i >= 0; i--) {
     const puff = puffs[i];
     puff.age += wallDt;
     if (puff.age >= puff.life) { puffs.splice(i, 1); continue; }
     const fade = puff.age / puff.life;
     puff.x += puff.vx * wallDt; puff.y += puff.vy * wallDt;
-    // air drag: clods slow and settle
-    puff.vx *= 1 - 2.6 * wallDt; puff.vy *= 1 - 2.6 * wallDt;
+    // the air (?airfx: spread, wind, the cars' stir - render/airflow.ts), else plain drag: clods
+    // slow and settle
+    if (air) airMove(puff, wallDt, air, ctx.state.airCars, fxRandom);
+    else { puff.vx *= 1 - 2.6 * wallDt; puff.vy *= 1 - 2.6 * wallDt; }
     view.ctx.fillStyle = `rgb(${puff.rgb})`;
     // PIXEL PUFFS: a square snapped to the art-pixel grid, fading in STEPS (pixel-art smoke),
     // not a smooth disc
@@ -656,6 +670,7 @@ function renderStreaks(ctx: ParticleCtx, wallDt: number) {
 export function createParticles(view: View, cam: Cam, helpers: ParticleHelpers) {
   const { PPMz, toScreenX, toScreenY } = helpers;
   const state: ParticleState = { puffs: [], overPuffs: [], streaks: [], streakDebt: new Map(),
+    airCars: [],
     sprayDebt: 0, smokeDebt: 0,
     chips: [], sparks: [] };
   const ctx: ParticleCtx = { view, cam, PPMz, toScreenX, toScreenY, state };
@@ -682,5 +697,6 @@ export function createParticles(view: View, cam: Cam, helpers: ParticleHelpers) 
       renderStreaks(ctx, wallDt);
     },
     addTowLines: (car: TowCar, wallDt: number) => emitStreaks(ctx, car, wallDt),
+    setAirCars: (cars: AirCar[]) => { state.airCars = cars; },
   };
 }

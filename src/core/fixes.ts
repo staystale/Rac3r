@@ -37,4 +37,9 @@ export const FIX = {
   // ?aicool=1: skilled AI drivers sometimes ease off / find water or grass to cool hot tyres
   // (ai/driverCool.ts)
   aiCool: atLoad('aicool'),
+  // ?smokeearly=1: tyre smoke from ~60 C, faint and sparse when cool, thick when hot
+  smokeEarly: atLoad('smokeearly'),
+  // ?airfx=1: puffs spread with age, drift on a gentle wind, are stirred by passing cars
+  // (render/airflow.ts)
+  airFx: atLoad('airfx'),
 };
