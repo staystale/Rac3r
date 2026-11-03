@@ -5,7 +5,8 @@ const THEME_NAMES = THEMES as Record<string, { name: string }>;
 import { saveProfile } from './profile.ts';
 import { addPane, addButton, addElement } from './widgets.ts';
 import { KIND, catOf, showTrackList, addGenRows } from './tracks.ts';
-import { showCarPicker } from './garage.ts';
+import { showCarPicker, showGarage } from './garage.ts';
+import { FIX } from '../core/fixes.ts';
 import { hideMenu } from '../menu.ts';
 import { buildLevel } from '../world/load.ts';
 import { SEASON_NAMES, seasonForecast } from '../world/weather.ts';
@@ -400,5 +401,9 @@ export function showSetup(menu: Menu, level: Level) {
   addWeatherRows(menu, panel, state, level);
   if (menu.api.daytime) addTimeRows(menu, panel, state);
   showCarPicker(menu, panel);
+  // ?testgarage: the garage from here, and back to this setup (owner 11-03)
+  if (FIX.testGarage) {
+    addButton(menu, panel, 'GARAGE ›', () => showGarage(menu, () => showSetup(menu, level)));
+  }
   addLaunchButtons(menu, panel, level, state);
 }

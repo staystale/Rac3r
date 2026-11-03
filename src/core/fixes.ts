@@ -37,4 +37,7 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
+  // ?testgarage=1: the garage lives in test mode (setup's GARAGE button, back to that setup);
+  // browsing a car no longer changes yours - SELECT locks it in; the shops TRY (free in test)
+  testGarage: atLoad('testgarage'),
 };

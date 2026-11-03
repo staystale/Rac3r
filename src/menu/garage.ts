@@ -13,6 +13,7 @@ import { addPane, addButton, addElement, drawLift } from './widgets.ts';
 import { showMainMenu } from './tracks.ts';
 import type { Menu } from '../menu.ts';
 import { MENU_COL } from './palette.ts';
+import { FIX } from '../core/fixes.ts';
 
 
 /**
@@ -24,9 +25,9 @@ import { MENU_COL } from './palette.ts';
  * @param onPick called with the car after every change
  */
 export function showCarPicker(menu: Menu, panel: HTMLElement,
-  onPick: (car: RosterRow) => void = () => {}) {
+  onPick: (car: RosterRow) => void = () => {}, pickCar: CarSlot = yourCar(menu)) {
   const owned = () => ROSTER.filter((car) => menu.profile.unlocked.includes(car.id));
-  const cur = () => ROSTER.find((car) => car.id === menu.profile.active)!;
+  const cur = () => ROSTER.find((car) => car.id === pickCar.get())!;
   let filterClass = cur().cls, filterSub = 'ALL';
   const clsList = () => ['ALL', ...CLASSES.filter((cls) => owned().some((car) => car.cls
     === cls.id)).map((cls) => cls.id)];
@@ -39,8 +40,7 @@ export function showCarPicker(menu: Menu, panel: HTMLElement,
     + list.length) % list.length];
   const fit = () => {
     const list = cars();
-  if (!list.some((car) => car.id === menu.profile.active)) menu.profile.active = list[0].id;
-  saveProfile(menu.profile);
+  if (!list.some((car) => car.id === pickCar.get())) pickCar.set(list[0].id);
   };
   // one boxed group; each row: TAG (coloured) ◀ value ▶ — the value takes the tag's colour so the
   // three read as a set
@@ -76,13 +76,11 @@ export function showCarPicker(menu: Menu, panel: HTMLElement,
   paint();
   });
   const lbl = row('CAR', MENU_COL.fg, () => {
-    menu.profile.active = step(cars().map((car) => car.id), menu.profile.active, -1);
-  saveProfile(menu.profile);
+    pickCar.set(step(cars().map((car) => car.id), pickCar.get(), -1));
   paint();
   },
     () => {
-      menu.profile.active = step(cars().map((car) => car.id), menu.profile.active, 1);
-    saveProfile(menu.profile);
+      pickCar.set(step(cars().map((car) => car.id), pickCar.get(), 1));
     paint();
     });
   lbl.classList.add('car');
@@ -97,14 +95,35 @@ export function showCarPicker(menu: Menu, panel: HTMLElement,
   paint();
 }
 
+/** Which car a picker moves: get the id, set a new one. */
+interface CarSlot { get: () => string; set: (carId: string) => void }
+/**
+ * Your car: the profile's active car, saved as it changes.
+ * @param menu the menu context
+ * @returns the slot
+ */
+const yourCar = (menu: Menu): CarSlot => ({ get: () => menu.profile.active,
+  set: (carId) => { menu.profile.active = carId; saveProfile(menu.profile); } });
+/**
+ * The car the garage shows (?testgarage: the one being looked at, not yet yours), else yours.
+ * @param menu the menu context
+ * @returns the car id
+ */
+const garageCarId = (menu: Menu) => (FIX.testGarage && menu.garage ? menu.garage.viewing
+  : menu.profile.active);
+
 /**
  * GARAGE (spec §3; user chose: the TOP-DOWN car on a workshop LIFT). Browse owned cars, measured
  * stats.
  * @param menu the menu context
  */
-export function showGarage(menu: Menu) {
+export function showGarage(menu: Menu, back?: () => void) {
+  // ?testgarage: opened from test setup it looks at your car, and goes back there
+  if (FIX.testGarage && back) menu.garage = { viewing: menu.profile.active, back };
+  const session = FIX.testGarage ? menu.garage : null;
   const panel = addPane(menu, true);
   addElement(panel, 'h2', 'GARAGE');
+  if (session) addElement(panel, 'div', 'TEST GARAGE · free to try', 'sub');
   const box = addElement(panel, 'div', '', 'garage');
   const left = addElement(box, 'div', ''), right = addElement(box, 'div', '');
   const lift = document.createElement('canvas');
@@ -116,7 +135,7 @@ export function showGarage(menu: Menu) {
   pick.style.marginTop = '8px';
   const stats = addElement(right, 'div', '', 'stats');
   const showStats = () => {
-    const car = ROSTER.find((x) => x.id === menu.profile.active)!,
+    const car = ROSTER.find((x) => x.id === garageCarId(menu))!,
       spec: Partial<CarStat> = CAR_STATS[car.id] || {};
     drawLift(lift, menu.api.carSprite(car.id, (menu.profile.livery || {})[car.id]));
     const aids = spec.aids ? [spec.aids.abs && 'ABS', spec.aids.tcs
@@ -147,6 +166,25 @@ AIDS</span><b>${aids}</b>`
   addButton(menu, buttonRow, 'TYRES', () => showTyreShop(menu));
   addButton(menu, buttonRow, 'BUY CARS', () => {}, '', true, 'SOON');
   addButton(menu, buttonRow, 'UPGRADES', () => {}, '', true, 'SOON');
+  if (session) {
+    // SELECT locks the car in as yours (owner 11-03); browsing alone changes nothing
+    const row = addElement(panel, 'div', '', 'row');
+    const select = addButton(menu, row, 'SELECT ✓', () => {
+      if (session.viewing === menu.profile.active) return;
+      menu.profile.active = session.viewing;
+      saveProfile(menu.profile);
+      session.back();
+    });
+    addButton(menu, row, '◀ BACK', () => session.back());
+    const showSelect = () => {
+      const yours = session.viewing === menu.profile.active;
+      select.textContent = yours ? 'SELECTED ✓' : 'SELECT ✓';
+      select.className = yours ? 'on' : 'go';
+    };
+    showCarPicker(menu, pick, (car) => { showStats(); showSelect(); return car; }, {
+      get: () => session.viewing, set: (carId) => { session.viewing = carId; } });
+    return;
+  }
   addButton(menu, panel, '◀ BACK', () => showMainMenu(menu));
   showCarPicker(menu, pick, showStats);
 }
@@ -158,7 +196,7 @@ AIDS</span><b>${aids}</b>`
  * @param menu the menu context
  */
 function showPaintShop(menu: Menu) {
-  const panel = addPane(menu, true), carId = menu.profile.active,
+  const panel = addPane(menu, true), carId = garageCarId(menu),
     car = ROSTER.find((x) => x.id === carId)!;
   const cur: Livery & { paint: string; trim: string; num: number } = { paint: car.paint,
     trim: car.trim, num: 0,
@@ -222,7 +260,7 @@ font-size:15px';
     Object.assign(cur, { paint: car.paint, trim: car.trim, num: 0 });
   showLivery();
   });
-  addButton(menu, buttonRow, 'APPLY ✓', () => {
+  addButton(menu, buttonRow, FIX.testGarage ? 'TRY ✓' : 'APPLY ✓', () => {
     menu.profile.livery = menu.profile.livery || {};
   menu.profile.livery[carId] = { ...cur };
   saveProfile(menu.profile);
@@ -278,7 +316,7 @@ function showSetWear(menu: Menu, carId: string, fitted: boolean, info: HTMLEleme
  * @param menu the menu context
  */
 function showTyreShop(menu: Menu) {
-  const panel = addPane(menu, true), carId = menu.profile.active,
+  const panel = addPane(menu, true), carId = garageCarId(menu),
     car = ROSTER.find((x) => x.id === carId)!,
     spec: Partial<CarStat> = CAR_STATS[carId] || {};
   let sel = fittedTyre(car, (menu.profile.tyres || {})[carId]).id;
@@ -306,7 +344,7 @@ solid ' + brand.col;
   }
   const info = addElement(right, 'div', '');
   const fitR = addElement(panel, 'div', '', 'row');
-  const fitB = addButton(menu, fitR, 'FIT ✓', () => {
+  const fitB = addButton(menu, fitR, FIX.testGarage ? 'TRY ✓' : 'FIT ✓', () => {
     menu.profile.tyres = menu.profile.tyres || {};
     menu.profile.tyres[carId] = sel;
     // TYRE WEAR: fitting is a NEW set - the only way to fresh tyres

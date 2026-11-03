@@ -46,4 +46,12 @@ export const TEST_LIST: TestEntry[] = [
   // passed 2026-11-02; aicool, smokeearly, airfx, smokelinger, aidust, realcars, jokerhint,
   // puffpool, tyrehealth, pitsolid, muscletyres,
   // namefix, bhbridges, menustyle passed 2026-11-03; specsheet removed)
+  {
+    id: 'testgarage',
+    added: '2026-11-03',
+    name: 'Garage in test mode: setup has GARAGE; browse freely, SELECT locks a car in; TRY',
+    where: 'Plain link + &testgarage=1: TEST MODE > a track > GARAGE (no GARAGE on the main menu)',
+    try: 'Browse cars and go BACK (your car stays); browse and SELECT (it changes, back to setup).',
+    wrong: 'Your car changing just by browsing, or SELECT / BACK landing anywhere but the setup.',
+  },
 ];

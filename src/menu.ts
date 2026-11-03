@@ -37,6 +37,8 @@ export interface Menu {
   profile: Profile;
   thumbs: Record<string, HTMLCanvasElement> | null;   // the cached level thumbnails
   openedAt: number;   // when the current screen opened (ghost-click guard)
+  // ?testgarage: the car the garage is showing, and where its BACK / SELECT go
+  garage?: { viewing: string; back: () => void } | null;
 }
 
 /**

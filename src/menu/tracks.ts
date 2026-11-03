@@ -9,6 +9,7 @@ import { saveProfile } from './profile.ts';
 import { addPane, addButton, addElement, copyThumb } from './widgets.ts';
 import { showSetup } from './setup.ts';
 import { showGarage } from './garage.ts';
+import { FIX } from '../core/fixes.ts';
 import { showSettings } from './settings.ts';
 import type { Menu } from '../menu.ts';
 import type { Level, StageRecipe } from '../world/types.ts';
@@ -124,7 +125,8 @@ export function showMainMenu(menu: Menu) {
   logo.alt = 'RAC3R - a driving sandbox';
   const buttons = addElement(panel, 'div', '', 'btns');
   addButton(menu, buttons, 'TEST MODE', () => showTrackSelect(menu), 'go');
-  addButton(menu, buttons, 'GARAGE', () => showGarage(menu));
+  // ?testgarage: the garage lives in test (and story) - not here (owner 11-03)
+  if (!FIX.testGarage) addButton(menu, buttons, 'GARAGE', () => showGarage(menu));
   addButton(menu, buttons, 'SETTINGS', () => showSettings(menu, () => showMainMenu(menu)));
   addButton(menu, buttons, 'STORY', () => {}, '', true, 'LOCKED');
 }
