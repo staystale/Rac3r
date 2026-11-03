@@ -4,7 +4,7 @@
 // hwsnow - the driving root fix (wheelspin), evenlap, flatsize and the realism round - the K13
 // dials, pedalramp, lockfade, spinmarks, smokefade, dustlinger, musclegears - and smokeover,
 // heatease, flatgrip, towplus passed 11-02;
-// aicool, smokeearly, airfx, smokelinger, aidust passed 11-03.)
+// aicool, smokeearly, airfx, smokelinger, aidust, realcars passed 11-03.)
 import { envValue } from './debug.ts';
 
 /**
@@ -38,7 +38,4 @@ export const FIX = {
   // ?jokerhint=1: the lap panel's joker "approaching" hint works out where the turn-off is
   // (hud/laps.ts)
   jokerHint: atLoad('jokerhint'),
-  // ?realcars=1: every car on its real counterpart - weight, engine, gears, tyres, drag, and a
-  // name close to the real one (realcars.ts)
-  realCars: atLoad('realcars'),
 };

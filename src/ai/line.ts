@@ -16,7 +16,7 @@ import { WEATHER } from "../world/weather.ts";
 import { coverEpoch } from "../world/coverfield.ts";
 import { querySubtrack } from "../world/tyrewall.ts";
 import { GRAVITY } from "../cars.ts";
-import { STATS } from "../carstatsof.ts";
+import { CAR_STATS } from "../carstats.ts";
 import type { Level, Lane } from "../world/types.ts";
 import type {
   AiCar, Branches, CarStat, Corner, LinePoint, Path, PathPoint, RacingLine, SpeedProfile,
@@ -414,7 +414,7 @@ export function aiPaths(level: Level) {
 // g, brake100 = metres from 100 km/h
 export function carGrip(spec: AiCar["spec"]) {
   const carId = String(spec.id).split('#')[0],
-    stats: CarStat = STATS[carId] || {};
+    stats: CarStat = CAR_STATS[carId] || {};
   const gripG = stats.gripG || spec.mu * 0.9,
     brakeG = stats.brake100 ? (27.78 * 27.78) / (2 * stats.brake100) / GRAVITY : gripG * 0.8;
   return { id: carId, gripG, brakeG };

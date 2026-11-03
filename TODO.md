@@ -31,12 +31,14 @@ handover, written on request.
   (tyre smoke from 60 C, faint when cool), airfx (render/airflow.ts: spread, wind, cars stir);
   GARAGE SPEC SHEET + tyre health under test. TYPESCRIPT CONVERSION DONE 11-03 (src/ is all
   TypeScript). DEFAULT 11-03 (owner: pass): smokelinger (smoke hangs, dust cannot evict it),
-  aidust (AI cars near you throw smoke / dust / spray). UNDER TEST: ?jokerhint, ?realcars (REAL
-  CARS, owner "anything real is fine": each car on its real counterpart - weight, engine from the
-  maker's peak torque / power, gears, tyre size, 0.5 rho Cd A - and a name close to the real one;
-  realcars.ts, its own measured garage table src/carstatsreal.ts; carstats REALCARS=1 measured
-  most within ~5 % of the real top speed / 0-100; the Muscle runs 0-100 in 4.5 s, real ~6.5 -
-  its tyres grip too well off the line). More vehicles later (owner). Then K12.
+  aidust (AI cars near you throw smoke / dust / spray), realcars (REAL CARS, owner "anything
+  real is fine": every car on its real counterpart - weight, engine from the maker's peak torque /
+  power, gears, tyre size, 0.5 rho Cd A - with its sources on its ROSTER row and a name close to
+  the real one; realcars.ts holds the helpers; most within ~5 % of the real top speed / 0-100; the
+  Muscle runs 0-100 in 4.5 s, real ~6.5 - its tyres grip too well off the line). UNDER TEST:
+  ?jokerhint. NEXT: the puff pool (smoke / dust still vanish with AI cars near: the shared 320-puff
+  pools overflow - 7 AI on gravel cut ~2/3 of your dust and half your smoke short; plan with the
+  owner). More vehicles later (owner). Then K12.
 - The plain link is the approved game. DEFAULT 10-24 / 10-25 (owner
   "all pass"; every switch and old path deleted, each proved SAME against the tested switch):
   highway street lights L4b + the solid grid; traffic seated when woken, the Sandbox puddles,

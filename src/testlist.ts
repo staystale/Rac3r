@@ -38,7 +38,8 @@ export const TEST_LIST = [
   // 0.5, power 1), pedalramp, lockfade, spinmarks, smokefade, musclegears, dustlinger passed
   // 2026-11-02; smokeover, heatease, flatgrip passed 2026-11-02; steerfeel (the SETTINGS steering:
   // curve + reach at speed) passed 2026-11-02, kept as player settings; towplus (the wake)
-  // passed 2026-11-02; aicool, smokeearly, airfx, smokelinger, aidust passed 2026-11-03)
+  // passed 2026-11-02; aicool, smokeearly, airfx, smokelinger, aidust, realcars passed
+  // 2026-11-03)
   {
     id: 'specsheet',
     added: '2026-11-02',
@@ -54,14 +55,6 @@ export const TEST_LIST = [
     where: 'GARAGE > TYRES, after a few races on the same set',
     try: 'Race, come back, watch the numbers climb; fit a NEW SET and see them reset.',
     wrong: 'Numbers that never change, or a risk shown on a nearly new set.',
-  },
-  {
-    id: 'realcars',
-    added: '2026-11-03',
-    name: 'REAL CARS: each car on its real one (weight, engine, gears, tyres, drag), names',
-    where: 'Plain link + &realcars=1: the garage (names), then drive a few - Mini, saloon, Muscle',
-    try: 'Top speed and the pull in each gear: like the real car? The Mini tops out ~160 km/h.',
-    wrong: 'A car that will not pull top gear, revs that sound wrong, or one handling oddly.',
   },
   {
     id: 'jokerhint',

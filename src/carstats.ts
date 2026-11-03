@@ -4,11 +4,11 @@ import type { CarStat } from './ai/types.ts';
 
 export const CAR_STATS: Record<string, CarStat> = {
   "hatch-fwd": {
-    "topKph": 245,
-    "zeroTo100": 6.8,
+    "topKph": 238,
+    "zeroTo100": 6.7,
     "brake100": 37.4,
-    "gripG": 1.2,
-    "massKg": 1440,
+    "gripG": 1.19,
+    "massKg": 1351,
     "drive": "FWD",
     "aids": {
       "abs": true,
@@ -16,11 +16,11 @@ export const CAR_STATS: Record<string, CarStat> = {
     }
   },
   "hatch-rwd": {
-    "topKph": 247,
-    "zeroTo100": 5.5,
+    "topKph": 269,
+    "zeroTo100": 5.2,
     "brake100": 37.1,
     "gripG": 1.19,
-    "massKg": 1440,
+    "massKg": 1425,
     "drive": "RWD",
     "aids": {
       "abs": true,
@@ -28,10 +28,10 @@ export const CAR_STATS: Record<string, CarStat> = {
     }
   },
   "saloon-rwd": {
-    "topKph": 239,
-    "zeroTo100": 5.1,
+    "topKph": 243,
+    "zeroTo100": 6.6,
     "brake100": 36.3,
-    "gripG": 1.23,
+    "gripG": 1.25,
     "massKg": 1450,
     "drive": "RWD",
     "aids": {
@@ -40,11 +40,11 @@ export const CAR_STATS: Record<string, CarStat> = {
     }
   },
   "wrz-awd": {
-    "topKph": 239,
-    "zeroTo100": 4.4,
-    "brake100": 36.2,
+    "topKph": 254,
+    "zeroTo100": 5,
+    "brake100": 36.3,
     "gripG": 1.21,
-    "massKg": 1410,
+    "massKg": 1495,
     "drive": "4WD",
     "aids": {
       "abs": true,
@@ -52,11 +52,11 @@ export const CAR_STATS: Record<string, CarStat> = {
     }
   },
   "estate-4x4": {
-    "topKph": 218,
-    "zeroTo100": 4.6,
-    "brake100": 39.2,
+    "topKph": 253,
+    "zeroTo100": 5.6,
+    "brake100": 38.8,
     "gripG": 1.15,
-    "massKg": 1810,
+    "massKg": 1665,
     "drive": "4WD",
     "aids": {
       "abs": true,
@@ -64,11 +64,11 @@ export const CAR_STATS: Record<string, CarStat> = {
     }
   },
   "muscle-rwd": {
-    "topKph": 265,
-    "zeroTo100": 5.8,
-    "brake100": 36.4,
-    "gripG": 1.22,
-    "massKg": 1880,
+    "topKph": 243,
+    "zeroTo100": 4.5,
+    "brake100": 36.5,
+    "gripG": 1.21,
+    "massKg": 1730,
     "drive": "RWD",
     "aids": {
       "abs": true,
@@ -76,47 +76,47 @@ export const CAR_STATS: Record<string, CarStat> = {
     }
   },
   "rally-4x4": {
-    "topKph": 244,
-    "zeroTo100": 3.4,
-    "brake100": 48.3,
+    "topKph": 234,
+    "zeroTo100": 3.3,
+    "brake100": 47.8,
     "gripG": 1.33,
-    "massKg": 1250,
+    "massKg": 1090,
     "drive": "4WD",
     "aids": null
   },
   "track-rwd": {
-    "topKph": 292,
-    "zeroTo100": 3.9,
-    "brake100": 30.6,
-    "gripG": 1.79,
-    "massKg": 815,
+    "topKph": 347,
+    "zeroTo100": 4,
+    "brake100": 32.3,
+    "gripG": 1.83,
+    "massKg": 798,
     "drive": "RWD",
     "aids": null
   },
   "naffcar": {
-    "topKph": 288,
-    "zeroTo100": 4.9,
-    "brake100": 38.5,
-    "gripG": 1.55,
-    "massKg": 1495,
+    "topKph": 320,
+    "zeroTo100": 3.2,
+    "brake100": 38.6,
+    "gripG": 1.54,
+    "massKg": 1542,
     "drive": "RWD",
     "aids": null
   },
   "tractor": {
-    "topKph": 66,
+    "topKph": 70,
     "zeroTo100": null,
-    "brake100": 51,
-    "gripG": 1.03,
-    "massKg": 5200,
+    "brake100": 51.4,
+    "gripG": 0.93,
+    "massKg": 11400,
     "drive": "RWD",
     "aids": null
   },
   "mini-fwd": {
-    "topKph": 171,
-    "zeroTo100": 9.9,
-    "brake100": 59.3,
+    "topKph": 165,
+    "zeroTo100": 9.7,
+    "brake100": 58.8,
     "gripG": 1.09,
-    "massKg": 690,
+    "massKg": 650,
     "drive": "FWD",
     "aids": {
       "abs": false,
@@ -124,11 +124,11 @@ export const CAR_STATS: Record<string, CarStat> = {
     }
   },
   "lambo-awd": {
-    "topKph": 344,
-    "zeroTo100": 3,
+    "topKph": 327,
+    "zeroTo100": 3.1,
     "brake100": 33.3,
     "gripG": 1.33,
-    "massKg": 1420,
+    "massKg": 1553,
     "drive": "4WD",
     "aids": {
       "abs": true,
@@ -149,10 +149,10 @@ export const CAR_STATS: Record<string, CarStat> = {
   },
   "kit-2l": {
     "topKph": 217,
-    "zeroTo100": 4.9,
+    "zeroTo100": 5.5,
     "brake100": 49.1,
     "gripG": 1.32,
-    "massKg": 1000,
+    "massKg": 960,
     "drive": "FWD",
     "aids": {
       "abs": false,
@@ -161,7 +161,7 @@ export const CAR_STATS: Record<string, CarStat> = {
   },
   "rx-super": {
     "topKph": 224,
-    "zeroTo100": 3,
+    "zeroTo100": 3.1,
     "brake100": 46.5,
     "gripG": 1.38,
     "massKg": 1300,
@@ -208,9 +208,9 @@ export const CAR_STATS: Record<string, CarStat> = {
     }
   },
   "f2-rwd": {
-    "topKph": 291,
-    "zeroTo100": 3.9,
-    "brake100": 31.9,
+    "topKph": 315,
+    "zeroTo100": 4,
+    "brake100": 31.1,
     "gripG": 1.78,
     "massKg": 755,
     "drive": "RWD",
