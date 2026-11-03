@@ -47,4 +47,12 @@ export const TEST_LIST: TestEntry[] = [
   // puffpool, tyrehealth, pitsolid, muscletyres,
   // namefix, bhbridges, menustyle, testgarage, ai10, k12 passed
   // 2026-11-03; specsheet removed)
+  {
+    id: 'resetin',
+    added: '2026-11-03',
+    name: 'RESET mid-race puts the car all four wheels on the road (was half on, half off)',
+    where: 'Plain link + &resetin=1: any circuit, a low car (Formula Won), off into the gravel',
+    try: 'Go off, press RESET: the car should sit just inside the edge and drive straight away.',
+    wrong: 'Still half in the gravel, or put down in the middle of the road in the way.',
+  },
 ];

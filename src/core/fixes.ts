@@ -37,4 +37,7 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
+  // ?resetin=1: a mid-race RESET puts the car all four wheels on the road (was: its centre on the
+  // edge, half on half off - a low car like the F1 sat in the gravel) (game/session.ts)
+  resetIn: atLoad('resetin'),
 };
