@@ -137,7 +137,7 @@ function onInputPointerDown(core, event) {
     owners.set(event.pointerId, hit);
     state.pedals[hit] = true;
   } else {
-    // did not hit a control: it is a world tap (the car selector chip claims its own in hud.js)
+    // did not hit a control: it is a world tap (the car selector chip claims its own in hud.ts)
     state.tapped = { x: tapX, y: tapY };
   }
   try {

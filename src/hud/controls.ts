@@ -1,18 +1,21 @@
-// hud/controls.js — touch pedals, the ?dev=1 readout and the fps counter.
-// Pure moves out of hud.js.
+// hud/controls.ts — touch pedals, the ?dev=1 readout and the fps counter.
+// Pure moves out of hud.ts.
 
 import { COL } from '../world/colours.ts';
 import { MARGIN, drawHudPanel, drawHudLabel } from './widgets.ts';
+import type { HudState, HudCar, HudGame } from './hudtypes.ts';
+import type { HudRects } from './layout.ts';
 
 /**
  * Bottom-right: pedals (touch only), the thumb stick, and the keyboard hint.
- * @param {CanvasRenderingContext2D} ctx
- * @param {object} game the game
- * @param {number} width canvas width
- * @param {number} height canvas height
+ * @param ctx
+ * @param game the game
+ * @param width canvas width
+ * @param height canvas height
  * @returns {void}
  */
-export function drawHudPedals(ctx, game, width, height) {
+export function drawHudPedals(ctx: CanvasRenderingContext2D, game: HudGame, width: number,
+  height: number) {
   if (game.input.isTouch()) {
     for (const pedal of game.input.pedalHits(width, height)) {
       const pressed = !!game.input.pedals[pedal.name];
@@ -61,14 +64,15 @@ export function drawHudPedals(ctx, game, width, height) {
 /**
  * Dev readout (?dev=1). Every hidden number the tyre model runs on
  * (CLAUDE.md §3).
- * @param {CanvasRenderingContext2D} ctx
- * @param {object} state the shared HUD state
- * @param {object} game the game
- * @param {object} car the car
- * @param {number} height canvas height
+ * @param ctx
+ * @param state the shared HUD state
+ * @param game the game
+ * @param car the car
+ * @param height canvas height
  * @returns {void}
  */
-export function drawHudDevReadout(ctx, state, game, car, height) {
+export function drawHudDevReadout(ctx: CanvasRenderingContext2D, state: HudState, game: HudGame,
+  car: HudCar, height: number) {
   if (game.dev && !state.tuneOpen) {
     const tyreState = car.t;
     const lines = [
@@ -97,19 +101,19 @@ export function drawHudDevReadout(ctx, state, game, car, height) {
       `rpm ${car.rpm.toFixed(0)}  gear ${car.gear}  T ${tyreState.torque.toFixed(0)}Nm  `
         + `steps/f ${game.stepsLastFrame}`,
       `fps ${game.fps.toFixed(0)}   `
-        + `in  st ${game.in.steer.toFixed(2)} th ${game.in.throttle.toFixed(2)} `
-        + `br ${game.in.brake.toFixed(2)} hb ${game.in.handbrake ? 1 : 0}`,
+        + `in  st ${game.in!.steer.toFixed(2)} th ${game.in!.throttle.toFixed(2)} `
+        + `br ${game.in!.brake.toFixed(2)} hb ${game.in!.handbrake ? 1 : 0}`,
     ];
     // each tyre's air %, metres driven flat, R = on its rim (physics/tyrepressure.ts)
     if (car.tyreP) {
-      lines.push('air ' + car.tyreP.map((pressure, corner) => (car.onRim[corner] ? 'R'
-        : Math.round(pressure * 100)) + '/' + Math.round(car.flatRun[corner])).join(' '));
+      lines.push('air ' + car.tyreP.map((pressure, corner) => (car.onRim![corner] ? 'R'
+        : Math.round(pressure * 100)) + '/' + Math.round(car.flatRun![corner])).join(' '));
     }
     // the engine: C, radiator water %, oil %, seconds seizing, S = seized
     if (car.engT !== undefined) {
-      lines.push(`eng ${car.engT.toFixed(1)}C water ${Math.round(car.engWater * 100)} `
-        + `oil ${Math.round(car.engOil * 100)} seize ${car.seizeT.toFixed(1)}`
-        + (car.engSeized ? ' S' : '') + ` pow ${car.engPowerK.toFixed(2)}`);
+      lines.push(`eng ${car.engT.toFixed(1)}C water ${Math.round(car.engWater! * 100)} `
+        + `oil ${Math.round(car.engOil! * 100)} seize ${car.seizeT!.toFixed(1)}`
+        + (car.engSeized ? ' S' : '') + ` pow ${car.engPowerK!.toFixed(2)}`);
     }
     const readoutH = lines.length * 11 + 12;
     const readoutRect = { x: MARGIN, y: height - MARGIN - readoutH - 22, w: 232, h: readoutH };
@@ -122,15 +126,15 @@ export function drawHudDevReadout(ctx, state, game, car, height) {
 
 /**
  * FPS, test mode: now + the worst of the last ~10 s; amber under 50, red under 30.
- * @param {CanvasRenderingContext2D} ctx
- * @param {object} game the game
- * @param {object} rects the layout rectangles
+ * @param ctx
+ * @param game the game
+ * @param rects the layout rectangles
  * @returns {void}
  */
-export function drawHudFps(ctx, game, rects) {
+export function drawHudFps(ctx: CanvasRenderingContext2D, game: HudGame, rects: HudRects) {
   if (game.testMode && game.fps) {
     const fpsRect = rects.fps, fpsLow = game.fpsLow || game.fps,
-      col = (value) => (value < 30 ? '#ff6a5c' : value < 50 ? '#e8a13a' : COL.live);
+      col = (value: number) => (value < 30 ? '#ff6a5c' : value < 50 ? '#e8a13a' : COL.live);
     drawHudPanel(ctx, fpsRect, { fill: 'rgba(14,15,18,0.82)' });
     drawHudLabel(ctx, Math.round(game.fps) + ' FPS', fpsRect.x + 8, fpsRect.y + fpsRect.h / 2,
       { size: 10, weight: 800, col: col(game.fps) });

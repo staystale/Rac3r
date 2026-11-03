@@ -1,6 +1,6 @@
 // THE JOKER LANE of a rallycross level: which lane it is, where a car is along it, and a pose on
 // it. The lane's points run in driving order (ai/line.ts enters at the first, rejoins at the last).
-// Read by the race rules (game/rules.js), RESET (game/session.js) and the minimap (hud/minimap.js).
+// Read by the race rules (game/rules.js), RESET (game/session.js) and the minimap (hud/minimap.ts).
 import type { Lane, Level } from "./types.ts";
 
 /** Where a car is on a lane: metres along it from the first point, and its signed offset. */

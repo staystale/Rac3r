@@ -1,5 +1,5 @@
-// hud/gauges.js — car/tune chips, aids, indicators, button row, cone tally, speedo, tyre diagram.
-// Pure moves out of hud.js.
+// hud/gauges.ts — car/tune chips, aids, indicators, button row, cone tally, speedo, tyre diagram.
+// Pure moves out of hud.ts.
 
 import { ROSTER } from '../cars.ts';
 import { LEVEL } from '../world/state.ts';
@@ -11,16 +11,21 @@ import { wheelGone } from '../world/wheels.ts';
 import {
   MARGIN, DIAGRAM_H, drawHudPanel, drawHudLabel, drawHudButton,
 } from './widgets.ts';
+import type { HudState, HudCar, HudGame } from './hudtypes.ts';
+import type { HudRects } from './layout.ts';
+import type { Spec } from '../cars.ts';
+import type { HudRect } from './widgets.ts';
 
 /**
  * Top-left: the car chip and, when open, the car and level dropdown.
- * @param {CanvasRenderingContext2D} ctx
- * @param {object} state the shared HUD state
- * @param {object} rects the layout rectangles
- * @param {object} spec the car spec
+ * @param ctx
+ * @param state the shared HUD state
+ * @param rects the layout rectangles
+ * @param spec the car spec
  * @returns {void}
  */
-export function drawHudCarChip(ctx, state, rects, spec) {
+export function drawHudCarChip(ctx: CanvasRenderingContext2D, state: HudState, rects: HudRects,
+  spec: Spec) {
   drawHudPanel(ctx, rects.chip);
   drawHudLabel(ctx, spec.name, rects.chip.x + 10, rects.chip.y + rects.chip.h / 2,
     { size: 12.5, maxW: rects.chip.w - 30 });
@@ -31,7 +36,7 @@ export function drawHudCarChip(ctx, state, rects, spec) {
       const selected = carRow.id === spec.id;
       drawHudPanel(ctx, carRow,
         { fill: selected ? 'rgba(76,194,160,0.92)' : 'rgba(27,29,34,0.88)' });
-      const row = ROSTER.find((entry) => entry.id === carRow.id);
+      const row = ROSTER.find((entry) => entry.id === carRow.id)!;
       drawHudLabel(ctx, row.name, carRow.x + 10, carRow.y + carRow.h / 2,
         { size: 12, col: selected ? '#0d1a16' : COL.hudText, maxW: carRow.w - 52 });
       // the drive layout is the point of the roster, so it is on the row
@@ -54,12 +59,12 @@ export function drawHudCarChip(ctx, state, rects, spec) {
 
 /**
  * Top-left: the TUNE chip, opening the debug panel.
- * @param {CanvasRenderingContext2D} ctx
- * @param {object} state the shared HUD state
- * @param {object} rects the layout rectangles
+ * @param ctx
+ * @param state the shared HUD state
+ * @param rects the layout rectangles
  * @returns {void}
  */
-export function drawHudTuneChip(ctx, state, rects) {
+export function drawHudTuneChip(ctx: CanvasRenderingContext2D, state: HudState, rects: HudRects) {
   drawHudPanel(ctx, rects.tuneChip,
     { fill: state.tuneOpen ? 'rgba(232,161,58,0.94)' : 'rgba(27,29,34,0.88)' });
   drawHudLabel(ctx, 'TUNE', rects.tuneChip.x + rects.tuneChip.w / 2, rects.tuneChip.y
@@ -71,19 +76,21 @@ export function drawHudTuneChip(ctx, state, rects) {
  * Bottom-right, above the pedals: DRIVER AIDS. Green = on, dark = off, AMBER FLASH
  * while working - the silent twin of a real ABS buzz (the phone may be muted). Flash on the wall
  * clock (rule 5).
- * @param {CanvasRenderingContext2D} ctx
- * @param {object} state the shared HUD state
- * @param {object} rects the layout rectangles
- * @param {object} car the car
- * @param {object} spec the car spec
- * @param {number} wallDt wall-clock seconds
+ * @param ctx
+ * @param state the shared HUD state
+ * @param rects the layout rectangles
+ * @param car the car
+ * @param spec the car spec
+ * @param wallDt wall-clock seconds
  * @returns {void}
  */
-export function drawHudAids(ctx, state, rects, car, spec, wallDt) {
+export function drawHudAids(ctx: CanvasRenderingContext2D, state: HudState, rects: HudRects,
+  car: HudCar, spec: Spec, wallDt: number) {
   if (spec.aids) {
     for (const [key, chip, active,
       working] of [['abs', rects.absChip, car.absOn, car.t.absWorking],
-      ['tcs', rects.tcsChip, car.tcsOn, car.t.tcsWorking]]) {
+      ['tcs', rects.tcsChip, car.tcsOn, car.t.tcsWorking]] as
+      ['abs' | 'tcs', HudRect, boolean, boolean][]) {
       if (!spec.aids[key]) continue;
       state.aidFlash[key] = working && active ? 1 : Math.max(0, state.aidFlash[key] - wallDt * 5);
       const flash = state.aidFlash[key] * (0.6 + 0.4 * Math.sin(performance.now() / 45));
@@ -102,16 +109,16 @@ export function drawHudAids(ctx, state, rects, car, spec, wallDt) {
 /**
  * Bottom-left: LIGHTS and indicators (the indicator buttons blink amber while
  * on, LIGHTS lit while the headlights are on).
- * @param {CanvasRenderingContext2D} ctx
- * @param {object} rects the layout rectangles
- * @param {object} car the car
+ * @param ctx
+ * @param rects the layout rectangles
+ * @param car the car
  * @returns {void}
  */
-export function drawHudIndicators(ctx, rects, car) {
+export function drawHudIndicators(ctx: CanvasRenderingContext2D, rects: HudRects, car: HudCar) {
   const blink = Math.floor(performance.now() / 333) % 2 === 0;
   for (const [button, txt, lit] of [[rects.indL, '◄', car.indicator === -1 && blink],
     [rects.lights, 'LIGHTS', !!car.lightsOn],
-    [rects.indR, '►', car.indicator === 1 && blink]]) {
+    [rects.indR, '►', car.indicator === 1 && blink]] as [HudRect, string, boolean][]) {
     drawHudPanel(ctx, button,
       { fill: lit ? (txt === 'LIGHTS' ? 'rgba(242,230,170,0.92)' : 'rgba(232,161,58,0.92)')
       : 'rgba(27,29,34,0.80)' });
@@ -123,19 +130,20 @@ export function drawHudIndicators(ctx, rects, car) {
 
 /**
  * Top-centre: restart / reset / clear / vol.
- * @param {CanvasRenderingContext2D} ctx
- * @param {object} state the shared HUD state
- * @param {object} game the game
- * @param {object} rects the layout rectangles
+ * @param ctx
+ * @param state the shared HUD state
+ * @param game the game
+ * @param rects the layout rectangles
  * @returns {void}
  */
-export function drawHudButtonRow(ctx, state, game, rects) {
+export function drawHudButtonRow(ctx: CanvasRenderingContext2D, state: HudState, game: HudGame,
+  rects: HudRects) {
   const audio = game.audio;
   if (rects.vol && rects.vol.w > 0) {
     rects.vol.label = !audio ? 'VOL' : audio.muted ? 'MUTE' : Math.round(audio.volume * 100)
       + '%';
   }
-  const btns = (rects.vol && rects.vol.w > 0)
+  const btns: HudRect[] = (rects.vol && rects.vol.w > 0)
     ? [rects.restart, rects.reset, rects.clear, rects.vol]
     : [rects.restart, rects.reset, rects.clear];
   if (!(rects.help.row3 && (state.expanded || state.tuneOpen))) btns.push(rects.help);
@@ -150,13 +158,14 @@ export function drawHudButtonRow(ctx, state, game, rects) {
  * Top-centre, under the buttons: cone tally. Reads LIVE state - it counts what is
  * actually lying down, not what was hit (rule 10) - so standing one back up with RESET counts down
  * again.
- * @param {CanvasRenderingContext2D} ctx
- * @param {object} state the shared HUD state
- * @param {object} game the game
- * @param {object} rects the layout rectangles
+ * @param ctx
+ * @param state the shared HUD state
+ * @param game the game
+ * @param rects the layout rectangles
  * @returns {void}
  */
-export function drawHudConeTally(ctx, state, game, rects) {
+export function drawHudConeTally(ctx: CanvasRenderingContext2D, state: HudState, game: HudGame,
+  rects: HudRects) {
   const knocked = game.cones.knocked;
   // ONLY ON A LEVEL THAT ASKS FOR IT (LEVEL.coneCount: the Lab + Test Track courses) (requirement:
   // only relevant when asked for, not on most race tracks)
@@ -172,15 +181,16 @@ export function drawHudConeTally(ctx, state, game, rects) {
 /**
  * Top-right: speed, gear, tacho (the SILENT TWIN of the engine note - the phone may be
  * muted).
- * @param {CanvasRenderingContext2D} ctx
- * @param {object} state the shared HUD state
- * @param {object} rects the layout rectangles
- * @param {object} car the car
- * @param {object} spec the car spec
- * @param {number} wallDt wall-clock seconds
+ * @param ctx
+ * @param state the shared HUD state
+ * @param rects the layout rectangles
+ * @param car the car
+ * @param spec the car spec
+ * @param wallDt wall-clock seconds
  * @returns {void}
  */
-export function drawHudSpeedo(ctx, state, rects, car, spec, wallDt) {
+export function drawHudSpeedo(ctx: CanvasRenderingContext2D, state: HudState, rects: HudRects,
+  car: HudCar, spec: Spec, wallDt: number) {
   const speedRect = rects.speed, speedWidth = speedRect.w;
   drawHudPanel(ctx, speedRect);
   const kph = Math.hypot(car.vx, car.vy) * 3.6;
@@ -241,28 +251,29 @@ export function drawHudSpeedo(ctx, state, rects, car, spec, wallDt) {
 /**
  * The ring colour for a tyre by its air: none while full, amber going down, red flat, silver on
  * the rim.
- * @param {object} car the car (car.tyreP set)
- * @param {number} corner the damage corner
- * @returns {string|null} the colour, or null for no ring
+ * @param car the car (car.tyreP set)
+ * @param corner the damage corner
+ * @returns the colour, or null for no ring
  */
-function pressureRing(car, corner) {
+function pressureRing(car: HudCar, corner: number) {
   if (car.onRim && car.onRim[corner]) return '#c9c9d2';
-  const pressure = car.tyreP[corner];
+  const pressure = car.tyreP![corner];
   return pressure >= 0.9 ? null : pressure > 0.2 ? COL.warn : COL.danger;
 }
 
 /**
  * A white ring round a punctured wheel, or a crossed-out box where the wheel is GONE.
- * @param {CanvasRenderingContext2D} ctx
- * @param {object} car the car
- * @param {number} corner 0 front -y, 1 front +y, 2 rear -y, 3 rear +y
- * @param {number} bodyX left of the diagram body
- * @param {number} bodyY top of the diagram body
- * @param {number} bodyW width of the diagram body
- * @param {number} bodyH height of the diagram body
+ * @param ctx
+ * @param car the car
+ * @param corner 0 front -y, 1 front +y, 2 rear -y, 3 rear +y
+ * @param bodyX left of the diagram body
+ * @param bodyY top of the diagram body
+ * @param bodyW width of the diagram body
+ * @param bodyH height of the diagram body
  * @returns {void}
  */
-export function drawHudWheelFault(ctx, car, corner, bodyX, bodyY, bodyW, bodyH) {
+export function drawHudWheelFault(ctx: CanvasRenderingContext2D, car: HudCar, corner: number,
+  bodyX: number, bodyY: number, bodyW: number, bodyH: number) {
   // the ring follows the tyre's air (physics/tyrepressure.ts)
   // (no ring round a wheel that is gone: the crossed-out box below says it)
   const ring = car.tyreP && !wheelGone(car, corner) && pressureRing(car, corner);
@@ -293,16 +304,17 @@ export function drawHudWheelFault(ctx, car, corner, bodyX, bodyY, bodyW, bodyH) 
 /**
  * One wheel of the tyre diagram: filled with its WEAR colour with tyre wear on (owner), else its
  * heat colour; its temperature beside it in the heat colour.
- * @param {CanvasRenderingContext2D} ctx
- * @param {object} car the car
- * @param {number} tyreIdx the tyre (vehicle.js order)
- * @param {number} side -1 left, +1 right
- * @param {string} heatCol the tyre's temperature colour
- * @param {number} wheelX the wheel's left, px
- * @param {number} wheelY the wheel's top, px
- * @param {boolean} fahrenheit the numbers in °F (?hudunits=1)
+ * @param ctx
+ * @param car the car
+ * @param tyreIdx the tyre (vehicle.js order)
+ * @param side -1 left, +1 right
+ * @param heatCol the tyre's temperature colour
+ * @param wheelX the wheel's left, px
+ * @param wheelY the wheel's top, px
+ * @param fahrenheit the numbers in °F (?hudunits=1)
  */
-function drawDiagramWheel(ctx, car, tyreIdx, side, heatCol, wheelX, wheelY, fahrenheit) {
+function drawDiagramWheel(ctx: CanvasRenderingContext2D, car: HudCar, tyreIdx: number, side: number,
+  heatCol: string, wheelX: number, wheelY: number, fahrenheit: boolean) {
   // plain rectangles: panel's 8 px corner radius is larger than a 7 px wheel and drew mangled
   // slants
   ctx.fillStyle = car.tyreWear ? wearColour(car.tyreWear[tyreIdx], COL) : heatCol;
@@ -317,11 +329,11 @@ function drawDiagramWheel(ctx, car, tyreIdx, side, heatCol, wheelX, wheelY, fahr
 
 /**
  * A tyre temperature's colour: cold blues, the working window live, then warn and danger.
- * @param {number} temp the tyre's temperature, C
- * @param {number[]} window its working window [low, high], C
- * @returns {string} a CSS colour
+ * @param temp the tyre's temperature, C
+ * @param window its working window [low, high], C
+ * @returns a CSS colour
  */
-function tyreTempColour(temp, [optLow, optHigh]) {
+function tyreTempColour(temp: number, [optLow, optHigh]: number[]) {
   if (temp < optLow) return temp < optLow - 15 ? COL.cold : COL.cool;
   if (temp <= optHigh) return COL.live;
   return temp <= optHigh + 25 ? COL.warn : COL.danger;
@@ -331,17 +343,18 @@ function tyreTempColour(temp, [optLow, optHigh]) {
  * TYRE DIAGRAM (optional HUD). A little top-down car, FRONT UP, each wheel filled
  * with its temperature colour and its number beside it. The same body outline shows DAMAGE.
  * vehicle.js indexes tyres by body side: 0 F+y, 1 F-y, 2 R+y, 3 R-y, and +y is the car's RIGHT.
- * @param {CanvasRenderingContext2D} ctx
- * @param {object} state the shared HUD state
- * @param {object} rects the layout rectangles
- * @param {object} car the car
- * @param {object} spec the car spec
+ * @param ctx
+ * @param state the shared HUD state
+ * @param rects the layout rectangles
+ * @param car the car
+ * @param spec the car spec
  * @returns {void}
  */
-export function drawHudTyreDiagram(ctx, state, rects, car, spec) {
+export function drawHudTyreDiagram(ctx: CanvasRenderingContext2D, state: HudState, rects: HudRects,
+  car: HudCar, spec: Spec) {
   const speedRect = rects.speed, speedWidth = speedRect.w;
   if (state.carDiagram && car.tyreT) {
-    const window = spec.tyreOpt || [65, 110], col = (temp) => tyreTempColour(temp, window);
+    const window = spec.tyreOpt || [65, 110], col = (temp: number) => tyreTempColour(temp, window);
     // the bottom DIAGRAM_H of the speed panel (all of it while the speedo is hidden)
     const centreX = speedRect.x + speedWidth / 2, top = speedRect.y + speedRect.h - DIAGRAM_H;
     const bodyW = 20, bodyH = 40,

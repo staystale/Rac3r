@@ -1,4 +1,4 @@
-// hud.js — HUD, touch overlay and the dev readout.
+// hud.ts — HUD, touch overlay and the dev readout.
 //
 // THE FOUR CORNERS HAVE OWNERS (CLAUDE.md §4) and no two systems share a lane:
 //   top-left      car selector chip (collapsed by default; expands DOWNWARD into five rows)
@@ -7,7 +7,7 @@
 //   bottom-left   thumb stick (touch) / key hints (pc)
 //   bottom-right  throttle / brake / handbrake pedals (touch)
 //   left edge     dev readout, ?dev=1 only, below the chip — nothing else may live there
-//   under the top-left buttons   the MINIMAP (hud/minimap.js), when on; it gives way to the car
+//   under the top-left buttons   the MINIMAP (hud/minimap.ts), when on; it gives way to the car
 //                 list and the tune panel, which open over the same place
 //
 // HUD LIST (?hudmenu=0 = off): the pause menu's HUD > turns each display piece on or off (the
@@ -17,7 +17,7 @@
 // Buttons are DATA so hit-testing and drawing read the same geometry. Two copies of
 // a rect is how a button ends up visually somewhere its tap is not.
 
-import { layoutHud, hitHud, setHudMph, setHudTempF, setHudTyreHud } from './hud/layout.js';
+import { layoutHud, hitHud, setHudMph, setHudTempF, setHudTyreHud } from './hud/layout.ts';
 import { drawHudTrackTemp } from './hud/tracktemp.ts';
 import {
   drawHudTune,
@@ -25,7 +25,7 @@ import {
   drawHudNotice,
   drawHudCamera,
   drawHudFlag,
-} from './hud/overlays.js';
+} from './hud/overlays.ts';
 import {
   drawHudCarChip,
   drawHudTuneChip,
@@ -35,22 +35,23 @@ import {
   drawHudConeTally,
   drawHudSpeedo,
   drawHudTyreDiagram,
-} from './hud/gauges.js';
-import { drawHudLapTimer } from './hud/laps.js';
-import { drawHudPedals, drawHudDevReadout, drawHudFps } from './hud/controls.js';
-import { drawHudMinimap } from './hud/minimap.js';
+} from './hud/gauges.ts';
+import { drawHudLapTimer } from './hud/laps.ts';
+import { drawHudPedals, drawHudDevReadout, drawHudFps } from './hud/controls.ts';
+import { drawHudMinimap } from './hud/minimap.ts';
+import type { HudState, HudCar, ScreenPoint, HudGame } from './hud/hudtypes.ts';
 
-// the pieces hud.js itself hides on the player's choice (the minimap and the progress bar live in
-// hud/minimap.js, the tyre diagram is state.tyreHud), and where each choice is remembered
+// the pieces hud.ts itself hides on the player's choice (the minimap and the progress bar live in
+// hud/minimap.ts, the tyre diagram is state.tyreHud), and where each choice is remembered
 const HIDEABLE = ['lapTimer', 'speedo'];
-const pieceKey = (pieceId) => 'rac3r.hud.' + pieceId;
+const pieceKey = (pieceId: string) => 'rac3r.hud.' + pieceId;
 
 /**
  * Loads the HUD's per-device choices (the tyre HUD, the speed units); storage can throw in private
  * windows, so every access is guarded.
- * @param {object} state the HUD state (tyreHud, mph)
+ * @param state the HUD state (tyreHud, mph)
  */
-function loadHudChoices(state) {
+function loadHudChoices(state: HudState) {
   try {
     state.tyreHud = localStorage.getItem('carsim.tyreHud') === '1';
   } catch { /* no storage: stays off */ }
@@ -69,11 +70,11 @@ function loadHudChoices(state) {
 
 /**
  * Shows or hides a HUD piece (HIDEABLE) and remembers it on the device.
- * @param {object} state the HUD state (hidden)
- * @param {string} pieceId the piece
- * @param {boolean} shown shown or not
+ * @param state the HUD state (hidden)
+ * @param pieceId the piece
+ * @param shown shown or not
  */
-function setPieceShown(state, pieceId, shown) {
+function setPieceShown(state: HudState, pieceId: string, shown: boolean) {
   if (shown) state.hidden.delete(pieceId);
   else state.hidden.add(pieceId);
   try {
@@ -84,9 +85,9 @@ function setPieceShown(state, pieceId, shown) {
 /**
 /**
  * The HUD's state at start-up, before the device's choices are loaded.
- * @returns {object} the state
+ * @returns the state
  */
-function newHudState() {
+function newHudState(): HudState {
   return {
     hidden: new Set(),      // HIDEABLE pieces the player turned off (the pause menu's HUD list)
     expanded: false,        // car list
@@ -117,16 +118,18 @@ function newHudState() {
 
 /**
  * Builds the HUD.
- * @returns {object} draw, hit, layout and the HUD's choices
+ * @returns draw, hit, layout and the HUD's choices
  */
 export function createHud() {
   const state = newHudState();
   loadHudChoices(state);
-  const setTyreHud = (enabled) => setHudTyreHud(state, enabled);
-  const layout = (width, height) => layoutHud(state, width, height);
-  const hit = (point, width, height, car) => hitHud(state, point, width, height, car);
+  const setTyreHud = (enabled: boolean) => setHudTyreHud(state, enabled);
+  const layout = (width: number, height: number) => layoutHud(state, width, height);
+  const hit = (point: ScreenPoint, width: number, height: number, car: HudCar) => hitHud(state,
+    point, width, height, car);
 
-  function draw(ctx, game, width, height, wallDt) {
+  function draw(ctx: CanvasRenderingContext2D, game: HudGame, width: number, height: number,
+    wallDt: number) {
     state.carDiagram = state.tyreHud;
     try {
       state.drawLightsLater = () => {
@@ -164,12 +167,13 @@ export function createHud() {
   return {
     draw, hit, layout,
     get tyreHud() { return state.tyreHud; }, setTyreHud,
-    get mph() { return state.mph; }, setMph: (mph) => setHudMph(state, mph),
-    get tempF() { return state.tempF; }, setTempF: (fahrenheit) => setHudTempF(state, fahrenheit),
-    pieceShown: (pieceId) => !state.hidden.has(pieceId),
-    setPieceShown: (pieceId, shown) => setPieceShown(state, pieceId, shown),
+    get mph() { return state.mph; }, setMph: (mph: boolean) => setHudMph(state, mph),
+    get tempF() { return state.tempF; }, setTempF: (fahrenheit: boolean) => setHudTempF(state,
+      fahrenheit),
+    pieceShown: (pieceId: string) => !state.hidden.has(pieceId),
+    setPieceShown: (pieceId: string, shown: boolean) => setPieceShown(state, pieceId, shown),
     get expanded() { return state.expanded; },
-    setHelpLabel(labelText) { state.helpLabel = labelText; },
+    setHelpLabel(labelText: string) { state.helpLabel = labelText; },
     get tuneOpen() { return state.tuneOpen; },
     close() {
       state.expanded = false;

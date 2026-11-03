@@ -37,7 +37,7 @@ Older design notes and measurements are in the git history of this file.
 | `highwayrace.ts`, `traffic.ts`, `raceflow.js` | Highway race rules, highway traffic, how a race ends (results, estimates, DNF). |
 | `render.ts`, `render/` | Drawing (below). |
 | `marks.js` | The world-space skid-mark layer. |
-| `hud.js`, `hud/` | The HUD on the full-resolution canvas: `layout.js` every rectangle and tap hit-test, `gauges.js`, `laps.js`, `overlays.js`, `controls.js`, `widgets.js`, `minimap.js` (minimap + progress bar). The pause menu's HUD list (`?hudmenu=0` = the old MINIMAP row) (`menu/race.js`, `game/menuflow.js` hudActions) turns each display piece on or off. |
+| `hud.ts`, `hud/` | The HUD on the full-resolution canvas: `layout.js` every rectangle and tap hit-test, `gauges.js`, `laps.js`, `overlays.js`, `controls.js`, `widgets.js`, `minimap.js` (minimap + progress bar). The pause menu's HUD list (`?hudmenu=0` = the old MINIMAP row) (`menu/race.js`, `game/menuflow.js` hudActions) turns each display piece on or off. |
 | `menu.ts`, `menu/` | Main menu, test mode, garage (paint, tyres), race setup and results. |
 | `input.js` | One normalised input state from keyboard and touch; the car never sees an event. |
 | `audio.js` | Procedural Web Audio: engine note, tyre squeal, surface sounds. |
@@ -108,7 +108,7 @@ a rolled body sliding (`roll.js car.sparks`), sparks and may break each new wear
 (race tarmac -> tarmac -> broken) through `gougeCell`; a rollover impact has its own chance; a
 rim scores a pale mark (`MARK_GOUGE`, `marks.js`). Drawn by `render/tyrelook.ts` (the tyre
 squashes progressively with its air, a rim bare), puffs / shreds / rim sparks in
-`render/particles.ts`, the HUD tyre ring by pressure (`hud/gauges.js`), `?dev=1` line `air`.
+`render/particles.ts`, the HUD tyre ring by pressure (`hud/gauges.ts`), `?dev=1` line `air`.
 Tyre spikes (a police stinger, `world/stingers.ts`, drawn by `render/stingers.ts`) on the Lab and Test Track burst every wheel that rolls on. The Lab's
 flip ramp (`world/flipramps.ts`, an armco end; `roll.js tripCheck` asks it) rolls a car run up it.
 ENGINE: `physics/engineheat.ts` keeps each car's engine C, radiator

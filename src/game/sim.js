@@ -43,7 +43,7 @@ export function updateFpsMeter(wallDt) {
     shared.fpsN = 0;
     // the WORST 0.4 s window of the last ~10 s (user: an FPS counter "in the corner
     // always" to spot issues while testing; a dip lasts a moment, so the corner keeps it on screen
-    // for 10 s). hud.js drawFps.
+    // for 10 s). hud.ts drawFps.
     if (game.fpsClear) {
       shared.fpsHist.length = 0;
       game.fpsClear = false;
@@ -271,7 +271,7 @@ export function streamHighwayLitter() {
  * the count are kept.
  */
 export function caughtBySpeedCamera() {
-  // SPEED CAMERA (highway.js speedCamera): caught = a HUD card (hud.js drawCamera) + the fine
+  // SPEED CAMERA (highway.js speedCamera): caught = a HUD card (hud.ts drawCamera) + the fine
   // on the session; fastest + count kept
   const cam = speedCamera(LEVEL, game.car);
   if (cam) {

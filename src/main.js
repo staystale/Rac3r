@@ -14,10 +14,10 @@ import { createRenderer } from './render.ts';
 import { readSettings } from './core/settings.ts';
 import { createMarks } from './marks.js';
 import { setTrackTempSource } from './hud/tracktemp.ts';
-import { createHud } from './hud.js';
+import { createHud } from './hud.ts';
 import {
   setMinimapSource, setMinimapView, setProgressSource,
-} from './hud/minimap.js';
+} from './hud/minimap.ts';
 import { createMeter } from './ui/meter.ts';
 import { createReporter } from './ui/report.ts';
 import { createFramePacer } from './game/pacing.ts';

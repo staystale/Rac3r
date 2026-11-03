@@ -99,7 +99,7 @@ car sim/
     marks.js            world-space skid-mark layer + stamping rules
     lab.ts              the scene: floor extents, cone layout as data, reset
     render.js           low-res buffer, camera, sprites, marks blit, particles
-    hud.js              speed / tacho / gear / shift light, touch overlay drawing, dev overlay
+    hud.ts              speed / tacho / gear / shift light, touch overlay drawing, dev overlay
     audio.js            OPTIONAL, last (see Step 6)
   tools/
     probe.mjs           headless physics bench — the instrument. Node, no canvas.
@@ -328,9 +328,9 @@ built**, with the measured bench table in it.
 
 The user requires the `track-rwd` car to handle like an authentic F1 car (massive downforce, stick-like grip at high speeds, and extreme power capable of wheelspinning to 200 km/h in 1st gear) AND requires **Traction Control (TCS)** and **Launch Control** to be toggleable for high-end cars.
 
-1.  **Driver Assists (`src/input.js`, `src/hud.js`, `src/vehicle.js`)**
+1.  **Driver Assists (`src/input.js`, `src/hud.ts`, `src/vehicle.js`)**
     - `cars.js` must support a `hasAssists: true` flag.
-    - `hud.js` must render a "TCS ON/OFF" toggle chip.
+    - `hud.ts` must render a "TCS ON/OFF" toggle chip.
     - `vehicle.js` must intercept `throttle` during high-slip events (TCS) and hold optimal RPM during stationary full-throttle launches (Launch Control) based on the `assistsActive` state.
 2.  **Aero Load Sensitivity (`src/vehicle.js`)**
     - The current `TUNE.loadSens` formula heavily penalizes `mu` when `Fz` spikes. When massive aerodynamic downforce is applied, the tyre's friction coefficient plummets to the minimum floor, perfectly cancelling the grip gain.

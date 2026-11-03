@@ -1,20 +1,24 @@
-// hud/overlays.js — tune panel, signal lights, notice card, speed camera card and race flag.
-// Pure moves out of hud.js.
+// hud/overlays.ts — tune panel, signal lights, notice card, speed camera card and race flag.
+// Pure moves out of hud.ts.
 
 import { isChanged } from '../tune.ts';
 import { drawHudPanel, drawHudLabel } from './widgets.ts';
+import type { HudState, HudCar, HudFlow, HudStart, HudGame } from './hudtypes.ts';
+import type { HudRects } from './layout.ts';
+import type { HudRect } from './widgets.ts';
 
 /**
  * Draw the TUNE panel: rows, +/- buttons, tyre HUD toggle and reset.
- * @param {CanvasRenderingContext2D} ctx
- * @param {object} state the shared HUD state (tyreHud)
- * @param {object} rects the layout rects
- * @param {object} car the car read live
+ * @param ctx
+ * @param state the shared HUD state (tyreHud)
+ * @param rects the layout rects
+ * @param car the car read live
  * @returns {void}
  */
 // The panel. Rows are drawn from the SAME list hit walks, so a button is never drawn somewhere
 // its tap is not. A changed row is marked, and every value is read live off the car (rule 10).
-export function drawHudTune(ctx, state, rects, car) {
+export function drawHudTune(ctx: CanvasRenderingContext2D, state: HudState, rects: HudRects,
+  car: HudCar) {
   drawHudPanel(ctx, rects.panel, { fill: "rgba(14,15,19,0.94)" });
   for (const tuneRow of rects.tuneRows) {
     const row = tuneRow.row;
@@ -25,7 +29,8 @@ export function drawHudTune(ctx, state, rects, car) {
       { size: 10.5, weight: 600, col: changed ? "#ffd479" : "#dfe2ea" });
     drawHudLabel(ctx, row.fmt(value), tuneRow.minus.x - 8, centreY,
       { size: 11, weight: 700, align: "right", col: changed ? "#ffd479" : "#8fe6c8" });
-    for (const [button, sign] of [[tuneRow.minus, "−"], [tuneRow.plus, "+"]]) {
+    for (const [button, sign] of [[tuneRow.minus, "−"], [tuneRow.plus, "+"]] as [HudRect,
+      string][]) {
       drawHudPanel(ctx, button,
         { fill: "rgba(255,255,255,0.10)", stroke: "rgba(255,255,255,0.18)" });
       drawHudLabel(ctx, sign, button.x + button.w / 2, button.y + button.h / 2 + 0.5,
@@ -40,13 +45,14 @@ export function drawHudTune(ctx, state, rects, car) {
 
 /**
  * Draw the three start-light squares (dark rim, glow when lit).
- * @param {CanvasRenderingContext2D} ctx
- * @param {object} box the light box: x, y, gap, size
- * @param {boolean} green true once the lights are green
- * @param {number} litCount how many reds are lit
+ * @param ctx
+ * @param box the light box: x, y, gap, size
+ * @param green true once the lights are green
+ * @param litCount how many reds are lit
  * @returns {void}
  */
-function drawHudLightSquares(ctx, box, green, litCount) {
+function drawHudLightSquares(ctx: CanvasRenderingContext2D,
+  box: { x: number; y: number; gap: number; size: number }, green: boolean, litCount: number) {
   const { x: boxX, y: boxY, gap, size: lightSize } = box;
   for (let i = 0; i < 3; i++) {
     const x = boxX + gap + i * (lightSize + gap), y = boxY + gap, lit = green || i < litCount;
@@ -68,12 +74,12 @@ function drawHudLightSquares(ctx, box, green, litCount) {
 
 /**
  * The count-in text under the start lights.
- * @param {object} start the start state
- * @param {boolean} green true once the lights are green
- * @param {number} litCount how many reds are lit
- * @returns {string} the text, or an empty string
+ * @param start the start state
+ * @param green true once the lights are green
+ * @param litCount how many reds are lit
+ * @returns the text, or an empty string
  */
-function startLightsText(start, green, litCount) {
+function startLightsText(start: HudStart, green: boolean, litCount: number) {
   return green ? 'GO!' : start.rolling ? 'ROLLING START' : litCount > 0
     ? String(4 - litCount) : start.tGreen - start.t > 4 ? 'START IN '
     + Math.ceil(start.tGreen - start.t) : '';
@@ -81,16 +87,17 @@ function startLightsText(start, green, litCount) {
 
 /**
  * Draw the start lights and the count-in text.
- * @param {CanvasRenderingContext2D} ctx
- * @param {object} game
- * @param {number} width
- * @param {number} height
+ * @param ctx
+ * @param game
+ * @param width
+ * @param height
  * @returns {void}
  */
 // START LIGHTS: three big lights at the top-centre, reds one per second with 3-2-1, then all
 // GREEN + GO! (held 1.2 s, then gone). Squares with a dark rim (pixel style), a glow when lit.
 // Rolling start: "ROLLING START" under red until the green.
-export function drawHudLights(ctx, game, width, height) {
+export function drawHudLights(ctx: CanvasRenderingContext2D, game: HudGame, width: number,
+  height: number) {
   const start = game.start;
   if (!start || !start.on) return;
   const sinceGreen = start.green ? start.t - start.tGreen : -1;
@@ -122,14 +129,15 @@ export const FLAG_S = 1.5;
 
 /**
  * Draw the one-line NOTICE (track cuts etc).
- * @param {CanvasRenderingContext2D} ctx
- * @param {object} game
- * @param {number} width
- * @param {number} height
+ * @param ctx
+ * @param game
+ * @param width
+ * @param height
  * @returns {void}
  */
 // NOTICE (track cuts): one line, centre-top under the lights' place, 2.2 s of wall time
-export function drawHudNotice(ctx, game, width, height) {
+export function drawHudNotice(ctx: CanvasRenderingContext2D, game: HudGame, width: number,
+  height: number) {
   const notice = game.notice;
   if (!notice || performance.now() - notice.at > 2200) return;
   const fontSize = Math.round(Math.min(width, height) * 0.06), y = Math.round(height * 0.3);
@@ -147,16 +155,17 @@ export function drawHudNotice(ctx, game, width, height) {
 
 /**
  * Draw the speed camera card and its white flash.
- * @param {CanvasRenderingContext2D} ctx
- * @param {object} game
- * @param {number} width
- * @param {number} height
+ * @param ctx
+ * @param game
+ * @param width
+ * @param height
  * @returns {void}
  */
 // SPEED CAMERA CARD (highway.js speedCamera): 'YOU GOT CAUGHT' + your speed + the fine, top right
 // under the speedo, 3.2 s; a white screen FLASH for the first 0.12 s (the camera going off -
 // squares, no glow)
-export function drawHudCamera(ctx, game, width, height) {
+export function drawHudCamera(ctx: CanvasRenderingContext2D, game: HudGame, width: number,
+  height: number) {
   const caught = game.camCaught;
   if (!caught) return;
   const elapsed = performance.now() - caught.at;
@@ -180,7 +189,7 @@ export function drawHudCamera(ctx, game, width, height) {
     y + fontSize * 2.05,
     { size: Math.round(fontSize * 0.85), weight: 700, align: 'center', col: '#ffffff' });
   drawHudLabel(ctx, `FINE -$${caught.fine}`
-    + (game.camCount > 1 ? `  \u00b7  ${game.camCount} CAUGHT, -$${game.camFines}` : ''), x
+    + ((game.camCount || 0) > 1 ? `  \u00b7  ${game.camCount} CAUGHT, -$${game.camFines}` : ''), x
     + boxWidth / 2, y + fontSize * 3.0,
     { size: Math.round(fontSize * 0.75), weight: 700, align: 'center', col: '#ff6a5c',
     maxW: boxWidth - 10 });
@@ -188,12 +197,12 @@ export function drawHudCamera(ctx, game, width, height) {
 
 /**
  * Note a new chequered-flag entry: restart the sweep and pick its text.
- * @param {object} state the shared HUD state (flagSeen, flagAt, flagTxt)
- * @param {object} flow the race flow
- * @param {number} now wall time in seconds
+ * @param state the shared HUD state (flagSeen, flagAt, flagTxt)
+ * @param flow the race flow
+ * @param now wall time in seconds
  * @returns {void}
  */
-function noteNewFlag(state, flow, now) {
+function noteNewFlag(state: HudState, flow: HudFlow, now: number) {
   state.flagSeen = flow.flags.length;
   state.flagAt = now;
   const place = flow.myPlace;
@@ -204,14 +213,15 @@ function noteNewFlag(state, flow, now) {
 
 /**
  * Draw the waving chequered flag; tracks new flags in state.
- * @param {object} state the shared HUD state (flagSeen, flagAt, flagTxt)
- * @param {CanvasRenderingContext2D} ctx
- * @param {object} game
- * @param {number} width
- * @param {number} height
+ * @param state the shared HUD state (flagSeen, flagAt, flagTxt)
+ * @param ctx
+ * @param game
+ * @param width
+ * @param height
  * @returns {void}
  */
-export function drawHudFlag(state, ctx, game, width, height) {
+export function drawHudFlag(state: HudState, ctx: CanvasRenderingContext2D, game: HudGame,
+  width: number, height: number) {
   // THE CHEQUERED FLAG (requirement: only when you finish a race; "look more like a real flag — an
   // overlay that WAVES in simulated 3D, shaded, detailed but still a quick pass"): a
   // cloth of NX x NY squares on a pole, every vertex lifted by a travelling wave (stronger toward
@@ -231,25 +241,28 @@ export function drawHudFlag(state, ctx, game, width, height) {
   const ease = progress < 0.5 ? 2 * progress * progress : 1 - 2 * (1 - progress) * (1 - progress),
     poleX = -flagWidth * 1.05 + ease * (width + flagWidth * 1.25), top = height * 0.5
     - flagHeight * 0.62;
-  const wave = (along, down) => amp * along * Math.sin(along * 7.5 - elapsed * 11 + down * 1.4)
+  const wave = (along: number,
+    down: number) => amp * along * Math.sin(along * 7.5 - elapsed * 11 + down * 1.4)
     + amp * 0.35 * along * Math.sin(along * 13 - elapsed * 17);
-  const vertex = (i, j) => {
+  const vertex = (i: number, j: number): [number, number] => {
     const along = i / FLAG_COLS, down = j / FLAG_ROWS;
     return [poleX + along * flagWidth * (0.97 + 0.03 * Math.cos(elapsed * 9 + along * 6)), top
       + down * flagHeight + wave(along, down)];
+  };
+  // the cloth's shadow, 8 / 10 px off
+  const shadowAt = (i: number, j: number): [number, number] => {
+    const [clothX, clothY] = vertex(i, j);
+    return [clothX + 8, clothY + 10];
   };
   // shadow of the cloth, then the cloth
   ctx.save();
   ctx.globalAlpha = 0.25;
   ctx.fillStyle = '#000';
   ctx.beginPath();
-  ctx.moveTo(...vertex(0, 0).map((z, axis) => z + (axis ? 10 : 8)));
-  for (let i = 1; i <= FLAG_COLS; i++) ctx.lineTo(...vertex(i, 0).map((z, axis) => z
-    + (axis ? 10 : 8)));
-  for (let j = 1; j <= FLAG_ROWS; j++) ctx.lineTo(...vertex(FLAG_COLS, j).map((z, axis) => z
-    + (axis ? 10 : 8)));
-  for (let i = FLAG_COLS
-    - 1; i >= 0; i--) ctx.lineTo(...vertex(i, FLAG_ROWS).map((z, axis) => z + (axis ? 10 : 8)));
+  ctx.moveTo(...shadowAt(0, 0));
+  for (let i = 1; i <= FLAG_COLS; i++) ctx.lineTo(...shadowAt(i, 0));
+  for (let j = 1; j <= FLAG_ROWS; j++) ctx.lineTo(...shadowAt(FLAG_COLS, j));
+  for (let i = FLAG_COLS - 1; i >= 0; i--) ctx.lineTo(...shadowAt(i, FLAG_ROWS));
   ctx.closePath();
   ctx.fill();
   ctx.restore();

@@ -1,5 +1,5 @@
-// hud/layout.js — HUD geometry: every rectangle for a screen size, and tap hit-testing.
-// Pure moves out of hud.js.
+// hud/layout.ts — HUD geometry: every rectangle for a screen size, and tap hit-testing.
+// Pure moves out of hud.ts.
 
 import { CAR_IDS } from '../cars.ts';
 import { LEVELS } from '../world/levels/index.ts';
@@ -7,15 +7,17 @@ import { PEDAL } from '../input.js';
 import { ROWS as TUNE_ROWS } from '../tune.ts';
 import { MARGIN, BTN_H, DIAGRAM_H } from './widgets.ts';
 import { trackTempShown } from './tracktemp.ts';
+import type { HudState, HudCar, ScreenPoint } from './hudtypes.ts';
+import type { HudRect } from './widgets.ts';
 
 /**
  * Tune panel geometry: the panel, its rows, the reset footer and the tyre HUD switch.
- * @param {number} width canvas width in px
- * @param {number} height canvas height in px
- * @param {boolean} narrow true on a narrow screen (second button row)
- * @returns {object} tunePanel, tuneRows, tuneReset and tyreHudBtn rects
+ * @param width canvas width in px
+ * @param height canvas height in px
+ * @param narrow true on a narrow screen (second button row)
+ * @returns tunePanel, tuneRows, tuneReset and tyreHudBtn rects
  */
-function layoutTunePanel(width, height, narrow) {
+function layoutTunePanel(width: number, height: number, narrow: boolean) {
   // The panel sizes itself to the space available and never runs off the bottom of a short
   // landscape phone: the row height shrinks to fit, with a floor, and the width is capped.
   // Checked at 844x390 and 390x844 by tools/uicheck.mjs.
@@ -51,22 +53,22 @@ function layoutTunePanel(width, height, narrow) {
 
 /**
  * Whether the player hid a HUD piece (the pause menu's HUD list).
- * @param {object} state the shared HUD state (hidden)
- * @param {string} pieceId the piece (hud.js HIDEABLE)
- * @returns {boolean} hidden
+ * @param state the shared HUD state (hidden)
+ * @param pieceId the piece (hud.ts HIDEABLE)
+ * @returns hidden
  */
-const isHidden = (state, pieceId) => !!state.hidden && state.hidden.has(pieceId);
+const isHidden = (state: HudState, pieceId: string) => !!state.hidden && state.hidden.has(pieceId);
 
 /**
  * Top-right panels and the cone tally: speed, lap, fps strip and tally rects. A hidden speedo or
  * lap timer takes no room: the panels under it move up.
- * @param {object} state the shared HUD state (carDiagram, hidden)
- * @param {number} width canvas width in px
- * @param {number} btnY y of the button row
- * @param {boolean} narrow true on a narrow screen
- * @returns {object} speed, lap, fps and tally rects
+ * @param state the shared HUD state (carDiagram, hidden)
+ * @param width canvas width in px
+ * @param btnY y of the button row
+ * @param narrow true on a narrow screen
+ * @returns speed, lap, fps and tally rects
  */
-function layoutCornerPanels(state, width, btnY, narrow) {
+function layoutCornerPanels(state: HudState, width: number, btnY: number, narrow: boolean) {
   // The speed/tacho panel is a control lane too. MEASURED BUG (user screenshot): on a
   // narrow screen RESET and CLEAR moved to a second row on the RIGHT and landed straight on top
   // of the speed readout. The overlap test never caught it because it only compared the buttons
@@ -103,11 +105,11 @@ function layoutCornerPanels(state, width, btnY, narrow) {
 
 /**
  * Bottom corners: the ABS / TCS aid chips above the pedals and the lights / indicator row.
- * @param {number} width canvas width in px
- * @param {number} height canvas height in px
- * @returns {object} absChip, tcsChip, indL, lights and indR rects
+ * @param width canvas width in px
+ * @param height canvas height in px
+ * @returns absChip, tcsChip, indL, lights and indR rects
  */
-function layoutBottomChips(width, height) {
+function layoutBottomChips(width: number, height: number) {
   // DRIVER AID CHIPS (user: small chips ABOVE THE PEDALS). Laid out from the same
   // PEDAL numbers input.js uses, clear of the brake pedal's generous 1.35r hit circle. Drawn and
   // hit-tested only on cars that have the aid.
@@ -130,14 +132,15 @@ function layoutBottomChips(width, height) {
  * reached down over the ABS / TCS chips (tools/scratch/_hudoverlap.mjs: 844x390 and 740x360 with
  * the tyre diagram on); then the chips move just left of the pedals, at their height (in thumb
  * reach, clear of the column).
- * @param {object} absChip the ABS chip (moved in place)
- * @param {object} tcsChip the TCS chip (moved in place)
- * @param {number} width canvas width in px
- * @param {number} columnBottom the column's lowest edge, px
- * @param {object} gauge the track gauge (beside the lap panel when wide): the chips go under it
+ * @param absChip the ABS chip (moved in place)
+ * @param tcsChip the TCS chip (moved in place)
+ * @param width canvas width in px
+ * @param columnBottom the column's lowest edge, px
+ * @param gauge the track gauge (beside the lap panel when wide): the chips go under it
  *   where they would meet it (740x360)
  */
-function clearAidChips(absChip, tcsChip, width, columnBottom, gauge) {
+function clearAidChips(absChip: HudRect, tcsChip: HudRect, width: number, columnBottom: number,
+  gauge: HudRect) {
   if (columnBottom + 6 <= absChip.y) return;
   // the pedal block: two columns of PEDAL.r circles, PEDAL.gap apart, PEDAL.margin from the edge
   const pedalsLeft = width - PEDAL.margin - PEDAL.r * 4 - PEDAL.gap;
@@ -150,20 +153,20 @@ function clearAidChips(absChip, tcsChip, width, columnBottom, gauge) {
 
 /**
  * Work out every HUD rectangle for a screen size (one list for drawing and hit-testing).
- * @param {object} state the shared HUD state (helpLabel, carDiagram)
- * @param {number} width canvas width in px
- * @param {number} height canvas height in px
- * @returns {object} named rects: chip, rows, levelRows, buttons, tune panel, speed, lap, ...
+ * @param state the shared HUD state (helpLabel, carDiagram)
+ * @param width canvas width in px
+ * @param height canvas height in px
+ * @returns named rects: chip, rows, levelRows, buttons, tune panel, speed, lap, ...
  */
-export function layoutHud(state, width, height) {
+export function layoutHud(state: HudState, width: number, height: number) {
   const chip = { x: MARGIN, y: MARGIN, w: 116, h: BTN_H };
   // 164, was 132. PHOTOGRAPHED: "Naffcar Speedway" and "Surface Sandbox" ran into the
   // LEVEL tag at 132. Car and level rows share the width so the dropdown stays one clean column.
   const DROP_W = 164;
   const dTop = MARGIN + BTN_H + 6, dStep = 26,
     perCol = Math.max(4, Math.floor((height - dTop - MARGIN - 42) / dStep));
-  const dAt = (i,
-    col0) => ({ x: MARGIN + (col0 + Math.floor(i / perCol)) * (DROP_W + 6), y: dTop
+  const dAt = (i: number,
+    col0: number) => ({ x: MARGIN + (col0 + Math.floor(i / perCol)) * (DROP_W + 6), y: dTop
     + (i % perCol) * dStep });
   const carCols = Math.ceil(CAR_IDS.length / perCol);
   const rows = CAR_IDS.map((carId, i) => ({ id: carId, ...dAt(i, 0), w: DROP_W, h: dStep - 2 }));
@@ -202,7 +205,8 @@ export function layoutHud(state, width, height) {
   // Narrow: after CLEAR when it clears the speed panel (390 px and up); at 360 px it would sit on
   // the speed panel, so it drops to row three, left — the dropdown / TUNE panel lane, so it is
   // hidden while either is open.
-  const help = { x: narrow ? startX + wRestart + 4 + wReset + 4 + wClear + 4 : vol.x + wVol + 4,
+  const help: HudRect & { row3?: boolean } = {
+    x: narrow ? startX + wRestart + 4 + wReset + 4 + wClear + 4 : vol.x + wVol + 4,
     y: btnY, w: wHelp, h: BTN_H, label: state.helpLabel };
   if (narrow && help.x + help.w > width - MARGIN - 120 - 6) {
     help.x = MARGIN;
@@ -223,25 +227,26 @@ export function layoutHud(state, width, height) {
  * Is a point inside a rectangle (edges included).
  * @param {{x:number,y:number}} point
  * @param {{x:number,y:number,w:number,h:number}} rect
- * @returns {boolean} true when inside
+ * @returns true when inside
  */
-export function inRect(point, rect) {
+export function inRect(point: ScreenPoint, rect: HudRect) {
   return point.x >= rect.x && point.x <= rect.x + rect.w && point.y >= rect.y && point.y <= rect.y
     + rect.h;
 }
 
 /**
  * Hit-test a tap against the HUD controls; may change state (expanded, tuneOpen, mph).
- * @param {object} state the shared HUD state
+ * @param state the shared HUD state
  * @param {{x:number,y:number}} point the tap
- * @param {number} width canvas width in px
- * @param {number} height canvas height in px
- * @param {object} car the car (aids decide which chips exist)
- * @returns {object|null} the action hit, or null
+ * @param width canvas width in px
+ * @param height canvas height in px
+ * @param car the car (aids decide which chips exist)
+ * @returns the action hit, or null
  */
 // Returns an action if the tap hit a control, else null. A tap that hits the HUD is CONSUMED by
 // main.js and never reaches the world (CLAUDE.md §4).
-export function hitHud(state, point, width, height, car) {
+export function hitHud(state: HudState, point: ScreenPoint, width: number, height: number,
+  car: HudCar) {
   const rects = layoutHud(state, width, height);
   const aidHit = hitAidChips(rects, point, car);
   if (aidHit) return aidHit;
@@ -264,12 +269,12 @@ export function hitHud(state, point, width, height, car) {
 
 /**
  * Hit-test the ABS / TCS chips, lights and indicators.
- * @param {object} rects the layout rectangles
+ * @param rects the layout rectangles
  * @param {{x:number,y:number}} point the tap
- * @param {object} car the car (aids decide which chips exist)
- * @returns {object|null} the action hit, or null
+ * @param car the car (aids decide which chips exist)
+ * @returns the action hit, or null
  */
-function hitAidChips(rects, point, car) {
+function hitAidChips(rects: HudRects, point: ScreenPoint, car: HudCar) {
   if (car && car.spec.aids && car.spec.aids.abs
     && inRect(point, rects.absChip)) return { toggleAbs: true };
   if (car && car.spec.aids && car.spec.aids.tcs
@@ -282,12 +287,12 @@ function hitAidChips(rects, point, car) {
 
 /**
  * Hit-test the open tune panel (it covers the car list, so it is checked first).
- * @param {object} state the shared HUD state
- * @param {object} rects the layout rectangles
+ * @param state the shared HUD state
+ * @param rects the layout rectangles
  * @param {{x:number,y:number}} point the tap
- * @returns {object|null} the action hit, or null
+ * @returns the action hit, or null
  */
-function hitTunePanel(state, rects, point) {
+function hitTunePanel(state: HudState, rects: HudRects, point: ScreenPoint) {
   // the tune panel is checked FIRST while it is open — it covers the car list's lane
   if (state.tuneOpen) {
     for (const tuneRow of rects.tuneRows) {
@@ -306,12 +311,12 @@ function hitTunePanel(state, rects, point) {
 
 /**
  * Hit-test the open car / level dropdown.
- * @param {object} state the shared HUD state
- * @param {object} rects the layout rectangles
+ * @param state the shared HUD state
+ * @param rects the layout rectangles
  * @param {{x:number,y:number}} point the tap
- * @returns {object|null} the action hit, or null
+ * @returns the action hit, or null
  */
-function hitDropdown(state, rects, point) {
+function hitDropdown(state: HudState, rects: HudRects, point: ScreenPoint) {
   if (state.expanded) {
     for (const carRow of rects.rows) if (inRect(point, carRow)) {
       state.expanded = false;
@@ -331,10 +336,10 @@ function hitDropdown(state, rects, point) {
 
 /**
  * Sets the speed units and remembers them on the device (the speedo tap, the HUD list).
- * @param {object} state the HUD state (mph)
- * @param {boolean} mph true for mph
+ * @param state the HUD state (mph)
+ * @param mph true for mph
  */
-export function setHudMph(state, mph) {
+export function setHudMph(state: HudState, mph: boolean) {
   state.mph = mph;
   try {
     localStorage.setItem('carsim.units', mph ? 'mph' : 'kmh');
@@ -343,10 +348,10 @@ export function setHudMph(state, mph) {
 
 /**
  * Sets the temperature units and remembers them on the device (the HUD list, ?hudunits=1).
- * @param {object} state the HUD state (tempF)
- * @param {boolean} fahrenheit true for °F
+ * @param state the HUD state (tempF)
+ * @param fahrenheit true for °F
  */
-export function setHudTempF(state, fahrenheit) {
+export function setHudTempF(state: HudState, fahrenheit: boolean) {
   state.tempF = fahrenheit;
   try {
     localStorage.setItem('carsim.tempUnits', fahrenheit ? 'F' : 'C');
@@ -355,12 +360,12 @@ export function setHudTempF(state, fahrenheit) {
 
 /**
  * Hit-test the speed panel (units toggle) and the button row.
- * @param {object} state the shared HUD state
- * @param {object} rects the layout rectangles
+ * @param state the shared HUD state
+ * @param rects the layout rectangles
  * @param {{x:number,y:number}} point the tap
- * @returns {object|null} the action hit, or null
+ * @returns the action hit, or null
  */
-function hitControls(state, rects, point) {
+function hitControls(state: HudState, rects: HudRects, point: ScreenPoint) {
   if (!state.hidden.has('speedo') && inRect(point, rects.speed)) {
     setHudMph(state, !state.mph);
     return { consumed: true };
@@ -375,13 +380,14 @@ function hitControls(state, rects, point) {
 
 /**
  * Switch the tyre HUD on or off and remember it on the device.
- * @param {object} state the shared HUD state
- * @param {boolean} enabled
+ * @param state the shared HUD state
+ * @param enabled
  * @returns {void}
  */
-export function setHudTyreHud(state, enabled) {
+export function setHudTyreHud(state: HudState, enabled: boolean) {
   state.tyreHud = !!enabled;
   try {
     localStorage.setItem('carsim.tyreHud', state.tyreHud ? '1' : '0');
   } catch { /* fine */ }
 }
+export type HudRects = ReturnType<typeof layoutHud>;

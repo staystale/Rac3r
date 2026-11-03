@@ -1,18 +1,21 @@
-// hud/laps.js — the lap/stage/joker/race timer panel for each game mode.
-// Pure moves out of hud.js.
+// hud/laps.ts — the lap/stage/joker/race timer panel for each game mode.
+// Pure moves out of hud.ts.
 
 import { LEVEL } from '../world/state.ts';
 import { COL } from '../world/colours.ts';
 import { fmtTime, drawHudPanel, drawHudLabel } from './widgets.ts';
+import type { HudRace, HudStage, HudGame } from './hudtypes.ts';
+import type { HudRects } from './layout.ts';
+import type { HudRect } from './widgets.ts';
 
 /**
  * HIGHWAY TO HULL lap panel: how far you have got, and your best.
- * @param {CanvasRenderingContext2D} ctx
- * @param {object} game the game
- * @param {object} lapRect the lap panel rectangle
+ * @param ctx
+ * @param game the game
+ * @param lapRect the lap panel rectangle
  * @returns {void}
  */
-export function drawHudLapEndless(ctx, game, lapRect) {
+export function drawHudLapEndless(ctx: CanvasRenderingContext2D, game: HudGame, lapRect: HudRect) {
   drawHudLabel(ctx, 'DISTANCE', lapRect.x + 8, lapRect.y + 13,
     { size: 11, weight: 700, col: COL.live });
   drawHudLabel(ctx, ((game.hwDist || 0) / 1000).toFixed(2) + ' KM', lapRect.x + lapRect.w - 8,
@@ -34,12 +37,12 @@ export function drawHudLapEndless(ctx, game, lapRect) {
 
 /**
  * RALLY STAGE lap panel: READY -> STAGE (running clock) -> FINISH; BEST under.
- * @param {CanvasRenderingContext2D} ctx
- * @param {object} stage the stage state
- * @param {object} lapRect the lap panel rectangle
+ * @param ctx
+ * @param stage the stage state
+ * @param lapRect the lap panel rectangle
  * @returns {void}
  */
-export function drawHudLapStage(ctx, stage, lapRect) {
+export function drawHudLapStage(ctx: CanvasRenderingContext2D, stage: HudStage, lapRect: HudRect) {
   const run = stage.state === 'running', done = stage.state === 'done';
   drawHudLabel(ctx, done ? 'FINISH' : 'STAGE', lapRect.x + 8, lapRect.y + 13,
     { size: 11, weight: 700, col: COL.live });
@@ -53,26 +56,27 @@ export function drawHudLapStage(ctx, stage, lapRect) {
 
 /**
  * RX RACE lap panel: the same panel, no new HUD lane (CLAUDE.md §4).
- * @param {CanvasRenderingContext2D} ctx
- * @param {object} game the game
- * @param {object} race the race state
- * @param {object} lapRect the lap panel rectangle
- * @param {number} lapNum the lap number
+ * @param ctx
+ * @param game the game
+ * @param race the race state
+ * @param lapRect the lap panel rectangle
+ * @param lapNum the lap number
  * @returns {void}
  */
-export function drawHudLapJoker(ctx, game, race, lapRect, lapNum) {
+export function drawHudLapJoker(ctx: CanvasRenderingContext2D, game: HudGame, race: HudRace,
+  lapRect: HudRect, lapNum: number) {
   if (race.done) drawHudLapJokerDone(ctx, race, lapRect);
   else drawHudLapJokerLive(ctx, game, race, lapRect, lapNum);
 }
 
 /**
  * Joker race lap panel once finished: FINISH, total time and the joker verdict.
- * @param {CanvasRenderingContext2D} ctx
- * @param {object} race the race state
- * @param {object} lapRect the lap panel rectangle
+ * @param ctx
+ * @param race the race state
+ * @param lapRect the lap panel rectangle
  * @returns {void}
  */
-function drawHudLapJokerDone(ctx, race, lapRect) {
+function drawHudLapJokerDone(ctx: CanvasRenderingContext2D, race: HudRace, lapRect: HudRect) {
   drawHudLabel(ctx, 'FINISH', lapRect.x + 8, lapRect.y + 13,
     { size: 11, weight: 700, col: COL.live });
   drawHudLabel(ctx, fmtTime(race.total), lapRect.x + lapRect.w - 8, lapRect.y + 13,
@@ -82,28 +86,33 @@ function drawHudLapJokerDone(ctx, race, lapRect) {
     lapRect.y + 26, { size: 9, weight: 700, col: race.penalty ? COL.danger : COL.live });
 }
 
+/** The joker line's states (truthy / falsy, as the lap panel works them out). */
+interface JokerFlags {
+  near: unknown; flash: unknown; inLane: unknown; fresh: unknown; blink: boolean;
+}
+
 /**
  * Whether the car is approaching the joker turn-off without it done (arrow within 140).
- * @param {object} game the game
- * @param {object} race the race state
- * @returns {*} truthy when the joker turn-off is near
+ * @param game the game
+ * @param race the race state
+ * @returns truthy when the joker turn-off is near
  */
-function jokerIsNear(game, race) {
+function jokerIsNear(game: HudGame, race: HudRace) {
   const jokerArrow = LEVEL.joker && LEVEL.joker.arrows
-    && LEVEL.joker.arrows.find((x) => x.d != null), trackDist = game.trackD;
+    && LEVEL.joker.arrows.find((x) => x && x.d != null), trackDist = game.trackD;
   const near = race.started && !race.joker && jokerArrow && trackDist != null
-    && (((jokerArrow.d - trackDist) % LEVEL.subtrack.totalDist)
-    + LEVEL.subtrack.totalDist) % LEVEL.subtrack.totalDist < 140;
+    && (((jokerArrow.d! - trackDist) % LEVEL.subtrack!.totalDist)
+    + LEVEL.subtrack!.totalDist) % LEVEL.subtrack!.totalDist < 140;
   return near;
 }
 
 /**
  * The joker line text and colour for the lap panel.
- * @param {object} race the race state
- * @param {object} flags flags: near, flash, inLane, fresh, blink
- * @returns {Array} the text and the colour
+ * @param race the race state
+ * @param flags flags: near, flash, inLane, fresh, blink
+ * @returns the text and the colour
  */
-function jokerLine(race, flags) {
+function jokerLine(race: HudRace, flags: JokerFlags) {
   const { near, flash, inLane, fresh, blink } = flags;
   const jTxt = race.jokers > 1 ? `JOKER x${race.jokers}: +${(race.jokers - 1) * 30} s`
     : fresh ? 'JOKER TAKEN ✓' : race.joker ? 'JOKER DONE ✓' : inLane ? 'IN JOKER ›' : near
@@ -115,14 +124,15 @@ function jokerLine(race, flags) {
 
 /**
  * Joker race lap panel while racing: LAP n/N, the timer and the joker line.
- * @param {CanvasRenderingContext2D} ctx
- * @param {object} game the game
- * @param {object} race the race state
- * @param {object} lapRect the lap panel rectangle
- * @param {number} lapNum the lap number
+ * @param ctx
+ * @param game the game
+ * @param race the race state
+ * @param lapRect the lap panel rectangle
+ * @param lapNum the lap number
  * @returns {void}
  */
-function drawHudLapJokerLive(ctx, game, race, lapRect, lapNum) {
+function drawHudLapJokerLive(ctx: CanvasRenderingContext2D, game: HudGame, race: HudRace,
+  lapRect: HudRect, lapNum: number) {
   drawHudLabel(ctx, `LAP ${Math.min(lapNum, race.laps)}/${race.laps}`, lapRect.x + 8, lapRect.y
     + 13, { size: 11, weight: 700, col: COL.live });
   drawHudLabel(ctx, fmtTime(race.t), lapRect.x + lapRect.w - 8, lapRect.y + 13,
@@ -143,13 +153,14 @@ function drawHudLapJokerLive(ctx, game, race, lapRect, lapNum) {
 
 /**
  * A VS AI race lap panel (raceflow.js): LAP n/N, FINISH once you are home.
- * @param {CanvasRenderingContext2D} ctx
- * @param {object} game the game
- * @param {object} lapRect the lap panel rectangle
- * @param {number} lapNum the lap number
+ * @param ctx
+ * @param game the game
+ * @param lapRect the lap panel rectangle
+ * @param lapNum the lap number
  * @returns {void}
  */
-export function drawHudLapRace(ctx, game, lapRect, lapNum) {
+export function drawHudLapRace(ctx: CanvasRenderingContext2D, game: HudGame, lapRect: HudRect,
+  lapNum: number) {
   const flow = game.flow, player = flow && flow.entries.find((entry) => entry.player);
   drawHudLabel(ctx, player
     ? (player.finish != null ? 'FINISH'
@@ -166,12 +177,12 @@ export function drawHudLapRace(ctx, game, lapRect, lapNum) {
 
 /**
  * Top-right, under speed: lap counter & timer (circuit levels only).
- * @param {CanvasRenderingContext2D} ctx
- * @param {object} game the game
- * @param {object} rects the layout rectangles
+ * @param ctx
+ * @param game the game
+ * @param rects the layout rectangles
  * @returns {void}
  */
-export function drawHudLapTimer(ctx, game, rects) {
+export function drawHudLapTimer(ctx: CanvasRenderingContext2D, game: HudGame, rects: HudRects) {
   if (LEVEL.subtrack && game.lap) {
     const lapRect = rects.lap;
     drawHudPanel(ctx, lapRect);

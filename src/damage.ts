@@ -21,7 +21,7 @@ import { railGive } from './world/armcodent.ts';
 import { ripWheel, takeWheelHit, wheelShares, type WheelHit } from './physics/openwheel.ts';
 // damage.ts — CAR DAMAGE. Bookkeeping on the sim step; vehicle.ts reads only
 // car.wreck (multipliers, no-op by default — CLAUDE.md §2 rule 6), render.ts draws the crush /
-// dents / chips / loose wheels, hud.js the tyre diagram, the results the repair bill.
+// dents / chips / loose wheels, hud.ts the tyre diagram, the results the repair bill.
 //
 // USER: "full damage — but limited"; "damage resets with RESET — but is COUNTED
 // cost-wise against you, paid at the end of a race in Story mode — shown in Test but never

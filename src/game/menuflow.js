@@ -15,7 +15,7 @@ import { selectLevel, selectCar } from './controls.js';
 import { shared, game } from './state.js';
 import {
   minimapSetting, setMinimapSetting, progressSetting, setProgressSetting,
-} from '../hud/minimap.js';
+} from '../hud/minimap.ts';
 import { setTrackTempSetting, trackTempSetting } from '../hud/tracktemp.ts';
 import { BUILD_ID, hasSavedThumbs, readThumbs, saveThumbs } from '../menu/thumbcache.ts';
 import { loadProfile } from '../menu/profile.ts';

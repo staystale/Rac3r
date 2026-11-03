@@ -7,7 +7,7 @@
 import { COL } from '../world/colours.ts';
 import { WEATHER, weatherRuns } from '../world/weather.ts';
 import { drawHudLabel, drawHudPanel, type HudRect } from './widgets.ts';
-import { modeSetting, setModeSetting } from './minimap.js';
+import { modeSetting, setModeSetting } from './minimap.ts';
 
 const TRACK_TEMP_KEY = 'rac3r.tracktemp.';
 // C: the bands of the gauge's colour - ice forms below FREEZE_C, cool to COOL_C, normal to

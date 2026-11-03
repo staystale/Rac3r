@@ -1,5 +1,5 @@
 // hud/widgets.ts — shared HUD drawing primitives: margins, time format, panel, label, button.
-// Pure moves out of hud.js.
+// Pure moves out of hud.ts.
 
 import { COL } from '../world/colours.ts';
 
