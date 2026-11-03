@@ -96,7 +96,7 @@ car sim/
     input.ts            normalized input state; keyboard + touch; pc/touch detect
     vehicle.js          THE MODEL. Knows nothing about upgrades, cones, or rendering.
     cars.js             base stats (hatch) + the default mods table
-    marks.js            world-space skid-mark layer + stamping rules
+    marks.ts            world-space skid-mark layer + stamping rules
     lab.ts              the scene: floor extents, cone layout as data, reset
     render.js           low-res buffer, camera, sprites, marks blit, particles
     hud.ts              speed / tacho / gear / shift light, touch overlay drawing, dev overlay
@@ -208,7 +208,7 @@ tuning anything.
 
 ---
 
-## Skid marks (`marks.js`) — the showcase, so get the rules right
+## Skid marks (`marks.ts`) — the showcase, so get the rules right
 
 One **world-space offscreen canvas**, 160 × 160 m at **10 px/m = 1600 × 1600** (≈ 10.2 MB — see A3; was
 8 px/m). Stamps outside the bounds are clamped, not silently dropped. Stamp into it; never
@@ -302,7 +302,7 @@ the rest of the touch HUD in Step 5.
 **Step 3 — powertrain + tacho.** RPM, gears, auto and sequential, the 0.25 s cut. Tacho with a shift light in
 the HUD (the silent twin of the engine note, `CLAUDE.md` §8). Speed readout in km/h.
 
-**Step 4 — marks.** `marks.js` per the rules above. Verify **each of the five situations** in the table with
+**Step 4 — marks.** `marks.ts` per the rules above. Verify **each of the five situations** in the table with
 scripted inputs, photograph each one, and check the frame cost with the layer heavily used, not empty
 (`CLAUDE.md` §3). Report the five screenshots.
 

@@ -26,7 +26,7 @@ export interface ScrapeCar {
   _scrapeCell?: number[];
 }
 
-// the pale scored line a rim leaves on hard ground (marks.js: the mark of a wheel with
+// the pale scored line a rim leaves on hard ground (marks.ts: the mark of a wheel with
 // car.rimSparks set), narrower than the tyre
 export const MARK_GOUGE: Mark = { rgb: '205,205,214', widen: 0.3, alpha: 0.55 };
 // the grade a gouge breaks each surface to (anything else is left alone)

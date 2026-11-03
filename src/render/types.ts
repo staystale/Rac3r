@@ -76,7 +76,7 @@ export interface RenderWheel {
   y: number;
   heat: number;
   slip: number;
-  spray?: Spray | null;   // what the ground under this wheel throws (marks.js)
+  spray?: Spray | null;   // what the ground under this wheel throws (marks.ts)
 }
 
 // What the particles read of a car.
@@ -100,7 +100,7 @@ export interface ParticleCar extends CamCar {
 // What the particles read of the marks layer.
 export interface RenderMarks {
   wheelsOf: (car: ParticleCar) => RenderWheel[];
-  shiftX: number;   // layer px the window has moved (getters in marks.js; 0 = not moved)
+  shiftX: number;   // layer px the window has moved (getters in marks.ts; 0 = not moved)
   shiftY: number;
   size: number;   // the layer canvas side, px
   canvas: HTMLCanvasElement;

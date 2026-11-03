@@ -1,6 +1,6 @@
 // renderhash.mjs - RENDER FINGERPRINT: hashes the game's canvas pixels at fixed moments of a
 // fully deterministic run, so a refactor of the drawing code (src/render.ts, src/render/*,
-// src/marks.js) can be PROVED to leave every drawn pixel identical. The drawing counterpart of
+// src/marks.ts) can be PROVED to leave every drawn pixel identical. The drawing counterpart of
 // worldhash.mjs. The game runs in the browser with a seeded Math.random, a fake clock
 // (performance.now, Date.now) and a requestAnimationFrame queue that only runs when the tool
 // steps a frame (1000/60 ms of fake time each). Per level the demo driver

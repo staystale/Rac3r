@@ -1,7 +1,7 @@
 // wettrail.ts - WET TRAILS (owner: "tyre marks
 // in the wet need to vanish quite quickly 10-50 m"). On a wet road a tyre lays no rubber: it
 // squeezes the water aside and leaves a lighter line the water closes over again (MARK_WET).
-// Those lines went into the skid-mark layer (marks.js), which fades everything ~46 s to half:
+// Those lines went into the skid-mark layer (marks.ts), which fades everything ~46 s to half:
 // about 2 km of trail at race speed. Now a wet wheel keeps a short trail of points instead - one
 // each TRAIL_STEP m, dropped after TRAIL_S s or past TRAIL_M m of trail (~10 m at 36 km/h, 50 m
 // at 180 km/h) - drawn each frame where the marks are drawn, fading with age: one stroke per fade
@@ -21,7 +21,7 @@ const trails = new Map<string, Trail>();
 let clock = 0;
 
 /**
- * A wet wheel's position this physics step (marks.js stampWheel): a new point once it has moved
+ * A wet wheel's position this physics step (marks.ts stampWheel): a new point once it has moved
  * TRAIL_STEP m.
  * @param key the wheel's key (per car)
  * @param x world x, m
@@ -61,7 +61,7 @@ export function stepWetTrails(dt: number): void {
   }
 }
 
-/** Forgets every trail (a restart, a new level: marks.js clear). */
+/** Forgets every trail (a restart, a new level: marks.ts clear). */
 export function clearWetTrails(): void { trails.clear(); }
 
 /**

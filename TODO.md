@@ -76,7 +76,7 @@ BUGS (S-M each; ONE test round before the root fix - owner 11-01: OK)
   after the rain stops and meltwater sets it to 0.88-1.0 (coverfield.ts setMeltSoak). OWNER
   RULE: a wet trail only in a PUDDLE or while it is RAINING; elsewhere normal rubber marks.
   Grip of damp ground unchanged (look only). S. OWNER 11-01: only HEAVY rain lays trails on
-  damp ground; light rain / drizzle: only puddles. BUILT ?heavywet=1 (marks.js markOf, rain
+  damp ground; light rain / drizzle: only puddles. BUILT ?heavywet=1 (marks.ts markOf, rain
   0.7+): soaked track, no rain / light 0.45 / heavy 1 - trail share 1/1/1 off, 0/0/1 on.
   RAIN AND TYRES (owner asked): yes - wet ground cools tyres (damp coolK up to 0.18, a puddle
   0.20, physics/tyreheat.ts groundCool); falling rain has no extra term. No change unless asked.
@@ -109,11 +109,11 @@ BUGS (S-M each; ONE test round before the root fix - owner 11-01: OK)
   round other cars, spread round the lap, not at the line (_ovalswing.mjs); the rolling start
   holds columns within 1 m. NOTE for B: Naffcar has no racecraft corners (bends R 85 > CORNER_R
   70): tow passes only.
-- K4 [DEFAULT 11-02, owner: pass] TYRE MARKS FADE IN RANDOM SQUARE CHUNKS. CAUSE (code): marks.js fadeBlocks halves one
+- K4 [DEFAULT 11-02, owner: pass] TYRE MARKS FADE IN RANDOM SQUARE CHUNKS. CAUSE (code): marks.ts fadeBlocks halves one
   hashed eighth-by-eighth block of the marks layer every 0.5 s - blocks, not age. WANTED: oldest
   first, newest last, no patches. Plan: each mark remembers when it was laid and fades by its
   age (same ~2-3 min life); design + cost measured first. M. OWNER 11-01: oldest first, SMALL
-  bits at a time (not the big panels), same life. BUILT ?markage=1 (marks.js fadeAged: 16 px
+  bits at a time (not the big panels), same life. BUILT ?markage=1 (marks.ts fadeAged: 16 px
   cells ~3.8 m, newest mark's age; fade from 90 s, 5 steps of 12 s): skid A at 0 s, B at 60 s -
   A 60/22/0 % at 90/120/150 s while B stays 100 %, then B; cost 0.28 ms a game second.
   ROUND 2 (owner 11-02: "better but still a bit chunky"): 8 px cells (~1.9 m), 16 steps of 15 %
@@ -159,7 +159,7 @@ FEATURES
 
 - K17 [DEFAULT 11-02, owner: pass] HUD FLASHES "like crazy" driving off the track (owner 11-02, new). Not reproduced on the
   laptop at first. Owner: test link only, after damage, off road. FIXED in ?wheelgone: with a
-  wheel off marks.js lists 3 wheels, particles.ts picked wheels[rand*4] -> undefined.spray threw
+  wheel off marks.ts lists 3 wheels, particles.ts picked wheels[rand*4] -> undefined.spray threw
   every few frames on loose ground, the frame died before the HUD (tools/scratch/_hudflash2.mjs:
   3 flashes + page errors -> 0). Spray now picks from the list's length.
 - K18 MENU RACE ON A RANDOM TRACK each time, or the last track raced - highway levels too
@@ -246,12 +246,12 @@ is converted first in its own commit, proved SAME, then changed (owner: "1.a is 
    main, each batch proved against main 10a3f89 (simhash SAME, worldhash SAME, renderhash SAME on
    test-track / knobhill / highway where it draws; menucheck / uicheck / inputcheck / garage
    where it applies): batch 1 (13 leaf files), 2 cones (6), 3 HUD (7), 4 menus (4), 5b input,
-   roll, raceflow, 5c audio, guide, and carstats (the generator writes typed TS) - 36 files.
-   LEFT (14 files, ~6.3k lines): the HIGHWAY (7, stashed in rac3r-wt as "ts batch 5 highway":
+   roll, raceflow, 5c audio, guide, carstats (the generator writes typed TS), marks - 37 files.
+   LEFT (13 files, ~5.7k lines): the HIGHWAY (7, stashed in rac3r-wt as "ts batch 5 highway":
    it builds lanes / zones / covers in shapes world/types.ts does not allow - [x, y] lane points,
    _s tags - so those world types are widened first); the GAME FLOW (state, grid, controls,
    rules, order, ai, loop, menuflow, session, sim) + main.js - they share game / shared from
-   game/state.js, which needs a typed Game first; marks.js; stagegen.js.
+   game/state.js, which needs a typed Game first; marks.ts; stagegen.js.
    FOUND on the way (behaviour kept, for the owner): the joker turn-off hint on the lap panel
    never shows (hud/laps.ts: no joker arrow carries its track distance d); JokerRule.estCost is
    read but never set (an unfinished car's joker always costs 5 s); carstats are a little stale

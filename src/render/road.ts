@@ -4,7 +4,7 @@
 import { FX0, FX1, FY0, FY1, KERB_W } from "../world/bounds.ts";
 import { PAINT, BOARDS, LEVEL } from "../world/state.ts";
 import { COL } from "../world/colours.ts";
-import { MARK_EXTENT, MARK_PPM } from '../marks.js';
+import { MARK_EXTENT, MARK_PPM } from '../marks.ts';
 import { paintAs } from "../world/coverfield.ts";
 import type { Prop } from "../world/types.ts";
 import type { Cam, ForSide, RenderMarks, RoadGame, View } from "./types.ts";
@@ -747,7 +747,7 @@ function drawMarks(ctx: RoadCtx, marks: RenderMarks) {
 }
 
 /**
- * Blits a wrap-around marks layer whose window has moved (marks.js "WRAP-AROUND LAYER"): up to
+ * Blits a wrap-around marks layer whose window has moved (marks.ts "WRAP-AROUND LAYER"): up to
  * four pieces, split where the window wraps past the layer's right and bottom edges.
  * @param ctx the road context
  * @param marks the marks (canvas, size, window shift)

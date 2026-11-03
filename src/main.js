@@ -12,7 +12,7 @@ import { CAR_IDS, applyLivery } from './cars.ts';
 import { createInput } from './input.ts';
 import { createRenderer } from './render.ts';
 import { readSettings } from './core/settings.ts';
-import { createMarks } from './marks.js';
+import { createMarks } from './marks.ts';
 import { setTrackTempSource } from './hud/tracktemp.ts';
 import { createHud } from './hud.ts';
 import {

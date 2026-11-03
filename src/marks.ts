@@ -1,4 +1,4 @@
-// marks.js — the world-space skid-mark layer. THE SHOWCASE.
+// marks.ts — the world-space skid-mark layer. THE SHOWCASE.
 //
 // ONE offscreen canvas in world space, stamped into once per physics step and blitted whole. Never
 // re-stroke old marks per frame (CLAUDE.md §8: this is the one unbounded array in the design, and
@@ -19,6 +19,7 @@ import { WEATHER } from "./world/weather.ts";
 import { CORNER_OF_WHEEL, wheelGone } from "./world/wheels.ts";
 import { MARK_GOUGE } from "./world/metalscrape.ts";
 import { addTrailPoint, clearWetTrails } from "./wettrail.ts";
+import type { Mark, Spray, Surface } from './world/types.ts';
 
 // EXTENT is the FENCE, not the floor, so what happens in the run-off (gravel tracks) is
 // recorded too. The resolution is kept at 4.2 px/m so memory stays flat: a finer layer over this
@@ -39,28 +40,38 @@ export const SLIP_FLOOR = 2.2;                   // m/s. MEASURED against the re
 // and from the physics rate, so darkness means SLIP and nothing else.
 const STAMP_STEP = 0.10;                         // m
 
-/**
- * The buffer state of one marks layer.
- * @typedef {object} MarkState
- * @property {Map<string, {x: number, y: number}>} prev wheel key -> world position last step
- * @property {number} stamps how many stamps were laid since the last clear
- * @property {number} shiftX layer px the window has moved along x (0 on a level that fits)
- * @property {number} shiftY layer px the window has moved along y
- * @property {boolean} wraps true once the window follows the car (a wrap-around buffer)
- * @property {number} [fadeT] s since the last fade tick
- * @property {number} [clock] s of marks time (the aged fade)
- * @property {Float64Array} [cellT] each fade cell's newest mark, marks s (the aged fade)
- * @property {Uint8Array} [cellStep] each fade cell's fade steps done (the aged fade)
- * @property {Set<number>} [live] the fade cells holding marks (the aged fade)
- */
+/** The buffer state of one marks layer. */
+interface MarkState {
+  prev: Map<string, { x: number; y: number }>;   // wheel key -> world position last step
+  stamps: number;   // how many stamps were laid since the last clear
+  shiftX: number; shiftY: number;   // layer px the window has moved (0 on a level that fits)
+  wraps: boolean;   // true once the window follows the car (a wrap-around buffer)
+  fadeT?: number;   // s since the last fade tick
+  clock?: number;   // s of marks time (the aged fade)
+  cellT?: Float64Array;   // each fade cell's newest mark, marks s (the aged fade)
+  cellStep?: Uint8Array;   // each fade cell's fade steps done (the aged fade)
+  live?: Set<number>;   // the fade cells holding marks (the aged fade)
+}
 
-/**
- * What every marks function takes.
- * @typedef {object} MarkCtx
- * @property {HTMLCanvasElement} layer the offscreen canvas
- * @property {CanvasRenderingContext2D} ctx its 2d context
- * @property {MarkState} state the buffer state
- */
+/** What every marks function takes. */
+interface MarkCtx { layer: HTMLCanvasElement; ctx: CanvasRenderingContext2D; state: MarkState }
+
+/** One wheel this step: where, how hard it slips, how wide, what it marks and throws, its heat. */
+export interface MarkWheel {
+  key: string; x: number; y: number; slip: number; width: number;
+  mark?: Mark | null;   // set only by loose surfaces (undefined = ordinary skid marks), or a rim
+  spray?: Spray | null; heat: number;
+}
+
+/** What the marks read of a car. */
+interface MarkCar {
+  x: number; y: number; heading: number;
+  spec: { lf: number; lr: number; trackWidth: number; tyreWidth: number };
+  t: { slipSpeedF: number; slipSpeedR: number };
+  surface: Surface; wheelSurf?: (Surface | null)[] | null;   // the ground under each wheel
+  tyreT?: number[]; rimSparks?: boolean[]; wheelOff?: boolean[];
+  _markId?: number;
+}
 
 // WRAP-AROUND LAYER. A world point is at layer px u = (x + MARK_EXTENT) * MARK_PPM (v for y),
 // stored at u mod SIZE; the layer holds the window u in [shiftX, shiftX + SIZE). On a level that
@@ -73,27 +84,27 @@ const STAMP_STEP = 0.10;                         // m
 
 /**
  * The remainder of value / period, from 0 up to period (also for negative values).
- * @param {number} value the value
- * @param {number} period the period
- * @returns {number} the remainder
+ * @param value the value
+ * @param period the period
+ * @returns the remainder
  */
-const wrapPx = (value, period) => ((value % period) + period) % period;
+const wrapPx = (value: number, period: number) => ((value % period) + period) % period;
 
 /**
  * Converts a world position to an (unwrapped) pixel position in the layer.
  *
- * @param {number} worldX world x in metres
- * @param {number} worldY world y in metres
- * @returns {number[]} the [u, v] pixel position
+ * @param worldX world x in metres
+ * @param worldY world y in metres
+ * @returns the [u, v] pixel position
  */
-function toPx(worldX, worldY) {
+function toPx(worldX: number, worldY: number) {
   return [(worldX + MARK_EXTENT) * MARK_PPM, (worldY + MARK_EXTENT) * MARK_PPM];
 }
 
 /**
  * Does the whole level, fence included, fit the layer around the world origin? (Then the layer
  * never moves.)
- * @returns {boolean} true when it fits
+ * @returns true when it fits
  */
 function levelFitsLayer() {
   return -FX0 + RUNOFF_W <= MARK_EXTENT && FX1 + RUNOFF_W <= MARK_EXTENT
@@ -102,12 +113,13 @@ function levelFitsLayer() {
 
 /**
  * Clears a band of whole columns or rows of the layer.
- * @param {CanvasRenderingContext2D} ctx the layer's context
- * @param {number} start the first column / row
- * @param {number} count how many
- * @param {boolean} isColumns true for columns (an x move), false for rows
+ * @param ctx the layer's context
+ * @param start the first column / row
+ * @param count how many
+ * @param isColumns true for columns (an x move), false for rows
  */
-function clearBand(ctx, start, count, isColumns) {
+function clearBand(ctx: CanvasRenderingContext2D, start: number, count: number,
+  isColumns: boolean) {
   if (isColumns) ctx.clearRect(start, 0, count, SIZE);
   else ctx.clearRect(0, start, SIZE, count);
 }
@@ -115,12 +127,13 @@ function clearBand(ctx, start, count, isColumns) {
 /**
  * Clears what a window move from one shift to another hands over to new ground: the columns
  * (or rows) between the two shifts, wrapped into the layer.
- * @param {CanvasRenderingContext2D} ctx the layer's context
- * @param {number} fromShift the old shift, layer px
- * @param {number} toShift the new shift, layer px
- * @param {boolean} isColumns true for an x move, false for a y move
+ * @param ctx the layer's context
+ * @param fromShift the old shift, layer px
+ * @param toShift the new shift, layer px
+ * @param isColumns true for an x move, false for a y move
  */
-function clearEnteringStrip(ctx, fromShift, toShift, isColumns) {
+function clearEnteringStrip(ctx: CanvasRenderingContext2D, fromShift: number, toShift: number,
+  isColumns: boolean) {
   const count = Math.abs(toShift - fromShift);
   if (count === 0) return;
   if (count >= SIZE) {
@@ -142,11 +155,11 @@ function clearEnteringStrip(ctx, fromShift, toShift, isColumns) {
  * level's whole fence (+-FLOOR + RUNOFF_W) IS the layer, so it never needs to move; only the
  * endless road and levels outside the square (the lab rectangle, a long straight) follow.
  *
- * @param {MarkCtx} markCtx the marks context
- * @param {number} x world x to follow
- * @param {number} y world y to follow
+ * @param markCtx the marks context
+ * @param x world x to follow
+ * @param y world y to follow
  */
-function followMarks(markCtx, x, y) {
+function followMarks(markCtx: MarkCtx, x: number, y: number) {
   const { ctx, state } = markCtx;
   if (!LEVEL.endless && !state.wraps && levelFitsLayer()) return;
   state.wraps = true;
@@ -160,9 +173,9 @@ function followMarks(markCtx, x, y) {
 /**
  * Wipes the layer and resets its state.
  *
- * @param {MarkCtx} markCtx the marks context
+ * @param markCtx the marks context
  */
-function clearMarks(markCtx) {
+function clearMarks(markCtx: MarkCtx) {
   const { ctx, state } = markCtx;
   ctx.clearRect(0, 0, SIZE, SIZE);
   state.shiftX = 0;
@@ -187,12 +200,12 @@ const AGED_FROM_S = 90, AGED_STEP_S = 4, AGED_STEPS = 16, AGED_ALPHA = 0.15, AGE
 
 /**
  * Notes a stroke's cells as just marked (the aged fade).
- * @param {MarkCtx} markCtx the marks context
- * @param {number[]} from the [x, y] layer px of the start (as drawn)
- * @param {number[]} dest the [x, y] layer px of the end
- * @param {number} reach px round the segment the drawing can reach
+ * @param markCtx the marks context
+ * @param from the [x, y] layer px of the start (as drawn)
+ * @param dest the [x, y] layer px of the end
+ * @param reach px round the segment the drawing can reach
  */
-function noteMarked(markCtx, from, dest, reach) {
+function noteMarked(markCtx: MarkCtx, from: number[], dest: number[], reach: number) {
   const { state } = markCtx;
   if (!state.cellT) {
     state.cellT = new Float64Array(CELLS * CELLS);
@@ -200,16 +213,16 @@ function noteMarked(markCtx, from, dest, reach) {
     state.live = new Set();
     state.clock = state.clock || 0;
   }
-  const cell = (layerPx) => (state.wraps ? Math.floor(wrapPx(layerPx, SIZE) / FADE_CELL)
+  const cell = (layerPx: number) => (state.wraps ? Math.floor(wrapPx(layerPx, SIZE) / FADE_CELL)
     : Math.max(0, Math.min(CELLS - 1, Math.floor(layerPx / FADE_CELL))));
   const lowX = Math.min(from[0], dest[0]) - reach, highX = Math.max(from[0], dest[0]) + reach;
   const lowY = Math.min(from[1], dest[1]) - reach, highY = Math.max(from[1], dest[1]) + reach;
   for (let y = lowY; ; y = Math.min(y + FADE_CELL, highY)) {
     for (let x = lowX; ; x = Math.min(x + FADE_CELL, highX)) {
       const index = cell(y) * CELLS + cell(x);
-      state.cellT[index] = state.clock;
-      state.cellStep[index] = 0;
-      state.live.add(index);
+      state.cellT[index] = state.clock!;
+      state.cellStep![index] = 0;
+      state.live!.add(index);
       if (x >= highX) break;
     }
     if (y >= highY) break;
@@ -218,10 +231,10 @@ function noteMarked(markCtx, from, dest, reach) {
 
 /**
  * Every AGED_TICK_S: each cell whose newest mark is old enough fades one step (the last clears).
- * @param {MarkCtx} markCtx the marks context
- * @param {number} dt the step in seconds
+ * @param markCtx the marks context
+ * @param dt the step in seconds
  */
-function fadeAged(markCtx, dt) {
+function fadeAged(markCtx: MarkCtx, dt: number) {
   const { ctx, state } = markCtx;
   state.clock = (state.clock || 0) + dt;
   state.fadeT = (state.fadeT || 0) + dt;
@@ -231,15 +244,15 @@ function fadeAged(markCtx, dt) {
   ctx.globalCompositeOperation = 'destination-out';
   ctx.fillStyle = `rgba(0,0,0,${AGED_ALPHA})`;
   for (const index of state.live) {
-    const step = state.cellStep[index];
-    if (state.clock - state.cellT[index] < AGED_FROM_S + step * AGED_STEP_S) continue;
+    const step = state.cellStep![index];
+    if (state.clock - state.cellT![index] < AGED_FROM_S + step * AGED_STEP_S) continue;
     const x = (index % CELLS) * FADE_CELL, y = Math.floor(index / CELLS) * FADE_CELL;
     if (step + 1 >= AGED_STEPS) {
       ctx.clearRect(x, y, FADE_CELL, FADE_CELL);
       state.live.delete(index);
     } else {
       ctx.fillRect(x, y, FADE_CELL, FADE_CELL);
-      state.cellStep[index] = step + 1;
+      state.cellStep![index] = step + 1;
     }
   }
   ctx.restore();
@@ -248,10 +261,10 @@ function fadeAged(markCtx, dt) {
 /**
  * Fades the marks, oldest first by cell.
  *
- * @param {MarkCtx} markCtx the marks context
- * @param {number} dt the step in seconds
+ * @param markCtx the marks context
+ * @param dt the step in seconds
  */
-function fadeMarks(markCtx, dt) {
+function fadeMarks(markCtx: MarkCtx, dt: number) {
   fadeAged(markCtx, dt);
 }
 
@@ -272,13 +285,14 @@ const COLD_MARK = 0.35;
  * the stop (a skidding tyre gets hot fast, as in life), so 25..70 still drew 2/3 of a warm
  * tyre's marks; 35..90 leaves only a faint tail.
  *
- * @param {MarkCtx} markCtx the marks context
- * @param {object} wheel the wheel { x, y, slip, width, heat }
- * @param {object | undefined} loose the loose-surface mark of the wheel, if any
- * @param {number[]} from the [x, y] layer pixel of the previous position
- * @param {number[]} dest the [x, y] layer pixel of the current position
+ * @param markCtx the marks context
+ * @param wheel the wheel { x, y, slip, width, heat }
+ * @param loose the loose-surface mark of the wheel, if any
+ * @param from the [x, y] layer pixel of the previous position
+ * @param dest the [x, y] layer pixel of the current position
  */
-function strokeMark(markCtx, wheel, loose, from, dest) {
+function strokeMark(markCtx: MarkCtx, wheel: MarkWheel, loose: Mark | null | undefined,
+  from: number[], dest: number[]) {
   const { ctx, state } = markCtx;
   const heatShare = Math.pow(Math.max(0, Math.min(1, (wheel.heat - 35) / 55)), 1.5);
   // a cold tyre slipping still lays rubber, COLD_MARK of a warm one's at most
@@ -300,24 +314,24 @@ const WRAP_OFFSETS = [0, -SIZE, SIZE];
 
 /**
  * Does a span of layer px, widened by `reach`, touch the layer once moved by `offset`?
- * @param {number} low the span's low end
- * @param {number} high the span's high end
- * @param {number} offset the move, layer px
- * @param {number} reach the half width to add, layer px
- * @returns {boolean} true when it touches
+ * @param low the span's low end
+ * @param high the span's high end
+ * @param offset the move, layer px
+ * @param reach the half width to add, layer px
+ * @returns true when it touches
  */
-function touchesLayer(low, high, offset, reach) {
+function touchesLayer(low: number, high: number, offset: number, reach: number) {
   return high + offset + reach >= 0 && low + offset - reach <= SIZE;
 }
 
 /**
  * Strokes the segment with the context's current style, plus its wrapped copies on a
  * wrap-around layer.
- * @param {MarkCtx} markCtx the marks context
- * @param {number[]} from the [x, y] layer pixel of the start, inside the layer
- * @param {number[]} dest the [x, y] layer pixel of the end
+ * @param markCtx the marks context
+ * @param from the [x, y] layer pixel of the start, inside the layer
+ * @param dest the [x, y] layer pixel of the end
  */
-function strokeSegment(markCtx, from, dest) {
+function strokeSegment(markCtx: MarkCtx, from: number[], dest: number[]) {
   const { ctx, state } = markCtx;
   if (!state.wraps) {
     ctx.beginPath();
@@ -349,12 +363,12 @@ function strokeSegment(markCtx, from, dest) {
  * with the marks. REVISED (requirement: rubber balling is a bit obvious): 0.35 -> 0.08 chance,
  * smaller and fainter.
  *
- * @param {MarkCtx} markCtx the marks context
- * @param {object} wheel the wheel { slip, width, heat, mark }
- * @param {number[]} from the [x, y] layer pixel of the previous position
- * @param {number[]} dest the [x, y] layer pixel of the current position
+ * @param markCtx the marks context
+ * @param wheel the wheel { slip, width, heat, mark }
+ * @param from the [x, y] layer pixel of the previous position
+ * @param dest the [x, y] layer pixel of the current position
  */
-function dropRubberBall(markCtx, wheel, from, dest) {
+function dropRubberBall(markCtx: MarkCtx, wheel: MarkWheel, from: number[], dest: number[]) {
   const { ctx } = markCtx;
   const [fromX, fromY] = from, [toX, toY] = dest;
   if (!wheel.mark && wheel.heat > 65 && wheel.heat < 120 && wheel.slip > 1.2
@@ -373,10 +387,10 @@ function dropRubberBall(markCtx, wheel, from, dest) {
 /**
  * Stamps one wheel's mark for this step, if it slipped and moved far enough.
  *
- * @param {MarkCtx} markCtx the marks context
- * @param {object} wheel the wheel { key, x, y, slip, width, mark, heat }
+ * @param markCtx the marks context
+ * @param wheel the wheel { key, x, y, slip, width, mark, heat }
  */
-function stampWheel(markCtx, wheel) {
+function stampWheel(markCtx: MarkCtx, wheel: MarkWheel) {
   const { prev } = markCtx.state;
   const last = prev.get(wheel.key);
   if (!last) {
@@ -440,10 +454,10 @@ function stampWheel(markCtx, wheel) {
  * gated on DISTANCE TRAVELLED, so a given metre of floor receives the same number of stamps
  * however fast it was crossed.
  *
- * @param {MarkCtx} markCtx the marks context
- * @param {object[]} wheels the wheels [{ key, x, y, slip, width }]
+ * @param markCtx the marks context
+ * @param wheels the wheels [{ key, x, y, slip, width }]
  */
-function stampMarks(markCtx, wheels) {
+function stampMarks(markCtx: MarkCtx, wheels: MarkWheel[]) {
   for (const wheel of wheels) stampWheel(markCtx, wheel);
 }
 
@@ -457,17 +471,18 @@ function stampMarks(markCtx, wheels) {
  * one car's wheel to ANOTHER car's same wheel — long lines criss-crossing
  * the track. Now prefixed by a per-car id.
  *
- * @param {object} car the car
- * @returns {object[]} the four wheels { key, x, y, slip, width, mark, heat }
+ * @param car the car
+ * @returns the four wheels { key, x, y, slip, width, mark, heat }
  */
 /**
  * The ground under one wheel: stepWear's sample, else the car's own.
- * @param {object} car the car
- * @param {object[]|null|undefined} under car.wheelSurf
- * @param {number} corner this file's wheel index
- * @returns {object} the surface
+ * @param car the car
+ * @param under car.wheelSurf
+ * @param corner this file's wheel index
+ * @returns the surface
  */
-function surfaceOfWheel(car, under, corner) {
+function surfaceOfWheel(car: MarkCar, under: (Surface | null)[] | null | undefined,
+  corner: number) {
   return (under && under[CORNER_OF_WHEEL[corner]]) || car.surface;
 }
 
@@ -478,22 +493,22 @@ function surfaceOfWheel(car, under, corner) {
 const HEAVY_TRAIL_RAIN = 0.7;
 /**
  * The mark a wheel lays on a surface.
- * @param {object} surface the ground under the wheel
- * @returns {object|undefined} the mark (undefined = ordinary skid marks)
+ * @param surface the ground under the wheel
+ * @returns the mark (undefined = ordinary skid marks)
  */
-function markOf(surface) {
+function markOf(surface: Surface) {
   if (surface.mark !== MARK_WET || surface.id === 'puddle' || surface.id === 'wet'
     || WEATHER.rain >= HEAVY_TRAIL_RAIN) return surface.mark;
-  const dry = SURFACES[surface.id];
+  const dry = (SURFACES as Record<string, Surface>)[surface.id];
   return dry ? dry.mark : undefined;
 }
 
-function listWheels(car) {
+function listWheels(car: MarkCar): MarkWheel[] {
   if (car._markId === undefined) car._markId = nextMarkId++;
   const spec = car.spec, telem = car.t;
   const cosH = Math.cos(car.heading), sinH = Math.sin(car.heading);
   const halfTrack = spec.trackWidth / 2;
-  const out = [];
+  const out: MarkWheel[] = [];
   // a wheel on its rim over hard ground scores a pale line (world/metalscrape.ts); every other
   // mark and spray comes off the ground under that wheel (world/wear.ts stepWear), the car's
   // one sample until it has moved
@@ -503,7 +518,7 @@ function listWheels(car) {
     ['fr', spec.lf, halfTrack, telem.slipSpeedF, 1],
     ['rl', -spec.lr, -halfTrack, telem.slipSpeedR, 2],
     ['rr', -spec.lr, halfTrack, telem.slipSpeedR, 3],
-  ]) {
+  ] as [string, number, number, number, number][]) {
     // a wheel gone leaves no rubber, trail or spray: only its hub's score while it sparks
     const gone = wheelGone(car, corner), gouge = !!(rims && rims[corner]);
     if (gone && !gouge) continue;
@@ -532,11 +547,10 @@ export function createMarks() {
   const layer = document.createElement('canvas');
   layer.width = SIZE;
   layer.height = SIZE;
-  const ctx = layer.getContext('2d');
+  const ctx = layer.getContext('2d')!;
   ctx.lineCap = 'round';
   // start transparent; the floor shows through
-  /** @type {MarkState} */
-  const state = {
+  const state: MarkState = {
     prev: new Map(),   // wheel key -> {x, y} world position last step
     stamps: 0,
     // the WINDOW (see "WRAP-AROUND LAYER"): 0 on a level that fits the layer
@@ -550,11 +564,11 @@ export function createMarks() {
     canvas: layer, size: SIZE,
     get shiftX() { return state.shiftX; },
     get shiftY() { return state.shiftY; },
-    follow: (x, y) => followMarks(markCtx, x, y),
+    follow: (x: number, y: number) => followMarks(markCtx, x, y),
     get stamps() { return state.stamps; },
     clear: () => clearMarks(markCtx),
-    fade: (dt) => fadeMarks(markCtx, dt),
-    stamp: (wheels) => stampMarks(markCtx, wheels),
-    wheelsOf: (car) => listWheels(car),
+    fade: (dt: number) => fadeMarks(markCtx, dt),
+    stamp: (wheels: MarkWheel[]) => stampMarks(markCtx, wheels),
+    wheelsOf: (car: MarkCar) => listWheels(car),
   };
 }

@@ -39,7 +39,7 @@ const COL_GRASS_SCUFF  = '92,112,66';     // rgb of torn turf
 //   rough   m of surface height noise, fed to the suspension. Decides how much the car is working
 //           just to stay on the ground, so it is what makes soft springs pay on gravel.
 //
-// mark is what a wheel leaves behind (read by marks.js, which knows nothing about any of these).
+// mark is what a wheel leaves behind (read by marks.ts, which knows nothing about any of these).
 const MARK_GRAVEL: Mark = { rgb: COL_GRAVEL_TRACK, widen: 2.4, alpha: 0.13 };
 const MARK_GRASS: Mark = { rgb: COL_GRASS_SCUFF, widen: 1.9, alpha: 0.10 };
 const MARK_DIRT: Mark = { rgb: '98,74,52', widen: 2.3, alpha: 0.16 };

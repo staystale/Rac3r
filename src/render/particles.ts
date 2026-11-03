@@ -192,7 +192,7 @@ function addPuffsTo(ctx: ParticleCtx, hits: PuffHit[]) {
  */
 function emitSpray(ctx: ParticleCtx, car: ParticleCar, marks: RenderMarks, wallDt: number) {
   const state = ctx.state;
-  // each wheel throws what is under IT (marks.js wheelsOf: world/wear.ts stepWear's sample)
+  // each wheel throws what is under IT (marks.ts wheelsOf: world/wear.ts stepWear's sample)
   const wheels = marks.wheelsOf(car);
   let rate = 0;
   for (const wheel of wheels) rate += wheel.spray ? wheel.spray.rate / 4 : 0;
@@ -209,7 +209,7 @@ function emitSpray(ctx: ParticleCtx, car: ParticleCar, marks: RenderMarks, wallD
   // never let a frame spike flood the pool
   if (count > 12) count = 12;
   for (let i = 0; i < count; i++) {
-    // (fewer than four once a wheel has come off: marks.js lists no lost wheel)
+    // (fewer than four once a wheel has come off: marks.ts lists no lost wheel)
     const wheel = wheels[(fxRandom() * wheels.length) | 0];
     if (wheel.spray) {
       emitPuff(ctx, wheel.x, wheel.y, car.vx, car.vy, wheel.spray, 0.4 + work,

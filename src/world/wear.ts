@@ -505,7 +505,7 @@ export function stepWear(car: CarBody, dt: number): void {
   // at 120 Hz.
   if (Math.hypot(curr[0].x - car.prevWheels[0].x,
     curr[0].y - car.prevWheels[0].y) > 3) { car.prevWheels = curr; return; }
-  // EACH WHEEL'S OWN GROUND for its mark and spray (marks.js, render/particles.ts), read before
+  // EACH WHEEL'S OWN GROUND for its mark and spray (marks.ts, render/particles.ts), read before
   // this step's pass (the water the tyre squeezes aside): car.surface is one sample between the
   // rear wheels - leaving a puddle the fronts laid wet trails on dry tarmac, a puddle under one
   // side gave all four wheels one

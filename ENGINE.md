@@ -36,7 +36,7 @@ Older design notes and measurements are in the git history of this file.
 | `ai/` | One AI engine. Circuits: `circuit.ts` (`createAIDriver`) with `driver*.ts` steps, `line.ts` (racing line, speed profiles), `racecraft.ts`, `traits.ts` (difficulty, personality). Highway: `weaver.ts` (`roadDriver`) with `weaver*.ts`; traffic `traffic*.ts`; the highway race flow `hwFlow*.ts`. `autodrive.ts` the scripted demo / test driver. |
 | `highwayrace.ts`, `traffic.ts`, `raceflow.ts` | Highway race rules, highway traffic, how a race ends (results, estimates, DNF). |
 | `render.ts`, `render/` | Drawing (below). |
-| `marks.js` | The world-space skid-mark layer. |
+| `marks.ts` | The world-space skid-mark layer. |
 | `hud.ts`, `hud/` | The HUD on the full-resolution canvas: `layout.js` every rectangle and tap hit-test, `gauges.js`, `laps.js`, `overlays.js`, `controls.js`, `widgets.js`, `minimap.js` (minimap + progress bar). The pause menu's HUD list (`?hudmenu=0` = the old MINIMAP row) (`menu/race.ts`, `game/menuflow.js` hudActions) turns each display piece on or off. |
 | `menu.ts`, `menu/` | Main menu, test mode, garage (paint, tyres), race setup and results. |
 | `input.ts` | One normalised input state from keyboard and touch; the car never sees an event. |
@@ -106,7 +106,7 @@ the rubber comes off by a chance rising with the metres run flat (half by ~1 km)
 (player `game/sim.js`, AI `game/ai.js`). METAL ON HARD GROUND (`world/metalscrape.ts`): a rim, or
 a rolled body sliding (`roll.ts car.sparks`), sparks and may break each new wear cell a grade
 (race tarmac -> tarmac -> broken) through `gougeCell`; a rollover impact has its own chance; a
-rim scores a pale mark (`MARK_GOUGE`, `marks.js`). Drawn by `render/tyrelook.ts` (the tyre
+rim scores a pale mark (`MARK_GOUGE`, `marks.ts`). Drawn by `render/tyrelook.ts` (the tyre
 squashes progressively with its air, a rim bare), puffs / shreds / rim sparks in
 `render/particles.ts`, the HUD tyre ring by pressure (`hud/gauges.ts`), `?dev=1` line `air`.
 Tyre spikes (a police stinger, `world/stingers.ts`, drawn by `render/stingers.ts`) on the Lab and Test Track burst every wheel that rolls on. The Lab's
@@ -164,7 +164,7 @@ the night light map (`render/light.ts drawSparkGlows`).
   `zones.ts`, `covers.ts` (puddles, snow), `wear.ts` (worn cells, bumps, runoff).
 - `render/textures.ts`: each surface's pattern is painted once at `TEX_PPM` (the car sprites' pixel
   size), seamless, and filled scaled to the zoom.
-- Layers drawn each frame over the tiles: `road.ts` (lanes, kerbs, paint, slip roads), `marks.js`,
+- Layers drawn each frame over the tiles: `road.ts` (lanes, kerbs, paint, slip roads), `marks.ts`,
   `objects.ts` (cones, tyres, tape, debris), `props.ts` + `props/` (fence, barriers, buildings, scenery,
   bridges), `cars.ts` with `carsprite.ts` (one cached sprite per livery) and `cardamage.ts`,
   `particles.ts`.
