@@ -59,7 +59,8 @@ handover, written on request.
   middle for the words, light top-left bevel, dark bottom-right, 2 px checker dither between shades,
   a few highlight pixels). TYPE: headers / buttons Silkscreen + Press Start 2P (bigger: buttons
   17 px, titles 22 px); stats, numbers and small labels VT323 (18-21 px); ONE set of digits
-  (numbers in pixel headers use VT323's, so a 4 is always the same 4). GARAGE: the upgradeable
+  (EVERY number in the pixel header face Silkscreen - stat values too - so a 4 is always the
+  same 4 and nothing sits off its line; owner 11-03). GARAGE: the upgradeable
   parts' level bars head the sections they apply to (Engine, Drivetrain, Suspension, Body,
   Quality; "also" where two parts move a stat); tap a stat or section -> its upgrade screen
   (levels, now vs that level, gains, price); TOUGHNESS (new, Body: how easily the car is hurt, per
