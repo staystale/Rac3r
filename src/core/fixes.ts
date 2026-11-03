@@ -5,7 +5,8 @@
 // dials, pedalramp, lockfade, spinmarks, smokefade, dustlinger, musclegears - and smokeover,
 // heatease, flatgrip, towplus passed 11-02;
 // aicool, smokeearly, airfx, smokelinger, aidust, realcars, jokerhint, puffpool, pitsolid,
-// muscletyres, namefix, bhbridges passed 11-03.)
+// muscletyres, namefix, bhbridges,
+// menustyle passed 11-03.)
 import { envValue } from './debug.ts';
 
 /**
@@ -36,7 +37,4 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
-  // ?menustyle=1: the pixel menu style - the owner's logo, its colours, pixel-shaded buttons,
-  // pixel type with one set of digits (menu/pixelstyle.ts)
-  menuStyle: atLoad('menustyle'),
 };

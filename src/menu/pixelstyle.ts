@@ -1,9 +1,9 @@
-// menu/pixelstyle.ts - THE PIXEL MENU STYLE (?menustyle=1, owner 11-03 after the mockup rounds:
+// menu/pixelstyle.ts - THE PIXEL MENU STYLE (passed 11-03, after the owner's mockup rounds:
 // claude.ai artifact "RAC3R Menu Redesign"). Laid over menu/style.ts's sheet, so every screen
 // takes it without its own code changing:
 //   LOGO     the owner's own image (assets/logo.jpg, "A DRIVING SANDBOX" under it) on the main menu
 //   COLOURS  the logo's: near-black panes, ember red to orange for actions, burnt brown edges,
-//            electric blue (the 3) for what is selected
+//            ember for what is locked in, electric blue (the 3) for a press
 //   SHADING  no smooth gradients: buttons are PIXEL-ART shaded - a flat middle the words sit on, a
 //            light top-left bevel, a dark bottom-right, 2 px checker dither where shades meet, a
 //            few highlight pixels
@@ -77,13 +77,15 @@ export const MENU_PIXEL_CSS = FACES + `
 #menu button:active { box-shadow: inset 2px 0 0 #3a2a2c, inset -2px 0 0 #120e12, 2px 2px 0 #000; }
 #menu button.go { background: ${HOT}; color: #1a0604; text-shadow: 1px 1px 0 #ffb070;
   box-shadow: inset 2px 0 0 #ff9a50, inset -2px 0 0 #a8121a, 4px 4px 0 #000; }
-#menu button.on { background: ${ZAP}; color: #031230;
-  box-shadow: inset 2px 0 0 #9ff6ff, inset -2px 0 0 #1250d8, 4px 4px 0 #000; }
+/* LOCKED IN (picked, chosen, toggled on): the ember look, like an action (owner 11-03); blue is
+   only the press */
+#menu button.on { background: ${HOT}; color: #1a0604; text-shadow: 1px 1px 0 #ffb070;
+  box-shadow: inset 2px 0 0 #ff9a50, inset -2px 0 0 #a8121a, 4px 4px 0 #000; }
 #menu .tag { font-family: R3Small, monospace; font-weight: 400; font-size: 16px; color: #ff3a2a; }
 #menu .picker, #menu .test { background: #17141b; box-shadow: inset 0 0 0 2px #3a2018; }
 #menu .picker .val { font-size: 14px; } #menu .picker .val.car { font-size: 17px; }
 #menu .card .nm, #menu .cat .nm { font-size: 15px; }
-#menu .cat .n { color: #ff7a2a; } #menu .cat.on .n { color: #031230; }
+#menu .cat .n { color: #ff7a2a; } #menu .cat.on .n { color: #1a0604; }
 #menu .stats { font-family: R3Small, monospace; font-weight: 400; font-size: 20px; gap: 2px 12px;
   align-items: baseline; }
 #menu .stats span { color: #b3a39b; }
@@ -115,8 +117,8 @@ export const MENU_PIXEL_CSS = FACES + `
   #menu .mainmenu .btns button { min-height: 40px; padding-block: 8px; }
 }
 #menu .tagline { display: none; }
-/* a picked (blue) card or row: its side line dark on the blue, not grey */
-#menu button.on .k, #menu button.on .sub { color: #0a2a60; }
+/* a picked (ember) card or row: its side line dark on the ember, not grey */
+#menu button.on .k, #menu button.on .sub { color: #3a1006; }
 /* PRESSED: electric blue at once, two blinks, then the button acts (widgets.ts addButton) */
 #menu button:active, #menu button.hit { background: ${ZAP}; color: #031230; text-shadow: none;
   box-shadow: inset 2px 0 0 #9ff6ff, inset -2px 0 0 #1250d8, 2px 2px 0 #000; }

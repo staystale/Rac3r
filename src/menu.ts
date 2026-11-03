@@ -11,7 +11,6 @@
 // api.carSprite(id) -> canvas of the generated pixel car
 import { CSS } from './menu/style.ts';
 import { MENU_PIXEL_CSS } from './menu/pixelstyle.ts';
-import { FIX } from './core/fixes.ts';
 import { loadProfile } from './menu/profile.ts';
 import { showMainMenu } from './menu/tracks.ts';
 import { showPause, showResults } from './menu/race.ts';
@@ -67,7 +66,7 @@ export function showMenu(menu: Menu): void {
 export function createMenu(api: MenuApi) {
   const profile = loadProfile();
   const styleEl = document.createElement('style');
-  styleEl.textContent = CSS + (FIX.menuStyle ? MENU_PIXEL_CSS : '');   // ?menustyle
+  styleEl.textContent = CSS + MENU_PIXEL_CSS;   // the base sheet + the pixel style over it
   document.head.appendChild(styleEl);
   const root = document.createElement('div');
   root.id = 'menu';

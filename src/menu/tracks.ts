@@ -10,7 +10,6 @@ import { addPane, addButton, addElement, copyThumb } from './widgets.ts';
 import { showSetup } from './setup.ts';
 import { showGarage } from './garage.ts';
 import { showSettings } from './settings.ts';
-import { FIX } from '../core/fixes.ts';
 import type { Menu } from '../menu.ts';
 import type { Level, StageRecipe } from '../world/types.ts';
 import { MENU_COL } from './palette.ts';
@@ -115,21 +114,15 @@ function drawRoadMap(canvas: HTMLCanvasElement, level: Level) {
  */
 export function showMainMenu(menu: Menu) {
   const panel = addPane(menu, false);
-  let buttons: HTMLElement = panel;
-  if (FIX.menuStyle) {
-    // ?menustyle: the owner's logo up top, the buttons at the bottom, the demo race between
-    // (owner: the pane hid the car being watched) - menu/pixelstyle.ts .mainmenu
-    panel.classList.add('mainmenu');
-    panel.style.width = '';
-    const logoBox = addElement(panel, 'div', '', 'logobox');
-    const logo = addElement(logoBox, 'img', '', 'logo') as HTMLImageElement;
-    logo.src = 'assets/logo.jpg';
-    logo.alt = 'RAC3R - a driving sandbox';
-    buttons = addElement(panel, 'div', '', 'btns');
-  } else {
-    addElement(panel, 'h1', 'RAC3R');
-    addElement(panel, 'div', 'a driving sandbox', 'sub');   // the game's name
-  }
+  // the owner's logo up top, the buttons at the bottom, the demo race between
+  // (owner: the pane hid the car being watched) - menu/pixelstyle.ts .mainmenu
+  panel.classList.add('mainmenu');
+  panel.style.width = '';
+  const logoBox = addElement(panel, 'div', '', 'logobox');
+  const logo = addElement(logoBox, 'img', '', 'logo') as HTMLImageElement;
+  logo.src = 'assets/logo.jpg';
+  logo.alt = 'RAC3R - a driving sandbox';
+  const buttons = addElement(panel, 'div', '', 'btns');
   addButton(menu, buttons, 'TEST MODE', () => showTrackSelect(menu), 'go');
   addButton(menu, buttons, 'GARAGE', () => showGarage(menu));
   addButton(menu, buttons, 'SETTINGS', () => showSettings(menu, () => showMainMenu(menu)));

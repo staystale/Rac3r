@@ -1,6 +1,5 @@
 import { GHOST_MS } from './style.ts';
 import { MENU_COL } from './palette.ts';
-import { FIX } from '../core/fixes.ts';
 
 // MENU TAPS for the phone report (?report=1, game/loop.ts): taps a new screen ignored (inside its
 // GHOST_MS window) and the slowest button handler, since the last frame took them
@@ -36,7 +35,7 @@ export function addPane(menu: MenuCtx, wide: boolean): HTMLElement {
   return panel;
 }
 
-// ?menustyle: how long a pressed button blinks before it acts (menu/pixelstyle.ts .hit)
+// how long a pressed button blinks before it acts (menu/pixelstyle.ts .hit)
 const PRESS_BLINK_MS = 160;
 
 /**
@@ -68,8 +67,7 @@ export function addButton(menu: MenuCtx, parent: HTMLElement, label: string, onC
       onClick();
       menuTaps.handlerMs = Math.max(menuTaps.handlerMs, performance.now() - tapAt);
     };
-    if (!FIX.menuStyle) { act(); return; }
-    // ?menustyle: the press shows - electric blue, two blinks - then the button acts
+    // the press shows - electric blue, two blinks - then the button acts (owner 11-03)
     if (button.classList.contains('hit')) return;
     button.classList.add('hit');
     setTimeout(() => {

@@ -45,13 +45,5 @@ export const TEST_LIST: TestEntry[] = [
   // curve + reach at speed) passed 2026-11-02, kept as player settings; towplus (the wake)
   // passed 2026-11-02; aicool, smokeearly, airfx, smokelinger, aidust, realcars, jokerhint,
   // puffpool, tyrehealth, pitsolid, muscletyres,
-  // namefix, bhbridges passed 2026-11-03; specsheet removed)
-  {
-    id: 'menustyle',
-    added: '2026-11-03',
-    name: 'The new pixel menu style: your logo, its colours, pixel-shaded buttons, pixel type',
-    where: 'Plain link + &menustyle=1: the main menu, then every menu screen (garage, test mode)',
-    try: 'Read everything at arm-length; every number should use the same digits.',
-    wrong: 'Text too small or clipped, a screen still in the old look, or a font not loading.',
-  },
+  // namefix, bhbridges, menustyle passed 2026-11-03; specsheet removed)
 ];
