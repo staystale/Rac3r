@@ -1,5 +1,5 @@
 import type { JokerRule } from './world/types.ts';
-// raceflow.ts — AI STAGE 4: HOW A RACE ENDS. Pure bookkeeping on the sim step; main.js
+// raceflow.ts — AI STAGE 4: HOW A RACE ENDS. Pure bookkeeping on the sim step; main.ts
 // feeds it, hud.ts draws the flag, menu.ts shows the podium + results.
 //
 // USER SPEC: a CHEQUERED FLAG sweeps the WHOLE screen for the winner and when the
@@ -29,7 +29,7 @@ export interface FlowCar {
   _jokers?: number; _cutPen?: number;   // jokers taken; track-cut seconds (RX)
   _prog?: number;   // race progress, m (the grid sits at negative progress)
   _stageStart?: number | null;   // a stage car's start time
-  _predT?: number;   // a stage car's predicted time (main.js lineRun)
+  _predT?: number;   // a stage car's predicted time (main.ts lineRun)
 }
 /** One racer's running record. */
 export interface FlowEntry {
@@ -76,7 +76,7 @@ export const GRACE = 5, WAIT_TOP3 = 15, JOKER_LEFT = 0.6, DNF_X = 2, STAGE_WAIT 
  */
 function addPenalty(state: FlowState, entry: FlowEntry) {
   const { joker } = state;
-  const cut = entry.car._cutPen || 0;   // TRACK CUTS (main.js trackCut): seconds, RX only
+  const cut = entry.car._cutPen || 0;   // TRACK CUTS (main.ts trackCut): seconds, RX only
   if (!joker) return cut;
   const j = entry.car._jokers || 0;
   return cut + joker.penalty * (j === 0 ? 1 : j - 1);
@@ -209,7 +209,7 @@ function estimateFinish(state: FlowState, entry: FlowEntry) {
   const { flow, stage, total, laps, joker } = state;
   if (stage) {
     // under a quarter of the way (or not started: a later starter): its PREDICTED stage time
-    // (main.js, lineRun), else its pace so far
+    // (main.ts, lineRun), else its pace so far
     const prog = raceProgressOf(entry);
     if (entry.start == null || !(prog > 0.25 * stage.finish)) return { t: entry.car._predT
       || Infinity, extra: entry.car._cutPen || 0 };

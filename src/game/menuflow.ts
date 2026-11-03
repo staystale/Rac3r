@@ -1,4 +1,4 @@
-// menuflow.js — Menu, launch, pause and the results screen flow.
+// menuflow.ts — Menu, launch, pause and the results screen flow.
 import { applyLivery, applyTyre } from '../cars.ts';
 import { createCones } from '../cones.ts';
 import { rulesSeen } from '../guide.ts';
@@ -10,15 +10,19 @@ import { CLOCK, calendarAt, startEventClock } from "../world/clock.ts";
 import { LEVEL } from "../world/state.ts";
 import { clearWear } from "../world/wear.ts";
 import { LEVELS } from "../world/levels/index.ts";
-import { saveRecords, doRestart, loadTyreWear, saveTyreWear } from './session.js';
-import { selectLevel, selectCar } from './controls.js';
-import { shared, game } from './state.js';
+import { saveRecords, doRestart, loadTyreWear, saveTyreWear } from './session.ts';
+import { selectLevel, selectCar } from './controls.ts';
+import { shared, game } from './state.ts';
 import {
   minimapSetting, setMinimapSetting, progressSetting, setProgressSetting,
 } from '../hud/minimap.ts';
 import { setTrackTempSetting, trackTempSetting } from '../hud/tracktemp.ts';
 import { BUILD_ID, hasSavedThumbs, readThumbs, saveThumbs } from '../menu/thumbcache.ts';
 import { loadProfile } from '../menu/profile.ts';
+import type { Level } from '../world/types.ts';
+import type { HwLevel } from '../highway/hwtypes.ts';
+import type { ResultsFlow } from '../menu/menutypes.ts';
+import type { LaunchOpts } from './state.ts';
 
 /**
  * Works out whether the minimap, the progress bar and the track gauge show (the pause settings
@@ -34,7 +38,7 @@ export function refreshMinimap() {
 /**
  * The pause menu's HUD list: each piece's label, whether it shows and whether
  * this difficulty mode locks it; set() remembers a choice and applies it at once.
- * @returns {object} { items, set }
+ * @returns { items, set }
  */
 function hudActions() {
   const hud = shared.hud, mode = shared.aiDiff;
@@ -58,7 +62,7 @@ function hudActions() {
       { id: 'tyres', label: 'TYRE / DAMAGE', on: hud.tyreHud, locked: false },
       ...unitItems(),
     ],
-    set: (pieceId, shown) => {
+    set: (pieceId: string, shown: boolean) => {
       if (pieceId === 'minimap') setMinimapSetting(mode, shown);
       else if (pieceId === 'progress') setProgressSetting(mode, shown);
       else if (pieceId === 'tyres') hud.setTyreHud(shown);
@@ -111,22 +115,23 @@ export function enterMenu() {
 }
 /**
  * Applies the setup options of a launch (road, AI, race, traffic, litter) before the restart.
- * @param {string} levelId the level to launch
- * @param {object} opts the launch options
+ * @param levelId the level to launch
+ * @param opts the launch options
  */
-export function applyLaunchOptions(levelId, opts) {
+export function applyLaunchOptions(levelId: string, opts: LaunchOpts) {
   // ROAD TYPE (endless highway, Test Mode setup): set before the restart below builds the road
   {
     const level = LEVELS.find((item) => item.id === levelId);
-    if (level && level.endless && opts.road) setHighwayPreset(level, opts.road);
+    if (level && level.endless && opts.road)
+      setHighwayPreset(level as unknown as HwLevel, opts.road);
   }
-  shared.aiCount = Math.max(0, Math.min(5, opts.ai | 0));
+  shared.aiCount = Math.max(0, Math.min(5, (opts.ai ?? 0) | 0));
   shared.aiDiff = shared.settings.aiDifficulty;   // the menu race set its own
   if (opts.diff != null) shared.aiDiff = Math.max(0, Math.min(4, opts.diff | 0));
   refreshMinimap();   // the minimap's default follows the difficulty mode
   shared.race.on = !!opts.rx;
   shared.aiCarMode = opts.aiCars === 'class' ? 'class' : 'same';
-  shared.raceLaps = Math.max(0, Math.min(10, opts.laps | 0));
+  shared.raceLaps = Math.max(0, Math.min(10, (opts.laps ?? 0) | 0));
   // WEATHER (setup): the plan and the seed its random stream starts from, so a restart
   // replays the same weather; none = the dry 18 C game
   // the game clock: the global time, or (TEST MODE) the hour the setup picked
@@ -142,11 +147,11 @@ export function applyLaunchOptions(levelId, opts) {
 }
 /**
  * Starts a session: mode, options, level, car, livery and tyres, then the first walkthroughs.
- * @param {string} levelId the level to launch
- * @param {string} carId the car to drive
- * @param {object} opts the launch options (ai, diff, rx, laps, road, traffic, litter, ...)
+ * @param levelId the level to launch
+ * @param carId the car to drive
+ * @param opts the launch options (ai, diff, rx, laps, road, traffic, litter, ...)
  */
-export function launch(levelId, carId, opts = {}) {
+export function launch(levelId: string, carId: string, opts: LaunchOpts = {}) {
   shared.mode = 'session';
   shared.demo = null;
   shared.paused = false;
@@ -154,10 +159,10 @@ export function launch(levelId, carId, opts = {}) {
   shared.audio.init();
   if (LEVEL.id !== levelId) selectLevel(levelId);
   if (game.car.spec.id !== carId) selectCar(carId);
-  applyLivery(game.car.spec, opts.livery);
+  applyLivery(game.car.spec, opts.livery ?? null);
   // TYRES from the garage (none = Pre-Spun, the stock car)
   // PAINT + NUMBER from the garage (none = the car's own colours, no number)
-  applyTyre(game.car.spec, opts.tyre);
+  applyTyre(game.car.spec, opts.tyre ?? '');   // (none: the stock set)
   loadTyreWear(game.car);   // this car's set, as worn as it was
   doRestart();
   const guideSetting = shared.settings.guide;
@@ -183,7 +188,7 @@ export function openPause() {
   saveRecords();
   shared.paused = true;
   const kind = eventKind();
-  shared.menu.pause({
+  shared.menu!.pause({   // (the pause button is the menu's)
     resume: () => {
       shared.paused = false;
     },
@@ -215,18 +220,18 @@ export function openPause() {
 // ms after the menu shows before the painted thumbnails are saved (thumbcache.js), clear of its
 // start
 const THUMB_SAVE_MS = 4000;
-const thumbs = {};
+const thumbs: Record<string, HTMLCanvasElement> = {};
 /**
  * Paints one level's thumbnail (its level becomes current: put the old one back after).
- * @param {object} level the level
+ * @param level the level
  */
-function paintThumb(level) {
+function paintThumb(level: Level) {
   setLevel(level.id, { light: true });
   thumbs[level.id] = shared.renderer.thumbnail(320);
 }
 /**
  * Every level's thumbnail, painting the ones still missing now.
- * @returns {Record<string, HTMLCanvasElement>} level id -> thumbnail
+ * @returns level id -> thumbnail
  */
 export function paintThumbs() {
   const keep = LEVEL.id, missing = LEVELS.filter((level) => !thumbs[level.id]);
@@ -238,7 +243,7 @@ export function paintThumbs() {
   return thumbs;
 }
 /**
- * The thumbnails at load (main.js, while the loading screen is up): with this version's saved on
+ * The thumbnails at load (main.ts, while the loading screen is up): with this version's saved on
  * the device, read back (a tap before they arrive paints what is missing); else painted now, and
  * saved a moment after the menu is up.
  */
@@ -263,7 +268,7 @@ export function stepResults() {
   // the race is over: its tyre wear is kept, and a restart from here starts on that set
   saveTyreWear();
   if (game.car.tyreWear) game.car.tyreWearStart = [...game.car.tyreWear];
-  shared.menu.results(flow,
+  shared.menu.results(flow as unknown as ResultsFlow,   // (done: its results are in)
     { name: LEVEL.name, restart: () => doRestart(), tracks: () => enterMenu(),
       menu: () => enterMenu() });
 }

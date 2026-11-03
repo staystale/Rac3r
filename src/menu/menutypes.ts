@@ -2,7 +2,7 @@
 // results screens, a race's results, and the setup screen's choices.
 import type { Car } from '../vehicle.ts';
 
-/** One row of the pause menu's HUD list (game/menuflow.js hudActions). */
+/** One row of the pause menu's HUD list (game/menuflow.ts hudActions). */
 export interface HudItem { id: string; label: string; on: boolean; locked: boolean; value?: string }
 
 /** What the pause menu's SOUND row reads and sets (audio.ts). */
@@ -11,7 +11,7 @@ export interface MenuAudio {
   setVolume: (value: number) => void; toggleMute: () => void;
 }
 
-/** The session's actions for the pause menu (game/menuflow.js openPause). */
+/** The session's actions for the pause menu (game/menuflow.ts openPause). */
 export interface PauseActions {
   resume: () => void; restart: () => void; guide: () => void; exit: () => void;
   rules: (() => void) | null;   // this event's walkthrough, when it has one
@@ -20,7 +20,7 @@ export interface PauseActions {
   hud?: { items: () => HudItem[]; set: (pieceId: string, shown: boolean) => void };
 }
 
-/** The session's actions for the results screens (game/menuflow.js stepResults). */
+/** The session's actions for the results screens (game/menuflow.ts stepResults). */
 export interface ResultsActions {
   name: string;   // the level's name
   restart: () => void; tracks: () => void; menu: () => void;

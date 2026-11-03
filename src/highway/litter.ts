@@ -177,7 +177,7 @@ function layConeTaper(ctx: DressCtx, loot: Loot, i: number, dist: number) {
 /**
  * LOOSE ROADSIDE (requirement: as it's open sided, be LITTERED with TYRES and CONES and have
  * appropriate CHEVRON signs for the corners): knockable cones.ts objects into `loose` (the level's
- * cones at a restart, else streamed in by main.js), open presets only. CHEVRONS on the
+ * cones at a restart, else streamed in by main.ts), open presets only. CHEVRONS on the
  * outside of every bend tighter than R 650, one per 48 m, 4.5 m off the edge (behind the armco
  * where there is one), arrows pointing the way it turns; LITTER on both verges (a lone tyre, a
  * cone, now and then on the hard shoulder); a stray TYRE STACK pile now and then; and a CONE

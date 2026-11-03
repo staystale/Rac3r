@@ -24,7 +24,7 @@ export function obstacleStep(drv: Drv, car: AiCar, ctx: DriveCtx, path: AiPath, 
   const onLine = path === main ? lineOff : 0;
   // ---- OBSTACLES (requirement: AI need to see tyres and cones as obstacles — although optional
   // ones haha — but try and avoid them on rally stages / tracks): ctx.obstacles = loose objects
-  // near this car ({ x, y, r }, main.js). One in my path ahead, on the road ->
+  // near this car ({ x, y, r }, main.ts). One in my path ahead, on the road ->
   // step round it on the side with room; no room -> drive through (optional). Cars come first:
   // only when no car is in the way. A more
   // precise driver sees it further ahead.
@@ -207,7 +207,7 @@ export function obstacleAvoid(drv: Drv, car: AiCar, ctx: DriveCtx, path: AiPath,
   let { dodgeT, conflict } = cars;
   // ---- OBSTACLES (requirement: AI need to see tyres and cones as obstacles — although optional
   // ones haha — but try and avoid them on rally stages / tracks): ctx.obstacles = loose objects
-  // near this car ({ x, y, r }, main.js). One in my path ahead, on the road ->
+  // near this car ({ x, y, r }, main.ts). One in my path ahead, on the road ->
   // step round it on the side with room; no room -> drive through (optional). Cars come first:
   // only when no car is in the way. A more
   // precise driver sees it further ahead.

@@ -1,4 +1,4 @@
-// build.mjs — bundle src/main.js into dist/game.js (+ dist/index.html pointing at it).
+// build.mjs — bundle src/main.ts into dist/game.js (+ dist/index.html pointing at it).
 import { build } from "esbuild";
 import { rm, mkdir, readFile, writeFile, stat, cp } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
@@ -11,7 +11,7 @@ const dist = join(root, "dist");
 await rm(dist, { recursive: true, force: true });
 await mkdir(dist, { recursive: true });
 await build({
-  entryPoints: [join(root, "src/main.js")],
+  entryPoints: [join(root, "src/main.ts")],
   outfile: join(dist, "game.js"),
   bundle: true,
   format: "esm",
@@ -24,6 +24,6 @@ await build({
 const html = await readFile(join(root, "index.html"), "utf8");
 // the page loads either path (index.html); both are the one bundle here
 await writeFile(join(dist, "index.html"),
-  html.replaceAll("./src/main.js", "./game.js").replaceAll("./__bundle.js", "./game.js"));
+  html.replaceAll("./src/main.ts", "./game.js").replaceAll("./__bundle.js", "./game.js"));
 const size = (await stat(join(dist, "game.js"))).size;
 console.log(`dist/game.js ${(size / 1024).toFixed(1)} KB`);

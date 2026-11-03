@@ -1,4 +1,5 @@
-// loop.js — The animation frame: fixed-step sim loop, interpolation and drawing.
+// loop.ts — The animation frame: fixed-step sim loop, interpolation and drawing.
+import { hwLevel } from './state.ts';
 import { PHYSICS_STEP_SECONDS } from '../vehicle.ts';
 import { takeMeterEvents } from '../ui/meter.ts';
 import { hwFrames } from '../highwayrace.ts';
@@ -8,18 +9,23 @@ import { stepClock } from "../world/clock.ts";
 import { stepPuddles } from "../world/puddles.ts";
 import { stepOil } from "../world/oil.ts";
 import { stepCoverField } from "../world/coverfield.ts";
-import { stepStage, stepJoker, stepRace } from './rules.js';
-import { stepStart } from './order.js';
-import { stepAI } from './ai.js';
-import { updateRecoveryTracking } from './session.js';
-import { stepResults } from './menuflow.js';
+import { stepStage, stepJoker, stepRace } from './rules.ts';
+import { stepStart } from './order.ts';
+import { stepAI } from './ai.ts';
+import { updateRecoveryTracking } from './session.ts';
+import { stepResults } from './menuflow.ts';
 import { takeMenuTaps } from '../menu/widgets.ts';
 import {
   updateFpsMeter, readFrameInput, stepCarSignals, openGuideOnLanding, stepCarPhysics,
   stepEndlessHighway, updateAudio, dropBreadcrumb, stepRaceFlow, stepTrafficContacts,
   stepLooseCones, stepTyreMarks,
-} from './sim.js';
-import { shared, game } from './state.js';
+} from './sim.ts';
+import { shared, game } from './state.ts';
+import type { CarInput } from '../vehicle.ts';
+// (cast: the renderer's and the HUD's car shapes are narrower than the traffic's and the
+// highway flow's - one car type is TODO.md work)
+import type { RenderGame } from '../render/types.ts';
+import type { HudGame } from '../hud/hudtypes.ts';
 
 // 5 -> 12 (high-speed judder). MEASURED: frames over ~42 ms hit the 5-step cap and
 // THREW AWAY sim time, so the car fell behind real time and hitched (drawn car vs a smooth path:
@@ -29,7 +35,7 @@ export const MAX_STEPS = 12;                // per frame; drop the rest
 
 /**
  * Moves the player car to its interpolated draw pose, between its last two physics poses.
- * @returns {object|null} the real pose to put back after drawing, or null if none was moved
+ * @returns the real pose to put back after drawing, or null if none was moved
  */
 export function interpolateCar() {
   const car = game.car, prevPose = car._p;
@@ -49,10 +55,10 @@ export function interpolateCar() {
 
 /**
  * Moves the AI and traffic cars to their interpolated draw poses (same alpha as the player).
- * @returns {Array} [car, x, y, heading] entries to put back after drawing
+ * @returns [car, x, y, heading] entries to put back after drawing
  */
 export function interpolateAiCars() {
-  const aiKeep = [];
+  const aiKeep: [{ x: number; y: number; heading: number }, number, number, number][] = [];
   if (shared.started
     && !shared.guide.active) for (const aiCar of [...game.ai.map((entry) => entry.car),
       ...game.traffic.cars]) {
@@ -71,10 +77,10 @@ export function interpolateAiCars() {
 
 /**
  * One fixed physics step of the whole world, in the original order.
- * @param {object} inp this frame's input
- * @returns {boolean} false when the step must end the frame's stepping (the car was recovered)
+ * @param inp this frame's input
+ * @returns false when the step must end the frame's stepping (the car was recovered)
  */
-export function stepWorld(inp) {
+export function stepWorld(inp: CarInput) {
   // The lab says what the ground under the car is doing; the car's own suspension answers.
   // Before step, so the load is right for the forces computed this step rather than one step
   // stale. remember the pose BEFORE this step, for the render interpolation below
@@ -94,7 +100,7 @@ export function stepWorld(inp) {
   stepStart(PHYSICS_STEP_SECONDS);
   // the HIGHWAY: every car's road frame (s, offset, speed along) once per step, for the racers,
   // the order and the countdowns
-  if (LEVEL.endless && (game.ai.length || shared.settings.autopilot)) hwFrames(LEVEL,
+  if (LEVEL.endless && (game.ai.length || shared.settings.autopilot)) hwFrames(hwLevel(),
     [game.car, ...game.ai.map((entry) => entry.car), ...game.traffic.cars]);
   stepAI(PHYSICS_STEP_SECONDS);
   stepRaceFlow();
@@ -114,13 +120,16 @@ export function stepWorld(inp) {
   return true;
 }
 
+/** One animation frame's timings (ms; wallDt in s). */
+export interface Frame { now: number; wallDt: number; frameMs: number; meterSim: number }
+
 /**
  * The fixed-step sim loop: drains the accumulator in physics steps, up to MAX_STEPS.
- * @param {object} inp this frame's input
- * @param {number} wallDt the clamped wall-clock frame time in seconds
- * @returns {number} ms the sim took this frame, when the meter is on, else 0
+ * @param inp this frame's input
+ * @param wallDt the clamped wall-clock frame time in seconds
+ * @returns ms the sim took this frame, when the meter is on, else 0
  */
-export function runSimSteps(inp, wallDt) {
+export function runSimSteps(inp: CarInput, wallDt: number) {
   let meterSim = 0;
   openGuideOnLanding();
   if (shared.guide.active || shared.paused) shared.acc = 0;
@@ -150,39 +159,39 @@ export function runSimSteps(inp, wallDt) {
 /**
  * Draws the meter's per-frame sample and overlay (in a session), and reports the frame
  * (?report=1, the menu's frames too: the owner's "main menu is still sluggish" is measured there).
- * @param {{frameMs: number, meterSim: number, drawT0: number}} frame this frame's timings
+ * @param frame this frame's timings
  */
-export function drawMeter(frame) {
+export function drawMeter(frame: Frame & { drawT0: number }) {
   const tilesNow = shared.renderer.groundRenders, draw = performance.now() - frame.drawT0;
   const inMenu = shared.mode === 'menu';
   const events = takeMeterEvents();   // highway slides / overview repaints this frame
   if (!inMenu) {
-    shared.meter.add({ dt: frame.frameMs, sim: frame.meterSim, draw, steps: game.stepsLastFrame,
+    shared.meter!.add({ dt: frame.frameMs, sim: frame.meterSim, draw, steps: game.stepsLastFrame,
       tiles: tilesNow - shared.meterTiles, touches: shared.meterTouches,
       moving: Math.hypot(game.car.vx, game.car.vy) > 5.6,   // over 20 km/h
-      slide: events.slide, overview: events.overview, dist: LEVEL._hw ? game.hwDist : 0 });
+      slide: events.slide, overview: events.overview, dist: LEVEL._hw ? game.hwDist ?? 0 : 0 });
   }
   if (shared.reporter) reportFrame(frame, draw, tilesNow - shared.meterTiles, events.slide);
   shared.meterTouches = 0;
   shared.meterTiles = tilesNow;
   if (shared.settings.meterOverlay && !inMenu) {
-    shared.meter.draw(shared.renderer.ctx, shared.renderer.W, shared.renderer.H);
+    shared.meter!.draw(shared.renderer.ctx, shared.renderer.W, shared.renderer.H);
   }
 }
 
 /**
  * Adds the frame to the phone report: its timings, the zoom (css px per metre), this frame's GPU
  * uploads / mipmap builds, whether the menu was up and what its buttons did, and the texture
- * warm-up (main.js) since the last frame.
- * @param {{frameMs: number, meterSim: number}} frame this frame's timings
- * @param {number} draw ms the draw took
- * @param {number} tiles ground tiles painted this frame
- * @param {number} slide highway slides this frame
+ * warm-up (main.ts) since the last frame.
+ * @param frame this frame's timings
+ * @param draw ms the draw took
+ * @param tiles ground tiles painted this frame
+ * @param slide highway slides this frame
  */
-function reportFrame(frame, draw, tiles, slide) {
+function reportFrame(frame: Frame, draw: number, tiles: number, slide: number) {
   const gpu = shared.renderer.gpuCounts || { uploads: 0, mipmaps: 0 };
   const taps = takeMenuTaps();
-  shared.reporter.add([frame.frameMs, frame.meterSim, draw, game.stepsLastFrame, tiles, slide,
+  shared.reporter!.add([frame.frameMs, frame.meterSim, draw, game.stepsLastFrame, tiles, slide,
     shared.renderer.PPM, gpu.uploads - (shared.meterUploads || 0),
     gpu.mipmaps - (shared.meterMipmaps || 0), shared.mode === 'menu' ? 1 : 0, taps.ignored,
     Math.round(taps.handlerMs), Math.round(shared.warmMs || 0)]);
@@ -193,10 +202,10 @@ function reportFrame(frame, draw, tiles, slide) {
 
 /**
  * Draws one frame (world, HUD, overlays) at the interpolated poses, then restores the real poses.
- * @param {{now: number, wallDt: number, frameMs: number, meterSim: number}} frame this frame
- * @returns {number} the performance.now the draw started at, for the draw-time smoothing
+ * @param frame this frame
+ * @returns the performance.now the draw started at, for the draw-time smoothing
  */
-export function renderFrame(frame) {
+export function renderFrame(frame: Frame) {
   // RENDER INTERPOLATION (requirement: at high speeds the camera / car judder). MEASURED in a real
   // browser at 200 km/h: the 120 Hz sim gave 2 steps on most frames but 3 or 5 on others, so
   // the car jumped up to 10 px on screen (sd 1.5 px per frame) and the camera chased the jumps.
@@ -210,9 +219,10 @@ export function renderFrame(frame) {
   const aiKeep = interpolateAiCars();
   const drawT0 = performance.now();
   try {
-    shared.renderer.frame(game, frame.wallDt, frame.now / 1000);
+    shared.renderer.frame(game as unknown as RenderGame, frame.wallDt, frame.now / 1000);
     if (shared.mode !== 'menu' && !shared.settings.skipLayers.has('hud')) {
-      shared.hud.draw(shared.renderer.ctx, game, shared.renderer.W, shared.renderer.H,
+      shared.hud.draw(shared.renderer.ctx, game as unknown as HudGame, shared.renderer.W,
+        shared.renderer.H,
         frame.wallDt);
     }
     if (shared.churn) shared.churn.step(frame.wallDt, shared.renderer.ctx);   // ?churn= only
@@ -234,9 +244,9 @@ export function renderFrame(frame) {
 
 /**
  * One animation frame: input, the fixed-step sim, audio, then the draw.
- * @param {number} now the requestAnimationFrame timestamp in ms
+ * @param now the requestAnimationFrame timestamp in ms
  */
-export function loop(now) {
+export function loop(now: number) {
   // Rescheduled FIRST, so a throw anywhere below can never stop the game loop again.
   requestAnimationFrame(loop);
   const frameMs = now - shared.last;   // the meter's dt, before the clamp below
@@ -258,7 +268,7 @@ export function loop(now) {
 
   // ---- fixed-step sim
   const meterSim = runSimSteps(inp, wallDt);
-  updateAudio(wallDt);
+  updateAudio();
 
   const drawT0 = renderFrame({ now, wallDt, frameMs, meterSim });
   game.drawMs = (game.drawMs || 0) * 0.9 + (performance.now() - drawT0) * 0.1;

@@ -1,6 +1,6 @@
 // FRAME METER (?meter=1): an on-screen graph + numbers for the last frames, so the owner can see
 // on a real phone whether judder comes from the physics step (sim, red), from drawing (blue), or
-// from something else (grey: the browser, the GPU, a late frame). Only main.js creates it, and
+// from something else (grey: the browser, the GPU, a late frame). Only main.ts creates it, and
 // only with ?meter=1; without it nothing here runs. The ring buffers are allocated once: no
 // garbage per frame.
 //
@@ -13,7 +13,7 @@
 // the last highway slide (this frame included): <0.5 s, 0.5-1 s, 1-2 s, 2-3 s, 3-5 s, 5 s+,
 // or none (no slide yet). It shows whether drops come with a delay after a slide (garbage
 // collection). The bucket line is split over 2 text lines to fit 390 px wide.
-// highway.ts and camera.ts call meterEvent; main.js takes the counts once per frame.
+// highway.ts and camera.ts call meterEvent; main.ts takes the counts once per frame.
 
 const pending = { slide: 0, overview: 0 };
 const taken = { slide: 0, overview: 0 };   // reused: takeMeterEvents allocates nothing

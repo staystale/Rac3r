@@ -17,7 +17,7 @@ export const BUILD_ID = typeof built === 'string' ? built : null;
  * @param build the version
  * @returns saved
  */
-export function hasSavedThumbs(build: string): boolean {
+export function hasSavedThumbs(build: string | null): boolean {
   try {
     return localStorage.getItem(SAVED_KEY) === build;
   } catch {
@@ -84,7 +84,7 @@ export async function readThumbs(): Promise<Record<string, HTMLCanvasElement>> {
  * @param thumbs level id -> thumbnail
  * @returns resolves when saved
  */
-export async function saveThumbs(build: string,
+export async function saveThumbs(build: string | null,
   thumbs: Record<string, HTMLCanvasElement>): Promise<void> {
   const blobs = await Promise.all(Object.entries(thumbs).map(([levelId, canvas]) =>
     new Promise<[string, Blob | null]>((resolve) =>
@@ -99,5 +99,5 @@ export async function saveThumbs(build: string,
     transaction.onerror = () => reject(transaction.error);
   });
   database.close();
-  localStorage.setItem(SAVED_KEY, build);
+  localStorage.setItem(SAVED_KEY, String(build));
 }

@@ -23,7 +23,7 @@ interface ColumnDriver {
 
 /** One car's place in the formation. */
 export interface FormationPlace {
-  columnM: number;    // its grid column, m across the road (game/grid.js gridColumn)
+  columnM: number;    // its grid column, m across the road (game/grid.ts gridColumn)
   backM: number;      // how far behind the pole car its slot is, m
 }
 

@@ -4,6 +4,7 @@
 import type { Lane } from "../world/types.ts";
 import type { Spec, Surface } from "../cars.ts";
 import type { Car, CarTelemetry } from "../vehicle.ts";
+import type { DamageCar } from "../damage.ts";
 import type { HwLevel } from '../highway/hwtypes.ts';
 
 // One row of DIFFICULTIES: the centre of a difficulty's spread.
@@ -73,7 +74,7 @@ export interface AiCar {
   traffic?: boolean;   // traffic.ts: a traffic car, not another racer
   _hwS?: number;   // traffic.ts: this racer's road distance last step
    // (the hint for its next road frame)
-  _jokers?: number;   // main.js: jokers taken (the joker tactics read it)
+  _jokers?: number;   // main.ts: jokers taken (the joker tactics read it)
   dragMul?: number;   // physics/wake.ts: the tow (1 = no tow)
 }
 
@@ -99,9 +100,9 @@ export type HighwayLevel = HwLevel;
 export interface DriveCtx {
   hold?: boolean;
   cars?: AiCar[];
-  lap?: number;   // main.js, circuit driver: the current lap, 1-based
-  laps?: number;   // main.js, circuit driver: the race length
-  obstacles?: LooseObstacle[];   // main.js, circuit driver: loose objects near the car
+  lap?: number;   // main.ts, circuit driver: the current lap, 1-based
+  laps?: number;   // main.ts, circuit driver: the race length
+  obstacles?: LooseObstacle[];   // main.ts, circuit driver: loose objects near the car
 }
 
 // A loose object on the road (a cone, a tyre) the circuit driver steers round.
@@ -322,8 +323,9 @@ export interface CircuitState extends DriveOutState {
 }
 
 // A traffic car is a real car (vehicle.ts makeCar) plus what traffic.ts puts on it.
-export type TrafficVehicle = Car & Pick<AiCar, 'traffic' | '_trOff' | '_hwS' | '_hwf'> & {
-  dmg?: number[];   // damage.ts damageInit: the damage of the four corners
+export type TrafficVehicle = Car & DamageCar
+  & Pick<AiCar, 'traffic' | '_trOff' | '_hwS' | '_hwf'> & {
+  lightsOn?: boolean;   // game/sim.ts: the field's headlights
   indicator?: number;   // traffic.ts: -1 / 0 / 1
   hazard?: boolean;   // traffic.ts: a wreck's hazard lights
   brakeLight?: number;   // traffic.ts

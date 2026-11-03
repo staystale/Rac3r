@@ -16,11 +16,11 @@ const FREEZE_C = 0, COOL_C = 8, WARM_C = 30, HOT_C = 45;
 // C at the bar's ends
 const BAR_LOW_C = -10, BAR_HIGH_C = 55;
 
-// is it shown: main.js hands in the source (?hudunits=1, the mode's setting, not in the menu)
+// is it shown: main.ts hands in the source (?hudunits=1, the mode's setting, not in the menu)
 let shownNow = () => false;
 
 /**
- * Hands the gauge the test of whether it shows (main.js).
+ * Hands the gauge the test of whether it shows (main.ts).
  * @param source true while the gauge shows
  */
 export function setTrackTempSource(source: () => boolean): void { shownNow = source; }

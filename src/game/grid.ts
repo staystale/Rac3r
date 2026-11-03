@@ -1,4 +1,5 @@
-// grid.js — AI cars: liveries, the starting grid and spawning.
+// grid.ts — AI cars: liveries, the starting grid and spawning.
+import { hwLevel } from './state.ts';
 import { lcg } from "../core/random.ts";
 import { makeCar, reset } from '../vehicle.ts';
 import { ROSTER } from '../cars.ts';
@@ -8,8 +9,9 @@ import { aiTraits } from '../ai/traits.ts';
 import { lineRun } from '../ai/line.ts';
 import { LEVEL } from "../world/state.ts";
 import { onTrack, querySubtrack } from "../world/tyrewall.ts";
-import { START_STEP, ROLL_BACK } from './order.js';
-import { shared, game } from './state.js';
+import { START_STEP, ROLL_BACK } from './order.ts';
+import { shared, game } from './state.ts';
+import type { GameCar } from './state.ts';
 
 // AI CARS — stage 1 (user: up to 5 opponents, FULL CONTACT, the SAME car as the player
 // in different colours + numbers). Each is { car, drv }: a real car stepped by the same physics on
@@ -22,7 +24,7 @@ export const AI_LIVERIES = [['#c8302c', '#7e1d1a'], ['#2b56b5', '#14306e'], ['#e
 // with difficulty): the player's slot is drawn with weights exp(GRID_BIAS[diff] x slot / n) —
 // Mobile leans to the FRONT, Real to the BACK, Realish is even.
 export const GRID_BIAS = [-2.2, -1.1, 0, 1.1, 2.2];
-export function drawGridSlot(count) {
+export function drawGridSlot(count: number) {
   if (shared.mode === 'menu' || !count) return 0;
   const weights = [];
   for (let slot = 0; slot <= count; slot++)
@@ -42,10 +44,10 @@ export function drawGridSlot(count) {
 // already down the stage where their own pace would have taken them (lineRun); those AFTER you
 // queue behind and go STAGE_GAP_S apart. (Was: everyone queued 6 s apart — a race in single file.)
 export const STAGE_GAP_S = 30, STAGE_GAP_M = 9;
-export function gridPos(slot) {
+export function gridPos(slot: number) {
   // the highway: 2 wide in the right-hand lanes (highwayrace.js)
-  if (LEVEL.endless) return hwGrid(LEVEL, slot);
-  const sub = LEVEL.subtrack, spawn = LEVEL.spawn,
+  if (LEVEL.endless) return hwGrid(hwLevel(), slot);
+  const sub = LEVEL.subtrack!, spawn = LEVEL.spawn,
     offLap = querySubtrack(sub, spawn.x, spawn.y).dist > sub.width / 2;
   if (LEVEL.stage && slot > 0) {
     const spawnDist = querySubtrack(sub, spawn.x, spawn.y).trackDist,
@@ -82,14 +84,14 @@ export const GRID_STEP = 7, GRID_LAT = 3.2;
 /**
  * A grid slot's column: its offset across the road from the centreline (narrower on a narrow
  * road), alternating sides slot by slot.
- * @param {number} slot the slot, 0 = pole
- * @returns {number} the offset, m (along the road's normal)
+ * @param slot the slot, 0 = pole
+ * @returns the offset, m (along the road's normal)
  */
-export function gridColumn(slot) {
-  const lat = Math.max(1.6, Math.min(GRID_LAT, LEVEL.subtrack.width / 2 - 1.8));
+export function gridColumn(slot: number) {
+  const lat = Math.max(1.6, Math.min(GRID_LAT, LEVEL.subtrack!.width / 2 - 1.8));
   return slot % 2 ? lat : -lat;
 }
-export function aiCarIds(count, seed) {
+export function aiCarIds(count: number, seed: number) {
   const base = String(game.car.spec.id).split('#')[0],
     myCar = ROSTER.find((entry) => entry.id === base);
   if (shared.aiCarMode !== 'class' || !myCar || !myCar.cls) return Array(count).fill(base);
@@ -114,12 +116,12 @@ export function aiCarIds(count, seed) {
  * RACE NUMBERS (owner 11-01): each AI a different number 2-99, never the one on
  * your car, dealt at random each event (TEST MODE; Story will keep a driver's number), painted on
  * the car and shown on the scoreboard.
- * @param {number} count how many AI
- * @param {number} seed the spawn's seed
- * @returns {number[]} the numbers, by AI
+ * @param count how many AI
+ * @param seed the spawn's seed
+ * @returns the numbers, by AI
  */
-function aiNumbers(count, seed) {
-  const mine = game.car.spec.num | 0, rnd = lcg((seed * 7 + 3) >>> 0);
+function aiNumbers(count: number, seed: number) {
+  const mine = (game.car.spec.num || 0) | 0, rnd = lcg((seed * 7 + 3) >>> 0);
   const deck = [];
   for (let num = 2; num <= 99; num++) if (num !== mine) deck.push(num);
   for (let i = deck.length - 1; i > 0; i--) {
@@ -128,16 +130,16 @@ function aiNumbers(count, seed) {
   }
   return deck.slice(0, count);
 }
-export function spawnAI(count = shared.aiCount) {
+export function spawnAI(count: number = shared.aiCount) {
   game.ai = [];
   game.poleCar = null;
-  const sub = LEVEL.subtrack;
+  const sub = LEVEL.subtrack!;
   if (!sub || !count) return;
   shared.gridSlot = drawGridSlot(count);
   const seed = 1 + Math.floor(Math.random() * 1e6), ids = aiCarIds(count, seed),
     nums = aiNumbers(count, seed);
   for (let i = 0; i < count; i++) {
-    const car = makeCar(ids[i]), [paint, trim] = AI_LIVERIES[i % AI_LIVERIES.length];
+    const car = makeCar(ids[i]) as GameCar, [paint, trim] = AI_LIVERIES[i % AI_LIVERIES.length];
     // own sprite (cached by id), same physics
     car.spec = { ...car.spec, id: car.spec.id + '#' + (i + 2), paint, trim };
     car.num = nums[i];

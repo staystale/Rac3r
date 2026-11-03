@@ -1,5 +1,5 @@
 // hud/hudtypes.ts: the shapes the HUD shares - its state, the actions a tap returns, and the game
-// as the HUD reads it (a narrow view of main.js's game object).
+// as the HUD reads it (a narrow view of main.ts's game object).
 import type { Car } from '../vehicle.ts';
 import type { TuneRow } from '../tune.ts';
 import type { DamageCar } from '../damage.ts';
@@ -42,8 +42,8 @@ export interface ScreenPoint { x: number; y: number }
 
 /** One entry of a race's running order (raceflow.ts). */
 export interface HudFlowEntry {
-  id: string; player?: boolean; car?: HudCar;
-  lapDone: number; finish?: number | null;   // laps done; the finish time once home
+  player?: boolean; car?: HudCar;
+  lapDone?: number; finish?: number | null;   // laps done (a lap race); the finish time once home
 }
 /** A race with AI, as the HUD reads it (raceflow.ts). */
 export interface HudFlow {
@@ -56,13 +56,13 @@ export interface HudRace {
   on: boolean; started: boolean; done: boolean; t: number; total: number; laps: number;
   joker: boolean; jokers: number; penalty: number;
 }
-/** A stage's timer (game/rules.js). */
+/** A stage's timer (game/rules.ts). */
 export interface HudStage { state: string; t: number; last: number; best: number | null }
-/** The start lights (game/order.js armStart). */
+/** The start lights (game/order.ts armStart). */
 export interface HudStart {
   on: boolean; t: number; tGreen: number; green: boolean; rolling?: boolean;
 }
-/** A banner (game/session.js note). */
+/** A banner (game/session.ts note). */
 export interface HudNotice { text: string; good: boolean; at: number }
 /** The input as the HUD draws it (input.ts). */
 export interface HudInput {
@@ -73,7 +73,7 @@ export interface HudInput {
   pedalHits: (width: number, height: number) => { name: string; x: number; y: number; r: number }[];
   isTouch: () => boolean;
 }
-/** The game object as the HUD reads it (main.js). */
+/** The game object as the HUD reads it (main.ts). */
 export interface HudGame {
   car: HudCar;
   ai?: { car: HudCar }[];

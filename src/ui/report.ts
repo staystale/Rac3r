@@ -28,7 +28,7 @@ function weatherNow() {
 /** One frame: dt, sim ms, draw ms, physics steps, tiles painted, highway slides, css px per
  * metre (the zoom), GPU texture uploads, mipmap builds; the menu up (1 / 0), menu taps ignored
  * (a new screen's ghost-click window), the slowest menu button handler (ms), the texture warm-up
- * since the last frame (ms, main.js). */
+ * since the last frame (ms, main.ts). */
 export type ReportFrame = [number, number, number, number, number, number, number, number, number,
   number, number, number, number];
 

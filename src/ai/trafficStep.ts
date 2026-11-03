@@ -106,7 +106,7 @@ function assignPhys(ctx: TrafficCtx, ents: TrafficEnt[]) {
 
 /**
  * One physics step. player = your car; others = the AI cars; vis(x, y, s) = on screen right
- * now (main.js: the renderer's view).
+ * now (main.ts: the renderer's view).
  */
 export function stepTraffic(ctx: TrafficCtx, dt: number, args: StepArgs) {
   const level = ctx.level;

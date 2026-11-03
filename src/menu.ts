@@ -6,7 +6,7 @@
 // car numbers come from src/carstats.ts (measured by tools/carstats.mjs, rule 10), track pictures
 // from the real level painter.
 //
-// main.js owns the game; this file only asks it to do things through `api`: api.thumbs -> {
+// main.ts owns the game; this file only asks it to do things through `api`: api.thumbs -> {
 // levelId: canvas } (painted once, cached) api.launch(level, car) start a Test Mode session
 // api.carSprite(id) -> canvas of the generated pixel car
 import { CSS } from './menu/style.ts';
@@ -18,7 +18,7 @@ import type { Spec } from './cars.ts';
 import type { PauseActions, ResultsActions, ResultsFlow } from './menu/menutypes.ts';
 import type { Level, StageRecipe } from './world/types.ts';
 
-/** What main.js offers the menu. */
+/** What main.ts offers the menu. */
 export interface MenuApi {
   thumbs: () => Record<string, HTMLCanvasElement>;   // the level thumbnails, painted once
   launch: (levelId: string, carId: string, opts?: Record<string, unknown>) => void;   // a session
@@ -59,7 +59,7 @@ export function showMenu(menu: Menu): void {
 /**
  * Creates the menu: injects its style and root element, builds the context object shared by the
  * screens and returns the menu's public methods.
- * @param api what main.js offers (thumbs, launch, carSprite, genStage)
+ * @param api what main.ts offers (thumbs, launch, carSprite, genStage)
  * @returns { show, hide, pause, results, profile, open }
  */
 export function createMenu(api: MenuApi) {

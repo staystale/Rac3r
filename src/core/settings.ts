@@ -1,10 +1,10 @@
 // Every page-link setting (?name=value), read ONCE from location.search into one typed object.
-// Parses and defaults are exactly what main.js, highway.ts, render.ts and render/tiles.ts
+// Parses and defaults are exactly what main.ts, highway.ts, render.ts and render/tiles.ts
 // each did on their own.
 
 export interface Settings {
   dev: boolean;                  // ?dev: developer mode
-  carId: string | null;          // ?car=ID: the starting car, raw (main.js checks it vs CAR_IDS)
+  carId: string | null;          // ?car=ID: the starting car, raw (main.ts checks it vs CAR_IDS)
   aiCount: number;               // ?ai=N: AI cars in the race, 0-5 (default 0)
   // DIFFICULTY (PLAN.md §4: 0 Mobile game .. 4 Real; aidriver.js DIFFICULTIES): the centre of
   // the field's spread.

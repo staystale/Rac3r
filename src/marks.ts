@@ -19,7 +19,7 @@ import { WEATHER } from "./world/weather.ts";
 import { CORNER_OF_WHEEL, wheelGone } from "./world/wheels.ts";
 import { MARK_GOUGE } from "./world/metalscrape.ts";
 import { addTrailPoint, clearWetTrails } from "./wettrail.ts";
-import type { Mark, Spray, Surface } from './world/types.ts';
+import type { Mark, Spray, Surface, WheelGround } from './world/types.ts';
 
 // EXTENT is the FENCE, not the floor, so what happens in the run-off (gravel tracks) is
 // recorded too. The resolution is kept at 4.2 px/m so memory stays flat: a finer layer over this
@@ -64,11 +64,14 @@ export interface MarkWheel {
 }
 
 /** What the marks read of a car. */
+/** The ground as the marks read it (the car's, cars.ts, or a level's). */
+type MarkSurface = WheelGround & { id?: string };
+
 interface MarkCar {
   x: number; y: number; heading: number;
   spec: { lf: number; lr: number; trackWidth: number; tyreWidth: number };
   t: { slipSpeedF: number; slipSpeedR: number };
-  surface: Surface; wheelSurf?: (Surface | null)[] | null;   // the ground under each wheel
+  surface: MarkSurface; wheelSurf?: (MarkSurface | null)[] | null;   // the ground under each wheel
   tyreT?: number[]; rimSparks?: boolean[]; wheelOff?: boolean[];
   _markId?: number;
 }
@@ -481,7 +484,7 @@ function stampMarks(markCtx: MarkCtx, wheels: MarkWheel[]) {
  * @param corner this file's wheel index
  * @returns the surface
  */
-function surfaceOfWheel(car: MarkCar, under: (Surface | null)[] | null | undefined,
+function surfaceOfWheel(car: MarkCar, under: (MarkSurface | null)[] | null | undefined,
   corner: number) {
   return (under && under[CORNER_OF_WHEEL[corner]]) || car.surface;
 }
@@ -496,10 +499,10 @@ const HEAVY_TRAIL_RAIN = 0.7;
  * @param surface the ground under the wheel
  * @returns the mark (undefined = ordinary skid marks)
  */
-function markOf(surface: Surface) {
+function markOf(surface: MarkSurface) {
   if (surface.mark !== MARK_WET || surface.id === 'puddle' || surface.id === 'wet'
     || WEATHER.rain >= HEAVY_TRAIL_RAIN) return surface.mark;
-  const dry = (SURFACES as Record<string, Surface>)[surface.id];
+  const dry = (SURFACES as Record<string, Surface>)[surface.id!];
   return dry ? dry.mark : undefined;
 }
 

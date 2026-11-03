@@ -1,4 +1,4 @@
-// aifieldcheck.mjs — a whole FIELD of racing AI, node only, full contact (contact.ts), from a standing grid laid out like main.js spawnAI:
+// aifieldcheck.mjs — a whole FIELD of racing AI, node only, full contact (contact.ts), from a standing grid laid out like main.ts spawnAI:
 // per car its persona, laps done, best lap; for the field: contact-seconds (time any pair is touching), contact EVENTS (new touches),
 // overtakes (order changes on track), stuck resets, seconds off the road. Difficulty and seed decide the mix.
 // node tools/aifieldcheck.mjs [level] [car] [diff 0-4] [n 1-6] [seed] [laps]
@@ -6,7 +6,7 @@ import { makeCar, step, reset, PHYSICS_STEP_SECONDS } from '../src/vehicle.ts';
 import * as L from '../src/lab.ts';
 import { carContact } from '../src/contact.ts';
 import { wakeStep } from '../src/physics/wake.ts';
-import { hit, repair, tooInjured } from '../src/damage.ts';   // DMG=1: damage on, as main.js
+import { hit, repair, tooInjured } from '../src/damage.ts';   // DMG=1: damage on, as main.ts
 const DMG = !!process.env.DMG;
 const { createAIDriver } = await import(process.env.AINEXT ? '../src/ai/circuit.next.js' : '../src/ai/circuit.ts'), { aiTraits } = await import('../src/ai/traits.ts');   // AINEXT=1: test a patch before it goes live
 for (const k of ['SB', 'SG']) if (process.env[k] != null) globalThis['__' + k] = +process.env[k];
@@ -18,7 +18,7 @@ const sub = L.LEVEL.subtrack, total = sub.totalDist, sp = L.LEVEL.spawn, offLap 
 const field = [];
 for (let i = 0; i < N; i++) {
   const car = makeCar(carId); car.spec = { ...car.spec, id: carId + '#' + (i + 1) };
-  // GRID=new: the 2026-10-05 main.js gridPos (7 m per slot, columns +-3.2 m, counted back from the spawn); default = the old layout
+  // GRID=new: the 2026-10-05 main.ts gridPos (7 m per slot, columns +-3.2 m, counted back from the spawn); default = the old layout
   const NEW = process.env.GRID === 'new', lat = Math.max(1.6, Math.min(3.2, sub.width / 2 - 1.8));
   const row = Math.floor(i / 2), side = NEW ? (i % 2 ? lat : -lat) : (i % 2 ? 3 : -3), bk = NEW ? i * 7 : row * 9 + (i % 2 ? 4.5 : 0);
   const d0 = NEW ? L.querySubtrack(sub, sp.x, sp.y).trackDist : total - 15;

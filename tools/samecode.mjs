@@ -25,7 +25,7 @@ const root = fileURLToPath(new URL("../", import.meta.url));
 const hashFile = join(root, ".samecode");
 
 const result = await build({
-  entryPoints: [join(root, "src/main.js")],
+  entryPoints: [join(root, "src/main.ts")],
   bundle: true,
   format: "esm",
   minifyWhitespace: true,

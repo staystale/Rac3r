@@ -71,7 +71,7 @@ export function drive(drv: Drv, car: AiCar, dt = 1 / 120, ctx: DriveCtx = {}) {
   // behind / stays off track too long / stays still / drives too slow for too long, ect it can
   // reset). Nearly still for DRIVE_OUT_T s after the green (nose in a wall, beached, tangled with a
   // car) -> REVERSE for ~1-1.5 s with the wheel turned to swing the nose back
-  // toward the road, then drive on. The game's reset (main.js) is the LAST resort now: it waits
+  // toward the road, then drive on. The game's reset (main.ts) is the LAST resort now: it waits
   // longer, so this gets two or three tries first. (! : st.i was set just above)
   {
     const out = driveOut(state, car, speed, dt, ctx, rnd, () => state.path.pts[state.i!].h);

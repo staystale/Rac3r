@@ -101,7 +101,7 @@ function settleRail(rail: Barrier | null): void {
   if (rail && applyRailHit(rail)) rebuildSegs(rail);
 }
 /**
- * RESTART (game/session.js doRestart): every lamp stands again, lit, every wooden hut with them
+ * RESTART (game/session.ts doRestart): every lamp stands again, lit, every wooden hut with them
  * (world/lamps.ts), and every dented or torn armco rail is straight again.
  */
 export function resetTrackside(): void {

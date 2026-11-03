@@ -9,7 +9,7 @@
 // frame: the WEAVER (aidriver.js roadDriver; v1 raced in lanes - requirement: ignore lanes, go
 // fast, dodge and weave through like the player would).
 // THE START: a 2-wide staggered grid in the two right-hand lanes behind the spawn; every car (you
-// too) is driven at the rolling pace behind red lights (main.js atPace), GREEN at HW_GREEN s. THE
+// too) is driven at the rolling pace behind red lights (main.ts atPace), GREEN at HW_GREEN s. THE
 // END (flow): EVERY AI ahead of you and the slowest of them OFF SCREEN -> "CATCH THEM n" for
 // HW_CATCH s (back on screen = cancelled), at 0 the race ends. Every AI behind you AND off screen
 // -> "PULLING AWAY n"; at 0 the race ends and you have won. Positions = how far up the road.

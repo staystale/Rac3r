@@ -15,21 +15,21 @@ Reads/writes are by name and scope; `(m)` = mutated through a property, element 
 
 | key | form | lines | called from (src, `renderer.key`) |
 |---|---|---|---|
-| ctx | getter | L3832 | src/main.js |
-| W | getter | L3833 | src/main.js |
-| H | getter | L3834 | src/main.js |
+| ctx | getter | L3832 | src/main.ts |
+| W | getter | L3833 | src/main.ts |
+| H | getter | L3834 | src/main.ts |
 | dpr | getter | L3835 | - |
 | cam | shorthand | L3836 | - |
-| resize | shorthand | L3836 | src/main.js |
-| frame | shorthand | L3836 | src/main.js |
-| snap | shorthand | L3836 | src/main.js |
-| sx | shorthand | L3836 | src/guide.js, src/main.js |
-| sy | shorthand | L3836 | src/guide.js, src/main.js |
+| resize | shorthand | L3836 | src/main.ts |
+| frame | shorthand | L3836 | src/main.ts |
+| snap | shorthand | L3836 | src/main.ts |
+| sx | shorthand | L3836 | src/guide.js, src/main.ts |
+| sy | shorthand | L3836 | src/guide.js, src/main.ts |
 | roundRect | shorthand | L3836 | - |
-| flyIn | shorthand | L3836 | src/main.js |
-| thumbnail | shorthand | L3836 | src/main.js |
-| flying | getter | L3837 | src/main.js |
-| PPM | getter | L3838 | src/guide.js, src/main.js |
+| flyIn | shorthand | L3836 | src/main.ts |
+| thumbnail | shorthand | L3836 | src/main.ts |
+| flying | getter | L3837 | src/main.ts |
+| PPM | getter | L3838 | src/guide.js, src/main.ts |
 | groundRenders | getter | L3839 | - |
 | tileMs | getter | L3840 | - |
 | staleRepaints | getter | L3841 | - |
@@ -37,15 +37,15 @@ Reads/writes are by name and scope; `(m)` = mutated through a property, element 
 | overviewBounds | getter | L3843 | - |
 | viewBounds | getter | L3844 | - |
 | standInFrame | getter | L3845 | - |
-| pixelCar | shorthand | L3846 | src/main.js |
-| pixelCarWithWheels | method | L3850-3865 | src/main.js |
+| pixelCar | shorthand | L3846 | src/main.ts |
+| pixelCarWithWheels | method | L3850-3865 | src/main.ts |
 | debugZoom | method | L3870 | - |
 | debugFlat | method | L3871-3881 | - |
 | debugColours | method | L3882-3885 | - |
 | tileCount | getter | L3886 | - |
 | debugTile | method | L3888 | - |
 
-Other exports of the file: PPM_MIN, PPM_MAX, PPM_DIV, ZOOM_MIN, LOOKAHEAD, MAX_DPR, PIXEL, shade. Importers of render.js: src/main.js.
+Other exports of the file: PPM_MIN, PPM_MAX, PPM_DIV, ZOOM_MIN, LOOKAHEAD, MAX_DPR, PIXEL, shade. Importers of render.js: src/main.ts.
 
 ## 2. Module-level items outside createRenderer
 
@@ -113,7 +113,7 @@ Other exports of the file: PPM_MIN, PPM_MAX, PPM_DIV, ZOOM_MIN, LOOKAHEAD, MAX_D
 |---|---|---|---|
 | drawFloor | function | L237-286 | 50 |
 
-### lanes (pit lanes, access roads) — lab.js laneAt (L288)
+### lanes (pit lanes, access roads) — lab.ts laneAt (L288)
 
 | name | kind | lines | count |
 |---|---|---|---|

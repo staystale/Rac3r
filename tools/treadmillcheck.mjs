@@ -14,7 +14,7 @@ let fails = 0; const check = (ok, msg) => { console.log((ok ? 'ok   ' : 'FAIL ')
 for (const preset of Object.keys(H.HW_PRESETS)) {
   const lv = H.createHighway(4242 + preset.length, preset); lv.id = 'hw-' + preset; L.LEVELS.push(lv); L.setLevel(lv.id);
   const car = makeCar(carId); reset(car, lv.spawn.x, lv.spawn.y, lv.spawn.heading);
-  // the LOOSE ROADSIDE (cones / tyres / stacks / chevrons) streamed exactly as main.js does it
+  // the LOOSE ROADSIDE (cones / tyres / stacks / chevrons) streamed exactly as main.ts does it
   const cfg = lv._cfg, geo = H.laneGeo(cfg);
   const cones = createCones(); cones.reset(); let maxLoose = cones.list.length, chev = 0, chevWrong = 0, inLane = 0, looseAll = 0, objMs = 0;
   const audit = (objs) => { for (const o of objs) { looseAll++; const q = L.querySubtrack(lv.subtrack, o.x, o.y), pt = lv.subtrack.pts[q.seg ?? 0];

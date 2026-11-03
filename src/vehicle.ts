@@ -6,7 +6,7 @@
 //
 // Fixed step, ALWAYS. Never hand this function a frame delta (CLAUDE.md §8 / rule 4): tyre friction
 // near the grip limit is stiff, and at 60Hz / 40m/s the car moves 0.67m per step and never feels
-// the lateral force it should have. main.js accumulates into PHYSICS_STEP_SECONDS-sized calls.
+// the lateral force it should have. main.ts accumulates into PHYSICS_STEP_SECONDS-sized calls.
 //
 // Bicycle model, per-axle friction ellipse. Body-frame integration with centripetal terms, which is
 // more stable near the limit than integrating in world frame and rotating back.
@@ -58,12 +58,13 @@ export interface CarWreck {
 // The rollover state (roll.ts): the phase, the roll angle phi about the long axis, its rate w,
 // seconds still (a settled car), when it last touched down. vehicle.ts only nulls it.
 export interface CarRoll { phase: string; phi: number; w: number; still: number; ts?: number }
-// Render position of the last frame (main.js, traffic.ts): vehicle.ts only nulls it.
+// Render position of the last frame (main.ts, traffic.ts): vehicle.ts only nulls it.
 export interface CarPrev { x: number; y: number; h: number }
 // A wheel position from last step (world/wear.ts): vehicle.ts only nulls the list.
 export interface CarWheelPos { x: number; y: number }
 // Tape stuck to the car (cones.ts): vehicle.ts only nulls the list.
-export interface CarStreamer { born: number }
+/** A tape streamer stuck to the car (cones.ts sticks it; render/objects.ts draws it). */
+export interface Streamer { born: number; phase: number; len: number }
 
 // The car: everything makeCar's literal creates, what reset adds, and what other files set on it.
 export interface Car {
@@ -95,7 +96,7 @@ export interface Car {
   _p: CarPrev | null; prevWheels: CarWheelPos[] | null;
   // the ground under each wheel (world/wear.ts stepWear; null after a reset)
   wheelSurf?: WheelGround[] | null;
-  roll: CarRoll | null; sparks: boolean; streamers: CarStreamer[] | null;
+  roll: CarRoll | null; sparks: boolean; streamers: Streamer[] | null;
   // set by world/wear.ts (the slope and bank forces under the car)
   slopeLong?: number; slopeLat?: number; slopeYaw?: number;
   bankLatForce?: number; bankLoadFactor?: number;
@@ -346,7 +347,7 @@ export function makeCar(carId: string, mods = defaultMods()) {
 }
 
 export function reset(car: Car, x = 0, y = 0, heading = -Math.PI / 2) {
-  car._p = null;          // no render interpolation across a teleport (main.js)
+  car._p = null;          // no render interpolation across a teleport (main.ts)
   // ... and no WEAR across it. MEASURED BUG (requirement: dirt in the road on highway levels is
   // still a bug; tools/_dirtroad.mjs): lab.ts stepWear sweeps each tyre from car.prevWheels to
   // where it is now, so after a teleport (an AI / traffic respawn, the highway put-back) it wore a
@@ -780,7 +781,7 @@ export function step(car: Car, input: CarInput, dt = PHYSICS_STEP_SECONDS) {
   return car;
 }
 
-// Assert finite on everything that can kill the renderer (rule 20). Called from main.js under
+// Assert finite on everything that can kill the renderer (rule 20). Called from main.ts under
 // ?dev=1 and from the bench unconditionally. A silent NaN is a vanished car.
 export function assertFinite(car: Car) {
   const state = [car.x, car.y, car.vx, car.vy, car.heading, car.yawRate, car.rpm, car.delta];

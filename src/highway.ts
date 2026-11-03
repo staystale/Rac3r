@@ -10,7 +10,7 @@
 // m — both far past the edge of the view, which is at most ~170 m tall). Every time the window
 // moves the road's subtrack is rebuilt from the window's points, its loop closed by ONE ghost
 // segment (lab.ts ghostSegment: never drawn, never road). Distances in the rebuilt subtrack are
-// relative to the window start: stepHighway returns how far that start moved, and main.js shifts
+// relative to the window start: stepHighway returns how far that start moved, and main.ts shifts
 // what it remembers (the reset point) by it.
 // UP THE SCREEN: the heading never strays more than cfg.maxDeg from straight UP (-y), so the road
 // always climbs the screen and cannot cross itself. SMOOTH JOINS: every element starts and ends at
@@ -172,7 +172,7 @@ export function stepHighway(level: HwLevel, car: HwCar) {
   }
   if (road[road.length - 1].s - loc.s > AHEAD) return 0;
   // extend 300 m, dress it, drop what is BEHIND, rebuild loose objects for the new stretch wait in
-  // st.looseNew, and st.looseCut is the road distance behind which main.js drops them
+  // st.looseNew, and st.looseCut is the road distance behind which main.ts drops them
   // (game.cones.spawn / cull — the live objects belong to the game, not the level)
   growTo(level, state.s + 300);
   meterEvent('slide');
@@ -312,10 +312,10 @@ function stepOffCountdown(state: HwState, out: number, onLane: boolean, dt: numb
 }
 
 /**
- * After stepHighway: null, or WHY the car must be put back (main.js shows it and calls
+ * After stepHighway: null, or WHY the car must be put back (main.ts shows it and calls
  * highwayRespawn). A runtime guard: wrong way for too long, or off the road too long / too far
  * (or having taken an exit), ends the run. st.warn = the off-road countdown text while one is
- * running (main.js shows it), else null.
+ * running (main.ts shows it), else null.
  * @param level the highway level
  * @param car the car
  * @param dt step seconds

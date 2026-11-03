@@ -1,4 +1,5 @@
-// sim.js — The per-step world: car physics, highway, audio and contact stepping.
+// sim.ts — The per-step world: car physics, highway, audio and contact stepping.
+import { hwLevel, hwFlow } from './state.ts';
 import { step, reset, assertFinite, PHYSICS_STEP_SECONDS } from '../vehicle.ts';
 import { stepHighway, highwayGuard, highwayRespawn, speedCamera } from '../highway.ts';
 import { carContacts } from '../contact.ts';
@@ -13,13 +14,15 @@ import { barrierClamp, solidClamp } from "../world/barriers.ts";
 import { takeThrownPlanks } from "../world/marshalbox.ts";
 import { throwParts, stepParts } from "../world/debris.ts";
 import { findNearestSubtrackPoint } from "../world/tyrewall.ts";
-import { resetCar, startHeld, atPace, stepOrder, formationWant } from './order.js';
-import { doReset, onScreen } from './session.js';
-import { shared, game } from './state.js';
-import { stepAIInjury } from './ai.js';
+import { resetCar, startHeld, atPace, stepOrder, formationWant } from './order.ts';
+import { doReset, onScreen } from './session.ts';
+import { shared, game } from './state.ts';
+import { stepAIInjury } from './ai.ts';
 import { wakeStep } from '../physics/wake.ts';
+import type { CarInput } from '../vehicle.ts';
+import type { TrafficVehicle } from '../ai/types.ts';
 
-export function recoverCar(why) {
+export function recoverCar(why: unknown) {
   if (shared.nanReports++ < 5)
     console.error('[car sim] car state went bad — recovered with a reset. Cause:', why,
       { ...game.car.t });
@@ -32,9 +35,9 @@ export function recoverCar(why) {
 /**
  * The FPS meter: accumulates the clamped frame time and, every 0.4 s, publishes the average fps
  * and the worst recent window on `game`.
- * @param {number} wallDt the clamped wall-clock frame time, in seconds
+ * @param wallDt the clamped wall-clock frame time, in seconds
  */
-export function updateFpsMeter(wallDt) {
+export function updateFpsMeter(wallDt: number) {
   shared.fpsAcc += wallDt;
   shared.fpsN++;
   if (shared.fpsAcc > 0.4) {
@@ -56,12 +59,12 @@ export function updateFpsMeter(wallDt) {
 /**
  * ?autopilot=1: the AI drives the player car; also caps the speed (?autopilot=<kmh>) and puts a
  * stuck car back on the track.
- * @param {number} wallDt the clamped wall-clock frame time, in seconds
- * @returns {object} the autopilot's input
+ * @param wallDt the clamped wall-clock frame time, in seconds
+ * @returns the autopilot's input
  */
-export function autopilotInput(wallDt) {
+export function autopilotInput(wallDt: number) {
   const others = [...game.ai.map((rival) => rival.car), ...game.traffic.cars];
-  const inp = { ...shared.autoDrv.drive(game.car, wallDt, { cars: others, lap: 1, laps: 99 }),
+  const inp = { ...shared.autoDrv!.drive(game.car, wallDt, { cars: others, lap: 1, laps: 99 }),
     reverse: 0, shiftUp: false, shiftDown: false };
   // ?autopilot=<kmh>: cap the speed (phone judder: highway vs speed)
   if (shared.settings.autopilotKmh > 0) {
@@ -74,40 +77,41 @@ export function autopilotInput(wallDt) {
     shared.autoStill = 0;
     if (LEVEL.endless) doReset();
     else {
-      const spot = findNearestSubtrackPoint(LEVEL.subtrack, game.car.x, game.car.y);
+      const spot = findNearestSubtrackPoint(LEVEL.subtrack!, game.car.x, game.car.y)!;
       reset(game.car, spot.x, spot.y, spot.heading);
     }
-    shared.autoDrv.relocate();
+    shared.autoDrv!.relocate();
   }
   return inp;
 }
 
 /**
  * The menu demo: the demo car drives itself; if it stops or strays it is put back on the track.
- * @param {number} wallDt the clamped wall-clock frame time, in seconds
- * @returns {object} the demo driver's input
+ * @param wallDt the clamped wall-clock frame time, in seconds
+ * @returns the demo driver's input
  */
-export function demoInput(wallDt) {
-  const inp = { ...shared.demo.drive(game.car, wallDt,
+export function demoInput(wallDt: number) {
+  const demo = shared.demo!;   // (called only with a demo driver)
+  const inp = { ...demo.drive(game.car, wallDt,
     { cars: game.ai.map((entry) => entry.car), lap: 1, laps: 99 }), reverse: 0, shiftUp: false,
       shiftDown: false };
   shared.demoStill = Math.hypot(game.car.vx, game.car.vy) < 2 ? shared.demoStill + wallDt : 0;
   // TOO INJURED (owner 11-01): the camera car resets for damage as its rivals do -
-  // the same pause, then back on the road and mended (game/ai.js stepAIInjury)
+  // the same pause, then back on the road and mended (game/ai.ts stepAIInjury)
   const entry = shared.demoHurt && shared.demoHurt.drv === shared.demo ? shared.demoHurt
-    : (shared.demoHurt = { car: game.car, drv: shared.demo, hurtWait: null, hurtT: 0 });
+    : (shared.demoHurt = { car: game.car, drv: demo, hurtWait: null, hurtT: 0 });
   entry.car = game.car;
   stepAIInjury(entry, wallDt);
-  // the pause plays the crash out on light brakes, as the rivals' (game/ai.js aiWant)
+  // the pause plays the crash out on light brakes, as the rivals' (game/ai.ts aiWant)
   if (entry.hurtWait != null) {
     Object.assign(inp, { steer: 0, throttle: 0, brake: 0.4, handbrake: 0 });
     shared.demoStill = 0;
   }
-  if (shared.demoStill > 3 || shared.demo.state.lastDist > 30) {
+  if (shared.demoStill > 3 || ('lastDist' in demo.state && demo.state.lastDist > 30)) {
     shared.demoStill = 0;
-    const spot = findNearestSubtrackPoint(LEVEL.subtrack, game.car.x, game.car.y);
+    const spot = findNearestSubtrackPoint(LEVEL.subtrack!, game.car.x, game.car.y)!;
     reset(game.car, spot.x, spot.y, spot.heading);
-    shared.demo.relocate();
+    demo.relocate();
   }
   return inp;
 }
@@ -120,12 +124,12 @@ function feedStickSpeed() {
 /**
  * Reads this frame's player input: the touch / keyboard sample, overridden by the start-grid
  * hold, the ?autopilot driver or the menu demo driver (each also unsticks its car).
- * @param {number} wallDt the clamped wall-clock frame time, in seconds
- * @returns {object} the input the sim steps with
+ * @param wallDt the clamped wall-clock frame time, in seconds
+ * @returns the input the sim steps with
  */
-export function readFrameInput(wallDt) {
+export function readFrameInput(wallDt: number): CarInput {
   feedStickSpeed();
-  let inp = shared.input.update(wallDt);
+  let inp: CarInput = shared.input.update(wallDt);
   // MENU: the demo car drives itself (src/ai/autodrive.ts — the same driver as the lap bench and
   // the AI seed). If it ever stops (stuck off the road), put it back on the track.
   const formed = shared.mode !== 'menu' && startHeld() && game.start.rolling
@@ -134,7 +138,7 @@ export function readFrameInput(wallDt) {
   else if (shared.mode !== 'menu' && startHeld()) {
     // the highway's rolling start (the formation drives a circuit's), else held on the grid
     inp = game.start.rolling
-      ? { ...atPace(game.start.drv.drive(game.car, PHYSICS_STEP_SECONDS,
+      ? { ...atPace(game.start.drv!.drive(game.car, PHYSICS_STEP_SECONDS,
         { cars: [...game.ai.map((entry) => entry.car), ...game.traffic.cars], hold: true }),
           game.car), shiftUp: false, shiftDown: false }
                              : { ...inp, throttle: 0, brake: 1, handbrake: 0, reverse: 0 };
@@ -148,10 +152,10 @@ export function readFrameInput(wallDt) {
 
 /**
  * Indicators, the field's lights and the rolled-over notice, once per frame.
- * @param {object} inp this frame's player input
- * @param {number} wallDt the clamped wall-clock frame time, in seconds
+ * @param inp this frame's player input
+ * @param wallDt the clamped wall-clock frame time, in seconds
  */
-export function stepCarSignals(inp, wallDt) {
+export function stepCarSignals(inp: CarInput, wallDt: number) {
   // INDICATORS cancel like a real stalk: after the wheel has been turned that way and come back, or
   // after 8 s (wall clock)
   {
@@ -207,10 +211,10 @@ export function openGuideOnLanding() {
 /**
  * One fixed physics step of the player car: the clamps, damage, ground and rollover, then the
  * car model. A non-finite result puts the car back on the track instead of ending the game.
- * @param {object} inp this frame's player input
- * @returns {boolean} false if the car had to be recovered (the caller drops the step backlog)
+ * @param inp this frame's player input
+ * @returns false if the car had to be recovered (the caller drops the step backlog)
  */
-export function stepCarPhysics(inp) {
+export function stepCarPhysics(inp: CarInput) {
   try {
     // DAMAGE (damage.ts): the velocity change the clamps impose IS the impact
     const pv0x = game.car.vx, pv0y = game.car.vy;
@@ -236,7 +240,7 @@ export function stepCarPhysics(inp) {
     stepDamage(game.car, PHYSICS_STEP_SECONDS);
     assertFinite(game.car);
   } catch (err) {
-    recoverCar(err.message);
+    recoverCar((err as Error).message);
     return false;
   }
   return true;
@@ -249,10 +253,11 @@ export function streamHighwayLitter() {
   // the roadside LITTER + CHEVRONS (loose objects) stream with the road: new ones ahead in,
   // the ones behind out (a tyre knocked off its stretch goes with it — it never belonged to
   // the road it rolled onto)
-  const hwData = LEVEL._hw;
-  if (hwData.looseNew.length) {
-    game.cones.spawn(hwData.looseNew);
-    hwData.looseNew.length = 0;
+  const hwData = hwLevel()._hw;
+  const looseNew = hwData.looseNew!;   // (the highway keeps the list)
+  if (looseNew.length) {
+    game.cones.spawn(looseNew);
+    looseNew.length = 0;
   }
   if (hwData.looseCut != null) {
     const cutAt = hwData.looseCut;
@@ -273,7 +278,7 @@ export function streamHighwayLitter() {
 export function caughtBySpeedCamera() {
   // SPEED CAMERA (highway.ts speedCamera): caught = a HUD card (hud.ts drawCamera) + the fine
   // on the session; fastest + count kept
-  const cam = speedCamera(LEVEL, game.car);
+  const cam = speedCamera(hwLevel(), game.car);
   if (cam) {
     game.camCaught = { ...cam, at: performance.now() };
     game.camFines = (game.camFines || 0) + cam.fine;
@@ -290,10 +295,10 @@ export function caughtBySpeedCamera() {
 /**
  * THE ENDLESS HIGHWAY, one step: slide the road window, the treadmill guard, the litter stream,
  * the speed camera and the distance records.
- * @returns {boolean} false if the guard put the car back (the caller drops the step backlog)
+ * @returns false if the guard put the car back (the caller drops the step backlog)
  */
 export function stepEndlessHighway() {
-  const shift = stepHighway(LEVEL, game.car);
+  const shift = stepHighway(hwLevel(), game.car);
   if (shift) {
     if (shared.lastOnTrack) shared.lastOnTrack.dist -= shift;
     if (game.trackD != null) game.trackD -= shift;
@@ -301,13 +306,14 @@ export function stepEndlessHighway() {
   // THE TREADMILL GUARD (requirement: go backwards should reset you): wrong way / dropped back /
   // off the motorway -> put back in the left lane at the furthest point
   // reached, rolling at 60 % of the speed you had (or 15 m/s), with the reason shown
-  const why = highwayGuard(LEVEL, game.car, PHYSICS_STEP_SECONDS);
+  const why = highwayGuard(hwLevel(), game.car, PHYSICS_STEP_SECONDS);
   // the going-wide countdown
-  if (LEVEL._hw.warn) game.notice = { text: LEVEL._hw.warn, at: performance.now() };
+  const warn = hwLevel()._hw.warn;
+  if (warn) game.notice = { text: warn, at: performance.now() };
   streamHighwayLitter();
   if (why) {
     const speed = Math.max(15, 0.6 * Math.hypot(game.car.vx, game.car.vy)),
-      spot = highwayRespawn(LEVEL);
+      spot = highwayRespawn(hwLevel());
     repair(game.car);
     resetCar(game.car, spot.x, spot.y, spot.h);
     game.car.vx = Math.cos(spot.h) * speed;
@@ -321,7 +327,7 @@ export function stepEndlessHighway() {
     return false;
   }
   caughtBySpeedCamera();
-  game.hwDist = LEVEL._hw.driven || 0;
+  game.hwDist = hwLevel()._hw.driven || 0;
   if (game.hwDist > (game.hwBest || 0)) {
     game.hwBest = game.hwDist;
   }
@@ -330,17 +336,17 @@ export function stepEndlessHighway() {
 
 /**
  * Engine and tyre sound, fenced off so a throw can never stop the frame.
- * @param {number} wallDt the clamped wall-clock frame time, in seconds
  */
-export function updateAudio(wallDt) {
+export function updateAudio() {
   // AFTER the sim, and fenced off. MEASURED: audio used to run first, and with a NaN car
   // its setTargetAtTime throws — which aborted every frame BEFORE the sim could run the recovery
   // above, so the car stayed broken forever. Sound is cosmetic; it must never be able to stop the
   // game.
   try {
-    shared.audio.update(game.car, wallDt);
+    shared.audio.update(game.car);
   } catch (err) {
-    if (shared.nanReports++ < 5) console.error('[car sim] audio.update threw:', err.message);
+    if (shared.nanReports++ < 5) console.error('[car sim] audio.update threw:',
+      (err as Error).message);
   }
 }
 
@@ -368,7 +374,8 @@ export function dropBreadcrumb() {
  */
 export function stepRunningOrder() {
   if (LEVEL.endless) {
-    if (game.flow && game.flow.highway) game.position = game.flow.order();
+    const hwRace = hwFlow();
+    if (hwRace) game.position = hwRace.order!();
   }
   else if ((game.ai.length || game.flow || LEVEL.stage) && LEVEL.subtrack) stepOrder();
 }
@@ -381,23 +388,23 @@ export function stepRaceFlow() {
   stepRunningOrder();
   if (game.flow && game.start.t >= (game.start.tGreen0 ?? game.start.tGreen)) {
     const was = game.flow.state;
-    game.flow.step(PHYSICS_STEP_SECONDS);
+    game.flow.step!(PHYSICS_STEP_SECONDS);   // (set as the flow is made)
     if (was !== 'done' && game.flow.state === 'done') game.flowDoneAt = performance.now();
     // the HIGHWAY's END COUNTDOWNS on the notice line (requirement: an AI reaching the edge of the
     // screen ahead starts a countdown)
-    const flow = game.flow;
-    if (flow.highway
+    const flow = hwFlow();
+    if (flow
       && flow.cdKind) game.notice = { text: (flow.cdKind === 'ahead' ? (flow.cdHold
         ? 'CLOSING IN  ' : 'CATCH THEM  ') : 'PULLING AWAY  ') + Math.max(1,
-          Math.ceil(flow.cd)), at: performance.now(), good: flow.cdKind === 'behind' };
+          Math.ceil(flow.cd!)), at: performance.now(), good: flow.cdKind === 'behind' };
   }
 }
 
 /**
  * TRAFFIC for one sim step, then the contact pass shared by you, the AI and the traffic.
- * @param {object[]} tcars the traffic cars
+ * @param tcars the traffic cars
  */
-export function stepTrafficContacts(tcars) {
+export function stepTrafficContacts(tcars: TrafficVehicle[]) {
   // TRAFFIC: driven after the AI (it reads where everyone is), then in the SAME contact pass as
   // you and the AI — full contact, damage
   if (tcars.length || game.traffic.want) game.traffic.step(PHYSICS_STEP_SECONDS,
@@ -413,9 +420,9 @@ export function stepTrafficContacts(tcars) {
 
 /**
  * The loose cones and tyres for one sim step, and the loose tyres a torn-off wheel throws.
- * @param {object[]} tcars the traffic cars
+ * @param tcars the traffic cars
  */
-export function stepLooseCones(tcars) {
+export function stepLooseCones(tcars: TrafficVehicle[]) {
   // cones are world state, so they advance on the SAME fixed step as the car (rule 5) (traffic
   // within 60 m of you knocks the litter too — a knocked tyre on the road is something they
   // then have to hit)
@@ -434,7 +441,7 @@ export function stepLooseCones(tcars) {
     // DAMAGE: a torn-off wheel becomes a loose tyre, thrown from its corner with the car's
     // speed and outward
     for (const racer of field) while (racer.wheelSpawn && racer.wheelSpawn.length) {
-      const corner = racer.wheelSpawn.shift(), cosH = Math.cos(racer.heading),
+      const corner = racer.wheelSpawn.shift()!, cosH = Math.cos(racer.heading),
         sinH = Math.sin(racer.heading),
           alongOff = (corner < 2 ? racer.spec.lf : -racer.spec.lr),
             sideOff = (corner % 2 ? 1 : -1) * (racer.spec.trackWidth || 1.5) / 2;
@@ -452,9 +459,9 @@ export function stepLooseCones(tcars) {
 
 /**
  * Tyre marks for one sim step: the AI, skidding traffic and the player stamp the road.
- * @param {object[]} tcars the traffic cars
+ * @param tcars the traffic cars
  */
-export function stepTyreMarks(tcars) {
+export function stepTyreMarks(tcars: TrafficVehicle[]) {
   for (const entry of game.ai)
     if (!rolling(entry.car)) game.marks.stamp(game.marks.wheelsOf(entry.car));
   // a skidding / crashing traffic car marks the road

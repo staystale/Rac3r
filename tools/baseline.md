@@ -14,25 +14,25 @@
 | autodrive.js | 65 | 25 | 20 | 0 |
 | cars.js | 468 | 22 | 126 | 0 |
 | carstats.js | 217 | 0 | 0 | 0 |
-| cones.js | 493 | 150 | 94 | 3 |
-| contact.js | 79 | 46 | 12 | 0 |
+| cones.ts | 493 | 150 | 94 | 3 |
+| contact.ts | 79 | 46 | 12 | 0 |
 | damage.js | 108 | 31 | 41 | 0 |
 | guide.js | 316 | 82 | 60 | 2 |
-| highway.js | 621 | 391 | 265 | 1 |
-| hud.js | 607 | 187 | 176 | 3 |
+| highway.ts | 621 | 391 | 265 | 1 |
+| hud.ts | 607 | 187 | 176 | 3 |
 | hwrace.js | 109 | 43 | 51 | 0 |
 | input.js | 224 | 29 | 24 | 1 |
-| lab.js | 3628 | 1291 | 1119 | 0 |
-| main.js | 1007 | 254 | 286 | 1 |
+| lab.ts | 3628 | 1291 | 1119 | 0 |
+| main.ts | 1007 | 254 | 286 | 1 |
 | marks.js | 173 | 28 | 37 | 1 |
-| menu.js | 519 | 230 | 204 | 1 |
+| menu.ts | 519 | 230 | 204 | 1 |
 | raceflow.js | 102 | 30 | 34 | 0 |
 | render.js | 3893 | 1238 | 916 | 7 |
 | roll.js | 111 | 20 | 36 | 0 |
-| stagegen.js | 225 | 156 | 107 | 1 |
-| testlist.js | 24 | 0 | 17 | 0 |
+| stagegen.ts | 225 | 156 | 107 | 1 |
+| testlist.ts | 24 | 0 | 17 | 0 |
 | traffic.js | 233 | 119 | 94 | 2 |
-| tune.js | 124 | 67 | 7 | 0 |
+| tune.ts | 124 | 67 | 7 | 0 |
 | vehicle.js | 1080 | 78 | 326 | 2 |
 | TOTAL | 15586 | 4848 | 4427 | 33 |
 
@@ -327,7 +327,7 @@ stock-car (CPU x4, autodrive lap): frame ms median 16.7 | p95 17.1 | worst 50.0 
   0.6%  stroke :-1
   0.6%  frame render.js:3751
   0.6%  setTransform :-1
-  0.6%  (anon) hud.js:56
+  0.6%  (anon) hud.ts:56
 ```
 
 ### profile thruston
@@ -336,7 +336,7 @@ stock-car (CPU x4, autodrive lap): frame ms median 16.7 | p95 17.1 | worst 50.0 
   0.7%  frame render.js:3751
   0.7%  stroke :-1
   0.7%  drawCurvedKerbs render.js:462
-  0.6%  naturalHeightAt lab.js:554
+  0.6%  naturalHeightAt lab.ts:554
   0.6%  (garbage collector) :-1
 ```
 
@@ -346,6 +346,6 @@ stock-car (CPU x4, autodrive lap): frame ms median 16.7 | p95 17.1 | worst 50.0 
   0.7%  drive autodrive.js:21
   0.7%  fill :-1
   0.6%  requestAnimationFrame :-1
-  0.6%  (anon) hud.js:56
+  0.6%  (anon) hud.ts:56
   0.6%  restore :-1
 ```

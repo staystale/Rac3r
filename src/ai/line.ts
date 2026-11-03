@@ -380,7 +380,7 @@ function branches(level: Level, line: RacingLine): Branches {
   return out;
 }
 // the racing line + its branches, for overlays and tools
-// STAGE RUN (main.js: a rally stage with real start intervals): where a driver would be T s after
+// STAGE RUN (main.ts: a rally stage with real start intervals): where a driver would be T s after
 // leaving the start line from rest, or when it would reach toDist — its own speed profile x pace,
 // with an acceleration limit (ACC_EST m/s^2, fading with speed) on a forward pass.
 const ACC_EST = 4.5;

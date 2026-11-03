@@ -124,7 +124,7 @@ function foldHighway(hash, lv) {
 }
 
 /**
- * Do main.js's loose-object bookkeeping with a plain list: take the new objects (folding all
+ * Do main.ts's loose-object bookkeeping with a plain list: take the new objects (folding all
  * their fields into the hash) and drop the ones behind looseCut.
  * @param {import('node:crypto').Hash} hash running hash
  * @param {object} hw the highway data (_hw)
@@ -162,7 +162,7 @@ function driveHighway(km) {
   const lane = lv._hw.geo.centres[0];
   const car = { x: lv.spawn.x, y: lv.spawn.y };
   const start = 300, end = start + km * 1000;
-  const loose = []; // the loose objects the game would hold (main.js: cones.spawn / cull)
+  const loose = []; // the loose objects the game would hold (main.ts: cones.spawn / cull)
   let folds = 0, shifts = 0;
   for (let dist = start, next = start + 200; dist <= end; dist += 4) {
     const pose = roadPose(lv, dist, lane);

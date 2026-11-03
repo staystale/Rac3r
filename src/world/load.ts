@@ -271,7 +271,7 @@ export function setLevel(levelId: string, opts: { light?: boolean } = {}): Level
 }
 
 let worldReady = false;
-// builds the world: called once (main.js, lab.ts), not as a side effect of importing
+// builds the world: called once (main.ts, lab.ts), not as a side effect of importing
 export function initWorld(): void {
   if (worldReady) return;
   worldReady = true;

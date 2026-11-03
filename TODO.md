@@ -42,7 +42,7 @@ handover, written on request.
   handbrake heats the rears, cold again on RESTART / RESET as the tyres); trees D part 1
   (trunk-only solid, canopies over the cars and dark at night, seasons, firs, weather snow).
   Earlier 10-24: A1-A13 fixes, grass G1, mud M1.
-- TYPESCRIPT CONVERSION: ON HOLD (owner 10-25); new code is TypeScript, old .js converted later.
+- TYPESCRIPT CONVERSION: DONE 11-03 (src/ is all TypeScript; Queue 2).
 - ORDER (owner 10-25): 1 BUSHES (D part 2) - DEFAULT 10-25 (owner: pass); 2 car systems C
   (design + mockup approved 10-25; ROUND 1 - C1 + C2, metal on ground, stingers, highway
   hedges, sparks, crash sparks, flip ramp - DEFAULT 10-25 (owner: all pass); round 2
@@ -80,10 +80,10 @@ BUGS (S-M each; ONE test round before the root fix - owner 11-01: OK)
   0.7+): soaked track, no rain / light 0.45 / heavy 1 - trail share 1/1/1 off, 0/0/1 on.
   RAIN AND TYRES (owner asked): yes - wet ground cools tyres (damp coolK up to 0.18, a puddle
   0.20, physics/tyreheat.ts groundCool); falling rain has no extra term. No change unless asked.
-- K2 [DEFAULT 11-02, owner: pass] MENU RACE: the camera car never resets for damage. CAUSE (code): game/sim.js demoInput
+- K2 [DEFAULT 11-02, owner: pass] MENU RACE: the camera car never resets for damage. CAUSE (code): game/sim.ts demoInput
   resets it only when stopped 3 s or 30 m astray, and without a repair; the menu's AI rivals
-  already use the race rule (game/ai.js stepAIInjury). Fix: the camera car uses that same rule
-  (one system). S. BUILT ?menureset=1 (game/sim.js demoInput): wrecked -> reset + mended.
+  already use the race rule (game/ai.ts stepAIInjury). Fix: the camera car uses that same rule
+  (one system). S. BUILT ?menureset=1 (game/sim.ts demoInput): wrecked -> reset + mended.
 - K3 AI SLOW DOWN AND WEAVE (Thruston and others; the menu race runs on Thruston). LEADS:
   Thruston's racing line has a seam (a 1.385 m segment and a turn spike at its last point,
   tools/scratch/_lineseam.mjs, 10-24); the off-line corner slow-down (ai/driverDrive.ts: a car
@@ -140,7 +140,7 @@ BUGS (S-M each; ONE test round before the root fix - owner 11-01: OK)
 
 FEATURES
 - K8 [DEFAULT 11-02, owner: pass] MENU RACE camera car = the player's car (the garage choice / last used), not the fixed
-  hatch-rwd (main.js DEMO_CAR). Its paint / number too. S. BUILT ?menucar=1 (menuflow.js
+  hatch-rwd (main.ts DEMO_CAR). Its paint / number too. S. BUILT ?menucar=1 (menuflow.js
   enterMenu: profile.active + its livery).
 - K9 AI CARS get their race NUMBER painted on (the garage's paint + number system) and brighter,
   more varied colours (look change: mockup first). S-M.
@@ -148,7 +148,7 @@ FEATURES
   car and on the scoreboard / results. S. OWNER 11-01: a driver KEEPS their number across
   events (Story); TEST MODE deals random numbers each event. BUILT ?ainumbers=1 (grid.js
   aiNumbers; also K9's painted number - spec.num): 6 deals all unique, never your #7.
-- K11 UP TO 10 AI: setAI caps at 5 (main.js). Measure first: AI ms per car (laptop profile) and a
+- K11 UP TO 10 AI: setAI caps at 5 (main.ts). Measure first: AI ms per car (laptop profile) and a
   phone ?report=1 race at 10; grid slots on the shortest tracks. M. Owner to decide on numbers.
 
 - K16 DRIVER NAMES: every AI racer gets a name (parody puns, the NOTES rule), shown with the
@@ -163,7 +163,7 @@ FEATURES
   every few frames on loose ground, the frame died before the HUD (tools/scratch/_hudflash2.mjs:
   3 flashes + page errors -> 0). Spray now picks from the list's length.
 - K18 MENU RACE ON A RANDOM TRACK each time, or the last track raced - highway levels too
-  (owner 11-02). Today fixed to Thruston (main.js DEMO_LEVEL); the highway needs its own AI
+  (owner 11-02). Today fixed to Thruston (main.ts DEMO_LEVEL); the highway needs its own AI
   (weaver / hwFlow) and the camera car's driver there. M. Which: random, last, or a mix - ask.
 - K19 STORMS + LIGHTNING (owner idea 11-02): a weather kind above heavy rain - flashes lighting
   the night layer for a frame or two, darker sky, gusts (rain angle), thunder later (sounds: ask
@@ -248,11 +248,14 @@ is converted first in its own commit, proved SAME, then changed (owner: "1.a is 
    where it applies): batch 1 (13 leaf files), 2 cones (6), 3 HUD (7), 4 menus (4), 5b input,
    roll, raceflow, 5c audio, guide, carstats (the generator writes typed TS), marks, the
    highway (7) - 44 files.
-   LEFT (6 files... see below; the highway was DONE 11-03): (was: the HIGHWAY (7, stashed:
-   it builds lanes / zones / covers in shapes world/types.ts does not allow - [x, y] lane points,
-   _s tags - so those world types are widened first); the GAME FLOW (state, grid, controls,
-   rules, order, ai, loop, menuflow, session, sim) + main.js - they share game / shared from
-   game/state.js, which needs a typed Game first; marks.ts; stagegen.ts.
+   11-03: marks, stagegen, then the GAME FLOW (state, grid, controls, rules, order, ai, loop,
+   menuflow, session, sim) + main.ts - DONE: src/ is all TypeScript (no .js left). game/state.ts
+   types the Game and the shared variables; proved simhash SAME, worldhash SAME, renderhash SAME
+   (test-track / knobhill / highway), menucheck / inputcheck / settingscheck / uicheck /
+   bundlecheck ok. One system on the way: one tape Streamer type (vehicle.ts; was three).
+   LEFT for the types (not behaviour): two Surface types (cars.ts, world/types.ts) and the
+   renderer's / HUD's car shapes are narrower than the traffic's and the highway flow's - loop.ts
+   hands them the game with a cast. One car type later.
    FOUND on the way (behaviour kept, for the owner): the joker turn-off hint on the lap panel
    never shows (hud/laps.ts: no joker arrow carries its track distance d); JokerRule.estCost is
    read but never set (an unfinished car's joker always costs 5 s); carstats are a little stale
@@ -461,7 +464,7 @@ C. CAR SYSTEMS + DAMAGE (L; one chain - extend damage.ts, no second damage model
   6 faded, 24 left; glass swept by the first tyre over it, the fronts picking up slow leaks
   (59 passes in 12 s: both fronts leaking); 0 page errors; switch off simhash SAME. world/pass.ts
   is the one "wheel making this pass" note (oil's direction, glass's tyre). Built as planned: parts through the wheelSpawn path (damage.ts queue ->
-  game/sim.js game.cones.add) as DEBRIS kinds bumper (exists) + new wing / panel with the car's
+  game/sim.ts game.cones.add) as DEBRIS kinds bumper (exists) + new wing / panel with the car's
   paint (cone.col) and trim; a fade on the oldest past the cap (render/objects.ts alpha).
   Glass a wear-cell cover 'glass' like oil (world/oil.ts pattern; GPU field kind 6 with
   camera-dependent glints), thrown round the hit corner, a pass clears it with a puncture

@@ -78,7 +78,7 @@ export function clearFields(level: HwLevel, rect: KeepRect) {
   if (!ids.size) return;
   const survives = (item: { field?: number }) => item.field == null || !ids.has(item.field);
   // (+ its animals, S-C: loose objects not yet handed to the game; the live ones go via goneFields
-  // -> main.js game.cones.cull)
+  // -> main.ts game.cones.cull)
   const prune = <T extends { field?: number }>(list: T[]) => {
     const kept = list.filter(survives);
     if (kept.length !== list.length) {

@@ -40,7 +40,8 @@ export interface TapeSection {
 }
 
 /** A snapped tape section trailing from a car (render.ts draws it). */
-export interface Streamer { born: number; len: number; phase: number }
+import type { Streamer } from '../vehicle.ts';
+export type { Streamer };
 
 /** A hit the renderer turns into dust (render/particles.ts). */
 export interface ConeHit { x: number; y: number; speed: number; kind?: string }
@@ -49,7 +50,7 @@ export interface ConeHit { x: number; y: number; speed: number; kind?: string }
 export interface ConeCar {
   x: number; y: number; vx: number; vy: number; heading: number; yawRate: number;
   spec: { len: number; wid: number; mass: number; lf: number; lr: number; trackWidth?: number };
-  streamers?: Streamer[];
+  streamers?: Streamer[] | null;   // (null: reset)
   burstTyre?: number; burstSlow?: boolean;   // damage.ts applyBurst: a tyre to burst, slowly
   wheelOff?: boolean[];
   _hitKind?: string | null;   // the sharpest thing hit this step (physics/punctures.ts)

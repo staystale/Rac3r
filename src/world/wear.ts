@@ -395,7 +395,7 @@ function roughAt(x: number, y: number, rough: number): number {
 }
 
 // THE GROUND under a point: its height in metres and what it grips like. Everything about the
-// world's surface is this one function; main.js reads it and vehicle.js integrates over it.
+// world's surface is this one function; main.ts reads it and vehicle.js integrates over it.
 /**
  * The surface of the floor at a point: its worn cell, else its layers in today's weather.
  * @param x world x, m
@@ -542,7 +542,7 @@ export function stepWear(car: CarBody, dt: number): void {
   car.prevWheels = curr;
 }
 
-// Put the ground under the car. Lives HERE, not in main.js, so the game and every harness run the
+// Put the ground under the car. Lives HERE, not in main.ts, so the game and every harness run the
 // identical code — MEASURED BUG: tools/kerbcheck.mjs had its own copy, the field names
 // changed under it, and it cheerfully reported load 1.00 at every speed from 3 to 42 m/s. Identical
 // outcomes across different inputs is CLAUDE.md rule 1, and it was my own instrument lying again.

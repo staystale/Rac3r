@@ -1,5 +1,5 @@
 // aijokercheck.mjs — the racing AI on the RALLYCROSS levels, one car alone from the real grid spawn, a whole 5-lap race:
-// per lap time, which lap it jokered (counted by the GATE, the same circle test as main.js stepJoker), how many gate entries (must be 1),
+// per lap time, which lap it jokered (counted by the GATE, the same circle test as main.ts stepJoker), how many gate entries (must be 1),
 // and on Slidden Hill whether the start was driven down the RX start straight (the furthest it got from the start lane,
 // until it reaches the lane's end, must be under the lane's half width). node tools/aijokercheck.mjs [levels] [car] [diff 0-4] [seeds e.g. 1,2,3,4,5]
 import { makeCar, step, reset, PHYSICS_STEP_SECONDS } from '../src/vehicle.ts';

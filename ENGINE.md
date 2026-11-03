@@ -23,7 +23,7 @@ Older design notes and measurements are in the git history of this file.
 
 | Where | What lives there |
 |---|---|
-| `main.js` | Boot: settings, renderer, input, the first level, the frame loop start. |
+| `main.ts` | Boot: settings, renderer, input, the first level, the frame loop start. |
 | `game/` | The running game. `state.js` is the one home of shared game state; `loop.js` the animation frame (fixed-step sim, interpolation, drawing); `sim.js` the per-step world; `ai.js`, `grid.js` the AI cars; `session.js`, `order.js`, `rules.js` laps, starts, cuts, RX / stage / joker rules; `menuflow.js`, `controls.js` menu, launch, pause, HUD keys. |
 | `core/` | `settings.ts` every `?name=value` page setting, read once; `random.ts`; `debug.ts` tool switches; `churn.ts` a test switch. |
 | `world/` | The scene as data. `state.ts` the active level; `load.ts` level loading; `levels/` one file per hand-made level; `zones.ts`, `surfaces.ts`, `wear.ts` (the wear map, `groundAt`), `terrain.ts` (bumps, jumps, kerbs, heights), `barriers.ts`, `bounds.ts`, `subtrack.ts` (the track centreline), `course.ts`, `tyrewall.ts`, `colours.ts`, `types.ts`. |
@@ -37,7 +37,7 @@ Older design notes and measurements are in the git history of this file.
 | `highwayrace.ts`, `traffic.ts`, `raceflow.ts` | Highway race rules, highway traffic, how a race ends (results, estimates, DNF). |
 | `render.ts`, `render/` | Drawing (below). |
 | `marks.ts` | The world-space skid-mark layer. |
-| `hud.ts`, `hud/` | The HUD on the full-resolution canvas: `layout.js` every rectangle and tap hit-test, `gauges.js`, `laps.js`, `overlays.js`, `controls.js`, `widgets.js`, `minimap.js` (minimap + progress bar). The pause menu's HUD list (`?hudmenu=0` = the old MINIMAP row) (`menu/race.ts`, `game/menuflow.js` hudActions) turns each display piece on or off. |
+| `hud.ts`, `hud/` | The HUD on the full-resolution canvas: `layout.js` every rectangle and tap hit-test, `gauges.js`, `laps.js`, `overlays.js`, `controls.js`, `widgets.js`, `minimap.js` (minimap + progress bar). The pause menu's HUD list (`?hudmenu=0` = the old MINIMAP row) (`menu/race.ts`, `game/menuflow.ts` hudActions) turns each display piece on or off. |
 | `menu.ts`, `menu/` | Main menu, test mode, garage (paint, tyres), race setup and results. |
 | `input.ts` | One normalised input state from keyboard and touch; the car never sees an event. |
 | `audio.ts` | Procedural Web Audio: engine note, tyre squeal, surface sounds. |
@@ -45,11 +45,11 @@ Older design notes and measurements are in the git history of this file.
 
 ## One frame
 
-`game/loop.js`, driven by `requestAnimationFrame`:
+`game/loop.ts`, driven by `requestAnimationFrame`:
 
 1. Input: `input.ts` (or the autopilot / demo driver) gives one input state.
-2. Fixed-step simulation: an accumulator runs `game/sim.js` in steps of `PHYSICS_STEP_SECONDS` (1/120 s):
-   the player car (`vehicle.ts step`), AI cars (`game/ai.js`), highway streaming and traffic, contact,
+2. Fixed-step simulation: an accumulator runs `game/sim.ts` in steps of `PHYSICS_STEP_SECONDS` (1/120 s):
+   the player car (`vehicle.ts step`), AI cars (`game/ai.ts`), highway streaming and traffic, contact,
    damage, rollovers, loose objects, wear, race rules and timing.
 3. Interpolation of every car between the last two steps.
 4. Draw: `renderer.frame()` (world into the art-pixel buffer, then to the screen), then the HUD.
@@ -103,7 +103,7 @@ heat / wear bursts, debris, nails, bushes) ends in `damage.ts`, which starts a L
 over 10-30 s. Each tyre's pressure sets its axle's grip (1 -> 0.7 flat -> 0.45 on the rim), a pull
 toward it and extra rolling drag, folded into `car.wreck` by `damage.ts derive`; driven flat
 the rubber comes off by a chance rising with the metres run flat (half by ~1 km). `damage.ts stepDamage` runs it each physics step
-(player `game/sim.js`, AI `game/ai.js`). METAL ON HARD GROUND (`world/metalscrape.ts`): a rim, or
+(player `game/sim.ts`, AI `game/ai.ts`). METAL ON HARD GROUND (`world/metalscrape.ts`): a rim, or
 a rolled body sliding (`roll.ts car.sparks`), sparks and may break each new wear cell a grade
 (race tarmac -> tarmac -> broken) through `gougeCell`; a rollover impact has its own chance; a
 rim scores a pale mark (`MARK_GOUGE`, `marks.ts`). Drawn by `render/tyrelook.ts` (the tyre
@@ -131,7 +131,7 @@ motion); oil beside water runs into it 50:50 a second (`stepOil`); each spread a
 weaker (`cell.oilGen`).
 DEBRIS: `world/debris.ts`. A corner's hit of 0.3+ may knock off a
 part (`damage.ts hardHitCorners -> crashDebris`): a bumper (end-on, one an end), a wing or a door
-panel, queued on the car (`partSpawn`) and thrown by `game/sim.js throwParts` into the loose
+panel, queued on the car (`partSpawn`) and thrown by `game/sim.ts throwParts` into the loose
 objects (`cones.ts`; DEBRIS kinds `bumper`, `wing`, `panel` in the car's paint and trim,
 `render/objects.ts`); past 24 the oldest fade out (`stepParts`, `cones.cull`). A hit of 0.15+
 may break a window (not the track car, banger, grass car): wear cells take the cover 'glass'
@@ -173,7 +173,7 @@ the night light map (`render/light.ts drawSparkGlows`).
   cars' lamp glows rubbed out, then the pools' warm tint and the glows' colour laid in; laid over
   the screen canvas once a frame under the HUD (nothing by day). The light level is
   `world/daylight.ts` (`?night=` fixes it, a test tool); the AI and traffic run headlights by it
-  (`game/sim.js updateFieldHeadlights`; the player's LIGHTS are their own).
+  (`game/sim.ts updateFieldHeadlights`; the player's LIGHTS are their own).
 - Lamps: `world/lamps.ts` makes the level's street lights (`lamps` data) and floodlight pylons
   into lamps with a solid post (`barriers.ts solidClamp`), lit from dusk; the night layer draws
   their pools, `render/props/lamps.ts` the street lights (overhead layer). The highway lays its
@@ -187,7 +187,7 @@ the night light map (`render/light.ts drawSparkGlows`).
   `solidsDirty` at each window rebuild). Highway: 4.3 -> 0.3 us a car-step with ~250 solids.
 - The game clock: `world/clock.ts` - a global time of day / season / moon
   (1 game day = 1 real hour, a season 7 days), saved in its own storage key, run by the sim step
-  in events (`game/loop.js`); it sets the sky (`daylight.ts setSky`: darkness and the dark's
+  in events (`game/loop.ts`); it sets the sky (`daylight.ts setSky`: darkness and the dark's
   colour) that the night layer, the lamps and the headlights follow. TEST MODE setup: TIME OF DAY.
 - `render/glground.ts`: THE ground (the game needs WebGL2; the iPhone's Safari has it since iOS
   15): the cached tiles are drawn by WebGL2 on a canvas UNDER the screen canvas, at full screen

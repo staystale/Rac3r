@@ -26,9 +26,9 @@ export interface TuneRow {
 /** What the panel reads of the game's audio. */
 interface TuneAudio { volume: number; setVolume: (value: number) => void }
 
-let tuneAudio: TuneAudio | null = null;   // the game's audio, handed over by main.js
+let tuneAudio: TuneAudio | null = null;   // the game's audio, handed over by main.ts
 /**
- * Hands the panel the game's audio (main.js).
+ * Hands the panel the game's audio (main.ts).
  * @param audio the audio engine
  */
 export function setTuneAudio(audio: TuneAudio): void { tuneAudio = audio; }

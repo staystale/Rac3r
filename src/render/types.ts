@@ -226,8 +226,8 @@ export interface RenderCar extends CamCar, Pick<Car, 'heading' | 'delta'> {
   indicator?: number;
   hazard?: boolean;
   brakeLight?: number;
-  rainLight?: boolean;   // the rear rain light is on (game/sim.js)
-  handbrakeOn?: number;   // the handbrake is on, 1 (game/loop.js, game/ai.js): rear brake heat
+  rainLight?: boolean;   // the rear rain light is on (game/sim.ts)
+  handbrakeOn?: number;   // the handbrake is on, 1 (game/loop.ts, game/ai.ts): rear brake heat
   tyreT?: number[];   // the tyre temperatures (vehicle.ts; a reset makes a new array)
   gear?: number;   // the gear, -1 in reverse (vehicle.ts): its reversing lights
   // caches the car layers set on the car itself
@@ -261,12 +261,9 @@ export interface RenderTape {
   broken?: boolean;
 }
 
-// A tape streamer stuck to a car.
-export interface Streamer {
-  born: number;
-  phase: number;
-  len: number;
-}
+// A tape streamer stuck to a car (vehicle.ts).
+import type { Streamer } from '../vehicle.ts';
+export type { Streamer };
 
 // What drawTape reads of a car.
 export interface TapeCar {
@@ -301,7 +298,7 @@ export interface RenderGame extends RoadGame, TapeGame {
   traffic?: { cars: GameCar[] };   // highway traffic (traffic.js)
   cones: TapeGame["cones"] & { list: RenderCone[]; drainHits: () => PuffHit[] };
   marks: RenderMarks;
-  // the race start (game/order.js armStart): the start gantry's lights glow by it
+  // the race start (game/order.ts armStart): the start gantry's lights glow by it
   start?: { on: boolean; t: number; tGreen: number; green: boolean };
 }
 

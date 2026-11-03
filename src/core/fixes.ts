@@ -9,7 +9,7 @@ import { envValue } from './debug.ts';
 
 /**
  * A switch read as this module loads: the circuits are traced as their level modules load,
- * before main.js copies the settings in. The page's ?name=1, or NAME=1 for the node tools.
+ * before main.ts copies the settings in. The page's ?name=1, or NAME=1 for the node tools.
  * @param name the switch
  * @returns true when on
  */

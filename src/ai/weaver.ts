@@ -14,7 +14,7 @@ import { steerCmd } from "./weaverSteer.ts";
 // ---------------------------------------------------------------- DRIVE ITSELF OUT (both roads)
 // Nearly still for DRIVE_OUT_T s after the green (nose in a wall, beached, tangled) -> REVERSE
 // ~1-1.5 s with the wheel turned to swing the nose back toward the road direction roadH; three
-// tries inside 15 s and still stuck -> state.giveUp: main.js resets it (last resort). Returns the
+// tries inside 15 s and still stuck -> state.giveUp: main.ts resets it (last resort). Returns the
 // reversing controls, or null = drive on. (NOOUT=1 env: node A/B only - proves the highway merge
 // changed nothing else)
 const NOOUT = !!envValue("NOOUT");

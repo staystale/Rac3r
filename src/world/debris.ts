@@ -4,7 +4,7 @@
 // gently as the view moves.
 // PARTS: a hard hit on a corner may knock off that corner's part - a BUMPER (end-on), a WING
 // (a corner hit) or a door PANEL (side-on), once per corner until a repair - in the car's paint
-// and trim. damage.ts queues it on the car (car.partSpawn); game/sim.js throws it out of the
+// and trim. damage.ts queues it on the car (car.partSpawn); game/sim.ts throws it out of the
 // corner as a loose object (the cones system: cars hit and push it, a debris puncture chance by
 // kind, physics/punctures.ts). Past PART_CAP the oldest fades out over FADE_S and goes.
 // GLASS: a hard hit on a car with windows may shatter one: a few wear cells round that corner
@@ -76,7 +76,7 @@ export function crashDebris(car: DebrisCar, corner: number, add: number, endW: n
 }
 
 /**
- * A corner's part may come off: queued on the car (game/sim.js throws it out).
+ * A corner's part may come off: queued on the car (game/sim.ts throws it out).
  * @param car the car
  * @param corner the damage corner
  * @param add the damage the hit added to it
@@ -172,7 +172,7 @@ export function passGlassCell(cell: WearCell): void {
 
 /**
  * The parts the cars in play knocked off this step are thrown out of their corners as loose
- * objects (game/sim.js, after the wheels torn off).
+ * objects (game/sim.ts, after the wheels torn off).
  * @param cars the cars in play
  * @param loose the loose objects (cones.ts)
  */
@@ -198,7 +198,7 @@ export function throwParts(cars: DebrisCar[], loose: LooseObjects): void {
 }
 
 /**
- * The fading parts fade a step; the faded ones leave the loose objects (game/sim.js).
+ * The fading parts fade a step; the faded ones leave the loose objects (game/sim.ts).
  * @param loose the loose objects (cones.ts)
  * @param dt the step, s
  */

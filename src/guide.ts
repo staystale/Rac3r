@@ -5,7 +5,7 @@
 // nothing else.
 //
 // Shape (approved): shown once per device after the level fly-in; the sim PAUSES while it is open
-// (main.js); the screen dims with a hole cut round the target, the hole's rim pulses, and a card
+// (main.ts); the screen dims with a hole cut round the target, the hole's rim pulses, and a card
 // sits clear of it with an arrow. NEXT / SKIP / progress dots. Replayed from the "?" chip on the
 // button row (or H on a keyboard).
 //
@@ -13,7 +13,7 @@
 // draws and hit-tests with — so a highlight can never sit somewhere the control is not, in any
 // orientation.
 //
-// While open, the guide consumes EVERY tap (main.js asks it first), so a tap on a card can never
+// While open, the guide consumes EVERY tap (main.ts asks it first), so a tap on a card can never
 // steer or press a pedal (CLAUDE.md §4: a tap on the HUD must never also reach the world).
 
 import { COL } from "./world/colours.ts";
@@ -152,9 +152,9 @@ const CARDS: GuideCard[] = [
 
 // EVENT RULES (requirement: rules to events should be EXPLAINED the FIRST TIME you do them, and
 // shown WALK-THROUGH style, if needed). The same card overlay, pointing at the HUD that matters;
-// opened by main.js when an event STARTS for the first time on this device (remembered per
+// opened by main.ts when an event STARTS for the first time on this device (remembered per
 // event in localStorage 'carsim.rulesSeen'), PAUSING the sim before the lights; replayed from the
-// pause menu. key = main.js eventKind: 'race' (VS AI, circuit), 'rx' (RX race), 'stage' (rally
+// pause menu. key = main.ts eventKind: 'race' (VS AI, circuit), 'rx' (RX race), 'stage' (rally
 // stage), 'highway' (VS AI on the endless road), 'endless' (the endless road, solo).
 const NOTICE = (scene: GuideScene) => ({
   x: scene.W / 2 - Math.min(150, scene.W * 0.4), y: scene.H * 0.3 - 26,

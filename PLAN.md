@@ -92,7 +92,7 @@ car sim/
   index.html            canvas + one module script, nothing else
   serve.mjs             static server, no-store, port 8080
   src/
-    main.js             boot, fixed-step accumulator, resize, dev flags, window.__game
+    main.ts             boot, fixed-step accumulator, resize, dev flags, window.__game
     input.ts            normalized input state; keyboard + touch; pc/touch detect
     vehicle.js          THE MODEL. Knows nothing about upgrades, cones, or rendering.
     cars.js             base stats (hatch) + the default mods table
@@ -113,7 +113,7 @@ Native ES modules, no bundler, no build step. Relative paths only (it has to run
 
 ## The model — write it exactly like this
 
-Fixed step **dt = 1/120 s**, accumulated in `main.js`; **never pass the frame delta to the vehicle**
+Fixed step **dt = 1/120 s**, accumulated in `main.ts`; **never pass the frame delta to the vehicle**
 (`CLAUDE.md` §8). Cap the accumulator at 5 steps per frame and drop the remainder, so a background tab does
 not produce a 400-step catch-up.
 

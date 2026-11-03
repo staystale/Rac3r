@@ -358,7 +358,7 @@ export function surfaceTexture(groundCtx: GroundCtx, name: string, art: SurfaceA
  * Paints now every texture with grass blades (long grass and its recolours: wheat, rapeseed,
  * hedgerow, sharing one set of blade masks). The heaviest texture: MEASURED 111-119 ms on the
  * owner's phone, and the ground tiles behind the menu reached it before the idle warm-up did, so
- * one menu frame took ~125 ms. Called while the loading screen is up (main.js).
+ * one menu frame took ~125 ms. Called while the loading screen is up (main.ts).
  *
  * @param groundCtx the shared ground painter context
  */

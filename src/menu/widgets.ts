@@ -1,6 +1,6 @@
 import { GHOST_MS } from './style.ts';
 
-// MENU TAPS for the phone report (?report=1, game/loop.js): taps a new screen ignored (inside its
+// MENU TAPS for the phone report (?report=1, game/loop.ts): taps a new screen ignored (inside its
 // GHOST_MS window) and the slowest button handler, since the last frame took them
 const menuTaps = { ignored: 0, handlerMs: 0 };
 

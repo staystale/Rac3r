@@ -277,8 +277,8 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
 - `?report=1` records without drawing the meter graph (`?meter=1` shows it). It records the
   menu too: `phonereport` prints a MENU run (frame times, ignored taps, slowest tap handler).
 
-- simhash / renderhash run the BROWSER game (main.js applies the settings): prove an old path with
-  RAC3R_QUERY=<switch>=0, never a node wrapper that sets a module flag (main.js overrides it).
+- simhash / renderhash run the BROWSER game (main.ts applies the settings): prove an old path with
+  RAC3R_QUERY=<switch>=0, never a node wrapper that sets a module flag (main.ts overrides it).
 - The cover field costs ~nothing on the laptop GPU (Castle Cum race 54.2 vs 55.5 fps, a snow stage
   under a full coat 60): one full-screen pass reading one texel a pixel (rim reads only near
   patch edges); the catch is computed per 8 m chunk on the CPU within 2 ms a frame.

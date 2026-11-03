@@ -44,7 +44,7 @@
   // own bundle (tools/build.mjs).
   const bundled = new URLSearchParams(location.search).get('bundle') !== '0'
     && !navigator.webdriver;
-  import(bundled ? './__bundle.js' : './src/main.js').catch((err) => {
+  import(bundled ? './__bundle.js' : './src/main.ts').catch((err) => {
     document.querySelector('#boot p').textContent = 'could not load: ' + err.message;
   });
 </script>

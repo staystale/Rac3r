@@ -15,7 +15,7 @@
 // damage (damage.ts crushS / roofDmg) with paint chips; under SETTLE_W it settles onto the nearest
 // of wheels / side / roof. SLIDES: no tyres — the body grinds to a stop on its own friction for
 // that ground (sparks on hard ground). Sim time (rule 5): it moves the car; render.ts draws it
-// (faces, sparks), main.js hands control back on RESET (player) or resets the AI. m: body height
+// (faces, sparks), main.ts hands control back on RESET (player) or resets the AI. m: body height
 // (the side face the camera sees on a rolled car)
 import { levelFlipRamps, rampFlip } from './world/flipramps.ts';
 import { LEVEL } from './world/state.ts';
@@ -173,7 +173,7 @@ function tripGround(car: RollCar, vLat: number, stability: number, rnd: () => nu
 }
 
 // one sim step of a rolling / overturned car (instead of vehicle.step). onHit(kind, side) for the
-// damage (main.js -> damage.ts)
+// damage (main.ts -> damage.ts)
 export function stepRoll(car: RollCar, dt: number, onHit: RollHit) {
   const state = car.roll!, surface = car.surface || {}, gravity = 9.81,
     speed = Math.hypot(car.vx, car.vy);

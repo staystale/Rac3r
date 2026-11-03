@@ -52,7 +52,7 @@ async function currentBundle() {
   // the version fingerprint (tools/lib/buildid.mjs): the saved menu thumbnails are per version
   const build = JSON.stringify(await sourceHash(ROOT));
   const result = await esbuild.build({
-    entryPoints: [join(ROOT, 'src/main.js')], bundle: true, format: 'esm', minify: true,
+    entryPoints: [join(ROOT, 'src/main.ts')], bundle: true, format: 'esm', minify: true,
     target: 'es2022', write: false, metafile: true, absWorkingDir: ROOT,
     define: { 'globalThis.__RAC3R_BUILD__': build },
   });

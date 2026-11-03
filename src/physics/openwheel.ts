@@ -170,7 +170,7 @@ export function wheelShares(shares: number[], note: WheelHit): number[] {
  * A hard hit into an exposed wheel may rip it off (the chance by the closing speed).
  * @param car the car (its damage state made)
  * @param car.wheelOff the wheels gone, by corner
- * @param car.wheelSpawn the corners whose loose wheel is still to be thrown (game/sim.js)
+ * @param car.wheelSpawn the corners whose loose wheel is still to be thrown (game/sim.ts)
  * @param car.dmgBill the repair bill
  * @param note the wheel hit
  * @param rnd the random source

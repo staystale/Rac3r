@@ -1,14 +1,16 @@
-// rules.js — the RX race, stage timing and joker rules, stepped on the fixed physics step.
+// rules.ts — the RX race, stage timing and joker rules, stepped on the fixed physics step.
 // Every function takes the game state it works on; there is no module-level state here.
 import { LEVEL } from '../world/state.ts';
 import { querySubtrack } from '../world/tyrewall.ts';
 import { jokerLane, laneSpot } from '../world/joker.ts';
+import type { GameCar, Game } from './state.ts';
+import type { JokerRule, Lane } from '../world/types.ts';
 
 /**
  * Clears the joker and RX-race state for a new run.
- * @param {object} game the game state
+ * @param game the game state
  */
-export function resetRace(game) {
+export function resetRace(game: Game) {
   const race = game.race;
   game.jokerPrev = null;
   game.jokerLap = null;
@@ -24,9 +26,9 @@ export function resetRace(game) {
 }
 /**
  * Puts the stage timing back to READY.
- * @param {object} game the game state
+ * @param game the game state
  */
-export function resetStage(game) {
+export function resetStage(game: Game) {
   const stage = game.stage;
   stage.state = 'ready';
   stage.t = 0;
@@ -35,17 +37,17 @@ export function resetStage(game) {
 }
 /**
  * Steps the point-to-point stage timer: start line, running, finish line.
- * @param {object} game the game state
- * @param {number} dt the step in seconds
+ * @param game the game state
+ * @param dt the step in seconds
  */
-export function stepStage(game, dt) {
+export function stepStage(game: Game, dt: number) {
   const stage = game.stage;
   const stageDef = LEVEL.stage, dist = game.trackD;
   if (!stageDef || dist == null) return;
   const prev = stage.prevD;
   stage.prevD = dist;
   if (prev == null) return;
-  const total = LEVEL.subtrack.totalDist, crossedStart = prev > total - 60 && dist < 60;
+  const total = LEVEL.subtrack!.totalDist, crossedStart = prev > total - 60 && dist < 60;
   if (stage.state !== 'running') {
     if (crossedStart) {
       stage.state = 'running';
@@ -73,10 +75,10 @@ export function stepStage(game, dt) {
 const JOKER_SPAN = 8, JOKER_ROAD = 1;
 /**
  * The joker LINE across the lane at the gate, found once per level.
- * @param {object} joker the level's joker
- * @returns {object|null} the line ({ x, y, tx, ty, half }) or null when there is no lane
+ * @param joker the level's joker
+ * @returns the line ({ x, y, tx, ty, half }) or null when there is no lane
  */
-function jokerLine(joker) {
+function jokerLine(joker: JokerRule) {
   if (joker._line !== undefined) return joker._line;
   const lane = jokerLane(LEVEL);
   if (!lane) return (joker._line = null);
@@ -97,14 +99,14 @@ function jokerLine(joker) {
 /**
  * Did the car cross the joker line between (prevX, prevY) and (x, y)? Exposed for
  * tools/_jokerline.mjs.
- * @param {object} joker the level's joker
- * @param {number} prevX the previous x
- * @param {number} prevY the previous y
- * @param {number} x the x now
- * @param {number} y the y now
- * @returns {boolean} true when it crossed
+ * @param joker the level's joker
+ * @param prevX the previous x
+ * @param prevY the previous y
+ * @param x the x now
+ * @param y the y now
+ * @returns true when it crossed
  */
-export function crossedJoker(joker, prevX, prevY, x, y) {
+export function crossedJoker(joker: JokerRule, prevX: number, prevY: number, x: number, y: number) {
   const line = jokerLine(joker);
   if (!line) return (x - joker.gate.x) ** 2 + (y - joker.gate.y) ** 2 < joker.gate.r * joker.gate.r
     && !((prevX - joker.gate.x) ** 2 + (prevY - joker.gate.y) ** 2 < joker.gate.r * joker.gate.r);
@@ -115,15 +117,16 @@ export function crossedJoker(joker, prevX, prevY, x, y) {
     crossY = prevY + (y - prevY) * frac,
       side = (crossX - line.x) * -line.ty + (crossY - line.y) * line.tx;
   if (Math.abs(side) > line.half) return false;
-  return querySubtrack(LEVEL.subtrack, crossX, crossY).dist > LEVEL.subtrack.width / 2 + JOKER_ROAD;
+  const sub = LEVEL.subtrack!;
+  return querySubtrack(sub, crossX, crossY).dist > sub.width / 2 + JOKER_ROAD;
 }
 /**
  * Whether a car is within reach of a joker lane's centre line.
  * @param {{pts: number[][], width: number}} lane the joker lane
  * @param {{x: number, y: number}} car the car
- * @returns {boolean} true when the car is on the lane
+ * @returns true when the car is on the lane
  */
-function nearLane(lane, car) {
+function nearLane(lane: Lane, car: GameCar) {
   const pts = lane.pts, reach2 = (lane.width / 2 + 1) ** 2;
   for (let i = 0; i + 1 < pts.length; i++) {
     const [startX, startY] = pts[i], [endX, endY] = pts[i + 1], vx = endX - startX,
@@ -136,10 +139,10 @@ function nearLane(lane, car) {
 }
 /**
  * Tracks the joker gate and lane for the player car.
- * @param {object} game the game state
- * @param {object} car the player car
+ * @param game the game state
+ * @param car the player car
  */
-export function stepJoker(game, car) {
+export function stepJoker(game: Game, car: GameCar) {
   const joker = LEVEL.joker;
   if (!joker) return;
   const prev = game.jokerPrev;
@@ -156,12 +159,12 @@ export function stepJoker(game, car) {
   // main road onto the lane (the lane through the gate)
   const lane = jokerLane(LEVEL);
   const offMain = !!lane
-    && querySubtrack(LEVEL.subtrack, car.x, car.y).dist > LEVEL.subtrack.width / 2;
-  game.inJokerLane = offMain && nearLane(lane, car);
-  // where the car last was ON the joker lane, for RESET (session.js); forgotten on the main road
+    && querySubtrack(LEVEL.subtrack!, car.x, car.y).dist > LEVEL.subtrack!.width / 2;
+  game.inJokerLane = offMain && nearLane(lane!, car);   // offMain implies a lane
+  // where the car last was ON the joker lane, for RESET (session.ts); forgotten on the main road
   if (game.inJokerLane) {
-    const spot = laneSpot(lane, car.x, car.y);
-    if (Math.abs(spot.off) <= lane.width / 2) game.lastOnJoker = spot;
+    const spot = laneSpot(lane!, car.x, car.y);
+    if (Math.abs(spot.off) <= lane!.width / 2) game.lastOnJoker = spot;
   } else if (lane && !offMain) game.lastOnJoker = null;
   // the AI's joker tactics read it (covering a rival who has jokered)
   car._jokers = game.jokers || 0;
@@ -169,11 +172,11 @@ export function stepJoker(game, car) {
 }
 /**
  * Steps the RX race: its clock, the finish and the penalties.
- * @param {object} game the game state
- * @param {object} car the player car
- * @param {number} dt the step in seconds
+ * @param game the game state
+ * @param car the player car
+ * @param dt the step in seconds
  */
-export function stepRace(game, car, dt) {
+export function stepRace(game: Game, car: GameCar, dt: number) {
   const race = game.race, lapState = game.lap;
   if (!race.on || race.done || !LEVEL.joker) return;
   // timed from the GREEN when there are lights (the results time from it too — raceflow.ts); else

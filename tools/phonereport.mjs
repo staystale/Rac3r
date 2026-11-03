@@ -66,7 +66,7 @@ function printMenu(run) {
   const slow = frames.filter((frame) => frame[0] > SLOW_MS);
   const ours = slow.filter((frame) => frame[1] + frame[2] > 12).length;
   const handlers = frames.map((frame) => frame[11]).filter((ms) => ms > 0);
-  // [12] the texture warm-up (main.js) since the frame before
+  // [12] the texture warm-up (main.ts) since the frame before
   const warmed = slow.filter((frame) => frame[12] > 10);
   const slowTaps = handlers.filter((ms) => ms > SLOW_TAP_MS);
   const middle = (at) => median(frames.map((frame) => frame[at])).toFixed(1);

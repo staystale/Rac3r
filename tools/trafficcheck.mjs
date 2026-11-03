@@ -12,7 +12,7 @@ import { carContact } from '../src/contact.ts';
 H.addHighwayLevel();
 const DENS = +(process.argv[2] || 1), PH = +(process.argv[3] || 60);
 let fails = 0; const check = (ok, msg) => { console.log((ok ? 'ok   ' : 'FAIL ') + msg); if (!ok) fails++; };
-// the VIEW, as main.js gives it: the treadmill camera puts you ~3/4 down the screen. Worst case = zoomed right out in portrait
+// the VIEW, as main.ts gives it: the treadmill camera puts you ~3/4 down the screen. Worst case = zoomed right out in portrait
 // (ZOOM_MIN 0.3 x 22 px/m on 844 px = 128 m tall): ~100 m ahead, ~35 m behind, +-30 m sideways
 const VIEW_AHEAD = 100, VIEW_BEHIND = 35, VIEW_SIDE = 30;
 for (const preset of ['motorway', 'interstate', 'dual']) {
@@ -35,7 +35,7 @@ for (const preset of ['motorway', 'interstate', 'dual']) {
       pV += Math.max(-6 * PHYSICS_STEP_SECONDS, Math.min(4 * PHYSICS_STEP_SECONDS, v - pV)); pOff += Math.max(-1.8 * PHYSICS_STEP_SECONDS, Math.min(1.8 * PHYSICS_STEP_SECONDS, target - pOff)); pS += pV * PHYSICS_STEP_SECONDS; place();
       const ds = H.stepHighway(lv, me);
       const t0 = performance.now(); tr.step(PHYSICS_STEP_SECONDS, { player: me, others: [], visible: vis }); ms += performance.now() - t0; n++;
-      // traffic vs traffic (resolved, as main.js does with carContacts) — every touch counted
+      // traffic vs traffic (resolved, as main.ts does with carContacts) — every touch counted
       const cs = tr.cars;
       for (let i = 0; i < cs.length; i++) for (let k = i + 1; k < cs.length; k++) if (carContact(cs[i], cs[k])) { contacts++;
         if (process.env.TFDBG && !contactCars.has(cs[i])) { const d = (c) => { const tt = tr.list.find((q) => q.car === c); return `s ${(tt.s - pS).toFixed(1)} off ${tt.off.toFixed(2)} lane ${tt.lane}->${tt.laneT} laneOff ${tt.laneOff.toFixed(2)} v ${(tt.vAl * 3.6).toFixed(0)} want ${(tt.vWant * 3.6).toFixed(0)} ind ${tt.indT.toFixed(2)} kin ${!!tt.kin}`; };

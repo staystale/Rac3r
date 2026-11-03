@@ -113,9 +113,9 @@ export const setProgressSetting = (mode: number, shown: boolean) =>
 // across frames: the matched centreline point and the eased heading (one HUD, one minimap)
 const mapState: { idx: number; heading: number | null; level: Level | null } =
   { idx: 0, heading: null, level: null };
-// is it shown: main.js hands in the source (?minimap=0, the mode, the pause setting)
+// is it shown: main.ts hands in the source (?minimap=0, the mode, the pause setting)
 let shownNow = () => false;
-// is the progress bar shown: null = with the window (no HUD list); main.js hands in the source
+// is the progress bar shown: null = with the window (no HUD list); main.ts hands in the source
 let progressNow: (() => boolean) | null = null;
 // the endless highway too (not there)
 // the main view's css px per m (the camera zoom included)

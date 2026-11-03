@@ -147,7 +147,7 @@ export const SH_STARTWALL = (() => {
 // split pointing along BOTH routes (they part slowly: 1 m apart at 72 m, 11 m at 112 m,
 // measured). Now: one on the track 7 m before the split, on the joker (+) half, turned 20 deg
 // toward it; one at the joker's mouth where the routes are ~9 m apart, pointing down the joker.
-// Both 10 m long. main.js hides them once the gate is driven through. JOKER ARROW ACROSS THE
+// Both 10 m long. main.ts hides them once the gate is driven through. JOKER ARROW ACROSS THE
 // TRANSITION (requirement: joker arrows should sit across the transition to highlight the joker
 // section clearly): centred where the joker's centre line crosses the ROAD
 // EDGE (half on the tarmac, half on the dirt), aimed along the joker there. (Before: on the track

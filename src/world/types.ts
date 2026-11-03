@@ -1,5 +1,6 @@
 // Shared world data shapes; this file grows as files are converted.
 import type { Branches, RacingLine } from "../ai/types.ts";
+import type { HwState } from '../highway/hwtypes.ts';
 
 // What a wheel leaves behind on a surface.
 export interface Mark {
@@ -417,6 +418,8 @@ export interface Solid {
 export interface JokerRule {
   gate: { x: number; y: number; r: number };
   penalty: number;
+  // game/rules.ts caches the gate line across the joker lane (null: no lane)
+  _line?: { x: number; y: number; tx: number; ty: number; half: number } | null;
   estCost?: number;   // s a joker is guessed to cost an unfinished car (raceflow.ts; unset: 5)
   laps: number;
   // d: its distance round the track (hud/laps.ts reads it for the joker turn-off; none sets it)
@@ -441,7 +444,7 @@ export interface Level {
   fixed?: boolean;   // stagegen.ts
   gen?: StageRecipe;   // stagegen.ts: a generated stage's recipe (world/levels/category.ts)
   roadTypes?: Record<string, string>;   // highway.ts: the road types setup offers, key -> name
-  litter?: number;   // main.js, highway levels
+  litter?: number;   // main.ts, highway levels
   roadType?: string;   // highway.ts
   _layout?: number;   // highway.ts
   barriers?: Barrier[];
@@ -498,10 +501,7 @@ export interface MergedCover {
 }
 
 // LEVEL._hw as the camera reads it: the look-ahead direction and the road points' distance.
-export interface HighwayState {
-  camDir: { x: number; y: number };
-  pts: { s: number }[];
-}
+export type HighwayState = HwState;   // highway/hwtypes.ts
 
 // One resampled centre-line point of a subtrack.
 export interface TrackPoint {

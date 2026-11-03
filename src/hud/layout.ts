@@ -244,7 +244,7 @@ export function inRect(point: ScreenPoint, rect: HudRect) {
  * @returns the action hit, or null
  */
 // Returns an action if the tap hit a control, else null. A tap that hits the HUD is CONSUMED by
-// main.js and never reaches the world (CLAUDE.md §4).
+// main.ts and never reaches the world (CLAUDE.md §4).
 export function hitHud(state: HudState, point: ScreenPoint, width: number, height: number,
   car: HudCar) {
   const rects = layoutHud(state, width, height);

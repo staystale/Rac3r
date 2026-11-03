@@ -14,7 +14,7 @@ import type { Point, Cover, Lane, Cone, Prop, Paint, Barrier } from "../types.ts
 // moorland and conifer plantations (art/ref/sl1-5.jpg). ~1 MINUTE of stage (~1.2 km at this game's
 // scale). After the flying finish BOTH: a stop zone + RESTART, and an untimed farm road back round
 // to the start. Built as ONE closed loop (stage + liaison) so RESET, lap tracking and the
-// autodriver all work; LEVEL.stage = { finish } and main.js times start line -> finish. World
+// autodriver all work; LEVEL.stage = { finish } and main.ts times start line -> finish. World
 // metres (mpp 1). Valley floor in the south, the hill rising to the north (one cos^2 hill, 18 m);
 // start in the SW farm yard. V2 (requirement: a bit basic track wise — more unique corners;
 // "slightly longer, more twists and turns, same map size"; "more tyres, cones, flags so it feels

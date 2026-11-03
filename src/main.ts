@@ -1,4 +1,4 @@
-// main.js — boot, the FIXED-STEP ACCUMULATOR, and the one seam to the outside world.
+// main.ts — boot, the FIXED-STEP ACCUMULATOR, and the one seam to the outside world.
 //
 // THE TWO CLOCKS (CLAUDE.md rule 5), kept explicitly separate:
 //   fixed sim step (PHYSICS_STEP_SECONDS = 1/120 s) : vehicle dynamics, slip, rpm, gear,
@@ -43,16 +43,17 @@ import { LEVEL } from "./world/state.ts";
 
 import { LEVELS } from "./world/levels/index.ts";
 import { crossedJoker }
-  from './game/rules.js';
+  from './game/rules.ts';
 
-import { game, shared } from './game/state.js';
-import { spawnAI } from './game/grid.js';
-import { doReset, saveRecords, doRestart } from './game/session.js';
-import { hudDown, onKey, selectLevel, selectCar } from './game/controls.js';
+import { game, shared } from './game/state.ts';
+import type { LaunchOpts } from './game/state.ts';
+import { spawnAI } from './game/grid.ts';
+import { doReset, saveRecords, doRestart } from './game/session.ts';
+import { hudDown, onKey, selectLevel, selectCar } from './game/controls.ts';
 import {
   start, enterMenu, launch, paintThumbs, prepareThumbs, refreshMinimap,
-} from './game/menuflow.js';
-import { loop } from './game/loop.js';
+} from './game/menuflow.ts';
+import { loop } from './game/loop.ts';
 // build the world, in this order: the hand-made levels (load.ts), then the levels added after them
 initWorld();
 addStageLevels();
@@ -72,14 +73,14 @@ startClock(shared.settings.night === null,
   Math.floor(((new Date().getMonth() + 1) % 12) / 3));
 shared.DEV = shared.settings.dev;
 
-shared.canvas = document.getElementById('c');
-shared.boot = document.getElementById('boot');
+shared.canvas = document.getElementById('c') as HTMLCanvasElement;   // index.html
+shared.boot = document.getElementById('boot')!;
 // the boot screen says "loading…" until the code runs (user: the old "THE LAB / tap to
 // drive" flashed up first); only the no-menu mode (?menu=0, the test tools) still waits for a tap
 // there
 if (!(shared.settings.menu === '1' || (shared.settings.menu !== '0' && !navigator.webdriver))) {
-  shared.boot.querySelector('h1').textContent = 'THE LAB';
-  shared.boot.querySelector('p').textContent = 'tap to drive';
+  shared.boot.querySelector('h1')!.textContent = 'THE LAB';
+  shared.boot.querySelector('p')!.textContent = 'tap to drive';
 }
 
 Object.assign(game, {
@@ -223,17 +224,18 @@ if (shared.settings.levelId !== null) {
 }
 
 // expose for harnesses (CLAUDE.md §5: a script must be able to drive the real game)
-window.__game = game;
+window.__game = game as unknown as Record<string, unknown>;   // (the tools add to it)
 window.__game.selectCar = selectCar;
 window.__game.reset = doReset;
 window.__game.restart = doRestart;
-window.__game.setAI = (count) => {
+window.__game.setAI = (count: number) => {
   shared.aiCount = Math.max(0, Math.min(5, count | 0));
   spawnAI();
 };   // tools
-window.__game.launch = (levelId, car, opts) => launch(levelId, car, opts);
+window.__game.launch = (levelId: string, car: string, opts?: LaunchOpts) =>
+  launch(levelId, car, opts);
 // tools/_jokerline.mjs   // tools: start a session (e.g. an RX race) without the menu
-window.__game.crossedJoker = (prevX, prevY, x, y) => (LEVEL.joker
+window.__game.crossedJoker = (prevX: number, prevY: number, x: number, y: number) => (LEVEL.joker
   ? crossedJoker(LEVEL.joker, prevX, prevY, x, y) : null);
 window.__game.selectLevel = selectLevel;
 Object.defineProperty(window.__game, 'level', { get: () => LEVEL });
@@ -241,7 +243,7 @@ window.__game.renderer = shared.renderer;
 window.__game.input = shared.input;
 Object.defineProperty(window.__game, 'hudExpanded', { get: () => shared.hud.expanded });
 Object.defineProperty(window.__game, 'tuneOpen', { get: () => shared.hud.tuneOpen });
-window.__game.setTyreHud = (enabled) => shared.hud.setTyreHud(enabled);
+window.__game.setTyreHud = (enabled: boolean) => shared.hud.setTyreHud(enabled);
 window.__game.TUNE = TUNE;
 window.__game.hudLayout = () => shared.hud.layout(shared.renderer.W, shared.renderer.H);
 window.__game.guide = shared.guide;
@@ -263,8 +265,8 @@ shared.menu = shared.MENU
     daytime: CLOCK.isOn,
     genStage: (options) => installStage(genStage(options)),
       carSprite: (x, livery, wheels) => (typeof x === 'string'
-        ? shared.renderer.pixelCarWithWheels(applyLivery(makeCar(x).spec, livery)) : wheels
-          ? shared.renderer.pixelCarWithWheels(x) : shared.renderer.pixelCar(x)) }) : null;
+        ? shared.renderer.pixelCarWithWheels(applyLivery(makeCar(x).spec, livery ?? null)) : wheels
+          ? shared.renderer.pixelCarWithWheels(x) : shared.renderer.pixelCar(x))! }) : null;
 if (shared.MENU) {
   shared.hud.setHelpLabel('II');
   // the track thumbnails now, while the loading screen is up. MEASURED: phone: painted on the
@@ -274,7 +276,7 @@ if (shared.MENU) {
   // the long-grass textures (~115 ms on the phone) now, not in a frame of the menu
   shared.renderer.warmBladeTextures();
   enterMenu();
-  shared.menu.show();
+  shared.menu!.show();
   // the phone report's load time: ms from the page opening to the menu shown (ui/report.ts)
   shared.loadMs = Math.round(performance.now());
 }
@@ -289,7 +291,7 @@ shared.meter = shared.settings.meter ? createMeter() : null;   // ?meter=1 only
 // paint the surface textures while the game is idle, one per WARM_SLICE_MS, so a level's
 // fly-in does not paint them all in its first frame (render/ground/art.ts warmNextTexture)
 const WARM_SLICE_MS = 60;
-shared.warmMs = 0;   // ms of texture warm-up since the last frame, for the phone report (loop.js)
+shared.warmMs = 0;   // ms of texture warm-up since the last frame, for the phone report (loop.ts)
 (function warmTextures() {
   const began = performance.now(), more = shared.renderer.warmNextTexture();
   shared.warmMs += performance.now() - began;
@@ -301,10 +303,11 @@ shared.reporter = shared.settings.report
   ? createReporter(location.search, () => (LEVEL ? LEVEL.id : ''), () => shared.loadMs ?? null)
   : null;
 // the last part-batch goes too when the page is left (a short run used to send nothing)
-if (shared.reporter) {
-  addEventListener('pagehide', () => shared.reporter.flush());
+const reporter = shared.reporter;
+if (reporter) {
+  addEventListener('pagehide', () => reporter.flush());
   document.addEventListener('visibilitychange', () => {
-    if (document.hidden) shared.reporter.flush();
+    if (document.hidden) reporter.flush();
   });
 }
 shared.churn = shared.settings.churn ? createChurn(shared.settings.churn) : null;   // ?churn= only

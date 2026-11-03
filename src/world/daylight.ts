@@ -1,5 +1,5 @@
 // The LIGHT LEVEL of the world: how dark it is, 0 (full day) to 1 (the darkest night). The night
-// layer (render/light.ts) draws it and the field's headlights follow it (game/sim.js). The game
+// layer (render/light.ts) draws it and the field's headlights follow it (game/sim.ts). The game
 // clock sets it (world/clock.ts setSky); the ?night= test tool fixes it instead.
 
 // darkness at and above which the AI and traffic run their headlights, as drivers do at dusk

@@ -1,4 +1,5 @@
-// session.js — Session: lap timing, reset, restart, records and the race flow.
+// session.ts — Session: lap timing, reset, restart, records and the race flow.
+import { hwLevel } from './state.ts';
 import { reset } from '../vehicle.ts';
 import { resetHighway, roadFrame } from '../highway.ts';
 import { createHwFlow, hwGridSpan } from '../highwayrace.ts';
@@ -10,26 +11,28 @@ import { startWeather } from "../world/weather.ts";
 import { resetTrackside } from "../world/barriers.ts";
 import { resetPuddles } from "../world/puddles.ts";
 import { resetCoverField } from "../world/coverfield.ts";
-import { resetRace, resetStage } from './rules.js';
+import { resetRace, resetStage } from './rules.ts';
 import { findNearestSubtrackPoint, onTrack } from "../world/tyrewall.ts";
 import { jokerLane, lanePose } from "../world/joker.ts";
-import { resetCar, armStart, startHeld, startAtOf } from './order.js';
-import { gridPos, spawnAI } from './grid.js';
-import { shared, game } from './state.js';
+import { resetCar, armStart, startHeld, startAtOf } from './order.ts';
+import { gridPos, spawnAI } from './grid.ts';
+import { shared, game } from './state.ts';
 import { saveProfile } from '../menu/profile.ts';
+import type { GameCar, PlaceCar } from './state.ts';
+import type { TrackPoint } from '../world/types.ts';
 
 /**
  * Updates the furthest point reached along the circuit, from the car's nearest track point.
- * @param {{dist: number}} closestPt the nearest track point
- * @param {object} car the car
- * @param {number} total the circuit length
- * @returns {number} the track distance of the nearest point
+ * @param closestPt the nearest track point
+ * @param car the car
+ * @param total the circuit length
+ * @returns the track distance of the nearest point
  */
-export function advanceTrackProgress(closestPt, car, total) {
+export function advanceTrackProgress(closestPt: TrackPoint, car: GameCar, total: number) {
   const curDist = closestPt.dist;
   game.trackD = curDist;
   const off = (car.x - closestPt.x) * closestPt.nx + (car.y - closestPt.y) * closestPt.ny;
-  if (Math.abs(off) <= LEVEL.subtrack.width / 2) shared.lastOnTrack = { dist: curDist, off };
+  if (Math.abs(off) <= LEVEL.subtrack!.width / 2) shared.lastOnTrack = { dist: curDist, off };
   if (shared.trackProgress === 0 && curDist < total * 0.20) {
     shared.trackProgress = curDist;
   } else if (curDist > shared.trackProgress && curDist - shared.trackProgress < total * 0.30) {
@@ -40,11 +43,11 @@ export function advanceTrackProgress(closestPt, car, total) {
 
 /**
  * Runs the lap timer: starts it, notes the halfway mark and counts the finish-line crossing.
- * @param {number} curDist the track distance of the car's nearest point
- * @param {number} total the circuit length
- * @param {number} speed the car's speed
+ * @param curDist the track distance of the car's nearest point
+ * @param total the circuit length
+ * @param speed the car's speed
  */
-export function stepLapTiming(curDist, total, speed) {
+export function stepLapTiming(curDist: number, total: number, speed: number) {
   // Start timing when vehicle moves off the grid
   if (!shared.lapState.started && speed > 0.8 && !startHeld()) {
     shared.lapState.started = true;
@@ -73,17 +76,17 @@ export function stepLapTiming(curDist, total, speed) {
 
 /**
  * Tracks the car's progress along the circuit and its lap timing.
- * @param {object} car the player car
- * @param {number} dt the step in seconds
+ * @param car the player car
+ * @param dt the step in seconds
  */
-export function updateRecoveryTracking(car, dt) {
+export function updateRecoveryTracking(car: GameCar, dt: number) {
   const speed = Math.hypot(car.vx, car.vy);
 
   // 1. If level has a subtrack, update track progress (the furthest point reached along the
   // circuit)
   if (LEVEL.subtrack) {
-    const pts = LEVEL.subtrack.pts;
-    const total = LEVEL.subtrack.totalDist;
+    const pts = LEVEL.subtrack!.pts;
+    const total = LEVEL.subtrack!.totalDist;
     let closestPt = null, closestD2 = Infinity;
     for (let i = 0; i < pts.length; i++) {
       const point = pts[i];
@@ -93,7 +96,7 @@ export function updateRecoveryTracking(car, dt) {
         closestPt = point;
       }
     }
-    if (closestPt && closestD2 < (LEVEL.subtrack.width * 1.6) ** 2) {
+    if (closestPt && closestD2 < (LEVEL.subtrack!.width * 1.6) ** 2) {
       const curDist = advanceTrackProgress(closestPt, car, total);
       stepLapTiming(curDist, total, speed);
     }
@@ -112,10 +115,10 @@ export const RESET_ANG = [5, 15];     // deg back toward the road, random in thi
  * where you last came off, like any other section of track): RESET_BACK m behind the last spot
  * the car was on the lane, centred on the edge it left by, nose turned back toward the lane. Was:
  * the circuit reset, which put the car back on the main road before the joker.
- * @param {(car: object, x: number, y: number, heading: number) => void} place puts the car down
- * @returns {boolean} true when the car was put back on the joker lane
+ * @param place puts the car down
+ * @returns true when the car was put back on the joker lane
  */
-function resetOnJoker(place) {
+function resetOnJoker(place: PlaceCar) {
   const lane = LEVEL.joker ? jokerLane(LEVEL) : null, spot = game.lastOnJoker;
   if (!lane || !spot) return false;
   const side = Math.sign(spot.off) || (Math.random() < 0.5 ? -1 : 1), half = lane.width / 2;
@@ -138,12 +141,12 @@ function resetOnJoker(place) {
  * and sometimes level with or past where you went off. Now: RESET_BACK m behind the last
  * point the car was on the road, centre on the EDGE it left by (half on / half off), nose turned
  * RESET_ANG deg back toward the road. tools/resetcheck.mjs.
- * @param {(car: object, x: number, y: number, heading: number) => void} place puts the car down
- * @returns {boolean} true when the car was put back on the circuit
+ * @param place puts the car down
+ * @returns true when the car was put back on the circuit
  */
-function resetOnCircuit(place) {
+function resetOnCircuit(place: PlaceCar) {
   if (!LEVEL.subtrack) return false;
-  const sub = LEVEL.subtrack;
+  const sub = LEVEL.subtrack!;
   let rec = shared.lastOnTrack;
   if (!rec) {
     const point = findNearestSubtrackPoint(sub, game.car.x, game.car.y, shared.trackProgress);
@@ -171,7 +174,7 @@ export function doReset() {
   // right for RESTART and a new car, but RESET is a recovery — you have not stopped driving. Put
   // the temperatures back afterwards.
   const keepT = game.car.tyreT ? game.car.tyreT.slice() : null;
-  const resetKeepingTyres = (car, x, y, heading) => {
+  const resetKeepingTyres = (car: GameCar, x: number, y: number, heading: number) => {
     resetCar(car, x, y, heading);
     if (keepT) car.tyreT = keepT.slice();
   };
@@ -198,25 +201,25 @@ export function clearCutCounts() {
 }
 /**
  * Creates the race flow for the current level: the highway's, a stage's, or a lap race's.
- * @returns {object} the new flow
+ * @returns the new flow
  */
 export function buildFlow() {
   // the HIGHWAY: no laps — the race ends on the off-screen countdowns (highwayrace.js
   // createHwFlow); "on screen" = the renderer's real view
   if (LEVEL.endless) {
-    return createHwFlow({ lv: LEVEL,
+    return createHwFlow({ lv: hwLevel(),
       cars: [{ car: game.car, player: true }, ...game.ai.map((entry) => ({ car: entry.car }))],
         visible: (car) => onScreen(car.x, car.y) });
   }
   if (LEVEL.stage) {
     return createRaceFlow({ cars: [{ car: game.car, player: true },
-      ...game.ai.map((entry) => ({ car: entry.car }))], total: LEVEL.subtrack.totalDist, laps: 1,
+      ...game.ai.map((entry) => ({ car: entry.car }))], total: LEVEL.subtrack!.totalDist, laps: 1,
         stage: { finish: LEVEL.stage.finish } });
   }
   const laps = shared.raceLaps || (LEVEL.joker && shared.race.on ? LEVEL.joker.laps || 5 : 3);
   shared.race.laps = laps;
   return createRaceFlow({ cars: [{ car: game.car, player: true },
-    ...game.ai.map((entry) => ({ car: entry.car }))], total: LEVEL.subtrack.totalDist, laps,
+    ...game.ai.map((entry) => ({ car: entry.car }))], total: LEVEL.subtrack!.totalDist, laps,
       joker: shared.race.on ? LEVEL.joker : null });
 }
 // THE RACE (AI stage 4, src/raceflow.ts): any VS AI or RX race on a lap circuit (not a stage).
@@ -241,7 +244,7 @@ export function startFlow() {
 // never is), and only when the event is over (the results, back to the menu, another car): a
 // RESTART puts the set back as it was at the event's start, a RESET keeps the race as it is
 // (owner).
-const carKey = (car) => String(car.spec.id).split('#')[0];
+const carKey = (car: GameCar) => String(car.spec.id).split('#')[0];
 /** Saves the player car's tyre wear into the profile. */
 export function saveTyreWear() {
   const profile = shared.menu && shared.menu.profile, car = game.car;
@@ -252,9 +255,9 @@ export function saveTyreWear() {
 }
 /**
  * Puts the profile's set of tyres (their wear) on the player's car.
- * @param {object} car the player's car
+ * @param car the player's car
  */
-export function loadTyreWear(car) {
+export function loadTyreWear(car: GameCar) {
   const profile = shared.menu && shared.menu.profile;
   const saved = profile && profile.tyreWear && profile.tyreWear[carKey(car)];
   car.tyreWear = saved ? [...saved] : [0, 0, 0, 0];
@@ -274,7 +277,7 @@ export function saveRecords() {
   } catch { /* private mode: fine */ }
 }
 // what the camera can see right now (+ a margin): traffic only appears / goes OUTSIDE it
-export function onScreen(x, y) {
+export function onScreen(x: number, y: number) {
   const margin = 14 * shared.renderer.PPM, screenX = shared.renderer.toScreenX(x),
     screenY = shared.renderer.toScreenY(y);
   return screenX > -margin && screenX < shared.renderer.W + margin && screenY > -margin
@@ -291,7 +294,7 @@ export function doRestart() {
   // a restart is the event from its start: the set as it was then (owner)
   if (game.car.tyreWearStart) game.car.tyreWear = [...game.car.tyreWearStart];
   if (LEVEL.endless) {
-    resetHighway(LEVEL);
+    resetHighway(hwLevel());
     game.hwDist = 0;
     game.camFines = 0;
     game.camCount = 0;
@@ -319,17 +322,17 @@ export function doRestart() {
       reset(game.car, slotPos.x, slotPos.y, slotPos.h);
       if (shared.renderer && shared.renderer.snap) shared.renderer.snap(game.car);
     }
-    game.traffic.reset(LEVEL.endless && shared.mode !== 'menu' ? LEVEL : null,
+    game.traffic.reset(LEVEL.endless && shared.mode !== 'menu' ? hwLevel() : null,
       shared.trafficDensity);
     if (LEVEL.endless && game.ai.length) {
-      const [spanStart, spanEnd] = hwGridSpan(LEVEL, game.ai.length + 1);
+      const [spanStart, spanEnd] = hwGridSpan(hwLevel(), game.ai.length + 1);
       game.traffic.clearSpan(spanStart, spanEnd);
     }   // a clear road for the grid
     // the treadmill guard measures "dropped back" from the furthest point reached (the spawn): a
     // back-row grid slot is up to ~50 m behind it, which read as WRONG WAY 5 s into the race
     // (MEASURED, tools/_tfgame). Start the record where YOU start.
     if (LEVEL.endless && LEVEL._hw) {
-      const frame = roadFrame(LEVEL, game.car.x, game.car.y, null);
+      const frame = roadFrame(hwLevel(), game.car.x, game.car.y, null);
       if (frame) LEVEL._hw.best = Math.min(LEVEL._hw.best, frame.s);
     }
     startFlow();

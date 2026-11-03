@@ -47,7 +47,7 @@ globalThis.AudioContext = undefined;
 globalThis.window = globalThis;
 
 async function main() {
-  await import('../src/main.js');
+  await import('../src/main.ts');
   const r = globalThis.__game.renderer;
   const game = globalThis.__game;
   for (const [label, w, h] of [['Desktop 1280x720',1280,720],['Phone landscape 844x390',844,390],['Phone portrait 390x844',390,844]]) {

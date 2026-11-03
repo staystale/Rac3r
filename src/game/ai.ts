@@ -1,4 +1,5 @@
-// ai.js — Stepping the AI cars: injury, driving, joker and stuck handling.
+// ai.ts — Stepping the AI cars: injury, driving, joker and stuck handling.
+import { hwLevel } from './state.ts';
 import { step, reset, assertFinite } from '../vehicle.ts';
 import { hwPutBack } from '../highwayrace.ts';
 import { hit, hitRoll, repair, tooInjured, applyBurst, stepDamage } from '../damage.ts';
@@ -6,24 +7,27 @@ import { rolling, tripCheck, stepRoll } from '../roll.ts';
 import { LEVEL } from "../world/state.ts";
 import { applyGround, fenceClamp, obstacleClamp } from "../world/wear.ts";
 import { barrierClamp, solidClamp } from "../world/barriers.ts";
-import { crossedJoker } from './rules.js';
+import { crossedJoker } from './rules.ts';
 import { findNearestSubtrackPoint, onTrack } from "../world/tyrewall.ts";
-import { startHeld, carHeld, atPace, formationWant } from './order.js';
-import { RESET_BACK, RESET_ANG } from './session.js';
-import { shared, game } from './state.js';
+import { startHeld, carHeld, atPace, formationWant } from './order.ts';
+import { RESET_BACK, RESET_ANG } from './session.ts';
+import { shared, game } from './state.ts';
+import type { AiEntry, HurtEntry } from './state.ts';
+import type { CarInput } from '../vehicle.ts';
+import type { RaceFlow } from '../raceflow.ts';
 
 // AI RESET (requirement: reset AI should reset like the player's, at the edge of the track):
 // RESET_BACK m behind the last point it was on the road, centred on the edge it left by (half on /
 // half off), nose RESET_ANG deg back toward the road — as doReset does for you. No record (never on
 // the road yet): the nearest centreline point, as before.
-export function aiReset(entry) {
-  const car = entry.car, sub = LEVEL.subtrack, rec = car._lastOn;
+export function aiReset(entry: HurtEntry) {
+  const car = entry.car, sub = LEVEL.subtrack!, rec = car._lastOn;
   // the HIGHWAY: 15 m back from where it was, in the lane with the most room, facing up the road,
   // rolling (highwayrace.js hwPutBack)
   if (LEVEL.endless) {
     const all = [game.car, ...game.ai.map((other) => other.car),
       ...game.traffic.cars].filter((other) => other !== car),
-        point = hwPutBack(LEVEL, (car._hwf ? car._hwf.s : 0) - 15, all);
+        point = hwPutBack(hwLevel(), (car._hwf ? car._hwf.s : 0) - 15, all);
     const speed = Math.max(12, 0.5 * Math.hypot(car.vx, car.vy));
     reset(car, point.x, point.y, point.h);
     car.vx = Math.cos(point.h) * speed;
@@ -42,7 +46,7 @@ export function aiReset(entry) {
     reset(car, point.x, point.y, point.rot - side * ang);
     car._lastOn = { dist: dist, off: side * (sub.width / 2 - 0.5) };
   } else {
-    const nearest = findNearestSubtrackPoint(sub, car.x, car.y);
+    const nearest = findNearestSubtrackPoint(sub, car.x, car.y)!;   // a circuit has points
     reset(car, nearest.x, nearest.y, nearest.heading);
   }
   entry.drv.relocate();
@@ -51,10 +55,10 @@ export function aiReset(entry) {
 }
 /**
  * Starts the pause-then-reset of a too-injured AI car, and resets it when the pause is over.
- * @param {object} entry the AI entry
- * @param {number} dt the step in seconds
+ * @param entry the AI entry
+ * @param dt the step in seconds
  */
-export function stepAIInjury(entry, dt) {
+export function stepAIInjury(entry: HurtEntry, dt: number) {
   const car = entry.car;
   // TOO INJURED (requirement: if an AI is too injured it should reset): back on the road, mended —
   // the bill keeps the cost
@@ -69,7 +73,7 @@ export function stepAIInjury(entry, dt) {
     entry.hurtWait = 1 + 2 * sev;
     entry.hurtT = 0;
   }
-  if (entry.hurtWait != null && (entry.hurtT += dt) >= entry.hurtWait) {
+  if (entry.hurtWait != null && (entry.hurtT = (entry.hurtT ?? 0) + dt) >= entry.hurtWait) {
     aiReset(entry);
     entry.hurtWait = null;
     car._dmgResets = (car._dmgResets || 0) + 1;
@@ -78,14 +82,14 @@ export function stepAIInjury(entry, dt) {
 
 /**
  * Refreshes the loose objects (cones, tyres, bales) near an AI car, every 0.25 s.
- * @param {object} entry the AI entry
- * @param {number} dt the step in seconds
+ * @param entry the AI entry
+ * @param dt the step in seconds
  */
-export function refreshAIObstacles(entry, dt) {
+export function refreshAIObstacles(entry: AiEntry, dt: number) {
   const car = entry.car;
   // loose objects (cones, tyres, bales) within 45 m, refreshed every 0.25 s — the AI steps
   // round them when it can (aidriver OBSTACLES)
-  if (!(entry.obsT > 0)) {
+  if (!((entry.obsT ?? 0) > 0)) {
     entry.obsT = 0.25;
     const near2 = 45 * 45;
     entry.obs = game.cones.list
@@ -93,20 +97,20 @@ export function refreshAIObstacles(entry, dt) {
         && !(obj.kind === 'banger' || obj.kind === 'caravan'))
       .map((obj) => ({ x: obj.x, y: obj.y, r: obj.r }));
   }
-  entry.obsT -= dt;
+  entry.obsT! -= dt;
 }
 
 /**
  * Asks an AI driver for its controls this step.
- * @param {object} entry the AI entry
- * @param {number} dt the step in seconds
- * @returns {object} the wanted controls
+ * @param entry the AI entry
+ * @param dt the step in seconds
+ * @returns the wanted controls
  */
-export function aiWant(entry, dt) {
+export function aiWant(entry: AiEntry, dt: number) {
   const car = entry.car;
   // what the AI knows: the other cars (to avoid / pass / cover), its lap (from the race order's
   // progress) and the race length (jokers)
-  const total = LEVEL.subtrack.totalDist, lap = LEVEL.endless || car._prog === undefined ? 1
+  const total = LEVEL.subtrack!.totalDist, lap = LEVEL.endless || car._prog === undefined ? 1
     : Math.max(1, Math.floor(car._prog / total) + 1);
   refreshAIObstacles(entry, dt);
   // (the highway racer also sees the TRAFFIC, and holds formation until the green)
@@ -124,11 +128,11 @@ export function aiWant(entry, dt) {
 
 /**
  * Steps an AI car's physics (or its roll), holding it on the grid before the start.
- * @param {object} entry the AI entry
- * @param {object} want the wanted controls
- * @param {number} dt the step in seconds
+ * @param entry the AI entry
+ * @param want the wanted controls
+ * @param dt the step in seconds
  */
-export function stepAIPhysics(entry, want, dt) {
+export function stepAIPhysics(entry: AiEntry, want: CarInput, dt: number) {
   const car = entry.car;
   const held = LEVEL.stage ? carHeld(car) : startHeld();
   if (rolling(car)) {
@@ -149,27 +153,27 @@ export function stepAIPhysics(entry, want, dt) {
 
 /**
  * Counts an AI car through the joker gate, exactly as for the player (stepJoker).
- * @param {object} entry the AI entry
+ * @param entry the AI entry
  */
-export function stepAIJoker(entry) {
+export function stepAIJoker(entry: AiEntry) {
   const car = entry.car;
   const joker = LEVEL.joker;
   // (the same LINE as the player's, stepJoker; once per lap of this car's own progress)
   if (joker) {
-    const lapA = car._prog === undefined ? 0 : Math.floor(car._prog / LEVEL.subtrack.totalDist);
-    if (crossedJoker(joker, car._p.x, car._p.y, car.x, car.y) && entry.jLap !== lapA) {
+    const lapA = car._prog === undefined ? 0 : Math.floor(car._prog / LEVEL.subtrack!.totalDist);
+    if (crossedJoker(joker, car._p!.x, car._p!.y, car.x, car.y) && entry.jLap !== lapA) {
       entry.jLap = lapA;
-      car._jokers++;
+      car._jokers = car._jokers! + 1;   // (grid.ts zeroes it)
     }
   }
 }
 
 /**
  * Resets an AI car that is stuck (beached, off the highway, or out of tries driving itself out).
- * @param {object} entry the AI entry
- * @param {number} dt the step in seconds
+ * @param entry the AI entry
+ * @param dt the step in seconds
  */
-export function stepAIStuck(entry, dt) {
+export function stepAIStuck(entry: AiEntry, dt: number) {
   const car = entry.car;
   const held = LEVEL.stage ? carHeld(car) : startHeld();
   // STUCK (beached, nose in a wall, spun backwards): under 1 m/s for 3 s after the green ->
@@ -178,7 +182,7 @@ export function stepAIStuck(entry, dt) {
   // the HIGHWAY: more than 8 m off the carriageway for 3 s (or 40 m out) also counts — there is
   // no lap to come back to
   if (LEVEL.endless && car._hwf) {
-    const out = Math.abs(car._hwf.off) - LEVEL._hw.geo.hw;
+    const out = Math.abs(car._hwf.off) - hwLevel()._hw.geo.hw;
     entry.offT = out > 8 ? (entry.offT || 0) + dt : 0;
     if (entry.offT > 3 || out > 40) {
       entry.offT = 0;
@@ -195,30 +199,30 @@ export function stepAIStuck(entry, dt) {
 
 /**
  * Puts an AI car that broke back on the road, never allowing it to stop the game.
- * @param {object} entry the AI entry
+ * @param entry the AI entry
  */
-export function recoverAI(entry) {
+export function recoverAI(entry: AiEntry) {
   const car = entry.car;
   if (LEVEL.endless) {
-    car.x = car._p.x;
-    car.y = car._p.y;
+    car.x = car._p!.x;
+    car.y = car._p!.y;
     car.vx = car.vy = 0;
     try {
       aiReset(entry);
     } catch { /* next step */ }
     return;
   }
-  const sub = LEVEL.subtrack, nearest = findNearestSubtrackPoint(sub, car._p.x, car._p.y);
+  const sub = LEVEL.subtrack!, nearest = findNearestSubtrackPoint(sub, car._p!.x, car._p!.y)!;
   reset(car, nearest.x, nearest.y, nearest.heading);
   entry.drv.relocate();
 }
 
 /**
  * Steps one AI car: clamps, injury, driver, physics, joker, stuck check.
- * @param {object} entry the AI entry
- * @param {number} dt the step in seconds
+ * @param entry the AI entry
+ * @param dt the step in seconds
  */
-export function stepAICar(entry, dt) {
+export function stepAICar(entry: AiEntry, dt: number) {
   const car = entry.car;
   car._p = { x: car.x, y: car.y, h: car.heading };
   // DRIVER AIDS follow yours (requirement: in an event if you turn TCS on and off it should also
@@ -251,14 +255,15 @@ export function stepAICar(entry, dt) {
 
 /**
  * Steps every AI car one physics step.
- * @param {number} dt the step in seconds
+ * @param dt the step in seconds
  */
-export function stepAI(dt) {
+export function stepAI(dt: number) {
   // a RALLY STAGE: a car 3 s past the finish has gone through the stop control — off the road, so
   // it never drives back into the queue
-  if (LEVEL.stage && game.flow) game.ai = game.ai.filter((entry) => {
-    const flowRow = game.flow.entries.find((x) => x.car === entry.car);
-    return !(flowRow && flowRow.finish != null && game.flow.t - flowRow.finish > 3);
+  const flow = game.flow as RaceFlow | null;   // (a stage runs the race flow, not the highway's)
+  if (LEVEL.stage && flow) game.ai = game.ai.filter((entry) => {
+    const flowRow = flow.entries.find((x) => x.car === entry.car);
+    return !(flowRow && flowRow.finish != null && flow.t - flowRow.finish > 3);
   });
   for (const entry of game.ai) stepAICar(entry, dt);
 }

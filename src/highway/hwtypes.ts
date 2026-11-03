@@ -71,7 +71,7 @@ export interface HwState {
   camDir: { x: number; y: number };
   fieldId: number;
   fieldNext: Record<number, number> | null;   // the next field's road distance, by side (-1 / 1)
-  goneFields?: Set<number>;   // fields cleared (their animals leave: main.js game.cones.cull)
+  goneFields?: Set<number>;   // fields cleared (their animals leave: main.ts game.cones.cull)
   keep: KeepRect[]; cuts: HwCut[];
   covers: Cover[]; coversDirty: boolean;   // the rivers' water (synced into level.covers)
   side: SideRoad | null;   // the secret side road being built

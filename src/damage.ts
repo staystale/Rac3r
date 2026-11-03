@@ -1,5 +1,6 @@
 import { hitIsMetal, takeHitFactor } from './physics/punctures.ts';
-import type { CarWreck } from './vehicle.ts';
+import type { CarWreck, Streamer } from './vehicle.ts';
+import type { RenderCar } from './render/types.ts';
 import {
   pressureInit, startLeak, stepTyrePressure, pressureWreck, isFlat, isPunctured,
   type PressureCar, type PressureState,
@@ -32,7 +33,7 @@ import { ripWheel, takeWheelHit, wheelShares, type WheelHit } from './physics/op
 // hit" -> v2 (this file):
 //
 // HOW: every collision the game resolves (walls / barriers / props, other cars, heavy objects)
-// changes the car's velocity in one step. main.js snapshots the velocity around each and calls
+// changes the car's velocity in one step. main.ts snapshots the velocity around each and calls
 // hit: under SCRAPE_DV nothing; SCRAPE_DV..DMG_FLOOR = a SCRAPE (sliding along a wall or a car:
 // light damage by speed x time on that side + paint chips); above DMG_FLOOR an IMPACT, (dv -
 // floor)^DMG_EXP, shared over the four corners by where it came from. Each corner keeps HOW it was
@@ -82,12 +83,13 @@ export interface DamageCar extends Partial<DamageState>, PressureCar, Partial<En
   vx: number; vy: number; heading: number;
   dmgBill?: number; dmgHits?: number; dmgFlash?: number;
   dmgEvents?: DamageEvent[]; wheelSpawn?: number[];
-  streamers?: unknown[] | null; wreck?: CarWreck;
+  streamers?: Streamer[] | null; wreck?: CarWreck;
   burstTyre?: number; burstSlow?: boolean; _hitKind?: string | null; _post?: PostNote | null;
   _wheelHit?: WheelHit | null;
   // crash debris (world/debris.ts): a bit per corner whose part / window is gone
   partsOff?: number; glassOut?: number;
-  _dsp?: unknown; _scrapeT?: number; _sideKick?: { dir: number; dv: number };
+  _dsp?: RenderCar['_dsp'];   // the damaged sprite (render/cardamage.ts)
+  _scrapeT?: number; _sideKick?: { dir: number; dv: number };
 }
 /** A car whose damage state has been made (damageInit has run). */
 type DamagedCar = DamageCar & DamageState & PressureState & EngineState;

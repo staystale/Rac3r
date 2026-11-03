@@ -191,7 +191,7 @@ export function drawHudLapRace(ctx: CanvasRenderingContext2D, game: HudGame, lap
   const flow = game.flow, player = flow && flow.entries.find((entry) => entry.player);
   drawHudLabel(ctx, player
     ? (player.finish != null ? 'FINISH'
-    : `LAP ${Math.min(flow.laps, player.lapDone + 1)}/${flow.laps}`) : `LAP ${lapNum}`,
+    : `LAP ${Math.min(flow.laps, player.lapDone! + 1)}/${flow.laps}`) : `LAP ${lapNum}`,
     lapRect.x + 8, lapRect.y + 13, { size: 11, weight: 700, col: COL.live });
   drawHudLabel(ctx,
     fmtTime(player ? (player.finish != null ? player.finish : flow.t) : game.lap.lapTime),
