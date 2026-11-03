@@ -104,12 +104,15 @@ export const MENU_PIXEL_CSS = FACES + `
 #menu .mainmenu .logobox, #menu .mainmenu .btns { pointer-events: auto;
   background: rgba(12,11,16,.95);
   border: 2px solid #000; box-shadow: inset 0 0 0 2px #3a2018, 6px 6px 0 rgba(0,0,0,.6); }
-#menu .mainmenu .logobox { padding: 6px; }
+#menu .mainmenu .logobox { padding: 6px; background: #101116; }
 #menu .mainmenu .btns { display: flex; flex-direction: column; gap: 10px; padding: 12px; }
-/* landscape: the menu in the left side, clear of the camera's car at the middle */
+/* landscape: the menu down the left side, clear of the camera's car at the middle */
 @media (max-height: 500px) {
-  #menu .pane.mainmenu { width: min(360px, 42vw); }
-  #menu .mainmenu .btns { display: grid; grid-template-columns: 1fr 1fr; }
+  #menu .pane.mainmenu { width: min(320px, 40vw); }
+  /* one column, as in portrait (owner): a smaller logo and shorter buttons to fit the height */
+  #menu .mainmenu .logo { max-height: 26vh; width: auto; }
+  #menu .mainmenu .btns { gap: 6px; padding: 8px; }
+  #menu .mainmenu .btns button { min-height: 40px; padding-block: 8px; }
 }
 #menu .tagline { display: none; }
 /* a picked (blue) card or row: its side line dark on the blue, not grey */
