@@ -36,9 +36,10 @@ handover, written on request.
   power, gears, tyre size, 0.5 rho Cd A - with its sources on its ROSTER row and a name close to
   the real one; realcars.ts holds the helpers; most within ~5 % of the real top speed / 0-100; the
   Muscle runs 0-100 in 4.5 s, real ~6.5 - its tyres grip too well off the line). UNDER TEST:
-  ?jokerhint. NEXT: the puff pool (smoke / dust still vanish with AI cars near: the shared 320-puff
-  pools overflow - 7 AI on gravel cut ~2/3 of your dust and half your smoke short; plan with the
-  owner). More vehicles later (owner). Then K12.
+  ?jokerhint, ?puffpool (smoke / dust still vanished with AI cars near: the shared 320-puff pools
+  overflowed - 7 AI on gravel cut ~2/3 of your dust and half your smoke short; a full pool now lets
+  go of puffs off screen, then the AI's farthest, and holds 640: 0 % cut on screen; ~+1.7 ms a
+  frame at the worst - check on the phone with ?report=1). More vehicles later (owner). Then K12.
 - The plain link is the approved game. DEFAULT 10-24 / 10-25 (owner
   "all pass"; every switch and old path deleted, each proved SAME against the tested switch):
   highway street lights L4b + the solid grid; traffic seated when woken, the Sandbox puddles,
