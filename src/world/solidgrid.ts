@@ -1,6 +1,6 @@
 // THE SOLID GRID: the level's solid boxes (LEVEL.solids) and lamp posts (world/lamps.ts) filed by
 // 16 m cell (core/cellgrid.ts), so a car's clamp (barriers.ts solidClamp) and a moving loose
-// object (cones/coneWalls.js) test the few near them, not every one. The highway keeps up to ~250
+// object (cones/coneWalls.ts) test the few near them, not every one. The highway keeps up to ~250
 // solids loaded (its trees, bales, boards, bridges) and its street lights, and every car clamps
 // against them every physics step. Each cell keeps the solids and the lamps in their lists'
 // order, so the clamps meet them in the same order as a walk of the whole lists: identical

@@ -1,9 +1,9 @@
 // tyrewallcheck.mjs — loose tyres vs walls (user, 2026-10-04: "tyres should interact with other objects like Armco — a chance to pass
 // over in high-impact scenarios is ok"). Node only. On Thruston: knock tyre stacks from the Goodwood tyre wall straight at the Armco.
-// (1) a slow hit (8 m/s, under OVER_V) must stay on the track side, every time; (2) a hard hit (16 m/s) goes over ~30 % of the time (cones.js OVER_CHANCE).
+// (1) a slow hit (8 m/s, under OVER_V) must stay on the track side, every time; (2) a hard hit (16 m/s) goes over ~30 % of the time (cones.ts OVER_CHANCE).
 // Also: no Slidden Hill start-wall stack sits on the start straight. node tools/tyrewallcheck.mjs
 import * as L from '../src/lab.ts';
-import { createCones } from '../src/cones.js';
+import { createCones } from '../src/cones.ts';
 const fails = [];
 L.setLevel('thruston');
 const st = L.LEVEL.subtrack, farCar = { x: 9999, y: 9999, vx: 0, vy: 0, heading: 0, yawRate: 0, spec: { len: 4, wid: 1.8, mass: 1200 } };

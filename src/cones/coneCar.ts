@@ -1,6 +1,6 @@
-// cones/coneCar.js: ONE CAR vs ONE OBJECT (multi-car: AI cars hit the same cones /
+// cones/coneCar.ts: ONE CAR vs ONE OBJECT (multi-car: AI cars hit the same cones /
 // tyres / bales): the contact, the momentum swap, and what the hit does to the object (topple,
-// break, burst, tip, pop). Every function takes the one cones context made in cones.js.
+// break, burst, tip, pop). Every function takes the one cones context made in cones.ts.
 import { debrisPunctures } from '../physics/tyrewear.ts';
 import { noteHit } from '../physics/punctures.ts';
 import { hasOpenWheels, wheelHalf } from '../physics/openwheel.ts';
@@ -9,15 +9,25 @@ import {
   BALE_BURST_V, BALE_DRAG, BROKEN, COW_TIP_V, DEBRIS, MAX_CONE_V, RESTITUTION, SHEEP_POP_V,
   TOPPLE_V, TOPPLES, burstStack,
 } from "./coneConsts.ts";
+import type { ConesCtx, Loose, ConeCar } from './coneTypes.ts';
 
+
+/** A box of the car other than its body - an open wheel (fore, lateral: its centre in the car's
+ * frame; hl, hw: its half sizes; physics/openwheel.ts). */
+interface CarBox { fore: number; lateral: number; hl: number; hw: number }
+/** A contact between a loose object and a car: the normal, the nearest point, the car's point
+ * velocity there and the closing speed. */
+interface Contact {
+  wnx: number; wny: number; nearX: number; nearY: number; pvx: number; pvy: number; rel: number;
+}
 /**
  * Drag a tarp along a little; a tarp never collides.
- * @param {any} obj the tarp
- * @param {any} car the car
- * @param {number} relX object x relative to the car
- * @param {number} relY object y relative to the car
+ * @param obj the tarp
+ * @param car the car
+ * @param relX object x relative to the car
+ * @param relY object y relative to the car
  */
-function dragTarp(obj, car, relX, relY) {
+function dragTarp(obj: Loose, car: ConeCar, relX: number, relY: number) {
   const gap = Math.hypot(relX, relY);
   if (gap < 1.6 && Math.hypot(car.vx, car.vy) > 3) {
     obj.vx += (car.vx - obj.vx) * 0.08;
@@ -29,13 +39,13 @@ function dragTarp(obj, car, relX, relY) {
 
 /**
  * Push-out direction (car frame) for an object whose centre is inside the car's box.
- * @param {number} halfLen half the car length
- * @param {number} halfWid half the car width
- * @param {number} localX object x in the car frame
- * @param {number} localY object y in the car frame
- * @returns {number[]} the unit normal [nx, ny]
+ * @param halfLen half the car length
+ * @param halfWid half the car width
+ * @param localX object x in the car frame
+ * @param localY object y in the car frame
+ * @returns the unit normal [nx, ny]
  */
-function insideNormal(halfLen, halfWid, localX, localY) {
+function insideNormal(halfLen: number, halfWid: number, localX: number, localY: number) {
   const dRight = halfWid - localY, dLeft = localY - (-halfWid);
   const dFront = halfLen - localX, dBack = localX - (-halfLen);
   const minD = Math.min(dRight, dLeft, dFront, dBack);
@@ -47,15 +57,16 @@ function insideNormal(halfLen, halfWid, localX, localY) {
 
 /**
  * Collide the object with the car's body: push it out and find the closing speed.
- * @param {any} obj the object
- * @param {any} car the car
- * @param {number} relX object x relative to the car
- * @param {number} relY object y relative to the car
- * @param {any} [box] a box of the car's other than its body - an open wheel (fore, lateral: its
+ * @param obj the object
+ * @param car the car
+ * @param relX object x relative to the car
+ * @param relY object y relative to the car
+ * @param box a box of the car's other than its body - an open wheel (fore, lateral: its
  *   centre in the car's frame; hl, hw: its half sizes; physics/openwheel.ts)
- * @returns {any} the contact, or null when the object is clear or moving away
+ * @returns the contact, or null when the object is clear or moving away
  */
-function bodyContact(obj, car, relX, relY, box = null) {
+function bodyContact(obj: Loose, car: ConeCar, relX: number, relY: number,
+  box: CarBox | null = null): Contact | null {
   const spec = car.spec, halfLen = box ? box.hl : spec.len / 2,
       halfWid = box ? box.hw : spec.wid / 2,
       cosH = Math.cos(car.heading), sinH = Math.sin(car.heading);
@@ -91,17 +102,17 @@ function bodyContact(obj, car, relX, relY, box = null) {
   return { wnx, wny, nearX: pointX, nearY: pointY, pvx, pvy, rel };
 }
 
-const wheelOfCar = { fore: 0, lateral: 0, hl: 0, hw: 0 };
+const wheelOfCar: CarBox = { fore: 0, lateral: 0, hl: 0, hw: 0 };
 /**
  * Collide the object with an open-wheeler's exposed wheels (physics/openwheel.ts), when its
  * body missed it.
- * @param {any} obj the object
- * @param {any} car the car
- * @param {number} relX object x relative to the car
- * @param {number} relY object y relative to the car
- * @returns {any} the contact, or null
+ * @param obj the object
+ * @param car the car
+ * @param relX object x relative to the car
+ * @param relY object y relative to the car
+ * @returns the contact, or null
  */
-function wheelsContact(obj, car, relX, relY) {
+function wheelsContact(obj: Loose, car: ConeCar, relX: number, relY: number) {
   if (!hasOpenWheels(car)) return null;
   [wheelOfCar.hl, wheelOfCar.hw] = wheelHalf(car);
   for (let wheel = 0; wheel < 4; wheel++) {
@@ -116,12 +127,12 @@ function wheelsContact(obj, car, relX, relY) {
 
 /**
  * Momentum resistance on the car, then the object's new velocity and spin.
- * @param {any} obj the object
- * @param {any} car the car
- * @param {any} contact the contact from bodyContact
- * @returns {number} the object's speed after the hit
+ * @param obj the object
+ * @param car the car
+ * @param contact the contact from bodyContact
+ * @returns the object's speed after the hit
  */
-function transferMomentum(obj, car, contact) {
+function transferMomentum(obj: Loose, car: ConeCar, contact: Contact) {
   const { wnx, wny, nearX, nearY, pvx, pvy, rel } = contact;
   const rest = obj.kind === 'tyrestack' ? 0.25 : obj.kind === 'tyre' ? 0.35 : obj.kind
       === 'sheep' ? 0.2 : obj.kind === 'cow' ? 0.1 : RESTITUTION;
@@ -150,32 +161,32 @@ function transferMomentum(obj, car, contact) {
  * CHEVRONS + FLAGS (requirement: flat and driven over after 2 impacts): DISTINCT impacts (contacts
  * > 0.3 s apart; a contact spans several steps); the second leaves it flat
  * on the ground, out of the collisions.
- * @param {any} ctx the cones context
- * @param {any} obj the object
+ * @param ctx the cones context
+ * @param obj the object
  */
-function countChevronImpacts(ctx, obj) {
+function countChevronImpacts(ctx: ConesCtx, obj: Loose) {
   if ((obj.kind === 'chevron' || obj.kind === 'flag')) {
     if (ctx.clock - (obj._lastHit ?? -9) > 0.3) obj.impacts = (obj.impacts || 0) + 1;
     obj._lastHit = ctx.clock;
-    if (obj.impacts >= 2) { obj.flat = true; obj.down = 1; obj.vx *= 0.3; obj.vy *= 0.3; }
+    if ((obj.impacts || 0) >= 2) { obj.flat = true; obj.down = 1; obj.vx *= 0.3; obj.vy *= 0.3; }
   }
 }
 
 /**
  * DEBRIS that breaks: DISTINCT impacts (> 0.3 s apart, as the chevrons); at `breaks` it
  * becomes its flat patch, out of the collisions.
- * @param {any} ctx the cones context
- * @param {any} obj the object
- * @param {number} rel closing speed
+ * @param ctx the cones context
+ * @param obj the object
+ * @param rel closing speed
  */
-function breakDebris(ctx, obj, rel) {
+function breakDebris(ctx: ConesCtx, obj: Loose, rel: number) {
   const debris = DEBRIS[obj.kind];
   if (!(debris && debris.breaks)) return;
   // 0.6 s: one pass through it pushes it along for ~0.4 s (measured) = ONE impact
   if (ctx.clock - (obj._lastHit ?? -9) > 0.6) obj.impacts = (obj.impacts || 0) + 1;
   obj._lastHit = ctx.clock;
-  if (obj.impacts >= debris.breaks && rel > 2) {
-    obj.kind = debris.into; obj.mode = 'flat'; obj.mass = 40;
+  if ((obj.impacts || 0) >= debris.breaks && rel > 2) {
+    obj.kind = debris.into!; obj.mode = 'flat'; obj.mass = 40;
     obj.vx *= 0.4; obj.vy *= 0.4; obj.down = 1;
     for (let dust = 0; dust < 4 && ctx.hits.length < 24; dust++)
       ctx.hits.push({
@@ -188,11 +199,11 @@ function breakDebris(ctx, obj, rel) {
 /**
  * ANIMALS (S-C): a sheep hit hard POPS into fluff; a cow hit hard TIPS (and stays a 250 kg
  * solid).
- * @param {any} ctx the cones context
- * @param {any} obj the object
- * @param {number} rel closing speed
+ * @param ctx the cones context
+ * @param obj the object
+ * @param rel closing speed
  */
-function hitAnimal(ctx, obj, rel) {
+function hitAnimal(ctx: ConesCtx, obj: Loose, rel: number) {
   if (obj.kind === 'sheep' && rel > SHEEP_POP_V) {
     obj.kind = 'fluff';
     obj.mode = 'flat';
@@ -212,10 +223,10 @@ function hitAnimal(ctx, obj, rel) {
 
 /**
  * Hitting an individual tyre can launch it into a roll or flip.
- * @param {any} obj the tyre
- * @param {number} speed its speed after the hit
+ * @param obj the tyre
+ * @param speed its speed after the hit
  */
-function launchTyre(obj, speed) {
+function launchTyre(obj: Loose, speed: number) {
   if (speed > 4.0 && Math.random() < 0.45) {
     obj.mode = 'roll';
     obj.down = 0;
@@ -231,11 +242,11 @@ function launchTyre(obj, speed) {
 
 /**
  * A bale hit hard bursts: straw everywhere, the car bogged in it.
- * @param {any} ctx the cones context
- * @param {any} obj the bale
- * @param {any} car the car
+ * @param ctx the cones context
+ * @param obj the bale
+ * @param car the car
  */
-function burstBale(ctx, obj, car) {
+function burstBale(ctx: ConesCtx, obj: Loose, car: ConeCar) {
   obj.kind = 'straw';
   obj.mode = 'flat';
   obj.mass = 60;
@@ -250,14 +261,15 @@ function burstBale(ctx, obj, car) {
 
 /**
  * What the hit does to the object itself: burst, launch, topple, and a dust record.
- * @param {any} ctx the cones context
- * @param {any} obj the loose object
- * @param {any} car the car
- * @param {any[]} newTyres receives the tyres a burst stack throws out
- * @param {number} rel closing speed
- * @param {number} speed the object's speed after the hit
+ * @param ctx the cones context
+ * @param obj the loose object
+ * @param car the car
+ * @param newTyres receives the tyres a burst stack throws out
+ * @param rel closing speed
+ * @param speed the object's speed after the hit
  */
-function afterHit(ctx, obj, car, newTyres, rel, speed) {
+function afterHit(ctx: ConesCtx, obj: Loose, car: ConeCar, newTyres: Loose[], rel: number,
+  speed: number) {
   // ---- Tyre stack shattering into 3 dynamic tyres (shared with object-object hits: burstStack)
   if (obj.kind === 'bale' && rel > BALE_BURST_V) {
     burstBale(ctx, obj, car);
@@ -277,12 +289,12 @@ function afterHit(ctx, obj, car, newTyres, rel, speed) {
 /**
  * ONE CAR vs ONE OBJECT. Lifted out of step's loop unchanged except continue -> return, so a
  * single car behaves exactly as before (tools/objcheck, tyrewallcheck, balecheck).
- * @param {any} ctx the cones context
- * @param {any} obj the loose object
- * @param {any} car the car
- * @param {any[]} newTyres receives the tyres a burst stack throws out
+ * @param ctx the cones context
+ * @param obj the loose object
+ * @param car the car
+ * @param newTyres receives the tyres a burst stack throws out
  */
-export function hitByCar(ctx, obj, car, newTyres) {
+export function hitByCar(ctx: ConesCtx, obj: Loose, car: ConeCar, newTyres: Loose[]) {
   const relX = obj.x - car.x, relY = obj.y - car.y;
   if (relX * relX + relY * relY > 16) return;
   // a burst bale / broken debris is a flat patch: you drive through it - a broken pallet's nails

@@ -3,7 +3,7 @@
 // (60 km/h) bursts it to straw, throws dust, and costs far more speed than hitting a tyre stack does. node tools/balecheck.mjs
 import { makeCar, step, reset, PHYSICS_STEP_SECONDS } from '../src/vehicle.ts';
 import * as L from '../src/lab.ts';
-import { createCones } from '../src/cones.js';
+import { createCones } from '../src/cones.ts';
 L.setLevel('lab');
 const fails = [];
 const run = (kind, kmh) => {

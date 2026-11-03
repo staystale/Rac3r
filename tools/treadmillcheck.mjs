@@ -4,7 +4,7 @@
 import { makeCar, step, reset, PHYSICS_STEP_SECONDS } from '../src/vehicle.ts';
 import * as L from '../src/lab.ts';
 import { createAutoDriver } from '../src/ai/autodrive.ts';
-import { createCones } from '../src/cones.js';
+import { createCones } from '../src/cones.ts';
 const KM = +(process.argv[2] || 10), carId = process.argv[3] || 'saloon-rwd';
 const H = await import(process.argv[4] || '../src/highway.js');
 // the levels importing these modules used to add (task 078 made it explicit)

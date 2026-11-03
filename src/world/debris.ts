@@ -47,9 +47,9 @@ export interface DebrisCar {
   partsOff?: number;     // a bit per part gone (until a repair): PART_BIT
   glassOut?: number;     // a bit per damage corner whose window is gone (until a repair)
 }
-/** A loose part on the ground (a cones.js object). */
+/** A loose part on the ground (a cones.ts object). */
 interface PartObject { part?: boolean; fade?: number; fading?: boolean }
-/** What this file needs of the loose objects (cones.js). */
+/** What this file needs of the loose objects (cones.ts). */
 interface LooseObjects {
   list: PartObject[];
   add(extra: object): void;
@@ -174,7 +174,7 @@ export function passGlassCell(cell: WearCell): void {
  * The parts the cars in play knocked off this step are thrown out of their corners as loose
  * objects (game/sim.js, after the wheels torn off).
  * @param cars the cars in play
- * @param loose the loose objects (cones.js)
+ * @param loose the loose objects (cones.ts)
  */
 export function throwParts(cars: DebrisCar[], loose: LooseObjects): void {
   if (partsList !== loose.list) {
@@ -199,7 +199,7 @@ export function throwParts(cars: DebrisCar[], loose: LooseObjects): void {
 
 /**
  * The fading parts fade a step; the faded ones leave the loose objects (game/sim.js).
- * @param loose the loose objects (cones.js)
+ * @param loose the loose objects (cones.ts)
  * @param dt the step, s
  */
 export function stepParts(loose: LooseObjects, dt: number): void {

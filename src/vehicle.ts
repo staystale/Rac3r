@@ -61,7 +61,7 @@ export interface CarRoll { phase: string }
 export interface CarPrev { x: number; y: number; h: number }
 // A wheel position from last step (world/wear.ts): vehicle.ts only nulls the list.
 export interface CarWheelPos { x: number; y: number }
-// Tape stuck to the car (cones.js): vehicle.ts only nulls the list.
+// Tape stuck to the car (cones.ts): vehicle.ts only nulls the list.
 export interface CarStreamer { born: number }
 
 // The car: everything makeCar's literal creates, what reset adds, and what other files set on it.

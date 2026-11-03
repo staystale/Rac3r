@@ -56,7 +56,7 @@ function layVergeLitter(ctx, loot, i, dist) {
             ? -halfWidth + 0.4 + looseRand() * (cfg.shoulder - 0.8)
             : side * (halfWidth + 0.8 + looseRand() * 6);
         // (requirement: I want to SEE some debris): ~1 in 2 of the litter (and of the scatters) is
-        // ROADSIDE DEBRIS (cones.js DEBRIS kinds), the rest tyres + cones
+        // ROADSIDE DEBRIS (cones.ts DEBRIS kinds), the rest tyres + cones
         const pos = pointAt(i, off),
           roll = looseRand();
         addLoose(
@@ -168,7 +168,7 @@ function layConeTaper(ctx, loot, i, dist) {
 
 /**
  * LOOSE ROADSIDE (requirement: as it's open sided, be LITTERED with TYRES and CONES and have
- * appropriate CHEVRON signs for the corners): knockable cones.js objects into `loose` (the level's
+ * appropriate CHEVRON signs for the corners): knockable cones.ts objects into `loose` (the level's
  * cones at a restart, else streamed in by main.js), open presets only. CHEVRONS on the
  * outside of every bend tighter than R 650, one per 48 m, 4.5 m off the edge (behind the armco
  * where there is one), arrows pointing the way it turns; LITTER on both verges (a lone tyre, a

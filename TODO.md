@@ -492,7 +492,7 @@ C. CAR SYSTEMS + DAMAGE (L; one chain - extend damage.ts, no second damage model
   wheels hit everything (cars, walls, posts, trees, cones); wheel to wheel a HARD KICK (owner to
   test); rip-off from ~40 km/h; build then photograph.
   BUILT behind ?openwheel=1 (physics/openwheel.ts; contact.ts carContacts -> wheelContacts,
-  barriers.ts wheel edges + wheel boxes vs solids, cones/coneCar.js wheelsContact, damage.ts
+  barriers.ts wheel edges + wheel boxes vs solids, cones/coneCar.ts wheelsContact, damage.ts
   wheelImpact): each exposed wheel a tyre box (r 0.33 m); wheel on body bounce 0.25, wheel on
   wheel 0.6 with 1.5x the spin; a hit into a wheel rips it off by chance 30 % at 40 km/h -> every
   time at 80 km/h, and 60 % of the hit lands on that corner. MEASURED (_c10.mjs, the game's own
@@ -606,7 +606,7 @@ DEFAULT 10-25 (owner: all pass; fairy lights moved off the road, board halo fain
 note: trees glowing near boards is the tree layering, fixed with the trees rework D; switch
 deleted): render/eventglows.ts
 (boards, marshal beacons, festoons, gantry bar + start lights, pits, caravans, stage fairy
-lights), world/lampplan.ts (corner floodlights + tyre rings via cones.js, villages, fairy
+lights), world/lampplan.ts (corner floodlights + tyre rings via cones.ts, villages, fairy
 strings), world/lamps.ts settleLamp (3-8 s, dies 15 % + 70 % of lost light). Photos:
 _eventlightshots.mjs. Switch off: simhash SAME. TO DO after: F5b WOODEN marshal boxes,
 destructible (?woodmarshal=1).

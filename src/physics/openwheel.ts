@@ -6,7 +6,7 @@
 //    the wheel so a wheel tap turns the car; wheel against wheel is a HARD KICK (owner: rubber
 //    on rubber, the wheels turning against each other - bouncier, with a spin);
 //  - against walls / armco (world/barriers.ts: its outer edge, corner by corner), posts, trees,
-//    huts (the solid clamp, as a box) and the loose objects (cones/coneCar.js);
+//    huts (the solid clamp, as a box) and the loose objects (cones/coneCar.ts);
 //  - a hard hit INTO a wheel (car, wall or solid) may RIP IT OFF (owner: from ~40 km/h, likelier
 //    the harder) without the corner first being near wrecked, as a covered wheel needs
 //    (damage.ts takes the note: the loose wheel, the bare corner dragging - its usual rules),

@@ -22,7 +22,7 @@ import { createMeter } from './ui/meter.ts';
 import { createReporter } from './ui/report.ts';
 import { createFramePacer } from './game/pacing.ts';
 import { createChurn } from './core/churn.ts';
-import { createCones } from './cones.js';
+import { createCones } from './cones.ts';
 import { createAudio } from './audio.js';
 import { createGuide } from './guide.js';
 import { createMenu } from './menu.ts';

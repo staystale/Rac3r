@@ -1,6 +1,6 @@
 // menuflow.js — Menu, launch, pause and the results screen flow.
 import { applyLivery, applyTyre } from '../cars.ts';
-import { createCones } from '../cones.js';
+import { createCones } from '../cones.ts';
 import { rulesSeen } from '../guide.js';
 import { setHighwayPreset } from '../highway.js';
 import { createAIDriver } from '../ai/circuit.ts';

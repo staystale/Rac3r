@@ -1,24 +1,26 @@
-// cones/coneGrid.js: the persistent grid of loose objects at rest, and the object-object
+// cones/coneGrid.ts: the persistent grid of loose objects at rest, and the object-object
 // collisions of the ones that move (impulse along the contact normal, stack bursts, dust).
-// Every function takes the one cones context made in cones.js (createCones).
+// Every function takes the one cones context made in cones.ts (createCones).
 import { BROKEN, OBJ_REST, STACK_BURST_V, TOPPLE_V, TOPPLES, burstStack } from "./coneConsts.ts";
+import type { ConesCtx, Loose } from './coneTypes.ts';
 
 export const OBJ_CELL = 2.5;              // m; larger than any moving object's diameter
 
 /**
  * The grid cell key of a point.
- * @param {number} x world x
- * @param {number} y world y
- * @returns {number} the cell key
+ * @param x world x
+ * @param y world y
+ * @returns the cell key
  */
-export const cellKey = (x, y) => Math.floor(x / OBJ_CELL) * 65536 + Math.floor(y / OBJ_CELL);
+export const cellKey = (x: number, y: number): number =>
+  Math.floor(x / OBJ_CELL) * 65536 + Math.floor(y / OBJ_CELL);
 
 /**
  * File an object into the cell it sits in (leaving its old cell).
- * @param {any} ctx the cones context
- * @param {any} obj the loose object
+ * @param ctx the cones context
+ * @param obj the loose object
  */
-export function fileAtRest(ctx, obj) {
+export function fileAtRest(ctx: ConesCtx, obj: Loose) {
   const key = cellKey(obj.x, obj.y);
   if (obj._ck === key) return;
   if (obj._ck !== undefined) {
@@ -32,19 +34,19 @@ export function fileAtRest(ctx, obj) {
 
 /**
  * Throw the grid away and file every object again.
- * @param {any} ctx the cones context
+ * @param ctx the cones context
  */
-export function rebuildRestGrid(ctx) {
+export function rebuildRestGrid(ctx: ConesCtx) {
   ctx.restGrid.clear();
   for (const obj of ctx.list) { obj._ck = undefined; fileAtRest(ctx, obj); }
 }
 
 /**
  * Mark an object as struck: tally it and topple it if hit hard enough.
- * @param {any} obj the object
- * @param {number} rel closing speed
+ * @param obj the object
+ * @param rel closing speed
  */
-function touch(obj, rel) {
+function touch(obj: Loose, rel: number) {
   obj.moved = true;
   obj.hitCount = (obj.hitCount || 0) + 1;
   if (TOPPLES.has(obj.kind) && obj.down === 0 && rel > TOPPLE_V) {
@@ -55,11 +57,11 @@ function touch(obj, rel) {
 
 /**
  * Whether the pair is out of play (flat patches, tarps).
- * @param {any} objA first object
- * @param {any} objB second object
- * @returns {boolean} true if they cannot collide
+ * @param objA first object
+ * @param objB second object
+ * @returns true if they cannot collide
  */
-function passesThrough(objA, objB) {
+function passesThrough(objA: Loose, objB: Loose) {
   return objA.kind === 'straw' || objB.kind === 'straw' || objA.flat || objB.flat
       || BROKEN.has(objA.kind) || BROKEN.has(objB.kind) || objA.kind === 'tarp' || objB.kind
       === 'tarp';
@@ -67,14 +69,14 @@ function passesThrough(objA, objB) {
 
 /**
  * Impulse and consequences for a touching pair: velocity change, spin, bursts and dust.
- * @param {any} ctx the cones context
- * @param {any} objA first object
- * @param {any} objB second object
- * @param {number} rel closing speed along the normal
- * @param {number} nx contact normal x
- * @param {number} ny contact normal y
+ * @param ctx the cones context
+ * @param objA first object
+ * @param objB second object
+ * @param rel closing speed along the normal
+ * @param nx contact normal x
+ * @param ny contact normal y
  */
-function respond(ctx, objA, objB, rel, nx, ny) {
+function respond(ctx: ConesCtx, objA: Loose, objB: Loose, rel: number, nx: number, ny: number) {
   const invMassA = 1 / objA.mass, invMassB = 1 / objB.mass, invMassSum = invMassA + invMassB;
   const restitution = Math.min(OBJ_REST[objA.kind] ?? 0.15, OBJ_REST[objB.kind] ?? 0.15);
   const j = ((1 + restitution) * rel) / invMassSum;
@@ -93,11 +95,11 @@ function respond(ctx, objA, objB, rel, nx, ny) {
  * ONE pair test, defined once at module level. MEASURED (objcheck, same-run
  * baseline): building this as a closure every step and looping over a fresh [a, b] array per
  * contact cost ~140 us/step over the no-collision path.
- * @param {any} ctx the cones context
- * @param {any} objA first object
- * @param {any} objB second object
+ * @param ctx the cones context
+ * @param objA first object
+ * @param objB second object
  */
-function pair(ctx, objA, objB) {
+function pair(ctx: ConesCtx, objA: Loose, objB: Loose) {
   if (passesThrough(objA, objB)) return;
   const reach = objA.r + objB.r;
   const dx = objB.x - objA.x, dy = objB.y - objA.y;
@@ -118,10 +120,10 @@ function pair(ctx, objA, objB) {
 
 /**
  * Test one mover against the resting objects in the 3x3 cells around it.
- * @param {any} ctx the cones context
- * @param {any} mover the moving object
+ * @param ctx the cones context
+ * @param mover the moving object
  */
-function pairWithResting(ctx, mover) {
+function pairWithResting(ctx: ConesCtx, mover: Loose) {
   const gridX = Math.floor(mover.x / OBJ_CELL), gridY = Math.floor(mover.y / OBJ_CELL);
   for (let cellX = gridX - 1; cellX <= gridX + 1; cellX++) for (let cellY = gridY - 1; cellY
       <= gridY + 1; cellY++) {
@@ -139,9 +141,9 @@ function pairWithResting(ctx, mover) {
  * pass impact onto them if necessary). Every object is a circle of radius r and mass m.
  * Only objects that are MOVING are tested, each against the resting grid cells around it and
  * against each other. Anything that stopped since the last step is filed where it stopped.
- * @param {any} ctx the cones context
+ * @param ctx the cones context
  */
-export function collideObjects(ctx) {
+export function collideObjects(ctx: ConesCtx) {
   const { list, movers, prevMovers } = ctx;
   movers.length = 0;
   for (let i = 0; i < list.length; i++) {

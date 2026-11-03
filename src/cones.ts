@@ -1,4 +1,4 @@
-// cones.js — knockable cones, tyre stacks, and individual tyres with realistic simulated dynamics.
+// cones.ts — knockable cones, tyre stacks, and individual tyres with realistic simulated dynamics.
 // Cones topple and slide. Tyre stacks absorb momentum, and shatter into individual tyres
 // that roll upright on their tread, tumble/flip, wobble, and slide flat on the floor.
 // The simulation lives in src/cones/ (coneConsts, coneWalls, coneCar, coneTape, coneGrid,
@@ -6,19 +6,21 @@
 
 import { CONES, LEVEL } from "./world/state.ts";
 import { cornerTyres } from "./world/lampplan.ts";
-import { fileAtRest, rebuildRestGrid } from "./cones/coneGrid.js";
-import { stepCones } from "./cones/coneStep.js";
+import { fileAtRest, rebuildRestGrid } from "./cones/coneGrid.ts";
+import { stepCones } from "./cones/coneStep.ts";
 import { CONE_R, DEBRIS, TOPPLES } from "./cones/coneConsts.ts";
+import type { ConesCtx, Loose, LevelObj, ConeCar, TapeSection } from './cones/coneTypes.ts';
 
 export { DEBRIS };
 
 /**
  * The mass of a level object by kind.
- * @param {any} levelObj the level object
- * @returns {number} kg
+ * @param levelObj the level object
+ * @returns kg
  */
-function massOf(levelObj) {
-  return DEBRIS[levelObj.kind] ? DEBRIS[levelObj.kind].mass : levelObj.kind === 'sheep' ? 12
+function massOf(levelObj: LevelObj) {
+  const debris = DEBRIS[levelObj.kind || ''];
+  return debris ? debris.mass : levelObj.kind === 'sheep' ? 12
       : levelObj.kind === 'cow' ? 250 : levelObj.kind === 'tapepost' ? 4 : levelObj.kind
       === 'banger' ? 1400 : levelObj.kind === 'caravan' ? 1800 : levelObj.kind === 'podium'
       ? 900 : levelObj.kind === 'bale' ? 250 : levelObj.kind === 'tyrestack' ? 38
@@ -28,11 +30,12 @@ function massOf(levelObj) {
 
 /**
  * The radius of a level object by kind.
- * @param {any} levelObj the level object
- * @returns {number} metres
+ * @param levelObj the level object
+ * @returns metres
  */
-function radiusOf(levelObj) {
-  return DEBRIS[levelObj.kind] ? DEBRIS[levelObj.kind].r : levelObj.kind === 'sheep' ? 0.55
+function radiusOf(levelObj: LevelObj) {
+  const debris = DEBRIS[levelObj.kind || ''];
+  return debris ? debris.r : levelObj.kind === 'sheep' ? 0.55
       : levelObj.kind === 'cow' ? 1.0 : levelObj.kind === 'tapepost' ? 0.15 : levelObj.kind
       === 'banger' ? 2.1 : levelObj.kind === 'caravan' ? 2.4 : levelObj.kind === 'podium'
       ? 1.7 : levelObj.kind === 'bale' ? 0.8 : levelObj.kind === 'tyrestack' ? 0.48
@@ -42,14 +45,14 @@ function radiusOf(levelObj) {
 
 /**
  * A level object -> a live loose object (shared by reset and spawn).
- * @param {any} levelObj the level object
- * @returns {any} the live object
+ * @param levelObj the level object
+ * @returns the live object
  */
-function live(levelObj) {
+function live(levelObj: LevelObj): Loose {
   return {
     kind: levelObj.kind || 'cone',
     mode: levelObj.kind === 'tyrestack' ? 'stack' : levelObj.kind === 'tyre' ? 'flat'
-        : TOPPLES.has(levelObj.kind) ? 'cone' : levelObj.kind || 'cone',
+        : TOPPLES.has(levelObj.kind || '') ? 'cone' : levelObj.kind || 'cone',
     x: levelObj.x, y: levelObj.y, hx: levelObj.x, hy: levelObj.y,
     vx: 0, vy: 0, ang: levelObj.rot || 0, spin: 0, down: 0, moved: false,
     mass: massOf(levelObj),
@@ -70,19 +73,19 @@ function live(levelObj) {
 
 /**
  * The tape SECTIONS: consecutive posts of the same tape.
- * @param {any[]} list the live objects
- * @returns {any[]} the sections
+ * @param list the live objects
+ * @returns the sections
  */
-function tapeSections(list) {
-  const sections = [];
-  const byTape = new Map();
+function tapeSections(list: Loose[]): TapeSection[] {
+  const sections: TapeSection[] = [];
+  const byTape = new Map<string | number | undefined, Loose[]>();
   for (const obj of list) if (obj.kind === 'tapepost') {
     if (!byTape.has(obj.tape)) byTape.set(obj.tape, []);
-    byTape.get(obj.tape).push(obj);
+    byTape.get(obj.tape)!.push(obj);
   }
   for (const posts of byTape.values()) {
-    posts.sort((postA, postB) => postA.idx - postB.idx);
-    for (let i = 0; i + 1 < posts.length; i++) if (posts[i + 1].idx === posts[i].idx
+    posts.sort((postA, postB) => postA.idx! - postB.idx!);
+    for (let i = 0; i + 1 < posts.length; i++) if (posts[i + 1].idx === posts[i].idx!
         + 1) sections.push({ a: posts[i], b: posts[i + 1], rest: Math.hypot(posts[i + 1].x
         - posts[i].x, posts[i + 1].y - posts[i].y), broken: false });
   }
@@ -91,9 +94,9 @@ function tapeSections(list) {
 
 /**
  * Rebuild the list, tape sections and rest grid for the level.
- * @param {any} ctx the cones context
+ * @param ctx the cones context
  */
-function resetCones(ctx) {
+function resetCones(ctx: ConesCtx) {
   // the level's objects, and the tyre rings round its corner floodlights
   ctx.list = [...CONES, ...cornerTyres(LEVEL)].map(live);
   ctx.hits.length = 0;
@@ -103,7 +106,7 @@ function resetCones(ctx) {
   rebuildRestGrid(ctx);
 }
 
-// A PERSISTENT GRID of the objects AT REST (cones/coneGrid.js), built once per level (reset) —
+// A PERSISTENT GRID of the objects AT REST (cones/coneGrid.ts), built once per level (reset) —
 // they do not move, so it stays valid. Each step only the MOVING objects are tested: against the
 // resting objects in their 3x3 cells, and against each other directly (there are only ever a
 // handful). An object that comes to rest is filed into the cell it stopped in. MEASURED
@@ -113,8 +116,8 @@ function resetCones(ctx) {
 //   this ........................ see objcheck — the figure is written into ENGINE.md
 
 // objectHits: false is for harness baselines only
-export function createCones({ objectHits = true } = {}) {
-  const ctx = {
+export function createCones({ objectHits = true }: { objectHits?: boolean } = {}) {
+  const ctx: ConesCtx = {
     list: [], clock: 0, sections: [], puffs: [], nextN: 0, objectHits,
     hits: [],           // {x, y, speed, kind} drained by render.ts each frame for dust
     restGrid: new Map(),        // cell key -> objects at rest in it
@@ -123,7 +126,7 @@ export function createCones({ objectHits = true } = {}) {
   };
   const { hits } = ctx;
   const reset = () => resetCones(ctx);
-  const step = (carOrCars, dt) => stepCones(ctx, carOrCars, dt);
+  const step = (carOrCars: ConeCar | ConeCar[], dt: number) => stepCones(ctx, carOrCars, dt);
 
   reset();
   return {
@@ -149,7 +152,8 @@ export function createCones({ objectHits = true } = {}) {
     step, reset,
     // a loose object made during play (DAMAGE: a torn-off wheel) — a rolling tyre with everything
     // the list's tyres carry
-    add(extra) { ctx.list.push({ kind: 'tyre', mode: 'roll', mass: 12, r: 0.42, hx: extra.x,
+    add(extra: Partial<Loose> & { x: number; y: number; vx: number; vy: number }) {
+      ctx.list.push({ kind: 'tyre', mode: 'roll', mass: 12, r: 0.42, hx: extra.x,
         hy: extra.y, moved: true, hitCount: 1, down: 0, ang: 0, spin: 0,
       flipPhase: 0, flipSpeed: 0, wobblePhase: 0, wobbleAmp: 0, rollDist: 0, ...extra,
         _n: ctx.nextN++ }); },
@@ -157,7 +161,7 @@ export function createCones({ objectHits = true } = {}) {
     // STREAMED objects (the endless highway: "littered with tyres and cones, chevrons
     // for the corners"): spawn adds level objects as the road grows ahead; cull(keep) drops every
     // object keep rejects (the road behind) and refiles the rest grid
-    spawn(objs) {
+    spawn(objs: LevelObj[]) {
       for (const levelObj of objs) {
         const obj = live(levelObj);
         obj._n = ctx.nextN++;
@@ -165,7 +169,7 @@ export function createCones({ objectHits = true } = {}) {
         fileAtRest(ctx, obj);
       }
     },
-    cull(keep) {
+    cull(keep: (obj: Loose) => boolean) {
       const before = ctx.list.length;
       ctx.list = ctx.list.filter(keep);
       if (ctx.list.length !== before) rebuildRestGrid(ctx);

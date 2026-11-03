@@ -2,7 +2,7 @@
 // marshal post is a wooden hut: a knock bounces off it as before, a hit closing at BREAK_V or
 // more SMASHES it - the car loses BREAK_LOSS of its closing speed and goes on through (no wall
 // to bounce off), the hut is drawn wrecked, its beacon goes out (render/eventglows.ts) and its
-// planks are thrown out as loose wooden pallets (cones.js: knockable, nails and all). RESTART
+// planks are thrown out as loose wooden pallets (cones.ts: knockable, nails and all). RESTART
 // stands every hut up again (world/lamps.ts resetLamps).
 import type { CarBody, Prop, Solid } from './types.ts';
 

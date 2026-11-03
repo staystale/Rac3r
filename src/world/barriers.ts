@@ -218,7 +218,7 @@ function addSmallSolids(out: Solid[], prop: Prop): boolean {
     case 'sculpture': box(0, 0, 2.2, 2.2); return true;
     case 'bale': box(0, 0, 1.6, 1.6); return true;
     case 'rock': box(0, 0, (prop.s || 3) * 0.7, (prop.s || 3) * 0.7); return true;
-    // (field sheep / cows are LOOSE OBJECTS since S-C, - cones.js: pushable, a sheep
+    // (field sheep / cows are LOOSE OBJECTS since S-C, - cones.ts: pushable, a sheep
     // pops into fluff, a cow tips; not solid props)
     // (chevron boards and flag poles are NOT solid since: flimsy signs on stakes that
     // a car flattens — as solid walls they

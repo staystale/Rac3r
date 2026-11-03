@@ -1,5 +1,5 @@
 // simhash.mjs - SIMULATION FINGERPRINT: hashes the game's STATE (not pixels) over fully
-// deterministic runs, so a refactor of the AI (src/ai/*, src/cones.js) or of the car physics
+// deterministic runs, so a refactor of the AI (src/ai/*, src/cones.ts) or of the car physics
 // (src/vehicle.ts, src/roll.js, src/damage.ts) can be PROVED to leave the simulation identical.
 // The sim counterpart of renderhash.mjs; it shares its page-side determinism (tools/lib/
 // determinism.mjs: seeded Math.random, fake clock, stepped requestAnimationFrame queue).
@@ -16,7 +16,7 @@
 // stage-sahara-sandpants; highway-ai (AI racers) and
 // highway-traffic (traffic 1, litter on, 3 AI); crash-thruston (the player holds full throttle
 // straight into the barrier: damage.ts, roll.js) and cones-lab (the player drives into the
-// cone lane of the Surface Bowling Alley, the old lab extension: cones.js). The fake time of each run is printed on its line.
+// cone lane of the Surface Bowling Alley, the old lab extension: cones.ts). The fake time of each run is printed on its line.
 // node tools/simhash.mjs                one line per run + "simhash: <all>"; SAME/DIFFERENT
 // node tools/simhash.mjs save           also writes tools/.simhash (gitignored)
 // node tools/simhash.mjs --only a,b     run only those run ids (a partial save merges into the

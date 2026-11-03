@@ -1,4 +1,4 @@
-// objcheck.mjs — proves object-object collisions in cones.js (added 2026-10-03) by measurement.
+// objcheck.mjs — proves object-object collisions in cones.ts (added 2026-10-03) by measurement.
 //
 //   node tools/objcheck.mjs        exit code 1 on any failure
 //
@@ -10,7 +10,7 @@
 // 5. cost per step with a burst of moving debris
 import { makeCar, step, reset, PHYSICS_STEP_SECONDS } from '../src/vehicle.ts';
 import * as L from '../src/lab.ts';
-import { createCones } from '../src/cones.js';
+import { createCones } from '../src/cones.ts';
 
 const fails = [];
 const check = (ok, msg) => { console.log((ok ? '  ok   ' : '  FAIL ') + msg); if (!ok) fails.push(msg); };

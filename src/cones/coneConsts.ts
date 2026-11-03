@@ -1,5 +1,6 @@
+import type { Loose } from './coneTypes.ts';
 // cones/coneConsts.ts: the tuning constants, the roadside debris table and the tyre-stack burst
-// shared by the cone, tyre and loose-object simulation (cones.js and the files beside this one).
+// shared by the cone, tyre and loose-object simulation (cones.ts and the files beside this one).
 
 export const CONE_R = 0.20;         // metres base radius
 export const DRAG = 2.9;            // exponential velocity decay per second
@@ -9,13 +10,6 @@ export const REST_V = 0.05;         // m/s to snap to zero
 export const TOPPLE_V = 0.8;        // m/s hit needed to knock a cone flat
 export const MAX_CONE_V = 32;       // clamp fling speed
 
-/** A loose object of the cone simulation (cones.js): the fields a burst reads and sets. */
-export interface LooseThing {
-  kind: string; mode?: string; mass: number; r: number; down?: number;
-  x: number; y: number; vx: number; vy: number;
-  hx?: number; hy?: number; _s?: number;   // its home spot; the road distance it belongs to
-  [field: string]: unknown;
-}
 /** One kind of roadside debris: mass kg, radius m, hits to break (0 never), what it breaks into. */
 export interface DebrisKind {
   mass: number; r: number; breaks: number; into?: string; flat?: boolean;
@@ -29,7 +23,7 @@ export interface DebrisKind {
  * @param stack the stack (becomes the rolling tyre)
  * @param out receives the two new tyres
  */
-export function burstStack(stack: LooseThing, out: LooseThing[]): void {
+export function burstStack(stack: Loose, out: Loose[]): void {
   stack.kind = 'tyre';
   stack.mode = 'roll';
   stack.mass = 12;

@@ -1,7 +1,7 @@
 // controls.js — HUD and key controls, and the level and car selectors.
 import { makeCar } from '../vehicle.ts';
 import { CAR_IDS } from '../cars.ts';
-import { createCones } from '../cones.js';
+import { createCones } from '../cones.ts';
 import { nudge, resetAll, snapshot } from '../tune.ts';
 import { setLevel } from "../world/load.ts";
 import { LEVEL } from "../world/state.ts";

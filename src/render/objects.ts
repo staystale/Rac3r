@@ -176,7 +176,7 @@ function drawPixelObject(env: ObjectsCtx, cone: RenderCone) {
   return true;
 }
 
-// RALLY TAPE (cones.js sections): red / white between its posts; a SNAPPED section hangs as two
+// RALLY TAPE (cones.ts sections): red / white between its posts; a SNAPPED section hangs as two
 // short loose ends; tape STUCK to a car trails behind it as a fluttering streamer (wall-clock
 // flutter, fades after ~14 s)
 
@@ -365,7 +365,7 @@ function drawTape(env: ObjectsCtx, game: TapeGame) {
   view.ctx.restore();
 }
 
-// ROADSIDE DEBRIS (cones.js DEBRIS): top-down squares, rotated with the object; broken ones are
+// ROADSIDE DEBRIS (cones.ts DEBRIS): top-down squares, rotated with the object; broken ones are
 // a scatter of bits (seeded by home)
 const DEBRIS_KINDS = new Set(['pallet', 'box', 'crate', 'bin', 'sandbag', 'barrel', 'exhaust',
   'bumper', 'wing', 'panel', 'tarp', 'splinters', 'cardboard', 'sand', 'fluff']);
@@ -659,7 +659,7 @@ function drawFlag(env: ObjectsCtx, cone: RenderCone, ppm: number, rect: RectFn) 
 }
 
 /**
- * Draws a knockable chevron board or flag (cones.js).
+ * Draws a knockable chevron board or flag (cones.ts).
  * @param env the objects context
  * @param cone the chevron or flag
  */

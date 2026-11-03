@@ -464,7 +464,7 @@ export function cornerSpots(level: Level): CornerSpot[] {
 
 /**
  * The ring of tyre stacks round each corner floodlight's base: the level's ordinary, knockable
- * tyre stacks (cones.js adds them to the level's loose objects at a reset).
+ * tyre stacks (cones.ts adds them to the level's loose objects at a reset).
  * @param level the level
  * @returns the tyre stack entries
  */

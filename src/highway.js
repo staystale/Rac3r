@@ -133,7 +133,7 @@ export function resetHighway(level) {
   resetHedges(level);
   const state = level._hw;
   state.pts.push({ x: 0, y: 0, s: 0, curv: 0 });
-  // the first window's loose objects ARE the level's cones (cones.js reset reads lv.cones on
+  // the first window's loose objects ARE the level's cones (cones.ts reset reads lv.cones on
   // every restart)
   level.cones.length = 0;
   growTo(level, AHEAD + 300);

@@ -1,19 +1,20 @@
-// cones/coneStep.js: one simulation step of the loose objects: motion by mode (roll, flip,
+// cones/coneStep.ts: one simulation step of the loose objects: motion by mode (roll, flip,
 // wobble, flat slide), spin, the floor, the cars' hits, then the object-object collisions.
 import { FX0, FX1, FY0, FY1 } from "../world/bounds.ts";
 import { BROKEN, DRAG, REST_V, SPIN_DRAG } from "./coneConsts.ts";
-import { hitWalls } from "./coneWalls.js";
-import { hitByCar } from "./coneCar.js";
-import { stepTape } from "./coneTape.js";
-import { OBJ_CELL, cellKey, collideObjects } from "./coneGrid.js";
+import { hitWalls } from "./coneWalls.ts";
+import { hitByCar } from "./coneCar.ts";
+import { stepTape } from "./coneTape.ts";
+import { OBJ_CELL, cellKey, collideObjects } from "./coneGrid.ts";
+import type { ConesCtx, Loose, ConeCar } from './coneTypes.ts';
 
 /**
  * A rolling tyre: low rolling resistance on the tread edge, wobbling below 3.2 m/s.
- * @param {any} obj the tyre
- * @param {number} dt step seconds
- * @param {number} speed its speed
+ * @param obj the tyre
+ * @param dt step seconds
+ * @param speed its speed
  */
-function moveRoll(obj, dt, speed) {
+function moveRoll(obj: Loose, dt: number, speed: number) {
   const decay = Math.exp(-1.4 * dt);
   obj.vx *= decay; obj.vy *= decay;
   obj.rollDist += speed * dt;
@@ -28,11 +29,11 @@ function moveRoll(obj, dt, speed) {
 
 /**
  * A tyre cartwheeling end over end until it settles flat.
- * @param {any} obj the tyre
- * @param {number} dt step seconds
- * @param {number} speed its speed
+ * @param obj the tyre
+ * @param dt step seconds
+ * @param speed its speed
  */
-function moveFlip(obj, dt, speed) {
+function moveFlip(obj: Loose, dt: number, speed: number) {
   const decay = Math.exp(-2.2 * dt);
   obj.vx *= decay; obj.vy *= decay;
   obj.flipPhase += obj.flipSpeed * dt;
@@ -45,12 +46,12 @@ function moveFlip(obj, dt, speed) {
 
 /**
  * A precessing Euler disc wobble before settling flat.
- * @param {any} ctx the cones context
- * @param {any} obj the tyre
- * @param {number} dt step seconds
- * @param {number} speed its speed
+ * @param ctx the cones context
+ * @param obj the tyre
+ * @param dt step seconds
+ * @param speed its speed
  */
-function moveWobble(ctx, obj, dt, speed) {
+function moveWobble(ctx: ConesCtx, obj: Loose, dt: number, speed: number) {
   const decay = Math.exp(-2.6 * dt);
   obj.vx *= decay; obj.vy *= decay;
   obj.wobbleAmp = Math.min(1.0, obj.wobbleAmp + dt * 1.6);
@@ -64,10 +65,10 @@ function moveWobble(ctx, obj, dt, speed) {
 
 /**
  * Flat sliding (tyre, cone, banger, caravan): drag by kind.
- * @param {any} obj the object
- * @param {number} dt step seconds
+ * @param obj the object
+ * @param dt step seconds
  */
-function moveFlat(obj, dt) {
+function moveFlat(obj: Loose, dt: number) {
   const dragVal = (obj.kind === 'banger' || obj.kind === 'caravan' || obj.kind
       === 'podium' || obj.kind === 'bale' || obj.kind === 'straw' || obj.kind === 'cow')
       ? 6.5
@@ -81,12 +82,12 @@ function moveFlat(obj, dt) {
 /**
  * Integrate one object's movement based on its simulation mode, then stop it or bounce it off
  * the walls.
- * @param {any} ctx the cones context
- * @param {any} obj the object
- * @param {number} dt step seconds
- * @param {number} speed its speed at the start of the step
+ * @param ctx the cones context
+ * @param obj the object
+ * @param dt step seconds
+ * @param speed its speed at the start of the step
  */
-function integrate(ctx, obj, dt, speed) {
+function integrate(ctx: ConesCtx, obj: Loose, dt: number, speed: number) {
   obj.x += obj.vx * dt; obj.y += obj.vy * dt;
 
   if (obj.mode === 'roll') moveRoll(obj, dt, speed);
@@ -100,13 +101,13 @@ function integrate(ctx, obj, dt, speed) {
 
 /**
  * Move one object for the step and test it against every car if it is moving.
- * @param {any} ctx the cones context
- * @param {any} obj the object
- * @param {any[]} cars the cars
- * @param {number} dt step seconds
- * @param {any[]} newTyres receives the tyres a burst stack throws out
+ * @param ctx the cones context
+ * @param obj the object
+ * @param cars the cars
+ * @param dt step seconds
+ * @param newTyres receives the tyres a burst stack throws out
  */
-function stepObject(ctx, obj, cars, dt, newTyres) {
+function stepObject(ctx: ConesCtx, obj: Loose, cars: ConeCar[], dt: number, newTyres: Loose[]) {
   const speed = Math.hypot(obj.vx, obj.vy);
 
   if (obj.vx || obj.vy) integrate(ctx, obj, dt, speed);
@@ -131,14 +132,14 @@ function stepObject(ctx, obj, cars, dt, newTyres) {
 
 /**
  * Test every car against the resting objects in the 5x5 cells around it.
- * @param {any} ctx the cones context
- * @param {any[]} cars the cars
- * @param {any[]} newTyres receives the tyres a burst stack throws out
+ * @param ctx the cones context
+ * @param cars the cars
+ * @param newTyres receives the tyres a burst stack throws out
  */
-function hitRestingObjects(ctx, cars, newTyres) {
+function hitRestingObjects(ctx: ConesCtx, cars: ConeCar[], newTyres: Loose[]) {
   for (let carIndex = 0; carIndex < cars.length; carIndex++) {
     const car = cars[carIndex], gridX = Math.floor(car.x / OBJ_CELL), gridY = Math.floor(car.y
-        / OBJ_CELL), cand = [];
+        / OBJ_CELL), cand: Loose[] = [];
     for (let cellX = gridX - 2; cellX <= gridX + 2; cellX++) for (let cellY = gridY - 2; cellY
         <= gridY + 2; cellY++) {
       const cell = ctx.restGrid.get(cellX * 65536 + cellY); if (!cell) continue;
@@ -150,22 +151,22 @@ function hitRestingObjects(ctx, cars, newTyres) {
     // IN LIST ORDER (MEASURED: grid-cell order changed which stack the car met first — each hit
     // slows the car — and a Stock Car wall
     // crash knocked on 9-11 objects instead of 15, tools/objcheck). _n = a fixed creation index.
-    cand.sort((left, right) => left._n - right._n);
+    cand.sort((left, right) => left._n! - right._n!);
     for (const other of cand) hitByCar(ctx, other, car, newTyres);
   }
 }
 
 /**
  * step(car | [cars], dt): objects integrate ONCE per step, then are tested against every car.
- * @param {any} ctx the cones context
- * @param {any} carOrCars one car or an array of cars
- * @param {number} dt step seconds
+ * @param ctx the cones context
+ * @param carOrCars one car or an array of cars
+ * @param dt step seconds
  */
-export function stepCones(ctx, carOrCars, dt) {
+export function stepCones(ctx: ConesCtx, carOrCars: ConeCar | ConeCar[], dt: number) {
   ctx.clock += dt;   // sim time: distinct-impact counting (chevrons / flags)
   if (ctx.sections.length) stepTape(ctx, Array.isArray(carOrCars) ? carOrCars : [carOrCars]);
   const cars = Array.isArray(carOrCars) ? carOrCars : [carOrCars];
-  const newTyres = [];
+  const newTyres: Loose[] = [];
 
   for (const obj of ctx.list) stepObject(ctx, obj, cars, dt, newTyres);
 

@@ -109,7 +109,7 @@ export const TH_ZONES: Zone[] = [
   { x: 16.5, y: -27.7, w: 323.9, h: 20, rot: 0.5703, surface: SURFACES.concrete },
 ];
 // ARMCO runs (outside of the right-handers) and the TYRE WALLS in front of them (requirement: lots
-// of tyres between the track and the Armco): two staggered rows of knockable tyre stacks (cones.js
+// of tyres between the track and the Armco): two staggered rows of knockable tyre stacks (cones.ts
 // r 0.48 -> 0.95 m apart), rows at -14 and -15 (rail face -15.7).
 export const TH_ARMCO = [[35, 125], [205, 250], [290, 345], [560, 760], [785, 870], [1080, 1112]];
 const TH_TYREWALL = TH_ARMCO.flatMap(([startDist, endDist]) =>

@@ -235,7 +235,7 @@ export interface RenderCar extends CamCar, Pick<Car, 'heading' | 'delta'> {
   _dface?: Record<string, { key: string; out: CarSprite | SideSprite }>;
 }
 
-// One game object the cones layer draws (cones.js: cones, bales, tyres, animals, debris, ...).
+// One game object the cones layer draws (cones.ts: cones, bales, tyres, animals, debris, ...).
 export interface RenderCone {
   x: number;
   y: number;
@@ -276,7 +276,7 @@ export interface TapeCar {
   vy: number;
   heading: number;
   spec: { len: number };
-  streamers?: Streamer[] | null;   // null = reset; cones.js sets it
+  streamers?: Streamer[] | null;   // null = reset; cones.ts sets it
   _stN?: number | null;   // drawTape's count of streamers, to see one lost
 }
 
