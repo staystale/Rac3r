@@ -6,6 +6,7 @@ import { addPauseClock } from './pauseclock.ts';
 import { showSettings } from './settings.ts';
 import type { Menu } from '../menu.ts';
 import type { PauseActions, ResultsActions, ResultRow, ResultsFlow } from './menutypes.ts';
+import { MENU_COL } from './palette.ts';
 
 /**
  * IN-SESSION PAUSE (spec §4 step 3): the track and car stay loaded until you leave. Car swap
@@ -35,7 +36,7 @@ export function showPause(menu: Menu, act: PauseActions) {
     slider.max = '100';
     slider.step = '5';
     slider.value = String(Math.round(audio.volume * 100));
-    slider.style.cssText = 'flex:1;min-height:34px;accent-color:#e8a13a';
+    slider.style.cssText = 'flex:1;min-height:34px;accent-color:' + MENU_COL.accent;
     row.appendChild(slider);
     let muteBtn: HTMLButtonElement | null = null;
     const showSound = () => {

@@ -13,6 +13,7 @@ import { CLOCK, clockLine } from '../world/clock.ts';
 import type { Menu } from '../menu.ts';
 import type { Level } from '../world/types.ts';
 import type { SetupState, SetupUi } from './menutypes.ts';
+import { MENU_COL } from './palette.ts';
 
 // WEATHER: follow the SEASON (its chances; it can change in the race) or a fixed sky
 const WEATHER_MODES = [['season', 'SEASON'], ['dry', 'DRY'], ['hot', 'HOT'],
@@ -48,7 +49,7 @@ function addSetupSlider(menu: Menu, panel: HTMLElement, label: string, min: numb
   input.max = String(max);
   input.step = String(stepV);
   input.value = String(val);
-  input.style.cssText = 'flex:1;min-height:34px;accent-color:#e8a13a';
+  input.style.cssText = 'flex:1;min-height:34px;accent-color:' + MENU_COL.accent;
   const showLabel = () => {
     labelEl.textContent = label + ' ' + fmt(+input.value);
   };

@@ -9,7 +9,9 @@
 //            few highlight pixels
 //   TYPE     headers + buttons Silkscreen, titles Press Start 2P, small text and stats VT323
 //            (bigger: it reads small); ONE SET OF DIGITS - every face takes Silkscreen's 0-9
-//            (unicode-range), so a 4 is always the same 4
+//            (unicode-range), so a 4 is always the same 4; every % is Press Start 2P's,
+//            the clearest (owner: the small face's % was hard to read)
+//   PRESS    a pressed button turns electric blue and blinks twice before it acts (owner 11-03)
 // The fonts ship with the game (assets/fonts, SIL Open Font License).
 
 const FONT = 'assets/fonts/';
@@ -21,15 +23,20 @@ const FACES = `
 @font-face { font-family: R3Small; src: url(${FONT}silkscreen-700.woff2) format("woff2");
   unicode-range: U+0030-0039; size-adjust: 72%; font-display: swap; }
 @font-face { font-family: R3Small; src: url(${FONT}vt323.woff2) format("woff2");
-  unicode-range: U+0000-002F, U+003A-FFFF; font-display: swap; }
+  unicode-range: U+0000-0024, U+0026-002F, U+003A-FFFF; font-display: swap; }
 @font-face { font-family: R3Head; src: url(${FONT}silkscreen-700.woff2) format("woff2");
-  font-weight: 700; font-display: swap; }
+  font-weight: 700; unicode-range: U+0000-0024, U+0026-FFFF; font-display: swap; }
 @font-face { font-family: R3Head; src: url(${FONT}silkscreen-400.woff2) format("woff2");
-  font-weight: 400; font-display: swap; }
+  font-weight: 400; unicode-range: U+0000-0024, U+0026-FFFF; font-display: swap; }
 @font-face { font-family: R3Title; src: url(${FONT}silkscreen-700.woff2) format("woff2");
   unicode-range: U+0030-0039; font-display: swap; }
 @font-face { font-family: R3Title; src: url(${FONT}press-start-2p.woff2) format("woff2");
-  unicode-range: U+0000-002F, U+003A-FFFF; font-display: swap; }
+  unicode-range: U+0000-0024, U+0026-002F, U+003A-FFFF; font-display: swap; }
+/* every % is Press Start 2P's (declared last, so it wins U+0025 over the faces above) */
+@font-face { font-family: R3Small; src: url(${FONT}press-start-2p.woff2) format("woff2");
+  unicode-range: U+0025; size-adjust: 62%; font-weight: 100 900; font-display: swap; }
+@font-face { font-family: R3Head; src: url(${FONT}press-start-2p.woff2) format("woff2");
+  unicode-range: U+0025; size-adjust: 80%; font-weight: 100 900; font-display: swap; }
 `;
 
 // PIXEL-ART SHADES (hard bands + checker dither, no blending)
@@ -90,6 +97,14 @@ export const MENU_PIXEL_CSS = FACES + `
 #menu .logo { display: block; width: 100%; max-width: 420px; height: auto; margin: 0 auto -4px;
   image-rendering: auto; }
 #menu .tagline { display: none; }
+/* a picked (blue) card or row: its side line dark on the blue, not grey */
+#menu button.on .k, #menu button.on .sub { color: #0a2a60; }
+/* PRESSED: electric blue at once, two blinks, then the button acts (widgets.ts addButton) */
+#menu button:active, #menu button.hit { background: ${ZAP}; color: #031230; text-shadow: none;
+  box-shadow: inset 2px 0 0 #9ff6ff, inset -2px 0 0 #1250d8, 2px 2px 0 #000; }
+#menu button.hit { animation: r3blink 160ms steps(1, end) 1; }
+@keyframes r3blink { 0% { filter: brightness(1.9); } 25% { filter: none; }
+  50% { filter: brightness(1.9); } 75% { filter: none; } }
 /* the old sheet spaced its letters wide; the pixel faces are wide already */
 #menu button, #menu .cat .nm, #menu .card .nm, #menu .picker .val, #menu .picker .cap,
 #menu .stats b, #menu .podium .step { letter-spacing: .02em; }

@@ -4,6 +4,7 @@
 // setting is remembered on the device. STEERING: the two stick settings of core/steerfeel.ts.
 import { addPane, addButton, addElement } from './widgets.ts';
 import { STEER_FEEL, setSteerFeel, stickReach, curveSteer } from '../core/steerfeel.ts';
+import { MENU_COL } from './palette.ts';
 
 // what one menu context needs here (menu.ts builds it)
 interface Menu { root: HTMLElement; openedAt: number }
@@ -41,7 +42,7 @@ function addFeelSlider(panel: HTMLElement, key: FeelKey, name: string, help: str
   slider.max = '100';
   slider.step = '10';
   slider.value = String(Math.round(STEER_FEEL[key] * 100));
-  slider.style.cssText = 'flex:1;min-height:34px;accent-color:#e8a13a';
+  slider.style.cssText = 'flex:1;min-height:34px;accent-color:' + MENU_COL.accent;
   row.appendChild(slider);
   const show = () => {
     const pct = Math.round(STEER_FEEL[key] * 100);
@@ -101,7 +102,7 @@ function showSteering(menu: Menu, back: () => void, resume?: () => void): void {
   addFeelSlider(panel, 'throw', 'STEER AT SPEED', 'The faster you go, the further you push for '
     + 'full lock (up to twice as far at 120 km/h). Full lock is always there.', update);
   preview = addElement(panel, 'div', '', 'sub') as HTMLElement;
-  preview.style.cssText = 'text-align:left;color:#e8a13a';
+  preview.style.cssText = 'text-align:left;color:' + MENU_COL.accent;
   update();
   addFootRow(menu, panel, back, resume);
 }

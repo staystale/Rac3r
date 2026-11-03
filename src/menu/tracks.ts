@@ -13,6 +13,7 @@ import { showSettings } from './settings.ts';
 import { FIX } from '../core/fixes.ts';
 import type { Menu } from '../menu.ts';
 import type { Level, StageRecipe } from '../world/types.ts';
+import { MENU_COL } from './palette.ts';
 
 export const KIND: Record<string, string> = { lab: 'TEST GROUND', 'test-track': 'CIRCUIT',
   thruston: 'UK CIRCUIT',
@@ -98,7 +99,7 @@ function drawRoadMap(canvas: HTMLCanvasElement, level: Level) {
     ctx.stroke();
   }
   const finish = findTrackPoint(level, level.stage!.finish);
-  ctx.fillStyle = '#4cc2a0';
+  ctx.fillStyle = MENU_COL.good;
   ctx.beginPath();
   ctx.arc(mapX(points[0].x), mapY(points[0].y), 5, 0, 7);
   ctx.fill();

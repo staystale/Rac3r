@@ -12,6 +12,7 @@ import { saveProfile } from './profile.ts';
 import { addPane, addButton, addElement, drawLift } from './widgets.ts';
 import { showMainMenu } from './tracks.ts';
 import type { Menu } from '../menu.ts';
+import { MENU_COL } from './palette.ts';
 
 
 /**
@@ -54,7 +55,7 @@ export function showCarPicker(menu: Menu, panel: HTMLElement,
     addButton(menu, rowEl, '▶', next);
     return valEl;
   };
-  const classLabel = row('CLASS', '#e8a13a', () => {
+  const classLabel = row('CLASS', MENU_COL.accent, () => {
     filterClass = step(clsList(), filterClass, -1);
   filterSub = 'ALL';
   fit();
@@ -65,7 +66,7 @@ export function showCarPicker(menu: Menu, panel: HTMLElement,
   fit();
   paint();
   });
-  const subLabel = row('TYPE', '#4cc2a0', () => {
+  const subLabel = row('TYPE', MENU_COL.good, () => {
     filterSub = step(subList(), filterSub, -1);
   fit();
   paint();
@@ -74,7 +75,7 @@ export function showCarPicker(menu: Menu, panel: HTMLElement,
   fit();
   paint();
   });
-  const lbl = row('CAR', '#e8e8ee', () => {
+  const lbl = row('CAR', MENU_COL.fg, () => {
     menu.profile.active = step(cars().map((car) => car.id), menu.profile.active, -1);
   saveProfile(menu.profile);
   paint();
@@ -127,8 +128,9 @@ KM/H</span><b>${spec.zeroTo100 != null ? spec.zeroTo100 + ' S' : '—'}</b>`
         const tarmacGrip = fittedTyre(car, (menu.profile.tyres || {})[car.id]).grip.tarmac
           / fittedTyre(car).grip.tarmac;
         return spec.gripG == null ? '—' : tarmacGrip === 1 ? spec.gripG + ' G'
-          : (spec.gripG * tarmacGrip).toFixed(2) + ' G <span style="color:#9aa0aa;\
-font-size:10px">STOCK ' + spec.gripG + '</span>';
+          : (spec.gripG * tarmacGrip).toFixed(2) + ' G <span style="color:' + MENU_COL.dim
+            + ';font-size:'
+            + MENU_COL.small + '">STOCK ' + spec.gripG + '</span>';
       })()}</b>`
       + `<span>WEIGHT</span><b>${spec.massKg} KG</b><span>DRIVE</span><b>${spec.drive}</b><span>\
 AIDS</span><b>${aids}</b>`
@@ -175,7 +177,7 @@ function showPaintShop(menu: Menu) {
     for (const [field, list] of [['paint', bodyB],
       ['trim', trimB]] as ['paint' | 'trim',
         HTMLButtonElement[]][]) for (const button of list) button.style.outline = button.dataset.c
-      === cur[field] ? '3px solid #e8a13a' : 'none';
+      === cur[field] ? '3px solid ' + MENU_COL.pick : 'none';
   };
   const swatches = (label: string, field: 'paint' | 'trim') => {
     addElement(right, 'div', label, 'sub');
@@ -285,7 +287,8 @@ function showTyreShop(menu: Menu) {
     right = addElement(box, 'div', '');
   const btns: Record<string, HTMLButtonElement> = {};
   for (const brand of TYRE_BRANDS) {
-    const head = addElement(left, 'div', brand.name + ' <span style="color:#9aa0aa;font-size:10px">'
+    const head = addElement(left, 'div', brand.name + ' <span style="color:' + MENU_COL.dim
+      + ';font-size:' + MENU_COL.small + '">'
       + brand.blurb + '</span>');
     head.style.cssText = 'margin:6px 0 4px;font-size:12px;color:' + brand.col;
     const group = addElement(left, 'div', '');
@@ -317,20 +320,21 @@ solid ' + brand.col;
     const tyre = tyreOf(sel), brand = TYRE_BRANDS.find((x) => x.id === tyre.brand)!,
       cur = fittedTyre(car, (menu.profile.tyres || {})[carId]).id === tyre.id;
     for (const [key, tyreBtn] of Object.entries(btns)) tyreBtn.style.outline = key === sel
-      ? '3px solid #e8a13a' : 'none';
+      ? '3px solid ' + MENU_COL.pick : 'none';
     const bar = (lbl: string, surf: string) => {
       const grip = tyre.grip[surf], percent = Math.round((grip - 1) * 100),
-        width = Math.max(4, Math.min(100, grip / 1.6 * 100));
+        width = Math.max(4, Math.min(100, grip / 1.6 * 100)),
+        tone = grip > 1.001 ? MENU_COL.good : grip < 0.999 ? MENU_COL.bad : MENU_COL.dim;
       return `<div style="display:flex;align-items:center;gap:6px;margin:2px 0"><span \
-style="width:44px;font-size:10px">${lbl}</span>`
+style="width:${MENU_COL.labelW};font-size:${MENU_COL.label}">${lbl}</span>`
 
 
-            + `<div style="flex:1;height:10px;background:#2a2d36;border:1px solid #000;\
+            + `<div style="flex:1;height:10px;background:${MENU_COL.well};border:1px solid #000;\
 position:relative"><div style="position:absolute;left:62.5%;top:-3px;bottom:-3px;width:2px;\
-background:#e8e8ee"></div><div style="height:100%;width:${width}%;\
-background:${grip > 1.001 ? '#4cc2a0' : grip < 0.999 ? '#d8453c' : '#9aa0aa'}"></div></div>`
-            + `<span style="width:40px;text-align:right;font-size:11px;\
-color:${grip > 1.001 ? '#4cc2a0' : grip < 0.999 ? '#d8453c' : '#9aa0aa'}">\
+background:${MENU_COL.fg}"></div><div style="height:100%;width:${width}%;\
+background:${tone}"></div></div>`
+            + `<span style="width:${MENU_COL.valueW};text-align:right;font-size:${MENU_COL.value};\
+color:${tone}">\
 ${percent > 0 ? '+' : ''}${percent}%</span></div>`;
       };
     const opt = tyre.opt || [65, 110], heat = (tyre.heatHard || 1) > 1.05 ? 'FAST on tarmac'
@@ -339,7 +343,8 @@ ${percent > 0 ? '+' : ''}${percent}%</span></div>`;
     info.innerHTML = `<div style="font-size:15px;color:${brand.col}">${brand.name} \
 · ${tyre.name.toUpperCase()}</div>`
       + `<div class="sub" style="margin:2px 0 6px">${tyre.note || ''}</div>`
-      + '<div class="sub" style="font-size:9px">white line = STOCK (PRE-SPUN)</div>'
+      + '<div class="sub" style="font-size:' + MENU_COL.note
+        + '">white line = STOCK (PRE-SPUN)</div>'
         + TYRE_SURFS.map(([surf, lbl]) => bar(lbl, surf)).join('')
       + `<div class="stats" style="margin-top:6px"><span>GRIP (TARMAC)</span><b>${tarmacG}</b>\
 <span>WORKING HEAT</span><b>${opt[0]}-${opt[1]} C</b>`

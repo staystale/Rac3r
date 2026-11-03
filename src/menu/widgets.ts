@@ -1,4 +1,6 @@
 import { GHOST_MS } from './style.ts';
+import { MENU_COL } from './palette.ts';
+import { FIX } from '../core/fixes.ts';
 
 // MENU TAPS for the phone report (?report=1, game/loop.ts): taps a new screen ignored (inside its
 // GHOST_MS window) and the slowest button handler, since the last frame took them
@@ -34,6 +36,9 @@ export function addPane(menu: MenuCtx, wide: boolean): HTMLElement {
   return panel;
 }
 
+// ?menustyle: how long a pressed button blinks before it acts (menu/pixelstyle.ts .hit)
+const PRESS_BLINK_MS = 160;
+
 /**
  * Adds a menu button; its click is ignored while disabled or inside the ghost-click window.
  * @param menu the menu context
@@ -59,8 +64,15 @@ export function addButton(menu: MenuCtx, parent: HTMLElement, label: string, onC
       menuTaps.ignored++;
       return;
     }
-    onClick();
-    menuTaps.handlerMs = Math.max(menuTaps.handlerMs, performance.now() - tapAt);
+    const act = () => {
+      onClick();
+      menuTaps.handlerMs = Math.max(menuTaps.handlerMs, performance.now() - tapAt);
+    };
+    if (!FIX.menuStyle) { act(); return; }
+    // ?menustyle: the press shows - electric blue, two blinks - then the button acts
+    if (button.classList.contains('hit')) return;
+    button.classList.add('hit');
+    setTimeout(() => { button.classList.remove('hit'); act(); }, PRESS_BLINK_MS);
   });
   parent.appendChild(button);
   return button;
@@ -105,22 +117,22 @@ export function copyThumb(thumb: HTMLCanvasElement): HTMLCanvasElement {
 export function drawLift(canvas: HTMLCanvasElement, spr: { c: HTMLCanvasElement }): void {
   const ctx = canvas.getContext('2d')!;
   ctx.imageSmoothingEnabled = false;
-  ctx.fillStyle = '#23262e';
+  ctx.fillStyle = MENU_COL.lift.floor;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = '#2b2f39';
+  ctx.fillStyle = MENU_COL.lift.panel;
   for (let x = 0; x < canvas.width; x += 24) ctx.fillRect(x, 0, 12,
     canvas.height);      // floor panels
-  ctx.fillStyle = '#e8a13a';
+  ctx.fillStyle = MENU_COL.lift.stripe;
   ctx.fillRect(0, canvas.height - 10, canvas.width,
     4);                                 // hazard stripe
   const scale = Math.max(1, Math.floor(Math.min((canvas.width - 60) / spr.c.width, (canvas.height
     - 40) / spr.c.height)));
   const drawW = spr.c.width * scale, drawH = spr.c.height * scale,
     x = Math.round((canvas.width - drawW) / 2), y = Math.round((canvas.height - drawH) / 2) - 4;
-  ctx.fillStyle = '#5a5f6d';
+  ctx.fillStyle = MENU_COL.lift.arm;
   ctx.fillRect(x - 10, y + drawH * 0.2, drawW + 20, 6);
   ctx.fillRect(x - 10, y + drawH * 0.8 - 6, drawW + 20, 6);   // lift arms
-  ctx.fillStyle = '#3a3e4a';
+  ctx.fillStyle = MENU_COL.lift.post;
   ctx.fillRect(x - 16, y - 6, 8, drawH + 12);
   ctx.fillRect(x + drawW + 8, y - 6, 8, drawH + 12);           // posts
   ctx.fillStyle = 'rgba(0,0,0,.35)';
