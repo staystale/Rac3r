@@ -227,7 +227,7 @@ function knockPass(level: Level): void {
   ];
 }
 // the post-passes every level gets (tape, knockable signs) — exported for generated levels
-// (stagegen.js)
+// (stagegen.ts)
 export function finishLevel(level: Level): Level {
   tapePass(level);
   knockPass(level);
@@ -238,7 +238,7 @@ function applyBounds(): void {
   setRect(LEVEL.bounds);
 }
 /**
- * Builds a level that waits for its first use, in place (the rally stages: stagegen.js
+ * Builds a level that waits for its first use, in place (the rally stages: stagegen.ts
  * addStageLevels): its _build makes the whole level. Anything else is returned as it is.
  * @param level the level
  * @returns the level, built

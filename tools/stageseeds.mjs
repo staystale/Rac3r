@@ -1,7 +1,7 @@
 // stageseeds.mjs — pick SEEDS for the fixed rally stages (user: "rally stages should be set"). Per theme x style, seeds 1..N at medium:
 // length, the attempt that won (0 = cheap to rebuild at boot), corners / hairpins / crests+jumps; prints the best few per theme.
 // node tools/stageseeds.mjs [N]
-import { genStage, addStageLevels } from '../src/stagegen.js';
+import { genStage, addStageLevels } from '../src/stagegen.ts';
 import { autoKerbs, onTrack } from '../src/lab.ts';
 // the levels importing these modules used to add (task 078 made it explicit)
 addStageLevels();

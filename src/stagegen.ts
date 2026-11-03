@@ -1,4 +1,4 @@
-// stagegen.js — PROCEDURAL POINT-TO-POINT RALLY STAGES. User: "our rally stages are
+// stagegen.ts — PROCEDURAL POINT-TO-POINT RALLY STAGES. User: "our rally stages are
 // circular often — they should mostly be a LINE, not a track"; "make it procedural maybe so it
 // feels infinite"; "levels are most important"; "make new things if needed, keep it pretty". A
 // seeded generator: the same { seed, theme, len, style } always builds the same stage; NEW STAGE =
@@ -25,8 +25,13 @@ import { prepBumps } from "./world/terrain.ts";
 import {
   buildStageCovers, snowPatchOf, snowRoadOf, stageTurnOf,
 } from "./world/stageweather.ts";
+import type { ThemeSpec, RoadPt, Grow, Part, Cand, Laid, Dress } from './world/stagetypes.ts';
+import type {
+  Prop, Subtrack, Level, Point, Bump, CurvedKerb, Surface, Sector,
+} from './world/types.ts';
 
-export const THEMES = {
+
+export const THEMES: Record<string, ThemeSpec> = {
   forest: {
     name: 'FOREST GRAVEL', road: 'gravel', width: 9, base: 'grassLong', sep: 36,
     bushes: RALLY_BUSHES, w: {
@@ -53,12 +58,13 @@ export const THEMES = {
   },
 };
 // long 2700 -> 2400: the 520 m world (stagegencheck: 2.0-2.7 km)
-export const LENGTHS = { short: 1300, medium: 2000, long: 2400 };
-const STYLES = { flowing: { straight: 1.2, fast: 1.6, medium: 0.9, square: 0.25, hairpin: 0.15 },
+export const LENGTHS: Record<string, number> = { short: 1300, medium: 2000, long: 2400 };
+const STYLES: Record<string, Record<string, number>> = { flowing: { straight: 1.2, fast: 1.6,
+  medium: 0.9, square: 0.25, hairpin: 0.15 },
     mixed: { straight: 1, fast: 1, medium: 1, square: 1, hairpin: 1 },
   tight: { straight: 0.7, fast: 0.4, medium: 1.1, square: 1.6, hairpin: 1.8 } };
 // SILLY NAMES (requirement: remember all names should be silly) — parody place names per theme
-const NAMES = {
+const NAMES: Record<string, string[][]> = {
   forest: [['Llanfair', 'Pen-y-', 'Aber', 'Glen ', 'Cwm', 'Bryn', 'Coed-y-'],
       ['sheepdip', 'cowpatt', 'muddyfoot', 'slippy-bottom', 'bogwobble', 'skidwyn', 'splatt']],
   alpine: [['Col de ', 'Mont ', 'Pic du ', 'Val de '],
@@ -68,7 +74,7 @@ const NAMES = {
   desert: [['Dune ', 'Wadi ', 'Sahara ', 'Oasis '],
       ['Sandpants', 'Sunburn', 'Dusty Bin', 'Hot Bottom', 'Humpback', 'Sandwich', 'Grit Happens']],
 };
-const rng = (seed) => lcg((seed >>> 0) || 1);
+const rng = (seed: number) => lcg((seed >>> 0) || 1);
 
 // ---------------------------------------------------------------- the ROAD (centreline points, 3 m
 // apart)
@@ -77,17 +83,18 @@ const STEP = 3;
 const CELL = 20, NEAR = 130;
 /**
  * Occupancy grid key of a position.
- * @param {number} x metres
- * @param {number} y metres
+ * @param x metres
+ * @param y metres
  * @return {number} the cell key
  */
-function roadKey(x, y) { return Math.floor(x / CELL) * 100003 + Math.floor(y / CELL); }
+function roadKey(x: number,
+  y: number) { return Math.floor(x / CELL) * 100003 + Math.floor(y / CELL); }
 /**
  * Adds a road point to the road and to its occupancy grid.
- * @param {object} grow road state (see growRoad)
+ * @param grow road state (see growRoad)
  * @param {{x: number, y: number, s: number}} point the point
  */
-function putRoadPoint(grow, point) {
+function putRoadPoint(grow: Grow, point: RoadPt) {
   grow.points.push(point);
   const cellKey = roadKey(point.x, point.y);
   let bucket = grow.occ.get(cellKey);
@@ -96,24 +103,24 @@ function putRoadPoint(grow, point) {
 }
 /**
  * Removes the last COUNT road points from the road and its occupancy grid.
- * @param {object} grow road state (see growRoad)
- * @param {number} count how many points to drop
+ * @param grow road state (see growRoad)
+ * @param count how many points to drop
  */
-function dropRoadPoints(grow, count) {
+function dropRoadPoints(grow: Grow, count: number) {
   for (let i = 0; i < count; i++) {
-    const point = grow.points.pop(), bucket = grow.occ.get(roadKey(point.x, point.y));
+    const point = grow.points.pop()!, bucket = grow.occ.get(roadKey(point.x, point.y))!;
     bucket.splice(bucket.indexOf(point), 1);
   }
 }
 /**
  * Tells whether a road point at this spot keeps inside the box and clear of other road.
- * @param {object} grow road state (see growRoad)
- * @param {number} x metres
- * @param {number} y metres
- * @param {number} dist road distance of the point
+ * @param grow road state (see growRoad)
+ * @param x metres
+ * @param y metres
+ * @param dist road distance of the point
  * @return {boolean} true when it fits
  */
-function roadFits(grow, x, y, dist) {
+function roadFits(grow: Grow, x: number, y: number, dist: number) {
   const { LIM, SEP, occ } = grow;
   if (Math.abs(x) > LIM || Math.abs(y) > LIM) return false;
   const cellX = Math.floor(x / CELL), cellY = Math.floor(y / CELL), cells = Math.ceil(SEP / CELL);
@@ -126,10 +133,10 @@ function roadFits(grow, x, y, dist) {
 /**
  * START: near a random edge, facing into the box; the RUN-UP (45 m) behind it. Sets the road
  * state's x, y, hdg and dist.
- * @param {object} grow road state (see growRoad)
- * @param {function: number} rand random source
+ * @param grow road state (see growRoad)
+ * @param rand random source
  */
-function startRoad(grow, rand) {
+function startRoad(grow: Grow, rand: () => number) {
   const LIM = grow.LIM;
   const side = (rand() * 4) | 0, edgePos = (rand() - 0.5) * 1.2 * LIM;
   const [startX, startY, startHdg] = [[edgePos, -LIM + 30, Math.PI / 2],
@@ -144,12 +151,12 @@ function startRoad(grow, rand) {
 }
 /**
  * Makes the weighted random picker of road element kinds.
- * @param {function: number} rand random source
- * @param {object} themeSpec the theme
- * @param {string} style the style name
+ * @param rand random source
+ * @param themeSpec the theme
+ * @param style the style name
  * @return {function: string} picks a kind
  */
-function makeKindPicker(rand, themeSpec, style) {
+function makeKindPicker(rand: () => number, themeSpec: ThemeSpec, style: string) {
   const weights = { ...STYLES[style] };
   for (const kindName in weights) weights[kindName] *= themeSpec.w[kindName];
   const kinds = Object.keys(weights),
@@ -164,12 +171,12 @@ function makeKindPicker(rand, themeSpec, style) {
 }
 /**
  * Makes the parts (straights and arcs) of one random road element of a kind.
- * @param {function: number} rand random source
- * @param {object} themeSpec the theme
- * @param {string} kind straight / fast / medium / square / hairpin
+ * @param rand random source
+ * @param themeSpec the theme
+ * @param kind straight / fast / medium / square / hairpin
  * @return {object[]} the parts: { len, rad, ang }
  */
-function makeRoadElement(rand, themeSpec, kind) {
+function makeRoadElement(rand: () => number, themeSpec: ThemeSpec, kind: string): Part[] {
   const dir = rand() < 0.5 ? 1 : -1, deg = Math.PI / 180;
   if (kind === 'straight') return [{ len: (themeSpec === THEMES.desert ? 50 : 25)
       + rand() * (themeSpec === THEMES.desert ? 140 : 90), rad: 0 }];
@@ -189,16 +196,16 @@ function makeRoadElement(rand, themeSpec, kind) {
 }
 /**
  * A candidate element's points (not committed), or null if any of them breaks the rules.
- * @param {object} grow road state (see growRoad)
- * @param {object[]} parts the element's parts
+ * @param grow road state (see growRoad)
+ * @param parts the element's parts
  * @return {?{out: object[], x: number, y: number, hdg: number, s: number}} the candidate
  */
-function buildRoadCandidate(grow, parts) {
+function buildRoadCandidate(grow: Grow, parts: Part[]) {
   const out = []; let curX = grow.x, curY = grow.y, curHdg = grow.hdg, curDist = grow.dist;
   for (const part of parts) {
-    const partLen = part.rad ? Math.abs(part.ang) * part.rad : part.len,
+    const partLen = part.rad ? Math.abs(part.ang!) * part.rad : part.len!,
         steps = Math.max(1, Math.round(partLen / STEP)), stepLen = partLen / steps,
-            stepTurn = part.rad ? part.ang / steps : 0;
+            stepTurn = part.rad ? part.ang! / steps : 0;
     for (let i = 0; i < steps; i++) { curHdg += stepTurn / 2; curX += Math
         .cos(curHdg) * stepLen; curY += Math
             .sin(curHdg) * stepLen; curHdg += stepTurn / 2; curDist += stepLen;
@@ -209,13 +216,13 @@ function buildRoadCandidate(grow, parts) {
 }
 /**
  * Counts old road within 60 m of a position.
- * @param {object} grow road state (see growRoad)
- * @param {number} posX metres
- * @param {number} posY metres
- * @param {number} sNow road distance of the position
+ * @param grow road state (see growRoad)
+ * @param posX metres
+ * @param posY metres
+ * @param sNow road distance of the position
  * @return {number} the count
  */
-function roadCrowd(grow, posX, posY, sNow) {
+function roadCrowd(grow: Grow, posX: number, posY: number, sNow: number) {
   let count = 0; const cellX = Math.floor(posX / CELL),
       cellY = Math.floor(posY / CELL);
   for (let i = -3; i <= 3; i++) for (let j = -3; j <= 3; j++) for (const point of grow.occ
@@ -228,12 +235,12 @@ function roadCrowd(grow, posX, posY, sNow) {
  * long stages came out short, one at 0.33 km): of up to K valid candidates take the one whose END
  * has the most free space round it and ahead of it (not facing a wall or old road within 60 m),
  * plus a little randomness so stages still differ. This scores one candidate (lower is better).
- * @param {object} grow road state (see growRoad)
- * @param {function: number} rand random source
+ * @param grow road state (see growRoad)
+ * @param rand random source
  * @param {{x: number, y: number, hdg: number, s: number}} cand the candidate
  * @return {number} the score
  */
-function scoreRoadCandidate(grow, rand, cand) {
+function scoreRoadCandidate(grow: Grow, rand: () => number, cand: Cand) {
   const LIM = grow.LIM;
   const aheadX = cand.x + Math.cos(cand.hdg) * 55,
       aheadY = cand.y + Math.sin(cand.hdg) * 55,
@@ -244,11 +251,11 @@ function scoreRoadCandidate(grow, rand, cand) {
 }
 /**
  * Takes back the last committed element, restoring the road state to before it.
- * @param {object} grow road state (see growRoad)
- * @param {object[]} stack the committed elements
+ * @param grow road state (see growRoad)
+ * @param stack the committed elements
  */
-function popRoadElement(grow, stack) {
-  const last = stack.pop();
+function popRoadElement(grow: Grow, stack: Laid[]) {
+  const last = stack.pop()!;
   dropRoadPoints(grow, last.n);
   grow.x = last.x;
   grow.y = last.y;
@@ -257,14 +264,15 @@ function popRoadElement(grow, stack) {
 }
 /**
  * Grows the road element by element up to the target length, backtracking when stuck.
- * @param {object} grow road state (see growRoad)
- * @param {function: number} rand random source
- * @param {function: string} pickKind picks an element kind
- * @param {object} themeSpec the theme
- * @param {number} target stage length (m)
- * @param {object[]} stack committed elements, filled in
+ * @param grow road state (see growRoad)
+ * @param rand random source
+ * @param pickKind picks an element kind
+ * @param themeSpec the theme
+ * @param target stage length (m)
+ * @param stack committed elements, filled in
  */
-function growRoadElements(grow, rand, pickKind, themeSpec, target, stack) {
+function growRoadElements(grow: Grow, rand: () => number, pickKind: () => string,
+  themeSpec: ThemeSpec, target: number, stack: Laid[]) {
   let tries = 0, back = 0;
   while (grow.dist < target && tries < 2500) {
     tries++;
@@ -296,11 +304,11 @@ function growRoadElements(grow, rand, pickKind, themeSpec, target, stack) {
  * The STOP ZONE: up to 60 m on, straight if it fits, else a gentle bend each way; if none fits,
  * the stage ends one element EARLIER (MEASURED: a run with no room for a stop zone returned
  * nothing at all).
- * @param {object} grow road state (see growRoad)
- * @param {object[]} stack committed elements
+ * @param grow road state (see growRoad)
+ * @param stack committed elements
  * @return {{stop: number, finishS: number}} stop zone point count and the finish distance
  */
-function placeStopZone(grow, stack) {
+function placeStopZone(grow: Grow, stack: Laid[]) {
   let stop = 0, finishS = grow.dist;
   for (let guard = 0; guard < 40 && !stop; guard++) {
     finishS = grow.dist;
@@ -328,19 +336,19 @@ function placeStopZone(grow, stack) {
  * Grows one road. The road state grow is { LIM, SEP, occ, points, x, y, hdg, dist }: the box limit,
  * the other-road separation, the occupancy grid, the points { x, y, s } (s = road distance; the
  * run-up is negative) and the head of the road.
- * @param {function: number} rand random source
- * @param {object} themeSpec the theme
- * @param {string} style the style name
- * @param {number} target stage length (m)
+ * @param rand random source
+ * @param themeSpec the theme
+ * @param style the style name
+ * @param target stage length (m)
  * @return {{P: object[], finishS: number, stopN: number, ok: boolean}} the road
  */
-function growRoad(rand, themeSpec, style, target) {
+function growRoad(rand: () => number, themeSpec: ThemeSpec, style: string, target: number) {
   // m: other road at least SEP away, except within NEAR m of road distance (hairpin legs)
-  const grow = { LIM: FLOOR - 34, SEP: themeSpec.sep, occ: new Map(), points: [],
+  const grow: Grow = { LIM: FLOOR - 34, SEP: themeSpec.sep, occ: new Map(), points: [],
     x: 0, y: 0, hdg: 0, dist: 0 };
   startRoad(grow, rand);
   const pickKind = makeKindPicker(rand, themeSpec, style);
-  const stack = [];
+  const stack: Laid[] = [];
   growRoadElements(grow, rand, pickKind, themeSpec, target, stack);
   const { stop, finishS } = placeStopZone(grow, stack);
   return { P: grow.points, finishS, stopN: stop, ok: finishS >= target * 0.6 && stop >= 10 };
@@ -349,15 +357,16 @@ function growRoad(rand, themeSpec, style, target) {
 // ---------------------------------------------------------------- the LEVEL
 /**
  * Builds up to 8 roads and keeps the LONGEST valid one (stops early at 95 % of the target).
- * @param {number} seed the seed
- * @param {object} themeSpec the theme
- * @param {string} style the style name
- * @param {number} target stage length (m)
- * @param {?number} attempt a single attempt number to build, or null for the search
+ * @param seed the seed
+ * @param themeSpec the theme
+ * @param style the style name
+ * @param target stage length (m)
+ * @param attempt a single attempt number to build, or null for the search
  * @return {{road: object, used: number}} the road and the attempt that made it
  */
-function chooseStageRoad(seed, themeSpec, style, target, attempt) {
-  let road = null;
+function chooseStageRoad(seed: number, themeSpec: ThemeSpec, style: string, target: number,
+  attempt: number | null) {
+  let road: ReturnType<typeof growRoad> | null = null;
   let used = 0;
   for (let attemptIdx = attempt ?? 0; attemptIdx < (attempt != null ? attempt + 1
       : 8); attemptIdx++) {
@@ -372,42 +381,44 @@ function chooseStageRoad(seed, themeSpec, style, target, attempt) {
 /**
  * SECTORS: the theme's road, with patches for character (alpine: broken tarmac; desert: sand;
  * forest: a dirt run).
- * @param {function: number} rand random source
- * @param {string} theme the theme name
- * @param {number} finishS finish road distance
- * @param {object} roadS the road surface
- * @param {string|null} snowRoad a snow stage's road (its patches), else null
+ * @param rand random source
+ * @param theme the theme name
+ * @param finishS finish road distance
+ * @param roadS the road surface
+ * @param snowRoad a snow stage's road (its patches), else null
  * @return {object[]} the sectors
  */
-function buildStageSectors(rand, theme, finishS, roadS, snowRoad) {
-  const sectors = [];
-  const patchS = snowRoad ? SURFACES[snowPatchOf(snowRoad)] : {
+function buildStageSectors(rand: () => number, theme: string, finishS: number, roadS: Surface,
+  snowRoad: string | null) {
+  const sectors: Sector[] = [];
+  const patchS = snowRoad ? (SURFACES as Record<string, Surface>)[snowPatchOf(snowRoad)] : ({
     alpine: SURFACES.broken, desert: SURFACES.sand, forest: SURFACES.dirt
-  }[theme];
+  } as Record<string, Surface>)[theme];
   for (let patch = 0; patch < 3; patch++) {
     const patchStart = 150 + rand() * (finishS - 300);
     sectors.push({ startDist: patchStart, endDist: patchStart + 30 + rand() * 50,
-        surface: patchS });
+        surface: patchS! });   // every theme without a snow road has a patch surface
   }
   sectors.push({ startDist: 0, endDist: 1e9, surface: roadS });
   return sectors;
 }
 /**
  * TERRAIN: big hills, crests + JUMPS on the longer straights.
- * @param {function: number} rand random source
- * @param {string} theme the theme name
- * @param {object} kit the track kit
- * @param {object[]} corners the corners
- * @param {number} FIN finish distance
+ * @param rand random source
+ * @param theme the theme name
+ * @param kit the track kit
+ * @param corners the corners
+ * @param FIN finish distance
  * @return {{bumps: object[], straights: number[][], marks: Array}} bumps, the straights between
  *   corners and the JUMP / CREST board marks
  */
-function buildStageTerrain(rand, theme, kit, corners, FIN) {
-  const bumps = [];
+function buildStageTerrain(rand: () => number, theme: string, kit: ReturnType<typeof trackKit>,
+  corners: CurvedKerb[], FIN: number) {
+  const bumps: Bump[] = [];
   for (let hill = 0; hill < 4; hill++) bumps
       .push({ kind: 'hump', x: (rand() - 0.5) * 1.6 * FLOOR, y: (rand() - 0.5) * 1.6 * FLOOR,
           r: 70 + rand() * 80, h: theme === 'alpine' ? 8 + rand() * 8 : 4 + rand() * 6 });
-  const straights = [];
+  const straights: number[][] = [];
   {
     let last = 0;
     for (const corner of corners) {
@@ -415,7 +426,7 @@ function buildStageTerrain(rand, theme, kit, corners, FIN) {
       last = corner.endDist;
     } if (FIN - last > 55) straights.push([last, FIN]);
   }
-  const marks = [];
+  const marks: [number, string][] = [];
   for (const [segStart, segEnd] of straights) {
     if (theme === 'alpine' || rand() > 0.45) continue;
     const midDist = (segStart + segEnd) / 2, jump = rand() < 0.4, pos = kit.at(midDist, 0);
@@ -432,12 +443,12 @@ function buildStageTerrain(rand, theme, kit, corners, FIN) {
 const FLAGC = ['#c8302c', '#e2c13a', '#2b56b5', '#2f7d4f', '#f2f2f2', '#e07a1f'];
 /**
  * Dresses one corner's outside: bales (not alpine) or armco (alpine, not sharp).
- * @param {object} dress dressing state
- * @param {object} corner the corner
- * @param {number} out side sign of the outside
- * @param {boolean} sharp whether the corner is a hairpin / square
+ * @param dress dressing state
+ * @param corner the corner
+ * @param out side sign of the outside
+ * @param sharp whether the corner is a hairpin / square
  */
-function dressCornerOutside(dress, corner, out, sharp) {
+function dressCornerOutside(dress: Dress, corner: CurvedKerb, out: number, sharp: boolean) {
   const { kit, sub, theme, halfWidth, FIN, cones, barriers } = dress;
   if (theme !== 'alpine') {
     for (let dist = corner.startDist - 8; dist <= Math
@@ -452,12 +463,12 @@ function dressCornerOutside(dress, corner, out, sharp) {
 }
 /**
  * Dresses a hairpin / square: tyre walls, tape line, a CROWD and sometimes a building.
- * @param {object} dress dressing state
- * @param {number} turn the signed turn
- * @param {number} mid corner mid distance
- * @param {number} out side sign of the outside
+ * @param dress dressing state
+ * @param turn the signed turn
+ * @param mid corner mid distance
+ * @param out side sign of the outside
  */
-function dressSharpCorner(dress, turn, mid, out) {
+function dressSharpCorner(dress: Dress, turn: number, mid: number, out: number) {
   const { rand, kit, sub, halfWidth, props, cones, barriers } = dress;
   for (let shift = -10; shift <= 10; shift += 0.95) for (const row of Math.abs(turn) > 2.4
       ? [0, 1] : [0]) {
@@ -476,10 +487,10 @@ function dressSharpCorner(dress, turn, mid, out) {
 /**
  * Dresses every corner: chevrons + bales outside, cones on the apex, flags; hairpins / squares
  * get tyre walls, tape (-> rally tape posts, lab.ts) and a CROWD; tarmac fast corners get ARMCO.
- * @param {object} dress dressing state
- * @param {object[]} corners the corners
+ * @param dress dressing state
+ * @param corners the corners
  */
-function dressStageCorners(dress, corners) {
+function dressStageCorners(dress: Dress, corners: CurvedKerb[]) {
   const { kit, halfWidth, props, cones } = dress;
   for (const corner of corners) {
     const turn = stageTurnOf(kit, corner), dir = turn > 0 ? 1 : -1, out = -dir,
@@ -500,10 +511,10 @@ function dressStageCorners(dress, corners) {
 }
 /**
  * Dresses the JUMP / CREST marks: a board before and a crowd at each.
- * @param {object} dress dressing state
- * @param {Array} marks [distance, label] pairs
+ * @param dress dressing state
+ * @param marks [distance, label] pairs
  */
-function dressStageMarks(dress, marks) {
+function dressStageMarks(dress: Dress, marks: [number, string][]) {
   const { kit, halfWidth, props } = dress;
   for (const [dist, label] of marks) {
     props.push(kit.prop(dist - 30, 12, { kind: 'board', label }));
@@ -515,9 +526,9 @@ function dressStageMarks(dress, marks) {
 /**
  * START / FINISH: gantries, flag rows, boards; the STOP board; a wall of tyres at the end of the
  * stop zone + the run-up.
- * @param {object} dress dressing state
+ * @param dress dressing state
  */
-function dressStageStartFinish(dress) {
+function dressStageStartFinish(dress: Dress) {
   const { kit, width, halfWidth, FIN, endD, runD, props, cones } = dress;
   props.push(kit.prop(2, 0, { kind: 'gantry', wid: width + 8, rot: Math.PI / 2 }),
       kit.prop(FIN, 0, { kind: 'gantry', wid: width + 8, rot: Math.PI / 2 }),
@@ -538,9 +549,9 @@ function dressStageStartFinish(dress) {
 }
 /**
  * Sponsor boards and marshals along the stage.
- * @param {object} dress dressing state
+ * @param dress dressing state
  */
-function dressStageSigns(dress) {
+function dressStageSigns(dress: Dress) {
   const { kit, seed, halfWidth, FIN, props } = dress;
   const sponsors = ['KUM TYRES', 'DUNFLOP', 'SPUM', 'SLIPPY PISTONS', 'PIRRELLY', 'MUDDY BANK',
       'RAC3R'];
@@ -553,53 +564,55 @@ function dressStageSigns(dress) {
 }
 /**
  * The SERVICE PARK beside the run-up: marquees + team trucks (where they fit).
- * @param {object} dress dressing state
+ * @param dress dressing state
  */
-function dressStageServicePark(dress) {
+function dressStageServicePark(dress: Dress) {
   const { kit, halfWidth, runD, props } = dress;
   for (const [dist, off,
       propSpec] of [[runD + 12, -(halfWidth + 16), { kind: 'block', w: 12, h: 6, roof: '#eef0f2' }],
           [runD + 28, -(halfWidth + 16), { kind: 'block', w: 12, h: 6, roof: '#eef0f2' }],
     [runD + 18, halfWidth + 14, { kind: 'truck', col: '#2f7d4f' }],
-        [runD + 34, halfWidth + 14, { kind: 'truck', col: '#c8302c' }]]) { const prop = kit
+        [runD + 34, halfWidth + 14, { kind: 'truck', col: '#c8302c' }]] as
+        [number, number, Omit<Prop, 'x' | 'y'>][]) { const prop = kit
             .prop(dist, off, propSpec); if (kit.clear(prop.x, prop.y, 4)) props.push(prop); }
 }
 /**
  * Makes a tree prop.
- * @param {number} x metres
- * @param {number} y metres
- * @param {number} size tree size
- * @param {object} extra extra fields
+ * @param x metres
+ * @param y metres
+ * @param size tree size
+ * @param extra extra fields
  * @return {object} the prop
  */
-function makeStageTree(x, y, size, extra = {}) {
+function makeStageTree(x: number, y: number, size: number, extra = {}) {
   return { kind: 'tree', x, y, s: size, seed: ((x * 7 + y * 13) | 0) * 2 + 1, ...extra };
 }
 /**
  * Makes a rock prop.
- * @param {number} x metres
- * @param {number} y metres
- * @param {number} size rock size
- * @param {object} extra extra fields
+ * @param x metres
+ * @param y metres
+ * @param size rock size
+ * @param extra extra fields
  * @return {object} the prop
  */
-function makeStageRock(x, y, size, extra = {}) {
+function makeStageRock(x: number, y: number, size: number, extra = {}) {
   return { kind: 'rock', x, y, s: size, seed: ((x * 5 + y * 11) | 0) + 3, ...extra };
 }
 /**
  * Fill trees and rocks over the whole floor, counts by theme.
- * @param {object} dress dressing state
+ * @param dress dressing state
  */
-function dressStageFill(dress) {
+function dressStageFill(dress: Dress) {
   const { rand, kit, theme, props } = dress;
-  const fill = { forest: [520, 0], snow: [320, 30], alpine: [140, 110], desert: [110, 170] }[theme];
-  for (let treeIdx = 0; treeIdx < fill[0]; treeIdx++) {
+  const fill = ({ forest: [520, 0], snow: [320, 30], alpine: [140, 110], desert: [110, 170] } as
+    Record<string, number[]>)[theme];
+  for (let treeIdx = 0; treeIdx < fill![0]; treeIdx++) {
     const x = (rand() - 0.5) * 2 * (FLOOR - 10), y = (rand() - 0.5) * 2 * (FLOOR - 10);
     if (kit.clear(x, y, 9)) props
         .push(makeStageTree(x, y, theme === 'desert' ? 2 + rand() * 1.6 : 4 + rand() * 2.6,
             { snow: theme === 'snow', pal: theme === 'desert' ? 'dry' : undefined }));
   }
-  for (let rockIdx = 0; rockIdx < fill[1]; rockIdx++) {
+  for (let rockIdx = 0; rockIdx < fill![1]; rockIdx++) {
     const x = (rand() - 0.5) * 2 * (FLOOR - 10), y = (rand() - 0.5) * 2 * (FLOOR - 10);
     if (kit.clear(x, y, 6)) props
         .push(makeStageRock(x, y, 2 + rand() * 3.5,
@@ -608,9 +621,9 @@ function dressStageFill(dress) {
 }
 /**
  * NATURE by theme: roadside tree walls, fill trees and rocks, alpine roadside rocks.
- * @param {object} dress dressing state
+ * @param dress dressing state
  */
-function dressStageNature(dress) {
+function dressStageNature(dress: Dress) {
   const { rand, kit, theme, halfWidth, FIN, props } = dress;
   const wallEvery = { forest: 7, snow: 9, alpine: 16, desert: 0 }[theme];
   if (wallEvery) for (let dist = 18; dist < FIN
@@ -630,11 +643,11 @@ function dressStageNature(dress) {
 }
 /**
  * Picks the silly stage name of a theme.
- * @param {function: number} rand random source
- * @param {string} theme the theme name
+ * @param rand random source
+ * @param theme the theme name
  * @return {string} the name
  */
-function pickStageName(rand, theme) {
+function pickStageName(rand: () => number, theme: string) {
   const nameParts = NAMES[theme] || NAMES.forest,
       pre = nameParts[0][(rand() * nameParts[0].length) | 0],
           suf = nameParts[1][(rand() * nameParts[1].length) | 0];
@@ -642,43 +655,46 @@ function pickStageName(rand, theme) {
 }
 /**
  * Keeps the props that are on the allow list or clear of the road.
- * @param {object} kit the track kit
- * @param {object[]} props every prop
+ * @param kit the track kit
+ * @param props every prop
  * @return {object[]} the props that stay
  */
-function filterStageProps(kit, props) {
+function filterStageProps(kit: ReturnType<typeof trackKit>, props: Prop[]) {
   return props
       .filter((prop) => ['gantry', 'truck', 'chevron', 'flag', 'board', 'crowd', 'marshal']
-          .includes(prop.kind) || (prop.kind === 'block' && prop.w > 10) ? true : kit
+          .includes(prop.kind) || (prop.kind === 'block' && prop.w! > 10) ? true : kit
               .clear(prop.x, prop.y, prop.kind === 'tree' ? 7 : 2));
 }
 /**
  * The chequered start and finish lines.
- * @param {object} sub the track
- * @param {number} FIN finish distance
- * @param {number} width road width
+ * @param sub the track
+ * @param FIN finish distance
+ * @param width road width
  * @return {object[]} the paint
  */
-function buildStagePaint(sub, FIN, width) {
+function buildStagePaint(sub: Subtrack, FIN: number, width: number) {
   return [{ kind: 'chequered', x: sub.pts[0].x, y: sub.pts[0].y, len: 1.6, wid: width,
       rot: sub.pts[0].heading },
           (() => { const pos = onTrack(sub, FIN, 0, {}); return { kind: 'chequered', x: pos.x,
               y: pos.y, len: 1.6, wid: width, rot: pos.rot }; })()];
 }
 export function genStage({ seed = 1001, theme = 'forest', len = 'medium', style = 'mixed',
-    attempt = null } = {}) {
+    attempt = null }: { seed?: number; theme?: string; len?: string; style?: string;
+    attempt?: number | null } = {}): Level {
   const themeSpec = THEMES[theme] || THEMES.forest;
   const target = LENGTHS[len] || 2000;
-  const { road, used } = chooseStageRoad(seed, themeSpec, style, target, attempt);
+  const chosen = chooseStageRoad(seed, themeSpec, style, target, attempt), used = chosen.used;
+  const road = chosen.road!;   // one of the attempts always lays a road
   const rand = rng(seed ^ 0x5bd1e995);
   // points in ENGINE order: START .. stage .. FINISH .. stop zone | ghost | run-up (ends 3 m before
   // the start line, the closing segment)
   const runUp = road.P.filter((point) => point.s < 0),
       main = road.P.filter((point) => point.s >= 0);
-  const pts = [...main, ...runUp].map((point) => [point.x, point.y]), ghostIdx = main.length - 1;
+  const pts = [...main, ...runUp].map((point): Point => [point.x, point.y]),
+    ghostIdx = main.length - 1;
   const snowRoad = theme === 'snow' ? snowRoadOf(seed) : null;
   const width = themeSpec.width, halfWidth = width / 2,
-    roadS = SURFACES[snowRoad || themeSpec.road];
+    roadS = (SURFACES as Record<string, Surface>)[(snowRoad || themeSpec.road)!];
   const sectors = buildStageSectors(rand, theme, road.finishS, roadS, snowRoad);
   const sub = ghostSegment(createSubtrack(pts, width, sectors, [], true), ghostIdx);
   sub.noLines = theme !== 'alpine';   // painted edge lines only on the tarmac theme
@@ -705,7 +721,7 @@ export function genStage({ seed = 1001, theme = 'forest', len = 'medium', style 
     id: `gen-${theme}-${len}-${style}-${seed}`, name, gen: {
       seed, theme, len, style, attempt: used, km: +(FIN / 1000).toFixed(2)
     },
-    base: SURFACES[themeSpec.base], subtrack: sub, camber: {
+    base: (SURFACES as Record<string, Surface>)[themeSpec.base], subtrack: sub, camber: {
       maxDeg: 0, refR: 60, crown: 0.03, edge: 5, sections: []
     },
     zones: [], bumps: prepBumps(bumps), covers, paint, boards: [], seams: false, cones,
@@ -719,7 +735,7 @@ export function genStage({ seed = 1001, theme = 'forest', len = 'medium', style 
 }
 // put a generated stage into LEVELS (one slot: the generator's), with the post-passes every level
 // gets; returns the level
-export function installStage(level) {
+export function installStage(level: Level) {
   finishLevel(level);
   const i = LEVELS.findIndex((entry) => entry.gen && !entry.fixed);
   if (i < 0) LEVELS.push(level); else LEVELS[i] = level;
@@ -754,7 +770,8 @@ export function addStageLevels() {
   // the generator's slot: its stage too is generated on first use (its track card, setLevel)
   const { theme, len, style, seed } = GEN_DEFAULT;
   installStage({ id: `gen-${theme}-${len}-${style}-${seed}`, name: 'Stage generator',
-    gen: { ...GEN_DEFAULT }, _build: () => genStage(GEN_DEFAULT) });
+    gen: { ...GEN_DEFAULT },
+      _build: () => genStage(GEN_DEFAULT) } as Level);   // built on first use
   {
     let insertAt = LEVELS.findIndex((entry) => entry.id === 'killder') + 1 || LEVELS.length;
     // ON FIRST USE (load.ts buildLevel; MEASURED, CPU x4: all nine at start-up cost 1.95 s of the
@@ -767,7 +784,7 @@ export function addStageLevels() {
         gen: { seed: setStage.seed, theme: setStage.theme, len: 'medium', style: setStage.style },
         _build: () => Object.assign(genStage({ ...setStage, len: 'medium', attempt: 0 }),
           { id: stageId, name: setStage.name, fixed: true }),
-      });
+      } as Level);   // built on first use (load.ts buildLevel)
     }
   }
 }

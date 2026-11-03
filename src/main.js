@@ -26,7 +26,7 @@ import { createCones } from './cones.ts';
 import { createAudio } from './audio.ts';
 import { createGuide } from './guide.ts';
 import { createMenu } from './menu.ts';
-import { genStage, installStage, addStageLevels } from './stagegen.js';
+import { genStage, installStage, addStageLevels } from './stagegen.ts';
 import { addHighwayLevel } from './highway.ts';
 
 import { createTraffic } from './traffic.ts';

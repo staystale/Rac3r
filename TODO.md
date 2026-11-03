@@ -252,7 +252,7 @@ is converted first in its own commit, proved SAME, then changed (owner: "1.a is 
    it builds lanes / zones / covers in shapes world/types.ts does not allow - [x, y] lane points,
    _s tags - so those world types are widened first); the GAME FLOW (state, grid, controls,
    rules, order, ai, loop, menuflow, session, sim) + main.js - they share game / shared from
-   game/state.js, which needs a typed Game first; marks.ts; stagegen.js.
+   game/state.js, which needs a typed Game first; marks.ts; stagegen.ts.
    FOUND on the way (behaviour kept, for the owner): the joker turn-off hint on the lap panel
    never shows (hud/laps.ts: no joker arrow carries its track distance d); JokerRule.estCost is
    read but never set (an unfinished car's joker always costs 5 s); carstats are a little stale
@@ -331,7 +331,7 @@ A. FIXES AND CHECKS (S-M each; first, they change what is already there)
   is no different from the far side (Naffcar swing 3.1 vs 3.7 m, stock car 6.1 vs 6.8 m) - the
   wiggle was the rolling start's release: A3. (Thruston's line HAS a small seam: a 1.385 m
   segment and a turn spike at the last point - _lineseam.mjs; not reported, harmless so far.)
-- A5 Mont Brakefade's corner ice does not melt (a generated stage's ice covers, stagegen.js) - and
+- A5 Mont Brakefade's corner ice does not melt (a generated stage's ice covers, stagegen.ts) - and
   owner: weather only, no level-drawn snow / ice / packed snow (scenery water stays). Check one
   system (the cover field). Snow-themed stages then need the weather to be snowy: PROPOSED their
   theme biases the weather odds instead. M. DEFAULT (owner: all pass) (10-24): race tracks and stages

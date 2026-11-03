@@ -1,4 +1,4 @@
-// A RALLY STAGE'S WEATHER SIDE (stagegen.js; owner: no stage-drawn snow or ice - the weather lays
+// A RALLY STAGE'S WEATHER SIDE (stagegen.ts; owner: no stage-drawn snow or ice - the weather lays
 // it; a snow stage "might be road, might be track, might be dirt"). Only the forest's ford lies on
 // a stage, as scenery water. A snow stage's road is drawn from its own seed (SNOW_ROADS,
 // cumulative shares) on grass, with that road's character patches (SNOW_PATCH); its theme biases

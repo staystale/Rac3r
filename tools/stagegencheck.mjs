@@ -1,7 +1,7 @@
-// stagegencheck.mjs — the PROCEDURAL STAGE GENERATOR (src/stagegen.js): for many seeds x theme x length x style, does it build, how long
+// stagegencheck.mjs — the PROCEDURAL STAGE GENERATOR (src/stagegen.ts): for many seeds x theme x length x style, does it build, how long
 // is the stage vs the target, how long does it take, how much dressing, and is the road clean (no other road within SEP except near it).
 // node tools/stagegencheck.mjs [seeds]
-import { genStage, THEMES, LENGTHS, addStageLevels } from '../src/stagegen.js';
+import { genStage, THEMES, LENGTHS, addStageLevels } from '../src/stagegen.ts';
 import { querySubtrack } from '../src/lab.ts';
 // the levels importing these modules used to add (task 078 made it explicit)
 addStageLevels();

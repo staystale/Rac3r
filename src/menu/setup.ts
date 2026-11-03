@@ -1,6 +1,6 @@
-import { THEMES } from '../stagegen.js';
+import { THEMES } from '../stagegen.ts';
 
-// the stage themes by key (stagegen.js is JavaScript)
+// the stage themes by key (stagegen.ts is JavaScript)
 const THEME_NAMES = THEMES as Record<string, { name: string }>;
 import { saveProfile } from './profile.ts';
 import { addPane, addButton, addElement } from './widgets.ts';

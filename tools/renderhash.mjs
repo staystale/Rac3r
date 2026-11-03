@@ -24,7 +24,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as L from '../src/lab.ts';
-import { addStageLevels } from '../src/stagegen.js';
+import { addStageLevels } from '../src/stagegen.ts';
 import { addHighwayLevel } from '../src/highway.ts';
 import { startServer, launchBrowser, extraQuery } from './lib/browser.mjs';
 import {

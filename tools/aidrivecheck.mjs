@@ -3,7 +3,7 @@
 // "mobile" slower and messier. node tools/aidrivecheck.mjs [levels,comma] [cars,comma] [diffs,comma e.g. 0,4]
 import { makeCar, step, reset, PHYSICS_STEP_SECONDS } from '../src/vehicle.ts';
 import * as L from '../src/lab.ts';
-import { addStageLevels } from '../src/stagegen.js';   // registers the generated + set rally stages in LEVELS
+import { addStageLevels } from '../src/stagegen.ts';   // registers the generated + set rally stages in LEVELS
 import { createAutoDriver } from '../src/ai/autodrive.ts';
 // the levels importing these modules used to add (task 078 made it explicit)
 addStageLevels();

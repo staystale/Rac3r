@@ -1,9 +1,9 @@
 import { LEVELS } from '../world/levels/index.ts';
 import { catOf } from '../world/levels/category.ts';
 import { buildLevel } from '../world/load.ts';
-import { THEMES, LENGTHS } from '../stagegen.js';
+import { THEMES, LENGTHS } from '../stagegen.ts';
 
-// the stage themes by key (stagegen.js is JavaScript)
+// the stage themes by key (stagegen.ts is JavaScript)
 const THEME_NAMES = THEMES as Record<string, { name: string }>;
 import { saveProfile } from './profile.ts';
 import { addPane, addButton, addElement, copyThumb } from './widgets.ts';

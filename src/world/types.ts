@@ -386,7 +386,7 @@ export interface BarrierSeg {
   torn?: boolean;   // torn open this step (world/armcodent.ts): no longer solid
 }
 
-/** A generated rally stage's recipe (stagegen.js genStage); km once built. */
+/** A generated rally stage's recipe (stagegen.ts genStage); km once built. */
 export interface StageRecipe {
   seed: number; theme: string; len: string; style: string; attempt?: number; km?: number;
 }
@@ -438,8 +438,8 @@ export interface Level {
   _incl?: Inclusions;   // load.ts prepareLevel
   allPatches?: Patch[];   // load.ts prepareLevel
   solidsDirty?: boolean;   // highway.ts
-  fixed?: boolean;   // stagegen.js
-  gen?: StageRecipe;   // stagegen.js: a generated stage's recipe (world/levels/category.ts)
+  fixed?: boolean;   // stagegen.ts
+  gen?: StageRecipe;   // stagegen.ts: a generated stage's recipe (world/levels/category.ts)
   roadTypes?: Record<string, string>;   // highway.ts: the road types setup offers, key -> name
   litter?: number;   // main.js, highway levels
   roadType?: string;   // highway.ts
@@ -472,7 +472,7 @@ export interface Level {
   _mergedOf?: Cover[];   // ground.ts mergedCovers: the covers list _merged was built from
   _merged?: MergedCover[];   // ground.ts mergedCovers
   _line?: RacingLine;   // ai/line.ts racingLine: the racing line, cached
-  // stagegen.js addStageLevels: a rally stage, generated on first use (load.ts buildLevel)
+  // stagegen.ts addStageLevels: a rally stage, generated on first use (load.ts buildLevel)
   _build?: () => Level;
   _branches?: Branches;   // ai/line.ts racingLine: the joker / start lane paths, cached
   bushes?: BushPlan;   // where its bushes grow (world/bushplan.ts)
@@ -560,7 +560,7 @@ export interface Subtrack {
   curvedKerbs: CurvedKerb[];
   grid: Map<number, number[]>;
   ghost?: { d0: number; d1: number };   // ghostSegment
-  noLines?: boolean;   // stagegen.js
+  noLines?: boolean;   // stagegen.ts
   laneDash?: number[];   // highway.ts
   laneSolid?: number[];   // highway.ts
   sBase?: number;   // highway.ts
