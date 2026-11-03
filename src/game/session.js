@@ -2,7 +2,7 @@
 import { reset } from '../vehicle.ts';
 import { resetHighway, roadFrame } from '../highway.js';
 import { createHwFlow, hwGridSpan } from '../highwayrace.ts';
-import { createRaceFlow } from '../raceflow.js';
+import { createRaceFlow } from '../raceflow.ts';
 import { repair, resetBill } from '../damage.ts';
 import { SPAWN, LEVEL } from "../world/state.ts";
 import { clearWear } from "../world/wear.ts";
@@ -219,7 +219,7 @@ export function buildFlow() {
     ...game.ai.map((entry) => ({ car: entry.car }))], total: LEVEL.subtrack.totalDist, laps,
       joker: shared.race.on ? LEVEL.joker : null });
 }
-// THE RACE (AI stage 4, src/raceflow.js): any VS AI or RX race on a lap circuit (not a stage).
+// THE RACE (AI stage 4, src/raceflow.ts): any VS AI or RX race on a lap circuit (not a stage).
 // Laps: setup, else 3 / the RX laps.
 export function startFlow() {
   game.flow = null;

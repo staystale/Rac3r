@@ -26,7 +26,7 @@ export interface ResultsActions {
   restart: () => void; tracks: () => void; menu: () => void;
 }
 
-/** One finisher's row (raceflow.js endRace; the highway's its own fields). */
+/** One finisher's row (raceflow.ts endRace; the highway's its own fields). */
 export interface ResultRow {
   car: Car & { spec: Car['spec'] & { name?: string } };
   player: boolean; num: number; paint?: string;
@@ -39,7 +39,7 @@ export interface ResultRow {
   dist?: number; gapM?: number;   // the highway: m driven; m behind the leader
 }
 
-/** A finished race, as the results read it (raceflow.js). */
+/** A finished race, as the results read it (raceflow.ts). */
 export interface ResultsFlow {
   results: ResultRow[];
   t: number; endT: number | null;   // the race clock; when it ended

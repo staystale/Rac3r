@@ -204,7 +204,7 @@ export type RenderCarSpec =
   Pick<Spec, 'id' | 'paint' | 'trim' | 'kind' | 'lf' | 'lr' | 'len' | 'wid'>
   & Partial<Pick<Spec, 'num' | 'trackWidth' | 'wheelR' | 'rideH' | 'rim'>>;   // num: the livery
 
-// What the car layers read of a CAR (vehicle.ts Car + what damage.ts / roll.js / the render
+// What the car layers read of a CAR (vehicle.ts Car + what damage.ts / roll.ts / the render
 // layers add).
 export interface RenderCar extends CamCar, Pick<Car, 'heading' | 'delta'> {
   spec: RenderCarSpec;
@@ -213,7 +213,7 @@ export interface RenderCar extends CamCar, Pick<Car, 'heading' | 'delta'> {
   crushS: number[];
   roofDmg: number;
   wheelOff: boolean[];
-  // metal on hard ground sparking (world/metalscrape.ts rims, roll.js the body): night glows
+  // metal on hard ground sparking (world/metalscrape.ts rims, roll.ts the body): night glows
   rimSparks?: boolean[];
   sparks?: boolean;
   // tyre pressure (physics/tyrepressure.ts) and the wheels' turn (render/tyrelook.ts)

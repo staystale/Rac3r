@@ -1,7 +1,7 @@
 // ai/trafficStep.ts: one physics step of the highway traffic: everyone in road coordinates,
 // recycling the cars that are out of view, the physics / kinematic choice, and driving each car.
 import { roadFrame, roadSpan } from "../highway.js";
-import { rolling } from "../roll.js";
+import { rolling } from "../roll.ts";
 import type { AiCar, TrafficCar, TrafficEnt } from "./types.ts";
 import {
   HARD_BEHIND, PHYS_NEAR, RECYCLE_AHEAD, RECYCLE_BEHIND, geo,

@@ -9,7 +9,7 @@ import { step } from "../vehicle.ts";
 import { applyGround, fenceClamp, obstacleClamp } from "../world/wear.ts";
 import { barrierClamp, solidClamp } from "../world/barriers.ts";
 import { hit, tooInjured } from "../damage.ts";
-import { rolling, tripCheck, stepRoll } from "../roll.js";
+import { rolling, tripCheck, stepRoll } from "../roll.ts";
 import type { TrafficCar } from "./types.ts";
 
 // HANDOVER EASE (owner: traffic "changes lane / shuffles into lane", traffic

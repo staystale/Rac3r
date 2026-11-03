@@ -8,7 +8,7 @@ export interface HwEntry {
   player: boolean;
   lastS?: number;   // its last road position, kept while it has no road frame (hwFlow.ts)
 }
-// One row of the results table (raceflow.js-shaped, + dist / gapM).
+// One row of the results table (raceflow.ts-shaped, + dist / gapM).
 export interface HwRow {
   car: AiCar; player: boolean; num: number; paint: string; s: number; dist: number;
   bill: number; time: number; total: number; penalty: number; est: boolean; best: null;

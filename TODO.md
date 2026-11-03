@@ -539,10 +539,10 @@ C. CAR SYSTEMS + DAMAGE (L; one chain - extend damage.ts, no second damage model
   GLOWS OFF THE BODYWORK (owner): brake glow orange -> deep red the hotter (owner), 0.45 m, centred 0.3 m
   outside the tyre; a rim's spark glow 0.45 m outside its tyre, a sliding body's behind it.
   FLIP RAMP - DEFAULT 10-25 (owner: pass; switch deleted) (owner: an angled armco end that can flip a vehicle, near the Lab's spike
-  strip, to test rolling / sliding sparks): world/flipramps.ts (roll.js tripCheck asks it),
+  strip, to test rolling / sliding sparks): world/flipramps.ts (roll.ts tripCheck asks it),
   render/flipramps.ts. 5 m x 0.6 m rising to 0.8 m; one side's wheels up it at 7+ m/s roll the car.
   SPARKS while crash rolling too (owner), flung behind the way the car MOVES (sliding / rolling),
-  hard ground only (roll.js car.sparks: any roll phase at 3+ m/s on hard ground).
+  hard ground only (roll.ts car.sparks: any roll phase at 3+ m/s on hard ground).
   CRASH SPARKS - DEFAULT 10-25 (owner: all pass; switch deleted; 70 %, over 25 mph, on the way the
   car went into the hit) (owner: big metal-on-metal crashes spark from the impact zone, like
   paint): physics/punctures.ts hitIsMetal (cars, armco, fences, posts, gantries ...), damage.ts

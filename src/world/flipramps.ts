@@ -2,7 +2,7 @@
 // vehicle; place it near the spike strip in the lab level" - to test rolling and sliding
 // sparks). A barrier end turned down into the ground: a steel strip rising from the road to
 // RAMP_RISE_M along its length, narrower than a car's track, so only one side's wheels run up
-// it. Driven up at speed it lifts that side and the car rolls AWAY from it - through roll.js
+// it. Driven up at speed it lifts that side and the car rolls AWAY from it - through roll.ts
 // startRoll (tripCheck asks here), the one way any car starts to roll.
 // Drawn by render/flipramps.ts.
 
@@ -36,7 +36,7 @@ export function levelFlipRamps(levelId: string): FlipRamp[] {
 type RampCar = WheelBase & { vx: number; vy: number };
 
 /**
- * Whether a flip ramp throws this car over this step, and which way (roll.js tripCheck).
+ * Whether a flip ramp throws this car over this step, and which way (roll.ts tripCheck).
  * @param car the car (on its wheels)
  * @param ramps the level's ramps
  * @returns the roll's direction and lateral speed for startRoll, or null

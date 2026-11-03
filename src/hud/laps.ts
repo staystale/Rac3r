@@ -152,7 +152,7 @@ function drawHudLapJokerLive(ctx: CanvasRenderingContext2D, game: HudGame, race:
 }
 
 /**
- * A VS AI race lap panel (raceflow.js): LAP n/N, FINISH once you are home.
+ * A VS AI race lap panel (raceflow.ts): LAP n/N, FINISH once you are home.
  * @param ctx
  * @param game the game
  * @param lapRect the lap panel rectangle

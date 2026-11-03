@@ -3,7 +3,7 @@
 
 import { CAR_IDS } from '../cars.ts';
 import { LEVELS } from '../world/levels/index.ts';
-import { PEDAL } from '../input.js';
+import { PEDAL } from '../input.ts';
 import { ROWS as TUNE_ROWS } from '../tune.ts';
 import { MARGIN, BTN_H, DIAGRAM_H } from './widgets.ts';
 import { trackTempShown } from './tracktemp.ts';
@@ -111,7 +111,7 @@ function layoutCornerPanels(state: HudState, width: number, btnY: number, narrow
  */
 function layoutBottomChips(width: number, height: number) {
   // DRIVER AID CHIPS (user: small chips ABOVE THE PEDALS). Laid out from the same
-  // PEDAL numbers input.js uses, clear of the brake pedal's generous 1.35r hit circle. Drawn and
+  // PEDAL numbers input.ts uses, clear of the brake pedal's generous 1.35r hit circle. Drawn and
   // hit-tested only on cars that have the aid.
   const yBrakeTop = height - PEDAL.margin - PEDAL.r - (PEDAL.r * 2 + PEDAL.gap) - PEDAL.r * 1.35;
   const aidW = 50, aidH = 30, aidY = Math.round(yBrakeTop - 6 - aidH);

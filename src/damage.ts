@@ -272,7 +272,7 @@ export function hit(
     return scrape(hurt, dt, weights, endW, top);
   }
   const amt = DMG_K * (size - DMG_FLOOR) ** DMG_EXP * give;
-  // a hard hit from the SIDE may trip the car over (roll.js tripCheck): it is pushed, and rolls,
+  // a hard hit from the SIDE may trip the car over (roll.ts tripCheck): it is pushed, and rolls,
   // away from the impact
   if (Math.abs(lateral) > 0.6) car._sideKick = { dir: -Math.sign(lateral), dv: deltaV };
   hardHitCorners(hurt, amt, weights, endW, rnd, punctureK);
@@ -346,7 +346,7 @@ export function stepDamage(car: DamageCar & ScrapeCar & EngineCar, dt: number): 
 }
 
 /**
- * ROLLOVER impacts (roll.js): the body meets the ground on a SIDE, the ROOF or back on its wheels.
+ * ROLLOVER impacts (roll.ts): the body meets the ground on a SIDE, the ROOF or back on its wheels.
  * @param car the car
  * @param kind 'side', 'roof' or 'wheels'
  * @param side +1 = +y, -1 = -y (for 'side')

@@ -224,7 +224,7 @@ export function crackOnHit(car: EngineCar, frontAdd: number, rnd: () => number):
 }
 
 /**
- * A rollover impact (roll.js via damage.ts hitRoll) may crack the sump.
+ * A rollover impact (roll.ts via damage.ts hitRoll) may crack the sump.
  * @param car the car (engineInit has run)
  * @param rnd the random source
  */

@@ -82,7 +82,7 @@ export function hwPutBack(level: HighwayLevel, dist: number, cars: AiCar[]) {
 // This file keeps only the RACE: grid, put-back, the CATCH THEM flow.)
 
 // THE RACE: entries [{ car, player }]; visible(car) = on screen right now. flow.step(dt) after the
-// green; flow.order -> your position. Results rows are raceflow.js-shaped (+ dist / gapM) so
+// green; flow.order -> your position. Results rows are raceflow.ts-shaped (+ dist / gapM) so
 // menu.ts can show them; flow.highway marks the distance table.
 export function createHwFlow(
   { lv, cars, visible, count = HW_COUNT, catchT = HW_CATCH }: HwFlowArgs) {

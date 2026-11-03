@@ -13,7 +13,7 @@ function run(id, v0, hbMs, mode) {
     const t=i*PHYSICS_STEP_SECONDS;
     const beta = Math.atan2(car.t.vLat, car.t.vLong); hist.push(beta);
     const d = hist[Math.max(0,hist.length-1-Math.round(0.25/PHYSICS_STEP_SECONDS))];
-    // progressive handbrake exactly as input.js ramps it (0.1 s slew both ways)
+    // progressive handbrake exactly as input.ts ramps it (0.1 s slew both ways)
     const hbT = t < hbMs/1000 ? 1 : 0;
     inp.handbrake = clamp((inp.handbrake||0) + clamp(hbT - (inp.handbrake||0), -PHYSICS_STEP_SECONDS/0.10, PHYSICS_STEP_SECONDS/0.10), 0, 1);
     if (mode === 'hold')        inp.steer = 0.9;                       // panic: keep the lock on

@@ -450,7 +450,7 @@ function sparksOwed(debt: number, rate: number, wallDt: number): number {
 
 /**
  * SPARKS from metal on hard ground: each wheel on its rim (car.rimSparks) and a body sliding on
- * its side or roof (roll.js car.sparks), wall clock.
+ * its side or roof (roll.ts car.sparks), wall clock.
  * @param ctx particle context
  * @param car the car
  * @param wallDt wall-clock frame time

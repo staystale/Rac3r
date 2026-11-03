@@ -252,7 +252,7 @@ export function loop(now) {
   stepCarSignals(inp, wallDt);
 
   // HUD taps are handled in `hudDown` at the moment of the touch, BEFORE the stick or the pedals
-  // can claim the pointer — see input.js. Nothing to do here; a tap that reaches this point hit the
+  // can claim the pointer — see input.ts. Nothing to do here; a tap that reaches this point hit the
   // world.
   shared.input.consumeTap();
 

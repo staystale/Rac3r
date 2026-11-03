@@ -93,7 +93,7 @@ car sim/
   serve.mjs             static server, no-store, port 8080
   src/
     main.js             boot, fixed-step accumulator, resize, dev flags, window.__game
-    input.js            normalized input state; keyboard + touch; pc/touch detect
+    input.ts            normalized input state; keyboard + touch; pc/touch detect
     vehicle.js          THE MODEL. Knows nothing about upgrades, cones, or rendering.
     cars.js             base stats (hatch) + the default mods table
     marks.js            world-space skid-mark layer + stamping rules
@@ -328,7 +328,7 @@ built**, with the measured bench table in it.
 
 The user requires the `track-rwd` car to handle like an authentic F1 car (massive downforce, stick-like grip at high speeds, and extreme power capable of wheelspinning to 200 km/h in 1st gear) AND requires **Traction Control (TCS)** and **Launch Control** to be toggleable for high-end cars.
 
-1.  **Driver Assists (`src/input.js`, `src/hud.ts`, `src/vehicle.js`)**
+1.  **Driver Assists (`src/input.ts`, `src/hud.ts`, `src/vehicle.js`)**
     - `cars.js` must support a `hasAssists: true` flag.
     - `hud.ts` must render a "TCS ON/OFF" toggle chip.
     - `vehicle.js` must intercept `throttle` during high-slip events (TCS) and hold optimal RPM during stationary full-throttle launches (Launch Control) based on the `assistsActive` state.

@@ -55,8 +55,9 @@ export interface CarWreck {
   // soft wheels' rolling drag, total and by side (shares of one wheel's static load)
   flatDrag?: number; flatYaw?: number;
 }
-// The rollover state (roll.js): vehicle.ts only nulls it.
-export interface CarRoll { phase: string }
+// The rollover state (roll.ts): the phase, the roll angle phi about the long axis, its rate w,
+// seconds still (a settled car), when it last touched down. vehicle.ts only nulls it.
+export interface CarRoll { phase: string; phi: number; w: number; still: number; ts?: number }
 // Render position of the last frame (main.js, traffic.ts): vehicle.ts only nulls it.
 export interface CarPrev { x: number; y: number; h: number }
 // A wheel position from last step (world/wear.ts): vehicle.ts only nulls the list.
@@ -351,7 +352,7 @@ export function reset(car: Car, x = 0, y = 0, heading = -Math.PI / 2) {
   // where it is now, so after a teleport (an AI / traffic respawn, the highway put-back) it wore a
   // straight line from the old spot to the new one - across the verge AND the carriageway.
   car.prevWheels = null; car.wheelSurf = null;
-  // ROLLOVER (roll.js): a reset puts the car back on its wheels
+  // ROLLOVER (roll.ts): a reset puts the car back on its wheels
   car.roll = null; car.sparks = false;
   // tape stuck to the car goes with it (requirement: resetting should remove any tape)
   car.streamers = null;
@@ -736,7 +737,7 @@ export function step(car: Car, input: CarInput, dt = PHYSICS_STEP_SECONDS) {
           throttle, brakeIn, totalRatio, dt);
 
   // handbrake locks the rear outright 0..1, not a boolean: the handbrake is modulated (see
-  // input.js). still means full, so the headless benches and any older caller keep working.
+  // input.ts). still means full, so the headless benches and any older caller keep working.
   const handbrake = handbrakeRaw;
 
 

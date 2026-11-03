@@ -13,7 +13,7 @@ function run(id, v0, steer) {
   let peak=0, minV=99, held=0;
   for (let i=0;i<120*8;i++){
     const t=i*PHYSICS_STEP_SECONDS;
-    // progressive brake exactly as input.js ramps it, held down throughout
+    // progressive brake exactly as input.ts ramps it, held down throughout
     held += PHYSICS_STEP_SECONDS;
     inp.brake = Math.min(1, 0.28 + 0.72*(held/0.50));
     inp.steer = steer;

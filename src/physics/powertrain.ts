@@ -99,7 +99,7 @@ export function runPowertrain(car: Car, carSpec: Spec, input: CarInput, vLong: n
   // HOLD R TO REVERSE (user: the guide card said "Hold R to reverse" and the user ruled
   // "it should work how the card says and the game is wrong"). It WAS a toggle, and in reverse the
   // pedals swapped (BRAKE drove you backwards, GAS braked). Now R is its own pedal, 0..1, ramped
-  // like GAS (input.js), and NO PEDAL EVER SWAPS:
+  // like GAS (input.ts), and NO PEDAL EVER SWAPS:
   //   R held, rolling forward  -> R brakes, then reverse engages below 1 m/s and R drives you
 //                               backwards
   //   R released               -> coast; back to a forward gear once nearly stopped

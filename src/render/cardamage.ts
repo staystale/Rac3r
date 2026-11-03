@@ -147,7 +147,7 @@ function crushPixel(
 }
 
 /**
- * ROOF (a rollover, roll.js -> damage.ts roofDmg): the cabin pressed dark, the glass cracked
+ * ROOF (a rollover, roll.ts -> damage.ts roofDmg): the cabin pressed dark, the glass cracked
  * white.
  * @param pixels the image data
  * @param geo sprite size and crush amounts
@@ -274,7 +274,7 @@ function makePaintRect(ctx: CanvasRenderingContext2D) {
 }
 
 /**
- * ROLLED CARS (roll.js): the side face of the box, generated like the top sprite (art px; x
+ * ROLLED CARS (roll.ts): the side face of the box, generated like the top sprite (art px; x
  * rear -> front as pixelCar). Cached in the face cache.
  * @param dmgCtx the shared view and face cache
  * @param spec the car spec
@@ -324,7 +324,7 @@ function sideSprite(dmgCtx: DamageContext, spec: RenderCarSpec): SideSprite {
 }
 
 /**
- * ROLLED CARS (roll.js): the underside of the box, generated like the top sprite. Cached in the
+ * ROLLED CARS (roll.ts): the underside of the box, generated like the top sprite. Cached in the
  * face cache.
  * @param dmgCtx the shared view and face cache
  * @param spec the car spec
@@ -558,7 +558,7 @@ function drawFaces(
  * @returns damagedSprite, silhouette, faceCache, rolledFaces and drawFaces
  */
 export function createCarDamage(view: View) {
-  // ROLLED CARS (roll.js): the other faces of the box, generated like the top sprite
+  // ROLLED CARS (roll.ts): the other faces of the box, generated like the top sprite
   const faceCache = new Map<string, CarSprite | SideSprite>();
   const dmgCtx: DamageContext = { view, faceCache };
   return {

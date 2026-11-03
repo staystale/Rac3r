@@ -230,7 +230,7 @@ function addRacerCells(grid: HTMLElement, racer: ResultRow, cls: string) {
  * The HIGHWAY race results table (highwayrace.js): no laps or times — how far up the road each
  * car got, and the gap in metres to the leader.
  * @param menu the menu context
- * @param flow the race flow (raceflow.js)
+ * @param flow the race flow (raceflow.ts)
  * @param act the results actions
  */
 function showHighwayTable(menu: Menu, flow: ResultsFlow, act: ResultsActions) {
@@ -274,7 +274,7 @@ function addResultsNotes(panel: HTMLElement, flow: ResultsFlow, racers: ResultRo
 /**
  * The results table of a lap / stage race: position, time, gap, best lap, penalty, repair bill.
  * @param menu the menu context
- * @param flow the race flow (raceflow.js)
+ * @param flow the race flow (raceflow.ts)
  * @param act the results actions
  */
 function showResultsTable(menu: Menu, flow: ResultsFlow, act: ResultsActions) {
@@ -340,7 +340,7 @@ function addPodiumStep(menu: Menu, pod: HTMLElement, flow: ResultsFlow, racer: R
 
 /**
  * RESULTS (AI stage 4; requirement: podium first, then the table): the PODIUM, 2nd, 1st, 3rd on
- * steps, the car on top; tap or 2.5 s -> the table. flow = raceflow.js (results sorted on time
+ * steps, the car on top; tap or 2.5 s -> the table. flow = raceflow.ts (results sorted on time
  * incl. penalties; est = still running when the race was cut short).
  * @param menu the menu context
  * @param flow the race flow

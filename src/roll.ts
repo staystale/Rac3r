@@ -1,4 +1,4 @@
-// roll.js — ROLLOVERS + SIDE / ROOF SLIDES. User: "the roll over system should be
+// roll.ts — ROLLOVERS + SIDE / ROOF SLIDES. User: "the roll over system should be
 // included in damage"; "can we get roll overs and side and roof slides". Backlog spec (TODO
 // MASTER BACKLOG E): a chance from impact speed, landing, slide angle and surface; landing on
 // things = high chance; can roll several times onto the side or the roof, then slide.
@@ -19,6 +19,24 @@
 // (the side face the camera sees on a rolled car)
 import { levelFlipRamps, rampFlip } from './world/flipramps.ts';
 import { LEVEL } from './world/state.ts';
+import type { CarRoll } from './vehicle.ts';
+/** The rollover state (car.roll; vehicle.ts CarRoll). */
+export type RollState = CarRoll;
+/** A car as the rollover reads and moves it (the player, the AI, highway traffic). */
+export interface RollCar {
+  x: number; y: number; vx: number; vy: number; heading: number; yawRate: number; rpm: number;
+  air: number;   // height off the ground, m
+  sparks?: boolean;
+  spec: { lf: number; lr: number; trackWidth?: number; cg?: number; cgH?: number };
+  surface?: { id?: string; hard?: boolean };
+  t?: { vLong: number };
+  roll: RollState | null;
+  _airT?: number; _rolls?: number; _tripCell?: number | null;
+  _sideKick?: { dir: number; dv: number } | null;   // a hard side hit (damage.ts): may start a roll
+}
+/** Called when the body hits the ground: the quarter-turn kind (side / roof) and how hard. */
+type RollHit = (kind: string, side: number, rate: number) => void;
+
 export const ROLL_H = 1.4;
 // the hatch: 1.5 / (2 x 0.52)
 const SSF_REF = 1.44;
@@ -33,7 +51,7 @@ const HALF_PI = Math.PI / 2;
 // roll of the dice per CELL_M m ground cell crossed: pct (% per cell at 60 mph, square on) x
 // ANGLE (0 under ANG_MIN of the slide being sideways, 1 at fully sideways) x SPEED ((v / 60
 // mph)^4 under it, rising past it, cap x2.5) x the car's stability (track / 2 cg).
-const PCT = {
+const PCT: Record<string, number> = {
   // high: the ground grabs a sliding car
   // SAND the HIGHEST risk (it also stops a slide fastest, so its per-cell % is
   // highest), SNOW a close second
@@ -50,9 +68,9 @@ const PCT = {
 const PCT_HARD = 0.5;
 // ANG_MIN: sin of the slide angle (0.8 = 53 deg; full chance at 90)
 const CELL_M = 2, MPH60 = 26.82, MPH39 = 17.43, ANG_MIN = 0.8;
-const pctOf = (surface) => PCT[surface.id] ?? PCT_HARD;
+const pctOf = (surface: { id?: string }) => PCT[surface.id || ''] ?? PCT_HARD;
 // body friction when sliding on its side / roof
-function muBody(surface) {
+function muBody(surface: { id?: string }) {
   const surfaceId = surface.id || '';
   if (surfaceId === 'ice') return 0.1;
   if (surfaceId === 'snow') return 0.28;
@@ -63,9 +81,9 @@ function muBody(surface) {
   // metal on tarmac / concrete
   return 0.45;
 }
-export const rolling = (car) => !!(car.roll && car.roll.phase !== 'none');
+export const rolling = (car: RollCar) => !!(car.roll && car.roll.phase !== 'none');
 
-export function startRoll(car, dir, vLat) {
+export function startRoll(car: RollCar, dir: number, vLat: number) {
   car._rolls = (car._rolls || 0) + 1;
   // a spread on the spin, and on what each ground contact takes off it (below), so a roll can end
   // on the wheels, a side or the roof
@@ -78,7 +96,7 @@ export function startRoll(car, dir, vLat) {
 }
 
 // call each sim step while the car is on its wheels (after vehicle.step)
-export function tripCheck(car, dt, rnd = Math.random) {
+export function tripCheck(car: RollCar, dt: number, rnd: () => number = Math.random) {
   if (rolling(car)) return false;
   // per-car cg (cars.js)
   const spec = car.spec, ssf = (spec.trackWidth || 1.5) / (2 * (spec.cg || spec.cgH || 0.52)),
@@ -105,9 +123,9 @@ export function tripCheck(car, dt, rnd = Math.random) {
 
 /**
  * The air-time bookkeeping and the crooked-landing roll check of tripCheck.
- * @returns {boolean} true when the landing started a roll
+ * @returns true when the landing started a roll
  */
-function tripLanding(car, dt, vLat, stability, rnd) {
+function tripLanding(car: RollCar, dt: number, vLat: number, stability: number, rnd: () => number) {
   const landed = !(car.air > 0) && (car._airT || 0) > 0.35;
   car._airT = car.air > 0 ? (car._airT || 0) + dt : 0;
   // a CROOKED LANDING (requirement: a little easy to roll over on landing): was 30 % for any
@@ -127,9 +145,9 @@ function tripLanding(car, dt, vLat, stability, rnd) {
 
 /**
  * The one-check-per-ground-cell trip roll of tripCheck (drifting on the wheels).
- * @returns {boolean} true when the car started to roll
+ * @returns true when the car started to roll
  */
-function tripGround(car, vLat, stability, rnd) {
+function tripGround(car: RollCar, vLat: number, stability: number, rnd: () => number) {
   if (car.air > 0) return false;
   const speed = Math.hypot(car.vx, car.vy);
   if (speed < 8) return false;
@@ -156,8 +174,8 @@ function tripGround(car, vLat, stability, rnd) {
 
 // one sim step of a rolling / overturned car (instead of vehicle.step). onHit(kind, side) for the
 // damage (main.js -> damage.ts)
-export function stepRoll(car, dt, onHit) {
-  const state = car.roll, surface = car.surface || {}, gravity = 9.81,
+export function stepRoll(car: RollCar, dt: number, onHit: RollHit) {
+  const state = car.roll!, surface = car.surface || {}, gravity = 9.81,
     speed = Math.hypot(car.vx, car.vy);
   if (state.phase === 'rolling' && spinStep(car, state, dt, onHit)) return;
   // the body slides on whatever it is lying on (while rolling: mostly in the air, little drag)
@@ -182,9 +200,9 @@ export function stepRoll(car, dt, onHit) {
 
 /**
  * The spin of a rolling car for one step: quarter-turn hits and the settle onto a face.
- * @returns {boolean} true when the car came to rest on its wheels (the roll is over)
+ * @returns true when the car came to rest on its wheels (the roll is over)
  */
-function spinStep(car, state, dt, onHit) {
+function spinStep(car: RollCar, state: RollState, dt: number, onHit: RollHit) {
   const was = Math.floor(state.phi / HALF_PI + 1e-9 * Math.sign(state.w));
   state.phi += state.w * dt;
   const now = Math.floor(state.phi / HALF_PI + 1e-9 * Math.sign(state.w));

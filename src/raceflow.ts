@@ -1,4 +1,5 @@
-// raceflow.js — AI STAGE 4: HOW A RACE ENDS. Pure bookkeeping on the sim step; main.js
+import type { JokerRule } from './world/types.ts';
+// raceflow.ts — AI STAGE 4: HOW A RACE ENDS. Pure bookkeeping on the sim step; main.js
 // feeds it, hud.ts draws the flag, menu.ts shows the podium + results.
 //
 // USER SPEC: a CHEQUERED FLAG sweeps the WHOLE screen for the winner and when the
@@ -22,6 +23,43 @@
 // time". States: 'racing' -> (top 3 home) 'grace' (player still running, GRACE s) -> 'done'. The
 // player finishing ends the grace at once; a player who finished in the top 3 waits at most
 // WAIT_TOP3 s for the rest of the top 3.
+/** A racer's car as the race flow reads it (progress, penalties, the bill). */
+export interface FlowCar {
+  num?: number; spec: { paint?: string }; dmgBill?: number;
+  _jokers?: number; _cutPen?: number;   // jokers taken; track-cut seconds (RX)
+  _prog?: number;   // race progress, m (the grid sits at negative progress)
+  _stageStart?: number | null;   // a stage car's start time
+  _predT?: number;   // a stage car's predicted time (main.js lineRun)
+}
+/** One racer's running record. */
+export interface FlowEntry {
+  car: FlowCar; player: boolean;
+  lapDone: number; lapT0: number; laps: number[]; best: number | null;
+  finish: number | null; start: number | null; time?: number;   // stage: its own time
+}
+/** One row of the classified results. */
+export interface FlowResult {
+  car: FlowCar; player: boolean; num: number; paint?: string;
+  time: number; penalty: number; total: number; est: boolean;
+  best: number | null; laps: number; jokers: number; bill: number;
+  dnf?: boolean; pos?: number; gap?: number;
+}
+/** A race in progress (or done), as the game, the HUD and the results read it. */
+export interface RaceFlow {
+  state: string; t: number; laps: number; entries: FlowEntry[];
+  flags: number[];   // the times you crossed the line (the chequered flag)
+  endT: number | null; results: FlowResult[] | null; graceT: number | null;
+  firstHome: number | null; myPlace?: number;
+  stage?: { finish: number } | null;
+  step: (dt: number) => void; end: () => void;
+}
+/** What the step functions share: the flow and the race setup. */
+interface FlowState {
+  flow: RaceFlow; entries: FlowEntry[];
+  total: number; laps: number;   // the lap length, m; the laps
+  joker: JokerRule | null; stage: { finish: number } | null;
+}
+
 export const GRACE = 5, WAIT_TOP3 = 15, JOKER_LEFT = 0.6, DNF_X = 2, STAGE_WAIT = 10;
 // RALLY STAGE mode (stage = { finish }) (requirement: like real life — a time trial with staggered
 // starts, each timed from their own start, so you can catch the car ahead or be caught): a car's
@@ -32,11 +70,11 @@ export const GRACE = 5, WAIT_TOP3 = 15, JOKER_LEFT = 0.6, DNF_X = 2, STAGE_WAIT 
 /**
  * Seconds of penalty an entry carries (track cuts, plus RX joker: none taken = +penalty, each
  * extra = +penalty).
- * @param {object} state the race-flow state
- * @param {object} entry the entry
- * @returns {number} penalty seconds
+ * @param state the race-flow state
+ * @param entry the entry
+ * @returns penalty seconds
  */
-function addPenalty(state, entry) {
+function addPenalty(state: FlowState, entry: FlowEntry) {
   const { joker } = state;
   const cut = entry.car._cutPen || 0;   // TRACK CUTS (main.js trackCut): seconds, RX only
   if (!joker) return cut;
@@ -46,22 +84,22 @@ function addPenalty(state, entry) {
 
 /**
  * Race progress of an entry's car (-Infinity when it has none yet).
- * @param {object} entry the entry
- * @returns {number} progress in metres
+ * @param entry the entry
+ * @returns progress in metres
  */
-function raceProgressOf(entry) {
+function raceProgressOf(entry: FlowEntry) {
   return entry.car._prog === undefined ? -Infinity : entry.car._prog;
 }
 
 /**
  * One car crosses the stage finish: its time, the first home, and your chequered flag.
- * @param {object} flow the race flow
- * @param {object} entry the finishing entry
+ * @param flow the race flow
+ * @param entry the finishing entry
  * @returns {void}
  */
-function finishStageEntry(flow, entry) {
+function finishStageEntry(flow: RaceFlow, entry: FlowEntry) {
   entry.finish = flow.t;
-  entry.time = entry.finish - entry.start;
+  entry.time = entry.finish - entry.start!;
   entry.lapDone = 1;
   if (entry.player || flow.firstHome == null) {
     if (flow.firstHome == null) flow.firstHome = flow.t;
@@ -71,15 +109,15 @@ function finishStageEntry(flow, entry) {
 
 /**
  * Rally stage step: start and finish timing for every car, and the end of the event.
- * @param {object} state the race-flow state
+ * @param state the race-flow state
  * @returns {void}
  */
-function stepStage(state) {
+function stepStage(state: FlowState) {
   const { flow, entries, stage } = state;
   for (const entry of entries) {
     const prog = raceProgressOf(entry); if (!isFinite(prog)) continue;
     if (entry.start == null && prog >= 0) entry.start = flow.t;
-    if (entry.start != null && entry.finish == null && prog >= stage.finish) {
+    if (entry.start != null && entry.finish == null && prog >= stage!.finish) {
       finishStageEntry(flow, entry);
     }
   }
@@ -90,10 +128,10 @@ function stepStage(state) {
 
 /**
  * Lap bookkeeping step for a lapped race: lap times, best lap, finishes and flags.
- * @param {object} state the race-flow state
+ * @param state the race-flow state
  * @returns {void}
  */
-function stepLaps(state) {
+function stepLaps(state: FlowState) {
   const { flow, entries, total, laps } = state;
   for (const entry of entries) {
     if (entry.finish != null) continue;
@@ -122,10 +160,10 @@ function stepLaps(state) {
 
 /**
  * Race state machine step: racing -> grace -> done.
- * @param {object} state the race-flow state
+ * @param state the race-flow state
  * @returns {void}
  */
-function stepRaceState(state) {
+function stepRaceState(state: FlowState) {
   const { flow, entries } = state;
   const home = entries.filter((entry) => entry.finish != null),
     need = Math.min(3, entries.length), myEntry = entries.find((entry) => entry.player);
@@ -145,11 +183,11 @@ function stepRaceState(state) {
 
 /**
  * Advances the race by one sim step.
- * @param {object} state the race-flow state
- * @param {number} dt seconds
+ * @param state the race-flow state
+ * @param dt seconds
  * @returns {void}
  */
-function stepRace(state, dt) {
+function stepRace(state: FlowState, dt: number) {
   const { flow, stage } = state;
   if (flow.state === 'done') return;
   flow.t += dt;
@@ -163,11 +201,11 @@ function stepRace(state, dt) {
 
 /**
  * Estimated finish of an entry still running when the race ends.
- * @param {object} state the race-flow state
- * @param {object} entry the entry
+ * @param state the race-flow state
+ * @param entry the entry
  * @returns {{t: number, extra: number}} time and penalty seconds
  */
-function estimateFinish(state, entry) {
+function estimateFinish(state: FlowState, entry: FlowEntry) {
   const { flow, stage, total, laps, joker } = state;
   if (stage) {
     // under a quarter of the way (or not started: a later starter): its PREDICTED stage time
@@ -190,16 +228,16 @@ function estimateFinish(state, entry) {
 
 /**
  * Ends the race and builds the classified results table into flow.results.
- * @param {object} state the race-flow state
+ * @param state the race-flow state
  * @returns {void}
  */
-function endRace(state) {
+function endRace(state: FlowState) {
   const { flow, entries, stage } = state;
   flow.state = 'done'; flow.endT = flow.t;
-  const rows = entries.map((entry) => {
-    const est = entry.finish == null, outcome = est
+  const rows: FlowResult[] = entries.map((entry) => {
+    const est = entry.finish == null, outcome: { t: number; extra: number } = est
       ? estimateFinish(state, entry)
-      : { t: stage ? entry.time : entry.finish, extra: addPenalty(state, entry) };
+      : { t: (stage ? entry.time : entry.finish)!, extra: addPenalty(state, entry) };
     return { car: entry.car, player: entry.player, num: entry.car.num || 1,
       paint: entry.car.spec.paint, time: outcome.t, penalty: outcome.extra,
       total: outcome.t + outcome.extra, est,
@@ -211,23 +249,26 @@ function endRace(state) {
   const win = Math.min(...rows.filter((row) => !row.est).map((row) => row.total));
   for (const row of rows) row.dnf = row.est
     && (!isFinite(row.total) || (isFinite(win) && row.total > DNF_X * win));
-  rows.sort((rowA, rowB) => (rowA.dnf - rowB.dnf)
+  rows.sort((rowA, rowB) => (Number(rowA.dnf) - Number(rowB.dnf))
     || (rowA.dnf ? rowB.laps - rowA.laps : rowA.total - rowB.total));
   rows.forEach((row, i) => { row.pos = i + 1; row.gap = row.total - rows[0].total; });
   flow.results = rows;
 }
 
 // cars: [{ car, player }]; total: lap length (m); laps; joker: LEVEL.joker or null
-export function createRaceFlow({ cars, total, laps, joker = null, stage = null }) {
-  const entries = cars.map(({ car, player }) =>
+export function createRaceFlow({ cars, total, laps, joker = null, stage = null }: {
+  cars: { car: FlowCar; player?: boolean }[]; total: number; laps: number;
+  joker?: JokerRule | null; stage?: { finish: number } | null;
+}): RaceFlow {
+  const entries: FlowEntry[] = cars.map(({ car, player }) =>
     ({ car, player: !!player, lapDone: 0, lapT0: 0, laps: [], best: null, finish: null,
     start: stage && car._stageStart != null ? car._stageStart : null }));
   const flow = { state: 'racing', t: 0, laps, entries: entries, flags: [], endT: null,
-    results: null, graceT: null, firstHome: null };
+    results: null, graceT: null, firstHome: null } as unknown as RaceFlow;   // step / end below
   // shared by the step functions: the flow object and the race setup
-  const state = { flow, entries, total, laps, joker, stage };
+  const state: FlowState = { flow, entries, total, laps, joker, stage };
   flow.stage = stage;
-  flow.step = (dt) => stepRace(state, dt);
+  flow.step = (dt: number) => stepRace(state, dt);
   flow.end = () => endRace(state);
   return flow;
 }

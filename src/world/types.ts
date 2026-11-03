@@ -408,6 +408,7 @@ export interface Solid {
 export interface JokerRule {
   gate: { x: number; y: number; r: number };
   penalty: number;
+  estCost?: number;   // s a joker is guessed to cost an unfinished car (raceflow.ts; unset: 5)
   laps: number;
   // d: its distance round the track (hud/laps.ts reads it for the joker turn-off; none sets it)
   arrows: ({ x: number; y: number; rot: number; len: number; d?: number } | null)[];

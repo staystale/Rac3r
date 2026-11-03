@@ -2,7 +2,7 @@
 import { step, reset, assertFinite } from '../vehicle.ts';
 import { hwPutBack } from '../highwayrace.ts';
 import { hit, hitRoll, repair, tooInjured, applyBurst, stepDamage } from '../damage.ts';
-import { rolling, tripCheck, stepRoll } from '../roll.js';
+import { rolling, tripCheck, stepRoll } from '../roll.ts';
 import { LEVEL } from "../world/state.ts";
 import { applyGround, fenceClamp, obstacleClamp } from "../world/wear.ts";
 import { barrierClamp, solidClamp } from "../world/barriers.ts";

@@ -9,7 +9,7 @@
 
 import { makeCar } from './vehicle.ts';
 import { CAR_IDS, applyLivery } from './cars.ts';
-import { createInput } from './input.js';
+import { createInput } from './input.ts';
 import { createRenderer } from './render.ts';
 import { readSettings } from './core/settings.ts';
 import { createMarks } from './marks.js';

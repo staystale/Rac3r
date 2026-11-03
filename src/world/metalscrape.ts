@@ -1,7 +1,7 @@
 // metalscrape.ts - METAL ON HARD GROUND (owner: "a rim on tarmac should have a small chance to
 // degrade hard surfaces - racing to normal, normal to cracked"; "crashed rolled cars should have
 // a chance too"). ONE rule for a wheel on its rim (physics/tyrepressure.ts) and a car's body
-// sliding on its side or roof (roll.js car.sparks): on hard ground it throws sparks (the
+// sliding on its side or roof (roll.ts car.sparks): on hard ground it throws sparks (the
 // particles read car.rimSparks / car.sparks), a rim scores a pale line (MARK_GOUGE), and for each
 // new 1.5 m wear cell it enters there is a small chance to break the surface down one grade -
 // race tarmac to tarmac, tarmac to broken tarmac - through the wear cells (gougeCell below), so
@@ -42,7 +42,7 @@ const BODY = 4;
 
 /**
  * One physics step of metal on the ground: rims on hard ground spark and may gouge; a body
- * sliding on hard ground (car.sparks, set by roll.js) may gouge.
+ * sliding on hard ground (car.sparks, set by roll.ts) may gouge.
  * @param car the car
  * @param rnd the random source
  */

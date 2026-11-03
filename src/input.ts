@@ -1,4 +1,4 @@
-// input.js — one normalized input state, keyboard + touch. The vehicle never sees an event.
+// input.ts — one normalized input state, keyboard + touch. The vehicle never sees an event.
 //
 // { steer: [-1..1], throttle: [0..1], brake: [0..1], handbrake, shiftUp, shiftDown }
 //
@@ -53,7 +53,39 @@ const BRAKE_RAMP = 1.0;   // s to reach full pedal
 // counter-steer a flick of the thumb rather than a sweep of the hand.
 const STICK_MAX = 38;          // px of travel for full lock
 
-const KEYMAP = {
+/** The createInput options. */
+export interface InputOpts {
+  mode?: string;   // 'touch' | 'pc' | 'auto'
+  hudDown?: (x: number, y: number) => boolean;   // a tap the HUD claims (never reaches the world)
+  onKey?: (key: string) => void;   // every key down
+}
+
+/** The one input state: the resolved axes, what the HUD draws, and the frame methods. */
+export interface InputState {
+  steer: number; throttle: number; brake: number; handbrake: number; reverse?: number;
+  shiftUp: boolean; shiftDown: boolean;
+  mode: string;
+  stick: { active: boolean; ox: number; oy: number; x: number; y: number };
+  speed: number;   // the player car's speed, m/s (sim.js): the stick's reach
+  stickReach: number;   // px of thumb for full lock this frame (steerfeel.ts)
+  pedals: Record<string, boolean>;
+  tapped: { x: number; y: number } | null;
+  brakeHeld: number; thrHeld: number; revHeld: number;   // s each has been held (the ramps)
+  isTouch: () => boolean;
+  pedalHits: typeof findPedalHits;
+  releaseAll: () => void;
+  update: (wallDt?: number) => InputState;
+  consumeTap: () => { x: number; y: number } | null;
+}
+
+/** What the pointer handlers share. */
+interface InputCore {
+  state: InputState; canvas: HTMLCanvasElement; opts: InputOpts;
+  keys: Set<string>;   // the held key actions
+  owners: Map<number, string>;   // pointer id -> 'stick' | 'hud' | a pedal name
+}
+
+const KEYMAP: Record<string, string> = {
   a: 'left', arrowleft: 'left', d: 'right', arrowright: 'right',
   w: 'up', arrowup: 'up', s: 'down', arrowdown: 'down',
   ' ': 'hand', e: 'shiftUp', q: 'shiftDown', z: 'reverse', t: 'toggleTcs',
@@ -61,21 +93,21 @@ const KEYMAP = {
 
 /**
  * Is the touch scheme in force (mode forced to touch, or auto on a coarse pointer)?
- * @param {object} state the input state returned by createInput
- * @returns {boolean}
+ * @param state the input state returned by createInput
+ * @returns 
  */
-function isInputTouch(state) {
+function isInputTouch(state: InputState) {
   return state.mode === 'touch' ||
     (state.mode === 'auto' && matchMedia('(pointer: coarse)').matches);
 }
 
 /**
  * The pedal circles, laid out from the bottom-right corner.
- * @param {number} width canvas width in px
- * @param {number} height canvas height in px
- * @returns {Array<{name: string, x: number, y: number, r: number}>}
+ * @param width canvas width in px
+ * @param height canvas height in px
+ * @returns >}
  */
-function findPedalHits(width, height) {
+function findPedalHits(width: number, height: number) {
   // laid out from the bottom-right corner; the four corners have owners (CLAUDE.md §4)
   const { r: radius, gap, margin } = PEDAL;
   const x = width - margin - radius;
@@ -98,14 +130,15 @@ function findPedalHits(width, height) {
 // before anything else.
 /**
  * Decide which control a pointer-down lands on.
- * @param {object} core shared handler state (opts used for hudDown)
- * @param {number} tapX x in canvas px
- * @param {number} tapY y in canvas px
- * @param {number} width canvas width in px
- * @param {number} height canvas height in px
- * @returns {string|null} 'hud', a pedal name, 'stick', or null for a world tap
+ * @param core shared handler state (opts used for hudDown)
+ * @param tapX x in canvas px
+ * @param tapY y in canvas px
+ * @param width canvas width in px
+ * @param height canvas height in px
+ * @returns 'hud', a pedal name, 'stick', or null for a world tap
  */
-function pickInputTarget(core, tapX, tapY, width, height) {
+function pickInputTarget(core: InputCore, tapX: number, tapY: number, width: number,
+  height: number) {
   if (core.opts.hudDown && core.opts.hudDown(tapX, tapY)) return 'hud';
   for (const pedal of findPedalHits(width, height)) {
     // generous hit radius: a thumb is not a mouse
@@ -117,11 +150,11 @@ function pickInputTarget(core, tapX, tapY, width, height) {
 
 /**
  * Pointer down: claim the pointer for a control, or record a world tap.
- * @param {object} core shared handler state
- * @param {PointerEvent} event
- * @returns {void}
+ * @param core shared handler state
+ * @param event
+ * @returns 
  */
-function onInputPointerDown(core, event) {
+function onInputPointerDown(core: InputCore, event: PointerEvent) {
   const { state, canvas, owners } = core;
   const rect = canvas.getBoundingClientRect();
   const tapX = event.clientX - rect.left, tapY = event.clientY - rect.top;
@@ -148,11 +181,11 @@ function onInputPointerDown(core, event) {
 
 /**
  * Pointer move: drag the stick if this pointer owns it.
- * @param {object} core shared handler state
- * @param {PointerEvent} event
- * @returns {void}
+ * @param core shared handler state
+ * @param event
+ * @returns 
  */
-function onInputPointerMove(core, event) {
+function onInputPointerMove(core: InputCore, event: PointerEvent) {
   const { state, canvas, owners } = core;
   const who = owners.get(event.pointerId);
   if (who !== 'stick') return;
@@ -164,11 +197,11 @@ function onInputPointerMove(core, event) {
 
 /**
  * Pointer up / cancel / lost capture: release whatever this pointer held.
- * @param {object} core shared handler state
- * @param {PointerEvent} event
- * @returns {void}
+ * @param core shared handler state
+ * @param event
+ * @returns 
  */
-function onInputPointerUp(core, event) {
+function onInputPointerUp(core: InputCore, event: PointerEvent) {
   const { state, owners } = core;
   const who = owners.get(event.pointerId);
   if (who === 'stick') { state.stick.active = false; state.stick.x = state.stick.ox; }
@@ -187,10 +220,10 @@ function onInputPointerUp(core, event) {
 // each case.
 /**
  * Release every held control: pointers, stick, pedals and keys.
- * @param {object} core shared handler state
- * @returns {void}
+ * @param core shared handler state
+ * @returns 
  */
-function releaseAllInput(core) {
+function releaseAllInput(core: InputCore) {
   const { state, owners, keys } = core;
   owners.clear();
   state.stick.active = false; state.stick.x = state.stick.ox;
@@ -200,27 +233,27 @@ function releaseAllInput(core) {
 
 /**
  * Touch end / cancel in the capture phase: when the last finger has left, release everything.
- * @param {object} core shared handler state
- * @param {TouchEvent} event
- * @returns {void}
+ * @param core shared handler state
+ * @param event
+ * @returns 
  */
-function onInputLastFinger(core, event) {
+function onInputLastFinger(core: InputCore, event: TouchEvent) {
   if (event.touches.length === 0 && core.owners.size) releaseAllInput(core);
 }
 
 /**
  * Prevent the default of a cancelable event (stops iOS gestures on the canvas).
- * @param {Event} event
- * @returns {void}
+ * @param event
+ * @returns 
  */
-function blockInputEvent(event) { if (event.cancelable) event.preventDefault(); }
+function blockInputEvent(event: Event) { if (event.cancelable) event.preventDefault(); }
 
 /**
  * The public input state object: presentation fields the HUD draws, plus the resolved axes.
- * @param {object} opts the createInput options (mode)
- * @returns {object} the fresh input state
+ * @param opts the createInput options (mode)
+ * @returns the fresh input state
  */
-function makeInputState(opts) {
+function makeInputState(opts: InputOpts): InputState {
   return {
     steer: 0, throttle: 0, brake: 0, shiftUp: false, shiftDown: false,
     // presentation only — the HUD draws these, the model never reads them
@@ -234,16 +267,16 @@ function makeInputState(opts) {
     thrHeld: 0,                       // s the throttle has been down, for the progressive ramp
     revHeld: 0,                       // s R has been down — R ramps like the throttle
     handbrake: 0,                     // 0..1, slewed both ways (see HB_SLEW)
-  };
+  } as InputState;   // its methods are set by createInput
 }
 
 /**
  * Resolve the steering axis from the stick or the keyboard.
- * @param {object} state the input state
- * @param {Set} keys the held key actions
- * @returns {void}
+ * @param state the input state
+ * @param keys the held key actions
+ * @returns 
  */
-function resolveInputSteer(state, keys) {
+function resolveInputSteer(state: InputState, keys: Set<string>) {
   if (state.stick.active) {
     const dx = state.stick.x - state.stick.ox;
     // the player's steering feel (core/steerfeel.ts): the reach grows with speed, then the curve
@@ -258,12 +291,12 @@ function resolveInputSteer(state, keys) {
 
 /**
  * Resolve throttle, brake, handbrake, reverse and shifts from keys and pedals for one frame.
- * @param {object} state the input state
- * @param {Set} keys the held key actions
- * @param {number} wallDt wall-clock seconds since the last frame
- * @returns {void}
+ * @param state the input state
+ * @param keys the held key actions
+ * @param wallDt wall-clock seconds since the last frame
+ * @returns 
  */
-function resolveInputPedals(state, keys, wallDt) {
+function resolveInputPedals(state: InputState, keys: Set<string>, wallDt: number) {
   // Keyboard and stick are BOTH raw [-1..1]; the road-wheel rate limit in vehicle.js does the
   // smoothing, so one path serves both and a keyboard player and a thumb player feel the same
   // car.
@@ -292,11 +325,11 @@ function resolveInputPedals(state, keys, wallDt) {
   state.shiftDown = keys.has('shiftDown');
 }
 
-export function createInput(canvas, opts = {}) {
+export function createInput(canvas: HTMLCanvasElement, opts: InputOpts = {}): InputState {
   const state = makeInputState(opts);
 
   // shared handler state: the public object above plus the closure variables the handlers share
-  const core = {
+  const core: InputCore = {
     state, canvas, opts,
     keys: new Set(),
     // pointerId -> { kind: 'stick' | pedal name }
@@ -334,7 +367,7 @@ export function createInput(canvas, opts = {}) {
   for (const evName of ['touchstart', 'touchmove', 'touchend'])
     canvas.addEventListener(evName, blockInputEvent, { passive: false });
   addEventListener('gesturestart', blockInputEvent, { passive: false });     // iOS pinch
-  const lastFinger = (event) => onInputLastFinger(core, event);
+  const lastFinger = (event: TouchEvent) => onInputLastFinger(core, event);
   addEventListener('touchend', lastFinger, { capture: true });
   addEventListener('touchcancel', lastFinger, { capture: true });
   addEventListener('blur', releaseAll);
@@ -342,7 +375,7 @@ export function createInput(canvas, opts = {}) {
   document.addEventListener('visibilitychange', () => { if (document.hidden) releaseAll(); });
 
   // ---------- resolve, once per frame
-  state.update = function update(wallDt = 1 / 60) {
+  state.update = function update(wallDt: number = 1 / 60) {
     resolveInputSteer(state, keys);
     resolveInputPedals(state, keys, wallDt);
     return state;

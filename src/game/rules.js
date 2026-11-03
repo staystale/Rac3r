@@ -176,7 +176,7 @@ export function stepJoker(game, car) {
 export function stepRace(game, car, dt) {
   const race = game.race, lapState = game.lap;
   if (!race.on || race.done || !LEVEL.joker) return;
-  // timed from the GREEN when there are lights (the results time from it too — raceflow.js); else
+  // timed from the GREEN when there are lights (the results time from it too — raceflow.ts); else
   // from the first move
   if (!race.started
     && (game.start.on ? game.start.green : Math.hypot(car.vx, car.vy) > 0.8)) race.started = true;

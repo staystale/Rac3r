@@ -40,18 +40,18 @@ export type HudCar = Car & DamageCar & {
 /** A point on the screen, css px. */
 export interface ScreenPoint { x: number; y: number }
 
-/** One entry of a race's running order (raceflow.js). */
+/** One entry of a race's running order (raceflow.ts). */
 export interface HudFlowEntry {
   id: string; player?: boolean; car?: HudCar;
   lapDone: number; finish?: number | null;   // laps done; the finish time once home
 }
-/** A race with AI, as the HUD reads it (raceflow.js). */
+/** A race with AI, as the HUD reads it (raceflow.ts). */
 export interface HudFlow {
   entries: HudFlowEntry[]; flags: unknown[];   // the order; one flag per finisher so far
   highway?: boolean; stage?: boolean;   // the kind of event
   laps: number; myPlace?: number; t: number;
 }
-/** The rallycross race state: laps, time, the joker and its penalty (raceflow.js). */
+/** The rallycross race state: laps, time, the joker and its penalty (raceflow.ts). */
 export interface HudRace {
   on: boolean; started: boolean; done: boolean; t: number; total: number; laps: number;
   joker: boolean; jokers: number; penalty: number;
@@ -64,12 +64,12 @@ export interface HudStart {
 }
 /** A banner (game/session.js note). */
 export interface HudNotice { text: string; good: boolean; at: number }
-/** The input as the HUD draws it (input.js). */
+/** The input as the HUD draws it (input.ts). */
 export interface HudInput {
   stick: { active: boolean; ox: number; oy: number; x: number; y: number };
   stickReach?: number;   // px of thumb for full lock (core/steerfeel.ts)
   pedals: Record<string, boolean>;
-  // the pedals' circles for a screen size (input.js findPedalHits)
+  // the pedals' circles for a screen size (input.ts findPedalHits)
   pedalHits: (width: number, height: number) => { name: string; x: number; y: number; r: number }[];
   isTouch: () => boolean;
 }

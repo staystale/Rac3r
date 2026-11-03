@@ -3,7 +3,7 @@ import { step, reset, assertFinite, PHYSICS_STEP_SECONDS } from '../vehicle.ts';
 import { stepHighway, highwayGuard, highwayRespawn, speedCamera } from '../highway.js';
 import { carContacts } from '../contact.ts';
 import { hit, hitRoll, repair, applyBurst, stepDamage } from '../damage.ts';
-import { rolling, tripCheck, stepRoll } from '../roll.js';
+import { rolling, tripCheck, stepRoll } from '../roll.ts';
 import { LEVEL } from "../world/state.ts";
 import { headlightsWanted } from "../world/daylight.ts";
 import { WEATHER } from "../world/weather.ts";
@@ -220,7 +220,7 @@ export function stepCarPhysics(inp) {
     solidClamp(game.car);   // trees, planes, hangars ... (lab.ts solidsFromProps)
     hit(game.car, pv0x, pv0y);
     applyGround(game.car, PHYSICS_STEP_SECONDS);
-    // ROLLOVER (roll.js): a rolling / overturned car has no tyres to drive on — the body
+    // ROLLOVER (roll.ts): a rolling / overturned car has no tyres to drive on — the body
     // tumbles or slides; RESET rights it
     if (rolling(game.car)) stepRoll(game.car, PHYSICS_STEP_SECONDS,
       (kind, side, weight) => hitRoll(game.car, kind, side, weight));

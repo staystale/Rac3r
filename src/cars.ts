@@ -336,7 +336,7 @@ export function applyLivery(
 export const ROSTER: RosterRow[] = [
   {
     id: 'hatch-fwd', name: 'Hatch FWD', kind: 'hatch', cls: 'road', sub: 'Hatch',
-    // m: CENTRE OF GRAVITY and RIDE HEIGHT — rollover (roll.js) + shadow;
+    // m: CENTRE OF GRAVITY and RIDE HEIGHT — rollover (roll.ts) + shadow;
     // handling still uses cgH
     cg: 0.55, rideH: 0.14,
     // DRIVER AIDS by real-world fit; ON by default, switchable
@@ -355,7 +355,7 @@ export const ROSTER: RosterRow[] = [
   },
   {
     id: 'hatch-rwd', name: 'Hatch RWD', kind: 'hatch', cls: 'road', sub: 'Hatch',
-    // m: CENTRE OF GRAVITY and RIDE HEIGHT — rollover (roll.js) + shadow;
+    // m: CENTRE OF GRAVITY and RIDE HEIGHT — rollover (roll.ts) + shadow;
     // handling still uses cgH
     cg: 0.53, rideH: 0.13,
     // DRIVER AIDS by real-world fit; ON by default, switchable
@@ -374,7 +374,7 @@ export const ROSTER: RosterRow[] = [
   },
   {
     id: 'saloon-rwd', name: 'BMV 3 Serious', kind: 'saloon', cls: 'road', sub: 'Saloon',
-    // m: CENTRE OF GRAVITY and RIDE HEIGHT — rollover (roll.js) + shadow; handling still uses cgH
+    // m: CENTRE OF GRAVITY and RIDE HEIGHT — rollover (roll.ts) + shadow; handling still uses cgH
     cg: 0.52, rideH: 0.13,
     aids: { abs: true, tcs: true },   // ABS + DSC, as the real one
     // 2000s compact exec saloon (E46 330i-ish): rear drive, 50 / 50 on a long wheelbase, a smooth
@@ -389,7 +389,7 @@ export const ROSTER: RosterRow[] = [
   },
   {
     id: 'wrz-awd', name: 'Subaroo WRZ', kind: 'wrz', cls: 'rally', sub: '2L+',
-    // m: CENTRE OF GRAVITY and RIDE HEIGHT — rollover (roll.js) + shadow; handling still uses cgH
+    // m: CENTRE OF GRAVITY and RIDE HEIGHT — rollover (roll.ts) + shadow; handling still uses cgH
     cg: 0.53, rideH: 0.15,
     aids: { abs: true, tcs: false },  // 2005: ABS, no traction control
     // 2005 turbo AWD saloon (GD WRX-ish): symmetrical all-wheel drive (50 / 50), the boxer and
@@ -410,7 +410,7 @@ export const ROSTER: RosterRow[] = [
   },
   {
     id: 'estate-4x4', name: 'Estate 4x4', kind: 'estate', cls: 'road', sub: 'Estate',
-    // m: CENTRE OF GRAVITY and RIDE HEIGHT — rollover (roll.js) + shadow;
+    // m: CENTRE OF GRAVITY and RIDE HEIGHT — rollover (roll.ts) + shadow;
     // handling still uses cgH
     cg: 0.66, rideH: 0.21,
     // DRIVER AIDS by real-world fit; ON by default, switchable
@@ -424,7 +424,7 @@ export const ROSTER: RosterRow[] = [
   },
   {
     id: 'muscle-rwd', name: 'Muscle', kind: 'muscle', cls: 'road', sub: 'Muscle',
-    // m: CENTRE OF GRAVITY and RIDE HEIGHT — rollover (roll.js) + shadow;
+    // m: CENTRE OF GRAVITY and RIDE HEIGHT — rollover (roll.ts) + shadow;
     // handling still uses cgH
     cg: 0.5, rideH: 0.12,
     // DRIVER AIDS by real-world fit; ON by default, switchable
@@ -440,7 +440,7 @@ export const ROSTER: RosterRow[] = [
   },
   {
     id: 'rally-4x4', name: 'Rally', kind: 'rally', cls: 'rally', sub: 'Group B',
-    // m: CENTRE OF GRAVITY and RIDE HEIGHT — rollover (roll.js) + shadow;
+    // m: CENTRE OF GRAVITY and RIDE HEIGHT — rollover (roll.ts) + shadow;
     // handling still uses cgH
     cg: 0.52, rideH: 0.2,
     // Group-B-flavoured: rear-BIASED all-wheel drive (22% front / 78% rear), turbo torque low in
@@ -463,7 +463,7 @@ export const ROSTER: RosterRow[] = [
   },
   {
     id: 'track-rwd', name: 'Track spec', kind: 'track', cls: 'single', sub: 'F1',
-    // m: CENTRE OF GRAVITY and RIDE HEIGHT — rollover (roll.js) + shadow;
+    // m: CENTRE OF GRAVITY and RIDE HEIGHT — rollover (roll.ts) + shadow;
     // handling still uses cgH
     cg: 0.36, rideH: 0.07,
     // Formula 1 archetype: featherweight, open-wheel, huge aero downforce, wide racing slicks.
@@ -481,7 +481,7 @@ export const ROSTER: RosterRow[] = [
   },
   {
     id: 'naffcar', name: 'Naffcar V8', kind: 'muscle', cls: 'oval', sub: 'Naffcar',
-    // m: CENTRE OF GRAVITY and RIDE HEIGHT — rollover (roll.js) + shadow;
+    // m: CENTRE OF GRAVITY and RIDE HEIGHT — rollover (roll.ts) + shadow;
     // handling still uses cgH
     cg: 0.48, rideH: 0.1,
     // Oval racer: heavy, massive V8 torque, 4-speed manual/auto, designed to go fast and turn left.
@@ -496,7 +496,7 @@ export const ROSTER: RosterRow[] = [
   },
   {
     id: 'tractor', name: 'Tractor', kind: 'tractor', cls: 'offroad', sub: 'Odd',
-    // m: CENTRE OF GRAVITY and RIDE HEIGHT — rollover (roll.js) + shadow;
+    // m: CENTRE OF GRAVITY and RIDE HEIGHT — rollover (roll.ts) + shadow;
     // handling still uses cgH
     cg: 1.05, rideH: 0.45,
     // Heavy agricultural diesel puller. High torque, wide rear stance, open-wheel styling.
