@@ -43,4 +43,7 @@ export const FIX = {
   // ?belly=1: GROUND CLEARANCE in soft ground - the car sinks into mud / sand and its ruts; what
   // is deeper than its ride height drags its underside (world/wear.ts bellyDepth, physics/tyres.ts)
   belly: atLoad('belly'),
+  // ?agtyre=1: the tractor leaves the factory on FIRESTONED Field Lugger tractor tyres (cars.ts):
+  // mud, grass and dirt grip, half the mud's drag (was the road Pre-Spun - stuck on thick mud)
+  agTyre: atLoad('agtyre'),
 };

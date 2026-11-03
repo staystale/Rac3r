@@ -12,6 +12,7 @@
 
 import type { Mark, Spray } from './world/types.ts';
 import { dragOf, realCurve, tyreR } from './realcars.ts';
+import { FIX } from './core/fixes.ts';
 
 export const GRAVITY = 9.81;
 
@@ -223,6 +224,8 @@ export const TYRE_BRANDS = [
   { id: 'goodyeah', name: 'GOOD YEAH', col: '#7aa8ff', blurb: 'classic' },
   { id: 'tomson', name: 'MICKY TOMSON', col: '#d8453c', blurb: 'drag' },
   { id: 'goodwrench', name: 'BF GOODWRENCH', col: '#e8e8ee', blurb: 'street' },
+  // ?agtyre (NOTES register: Firestone = FIRESTONED)
+  ...(FIX.agTyre ? [{ id: 'firestoned', name: 'FIRESTONED', col: '#d8b04a', blurb: 'farm' }] : []),
 ];
 const ALLC = ['road', 'rally', 'rx', 'stock', 'oval', 'single', 'drift', 'offroad'];
 // grip x per surface, in TYRE_SURFS order: tarmac wet gravel dirt grass mud sand snow ice
@@ -303,6 +306,12 @@ export const TYRES = [
   makeTyre('et-street', 'tomson', 'ET Streat', 560, ['road', 'stock', 'drift'],
     [1.06, 0.7, 0.85, 0.85, 0.82, 0.75, 0.8, 0.6, 0.6], { rims: [14, 17], opt: [60, 110],
     peak: 85, cold: 0.85, heatHard: 1.3, note: 'drag radial: hooks off the line, hates rain' }),
+  // ?agtyre (MEASURED 11-03: the 11-tonne tractor on Pre-Spun road tyres stuck on the thick mud
+  // hill): a deep-lugged tractor tyre - digs into mud, grass and dirt, cleans itself (half the
+  // plough), slow and skittish on tarmac and ice; tractors only (24-42 inch rims)
+  ...(FIX.agTyre ? [makeTyre('ag-lug', 'firestoned', 'Field Lugger', 900, ['offroad'],
+    [0.9, 0.85, 1.15, 1.3, 1.4, 1.6, 1.2, 1.2, 0.8], { rims: [24, 42], ploughK: 0.5,
+      note: 'lugged tractor tyre: walks through mud, slow on tarmac' })] : []),
 ];
 for (const tyre of TYRES) {
   tyre.bySurf = {};
@@ -580,6 +589,8 @@ export const ROSTER: RosterRow[] = [
   {
     id: 'tractor', name: 'JCBee Fastrack 8330', kind: 'tractor', cls: 'offroad', sub: 'Odd',
     rimIn: 30,   // its real rim, inches (what tyres fit)
+    // ?agtyre: its own factory set, the lugged FIRESTONED Field Lugger
+    ...(FIX.agTyre ? { stockTyre: 'ag-lug' } : {}),
     // JCB Fastrac 8330: 348 hp (260 kW) @ 2100, 1440 Nm @ 1500, ~11 400 kg, 70 km/h, 600/70 R30
     // (0.80 m), Cd 0.9 x 7 m^2 (its CVT as five steps)
     // m: CENTRE OF GRAVITY and RIDE HEIGHT — rollover (roll.ts) + shadow;
@@ -587,7 +598,8 @@ export const ROSTER: RosterRow[] = [
     cg: 1.05, rideH: 0.45,
     // Heavy agricultural diesel puller. High torque, wide rear stance, open-wheel styling.
     mass: 11400, lf: 1.50, lr: 1.10, len: 4.2, wid: 2.1,
-    drive: 0.0, brakeBiasF: 0.65, caF: 350769, caR: 613846, mu: 1.33,
+    // ?agtyre: four-wheel drive, as the real Fastrac 8330 (equal wheels, all driven)
+    drive: FIX.agTyre ? 0.5 : 0.0, brakeBiasF: 0.65, caF: 350769, caR: 613846, mu: 1.33,
     curve: realCurve({ idle: 800, low: 0.65, nm: 1440, nmFrom: 1400, nmTo: 1600,
       kw: 260, kwAt: 2100, redline: 2300 }),
     redline: 2300, upshiftRpm: 2200, downshiftRpm: 1100, idleRpm: 800,

@@ -63,4 +63,12 @@ export const TEST_LIST: TestEntry[] = [
     try: 'Formula Won / Lamburghini vs Volvoh up the thick mud hill; drive the same ruts again.',
     wrong: 'A high car dragging, a low car untroubled in thick mud, or beached on hard ground.',
   },
+  {
+    id: 'agtyre',
+    added: '2026-11-03',
+    name: 'The tractor on FIRESTONED Field Lugger tractor tyres, and 4WD like the real Fastrac',
+    where: 'Plain link + &agtyre=1 (with &belly=1): the JCBee on The Rough Patch mud hills',
+    try: 'Up the thick mud hill flat out; then on tarmac (slower, skittish on ice).',
+    wrong: 'The tractor still stuck in mud, or quick on tarmac.',
+  },
 ];

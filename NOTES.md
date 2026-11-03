@@ -42,7 +42,8 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   dont go generating similar different ones if we already have that name parody"). Check this
   register before naming anything; reuse the entry; add every new one here.
   BRANDS: Dunlop = DUNFLOP (the Castle Cum footbridge said DUMLOP: ?namefix), Avon = AVAN, Kumho = KUM,
-  Pirelli = PIRRELLY, SPUM (budget tyres / oil), CREEM OIL, Goodyear = GOOD YEAH (owner 11-03).
+  Pirelli = PIRRELLY, SPUM (budget tyres / oil), CREEM OIL, Goodyear = GOOD YEAH (owner 11-03), Mickey Thompson =
+  MICKY TOMSON, BFGoodrich = BF GOODWRENCH, Firestone = FIRESTONED.
   CARS: VW = Folksvagon, BMW = BMV, Subaru = Subaroo, Volvo = Volvoh, Chevrolet = Chevvy, Audi =
   Ordi, JCB = JCBee, Mini = Minnie, Lamborghini = Lamburghini, Nissan = Nissun, Peugeot =
   Pugeot, Ford = Fjord, NASCAR = Naffcar, Formula One / Two = Formula Won / Too, BriSCA = BriSKA.
