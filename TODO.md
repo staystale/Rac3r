@@ -51,6 +51,21 @@ handover, written on request.
   WE WORK ON NEW VEHICLES OR VISUALS: make sure every car LOOKS like its real counterpart (shape,
   proportions, lights, details - as close as the names). More vehicles later (owner). ORDER
   (owner 11-03): AI rework first, then the upgrade system, then sound, then story.
+  MENU REDESIGN (owner 11-03, mockup agreed over rounds - build behind a switch, one screen at a
+  time: main menu, then garage + upgrades): LOGO = the owner's own image (pixel shard letters,
+  burst, electric blue 3) with its sub line changed to "A DRIVING SANDBOX" in the same chunky
+  pixel type. COLOURS = the logo's: near-black, ember red to orange for actions, burnt brown edges,
+  electric blue (the 3) for selected / better. NO smooth gradients: buttons PIXEL-ART SHADED (flat
+  middle for the words, light top-left bevel, dark bottom-right, 2 px checker dither between shades,
+  a few highlight pixels). TYPE: headers / buttons Silkscreen + Press Start 2P (bigger: buttons
+  17 px, titles 22 px); stats, numbers and small labels VT323 (18-21 px); ONE set of digits
+  (numbers in pixel headers use VT323's, so a 4 is always the same 4). GARAGE: the upgradeable
+  parts' level bars head the sections they apply to (Engine, Drivetrain, Suspension, Body,
+  Quality; "also" where two parts move a stat); tap a stat or section -> its upgrade screen
+  (levels, now vs that level, gains, price); TOUGHNESS (new, Body: how easily the car is hurt, per
+  car from its real build - F1 easy, Volvo / tractor hard, realistic at both ends; measured from a
+  50 km/h wall hit); TRAVEL (new: a suspension travel limit - bottoming out, owner: ok); UNITS one
+  game-wide setting, a KM/H / MPH chip in the garage and the speedo tap. Every number measured.
 - The plain link is the approved game. DEFAULT 10-24 / 10-25 (owner
   "all pass"; every switch and old path deleted, each proved SAME against the tested switch):
   highway street lights L4b + the solid grid; traffic seated when woken, the Sandbox puddles,
