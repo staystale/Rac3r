@@ -1,6 +1,7 @@
 // Every page-link setting (?name=value), read ONCE from location.search into one typed object.
 // Parses and defaults are exactly what main.ts, highway.ts, render.ts and render/tiles.ts
 // each did on their own.
+import { MAX_AI } from './fixes.ts';
 
 export interface Settings {
   dev: boolean;                  // ?dev: developer mode
@@ -74,7 +75,7 @@ export function readSettings(search: string): Settings {
   return {
     dev: params.has('dev'),
     carId: params.get('car'),
-    aiCount: Math.max(0, Math.min(5, +(params.get('ai') || 0))),
+    aiCount: Math.max(0, Math.min(MAX_AI, +(params.get('ai') || 0))),
     aiDifficulty: Math.max(0, Math.min(4, params.has('diff') ? +params.get('diff')! : 2)),
     trafficDensity:
       params.has('traffic') ? Math.max(0, Math.min(1.5, +params.get('traffic')!)) : 0.6,

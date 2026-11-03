@@ -37,4 +37,10 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
+  // ?ai10=1: up to 10 AI cars (was 5; 20 measured too costly: sim 17 ms a frame on the laptop),
+  // picked with a - / + ticker in test setup (menu/setup.ts), ten liveries (game/grid.ts)
+  ai10: atLoad('ai10'),
 };
+
+/** The most AI cars a race takes (?ai10: 10, else 5). */
+export const MAX_AI = FIX.ai10 ? 10 : 5;

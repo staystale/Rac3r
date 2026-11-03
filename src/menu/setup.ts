@@ -14,6 +14,7 @@ import type { Menu } from '../menu.ts';
 import type { Level } from '../world/types.ts';
 import type { SetupState, SetupUi } from './menutypes.ts';
 import { MENU_COL } from './palette.ts';
+import { FIX, MAX_AI } from '../core/fixes.ts';
 import { ROSTER } from '../cars.ts';
 
 // WEATHER: follow the SEASON (its chances; it can change in the race) or a fixed sky
@@ -139,6 +140,20 @@ function addOpponentCountRows(menu: Menu, panel: HTMLElement, state: SetupState)
     state.paint();
   });
   state.ui.nRow = addElement(panel, 'div', '', 'row');
+  if (FIX.ai10) {
+    // ?ai10 (owner 11-03): a ticker, 1 .. MAX_AI, instead of a button per count
+    const nudge = (delta: number) => {
+      state.aiN = Math.max(1, Math.min(MAX_AI, state.aiN + delta));
+      state.opponents = state.aiN;
+      state.paint();
+    };
+    addButton(menu, state.ui.nRow, '−', () => nudge(-1));
+    state.ui.nLbl = addElement(state.ui.nRow, 'div', '', 'val');
+    state.ui.nLbl.style.cssText = 'flex:1;text-align:center;align-self:center';
+    addButton(menu, state.ui.nRow, '+', () => nudge(1));
+    state.ui.nBtns = [];
+    return;
+  }
   state.ui.nBtns = [1, 2, 3, 4, 5].map((count) => addButton(menu, state.ui.nRow!, String(count),
     () => {
       state.aiN = count;
@@ -194,6 +209,7 @@ function paintSetupOpponents(state: SetupState) {
   wid.bAI.classList.toggle('on', state.opponents > 0);
   wid.nRow.style.display = state.opponents ? '' : 'none';
   wid.nBtns.forEach((button, i) => button.classList.toggle('on', i + 1 === state.aiN));
+  if (wid.nLbl) wid.nLbl.textContent = state.aiN + (state.aiN === 1 ? ' AI CAR' : ' AI CARS');
   wid.dRow.style.display = state.opponents ? '' : 'none';
   wid.dName.style.display = state.opponents ? '' : 'none';
   wid.dBtns.forEach((button, i) => button.classList.toggle('on', i === state.diff));

@@ -54,6 +54,7 @@ import {
   start, enterMenu, launch, paintThumbs, prepareThumbs, refreshMinimap,
 } from './game/menuflow.ts';
 import { loop } from './game/loop.ts';
+import { MAX_AI } from './core/fixes.ts';
 // build the world, in this order: the hand-made levels (load.ts), then the levels added after them
 initWorld();
 addStageLevels();
@@ -229,7 +230,7 @@ window.__game.selectCar = selectCar;
 window.__game.reset = doReset;
 window.__game.restart = doRestart;
 window.__game.setAI = (count: number) => {
-  shared.aiCount = Math.max(0, Math.min(5, count | 0));
+  shared.aiCount = Math.max(0, Math.min(MAX_AI, count | 0));
   spawnAI();
 };   // tools
 window.__game.launch = (levelId: string, car: string, opts?: LaunchOpts) =>

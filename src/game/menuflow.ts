@@ -23,6 +23,7 @@ import type { Level } from '../world/types.ts';
 import type { HwLevel } from '../highway/hwtypes.ts';
 import type { ResultsFlow } from '../menu/menutypes.ts';
 import type { LaunchOpts } from './state.ts';
+import { MAX_AI } from '../core/fixes.ts';
 
 /**
  * Works out whether the minimap, the progress bar and the track gauge show (the pause settings
@@ -125,7 +126,7 @@ export function applyLaunchOptions(levelId: string, opts: LaunchOpts) {
     if (level && level.endless && opts.road)
       setHighwayPreset(level as unknown as HwLevel, opts.road);
   }
-  shared.aiCount = Math.max(0, Math.min(5, (opts.ai ?? 0) | 0));
+  shared.aiCount = Math.max(0, Math.min(MAX_AI, (opts.ai ?? 0) | 0));
   shared.aiDiff = shared.settings.aiDifficulty;   // the menu race set its own
   if (opts.diff != null) shared.aiDiff = Math.max(0, Math.min(4, opts.diff | 0));
   refreshMinimap();   // the minimap's default follows the difficulty mode

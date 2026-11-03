@@ -50,7 +50,7 @@ export interface ResultsFlow {
 /** The setup screen's widgets that paintSetupOpponents repaints. */
 export interface SetupUi {
   bSolo?: HTMLButtonElement; bAI?: HTMLButtonElement;
-  nRow?: HTMLElement; nBtns?: HTMLButtonElement[];
+  nRow?: HTMLElement; nBtns?: HTMLButtonElement[]; nLbl?: HTMLElement;   // (?ai10: the ticker)
   dRow?: HTMLElement; dBtns?: HTMLButtonElement[]; dName?: HTMLElement;
   aRow?: HTMLElement; bCls?: HTMLButtonElement; bSame?: HTMLButtonElement;
 }
