@@ -38,6 +38,8 @@ interface ParticleState {
   // still emit at the right average rather than rounding to nothing.
   sprayDebt: number;
   smokeDebt: number;
+  // ?aidust: each car's own fractional remainders (several cars throw now)
+  carDebts: Map<object, [number, number]>;
   // PAINT CHIPS: capped, oldest dropped (§4)
   chips: Chip[];
   // SPARKS: their own pool, drawn on the screen canvas above the cars (drawSparksOnScreen)
@@ -673,6 +675,21 @@ function renderStreaks(ctx: ParticleCtx, wallDt: number) {
 }
 
 /**
+ * Runs an emitter with this car's own spray / smoke remainders (?aidust: several cars throw, and
+ * one shared remainder would hand one car's half-puff to the next); without the switch, as before.
+ * @param state the particle state
+ * @param car the car
+ * @param emit the emitter
+ */
+function withCarDebts(state: ParticleState, car: object, emit: () => void): void {
+  if (!FIX.aiDust) { emit(); return; }
+  const debts = state.carDebts.get(car) || [0, 0];
+  [state.sprayDebt, state.smokeDebt] = debts;
+  emit();
+  state.carDebts.set(car, [state.sprayDebt, state.smokeDebt]);
+}
+
+/**
  * Build the particle layer.
  * @param view the canvas view
  * @param cam the camera
@@ -683,7 +700,7 @@ export function createParticles(view: View, cam: Cam, helpers: ParticleHelpers) 
   const { PPMz, toScreenX, toScreenY } = helpers;
   const state: ParticleState = { puffs: [], overPuffs: [], streaks: [], streakDebt: new Map(),
     airCars: [],
-    sprayDebt: 0, smokeDebt: 0,
+    sprayDebt: 0, smokeDebt: 0, carDebts: new Map(),
     chips: [], sparks: [] };
   const ctx: ParticleCtx = { view, cam, PPMz, toScreenX, toScreenY, state };
   const puffAt: PuffAt = (x, y, vx, vy, look, scale) => emitPuff(ctx, x, y, vx, vy, look, scale);
@@ -693,9 +710,9 @@ export function createParticles(view: View, cam: Cam, helpers: ParticleHelpers) 
     chips: state.chips, MAX_CHIPS, sparks: state.sparks,
     addPuffs: (hits: PuffHit[]) => addPuffsTo(ctx, hits),
     addSpray: (car: ParticleCar, marks: RenderMarks, wallDt: number) =>
-      emitSpray(ctx, car, marks, wallDt),
+      withCarDebts(state, car, () => emitSpray(ctx, car, marks, wallDt)),
     addSmoke: (car: ParticleCar, marks: RenderMarks, wallDt: number) =>
-      emitTyreSmoke(ctx, car, marks, wallDt),
+      withCarDebts(state, car, () => emitTyreSmoke(ctx, car, marks, wallDt)),
     addEngineSmoke: (car: SmokeCar, wallDt: number) =>
       emitEngineSmoke(puffAt, puffOver, car, wallDt),
     addChips: (car: ParticleCar) => emitChips(ctx, car),

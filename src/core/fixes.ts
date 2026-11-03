@@ -35,6 +35,11 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
+  // ?jokerhint=1: the lap panel's joker "approaching" hint works out where the turn-off is
+  // (hud/laps.ts)
+  jokerHint: atLoad('jokerhint'),
+  // ?aidust=1: AI cars near you throw tyre smoke, dust and spray too (render.ts, particles.ts)
+  aiDust: atLoad('aidust'),
   // ?smokelinger=1: tyre smoke hangs ~2x longer and dust can no longer push it out of the pool
   // (render/particles.ts)
   smokeLinger: atLoad('smokelinger'),

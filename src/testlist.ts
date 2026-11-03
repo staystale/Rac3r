@@ -63,4 +63,20 @@ export const TEST_LIST = [
     try: 'Smoke up the tyres, then ease off or slide onto the gravel: the cloud should hang.',
     wrong: 'Smoke still blinking out, or a cloud that never clears.',
   },
+  {
+    id: 'jokerhint',
+    added: '2026-11-03',
+    name: 'Joker hint fixed: the lap panel flashes ››› as you near the joker turn-off',
+    where: 'Plain link + &jokerhint=1: a RALLYCROSS race (Knobhill RX, Slidden Hill RX)',
+    try: 'Before taking the joker, watch the lap panel in the 140 m before the split.',
+    wrong: 'No hint, a hint far from the split, or one still showing after the joker.',
+  },
+  {
+    id: 'aidust',
+    added: '2026-11-03',
+    name: 'AI cars throw tyre smoke, dust and spray too (the ones near you)',
+    where: 'Plain link + &aidust=1: a race on gravel / dirt / sand, or a drift battle',
+    try: 'Follow AI cars on loose ground and through slides; check the frame rate.',
+    wrong: 'No dust behind AI cars, your view lost in a cloud, or a frame-rate drop.',
+  },
 ];

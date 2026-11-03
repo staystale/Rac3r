@@ -3,6 +3,8 @@
 
 import { LEVEL } from '../world/state.ts';
 import { COL } from '../world/colours.ts';
+import { querySubtrack } from '../world/tyrewall.ts';
+import { FIX } from '../core/fixes.ts';
 import { fmtTime, drawHudPanel, drawHudLabel } from './widgets.ts';
 import type { HudRace, HudStage, HudGame } from './hudtypes.ts';
 import type { HudRects } from './layout.ts';
@@ -98,12 +100,37 @@ interface JokerFlags {
  * @returns truthy when the joker turn-off is near
  */
 function jokerIsNear(game: HudGame, race: HudRace) {
+  const trackDist = game.trackD;
+  if (FIX.jokerHint) {
+    const turnDist = jokerTurnDist(), total = LEVEL.subtrack ? LEVEL.subtrack.totalDist : 0;
+    return race.started && !race.joker && turnDist != null && trackDist != null && total > 0
+      && (((turnDist - trackDist) % total) + total) % total < 140;
+  }
   const jokerArrow = LEVEL.joker && LEVEL.joker.arrows
-    && LEVEL.joker.arrows.find((x) => x && x.d != null), trackDist = game.trackD;
+    && LEVEL.joker.arrows.find((x) => x && x.d != null);
   const near = race.started && !race.joker && jokerArrow && trackDist != null
     && (((jokerArrow.d! - trackDist) % LEVEL.subtrack!.totalDist)
     + LEVEL.subtrack!.totalDist) % LEVEL.subtrack!.totalDist < 140;
   return near;
+}
+
+// ?jokerhint=1 (owner 11-03: "yes", fix it): the hint read each arrow's track distance d, which
+// nothing ever set, so it never showed. The turn-off's distance round the track is now worked out
+// once per level from the earliest arrow (the approach arrow at the split: world/levels
+// jokerApproach; Slidden Hill 73 m, its branch 69 m).
+const turnDists = new WeakMap<object, number | null>();
+/**
+ * The joker turn-off's distance round the track, m (null: no joker / no track).
+ * @returns m from the start line
+ */
+function jokerTurnDist(): number | null {
+  if (turnDists.has(LEVEL)) return turnDists.get(LEVEL)!;
+  const sub = LEVEL.subtrack, arrows = LEVEL.joker && LEVEL.joker.arrows || [];
+  const dists = sub ? arrows.flatMap((arrow) => (arrow ? [querySubtrack(sub, arrow.x, arrow.y)
+    .trackDist] : [])) : [];
+  const dist = dists.length ? Math.min(...dists) : null;
+  turnDists.set(LEVEL, dist);
+  return dist;
 }
 
 /**
