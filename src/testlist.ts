@@ -46,29 +46,5 @@ export const TEST_LIST: TestEntry[] = [
   // passed 2026-11-02; aicool, smokeearly, airfx, smokelinger, aidust, realcars, jokerhint,
   // puffpool, tyrehealth, pitsolid, muscletyres,
   // namefix, bhbridges, menustyle, testgarage, ai10, k12 passed
-  // 2026-11-03; resetin, belly, agtyre passed 2026-11-03; specsheet removed)
-  {
-    id: 'ai20',
-    added: '2026-11-03',
-    name: 'Up to 20 AI cars (10 on the plain link); ten more liveries',
-    where: 'Test link + &ai20=1&aifast=1&report=1: TEST MODE > Thruston > VS AI, ticker to 20',
-    try: 'Race 20 AI for a few laps; then other circuits. The report sends the frame times.',
-    wrong: 'Stutter, cars stacked at the start, a grid off the road, a scoreboard that overflows.',
-  },
-  {
-    id: 'aifast',
-    added: '2026-11-03',
-    name: 'Same game, less work: resting cones skipped, smoke skips far cars',
-    where: 'Any test link + &aifast=1',
-    try: 'Knock cones and tyre stacks, drive through smoke and dust behind other cars.',
-    wrong: 'A cone that will not move when hit, smoke that ignores a car blasting through it.',
-  },
-  {
-    id: 'aisafe',
-    added: '2026-11-03',
-    name: 'An AI car reset mid-step no longer throws on joker tracks',
-    where: 'Test link + &aisafe=1: Knobhill or Slidden Hill, 20 AI (with &ai20=1)',
-    try: 'Race a few laps with lots of crashes; watch the joker counts on the scoreboard.',
-    wrong: 'A HUD flash or a frozen frame in a pile-up, or an AI joker counted after a reset.',
-  },
+  // 2026-11-03; resetin, belly, agtyre, ai20, aifast, aisafe passed 2026-11-03; specsheet removed)
 ];

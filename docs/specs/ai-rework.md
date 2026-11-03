@@ -21,7 +21,7 @@ race without performance issues, the PHONE first (laptop too). Every round below
 
 ## The rounds (each a switch, a phone test, then the default; sizes S / M / L)
 
-R0 `?ai20` + `?aifast` (BUILT, under test): up to 20 AI, ten more liveries; the resting-object
+R0 `ai20` + `aifast` + `aisafe` (DONE 11-03, the default; phone: 20 AI at sim 2 / draw 2 ms a frame): up to 20 AI, ten more liveries; the resting-object
 skip and the far-puff skip (simhash SAME). The phone run sets the budget for R1.
 
 R1 REACTION TIME (M) - the driver thinks every 2-4 steps instead of every step, BY SKILL: a top
@@ -78,5 +78,7 @@ Total: L (seven phone rounds). Order as listed; R1 first because it pays for R2-
   a step at 20); folded into R1.
 - `_aicost.mjs` took ONE smoothed reading 8 s in: noisy, and blind to the catch-up loop. Use
   `_aiprof.mjs` (median / p95 / max, steps a frame, ms a step, inclusive cost by subsystem).
+- In reserve (NOTES 10-17, saved): off-screen AI physics at half rate - not needed while the phone
+  holds 20 at ~2 ms.
 - Draw cost grows with cars too (laptop 3.9 -> 5.9 ms a frame from 5 to 20 AI): read the phone's
   draw ms in the `?ai20` report before R1.

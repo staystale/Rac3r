@@ -323,6 +323,15 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
 - Odds rolled per wear cell scale with area (square bushes: the same per-cell puncture chance
   went 13 % -> 23 % of bushes vs round ones). Re-measure after any change of shape or size.
 
+- AI COST IS LINEAR (11-03): ~0.15 ms a car a physics step on the laptop (ground reads, physics,
+  the driver's thinking about a third each; car-to-car checks small). A "jump" read from one
+  smoothed sample (game.simMs) on a flat-out laptop was the CATCH-UP LOOP (MAX_STEPS 12 steps a
+  late frame) - read steps a frame and ms a step (tools/scratch/_aiprof.mjs), not one reading.
+  The owner's phone holds 20 AI at sim 2 / draw 2 ms a frame.
+- A page that jumps back to the menu on the phone is the BROWSER reloading the tab (the report
+  shows a fresh page) - the game never reloads itself. Check memory at the phone's size
+  (tools/scratch/_memprobe.mjs: live canvases + JS heap, page errors with their stacks).
+
 ## Routine
 
 - Work in a worktree, never the served clone: `git worktree add -q --detach ../rac3r-wt origin/main`,
@@ -356,7 +365,9 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   `tools/profile.mjs`, `tools/phonereport.mjs`, `tools/renderhash.mjs` (`--only`, `--shots`),
   `tools/shotdiff.mjs`, `tools/zoomcheck.mjs`, `tools/scratch/carmock.html` (car drawing mockup),
   `tools/edgecheck.mjs` (does the white edge line move rigidly; `--control` = the noise floor),
-  `tools/drawload.mjs` (drawing asked per frame, per layer: what Safari paints after our JS).
+  `tools/drawload.mjs` (drawing asked per frame, per layer: what Safari paints after our JS),
+  `tools/scratch/_aiprof.mjs` (AI cost: ms a step, steps a frame, inclusive by subsystem, FOCUS=fn),
+  `tools/scratch/_memprobe.mjs` (memory at the phone's size, page errors with stacks).
 - Browser tools open the game with `gotoGame` (`tools/lib/browser.mjs`): the game starts by a
   dynamic import, so the page's load event comes before `window.__game`; and Edge 155 never runs
   Playwright's default animation-frame poll under the determinism script (use a timed poll).

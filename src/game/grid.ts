@@ -23,7 +23,7 @@ export const AI_LIVERIES = [['#c8302c', '#7e1d1a'], ['#2b56b5', '#14306e'], ['#e
   // five more, so ten cars all differ (cars.ts PALETTE)
   ['#e86fa8', '#8a2f5e'], ['#3fb6c9', '#1d6a76'], ['#f0f0ea', '#5a5f69'], ['#e0603a', '#8a3414'],
   ['#9bc53d', '#4a6a14'],
-  // ten more for a 20-car field (?ai20; owner 11-03: 20 liveries), two-tone from the paint palette
+  // ten more for a 20-car field (owner 11-03: 20 liveries), two-tone from the paint palette
   ['#a9aeb6', '#5a5f69'], ['#16181d', '#e2c13a'], ['#7a1d22', '#3d0e11'], ['#f2a900', '#16181d'],
   ['#1f4d2e', '#9bc53d'], ['#1d3f9a', '#f0f0ea'], ['#f0f0ea', '#c8342a'], ['#3fb6c9', '#16181d'],
   ['#8a4fc0', '#f2a900'], ['#c8302c', '#f0f0ea']];

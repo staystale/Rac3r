@@ -7,7 +7,6 @@ import { hitByCar } from "./coneCar.ts";
 import { stepTape } from "./coneTape.ts";
 import { OBJ_CELL, cellKey, collideObjects } from "./coneGrid.ts";
 import type { ConesCtx, Loose, ConeCar } from './coneTypes.ts';
-import { FIX } from "../core/fixes.ts";
 
 /**
  * A rolling tyre: low rolling resistance on the tread edge, wobbling below 3.2 m/s.
@@ -101,7 +100,7 @@ function integrate(ctx: ConesCtx, obj: Loose, dt: number, speed: number) {
 }
 
 /**
- * ?aifast: AT REST since its last step - still, not spinning or settling, the same spot and the
+ * AT REST since its last step - still, not spinning or settling, the same spot and the
  * same filed cell - so this step would change nothing and test no car (MEASURED, 20 AI on
  * Thruston: ~1100 objects stepped for nothing were 0.2 ms of a 4.6 ms physics step).
  * @param obj the object
@@ -121,7 +120,7 @@ function stillAtRest(obj: Loose) {
  * @param newTyres receives the tyres a burst stack throws out
  */
 function stepObject(ctx: ConesCtx, obj: Loose, cars: ConeCar[], dt: number, newTyres: Loose[]) {
-  if (FIX.aifast && stillAtRest(obj)) return;
+  if (stillAtRest(obj)) return;
   const speed = Math.hypot(obj.vx, obj.vy);
 
   if (obj.vx || obj.vy) integrate(ctx, obj, dt, speed);
@@ -144,7 +143,7 @@ function stepObject(ctx: ConesCtx, obj: Loose, cars: ConeCar[], dt: number, newT
     for (let carIndex = 0; carIndex < cars.length; carIndex++)
       hitByCar(ctx, obj, cars[carIndex], newTyres);
     obj._restX = undefined;
-  } else if (FIX.aifast) { obj._restX = obj.x; obj._restY = obj.y; obj._restCk = obj._ck; }
+  } else { obj._restX = obj.x; obj._restY = obj.y; obj._restCk = obj._ck; }
 }
 
 /**

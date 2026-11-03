@@ -7,7 +7,7 @@ last handover, written on request.
 
 ## Where we are (2026-11-03, end of session)
 
-- NOTHING UNDER TEST: the plain link is the whole approved game; src/testlist.ts is empty.
+- NOTHING UNDER TEST: the plain link is the whole approved game; src/testlist.ts is empty (11-03 late).
 - DEFAULT 11-03 (owner: pass; every switch and old path deleted, each proved against its tested
   switch - simhash SAME, menucheck, phone shots): REAL CARS (every car on its real counterpart,
   parody names, best-launch 0-100 in the garage); smokelinger, aidust, puffpool (smoke / dust no
@@ -24,17 +24,15 @@ last handover, written on request.
   hills); RESET puts the car all four wheels on the road; BELLY drag (ground clearance in mud /
   sand / ruts, world/belly.ts); the tractor on FIRESTONED Field Luggers and 4WD like the real
   Fastrac.
-- UNDER TEST (11-03 late): ?ai20 (up to 20 AI, ten more liveries) + ?aifast (resting loose
-  objects skipped, smoke skips far cars; simhash SAME to prove). Owner's run: Thruston, 20 AI,
-  &report=1. The AI REWORK design is docs/specs/ai-rework.md (rounds R0-R7) - owner to OK.
-  OWNER RUN 11-03 (phone, ?ai20&aifast&report): Thruston 20 AI ~3.5 min - sim 2 / draw 2 ms a
-  frame, 0.22 % slow frames ("mostly fine, a bit slow when lots of crashes at once"); then
-  Knobhill 35 s and the PAGE RELOADED to the menu (a fresh page in the report: the browser
-  dropped the tab - no slowdown before it). Laptop at the phone's size (_memprobe): canvases
-  ~90 MB + JS 35 MB, flat - no leak found (tiles capped at 200, damage sprites ~2 MB). FOUND on
-  the way: a page error on joker tracks - an AI reset mid-step left _p null for stepAIJoker,
-  and recoverAI threw on it out of the loop: ?aisafe (game/ai.ts). Reload cause still open:
-  watch for it again.
+- DEFAULT 11-03 late (owner: "no issues"): UP TO 20 AI (ai20: MAX_AI 20, twenty liveries),
+  aifast (resting loose objects skipped, smoke skips far cars), aisafe (an AI reset mid-step no
+  longer throws on joker tracks: _p null in stepAIJoker / recoverAI). Owner's phone (report):
+  Thruston 20 AI ~3.5 min sim 2 / draw 2 ms a frame, 0.22 % slow; Knobhill 20 AI at night ~3.7
+  min, 0.04 % slow, no reload. The ONE reload (Knobhill, before aisafe: the browser dropped the
+  tab, a fresh page) did not come back; laptop at the phone's size (_memprobe) found no leak
+  (canvases ~90 MB + JS 35 MB, flat). Owner waived simhash for this round; plain link checked
+  with 20 AI, no page errors.
+- THE AI REWORK design: docs/specs/ai-rework.md (rounds R0-R7; R0 done above) - owner to OK.
 - NEXT (owner order 11-03; 11-03 late: "let's work on AI only"): 1 the AI REWORK (design first,
   agreed before building; GOAL: 20 cars in a race without performance issues, PHONE first, laptop
   too. MEASURED 11-03 late (_aiprof): NO 20-car jump - ~0.15 ms a car a physics step, linear; the
