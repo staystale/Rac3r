@@ -1,15 +1,12 @@
 // hud/hudtypes.ts: the shapes the HUD shares - its state, the actions a tap returns, and the game
 // as the HUD reads it (a narrow view of main.ts's game object).
 import type { Car } from '../vehicle.ts';
-import type { TuneRow } from '../tune.ts';
 import type { DamageCar } from '../damage.ts';
 import type { RoadFrame } from '../ai/types.ts';
 
 /** The HUD's own state (hud.ts newHudState). */
 export interface HudState {
   hidden: Set<string>;   // pieces the player turned off (the pause menu's HUD list)
-  expanded: boolean;   // the car / level list is open
-  tuneOpen: boolean;   // the debug / tuning panel is open (only one of the two)
   shiftFlash: number; gearFlash: number; lastGear: number;
   aidFlash: { abs: number; tcs: number };
   helpLabel: string;   // '?' (replay the guide) or 'II' (pause) with the menus on
@@ -25,9 +22,7 @@ export interface HudAction {
   consumed?: boolean;   // swallowed, nothing else to do
   toggleAbs?: boolean; toggleTcs?: boolean; toggleLights?: boolean;
   indicate?: number;   // -1 left, 1 right
-  tune?: TuneRow; dir?: number; tuneReset?: boolean;
-  car?: string; level?: string;   // a pick from the dropdown
-  restart?: boolean; reset?: boolean; clear?: boolean; volumeCycle?: boolean; help?: boolean;
+  restart?: boolean; reset?: boolean; volumeCycle?: boolean; help?: boolean;
 }
 
 /** The car as the HUD reads it: the car, its damage / tyre / engine systems, its lamps. */

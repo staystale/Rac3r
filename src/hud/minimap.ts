@@ -16,6 +16,7 @@
 // the window.
 
 import { LEVEL } from '../world/state.ts';
+import { MARGIN } from './widgets.ts';
 import { jokerLane } from '../world/joker.ts';
 import type { HudState, HudGame } from './hudtypes.ts';
 import type { HudRects } from './layout.ts';
@@ -190,11 +191,11 @@ function nearestPoint(pts: TrackPoint[], x: number, y: number) {
  * @returns {{x: number, y: number}} the window's top-left corner, css px
  */
 function minimapAt(rects: HudRects) {
-  let bottom = rects.chip.y + rects.chip.h;
-  // a narrow screen puts RESTART / RESET / CLEAR on a second row on the left
-  for (const rect of [rects.restart, rects.reset, rects.clear])
-    if (rect.x < rects.chip.x + SIZE) bottom = Math.max(bottom, rect.y + rect.h);
-  return { x: rects.chip.x, y: bottom + GAP };
+  let bottom = MARGIN;
+  // under the buttons in its column (the RESTART row; the ? when it drops to row two)
+  for (const rect of [rects.restart, rects.reset, rects.help])
+    if (rect.x < MARGIN + SIZE) bottom = Math.max(bottom, rect.y + rect.h);
+  return { x: MARGIN, y: bottom + GAP };
 }
 
 /**
@@ -330,7 +331,7 @@ export function drawHudMinimap(ctx: CanvasRenderingContext2D, hud: HudState, rec
   game: HudGame, wallDt: number) {
   const sub = LEVEL.subtrack;
   const mapShown = shownNow(), barShown = progressNow ? progressNow() : mapShown;
-  if ((!mapShown && !barShown) || hud.expanded || hud.tuneOpen) return;
+  if (!mapShown && !barShown) return;
   if (!sub || !sub.pts || sub.pts.length < 2) return;
   if (mapState.level !== LEVEL) Object.assign(mapState, { level: LEVEL, idx: 0, heading: null });
   const idx = nearestPoint(sub.pts, game.car.x, game.car.y);

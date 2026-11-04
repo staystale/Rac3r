@@ -73,7 +73,7 @@ export function drawHudPedals(ctx: CanvasRenderingContext2D, game: HudGame, widt
  */
 export function drawHudDevReadout(ctx: CanvasRenderingContext2D, state: HudState, game: HudGame,
   car: HudCar, height: number) {
-  if (game.dev && !state.tuneOpen) {
+  if (game.dev) {
     const tyreState = car.t;
     const lines = [
       `v ${(Math.hypot(car.vx, car.vy)).toFixed(1)} m/s   `

@@ -1,11 +1,8 @@
 // hud/overlays.ts — tune panel, signal lights, notice card, speed camera card and race flag.
 // Pure moves out of hud.ts.
 
-import { isChanged } from '../tune.ts';
 import { drawHudPanel, drawHudLabel } from './widgets.ts';
-import type { HudState, HudCar, HudFlow, HudStart, HudGame } from './hudtypes.ts';
-import type { HudRects } from './layout.ts';
-import type { HudRect } from './widgets.ts';
+import type { HudState, HudFlow, HudStart, HudGame } from './hudtypes.ts';
 
 /**
  * Draw the TUNE panel: rows, +/- buttons, tyre HUD toggle and reset.
@@ -15,34 +12,6 @@ import type { HudRect } from './widgets.ts';
  * @param car the car read live
  * @returns {void}
  */
-// The panel. Rows are drawn from the SAME list hit walks, so a button is never drawn somewhere
-// its tap is not. A changed row is marked, and every value is read live off the car (rule 10).
-export function drawHudTune(ctx: CanvasRenderingContext2D, state: HudState, rects: HudRects,
-  car: HudCar) {
-  drawHudPanel(ctx, rects.panel, { fill: "rgba(14,15,19,0.94)" });
-  for (const tuneRow of rects.tuneRows) {
-    const row = tuneRow.row;
-    const value = row.get(car);
-    const changed = isChanged(car, row);
-    const centreY = tuneRow.y + tuneRow.h / 2;
-    drawHudLabel(ctx, row.label, rects.panel.x + 9, centreY,
-      { size: 10.5, weight: 600, col: changed ? "#ffd479" : "#dfe2ea" });
-    drawHudLabel(ctx, row.fmt(value), tuneRow.minus.x - 8, centreY,
-      { size: 11, weight: 700, align: "right", col: changed ? "#ffd479" : "#8fe6c8" });
-    for (const [button, sign] of [[tuneRow.minus, "−"], [tuneRow.plus, "+"]] as [HudRect,
-      string][]) {
-      drawHudPanel(ctx, button,
-        { fill: "rgba(255,255,255,0.10)", stroke: "rgba(255,255,255,0.18)" });
-      drawHudLabel(ctx, sign, button.x + button.w / 2, button.y + button.h / 2 + 0.5,
-        { size: 15, align: "center", weight: 700 });
-    }
-  }
-  drawHudPanel(ctx, rects.tuneReset, { fill: "rgba(216,69,60,0.85)", stroke: null });
-  drawHudLabel(ctx, "RESET TUNING", rects.tuneReset.x + rects.tuneReset.w / 2, rects.tuneReset.y
-    + rects.tuneReset.h / 2,
-    { size: 10, align: "center", weight: 700 });
-}
-
 /**
  * Draw the three start-light squares (dark rim, glow when lit).
  * @param ctx

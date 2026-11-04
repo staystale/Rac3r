@@ -1,56 +1,11 @@
 // hud/layout.ts — HUD geometry: every rectangle for a screen size, and tap hit-testing.
 // Pure moves out of hud.ts.
 
-import { CAR_IDS } from '../cars.ts';
-import { LEVELS } from '../world/levels/index.ts';
 import { PEDAL } from '../input.ts';
-import { ROWS as TUNE_ROWS } from '../tune.ts';
 import { MARGIN, BTN_H, DIAGRAM_H } from './widgets.ts';
 import { trackTempShown } from './tracktemp.ts';
-import { FIX } from '../core/fixes.ts';
 import type { HudState, HudCar, ScreenPoint } from './hudtypes.ts';
 import type { HudRect } from './widgets.ts';
-
-/**
- * Tune panel geometry: the panel, its rows, the reset footer and the tyre HUD switch.
- * @param width canvas width in px
- * @param height canvas height in px
- * @param narrow true on a narrow screen (second button row)
- * @returns tunePanel, tuneRows, tuneReset and tyreHudBtn rects
- */
-function layoutTunePanel(width: number, height: number, narrow: boolean) {
-  // The panel sizes itself to the space available and never runs off the bottom of a short
-  // landscape phone: the row height shrinks to fit, with a floor, and the width is capped.
-  // Checked at 844x390 and 390x844 by tools/uicheck.mjs.
-  const top = (narrow ? MARGIN + BTN_H * 2 + 12 : MARGIN + BTN_H + 6);
-  const bottom = height - MARGIN - 34; // leave the bottom-left hint line its lane
-  const avail = bottom - top - 24;               // minus the footer button
-  const rowHeight = Math.max(16, Math.min(27, Math.floor(avail / TUNE_ROWS.length)));
-  const panelWidth = Math.min(272, width - MARGIN * 2);
-  const tunePanel = { x: MARGIN, y: top, w: panelWidth,
-    h: TUNE_ROWS.length * rowHeight + 26 };
-  // Buttons are WIDER than they are tall. Vertical room is the binding constraint on a 390
-  // px-tall landscape phone (rows get to 19 px), but there is horizontal room going spare — and a
-  // wider target is easier to hit with a thumb than a square one. 44 x 19 beats 20 x 20.
-  const btnHeight = Math.max(17, rowHeight - 2), btnWidth = 44;
-  const tuneRows = TUNE_ROWS.map((tuneRow, i) => {
-    const y = tunePanel.y + 2 + i * rowHeight;
-    return {
-      row: tuneRow, y, h: rowHeight,
-      minus: { x: tunePanel.x + panelWidth - btnWidth * 2 - 12,
-        y: y + (rowHeight - btnHeight) / 2, w: btnWidth, h: btnHeight },
-      plus: { x: tunePanel.x + panelWidth - btnWidth - 6, y: y + (rowHeight - btnHeight) / 2,
-        w: btnWidth, h: btnHeight },
-    };
-  });
-  // footer split in two: RESET TUNING | TYRE HUD on/off
-  const footerWidth = Math.floor((panelWidth - 18) / 2);
-  const tuneReset = { x: tunePanel.x + 6, y: tunePanel.y + 4 + TUNE_ROWS.length * rowHeight,
-    w: footerWidth, h: 20 };
-  const tyreHudBtn = { x: tunePanel.x + 12 + footerWidth, y: tuneReset.y, w: footerWidth,
-    h: 20 };
-  return { tunePanel, tuneRows, tuneReset, tyreHudBtn };
-}
 
 /**
  * Whether the player hid a HUD piece (the pause menu's HUD list).
@@ -85,10 +40,9 @@ function layoutCornerPanels(state: HudState, width: number, btnY: number, narrow
   // screen IS the RESTART/RESET/CLEAR row — invisible to the overlap test until the tyre walls
   // made it show constantly.
   const tally = { x: Math.round(width / 2 - 46), y: btnY + BTN_H + 6, w: 92, h: 24 };
-  // Narrow: the left of row three belongs to the car dropdown and the TUNE panel, so the tally
-  // goes top-RIGHT, under the lap panel (it is hidden while TUNE is open — that panel reaches it
-  // at 360 px). FPS (test mode, requirement: in the corner always): a slim strip right under the
-  // lap / distance panel, top right; the narrow-screen cone tally moves down under it
+  // Narrow: the tally goes top-RIGHT, under the lap panel. FPS (test mode, requirement: in the
+  // corner always): a slim strip right under the lap / distance panel, top right; the
+  // narrow-screen cone tally moves down under it
   const belowLap = lap.h ? lap.y + lap.h + 4 : lap.y;
   // the track temperature gauge (?hudunits=1, hud/tracktemp.ts): on a narrow (portrait) screen
   // between the lap panel and FPS; wide, beside the lap panel (a landscape phone's column has no
@@ -157,75 +111,29 @@ function clearAidChips(absChip: HudRect, tcsChip: HudRect, width: number, column
  * @param state the shared HUD state (helpLabel, carDiagram)
  * @param width canvas width in px
  * @param height canvas height in px
- * @returns named rects: chip, rows, levelRows, buttons, tune panel, speed, lap, ...
+ * @returns named rects: buttons, speed, lap, chips, ...
  */
-/**
- * The car chip and the TUNE chip, top-left (?hudlean: neither - zero-size anchors in the corner,
- * where the minimap hangs from).
- * @returns chip and tuneChip
- */
-function topLeftChips() {
-  if (FIX.hudlean) {
-    return { chip: { x: MARGIN, y: MARGIN, w: 0, h: 0 }, tuneChip: { x: MARGIN, y: MARGIN, w: 0,
-      h: 0 } };
-  }
-  const chip = { x: MARGIN, y: MARGIN, w: 116, h: BTN_H };
-  return { chip, tuneChip: { x: MARGIN + chip.w + 6, y: MARGIN, w: 64, h: BTN_H } };
-}
-
 export function layoutHud(state: HudState, width: number, height: number) {
-  const { chip, tuneChip } = topLeftChips();
-  // 164, was 132. PHOTOGRAPHED: "Naffcar Speedway" and "Surface Sandbox" ran into the
-  // LEVEL tag at 132. Car and level rows share the width so the dropdown stays one clean column.
-  const DROP_W = 164;
-  const dTop = MARGIN + BTN_H + 6, dStep = 26,
-    perCol = Math.max(4, Math.floor((height - dTop - MARGIN - 42) / dStep));
-  const dAt = (i: number,
-    col0: number) => ({ x: MARGIN + (col0 + Math.floor(i / perCol)) * (DROP_W + 6), y: dTop
-    + (i % perCol) * dStep });
-  const carCols = Math.ceil(CAR_IDS.length / perCol);
-  const rows = CAR_IDS.map((carId, i) => ({ id: carId, ...dAt(i, 0), w: DROP_W, h: dStep - 2 }));
-  // LEVEL ROWS hang below the car rows in the SAME dropdown. They do NOT get a chip of their own
-  // on the top row: that row already carries car 116 + TUNE 64 + RESET 76 + CLEAR 76 + speed 120
-  // and is the exact lane that has produced two overlap bugs. Reusing the dropdown costs no new
-  // space and cannot collide with anything (CLAUDE.md §4: the four corners have owners).
-  const levelRows = LEVELS.map((level,
-    i) => ({ id: level.id, name: level.name, ...dAt(i, carCols), w: DROP_W, h: dStep - 2 }));
-  // MEASURED BUG, (caught by tools/uicheck.mjs, not by eye): adding the TUNE chip made
-  // the top row need chip 116 + TUNE 64 + RESET 76 + CLEAR 76 + the speed panel 120 = 462 px, and
-  // a portrait phone is 390. TUNE landed on top of RESET and ate its taps. On a narrow screen the
-  // pair drops to a second row on the RIGHT, which is empty there. Two systems must never share a
-  // lane.
+  // NO CAR / LEVEL LIST, NO TUNE, NO CLEAR in a session (owner 11-04, passed: "remove any in game
+  // tuning so no car changing once a race has started ... remove tune and clear tyre marks"): the
+  // car and the track are picked in the menus; the top-left is the RESTART row's on every screen.
   const narrow = width < 620;
-  // ?hudlean (owner 11-04: "remove any in game tuning so no car changing once a race has
-  // started ... remove tune and clear tyre marks"): no car / level chip, no TUNE, no CLEAR - the
-  // top-left is free, so the RESTART row takes the first row there
-  const lean = FIX.hudlean;
-  const btnY = narrow && !lean ? MARGIN + BTN_H + 6 : MARGIN;
-  const wRestart = 70, wReset = 58, wClear = lean ? 0 : 54, wVol = 48, wHelp = 34;
-  const gapClear = lean ? 0 : 4;
-  const totalW = wRestart + 4 + wReset + gapClear + wClear + (narrow ? 0 : 4 + wVol + 4 + wHelp);
-  // Ensure the center block doesn't overlap the new TCS chip on wide screens
-  const minX = narrow || lean ? MARGIN : tuneChip.x + tuneChip.w + 6;
+  const btnY = MARGIN;
+  const wRestart = 70, wReset = 58, wVol = 48, wHelp = 34;
+  const totalW = wRestart + 4 + wReset + (narrow ? 0 : 4 + wVol + 4 + wHelp);
   // NARROW = LEFT-ALIGNED, never centred. MEASURED BUG, (tools/uicheck.mjs + photo at
-  // 390x844): centring this second row (Gemini) pushed CLEAR under the speed and lap
-  // panels, which own the top-RIGHT corner, at 360/390/412 px wide. The left of row two is free
-  // on every phone.
-  const startX = narrow ? MARGIN : Math.max(minX, Math.round(width / 2 - totalW / 2));
+  // 390x844): a centred row ran under the speed and lap panels, which own the top-RIGHT corner,
+  // at 360/390/412 px wide.
+  const startX = narrow ? MARGIN : Math.max(MARGIN, Math.round(width / 2 - totalW / 2));
   const restart = { x: startX, y: btnY, w: wRestart, h: BTN_H, label: 'RESTART' };
   const reset = { x: startX + wRestart + 4, y: btnY, w: wReset, h: BTN_H, label: 'RESET' };
-  const clear = lean ? { x: -200, y: -200, w: 0, h: 0, label: 'CLEAR' }
-    : { x: startX + wRestart + 4 + wReset + 4, y: btnY, w: wClear, h: BTN_H, label: 'CLEAR' };
   const vol = narrow
     ? { x: -200, y: -200, w: 0, h: 0, label: 'VOL' }
-    : { x: startX + wRestart + 4 + wReset + gapClear + wClear + 4, y: btnY, w: wVol, h: BTN_H,
-      label: 'VOL' };
-  // "?" replays the HOW TO PLAY guide (user: on the button row). Wide: after VOL.
-  // Narrow: after CLEAR when it clears the speed panel (390 px and up); at 360 px it would sit on
-  // the speed panel, so it drops to row three, left — the dropdown / TUNE panel lane, so it is
-  // hidden while either is open.
+    : { x: startX + wRestart + 4 + wReset + 4, y: btnY, w: wVol, h: BTN_H, label: 'VOL' };
+  // "?" replays the HOW TO PLAY guide (user: on the button row). Wide: after VOL. Narrow: after
+  // RESET when it clears the speed panel; else it drops to row two, left.
   const help: HudRect & { row3?: boolean } = {
-    x: narrow ? startX + wRestart + 4 + wReset + gapClear + wClear + 4 : vol.x + wVol + 4,
+    x: narrow ? startX + wRestart + 4 + wReset + 4 : vol.x + wVol + 4,
     y: btnY, w: wHelp, h: BTN_H, label: state.helpLabel };
   if (narrow && help.x + help.w > width - MARGIN - 120 - 6) {
     help.x = MARGIN;
@@ -233,12 +141,10 @@ export function layoutHud(state: HudState, width: number, height: number) {
     help.row3 = true;
   }
 
-  const { tunePanel, tuneRows, tuneReset, tyreHudBtn } = layoutTunePanel(width, height, narrow);
   const { speed, lap, trackTemp, fps, tally } = layoutCornerPanels(state, width, btnY, narrow);
   const { absChip, tcsChip, indL, lights, indR } = layoutBottomChips(width, height);
   clearAidChips(absChip, tcsChip, width, Math.max(lap.y + lap.h, fps.y + fps.h), trackTemp);
-  return { chip, rows, levelRows, restart, reset, clear, vol, help, absChip, tcsChip, tuneChip,
-    panel: tunePanel, tuneRows, tuneReset, tyreHudBtn, speed, lap, trackTemp, fps, tally, indL,
+  return { restart, reset, vol, help, absChip, tcsChip, speed, lap, trackTemp, fps, tally, indL,
     lights, indR };
 }
 
@@ -254,7 +160,7 @@ export function inRect(point: ScreenPoint, rect: HudRect) {
 }
 
 /**
- * Hit-test a tap against the HUD controls; may change state (expanded, tuneOpen, mph).
+ * Hit-test a tap against the HUD controls; may change state (mph).
  * @param state the shared HUD state
  * @param {{x:number,y:number}} point the tap
  * @param width canvas width in px
@@ -269,20 +175,6 @@ export function hitHud(state: HudState, point: ScreenPoint, width: number, heigh
   const rects = layoutHud(state, width, height);
   const aidHit = hitAidChips(rects, point, car);
   if (aidHit) return aidHit;
-  const tuneHit = hitTunePanel(state, rects, point);
-  if (tuneHit) return tuneHit;
-  const dropHit = hitDropdown(state, rects, point);
-  if (dropHit) return dropHit;
-  if (!FIX.hudlean && inRect(point, rects.chip)) {
-    state.expanded = !state.expanded;
-    state.tuneOpen = false;
-    return { consumed: true };
-  }
-  if (!FIX.hudlean && inRect(point, rects.tuneChip)) {
-    state.tuneOpen = !state.tuneOpen;
-    state.expanded = false;
-    return { consumed: true };
-  }
   return hitControls(state, rects, point);
 }
 
@@ -301,55 +193,6 @@ function hitAidChips(rects: HudRects, point: ScreenPoint, car: HudCar) {
   if (inRect(point, rects.lights)) return { toggleLights: true };
   if (inRect(point, rects.indL)) return { indicate: -1 };
   if (inRect(point, rects.indR)) return { indicate: 1 };
-  return null;
-}
-
-/**
- * Hit-test the open tune panel (it covers the car list, so it is checked first).
- * @param state the shared HUD state
- * @param rects the layout rectangles
- * @param {{x:number,y:number}} point the tap
- * @returns the action hit, or null
- */
-function hitTunePanel(state: HudState, rects: HudRects, point: ScreenPoint) {
-  // the tune panel is checked FIRST while it is open — it covers the car list's lane
-  if (state.tuneOpen) {
-    for (const tuneRow of rects.tuneRows) {
-      if (inRect(point, tuneRow.minus)) return { tune: tuneRow.row, dir: -1 };
-      if (inRect(point, tuneRow.plus)) return { tune: tuneRow.row, dir: +1 };
-    }
-    if (inRect(point, rects.tuneReset)) return { tuneReset: true };
-    if (inRect(point, rects.tuneChip)) {
-      state.tuneOpen = false;
-      return { consumed: true };
-    }
-    if (inRect(point, rects.panel)) return { consumed: true }; // swallow taps on the panel body
-  }
-  return null;
-}
-
-/**
- * Hit-test the open car / level dropdown.
- * @param state the shared HUD state
- * @param rects the layout rectangles
- * @param {{x:number,y:number}} point the tap
- * @returns the action hit, or null
- */
-function hitDropdown(state: HudState, rects: HudRects, point: ScreenPoint) {
-  if (state.expanded) {
-    for (const carRow of rects.rows) if (inRect(point, carRow)) {
-      state.expanded = false;
-      return { car: carRow.id };
-    }
-    for (const levelRow of rects.levelRows) if (inRect(point, levelRow)) {
-      state.expanded = false;
-      return { level: levelRow.id };
-    }
-    if (!inRect(point, rects.chip)) {
-      state.expanded = false;
-      return { consumed: true };
-    }
-  }
   return null;
 }
 
@@ -391,7 +234,6 @@ function hitControls(state: HudState, rects: HudRects, point: ScreenPoint) {
   }
   if (inRect(point, rects.restart)) return { restart: true };
   if (inRect(point, rects.reset)) return { reset: true };
-  if (inRect(point, rects.clear)) return { clear: true };
   if (rects.vol && rects.vol.w > 0 && inRect(point, rects.vol)) return { volumeCycle: true };
   if (inRect(point, rects.help)) return { help: true };
   return null;

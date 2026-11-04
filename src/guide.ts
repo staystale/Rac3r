@@ -110,26 +110,19 @@ const CARDS: GuideCard[] = [
       scene.L.lap) : scene.L.speed,
   },
   {
-    title: 'CAR + TRACK',
-    text: () => 'Tap here to pick a car and a level. '
-      + 'Each car drives differently: front, rear or four-wheel drive.',
-    target: (scene: GuideScene) => scene.L.chip,
-  },
-  {
-    title: 'RESTART / RESET / CLEAR',
+    title: 'RESTART / RESET',
     text: () => 'RESTART: back to the start, with cones, marks, worn ground, tyre heat and lap '
       + 'times reset. RESET: back '
       + (LEVEL.subtrack
         ? 'onto the track near where you left it.'
-        : 'to where you were a couple of seconds ago.')
-      + ' CLEAR: wipe the tyre marks.',
-    target: (scene: GuideScene) => union(scene.L.restart, scene.L.reset, scene.L.clear),
+        : 'to where you were a couple of seconds ago.'),
+    target: (scene: GuideScene) => union(scene.L.restart, scene.L.reset),
   },
   {
     title: 'TYRES + SURFACES',
     text: () => 'Tyres start COLD: on tarmac they need warming up for full grip (off-road it '
       + 'makes no difference). Every surface grips differently, and snow, ice and water change '
-      + 'as you drive over them. TUNE > TYRE HUD shows tyre temperatures.',
+      + 'as you drive over them. PAUSE > HUD > TYRE / DAMAGE shows tyre temperatures.',
     target: (scene: GuideScene) => scene.carRect,
   },
   {

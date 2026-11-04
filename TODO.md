@@ -7,11 +7,16 @@ last handover, written on request.
 
 ## Where we are (2026-11-04)
 
-- UNDER TEST (11-04 late): ?hudlean (owner: "remove any in game tuning so no car changing once
+- DEFAULT 11-04 (owner: "lean hud pass"; the car list, TUNE panel - and src/tune.ts, its data - CLEAR, their
+  keys and the guide's CAR + TRACK step deleted): hudlean (owner: "remove any in game tuning so no car changing once
   a race has started remove the button / list also remove tune and clear tyre marks - pause
   restart and reset can stay") - no car / level chip, no TUNE, no CLEAR, nor their keys (c, l,
   1-5, [ ]); the RESTART row takes the top-left on a phone (hud/layout.ts). uicheck with it: HUD
   reachable, no overlaps at 6 sizes (its car-chip tap test skipped under the switch).
+- WATCH (11-04, seen once in 4 menucheck runs, 844x390, the MENU DEMO car hatch-rwd stuck at
+  v 0.0): "[car sim] car state went bad - recovered with a reset. Cause: vehicle: non-finite
+  state [x] = NaN {vLong: NaN, vLat: NaN, slipF: NaN, slipR: 0, FzF: 6989.6}" x3. Not seen on
+  the commit before nor on 3 reruns; the game recovered it. New - find the cause if it comes back.
 - OWNER 11-04 on the AI DRIVERS sliders: "maybe I don't need the sliders, leave em for now and
   discuss how it works with me ... maybe I'll ask you to remove them as we don't need normal
   players having this control". Also: "worse drivers might take risks but not be able to

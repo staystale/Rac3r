@@ -16,11 +16,10 @@ for (const [label, W, H] of [['landscape 844x390', 844, 390], ['portrait 390x844
   await p.touchscreen.tap(W / 2, H / 2);   // dismisses the boot overlay
   await p.waitForTimeout(150);
   const start = await p.evaluate(() => window.__game.car.spec.id);
-  // tap the chip (top-left) -> must expand
+  // NO CAR CHANGE IN A SESSION (owner 11-04: no car / level list, TUNE or CLEAR): taps where the
+  // car chip and its 4th row were must never change the car
   await p.touchscreen.tap(60, 29);
   await p.waitForTimeout(120);
-  const expanded = await p.evaluate(() => window.__game.hudExpanded);
-  // tap the 4th row (muscle) -> must switch car
   await p.touchscreen.tap(60, 12 + 34 + 6 + 3 * 32 + 15);
   await p.waitForTimeout(150);
   const after = await p.evaluate(() => window.__game.car.spec.id);
@@ -32,11 +31,8 @@ for (const [label, W, H] of [['landscape 844x390', 844, 390], ['portrait 390x844
   await p.touchscreen.tap(rb.restart.x + rb.restart.w / 2, rb.restart.y + rb.restart.h / 2);
   await p.waitForTimeout(120);
   const resetX = await p.evaluate(() => window.__game.car.x);
-  console.log(`${label.padEnd(20)} start=${start} expanded=${expanded} after=${after} steer=${steer} resetX=${resetX.toFixed(1)}`);
-  // (?hudlean: there is no car chip in a session - nothing to tap)
-  const lean = /hudlean=1/.test(extraQuery());
-  if (!lean && !expanded) fails.push(`${label}: tapping the car chip did not open the selector`);
-  if (!lean && after === start) fails.push(`${label}: tapping a car row did not change the car`);
+  console.log(`${label.padEnd(20)} start=${start} after=${after} steer=${steer} resetX=${resetX.toFixed(1)}`);
+  if (after !== start) fails.push(`${label}: a tap in the top-left changed the car (${start} -> ${after})`);
   if (Math.abs(steer) > 0.01) fails.push(`${label}: a HUD tap also steered the car (steer=${steer})`);
   // Compare against the REAL spawn, not a hard-coded 0. MEASURED BUG IN THIS HARNESS, 2026-09-28: the
   // spawn moved into the lab quadrant (x -45) and this failed both sizes while RESET worked perfectly.
@@ -65,7 +61,7 @@ for (const [W, H] of [[844, 390], [390, 844], [1280, 720], [360, 640], [412, 915
     const L = window.__game.hudLayout();
     // speed panel and lap panel included after controls collided in narrow viewports — every control lane
     // must be tested across all supported sizes.
-    const named = [['carChip', L.chip], ['tune', L.tuneChip], ['restart', L.restart], ['reset', L.reset], ['clear', L.clear], ['speed', L.speed], ['lap', L.lap], ['fps', L.fps], ['tally', L.tally], ['help', L.help], ['abs', L.absChip], ['tcs', L.tcsChip]];
+    const named = [['restart', L.restart], ['reset', L.reset], ['speed', L.speed], ['lap', L.lap], ['fps', L.fps], ['tally', L.tally], ['help', L.help], ['abs', L.absChip], ['tcs', L.tcsChip]];
     const hit = (a, b) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
     const out = [];
     for (let i = 0; i < named.length; i++)

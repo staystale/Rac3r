@@ -31,7 +31,6 @@ import { addHighwayLevel } from './highway.ts';
 
 import { createTraffic } from './traffic.ts';
 
-import { setTuneAudio, snapshot } from './tune.ts';
 import { TUNE } from './vehicle.ts';
 import { initWorld } from "./world/load.ts";
 import {
@@ -211,7 +210,6 @@ shared.rulesPending = null;
 shared.renderer = createRenderer(shared.canvas, shared.settings);
 shared.audio = createAudio(shared.settings.audio);   // ?noaudio=1: no Web Audio (judder test)
 game.audio = shared.audio;
-setTuneAudio(shared.audio);
 shared.input = createInput(shared.canvas, {
   mode: shared.settings.inputMode,
   // Asked BEFORE the steering stick or the pedals get a chance to claim the pointer, so a control
@@ -242,13 +240,10 @@ window.__game.selectLevel = selectLevel;
 Object.defineProperty(window.__game, 'level', { get: () => LEVEL });
 window.__game.renderer = shared.renderer;
 window.__game.input = shared.input;
-Object.defineProperty(window.__game, 'hudExpanded', { get: () => shared.hud.expanded });
-Object.defineProperty(window.__game, 'tuneOpen', { get: () => shared.hud.tuneOpen });
 window.__game.setTyreHud = (enabled: boolean) => shared.hud.setTyreHud(enabled);
 window.__game.TUNE = TUNE;
 window.__game.hudLayout = () => shared.hud.layout(shared.renderer.W, shared.renderer.H);
 window.__game.guide = shared.guide;
-snapshot(game.car);
 
 addEventListener('resize', () => shared.renderer.resize());
 shared.renderer.resize();

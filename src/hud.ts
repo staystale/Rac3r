@@ -20,15 +20,12 @@
 import { layoutHud, hitHud, setHudMph, setHudTempF, setHudTyreHud } from './hud/layout.ts';
 import { drawHudTrackTemp } from './hud/tracktemp.ts';
 import {
-  drawHudTune,
   drawHudLights,
   drawHudNotice,
   drawHudCamera,
   drawHudFlag,
 } from './hud/overlays.ts';
 import {
-  drawHudCarChip,
-  drawHudTuneChip,
   drawHudAids,
   drawHudIndicators,
   drawHudButtonRow,
@@ -40,7 +37,6 @@ import { drawHudLapTimer } from './hud/laps.ts';
 import { drawHudPedals, drawHudDevReadout, drawHudFps } from './hud/controls.ts';
 import { drawHudMinimap } from './hud/minimap.ts';
 import type { HudState, HudCar, ScreenPoint, HudGame } from './hud/hudtypes.ts';
-import { FIX } from './core/fixes.ts';
 
 // the pieces hud.ts itself hides on the player's choice (the minimap and the progress bar live in
 // hud/minimap.ts, the tyre diagram is state.tyreHud), and where each choice is remembered
@@ -91,8 +87,6 @@ function setPieceShown(state: HudState, pieceId: string, shown: boolean) {
 function newHudState(): HudState {
   return {
     hidden: new Set(),      // HIDEABLE pieces the player turned off (the pause menu's HUD list)
-    expanded: false,        // car list
-    tuneOpen: false,        // debug/tuning panel — only one of the two is ever open
     shiftFlash: 0,
     gearFlash: 0,
     lastGear: 1,
@@ -144,14 +138,8 @@ export function createHud() {
     const car = game.car;
     const spec = car.spec;
 
-    // ?hudlean: no car / level list and no TUNE once the session is running
-    if (!FIX.hudlean) {
-      drawHudCarChip(ctx, state, rects, spec);
-      drawHudTuneChip(ctx, state, rects);
-    }
     drawHudAids(ctx, state, rects, car, spec, wallDt);
     drawHudIndicators(ctx, rects, car);
-    if (state.tuneOpen) drawHudTune(ctx, state, rects, car);
     drawHudButtonRow(ctx, state, game, rects);
     drawHudConeTally(ctx, state, game, rects);
     if (!state.hidden.has('speedo')) drawHudSpeedo(ctx, state, rects, car, spec, wallDt);
@@ -176,12 +164,7 @@ export function createHud() {
       fahrenheit),
     pieceShown: (pieceId: string) => !state.hidden.has(pieceId),
     setPieceShown: (pieceId: string, shown: boolean) => setPieceShown(state, pieceId, shown),
-    get expanded() { return state.expanded; },
     setHelpLabel(labelText: string) { state.helpLabel = labelText; },
-    get tuneOpen() { return state.tuneOpen; },
-    close() {
-      state.expanded = false;
-      state.tuneOpen = false;
-    },
+    close() { /* nothing opens over the HUD now (the car list and TUNE are gone) */ },
   };
 }

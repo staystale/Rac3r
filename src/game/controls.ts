@@ -1,17 +1,13 @@
 // controls.ts — HUD and key controls, and the level and car selectors.
 import { makeCar } from '../vehicle.ts';
-import { CAR_IDS } from '../cars.ts';
 import { createCones } from '../cones.ts';
-import { nudge, resetAll, snapshot } from '../tune.ts';
 import { setLevel } from "../world/load.ts";
 import { LEVEL } from "../world/state.ts";
 import { clearWear } from "../world/wear.ts";
-import { LEVELS } from "../world/levels/index.ts";
 import { spawnAI } from './grid.ts';
 import { armStart } from './order.ts';
 import { doReset, saveRecords, doRestart, saveTyreWear, loadTyreWear } from './session.ts';
 import { openPause } from './menuflow.ts';
-import { FIX } from '../core/fixes.ts';
 import { shared, game } from './state.ts';
 import type { GameCar } from './state.ts';
 import type { HudAction } from '../hud/hudtypes.ts';
@@ -58,18 +54,13 @@ export function hudToggles(action: HudAction) {
  * @param action the action from hud.hit
  */
 export function applyHudAction(action: HudAction) {
-  if (action.car) selectCar(action.car);
   if (action.restart) doRestart();
   if (action.reset) doReset();
-  if (action.clear) game.marks.clear();
   if (action.help) {
     shared.hud.close();
     if (shared.MENU) openPause(); else shared.guide.open();
   }
   if (action.volumeCycle) cycleVolume();
-  if (action.tune) nudge(game.car, action.tune, action.dir!);
-  if (action.tuneReset) resetAll(game.car);
-  if (action.level) selectLevel(action.level);
   hudToggles(action);
 }
 
@@ -114,14 +105,7 @@ export function gameKey(key: string) {
   if (key === 'R' || key === 'Backspace') doRestart();
   if (key === 'm') shared.audio.toggleMute();
   carToggleKey(key);
-  // ?hudlean: no clearing the marks, no changing the track or the car once the session runs
-  if (FIX.hudlean) return;
-  if (key === 'c') game.marks.clear();
-  if (key === 'l') cycleLevel();
-  const index = '12345'.indexOf(key);
-  if (index >= 0) selectCar(CAR_IDS[index]);
-  if (key === '[') cycleCar(-1);
-  if (key === ']') cycleCar(1);
+  // (no clearing the marks, no changing the track or the car in a session: owner 11-04)
 }
 
 /**
@@ -163,11 +147,6 @@ export function selectLevel(levelId: string) {
   clearWear();
   doRestart();
 }
-export function cycleLevel() {
-  const i = LEVELS.findIndex((item) => item.id === LEVEL.id);
-  selectLevel(LEVELS[(i + 1) % LEVELS.length].id);
-}
-
 // Switching car RESETS the car but KEEPS THE MARKS (PLAN.md): driving the same corner in two cars
 // and comparing the two signatures side by side is the whole point of the selector. The roster is
 // swapped, never rebuilt, so it is instant.
@@ -176,12 +155,7 @@ export function selectCar(carId: string) {
   saveTyreWear();   // the old car's set is kept; the new car takes its own
   game.car = makeCar(carId) as GameCar;   // doReset (repair) fills in its damage
   if (shared.mode === 'session') loadTyreWear(game.car);
-  snapshot(game.car);     // so the tune panel can mark what has been changed from stock
   doReset();
   spawnAI();              // the AI drive the same car as the player (user)
   armStart();
-}
-export function cycleCar(offset: number) {
-  const i = CAR_IDS.indexOf(game.car.spec.id);
-  selectCar(CAR_IDS[(i + offset + CAR_IDS.length) % CAR_IDS.length]);
 }

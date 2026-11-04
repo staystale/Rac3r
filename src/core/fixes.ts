@@ -8,7 +8,7 @@
 // muscletyres, namefix, bhbridges,
 // menustyle, testgarage, ai10, k12, resetin, belly, agtyre, ai20, aifast, aisafe passed 11-03;
 // drycover, rimsoft, bushmark, leafpop, aireact, skillband,
-// bhquiet, aiweave, jokerflow, aisliders passed 11-04.)
+// bhquiet, aiweave, jokerflow, aisliders, hudlean passed 11-04.)
 import { envValue } from './debug.ts';
 
 /**
@@ -39,7 +39,4 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
-  // ?hudlean=1: the in-race HUD has no car / level list, no TUNE and no CLEAR (and their keys:
-  // c, l, 1-5, [ ]); RESTART, RESET, pause stay (owner 11-04)
-  hudlean: atLoad('hudlean'),
 };

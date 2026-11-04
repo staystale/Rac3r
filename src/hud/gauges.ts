@@ -1,7 +1,6 @@
-// hud/gauges.ts — car/tune chips, aids, indicators, button row, cone tally, speedo, tyre diagram.
+// hud/gauges.ts — aids, indicators, button row, cone tally, speedo, tyre diagram.
 // Pure moves out of hud.ts.
 
-import { ROSTER } from '../cars.ts';
 import { LEVEL } from '../world/state.ts';
 import { COL } from '../world/colours.ts';
 import { wearColour } from '../physics/tyrewear.ts';
@@ -9,68 +8,12 @@ import { tempInUnits } from './tracktemp.ts';
 import { drawEngineLights } from './enginelights.ts';
 import { wheelGone } from '../world/wheels.ts';
 import {
-  MARGIN, DIAGRAM_H, drawHudPanel, drawHudLabel, drawHudButton,
+  DIAGRAM_H, drawHudPanel, drawHudLabel, drawHudButton,
 } from './widgets.ts';
 import type { HudState, HudCar, HudGame } from './hudtypes.ts';
 import type { HudRects } from './layout.ts';
 import type { Spec } from '../cars.ts';
 import type { HudRect } from './widgets.ts';
-
-/**
- * Top-left: the car chip and, when open, the car and level dropdown.
- * @param ctx
- * @param state the shared HUD state
- * @param rects the layout rectangles
- * @param spec the car spec
- * @returns {void}
- */
-export function drawHudCarChip(ctx: CanvasRenderingContext2D, state: HudState, rects: HudRects,
-  spec: Spec) {
-  drawHudPanel(ctx, rects.chip);
-  drawHudLabel(ctx, spec.name, rects.chip.x + 10, rects.chip.y + rects.chip.h / 2,
-    { size: 12.5, maxW: rects.chip.w - 30 });
-  drawHudLabel(ctx, state.expanded ? '▴' : '▾', rects.chip.x + rects.chip.w - 12, rects.chip.y
-    + rects.chip.h / 2, { align: 'right', col: COL.inkSoft });
-  if (state.expanded) {
-    for (const carRow of rects.rows) {
-      const selected = carRow.id === spec.id;
-      drawHudPanel(ctx, carRow,
-        { fill: selected ? 'rgba(76,194,160,0.92)' : 'rgba(27,29,34,0.88)' });
-      const row = ROSTER.find((entry) => entry.id === carRow.id)!;
-      drawHudLabel(ctx, row.name, carRow.x + 10, carRow.y + carRow.h / 2,
-        { size: 12, col: selected ? '#0d1a16' : COL.hudText, maxW: carRow.w - 52 });
-      // the drive layout is the point of the roster, so it is on the row
-      const drive = row.drive === 1 ? 'FWD' : row.drive === 0 ? 'RWD' : '4WD';
-      drawHudLabel(ctx, drive, carRow.x + carRow.w - 10, carRow.y + carRow.h / 2,
-        { size: 10.5, align: 'right', col: selected ? '#0d1a16' : COL.inkSoft });
-    }
-    // ---- and the LEVELS, under the cars in the same dropdown
-    for (const levelRow of rects.levelRows) {
-      const selected = levelRow.id === LEVEL.id;
-      drawHudPanel(ctx, levelRow,
-        { fill: selected ? 'rgba(232,161,58,0.94)' : 'rgba(27,29,34,0.88)' });
-      drawHudLabel(ctx, levelRow.name, levelRow.x + 10, levelRow.y + levelRow.h / 2,
-        { size: 12, col: selected ? '#2a1405' : COL.hudText });
-      drawHudLabel(ctx, 'LEVEL', levelRow.x + levelRow.w - 10, levelRow.y + levelRow.h / 2,
-        { size: 10, align: 'right', col: selected ? '#2a1405' : COL.inkSoft });
-    }
-  }
-}
-
-/**
- * Top-left: the TUNE chip, opening the debug panel.
- * @param ctx
- * @param state the shared HUD state
- * @param rects the layout rectangles
- * @returns {void}
- */
-export function drawHudTuneChip(ctx: CanvasRenderingContext2D, state: HudState, rects: HudRects) {
-  drawHudPanel(ctx, rects.tuneChip,
-    { fill: state.tuneOpen ? 'rgba(232,161,58,0.94)' : 'rgba(27,29,34,0.88)' });
-  drawHudLabel(ctx, 'TUNE', rects.tuneChip.x + rects.tuneChip.w / 2, rects.tuneChip.y
-    + rects.tuneChip.h / 2,
-    { size: 11.5, align: 'center', col: state.tuneOpen ? '#2a1405' : COL.hudText });
-}
 
 /**
  * Bottom-right, above the pedals: DRIVER AIDS. Green = on, dark = off, AMBER FLASH
@@ -143,14 +86,9 @@ export function drawHudButtonRow(ctx: CanvasRenderingContext2D, state: HudState,
     rects.vol.label = !audio ? 'VOL' : audio.muted ? 'MUTE' : Math.round(audio.volume * 100)
       + '%';
   }
-  const btns: HudRect[] = [rects.restart, rects.reset, rects.clear, rects.vol]
+  const btns: HudRect[] = [rects.restart, rects.reset, rects.vol, rects.help]
     .filter((button) => button && button.w > 0);
-  if (!(rects.help.row3 && (state.expanded || state.tuneOpen))) btns.push(rects.help);
-  // On a narrow screen this row sits in the car dropdown's lane (left, row two). While the
-  // dropdown is open it owns that lane — hit already sends those taps to the dropdown — so do
-  // not draw over it.
-  const rowHidden = state.expanded && rects.restart.y > MARGIN;
-  if (!rowHidden) for (const button of btns) drawHudButton(ctx, rects, audio, button);
+  for (const button of btns) drawHudButton(ctx, rects, audio, button);
 }
 
 /**
@@ -168,7 +106,7 @@ export function drawHudConeTally(ctx: CanvasRenderingContext2D, state: HudState,
   const knocked = game.cones.knocked;
   // ONLY ON A LEVEL THAT ASKS FOR IT (LEVEL.coneCount: the Lab + Test Track courses) (requirement:
   // only relevant when asked for, not on most race tracks)
-  if (LEVEL.coneCount && knocked > 0 && !state.tuneOpen) {
+  if (LEVEL.coneCount && knocked > 0) {
     const tallyRect = rects.tally;
     drawHudPanel(ctx, tallyRect, { fill: 'rgba(242,106,27,0.92)', stroke: null });
     drawHudLabel(ctx, knocked + ' / ' + game.cones.total + ' CONES', tallyRect.x + tallyRect.w / 2,
