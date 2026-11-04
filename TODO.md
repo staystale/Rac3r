@@ -13,6 +13,17 @@ last handover, written on request.
   restart and reset can stay") - no car / level chip, no TUNE, no CLEAR, nor their keys (c, l,
   1-5, [ ]); the RESTART row takes the top-left on a phone (hud/layout.ts). uicheck with it: HUD
   reachable, no overlaps at 6 sizes (its car-chip tap test skipped under the switch).
+- UNDER TEST (11-04 late): ?dodgefar (owner: "nudge up dodging? so drivers look and swerve slightly
+  further ahead but still a gradient with skill"; "make them avoid lamppost too in case they end up
+  off track") - cars read 0.8 (skill 0) .. 2.1 s (skill 1) ahead (was 0.6 .. 1.6), loose objects
+  0.3 s further (ai/dodge.ts); standing lamp posts within 45 m join each AI's obstacles (game/ai.ts)
+  and are steered round off the road too (driverTraffic.ts offRoadSkip). MEASURED: stopped car (9
+  runs) 413 -> 346 hits; fields (6 seeds) Realish incidents 102 -> 85, Real 138 -> 115, passes
+  228 -> 210 / 268 -> 219; lamps knocked down (15 AI x 90 s, Thruston + Brands + Castle Cum) 6 -> 3.
+  Off-track dodging: round a car in the way the AI may use 0.8 m past the edge, 2.5 m round a
+  stopped / slow one (driverTraffic.ts WIDE / WIDE_SLOW). NEXT (owner "yes"): one line choice per
+  corner clear of everything (oil, glass, cones, tyres, stopped cars, posts), wide / just off the
+  edge if needed, the fastest clear one, by skill.
 - DEFAULT 11-04 (owner: "test passed"): ailook (owner: "the different way approach sounds like a good idea") -
   on arriving at a corner a driver checks the line it chose through it for fresh oil / glass (its
   middle and wheels) and takes the nearest earlier / later apex (b +-0.3, +-0.6) that misses it;

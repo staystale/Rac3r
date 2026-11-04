@@ -5,7 +5,7 @@ import { GRAVITY } from "../cars.ts";
 import { OBST_CLEAR, carGrip, profileOf } from "./line.ts";
 import type { AiCar, CarsAcc, CarsEnv, DriveCtx } from "./types.ts";
 import type { Drv, AiPath } from "./driverCtx.ts";
-import { clearOf, lookAhead, reachOf, swerveCap } from "./dodge.ts";
+import { OBJECT_MORE, clearOf, lookAhead, reachOf, swerveCap } from "./dodge.ts";
 
 // MEASURED (aidrivecheck, HB on/off, Realish + Real, hatch + 4x4): Slidden / Knobhill / Castle Cum
 // within 0.1 s, Sweaty Lamb +0.2..+0.7 s, 6 pulls per 2 min at Slidden, 4 at Sweaty Lamb — it is
@@ -14,6 +14,17 @@ import { clearOf, lookAhead, reachOf, swerveCap } from "./dodge.ts";
 const WIDE = +(debugValue("WIDE") ?? 0.8), WIDE_SLOW = 2.5;
 // m more room alongside a car while easing from the grid lane onto the line
 const START_GAP = 1.3;
+
+/**
+ * An obstacle off the road is not in the way - unless it is a standing post (?dodgefar: a car off
+ * the road steers round a lamp post too).
+ * @param obstacle the obstacle
+ * @param offCentre its m off the road's middle
+ * @param edge m from the middle the road runs to
+ * @returns true to pass it by
+ */
+const offRoadSkip = (obstacle: { fixed?: boolean }, offCentre: number, edge: number) =>
+  !obstacle.fixed && Math.abs(offCentre) > edge;
 
 /** Steps round a loose obstacle (cone, tyre) in the way; the dodge target, or null. */
 export function obstacleStep(drv: Drv, car: AiCar, ctx: DriveCtx, path: AiPath, nearIdx: number,
@@ -30,7 +41,7 @@ export function obstacleStep(drv: Drv, car: AiCar, ctx: DriveCtx, path: AiPath, 
   // only when no car is in the way. A more
   // precise driver sees it further ahead.
   if (ctx.obstacles) {
-    const reach = 6 + speed * (0.6 + 0.6 * prec); let best = null;
+    const reach = 6 + speed * (0.6 + 0.6 * prec + OBJECT_MORE); let best = null;
     for (const obstacle of ctx.obstacles) {
       const relX = obstacle.x - car.x, relY = obstacle.y - car.y,
           fwd = relX * cosH + relY * sinH;
@@ -39,8 +50,8 @@ export function obstacleStep(drv: Drv, car: AiCar, ctx: DriveCtx, path: AiPath, 
       const pos = idx(nearIdx + Math.round(fwd / path.sp)), pathPt = pts[pos], obstLat = (
           obstacle.x - pathPt.x) * -Math.sin(pathPt.h) + (obstacle.y - pathPt.y) * Math.cos(
           pathPt.h);
-      // off the road: not in the way
-      if (Math.abs(onLine + obstLat) > (path === main ? line.hw + 0.5 : 6)) continue;
+      // off the road: not in the way (?dodgefar: a standing post is, to a car off the road too)
+      if (offRoadSkip(obstacle, onLine + obstLat, path === main ? line.hw + 0.5 : 6)) continue;
       if (Math.abs(obstLat - myLat) < obstacle.r + OBST_CLEAR && (
           !best || fwd < best.f)) best = {
         f: fwd, oc: obstLat, r: obstacle.r

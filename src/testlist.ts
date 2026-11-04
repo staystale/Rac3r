@@ -51,4 +51,12 @@ export const TEST_LIST: TestEntry[] = [
   // aiweave (AI R2), jokerflow, aisliders (AI R3), hudlean,
   // aibands, puffroom, aigrip (AI R4 part 1), aidodge (AI R5),
   // ailines, ailook passed 2026-11-04)
+  {
+    id: 'dodgefar',
+    added: '2026-11-04',
+    name: 'AI looks / swerves further ahead (by skill); avoids lamp posts off track',
+    where: 'Test link + &dodgefar=1: a big field, Real then Mobile',
+    try: 'Watch crashes and spins ahead of the pack; cars running wide near lamp posts.',
+    wrong: 'AI braking or swerving for nothing far ahead, passing less, or hitting posts.',
+  },
 ];

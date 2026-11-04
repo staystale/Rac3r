@@ -9,9 +9,14 @@
 // one starts earlier, so it swerves smaller and smoother), and when the swerve cannot be made in
 // time at this speed it brakes until it can. All cheap: a little arithmetic per car near it.
 import type { AiCar } from './types.ts';
+import { FIX } from '../core/fixes.ts';
 
-// s of travel ahead a driver reads the cars in, skill 0 / skill 1 (was 1.1 for everyone)
-export const LOOK_WEAK = 0.6, LOOK_TOP = 1.6;
+// s of travel ahead a driver reads the cars in, skill 0 / skill 1 (was 1.1 for everyone);
+// ?dodgefar (owner 11-04: "nudge up dodging? so drivers look and swerve slightly further ahead but
+// still a gradient with skill") 0.8 / 2.1
+export const LOOK_WEAK = FIX.dodgefar ? 0.8 : 0.6, LOOK_TOP = FIX.dodgefar ? 2.1 : 1.6;
+// ?dodgefar: s more of travel ahead a driver sees a loose object in (driverTraffic.ts obstacleStep)
+export const OBJECT_MORE = FIX.dodgefar ? 0.3 : 0;
 // m kept between the two cars' sides going round
 const MARGIN = 0.6;
 // m/s sideways a driver swerves at round a car in the way (the dodge's rate, driverDrive.ts)

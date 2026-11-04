@@ -40,4 +40,8 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
+  // ?dodgefar=1: the AI reads the cars 0.8 (skill 0) .. 2.1 s (skill 1) ahead, was 0.6 .. 1.6, and
+  // loose objects 0.3 s further, and sees standing lamp posts, off the road too (ai/dodge.ts,
+  // game/ai.ts; owner 11-04)
+  dodgefar: atLoad('dodgefar'),
 };
