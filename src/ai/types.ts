@@ -274,6 +274,7 @@ export interface CarsAcc {
   dodgeT: number; followCap: number; conflict: boolean; lead: Lead | null;
   threat: Threat | null; side: number; alg: number[];
   urgent?: boolean;   // swerving round a car in the way needs the fast rate
+  seen?: { fwd: number; lat: number; v: number; across: number; along: number }[];   // (?oneai)
 }
 export interface CarsEnv {
   car: AiCar; path: Path<DrivePoint>; nearIdx: number; idx: (pos: number) => number;

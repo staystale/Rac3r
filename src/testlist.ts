@@ -68,4 +68,20 @@ export const TEST_LIST: TestEntry[] = [
     wrong: 'AI queueing behind traffic, using the hard shoulder, braking instead of going round, '
       + 'or circuits with fewer passes / more crashes than before.',
   },
+  {
+    id: 'halfcar',
+    added: '2026-11-04',
+    name: 'Racing rule: half a car ahead owns the line, the car behind gives way',
+    where: 'Test link + &halfcar=1 (with &hwshare=1&oneai=1): any race with AI',
+    try: 'Watch side-by-side battles into corners; get half a car ahead of an AI, take the line.',
+    wrong: 'AI chopping across a car that leads it, or not letting a leader in; more crashes.',
+  },
+  {
+    id: 'rejoinlook',
+    added: '2026-11-04',
+    name: 'AI look before pulling back onto the track (off it, or reset onto its edge)',
+    where: 'Test link + &rejoinlook=1 (with &hwshare=1&oneai=1): any race with AI',
+    try: 'Knock an AI wide, or watch one reset, and come past as it rejoins.',
+    wrong: 'AI pulling across in front of you as it rejoins, or sitting off the track for ages.',
+  },
 ];

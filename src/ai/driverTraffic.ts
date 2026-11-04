@@ -17,6 +17,8 @@ import type { SeenCar } from "./gapPick.ts";
 const WIDE = +(debugValue("WIDE") ?? 0.8), WIDE_SLOW = 2.5;
 // m more room alongside a car while easing from the grid lane onto the line
 const START_GAP = 1.3;
+// m/s under the leading car's speed a car giving way to it drops to (?halfcar)
+const YIELD_V = 0.5;
 
 /**
  * An obstacle off the road is not in the way - unless it is a standing post (a car off
@@ -146,11 +148,28 @@ export function followAhead(drv: Drv, acc: CarsAcc, env: CarsEnv, fwd: number, o
 }
 
 /** A car alongside (or just behind): remember its place and keep a gap from it. */
-export function alongsideCar(drv: Drv, acc: CarsAcc, env: CarsEnv, fwd: number, otherLat: number) {
+export function alongsideCar(drv: Drv, acc: CarsAcc, env: CarsEnv, fwd: number, otherLat: number,
+    vAlong: number) {
   const { latT, startK, myLat } = env;
   if (fwd > -2.5) acc.side = acc.side || Math.sign(otherLat - myLat);
   acc.alg.push(otherLat);
   const gapA = 2.4 + START_GAP * startK;
+  // ?halfcar: who OWNS THE LINE (owner 11-04: "if a car has the lead (half a car) over another car
+  // they have the priority on racing line and the car behind even if it's side by side still
+  // yields to it")
+  const half = env.car.spec.len / 2, side = Math.sign(otherLat - myLat) || 1;
+  if (FIX.halfcar && fwd <= -half) {
+    // I lead: my line - only no chopping across it (I hold where I am if my line closes on it)
+    if (Math.abs(otherLat - myLat) < gapA && Math.sign(latT - myLat) === side) {
+      acc.conflict = true;
+      acc.dodgeT = myLat - latT;
+    }
+    return;
+  }
+  if (FIX.halfcar && fwd >= half && Math.sign(latT - myLat) === side) {
+    // it leads and my line is across it: give way - drop in behind it, then take the line
+    acc.followCap = Math.min(acc.followCap, vAlong - YIELD_V);
+  }
   if (Math.abs(otherLat - myLat) < gapA) {
     acc.conflict = true;
     acc.dodgeT = myLat + Math.sign(myLat - otherLat || 1) * (
@@ -256,6 +275,7 @@ export function carsStep(drv: Drv, car: AiCar, others: AiCar[], path: AiPath, ne
     reactTo(drv, acc, [env, envO], { fwd, otherLat, vAlong, closeIdx, attacked: !!attacked });
   }
   if (FIX.oneai) gapStep(drv, car, acc, seen, { myLat, latT, lineOff, latLim, speed, look });
+  if (FIX.oneai) acc.seen = seen;
   return acc;
 }
 
@@ -282,7 +302,7 @@ function reactTo(drv: Drv, acc: CarsAcc, envs: [CarsEnv, CarsEnv], seenAs: { fwd
       followAhead(drv, acc, envO, fwd, otherLat, vAlong, closeIdx);
     }
   } else if (fwd > -4) {
-    alongsideCar(drv, acc, env, fwd, otherLat);
+    alongsideCar(drv, acc, env, fwd, otherLat, vAlong);
   } else if (!acc.conflict && traits.defence > 0.5 && vAlong > speed + 0.5 && fwd > -14) {
     acc.dodgeT = Math.max(-1.2, Math.min(1.2, (otherLat - latT) * 0.5)) * traits.defence;
   }

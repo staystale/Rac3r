@@ -51,6 +51,19 @@ last handover, written on request.
   same throttle. Now the field keeps station on the POLE's own speed (the pole aims at the pace):
   closest pair 0.71 -> 3.3-3.5 m (old game 2.3-3.1), place slip <= 0.2 m; circuit rolling starts
   (_rollstart.mjs naffcar / stock-car) unchanged, closest 4.06 / 3.66 m (was 3.89 / 3.68).
+- UNDER TEST (11-04 late, with ?hwshare&oneai): ?halfcar - racing's overlap rule (owner: "if a car
+  has the lead (half a car) over another car they have the priority on racing line and the car
+  behind even if it's side by side still yields to it"): half a car or more ahead keeps its line
+  (no chopping across: it holds where it is if its line closes on the other); the car behind,
+  its line across the leader, drops 0.5 m/s under it to tuck in behind; truly side by side as
+  before (both keep 2.4 m, the inside gets the corner). Fields (4 tracks x 3 seeds, diff 4):
+  incidents 62 -> 40, contact 50 -> 72 s, passes 119 -> 94 (noisy).
+  ?rejoinlook - look before pulling on (owner: "make cars look before pulling onto the track"; "yes
+  mirror check"): a car at / past the edge coming in by > 1 m holds its place on the edge until no
+  car on the track arrives within 1.5 s (the gap picker's mirror) or sits alongside on the lines it
+  would cross (ai/gapPick.ts rejoinClear). Fields: incidents 44 -> 49, contact 64 -> 42 s, passes
+  122 -> 145 (noisy; rejoins are rare there). Highway with both: weavecheck 0 hits d2/d4;
+  pacesuite 129.8 km/h, 0 bad, 0 off-road, rr 347 -> 186, rt 393 -> 99.
 - AI ORDER (owner 11-04): R6 SKIPPED ("doesn't seem like an issue anymore"), R8 one AI
   next (staged plan proposed - stage 1 the shared reflexes; owner to say go), then R7. R4 part 2 (felt
   grip) not needed (measured); weak-driver OVERDRIVE declined - "only push up crashes", not unless

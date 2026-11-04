@@ -47,4 +47,11 @@ export const FIX = {
   // ?oneai=1: the AI rework R8 stage 2 - the highway driver steers by the ONE law, the circuit
   // driver's (ai/steerLaw.ts; owner 11-04: "why can't we have the circuit steering on the highway")
   oneai: atLoad('oneai'),
+  // ?halfcar=1: racing's overlap rule - half a car or more ahead owns the line, the car behind
+  // gives way; truly side by side, both leave a car's width (ai/driverTraffic.ts alongsideCar;
+  // owner 11-04)
+  halfcar: atLoad('halfcar'),
+  // ?rejoinlook=1: a car coming back from off the track (or reset onto its edge) looks first -
+  // a car on the track has priority over one rejoining it (ai/gapPick.ts rejoinClear; owner 11-04)
+  rejoinlook: atLoad('rejoinlook'),
 };

@@ -21,6 +21,8 @@ export interface SeenCar { fwd: number; lat: number; v: number; across: number; 
 // a blocked way across or the mirror's cost, the mirror's s, the most m across in one think
 const LINES = 11, COMMIT = 25, MOVE_K = 1.5, MOVE_SPEED_K = 0.05, VERGE = 40, OUT = 400;
 const MIRROR_S = 1.5, REACH_M = 4.5, MARGIN = 0.55, FREE_BONUS = 60, KEPT_V = 1.2;
+// m between the lines a rejoining car checks on its way across
+const REJOIN_STEP_M = 1;
 
 /**
  * The car ahead on a line (or one beside it: no way through).
@@ -57,6 +59,30 @@ function inMirror(seen: SeenCar[], off: number, half: number, speed: number) {
     if ((-car.fwd - car.along) / (car.v - speed) < MIRROR_S) return true;
   }
   return false;
+}
+
+/**
+ * ?rejoinlook: whether a car coming back onto the track may cross from where it is to its line -
+ * no car on the track arriving (MIRROR_S) on, or alongside on, the lines it would cross (owner
+ * 11-04: "make cars look before pulling onto the track"; a car on the track has priority).
+ * @param seen the cars seen (my path's frame)
+ * @param from where I am, m off my path
+ * @param dest where I am going, m off my path
+ * @param half my half width, m
+ * @param len my length, m
+ * @param speed my m/s
+ * @returns true when it is clear
+ */
+export function rejoinClear(seen: SeenCar[], from: number, dest: number, half: number,
+  len: number, speed: number): boolean {
+  const steps = Math.max(1, Math.ceil(Math.abs(dest - from) / REJOIN_STEP_M));
+  for (let i = 1; i <= steps; i++) {
+    const off = from + (dest - from) * i / steps;
+    if (inMirror(seen, off, half, speed)) return false;
+    const block = blockOn(seen, off, half, len);
+    if (block && block.side) return false;
+  }
+  return true;
 }
 
 /**

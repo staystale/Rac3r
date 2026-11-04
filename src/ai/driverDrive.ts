@@ -10,12 +10,18 @@ import {
   advance, placeAtStart, mistakeStep, laneStep, battleStep, racecraftStep,
 } from "./driverLane.ts";
 import type { AiCar, DriveCtx } from "./types.ts";
-import { rejoinCross, rejoinAim } from "./rejoin.ts";
+import { rejoinCross, rejoinAim, lateralOf } from "./rejoin.ts";
+import { rejoinClear } from "./gapPick.ts";
+import { FIX } from "../core/fixes.ts";
 import { SWERVE_RATE } from "./dodge.ts";
 import type { Drv, AiPath } from "./driverCtx.ts";
 
 // m: the lateral target never puts the car's centre closer than this to the road edge
 const WANDER_EDGE = 1.1;
+
+// ?rejoinlook: m inside the track's edge a car's middle counts as at the edge, and the m it must
+// be coming in by to look first
+const EDGE_IN_M = 0.3, COME_IN_M = 1;
 
 /** Other cars and obstacles, then racecraft: the lateral target, speed scale and gap cap. */
 function trafficStep(drv: Drv, car: AiCar, ctx: DriveCtx, path: AiPath, nearIdx: number,
@@ -60,7 +66,30 @@ function trafficStep(drv: Drv, car: AiCar, ctx: DriveCtx, path: AiPath, nearIdx:
   // past the usual edge only while going round a car (above)
   const edge = state.t < (state.wideUntil || 0) ? state.wide! : latLim;
   latT = Math.max(-edge, Math.min(edge, lineOff + latT)) - lineOff;
+  if (FIX.rejoinlook && path === main && cars.seen) latT = lookFirst(car, path, nearIdx, lineOff,
+    latT, { hw: line.hw, speed, seen: cars.seen });
   return { latT, vMul, prof, followCap, conflict };
+}
+
+/**
+ * ?rejoinlook: LOOK BEFORE PULLING ON - a car at or past the track's edge that wants to come in
+ * holds its place (driving on along the edge) until the lines it would cross are clear.
+ * @param car my car
+ * @param path my path
+ * @param nearIdx my point on it
+ * @param lineOff the line's m off the track's middle here
+ * @param latT where I am going, m off my path
+ * @param road the track's half width, my m/s and the cars seen
+ * @returns where to go, m off my path
+ */
+function lookFirst(car: AiCar, path: AiPath, nearIdx: number, lineOff: number, latT: number,
+  road: { hw: number; speed: number; seen: NonNullable<ReturnType<typeof carsStep>['seen']> }) {
+  const actual = lateralOf(car, path, nearIdx), half = car.spec.wid / 2;
+  // at the edge (a reset puts the car's middle on it) or past it, and coming in by a metre or more
+  const atEdge = Math.abs(lineOff + actual) > road.hw - EDGE_IN_M;
+  const comingIn = Math.abs(lineOff + latT) < Math.abs(lineOff + actual) - COME_IN_M;
+  if (!atEdge || !comingIn) return latT;
+  return rejoinClear(road.seen, actual, latT, half, car.spec.len, road.speed) ? latT : actual;
 }
 
 /** One drive tick: the controls for this car from the driver context, or a drive-out move. */
