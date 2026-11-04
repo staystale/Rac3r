@@ -19,6 +19,18 @@ last handover, written on request.
   apex shifts only 409 (no gain), with the moves across 578 (WORSE). The last-moment dodge (R5)
   already does the stopped car better: a line chosen on arrival is wrong once the car is shoved,
   and a whole-corner move runs the line where it should not. Owner to say how to go on.
+- UNDER TEST (11-04 late): ?onroad (with ?lineback) - owner, with a photo of grooves worn in the
+  grass of the stock car oval "after 1 lap", 21 cars: "still loads of cars driving wide". THE
+  FULL GRID was the difference (tests had 6 AI). MEASURED in the REAL GAME (tools/scratch/
+  _ovalfield.mjs: rolling start, player on autopilot, 20 AI, diff 2): AI off the track 5.8 % of
+  the time (6 AI: 0.3 %), 19 % in the 10 s after the green, up to 25 m past the edge. Rule (owner
+  OK): past the track's edge only round a car stopped or crawling (< half my speed) - a racing car
+  is passed on the track or followed (ai/driverTraffic.ts offTrackOk). With ?lineback&onroad:
+  3.5 % (peak 8.4 %, furthest ~10 m). STILL OPEN: the rest is the post-green CRUSH at the first
+  bend - cars jam to ~8 m/s and some drift far off their target (a trace: target ~3 m off the
+  line, the car 7 -> 17 m off, into the infield) and then recover slowly across the grass
+  (spun / pointing the wrong way). tools/scratch/_wide.mjs ROLL=1 recreates it in node (TRACE=<car>,
+  FREELOG=<reason>).
 - UNDER TEST (11-04 late): ?lineback - owner: "some ai seem to drive very wide around the outside
   of the track? especially noticeable on stockcar track"; "no going 10m wide seems wild".
   MEASURED (tools/scratch/_wide.mjs: a field on the stock car oval; share of the race off the

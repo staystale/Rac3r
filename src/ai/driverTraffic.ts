@@ -6,6 +6,7 @@ import { OBST_CLEAR, carGrip, profileOf } from "./line.ts";
 import type { AiCar, CarsAcc, CarsEnv, DriveCtx } from "./types.ts";
 import type { Drv, AiPath } from "./driverCtx.ts";
 import { OBJECT_MORE, clearOf, matchSpeed, reachOf, readBraking, swerveCap } from "./dodge.ts";
+import { FIX } from "../core/fixes.ts";
 import { blockOn, gapLine, seeCar } from "./gapPick.ts";
 import type { SeenCar } from "./gapPick.ts";
 
@@ -113,7 +114,8 @@ export function followAhead(drv: Drv, acc: CarsAcc, env: CarsEnv, fwd: number, o
   // the racers went round on the verge with the lanes clear - off the road, wrecks)
   const both = [otherLat + clear, otherLat - clear];
   const onRoad = both.filter((cand) => Math.abs(lineOff + cand) <= latLim);
-  const cands = (onRoad.length ? onRoad : both.filter(
+  // (?onroad: past the edge only round a car stopped or crawling - offTrackOk)
+  const cands = (onRoad.length || !offTrackOk(vAlong, speed) ? onRoad : both.filter(
       (cand) => Math.abs(lineOff + cand) <= wide)).sort(
       (first, second) => Math.abs(first - myLat) - Math.abs(second - myLat));
   if (cands.length && fwd > 3) {
@@ -202,6 +204,18 @@ export function alongsideCar(drv: Drv, acc: CarsAcc, env: CarsEnv, fwd: number, 
  * @returns true when it is not racing
  */
 const racingNot = (vAlong: number, speed: number) => vAlong < Math.max(5, 0.5 * speed);
+
+/**
+ * ?onroad: whether a car may go past the track's edge to get round this one: only a car stopped
+ * or crawling (racingNot) - a racing car is passed on the track or followed until there is room.
+ * MEASURED (tools/scratch/_wide.mjs, the stock car oval, 20 AI): with the track full every way
+ * round went onto the grass - 4.7 % of the race off the track (6 AI: 1.2 %), most of it the
+ * first bend in the first 40 s.
+ * @param vAlong its m/s along my way
+ * @param speed my m/s
+ * @returns true when the edge may be crossed for it
+ */
+const offTrackOk = (vAlong: number, speed: number) => !FIX.onroad || racingNot(vAlong, speed);
 
 /** Notes the nearest car ahead (lead) and the nearest faster one close behind (threat). */
 export function noteLeadThreat(drv: Drv, acc: CarsAcc, env: CarsEnv, other: AiCar, fwd: number,
@@ -347,7 +361,9 @@ function gapStep(drv: Drv, car: AiCar, acc: CarsAcc, seen: SeenCar[], mine: { my
   const ahead = seen.some((other) => other.fwd > 0 && other.fwd < speed * look + 8);
   if (!ahead) { state.gapBase = null; return; }
   if (!blockOn(seen, myLat, half, len) && state.gapBase == null) return;
-  const room = latLim + WIDE;
+  // (?onroad: the room past the edge only with a car stopped or crawling ahead - offTrackOk)
+  const room = latLim + (seen.some((other) => other.fwd > 0 && other.fwd < speed * look + 8
+    && offTrackOk(other.v, speed)) ? WIDE : 0);
   const line = gapLine(seen, { lat: myLat, base: state.gapBase ?? myLat, half, len, speed, look,
     lo: -room - lineOff, hi: room - lineOff, edge: latLim, centre: lineOff });
   state.gapBase = line;

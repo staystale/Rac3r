@@ -60,4 +60,12 @@ export const TEST_LIST: TestEntry[] = [
     try: 'Watch AI that went round a pack on the outside: they should come back to the line.',
     wrong: 'AI still lapping wide by the wall, or passing less than before.',
   },
+  {
+    id: 'onroad',
+    added: '2026-11-04',
+    name: 'AI stay on the track to pass a racing car (off it only round a stopped / slow one)',
+    where: 'Test link + &onroad=1&lineback=1: the stock car oval with a full grid (21 cars)',
+    try: 'Race a lap or two and look at the grass: no grooves worn beside the track.',
+    wrong: 'AI still on the grass to pass, or now stuck queueing behind a car they could pass.',
+  },
 ];
