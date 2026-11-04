@@ -1,4 +1,4 @@
-// ai/cornerLine.ts - A LINE OF ITS OWN THROUGH EACH CORNER (?ailines; owner 11-04: "can ai pick
+// ai/cornerLine.ts - A LINE OF ITS OWN THROUGH EACH CORNER (passed 11-04; owner: "can ai pick
 // different lines for corners to benefit them / pick bad lines if unskilled? ... they shouldn't
 // [all follow the same line]"; "shouldn't it vary every lap / corner depending on the track in
 // front of them a bit too, especially for more skilled drivers?"; "it can vary but can be similar

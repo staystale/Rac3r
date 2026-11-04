@@ -26,7 +26,7 @@ export interface RejoinAim {
   actual: number;    // m off its path now (+ left), the car's centre
   mistLat: number;   // m of the target that is a mistake in progress
   rate: number;      // m/s it closes on its target
-  // ?ailines: its own line through the corner - the nudge here and at a point (ai/cornerLine.ts)
+  // its own line through the corner - the nudge here and at a point (ai/cornerLine.ts)
   shape?: { here: number; nudgeAt: (pos: number) => number } | null;
 }
 
@@ -58,7 +58,7 @@ export function lateralOf(car: AiCar, path: AiPath, nearIdx: number): number {
  * @param nearIdx its place
  * @param mistLat m of the target that is a mistake
  * @param cross the steering's cap (rejoinCross)
- * @param shape ?ailines: the driver's own line through the corner
+ * @param shape the driver's own line through the corner
  * @returns the aim
  */
 export function rejoinAim(car: AiCar, path: AiPath, nearIdx: number, mistLat: number,

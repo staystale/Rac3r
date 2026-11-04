@@ -302,7 +302,7 @@ export interface CircuitState extends DriveOutState {
   lastDist: number;
   pushing: boolean;
   thrUntil: number;
-  // ?ailines: the corner it is on and its line there (ai/cornerLine.ts)
+  // the corner it is on and its line there (ai/cornerLine.ts)
   clCorner?: number; clB?: number;
   footK?: number;   // the share of the throttle the driver's foot gives (ai/driverFoot.ts)
   atk: Attack | null;

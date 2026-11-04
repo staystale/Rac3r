@@ -13,7 +13,7 @@ last handover, written on request.
   restart and reset can stay") - no car / level chip, no TUNE, no CLEAR, nor their keys (c, l,
   1-5, [ ]); the RESTART row takes the top-left on a phone (hud/layout.ts). uicheck with it: HUD
   reachable, no overlaps at 6 sizes (its car-chip tap test skipped under the switch).
-- UNDER TEST (11-04 late): ?ailines (owner: AI should not all follow one line; vary by corner and
+- DEFAULT 11-04 (owner: "pass and yes please" - the next step wanted): ailines (owner: AI should not all follow one line; vary by corner and
   lap, pros consistent; "keep it computationally cheap") - ai/cornerLine.ts: through each corner
   a driver holds the racing line SHIFTED ALONG the track by b (late +, early -; 20 m at b = 1,
   tapering to the corner's ends); b = its habit for that corner (spread 0.15 skill 1 .. 0.9 skill

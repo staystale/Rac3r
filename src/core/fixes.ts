@@ -9,7 +9,7 @@
 // menustyle, testgarage, ai10, k12, resetin, belly, agtyre, ai20, aifast, aisafe passed 11-03;
 // drycover, rimsoft, bushmark, leafpop, aireact, skillband,
 // bhquiet, aiweave, jokerflow, aisliders, hudlean, aibands, puffroom, aigrip,
-// aidodge passed 11-04.)
+// aidodge, ailines passed 11-04.)
 import { envValue } from './debug.ts';
 
 /**
@@ -40,7 +40,4 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
-  // ?ailines=1: each AI driver its own line through each corner - a habit by skill (and its car),
-  // a fresh draw each lap, small for a good driver (ai/cornerLine.ts; owner 11-04)
-  ailines: atLoad('ailines'),
 };

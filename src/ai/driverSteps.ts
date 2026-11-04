@@ -70,7 +70,7 @@ if (path === line && (shape || Math.max(Math.abs(target), aim ? Math.abs(aim.act
       (speed * speed / (2 * brakeDecel) + 15) / path.sp);
   for (let offset = 0; offset <= far; offset += 2) {
     const pos = idx(nearIdx + offset), bend = pts[pos];
-    const own = shape ? shape.nudgeAt(pos) - shape.here : 0;   // ?ailines: its line there
+    const own = shape ? shape.nudgeAt(pos) - shape.here : 0;   // its own line there
     const x = (lineOff + latAt(offset * path.sp) + own - bend.off!) * bend.turn;
     if (x > 0.3 && bend.R < 400) {
       const bendSpeed = prof[pos] * Math.sqrt(Math.max(0.4, (bend.R - x) / bend.R));
