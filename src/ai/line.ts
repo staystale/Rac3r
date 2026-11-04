@@ -17,6 +17,8 @@ import { coverEpoch } from "../world/coverfield.ts";
 import { querySubtrack } from "../world/tyrewall.ts";
 import { GRAVITY } from "../cars.ts";
 import { CAR_STATS } from "../carstats.ts";
+import { flowBranch } from "./branchline.ts";
+import { FIX } from "../core/fixes.ts";
 import type { Level, Lane } from "../world/types.ts";
 import type {
   AiCar, Branches, CarStat, Corner, LinePoint, Path, PathPoint, RacingLine, SpeedProfile,
@@ -309,10 +311,11 @@ export const nearestIdx = (pts: PathPoint[], x: number, y: number) => {
   return bestIdx;
 };
 // a BRANCH: (main line for preM metres before entryI) -> the lane -> (merge onto the main line
-// postA..postB metres after exitI)
+// postA..postB metres after exitI); with usable (?jokerflow) its own racing line inside that ground
 export function branch(
   line: RacingLine, laneXY: number[][], entryI: number, exitI: number,
   preM = 25, postA = 15, postB = 35, rounds = 40,
+  usable?: (x: number, y: number, margin: number) => boolean,
 ): Path {
   const count = line.n, step = line.sp, main = line.pts, raw = [];
   if (entryI >= 0)
@@ -325,7 +328,9 @@ export function branch(
     const point = main[(exitI + Math.round(dist / step)) % count];
     raw.push([point.x, point.y]);
   }
-  const open = openPath(raw, rounds), path = finishPath(open.pts, false, open.total);
+  const open = openPath(raw, rounds);
+  if (usable) open.total = flowBranch(open.pts, usable);
+  const path = finishPath(open.pts, false, open.total);
   // the main-line index where it leaves
   path.switchI = entryI >= 0 ? (entryI - Math.round(preM / step) + count * 4) % count : -1;
   path.rejoin = (exitI + Math.round(postB / step)) % count;
@@ -355,7 +360,16 @@ function branches(level: Level, line: RacingLine): Branches {
     );
     if (lane) {
       const pts = lane.pts, laneXY = pts.map(([x, y]) => [x, y]);
-      out.joker = branch(
+      // ?jokerflow: its own racing line in the road or the lane, a longer run in and out to
+      // blend over (ai/branchline.ts)
+      const sub = level.subtrack!, usable = (x: number, y: number, margin: number) => (
+        querySubtrack(sub, x, y).dist <= halfWidth - margin
+          || laneDist(lane, x, y) <= lane.width / 2 - margin);
+      out.joker = FIX.jokerflow ? branch(
+        line, laneXY, nearestIdx(line.pts, pts[0][0], pts[0][1]),
+        nearestIdx(line.pts, pts[pts.length - 1][0], pts[pts.length - 1][1]), 50, 15, 60, 25,
+        usable,
+      ) : branch(
         line, laneXY, nearestIdx(line.pts, pts[0][0], pts[0][1]),
         nearestIdx(line.pts, pts[pts.length - 1][0], pts[pts.length - 1][1]), 25, 15, 35, 25,
       );

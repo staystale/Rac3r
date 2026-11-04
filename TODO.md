@@ -7,7 +7,17 @@ last handover, written on request.
 
 ## Where we are (2026-11-04)
 
-- NOTHING UNDER TEST (11-04 late). DEFAULT 11-04 (owner: "ok pass"): aiweave (AI rework R2, the weave fix; ai/rejoin.ts) - no scripted
+- UNDER TEST (11-04 late): ?jokerflow (owner: "some cars still turn slow for jokers tho rather
+  than flowing in / out naturally") - the joker branch was the lane's CENTRELINE glued to the
+  line: R 19 m kink in (AI 85 -> 32 km/h), R 18-26 m out (34-41 km/h where the line runs 70-80),
+  though Knobhill's lane is 12 m wide. Now its own minimum-curvature line in the road + lane, ends
+  tangent (ai/branchline.ts), 50 m in / 60 m out to blend: tightest R ~36 m, in 92 -> 59 km/h,
+  rejoin plan 43 -> 104 km/h. Joker lap cost (aijokercheck, 3 seeds): Knobhill +6.5 -> +3.2 s,
+  Slidden +4.4 -> +2.0 s; gates still 1; Knobhill off-road 6.0 -> 4.6 s a race.
+- OWNER 11-04: "Highway and circuit ai should be the same ai" - ONE driver (today: the circuit
+  driver, ai/driverDrive.ts, and the highway's weaver, ai/weaver*.ts, behind one createAIDriver).
+  Added to the AI plan as its own round; where in the order: owner to say.
+- DEFAULT 11-04 (owner: "ok pass"): aiweave (AI rework R2, the weave fix; ai/rejoin.ts) - no scripted
   wander; a car off its target and not making a move (dodge / attack / cover) rejoins SOFTLY
   (the steering's lateral error capped 1.2 m skill 0 .. 0.7 m skill 1); the bends ahead are
   taken for where the car really is and will be, never for its own mistake. MEASURED

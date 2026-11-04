@@ -66,6 +66,12 @@ R7 MENU RACE ON A RANDOM TRACK (K18) (M) - each menu race picks a random circuit
 of a highway level (owner 11-03: yes); the highway needs the camera car on the highway's own AI
 driver.
 
+R8 ONE AI (owner 11-04: "Highway and circuit ai should be the same ai") (L) - one driver for
+every level: the highway's weaver (ai/weaver*.ts: its own road frame, line scoring, mirror,
+Stanley and speed) folded into the circuit driver (ai/driverDrive.ts), the highway a path like
+any other (the road's lanes as width, traffic as cars), so reaction (R1), the rejoin (R2),
+skill / risk (R3), felt grip (R4) and dodging (R5) work there too. Where in the order: owner.
+
 Total: L (seven phone rounds). Order as listed; R1 first because it pays for R2-R5.
 
 ## Other things the measuring turned up (to fix where they fit)
