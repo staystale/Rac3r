@@ -3,7 +3,6 @@ import type { Difficulty, Traits } from "./types.ts";
 import { K_BRAKE } from "./line.ts";
 import { SKILL_CENTRE, tuneOf } from "./tune.ts";
 import type { AiTune } from "./tune.ts";
-import { FIX } from "../core/fixes.ts";
 
 // ---- the 5 difficulties (PLAN.md §4): the CENTRE of the field's spread. pace = fraction of the
 // profile; lineQ = how much of the racing line's width they use (the rest: nearer the middle);
@@ -74,7 +73,7 @@ const RISK_BRAKE = 0.1;
 const RISK_ERR = 1.2;
 // aggression a unit of skill above 0.5 adds (owner: "faster and more aggressive")
 const SKILL_AGG = 0.2;
-// ?aibands: risk a unit of skill above the field's centre adds (a better driver in a field pushes
+// risk a unit of skill above the field's centre adds (a better driver in a field pushes
 // harder; the crash cost of risk still falls on the weak - RISK_ERR)
 const SKILL_RISK = 0.3;
 // engine power at skill 0 (the top speed a weak driver gives away; owner: "not that extreme")
@@ -101,7 +100,7 @@ function tunedTraits(diffIndex: number, i: number, seed: number, tune: AiTune): 
   const persona = PERSONAS[(i + Math.floor(seed)) % PERSONAS.length], wide = tune.spread * 2;
   const skill = unit(tune.skill + (persona.skill + (rnd() - 0.5) * 0.3) * wide);
   const risk = unit(tune.risk + (PERSONA_RISK[persona.id] + (rnd() - 0.5) * 0.3) * wide
-    + (FIX.aibands ? SKILL_RISK * (skill - tune.skill) : 0));
+    + SKILL_RISK * (skill - tune.skill));
   const loose = 1.4 - skill * 0.8;   // 0.6 (skill 1) .. 1.4 (skill 0)
   const errors = tune.mistakes * 2 * (1 + RISK_ERR * (risk - 0.5) * (1 - skill));
   const pace = difficulty.pace * (1 + persona.pace * wide + (rnd() - 0.5) * 0.01)

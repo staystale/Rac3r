@@ -8,7 +8,7 @@
 // muscletyres, namefix, bhbridges,
 // menustyle, testgarage, ai10, k12, resetin, belly, agtyre, ai20, aifast, aisafe passed 11-03;
 // drycover, rimsoft, bushmark, leafpop, aireact, skillband,
-// bhquiet, aiweave, jokerflow, aisliders, hudlean passed 11-04.)
+// bhquiet, aiweave, jokerflow, aisliders, hudlean, aibands passed 11-04.)
 import { envValue } from './debug.ts';
 
 /**
@@ -39,8 +39,4 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
-  // ?aibands=1: the difficulty moves the field's RISK and AGGRESSION with its SKILL, a better
-  // driver in a field takes more risk (ai/tune.ts, ai/traits.ts); AI DRIVERS only with ?dev
-  // (menu/setup.ts; owner 11-04)
-  aibands: atLoad('aibands'),
 };

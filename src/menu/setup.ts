@@ -16,7 +16,6 @@ import type { SetupState, SetupUi } from './menutypes.ts';
 import { MENU_COL } from './palette.ts';
 import { MAX_AI } from '../core/settings.ts';
 import { ROSTER } from '../cars.ts';
-import { FIX } from '../core/fixes.ts';
 import { showAiDrivers, storedTune, storeTune, tuneLine } from './aidrivers.ts';
 
 // WEATHER: follow the SEASON (its chances; it can change in the race) or a fixed sky
@@ -380,12 +379,12 @@ function addTimeRows(menu: Menu, panel: HTMLElement, state: SetupState) {
 }
 
 /**
- * Whether the setup shows AI DRIVERS (?aibands: developer mode only - owner 11-04: "we don't
+ * Whether the setup shows AI DRIVERS (developer mode only, passed 11-04 - owner 11-04: "we don't
  * need normal players having this control"; the difficulty sets the field).
  * @param menu the menu context
  * @returns true to show it
  */
-const aiPanel = (menu: Menu) => !FIX.aibands || menu.api.dev;
+const aiPanel = (menu: Menu) => menu.api.dev;
 
 /**
  * The setup's choices, kept across a visit to another screen (the garage, AI DRIVERS).

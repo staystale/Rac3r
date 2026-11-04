@@ -13,7 +13,7 @@ last handover, written on request.
   restart and reset can stay") - no car / level chip, no TUNE, no CLEAR, nor their keys (c, l,
   1-5, [ ]); the RESTART row takes the top-left on a phone (hud/layout.ts). uicheck with it: HUD
   reachable, no overlaps at 6 sizes (its car-chip tap test skipped under the switch).
-- UNDER TEST (11-04 late): ?aibands (owner: "ok" to: difficulty drives skill, risk and aggression
+- DEFAULT 11-04 (owner: "okay pass"): aibands (owner: "ok" to: difficulty drives skill, risk and aggression
   together; the sliders out of the player's setup) - presets RISK 0.38 .. 0.5 .. 0.62 and
   AGGRESSION 0.40 .. 0.5 .. 0.60, Mobile .. Realish .. Real (ai/tune.ts); in a field a driver
   0.1 skill above the centre takes +0.03 risk (ai/traits.ts SKILL_RISK), the crash cost of risk

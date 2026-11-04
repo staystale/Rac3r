@@ -48,13 +48,6 @@ export const TEST_LIST: TestEntry[] = [
   // namefix, bhbridges, menustyle, testgarage, ai10, k12 passed
   // 2026-11-03; resetin, belly, agtyre, ai20, aifast, aisafe passed 2026-11-03; specsheet removed;
   // drycover, rimsoft, bushmark, leafpop passed 2026-11-04; aireact (AI R1), skillband, bhquiet,
-  // aiweave (AI R2), jokerflow, aisliders (AI R3), hudlean passed 2026-11-04)
-  {
-    id: 'aibands',
-    added: '2026-11-04',
-    name: 'Difficulty sets the AI: risk + aggression rise with skill; no AI DRIVERS',
-    where: 'Test link + &aibands=1: TEST MODE setup, VS AI, Mobile then Real',
-    try: 'Race Mobile and Real: Real should push harder, pass more, crash less.',
-    wrong: 'AI DRIVERS still in the setup, or Real pros crashing like Mobile rookies.',
-  },
+  // aiweave (AI R2), jokerflow, aisliders (AI R3), hudlean,
+  // aibands passed 2026-11-04)
 ];
