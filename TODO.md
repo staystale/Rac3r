@@ -40,6 +40,12 @@ last handover, written on request.
   NOT kept (weavecheck repeats exactly: 13 -> 18 hits): more room with closing speed, a
   lane-changing traffic car's target lane, no swerving past a car alongside. On a pass: delete
   the weaver's steering / speed / lines (one system), the switch and the hwshare / oneai paths.
+  HIGHWAY ROLLING START (owner 11-04 on the test: "rolling starts seem not to hold formation on
+  highways"): the race driver ignored the hold and raced for its line before the green - cars
+  strayed up to 5 m off their grid lanes and 9.6 m out of place (tools/scratch/_rollhw.mjs). Now
+  the circuit's formation (ai/formation.ts) runs the highway too, read along the road: lane drift
+  <= 0.08 m (the old highway AI 0.24), place slip <= 4.8 m (the same as before - 6 s is too short
+  to settle every launch). On a pass also delete game.start.drv (the highway's old start driver).
 - AI ORDER (owner 11-04): R6 SKIPPED ("doesn't seem like an issue anymore"), R8 one AI
   next (staged plan proposed - stage 1 the shared reflexes; owner to say go), then R7. R4 part 2 (felt
   grip) not needed (measured); weak-driver OVERDRIVE declined - "only push up crashes", not unless

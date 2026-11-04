@@ -44,13 +44,18 @@ export function hwFrames(level: HighwayLevel, cars: AiCar[]) {
 // the spawn. hwGridSpan = the road distances it covers (to clear traffic)
 const GRID_ROW = 14, GRID_STAG = 7, GRID_BACK = 12;
 export function hwGrid(level: HighwayLevel, slot: number) {
+  const spawnS = roadFrame(level, level.spawn.x, level.spawn.y, null)!.s;
+  const place = hwSlot(level, slot);
+  const pose = roadPose(level, spawnS - GRID_BACK - place.backM, place.columnM);
+  return { x: pose.x, y: pose.y, h: pose.h };
+}
+// a grid slot's lane (m off the road's base line) and m behind the pole's slot - the formation
+// holds it until the green (ai/formation.ts roadFormationInput)
+export function hwSlot(level: HighwayLevel, slot: number) {
   const centres = level._hw.geo.centres, laneCount = centres.length,
     cols = laneCount >= 3 ? [laneCount - 2, laneCount - 1] : [0, Math.min(1, laneCount - 1)];
-  const spawnS = roadFrame(level, level.spawn.x, level.spawn.y, null)!.s,
-    row = Math.floor(slot / 2), col = slot % 2;
-  const pose = roadPose(level, spawnS - GRID_BACK - row * GRID_ROW - col * GRID_STAG,
-    centres[cols[col]]);
-  return { x: pose.x, y: pose.y, h: pose.h };
+  const row = Math.floor(slot / 2), col = slot % 2;
+  return { columnM: centres[cols[col]], backM: row * GRID_ROW + col * GRID_STAG };
 }
 export function hwGridSpan(level: HighwayLevel, count: number) {
   const spawnS = roadFrame(level, level.spawn.x, level.spawn.y, null)!.s;

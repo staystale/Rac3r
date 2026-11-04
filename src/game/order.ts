@@ -1,15 +1,16 @@
 // order.ts — The start lights, the rolling start, track cuts and the race order.
 import { reset, PHYSICS_STEP_SECONDS } from '../vehicle.ts';
 import { createAutoDriver } from '../ai/autodrive.ts';
-import { HW_GREEN } from '../highwayrace.ts';
+import { HW_GREEN, hwSlot } from '../highwayrace.ts';
 import { createAIDriver } from '../ai/circuit.ts';
 import { aiTraits } from '../ai/traits.ts';
 
 import { LEVEL } from "../world/state.ts";
 import { onTrack, querySubtrack } from "../world/tyrewall.ts";
 import { STAGE_GAP_S, GRID_STEP, gridColumn } from './grid.ts';
-import { formationInput } from '../ai/formation.ts';
-import { shared, game } from './state.ts';
+import { formationInput, roadFormationInput } from '../ai/formation.ts';
+import { FIX } from '../core/fixes.ts';
+import { shared, game, hwLevel } from './state.ts';
 import type { GameCar, CutRun, FormKeeper } from './state.ts';
 import type { CarInput } from '../vehicle.ts';
 
@@ -62,7 +63,13 @@ export function atPace(out: CarInput, car: GameCar) {
  * @returns the controls, or null (not rolling, or the highway)
  */
 export function formationWant(car: GameCar, slot: number, keeper: FormKeeper) {
-  if (!game.start.rolling || LEVEL.endless) return null;
+  if (!game.start.rolling) return null;
+  // (?oneai: the highway's too - its race driver no longer holds a lane before the green)
+  if (LEVEL.endless) {
+    if (!FIX.oneai) return null;
+    const level = hwLevel();
+    return roadFormationInput(car, hwSlot(level, slot), game.poleCar || game.car, level, ROLL_PACE);
+  }
   keeper.formDrv ??= createAutoDriver(LEVEL.subtrack!);
   return formationInput(car, keeper.formDrv,
     { columnM: gridColumn(slot), backM: slot * GRID_STEP },
