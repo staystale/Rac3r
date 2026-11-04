@@ -13,6 +13,12 @@ last handover, written on request.
   restart and reset can stay") - no car / level chip, no TUNE, no CLEAR, nor their keys (c, l,
   1-5, [ ]); the RESTART row takes the top-left on a phone (hud/layout.ts). uicheck with it: HUD
   reachable, no overlaps at 6 sizes (its car-chip tap test skipped under the switch).
+- TRIED 11-04, NOT kept: ?aiclear, the unified clearest line (owner "yes": check the corner line on
+  arrival for oil / glass, loose objects, lamp posts AND stopped cars; apex shifts, then moves across
+  the whole corner of 1.5 / 2.5 m, up to 0.8 m past the edge). _stopcar.mjs, 9 runs: off 412 hits,
+  apex shifts only 409 (no gain), with the moves across 578 (WORSE). The last-moment dodge (R5)
+  already does the stopped car better: a line chosen on arrival is wrong once the car is shoved,
+  and a whole-corner move runs the line where it should not. Owner to say how to go on.
 - UNDER TEST (11-04 late): ?markjump (owner: "a rim mark appeared after I reset my car / on soft
   surfaces like it shouldn't", a phone shot) - MEASURED (_resetmark.mjs, _aireset.mjs): the player's
   RESET draws nothing after (rims cleared, 0 stamps, 0 cells worn, also with two tyres on the rim);
