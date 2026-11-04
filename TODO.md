@@ -13,7 +13,8 @@ last handover, written on request.
   restart and reset can stay") - no car / level chip, no TUNE, no CLEAR, nor their keys (c, l,
   1-5, [ ]); the RESTART row takes the top-left on a phone (hud/layout.ts). uicheck with it: HUD
   reachable, no overlaps at 6 sizes (its car-chip tap test skipped under the switch).
-- UNDER TEST (11-04 late): ?aidodge (AI rework R5; owner: skilled drivers avoid collisions more;
+- NOTHING UNDER TEST (11-04 late). DEFAULT 11-04 (owner: "they seem to dodge better at harder
+  difficulty to me so pass"): aidodge (AI rework R5; owner: skilled drivers avoid collisions more;
   "do improved dodging first or it's going to increase crashes") - MEASURED (_stopcar.mjs: a car
   stopped across the racing line past the tightest corner, 6 AI x 3 laps): 11-34 hits at 50-90
   km/h, the most skilled driver no better (4-14). Causes: a car was a POINT (~2.1 m kept from its

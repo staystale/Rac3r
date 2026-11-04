@@ -1,4 +1,4 @@
-// ai/dodge.ts - DODGING BY SKILL (?aidodge, the AI rework R5; owner 11-04: "maybe more skilled
+// ai/dodge.ts - DODGING BY SKILL (the AI rework R5, passed 11-04; owner: "maybe more skilled
 // drivers can avoid collisions even more"; "AI should try to avoid crashing, especially high
 // skilled"). MEASURED (tools/scratch/_stopcar.mjs: a car stopped across the racing line, 6 AI x 3
 // laps): 11-34 hits on it at 50-90 km/h on Thruston / Brands / Castle Cum, the most skilled driver

@@ -49,13 +49,5 @@ export const TEST_LIST: TestEntry[] = [
   // 2026-11-03; resetin, belly, agtyre, ai20, aifast, aisafe passed 2026-11-03; specsheet removed;
   // drycover, rimsoft, bushmark, leafpop passed 2026-11-04; aireact (AI R1), skillband, bhquiet,
   // aiweave (AI R2), jokerflow, aisliders (AI R3), hudlean,
-  // aibands, puffroom, aigrip (AI R4 part 1) passed 2026-11-04)
-  {
-    id: 'aidodge',
-    added: '2026-11-04',
-    name: 'AI dodging by skill: crashed / stopped cars avoided, seen sooner by pros',
-    where: 'Test link + &aidodge=1: any circuit, a big field (crashes happen)',
-    try: 'Watch the field come up on a crashed or spun car; stop on the line yourself.',
-    wrong: 'AI ploughing into a stopped car, braking for nothing, or more crashes than before.',
-  },
+  // aibands, puffroom, aigrip (AI R4 part 1), aidodge (AI R5) passed 2026-11-04)
 ];

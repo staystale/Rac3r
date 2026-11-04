@@ -48,12 +48,13 @@ low skill; a separate RISK (later braking, faster entries, smaller gaps). Test s
 sliders (skill, risk, aggression, defence, mistakes): a slider moves the FIELD, each driver keeps
 its own offset, so a better driver stays better (owner 11-01). Setup screen mockup first.
 
-R4 FELT GRIP + ICY STARTS (B3, A9) (M) - each driver keeps a running sense of grip from what its
+R4 FELT GRIP + ICY STARTS (B3, A9) (M; icy starts / the foot DONE 11-04; felt grip on hold - no
+measured problem, owner to discuss) - each driver keeps a running sense of grip from what its
 tyres feel (slip vs force) and brakes for corners by it, plus seeing visible ice / water / snow
 ahead (confidence by skill). Launch by traction, so an AI on ice pulls away instead of being
 reset.
 
-R5 DODGING BY SKILL (B5) (M) - one look-ahead probe per car on the grids that already exist
+R5 DODGING BY SKILL (B5) (M; DONE 11-04, the default, ai/dodge.ts) - one look-ahead probe per car on the grids that already exist
 (loose objects, barriers, cars - a crashed or stopped car too). Owner 11-03: a better driver sees
 it EARLIER (look-ahead ~0.6 s of travel at skill 0 .. ~1.6 s at skill 1) and dodges more neatly
 (a smaller, smoother swerve); a weak one late and big. Its cost measured against R1's saving.

@@ -8,7 +8,8 @@
 // muscletyres, namefix, bhbridges,
 // menustyle, testgarage, ai10, k12, resetin, belly, agtyre, ai20, aifast, aisafe passed 11-03;
 // drycover, rimsoft, bushmark, leafpop, aireact, skillband,
-// bhquiet, aiweave, jokerflow, aisliders, hudlean, aibands, puffroom, aigrip passed 11-04.)
+// bhquiet, aiweave, jokerflow, aisliders, hudlean, aibands, puffroom, aigrip,
+// aidodge passed 11-04.)
 import { envValue } from './debug.ts';
 
 /**
@@ -39,8 +40,4 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
-  // ?aidodge=1: the AI rework R5 - a car in the way has its real size, a driver sees it 0.6 s
-  // (skill 0) .. 1.6 s (skill 1) ahead, and brakes when it cannot swerve round in time
-  // (ai/dodge.ts; owner 11-04: skilled drivers avoid collisions more)
-  aidodge: atLoad('aidodge'),
 };
