@@ -114,13 +114,13 @@ export function aiWant(entry: AiEntry, dt: number) {
     : Math.max(1, Math.floor(car._prog / total) + 1);
   refreshAIObstacles(entry, dt);
   // (the highway racer also sees the TRAFFIC, and holds formation until the green)
-  const want = entry.drv.drive(car, dt,
+  const want = entry.drv.drive(car, dt, () => (
     { obstacles: entry.obs,
       cars: [game.car, ...game.ai.map((other) => other.car),
         ...(LEVEL.endless ? game.traffic.cars : [])].filter((other) => other !== car),
           hold: startHeld(), lap,
             laps: game.flow ? game.flow.laps : shared.race.on ? shared.race.laps
-              : (LEVEL.joker && LEVEL.joker.laps) || 5 });
+              : (LEVEL.joker && LEVEL.joker.laps) || 5 }));
   // waiting out the crash
   if (entry.hurtWait != null) return { steer: 0, throttle: 0, brake: 0.4, handbrake: 0 };
   return want;

@@ -290,6 +290,9 @@ export interface CircuitState extends DriveOutState {
   dodge: number;
   follow: boolean;
   cap: number;
+  // ?aireact: the line the hands hold between thinks (the last think's path, place and target)
+  steerHold?: { path: CircuitState['path']; nearIdx: number; latT: number; lineOff: number }
+    | null;
   lastDist: number;
   pushing: boolean;
   thrUntil: number;

@@ -1,4 +1,4 @@
-# The AI rework (B) - the design, for the owner's OK
+# The AI rework (B) - the design (owner OK 11-04)
 
 Owner 11-01: KEEP what we have, adjust it - not a total rebuild. Owner 11-03: goal 20 AI cars in a
 race without performance issues, the PHONE first (laptop too). Every round below is its own
@@ -24,7 +24,9 @@ race without performance issues, the PHONE first (laptop too). Every round below
 R0 `ai20` + `aifast` + `aisafe` (DONE 11-03, the default; phone: 20 AI at sim 2 / draw 2 ms a frame): up to 20 AI, ten more liveries; the resting-object
 skip and the far-puff skip (simhash SAME). The phone run sets the budget for R1.
 
-R1 REACTION TIME (M) - the driver thinks every 2-4 steps instead of every step, BY SKILL: a top
+R1 REACTION TIME (M; `?aireact` under test 11-04: the steering is NOT glided - MEASURED, a
+held or glided wheel lost 0.5-0.8 s a lap at Naffcar - the hands steer every step onto the line
+the last think chose; skill by difficulty `?skillband` with it, owner 11-04) - the driver thinks every 2-4 steps instead of every step, BY SKILL: a top
 driver every 1/60 s, a weak one every 1/30 s, staggered round the field so they never all think
 on the same step. Between thinks the controls glide to the new aim (steering rate-limited,
 pedals ramped) - never a step change. A real driver's reaction is 0.15-0.3 s, so this is

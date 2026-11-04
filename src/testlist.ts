@@ -48,4 +48,20 @@ export const TEST_LIST: TestEntry[] = [
   // namefix, bhbridges, menustyle, testgarage, ai10, k12 passed
   // 2026-11-03; resetin, belly, agtyre, ai20, aifast, aisafe passed 2026-11-03; specsheet removed;
   // drycover, rimsoft, bushmark, leafpop passed 2026-11-04)
+  {
+    id: 'aireact',
+    added: '2026-11-04',
+    name: 'AI reaction time: better drivers react quicker; less work a frame',
+    where: 'Test link + &aireact=1: any circuit, 20 AI (&report=1 for the numbers)',
+    try: 'Race a full field; watch starts, braking, dodging, side by side.',
+    wrong: 'AI slower, twitchy, late on the brakes, or more crashes than before.',
+  },
+  {
+    id: 'skillband',
+    added: '2026-11-04',
+    name: 'AI skill follows difficulty, still varied over the grid',
+    where: 'Test link + &skillband=1: setup, AI difficulty Mobile then Real',
+    try: 'Race on Mobile, then Real; compare the field.',
+    wrong: 'Mobile as tidy as Real, or every car at Real driving the same.',
+  },
 ];

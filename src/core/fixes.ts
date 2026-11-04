@@ -38,4 +38,11 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
+  // ?aireact=1: the AI rework R1 - an AI driver thinks every 1/60 s (skill 1) .. 1/30 s (skill 0),
+  // staggered round the field, its controls gliding between thinks (ai/reaction.ts); the game
+  // builds a driver's list of the other cars only when it thinks (game/ai.ts aiWant)
+  aireact: atLoad('aireact'),
+  // ?skillband=1: the AI's skill centred by difficulty - Mobile 0.3 .. Realish 0.5 .. Real 0.7 -
+  // each driver still spread round it by persona and chance (ai/traits.ts; owner 11-04)
+  skillband: atLoad('skillband'),
 };

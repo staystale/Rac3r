@@ -64,6 +64,7 @@ function trafficStep(drv: Drv, car: AiCar, ctx: DriveCtx, path: AiPath, nearIdx:
 export function drive(drv: Drv, car: AiCar, dt = 1 / 120, ctx: DriveCtx = {}) {
   const { rnd, main, state, jLaps } = drv;
   state.t += dt;
+  state.steerHold = null;
   const spec = car.spec, speed = Math.hypot(car.vx, car.vy);
   if (state.i === null) placeAtStart(drv, car);
   advance(drv, car);
@@ -113,6 +114,25 @@ export function drive(drv: Drv, car: AiCar, dt = 1 / 120, ctx: DriveCtx = {}) {
   // braking distance, not only the "corners" — Naffcar's banked turns are wider than CORNER_R,
   // and tow passes on their inside slid off: off-road 0 -> 14 car-s, MEASURED)
   const slide = steerSlideStep(drv, car, path, nearIdx, idx, speed, lineOff, latT);
+  state.steerHold = { path, nearIdx, latT, lineOff };
   return pedalStep(drv, car, path, nearIdx, idx, speed, dt, prof, latT, lineOff,
       { push, vMul, jCap, followCap, thrForce }, slide);
+}
+
+/**
+ * ?aireact: the HANDS between thinks - the steering recomputed from where the car is now, onto
+ * the line and lateral target the last think chose (MEASURED 11-04: holding or gliding the
+ * steering for 1/40-1/30 s lost 0.5-0.8 s a lap at Naffcar; with the steering fresh, nothing).
+ * @param drv the driver context
+ * @param car the car
+ * @returns the steer, or null when the last think was not on the line (driving itself out)
+ */
+export function steerNow(drv: Drv, car: AiCar): number | null {
+  const hold = drv.state.steerHold;
+  if (!hold) return null;
+  const { path, nearIdx, latT, lineOff } = hold, size = path.n;
+  const idx = (pos: number) => (path.closed ? ((pos % size) + size) % size
+    : Math.max(0, Math.min(size - 1, pos)));
+  return steerSlideStep(drv, car, path, nearIdx, idx, Math.hypot(car.vx, car.vy), lineOff,
+    latT).steer;
 }

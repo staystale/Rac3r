@@ -20,11 +20,14 @@ import { racingLine } from "./line.ts";
 import { roadDriver } from "./weaver.ts";
 import { createAttackSteps, createRaceMoves } from "./racecraft.ts";
 import { createHandbrakeStep, createSlideStep } from "./driverSteps.ts";
-import { drive as driveTick } from "./driverDrive.ts";
+import { drive as driveTick, steerNow } from "./driverDrive.ts";
+import { withReaction, ctxOf } from "./reaction.ts";
+import type { CtxOrMaker } from "./reaction.ts";
+import { FIX } from "../core/fixes.ts";
 import type { Drv } from "./driverCtx.ts";
 import type { Level } from "../world/types.ts";
 import type {
-  AiCar, CircuitState, DriveCtx, HighwayLevel,
+  AiCar, CircuitState, DriveCtx, DriveInput, HighwayLevel,
 } from "./types.ts";
 
 // ---------------------------------------------------------------- the driver
@@ -35,10 +38,10 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
   // frame instead (roadDriver above) (cast: an endless Level is the highway's level, whose road
   // fields ai/types.ts HighwayLevel describes)
   if (level.endless) {
-    return roadDriver(
+    return reacting(roadDriver(
       level as unknown as HighwayLevel, traits,
       parkMiller(((traits.seed || 4242) * 31 + 7) % 2147483647 || 1),
-    );
+    ), traits);
   }
   // (! : racingLine has just made the branches)
   const line = racingLine(level), main = line, branches = level._branches!, count = line.n;
@@ -84,6 +87,28 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
     state.outN = 0;
     state.giveUp = false;
   };
-  return { drive, state: state, total: line.total, traits, relocate };
+  const steer = (car: AiCar) => steerNow(drv, car);
+  return reacting({ drive, state: state, total: line.total, traits, relocate }, traits, steer);
 }
 export type AIDriver = ReturnType<typeof createAIDriver>;
+
+/**
+ * A driver as the game drives it: its drive takes the context or a maker of it (made only when
+ * it thinks); ?aireact (R1) gives it a reaction time by skill (ai/reaction.ts) - relocate also
+ * makes it think at once.
+ * @param driver the circuit or highway driver
+ * @param traits its traits (skill, seed)
+ * @param steer the hands between thinks (the circuit driver), if it has them
+ * @returns the driver with that drive
+ */
+function reacting<D extends { drive: (car: AiCar, dt?: number, ctx?: DriveCtx) => DriveInput;
+  relocate: () => void }>(driver: D, traits: { skill: number; seed: number },
+  steer?: (car: AiCar) => number | null) {
+  if (!FIX.aireact) {
+    return { ...driver, drive: (car: AiCar, dt = 1 / 120, ctx: CtxOrMaker = {}) => (
+      driver.drive(car, dt, ctxOf(ctx))) };
+  }
+  const react = withReaction(driver.drive, traits.skill, traits.seed || 4242, steer);
+  return { ...driver, drive: react.drive,
+    relocate: () => { driver.relocate(); react.forget(); } };
+}
