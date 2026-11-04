@@ -3,9 +3,8 @@
 import { SPRITE_PPM, fxRandom } from "./shared.ts";
 import { emitEngineSmoke, type PuffAt, type SmokeCar } from './enginesmoke.ts';
 import type { Spray } from "../world/types.ts";
-import { airMove, airOf, windNow, type AirCar } from './airflow.ts';
+import { airOf, windNow, type AirCar } from './airflow.ts';
 import type { Cam, Chip, ParticleCar, Puff, PuffHit, RenderMarks, View } from "./types.ts";
-import { FIX } from "../core/fixes.ts";
 import { dropChip, drawPuffsCheap } from './fxroom.ts';
 
 // what createParticles destructures from the renderer
@@ -68,13 +67,13 @@ export interface ParticleCtx {
 // seam the marks layer uses.
 // raised from 40: four wheels throwing continuously needs the headroom
 // 220 -> 320: room for the long dust trails (11-02); 640: the AI cars throw too (puffpool,
-// passed 11-03); ?puffroom 1600 (owner 11-04: "smoke dust and other things still seem to pop
+// passed 11-03); 1600 (passed 11-04; owner: "smoke dust and other things still seem to pop
 // out / vanish sometimes"; MEASURED _puffwatch, Knobhill 60 s: 5 AI never filled 640, 19 AI sat at
 // 640 and cut 1796 puffs short, 360 of them on your screen)
-const MAX_PUFFS = FIX.puffroom ? 1600 : 640;
-// ?puffroom 1200 (MEASURED tools/scratch/_fxpools.mjs, Knobhill 19 AI 60 s: 400 full, 2730 crash
-// chips cut short, 97 near you)
-const MAX_CHIPS = FIX.puffroom ? 1200 : 400;
+const MAX_PUFFS = 1600;
+// 1200 (passed 11-04; MEASURED tools/scratch/_fxpools.mjs, Knobhill 19 AI 60 s: 400 full, 2730
+// crash chips cut short, 830 on the screen)
+const MAX_CHIPS = 1200;
 const MAX_SPARKS = 600;
 
 // Cone hits: the same pool, with a fixed pale dust.
@@ -546,9 +545,9 @@ function renderChips(ctx: ParticleCtx, wallDt: number) {
     const z = Math.max(1, Math.round(chip.sz * scale));
     const chipX = Math.round(toScreenX(chip.x) - z / 2);
     const chipY = Math.round(toScreenY(chip.y) - z / 2);
-    // (?puffroom: off the screen it moves and ages, undrawn)
+    // (off the screen it moves and ages, undrawn)
     const off = chipX + z < 0 || chipY + z < 0 || chipX > view.W || chipY > view.H;
-    if (FIX.puffroom && off) continue;
+    if (off) continue;
     view.ctx.fillRect(chipX, chipY, z, z);
   }
   view.ctx.globalAlpha = 1;
@@ -614,36 +613,13 @@ function drawSparkPixels(
 }
 
 /**
- * Move, fade and draw the puffs; expired ones are removed.
+ * Move, fade and draw the puffs; expired ones are removed (render/fxroom.ts drawPuffsCheap).
  * @param ctx particle context
  * @param wallDt wall-clock frame time
  * @param puffs the pool: under the cars (default) or over them
  */
 function renderPuffs(ctx: ParticleCtx, wallDt: number, puffs: Puff[] = ctx.state.puffs) {
-  const { view, PPMz, toScreenX, toScreenY } = ctx;
-  const ppm = PPMz();
-  const air = windNow(puffs === ctx.state.puffs ? wallDt : 0);
-  if (FIX.puffroom) { drawPuffsCheap(ctx, wallDt, puffs, air); return; }
-  for (let i = puffs.length - 1; i >= 0; i--) {
-    const puff = puffs[i];
-    puff.age += wallDt;
-    if (puff.age >= puff.life) { puffs.splice(i, 1); continue; }
-    const fade = puff.age / puff.life;
-    puff.x += puff.vx * wallDt; puff.y += puff.vy * wallDt;
-    // the air: spread, wind, the cars' stir (render/airflow.ts; was a plain drag to still air)
-    airMove(puff, wallDt, air, ctx.state.airCars, fxRandom);
-    view.ctx.fillStyle = `rgb(${puff.rgb})`;
-    // PIXEL PUFFS: a square snapped to the art-pixel grid, fading in STEPS (pixel-art smoke),
-    // not a smooth disc
-    view.ctx.globalAlpha = Math.ceil((1 - fade) * 4) / 4 * 0.5 * (puff.alpha ?? 1);
-    const radius = Math.max(1, Math.round((puff.r0 + fade * puff.grow) * ppm * view.dpr));
-    const pixelX = Math.round(toScreenX(puff.x) * view.dpr),
-      pixelY = Math.round(toScreenY(puff.y) * view.dpr);
-    view.ctx.save(); view.ctx.setTransform(1, 0, 0, 1, 0, 0);
-    view.ctx.fillRect(pixelX - radius, pixelY - radius, radius * 2, radius * 2);
-    view.ctx.restore();
-  }
-  view.ctx.globalAlpha = 1;
+  drawPuffsCheap(ctx, wallDt, puffs, windNow(puffs === ctx.state.puffs ? wallDt : 0));
 }
 
 // THE TOW CUE (physics/wake.ts 4): thin pale streaks flow back along any racer in another's wake

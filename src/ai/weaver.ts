@@ -1,6 +1,5 @@
 // ai/weaver.js — the HIGHWAY driver (roadDriver) + driveOut (from aidriver.js).
 import { envValue } from "../core/debug.ts";
-import { FIX } from "../core/fixes.ts";
 import type {
   AiCar, DriveCtx, DriveInput, DriveOutState, HighwayLevel, Traits, WeaverState,
 } from "./types.ts";
@@ -20,11 +19,11 @@ import { steerCmd } from "./weaverSteer.ts";
 // changed nothing else)
 const NOOUT = !!envValue("NOOUT");
 const DRIVE_OUT_T = 1.2;
-// ?aigrip (A9): m/s gained since it went slow that says TRYING (an icy start creeping away), not
+// (A9) m/s gained since it went slow that says TRYING (an icy start creeping away), not
 // stuck - MEASURED: a hatch at 0.9 m/s and climbing reversed on ice and spun its wheels backwards
 const TRYING_GAIN = 0.08;
 /**
- * Counts the seconds a car has been nearly still (state.slowT); ?aigrip: going forwards and
+ * Counts the seconds a car has been nearly still (state.slowT); going forwards and
  * gaining since it went slow, it is pulling away, so the count starts again.
  * @param state the driver's drive-out state
  * @param car the car
@@ -36,7 +35,7 @@ function noteSlow(state: DriveOutState, car: AiCar, speed: number, dt: number) {
   else if (state.slowFrom === undefined) state.slowFrom = speed;
   state.slowT = speed < 1.5 ? (state.slowT || 0) + dt : 0;
   const forward = ((car.t as { vLong?: number }).vLong ?? 0) > 0;
-  if (FIX.aigrip && state.slowT > DRIVE_OUT_T && forward
+  if (state.slowT > DRIVE_OUT_T && forward
     && speed - (state.slowFrom ?? speed) > TRYING_GAIN) {
     state.slowT = 0;
     state.slowFrom = speed;

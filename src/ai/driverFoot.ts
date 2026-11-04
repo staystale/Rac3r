@@ -1,15 +1,16 @@
-// ai/driverFoot.ts - THE DRIVER'S RIGHT FOOT (?aigrip, the AI rework R4 / A9; owner: AI "on icy
-// starts cannot pull away and get reset"). MEASURED (tools/scratch/_icestart.mjs, Thruston, ice
-// laid over the grid): the AI held full throttle on ice - the muscle car's rear wheels spun at
-// 32 m/s with the car at 0.3 m/s, 3-10 m in 10 s, nearly still 9-13 s (the game resets after 3);
-// a hatch 26 m. A real driver feathers the throttle to keep the driven wheels just past the grip
-// peak, as TCS does (physics/loads.ts tractionCut), so every AI car does it with its foot - aids or
-// not. On GRIPPY ground it holds the spin near the peak, as TCS does (owner 11-04: "shouldn't ai
-// especially more skilled ones realise the slip and feather the throttle? like players have
-// to"); on LOOSE ground it lets much more through - the measured lesson (driverPedals.ts) is that
-// some spin there is the fast way, and a blanket wheelspin cut cost lap time. A better driver
-// catches it sooner and holds it closer to the peak. Not while drifting (the throttle holds the
-// slide) nor in a throttle mistake (the error IS too much throttle).
+// ai/driverFoot.ts - THE DRIVER'S RIGHT FOOT (the AI rework R4 / A9, passed 11-04; owner: AI
+// "on icy starts cannot pull away and get reset"). MEASURED (tools/scratch/_icestart.mjs,
+// Thruston, ice laid over the grid): the AI held full throttle on ice - the muscle car's rear
+// wheels spun at 32 m/s with the car at 0.3 m/s, 3-10 m in 10 s, nearly still 9-13 s (the game
+// resets after 3); a hatch 26 m. A real driver feathers the throttle to keep the driven wheels
+// just past the grip peak, as TCS does (physics/loads.ts tractionCut), so every AI car does it
+// with its foot - aids or not. On GRIPPY ground it holds the spin near the peak, as TCS does
+// (owner 11-04: "shouldn't ai especially more skilled ones realise the slip and feather the
+// throttle? like players have to"); on LOOSE ground it lets much more through - the measured
+// lesson (driverPedals.ts) is that some spin there is the fast way, and a blanket wheelspin cut
+// cost lap time. A better driver catches it sooner and holds it closer to the peak. Not while
+// drifting (the throttle holds the slide) nor in a throttle mistake (the error IS too much
+// throttle).
 import type { AiCar } from './types.ts';
 import type { Drv } from './driverCtx.ts';
 

@@ -8,7 +8,7 @@
 // muscletyres, namefix, bhbridges,
 // menustyle, testgarage, ai10, k12, resetin, belly, agtyre, ai20, aifast, aisafe passed 11-03;
 // drycover, rimsoft, bushmark, leafpop, aireact, skillband,
-// bhquiet, aiweave, jokerflow, aisliders, hudlean, aibands passed 11-04.)
+// bhquiet, aiweave, jokerflow, aisliders, hudlean, aibands, puffroom, aigrip passed 11-04.)
 import { envValue } from './debug.ts';
 
 /**
@@ -39,11 +39,4 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
-  // ?aigrip=1: the AI rework R4 - the driver's foot feathers gross wheelspin (an icy start pulls
-  // away; ai/driverFoot.ts)
-  aigrip: atLoad('aigrip'),
-  // ?puffroom=1: room for 20 cars' smoke, dust and crash chips - puffs 640 -> 1600, drawn for less
-  // (render/particles.ts drawPuffsCheap), chips 400 -> 1200, a full pool drops the farthest
-  // chip (owner 11-04: smoke / dust "and other things still seem to pop out / vanish")
-  puffroom: atLoad('puffroom'),
 };

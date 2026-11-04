@@ -49,21 +49,5 @@ export const TEST_LIST: TestEntry[] = [
   // 2026-11-03; resetin, belly, agtyre, ai20, aifast, aisafe passed 2026-11-03; specsheet removed;
   // drycover, rimsoft, bushmark, leafpop passed 2026-11-04; aireact (AI R1), skillband, bhquiet,
   // aiweave (AI R2), jokerflow, aisliders (AI R3), hudlean,
-  // aibands passed 2026-11-04)
-  {
-    id: 'puffroom',
-    added: '2026-11-04',
-    name: 'Smoke, dust and crash bits no longer pop out with a full field',
-    where: 'Test link + &puffroom=1: Knobhill or a dirt / sand track, 15-20 AI',
-    try: 'Race in the pack; crash; watch dust trails, tyre smoke and debris.',
-    wrong: 'Puffs or debris on screen vanishing early, or the game slower than before.',
-  },
-  {
-    id: 'aigrip',
-    added: '2026-11-04',
-    name: 'AI feathers the throttle: icy starts pull away, no reverse-out or reset',
-    where: 'Test link + &aigrip=1: a winter / snow race (frozen grid), or any race',
-    try: 'Start on ice or snow with a field; watch the AI pull away.',
-    wrong: 'AI spinning on the spot, reversing on the grid, reset off the start, or slower starts.',
-  },
+  // aibands, puffroom, aigrip (AI R4 part 1) passed 2026-11-04)
 ];

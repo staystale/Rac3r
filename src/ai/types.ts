@@ -125,7 +125,7 @@ export interface DriveOutState {
   t: number;
   revUntil?: number;
   slowT?: number;
-  slowFrom?: number;   // ?aigrip: m/s when it went slow (gaining since = trying, not stuck)
+  slowFrom?: number;   // m/s when it went slow (gaining since = trying, not stuck)
   nOut?: number;
   outN?: number;
   outAt?: number;
@@ -300,7 +300,7 @@ export interface CircuitState extends DriveOutState {
   lastDist: number;
   pushing: boolean;
   thrUntil: number;
-  footK?: number;   // ?aigrip: the share of the throttle the driver's foot gives (ai/driverFoot.ts)
+  footK?: number;   // the share of the throttle the driver's foot gives (ai/driverFoot.ts)
   atk: Attack | null;
   atkCorner: number;
   hbCorner: number;

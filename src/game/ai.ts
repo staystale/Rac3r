@@ -15,7 +15,6 @@ import { shared, game } from './state.ts';
 import type { AiEntry, HurtEntry } from './state.ts';
 import type { CarInput } from '../vehicle.ts';
 import type { RaceFlow } from '../raceflow.ts';
-import { FIX } from '../core/fixes.ts';
 
 // AI RESET (requirement: reset AI should reset like the player's, at the edge of the track):
 // RESET_BACK m behind the last point it was on the road, centred on the edge it left by (half on /
@@ -174,11 +173,11 @@ export function stepAIJoker(entry: AiEntry) {
   }
 }
 
-// ?aigrip: m/s gained over the 3 s that says trying, not stuck (ai/weaver.ts TRYING_GAIN)
+// m/s gained over the 3 s that says trying, not stuck (ai/weaver.ts TRYING_GAIN)
 const TRYING_GAIN = 0.08;
 
 /**
- * Counts the seconds an AI car has been under 1 m/s (entry.stuckT); ?aigrip (A9): going forwards
+ * Counts the seconds an AI car has been under 1 m/s (entry.stuckT); (A9) going forwards
  * and gaining since it went slow is TRYING (an icy start creeping away, its wheels spinning), not
  * stuck - MEASURED: a muscle car on ice crawls under 1 m/s for 4-7 s on its way off the grid.
  * @param entry the AI entry
@@ -190,7 +189,7 @@ function noteStuck(entry: AiEntry, held: boolean, dt: number) {
   entry.stuckT = !held && speed < 1 ? entry.stuckT + dt : 0;
   if (!entry.stuckT) entry.stuckFrom = undefined;
   else if (entry.stuckFrom === undefined) entry.stuckFrom = speed;
-  if (FIX.aigrip && entry.stuckT > 3 && car.t.vLong > 0 && speed - entry.stuckFrom! > TRYING_GAIN) {
+  if (entry.stuckT > 3 && car.t.vLong > 0 && speed - entry.stuckFrom! > TRYING_GAIN) {
     entry.stuckT = 0;
     entry.stuckFrom = speed;
   }

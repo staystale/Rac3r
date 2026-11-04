@@ -170,7 +170,7 @@ export interface Chip {
   life: number;
   col: string;
   sz: number;
-  out?: boolean;   // ?puffroom: fading out early to make room (render/particles.ts dropChip)
+  out?: boolean;   // fading out early to make room (render/particles.ts dropChip)
   fadeK?: number;   // a spark's own fade curve: alpha 1 - (age / life) ^ fadeK
 }
 
