@@ -119,7 +119,8 @@ export function drive(drv: Drv, car: AiCar, dt = 1 / 120, ctx: DriveCtx = {}) {
   // (R2) not making a move -> a soft rejoin, and corners taken for where it really is
   const moving = traffic.conflict || !!state.atk || !!state.cover;
   const crossMax = moving ? Infinity : rejoinCross(drv.traits.skill);
-  const aim = rejoinAim(car, path, nearIdx, mistakes.latT, rejoinCross(drv.traits.skill));
+  const aim = rejoinAim(car, path, nearIdx, mistakes.latT, rejoinCross(drv.traits.skill),
+    lane.shape);
   const slide = steerSlideStep(drv, car, path, nearIdx, idx, speed, lineOff, latT, crossMax);
   state.steerHold = { path, nearIdx, latT, lineOff, crossMax };
   return pedalStep(drv, car, path, nearIdx, idx, speed, dt, prof, latT, lineOff,

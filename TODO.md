@@ -13,7 +13,18 @@ last handover, written on request.
   restart and reset can stay") - no car / level chip, no TUNE, no CLEAR, nor their keys (c, l,
   1-5, [ ]); the RESTART row takes the top-left on a phone (hud/layout.ts). uicheck with it: HUD
   reachable, no overlaps at 6 sizes (its car-chip tap test skipped under the switch).
-- NOTHING UNDER TEST (11-04 late). DEFAULT 11-04 (owner: "they seem to dodge better at harder
+- UNDER TEST (11-04 late): ?ailines (owner: AI should not all follow one line; vary by corner and
+  lap, pros consistent; "keep it computationally cheap") - ai/cornerLine.ts: through each corner
+  a driver holds the racing line SHIFTED ALONG the track by b (late +, early -; 20 m at b = 1,
+  tapering to the corner's ends); b = its habit for that corner (spread 0.15 skill 1 .. 0.9 skill
+  0, a good driver leaning late for a car with power over grip) + a fresh draw each arrival (0.14
+  .. 0.73). A sideways nudge was tried first: the road clamped it (the line is by the edge in,
+  at the apex and out). Cost: a lookup + a cosine a step (the windows once per line). MEASURED
+  (_lines.mjs ghosts, Thruston 6 x 5 laps): spread between drivers 15 m either side of the apex
+  0.10 -> 0.26 m; lap to lap 0.05 m (skill 0.92) .. 0.12-0.25 m (weaker); laps +-0.2 s. Fields (6
+  seeds): Mobile incidents 75 -> 72, Realish 116 -> 115. Next if wanted: a line round fresh oil /
+  glass / debris, the next corner's say.
+- DEFAULT 11-04 (owner: "they seem to dodge better at harder
   difficulty to me so pass"): aidodge (AI rework R5; owner: skilled drivers avoid collisions more;
   "do improved dodging first or it's going to increase crashes") - MEASURED (_stopcar.mjs: a car
   stopped across the racing line past the tightest corner, 6 AI x 3 laps): 11-34 hits at 50-90

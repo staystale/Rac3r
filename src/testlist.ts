@@ -50,4 +50,12 @@ export const TEST_LIST: TestEntry[] = [
   // drycover, rimsoft, bushmark, leafpop passed 2026-11-04; aireact (AI R1), skillband, bhquiet,
   // aiweave (AI R2), jokerflow, aisliders (AI R3), hudlean,
   // aibands, puffroom, aigrip (AI R4 part 1), aidodge (AI R5) passed 2026-11-04)
+  {
+    id: 'ailines',
+    added: '2026-11-04',
+    name: 'AI lines of their own: early / late apexes by habit, a little different each lap',
+    where: 'Test link + &ailines=1: any circuit with corners, a field',
+    try: 'Follow the pack through a few corners over several laps.',
+    wrong: 'Everyone still on one line, AI off the road more, or pros as ragged as rookies.',
+  },
 ];

@@ -5,6 +5,8 @@ import { querySubtrack } from "../world/tyrewall.ts";
 import { K_BRAKE, nearestIdx, profileOf } from "./line.ts";
 import type { AiCar, CarsAcc, CircuitState } from "./types.ts";
 import type { Drv, AiPath } from "./driverCtx.ts";
+import { FIX } from "../core/fixes.ts";
+import { cornerNudge } from "./cornerLine.ts";
 
 // extra braking grip planned while ATTACKING (late braking into the corner)
 const ATK_KB = 0.12;
@@ -137,7 +139,10 @@ export function laneStep(drv: Drv, car: AiCar, path: AiPath, nearIdx: number, sp
   }
   const startK = state.goT == null ? 1 : Math.max(0, 1 - (state.t - state.goT) / START_BLEND);
   if (startK > 0 && path === main && state.gridLat != null) latT += state.gridLat * startK;
-  return { latT, lineOff, startK };
+  // ?ailines: its own line through this corner (ai/cornerLine.ts)
+  const shape = FIX.ailines && path === main ? cornerNudge(drv, car, nearIdx) : null;
+  if (shape) latT += shape.here;
+  return { latT, lineOff, startK, shape };
 }
 
 /** Flags a battle (car within 25 m); returns the push factor on the pace. */

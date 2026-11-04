@@ -63,13 +63,15 @@ for (let offset = 0; offset <= span; offset++) targetSpeed = Math.min(
     targetSpeed, prof[idx(nearIdx + offset)]);
 const target = aim ? latT - aim.mistLat : latT;
 const latAt = (dist: number) => (aim ? lateralAhead(aim, target, dist, speed) : latT);
-if (path === line && Math.max(Math.abs(target), aim ? Math.abs(aim.actual) : 0) > 0.3) {
+const shape = aim && aim.shape;
+if (path === line && (shape || Math.max(Math.abs(target), aim ? Math.abs(aim.actual) : 0) > 0.3)) {
   const brakeDecel = (debugValue("AI_KB") as number || K_BRAKE) * pts[nearIdx].mu * carGrip(
       spec).brakeG * GRAVITY, far = Math.round(
       (speed * speed / (2 * brakeDecel) + 15) / path.sp);
   for (let offset = 0; offset <= far; offset += 2) {
-    const pos = idx(nearIdx + offset), bend = pts[pos], x = (
-        lineOff + latAt(offset * path.sp) - bend.off!) * bend.turn;
+    const pos = idx(nearIdx + offset), bend = pts[pos];
+    const own = shape ? shape.nudgeAt(pos) - shape.here : 0;   // ?ailines: its line there
+    const x = (lineOff + latAt(offset * path.sp) + own - bend.off!) * bend.turn;
     if (x > 0.3 && bend.R < 400) {
       const bendSpeed = prof[pos] * Math.sqrt(Math.max(0.4, (bend.R - x) / bend.R));
       targetSpeed = Math.min(
