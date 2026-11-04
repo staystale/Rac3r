@@ -331,6 +331,9 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
 - A page that jumps back to the menu on the phone is the BROWSER reloading the tab (the report
   shows a fresh page) - the game never reloads itself. Check memory at the phone's size
   (tools/scratch/_memprobe.mjs: live canvases + JS heap, page errors with their stacks).
+- "It isn't happening" can be "it isn't DRAWN" (11-04): every leak and spill was in the wear
+  cells and slippery, but the cover field's draw returned early on a dry day. Check the cells
+  (tools/scratch/_leakwatch.mjs) AND a photo (_leakshot.mjs) before touching the sim.
 
 ## Routine
 
