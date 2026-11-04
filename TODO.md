@@ -21,7 +21,16 @@ last handover, written on request.
   or 25-60 % of road speed), the feel waits for 4 m/s, and drive-out and the game's stuck reset
   call a car going forwards and gaining 0.08 m/s TRYING. Muscle 5-14 m, hatches 14-33 m (stuck
   ones 1 -> 14, 0 -> 23); dry launches muscle 99-113 -> 107-122 m, hatch same; RX races (rally,
-  Knobhill + Slidden, 3 seeds) same or 0.2-2 s faster. Part 2 (B3 felt grip) next.
+  Knobhill + Slidden, 3 seeds) same or 0.2-2 s faster. ROUND 2 (owner: "shouldn't ai especially
+  more skilled ones realise the slip and feather the throttle? like players have to"): on GRIPPY
+  ground the foot holds 12 % (skill 1) .. 37 % (skill 0) of road speed, loose still 25-60 %:
+  muscle at Brands exit spin 2.9 -> 2.3 m/s (peak 9.9 -> 7.1), 76.9 -> 75.5 s a lap; Mobile
+  driver 4.9 -> 2.9 m/s, Real 3.5 -> 1.9 (worse drivers spin more, react later - owner OK); RX
+  races and icy starts the same. Part 2 (B3 felt grip) MEASURED 11-04
+  (_feltgrip.mjs: a lone AI with its tyre grip x0.85 / x0.7 / x0.8 it does not know about) - no
+  problem to fix: Thruston 46.8 -> 47.2 / 49.2 s, Brands 72 -> 73.5 s, never off, no spins (its
+  slide / understeer feedback catches it); the grip it plans by is what is drawn (covers). ON HOLD
+  - owner to discuss (weak drivers over-driving on purpose would be a behaviour choice, not a fix).
 - UNDER TEST (11-04 late): ?puffroom (owner: "smoke dust and other things still seem to pop out /
   vanish sometimes? can we make that cost less / increase the budget?") - MEASURED Knobhill 60 s
   (_puffwatch, _fxpools): 5 AI never filled the 640 puff pool; 19 AI sat at 640 and cut 1796-3781

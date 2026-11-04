@@ -4,16 +4,20 @@
 // 32 m/s with the car at 0.3 m/s, 3-10 m in 10 s, nearly still 9-13 s (the game resets after 3);
 // a hatch 26 m. A real driver feathers the throttle to keep the driven wheels just past the grip
 // peak, as TCS does (physics/loads.ts tractionCut), so every AI car does it with its foot - aids or
-// not - but only on GROSS spin: the measured lesson (driverPedals.ts) is that some spin on loose
-// ground is the fast way, and a blanket wheelspin cut cost lap time there. A better driver
+// not. On GRIPPY ground it holds the spin near the peak, as TCS does (owner 11-04: "shouldn't ai
+// especially more skilled ones realise the slip and feather the throttle? like players have
+// to"); on LOOSE ground it lets much more through - the measured lesson (driverPedals.ts) is that
+// some spin there is the fast way, and a blanket wheelspin cut cost lap time. A better driver
 // catches it sooner and holds it closer to the peak. Not while drifting (the throttle holds the
 // slide) nor in a throttle mistake (the error IS too much throttle).
 import type { AiCar } from './types.ts';
 import type { Drv } from './driverCtx.ts';
 
 // m/s of spin let through at a standstill, skill 1 / extra at skill 0; and as a share of road
-// speed, skill 1 / extra at skill 0
-const SPIN_FLOOR = 2.5, SPIN_FLOOR_WEAK = 2.0, SPIN_SHARE = 0.25, SPIN_SHARE_WEAK = 0.35;
+// speed, skill 1 / extra at skill 0, on grippy ground (TCS lets ~10 %: physics/loads.ts) and on
+// loose (from 0.5 grip down)
+const SPIN_FLOOR = 2.5, SPIN_FLOOR_WEAK = 2.0;
+const GRIP_SHARE = 0.12, GRIP_SHARE_WEAK = 0.25, LOOSE_SHARE = 0.25, LOOSE_SHARE_WEAK = 0.35;
 // throttle taken off a m/s of spin past that, the least it leaves, and how fast the foot moves
 // (1/s)
 const EASE_PER = 0.4, EASE_MIN = 0.02, FOOT_RATE = 12;
@@ -32,8 +36,11 @@ export function footThrottle(drv: Drv, car: AiCar, speed: number, throttle: numb
   free: boolean): number {
   const state = drv.state, weak = 1 - Math.max(0, Math.min(1, drv.traits.skill));
   const spin = (car as AiCar & { wheelSpin?: number }).wheelSpin || 0;
-  const allow = Math.max(SPIN_FLOOR + SPIN_FLOOR_WEAK * weak, (SPIN_SHARE + SPIN_SHARE_WEAK * weak)
-    * speed);
+  // loose: 0 on tarmac (grip 1) .. 1 at grip 0.5 and under (as the slide step reads it)
+  const loose = Math.max(0, Math.min(1, (1 - car.surface.mu) / 0.5));
+  const share = GRIP_SHARE + GRIP_SHARE_WEAK * weak
+    + (LOOSE_SHARE + LOOSE_SHARE_WEAK * weak - GRIP_SHARE - GRIP_SHARE_WEAK * weak) * loose;
+  const allow = Math.max(SPIN_FLOOR + SPIN_FLOOR_WEAK * weak, share * speed);
   const target = free || spin <= allow ? 1 : Math.max(EASE_MIN, 1 - (spin - allow) * EASE_PER);
   const footK = state.footK ?? 1;
   state.footK = footK + (target - footK) * Math.min(1, FOOT_RATE * dt);
