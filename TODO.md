@@ -13,6 +13,14 @@ last handover, written on request.
   restart and reset can stay") - no car / level chip, no TUNE, no CLEAR, nor their keys (c, l,
   1-5, [ ]); the RESTART row takes the top-left on a phone (hud/layout.ts). uicheck with it: HUD
   reachable, no overlaps at 6 sizes (its car-chip tap test skipped under the switch).
+- UNDER TEST (11-04 late): ?ailook (owner: "the different way approach sounds like a good idea") -
+  on arriving at a corner a driver checks the line it chose through it for fresh oil / glass (its
+  middle and wheels) and takes the nearest earlier / later apex (b +-0.3, +-0.6) that misses it;
+  a weak driver may not see it (half the time at skill 0); once a corner, a few dozen map reads.
+  MEASURED (_oilline.mjs, 9 runs): on the oil 46.3 -> 36.6 s (Thruston 14.3 -> 8.0, Castle Cum
+  13.8 -> 8.6, Brands 18.2 -> 20.0: no near line misses it there); off-road 17.2 -> 19.0 s. Tries up
+  to +-1.2 ran Brands wide (2-3 -> 10-11 s off-road): kept to +-0.6. On the oil the AI already
+  slows (its plan's grip) and its foot / slide control manage it (owner asked; felt grip needless).
 - DEFAULT 11-04 (owner: "pass and yes please" - the next step wanted): ailines (owner: AI should not all follow one line; vary by corner and
   lap, pros consistent; "keep it computationally cheap") - ai/cornerLine.ts: through each corner
   a driver holds the racing line SHIFTED ALONG the track by b (late +, early -; 20 m at b = 1,

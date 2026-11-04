@@ -21,6 +21,8 @@ import { GRAVITY } from '../cars.ts';
 import { CAR_STATS } from '../carstats.ts';
 import type { Drv } from './driverCtx.ts';
 import type { AiCar, RacingLine } from './types.ts';
+import { WEAR_CELL, wearKey, wearMap } from '../world/wear.ts';
+import { FIX } from '../core/fixes.ts';
 
 // m of approach before a corner's first bend, and of exit after its last, that its line spans
 const ENTRY_M = 35, EXIT_M = 35;
@@ -33,6 +35,15 @@ const HABIT_TOP = 0.15, HABIT_WEAK = 0.75, DRAW_TOP = 0.08, DRAW_WEAK = 0.35;
 const CAR_LEAN = 0.35, POWER_MID = 0.35, POWER_SPAN = 0.2;
 // b is kept inside this
 const B_MAX = 1.2;
+// ?ailook: A LINE CLEAR OF FRESH OIL AND GLASS (owner 11-04: "the different way approach sounds
+// like a good idea"). Steering round a patch like a cone put the field on the oil MORE in every
+// version tried (TODO 11-04); instead, on arriving at a corner a driver checks the line it chose
+// through it for oil / glass cells (its middle and its wheels) and, if it would cross some, takes
+// the nearest earlier or later apex that misses them - decided once a corner, on a line that stays
+// on the road. A good driver always sees it; a weak one may not (NOTICE_WEAK at skill 0). Cheap: a
+// few dozen map reads once a corner. The covers checked, the b steps tried, the wheels read (m).
+const HAZARD_COVERS = new Set(["oil", "glass"]), B_STEP = 0.3, B_TRIES = 2;
+const WHEELS = [0, -0.9, 0.9], NOTICE_WEAK = 0.5;
 
 /** Each line point's corner window: the corner (-1 none) and its place (-1 .. 0 apex .. 1). */
 interface Windows { cid: Int32Array; place: Float32Array }
@@ -68,6 +79,60 @@ function windowsOf(line: RacingLine): Windows {
   const windows = { cid, place };
   WINDOWS.set(line, windows);
   return windows;
+}
+
+/**
+ * ?ailook: whether a line through a corner, at a given b, crosses fresh oil or glass.
+ * @param line the racing line
+ * @param windows its corner windows
+ * @param from the line point to look from
+ * @param cornerId the corner
+ * @param apexB the b tried
+ * @param lineQ the driver's share of the line's width (traits.lineQ)
+ * @returns true when it would cross a hazard
+ */
+function lineHitsHazard(line: RacingLine, windows: Windows, from: number, cornerId: number,
+  apexB: number, lineQ: number): boolean {
+  const count = line.n, pts = line.pts;
+  for (let pos = from, steps = 0; windows.cid[pos] === cornerId && steps < count; steps += 2) {
+    const taper = 0.5 * (1 + Math.cos(Math.PI * windows.place[pos]));
+    const src = (pos - Math.round(apexB * SHIFT_M * taper / line.sp) + count) % count;
+    // m off the racing line here: its own line (the shifted offset) and its share of the width
+    const lat = pts[src].off! - pts[pos].off! * (2 - lineQ);
+    for (const wheel of WHEELS) {
+      const off = lat + wheel, point = pts[pos];
+      const x = point.x - Math.sin(point.h) * off, y = point.y + Math.cos(point.h) * off;
+      const cell = wearMap.get(wearKey(Math.floor(x / WEAR_CELL), Math.floor(y / WEAR_CELL)));
+      if (cell && cell.cover && HAZARD_COVERS.has(cell.cover)) return true;
+    }
+    pos = (pos + 2) % count;
+  }
+  return false;
+}
+
+/**
+ * ?ailook: the b to take through a corner - the one chosen, or the nearest that misses fresh oil
+ * and glass on it (if the driver sees it).
+ * @param drv the driver context
+ * @param windows the corner windows
+ * @param from the line point it arrives at
+ * @param cornerId the corner
+ * @param chosen the b it chose
+ * @param weak 1 - skill
+ * @returns b
+ */
+function clearOfHazards(drv: Drv, windows: Windows, from: number, cornerId: number,
+  chosen: number, weak: number): number {
+  const { line, traits, rnd } = drv;
+  if (!lineHitsHazard(line, windows, from, cornerId, chosen, traits.lineQ)) return chosen;
+  if (rnd() > 1 - NOTICE_WEAK * weak) return chosen;
+  for (let tries = 1; tries <= B_TRIES; tries++) {
+    for (const sign of [1, -1]) {
+      const apexB = Math.max(-B_MAX, Math.min(B_MAX, chosen + sign * tries * B_STEP));
+      if (!lineHitsHazard(line, windows, from, cornerId, apexB, traits.lineQ)) return apexB;
+    }
+  }
+  return chosen;
 }
 
 /**
@@ -112,6 +177,8 @@ export function cornerNudge(drv: Drv, car: AiCar, nearIdx: number) {
     const draw = (rnd() + rnd() - 1) * (DRAW_TOP + DRAW_WEAK * weak) * 1.7;
     state.clCorner = here;
     state.clB = Math.max(-B_MAX, Math.min(B_MAX, habit + draw));
+    // ?ailook: the nearest line that misses fresh oil / glass on it
+    if (FIX.ailook) state.clB = clearOfHazards(drv, windows, nearIdx, here, state.clB, weak);
   }
   const apexB = state.clB ?? 0, count = line.n, pts = line.pts;
   const nudgeAt = (pos: number) => {
