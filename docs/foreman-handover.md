@@ -1,95 +1,120 @@
 # Foreman handover
 
-Written on the owner's request, 2026-10-25 late night (main at the commit that adds this page).
+Written on the owner's request, 2026-11-04 late (main at the commit that adds this page).
 Read `CLAUDE.md`, then `NOTES.md` (the owner's rules, decisions, measured lessons and the routine -
-not repeated here), then `TODO.md` ("Where we are" and section C are the plan), then this page.
+not repeated here), then `TODO.md` (the top of it is the AI rework's record and the order), then
+this page.
 
 ## Where we are
 
-- **The plain link is the approved game; the test list is EMPTY.** C7 debris (parts and
-  glass, `world/debris.ts`), glass pops, oil wearing away and C8 post hits (lamp posts and
-  tree trunks by closing speed, in one spot: `physics/posthit.ts`), C9 armco dents (bow,
-  tear, a bit softer: `world/armcodent.ts`), water dragged by the tyres (`world/waterdrag.ts`)
-  and C10 open wheels (`physics/openwheel.ts`) are the default since 10-26.
-  Everything else below passed the owner's phone test and is the DEFAULT, its switch and old
-  path DELETED (one system).
-- **Car systems C round 2 (C3-C5) - DONE.** `physics/engineheat.ts`: each car's engine C,
-  radiator water, oil and a seize timer, stepped by `damage.ts stepDamage` on every car (the
-  damage state is made at the first step). Heat in by throttle x revs (`car.throttleUsed`,
-  set in `vehicle.ts step`), out through the radiator (thermostat from 87 C, water left, airflow
-  by speed + rain + wheel splashes) and the block. A front hit (the harder-hit front corner's
-  share 0.15+) cracks the radiator (empty in 4 min .. 40 s), 0.35+ or a rollover impact may
-  crack the sump. Power fades 115 -> 130 C to half (folded into `car.wreck.power`); 10 s at
-  130 C or with no oil SEIZES it (RESET mends; an AI resets via `tooInjured`).
-  **The leak is water** (owner: the same liquid as the rain): ~60 wear cells a radiator become
-  the tyres' water under the nose (`puddles.ts` rules), closer together the worse the leak.
-  Speedo lights `hud/enginelights.ts` (thermometer + oil can over the units; dim / amber 105 C /
-  flashing red). `render/enginesmoke.ts`: exhaust from each car kind's pipe (`EXHAUST_SPOTS`)
-  by throttle and cold, backfires (seize, heat power cuts, lift-off near the redline), steam
-  and engine smoke drawn OVER the cars (`particles.ts overPuffs`, `screen.ts` after the
-  overhead props). The old grey nose smoke of a bent front is deleted.
-- **C6 oil - DONE.** `world/oil.ts`: a wear cell's cover 'oil' that ACTS LIKE WATER (owner:
-  whole cells, no specks; `wet.ts oilSurface` a third of the base's grip), drawn by the GPU
-  field as kind 5 (`glfield.ts OIL_CODE`): black with a dark purple sheen and purple edges.
-  Soaked up by sand, gravel, dirt, mud, long grass, bushes, traps; never dries. Sources: a
-  cracked sump drips ~20 cells, a hit of 0.2+ damage spills 1-4 cells, a rollover impact 25 %
-  (`damage.ts -> crashOil / rollOil`). Driven through it spreads a cell the way the wheel went
-  (a chance a pass; `wear.ts stepWear` notes each wheel's motion); oil beside water runs into
-  it 50:50 a second (`stepOil`); each spread a generation weaker (`cell.oilGen`). No oily tyres
-  or oily marks (owner).
-- **Fix: rims sparked on soft ground.** `world/metalscrape.ts surfaceUnder` read the wear cell
-  else the level's zone, missing the weather's snow / ice where no wheel had made a cell yet;
-  it now reads `wear.ts groundAt` (the ground the wheels feel).
-- **The tunnel was restarted** (Cloudflare had dropped the quick tunnel's name): a NEW link,
-  in `GamesStudio/tools/logs/rac3r-tunnel.err`; the pids file is updated.
+- **The plain link is the approved game; the test list (`src/testlist.ts`) is EMPTY.**
+- **itch.io is up to date:** build #2300680, version `2026-11-04-4f8d865` (owner asked: "can we
+  push this to itch.io before we go any further").
+- **The AI rework is done up to R8** (R1-R5 and R8 passed on the owner's phone, R6 skipped,
+  R4 part 2 not needed). Today's passes, all the DEFAULT with their switches deleted:
+  - **One AI (R8):** the circuit driver races every level, the highway too. The highway weaver
+    (`ai/weaver*.ts`, 790 lines) is DELETED; its drive-out moved to `ai/driveOut.ts`.
+    - `ai/steerLaw.ts`: the one steering law and cap (the circuit's Stanley).
+    - `ai/roadLine.ts`: the highway's line, the lanes' middle, made per road stretch (the road
+      rebuilds every ~300 m), smoothed; `circuit.ts follow()` rebinds a driver to each new line.
+    - `ai/gapPick.ts`: gap spotting for every driver - 11 lines across the room, scored by free
+      road ahead (read 2.6 .. 3.8 s by skill), the swerve's cost, a commit bonus, the verge's
+      cost; a blocked way across or a car arriving in the mirror (1.5 s) is out. Round on the
+      road first (`followAhead`), past the edge only when there is no room.
+    - Boxed in (a car still on the best line) -> late braking, 90 % planned
+      (`driverTraffic.ts gapStep`); the attacked car is left out of the gap picker (it undid
+      the attack's pass).
+  - **Formation starts on the highway** (`ai/formation.ts roadFormationInput`): the circuits'
+    formation read along the road; every car keeps station on the POLE's own speed
+    (`stationPace`), so a stronger engine cannot run into the next slot. The highway's old
+    start driver (`game.start.drv`) is deleted.
+  - **Half a car owns the line** (`driverTraffic.ts alongsideCar`): half a car or more ahead
+    keeps its line (no chopping: it holds where it is if its line closes on the other); the
+    car behind, its line across the leader, drops 0.5 m/s under it to tuck in; truly side by
+    side both keep 2.4 m and the inside gets the corner (`racecraft.ts yieldRoom`).
+  - **Look before pulling on** (`driverDrive.ts lookFirst` + `gapPick.ts rejoinClear`): a car
+    at / past the edge coming in by > 1 m holds its place on the edge until no car on the
+    track arrives within 1.5 s or sits alongside on the lines it would cross.
+  - **The braking read** (`dodge.ts readBraking / matchSpeed`): each driver reads how fast the
+    car ahead slows (differenced over 0.1 s; half of it at skill 0, all at skill 1) and, only
+    where there is no way round, keeps a speed it can still match it by. Owner: "it should
+    ideally avoid it not just brake ... although it should brake too if it needs to".
+- **Measured at the flip** (the plain game): weavecheck 0 / 45 hits at diff 2 and 4; pacesuite
+  (9 highway races) ~130 km/h, 0 bad, 0 off-road; circuit fields (4 tracks x 3 seeds, diff 4)
+  fewer incidents and less contact than before R8 with passes level; rear test
+  (`_reartest.mjs`) nose-tail touches about halved; highway formation closest pair ~3.4 m.
 
 ## NEXT (owner's order)
 
-1. **Car systems C is DONE** (C1-C10; C10 open wheels `physics/openwheel.ts`, C9 armco dents
-   `world/armcodent.ts`, C8 post hits `physics/posthit.ts`, water dragged by the tyres
-   `world/waterdrag.ts` - all owner 10-26 "pass", the DEFAULT). The test list is EMPTY.
-2. The `wearcheck` rewrite is DONE (10-26: tools/wearcheck.mjs to today's rules, 33 checks all OK).
-   NEXT (owner to order): the driving root fix
-   (real ABS), AI rework B, sound G, Story H, levels, multiplayer I.
+1. **R7** - a menu race on a random track, with a chance of the highway. ASK THE OWNER before
+   building (propose the plan first).
+2. **Brands Snatch Indy** at real scale and at 3/4 scale.
+3. **Car second / third colours** - a mockup first, owner picks.
+4. Then upgrades, sound, story. Later (owner decision): the ground on the GPU (A mipmapped tiles,
+   then B full GPU).
 
-## Proofs and references
+WATCH (owner to report): the menu demo's NaN recovery; the owner's own-car reset streak; the
+mark jump (passed "unless I see it again"); the few hard rear-end hits left are swerves begun
+too late (the AI chose to go round), not following.
 
-- Worktrees: `Desktop/G/rac3r-wt` (the work, detached on main) and `rac3r-wt2` (proofs). The
-  served clone `Desktop/G/rac3r` is detached on origin/main.
-- `.simhash` in `rac3r-wt/tools` = saved on 549dfc6 with `?openwheel=1`, which equals main (every
-  later commit read SAME). `.renderhash` is STALE (drawing changes were photographed at the
-  owner's phone sizes instead).
-- Flip routine used today: save a simhash reference WITH the switch on (`RAC3R_QUERY=x=1 node
-  tools/simhash.mjs save`, in rac3r-wt2), flip the default in rac3r-wt, run simhash there
-  against that reference -> SAME.
+## How the owner works with us (this session)
 
-## Probes made today (`tools/scratch/`)
+- **Permission first** for anything new; a direct fix request or a default flip is fine. Do not
+  do anything drastic when stuck - ask.
+- **One AI, the same everywhere** (where possible): one law, one set of numbers on every level;
+  a per-level difference only where truly needed, and say why.
+- **Keep it as simple as we can while avoiding behavioural issues.** Extras that do not measure
+  better come out (11-04: closing-speed room, lane-change guess, a no-swerve-past-alongside rule
+  made weavecheck 13 -> 18 hits; removed).
+- "It's ok for some crashes"; dodge and overtake first, brake when it must; no queueing, no
+  hard shoulder, no waiting.
+- The owner tests on the phone and answers "pass" per switch; runs are noisy, so hand over for
+  the test rather than over-proving. Say "let me know when to test" moments plainly with the
+  link and what to try.
 
-`_engine.mjs` (heat curves headless, every car kind has an exhaust spot), `_engineshots.mjs`
-(crack | ai | look | water | crackport: the real game), `_oil.mjs` (spill, drive-through, water
-spread, sump, crash), `_oilgrip.mjs` (the car on oil reads 'oil'; photos), `_rimsoft.mjs`,
-`_rimsoft2.mjs`, `_rimsoft3.mjs` (soft ground the old spark lookup called hard),
-`_mockshot.mjs` (a screenshot of a local mockup page). Browser probe gotchas: tap the screen
-before `launch` or the race never starts (the car reads 'lab' and stands still); `debugZoom`
-at speed loses the car off screen - use `?autopilot=25`.
+## Proofs and tools for the AI
+
+- `tools/weavecheck.mjs <diff>` (45 highway scenarios) - REPEATS EXACTLY: a change in its count
+  is real, not noise.
+- `tools/pacesuite.mjs <label> 45` (9 highway races, 3 seeds x diff 0/2/4) and
+  `tools/hwracecheck.mjs <s> <diff> 1 motorway <seed>` (HRDBG=1: off-road lines;
+  `tools/scratch/_hwtrace.mjs` adds HRTRACE=<car> HRT0 / HRT1 per-step traces).
+- `tools/scratch/_reactab.mjs <diff>` (TOGGLE=<SWITCH> SEEDS=7,3,11: circuit fields off vs on;
+  its off-road column is broken - ignore it). Fields are NOT deterministic.
+- `tools/scratch/_reartest.mjs <level> <diff> <n> <laps> <seed>` (a careful lead - the bench
+  driver - with AI behind; nose-tail touches; DBG=1 the controls at each touch, TRACE=1 a
+  speed timeline). Not deterministic either.
+- `tools/scratch/_rollhw.mjs <runs> [query]` (highway rolling start: lane drift, place slip,
+  closest pair, slot error at the green; LINE=1 a timeline) and `_rollstart.mjs` (circuits).
+- Also: `_stopcar.mjs`, `_rejoin.mjs`, `_feltgrip.mjs` (lone laps), `_icestart.mjs`,
+  `_oilline.mjs`, `tools/aijokercheck.mjs`, `tools/aifieldcheck.mjs`.
 
 ## itch.io push (owner says when)
 
-Unchanged: `npm run build` in the worktree; stage index.html, game.js, manifest.webmanifest in
-a new folder under `GamesStudio/ready-to-play/`; `node tools/scratch/_staticcheck.mjs <folder>`;
-`BUTLER_API_KEY=<wharf key from the owner> GamesStudio/tools/butler/butler.exe push <folder>
-fuzzlepun/rac3r:html5 --userversion <date>-<commit>`. Still build #2201136 (10-24).
+`npm run build` in the worktree; stage in a new `GamesStudio/ready-to-play/rac3r-<date>/`:
+`dist/index.html`, `dist/game.js`, the repo's `manifest.webmanifest` (the build does not copy it)
+AND `dist/assets/` (fonts + logo, new since 10-26; drop `fonts/README.md`; no `game.js.map`);
+`node tools/scratch/_staticcheck.mjs <folder>` (both phone sizes: missing none, no errors);
+`BUTLER_API_KEY=<wharf line of Desktop/ITCH-API-KEYS.txt, read inline, never printed>
+GamesStudio/tools/butler/butler.exe push <folder> fuzzlepun/rac3r:html5 --userversion
+<date>-<commit>`; `butler status fuzzlepun/rac3r:html5` until the build is up.
 
 ## Picking up
 
+- Worktrees: `Desktop/G/rac3r-wt` (the work, detached on main) and `rac3r-wt2` (proofs). The
+  served clone `Desktop/G/rac3r` is detached on origin/main.
 - Test server `node serve.mjs` and cloudflared (running); the link is in
   `Desktop/G/GamesStudio/tools/logs/rac3r-tunnel.err`. If the link stops resolving, Cloudflare
   dropped the quick tunnel: stop the cloudflared PID, start `GamesStudio/tools/cloudflared.exe
   tunnel --url http://localhost:8080` with stderr to that log, update `rac3r-pids.txt`, give
   the owner the new link. Phone reports: `node tools/phonereport.mjs
   ../GamesStudio/tools/logs/rac3r-phone-report.jsonl --since <UTC>`.
-- To main: commit in a worktree, `set -o pipefail; npm run verify`, push
-  `HEAD:refs/heads/foreman/<name>`, wait for the `verify` check-run (GitHub API
-  `repos/staystale/Rac3r/commits/<sha>/check-runs`), push `HEAD:refs/heads/main`, delete the
-  branch, move the served clone (`git fetch -q origin && git checkout -q --detach origin/main`).
-  For a quick owner test the served clone may be put on the pushed branch commit first.
+- To main: commit in a worktree, `node tools/verify.mjs` (check its exit code - do not pipe it
+  into tail and commit regardless), push `HEAD:refs/heads/foreman/<name>`, wait for the `verify`
+  run (`C:/Users/Admin/tools/gh/bin/gh.exe run list --repo staystale/Rac3r --branch
+  foreman/<name>`), push `HEAD:refs/heads/main` (retry: GitHub has had 500s), delete the branch,
+  move the served clone (`git fetch -q && git checkout -q --detach origin/main`).
+- Switches: `src/core/fixes.ts` (`atLoad('name')`, node env NAME=1), each with a
+  `src/testlist.ts` entry; on a pass make it the default, delete the switch AND the old path.
+- The laptop has ~6 GB: run the heavy tools one at a time; a background job killed for memory is
+  not restarted without asking.

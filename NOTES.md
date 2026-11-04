@@ -56,6 +56,16 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   `TODO.md`, these notes); build a new one only for what is missing.
 - Handovers only when the owner asks. Notes go here.
 - Bigeon ideas and fixes go in the owner's idea file on the worker PC (SSH; see the owner's README).
+- PERMISSION FIRST (owner 11-04: "always get permission first"): propose anything new and wait for
+  the yes; a direct fix request or a default flip on a pass is fine. Stuck -> ask, nothing drastic.
+- ONE AI, THE SAME EVERYWHERE (owner 11-04: "all ai behaves the same ... where possible"): one
+  driver, one law, one set of numbers on circuits, stages and the highway; differences only from
+  what it follows and each driver's traits.
+- KEEP IT SIMPLE (owner 11-04: "just gotta keep it as simple as we can while avoiding behavioural
+  issues"): an extra that does not measure better comes out. "It's ok for some crashes."
+- AI RACECRAFT (owner 11-04): dodge and overtake first, brake when it must ("it should ideally
+  avoid it not just brake ... although it should brake too if it needs to"); no queueing, no hard
+  shoulder; half a car ahead owns the line; a car on the track has priority over one rejoining.
 
 ## Decisions (owner)
 
@@ -338,6 +348,12 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
 - AI FIELD AND GHOST RUNS ARE NOT DETERMINISTIC (11-04): the same settings gave 3.2 / 4.9 s on an oil
   patch, 88 / 116 incidents. One run a side is noise: 9+ runs (3 circuits x 3 seeds) before
   believing a change, and a targeted tool for the behaviour itself (_stopcar, _rejoin, _icestart).
+  tools/weavecheck.mjs IS deterministic (11-04: 13, 13, 13 on reruns): a change in its count is
+  real. _reartest.mjs is not.
+- FOLLOWING MUST READ THE CAR AHEAD'S BRAKING (11-04): it assumed the car ahead slows as the AI
+  itself would there, so behind an early braker (a careful player) it arrived 4.3 m/s too fast.
+- A FORMATION KEEPS STATION ON THE POLE'S SPEED, not the pace (11-04): from a standstill a
+  stronger engine at the same throttle ran 4.5 m into the next slot.
 - The loose-object STEP-ROUND is for small round things: a long ground patch (oil, glass) is not one
   obstacle, nor one per cell - every way tried put the field on the oil more (TODO 11-04).
 
