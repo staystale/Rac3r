@@ -251,6 +251,8 @@ export interface CarsAcc {
   dodgeT: number; followCap: number; conflict: boolean; lead: Lead | null;
   threat: Threat | null; side: number; alg: number[];
   urgent?: boolean;   // swerving round a car in the way needs the fast rate
+  // the car being attacked, m off my path (?lineback: the attack goes beside it)
+  atkLat?: number;
   // the cars seen (gap spotting, ai/gapPick.ts)
   seen?: { fwd: number; lat: number; v: number; across: number; along: number }[];
 }

@@ -12,6 +12,7 @@
 // blocked halfway, or that a faster car behind is about to arrive on, is out; past the usual edge
 // only when it is clearly quicker.
 import { reachOf } from './dodge.ts';
+import { FIX } from '../core/fixes.ts';
 import type { AiCar } from './types.ts';
 
 /** A car as the gap picker sees it, in my path's frame. */
@@ -22,6 +23,10 @@ export interface SeenCar { fwd: number; lat: number; v: number; across: number; 
 // per m/s), the verge's cost and the room's step to it (m), the m beside a car that is alongside,
 // a blocked way across or the mirror's cost, the mirror's s, the most m across in one think
 const LINES = 11, COMMIT = 25, MOVE_K = 1.5, MOVE_SPEED_K = 0.05, VERGE = 40, OUT = 400;
+// ?lineback: the cost a m off the racing line (MEASURED _wide.mjs, the stock car oval: a driver
+// went round a pack by the outside wall, 11 m off the line, then kept that free line - nothing
+// said the line itself is quicker - 20 % of its race > 2 m outside the line, a lone car 2 %)
+const LINE_COST = 3;
 const MIRROR_S = 1.5, REACH_M = 4.5, MARGIN = 0.55, FREE_BONUS = 60, KEPT_V = 1.2;
 // m between the lines a rejoining car checks on its way across
 const REJOIN_STEP_M = 1;
@@ -88,6 +93,19 @@ export function rejoinClear(seen: SeenCar[], from: number, dest: number, half: n
 }
 
 /**
+ * What a line costs for where it is: past the usual edge (the verge), and (?lineback) for every m
+ * off the racing line - the fast way round.
+ * @param off the line, m off my path
+ * @param centre my path's m off the road's middle
+ * @param edge the usual room's edge, m from the road's middle
+ * @returns the cost
+ */
+function placeCost(off: number, centre: number, edge: number) {
+  return (Math.abs(centre + off) > edge ? VERGE : 0)
+    + (FIX.lineback ? LINE_COST * Math.abs(off) : 0);
+}
+
+/**
  * The line to take through the cars: the best scored across the room.
  * @param seen the cars seen (my path's frame)
  * @param mine my place: lat (m off the path), base (the line chosen last), half width, length,
@@ -111,7 +129,7 @@ export function gapLine(seen: SeenCar[], mine: { lat: number; base: number; half
       : speed * look + FREE_BONUS;
     score -= (Math.abs(off - base) + 0.3 * Math.abs(off - lat)) * (MOVE_K + speed * MOVE_SPEED_K)
       - (Math.abs(off - base) < 0.6 ? COMMIT : 0);
-    if (Math.abs(centre + off) > edge) score -= VERGE;
+    score -= placeCost(off, centre, edge);
     if (Math.abs(off - lat) > 1.2) {
       const mid = blockOn(seen, (off + lat) / 2, half, len);
       if (mid && mid.gap < 1) score -= OUT;

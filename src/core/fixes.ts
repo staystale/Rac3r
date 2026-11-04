@@ -40,4 +40,8 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
+  // ?lineback=1: every line the gap picker tries pays for being off the racing line (the line is
+  // the fast way round), so a driver goes back to it once it is free (ai/gapPick.ts LINE_COST;
+  // owner 11-04: "some ai seem to drive very wide around the outside of the track")
+  lineback: atLoad('lineback'),
 };

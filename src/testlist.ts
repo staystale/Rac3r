@@ -52,4 +52,12 @@ export const TEST_LIST: TestEntry[] = [
   // aibands, puffroom, aigrip (AI R4 part 1), aidodge (AI R5),
   // ailines, ailook, dodgefar, markjump, halfcar, rejoinlook, hwshare, oneai (AI R8), brakeread
   // passed 2026-11-04)
+  {
+    id: 'lineback',
+    added: '2026-11-04',
+    name: 'AI go back to the racing line once the way is clear (no running wide for ages)',
+    where: 'Test link + &lineback=1: a race with AI - the stock car oval shows it most',
+    try: 'Watch AI that went round a pack on the outside: they should come back to the line.',
+    wrong: 'AI still lapping wide by the wall, or passing less than before.',
+  },
 ];

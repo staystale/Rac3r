@@ -224,6 +224,7 @@ export function noteLeadThreat(drv: Drv, acc: CarsAcc, env: CarsEnv, other: AiCa
 /** The car being ATTACKED: no following gap once we are moving over (only overlap holds us). */
 export function attackedCar(drv: Drv, acc: CarsAcc, env: CarsEnv, fwd: number, otherLat: number,
     vAlong: number) {
+  acc.atkLat = otherLat;
   if (fwd > 2.5 && fwd < 5 && Math.abs(otherLat - env.myLat) < 1.5) acc.followCap = Math.min(
       acc.followCap, vAlong + 0.5);
   if (fwd < 4.5 && fwd > -4.5) acc.alg.push(otherLat);

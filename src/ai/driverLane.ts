@@ -6,10 +6,12 @@ import { K_BRAKE, nearestIdx, profileOf } from "./line.ts";
 import type { AiCar, CarsAcc, CircuitState } from "./types.ts";
 import type { Drv, AiPath } from "./driverCtx.ts";
 import { cornerNudge } from "./cornerLine.ts";
+import { FIX } from "../core/fixes.ts";
 
 // extra braking grip planned while ATTACKING (late braking into the corner)
 const ATK_KB = 0.12;
 const ALONG_GAP = 2.7;       // m kept from a car alongside by an attack or a cover move
+const ATK_ROOM = 0.3;        // ?lineback: m more than that an attack aims beside the car
 // MEASURED (aifieldsuite Realish, 24 races): before start-contacts 765, contact 231 s, resets 14,
 // passes 118; 6 s / 0.8 m: 564, 258 s, 17, 219; 9 s / 1.3 m (kept): 492, 212 s, 9, 192 (off-road
 // +12 %)
@@ -155,6 +157,24 @@ export function battleStep(drv: Drv, car: AiCar, others: AiCar[]) {
       1 + HARDER * Math.min(1, (state.behindT || 0) / HARDER_T));
 }
 
+/**
+ * Where an attack aims, m off the track's middle: by the far edge on its side (latLim - 1 m);
+ * ?lineback: BESIDE the car attacked (ALONG_GAP + ATK_ROOM m from it), no wider than that edge.
+ * MEASURED _wide.mjs (the stock car oval, its line on the inside): a pass round the outside went
+ * to the wall, 10-11 m off the line.
+ * @param side the attack's side
+ * @param latLim the usual room each side of the middle, m
+ * @param lineOff the line's m off the middle here
+ * @param atkLat the car attacked, m off my path (unseen: undefined)
+ * @returns m off the middle
+ */
+function attackAim(side: number, latLim: number, lineOff: number, atkLat: number | undefined) {
+  const edge = side * (latLim - 1.0);
+  if (!FIX.lineback || atkLat == null) return edge;
+  const beside = lineOff + atkLat + side * (ALONG_GAP + ATK_ROOM);
+  return side > 0 ? Math.min(edge, beside) : Math.max(edge, beside);
+}
+
 /** RACECRAFT on the main line: attack, tow pass, giving room, cover; the target it sets. */
 export function racecraftStep(drv: Drv, car: AiCar, path: AiPath, nearIdx: number,
     idx: (pos: number) => number, speed: number, dt: number, lineOff: number, latLim: number,
@@ -173,7 +193,7 @@ export function racecraftStep(drv: Drv, car: AiCar, path: AiPath, nearIdx: numbe
   moves.coverStep(threat, nxt, nearIdx);
   if (state.atk) {
     conflict = true;
-    dodgeT = state.atk.side * (latLim - 1.0) - lineOff - latT;
+    dodgeT = attackAim(state.atk.side, latLim, lineOff, cars.atkLat) - lineOff - latT;
     prof = profileOf(path, spec, main, (drv.traits.kBrake ?? K_BRAKE) + ATK_KB);
   }
   else if (state.cover) {

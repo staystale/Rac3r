@@ -19,6 +19,20 @@ last handover, written on request.
   apex shifts only 409 (no gain), with the moves across 578 (WORSE). The last-moment dodge (R5)
   already does the stopped car better: a line chosen on arrival is wrong once the car is shoved,
   and a whole-corner move runs the line where it should not. Owner to say how to go on.
+- UNDER TEST (11-04 late): ?lineback - owner: "some ai seem to drive very wide around the outside
+  of the track? especially noticeable on stockcar track"; "no going 10m wide seems wild".
+  MEASURED (tools/scratch/_wide.mjs: a field on the stock car oval; share of the race off the
+  line, why): a lone car is > 2 m off 2 % of the time, a field 14-33 %. Two causes: (1) the gap
+  picker had nothing saying the racing line is quicker - round a pack it took the free line by
+  the outside wall, then kept it (its commit bonus) while any car was in reading distance; (2) an
+  attack round the outside aimed 1 m inside the far edge - 10-11 m off an inside line. Fix:
+  every line the picker tries pays LINE_COST 3 a m off the racing line (ai/gapPick.ts
+  placeCost), and an attack aims BESIDE the car attacked (ALONG_GAP + 0.3 m), no wider than
+  that edge (ai/driverLane.ts attackAim). 4 seeds: by the wall (> 8 m) 2.8 -> 1.9 % of the time;
+  2-4 m off goes up (racing side by side in an attack). Fields (4 tracks x 3 seeds): incidents
+  57 -> 42, contact 48 -> 49 s, passes 87 -> 100. Highway: weavecheck 0; pacesuite 130.7 km/h,
+  racer contact 186 -> 58, traffic 99 -> 51. TRIED, NOT kept: the gap picker going round only
+  cars I close on (> 1 m/s slower) - the highway's racer contact 186 -> 1196.
 - PASSED + DEFAULT 11-04 (owner: "pass both", with ?oneai / ?brakeread): ?hwshare (AI rework R8 stage 1, one AI; owner "ok") - the highway driver
   gets the circuit driver's reflexes: the foot that feathers wheelspin (ai/driverFoot.ts, now any
   driver) and the road read ahead by skill, 2.6 .. 3.8 s (was 3.2 for all; weaver.ts look).
