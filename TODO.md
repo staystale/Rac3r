@@ -23,7 +23,12 @@ last handover, written on request.
   gets the circuit driver's reflexes: the foot that feathers wheelspin (ai/driverFoot.ts, now any
   driver) and the road read ahead by skill, 2.6 .. 3.8 s (was 3.2 for all; weaver.ts look).
   pacesuite (9 races): mean 129.2 -> 131.2 km/h, contacts / off-road the same, 0 bad; weavecheck
-  45 scenarios: 0 hits, 0 spins either way. Next: stage 2, one steering (ask first).
+  45 scenarios: 0 hits, 0 spins either way. STAGE 2 (one steering law) TRIED 11-04, NOT kept -
+  no single setting works on both: the highway's law with a speed-blended aim (heading < 20 m/s,
+  course > 35) kept circuit laps as quick but highway races got 3x the racer contact (99 -> 305);
+  the course aim everywhere kept the highway as it was but circuit fields got 28-68 % more
+  incidents (Realish 113 -> 144, Real 103 -> 173). Patch kept: tools/scratch/_oneai-stage2.patch
+  + _oneai-steerLaw.ts. Owner to say (one law needs more work, or the steering stays per road).
 - AI ORDER (owner 11-04): R6 SKIPPED ("doesn't seem like an issue anymore"), R8 one AI
   next (staged plan proposed - stage 1 the shared reflexes; owner to say go), then R7. R4 part 2 (felt
   grip) not needed (measured); weak-driver OVERDRIVE declined - "only push up crashes", not unless
