@@ -70,7 +70,8 @@ R8 ONE AI (owner 11-04: "Highway and circuit ai should be the same ai") (L) - on
 every level: the highway's weaver (ai/weaver*.ts: its own road frame, line scoring, mirror,
 Stanley and speed) folded into the circuit driver (ai/driverDrive.ts), the highway a path like
 any other (the road's lanes as width, traffic as cars), so reaction (R1), the rejoin (R2),
-skill / risk (R3), felt grip (R4) and dodging (R5) work there too. Where in the order: owner.
+skill / risk (R3), felt grip (R4) and dodging (R5) work there too. Order: last (owner: "work in
+order").
 
 Total: L (seven phone rounds). Order as listed; R1 first because it pays for R2-R5.
 

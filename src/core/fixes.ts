@@ -8,7 +8,7 @@
 // muscletyres, namefix, bhbridges,
 // menustyle, testgarage, ai10, k12, resetin, belly, agtyre, ai20, aifast, aisafe passed 11-03;
 // drycover, rimsoft, bushmark, leafpop, aireact, skillband,
-// bhquiet, aiweave passed 11-04.)
+// bhquiet, aiweave, jokerflow passed 11-04.)
 import { envValue } from './debug.ts';
 
 /**
@@ -39,8 +39,4 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
-  // ?jokerflow=1: the AI's joker branch gets its own racing line (minimum curvature inside the
-  // road and the joker lane, ends tangent to the line) instead of the lane's centreline glued on
-  // with a kink at each end (ai/branchline.ts; owner 11-04: "flowing in / out naturally")
-  jokerflow: atLoad('jokerflow'),
 };

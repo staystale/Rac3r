@@ -48,13 +48,5 @@ export const TEST_LIST: TestEntry[] = [
   // namefix, bhbridges, menustyle, testgarage, ai10, k12 passed
   // 2026-11-03; resetin, belly, agtyre, ai20, aifast, aisafe passed 2026-11-03; specsheet removed;
   // drycover, rimsoft, bushmark, leafpop passed 2026-11-04; aireact (AI R1), skillband, bhquiet,
-  // aiweave (AI R2) passed 2026-11-04)
-  {
-    id: 'jokerflow',
-    added: '2026-11-04',
-    name: 'AI flow into and out of the joker on a racing line',
-    where: 'Test link + &jokerflow=1: Knobhill or Slidden Hill, a few AI',
-    try: 'Watch AI take the joker: the turn in, the lane, the rejoin.',
-    wrong: 'AI braking hard to turn in / out, clipping the lane edges, or missing the gate.',
-  },
+  // aiweave (AI R2), jokerflow passed 2026-11-04)
 ];

@@ -1,4 +1,4 @@
-// ai/branchline.ts - A RACING LINE THROUGH A BRANCH (?jokerflow; owner 11-04: "some cars still turn
+// ai/branchline.ts - A RACING LINE THROUGH A BRANCH (passed 11-04; owner: "some cars still turn
 // slow for jokers tho rather than flowing in / out naturally"). MEASURED (tools/scratch/
 // _jokerexit.mjs, Knobhill): the joker branch was the joker lane's CENTRELINE glued onto the
 // racing line - an R 19 m kink where it leaves the line (the AI braked 85 -> 32 km/h for it) and
