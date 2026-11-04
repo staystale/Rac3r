@@ -1004,6 +1004,22 @@ DRIVING (ask before starting; re-measure first, these are old):
 
 ## Tools that are wrong
 
+- TO FIX (owner 11-04: "add that to the todo to fix / look at"): the GitHub `checks` workflow
+  (.github/workflows/checks.yml) FAILS on every push to main (since ~10-19; `verify` is the
+  gate, so nothing is blocked - but it is meant to be the regression suite). What it does: saves
+  the proof hashes on the commit before (level data, simulation, pixels) and compares the pushed
+  commit to them, plus runs the browser checks (tools/runall.mjs). Run 41916952871 (11-04):
+  - simhash DIFFERENT on 8 levels and renderhash DIFFERENT on most levels: EXPECTED on a commit
+    that changes the AI / the look (it fails "on purpose"), so it is red on almost every push -
+    nobody reads it. Wants: a way to mark an intended change (e.g. a commit tag that re-bases),
+    or report-only for these.
+  - settingscheck: `?ai=9&diff=7&traffic=3` wants aiCount 5 but gets 9 - STALE test (10 AI are
+    allowed since K11); fix the expectation.
+  - barriercheck: a `building` barrier has 10 points on a lane (21.5 m from the centreline) -
+    find the level and whether the lane or the building is wrong.
+  - menucheck: at 844x390 the RESULTS tap times out (60 s) - real or stale; look.
+  - renderhash shards take 15-37 min each (no GPU: software WebGL).
+
 - FIXED 10-26 (owner: "do wear check only"): `tools/wearcheck.mjs` REWRITTEN to today's rules
   (it failed 14 on a correct game: old rules, a moved art table, test puddles the cover field
   ignored, ice found by a field the cover field no longer sets). 33 checks, all OK 3 runs in a
