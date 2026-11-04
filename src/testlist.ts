@@ -50,13 +50,5 @@ export const TEST_LIST: TestEntry[] = [
   // drycover, rimsoft, bushmark, leafpop passed 2026-11-04; aireact (AI R1), skillband, bhquiet,
   // aiweave (AI R2), jokerflow, aisliders (AI R3), hudlean,
   // aibands, puffroom, aigrip (AI R4 part 1), aidodge (AI R5),
-  // ailines passed 2026-11-04)
-  {
-    id: 'ailook',
-    added: '2026-11-04',
-    name: 'AI picks a corner line that misses fresh oil / glass',
-    where: 'Test link + &ailook=1: a big field, after a crash leaves oil / glass in a corner',
-    try: 'Watch the next laps through that corner.',
-    wrong: 'AI still all over the spill, running wide there, or odd lines with no spill.',
-  },
+  // ailines, ailook passed 2026-11-04)
 ];

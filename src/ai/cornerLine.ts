@@ -22,7 +22,6 @@ import { CAR_STATS } from '../carstats.ts';
 import type { Drv } from './driverCtx.ts';
 import type { AiCar, RacingLine } from './types.ts';
 import { WEAR_CELL, wearKey, wearMap } from '../world/wear.ts';
-import { FIX } from '../core/fixes.ts';
 
 // m of approach before a corner's first bend, and of exit after its last, that its line spans
 const ENTRY_M = 35, EXIT_M = 35;
@@ -35,7 +34,7 @@ const HABIT_TOP = 0.15, HABIT_WEAK = 0.75, DRAW_TOP = 0.08, DRAW_WEAK = 0.35;
 const CAR_LEAN = 0.35, POWER_MID = 0.35, POWER_SPAN = 0.2;
 // b is kept inside this
 const B_MAX = 1.2;
-// ?ailook: A LINE CLEAR OF FRESH OIL AND GLASS (owner 11-04: "the different way approach sounds
+// A LINE CLEAR OF FRESH OIL AND GLASS (passed 11-04; owner: "the different way approach sounds
 // like a good idea"). Steering round a patch like a cone put the field on the oil MORE in every
 // version tried (TODO 11-04); instead, on arriving at a corner a driver checks the line it chose
 // through it for oil / glass cells (its middle and its wheels) and, if it would cross some, takes
@@ -82,7 +81,7 @@ function windowsOf(line: RacingLine): Windows {
 }
 
 /**
- * ?ailook: whether a line through a corner, at a given b, crosses fresh oil or glass.
+ * Whether a line through a corner, at a given b, crosses fresh oil or glass.
  * @param line the racing line
  * @param windows its corner windows
  * @param from the line point to look from
@@ -111,7 +110,7 @@ function lineHitsHazard(line: RacingLine, windows: Windows, from: number, corner
 }
 
 /**
- * ?ailook: the b to take through a corner - the one chosen, or the nearest that misses fresh oil
+ * The b to take through a corner - the one chosen, or the nearest that misses fresh oil
  * and glass on it (if the driver sees it).
  * @param drv the driver context
  * @param windows the corner windows
@@ -177,8 +176,8 @@ export function cornerNudge(drv: Drv, car: AiCar, nearIdx: number) {
     const draw = (rnd() + rnd() - 1) * (DRAW_TOP + DRAW_WEAK * weak) * 1.7;
     state.clCorner = here;
     state.clB = Math.max(-B_MAX, Math.min(B_MAX, habit + draw));
-    // ?ailook: the nearest line that misses fresh oil / glass on it
-    if (FIX.ailook) state.clB = clearOfHazards(drv, windows, nearIdx, here, state.clB, weak);
+    // the nearest line that misses fresh oil / glass on it
+    state.clB = clearOfHazards(drv, windows, nearIdx, here, state.clB, weak);
   }
   const apexB = state.clB ?? 0, count = line.n, pts = line.pts;
   const nudgeAt = (pos: number) => {

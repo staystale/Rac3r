@@ -9,7 +9,7 @@
 // menustyle, testgarage, ai10, k12, resetin, belly, agtyre, ai20, aifast, aisafe passed 11-03;
 // drycover, rimsoft, bushmark, leafpop, aireact, skillband,
 // bhquiet, aiweave, jokerflow, aisliders, hudlean, aibands, puffroom, aigrip,
-// aidodge, ailines passed 11-04.)
+// aidodge, ailines, ailook passed 11-04.)
 import { envValue } from './debug.ts';
 
 /**
@@ -40,7 +40,4 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
-  // ?ailook=1: on arriving at a corner the AI checks its line for fresh oil / glass and takes the
-  // nearest earlier or later apex that misses it (ai/cornerLine.ts; owner 11-04)
-  ailook: atLoad('ailook'),
 };

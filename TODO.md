@@ -13,7 +13,7 @@ last handover, written on request.
   restart and reset can stay") - no car / level chip, no TUNE, no CLEAR, nor their keys (c, l,
   1-5, [ ]); the RESTART row takes the top-left on a phone (hud/layout.ts). uicheck with it: HUD
   reachable, no overlaps at 6 sizes (its car-chip tap test skipped under the switch).
-- UNDER TEST (11-04 late): ?ailook (owner: "the different way approach sounds like a good idea") -
+- DEFAULT 11-04 (owner: "test passed"): ailook (owner: "the different way approach sounds like a good idea") -
   on arriving at a corner a driver checks the line it chose through it for fresh oil / glass (its
   middle and wheels) and takes the nearest earlier / later apex (b +-0.3, +-0.6) that misses it;
   a weak driver may not see it (half the time at skill 0); once a corner, a few dozen map reads.
