@@ -50,30 +50,6 @@ export const TEST_LIST: TestEntry[] = [
   // drycover, rimsoft, bushmark, leafpop passed 2026-11-04; aireact (AI R1), skillband, bhquiet,
   // aiweave (AI R2), jokerflow, aisliders (AI R3), hudlean,
   // aibands, puffroom, aigrip (AI R4 part 1), aidodge (AI R5),
-  // ailines, ailook, dodgefar, markjump, halfcar, rejoinlook passed 2026-11-04)
-  {
-    id: 'hwshare',
-    added: '2026-11-04',
-    name: 'Highway AI: wheelspin feathered; reads the road ahead by skill',
-    where: 'Test link + &hwshare=1: the highway (endless), a race with traffic',
-    try: 'Race the pack through traffic; watch launches and late lane changes.',
-    wrong: 'Highway AI slower, spinning up, or hitting traffic more than before.',
-  },
-  {
-    id: 'oneai',
-    added: '2026-11-04',
-    name: 'One AI: the circuit driver races the highway too, gap spotting through traffic',
-    where: 'Test link + &hwshare=1&oneai=1: the highway race with traffic, and any circuit race',
-    try: 'Race the pack through highway traffic, then a circuit field; watch passing and dodging.',
-    wrong: 'AI queueing behind traffic, using the hard shoulder, braking instead of going round, '
-      + 'or circuits with fewer passes / more crashes than before.',
-  },
-  {
-    id: 'brakeread',
-    added: '2026-11-04',
-    name: 'AI read the braking of the car ahead (by skill) - no running into your back',
-    where: 'Test link + &brakeread=1 (with &hwshare=1&oneai=1): a circuit race, AI behind you',
-    try: 'Lead AI into corners and brake early; top difficulty should rarely touch you.',
-    wrong: 'AI still running into your back, or now queueing behind instead of going round.',
-  },
+  // ailines, ailook, dodgefar, markjump, halfcar, rejoinlook, hwshare, oneai (AI R8), brakeread
+  // passed 2026-11-04)
 ];

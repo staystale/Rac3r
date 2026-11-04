@@ -180,7 +180,7 @@ export function stepAIJoker(entry: AiEntry) {
   }
 }
 
-// m/s gained over the 3 s that says trying, not stuck (ai/weaver.ts TRYING_GAIN)
+// m/s gained over the 3 s that says trying, not stuck (ai/driveOut.ts TRYING_GAIN)
 const TRYING_GAIN = 0.08;
 
 /**

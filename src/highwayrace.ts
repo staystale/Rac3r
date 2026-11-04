@@ -4,13 +4,14 @@
 // shown. You get so far ahead the AI go off screen BEHIND -> countdown; when it ends YOU WIN";
 // traffic in every mode). (was hwrace.js until the phase 5 rename)
 //
-// The circuit AI (aidriver.js) races a precomputed line round a CLOSED lap; the treadmill's road is
-// rebuilt every ~300 m and never closes, so its driver reads the road through highway.ts's road
-// frame: the WEAVER (aidriver.js roadDriver; v1 raced in lanes - requirement: ignore lanes, go
-// fast, dodge and weave through like the player would).
+// ONE AI (11-04): the circuit driver (ai/circuit.ts) races the highway too - the treadmill's road
+// is rebuilt every ~300 m and never closes, so its line is made again for each stretch, down the
+// lanes' middle (ai/roadLine.ts), and it gap-spots through the traffic (ai/gapPick.ts) - ignore
+// lanes, go fast, dodge and weave through like the player would. (The highway weaver it
+// replaced was deleted.)
 // THE START: a 2-wide staggered grid in the two right-hand lanes behind the spawn; every car (you
-// too) is driven at the rolling pace behind red lights (main.ts atPace), GREEN at HW_GREEN s. THE
-// END (flow): EVERY AI ahead of you and the slowest of them OFF SCREEN -> "CATCH THEM n" for
+// too) holds its slot in the formation behind red lights (ai/formation.ts), GREEN at HW_GREEN s.
+// THE END (flow): EVERY AI ahead of you and the slowest of them OFF SCREEN -> "CATCH THEM n" for
 // HW_CATCH s (back on screen = cancelled), at 0 the race ends. Every AI behind you AND off screen
 // -> "PULLING AWAY n"; at 0 the race ends and you have won. Positions = how far up the road.
 import { roadFrame, roadPose, roadSpan } from './highway.ts';
@@ -82,8 +83,8 @@ export function hwPutBack(level: HighwayLevel, dist: number, cars: AiCar[]) {
   return roadPose(level, dist, centres[best]);
 }
 
-// (the RACER itself - the WEAVER - lives in aidriver.js since AI ROUND 2 stage 1: ONE driver,
-// createAIDriver, for circuits and the highway; (requirement: one engine is better and cheaper).
+// (the RACER itself is the one AI driver, createAIDriver (ai/circuit.ts), for circuits and the
+// highway; (requirement: one engine is better and cheaper).
 // This file keeps only the RACE: grid, put-back, the CATCH THEM flow.)
 
 // THE RACE: entries [{ car, player }]; visible(car) = on screen right now. flow.step(dt) after the

@@ -1,7 +1,7 @@
 // ai/driverDrive.ts: one tick of the circuit driver: place, joker, mistakes, lane, traffic,
 // racecraft, then steering and pedals. Takes the driver context.
 import { profileOf } from "./line.ts";
-import { driveOut } from "./weaver.ts";
+import { driveOut } from "./driveOut.ts";
 import { jokerStep } from "./driverJoker.ts";
 import { carsStep, obstacleAvoid } from "./driverTraffic.ts";
 import { steerSlideStep, pedalStep } from "./driverPedals.ts";

@@ -89,7 +89,6 @@ export type HurtEntry = Pick<AiEntry, 'car' | 'drv' | 'hurtWait' | 'hurtT'>;
 export interface GameStart extends FormKeeper {
   on: boolean; t: number; tGreen: number; green: boolean; rolling?: boolean;
   tGreen0?: number;   // the green as first set (a stage's later starters count from it)
-  drv?: AiDriver | null;   // the highway's player driver until the green
   prevD?: number | null;   // the pole car's distance last step (the rolling start's line)
 }
 

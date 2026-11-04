@@ -24,7 +24,7 @@ const EASE_PER = 0.4, EASE_MIN = 0.02, FOOT_RATE = 12;
 
 /**
  * The throttle after the foot has felt the driven wheels.
- * @param drv the driver (traits.skill; state.footK, the foot's share) - circuit or highway
+ * @param drv the driver (traits.skill; state.footK, the foot's share)
  * @param car the car (car.wheelSpin, m/s its driven wheels run ahead of the road)
  * @param speed m/s
  * @param throttle the throttle the driver wants

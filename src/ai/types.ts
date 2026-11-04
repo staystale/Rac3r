@@ -95,7 +95,7 @@ export interface RoadQ {
   dy: number;
 }
 
-// A highway level (highway.ts; highway/hwtypes.ts): highwayrace.ts, the weaver and traffic.ts
+// A highway level (highway.ts; highway/hwtypes.ts): highwayrace.ts, ai/roadLine.ts and traffic.ts
 // read its road.
 export type HighwayLevel = HwLevel;
 
@@ -121,7 +121,7 @@ export interface JokerCtx extends DriveCtx {
   self: AiCar;
 }
 
-// The drive-out state both drivers share (driveOut in weaver.ts).
+// The drive-out state (ai/driveOut.ts).
 export interface DriveOutState {
   t: number;
   revUntil?: number;
@@ -131,29 +131,6 @@ export interface DriveOutState {
   outN?: number;
   outAt?: number;
   giveUp?: boolean;
-}
-
-// What stands in a lateral line's way (the weaver's blockOn): the gap to it (0 = alongside),
-// its speed.
-export interface RoadBlock {
-  gap: number;
-  v: number;
-  side?: boolean;   // a car right beside us on that side: we cannot swerve through it
-  o: AiCar;
-}
-
-// The weaver's state (roadDriver).
-export interface WeaverState extends DriveOutState {
-  footK?: number;   // ?hwshare: the throttle share the driver's foot gives (ai/driverFoot.ts)
-  line: number | null;
-  tgt: number | null;
-  think: number;
-  ph: number;
-  base?: number | null;   // set with line on the first step
-  tv?: number;
-  free?: { off: number; score: number } | null;
-  why?: { raw: number; off: number; why: string; chosen: number; chosenRaw: number };
-  dbg?: Record<string, unknown>;   // read by the node tools only
 }
 
 // A point of a path: finishPath sets h, R, turn and mu.
@@ -274,14 +251,15 @@ export interface CarsAcc {
   dodgeT: number; followCap: number; conflict: boolean; lead: Lead | null;
   threat: Threat | null; side: number; alg: number[];
   urgent?: boolean;   // swerving round a car in the way needs the fast rate
-  seen?: { fwd: number; lat: number; v: number; across: number; along: number }[];   // (?oneai)
+  // the cars seen (gap spotting, ai/gapPick.ts)
+  seen?: { fwd: number; lat: number; v: number; across: number; along: number }[];
 }
 export interface CarsEnv {
   car: AiCar; path: Path<DrivePoint>; nearIdx: number; idx: (pos: number) => number;
   speed: number; prec: number; prof: SpeedProfile; lineOff: number;
   latT: number; startK: number; latLim: number; myLat: number; clear: number; gapF: number;
   along?: number;   // the car ahead's reach along my path, m (ai/dodge.ts)
-  dec?: number;     // ?brakeread: how fast the car ahead slows, m/s/s as I read it
+  dec?: number;     // how fast the car ahead slows, m/s/s as I read it
 }
 
 // The circuit driver's state (createAIDriver). Fields without a ? are set when it is made.
@@ -308,8 +286,8 @@ export interface CircuitState extends DriveOutState {
   thrUntil: number;
   // the corner it is on and its line there (ai/cornerLine.ts)
   clCorner?: number; clB?: number;
-  gapBase?: number | null;   // ?oneai: the line through the cars chosen last (ai/gapPick.ts)
-  seenV?: WeakMap<object, { v: number; t: number; dec: number }>;   // ?brakeread: speeds read
+  gapBase?: number | null;   // the line through the cars chosen last (ai/gapPick.ts)
+  seenV?: WeakMap<object, { v: number; t: number; dec: number }>;   // speeds read (ai/dodge.ts)
   footK?: number;   // the share of the throttle the driver's foot gives (ai/driverFoot.ts)
   atk: Attack | null;
   atkCorner: number;

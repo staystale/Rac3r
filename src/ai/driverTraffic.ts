@@ -5,9 +5,7 @@ import { GRAVITY } from "../cars.ts";
 import { OBST_CLEAR, carGrip, profileOf } from "./line.ts";
 import type { AiCar, CarsAcc, CarsEnv, DriveCtx } from "./types.ts";
 import type { Drv, AiPath } from "./driverCtx.ts";
-import { FIX } from "../core/fixes.ts";
-import { OBJECT_MORE, clearOf, lookAhead, matchSpeed, reachOf, readBraking, swerveCap }
-  from "./dodge.ts";
+import { OBJECT_MORE, clearOf, matchSpeed, reachOf, readBraking, swerveCap } from "./dodge.ts";
 import { blockOn, gapLine, seeCar } from "./gapPick.ts";
 import type { SeenCar } from "./gapPick.ts";
 
@@ -110,11 +108,11 @@ export function followAhead(drv: Drv, acc: CarsAcc, env: CarsEnv, fwd: number, o
   // wandering.)
   const slowBlock = vAlong < Math.min(0.7 * speed, speed - 4) || vAlong < 6;
   const wide = latLim + (slowBlock ? WIDE_SLOW : WIDE);
-  // ?oneai: round it on the ROAD if there is room there - past the edge only when there is none
+  // round it on the ROAD if there is room there - past the edge only when there is none
   // (MEASURED 11-04: on the highway every 90 km/h car was a "slow block" to a 200 km/h racer and
   // the racers went round on the verge with the lanes clear - off the road, wrecks)
   const both = [otherLat + clear, otherLat - clear];
-  const onRoad = FIX.oneai ? both.filter((cand) => Math.abs(lineOff + cand) <= latLim) : [];
+  const onRoad = both.filter((cand) => Math.abs(lineOff + cand) <= latLim);
   const cands = (onRoad.length ? onRoad : both.filter(
       (cand) => Math.abs(lineOff + cand) <= wide)).sort(
       (first, second) => Math.abs(first - myLat) - Math.abs(second - myLat));
@@ -159,8 +157,8 @@ function followCapOf(drv: Drv, env: CarsEnv, fwd: number, vAlong: number, closeI
     capF = Math.min(capF, capF * (1 - prec) + prec * Math.sqrt(
         leadSpeed * leadSpeed + 2 * brakeDecel * Math.max(0, fwd - gapF)));
   }
-  // ?brakeread: no way round - keep a speed I can still match it by while it brakes
-  if (FIX.brakeread && env.dec) {
+  // no way round - keep a speed I can still match it by while it brakes
+  if (env.dec) {
     const brakeDecel = 0.6 * carGrip(car.spec).brakeG * GRAVITY * (car.surface.mu || 1);
     capF = Math.min(capF, matchSpeed(vAlong, env.dec, brakeDecel, fwd - gapF));
   }
@@ -245,7 +243,7 @@ function sizedEnv(env: CarsEnv, car: AiCar, other: AiCar, pathH: number): CarsEn
 }
 
 
-// ?oneai: s of travel a driver reads the cars ahead in, skill 0 / skill 1 (the highway driver's;
+// s of travel a driver reads the cars ahead in, skill 0 / skill 1 (the highway driver's;
 // at 240 km/h against 90 km/h traffic 0.8 .. 2.1 s hit it in 17-19 of 45 weavecheck scenarios)
 const GAP_LOOK_WEAK = 2.6, GAP_LOOK_TOP = 3.8;
 // boxed in: the share of full braking planned (late: going round is tried first, braking only
@@ -270,8 +268,8 @@ export function carsStep(drv: Drv, car: AiCar, others: AiCar[], path: AiPath, ne
   };
   const cosH = Math.cos(car.heading), sinH = Math.sin(car.heading);
   // the s ahead it reads the cars in, by skill (was 1.1 for everyone; ai/dodge.ts)
-  // (?oneai: the gap spotter's reading, the highway driver's 2.6 .. 3.8 s - ai/gapPick.ts)
-  const look = FIX.oneai ? gapLook(traits.skill) : lookAhead(traits.skill);
+  // (the gap spotter's reading, the highway driver's 2.6 .. 3.8 s - ai/gapPick.ts)
+  const look = gapLook(traits.skill);
   const acc: CarsAcc = {
     dodgeT: 0, followCap: Infinity, conflict: false, lead: null, threat: null, side: 0, alg: []
   };
@@ -279,27 +277,25 @@ export function carsStep(drv: Drv, car: AiCar, others: AiCar[], path: AiPath, ne
   for (const other of others) {
     const relX = other.x - car.x, relY = other.y - car.y, fwd = relX * cosH + relY * sinH,
         lat = -relX * sinH + relY * cosH;
-    // (?oneai: cars to 60 m behind too - the gap picker's mirror)
-    if (fwd < (FIX.oneai ? -60 : -15) || fwd > 8 + speed * look || Math.abs(lat) > 8) continue;
+    // (cars to 60 m behind too - the gap picker's mirror)
+    if (fwd < -60 || fwd > 8 + speed * look || Math.abs(lat) > 8) continue;
     // its lateral place relative to MY path
     const closeIdx = closestPathIdx(drv, env, other, fwd);
     const point = path.pts[closeIdx], otherLat = (other.x - point.x) * -Math.sin(point.h) + (
         other.y - point.y) * Math.cos(point.h);
     const vAlong = other.vx * cosH + other.vy * sinH;
     const envO = sizedEnv(env, car, other, point.h);
-    if (FIX.brakeread) {
-      envO.dec = readBraking(state.seenV ??= new WeakMap(), other, vAlong, state.t, traits.skill);
-    }
+    envO.dec = readBraking(state.seenV ??= new WeakMap(), other, vAlong, state.t, traits.skill);
     // (not the car I am attacking: the attack is passing it - going round it as traffic undid the
     // pass, MEASURED circuit fields 118 -> 83 passes)
     const attacked = state.atk && other === state.atk.car;
-    if (FIX.oneai && !attacked) seen.push({ ...seeCar(other, fwd, otherLat, vAlong, point.h),
+    if (!attacked) seen.push({ ...seeCar(other, fwd, otherLat, vAlong, point.h),
       dec: envO.dec });
     noteLeadThreat(drv, acc, env, other, fwd, otherLat, vAlong);
     reactTo(drv, acc, [env, envO], { fwd, otherLat, vAlong, closeIdx, attacked: !!attacked });
   }
-  if (FIX.oneai) gapStep(drv, car, acc, seen, { myLat, latT, lineOff, latLim, speed, look });
-  if (FIX.oneai) acc.seen = seen;
+  gapStep(drv, car, acc, seen, { myLat, latT, lineOff, latLim, speed, look });
+  acc.seen = seen;
   return acc;
 }
 
@@ -333,7 +329,7 @@ function reactTo(drv: Drv, acc: CarsAcc, envs: [CarsEnv, CarsEnv], seenAs: { fwd
 }
 
 /**
- * ?oneai: GAP SPOTTING (ai/gapPick.ts) - when a car is in the way of my line, the best line through
+ * GAP SPOTTING (ai/gapPick.ts) - when a car is in the way of my line, the best line through
  * all the cars I see, not round the one I saw last.
  * @param drv the driver context
  * @param car my car
@@ -363,8 +359,8 @@ function gapStep(drv: Drv, car: AiCar, acc: CarsAcc, seen: SeenCar[], mine: { my
     const decel = BOXED_BRAKE * carGrip(car.spec).brakeG * GRAVITY * (car.surface.mu || 1);
     acc.followCap = Math.min(acc.followCap, Math.sqrt(Math.max(0, block.v) ** 2
       + 2 * decel * Math.max(0, block.gap - BOXED_GAP_M)));
-    // ?brakeread: and as it slows (ai/dodge.ts matchSpeed)
-    if (FIX.brakeread && block.dec) {
+    // and as it slows (ai/dodge.ts matchSpeed)
+    if (block.dec) {
       acc.followCap = Math.min(acc.followCap, matchSpeed(Math.max(0, block.v), block.dec, decel,
         block.gap - BOXED_GAP_M));
     }

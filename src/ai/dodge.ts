@@ -5,29 +5,18 @@
 // no better (4-14 hits). Three causes: a car was a POINT (kept ~2.1 m from its centre - a car
 // across the road is ~4 m long); it was seen 1.1 s ahead for everyone while its 2.5 m/s swerve
 // needed more (3.5 m at 30 m/s is ~40 m); and it never braked to make the swerve. Now a car has
-// its real size across my path, a driver sees LOOK_WEAK .. LOOK_TOP s ahead by skill (a better
-// one starts earlier, so it swerves smaller and smoother), and when the swerve cannot be made in
+// its real size across my path, a driver reads further ahead by skill (driverTraffic.ts
+// GAP_LOOK_*: 2.6 .. 3.8 s since the one AI, 11-04; was 0.8 .. 2.1) - a better one starts earlier,
+// so it swerves smaller and smoother -, and when the swerve cannot be made in
 // time at this speed it brakes until it can. All cheap: a little arithmetic per car near it.
 import type { AiCar } from './types.ts';
 
-// s of travel ahead a driver reads the cars in, skill 0 / skill 1 (was 1.1 for everyone);
-// 0.8 / 2.1 passed 11-04 (owner: "nudge up dodging? so drivers look and swerve slightly further
-// ahead but still a gradient with skill")
-export const LOOK_WEAK = 0.8, LOOK_TOP = 2.1;
 // s more of travel ahead a driver sees a loose object in (driverTraffic.ts obstacleStep)
 export const OBJECT_MORE = 0.3;
 // m kept between the two cars' sides going round
 const MARGIN = 0.6;
 // m/s sideways a driver swerves at round a car in the way (the dodge's rate, driverDrive.ts)
 export const SWERVE_RATE = 3;
-
-/**
- * The s ahead a driver reads the cars in.
- * @param skill 0..1
- * @returns s
- */
-export const lookAhead = (skill: number) => LOOK_WEAK + (LOOK_TOP - LOOK_WEAK)
-  * Math.max(0, Math.min(1, skill));
 
 /**
  * How far a car reaches across a path and along it, from its middle.
@@ -64,12 +53,12 @@ export function swerveCap(need: number, room: number, speed: number, vAlong: num
   return vAlong + SWERVE_RATE * Math.max(0.5, room) / need;
 }
 
-// ?brakeread: the share of the car ahead's braking a driver reads, skill 0 / skill 1 (a top driver
+// the share of the car ahead's braking a driver reads, skill 0 / skill 1 (a top driver
 // sees the brake lights at once; a weak one half of it), and the s a speed is read over
 const READ_WEAK = 0.5, READ_TOP = 1, READ_S = 0.1;
 
 /**
- * ?brakeread: how fast a car is slowing, as a driver reads it (its speed along my way, kept per
+ * how fast a car is slowing, as a driver reads it (its speed along my way, kept per
  * car and differenced over READ_S).
  * @param seenV the driver's speeds read
  * @param other the car
@@ -92,7 +81,7 @@ export function readBraking(seenV: WeakMap<object, { v: number; t: number; dec: 
 }
 
 /**
- * ?brakeread: the most I may go to still match a car ahead that is slowing, by the gap I have:
+ * the most I may go to still match a car ahead that is slowing, by the gap I have:
  * I brake at brakeDecel, it at dec - the closing ends where our speeds meet.
  * @param vAhead its m/s along my way
  * @param dec how fast it slows, m/s/s

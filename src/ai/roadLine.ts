@@ -1,4 +1,4 @@
-// ai/roadLine.ts - THE HIGHWAY AS A LINE (?oneai, the AI rework R8 stage 3, one AI; owner 11-04:
+// ai/roadLine.ts - THE HIGHWAY AS A LINE (the AI rework R8 stage 3, one AI, passed; owner 11-04:
 // "we just worked into circuit ai loads... try that on the highway... if there's issues like no
 // racing line etc then maybe put that as a middle line"; "it should all work on highway providing
 // the ai know which way to drive"). The highway road is built as you go - ~300 m at a time laid

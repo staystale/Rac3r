@@ -9,7 +9,6 @@ import { LEVEL } from "../world/state.ts";
 import { onTrack, querySubtrack } from "../world/tyrewall.ts";
 import { STAGE_GAP_S, GRID_STEP, gridColumn } from './grid.ts';
 import { formationInput, roadFormationInput } from '../ai/formation.ts';
-import { FIX } from '../core/fixes.ts';
 import { shared, game, hwLevel } from './state.ts';
 import type { GameCar, CutRun, FormKeeper } from './state.ts';
 import type { CarInput } from '../vehicle.ts';
@@ -31,9 +30,7 @@ export function armStart() {
   const active = shared.mode !== 'menu' && (shared.race.on || shared.aiCount > 0),
     isRolling = active && (!!LEVEL.rollingStart || !!LEVEL.endless) && !!LEVEL.subtrack;
   game.start = { on: active, t: 0, tGreen: isRolling ? Infinity : 4 * START_STEP,
-    tGreen0: isRolling ? undefined : 4 * START_STEP, rolling: isRolling, green: !active,
-    // the highway's player driver until the green (a circuit's formation keeps its own, formDrv)
-    drv: isRolling && LEVEL.endless ? createAIDriver(LEVEL, aiTraits(4, 0, 1)) : null };
+    tGreen0: isRolling ? undefined : 4 * START_STEP, rolling: isRolling, green: !active };
   // the HIGHWAY's rolling start has no line to cross: green HW_GREEN s in, everyone already rolling
   // in formation (highwayrace.js)
   if (isRolling && LEVEL.endless) game.start.tGreen = game.start.tGreen0 = HW_GREEN;
@@ -64,9 +61,8 @@ export function atPace(out: CarInput, car: GameCar) {
  */
 export function formationWant(car: GameCar, slot: number, keeper: FormKeeper) {
   if (!game.start.rolling) return null;
-  // (?oneai: the highway's too - its race driver no longer holds a lane before the green)
+  // (the highway's too - its race driver holds no lane before the green)
   if (LEVEL.endless) {
-    if (!FIX.oneai) return null;
     const level = hwLevel();
     return roadFormationInput(car, hwSlot(level, slot), game.poleCar || game.car, level, ROLL_PACE);
   }

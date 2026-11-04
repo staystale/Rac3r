@@ -1,11 +1,12 @@
-// ai/gapPick.ts - GAP SPOTTING (?oneai, the AI rework R8 stage 4, one AI; owner 11-04: "mostly
+// ai/gapPick.ts - GAP SPOTTING (the AI rework R8 stage 4, one AI, passed 11-04; owner: "mostly
 // drivers need to pick their path with dodging and gap spotting"; "make sure ai don't wait and
 // swim thru traffic correctly like they're racing, not slowing down or only using the hard
 // shoulder"). The circuit driver went round ONE car at a time - each car it saw overwrote the
 // side the last one chose, fine with a car or two on a circuit, wrong in a wall of traffic
 // (MEASURED: on the highway it hit the traffic in 29-30 of 45 weavecheck scenarios). This is the
-// highway driver's line scoring (ai/weaverLine.ts, every cost MEASURED there with weavecheck /
-// pacesuite) for every driver: lines across the room it has, each scored by the free road along it
+// old highway driver's line scoring (ai/weaverLine.ts, deleted; every cost MEASURED with
+// weavecheck / pacesuite) for every driver: lines across the room it has, each scored by the
+// free road along it
 // - the nearest car whose body (+ margin) is on it, as far as the driver reads ahead (by skill) -
 // less the swerve to it, with a bonus for the line already chosen; a line whose way across is
 // blocked halfway, or that a faster car behind is about to arrive on, is out; past the usual edge
@@ -15,7 +16,7 @@ import type { AiCar } from './types.ts';
 
 /** A car as the gap picker sees it, in my path's frame. */
 export interface SeenCar { fwd: number; lat: number; v: number; across: number; along: number;
-  dec?: number }   // dec: ?brakeread, how fast it slows (m/s/s)
+  dec?: number }   // dec: how fast it slows (m/s/s), as read (ai/dodge.ts readBraking)
 
 // lines tried across the room, the bonus for the line already chosen, the swerve cost (a m, + a m
 // per m/s), the verge's cost and the room's step to it (m), the m beside a car that is alongside,

@@ -17,14 +17,12 @@
 import { parkMiller } from "../core/random.ts";
 import { aiTraits } from "./traits.ts";
 import { racingLine } from "./line.ts";
-import { roadDriver } from "./weaver.ts";
 import { createAttackSteps, createRaceMoves } from "./racecraft.ts";
 import { createHandbrakeStep, createSlideStep } from "./driverSteps.ts";
 import { drive as driveTick, steerNow } from "./driverDrive.ts";
 import { withReaction } from "./reaction.ts";
 import type { Drv } from "./driverCtx.ts";
 import { roadLine } from "./roadLine.ts";
-import { FIX } from "../core/fixes.ts";
 import type { Level } from "../world/types.ts";
 import type {
   AiCar, CircuitState, DriveCtx, DriveInput, HighwayLevel, RacingLine,
@@ -34,17 +32,10 @@ import type {
 // drive(car, dt, ctx): ctx = { cars: [other car objects], lap: current lap (1-based), laps: race
 // length }. Other cars may carry _jokers (jokers taken) for the joker tactics.
 export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
-  // the ENDLESS highway has no closed lap to plan a line round: the same driver reads the road
-  // frame instead (roadDriver above) (cast: an endless Level is the highway's level, whose road
-  // fields ai/types.ts HighwayLevel describes)
-  if (level.endless && !FIX.oneai) {
-    return reacting(roadDriver(
-      level as unknown as HighwayLevel, traits,
-      parkMiller(((traits.seed || 4242) * 31 + 7) % 2147483647 || 1),
-    ), traits);
-  }
-  // (! : racingLine has just made the branches) ?oneai: the highway's line is its lanes' middle,
-  // made again as the road grows (ai/roadLine.ts), and it has no branches
+  // ONE AI (passed 11-04): the endless highway has no closed lap - its line is its lanes' middle,
+  // made again as the road grows (ai/roadLine.ts), and it has no branches (cast: an endless Level
+  // is the highway's level, whose road fields ai/types.ts HighwayLevel describes) (! : racingLine
+  // has just made the branches)
   const highway = level.endless ? level as unknown as HighwayLevel : null;
   const line = highway ? roadLine(highway) : racingLine(level), main = line;
   const branches = highway ? {} : level._branches!, count = line.n;
@@ -74,7 +65,7 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
     slideStep, jLaps,
   };
 
-  // ?oneai: on the highway the road grows - a new line for each new stretch, the car's place on
+  // on the highway the road grows - a new line for each new stretch, the car's place on
   // it found again (the two lines are the same road where they overlap: no jolt)
   const follow = () => {
     const now = highway && roadLine(highway);
@@ -105,7 +96,7 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
 export type AIDriver = ReturnType<typeof createAIDriver>;
 
 /**
- * ?oneai: hands a driver a new line (the highway's next stretch): its steps made for it, its
+ * Hands a driver a new line (the highway's next stretch): its steps made for it, its
  * place found again, what it was doing about a corner of the old one forgotten.
  * @param drv the driver context
  * @param line the new line

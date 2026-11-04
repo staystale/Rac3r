@@ -19,7 +19,7 @@ last handover, written on request.
   apex shifts only 409 (no gain), with the moves across 578 (WORSE). The last-moment dodge (R5)
   already does the stopped car better: a line chosen on arrival is wrong once the car is shoved,
   and a whole-corner move runs the line where it should not. Owner to say how to go on.
-- UNDER TEST (11-04 late): ?hwshare (AI rework R8 stage 1, one AI; owner "ok") - the highway driver
+- PASSED + DEFAULT 11-04 (owner: "pass both", with ?oneai / ?brakeread): ?hwshare (AI rework R8 stage 1, one AI; owner "ok") - the highway driver
   gets the circuit driver's reflexes: the foot that feathers wheelspin (ai/driverFoot.ts, now any
   driver) and the road read ahead by skill, 2.6 .. 3.8 s (was 3.2 for all; weaver.ts look).
   pacesuite (9 races): mean 129.2 -> 131.2 km/h, contacts / off-road the same, 0 bad; weavecheck
@@ -29,7 +29,7 @@ last handover, written on request.
   the course aim everywhere kept the highway as it was but circuit fields got 28-68 % more
   incidents (Realish 113 -> 144, Real 103 -> 173). Patch kept: tools/scratch/_oneai-stage2.patch
   + _oneai-steerLaw.ts. Owner to say (one law needs more work, or the steering stays per road).
-- UNDER TEST (11-04 late): ?oneai (AI rework R8 stages 2-4, one AI; with ?hwshare) - the circuit
+- PASSED + DEFAULT 11-04 (owner: "ok pass both"; formation starts "pass"): ?oneai (AI rework R8 stages 2-4, one AI; with ?hwshare). DONE ON THE FLIP: the weaver (ai/weaver*.ts, 790 lines) and game.start.drv deleted; driveOut moved to ai/driveOut.ts; the old car look (dodge.ts lookAhead 0.8 .. 2.1 s) replaced by the gap look (2.6 .. 3.8 s); switches hwshare / oneai / brakeread gone - the circuit
   driver drives the highway: the circuit's steering law (ai/steerLaw.ts), a line down the middle
   of the lanes made per road piece and smoothed (ai/roadLine.ts), and GAP SPOTTING for every
   driver (ai/gapPick.ts: lines across the room scored by free road ahead, read 2.6 .. 3.8 s by
@@ -51,7 +51,7 @@ last handover, written on request.
   same throttle. Now the field keeps station on the POLE's own speed (the pole aims at the pace):
   closest pair 0.71 -> 3.3-3.5 m (old game 2.3-3.1), place slip <= 0.2 m; circuit rolling starts
   (_rollstart.mjs naffcar / stock-car) unchanged, closest 4.06 / 3.66 m (was 3.89 / 3.68).
-- UNDER TEST (11-04 late, with ?hwshare&oneai): ?brakeread - owner: AI "crash into the back of me
+- PASSED + DEFAULT 11-04 (owner: "ok pass both"): ?brakeread - owner: AI "crash into the back of me
   coming into a corner a little too often", "don't seem to be great at avoiding even on highest
   difficulty can we ramp that more", "ai should dodge here n over take". CAUSE (tools/scratch/
   _reartest.mjs: a careful lead - the bench driver, braking early as a careful player does - with 3
@@ -78,7 +78,8 @@ last handover, written on request.
   122 -> 145 (noisy; rejoins are rare there). Highway with both: weavecheck 0 hits d2/d4;
   pacesuite 129.8 km/h, 0 bad, 0 off-road, rr 347 -> 186, rt 393 -> 99.
 - AI ORDER (owner 11-04): R6 SKIPPED ("doesn't seem like an issue anymore"), R8 one AI
-  next (staged plan proposed - stage 1 the shared reflexes; owner to say go), then R7. R4 part 2 (felt
+  DONE 11-04 (passed, default); NEXT R7 (a menu race on a random track, a chance of the highway) -
+  ask before building. R4 part 2 (felt
   grip) not needed (measured); weak-driver OVERDRIVE declined - "only push up crashes", not unless
   the owner says. Always get permission before building. DEFAULT 11-04 (owner: "mark jump pass for now unless I see it
   again" - WATCH for it): markjump (owner: "a rim mark appeared after I reset my car / on soft

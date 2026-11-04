@@ -40,15 +40,4 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
-  // ?hwshare=1: the AI rework R8 stage 1 (one AI) - the highway driver gets the circuit driver's
-  // reflexes: the foot that feathers wheelspin, and the road read ahead by skill (2.6 .. 3.8 s, was
-  // 3.2 for all) (ai/weaver*.ts; owner 11-04)
-  hwshare: atLoad('hwshare'),
-  // ?oneai=1: the AI rework R8 stage 2 - the highway driver steers by the ONE law, the circuit
-  // driver's (ai/steerLaw.ts; owner 11-04: "why can't we have the circuit steering on the highway")
-  oneai: atLoad('oneai'),
-  // ?brakeread=1: a driver reads the car ahead BRAKING (how fast it slows), by skill, and keeps a
-  // speed it can still match it by - when there is no way round it (ai/dodge.ts matchSpeed;
-  // owner 11-04: AI "crash into the back of me coming into a corner a little too often")
-  brakeread: atLoad('brakeread'),
 };

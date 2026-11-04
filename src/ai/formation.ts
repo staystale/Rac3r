@@ -9,7 +9,6 @@ import { querySubtrack } from '../world/tyrewall.ts';
 import type { Subtrack } from '../world/types.ts';
 import { roadFrame, roadPose } from '../highway.ts';
 import { steerCap, steerDemand } from './steerLaw.ts';
-import { FIX } from '../core/fixes.ts';
 import type { AiCar, DriveInput, HighwayLevel } from './types.ts';
 
 // the speed to close on the slot: this many m/s per m of gap, at most FORM_SPREAD m/s either side
@@ -53,7 +52,7 @@ export function formationInput(car: AiCar, driver: ColumnDriver, place: Formatio
 
 /**
  * The speed a car keeps station at: the pace for the pole, the POLE'S OWN SPEED for the rest
- * (?oneai; owner 11-04: the highway's formation was out of step). MEASURED (_rollhw.mjs): every
+ * (owner 11-04: the highway's formation was out of step). MEASURED (_rollhw.mjs): every
  * car aimed at the pace from a standstill, so a driver with more power (traits.power) launched
  * harder at the same throttle and ran 4.5 m into the next slot before the gap closing caught it.
  * @param car the car
@@ -62,7 +61,7 @@ export function formationInput(car: AiCar, driver: ColumnDriver, place: Formatio
  * @returns m/s
  */
 function stationPace(car: AiCar, pole: AiCar, paceMps: number) {
-  if (!FIX.oneai || pole === car) return paceMps;
+  if (pole === car) return paceMps;
   return Math.min(paceMps, Math.hypot(pole.vx, pole.vy));
 }
 
@@ -82,7 +81,7 @@ function slotPedals(car: AiCar, gapM: number, paceMps: number) {
 }
 
 /**
- * The HIGHWAY's formation (?oneai; owner 11-04: "rolling starts seem not to hold formation on
+ * The HIGHWAY's formation (owner 11-04: "rolling starts seem not to hold formation on
  * highways"): the same as a circuit's - its grid lane, at the pace, closing on its slot behind the
  * pole car - read along the road (it is built as you go: no lap to measure along), steered by the
  * one steering law (ai/steerLaw.ts). (Was: each racer's own race driver capped at the pace - the

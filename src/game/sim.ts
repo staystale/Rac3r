@@ -14,7 +14,7 @@ import { barrierClamp, solidClamp } from "../world/barriers.ts";
 import { takeThrownPlanks } from "../world/marshalbox.ts";
 import { throwParts, stepParts } from "../world/debris.ts";
 import { findNearestSubtrackPoint } from "../world/tyrewall.ts";
-import { resetCar, startHeld, atPace, stepOrder, formationWant } from './order.ts';
+import { resetCar, startHeld, stepOrder, formationWant } from './order.ts';
 import { doReset, onScreen } from './session.ts';
 import { shared, game } from './state.ts';
 import { stepAIInjury } from './ai.ts';
@@ -136,12 +136,8 @@ export function readFrameInput(wallDt: number): CarInput {
     && formationWant(game.car, shared.gridSlot || 0, game.start);
   if (formed) inp = { ...inp, ...formed, reverse: 0, shiftUp: false, shiftDown: false };
   else if (shared.mode !== 'menu' && startHeld()) {
-    // the highway's rolling start (the formation drives a circuit's), else held on the grid
-    inp = game.start.rolling
-      ? { ...atPace(game.start.drv!.drive(game.car, PHYSICS_STEP_SECONDS,
-        { cars: [...game.ai.map((entry) => entry.car), ...game.traffic.cars], hold: true }),
-          game.car), shiftUp: false, shiftDown: false }
-                             : { ...inp, throttle: 0, brake: 1, handbrake: 0, reverse: 0 };
+    // held on the grid (a rolling start's formation drives the car, above)
+    inp = { ...inp, throttle: 0, brake: 1, handbrake: 0, reverse: 0 };
   }
   // ?autopilot=1: the AI drives the player car; the phone judder test (drops) needs no fingers
   if (shared.settings.autopilot && shared.mode !== 'menu' && !startHeld() && shared.autoDrv)
