@@ -1,4 +1,4 @@
-// render/leafpop.ts - LEAVES OUT OF A BUSH (?leafpop; owner 11-03: "bushes should pop in a little
+// render/leafpop.ts - LEAVES OUT OF A BUSH (owner 11-03: "bushes should pop in a little
 // burst of green leaf like pixels that can be above the car and fall below"; "it should be the
 // body of the car not the wheel hitting a bush"). A car's BODY pushing into a standing bush (its
 // front corners, nose and flanks in bush ground) throws a burst of square leaf pixels at that spot

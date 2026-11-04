@@ -5,9 +5,9 @@ the git history (this file was swept on 2026-10-19: every finished entry deleted
 decisions and the measured lessons live in `NOTES.md`). `docs/handover-2026-11-03.md` is the
 last handover, written on request.
 
-## Where we are (2026-11-03, end of session)
+## Where we are (2026-11-04)
 
-- NOTHING UNDER TEST: the plain link is the whole approved game; src/testlist.ts is empty (11-03 late).
+- NOTHING UNDER TEST: the plain link is the whole approved game; src/testlist.ts is empty (11-04).
 - DEFAULT 11-03 (owner: pass; every switch and old path deleted, each proved against its tested
   switch - simhash SAME, menucheck, phone shots): REAL CARS (every car on its real counterpart,
   parody names, best-launch 0-100 in the garage); smokelinger, aidust, puffpool (smoke / dust no
@@ -33,14 +33,14 @@ last handover, written on request.
   (canvases ~90 MB + JS 35 MB, flat). Owner waived simhash for this round; plain link checked
   with 20 AI, no page errors.
 - THE AI REWORK design: docs/specs/ai-rework.md (rounds R0-R7; R0 done above) - owner to OK.
-- UNDER TEST (11-03 late, owner's reports): ?drycover - oil / glass / radiator drips never DRAWN
+- DEFAULT 11-04 (owner: "Pass"; switches and old paths deleted): drycover - oil / glass / radiator drips never DRAWN
   on a dry track (render/glfield.ts draw skipped the whole field with no weather cover; the
   cells were there and slippery; leaks themselves fine: _leakwatch 4 radiators / 21 cars a min,
-  resets mend them - owner: keep). ?rimsoft - a rim or hub (no tyre) laid tyre marks and
+  resets mend them - owner: keep). rimsoft - a rim or hub (no tyre) laid tyre marks and
   ordinary wear on soft ground: now no mark, and it DIGS (owner: "degrade soft surfaces faster")
   3 passes a cell - _rimwear: 12 of 12 cells worn a grade vs tyres 5 of 14 (was 1 of 11).
-  ?bushmark - the bush surface's long-grass mark stamped the marks layer OVER standing bushes
-  (_bushshot: 676 -> 536 stamps). ?leafpop - a car BODY ploughing into a bush (owner: the
+  bushmark - the bush surface's long-grass mark stamped the marks layer OVER standing bushes
+  (_bushshot: 676 -> 536 stamps). leafpop - a car BODY ploughing into a bush (owner: the
   body, not the wheels) throws leaf pixels: over the cars while high, then under (render only).
 - NEXT (owner order 11-03; 11-03 late: "let's work on AI only"): 1 the AI REWORK (design first,
   agreed before building; GOAL: 20 cars in a race without performance issues, PHONE first, laptop

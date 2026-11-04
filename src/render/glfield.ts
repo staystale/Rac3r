@@ -11,7 +11,6 @@
 // water, packed snow), whose own levels are tried before the weather's; a bare
 // square of mud (5) or thick mud (6) is ice where the frost reaches (coverfield.ts FROST).
 import { LEVEL } from "../world/state.ts";
-import { FIX } from "../core/fixes.ts";
 import {
   wearMap, wearEpoch, wearKey, WEAR_CELL, groundSurfaceAt, layersAt,
 } from "../world/wear.ts";
@@ -245,7 +244,7 @@ interface FieldGrid {
   everywhere: boolean;       // the level's ground is a level area: every square is tested
   anyArea: boolean;          // the level has a level area anywhere (then the field is drawn always)
   frosty: boolean;           // mud squares carry their mud code (a live grid; the empty one not)
-  owned: boolean;            // ?drycover: a tyre-made cover (oil, glass, leaked water) masked in
+  owned: boolean;            // a tyre-made cover (oil, glass, leaked water) masked in
 }
 
 // the mask codes of bare mud and thick mud (after the level areas' 1..4)
@@ -601,10 +600,10 @@ export function createGlField(webgl: WebGL2RenderingContext) {
      */
     draw(size: { width: number; height: number }, camera: PaintCamera) {
       const frozen = grid.frosty && FROST.mud + FROST.thickMud > 0;
-      // ?drycover: the tyre-made covers are drawn here too - oil, glass, a radiator's water - so
+      // the tyre-made covers are drawn here too - oil, glass, a radiator's water - so
       // with one masked in, a dry day draws the field (MEASURED 11-03: skipped, every leak and
       // spill on a dry track was there, slippery, and never drawn)
-      if (!levelsShow(FIELD) && !grid.anyArea && !frozen && !(FIX.drycover && grid.owned)) return;
+      if (!levelsShow(FIELD) && !grid.anyArea && !frozen && !grid.owned) return;
       webgl.useProgram(program);
       webgl.bindVertexArray(vao);
       webgl.activeTexture(webgl.TEXTURE2);

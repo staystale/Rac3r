@@ -12,7 +12,6 @@ import { passGlassCell } from "./debris.ts";
 import { notePass } from "./pass.ts";
 import { WEATHER } from "./weather.ts";
 import { carWheels, CORNER_OF_WHEEL, metalCorner } from "./wheels.ts";
-import { FIX } from "../core/fixes.ts";
 import { staticCoverHere } from "./coverlookup.ts";
 import { fieldLayers } from "./coverfield.ts";
 import { puddleClearBy, setPassTyre } from "./puddles.ts";
@@ -478,7 +477,7 @@ function recordWearPoint(x: number, y: number, simTime: number, tyreT = 0,
   let intoBush = false;
   if (simTime - cell.lastSeenTime > 0.35) {
     intoBush = cell.base === 'bush';
-    if (metal) { cell.lastSeenTime = simTime; return intoBush; }   // ?rimsoft: a bush only
+    if (metal) { cell.lastSeenTime = simTime; return intoBush; }   // metal: a bush only
     passCell(cell, tyreT);
     // a sliding (crashing, spinning, drifting) wheel tears the ground: its pass
     // counts twice
@@ -524,7 +523,7 @@ export function stepWear(car: CarBody, dt: number): void {
     notePass(car, TYRE_OF_WHEEL[i], dx, dy);
     const slip = i < 2 ? telemetry.slipSpeedF : telemetry.slipSpeedR;
     const sliding = slip > SLIDE_WEAR_MIN;
-    const metal = FIX.rimsoft && metalCorner(car, CORNER_OF_WHEEL[i]);
+    const metal = metalCorner(car, CORNER_OF_WHEEL[i]);
     for (let step = 0; step <= steps; step++) {
       const frac = step / steps;
       if (recordWearPoint(prevWheel.x + dx * frac, prevWheel.y + dy * frac, wearClock,

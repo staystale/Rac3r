@@ -6,7 +6,8 @@
 // heatease, flatgrip, towplus passed 11-02;
 // aicool, smokeearly, airfx, smokelinger, aidust, realcars, jokerhint, puffpool, pitsolid,
 // muscletyres, namefix, bhbridges,
-// menustyle, testgarage, ai10, k12, resetin, belly, agtyre, ai20, aifast, aisafe passed 11-03.)
+// menustyle, testgarage, ai10, k12, resetin, belly, agtyre, ai20, aifast, aisafe passed 11-03;
+// drycover, rimsoft, bushmark, leafpop passed 11-04.)
 import { envValue } from './debug.ts';
 
 /**
@@ -37,17 +38,4 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
-  // ?drycover=1: on a dry track the cover field still draws the tyre-made covers it holds - oil
-  // (spills, a cracked sump), crash glass, a radiator's water (render/glfield.ts); they were
-  // there and slippery but never drawn unless the weather had laid something
-  drycover: atLoad('drycover'),
-  // ?rimsoft=1: a rim or a hub (no tyre) wears and marks no ground - no rut, rubber or packing
-  // on soft ground (world/wear.ts, marks.ts); hard ground keeps its score and sparks
-  rimsoft: atLoad('rimsoft'),
-  // ?bushmark=1: a wheel in a standing bush lays no tyre mark (the marks layer is drawn over the
-  // bushes); flattened to long grass it marks as that (marks.ts)
-  bushmark: atLoad('bushmark'),
-  // ?leafpop=1: a wheel pushing into a bush throws a little burst of leaf pixels in its greens -
-  // up over the cars, then down under them to settle and fade (render/leafpop.ts; owner 11-03)
-  leafpop: atLoad('leafpop'),
 };

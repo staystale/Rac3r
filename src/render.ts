@@ -38,7 +38,6 @@ import { createNight } from "./render/light.ts";
 import { updateLampLight } from "./world/lamps.ts";
 import { WEATHER } from "./world/weather.ts";
 import { noteBodies } from "./render/leafpop.ts";
-import { FIX } from "./core/fixes.ts";
 
 // PPM is derived from the SHORT side of the viewport, so the car is a consistent fraction of the
 // screen everywhere (a flat PPM of 16 put a 4 m car at 64 px on a 1280 px desktop, too small
@@ -260,8 +259,8 @@ function drawEffects(ctx: RenderCtx, game: RenderGame, wallDt: number) {
   ctx.addPuffs(game.cones.drainHits());
   ctx.addSpray(game.car, game.marks, wallDt);
   ctx.addSmoke(game.car, game.marks, wallDt);
-  // ?leafpop: a car's body ploughing into a bush throws leaves (render/leafpop.ts)
-  if (FIX.leafpop) noteBodies([game.car, ...(game.ai || []).map((rival) => rival.car)]);
+  // a car's body ploughing into a bush throws leaves (render/leafpop.ts)
+  noteBodies([game.car, ...(game.ai || []).map((rival) => rival.car)]);
   // the AI cars near you too (owner 11-03: AI cars threw no smoke or dust)
   for (const rival of game.ai || []) {
     const car = rival.car;

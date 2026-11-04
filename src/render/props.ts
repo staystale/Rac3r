@@ -8,7 +8,6 @@ import { drawPropsFence, drawPropsBarriers } from './props/fence.ts';
 import { drawStreetLights } from './props/lamps.ts';
 import { drawBushTufts } from './bushtufts.ts';
 import { drawLeaves } from './leafpop.ts';
-import { FIX } from '../core/fixes.ts';
 import { drawBridge, drawFootbridge } from './props/bridges.ts';
 import {
   drawGarageRow,
@@ -110,8 +109,8 @@ function drawPropList(propCtx: PropCtx, overhead = false) {
   const ppm = PPMz();
   // bushes' leaves poke up over the cars (under the lamp heads and the tree canopies)
   if (overhead) drawBushTufts(propCtx, ppm);
-  // ?leafpop: the leaves a car knocked out of a bush - high ones over the cars, falling ones under
-  if (FIX.leafpop) drawLeaves(propCtx, ppm, overhead);
+  // the leaves a car knocked out of a bush - high ones over the cars, falling ones under
+  drawLeaves(propCtx, ppm, overhead);
   // the street lights: standing heads hang above the cars, fallen posts lie under them
   drawStreetLights(propCtx, ppm, overhead);
   if (!PROPS || !PROPS.length) return;

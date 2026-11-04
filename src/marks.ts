@@ -17,7 +17,6 @@ import { MARK_WET, SURFACES } from "./world/surfaces.ts";
 import { WEATHER } from "./world/weather.ts";
 // this file's wheel order is the damage corners' (front -y, front +y, rear -y, rear +y)
 import { CORNER_OF_WHEEL, wheelGone, metalCorner } from "./world/wheels.ts";
-import { FIX } from "./core/fixes.ts";
 import { MARK_GOUGE } from "./world/metalscrape.ts";
 import { addTrailPoint, clearWetTrails } from "./wettrail.ts";
 import type { Mark, Spray, Surface, WheelGround } from './world/types.ts';
@@ -508,8 +507,8 @@ function markOf(surface: MarkSurface) {
 }
 
 /**
- * A wheel that lays no mark here (it still throws its spray): ?rimsoft a rim or a hub off hard
- * ground (no rubber, no rut); ?bushmark a wheel in a standing bush - the bush is drawn under this
+ * A wheel that lays no mark here (it still throws its spray): a rim or a hub off hard
+ * ground (no rubber, no rut); a wheel in a standing bush - the bush is drawn under this
  * layer, so its marks lay over the leaves (owner 11-03); flattened, it is long grass and marks.
  * @param car the car
  * @param corner the damage corner
@@ -517,7 +516,7 @@ function markOf(surface: MarkSurface) {
  * @returns true when it marks nothing
  */
 function marksNothing(car: MarkCar, corner: number, ground: MarkSurface): boolean {
-  return (FIX.rimsoft && metalCorner(car, corner)) || (FIX.bushmark && ground.id === 'bush');
+  return metalCorner(car, corner) || ground.id === 'bush';
 }
 
 function listWheels(car: MarkCar): MarkWheel[] {
