@@ -13,6 +13,13 @@ last handover, written on request.
   restart and reset can stay") - no car / level chip, no TUNE, no CLEAR, nor their keys (c, l,
   1-5, [ ]); the RESTART row takes the top-left on a phone (hud/layout.ts). uicheck with it: HUD
   reachable, no overlaps at 6 sizes (its car-chip tap test skipped under the switch).
+- UNDER TEST (11-04 late): ?markjump (owner: "a rim mark appeared after I reset my car / on soft
+  surfaces like it shouldn't", a phone shot) - MEASURED (_resetmark.mjs, _aireset.mjs): the player's
+  RESET draws nothing after (rims cleared, 0 stamps, 0 cells worn, also with two tyres on the rim);
+  an AI RESET (game/ai.ts aiReset) stroked each wheel's mark from its old spot to its new one -
+  36 m across the grass (39 stamps in 0.3 s after, 22 with the guard). marks.ts stampWheel: a
+  wheel that moves > 3 m in a step starts a new mark (the wear's own guard, wear.ts). The brown
+  square under a car that ran off on a rim is its DIG (rims wear soft ground 3x, passed 11-03).
 - DEFAULT 11-04 (owner: "ok pass"): dodgefar (owner: "nudge up dodging? so drivers look and swerve slightly
   further ahead but still a gradient with skill"; "make them avoid lamppost too in case they end up
   off track") - cars read 0.8 (skill 0) .. 2.1 s (skill 1) ahead (was 0.6 .. 1.6), loose objects

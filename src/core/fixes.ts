@@ -40,4 +40,7 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
+  // ?markjump=1: a wheel that jumps (a reset) starts a new mark instead of one stroked across the
+  // ground from where it was (marks.ts; owner 11-04)
+  markjump: atLoad('markjump'),
 };
