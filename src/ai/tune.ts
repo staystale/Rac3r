@@ -1,5 +1,5 @@
-// ai/tune.ts - THE AI DRIVERS SLIDERS (?aisliders, the AI rework R3 + K15; owner 11-04, the
-// mockup: "leave it as is and let me test"). Six field-wide dials, each 0..1, that a difficulty
+// ai/tune.ts - THE AI DRIVERS SLIDERS (the AI rework R3 + K15, passed 11-04; owner: "leave
+// em for now and discuss how it works with me"). Six field-wide dials, each 0..1, that a difficulty
 // presets: SKILL (the field's centre), SPREAD (how different its drivers are: 0.5 = the spread
 // the game always had), RISK, AGGRESSION, DEFENCE (each the field's centre, 0.5 = as before) and
 // MISTAKES (0.5 = x1). A dial moves the whole field; each driver keeps its own place round it

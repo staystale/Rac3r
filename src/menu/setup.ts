@@ -16,7 +16,6 @@ import type { SetupState, SetupUi } from './menutypes.ts';
 import { MENU_COL } from './palette.ts';
 import { MAX_AI } from '../core/settings.ts';
 import { ROSTER } from '../cars.ts';
-import { FIX } from '../core/fixes.ts';
 import { showAiDrivers, storedTune, storeTune, tuneLine } from './aidrivers.ts';
 
 // WEATHER: follow the SEASON (its chances; it can change in the race) or a fixed sky
@@ -336,7 +335,7 @@ function addLaunchButtons(menu: Menu, panel: HTMLElement, level: Level, state: S
     hideMenu(menu);
     menu.api.launch(level.id, profile.active,
       { rx: state.rxRace, ai: state.opponents, diff: state.diff, road: state.road,
-        aiCars: state.aiCars, ...(FIX.aisliders ? { aiTune: state.aiTune || null } : {}),
+        aiCars: state.aiCars, aiTune: state.aiTune || null,
         ...(state.weather ? { weather: state.weather } : {}),
         ...(state.time !== undefined ? { time: state.time } : {}),
         ...(level.endless ? { traffic: state.traffic, litter: state.litter } : {}),
@@ -390,7 +389,7 @@ function setupChoices(state: SetupState): Partial<SetupState> {
 }
 
 /**
- * ?aisliders: the AI DRIVERS > button (menu/aidrivers.ts) and its line, under the AI rows; the
+ * The AI DRIVERS > button (menu/aidrivers.ts) and its line, under the AI rows; the
  * panel comes back here with every choice kept, its difficulty and dials picked (remembered).
  * @param menu the menu context
  * @param panel the setup pane
@@ -443,7 +442,7 @@ export function showSetup(menu: Menu, level: Level, kept: Partial<SetupState> = 
   addTrafficSliders(menu, panel, level, state);
   addOpponentCountRows(menu, panel, state);
   addDifficultyRows(menu, panel, state);
-  if (FIX.aisliders) addAiDriversRow(menu, panel, level, state);
+  addAiDriversRow(menu, panel, level, state);
   state.paint = () => paintSetupOpponents(state);
   state.paint();
   addRxRaceRow(menu, panel, level, state);

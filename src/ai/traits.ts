@@ -1,7 +1,7 @@
 // ai/traits.js — the 5 difficulties, the personalities and aiTraits (from aidriver.js).
 import type { Difficulty, Traits } from "./types.ts";
 import { K_BRAKE } from "./line.ts";
-import { SKILL_CENTRE } from "./tune.ts";
+import { SKILL_CENTRE, tuneOf } from "./tune.ts";
 import type { AiTune } from "./tune.ts";
 
 // ---- the 5 difficulties (PLAN.md §4): the CENTRE of the field's spread. pace = fraction of the
@@ -44,38 +44,22 @@ const PERSONAS = [
 // Real; each driver keeps its persona's offset and its own spread round it, so the fields
 // overlap. Realish (the default) keeps 0.5. (SKILL_CENTRE lives in ai/tune.ts.)
 
+/**
+ * One AI's traits: its difficulty and its place in the field round the field's dials (R3, passed
+ * 11-04; the AI DRIVERS panel, or the difficulty's preset).
+ * @param diffIndex the difficulty, 0..4
+ * @param i the AI's place in the field
+ * @param fieldSize the field's size (unused: the deal is by place)
+ * @param seed the race's seed
+ * @param tune the dials (the difficulty's preset by default)
+ * @returns the traits
+ */
 export function aiTraits(diffIndex: number, i: number, fieldSize: number, seed = 1,
-  tune?: AiTune): Traits {
-  if (tune) return tunedTraits(diffIndex, i, seed, tune);
-  const difficulty = DIFFICULTIES[Math.max(0, Math.min(4, diffIndex | 0))];
-  let rngState = (seed * 48271 + i * 7919 + 13) % 2147483647 || 1;
-  const rnd = () => {
-    rngState = (rngState * 16807) % 2147483647;
-    return rngState / 2147483647;
-  };
-  const persona = PERSONAS[(i + Math.floor(seed)) % PERSONAS.length];
-  const centre = SKILL_CENTRE[Math.max(0, Math.min(4, diffIndex | 0))];
-  const skill = Math.max(0, Math.min(1, centre + persona.skill + (rnd() - 0.5) * 0.3));
-  const loose = 1.4 - skill * 0.8;   // 0.6 (skill 1) .. 1.4 (skill 0)
-  return {
-    diff: difficulty.id, persona: persona.id, skill,
-    // PRECISION (requirement: a little bit messy is good, but tighter, faster driving at harder
-    // difficulty, like real life; "crashing should reduce with higher difficulty"):
-    // 0 Mobile .. 1 Real, nudged by skill. Tighter gaps, and the car ahead's braking for the
-    // corner is ANTICIPATED (below) instead of reacted to.
-    prec: Math.max(0, Math.min(1, (diffIndex | 0) / 4 + (skill - 0.5) * 0.2)),
-    pace: Math.min(1, difficulty.pace * (1 + persona.pace + (rnd() - 0.5) * 0.01)),
-    lineQ: Math.min(1, difficulty.lineQ + (skill - 0.5) * 0.1),
-    wander: difficulty.wander * loose,
-    mistake: difficulty.mistake * loose,
-    slip: difficulty.slip * loose,
-    aggression: Math.max(0, Math.min(1, persona.aggression + (rnd() - 0.5) * 0.2)),
-    defence: Math.max(0, Math.min(1, persona.defence + (rnd() - 0.5) * 0.2)),
-    seed: rngState,
-  };
+  tune: AiTune = tuneOf(diffIndex)): Traits {
+  return tunedTraits(diffIndex, i, seed, tune);
 }
 
-// ?aisliders (R3): each persona's RISK, as an offset from the field's (quick and aggressive
+// (R3) each persona's RISK, as an offset from the field's (quick and aggressive
 // drivers brake later, steady ones earlier)
 const PERSONA_RISK: Record<string, number> = { quick: 0.2, steady: -0.15, aggressive: 0.15,
   defensive: -0.05, balanced: 0 };
@@ -95,7 +79,7 @@ const WEAK_POWER = 0.95;
 const unit = (value: number) => Math.max(0, Math.min(1, value));
 
 /**
- * ?aisliders: one AI's traits from the field's dials (ai/tune.ts) - the dial is the field's
+ * One AI's traits from the field's dials (ai/tune.ts) - the dial is the field's
  * centre, the persona and chance its own place round it, scaled by SPREAD.
  * @param diffIndex the difficulty, 0..4 (pace, line, mistakes)
  * @param i the AI's place in the field
@@ -128,6 +112,8 @@ function tunedTraits(diffIndex: number, i: number, seed: number, tune: AiTune): 
     aggression: unit(persona.aggression + (tune.aggression - 0.5) + SKILL_AGG * (skill - 0.5)
       + (rnd() - 0.5) * 0.2),
     defence: unit(persona.defence + (tune.defence - 0.5) + (rnd() - 0.5) * 0.2),
+    // PRECISION (requirement: tighter, faster driving at harder difficulty; "crashing should
+    // reduce with higher difficulty") is above: 0 Mobile .. 1 Real, nudged by skill
     // (rounded so the drivers share speed profiles: line.ts caches one per braking grip)
     kBrake: Math.round((K_BRAKE + RISK_BRAKE * (risk - 0.5)) * 100) / 100,
     power: skill < 0.5 ? 1 - (1 - WEAK_POWER) * (0.5 - skill) / 0.5 : 1,

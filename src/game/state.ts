@@ -64,7 +64,7 @@ export interface LaunchOpts {
   road?: string | null; traffic?: number; litter?: number;   // the endless highway
   weather?: { mode: WeatherMode; season: number }; time?: number | null;   // the conditions
   livery?: { paint?: string; trim?: string; num?: number } | null; tyre?: string;   // garage
-  aiTune?: AiTune | null;   // ?aisliders: the AI DRIVERS dials (ai/tune.ts)
+  aiTune?: AiTune | null;   // the AI DRIVERS dials (ai/tune.ts)
 }
 
 /** A circuit / stage AI driver (ai/circuit.ts). */
@@ -160,7 +160,7 @@ export interface Shared {
   acc: number; last: number;   // the fixed-step accumulator; the last frame's time
   race: RxRace; stage: StageTimer; lapState: LapState;
   aiCount: number; aiDiff: number; aiCarMode: string; raceLaps: number; gridSlot: number;
-  aiTune?: AiTune | null;   // ?aisliders: the dials of this session's field
+  aiTune?: AiTune | null;   // the dials of this session's field
   trafficDensity: number;
   demo: AiDriver | null; demoStill: number;
   demoHurt?: HurtEntry;   // the menu demo car, hurt (game/ai.ts stepAIInjury)

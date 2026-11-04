@@ -7,7 +7,6 @@ import { hwGrid } from '../highwayrace.ts';
 import { createAIDriver } from '../ai/circuit.ts';
 import { aiTraits } from '../ai/traits.ts';
 import { tuneOf } from '../ai/tune.ts';
-import { FIX } from '../core/fixes.ts';
 import { lineRun } from '../ai/line.ts';
 import { LEVEL } from "../world/state.ts";
 import { onTrack, querySubtrack } from "../world/tyrewall.ts";
@@ -153,8 +152,8 @@ export function spawnAI(count: number = shared.aiCount) {
     car.spec = { ...car.spec, id: car.spec.id + '#' + (i + 2), paint, trim };
     car.num = nums[i];
     car.spec.num = nums[i];
-    // ?aisliders: the field from the AI DRIVERS dials (the difficulty's preset unless moved)
-    const tune = FIX.aisliders ? shared.aiTune || tuneOf(shared.aiDiff) : undefined;
+    // the field from the AI DRIVERS dials (the difficulty's preset unless moved)
+    const tune = shared.aiTune || tuneOf(shared.aiDiff);
     const drv = createAIDriver(LEVEL, aiTraits(shared.aiDiff, i, count, seed, tune)),
       slot = i < shared.gridSlot ? i : i + 1;
     car.mods.power *= drv.traits.power ?? 1;

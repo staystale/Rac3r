@@ -54,7 +54,7 @@ export interface SetupUi {
   nRow?: HTMLElement; nLbl?: HTMLElement;   // the AI count ticker
   dRow?: HTMLElement; dBtns?: HTMLButtonElement[]; dName?: HTMLElement;
   aRow?: HTMLElement; bCls?: HTMLButtonElement; bSame?: HTMLButtonElement;
-  tRow?: HTMLElement; tLine?: HTMLElement;   // ?aisliders: AI DRIVERS > and its line
+  tRow?: HTMLElement; tLine?: HTMLElement;   // AI DRIVERS > and its line
 }
 
 /** The setup screen's choices (menu/setup.ts showSetup). */
@@ -71,5 +71,5 @@ export interface SetupState {
   paint: () => void;   // repaints the setup rows
   weather?: { mode: string; season: number };
   time?: number | null;   // the hour the event starts at (null: live; the clock on)
-  aiTune?: AiTune | null;   // ?aisliders: the AI DRIVERS dials (null: the difficulty's preset)
+  aiTune?: AiTune | null;   // the AI DRIVERS dials (null: the difficulty's preset)
 }

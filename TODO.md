@@ -7,7 +7,8 @@ last handover, written on request.
 
 ## Where we are (2026-11-04)
 
-- UNDER TEST (11-04 late): ?aisliders (AI rework R3 + K15; the owner's OK'd mockup, "leave it as
+- DEFAULT 11-04 (owner: "ok pass"; the panel kept for now - owner: "leave em for now and
+  discuss how it works with me ... maybe I'll ask you to remove them"): aisliders (AI rework R3 + K15; the owner's OK'd mockup, "leave it as
   is and let me test") - test setup AI DRIVERS > (menu/aidrivers.ts): the five difficulties as
   presets (CUSTOM once a dial moves), six field dials (ai/tune.ts: skill, spread, risk,
   aggression, defence, mistakes), the field's skill strip, RESET, BACK; remembered

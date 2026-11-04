@@ -1,4 +1,4 @@
-// menu/aidrivers.ts - the AI DRIVERS panel of the test setup (?aisliders, the AI rework R3 + K15;
+// menu/aidrivers.ts - the AI DRIVERS panel of the test setup (the AI rework R3 + K15, passed 11-04;
 // the owner's OK'd mockup 11-04, tools/scratch/_aimock.mjs): the five difficulties as presets
 // (CUSTOM once a dial moves), the six field dials (ai/tune.ts), a strip of the field's skill (a
 // mark a driver: red a rookie, blue a pro), RESET to the difficulty, BACK to the setup.

@@ -8,7 +8,7 @@
 // muscletyres, namefix, bhbridges,
 // menustyle, testgarage, ai10, k12, resetin, belly, agtyre, ai20, aifast, aisafe passed 11-03;
 // drycover, rimsoft, bushmark, leafpop, aireact, skillband,
-// bhquiet, aiweave, jokerflow passed 11-04.)
+// bhquiet, aiweave, jokerflow, aisliders passed 11-04.)
 import { envValue } from './debug.ts';
 
 /**
@@ -39,7 +39,4 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
-  // ?aisliders=1: the AI rework R3 - SKILL + RISK per driver and the test setup's AI DRIVERS
-  // panel (skill, spread, risk, aggression, defence, mistakes; ai/tune.ts, menu/aidrivers.ts)
-  aisliders: atLoad('aisliders'),
 };
