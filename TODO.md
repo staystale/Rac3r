@@ -13,6 +13,14 @@ last handover, written on request.
   restart and reset can stay") - no car / level chip, no TUNE, no CLEAR, nor their keys (c, l,
   1-5, [ ]); the RESTART row takes the top-left on a phone (hud/layout.ts). uicheck with it: HUD
   reachable, no overlaps at 6 sizes (its car-chip tap test skipped under the switch).
+- UNDER TEST (11-04 late): ?puffroom (owner: "smoke dust and other things still seem to pop out /
+  vanish sometimes? can we make that cost less / increase the budget?") - MEASURED Knobhill 60 s
+  (_puffwatch, _fxpools): 5 AI never filled the 640 puff pool; 19 AI sat at 640 and cut 1796-3781
+  puffs short, and filled the 400 crash chips (830 vanished ON SCREEN). Now (render/fxroom.ts):
+  puffs 1600 and drawn for less (one transform a pass, the colour set on change, off-screen
+  undrawn); chips 1200, a full pool drops the farthest chip, faded over 1 s if on screen. 19 AI:
+  puffs cut short 0; chips vanishing on screen 830 -> 21. Draw ms at CPU x4: 49.3 -> 47.0 median,
+  64.7 -> 53.1 p95 (cheaper with more on screen).
 - DEFAULT 11-04 (owner: "okay pass"): aibands (owner: "ok" to: difficulty drives skill, risk and aggression
   together; the sliders out of the player's setup) - presets RISK 0.38 .. 0.5 .. 0.62 and
   AGGRESSION 0.40 .. 0.5 .. 0.60, Mobile .. Realish .. Real (ai/tune.ts); in a field a driver

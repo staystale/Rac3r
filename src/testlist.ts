@@ -50,4 +50,12 @@ export const TEST_LIST: TestEntry[] = [
   // drycover, rimsoft, bushmark, leafpop passed 2026-11-04; aireact (AI R1), skillband, bhquiet,
   // aiweave (AI R2), jokerflow, aisliders (AI R3), hudlean,
   // aibands passed 2026-11-04)
+  {
+    id: 'puffroom',
+    added: '2026-11-04',
+    name: 'Smoke, dust and crash bits no longer pop out with a full field',
+    where: 'Test link + &puffroom=1: Knobhill or a dirt / sand track, 15-20 AI',
+    try: 'Race in the pack; crash; watch dust trails, tyre smoke and debris.',
+    wrong: 'Puffs or debris on screen vanishing early, or the game slower than before.',
+  },
 ];

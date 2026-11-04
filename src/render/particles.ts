@@ -5,6 +5,8 @@ import { emitEngineSmoke, type PuffAt, type SmokeCar } from './enginesmoke.ts';
 import type { Spray } from "../world/types.ts";
 import { airMove, airOf, windNow, type AirCar } from './airflow.ts';
 import type { Cam, Chip, ParticleCar, Puff, PuffHit, RenderMarks, View } from "./types.ts";
+import { FIX } from "../core/fixes.ts";
+import { dropChip, drawPuffsCheap } from './fxroom.ts';
 
 // what createParticles destructures from the renderer
 interface ParticleHelpers {
@@ -48,7 +50,7 @@ interface ParticleState {
 }
 
 // what the moved functions share
-interface ParticleCtx {
+export interface ParticleCtx {
   view: View;
   cam: Cam;
   PPMz: () => number;
@@ -66,9 +68,13 @@ interface ParticleCtx {
 // seam the marks layer uses.
 // raised from 40: four wheels throwing continuously needs the headroom
 // 220 -> 320: room for the long dust trails (11-02); 640: the AI cars throw too (puffpool,
-// passed 11-03)
-const MAX_PUFFS = 640;
-const MAX_CHIPS = 400;
+// passed 11-03); ?puffroom 1600 (owner 11-04: "smoke dust and other things still seem to pop
+// out / vanish sometimes"; MEASURED _puffwatch, Knobhill 60 s: 5 AI never filled 640, 19 AI sat at
+// 640 and cut 1796 puffs short, 360 of them on your screen)
+const MAX_PUFFS = FIX.puffroom ? 1600 : 640;
+// ?puffroom 1200 (MEASURED tools/scratch/_fxpools.mjs, Knobhill 19 AI 60 s: 400 full, 2730 crash
+// chips cut short, 97 near you)
+const MAX_CHIPS = FIX.puffroom ? 1200 : 400;
 const MAX_SPARKS = 600;
 
 // Cone hits: the same pool, with a fixed pale dust.
@@ -295,7 +301,7 @@ function flingChips(ctx: ParticleCtx, car: ParticleCar, hit: DmgEvent) {
   for (let i = 0; i < count; i++) {
     const angle = fxRandom() * 6.2832, speed = 1.5 + fxRandom() * (hit.scrape ? 3
       : 4 + 14 * hit.amt), roll = fxRandom();
-    if (chips.length >= MAX_CHIPS) chips.shift();
+    if (chips.length >= MAX_CHIPS) dropChip(ctx, chips, MAX_CHIPS);
     chips.push({ x: worldX, y: worldY, vx: car.vx * 0.5 + Math.cos(angle) * speed,
       vy: car.vy * 0.5 + Math.sin(angle) * speed, age: 0, life: 6 + fxRandom() * 6,
       // art px: visible at phone zoom
@@ -392,7 +398,7 @@ function emitTyreMoments(ctx: ParticleCtx, car: ParticleCar) {
     }
     for (let i = 0; i < 16; i++) {
       const angle = fxRandom() * 6.2832, speed = 2 + fxRandom() * 6;
-      if (ctx.state.chips.length >= MAX_CHIPS) ctx.state.chips.shift();
+      if (ctx.state.chips.length >= MAX_CHIPS) dropChip(ctx, ctx.state.chips, MAX_CHIPS);
       ctx.state.chips.push({ x: wheelX, y: wheelY, vx: car.vx * 0.4 + Math.cos(angle) * speed,
         vy: car.vy * 0.4 + Math.sin(angle) * speed, age: 0, life: 5 + fxRandom() * 5,
         col: SHRED_COL, sz: 2 });
@@ -538,8 +544,12 @@ function renderChips(ctx: ParticleCtx, wallDt: number) {
     view.ctx.globalAlpha = Math.min(1, (chip.life - chip.age) / Math.min(1, chip.life));
     view.ctx.fillStyle = chip.col;
     const z = Math.max(1, Math.round(chip.sz * scale));
-    view.ctx.fillRect(Math.round(toScreenX(chip.x) - z / 2),
-      Math.round(toScreenY(chip.y) - z / 2), z, z);
+    const chipX = Math.round(toScreenX(chip.x) - z / 2);
+    const chipY = Math.round(toScreenY(chip.y) - z / 2);
+    // (?puffroom: off the screen it moves and ages, undrawn)
+    const off = chipX + z < 0 || chipY + z < 0 || chipX > view.W || chipY > view.H;
+    if (FIX.puffroom && off) continue;
+    view.ctx.fillRect(chipX, chipY, z, z);
   }
   view.ctx.globalAlpha = 1;
 }
@@ -613,6 +623,7 @@ function renderPuffs(ctx: ParticleCtx, wallDt: number, puffs: Puff[] = ctx.state
   const { view, PPMz, toScreenX, toScreenY } = ctx;
   const ppm = PPMz();
   const air = windNow(puffs === ctx.state.puffs ? wallDt : 0);
+  if (FIX.puffroom) { drawPuffsCheap(ctx, wallDt, puffs, air); return; }
   for (let i = puffs.length - 1; i >= 0; i--) {
     const puff = puffs[i];
     puff.age += wallDt;
