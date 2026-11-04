@@ -5,7 +5,10 @@ import { GRAVITY } from "../cars.ts";
 import { OBST_CLEAR, carGrip, profileOf } from "./line.ts";
 import type { AiCar, CarsAcc, CarsEnv, DriveCtx } from "./types.ts";
 import type { Drv, AiPath } from "./driverCtx.ts";
+import { FIX } from "../core/fixes.ts";
 import { OBJECT_MORE, clearOf, lookAhead, reachOf, swerveCap } from "./dodge.ts";
+import { blockOn, gapLine, seeCar } from "./gapPick.ts";
+import type { SeenCar } from "./gapPick.ts";
 
 // MEASURED (aidrivecheck, HB on/off, Realish + Real, hatch + 4x4): Slidden / Knobhill / Castle Cum
 // within 0.1 s, Sweaty Lamb +0.2..+0.7 s, 6 pulls per 2 min at Slidden, 4 at Sweaty Lamb — it is
@@ -104,8 +107,13 @@ export function followAhead(drv: Drv, acc: CarsAcc, env: CarsEnv, fwd: number, o
   // wandering.)
   const slowBlock = vAlong < Math.min(0.7 * speed, speed - 4) || vAlong < 6;
   const wide = latLim + (slowBlock ? WIDE_SLOW : WIDE);
-  const cands = [otherLat + clear, otherLat - clear].filter(
-      (cand) => Math.abs(lineOff + cand) <= wide).sort(
+  // ?oneai: round it on the ROAD if there is room there - past the edge only when there is none
+  // (MEASURED 11-04: on the highway every 90 km/h car was a "slow block" to a 200 km/h racer and
+  // the racers went round on the verge with the lanes clear - off the road, wrecks)
+  const both = [otherLat + clear, otherLat - clear];
+  const onRoad = FIX.oneai ? both.filter((cand) => Math.abs(lineOff + cand) <= latLim) : [];
+  const cands = (onRoad.length ? onRoad : both.filter(
+      (cand) => Math.abs(lineOff + cand) <= wide)).sort(
       (first, second) => Math.abs(first - myLat) - Math.abs(second - myLat));
   if (cands.length && fwd > 3) {
     acc.dodgeT = cands[0] - latT;
@@ -198,6 +206,19 @@ function sizedEnv(env: CarsEnv, car: AiCar, other: AiCar, pathH: number): CarsEn
 }
 
 
+// ?oneai: s of travel a driver reads the cars ahead in, skill 0 / skill 1 (the highway driver's;
+// at 240 km/h against 90 km/h traffic 0.8 .. 2.1 s hit it in 17-19 of 45 weavecheck scenarios)
+const GAP_LOOK_WEAK = 2.6, GAP_LOOK_TOP = 3.8;
+// boxed in: the share of full braking planned (late: going round is tried first, braking only
+// once it must - owner 11-04: "avoid it not just brake... it should brake too if it needs to"),
+// and the m kept behind the car
+const BOXED_BRAKE = 0.9, BOXED_GAP_M = 3;
+
+/** The s of travel the gap spotter reads the cars ahead in, by skill. */
+function gapLook(skill: number) {
+  return GAP_LOOK_WEAK + (GAP_LOOK_TOP - GAP_LOOK_WEAK) * Math.max(0, Math.min(1, skill));
+}
+
 /** Reads the cars around: who leads, who threatens, who is alongside; the dodge and gap cap. */
 export function carsStep(drv: Drv, car: AiCar, others: AiCar[], path: AiPath, nearIdx: number,
     idx: (pos: number) => number, speed: number, prec: number, prof: ReturnType<typeof profileOf>,
@@ -210,40 +231,96 @@ export function carsStep(drv: Drv, car: AiCar, others: AiCar[], path: AiPath, ne
   };
   const cosH = Math.cos(car.heading), sinH = Math.sin(car.heading);
   // the s ahead it reads the cars in, by skill (was 1.1 for everyone; ai/dodge.ts)
-  const look = lookAhead(traits.skill);
+  // (?oneai: the gap spotter's reading, the highway driver's 2.6 .. 3.8 s - ai/gapPick.ts)
+  const look = FIX.oneai ? gapLook(traits.skill) : lookAhead(traits.skill);
   const acc: CarsAcc = {
     dodgeT: 0, followCap: Infinity, conflict: false, lead: null, threat: null, side: 0, alg: []
   };
+  const seen: SeenCar[] = [];
   for (const other of others) {
     const relX = other.x - car.x, relY = other.y - car.y, fwd = relX * cosH + relY * sinH,
         lat = -relX * sinH + relY * cosH;
-    if (fwd < -15 || fwd > 8 + speed * look || Math.abs(lat) > 8) continue;
+    // (?oneai: cars to 60 m behind too - the gap picker's mirror)
+    if (fwd < (FIX.oneai ? -60 : -15) || fwd > 8 + speed * look || Math.abs(lat) > 8) continue;
     // its lateral place relative to MY path
     const closeIdx = closestPathIdx(drv, env, other, fwd);
     const point = path.pts[closeIdx], otherLat = (other.x - point.x) * -Math.sin(point.h) + (
         other.y - point.y) * Math.cos(point.h);
     const envO = sizedEnv(env, car, other, point.h);
     const vAlong = other.vx * cosH + other.vy * sinH;
+    // (not the car I am attacking: the attack is passing it - going round it as traffic undid the
+    // pass, MEASURED circuit fields 118 -> 83 passes)
+    const attacked = state.atk && other === state.atk.car;
+    if (FIX.oneai && !attacked) seen.push(seeCar(other, fwd, otherLat, vAlong, point.h));
     noteLeadThreat(drv, acc, env, other, fwd, otherLat, vAlong);
-    if (state.atk && other === state.atk.car) {
-      attackedCar(drv, acc, env, fwd, otherLat, vAlong);
-      continue;
-    }
-    if (fwd > 2.5) {
-      // FOLLOWING only while closing, with a short gap: it rubs and bumps in braking zones
-      // (aifieldcheck: ~6 s of contact per 3 laps of 6 cars at Realish). USER (after
-      // testing it): "contact is ok … it felt ok before, put it back" — a strict speed-based gap
-      // (zero contact, but a procession: 1 position change in 3 laps) was tried and REVERTED.
-      if (speed - vAlong > -0.5 && Math.abs(otherLat - myLat) < envO.clear) {
-        followAhead(drv, acc, envO, fwd, otherLat, vAlong, closeIdx);
-      }
-    } else if (fwd > -4) {
-      alongsideCar(drv, acc, env, fwd, otherLat);
-    } else if (!acc.conflict && traits.defence > 0.5 && vAlong > speed + 0.5 && fwd > -14) {
-      acc.dodgeT = Math.max(-1.2, Math.min(1.2, (otherLat - latT) * 0.5)) * traits.defence;
-    }
+    reactTo(drv, acc, [env, envO], { fwd, otherLat, vAlong, closeIdx, attacked: !!attacked });
   }
+  if (FIX.oneai) gapStep(drv, car, acc, seen, { myLat, latT, lineOff, latLim, speed, look });
   return acc;
+}
+
+/**
+ * How I take one car I see: attacking it, following it, alongside it, or defending from it.
+ * @param drv the driver context
+ * @param acc the cars' read so far
+ * @param envs the cars' environment, and it sized to the car (following reads its size)
+ * @param seenAs where it is (m ahead, m off my path), its m/s along my way, its path point, and
+ *   whether I am attacking it
+ */
+function reactTo(drv: Drv, acc: CarsAcc, envs: [CarsEnv, CarsEnv], seenAs: { fwd: number;
+  otherLat: number;
+  vAlong: number; closeIdx: number; attacked: boolean }) {
+  const { traits } = drv, [env, envO] = envs, { speed, myLat, latT } = env;
+  const { fwd, otherLat, vAlong, closeIdx, attacked } = seenAs;
+  if (attacked) { attackedCar(drv, acc, env, fwd, otherLat, vAlong); return; }
+  if (fwd > 2.5) {
+    // FOLLOWING only while closing, with a short gap: it rubs and bumps in braking zones
+    // (aifieldcheck: ~6 s of contact per 3 laps of 6 cars at Realish). USER (after
+    // testing it): "contact is ok … it felt ok before, put it back" — a strict speed-based gap
+    // (zero contact, but a procession: 1 position change in 3 laps) was tried and REVERTED.
+    if (speed - vAlong > -0.5 && Math.abs(otherLat - myLat) < envO.clear) {
+      followAhead(drv, acc, envO, fwd, otherLat, vAlong, closeIdx);
+    }
+  } else if (fwd > -4) {
+    alongsideCar(drv, acc, env, fwd, otherLat);
+  } else if (!acc.conflict && traits.defence > 0.5 && vAlong > speed + 0.5 && fwd > -14) {
+    acc.dodgeT = Math.max(-1.2, Math.min(1.2, (otherLat - latT) * 0.5)) * traits.defence;
+  }
+}
+
+/**
+ * ?oneai: GAP SPOTTING (ai/gapPick.ts) - when a car is in the way of my line, the best line through
+ * all the cars I see, not round the one I saw last.
+ * @param drv the driver context
+ * @param car my car
+ * @param acc the cars' read so far (its dodge is set)
+ * @param seen the cars seen, my path's frame
+ * @param mine my place, target, the line's offset, the room, m/s and the s I read ahead
+ */
+function gapStep(drv: Drv, car: AiCar, acc: CarsAcc, seen: SeenCar[], mine: { myLat: number;
+  latT: number; lineOff: number; latLim: number; speed: number; look: number }) {
+  const { state } = drv, { myLat, latT, lineOff, latLim, speed, look } = mine;
+  const half = car.spec.wid / 2, len = car.spec.len;
+  // picking while any car is ahead within reading distance - not only while one is on my line
+  // (once the swerve began the car was off it, and the pick let go back into it, MEASURED)
+  const ahead = seen.some((other) => other.fwd > 0 && other.fwd < speed * look + 8);
+  if (!ahead) { state.gapBase = null; return; }
+  if (!blockOn(seen, myLat, half, len) && state.gapBase == null) return;
+  const room = latLim + WIDE;
+  const line = gapLine(seen, { lat: myLat, base: state.gapBase ?? myLat, half, len, speed, look,
+    lo: -room - lineOff, hi: room - lineOff, edge: latLim, centre: lineOff });
+  state.gapBase = line;
+  acc.dodgeT = line - latT;
+  acc.conflict = true;
+  // BOXED IN: a car still on the best line - brake to arrive behind it at its speed (MEASURED
+  // pacesuite: a pack abreast at 185 km/h kept its foot down to 9 m from 90 km/h traffic, wrecks)
+  const block = blockOn(seen, line, half, len);
+  if (block && !block.side) {
+    const decel = BOXED_BRAKE * carGrip(car.spec).brakeG * GRAVITY * (car.surface.mu || 1);
+    acc.followCap = Math.min(acc.followCap, Math.sqrt(Math.max(0, block.v) ** 2
+      + 2 * decel * Math.max(0, block.gap - BOXED_GAP_M)));
+  }
+  if (Math.abs(lineOff + line) > latLim) { state.wide = room; state.wideUntil = state.t + 1.2; }
 }
 
 /** OBSTACLES: the way round a loose object, when no car is in the way. */

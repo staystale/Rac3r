@@ -5,6 +5,7 @@ import { GRAVITY } from "../cars.ts";
 import { K_BRAKE, carGrip } from "./line.ts";
 import type { profileOf } from "./line.ts";
 import { lateralAhead } from "./rejoin.ts";
+import { steerCap, steerDemand } from "./steerLaw.ts";
 import type { RejoinAim } from "./rejoin.ts";
 import type { AiCar, CircuitState, RacingLine, Traits } from "./types.ts";
 
@@ -38,14 +39,13 @@ export function steerAim(car: AiCar, path: AiPath, nearIdx: number,
   // (R2: a car rejoining, not making a move, has its error capped - ai/rejoin.ts)
   const cross = Math.max(-crossMax, Math.min(crossMax, (frontX - frontPt.x) * -Math.sin(frontPt.h)
       + (frontY - frontPt.y) * Math.cos(frontPt.h) - latT));
-  const deltaS = psi + Math.atan2(-1.2 * cross, speed + 2) - 0.03 * (
-      car.yawRate - speed * Math.tan(car.delta) / spec.L);
+  // (the one steering law, every driver's: ai/steerLaw.ts)
+  const deltaS = steerDemand(psi, cross, speed, car.yawRate, car.delta, spec.L);
   const muHere = car.surface.mu * spec.mu;
   // cap: the kinematic angle for the grip-limited turn + a front slip allowance (the bench cap
   // pinned at ~0.1 at 35 m/s: ran wide)
   const LOCK = spec.steerMax || 0.56;
-  const cap = Math.min(
-      1, (1.3 * spec.L * muHere * GRAVITY / Math.max(4, speed * speed) + 0.12) / LOCK);
+  const cap = steerCap(spec.L, muHere, speed, LOCK);
   return { psi, deltaS, LOCK, cap };
 }
 

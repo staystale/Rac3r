@@ -29,6 +29,17 @@ last handover, written on request.
   the course aim everywhere kept the highway as it was but circuit fields got 28-68 % more
   incidents (Realish 113 -> 144, Real 103 -> 173). Patch kept: tools/scratch/_oneai-stage2.patch
   + _oneai-steerLaw.ts. Owner to say (one law needs more work, or the steering stays per road).
+- UNDER TEST (11-04 late): ?oneai (AI rework R8 stages 2-4, one AI; with ?hwshare) - the circuit
+  driver drives the highway: the circuit's steering law (ai/steerLaw.ts), a line down the middle
+  of the lanes made per road piece and smoothed (ai/roadLine.ts), and GAP SPOTTING for every
+  driver (ai/gapPick.ts: lines across the room scored by free road ahead, read 2.6 .. 3.8 s by
+  skill; round on the road first; boxed in -> late braking, 90 % planned). MEASURED: weavecheck
+  45 scenarios 0 hits at diff 2 and 4 (the circuit driver alone: 29-30); pacesuite 9 races
+  130.0 km/h (stage 1 131.2), 0 bad, 0 off-road; circuit fields (4 tracks x 3 seeds, diff 4)
+  incidents 67 -> 29, contact 126 -> 45 s, passes 115 -> 101 (off runs vary 96-118). Tried and
+  NOT kept (weavecheck repeats exactly: 13 -> 18 hits): more room with closing speed, a
+  lane-changing traffic car's target lane, no swerving past a car alongside. On a pass: delete
+  the weaver's steering / speed / lines (one system), the switch and the hwshare / oneai paths.
 - AI ORDER (owner 11-04): R6 SKIPPED ("doesn't seem like an issue anymore"), R8 one AI
   next (staged plan proposed - stage 1 the shared reflexes; owner to say go), then R7. R4 part 2 (felt
   grip) not needed (measured); weak-driver OVERDRIVE declined - "only push up crashes", not unless

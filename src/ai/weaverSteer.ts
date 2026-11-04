@@ -3,6 +3,8 @@
 import { GRAVITY } from "./weaverCtx.ts";
 import type { Step, Wvr } from "./weaverCtx.ts";
 import { roadPose } from "../highway.ts";
+import { steerCap, steerDemand } from "./steerLaw.ts";
+import { FIX } from "../core/fixes.ts";
 
 /** The steering command (and the road's own yaw rate, which the throttle reads). */
 export function steerCmd(wvr: Wvr, step: Step) {
@@ -54,6 +56,14 @@ export function steerCmd(wvr: Wvr, step: Step) {
   if (Math.abs(slipRear) > 0.08) deltaS -= slipRear * 0.9;
   const cap = Math.min(1,
     (1.6 * car.spec.L * grip * GRAVITY / Math.max(4, speed * speed)) / LOCK + 0.02);
+  if (FIX.oneai) {
+    // ?oneai: the ONE steering law (ai/steerLaw.ts, the circuit driver's) - heading error to the
+    // line ahead, cross-track, the steering's own yaw - and its cap
+    let psiOne = aheadPose.h - car.heading; psiOne = Math.atan2(Math.sin(psiOne), Math.cos(psiOne));
+    const one = steerDemand(psiOne, cross, speed, car.yawRate, car.delta, car.spec.L);
+    const capOne = steerCap(car.spec.L, grip, speed, LOCK);
+    return { steer: Math.max(-capOne, Math.min(capOne, one / LOCK)), yawRoad };
+  }
   const steer = Math.max(-cap, Math.min(cap, deltaS / LOCK));
   return { steer, yawRoad };
 }

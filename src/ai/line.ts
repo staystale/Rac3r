@@ -44,7 +44,7 @@ const CORNER_R = 70;
 
 // ---------------------------------------------------------------- paths
 // headings, radius over ~8 m, surface mu at every point
-function finishPath<P extends PathPoint>(pts: P[], closed: boolean, total: number): Path<P> {
+export function finishPath<P extends PathPoint>(pts: P[], closed: boolean, total: number): Path<P> {
   const count = pts.length, step = total / (closed ? count : count - 1);
   for (let i = 0; i < count; i++) {
     const here = pts[i],
@@ -228,7 +228,7 @@ function smoothLine(
 }
 
 /** CORNERS: runs of R < CORNER_R (scanning from a straight); apex = tightest point. */
-function findCorners(pts: LinePoint[], count: number) {
+export function findCorners(pts: LinePoint[], count: number) {
   // CORNERS: runs of R < CORNER_R (scanning from a straight so a corner across the line is one
   // run); apex = tightest point
   const cid = new Int32Array(count).fill(-1), corners: Corner[] = [];
@@ -471,7 +471,8 @@ export function profileOf(
       kCorner * (radius / (radius + R_TIGHT)) * pts[i].mu * gripG * GRAVITY * radius,
     ));
   }
-  if (!path.closed && main)
+  // (a branch ends on its main line's speed; an open MAIN line - the highway's - has no rejoin)
+  if (!path.closed && main && main !== path)
     speed[count - 1] = Math.min(speed[count - 1], profileOf(main, spec)[path.rejoin!]);
   // backward braking pass (twice round a closed path so it wraps)
   for (let pass = 0; pass < (path.closed ? 2 : 1); pass++)

@@ -306,6 +306,7 @@ export interface CircuitState extends DriveOutState {
   thrUntil: number;
   // the corner it is on and its line there (ai/cornerLine.ts)
   clCorner?: number; clB?: number;
+  gapBase?: number | null;   // ?oneai: the line through the cars chosen last (ai/gapPick.ts)
   footK?: number;   // the share of the throttle the driver's foot gives (ai/driverFoot.ts)
   atk: Attack | null;
   atkCorner: number;

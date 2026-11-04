@@ -1,0 +1,112 @@
+// ai/gapPick.ts - GAP SPOTTING (?oneai, the AI rework R8 stage 4, one AI; owner 11-04: "mostly
+// drivers need to pick their path with dodging and gap spotting"; "make sure ai don't wait and
+// swim thru traffic correctly like they're racing, not slowing down or only using the hard
+// shoulder"). The circuit driver went round ONE car at a time - each car it saw overwrote the
+// side the last one chose, fine with a car or two on a circuit, wrong in a wall of traffic
+// (MEASURED: on the highway it hit the traffic in 29-30 of 45 weavecheck scenarios). This is the
+// highway driver's line scoring (ai/weaverLine.ts, every cost MEASURED there with weavecheck /
+// pacesuite) for every driver: lines across the room it has, each scored by the free road along it
+// - the nearest car whose body (+ margin) is on it, as far as the driver reads ahead (by skill) -
+// less the swerve to it, with a bonus for the line already chosen; a line whose way across is
+// blocked halfway, or that a faster car behind is about to arrive on, is out; past the usual edge
+// only when it is clearly quicker.
+import { reachOf } from './dodge.ts';
+import type { AiCar } from './types.ts';
+
+/** A car as the gap picker sees it, in my path's frame. */
+export interface SeenCar { fwd: number; lat: number; v: number; across: number; along: number }
+
+// lines tried across the room, the bonus for the line already chosen, the swerve cost (a m, + a m
+// per m/s), the verge's cost and the room's step to it (m), the m beside a car that is alongside,
+// a blocked way across or the mirror's cost, the mirror's s, the most m across in one think
+const LINES = 11, COMMIT = 25, MOVE_K = 1.5, MOVE_SPEED_K = 0.05, VERGE = 40, OUT = 400;
+const MIRROR_S = 1.5, REACH_M = 4.5, MARGIN = 0.55, FREE_BONUS = 60, KEPT_V = 1.2;
+
+/**
+ * The car ahead on a line (or one beside it: no way through).
+ * @param seen the cars seen
+ * @param off the line, m off my path
+ * @param half my half width, m
+ * @param len my length, m
+ * @returns its gap (m) and speed (m/s), side = beside me, or null
+ */
+export function blockOn(seen: SeenCar[], off: number, half: number, len: number) {
+  let block: { gap: number; v: number; side?: boolean } | null = null;
+  for (const car of seen) {
+    const reach = (len / 2 + car.along) + 1;
+    if (car.fwd < -reach || Math.abs(car.lat - off) >= car.across + half + MARGIN) continue;
+    if (car.fwd < reach) return { gap: 0, v: car.v, side: true };
+    const gap = car.fwd - reach + 1;
+    if (!block || gap < block.gap) block = { gap, v: car.v };
+  }
+  return block;
+}
+
+/**
+ * Whether a faster car behind would arrive on a line before I am across.
+ * @param seen the cars seen
+ * @param off the line
+ * @param half my half width
+ * @param speed my m/s
+ * @returns true when it is coming
+ */
+function inMirror(seen: SeenCar[], off: number, half: number, speed: number) {
+  for (const car of seen) {
+    if (car.fwd >= 0 || car.v <= speed + 0.5) continue;
+    if (Math.abs(car.lat - off) >= car.across + half + MARGIN) continue;
+    if ((-car.fwd - car.along) / (car.v - speed) < MIRROR_S) return true;
+  }
+  return false;
+}
+
+/**
+ * The line to take through the cars: the best scored across the room.
+ * @param seen the cars seen (my path's frame)
+ * @param mine my place: lat (m off the path), base (the line chosen last), half width, length,
+ *   speed (m/s), look (s ahead it reads), lo / hi (the room), edge (the usual room's edge, m
+ *   from the road's middle) and centre (my path's m off the road's middle)
+ * @returns the line, m off my path
+ */
+export function gapLine(seen: SeenCar[], mine: { lat: number; base: number; half: number;
+  len: number; speed: number; look: number; lo: number; hi: number; edge: number;
+  centre: number }): number {
+  const { lat, base, half, len, speed, look, lo, hi, edge, centre } = mine;
+  let best = base, bestScore = -Infinity;
+  const tries: number[] = [base];
+  for (let i = 0; i < LINES; i++) tries.push(lo + (hi - lo) * i / (LINES - 1));
+  for (const want of tries) {
+    // no further across in one think than a swerve makes
+    const off = Math.abs(want - lat) > REACH_M ? lat + Math.sign(want - lat) * REACH_M : want;
+    const block = blockOn(seen, off, half, len);
+    if (block && block.side) continue;
+    let score = block ? Math.min(block.gap, speed * look) + Math.max(0, block.v) * KEPT_V
+      : speed * look + FREE_BONUS;
+    score -= (Math.abs(off - base) + 0.3 * Math.abs(off - lat)) * (MOVE_K + speed * MOVE_SPEED_K)
+      - (Math.abs(off - base) < 0.6 ? COMMIT : 0);
+    if (Math.abs(centre + off) > edge) score -= VERGE;
+    if (Math.abs(off - lat) > 1.2) {
+      const mid = blockOn(seen, (off + lat) / 2, half, len);
+      if (mid && mid.gap < 1) score -= OUT;
+      if (inMirror(seen, off, half, speed) || inMirror(seen, (off + lat) / 2, half, speed)) {
+        score -= OUT;
+      }
+    }
+    if (score > bestScore) { bestScore = score; best = off; }
+  }
+  return best;
+}
+
+/**
+ * A car as the gap picker sees it.
+ * @param other the car
+ * @param fwd m ahead of me along my heading
+ * @param lat m off my path
+ * @param vAlong its m/s along my way
+ * @param pathH my path's heading by it
+ * @returns the seen car
+ */
+export function seeCar(other: AiCar, fwd: number, lat: number, vAlong: number,
+  pathH: number): SeenCar {
+  const reach = reachOf(other, pathH);
+  return { fwd, lat, v: vAlong, across: reach.across, along: reach.along };
+}

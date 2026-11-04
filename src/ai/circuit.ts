@@ -23,9 +23,11 @@ import { createHandbrakeStep, createSlideStep } from "./driverSteps.ts";
 import { drive as driveTick, steerNow } from "./driverDrive.ts";
 import { withReaction } from "./reaction.ts";
 import type { Drv } from "./driverCtx.ts";
+import { roadLine } from "./roadLine.ts";
+import { FIX } from "../core/fixes.ts";
 import type { Level } from "../world/types.ts";
 import type {
-  AiCar, CircuitState, DriveCtx, DriveInput, HighwayLevel,
+  AiCar, CircuitState, DriveCtx, DriveInput, HighwayLevel, RacingLine,
 } from "./types.ts";
 
 // ---------------------------------------------------------------- the driver
@@ -35,14 +37,17 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
   // the ENDLESS highway has no closed lap to plan a line round: the same driver reads the road
   // frame instead (roadDriver above) (cast: an endless Level is the highway's level, whose road
   // fields ai/types.ts HighwayLevel describes)
-  if (level.endless) {
+  if (level.endless && !FIX.oneai) {
     return reacting(roadDriver(
       level as unknown as HighwayLevel, traits,
       parkMiller(((traits.seed || 4242) * 31 + 7) % 2147483647 || 1),
     ), traits);
   }
-  // (! : racingLine has just made the branches)
-  const line = racingLine(level), main = line, branches = level._branches!, count = line.n;
+  // (! : racingLine has just made the branches) ?oneai: the highway's line is its lanes' middle,
+  // made again as the road grows (ai/roadLine.ts), and it has no branches
+  const highway = level.endless ? level as unknown as HighwayLevel : null;
+  const line = highway ? roadLine(highway) : racingLine(level), main = line;
+  const branches = highway ? {} : level._branches!, count = line.n;
   const rnd = parkMiller(traits.seed || 4242);
   const jLaps = (level.joker && level.joker.laps) || 5;
   // the joker PLAN: a lap drawn from a spread (rarely the first, when the field is packed),
@@ -69,13 +74,23 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
     slideStep, jLaps,
   };
 
-  const drive = (car: AiCar, dt = 1 / 120, ctx: DriveCtx = {}) => (
-      driveTick(drv, car, dt, ctx));
+  // ?oneai: on the highway the road grows - a new line for each new stretch, the car's place on
+  // it found again (the two lines are the same road where they overlap: no jolt)
+  const follow = () => {
+    const now = highway && roadLine(highway);
+    if (!now || now === drv.line) return;
+    bindLine(drv, now);
+  };
+  const drive = (car: AiCar, dt = 1 / 120, ctx: DriveCtx = {}) => {
+    follow();
+    return driveTick(drv, car, dt, ctx);
+  };
   // put back on the road by the game (stuck / broken): find its place again, forget the dodge and
   // any mistake in progress
   const relocate = () => {
+    follow();
     state.i = null;
-    state.path = main;
+    state.path = drv.main;
     state.dodge = 0;
     state.mist = null;
     state.thrUntil = 0;
@@ -88,6 +103,25 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
   return reacting({ drive, state: state, total: line.total, traits, relocate }, traits, steer);
 }
 export type AIDriver = ReturnType<typeof createAIDriver>;
+
+/**
+ * ?oneai: hands a driver a new line (the highway's next stretch): its steps made for it, its
+ * place found again, what it was doing about a corner of the old one forgotten.
+ * @param drv the driver context
+ * @param line the new line
+ */
+function bindLine(drv: Drv, line: RacingLine) {
+  const { state, traits, rnd } = drv;
+  drv.line = line; drv.main = line; drv.count = line.n;
+  drv.attack = createAttackSteps(state, line, traits, rnd);
+  drv.moves = createRaceMoves(state, line, traits, rnd, drv.attack.beyondApex);
+  drv.handbrakeStep = createHandbrakeStep(state, line, traits, rnd);
+  drv.slideStep = createSlideStep(state, line, traits, rnd);
+  state.path = line; state.i = null;
+  state.mist = null; state.mistCorner = -1; state.atk = null; state.atkCorner = -1;
+  state.cover = null; state.covCorner = -1; state.hbCorner = -1; state.cc = -1;
+  state.clCorner = undefined; state.steerHold = null; state.driftCorner = undefined;
+}
 
 /**
  * A driver as the game drives it: its drive takes the context or a maker of it (made only when
