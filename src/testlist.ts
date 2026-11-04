@@ -47,14 +47,6 @@ export const TEST_LIST: TestEntry[] = [
   // puffpool, tyrehealth, pitsolid, muscletyres,
   // namefix, bhbridges, menustyle, testgarage, ai10, k12 passed
   // 2026-11-03; resetin, belly, agtyre, ai20, aifast, aisafe passed 2026-11-03; specsheet removed;
-  // drycover, rimsoft, bushmark, leafpop passed 2026-11-04; aireact (AI R1), skillband, bhquiet
-  // passed 2026-11-04)
-  {
-    id: 'aiweave',
-    added: '2026-11-04',
-    name: 'AI weave fix: no drawn wander; a knocked car rejoins softly at speed',
-    where: 'Test link + &aiweave=1: any circuit, a full field (Thruston, Brands)',
-    try: 'Watch AI off the line (after contact, a pass, a wide exit); nudge one.',
-    wrong: 'AI snaking, snapping back to the line, braking to rejoin, or running off more.',
-  },
+  // drycover, rimsoft, bushmark, leafpop passed 2026-11-04; aireact (AI R1), skillband, bhquiet,
+  // aiweave (AI R2) passed 2026-11-04)
 ];

@@ -23,7 +23,5 @@ export interface Drv {
   moves: ReturnType<typeof createRaceMoves>;
   handbrakeStep: ReturnType<typeof createHandbrakeStep>;
   slideStep: ReturnType<typeof createSlideStep>;
-  wanderPhaseA: number;
-  wanderPhaseB: number;
   jLaps: number;
 }

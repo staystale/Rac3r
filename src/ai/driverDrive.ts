@@ -11,7 +11,6 @@ import {
 } from "./driverLane.ts";
 import type { AiCar, DriveCtx } from "./types.ts";
 import { rejoinCross, rejoinAim } from "./rejoin.ts";
-import { FIX } from "../core/fixes.ts";
 import type { Drv, AiPath } from "./driverCtx.ts";
 
 // m: the lateral target never puts the car's centre closer than this to the road edge
@@ -95,7 +94,7 @@ export function drive(drv: Drv, car: AiCar, dt = 1 / 120, ctx: DriveCtx = {}) {
   let vMul = mistakes.vMul;
   const thrForce = mistakes.thrForce;
 
-  // ---- the line, the wander and the start lane
+  // ---- the line and the start lane
   const lane = laneStep(drv, car, path, nearIdx, speed, mistakes.latT);
   let latT = lane.latT;
   const lineOff = lane.lineOff, startK = lane.startK;
@@ -109,17 +108,16 @@ export function drive(drv: Drv, car: AiCar, dt = 1 / 120, ctx: DriveCtx = {}) {
       { latT, vMul, prof });
   ({ latT, vMul, prof } = traffic);
   const followCap = traffic.followCap;
-  // OFF THE LINE INTO A CORNER (an attack, a cover, a dodge, a wander): the profile is for the
+  // OFF THE LINE INTO A CORNER (an attack, a cover, a dodge): the profile is for the
   // racing line's radius; x m further INSIDE at the apex is a radius R - x, so the corner speed
   // drops by sqrt((R - x) / R). Without it attackers ran wide on the exit (aifieldsuite Realish
   // off-road 142 -> 299 car-s, MEASURED). (applied in the SPEED section: every bend ahead within
   // braking distance, not only the "corners" — Naffcar's banked turns are wider than CORNER_R,
   // and tow passes on their inside slid off: off-road 0 -> 14 car-s, MEASURED)
-  // ?aiweave: not making a move -> a soft rejoin, and corners taken for where it really is
+  // (R2) not making a move -> a soft rejoin, and corners taken for where it really is
   const moving = traffic.conflict || !!state.atk || !!state.cover;
-  const crossMax = FIX.aiweave && !moving ? rejoinCross(drv.traits.skill) : Infinity;
-  const aim = FIX.aiweave ? rejoinAim(car, path, nearIdx, mistakes.latT,
-    rejoinCross(drv.traits.skill)) : null;
+  const crossMax = moving ? Infinity : rejoinCross(drv.traits.skill);
+  const aim = rejoinAim(car, path, nearIdx, mistakes.latT, rejoinCross(drv.traits.skill));
   const slide = steerSlideStep(drv, car, path, nearIdx, idx, speed, lineOff, latT, crossMax);
   state.steerHold = { path, nearIdx, latT, lineOff, crossMax };
   return pedalStep(drv, car, path, nearIdx, idx, speed, dt, prof, latT, lineOff,

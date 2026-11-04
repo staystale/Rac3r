@@ -35,7 +35,7 @@ export function steerAim(car: AiCar, path: AiPath, nearIdx: number,
   const look = Math.round((2 + speed * 0.15) / path.sp), ahead = pts[idx(frontIdx + look)],
       frontPt = pts[frontIdx];
   let psi = ahead.h - car.heading; psi = Math.atan2(Math.sin(psi), Math.cos(psi));
-  // (?aiweave: a car rejoining, not making a move, has its error capped - ai/rejoin.ts)
+  // (R2: a car rejoining, not making a move, has its error capped - ai/rejoin.ts)
   const cross = Math.max(-crossMax, Math.min(crossMax, (frontX - frontPt.x) * -Math.sin(frontPt.h)
       + (frontY - frontPt.y) * Math.cos(frontPt.h) - latT));
   const deltaS = psi + Math.atan2(-1.2 * cross, speed + 2) - 0.03 * (
@@ -50,7 +50,7 @@ export function steerAim(car: AiCar, path: AiPath, nearIdx: number,
 }
 
 /**
- * The profile speed over the look-ahead, cut for the bends ahead when off the line (?aiweave:
+ * The profile speed over the look-ahead, cut for the bends ahead when off the line (R2:
  * where the car really is and will be - ai/rejoin.ts - not only where it aims).
  * @returns m/s
  */

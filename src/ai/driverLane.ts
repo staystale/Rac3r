@@ -1,11 +1,10 @@
 // ai/driverLane.ts: the circuit driver's place on the path, its mistakes, its lateral lane
-// (line share, wander, grid lane), the push of a battle and its racecraft. Functions take the
+// (line share, grid lane), the push of a battle and its racecraft. Functions take the
 // driver context.
 import { querySubtrack } from "../world/tyrewall.ts";
 import { K_BRAKE, nearestIdx, profileOf } from "./line.ts";
 import type { AiCar, CarsAcc, CircuitState } from "./types.ts";
 import type { Drv, AiPath } from "./driverCtx.ts";
-import { FIX } from "../core/fixes.ts";
 
 // extra braking grip planned while ATTACKING (late braking into the corner)
 const ATK_KB = 0.12;
@@ -113,21 +112,18 @@ export function mistakeStep(drv: Drv, path: AiPath, nearIdx: number) {
   return { latT, vMul, thrForce: state.t < state.thrUntil };
 }
 
-/** Shapes the lateral target: racing-line share, wander and the grid lane at the start. */
+/** Shapes the lateral target: racing-line share and the grid lane at the start. */
 export function laneStep(drv: Drv, car: AiCar, path: AiPath, nearIdx: number, speed: number,
     latIn: number) {
-  const { traits, main, state, wanderPhaseA, wanderPhaseB } = drv;
+  const { traits, main, state } = drv;
   const pts = path.pts;
   let latT = latIn;
-  // ---- the line: less of its width for lower skill (lineQ), plus a slow WANDER, bigger for less
-  // skilled drivers
+  // ---- the line: less of its width for lower skill (lineQ)
   // (! : the racing line has off at every point)
   const lineOff = path === main ? pts[nearIdx].off! : 0;
   latT += -lineOff * (1 - traits.lineQ);
-  // (?aiweave: no scripted wander - a driver's deviation comes from its mistakes and its moves)
-  if (!FIX.aiweave) latT += traits.wander * (
-      0.6 * Math.sin(state.t * 0.37 + wanderPhaseA) + 0.4 * Math.sin(
-      state.t * 0.83 + wanderPhaseB));
+  // (no scripted wander, R2 passed 11-04: a driver's deviation comes from its mistakes and its
+  // moves; traits.wander is the highway driver's sway only)
   // THE START (requirement: they aim for the racing line a bit too hard at the start of races and
   // it causes crashes — increase crash awareness a tiny bit, more willing to overtake / avoid,
   // without slowing down): from the moment it moves off, the car KEEPS ITS GRID LANE (its offset

@@ -12,7 +12,7 @@
 // its chosen path to do it; on Slidden Hill take the TRADITIONAL START (the RX start straight), not
 // a dash to the nearest bit of lap.
 //
-// 4. DRIVING: Stanley steering onto the path + a lateral target (wander, mistakes, avoidance),
+// 4. DRIVING: Stanley steering onto the path + a lateral target (mistakes, avoidance),
 // target speed = profile x pace.
 import { parkMiller } from "../core/random.ts";
 import { aiTraits } from "./traits.ts";
@@ -44,7 +44,6 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
   // (! : racingLine has just made the branches)
   const line = racingLine(level), main = line, branches = level._branches!, count = line.n;
   const rnd = parkMiller(traits.seed || 4242);
-  const wanderPhaseA = rnd() * 6.28, wanderPhaseB = rnd() * 6.28;
   const jLaps = (level.joker && level.joker.laps) || 5;
   // the joker PLAN: a lap drawn from a spread (rarely the first, when the field is packed),
   // tactics can override it on the day
@@ -67,7 +66,7 @@ export function createAIDriver(level: Level, traits = aiTraits(4, 0, 1)) {
   const slideStep = createSlideStep(state, line, traits, rnd);
   const drv: Drv = {
     level, traits, rnd, line, main, branches, count, state, attack, moves, handbrakeStep,
-    slideStep, wanderPhaseA, wanderPhaseB, jLaps,
+    slideStep, jLaps,
   };
 
   const drive = (car: AiCar, dt = 1 / 120, ctx: DriveCtx = {}) => (

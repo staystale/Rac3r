@@ -3,8 +3,8 @@ import type { Difficulty, Traits } from "./types.ts";
 
 // ---- the 5 difficulties (PLAN.md §4): the CENTRE of the field's spread. pace = fraction of the
 // profile; lineQ = how much of the racing line's width they use (the rest: nearer the middle);
-// wander = m of slow drift off it; mistake = chance per corner of an error; slip = chance of a
-// joker-tactics blunder (forgetting it, so +30 s).
+// wander = m of the highway driver's sway; mistake = chance per corner of an error; slip =
+// chance of a joker-tactics blunder (forgetting it, so +30 s).
 export const DIFFICULTIES: Difficulty[] = [
   {
     id: 'mobile', name: 'Mobile game',

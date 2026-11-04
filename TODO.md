@@ -7,7 +7,7 @@ last handover, written on request.
 
 ## Where we are (2026-11-04)
 
-- UNDER TEST (11-04 late): ?aiweave (AI rework R2, the weave fix; ai/rejoin.ts) - no scripted
+- NOTHING UNDER TEST (11-04 late). DEFAULT 11-04 (owner: "ok pass"): aiweave (AI rework R2, the weave fix; ai/rejoin.ts) - no scripted
   wander; a car off its target and not making a move (dodge / attack / cover) rejoins SOFTLY
   (the steering's lateral error capped 1.2 m skill 0 .. 0.7 m skill 1); the bends ahead are
   taken for where the car really is and will be, never for its own mistake. MEASURED
@@ -55,7 +55,7 @@ last handover, written on request.
   tab, a fresh page) did not come back; laptop at the phone's size (_memprobe) found no leak
   (canvases ~90 MB + JS 35 MB, flat). Owner waived simhash for this round; plain link checked
   with 20 AI, no page errors.
-- THE AI REWORK design: docs/specs/ai-rework.md (rounds R0-R7) - owner OK 11-04; R0, R1 done.
+- THE AI REWORK design: docs/specs/ai-rework.md (rounds R0-R7) - owner OK 11-04; R0, R1, R2 done; R3 next (mockup first).
 - DEFAULT 11-04 (owner: "Pass"; switches and old paths deleted): drycover - oil / glass / radiator drips never DRAWN
   on a dry track (render/glfield.ts draw skipped the whole field with no weather cover; the
   cells were there and slippery; leaks themselves fine: _leakwatch 4 radiators / 21 cars a min,

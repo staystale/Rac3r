@@ -1,4 +1,4 @@
-// ai/rejoin.ts - THE WEAVE FIX (?aiweave, the AI rework R2; docs/specs/ai-rework.md). Owner:
+// ai/rejoin.ts - THE WEAVE FIX (the AI rework R2, passed 11-04; docs/specs/ai-rework.md). Owner:
 // "off the line the AI slows to get back on it. WANTED: go fast, follow the line SOFTLY from
 // wherever they are; deviation only as a RESULT". MEASURED 11-04 (tools/scratch/_rejoin.mjs,
 // Thruston, a lone car knocked 3 m aside at six places): the steering SNAPPED back (0.3-0.55 of
