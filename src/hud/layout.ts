@@ -159,10 +159,22 @@ function clearAidChips(absChip: HudRect, tcsChip: HudRect, width: number, column
  * @param height canvas height in px
  * @returns named rects: chip, rows, levelRows, buttons, tune panel, speed, lap, ...
  */
+/**
+ * The car chip and the TUNE chip, top-left (?hudlean: neither - zero-size anchors in the corner,
+ * where the minimap hangs from).
+ * @returns chip and tuneChip
+ */
+function topLeftChips() {
+  if (FIX.hudlean) {
+    return { chip: { x: MARGIN, y: MARGIN, w: 0, h: 0 }, tuneChip: { x: MARGIN, y: MARGIN, w: 0,
+      h: 0 } };
+  }
+  const chip = { x: MARGIN, y: MARGIN, w: 116, h: BTN_H };
+  return { chip, tuneChip: { x: MARGIN + chip.w + 6, y: MARGIN, w: 64, h: BTN_H } };
+}
+
 export function layoutHud(state: HudState, width: number, height: number) {
-  // (?hudlean: no chip - a zero-size anchor in the corner, where the minimap hangs from)
-  const chip = FIX.hudlean ? { x: MARGIN, y: MARGIN, w: 0, h: 0 }
-    : { x: MARGIN, y: MARGIN, w: 116, h: BTN_H };
+  const { chip, tuneChip } = topLeftChips();
   // 164, was 132. PHOTOGRAPHED: "Naffcar Speedway" and "Surface Sandbox" ran into the
   // LEVEL tag at 132. Car and level rows share the width so the dropdown stays one clean column.
   const DROP_W = 164;
@@ -179,8 +191,6 @@ export function layoutHud(state: HudState, width: number, height: number) {
   // space and cannot collide with anything (CLAUDE.md §4: the four corners have owners).
   const levelRows = LEVELS.map((level,
     i) => ({ id: level.id, name: level.name, ...dAt(i, carCols), w: DROP_W, h: dStep - 2 }));
-  const tuneChip = FIX.hudlean ? { x: MARGIN, y: MARGIN, w: 0, h: 0 }
-    : { x: MARGIN + chip.w + 6, y: MARGIN, w: 64, h: BTN_H };
   // MEASURED BUG, (caught by tools/uicheck.mjs, not by eye): adding the TUNE chip made
   // the top row need chip 116 + TUNE 64 + RESET 76 + CLEAR 76 + the speed panel 120 = 462 px, and
   // a portrait phone is 390. TUNE landed on top of RESET and ate its taps. On a narrow screen the
