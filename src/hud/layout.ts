@@ -7,6 +7,7 @@ import { PEDAL } from '../input.ts';
 import { ROWS as TUNE_ROWS } from '../tune.ts';
 import { MARGIN, BTN_H, DIAGRAM_H } from './widgets.ts';
 import { trackTempShown } from './tracktemp.ts';
+import { FIX } from '../core/fixes.ts';
 import type { HudState, HudCar, ScreenPoint } from './hudtypes.ts';
 import type { HudRect } from './widgets.ts';
 
@@ -159,7 +160,9 @@ function clearAidChips(absChip: HudRect, tcsChip: HudRect, width: number, column
  * @returns named rects: chip, rows, levelRows, buttons, tune panel, speed, lap, ...
  */
 export function layoutHud(state: HudState, width: number, height: number) {
-  const chip = { x: MARGIN, y: MARGIN, w: 116, h: BTN_H };
+  // (?hudlean: no chip - a zero-size anchor in the corner, where the minimap hangs from)
+  const chip = FIX.hudlean ? { x: MARGIN, y: MARGIN, w: 0, h: 0 }
+    : { x: MARGIN, y: MARGIN, w: 116, h: BTN_H };
   // 164, was 132. PHOTOGRAPHED: "Naffcar Speedway" and "Surface Sandbox" ran into the
   // LEVEL tag at 132. Car and level rows share the width so the dropdown stays one clean column.
   const DROP_W = 164;
@@ -176,18 +179,24 @@ export function layoutHud(state: HudState, width: number, height: number) {
   // space and cannot collide with anything (CLAUDE.md §4: the four corners have owners).
   const levelRows = LEVELS.map((level,
     i) => ({ id: level.id, name: level.name, ...dAt(i, carCols), w: DROP_W, h: dStep - 2 }));
-  const tuneChip = { x: MARGIN + chip.w + 6, y: MARGIN, w: 64, h: BTN_H };
+  const tuneChip = FIX.hudlean ? { x: MARGIN, y: MARGIN, w: 0, h: 0 }
+    : { x: MARGIN + chip.w + 6, y: MARGIN, w: 64, h: BTN_H };
   // MEASURED BUG, (caught by tools/uicheck.mjs, not by eye): adding the TUNE chip made
   // the top row need chip 116 + TUNE 64 + RESET 76 + CLEAR 76 + the speed panel 120 = 462 px, and
   // a portrait phone is 390. TUNE landed on top of RESET and ate its taps. On a narrow screen the
   // pair drops to a second row on the RIGHT, which is empty there. Two systems must never share a
   // lane.
   const narrow = width < 620;
-  const btnY = narrow ? MARGIN + BTN_H + 6 : MARGIN;
-  const wRestart = 70, wReset = 58, wClear = 54, wVol = 48, wHelp = 34;
-  const totalW = wRestart + 4 + wReset + 4 + wClear + (narrow ? 0 : 4 + wVol + 4 + wHelp);
+  // ?hudlean (owner 11-04: "remove any in game tuning so no car changing once a race has
+  // started ... remove tune and clear tyre marks"): no car / level chip, no TUNE, no CLEAR - the
+  // top-left is free, so the RESTART row takes the first row there
+  const lean = FIX.hudlean;
+  const btnY = narrow && !lean ? MARGIN + BTN_H + 6 : MARGIN;
+  const wRestart = 70, wReset = 58, wClear = lean ? 0 : 54, wVol = 48, wHelp = 34;
+  const gapClear = lean ? 0 : 4;
+  const totalW = wRestart + 4 + wReset + gapClear + wClear + (narrow ? 0 : 4 + wVol + 4 + wHelp);
   // Ensure the center block doesn't overlap the new TCS chip on wide screens
-  const minX = narrow ? MARGIN : tuneChip.x + tuneChip.w + 6;
+  const minX = narrow || lean ? MARGIN : tuneChip.x + tuneChip.w + 6;
   // NARROW = LEFT-ALIGNED, never centred. MEASURED BUG, (tools/uicheck.mjs + photo at
   // 390x844): centring this second row (Gemini) pushed CLEAR under the speed and lap
   // panels, which own the top-RIGHT corner, at 360/390/412 px wide. The left of row two is free
@@ -195,18 +204,18 @@ export function layoutHud(state: HudState, width: number, height: number) {
   const startX = narrow ? MARGIN : Math.max(minX, Math.round(width / 2 - totalW / 2));
   const restart = { x: startX, y: btnY, w: wRestart, h: BTN_H, label: 'RESTART' };
   const reset = { x: startX + wRestart + 4, y: btnY, w: wReset, h: BTN_H, label: 'RESET' };
-  const clear = { x: startX + wRestart + 4 + wReset + 4, y: btnY, w: wClear, h: BTN_H,
-    label: 'CLEAR' };
+  const clear = lean ? { x: -200, y: -200, w: 0, h: 0, label: 'CLEAR' }
+    : { x: startX + wRestart + 4 + wReset + 4, y: btnY, w: wClear, h: BTN_H, label: 'CLEAR' };
   const vol = narrow
     ? { x: -200, y: -200, w: 0, h: 0, label: 'VOL' }
-    : { x: startX + wRestart + 4 + wReset + 4 + wClear + 4, y: btnY, w: wVol, h: BTN_H,
+    : { x: startX + wRestart + 4 + wReset + gapClear + wClear + 4, y: btnY, w: wVol, h: BTN_H,
       label: 'VOL' };
   // "?" replays the HOW TO PLAY guide (user: on the button row). Wide: after VOL.
   // Narrow: after CLEAR when it clears the speed panel (390 px and up); at 360 px it would sit on
   // the speed panel, so it drops to row three, left — the dropdown / TUNE panel lane, so it is
   // hidden while either is open.
   const help: HudRect & { row3?: boolean } = {
-    x: narrow ? startX + wRestart + 4 + wReset + 4 + wClear + 4 : vol.x + wVol + 4,
+    x: narrow ? startX + wRestart + 4 + wReset + gapClear + wClear + 4 : vol.x + wVol + 4,
     y: btnY, w: wHelp, h: BTN_H, label: state.helpLabel };
   if (narrow && help.x + help.w > width - MARGIN - 120 - 6) {
     help.x = MARGIN;
@@ -254,12 +263,12 @@ export function hitHud(state: HudState, point: ScreenPoint, width: number, heigh
   if (tuneHit) return tuneHit;
   const dropHit = hitDropdown(state, rects, point);
   if (dropHit) return dropHit;
-  if (inRect(point, rects.chip)) {
+  if (!FIX.hudlean && inRect(point, rects.chip)) {
     state.expanded = !state.expanded;
     state.tuneOpen = false;
     return { consumed: true };
   }
-  if (inRect(point, rects.tuneChip)) {
+  if (!FIX.hudlean && inRect(point, rects.tuneChip)) {
     state.tuneOpen = !state.tuneOpen;
     state.expanded = false;
     return { consumed: true };

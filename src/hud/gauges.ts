@@ -143,9 +143,8 @@ export function drawHudButtonRow(ctx: CanvasRenderingContext2D, state: HudState,
     rects.vol.label = !audio ? 'VOL' : audio.muted ? 'MUTE' : Math.round(audio.volume * 100)
       + '%';
   }
-  const btns: HudRect[] = (rects.vol && rects.vol.w > 0)
-    ? [rects.restart, rects.reset, rects.clear, rects.vol]
-    : [rects.restart, rects.reset, rects.clear];
+  const btns: HudRect[] = [rects.restart, rects.reset, rects.clear, rects.vol]
+    .filter((button) => button && button.w > 0);
   if (!(rects.help.row3 && (state.expanded || state.tuneOpen))) btns.push(rects.help);
   // On a narrow screen this row sits in the car dropdown's lane (left, row two). While the
   // dropdown is open it owns that lane — hit already sends those taps to the dropdown — so do

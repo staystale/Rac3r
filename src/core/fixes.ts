@@ -39,4 +39,7 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
+  // ?hudlean=1: the in-race HUD has no car / level list, no TUNE and no CLEAR (and their keys:
+  // c, l, 1-5, [ ]); RESTART, RESET, pause stay (owner 11-04)
+  hudlean: atLoad('hudlean'),
 };

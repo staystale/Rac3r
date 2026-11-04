@@ -49,4 +49,12 @@ export const TEST_LIST: TestEntry[] = [
   // 2026-11-03; resetin, belly, agtyre, ai20, aifast, aisafe passed 2026-11-03; specsheet removed;
   // drycover, rimsoft, bushmark, leafpop passed 2026-11-04; aireact (AI R1), skillband, bhquiet,
   // aiweave (AI R2), jokerflow, aisliders (AI R3) passed 2026-11-04)
+  {
+    id: 'hudlean',
+    added: '2026-11-04',
+    name: 'In-race HUD: no car / track list, no TUNE, no CLEAR',
+    where: 'Test link + &hudlean=1: any race, portrait and landscape',
+    try: 'Look for the car chip / TUNE / CLEAR; use RESTART, RESET, pause.',
+    wrong: 'Any of the three still there, a gap left where they were, or RESTART / RESET broken.',
+  },
 ];

@@ -33,8 +33,10 @@ for (const [label, W, H] of [['landscape 844x390', 844, 390], ['portrait 390x844
   await p.waitForTimeout(120);
   const resetX = await p.evaluate(() => window.__game.car.x);
   console.log(`${label.padEnd(20)} start=${start} expanded=${expanded} after=${after} steer=${steer} resetX=${resetX.toFixed(1)}`);
-  if (!expanded) fails.push(`${label}: tapping the car chip did not open the selector`);
-  if (after === start) fails.push(`${label}: tapping a car row did not change the car`);
+  // (?hudlean: there is no car chip in a session - nothing to tap)
+  const lean = /hudlean=1/.test(extraQuery());
+  if (!lean && !expanded) fails.push(`${label}: tapping the car chip did not open the selector`);
+  if (!lean && after === start) fails.push(`${label}: tapping a car row did not change the car`);
   if (Math.abs(steer) > 0.01) fails.push(`${label}: a HUD tap also steered the car (steer=${steer})`);
   // Compare against the REAL spawn, not a hard-coded 0. MEASURED BUG IN THIS HARNESS, 2026-09-28: the
   // spawn moved into the lab quadrant (x -45) and this failed both sizes while RESET worked perfectly.

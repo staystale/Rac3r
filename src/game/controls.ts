@@ -11,6 +11,7 @@ import { spawnAI } from './grid.ts';
 import { armStart } from './order.ts';
 import { doReset, saveRecords, doRestart, saveTyreWear, loadTyreWear } from './session.ts';
 import { openPause } from './menuflow.ts';
+import { FIX } from '../core/fixes.ts';
 import { shared, game } from './state.ts';
 import type { GameCar } from './state.ts';
 import type { HudAction } from '../hud/hudtypes.ts';
@@ -111,10 +112,12 @@ export function carToggleKey(key: string) {
 export function gameKey(key: string) {
   if (key === 'r') doReset();
   if (key === 'R' || key === 'Backspace') doRestart();
-  if (key === 'c') game.marks.clear();
-  if (key === 'l') cycleLevel();
   if (key === 'm') shared.audio.toggleMute();
   carToggleKey(key);
+  // ?hudlean: no clearing the marks, no changing the track or the car once the session runs
+  if (FIX.hudlean) return;
+  if (key === 'c') game.marks.clear();
+  if (key === 'l') cycleLevel();
   const index = '12345'.indexOf(key);
   if (index >= 0) selectCar(CAR_IDS[index]);
   if (key === '[') cycleCar(-1);

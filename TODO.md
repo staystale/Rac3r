@@ -7,6 +7,16 @@ last handover, written on request.
 
 ## Where we are (2026-11-04)
 
+- UNDER TEST (11-04 late): ?hudlean (owner: "remove any in game tuning so no car changing once
+  a race has started remove the button / list also remove tune and clear tyre marks - pause
+  restart and reset can stay") - no car / level chip, no TUNE, no CLEAR, nor their keys (c, l,
+  1-5, [ ]); the RESTART row takes the top-left on a phone (hud/layout.ts). uicheck with it: HUD
+  reachable, no overlaps at 6 sizes (its car-chip tap test skipped under the switch).
+- OWNER 11-04 on the AI DRIVERS sliders: "maybe I don't need the sliders, leave em for now and
+  discuss how it works with me ... maybe I'll ask you to remove them as we don't need normal
+  players having this control". Also: "worse drivers might take risks but not be able to
+  control the car and crash; skilled drivers would take more risks maybe but control the car,
+  crash less and overtake more" - to discuss (the presets move only SKILL today).
 - DEFAULT 11-04 (owner: "ok pass"; the panel kept for now - owner: "leave em for now and
   discuss how it works with me ... maybe I'll ask you to remove them"): aisliders (AI rework R3 + K15; the owner's OK'd mockup, "leave it as
   is and let me test") - test setup AI DRIVERS > (menu/aidrivers.ts): the five difficulties as

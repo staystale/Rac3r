@@ -40,6 +40,7 @@ import { drawHudLapTimer } from './hud/laps.ts';
 import { drawHudPedals, drawHudDevReadout, drawHudFps } from './hud/controls.ts';
 import { drawHudMinimap } from './hud/minimap.ts';
 import type { HudState, HudCar, ScreenPoint, HudGame } from './hud/hudtypes.ts';
+import { FIX } from './core/fixes.ts';
 
 // the pieces hud.ts itself hides on the player's choice (the minimap and the progress bar live in
 // hud/minimap.ts, the tyre diagram is state.tyreHud), and where each choice is remembered
@@ -143,8 +144,11 @@ export function createHud() {
     const car = game.car;
     const spec = car.spec;
 
-    drawHudCarChip(ctx, state, rects, spec);
-    drawHudTuneChip(ctx, state, rects);
+    // ?hudlean: no car / level list and no TUNE once the session is running
+    if (!FIX.hudlean) {
+      drawHudCarChip(ctx, state, rects, spec);
+      drawHudTuneChip(ctx, state, rects);
+    }
     drawHudAids(ctx, state, rects, car, spec, wallDt);
     drawHudIndicators(ctx, rects, car);
     if (state.tuneOpen) drawHudTune(ctx, state, rects, car);
