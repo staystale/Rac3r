@@ -16,7 +16,7 @@ const WIDE = +(debugValue("WIDE") ?? 0.8), WIDE_SLOW = 2.5;
 const START_GAP = 1.3;
 
 /**
- * An obstacle off the road is not in the way - unless it is a standing post (?dodgefar: a car off
+ * An obstacle off the road is not in the way - unless it is a standing post (a car off
  * the road steers round a lamp post too).
  * @param obstacle the obstacle
  * @param offCentre its m off the road's middle
@@ -50,7 +50,7 @@ export function obstacleStep(drv: Drv, car: AiCar, ctx: DriveCtx, path: AiPath, 
       const pos = idx(nearIdx + Math.round(fwd / path.sp)), pathPt = pts[pos], obstLat = (
           obstacle.x - pathPt.x) * -Math.sin(pathPt.h) + (obstacle.y - pathPt.y) * Math.cos(
           pathPt.h);
-      // off the road: not in the way (?dodgefar: a standing post is, to a car off the road too)
+      // off the road: not in the way (a standing post is, to a car off the road too)
       if (offRoadSkip(obstacle, onLine + obstLat, path === main ? line.hw + 0.5 : 6)) continue;
       if (Math.abs(obstLat - myLat) < obstacle.r + OBST_CLEAR && (
           !best || fwd < best.f)) best = {

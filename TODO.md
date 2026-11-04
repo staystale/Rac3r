@@ -13,7 +13,7 @@ last handover, written on request.
   restart and reset can stay") - no car / level chip, no TUNE, no CLEAR, nor their keys (c, l,
   1-5, [ ]); the RESTART row takes the top-left on a phone (hud/layout.ts). uicheck with it: HUD
   reachable, no overlaps at 6 sizes (its car-chip tap test skipped under the switch).
-- UNDER TEST (11-04 late): ?dodgefar (owner: "nudge up dodging? so drivers look and swerve slightly
+- DEFAULT 11-04 (owner: "ok pass"): dodgefar (owner: "nudge up dodging? so drivers look and swerve slightly
   further ahead but still a gradient with skill"; "make them avoid lamppost too in case they end up
   off track") - cars read 0.8 (skill 0) .. 2.1 s (skill 1) ahead (was 0.6 .. 1.6), loose objects
   0.3 s further (ai/dodge.ts); standing lamp posts within 45 m join each AI's obstacles (game/ai.ts)

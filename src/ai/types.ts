@@ -113,7 +113,7 @@ export interface LooseObstacle {
   x: number;
   y: number;
   r: number;
-  fixed?: boolean;   // ?dodgefar: a standing post (a lamp): seen off the road too
+  fixed?: boolean;   // a standing post (a lamp): seen off the road too
 }
 
 // What decideJoker is told: the driver's ctx plus its own car.

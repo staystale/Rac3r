@@ -9,7 +9,7 @@
 // menustyle, testgarage, ai10, k12, resetin, belly, agtyre, ai20, aifast, aisafe passed 11-03;
 // drycover, rimsoft, bushmark, leafpop, aireact, skillband,
 // bhquiet, aiweave, jokerflow, aisliders, hudlean, aibands, puffroom, aigrip,
-// aidodge, ailines, ailook passed 11-04.)
+// aidodge, ailines, ailook, dodgefar passed 11-04.)
 import { envValue } from './debug.ts';
 
 /**
@@ -40,8 +40,4 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
-  // ?dodgefar=1: the AI reads the cars 0.8 (skill 0) .. 2.1 s (skill 1) ahead, was 0.6 .. 1.6, and
-  // loose objects 0.3 s further, and sees standing lamp posts, off the road too (ai/dodge.ts,
-  // game/ai.ts; owner 11-04)
-  dodgefar: atLoad('dodgefar'),
 };

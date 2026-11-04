@@ -13,7 +13,6 @@ import { startHeld, carHeld, atPace, formationWant } from './order.ts';
 import { RESET_BACK, RESET_ANG } from './session.ts';
 import { shared, game } from './state.ts';
 import { activeLamps } from '../world/lamps.ts';
-import { FIX } from '../core/fixes.ts';
 import type { AiEntry, HurtEntry } from './state.ts';
 import type { CarInput } from '../vehicle.ts';
 import type { RaceFlow } from '../raceflow.ts';
@@ -98,13 +97,11 @@ export function refreshAIObstacles(entry: AiEntry, dt: number) {
       .filter((obj) => (obj.x - car.x) ** 2 + (obj.y - car.y) ** 2 < near2
         && !(obj.kind === 'banger' || obj.kind === 'caravan'))
       .map((obj) => ({ x: obj.x, y: obj.y, r: obj.r }));
-    // ?dodgefar (owner 11-04: "make them avoid lamppost too in case they end up off track"): the
-    // standing lamp posts near it, steered round off the road too
-    if (FIX.dodgefar) {
-      for (const lamp of activeLamps()) {
-        if (lamp.down || (lamp.x - car.x) ** 2 + (lamp.y - car.y) ** 2 >= near2) continue;
-        entry.obs.push({ x: lamp.x, y: lamp.y, r: lamp.solid.r ?? 0.3, fixed: true });
-      }
+    // the standing lamp posts near it, steered round off the road too (owner 11-04: "make them
+    // avoid lamppost too in case they end up off track")
+    for (const lamp of activeLamps()) {
+      if (lamp.down || (lamp.x - car.x) ** 2 + (lamp.y - car.y) ** 2 >= near2) continue;
+      entry.obs.push({ x: lamp.x, y: lamp.y, r: lamp.solid.r ?? 0.3, fixed: true });
     }
   }
   entry.obsT! -= dt;
