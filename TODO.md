@@ -19,7 +19,8 @@ last handover, written on request.
   apex shifts only 409 (no gain), with the moves across 578 (WORSE). The last-moment dodge (R5)
   already does the stopped car better: a line chosen on arrival is wrong once the car is shoved,
   and a whole-corner move runs the line where it should not. Owner to say how to go on.
-- UNDER TEST (11-04 late): ?markjump (owner: "a rim mark appeared after I reset my car / on soft
+- NOTHING UNDER TEST (11-04 late). DEFAULT 11-04 (owner: "mark jump pass for now unless I see it
+  again" - WATCH for it): markjump (owner: "a rim mark appeared after I reset my car / on soft
   surfaces like it shouldn't", a phone shot) - MEASURED (_resetmark.mjs, _aireset.mjs): the player's
   RESET draws nothing after (rims cleared, 0 stamps, 0 cells worn, also with two tyres on the rim);
   an AI RESET (game/ai.ts aiReset) stroked each wheel's mark from its old spot to its new one -

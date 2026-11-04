@@ -50,13 +50,5 @@ export const TEST_LIST: TestEntry[] = [
   // drycover, rimsoft, bushmark, leafpop passed 2026-11-04; aireact (AI R1), skillband, bhquiet,
   // aiweave (AI R2), jokerflow, aisliders (AI R3), hudlean,
   // aibands, puffroom, aigrip (AI R4 part 1), aidodge (AI R5),
-  // ailines, ailook, dodgefar passed 2026-11-04)
-  {
-    id: 'markjump',
-    added: '2026-11-04',
-    name: 'No mark streak from where a car was to where a reset puts it',
-    where: 'Test link + &markjump=1: a big field (AI crash and reset); your own RESET',
-    try: 'Watch the ground where cars are reset, on grass / dirt especially.',
-    wrong: 'A long straight mark across the ground to a reset car; marks missing when driving.',
-  },
+  // ailines, ailook, dodgefar, markjump passed 2026-11-04)
 ];

@@ -9,7 +9,6 @@
 // (the previous wheel positions, the stamp count and the layer origin) in ONE state object and
 // returns the public layer; every step is a module-level function that takes that context.
 
-import { FIX } from "./core/fixes.ts";
 import { FENCE, FX0, FX1, FY0, FY1, RUNOFF_W } from "./world/bounds.ts";
 import { COL } from "./world/colours.ts";
 import { fxRandom } from "./render/shared.ts";
@@ -388,7 +387,7 @@ function dropRubberBall(markCtx: MarkCtx, wheel: MarkWheel, from: number[], dest
   }
 }
 
-// ?markjump: m a wheel moves in one step that is a teleport, not driving (world/wear.ts uses 3)
+// m a wheel moves in one step that is a teleport, not driving (world/wear.ts uses 3)
 const JUMP_M = 3;
 
 /**
@@ -423,10 +422,10 @@ function stampWheel(markCtx: MarkCtx, wheel: MarkWheel) {
   // not far enough yet: keep prev
   const moved = Math.hypot(wheel.x - last.x, wheel.y - last.y);
   if (moved < STAMP_STEP) return;
-  // ?markjump (owner 11-04: a mark "appeared after I reset my car"): a wheel that JUMPED (a reset,
+  // (passed 11-04; owner: a mark "appeared after I reset my car") a wheel that JUMPED (a reset,
   // a relocate: farther than any wheel goes in a step) starts a new mark there - it was stroked
   // from where it had been, across the ground in between (the wear has the same 3 m guard)
-  if (FIX.markjump && moved > JUMP_M) {
+  if (moved > JUMP_M) {
     prev.set(wheel.key, { x: wheel.x, y: wheel.y });
     return;
   }
