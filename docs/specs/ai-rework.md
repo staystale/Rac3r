@@ -24,7 +24,7 @@ race without performance issues, the PHONE first (laptop too). Every round below
 R0 `ai20` + `aifast` + `aisafe` (DONE 11-03, the default; phone: 20 AI at sim 2 / draw 2 ms a frame): up to 20 AI, ten more liveries; the resting-object
 skip and the far-puff skip (simhash SAME). The phone run sets the budget for R1.
 
-R1 REACTION TIME (M; `?aireact` under test 11-04: the steering is NOT glided - MEASURED, a
+R1 REACTION TIME (M; DONE 11-04, the default: the steering is NOT glided - MEASURED, a
 held or glided wheel lost 0.5-0.8 s a lap at Naffcar - the hands steer every step onto the line
 the last think chose; skill by difficulty `?skillband` with it, owner 11-04) - the driver thinks every 2-4 steps instead of every step, BY SKILL: a top
 driver every 1/60 s, a weak one every 1/30 s, staggered round the field so they never all think

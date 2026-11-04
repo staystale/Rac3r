@@ -21,9 +21,7 @@ import { roadDriver } from "./weaver.ts";
 import { createAttackSteps, createRaceMoves } from "./racecraft.ts";
 import { createHandbrakeStep, createSlideStep } from "./driverSteps.ts";
 import { drive as driveTick, steerNow } from "./driverDrive.ts";
-import { withReaction, ctxOf } from "./reaction.ts";
-import type { CtxOrMaker } from "./reaction.ts";
-import { FIX } from "../core/fixes.ts";
+import { withReaction } from "./reaction.ts";
 import type { Drv } from "./driverCtx.ts";
 import type { Level } from "../world/types.ts";
 import type {
@@ -94,8 +92,8 @@ export type AIDriver = ReturnType<typeof createAIDriver>;
 
 /**
  * A driver as the game drives it: its drive takes the context or a maker of it (made only when
- * it thinks); ?aireact (R1) gives it a reaction time by skill (ai/reaction.ts) - relocate also
- * makes it think at once.
+ * it thinks), with a reaction time by skill (ai/reaction.ts; the AI rework R1, passed 11-04) -
+ * relocate also makes it think at once.
  * @param driver the circuit or highway driver
  * @param traits its traits (skill, seed)
  * @param steer the hands between thinks (the circuit driver), if it has them
@@ -104,10 +102,6 @@ export type AIDriver = ReturnType<typeof createAIDriver>;
 function reacting<D extends { drive: (car: AiCar, dt?: number, ctx?: DriveCtx) => DriveInput;
   relocate: () => void }>(driver: D, traits: { skill: number; seed: number },
   steer?: (car: AiCar) => number | null) {
-  if (!FIX.aireact) {
-    return { ...driver, drive: (car: AiCar, dt = 1 / 120, ctx: CtxOrMaker = {}) => (
-      driver.drive(car, dt, ctxOf(ctx))) };
-  }
   const react = withReaction(driver.drive, traits.skill, traits.seed || 4242, steer);
   return { ...driver, drive: react.drive,
     relocate: () => { driver.relocate(); react.forget(); } };

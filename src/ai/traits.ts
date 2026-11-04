@@ -1,6 +1,5 @@
 // ai/traits.js — the 5 difficulties, the personalities and aiTraits (from aidriver.js).
 import type { Difficulty, Traits } from "./types.ts";
-import { FIX } from "../core/fixes.ts";
 
 // ---- the 5 difficulties (PLAN.md §4): the CENTRE of the field's spread. pace = fraction of the
 // profile; lineQ = how much of the racing line's width they use (the rest: nearer the middle);
@@ -36,11 +35,11 @@ const PERSONAS = [
   { id: 'defensive', pace: -0.005, skill: +0.1, aggression: 0.25, defence: 0.9 },
   { id: 'balanced', pace: 0, skill: 0, aggression: 0.5, defence: 0.5 },
 ];
-// ?skillband (owner 11-04: "less skilled at lower difficulties and more skilled at higher ... it
-// should vary over the grid ... like real life, smaller championships have less skilled drivers
-// than national events"): the field's SKILL centre by difficulty, Mobile .. Real; each driver
-// keeps its persona's offset and its own spread round it, so the fields overlap. Realish (the
-// default) keeps 0.5.
+// SKILL BY DIFFICULTY (owner 11-04: "less skilled at lower difficulties and more skilled at
+// higher ... it should vary over the grid ... like real life, smaller championships have less
+// skilled drivers than national events"): the field's SKILL centre by difficulty, Mobile ..
+// Real; each driver keeps its persona's offset and its own spread round it, so the fields
+// overlap. Realish (the default) keeps 0.5.
 const SKILL_CENTRE = [0.3, 0.4, 0.5, 0.6, 0.7];
 
 export function aiTraits(diffIndex: number, i: number, fieldSize: number, seed = 1): Traits {
@@ -51,7 +50,7 @@ export function aiTraits(diffIndex: number, i: number, fieldSize: number, seed =
     return rngState / 2147483647;
   };
   const persona = PERSONAS[(i + Math.floor(seed)) % PERSONAS.length];
-  const centre = FIX.skillband ? SKILL_CENTRE[Math.max(0, Math.min(4, diffIndex | 0))] : 0.5;
+  const centre = SKILL_CENTRE[Math.max(0, Math.min(4, diffIndex | 0))];
   const skill = Math.max(0, Math.min(1, centre + persona.skill + (rnd() - 0.5) * 0.3));
   const loose = 1.4 - skill * 0.8;   // 0.6 (skill 1) .. 1.4 (skill 0)
   return {

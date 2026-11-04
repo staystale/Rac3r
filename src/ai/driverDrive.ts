@@ -120,7 +120,7 @@ export function drive(drv: Drv, car: AiCar, dt = 1 / 120, ctx: DriveCtx = {}) {
 }
 
 /**
- * ?aireact: the HANDS between thinks - the steering recomputed from where the car is now, onto
+ * The HANDS between thinks - the steering recomputed from where the car is now, onto
  * the line and lateral target the last think chose (MEASURED 11-04: holding or gliding the
  * steering for 1/40-1/30 s lost 0.5-0.8 s a lap at Naffcar; with the steering fresh, nothing).
  * @param drv the driver context

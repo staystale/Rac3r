@@ -47,21 +47,14 @@ export const TEST_LIST: TestEntry[] = [
   // puffpool, tyrehealth, pitsolid, muscletyres,
   // namefix, bhbridges, menustyle, testgarage, ai10, k12 passed
   // 2026-11-03; resetin, belly, agtyre, ai20, aifast, aisafe passed 2026-11-03; specsheet removed;
-  // drycover, rimsoft, bushmark, leafpop passed 2026-11-04)
+  // drycover, rimsoft, bushmark, leafpop passed 2026-11-04; aireact (AI R1), skillband passed
+  // 2026-11-04)
   {
-    id: 'aireact',
+    id: 'bhquiet',
     added: '2026-11-04',
-    name: 'AI reaction time: better drivers react quicker; less work a frame',
-    where: 'Test link + &aireact=1: any circuit, 20 AI (&report=1 for the numbers)',
-    try: 'Race a full field; watch starts, braking, dodging, side by side.',
-    wrong: 'AI slower, twitchy, late on the brakes, or more crashes than before.',
-  },
-  {
-    id: 'skillband',
-    added: '2026-11-04',
-    name: 'AI skill follows difficulty, still varied over the grid',
-    where: 'Test link + &skillband=1: setup, AI difficulty Mobile then Real',
-    try: 'Race on Mobile, then Real; compare the field.',
-    wrong: 'Mobile as tidy as Real, or every car at Real driving the same.',
+    name: 'Brands Snatch road bridges: no traffic crossing',
+    where: 'Test link + &bhquiet=1: Brands Snatch (GP loop bridges)',
+    try: 'Drive under both road bridges.',
+    wrong: 'Cars still popping in / out on a bridge, or the bridge missing.',
   },
 ];

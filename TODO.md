@@ -7,14 +7,18 @@ last handover, written on request.
 
 ## Where we are (2026-11-04)
 
-- UNDER TEST (11-04): ?aireact (AI rework R1) - an AI thinks every 1/60 s (skill 1) .. 1/30 s
+- NOTHING UNDER TEST (11-04 later).
+- DEFAULT 11-04 (owner: "mostly good ... generally ok"; switches and old paths deleted;
+  highway pacesuite with it: mean 125.2 -> 126.7 km/h, racer contact 383 -> 342, no wrecks):
+  aireact (AI rework R1) - an AI thinks every 1/60 s (skill 1) .. 1/30 s
   (skill 0), staggered; pedals glide between thinks, the HANDS steer every step onto the line the
   last think chose (holding / gliding the steering lost 0.5-0.8 s a lap at Naffcar; hands: none).
   Lone car laps same; 4 circuits x 6 seeds x 3 difficulties: best laps within noise, contact /
   incidents / passes noise both ways. 20 AI, CPU x4 (_aiprof): thinking 3.3 -> 2.1 ms a step,
   sim 14.0 -> 12.3 ms a step. ?skillband (owner 11-04) - skill centred by difficulty, Mobile 0.3
   .. Realish 0.5 (default, unchanged) .. Real 0.7, spread by persona + chance (Mobile 0.04-0.72,
-  Real 0.44-1.00); Mobile incidents 70 -> 91 (6 seeds), Real same (12 seeds). Tools:
+  Real 0.44-1.00); Mobile incidents 70 -> 91 (6 seeds), Real same (12 seeds). Owner 11-04: "maybe
+  more skilled drivers can avoid collisions even more" -> R5 (dodging by skill). Tools:
   tools/scratch/_reactab.mjs (TOGGLE=, SEEDS=), _skills.mjs, _aiprof Q=.
 - DEFAULT 11-03 (owner: pass; every switch and old path deleted, each proved against its tested
   switch - simhash SAME, menucheck, phone shots): REAL CARS (every car on its real counterpart,
@@ -40,7 +44,7 @@ last handover, written on request.
   tab, a fresh page) did not come back; laptop at the phone's size (_memprobe) found no leak
   (canvases ~90 MB + JS 35 MB, flat). Owner waived simhash for this round; plain link checked
   with 20 AI, no page errors.
-- THE AI REWORK design: docs/specs/ai-rework.md (rounds R0-R7) - owner OK 11-04; R1 under test.
+- THE AI REWORK design: docs/specs/ai-rework.md (rounds R0-R7) - owner OK 11-04; R0, R1 done.
 - DEFAULT 11-04 (owner: "Pass"; switches and old paths deleted): drycover - oil / glass / radiator drips never DRAWN
   on a dry track (render/glfield.ts draw skipped the whole field with no weather cover; the
   cells were there and slippery; leaks themselves fine: _leakwatch 4 radiators / 21 cars a min,

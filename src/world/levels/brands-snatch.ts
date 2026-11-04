@@ -6,6 +6,7 @@ import { prepBumps } from "../terrain.ts";
 import { onTrack, querySubtrack } from "../tyrewall.ts";
 import { ss01, trackKit } from "./kit.ts";
 import { CIRCUIT_BUSHES } from "./bushes.ts";
+import { FIX } from "../../core/fixes.ts";
 import type { Point, Lane, Trap, Cone, Prop, Barrier, Bump, Subtrack } from "../types.ts";
 // =============================================================================================
 // BRANDS SNATCH — parody of Brands Hatch (Kent). Built. Decisions (user): BOTH layouts
@@ -333,7 +334,7 @@ function brandsBridges(
     const span = sub.width + BH_BRIDGE_SPAN;
     const prop = kit0.prop(dOf(bridge.at[0], bridge.at[1]), 0, { kind: bridge.kind, wid: span,
       rot: Math.PI / 2, seed: bridge.at[0], ...(bridge.label ? { label: bridge.label } : {}),
-      ...(bridge.kind === 'bridge' ? { carries: 'road' } : {}) });
+      ...(bridge.kind === 'bridge' ? { carries: 'road', quiet: FIX.bhquiet } : {}) });
     props.push(prop);
     if (bridge.kind !== 'bridge') continue;
     const dirX = Math.cos(prop.rot!), dirY = Math.sin(prop.rot!), end = span / 2 + 2;

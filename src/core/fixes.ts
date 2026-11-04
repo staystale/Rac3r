@@ -7,7 +7,7 @@
 // aicool, smokeearly, airfx, smokelinger, aidust, realcars, jokerhint, puffpool, pitsolid,
 // muscletyres, namefix, bhbridges,
 // menustyle, testgarage, ai10, k12, resetin, belly, agtyre, ai20, aifast, aisafe passed 11-03;
-// drycover, rimsoft, bushmark, leafpop passed 11-04.)
+// drycover, rimsoft, bushmark, leafpop, aireact, skillband passed 11-04.)
 import { envValue } from './debug.ts';
 
 /**
@@ -38,11 +38,7 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
-  // ?aireact=1: the AI rework R1 - an AI driver thinks every 1/60 s (skill 1) .. 1/30 s (skill 0),
-  // staggered round the field, its controls gliding between thinks (ai/reaction.ts); the game
-  // builds a driver's list of the other cars only when it thinks (game/ai.ts aiWant)
-  aireact: atLoad('aireact'),
-  // ?skillband=1: the AI's skill centred by difficulty - Mobile 0.3 .. Realish 0.5 .. Real 0.7 -
-  // each driver still spread round it by persona and chance (ai/traits.ts; owner 11-04)
-  skillband: atLoad('skillband'),
+  // ?bhquiet=1: Brands Snatch's two road bridges carry no traffic (the cars popped in and out at
+  // the ends of the short approaches; render/props/bridges.ts; owner 11-04)
+  bhquiet: atLoad('bhquiet'),
 };

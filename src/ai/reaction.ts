@@ -1,10 +1,11 @@
-// ai/reaction.ts - REACTION TIME (?aireact, the AI rework R1; docs/specs/ai-rework.md). A driver
-// THINKS every THINK_TOP s (skill 1) .. THINK_WEAK s (skill 0) instead of every physics step, its
-// first think staggered by its seed so the field never all thinks on the same step; between
-// thinks its pedals and steering GLIDE from where they were to the new aim, reaching it as the
-// next think comes - never a step change (the car rate-limits the steering wheel on top). A real
-// driver reacts in 0.15-0.3 s, so 2-4 steps is well inside it; the thinking (~1/3 of an AI car's
-// cost, MEASURED 11-03) runs 2-4x less often.
+// ai/reaction.ts - REACTION TIME (the AI rework R1, passed 11-04; docs/specs/ai-rework.md). A
+// driver THINKS (line, speed, dodges, attacks) every THINK_TOP s (skill 1) .. THINK_WEAK s
+// (skill 0) instead of every physics step, its first think staggered by its seed so the field
+// never all thinks on the same step; between thinks its pedals GLIDE to the new aim, reaching it
+// as the next think comes, and its HANDS keep steering onto the line the last think chose (a
+// held or glided wheel lost 0.5-0.8 s a lap at Naffcar, MEASURED 11-04; a driver without hands -
+// the highway's - glides the wheel too). A real driver reacts in 0.15-0.3 s, so 2-4 steps is
+// well inside it; the thinking (~1/3 of an AI car's cost, MEASURED 11-03) runs less often.
 import type { AiCar, DriveCtx, DriveInput } from './types.ts';
 
 // s between thinks: a top driver (skill 1), a weak one (skill 0)
