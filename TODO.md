@@ -7,7 +7,18 @@ last handover, written on request.
 
 ## Where we are (2026-11-04)
 
-- NOTHING UNDER TEST (11-04 later).
+- UNDER TEST (11-04 late): ?aiweave (AI rework R2, the weave fix; ai/rejoin.ts) - no scripted
+  wander; a car off its target and not making a move (dodge / attack / cover) rejoins SOFTLY
+  (the steering's lateral error capped 1.2 m skill 0 .. 0.7 m skill 1); the bends ahead are
+  taken for where the car really is and will be, never for its own mistake. MEASURED
+  (_rejoin.mjs, lone car knocked 3 m aside at 6 places): distance lost Thruston 36.5 -> 10.1 m,
+  Brands 28.9 -> 16.7; steer peaks 0.3-0.55 -> 0.06-0.44; swing past the line up to 1.9 m ->
+  ~0 (one mid-corner knock at Brands 1.4 m). Lone laps same. Fields (12 seeds x 4 circuits):
+  Mobile incidents 171 -> 143, contact 755 -> 609 s, passes 551 -> 425; Realish incidents 173
+  -> 172, contact 501 -> 463 s, passes 367 -> 370; best laps same (Real not finished: the run
+  was stopped for low memory). Field runs are NOT deterministic - use 12+ seeds.
+- DEFAULT 11-04 (owner: "quiet bridge pass"): bhquiet - Brands Snatch's two road bridges carry no traffic (owner: the
+  cars "vanish when off the bridge / looks fake"; render/props/bridges.ts prop.quiet).
 - DEFAULT 11-04 (owner: "mostly good ... generally ok"; switches and old paths deleted;
   highway pacesuite with it: mean 125.2 -> 126.7 km/h, racer contact 383 -> 342, no wrecks):
   aireact (AI rework R1) - an AI thinks every 1/60 s (skill 1) .. 1/30 s

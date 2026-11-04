@@ -3,6 +3,7 @@
 import { profileOf } from "./line.ts";
 import { steerAim, profileSpeed, DRIFT_SLIP } from "./driverSteps.ts";
 import type { AiCar } from "./types.ts";
+import type { RejoinAim } from "./rejoin.ts";
 import type { Drv, AiPath } from "./driverCtx.ts";
 
 // throttle kept through a front slide on loose ground (off road, dirt, gravel)
@@ -11,10 +12,11 @@ const DRIFT_BAN = 60;
 
 /** Steering aim, then slip, the held drift, over / understeer and the steer. */
 export function steerSlideStep(drv: Drv, car: AiCar, path: AiPath, nearIdx: number,
-    idx: (pos: number) => number, speed: number, lineOff: number, latT: number) {
+    idx: (pos: number) => number, speed: number, lineOff: number, latT: number,
+    crossMax = Infinity) {
   const { slideStep } = drv;
   // ---- steering: Stanley on the path + latT at the front axle (the bench driver's controller)
-  const { psi, deltaS, LOCK, cap } = steerAim(car, path, nearIdx, idx, speed, latT);
+  const { psi, deltaS, LOCK, cap } = steerAim(car, path, nearIdx, idx, speed, latT, crossMax);
   // OVERSTEER (rear slip past ~10 deg): no cap, so it can countersteer; UNDERSTEER (front past ~8
   // deg): more lock only scrubs, so lift and brake to get the front back (MEASURED: Sweaty Lamb's
   // S at sF 0.27 rad, then a spin at sR -0.78) LOOSE SURFACES (requirement: slow down weirdly on
@@ -63,14 +65,15 @@ export function pedals(drv: Drv, speed: number, targetSpeed: number, thrForce: b
 export function pedalStep(drv: Drv, car: AiCar, path: AiPath, nearIdx: number,
     idx: (pos: number) => number, speed: number, dt: number, prof: ReturnType<typeof profileOf>,
     latT: number, lineOff: number, scale: { push: number, vMul: number, jCap: number,
-    followCap: number, thrForce: boolean }, slide: Slide) {
+    followCap: number, thrForce: boolean, aim?: RejoinAim | null }, slide: Slide) {
   const { traits, main, state, handbrakeStep } = drv;
   const pts = path.pts;
   const { push, vMul, jCap, followCap, thrForce } = scale;
   const { psi, loose, drifting, edgeRoom, under, steer } = slide;
   // ---- SPEED: the profile (it already brakes for what is ahead) x pace x mistakes, capped by
   // the joker approach and traffic
-  let targetSpeed = profileSpeed(main, car, path, nearIdx, idx, speed, prof, latT, lineOff);
+  let targetSpeed = profileSpeed(main, car, path, nearIdx, idx, speed, prof, latT, lineOff,
+    scale.aim);
   targetSpeed = Math.min(targetSpeed * traits.pace * push * vMul, jCap, followCap);
   state.vT = targetSpeed;
   // OFF ROAD / LOOSE (requirement: they still slow down like mad off road / changing surfaces): on

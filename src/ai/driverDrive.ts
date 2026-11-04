@@ -10,6 +10,8 @@ import {
   advance, placeAtStart, mistakeStep, laneStep, battleStep, racecraftStep,
 } from "./driverLane.ts";
 import type { AiCar, DriveCtx } from "./types.ts";
+import { rejoinCross, rejoinAim } from "./rejoin.ts";
+import { FIX } from "../core/fixes.ts";
 import type { Drv, AiPath } from "./driverCtx.ts";
 
 // m: the lateral target never puts the car's centre closer than this to the road edge
@@ -57,7 +59,7 @@ function trafficStep(drv: Drv, car: AiCar, ctx: DriveCtx, path: AiPath, nearIdx:
   // past the usual edge only while going round a car (above)
   const edge = state.t < (state.wideUntil || 0) ? state.wide! : latLim;
   latT = Math.max(-edge, Math.min(edge, lineOff + latT)) - lineOff;
-  return { latT, vMul, prof, followCap };
+  return { latT, vMul, prof, followCap, conflict };
 }
 
 /** One drive tick: the controls for this car from the driver context, or a drive-out move. */
@@ -113,10 +115,15 @@ export function drive(drv: Drv, car: AiCar, dt = 1 / 120, ctx: DriveCtx = {}) {
   // off-road 142 -> 299 car-s, MEASURED). (applied in the SPEED section: every bend ahead within
   // braking distance, not only the "corners" — Naffcar's banked turns are wider than CORNER_R,
   // and tow passes on their inside slid off: off-road 0 -> 14 car-s, MEASURED)
-  const slide = steerSlideStep(drv, car, path, nearIdx, idx, speed, lineOff, latT);
-  state.steerHold = { path, nearIdx, latT, lineOff };
+  // ?aiweave: not making a move -> a soft rejoin, and corners taken for where it really is
+  const moving = traffic.conflict || !!state.atk || !!state.cover;
+  const crossMax = FIX.aiweave && !moving ? rejoinCross(drv.traits.skill) : Infinity;
+  const aim = FIX.aiweave ? rejoinAim(car, path, nearIdx, mistakes.latT,
+    rejoinCross(drv.traits.skill)) : null;
+  const slide = steerSlideStep(drv, car, path, nearIdx, idx, speed, lineOff, latT, crossMax);
+  state.steerHold = { path, nearIdx, latT, lineOff, crossMax };
   return pedalStep(drv, car, path, nearIdx, idx, speed, dt, prof, latT, lineOff,
-      { push, vMul, jCap, followCap, thrForce }, slide);
+      { push, vMul, jCap, followCap, thrForce, aim }, slide);
 }
 
 /**
@@ -130,9 +137,9 @@ export function drive(drv: Drv, car: AiCar, dt = 1 / 120, ctx: DriveCtx = {}) {
 export function steerNow(drv: Drv, car: AiCar): number | null {
   const hold = drv.state.steerHold;
   if (!hold) return null;
-  const { path, nearIdx, latT, lineOff } = hold, size = path.n;
+  const { path, nearIdx, latT, lineOff, crossMax } = hold, size = path.n;
   const idx = (pos: number) => (path.closed ? ((pos % size) + size) % size
     : Math.max(0, Math.min(size - 1, pos)));
   return steerSlideStep(drv, car, path, nearIdx, idx, Math.hypot(car.vx, car.vy), lineOff,
-    latT).steer;
+    latT, crossMax).steer;
 }

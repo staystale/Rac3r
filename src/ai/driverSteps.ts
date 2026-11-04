@@ -4,6 +4,8 @@ import { debugValue } from "../core/debug.ts";
 import { GRAVITY } from "../cars.ts";
 import { K_BRAKE, carGrip } from "./line.ts";
 import type { profileOf } from "./line.ts";
+import { lateralAhead } from "./rejoin.ts";
+import type { RejoinAim } from "./rejoin.ts";
 import type { AiCar, CircuitState, RacingLine, Traits } from "./types.ts";
 
 // handbrake turns: apex R (m, + HB_LOOSE on loose ground), corner turn (rad), pull (s).
@@ -17,7 +19,7 @@ type AiPath = CircuitState["path"];
 
 /** Stanley steering aim at the front axle: heading error, demand, lock and cap. */
 export function steerAim(car: AiCar, path: AiPath, nearIdx: number,
-    idx: (pos: number) => number, speed: number, latT: number) {
+    idx: (pos: number) => number, speed: number, latT: number, crossMax = Infinity) {
   const pts = path.pts, spec = car.spec;
   const cosH = Math.cos(car.heading), sinH = Math.sin(car.heading);
   const frontX = car.x + cosH * spec.lf, frontY = car.y + sinH * spec.lf;
@@ -33,8 +35,9 @@ export function steerAim(car: AiCar, path: AiPath, nearIdx: number,
   const look = Math.round((2 + speed * 0.15) / path.sp), ahead = pts[idx(frontIdx + look)],
       frontPt = pts[frontIdx];
   let psi = ahead.h - car.heading; psi = Math.atan2(Math.sin(psi), Math.cos(psi));
-  const cross = (frontX - frontPt.x) * -Math.sin(frontPt.h) + (frontY - frontPt.y) * Math.cos(
-      frontPt.h) - latT;
+  // (?aiweave: a car rejoining, not making a move, has its error capped - ai/rejoin.ts)
+  const cross = Math.max(-crossMax, Math.min(crossMax, (frontX - frontPt.x) * -Math.sin(frontPt.h)
+      + (frontY - frontPt.y) * Math.cos(frontPt.h) - latT));
   const deltaS = psi + Math.atan2(-1.2 * cross, speed + 2) - 0.03 * (
       car.yawRate - speed * Math.tan(car.delta) / spec.L);
   const muHere = car.surface.mu * spec.mu;
@@ -46,21 +49,27 @@ export function steerAim(car: AiCar, path: AiPath, nearIdx: number,
   return { psi, deltaS, LOCK, cap };
 }
 
-/** The profile speed over the look-ahead, cut for the bends ahead when off the line. */
+/**
+ * The profile speed over the look-ahead, cut for the bends ahead when off the line (?aiweave:
+ * where the car really is and will be - ai/rejoin.ts - not only where it aims).
+ * @returns m/s
+ */
 export function profileSpeed(line: RacingLine, car: AiCar, path: AiPath, nearIdx: number,
     idx: (pos: number) => number, speed: number, prof: ReturnType<typeof profileOf>,
-    latT: number, lineOff: number) {
+    latT: number, lineOff: number, aim: RejoinAim | null = null) {
   const pts = path.pts, spec = car.spec;
 let targetSpeed = Infinity; const span = Math.round((3 + speed * 0.25) / path.sp);
 for (let offset = 0; offset <= span; offset++) targetSpeed = Math.min(
     targetSpeed, prof[idx(nearIdx + offset)]);
-if (path === line && Math.abs(latT) > 0.3) {
+const target = aim ? latT - aim.mistLat : latT;
+const latAt = (dist: number) => (aim ? lateralAhead(aim, target, dist, speed) : latT);
+if (path === line && Math.max(Math.abs(target), aim ? Math.abs(aim.actual) : 0) > 0.3) {
   const brakeDecel = (debugValue("AI_KB") as number || K_BRAKE) * pts[nearIdx].mu * carGrip(
       spec).brakeG * GRAVITY, far = Math.round(
       (speed * speed / (2 * brakeDecel) + 15) / path.sp);
   for (let offset = 0; offset <= far; offset += 2) {
     const pos = idx(nearIdx + offset), bend = pts[pos], x = (
-        lineOff + latT - bend.off!) * bend.turn;
+        lineOff + latAt(offset * path.sp) - bend.off!) * bend.turn;
     if (x > 0.3 && bend.R < 400) {
       const bendSpeed = prof[pos] * Math.sqrt(Math.max(0.4, (bend.R - x) / bend.R));
       targetSpeed = Math.min(

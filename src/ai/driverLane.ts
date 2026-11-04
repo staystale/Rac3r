@@ -5,6 +5,7 @@ import { querySubtrack } from "../world/tyrewall.ts";
 import { K_BRAKE, nearestIdx, profileOf } from "./line.ts";
 import type { AiCar, CarsAcc, CircuitState } from "./types.ts";
 import type { Drv, AiPath } from "./driverCtx.ts";
+import { FIX } from "../core/fixes.ts";
 
 // extra braking grip planned while ATTACKING (late braking into the corner)
 const ATK_KB = 0.12;
@@ -123,7 +124,8 @@ export function laneStep(drv: Drv, car: AiCar, path: AiPath, nearIdx: number, sp
   // (! : the racing line has off at every point)
   const lineOff = path === main ? pts[nearIdx].off! : 0;
   latT += -lineOff * (1 - traits.lineQ);
-  latT += traits.wander * (
+  // (?aiweave: no scripted wander - a driver's deviation comes from its mistakes and its moves)
+  if (!FIX.aiweave) latT += traits.wander * (
       0.6 * Math.sin(state.t * 0.37 + wanderPhaseA) + 0.4 * Math.sin(
       state.t * 0.83 + wanderPhaseB));
   // THE START (requirement: they aim for the racing line a bit too hard at the start of races and

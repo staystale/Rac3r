@@ -182,7 +182,7 @@ export interface Prop {
   phase?: number;   // highway.ts bridges
   cow?: boolean;   // highway.ts road bridges
   cars?: number;   // highway.ts road bridges
-  quiet?: boolean;   // a road bridge with no traffic over it (?bhquiet: Brands Snatch)
+  quiet?: boolean;   // a road bridge with no traffic over it (Brands Snatch's)
   trainEvery?: number;   // highway.ts rail bridges
   cone?: boolean;   // highway.ts foot bridges
   people?: number;   // highway.ts foot bridges

@@ -33,7 +33,7 @@ pedals ramped) - never a step change. A real driver's reaction is 0.15-0.3 s, so
 realistic, and it cuts the thinking cost by 2-4x (~0.6 ms a step at 20). Proof: lap times and
 the field's resets / crashes per lap (aifieldsuite, pacesuite) the same within noise.
 
-R2 THE WEAVE FIX (M) - owner: "go fast, follow the line softly from wherever they are; deviation
+R2 THE WEAVE FIX (M; `?aiweave` under test 11-04, ai/rejoin.ts) - owner: "go fast, follow the line softly from wherever they are; deviation
 only as a RESULT". Out: the scripted sine wander (`ai/driverLane.ts`) and the off-line slow-down
 (`ai/driverSteps.ts`: a car inside the line slows by sqrt((R - x) / R)). In: a car off its line
 aims back to it along a soft rejoin (longer for a calmer / better driver) and takes the corner

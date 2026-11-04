@@ -7,7 +7,8 @@
 // aicool, smokeearly, airfx, smokelinger, aidust, realcars, jokerhint, puffpool, pitsolid,
 // muscletyres, namefix, bhbridges,
 // menustyle, testgarage, ai10, k12, resetin, belly, agtyre, ai20, aifast, aisafe passed 11-03;
-// drycover, rimsoft, bushmark, leafpop, aireact, skillband passed 11-04.)
+// drycover, rimsoft, bushmark, leafpop, aireact, skillband,
+// bhquiet passed 11-04.)
 import { envValue } from './debug.ts';
 
 /**
@@ -38,7 +39,8 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
-  // ?bhquiet=1: Brands Snatch's two road bridges carry no traffic (the cars popped in and out at
-  // the ends of the short approaches; render/props/bridges.ts; owner 11-04)
-  bhquiet: atLoad('bhquiet'),
+  // ?aiweave=1: the AI rework R2 - no scripted wander; a car off its target and not making a
+  // move rejoins SOFTLY (steering error capped by skill), and takes the bends for where it
+  // really is, not where it aims, nor its own mistake (ai/rejoin.ts)
+  aiweave: atLoad('aiweave'),
 };

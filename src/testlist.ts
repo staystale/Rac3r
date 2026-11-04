@@ -47,14 +47,14 @@ export const TEST_LIST: TestEntry[] = [
   // puffpool, tyrehealth, pitsolid, muscletyres,
   // namefix, bhbridges, menustyle, testgarage, ai10, k12 passed
   // 2026-11-03; resetin, belly, agtyre, ai20, aifast, aisafe passed 2026-11-03; specsheet removed;
-  // drycover, rimsoft, bushmark, leafpop passed 2026-11-04; aireact (AI R1), skillband passed
-  // 2026-11-04)
+  // drycover, rimsoft, bushmark, leafpop passed 2026-11-04; aireact (AI R1), skillband, bhquiet
+  // passed 2026-11-04)
   {
-    id: 'bhquiet',
+    id: 'aiweave',
     added: '2026-11-04',
-    name: 'Brands Snatch road bridges: no traffic crossing',
-    where: 'Test link + &bhquiet=1: Brands Snatch (GP loop bridges)',
-    try: 'Drive under both road bridges.',
-    wrong: 'Cars still popping in / out on a bridge, or the bridge missing.',
+    name: 'AI weave fix: no drawn wander; a knocked car rejoins softly at speed',
+    where: 'Test link + &aiweave=1: any circuit, a full field (Thruston, Brands)',
+    try: 'Watch AI off the line (after contact, a pass, a wide exit); nudge one.',
+    wrong: 'AI snaking, snapping back to the line, braking to rejoin, or running off more.',
   },
 ];

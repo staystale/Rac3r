@@ -27,7 +27,7 @@ function drawBridgeRoad(propCtx: PropCtx, prop: Prop, geo: BridgeGeom) {
     paint(x + 0.3, 0, 0.6, 0.6, '#1c1d20');
     paint(x + 1.1, -0.35, 0.5, 0.7, '#f2f2f2');
   }
-  // ?bhquiet (owner 11-04: Brands' road bridges "the cars vanish when off the bridge / looks
+  // QUIET (owner 11-04, passed: Brands' road bridges "the cars vanish when off the bridge / looks
   // fake"): a quiet bridge has no traffic - its road ends a few metres past the deck
   if (prop.quiet) return;
   // TRAFFIC both ways (left-hand: +x in the lane at y +1.6): 1-2 cars per direction, 13-17 m/s,
