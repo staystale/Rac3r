@@ -39,4 +39,8 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
+  // ?aibands=1: the difficulty moves the field's RISK and AGGRESSION with its SKILL, a better
+  // driver in a field takes more risk (ai/tune.ts, ai/traits.ts); AI DRIVERS only with ?dev
+  // (menu/setup.ts; owner 11-04)
+  aibands: atLoad('aibands'),
 };

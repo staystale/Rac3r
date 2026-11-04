@@ -13,6 +13,12 @@ last handover, written on request.
   restart and reset can stay") - no car / level chip, no TUNE, no CLEAR, nor their keys (c, l,
   1-5, [ ]); the RESTART row takes the top-left on a phone (hud/layout.ts). uicheck with it: HUD
   reachable, no overlaps at 6 sizes (its car-chip tap test skipped under the switch).
+- UNDER TEST (11-04 late): ?aibands (owner: "ok" to: difficulty drives skill, risk and aggression
+  together; the sliders out of the player's setup) - presets RISK 0.38 .. 0.5 .. 0.62 and
+  AGGRESSION 0.40 .. 0.5 .. 0.60, Mobile .. Realish .. Real (ai/tune.ts); in a field a driver
+  0.1 skill above the centre takes +0.03 risk (ai/traits.ts SKILL_RISK), the crash cost of risk
+  still on the weak; AI DRIVERS only with ?dev (menu/setup.ts aiPanel). Fields 6 seeds: Mobile
+  incidents 67 -> 70, passes 243 -> 256; Real 83 -> 94 (Naffcar 24 -> 46), passes 156 -> 150.
 - WATCH (11-04, seen once in 4 menucheck runs, 844x390, the MENU DEMO car hatch-rwd stuck at
   v 0.0): "[car sim] car state went bad - recovered with a reset. Cause: vehicle: non-finite
   state [x] = NaN {vLong: NaN, vLat: NaN, slipF: NaN, slipR: 0, FzF: 6989.6}" x3. Not seen on

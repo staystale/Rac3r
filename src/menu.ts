@@ -24,6 +24,7 @@ export interface MenuApi {
   thumbs: () => Record<string, HTMLCanvasElement>;   // the level thumbnails, painted once
   launch: (levelId: string, carId: string, opts?: Record<string, unknown>) => void;   // a session
   daytime: boolean;   // the clock runs (setup shows the time rows)
+  dev: boolean;   // ?dev: developer mode (?aibands: setup shows AI DRIVERS)
   genStage: (options: Partial<StageRecipe>) => Level;   // a generated stage, installed
   // a car's pixel sprite: by id (with a livery) or from a spec (with its wheels or not)
   carSprite: (car: string | Spec, livery?: Livery | null,

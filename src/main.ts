@@ -258,7 +258,7 @@ shared.boot.addEventListener('pointerdown', (event) => {
 addEventListener('keydown', start);
 shared.menu = shared.MENU
   ? createMenu({ thumbs: paintThumbs, launch,
-    daytime: CLOCK.isOn,
+    daytime: CLOCK.isOn, dev: shared.DEV,
     genStage: (options) => installStage(genStage(options)),
       carSprite: (x, livery, wheels) => (typeof x === 'string'
         ? shared.renderer.pixelCarWithWheels(applyLivery(makeCar(x).spec, livery ?? null)) : wheels

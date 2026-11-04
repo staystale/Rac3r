@@ -5,6 +5,8 @@
 // MISTAKES (0.5 = x1). A dial moves the whole field; each driver keeps its own place round it
 // (persona + chance, ai/traits.ts), so a better driver stays better.
 
+import { FIX } from '../core/fixes.ts';
+
 /** The field's AI dials, each 0..1; custom once a dial moved off the difficulty's preset. */
 export interface AiTune {
   skill: number; spread: number; risk: number; aggression: number; defence: number;
@@ -14,6 +16,11 @@ export interface AiTune {
 // the field's SKILL centre by difficulty, Mobile .. Real (owner 11-04: "smaller championships
 // have less skilled drivers than national events"); Realish, the default, 0.5
 export const SKILL_CENTRE = [0.3, 0.4, 0.5, 0.6, 0.7];
+// ?aibands (owner 11-04: "skilled drivers would take more risks maybe but control the car and
+// crash less and overtake more"): the field's RISK and AGGRESSION rise with the difficulty too;
+// Realish keeps 0.5
+export const RISK_CENTRE = [0.38, 0.44, 0.5, 0.56, 0.62];
+export const AGG_CENTRE = [0.4, 0.45, 0.5, 0.55, 0.6];
 
 /**
  * A difficulty's preset dials.
@@ -21,8 +28,9 @@ export const SKILL_CENTRE = [0.3, 0.4, 0.5, 0.6, 0.7];
  * @returns the dials
  */
 export function tuneOf(diff: number): AiTune {
-  return { skill: SKILL_CENTRE[Math.max(0, Math.min(4, diff | 0))], spread: 0.5, risk: 0.5,
-    aggression: 0.5, defence: 0.5, mistakes: 0.5 };
+  const row = Math.max(0, Math.min(4, diff | 0));
+  return { skill: SKILL_CENTRE[row], spread: 0.5, risk: FIX.aibands ? RISK_CENTRE[row] : 0.5,
+    aggression: FIX.aibands ? AGG_CENTRE[row] : 0.5, defence: 0.5, mistakes: 0.5 };
 }
 
 /** The dials as the panel shows them: key, name, what it does. */
