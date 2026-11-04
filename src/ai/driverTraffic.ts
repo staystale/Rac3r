@@ -6,7 +6,8 @@ import { OBST_CLEAR, carGrip, profileOf } from "./line.ts";
 import type { AiCar, CarsAcc, CarsEnv, DriveCtx } from "./types.ts";
 import type { Drv, AiPath } from "./driverCtx.ts";
 import { FIX } from "../core/fixes.ts";
-import { OBJECT_MORE, clearOf, lookAhead, reachOf, swerveCap } from "./dodge.ts";
+import { OBJECT_MORE, clearOf, lookAhead, matchSpeed, reachOf, readBraking, swerveCap }
+  from "./dodge.ts";
 import { blockOn, gapLine, seeCar } from "./gapPick.ts";
 import type { SeenCar } from "./gapPick.ts";
 
@@ -17,7 +18,7 @@ import type { SeenCar } from "./gapPick.ts";
 const WIDE = +(debugValue("WIDE") ?? 0.8), WIDE_SLOW = 2.5;
 // m more room alongside a car while easing from the grid lane onto the line
 const START_GAP = 1.3;
-// m/s under the leading car's speed a car giving way to it drops to (?halfcar)
+// m/s under the leading car's speed a car giving way to it drops to (alongsideCar)
 const YIELD_V = 0.5;
 
 /**
@@ -95,8 +96,8 @@ export function closestPathIdx(drv: Drv, env: CarsEnv, other: AiCar, fwd: number
 /** Goes round (or sits behind) a car ahead that is closing: the dodge target and gap cap. */
 export function followAhead(drv: Drv, acc: CarsAcc, env: CarsEnv, fwd: number, otherLat: number,
     vAlong: number, closeIdx: number) {
-  const { traits, state } = drv;
-  const { car, path, idx, speed, prec, prof, lineOff, latT, latLim, myLat, clear, gapF } = env;
+  const { state } = drv;
+  const { car, speed, lineOff, latT, latLim, myLat, clear, gapF } = env;
   acc.conflict = true;
   // GO ROUND, DON'T QUEUE (requirement: AI still seem to almost queue and wait rather than overtake
   // and avoid blocking cars, even if it's slightly off track): the room to pass may use WIDE m past
@@ -131,20 +132,39 @@ export function followAhead(drv: Drv, acc: CarsAcc, env: CarsEnv, fwd: number, o
     }
   }
   if (!cands.length || (fwd < gapF && Math.abs(otherLat - myLat) < 1.6)) {
-    let capF = vAlong + Math.max(0, fwd - gapF) * 0.7;
-    // ANTICIPATION (prec): the car ahead will slow to (about) the profile where it is now,
-    // so arrive gapF behind at that speed
-    // instead of reacting once it brakes — the nose-to-tail hits in braking zones
-    // (aifieldsuite: ~40 % of contact events)
-    if (prec > 0) {
-      const leadSpeed = Math.min(
-          vAlong, prof[idx(closeIdx + Math.round(6 / path.sp))] * traits.pace),
-          brakeDecel = 0.6 * carGrip(car.spec).brakeG * GRAVITY * (car.surface.mu || 1);
-      capF = Math.min(capF, capF * (1 - prec) + prec * Math.sqrt(
-          leadSpeed * leadSpeed + 2 * brakeDecel * Math.max(0, fwd - gapF)));
-    }
-    acc.followCap = Math.min(acc.followCap, capF);
+    acc.followCap = Math.min(acc.followCap, followCapOf(drv, env, fwd, vAlong, closeIdx));
   }
+}
+
+/**
+ * The speed to follow a car ahead at, with no way round it.
+ * @param drv the driver context
+ * @param env the cars' environment, sized to the car ahead
+ * @param fwd m it is ahead
+ * @param vAlong its m/s along my way
+ * @param closeIdx its point on my path
+ * @returns m/s
+ */
+function followCapOf(drv: Drv, env: CarsEnv, fwd: number, vAlong: number, closeIdx: number) {
+  const { traits } = drv, { car, path, idx, prec, prof, gapF } = env;
+  let capF = vAlong + Math.max(0, fwd - gapF) * 0.7;
+  // ANTICIPATION (prec): the car ahead will slow to (about) the profile where it is now,
+  // so arrive gapF behind at that speed
+  // instead of reacting once it brakes — the nose-to-tail hits in braking zones
+  // (aifieldsuite: ~40 % of contact events)
+  if (prec > 0) {
+    const leadSpeed = Math.min(
+        vAlong, prof[idx(closeIdx + Math.round(6 / path.sp))] * traits.pace),
+        brakeDecel = 0.6 * carGrip(car.spec).brakeG * GRAVITY * (car.surface.mu || 1);
+    capF = Math.min(capF, capF * (1 - prec) + prec * Math.sqrt(
+        leadSpeed * leadSpeed + 2 * brakeDecel * Math.max(0, fwd - gapF)));
+  }
+  // ?brakeread: no way round - keep a speed I can still match it by while it brakes
+  if (FIX.brakeread && env.dec) {
+    const brakeDecel = 0.6 * carGrip(car.spec).brakeG * GRAVITY * (car.surface.mu || 1);
+    capF = Math.min(capF, matchSpeed(vAlong, env.dec, brakeDecel, fwd - gapF));
+  }
+  return capF;
 }
 
 /** A car alongside (or just behind): remember its place and keep a gap from it. */
@@ -154,11 +174,11 @@ export function alongsideCar(drv: Drv, acc: CarsAcc, env: CarsEnv, fwd: number, 
   if (fwd > -2.5) acc.side = acc.side || Math.sign(otherLat - myLat);
   acc.alg.push(otherLat);
   const gapA = 2.4 + START_GAP * startK;
-  // ?halfcar: who OWNS THE LINE (owner 11-04: "if a car has the lead (half a car) over another car
+  // who OWNS THE LINE (passed 11-04; owner: "if a car has the lead (half a car) over another car
   // they have the priority on racing line and the car behind even if it's side by side still
   // yields to it")
   const half = env.car.spec.len / 2, side = Math.sign(otherLat - myLat) || 1;
-  if (FIX.halfcar && fwd <= -half) {
+  if (fwd <= -half) {
     // I lead: my line - only no chopping across it (I hold where I am if my line closes on it)
     if (Math.abs(otherLat - myLat) < gapA && Math.sign(latT - myLat) === side) {
       acc.conflict = true;
@@ -166,7 +186,7 @@ export function alongsideCar(drv: Drv, acc: CarsAcc, env: CarsEnv, fwd: number, 
     }
     return;
   }
-  if (FIX.halfcar && fwd >= half && Math.sign(latT - myLat) === side) {
+  if (fwd >= half && Math.sign(latT - myLat) === side) {
     // it leads and my line is across it: give way - drop in behind it, then take the line
     acc.followCap = Math.min(acc.followCap, vAlong - YIELD_V);
   }
@@ -265,12 +285,16 @@ export function carsStep(drv: Drv, car: AiCar, others: AiCar[], path: AiPath, ne
     const closeIdx = closestPathIdx(drv, env, other, fwd);
     const point = path.pts[closeIdx], otherLat = (other.x - point.x) * -Math.sin(point.h) + (
         other.y - point.y) * Math.cos(point.h);
-    const envO = sizedEnv(env, car, other, point.h);
     const vAlong = other.vx * cosH + other.vy * sinH;
+    const envO = sizedEnv(env, car, other, point.h);
+    if (FIX.brakeread) {
+      envO.dec = readBraking(state.seenV ??= new WeakMap(), other, vAlong, state.t, traits.skill);
+    }
     // (not the car I am attacking: the attack is passing it - going round it as traffic undid the
     // pass, MEASURED circuit fields 118 -> 83 passes)
     const attacked = state.atk && other === state.atk.car;
-    if (FIX.oneai && !attacked) seen.push(seeCar(other, fwd, otherLat, vAlong, point.h));
+    if (FIX.oneai && !attacked) seen.push({ ...seeCar(other, fwd, otherLat, vAlong, point.h),
+      dec: envO.dec });
     noteLeadThreat(drv, acc, env, other, fwd, otherLat, vAlong);
     reactTo(drv, acc, [env, envO], { fwd, otherLat, vAlong, closeIdx, attacked: !!attacked });
   }
@@ -339,6 +363,11 @@ function gapStep(drv: Drv, car: AiCar, acc: CarsAcc, seen: SeenCar[], mine: { my
     const decel = BOXED_BRAKE * carGrip(car.spec).brakeG * GRAVITY * (car.surface.mu || 1);
     acc.followCap = Math.min(acc.followCap, Math.sqrt(Math.max(0, block.v) ** 2
       + 2 * decel * Math.max(0, block.gap - BOXED_GAP_M)));
+    // ?brakeread: and as it slows (ai/dodge.ts matchSpeed)
+    if (FIX.brakeread && block.dec) {
+      acc.followCap = Math.min(acc.followCap, matchSpeed(Math.max(0, block.v), block.dec, decel,
+        block.gap - BOXED_GAP_M));
+    }
   }
   if (Math.abs(lineOff + line) > latLim) { state.wide = room; state.wideUntil = state.t + 1.2; }
 }

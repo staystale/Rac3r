@@ -50,7 +50,7 @@ export const TEST_LIST: TestEntry[] = [
   // drycover, rimsoft, bushmark, leafpop passed 2026-11-04; aireact (AI R1), skillband, bhquiet,
   // aiweave (AI R2), jokerflow, aisliders (AI R3), hudlean,
   // aibands, puffroom, aigrip (AI R4 part 1), aidodge (AI R5),
-  // ailines, ailook, dodgefar, markjump passed 2026-11-04)
+  // ailines, ailook, dodgefar, markjump, halfcar, rejoinlook passed 2026-11-04)
   {
     id: 'hwshare',
     added: '2026-11-04',
@@ -69,19 +69,11 @@ export const TEST_LIST: TestEntry[] = [
       + 'or circuits with fewer passes / more crashes than before.',
   },
   {
-    id: 'halfcar',
+    id: 'brakeread',
     added: '2026-11-04',
-    name: 'Racing rule: half a car ahead owns the line, the car behind gives way',
-    where: 'Test link + &halfcar=1 (with &hwshare=1&oneai=1): any race with AI',
-    try: 'Watch side-by-side battles into corners; get half a car ahead of an AI, take the line.',
-    wrong: 'AI chopping across a car that leads it, or not letting a leader in; more crashes.',
-  },
-  {
-    id: 'rejoinlook',
-    added: '2026-11-04',
-    name: 'AI look before pulling back onto the track (off it, or reset onto its edge)',
-    where: 'Test link + &rejoinlook=1 (with &hwshare=1&oneai=1): any race with AI',
-    try: 'Knock an AI wide, or watch one reset, and come past as it rejoins.',
-    wrong: 'AI pulling across in front of you as it rejoins, or sitting off the track for ages.',
+    name: 'AI read the braking of the car ahead (by skill) - no running into your back',
+    where: 'Test link + &brakeread=1 (with &hwshare=1&oneai=1): a circuit race, AI behind you',
+    try: 'Lead AI into corners and brake early; top difficulty should rarely touch you.',
+    wrong: 'AI still running into your back, or now queueing behind instead of going round.',
   },
 ];

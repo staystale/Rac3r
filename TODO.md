@@ -51,7 +51,20 @@ last handover, written on request.
   same throttle. Now the field keeps station on the POLE's own speed (the pole aims at the pace):
   closest pair 0.71 -> 3.3-3.5 m (old game 2.3-3.1), place slip <= 0.2 m; circuit rolling starts
   (_rollstart.mjs naffcar / stock-car) unchanged, closest 4.06 / 3.66 m (was 3.89 / 3.68).
-- UNDER TEST (11-04 late, with ?hwshare&oneai): ?halfcar - racing's overlap rule (owner: "if a car
+- UNDER TEST (11-04 late, with ?hwshare&oneai): ?brakeread - owner: AI "crash into the back of me
+  coming into a corner a little too often", "don't seem to be great at avoiding even on highest
+  difficulty can we ramp that more", "ai should dodge here n over take". CAUSE (tools/scratch/
+  _reartest.mjs: a careful lead - the bench driver, braking early as a careful player does - with 3
+  AI behind): following assumed the car ahead slows as the AI itself would there (its own profile),
+  so behind an early braker it arrived 4.3 m/s too fast with 0.93 brake on. Now each driver READS
+  the car ahead's braking (its slowing, differenced over 0.1 s), half of it at skill 0 .. all of it
+  at skill 1, and - only where there is no way round (sitting behind, or boxed in) - keeps a speed
+  it can still match it by (ai/dodge.ts readBraking / matchSpeed); with a side free it still goes
+  round. MEASURED rear test (3 tracks x diff 2/4 x 2 seeds): nose-tail touches 389 -> 200, hard
+  (> 3 m/s) 6 -> 7 (those are swerves begun too late, not following); fields incidents 64 -> 48,
+  contact 48 -> 37 s, passes 94 = 94; highway unchanged (weavecheck 0, pacesuite 0 bad).
+- PASSED 11-04 (owner: "that seems way better pass both"), now the default, switches deleted:
+  ?halfcar - racing's overlap rule (owner: "if a car
   has the lead (half a car) over another car they have the priority on racing line and the car
   behind even if it's side by side still yields to it"): half a car or more ahead keeps its line
   (no chopping across: it holds where it is if its line closes on the other); the car behind,

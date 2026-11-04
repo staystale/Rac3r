@@ -63,3 +63,44 @@ export function swerveCap(need: number, room: number, speed: number, vAlong: num
   if (need <= SWERVE_RATE * time) return Infinity;
   return vAlong + SWERVE_RATE * Math.max(0.5, room) / need;
 }
+
+// ?brakeread: the share of the car ahead's braking a driver reads, skill 0 / skill 1 (a top driver
+// sees the brake lights at once; a weak one half of it), and the s a speed is read over
+const READ_WEAK = 0.5, READ_TOP = 1, READ_S = 0.1;
+
+/**
+ * ?brakeread: how fast a car is slowing, as a driver reads it (its speed along my way, kept per
+ * car and differenced over READ_S).
+ * @param seenV the driver's speeds read
+ * @param other the car
+ * @param vAlong its m/s along my way
+ * @param now the driver's clock, s
+ * @param skill the driver's skill, 0..1
+ * @returns m/s/s it slows (0 when it is not)
+ */
+export function readBraking(seenV: WeakMap<object, { v: number; t: number; dec: number }>,
+  other: object, vAlong: number, now: number, skill: number): number {
+  const last = seenV.get(other);
+  if (!last || now - last.t > 1) { seenV.set(other, { v: vAlong, t: now, dec: 0 }); return 0; }
+  if (now - last.t >= READ_S) {
+    const raw = Math.max(0, (last.v - vAlong) / (now - last.t));
+    last.dec += (raw - last.dec) * 0.5;
+    last.v = vAlong;
+    last.t = now;
+  }
+  return last.dec * (READ_WEAK + (READ_TOP - READ_WEAK) * Math.max(0, Math.min(1, skill)));
+}
+
+/**
+ * ?brakeread: the most I may go to still match a car ahead that is slowing, by the gap I have:
+ * I brake at brakeDecel, it at dec - the closing ends where our speeds meet.
+ * @param vAhead its m/s along my way
+ * @param dec how fast it slows, m/s/s
+ * @param brakeDecel how hard I plan to brake, m/s/s
+ * @param gap m I have to close in
+ * @returns m/s
+ */
+export function matchSpeed(vAhead: number, dec: number, brakeDecel: number, gap: number): number {
+  const spare = brakeDecel - dec;
+  return spare <= 0 ? vAhead : vAhead + Math.sqrt(2 * spare * Math.max(0, gap));
+}

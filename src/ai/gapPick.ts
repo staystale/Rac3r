@@ -14,7 +14,8 @@ import { reachOf } from './dodge.ts';
 import type { AiCar } from './types.ts';
 
 /** A car as the gap picker sees it, in my path's frame. */
-export interface SeenCar { fwd: number; lat: number; v: number; across: number; along: number }
+export interface SeenCar { fwd: number; lat: number; v: number; across: number; along: number;
+  dec?: number }   // dec: ?brakeread, how fast it slows (m/s/s)
 
 // lines tried across the room, the bonus for the line already chosen, the swerve cost (a m, + a m
 // per m/s), the verge's cost and the room's step to it (m), the m beside a car that is alongside,
@@ -33,13 +34,13 @@ const REJOIN_STEP_M = 1;
  * @returns its gap (m) and speed (m/s), side = beside me, or null
  */
 export function blockOn(seen: SeenCar[], off: number, half: number, len: number) {
-  let block: { gap: number; v: number; side?: boolean } | null = null;
+  let block: { gap: number; v: number; dec?: number; side?: boolean } | null = null;
   for (const car of seen) {
     const reach = (len / 2 + car.along) + 1;
     if (car.fwd < -reach || Math.abs(car.lat - off) >= car.across + half + MARGIN) continue;
     if (car.fwd < reach) return { gap: 0, v: car.v, side: true };
     const gap = car.fwd - reach + 1;
-    if (!block || gap < block.gap) block = { gap, v: car.v };
+    if (!block || gap < block.gap) block = { gap, v: car.v, dec: car.dec };
   }
   return block;
 }
@@ -62,7 +63,7 @@ function inMirror(seen: SeenCar[], off: number, half: number, speed: number) {
 }
 
 /**
- * ?rejoinlook: whether a car coming back onto the track may cross from where it is to its line -
+ * Whether a car coming back onto the track may cross from where it is to its line -
  * no car on the track arriving (MIRROR_S) on, or alongside on, the lines it would cross (owner
  * 11-04: "make cars look before pulling onto the track"; a car on the track has priority).
  * @param seen the cars seen (my path's frame)

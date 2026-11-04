@@ -281,6 +281,7 @@ export interface CarsEnv {
   speed: number; prec: number; prof: SpeedProfile; lineOff: number;
   latT: number; startK: number; latLim: number; myLat: number; clear: number; gapF: number;
   along?: number;   // the car ahead's reach along my path, m (ai/dodge.ts)
+  dec?: number;     // ?brakeread: how fast the car ahead slows, m/s/s as I read it
 }
 
 // The circuit driver's state (createAIDriver). Fields without a ? are set when it is made.
@@ -308,6 +309,7 @@ export interface CircuitState extends DriveOutState {
   // the corner it is on and its line there (ai/cornerLine.ts)
   clCorner?: number; clB?: number;
   gapBase?: number | null;   // ?oneai: the line through the cars chosen last (ai/gapPick.ts)
+  seenV?: WeakMap<object, { v: number; t: number; dec: number }>;   // ?brakeread: speeds read
   footK?: number;   // the share of the throttle the driver's foot gives (ai/driverFoot.ts)
   atk: Attack | null;
   atkCorner: number;
