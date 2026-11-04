@@ -5,6 +5,8 @@ import { GRAVITY } from "../cars.ts";
 import { OBST_CLEAR, carGrip, profileOf } from "./line.ts";
 import type { AiCar, CarsAcc, CarsEnv, DriveCtx } from "./types.ts";
 import type { Drv, AiPath } from "./driverCtx.ts";
+import { FIX } from "../core/fixes.ts";
+import { clearOf, lookAhead, reachOf, swerveCap } from "./dodge.ts";
 
 // MEASURED (aidrivecheck, HB on/off, Realish + Real, hatch + 4x4): Slidden / Knobhill / Castle Cum
 // within 0.1 s, Sweaty Lamb +0.2..+0.7 s, 6 pulls per 2 min at Slidden, 4 at Sweaty Lamb — it is
@@ -97,6 +99,12 @@ export function followAhead(drv: Drv, acc: CarsAcc, env: CarsEnv, fwd: number, o
       (first, second) => Math.abs(first - myLat) - Math.abs(second - myLat));
   if (cands.length && fwd > 3) {
     acc.dodgeT = cands[0] - latT;
+    // ?aidodge: no time to swerve at this speed -> brake until there is (ai/dodge.ts)
+    if (FIX.aidodge) {
+      const room = fwd - (env.along ?? 2) - car.spec.len / 2;
+      const cap = swerveCap(Math.abs(cands[0] - myLat), room, speed, vAlong);
+      if (cap < Infinity) { acc.followCap = Math.min(acc.followCap, cap); acc.urgent = true; }
+    }
     if (Math.abs(lineOff + cands[0]) > latLim) {
       state.wide = wide;
       state.wideUntil = state.t + 1.2;
@@ -132,10 +140,21 @@ export function alongsideCar(drv: Drv, acc: CarsAcc, env: CarsEnv, fwd: number, 
   }
 }
 
+/**
+ * ?aidodge: a car not racing - stopped or crawling against my speed (a crash, a spin).
+ * @param vAlong its m/s along my way
+ * @param speed my m/s
+ * @returns true when it is not racing
+ */
+const racingNot = (vAlong: number, speed: number) => vAlong < Math.max(5, 0.5 * speed);
+
 /** Notes the nearest car ahead (lead) and the nearest faster one close behind (threat). */
 export function noteLeadThreat(drv: Drv, acc: CarsAcc, env: CarsEnv, other: AiCar, fwd: number,
     otherLat: number, vAlong: number) {
   const { speed, myLat, clear } = env;
+  // ?aidodge: a stopped or crawling car is a hazard to go round, not a car to attack (MEASURED: the
+  // attack committed to a side INTO a car stopped across the road, at racing pace)
+  if (FIX.aidodge && racingNot(vAlong, speed)) return;
   if (fwd > 2.5 && fwd < 22 && Math.abs(otherLat - myLat) < clear + 0.8 && (
       !acc.lead || fwd < acc.lead.f)) acc.lead = {
     c: other, f: fwd, oc: otherLat, vAlong
@@ -155,6 +174,23 @@ export function attackedCar(drv: Drv, acc: CarsAcc, env: CarsEnv, fwd: number, o
   if (fwd < 4.5 && fwd > -4.5) acc.alg.push(otherLat);
 }
 
+/**
+ * ?aidodge: the cars' environment with the other car's real size across my path (not a point).
+ * @param env the cars' environment
+ * @param car my car
+ * @param other the other car
+ * @param pathH my path's heading by it
+ * @returns the environment to read it with
+ */
+function sizedEnv(env: CarsEnv, car: AiCar, other: AiCar, pathH: number): CarsEnv {
+  if (!FIX.aidodge) return env;
+  const reach = reachOf(other, pathH);
+  return { ...env, clear: clearOf(car, reach.across), along: reach.along };
+}
+
+/** The s ahead a driver reads the cars in (?aidodge: by skill; was 1.1 for everyone). */
+const lookFor = (skill: number) => (FIX.aidodge ? lookAhead(skill) : 1.1);
+
 /** Reads the cars around: who leads, who threatens, who is alongside; the dodge and gap cap. */
 export function carsStep(drv: Drv, car: AiCar, others: AiCar[], path: AiPath, nearIdx: number,
     idx: (pos: number) => number, speed: number, prec: number, prof: ReturnType<typeof profileOf>,
@@ -166,17 +202,20 @@ export function carsStep(drv: Drv, car: AiCar, others: AiCar[], path: AiPath, ne
     car, path, nearIdx, idx, speed, prec, prof, lineOff, latT, startK, latLim, myLat, clear, gapF
   };
   const cosH = Math.cos(car.heading), sinH = Math.sin(car.heading);
+  // ?aidodge: the s ahead it reads the cars in, by skill (was 1.1 for everyone)
+  const look = lookFor(traits.skill);
   const acc: CarsAcc = {
     dodgeT: 0, followCap: Infinity, conflict: false, lead: null, threat: null, side: 0, alg: []
   };
   for (const other of others) {
     const relX = other.x - car.x, relY = other.y - car.y, fwd = relX * cosH + relY * sinH,
         lat = -relX * sinH + relY * cosH;
-    if (fwd < -15 || fwd > 8 + speed * 1.1 || Math.abs(lat) > 8) continue;
+    if (fwd < -15 || fwd > 8 + speed * look || Math.abs(lat) > 8) continue;
     // its lateral place relative to MY path
     const closeIdx = closestPathIdx(drv, env, other, fwd);
     const point = path.pts[closeIdx], otherLat = (other.x - point.x) * -Math.sin(point.h) + (
         other.y - point.y) * Math.cos(point.h);
+    const envO = sizedEnv(env, car, other, point.h);
     const vAlong = other.vx * cosH + other.vy * sinH;
     noteLeadThreat(drv, acc, env, other, fwd, otherLat, vAlong);
     if (state.atk && other === state.atk.car) {
@@ -188,8 +227,8 @@ export function carsStep(drv: Drv, car: AiCar, others: AiCar[], path: AiPath, ne
       // (aifieldcheck: ~6 s of contact per 3 laps of 6 cars at Realish). USER (after
       // testing it): "contact is ok … it felt ok before, put it back" — a strict speed-based gap
       // (zero contact, but a procession: 1 position change in 3 laps) was tried and REVERTED.
-      if (speed - vAlong > -0.5 && Math.abs(otherLat - myLat) < clear) {
-        followAhead(drv, acc, env, fwd, otherLat, vAlong, closeIdx);
+      if (speed - vAlong > -0.5 && Math.abs(otherLat - myLat) < envO.clear) {
+        followAhead(drv, acc, envO, fwd, otherLat, vAlong, closeIdx);
       }
     } else if (fwd > -4) {
       alongsideCar(drv, acc, env, fwd, otherLat);

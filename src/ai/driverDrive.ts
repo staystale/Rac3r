@@ -11,6 +11,8 @@ import {
 } from "./driverLane.ts";
 import type { AiCar, DriveCtx } from "./types.ts";
 import { rejoinCross, rejoinAim } from "./rejoin.ts";
+import { FIX } from "../core/fixes.ts";
+import { SWERVE_RATE } from "./dodge.ts";
 import type { Drv, AiPath } from "./driverCtx.ts";
 
 // m: the lateral target never puts the car's centre closer than this to the road edge
@@ -50,7 +52,8 @@ function trafficStep(drv: Drv, car: AiCar, ctx: DriveCtx, path: AiPath, nearIdx:
     ({ vMul, dodgeT, conflict, prof } = racecraftStep(drv, car, path, nearIdx, idx, speed, dt,
         lineOff, latLim, latT, myLat, cars, vMul, dodgeT, conflict, prof));
   } else { state.atk = null; state.cover = null; state.cc = -1; }
-  const rate = state.atk ? 3.5 : 2.5;
+  // (?aidodge: round a car in the way with no time to spare, the swerve's own rate)
+  const rate = state.atk ? 3.5 : FIX.aidodge && cars.urgent ? Math.max(2.5, SWERVE_RATE) : 2.5;
   state.dodge += Math.max(-rate * dt, Math.min(rate * dt, dodgeT - state.dodge)) * (
       conflict ? 1 : 0.5);
   state.follow = followCap < Infinity;

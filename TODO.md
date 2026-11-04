@@ -13,6 +13,18 @@ last handover, written on request.
   restart and reset can stay") - no car / level chip, no TUNE, no CLEAR, nor their keys (c, l,
   1-5, [ ]); the RESTART row takes the top-left on a phone (hud/layout.ts). uicheck with it: HUD
   reachable, no overlaps at 6 sizes (its car-chip tap test skipped under the switch).
+- UNDER TEST (11-04 late): ?aidodge (AI rework R5; owner: skilled drivers avoid collisions more;
+  "do improved dodging first or it's going to increase crashes") - MEASURED (_stopcar.mjs: a car
+  stopped across the racing line past the tightest corner, 6 AI x 3 laps): 11-34 hits at 50-90
+  km/h, the most skilled driver no better (4-14). Causes: a car was a POINT (~2.1 m kept from its
+  centre); one 1.1 s look-ahead for all against a 2.5 m/s swerve; no braking to make the swerve;
+  and the ATTACK logic picked the stopped car as a car to pass and drove into it at racing pace.
+  Now (ai/dodge.ts): a car's real size across my path, 0.6 (skill 0) .. 1.6 s (skill 1) ahead,
+  braking until the swerve fits, a stopped / crawling car never an attack or cover target. Hits
+  Thruston 11 -> 10, Brands 34 -> 8, Castle Cum 32 -> 20; the skilled driver 0 / 1 / 1. Fields (6
+  seeds): Realish incidents 103 -> 106, Real 113 -> 99 (noise both ways). NEXT (owner): lines by
+  driver and corner (habits, a fresh choice per corner for traffic / hazards / the next corner,
+  skill = consistency), CHEAP.
 - DEFAULT 11-04 (owner: "both seems like pass"): aigrip (AI rework R4 part 1, A9 icy starts) - MEASURED
   (_icestart.mjs, Thruston, ice laid over the grid, 6 cars): the AI held full throttle - a muscle
   car's rears spun at 32 m/s at 0.3 m/s, 3-10 m in 10 s, still 9-13 s (reset after 3); then its
