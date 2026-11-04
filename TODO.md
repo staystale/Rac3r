@@ -22,8 +22,15 @@ last handover, written on request.
   at the apex and out). Cost: a lookup + a cosine a step (the windows once per line). MEASURED
   (_lines.mjs ghosts, Thruston 6 x 5 laps): spread between drivers 15 m either side of the apex
   0.10 -> 0.26 m; lap to lap 0.05 m (skill 0.92) .. 0.12-0.25 m (weaker); laps +-0.2 s. Fields (6
-  seeds): Mobile incidents 75 -> 72, Realish 116 -> 115. Next if wanted: a line round fresh oil /
-  glass / debris, the next corner's say.
+  seeds): Mobile incidents 75 -> 72, Realish 116 -> 115.
+  TRIED 11-04 and NOT kept (owner: "yes please" to both; tools/scratch/_oilline.mjs, _lines.mjs):
+  (1) a line round FRESH OIL / GLASS (wear cells read along the line ahead, handed to the loose-
+  object step-round): 4 versions, every one put the field on the oil MORE (9 runs 44.9 -> 62.8 s)
+  - a cell at a time stepped onto the next cell, a circle round a long patch sent it across the
+  road through it, a swerve judged on the swerved line let go into it; a different way needed
+  (owner to say). The AI already SLOWS for oil on its line (its grip map). (2) THE NEXT CORNER (a
+  late apex before a long straight, earlier before a short one): no change, +-0.1 s every driver
+  on 3 circuits - the racing line is built from the whole lap and already allows for it.
 - DEFAULT 11-04 (owner: "they seem to dodge better at harder
   difficulty to me so pass"): aidodge (AI rework R5; owner: skilled drivers avoid collisions more;
   "do improved dodging first or it's going to increase crashes") - MEASURED (_stopcar.mjs: a car

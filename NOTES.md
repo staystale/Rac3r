@@ -335,6 +335,12 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   cells and slippery, but the cover field's draw returned early on a dry day. Check the cells
   (tools/scratch/_leakwatch.mjs) AND a photo (_leakshot.mjs) before touching the sim.
 
+- AI FIELD AND GHOST RUNS ARE NOT DETERMINISTIC (11-04): the same settings gave 3.2 / 4.9 s on an oil
+  patch, 88 / 116 incidents. One run a side is noise: 9+ runs (3 circuits x 3 seeds) before
+  believing a change, and a targeted tool for the behaviour itself (_stopcar, _rejoin, _icestart).
+- The loose-object STEP-ROUND is for small round things: a long ground patch (oil, glass) is not one
+  obstacle, nor one per cell - every way tried put the field on the oil more (TODO 11-04).
+
 ## Routine
 
 - Work in a worktree, never the served clone: `git worktree add -q --detach ../rac3r-wt origin/main`,
