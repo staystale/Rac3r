@@ -46,6 +46,11 @@ last handover, written on request.
   the circuit's formation (ai/formation.ts) runs the highway too, read along the road: lane drift
   <= 0.08 m (the old highway AI 0.24), place slip <= 4.8 m (the same as before - 6 s is too short
   to settle every launch). On a pass also delete game.start.drv (the highway's old start driver).
+  THEN (owner: "can we fix that"): one car ran 4.5 m into the next slot mid-launch - every car aimed
+  at the pace from a standstill, so a driver with more power (traits.power) launched harder at the
+  same throttle. Now the field keeps station on the POLE's own speed (the pole aims at the pace):
+  closest pair 0.71 -> 3.3-3.5 m (old game 2.3-3.1), place slip <= 0.2 m; circuit rolling starts
+  (_rollstart.mjs naffcar / stock-car) unchanged, closest 4.06 / 3.66 m (was 3.89 / 3.68).
 - AI ORDER (owner 11-04): R6 SKIPPED ("doesn't seem like an issue anymore"), R8 one AI
   next (staged plan proposed - stage 1 the shared reflexes; owner to say go), then R7. R4 part 2 (felt
   grip) not needed (measured); weak-driver OVERDRIVE declined - "only push up crashes", not unless

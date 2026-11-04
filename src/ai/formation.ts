@@ -9,6 +9,7 @@ import { querySubtrack } from '../world/tyrewall.ts';
 import type { Subtrack } from '../world/types.ts';
 import { roadFrame, roadPose } from '../highway.ts';
 import { steerCap, steerDemand } from './steerLaw.ts';
+import { FIX } from '../core/fixes.ts';
 import type { AiCar, DriveInput, HighwayLevel } from './types.ts';
 
 // the speed to close on the slot: this many m/s per m of gap, at most FORM_SPREAD m/s either side
@@ -40,14 +41,29 @@ export interface FormationPlace {
  * @returns the controls
  */
 export function formationInput(car: AiCar, driver: ColumnDriver, place: FormationPlace,
-    pole: { x: number; y: number }, sub: Subtrack, paceMps: number): DriveInput {
+    pole: AiCar, sub: Subtrack, paceMps: number): DriveInput {
   const steer = driver.drive(car, 0, { offsetM: place.columnM }).steer;
   const total = sub.totalDist;
   const myDist = querySubtrack(sub, car.x, car.y).trackDist;
   const slotDist = querySubtrack(sub, pole.x, pole.y).trackDist - place.backM;
   let gapM = slotDist - myDist;
   gapM -= Math.round(gapM / total) * total;
-  return { steer, ...slotPedals(car, gapM, paceMps), handbrake: 0 };
+  return { steer, ...slotPedals(car, gapM, stationPace(car, pole, paceMps)), handbrake: 0 };
+}
+
+/**
+ * The speed a car keeps station at: the pace for the pole, the POLE'S OWN SPEED for the rest
+ * (?oneai; owner 11-04: the highway's formation was out of step). MEASURED (_rollhw.mjs): every
+ * car aimed at the pace from a standstill, so a driver with more power (traits.power) launched
+ * harder at the same throttle and ran 4.5 m into the next slot before the gap closing caught it.
+ * @param car the car
+ * @param pole the pole car
+ * @param paceMps the formation's speed, m/s
+ * @returns m/s
+ */
+function stationPace(car: AiCar, pole: AiCar, paceMps: number) {
+  if (!FIX.oneai || pole === car) return paceMps;
+  return Math.min(paceMps, Math.hypot(pole.vx, pole.vy));
 }
 
 /**
@@ -94,6 +110,6 @@ export function roadFormationInput(car: AiCar, place: FormationPlace, pole: AiCa
     car.spec.L);
   const cap = steerCap(car.spec.L, (car.spec.mu || 1) * (car.surface.mu || 1), speed, lock);
   const steer = Math.max(-cap, Math.min(cap, demand / lock));
-  return { steer, ...slotPedals(car, poleAt.s - place.backM - (axle.s - half), paceMps),
-    handbrake: 0 };
+  return { steer, ...slotPedals(car, poleAt.s - place.backM - (axle.s - half),
+    stationPace(car, pole, paceMps)), handbrake: 0 };
 }
