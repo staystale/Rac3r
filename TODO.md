@@ -7,7 +7,19 @@ last handover, written on request.
 
 ## Where we are (2026-11-04)
 
-- NOTHING UNDER TEST (11-04 late). DEFAULT 11-04 (owner: "pass"): jokerflow (owner: "some cars still turn slow for jokers tho rather
+- UNDER TEST (11-04 late): ?aisliders (AI rework R3 + K15; the owner's OK'd mockup, "leave it as
+  is and let me test") - test setup AI DRIVERS > (menu/aidrivers.ts): the five difficulties as
+  presets (CUSTOM once a dial moves), six field dials (ai/tune.ts: skill, spread, risk,
+  aggression, defence, mistakes), the field's skill strip, RESET, BACK; remembered
+  (carsim.aitune). Per driver (ai/traits.ts tunedTraits): RISK (persona + chance round the
+  dial) -> braking grip K_BRAKE + 0.1 x (risk - 0.5), pace +3 % a unit, mistakes x (1 + 1.2 x
+  (risk - 0.5) x (1 - skill)) - a risky weak driver crashes more, a skilled one hardly (owner:
+  "higher skill drivers ... faster and more aggressive and still not crash too much"); SKILL ->
+  pace +6 % a unit over the difficulty's centre, aggression +0.2 a unit, a weak driver's power
+  down to 0.95 at skill 0 (owner: "keep it but not that extreme"). Presets alone ~ as before
+  (fields 6 seeds: Realish incidents 88 -> 86, Real 78 -> 89, noise). "AI should try to avoid
+  crashing, especially high skilled" -> R5.
+- DEFAULT 11-04 (owner: "pass"): jokerflow (owner: "some cars still turn slow for jokers tho rather
   than flowing in / out naturally") - the joker branch was the lane's CENTRELINE glued to the
   line: R 19 m kink in (AI 85 -> 32 km/h), R 18-26 m out (34-41 km/h where the line runs 70-80),
   though Knobhill's lane is 12 m wide. Now its own minimum-curvature line in the road + lane, ends

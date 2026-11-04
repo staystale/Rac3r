@@ -49,4 +49,12 @@ export const TEST_LIST: TestEntry[] = [
   // 2026-11-03; resetin, belly, agtyre, ai20, aifast, aisafe passed 2026-11-03; specsheet removed;
   // drycover, rimsoft, bushmark, leafpop passed 2026-11-04; aireact (AI R1), skillband, bhquiet,
   // aiweave (AI R2), jokerflow passed 2026-11-04)
+  {
+    id: 'aisliders',
+    added: '2026-11-04',
+    name: 'AI DRIVERS panel: skill, spread, risk, aggression, defence, mistakes',
+    where: 'Test link + &aisliders=1: TEST MODE, a track, VS AI, AI DRIVERS',
+    try: 'Move a dial (watch the field strip), BACK, race; try high skill / high risk.',
+    wrong: 'A dial does nothing, the panel loses your choices, or pros crash like rookies.',
+  },
 ];

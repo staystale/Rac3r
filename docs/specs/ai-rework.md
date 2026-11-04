@@ -42,7 +42,7 @@ from what already exists or comes in R3-R5: each driver's own idea of the line (
 overtake, to block, or for the surface), mis-braking (the mistake chance per corner), too much
 speed, felt grip, contact.
 
-R3 SKILL + RISK (B1, B2) and the TEST SLIDERS (K15) (M) - one SKILL (0-1) per driver drives
+R3 SKILL + RISK (B1, B2) and the TEST SLIDERS (K15) (M; `?aisliders` under test 11-04) - one SKILL (0-1) per driver drives
 pace, line precision, mistakes, reaction (R1) and dodging (R5), with a small top-speed loss for
 low skill; a separate RISK (later braking, faster entries, smaller gaps). Test setup gets
 sliders (skill, risk, aggression, defence, mistakes): a slider moves the FIELD, each driver keeps

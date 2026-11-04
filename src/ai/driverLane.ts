@@ -170,7 +170,7 @@ export function racecraftStep(drv: Drv, car: AiCar, path: AiPath, nearIdx: numbe
   if (state.atk) {
     conflict = true;
     dodgeT = state.atk.side * (latLim - 1.0) - lineOff - latT;
-    prof = profileOf(path, spec, main, K_BRAKE + ATK_KB);
+    prof = profileOf(path, spec, main, (drv.traits.kBrake ?? K_BRAKE) + ATK_KB);
   }
   else if (state.cover) {
     conflict = true;

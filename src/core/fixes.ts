@@ -39,4 +39,7 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
+  // ?aisliders=1: the AI rework R3 - SKILL + RISK per driver and the test setup's AI DRIVERS
+  // panel (skill, spread, risk, aggression, defence, mistakes; ai/tune.ts, menu/aidrivers.ts)
+  aisliders: atLoad('aisliders'),
 };

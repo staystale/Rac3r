@@ -13,6 +13,8 @@ for (const k of ['SB', 'SG']) if (process.env[k] != null) globalThis['__' + k] =
 if (process.env.NOATK) globalThis.__NOATK = 1; if (process.env.NOCOV) globalThis.__NOCOV = 1;
 const [lv = 'thruston', carId = 'hatch-rwd', d = '2', nArg = '6', seedArg = '7', lapsArg = '3'] = process.argv.slice(2);
 const N = +nArg, LAPS = +lapsArg, seed = +seedArg;
+// AISLIDERS=1 (?aisliders, R3): the field dealt from the difficulty's preset dials, as the game does
+const TUNE = process.env.AISLIDERS ? (await import('../src/ai/tune.ts')).tuneOf(+d) : undefined;
 L.setLevel(lv); L.clearWear();
 const sub = L.LEVEL.subtrack, total = sub.totalDist, sp = L.LEVEL.spawn, offLap = L.querySubtrack(sub, sp.x, sp.y).dist > sub.width / 2;
 const field = [];
@@ -24,7 +26,7 @@ for (let i = 0; i < N; i++) {
   const d0 = NEW ? L.querySubtrack(sub, sp.x, sp.y).trackDist : total - 15;
   if (offLap) { const ch = Math.cos(sp.heading), sh = Math.sin(sp.heading); reset(car, sp.x - ch * bk - sh * side, sp.y - sh * bk + ch * side, sp.heading); }
   else { const p = L.onTrack(sub, ((d0 - bk) % total + total) % total, side, {}); reset(car, p.x, p.y, p.rot); }
-  field.push({ car, drv: createAIDriver(L.LEVEL, aiTraits(+d, i, N, seed)), prog: null, lastQ: null, laps: [], tl: 0, stuck: 0, resets: 0, off: 0 });
+  field.push({ car, drv: (() => { const dv = createAIDriver(L.LEVEL, aiTraits(+d, i, N, seed, TUNE)); car.mods.power *= dv.traits.power ?? 1; return dv; })(), prog: null, lastQ: null, laps: [], tl: 0, stuck: 0, resets: 0, off: 0 });
 }
 // INCIDENTS (user, 2026-10-07: "an incident should be a full crash or well off track, rubbing is racing ... small contact / track drift is ok"):
 //   WELL OFF  the car's centre > INC_OFF m past the road edge (one per excursion)     SPIN   sliding > 70 deg off its heading above 5 m/s (one per 3 s)

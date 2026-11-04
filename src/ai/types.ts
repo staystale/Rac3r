@@ -32,6 +32,9 @@ export interface Traits {
   aggression: number;
   defence: number;
   seed: number;
+  risk?: number;     // ?aisliders: 0..1, later braking / faster entries
+  kBrake?: number;   // ?aisliders: the braking grip it plans (line.ts K_BRAKE by default)
+  power?: number;    // ?aisliders: its engine power share (a weak driver gives a little away)
 }
 
 // What a driver returns each step (the scripted driver has no reverse).

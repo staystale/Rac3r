@@ -1,6 +1,7 @@
 // menu/menutypes.ts: the shapes the menu screens share - what the session hands the pause and
 // results screens, a race's results, and the setup screen's choices.
 import type { Car } from '../vehicle.ts';
+import type { AiTune } from '../ai/tune.ts';
 
 /** One row of the pause menu's HUD list (game/menuflow.ts hudActions). */
 export interface HudItem { id: string; label: string; on: boolean; locked: boolean; value?: string }
@@ -53,6 +54,7 @@ export interface SetupUi {
   nRow?: HTMLElement; nLbl?: HTMLElement;   // the AI count ticker
   dRow?: HTMLElement; dBtns?: HTMLButtonElement[]; dName?: HTMLElement;
   aRow?: HTMLElement; bCls?: HTMLButtonElement; bSame?: HTMLButtonElement;
+  tRow?: HTMLElement; tLine?: HTMLElement;   // ?aisliders: AI DRIVERS > and its line
 }
 
 /** The setup screen's choices (menu/setup.ts showSetup). */
@@ -69,4 +71,5 @@ export interface SetupState {
   paint: () => void;   // repaints the setup rows
   weather?: { mode: string; season: number };
   time?: number | null;   // the hour the event starts at (null: live; the clock on)
+  aiTune?: AiTune | null;   // ?aisliders: the AI DRIVERS dials (null: the difficulty's preset)
 }

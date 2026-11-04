@@ -132,6 +132,7 @@ export function applyLaunchOptions(levelId: string, opts: LaunchOpts) {
   refreshMinimap();   // the minimap's default follows the difficulty mode
   shared.race.on = !!opts.rx;
   shared.aiCarMode = opts.aiCars === 'class' ? 'class' : 'same';
+  shared.aiTune = opts.aiTune || null;
   shared.raceLaps = Math.max(0, Math.min(10, (opts.laps ?? 0) | 0));
   // WEATHER (setup): the plan and the seed its random stream starts from, so a restart
   // replays the same weather; none = the dry 18 C game

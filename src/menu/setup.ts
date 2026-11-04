@@ -16,6 +16,8 @@ import type { SetupState, SetupUi } from './menutypes.ts';
 import { MENU_COL } from './palette.ts';
 import { MAX_AI } from '../core/settings.ts';
 import { ROSTER } from '../cars.ts';
+import { FIX } from '../core/fixes.ts';
+import { showAiDrivers, storedTune, storeTune, tuneLine } from './aidrivers.ts';
 
 // WEATHER: follow the SEASON (its chances; it can change in the race) or a fixed sky
 const WEATHER_MODES = [['season', 'SEASON'], ['dry', 'DRY'], ['hot', 'HOT'],
@@ -206,6 +208,11 @@ function paintSetupOpponents(state: SetupState) {
   wid.aRow.style.display = state.opponents ? '' : 'none';
   wid.bCls.classList.toggle('on', state.aiCars === 'class');
   wid.bSame.classList.toggle('on', state.aiCars === 'same');
+  if (wid.tRow) {
+    wid.tRow.style.display = state.opponents ? '' : 'none';
+    wid.tLine!.style.display = state.opponents ? '' : 'none';
+    wid.tLine!.textContent = tuneLine(state.diff, state.aiTune || null);
+  }
 }
 
 /**
@@ -329,7 +336,7 @@ function addLaunchButtons(menu: Menu, panel: HTMLElement, level: Level, state: S
     hideMenu(menu);
     menu.api.launch(level.id, profile.active,
       { rx: state.rxRace, ai: state.opponents, diff: state.diff, road: state.road,
-        aiCars: state.aiCars,
+        aiCars: state.aiCars, ...(FIX.aisliders ? { aiTune: state.aiTune || null } : {}),
         ...(state.weather ? { weather: state.weather } : {}),
         ...(state.time !== undefined ? { time: state.time } : {}),
         ...(level.endless ? { traffic: state.traffic, litter: state.litter } : {}),
@@ -373,6 +380,42 @@ function addTimeRows(menu: Menu, panel: HTMLElement, state: SetupState) {
 }
 
 /**
+ * The setup's choices, kept across a visit to another screen (the garage, AI DRIVERS).
+ * @param state the setup state
+ * @returns the choices
+ */
+function setupChoices(state: SetupState): Partial<SetupState> {
+  const { road, traffic, litter, opponents, aiN, diff, aiCars, rxRace, laps, time, aiTune } = state;
+  return { road, traffic, litter, opponents, aiN, diff, aiCars, rxRace, laps, time, aiTune };
+}
+
+/**
+ * ?aisliders: the AI DRIVERS > button (menu/aidrivers.ts) and its line, under the AI rows; the
+ * panel comes back here with every choice kept, its difficulty and dials picked (remembered).
+ * @param menu the menu context
+ * @param panel the setup pane
+ * @param level the chosen level
+ * @param state the setup state (reads / writes diff, aiTune; fills ui)
+ */
+function addAiDriversRow(menu: Menu, panel: HTMLElement, level: Level, state: SetupState) {
+  if (state.aiTune === undefined) state.aiTune = storedTune();
+  state.ui.tRow = addElement(panel, 'div', '', 'row');
+  const button = addButton(menu, state.ui.tRow, 'AI DRIVERS ▸', () => {
+    const choices = setupChoices(state);
+    showAiDrivers(menu, { diff: state.diff, tune: state.aiTune || null, count: state.aiN },
+      (diff, tune) => {
+        try {
+          localStorage.setItem('carsim.aidiff', String(diff));
+        } catch { /* fine */ }
+        storeTune(tune);
+        showSetup(menu, level, { ...choices, diff, aiTune: tune });
+      });
+  });
+  button.style.flex = '1';
+  state.ui.tLine = addElement(panel, 'div', '', 'sub');
+}
+
+/**
  * TEST MODE step 2 (spec §4): the match setup of a level - solo or VS AI, laps, difficulty, the
  * car picker and LAUNCH.
  * @param menu the menu context
@@ -400,6 +443,7 @@ export function showSetup(menu: Menu, level: Level, kept: Partial<SetupState> = 
   addTrafficSliders(menu, panel, level, state);
   addOpponentCountRows(menu, panel, state);
   addDifficultyRows(menu, panel, state);
+  if (FIX.aisliders) addAiDriversRow(menu, panel, level, state);
   state.paint = () => paintSetupOpponents(state);
   state.paint();
   addRxRaceRow(menu, panel, level, state);
@@ -414,8 +458,7 @@ export function showSetup(menu: Menu, level: Level, kept: Partial<SetupState> = 
   addElement(panel, 'div', 'SELECTED CAR', 'sub');
   addElement(panel, 'div', car.name, 'selcar');
   addButton(menu, panel, 'GARAGE ›', () => {
-    const { road, traffic, litter, opponents, aiN, diff, aiCars, rxRace, laps, time } = state;
-    const choices = { road, traffic, litter, opponents, aiN, diff, aiCars, rxRace, laps, time };
+    const choices = setupChoices(state);
     showGarage(menu, () => showSetup(menu, level, choices));
   });
   addLaunchButtons(menu, panel, level, state);

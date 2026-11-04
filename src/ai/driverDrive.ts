@@ -82,7 +82,7 @@ export function drive(drv: Drv, car: AiCar, dt = 1 / 120, ctx: DriveCtx = {}) {
   const lap = ctx.lap || Math.max(1, state.lap), laps = ctx.laps || jLaps;
   const path = state.path, size = path.n, idx = (pos: number) => (
       path.closed ? ((pos % size) + size) % size : Math.max(0, Math.min(size - 1, pos)));
-  const nearIdx = state.i!; let prof = profileOf(path, spec, main);
+  const nearIdx = state.i!; let prof = profileOf(path, spec, main, drv.traits.kBrake);
   const others = ctx.cars || [];
   const push = battleStep(drv, car, others);
   // ---- JOKER: decide once per lap ~220 m before the branch; take it at the switch point
