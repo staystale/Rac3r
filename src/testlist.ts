@@ -58,4 +58,12 @@ export const TEST_LIST: TestEntry[] = [
     try: 'Race in the pack; crash; watch dust trails, tyre smoke and debris.',
     wrong: 'Puffs or debris on screen vanishing early, or the game slower than before.',
   },
+  {
+    id: 'aigrip',
+    added: '2026-11-04',
+    name: 'AI feathers the throttle: icy starts pull away, no reverse-out or reset',
+    where: 'Test link + &aigrip=1: a winter / snow race (frozen grid), or any race',
+    try: 'Start on ice or snow with a field; watch the AI pull away.',
+    wrong: 'AI spinning on the spot, reversing on the grid, reset off the start, or slower starts.',
+  },
 ];

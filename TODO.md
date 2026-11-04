@@ -13,6 +13,15 @@ last handover, written on request.
   restart and reset can stay") - no car / level chip, no TUNE, no CLEAR, nor their keys (c, l,
   1-5, [ ]); the RESTART row takes the top-left on a phone (hud/layout.ts). uicheck with it: HUD
   reachable, no overlaps at 6 sizes (its car-chip tap test skipped under the switch).
+- UNDER TEST (11-04 late): ?aigrip (AI rework R4 part 1, A9 icy starts) - MEASURED
+  (_icestart.mjs, Thruston, ice laid over the grid, 6 cars): the AI held full throttle - a muscle
+  car's rears spun at 32 m/s at 0.3 m/s, 3-10 m in 10 s, still 9-13 s (reset after 3); then its
+  slide FEEL (a slip angle, noise at a crawl) shut the throttle and DRIVE OUT reversed it on the
+  ice. Now: the foot feathers GROSS spin (ai/driverFoot.ts: 2.5 m/s + 2 x (1 - skill) let through,
+  or 25-60 % of road speed), the feel waits for 4 m/s, and drive-out and the game's stuck reset
+  call a car going forwards and gaining 0.08 m/s TRYING. Muscle 5-14 m, hatches 14-33 m (stuck
+  ones 1 -> 14, 0 -> 23); dry launches muscle 99-113 -> 107-122 m, hatch same; RX races (rally,
+  Knobhill + Slidden, 3 seeds) same or 0.2-2 s faster. Part 2 (B3 felt grip) next.
 - UNDER TEST (11-04 late): ?puffroom (owner: "smoke dust and other things still seem to pop out /
   vanish sometimes? can we make that cost less / increase the budget?") - MEASURED Knobhill 60 s
   (_puffwatch, _fxpools): 5 AI never filled the 640 puff pool; 19 AI sat at 640 and cut 1796-3781

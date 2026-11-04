@@ -74,6 +74,7 @@ export type AiDriver = ReturnType<typeof createAIDriver>;
 export interface AiEntry extends FormKeeper {
   car: GameCar; drv: AiDriver;
   stuckT: number; inGate: boolean;
+  stuckFrom?: number;   // ?aigrip: m/s when it went slow (gaining since = trying, not stuck)
   offT?: number;   // seconds off the road
   obs?: LooseObstacle[]; obsT?: number;   // loose objects near it (the driver steers round them)
   hurtWait?: number | null; hurtT?: number;   // a hurt car waiting to be repaired

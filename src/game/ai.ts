@@ -15,6 +15,7 @@ import { shared, game } from './state.ts';
 import type { AiEntry, HurtEntry } from './state.ts';
 import type { CarInput } from '../vehicle.ts';
 import type { RaceFlow } from '../raceflow.ts';
+import { FIX } from '../core/fixes.ts';
 
 // AI RESET (requirement: reset AI should reset like the player's, at the edge of the track):
 // RESET_BACK m behind the last point it was on the road, centred on the edge it left by (half on /
@@ -173,6 +174,28 @@ export function stepAIJoker(entry: AiEntry) {
   }
 }
 
+// ?aigrip: m/s gained over the 3 s that says trying, not stuck (ai/weaver.ts TRYING_GAIN)
+const TRYING_GAIN = 0.08;
+
+/**
+ * Counts the seconds an AI car has been under 1 m/s (entry.stuckT); ?aigrip (A9): going forwards
+ * and gaining since it went slow is TRYING (an icy start creeping away, its wheels spinning), not
+ * stuck - MEASURED: a muscle car on ice crawls under 1 m/s for 4-7 s on its way off the grid.
+ * @param entry the AI entry
+ * @param held true while the start holds it
+ * @param dt the step in seconds
+ */
+function noteStuck(entry: AiEntry, held: boolean, dt: number) {
+  const car = entry.car, speed = Math.hypot(car.vx, car.vy);
+  entry.stuckT = !held && speed < 1 ? entry.stuckT + dt : 0;
+  if (!entry.stuckT) entry.stuckFrom = undefined;
+  else if (entry.stuckFrom === undefined) entry.stuckFrom = speed;
+  if (FIX.aigrip && entry.stuckT > 3 && car.t.vLong > 0 && speed - entry.stuckFrom! > TRYING_GAIN) {
+    entry.stuckT = 0;
+    entry.stuckFrom = speed;
+  }
+}
+
 /**
  * Resets an AI car that is stuck (beached, off the highway, or out of tries driving itself out).
  * @param entry the AI entry
@@ -183,7 +206,7 @@ export function stepAIStuck(entry: AiEntry, dt: number) {
   const held = LEVEL.stage ? carHeld(car) : startHeld();
   // STUCK (beached, nose in a wall, spun backwards): under 1 m/s for 3 s after the green ->
   // back on the road, as the player's RESET
-  entry.stuckT = !held && Math.hypot(car.vx, car.vy) < 1 ? entry.stuckT + dt : 0;
+  noteStuck(entry, held, dt);
   // the HIGHWAY: more than 8 m off the carriageway for 3 s (or 40 m out) also counts — there is
   // no lap to come back to
   if (LEVEL.endless && car._hwf) {

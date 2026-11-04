@@ -4,11 +4,16 @@ import { profileOf } from "./line.ts";
 import { steerAim, profileSpeed, DRIFT_SLIP } from "./driverSteps.ts";
 import type { AiCar } from "./types.ts";
 import type { RejoinAim } from "./rejoin.ts";
+import { footThrottle } from "./driverFoot.ts";
+import { FIX } from "../core/fixes.ts";
 import type { Drv, AiPath } from "./driverCtx.ts";
 
 // throttle kept through a front slide on loose ground (off road, dirt, gravel)
 const UNDER_LOOSE = 0.35;
 const DRIFT_BAN = 60;
+// ?aigrip: m/s under which the rear-slip FEEL is not read (a slip ANGLE at a crawl is noise: it
+// shut the throttle at 0.7 m/s on ice, MEASURED); over / under already wait for 5 m/s
+const FEEL_FROM = 4;
 
 /** Steering aim, then slip, the held drift, over / understeer and the steer. */
 export function steerSlideStep(drv: Drv, car: AiCar, path: AiPath, nearIdx: number,
@@ -38,7 +43,8 @@ type Slide = ReturnType<typeof steerSlideStep>;
 export function throttleFor(drv: Drv, speed: number, targetSpeed: number, slide: Slide,
     looseUnder: boolean) {
   const { drifting, slipRear, under, over } = slide;
-  const feel = Math.max(0, 1 - Math.max(0, slipRear - 0.07) / 0.12);
+  const feel = FIX.aigrip && speed < FEEL_FROM ? 1
+    : Math.max(0, 1 - Math.max(0, slipRear - 0.07) / 0.12);
   const gap = (targetSpeed - speed) * 0.6;
   return drifting ? Math.max(0.25, Math.min(1, 0.6 + (DRIFT_SLIP - slipRear) * 3)) * (
       speed < targetSpeed * 1.1 ? 1 : 0.4) : looseUnder ? Math.min(
@@ -95,6 +101,8 @@ export function pedalStep(drv: Drv, car: AiCar, path: AiPath, nearIdx: number,
     state.driftBan = state.t + DRIFT_BAN;
   }
   let { throttle, brake } = pedals(drv, speed, targetSpeed, thrForce, slide, looseUnder);
+  // ?aigrip: the foot feathers gross wheelspin (an icy start)
+  if (FIX.aigrip) throttle = footThrottle(drv, car, speed, throttle, dt, drifting || thrForce);
   // HANDBRAKE TURNS (requirement: they should also use handbrake and drift and stuff): into a
   // HAIRPIN (apex R < HB_R) before the apex, a big turn still ahead (> HB_TURN rad) and
   // moving -> one pull of HB_T s per hairpin, off the throttle, full lock that way: the rear
