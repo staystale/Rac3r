@@ -4,7 +4,8 @@ import type {
   AiCar, DriveCtx, DriveInput, DriveOutState, HighwayLevel, Traits, WeaverState,
 } from "./types.ts";
 import { roadPose, roadSpan } from "../highway.ts";
-import { HWT, IDLE, MARGIN } from "./weaverCtx.ts";
+import { HWT, IDLE, LOOK_T, MARGIN } from "./weaverCtx.ts";
+import { FIX } from "../core/fixes.ts";
 import type { Wvr } from "./weaverCtx.ts";
 import { makeStep } from "./weaverStep.ts";
 import { aimTarget, chooseLine, wanderStep } from "./weaverLine.ts";
@@ -22,6 +23,8 @@ const DRIVE_OUT_T = 1.2;
 // (A9) m/s gained since it went slow that says TRYING (an icy start creeping away), not
 // stuck - MEASURED: a hatch at 0.9 m/s and climbing reversed on ice and spun its wheels backwards
 const TRYING_GAIN = 0.08;
+// ?hwshare: s of road the highway line scoring reads, skill 0 / skill 1 (LOOK_T 3.2 for all before)
+const LOOK_WEAK_S = 2.6, LOOK_TOP_S = 3.8;
 /**
  * Counts the seconds a car has been nearly still (state.slowT); going forwards and
  * gaining since it went slow, it is pulling away, so the count starts again.
@@ -113,7 +116,11 @@ export function roadDriver(level: HighwayLevel, traits: Traits, rnd: () => numbe
   // sloppier drivers leave more room
   const agg = traits.aggression ?? 0.5,
     margin = MARGIN + 0.25 * (1 - (traits.prec ?? 0.5));
-  const wvr: Wvr = { level, traits, rnd, state, thrMax, cornerK, brakeK, agg, margin };
+  // ?hwshare (the AI rework R8 stage 1, one AI): the road ahead read by skill like the circuit
+  // driver's dodge (ai/dodge.ts) - LOOK_WEAK_S .. LOOK_TOP_S, the old LOOK_T between
+  const look = FIX.hwshare ? LOOK_WEAK_S + (LOOK_TOP_S - LOOK_WEAK_S) * Math.max(0, Math.min(1,
+    traits.skill)) : LOOK_T;
+  const wvr: Wvr = { level, traits, rnd, state, thrMax, cornerK, brakeK, agg, margin, look };
   function drive(car: AiCar, dt = 1 / 120, ctx: DriveCtx = {}): DriveInput {
     return driveStep(wvr, car, dt, ctx);
   }

@@ -1,6 +1,6 @@
 // ai/weaverLine.ts: the highway driver's lateral plan: it scores a spread of lines across the
 // road a few times a second, picks one, and eases its lateral target toward it.
-import { GRAVITY, HWT, LAT_R, LOOK_T, N_LINES } from "./weaverCtx.ts";
+import { GRAVITY, HWT, LAT_R, N_LINES } from "./weaverCtx.ts";
 import type { Step, Wvr } from "./weaverCtx.ts";
 import type { RoadBlock } from "./types.ts";
 
@@ -22,13 +22,13 @@ function lineOff(wvr: Wvr, step: Step, lineNo: number) {
 }
 
 /** The free road along a line: unblocked, or the gap and what is kept of the blocker's speed. */
-function freeScore(step: Step, block: RoadBlock | null) {
+function freeScore(step: Step, block: RoadBlock | null, look: number) {
   const { vAl } = step;
   // free road along it: unblocked = LOOK_T s of road (+ a bonus); blocked = the gap + what
   // is kept of the blocker's speed
   let score = block
-    ? (block.side ? -999 : Math.min(block.gap, vAl * LOOK_T) + Math.max(0, block.v) * 1.2)
-    : vAl * LOOK_T + 60;
+    ? (block.side ? -999 : Math.min(block.gap, vAl * look) + Math.max(0, block.v) * 1.2)
+    : vAl * look + 60;
   // NO QUEUEING BEHIND A RIVAL (HWT.rp): a line whose blocker is ANOTHER RACER close ahead
   // is worth less, so it pulls out and
   // races it side by side instead of sitting in its slipstream
@@ -112,7 +112,7 @@ function scoreLine(wvr: Wvr, step: Step, lineNo: number, way: Way) {
   const off = lineOff(wvr, step, lineNo);
   if (lineNo > N_LINES && (off === minOff || off === maxOff)) return null;
   const block = blockOn(off);
-  let score = freeScore(step, block);
+  let score = freeScore(step, block, wvr.look);
   const raw = score;
   if (raw > way.raw) {
     way.raw = raw;

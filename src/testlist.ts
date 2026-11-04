@@ -51,4 +51,12 @@ export const TEST_LIST: TestEntry[] = [
   // aiweave (AI R2), jokerflow, aisliders (AI R3), hudlean,
   // aibands, puffroom, aigrip (AI R4 part 1), aidodge (AI R5),
   // ailines, ailook, dodgefar, markjump passed 2026-11-04)
+  {
+    id: 'hwshare',
+    added: '2026-11-04',
+    name: 'Highway AI: wheelspin feathered; reads the road ahead by skill',
+    where: 'Test link + &hwshare=1: the highway (endless), a race with traffic',
+    try: 'Race the pack through traffic; watch launches and late lane changes.',
+    wrong: 'Highway AI slower, spinning up, or hitting traffic more than before.',
+  },
 ];

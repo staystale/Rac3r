@@ -44,6 +44,7 @@ export interface Wvr {
   brakeK: number;
   agg: number;
   margin: number;
+  look: number;   // s of road the line scoring reads ahead (?hwshare: by skill; LOOK_T before)
 }
 
 /** The road around the car this step: its frame, the lines it may use and the other cars. */

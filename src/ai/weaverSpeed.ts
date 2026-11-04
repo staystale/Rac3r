@@ -1,5 +1,7 @@
 // ai/weaverSpeed.ts: the highway driver's speed and pedals: corner speed from the road's
 // curvature, following what blocks it, running wide, and the throttle and brake.
+import { FIX } from '../core/fixes.ts';
+import { footThrottle } from './driverFoot.ts';
 import { GRAVITY, HWT } from "./weaverCtx.ts";
 import type { Plan, Step, Wvr } from "./weaverCtx.ts";
 import type { DriveInput, RoadBlock } from "./types.ts";
@@ -83,12 +85,25 @@ export function limitStep(step: Step, plan: Plan) {
   plan.vTarget = vTarget;
 }
 
+/**
+ * ?hwshare (the AI rework R8 stage 1): the throttle after the driver's foot - the circuit
+ * driver's wheelspin feathering, by skill (ai/driverFoot.ts).
+ * @param wvr the driver
+ * @param car the car
+ * @param speed m/s
+ * @param throttle the throttle wanted
+ * @param dt s
+ * @returns the throttle
+ */
+const footed = (wvr: Wvr, car: Step['car'], speed: number, throttle: number, dt: number) =>
+  (FIX.hwshare ? footThrottle(wvr, car, speed, throttle, dt, false) : throttle);
+
 /** The throttle and brake: eased in a swerve and while the rear slides. */
 export function pedalCmd(
   wvr: Wvr, step: Step, plan: Plan, steer: number, yawRoad: number,
 ): DriveInput {
   const { state, thrMax } = wvr;
-  const { car, speed, vAl, grip } = step;
+  const { car, speed, vAl, grip, dt } = step;
   const { vTarget, vCorner, vFollow, brakeX, fol } = plan;
   // brake eased while steering (autodrive.js: a 35 % floor), so an emergency stop in a swerve
   // does not lock it into a slide
@@ -113,7 +128,8 @@ export function pedalCmd(
   state.dbg = { fol, vT: vTarget, vCorner, vFollow, brakeX, thrCap, turn, e: speedGap, feel };
   return {
     steer,
-    throttle: brake > 0 || speedGap <= 0 ? 0 : Math.min(thrCap, speedGap * 0.35) * feel,
+    throttle: footed(wvr, car, speed, brake > 0 || speedGap <= 0 ? 0
+      : Math.min(thrCap, speedGap * 0.35) * feel, dt),
     brake,
     handbrake: 0,
     reverse: 0,

@@ -40,4 +40,8 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
+  // ?hwshare=1: the AI rework R8 stage 1 (one AI) - the highway driver gets the circuit driver's
+  // reflexes: the foot that feathers wheelspin, and the road read ahead by skill (2.6 .. 3.8 s, was
+  // 3.2 for all) (ai/weaver*.ts; owner 11-04)
+  hwshare: atLoad('hwshare'),
 };

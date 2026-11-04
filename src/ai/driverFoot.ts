@@ -11,8 +11,7 @@
 // cost lap time. A better driver catches it sooner and holds it closer to the peak. Not while
 // drifting (the throttle holds the slide) nor in a throttle mistake (the error IS too much
 // throttle).
-import type { AiCar } from './types.ts';
-import type { Drv } from './driverCtx.ts';
+import type { AiCar, Traits } from './types.ts';
 
 // m/s of spin let through at a standstill, skill 1 / extra at skill 0; and as a share of road
 // speed, skill 1 / extra at skill 0, on grippy ground (TCS lets ~10 %: physics/loads.ts) and on
@@ -25,7 +24,7 @@ const EASE_PER = 0.4, EASE_MIN = 0.02, FOOT_RATE = 12;
 
 /**
  * The throttle after the foot has felt the driven wheels.
- * @param drv the driver context (traits.skill; state.footK, the foot's share)
+ * @param drv the driver (traits.skill; state.footK, the foot's share) - circuit or highway
  * @param car the car (car.wheelSpin, m/s its driven wheels run ahead of the road)
  * @param speed m/s
  * @param throttle the throttle the driver wants
@@ -33,8 +32,8 @@ const EASE_PER = 0.4, EASE_MIN = 0.02, FOOT_RATE = 12;
  * @param free true when the spin is meant (a held drift, a throttle mistake)
  * @returns the throttle
  */
-export function footThrottle(drv: Drv, car: AiCar, speed: number, throttle: number, dt: number,
-  free: boolean): number {
+export function footThrottle(drv: { traits: Traits; state: { footK?: number } }, car: AiCar,
+  speed: number, throttle: number, dt: number, free: boolean): number {
   const state = drv.state, weak = 1 - Math.max(0, Math.min(1, drv.traits.skill));
   const spin = (car as AiCar & { wheelSpin?: number }).wheelSpin || 0;
   // loose: 0 on tarmac (grip 1) .. 1 at grip 0.5 and under (as the slide step reads it)

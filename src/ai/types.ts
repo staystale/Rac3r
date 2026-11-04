@@ -144,6 +144,7 @@ export interface RoadBlock {
 
 // The weaver's state (roadDriver).
 export interface WeaverState extends DriveOutState {
+  footK?: number;   // ?hwshare: the throttle share the driver's foot gives (ai/driverFoot.ts)
   line: number | null;
   tgt: number | null;
   think: number;

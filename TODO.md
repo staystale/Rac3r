@@ -19,7 +19,15 @@ last handover, written on request.
   apex shifts only 409 (no gain), with the moves across 578 (WORSE). The last-moment dodge (R5)
   already does the stopped car better: a line chosen on arrival is wrong once the car is shoved,
   and a whole-corner move runs the line where it should not. Owner to say how to go on.
-- NOTHING UNDER TEST (11-04 late). DEFAULT 11-04 (owner: "mark jump pass for now unless I see it
+- UNDER TEST (11-04 late): ?hwshare (AI rework R8 stage 1, one AI; owner "ok") - the highway driver
+  gets the circuit driver's reflexes: the foot that feathers wheelspin (ai/driverFoot.ts, now any
+  driver) and the road read ahead by skill, 2.6 .. 3.8 s (was 3.2 for all; weaver.ts look).
+  pacesuite (9 races): mean 129.2 -> 131.2 km/h, contacts / off-road the same, 0 bad; weavecheck
+  45 scenarios: 0 hits, 0 spins either way. Next: stage 2, one steering (ask first).
+- AI ORDER (owner 11-04): R6 SKIPPED ("doesn't seem like an issue anymore"), R8 one AI
+  next (staged plan proposed - stage 1 the shared reflexes; owner to say go), then R7. R4 part 2 (felt
+  grip) not needed (measured); weak-driver OVERDRIVE declined - "only push up crashes", not unless
+  the owner says. Always get permission before building. DEFAULT 11-04 (owner: "mark jump pass for now unless I see it
   again" - WATCH for it): markjump (owner: "a rim mark appeared after I reset my car / on soft
   surfaces like it shouldn't", a phone shot) - MEASURED (_resetmark.mjs, _aireset.mjs): the player's
   RESET draws nothing after (rims cleared, 0 stamps, 0 cells worn, also with two tyres on the rim);
