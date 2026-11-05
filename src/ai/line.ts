@@ -12,6 +12,8 @@
 //    already brakes for everything ahead.
 import { debugValue } from "../core/debug.ts";
 import { groundAt } from "../world/wear.ts";
+import { dampSurface, surfaceById } from "../world/wet.ts";
+import { FIX } from "../core/fixes.ts";
 import { WEATHER } from "../world/weather.ts";
 import { coverEpoch } from "../world/coverfield.ts";
 import { querySubtrack } from "../world/tyrewall.ts";
@@ -39,6 +41,25 @@ const OBST_LINE = 1.6;
 export const OBST_CLEAR = 1.1;
 // m: the grip map is averaged along the track this far each way for the line's surface bias
 const MU_SMOOTH = 20;
+/**
+ * The grip the AI plans with at a point. ?wetrace: STANDING WATER is not planned round - the line
+ * and the speed plan read the (damp) ground under a puddle, and the driver's feel for the grip
+ * handles the slip, as on any change of ground (owner 11-05: "they should dodge at speed and
+ * remain racing"; "stay on the track even if covered in water"). Was: the line was made round the
+ * puddles there at the start (its surface bias is for dirt vs tarmac) and the speed plan braked
+ * for every puddle on it. MEASURED (tools/scratch/_ovalfield.mjs, Thruston, rain 0.8, 6 AI):
+ * planning 0 / 30 / 60 / 100 % of a puddle's grip loss gave the same race (73-76 km/h, off the
+ * track 3-8 % - the rain's own) - so none. The damp ground stays in: the line the cars drive dries
+ * first, so the racing line is the drying line.
+ * @param x m
+ * @param y m
+ * @returns mu
+ */
+function lineMu(x: number, y: number): number {
+  const surface = groundAt(x, y).surface, grip = (surface && surface.mu) || 1;
+  if (!FIX.wetrace || !surface || surface.id !== 'puddle' || !surface.under) return grip;
+  return dampSurface(surfaceById(surface.under), WEATHER.wetness).mu || 1;
+}
 // m: line radius under which a stretch counts as a corner (mistakes are drawn per corner)
 const CORNER_R = 70;
 
@@ -64,10 +85,7 @@ export function finishPath<P extends PathPoint>(pts: P[], closed: boolean, total
     pts[i].R = arc / Math.max(1e-4, Math.abs(turnDelta));
     pts[i].turn = Math.sign(turnDelta);
   }
-  for (const point of pts) {
-    const ground = groundAt(point.x, point.y);
-    point.mu = (ground.surface && ground.surface.mu) || 1;
-  }
+  for (const point of pts) point.mu = lineMu(point.x, point.y);
   return { pts, n: count, closed, total, sp: step, prof: {}, wetEpoch: groundEpoch() };
 }
 
@@ -87,10 +105,8 @@ function gripMap(ctx: LineCtx) {
   // grip across the road at every point (1 m lateral steps): mu of whatever is there
   const lat: number[] = [];
   for (let offset = -reach; offset <= reach + 1e-6; offset += 1) lat.push(+offset.toFixed(2));
-  const rawGrip = centre.map((point) => lat.map((offset) => {
-    const ground = groundAt(point.x + point.nx * offset, point.y + point.ny * offset);
-    return (ground.surface && ground.surface.mu) || 1;
-  }));
+  const rawGrip = centre.map((point) => lat.map((offset) => lineMu(point.x + point.nx * offset,
+    point.y + point.ny * offset)));
   // SMOOTHED ALONG THE TRACK (+-MU_SMOOTH m) before the surface bias reads it (requirement: Slidden
   // Hill dirt to tarmac, the AI still slows down!!). Where a surface edge crosses the road at an
   // angle, a few cross-sections are half dirt / half tarmac and the bias jerked the line
@@ -442,10 +458,7 @@ const groundEpoch = () => WEATHER.epoch * 1e6 + coverEpoch();
  * @param path the path (changed in place)
  */
 function regripPath(path: Path) {
-  for (const point of path.pts) {
-    const ground = groundAt(point.x, point.y);
-    point.mu = (ground.surface && ground.surface.mu) || 1;
-  }
+  for (const point of path.pts) point.mu = lineMu(point.x, point.y);
   path.prof = {};
   path.wetEpoch = groundEpoch();
 }

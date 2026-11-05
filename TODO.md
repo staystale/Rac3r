@@ -19,6 +19,21 @@ last handover, written on request.
   apex shifts only 409 (no gain), with the moves across 578 (WORSE). The last-moment dodge (R5)
   already does the stopped car better: a line chosen on arrival is wrong once the car is shoved,
   and a whole-corner move runs the line where it should not. Owner to say how to go on.
+- UNDER TEST (11-05): ?wetrace - owner: "ai shouldn't avoid water / puddles tho, they seem to
+  actively steer and slow to avoid? they should dodge at speed and remain racing, maybe ideally
+  avoiding water if they can but without slowing too much"; "in rain they should look for dry
+  lines forming / stay on the track even if covered in water, just a soft / attempted dodge of
+  water is ok"; "keep it simple - simple rules to create complex behaviour". CAUSE (read): the
+  racing line is made once at the start from a grip map that saw the puddles there (its surface
+  bias is for dirt vs tarmac), so it went round them; the speed plan re-read the grip at every
+  change of water and braked for each puddle on the line. RULE: standing water is not planned
+  round - the line and the speed plan read the (damp) ground under a puddle (ai/line.ts lineMu);
+  the driver's feel for grip handles the slip; the damp stays in, so the racing line (driven
+  dry first) is the drying line; a puddle on a corner's line is a hazard like oil and glass - the
+  corner line moves off it if a way is free (ai/cornerLine.ts). MEASURED (real game, Thruston,
+  ?rain=0.8, 6 AI, 2 runs each): off, the AI never touched a puddle (0-0.8 % of their time);
+  planning 0 / 30 / 60 / 100 % of a puddle's grip loss all gave 73-76 km/h and 3-8 % off the
+  track (the rain's own) - so none (the simplest).
 - UNDER TEST (11-04 late): ?onroad (with ?lineback) - owner, with a photo of grooves worn in the
   grass of the stock car oval "after 1 lap", 21 cars: "still loads of cars driving wide". THE
   FULL GRID was the difference (tests had 6 AI). MEASURED in the REAL GAME (tools/scratch/

@@ -76,4 +76,12 @@ export const TEST_LIST: TestEntry[] = [
     try: 'Watch an AI that runs wide or makes a mistake: it should be back on the track quickly.',
     wrong: 'AI driving along the grass for ages, or snapping back across the track into cars.',
   },
+  {
+    id: 'wetrace',
+    added: '2026-11-05',
+    name: 'AI race through puddles: no big swerves or braking for water, round it if they can',
+    where: 'Test link + &wetrace=1: a race in the rain (puddles on the track)',
+    try: 'Watch AI at puddles: they should keep racing, picking a dry line in a corner if free.',
+    wrong: 'AI still slowing or swerving hard for water, or now spinning in puddles a lot.',
+  },
 ];

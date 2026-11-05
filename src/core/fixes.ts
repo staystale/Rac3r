@@ -52,4 +52,9 @@ export const FIX = {
   // does (ai/rejoin.ts rejoinCross; owner 11-05: "they should get back to the track smoothly but
   // quickly like a real racer")
   rejoinfast: atLoad('rejoinfast'),
+  // ?wetrace=1: AI race through standing water - the line is made on the ground under it, the speed
+  // plan takes a share of its grip loss, a driver goes round a puddle in a corner if it can
+  // (ai/line.ts lineMu, ai/cornerLine.ts; owner 11-05: "ai shouldn't avoid water / puddles ...
+  // they should dodge at speed and remain racing")
+  wetrace: atLoad('wetrace'),
 };
