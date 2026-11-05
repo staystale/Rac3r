@@ -21,31 +21,44 @@ try {
     await new Promise((done) => setTimeout(done, 300));
     const sub = lab.LEVEL.subtrack, half = sub.width / 2, rows = [];
     let greenAt = null;
-    const spinT = new Map();
+    const spinT = new Map(), runOff = new Map(); let fastOff = 0, fastN = 0, longest = 0;
     for (let tick = 0; tick < secs * 5; tick++) {
       await new Promise((done) => setTimeout(done, 200));
       if (greenAt === null && game.start.green) greenAt = game.start.t;
       const t = game.start.t, b = Math.floor(t / 10) * 10;
-      const row = rows[b / 10] ??= { t: b, n: 0, off: 0, spins: 0, worst: 0 };
+      const row = rows[b / 10] ??= { t: b, n: 0, off: 0, spins: 0, worst: 0, surf: {}, surfIn: {} };
       for (const entry of game.ai) {
         const car = entry.car, q = lab.querySubtrack(sub, car.x, car.y), past = q.dist - half;
         row.n++;
-        if (past > 0.5) { row.off++; row.worst = Math.max(row.worst, past); }
+        const sname = (car.surface && (car.surface.id || car.surface.name)) || '?';
+        row.surf[sname] = (row.surf[sname] || 0) + 1;
+        if (past <= 0.5) row.surfIn[sname] = (row.surfIn[sname] || 0) + 1;
+        { const vv = Math.hypot(car.vx, car.vy); fastN++; if (past > 0.5 && vv > 10) { fastOff++; const r = (runOff.get(car) || 0) + 0.2; runOff.set(car, r); longest = Math.max(longest, r); } else if (past <= 0.5) runOff.set(car, 0); }
+        if (past > 0.5) { row.off++; row.worst = Math.max(row.worst, past);
+          if (tick % 5 === 0 && (window.__offlog ??= []).length < 60) { const st = entry.drv.state || {}; let sl = Math.atan2(car.vy, car.vx) - car.heading; sl = Math.atan2(Math.sin(sl), Math.cos(sl));
+            window.__offlog.push('t ' + t.toFixed(1) + ' #' + car.num + ' past ' + past.toFixed(1) + ' v ' + Math.hypot(car.vx, car.vy).toFixed(1) + ' slip ' + sl.toFixed(2) + ' | atk ' + !!st.atk + ' cover ' + !!st.cover + ' gap ' + (st.gapBase == null ? '-' : st.gapBase.toFixed(1)) + ' wide ' + (t < (st.wideUntil || 0)) + ' mist ' + !!st.mist + ' follow ' + !!st.follow + ' dodge ' + (st.dodge ?? 0).toFixed(1) + ' hurt ' + (entry.hurtWait != null) + ' rolled ' + !!(car.roll && car.roll.phase) + ' LOOKHELD ' + !!st.lookHeld); } }
         const v = Math.hypot(car.vx, car.vy);
         let slip = Math.atan2(car.vy, car.vx) - car.heading;
         slip = Math.abs(Math.atan2(Math.sin(slip), Math.cos(slip)));
         if (v > 4 && slip > 1.22 && t - (spinT.get(car) ?? -99) > 3) { spinT.set(car, t); row.spins++; }
       }
     }
-    return { greenAt, rows: rows.filter(Boolean), lap: sub.totalDist, width: sub.width };
+    return { fast: 100 * fastOff / Math.max(1, fastN), longest, offlog: window.__offlog || [], greenAt, rows: rows.filter(Boolean), lap: sub.totalDist, width: sub.width };
   }, [level, +aiArg, +diffArg, +secArg]);
   console.log(`${level} ${aiArg} AI diff ${diffArg} ${query || '(plain)'}: green at ${res.greenAt?.toFixed(1)} s, lap ${res.lap.toFixed(0)} m, width ${res.width} m`);
-  let off = 0, n = 0, spins = 0;
+  let off = 0, n = 0, spins = 0; const surf = {}, surfIn = {};
   for (const row of res.rows) {
     off += row.off; n += row.n; spins += row.spins;
+    for (const [k, v] of Object.entries(row.surf)) surf[k] = (surf[k] || 0) + v;
+    for (const [k, v] of Object.entries(row.surfIn)) surfIn[k] = (surfIn[k] || 0) + v;
     console.log(`  ${String(row.t).padStart(3)} s: off the track ${(100 * row.off / Math.max(1, row.n)).toFixed(1)}% | spins ${row.spins} | furthest ${row.worst.toFixed(1)} m past`);
   }
+  const pc = (o) => Object.entries(o).sort((a, b) => b[1] - a[1]).map(([k, v]) => k + ' ' + (100 * v / n).toFixed(1) + '%').join(', ');
+  console.log('  SURFACE under the AI (all): ' + pc(surf));
+  console.log('  SURFACE while INSIDE the track edges: ' + pc(surfIn));
+  console.log(`  RACING OFF THE TRACK (> 10 m/s, past the edge): ${res.fast.toFixed(2)}% of AI car-time | longest trip ${res.longest.toFixed(1)} s`);
   console.log(`  TOTAL off the track ${(100 * off / Math.max(1, n)).toFixed(1)}% of AI car-time | spins ${spins}`);
+  if (process.env.OFFLOG) console.log(res.offlog.join(String.fromCharCode(10)));
   if (errors.length) console.log('PAGE ERRORS', errors.slice(0, 3));
 } finally {
   await browser.close();

@@ -289,6 +289,7 @@ export interface CircuitState extends DriveOutState {
   // the corner it is on and its line there (ai/cornerLine.ts)
   clCorner?: number; clB?: number;
   gapBase?: number | null;   // the line through the cars chosen last (ai/gapPick.ts)
+  lookHeld?: boolean;   // held at the edge by the look before pulling on (driverDrive.ts lookFirst)
   seenV?: WeakMap<object, { v: number; t: number; dec: number }>;   // speeds read (ai/dodge.ts)
   footK?: number;   // the share of the throttle the driver's foot gives (ai/driverFoot.ts)
   atk: Attack | null;

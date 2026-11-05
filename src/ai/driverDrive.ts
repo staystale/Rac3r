@@ -66,7 +66,7 @@ function trafficStep(drv: Drv, car: AiCar, ctx: DriveCtx, path: AiPath, nearIdx:
   const edge = state.t < (state.wideUntil || 0) ? state.wide! : latLim;
   latT = Math.max(-edge, Math.min(edge, lineOff + latT)) - lineOff;
   if (path === main && cars.seen) latT = lookFirst(car, path, nearIdx, lineOff,
-    latT, { hw: line.hw, speed, seen: cars.seen });
+    latT, { hw: line.hw, speed, seen: cars.seen, state });
   return { latT, vMul, prof, followCap, conflict };
 }
 
@@ -82,13 +82,16 @@ function trafficStep(drv: Drv, car: AiCar, ctx: DriveCtx, path: AiPath, nearIdx:
  * @returns where to go, m off my path
  */
 function lookFirst(car: AiCar, path: AiPath, nearIdx: number, lineOff: number, latT: number,
-  road: { hw: number; speed: number; seen: NonNullable<ReturnType<typeof carsStep>['seen']> }) {
+  road: { hw: number; speed: number; seen: NonNullable<ReturnType<typeof carsStep>["seen"]>;
+    state: { lookHeld?: boolean } }) {
   const actual = lateralOf(car, path, nearIdx), half = car.spec.wid / 2;
   // at the edge (a reset puts the car's middle on it) or past it, and coming in by a metre or more
   const atEdge = Math.abs(lineOff + actual) > road.hw - EDGE_IN_M;
   const comingIn = Math.abs(lineOff + latT) < Math.abs(lineOff + actual) - COME_IN_M;
-  if (!atEdge || !comingIn) return latT;
-  return rejoinClear(road.seen, actual, latT, half, car.spec.len, road.speed) ? latT : actual;
+  if (!atEdge || !comingIn) { road.state.lookHeld = false; return latT; }
+  const clear = rejoinClear(road.seen, actual, latT, half, car.spec.len, road.speed);
+  road.state.lookHeld = !clear;   // (read by the tools)
+  return clear ? latT : actual;
 }
 
 /** One drive tick: the controls for this car from the driver context, or a drive-out move. */
@@ -146,9 +149,11 @@ export function drive(drv: Drv, car: AiCar, dt = 1 / 120, ctx: DriveCtx = {}) {
   // and tow passes on their inside slid off: off-road 0 -> 14 car-s, MEASURED)
   // (R2) not making a move -> a soft rejoin, and corners taken for where it really is
   const moving = traffic.conflict || !!state.atk || !!state.cover;
-  const crossMax = moving ? Infinity : rejoinCross(drv.traits.skill);
-  const aim = rejoinAim(car, path, nearIdx, mistakes.latT, rejoinCross(drv.traits.skill),
-    lane.shape);
+  // (?rejoinfast: past the track's edge, a firm rejoin - ai/rejoin.ts)
+  const offTrack = path === main && Math.abs(lineOff + lateralOf(car, path, nearIdx)) > drv.line.hw;
+  const cross = rejoinCross(drv.traits.skill, offTrack);
+  const crossMax = moving ? Infinity : cross;
+  const aim = rejoinAim(car, path, nearIdx, mistakes.latT, cross, lane.shape);
   const slide = steerSlideStep(drv, car, path, nearIdx, idx, speed, lineOff, latT, crossMax);
   state.steerHold = { path, nearIdx, latT, lineOff, crossMax };
   return pedalStep(drv, car, path, nearIdx, idx, speed, dt, prof, latT, lineOff,

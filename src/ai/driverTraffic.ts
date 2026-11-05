@@ -265,6 +265,8 @@ const GAP_LOOK_WEAK = 2.6, GAP_LOOK_TOP = 3.8;
 // once it must - owner 11-04: "avoid it not just brake... it should brake too if it needs to"),
 // and the m kept behind the car
 const BOXED_BRAKE = 0.9, BOXED_GAP_M = 3;
+// ?onroad: m beside my line a crawling car counts as in my way
+const MARGIN_WAY = 1;
 
 /** The s of travel the gap spotter reads the cars ahead in, by skill. */
 function gapLook(skill: number) {
@@ -361,9 +363,11 @@ function gapStep(drv: Drv, car: AiCar, acc: CarsAcc, seen: SeenCar[], mine: { my
   const ahead = seen.some((other) => other.fwd > 0 && other.fwd < speed * look + 8);
   if (!ahead) { state.gapBase = null; return; }
   if (!blockOn(seen, myLat, half, len) && state.gapBase == null) return;
-  // (?onroad: the room past the edge only with a car stopped or crawling ahead - offTrackOk)
+  // (?onroad: the room past the edge only with a car stopped or crawling IN MY WAY - offTrackOk;
+  // "anywhere ahead" let the whole field onto the grass after a first-bend crash, MEASURED)
   const room = latLim + (seen.some((other) => other.fwd > 0 && other.fwd < speed * look + 8
-    && offTrackOk(other.v, speed)) ? WIDE : 0);
+    && Math.abs(other.lat - myLat) < other.across + half + MARGIN_WAY && offTrackOk(other.v, speed))
+    ? WIDE : 0);
   const line = gapLine(seen, { lat: myLat, base: state.gapBase ?? myLat, half, len, speed, look,
     lo: -room - lineOff, hi: room - lineOff, edge: latLim, centre: lineOff });
   state.gapBase = line;

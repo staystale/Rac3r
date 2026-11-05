@@ -31,6 +31,20 @@ last handover, written on request.
   line, the car 7 -> 17 m off, into the infield) and then recover slowly across the grass
   (spun / pointing the wrong way). tools/scratch/_wide.mjs ROLL=1 recreates it in node (TRACE=<car>,
   FREELOG=<reason>).
+  ROUND 2 (owner 11-05: "still seems like ai is racing wide off the track on stock car ... full
+  grid or not it shouldn't happen"; "they should get back to the track smoothly but quickly like a
+  real racer"): photos (tools/scratch/_ovalshot.mjs) show the groove INSIDE the inner kerbs; the
+  real-game log (_ovalfield.mjs OFFLOG=1: each off-track car's state) found (a) after a MISTAKE a
+  car drove along the grass 5-11 m out for 10 s up to 29 m/s - the soft rejoin cap (0.7-1.2 m)
+  barely closed it; (b) ?onroad let the field past the edge if a crawling car was ANYWHERE ahead
+  (after a first-bend crash: everyone). Now ?rejoinfast: past the edge the rejoin cap is 3.5 m
+  (ai/rejoin.ts REJOIN_OFF) - the look before pulling on still holds it for a car arriving; and
+  ?onroad counts a crawling car only IN MY WAY (driverTraffic.ts MARGIN_WAY). MEASURED (real game,
+  20 AI, "racing off the track" = past the edge above 10 m/s): plain 3.6 %, lineback+onroad 1.7 /
+  3.8 %, + rejoinfast 1.2 / 1.0 %; longest trip on the grass 5.8 s plain, 6.4 / 16.2 s ->
+  4.4 / 2.0 s. Fields: incidents 55 -> 56, passes 92 -> 95. Highway: weavecheck 0; pacesuite 0
+  bad, racer contact 714 (lineback alone 58, plain 186) - FROM ?onroad (racers no longer use the
+  verge round each other), traffic contact 2 - told the owner.
 - UNDER TEST (11-04 late): ?lineback - owner: "some ai seem to drive very wide around the outside
   of the track? especially noticeable on stockcar track"; "no going 10m wide seems wild".
   MEASURED (tools/scratch/_wide.mjs: a field on the stock car oval; share of the race off the

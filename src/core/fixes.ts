@@ -48,4 +48,8 @@ export const FIX = {
   // track or followed until there is room (ai/driverTraffic.ts offTrackOk; owner 11-04: AI wore
   // grooves in the grass of the stock car oval with a full grid)
   onroad: atLoad('onroad'),
+  // ?rejoinfast=1: off the track, a driver steers back FIRMLY - smoothly but quickly, as a racer
+  // does (ai/rejoin.ts rejoinCross; owner 11-05: "they should get back to the track smoothly but
+  // quickly like a real racer")
+  rejoinfast: atLoad('rejoinfast'),
 };

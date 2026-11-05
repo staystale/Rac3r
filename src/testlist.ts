@@ -68,4 +68,12 @@ export const TEST_LIST: TestEntry[] = [
     try: 'Race a lap or two and look at the grass: no grooves worn beside the track.',
     wrong: 'AI still on the grass to pass, or now stuck queueing behind a car they could pass.',
   },
+  {
+    id: 'rejoinfast',
+    added: '2026-11-05',
+    name: 'AI off the track steer back firmly - smooth but quick, like a racer',
+    where: 'Test link + &rejoinfast=1&onroad=1&lineback=1: the stock car oval, a full grid',
+    try: 'Watch an AI that runs wide or makes a mistake: it should be back on the track quickly.',
+    wrong: 'AI driving along the grass for ages, or snapping back across the track into cars.',
+  },
 ];

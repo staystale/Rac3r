@@ -11,10 +11,16 @@
 //   closing on its target at the rejoin's pace (not the target it aims for), and never its own
 //   mistake (a driver does not know it is about to make one).
 import type { AiCar } from './types.ts';
+import { FIX } from '../core/fixes.ts';
 import type { AiPath } from './driverCtx.ts';
 
 // m: the steering's lateral error at most while rejoining, skill 0 / skill 1
 const REJOIN_WEAK = 1.2, REJOIN_TOP = 0.7;
+// ?rejoinfast: m the cap is OFF THE TRACK (any skill). MEASURED (tools/scratch/_ovalfield.mjs, the
+// real game, the stock car oval): a car 11 m off after a mistake drove on along the grass 5-11 m
+// out for 10 s, up to 29 m/s - the on-track cap (0.7-1.2 m: about 1 m/s across) barely closed
+// it and a bend carried it out again
+const REJOIN_OFF = 3.5;
 // the Stanley cross gain (ai/driverSteps.ts steerAim): the lateral m/s a capped error makes is
 // about this x the cap at speed
 const CROSS_GAIN = 1.2;
@@ -33,9 +39,11 @@ export interface RejoinAim {
 /**
  * The cap on the steering's lateral error while rejoining.
  * @param skill the driver's skill, 0..1
+ * @param offTrack true when the car is past the track's edge (?rejoinfast: a firm rejoin)
  * @returns m
  */
-export function rejoinCross(skill: number): number {
+export function rejoinCross(skill: number, offTrack = false): number {
+  if (offTrack && FIX.rejoinfast) return REJOIN_OFF;
   return REJOIN_WEAK + (REJOIN_TOP - REJOIN_WEAK) * Math.max(0, Math.min(1, skill));
 }
 
