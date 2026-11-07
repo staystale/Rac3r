@@ -40,6 +40,9 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
+  // ?partsoff=1: a small chance a smaller knock knocks a part off, and a lost part GONE from the
+  // car (only its bare structure left) - world/debris.ts SMALL_P, render/carparts.ts (owner 11-07)
+  partsoff: atLoad('partsoff'),
   // ?f1aero=1: the F1 / F2's real downforce, brakes and wheel weight (carreal.ts F1_AERO)
   f1aero: atLoad('f1aero'),
 };

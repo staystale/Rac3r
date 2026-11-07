@@ -5,6 +5,7 @@
 // had shed: "the emitted part ... doesn't match what's on the car ... the emitted parts can be
 // damaged slightly").
 import { SPRITE_PPM } from "./shared.ts";
+import { FIX } from "../core/fixes.ts";
 import type { CarSprite, RenderCarSpec } from "./types.ts";
 
 // an open car - the single-seaters, the autograss buggy: its wings / nose and its side pods come
@@ -91,6 +92,21 @@ export function cutPart(sprite: CarSprite, region: Region, seed: number): HTMLCa
 }
 
 /**
+ * Whether a sprite px is on a lost part's INNER edge - where the bare structure shows: a bumper's
+ * row nearest the car's middle, a wing's or panel's line nearest its centreline.
+ * @param region the part's region
+ * @param kind the part
+ * @param corner its corner
+ * @param x sprite px
+ * @param y sprite px
+ * @returns true on that edge
+ */
+function atInner(region: Region, kind: string, corner: number, x: number, y: number): boolean {
+  if (kind === 'bumper') return x === (corner < 2 ? region.x0 : region.x1);
+  return y === (corner % 2 === 1 ? region.y0 : region.y1);
+}
+
+/**
  * The car without the parts it has lost: each region darkened to the bare structure (a closed
  * car's bumper / wing / panel) or cleared (an open-wheeler's wing or sidepod - nothing under it).
  * @param spec the car as drawn
@@ -111,6 +127,13 @@ export function withoutParts(spec: RenderCarSpec, sprite: CarSprite, lost: strin
       if (x < 0 || y < 0 || x >= canvas.width || y >= canvas.height) continue;
       const i = (y * canvas.width + x) * 4;
       if (isBare(spec)) { rgba[i + 3] = 0; continue; }
+      // (?partsoff: GONE - the part cleared, only the bare structure left along its inner edge)
+      if (FIX.partsoff) {
+        if (rgba[i + 3] && atInner(region, kind, +corner, x - 2, y - 2)) {
+          rgba[i] = 42; rgba[i + 1] = 45; rgba[i + 2] = 52;
+        } else rgba[i + 3] = 0;
+        continue;
+      }
       for (const chan of [0, 1, 2]) rgba[i + chan] = Math.round(rgba[i + chan] * 0.3 + 18);
     }
   }

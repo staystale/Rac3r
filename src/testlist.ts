@@ -55,6 +55,14 @@ export const TEST_LIST: TestEntry[] = [
   // passed 2026-11-07; indyscale decided 2026-11-07 (3/4, the 13 m road) and removed; carpaint,
   // carlooks, carreal (the car look: paint parts, rims, redraws, real shapes) passed 2026-11-07)
   {
+    id: 'partsoff',
+    added: '2026-11-07',
+    name: 'Car parts: now and then off in a smaller knock; a lost part gone from the car',
+    where: 'Test link + &partsoff=1: race and bump the AI, then crash properly',
+    try: 'Small knocks rarely shed a part; when one comes off, the car shows it missing.',
+    wrong: 'Parts off at every touch, or a part on the ground and still on the car.',
+  },
+  {
     id: 'f1aero',
     added: '2026-11-07',
     name: 'F1 / F2 real downforce, brakes and wheel weight',

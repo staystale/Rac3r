@@ -2,14 +2,14 @@
 // car parked across its way; what came off (parts, wheels) and a shot after -
 // tools/scratch/_crashparts-<car>.png. node tools/scratch/_crashparts.mjs [cars] [speed]
 import { startServer, launchBrowser, gotoGame } from '../lib/browser.mjs';
-const [carsArg = 'hatch-fwd,track-rwd', speedArg = '22'] = process.argv.slice(2);
+const [carsArg = 'hatch-fwd,track-rwd', speedArg = '22', query = ''] = process.argv.slice(2);
 const server = await startServer();
 const browser = await launchBrowser();
 try {
   for (const carId of carsArg.split(',')) {
     const page = await browser.newPage({ viewport: { width: 390, height: 600 } });
     const errors = []; page.on('pageerror', (e) => errors.push(e.message));
-    await gotoGame(page, `${server.url}/?pc=1&guide=0&menu=0&noaudio=1`);
+    await gotoGame(page, `${server.url}/?pc=1&guide=0&menu=0&noaudio=1${query ? '&' + query : ''}`);
     await page.mouse.click(200, 300);
     await page.waitForTimeout(1500);
     const res = await page.evaluate(async ([id, speed]) => {
@@ -27,7 +27,7 @@ try {
       return { parts: loose.map((obj) => obj.cutKind || obj.kind), lost: car.partLost || '',
         otherLost: other.partLost || '', dmg: car.dmg?.map((d) => +d.toFixed(2)) };
     }, [carId, +speedArg]);
-    await page.screenshot({ path: `tools/scratch/_crashparts-${carId}.png` });
+    await page.screenshot({ path: `tools/scratch/_crashparts-${carId}${query ? '-' + query.replace(/[=&]/g, '') : ''}.png` });
     console.log(carId, JSON.stringify(res), errors.length ? 'ERRORS ' + errors.join(' | ') : 'errors none');
     await page.close();
   }

@@ -11,6 +11,7 @@
 // take the cover 'glass' (like the oil and the tyres' water - one cover system; drawn by the GPU
 // field, render/glfield.ts, glints moving with the view). It changes no grip; the first tyre
 // pass sweeps the cell clean and may puncture that tyre slowly (PASS: world/pass.ts).
+import { FIX } from '../core/fixes.ts';
 import { getCell, wearDirty, WEAR_CELL } from "./wear.ts";
 import { PASS } from "./pass.ts";
 import { DEBRIS } from "../cones/coneConsts.ts";
@@ -20,6 +21,9 @@ import type { WearCell } from "./types.ts";
 // PART_HIT + PART_SPAN; an end-on hit (endW over END_ON) is a bumper, side-on (under SIDE_ON) a
 // panel, else a wing
 const PART_HIT = 0.3, PART_SPAN = 0.4, PART_P_MIN = 0.35, END_ON = 0.65, SIDE_ON = 0.35;
+// ?partsoff (owner 11-07: "can they have a chance to come off in smaller knocks but keep it low"):
+// a corner's hit from SMALL_FROM to PART_HIT knocks its part off at most SMALL_P of the time
+const SMALL_FROM = 0.08, SMALL_P = 0.06;
 // parts on the ground before the oldest fades; how long a fade takes, s
 const PART_CAP = 24, FADE_S = 2.5;
 // a car's parts as bits: a wing or panel per damage corner (1 << corner), and ONE bumper an end
@@ -88,11 +92,14 @@ export function crashDebris(car: DebrisCar, corner: number, add: number, endW: n
  */
 function partOff(car: DebrisCar, corner: number, add: number, endW: number,
     rnd: () => number) {
-  if (add < PART_HIT) return;
+  // (?partsoff: a smaller knock now and then - SMALL_FROM up, at most SMALL_P just under PART_HIT)
+  if (add < PART_HIT && !(FIX.partsoff && add >= SMALL_FROM)) return;
   const kind = endW > END_ON ? 'bumper' : endW < SIDE_ON ? 'panel' : 'wing';
   const bit = kind !== 'bumper' ? 1 << corner : corner < 2 ? FRONT_BUMPER : REAR_BUMPER;
   if ((car.partsOff || 0) & bit) return;
-  if (rnd() >= Math.min(1, PART_P_MIN + (add - PART_HIT) / PART_SPAN)) return;
+  const chance = add < PART_HIT ? SMALL_P * (add - SMALL_FROM) / (PART_HIT - SMALL_FROM)
+    : Math.min(1, PART_P_MIN + (add - PART_HIT) / PART_SPAN);
+  if (rnd() >= chance) return;
   car.partsOff = (car.partsOff || 0) | bit;
   car.partLost = (car.partLost ? car.partLost + ',' : '') + kind + ':' + corner;
   (car.partSpawn || (car.partSpawn = [])).push({ corner, kind });
