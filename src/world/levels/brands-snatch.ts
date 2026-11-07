@@ -395,7 +395,7 @@ function brandsLevel(levelId: string, name: string, mapPts: Point[]) {
     })(),
   };
 }
-// ?bigbrands=1: the real venue at 3/4 scale, both layouts sharing its scenery (brands-venue.ts)
+// ?bigbrands=1: the real venue at 1/2 scale, both layouts sharing its scenery (brands-venue.ts)
 export const BH_GP_LEVEL: Level = FIX.bigbrands
   ? venueLevel(BRANDS_SPEC, 'gp', 'brands-snatch', 'Brands Snatch GP')
   : brandsLevel('brands-snatch', 'Brands Snatch GP', [...BH_TOP, ...BH_GP]) as unknown as Level;

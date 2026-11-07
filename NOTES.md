@@ -249,6 +249,18 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   lanes", "not random gaps in barriers"): continuous Armco with smooth flared ends, tyres only in
   front of it behind traps, a catch fence (weaker than Armco) where spectators are, NEVER the black
   wire fence; bridges and tunnels as the real ones, roads joined up; keep the game's art style.
+- A VENUE'S HAND FINISH (11-07, owner: "maybe if needs hand finish to get clean road connections"):
+  the rules build the venue; where the real map's joints cannot be made clean by rule (our
+  game-sized garages over the real paddock road, a bridge's ramp landing on a junction), the spec's
+  `finish` (game m) moves a building off a road, cuts a road back, drops one, or lays a road drawn
+  by hand (one whose end is on a road's end carries it on). Fix rule bugs at the root first; the
+  finish is for what is particular to the place. tools/venueplan.mjs draws the built venue as a
+  plan on a metre grid (lanes numbered, portals, barriers) to read the joints off.
+- A venue's map is placed with the game's wider road pushing the scenery back; between two
+  stretches of road the ground is squeezed (the push easing to nothing halfway), never pushed
+  both ways (it folded 8 m of map over between Brabham and Cooper: torn paddocks, kinked roads).
+- Tunnel portals are solid to everything laid after them; a tunnel's road carries on the road that
+  ends at its mouth (cut back to where the curve runs on smoothly), never loops round to it.
 - "Straight Outta Swindon" is a reserved name for a future highway level (the test straight that
   used it was removed 10-17).
 

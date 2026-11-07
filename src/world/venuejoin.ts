@@ -12,11 +12,17 @@ const JOIN_REACH_M = 40;
 // render/props/venueprops.ts, takes each end's from appL); a curve's pull (share of its chord); a
 // dead end within TRIM_M of a joint is trimmed; degrees of turn a metre of a longer join costs
 const ABUT_M = 1.6, RAMP_FULL_M = 9, RAMP_MIN_M = 3, CURVE_PULL = 0.45, TRIM_M = 30;
+// m: a ramp between full and shortest tried; degrees of turn each metre a ramp is cut short costs
+const RAMP_MID_M = 6, RAMP_SHORT_COST = 1;
 const JOIN_LENGTH_COST = 0.15;
 // m a driveway runs on past where the blocked test first trips (half a road and a metre out)
 const DRIVEWAY_IN_M = 2;
 // degrees of turn a join gains by carrying on a road from its end; a merge alongside costs
 const END_BONUS = -12, MERGE_COST = 10;
+// m ahead of a fixed start (a tunnel's mouth) a road's end may be met
+const END_NEAR_M = 0.5;
+// m back along a road ending at a tunnel's mouth it may be cut to run on into the tunnel
+const CONTINUE_M = 45;
 // m of the straight run off a bridge with no road to meet
 const APPROACH_M = 8;
 
@@ -63,17 +69,23 @@ function smoothestJoin(roads: Lane[], deckEnd: Point, dir: Point,
       // a road's end may be met close in (the road runs on to the bridge); elsewhere room to bend
       const isEnd = index === 0 || index === road.pts.length - 1;
       if (ahead < (isEnd ? RAMP_MIN_M + 0.5 : RAMP_MIN_M + 4) || gap > JOIN_REACH_M) return;
-      const ramp = Math.max(RAMP_MIN_M, Math.min(RAMP_FULL_M, ahead - 4)), foot = ABUT_M + ramp;
-      const start: Point = [deckEnd[0] + dir[0] * foot, deckEnd[1] + dir[1] * foot];
-      const meet = { road, index, spot };
-      for (const [arrive, cost] of arrivals(meet, start)) {
-      const curve = easeCurve(start, dir, spot, arrive);
-      // the ramp's foot and the whole curve clear of buildings
-      if ([start, ...curve].some(([x, y]) => blocked(x, y))) continue;
-      const score = sharpestTurn([deckEnd, start, ...curve]) + gap * JOIN_LENGTH_COST;
-      const total = score + cost;
-      if (!best || total < best.score)
-        best = { meet, ramp, curve: [start, ...curve], score: total };
+      // the ramp as long as the road ahead leaves room for, or shorter when that gives the curve
+      // after it room to turn (a shorter ramp costs a little)
+      const longest = Math.max(RAMP_MIN_M, Math.min(RAMP_FULL_M, ahead - 4));
+      for (const ramp of new Set([longest, Math.min(longest, RAMP_MID_M), RAMP_MIN_M])) {
+        const foot = ABUT_M + ramp;
+        const start: Point = [deckEnd[0] + dir[0] * foot, deckEnd[1] + dir[1] * foot];
+        const meet = { road, index, spot };
+        for (const [arrive, cost] of arrivals(meet, start)) {
+          const curve = easeCurve(start, dir, spot, arrive);
+          // the ramp's foot and the whole curve clear of buildings
+          if ([start, ...curve].some(([x, y]) => blocked(x, y))) continue;
+          const score = sharpestTurn([deckEnd, start, ...curve]) + gap * JOIN_LENGTH_COST
+            + (longest - ramp) * RAMP_SHORT_COST;
+          const total = score + cost;
+          if (!best || total < best.score)
+            best = { meet, ramp, curve: [start, ...curve], score: total };
+        }
       }
     });
   return best;
@@ -122,34 +134,54 @@ function onwardHeading(meet: Meet, from: Point): Point {
 /**
  * The ways a join may arrive at a road point, each with its cost: at the road's end, carrying on
  * into it (the road is continued: preferred); into a through road square to it (a T-junction);
- * or along it (a merge: only when nothing better fits).
+ * or along it (a merge: only when nothing better fits). Where the road's stub past the point
+ * will be trimmed (trimDeadEnd) the point is its end: only carrying on along what is left (a T
+ * there became a corner once the stub went).
  * @param meet the meeting
  * @param from where the join's curve starts
  * @returns [heading, cost] pairs
  */
 function arrivals(meet: Meet, from: Point): [Point, number][] {
-  const along = onwardHeading(meet, from), last = meet.road.pts.length - 1;
+  const along = onwardHeading(meet, from), pts = meet.road.pts, last = pts.length - 1;
   if (meet.index === 0 || meet.index === last) return [[along, END_BONUS]];
+  const stub = stubTrimmed(meet, from);
+  if (stub) {
+    const next = pts[stub === 'start' ? meet.index + 1 : meet.index - 1];
+    const len = Math.hypot(next[0] - meet.spot[0], next[1] - meet.spot[1]) || 1;
+    return [[[(next[0] - meet.spot[0]) / len, (next[1] - meet.spot[1]) / len], END_BONUS]];
+  }
   const square: Point = [-along[1], along[0]];
   const toward = (meet.spot[0] - from[0]) * square[0] + (meet.spot[1] - from[1]) * square[1];
   return [[toward >= 0 ? square : [-square[0], -square[1]], 0], [along, MERGE_COST]];
 }
 
 /**
- * Trims a road's dead end past the joint: when the joint is within TRIM_M of one of the road's
- * ends and that end lies back toward the bridge, the road starts spot the joint instead.
- * @param meet the meeting (its road is changed)
+ * Which of a road's ends past a joint is a dead end to trim: one within TRIM_M of the joint that
+ * lies back toward the bridge.
+ * @param meet the meeting
  * @param from the ramp's end
+ * @returns the end, or null with none
  */
-function trimDeadEnd(meet: Meet, from: Point): void {
+function stubTrimmed(meet: Meet, from: Point): 'start' | 'end' | null {
   const pts = meet.road.pts;
   const toStart = lineLengthOf(pts.slice(0, meet.index + 1));
   const toEnd = lineLengthOf(pts.slice(meet.index));
   const nearer = (point: Point) => Math.hypot(point[0] - from[0], point[1] - from[1])
     < Math.hypot(meet.spot[0] - from[0], meet.spot[1] - from[1]);
-  if (toStart < TRIM_M && nearer(pts[0])) meet.road.pts = pts.slice(meet.index);
-  else if (toEnd < TRIM_M && nearer(pts[pts.length - 1]))
-    meet.road.pts = pts.slice(0, meet.index + 1);
+  if (toStart < TRIM_M && nearer(pts[0])) return 'start';
+  if (toEnd < TRIM_M && nearer(pts[pts.length - 1])) return 'end';
+  return null;
+}
+
+/**
+ * Trims a road's dead end past the joint (stubTrimmed): the road starts or ends at the joint.
+ * @param meet the meeting (its road is changed)
+ * @param from the ramp's end
+ */
+function trimDeadEnd(meet: Meet, from: Point): void {
+  const stub = stubTrimmed(meet, from), pts = meet.road.pts;
+  if (stub === 'start') meet.road.pts = pts.slice(meet.index);
+  else if (stub === 'end') meet.road.pts = pts.slice(0, meet.index + 1);
 }
 
 const lineLengthOf = (pts: Point[]) => (pts.length > 1 ? lineLength(pts) : 0);
@@ -227,7 +259,9 @@ export function joinFrom(roads: Lane[], from: Point, dir: Point,
   const join = smoothestJoinFrom(roads, virtualEnd, dir, blocked, back, reach);
   if (!join) return null;
   trimDeadEnd(join.meet, join.curve[0]);
-  return [from, ...join.curve];
+  // the curve starts at from itself: not twice (a doubled point read as a turn back)
+  return [from, ...join.curve.filter((point) =>
+    Math.hypot(point[0] - from[0], point[1] - from[1]) > 0.5)];
 }
 
 /**
@@ -248,7 +282,9 @@ function smoothestJoinFrom(roads: Lane[], deckEnd: Point, dir: Point,
     road.pts.forEach((spot, index) => {
       const ahead = (spot[0] - start[0]) * dir[0] + (spot[1] - start[1]) * dir[1];
       const gap = Math.hypot(spot[0] - start[0], spot[1] - start[1]);
-      if (ahead < 4 || gap > reach) return;
+      // a road's end may be met close in (the road runs on into the mouth); elsewhere room to bend
+      const isEnd = index === 0 || index === road.pts.length - 1;
+      if (ahead < (isEnd ? END_NEAR_M : 4) || gap > reach) return;
       const meet = { road, index, spot };
       for (const [arrive, cost] of arrivals(meet, start)) {
       const curve = easeCurve(start, dir, spot, arrive);
@@ -259,5 +295,71 @@ function smoothestJoinFrom(roads: Lane[], deckEnd: Point, dir: Point,
         best = { meet, ramp: 0, curve: [start, ...curve], score: total };
       }
     });
+  return best;
+}
+
+/**
+ * A tunnel's road carried on from the road that ends at its mouth (owner 11-07: roads "don't go
+ * anywhere"; a tunnel's road looped round into that road further back): that road is cut back
+ * to the point where the smoothest curve from the mouth runs on into it - along it, away from the
+ * cut end - and the stub past the cut goes.
+ * @param roads the service roads (the one carried on is cut)
+ * @param from the mouth (the tunnel road's start)
+ * @param dir the heading out of the mouth (unit)
+ * @param blocked true where a building stands
+ * @param reach metres from the mouth an end of the road may lie
+ * @returns the tunnel road's points from the mouth, or null with no road ending near
+ */
+export function continueRoad(roads: Lane[], from: Point, dir: Point,
+  blocked: (x: number, y: number) => boolean, reach: number): Point[] | null {
+  let best: Cut | null = null;
+  for (const road of roads)
+    for (const fromStart of [true, false]) {
+      const end = fromStart ? road.pts[0] : road.pts[road.pts.length - 1];
+      if (Math.hypot(end[0] - from[0], end[1] - from[1]) > reach) continue;
+      const cut = bestCut(road, fromStart, from, dir, blocked);
+      if (cut && (!best || cut.score < best.score)) best = cut;
+    }
+  if (!best) return null;
+  const { road, index, fromStart, curve } = best;
+  // the road from the cut on, its first point the joint (the curve ends there)
+  road.pts = fromStart ? road.pts.slice(index) : road.pts.slice(0, index + 1);
+  return [from, ...curve.filter((point) =>
+    Math.hypot(point[0] - from[0], point[1] - from[1]) > 0.5)];
+}
+
+/** Where a road is cut to run on from a tunnel's mouth: the road, the index, which end goes. */
+interface Cut { road: Lane; index: number; fromStart: boolean; curve: Point[]; score: number }
+
+/**
+ * The smoothest cut of a road within CONTINUE_M of one of its ends for a curve from a tunnel's
+ * mouth to run on into it, along it away from that end.
+ * @param road the road
+ * @param fromStart its first end goes, else its last
+ * @param from the mouth
+ * @param dir the heading out of the mouth (unit)
+ * @param blocked true where a building stands
+ * @returns the cut, or null with no clear curve
+ */
+function bestCut(road: Lane, fromStart: boolean, from: Point, dir: Point,
+  blocked: (x: number, y: number) => boolean): Cut | null {
+  const pts = road.pts, last = pts.length - 1;
+  let best: Cut | null = null;
+  for (let step = 0; step <= last - 1; step++) {
+    const index = fromStart ? step : last - step, spot = pts[index];
+    const stub = fromStart ? pts.slice(0, index + 1) : pts.slice(index);
+    if (lineLengthOf(stub) > CONTINUE_M) break;
+    const ahead = (spot[0] - from[0]) * dir[0] + (spot[1] - from[1]) * dir[1];
+    if (ahead < END_NEAR_M) continue;
+    const next = pts[fromStart ? index + 1 : index - 1];
+    const len = Math.hypot(next[0] - spot[0], next[1] - spot[1]) || 1;
+    const curve = easeCurve(from, dir, spot,
+      [(next[0] - spot[0]) / len, (next[1] - spot[1]) / len]);
+    if (curve.some(([x, y]) => blocked(x, y))) continue;
+    const gap = Math.hypot(spot[0] - from[0], spot[1] - from[1]);
+    const score = sharpestTurn([[from[0] - dir[0], from[1] - dir[1]], from, ...curve, next])
+      + gap * JOIN_LENGTH_COST;
+    if (!best || score < best.score) best = { road, index, fromStart, curve, score };
+  }
   return best;
 }

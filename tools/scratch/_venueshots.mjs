@@ -42,7 +42,7 @@ try {
       Object.assign(game.car, { x: best.x, y: best.y, heading: best.heading, vx: 0, vy: 0 });
     }, spot);
     await page.evaluate((zoom) => window.__game.renderer.debugZoom(zoom), ZOOM);
-    await page.waitForTimeout(1500);
+    await page.waitForTimeout(+(process.env.WAIT || 1500));
     await page.screenshot({ path: `tools/scratch/_venueshot-${level}-d${spot.replace(":", "_")}-${viewW}x${viewH}.png` });
   }
   console.log(errors.length ? `ERRORS ${errors.slice(0, 5).join(' | ')}` : 'errors none');

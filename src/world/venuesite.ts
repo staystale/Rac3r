@@ -16,6 +16,7 @@ export const REACH_M = 130;
 export interface Site {
   build: VenueBuild; loops: Subtrack[]; rims: Rim[]; place: (pt: Point) => Point;
   rnd: () => number; lanes: Lane[]; buildings: Prop[];
+  portals: Prop[];   // the tunnels' portals (laid before the roads, which keep off them)
   armco: Set<string>;   // the 2 m cells the Armco runs through (roads keep out of them)
   pitPts: Point[];   // the pit lane's line (trucks and cars keep off its apron)
 }
@@ -51,6 +52,18 @@ export function inBuilding(buildings: Prop[], x: number, y: number, pad: number)
     return Math.abs(along) <= prop.w / 2 + pad && Math.abs(across) <= prop.h / 2 + pad;
   });
 }
+
+/**
+ * Whether a point lies within pad of a building or a tunnel's portal: what roads, parked cars and
+ * posts keep off.
+ * @param site the venue's builders' state
+ * @param x world x
+ * @param y world y
+ * @param pad metres
+ * @returns true when in or that near one
+ */
+export const inSolid = (site: Site, x: number, y: number, pad: number): boolean =>
+  inBuilding(site.buildings, x, y, pad) || inBuilding(site.portals, x, y, pad);
 
 // m: the side of the cells the Armco is indexed by
 export const ARMCO_CELL_M = 2;

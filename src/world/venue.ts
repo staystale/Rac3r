@@ -52,6 +52,19 @@ export interface VenueSpec {
   banks: { pts: Point[]; r: number; h: number }[];   // spectator earth banks
   boards: { at: Point; label: string }[];   // advertising boards (the road side nearest)
   bridgeLabel?: string;   // painted on the footbridge
+  // the map warped before it is built: past a line (through at, normal dir) everything moves
+  // shift m along dir, eased in over band m (more room where the real place is tight)
+  warps?: { at: Point; dir: Point; band: number; shift: number }[];
+  // the hand finish, game m (owner 11-07: "maybe if needs hand finish to get clean road
+  // connections"): where the mapped roads cannot be joined cleanly by rule, a building our placing
+  // pushed onto a road is moved off it, a generated road is cut short at a point (the side toward
+  // keep kept) or dropped, and roads drawn by hand laid in (world/venueroads.ts handFinish)
+  finish?: {
+    move?: { at: Point; by: Point }[];   // the building standing on at moved by
+    cut?: { at: Point; keep: Point }[];
+    drop?: Point[];
+    roads?: { pts: Point[]; width?: number }[];
+  };
   seed: number;
 }
 
@@ -135,15 +148,57 @@ function traceLayout(spec: VenueSpec, layout: string, scale: number): Subtrack {
   return sub;
 }
 
+/**
+ * A venue's spec with its map warped (spec.warps): every point and every x / y in its data,
+ * hills, banks, boards and start moved by the warps.
+ * @param spec the venue as mapped
+ * @returns the venue warped (the same object with no warps)
+ */
+function warpSpec(spec: VenueSpec): VenueSpec {
+  const warps = spec.warps || [];
+  if (!warps.length) return spec;
+  const move = ([x, y]: Point): Point => {
+    let outX = x, outY = y;
+    for (const warp of warps) {
+      const past = (x - warp.at[0]) * warp.dir[0] + (y - warp.at[1]) * warp.dir[1];
+      const frac = Math.max(0, Math.min(1, (past + warp.band / 2) / warp.band));
+      const ease = frac * frac * (3 - 2 * frac);
+      outX += warp.dir[0] * warp.shift * ease;
+      outY += warp.dir[1] * warp.shift * ease;
+    }
+    return [outX, outY];
+  };
+  const walk = (value: unknown): unknown => {
+    if (Array.isArray(value)) {
+      if (value.length === 2 && typeof value[0] === 'number' && typeof value[1] === 'number')
+        return move(value as Point);
+      return value.map(walk);
+    }
+    if (value && typeof value === 'object') {
+      const out: Record<string, unknown> = {};
+      for (const [key, entry] of Object.entries(value)) out[key] = walk(entry);
+      const box = value as { x?: unknown; y?: unknown };
+      if (typeof box.x === 'number' && typeof box.y === 'number')
+        [out.x, out.y] = move([box.x, box.y]);
+      return out;
+    }
+    return value;
+  };
+  return { ...spec, data: walk(spec.data) as VenueData, hills: walk(spec.hills) as Bump[],
+    banks: walk(spec.banks) as VenueSpec['banks'], boards: walk(spec.boards) as VenueSpec['boards'],
+    start: move(spec.start) };
+}
+
 const builds = new Map<VenueSpec, VenueBuild>();
 /**
  * The venue at game scale, built once and shared by its layouts' levels.
  * @param spec the venue
  * @returns the scale, every layout's road and every piece
  */
-export function venueBuild(spec: VenueSpec): VenueBuild {
-  const cached = builds.get(spec);
+export function venueBuild(rawSpec: VenueSpec): VenueBuild {
+  const cached = builds.get(rawSpec);
   if (cached) return cached;
+  const spec = warpSpec(rawSpec);
   const realLap = loopLength(layoutLine(spec.data, spec.calibrate.layout));
   const scale = spec.share * spec.calibrate.realLapM / realLap;
   const loops: Record<string, Subtrack> = {};
@@ -152,7 +207,7 @@ export function venueBuild(spec: VenueSpec): VenueBuild {
   const pieces = spec.data.pieces.map((piece) => ({ name: piece.name,
     pts: piece.pts.map(([x, y]) => [ROUND(x * scale), ROUND(y * scale)] as Point) }));
   const build = { spec, scale, loops, pieces };
-  builds.set(spec, build);
+  builds.set(rawSpec, build);
   return build;
 }
 

@@ -9,18 +9,19 @@
 // kart track and rally stages, woods, boards; and the pit lane's painted lines.
 import { alongTrack } from "./barriers.ts";
 import { SURFACES } from "./surfaces.ts";
-import { onTrack } from "./tyrewall.ts";
+import { onTrack, querySubtrack } from "./tyrewall.ts";
 import { parkMiller } from "../core/random.ts";
-import { HALF_ROAD, VENUE_ROAD_M, centreAt, distToLine, makePlacer, nearestLoop,
+import { HALF_ROAD, VENUE_ROAD_M, centreAt, centreBetween, distToLine, makePlacer, nearestLoop,
   resample, smoothLine } from "./venuegeo.ts";
 import { boardOnArmco, buildEdge, buildRims, inZones, marshalPosts,
   outlineZone, pastRim, trapZones } from "./venueedge.ts";
 import type { EdgeNeeds } from "./venueedge.ts";
-import { REACH_M, cellKey, inBuilding, nearArmco, nearRace, onLanes, placeAll }
+import { REACH_M, cellKey, inBuilding, inSolid, nearArmco, nearRace, onLanes, placeAll }
   from "./venuesite.ts";
 import type { Site } from "./venuesite.ts";
-import { tidyRoads, venueRoads, withoutDuplicates } from "./venueroads.ts";
-import { joinApproaches, joinFrom } from "./venuejoin.ts";
+import { FOOT_REACH_M, handFinish, tidyRoads, venueRoads, withoutDuplicates }
+  from "./venueroads.ts";
+import { continueRoad, joinApproaches, joinFrom } from "./venuejoin.ts";
 import type { VenueBox, VenueBuild } from "./venue.ts";
 import type { Barrier, Cone, Lane, Paint, Point, Prop, Subtrack, Zone } from "./types.ts";
 
@@ -33,12 +34,16 @@ export interface VenueScenery {
 // m: the pit lane's width, the wall's gap from it, where it may meet the track (its ends) and the
 // wall's distance past the road's edge
 const PIT_W = 9, PIT_WALL_GAP = 0.6, PIT_MERGE_M = 30, EDGE_TO_WALL = 3;
+// the pit lane's easing beside the track: points either side in the mean, rounds of easing
+const PIT_EASE_REACH = 6, PIT_EASE_ROUNDS = 4;
 // m: the garages' front stands at least this far behind the pit lane's edge
 const GARAGE_GAP_M = 1.5;
 // m from the pit lane's centre a parked truck or car keeps (the apron in front of the garages)
 const PIT_APRON_M = 16;
 // m: a bridge's approach and its width; a tunnel portal's distance outside the edge, its length
-const APPROACH_M = 8, APPROACH_W = 6, PORTAL_OUT_M = 3, PORTAL_LEN_M = 9;
+const APPROACH_M = 8, APPROACH_W = 6, PORTAL_OUT_M = 3, PORTAL_LEN_M = 9, PORTAL_LOOK_M = 80;
+// m a portal keeps off every road and building
+const PORTAL_CLEAR_M = 2.5;
 // m: tunnels crossing the track this close together are one tunnel
 const SAME_TUNNEL_M = 12;
 // m: a bridge deck's width as a hazard box; how near a stand or bank puts a catch fence
@@ -76,23 +81,44 @@ function pitLane(site: Site): { lane: Lane; wall: Barrier | null } {
   const dense = resample(placeAll(site, data.pts), 2);
   const need = HALF_ROAD + EDGE_TO_WALL + PIT_WALL_GAP + PIT_W / 2;
   const beside: { sub: Subtrack; dist: number; side: number }[] = [];
-  const moved = dense.map(([x, y], i) => {
-    const fromEnd = Math.min(i, dense.length - 1 - i) * 2;
-    if (fromEnd < PIT_MERGE_M) return [x, y];
+  // the clearance the lane needs: in full along the wall, easing to nothing over each merge (a
+  // jump in it was a kink where the merge ended)
+  const clearance = (i: number, count: number) => {
+    const frac = Math.min(1, Math.min(i, count - 1 - i) * 2 / PIT_MERGE_M);
+    // eased in and out (a straight ramp left a corner where it topped out)
+    return need * frac * frac * (3 - 2 * frac);
+  };
+  dense.forEach(([x, y], i) => {
+    if (Math.min(i, dense.length - 1 - i) * 2 < PIT_MERGE_M) return;
     const { sub, hit } = nearestLoop(site.loops, x, y);
-    const side = hit.side === 'left' ? 1 : -1;
-    beside.push({ sub, dist: hit.trackDist, side });
-    if (hit.dist >= need) return [x, y];
-    const centre = centreAt(sub, hit.trackDist);
-    return [centre.x + centre.nx * side * need, centre.y + centre.ny * side * need];
-  }) as Point[];
-  // eased (the mapped lane jogs), then held clear of the wall again
-  const eased = smoothLine(moved).map(([x, y], i) => {
-    const fromEnd = Math.min(i, moved.length - 1 - i) * 2;
-    const { sub, hit } = nearestLoop(site.loops, x, y);
-    if (fromEnd < PIT_MERGE_M || hit.dist >= need) return [x, y] as Point;
-    const centre = centreAt(sub, hit.trackDist), side = hit.side === 'left' ? 1 : -1;
-    return [centre.x + centre.nx * side * need, centre.y + centre.ny * side * need] as Point;
+    beside.push({ sub, dist: hit.trackDist, side: hit.side === 'left' ? 1 : -1 });
+  });
+  // the lane in the track's own measure - distance along it, offset beside it - held out to its
+  // clearance and eased there, then laid back beside the track (held out point by point along
+  // the track's normals it bunched and jogged on a bend's inside)
+  const sub = nearestLoop(site.loops, ...dense[Math.floor(dense.length / 2)]).sub;
+  const total = sub.totalDist, measured: Point[] = [];
+  let sideSum = 0;
+  for (const [x, y] of dense) {
+    const hit = querySubtrack(sub, x, y), side = hit.side === 'left' ? 1 : -1;
+    let along = hit.trackDist;
+    // one measure through the lap's start (no jump of a lap)
+    const prev = measured.length ? measured[measured.length - 1][0] : along;
+    while (along - prev > total / 2) along -= total;
+    while (prev - along > total / 2) along += total;
+    measured.push([along, side * hit.dist]);
+    sideSum += side;
+  }
+  const out = Math.sign(sideSum || 1);
+  const hold = (pts: Point[]) => pts.map(([along, off], i): Point =>
+    [along, out * Math.max(out * off, clearance(i, pts.length))]);
+  // eased and held to the clearance in turn (easing alone pulled it in where the ramp tops out)
+  let measuredEased = hold(measured);
+  for (let round = 0; round < PIT_EASE_ROUNDS; round++)
+    measuredEased = hold(smoothLine(measuredEased, PIT_EASE_REACH, 1, true));
+  const eased = measuredEased.map(([along, off]) => {
+    const centre = centreBetween(sub, along);
+    return [centre.x + centre.nx * off, centre.y + centre.ny * off] as Point;
   });
   let wall: Barrier | null = null;
   if (beside.length > 8) {
@@ -210,6 +236,33 @@ function venueBridges(site: Site): { props: Prop[]; lanes: Lane[] } {
 }
 
 /**
+ * How far along a tunnel's line from the track's centre a portal's centre goes: the first place
+ * where its whole footprint is past the edge and off every road and building.
+ * @param site the venue's builders' state
+ * @param centre the track's centre where the tunnel passes under
+ * @param dir the way out (unit)
+ * @param width the tunnel's road
+ * @returns metres, or -1 with no clear place within PORTAL_LOOK_M
+ */
+function clearMouth(site: Site, centre: { x: number; y: number }, dir: Point,
+  width: number): number {
+  const across: Point = [-dir[1], dir[0]], half = (width + 1.2) / 2 + 0.6;
+  for (let out = HALF_ROAD + PORTAL_LEN_M / 2; out <= PORTAL_LOOK_M; out += 1) {
+    const clear = [-PORTAL_LEN_M / 2, 0, PORTAL_LEN_M / 2].every((along) => [-half, 0, half]
+      .every((side) => {
+        const x = centre.x + dir[0] * (out + along) + across[0] * side;
+        const y = centre.y + dir[1] * (out + along) + across[1] * side;
+        return pastRim(site.rims, x, y) > PORTAL_OUT_M - PORTAL_LEN_M
+          && !onLanes(site.lanes, x, y, PORTAL_CLEAR_M)
+          && !inBuilding(site.buildings, x, y, PORTAL_CLEAR_M);
+      }));
+    if (clear && pastRim(site.rims, centre.x + dir[0] * (out - PORTAL_LEN_M / 2),
+      centre.y + dir[1] * (out - PORTAL_LEN_M / 2)) >= PORTAL_OUT_M) return out;
+  }
+  return -1;
+}
+
+/**
  * The tunnels under the track: a portal each side, PORTAL_OUT_M outside the edge along the
  * tunnel's line, its ramp running down toward the track, with a road from its mouth out.
  * @param site the venue's builders' state
@@ -226,12 +279,13 @@ function venueTunnels(site: Site): { props: Prop[]; lanes: Lane[] } {
     done.push([atX, atY]);
     const { centre } = cross, width = tunnel.kind === 'footway' ? 3 : 6;
     const dirX = Math.cos(cross.head), dirY = Math.sin(cross.head);
-    for (const side of [-1, 1]) {
-      // walk out along the tunnel's line until past the edge
-      let out = HALF_ROAD;
-      while (out < 80 && pastRim(site.rims, centre.x + dirX * side * out,
-        centre.y + dirY * side * out) < PORTAL_OUT_M) out += 1;
-      const mouth = out + PORTAL_LEN_M / 2;
+    // each end walks out along the tunnel's line until its whole portal is past the edge and
+    // clear of every road (the pit lane) and building (a grandstand); no clear end, no tunnel
+    const mouths = [-1, 1].map((side) => clearMouth(site, centre, [dirX * side, dirY * side],
+      width));
+    if (mouths.some((mouth) => mouth < 0)) continue;
+    for (const [index, side] of [-1, 1].entries()) {
+      const mouth = mouths[index];
       const x = centre.x + dirX * side * mouth, y = centre.y + dirY * side * mouth;
       // the portal's ramp runs down toward the track: its rot points at the track
       props.push({ kind: 'tunnel', x, y, rot: cross.head + (side > 0 ? Math.PI : 0),
@@ -394,7 +448,7 @@ function rowSlots(site: Site, box: Prop, zone: Zone, spacing: [number, number, n
   const fits = (x: number, y: number) => [-1, 0, 1].every((end) => {
     const pointX = x + itemX * end, pointY = y + itemY * end;
     return inZones([zone], pointX, pointY) && !onLanes(site.lanes, pointX, pointY, 1.5)
-      && !inBuilding(site.buildings, pointX, pointY, 1.5)
+      && !inSolid(site, pointX, pointY, 1.5)
       && pastRim(site.rims, pointX, pointY) > BUILD_OUT_M + 2;
   });
   for (let row = -box.h! / 2 + across / 2; row <= box.h! / 2 - across / 2; row += across)
@@ -544,11 +598,19 @@ function joinTunnels(site: Site, tunnels: { props: Prop[]; lanes: Lane[] }, road
   const keepProps: Prop[] = [], keepLanes: Lane[] = [];
   for (let i = 0; i + 1 < tunnels.lanes.length; i += 2) {
     const pair = [tunnels.lanes[i], tunnels.lanes[i + 1]];
+    // a join cuts the road it meets: put back when the tunnel goes
+    const before = roads.map((road) => road.pts);
     const joined = pair.map((lane) => {
       const [from, out] = lane.pts, len = Math.hypot(out[0] - from[0], out[1] - from[1]) || 1;
-      return joinFrom(roads, out, [(out[0] - from[0]) / len, (out[1] - from[1]) / len], blocked);
+      const dir: Point = [(out[0] - from[0]) / len, (out[1] - from[1]) / len];
+      // the road that ends at the mouth runs on into the tunnel; else the nearest road is joined
+      return continueRoad(roads, out, dir, blocked, FOOT_REACH_M)
+        || joinFrom(roads, out, dir, blocked);
     });
-    if (joined.some((pts) => !pts)) continue;
+    if (joined.some((pts) => !pts)) {
+      roads.forEach((road, index) => { road.pts = before[index]; });
+      continue;
+    }
     pair.forEach((lane, side) => { lane.pts = [lane.pts[0], ...joined[side]!]; });
     keepLanes.push(...pair);
     keepProps.push(...tunnels.props.filter((prop) => pair.some((lane) =>
@@ -573,7 +635,7 @@ function joinTunnels(site: Site, tunnels: { props: Prop[]; lanes: Lane[] }, road
 function clearPosts(site: Site, posts: Prop[], barriers: Barrier[]): Prop[] {
   const railPts = barriers.flatMap((rail) => rail.pts);
   const clear = (post: Prop) => !onLanes(site.lanes, post.x, post.y, 2)
-    && !inBuilding(site.buildings, post.x, post.y, 2)
+    && !inSolid(site, post.x, post.y, 2)
     && railPts.every(([x, y]) => Math.abs(x - post.x) > 2.5 || Math.abs(y - post.y) > 2.5);
   return posts.filter((post) => {
     for (let tries = 0; tries < 5; tries++) {
@@ -605,14 +667,24 @@ export function buildVenueScenery(build: VenueBuild, sub: Subtrack, closed: Lane
   const place = makePlacer(build.scale, loops, widen);
   const traps = trapZones(spec.data.traps.map((trap) => trap.pts.map(place)), loops);
   const site: Site = { build, loops, rims: buildRims(loops, traps), place,
-    rnd: parkMiller(spec.seed), lanes: [...closed], buildings: [], armco: new Set(), pitPts: [] };
+    rnd: parkMiller(spec.seed), lanes: [...closed], buildings: [], portals: [], armco: new Set(),
+    pitPts: [] };
   const pit = pitLane(site);
   site.lanes.push(pit.lane);
   site.pitPts = pit.lane.pts;
-  const bridges = venueBridges(site), tunnels = venueTunnels(site);
-  site.lanes.push(...bridges.lanes, ...tunnels.lanes);
-  // the buildings first: the edge protects them and the roads go round them
+  const bridges = venueBridges(site);
+  site.lanes.push(...bridges.lanes);
+  // the buildings first: the tunnels' portals and the edge keep off them, the roads go round them
   site.buildings = venueBuildings(site, pit.lane);
+  // the hand finish's moves (spec.finish): a building our placing pushed onto a road moved off
+  for (const { at, by } of spec.finish?.move || []) {
+    const building = site.buildings.find((prop) => inBuilding([prop], at[0], at[1], 0));
+    if (!building) console.warn(`venue ${spec.id}: finish move at ${at} meets no building`);
+    else Object.assign(building, { x: building.x + by[0], y: building.y + by[1] });
+  }
+  const tunnels = venueTunnels(site);
+  site.lanes.push(...tunnels.lanes);
+  site.portals = tunnels.props;
   const edge = buildEdge(site.rims, { loops, lanes: site.lanes,
     blocked: (x, y) => inBuilding(site.buildings, x, y, 1) }, traps,
   edgeNeeds(site, bridges.props, tunnels.props));
@@ -623,31 +695,37 @@ export function buildVenueScenery(build: VenueBuild, sub: Subtrack, closed: Lane
   // the road network cleaned (no road doubled) and settled (every end meeting something - a road
   // ending at a bridge's ramp or a tunnel's mouth meets it), THEN the bridges and tunnels joined
   // to it, and no road changed after (a later change left an approach hooked to nothing)
-  const cleanRoads = withoutDuplicates(site, roads, []);
+  const cleanRoads = withoutDuplicates(site, roads, [pit.lane]);
   const fixedProps = [...site.buildings, ...bridges.props, ...tunnels.props];
   const roadBounds = venueBounds(loops, [pit.lane, ...cleanRoads], fixedProps);
   const feet = [...bridges.lanes, ...tunnels.lanes].map((lane) => lane.pts[lane.pts.length - 1]);
   const goodRoads = tidyRoads(site, cleanRoads,
     { zones: venuePaddocks(site, false).zones, bounds: roadBounds, feet });
+  // eased once more (a joint carried on can bend sharply where it meets the old end)
+  for (const road of goodRoads) road.pts = smoothLine(road.pts, 2, 3, true);
+  // the hand finish (spec.finish): the joints no rule makes cleanly
+  const finished = handFinish(site, goodRoads);
   // an approach's edge keeps 1 m off every building (its centre half a road further)
-  joinApproaches(bridges, goodRoads,
+  joinApproaches(bridges, finished,
     (x, y) => inBuilding(site.buildings, x, y, 1 + APPROACH_HALF_M));
-  joinTunnels(site, tunnels, goodRoads);
+  joinTunnels(site, tunnels, finished);
   const paddocks = venuePaddocks(site, true);
   const start = onTrack(sub, 2, 0, {});
   const props: Prop[] = [...site.buildings, ...bridges.props, ...tunnels.props,
     ...paddocks.props, ...clearPosts(site, marshalPosts(site.rims), edge.barriers),
-    { kind: 'gantry', x: start.x, y: start.y, wid: 24, rot: start.rot + Math.PI / 2 }];
+    // the start gantry spans the track with its legs on the pit wall's line (not in the pit lane)
+    { kind: 'gantry', x: start.x, y: start.y, wid: 2 * (HALF_ROAD + EDGE_TO_WALL),
+      rot: start.rot + Math.PI / 2 }];
   for (const board of spec.boards) {
     const prop = boardOnArmco(edge.barriers, edge.cones, loops, place(board.at), board.label,
       site.rims, (x, y) => inBuilding(props, x, y, 1.5) || onLanes(site.lanes, x, y, 1.5));
     // its 18 m face as its box, so nothing else stands on it
     if (prop) props.push({ ...prop, w: 18, h: 1.2 });
   }
-  const bounds = venueBounds(loops, [pit.lane, ...bridges.lanes, ...tunnels.lanes, ...goodRoads],
+  const bounds = venueBounds(loops, [pit.lane, ...bridges.lanes, ...tunnels.lanes, ...finished],
     props);
   const zones = [...traps, ...paddocks.zones];
-  const lanes = [pit.lane, ...bridges.lanes, ...tunnels.lanes, ...goodRoads];
+  const lanes = [pit.lane, ...bridges.lanes, ...tunnels.lanes, ...finished];
   props.push(...venueTrees(site, bounds, props, zones));
   // the kart track's tyre lines, none on a road
   const karting = spec.data.tyres.flatMap((line) => resample(placeAll(site, line.pts), 1)

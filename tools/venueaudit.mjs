@@ -146,6 +146,44 @@ for (const [i, road] of roadsOnly.entries()) {
     if (worst > 16) note('roads doubled', `${road.width} m and ${other.width} m roads side by side ~${worst} m near ${road.pts[0].map((v) => v.toFixed(0))}`);
   }
 }
+// armco: whole runs (chunks that share an end joined) - too short, or ending at a road
+const armco = rails.filter((rail) => rail.kind === 'armco');
+const runs = [];
+for (const rail of armco) {
+  const run = runs.find((pts) => Math.hypot(pts[pts.length - 1][0] - rail.pts[0][0], pts[pts.length - 1][1] - rail.pts[0][1]) < 0.5);
+  if (run) run.push(...rail.pts.slice(1)); else runs.push(rail.pts.slice());
+}
+const runLen = (pts) => pts.slice(1).reduce((sum, p, i) => sum + Math.hypot(p[0] - pts[i][0], p[1] - pts[i][1]), 0);
+for (const pts of runs) {
+  if (runLen(pts) < 24) note('armco run short', `${runLen(pts).toFixed(0)} m at ${pts[0].map((v) => v.toFixed(0))}`);
+  for (const end of [pts[0], pts[pts.length - 1]]) {
+    const lane = level.lanes.find((ln) => ln.surface.id !== 'racetarmac' && distToLine(ln.pts, end[0], end[1]) < ln.width / 2 + 4);
+    if (lane) note('armco ends at a road', `end ${end.map((v) => v.toFixed(0))} by ${lane.surface.id} w${lane.width}`);
+  }
+}
+// roads: kinks (more than 30 deg between 2 m steps) and crossings with no junction
+const resampleLine = (pts) => { const out = [pts[0]]; for (let i = 1; i < pts.length; i++) { const [ax, ay] = pts[i - 1], [bx, by] = pts[i]; const n = Math.max(1, Math.ceil(Math.hypot(bx - ax, by - ay) / 2)); for (let k = 1; k <= n; k++) out.push([ax + (bx - ax) * k / n, ay + (by - ay) * k / n]); } return out; };
+for (const road of roadsOnly.filter((lane) => lane.width > 4)) {
+  // (a kart track's hairpins are real: karts)
+  const pts = resampleLine(road.pts);
+  let worst = 0, at = null;
+  for (let i = 2; i < pts.length; i++) {
+    const h1 = Math.atan2(pts[i - 1][1] - pts[i - 2][1], pts[i - 1][0] - pts[i - 2][0]), h2 = Math.atan2(pts[i][1] - pts[i - 1][1], pts[i][0] - pts[i - 1][0]);
+    const bend = Math.abs(((h2 - h1 + 3 * Math.PI) % (2 * Math.PI)) - Math.PI) * 180 / Math.PI;
+    if (bend > worst) { worst = bend; at = pts[i - 1]; }
+  }
+  if (worst > 30) note('road kinked', `${worst.toFixed(0)} deg at ${at.map((v) => v.toFixed(0))} (w${road.width})`);
+}
+const segCross = (p, q, r, s) => { const d = (q[0] - p[0]) * (s[1] - r[1]) - (q[1] - p[1]) * (s[0] - r[0]); if (Math.abs(d) < 1e-9) return null; const t = ((r[0] - p[0]) * (s[1] - r[1]) - (r[1] - p[1]) * (s[0] - r[0])) / d, u = ((r[0] - p[0]) * (q[1] - p[1]) - (r[1] - p[1]) * (q[0] - p[0])) / d; return t > 0 && t < 1 && u > 0 && u < 1 ? [p[0] + (q[0] - p[0]) * t, p[1] + (q[1] - p[1]) * t] : null; };
+for (const [i, road] of roadsOnly.entries())
+  for (const other of roadsOnly.slice(i + 1))
+    for (let a = 0; a < road.pts.length - 1; a++)
+      for (let b = 0; b < other.pts.length - 1; b++) {
+        const at = segCross(road.pts[a], road.pts[a + 1], other.pts[b], other.pts[b + 1]);
+        if (!at) continue;
+        const nearEnd = [road.pts[0], road.pts[road.pts.length - 1], other.pts[0], other.pts[other.pts.length - 1]].some((e) => Math.hypot(e[0] - at[0], e[1] - at[1]) < 6);
+        if (!nearEnd) note('roads cross', `at ${at.map((v) => v.toFixed(0))}`);
+      }
 const kinds = Object.keys(problems);
 console.log(`${levelId}: ${props.length} props, ${level.cones.length} tyres, ${rails.length} barriers, ${level.lanes.length} roads`);
 if (!kinds.length) console.log('venueaudit: nothing overlaps');

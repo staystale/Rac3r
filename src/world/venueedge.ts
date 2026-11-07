@@ -8,7 +8,7 @@
 // poly). Marshal posts stand behind the Armco outside each corner, boards on it.
 import { SURFACES } from "./surfaces.ts";
 import { insidePolygon } from "./zones.ts";
-import { HALF_ROAD, centreAt, clearRuns, distToLine, nearestLoop, roadDistance }
+import { HALF_ROAD, centreAt, clearRuns, distToLine, lineLength, nearestLoop, roadDistance }
   from "./venuegeo.ts";
 import type { Barrier, Cone, Point, Prop, Subtrack, TrackPoint, Zone } from "./types.ts";
 
@@ -36,7 +36,7 @@ const FLARE_ON_M = 6, FLARE_OUT_M = 1.6;
 const TYRE_ROWS: [number, number][] = [[1.4, 0], [2.35, 0.475]];
 // m beyond the rim a hazard is looked for (Armco before it); m of gap filled between two runs of a
 // kind; m a run is grown each way; the fewest points a run keeps
-const HAZARD_M = 14, GAP_FILL_M = 24, EXTEND_M = 8, MIN_RUN_PTS = 12;
+const HAZARD_M = 14, GAP_FILL_M = 24, EXTEND_M = 8, MIN_RUN_PTS = 14, MIN_RUN_M = 26;
 // the fewest tyres a row in front of a barrier keeps (a few alone read as litter)
 const MIN_TYRE_ROW = 16;
 // m behind the Armco of a marshal post, and of a board (behind the catch fence too)
@@ -422,7 +422,7 @@ export function buildEdge(rims: Rim[], keep: EdgeClear, traps: Zone[], needs: Ed
         for (const part of kindRuns(line, kinds, kind)
           .flatMap((run) => withoutDoubles(run, used, 3)))
           for (const run of clearRuns(part, outsideOthers, RIM_STEP_M)) {
-            if (run.length < MIN_RUN_PTS) continue;
+            if (run.length < MIN_RUN_PTS || lineLength(run) < MIN_RUN_M) continue;
             // Armco flared at its real ends, then cut into short runs (no flare where only cut)
             const ends: [Point, Point] = [awayFrom(keep.loops, run[0]),
               awayFrom(keep.loops, run[run.length - 1])];

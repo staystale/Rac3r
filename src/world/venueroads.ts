@@ -8,7 +8,7 @@ import { clearRuns, distToLine, lineLength, resample, roadDistance, smoothLine }
   from "./venuegeo.ts";
 import { inZones, pastRim } from "./venueedge.ts";
 import { joinFrom } from "./venuejoin.ts";
-import { REACH_M, inBuilding, nearArmco, nearRace, onLanes, placeAll, stepOut }
+import { REACH_M, inSolid, nearArmco, nearRace, onLanes, placeAll, stepOut }
   from "./venuesite.ts";
 import type { Site } from "./venuesite.ts";
 import type { VenueScenery } from "./venuescenery.ts";
@@ -40,9 +40,12 @@ const STUB_PTS = 12, STUB_FROM = 3;
 // m past both road edges that still counts as touching; m a short end is carried on to meet one
 const TOUCH_M = 0.5, CARRY_M = 30;
 // m from a bridge's ramp foot or a tunnel's mouth a road end meets it (the join runs on to it)
-const FOOT_REACH_M = 22;
+export const FOOT_REACH_M = 22;
 // a carried-on end's last points (at its joint) that may lie beside the road it meets
 const CARRY_JOINT_PTS = 6;
+// m from a hand finish's point a road passes to be cut or dropped there; m between a drawn road's
+// end and a road's end that makes them one road
+const FINISH_REACH_M = 3, FINISH_JOIN_M = 3;
 
 /**
  * The service roads, rally stages and kart track as lanes, all outside the edge (real widths);
@@ -55,11 +58,11 @@ export function venueRoads(site: Site): Lane[] {
   const add = (pts: Point[], width: number, surface: Lane['surface']) => {
     const clear = (x: number, y: number) => pastRim(site.rims, x, y) > ROAD_OUT_M + width / 2
       && nearRace(site, x, y, REACH_M) && !onLanes(site.lanes, x, y, width / 2)
-      && !inBuilding(site.buildings, x, y, width / 2 + 1) && !nearArmco(site, x, y, width / 2 + 1);
+      && !inSolid(site, x, y, width / 2 + 1) && !nearArmco(site, x, y, width / 2 + 1);
     // a road beside the track but too close to the edge (the game road is wider) steps out to
     // clear it, as a building does; one that cuts across the run-off is cut there
     const placed = smoothLine(resample(placeAll(site, pts), 2).map((point) =>
-      stepOut(site, point, ROAD_OUT_M + width / 2 + ROAD_ARMCO_GAP_M, ROAD_STEP_LIMIT_M)), 2, 2);
+      stepOut(site, point, ROAD_OUT_M + width / 2 + ROAD_ARMCO_GAP_M, ROAD_STEP_LIMIT_M)), 3, 4);
     for (const run of clearRuns(placed, clear))
       if (lineLength(run) >= MIN_ROAD_M) lanes.push({ pts: run, width, surface });
   };
@@ -88,7 +91,7 @@ function joinedUp(site: Site, lanes: Lane[]): Lane[] {
     const meets = (run: Lane) => [run.pts[0], run.pts[run.pts.length - 1]].some(([x, y]) =>
       others.some((other) => other !== run
         && distToLine(other.pts, x, y) < (other.width + run.width) / 2 + JOIN_M)
-      || inBuilding(site.buildings, x, y, run.width / 2 + JOIN_M));
+      || inSolid(site, x, y, run.width / 2 + JOIN_M));
     const next = kept.filter((run) => lineLength(run.pts) >= LONE_ROAD_M || meets(run));
     if (next.length === kept.length) break;
     kept = next;
@@ -129,7 +132,7 @@ function endMeets(site: Site, road: Lane, end: Point, ends: RoadEnds): boolean {
   return site.lanes.some((other) => other !== road && reach(other, end) && !metBefore(other))
     || inZones(ends.zones, x, y)
     || ends.feet.some(([footX, footY]) => Math.hypot(footX - x, footY - y) < FOOT_REACH_M)
-    || inBuilding(site.buildings, x, y, BUILDING_REACH_M + road.width / 2)
+    || inSolid(site, x, y, BUILDING_REACH_M + road.width / 2)
     || nearRace(site, x, y, road.width) || Math.hypot(firstX - lastX, firstY - lastY) < JOIN_GAP_M;
 }
 
@@ -168,16 +171,18 @@ function carryOff(site: Site, road: Lane, atStart: boolean,
  * @param site the venue's builders' state
  * @param road the road (changed)
  * @param atStart its first end, else its last
+ * @param roads the service roads it may be carried into
  * @returns true when it was joined
  */
-function carryInto(site: Site, road: Lane, atStart: boolean): boolean {
+function carryInto(site: Site, road: Lane, atStart: boolean, roads: Lane[]): boolean {
   const pts = road.pts, tip = atStart ? pts[0] : pts[pts.length - 1];
   const prev = atStart ? pts[Math.min(2, pts.length - 1)] : pts[Math.max(0, pts.length - 3)];
   const len = Math.hypot(tip[0] - prev[0], tip[1] - prev[1]) || 1;
   const dir: Point = [(tip[0] - prev[0]) / len, (tip[1] - prev[1]) / len];
-  const others = site.lanes.filter((lane) => lane !== road && lane.surface !== SURFACES.racetarmac);
+  // only into the other service roads (the bridges' and tunnels' roads are joined after)
+  const others = roads.filter((lane) => lane !== road);
   const joined = joinFrom(others, tip, dir,
-    (x, y) => inBuilding(site.buildings, x, y, 1 + road.width / 2)
+    (x, y) => inSolid(site, x, y, 1 + road.width / 2)
       || nearArmco(site, x, y, road.width / 2 + 0.5) || nearRace(site, x, y, road.width), CARRY_M);
   if (!joined) return false;
   // never alongside another road on its way (two roads to the same place): its last few points,
@@ -224,7 +229,7 @@ export function tidyRoads(site: Site, roads: Lane[], ends: RoadEnds): Lane[] {
       for (const atStart of [true, false]) {
         const tip = atStart ? road.pts[0] : road.pts[road.pts.length - 1];
         if (endMeets(site, road, tip, ends) || carryOff(site, road, atStart, ends.bounds)
-          || carryInto(site, road, atStart)) continue;
+          || carryInto(site, road, atStart, kept)) continue;
         const cut = firstJunction(site, road, atStart);
         changed = true;
         if (cut < 0) return false;
@@ -324,4 +329,75 @@ export function withoutDuplicates(site: Site, roads: Lane[], fixed: Lane[]): Lan
   }
   site.lanes = site.lanes.filter((lane) => !roads.includes(lane)).concat(kept);
   return kept;
+}
+
+/**
+ * The venue's hand finish (spec.finish): generated roads cut short or dropped where the mapped
+ * roads cannot be joined cleanly by rule, and roads drawn by hand laid in - one whose end lies on
+ * a road's end carries that road on (one road, its joint eased). A finish point that meets no
+ * road is reported (the generated roads moved under it).
+ * @param site the venue's builders' state (its lanes follow)
+ * @param roads the settled service roads
+ * @returns the roads finished
+ */
+export function handFinish(site: Site, roads: Lane[]): Lane[] {
+  const finish = site.build.spec.finish;
+  if (!finish) return roads;
+  const near = (road: Lane, [x, y]: Point) => distToLine(road.pts, x, y) < FINISH_REACH_M;
+  const miss = (what: string, [x, y]: Point) =>
+    console.warn(`venue ${site.build.spec.id}: finish ${what} at ${x},${y} meets no road`);
+  let kept = roads.filter((road) => !(finish.drop || []).some((spot) => near(road, spot)));
+  for (const spot of finish.drop || [])
+    if (!roads.some((road) => near(road, spot))) miss('drop', spot);
+  for (const { at, keep } of finish.cut || []) {
+    const road = kept.find((lane) => near(lane, at));
+    if (road) cutRoad(road, at, keep);
+    else miss('cut', at);
+  }
+  for (const drawn of finish.roads || []) kept = laidIn(kept, drawn);
+  site.lanes = site.lanes.filter((lane) => !roads.includes(lane)).concat(kept);
+  return kept;
+}
+
+/**
+ * A road cut at its own point nearest a spot (a point off its line would bend its end), the
+ * side toward keep kept.
+ * @param road the road (changed)
+ * @param spot where it is cut
+ * @param keep a point by the side kept
+ */
+function cutRoad(road: Lane, spot: Point, keep: Point): void {
+  let index = 0, best = Infinity;
+  road.pts.forEach(([x, y], i) => {
+    const gap = Math.hypot(x - spot[0], y - spot[1]);
+    if (gap < best) [best, index] = [gap, i];
+  });
+  const head = road.pts.slice(0, index + 1), tail = road.pts.slice(index);
+  const from = (part: Point[]) => (part.length > 1 ? distToLine(part, keep[0], keep[1]) : Infinity);
+  road.pts = from(head) < from(tail) ? head : tail;
+}
+
+/**
+ * A road drawn by hand laid in among the roads: an end on (within FINISH_JOIN_M of) a road's end
+ * carries that road on - one road, the joint eased.
+ * @param roads the roads
+ * @param drawn the drawn road
+ * @returns the roads with it
+ */
+function laidIn(roads: Lane[], drawn: { pts: Point[]; width?: number }): Lane[] {
+  let pts = resample(drawn.pts, 2), surface = SURFACES.tarmac, kept = roads;
+  for (const atStart of [true, false]) {
+    const end = atStart ? pts[0] : pts[pts.length - 1];
+    const touches = (point: Point) =>
+      Math.hypot(point[0] - end[0], point[1] - end[1]) < FINISH_JOIN_M;
+    const road = kept.find((lane) =>
+      touches(lane.pts[0]) || touches(lane.pts[lane.pts.length - 1]));
+    if (!road) continue;
+    // that road turned to run up to the end, then on along the drawn one (or the other way)
+    const into = touches(road.pts[road.pts.length - 1]) ? road.pts : road.pts.slice().reverse();
+    pts = atStart ? [...into, ...pts.slice(1)] : [...pts, ...into.slice().reverse().slice(1)];
+    surface = road.surface;
+    kept = kept.filter((lane) => lane !== road);
+  }
+  return [...kept, { pts: smoothLine(pts, 3, 3, true), width: drawn.width || 5, surface }];
 }

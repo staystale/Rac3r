@@ -12,6 +12,8 @@ export const HALF_ROAD = VENUE_ROAD_M / 2;
 // m (game) from a race road within which the map is stepped back in full, and where the step has
 // faded to nothing (so far scenery stays where the map puts it)
 const STEP_FULL_M = 40, STEP_GONE_M = 110;
+// m between the race roads' centre samples the placer looks across to
+const ACROSS_SAMPLE_M = 3;
 
 /**
  * A line resampled every stepM metres (its corners kept).
@@ -99,6 +101,26 @@ export function centreAt(sub: Subtrack, dist: number): TrackPoint {
 }
 
 /**
+ * A race road's centre at a distance along it, between its samples: the point and its left
+ * normal.
+ * @param sub the road
+ * @param dist metres along it (wrapped round the lap)
+ * @returns the point and the normal
+ */
+export function centreBetween(sub: Subtrack, dist: number):
+  { x: number; y: number; nx: number; ny: number } {
+  const total = sub.totalDist, want = ((dist % total) + total) % total;
+  const pts = sub.pts, low = pts.indexOf(centreAt(sub, want));
+  const next = pts[(low + 1) % pts.length], from = pts[low];
+  const span = (next.dist > from.dist ? next.dist : next.dist + total) - from.dist;
+  const frac = span > 0 ? Math.min(1, (want - from.dist) / span) : 0;
+  const nx = from.nx + (next.nx - from.nx) * frac, ny = from.ny + (next.ny - from.ny) * frac;
+  const len = Math.hypot(nx, ny) || 1;
+  return { x: from.x + (next.x - from.x) * frac, y: from.y + (next.y - from.y) * frac,
+    nx: nx / len, ny: ny / len };
+}
+
+/**
  * The nearest of the venue's layout roads to a point (a point past every road's lookup grid
  * reads Infinity).
  * @param loops every layout's road
@@ -117,15 +139,49 @@ export function nearestLoop(loops: Subtrack[], x: number, y: number):
 }
 
 /**
+ * How far ahead along a heading the next race road lies: the nearest centre sample in front,
+ * one off to the side counting as further (its distance over the cosine of its angle off the
+ * heading, so a road coming into view counts in smoothly).
+ * @param samples the race roads' centre samples
+ * @param x the point
+ * @param y the point
+ * @param dirX the heading (unit)
+ * @param dirY the heading (unit)
+ * @returns metres, Infinity with no road ahead
+ */
+function roadAhead(samples: Point[], x: number, y: number, dirX: number, dirY: number): number {
+  let best = Infinity;
+  for (const [sampleX, sampleY] of samples) {
+    const offX = sampleX - x, offY = sampleY - y;
+    const along = offX * dirX + offY * dirY;
+    if (along <= 0) continue;
+    best = Math.min(best, (offX * offX + offY * offY) / along);
+  }
+  return best;
+}
+
+/**
  * THE PLACER: a real map point at game scale, stepped back from the nearest race road by the
  * road's extra half width (in full near the road, fading out by STEP_GONE_M), so what stood at the
  * real road's edge stands at the game road's edge, and a trap or a stand keeps its real gap.
+ * Between two stretches of road (the infield behind the pits, a hairpin's inside) the ground
+ * between is squeezed instead - the step easing to nothing halfway across - so the map never
+ * folds where the nearest road changes side (it pushed both ways there: 8 m of map doubled over).
  * @param scale game m per real m
  * @param loops every layout's road at game scale
  * @param widenM the game road's extra half width over the real road's at scale, m
  * @returns the point placer
  */
 export function makePlacer(scale: number, loops: Subtrack[], widenM: number): (pt: Point) => Point {
+  const samples: Point[] = [];
+  for (const sub of loops) {
+    let last = -Infinity;
+    for (const point of sub.pts)
+      if (point.dist - last >= ACROSS_SAMPLE_M) {
+        samples.push([point.x, point.y]);
+        last = point.dist;
+      }
+  }
   return ([realX, realY]) => {
     const x = realX * scale, y = realY * scale;
     const { sub, hit } = nearestLoop(loops, x, y);
@@ -133,8 +189,11 @@ export function makePlacer(scale: number, loops: Subtrack[], widenM: number): (p
     const share = hit.dist <= STEP_FULL_M ? 1
       : 1 - (hit.dist - STEP_FULL_M) / (STEP_GONE_M - STEP_FULL_M);
     const centre = centreAt(sub, hit.trackDist), side = hit.side === 'left' ? 1 : -1;
-    const step = widenM * share * side;
-    return [x + centre.nx * step, y + centre.ny * step];
+    const awayX = centre.nx * side, awayY = centre.ny * side;
+    // the share of the way across to the road beyond: the step in full by this road, none halfway
+    const across = hit.dist / (hit.dist + roadAhead(samples, x, y, awayX, awayY));
+    const step = widenM * Math.min(share, Math.cos(Math.PI * across));
+    return [x + awayX * step, y + awayY * step];
   };
 }
 
@@ -187,19 +246,25 @@ export function roadDistance(loops: Subtrack[], x: number, y: number): number {
  * @param pts the line
  * @param reach points either side in the mean
  * @param passes how many times
+ * @param toEnds the mean narrowing toward the two end points (only they kept), so a jog by an
+ *   end is eased too (a settled road's last metres kept a hook); else the first and last reach
+ *   points are kept
  * @returns the eased line
  */
-export function smoothLine(pts: Point[], reach = 3, passes = 3): Point[] {
+export function smoothLine(pts: Point[], reach = 3, passes = 3, toEnds = false): Point[] {
   let line = pts;
   for (let pass = 0; pass < passes; pass++)
     line = line.map((point, i) => {
-      if (i < reach || i >= line.length - reach) return point;
+      const fromEnd = Math.min(i, line.length - 1 - i);
+      if (!toEnds && fromEnd < reach) return point;
+      const span = Math.min(reach, fromEnd);
+      if (span < 1) return point;
       let sumX = 0, sumY = 0;
-      for (let near = -reach; near <= reach; near++) {
+      for (let near = -span; near <= span; near++) {
         sumX += line[i + near][0];
         sumY += line[i + near][1];
       }
-      return [sumX / (2 * reach + 1), sumY / (2 * reach + 1)] as Point;
+      return [sumX / (2 * span + 1), sumY / (2 * span + 1)] as Point;
     });
   return line;
 }
