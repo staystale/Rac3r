@@ -1,4 +1,4 @@
-// carpaint.ts - ?carpaint (owner 11-07, item 4): the stock look of every car's new paint parts and
+// carpaint.ts - (owner 11-07, item 4): the stock look of every car's new paint parts and
 // the rims' finishes (cars.ts applyLivery / stockPaint, render/carsprite.ts).
 // CHROME and GOLD: two finishes beside the palette, for every part (owner 11-07: "add gold and
 // chrome too"; "can chrome and gold be for every colour body second n 3rd too")
@@ -33,7 +33,7 @@ export const PAINT_STOCK: Record<string, { trim?: string; third?: string; rim?: 
  * @returns the colour, or undefined (stock)
  */
 export const rimColour = (rims?: string) => (rims ? RIM_FINISH[rims] || rims : undefined);
-// ?carlooks: each car's REAL TYRES, for drawing only (owner 11-07: "vehicles tyres / rims should be
+// each car's REAL TYRES, for drawing only (owner 11-07: "vehicles tyres / rims should be
 // realistic along with tyre profile"; the physics' own wheelR / tyreWidth are untouched - several
 // are still the shared default): front width, rear width, tyre diameter, rim diameter, all m.
 // From the size on the real car (width / profile R rim); EST where it varies by event.

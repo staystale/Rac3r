@@ -40,18 +40,6 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
-  // ?carpaint=1: every car has a clearly paintable SECOND part (mostly the roof) and a THIRD, and
-  // RIMS (16 colours, chrome, gold or stock) - the paint shop's two new rows, the AI fields use all
-  // four (cars.ts PAINT_STOCK, render/carsprite.ts; owner 11-07 item 4)
-  carpaint: atLoad('carpaint'),
-  // ?carlooks=1: the redrawn cars - Golf, M135i, quattro S1, F1 / F2, Next Gen, Micra R1, the
-  // autograss buggy; the 3 Series bonnet tidied, the Fiesta RX's wing (render/carlooks.ts; owner
-  // 11-07 item 4 stage 2)
-  carlooks: atLoad('carlooks'),
-  // ?carreal=1: every car DRAWN in its real car's proportions - width, wheelbase, track - at its
-  // own length; the physics as it was (render/cars.ts drawnSpec, carreal.ts realShape; owner 11-07:
-  // "match the sizes they were ish but in proportional shape to size")
-  carreal: atLoad('carreal'),
   // ?f1aero=1: the F1 / F2's real downforce, brakes and wheel weight (carreal.ts F1_AERO)
   f1aero: atLoad('f1aero'),
 };

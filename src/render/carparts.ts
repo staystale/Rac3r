@@ -1,4 +1,4 @@
-// render/carparts.ts - ?carlooks: a part knocked off a car (world/debris.ts) is CUT FROM THE CAR'S
+// render/carparts.ts - a part knocked off a car (world/debris.ts) is CUT FROM THE CAR'S
 // OWN SPRITE, so it is that car's bumper / wing / panel - an F1 car's arched front wing, its rear
 // wing, a sidepod - in its own paint, shape and accents, a little damaged; and the car is drawn
 // without it from then on (owner 11-07, a shot of an F1 with its wing still on beside the bar it

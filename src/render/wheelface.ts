@@ -1,4 +1,4 @@
-// render/wheelface.ts - ?carpaint (owner 11-07: "the thing that should be coloured by rim colour is
+// render/wheelface.ts - (owner 11-07: "the thing that should be coloured by rim colour is
 // when your wheel comes off ... laying flat"; "can we also maybe have different rims? spoke
 // patterns"): the face of a wheel lying flat - the tyre, the rim in its colour, the SPOKE pattern.
 // From above a mounted wheel shows only its tread, so this is where rims are seen: a loose wheel
@@ -18,7 +18,7 @@ export interface WheelGeo { outer: number; rimR: number }
 export const OLD_WHEEL: WheelGeo = { outer: 7.2, rimR: 4.2 };
 
 /**
- * ?carlooks: a wheel's face at the world's scale from its real size ("realistic along with tyre
+ * a wheel's face at the world's scale from its real size ("realistic along with tyre
  * profile": the sidewall is the tyre's own - a 10-inch Mini's tall, a 20-inch Lambo's thin).
  * @param dia the tyre's diameter, m
  * @param rim the rim's diameter, m

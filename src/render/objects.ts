@@ -17,7 +17,7 @@ interface ObjectsHelpers {
   ) => void;
   chips: Chip[];
   MAX_CHIPS: number;
-  // ?carlooks: a thrown car part's own picture (render/carparts.ts via render/cars.ts)
+  // a thrown car part's own picture (render/carparts.ts via render/cars.ts)
   carPart?: (cone: RenderCone) => HTMLCanvasElement | null;
 }
 
@@ -124,7 +124,7 @@ function coneSprite(env: ObjectsCtx, cone: RenderCone): ObjSprite {
  * @returns the sprite
  */
 function tyreSprite(env: ObjectsCtx, mode: string, cone?: RenderCone): ObjSprite {
-  // on its tread (?carlooks: a car's wheel at its real diameter and width)
+  // on its tread (a car's wheel at its real diameter and width)
   if ((mode === 'roll' || mode === 'flip' || mode === 'wobble') && cone?.wheelD && cone.tyreW) {
     const long = Math.round(cone.wheelD * SPRITE_PPM), wide = Math.max(2, Math.round(cone.tyreW
       * SPRITE_PPM)), side = long + 2;
@@ -168,8 +168,8 @@ function pixelObjectSprite(env: ObjectsCtx, cone: RenderCone): ObjSprite | null 
   const mode = cone.mode || (cone.kind === 'tyrestack' ? 'stack' : cone.kind === 'tyre' ? 'flat'
     : 'cone');
   if (cone.kind === 'cone') return coneSprite(env, cone);
-  // (?carpaint: a torn-off wheel lying flat shows its rim - render/wheelface.ts)
-  // (?carlooks: at its real size and tyre profile)
+  // (a torn-off wheel lying flat shows its rim - render/wheelface.ts)
+  // (at its real size and tyre profile)
   if (cone.rimCol && mode === 'flat') {
     const geo = cone.wheelD && cone.rimD ? realWheel(cone.wheelD, cone.rimD, SPRITE_PPM)
       : OLD_WHEEL;
@@ -462,16 +462,11 @@ function drawDebrisParts(
     rect(-0.5, -0.07, 0.8, 0.14, '#6a7077');
     rect(0.3, -0.13, 0.25, 0.26, '#4a4f57');
     return true;
-    case 'bumper': {
-    // (?carlooks: as wide as its car)
-    const span = cone.partW || 1.6;
-    shadow(span, 0.3);
-    rect(-span / 2, -0.15, span, 0.3, cone.col || '#c8302c');
-    // a crashed car's own bumper (world/debris.ts) has its trim edge
-    if (cone.trim) rect(-span / 2, 0.09, span, 0.06, cone.trim);
-    rect(-span / 2, -0.15, span, 0.07, 'rgba(255,255,255,0.3)');
+    case 'bumper': shadow(1.6, 0.3);
+    rect(-0.8, -0.15, 1.6, 0.3, cone.col || '#c8302c');
+    // (a crashed car's own is cut from its sprite: render/carparts.ts)
+    rect(-0.8, -0.15, 1.6, 0.07, 'rgba(255,255,255,0.3)');
     return true;
-    }
     case 'tarp': rect(-0.9, -0.7, 1.8, 1.4, cone.col || '#2f6fb0');
     rect(-0.9, -0.2, 1.8, 0.12, 'rgba(255,255,255,0.18)');
     rect(0.2, -0.7, 0.12, 1.4, 'rgba(0,0,0,0.15)');
@@ -480,36 +475,6 @@ function drawDebrisParts(
   }
 }
 
-/**
- * ?carlooks: a crashed open-wheeler's part (world/debris.ts partLook): its FRONT WING (wide,
- * thin, endplates, the accent flap), REAR WING (a metre, endplates) or a SIDEPOD panel.
- * @param cone the part
- * @param rect the rect drawer
- * @param shadow the shadow drawer
- * @returns whether it was one
- */
-function drawOpenWheelPart(
-  cone: RenderCone, rect: RectFn, shadow: (w: number, h: number) => void
-) {
-  const wing = cone.trim || '#3a3a44', accent = cone.third || wing, span = cone.partW || 1;
-  if (cone.shape === 'fwing' || cone.shape === 'rwing') {
-    const deep = cone.shape === 'fwing' ? 0.24 : 0.3;
-    shadow(span, deep);
-    rect(-span / 2, -deep / 2, span, deep, wing);
-    rect(-span / 2, deep / 2 - 0.06, span, 0.06, accent);
-    rect(-span / 2, -deep / 2 - 0.08, 0.06, deep + 0.16, '#16181d');
-    rect(span / 2 - 0.06, -deep / 2 - 0.08, 0.06, deep + 0.16, '#16181d');
-    return true;
-  }
-  if (cone.shape !== 'pod') return false;
-  const paint = cone.col || '#c8302c';
-  shadow(1.2, 0.5);
-  rect(-0.6, -0.25, 1.2, 0.5, paint);
-  rect(-0.6, -0.25, 1.2, 0.07, 'rgba(255,255,255,0.3)');
-  rect(-0.5, 0.08, 1.0, 0.05, accent);
-  rect(0.45, -0.2, 0.12, 0.4, '#14161b');
-  return true;
-}
 
 /**
  * Draws a crashed car's wing or door panel (world/debris.ts) in its paint and trim.
@@ -574,7 +539,7 @@ function drawDebris(env: ObjectsCtx, cone: RenderCone) {
   // a crashed car's part past the cap fades out (world/debris.ts)
   if (cone.fade !== undefined && cone.fade < 1) env.view.ctx.globalAlpha = cone.fade;
   if (drawDebrisStacks(cone, rect, shadow)) return;
-  // (?carlooks: cut from its car's sprite - the same shape and paint as on the car)
+  // a crashed car's part: cut from its sprite - the same shape and paint as on the car
   const part = env.carPart && cone.carSpec ? env.carPart(cone) : null;
   if (part) {
     const unit = ppm / SPRITE_PPM;
@@ -582,7 +547,6 @@ function drawDebris(env: ObjectsCtx, cone: RenderCone) {
     env.view.ctx.drawImage(part, -part.width / 2, -part.height / 2);
     return;
   }
-  if (cone.shape && drawOpenWheelPart(cone, rect, shadow)) return;
   if (drawDebrisParts(cone, rect, shadow)) return;
   if (drawCarPanels(cone, rect, shadow)) return;
   drawDebrisScatter(cone, rect);   // broken: a scatter of bits in its colour

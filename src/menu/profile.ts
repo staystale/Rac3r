@@ -4,7 +4,7 @@ import { ROSTER } from '../cars.ts';
 const KEY = 'carsim.profile.v1';
 
 /** A car's paint, trim and race number (cars.ts applyLivery). */
-// (?carpaint: third, the third part; rims, a colour, empty = stock; spokes, a pattern -
+// (third, the third part; rims, a colour, empty = stock; spokes, a pattern -
 // render/wheelface.ts)
 export interface Livery {
   paint?: string; trim?: string; third?: string; rims?: string; spokes?: string; num?: number;

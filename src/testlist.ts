@@ -52,31 +52,8 @@ export const TEST_LIST: TestEntry[] = [
   // aibands, puffroom, aigrip (AI R4 part 1), aidodge (AI R5),
   // ailines, ailook, dodgefar, markjump, halfcar, rejoinlook, hwshare, oneai (AI R8), brakeread
   // passed 2026-11-04; wetrace, lineback, onroad, rejoinfast, menurand (AI R7)
-  // passed 2026-11-07; indyscale decided 2026-11-07 (3/4, the 13 m road) and removed)
-  {
-    id: 'carpaint',
-    added: '2026-11-07',
-    name: 'Paint: a clear second part on every car, a third colour and rim colours',
-    where: 'Test link + &carpaint=1: TEST MODE > a track > GARAGE > PAINT, then race the AI',
-    try: 'Paint each car\'s SECOND, THIRD and RIMS; the AI field should all look different.',
-    wrong: 'A colour that changes nothing on a car, a car that looks wrong in stock colours.',
-  },
-  {
-    id: 'carlooks',
-    added: '2026-11-07',
-    name: 'Redrawn cars: Golf, M135i, quattro S1, F1, F2, Naffcar, Micra, autograss buggy',
-    where: 'Test link + &carlooks=1&carpaint=1: the garage, then race those cars',
-    try: 'Each should look like its real car from above; paint their second and third parts.',
-    wrong: 'A car that looks broken or worse than before, parts in odd places, a car too big.',
-  },
-  {
-    id: 'carreal',
-    added: '2026-11-07',
-    name: 'Every car drawn in its real shape at its own size - the driving as it was',
-    where: 'Test link + &carreal=1&carlooks=1&carpaint=1: drive the F1, the Golf, the Chevelle',
-    try: 'Each car should look like its real car; nothing drives any differently.',
-    wrong: 'A car that looks wrong for its real one, a car drawn off its own size.',
-  },
+  // passed 2026-11-07; indyscale decided 2026-11-07 (3/4, the 13 m road) and removed; carpaint,
+  // carlooks, carreal (the car look: paint parts, rims, redraws, real shapes) passed 2026-11-07)
   {
     id: 'f1aero',
     added: '2026-11-07',

@@ -2,7 +2,7 @@
 // same attention"; then "the cars need to match the sizes they were ish but in proportional shape
 // to size - or it'll change too much"). TRIED: every car at its real size (the F1 5.6 m) - AI F1
 // fields crashed twice as often (aifieldsuite d2, 12 races: 56 -> 111, 55 -> 83; the Golf 22 ->
-// 35), the tracks being 0.41-0.48 of real. Now ?carreal: each car keeps its length and takes the
+// 35), the tracks being 0.41-0.48 of real. Now each car keeps its length and takes the
 // real car's PROPORTIONS - width, wheelbase, the weight split (lf / lr), track - scaled to it
 // (realShape). ?f1aero, apart: the single-seaters' real downforce, brakes and wheel weight.
 // Cars already within ~3 % are left (Mini, Huracan, 306, Fiesta); the Fastrac, the F2 stock car
@@ -40,7 +40,7 @@ const REAL_SIZE: Record<string, RealSize> = {
 };
 
 /**
- * ?carreal: a car's real shape at its own length - width, lf / lr and track scaled by the length.
+ * a car's real shape at its own length - width, lf / lr and track scaled by the length.
  * @param carId the car
  * @param len its length in the game, m
  * @returns the spec fields, or none

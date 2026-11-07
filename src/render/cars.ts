@@ -1,5 +1,4 @@
 // The CARS layer of the renderer: drawPixelCar and the garage lift sprite.
-import { FIX } from "../core/fixes.ts";
 import { TYRE_LOOK } from "../carpaint.ts";
 import { realScale, realShape } from "../carreal.ts";
 import { partRegion, cutPart, withoutParts } from "./carparts.ts";
@@ -44,7 +43,7 @@ function wheelMetrics(spec: RenderCarSpec, sprite: CarSprite) {
 }
 
 /**
- * ?carreal: the car as it is DRAWN - its real car's proportions at its own length (width,
+ * the car as it is DRAWN - its real car's proportions at its own length (width,
  * wheelbase, track: carreal.ts realShape); the physics keeps the roster's (owner 11-07: "match the
  * sizes they were ish but in proportional shape" - the real shape in the physics crashed AI fields
  * more: F1 56 -> 90 incidents, Chevelle 30 -> 46).
@@ -52,44 +51,34 @@ function wheelMetrics(spec: RenderCarSpec, sprite: CarSprite) {
  * @returns the spec to draw
  */
 export function drawnSpec<T extends RenderCarSpec>(spec: T): T {
-  return FIX.carreal ? { ...spec, ...realShape(String(spec.id).split('#')[0], spec.len) } : spec;
+  return { ...spec, ...realShape(String(spec.id).split('#')[0], spec.len) };
 }
 
 /**
- * A tyre's size from above, px: its length (diameter) and width. ?carlooks: the REAL tyre
- * (carpaint.ts TYRE_LOOK - front and rear widths apart, the tractor's four the same); else the
- * old blocks (a road car 11 x 4, an open-wheeler 14 x 6, the tractor's big rears 20 x 7).
+ * A tyre's size from above, px: its length (diameter) and width - the REAL tyre (carpaint.ts
+ * TYRE_LOOK: front and rear widths apart, the tractor's four the same; owner 11-07 "vehicles tyres
+ * / rims should be realistic"), to the car's own scale.
  * @param spec the car spec
  * @param rear the rear axle
  * @returns the length and width
  */
 export function tyreBox(spec: RenderCarSpec, rear: boolean) {
-  const base = String(spec.id).split('#')[0], real = FIX.carlooks ? TYRE_LOOK[base] : undefined;
+  const base = String(spec.id).split('#')[0], real = TYRE_LOOK[base];
   // (to the car's own scale: its length against the real car's - carreal.ts realScale)
   const ppm = SPRITE_PPM * realScale(base, spec.len);
-  if (real) return { len: Math.round(real.dia * ppm),
-    wid: Math.max(2, Math.round((rear ? real.wR : real.wF) * ppm)) };
-  const big = spec.kind === 'tractor' && rear;
-  return { len: big ? 20 : spec.kind === 'track' ? 14 : spec.kind === 'tractor' ? 15 : 11,
-    wid: big ? 7 : spec.kind === 'track' ? 6 : 4 };
+  const tyre = real || TYRE_LOOK['hatch-fwd'];
+  return { len: Math.round(tyre.dia * ppm),
+    wid: Math.max(2, Math.round((rear ? tyre.wR : tyre.wF) * ppm)) };
 }
 
-/**
- * A wheel's rim colour, or null (no rim block): the tractor's yellow, a coloured rim (the
- * Subaroo's gold); ?carpaint - none: from above a mounted wheel shows only its tread, the rim is
- * seen on a wheel lying loose (render/wheelface.ts; owner 11-07: "the top of the tyre shouldn't
- * be coloured").
- * @param spec the car spec
- * @returns the colour, or null
- */
-const rimOf = (spec: RenderCarSpec) => (FIX.carpaint ? null : spec.kind === 'tractor' ? '#fbc02d'
-  : spec.rim || null);
+// (a mounted wheel shows only its tread from above - its rim is seen on a wheel lying loose:
+// render/wheelface.ts; owner 11-07: "the top of the tyre shouldn't be coloured")
 
 // the sprite without its lost parts, per car: the sprite it was made from and the parts
 const LOST = new WeakMap<RenderCar, { base: CarSprite; lost: string; sprite: CarSprite }>();
 
 /**
- * ?carlooks: a car's sprite without the parts it has lost (render/carparts.ts), kept per car.
+ * a car's sprite without the parts it has lost (render/carparts.ts), kept per car.
  * @param car the car
  * @param spec the car as drawn
  * @param base its sprite (damaged or not)
@@ -107,7 +96,7 @@ function lostSprite(car: RenderCar, spec: RenderCarSpec, base: CarSprite): CarSp
 const CUTS = new WeakMap<RenderCone, HTMLCanvasElement>();
 
 /**
- * ?carlooks: a thrown part's picture - cut from its car's sprite (render/carparts.ts).
+ * a thrown part's picture - cut from its car's sprite (render/carparts.ts).
  * @param carsCtx the shared view and helpers
  * @param cone the part
  * @returns the canvas, or null
@@ -154,11 +143,6 @@ function drawCarWheel(
   view.ctx.fillRect(-tyreLen / 2, -tyreWid / 2, tyreLen, tyreWid);
   view.ctx.fillStyle = '#3a3d47';
   view.ctx.fillRect(-tyreLen / 2 + 2, -tyreWid / 2, tyreLen - 4, 1);
-  const rim = rimOf(spec);
-  if (rim) {
-    view.ctx.fillStyle = rim;
-    view.ctx.fillRect(-2, -1, 4, 2);
-  }
   view.ctx.restore();
 }
 
@@ -313,8 +297,8 @@ function drawPixelCar(carsCtx: CarsContext, car: RenderCar, heading = car.headin
   const { view, PPMz, toScreenX, toScreenY, pixelCar, damagedSprite, silhouette } = carsCtx;
   const spec = drawnSpec(car.spec), sp0 = pixelCar(spec),
     hurt = car.dmg ? damagedSprite(car, sp0) : sp0, scale = PPMz() / SPRITE_PPM;
-  // (?carlooks: without the parts it has lost - render/carparts.ts)
-  const sprite = FIX.carlooks && car.partLost ? lostSprite(car, spec, hurt) : hurt;
+  // (without the parts it has lost - render/carparts.ts)
+  const sprite = car.partLost ? lostSprite(car, spec, hurt) : hurt;
   view.ctx.save();
   view.ctx.translate(toScreenX(car.x), toScreenY(car.y));
   view.ctx.rotate(heading);
@@ -368,11 +352,6 @@ function pixelCarWithWheels(carsCtx: CarsContext, spec: RenderCarSpec) {
     gctx.fillRect(x - tyreLen / 2, y - tyreWid / 2, tyreLen, tyreWid);
     gctx.fillStyle = '#3a3d47';
     gctx.fillRect(x - tyreLen / 2 + 2, y - tyreWid / 2, tyreLen - 4, 1);
-    const rim = rimOf(carSpec);
-    if (rim) {
-      gctx.fillStyle = rim;
-      gctx.fillRect(x - 2, y - 1, 4, 2);
-    }
   }
   gctx.drawImage(
     sprite.c, Math.round(midX - sprite.c.width / 2), Math.round(midY - sprite.c.height / 2),

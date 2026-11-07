@@ -60,7 +60,7 @@ export interface RosterRow {
   curve: Curve; redline: number; upshiftRpm: number; downshiftRpm: number;
   gears: number[]; finalDrive: number; dragC: number;
   paint: string; trim: string; glass: string;
-  // ?carpaint: the THIRD part, the rims' spokes; ?carreal: kg an axle's wheels at the tread
+  // the THIRD part, the rims' spokes; kg an axle's wheels at the tread
   third?: string; spokes?: string; wheelMass?: number;
   izzK?: number; rim?: string; aiK?: number; aeroK?: number; downforceF?: number;
   downforceR?: number;
@@ -202,13 +202,13 @@ export const PALETTE = ['#f0f0ea', '#a9aeb6', '#5a5f69', '#16181d', '#c8342a', '
   '#f2a900',
   '#9bc53d', '#2e7d32', '#1f4d2e', '#3fb6c9', '#2f6fd0', '#1d3f9a', '#8a4fc0', '#e86fa8'];
 /**
- * A car's stock paint: its roster colours, and under ?carpaint its PAINT_STOCK parts.
+ * A car's stock paint: its roster colours, and under its PAINT_STOCK parts.
  * @param carId the car (an AI's "id#n" too)
  * @returns paint, trim, third (body colour when the car has none) and rim (or undefined)
  */
 export function stockPaint(carId: string) {
   const row = ROSTER.find((rosterRow) => rosterRow.id === String(carId).split('#')[0]) || ROSTER[0];
-  const extra = FIX.carpaint ? PAINT_STOCK[row.id] || {} : {};
+  const extra = PAINT_STOCK[row.id] || {};
   return { paint: row.paint, trim: extra.trim || row.trim, third: extra.third || row.paint,
     rim: extra.rim || row.rim };
 }
@@ -389,12 +389,10 @@ export function applyLivery(carSpec: Spec, livery: {
   carSpec.paint = (livery && livery.paint) || stock.paint;
   carSpec.trim = (livery && livery.trim) || stock.trim;
   carSpec.num = (livery && livery.num) || 0;
-  // (?carpaint: the third part and the rims)
-  if (FIX.carpaint) {
-    carSpec.third = (livery && livery.third) || stock.third;
-    carSpec.rim = rimColour(livery?.rims) || stock.rim;
-    carSpec.spokes = (livery && livery.spokes) || '';
-  }
+  // the third part and the rims
+  carSpec.third = (livery && livery.third) || stock.third;
+  carSpec.rim = rimColour(livery?.rims) || stock.rim;
+  carSpec.spokes = (livery && livery.spokes) || '';
   return carSpec;
 }
 
@@ -787,7 +785,7 @@ export type Spec = typeof SHARED & RosterRow
 
 export function spec(carId: string): Spec {
   const row = ROSTER.find((car) => car.id === carId) || ROSTER[0];
-  const out = { ...SHARED, ...row, ...(FIX.carpaint ? PAINT_STOCK[row.id] : {}),   // (carpaint.ts)
+  const out = { ...SHARED, ...row, ...PAINT_STOCK[row.id],   // (the paint parts: carpaint.ts)
     ...(FIX.f1aero ? F1_AERO[row.id] : {}) } as Spec;   // (?f1aero: the F1 / F2 aero - carreal.ts)
   out.L = out.lf + out.lr;
   out.Izz = ((out.mass * (out.len * out.len + out.wid * out.wid)) / 12) * out.izzK;

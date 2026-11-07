@@ -219,7 +219,7 @@ export interface RenderCar extends CamCar, Pick<Car, 'heading' | 'delta'> {
   crushS: number[];
   roofDmg: number;
   wheelOff: boolean[];
-  partLost?: string;   // ?carlooks: the parts gone (world/debris.ts)
+  partLost?: string;   // the parts gone (world/debris.ts)
   // metal on hard ground sparking (world/metalscrape.ts rims, roll.ts the body): night glows
   rimSparks?: boolean[];
   sparks?: boolean;
@@ -250,8 +250,8 @@ export interface RenderCone {
   down: number;   // 0 = upright, 1 = flat
   ang: number;
   mode?: string;   // tyres: stack / flat / roll / flip / wobble
-  rimCol?: string; spokes?: string;   // ?carpaint: a loose wheel's rim (render/wheelface.ts)
-  wheelD?: number; rimD?: number;   // ?carlooks: its real tyre and rim diameters, m
+  rimCol?: string; spokes?: string;   // a loose wheel's rim (render/wheelface.ts)
+  wheelD?: number; rimD?: number;   // its real tyre and rim diameters, m
   col?: string;
   hx: number;   // home position; seeds the scatter of burst straw and broken debris
   hy: number;
@@ -259,11 +259,9 @@ export interface RenderCone {
   paint?: string;
   num?: string;
   trim?: string;   // a crashed car's part: its trim colour (world/debris.ts)
-  // ?carlooks: its look - an open-wheeler's wing / sidepod, the part's width (m), the accent
-  shape?: string; partW?: number; third?: string;
-  // ?carlooks: the car it came off and which part (render/carparts.ts cuts it from its sprite)
+  // the car it came off and which part (render/carparts.ts cuts it from its sprite)
   carSpec?: RenderCarSpec; cutKind?: string; cutCorner?: number; _n?: number;
-  tyreW?: number;   // ?carlooks: a loose wheel's tyre width, m
+  tyreW?: number;   // a loose wheel's tyre width, m
   fade?: number;   // a crashed car's part fading out, 1 .. 0
 }
 

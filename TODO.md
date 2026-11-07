@@ -44,7 +44,8 @@ last handover, written on request.
   and "a couple other well known uk tracks" - suggest SILVERSTONE and OULTON PARK (or CADWELL
   PARK). Each traced from a real map, a PARODY PUN name agreed with the owner first (NOTES: silly
   names - not one we already have).
-4. CARS (mockup first): every car LOOKS LIKE ITS REAL COUNTERPART - rework any that do not
+4. PASSED + DEFAULT 11-07 (owner: "ok pass"; carpaint, carlooks, carreal - switches and old
+   paths deleted; ?f1aero still under test): CARS (mockup first): every car LOOKS LIKE ITS REAL COUNTERPART - rework any that do not
    (owner: "reworking any cars that don't look like their real counter part"); a THIRD colour;
    EVERY car has at least TWO decoratable parts; RIM COLOUR ("so we know it was yours when you
    crash haha"); the AI liveries use them so a 20-car field all differ. Garage paint.
@@ -144,6 +145,13 @@ Then, to work through when it fits (owner 11-07, not ordered):
   to talk cb radio as an upgrade? ... talk to me about it when it comes to sound"): a few-pixel
   antenna on the cars that have one (roof / wing whip, a rally car's), and a bolt-on CB radio
   UPGRADE with push-to-talk - DISCUSS WITH THE OWNER when the sound work (G) comes up.
+- ROLLING LOOK (owner 11-07: "a discussion about how cars look when rolling / if they are actually
+  3d or not? I assume not - if not their animation when rolling needs to look more smooth and less
+  dice roll but still work that way underneath"): NOT 3D - a rolled car is drawn as flat FACES
+  (top / side / underside, render/cardamage.ts rolledFaces + drawFaces) picked and squashed by the
+  roll angle, so it flips face to face like a die. DISCUSS: smoother in-betweens (more faces / a
+  continuous squash and shade by the angle, the side face growing as the top shrinks) on the same
+  roll physics underneath (roll.ts). Mockup / plan with the owner first.
 - SIDE DRAFTING ("especially for naffcar"): the wake (physics/wake.ts) beside a car, not only
   behind it. With it the Naffcar extras from the roadmap (docs/specs/roadmap-2026-10-03.md G):
   active AIR BRAKES / cowl flaps, aero parts as upgrades; and DIEATONA (below).

@@ -5,7 +5,6 @@ import { makeCar, reset } from '../vehicle.ts';
 import { ROSTER, PALETTE } from '../cars.ts';
 import { rimColour } from '../carpaint.ts';
 import { SPOKES } from '../render/wheelface.ts';
-import { FIX } from '../core/fixes.ts';
 import { hwGrid } from '../highwayrace.ts';
 import { createAIDriver } from '../ai/circuit.ts';
 import { aiTraits } from '../ai/traits.ts';
@@ -35,13 +34,13 @@ export const AI_LIVERIES = [['#c8302c', '#7e1d1a'], ['#2b56b5', '#14306e'], ['#e
 // with difficulty): the player's slot is drawn with weights exp(GRID_BIAS[diff] x slot / n) —
 // Mobile leans to the FRONT, Real to the BACK, Realish is even.
 export const GRID_BIAS = [-2.2, -1.1, 0, 1.1, 2.2];
-// ?carpaint: an AI's third part and rims, by its slot - the field all differ (the rims: stock,
+// an AI's third part and rims, by its slot - the field all differ (the rims: stock,
 // chrome, gold, black, white in turn; the third a palette colour well away from the body's)
 const AI_RIMS = ['', 'chrome', 'gold', '#16181d', '#f0f0ea'];
-const aiPaintParts = (slot: number) => (FIX.carpaint ? {
+const aiPaintParts = (slot: number) => ({
   third: PALETTE[(slot * 7 + 4) % PALETTE.length], spokes: SPOKES[slot % SPOKES.length],
   ...(AI_RIMS[slot % AI_RIMS.length] ? { rim: rimColour(AI_RIMS[slot % AI_RIMS.length]) } : {}),
-} : {});
+});
 
 export function drawGridSlot(count: number) {
   if (!count) return 0;

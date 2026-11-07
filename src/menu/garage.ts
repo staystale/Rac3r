@@ -10,7 +10,6 @@ import {
 } from '../render/wheelface.ts';
 import { SPRITE_PPM } from '../render/shared.ts';
 import { realScale } from '../carreal.ts';
-import { FIX } from '../core/fixes.ts';
 import { CAR_STATS } from '../carstats.ts';
 import type { CarStat } from '../ai/types.ts';
 import type { Livery } from './profile.ts';
@@ -168,8 +167,8 @@ AIDS</span><b>${aids}</b>`
   const buttonRow = addElement(panel, 'div', '', 'row');
   addButton(menu, buttonRow, 'PAINT', () => showPaintShop(menu));
   addButton(menu, buttonRow, 'TYRES', () => showTyreShop(menu));
-  // (?carpaint: the rims beside the tyres - owner 11-07: "rims should be a choice next to tyres")
-  if (FIX.carpaint) addButton(menu, buttonRow, 'RIMS', () => showPaintShop(menu, true));
+  // (the rims beside the tyres - owner 11-07: "rims should be a choice next to tyres")
+  addButton(menu, buttonRow, 'RIMS', () => showPaintShop(menu, true));
   addButton(menu, buttonRow, 'BUY CARS', () => {}, '', true, 'SOON');
   addButton(menu, buttonRow, 'UPGRADES', () => {}, '', true, 'SOON');
   // SELECT locks the car in as yours (owner 11-03); browsing alone changes nothing
@@ -194,13 +193,13 @@ AIDS</span><b>${aids}</b>`
 type ShopLivery = Livery & {
   paint: string; trim: string; third: string; rims: string; spokes: string; num: number;
 };
-// ?carpaint: CHROME and GOLD on the line below the palette for every part (owner 11-07: "can chrome
+// CHROME and GOLD on the line below the palette for every part (owner 11-07: "can chrome
 // and gold be for every colour body second n 3rd too"), the rims also STOCK (the car's own)
 const PAINT_PICKS = [...PALETTE, RIM_FINISH.chrome, RIM_FINISH.gold];
 const RIM_PICKS = [...PAINT_PICKS, ''];
 
 /**
- * One row of colour swatches in the paint shop: its label and the 16 palette colours (?carpaint:
+ * One row of colour swatches in the paint shop: its label and the 16 palette colours (
  * + chrome and gold on the line below; the rims STOCK too).
  * @param menu the menu context
  * @param right the column it goes in
@@ -227,10 +226,10 @@ color:#f6eee6' + (stock ? ';grid-column:span 2' : '');
 }
 
 /**
- * PAINT SHOP (requirement: palette + number + preview): BODY and SECOND (?carpaint: + THIRD) from
+ * PAINT SHOP (requirement: palette + number + preview): BODY and SECOND (+ THIRD) from
  * the 16-colour PALETTE, a NUMBER 1-99 (or none), the car previewed on the lift as you go; TRY
  * saves it to the profile, BACK drops the changes, STOCK puts the car's own colours back.
- * ?carpaint, the RIMS screen (beside TYRES): the rims' colour and SPOKES, the wheel shown lying
+ * the RIMS screen (beside TYRES): the rims' colour and SPOKES, the wheel shown lying
  * loose - where a rim is seen.
  * @param menu the menu context
  * @param rimsMode the RIMS screen
@@ -271,7 +270,7 @@ function showPaintShop(menu: Menu, rimsMode = false) {
       showLivery();
     })]);
   };
-  const picks = FIX.carpaint ? PAINT_PICKS : PALETTE;
+  const picks = PAINT_PICKS;
   if (rimsMode) {
     row('COLOUR', 'rims', RIM_PICKS);
     rows.push(['spokes', spokesRow(menu, right, (choice) => {
@@ -280,8 +279,8 @@ function showPaintShop(menu: Menu, rimsMode = false) {
     })]);
   } else {
     row('BODY', 'paint', picks);
-    row(FIX.carpaint ? 'SECOND' : 'TRIM', 'trim', picks);
-    if (FIX.carpaint) row('THIRD', 'third', picks);
+    row('SECOND', 'trim', picks);
+    row('THIRD', 'third', picks);
   }
   const numL = rimsMode ? null : numberRow(menu, left, cur, () => showLivery());
   const buttonRow = addElement(panel, 'div', '', 'row');
@@ -292,8 +291,7 @@ function showPaintShop(menu: Menu, rimsMode = false) {
   });
   addButton(menu, buttonRow, 'TRY ✓', () => {
     menu.profile.livery = menu.profile.livery || {};
-    menu.profile.livery[carId] = FIX.carpaint ? { ...cur }
-      : { paint: cur.paint, trim: cur.trim, num: cur.num };
+    menu.profile.livery[carId] = { ...cur };
     saveProfile(menu.profile);
     showGarage(menu);
   }, 'go');
@@ -304,7 +302,7 @@ function showPaintShop(menu: Menu, rimsMode = false) {
 }
 
 /**
- * ?carpaint: the RIMS screen's SPOKES row - STEEL (the look as it was) and the patterns
+ * the RIMS screen's SPOKES row - STEEL (the look as it was) and the patterns
  * (render/wheelface.ts).
  * @param menu the menu context
  * @param right the column it goes in
@@ -325,20 +323,20 @@ function spokesRow(menu: Menu, right: HTMLElement, pick: (choice: string) => voi
 }
 
 /**
- * A car's wheel face: ?carlooks its real tyre and rim (carpaint.ts TYRE_LOOK), else the loose
+ * A car's wheel face: its real tyre and rim (carpaint.ts TYRE_LOOK), else the loose
  * tyre's old one.
  * @param carId the car
  * @returns the face
  */
 function wheelGeo(carId: string): WheelGeo {
-  const real = FIX.carlooks ? TYRE_LOOK[carId] : undefined;
+  const real = TYRE_LOOK[carId];
   // (to the car's own scale - carreal.ts realScale)
   const len = ROSTER.find((row) => row.id === carId)?.len ?? 4;
   return real ? realWheel(real.dia, real.rim, SPRITE_PPM * realScale(carId, len)) : OLD_WHEEL;
 }
 
 /**
- * ?carpaint: the RIMS screen's picture of the wheel lying loose - where its rim is seen - at the
+ * the RIMS screen's picture of the wheel lying loose - where its rim is seen - at the
  * world's pixels, shown big.
  * @param left the column it goes in
  * @param geo the wheel's face

@@ -1,7 +1,7 @@
-// render/carlooks.ts - ?carlooks (owner 11-07, item 4 stage 2: "reworking any cars that don't look
+// render/carlooks.ts - (owner 11-07, item 4 stage 2: "reworking any cars that don't look
 // like their real counter part"; the audit "seems accurate"): the redrawn bodies, from above, nose
 // +x. Each keeps the car's size (its physics box) and paints its SECOND part (trim) big and its
-// THIRD (spr.third) as a detail, as ?carpaint asks of every car. The cars: the Golf and the M135i
+// THIRD (spr.third) as a detail, as asks of every car. The cars: the Golf and the M135i
 // (they shared one body), the quattro S1 E2, the 2022 F1 car (the F2 too), the Next Gen Cup car,
 // the Micra R1 and the Class 8 autograss buggy.
 import { shade } from "../render.ts";   // hoisted, only called at draw time (no cycle)
