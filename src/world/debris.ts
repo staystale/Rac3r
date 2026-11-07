@@ -143,6 +143,57 @@ function bigParts(car: DebrisCar, corner: number, add: number, endW: number,
 }
 
 /**
+ * ?bigparts: one part off by a roll's impact, if still on (a bumper / wing / door by its bit, the
+ * rest by its name - a mirror by its side).
+ * @param car the car
+ * @param kind the part
+ * @param corner its corner
+ * @param chance the chance
+ */
+function shedOnRoll(car: DebrisCar, kind: string, corner: number, chance: number): void {
+  const own = ['bumper', 'wing', 'panel'].includes(kind);
+  const bit = !own ? 0 : kind !== 'bumper' ? 1 << corner : corner < 2 ? FRONT_BUMPER : REAR_BUMPER;
+  const name = kind === 'mirror' ? 'mirror:' + corner : kind;
+  const gone = own ? ((car.partsOff || 0) & bit) !== 0
+    : (car.partLost || '').split(',').some((entry) => entry.startsWith(name));
+  if (gone || Math.random() >= chance) return;
+  if (own) car.partsOff = (car.partsOff || 0) | bit;
+  car.partLost = (car.partLost ? car.partLost + ',' : '') + kind + ':' + corner;
+  (car.partSpawn || (car.partSpawn = [])).push({ corner, kind });
+}
+
+/**
+ * ?bigparts: a ROLL is a hectic crash (owner 11-07: "maybe rolling increases the chance for all
+ * parts") - each time the body meets the ground (damage.ts hitRoll) it may shed what that face
+ * carries, the car's own bits (carbits.ts): ON A SIDE that side's mirror, door and wings, the
+ * spoiler; ON THE ROOF the spoiler / boot lid, the mirrors, the bonnet, the exhaust; BACK ON ITS
+ * WHEELS the bumpers, the exhaust, rarely the engine. The harder the impact the likelier (scale).
+ * @param car the car
+ * @param kind 'side', 'roof' or 'wheels'
+ * @param side +1 = +y, -1 = -y (a side impact)
+ * @param scale the impact's share, 0..1
+ */
+export function rollParts(car: DebrisCar, kind: string, side: number, scale: number): void {
+  if (!FIX.bigparts) return;
+  const bits = bitsOf(car.spec?.id || ''), front = side > 0 ? 1 : 0, rear = side > 0 ? 3 : 2;
+  const shed = (part: string, corner: number, chance: number) =>
+    shedOnRoll(car, part, corner, chance * scale);
+  if (kind === 'side') {
+    shed('mirror', front, 0.4); shed('panel', front, 0.25); shed('panel', rear, 0.2);
+    shed('wing', front, 0.2); shed('wing', rear, 0.2);
+    if (bits.rear === 'spoiler') shed('spoiler', 2, 0.15);
+  } else if (kind === 'roof') {
+    if (bits.rear !== 'none') shed(bits.rear, 2, 0.3);
+    shed('mirror', 0, 0.3); shed('mirror', 1, 0.3);
+    if (bits.front === 'bonnet') shed('bonnet', 0, 0.15);
+    shed('exhaust', 2, 0.1);
+  } else {
+    shed('bumper', 0, 0.15); shed('bumper', 2, 0.15); shed('exhaust', 2, 0.2);
+    shed('engine', bits.engine === 'front' ? 0 : 2, 0.03);
+  }
+}
+
+/**
  * ?bigparts: a wheel torn off takes its suspension with it - an open car's WISHBONES, a closed
  * car's STRUT and maybe its lower arm (damage.ts, physics/openwheel.ts; thrown as parts).
  * @param car the car

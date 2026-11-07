@@ -161,6 +161,13 @@ last handover, written on request.
    the sprite (they lie flat); the exhaust, mirror, wishbone, strut, engine drawn for the car
    (render/carparts.ts drawnBit); the car shows the bay, an engine in it unless gone, the wing
    left out by its painter (spec.noWing), mirror and pipes gone. _bitsheet.mjs, _crashparts.mjs.
+   + ROLLS (owner: "maybe rolling increases the chance for all parts as it's a hectic crash"): each
+   time the body meets the ground (damage.ts hitRoll) the face that hit sheds what it carries
+   (world/debris.ts rollParts: a side - its mirror, doors, wings, the spoiler; the roof - the boot
+   lid / spoiler, mirrors, bonnet, exhaust; back on the wheels - bumpers, exhaust, rarely the
+   engine), the harder the likelier. _rolltest.mjs, a Golf, a 1-turn roll from 8 rad/s, per 100
+   rolls: mirror 93, door 66, wing 45, boot 21, bumper 21, exhaust 15, bonnet 10, engine 1.
+   (Wheels still come off as before - owner: "I see them upon more testing".)
 
 Then, to work through when it fits (owner 11-07, not ordered):
 - HIGHWAY LINE: "does the ai need a racing line on highway? if not can we get rid of it - it's
@@ -185,6 +192,9 @@ Then, to work through when it fits (owner 11-07, not ordered):
 - ONLINE MULTIPLAYER (with I): a player too far behind is LEFT BEHIND (the endless road would grow
   past memory) - a hard limit by time or distance; the place at that limit is the result (first
   out of a 10-car race = 10th).
+- COLOURED SPRINGS AND DAMPERS with the SUSPENSION UPGRADE (owner 11-07: "can upgraded suspension
+  have different colour springs and dampers - when we do that"): the upgrade's brand colours on
+  the strut a wheel throws (render/carparts.ts flatStrut) - with the upgrade system.
 - ANTENNAS + A CB RADIO (owner 11-07: "the subtle accents make a huge difference to the players eye -
   even a few pixels can hint at things like antenna - maybe cars should have antenna? bolt on push
   to talk cb radio as an upgrade? ... talk to me about it when it comes to sound"): a few-pixel

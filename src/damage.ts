@@ -13,7 +13,7 @@ import {
 import { levelStingers, tyresOnStinger } from './world/stingers.ts';
 import { LEVEL } from './world/state.ts';
 import { crashOil, rollOil } from './world/oil.ts';
-import { crashDebris, wheelBits } from './world/debris.ts';
+import { crashDebris, wheelBits, rollParts } from './world/debris.ts';
 import {
   takePost, postDeltaV, postShares, radiatorScale, type PostNote,
 } from './physics/posthit.ts';
@@ -377,6 +377,8 @@ export function hitRoll(car: DamageCar, kind: string, side: number, weight: numb
   pushEvent(car, { c: kind === 'side' ? corners[0] : 0, amt: amt * 1.5 });
   // metal meeting hard ground may break it (world/metalscrape.ts); the sump may crack
   gougeImpact(car as DamageCar & ScrapeCar);
+  // (?bigparts: a roll is a hectic crash - the face that hit sheds the bits it carries)
+  rollParts(car as Parameters<typeof rollParts>[0], kind, side, Math.min(1, amt / 0.3));
   // ... and a rolling car sprays some oil (world/oil.ts)
   if (kind !== 'wheels') {
     crackOnRoll(hurt as DamagedCar & EngineCar, Math.random);
