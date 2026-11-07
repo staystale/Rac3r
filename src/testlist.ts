@@ -54,13 +54,5 @@ export const TEST_LIST: TestEntry[] = [
   // passed 2026-11-04; wetrace, lineback, onroad, rejoinfast, menurand (AI R7)
   // passed 2026-11-07; indyscale decided 2026-11-07 (3/4, the 13 m road) and removed; carpaint,
   // carlooks, carreal (the car look: paint parts, rims, redraws, real shapes), partsoff, bigparts,
-  // hwlanes, hwbales passed 2026-11-07)
-  {
-    id: 'f1aero',
-    added: '2026-11-07',
-    name: 'F1 / F2 real downforce, brakes and wheel weight',
-    where: 'Test link + &f1aero=1: drive the F1, race an F1 field',
-    try: 'Fast corners much faster and much harder braking at speed (no ABS: do not stamp it).',
-    wrong: 'Locking and spinning on the brakes, the AI crashing much more.',
-  },
+  // hwlanes, hwbales, f1aero passed 2026-11-07)
 ];

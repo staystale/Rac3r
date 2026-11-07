@@ -40,6 +40,4 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
-  // ?f1aero=1: the F1 / F2's real downforce, brakes and wheel weight (carreal.ts F1_AERO)
-  f1aero: atLoad('f1aero'),
 };

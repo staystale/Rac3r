@@ -4,7 +4,7 @@
 // fields crashed twice as often (aifieldsuite d2, 12 races: 56 -> 111, 55 -> 83; the Golf 22 ->
 // 35), the tracks being 0.41-0.48 of real. Now each car keeps its length and takes the
 // real car's PROPORTIONS - width, wheelbase, the weight split (lf / lr), track - scaled to it
-// (realShape). ?f1aero, apart: the single-seaters' real downforce, brakes and wheel weight.
+// (realShape). F1_AERO, apart: the single-seaters' real downforce, brakes and wheel weight.
 // Cars already within ~3 % are left (Mini, Huracan, 306, Fiesta); the Fastrac, the F2 stock car
 // and the autograss special have no sure figures.
 
@@ -62,8 +62,9 @@ export function realShape(carId: string, len: number): Partial<RealSize> {
 export const realScale = (carId: string, len: number) =>
   (REAL_SIZE[carId] ? len / REAL_SIZE[carId].len : 1);
 
-// ?f1aero: the single-seaters' real aero, brakes and wheels (MEASURED before, _f1grip.mjs: the F1's
-// braking 1.8-2.3 g - every car shared the 1.8 g brake limit, a real F1 ~4-5 g at speed; its
+// THE SINGLE-SEATERS' REAL AERO (passed 11-07): their real aero, brakes and wheels (MEASURED
+// before, _f1grip.mjs: the F1's braking 1.8-2.3 g - every car shared the 1.8 g brake limit, a real
+// F1 ~4-5 g at speed; its
 // downforce its weight at 200 km/h, real ~1.3-1.5x). F1: ClA 5.6 (EST: 1.35x its weight at 200
 // km/h, 3x at 300), 40 / 60; brakes able to use it (~6 g of clamp, EST); 18-inch wheels and tyres
 // ~18 / 21 kg (EST) - 27 kg an axle at the tread. F2: ~65 % of that downforce (ClA 3.6), brakes ~5

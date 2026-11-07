@@ -10,7 +10,6 @@
 // Izz is computed, not authored: mass*(len^2 + wid^2)/12.
 // Torque curves are 7-point tables, not a single peak — the shape is what makes gearing matter.
 
-import { FIX } from './core/fixes.ts';
 import { PAINT_STOCK, rimColour } from './carpaint.ts';
 import { F1_AERO } from './carreal.ts';
 import type { Mark, Spray } from './world/types.ts';
@@ -786,7 +785,7 @@ export type Spec = typeof SHARED & RosterRow
 export function spec(carId: string): Spec {
   const row = ROSTER.find((car) => car.id === carId) || ROSTER[0];
   const out = { ...SHARED, ...row, ...PAINT_STOCK[row.id],   // (the paint parts: carpaint.ts)
-    ...(FIX.f1aero ? F1_AERO[row.id] : {}) } as Spec;   // (?f1aero: the F1 / F2 aero - carreal.ts)
+    ...F1_AERO[row.id] } as Spec;   // (the F1 / F2's real aero, brakes, wheels: carreal.ts)
   out.L = out.lf + out.lr;
   out.Izz = ((out.mass * (out.len * out.len + out.wid * out.wid)) / 12) * out.izzK;
   // a car with its own factory set leaves the garage on it

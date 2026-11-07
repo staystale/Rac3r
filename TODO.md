@@ -5,6 +5,23 @@ the git history (this file was swept on 2026-10-19: every finished entry deleted
 decisions and the measured lessons live in `NOTES.md`). `docs/handover-2026-11-03.md` is the
 last handover, written on request.
 
+## NEXT - ORDER AGREED 11-07 (owner: "ok let's do 1. first and proceed in this order")
+
+1. REWORK EVERY LEVEL TO 3/4 OF REAL SIZE (the NEXT BIG ONE entry below). PLAN WITH THE OWNER FIRST;
+   pilot ONE track (Brands Snatch Indy - traced to scale already: commit 58bfa07, the removed
+   world/levels/brands-indy-scale.ts) with its scenery resized, owner test, then the rest.
+2. NEW UK TRACKS at that scale (Snetterton, Donington Park, + Silverstone / Oulton Park) - names
+   agreed first.
+3. ROLLING LOOK - smoother than the dice flip on the same physics; mockup first.
+4. SIDE DRAFTING (Naffcar first), then the Naffcar extras (air brakes, aero upgrades, Dieatona).
+5. MORE HIGHWAY FLAVOURS.
+6. SMALL: Brands Snatch Indy's garage barrier on a lane (barriercheck); the highway AI dodging (owner
+   "let's leave it for now").
+- WATCH: an AI F1 field spins more since the real aero passed (12 races: incidents 56 -> 92, spins
+  14 -> 37 - the brakes, no ABS, locked by a full pedal: look at the AI's braking on a car without
+  ABS when it comes up); once, the menu race on the highway sat still (cars at 0 km/h) - not
+  reproduced in 3 more runs.
+
 ## OWNER 11-07 - ORDER AGREED (owner: "1. ok 2. ok 3 ok")
 
 1. DONE 11-07: the GitHub `checks` workflow (below, Tools that are wrong).
@@ -113,6 +130,9 @@ last handover, written on request.
    114); not stale carstats (re-measured: F1 gripG 1.83 -> 1.87). LIKELY ROOT: the tracks are
    0.41-0.48 of real, so a real-size car is ~2x too big for them (the 3/4 track rework). Owner to
    decide: wait for the tracks, ship and accept, or dig into the AI.
+   PASSED + DEFAULT 11-07 ?f1aero (owner: "I think f1 aero passed - it's realistic enough unless the
+   numbers disagree"): re-measured at the cars' own size - F1 braking 3.0 / 4.3 g at 200 / 300 km/h
+   (was 2.0 / 2.2), cornering 3.1 / 4.8 g (2.9 / 4.7); AI F1 fields incidents 56 -> 92 (spins).
    OWNER: "stop - the cars need to match the sizes they were ish but in proportional shape to size,
    or it'll change too much". ?carreal is now DRAWING ONLY: each car drawn in its real car's
    proportions at its own length (render/cars.ts drawnSpec, carreal.ts realShape), the physics as
