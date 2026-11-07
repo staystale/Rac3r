@@ -40,6 +40,10 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
+  // ?bigparts=1: worse crashes throw the car's own exhaust, bonnet, boot lid / spoiler, a mirror,
+  // rarely its engine; a wheel off takes its wishbone / strut - each as heavy, as big and as sharp
+  // (punctures) as the thing is (carbits.ts, world/debris.ts bigParts; owner 11-07)
+  bigparts: atLoad('bigparts'),
   // ?partsoff=1: a small chance a smaller knock knocks a part off, and a lost part GONE from the
   // car (only its bare structure left) - world/debris.ts SMALL_P, render/carparts.ts (owner 11-07)
   partsoff: atLoad('partsoff'),

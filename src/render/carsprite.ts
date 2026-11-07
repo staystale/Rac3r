@@ -339,15 +339,15 @@ function paintWrz(spr: SpriteCtx): void {
   // fog pods
   block(lengthPx - 1, 2, 1, 2, '#22252c');
   block(lengthPx - 1, widthPx - 4, 1, 2, '#22252c');
-  // the wing's shadow
-  block(2, 0, 3, widthPx, 'rgba(0,0,0,0.25)');
-  // the BOOT WING (wider than the car)
-  block(4, -2, 3, widthPx + 4, outline);
-  block(5, -1, 1, widthPx + 2, trim);
-  block(4, -2, 3, 1, light);
-  // its uprights
-  block(3, 4, 1, 2, '#2a2d34');
-  block(3, widthPx - 6, 1, 2, '#2a2d34');
+  // the BOOT WING (wider than the car), its shadow and uprights (?bigparts: not once knocked off)
+  if (!spec.noWing) {
+    block(2, 0, 3, widthPx, 'rgba(0,0,0,0.25)');
+    block(4, -2, 3, widthPx + 4, outline);
+    block(5, -1, 1, widthPx + 2, trim);
+    block(4, -2, 3, 1, light);
+    block(3, 4, 1, 2, '#2a2d34');
+    block(3, widthPx - 6, 1, 2, '#2a2d34');
+  }
   // tails
   for (const y of [1, widthPx - 4]) block(0, y, 1, 3, TAIL);
   // the fat exhaust
@@ -470,8 +470,9 @@ function paintRxcar(spr: SpriteCtx): void {
   block(along(0.66), 2, along(0.30), 2, stripe);
   block(along(0.66), widthPx - 4, along(0.30), 2, stripe);
   block(lengthPx, -1, 2, widthPx + 2, '#16181d');
+  // the wing, deep, with endplates (?bigparts: not once knocked off)
+  if (spec.noWing) return;
   block(1, 0, 3, widthPx, 'rgba(0,0,0,0.25)');
-  // (the wing deeper, with endplates)
   block(-3, -4, 6, widthPx + 8, outline); block(-3, -4, 6, 1, '#16181d');
   block(-3, widthPx + 3, 6, 1, '#16181d');
   block(-2, -3, 4, widthPx + 6, outline);
@@ -511,7 +512,8 @@ function paintDrift(spr: SpriteCtx): void {
   block(along(0.30), widthPx - 1, along(0.2), 1, sticker);
   block(along(0.72), 1, along(0.06), 1, sticker);
   block(along(0.72), widthPx - 2, along(0.06), 1, sticker);
-  block(0, 1, 3, widthPx - 2, outline); block(1, 2, 1, widthPx - 4, trim);
+  // the ducktail (?bigparts: not once knocked off)
+  if (!spr.spec.noWing) { block(0, 1, 3, widthPx - 2, outline); block(1, 2, 1, widthPx - 4, trim); }
   block(lengthPx - 1, mid + 4, 1, 3, '#d23b2a');
   for (const y of [1, widthPx - 4]) block(0, y, 1, 3, TAIL);
 }
@@ -599,7 +601,7 @@ export function createCarSprite() {
   function pixelCar(spec: RenderCarSpec): CarSprite {
     // one sprite per LIVERY (paint, trim, number)
     const key = spec.id + '|' + spec.paint + '|' + spec.trim + '|' + (spec.third || '') + '|'
-      + (spec.num || 0);
+      + (spec.num || 0) + (spec.noWing ? '|nowing' : '');
     if (spriteCache.has(key)) return spriteCache.get(key)!;   // has(key) was just true
     const out = paintCarSprite(spec);
     spriteCache.set(key, out);

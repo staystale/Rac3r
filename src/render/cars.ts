@@ -2,7 +2,9 @@
 import { FIX } from "../core/fixes.ts";
 import { TYRE_LOOK } from "../carpaint.ts";
 import { realScale, realShape } from "../carreal.ts";
-import { partRegion, cutPart, flatPart, withoutParts, isBare } from "./carparts.ts";
+import {
+  partRegion, cutPart, flatPart, withoutParts, isBare, drawnBit,
+} from "./carparts.ts";
 import { SPRITE_PPM } from "./shared.ts";
 import { DAYLIGHT } from "../world/daylight.ts";
 import { REVERSE_LAMP, isReversing } from "./reverselights.ts";
@@ -111,9 +113,13 @@ function carPart(carsCtx: CarsContext, cone: RenderCone): HTMLCanvasElement | nu
   if (!canvas) {
     // (an open car's part is cut from its sprite; ?partsoff - a closed car's drawn lying flat)
     const spec = drawnSpec(cone.carSpec), sprite = carsCtx.pixelCar(spec);
-    canvas = isBare(spec) || !FIX.partsoff ? cutPart(sprite, partRegion(spec, sprite, cone.cutKind,
-      cone.cutCorner || 0), cone._n || 1)
-      : flatPart(spec, cone.cutKind, cone.cutCorner || 0, cone._n || 1);
+    // (?bigparts: the exhaust, a mirror, a wishbone, a strut, the engine drawn; the bonnet, boot
+    // and spoiler - horizontal panels - cut from the sprite, as seen from above they lie flat)
+    const kind = cone.cutKind, corner = cone.cutCorner || 0, seed = cone._n || 1;
+    const cut = isBare(spec) || !FIX.partsoff || ['bonnet', 'boot', 'spoiler'].includes(kind);
+    canvas = drawnBit(spec, kind, seed) ?? (cut
+      ? cutPart(sprite, partRegion(spec, sprite, kind, corner), seed)
+      : flatPart(spec, kind, corner, seed));
     CUTS.set(cone, canvas);
   }
   return canvas;
@@ -341,7 +347,9 @@ function drawCarLamps(carsCtx: CarsContext, car: RenderCar, sprite: CarSprite) {
  */
 function drawPixelCar(carsCtx: CarsContext, car: RenderCar, heading = car.heading) {
   const { view, PPMz, toScreenX, toScreenY, pixelCar, damagedSprite, silhouette } = carsCtx;
-  const spec = drawnSpec(car.spec), sp0 = pixelCar(spec),
+  // (?bigparts: a car whose wing / spoiler is off is painted without it)
+  const shown = drawnSpec(car.spec), spec = car.partLost?.includes('spoiler')
+    ? { ...shown, noWing: true } : shown, sp0 = pixelCar(spec),
     hurt = car.dmg ? damagedSprite(car, sp0) : sp0, scale = PPMz() / SPRITE_PPM;
   // (without the parts it has lost - render/carparts.ts)
   const sprite = car.partLost ? lostSprite(car, spec, hurt) : hurt;

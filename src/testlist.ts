@@ -55,6 +55,14 @@ export const TEST_LIST: TestEntry[] = [
   // passed 2026-11-07; indyscale decided 2026-11-07 (3/4, the 13 m road) and removed; carpaint,
   // carlooks, carreal (the car look: paint parts, rims, redraws, real shapes) passed 2026-11-07)
   {
+    id: 'bigparts',
+    added: '2026-11-07',
+    name: 'Bad crashes throw exhausts, bonnets, boot lids / wings, mirrors, engines, wishbones',
+    where: 'Test link + &bigparts=1&partsoff=1: crash hard, front and back, lose a wheel',
+    try: 'The car\'s own bits fly off and it shows them gone; sharp bits puncture when run over.',
+    wrong: 'Bits off in small knocks, bits that do not match the car, the track buried in bits.',
+  },
+  {
     id: 'partsoff',
     added: '2026-11-07',
     name: 'Car parts: now and then off in a smaller knock; a lost part gone from the car',

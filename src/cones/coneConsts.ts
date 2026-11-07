@@ -86,6 +86,16 @@ export const DEBRIS: Record<string, DebrisKind> = {
   // a crashed car's own parts (world/debris.ts), in its paint
   wing:     { mass: 6,  r: 0.6, breaks: 0 },
   panel:    { mass: 7,  r: 0.65, breaks: 0 },
+  // ?bigparts: a bad crash's bits (world/debris.ts bigParts) - a bonnet and a boot lid are big flat
+  // panels, a wing / spoiler and a mirror light, the wishbone and strut steel, the engine an iron
+  // block (a cow's worth to hit)
+  bonnet:   { mass: 14, r: 0.75, breaks: 0 },
+  boot:     { mass: 10, r: 0.6, breaks: 0 },
+  spoiler:  { mass: 5,  r: 0.6, breaks: 0 },
+  mirror:   { mass: 1,  r: 0.15, breaks: 0 },
+  wishbone: { mass: 4,  r: 0.35, breaks: 0 },
+  strut:    { mass: 7,  r: 0.35, breaks: 0 },
+  engine:   { mass: 140, r: 0.55, breaks: 0 },
   // always flat: you drive over it (it drags off with you)
   tarp:     { mass: 3,  r: 0.9, breaks: 0, flat: true },
 };

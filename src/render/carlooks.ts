@@ -115,9 +115,12 @@ function paintQuattro(spr: SpriteCtx): void {
   // side livery in the second colour
   block(along(0.66), 1, along(0.32), 1, trim); block(along(0.66), wid - 2, along(0.32), 1, trim);
   // the REAR WING on the hatch (the third colour), wider than the car, on its uprights
-  block(1, 0, 3, wid, 'rgba(0,0,0,0.25)');
-  block(-2, -3, 5, wid + 6, outline); block(-1, -2, 3, wid + 4, third); block(-2, -3, 5, 1, light);
-  for (const y of [4, wid - 5]) block(3, y, 1, 1, STEEL);
+  if (!spec.noWing) {   // (?bigparts: not once knocked off)
+    block(1, 0, 3, wid, 'rgba(0,0,0,0.25)');
+    block(-2, -3, 5, wid + 6, outline); block(-1, -2, 3, wid + 4, third);
+    block(-2, -3, 5, 1, light);
+    for (const y of [4, wid - 5]) block(3, y, 1, 1, STEEL);
+  }
   for (const y of [1, wid - 4]) block(0, y, 1, 3, TAIL);
   block(along(0.20), -1, 3, 1, '#222'); block(along(0.20), wid, 3, 1, '#222');
 }
@@ -208,7 +211,7 @@ function paintNextGen(spr: SpriteCtx): void {
   }
   block(len, 2, 1, wid - 4, INK);
   // the REAR SPOILER and quarter panels (the third colour), sticker tails
-  block(-1, 1, 3, wid - 2, outline); block(0, 2, 1, wid - 4, third);
+  if (!spr.spec.noWing) { block(-1, 1, 3, wid - 2, outline); block(0, 2, 1, wid - 4, third); }
   block(along(0.04), 2, along(0.13), 2, third); block(along(0.04), wid - 4, along(0.13), 2, third);
   for (const y of [3, wid - 6]) block(2, y, 1, 3, '#d8585a');
 }

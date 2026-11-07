@@ -11,6 +11,7 @@
 //    the harder) without the corner first being near wrecked, as a covered wheel needs
 //    (damage.ts takes the note: the loose wheel, the bare corner dragging - its usual rules),
 //    and the hit's damage lands mostly on that wheel's corner.
+import { wheelBits } from '../world/debris.ts';
 import { CORNER_OF_WHEEL } from '../world/wheels.ts';
 
 // a tyre's radius (its box's half length), m; a wheel this far past the body box is exposed, m
@@ -175,11 +176,13 @@ export function wheelShares(shares: number[], note: WheelHit): number[] {
  * @param note the wheel hit
  * @param rnd the random source
  */
-export function ripWheel(car: { wheelOff: boolean[]; wheelSpawn?: number[]; dmgBill?: number },
+export function ripWheel(car: { wheelOff: boolean[]; wheelSpawn?: number[]; dmgBill?: number;
+  spec?: { kind?: string }; partSpawn?: { corner: number; kind: string }[] },
     note: WheelHit, rnd: () => number): void {
   if (note.into < RIP_FROM || car.wheelOff[note.corner]) return;
   if (rnd() >= Math.min(1, RIP_P0 + (1 - RIP_P0) * (note.into - RIP_FROM) / RIP_SPAN)) return;
   car.wheelOff[note.corner] = true;
+  wheelBits(car, note.corner, rnd);   // (?bigparts: its wishbones)
   car.dmgBill = (car.dmgBill || 0) + LOST_WHEEL_BILL;
   (car.wheelSpawn || (car.wheelSpawn = [])).push(note.corner);
 }

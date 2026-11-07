@@ -148,8 +148,19 @@ last handover, written on request.
    (chips 8 %, dents 4 %); _flatsheet.mjs.
    NEXT TO DISCUSS (owner: "can worse crashes have a chance to emit more parts like exhaust and
    engine blocks and any others you think are good - discuss first; they should all be accurate to
-   the vehicle"): the proposal in the 11-07 reply (exhaust, bonnet, boot lid / spoiler, radiator,
-   mirror, plate, the engine only in the worst; per-car data).
+   the vehicle"; then "your choice sounds good - how about wishbones and suspension struts too?
+   size / their sharpness ... how likely they are to cause punctures"). UNDER TEST 11-07 ?bigparts:
+   carbits.ts (each car's exhaust pipes + layout, bonnet, boot lid or spoiler, engine place +
+   cylinders + layout); world/debris.ts bigParts - a BIG_HIT (0.5+) end-on corner: bonnet 14 %,
+   exhaust 17 %, boot / spoiler 12 % (both corners: ~2x a crash), a side hit a mirror 12 %, the
+   engine only from 0.8 at its own end 4 %; a wheel off takes a strut 40 % / wishbone 25 % (an open
+   car two wishbones 60 / 25 %). _bittest.mjs (100 hits, Golf): 50 km/h front bonnet 28, rear
+   exhaust 40 / boot 20; 80 km/h engine 10. Masses / sizes (cones/coneConsts.ts DEBRIS: engine 140
+   kg), punctures by sharpness (physics/punctures.ts: run over a wishbone 14 %, strut 10 %, engine
+   12 %, spoiler 6 %, bonnet / boot 3 %, mirror 2 %). Drawn: the bonnet / boot / spoiler cut from
+   the sprite (they lie flat); the exhaust, mirror, wishbone, strut, engine drawn for the car
+   (render/carparts.ts drawnBit); the car shows the bay, an engine in it unless gone, the wing
+   left out by its painter (spec.noWing), mirror and pipes gone. _bitsheet.mjs, _crashparts.mjs.
 
 Then, to work through when it fits (owner 11-07, not ordered):
 - HIGHWAY LINE: "does the ai need a racing line on highway? if not can we get rid of it - it's

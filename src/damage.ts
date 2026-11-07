@@ -13,7 +13,7 @@ import {
 import { levelStingers, tyresOnStinger } from './world/stingers.ts';
 import { LEVEL } from './world/state.ts';
 import { crashOil, rollOil } from './world/oil.ts';
-import { crashDebris } from './world/debris.ts';
+import { crashDebris, wheelBits } from './world/debris.ts';
 import {
   takePost, postDeltaV, postShares, radiatorScale, type PostNote,
 } from './physics/posthit.ts';
@@ -199,6 +199,8 @@ function hardHitCorners(
     crashDebris(car, corner, add, endW, rnd);
     if (add >= WHEEL_HIT && car.dmg[corner] >= WHEEL_AT && !car.wheelOff[corner]) {
       car.wheelOff[corner] = true;
+      // (?bigparts: its strut / wishbone; the car carries its spec and parts queue)
+      wheelBits(car as Parameters<typeof wheelBits>[0], corner, rnd);
       car.dmgBill = (car.dmgBill || 0) + 400;
       (car.wheelSpawn || (car.wheelSpawn = [])).push(corner);
     }

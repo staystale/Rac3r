@@ -12,6 +12,7 @@
 // field, render/glfield.ts, glints moving with the view). It changes no grip; the first tyre
 // pass sweeps the cell clean and may puncture that tyre slowly (PASS: world/pass.ts).
 import { FIX } from '../core/fixes.ts';
+import { bitsOf } from '../carbits.ts';
 import { getCell, wearDirty, WEAR_CELL } from "./wear.ts";
 import { PASS } from "./pass.ts";
 import { DEBRIS } from "../cones/coneConsts.ts";
@@ -21,6 +22,11 @@ import type { WearCell } from "./types.ts";
 // PART_HIT + PART_SPAN; an end-on hit (endW over END_ON) is a bumper, side-on (under SIDE_ON) a
 // panel, else a wing
 const PART_HIT = 0.3, PART_SPAN = 0.4, PART_P_MIN = 0.35, END_ON = 0.65, SIDE_ON = 0.35;
+// ?bigparts: a BIG_HIT corner (worse than a part's) throws the car's bits by these chances; the
+// engine only from ENGINE_HIT
+// (both corners of an end are hit: ~2x these a crash - MEASURED _bittest.mjs)
+const BIG_HIT = 0.5, ENGINE_HIT = 0.8, BONNET_P = 0.14, EXHAUST_P = 0.17, REAR_P = 0.12;
+const MIRROR_P = 0.12, ENGINE_P = 0.04;
 // ?partsoff (owner 11-07: "can they have a chance to come off in smaller knocks but keep it low"):
 // a corner's hit from SMALL_FROM to PART_HIT knocks its part off at most SMALL_P of the time
 const SMALL_FROM = 0.08, SMALL_P = 0.06;
@@ -45,7 +51,7 @@ const NO_GLASS = new Set(['track', 'banger', 'grass']);
 /** A car as the debris reads it. */
 export interface DebrisCar {
   x?: number; y?: number; vx: number; vy: number; heading: number;
-  spec?: { kind?: string; paint?: string; trim?: string; lf?: number; lr?: number;
+  spec?: { id?: string; kind?: string; paint?: string; trim?: string; lf?: number; lr?: number;
     trackWidth?: number };
   partSpawn?: { corner: number; kind: string }[];
   partsOff?: number;     // a bit per part gone (until a repair): PART_BIT
@@ -79,6 +85,7 @@ let partsList: unknown = null;
 export function crashDebris(car: DebrisCar, corner: number, add: number, endW: number,
     rnd: () => number): void {
   partOff(car, corner, add, endW, rnd);
+  if (FIX.bigparts) bigParts(car, corner, add, endW, rnd);
   windowOut(car, corner, add, rnd);
 }
 
@@ -103,6 +110,53 @@ function partOff(car: DebrisCar, corner: number, add: number, endW: number,
   car.partsOff = (car.partsOff || 0) | bit;
   car.partLost = (car.partLost ? car.partLost + ',' : '') + kind + ':' + corner;
   (car.partSpawn || (car.partSpawn = [])).push({ corner, kind });
+}
+
+/**
+ * ?bigparts: a bad hit may throw the car's own BITS (carbits.ts) - each at most once until a
+ * repair: end-on at the front its bonnet (BONNET_P from BIG_HIT), at the back its exhaust
+ * (EXHAUST_P) and its boot lid or spoiler (REAR_P), from the side a mirror (MIRROR_P from
+ * PART_HIT); the engine only in the very worst, ENGINE_HIT+ at the end it sits (ENGINE_P).
+ * @param car the car
+ * @param corner the damage corner (0, 1 front)
+ * @param add the damage the hit added to it
+ * @param endW how end-on the hit was, 0..1
+ * @param rnd the random source
+ */
+function bigParts(car: DebrisCar, corner: number, add: number, endW: number,
+    rnd: () => number) {
+  if (add < PART_HIT) return;
+  const bits = bitsOf(car.spec?.id || ''), front = corner < 2;
+  const has = (kind: string) => (car.partLost || '').split(',').some((entry) =>
+    entry.startsWith(kind));
+  const off = (kind: string, chance: number) => {
+    if (has(kind === 'mirror' ? 'mirror:' + corner : kind) || rnd() >= chance) return;
+    car.partLost = (car.partLost ? car.partLost + ',' : '') + kind + ':' + corner;
+    (car.partSpawn || (car.partSpawn = [])).push({ corner, kind });
+  };
+  if (endW < SIDE_ON && front) off('mirror', MIRROR_P);
+  if (endW <= END_ON || add < BIG_HIT) return;
+  if (front && bits.front === 'bonnet') off('bonnet', BONNET_P);
+  if (!front) off('exhaust', EXHAUST_P);
+  if (!front && bits.rear !== 'none') off(bits.rear, REAR_P);
+  if (add >= ENGINE_HIT && front === (bits.engine === 'front')) off('engine', ENGINE_P);
+}
+
+/**
+ * ?bigparts: a wheel torn off takes its suspension with it - an open car's WISHBONES, a closed
+ * car's STRUT and maybe its lower arm (damage.ts, physics/openwheel.ts; thrown as parts).
+ * @param car the car
+ * @param corner the wheel's corner
+ * @param rnd the random source
+ */
+export function wheelBits(car: Pick<DebrisCar, 'spec' | 'partSpawn'>, corner: number,
+  rnd: () => number): void {
+  if (!FIX.bigparts) return;
+  const open = car.spec?.kind === 'track' || car.spec?.kind === 'grass';
+  const spawn = (kind: string) => (car.partSpawn || (car.partSpawn = [])).push({ corner, kind });
+  if (open) { if (rnd() < 0.6) spawn('wishbone'); if (rnd() < 0.25) spawn('wishbone'); return; }
+  if (rnd() < 0.4) spawn('strut');
+  if (rnd() < 0.25) spawn('wishbone');
 }
 
 /**
