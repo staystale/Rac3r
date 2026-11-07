@@ -13,7 +13,8 @@ import { prepBumps } from "./terrain.ts";
 import { onTrack, querySubtrack } from "./tyrewall.ts";
 import { solidsFromProps } from "./barriers.ts";
 import { CIRCUIT_BUSHES } from "./levels/bushes.ts";
-import { VENUE_ROAD_M, buildVenueScenery, pointAlong } from "./venuescenery.ts";
+import { buildVenueScenery } from "./venuescenery.ts";
+import { VENUE_ROAD_M, pointAlong } from "./venuegeo.ts";
 import type { Bump, Cone, Lane, Level, Point, Subtrack } from "./types.ts";
 
 /** A turned rectangle from the map (real m, the long side along w). */
@@ -28,13 +29,12 @@ export interface VenueData {
   footbridges: { pts: Point[] }[];
   dirt: { name: string; pts: Point[] }[];
   karting: { pts: Point[] }[];
+  tunnels: { kind: string; pts: Point[] }[];
   traps: { pts: Point[] }[];
-  fences: { kind: string; pts: Point[] }[];
-  rails: { pts: Point[] }[];
   tyres: { pts: Point[] }[];
   stands: VenueBox[];
   buildings: (VenueBox & { kind: string })[];
-  paddocks: (VenueBox & { surface: string })[];
+  paddocks: (VenueBox & { surface: string; pts: Point[] })[];
   woods: { pts: Point[] }[];
   homes: { pts: Point[] }[];
 }
@@ -43,7 +43,8 @@ export interface VenueData {
 export interface VenueSpec {
   id: string;   // the venue (VENUE_DROPPED's key)
   data: VenueData;
-  share: number;   // of real length (0.75)
+  share: number;   // of real length (1/2)
+  realRoadM: number;   // the real road's width, m (the game's is 13: the map steps back)
   calibrate: { layout: string; realLapM: number };   // the layout whose real lap sets the scale
   start: Point;   // the start / finish line
   pitLane: string;   // the data's pit lane in use
@@ -227,7 +228,7 @@ export function venueLevel(spec: VenueSpec, layout: string, levelId: string,
     lanes: [...scenery.lanes, ...closed.lanes], barriers: scenery.barriers,
     props: scenery.props, solids: solidsFromProps(scenery.props),
     paint: [{ kind: 'chequered', x: sub.pts[0].x, y: sub.pts[0].y, len: 1.6, wid: VENUE_ROAD_M,
-      rot: sub.pts[0].heading }],
+      rot: sub.pts[0].heading }, ...scenery.paint],
     spawn: { x: start.x, y: start.y, heading: start.rot },
   } as Level;
 }

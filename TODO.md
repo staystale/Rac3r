@@ -7,35 +7,38 @@ last handover, written on request.
 
 ## NEXT - ORDER AGREED 11-07 (owner: "ok let's do 1. first and proceed in this order")
 
-1. REWORK EVERY LEVEL TO 3/4 OF REAL SIZE (the NEXT BIG ONE entry below). PLAN AGREED 11-07, IN
-   PROGRESS: the Brands VENUE pilot (GP + Indy together) behind ?bigbrands=1, then every other
-   track the same way once Brands passes. Owner 11-07: real boundaries, roads, grandstands, pits
-   ("one track like the real thing that can be modified simply to change like the real thing";
-   "the same / similar decorations around the track for both" layouts; "not every track is
-   adjustable"). So: ONE VENUE per circuit - every road piece exists every time, a layout is the
-   ordered list of pieces it races (the rest closed off at the junctions, as the real circuit
-   does), one set of scenery for every layout. Source: OpenStreetMap (tools/osmvenue.mjs ->
-   world/levels/venues/*.ts, real metres; the Brands OSM loops read 1929 / 3900 m vs the official
-   1944 / 3916 m), cross-checked with the MSV venue map (art/ref/bh-indy-msv.png) and Wikipedia;
-   the old trace sat ~11 m off the OSM line (bh2 px -> OSM: 0.656 m/px, turned 28 deg). Scaled
-   with the map: positions and the footprints of stands, garages, buildings, paddocks, traps,
-   woods. Real size: the 13 m road, pit lane width, kerbs, armco, tyre walls, marshal huts,
-   gantry. No polygon ground yet: traps = ribbons at the real traps' places / depths, paddocks =
-   turned rectangles (polygon ground only if the photos need it - ask first). Owner's answers:
-   rally stages IN, ovals MADE REAL (each to a real counterpart), lap counts kept (longer races),
-   test levels stay as they are ("we may eventually jazz these up").
-   UNDER TEST 11-07: ?bigbrands=1 (world/venue.ts + venuescenery.ts, levels/brands-venue.ts, data
-   venues/brands-snatch.ts from tools/osmvenue.mjs + tools/venues/brands-snatch.json). GP 2939 m
-   (3/4 of 3916), Indy 1454 m; both layouts the same scenery: 5 grandstands, the garage row, the
-   pit lane + wall (3 m off the edge; the lane pushed out for the 13 m road), 9 real traps with
-   Armco + 2 tyre rows, 40 fence runs, both GP road bridges + the Hailwood footbridge, paddocks
-   with trucks, 260 trees in the real woods, the old hills carried over. barriercheck + propcheck
-   OK both; worldhash SAME off. AI (6 cars, 3 seeds, 3 laps): Indy lap 39.6 -> 59.4 s, off 6.0 ->
-   6.4 s a car, incidents 6 -> 14 (watch); GP 74.8 -> 103.3 s, off 7.4 -> 8.5, incidents 9 -> 6.
-   Laptop CPU x4 framecheck: work median 11 -> 12 ms, frames > 33 ms ~60 -> 88 of 570 (2111 tyre
-   stacks vs 498: first suspect). Phone memory same (80 vs 83 MB canvases). Shots:
-   tools/scratch/_venueshots.mjs. On pass: delete the old Brands build, then the next track.
-   Not yet: kerbs on the closed GP loop on Indy days; paddocks are turned boxes (blocky edges).
+1. EVERY CIRCUIT AS ITS REAL VENUE AT 1/2 OF REAL SIZE (owner 11-07, round 2: "let's make all tracks
+   1/2 size ... about the right time for a lap"; the old circuits were 0.45-0.47, Thruston 0.32).
+   Brands is the pilot (GP + Indy one venue), behind ?bigbrands=1; then every track the same way.
+   Owner 11-07: real boundaries, roads, grandstands, pits, parking, surroundings - "one track like
+   the real thing that can be modified simply", "the same decorations for both" layouts, "logical
+   realistic", "keep our art style". ONE VENUE per circuit: every road piece exists every time, a
+   layout is the ordered list of pieces it races (the rest closed by tyres at the junctions), one
+   set of scenery for every layout. Source: OpenStreetMap (tools/osmvenue.mjs -> world/levels/
+   venues/*.ts, real metres; the Brands OSM loops read 1929 / 3900 m vs the official 1944 / 3916 m)
+   checked against the MSV venue map (art/ref/bh-indy-msv.png) and Wikipedia.
+   ROUND 1 (3/4) owner verdict: "quite broken" - a road through the first trap, black wire fences,
+   gaps in the barriers, bridges that made no sense, a messy trap behind the pits, doubled
+   floodlights in tyre rings. ROUND 2 UNDER TEST 11-07 (world/venue.ts, venuegeo.ts, venueedge.ts,
+   venuescenery.ts; levels/brands-venue.ts): GP 1959 m, Indy 970 m; the map stepped back from the
+   road by the game road's extra width (makePlacer) so real gaps hold; a SEALED EDGE - one Armco
+   line each side of every layout road (behind the real traps, 5 m past the edge elsewhere, never
+   past a bend's radius on its inside), open only at the pit lane's ends and a layout's junctions,
+   flared smooth ends; two tyre rows only in front of Armco behind a trap; the CATCH FENCE (new
+   kind, light posts + mesh, weaker than Armco: dents from 1.5 m/s, tears ~77 km/h square) behind
+   the Armco at the stands and banks; NO wire fences; the real traps / paddocks / car parks as
+   shaped ground (Zone.poly: physics, tile painting, natural edge blending); bridges along the road
+   they carry at the real angle, approaches beyond the deck; tunnel portals (new prop) where the
+   real tunnels pass under the track; service roads only outside the edge and joined up; parked
+   cars (new prop) in the car parks, race trucks in rows in the paddocks; pit lane lines (paint
+   kind 'line'); 5 grandstands, 16 buildings, garages, marshal posts behind the Armco, boards on
+   it. The corner floodlights are placed before the lap pylons on every level (the 2.6 m double at
+   Brands, 3.1 m at Slidden Hill). Long barriers are skipped by their box in collision.
+   Checks: barriercheck all OK both layouts, propcheck clear, no floodlight doubles, worldhash SAME
+   off. Shots: tools/scratch/_venueshots.mjs <level> bigbrands=1 "dist,x:y,..." (ZOOM, VIEW env).
+   On pass: delete the old Brands build, then the next track. Not yet: kerbs on the closed GP loop.
+   OWNER RULE (11-07): never the black wire / rope fence ('fence' barrier) - the old levels still
+   use it (Castle Cum, Thruston): replace as each gets its venue pass.
    CREDITS (owner 11-07: "add a credits button to the menu"): ?credits=1 UNDER TEST (menu/
    credits.ts) - OpenStreetMap (ODbL) and the five traced Wikimedia maps (CC BY-SA) REQUIRE
    attribution; add a line there with anything else the game takes from someone. Owner to say

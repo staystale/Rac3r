@@ -8,13 +8,14 @@ const ZOOM = +(process.env.ZOOM || 0.45);
 const server = await startServer();
 const browser = await launchBrowser();
 try {
-  const context = await browser.newContext({ viewport: { width: 844, height: 390 } });
+  const [viewW, viewH] = (process.env.VIEW || '844x390').split('x').map(Number);
+  const context = await browser.newContext({ viewport: { width: viewW, height: viewH } });
   const page = await context.newPage();
   const errors = [];
   page.on('pageerror', (err) => errors.push(err.message));
   const t0 = Date.now();
   await gotoGame(page, `${server.url}/?pc=1&guide=0&menu=0&noaudio=1&level=${level}&${query}`);
-  await page.mouse.click(400, 200);
+  await page.mouse.click(viewW / 2, viewH / 2);
   await page.waitForTimeout(1500);
   await page.evaluate((lv) => window.__game.launch(lv, window.__game.car.spec.id, { ai: 0 }), level);
   await page.waitForTimeout(2500);
@@ -29,17 +30,20 @@ try {
     return { lap: lv.subtrack.totalDist, props: lv.props.length, cones: lv.cones.length };
   });
   console.log(JSON.stringify(info));
-  for (const spot of spotList ? spotList.split(',').map(Number) : []) {
-    await page.evaluate((dist) => {
+  // a spot is metres along the lap, or x:y in the world
+  for (const spot of spotList ? spotList.split(',') : []) {
+    await page.evaluate((where) => {
       const game = window.__game, sub = game.level.subtrack;
       let best = sub.pts[0];
-      for (const point of sub.pts) if (point.dist <= dist) best = point;
-      game.debugPlace ? game.debugPlace(best.x, best.y, best.heading)
-        : Object.assign(game.car, { x: best.x, y: best.y, heading: best.heading, vx: 0, vy: 0 });
+      if (where.includes(':')) {
+        const [wx, wy] = where.split(':').map(Number);
+        best = { x: wx, y: wy, heading: 0 };
+      } else for (const point of sub.pts) if (point.dist <= +where) best = point;
+      Object.assign(game.car, { x: best.x, y: best.y, heading: best.heading, vx: 0, vy: 0 });
     }, spot);
     await page.evaluate((zoom) => window.__game.renderer.debugZoom(zoom), ZOOM);
     await page.waitForTimeout(1500);
-    await page.screenshot({ path: `tools/scratch/_venueshot-${level}-d${spot}.png` });
+    await page.screenshot({ path: `tools/scratch/_venueshot-${level}-d${spot.replace(":", "_")}-${viewW}x${viewH}.png` });
   }
   console.log(errors.length ? `ERRORS ${errors.slice(0, 5).join(' | ')}` : 'errors none');
 } finally {

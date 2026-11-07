@@ -170,7 +170,7 @@ const SERVICE_WIDTH = { service: 5, residential: 6, unclassified: 6, tertiary: 7
 // paths that matter only where they cross the track on a bridge
 const FOOT_WAYS = new Set(['footway', 'path', 'steps', 'pedestrian']);
 const out = { pieces: [], layouts: {}, pitLanes: [], roads: [], footbridges: [], dirt: [],
-  karting: [], traps: [], fences: [], rails: [], tyres: [], stands: [], buildings: [], paddocks: [],
+  karting: [], tunnels: [], traps: [], tyres: [], stands: [], buildings: [], paddocks: [],
   woods: [], homes: [] };
 for (const piece of pieces)
   out.pieces.push({ name: piece.name, pts: cleanLine(piece.raw, 0.25) });
@@ -191,20 +191,21 @@ for (const way of ways) {
   else if (tags.highway === 'raceway' && /kart/.test(tags.sport || '')) out.karting.push({ pts: line(0.3) });
   else if (tags.highway === 'raceway' && /motor/.test(tags.sport || '')) continue;   // a race piece
   else if (tags.highway === 'raceway') out.dirt.push({ name: tags.name || '', pts: line(0.5) });
-  else if (SERVICE_WIDTH[tags.highway] && !tags.tunnel && tags.area !== 'yes')
+  else if ((SERVICE_WIDTH[tags.highway] || FOOT_WAYS.has(tags.highway)) && tags.tunnel)
+    out.tunnels.push({ kind: tags.highway, pts: line(0.5) });
+  else if (SERVICE_WIDTH[tags.highway] && tags.area !== 'yes')
     out.roads.push({ kind: tags.highway, width: SERVICE_WIDTH[tags.highway], bridge: !!tags.bridge,
       pts: line(0.5) });
   else if (FOOT_WAYS.has(tags.highway) && tags.bridge) out.footbridges.push({ pts: line(0.5) });
   else if (tags.landuse === 'residential' && closed(way)) out.homes.push({ pts: line(2) });
   else if (tags.natural === 'shingle' && closed(way)) out.traps.push({ pts: line(0.5) });
-  else if (tags.barrier === 'fence' || tags.barrier === 'wall') out.fences.push({ kind: tags.barrier, pts: line(0.5) });
-  else if (tags.barrier === 'guard_rail') out.rails.push({ pts: line(0.3) });
   else if (tags.barrier === 'tyres') out.tyres.push({ pts: line(0.3) });
   else if (tags.building === 'grandstand' && closed(way)) out.stands.push({ name: tags.name || '', ...boxAround(pts) });
   else if (tags.building && closed(way))
     out.buildings.push({ name: tags.name || '', kind: tags.building, ...boxAround(pts) });
   else if (tags.amenity === 'parking' && closed(way))
-    out.paddocks.push({ name: tags.name || '', surface: tags.surface || '', ...boxAround(pts) });
+    out.paddocks.push({ name: tags.name || '', surface: tags.surface || '', ...boxAround(pts),
+      pts: line(1) });
   else if ((tags.natural === 'wood' || tags.landuse === 'forest') && closed(way)) out.woods.push({ pts: line(2) });
 }
 

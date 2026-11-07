@@ -13,7 +13,7 @@ import {
 } from "../physics/openwheel.ts";
 import { CORNER_OF_WHEEL } from "./wheels.ts";
 import {
-  ARMCO_E, applyRailHit, dents, isTornAfter, railContact, straightenRails,
+  applyRailHit, dents, isTornAfter, railBounce, railContact, straightenRails,
 } from "./armcodent.ts";
 import type {
   Barrier, BarrierKind, BarrierSeg, CarBody, Point, Prop, Solid, Subtrack,
@@ -32,7 +32,7 @@ import type {
 // obstacleClamp; what is drawn is exactly what you hit (user rule: visuals accurate to their
 // effects).
 export const BARRIER_HALF: Record<BarrierKind, number> = { armco: 0.3, wall: 0.45, pitwall: 0.5,
-    fence: 0.15, building: 0.1, line: 0 };
+    fence: 0.15, building: 0.1, line: 0, catchfence: 0.12 };
 const BARRIER_E = 0.3;           // restitution off a barrier (obstacles use 0.35)
 // share of the along-the-wall speed kept per contact step... (scrape)
 const BARRIER_SCRAPE = 0.85;
@@ -115,6 +115,7 @@ export function prepBarriers(level: { barriers?: Barrier[] }): void {
   for (const barrier of level.barriers || []) {
     if (barrier._segs) continue;
     barrier._segs = [];
+    delete barrier._cbb;
     for (let i = 0; i < barrier.pts.length - 1; i++) {
       const [startX, startY] = barrier.pts[i], [endX, endY] = barrier.pts[i + 1];
       const dx = endX - startX, dy = endY - startY, lenSq = dx * dx + dy * dy;
@@ -215,6 +216,13 @@ function addSmallSolids(out: Solid[], prop: Prop): boolean {
   switch (prop.kind) {
     case 'gate': box(0, 0, 6.8, 0.6); return true;
     case 'block': box(0, 0, prop.w!, prop.h!); return true;   // always have w and h
+    // a parked car (a venue's car park)
+    case 'parkedcar': box(0, 0, 4.2, 1.8); return true;
+    // a tunnel portal: its two side walls
+    case 'tunnel':
+      box(0, -prop.h! / 2 - 0.3, prop.w!, 0.6);
+      box(0, prop.h! / 2 + 0.3, prop.w!, 0.6);
+      return true;
     case 'sculpture': box(0, 0, 2.2, 2.2); return true;
     case 'bale': box(0, 0, 1.6, 1.6); return true;
     case 'rock': box(0, 0, (prop.s || 3) * 0.7, (prop.s || 3) * 0.7); return true;
@@ -444,7 +452,7 @@ function clampCornerToSeg(
   const push = half - dist * side;
   car.x += nx * push;
   car.y += ny * push;
-  bounceOffNormal(car, nx, ny, rail ? ARMCO_E : BARRIER_E);
+  bounceOffNormal(car, nx, ny, rail ? railBounce(rail) : BARRIER_E);
 }
 /**
  * Clamp the car's four corners against one barrier segment.
@@ -469,6 +477,31 @@ function clampCornersToSeg(
     clampCornerToSeg(car, seg, half, cornerX, cornerY, rail);
   }
 }
+/**
+ * A barrier's box round its segments (cached on it; cleared when its segments are built again).
+ * @param barrier the barrier
+ * @returns [minX, minY, maxX, maxY]
+ */
+function barrierBox(barrier: Barrier): [number, number, number, number] {
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  for (const seg of barrier._segs!) {
+    minX = Math.min(minX, seg.minX); minY = Math.min(minY, seg.minY);
+    maxX = Math.max(maxX, seg.maxX); maxY = Math.max(maxY, seg.maxY);
+  }
+  return [minX, minY, maxX, maxY];
+}
+/**
+ * Whether a point lies more than a reach outside a barrier's box (a far run is skipped whole).
+ * @param barrier the barrier (with _segs)
+ * @param x world x
+ * @param y world y
+ * @param reach metres
+ * @returns true when far
+ */
+function isFarFrom(barrier: Barrier, x: number, y: number, reach: number): boolean {
+  const box = barrier._cbb || (barrier._cbb = barrierBox(barrier));
+  return x < box[0] - reach || x > box[2] + reach || y < box[1] - reach || y > box[3] + reach;
+}
 export function barrierClamp(car: CarBody): void {
   const list = LEVEL.barriers;
   if (!list || !list.length) return;
@@ -477,6 +510,7 @@ export function barrierClamp(car: CarBody): void {
   for (const barrier of list) {
     const half = BARRIER_HALF[barrier.kind];
     if (!half || !barrier._segs) continue;
+    if (isFarFrom(barrier, car.x, car.y, spec.len)) continue;
     const vx0 = car.vx, vy0 = car.vy, rail = railOf(barrier);
     for (const seg of barrier._segs) {
       if (car.x < seg.minX - spec.len || car.x > seg.maxX + spec.len

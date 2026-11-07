@@ -1,5 +1,5 @@
 // world/levels/brands-venue.ts - BRANDS SNATCH AS THE REAL VENUE (?bigbrands=1, world/venue.ts):
-// the real Brands Hatch from OpenStreetMap (venues/brands-snatch.ts) at 3/4 of real length with
+// the real Brands Hatch from OpenStreetMap (venues/brands-snatch.ts) at 1/2 of real length with
 // the 13 m road, the GP and the Indy as two layouts of one venue sharing its scenery. Checked
 // against the circuit's own venue map (art/ref/bh-indy-msv.png: the grandstands, pits, paddocks,
 // both GP road bridges and the Hailwood Hill footbridge are where OSM has them) and Wikipedia (the
@@ -12,7 +12,9 @@ import type { VenueSpec } from "../venue.ts";
 export const BRANDS_SPEC: VenueSpec = {
   id: 'brands-snatch',
   data: BRANDS_VENUE,
-  share: 0.75,
+  share: 0.5,
+  // m: the real Brands road (9-12 m): at 1/2 the game's 13 m road is wider, so the map steps back
+  realRoadM: 10,
   calibrate: { layout: 'gp', realLapM: 3916 },
   // the start / finish line on Brabham Straight (the old map's chequer)
   start: [14.7, -414.1],

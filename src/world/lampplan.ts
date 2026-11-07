@@ -488,6 +488,9 @@ export function cornerTyres(level: Level): Prop[] {
 export function planLamps(level: Level): Prop[] {
   const placed: Prop[] = [...(level.lamps || [])], kind = catOf(level);
   if (level.endless) return [];
+  // the busy corners' floodlights first, each inside its ring of tyres: every lamp placed after
+  // keeps LAMP_APART_M from them (placed after, a lap pylon stood 2.6 m from one, in its ring)
+  for (const spot of cornerSpots(level)) placed.push({ kind: 'floodlight', ...spot });
   if (kind === 'test') lightTestGround(level, placed);
   else if (!level.subtrack) return placed;
   else if (kind === 'rally') {
@@ -495,7 +498,5 @@ export function planLamps(level: Level): Prop[] {
     lightVillages(level, placed);
   }
   else lightLap(level, placed, FLOOD_GAP_M[kind] || FLOOD_GAP_M.circuits, kind !== 'rx');
-  // the busy corners' floodlights, each inside its ring of tyres
-  for (const spot of cornerSpots(level)) placed.push({ kind: 'floodlight', ...spot });
   return placed;
 }

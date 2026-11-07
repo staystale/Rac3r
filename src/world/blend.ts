@@ -5,7 +5,7 @@ import { zoneAt } from "./zones.ts";
 import { COVER_IDS } from "./wear.ts";
 import { querySubtrack } from "./tyrewall.ts";
 import type {
-  CoverId, Level, Patch, Surface, Inclusions, InclusionCover, Sector, Subtrack,
+  CoverId, Level, Patch, Surface, Inclusions, InclusionCover, Sector, Subtrack, Zone,
 } from "./types.ts";
 type Rng = () => number;
 // =============================================================================================
@@ -165,6 +165,45 @@ function addRoadEdgePatches(
   }
 }
 /**
+ * An outline's edges as addZoneEdgePatches walks them: start, unit tangent, outward normal and
+ * length of each side (outward by the outline's winding).
+ * @param poly the outline
+ * @returns [x, y, tanX, tanY, nx, ny, len] per side
+ */
+function outlineEdges(poly: [number, number][]): number[][] {
+  let twiceArea = 0;
+  for (let i = 0; i < poly.length; i++) {
+    const [fromX, fromY] = poly[i], [toX, toY] = poly[(i + 1) % poly.length];
+    twiceArea += fromX * toY - toX * fromY;
+  }
+  // positive area: the inside lies to the left of each side, so out is the right normal
+  const out = twiceArea > 0 ? -1 : 1, edges: number[][] = [];
+  for (let i = 0; i < poly.length; i++) {
+    const [fromX, fromY] = poly[i], [toX, toY] = poly[(i + 1) % poly.length];
+    const len = Math.hypot(toX - fromX, toY - fromY);
+    if (len < 0.5) continue;
+    const tanX = (toX - fromX) / len, tanY = (toY - fromY) / len;
+    edges.push([fromX, fromY, tanX, tanY, -tanY * out, tanX * out, len]);
+  }
+  return edges;
+}
+
+/**
+ * A zone's edges as addZoneEdgePatches walks them: its outline's sides, or its box's four.
+ * @param z the zone
+ * @returns [x, y, tanX, tanY, nx, ny, len] per side
+ */
+function zoneEdges(z: Zone): number[][] {
+  if (z.poly) return outlineEdges(z.poly);
+  return [
+    [z.x - z.w / 2, z.y - z.h / 2, 1, 0, 0, -1, z.w],
+    [z.x - z.w / 2, z.y + z.h / 2, 1, 0, 0, 1, z.w],
+    [z.x - z.w / 2, z.y - z.h / 2, 0, 1, -1, 0, z.h],
+    [z.x + z.w / 2, z.y - z.h / 2, 0, 1, 1, 0, z.h],
+  ];
+}
+
+/**
  * (c) Natural zone edges: each side of every unboxed zone edge scatters into the other.
  * @param out the patch list to push to
  * @param rng random source
@@ -174,13 +213,7 @@ function addZoneEdgePatches(out: Patch[], rng: Rng, level: Level): void {
   const subtrack = level.subtrack;
   for (const z of level.zones) {
     if (z.boxed || z.rounded) continue;
-    const edges = [
-      [z.x - z.w / 2, z.y - z.h / 2, 1, 0, 0, -1, z.w],
-      [z.x - z.w / 2, z.y + z.h / 2, 1, 0, 0, 1, z.w],
-      [z.x - z.w / 2, z.y - z.h / 2, 0, 1, -1, 0, z.h],
-      [z.x + z.w / 2, z.y - z.h / 2, 0, 1, 1, 0, z.h],
-    ];
-    for (const [edgeX, edgeY, tanX, tanY, nx, ny, len] of edges) {
+    for (const [edgeX, edgeY, tanX, tanY, nx, ny, len] of zoneEdges(z)) {
       for (let along = 0.5; along < len; along += 1) {
         const baseX = edgeX + tanX * along, baseY = edgeY + tanY * along;
         if (Math.max(Math.abs(baseX), Math.abs(baseY)) > FLOOR - KERB_W - 2

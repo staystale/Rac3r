@@ -54,6 +54,7 @@ export interface Paint {
   len?: number;
   wid?: number;
   rot?: number;
+  pts?: Point[];   // a painted line (kind 'line'): its points, lw wide
 }
 
 export interface Board {
@@ -103,6 +104,9 @@ export interface Zone {
   _co?: number;
   _si?: number;
   blocks?: ZoneBlock[];   // a ploughed field's drying blocks (fieldblocks.ts)
+  // a real outline (a venue's traps, paddocks, car parks: world/venuescenery.ts); x / y / w / h
+  // are then its bounding box. Physics tests the outline; the tiles paint inside it.
+  poly?: Point[];
 }
 
 // One block of a field (fieldblocks.ts): a rectangle in the zone's own frame (m from its
@@ -375,7 +379,8 @@ export interface Ground {
   surface: Surface;
 }
 
-export type BarrierKind = 'armco' | 'wall' | 'pitwall' | 'fence' | 'building' | 'line';
+export type BarrierKind = 'armco' | 'wall' | 'pitwall' | 'fence' | 'building' | 'line'
+  | 'catchfence';
 
 // One padded segment of a barrier polyline (what prepBarriers pushes).
 export interface BarrierSeg {
@@ -404,6 +409,7 @@ export interface Barrier {
   col?: string;
   _s?: number;   // highway.ts
   _segs?: BarrierSeg[];   // added by prepBarriers
+  _cbb?: [number, number, number, number];   // barriers.ts barrierClamp: the box round _segs
   field?: number;   // highway/fields.ts: the field (village) it belongs to
   _rbb?: [number, number, number, number];   // render/props/fence.ts caches the padded box
 }

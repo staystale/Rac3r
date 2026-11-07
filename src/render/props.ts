@@ -36,6 +36,7 @@ import {
   drawSolarFarm,
   drawBoard,
 } from './props/scenery.ts';
+import { drawParkedCar, drawTunnel } from './props/venueprops.ts';
 
 /** the drawer of each prop kind (a kind with no entry is only positioned) */
 const PROP_DRAWERS: Record<string, PropDrawer> = {
@@ -67,6 +68,8 @@ const PROP_DRAWERS: Record<string, PropDrawer> = {
   board: drawBoard,
   bridge: drawBridge,
   river: drawBridge,
+  tunnel: drawTunnel,
+  parkedcar: drawParkedCar,
 };
 
 // OVERHEAD props span the track ABOVE the cars and are drawn AFTER them. MEASURED BUG (user,

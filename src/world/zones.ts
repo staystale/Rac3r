@@ -2,7 +2,7 @@
 import { blockAt } from "./fieldblocks.ts";
 import { LEVEL } from "./state.ts";
 import { SURFACES } from "./surfaces.ts";
-import type { Subtrack, SubtrackHit, Surface, Zone } from "./types.ts";
+import type { Point, Subtrack, SubtrackHit, Surface, Zone } from "./types.ts";
 import { querySubtrackInto } from "./tyrewall.ts";
 
 // ---------------------------------------------------------------------------------------------
@@ -90,7 +90,37 @@ function subtrackSurfaceAt(subtrack: Subtrack, x: number, y: number): Surface | 
  * @param y world y
  * @returns the zone's surface (or the pad apron's tarmac), or null when the point misses it
  */
+/**
+ * Whether a point lies inside a polygon (even-odd rule).
+ * @param poly the outline's points
+ * @param x world x
+ * @param y world y
+ * @returns true inside
+ */
+export function insidePolygon(poly: Point[], x: number, y: number): boolean {
+  let inside = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const [thisX, thisY] = poly[i], [prevX, prevY] = poly[j];
+    if ((thisY > y) !== (prevY > y)
+      && x < (prevX - thisX) * (y - thisY) / (prevY - thisY) + thisX) inside = !inside;
+  }
+  return inside;
+}
+
+/**
+ * The surface a zone with a real outline gives a point: its bounding box first, then the outline.
+ * @param zone the zone (with poly)
+ * @param x world x
+ * @param y world y
+ * @returns the zone's surface, or null when the point misses it
+ */
+function outlineSurfaceAt(zone: Zone, x: number, y: number): Surface | null {
+  if (Math.abs(x - zone.x) > zone.w / 2 || Math.abs(y - zone.y) > zone.h / 2) return null;
+  return insidePolygon(zone.poly!, x, y) ? zone.surface : null;
+}
+
 function zoneSurfaceAt(zone: Zone, x: number, y: number): Surface | null {
+  if (zone.poly) return outlineSurfaceAt(zone, x, y);
   if (zone.rounded) {
     // ROUNDED PADS, exactly as render.ts drawZones draws them: corner radius min(5, 0.15 w) and a
     // PAD_APRON of tarmac round the outside. MEASURED BUG, (tools/visualcheck.mjs):

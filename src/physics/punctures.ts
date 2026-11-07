@@ -43,7 +43,8 @@ const DEBRIS_CHANCE: Record<string, number> = {
 const NAILS_CHANCE = 0.03;
 
 // what a car hitting it meets as METAL ON METAL (sparks fly from a big hit: render/particles.ts)
-const METAL = new Set(['car', 'banger', 'truck', 'caravan', 'armco', 'fence', 'barrel', 'gantry',
+const METAL = new Set(['car', 'banger', 'truck', 'caravan', 'armco', 'catchfence', 'fence',
+  'barrel', 'gantry',
   'pylon', 'lamp', 'chevron', 'tower', 'windsock', 'exhaust', 'bumper', 'wing', 'panel', 'bonnet',
   'boot', 'spoiler', 'wishbone', 'strut', 'engine']);
 

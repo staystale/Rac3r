@@ -6,6 +6,7 @@ import { PAINT, BOARDS, LEVEL } from "../world/state.ts";
 import { COL } from "../world/colours.ts";
 import { MARK_EXTENT, MARK_PPM } from '../marks.ts';
 import { paintAs } from "../world/coverfield.ts";
+import { drawPaintLine } from "./paintline.ts";
 import type { Prop } from "../world/types.ts";
 import type { Cam, ForSide, RenderMarks, RoadGame, View } from "./types.ts";
 
@@ -503,13 +504,11 @@ function drawPaint(ctx: RoadCtx) {
       view.ctx.stroke();
     } else if (mark.kind === 'box' || mark.kind === 'lane') {
       // a box / lane has w and h
-      view.ctx.strokeRect(
-          toScreenX(mark.x - mark.w! / 2), toScreenY(mark.y - mark.h! / 2), mark.w! * PPMz(),
-            mark.h! * PPMz(
-          ));
+      view.ctx.strokeRect(toScreenX(mark.x - mark.w! / 2), toScreenY(mark.y - mark.h! / 2),
+        mark.w! * PPMz(), mark.h! * PPMz());
     } else if (mark.kind === 'chequered') {
       drawChequered(ctx, mark);
-    }
+    } else if (mark.kind === 'line') drawPaintLine(ctx, mark);
     view.ctx.globalAlpha = 1;
   }
   // distance boards down the braking straight

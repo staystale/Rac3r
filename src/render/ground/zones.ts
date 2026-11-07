@@ -143,6 +143,8 @@ export function drawZones(groundCtx: GroundCtx) {
     const artId = zoneArtId(zone), art = SURFACE_ART[artId];
     if (!art) continue;
     if (!isZoneOnScreen(groundCtx, zone)) continue;
+    // a real outline is painted in the tiles whatever paints the other fills
+    if (zone.poly) { paintOutlinedZone(groundCtx, zone, artId, art); continue; }
     // the GPU painted the fills: only the rims and labels lie over them
     if (groundCtx.view.fillsOnGpu) {
       if (zone.rounded) paintRoundedZoneRim(groundCtx, zone);
@@ -289,6 +291,36 @@ function paintRotatedZone(
 }
 
 /**
+ * Paints a zone with a real outline: its base colour and surface art clipped to the outline (only
+ * the part in view).
+ *
+ * @param groundCtx the shared ground painter context
+ * @param zone the zone being painted (with poly)
+ * @param artId the SURFACE_ART key
+ * @param art the zone's surface art
+ */
+function paintOutlinedZone(
+  groundCtx: GroundCtx, zone: Zone, artId: string, art: SurfaceArt
+) {
+  const { view, cam, PPMz, toScreenX, toScreenY } = groundCtx;
+  const ppm = PPMz();
+  view.ctx.save();
+  view.ctx.beginPath();
+  zone.poly!.forEach(([x, y], i) => (i ? view.ctx.lineTo(toScreenX(x), toScreenY(y))
+    : view.ctx.moveTo(toScreenX(x), toScreenY(y))));
+  view.ctx.closePath();
+  view.ctx.fillStyle = art.base;
+  view.ctx.fill();
+  view.ctx.clip();
+  view.ctx.translate(toScreenX(0), toScreenY(0));
+  const viewX0 = cam.x - view.W / 2 / ppm, viewY0 = cam.y - view.H / 2 / ppm;
+  paintLayers(groundCtx, artId, Math.max(zone.x - zone.w / 2, viewX0),
+    Math.max(zone.y - zone.h / 2, viewY0), Math.min(zone.x + zone.w / 2, viewX0 + view.W / ppm),
+    Math.min(zone.y + zone.h / 2, viewY0 + view.H / ppm));
+  view.ctx.restore();
+}
+
+/**
  * Paints an unrotated zone: its base colour and surface art clipped to the rectangle.
  *
  * @param groundCtx the shared ground painter context
@@ -429,8 +461,10 @@ function floorPatch(groundCtx: GroundCtx, patch: GroundPatch) {
  */
 function zonePatches(groundCtx: GroundCtx, zone: Zone, list: GroundPatch[], count: number) {
   const artId = zoneArtId(zone), art = groundCtx.SURFACE_ART[artId];
-  // the margin covers the sub-pixel camera shift and a rounded panel's apron
-  if (!art || !isZoneOnScreen(groundCtx, zone, PATCH_MARGIN_M * groundCtx.PPMz())) return count;
+  // the margin covers the sub-pixel camera shift and a rounded panel's apron; an outlined zone
+  // is painted in the tiles (paintOutlinedZone), not by the GPU
+  if (zone.poly || !art) return count;
+  if (!isZoneOnScreen(groundCtx, zone, PATCH_MARGIN_M * groundCtx.PPMz())) return count;
   const radius = zone.rounded ? Math.min(5, zone.w * 0.15) : 0;
   if (zone.rounded) {
     // the apron is PHYSICAL tarmac (lab.ts PAD_APRON, zoneAt): change the two together

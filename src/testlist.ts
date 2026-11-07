@@ -66,9 +66,9 @@ export const TEST_LIST: TestEntry[] = [
   {
     id: 'bigbrands',
     added: '2026-11-07',
-    name: 'Brands Snatch as the real venue, 3/4 size - GP and Indy share its scenery',
+    name: 'Brands Snatch as the real venue at 1/2 size, sealed by Armco, GP and Indy one venue',
     where: 'Test link + &bigbrands=1: TEST MODE > UK CIRCUITS > Brands Snatch GP, then Indy',
-    try: 'Drive both: real corners, pits, garages, stands, traps, bridges; GP loop closed on Indy.',
-    wrong: 'Props on the road, a stand or building in the wrong place, lag, or the AI lost.',
+    try: 'Look round: traps, Armco + catch fence, pits, paddocks, car parks, bridges, tunnels.',
+    wrong: 'A gap in the Armco, a road or prop on the track, a bridge or tunnel that is wrong.',
   },
 ];

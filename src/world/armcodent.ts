@@ -2,38 +2,52 @@
 // (tools/scratch/_c9measure.mjs): armco was a concrete wall - it never moved, never gave and
 // remembered nothing. Now an impact INTO the rail (its speed along the rail's normal) pushes the
 // rail back there, a smooth bow DENT_HALF_M each side (points added every DENT_STEP_M so it curves,
-// not kinks), deeper the harder the hit, up to DENT_MAX_M; a second hit on a dent deepens it. The
-// rail is also a little softer than a wall (ARMCO_E, the bounce, and ARMCO_GIVE, the damage: owner
+// not kinks), deeper the harder the hit, up to its deepest (RAIL_FEEL); a second hit on a dent
+// deepens it. The
+// rail is also a little softer than a wall (RAIL_FEEL: the bounce and the give: owner
 // "softer but only a bit").
-// A hit that would push it past TEAR_DEPTH_M TEARS it open (owner: "very fast it can tear"): a gap
-// the car goes on through, losing part of its speed. What is drawn is what is hit: the rail's
+// A hit that would push it past its tear depth TEARS it open (owner: "very fast it can tear"): a
+// gap the car goes on through, losing part of its speed. What is drawn is what is hit: the rail's
 // points move, so the drawing (render/props/fence.ts) and the collision segments
 // (world/barriers.ts prepBarriers) follow them. RESTART puts every rail back straight.
 // Only the level's armco barriers: the arena's edge fence is left out (owner).
 import type { Barrier, BarrierSeg, Point } from './types.ts';
 
-// m/s into the rail below which it does not dent; m of dent per m/s above that (50 km/h square
-// on ~0.4 m, 80 km/h ~0.77 m); the deepest a dent goes, m
-const DENT_FROM = 3, DENT_PER_V = 0.04, DENT_MAX_M = 0.8;
-// a hit that would take the rail this deep tears it (one square hit from ~115 km/h, or a second
-// hard one on a deep dent)
-const TEAR_DEPTH_M = 1.1;
+/** How a rail gives: when it dents, how deep, when it tears, its bounce and how much of a
+ * hit's damage the car still takes. */
+interface RailFeel { from: number; perV: number; max: number; tear: number; bounce: number;
+  give: number }
+// THE ARMCO: m/s into the rail below which it does not dent (from); m of dent per m/s above that
+// (perV: 50 km/h square on ~0.4 m, 80 km/h ~0.77 m); the deepest a dent goes (max, m); a hit that
+// would take it this deep tears it (tear: one square hit from ~115 km/h, or a second hard one on
+// a deep dent); its bounce (a wall's BARRIER_E is 0.3) and the share of a hit's damage the car
+// still takes (give: measured, the softer bounce alone took only ~3 % off).
+// THE CATCH FENCE (owner 11-07: weaker than the Armco, as real ones are): mesh on posts - it gives
+// from a slower hit and twice as deep, tears from ~77 km/h square, barely bounces, and takes more
+// of the hit off the car.
+const RAIL_FEEL: Record<string, RailFeel> = {
+  armco: { from: 3, perV: 0.04, max: 0.8, tear: 1.1, bounce: 0.2, give: 0.9 },
+  catchfence: { from: 1.5, perV: 0.08, max: 1.4, tear: 1.6, bounce: 0.08, give: 0.6 },
+};
 // the dent's half width along the rail and the spacing of the points added there, m
 const DENT_HALF_M = 3, DENT_STEP_M = 0.5;
 // the gap a tear opens each side of the hit, m; the share of its speed into the rail a car
 // loses going through
 const TEAR_HALF_M = 2, TEAR_LOSS = 0.4;
-// the rail's bounce (a wall's BARRIER_E is 0.3), and the share of a hit's damage the car still
-// takes (the rail's give takes the rest; measured, the softer bounce alone took only ~3 % off)
-export const ARMCO_E = 0.2;
-const ARMCO_GIVE = 0.9;
 
 /**
  * Whether a barrier dents (an armco rail).
  * @param barrier the barrier
  * @returns true when it dents
  */
-export const dents = (barrier: Barrier): boolean => barrier.kind === 'armco';
+export const dents = (barrier: Barrier): boolean => barrier.kind in RAIL_FEEL;
+
+/**
+ * A rail's bounce (world/barriers.ts).
+ * @param barrier the rail
+ * @returns the restitution
+ */
+export const railBounce = (barrier: Barrier): number => RAIL_FEEL[barrier.kind].bounce;
 
 /**
  * The scale on a hit's damage for what was hit: an armco rail gives a little (damage.ts hit).
@@ -41,7 +55,7 @@ export const dents = (barrier: Barrier): boolean => barrier.kind === 'armco';
  * @returns the scale
  */
 export const railGive = (kind: string | null | undefined): number =>
-  (kind === 'armco' ? ARMCO_GIVE : 1);
+  (kind && kind in RAIL_FEEL ? RAIL_FEEL[kind].give : 1);
 
 // how far each moved rail point has been pushed back, m; the points a torn gap starts at; the
 // rails as they were before their first dent (RESTART)
@@ -98,7 +112,7 @@ function keepStraight(barrier: Barrier): void {
 
 /**
  * A car corner in the rail. A hard enough hit into it is kept for the dent (applyRailHit, after
- * the rail's clamp); one that would push it past TEAR_DEPTH_M tears it open.
+ * the rail's clamp); one that would push it past its tear depth tears it open.
  * @param barrier the rail
  * @param seg the segment touched
  * @param frac 0..1 along it
@@ -111,9 +125,9 @@ function keepStraight(barrier: Barrier): void {
  */
 export function railContact(barrier: Barrier, seg: BarrierSeg, frac: number, nx: number, ny: number,
     car: { vx: number; vy: number }): boolean {
-  const into = -(car.vx * nx + car.vy * ny);
-  if (!(into > DENT_FROM)) return false;
-  if (depthAt(barrier, seg, frac) + DENT_PER_V * (into - DENT_FROM) >= TEAR_DEPTH_M) {
+  const into = -(car.vx * nx + car.vy * ny), feel = RAIL_FEEL[barrier.kind];
+  if (!(into > feel.from)) return false;
+  if (depthAt(barrier, seg, frac) + feel.perV * (into - feel.from) >= feel.tear) {
     tear(barrier, seg, frac);
     car.vx += nx * into * TEAR_LOSS;
     car.vy += ny * into * TEAR_LOSS;
@@ -192,15 +206,15 @@ export function applyRailHit(barrier: Barrier): boolean {
   keepStraight(barrier);
   const old = barrier.pts, oldLengths = arcLengths(old), start = hit.seg.i0!;
   const hitAt = oldLengths[start] + (oldLengths[start + 1] - oldLengths[start]) * hit.frac;
-  const pts = finePoints(old, oldLengths, hitAt, DENT_HALF_M);
-  // push them back: a cos^2 bow, deepest at the hit, each point no deeper than DENT_MAX_M
-  const lengths = arcLengths(pts), deepest = DENT_PER_V * (hit.into - DENT_FROM);
+  const pts = finePoints(old, oldLengths, hitAt, DENT_HALF_M), feel = RAIL_FEEL[barrier.kind];
+  // push them back: a cos^2 bow, deepest at the hit, each point no deeper than feel.max
+  const lengths = arcLengths(pts), deepest = feel.perV * (hit.into - feel.from);
   for (let i = 0; i < pts.length; i++) {
     const off = Math.abs(lengths[i] - hitAt);
     if (off >= DENT_HALF_M) continue;
     const before = depthOf.get(pts[i]) || 0;
     const add = Math.min(deepest * Math.cos((Math.PI / 2) * (off / DENT_HALF_M)) ** 2,
-      DENT_MAX_M - before);
+      feel.max - before);
     if (add <= 0) continue;
     pts[i][0] -= hit.nx * add;
     pts[i][1] -= hit.ny * add;

@@ -1,396 +1,396 @@
-// world/venuescenery.ts - A VENUE'S SCENERY, the same for every layout (world/venue.ts): from the
-// real map at game scale - the pit lane, wall and garages, service roads, bridges over the track,
-// gravel traps (each where the real one is, at its depth, with Armco and two rows of tyres behind
-// it), catch fences, grandstands, buildings, paddocks with their trucks, the kart track and rally
-// stages, woods, marshal posts and boards. Anything that would land on a road is moved off or left
-// out (VENUE_DROPPED lists what was left out, for the tools).
+// world/venuescenery.ts - A VENUE'S SCENERY, the same for every layout (world/venue.ts), from the
+// real map at game scale (each point through venuegeo.ts makePlacer, so the game's wider road
+// keeps the real gaps). Inside the sealed edge (world/venueedge.ts: the Armco, traps, catch
+// fences, marshal posts) there is only the track, its run-off and the pit lane; the only ways on
+// and off are the pit lane's two ends. Outside it: the pit wall and garages, the paddocks (tarmac,
+// race trucks in rows), the car parks (mown grass, parked cars in rows), the service roads (each
+// piece at least MIN_ROAD_M - no stubs), bridges over the track carrying their road at its real
+// angle with approaches meeting it, the tunnels' portals both sides, grandstands, buildings, the
+// kart track and rally stages, woods, boards; and the pit lane's painted lines.
 import { alongTrack } from "./barriers.ts";
 import { SURFACES } from "./surfaces.ts";
-import { onTrack, querySubtrack } from "./tyrewall.ts";
+import { onTrack } from "./tyrewall.ts";
+import { insidePolygon } from "./zones.ts";
 import { parkMiller } from "../core/random.ts";
+import { HALF_ROAD, VENUE_ROAD_M, centreAt, clearRuns, distToLine, lineLength, makePlacer,
+  nearestLoop, resample, roadDistance } from "./venuegeo.ts";
+import { boardOnArmco, buildCatchFences, buildEdge, buildRims, inZones, marshalPosts,
+  outlineZone, pastRim, trapZones } from "./venueedge.ts";
+import type { Rim } from "./venueedge.ts";
 import type { VenueBox, VenueBuild } from "./venue.ts";
-import type { Barrier, Cone, Lane, Point, Prop, Subtrack, Zone } from "./types.ts";
+import type { Barrier, Cone, Lane, Paint, Point, Prop, Subtrack, Zone } from "./types.ts";
 
 /** What buildVenueScenery returns: everything but the raced road. */
 export interface VenueScenery {
   lanes: Lane[]; zones: Zone[]; cones: Cone[]; barriers: Barrier[]; props: Prop[];
-  bounds: { x0: number; y0: number; x1: number; y1: number };
+  paint: Paint[]; bounds: { x0: number; y0: number; x1: number; y1: number };
 }
 
-// m: the game's road on every circuit
-export const VENUE_ROAD_M = 13;
-// what the footprint check left out, per venue (tools read it)
-export const VENUE_DROPPED: Record<string, string[]> = {};
-const HALF_ROAD = VENUE_ROAD_M / 2;
 // m (game) from a venue road beyond which nothing of the map is taken: the venue's reach
 const REACH_M = 130;
-// m: the pit lane's width, the wall's gap from it, and where it may meet the track (its ends)
-// (the wall stands EDGE_TO_WALL past the road's edge, as the old Brands pit wall did, the lane just
-// behind it)
+// m: the pit lane's width, the wall's gap from it, where it may meet the track (its ends) and the
+// wall's distance past the road's edge
 const PIT_W = 9, PIT_WALL_GAP = 0.6, PIT_MERGE_M = 30, EDGE_TO_WALL = 3;
-// m: a trap starts at least this far past the road's edge (the kerb and a strip of grass)
-const TRAP_EDGE_M = 1.5;
-// m (game) from the road's centre beyond which a mapped trap's outline is not counted
-const TRAP_MAX_M = 60;
-// m (game): a gravel trap's Armco stands this far behind it, its two tyre rows in front of that
-const TRAP_ARMCO_M = 2.5, TRAP_TYRE_ROWS: [number, number][] = [[1.1, 0], [0.15, 0.475]];
-// m: a piece of service road shorter than this once cut clear of the track is left out (a stub)
-const MIN_ROAD_M = 30;
-// m a prop touching a road is moved away from it per try, and the tries before it is left out
-const NUDGE_STEP_M = 2, NUDGE_TRIES = 8;
 // m: the garages' front stands at least this far behind the pit lane's edge
 const GARAGE_GAP_M = 1.5;
-// trees: how many at most, and the share of tries kept outside the woods
-const MAX_TREES = 260, OPEN_TREE_SHARE = 0.06;
+// m: a service road keeps this far outside the edge; a piece of one shorter than MIN_ROAD_M once
+// cut is left out (a stub)
+const ROAD_OUT_M = 2, MIN_ROAD_M = 30;
+// m: a road piece going nowhere is kept only this long; an end within JOIN_M of a lane meets it
+const LONE_ROAD_M = 90, JOIN_M = 3;
+// m: a bridge's approach and its width; a tunnel portal's distance outside the edge, its length
+const APPROACH_M = 8, APPROACH_W = 6, PORTAL_OUT_M = 3, PORTAL_LEN_M = 9;
+// m: a building stays this far outside the edge (moved out in NUDGE_STEP_M steps)
+const BUILD_OUT_M = 2, NUDGE_STEP_M = 1.5, NUDGE_TRIES = 12;
+// parked cars: m between cars along a row, between rows, the share of bays taken, the most
+const BAY_M = 2.7, ROW_M = 6.5, BAY_FULL = 0.55, MAX_PARKED = 160;
+// race trucks: m along and across their rows, the share of slots taken, the most per paddock
+const TRUCK_ALONG_M = 17, TRUCK_ACROSS_M = 6, TRUCK_FULL = 0.6, MAX_TRUCKS = 12;
+// trees: how many at most, the share of tries kept outside the woods, m outside the edge
+const MAX_TREES = 260, OPEN_TREE_SHARE = 0.05, TREE_OUT_M = 6;
 // building kinds that are homes, sheds and farm buildings (the venue's neighbours, not its own)
 const NOT_VENUE = new Set(['house', 'residential', 'garage', 'barn', 'silo', 'shed', 'farm',
   'detached', 'semidetached_house', 'terrace', 'hotel', 'greenhouse']);
 const ROOFS = ['#5b626b', '#6b6158', '#596372', '#6e6e66'];
-const TRUCK_COLS = ['#c8302c', '#2b56b5', '#e2c13a', '#2e8b57'];
+const TRUCK_COLS = ['#c8302c', '#2b56b5', '#e2c13a', '#2e8b57', '#e8e6e0'];
+const PARKED_COLS = ['#c8302c', '#2b56b5', '#e8e6e0', '#1d1f24', '#8f949c', '#2e8b57', '#d9a13a'];
 
-/** The venue roads, for "is this near a road" questions. */
-interface RoadTest { near: (x: number, y: number, pad: number) => boolean; loops: Subtrack[] }
+/** What every builder here shares. */
+interface Site {
+  build: VenueBuild; loops: Subtrack[]; rims: Rim[]; place: (pt: Point) => Point;
+  rnd: () => number; lanes: Lane[]; buildings: Prop[];
+  armco: Set<string>;   // the 2 m cells the Armco runs through (roads keep out of them)
+}
 
-const scalePts = (pts: Point[], scale: number): Point[] =>
-  pts.map(([x, y]) => [x * scale, y * scale] as Point);
+const placeAll = (site: Site, pts: Point[]): Point[] => pts.map(site.place);
+const nearRace = (site: Site, x: number, y: number, pad: number) =>
+  roadDistance(site.loops, x, y) < HALF_ROAD + pad;
+const onLanes = (lanes: Lane[], x: number, y: number, pad: number) =>
+  lanes.some((lane) => distToLine(lane.pts, x, y) < lane.width / 2 + pad);
 
 /**
- * The nearest of the venue's layout roads to a point.
- * @param loops every layout's road
- * @param x world x
- * @param y world y
- * @returns that road and the hit (dist = metres from its centreline)
+ * The pit lane at game scale, kept clear of the wall (the game's road is wider than the real
+ * one), and the pit wall: parallel to the road, EDGE_TO_WALL past its edge, along the stretch the
+ * lane runs beside it.
+ * @param site the venue's builders' state
+ * @returns the lane and the wall
  */
-function nearestLoop(loops: Subtrack[], x: number, y: number) {
-  let best = { sub: loops[0], hit: querySubtrack(loops[0], x, y) };
-  for (const sub of loops.slice(1)) {
-    const hit = querySubtrack(sub, x, y);
-    if (hit.dist < best.hit.dist) best = { sub, hit };
+function pitLane(site: Site): { lane: Lane; wall: Barrier | null } {
+  const spec = site.build.spec;
+  const data = spec.data.pitLanes.find((entry) => entry.name === spec.pitLane);
+  if (!data) throw new Error(`venue: no pit lane ${spec.pitLane}`);
+  const dense = resample(placeAll(site, data.pts), 2);
+  const need = HALF_ROAD + EDGE_TO_WALL + PIT_WALL_GAP + PIT_W / 2;
+  const beside: { sub: Subtrack; dist: number; side: number }[] = [];
+  const moved = dense.map(([x, y], i) => {
+    const fromEnd = Math.min(i, dense.length - 1 - i) * 2;
+    if (fromEnd < PIT_MERGE_M) return [x, y];
+    const { sub, hit } = nearestLoop(site.loops, x, y);
+    const side = hit.side === 'left' ? 1 : -1;
+    beside.push({ sub, dist: hit.trackDist, side });
+    if (hit.dist >= need) return [x, y];
+    const centre = centreAt(sub, hit.trackDist);
+    return [centre.x + centre.nx * side * need, centre.y + centre.ny * side * need];
+  }) as Point[];
+  let wall: Barrier | null = null;
+  if (beside.length > 8) {
+    const sides = beside.reduce((sum, spot) => sum + spot.side, 0), trim = 6;
+    const offset = Math.sign(sides || 1) * (HALF_ROAD + EDGE_TO_WALL);
+    wall = { kind: 'pitwall', pts: alongTrack(beside[0].sub, beside[0].dist + trim,
+      beside[beside.length - 1].dist - trim, offset, 2) };
   }
-  return best;
+  return { lane: { pts: moved, width: PIT_W, surface: SURFACES.concrete }, wall };
 }
 
 /**
- * Whether a point is within pad of a lane (beyond its half width).
- * @param lanes the lanes
+ * A line moved sideways by an offset (its left normal +).
+ * @param pts the line
+ * @param off metres
+ * @returns the moved line
+ */
+function offsetLine(pts: Point[], off: number): Point[] {
+  return pts.slice(1).map(([x, y], i) => {
+    const [prevX, prevY] = pts[i], len = Math.hypot(x - prevX, y - prevY) || 1;
+    return [x - (y - prevY) / len * off, y + (x - prevX) / len * off] as Point;
+  });
+}
+
+/**
+ * The pit lane's painted lines: the divider between the fast lane (by the wall) and the working
+ * lane (by the garages), and the solid entry / exit lines along the track's edge where the lane
+ * leaves and joins it.
+ * @param site the venue's builders' state
+ * @param pit the pit lane
+ * @returns the lines
+ */
+function pitLines(site: Site, pit: Lane): Paint[] {
+  const mid = Math.floor(pit.pts.length / 2), [x, y] = pit.pts[mid];
+  const [nextX, nextY] = pit.pts[mid + 1], len = Math.hypot(nextX - x, nextY - y) || 1;
+  const { sub, hit } = nearestLoop(site.loops, x, y), centre = centreAt(sub, hit.trackDist);
+  // the wall side: + when the track lies on the lane's left
+  const across = (centre.x - x) * -(nextY - y) / len + (centre.y - y) * (nextX - x) / len;
+  const wallSide = Math.sign(across) || 1;
+  const divider = offsetLine(pit.pts.slice(15, -15), wallSide * (PIT_W / 2 - PIT_W / 3));
+  const lines: Paint[] = [{ kind: 'line', x: 0, y: 0, pts: divider, lw: 0.15, tone: 0.75 }];
+  for (const end of [pit.pts.slice(0, 16), pit.pts.slice(-16)]) {
+    const edge = end.map(([endX, endY]) => {
+      const near = nearestLoop(site.loops, endX, endY);
+      const road = centreAt(near.sub, near.hit.trackDist), side = near.hit.side === 'left' ? 1 : -1;
+      return [road.x + road.nx * side * (HALF_ROAD - 0.4),
+        road.y + road.ny * side * (HALF_ROAD - 0.4)] as Point;
+    });
+    lines.push({ kind: 'line', x: 0, y: 0, pts: edge, lw: 0.3, tone: 0.9 });
+  }
+  return lines;
+}
+
+// m: the side of the cells the Armco is indexed by
+const ARMCO_CELL_M = 2;
+const cellKey = (x: number, y: number) =>
+  `${Math.floor(x / ARMCO_CELL_M)},${Math.floor(y / ARMCO_CELL_M)}`;
+
+/**
+ * Whether an Armco run passes within about pad of a point (by its 2 m cells).
+ * @param site the venue's builders' state
  * @param x world x
  * @param y world y
  * @param pad metres
- * @returns true when on or near one
+ * @returns true when one is that near
  */
-function nearLane(lanes: Lane[], x: number, y: number, pad: number): boolean {
-  for (const lane of lanes) {
-    const reach = lane.width / 2 + pad;
-    for (let i = 0; i < lane.pts.length - 1; i++) {
-      const [fromX, fromY] = lane.pts[i], [toX, toY] = lane.pts[i + 1];
-      const dx = toX - fromX, dy = toY - fromY, lenSq = dx * dx + dy * dy || 1e-9;
-      const frac = Math.max(0, Math.min(1, ((x - fromX) * dx + (y - fromY) * dy) / lenSq));
-      if ((x - fromX - dx * frac) ** 2 + (y - fromY - dy * frac) ** 2 <= reach * reach) return true;
+function nearArmco(site: Site, x: number, y: number, pad: number): boolean {
+  const reach = Math.ceil(pad / ARMCO_CELL_M);
+  const cellX = Math.floor(x / ARMCO_CELL_M), cellY = Math.floor(y / ARMCO_CELL_M);
+  for (let stepX = -reach; stepX <= reach; stepX++)
+    for (let stepY = -reach; stepY <= reach; stepY++)
+      if (site.armco.has(`${cellX + stepX},${cellY + stepY}`)) return true;
+  return false;
+}
+
+/**
+ * Whether a point lies within pad of a building's turned box.
+ * @param buildings the building props
+ * @param x world x
+ * @param y world y
+ * @param pad metres
+ * @returns true when in or that near one
+ */
+function inBuilding(buildings: Prop[], x: number, y: number, pad: number): boolean {
+  return buildings.some((prop) => {
+    // the garage row: its outline (front and back)
+    if (prop.front && prop.back) {
+      const outline = [...prop.front, ...prop.back.slice().reverse()];
+      return insidePolygon(outline, x, y) || distToLine(prop.front, x, y) < pad
+        || distToLine(prop.back, x, y) < pad;
     }
+    if (!prop.w || !prop.h) return false;
+    const cosR = Math.cos(prop.rot || 0), sinR = Math.sin(prop.rot || 0);
+    const along = (x - prop.x) * cosR + (y - prop.y) * sinR;
+    const across = -(x - prop.x) * sinR + (y - prop.y) * cosR;
+    return Math.abs(along) <= prop.w / 2 + pad && Math.abs(across) <= prop.h / 2 + pad;
+  });
+}
+
+/**
+ * The service roads, rally stages and kart track as lanes, all outside the edge (real widths);
+ * each piece left after the cut must be at least MIN_ROAD_M long.
+ * @param site the venue's builders' state
+ * @returns the lanes
+ */
+function venueRoads(site: Site): Lane[] {
+  const data = site.build.spec.data, lanes: Lane[] = [];
+  const add = (pts: Point[], width: number, surface: Lane['surface']) => {
+    const clear = (x: number, y: number) => pastRim(site.rims, x, y) > ROAD_OUT_M + width / 2
+      && nearRace(site, x, y, REACH_M) && !onLanes(site.lanes, x, y, width / 2)
+      && !inBuilding(site.buildings, x, y, width / 2 + 1) && !nearArmco(site, x, y, width / 2 + 1);
+    for (const run of clearRuns(placeAll(site, pts), clear))
+      if (lineLength(run) >= MIN_ROAD_M) lanes.push({ pts: run, width, surface });
+  };
+  // the venue's own roads: the village streets next door (residential) are not its
+  for (const road of data.roads)
+    if (!road.bridge && road.kind !== 'residential')
+      add(road.pts, road.width, road.kind === 'track' ? SURFACES.dirt : SURFACES.tarmac);
+  for (const stage of data.dirt) add(stage.pts, 5, SURFACES.dirt);
+  for (const kart of data.karting) add(kart.pts, 7, SURFACES.tarmac);
+  return joinedUp(site, lanes);
+}
+
+/**
+ * The road pieces that read as roads: each long (LONE_ROAD_M), or with an end meeting another
+ * lane (the pit lane, a road kept, a bridge's approach, a tunnel's road) or a building. A piece
+ * the cut left alone, going nowhere, is left out (asked again until nothing more goes).
+ * @param site the venue's builders' state
+ * @param lanes the road pieces
+ * @returns the ones kept
+ */
+function joinedUp(site: Site, lanes: Lane[]): Lane[] {
+  let kept = lanes;
+  for (let pass = 0; pass < 4; pass++) {
+    const others = [...site.lanes, ...kept];
+    const meets = (run: Lane) => [run.pts[0], run.pts[run.pts.length - 1]].some(([x, y]) =>
+      others.some((other) => other !== run
+        && distToLine(other.pts, x, y) < (other.width + run.width) / 2 + JOIN_M)
+      || inBuilding(site.buildings, x, y, run.width / 2 + JOIN_M));
+    const next = kept.filter((run) => lineLength(run.pts) >= LONE_ROAD_M || meets(run));
+    if (next.length === kept.length) break;
+    kept = next;
+  }
+  return kept;
+}
+
+/**
+ * Where a mapped line crosses a race road: the road's centre sample there, the line's heading and
+ * the sine of the angle between them (never below 0.35: a deck at a shallower angle is too long).
+ * @param site the venue's builders' state
+ * @param line the line at game scale
+ * @returns the crossing, or null if it never meets a race road
+ */
+function crossing(site: Site, line: Point[]) {
+  let best: { sub: Subtrack; dist: number; trackDist: number } | null = null;
+  for (const [x, y] of resample(line, 1)) {
+    const { sub, hit } = nearestLoop(site.loops, x, y);
+    if (!best || hit.dist < best.dist) best = { sub, dist: hit.dist, trackDist: hit.trackDist };
+  }
+  if (!best || best.dist > HALF_ROAD + 4) return null;
+  const [lastX, lastY] = line[line.length - 1];
+  const head = Math.atan2(lastY - line[0][1], lastX - line[0][0]);
+  const centre = centreAt(best.sub, best.trackDist);
+  const sine = Math.abs(Math.cos(head) * centre.dirY - Math.sin(head) * centre.dirX);
+  return { head, sine: Math.max(sine, 0.35), centre };
+}
+
+/**
+ * The bridges over the track (roads and footpaths): each deck along the road it carries, at its
+ * real angle, long enough to clear the edge both sides, a road bridge with an approach each end
+ * meeting its road.
+ * @param site the venue's builders' state
+ * @returns the bridge props and the approach lanes
+ */
+function venueBridges(site: Site): { props: Prop[]; lanes: Lane[] } {
+  const data = site.build.spec.data, props: Prop[] = [], lanes: Lane[] = [];
+  const decks: [Point[], string][] = [
+    ...data.roads.filter((road) => road.bridge).map((road): [Point[], string] =>
+      [road.pts, 'bridge']),
+    ...data.footbridges.map((path): [Point[], string] => [path.pts, 'footbridge']),
+  ];
+  for (const [pts, kind] of decks) {
+    const cross = crossing(site, placeAll(site, pts));
+    if (!cross) continue;
+    const { centre } = cross, inside = -pastRim(site.rims, centre.x, centre.y);
+    const span = Math.min(70, 2 * (inside + 3) / cross.sine);
+    const label = kind === 'footbridge' ? site.build.spec.bridgeLabel : undefined;
+    props.push({ kind, x: centre.x, y: centre.y, rot: cross.head, wid: span,
+      seed: Math.round(centre.x), ...(label ? { label } : {}),
+      ...(kind === 'bridge' ? { carries: 'road', quiet: true } : {}) } as Prop);
+    if (kind !== 'bridge') continue;
+    const dirX = Math.cos(cross.head), dirY = Math.sin(cross.head), end = span / 2;
+    for (const side of [-1, 1])
+      lanes.push({ width: APPROACH_W, surface: SURFACES.tarmac, pts: [
+        [centre.x + dirX * side * (end + 0.5), centre.y + dirY * side * (end + 0.5)],
+        [centre.x + dirX * side * (end + APPROACH_M), centre.y + dirY * side * (end + APPROACH_M)],
+      ] });
+  }
+  return { props, lanes };
+}
+
+/**
+ * The tunnels under the track: a portal each side, PORTAL_OUT_M outside the edge along the
+ * tunnel's line, its ramp running down toward the track, with a road from its mouth out.
+ * @param site the venue's builders' state
+ * @returns the portal props and their roads
+ */
+function venueTunnels(site: Site): { props: Prop[]; lanes: Lane[] } {
+  const props: Prop[] = [], lanes: Lane[] = [];
+  for (const tunnel of site.build.spec.data.tunnels) {
+    const cross = crossing(site, placeAll(site, tunnel.pts));
+    if (!cross) continue;
+    const { centre } = cross, width = tunnel.kind === 'footway' ? 3 : 6;
+    const dirX = Math.cos(cross.head), dirY = Math.sin(cross.head);
+    for (const side of [-1, 1]) {
+      // walk out along the tunnel's line until past the edge
+      let out = HALF_ROAD;
+      while (out < 80 && pastRim(site.rims, centre.x + dirX * side * out,
+        centre.y + dirY * side * out) < PORTAL_OUT_M) out += 1;
+      const mouth = out + PORTAL_LEN_M / 2;
+      const x = centre.x + dirX * side * mouth, y = centre.y + dirY * side * mouth;
+      // the portal's ramp runs down toward the track: its rot points at the track
+      props.push({ kind: 'tunnel', x, y, rot: cross.head + (side > 0 ? Math.PI : 0),
+        w: PORTAL_LEN_M, h: width + 1.2 });
+      // a vehicle tunnel's road out of the mouth, stopping short of any Armco (a footpath is not
+      // drawn, here or anywhere)
+      if (tunnel.kind === 'footway') continue;
+      const far = PORTAL_LEN_M / 2 + 10;
+      const [road] = clearRuns([[x, y], [x + dirX * side * far, y + dirY * side * far]],
+        (pointX, pointY) => !nearArmco(site, pointX, pointY, width / 2 + 0.5), 1);
+      if (road) lanes.push({ width, surface: SURFACES.tarmac, pts: road });
+    }
+  }
+  return { props, lanes };
+}
+
+/**
+ * A mapped box at game scale (its centre placed, its size scaled), as a prop of a kind.
+ * @param site the venue's builders' state
+ * @param box the box (real m)
+ * @param kind the prop kind
+ * @returns the prop
+ */
+function boxProp(site: Site, box: VenueBox, kind: string): Prop {
+  const [x, y] = site.place([box.x, box.y]), scale = site.build.scale;
+  return { kind, x, y, w: box.w * scale, h: box.h * scale, rot: box.rot };
+}
+
+/**
+ * Moves a building straight out from the track until its whole box stands BUILD_OUT_M outside the
+ * edge and off every lane.
+ * @param site the venue's builders' state
+ * @param prop the prop (moved in place)
+ * @returns true when it ends clear, false to leave it out
+ */
+function standClear(site: Site, prop: Prop): boolean {
+  const cosR = Math.cos(prop.rot || 0), sinR = Math.sin(prop.rot || 0);
+  const halfW = (prop.w || 2) / 2, halfH = (prop.h || 2) / 2;
+  const corners = () => [[-1, -1], [1, -1], [1, 1], [-1, 1], [0, 0]].map(([along, across]) =>
+    [prop.x + cosR * along * halfW - sinR * across * halfH,
+      prop.y + sinR * along * halfW + cosR * across * halfH] as Point);
+  for (let tries = 0; tries <= NUDGE_TRIES; tries++) {
+    if (corners().every(([x, y]) => pastRim(site.rims, x, y) > BUILD_OUT_M
+      && !onLanes(site.lanes, x, y, 0.5))) return true;
+    const { sub, hit } = nearestLoop(site.loops, prop.x, prop.y);
+    const centre = centreAt(sub, hit.trackDist), side = hit.side === 'left' ? 1 : -1;
+    prop.x += centre.nx * side * NUDGE_STEP_M;
+    prop.y += centre.ny * side * NUDGE_STEP_M;
   }
   return false;
 }
 
 /**
- * Splits a line into the runs that stay clear of the roads.
- * @param pts the line
- * @param clear true where a point may stand
- * @param stepM resample spacing in metres
- * @returns the clear runs (2+ points each)
- */
-function clearRuns(pts: Point[], clear: (x: number, y: number) => boolean, stepM = 2): Point[][] {
-  const runs: Point[][] = [];
-  let run: Point[] = [];
-  for (const point of resample(pts, stepM)) {
-    if (clear(point[0], point[1])) run.push(point);
-    else {
-      if (run.length > 1) runs.push(run);
-      run = [];
-    }
-  }
-  if (run.length > 1) runs.push(run);
-  return runs;
-}
-
-/**
- * A line resampled every stepM metres (its corners kept).
- * @param pts the line
- * @param stepM metres between points
- * @returns the points
- */
-function resample(pts: Point[], stepM: number): Point[] {
-  const out: Point[] = [pts[0]];
-  for (let i = 0; i < pts.length - 1; i++) {
-    const [fromX, fromY] = pts[i], [toX, toY] = pts[i + 1];
-    const count = Math.max(1, Math.ceil(Math.hypot(toX - fromX, toY - fromY) / stepM));
-    for (let part = 1; part <= count; part++)
-      out.push([fromX + (toX - fromX) * part / count, fromY + (toY - fromY) * part / count]);
-  }
-  return out;
-}
-
-/**
- * Whether a point lies inside a polygon.
- * @param poly the polygon's points
- * @param x world x
- * @param y world y
- * @returns true inside
- */
-function insidePoly(poly: Point[], x: number, y: number): boolean {
-  let inside = false;
-  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
-    const [thisX, thisY] = poly[i], [prevX, prevY] = poly[j];
-    if ((thisY > y) !== (prevY > y)
-      && x < (prevX - thisX) * (y - thisY) / (prevY - thisY) + thisX) inside = !inside;
-  }
-  return inside;
-}
-
-/**
- * The pit lane at game scale, pushed off the track where the 13 m road would reach it (the real
- * road is narrower), and the pit wall along its track side.
- * @param build the venue at game scale
- * @param loops every layout's road
- * @returns the lane and the wall
- */
-function pitLane(build: VenueBuild, loops: Subtrack[]): { lane: Lane; wall: Barrier | null } {
-  const data = build.spec.data.pitLanes.find((entry) => entry.name === build.spec.pitLane);
-  if (!data) throw new Error(`venue: no pit lane ${build.spec.pitLane}`);
-  const pts = resample(scalePts(data.pts, build.scale), 2);
-  const need = HALF_ROAD + EDGE_TO_WALL + PIT_WALL_GAP + PIT_W / 2;
-  const total = pts.length * 2;
-  // where the lane runs alongside the road (not its two merges): the wall's stretch
-  const alongside: { sub: Subtrack; dist: number; side: number }[] = [];
-  const moved = pts.map(([x, y], i) => {
-    const { sub, hit } = nearestLoop(loops, x, y);
-    const fromEnd = Math.min(i, pts.length - 1 - i) * 2;
-    if (fromEnd < PIT_MERGE_M || total < 2 * PIT_MERGE_M) return [x, y];
-    alongside.push({ sub, dist: hit.trackDist, side: hit.side === 'left' ? 1 : -1 });
-    if (hit.dist >= need) return [x, y];
-    const centre = onTrack(sub, hit.trackDist, 0, {});
-    const awayX = (x - centre.x) / (hit.dist || 1), awayY = (y - centre.y) / (hit.dist || 1);
-    return [centre.x + awayX * need, centre.y + awayY * need];
-  }) as Point[];
-  return { lane: { pts: moved, width: PIT_W, surface: SURFACES.concrete },
-    wall: pitWall(alongside) };
-}
-
-/**
- * The pit wall: parallel to the road, EDGE_TO_WALL past its edge on the pit side, over the
- * stretch the pit lane runs alongside (trimmed at each end so it never meets the lane's merge).
- * @param alongside the road distance and side of each pit-lane point beside the road, in order
- * @returns the wall, or null if the lane never runs alongside
- */
-function pitWall(alongside: { sub: Subtrack; dist: number; side: number }[]): Barrier | null {
-  if (alongside.length < 8) return null;
-  const sub = alongside[0].sub, trim = 6;
-  const sides = alongside.reduce((sum, spot) => sum + spot.side, 0);
-  const from = alongside[0].dist + trim, end = alongside.at(-1)!.dist - trim;
-  const offset = Math.sign(sides || 1) * (HALF_ROAD + EDGE_TO_WALL);
-  return { kind: 'pitwall', pts: alongTrack(sub, from, end, offset, 2) };
-}
-
-/**
- * The service roads, rally stages and kart track as lanes (clear of the race roads; real widths),
- * and the bridges where a road or a footpath crosses a race road.
- * @param build the venue at game scale
- * @param roads the road test
- * @returns lanes and bridge props
- */
-function venueRoads(build: VenueBuild, roads: RoadTest): { lanes: Lane[]; props: Prop[] } {
-  const data = build.spec.data, scale = build.scale, lanes: Lane[] = [], props: Prop[] = [];
-  const addLanes = (pts: Point[], width: number, surface: Lane['surface']) => {
-    const clear = (x: number, y: number) => !nearRace(roads.loops, x, y, width / 2 + 1)
-      && nearRace(roads.loops, x, y, REACH_M) && !roads.near(x, y, width / 2);
-    for (const run of clearRuns(scalePts(pts, scale), clear))
-      if (run.length * 2 >= MIN_ROAD_M) lanes.push({ pts: run, width, surface });
-  };
-  for (const road of data.roads) {
-    if (road.bridge) bridgeOver(build, roads, road.pts, 'bridge', props);
-    else addLanes(road.pts, road.width, road.kind === 'track' ? SURFACES.dirt : SURFACES.tarmac);
-  }
-  for (const path of data.footbridges) bridgeOver(build, roads, path.pts, 'footbridge', props);
-  for (const stage of data.dirt) addLanes(stage.pts, 5, SURFACES.dirt);
-  for (const kart of data.karting) addLanes(kart.pts, 7, SURFACES.tarmac);
-  return { lanes, props };
-}
-
-/**
- * Whether a point is within pad of any race road's edge... measured from the centreline: within
- * half the road + pad.
- * @param loops every layout's road
- * @param x world x
- * @param y world y
- * @param pad metres past the road's half width
- * @returns true when that near
- */
-function nearRace(loops: Subtrack[], x: number, y: number, pad: number): boolean {
-  return nearestLoop(loops, x, y).hit.dist < HALF_ROAD + pad;
-}
-
-/**
- * A bridge prop where a mapped bridge crosses a race road (none if it does not).
- * @param build the venue at game scale
- * @param roads the road test
- * @param pts the bridge's line, real metres
- * @param kind 'bridge' (a road) or 'footbridge'
- * @param props props, appended to
- */
-function bridgeOver(build: VenueBuild, roads: RoadTest, pts: Point[], kind: string,
-  props: Prop[]): void {
-  const line = scalePts(pts, build.scale);
-  let best: { sub: Subtrack; dist: number; trackDist: number } | null = null;
-  for (const [x, y] of resample(line, 1)) {
-    const { sub, hit } = nearestLoop(roads.loops, x, y);
-    if (!best || hit.dist < best.dist) best = { sub, dist: hit.dist, trackDist: hit.trackDist };
-  }
-  if (!best || best.dist > HALF_ROAD) return;
-  const spot = onTrack(best.sub, best.trackDist, 0, {});
-  const label = kind === 'footbridge' ? build.spec.bridgeLabel : undefined;
-  props.push({ kind, x: spot.x, y: spot.y, rot: spot.rot + Math.PI / 2, wid: VENUE_ROAD_M + 20,
-    seed: Math.round(spot.x), ...(label ? { label } : {}),
-    ...(kind === 'bridge' ? { carries: 'road', quiet: true } : {}) } as Prop);
-}
-
-/**
- * The gravel traps where the real ones are: each mapped trap becomes a ribbon along the road it
- * sits beside, from its first to its last metre along that road and from its inner to its outer
- * edge (never nearer the road than the kerb and TRAP_EDGE_M of grass), with Armco and two rows of
- * tyres behind it.
- * @param build the venue at game scale
- * @param roads the road test
- * @returns trap lanes, the Armco and the tyre stacks
- */
-function venueTraps(build: VenueBuild, roads: RoadTest):
-  { lanes: Lane[]; barriers: Barrier[]; cones: Cone[] } {
-  const lanes: Lane[] = [], barriers: Barrier[] = [], cones: Cone[] = [];
-  for (const trap of build.spec.data.traps) {
-    const fit = fitTrap(scalePts(trap.pts, build.scale), roads.loops);
-    if (!fit) continue;
-    const { sub, side, d0, d1, inner, outer } = fit;
-    lanes.push({ out: side, pts: alongTrack(sub, d0, d1, side * (inner + outer) / 2, 2),
-      width: outer - inner, surface: SURFACES.gravel, d0, d1 } as Lane);
-    const behind = side * (outer + TRAP_ARMCO_M);
-    const clear = (x: number, y: number) => !nearRace(roads.loops, x, y, 4)
-      && !roads.near(x, y, 0.6);
-    for (const run of clearRuns(alongTrack(sub, d0, d1, behind, 2), clear))
-      barriers.push({ kind: 'armco', pts: run });
-    for (const [back, shift] of TRAP_TYRE_ROWS)
-      for (const [x, y] of alongTrack(sub, d0 + shift, d1, side * (outer + back), 0.95))
-        if (clear(x, y)) cones.push({ x, y, kind: 'tyrestack' });
-  }
-  return { lanes, barriers, cones };
-}
-
-/**
- * Where a mapped trap lies along the road nearest it.
- * @param poly the trap's outline at game scale
- * @param loops every layout's road
- * @returns its road, side (+1 = the road's left), distances along it and edges from its centre
- */
-function fitTrap(poly: Point[], loops: Subtrack[]) {
-  const pts = resample(poly, 2);
-  // the road most of the trap is nearest (a point past the road's lookup grid reads Infinity)
-  const votes = new Map<Subtrack, number>();
-  for (const [x, y] of pts) {
-    const { sub: near, hit } = nearestLoop(loops, x, y);
-    if (Number.isFinite(hit.dist)) votes.set(near, (votes.get(near) || 0) + 1);
-  }
-  if (!votes.size) return null;
-  const sub = [...votes.entries()].sort((first, second) => second[1] - first[1])[0][0];
-  const hits = pts.map(([x, y]) => querySubtrack(sub, x, y))
-    .filter((hit) => Number.isFinite(hit.dist) && hit.dist < TRAP_MAX_M);
-  if (hits.length < 3) return null;
-  const lefts = hits.filter((hit) => hit.side === 'left').length;
-  const side = lefts * 2 >= hits.length ? 1 : -1;
-  const along = hits.map((hit) => hit.trackDist);
-  // a trap across the start line: count its early part past the end
-  if (Math.max(...along) - Math.min(...along) > sub.totalDist / 2)
-    for (let i = 0; i < along.length; i++)
-      if (along[i] < sub.totalDist / 2) along[i] += sub.totalDist;
-  const offs = hits.map((hit) => hit.dist);
-  const inner = Math.max(Math.min(...offs), HALF_ROAD + 2.4 + TRAP_EDGE_M);
-  const outer = Math.max(...offs);
-  if (outer - inner < 3) return null;
-  return { sub, side, d0: Math.min(...along), d1: Math.max(...along), inner, outer };
-}
-
-/**
- * The mapped fences, walls and rails, kept off every road.
- * @param build the venue at game scale
- * @param roads the road test
- * @returns the barriers
- */
-function venueFences(build: VenueBuild, roads: RoadTest): Barrier[] {
-  const data = build.spec.data, out: Barrier[] = [];
-  const clear = (x: number, y: number) => !nearRace(roads.loops, x, y, 3)
-    && nearRace(roads.loops, x, y, REACH_M) && !roads.near(x, y, 0.8);
-  const lines: [Barrier['kind'], Point[]][] = [
-    ...data.fences.map((fence) => [fence.kind === 'wall' ? 'wall' : 'fence', fence.pts]),
-    ...data.rails.map((rail) => ['armco', rail.pts]),
-  ] as [Barrier['kind'], Point[]][];
-  for (const [kind, pts] of lines)
-    for (const run of clearRuns(scalePts(pts, build.scale), clear)) out.push({ kind, pts: run });
-  return out;
-}
-
-/**
- * A mapped box at game scale, as a prop of a kind.
- * @param box the box (real m)
- * @param scale game m per real m
- * @param kind the prop kind
- * @returns the prop
- */
-function boxProp(box: VenueBox, scale: number, kind: string): Prop {
-  return { kind, x: box.x * scale, y: box.y * scale, w: box.w * scale, h: box.h * scale,
-    rot: box.rot };
-}
-
-/**
- * The venue's own buildings (not the neighbours' homes): the pit garages as a garage row facing
- * the pit lane, grandstands, and every other building as a flat-roofed block.
- * @param build the venue at game scale
+ * The venue's own buildings (not the neighbours' homes): grandstands, the pit garages as a garage
+ * row facing the pit lane, and every other building a flat-roofed block; each outside the edge.
+ * @param site the venue's builders' state
  * @param pit the pit lane
- * @param roads the road test
  * @returns the props
  */
-function venueBuildings(build: VenueBuild, pit: Lane, roads: RoadTest): Prop[] {
-  const data = build.spec.data, scale = build.scale, props: Prop[] = [];
-  const homes = data.homes.map((home) => scalePts(home.pts, scale));
-  for (const stand of data.stands) props.push(boxProp(stand, scale, 'grandstand'));
+function venueBuildings(site: Site, pit: Lane): Prop[] {
+  const data = site.build.spec.data, props: Prop[] = [];
+  const homes = data.homes.map((home) => outlineZone(placeAll(site, home.pts), SURFACES.grass));
+  for (const stand of data.stands) {
+    const prop = boxProp(site, stand, 'grandstand');
+    if (standClear(site, prop)) props.push(prop);
+  }
   data.buildings.forEach((building, i) => {
-    const prop = boxProp(building, scale, 'block');
-    if (!nearRace(roads.loops, prop.x, prop.y, REACH_M)) return;
+    const prop = boxProp(site, building, 'block');
+    if (!nearRace(site, prop.x, prop.y, REACH_M)) return;
     if (/pit garages/i.test(building.name)) { props.push(garageRow(prop, pit)); return; }
-    if (NOT_VENUE.has(building.kind) || homes.some((home) => insidePoly(home, prop.x, prop.y)))
-      return;
+    if (NOT_VENUE.has(building.kind) || inZones(homes, prop.x, prop.y)) return;
     if (!building.name && prop.w! * prop.h! < 40) return;
-    props.push({ ...prop, roof: ROOFS[i % ROOFS.length] });
+    if (standClear(site, prop)) props.push({ ...prop, roof: ROOFS[i % ROOFS.length] });
   });
   return props;
 }
 
 /**
- * How far a point is from a line's nearest segment.
- * @param pts the line
- * @param x world x
- * @param y world y
- * @returns metres
- */
-function distToLine(pts: Point[], x: number, y: number): number {
-  let best = Infinity;
-  for (let i = 0; i < pts.length - 1; i++) {
-    const [fromX, fromY] = pts[i], [toX, toY] = pts[i + 1];
-    const dx = toX - fromX, dy = toY - fromY, lenSq = dx * dx + dy * dy || 1e-9;
-    const frac = Math.max(0, Math.min(1, ((x - fromX) * dx + (y - fromY) * dy) / lenSq));
-    best = Math.min(best, Math.hypot(x - fromX - dx * frac, y - fromY - dy * frac));
-  }
-  return best;
-}
-
-/**
  * The pit garages as a garage row: its long side nearer the pit lane is the front, moved back
- * if it would stand on the lane (the lane is pushed out for the game's wider road).
+ * until it stands GARAGE_GAP_M behind the lane's edge.
  * @param box the building at game scale
  * @param pit the pit lane
  * @returns the garage row prop
@@ -407,9 +407,7 @@ function garageRow(box: Prop, pit: Lane): Prop {
   };
   const mean = (line: Point[]) =>
     line.reduce((sum, [x, y]) => sum + distToLine(pit.pts, x, y), 0) / line.length;
-  // sign: which side (-h/2 or +h/2) faces the lane
   const sign = mean(edge(0, -halfH)) <= mean(edge(0, halfH)) ? -1 : 1;
-  // step back until the whole front clears the lane (the lane is not straight beside it)
   let shift = 0;
   for (let tries = 0; tries < 6; tries++) {
     const nearest = Math.min(...edge(shift, sign * halfH)
@@ -423,78 +421,103 @@ function garageRow(box: Prop, pit: Lane): Prop {
 }
 
 /**
- * The paddocks (tarmac ones as zones) and the race trucks parked in them.
- * @param build the venue at game scale
- * @param rnd the venue's dice
- * @returns zones and truck props
+ * An outline kept outside the edge: each of its points inside (or too near) it moved straight out.
+ * @param site the venue's builders' state
+ * @param poly the outline at game scale
+ * @returns the outline
  */
-function venuePaddocks(build: VenueBuild, rnd: () => number): { zones: Zone[]; props: Prop[] } {
+function outsideEdge(site: Site, poly: Point[]): Point[] {
+  return poly.map(([x, y]) => {
+    const past = pastRim(site.rims, x, y);
+    if (past >= BUILD_OUT_M) return [x, y] as Point;
+    const { sub, hit } = nearestLoop(site.loops, x, y);
+    const centre = centreAt(sub, hit.trackDist), side = hit.side === 'left' ? 1 : -1;
+    const step = BUILD_OUT_M - past;
+    return [x + centre.nx * side * step, y + centre.ny * side * step] as Point;
+  });
+}
+
+/**
+ * Slots in rows across a mapped box: along its long side every `along` m, across it every
+ * `across` m, each kept by chance and only inside the outline and clear of every lane.
+ * @param site the venue's builders' state
+ * @param box the box at game scale
+ * @param zone its outlined zone
+ * @param spacing [along, across, share kept, the most]
+ * @returns the slots
+ */
+function rowSlots(site: Site, box: Prop, zone: Zone,
+  spacing: [number, number, number, number]): { x: number; y: number }[] {
+  const [along, across, share, most] = spacing, slots: { x: number; y: number }[] = [];
+  const cosR = Math.cos(box.rot!), sinR = Math.sin(box.rot!);
+  for (let row = -box.h! / 2 + across / 2; row <= box.h! / 2 - across / 2; row += across)
+    for (let bay = -box.w! / 2 + along / 2; bay <= box.w! / 2 - along / 2; bay += along) {
+      if (slots.length >= most || site.rnd() > share) continue;
+      const x = box.x + cosR * bay - sinR * row, y = box.y + sinR * bay + cosR * row;
+      if (inZones([zone], x, y) && !onLanes(site.lanes, x, y, 2)
+        && pastRim(site.rims, x, y) > BUILD_OUT_M + 2) slots.push({ x, y });
+    }
+  return slots;
+}
+
+/**
+ * The paddocks (tarmac, the race trucks in rows) and the car parks (mown grass, parked cars in
+ * rows), each outline kept outside the edge.
+ * @param site the venue's builders' state
+ * @returns zones and props
+ */
+function venuePaddocks(site: Site): { zones: Zone[]; props: Prop[] } {
   const zones: Zone[] = [], props: Prop[] = [];
-  for (const paddock of build.spec.data.paddocks) {
+  let parked = 0;
+  for (const paddock of site.build.spec.data.paddocks) {
     const paved = /paddock/i.test(paddock.name) || /asphalt|paved|concrete/.test(paddock.surface);
-    if (!paved) continue;
-    const box = boxProp(paddock, build.scale, 'zone');
-    zones.push({ x: box.x, y: box.y, w: box.w!, h: box.h!, rot: box.rot,
-      surface: SURFACES.tarmac });
-    const trucks = Math.min(6, Math.floor(box.w! * box.h! / 900));
-    for (let i = 0; i < trucks; i++) {
-      const along = (rnd() - 0.5) * (box.w! - 16), across = (rnd() - 0.5) * (box.h! - 6);
-      const cosR = Math.cos(box.rot!), sinR = Math.sin(box.rot!);
-      props.push({ kind: 'truck', x: box.x + cosR * along - sinR * across,
-        y: box.y + sinR * along + cosR * across, rot: box.rot! + 0.1,
-        col: TRUCK_COLS[props.length % TRUCK_COLS.length] });
+    const poly = outsideEdge(site, placeAll(site, paddock.pts));
+    if (!nearRace(site, poly[0][0], poly[0][1], REACH_M)) continue;
+    const zone = outlineZone(poly, paved ? SURFACES.tarmac : SURFACES.grassShort);
+    zones.push(zone);
+    const box = boxProp(site, paddock, 'zone');
+    if (paved) {
+      for (const slot of rowSlots(site, box, zone,
+        [TRUCK_ALONG_M, TRUCK_ACROSS_M, TRUCK_FULL, MAX_TRUCKS]))
+        props.push({ kind: 'truck', ...slot, rot: box.rot!,
+          col: TRUCK_COLS[props.length % TRUCK_COLS.length] });
+      continue;
+    }
+    for (const slot of rowSlots(site, box, zone, [BAY_M, ROW_M, BAY_FULL, MAX_PARKED - parked])) {
+      parked++;
+      const facing = site.rnd() < 0.5 ? 0 : Math.PI;
+      props.push({ kind: 'parkedcar', ...slot, rot: box.rot! + Math.PI / 2 + facing,
+        col: PARKED_COLS[Math.floor(site.rnd() * PARKED_COLS.length)] });
     }
   }
   return { zones, props };
 }
 
 /**
- * Marshal posts outside the corners of every layout (one where two layouts share a corner), the
- * start gantry and the boards.
- * @param build the venue at game scale
- * @param sub the raced road
- * @returns the props
- */
-function trackside(build: VenueBuild, sub: Subtrack): Prop[] {
-  const props: Prop[] = [];
-  const start = onTrack(sub, 2, 0, {});
-  props.push({ kind: 'gantry', x: start.x, y: start.y, wid: 24, rot: start.rot + Math.PI / 2 });
-  for (const loop of Object.values(build.loops))
-    for (const kerb of loop.curvedKerbs) {
-      if (kerb.side !== 'left' && kerb.side !== 'right') continue;
-      const off = (kerb.side === 'left' ? -1 : 1) * -(HALF_ROAD + 30);
-      const spot = onTrack(loop, (kerb.startDist + kerb.endDist) / 2, off, {});
-      if (props.some((prop) => prop.kind === 'marshal'
-        && Math.hypot(prop.x - spot.x, prop.y - spot.y) < 25)) continue;
-      props.push({ kind: 'marshal', x: spot.x, y: spot.y, rot: spot.rot });
-    }
-  for (const board of build.spec.boards) {
-    const x = board.at[0] * build.scale, y = board.at[1] * build.scale;
-    const hit = querySubtrack(sub, x, y);
-    props.push({ kind: 'board', label: board.label, x, y,
-      rot: onTrack(sub, hit.trackDist, 0, {}).rot });
-  }
-  return props;
-}
-
-/**
- * Trees in the mapped woods (and a few in the open), clear of roads, lanes and buildings.
- * @param build the venue at game scale
+ * Trees in the mapped woods (and a few in the open), outside the edge, clear of lanes, zones and
+ * buildings.
+ * @param site the venue's builders' state
  * @param bounds where to scatter
- * @param clear true where a tree of that reach may stand
- * @param rnd the venue's dice
+ * @param solids the props they keep clear of
+ * @param zones the zones they keep out of
  * @returns the tree props
  */
-function venueTrees(build: VenueBuild, bounds: VenueScenery['bounds'],
-  clear: (x: number, y: number, reach: number) => boolean, rnd: () => number): Prop[] {
-  const woods = build.spec.data.woods.map((wood) => scalePts(wood.pts, build.scale));
+function venueTrees(site: Site, bounds: VenueScenery['bounds'], solids: Prop[],
+  zones: Zone[]): Prop[] {
+  const woods = site.build.spec.data.woods.map((wood) => outlineZone(placeAll(site, wood.pts),
+    SURFACES.grass));
   const trees: Prop[] = [];
+  const nearSolid = (x: number, y: number) => solids.some((prop) => {
+    const reach = Math.max(prop.w || 2, prop.h || 2) / 2 + 3;
+    return Math.abs(prop.x - x) < reach && Math.abs(prop.y - y) < reach;
+  });
   for (let i = 0; i < MAX_TREES * 16 && trees.length < MAX_TREES; i++) {
-    const x = bounds.x0 + rnd() * (bounds.x1 - bounds.x0);
-    const y = bounds.y0 + rnd() * (bounds.y1 - bounds.y0);
-    const inWood = woods.some((wood) => insidePoly(wood, x, y));
-    if ((inWood || rnd() < OPEN_TREE_SHARE) && clear(x, y, 10))
-      trees.push({ kind: 'tree', x, y, s: 3.5 + rnd() * 3, seed: i });
+    const x = bounds.x0 + site.rnd() * (bounds.x1 - bounds.x0);
+    const y = bounds.y0 + site.rnd() * (bounds.y1 - bounds.y0);
+    if (!inZones(woods, x, y) && site.rnd() > OPEN_TREE_SHARE) continue;
+    if (pastRim(site.rims, x, y) < TREE_OUT_M || onLanes(site.lanes, x, y, 4)
+      || inZones(zones, x, y) || nearSolid(x, y)) continue;
+    trees.push({ kind: 'tree', x, y, s: 3.5 + site.rnd() * 3, seed: i });
   }
   return trees;
 }
@@ -518,105 +541,66 @@ function venueBounds(loops: Subtrack[], lanes: Lane[], props: Prop[]): VenueScen
 }
 
 /**
- * Whether a prop's whole footprint (its box + 1.5 m) stays off the roads and lanes.
- * @param prop the prop
- * @param roads the road test
- * @returns true when clear
+ * Where people stand: each grandstand's corners and centre, and the banks' points.
+ * @param site the venue's builders' state
+ * @param props the props
+ * @returns the points
  */
-function footprintClear(prop: Prop, roads: RoadTest): boolean {
-  const size: Record<string, [number, number]> = { marshal: [2.4, 2], board: [18, 1.2],
-    truck: [14, 2.5], tower: [prop.size || 9, prop.size || 9] };
-  const [width, height] = size[prop.kind] || [prop.w || 0, prop.h || 0];
-  const cosR = Math.cos(prop.rot || 0), sinR = Math.sin(prop.rot || 0);
-  for (let across = -width / 2 - 1.5; across <= width / 2 + 1.5; across += 1.5)
-    for (let deep = -height / 2 - 1.5; deep <= height / 2 + 1.5; deep += 1.5) {
-      const x = prop.x + cosR * across - sinR * deep, y = prop.y + sinR * across + cosR * deep;
-      if (nearRace(roads.loops, x, y, 0.5) || roads.near(x, y, 0)) return false;
-    }
-  return true;
-}
-
-/**
- * Moves a prop that touches a road straight away from the nearest race road until it is clear
- * (the game's road is wider than the real one, so a stand built at its edge needs a step back).
- * @param prop the prop (moved in place)
- * @param roads the road test
- * @returns true when it ends clear, false to leave it out
- */
-function nudgeOff(prop: Prop, roads: RoadTest): boolean {
-  for (let tries = 0; tries <= NUDGE_TRIES; tries++) {
-    if (footprintClear(prop, roads)) return true;
-    const { sub, hit } = nearestLoop(roads.loops, prop.x, prop.y);
-    const centre = onTrack(sub, hit.trackDist, 0, {});
-    const away = Math.hypot(prop.x - centre.x, prop.y - centre.y) || 1;
-    prop.x += (prop.x - centre.x) / away * NUDGE_STEP_M;
-    prop.y += (prop.y - centre.y) / away * NUDGE_STEP_M;
+function spectatorSpots(site: Site, props: Prop[]): Point[] {
+  const spots: Point[] = [];
+  for (const stand of props.filter((prop) => prop.kind === 'grandstand')) {
+    const cosR = Math.cos(stand.rot || 0), sinR = Math.sin(stand.rot || 0);
+    for (const [along, across] of [[0, 0], [-0.5, -0.5], [0.5, -0.5], [-0.5, 0.5], [0.5, 0.5]])
+      spots.push([stand.x + cosR * along * stand.w! - sinR * across * stand.h!,
+        stand.y + sinR * along * stand.w! + cosR * across * stand.h!]);
   }
-  return false;
+  for (const bank of site.build.spec.banks)
+    for (const point of bank.pts) spots.push(site.place(point));
+  return spots;
 }
-
-// props that stand over or beside the road toY design
-const ON_ROAD_OK = new Set(['gantry', 'garagerow', 'footbridge', 'bridge']);
 
 /**
  * Everything of the venue but the raced road, the same for each of its layouts.
  * @param build the venue at game scale
  * @param sub the raced road
  * @param closed the lanes of the pieces this layout does not race
- * @returns lanes, zones, cones, barriers, props and the bounds
+ * @returns lanes, zones, cones, barriers, props, paint and the bounds
  */
 export function buildVenueScenery(build: VenueBuild, sub: Subtrack, closed: Lane[]): VenueScenery {
-  const rnd = parkMiller(build.spec.seed), loops = Object.values(build.loops);
-  const roadsLanes: Lane[] = [...closed];
-  const roads: RoadTest = { loops, near: (x, y, pad) => nearLane(roadsLanes, x, y, pad) };
-  const pit = pitLane(build, loops);
-  roadsLanes.push(pit.lane);
-  const service = venueRoads(build, roads);
-  roadsLanes.push(...service.lanes);
-  const traps = venueTraps(build, roads);
-  roadsLanes.push(...traps.lanes);
-  const paddocks = venuePaddocks(build, rnd);
-  const props = [...venueBuildings(build, pit.lane, roads), ...service.props, ...paddocks.props,
-    ...trackside(build, sub)];
-  const kept = props.filter((prop) => ON_ROAD_OK.has(prop.kind) || nudgeOff(prop, roads));
-  VENUE_DROPPED[build.spec.id] = props.filter((prop) => !kept.includes(prop))
-    .map((prop) => prop.kind);
-  const lanes = [pit.lane, ...service.lanes, ...traps.lanes];
-  const bounds = venueBounds(loops, lanes, kept);
-  const solidAt = (x: number, y: number, reach: number) => kept.some((prop) =>
-    Math.abs(prop.x - x) < (Math.max(prop.w || 0, prop.h || 0) / 2 + reach)
-    && Math.abs(prop.y - y) < (Math.max(prop.w || 0, prop.h || 0) / 2 + reach));
-  const clear = (x: number, y: number, reach: number) => !nearRace(loops, x, y, reach)
-    && !roads.near(x, y, reach * 0.6) && !solidAt(x, y, 2)
-    && !paddocks.zones.some((zone) => Math.abs(zone.x - x) < zone.w / 2
-      && Math.abs(zone.y - y) < zone.w / 2);
-  kept.push(...venueTrees(build, bounds, clear, rnd));
-  const barriers = [...(pit.wall ? [pit.wall] : []), ...traps.barriers,
-    ...venueFences(build, roads)];
-  const karting = build.spec.data.tyres.flatMap((line) =>
-    resample(scalePts(line.pts, build.scale), 1).map(([x, y]) => ({ x, y, kind: 'tyrestack' })));
-  return { lanes, zones: paddocks.zones, cones: [...traps.cones, ...karting], barriers,
-    props: kept, bounds };
-}
-
-/**
- * The point a distance along an open line, with the line's left normal there.
- * @param line the points
- * @param distM metres from its first point
- * @returns the point and normal, or null past its end
- */
-export function pointAlong(line: Point[], distM: number):
-  { x: number; y: number; nx: number; ny: number } | null {
-  let left = distM;
-  for (let i = 0; i < line.length - 1; i++) {
-    const [fromX, fromY] = line[i], [toX, toY] = line[i + 1];
-    const len = Math.hypot(toX - fromX, toY - fromY);
-    if (len > 0 && left <= len) {
-      const frac = left / len;
-      return { x: fromX + (toX - fromX) * frac, y: fromY + (toY - fromY) * frac,
-        nx: -(toY - fromY) / len, ny: (toX - fromX) / len };
-    }
-    left -= len;
+  const loops = Object.values(build.loops), spec = build.spec;
+  const widen = (VENUE_ROAD_M - spec.realRoadM * build.scale) / 2;
+  const place = makePlacer(build.scale, loops, widen);
+  const traps = trapZones(spec.data.traps.map((trap) => trap.pts.map(place)), loops);
+  const site: Site = { build, loops, rims: buildRims(loops, traps), place,
+    rnd: parkMiller(spec.seed), lanes: [...closed], buildings: [], armco: new Set() };
+  const pit = pitLane(site);
+  site.lanes.push(pit.lane);
+  const edge = buildEdge(site.rims, { loops, lanes: site.lanes }, traps);
+  for (const rail of edge.barriers)
+    for (const [x, y] of resample(rail.pts, 1)) site.armco.add(cellKey(x, y));
+  const bridges = venueBridges(site), tunnels = venueTunnels(site);
+  site.lanes.push(...bridges.lanes, ...tunnels.lanes);
+  // the buildings first: the roads go round them
+  site.buildings = venueBuildings(site, pit.lane);
+  const roads = venueRoads(site);
+  site.lanes.push(...roads);
+  const paddocks = venuePaddocks(site);
+  const start = onTrack(sub, 2, 0, {});
+  const props: Prop[] = [...site.buildings, ...bridges.props, ...tunnels.props,
+    ...paddocks.props, ...marshalPosts(site.rims),
+    { kind: 'gantry', x: start.x, y: start.y, wid: 24, rot: start.rot + Math.PI / 2 }];
+  for (const board of spec.boards) {
+    const prop = boardOnArmco(edge.barriers, loops, place(board.at), board.label, site.rims);
+    if (prop) props.push(prop);
   }
-  return null;
+  const catchFences = buildCatchFences(edge.barriers, spectatorSpots(site, props), loops);
+  const lanes = [pit.lane, ...bridges.lanes, ...tunnels.lanes, ...roads];
+  const bounds = venueBounds(loops, lanes, props);
+  const zones = [...traps, ...paddocks.zones];
+  props.push(...venueTrees(site, bounds, props, zones));
+  const karting = spec.data.tyres.flatMap((line) => resample(placeAll(site, line.pts), 1)
+    .map(([x, y]) => ({ x, y, kind: 'tyrestack' })));
+  return { lanes, zones, cones: [...edge.cones, ...karting],
+    barriers: [...(pit.wall ? [pit.wall] : []), ...edge.barriers, ...catchFences],
+    props, paint: pitLines(site, pit.lane), bounds };
 }

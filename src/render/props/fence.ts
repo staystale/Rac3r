@@ -198,6 +198,19 @@ function drawBarrierKind(propCtx: PropCtx, barrier: Barrier, half: number, ppm: 
     posts(barrier.pts, 3, 0.35, '#2b2f38');
     return;
   }
+  if (barrier.kind === 'catchfence') {
+    // a CATCH FENCE: a see-through mesh band on light galvanised posts, a thin top rail
+    path(barrier.pts);
+    view.ctx.strokeStyle = 'rgba(206,212,220,0.32)';
+    view.ctx.lineWidth = Math.max(2, 4 * half * ppm);
+    view.ctx.stroke();
+    path(barrier.pts);
+    view.ctx.strokeStyle = 'rgba(226,230,236,0.7)';
+    view.ctx.lineWidth = Math.max(1, 0.08 * ppm);
+    view.ctx.stroke();
+    posts(barrier.pts, 2.5, 0.26, '#b9bec6');
+    return;
+  }
   if (barrier.kind === 'armco') {
     path(barrier.pts);
     view.ctx.strokeStyle = '#5d626d';

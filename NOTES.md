@@ -238,12 +238,17 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
 - itch.io: pushed 10-24 on the owner's say-so (recipe in docs/foreman-handover.md; page photos:
   tools/scratch/_itchshots.mjs + _itchcover.mjs, uploaded by hand on the edit page); push again
   only when the owner says.
-- CIRCUITS ARE VENUES (11-07, owner): every level with a real counterpart at 3/4 of its real
-  length with the 13 m road, built like the real place - its roads, boundary, grandstands, pits,
+- CIRCUITS ARE VENUES (11-07, owner): every level with a real counterpart at 1/2 of its real
+  length (owner: "1/2 size ... about the right time for a lap"; 3/4 was tried: too big) with the
+  13 m road, built like the real place - its roads, boundary, grandstands, pits,
   paddocks - from OpenStreetMap, cross-checked with other sources ("use the internet and check
   multiple places"). One venue per circuit: a layout is the list of road pieces it races, every
   layout shares the venue's scenery. Brands first, then each track the same way. Credit what is
-  used (menu/credits.ts): OSM (ODbL) and traced Wikimedia maps (CC BY-SA) require it.
+  used (menu/credits.ts): OSM (ODbL) and traced Wikimedia maps (CC BY-SA) require it. A venue is
+  SEALED as a real circuit is (owner: "the only way on n off circuits should be pits / access
+  lanes", "not random gaps in barriers"): continuous Armco with smooth flared ends, tyres only in
+  front of it behind traps, a catch fence (weaker than Armco) where spectators are, NEVER the black
+  wire fence; bridges and tunnels as the real ones, roads joined up; keep the game's art style.
 - "Straight Outta Swindon" is a reserved name for a future highway level (the test straight that
   used it was removed 10-17).
 
