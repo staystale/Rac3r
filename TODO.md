@@ -67,7 +67,10 @@ last handover, written on request.
    RIMS (owner 11-07: "the top of the tyre shouldn't be coloured ... the thing that should be
    coloured by rim colour is when your wheel comes off ... laying flat"; "different rims? spoke
    patterns"): under ?carpaint a mounted wheel shows only its tread; a torn-off wheel lying flat
-   shows its rim colour and SPOKES (render/wheelface.ts: stock/five, mesh, split, dish, steel;
+   shows its rim colour and SPOKES (render/wheelface.ts; owner: "I'm ok with our current steel
+   look but just some others is good too; tyres should be round like they are now" - STEEL is the
+   loose tyre exactly as it was, its rim ring in the rim colour; five, mesh, split, dish inside the
+   same rim;
    _spokesheet.mjs, _loosewheel.mjs); the paint shop has a SPOKES row and a picture of the wheel
    lying loose; the AI get a pattern by slot.
    STAGE 2 UNDER TEST 11-07 (?carlooks, with ?carpaint): the redraws in render/carlooks.ts - Golf

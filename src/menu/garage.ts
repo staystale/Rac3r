@@ -290,10 +290,11 @@ function showPaintShop(menu: Menu) {
 }
 
 /**
- * ?carpaint: the paint shop's SPOKES row - STOCK and the patterns (render/wheelface.ts).
+ * ?carpaint: the paint shop's SPOKES row - STEEL (the look as it was) and the patterns
+ * (render/wheelface.ts).
  * @param menu the menu context
  * @param right the column it goes in
- * @param pick what a tap does with a pattern ('' = stock)
+ * @param pick what a tap does with a pattern ('' = steel)
  * @returns the buttons
  */
 function spokesRow(menu: Menu, right: HTMLElement, pick: (choice: string) => void) {
@@ -301,7 +302,7 @@ function spokesRow(menu: Menu, right: HTMLElement, pick: (choice: string) => voi
   const grid = addElement(right, 'div', '');
   grid.style.cssText = 'display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-bottom:8px';
   return ['', ...SPOKES].map((choice) => {
-    const button = addButton(menu, grid, choice ? choice.toUpperCase() : 'STOCK',
+    const button = addButton(menu, grid, choice ? choice.toUpperCase() : 'STEEL',
       () => pick(choice));
     button.dataset.c = choice;
     button.style.cssText = 'min-width:0;min-height:0;height:26px;padding:0;font-size:10px';
