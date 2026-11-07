@@ -2,7 +2,9 @@
 import { applyLivery, applyTyre } from '../cars.ts';
 import { createCones } from '../cones.ts';
 import { rulesSeen } from '../guide.ts';
-import { setHighwayPreset } from '../highway.ts';
+import { setHighwayPreset, HW_NAMES } from '../highway.ts';
+import { catOf } from '../world/levels/category.ts';
+import { FIX } from '../core/fixes.ts';
 import { createAIDriver } from '../ai/circuit.ts';
 import { aiTraits } from '../ai/traits.ts';
 import { setLevel } from "../world/load.ts";
@@ -87,6 +89,28 @@ export function start() {
     || (guideSetting !== '0' && !shared.guide.seen && !navigator.webdriver);
 }
 
+// ?menurand: the kinds of track the menu race picks from (lapped racing - not the rally stages
+// or the test grounds), and the chance it is the highway
+const MENU_CATS = new Set(['circuits', 'ovals', 'rx']), HW_CHANCE = 0.2;
+
+/**
+ * The menu race's track: ?menurand - a random circuit, oval or rallycross track, never the one
+ * just raced; the highway (a random road type) one time in HW_CHANCE. Else Thruston.
+ * @returns the level id
+ */
+function menuLevel(): string {
+  if (!FIX.menurand) return shared.DEMO_LEVEL;
+  const highway = LEVELS.find((level) => level.endless);
+  if (highway && Math.random() < HW_CHANCE) {
+    const roads = Object.keys(HW_NAMES);
+    setHighwayPreset(highway as unknown as HwLevel,
+      roads[Math.floor(Math.random() * roads.length)]);
+    return highway.id;
+  }
+  const pool = LEVELS.filter((level) => MENU_CATS.has(catOf(level)) && level.id !== LEVEL.id);
+  return pool.length ? pool[Math.floor(Math.random() * pool.length)].id : shared.DEMO_LEVEL;
+}
+
 // ---- MENU WIRING (only with ?menu=1 for now)
 export function enterMenu() {
   saveRecords();
@@ -106,7 +130,8 @@ export function enterMenu() {
   shared.weatherPlan = CLOCK.isOn ? { mode: 'season', season: calendarAt(CLOCK.globalS).season,
     seed: Math.floor(Math.random() * 2147483646) + 1 } : null;
   startEventClock(null);
-  if (LEVEL.id !== shared.DEMO_LEVEL) selectLevel(shared.DEMO_LEVEL); else doRestart();
+  const menuId = menuLevel();
+  if (LEVEL.id !== menuId) selectLevel(menuId); else doRestart();
   // the camera car: YOUR car from the garage, in its paint and number (owner 11-01)
   const profile = loadProfile(), demoCar = profile ? profile.active : shared.DEMO_CAR;
   if (game.car.spec.id !== demoCar) selectCar(demoCar);

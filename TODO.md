@@ -8,7 +8,10 @@ last handover, written on request.
 ## OWNER 11-07 - ORDER AGREED (owner: "1. ok 2. ok 3 ok")
 
 1. DONE 11-07: the GitHub `checks` workflow (below, Tools that are wrong).
-2. R7: a menu race on a random track, a chance of the highway (AI plan; build as switched).
+2. UNDER TEST 11-07: R7 ?menurand - the menu race on a random circuit / oval / rallycross track
+   each time (never the one just raced), the highway (a random road type) one time in five
+   (game/menuflow.ts menuLevel). tools/scratch/_menurand.mjs, 10 visits: 8 tracks, the highway
+   twice (interstate, dual), every camera car + 4 AI driving, the menu open in 0-165 ms, no errors.
 3. BRANDS SNATCH INDY at real scale and 3/4 scale (OWNER IDEAS entry below).
 4. CARS (mockup first): every car LOOKS LIKE ITS REAL COUNTERPART - rework any that do not
    (owner: "reworking any cars that don't look like their real counter part"); a THIRD colour;
