@@ -448,7 +448,7 @@ export function stepLooseCones(tcars: TrafficVehicle[]) {
       game.cones.add({ x: racer.x + cosH * alongOff - sinH * sideOff,
         y: racer.y + sinH * alongOff + cosH * sideOff, vx: racer.vx * 0.85 - sinH * out,
           vy: racer.vy * 0.85 + cosH * out, ang: racer.heading,
-            spin: (Math.random() - 0.5) * 8, ...looseRim(racer.spec) });
+            spin: (Math.random() - 0.5) * 8, ...looseRim(racer.spec, corner) });
     }
     // a knocked-off bumper / wing / panel joins them; the oldest past the cap fade
     throwParts(field, game.cones);
@@ -462,14 +462,15 @@ export function stepLooseCones(tcars: TrafficVehicle[]) {
  * @param spec.rim its rim colour
  * @param spec.spokes its spoke pattern
  * @param spec.id its car
+ * @param corner the wheel (0, 1 front)
  * @returns the loose wheel's rim fields, or none
  */
-function looseRim(spec: { id: string; rim?: string; spokes?: string }) {
+function looseRim(spec: { id: string; rim?: string; spokes?: string }, corner: number) {
   if (!FIX.carpaint) return {};
   // (?carlooks: its real tyre and rim - carpaint.ts TYRE_LOOK)
   const real = FIX.carlooks ? TYRE_LOOK[String(spec.id).split('#')[0]] : undefined;
   return { rimCol: spec.rim || STOCK_RIM, spokes: spec.spokes || '',
-    ...(real ? { wheelD: real.dia, rimD: real.rim } : {}) };
+    ...(real ? { wheelD: real.dia, rimD: real.rim, tyreW: corner < 2 ? real.wF : real.wR } : {}) };
 }
 
 /**

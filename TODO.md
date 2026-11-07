@@ -89,6 +89,16 @@ last handover, written on request.
    untouched); a loose wheel at its real tyre + rim size (the sidewall profile its own), the hub
    and hole ROUND; RIMS is its own garage screen next to TYRES (colour + spokes + the wheel shown
    lying loose), the paint shop back to BODY / SECOND / THIRD + number.
+   ROUND 3 (owner 11-07: "make f1 cars look better more like modern f1 cars realistic ... realistic
+   tyres / wheel weight ... also grip, downforce ... make sure any emitted bumper or wheel is
+   correct too"): CRASH PARTS (?carlooks, drawing only - world/debris.ts partLook): a bumper as wide
+   as its car; an open-wheeler sheds its FRONT WING (track + 0.3 m), REAR WING (1 m) or a SIDEPOD
+   panel in its colours; a rolling loose wheel at its real diameter and width (_partshot.mjs).
+   F1 PHYSICS AUDIT (tools/scratch/_f1grip.mjs) - PLAN SHOWN TO THE OWNER, waiting: ours 4.4 m long,
+   wheelbase 2.9, track 1.85 (real 2022: ~5.6 m, 3.6, ~1.6 - the stubby look is the physics box);
+   braking 1.8-2.3 g (real ~4-5 g at speed); downforce = weight at 200 km/h (real ~1.5x there);
+   cornering 2.9 g at 200, 3.7 at 250, 4.7 at 300 km/h (real ~4-5 g in fast corners); wheel
+   inertia scales with car mass (F1 15 kg an axle at the tread - about real).
 
 Then, to work through when it fits (owner 11-07, not ordered):
 - HIGHWAY LINE: "does the ai need a racing line on highway? if not can we get rid of it - it's

@@ -11,6 +11,7 @@
 // take the cover 'glass' (like the oil and the tyres' water - one cover system; drawn by the GPU
 // field, render/glfield.ts, glints moving with the view). It changes no grip; the first tyre
 // pass sweeps the cell clean and may puncture that tyre slowly (PASS: world/pass.ts).
+import { FIX } from '../core/fixes.ts';
 import { getCell, wearDirty, WEAR_CELL } from "./wear.ts";
 import { PASS } from "./pass.ts";
 import { DEBRIS } from "../cones/coneConsts.ts";
@@ -42,7 +43,7 @@ const NO_GLASS = new Set(['track', 'banger', 'grass']);
 export interface DebrisCar {
   x?: number; y?: number; vx: number; vy: number; heading: number;
   spec?: { kind?: string; paint?: string; trim?: string; lf?: number; lr?: number;
-    trackWidth?: number };
+    trackWidth?: number; wid?: number; third?: string };
   partSpawn?: { corner: number; kind: string }[];
   partsOff?: number;     // a bit per part gone (until a repair): PART_BIT
   glassOut?: number;     // a bit per damage corner whose window is gone (until a repair)
@@ -171,6 +172,24 @@ export function passGlassCell(cell: WearCell): void {
 }
 
 /**
+ * ?carlooks: what a thrown part looks like for its car (owner 11-07: "make sure any emitted
+ * bumper or wheel is correct too"): a bumper as wide as the car; an open-wheeler has no bumpers
+ * or wings - its front / rear WING comes off (as wide as the wing), or a SIDEPOD panel; the
+ * third colour for the accent. (Drawing only: the part's mass and size in the sim are its kind's.)
+ * @param car the car
+ * @param corner the damage corner (0, 1 front)
+ * @param kind the part (bumper / wing / panel)
+ * @returns the look fields, or none
+ */
+function partLook(car: DebrisCar, corner: number, kind: string) {
+  if (!FIX.carlooks || !car.spec) return {};
+  const open = car.spec.kind === 'track', third = car.spec.third || car.spec.trim;
+  if (!open) return { partW: kind === 'bumper' ? car.spec.wid : undefined, third };
+  const shape = kind !== 'bumper' ? 'pod' : corner < 2 ? 'fwing' : 'rwing';
+  return { shape, partW: shape === 'fwing' ? (car.spec.trackWidth || 1.8) + 0.3 : 1.0, third };
+}
+
+/**
  * The parts the cars in play knocked off this step are thrown out of their corners as loose
  * objects (game/sim.ts, after the wheels torn off).
  * @param cars the cars in play
@@ -190,7 +209,8 @@ export function throwParts(cars: DebrisCar[], loose: LooseObjects): void {
       loose.add({ kind, mode: kind, part: true, mass: table.mass, r: table.r, x: spot.x,
         y: spot.y,
         vx: car.vx * KEEP_SPEED + outX, vy: car.vy * KEEP_SPEED + outY, ang: car.heading,
-        spin: (Math.random() - 0.5) * 8, col: car.spec?.paint, trim: car.spec?.trim, fade: 1 });
+        spin: (Math.random() - 0.5) * 8, col: car.spec?.paint, trim: car.spec?.trim, fade: 1,
+        ...partLook(car, corner, kind) });
       parts.push(loose.list[loose.list.length - 1]);
     }
   }

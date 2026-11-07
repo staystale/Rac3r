@@ -10,6 +10,7 @@ export interface Loose {
   // ?carpaint: a torn-off wheel's rim colour and spoke pattern (render/wheelface.ts)
   rimCol?: string; spokes?: string;
   wheelD?: number; rimD?: number;   // ?carlooks: its real tyre and rim diameters, m
+  tyreW?: number;   // ?carlooks: its tyre width, m
   x: number; y: number; vx: number; vy: number;
   hx?: number; hy?: number;   // its home spot (where the level put it)
   ang: number; spin: number;
@@ -31,6 +32,8 @@ export interface Loose {
   flat?: boolean;   // flattened: driven over
   _nailT?: number;   // the last time its nails had a go at a tyre
   part?: boolean; trim?: string; fade?: number;   // a crashed car's part (world/debris.ts)
+  // ?carlooks: its look - an open-wheeler's wing / sidepod, the part's width (m), the accent
+  shape?: string; partW?: number; third?: string;
 }
 
 /** A loose object as the level gives it (world/types.ts Cone, maybe streamed or in a field). */

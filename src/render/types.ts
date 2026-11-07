@@ -258,6 +258,9 @@ export interface RenderCone {
   paint?: string;
   num?: string;
   trim?: string;   // a crashed car's part: its trim colour (world/debris.ts)
+  // ?carlooks: its look - an open-wheeler's wing / sidepod, the part's width (m), the accent
+  shape?: string; partW?: number; third?: string;
+  tyreW?: number;   // ?carlooks: a loose wheel's tyre width, m
   fade?: number;   // a crashed car's part fading out, 1 .. 0
 }
 
