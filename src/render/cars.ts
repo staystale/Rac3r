@@ -1,7 +1,8 @@
 // The CARS layer of the renderer: drawPixelCar and the garage lift sprite.
+import { FIX } from "../core/fixes.ts";
 import { TYRE_LOOK } from "../carpaint.ts";
 import { realScale, realShape } from "../carreal.ts";
-import { partRegion, cutPart, withoutParts } from "./carparts.ts";
+import { partRegion, cutPart, flatPart, withoutParts, isBare } from "./carparts.ts";
 import { SPRITE_PPM } from "./shared.ts";
 import { DAYLIGHT } from "../world/daylight.ts";
 import { REVERSE_LAMP, isReversing } from "./reverselights.ts";
@@ -108,9 +109,11 @@ function carPart(carsCtx: CarsContext, cone: RenderCone): HTMLCanvasElement | nu
   if (!cone.carSpec || !cone.cutKind) return null;
   let canvas = CUTS.get(cone);
   if (!canvas) {
+    // (an open car's part is cut from its sprite; ?partsoff - a closed car's drawn lying flat)
     const spec = drawnSpec(cone.carSpec), sprite = carsCtx.pixelCar(spec);
-    canvas = cutPart(sprite, partRegion(spec, sprite, cone.cutKind, cone.cutCorner || 0),
-      cone._n || 1);
+    canvas = isBare(spec) || !FIX.partsoff ? cutPart(sprite, partRegion(spec, sprite, cone.cutKind,
+      cone.cutCorner || 0), cone._n || 1)
+      : flatPart(spec, cone.cutKind, cone.cutCorner || 0, cone._n || 1);
     CUTS.set(cone, canvas);
   }
   return canvas;

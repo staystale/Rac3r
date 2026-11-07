@@ -139,6 +139,17 @@ last handover, written on request.
    its part off up to 6 % of the time (world/debris.ts SMALL_P; _parttest: dv 5 m/s 0-3 %, 8 m/s
    5-10 %, was 0; 12+ as before); a lost part is CLEARED from the car, only a dark structure
    line on its inner edge (render/carparts.ts atInner; _lostsheet.mjs).
+   + (owner: "doors should be drawn laying flat when emitted ... like all parts, other than
+   wheels"): a closed car's thrown part is drawn LYING FLAT on its face at its real size
+   (render/carparts.ts flatPart: a bumper as wide as the car with its lamps, grille / tail lamps and
+   plate - a muscle car's chrome, a stock car's steel; a wing with its wheel arch and indicator; a
+   door with its window frame, crease, handle, pinstripe); an open car's (F1 wings, pods, the
+   buggy's nose) stays cut from the sprite - seen from above it is lying flat; the damage lighter
+   (chips 8 %, dents 4 %); _flatsheet.mjs.
+   NEXT TO DISCUSS (owner: "can worse crashes have a chance to emit more parts like exhaust and
+   engine blocks and any others you think are good - discuss first; they should all be accurate to
+   the vehicle"): the proposal in the 11-07 reply (exhaust, bonnet, boot lid / spoiler, radiator,
+   mirror, plate, the engine only in the worst; per-car data).
 
 Then, to work through when it fits (owner 11-07, not ordered):
 - HIGHWAY LINE: "does the ai need a racing line on highway? if not can we get rid of it - it's
