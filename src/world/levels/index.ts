@@ -29,8 +29,6 @@ import {
   KD_SUBTRACK, KD_BUMPS, KD_WATER, KD_PAINT, KD_CONES, KD_PROPS, KD_TAPE, KD_YARD, KD_FINISH,
 } from "./killder.ts";
 import { BH_GP_LEVEL, BH_INDY_LEVEL } from "./brands-snatch.ts";
-import { BH_INDY_REAL_LEVEL, BH_INDY_34_LEVEL } from "./brands-indy-scale.ts";
-import { FIX } from "../../core/fixes.ts";
 import { LAB_PAINT, LAB_BOARDS } from "../barriers.ts";
 import { courseCones, slalom, outerTyreWall } from "../tyrewall.ts";
 import { LAB_BUMPS, LAB_PANELS } from "./sandbox.ts";
@@ -371,7 +369,4 @@ export const LEVELS: Level[] = [
     spawn: SB_SPAWN,
     obstacles: [{ x: -20, y: 222, w: 60, h: 8 }],   // the grandstand is solid
   },
-  // ?indyscale: Brands Snatch Indy at real and 3/4 scale (test levels:
-  // world/levels/brands-indy-scale.ts)
-  ...(FIX.indyscale ? [BH_INDY_REAL_LEVEL, BH_INDY_34_LEVEL] : []),
 ];

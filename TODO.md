@@ -20,17 +20,30 @@ last handover, written on request.
    + behind the menu the highway is framed as a circuit (owner: "for the menu race the observed car
    is off set too much"): no road-ahead lead there (render/camera.ts, CamState.menuView) - the car
    in the middle, not 3/4 down (_menurand-2 / -5 shots).
-3. UNDER TEST 11-07: ?indyscale - BRANDS SNATCH INDY at real scale and 3/4 (two TEST levels in TEST
-   GROUNDS: world/levels/brands-indy-scale.ts). ROAD BACK TO 13 m on both (owner 11-07: "maybe the
-   previous widths were better ... vibing towards 3/4 length and that original width"); laps stay
-   1944 / 1458 m. The width try, for the record - EVERYTHING scaled incl. the ROAD WIDTH (owner:
-   "double check the scale ... with track width included"): the map's scale bar traced a 1921 m
-   lap vs the real 1944 m, so calibrated to the lap (0.660 m a px); width 9 m real (the one figure
-   found, an Indy track guide) -> 9 / 6.75 m. Laps 1944 / 1458 m (today's Indy 902 m, 13 m wide).
-   Kerbs, the Indy hills scaled (same slopes), a grid; no scenery. Real game, 10 AI, 90 s: 3/4 87
-   km/h, off 6.4 %, 0 spins; real 95 km/h, off 10.3 %, 6 spins, one 13 s trip (one race, noisy);
-   56 fps. Shots _brands-indy-34-grid / _brands-indy-real-race (2 wide / 2-3 abreast). (At zoom 0.1
-   the photo tool shows road gaps on every level, the normal Indy too - not these levels.)
+3. DECIDED 11-07 (owner: "ok approved"; "no just all levels 3/4 size please"): Brands Snatch Indy
+   was built to scale as two test levels (?indyscale, commits 58bfa07..b2af16d, then removed): the
+   traced map calibrated to the real 1944 m lap (the map's scale bar read 1.2 % short: 0.660 real m
+   a px), the hills' reach and height scaled with it (same slopes). The owner tried the road width
+   to scale too (the real Indy 9 m -> 9 / 6.75 m): "maybe the previous widths were better" - KEEP
+   13 m. Picked: 3/4 OF REAL LENGTH, the 13 m road. Measured at 3/4 (10 AI, 90 s): 85 km/h vs
+   70 today, off the track 6.6 %, 56 fps.
+- NEXT BIG ONE (owner 11-07): REWORK EVERY LEVEL TO 3/4 OF REAL SIZE, the 13 m road - every track
+  with a real counterpart (Thruston, Castle Cum, Brands Snatch GP + Indy, Knobhill, Slidden Hill,
+  the ovals by their real ones), each calibrated to its real lap length (as the Indy: the map's
+  scale bar can be off), the hills scaled with it. Today 0.41-0.48 of real, so about 1.6-1.8x
+  bigger: Brands GP ~2.9 km a lap, about 0.6 x 1 km. AND CHECK + ADJUST THE COSMETICS (owner:
+  "check and adjust the cosmetic buildings etc all fit and scale nicely too"): buildings,
+  grandstands, pits and garages, bridges, gravel traps, tyre walls / Armco, marshal posts, trees
+  and bushes - placed by map pixel today, so they move with the map but keep their size; check
+  each fits (barriercheck, propcheck, the dropped-props list) and looks right in phone shots. The
+  world machinery for big levels is there (the floor rectangle, the windowed tyre-mark layer);
+  watch load time, memory (~6 GB laptop, the phone), the overview picture cap (OVERVIEW_MAX_PX),
+  bush / tree counts, lap times and the AI on each. One level at a time, each behind a switch.
+  Plan with the owner before starting (a big job).
+- NEW UK TRACKS (owner 11-07), at 3/4 of real size with the 13 m road: SNETTERTON, DONINGTON PARK,
+  and "a couple other well known uk tracks" - suggest SILVERSTONE and OULTON PARK (or CADWELL
+  PARK). Each traced from a real map, a PARODY PUN name agreed with the owner first (NOTES: silly
+  names - not one we already have).
 4. CARS (mockup first): every car LOOKS LIKE ITS REAL COUNTERPART - rework any that do not
    (owner: "reworking any cars that don't look like their real counter part"); a THIRD colour;
    EVERY car has at least TWO decoratable parts; RIM COLOUR ("so we know it was yours when you
