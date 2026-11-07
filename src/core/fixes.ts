@@ -48,4 +48,8 @@ export const FIX = {
   // autograss buggy; the 3 Series bonnet tidied, the Fiesta RX's wing (render/carlooks.ts; owner
   // 11-07 item 4 stage 2)
   carlooks: atLoad('carlooks'),
+  // ?carreal=1: every car at its REAL size (length, width, wheelbase, track, weight split); the
+  // F1 / F2 also their real downforce, brakes and wheel weight (carreal.ts; owner 11-07: "yes" to
+  // the plan, "make sure all cars get the same attention")
+  carreal: atLoad('carreal'),
 };

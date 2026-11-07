@@ -99,6 +99,19 @@ last handover, written on request.
    braking 1.8-2.3 g (real ~4-5 g at speed); downforce = weight at 200 km/h (real ~1.5x there);
    cornering 2.9 g at 200, 3.7 at 250, 4.7 at 300 km/h (real ~4-5 g in fast corners); wheel
    inertia scales with car mass (F1 15 kg an axle at the tread - about real).
+   OWNER "yes" + "make sure all cars get the same attention": UNDER TEST ?carreal (carreal.ts) - every
+   car at its real size where it was off > ~3 % (Golf 4.27 x 1.80, wb 2.63, 62 % front; M135i 4.33,
+   wb 2.69; Chevelle 5.01 x 1.93, wb 2.845; S1 E2 wb 2.224; V70 wb 2.755; Next Gen 2.0 wide, track
+   1.67; Micra 3.72 x 1.66; tracks of the 3 Series, WRX, S13); F1 5.6 m, wb 3.6, track 1.62, ClA 5.6
+   (40/60), brakes 6 g, wheels 27 kg an axle; F2 5.22, wb 3.135, ClA 3.6, 5 g, 24 kg. The Fastrac
+   not checked (no sure figures). MEASURED _f1grip: F1 braking (best pedal) 1.7 / 2.4 / 4.3 g at 80 /
+   200 / 300 km/h (was 1.8 / 2.0 / 2.2), cornering 3.2 / 4.2 / 4.9 g at 200 / 250 / 300 (2.9 / 3.7 /
+   4.7); no ABS (as the real car) - full pedal locks (1.3 g at 80). FIELDS (aifieldsuite d2, 12
+   races): F1 incidents 56 -> 111 (seeds 7,3,11) and 55 -> 83 (5,19,23), hits 14 -> 40; Golf 22 ->
+   35. Split: the size alone 133, the aero + brakes + wheels alone 114; not the brakes (old limit:
+   114); not stale carstats (re-measured: F1 gripG 1.83 -> 1.87). LIKELY ROOT: the tracks are
+   0.41-0.48 of real, so a real-size car is ~2x too big for them (the 3/4 track rework). Owner to
+   decide: wait for the tracks, ship and accept, or dig into the AI.
 
 Then, to work through when it fits (owner 11-07, not ordered):
 - HIGHWAY LINE: "does the ai need a racing line on highway? if not can we get rid of it - it's

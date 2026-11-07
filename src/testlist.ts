@@ -69,4 +69,12 @@ export const TEST_LIST: TestEntry[] = [
     try: 'Each should look like its real car from above; paint their second and third parts.',
     wrong: 'A car that looks broken or worse than before, parts in odd places, a car too big.',
   },
+  {
+    id: 'carreal',
+    added: '2026-11-07',
+    name: 'Every car at its real size; F1 / F2 real downforce, brakes and wheel weight',
+    where: 'Test link + &carreal=1&carlooks=1&carpaint=1: drive the F1, the Golf, the Chevelle',
+    try: 'Fast corners much faster, braking much harder, a longer car that still fits the tracks.',
+    wrong: 'Spinning on the brakes, the AI lost or crashing on tight bends, wheels in odd places.',
+  },
 ];

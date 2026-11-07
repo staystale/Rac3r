@@ -12,6 +12,7 @@
 
 import { FIX } from './core/fixes.ts';
 import { PAINT_STOCK, rimColour } from './carpaint.ts';
+import { CAR_REAL } from './carreal.ts';
 import type { Mark, Spray } from './world/types.ts';
 import { dragOf, realCurve, tyreR } from './realcars.ts';
 
@@ -59,8 +60,8 @@ export interface RosterRow {
   curve: Curve; redline: number; upshiftRpm: number; downshiftRpm: number;
   gears: number[]; finalDrive: number; dragC: number;
   paint: string; trim: string; glass: string;
-  third?: string;   // ?carpaint: the THIRD paint part (PAINT_STOCK)
-  spokes?: string;   // ?carpaint: the rims' spoke pattern (render/wheelface.ts SPOKES; '' = five)
+  // ?carpaint: the THIRD part, the rims' spokes; ?carreal: kg an axle's wheels at the tread
+  third?: string; spokes?: string; wheelMass?: number;
   izzK?: number; rim?: string; aiK?: number; aeroK?: number; downforceF?: number;
   downforceR?: number;
   susF?: number; susZ?: number; trackWidth?: number; tyreWidth?: number; idleRpm?: number;
@@ -782,13 +783,13 @@ export const ROSTER: RosterRow[] = [
 // What spec(id) returns: SHARED + the row + L and Izz (+ what applyTyre / applyLivery set).
 export type Spec = typeof SHARED & RosterRow
   & { L: number; Izz: number; tyre?: Tyre | null; num?: number };
-
 // Resolve a roster row into a full spec: SHARED defaults + computed wheelbase and yaw inertia.
 
 export function spec(carId: string): Spec {
   const row = ROSTER.find((car) => car.id === carId) || ROSTER[0];
-  // (?carpaint: the stock second / third / rims of the new paint parts)
-  const out = { ...SHARED, ...row, ...(FIX.carpaint ? PAINT_STOCK[row.id] : {}) } as Spec;
+  // (?carpaint: the new paint parts' stock; ?carreal: every car's real size etc - carreal.ts)
+  const out = { ...SHARED, ...row, ...(FIX.carpaint ? PAINT_STOCK[row.id] : {}),
+    ...(FIX.carreal ? CAR_REAL[row.id] : {}) } as Spec;
   out.L = out.lf + out.lr;
   out.Izz = ((out.mass * (out.len * out.len + out.wid * out.wid)) / 12) * out.izzK;
   // a car with its own factory set leaves the garage on it

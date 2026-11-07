@@ -280,7 +280,9 @@ export interface WheelStepIn {
  * @returns [front, rear] kg
  */
 function axleMasses(car: Car, carSpec: Spec, inp: WheelStepIn): [number, number] {
-  const wheels = WHEEL_MASS * (inp.mass / WHEEL_MASS_REF), radius = carSpec.wheelR;
+  // (a car may state its own: ?carreal, the single-seaters' real wheels - carreal.ts)
+  const wheels = carSpec.wheelMass ?? WHEEL_MASS * (inp.mass / WHEEL_MASS_REF),
+    radius = carSpec.wheelR;
   const engine = car.clutch * ENGINE_I * car.mods.inertia * (inp.totalRatio / radius) ** 2;
   return [wheels + engine * carSpec.drive, wheels + engine * (1 - carSpec.drive)];
 }
