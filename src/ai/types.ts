@@ -251,7 +251,7 @@ export interface CarsAcc {
   dodgeT: number; followCap: number; conflict: boolean; lead: Lead | null;
   threat: Threat | null; side: number; alg: number[];
   urgent?: boolean;   // swerving round a car in the way needs the fast rate
-  // the car being attacked, m off my path (?lineback: the attack goes beside it)
+  // the car being attacked, m off my path (the attack goes beside it)
   atkLat?: number;
   // the cars seen (gap spotting, ai/gapPick.ts)
   seen?: { fwd: number; lat: number; v: number; across: number; along: number }[];
@@ -289,6 +289,7 @@ export interface CircuitState extends DriveOutState {
   // the corner it is on and its line there (ai/cornerLine.ts)
   clCorner?: number; clB?: number;
   gapBase?: number | null;   // the line through the cars chosen last (ai/gapPick.ts)
+  offT?: number;   // s its centre has been past the track's edge, -1 on it (ai/rejoin.ts)
   lookHeld?: boolean;   // held at the edge by the look before pulling on (driverDrive.ts lookFirst)
   seenV?: WeakMap<object, { v: number; t: number; dec: number }>;   // speeds read (ai/dodge.ts)
   footK?: number;   // the share of the throttle the driver's foot gives (ai/driverFoot.ts)

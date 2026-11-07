@@ -40,16 +40,4 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
-  // ?lineback=1: every line the gap picker tries pays for being off the racing line (the line is
-  // the fast way round), so a driver goes back to it once it is free (ai/gapPick.ts LINE_COST;
-  // owner 11-04: "some ai seem to drive very wide around the outside of the track")
-  lineback: atLoad('lineback'),
-  // ?onroad=1: off the track only round a car stopped or crawling - a racing car is passed on the
-  // track or followed until there is room (ai/driverTraffic.ts offTrackOk; owner 11-04: AI wore
-  // grooves in the grass of the stock car oval with a full grid)
-  onroad: atLoad('onroad'),
-  // ?rejoinfast=1: a driver steers back to its line the FIRMER THE FURTHER OFF it is - quick from
-  // far, gentle near the line (ai/rejoin.ts rejoinCross; owner 11-05: "they should get back to the
-  // track smoothly but quickly like a real racer"; 11-07 "the return to track is too soft still")
-  rejoinfast: atLoad('rejoinfast'),
 };

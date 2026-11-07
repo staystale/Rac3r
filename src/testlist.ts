@@ -51,29 +51,5 @@ export const TEST_LIST: TestEntry[] = [
   // aiweave (AI R2), jokerflow, aisliders (AI R3), hudlean,
   // aibands, puffroom, aigrip (AI R4 part 1), aidodge (AI R5),
   // ailines, ailook, dodgefar, markjump, halfcar, rejoinlook, hwshare, oneai (AI R8), brakeread
-  // passed 2026-11-04; wetrace passed 2026-11-07)
-  {
-    id: 'lineback',
-    added: '2026-11-04',
-    name: 'AI go back to the racing line once the way is clear (no running wide for ages)',
-    where: 'Test link + &lineback=1: a race with AI - the stock car oval shows it most',
-    try: 'Watch AI that went round a pack on the outside: they should come back to the line.',
-    wrong: 'AI still lapping wide by the wall, or passing less than before.',
-  },
-  {
-    id: 'onroad',
-    added: '2026-11-04',
-    name: 'AI stay on the track to pass a racing car (off it only round a stopped / slow one)',
-    where: 'Test link + &onroad=1&lineback=1: the stock car oval with a full grid (21 cars)',
-    try: 'Race a lap or two and look at the grass: no grooves worn beside the track.',
-    wrong: 'AI still on the grass to pass, or now stuck queueing behind a car they could pass.',
-  },
-  {
-    id: 'rejoinfast',
-    added: '2026-11-05',
-    name: 'AI steer back to their line the firmer the further off - quick from far, gentle near',
-    where: 'Test link + &rejoinfast=1&onroad=1&lineback=1: the stock car oval, a full grid',
-    try: 'Watch an AI that runs wide or makes a mistake: it should be back on the track quickly.',
-    wrong: 'AI driving along the grass for ages, or snapping back across the track into cars.',
-  },
+  // passed 2026-11-04; wetrace, lineback, onroad, rejoinfast passed 2026-11-07)
 ];

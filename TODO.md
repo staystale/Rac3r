@@ -19,7 +19,13 @@ last handover, written on request.
   apex shifts only 409 (no gain), with the moves across 578 (WORSE). The last-moment dodge (R5)
   already does the stopped car better: a line chosen on arrival is wrong once the car is shoved,
   and a whole-corner move runs the line where it should not. Owner to say how to go on.
-- UNDER TEST (11-07): ?rejoinfast ROUND 2 (owner: "I think the return to track is too soft still";
+- PASSED + DEFAULT 11-07 (owner: "make those tweaks and then it's a pass", with ?lineback / ?onroad):
+  ROUND 3 - ON THE TRACK the soft rejoin again (owner: the 8 deg return "correct[s] on track a bit
+  aggressively to the racing line and cause[s] crashes ... softer when on track so they keep their
+  natural line finding"); OFF IT the angle grows 3 deg a second off, 8 -> 14 deg ("the longer they
+  are off the track the harder they try"). Longest trip 4-5 -> 3.6-3.8 s (20 AI, dry x2, rain);
+  fields 2 x 24 races: incidents 117 = 117, passes 366 -> 398, contact 309 -> 311 s (seed noise:
+  one set 65 vs 57, the other 52 vs 60). ?rejoinfast ROUND 2 (owner: "I think the return to track is too soft still";
   "they drive wide for the most the next straight"; "steering harder the further away ... a great
   idea"). The off-track-only 3.5 m cap is replaced by ONE rule: come back AT AN ANGLE, as a racer
   does - the cap aims the car 8 deg across its line, never more than the gap left (ai/rejoin.ts
@@ -44,7 +50,7 @@ last handover, written on request.
   ?rain=0.8, 6 AI, 2 runs each): off, the AI never touched a puddle (0-0.8 % of their time);
   planning 0 / 30 / 60 / 100 % of a puddle's grip loss all gave 73-76 km/h and 3-8 % off the
   track (the rain's own) - so none (the simplest).
-- UNDER TEST (11-04 late): ?onroad (with ?lineback) - owner, with a photo of grooves worn in the
+- PASSED + DEFAULT 11-07 (with ?rejoinfast): ?onroad (with ?lineback) - owner, with a photo of grooves worn in the
   grass of the stock car oval "after 1 lap", 21 cars: "still loads of cars driving wide". THE
   FULL GRID was the difference (tests had 6 AI). MEASURED in the REAL GAME (tools/scratch/
   _ovalfield.mjs: rolling start, player on autopilot, 20 AI, diff 2): AI off the track 5.8 % of
@@ -70,7 +76,7 @@ last handover, written on request.
   4.4 / 2.0 s. Fields: incidents 55 -> 56, passes 92 -> 95. Highway: weavecheck 0; pacesuite 0
   bad, racer contact 714 (lineback alone 58, plain 186) - FROM ?onroad (racers no longer use the
   verge round each other), traffic contact 2 - told the owner.
-- UNDER TEST (11-04 late): ?lineback - owner: "some ai seem to drive very wide around the outside
+- PASSED + DEFAULT 11-07 (with ?rejoinfast): ?lineback - owner: "some ai seem to drive very wide around the outside
   of the track? especially noticeable on stockcar track"; "no going 10m wide seems wild".
   MEASURED (tools/scratch/_wide.mjs: a field on the stock car oval; share of the race off the
   line, why): a lone car is > 2 m off 2 % of the time, a field 14-33 %. Two causes: (1) the gap

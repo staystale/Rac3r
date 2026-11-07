@@ -11,22 +11,28 @@
 //   closing on its target at the rejoin's pace (not the target it aims for), and never its own
 //   mistake (a driver does not know it is about to make one).
 import type { AiCar } from './types.ts';
-import { FIX } from '../core/fixes.ts';
 import type { AiPath } from './driverCtx.ts';
 
 // m: the steering's lateral error at most while rejoining, skill 0 / skill 1
 const REJOIN_WEAK = 1.2, REJOIN_TOP = 0.7;
-// ?rejoinfast: a driver comes back AT AN ANGLE, as a racer does - the cap is the cross error that
-// aims it RETURN_ANGLE across its line (the steering law's cross term: atan(CROSS_GAIN x cap /
-// (speed + 2))), never more than the gap left, so it eases in at the end (~4 m/s across at 30
-// m/s; the fixed cap's ~1 m/s). MEASURED (tools/scratch/_ovalfield.mjs, the real game, the stock
-// car oval, 20 AI): the fixed cap left a car 11 m off after a mistake driving on along the grass
-// 5-11 m out for 10 s at up to 29 m/s. 6 deg: still up to 10 s on the grass; 10 deg: cut back
-// across the pack - 7-10 spins, 58-62 km/h (70-72); 8 deg: 3-5 spins, 68-72 km/h, the longest
-// trip 4-5 s; circuit fields incidents 54 -> 49, passes 95 = 95. A cap growing with the gap
+// OFF THE TRACK (passed 11-07) a driver comes back AT AN ANGLE, as a racer does - the cap is the
+// cross error that aims it RETURN_ANGLE across its line (the steering law's cross term:
+// atan(CROSS_GAIN x cap / (speed + 2))), never more than the gap left, so it eases in at the end
+// (~4 m/s across at 30 m/s; the fixed cap's ~1 m/s). MEASURED (tools/scratch/_ovalfield.mjs, the
+// real game, the stock car oval, 20 AI): the fixed cap left a car 11 m off after a mistake driving
+// on along the grass 5-11 m out for 10 s at up to 29 m/s. 6 deg: still up to 10 s on the grass; 10
+// deg: cut back across the pack - 7-10 spins, 58-62 km/h (70-72); 8 deg: 3-5 spins, 68-72 km/h, the
+// longest trip 4-5 s; circuit fields incidents 54 -> 49, passes 95 = 95. A cap growing with the gap
 // (0.5 m a m) asked more turn than the grip has at speed - full lock, lifting (_rejoin.mjs 8 m
-// knocks: 32 -> 59 m lost).
-const RETURN_ANGLE = 0.14;   // rad, 8 deg
+// knocks: 32 -> 59 m lost). ON THE TRACK the soft rejoin stays (owner 11-07: the 8 deg return there
+// "correct[ed] on track a bit aggressively to the racing line and cause[d] crashes" - they should
+// keep their own line finding), and OFF IT the angle grows the longer it is off ("the longer they
+// are off the track the harder they try"). MEASURED: the longest trip 4-5 -> 3.6-3.8 s (_ovalfield,
+// 20 AI, dry and rain); aifieldsuite diff 2, 2 x 24 races: incidents 117 = 117, passes 366 -> 398,
+// contact 309 -> 311 s.
+const RETURN_ANGLE = 0.140;   // rad, 8 deg, on leaving the track
+// rad a second off the track the angle grows by, and the most it grows to
+const ANGLE_RAMP = 0.052, ANGLE_MAX = 0.244;   // 3 deg/s, 14 deg
 // the Stanley cross gain (ai/driverSteps.ts steerAim): the lateral m/s a capped error makes is
 // about this x the cap at speed
 const CROSS_GAIN = 1.2;
@@ -45,14 +51,16 @@ export interface RejoinAim {
 /**
  * The cap on the steering's lateral error while rejoining.
  * @param skill the driver's skill, 0..1
- * @param gap m the car is off its target (?rejoinfast: back at a racer's angle, the gap at most)
+ * @param gap m the car is off its target (off the track: back at a racer's angle, the gap at most)
  * @param speed m/s
+ * @param offT s the car has been off the track (< 0: on it - the soft rejoin)
  * @returns m
  */
-export function rejoinCross(skill: number, gap = 0, speed = 0): number {
+export function rejoinCross(skill: number, gap = 0, speed = 0, offT = -1): number {
   const base = REJOIN_WEAK + (REJOIN_TOP - REJOIN_WEAK) * Math.max(0, Math.min(1, skill));
-  if (!FIX.rejoinfast) return base;
-  const angled = Math.tan(RETURN_ANGLE) * (speed + 2) / CROSS_GAIN;
+  if (offT < 0) return base;
+  const angle = Math.min(ANGLE_MAX, RETURN_ANGLE + ANGLE_RAMP * offT);
+  const angled = Math.tan(angle) * (speed + 2) / CROSS_GAIN;
   return Math.max(base, Math.min(Math.abs(gap), angled));
 }
 
