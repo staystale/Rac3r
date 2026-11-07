@@ -118,6 +118,12 @@ last handover, written on request.
    it was (CARREAL=1 simhash SAME), the tyres drawn to the same scale. (The real shape in the
    physics, tried: F1 56 -> 90 incidents - its track 1.85 -> 1.27 m; Chevelle 30 -> 46; Golf 22 ->
    20.) ?f1aero apart: the F1 / F2 real downforce, brakes, wheel weight (carreal.ts F1_AERO).
+   CRASH PARTS round 2 (owner, a shot of an F1 with its wing still on beside the bar it shed: "the
+   emitted part ... doesn't match what's on the car ... the emitted parts can be damaged slightly"):
+   a thrown part is CUT FROM ITS CAR'S OWN SPRITE (render/carparts.ts: bumper / wing / panel, an
+   open-wheeler's front wing / rear wing / sidepod) - its shape, paint and accents - chipped at the
+   edges, scuffed, dented, sometimes bent (seeded); the car is drawn WITHOUT it from then on (a
+   closed car's bare structure, an open-wheeler's part gone) until a repair (_partshot.mjs).
 
 Then, to work through when it fits (owner 11-07, not ordered):
 - HIGHWAY LINE: "does the ai need a racing line on highway? if not can we get rid of it - it's

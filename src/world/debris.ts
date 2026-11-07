@@ -46,6 +46,9 @@ export interface DebrisCar {
     trackWidth?: number; wid?: number; third?: string };
   partSpawn?: { corner: number; kind: string }[];
   partsOff?: number;     // a bit per part gone (until a repair): PART_BIT
+  // ?carlooks: the parts gone, "kind:corner" each joined by "," (render/carparts.ts draws the car
+  // without them)
+  partLost?: string;
   glassOut?: number;     // a bit per damage corner whose window is gone (until a repair)
 }
 /** A loose part on the ground (a cones.ts object). */
@@ -92,6 +95,7 @@ function partOff(car: DebrisCar, corner: number, add: number, endW: number,
   if ((car.partsOff || 0) & bit) return;
   if (rnd() >= Math.min(1, PART_P_MIN + (add - PART_HIT) / PART_SPAN)) return;
   car.partsOff = (car.partsOff || 0) | bit;
+  if (FIX.carlooks) car.partLost = (car.partLost ? car.partLost + ',' : '') + kind + ':' + corner;
   (car.partSpawn || (car.partSpawn = [])).push({ corner, kind });
 }
 
@@ -184,9 +188,12 @@ export function passGlassCell(cell: WearCell): void {
 function partLook(car: DebrisCar, corner: number, kind: string) {
   if (!FIX.carlooks || !car.spec) return {};
   const open = car.spec.kind === 'track', third = car.spec.third || car.spec.trim;
-  if (!open) return { partW: kind === 'bumper' ? car.spec.wid : undefined, third };
+  // (the part is cut from the car's own sprite: render/carparts.ts)
+  const cut = { carSpec: car.spec, cutKind: kind, cutCorner: corner };
+  if (!open) return { partW: kind === 'bumper' ? car.spec.wid : undefined, third, ...cut };
   const shape = kind !== 'bumper' ? 'pod' : corner < 2 ? 'fwing' : 'rwing';
-  return { shape, partW: shape === 'fwing' ? (car.spec.trackWidth || 1.8) + 0.3 : 1.0, third };
+  return { shape, partW: shape === 'fwing' ? (car.spec.trackWidth || 1.8) + 0.3 : 1.0, third,
+    ...cut };
 }
 
 /**

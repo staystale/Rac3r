@@ -572,6 +572,7 @@ function buildModules(view: View, cam: Cam, settings: Settings,
   });
   const objects = createObjects(view, cam, {
     PPMz, toScreenX, toScreenY, roundRect, chips: particles.chips, MAX_CHIPS: particles.MAX_CHIPS,
+    carPart: cars.carPart,
   });
 
   // createCamera needs prefetch from the tiles (which need the camera): the wrapper is only called

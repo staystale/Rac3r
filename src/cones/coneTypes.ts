@@ -34,6 +34,8 @@ export interface Loose {
   part?: boolean; trim?: string; fade?: number;   // a crashed car's part (world/debris.ts)
   // ?carlooks: its look - an open-wheeler's wing / sidepod, the part's width (m), the accent
   shape?: string; partW?: number; third?: string;
+  // ?carlooks: the car it came off and which part (render/carparts.ts cuts it from its sprite)
+  carSpec?: object; cutKind?: string; cutCorner?: number;
 }
 
 /** A loose object as the level gives it (world/types.ts Cone, maybe streamed or in a field). */

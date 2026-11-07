@@ -17,6 +17,8 @@ interface ObjectsHelpers {
   ) => void;
   chips: Chip[];
   MAX_CHIPS: number;
+  // ?carlooks: a thrown car part's own picture (render/carparts.ts via render/cars.ts)
+  carPart?: (cone: RenderCone) => HTMLCanvasElement | null;
 }
 
 // a cached pixel sprite: its canvas and its size in px
@@ -572,6 +574,14 @@ function drawDebris(env: ObjectsCtx, cone: RenderCone) {
   // a crashed car's part past the cap fades out (world/debris.ts)
   if (cone.fade !== undefined && cone.fade < 1) env.view.ctx.globalAlpha = cone.fade;
   if (drawDebrisStacks(cone, rect, shadow)) return;
+  // (?carlooks: cut from its car's sprite - the same shape and paint as on the car)
+  const part = env.carPart && cone.carSpec ? env.carPart(cone) : null;
+  if (part) {
+    const unit = ppm / SPRITE_PPM;
+    env.view.ctx.scale(unit, unit);
+    env.view.ctx.drawImage(part, -part.width / 2, -part.height / 2);
+    return;
+  }
   if (cone.shape && drawOpenWheelPart(cone, rect, shadow)) return;
   if (drawDebrisParts(cone, rect, shadow)) return;
   if (drawCarPanels(cone, rect, shadow)) return;

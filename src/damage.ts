@@ -82,7 +82,7 @@ export interface DamageState {
 export interface DamageCar extends Partial<DamageState>, PressureCar, Partial<EngineState> {
   vx: number; vy: number; heading: number;
   dmgBill?: number; dmgHits?: number; dmgFlash?: number;
-  dmgEvents?: DamageEvent[]; wheelSpawn?: number[];
+  dmgEvents?: DamageEvent[]; wheelSpawn?: number[]; partLost?: string;
   streamers?: Streamer[] | null; wreck?: CarWreck;
   burstTyre?: number; burstSlow?: boolean; _hitKind?: string | null; _post?: PostNote | null;
   _wheelHit?: WheelHit | null;
@@ -106,6 +106,7 @@ export function damageInit(car: DamageCar): asserts car is DamagedCar {
   car.wheelOff = [false, false, false, false];
   car.dmgBill = car.dmgBill || 0;
   car.partsOff = 0;
+  car.partLost = '';
   car.glassOut = 0;
   pressureInit(car);
   engineInit(car as DamageCar & EngineCar);

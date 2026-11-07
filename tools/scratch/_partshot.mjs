@@ -18,6 +18,7 @@ try {
       await new Promise((done) => setTimeout(done, 1500));
       g.car.partSpawn = [{ corner: 0, kind: 'bumper' }, { corner: 2, kind: 'bumper' },
         { corner: 1, kind: 'panel' }];
+      g.car.partLost = 'bumper:0,bumper:2,panel:1';   // as world/debris.ts partOff marks them
       g.car.wheelOff[3] = true; g.car.wheelSpawn = [3];
       g.renderer.debugZoom(2.4);
       await new Promise((done) => setTimeout(done, 700));

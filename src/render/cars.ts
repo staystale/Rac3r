@@ -2,13 +2,14 @@
 import { FIX } from "../core/fixes.ts";
 import { TYRE_LOOK } from "../carpaint.ts";
 import { realScale, realShape } from "../carreal.ts";
+import { partRegion, cutPart, withoutParts } from "./carparts.ts";
 import { SPRITE_PPM } from "./shared.ts";
 import { DAYLIGHT } from "../world/daylight.ts";
 import { REVERSE_LAMP, isReversing } from "./reverselights.ts";
 import { settledLampLevel } from "./carlamps.ts";
 import { drawTyreByPressure, wheelTurn } from "./tyrelook.ts";
 import type {
-  Cam, CarSprite, RenderCar, RenderCarSpec, RollFace, SideSprite, SilCanvas, View,
+  Cam, CarSprite, RenderCar, RenderCarSpec, RenderCone, RollFace, SideSprite, SilCanvas, View,
 } from "./types.ts";
 
 // what createCars destructures from the renderer and the sprite layers
@@ -83,6 +84,45 @@ export function tyreBox(spec: RenderCarSpec, rear: boolean) {
  */
 const rimOf = (spec: RenderCarSpec) => (FIX.carpaint ? null : spec.kind === 'tractor' ? '#fbc02d'
   : spec.rim || null);
+
+// the sprite without its lost parts, per car: the sprite it was made from and the parts
+const LOST = new WeakMap<RenderCar, { base: CarSprite; lost: string; sprite: CarSprite }>();
+
+/**
+ * ?carlooks: a car's sprite without the parts it has lost (render/carparts.ts), kept per car.
+ * @param car the car
+ * @param spec the car as drawn
+ * @param base its sprite (damaged or not)
+ * @returns the sprite
+ */
+function lostSprite(car: RenderCar, spec: RenderCarSpec, base: CarSprite): CarSprite {
+  const kept = LOST.get(car);
+  if (kept && kept.base === base && kept.lost === car.partLost) return kept.sprite;
+  const sprite = withoutParts(spec, base, car.partLost || '');
+  LOST.set(car, { base, lost: car.partLost || '', sprite });
+  return sprite;
+}
+
+// a thrown part's own picture, per part
+const CUTS = new WeakMap<RenderCone, HTMLCanvasElement>();
+
+/**
+ * ?carlooks: a thrown part's picture - cut from its car's sprite (render/carparts.ts).
+ * @param carsCtx the shared view and helpers
+ * @param cone the part
+ * @returns the canvas, or null
+ */
+function carPart(carsCtx: CarsContext, cone: RenderCone): HTMLCanvasElement | null {
+  if (!cone.carSpec || !cone.cutKind) return null;
+  let canvas = CUTS.get(cone);
+  if (!canvas) {
+    const spec = drawnSpec(cone.carSpec), sprite = carsCtx.pixelCar(spec);
+    canvas = cutPart(sprite, partRegion(spec, sprite, cone.cutKind, cone.cutCorner || 0),
+      cone._n || 1);
+    CUTS.set(cone, canvas);
+  }
+  return canvas;
+}
 
 /**
  * Draw one wheel of a car in the car's frame: the tyre, its tread line and the rim.
@@ -272,7 +312,9 @@ function drawCarLamps(carsCtx: CarsContext, car: RenderCar, sprite: CarSprite) {
 function drawPixelCar(carsCtx: CarsContext, car: RenderCar, heading = car.heading) {
   const { view, PPMz, toScreenX, toScreenY, pixelCar, damagedSprite, silhouette } = carsCtx;
   const spec = drawnSpec(car.spec), sp0 = pixelCar(spec),
-    sprite = car.dmg ? damagedSprite(car, sp0) : sp0, scale = PPMz() / SPRITE_PPM;
+    hurt = car.dmg ? damagedSprite(car, sp0) : sp0, scale = PPMz() / SPRITE_PPM;
+  // (?carlooks: without the parts it has lost - render/carparts.ts)
+  const sprite = FIX.carlooks && car.partLost ? lostSprite(car, spec, hurt) : hurt;
   view.ctx.save();
   view.ctx.translate(toScreenX(car.x), toScreenY(car.y));
   view.ctx.rotate(heading);
@@ -419,5 +461,6 @@ export function createCars(view: View, cam: Cam, helpers: CarsHelpers) {
       return picture;
     },
     pixelCarWithWheels: (spec: RenderCarSpec) => pixelCarWithWheels(carsCtx, spec),
+    carPart: (cone: RenderCone) => carPart(carsCtx, cone),
   };
 }
