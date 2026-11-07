@@ -149,9 +149,8 @@ export function drive(drv: Drv, car: AiCar, dt = 1 / 120, ctx: DriveCtx = {}) {
   // and tow passes on their inside slid off: off-road 0 -> 14 car-s, MEASURED)
   // (R2) not making a move -> a soft rejoin, and corners taken for where it really is
   const moving = traffic.conflict || !!state.atk || !!state.cover;
-  // (?rejoinfast: past the track's edge, a firm rejoin - ai/rejoin.ts)
-  const offTrack = path === main && Math.abs(lineOff + lateralOf(car, path, nearIdx)) > drv.line.hw;
-  const cross = rejoinCross(drv.traits.skill, offTrack);
+  // (?rejoinfast: back at a racer's angle - ai/rejoin.ts)
+  const cross = rejoinCross(drv.traits.skill, lateralOf(car, path, nearIdx) - latT, speed);
   const crossMax = moving ? Infinity : cross;
   const aim = rejoinAim(car, path, nearIdx, mistakes.latT, cross, lane.shape);
   const slide = steerSlideStep(drv, car, path, nearIdx, idx, speed, lineOff, latT, crossMax);

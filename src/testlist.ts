@@ -51,7 +51,7 @@ export const TEST_LIST: TestEntry[] = [
   // aiweave (AI R2), jokerflow, aisliders (AI R3), hudlean,
   // aibands, puffroom, aigrip (AI R4 part 1), aidodge (AI R5),
   // ailines, ailook, dodgefar, markjump, halfcar, rejoinlook, hwshare, oneai (AI R8), brakeread
-  // passed 2026-11-04)
+  // passed 2026-11-04; wetrace passed 2026-11-07)
   {
     id: 'lineback',
     added: '2026-11-04',
@@ -71,17 +71,9 @@ export const TEST_LIST: TestEntry[] = [
   {
     id: 'rejoinfast',
     added: '2026-11-05',
-    name: 'AI off the track steer back firmly - smooth but quick, like a racer',
+    name: 'AI steer back to their line the firmer the further off - quick from far, gentle near',
     where: 'Test link + &rejoinfast=1&onroad=1&lineback=1: the stock car oval, a full grid',
     try: 'Watch an AI that runs wide or makes a mistake: it should be back on the track quickly.',
     wrong: 'AI driving along the grass for ages, or snapping back across the track into cars.',
-  },
-  {
-    id: 'wetrace',
-    added: '2026-11-05',
-    name: 'AI race through puddles: no big swerves or braking for water, round it if they can',
-    where: 'Test link + &wetrace=1: a race in the rain (puddles on the track)',
-    try: 'Watch AI at puddles: they should keep racing, picking a dry line in a corner if free.',
-    wrong: 'AI still slowing or swerving hard for water, or now spinning in puddles a lot.',
   },
 ];

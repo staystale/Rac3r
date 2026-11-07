@@ -19,7 +19,17 @@ last handover, written on request.
   apex shifts only 409 (no gain), with the moves across 578 (WORSE). The last-moment dodge (R5)
   already does the stopped car better: a line chosen on arrival is wrong once the car is shoved,
   and a whole-corner move runs the line where it should not. Owner to say how to go on.
-- UNDER TEST (11-05): ?wetrace - owner: "ai shouldn't avoid water / puddles tho, they seem to
+- UNDER TEST (11-07): ?rejoinfast ROUND 2 (owner: "I think the return to track is too soft still";
+  "they drive wide for the most the next straight"; "steering harder the further away ... a great
+  idea"). The off-track-only 3.5 m cap is replaced by ONE rule: come back AT AN ANGLE, as a racer
+  does - the cap aims the car 8 deg across its line, never more than the gap left (ai/rejoin.ts
+  RETURN_ANGLE), on the track or off it. A cap growing with the gap (0.5 m a m) asked more turn than
+  the grip has (full lock, lifting); 6 deg left 10 s trips on the grass; 10 deg cut back across the
+  pack (7-10 spins, 58-62 km/h). 8 deg (real game, stock car oval, 20 AI, 3 runs): 68-72 km/h, 3-5
+  spins, racing off the track 1.4-2.6 %, the longest trip 4-5 s; circuit fields incidents 54 ->
+  49, contact 69 -> 59 s, passes 95 = 95. First-corner spins in the rain (owner): not reproduced -
+  rain 0.8, 20 AI, diff 2: 0 spins at the first corner in 3 runs.
+- PASSED + DEFAULT 11-07 (owner: "puddle rule seemed to work fine - that can pass"): ?wetrace - owner: "ai shouldn't avoid water / puddles tho, they seem to
   actively steer and slow to avoid? they should dodge at speed and remain racing, maybe ideally
   avoiding water if they can but without slowing too much"; "in rain they should look for dry
   lines forming / stay on the track even if covered in water, just a soft / attempted dodge of

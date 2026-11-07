@@ -16,11 +16,17 @@ import type { AiPath } from './driverCtx.ts';
 
 // m: the steering's lateral error at most while rejoining, skill 0 / skill 1
 const REJOIN_WEAK = 1.2, REJOIN_TOP = 0.7;
-// ?rejoinfast: m the cap is OFF THE TRACK (any skill). MEASURED (tools/scratch/_ovalfield.mjs, the
-// real game, the stock car oval): a car 11 m off after a mistake drove on along the grass 5-11 m
-// out for 10 s, up to 29 m/s - the on-track cap (0.7-1.2 m: about 1 m/s across) barely closed
-// it and a bend carried it out again
-const REJOIN_OFF = 3.5;
+// ?rejoinfast: a driver comes back AT AN ANGLE, as a racer does - the cap is the cross error that
+// aims it RETURN_ANGLE across its line (the steering law's cross term: atan(CROSS_GAIN x cap /
+// (speed + 2))), never more than the gap left, so it eases in at the end (~4 m/s across at 30
+// m/s; the fixed cap's ~1 m/s). MEASURED (tools/scratch/_ovalfield.mjs, the real game, the stock
+// car oval, 20 AI): the fixed cap left a car 11 m off after a mistake driving on along the grass
+// 5-11 m out for 10 s at up to 29 m/s. 6 deg: still up to 10 s on the grass; 10 deg: cut back
+// across the pack - 7-10 spins, 58-62 km/h (70-72); 8 deg: 3-5 spins, 68-72 km/h, the longest
+// trip 4-5 s; circuit fields incidents 54 -> 49, passes 95 = 95. A cap growing with the gap
+// (0.5 m a m) asked more turn than the grip has at speed - full lock, lifting (_rejoin.mjs 8 m
+// knocks: 32 -> 59 m lost).
+const RETURN_ANGLE = 0.14;   // rad, 8 deg
 // the Stanley cross gain (ai/driverSteps.ts steerAim): the lateral m/s a capped error makes is
 // about this x the cap at speed
 const CROSS_GAIN = 1.2;
@@ -39,12 +45,15 @@ export interface RejoinAim {
 /**
  * The cap on the steering's lateral error while rejoining.
  * @param skill the driver's skill, 0..1
- * @param offTrack true when the car is past the track's edge (?rejoinfast: a firm rejoin)
+ * @param gap m the car is off its target (?rejoinfast: back at a racer's angle, the gap at most)
+ * @param speed m/s
  * @returns m
  */
-export function rejoinCross(skill: number, offTrack = false): number {
-  if (offTrack && FIX.rejoinfast) return REJOIN_OFF;
-  return REJOIN_WEAK + (REJOIN_TOP - REJOIN_WEAK) * Math.max(0, Math.min(1, skill));
+export function rejoinCross(skill: number, gap = 0, speed = 0): number {
+  const base = REJOIN_WEAK + (REJOIN_TOP - REJOIN_WEAK) * Math.max(0, Math.min(1, skill));
+  if (!FIX.rejoinfast) return base;
+  const angled = Math.tan(RETURN_ANGLE) * (speed + 2) / CROSS_GAIN;
+  return Math.max(base, Math.min(Math.abs(gap), angled));
 }
 
 /**

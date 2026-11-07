@@ -22,7 +22,6 @@ import { CAR_STATS } from '../carstats.ts';
 import type { Drv } from './driverCtx.ts';
 import type { AiCar, RacingLine } from './types.ts';
 import { WEAR_CELL, groundAt, wearKey, wearMap } from '../world/wear.ts';
-import { FIX } from '../core/fixes.ts';
 
 // m of approach before a corner's first bend, and of exit after its last, that its line spans
 const ENTRY_M = 35, EXIT_M = 35;
@@ -104,8 +103,8 @@ function lineHitsHazard(line: RacingLine, windows: Windows, from: number, corner
       const x = point.x - Math.sin(point.h) * off, y = point.y + Math.cos(point.h) * off;
       const cell = wearMap.get(wearKey(Math.floor(x / WEAR_CELL), Math.floor(y / WEAR_CELL)));
       if (cell && cell.cover && HAZARD_COVERS.has(cell.cover)) return true;
-      // (?wetrace: standing water too - gone round if there is a way, never slowed for here)
-      if (FIX.wetrace && groundAt(x, y).surface?.id === 'puddle') return true;
+      // (standing water too - gone round if there is a way, never slowed for here)
+      if (groundAt(x, y).surface?.id === 'puddle') return true;
     }
     pos = (pos + 2) % count;
   }

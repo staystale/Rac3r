@@ -48,13 +48,8 @@ export const FIX = {
   // track or followed until there is room (ai/driverTraffic.ts offTrackOk; owner 11-04: AI wore
   // grooves in the grass of the stock car oval with a full grid)
   onroad: atLoad('onroad'),
-  // ?rejoinfast=1: off the track, a driver steers back FIRMLY - smoothly but quickly, as a racer
-  // does (ai/rejoin.ts rejoinCross; owner 11-05: "they should get back to the track smoothly but
-  // quickly like a real racer")
+  // ?rejoinfast=1: a driver steers back to its line the FIRMER THE FURTHER OFF it is - quick from
+  // far, gentle near the line (ai/rejoin.ts rejoinCross; owner 11-05: "they should get back to the
+  // track smoothly but quickly like a real racer"; 11-07 "the return to track is too soft still")
   rejoinfast: atLoad('rejoinfast'),
-  // ?wetrace=1: AI race through standing water - the line is made on the ground under it, the speed
-  // plan takes a share of its grip loss, a driver goes round a puddle in a corner if it can
-  // (ai/line.ts lineMu, ai/cornerLine.ts; owner 11-05: "ai shouldn't avoid water / puddles ...
-  // they should dodge at speed and remain racing")
-  wetrace: atLoad('wetrace'),
 };
