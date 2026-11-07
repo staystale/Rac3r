@@ -21,7 +21,9 @@ last handover, written on request.
    is off set too much"): no road-ahead lead there (render/camera.ts, CamState.menuView) - the car
    in the middle, not 3/4 down (_menurand-2 / -5 shots).
 3. UNDER TEST 11-07: ?indyscale - BRANDS SNATCH INDY at real scale and 3/4 (two TEST levels in TEST
-   GROUNDS: world/levels/brands-indy-scale.ts) - EVERYTHING scaled incl. the ROAD WIDTH (owner:
+   GROUNDS: world/levels/brands-indy-scale.ts). ROAD BACK TO 13 m on both (owner 11-07: "maybe the
+   previous widths were better ... vibing towards 3/4 length and that original width"); laps stay
+   1944 / 1458 m. The width try, for the record - EVERYTHING scaled incl. the ROAD WIDTH (owner:
    "double check the scale ... with track width included"): the map's scale bar traced a 1921 m
    lap vs the real 1944 m, so calibrated to the lap (0.660 m a px); width 9 m real (the one figure
    found, an Indy track guide) -> 9 / 6.75 m. Laps 1944 / 1458 m (today's Indy 902 m, 13 m wide).
