@@ -1,5 +1,4 @@
 // The CARS layer of the renderer: drawPixelCar and the garage lift sprite.
-import { FIX } from "../core/fixes.ts";
 import { TYRE_LOOK } from "../carpaint.ts";
 import { realScale, realShape } from "../carreal.ts";
 import {
@@ -111,12 +110,12 @@ function carPart(carsCtx: CarsContext, cone: RenderCone): HTMLCanvasElement | nu
   if (!cone.carSpec || !cone.cutKind) return null;
   let canvas = CUTS.get(cone);
   if (!canvas) {
-    // (an open car's part is cut from its sprite; ?partsoff - a closed car's drawn lying flat)
+    // (an open car's part is cut from its sprite; a closed car's drawn lying flat)
     const spec = drawnSpec(cone.carSpec), sprite = carsCtx.pixelCar(spec);
-    // (?bigparts: the exhaust, a mirror, a wishbone, a strut, the engine drawn; the bonnet, boot
+    // (the exhaust, a mirror, a wishbone, a strut, the engine drawn; the bonnet, boot
     // and spoiler - horizontal panels - cut from the sprite, as seen from above they lie flat)
     const kind = cone.cutKind, corner = cone.cutCorner || 0, seed = cone._n || 1;
-    const cut = isBare(spec) || !FIX.partsoff || ['bonnet', 'boot', 'spoiler'].includes(kind);
+    const cut = isBare(spec) || ['bonnet', 'boot', 'spoiler'].includes(kind);
     canvas = drawnBit(spec, kind, seed) ?? (cut
       ? cutPart(sprite, partRegion(spec, sprite, kind, corner), seed)
       : flatPart(spec, kind, corner, seed));
@@ -347,7 +346,7 @@ function drawCarLamps(carsCtx: CarsContext, car: RenderCar, sprite: CarSprite) {
  */
 function drawPixelCar(carsCtx: CarsContext, car: RenderCar, heading = car.heading) {
   const { view, PPMz, toScreenX, toScreenY, pixelCar, damagedSprite, silhouette } = carsCtx;
-  // (?bigparts: a car whose wing / spoiler is off is painted without it)
+  // (a car whose wing / spoiler is off is painted without it)
   const shown = drawnSpec(car.spec), spec = car.partLost?.includes('spoiler')
     ? { ...shown, noWing: true } : shown, sp0 = pixelCar(spec),
     hurt = car.dmg ? damagedSprite(car, sp0) : sp0, scale = PPMz() / SPRITE_PPM;

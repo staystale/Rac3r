@@ -139,7 +139,7 @@ export function laneStep(drv: Drv, car: AiCar, path: AiPath, nearIdx: number, sp
     state.gridLat = (car.x - here.x) * -Math.sin(here.h) + (car.y - here.y) * Math.cos(here.h);
   }
   const startK = state.goT == null ? 1 : Math.max(0, 1 - (state.t - state.goT) / START_BLEND);
-  // (?hwlanes: a line with lanes - the driver keeps its LANE, no blend onto the middle; while it is
+  // (a line with lanes - the driver keeps its LANE, no blend onto the middle; while it is
   // going round a car the lane holds (a lane taken from where it was mid-move ran away with it:
   // weavecheck 0 -> 4 hits), and once the move is over it takes the lane it is nearest, the move
   // folded into it so the target does not jump)
@@ -161,7 +161,7 @@ export function laneStep(drv: Drv, car: AiCar, path: AiPath, nearIdx: number, sp
 }
 
 /**
- * ?hwlanes: the lane centre nearest a place across the road.
+ * the lane centre nearest a place across the road.
  * @param lanes the lane centres, m off the line
  * @param lat the place, m off the line
  * @returns the lane centre

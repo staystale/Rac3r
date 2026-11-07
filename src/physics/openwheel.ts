@@ -182,7 +182,7 @@ export function ripWheel(car: { wheelOff: boolean[]; wheelSpawn?: number[]; dmgB
   if (note.into < RIP_FROM || car.wheelOff[note.corner]) return;
   if (rnd() >= Math.min(1, RIP_P0 + (1 - RIP_P0) * (note.into - RIP_FROM) / RIP_SPAN)) return;
   car.wheelOff[note.corner] = true;
-  wheelBits(car, note.corner, rnd);   // (?bigparts: its wishbones)
+  wheelBits(car, note.corner, rnd);   // (its wishbones)
   car.dmgBill = (car.dmgBill || 0) + LOST_WHEEL_BILL;
   (car.wheelSpawn || (car.wheelSpawn = [])).push(note.corner);
 }

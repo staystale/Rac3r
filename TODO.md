@@ -134,7 +134,7 @@ last handover, written on request.
    empty; _partsheet.mjs). WISHBONES ("don't line up or move with steering on f1 / f2"): drawn
    with the wheels now (render/cars.ts drawWishbones) - two arms from the chassis to each hub, the
    front track rods turning with the wheel (_steershot.mjs).
-   UNDER TEST 11-07 ?partsoff (owner: "can they have a chance to come off in smaller knocks but keep
+   PASSED + DEFAULT 11-07 (owner: "parts coming off pass"): ?partsoff (owner: "can they have a chance to come off in smaller knocks but keep
    it low and if it comes off it shouldn't be on the car also"): a corner hit of 0.08-0.3 knocks
    its part off up to 6 % of the time (world/debris.ts SMALL_P; _parttest: dv 5 m/s 0-3 %, 8 m/s
    5-10 %, was 0; 12+ as before); a lost part is CLEARED from the car, only a dark structure
@@ -149,7 +149,7 @@ last handover, written on request.
    NEXT TO DISCUSS (owner: "can worse crashes have a chance to emit more parts like exhaust and
    engine blocks and any others you think are good - discuss first; they should all be accurate to
    the vehicle"; then "your choice sounds good - how about wishbones and suspension struts too?
-   size / their sharpness ... how likely they are to cause punctures"). UNDER TEST 11-07 ?bigparts:
+   size / their sharpness ... how likely they are to cause punctures"). PASSED + DEFAULT 11-07 ?bigparts:
    carbits.ts (each car's exhaust pipes + layout, bonnet, boot lid or spoiler, engine place +
    cylinders + layout); world/debris.ts bigParts - a BIG_HIT (0.5+) end-on corner: bonnet 14 %,
    exhaust 17 %, boot / spoiler 12 % (both corners: ~2x a crash), a side hit a mirror 12 %, the
@@ -177,7 +177,7 @@ Then, to work through when it fits (owner 11-07, not ordered):
   grid is drawn to the middle. Likely fix (one AI): on a road with no fast line (a straight
   carriageway, every lane as quick) the line costs nothing anywhere on the road - measure the
   start (_rollhw.mjs) and weavecheck / pacesuite first. Ask before building.
-  UNDER TEST 11-07 ?hwlanes (owner "carry on"): a line may have LANES (ai/roadLine.ts: the highway's
+  PASSED + DEFAULT 11-07 (owner: "lanes pass too") ?hwlanes (owner "carry on"): a line may have LANES (ai/roadLine.ts: the highway's
   lane centres) - every lane as good as the line: a driver KEEPS ITS LANE (driverLane.ts laneStep:
   no blend onto the middle at the start; held while it goes round a car - a lane read mid-move ran
   away with the move, weavecheck 0 -> 4 hits - then the nearest lane, the move folded in), the gap

@@ -390,7 +390,7 @@ function drawTape(env: ObjectsCtx, game: TapeGame) {
 // a scatter of bits (seeded by home)
 const DEBRIS_KINDS = new Set(['pallet', 'box', 'crate', 'bin', 'sandbag', 'barrel', 'exhaust',
   'bumper', 'wing', 'panel', 'tarp', 'splinters', 'cardboard', 'sand', 'fluff',
-  // ?bigparts: a bad crash's bits (render/carparts.ts draws them)
+  // a bad crash's bits (render/carparts.ts draws them)
   'bonnet', 'boot', 'spoiler', 'mirror', 'wishbone', 'strut', 'engine']);
 
 /**

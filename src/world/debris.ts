@@ -11,7 +11,6 @@
 // take the cover 'glass' (like the oil and the tyres' water - one cover system; drawn by the GPU
 // field, render/glfield.ts, glints moving with the view). It changes no grip; the first tyre
 // pass sweeps the cell clean and may puncture that tyre slowly (PASS: world/pass.ts).
-import { FIX } from '../core/fixes.ts';
 import { bitsOf } from '../carbits.ts';
 import { getCell, wearDirty, WEAR_CELL } from "./wear.ts";
 import { PASS } from "./pass.ts";
@@ -22,12 +21,12 @@ import type { WearCell } from "./types.ts";
 // PART_HIT + PART_SPAN; an end-on hit (endW over END_ON) is a bumper, side-on (under SIDE_ON) a
 // panel, else a wing
 const PART_HIT = 0.3, PART_SPAN = 0.4, PART_P_MIN = 0.35, END_ON = 0.65, SIDE_ON = 0.35;
-// ?bigparts: a BIG_HIT corner (worse than a part's) throws the car's bits by these chances; the
+// a BIG_HIT corner (worse than a part's) throws the car's bits by these chances; the
 // engine only from ENGINE_HIT
 // (both corners of an end are hit: ~2x these a crash - MEASURED _bittest.mjs)
 const BIG_HIT = 0.5, ENGINE_HIT = 0.8, BONNET_P = 0.14, EXHAUST_P = 0.17, REAR_P = 0.12;
 const MIRROR_P = 0.12, ENGINE_P = 0.04;
-// ?partsoff (owner 11-07: "can they have a chance to come off in smaller knocks but keep it low"):
+// (owner 11-07: "can they have a chance to come off in smaller knocks but keep it low"):
 // a corner's hit from SMALL_FROM to PART_HIT knocks its part off at most SMALL_P of the time
 const SMALL_FROM = 0.08, SMALL_P = 0.06;
 // parts on the ground before the oldest fades; how long a fade takes, s
@@ -85,7 +84,7 @@ let partsList: unknown = null;
 export function crashDebris(car: DebrisCar, corner: number, add: number, endW: number,
     rnd: () => number): void {
   partOff(car, corner, add, endW, rnd);
-  if (FIX.bigparts) bigParts(car, corner, add, endW, rnd);
+  bigParts(car, corner, add, endW, rnd);
   windowOut(car, corner, add, rnd);
 }
 
@@ -99,8 +98,8 @@ export function crashDebris(car: DebrisCar, corner: number, add: number, endW: n
  */
 function partOff(car: DebrisCar, corner: number, add: number, endW: number,
     rnd: () => number) {
-  // (?partsoff: a smaller knock now and then - SMALL_FROM up, at most SMALL_P just under PART_HIT)
-  if (add < PART_HIT && !(FIX.partsoff && add >= SMALL_FROM)) return;
+  // (a smaller knock now and then - SMALL_FROM up, at most SMALL_P just under PART_HIT)
+  if (add < SMALL_FROM) return;
   const kind = endW > END_ON ? 'bumper' : endW < SIDE_ON ? 'panel' : 'wing';
   const bit = kind !== 'bumper' ? 1 << corner : corner < 2 ? FRONT_BUMPER : REAR_BUMPER;
   if ((car.partsOff || 0) & bit) return;
@@ -113,7 +112,7 @@ function partOff(car: DebrisCar, corner: number, add: number, endW: number,
 }
 
 /**
- * ?bigparts: a bad hit may throw the car's own BITS (carbits.ts) - each at most once until a
+ * a bad hit may throw the car's own BITS (carbits.ts) - each at most once until a
  * repair: end-on at the front its bonnet (BONNET_P from BIG_HIT), at the back its exhaust
  * (EXHAUST_P) and its boot lid or spoiler (REAR_P), from the side a mirror (MIRROR_P from
  * PART_HIT); the engine only in the very worst, ENGINE_HIT+ at the end it sits (ENGINE_P).
@@ -143,7 +142,7 @@ function bigParts(car: DebrisCar, corner: number, add: number, endW: number,
 }
 
 /**
- * ?bigparts: one part off by a roll's impact, if still on (a bumper / wing / door by its bit, the
+ * one part off by a roll's impact, if still on (a bumper / wing / door by its bit, the
  * rest by its name - a mirror by its side).
  * @param car the car
  * @param kind the part
@@ -163,7 +162,7 @@ function shedOnRoll(car: DebrisCar, kind: string, corner: number, chance: number
 }
 
 /**
- * ?bigparts: a ROLL is a hectic crash (owner 11-07: "maybe rolling increases the chance for all
+ * a ROLL is a hectic crash (owner 11-07: "maybe rolling increases the chance for all
  * parts") - each time the body meets the ground (damage.ts hitRoll) it may shed what that face
  * carries, the car's own bits (carbits.ts): ON A SIDE that side's mirror, door and wings, the
  * spoiler; ON THE ROOF the spoiler / boot lid, the mirrors, the bonnet, the exhaust; BACK ON ITS
@@ -174,7 +173,6 @@ function shedOnRoll(car: DebrisCar, kind: string, corner: number, chance: number
  * @param scale the impact's share, 0..1
  */
 export function rollParts(car: DebrisCar, kind: string, side: number, scale: number): void {
-  if (!FIX.bigparts) return;
   const bits = bitsOf(car.spec?.id || ''), front = side > 0 ? 1 : 0, rear = side > 0 ? 3 : 2;
   const shed = (part: string, corner: number, chance: number) =>
     shedOnRoll(car, part, corner, chance * scale);
@@ -194,7 +192,7 @@ export function rollParts(car: DebrisCar, kind: string, side: number, scale: num
 }
 
 /**
- * ?bigparts: a wheel torn off takes its suspension with it - an open car's WISHBONES, a closed
+ * a wheel torn off takes its suspension with it - an open car's WISHBONES, a closed
  * car's STRUT and maybe its lower arm (damage.ts, physics/openwheel.ts; thrown as parts).
  * @param car the car
  * @param corner the wheel's corner
@@ -202,7 +200,6 @@ export function rollParts(car: DebrisCar, kind: string, side: number, scale: num
  */
 export function wheelBits(car: Pick<DebrisCar, 'spec' | 'partSpawn'>, corner: number,
   rnd: () => number): void {
-  if (!FIX.bigparts) return;
   const open = car.spec?.kind === 'track' || car.spec?.kind === 'grass';
   const spawn = (kind: string) => (car.partSpawn || (car.partSpawn = [])).push({ corner, kind });
   if (open) { if (rnd() < 0.6) spawn('wishbone'); if (rnd() < 0.25) spawn('wishbone'); return; }

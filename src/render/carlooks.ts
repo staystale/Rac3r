@@ -115,7 +115,7 @@ function paintQuattro(spr: SpriteCtx): void {
   // side livery in the second colour
   block(along(0.66), 1, along(0.32), 1, trim); block(along(0.66), wid - 2, along(0.32), 1, trim);
   // the REAR WING on the hatch (the third colour), wider than the car, on its uprights
-  if (!spec.noWing) {   // (?bigparts: not once knocked off)
+  if (!spec.noWing) {   // (not once knocked off)
     block(1, 0, 3, wid, 'rgba(0,0,0,0.25)');
     block(-2, -3, 5, wid + 6, outline); block(-1, -2, 3, wid + 4, third);
     block(-2, -3, 5, 1, light);

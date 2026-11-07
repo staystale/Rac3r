@@ -101,7 +101,7 @@ export function rejoinClear(seen: SeenCar[], from: number, dest: number, half: n
  * @returns the cost
  */
 function placeCost(off: number, centre: number, edge: number, lanes?: number[]) {
-  // (?hwlanes: from the nearest lane - every lane is as good as the line)
+  // (from the nearest lane - every lane is as good as the line)
   const fromLine = lanes ? Math.min(...lanes.map((lane) => Math.abs(off - lane))) : Math.abs(off);
   return (Math.abs(centre + off) > edge ? VERGE : 0) + LINE_COST * fromLine;
 }

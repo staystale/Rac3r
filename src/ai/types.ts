@@ -183,7 +183,7 @@ export interface RacingLine extends Path<LinePoint> {
   best: number[];   // best grip across each cross-section
   cid: Int32Array;   // corner index of each point, -1 on a straight
   corners: Corner[];
-  // ?hwlanes: the lane centres, m off the line - every one as good as the line (the highway)
+  // the lane centres, m off the line - every one as good as the line (the highway)
   lanes?: number[];
 }
 
@@ -292,7 +292,7 @@ export interface CircuitState extends DriveOutState {
   clCorner?: number; clB?: number;
   gapBase?: number | null;   // the line through the cars chosen last (ai/gapPick.ts)
   offT?: number;   // s its centre has been past the track's edge, -1 on it (ai/rejoin.ts)
-  laneLat?: number;   // ?hwlanes: the lane kept, m off the line (driverLane.ts laneStep)
+  laneLat?: number;   // the lane kept, m off the line (driverLane.ts laneStep)
   lookHeld?: boolean;   // held at the edge by the look before pulling on (driverDrive.ts lookFirst)
   seenV?: WeakMap<object, { v: number; t: number; dec: number }>;   // speeds read (ai/dodge.ts)
   footK?: number;   // the share of the throttle the driver's foot gives (ai/driverFoot.ts)

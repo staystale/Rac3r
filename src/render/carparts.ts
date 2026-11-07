@@ -5,7 +5,6 @@
 // had shed: "the emitted part ... doesn't match what's on the car ... the emitted parts can be
 // damaged slightly").
 import { SPRITE_PPM } from "./shared.ts";
-import { FIX } from "../core/fixes.ts";
 import { shade } from "../render.ts";   // hoisted, only called at draw time (no cycle)
 import { bitsOf, type CarBits } from "../carbits.ts";
 
@@ -44,7 +43,7 @@ export function partRegion(spec: RenderCarSpec, sprite: CarSprite, kind: string,
   // (a bumper ~0.25-0.3 m deep from above: 5 px with the lamps in it)
   if (kind === 'bumper') return front ? { x0: len - 5, x1: len + 1, y0: -2, y1: wid + 1 }
     : { x0: -2, x1: 4, y0: -2, y1: wid + 1 };
-  // (?bigparts: the horizontal panels - lying flat, as seen from above; the outside bits)
+  // (the horizontal panels - lying flat, as seen from above; the outside bits)
   if (kind === 'bonnet') return { x0: Math.round(len * 0.71), x1: len - 6, y0: 2, y1: wid - 3 };
   if (kind === 'boot') return { x0: 4, x1: Math.round(len * 0.16), y0: 2, y1: wid - 3 };
   if (kind === 'spoiler') return { x0: -4, x1: 6, y0: -4, y1: wid + 3 };
@@ -234,7 +233,7 @@ function bitCanvas(wide: number, tall: number): FlatCanvas {
 }
 
 /**
- * ?bigparts: an EXHAUST lying flat - its silencer, the pipe, the car's own tailpipes (carbits.ts:
+ * an EXHAUST lying flat - its silencer, the pipe, the car's own tailpipes (carbits.ts:
  * how many; a tractor's stack is a short chimney with its cap).
  * @param bits the car's bits
  * @returns the drawing
@@ -259,7 +258,7 @@ function flatExhaust(bits: CarBits): FlatCanvas {
 }
 
 /**
- * ?bigparts: a door MIRROR - its housing in the car's paint, the glass.
+ * a door MIRROR - its housing in the car's paint, the glass.
  * @param spec the car as drawn
  * @returns the drawing
  */
@@ -271,7 +270,7 @@ function flatMirror(spec: RenderCarSpec): FlatCanvas {
 }
 
 /**
- * ?bigparts: a WISHBONE - the A-arm: two tubes from their bushes to the ball joint.
+ * a WISHBONE - the A-arm: two tubes from their bushes to the ball joint.
  * @returns the drawing
  */
 function flatWishbone(): FlatCanvas {
@@ -288,7 +287,7 @@ function flatWishbone(): FlatCanvas {
 }
 
 /**
- * ?bigparts: a STRUT - the damper body and its coil spring, the top mount.
+ * a STRUT - the damper body and its coil spring, the top mount.
  * @returns the drawing
  */
 function flatStrut(): FlatCanvas {
@@ -303,7 +302,7 @@ function flatStrut(): FlatCanvas {
 }
 
 /**
- * ?bigparts: an ENGINE BLOCK - its size by its cylinders, the plugs in one row (inline), two
+ * an ENGINE BLOCK - its size by its cylinders, the plugs in one row (inline), two
  * banks (a V) or two outer rows (a flat), the pulley at the front, the manifold's rust.
  * @param bits the car's bits
  * @returns the drawing
@@ -326,7 +325,7 @@ function flatEngine(bits: CarBits): FlatCanvas {
 }
 
 /**
- * ?bigparts: a bad crash's DRAWN bit (the exhaust, a mirror, a wishbone, a strut, the engine) for
+ * a bad crash's DRAWN bit (the exhaust, a mirror, a wishbone, a strut, the engine) for
  * its car, lightly damaged; null for the bits cut from the car's sprite (bonnet, boot, spoiler).
  * @param spec the car as drawn
  * @param kind the bit
@@ -360,7 +359,7 @@ function atInner(region: Region, kind: string, corner: number, x: number, y: num
 }
 
 /**
- * ?bigparts: a bonnet's or boot lid's place with it gone - the dark bay, the engine block in it
+ * a bonnet's or boot lid's place with it gone - the dark bay, the engine block in it
  * (its rocker cover light, a row of plugs) unless the engine has gone too.
  * @param rgba the sprite's pixels
  * @param i the pixel's index
@@ -403,14 +402,10 @@ function lostPixel(rgba: Uint8ClampedArray, i: number, part: LostPart, x: number
       y - region.y0, region);
     return;
   }
-  // (?partsoff: GONE - the part cleared, only the bare structure left along its inner edge)
-  if (FIX.partsoff) {
-    if (rgba[i + 3] && atInner(region, kind, corner, x, y)) {
-      rgba[i] = 42; rgba[i + 1] = 45; rgba[i + 2] = 52;
-    } else rgba[i + 3] = 0;
-    return;
-  }
-  for (const chan of [0, 1, 2]) rgba[i + chan] = Math.round(rgba[i + chan] * 0.3 + 18);
+  // GONE - the part cleared, only the bare structure left along its inner edge
+  if (rgba[i + 3] && atInner(region, kind, corner, x, y)) {
+    rgba[i] = 42; rgba[i + 1] = 45; rgba[i + 2] = 52;
+  } else rgba[i + 3] = 0;
 }
 
 /**
@@ -429,7 +424,7 @@ export function withoutParts(spec: RenderCarSpec, sprite: CarSprite, lost: strin
   const img = ctx.getImageData(0, 0, canvas.width, canvas.height), rgba = img.data;
   for (const entry of lost.split(',').filter(Boolean)) {
     const [kind, corner] = entry.split(':');
-    // (?bigparts: the wing is left out by the painters - spec.noWing; the engine shows in the bay)
+    // (the wing is left out by the painters - spec.noWing; the engine shows in the bay)
     if (kind === 'spoiler' || kind === 'engine') continue;
     const region = partRegion(spec, sprite, kind, +corner);
     for (let y = region.y0 + 2; y <= region.y1 + 2; y++) for (let x = region.x0 + 2;

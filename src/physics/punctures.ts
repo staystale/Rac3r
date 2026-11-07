@@ -24,7 +24,7 @@ const BIG_HIT_CHANCE: Record<string, number> = {
   board: SHARP, chevron: SHARP, flag: SHARP, gantry: SHARP, pylon: SHARP, lamp: SHARP,
   tapepost: SHARP, windsock: SHARP, pallet: SHARP, crate: SHARP, splinters: SHARP,
   exhaust: SHARP, bumper: SHARP, wing: SHARP, panel: SHARP,
-  // ?bigparts: a flat panel medium, steel arms and springs sharp, the engine hard, a mirror soft
+  // a flat panel medium, steel arms and springs sharp, the engine hard, a mirror soft
   bonnet: MEDIUM, boot: MEDIUM, spoiler: SHARP, mirror: SOFT, wishbone: SHARP, strut: SHARP,
   engine: HARD,
 };
@@ -34,7 +34,7 @@ const UNKNOWN = HARD;
 const DEBRIS_CHANCE: Record<string, number> = {
   pallet: 0.15, crate: 0.15, exhaust: 0.08, bumper: 0.08, wing: 0.08, panel: 0.08, box: 0.01,
   bin: 0.01, barrel: 0.01, sandbag: 0.01, tarp: 0,
-  // ?bigparts (owner 11-07: "size / their sharpness ... how likely they are to cause punctures"):
+  // (owner 11-07: "size / their sharpness ... how likely they are to cause punctures"):
   // a bent wishbone's tube ends worst, a strut's spring, the engine's brackets, a wing's edges, a
   // flat bonnet / boot lid little, a mirror's glass less
   wishbone: 0.14, strut: 0.1, engine: 0.12, spoiler: 0.06, bonnet: 0.03, boot: 0.03, mirror: 0.02,

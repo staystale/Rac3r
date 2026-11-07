@@ -1,4 +1,4 @@
-// carbits.ts - ?bigparts (owner 11-07: "can worse crashes have a chance to emit more parts like
+// carbits.ts - (owner 11-07: "can worse crashes have a chance to emit more parts like
 // exhaust and engine blocks ... they should all be accurate to the vehicle"; "how about things like
 // wishbones and suspension struts too? ... size / their sharpness ... how likely they are to cause
 // punctures"): each car's own BITS - its exhaust, the panel at each end, where its engine sits and
