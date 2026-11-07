@@ -33,3 +33,28 @@ export const PAINT_STOCK: Record<string, { trim?: string; third?: string; rim?: 
  * @returns the colour, or undefined (stock)
  */
 export const rimColour = (rims?: string) => (rims ? RIM_FINISH[rims] || rims : undefined);
+// ?carlooks: each car's REAL TYRES, for drawing only (owner 11-07: "vehicles tyres / rims should be
+// realistic along with tyre profile"; the physics' own wheelR / tyreWidth are untouched - several
+// are still the shared default): front width, rear width, tyre diameter, rim diameter, all m.
+// From the size on the real car (width / profile R rim); EST where it varies by event.
+export const TYRE_LOOK: Record<string, { wF: number; wR: number; dia: number; rim: number }> = {
+  'hatch-fwd': { wF: 0.225, wR: 0.225, dia: 0.639, rim: 0.457 },   // 225/40 R18
+  'hatch-rwd': { wF: 0.225, wR: 0.245, dia: 0.629, rim: 0.457 },   // 225/40 + 245/35 R18
+  'saloon-rwd': { wF: 0.225, wR: 0.245, dia: 0.634, rim: 0.432 },   // 225/45 + 245/40 R17
+  'wrz-awd': { wF: 0.225, wR: 0.225, dia: 0.634, rim: 0.432 },   // 225/45 R17
+  'estate-4x4': { wF: 0.235, wR: 0.235, dia: 0.645, rim: 0.457 },   // 235/40 R18
+  'muscle-rwd': { wF: 0.215, wR: 0.215, dia: 0.657, rim: 0.356 },   // F70-14 ~ 215/70 R14
+  'rally-4x4': { wF: 0.225, wR: 0.225, dia: 0.613, rim: 0.406 },   // EST 225/45 R16 (tarmac)
+  'track-rwd': { wF: 0.305, wR: 0.405, dia: 0.720, rim: 0.457 },   // F1 2022: 305 / 405, 720 mm
+  'f2-rwd': { wF: 0.270, wR: 0.370, dia: 0.700, rim: 0.457 },   // EST F2 18-inch
+  naffcar: { wF: 0.330, wR: 0.330, dia: 0.712, rim: 0.457 },   // EST Next Gen 18-inch
+  tractor: { wF: 0.600, wR: 0.600, dia: 1.551, rim: 0.711 },   // 600/70 R28, all four the same
+  'mini-fwd': { wF: 0.145, wR: 0.145, dia: 0.486, rim: 0.254 },   // 145/80 R10
+  'lambo-awd': { wF: 0.245, wR: 0.305, dia: 0.672, rim: 0.508 },   // 245/30 + 305/30 R20
+  'mikra-r1': { wF: 0.195, wR: 0.195, dia: 0.576, rim: 0.381 },   // 195/50 R15
+  'kit-2l': { wF: 0.205, wR: 0.205, dia: 0.607, rim: 0.381 },   // EST 205/55 R15
+  'rx-super': { wF: 0.235, wR: 0.235, dia: 0.620, rim: 0.432 },   // EST 235/40 R17
+  'banger-f2': { wF: 0.185, wR: 0.205, dia: 0.552, rim: 0.330 },   // EST 185/60 + 205/60 R13
+  'grass-special': { wF: 0.175, wR: 0.205, dia: 0.575, rim: 0.330 },   // EST 175/70 + 205/60 R13
+  'drift-s13': { wF: 0.215, wR: 0.235, dia: 0.626, rim: 0.432 },   // EST 215/45 + 235/40 R17
+};

@@ -1,6 +1,7 @@
 // sim.ts — The per-step world: car physics, highway, audio and contact stepping.
 import { FIX } from '../core/fixes.ts';
 import { STOCK_RIM } from '../render/wheelface.ts';
+import { TYRE_LOOK } from '../carpaint.ts';
 import { hwLevel, hwFlow } from './state.ts';
 import { step, reset, assertFinite, PHYSICS_STEP_SECONDS } from '../vehicle.ts';
 import { stepHighway, highwayGuard, highwayRespawn, speedCamera } from '../highway.ts';
@@ -460,10 +461,15 @@ export function stepLooseCones(tcars: TrafficVehicle[]) {
  * @param spec the car's spec
  * @param spec.rim its rim colour
  * @param spec.spokes its spoke pattern
+ * @param spec.id its car
  * @returns the loose wheel's rim fields, or none
  */
-function looseRim(spec: { rim?: string; spokes?: string }) {
-  return FIX.carpaint ? { rimCol: spec.rim || STOCK_RIM, spokes: spec.spokes || '' } : {};
+function looseRim(spec: { id: string; rim?: string; spokes?: string }) {
+  if (!FIX.carpaint) return {};
+  // (?carlooks: its real tyre and rim - carpaint.ts TYRE_LOOK)
+  const real = FIX.carlooks ? TYRE_LOOK[String(spec.id).split('#')[0]] : undefined;
+  return { rimCol: spec.rim || STOCK_RIM, spokes: spec.spokes || '',
+    ...(real ? { wheelD: real.dia, rimD: real.rim } : {}) };
 }
 
 /**

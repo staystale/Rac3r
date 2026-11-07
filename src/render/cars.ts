@@ -1,5 +1,6 @@
 // The CARS layer of the renderer: drawPixelCar and the garage lift sprite.
 import { FIX } from "../core/fixes.ts";
+import { TYRE_LOOK } from "../carpaint.ts";
 import { SPRITE_PPM } from "./shared.ts";
 import { DAYLIGHT } from "../world/daylight.ts";
 import { REVERSE_LAMP, isReversing } from "./reverselights.ts";
@@ -28,18 +29,33 @@ interface CarsContext extends CarsHelpers {
 }
 
 /**
- * The tyre size and the half track a car's wheels sit at (at the body's EDGE so they poke out at
+ * The half track a car's wheels sit at (at the body's EDGE so they poke out at
  * the sides like the reference sprites).
  * @param spec the car spec
  * @param sprite the body sprite
- * @returns tyre length, tyre width and the half width
+ * @returns the half width (the tyre sizes: tyreBox)
  */
 function wheelMetrics(spec: RenderCarSpec, sprite: CarSprite) {
-  const tyreL = spec.kind === 'track' ? 14 : spec.kind === 'tractor' ? 15 : 11,
-    tyreW = spec.kind === 'track' ? 6 : 4;
   const halfWidth = Math.max((spec.trackWidth || 1.5) / 2 * SPRITE_PPM, sprite.Wp / 2)
     + (spec.kind === 'track' ? 1 : 0);
-  return { tyreL, tyreW, halfWidth };
+  return { halfWidth };
+}
+
+/**
+ * A tyre's size from above, px: its length (diameter) and width. ?carlooks: the REAL tyre
+ * (carpaint.ts TYRE_LOOK - front and rear widths apart, the tractor's four the same); else the
+ * old blocks (a road car 11 x 4, an open-wheeler 14 x 6, the tractor's big rears 20 x 7).
+ * @param spec the car spec
+ * @param rear the rear axle
+ * @returns the length and width
+ */
+export function tyreBox(spec: RenderCarSpec, rear: boolean) {
+  const real = FIX.carlooks ? TYRE_LOOK[String(spec.id).split('#')[0]] : undefined;
+  if (real) return { len: Math.round(real.dia * SPRITE_PPM),
+    wid: Math.max(2, Math.round((rear ? real.wR : real.wF) * SPRITE_PPM)) };
+  const big = spec.kind === 'tractor' && rear;
+  return { len: big ? 20 : spec.kind === 'track' ? 14 : spec.kind === 'tractor' ? 15 : 11,
+    wid: big ? 7 : spec.kind === 'track' ? 6 : 4 };
 }
 
 /**
@@ -65,17 +81,15 @@ const rimOf = (spec: RenderCarSpec) => (FIX.carpaint ? null : spec.kind === 'tra
  */
 function drawCarWheel(
   carsCtx: CarsContext, spec: RenderCarSpec, axleX: number, side: number, steer: number,
-  metrics: { tyreL: number; tyreW: number; halfWidth: number },
+  metrics: { halfWidth: number },
   air: { pressure: number; isOnRim: boolean; turn: number } | null = null,
 ) {
   const { view } = carsCtx;
-  const { tyreL, tyreW, halfWidth } = metrics;
+  const { halfWidth } = metrics;
   view.ctx.save();
   view.ctx.translate(Math.round(axleX * SPRITE_PPM), Math.round(side * halfWidth));
   view.ctx.rotate(steer);
-  // tractor: huge rear wheels, yellow rims
-  const big = spec.kind === 'tractor' && axleX < 0;
-  const tyreLen = big ? 20 : tyreL, tyreWid = big ? 7 : tyreW;
+  const { len: tyreLen, wid: tyreWid } = tyreBox(spec, axleX < 0);
   // a soft tyre squashes by its air, a rim shows bare (render/tyrelook.ts)
   if (air && drawTyreByPressure(view.ctx, tyreLen, tyreWid, air.pressure, air.isOnRim, air.turn)) {
     view.ctx.restore();
@@ -281,8 +295,6 @@ function pixelCarWithWheels(carsCtx: CarsContext, spec: RenderCarSpec) {
     + (spec.num || 0);
   if (faceCache.has(key)) return faceCache.get(key);
   const sprite = pixelCar(spec), carSpec = spec;
-  const tyreL = carSpec.kind === 'track' ? 14 : carSpec.kind === 'tractor' ? 15 : 11,
-    tyreW = carSpec.kind === 'track' ? 6 : 4;
   const halfWidth = Math.max((carSpec.trackWidth || 1.5) / 2 * SPRITE_PPM, sprite.Wp / 2)
     + (carSpec.kind === 'track' ? 1 : 0);
   const padY = Math.max(0, Math.ceil(halfWidth + 4 - sprite.Wp / 2)),
@@ -293,8 +305,7 @@ function pixelCarWithWheels(carsCtx: CarsContext, spec: RenderCarSpec) {
   for (const [axleX, side] of [
     [carSpec.lf, -1], [carSpec.lf, 1], [-carSpec.lr, -1], [-carSpec.lr, 1],
   ]) {
-    const big = carSpec.kind === 'tractor' && axleX < 0,
-      tyreLen = big ? 20 : tyreL, tyreWid = big ? 7 : tyreW,
+    const { len: tyreLen, wid: tyreWid } = tyreBox(carSpec, axleX < 0),
       x = Math.round(midX + axleX * SPRITE_PPM), y = Math.round(midY + side * halfWidth);
     gctx.fillStyle = '#16171c';
     gctx.fillRect(x - tyreLen / 2, y - tyreWid / 2, tyreLen, tyreWid);

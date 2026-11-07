@@ -250,6 +250,7 @@ export interface RenderCone {
   ang: number;
   mode?: string;   // tyres: stack / flat / roll / flip / wobble
   rimCol?: string; spokes?: string;   // ?carpaint: a loose wheel's rim (render/wheelface.ts)
+  wheelD?: number; rimD?: number;   // ?carlooks: its real tyre and rim diameters, m
   col?: string;
   hx: number;   // home position; seeds the scatter of burst straw and broken debris
   hy: number;

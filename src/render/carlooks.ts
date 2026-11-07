@@ -122,39 +122,64 @@ function paintQuattro(spr: SpriteCtx): void {
   block(along(0.20), -1, 3, 1, '#222'); block(along(0.20), wid, 3, 1, '#222');
 }
 
-/** THE 2022 F1 CAR (and the F2): full-width wings, a thin nose, wide sidepods, the halo. */
+/**
+ * THE 2022 F1 CAR (and the F2), on a sprite as wide as its front tyres' outside edges, after the
+ * owner's reference (11-07, a pixel F1 from above): an ARCHED front wing out to the tyres with its
+ * endplates (the second colour), the thin nose outlined in the accent (the third), dark suspension
+ * arms to the front wheels, FAT rounded SIDEPODS over the dark floor with the cockpit at their
+ * front, accent lines down the engine cover, the dark diffuser and the rear wing (the second
+ * colour, its edge the accent).
+ */
 function paintModernOpenWheel(spr: SpriteCtx): void {
-  const { lengthPx: len, widthPx: wid, mid, paint, outline, light, dark, trim, third, block,
+  const { spec, lengthPx: len, widthPx: wid, mid, paint, outline, light, trim, third, block,
     along } = spr;
-  // SIDEPODS, wide at their mouths and tapering to the back (the coke bottle)
-  const podFront = along(0.54), podBack = along(0.20);
-  for (let x = podBack; x < podFront; x++) {
-    const half = Math.round(4 + (mid - 5) * (x - podBack) / (podFront - podBack));
-    block(x, mid - half, 1, half * 2 + 1, outline);
-    block(x, mid - half + 1, 1, half * 2 - 1, paint);
-    block(x, mid - half + 1, 1, 1, light);
+  const bodyWid = (spec as { bodyWid?: number }).bodyWid ?? spec.wid;
+  const half = Math.round(bodyWid * SPRITE_PPM / 2), axF = len / 2 + spec.lf * SPRITE_PPM;
+  const edge = (wid - 1) / 2;
+  // the dark FLOOR, the DIFFUSER between the rear wheels, the GEARBOX out to the rear wing
+  block(along(0.10), mid - half - 1, along(0.48), half * 2 + 3, '#1a1c22');
+  block(1, mid - half + 3, along(0.10), half * 2 - 5, '#1a1c22');
+  block(1, mid - 2, along(0.12), 5, outline);
+  block(2, mid - 1, along(0.12) - 1, 3, paint);
+  // the SIDEPODS: rounded shoulders at the cockpit, full width, then easing in to the gearbox
+  const podNose = along(0.62), podFull = along(0.54), podEase = along(0.30), podTail = along(0.10);
+  for (let x = podTail; x < podNose; x++) {
+    const ease = x < podEase ? (x - podTail) / (podEase - podTail) : 1;
+    const round = x > podFull ? 1 - ((x - podFull) / (podNose - podFull)) ** 2 : 1;
+    const side = Math.max(2, Math.round((half - 1) * Math.sqrt(round) * (0.35 + 0.65 * ease)));
+    block(x, mid - side, 1, side * 2 + 1, outline);
+    block(x, mid - side + 1, 1, side * 2 - 1, paint);
+    block(x, mid - side + 1, 1, 1, light);
   }
-  for (const y of [1, wid - 3]) block(podFront - 2, y + (y < mid ? 1 : -1), 2, 2, GLASS);
-  // the ENGINE COVER down to the gearbox, its fin
-  block(along(0.06), mid - 3, along(0.20), 7, outline);
-  block(along(0.07), mid - 2, along(0.20), 5, paint);
-  block(along(0.06), mid, along(0.40), 1, dark);
-  // the NOSE, thin, with its stripe (the third colour)
-  block(along(0.60), mid - 2, len - 4 - along(0.60), 5, outline);
+  // the ENGINE COVER's accent lines, the intake behind the driver
+  block(along(0.12), mid - 3, along(0.40), 1, third);
+  block(along(0.12), mid + 3, along(0.40), 1, third);
+  block(along(0.40), mid - 1, 2, 3, '#14161b');
+  // the COCKPIT at the pods' front (rounded), the helmet, the halo's strut
+  block(along(0.48), mid - 2, along(0.10), 5, '#14161b');
+  block(along(0.49), mid - 3, along(0.08), 7, '#14161b');
+  block(along(0.51), mid - 1, 3, 3, '#e4c23a');
+  block(along(0.58), mid, 3, 1, CHR);
+  // SUSPENSION arms from the nose out to the front wheels
+  for (const sign of [-1, 1]) for (const lean of [-2, 2]) for (let i = 0; i <= edge - 4; i++)
+    block(Math.round(axF + lean - i * 0.35), Math.round(mid + sign * (2 + i)), 1, 1, STEEL);
+  // the NOSE, thin, outlined in the accent
+  block(along(0.60), mid - 2, len - 4 - along(0.60), 5, third);
   block(along(0.60), mid - 1, len - 4 - along(0.60), 3, paint);
-  block(along(0.62), mid, len - 6 - along(0.62), 1, third);
-  // the cockpit, the helmet, the HALO (chrome ring and front strut)
-  block(along(0.46), mid - 3, along(0.14), 7, outline);
-  block(along(0.47), mid - 2, along(0.12), 5, GLASS);
-  block(along(0.50), mid - 1, 3, 3, '#e4c23a');
-  block(along(0.46), mid - 3, along(0.14), 1, CHR);
-  block(along(0.46), mid + 3, along(0.14), 1, CHR);
-  block(along(0.60) - 1, mid, 3, 1, CHR);
-  // the FRONT WING full width with endplates, the REAR WING (both the second colour)
-  block(len - 4, 0, 4, wid, outline); block(len - 3, 1, 2, wid - 2, trim);
-  block(len - 3, 1, 1, wid - 2, shade(trim, 1.3));
-  block(-1, 0, 5, wid, outline); block(0, 1, 3, wid - 2, trim); block(0, mid - 3, 1, 7, third);
-  block(4, mid - 1, 2, 3, STEEL);
+  block(along(0.60), mid - 1, len - 4 - along(0.60), 1, light);
+  // the ARCHED FRONT WING (the second colour) out to the tyres, its endplates
+  for (let y = 0; y < wid; y++) {
+    const away = Math.abs(y - mid) / edge, back = Math.round(4 * away ** 1.6);
+    block(len - 2 - back, y, 2, 1, outline);
+    block(len - 4 - back, y, 2, 1, trim);
+  }
+  block(len - 9, 0, 4, 1, outline);
+  block(len - 9, wid - 1, 4, 1, outline);
+  // the REAR WING (the second colour), its edge the accent
+  const wing = half - 1;
+  block(-1, mid - wing, 4, wing * 2 + 1, outline);
+  block(0, mid - wing + 1, 2, wing * 2 - 1, trim);
+  block(-1, mid - wing, 1, wing * 2 + 1, third);
 }
 
 /**
@@ -251,10 +276,13 @@ function paintBuggy(spr: SpriteCtx): void {
 }
 
 /** The redrawn bodies by car id: the painter, and bare = no closed shell under it. */
-export const LOOKS = new Map<string, { paint: (spr: SpriteCtx) => void; bare?: boolean }>([
+// (wide: the sprite is as wide as the wheel track, the body its own width inside it)
+export const LOOKS = new Map<string, { paint: (spr: SpriteCtx) => void; bare?: boolean;
+  wide?: boolean }>([
   ['hatch-fwd', { paint: paintGolf }], ['hatch-rwd', { paint: paintM135 }],
   ['rally-4x4', { paint: paintQuattro }],
-  ['track-rwd', { paint: paintModernOpenWheel, bare: true }],
-  ['f2-rwd', { paint: paintModernOpenWheel, bare: true }], ['naffcar', { paint: paintNextGen }],
+  ['track-rwd', { paint: paintModernOpenWheel, bare: true, wide: true }],
+  ['f2-rwd', { paint: paintModernOpenWheel, bare: true, wide: true }],
+  ['naffcar', { paint: paintNextGen }],
   ['mikra-r1', { paint: paintMicra }], ['grass-special', { paint: paintBuggy, bare: true }],
 ]);

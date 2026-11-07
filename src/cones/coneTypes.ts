@@ -9,6 +9,7 @@ export interface Loose {
   mode: string;
   // ?carpaint: a torn-off wheel's rim colour and spoke pattern (render/wheelface.ts)
   rimCol?: string; spokes?: string;
+  wheelD?: number; rimD?: number;   // ?carlooks: its real tyre and rim diameters, m
   x: number; y: number; vx: number; vy: number;
   hx?: number; hy?: number;   // its home spot (where the level put it)
   ang: number; spin: number;

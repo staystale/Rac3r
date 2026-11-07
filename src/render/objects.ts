@@ -1,6 +1,6 @@
 // The OBJECTS layer of the renderer: pixel objects (cones, tyres), rally tape, roadside debris,
 // animals, knockable boards and flags, and the banger, caravan and podium props.
-import { drawWheelFace } from "./wheelface.ts";
+import { drawWheelFace, realWheel, faceSize, OLD_WHEEL } from "./wheelface.ts";
 import { parkMiller } from "../core/random.ts";
 import { SPRITE_PPM, fxRandom } from "./shared.ts";
 import type { Cam, Chip, RenderCone, RenderTape, TapeCar, TapeGame, View } from "./types.ts";
@@ -158,8 +158,14 @@ function pixelObjectSprite(env: ObjectsCtx, cone: RenderCone): ObjSprite | null 
     : 'cone');
   if (cone.kind === 'cone') return coneSprite(env, cone);
   // (?carpaint: a torn-off wheel lying flat shows its rim - render/wheelface.ts)
-  if (cone.rimCol && mode === 'flat') return objSprite(env, 'wheel-flat|' + cone.rimCol + '|'
-    + (cone.spokes || ''), 17, (ctx, size) => drawWheelFace(ctx, size, cone.rimCol, cone.spokes));
+  // (?carlooks: at its real size and tyre profile)
+  if (cone.rimCol && mode === 'flat') {
+    const geo = cone.wheelD && cone.rimD ? realWheel(cone.wheelD, cone.rimD, SPRITE_PPM)
+      : OLD_WHEEL;
+    return objSprite(env, 'wheel-flat|' + cone.rimCol + '|' + (cone.spokes || '') + '|'
+      + (cone.wheelD || 0) + '|' + (cone.rimD || 0), geo === OLD_WHEEL ? 17 : faceSize(geo),
+      (ctx, size) => drawWheelFace(ctx, size, cone.rimCol, cone.spokes, geo));
+  }
   if (cone.kind === 'tyre' || cone.kind === 'tyrestack') return tyreSprite(env, mode);
   return null;
 }

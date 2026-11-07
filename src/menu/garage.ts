@@ -4,8 +4,11 @@ import {
   ROSTER, CLASSES, classOf, PALETTE, TYRES, TYRE_BRANDS, TYRE_SURFS, tyreOf, tyreFits,
   fittedTyre, stockPaint,
 } from '../cars.ts';
-import { RIM_FINISH, rimColour } from '../carpaint.ts';
-import { drawWheelFace, SPOKES, STOCK_RIM } from '../render/wheelface.ts';
+import { RIM_FINISH, rimColour, TYRE_LOOK } from '../carpaint.ts';
+import {
+  drawWheelFace, SPOKES, STOCK_RIM, OLD_WHEEL, realWheel, faceSize, type WheelGeo,
+} from '../render/wheelface.ts';
+import { SPRITE_PPM } from '../render/shared.ts';
 import { FIX } from '../core/fixes.ts';
 import { CAR_STATS } from '../carstats.ts';
 import type { CarStat } from '../ai/types.ts';
@@ -164,6 +167,8 @@ AIDS</span><b>${aids}</b>`
   const buttonRow = addElement(panel, 'div', '', 'row');
   addButton(menu, buttonRow, 'PAINT', () => showPaintShop(menu));
   addButton(menu, buttonRow, 'TYRES', () => showTyreShop(menu));
+  // (?carpaint: the rims beside the tyres - owner 11-07: "rims should be a choice next to tyres")
+  if (FIX.carpaint) addButton(menu, buttonRow, 'RIMS', () => showPaintShop(menu, true));
   addButton(menu, buttonRow, 'BUY CARS', () => {}, '', true, 'SOON');
   addButton(menu, buttonRow, 'UPGRADES', () => {}, '', true, 'SOON');
   // SELECT locks the car in as yours (owner 11-03); browsing alone changes nothing
@@ -221,35 +226,41 @@ color:#f6eee6' + (stock ? ';grid-column:span 2' : '');
 }
 
 /**
- * PAINT SHOP (requirement: palette + number + preview): BODY and SECOND (?carpaint: + THIRD and
- * RIMS) from the 16-colour PALETTE, a NUMBER 1-99 (or none), the car previewed on the lift as you
- * go; TRY saves it to the profile, BACK drops the changes, STOCK puts the car's own colours back.
+ * PAINT SHOP (requirement: palette + number + preview): BODY and SECOND (?carpaint: + THIRD) from
+ * the 16-colour PALETTE, a NUMBER 1-99 (or none), the car previewed on the lift as you go; TRY
+ * saves it to the profile, BACK drops the changes, STOCK puts the car's own colours back.
+ * ?carpaint, the RIMS screen (beside TYRES): the rims' colour and SPOKES, the wheel shown lying
+ * loose - where a rim is seen.
  * @param menu the menu context
+ * @param rimsMode the RIMS screen
  */
-function showPaintShop(menu: Menu) {
+function showPaintShop(menu: Menu, rimsMode = false) {
   const panel = addPane(menu, true), carId = garageCarId(menu),
     car = ROSTER.find((x) => x.id === carId)!, stock = stockPaint(carId);
   const stockLivery = { paint: stock.paint, trim: stock.trim, third: stock.third, rims: '',
     spokes: '', num: 0 };
   const cur: ShopLivery = { ...stockLivery, ...((menu.profile.livery || {})[carId] || {}) };
-  addElement(panel, 'h2', 'PAINT · ' + car.name);
+  addElement(panel, 'h2', (rimsMode ? 'RIMS · ' : 'PAINT · ') + car.name);
   const box = addElement(panel, 'div', '', 'garage'), left = addElement(box, 'div', ''),
     right = addElement(box, 'div', '');
-  const lift = document.createElement('canvas');
-  lift.className = 'lift';
-  lift.width = 360;
-  lift.height = 150;
-  left.appendChild(lift);
+  const lift = rimsMode ? null : document.createElement('canvas');
+  if (lift) {
+    lift.className = 'lift';
+    lift.width = 360;
+    lift.height = 150;
+    left.appendChild(lift);
+  }
   const rows: [keyof ShopLivery, HTMLButtonElement[]][] = [];
-  const wheel = FIX.carpaint ? wheelPreview(left) : null;
+  const geo = wheelGeo(carId), wheel = rimsMode ? wheelPreview(left, geo) : null;
   const showLivery = () => {
-    drawLift(lift, menu.api.carSprite(carId, cur));
+    if (lift) drawLift(lift, menu.api.carSprite(carId, cur));
     if (wheel) {
       const wctx = wheel.getContext('2d')!;
       wctx.clearRect(0, 0, wheel.width, wheel.height);
-      drawWheelFace(wctx, wheel.width, rimColour(cur.rims) || stock.rim || STOCK_RIM, cur.spokes);
+      drawWheelFace(wctx, wheel.width, rimColour(cur.rims) || stock.rim || STOCK_RIM, cur.spokes,
+        geo);
     }
-    numL.textContent = cur.num ? '#' + cur.num : 'NO NUMBER';
+    if (numL) numL.textContent = cur.num ? '#' + cur.num : 'NO NUMBER';
     for (const [field, list] of rows) for (const button of list) button.style.outline =
       button.dataset.c === cur[field] ? '3px solid ' + MENU_COL.pick : 'none';
   };
@@ -260,20 +271,22 @@ function showPaintShop(menu: Menu) {
     })]);
   };
   const picks = FIX.carpaint ? PAINT_PICKS : PALETTE;
-  row('BODY', 'paint', picks);
-  row(FIX.carpaint ? 'SECOND' : 'TRIM', 'trim', picks);
-  if (FIX.carpaint) {
-    row('THIRD', 'third', picks);
-    row('RIMS', 'rims', RIM_PICKS);
+  if (rimsMode) {
+    row('COLOUR', 'rims', RIM_PICKS);
     rows.push(['spokes', spokesRow(menu, right, (choice) => {
       cur.spokes = choice;
       showLivery();
     })]);
+  } else {
+    row('BODY', 'paint', picks);
+    row(FIX.carpaint ? 'SECOND' : 'TRIM', 'trim', picks);
+    if (FIX.carpaint) row('THIRD', 'third', picks);
   }
-  const numL = numberRow(menu, left, cur, () => showLivery());
+  const numL = rimsMode ? null : numberRow(menu, left, cur, () => showLivery());
   const buttonRow = addElement(panel, 'div', '', 'row');
   addButton(menu, buttonRow, 'STOCK', () => {
-    Object.assign(cur, stockLivery);
+    Object.assign(cur, rimsMode ? { rims: '', spokes: '' } : { ...stockLivery, rims: cur.rims,
+      spokes: cur.spokes });
     showLivery();
   });
   addButton(menu, buttonRow, 'TRY ✓', () => {
@@ -290,7 +303,7 @@ function showPaintShop(menu: Menu) {
 }
 
 /**
- * ?carpaint: the paint shop's SPOKES row - STEEL (the look as it was) and the patterns
+ * ?carpaint: the RIMS screen's SPOKES row - STEEL (the look as it was) and the patterns
  * (render/wheelface.ts).
  * @param menu the menu context
  * @param right the column it goes in
@@ -311,16 +324,30 @@ function spokesRow(menu: Menu, right: HTMLElement, pick: (choice: string) => voi
 }
 
 /**
- * ?carpaint: the paint shop's picture of a wheel lying loose - where its rim is seen.
+ * A car's wheel face: ?carlooks its real tyre and rim (carpaint.ts TYRE_LOOK), else the loose
+ * tyre's old one.
+ * @param carId the car
+ * @returns the face
+ */
+function wheelGeo(carId: string): WheelGeo {
+  const real = FIX.carlooks ? TYRE_LOOK[carId] : undefined;
+  return real ? realWheel(real.dia, real.rim, SPRITE_PPM) : OLD_WHEEL;
+}
+
+/**
+ * ?carpaint: the RIMS screen's picture of the wheel lying loose - where its rim is seen - at the
+ * world's pixels, shown big.
  * @param left the column it goes in
+ * @param geo the wheel's face
  * @returns the canvas
  */
-function wheelPreview(left: HTMLElement) {
+function wheelPreview(left: HTMLElement, geo: WheelGeo) {
   const holder = addElement(left, 'div', '', 'row');
-  holder.style.cssText = 'margin-top:8px;align-items:center;gap:10px';
-  const wheel = document.createElement('canvas');
-  wheel.width = wheel.height = 68;
-  wheel.style.cssText = 'width:68px;height:68px;image-rendering:pixelated;background:#17141b';
+  holder.style.cssText = 'align-items:center;gap:12px;flex-direction:column';
+  const wheel = document.createElement('canvas'), size = geo === OLD_WHEEL ? 17 : faceSize(geo);
+  wheel.width = wheel.height = size;
+  wheel.style.cssText = 'width:' + size * 9 + 'px;height:' + size * 9
+    + 'px;image-rendering:pixelated;background:#17141b';
   holder.appendChild(wheel);
   addElement(holder, 'div', 'YOUR WHEEL, LYING LOOSE', 'sub');
   return wheel;

@@ -79,6 +79,16 @@ last handover, written on request.
    Next Gen (bonnet panel, sticker lamps, spoiler), Micra R1 (round, oval lamps), the autograss
    buggy (open frame, cage, engine out back); 3 Series bonnet two clean lines; Fiesta RX wing
    deeper. Same sizes (physics boxes). Old vs new: _looks.png. simhash SAME off.
+   ROUND 2 (owner 11-07: "F1 cars look a bit strange and shouldn't their tyres be wider? vehicles
+   tyres / rims should be realistic along with tyre profile"; "rims should be a choice next to
+   tyres on the menu"; "should the gold be rounder"; a reference picture of a pixel F1): the F1 / F2
+   redrawn after the reference on a sprite as wide as the front tyres (arched front wing, the
+   nose in the accent, suspension arms, fat sidepods over the floor with the cockpit at their
+   front, engine-cover accent lines, diffuser, rear wing); EVERY CAR'S TYRES at their REAL width
+   and diameter, front and rear apart (carpaint.ts TYRE_LOOK - drawing only, the physics' wheelR
+   untouched); a loose wheel at its real tyre + rim size (the sidewall profile its own), the hub
+   and hole ROUND; RIMS is its own garage screen next to TYRES (colour + spokes + the wheel shown
+   lying loose), the paint shop back to BODY / SECOND / THIRD + number.
 
 Then, to work through when it fits (owner 11-07, not ordered):
 - HIGHWAY LINE: "does the ai need a racing line on highway? if not can we get rid of it - it's
@@ -94,6 +104,11 @@ Then, to work through when it fits (owner 11-07, not ordered):
 - ONLINE MULTIPLAYER (with I): a player too far behind is LEFT BEHIND (the endless road would grow
   past memory) - a hard limit by time or distance; the place at that limit is the result (first
   out of a 10-car race = 10th).
+- ANTENNAS + A CB RADIO (owner 11-07: "the subtle accents make a huge difference to the players eye -
+  even a few pixels can hint at things like antenna - maybe cars should have antenna? bolt on push
+  to talk cb radio as an upgrade? ... talk to me about it when it comes to sound"): a few-pixel
+  antenna on the cars that have one (roof / wing whip, a rally car's), and a bolt-on CB radio
+  UPGRADE with push-to-talk - DISCUSS WITH THE OWNER when the sound work (G) comes up.
 - SIDE DRAFTING ("especially for naffcar"): the wake (physics/wake.ts) beside a car, not only
   behind it. With it the Naffcar extras from the roadmap (docs/specs/roadmap-2026-10-03.md G):
   active AIR BRAKES / cowl flaps, aero parts as upgrades; and DIEATONA (below).

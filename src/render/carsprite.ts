@@ -708,9 +708,11 @@ function paintRaceNumber(spr: SpriteCtx): void {
  * @returns the sprite: canvas and its pixel length and width
  */
 function paintCarSprite(spec: RenderCarSpec): CarSprite {
-  const spr = makeSpriteCtx(spec);
-  // (?carlooks: the redrawn bodies paint their own lamps; a bare one has no closed shell)
+  // (?carlooks: the redrawn bodies paint their own lamps; a bare one has no closed shell; a wide
+  // one is drawn on a sprite as wide as its wheel track - the F1 car's front wing)
   const look = FIX.carlooks ? LOOKS.get(String(spec.id).split('#')[0]) : undefined;
+  const spr = makeSpriteCtx(look?.wide && spec.trackWidth
+    ? { ...spec, wid: spec.trackWidth + 0.34, bodyWid: spec.wid } as RenderCarSpec : spec);
   if (look) {
     if (!look.bare) shell(spr);
     look.paint(spr);
