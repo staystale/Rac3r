@@ -7,7 +7,8 @@ const CAT_OF: Record<string, string> = { 'test-track': 'circuits', thruston: 'ci
   'castle-cum': 'circuits', 'brands-snatch': 'circuits', 'brands-snatch-indy': 'circuits',
   'sweaty-lamb': 'rally', killder: 'rally', knobhill: 'rx', 'slidden-hill': 'rx',
   'grass-track': 'ovals', 'stock-car': 'ovals', naffcar: 'ovals',
-  lab: 'test', sandbox: 'test', 'bowling-alley': 'test', 'rough-patch': 'test' };
+  lab: 'test', sandbox: 'test', 'brands-indy-real': 'test', 'brands-indy-34': 'test',
+  'bowling-alley': 'test', 'rough-patch': 'test' };
 
 /**
  * A level's category.

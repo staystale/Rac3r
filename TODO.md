@@ -20,7 +20,13 @@ last handover, written on request.
    + behind the menu the highway is framed as a circuit (owner: "for the menu race the observed car
    is off set too much"): no road-ahead lead there (render/camera.ts, CamState.menuView) - the car
    in the middle, not 3/4 down (_menurand-2 / -5 shots).
-3. BRANDS SNATCH INDY at real scale and 3/4 scale (OWNER IDEAS entry below).
+3. UNDER TEST 11-07: ?indyscale - BRANDS SNATCH INDY at real scale and 3/4 (two TEST levels in TEST
+   GROUNDS: world/levels/brands-indy-scale.ts - the same traced map at 0.652 / 0.489 m a pixel, the
+   13 m road, kerbs, the Indy hills scaled with it (same slopes), a grid; no scenery, a floor
+   rectangle 60 m past the road). Laps 902 (today) / 1441 / 1921 m (real: 1944). Real game, 10 AI,
+   90 s (_ovalfield.mjs): 70 / 84 / 97 km/h, off the track 8.9 / 9.4 / 6.4 %, spins 0 / 3 / 3,
+   56 fps; shots _indy-real-close / -mid. (At zoom 0.1 the photo tool shows road gaps on every
+   level, the normal Indy too - not these levels.)
 4. CARS (mockup first): every car LOOKS LIKE ITS REAL COUNTERPART - rework any that do not
    (owner: "reworking any cars that don't look like their real counter part"); a THIRD colour;
    EVERY car has at least TWO decoratable parts; RIM COLOUR ("so we know it was yours when you
@@ -1114,6 +1120,9 @@ DRIVING (ask before starting; re-measure first, these are old):
 
 ## Tools that are wrong
 
+- FOUND 11-07: `barriercheck brands-snatch-indy` FAILS (before ?indyscale too): a garage building (77
+  pts, 9.2 m from the centreline) has 4 points on a lane - the pit lane's taper or a bridge
+  approach; look like Thruston's (a wall on the edge) or a real overlap. CI checks only Thruston.
 - FIXED 11-07 (owner: "1. ok"): an intended difference is TAGGED in the commit message -
   [sim] / [world] / [look] - and its hash is then reported, not failed; settingscheck asks ?ai=99
   -> 20 (MAX_AI); barriercheck allows a wall ON a lane's edge (0.1 m: Thruston's garage front is

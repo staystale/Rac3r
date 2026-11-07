@@ -19,12 +19,14 @@ import type { Point, Lane, Trap, Cone, Prop, Barrier, Bump, Subtrack } from "../
 // HAWTHORNS (right) -> DEREK MINTER STRAIGHT -> WESTFIELD (right) -> DINGLE DELL (dip) -> SHEENE
 // CURVE (right) -> STIRLINGS (left) -> CLEARWAYS | Indy: McLAREN] -> CLARK CURVE -> line.
 const BRANDS_MAP = { mpp: 0.31, cx: 635, cy: 895 };
+// game m a map pixel (the to-scale Indy test levels scale from it: brands-indy-scale.ts)
+export const BH_MPP = BRANDS_MAP.mpp;
 const bhXY = (pixelX: number, pixelY: number): Point =>
   [
     +((pixelX - BRANDS_MAP.cx) * BRANDS_MAP.mpp).toFixed(2),
     +((pixelY - BRANDS_MAP.cy) * BRANDS_MAP.mpp).toFixed(2),
   ];
-const BH_TOP: Point[] = [
+export const BH_TOP: Point[] = [
   // BRABHAM, PADDOCK HILL
   [700, 152], [800, 155], [900, 160], [950, 168], [1000, 182], [1050, 205], [1090, 240],
   [1110, 280], [1115, 330], [1105, 390],
@@ -52,7 +54,7 @@ const BH_GP: Point[] = [
   // CLEARWAYS, CLARK
   [380, 662], [300, 575], [232, 500], [182, 447], [160, 405], [154, 360], [164, 312],
   [198, 262], [258, 216], [330, 180], [420, 158], [520, 152], [610, 150]];
-const BH_INDY: Point[] = [
+export const BH_INDY: Point[] = [
   // McLAREN, CLARK
   [378, 400], [350, 432], [300, 455], [250, 466], [205, 463], [176, 440], [160, 405],
   [154, 360], [164, 312], [198, 262], [258, 216],

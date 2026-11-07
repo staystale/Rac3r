@@ -40,4 +40,7 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
+  // ?indyscale=1: two TEST levels - Brands Snatch Indy at real scale and at 3/4 (the circuits are
+  // 0.41-0.48 of real; world/levels/brands-indy-scale.ts; owner 11-03, "3 ok" 11-07)
+  indyscale: atLoad('indyscale'),
 };

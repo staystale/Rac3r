@@ -53,4 +53,12 @@ export const TEST_LIST: TestEntry[] = [
   // ailines, ailook, dodgefar, markjump, halfcar, rejoinlook, hwshare, oneai (AI R8), brakeread
   // passed 2026-11-04; wetrace, lineback, onroad, rejoinfast, menurand (AI R7)
   // passed 2026-11-07)
+  {
+    id: 'indyscale',
+    added: '2026-11-07',
+    name: 'Brands Snatch Indy at real size and at 3/4 size - test levels to race on',
+    where: 'Test link + &indyscale=1: TEST MODE > TEST GROUNDS > Brands Snatch Indy 1:1 / 3/4',
+    try: 'Race the AI on both and the normal Indy: which size feels right for the corners?',
+    wrong: 'The track missing, the cars off the map, the AI lost, or a long freeze loading.',
+  },
 ];

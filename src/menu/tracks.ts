@@ -19,6 +19,7 @@ export const KIND: Record<string, string> = { lab: 'TEST GROUND', 'test-track': 
   'brands-snatch-indy': 'UK CIRCUIT · INDY', 'sweaty-lamb': 'RALLY STAGE',
   killder: 'RALLY STAGE · FOREST', 'slidden-hill': 'RALLYCROSS', 'grass-track': 'AUTOGRASS',
   'stock-car': 'OVAL', naffcar: 'OVAL', sandbox: 'CIRCUIT',
+  'brands-indy-real': 'INDY · REAL SCALE', 'brands-indy-34': 'INDY · 3/4 SCALE',
   'bowling-alley': 'TEST GROUND', 'rough-patch': 'TEST GROUND' };
 // TRACK CATEGORIES (the kind of each level: world/levels/category.ts). ALL TRACKS keeps the old
 // flat grid one tap away.
