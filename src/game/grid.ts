@@ -1,6 +1,7 @@
 // grid.ts — AI cars: liveries, the starting grid and spawning.
 import { hwLevel } from './state.ts';
 import { lcg } from "../core/random.ts";
+import { FIX } from "../core/fixes.ts";
 import { makeCar, reset } from '../vehicle.ts';
 import { ROSTER } from '../cars.ts';
 import { hwGrid } from '../highwayrace.ts';
@@ -33,7 +34,9 @@ export const AI_LIVERIES = [['#c8302c', '#7e1d1a'], ['#2b56b5', '#14306e'], ['#e
 // Mobile leans to the FRONT, Real to the BACK, Realish is even.
 export const GRID_BIAS = [-2.2, -1.1, 0, 1.1, 2.2];
 export function drawGridSlot(count: number) {
-  if (shared.mode === 'menu' || !count) return 0;
+  if (!count) return 0;
+  // (the menu race: pole; ?menurand - any slot, even odds)
+  if (shared.mode === 'menu') return FIX.menurand ? Math.floor(Math.random() * (count + 1)) : 0;
   const weights = [];
   for (let slot = 0; slot <= count; slot++)
     weights.push(Math.exp(GRID_BIAS[shared.aiDiff] * slot / count));

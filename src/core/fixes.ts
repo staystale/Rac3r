@@ -41,7 +41,7 @@ export function dialAtLoad(name: string): number {
 /** The switches under test, all off on the plain link. */
 export const FIX = {
   // ?menurand=1: the menu race runs on a random circuit, oval or rallycross track each time, the
-  // highway one time in five, with 5-20 cars (game/menuflow.ts menuLevel; AI R7 / K18, owner
-  // 11-07 "2. ok")
+  // highway one time in five, with 5-20 cars, the camera car on any grid slot (game/menuflow.ts
+  // menuLevel, game/grid.ts drawGridSlot; AI R7 / K18, owner 11-07 "2. ok")
   menurand: atLoad('menurand'),
 };

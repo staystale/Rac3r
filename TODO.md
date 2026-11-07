@@ -15,6 +15,8 @@ last handover, written on request.
    + a random FIELD of 5-20 cars (owner: "does the menu race vary the ai amount 5-20 randomly? if so
    pass"; ?menuai=N still sets it): _menucount.mjs 20 visits 5..20 cars, all spawned; _menurand.mjs
    14-20 cars, all moving, frames 17.7 ms (95 % under 18.5) on the laptop. Owner tests for lag.
+   + the camera car on ANY grid slot, even odds (owner: "is grid position randomised too for the
+   menu?" - it was always pole; game/grid.ts drawGridSlot): _menucount.mjs 20 visits P1..P20.
 3. BRANDS SNATCH INDY at real scale and 3/4 scale (OWNER IDEAS entry below).
 4. CARS (mockup first): every car LOOKS LIKE ITS REAL COUNTERPART - rework any that do not
    (owner: "reworking any cars that don't look like their real counter part"); a THIRD colour;
