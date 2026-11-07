@@ -55,4 +55,12 @@ export const TEST_LIST: TestEntry[] = [
   // passed 2026-11-07; indyscale decided 2026-11-07 (3/4, the 13 m road) and removed; carpaint,
   // carlooks, carreal (the car look: paint parts, rims, redraws, real shapes), partsoff, bigparts,
   // hwlanes, hwbales, f1aero passed 2026-11-07)
+  {
+    id: 'credits',
+    added: '2026-11-07',
+    name: 'A CREDITS button on the main menu',
+    where: 'Test link + &credits=1: the main menu, under SETTINGS',
+    try: 'Open CREDITS: map data, the traced circuit maps and the fonts, each with its licence.',
+    wrong: 'The button cut off or overlapping, text unreadable, a licence link dead, BACK lost.',
+  },
 ];

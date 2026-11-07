@@ -7,9 +7,27 @@ last handover, written on request.
 
 ## NEXT - ORDER AGREED 11-07 (owner: "ok let's do 1. first and proceed in this order")
 
-1. REWORK EVERY LEVEL TO 3/4 OF REAL SIZE (the NEXT BIG ONE entry below). PLAN WITH THE OWNER FIRST;
-   pilot ONE track (Brands Snatch Indy - traced to scale already: commit 58bfa07, the removed
-   world/levels/brands-indy-scale.ts) with its scenery resized, owner test, then the rest.
+1. REWORK EVERY LEVEL TO 3/4 OF REAL SIZE (the NEXT BIG ONE entry below). PLAN AGREED 11-07, IN
+   PROGRESS: the Brands VENUE pilot (GP + Indy together) behind ?bigbrands=1, then every other
+   track the same way once Brands passes. Owner 11-07: real boundaries, roads, grandstands, pits
+   ("one track like the real thing that can be modified simply to change like the real thing";
+   "the same / similar decorations around the track for both" layouts; "not every track is
+   adjustable"). So: ONE VENUE per circuit - every road piece exists every time, a layout is the
+   ordered list of pieces it races (the rest closed off at the junctions, as the real circuit
+   does), one set of scenery for every layout. Source: OpenStreetMap (tools/osmvenue.mjs ->
+   world/levels/venues/*.ts, real metres; the Brands OSM loops read 1929 / 3900 m vs the official
+   1944 / 3916 m), cross-checked with the MSV venue map (art/ref/bh-indy-msv.png) and Wikipedia;
+   the old trace sat ~11 m off the OSM line (bh2 px -> OSM: 0.656 m/px, turned 28 deg). Scaled
+   with the map: positions and the footprints of stands, garages, buildings, paddocks, traps,
+   woods. Real size: the 13 m road, pit lane width, kerbs, armco, tyre walls, marshal huts,
+   gantry. No polygon ground yet: traps = ribbons at the real traps' places / depths, paddocks =
+   turned rectangles (polygon ground only if the photos need it - ask first). Owner's answers:
+   rally stages IN, ovals MADE REAL (each to a real counterpart), lap counts kept (longer races),
+   test levels stay as they are ("we may eventually jazz these up").
+   CREDITS (owner 11-07: "add a credits button to the menu"): ?credits=1 UNDER TEST (menu/
+   credits.ts) - OpenStreetMap (ODbL) and the five traced Wikimedia maps (CC BY-SA) REQUIRE
+   attribution; add a line there with anything else the game takes from someone. Owner to say
+   what name the game itself is credited to (if any).
 2. NEW UK TRACKS at that scale (Snetterton, Donington Park, + Silverstone / Oulton Park) - names
    agreed first.
 3. ROLLING LOOK - smoother than the dice flip on the same physics; mockup first.

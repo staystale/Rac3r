@@ -40,4 +40,7 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
+  // ?credits=1: a CREDITS button on the main menu (menu/credits.ts: the traced maps, map data and
+  // fonts the game carries, with their licences; owner 11-07)
+  credits: atLoad('credits'),
 };

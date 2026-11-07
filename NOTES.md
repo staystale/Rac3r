@@ -238,6 +238,12 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
 - itch.io: pushed 10-24 on the owner's say-so (recipe in docs/foreman-handover.md; page photos:
   tools/scratch/_itchshots.mjs + _itchcover.mjs, uploaded by hand on the edit page); push again
   only when the owner says.
+- CIRCUITS ARE VENUES (11-07, owner): every level with a real counterpart at 3/4 of its real
+  length with the 13 m road, built like the real place - its roads, boundary, grandstands, pits,
+  paddocks - from OpenStreetMap, cross-checked with other sources ("use the internet and check
+  multiple places"). One venue per circuit: a layout is the list of road pieces it races, every
+  layout shares the venue's scenery. Brands first, then each track the same way. Credit what is
+  used (menu/credits.ts): OSM (ODbL) and traced Wikimedia maps (CC BY-SA) require it.
 - "Straight Outta Swindon" is a reserved name for a future highway level (the test straight that
   used it was removed 10-17).
 
