@@ -92,6 +92,9 @@ export function start() {
 // ?menurand: the kinds of track the menu race picks from (lapped racing - not the rally stages
 // or the test grounds), and the chance it is the highway
 const MENU_CATS = new Set(['circuits', 'ovals', 'rx']), HW_CHANCE = 0.2;
+// ?menurand: the field behind the menu, cars with the camera car, fewest .. most (owner 11-07:
+// "vary the ai amount 5-20 randomly")
+const FIELD_MIN = 5, FIELD_MAX = 20;
 
 /**
  * The menu race's track: ?menurand - a random circuit, oval or rallycross track, never the one
@@ -118,7 +121,10 @@ export function enterMenu() {
   shared.mode = 'menu';
   shared.paused = false;
   shared.started = true;
-  shared.aiCount = shared.DEMO_AI;
+  // (?menurand: a random field, FIELD_MIN .. FIELD_MAX cars; ?menuai=N still sets it)
+  const menuAi = FIX.menurand && !new URLSearchParams(location.search).has('menuai')
+    ? FIELD_MIN - 1 + Math.floor(Math.random() * (FIELD_MAX - FIELD_MIN + 1)) : shared.DEMO_AI;
+  shared.aiCount = menuAi;
   shared.aiDiff = shared.DEMO_DIFF;
   game.ai = [];
   game.start = { on: false, green: true, t: 0, tGreen: 0 };
@@ -137,7 +143,7 @@ export function enterMenu() {
   if (game.car.spec.id !== demoCar) selectCar(demoCar);
   if (profile) applyLivery(game.car.spec, (profile.livery || {})[demoCar]);
   shared.demo = createAIDriver(LEVEL,
-    aiTraits(shared.DEMO_DIFF, 2, shared.DEMO_AI + 1, 1 + Math.floor(Math.random() * 1e6)));
+    aiTraits(shared.DEMO_DIFF, 2, menuAi + 1, 1 + Math.floor(Math.random() * 1e6)));
 }
 /**
  * Applies the setup options of a launch (road, AI, race, traffic, litter) before the restart.

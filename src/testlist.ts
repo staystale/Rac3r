@@ -55,7 +55,7 @@ export const TEST_LIST: TestEntry[] = [
   {
     id: 'menurand',
     added: '2026-11-07',
-    name: 'The menu race on a random track each time - sometimes the highway',
+    name: 'The menu race on a random track each time, 5-20 cars - sometimes the highway',
     where: 'Test link + &menurand=1: the main menu, then back to it from a race a few times',
     try: 'Each visit to the menu races somewhere new; about one in five is the highway.',
     wrong: 'Always the same track, a long freeze opening the menu, or the camera car stuck.',

@@ -23,7 +23,10 @@ try {
       const openMs = performance.now() - t0;
       await new Promise((done) => setTimeout(done, 1500));
       let me = 0, them = 0, n = 0;
-      const moving = new Set();
+      const moving = new Set(), frames = [];
+      let last = performance.now(), on = true;
+      const tickFrame = (now) => { frames.push(now - last); last = now; if (on) requestAnimationFrame(tickFrame); };
+      requestAnimationFrame(tickFrame);
       for (let tick = 0; tick < 16; tick++) {
         await new Promise((done) => setTimeout(done, 500));
         me += Math.hypot(g.car.vx, g.car.vy);
@@ -33,12 +36,17 @@ try {
           if (v > 3) moving.add(entry);
         }
       }
-      return { level: g.level.id, road: g.level.roadType || '', openMs, me: me / 16 * 3.6,
+      on = false;
+      frames.sort((first, second) => first - second);
+      const frameMs = frames.reduce((sum, ms) => sum + ms, 0) / Math.max(1, frames.length);
+      const p95 = frames[Math.floor(frames.length * 0.95)] || 0;
+      return { frameMs, p95, level: g.level.id, road: g.level.roadType || '', openMs, me: me / 16 * 3.6,
         them: them / Math.max(1, n) * 3.6, ai: g.ai.length, moving: moving.size };
     });
     console.log(`visit ${visit + 1}: ${(res.level + (res.road ? ' ' + res.road : '')).padEnd(24)}`
       + ` open ${res.openMs.toFixed(0)} ms | camera car ${res.me.toFixed(0)} km/h | AI`
-      + ` ${res.them.toFixed(0)} km/h, ${res.moving} of ${res.ai} moving`);
+      + ` ${res.them.toFixed(0)} km/h, ${res.moving} of ${res.ai} moving | frame ${res.frameMs.toFixed(1)} ms`
+      + ` (95 % under ${res.p95.toFixed(1)})`);
     await page.screenshot({ path: `tools/scratch/_menurand-${visit + 1}.png` });
   }
   console.log(errors.length ? 'PAGE ERRORS ' + errors.slice(0, 3).join(' | ') : 'errors none');

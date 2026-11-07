@@ -12,6 +12,9 @@ last handover, written on request.
    each time (never the one just raced), the highway (a random road type) one time in five
    (game/menuflow.ts menuLevel). tools/scratch/_menurand.mjs, 10 visits: 8 tracks, the highway
    twice (interstate, dual), every camera car + 4 AI driving, the menu open in 0-165 ms, no errors.
+   + a random FIELD of 5-20 cars (owner: "does the menu race vary the ai amount 5-20 randomly? if so
+   pass"; ?menuai=N still sets it): _menucount.mjs 20 visits 5..20 cars, all spawned; _menurand.mjs
+   14-20 cars, all moving, frames 17.7 ms (95 % under 18.5) on the laptop. Owner tests for lag.
 3. BRANDS SNATCH INDY at real scale and 3/4 scale (OWNER IDEAS entry below).
 4. CARS (mockup first): every car LOOKS LIKE ITS REAL COUNTERPART - rework any that do not
    (owner: "reworking any cars that don't look like their real counter part"); a THIRD colour;
