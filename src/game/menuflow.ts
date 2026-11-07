@@ -4,7 +4,6 @@ import { createCones } from '../cones.ts';
 import { rulesSeen } from '../guide.ts';
 import { setHighwayPreset, HW_NAMES } from '../highway.ts';
 import { catOf } from '../world/levels/category.ts';
-import { FIX } from '../core/fixes.ts';
 import { createAIDriver } from '../ai/circuit.ts';
 import { aiTraits } from '../ai/traits.ts';
 import { setLevel } from "../world/load.ts";
@@ -89,20 +88,19 @@ export function start() {
     || (guideSetting !== '0' && !shared.guide.seen && !navigator.webdriver);
 }
 
-// ?menurand: the kinds of track the menu race picks from (lapped racing - not the rally stages
-// or the test grounds), and the chance it is the highway
+// THE MENU RACE (passed 11-07): the kinds of track it picks from (lapped racing - not the rally
+// stages or the test grounds), and the chance it is the highway
 const MENU_CATS = new Set(['circuits', 'ovals', 'rx']), HW_CHANCE = 0.2;
-// ?menurand: the field behind the menu, cars with the camera car, fewest .. most (owner 11-07:
+// the field behind the menu, cars with the camera car, fewest .. most (owner 11-07:
 // "vary the ai amount 5-20 randomly")
 const FIELD_MIN = 5, FIELD_MAX = 20;
 
 /**
- * The menu race's track: ?menurand - a random circuit, oval or rallycross track, never the one
+ * The menu race's track: a random circuit, oval or rallycross track, never the one
  * just raced; the highway (a random road type) one time in HW_CHANCE. Else Thruston.
  * @returns the level id
  */
 function menuLevel(): string {
-  if (!FIX.menurand) return shared.DEMO_LEVEL;
   const highway = LEVELS.find((level) => level.endless);
   if (highway && Math.random() < HW_CHANCE) {
     const roads = Object.keys(HW_NAMES);
@@ -122,8 +120,8 @@ export function enterMenu() {
   shared.renderer.setMenuView(true);
   shared.paused = false;
   shared.started = true;
-  // (?menurand: a random field, FIELD_MIN .. FIELD_MAX cars; ?menuai=N still sets it)
-  const menuAi = FIX.menurand && !new URLSearchParams(location.search).has('menuai')
+  // (a random field, FIELD_MIN .. FIELD_MAX cars; ?menuai=N still sets it)
+  const menuAi = !new URLSearchParams(location.search).has('menuai')
     ? FIELD_MIN - 1 + Math.floor(Math.random() * (FIELD_MAX - FIELD_MIN + 1)) : shared.DEMO_AI;
   shared.aiCount = menuAi;
   shared.aiDiff = shared.DEMO_DIFF;

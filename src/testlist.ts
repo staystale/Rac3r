@@ -51,13 +51,6 @@ export const TEST_LIST: TestEntry[] = [
   // aiweave (AI R2), jokerflow, aisliders (AI R3), hudlean,
   // aibands, puffroom, aigrip (AI R4 part 1), aidodge (AI R5),
   // ailines, ailook, dodgefar, markjump, halfcar, rejoinlook, hwshare, oneai (AI R8), brakeread
-  // passed 2026-11-04; wetrace, lineback, onroad, rejoinfast passed 2026-11-07)
-  {
-    id: 'menurand',
-    added: '2026-11-07',
-    name: 'The menu race: a random track, 5-20 cars, a random grid slot - sometimes the highway',
-    where: 'Test link + &menurand=1: the main menu, then back to it from a race a few times',
-    try: 'Each visit to the menu races somewhere new; about one in five is the highway.',
-    wrong: 'Always the same track, a long freeze opening the menu, or the camera car stuck.',
-  },
+  // passed 2026-11-04; wetrace, lineback, onroad, rejoinfast, menurand (AI R7)
+  // passed 2026-11-07)
 ];

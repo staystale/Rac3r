@@ -8,7 +8,7 @@ last handover, written on request.
 ## OWNER 11-07 - ORDER AGREED (owner: "1. ok 2. ok 3 ok")
 
 1. DONE 11-07: the GitHub `checks` workflow (below, Tools that are wrong).
-2. UNDER TEST 11-07: R7 ?menurand - the menu race on a random circuit / oval / rallycross track
+2. PASSED + DEFAULT 11-07 (owner: "pass"): R7 ?menurand - the menu race on a random circuit / oval / rallycross track
    each time (never the one just raced), the highway (a random road type) one time in five
    (game/menuflow.ts menuLevel). tools/scratch/_menurand.mjs, 10 visits: 8 tracks, the highway
    twice (interstate, dual), every camera car + 4 AI driving, the menu open in 0-165 ms, no errors.
