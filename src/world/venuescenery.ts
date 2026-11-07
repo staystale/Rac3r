@@ -38,6 +38,11 @@ const SMOOTH_REACH = 3, SMOOTH_PASSES = 3;
 // m: a service road keeps this far outside the edge; a piece of one shorter than MIN_ROAD_M once
 // cut is left out (a stub)
 const ROAD_OUT_M = 2, MIN_ROAD_M = 30;
+// m inside the edge beyond which a road is not stepped out (it crosses the run-off: cut there)
+const ROAD_STEP_LIMIT_M = 3;
+// m a stepped-out road keeps from the Armco beyond its half width (past nearArmco's reach: its
+// 2 m cells read up to two cells out)
+const ROAD_ARMCO_GAP_M = 4.5;
 // m: a road piece going nowhere is kept only this long; an end within JOIN_M of a lane meets it
 const LONE_ROAD_M = 90, JOIN_M = 3;
 // m: a bridge's approach and its width; a tunnel portal's distance outside the edge, its length
@@ -195,6 +200,24 @@ function nearArmco(site: Site, x: number, y: number, pad: number): boolean {
 }
 
 /**
+ * A point outside the edge but within need of it moved straight out until it is need outside;
+ * a point more than limit inside the edge (across the run-off or the track) stays where it is.
+ * @param site the venue's builders' state
+ * @param point the point
+ * @param need metres outside the edge it should stand
+ * @param limit metres inside the edge beyond which it is not moved
+ * @returns the point
+ */
+function stepOut(site: Site, point: Point, need: number, limit: number): Point {
+  const past = pastRim(site.rims, point[0], point[1]);
+  if (!Number.isFinite(past) || past >= need || past < -limit) return point;
+  const { sub, hit } = nearestLoop(site.loops, point[0], point[1]);
+  const centre = centreAt(sub, hit.trackDist), side = hit.side === 'left' ? 1 : -1;
+  const step = need - past;
+  return [point[0] + centre.nx * side * step, point[1] + centre.ny * side * step];
+}
+
+/**
  * Whether a point lies within pad of a building's turned box.
  * @param buildings the building props
  * @param x world x
@@ -230,7 +253,11 @@ function venueRoads(site: Site): Lane[] {
     const clear = (x: number, y: number) => pastRim(site.rims, x, y) > ROAD_OUT_M + width / 2
       && nearRace(site, x, y, REACH_M) && !onLanes(site.lanes, x, y, width / 2)
       && !inBuilding(site.buildings, x, y, width / 2 + 1) && !nearArmco(site, x, y, width / 2 + 1);
-    for (const run of clearRuns(placeAll(site, pts), clear))
+    // a road beside the track but too close to the edge (the game road is wider) steps out to
+    // clear it, as a building does; one that cuts across the run-off is cut there
+    const placed = resample(placeAll(site, pts), 2).map((point) =>
+      stepOut(site, point, ROAD_OUT_M + width / 2 + ROAD_ARMCO_GAP_M, ROAD_STEP_LIMIT_M));
+    for (const run of clearRuns(placed, clear))
       if (lineLength(run) >= MIN_ROAD_M) lanes.push({ pts: run, width, surface });
   };
   // the venue's own roads: the village streets next door (residential) are not its

@@ -57,18 +57,17 @@ export function drawParkedCar(propCtx: PropCtx, prop: Prop, ppm: number) {
   paint(-1.45, -halfW + 0.25, 0.5, CAR_WID_M - 0.5, '#1f2a36');
 }
 
-// a venue road bridge: m of the road on the deck, the edge beams, the footway; how far the
-// embankments run out beyond each end and how wide they spread at their foot
-const DECK_ROAD_M = 7, BEAM_M = 0.7, FOOTWAY_M = 1.4, BANK_OUT_M = 9, BANK_SPREAD_M = 5;
+// a venue road bridge: m of the road on the deck, the edge beams, the footway; how far each ramp
+// runs out beyond its end, in how many steps down, and its retaining walls' thickness
+const DECK_ROAD_M = 7, BEAM_M = 0.7, FOOTWAY_M = 1.4, RAMP_M = 9, RAMP_STEPS = 3,
+  RAMP_WALL_M = 0.4;
 // m: an abutment's depth along the road and its wing walls' reach out past the deck
 const ABUTMENT_M = 1.6, WING_M = 2.2;
-// an embankment's grass, from its foot to its crest
-const BANK_SHADES = ['#5d7a3e', '#6b8a47', '#7a9a52'];
 
 /**
- * Draws a venue's road bridge (world/venuescenery.ts, look 'venue'): grassed embankments carrying
- * the road up at both ends, concrete abutments with wing walls, the deck as a road on two edge
- * beams with a footway and white edge lines, expansion joints, its shadow on the track below.
+ * Draws a venue's road bridge (world/venuescenery.ts, look 'venue'): a ramp at each end (the road
+ * between concrete retaining walls), concrete abutments with wing walls, the deck as a road on two
+ * edge beams with a footway and white edge lines, expansion joints, its shadow on the track below.
  * Nose along +x (the road it carries); wid is the deck's span.
  * @param propCtx the view and painter helpers
  * @param prop the prop
@@ -81,15 +80,24 @@ export function drawVenueBridge(propCtx: PropCtx, prop: Prop, ppm: number) {
     ctx.fillStyle = col;
     ctx.fillRect(x * ppm, y * ppm, width * ppm, height * ppm);
   };
-  // the embankments: a darker foot, a lighter crest, stepped to read as a slope; the road on top
+  // the ramps: the road running on from each end between concrete retaining walls that step down
+  // (shorter and shorter shadows) to the ground
   const road = top + BEAM_M + FOOTWAY_M;
   for (const end of [-1, 1]) {
-    const from = end < 0 ? -half - ABUTMENT_M - BANK_OUT_M : half + ABUTMENT_M;
-    for (let step = 0; step < BANK_SHADES.length; step++) {
-      const spread = BANK_SPREAD_M * (1 - step / BANK_SHADES.length);
-      paint(from, top - spread, BANK_OUT_M, deck + 2 * spread, BANK_SHADES[step]);
+    const from = end < 0 ? -half - ABUTMENT_M - RAMP_M : half + ABUTMENT_M;
+    paint(from, road, RAMP_M, DECK_ROAD_M, '#3b3e44');
+    for (let step = 0; step < RAMP_STEPS; step++) {
+      // the step nearest the deck first: its wall's shadow the longest
+      const near = end < 0 ? from + RAMP_M * (1 - (step + 1) / RAMP_STEPS)
+        : from + RAMP_M * step / RAMP_STEPS;
+      const shade = 0.3 * (1 - step / RAMP_STEPS);
+      for (const wallY of [road - RAMP_WALL_M, road + DECK_ROAD_M]) {
+        paint(near, wallY, RAMP_M / RAMP_STEPS, RAMP_WALL_M, '#a9a7a0');
+        ctx.fillStyle = `rgba(10,12,16,${shade.toFixed(2)})`;
+        ctx.fillRect(near * ppm, (wallY + RAMP_WALL_M) * ppm, (RAMP_M / RAMP_STEPS) * ppm,
+          0.6 * ppm);
+      }
     }
-    paint(from, road, BANK_OUT_M, DECK_ROAD_M, '#3b3e44');
   }
   // the deck's shadow on the track (the sun from the top left)
   ctx.fillStyle = 'rgba(10,12,16,0.38)';
@@ -107,7 +115,7 @@ export function drawVenueBridge(propCtx: PropCtx, prop: Prop, ppm: number) {
   paint(-half, top + BEAM_M, 2 * half, FOOTWAY_M, '#c4c1b9');
   paint(-half, road, 2 * half, DECK_ROAD_M, '#3b3e44');
   for (const lineY of [road + 0.35, road + DECK_ROAD_M - 0.5])
-    paint(-half - ABUTMENT_M - BANK_OUT_M, lineY, 2 * (half + ABUTMENT_M + BANK_OUT_M), 0.15,
+    paint(-half - ABUTMENT_M - RAMP_M, lineY, 2 * (half + ABUTMENT_M + RAMP_M), 0.15,
       'rgba(245,245,240,0.75)');
   for (const jointX of [-half + 0.6, half - 0.9])
     paint(jointX, road, 0.3, DECK_ROAD_M, '#25272b');
