@@ -17,6 +17,7 @@ import { HALF_ROAD, VENUE_ROAD_M, centreAt, clearRuns, distToLine, lineLength, m
 import { boardOnArmco, buildCatchFences, buildEdge, buildRims, inZones, marshalPosts,
   outlineZone, pastRim, trapZones } from "./venueedge.ts";
 import type { Rim } from "./venueedge.ts";
+import { joinApproaches } from "./venuejoin.ts";
 import type { VenueBox, VenueBuild } from "./venue.ts";
 import type { Barrier, Cone, Lane, Paint, Point, Prop, Subtrack, Zone } from "./types.ts";
 
@@ -47,8 +48,6 @@ const ROAD_ARMCO_GAP_M = 4.5;
 const LONE_ROAD_M = 90, JOIN_M = 3;
 // m: a bridge's approach and its width; a tunnel portal's distance outside the edge, its length
 const APPROACH_M = 8, APPROACH_W = 6, PORTAL_OUT_M = 3, PORTAL_LEN_M = 9;
-// m beyond a deck's end a road is looked for to join its approach to
-const JOIN_REACH_M = 40;
 // m: tunnels crossing the track this close together are one tunnel
 const SAME_TUNNEL_M = 12;
 // m: a building stays this far outside the edge (moved out in NUDGE_STEP_M steps)
@@ -345,31 +344,6 @@ function venueBridges(site: Site): { props: Prop[]; lanes: Lane[] } {
       ] });
   }
   return { props, lanes };
-}
-
-/**
- * Each road bridge's approaches joined to its roads: from the deck's end straight to the nearest
- * point of a road beyond it (within JOIN_REACH_M, ahead of the deck), so the road it carries runs
- * on and off it; left as a short ramp when no road is there.
- * @param bridges the bridges (props and their approach lanes, two a road bridge, in order)
- * @param roads the service roads
- */
-function joinApproaches(bridges: { props: Prop[]; lanes: Lane[] }, roads: Lane[]): void {
-  let lane = 0;
-  for (const bridge of bridges.props.filter((prop) => prop.kind === 'bridge'))
-    for (const side of [-1, 1]) {
-      const approach = bridges.lanes[lane++];
-      const dirX = Math.cos(bridge.rot!) * side, dirY = Math.sin(bridge.rot!) * side;
-      const [fromX, fromY] = approach.pts[0];
-      let best: Point | null = null, bestDist = JOIN_REACH_M;
-      for (const road of roads)
-        for (const [x, y] of road.pts) {
-          const ahead = (x - fromX) * dirX + (y - fromY) * dirY;
-          const gap = Math.hypot(x - fromX, y - fromY);
-          if (ahead > 0 && gap < bestDist && ahead > gap * 0.5) { bestDist = gap; best = [x, y]; }
-        }
-      if (best) approach.pts = [approach.pts[0], best];
-    }
 }
 
 /**

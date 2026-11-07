@@ -2,6 +2,7 @@
 // where a road or path dives under the track (concrete side walls, the ramp darkening into the
 // mouth, a lintel over it) and a PARKED CAR in the car parks. Drawn in the props' frame: x along
 // the prop's rot, metres times ppm.
+import { COL } from '../../world/colours.ts';
 import type { Prop } from '../../world/types.ts';
 import type { PropCtx } from './types.ts';
 
@@ -84,17 +85,19 @@ export function drawVenueBridge(propCtx: PropCtx, prop: Prop, ppm: number) {
   // (shorter and shorter shadows) to the ground
   const road = top + BEAM_M + FOOTWAY_M;
   for (const end of [-1, 1]) {
-    const from = end < 0 ? -half - ABUTMENT_M - RAMP_M : half + ABUTMENT_M;
-    paint(from, road, RAMP_M, DECK_ROAD_M, '#3b3e44');
+    // each end's ramp as long as its approach needs (world/venuescenery.ts sets appL)
+    const ramp = (prop.appL && prop.appL[end < 0 ? 0 : 1]) ?? RAMP_M;
+    const from = end < 0 ? -half - ABUTMENT_M - ramp : half + ABUTMENT_M;
+    paint(from, road, ramp, DECK_ROAD_M, COL.tarmac);
     for (let step = 0; step < RAMP_STEPS; step++) {
       // the step nearest the deck first: its wall's shadow the longest
-      const near = end < 0 ? from + RAMP_M * (1 - (step + 1) / RAMP_STEPS)
-        : from + RAMP_M * step / RAMP_STEPS;
+      const near = end < 0 ? from + ramp * (1 - (step + 1) / RAMP_STEPS)
+        : from + ramp * step / RAMP_STEPS;
       const shade = 0.3 * (1 - step / RAMP_STEPS);
       for (const wallY of [road - RAMP_WALL_M, road + DECK_ROAD_M]) {
-        paint(near, wallY, RAMP_M / RAMP_STEPS, RAMP_WALL_M, '#a9a7a0');
+        paint(near, wallY, ramp / RAMP_STEPS, RAMP_WALL_M, '#a9a7a0');
         ctx.fillStyle = `rgba(10,12,16,${shade.toFixed(2)})`;
-        ctx.fillRect(near * ppm, (wallY + RAMP_WALL_M) * ppm, (RAMP_M / RAMP_STEPS) * ppm,
+        ctx.fillRect(near * ppm, (wallY + RAMP_WALL_M) * ppm, (ramp / RAMP_STEPS) * ppm,
           0.6 * ppm);
       }
     }
@@ -113,9 +116,11 @@ export function drawVenueBridge(propCtx: PropCtx, prop: Prop, ppm: number) {
   paint(-half, top, 2 * half, 0.25, '#d8d5cd');
   paint(-half, top + deck - 0.25, 2 * half, 0.25, '#7c7a74');
   paint(-half, top + BEAM_M, 2 * half, FOOTWAY_M, '#c4c1b9');
-  paint(-half, road, 2 * half, DECK_ROAD_M, '#3b3e44');
+  paint(-half, road, 2 * half, DECK_ROAD_M, COL.tarmac);
+  // the edge lines over the deck and both ramps
+  const [rampNeg, rampPos] = prop.appL || [RAMP_M, RAMP_M];
   for (const lineY of [road + 0.35, road + DECK_ROAD_M - 0.5])
-    paint(-half - ABUTMENT_M - RAMP_M, lineY, 2 * (half + ABUTMENT_M + RAMP_M), 0.15,
+    paint(-half - ABUTMENT_M - rampNeg, lineY, 2 * (half + ABUTMENT_M) + rampNeg + rampPos, 0.15,
       'rgba(245,245,240,0.75)');
   for (const jointX of [-half + 0.6, half - 0.9])
     paint(jointX, road, 0.3, DECK_ROAD_M, '#25272b');
