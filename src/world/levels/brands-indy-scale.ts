@@ -2,9 +2,9 @@
 // ok"): two TEST levels - the Indy layout at REAL scale and at 3/4 - to feel whether the circuits'
 // 0.48-of-real scale (corners tighter than real) is right ("the full size might be too big still
 // but who knows"). The track surface, its kerbs, the hills and a grid for the AI to race; no
-// scenery. The same traced map as Brands Snatch (art/ref/bh2.png, 0.652 real m a pixel), the
-// same 13 m road (the cars are real size), everything else - places, hill reach and height -
-// scaled with it, so the slopes are the game's own.
+// scenery. The same traced map as Brands Snatch (art/ref/bh2.png), EVERYTHING scaled - the lap,
+// the ROAD WIDTH (owner 11-07: "give me the 3/4 and full scale with track width included"), the
+// hills' reach and height (so the slopes are the game's own).
 import { createSubtrack, autoKerbs, traceTrack } from "../subtrack.ts";
 import { SURFACES } from "../surfaces.ts";
 import { prepBumps } from "../terrain.ts";
@@ -12,8 +12,12 @@ import { onTrack } from "../tyrewall.ts";
 import { BH_TOP, BH_INDY, BH_MPP } from "./brands-snatch.ts";
 import type { Bump, Level, Point } from "../types.ts";
 
-// real m a map pixel (300 m = 460 px)
-const REAL_MPP = 0.652;
+// real m a map pixel: the map's scale bar (300 m = 460 px) says 0.652, which traces a 1921 m lap;
+// the real Indy is 1944 m (Wikipedia, 2003-), so the bar reads 1.2 % short - calibrated to the lap
+const REAL_MPP = 0.652 * 1944 / 1921;
+// m: the real Indy's width (yourdatadriven.com Indy track guide; the only figure found - the GP
+// is quoted 9-15 m)
+const REAL_WIDTH_M = 9;
 // m of grass round the track's extent to the floor's edge
 const MARGIN_M = 60;
 // the hills on the Indy loop, in map pixels, at the game's scale (brands-snatch.ts BH_HILLS):
@@ -33,11 +37,12 @@ const INDY_HILLS: { kind: 'dip' | 'hump'; at: Point; r: number; size: number }[]
  */
 function indyAtScale(levelId: string, name: string, scale: number): Level {
   const mapPts = [...BH_TOP, ...BH_INDY], mpp = REAL_MPP * scale, grow = mpp / BH_MPP;
+  const width = REAL_WIDTH_M * scale;
   // centred on the layout's own middle (the Brands map's centre is the GP's)
   const mapXs = mapPts.map(([x]) => x), mapYs = mapPts.map(([, y]) => y);
   const midX = (Math.min(...mapXs) + Math.max(...mapXs)) / 2;
   const midY = (Math.min(...mapYs) + Math.max(...mapYs)) / 2;
-  const sub = createSubtrack(traceTrack(mapPts, { mpp, cx: midX, cy: midY, rMin: 15.5 }), 13,
+  const sub = createSubtrack(traceTrack(mapPts, { mpp, cx: midX, cy: midY, rMin: 15.5 }), width,
     [{ startDist: 0, endDist: 1e9, surface: SURFACES.racetarmac }], [], true);
   sub.curvedKerbs = autoKerbs(sub, { maxR: 70, exitR: 30, heavyR: 22, minTurn: 20, mergeGap: 12 });
   const bumps: Bump[] = INDY_HILLS.map((hill) => ({ kind: hill.kind,
@@ -53,7 +58,7 @@ function indyAtScale(levelId: string, name: string, scale: number): Level {
     camber: { maxDeg: 3, refR: 70, crown: 0.02, edge: 6, sections: [] },
     zones: [], covers: [], bumps: prepBumps(bumps), boards: [], seams: false, cones: [],
     props: [], barriers: [], lanes: [],
-    paint: [{ kind: 'chequered', x: sub.pts[0].x, y: sub.pts[0].y, len: 1.6, wid: 13,
+    paint: [{ kind: 'chequered', x: sub.pts[0].x, y: sub.pts[0].y, len: 1.6, wid: width,
       rot: sub.pts[0].heading }],
     spawn: { x: start.x, y: start.y, heading: start.rot },
   } as Level;

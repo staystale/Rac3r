@@ -21,12 +21,14 @@ last handover, written on request.
    is off set too much"): no road-ahead lead there (render/camera.ts, CamState.menuView) - the car
    in the middle, not 3/4 down (_menurand-2 / -5 shots).
 3. UNDER TEST 11-07: ?indyscale - BRANDS SNATCH INDY at real scale and 3/4 (two TEST levels in TEST
-   GROUNDS: world/levels/brands-indy-scale.ts - the same traced map at 0.652 / 0.489 m a pixel, the
-   13 m road, kerbs, the Indy hills scaled with it (same slopes), a grid; no scenery, a floor
-   rectangle 60 m past the road). Laps 902 (today) / 1441 / 1921 m (real: 1944). Real game, 10 AI,
-   90 s (_ovalfield.mjs): 70 / 84 / 97 km/h, off the track 8.9 / 9.4 / 6.4 %, spins 0 / 3 / 3,
-   56 fps; shots _indy-real-close / -mid. (At zoom 0.1 the photo tool shows road gaps on every
-   level, the normal Indy too - not these levels.)
+   GROUNDS: world/levels/brands-indy-scale.ts) - EVERYTHING scaled incl. the ROAD WIDTH (owner:
+   "double check the scale ... with track width included"): the map's scale bar traced a 1921 m
+   lap vs the real 1944 m, so calibrated to the lap (0.660 m a px); width 9 m real (the one figure
+   found, an Indy track guide) -> 9 / 6.75 m. Laps 1944 / 1458 m (today's Indy 902 m, 13 m wide).
+   Kerbs, the Indy hills scaled (same slopes), a grid; no scenery. Real game, 10 AI, 90 s: 3/4 87
+   km/h, off 6.4 %, 0 spins; real 95 km/h, off 10.3 %, 6 spins, one 13 s trip (one race, noisy);
+   56 fps. Shots _brands-indy-34-grid / _brands-indy-real-race (2 wide / 2-3 abreast). (At zoom 0.1
+   the photo tool shows road gaps on every level, the normal Indy too - not these levels.)
 4. CARS (mockup first): every car LOOKS LIKE ITS REAL COUNTERPART - rework any that do not
    (owner: "reworking any cars that don't look like their real counter part"); a THIRD colour;
    EVERY car has at least TWO decoratable parts; RIM COLOUR ("so we know it was yours when you
