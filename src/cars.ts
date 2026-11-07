@@ -12,7 +12,7 @@
 
 import { FIX } from './core/fixes.ts';
 import { PAINT_STOCK, rimColour } from './carpaint.ts';
-import { CAR_REAL } from './carreal.ts';
+import { F1_AERO } from './carreal.ts';
 import type { Mark, Spray } from './world/types.ts';
 import { dragOf, realCurve, tyreR } from './realcars.ts';
 
@@ -787,9 +787,8 @@ export type Spec = typeof SHARED & RosterRow
 
 export function spec(carId: string): Spec {
   const row = ROSTER.find((car) => car.id === carId) || ROSTER[0];
-  // (?carpaint: the new paint parts' stock; ?carreal: every car's real size etc - carreal.ts)
-  const out = { ...SHARED, ...row, ...(FIX.carpaint ? PAINT_STOCK[row.id] : {}),
-    ...(FIX.carreal ? CAR_REAL[row.id] : {}) } as Spec;
+  const out = { ...SHARED, ...row, ...(FIX.carpaint ? PAINT_STOCK[row.id] : {}),   // (carpaint.ts)
+    ...(FIX.f1aero ? F1_AERO[row.id] : {}) } as Spec;   // (?f1aero: the F1 / F2 aero - carreal.ts)
   out.L = out.lf + out.lr;
   out.Izz = ((out.mass * (out.len * out.len + out.wid * out.wid)) / 12) * out.izzK;
   // a car with its own factory set leaves the garage on it

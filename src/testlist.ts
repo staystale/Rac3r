@@ -72,9 +72,17 @@ export const TEST_LIST: TestEntry[] = [
   {
     id: 'carreal',
     added: '2026-11-07',
-    name: 'Every car at its real size; F1 / F2 real downforce, brakes and wheel weight',
+    name: 'Every car drawn in its real shape at its own size - the driving as it was',
     where: 'Test link + &carreal=1&carlooks=1&carpaint=1: drive the F1, the Golf, the Chevelle',
-    try: 'Fast corners much faster, braking much harder, a longer car that still fits the tracks.',
-    wrong: 'Spinning on the brakes, the AI lost or crashing on tight bends, wheels in odd places.',
+    try: 'Each car should look like its real car; nothing drives any differently.',
+    wrong: 'A car that looks wrong for its real one, a car drawn off its own size.',
+  },
+  {
+    id: 'f1aero',
+    added: '2026-11-07',
+    name: 'F1 / F2 real downforce, brakes and wheel weight',
+    where: 'Test link + &f1aero=1: drive the F1, race an F1 field',
+    try: 'Fast corners much faster and much harder braking at speed (no ABS: do not stamp it).',
+    wrong: 'Locking and spinning on the brakes, the AI crashing much more.',
   },
 ];

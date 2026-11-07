@@ -112,6 +112,12 @@ last handover, written on request.
    114); not stale carstats (re-measured: F1 gripG 1.83 -> 1.87). LIKELY ROOT: the tracks are
    0.41-0.48 of real, so a real-size car is ~2x too big for them (the 3/4 track rework). Owner to
    decide: wait for the tracks, ship and accept, or dig into the AI.
+   OWNER: "stop - the cars need to match the sizes they were ish but in proportional shape to size,
+   or it'll change too much". ?carreal is now DRAWING ONLY: each car drawn in its real car's
+   proportions at its own length (render/cars.ts drawnSpec, carreal.ts realShape), the physics as
+   it was (CARREAL=1 simhash SAME), the tyres drawn to the same scale. (The real shape in the
+   physics, tried: F1 56 -> 90 incidents - its track 1.85 -> 1.27 m; Chevelle 30 -> 46; Golf 22 ->
+   20.) ?f1aero apart: the F1 / F2 real downforce, brakes, wheel weight (carreal.ts F1_AERO).
 
 Then, to work through when it fits (owner 11-07, not ordered):
 - HIGHWAY LINE: "does the ai need a racing line on highway? if not can we get rid of it - it's

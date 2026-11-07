@@ -2,6 +2,7 @@
 import { FIX } from '../core/fixes.ts';
 import { STOCK_RIM } from '../render/wheelface.ts';
 import { TYRE_LOOK } from '../carpaint.ts';
+import { realScale } from '../carreal.ts';
 import { hwLevel, hwFlow } from './state.ts';
 import { step, reset, assertFinite, PHYSICS_STEP_SECONDS } from '../vehicle.ts';
 import { stepHighway, highwayGuard, highwayRespawn, speedCamera } from '../highway.ts';
@@ -462,15 +463,20 @@ export function stepLooseCones(tcars: TrafficVehicle[]) {
  * @param spec.rim its rim colour
  * @param spec.spokes its spoke pattern
  * @param spec.id its car
+ * @param spec.len its length, m
  * @param corner the wheel (0, 1 front)
  * @returns the loose wheel's rim fields, or none
  */
-function looseRim(spec: { id: string; rim?: string; spokes?: string }, corner: number) {
+function looseRim(spec: { id: string; len: number; rim?: string; spokes?: string },
+  corner: number) {
   if (!FIX.carpaint) return {};
   // (?carlooks: its real tyre and rim - carpaint.ts TYRE_LOOK)
-  const real = FIX.carlooks ? TYRE_LOOK[String(spec.id).split('#')[0]] : undefined;
+  const base = String(spec.id).split('#')[0], real = FIX.carlooks ? TYRE_LOOK[base] : undefined;
+  // (to the car's own scale - carreal.ts realScale)
+  const scale = realScale(base, spec.len);
   return { rimCol: spec.rim || STOCK_RIM, spokes: spec.spokes || '',
-    ...(real ? { wheelD: real.dia, rimD: real.rim, tyreW: corner < 2 ? real.wF : real.wR } : {}) };
+    ...(real ? { wheelD: real.dia * scale, rimD: real.rim * scale,
+      tyreW: (corner < 2 ? real.wF : real.wR) * scale } : {}) };
 }
 
 /**

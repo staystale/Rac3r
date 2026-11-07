@@ -9,6 +9,7 @@ import {
   drawWheelFace, SPOKES, STOCK_RIM, OLD_WHEEL, realWheel, faceSize, type WheelGeo,
 } from '../render/wheelface.ts';
 import { SPRITE_PPM } from '../render/shared.ts';
+import { realScale } from '../carreal.ts';
 import { FIX } from '../core/fixes.ts';
 import { CAR_STATS } from '../carstats.ts';
 import type { CarStat } from '../ai/types.ts';
@@ -331,7 +332,9 @@ function spokesRow(menu: Menu, right: HTMLElement, pick: (choice: string) => voi
  */
 function wheelGeo(carId: string): WheelGeo {
   const real = FIX.carlooks ? TYRE_LOOK[carId] : undefined;
-  return real ? realWheel(real.dia, real.rim, SPRITE_PPM) : OLD_WHEEL;
+  // (to the car's own scale - carreal.ts realScale)
+  const len = ROSTER.find((row) => row.id === carId)?.len ?? 4;
+  return real ? realWheel(real.dia, real.rim, SPRITE_PPM * realScale(carId, len)) : OLD_WHEEL;
 }
 
 /**

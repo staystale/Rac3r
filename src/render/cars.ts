@@ -1,6 +1,7 @@
 // The CARS layer of the renderer: drawPixelCar and the garage lift sprite.
 import { FIX } from "../core/fixes.ts";
 import { TYRE_LOOK } from "../carpaint.ts";
+import { realScale, realShape } from "../carreal.ts";
 import { SPRITE_PPM } from "./shared.ts";
 import { DAYLIGHT } from "../world/daylight.ts";
 import { REVERSE_LAMP, isReversing } from "./reverselights.ts";
@@ -42,6 +43,18 @@ function wheelMetrics(spec: RenderCarSpec, sprite: CarSprite) {
 }
 
 /**
+ * ?carreal: the car as it is DRAWN - its real car's proportions at its own length (width,
+ * wheelbase, track: carreal.ts realShape); the physics keeps the roster's (owner 11-07: "match the
+ * sizes they were ish but in proportional shape" - the real shape in the physics crashed AI fields
+ * more: F1 56 -> 90 incidents, Chevelle 30 -> 46).
+ * @param spec the car spec
+ * @returns the spec to draw
+ */
+export function drawnSpec<T extends RenderCarSpec>(spec: T): T {
+  return FIX.carreal ? { ...spec, ...realShape(String(spec.id).split('#')[0], spec.len) } : spec;
+}
+
+/**
  * A tyre's size from above, px: its length (diameter) and width. ?carlooks: the REAL tyre
  * (carpaint.ts TYRE_LOOK - front and rear widths apart, the tractor's four the same); else the
  * old blocks (a road car 11 x 4, an open-wheeler 14 x 6, the tractor's big rears 20 x 7).
@@ -50,9 +63,11 @@ function wheelMetrics(spec: RenderCarSpec, sprite: CarSprite) {
  * @returns the length and width
  */
 export function tyreBox(spec: RenderCarSpec, rear: boolean) {
-  const real = FIX.carlooks ? TYRE_LOOK[String(spec.id).split('#')[0]] : undefined;
-  if (real) return { len: Math.round(real.dia * SPRITE_PPM),
-    wid: Math.max(2, Math.round((rear ? real.wR : real.wF) * SPRITE_PPM)) };
+  const base = String(spec.id).split('#')[0], real = FIX.carlooks ? TYRE_LOOK[base] : undefined;
+  // (to the car's own scale: its length against the real car's - carreal.ts realScale)
+  const ppm = SPRITE_PPM * realScale(base, spec.len);
+  if (real) return { len: Math.round(real.dia * ppm),
+    wid: Math.max(2, Math.round((rear ? real.wR : real.wF) * ppm)) };
   const big = spec.kind === 'tractor' && rear;
   return { len: big ? 20 : spec.kind === 'track' ? 14 : spec.kind === 'tractor' ? 15 : 11,
     wid: big ? 7 : spec.kind === 'track' ? 6 : 4 };
@@ -117,7 +132,7 @@ function drawCarWheel(
  */
 function drawCarWheels(carsCtx: CarsContext, car: RenderCar, sprite: CarSprite) {
   const { view } = carsCtx;
-  const spec = car.spec;
+  const spec = drawnSpec(car.spec);
   const metrics = wheelMetrics(spec, sprite);
   const { halfWidth } = metrics;
   const turn = car.tyreP ? wheelTurn(car, performance.now()) : 0;
@@ -256,7 +271,7 @@ function drawCarLamps(carsCtx: CarsContext, car: RenderCar, sprite: CarSprite) {
  */
 function drawPixelCar(carsCtx: CarsContext, car: RenderCar, heading = car.heading) {
   const { view, PPMz, toScreenX, toScreenY, pixelCar, damagedSprite, silhouette } = carsCtx;
-  const spec = car.spec, sp0 = pixelCar(spec),
+  const spec = drawnSpec(car.spec), sp0 = pixelCar(spec),
     sprite = car.dmg ? damagedSprite(car, sp0) : sp0, scale = PPMz() / SPRITE_PPM;
   view.ctx.save();
   view.ctx.translate(toScreenX(car.x), toScreenY(car.y));
@@ -294,7 +309,7 @@ function pixelCarWithWheels(carsCtx: CarsContext, spec: RenderCarSpec) {
   const key = 'wheels:' + spec.id + spec.paint + spec.trim + (spec.third || '') + (spec.rim || '')
     + (spec.num || 0);
   if (faceCache.has(key)) return faceCache.get(key);
-  const sprite = pixelCar(spec), carSpec = spec;
+  const carSpec = drawnSpec(spec), sprite = pixelCar(carSpec);
   const halfWidth = Math.max((carSpec.trackWidth || 1.5) / 2 * SPRITE_PPM, sprite.Wp / 2)
     + (carSpec.kind === 'track' ? 1 : 0);
   const padY = Math.max(0, Math.ceil(halfWidth + 4 - sprite.Wp / 2)),
@@ -349,7 +364,7 @@ const PICTURE_PAD = 14;
 function paintCarPicture(carsCtx: CarsContext, car: RenderCar, picture: CarPicture,
     enlarge: number) {
   const { view, pixelCar } = carsCtx;
-  const sprite = pixelCar(car.spec);
+  const sprite = pixelCar(drawnSpec(car.spec));
   const pad = PICTURE_PAD + (car.roll && car.roll.phi ? sprite.Wp : 0);
   const back = Math.ceil(sprite.Lp / 2 + pad);
   const ahead = Math.ceil(sprite.Lp / 2 + pad);
