@@ -338,8 +338,8 @@ export function doRestart() {
       reset(game.car, slotPos.x, slotPos.y, slotPos.h);
       if (shared.renderer && shared.renderer.snap) shared.renderer.snap(game.car);
     }
-    game.traffic.reset(LEVEL.endless && shared.mode !== 'menu' ? hwLevel() : null,
-      shared.trafficDensity);
+    // (the menu race too - owner 11-07: "no traffic on menu highway races?")
+    game.traffic.reset(LEVEL.endless ? hwLevel() : null, shared.trafficDensity);
     if (LEVEL.endless && game.ai.length) {
       const [spanStart, spanEnd] = hwGridSpan(hwLevel(), game.ai.length + 1);
       game.traffic.clearSpan(spanStart, spanEnd);

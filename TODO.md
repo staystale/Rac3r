@@ -178,8 +178,9 @@ last handover, written on request.
    rolling"): car.sparks cleared when the roll ends back on the wheels (only a reset did), none
    while on its wheels mid-tumble, the ground read under the car (was the surface it tipped over
    on): _rollspark.mjs - 0 sparking steps on grass, 0 after landing. HIGHWAY BALES ("I hit one and
-   it was hard"): UNDER TEST ?hwbales - loose objects as everywhere else (highway/fields.ts
-   addBale; were solid props): _hwbale.mjs, a 90 km/h hit bursts one into straw.
+   it was hard"): PASSED + DEFAULT 11-07 (owner: "nice flip that") - loose objects as everywhere else (highway/fields.ts
+   addBale; were solid props): _hwbale.mjs, a 90 km/h hit bursts one into straw. MENU HIGHWAY TRAFFIC ("no traffic on menu highway
+   races?"): on - it was left out when the menu raced only circuits (game/session.ts).
 
 Then, to work through when it fits (owner 11-07, not ordered):
 - HIGHWAY LINE: "does the ai need a racing line on highway? if not can we get rid of it - it's

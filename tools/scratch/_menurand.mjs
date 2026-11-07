@@ -14,11 +14,14 @@ try {
   page.on('pageerror', (error) => errors.push(error.message));
   await gotoGame(page, `${server.url}/?touch=1&guide=0&menu=1&rules=0&noaudio=1&${query}`);
   await page.waitForTimeout(4000);
+  if (process.env.HW) await page.evaluate(() => { window.__hwOnly = true; });
   for (let visit = 0; visit < +visitArg; visit++) {
     const res = await page.evaluate(async () => {
       const g = window.__game, flow = await import('/src/game/menuflow.ts');
       const t0 = performance.now();
       if (g.mode !== 'menu' || window.__visited) flow.enterMenu();
+      // (HW=1: on until the menu race is on the highway)
+      for (let k = 0; window.__hwOnly && !g.level.endless && k < 40; k++) flow.enterMenu();
       window.__visited = true;
       const openMs = performance.now() - t0;
       await new Promise((done) => setTimeout(done, 1500));
@@ -41,11 +44,11 @@ try {
       const frameMs = frames.reduce((sum, ms) => sum + ms, 0) / Math.max(1, frames.length);
       const p95 = frames[Math.floor(frames.length * 0.95)] || 0;
       return { frameMs, p95, level: g.level.id, road: g.level.roadType || '', openMs, me: me / 16 * 3.6,
-        them: them / Math.max(1, n) * 3.6, ai: g.ai.length, moving: moving.size };
+        them: them / Math.max(1, n) * 3.6, ai: g.ai.length, moving: moving.size, traffic: (g.traffic.list || g.traffic.cars || []).length };
     });
     console.log(`visit ${visit + 1}: ${(res.level + (res.road ? ' ' + res.road : '')).padEnd(24)}`
       + ` open ${res.openMs.toFixed(0)} ms | camera car ${res.me.toFixed(0)} km/h | AI`
-      + ` ${res.them.toFixed(0)} km/h, ${res.moving} of ${res.ai} moving | frame ${res.frameMs.toFixed(1)} ms`
+      + ` ${res.them.toFixed(0)} km/h, ${res.moving} of ${res.ai} moving, ${res.traffic} traffic | frame ${res.frameMs.toFixed(1)} ms`
       + ` (95 % under ${res.p95.toFixed(1)})`);
     await page.screenshot({ path: `tools/scratch/_menurand-${visit + 1}.png` });
   }

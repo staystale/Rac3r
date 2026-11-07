@@ -1,6 +1,5 @@
 // highway fields: SCENERY v2, the farm fields, hedges and villages laid along the road.
 // Split out of highway.ts.
-import { FIX } from '../core/fixes.ts';
 import { SURFACES } from "../world/surfaces.ts";
 import { STEP } from "./presets.ts";
 import { keepOut } from "./cuts.ts";
@@ -282,17 +281,16 @@ function addFieldTrees(level: HwLevel, plot: Plot, rand: () => number) {
   }
 }
 /**
- * A hay bale in a field: ?hwbales - a LOOSE object, as on every other level (250 kg, nudged, burst
- * into straw if hit hard - cones/coneCar.ts; owner 11-07: "highway hay bails are they the same ones
- * that can be nudged around / popped ... I think I hit one and it was hard"); was a solid prop.
- * @param level the highway level
+ * A hay bale in a field: a LOOSE object (passed 11-07), as on every other level (250 kg, nudged,
+ * burst into straw if hit hard - cones/coneCar.ts; owner 11-07: "highway hay bails are they the
+ * same ones that can be nudged around / popped ... I think I hit one and it was hard"); was a
+ * solid prop.
  * @param loose where the loose objects go
  * @param place its place, field and road distance
  */
-function addBale(level: HwLevel, loose: LevelObj[], place: { x: number; y: number; field: number;
+function addBale(loose: LevelObj[], place: { x: number; y: number; field: number;
   _s: number }) {
-  if (FIX.hwbales) loose.push({ kind: 'bale', rot: 0, ...place });
-  else level.props.push({ kind: 'bale', ...place });
+  loose.push({ kind: 'bale', rot: 0, ...place });
 }
 
 /**
@@ -307,7 +305,7 @@ function addFieldBales(level: HwLevel, plot: Plot, rand: () => number, loose: Le
   if (type === "wheat" && rand() < 0.45)
     for (let num = 3 + ((rand() * 4) | 0); num > 0; num--) {
       const [x, y] = fieldInside(plot, rand, 5);
-      addBale(level, loose, { x, y, field: fieldId, _s: dist });
+      addBale(loose, { x, y, field: fieldId, _s: dist });
     }
 }
 /**
@@ -353,7 +351,7 @@ function addFieldYard(level: HwLevel, plot: Plot, rand: () => number, loose: Lev
     }
     for (let num = 2 + ((rand() * 4) | 0); num > 0; num--) {
       const [x, y] = fieldCorner(plot, (rand() - 0.5) * fieldLen * 0.5, -depth * 0.28);
-      addBale(level, loose, { x, y, field: fieldId, _s: dist });
+      addBale(loose, { x, y, field: fieldId, _s: dist });
     }
   }
 }

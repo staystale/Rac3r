@@ -54,15 +54,7 @@ export const TEST_LIST: TestEntry[] = [
   // passed 2026-11-04; wetrace, lineback, onroad, rejoinfast, menurand (AI R7)
   // passed 2026-11-07; indyscale decided 2026-11-07 (3/4, the 13 m road) and removed; carpaint,
   // carlooks, carreal (the car look: paint parts, rims, redraws, real shapes), partsoff, bigparts,
-  // hwlanes passed 2026-11-07)
-  {
-    id: 'hwbales',
-    added: '2026-11-07',
-    name: 'Highway hay bales are loose - nudged, or burst into straw if hit hard',
-    where: 'Test link + &hwbales=1: the highway, drive into the bales in the wheat fields',
-    try: 'A slow nudge pushes a bale; a hard hit bursts it into straw, as on the circuits.',
-    wrong: 'A bale as hard as a wall, bales gone from the fields, or bales on the road.',
-  },
+  // hwlanes, hwbales passed 2026-11-07)
   {
     id: 'f1aero',
     added: '2026-11-07',
