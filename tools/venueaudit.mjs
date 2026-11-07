@@ -116,7 +116,8 @@ const roadsOnly = level.lanes.filter((lane) => lane.surface.id !== 'racetarmac' 
 const inZone = (x, y) => level.zones.some((zone) => zone.poly && Math.abs(x - zone.x) <= zone.w / 2 && Math.abs(y - zone.y) <= zone.h / 2 && (() => { let inside = false; const poly = zone.poly; for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) { const [xi, yi] = poly[i], [xj, yj] = poly[j]; if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) inside = !inside; } return inside; })());
 for (const road of roadsOnly) {
   for (const [x, y] of [road.pts[0], road.pts[road.pts.length - 1]]) {
-    const joins = level.lanes.some((other) => other !== road && distToLine(other.pts, x, y) < (other.width + road.width) / 2 + 3)
+    // joined means the tarmac touches (half a metre past both edges at most)
+    const joins = level.lanes.some((other) => other !== road && distToLine(other.pts, x, y) < (other.width + road.width) / 2 + 0.5)
       || inZone(x, y) || props.some((prop) => inProp(prop, x, y, road.width / 2 + 2))
       || props.some((prop) => /bridge|tunnel/.test(prop.kind) && Math.hypot(prop.x - x, prop.y - y) < (prop.wid || prop.w || 10) / 2 + 14)
       || x < bounds.x0 + 3 || x > bounds.x1 - 3 || y < bounds.y0 + 3 || y > bounds.y1 - 3
@@ -124,6 +125,25 @@ for (const road of roadsOnly) {
       || querySubtrack(level.subtrack, x, y).dist < half + road.width
       || Math.hypot(road.pts[0][0] - road.pts[road.pts.length - 1][0], road.pts[0][1] - road.pts[road.pts.length - 1][1]) < 3;
     if (!joins) note('road going nowhere', `${road.surface.id} w${road.width} end at ${x.toFixed(0)},${y.toFixed(0)}`);
+  }
+}
+// roads doubled: one running beside another (within 9 m, the same way) for more than 16 m,
+// away from where they join (the first and last 20 m of each are a joint's business)
+const head = (pts, i) => { const p = pts[Math.max(0, i - 1)], q = pts[Math.min(pts.length - 1, i + 1)]; return Math.atan2(q[1] - p[1], q[0] - p[0]); };
+const along = (pts) => { const out = [0]; for (let i = 1; i < pts.length; i++) out.push(out[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1])); return out; };
+for (const [i, road] of roadsOnly.entries()) {
+  const dist = along(road.pts), total = dist[dist.length - 1];
+  for (const other of roadsOnly.slice(i + 1)) {
+    let run = 0, worst = 0;
+    road.pts.forEach(([x, y], k) => {
+      if (dist[k] < 20 || dist[k] > total - 20) { run = 0; return; }
+      let best = Infinity, at = 0;
+      other.pts.forEach(([ox, oy], m) => { const g = Math.hypot(ox - x, oy - y); if (g < best) { best = g; at = m; } });
+      const turn = Math.abs(head(road.pts, k) - head(other.pts, at)) % Math.PI;
+      run = best < 9 && Math.min(turn, Math.PI - turn) < 0.6 ? run + 2 : 0;
+      worst = Math.max(worst, run);
+    });
+    if (worst > 16) note('roads doubled', `${road.width} m and ${other.width} m roads side by side ~${worst} m near ${road.pts[0].map((v) => v.toFixed(0))}`);
   }
 }
 const kinds = Object.keys(problems);

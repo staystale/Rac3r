@@ -12,14 +12,14 @@ import { SURFACES } from "./surfaces.ts";
 import { onTrack } from "./tyrewall.ts";
 import { parkMiller } from "../core/random.ts";
 import { HALF_ROAD, VENUE_ROAD_M, centreAt, distToLine, makePlacer, nearestLoop,
-  resample } from "./venuegeo.ts";
+  resample, smoothLine } from "./venuegeo.ts";
 import { boardOnArmco, buildEdge, buildRims, inZones, marshalPosts,
   outlineZone, pastRim, trapZones } from "./venueedge.ts";
 import type { EdgeNeeds } from "./venueedge.ts";
 import { REACH_M, cellKey, inBuilding, nearArmco, nearRace, onLanes, placeAll }
   from "./venuesite.ts";
 import type { Site } from "./venuesite.ts";
-import { tidyRoads, venueRoads } from "./venueroads.ts";
+import { tidyRoads, venueRoads, withoutDuplicates } from "./venueroads.ts";
 import { joinApproaches, joinFrom } from "./venuejoin.ts";
 import type { VenueBox, VenueBuild } from "./venue.ts";
 import type { Barrier, Cone, Lane, Paint, Point, Prop, Subtrack, Zone } from "./types.ts";
@@ -37,8 +37,6 @@ const PIT_W = 9, PIT_WALL_GAP = 0.6, PIT_MERGE_M = 30, EDGE_TO_WALL = 3;
 const GARAGE_GAP_M = 1.5;
 // m from the pit lane's centre a parked truck or car keeps (the apron in front of the garages)
 const PIT_APRON_M = 16;
-// a painted line's easing: points either side in the running mean, and the passes
-const SMOOTH_REACH = 3, SMOOTH_PASSES = 3;
 // m: a bridge's approach and its width; a tunnel portal's distance outside the edge, its length
 const APPROACH_M = 8, APPROACH_W = 6, PORTAL_OUT_M = 3, PORTAL_LEN_M = 9;
 // m: tunnels crossing the track this close together are one tunnel
@@ -119,26 +117,6 @@ function offsetLine(pts: Point[], off: number): Point[] {
   });
 }
 
-/**
- * A line eased by a running mean of its points (its two ends kept): a painted line follows the
- * lane's shape without its small jogs.
- * @param pts the line
- * @returns the eased line
- */
-function smoothLine(pts: Point[]): Point[] {
-  let line = pts;
-  for (let pass = 0; pass < SMOOTH_PASSES; pass++)
-    line = line.map((point, i) => {
-      if (i < SMOOTH_REACH || i >= line.length - SMOOTH_REACH) return point;
-      let sumX = 0, sumY = 0;
-      for (let near = -SMOOTH_REACH; near <= SMOOTH_REACH; near++) {
-        sumX += line[i + near][0];
-        sumY += line[i + near][1];
-      }
-      return [sumX / (2 * SMOOTH_REACH + 1), sumY / (2 * SMOOTH_REACH + 1)] as Point;
-    });
-  return line;
-}
 
 /**
  * The pit lane's painted lines: the divider between the fast lane (by the wall) and the working
@@ -433,9 +411,10 @@ function rowSlots(site: Site, box: Prop, zone: Zone, spacing: [number, number, n
  * The paddocks (tarmac, the race trucks in rows) and the car parks (mown grass, parked cars in
  * rows), each outline kept outside the edge.
  * @param site the venue's builders' state
+ * @param fill true to park the trucks and cars (false: the outlines only)
  * @returns zones and props
  */
-function venuePaddocks(site: Site): { zones: Zone[]; props: Prop[] } {
+function venuePaddocks(site: Site, fill: boolean): { zones: Zone[]; props: Prop[] } {
   const zones: Zone[] = [], props: Prop[] = [];
   let parked = 0;
   for (const paddock of site.build.spec.data.paddocks) {
@@ -444,6 +423,7 @@ function venuePaddocks(site: Site): { zones: Zone[]; props: Prop[] } {
     if (!nearRace(site, poly[0][0], poly[0][1], REACH_M)) continue;
     const zone = outlineZone(poly, paved ? SURFACES.tarmac : SURFACES.grassShort);
     zones.push(zone);
+    if (!fill) continue;
     const box = boxProp(site, paddock, 'zone');
     if (paved) {
       for (const slot of rowSlots(site, box, zone,
@@ -640,10 +620,20 @@ export function buildVenueScenery(build: VenueBuild, sub: Subtrack, closed: Lane
     for (const [x, y] of resample(rail.pts, 1)) site.armco.add(cellKey(x, y));
   const roads = venueRoads(site);
   site.lanes.push(...roads);
+  // the road network cleaned (no road doubled) and settled (every end meeting something - a road
+  // ending at a bridge's ramp or a tunnel's mouth meets it), THEN the bridges and tunnels joined
+  // to it, and no road changed after (a later change left an approach hooked to nothing)
+  const cleanRoads = withoutDuplicates(site, roads, []);
+  const fixedProps = [...site.buildings, ...bridges.props, ...tunnels.props];
+  const roadBounds = venueBounds(loops, [pit.lane, ...cleanRoads], fixedProps);
+  const feet = [...bridges.lanes, ...tunnels.lanes].map((lane) => lane.pts[lane.pts.length - 1]);
+  const goodRoads = tidyRoads(site, cleanRoads,
+    { zones: venuePaddocks(site, false).zones, bounds: roadBounds, feet });
   // an approach's edge keeps 1 m off every building (its centre half a road further)
-  joinApproaches(bridges, roads, (x, y) => inBuilding(site.buildings, x, y, 1 + APPROACH_HALF_M));
-  joinTunnels(site, tunnels, roads);
-  const paddocks = venuePaddocks(site);
+  joinApproaches(bridges, goodRoads,
+    (x, y) => inBuilding(site.buildings, x, y, 1 + APPROACH_HALF_M));
+  joinTunnels(site, tunnels, goodRoads);
+  const paddocks = venuePaddocks(site, true);
   const start = onTrack(sub, 2, 0, {});
   const props: Prop[] = [...site.buildings, ...bridges.props, ...tunnels.props,
     ...paddocks.props, ...clearPosts(site, marshalPosts(site.rims), edge.barriers),
@@ -654,10 +644,9 @@ export function buildVenueScenery(build: VenueBuild, sub: Subtrack, closed: Lane
     // its 18 m face as its box, so nothing else stands on it
     if (prop) props.push({ ...prop, w: 18, h: 1.2 });
   }
-  const bounds = venueBounds(loops, [pit.lane, ...bridges.lanes, ...tunnels.lanes, ...roads],
+  const bounds = venueBounds(loops, [pit.lane, ...bridges.lanes, ...tunnels.lanes, ...goodRoads],
     props);
   const zones = [...traps, ...paddocks.zones];
-  const goodRoads = tidyRoads(site, roads, { zones: paddocks.zones, bounds });
   const lanes = [pit.lane, ...bridges.lanes, ...tunnels.lanes, ...goodRoads];
   props.push(...venueTrees(site, bounds, props, zones));
   // the kart track's tyre lines, none on a road

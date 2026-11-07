@@ -180,3 +180,26 @@ export function roadDistance(loops: Subtrack[], x: number, y: number): number {
     }
   return Math.sqrt(bestSq);
 }
+
+/**
+ * A line eased by a running mean of its points (its ends kept): it follows its shape without its
+ * small jogs (a painted line, a road traced off a map).
+ * @param pts the line
+ * @param reach points either side in the mean
+ * @param passes how many times
+ * @returns the eased line
+ */
+export function smoothLine(pts: Point[], reach = 3, passes = 3): Point[] {
+  let line = pts;
+  for (let pass = 0; pass < passes; pass++)
+    line = line.map((point, i) => {
+      if (i < reach || i >= line.length - reach) return point;
+      let sumX = 0, sumY = 0;
+      for (let near = -reach; near <= reach; near++) {
+        sumX += line[i + near][0];
+        sumY += line[i + near][1];
+      }
+      return [sumX / (2 * reach + 1), sumY / (2 * reach + 1)] as Point;
+    });
+  return line;
+}
