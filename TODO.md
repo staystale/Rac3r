@@ -48,6 +48,13 @@ last handover, written on request.
    (owner: "reworking any cars that don't look like their real counter part"); a THIRD colour;
    EVERY car has at least TWO decoratable parts; RIM COLOUR ("so we know it was yours when you
    crash haha"); the AI liveries use them so a 20-car field all differ. Garage paint.
+   MOCKUP 11-07 (waiting for the owner): https://claude.ai/artifact/4JLNiDzANWjesxFyx98FtK - a live
+   paint shop (one row of part buttons BODY / SECOND / THIRD / RIMS + one palette), the zone test
+   (tools/scratch/_carzones.mjs: body red, trim green - the second colour shows on 6 cars, barely on
+   5, NOT AT ALL on 8: Golf, M135i, 3 Series, V70, Fastrac, Naffcar (its blue is fixed), Lambo,
+   Autograss Special), the looks audit (redraw: Golf + M135i (one shared body), quattro S1, F1, F2,
+   Naffcar (the Chevelle body), Micra R1, Autograss Special; small fix: 3 Series bonnet, Fiesta RX
+   wings), and the second / third part of each car. tools/scratch/_carsheet.mjs: the sheet.
 
 Then, to work through when it fits (owner 11-07, not ordered):
 - HIGHWAY LINE: "does the ai need a racing line on highway? if not can we get rid of it - it's
