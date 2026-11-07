@@ -187,6 +187,7 @@ export interface Prop {
   cow?: boolean;   // highway.ts road bridges
   cars?: number;   // highway.ts road bridges
   quiet?: boolean;   // a road bridge with no traffic over it (Brands Snatch's)
+  look?: string;   // a prop drawn in another look ('venue': a venue's road bridge)
   trainEvery?: number;   // highway.ts rail bridges
   cone?: boolean;   // highway.ts foot bridges
   people?: number;   // highway.ts foot bridges

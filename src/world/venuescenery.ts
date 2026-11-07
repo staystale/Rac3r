@@ -33,6 +33,8 @@ const REACH_M = 130;
 const PIT_W = 9, PIT_WALL_GAP = 0.6, PIT_MERGE_M = 30, EDGE_TO_WALL = 3;
 // m: the garages' front stands at least this far behind the pit lane's edge
 const GARAGE_GAP_M = 1.5;
+// a painted line's easing: points either side in the running mean, and the passes
+const SMOOTH_REACH = 3, SMOOTH_PASSES = 3;
 // m: a service road keeps this far outside the edge; a piece of one shorter than MIN_ROAD_M once
 // cut is left out (a stub)
 const ROAD_OUT_M = 2, MIN_ROAD_M = 30;
@@ -40,6 +42,10 @@ const ROAD_OUT_M = 2, MIN_ROAD_M = 30;
 const LONE_ROAD_M = 90, JOIN_M = 3;
 // m: a bridge's approach and its width; a tunnel portal's distance outside the edge, its length
 const APPROACH_M = 8, APPROACH_W = 6, PORTAL_OUT_M = 3, PORTAL_LEN_M = 9;
+// m beyond a deck's end a road is looked for to join its approach to
+const JOIN_REACH_M = 40;
+// m: tunnels crossing the track this close together are one tunnel
+const SAME_TUNNEL_M = 12;
 // m: a building stays this far outside the edge (moved out in NUDGE_STEP_M steps)
 const BUILD_OUT_M = 2, NUDGE_STEP_M = 1.5, NUDGE_TRIES = 12;
 // parked cars: m between cars along a row, between rows, the share of bays taken, the most
@@ -116,6 +122,27 @@ function offsetLine(pts: Point[], off: number): Point[] {
 }
 
 /**
+ * A line eased by a running mean of its points (its two ends kept): a painted line follows the
+ * lane's shape without its small jogs.
+ * @param pts the line
+ * @returns the eased line
+ */
+function smoothLine(pts: Point[]): Point[] {
+  let line = pts;
+  for (let pass = 0; pass < SMOOTH_PASSES; pass++)
+    line = line.map((point, i) => {
+      if (i < SMOOTH_REACH || i >= line.length - SMOOTH_REACH) return point;
+      let sumX = 0, sumY = 0;
+      for (let near = -SMOOTH_REACH; near <= SMOOTH_REACH; near++) {
+        sumX += line[i + near][0];
+        sumY += line[i + near][1];
+      }
+      return [sumX / (2 * SMOOTH_REACH + 1), sumY / (2 * SMOOTH_REACH + 1)] as Point;
+    });
+  return line;
+}
+
+/**
  * The pit lane's painted lines: the divider between the fast lane (by the wall) and the working
  * lane (by the garages), and the solid entry / exit lines along the track's edge where the lane
  * leaves and joins it.
@@ -130,7 +157,8 @@ function pitLines(site: Site, pit: Lane): Paint[] {
   // the wall side: + when the track lies on the lane's left
   const across = (centre.x - x) * -(nextY - y) / len + (centre.y - y) * (nextX - x) / len;
   const wallSide = Math.sign(across) || 1;
-  const divider = offsetLine(pit.pts.slice(15, -15), wallSide * (PIT_W / 2 - PIT_W / 3));
+  const divider = smoothLine(offsetLine(smoothLine(pit.pts).slice(15, -15),
+    wallSide * (PIT_W / 2 - PIT_W / 3)));
   const lines: Paint[] = [{ kind: 'line', x: 0, y: 0, pts: divider, lw: 0.15, tone: 0.75 }];
   for (const end of [pit.pts.slice(0, 16), pit.pts.slice(-16)]) {
     const edge = end.map(([endX, endY]) => {
@@ -139,7 +167,7 @@ function pitLines(site: Site, pit: Lane): Paint[] {
       return [road.x + road.nx * side * (HALF_ROAD - 0.4),
         road.y + road.ny * side * (HALF_ROAD - 0.4)] as Point;
     });
-    lines.push({ kind: 'line', x: 0, y: 0, pts: edge, lw: 0.3, tone: 0.9 });
+    lines.push({ kind: 'line', x: 0, y: 0, pts: smoothLine(edge), lw: 0.3, tone: 0.9 });
   }
   return lines;
 }
@@ -280,7 +308,7 @@ function venueBridges(site: Site): { props: Prop[]; lanes: Lane[] } {
     const label = kind === 'footbridge' ? site.build.spec.bridgeLabel : undefined;
     props.push({ kind, x: centre.x, y: centre.y, rot: cross.head, wid: span,
       seed: Math.round(centre.x), ...(label ? { label } : {}),
-      ...(kind === 'bridge' ? { carries: 'road', quiet: true } : {}) } as Prop);
+      ...(kind === 'bridge' ? { carries: 'road', quiet: true, look: 'venue' } : {}) } as Prop);
     if (kind !== 'bridge') continue;
     const dirX = Math.cos(cross.head), dirY = Math.sin(cross.head), end = span / 2;
     for (const side of [-1, 1])
@@ -293,16 +321,45 @@ function venueBridges(site: Site): { props: Prop[]; lanes: Lane[] } {
 }
 
 /**
+ * Each road bridge's approaches joined to its roads: from the deck's end straight to the nearest
+ * point of a road beyond it (within JOIN_REACH_M, ahead of the deck), so the road it carries runs
+ * on and off it; left as a short ramp when no road is there.
+ * @param bridges the bridges (props and their approach lanes, two a road bridge, in order)
+ * @param roads the service roads
+ */
+function joinApproaches(bridges: { props: Prop[]; lanes: Lane[] }, roads: Lane[]): void {
+  let lane = 0;
+  for (const bridge of bridges.props.filter((prop) => prop.kind === 'bridge'))
+    for (const side of [-1, 1]) {
+      const approach = bridges.lanes[lane++];
+      const dirX = Math.cos(bridge.rot!) * side, dirY = Math.sin(bridge.rot!) * side;
+      const [fromX, fromY] = approach.pts[0];
+      let best: Point | null = null, bestDist = JOIN_REACH_M;
+      for (const road of roads)
+        for (const [x, y] of road.pts) {
+          const ahead = (x - fromX) * dirX + (y - fromY) * dirY;
+          const gap = Math.hypot(x - fromX, y - fromY);
+          if (ahead > 0 && gap < bestDist && ahead > gap * 0.5) { bestDist = gap; best = [x, y]; }
+        }
+      if (best) approach.pts = [approach.pts[0], best];
+    }
+}
+
+/**
  * The tunnels under the track: a portal each side, PORTAL_OUT_M outside the edge along the
  * tunnel's line, its ramp running down toward the track, with a road from its mouth out.
  * @param site the venue's builders' state
  * @returns the portal props and their roads
  */
 function venueTunnels(site: Site): { props: Prop[]; lanes: Lane[] } {
-  const props: Prop[] = [], lanes: Lane[] = [];
+  const props: Prop[] = [], lanes: Lane[] = [], done: Point[] = [];
   for (const tunnel of site.build.spec.data.tunnels) {
     const cross = crossing(site, placeAll(site, tunnel.pts));
     if (!cross) continue;
+    // one tunnel mapped as two ways (each direction) gets one pair of portals
+    const { x: atX, y: atY } = cross.centre;
+    if (done.some(([x, y]) => Math.hypot(x - atX, y - atY) < SAME_TUNNEL_M)) continue;
+    done.push([atX, atY]);
     const { centre } = cross, width = tunnel.kind === 'footway' ? 3 : 6;
     const dirX = Math.cos(cross.head), dirY = Math.sin(cross.head);
     for (const side of [-1, 1]) {
@@ -584,14 +641,17 @@ export function buildVenueScenery(build: VenueBuild, sub: Subtrack, closed: Lane
   site.buildings = venueBuildings(site, pit.lane);
   const roads = venueRoads(site);
   site.lanes.push(...roads);
+  joinApproaches(bridges, roads);
   const paddocks = venuePaddocks(site);
   const start = onTrack(sub, 2, 0, {});
   const props: Prop[] = [...site.buildings, ...bridges.props, ...tunnels.props,
     ...paddocks.props, ...marshalPosts(site.rims),
     { kind: 'gantry', x: start.x, y: start.y, wid: 24, rot: start.rot + Math.PI / 2 }];
   for (const board of spec.boards) {
-    const prop = boardOnArmco(edge.barriers, loops, place(board.at), board.label, site.rims);
-    if (prop) props.push(prop);
+    const prop = boardOnArmco(edge.barriers, edge.cones, loops, place(board.at), board.label,
+      site.rims, (x, y) => inBuilding(props, x, y, 1.5) || onLanes(site.lanes, x, y, 1.5));
+    // its 18 m face as its box, so nothing else stands on it
+    if (prop) props.push({ ...prop, w: 18, h: 1.2 });
   }
   const catchFences = buildCatchFences(edge.barriers, spectatorSpots(site, props), loops);
   const lanes = [pit.lane, ...bridges.lanes, ...tunnels.lanes, ...roads];
