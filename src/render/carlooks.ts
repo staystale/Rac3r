@@ -134,7 +134,7 @@ function paintModernOpenWheel(spr: SpriteCtx): void {
   const { spec, lengthPx: len, widthPx: wid, mid, paint, outline, light, trim, third, block,
     along } = spr;
   const bodyWid = (spec as { bodyWid?: number }).bodyWid ?? spec.wid;
-  const half = Math.round(bodyWid * SPRITE_PPM / 2), axF = len / 2 + spec.lf * SPRITE_PPM;
+  const half = Math.round(bodyWid * SPRITE_PPM / 2);
   const edge = (wid - 1) / 2;
   // the dark FLOOR, the DIFFUSER between the rear wheels, the GEARBOX out to the rear wing
   block(along(0.10), mid - half - 1, along(0.48), half * 2 + 3, '#1a1c22');
@@ -160,9 +160,8 @@ function paintModernOpenWheel(spr: SpriteCtx): void {
   block(along(0.49), mid - 3, along(0.08), 7, '#14161b');
   block(along(0.51), mid - 1, 3, 3, '#e4c23a');
   block(along(0.58), mid, 3, 1, CHR);
-  // SUSPENSION arms from the nose out to the front wheels
-  for (const sign of [-1, 1]) for (const lean of [-2, 2]) for (let i = 0; i <= edge - 4; i++)
-    block(Math.round(axF + lean - i * 0.35), Math.round(mid + sign * (2 + i)), 1, 1, STEEL);
+  // (the suspension arms are drawn with the wheels, so they meet the hubs and the track rods
+  // turn with the steering: render/cars.ts drawWishbones)
   // the NOSE, thin, outlined in the accent
   block(along(0.60), mid - 2, len - 4 - along(0.60), 5, third);
   block(along(0.60), mid - 1, len - 4 - along(0.60), 3, paint);

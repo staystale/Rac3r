@@ -7,6 +7,10 @@
 import { SPRITE_PPM } from "./shared.ts";
 import type { CarSprite, RenderCarSpec } from "./types.ts";
 
+// an open car - the single-seaters, the autograss buggy: its wings / nose and its side pods come
+// off, not bumpers and door skins, and nothing is under them
+const isBare = (spec: RenderCarSpec) => spec.kind === 'track' || spec.kind === 'grass';
+
 /** A part's place on a sprite, sprite rgba (x rear 0 -> front, y the car's side), inclusive. */
 interface Region { x0: number; x1: number; y0: number; y1: number }
 
@@ -24,14 +28,15 @@ export function partRegion(spec: RenderCarSpec, sprite: CarSprite, kind: string,
     plus = corner % 2 === 1;
   const side = (inner: number) => (plus ? { y0: wid - 1 - inner, y1: wid + 1 }
     : { y0: -2, y1: inner });
-  if (spec.kind === 'track') {
+  if (isBare(spec)) {
     if (kind === 'bumper') return front ? { x0: len - 8, x1: len + 1, y0: -2, y1: wid + 1 }
       : { x0: -2, x1: 5, y0: -2, y1: wid + 1 };
     return { x0: Math.round(len * 0.22), x1: Math.round(len * 0.52),
       ...(plus ? { y0: Math.ceil(mid) + 3, y1: wid + 1 } : { y0: -2, y1: Math.floor(mid) - 3 }) };
   }
-  if (kind === 'bumper') return front ? { x0: len - 3, x1: len + 1, y0: -2, y1: wid + 1 }
-    : { x0: -2, x1: 2, y0: -2, y1: wid + 1 };
+  // (a bumper ~0.25-0.3 m deep from above: 5 px with the lamps in it)
+  if (kind === 'bumper') return front ? { x0: len - 5, x1: len + 1, y0: -2, y1: wid + 1 }
+    : { x0: -2, x1: 4, y0: -2, y1: wid + 1 };
   if (kind === 'wing') {
     const axle = Math.round(len / 2 + (front ? spec.lf : -spec.lr) * SPRITE_PPM);
     return { x0: axle - 7, x1: axle + 7, ...side(3) };
@@ -105,7 +110,7 @@ export function withoutParts(spec: RenderCarSpec, sprite: CarSprite, lost: strin
       x <= region.x1 + 2; x++) {
       if (x < 0 || y < 0 || x >= canvas.width || y >= canvas.height) continue;
       const i = (y * canvas.width + x) * 4;
-      if (spec.kind === 'track') { rgba[i + 3] = 0; continue; }
+      if (isBare(spec)) { rgba[i + 3] = 0; continue; }
       for (const chan of [0, 1, 2]) rgba[i + chan] = Math.round(rgba[i + chan] * 0.3 + 18);
     }
   }

@@ -125,6 +125,15 @@ last handover, written on request.
    open-wheeler's front wing / rear wing / sidepod) - its shape, paint and accents - chipped at the
    edges, scuffed, dented, sometimes bent (seeded); the car is drawn WITHOUT it from then on (a
    closed car's bare structure, an open-wheeler's part gone) until a repair (_partshot.mjs).
+   AFTER THE PASS (owner: "do all cars have vehicle accurate bumpers / pieces to emit?"; "seems like
+   golf etc wasn't emitting"): the same rule for every car (damage by the speed change, not the
+   car - _parttest.mjs: no part under ~8 m/s, ~0.9 a head-on hit at 12 m/s, always at 18); a real
+   Golf crash at 22 m/s (_crashparts.mjs) shed its front bumper - thrown ahead under the car hit,
+   a 3-4 px strip in body colour, easy to miss: bumpers now cut 5 px deep (~0.3 m, the lamps in
+   it); the autograss buggy sheds its nose / side pods as an open car (its wing / panel cuts were
+   empty; _partsheet.mjs). WISHBONES ("don't line up or move with steering on f1 / f2"): drawn
+   with the wheels now (render/cars.ts drawWishbones) - two arms from the chassis to each hub, the
+   front track rods turning with the wheel (_steershot.mjs).
 
 Then, to work through when it fits (owner 11-07, not ordered):
 - HIGHWAY LINE: "does the ai need a racing line on highway? if not can we get rid of it - it's

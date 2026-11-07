@@ -11,6 +11,9 @@ import type {
   Cam, CarSprite, RenderCar, RenderCarSpec, RenderCone, RollFace, SideSprite, SilCanvas, View,
 } from "./types.ts";
 
+// an open-wheeler's suspension arms
+const WISHBONE = '#2a2d34';
+
 // what createCars destructures from the renderer and the sprite layers
 interface CarsHelpers {
   PPMz: () => number;
@@ -147,6 +150,45 @@ function drawCarWheel(
 }
 
 /**
+ * Draws a 1 px line on the car's pixel grid.
+ * @param ctx the canvas (the car's frame, sprite px)
+ * @param from [x, y]
+ * @param dest [x, y]
+ */
+function pixelLine(ctx: CanvasRenderingContext2D, from: number[], dest: number[]): void {
+  const steps = Math.max(1, Math.round(Math.max(Math.abs(dest[0] - from[0]),
+    Math.abs(dest[1] - from[1]))));
+  for (let i = 0; i <= steps; i++) {
+    ctx.fillRect(Math.round(from[0] + (dest[0] - from[0]) * i / steps),
+      Math.round(from[1] + (dest[1] - from[1]) * i / steps), 1, 1);
+  }
+}
+
+/**
+ * An open-wheeler's WISHBONES, drawn with its wheels (owner 11-07: "steering wishbones don't line
+ * up or move with steering on f1 / f2"): each wheel's upper and lower arm from the chassis to its
+ * hub, and on the fronts the TRACK ROD to the steering arm, which turns with the wheel.
+ * @param ctx the canvas (the car's frame, sprite px)
+ * @param spec the car as drawn
+ * @param axleX the axle, m
+ * @param side -1 or 1
+ * @param steer the wheel's steering angle
+ * @param halfWidth px from the middle to the wheel
+ */
+function drawWishbones(ctx: CanvasRenderingContext2D, spec: RenderCarSpec, axleX: number,
+  side: number, steer: number, halfWidth: number): void {
+  const hubX = axleX * SPRITE_PPM, hubY = side * halfWidth;
+  const body = side * (spec.wid / 2 * SPRITE_PPM - 2);
+  ctx.fillStyle = WISHBONE;
+  for (const spread of [-0.2, 0.2])
+    pixelLine(ctx, [hubX + spread * SPRITE_PPM, body], [hubX, hubY]);
+  if (axleX <= 0) return;
+  const arm = 0.14 * SPRITE_PPM, endX = hubX - Math.cos(steer) * arm,
+    endY = hubY - Math.sin(steer) * arm;
+  pixelLine(ctx, [hubX - arm, body], [endX, endY]);
+}
+
+/**
  * Draw the wheels: pixel blocks, the fronts turned by the steering angle; a lost wheel leaves a
  * hub stub.
  * @param carsCtx the shared view and helpers
@@ -172,6 +214,7 @@ function drawCarWheels(carsCtx: CarsContext, car: RenderCar, sprite: CarSprite) 
       );
       continue;
     }
+    if (spec.kind === 'track') drawWishbones(view.ctx, spec, axleX, side, steer, halfWidth);
     drawCarWheel(carsCtx, spec, axleX, side, steer, metrics, car.tyreP ? {
       pressure: car.tyreP[corner], isOnRim: !!car.onRim?.[corner], turn,
     } : null);
@@ -348,6 +391,12 @@ function pixelCarWithWheels(carsCtx: CarsContext, spec: RenderCarSpec) {
   ]) {
     const { len: tyreLen, wid: tyreWid } = tyreBox(carSpec, axleX < 0),
       x = Math.round(midX + axleX * SPRITE_PPM), y = Math.round(midY + side * halfWidth);
+    if (carSpec.kind === 'track') {
+      gctx.save();
+      gctx.translate(midX, midY);
+      drawWishbones(gctx, carSpec, axleX, side, 0, halfWidth);
+      gctx.restore();
+    }
     gctx.fillStyle = '#16171c';
     gctx.fillRect(x - tyreLen / 2, y - tyreWid / 2, tyreLen, tyreWid);
     gctx.fillStyle = '#3a3d47';
