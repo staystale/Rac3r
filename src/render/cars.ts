@@ -44,11 +44,13 @@ function wheelMetrics(spec: RenderCarSpec, sprite: CarSprite) {
 
 /**
  * A wheel's rim colour, or null (no rim block): the tractor's yellow, a coloured rim (the
- * Subaroo's gold); ?carpaint - the tractor's yellow is its stock rim (cars.ts PAINT_STOCK).
+ * Subaroo's gold); ?carpaint - none: from above a mounted wheel shows only its tread, the rim is
+ * seen on a wheel lying loose (render/wheelface.ts; owner 11-07: "the top of the tyre shouldn't
+ * be coloured").
  * @param spec the car spec
  * @returns the colour, or null
  */
-const rimOf = (spec: RenderCarSpec) => (spec.kind === 'tractor' && !FIX.carpaint ? '#fbc02d'
+const rimOf = (spec: RenderCarSpec) => (FIX.carpaint ? null : spec.kind === 'tractor' ? '#fbc02d'
   : spec.rim || null);
 
 /**

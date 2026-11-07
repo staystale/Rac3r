@@ -60,6 +60,7 @@ export interface RosterRow {
   gears: number[]; finalDrive: number; dragC: number;
   paint: string; trim: string; glass: string;
   third?: string;   // ?carpaint: the THIRD paint part (PAINT_STOCK)
+  spokes?: string;   // ?carpaint: the rims' spoke pattern (render/wheelface.ts SPOKES; '' = five)
   izzK?: number; rim?: string; aiK?: number; aeroK?: number; downforceF?: number;
   downforceR?: number;
   susF?: number; susZ?: number; trackWidth?: number; tyreWidth?: number; idleRpm?: number;
@@ -380,7 +381,8 @@ export function applyTyre(carSpec: Spec, tyreId: string): Spec {
   return carSpec;
 }
 export function applyLivery(carSpec: Spec, livery: {
-  paint?: string; trim?: string; third?: string; rims?: string; num?: number } | null,
+  paint?: string; trim?: string; third?: string; rims?: string; spokes?: string; num?: number;
+} | null,
 ): Spec {
   const stock = stockPaint(String(carSpec.id));
   carSpec.paint = (livery && livery.paint) || stock.paint;
@@ -390,6 +392,7 @@ export function applyLivery(carSpec: Spec, livery: {
   if (FIX.carpaint) {
     carSpec.third = (livery && livery.third) || stock.third;
     carSpec.rim = rimColour(livery?.rims) || stock.rim;
+    carSpec.spokes = (livery && livery.spokes) || '';
   }
   return carSpec;
 }

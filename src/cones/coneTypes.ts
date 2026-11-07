@@ -7,6 +7,8 @@ export interface Loose {
   kind: string;
   // how it moves: 'cone' (topples), 'stack', 'roll', 'flip', 'wobble', 'flat', or its kind
   mode: string;
+  // ?carpaint: a torn-off wheel's rim colour and spoke pattern (render/wheelface.ts)
+  rimCol?: string; spokes?: string;
   x: number; y: number; vx: number; vy: number;
   hx?: number; hy?: number;   // its home spot (where the level put it)
   ang: number; spin: number;

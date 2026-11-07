@@ -61,4 +61,12 @@ export const TEST_LIST: TestEntry[] = [
     try: 'Paint each car\'s SECOND, THIRD and RIMS; the AI field should all look different.',
     wrong: 'A colour that changes nothing on a car, a car that looks wrong in stock colours.',
   },
+  {
+    id: 'carlooks',
+    added: '2026-11-07',
+    name: 'Redrawn cars: Golf, M135i, quattro S1, F1, F2, Naffcar, Micra, autograss buggy',
+    where: 'Test link + &carlooks=1&carpaint=1: the garage, then race those cars',
+    try: 'Each should look like its real car from above; paint their second and third parts.',
+    wrong: 'A car that looks broken or worse than before, parts in odd places, a car too big.',
+  },
 ];

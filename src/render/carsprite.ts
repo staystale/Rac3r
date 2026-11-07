@@ -2,6 +2,7 @@
 import { shade } from "../render.ts";   // hoisted, only called at draw time (no cycle)
 import { SPRITE_PPM } from "./shared.ts";
 import { FIX } from "../core/fixes.ts";
+import { LOOKS } from "./carlooks.ts";
 import type { CarSprite, RenderCarSpec } from "./types.ts";
 
 // A sprite per car, GENERATED on an integer grid in the reference style
@@ -18,9 +19,11 @@ const DIGITS: Record<number, number[]> = {
 };
 const glass = '#15171d', glassHi = '#3d4658', HEAD = '#fff3c4', TAIL = '#c8342a',
   CHR = '#c9ccd4', WHITE = '#f2f2ee';
+// (the redrawn bodies paint with the same: render/carlooks.ts)
+export { glass as GLASS, HEAD, TAIL, CHR, WHITE };
 
 /** The painting context of one sprite: the canvas, its measurements, the palette and helpers. */
-interface SpriteCtx {
+export interface SpriteCtx {
   spec: RenderCarSpec;
   canvas: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
@@ -97,7 +100,7 @@ function shell(spr: SpriteCtx, inset = 0): void {
  * @param screenEnd where the windscreen ends
  * @param roofCol the roof colour
  */
-function cabin(spr: SpriteCtx, rearStart: number, roofStart: number, roofEnd: number,
+export function cabin(spr: SpriteCtx, rearStart: number, roofStart: number, roofEnd: number,
   screenEnd: number, roofCol = spr.roofShade): void {
   const { widthPx, paint, outline, block } = spr;
   // rear glass
@@ -142,6 +145,20 @@ function pinstripe(spr: SpriteCtx, from: number, until: number): void {
 function panelLine(col: string): string {
   const rgb = [1, 3, 5].map((i) => parseInt(col.slice(i, i + 2), 16));
   return rgb[0] + rgb[1] + rgb[2] < 150 ? shade(col, 2.0) : shade(col, 0.65);
+}
+
+/**
+ * Paints digits in the 3x5 font, 1 px a dot, upright when the car points right (a roof number).
+ * @param spr the painting context
+ * @param digits the digits
+ * @param left the first digit's left edge
+ * @param top the digits' top
+ */
+export function numDigits(spr: SpriteCtx, digits: number[], left: number, top: number): void {
+  digits.forEach((digit, col) => DIGITS[digit].forEach((row, rowIdx) => {
+    for (let bit = 0; bit < 3; bit++)
+      if (row & (4 >> bit)) spr.block(left + col * 5 + bit, top + rowIdx, 1, 1, '#111');
+  }));
 }
 
 /**
@@ -314,8 +331,11 @@ function paintSaloon(spr: SpriteCtx): void {
   // boot shut, boot lip highlight
   block(along(0.18), 3, 1, widthPx - 6, dark);
   block(along(0.03), 3, along(0.12), 1, light);
-  // POWER DOME creases
-  for (let i = 0; i <= along(0.24); i++) {
+  // POWER DOME creases (?carlooks: two clean lines - the stepped pair read as noise)
+  if (FIX.carlooks) {
+    block(along(0.70), mid - 6, along(0.24), 1, light);
+    block(along(0.70), mid + 6, along(0.24), 1, dark);
+  } else for (let i = 0; i <= along(0.24); i++) {
     const x = along(0.70) + i, crease = Math.round(i * 0.12);
     block(x, mid - 7 + crease, 1, 1, light);
     block(x, mid + 7 - crease, 1, 1, dark);
@@ -531,8 +551,11 @@ function paintRxcar(spr: SpriteCtx): void {
   const stripe = FIX.carpaint ? spr.third : trim;
   block(along(0.66), 2, along(0.30), 2, stripe);
   block(along(0.66), widthPx - 4, along(0.30), 2, stripe);
-  block(lengthPx, -1, 1, widthPx + 2, '#16181d');
+  block(lengthPx, -1, FIX.carlooks ? 2 : 1, widthPx + 2, '#16181d');
   block(1, 0, 3, widthPx, 'rgba(0,0,0,0.25)');
+  // (?carlooks: the wing deeper, with endplates)
+  if (FIX.carlooks) { block(-3, -4, 6, widthPx + 8, outline); block(-3, -4, 6, 1, '#16181d');
+    block(-3, widthPx + 3, 6, 1, '#16181d'); }
   block(-2, -3, 4, widthPx + 6, outline);
   block(-1, -2, 2, widthPx + 4, FIX.carpaint ? spr.third : trim);
   block(-2, -3, 4, 1, light);
@@ -686,7 +709,12 @@ function paintRaceNumber(spr: SpriteCtx): void {
  */
 function paintCarSprite(spec: RenderCarSpec): CarSprite {
   const spr = makeSpriteCtx(spec);
-  if (spr.kind === 'track') paintOpenWheel(spr);
+  // (?carlooks: the redrawn bodies paint their own lamps; a bare one has no closed shell)
+  const look = FIX.carlooks ? LOOKS.get(String(spec.id).split('#')[0]) : undefined;
+  if (look) {
+    if (!look.bare) shell(spr);
+    look.paint(spr);
+  } else if (spr.kind === 'track') paintOpenWheel(spr);
   else if (spr.kind === 'tractor') paintTractor(spr);
   else paintCarBody(spr);
   paintRaceNumber(spr);

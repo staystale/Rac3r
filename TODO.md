@@ -64,6 +64,18 @@ last handover, written on request.
    each car's look (carpaint.ts PAINT_STOCK; off vs on sheet _stock-offon.png same); AI fields
    get a third colour and rims by slot; simhash SAME off. STAGE 2 next: the redraws (Golf, M135i,
    quattro S1, F1, F2, Naffcar, Micra R1, Autograss Special; 3 Series bonnet, Fiesta RX wing).
+   RIMS (owner 11-07: "the top of the tyre shouldn't be coloured ... the thing that should be
+   coloured by rim colour is when your wheel comes off ... laying flat"; "different rims? spoke
+   patterns"): under ?carpaint a mounted wheel shows only its tread; a torn-off wheel lying flat
+   shows its rim colour and SPOKES (render/wheelface.ts: stock/five, mesh, split, dish, steel;
+   _spokesheet.mjs, _loosewheel.mjs); the paint shop has a SPOKES row and a picture of the wheel
+   lying loose; the AI get a pattern by slot.
+   STAGE 2 UNDER TEST 11-07 (?carlooks, with ?carpaint): the redraws in render/carlooks.ts - Golf
+   (short bonnet, C-pillars, GTI line), M135i (long bonnet, kidneys), quattro S1 E2 (vents,
+   blisters, splitter, wing), F1 / F2 (full-width wings, thin nose, coke-bottle sidepods, halo),
+   Next Gen (bonnet panel, sticker lamps, spoiler), Micra R1 (round, oval lamps), the autograss
+   buggy (open frame, cage, engine out back); 3 Series bonnet two clean lines; Fiesta RX wing
+   deeper. Same sizes (physics boxes). Old vs new: _looks.png. simhash SAME off.
 
 Then, to work through when it fits (owner 11-07, not ordered):
 - HIGHWAY LINE: "does the ai need a racing line on highway? if not can we get rid of it - it's

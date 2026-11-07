@@ -1,4 +1,6 @@
 // sim.ts — The per-step world: car physics, highway, audio and contact stepping.
+import { FIX } from '../core/fixes.ts';
+import { STOCK_RIM } from '../render/wheelface.ts';
 import { hwLevel, hwFlow } from './state.ts';
 import { step, reset, assertFinite, PHYSICS_STEP_SECONDS } from '../vehicle.ts';
 import { stepHighway, highwayGuard, highwayRespawn, speedCamera } from '../highway.ts';
@@ -445,12 +447,23 @@ export function stepLooseCones(tcars: TrafficVehicle[]) {
       game.cones.add({ x: racer.x + cosH * alongOff - sinH * sideOff,
         y: racer.y + sinH * alongOff + cosH * sideOff, vx: racer.vx * 0.85 - sinH * out,
           vy: racer.vy * 0.85 + cosH * out, ang: racer.heading,
-            spin: (Math.random() - 0.5) * 8 });
+            spin: (Math.random() - 0.5) * 8, ...looseRim(racer.spec) });
     }
     // a knocked-off bumper / wing / panel joins them; the oldest past the cap fade
     throwParts(field, game.cones);
     stepParts(game.cones, PHYSICS_STEP_SECONDS);
   }
+}
+
+/**
+ * ?carpaint: a torn-off wheel shows its rim lying flat (render/wheelface.ts).
+ * @param spec the car's spec
+ * @param spec.rim its rim colour
+ * @param spec.spokes its spoke pattern
+ * @returns the loose wheel's rim fields, or none
+ */
+function looseRim(spec: { rim?: string; spokes?: string }) {
+  return FIX.carpaint ? { rimCol: spec.rim || STOCK_RIM, spokes: spec.spokes || '' } : {};
 }
 
 /**

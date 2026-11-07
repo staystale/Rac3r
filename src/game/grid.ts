@@ -4,6 +4,7 @@ import { lcg } from "../core/random.ts";
 import { makeCar, reset } from '../vehicle.ts';
 import { ROSTER, PALETTE } from '../cars.ts';
 import { rimColour } from '../carpaint.ts';
+import { SPOKES } from '../render/wheelface.ts';
 import { FIX } from '../core/fixes.ts';
 import { hwGrid } from '../highwayrace.ts';
 import { createAIDriver } from '../ai/circuit.ts';
@@ -38,7 +39,7 @@ export const GRID_BIAS = [-2.2, -1.1, 0, 1.1, 2.2];
 // chrome, gold, black, white in turn; the third a palette colour well away from the body's)
 const AI_RIMS = ['', 'chrome', 'gold', '#16181d', '#f0f0ea'];
 const aiPaintParts = (slot: number) => (FIX.carpaint ? {
-  third: PALETTE[(slot * 7 + 4) % PALETTE.length],
+  third: PALETTE[(slot * 7 + 4) % PALETTE.length], spokes: SPOKES[slot % SPOKES.length],
   ...(AI_RIMS[slot % AI_RIMS.length] ? { rim: rimColour(AI_RIMS[slot % AI_RIMS.length]) } : {}),
 } : {});
 

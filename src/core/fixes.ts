@@ -44,4 +44,8 @@ export const FIX = {
   // RIMS (16 colours, chrome, gold or stock) - the paint shop's two new rows, the AI fields use all
   // four (cars.ts PAINT_STOCK, render/carsprite.ts; owner 11-07 item 4)
   carpaint: atLoad('carpaint'),
+  // ?carlooks=1: the redrawn cars - Golf, M135i, quattro S1, F1 / F2, Next Gen, Micra R1, the
+  // autograss buggy; the 3 Series bonnet tidied, the Fiesta RX's wing (render/carlooks.ts; owner
+  // 11-07 item 4 stage 2)
+  carlooks: atLoad('carlooks'),
 };

@@ -23,6 +23,8 @@ try {
       }, [label, colour]);
       await p.waitForTimeout(250);
     }
+    await p.evaluate(() => { const b = [...document.querySelectorAll('#menu button')].find((x) => x.textContent === 'SPLIT'); if (b) b.click(); });
+    await p.waitForTimeout(250);
     const fits = await p.evaluate(() => { const m = document.querySelector('#menu'); const pane = m.querySelector('.pane') || m.firstElementChild; return { scrollH: pane ? pane.scrollHeight : 0, clientH: pane ? pane.clientHeight : 0, docScroll: document.documentElement.scrollHeight > innerHeight }; });
     await p.screenshot({ path: `tools/scratch/_paintshot-${W}x${H}.png` });
     console.log(W + 'x' + H, JSON.stringify(fits), errors.length ? 'ERRORS ' + errors.join(' | ') : 'errors none');

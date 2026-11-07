@@ -4,7 +4,8 @@ import {
   ROSTER, CLASSES, classOf, PALETTE, TYRES, TYRE_BRANDS, TYRE_SURFS, tyreOf, tyreFits,
   fittedTyre, stockPaint,
 } from '../cars.ts';
-import { RIM_FINISH } from '../carpaint.ts';
+import { RIM_FINISH, rimColour } from '../carpaint.ts';
+import { drawWheelFace, SPOKES, STOCK_RIM } from '../render/wheelface.ts';
 import { FIX } from '../core/fixes.ts';
 import { CAR_STATS } from '../carstats.ts';
 import type { CarStat } from '../ai/types.ts';
@@ -185,7 +186,7 @@ AIDS</span><b>${aids}</b>`
 
 /** The paint shop's working livery: every part set (cars.ts applyLivery reads it). */
 type ShopLivery = Livery & {
-  paint: string; trim: string; third: string; rims: string; num: number;
+  paint: string; trim: string; third: string; rims: string; spokes: string; num: number;
 };
 // ?carpaint: CHROME and GOLD on the line below the palette for every part (owner 11-07: "can chrome
 // and gold be for every colour body second n 3rd too"), the rims also STOCK (the car's own)
@@ -229,7 +230,7 @@ function showPaintShop(menu: Menu) {
   const panel = addPane(menu, true), carId = garageCarId(menu),
     car = ROSTER.find((x) => x.id === carId)!, stock = stockPaint(carId);
   const stockLivery = { paint: stock.paint, trim: stock.trim, third: stock.third, rims: '',
-    num: 0 };
+    spokes: '', num: 0 };
   const cur: ShopLivery = { ...stockLivery, ...((menu.profile.livery || {})[carId] || {}) };
   addElement(panel, 'h2', 'PAINT · ' + car.name);
   const box = addElement(panel, 'div', '', 'garage'), left = addElement(box, 'div', ''),
@@ -240,8 +241,14 @@ function showPaintShop(menu: Menu) {
   lift.height = 150;
   left.appendChild(lift);
   const rows: [keyof ShopLivery, HTMLButtonElement[]][] = [];
+  const wheel = FIX.carpaint ? wheelPreview(left) : null;
   const showLivery = () => {
     drawLift(lift, menu.api.carSprite(carId, cur));
+    if (wheel) {
+      const wctx = wheel.getContext('2d')!;
+      wctx.clearRect(0, 0, wheel.width, wheel.height);
+      drawWheelFace(wctx, wheel.width, rimColour(cur.rims) || stock.rim || STOCK_RIM, cur.spokes);
+    }
     numL.textContent = cur.num ? '#' + cur.num : 'NO NUMBER';
     for (const [field, list] of rows) for (const button of list) button.style.outline =
       button.dataset.c === cur[field] ? '3px solid ' + MENU_COL.pick : 'none';
@@ -255,7 +262,14 @@ function showPaintShop(menu: Menu) {
   const picks = FIX.carpaint ? PAINT_PICKS : PALETTE;
   row('BODY', 'paint', picks);
   row(FIX.carpaint ? 'SECOND' : 'TRIM', 'trim', picks);
-  if (FIX.carpaint) { row('THIRD', 'third', picks); row('RIMS', 'rims', RIM_PICKS); }
+  if (FIX.carpaint) {
+    row('THIRD', 'third', picks);
+    row('RIMS', 'rims', RIM_PICKS);
+    rows.push(['spokes', spokesRow(menu, right, (choice) => {
+      cur.spokes = choice;
+      showLivery();
+    })]);
+  }
   const numL = numberRow(menu, left, cur, () => showLivery());
   const buttonRow = addElement(panel, 'div', '', 'row');
   addButton(menu, buttonRow, 'STOCK', () => {
@@ -273,6 +287,42 @@ function showPaintShop(menu: Menu) {
   addButton(menu, buttonRow, 'BUY', () => {}, '', true, 'STORY');
   addButton(menu, panel, '◀ BACK', () => showGarage(menu));
   showLivery();
+}
+
+/**
+ * ?carpaint: the paint shop's SPOKES row - STOCK and the patterns (render/wheelface.ts).
+ * @param menu the menu context
+ * @param right the column it goes in
+ * @param pick what a tap does with a pattern ('' = stock)
+ * @returns the buttons
+ */
+function spokesRow(menu: Menu, right: HTMLElement, pick: (choice: string) => void) {
+  addElement(right, 'div', 'SPOKES', 'sub');
+  const grid = addElement(right, 'div', '');
+  grid.style.cssText = 'display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-bottom:8px';
+  return ['', ...SPOKES].map((choice) => {
+    const button = addButton(menu, grid, choice ? choice.toUpperCase() : 'STOCK',
+      () => pick(choice));
+    button.dataset.c = choice;
+    button.style.cssText = 'min-width:0;min-height:0;height:26px;padding:0;font-size:10px';
+    return button;
+  });
+}
+
+/**
+ * ?carpaint: the paint shop's picture of a wheel lying loose - where its rim is seen.
+ * @param left the column it goes in
+ * @returns the canvas
+ */
+function wheelPreview(left: HTMLElement) {
+  const holder = addElement(left, 'div', '', 'row');
+  holder.style.cssText = 'margin-top:8px;align-items:center;gap:10px';
+  const wheel = document.createElement('canvas');
+  wheel.width = wheel.height = 68;
+  wheel.style.cssText = 'width:68px;height:68px;image-rendering:pixelated;background:#17141b';
+  holder.appendChild(wheel);
+  addElement(holder, 'div', 'YOUR WHEEL, LYING LOOSE', 'sub');
+  return wheel;
 }
 
 /**
