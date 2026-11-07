@@ -40,6 +40,9 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
+  // ?hwbales=1: the highway's field bales LOOSE objects, as every other level's (nudged, burst into
+  // straw if hit hard) - were solid props (highway/fields.ts addBale; owner 11-07)
+  hwbales: atLoad('hwbales'),
   // ?f1aero=1: the F1 / F2's real downforce, brakes and wheel weight (carreal.ts F1_AERO)
   f1aero: atLoad('f1aero'),
 };

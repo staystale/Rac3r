@@ -19,6 +19,7 @@
 // (the side face the camera sees on a rolled car)
 import { levelFlipRamps, rampFlip } from './world/flipramps.ts';
 import { LEVEL } from './world/state.ts';
+import { groundAt } from './world/wear.ts';
 import type { CarRoll } from './vehicle.ts';
 /** The rollover state (car.roll; vehicle.ts CarRoll). */
 export type RollState = CarRoll;
@@ -191,8 +192,12 @@ export function stepRoll(car: RollCar, dt: number, onHit: RollHit) {
   car.y += car.vy * dt;
   // metal on hard ground: sparks (render/particles.ts) and a chance to break it
   // (world/metalscrape.ts) - tumbling as well as sliding on a side or the roof (owner: sparks
-  // while crash rolling); never on soft ground (a trap is not: mu 0.45 = 'metal on tarmac')
-  car.sparks = speed > 3 && !!surface.hard;
+  // while crash rolling); never on soft ground (a trap is not: mu 0.45 = 'metal on tarmac'), and
+  // not while it is on its WHEELS mid-tumble. The ground is read HERE, under the car now (owner
+  // 11-07: "check it can't spark on soft surfaces even if rolling" - car.surface was the ground
+  // it had when it tipped over, so a car rolling off the tarmac onto the grass sparked on)
+  const face = ((Math.round(state.phi / HALF_PI) % 4) + 4) % 4;
+  car.sparks = speed > 3 && face !== 0 && !!groundAt(car.x, car.y).surface?.hard;
   state.still = speed < 0.8 ? state.still + dt : 0;
   if (car.t) { car.t.vLong = speed; }
   car.rpm = Math.max(800, (car.rpm || 800) - 3000 * dt);
@@ -228,7 +233,9 @@ function spinStep(car: RollCar, state: RollState, dt: number, onHit: RollHit) {
       state.phi = face * HALF_PI;
       state.w = 0;
       state.phase = face === 0 ? 'none' : face === 2 ? 'roof' : 'side';
-      if (state.phase === 'none') { car.roll = null; return true; }
+      // back on its wheels: done - and no more sparks (owner 11-07: "if they land on their wheels
+      // again they can continue sparking - they shouldn't"; the flag was only cleared on a reset)
+      if (state.phase === 'none') { car.roll = null; car.sparks = false; return true; }
     }
   }
   return false;

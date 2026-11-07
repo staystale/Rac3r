@@ -51,7 +51,7 @@ const NO_GLASS = new Set(['track', 'banger', 'grass']);
 export interface DebrisCar {
   x?: number; y?: number; vx: number; vy: number; heading: number;
   spec?: { id?: string; kind?: string; paint?: string; trim?: string; lf?: number; lr?: number;
-    trackWidth?: number };
+    trackWidth?: number; drive?: number };
   partSpawn?: { corner: number; kind: string }[];
   partsOff?: number;     // a bit per part gone (until a repair): PART_BIT
   // the parts gone, "kind:corner" each joined by "," (render/carparts.ts draws the car without
@@ -192,8 +192,8 @@ export function rollParts(car: DebrisCar, kind: string, side: number, scale: num
 }
 
 /**
- * a wheel torn off takes its suspension with it - an open car's WISHBONES, a closed
- * car's STRUT and maybe its lower arm (damage.ts, physics/openwheel.ts; thrown as parts).
+ * a wheel torn off takes its suspension with it - an open car's WISHBONES, a closed car's STRUT
+ * and maybe its lower arm, a driven wheel maybe its DRIVE SHAFT (damage.ts, physics/openwheel.ts).
  * @param car the car
  * @param corner the wheel's corner
  * @param rnd the random source
@@ -202,6 +202,10 @@ export function wheelBits(car: Pick<DebrisCar, 'spec' | 'partSpawn'>, corner: nu
   rnd: () => number): void {
   const open = car.spec?.kind === 'track' || car.spec?.kind === 'grass';
   const spawn = (kind: string) => (car.partSpawn || (car.partSpawn = [])).push({ corner, kind });
+  // a DRIVEN wheel's drive shaft may come with it (owner 11-07: "can drive shafts also be an
+  // object that can come out")
+  const drive = car.spec?.drive ?? 0;
+  if ((corner < 2 ? drive > 0 : drive < 1) && rnd() < 0.5) spawn('shaft');
   if (open) { if (rnd() < 0.6) spawn('wishbone'); if (rnd() < 0.25) spawn('wishbone'); return; }
   if (rnd() < 0.4) spawn('strut');
   if (rnd() < 0.25) spawn('wishbone');

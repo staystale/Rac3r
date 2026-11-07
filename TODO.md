@@ -168,6 +168,18 @@ last handover, written on request.
    engine), the harder the likelier. _rolltest.mjs, a Golf, a 1-turn roll from 8 rad/s, per 100
    rolls: mirror 93, door 66, wing 45, boot 21, bumper 21, exhaust 15, bonnet 10, engine 1.
    (Wheels still come off as before - owner: "I see them upon more testing".)
+   11-07 later (owner: "front wishbones etc don't link up to the body on f1 car? no drive shafts
+   either; can drive shafts also be an object that can come out"): the open cars' arms meet the
+   NOSE at the front axle and the GEARBOX at the rear (they started at the sidepods' width, in mid-
+   air), the buggy has them too, DRIVE SHAFTS to the driven wheels (render/cars.ts drawWishbones:
+   by spec.drive); a driven wheel torn off may throw its drive shaft (50 %: world/debris.ts
+   wheelBits; 8 kg, puncture 6 % run over, drawn with its CV boots). ROLL SPARKS ("if they land on
+   their wheels again they can continue sparking - check it can't spark on soft surfaces even if
+   rolling"): car.sparks cleared when the roll ends back on the wheels (only a reset did), none
+   while on its wheels mid-tumble, the ground read under the car (was the surface it tipped over
+   on): _rollspark.mjs - 0 sparking steps on grass, 0 after landing. HIGHWAY BALES ("I hit one and
+   it was hard"): UNDER TEST ?hwbales - loose objects as everywhere else (highway/fields.ts
+   addBale; were solid props): _hwbale.mjs, a 90 km/h hit bursts one into straw.
 
 Then, to work through when it fits (owner 11-07, not ordered):
 - HIGHWAY LINE: "does the ai need a racing line on highway? if not can we get rid of it - it's

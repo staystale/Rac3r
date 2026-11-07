@@ -14,7 +14,7 @@ import type {
 } from "./types.ts";
 
 // an open-wheeler's suspension arms
-const WISHBONE = '#2a2d34';
+const WISHBONE = '#2a2d34', DRIVE_SHAFT = '#4a4f57', CV_JOINT = '#16181d';
 
 // what createCars destructures from the renderer and the sprite layers
 interface CarsHelpers {
@@ -185,12 +185,25 @@ function pixelLine(ctx: CanvasRenderingContext2D, from: number[], dest: number[]
  */
 function drawWishbones(ctx: CanvasRenderingContext2D, spec: RenderCarSpec, axleX: number,
   side: number, steer: number, halfWidth: number): void {
-  const hubX = axleX * SPRITE_PPM, hubY = side * halfWidth;
-  const body = side * (spec.wid / 2 * SPRITE_PPM - 2);
+  const hubX = axleX * SPRITE_PPM, hubY = side * halfWidth, front = axleX > 0;
+  // the chassis where the arms meet it: the NOSE at the front axle, the GEARBOX at the rear (owner
+  // 11-07: "front wishbones etc don't link up to the body on f1 car" - they started at the
+  // sidepods' width, in mid-air at the nose)
+  const body = side * (front ? 2 : 3);
+  // a DRIVE SHAFT to a driven wheel ("no drive shafts either"): straight across, its two joints
+  const drive = spec.drive ?? 0;
+  if (front ? drive > 0 : drive < 1) {
+    ctx.fillStyle = DRIVE_SHAFT;
+    pixelLine(ctx, [hubX, body], [hubX, hubY]);
+    pixelLine(ctx, [hubX + 1, body], [hubX + 1, hubY]);
+    ctx.fillStyle = CV_JOINT;
+    ctx.fillRect(Math.round(hubX) - 1, Math.round(body + side * 2) - 1, 3, 2);
+    ctx.fillRect(Math.round(hubX) - 1, Math.round(hubY - side * 3) - 1, 3, 2);
+  }
   ctx.fillStyle = WISHBONE;
   for (const spread of [-0.2, 0.2])
     pixelLine(ctx, [hubX + spread * SPRITE_PPM, body], [hubX, hubY]);
-  if (axleX <= 0) return;
+  if (!front) return;
   const arm = 0.14 * SPRITE_PPM, endX = hubX - Math.cos(steer) * arm,
     endY = hubY - Math.sin(steer) * arm;
   pixelLine(ctx, [hubX - arm, body], [endX, endY]);
@@ -222,7 +235,7 @@ function drawCarWheels(carsCtx: CarsContext, car: RenderCar, sprite: CarSprite) 
       );
       continue;
     }
-    if (spec.kind === 'track') drawWishbones(view.ctx, spec, axleX, side, steer, halfWidth);
+    if (isBare(spec)) drawWishbones(view.ctx, spec, axleX, side, steer, halfWidth);
     drawCarWheel(carsCtx, spec, axleX, side, steer, metrics, car.tyreP ? {
       pressure: car.tyreP[corner], isOnRim: !!car.onRim?.[corner], turn,
     } : null);
@@ -401,7 +414,7 @@ function pixelCarWithWheels(carsCtx: CarsContext, spec: RenderCarSpec) {
   ]) {
     const { len: tyreLen, wid: tyreWid } = tyreBox(carSpec, axleX < 0),
       x = Math.round(midX + axleX * SPRITE_PPM), y = Math.round(midY + side * halfWidth);
-    if (carSpec.kind === 'track') {
+    if (isBare(carSpec)) {
       gctx.save();
       gctx.translate(midX, midY);
       drawWishbones(gctx, carSpec, axleX, side, 0, halfWidth);

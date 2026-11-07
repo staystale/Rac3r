@@ -1,5 +1,6 @@
 // highway fields: SCENERY v2, the farm fields, hedges and villages laid along the road.
 // Split out of highway.ts.
+import { FIX } from '../core/fixes.ts';
 import { SURFACES } from "../world/surfaces.ts";
 import { STEP } from "./presets.ts";
 import { keepOut } from "./cuts.ts";
@@ -281,18 +282,32 @@ function addFieldTrees(level: HwLevel, plot: Plot, rand: () => number) {
   }
 }
 /**
+ * A hay bale in a field: ?hwbales - a LOOSE object, as on every other level (250 kg, nudged, burst
+ * into straw if hit hard - cones/coneCar.ts; owner 11-07: "highway hay bails are they the same ones
+ * that can be nudged around / popped ... I think I hit one and it was hard"); was a solid prop.
+ * @param level the highway level
+ * @param loose where the loose objects go
+ * @param place its place, field and road distance
+ */
+function addBale(level: HwLevel, loose: LevelObj[], place: { x: number; y: number; field: number;
+  _s: number }) {
+  if (FIX.hwbales) loose.push({ kind: 'bale', rot: 0, ...place });
+  else level.props.push({ kind: 'bale', ...place });
+}
+
+/**
  * Wheat field: now and then a scatter of bales.
  * @param level the highway level
  * @param plot the field plot
  * @param rand the field random stream
  * @returns {void}
  */
-function addFieldBales(level: HwLevel, plot: Plot, rand: () => number) {
+function addFieldBales(level: HwLevel, plot: Plot, rand: () => number, loose: LevelObj[]) {
   const { fieldId, type, dist } = plot;
   if (type === "wheat" && rand() < 0.45)
     for (let num = 3 + ((rand() * 4) | 0); num > 0; num--) {
       const [x, y] = fieldInside(plot, rand, 5);
-      level.props.push({ kind: "bale", x, y, field: fieldId, _s: dist });
+      addBale(level, loose, { x, y, field: fieldId, _s: dist });
     }
 }
 /**
@@ -319,7 +334,7 @@ function addFieldStock(plot: Plot, rand: () => number, loose: LevelObj[]) {
  * @param rand the field random stream
  * @returns {void}
  */
-function addFieldYard(level: HwLevel, plot: Plot, rand: () => number) {
+function addFieldYard(level: HwLevel, plot: Plot, rand: () => number, loose: LevelObj[]) {
   const { fieldLen, depth, heading, fieldId, type, dist } = plot;
   if (type === 'yard') {
     for (let num = 0; num < 2; num++) {
@@ -338,7 +353,7 @@ function addFieldYard(level: HwLevel, plot: Plot, rand: () => number) {
     }
     for (let num = 2 + ((rand() * 4) | 0); num > 0; num--) {
       const [x, y] = fieldCorner(plot, (rand() - 0.5) * fieldLen * 0.5, -depth * 0.28);
-      level.props.push({ kind: "bale", x, y, field: fieldId, _s: dist });
+      addBale(level, loose, { x, y, field: fieldId, _s: dist });
     }
   }
 }
@@ -388,9 +403,9 @@ function layFieldRows(level: HwLevel, strip: FieldStrip, pointAt: (i: number,
     addFieldTrees(level, plot, rand);
     // a hedge of bushes round the border (highway/hedges.ts; own random stream)
     addFieldHedges(level, plot);
-    addFieldBales(level, plot, rand);
+    addFieldBales(level, plot, rand, loose);
     addFieldStock(plot, rand, loose);
-    addFieldYard(level, plot, rand);
+    addFieldYard(level, plot, rand, loose);
   }
 }
 /**
