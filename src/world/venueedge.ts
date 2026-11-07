@@ -8,7 +8,8 @@
 // poly). Marshal posts stand behind the Armco outside each corner, boards on it.
 import { SURFACES } from "./surfaces.ts";
 import { insidePolygon } from "./zones.ts";
-import { HALF_ROAD, centreAt, clearRuns, distToLine, nearestLoop } from "./venuegeo.ts";
+import { HALF_ROAD, centreAt, clearRuns, distToLine, nearestLoop, roadDistance }
+  from "./venuegeo.ts";
 import type { Barrier, Cone, Point, Prop, Subtrack, TrackPoint, Zone } from "./types.ts";
 
 // m past the road's edge the Armco stands where there is no trap (the run-off: grass)
@@ -30,16 +31,19 @@ const ROAD_CLEAR_M = 2.5;
 // m: the longest single Armco run (collision and drawing skip far runs by their box)
 const RUN_MAX_M = 60;
 // m: an Armco end's flare - how far on, and how far it bends away from the track
-const FLARE_ON_M = 3.5, FLARE_OUT_M = 2.2;
+const FLARE_ON_M = 6, FLARE_OUT_M = 1.6;
 // m in front of the Armco of its two tyre rows behind a trap, and the second row's stagger
 const TYRE_ROWS: [number, number][] = [[1.4, 0], [2.35, 0.475]];
-// m behind the Armco of the catch fence; m behind the Armco within which a stand or bank puts one
-const CATCH_BACK_M = 1.8, CATCH_REACH_M = 32;
+// m beyond the rim a hazard is looked for (Armco before it); m of gap filled between two runs of a
+// kind; m a run is grown each way; the fewest points a run keeps
+const HAZARD_M = 14, GAP_FILL_M = 24, EXTEND_M = 8, MIN_RUN_PTS = 12;
+// the fewest tyres a row in front of a barrier keeps (a few alone read as litter)
+const MIN_TYRE_ROW = 16;
 // m behind the Armco of a marshal post, and of a board (behind the catch fence too)
-const MARSHAL_BACK_M = 3.2, BOARD_BACK_M = 4.5;
+const MARSHAL_BACK_M = 3.2, BOARD_BACK_M = 3;
 // m: half a board's face, how far it keeps from a barrier point or a tyre, how far along the
 // rail a clear spot is looked for
-const BOARD_HALF_M = 9, BOARD_GAP_M = 1.5, BOARD_LOOK_M = 80;
+const BOARD_HALF_M = 9, BOARD_GAP_M = 2.5, BOARD_LOOK_M = 80;
 
 /** One layout road's rim: the Armco's distance from the centre, per side, every RIM_STEP_M. */
 export interface Rim { sub: Subtrack; left: Float32Array; right: Float32Array }
@@ -221,7 +225,10 @@ function rimLine(rim: Rim, side: number, back = 0): Point[] {
 }
 
 /** What the edge must keep clear of: every race road, and the lanes that leave them. */
-export interface EdgeClear { loops: Subtrack[]; lanes: { pts: Point[]; width: number }[] }
+export interface EdgeClear {
+  loops: Subtrack[]; lanes: { pts: Point[]; width: number }[];
+  blocked: (x: number, y: number) => boolean;   // a building there (the edge keeps off it)
+}
 
 /**
  * Whether a point may carry the edge: clear of every race road (but its own side's rim) and of
@@ -234,7 +241,8 @@ export interface EdgeClear { loops: Subtrack[]; lanes: { pts: Point[]; width: nu
 function edgeClear(keep: EdgeClear, x: number, y: number): boolean {
   for (const sub of keep.loops)
     if (nearestLoop([sub], x, y).hit.dist < HALF_ROAD + ROAD_CLEAR_M) return false;
-  return keep.lanes.every((lane) => distToLine(lane.pts, x, y) > lane.width / 2 + 1);
+  return keep.lanes.every((lane) => distToLine(lane.pts, x, y) > lane.width / 2 + 1)
+    && !keep.blocked(x, y);
 }
 
 /**
@@ -290,15 +298,115 @@ function withoutDoubles(pts: Point[], used: Point[], gapM: number): Point[][] {
   return runs;
 }
 
+/** What stands at a rim sample. */
+const EDGE_NONE = 0, EDGE_ARMCO = 1, EDGE_CATCH = 2;
+
+/** What decides the edge beside a road: hazards beyond it and where spectators stand. */
+export interface EdgeNeeds {
+  hazard: (x: number, y: number) => boolean;   // a solid thing there (Armco protects it)
+  watched: (x: number, y: number) => boolean;   // spectators near (a catch fence instead)
+}
+
 /**
- * The sealed edge: the Armco both sides of every layout's road (a road shared by two layouts gets
- * one), flared at the openings, and two tyre rows in front of it behind each trap.
+ * What stands at each rim sample of one side: Armco behind a trap or before a hazard within
+ * HAZARD_M beyond the rim, a catch fence where spectators are, else nothing (open run-off); gaps
+ * under GAP_FILL_M between two runs of the same kind filled, each run grown EXTEND_M each way.
+ * @param rim the road's rim
+ * @param side +1 left, -1 right
+ * @param traps the trap zones
+ * @param needs the hazards and spectators
+ * @param loops every layout's road (another stretch of track is a hazard)
+ * @returns the kind at each sample
+ */
+function edgeKinds(rim: Rim, side: number, traps: Zone[], needs: EdgeNeeds,
+  loops: Subtrack[]): Uint8Array {
+  const offs = side > 0 ? rim.left : rim.right, count = offs.length;
+  const kinds = new Uint8Array(count);
+  for (let i = 0; i < count; i++) {
+    const centre = centreAt(rim.sub, i * RIM_STEP_M);
+    const outX = centre.nx * side, outY = centre.ny * side;
+    const x = centre.x + outX * offs[i], y = centre.y + outY * offs[i];
+    let hazard = trapDepth(centre, side, traps) > 0;
+    for (let past = 0; past <= HAZARD_M && !hazard; past += 2) {
+      const probeX = x + outX * past, probeY = y + outY * past;
+      hazard = needs.hazard(probeX, probeY)
+        || nearestLoop(loops, probeX, probeY).hit.dist < HALF_ROAD + 1;
+    }
+    kinds[i] = needs.watched(x, y) ? EDGE_CATCH : hazard ? EDGE_ARMCO : EDGE_NONE;
+  }
+  fillGaps(kinds, Math.round(GAP_FILL_M / RIM_STEP_M));
+  growRuns(kinds, Math.round(EXTEND_M / RIM_STEP_M));
+  return kinds;
+}
+
+/**
+ * Fills each gap of nothing no longer than most samples between two runs of the same kind (no
+ * random short gaps).
+ * @param kinds the kinds round the loop (changed)
+ * @param most samples
+ */
+function fillGaps(kinds: Uint8Array, most: number): void {
+  const count = kinds.length;
+  for (let i = 0; i < count; i++) {
+    if (kinds[i] === EDGE_NONE || kinds[(i + 1) % count] !== EDGE_NONE) continue;
+    let gap = 1;
+    while (gap <= most && kinds[(i + gap) % count] === EDGE_NONE) gap++;
+    if (gap <= most && kinds[(i + gap) % count] === kinds[i])
+      for (let fill = 1; fill < gap; fill++) kinds[(i + fill) % count] = kinds[i];
+  }
+}
+
+/**
+ * Grows every run into the nothing either side of it by up to grow samples.
+ * @param kinds the kinds round the loop (changed)
+ * @param grow samples
+ */
+function growRuns(kinds: Uint8Array, grow: number): void {
+  const count = kinds.length, before = kinds.slice();
+  for (let i = 0; i < count; i++) {
+    if (before[i] !== EDGE_NONE) continue;
+    for (let reach = 1; reach <= grow; reach++) {
+      const ahead = before[(i + reach) % count], behind = before[(i - reach + count) % count];
+      if (ahead !== EDGE_NONE || behind !== EDGE_NONE) {
+        kinds[i] = ahead !== EDGE_NONE ? ahead : behind;
+        break;
+      }
+    }
+  }
+}
+
+/**
+ * The runs of one kind round a rim side, as point lists (a run across the loop's start joined).
+ * @param pts the rim line's points (one a sample)
+ * @param kinds the kinds
+ * @param kind the kind wanted
+ * @returns the runs
+ */
+function kindRuns(pts: Point[], kinds: Uint8Array, kind: number): Point[][] {
+  const count = kinds.length, runs: Point[][] = [];
+  const first = kinds.findIndex((value) => value !== kind);
+  if (first < 0) return [pts.slice(0, count).concat([pts[0]])];
+  let run: Point[] = [];
+  for (let step = 1; step <= count; step++) {
+    const i = (first + step) % count;
+    if (kinds[i] === kind) run.push(pts[i]);
+    else if (run.length) { runs.push(run); run = []; }
+  }
+  if (run.length) runs.push(run);
+  return runs.filter((line) => line.length > 1);
+}
+
+/**
+ * The edge: per stretch Armco (behind the traps and before hazards), a catch fence where
+ * spectators are (instead, never both) or open run-off; a road two layouts share gets one; Armco
+ * ends flared smoothly; two tyre rows in front of it behind each trap.
  * @param rims every layout road's rim
  * @param keep what to keep clear of
  * @param traps the trap zones
- * @returns the Armco runs and the tyre stacks
+ * @param needs the hazards and spectators
+ * @returns the barriers and the tyre stacks
  */
-export function buildEdge(rims: Rim[], keep: EdgeClear, traps: Zone[]):
+export function buildEdge(rims: Rim[], keep: EdgeClear, traps: Zone[], needs: EdgeNeeds):
   { barriers: Barrier[]; cones: Cone[] } {
   const barriers: Barrier[] = [], cones: Cone[] = [], used: Point[] = [];
   const clear = (x: number, y: number) => edgeClear(keep, x, y);
@@ -307,17 +415,24 @@ export function buildEdge(rims: Rim[], keep: EdgeClear, traps: Zone[]):
     const others = rims.filter((other) => other !== rim);
     const outsideOthers = (x: number, y: number) => clear(x, y) && pastRim(others, x, y) > -1;
     for (const side of [1, -1]) {
+      const kinds = edgeKinds(rim, side, traps, needs, keep.loops), line = rimLine(rim, side);
       const fresh: Point[] = [];
-      for (const part of withoutDoubles(rimLine(rim, side), used, 1.5))
-        for (const run of clearRuns(part, outsideOthers, RIM_STEP_M)) {
-          // flared at its real ends, then cut into short runs (no flare where it was only cut)
-          const flared = flare(run,
-            [awayFrom(keep.loops, run[0]), awayFrom(keep.loops, run[run.length - 1])], clear);
-          for (const chunk of chunks(flared, RUN_MAX_M / RIM_STEP_M))
-            barriers.push({ kind: 'armco', pts: chunk });
-          fresh.push(...run);
-          cones.push(...trapTyres(run, keep.loops, traps, clear));
-        }
+      for (const [kind, barrierKind] of [[EDGE_ARMCO, 'armco'], [EDGE_CATCH, 'catchfence']] as
+        [number, Barrier['kind']][])
+        for (const part of kindRuns(line, kinds, kind)
+          .flatMap((run) => withoutDoubles(run, used, 3)))
+          for (const run of clearRuns(part, outsideOthers, RIM_STEP_M)) {
+            if (run.length < MIN_RUN_PTS) continue;
+            // Armco flared at its real ends, then cut into short runs (no flare where only cut)
+            const ends: [Point, Point] = [awayFrom(keep.loops, run[0]),
+              awayFrom(keep.loops, run[run.length - 1])];
+            const shaped = barrierKind === 'armco' ? flare(run, ends, clear) : run;
+            for (const chunk of chunks(shaped, RUN_MAX_M / RIM_STEP_M))
+              barriers.push({ kind: barrierKind, pts: chunk });
+            fresh.push(...run);
+            // a tyre wall in front of either, where it stands behind a trap
+            cones.push(...trapTyres(run, keep.loops, traps, clear));
+          }
       used.push(...fresh);
     }
   }
@@ -354,9 +469,11 @@ function trapTyres(run: Point[], loops: Subtrack[], traps: Zone[],
       const away = awayFrom(loops, point);
       return [point[0] - away[0] * front, point[1] - away[1] * front] as Point;
     });
-    for (const line of clearRuns(row, (x, y) => clear(x, y) && nearTrap(traps, x, y, 3), 0.95))
+    for (const line of clearRuns(row, (x, y) => clear(x, y) && nearTrap(traps, x, y, 3), 0.95)) {
+      if (line.length < MIN_TYRE_ROW) continue;
       for (let i = shift ? 1 : 0; i < line.length; i++)
         out.push({ x: line[i][0], y: line[i][1], kind: 'tyrestack' });
+    }
   }
   return out;
 }
@@ -374,31 +491,6 @@ function nearTrap(traps: Zone[], x: number, y: number, reach: number): boolean {
     && Math.abs(y - zone.y) <= zone.h / 2 + reach
     && (insidePolygon(zone.poly!, x, y)
       || distToLine([...zone.poly!, zone.poly![0]], x, y) < reach));
-}
-
-/**
- * The catch fences: CATCH_BACK_M behind the Armco wherever a grandstand or a bank stands within
- * CATCH_REACH_M behind it.
- * @param armco the Armco runs
- * @param spectators where people stand: points (stand corners and centres, bank points)
- * @param loops every layout's road
- * @returns the catch fence runs
- */
-export function buildCatchFences(armco: Barrier[], spectators: Point[], loops: Subtrack[]):
-  Barrier[] {
-  const out: Barrier[] = [];
-  for (const rail of armco) {
-    const behind = rail.pts.map((point) => {
-      const away = awayFrom(loops, point);
-      return [point[0] + away[0] * CATCH_BACK_M, point[1] + away[1] * CATCH_BACK_M] as Point;
-    });
-    const watched = (x: number, y: number) => spectators.some(([spotX, spotY]) =>
-      Math.abs(spotX - x) < CATCH_REACH_M && Math.abs(spotY - y) < CATCH_REACH_M
-      && Math.hypot(spotX - x, spotY - y) < CATCH_REACH_M);
-    for (const run of clearRuns(behind, watched, 2, RUN_MAX_M))
-      if (run.length > 4) out.push({ kind: 'catchfence', pts: run });
-  }
-  return out;
 }
 
 /**
@@ -473,14 +565,17 @@ export function boardOnArmco(barriers: Barrier[], cones: Cone[], loops: Subtrack
     const away = behindRail(point, loops, rims);
     const x = point[0] + away[0] * BOARD_BACK_M, y = point[1] + away[1] * BOARD_BACK_M;
     const alongX = -away[1], alongY = away[0];
+    // behind the rail: every point of the face further from the road than the rail itself
+    const railGap = roadDistance(loops, point[0], point[1]);
+    const apart = (fromX: number, fromY: number, toX: number, toY: number) =>
+      Math.hypot(fromX - toX, fromY - toY) > BOARD_GAP_M;
     let clear = true;
     for (let along = -BOARD_HALF_M; along <= BOARD_HALF_M && clear; along += 1.5) {
       const faceX = x + alongX * along, faceY = y + alongY * along;
-      clear = near.every(([railX, railY]) => Math.abs(railX - faceX) > BOARD_GAP_M
-        || Math.abs(railY - faceY) > BOARD_GAP_M)
-        && cones.every((cone) => Math.abs(cone.x - faceX) > BOARD_GAP_M
-          || Math.abs(cone.y - faceY) > BOARD_GAP_M)
-        && pastRim(rims, faceX, faceY) > 1 && !blocked(faceX, faceY);
+      clear = near.every(([railX, railY]) => apart(railX, railY, faceX, faceY))
+        && cones.every((cone) => apart(cone.x, cone.y, faceX, faceY))
+        && pastRim(rims, faceX, faceY) > 1 && !blocked(faceX, faceY)
+        && roadDistance(loops, faceX, faceY) > railGap + 1.5;
     }
     if (clear) return { kind: 'board', label, x, y, rot: Math.atan2(alongY, alongX) };
   }

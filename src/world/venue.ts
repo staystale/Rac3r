@@ -67,6 +67,8 @@ export interface VenueBuild {
 const VENUE_MIN_R = 15.5;
 // m in from a junction where the tyre row closing an unraced piece stands
 const CLOSE_IN_M = 14;
+// m along an unraced piece the closing row may go to find a clear place
+const CLOSE_LOOK_M = 120;
 const ROUND = (value: number) => Math.round(value * 100) / 100;
 
 /**
@@ -170,14 +172,32 @@ function closedPieces(build: VenueBuild, layout: string): { lanes: Lane[]; cones
     lanes.push({ pts: piece.pts, width: VENUE_ROAD_M, surface: SURFACES.racetarmac });
     for (const end of [piece.pts, piece.pts.slice().reverse()]) {
       if (querySubtrack(sub, end[0][0], end[0][1]).dist > VENUE_ROAD_M) continue;
-      const spot = pointAlong(end, CLOSE_IN_M);
-      if (!spot) continue;
-      for (let across = -half + 0.5; across <= half - 0.5; across += 0.95)
-        cones.push({ x: spot.x + spot.nx * across, y: spot.y + spot.ny * across,
-          kind: 'tyrestack' });
+      const row = closureRow(end, sub, half);
+      if (row) cones.push(...row);
     }
   }
   return { lanes, cones };
+}
+
+/**
+ * The tyre row across an unraced piece: the first place along it from CLOSE_IN_M where every
+ * tyre stands clear of the raced road (where the two part at a shallow angle the piece is still
+ * beside the track for a while).
+ * @param line the piece from its junction end
+ * @param sub the raced road
+ * @param half half the road's width
+ * @returns the tyre stacks, or null if it never clears
+ */
+function closureRow(line: Point[], sub: Subtrack, half: number): Cone[] | null {
+  for (let along = CLOSE_IN_M; along < CLOSE_LOOK_M; along += 2) {
+    const spot = pointAlong(line, along);
+    if (!spot) return null;
+    const row: Cone[] = [];
+    for (let across = -half + 0.5; across <= half - 0.5; across += 0.95)
+      row.push({ x: spot.x + spot.nx * across, y: spot.y + spot.ny * across, kind: 'tyrestack' });
+    if (row.every((tyre) => querySubtrack(sub, tyre.x, tyre.y).dist > half + 1.5)) return row;
+  }
+  return null;
 }
 
 /**

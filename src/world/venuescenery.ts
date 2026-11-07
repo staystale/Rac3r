@@ -10,14 +10,17 @@
 import { alongTrack } from "./barriers.ts";
 import { SURFACES } from "./surfaces.ts";
 import { onTrack } from "./tyrewall.ts";
-import { insidePolygon } from "./zones.ts";
 import { parkMiller } from "../core/random.ts";
-import { HALF_ROAD, VENUE_ROAD_M, centreAt, clearRuns, distToLine, lineLength, makePlacer,
-  nearestLoop, resample, roadDistance } from "./venuegeo.ts";
-import { boardOnArmco, buildCatchFences, buildEdge, buildRims, inZones, marshalPosts,
+import { HALF_ROAD, VENUE_ROAD_M, centreAt, distToLine, makePlacer, nearestLoop,
+  resample } from "./venuegeo.ts";
+import { boardOnArmco, buildEdge, buildRims, inZones, marshalPosts,
   outlineZone, pastRim, trapZones } from "./venueedge.ts";
-import type { Rim } from "./venueedge.ts";
-import { joinApproaches } from "./venuejoin.ts";
+import type { EdgeNeeds } from "./venueedge.ts";
+import { REACH_M, cellKey, inBuilding, nearArmco, nearRace, onLanes, placeAll }
+  from "./venuesite.ts";
+import type { Site } from "./venuesite.ts";
+import { tidyRoads, venueRoads } from "./venueroads.ts";
+import { joinApproaches, joinFrom } from "./venuejoin.ts";
 import type { VenueBox, VenueBuild } from "./venue.ts";
 import type { Barrier, Cone, Lane, Paint, Point, Prop, Subtrack, Zone } from "./types.ts";
 
@@ -27,29 +30,23 @@ export interface VenueScenery {
   paint: Paint[]; bounds: { x0: number; y0: number; x1: number; y1: number };
 }
 
-// m (game) from a venue road beyond which nothing of the map is taken: the venue's reach
-const REACH_M = 130;
 // m: the pit lane's width, the wall's gap from it, where it may meet the track (its ends) and the
 // wall's distance past the road's edge
 const PIT_W = 9, PIT_WALL_GAP = 0.6, PIT_MERGE_M = 30, EDGE_TO_WALL = 3;
 // m: the garages' front stands at least this far behind the pit lane's edge
 const GARAGE_GAP_M = 1.5;
+// m from the pit lane's centre a parked truck or car keeps (the apron in front of the garages)
+const PIT_APRON_M = 16;
 // a painted line's easing: points either side in the running mean, and the passes
 const SMOOTH_REACH = 3, SMOOTH_PASSES = 3;
-// m: a service road keeps this far outside the edge; a piece of one shorter than MIN_ROAD_M once
-// cut is left out (a stub)
-const ROAD_OUT_M = 2, MIN_ROAD_M = 30;
-// m inside the edge beyond which a road is not stepped out (it crosses the run-off: cut there)
-const ROAD_STEP_LIMIT_M = 3;
-// m a stepped-out road keeps from the Armco beyond its half width (past nearArmco's reach: its
-// 2 m cells read up to two cells out)
-const ROAD_ARMCO_GAP_M = 4.5;
-// m: a road piece going nowhere is kept only this long; an end within JOIN_M of a lane meets it
-const LONE_ROAD_M = 90, JOIN_M = 3;
 // m: a bridge's approach and its width; a tunnel portal's distance outside the edge, its length
 const APPROACH_M = 8, APPROACH_W = 6, PORTAL_OUT_M = 3, PORTAL_LEN_M = 9;
 // m: tunnels crossing the track this close together are one tunnel
 const SAME_TUNNEL_M = 12;
+// m: a bridge deck's width as a hazard box; how near a stand or bank puts a catch fence
+const DECK_BOX_M = 12, SPECTATOR_REACH_M = 30;
+// m: half a bridge approach's width (the roads it meets are 5-6 m)
+const APPROACH_HALF_M = 3;
 // m: a building stays this far outside the edge (moved out in NUDGE_STEP_M steps)
 const BUILD_OUT_M = 2, NUDGE_STEP_M = 1.5, NUDGE_TRIES = 12;
 // parked cars: m between cars along a row, between rows, the share of bays taken, the most
@@ -65,18 +62,7 @@ const ROOFS = ['#5b626b', '#6b6158', '#596372', '#6e6e66'];
 const TRUCK_COLS = ['#c8302c', '#2b56b5', '#e2c13a', '#2e8b57', '#e8e6e0'];
 const PARKED_COLS = ['#c8302c', '#2b56b5', '#e8e6e0', '#1d1f24', '#8f949c', '#2e8b57', '#d9a13a'];
 
-/** What every builder here shares. */
-interface Site {
-  build: VenueBuild; loops: Subtrack[]; rims: Rim[]; place: (pt: Point) => Point;
-  rnd: () => number; lanes: Lane[]; buildings: Prop[];
-  armco: Set<string>;   // the 2 m cells the Armco runs through (roads keep out of them)
-}
 
-const placeAll = (site: Site, pts: Point[]): Point[] => pts.map(site.place);
-const nearRace = (site: Site, x: number, y: number, pad: number) =>
-  roadDistance(site.loops, x, y) < HALF_ROAD + pad;
-const onLanes = (lanes: Lane[], x: number, y: number, pad: number) =>
-  lanes.some((lane) => distToLine(lane.pts, x, y) < lane.width / 2 + pad);
 
 /**
  * The pit lane at game scale, kept clear of the wall (the game's road is wider than the real
@@ -102,6 +88,14 @@ function pitLane(site: Site): { lane: Lane; wall: Barrier | null } {
     const centre = centreAt(sub, hit.trackDist);
     return [centre.x + centre.nx * side * need, centre.y + centre.ny * side * need];
   }) as Point[];
+  // eased (the mapped lane jogs), then held clear of the wall again
+  const eased = smoothLine(moved).map(([x, y], i) => {
+    const fromEnd = Math.min(i, moved.length - 1 - i) * 2;
+    const { sub, hit } = nearestLoop(site.loops, x, y);
+    if (fromEnd < PIT_MERGE_M || hit.dist >= need) return [x, y] as Point;
+    const centre = centreAt(sub, hit.trackDist), side = hit.side === 'left' ? 1 : -1;
+    return [centre.x + centre.nx * side * need, centre.y + centre.ny * side * need] as Point;
+  });
   let wall: Barrier | null = null;
   if (beside.length > 8) {
     const sides = beside.reduce((sum, spot) => sum + spot.side, 0), trim = 6;
@@ -109,7 +103,7 @@ function pitLane(site: Site): { lane: Lane; wall: Barrier | null } {
     wall = { kind: 'pitwall', pts: alongTrack(beside[0].sub, beside[0].dist + trim,
       beside[beside.length - 1].dist - trim, offset, 2) };
   }
-  return { lane: { pts: moved, width: PIT_W, surface: SURFACES.concrete }, wall };
+  return { lane: { pts: eased, width: PIT_W, surface: SURFACES.concrete }, wall };
 }
 
 /**
@@ -176,120 +170,11 @@ function pitLines(site: Site, pit: Lane): Paint[] {
   return lines;
 }
 
-// m: the side of the cells the Armco is indexed by
-const ARMCO_CELL_M = 2;
-const cellKey = (x: number, y: number) =>
-  `${Math.floor(x / ARMCO_CELL_M)},${Math.floor(y / ARMCO_CELL_M)}`;
 
-/**
- * Whether an Armco run passes within about pad of a point (by its 2 m cells).
- * @param site the venue's builders' state
- * @param x world x
- * @param y world y
- * @param pad metres
- * @returns true when one is that near
- */
-function nearArmco(site: Site, x: number, y: number, pad: number): boolean {
-  const reach = Math.ceil(pad / ARMCO_CELL_M);
-  const cellX = Math.floor(x / ARMCO_CELL_M), cellY = Math.floor(y / ARMCO_CELL_M);
-  for (let stepX = -reach; stepX <= reach; stepX++)
-    for (let stepY = -reach; stepY <= reach; stepY++)
-      if (site.armco.has(`${cellX + stepX},${cellY + stepY}`)) return true;
-  return false;
-}
 
-/**
- * A point outside the edge but within need of it moved straight out until it is need outside;
- * a point more than limit inside the edge (across the run-off or the track) stays where it is.
- * @param site the venue's builders' state
- * @param point the point
- * @param need metres outside the edge it should stand
- * @param limit metres inside the edge beyond which it is not moved
- * @returns the point
- */
-function stepOut(site: Site, point: Point, need: number, limit: number): Point {
-  const past = pastRim(site.rims, point[0], point[1]);
-  if (!Number.isFinite(past) || past >= need || past < -limit) return point;
-  const { sub, hit } = nearestLoop(site.loops, point[0], point[1]);
-  const centre = centreAt(sub, hit.trackDist), side = hit.side === 'left' ? 1 : -1;
-  const step = need - past;
-  return [point[0] + centre.nx * side * step, point[1] + centre.ny * side * step];
-}
 
-/**
- * Whether a point lies within pad of a building's turned box.
- * @param buildings the building props
- * @param x world x
- * @param y world y
- * @param pad metres
- * @returns true when in or that near one
- */
-function inBuilding(buildings: Prop[], x: number, y: number, pad: number): boolean {
-  return buildings.some((prop) => {
-    // the garage row: its outline (front and back)
-    if (prop.front && prop.back) {
-      const outline = [...prop.front, ...prop.back.slice().reverse()];
-      return insidePolygon(outline, x, y) || distToLine(prop.front, x, y) < pad
-        || distToLine(prop.back, x, y) < pad;
-    }
-    if (!prop.w || !prop.h) return false;
-    const cosR = Math.cos(prop.rot || 0), sinR = Math.sin(prop.rot || 0);
-    const along = (x - prop.x) * cosR + (y - prop.y) * sinR;
-    const across = -(x - prop.x) * sinR + (y - prop.y) * cosR;
-    return Math.abs(along) <= prop.w / 2 + pad && Math.abs(across) <= prop.h / 2 + pad;
-  });
-}
 
-/**
- * The service roads, rally stages and kart track as lanes, all outside the edge (real widths);
- * each piece left after the cut must be at least MIN_ROAD_M long.
- * @param site the venue's builders' state
- * @returns the lanes
- */
-function venueRoads(site: Site): Lane[] {
-  const data = site.build.spec.data, lanes: Lane[] = [];
-  const add = (pts: Point[], width: number, surface: Lane['surface']) => {
-    const clear = (x: number, y: number) => pastRim(site.rims, x, y) > ROAD_OUT_M + width / 2
-      && nearRace(site, x, y, REACH_M) && !onLanes(site.lanes, x, y, width / 2)
-      && !inBuilding(site.buildings, x, y, width / 2 + 1) && !nearArmco(site, x, y, width / 2 + 1);
-    // a road beside the track but too close to the edge (the game road is wider) steps out to
-    // clear it, as a building does; one that cuts across the run-off is cut there
-    const placed = resample(placeAll(site, pts), 2).map((point) =>
-      stepOut(site, point, ROAD_OUT_M + width / 2 + ROAD_ARMCO_GAP_M, ROAD_STEP_LIMIT_M));
-    for (const run of clearRuns(placed, clear))
-      if (lineLength(run) >= MIN_ROAD_M) lanes.push({ pts: run, width, surface });
-  };
-  // the venue's own roads: the village streets next door (residential) are not its
-  for (const road of data.roads)
-    if (!road.bridge && road.kind !== 'residential')
-      add(road.pts, road.width, road.kind === 'track' ? SURFACES.dirt : SURFACES.tarmac);
-  for (const stage of data.dirt) add(stage.pts, 5, SURFACES.dirt);
-  for (const kart of data.karting) add(kart.pts, 7, SURFACES.tarmac);
-  return joinedUp(site, lanes);
-}
 
-/**
- * The road pieces that read as roads: each long (LONE_ROAD_M), or with an end meeting another
- * lane (the pit lane, a road kept, a bridge's approach, a tunnel's road) or a building. A piece
- * the cut left alone, going nowhere, is left out (asked again until nothing more goes).
- * @param site the venue's builders' state
- * @param lanes the road pieces
- * @returns the ones kept
- */
-function joinedUp(site: Site, lanes: Lane[]): Lane[] {
-  let kept = lanes;
-  for (let pass = 0; pass < 4; pass++) {
-    const others = [...site.lanes, ...kept];
-    const meets = (run: Lane) => [run.pts[0], run.pts[run.pts.length - 1]].some(([x, y]) =>
-      others.some((other) => other !== run
-        && distToLine(other.pts, x, y) < (other.width + run.width) / 2 + JOIN_M)
-      || inBuilding(site.buildings, x, y, run.width / 2 + JOIN_M));
-    const next = kept.filter((run) => lineLength(run.pts) >= LONE_ROAD_M || meets(run));
-    if (next.length === kept.length) break;
-    kept = next;
-  }
-  return kept;
-}
 
 /**
  * Where a mapped line crosses a race road: the road's centre sample there, the line's heading and
@@ -373,13 +258,12 @@ function venueTunnels(site: Site): { props: Prop[]; lanes: Lane[] } {
       // the portal's ramp runs down toward the track: its rot points at the track
       props.push({ kind: 'tunnel', x, y, rot: cross.head + (side > 0 ? Math.PI : 0),
         w: PORTAL_LEN_M, h: width + 1.2 });
-      // a vehicle tunnel's road out of the mouth, stopping short of any Armco (a footpath is not
-      // drawn, here or anywhere)
+      // a vehicle tunnel's road starts at the portal's open end (joined to the roads later:
+      // joinTunnels); a footpath is not drawn, here or anywhere
       if (tunnel.kind === 'footway') continue;
-      const far = PORTAL_LEN_M / 2 + 10;
-      const [road] = clearRuns([[x, y], [x + dirX * side * far, y + dirY * side * far]],
-        (pointX, pointY) => !nearArmco(site, pointX, pointY, width / 2 + 0.5), 1);
-      if (road) lanes.push({ width, surface: SURFACES.tarmac, pts: road });
+      const open = PORTAL_LEN_M / 2;
+      lanes.push({ width, surface: SURFACES.tarmac,
+        pts: [[x, y], [x + dirX * side * open, y + dirY * side * open]] });
     }
   }
   return { props, lanes };
@@ -441,9 +325,28 @@ function venueBuildings(site: Site, pit: Lane): Prop[] {
     if (/pit garages/i.test(building.name)) { props.push(garageRow(prop, pit)); return; }
     if (NOT_VENUE.has(building.kind) || inZones(homes, prop.x, prop.y)) return;
     if (!building.name && prop.w! * prop.h! < 40) return;
+    // one structure mapped twice (a stand and a building on it): keep the first
+    if (overlapsAny(prop, props)) return;
     if (standClear(site, prop)) props.push({ ...prop, roof: ROOFS[i % ROOFS.length] });
   });
   return props;
+}
+
+/**
+ * Whether a box overlaps any of a list of props (its corners and centre in one, or theirs in it).
+ * @param prop the box (w, h, rot)
+ * @param others the props
+ * @returns true when they overlap
+ */
+function overlapsAny(prop: Prop, others: Prop[]): boolean {
+  const corners = (box: Prop): Point[] => {
+    const cosR = Math.cos(box.rot || 0), sinR = Math.sin(box.rot || 0);
+    return [[0, 0], [-1, -1], [1, -1], [1, 1], [-1, 1]].map(([along, across]) =>
+      [box.x + cosR * along * (box.w || 0) / 2 - sinR * across * (box.h || 0) / 2,
+        box.y + sinR * along * (box.w || 0) / 2 + cosR * across * (box.h || 0) / 2] as Point);
+  };
+  return others.some((other) => corners(prop).some(([x, y]) => inBuilding([other], x, y, 0.5))
+    || corners(other).some(([x, y]) => inBuilding([prop], x, y, 0.5)));
 }
 
 /**
@@ -504,16 +407,24 @@ function outsideEdge(site: Site, poly: Point[]): Point[] {
  * @param spacing [along, across, share kept, the most]
  * @returns the slots
  */
-function rowSlots(site: Site, box: Prop, zone: Zone,
-  spacing: [number, number, number, number]): { x: number; y: number }[] {
+function rowSlots(site: Site, box: Prop, zone: Zone, spacing: [number, number, number, number],
+  item: { len: number; rot: number }): { x: number; y: number }[] {
   const [along, across, share, most] = spacing, slots: { x: number; y: number }[] = [];
   const cosR = Math.cos(box.rot!), sinR = Math.sin(box.rot!);
+  const itemX = Math.cos(item.rot) * item.len / 2, itemY = Math.sin(item.rot) * item.len / 2;
+  // the whole item fits: both ends and the middle in the outline, off every road and building
+  const fits = (x: number, y: number) => [-1, 0, 1].every((end) => {
+    const pointX = x + itemX * end, pointY = y + itemY * end;
+    return inZones([zone], pointX, pointY) && !onLanes(site.lanes, pointX, pointY, 1.5)
+      && !inBuilding(site.buildings, pointX, pointY, 1.5)
+      && pastRim(site.rims, pointX, pointY) > BUILD_OUT_M + 2;
+  });
   for (let row = -box.h! / 2 + across / 2; row <= box.h! / 2 - across / 2; row += across)
     for (let bay = -box.w! / 2 + along / 2; bay <= box.w! / 2 - along / 2; bay += along) {
       if (slots.length >= most || site.rnd() > share) continue;
       const x = box.x + cosR * bay - sinR * row, y = box.y + sinR * bay + cosR * row;
-      if (inZones([zone], x, y) && !onLanes(site.lanes, x, y, 2)
-        && pastRim(site.rims, x, y) > BUILD_OUT_M + 2) slots.push({ x, y });
+      // never on the pit apron (between the pit lane and the garage doors)
+      if (fits(x, y) && distToLine(site.pitPts, x, y) > PIT_APRON_M) slots.push({ x, y });
     }
   return slots;
 }
@@ -536,15 +447,17 @@ function venuePaddocks(site: Site): { zones: Zone[]; props: Prop[] } {
     const box = boxProp(site, paddock, 'zone');
     if (paved) {
       for (const slot of rowSlots(site, box, zone,
-        [TRUCK_ALONG_M, TRUCK_ACROSS_M, TRUCK_FULL, MAX_TRUCKS]))
+        [TRUCK_ALONG_M, TRUCK_ACROSS_M, TRUCK_FULL, MAX_TRUCKS], { len: 14, rot: box.rot! }))
         props.push({ kind: 'truck', ...slot, rot: box.rot!,
           col: TRUCK_COLS[props.length % TRUCK_COLS.length] });
       continue;
     }
-    for (const slot of rowSlots(site, box, zone, [BAY_M, ROW_M, BAY_FULL, MAX_PARKED - parked])) {
+    const carRot = box.rot! + Math.PI / 2;
+    for (const slot of rowSlots(site, box, zone, [BAY_M, ROW_M, BAY_FULL, MAX_PARKED - parked],
+      { len: 4.2, rot: carRot })) {
       parked++;
       const facing = site.rnd() < 0.5 ? 0 : Math.PI;
-      props.push({ kind: 'parkedcar', ...slot, rot: box.rot! + Math.PI / 2 + facing,
+      props.push({ kind: 'parkedcar', ...slot, rot: carRot + facing,
         col: PARKED_COLS[Math.floor(site.rnd() * PARKED_COLS.length)] });
     }
   }
@@ -618,6 +531,88 @@ function spectatorSpots(site: Site, props: Prop[]): Point[] {
 }
 
 /**
+ * What decides the edge: hazards (buildings, tunnel portals, a bridge's deck) and where
+ * spectators stand (the grandstands, the banks).
+ * @param site the venue's builders' state
+ * @param bridges the bridge props
+ * @param portals the tunnel portal props
+ * @returns the edge's needs
+ */
+function edgeNeeds(site: Site, bridges: Prop[], portals: Prop[]): EdgeNeeds {
+  const solids = [...site.buildings, ...portals];
+  const decks = bridges.map((bridge) => ({ ...bridge, w: bridge.wid, h: DECK_BOX_M }));
+  const spots = spectatorSpots(site, site.buildings);
+  return {
+    hazard: (x, y) => inBuilding(solids, x, y, 1) || inBuilding(decks, x, y, 0),
+    watched: (x, y) => spots.some(([spotX, spotY]) => Math.abs(spotX - x) < SPECTATOR_REACH_M
+      && Math.abs(spotY - y) < SPECTATOR_REACH_M
+      && Math.hypot(spotX - x, spotY - y) < SPECTATOR_REACH_M),
+  };
+}
+
+/**
+ * Each vehicle tunnel's portal roads joined to the road network (a straight run out of the open
+ * end, then a smooth curve into a road, as a bridge's approach); a tunnel that cannot reach a
+ * road at both ends is no tunnel - its portals and roads go.
+ * @param site the venue's builders' state (its lanes lose the roads dropped)
+ * @param tunnels the portals and their stub roads (two a tunnel, in order; changed)
+ * @param roads the service roads (a dead end may be trimmed)
+ */
+function joinTunnels(site: Site, tunnels: { props: Prop[]; lanes: Lane[] }, roads: Lane[]): void {
+  const blocked = (x: number, y: number) => inBuilding(site.buildings, x, y, 1 + APPROACH_HALF_M)
+    || nearArmco(site, x, y, APPROACH_HALF_M + 0.5);
+  const keepProps: Prop[] = [], keepLanes: Lane[] = [];
+  for (let i = 0; i + 1 < tunnels.lanes.length; i += 2) {
+    const pair = [tunnels.lanes[i], tunnels.lanes[i + 1]];
+    const joined = pair.map((lane) => {
+      const [from, out] = lane.pts, len = Math.hypot(out[0] - from[0], out[1] - from[1]) || 1;
+      return joinFrom(roads, out, [(out[0] - from[0]) / len, (out[1] - from[1]) / len], blocked);
+    });
+    if (joined.some((pts) => !pts)) continue;
+    pair.forEach((lane, side) => { lane.pts = [lane.pts[0], ...joined[side]!]; });
+    keepLanes.push(...pair);
+    keepProps.push(...tunnels.props.filter((prop) => pair.some((lane) =>
+      Math.hypot(prop.x - lane.pts[0][0], prop.y - lane.pts[0][1]) < 1)));
+  }
+  const gone = new Set(tunnels.lanes.filter((lane) => !keepLanes.includes(lane)));
+  site.lanes = site.lanes.filter((lane) => !gone.has(lane));
+  tunnels.lanes.splice(0, tunnels.lanes.length, ...keepLanes);
+  // portals of footpath tunnels stay (no road); those of vehicle tunnels only when joined
+  tunnels.props.splice(0, tunnels.props.length, ...tunnels.props.filter((prop) =>
+    keepProps.includes(prop) || prop.h! < 6));
+}
+
+/**
+ * Marshal posts kept clear: moved out from the track (2 m a try) off every barrier, road and
+ * building, or left out.
+ * @param site the venue's builders' state
+ * @param posts the posts (moved in place)
+ * @param barriers the edge's barriers
+ * @returns the posts that stand clear
+ */
+function clearPosts(site: Site, posts: Prop[], barriers: Barrier[]): Prop[] {
+  const railPts = barriers.flatMap((rail) => rail.pts);
+  const clear = (post: Prop) => !onLanes(site.lanes, post.x, post.y, 2)
+    && !inBuilding(site.buildings, post.x, post.y, 2)
+    && railPts.every(([x, y]) => Math.abs(x - post.x) > 2.5 || Math.abs(y - post.y) > 2.5);
+  return posts.filter((post) => {
+    for (let tries = 0; tries < 5; tries++) {
+      if (clear(post)) return true;
+      const { sub, hit } = nearestLoop(site.loops, post.x, post.y);
+      const centre = centreAt(sub, hit.trackDist), side = hit.side === 'left' ? 1 : -1;
+      post.x += centre.nx * side * 2;
+      post.y += centre.ny * side * 2;
+    }
+    return false;
+  });
+}
+
+
+
+
+
+
+/**
  * Everything of the venue but the raced road, the same for each of its layouts.
  * @param build the venue at game scale
  * @param sub the raced road
@@ -630,23 +625,28 @@ export function buildVenueScenery(build: VenueBuild, sub: Subtrack, closed: Lane
   const place = makePlacer(build.scale, loops, widen);
   const traps = trapZones(spec.data.traps.map((trap) => trap.pts.map(place)), loops);
   const site: Site = { build, loops, rims: buildRims(loops, traps), place,
-    rnd: parkMiller(spec.seed), lanes: [...closed], buildings: [], armco: new Set() };
+    rnd: parkMiller(spec.seed), lanes: [...closed], buildings: [], armco: new Set(), pitPts: [] };
   const pit = pitLane(site);
   site.lanes.push(pit.lane);
-  const edge = buildEdge(site.rims, { loops, lanes: site.lanes }, traps);
-  for (const rail of edge.barriers)
-    for (const [x, y] of resample(rail.pts, 1)) site.armco.add(cellKey(x, y));
+  site.pitPts = pit.lane.pts;
   const bridges = venueBridges(site), tunnels = venueTunnels(site);
   site.lanes.push(...bridges.lanes, ...tunnels.lanes);
-  // the buildings first: the roads go round them
+  // the buildings first: the edge protects them and the roads go round them
   site.buildings = venueBuildings(site, pit.lane);
+  const edge = buildEdge(site.rims, { loops, lanes: site.lanes,
+    blocked: (x, y) => inBuilding(site.buildings, x, y, 1) }, traps,
+  edgeNeeds(site, bridges.props, tunnels.props));
+  for (const rail of edge.barriers)
+    for (const [x, y] of resample(rail.pts, 1)) site.armco.add(cellKey(x, y));
   const roads = venueRoads(site);
   site.lanes.push(...roads);
-  joinApproaches(bridges, roads);
+  // an approach's edge keeps 1 m off every building (its centre half a road further)
+  joinApproaches(bridges, roads, (x, y) => inBuilding(site.buildings, x, y, 1 + APPROACH_HALF_M));
+  joinTunnels(site, tunnels, roads);
   const paddocks = venuePaddocks(site);
   const start = onTrack(sub, 2, 0, {});
   const props: Prop[] = [...site.buildings, ...bridges.props, ...tunnels.props,
-    ...paddocks.props, ...marshalPosts(site.rims),
+    ...paddocks.props, ...clearPosts(site, marshalPosts(site.rims), edge.barriers),
     { kind: 'gantry', x: start.x, y: start.y, wid: 24, rot: start.rot + Math.PI / 2 }];
   for (const board of spec.boards) {
     const prop = boardOnArmco(edge.barriers, edge.cones, loops, place(board.at), board.label,
@@ -654,14 +654,17 @@ export function buildVenueScenery(build: VenueBuild, sub: Subtrack, closed: Lane
     // its 18 m face as its box, so nothing else stands on it
     if (prop) props.push({ ...prop, w: 18, h: 1.2 });
   }
-  const catchFences = buildCatchFences(edge.barriers, spectatorSpots(site, props), loops);
-  const lanes = [pit.lane, ...bridges.lanes, ...tunnels.lanes, ...roads];
-  const bounds = venueBounds(loops, lanes, props);
+  const bounds = venueBounds(loops, [pit.lane, ...bridges.lanes, ...tunnels.lanes, ...roads],
+    props);
   const zones = [...traps, ...paddocks.zones];
+  const goodRoads = tidyRoads(site, roads, { zones: paddocks.zones, bounds });
+  const lanes = [pit.lane, ...bridges.lanes, ...tunnels.lanes, ...goodRoads];
   props.push(...venueTrees(site, bounds, props, zones));
+  // the kart track's tyre lines, none on a road
   const karting = spec.data.tyres.flatMap((line) => resample(placeAll(site, line.pts), 1)
+    .filter(([x, y]) => !onLanes(site.lanes, x, y, 0.6))
     .map(([x, y]) => ({ x, y, kind: 'tyrestack' })));
   return { lanes, zones, cones: [...edge.cones, ...karting],
-    barriers: [...(pit.wall ? [pit.wall] : []), ...edge.barriers, ...catchFences],
+    barriers: [...(pit.wall ? [pit.wall] : []), ...edge.barriers],
     props, paint: pitLines(site, pit.lane), bounds };
 }

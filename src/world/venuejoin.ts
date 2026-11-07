@@ -13,6 +13,8 @@ const JOIN_REACH_M = 40;
 // dead end within TRIM_M of a joint is trimmed; degrees of turn a metre of a longer join costs
 const ABUT_M = 1.6, RAMP_FULL_M = 9, RAMP_MIN_M = 3, CURVE_PULL = 0.45, TRIM_M = 30;
 const JOIN_LENGTH_COST = 0.15;
+// m a driveway runs on past where the blocked test first trips (half a road and a metre out)
+const DRIVEWAY_IN_M = 2;
 // m of the straight run off a bridge with no road to meet
 const APPROACH_M = 8;
 
@@ -46,9 +48,11 @@ function sharpestTurn(pts: Point[]): number {
  * @param roads the service roads
  * @param deckEnd the deck's end
  * @param dir the way off the bridge (unit)
+ * @param blocked true where a building stands
  * @returns the join, or null with no road there
  */
-function smoothestJoin(roads: Lane[], deckEnd: Point, dir: Point): Join | null {
+function smoothestJoin(roads: Lane[], deckEnd: Point, dir: Point,
+  blocked: (x: number, y: number) => boolean): Join | null {
   let best: Join | null = null;
   for (const road of roads)
     road.pts.forEach((spot, index) => {
@@ -59,6 +63,8 @@ function smoothestJoin(roads: Lane[], deckEnd: Point, dir: Point): Join | null {
       const start: Point = [deckEnd[0] + dir[0] * foot, deckEnd[1] + dir[1] * foot];
       const meet = { road, index, spot };
       const curve = easeCurve(start, dir, spot, onwardHeading(meet, start));
+      // the ramp's foot and the whole curve clear of buildings
+      if ([start, ...curve].some(([x, y]) => blocked(x, y))) return;
       const score = sharpestTurn([deckEnd, start, ...curve]) + gap * JOIN_LENGTH_COST;
       if (!best || score < best.score) best = { meet, ramp, curve: [start, ...curve], score };
     });
@@ -131,18 +137,40 @@ const lineLengthOf = (pts: Point[]) => (pts.length > 1 ? lineLength(pts) : 0);
  * straight run when no road is there.
  * @param bridges the bridges (props and their approach lanes, two a road bridge, in order)
  * @param roads the service roads (a dead end may be trimmed)
+ * @param blocked true where a building stands (an approach goes round)
  */
-export function joinApproaches(bridges: { props: Prop[]; lanes: Lane[] }, roads: Lane[]): void {
+/**
+ * Where a road straight off a bridge ends with no road to meet: just short of the first building
+ * ahead within JOIN_REACH_M (its driveway), or APPROACH_M past the ramp's foot.
+ * @param deckEnd the deck's end
+ * @param dir the way off the bridge (unit)
+ * @param blocked true where a building stands (with the road's half width round it)
+ * @returns the end point
+ */
+function straightOn(deckEnd: Point, dir: Point, blocked: (x: number, y: number) => boolean): Point {
+  const plain = ABUT_M + RAMP_FULL_M + APPROACH_M;
+  for (let ahead = ABUT_M + RAMP_MIN_M; ahead <= JOIN_REACH_M; ahead += 1)
+    if (blocked(deckEnd[0] + dir[0] * ahead, deckEnd[1] + dir[1] * ahead)) {
+      // blocked reads the road's half width and a metre round the building: run on to its face
+      const stop = Math.max(ABUT_M + RAMP_MIN_M, ahead + DRIVEWAY_IN_M);
+      return [deckEnd[0] + dir[0] * stop, deckEnd[1] + dir[1] * stop];
+    }
+  return [deckEnd[0] + dir[0] * plain, deckEnd[1] + dir[1] * plain];
+}
+
+export function joinApproaches(bridges: { props: Prop[]; lanes: Lane[] }, roads: Lane[],
+  blocked: (x: number, y: number) => boolean): void {
   let lane = 0;
   for (const bridge of bridges.props.filter((prop) => prop.kind === 'bridge')) {
     const ramps: [number, number] = [RAMP_FULL_M, RAMP_FULL_M];
     for (const side of [-1, 1]) {
       const approach = bridges.lanes[lane++];
       const dir: Point = [Math.cos(bridge.rot!) * side, Math.sin(bridge.rot!) * side];
-      const deckEnd = approach.pts[0], join = smoothestJoin(roads, deckEnd, dir);
+      const deckEnd = approach.pts[0], join = smoothestJoin(roads, deckEnd, dir, blocked);
       if (!join) {
-        const far = ABUT_M + RAMP_FULL_M + APPROACH_M;
-        approach.pts = [deckEnd, [deckEnd[0] + dir[0] * far, deckEnd[1] + dir[1] * far]];
+        // no road to meet: straight on - to a building's frontage when one lies ahead (its
+        // driveway), else a short run
+        approach.pts = [deckEnd, straightOn(deckEnd, dir, blocked)];
         continue;
       }
       trimDeadEnd(join.meet, join.curve[0]);
@@ -155,3 +183,51 @@ export function joinApproaches(bridges: { props: Prop[]; lanes: Lane[] }, roads:
   }
 }
 
+
+/**
+ * A road from a fixed start (a tunnel portal's open end) along a heading, joined to the road
+ * network the same way a bridge's approach is: a straight run, then the smoothest curve into a
+ * road within reach, the road's dead end trimmed.
+ * @param roads the service roads (a dead end may be trimmed)
+ * @param from where the road starts
+ * @param dir the heading it leaves along (unit)
+ * @param blocked true where a building stands
+ * @returns the road's points, or null with no road within reach
+ */
+export function joinFrom(roads: Lane[], from: Point, dir: Point,
+  blocked: (x: number, y: number) => boolean): Point[] | null {
+  // smoothestJoin starts its curve a ramp's length out: measured back from there it starts here
+  const back = ABUT_M + RAMP_MIN_M;
+  const virtualEnd: Point = [from[0] - dir[0] * back, from[1] - dir[1] * back];
+  const join = smoothestJoinFrom(roads, virtualEnd, dir, blocked, back);
+  if (!join) return null;
+  trimDeadEnd(join.meet, join.curve[0]);
+  return [from, ...join.curve];
+}
+
+/**
+ * smoothestJoin with the ramp fixed at its shortest (a straight start of a set length).
+ * @param roads the service roads
+ * @param deckEnd where the start is measured from
+ * @param dir the heading (unit)
+ * @param blocked true where a building stands
+ * @param foot metres from deckEnd the curve starts
+ * @returns the join, or null with no road there
+ */
+function smoothestJoinFrom(roads: Lane[], deckEnd: Point, dir: Point,
+  blocked: (x: number, y: number) => boolean, foot: number): Join | null {
+  let best: Join | null = null;
+  const start: Point = [deckEnd[0] + dir[0] * foot, deckEnd[1] + dir[1] * foot];
+  for (const road of roads)
+    road.pts.forEach((spot, index) => {
+      const ahead = (spot[0] - start[0]) * dir[0] + (spot[1] - start[1]) * dir[1];
+      const gap = Math.hypot(spot[0] - start[0], spot[1] - start[1]);
+      if (ahead < 4 || gap > JOIN_REACH_M) return;
+      const meet = { road, index, spot };
+      const curve = easeCurve(start, dir, spot, onwardHeading(meet, start));
+      if (curve.some(([x, y]) => blocked(x, y))) return;
+      const score = sharpestTurn([deckEnd, start, ...curve]) + gap * JOIN_LENGTH_COST;
+      if (!best || score < best.score) best = { meet, ramp: 0, curve: [start, ...curve], score };
+    });
+  return best;
+}

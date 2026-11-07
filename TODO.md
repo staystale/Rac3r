@@ -37,6 +37,14 @@ last handover, written on request.
    Checks: barriercheck all OK both layouts, propcheck clear, no floodlight doubles, worldhash SAME
    off. Shots: tools/scratch/_venueshots.mjs <level> bigbrands=1 "dist,x:y,..." (ZOOM, VIEW env).
    On pass: delete the old Brands build, then the next track. Not yet: kerbs on the closed GP loop.
+   ROUND 3 (owner 11-07): Armco as the old Brands had it, slightly more - behind traps, before hazards
+   (buildings, bridge decks, portals, another stretch of track) - a catch fence INSTEAD where
+   spectators are (never both), open run-off elsewhere ("running off into the trees is good
+   gameplay"); trucks / parked cars only where they fit (no building, road or pit apron); closing
+   tyre rows clear of the raced road; a smoother pit lane; boards behind their rail; roads that go
+   somewhere (tools/venueaudit.mjs: overlaps + dead ends - clean on both layouts); bridge and
+   tunnel roads joined smoothly (world/venuejoin.ts). NEXT (owner OK): the underpass DRIVABLE
+   (a car below the track: no contact with the cars above, tarmac underfoot, hidden, no marks).
    OWNER RULE (11-07): never the black wire / rope fence ('fence' barrier) - the old levels still
    use it (Castle Cum, Thruston): replace as each gets its venue pass.
    CREDITS (owner 11-07: "add a credits button to the menu"): ?credits=1 UNDER TEST (menu/
