@@ -97,11 +97,13 @@ export function rejoinClear(seen: SeenCar[], from: number, dest: number, half: n
  * @param off the line, m off my path
  * @param centre my path's m off the road's middle
  * @param edge the usual room's edge, m from the road's middle
+ * @param lanes the line's lanes, m off it (the highway), if it has them
  * @returns the cost
  */
-function placeCost(off: number, centre: number, edge: number) {
-  return (Math.abs(centre + off) > edge ? VERGE : 0)
-    + LINE_COST * Math.abs(off);
+function placeCost(off: number, centre: number, edge: number, lanes?: number[]) {
+  // (?hwlanes: from the nearest lane - every lane is as good as the line)
+  const fromLine = lanes ? Math.min(...lanes.map((lane) => Math.abs(off - lane))) : Math.abs(off);
+  return (Math.abs(centre + off) > edge ? VERGE : 0) + LINE_COST * fromLine;
 }
 
 /**
@@ -114,8 +116,8 @@ function placeCost(off: number, centre: number, edge: number) {
  */
 export function gapLine(seen: SeenCar[], mine: { lat: number; base: number; half: number;
   len: number; speed: number; look: number; lo: number; hi: number; edge: number;
-  centre: number }): number {
-  const { lat, base, half, len, speed, look, lo, hi, edge, centre } = mine;
+  centre: number; lanes?: number[] }): number {
+  const { lat, base, half, len, speed, look, lo, hi, edge, centre, lanes } = mine;
   let best = base, bestScore = -Infinity;
   const tries: number[] = [base];
   for (let i = 0; i < LINES; i++) tries.push(lo + (hi - lo) * i / (LINES - 1));
@@ -128,7 +130,7 @@ export function gapLine(seen: SeenCar[], mine: { lat: number; base: number; half
       : speed * look + FREE_BONUS;
     score -= (Math.abs(off - base) + 0.3 * Math.abs(off - lat)) * (MOVE_K + speed * MOVE_SPEED_K)
       - (Math.abs(off - base) < 0.6 ? COMMIT : 0);
-    score -= placeCost(off, centre, edge);
+    score -= placeCost(off, centre, edge, lanes);
     if (Math.abs(off - lat) > 1.2) {
       const mid = blockOn(seen, (off + lat) / 2, half, len);
       if (mid && mid.gap < 1) score -= OUT;

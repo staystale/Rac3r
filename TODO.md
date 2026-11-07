@@ -170,6 +170,15 @@ Then, to work through when it fits (owner 11-07, not ordered):
   grid is drawn to the middle. Likely fix (one AI): on a road with no fast line (a straight
   carriageway, every lane as quick) the line costs nothing anywhere on the road - measure the
   start (_rollhw.mjs) and weavecheck / pacesuite first. Ask before building.
+  UNDER TEST 11-07 ?hwlanes (owner "carry on"): a line may have LANES (ai/roadLine.ts: the highway's
+  lane centres) - every lane as good as the line: a driver KEEPS ITS LANE (driverLane.ts laneStep:
+  no blend onto the middle at the start; held while it goes round a car - a lane read mid-move ran
+  away with the move, weavecheck 0 -> 4 hits - then the nearest lane, the move folded in), the gap
+  picker's line cost from the nearest lane (gapPick.ts placeCost). _hwstart.mjs (9 AI, 2 runs):
+  8-12 s after the green, within 1.5 m of the middle 31-44 % -> 11-21 %, spread 2.0-2.5 -> 3.2-3.4 m;
+  weavecheck 0 = 0; pacesuite (deterministic): racer contact 714 -> 409, racer-traffic 2 -> 103 -
+  8 of 9 races near clean, ONE pile-up (seed 77 d2: rr 402, rt 80) has nearly all of it (off: rr
+  spread over 5 races); passes 3.4 -> 4.7 / km, mean 128 -> 129 km/h.
 - HIGHWAY TOO EASY: "ai don't dodge properly" - find out what they miss (traffic, the player,
   wrecks) with a measure first.
 - MORE HIGHWAY FLAVOURS once the above is worked out.

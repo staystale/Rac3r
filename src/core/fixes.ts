@@ -40,6 +40,11 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
+  // ?hwlanes=1: a line may have LANES - on the highway every lane is as good as the middle, so a
+  // driver keeps the lane it is in (nothing pulls it to the middle: the start's blend onto the line
+  // and the gap picker's cost for leaving it count from the nearest lane) (ai/roadLine.ts lanes;
+  // owner 11-07: "it's causing all the ai to swarm to the centre upon start and it's a mess")
+  hwlanes: atLoad('hwlanes'),
   // ?bigparts=1: worse crashes throw the car's own exhaust, bonnet, boot lid / spoiler, a mirror,
   // rarely its engine; a wheel off takes its wishbone / strut - each as heavy, as big and as sharp
   // (punctures) as the thing is (carbits.ts, world/debris.ts bigParts; owner 11-07)

@@ -1,6 +1,7 @@
 // ai/driverLane.ts: the circuit driver's place on the path, its mistakes, its lateral lane
 // (line share, grid lane), the push of a battle and its racecraft. Functions take the
 // driver context.
+import { lateralOf } from './rejoin.ts';
 import { querySubtrack } from "../world/tyrewall.ts";
 import { K_BRAKE, nearestIdx, profileOf } from "./line.ts";
 import type { AiCar, CarsAcc, CircuitState } from "./types.ts";
@@ -138,11 +139,37 @@ export function laneStep(drv: Drv, car: AiCar, path: AiPath, nearIdx: number, sp
     state.gridLat = (car.x - here.x) * -Math.sin(here.h) + (car.y - here.y) * Math.cos(here.h);
   }
   const startK = state.goT == null ? 1 : Math.max(0, 1 - (state.t - state.goT) / START_BLEND);
-  if (startK > 0 && path === main && state.gridLat != null) latT += state.gridLat * startK;
+  // (?hwlanes: a line with lanes - the driver keeps its LANE, no blend onto the middle; while it is
+  // going round a car the lane holds (a lane taken from where it was mid-move ran away with it:
+  // weavecheck 0 -> 4 hits), and once the move is over it takes the lane it is nearest, the move
+  // folded into it so the target does not jump)
+  const lanes = path === main ? drv.line.lanes : undefined;
+  if (lanes) {
+    if (state.laneLat == null) {
+      state.laneLat = nearestLane(lanes, lateralOf(car, path, nearIdx));
+    } else if (state.gapBase == null) {
+      const target = state.laneLat + state.dodge, lane = nearestLane(lanes, target);
+      state.dodge = target - lane;
+      state.laneLat = lane;
+    }
+    latT += state.laneLat;
+  } else if (startK > 0 && path === main && state.gridLat != null) latT += state.gridLat * startK;
   // its own line through this corner (ai/cornerLine.ts)
   const shape = path === main ? cornerNudge(drv, car, nearIdx) : null;
   if (shape) latT += shape.here;
   return { latT, lineOff, startK, shape };
+}
+
+/**
+ * ?hwlanes: the lane centre nearest a place across the road.
+ * @param lanes the lane centres, m off the line
+ * @param lat the place, m off the line
+ * @returns the lane centre
+ */
+function nearestLane(lanes: number[], lat: number): number {
+  let best = lanes[0];
+  for (const lane of lanes) if (Math.abs(lane - lat) < Math.abs(best - lat)) best = lane;
+  return best;
 }
 
 /** Flags a battle (car within 25 m); returns the push factor on the pace. */

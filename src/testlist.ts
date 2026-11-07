@@ -55,6 +55,14 @@ export const TEST_LIST: TestEntry[] = [
   // passed 2026-11-07; indyscale decided 2026-11-07 (3/4, the 13 m road) and removed; carpaint,
   // carlooks, carreal (the car look: paint parts, rims, redraws, real shapes) passed 2026-11-07)
   {
+    id: 'hwlanes',
+    added: '2026-11-07',
+    name: 'Highway AI keep their lanes - no swarm to the middle at the start',
+    where: 'Test link + &hwlanes=1: a highway race with AI (VS AI), watch the start',
+    try: 'The field spreads over the lanes and stays in them, changing lane to pass.',
+    wrong: 'Still all in the middle, weaving between lanes, or crashing changing lane.',
+  },
+  {
     id: 'bigparts',
     added: '2026-11-07',
     name: 'Bad crashes throw exhausts, bonnets, boot lids / wings, mirrors, engines, wishbones',

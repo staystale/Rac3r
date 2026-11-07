@@ -368,7 +368,8 @@ function gapStep(drv: Drv, car: AiCar, acc: CarsAcc, seen: SeenCar[], mine: { my
     && Math.abs(other.lat - myLat) < other.across + half + MARGIN_WAY && offTrackOk(other.v, speed))
     ? WIDE : 0);
   const line = gapLine(seen, { lat: myLat, base: state.gapBase ?? myLat, half, len, speed, look,
-    lo: -room - lineOff, hi: room - lineOff, edge: latLim, centre: lineOff });
+    lo: -room - lineOff, hi: room - lineOff, edge: latLim, centre: lineOff,
+    lanes: drv.state.path === drv.main ? drv.line.lanes : undefined });
   state.gapBase = line;
   acc.dodgeT = line - latT;
   acc.conflict = true;
