@@ -53,4 +53,12 @@ export const TEST_LIST: TestEntry[] = [
   // ailines, ailook, dodgefar, markjump, halfcar, rejoinlook, hwshare, oneai (AI R8), brakeread
   // passed 2026-11-04; wetrace, lineback, onroad, rejoinfast, menurand (AI R7)
   // passed 2026-11-07; indyscale decided 2026-11-07 (3/4, the 13 m road) and removed)
+  {
+    id: 'carpaint',
+    added: '2026-11-07',
+    name: 'Paint: a clear second part on every car, a third colour and rim colours',
+    where: 'Test link + &carpaint=1: TEST MODE > a track > GARAGE > PAINT, then race the AI',
+    try: 'Paint each car\'s SECOND, THIRD and RIMS; the AI field should all look different.',
+    wrong: 'A colour that changes nothing on a car, a car that looks wrong in stock colours.',
+  },
 ];

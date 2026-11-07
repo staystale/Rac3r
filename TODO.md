@@ -55,6 +55,15 @@ last handover, written on request.
    Autograss Special), the looks audit (redraw: Golf + M135i (one shared body), quattro S1, F1, F2,
    Naffcar (the Chevelle body), Micra R1, Autograss Special; small fix: 3 Series bonnet, Fiesta RX
    wings), and the second / third part of each car. tools/scratch/_carsheet.mjs: the sheet.
+   OWNER 11-07: "the original paint shop layout was fine - only the car selected"; the audit "seems
+   accurate"; "make sure all cars have clearly paintable 2nd parts and some 3rd"; rims + gold and
+   chrome; "can chrome and gold be for every colour body second n 3rd too ... a colour swatch the
+   line below". STAGE 1 UNDER TEST 11-07 (?carpaint): the paint shop as before + THIRD and RIMS
+   rows, chrome + gold below the 16 on every row, rims STOCK; every car's second part is a big one
+   (mostly the roof; zone test _carzones.mjs ... carpaint=1), a third on all; stock colours keep
+   each car's look (carpaint.ts PAINT_STOCK; off vs on sheet _stock-offon.png same); AI fields
+   get a third colour and rims by slot; simhash SAME off. STAGE 2 next: the redraws (Golf, M135i,
+   quattro S1, F1, F2, Naffcar, Micra R1, Autograss Special; 3 Series bonnet, Fiesta RX wing).
 
 Then, to work through when it fits (owner 11-07, not ordered):
 - HIGHWAY LINE: "does the ai need a racing line on highway? if not can we get rid of it - it's

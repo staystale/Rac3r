@@ -207,7 +207,8 @@ export interface RollFace {
 // What the car layers read of a car SPEC (cars.ts Spec).
 export type RenderCarSpec =
   Pick<Spec, 'id' | 'paint' | 'trim' | 'kind' | 'lf' | 'lr' | 'len' | 'wid'>
-  & Partial<Pick<Spec, 'num' | 'trackWidth' | 'wheelR' | 'rideH' | 'rim'>>;   // num: the livery
+  // num: the livery
+  & Partial<Pick<Spec, 'num' | 'trackWidth' | 'wheelR' | 'rideH' | 'rim' | 'third'>>;
 
 // What the car layers read of a CAR (vehicle.ts Car + what damage.ts / roll.ts / the render
 // layers add).

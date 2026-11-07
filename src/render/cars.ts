@@ -1,4 +1,5 @@
 // The CARS layer of the renderer: drawPixelCar and the garage lift sprite.
+import { FIX } from "../core/fixes.ts";
 import { SPRITE_PPM } from "./shared.ts";
 import { DAYLIGHT } from "../world/daylight.ts";
 import { REVERSE_LAMP, isReversing } from "./reverselights.ts";
@@ -42,6 +43,15 @@ function wheelMetrics(spec: RenderCarSpec, sprite: CarSprite) {
 }
 
 /**
+ * A wheel's rim colour, or null (no rim block): the tractor's yellow, a coloured rim (the
+ * Subaroo's gold); ?carpaint - the tractor's yellow is its stock rim (cars.ts PAINT_STOCK).
+ * @param spec the car spec
+ * @returns the colour, or null
+ */
+const rimOf = (spec: RenderCarSpec) => (spec.kind === 'tractor' && !FIX.carpaint ? '#fbc02d'
+  : spec.rim || null);
+
+/**
  * Draw one wheel of a car in the car's frame: the tyre, its tread line and the rim.
  * @param carsCtx the shared view and helpers
  * @param spec the car spec
@@ -73,12 +83,9 @@ function drawCarWheel(
   view.ctx.fillRect(-tyreLen / 2, -tyreWid / 2, tyreLen, tyreWid);
   view.ctx.fillStyle = '#3a3d47';
   view.ctx.fillRect(-tyreLen / 2 + 2, -tyreWid / 2, tyreLen - 4, 1);
-  if (spec.kind === 'tractor') {
-    view.ctx.fillStyle = '#fbc02d';
-    view.ctx.fillRect(-2, -1, 4, 2);
-  } else if (spec.rim) {
-    // coloured wheels (the Subaroo's gold)
-    view.ctx.fillStyle = spec.rim;
+  const rim = rimOf(spec);
+  if (rim) {
+    view.ctx.fillStyle = rim;
     view.ctx.fillRect(-2, -1, 4, 2);
   }
   view.ctx.restore();
@@ -268,7 +275,8 @@ function drawPixelCar(carsCtx: CarsContext, car: RenderCar, heading = car.headin
  */
 function pixelCarWithWheels(carsCtx: CarsContext, spec: RenderCarSpec) {
   const { pixelCar, faceCache } = carsCtx;
-  const key = 'wheels:' + spec.id + spec.paint + spec.trim + (spec.num || 0);
+  const key = 'wheels:' + spec.id + spec.paint + spec.trim + (spec.third || '') + (spec.rim || '')
+    + (spec.num || 0);
   if (faceCache.has(key)) return faceCache.get(key);
   const sprite = pixelCar(spec), carSpec = spec;
   const tyreL = carSpec.kind === 'track' ? 14 : carSpec.kind === 'tractor' ? 15 : 11,
@@ -290,11 +298,9 @@ function pixelCarWithWheels(carsCtx: CarsContext, spec: RenderCarSpec) {
     gctx.fillRect(x - tyreLen / 2, y - tyreWid / 2, tyreLen, tyreWid);
     gctx.fillStyle = '#3a3d47';
     gctx.fillRect(x - tyreLen / 2 + 2, y - tyreWid / 2, tyreLen - 4, 1);
-    if (carSpec.kind === 'tractor') {
-      gctx.fillStyle = '#fbc02d';
-      gctx.fillRect(x - 2, y - 1, 4, 2);
-    } else if (carSpec.rim) {
-      gctx.fillStyle = carSpec.rim;
+    const rim = rimOf(carSpec);
+    if (rim) {
+      gctx.fillStyle = rim;
       gctx.fillRect(x - 2, y - 1, 4, 2);
     }
   }

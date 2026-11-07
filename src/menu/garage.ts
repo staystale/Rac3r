@@ -2,8 +2,10 @@ import { wearColour, setHealth } from '../physics/tyrewear.ts';
 import { COL } from '../world/colours.ts';
 import {
   ROSTER, CLASSES, classOf, PALETTE, TYRES, TYRE_BRANDS, TYRE_SURFS, tyreOf, tyreFits,
-  fittedTyre,
+  fittedTyre, stockPaint,
 } from '../cars.ts';
+import { RIM_FINISH } from '../carpaint.ts';
+import { FIX } from '../core/fixes.ts';
 import { CAR_STATS } from '../carstats.ts';
 import type { CarStat } from '../ai/types.ts';
 import type { Livery } from './profile.ts';
@@ -181,18 +183,54 @@ AIDS</span><b>${aids}</b>`
     get: () => session.viewing, set: (carId) => { session.viewing = carId; } });
 }
 
+/** The paint shop's working livery: every part set (cars.ts applyLivery reads it). */
+type ShopLivery = Livery & {
+  paint: string; trim: string; third: string; rims: string; num: number;
+};
+// ?carpaint: CHROME and GOLD on the line below the palette for every part (owner 11-07: "can chrome
+// and gold be for every colour body second n 3rd too"), the rims also STOCK (the car's own)
+const PAINT_PICKS = [...PALETTE, RIM_FINISH.chrome, RIM_FINISH.gold];
+const RIM_PICKS = [...PAINT_PICKS, ''];
+
 /**
- * PAINT SHOP (requirement: palette + number + preview): BODY and TRIM from the 16-colour
- * PALETTE, a NUMBER 1-99 (or none), the car previewed on the lift as you go; APPLY saves it to
- * the profile, BACK drops the changes, STOCK puts the car's own colours back.
+ * One row of colour swatches in the paint shop: its label and the 16 palette colours (?carpaint:
+ * + chrome and gold on the line below; the rims STOCK too).
+ * @param menu the menu context
+ * @param right the column it goes in
+ * @param label the row's label
+ * @param picks the choices (a colour, '' = stock)
+ * @param pick what a tap does with a choice
+ * @returns the swatch buttons
+ */
+function swatchRow(menu: Menu, right: HTMLElement, label: string, picks: string[],
+  pick: (choice: string) => void) {
+  addElement(right, 'div', label, 'sub');
+  const grid = addElement(right, 'div', '');
+  grid.style.cssText = 'display:grid;grid-template-columns:repeat(8,1fr);gap:4px;\
+margin-bottom:8px';
+  return picks.map((choice) => {
+    const stock = choice === '';
+    const swatch = addButton(menu, grid, stock ? 'STOCK' : '', () => pick(choice));
+    swatch.dataset.c = choice;
+    swatch.style.cssText = 'background:' + (stock ? '#2c2128' : choice) + ';min-width:0;\
+min-height:0;height:24px;padding:0;box-shadow:none;outline-offset:-1px;font-size:9px;\
+color:#f6eee6' + (stock ? ';grid-column:span 2' : '');
+    return swatch;
+  });
+}
+
+/**
+ * PAINT SHOP (requirement: palette + number + preview): BODY and SECOND (?carpaint: + THIRD and
+ * RIMS) from the 16-colour PALETTE, a NUMBER 1-99 (or none), the car previewed on the lift as you
+ * go; TRY saves it to the profile, BACK drops the changes, STOCK puts the car's own colours back.
  * @param menu the menu context
  */
 function showPaintShop(menu: Menu) {
   const panel = addPane(menu, true), carId = garageCarId(menu),
-    car = ROSTER.find((x) => x.id === carId)!;
-  const cur: Livery & { paint: string; trim: string; num: number } = { paint: car.paint,
-    trim: car.trim, num: 0,
-    ...((menu.profile.livery || {})[carId] || {}) };
+    car = ROSTER.find((x) => x.id === carId)!, stock = stockPaint(carId);
+  const stockLivery = { paint: stock.paint, trim: stock.trim, third: stock.third, rims: '',
+    num: 0 };
+  const cur: ShopLivery = { ...stockLivery, ...((menu.profile.livery || {})[carId] || {}) };
   addElement(panel, 'h2', 'PAINT · ' + car.name);
   const box = addElement(panel, 'div', '', 'garage'), left = addElement(box, 'div', ''),
     right = addElement(box, 'div', '');
@@ -201,67 +239,65 @@ function showPaintShop(menu: Menu) {
   lift.width = 360;
   lift.height = 150;
   left.appendChild(lift);
+  const rows: [keyof ShopLivery, HTMLButtonElement[]][] = [];
   const showLivery = () => {
     drawLift(lift, menu.api.carSprite(carId, cur));
-  numL.textContent = cur.num ? '#' + cur.num : 'NO NUMBER';
-    for (const [field, list] of [['paint', bodyB],
-      ['trim', trimB]] as ['paint' | 'trim',
-        HTMLButtonElement[]][]) for (const button of list) button.style.outline = button.dataset.c
-      === cur[field] ? '3px solid ' + MENU_COL.pick : 'none';
+    numL.textContent = cur.num ? '#' + cur.num : 'NO NUMBER';
+    for (const [field, list] of rows) for (const button of list) button.style.outline =
+      button.dataset.c === cur[field] ? '3px solid ' + MENU_COL.pick : 'none';
   };
-  const swatches = (label: string, field: 'paint' | 'trim') => {
-    addElement(right, 'div', label, 'sub');
-    const grid = addElement(right, 'div', '');
-    grid.style.cssText = 'display:grid;grid-template-columns:repeat(8,1fr);gap:4px;\
-margin-bottom:8px';
-    return PALETTE.map((colour) => {
-      const swatch = addButton(menu, grid, '', () => {
-      cur[field] = colour;
-    showLivery();
-    });
-    swatch.dataset.c = colour;
-      swatch.style.cssText = 'background:' + colour
-        + ';min-width:0;min-height:0;height:24px;padding:0;box-shadow:none;outline-offset:-1px';
-      return swatch;
-    });
+  const row = (label: string, field: 'paint' | 'trim' | 'third' | 'rims', picks: string[]) => {
+    rows.push([field, swatchRow(menu, right, label, picks, (choice) => {
+      cur[field] = choice;
+      showLivery();
+    })]);
   };
-  const bodyB = swatches('BODY', 'paint'), trimB = swatches('TRIM', 'trim');
-  const numRow = addElement(left, 'div', '', 'row');
-  numRow.style.marginTop = '8px';
-  addButton(menu, numRow, '−10', () => {
-    cur.num = Math.max(0, cur.num - 10);
-  showLivery();
-  });
-  addButton(menu, numRow, '−', () => {
-    cur.num = Math.max(0, cur.num - 1);
-  showLivery();
-  });
-  const numL = addElement(numRow, 'div', '');
-  numL.style.cssText = 'flex:1;display:flex;align-items:center;justify-content:center;\
-font-size:15px';
-  addButton(menu, numRow, '+', () => {
-    cur.num = Math.min(99, cur.num + 1);
-  showLivery();
-  });
-  addButton(menu, numRow, '+10', () => {
-    cur.num = Math.min(99, cur.num + 10);
-  showLivery();
-  });
+  const picks = FIX.carpaint ? PAINT_PICKS : PALETTE;
+  row('BODY', 'paint', picks);
+  row(FIX.carpaint ? 'SECOND' : 'TRIM', 'trim', picks);
+  if (FIX.carpaint) { row('THIRD', 'third', picks); row('RIMS', 'rims', RIM_PICKS); }
+  const numL = numberRow(menu, left, cur, () => showLivery());
   const buttonRow = addElement(panel, 'div', '', 'row');
   addButton(menu, buttonRow, 'STOCK', () => {
-    Object.assign(cur, { paint: car.paint, trim: car.trim, num: 0 });
-  showLivery();
+    Object.assign(cur, stockLivery);
+    showLivery();
   });
   addButton(menu, buttonRow, 'TRY ✓', () => {
     menu.profile.livery = menu.profile.livery || {};
-  menu.profile.livery[carId] = { ...cur };
-  saveProfile(menu.profile);
-  showGarage(menu);
+    menu.profile.livery[carId] = FIX.carpaint ? { ...cur }
+      : { paint: cur.paint, trim: cur.trim, num: cur.num };
+    saveProfile(menu.profile);
+    showGarage(menu);
   }, 'go');
   // BUY (keeps it for story) comes with story mode's money - shown, greyed
   addButton(menu, buttonRow, 'BUY', () => {}, '', true, 'STORY');
   addButton(menu, panel, '◀ BACK', () => showGarage(menu));
   showLivery();
+}
+
+/**
+ * The paint shop's race NUMBER row: -10, -, the number, +, +10.
+ * @param menu the menu context
+ * @param left the column it goes in
+ * @param cur the working livery
+ * @param changed called after each change
+ * @returns the number's label
+ */
+function numberRow(menu: Menu, left: HTMLElement, cur: { num: number }, changed: () => void) {
+  const numRow = addElement(left, 'div', '', 'row');
+  numRow.style.marginTop = '8px';
+  const step = (change: number) => () => {
+    cur.num = Math.max(0, Math.min(99, cur.num + change));
+    changed();
+  };
+  addButton(menu, numRow, '−10', step(-10));
+  addButton(menu, numRow, '−', step(-1));
+  const numL = addElement(numRow, 'div', '');
+  numL.style.cssText = 'flex:1;display:flex;align-items:center;justify-content:center;\
+font-size:15px';
+  addButton(menu, numRow, '+', step(1));
+  addButton(menu, numRow, '+10', step(10));
+  return numL;
 }
 
 /**

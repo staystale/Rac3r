@@ -40,4 +40,8 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
+  // ?carpaint=1: every car has a clearly paintable SECOND part (mostly the roof) and a THIRD, and
+  // RIMS (16 colours, chrome, gold or stock) - the paint shop's two new rows, the AI fields use all
+  // four (cars.ts PAINT_STOCK, render/carsprite.ts; owner 11-07 item 4)
+  carpaint: atLoad('carpaint'),
 };

@@ -10,6 +10,8 @@
 // Izz is computed, not authored: mass*(len^2 + wid^2)/12.
 // Torque curves are 7-point tables, not a single peak — the shape is what makes gearing matter.
 
+import { FIX } from './core/fixes.ts';
+import { PAINT_STOCK, rimColour } from './carpaint.ts';
 import type { Mark, Spray } from './world/types.ts';
 import { dragOf, realCurve, tyreR } from './realcars.ts';
 
@@ -57,6 +59,7 @@ export interface RosterRow {
   curve: Curve; redline: number; upshiftRpm: number; downshiftRpm: number;
   gears: number[]; finalDrive: number; dragC: number;
   paint: string; trim: string; glass: string;
+  third?: string;   // ?carpaint: the THIRD paint part (PAINT_STOCK)
   izzK?: number; rim?: string; aiK?: number; aeroK?: number; downforceF?: number;
   downforceR?: number;
   susF?: number; susZ?: number; trackWidth?: number; tyreWidth?: number; idleRpm?: number;
@@ -196,6 +199,17 @@ export const classOf = (classId: string) => CLASSES.find((cls) => cls.id === cla
 export const PALETTE = ['#f0f0ea', '#a9aeb6', '#5a5f69', '#16181d', '#c8342a', '#7a1d22', '#e0603a',
   '#f2a900',
   '#9bc53d', '#2e7d32', '#1f4d2e', '#3fb6c9', '#2f6fd0', '#1d3f9a', '#8a4fc0', '#e86fa8'];
+/**
+ * A car's stock paint: its roster colours, and under ?carpaint its PAINT_STOCK parts.
+ * @param carId the car (an AI's "id#n" too)
+ * @returns paint, trim, third (body colour when the car has none) and rim (or undefined)
+ */
+export function stockPaint(carId: string) {
+  const row = ROSTER.find((rosterRow) => rosterRow.id === String(carId).split('#')[0]) || ROSTER[0];
+  const extra = FIX.carpaint ? PAINT_STOCK[row.id] || {} : {};
+  return { paint: row.paint, trim: extra.trim || row.trim, third: extra.third || row.paint,
+    rim: extra.rim || row.rim };
+}
 // TYRES (requirement: the first upgrade — manufacturers, ranges per class; only fit what fits;
 // rally / off-road tyres on a road car = more off-road grip but heat up too quickly on tarmac;
 // wets, race... a real mix with distinct grip interactions; "4 brands, 15 types"; TODAY's grip =
@@ -365,14 +379,18 @@ export function applyTyre(carSpec: Spec, tyreId: string): Spec {
   if (carSpec.tyreColdGrip === undefined) delete carSpec.tyreColdGrip;
   return carSpec;
 }
-export function applyLivery(
-  carSpec: Spec, livery: { paint?: string; trim?: string; num?: number } | null,
+export function applyLivery(carSpec: Spec, livery: {
+  paint?: string; trim?: string; third?: string; rims?: string; num?: number } | null,
 ): Spec {
-  const row = ROSTER.find((rosterRow) => rosterRow.id === String(carSpec.id).split('#')[0])
-    || ({} as RosterRow);
-  carSpec.paint = (livery && livery.paint) || row.paint;
-  carSpec.trim = (livery && livery.trim) || row.trim;
+  const stock = stockPaint(String(carSpec.id));
+  carSpec.paint = (livery && livery.paint) || stock.paint;
+  carSpec.trim = (livery && livery.trim) || stock.trim;
   carSpec.num = (livery && livery.num) || 0;
+  // (?carpaint: the third part and the rims)
+  if (FIX.carpaint) {
+    carSpec.third = (livery && livery.third) || stock.third;
+    carSpec.rim = rimColour(livery?.rims) || stock.rim;
+  }
   return carSpec;
 }
 
@@ -766,7 +784,8 @@ export type Spec = typeof SHARED & RosterRow
 
 export function spec(carId: string): Spec {
   const row = ROSTER.find((car) => car.id === carId) || ROSTER[0];
-  const out = { ...SHARED, ...row } as Spec;   // L and Izz are filled in just below
+  // (?carpaint: the stock second / third / rims of the new paint parts)
+  const out = { ...SHARED, ...row, ...(FIX.carpaint ? PAINT_STOCK[row.id] : {}) } as Spec;
   out.L = out.lf + out.lr;
   out.Izz = ((out.mass * (out.len * out.len + out.wid * out.wid)) / 12) * out.izzK;
   // a car with its own factory set leaves the garage on it

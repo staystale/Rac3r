@@ -1,6 +1,7 @@
 // The clean PIXEL CAR sprite: one cached sprite per livery, generated on an integer grid.
 import { shade } from "../render.ts";   // hoisted, only called at draw time (no cycle)
 import { SPRITE_PPM } from "./shared.ts";
+import { FIX } from "../core/fixes.ts";
 import type { CarSprite, RenderCarSpec } from "./types.ts";
 
 // A sprite per car, GENERATED on an integer grid in the reference style
@@ -32,6 +33,9 @@ interface SpriteCtx {
   light: string;
   roofShade: string;
   trim: string;
+  // ?carpaint: the THIRD part, and the roof in the SECOND colour (cars.ts PAINT_STOCK)
+  third: string;
+  roof2: string;
   kind: string;
   NUM: number;
   block: (x: number, y: number, width: number, height: number, col: string) => void;
@@ -59,13 +63,14 @@ function makeSpriteCtx(spec: RenderCarSpec): SpriteCtx {
     ctx.fillRect(2 + Math.round(x), 2 + Math.round(y), Math.round(width), Math.round(height));
   };
   const paint = spec.paint, outline = shade(paint, 0.40), dark = shade(paint, 0.70),
-    light = shade(paint, 1.30), roofShade = shade(paint, 1.10), trim = spec.trim || dark;
+    light = shade(paint, 1.30), roofShade = shade(paint, 1.10), trim = spec.trim || dark,
+    third = spec.third || paint, roof2 = FIX.carpaint ? shade(trim, 1.10) : roofShade;
   // base id: the AI's 'naffcar#3' too (it was drawn as a plain muscle car)
   const kind = String(spec.id).split('#')[0] === 'naffcar' ? 'stock' : spec.kind,
     mid = (widthPx - 1) / 2, along = (x: number) => x * lengthPx;
   const NUM = spec.num! | 0;   // undefined | 0 is 0: unset on the base specs
   return { spec, canvas, ctx, lengthPx, widthPx, mid, paint, outline, dark, light, roofShade,
-    trim, kind, NUM, block, along };
+    trim, third, roof2, kind, NUM, block, along };
 }
 
 /**
@@ -118,6 +123,28 @@ function cabin(spr: SpriteCtx, rearStart: number, roofStart: number, roofEnd: nu
 }
 
 /**
+ * ?carpaint: a PINSTRIPE in the third colour down both flanks.
+ * @param spr the painting context
+ * @param from where it starts along the car (share of the length)
+ * @param until where it ends
+ */
+function pinstripe(spr: SpriteCtx, from: number, until: number): void {
+  const { widthPx, third, block, along } = spr;
+  block(along(from), 1, along(until - from), 1, third);
+  block(along(from), widthPx - 2, along(until - from), 1, third);
+}
+
+/**
+ * Louvre lines on a painted panel: darker on a light colour, lighter on a near-black one.
+ * @param col the panel colour
+ * @returns the line colour
+ */
+function panelLine(col: string): string {
+  const rgb = [1, 3, 5].map((i) => parseInt(col.slice(i, i + 2), 16));
+  return rgb[0] + rgb[1] + rgb[2] < 150 ? shade(col, 2.0) : shade(col, 0.65);
+}
+
+/**
  * Paints the RACE NUMBER (garage livery): a white panel with a dark outline and the digits at
  * scale (3x5 font), upright when the car points right.
  * @param spr the painting context
@@ -166,7 +193,7 @@ function paintOpenWheel(spr: SpriteCtx): void {
   // front wing + flap
   block(lengthPx - 4, 0, 4, widthPx, outline);
   block(lengthPx - 3, 1, 2, widthPx - 2, trim);
-  block(lengthPx - 3, 1, 2, 1, '#e23b2e');
+  block(lengthPx - 3, 1, 2, 1, FIX.carpaint ? spr.third : '#e23b2e');
   // sidepods: wider than the tub and in BODY colour so the F1 silhouette reads (first cut hid
   // them under the tub)
   block(along(0.16), tubTop - 5, along(0.28), tubWidth + 10, outline);
@@ -181,7 +208,7 @@ function paintOpenWheel(spr: SpriteCtx): void {
   block(5, tubTop, lengthPx - 11, 1, light);
   // nose + stripe
   block(along(0.62), tubTop + 1, along(0.30), tubWidth - 2, paint);
-  block(along(0.62), mid, along(0.30), 1, '#e23b2e');
+  block(along(0.62), mid, along(0.30), 1, FIX.carpaint ? spr.third : '#e23b2e');
   // nose taper
   ctx.clearRect(2 + Math.round(lengthPx - 9), 2 + tubTop, 3, 1);
   ctx.clearRect(2 + Math.round(lengthPx - 9), 2 + tubTop + tubWidth - 1, 3, 1);
@@ -200,9 +227,9 @@ function paintTractor(spr: SpriteCtx): void {
   shell(spr, 2);
   // cab roof over glass
   block(along(0.10), 3, along(0.38), widthPx - 6, glass);
-  block(along(0.12), 5, along(0.34), widthPx - 10, shade(paint, 1.15));
+  block(along(0.12), 5, along(0.34), widthPx - 10, shade(FIX.carpaint ? spr.third : paint, 1.15));
   // bonnet
-  block(along(0.52), 4, along(0.44), widthPx - 8, shade(paint, 0.92));
+  block(along(0.52), 4, along(0.44), widthPx - 8, shade(FIX.carpaint ? spr.trim : paint, 0.92));
   // louvres
   for (let x = along(0.56); x < along(0.94); x += 3) block(x, 5, 1, widthPx - 10, dark);
   // exhaust stack
@@ -214,7 +241,8 @@ function paintTractor(spr: SpriteCtx): void {
 /** Paints the estate: roof rails, bonnet shut and tow bar. */
 function paintEstate(spr: SpriteCtx): void {
   const { widthPx, mid, dark, block, along } = spr;
-  cabin(spr, along(0.03), along(0.10), along(0.58), along(0.70));
+  cabin(spr, along(0.03), along(0.10), along(0.58), along(0.70), spr.roof2);
+  if (FIX.carpaint) pinstripe(spr, 0.06, 0.94);
   // roof rails
   block(along(0.12), 3, along(0.44), 1, CHR);
   block(along(0.12), widthPx - 4, along(0.44), 1, CHR);
@@ -226,7 +254,8 @@ function paintEstate(spr: SpriteCtx): void {
 /** Paints the muscle car: stripes, bonnet scoop and chrome bumpers. */
 function paintMuscle(spr: SpriteCtx): void {
   const { lengthPx, widthPx, mid, outline, trim, block, along } = spr;
-  cabin(spr, along(0.16), along(0.26), along(0.48), along(0.60));
+  cabin(spr, along(0.16), along(0.26), along(0.48), along(0.60),
+    FIX.carpaint ? shade(spr.third, 1.10) : spr.roofShade);
   // twin stripes
   block(along(0.62), mid - 4, lengthPx - along(0.62) - 2, 2, trim);
   block(along(0.62), mid + 3, lengthPx - along(0.62) - 2, 2, trim);
@@ -244,7 +273,7 @@ function paintMuscle(spr: SpriteCtx): void {
 /** Paints the rally car: roundel, livery, rear wing and mud flaps. */
 function paintRally(spr: SpriteCtx): void {
   const { widthPx, mid, outline, trim, NUM, block, along } = spr;
-  cabin(spr, along(0.08), along(0.20), along(0.53), along(0.66), WHITE);
+  cabin(spr, along(0.08), along(0.20), along(0.53), along(0.66), FIX.carpaint ? spr.roof2 : WHITE);
   // roof roundel (the number replaces it)
   if (!NUM) {
     block(along(0.30), mid - 2, 5, 5, '#1b1d22');
@@ -258,7 +287,7 @@ function paintRally(spr: SpriteCtx): void {
   block(along(0.68), mid, along(0.30), 1, WHITE);
   // rear wing
   block(-1, -1, 4, widthPx + 2, outline);
-  block(0, 0, 2, widthPx, trim);
+  block(0, 0, 2, widthPx, FIX.carpaint ? spr.third : trim);
   // mud flaps
   block(along(0.18), -1, 3, 1, '#222');
   block(along(0.18), widthPx, 3, 1, '#222');
@@ -275,7 +304,8 @@ function paintSaloon(spr: SpriteCtx): void {
   for (const [x, y] of [[lengthPx - 1, 0], [lengthPx - 1, 1], [lengthPx - 2, 0],
     [lengthPx - 1, widthPx - 1], [lengthPx - 1, widthPx - 2], [lengthPx - 2, widthPx - 1],
     [0, 1], [0, widthPx - 2]]) ctx.clearRect(2 + x, 2 + y, 1, 1);
-  cabin(spr, along(0.20), along(0.29), along(0.57), along(0.67));
+  cabin(spr, along(0.20), along(0.29), along(0.57), along(0.67), spr.roof2);
+  if (FIX.carpaint) pinstripe(spr, 0.08, 0.92);
   // SUNROOF + glint (the number takes the roof)
   if (!NUM) {
     block(along(0.33), 4, along(0.12), widthPx - 8, '#1d2128');
@@ -333,7 +363,8 @@ function paintWrz(spr: SpriteCtx): void {
     block(axle - 6, widthPx, 12, 1, outline);
     block(axle - 5, widthPx, 10, 1, dark);
   }
-  cabin(spr, along(0.21), along(0.30), along(0.57), along(0.67));
+  cabin(spr, along(0.21), along(0.30), along(0.57), along(0.67), spr.roof2);
+  if (FIX.carpaint) pinstripe(spr, 0.10, 0.90);
   block(along(0.18), 3, 1, widthPx - 6, dark);
   // the SCOOP
   block(along(0.75), mid - 5, along(0.13), 11, outline);
@@ -379,8 +410,9 @@ function paintMini(spr: SpriteCtx): void {
   // (trim) ROOF, a short bonnet with twin white STRIPES, a chrome moustache GRILLE, round
   // lamps, the external door + boot hinges
   cabin(spr, along(0.10), along(0.22), along(0.64), along(0.75), trim);
-  block(along(0.79), mid - 4, lengthPx - along(0.79) - 2, 2, trim);
-  block(along(0.79), mid + 3, lengthPx - along(0.79) - 2, 2, trim);
+  const stripe = FIX.carpaint ? spr.third : trim;
+  block(along(0.79), mid - 4, lengthPx - along(0.79) - 2, 2, stripe);
+  block(along(0.79), mid + 3, lengthPx - along(0.79) - 2, 2, stripe);
   block(lengthPx - 1, mid - 4, 1, 9, CHR); block(lengthPx - 2, mid - 2, 1, 5, '#2a2c33');
   block(along(0.43), 0, 1, 1, CHR);
   block(along(0.43), widthPx - 1, 1, 1, CHR);
@@ -421,10 +453,12 @@ function paintLambo(spr: SpriteCtx): void {
   }
   block(along(0.48), 2, along(0.12), 1, paint);
   block(along(0.48), widthPx - 3, along(0.12), 1, paint);
-  block(along(0.08), 4, along(0.34), widthPx - 8, '#16181d');
-  for (let x = along(0.10); x < along(0.40); x += 2) block(x, 5, 1, widthPx - 10, '#33363d');
-  block(along(0.36), 0, along(0.08), 2, '#16181d');
-  block(along(0.36), widthPx - 2, along(0.08), 2, '#16181d');
+  const cover = FIX.carpaint ? spr.trim : '#16181d', intake = FIX.carpaint ? spr.third : '#16181d';
+  block(along(0.08), 4, along(0.34), widthPx - 8, cover);
+  for (let x = along(0.10); x < along(0.40); x += 2) block(x, 5, 1, widthPx - 10,
+    FIX.carpaint ? panelLine(cover) : '#33363d');
+  block(along(0.36), 0, along(0.08), 2, intake);
+  block(along(0.36), widthPx - 2, along(0.08), 2, intake);
   block(along(0.48), -1, 2, 1, paint); block(along(0.48), widthPx, 2, 1, paint);
   const noseCut = Math.round(along(0.04) * 0.24) + 1;
   block(lengthPx - along(0.10), noseCut + 1, 4, 1, HEAD);
@@ -443,11 +477,12 @@ function paintMikra(spr: SpriteCtx): void {
   // side LIVERY stripes in trim, mud flaps
   for (const [x, y] of [[lengthPx - 1, 1], [lengthPx - 2, 0], [lengthPx - 1, widthPx - 2],
     [lengthPx - 2, widthPx - 1], [0, 1], [0, widthPx - 2]]) ctx.clearRect(2 + x, 2 + y, 1, 1);
-  cabin(spr, along(0.08), along(0.18), along(0.56), along(0.68));
+  cabin(spr, along(0.08), along(0.18), along(0.56), along(0.68), spr.roof2);
   block(along(0.42), mid - 1, 3, 3, '#30343c');
-  block(along(0.06), 1, along(0.88), 1, trim);
-  block(along(0.06), widthPx - 2, along(0.88), 1, trim);
-  block(along(0.72), mid, along(0.24), 1, trim);
+  const stripe = FIX.carpaint ? spr.third : trim;
+  block(along(0.06), 1, along(0.88), 1, stripe);
+  block(along(0.06), widthPx - 2, along(0.88), 1, stripe);
+  block(along(0.72), mid, along(0.24), 1, stripe);
   block(along(0.18), -1, 2, 1, '#222'); block(along(0.18), widthPx, 2, 1, '#222');
 }
 
@@ -465,6 +500,7 @@ function paintKit(spr: SpriteCtx): void {
     block(axle - 6, widthPx, 12, 1, dark);
   }
   cabin(spr, along(0.12), along(0.22), along(0.55), along(0.68));
+  if (FIX.carpaint) pinstripe(spr, 0.06, 0.76);
   block(along(0.74), mid - 5, along(0.08), 2, glass);
   block(along(0.74), mid + 4, along(0.08), 2, glass);
   for (let i = 0; i < 4; i++) {
@@ -489,15 +525,16 @@ function paintRxcar(spr: SpriteCtx): void {
     block(axle - 7, widthPx, 14, 2, outline);
     block(axle - 6, widthPx, 12, 1, paint);
   }
-  cabin(spr, along(0.10), along(0.20), along(0.52), along(0.64));
+  cabin(spr, along(0.10), along(0.20), along(0.52), along(0.64), spr.roof2);
   block(along(0.25), mid - 2, along(0.10), 5, outline);
   block(along(0.26), mid - 1, along(0.08), 3, glass);
-  block(along(0.66), 2, along(0.30), 2, trim);
-  block(along(0.66), widthPx - 4, along(0.30), 2, trim);
+  const stripe = FIX.carpaint ? spr.third : trim;
+  block(along(0.66), 2, along(0.30), 2, stripe);
+  block(along(0.66), widthPx - 4, along(0.30), 2, stripe);
   block(lengthPx, -1, 1, widthPx + 2, '#16181d');
   block(1, 0, 3, widthPx, 'rgba(0,0,0,0.25)');
   block(-2, -3, 4, widthPx + 6, outline);
-  block(-1, -2, 2, widthPx + 4, trim);
+  block(-1, -2, 2, widthPx + 4, FIX.carpaint ? spr.third : trim);
   block(-2, -3, 4, 1, light);
 }
 
@@ -509,11 +546,13 @@ function paintBanger(spr: SpriteCtx): void {
   // the ROOF in the grade colour (trim), a wire mesh where the windscreen was
   cabin(spr, along(0.18), along(0.28), along(0.60), along(0.70), trim);
   for (let x = along(0.61); x < along(0.70); x += 2) block(x, 3, 1, widthPx - 6, '#55585f');
-  block(lengthPx, -2, 2, widthPx + 4, '#3a3d45');
-  block(lengthPx + 1, -2, 1, widthPx + 4, '#55585f');
-  block(-2, -2, 2, widthPx + 4, '#3a3d45'); block(-2, -2, 1, widthPx + 4, '#55585f');
-  block(along(0.22), -1, along(0.56), 1, '#3a3d45');
-  block(along(0.22), widthPx, along(0.56), 1, '#3a3d45');
+  const steel = FIX.carpaint ? spr.third : '#3a3d45', edge = FIX.carpaint ? shade(steel, 1.45)
+    : '#55585f';
+  block(lengthPx, -2, 2, widthPx + 4, steel);
+  block(lengthPx + 1, -2, 1, widthPx + 4, edge);
+  block(-2, -2, 2, widthPx + 4, steel); block(-2, -2, 1, widthPx + 4, edge);
+  block(along(0.22), -1, along(0.56), 1, steel);
+  block(along(0.22), widthPx, along(0.56), 1, steel);
 }
 
 /** Paints the grass-track car. */
@@ -522,17 +561,18 @@ function paintGrass(spr: SpriteCtx): void {
   // AUTOGRASS SPECIAL — a space-frame buggy: an open TUB, the engine bay behind the driver
   // (block + filter), the ROLL CAGE as chrome
   // bars round the seat, a helmet, a nose with a number board
-  block(along(0.08), mid - 5, along(0.27), 11, '#3a3d45');
-  block(along(0.12), mid - 3, along(0.12), 7, '#55585f');
+  const engine = FIX.carpaint ? spr.third : '#3a3d45', cage = FIX.carpaint ? spr.trim : CHR;
+  block(along(0.08), mid - 5, along(0.27), 11, engine);
+  block(along(0.12), mid - 3, along(0.12), 7, FIX.carpaint ? shade(engine, 1.45) : '#55585f');
   block(along(0.27), mid - 2, 3, 5, '#d23b2a');
   block(along(0.40), mid - 6, along(0.26), 13, glass);
   block(along(0.46), mid - 4, along(0.12), 9, '#22252c');
   block(along(0.50), mid - 1, 3, 3, '#e4c23a');
-  block(along(0.38), 3, 1, widthPx - 6, CHR);
-  block(along(0.66), 3, 1, widthPx - 6, CHR);
-  block(along(0.38), 3, along(0.28), 1, CHR);
-  block(along(0.38), widthPx - 4, along(0.28) + 1, 1, CHR);
-  block(along(0.39), mid, along(0.27), 1, CHR);
+  block(along(0.38), 3, 1, widthPx - 6, cage);
+  block(along(0.66), 3, 1, widthPx - 6, cage);
+  block(along(0.38), 3, along(0.28), 1, cage);
+  block(along(0.38), widthPx - 4, along(0.28) + 1, 1, cage);
+  block(along(0.39), mid, along(0.27), 1, cage);
   block(lengthPx - 3, 3, 1, 3, HEAD); block(lengthPx - 3, widthPx - 6, 1, 3, HEAD);
 }
 
@@ -542,14 +582,15 @@ function paintDrift(spr: SpriteCtx): void {
   // NISSUN SYLVYA S13 D — the 90s coupe: closed POP-UP lamps (dark lids), bonnet VENTS, a big
   // ducktail SPOILER, side stickers in trim,
   // a red TOW STRAP on the nose
-  cabin(spr, along(0.14), along(0.26), along(0.55), along(0.66));
+  cabin(spr, along(0.14), along(0.26), along(0.55), along(0.66), spr.roof2);
   block(lengthPx - 5, 2, 3, 3, outline); block(lengthPx - 5, widthPx - 5, 3, 3, outline);
   block(along(0.76), mid - 4, along(0.08), 1, glass);
   block(along(0.76), mid + 3, along(0.08), 1, glass);
-  block(along(0.30), 0, along(0.2), 1, trim);
-  block(along(0.30), widthPx - 1, along(0.2), 1, trim);
-  block(along(0.72), 1, along(0.06), 1, trim);
-  block(along(0.72), widthPx - 2, along(0.06), 1, trim);
+  const sticker = FIX.carpaint ? spr.third : trim;
+  block(along(0.30), 0, along(0.2), 1, sticker);
+  block(along(0.30), widthPx - 1, along(0.2), 1, sticker);
+  block(along(0.72), 1, along(0.06), 1, sticker);
+  block(along(0.72), widthPx - 2, along(0.06), 1, sticker);
   block(0, 1, 3, widthPx - 2, outline); block(1, 2, 1, widthPx - 4, trim);
   block(lengthPx - 1, mid + 4, 1, 3, '#d23b2a');
   for (const y of [1, widthPx - 4]) block(0, y, 1, 3, TAIL);
@@ -571,10 +612,11 @@ function paintStock(spr: SpriteCtx): void {
     }));
     }
   // sponsor panels
-  block(along(0.66), 2, along(0.30), 3, '#1d3f8f');
-  block(along(0.66), widthPx - 5, along(0.30), 3, '#1d3f8f');
-  block(along(0.04), 2, along(0.12), 2, '#d23b2a');
-  block(along(0.04), widthPx - 4, along(0.12), 2, '#d23b2a');
+  const panel = FIX.carpaint ? spr.trim : '#1d3f8f', tail = FIX.carpaint ? spr.third : '#d23b2a';
+  block(along(0.66), 2, along(0.30), 3, panel);
+  block(along(0.66), widthPx - 5, along(0.30), 3, panel);
+  block(along(0.04), 2, along(0.12), 2, tail);
+  block(along(0.04), widthPx - 4, along(0.12), 2, tail);
   // window net
   for (let x = along(0.30); x < along(0.52); x += 2) block(x, 1, 1, 1, '#111');
   // spoiler lip
@@ -585,7 +627,12 @@ function paintStock(spr: SpriteCtx): void {
 function paintHatch(spr: SpriteCtx): void {
   const { lengthPx, widthPx, dark, block, along } = spr;
   // HATCH (both the FWD and the RWD — the paint is the difference, as in the game)
-  cabin(spr, along(0.08), along(0.20), along(0.53), along(0.66));
+  cabin(spr, along(0.08), along(0.20), along(0.53), along(0.66), spr.roof2);
+  if (FIX.carpaint) {
+    block(along(0.53) + 1, -1, 2, 1, spr.third);
+    block(along(0.53) + 1, widthPx, 2, 1, spr.third);
+    block(lengthPx - 2, 4, 1, widthPx - 8, spr.third);
+  }
   // bonnet + hatch shuts
   block(along(0.70), 3, 1, widthPx - 6, dark);
   block(along(0.05), 3, 1, widthPx - 6, dark);
@@ -654,7 +701,8 @@ export function createCarSprite() {
   const spriteCache = new Map<string, CarSprite>();
   function pixelCar(spec: RenderCarSpec): CarSprite {
     // one sprite per LIVERY (paint, trim, number)
-    const key = spec.id + '|' + spec.paint + '|' + spec.trim + '|' + (spec.num || 0);
+    const key = spec.id + '|' + spec.paint + '|' + spec.trim + '|' + (spec.third || '') + '|'
+      + (spec.num || 0);
     if (spriteCache.has(key)) return spriteCache.get(key)!;   // has(key) was just true
     const out = paintCarSprite(spec);
     spriteCache.set(key, out);

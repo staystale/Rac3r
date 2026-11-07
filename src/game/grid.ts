@@ -2,7 +2,9 @@
 import { hwLevel } from './state.ts';
 import { lcg } from "../core/random.ts";
 import { makeCar, reset } from '../vehicle.ts';
-import { ROSTER } from '../cars.ts';
+import { ROSTER, PALETTE } from '../cars.ts';
+import { rimColour } from '../carpaint.ts';
+import { FIX } from '../core/fixes.ts';
 import { hwGrid } from '../highwayrace.ts';
 import { createAIDriver } from '../ai/circuit.ts';
 import { aiTraits } from '../ai/traits.ts';
@@ -32,6 +34,14 @@ export const AI_LIVERIES = [['#c8302c', '#7e1d1a'], ['#2b56b5', '#14306e'], ['#e
 // with difficulty): the player's slot is drawn with weights exp(GRID_BIAS[diff] x slot / n) —
 // Mobile leans to the FRONT, Real to the BACK, Realish is even.
 export const GRID_BIAS = [-2.2, -1.1, 0, 1.1, 2.2];
+// ?carpaint: an AI's third part and rims, by its slot - the field all differ (the rims: stock,
+// chrome, gold, black, white in turn; the third a palette colour well away from the body's)
+const AI_RIMS = ['', 'chrome', 'gold', '#16181d', '#f0f0ea'];
+const aiPaintParts = (slot: number) => (FIX.carpaint ? {
+  third: PALETTE[(slot * 7 + 4) % PALETTE.length],
+  ...(AI_RIMS[slot % AI_RIMS.length] ? { rim: rimColour(AI_RIMS[slot % AI_RIMS.length]) } : {}),
+} : {});
+
 export function drawGridSlot(count: number) {
   if (!count) return 0;
   // (the menu race: any slot, even odds)
@@ -151,7 +161,7 @@ export function spawnAI(count: number = shared.aiCount) {
   for (let i = 0; i < count; i++) {
     const car = makeCar(ids[i]) as GameCar, [paint, trim] = AI_LIVERIES[i % AI_LIVERIES.length];
     // own sprite (cached by id), same physics
-    car.spec = { ...car.spec, id: car.spec.id + '#' + (i + 2), paint, trim };
+    car.spec = { ...car.spec, id: car.spec.id + '#' + (i + 2), paint, trim, ...aiPaintParts(i) };
     car.num = nums[i];
     car.spec.num = nums[i];
     // the field from the AI DRIVERS dials (the difficulty's preset unless moved)
