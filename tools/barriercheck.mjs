@@ -5,10 +5,12 @@ const lv = process.argv[2] || 'thruston';
 L.setLevel(lv);
 const st = L.LEVEL.subtrack, hw = st.width / 2;
 const fails = [];
+const EDGE_TOL = 0.1;
 const onLane = (x, y) => (L.LEVEL.lanes || []).some((ln) => ln.pts.some(([a, b], i) => {
   const q = ln.pts[i + 1]; if (!q) return false;
   const dx = q[0] - a, dy = q[1] - b, l2 = dx * dx + dy * dy || 1e-6; let t = ((x - a) * dx + (y - b) * dy) / l2; t = Math.max(0, Math.min(1, t));
-  return Math.hypot(x - a - dx * t, y - b - dy * t) <= ln.width / 2;
+  // (EDGE_TOL m inside the edge: a wall that IS the lane's edge - the pit garages' front - is not on it)
+  return Math.hypot(x - a - dx * t, y - b - dy * t) <= ln.width / 2 - EDGE_TOL;
 }));
 for (const b of L.LEVEL.barriers || []) {
   if (b.kind === 'line') continue;

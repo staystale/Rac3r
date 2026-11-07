@@ -5,6 +5,34 @@ the git history (this file was swept on 2026-10-19: every finished entry deleted
 decisions and the measured lessons live in `NOTES.md`). `docs/handover-2026-11-03.md` is the
 last handover, written on request.
 
+## OWNER 11-07 - ORDER AGREED (owner: "1. ok 2. ok 3 ok")
+
+1. DONE 11-07: the GitHub `checks` workflow (below, Tools that are wrong).
+2. R7: a menu race on a random track, a chance of the highway (AI plan; build as switched).
+3. BRANDS SNATCH INDY at real scale and 3/4 scale (OWNER IDEAS entry below).
+4. CARS (mockup first): every car LOOKS LIKE ITS REAL COUNTERPART - rework any that do not
+   (owner: "reworking any cars that don't look like their real counter part"); a THIRD colour;
+   EVERY car has at least TWO decoratable parts; RIM COLOUR ("so we know it was yours when you
+   crash haha"); the AI liveries use them so a 20-car field all differ. Garage paint.
+
+Then, to work through when it fits (owner 11-07, not ordered):
+- HIGHWAY LINE: "does the ai need a racing line on highway? if not can we get rid of it - it's
+  causing all the ai to swarm to the centre upon start". READ: the highway line (ai/roadLine.ts)
+  is the carriageway's MIDDLE; since lineback (passed 11-07) every line the gap picker tries pays
+  LINE_COST 3 a m off it (ai/gapPick.ts placeCost), and the rejoin steers back to it - so the
+  grid is drawn to the middle. Likely fix (one AI): on a road with no fast line (a straight
+  carriageway, every lane as quick) the line costs nothing anywhere on the road - measure the
+  start (_rollhw.mjs) and weavecheck / pacesuite first. Ask before building.
+- HIGHWAY TOO EASY: "ai don't dodge properly" - find out what they miss (traffic, the player,
+  wrecks) with a measure first.
+- MORE HIGHWAY FLAVOURS once the above is worked out.
+- ONLINE MULTIPLAYER (with I): a player too far behind is LEFT BEHIND (the endless road would grow
+  past memory) - a hard limit by time or distance; the place at that limit is the result (first
+  out of a 10-car race = 10th).
+- SIDE DRAFTING ("especially for naffcar"): the wake (physics/wake.ts) beside a car, not only
+  behind it. With it the Naffcar extras from the roadmap (docs/specs/roadmap-2026-10-03.md G):
+  active AIR BRAKES / cowl flaps, aero parts as upgrades; and DIEATONA (below).
+
 ## Where we are (2026-11-04)
 
 - DEFAULT 11-04 (owner: "lean hud pass"; the car list, TUNE panel - and src/tune.ts, its data - CLEAR, their
@@ -1075,7 +1103,12 @@ DRIVING (ask before starting; re-measure first, these are old):
 
 ## Tools that are wrong
 
-- TO FIX (owner 11-04: "add that to the todo to fix / look at"): the GitHub `checks` workflow
+- FIXED 11-07 (owner: "1. ok"): an intended difference is TAGGED in the commit message -
+  [sim] / [world] / [look] - and its hash is then reported, not failed; settingscheck asks ?ai=99
+  -> 20 (MAX_AI); barriercheck allows a wall ON a lane's edge (0.1 m: Thruston's garage front is
+  the pit lane's edge, 4.50 m from its middle); menucheck: the podium goes on to the table by
+  itself after 2.5 s, slower than a CI shot - it taps RESULTS if still there, then waits for the
+  table. WAS: TO FIX (owner 11-04: "add that to the todo to fix / look at"): the GitHub `checks` workflow
   (.github/workflows/checks.yml) FAILS on every push to main (since ~10-19; `verify` is the
   gate, so nothing is blocked - but it is meant to be the regression suite). What it does: saves
   the proof hashes on the commit before (level data, simulation, pixels) and compares the pushed

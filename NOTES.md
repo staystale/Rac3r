@@ -372,6 +372,9 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   (GitHub API `repos/staystale/Rac3r/commits/<sha>/check-runs`), `git push origin HEAD:refs/heads/main`,
   delete the branch, then move the served clone: `git fetch -q origin && git checkout -q --detach
   origin/main`.
+- Commit tags (11-07): a commit MEANT to change the simulation / the AI says [sim], level data
+  [world], the pixels [look] - the `checks` workflow then reports that hash instead of failing it.
+  Untagged, a difference fails: it was not meant.
 - Phone runs: `node tools/phonereport.mjs <report log> --since <UTC time>`; the log path is in the
   owner's README / the test server's start-up.
 - Long tools: run in the background, write to a file, poll it. One heavy browser tool at a time

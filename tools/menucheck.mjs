@@ -64,7 +64,12 @@ for (const [W, H] of [[844, 390], [390, 844]]) {
     const ai = [2, 3, 4].map(n => ({ car: g.car, player: false, pos: n, num: n, total: 62.34 + n, gap: n, best: 30.5 + n / 10, penalty: n === 3 ? 5 : 0, bill: 0, paint: '#3a7bd8' }));
     g.menu.results({ results: [me, ...ai], laps: 2 }, { name: 'menucheck', restart() {}, tracks() {}, menu() {} });
   });
-  await shot('9-results'); await tap('RESULTS'); await shot('9-results-table');
+  // the podium goes on to the table by itself after 2.5 s: tap RESULTS if it is still there (a slow
+  // CI runner can take longer than that over the shot), then the table must show either way
+  await shot('9-results');
+  await p.locator('#menu button', { hasText: 'RESULTS' }).first().tap({ timeout: 1000 }).catch(() => {});
+  await waitFor('the results table', () => !!document.querySelector('#menu .res'));
+  await shot('9-results-table');
   await p.evaluate(() => window.__game.menu.pause({ resume() {}, restart() {}, guide() {}, exit() {}, tests: true }));
   // the TESTING button shows only while the test list has entries
   const hasTesting = (await p.locator('#menu button', { hasText: 'TESTING' }).count()) > 0;

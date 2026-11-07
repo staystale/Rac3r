@@ -18,7 +18,7 @@ const DEFAULTS = {
 
 const TABLE = [
   ['', {}],
-  ['?ai=9&diff=7&traffic=3', { aiCount: 5, aiDifficulty: 4, trafficDensity: 1.5 }],
+  ['?ai=99&diff=7&traffic=3', { aiCount: 20, aiDifficulty: 4, trafficDensity: 1.5 }],
   ['?ai=2&diff=0&traffic=0', { aiCount: 2, aiDifficulty: 0, trafficDensity: 0 }],
   ['?ai=-3&diff=-1&traffic=-2&litter=-1', { aiCount: 0, aiDifficulty: 0, trafficDensity: 0, litter: 0 }],
   ['?ai=x&diff=x&traffic=x&menuai=x&litter=x', { aiCount: NaN, aiDifficulty: NaN, trafficDensity: NaN, menuAi: NaN, litter: NaN }],
