@@ -57,6 +57,9 @@ export interface CamState {
   ovCache: OvCache | null;
   vZoom: number | null;
   pinZoom: number | null;
+  // the menu race: the car framed as on a circuit - no road-ahead lead on the highway (owner 11-07:
+  // "for the menu race the observed car is off set too much")
+  menuView?: boolean;
   // zoom hold: the spring move under way (its speed in halvings per s, its way: +1 in / -1 out,
   // caught: near enough, now easing to a stop; the zoom it set last), or null while it holds
   zoomSpring: { rate: number; way: number; caught: boolean; last: number } | null;

@@ -119,6 +119,7 @@ export function enterMenu() {
   saveRecords();
   saveTyreWear();   // the event is over: the set as worn as it is now
   shared.mode = 'menu';
+  shared.renderer.setMenuView(true);
   shared.paused = false;
   shared.started = true;
   // (?menurand: a random field, FIELD_MIN .. FIELD_MAX cars; ?menuai=N still sets it)
@@ -186,6 +187,7 @@ export function applyLaunchOptions(levelId: string, opts: LaunchOpts) {
  */
 export function launch(levelId: string, carId: string, opts: LaunchOpts = {}) {
   shared.mode = 'session';
+  shared.renderer.setMenuView(false);
   shared.demo = null;
   shared.paused = false;
   applyLaunchOptions(levelId, opts);

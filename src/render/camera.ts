@@ -92,7 +92,9 @@ function followCar(ctx: CameraCtx, car: CamCar, wallDt: number) {
   // share of the view: the car sits ~3/4 down the screen with the road ahead above it. Capped
   // sideways so a 60 deg bend cannot push the car off the side of a narrow portrait screen.
   const hwy = LEVEL.endless && LEVEL._hw;
-  if (hwy && hwy.camDir) { const ppm = PPMz(), ahead = 0.26 * view.H / ppm,
+  // (not behind the menu: there the car is watched, not driven - camState.menuView)
+  if (hwy && hwy.camDir && !ctx.camState.menuView) {
+    const ppm = PPMz(), ahead = 0.26 * view.H / ppm,
     sideLimit = 0.2 * view.W / ppm;
     leadX = Math.max(-sideLimit, Math.min(sideLimit, hwy.camDir.x * ahead));
     leadY = hwy.camDir.y * ahead; }

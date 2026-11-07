@@ -490,6 +490,9 @@ function paintFlat(
 function makeDebugTools(ctx: RenderCtx) {
   const { view, camState } = ctx;
   return {
+    // (not a debug tool - the menu flow sets it) the menu race on (true) or a session (false): the
+    // camera's framing (CamState.menuView)
+    setMenuView(menu: boolean) { camState.menuView = menu; },
     // for the photo tools (tools/_sceneryshots.mjs): pin the camera zoom (null = back to
     // speed-driven)
     debugZoom(zoom: number | null) {
