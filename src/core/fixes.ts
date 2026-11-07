@@ -43,4 +43,7 @@ export const FIX = {
   // ?credits=1: a CREDITS button on the main menu (menu/credits.ts: the traced maps, map data and
   // fonts the game carries, with their licences; owner 11-07)
   credits: atLoad('credits'),
+  // ?bigbrands=1: Brands Snatch as the real venue at 3/4 of real length, the GP and the Indy two
+  // layouts of it sharing its scenery (world/venue.ts, world/levels/brands-venue.ts; owner 11-07)
+  bigbrands: atLoad('bigbrands'),
 };

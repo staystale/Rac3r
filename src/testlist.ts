@@ -63,4 +63,12 @@ export const TEST_LIST: TestEntry[] = [
     try: 'Open CREDITS: map data, the traced circuit maps and the fonts, each with its licence.',
     wrong: 'The button cut off or overlapping, text unreadable, a licence link dead, BACK lost.',
   },
+  {
+    id: 'bigbrands',
+    added: '2026-11-07',
+    name: 'Brands Snatch as the real venue, 3/4 size - GP and Indy share its scenery',
+    where: 'Test link + &bigbrands=1: TEST MODE > UK CIRCUITS > Brands Snatch GP, then Indy',
+    try: 'Drive both: real corners, pits, garages, stands, traps, bridges; GP loop closed on Indy.',
+    wrong: 'Props on the road, a stand or building in the wrong place, lag, or the AI lost.',
+  },
 ];

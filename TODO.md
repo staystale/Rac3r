@@ -24,6 +24,18 @@ last handover, written on request.
    turned rectangles (polygon ground only if the photos need it - ask first). Owner's answers:
    rally stages IN, ovals MADE REAL (each to a real counterpart), lap counts kept (longer races),
    test levels stay as they are ("we may eventually jazz these up").
+   UNDER TEST 11-07: ?bigbrands=1 (world/venue.ts + venuescenery.ts, levels/brands-venue.ts, data
+   venues/brands-snatch.ts from tools/osmvenue.mjs + tools/venues/brands-snatch.json). GP 2939 m
+   (3/4 of 3916), Indy 1454 m; both layouts the same scenery: 5 grandstands, the garage row, the
+   pit lane + wall (3 m off the edge; the lane pushed out for the 13 m road), 9 real traps with
+   Armco + 2 tyre rows, 40 fence runs, both GP road bridges + the Hailwood footbridge, paddocks
+   with trucks, 260 trees in the real woods, the old hills carried over. barriercheck + propcheck
+   OK both; worldhash SAME off. AI (6 cars, 3 seeds, 3 laps): Indy lap 39.6 -> 59.4 s, off 6.0 ->
+   6.4 s a car, incidents 6 -> 14 (watch); GP 74.8 -> 103.3 s, off 7.4 -> 8.5, incidents 9 -> 6.
+   Laptop CPU x4 framecheck: work median 11 -> 12 ms, frames > 33 ms ~60 -> 88 of 570 (2111 tyre
+   stacks vs 498: first suspect). Phone memory same (80 vs 83 MB canvases). Shots:
+   tools/scratch/_venueshots.mjs. On pass: delete the old Brands build, then the next track.
+   Not yet: kerbs on the closed GP loop on Indy days; paddocks are turned boxes (blocky edges).
    CREDITS (owner 11-07: "add a credits button to the menu"): ?credits=1 UNDER TEST (menu/
    credits.ts) - OpenStreetMap (ODbL) and the five traced Wikimedia maps (CC BY-SA) REQUIRE
    attribution; add a line there with anything else the game takes from someone. Owner to say

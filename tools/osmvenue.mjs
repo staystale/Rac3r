@@ -1,0 +1,256 @@
+// tools/osmvenue.mjs - turns an OpenStreetMap download of a real circuit into a venue data module
+// (world/levels/venues/*.ts): every race road piece, the pit lane, service roads, gravel traps,
+// fences, rails, grandstands, buildings, paddocks and woods, in REAL metres in the game's frame
+// (x right, y down), turned so the track sits the way the level always has. The level scales it
+// (world/venue.ts). Map data (c) OpenStreetMap contributors, ODbL.
+//
+//   node tools/osmvenue.mjs <venue config .json>
+//
+// The config: { "osm": the Overpass JSON (out geom), "out": the .ts to write, "exportName",
+//   "origin": [lat, lon], "turnDeg": degrees the map is turned (clockwise on screen),
+//   "clip": [x0, y0, x1, y1] real m in the turned frame, "names": { "<way id>": "piece name" },
+//   "layouts": { "<id>": { "through": [piece names], "avoid": [piece names] } } }
+// A layout is the shortest loop through its "through" pieces that avoids its "avoid" pieces; it is
+// written as the ordered list of pieces it runs over, so a layout is changed by editing that list.
+import fs from 'node:fs';
+import path from 'node:path';
+
+const config = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+const base = path.dirname(process.argv[2]);
+const osm = JSON.parse(fs.readFileSync(path.resolve(base, config.osm), 'utf8'));
+const [LAT0, LON0] = config.origin;
+const METRES_LAT = 111320, METRES_LON = 111320 * Math.cos(LAT0 * Math.PI / 180);
+const TURN = config.turnDeg * Math.PI / 180, COS_T = Math.cos(TURN), SIN_T = Math.sin(TURN);
+const [CLIP_X0, CLIP_Y0, CLIP_X1, CLIP_Y1] = config.clip;
+
+/** lat / lon -> real metres in the turned game frame */
+function toGame(node) {
+  const east = (node.lon - LON0) * METRES_LON, south = -(node.lat - LAT0) * METRES_LAT;
+  return [east * COS_T - south * SIN_T, east * SIN_T + south * COS_T];
+}
+const round1 = (value) => Math.round(value * 10) / 10;
+const inClip = ([x, y]) => x >= CLIP_X0 && x <= CLIP_X1 && y >= CLIP_Y0 && y <= CLIP_Y1;
+
+/** Douglas-Peucker simplification to a tolerance in metres */
+function simplify(points, tolerance) {
+  if (points.length < 3) return points;
+  const [ax, ay] = points[0], [bx, by] = points.at(-1);
+  const dx = bx - ax, dy = by - ay, len = Math.hypot(dx, dy) || 1e-9;
+  let worst = 0, worstAt = 0;
+  for (let i = 1; i < points.length - 1; i++) {
+    const off = len > 1e-6
+      ? Math.abs((points[i][0] - ax) * dy - (points[i][1] - ay) * dx) / len
+      : Math.hypot(points[i][0] - ax, points[i][1] - ay);
+    if (off > worst) { worst = off; worstAt = i; }
+  }
+  if (worst <= tolerance) return [points[0], points.at(-1)];
+  return [...simplify(points.slice(0, worstAt + 1), tolerance).slice(0, -1),
+    ...simplify(points.slice(worstAt), tolerance)];
+}
+const cleanLine = (points, tolerance) => simplify(points, tolerance).map(([x, y]) => [round1(x), round1(y)]);
+const lineLength = (points) => points.slice(1)
+  .reduce((sum, point, i) => sum + Math.hypot(point[0] - points[i][0], point[1] - points[i][1]), 0);
+
+/** the smallest turned rectangle round a polygon (rotating calipers on the hull) */
+function boxAround(points) {
+  const hull = convexHull(points);
+  let best = null;
+  for (let i = 0; i < hull.length; i++) {
+    const [ax, ay] = hull[i], [bx, by] = hull[(i + 1) % hull.length];
+    const angle = Math.atan2(by - ay, bx - ax), cosA = Math.cos(angle), sinA = Math.sin(angle);
+    let minU = Infinity, maxU = -Infinity, minV = Infinity, maxV = -Infinity;
+    for (const [x, y] of hull) {
+      const along = x * cosA + y * sinA, across = -x * sinA + y * cosA;
+      minU = Math.min(minU, along); maxU = Math.max(maxU, along);
+      minV = Math.min(minV, across); maxV = Math.max(maxV, across);
+    }
+    const area = (maxU - minU) * (maxV - minV);
+    if (!best || area < best.area) {
+      const midU = (minU + maxU) / 2, midV = (minV + maxV) / 2;
+      best = { area, x: midU * cosA - midV * sinA, y: midU * sinA + midV * cosA,
+        w: maxU - minU, h: maxV - minV, rot: angle };
+    }
+  }
+  // the long side along w
+  if (best.h > best.w) best = { ...best, w: best.h, h: best.w, rot: best.rot + Math.PI / 2 };
+  const rot = Math.atan2(Math.sin(best.rot), Math.cos(best.rot));
+  return { x: round1(best.x), y: round1(best.y), w: round1(best.w), h: round1(best.h),
+    rot: Math.round(rot * 1000) / 1000 };
+}
+function convexHull(points) {
+  const sorted = [...points].sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+  const cross = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+  const lower = [], upper = [];
+  for (const point of sorted) {
+    while (lower.length >= 2 && cross(lower.at(-2), lower.at(-1), point) <= 0) lower.pop();
+    lower.push(point);
+  }
+  for (const point of sorted.reverse()) {
+    while (upper.length >= 2 && cross(upper.at(-2), upper.at(-1), point) <= 0) upper.pop();
+    upper.push(point);
+  }
+  return [...lower.slice(0, -1), ...upper.slice(0, -1)];
+}
+
+const ways = osm.elements.filter((element) => element.type === 'way' && element.geometry);
+const keyOf = (node) => `${node.lat.toFixed(7)},${node.lon.toFixed(7)}`;
+
+// ---- race road pieces: every motor raceway split where pieces meet ----
+const raceWays = ways.filter((way) => way.tags?.highway === 'raceway'
+  && /motor/.test(way.tags.sport || '') && !/Pit Lane/i.test(way.tags.name || ''));
+const uses = new Map();
+for (const way of raceWays) for (const node of way.geometry) uses.set(keyOf(node), (uses.get(keyOf(node)) || 0) + 1);
+const pieces = [];
+for (const way of raceWays) {
+  const baseName = config.names?.[way.id] || way.tags.name || `way ${way.id}`;
+  let run = [way.geometry[0]], part = 0;
+  for (let i = 1; i < way.geometry.length; i++) {
+    run.push(way.geometry[i]);
+    if (i === way.geometry.length - 1 || uses.get(keyOf(way.geometry[i])) > 1) {
+      pieces.push({ name: part ? `${baseName} ${part + 1}` : baseName, osm: way.id,
+        from: keyOf(run[0]), to: keyOf(run.at(-1)), raw: run.map(toGame) });
+      run = [way.geometry[i]];
+      part++;
+    }
+  }
+}
+for (const piece of pieces) piece.len = lineLength(piece.raw);
+const nodePieces = new Map();
+for (const [i, piece] of pieces.entries())
+  for (const key of [piece.from, piece.to]) {
+    if (!nodePieces.has(key)) nodePieces.set(key, []);
+    nodePieces.get(key).push(i);
+  }
+
+/** the shortest run of pieces from one node to another, skipping a set of pieces */
+function shortestRun(fromKey, toKey, skip) {
+  const dist = new Map([[fromKey, 0]]), prev = new Map(), done = new Set();
+  for (;;) {
+    let here = null;
+    for (const [key, value] of dist) if (!done.has(key) && (here === null || value < dist.get(here))) here = key;
+    if (here === null) return null;
+    if (here === toKey) break;
+    done.add(here);
+    for (const index of nodePieces.get(here) || []) {
+      if (skip.has(index)) continue;
+      const piece = pieces[index], next = piece.from === here ? piece.to : piece.from;
+      const value = dist.get(here) + piece.len;
+      if (value < (dist.get(next) ?? Infinity)) { dist.set(next, value); prev.set(next, index); }
+    }
+  }
+  const run = [];
+  for (let key = toKey; key !== fromKey;) {
+    const index = prev.get(key), piece = pieces[index];
+    const forward = piece.to === key;
+    run.unshift({ index, forward });
+    key = forward ? piece.from : piece.to;
+  }
+  return run;
+}
+
+/** a layout: the shortest loop through the first "through" piece avoiding the "avoid" pieces */
+function buildLayout(spec) {
+  const named = (name) => pieces.map((piece, i) => (piece.name === name ? i : -1)).filter((i) => i >= 0);
+  const first = named(spec.through[0])[0];
+  if (first === undefined) throw new Error(`no piece called ${spec.through[0]}`);
+  const skip = new Set([first, ...(spec.avoid || []).flatMap(named)]);
+  const back = shortestRun(pieces[first].to, pieces[first].from, skip);
+  if (!back) throw new Error(`no loop through ${spec.through[0]}`);
+  const run = [{ index: first, forward: true }, ...back];
+  const missing = spec.through.filter((name) => !run.some((step) => pieces[step.index].name === name));
+  if (missing.length) throw new Error(`layout misses ${missing.join(', ')}`);
+  // run the way the race goes (spec.reverse: the shortest-loop direction is the wrong way round)
+  const ordered = spec.reverse
+    ? run.slice().reverse().map((step) => ({ ...step, forward: !step.forward })) : run;
+  return ordered.map((step) => [pieces[step.index].name, step.forward ? 1 : -1]);
+}
+
+// ---- everything else, by kind ----
+const SERVICE_WIDTH = { service: 5, residential: 6, unclassified: 6, tertiary: 7, track: 3.5 };
+// paths that matter only where they cross the track on a bridge
+const FOOT_WAYS = new Set(['footway', 'path', 'steps', 'pedestrian']);
+const out = { pieces: [], layouts: {}, pitLanes: [], roads: [], footbridges: [], dirt: [],
+  karting: [], traps: [], fences: [], rails: [], tyres: [], stands: [], buildings: [], paddocks: [],
+  woods: [], homes: [] };
+for (const piece of pieces)
+  out.pieces.push({ name: piece.name, pts: cleanLine(piece.raw, 0.25) });
+for (const [id, spec] of Object.entries(config.layouts || {})) out.layouts[id] = buildLayout(spec);
+
+const closed = (way) => way.geometry.length > 3 && keyOf(way.geometry[0]) === keyOf(way.geometry.at(-1));
+// the venue's reach: only what lies within config.reachM real m of a race road is kept (the
+// village next door, far fields and roads are not the venue's)
+const racePts = pieces.flatMap((piece) => piece.raw.filter((point, i) => i % 4 === 0));
+const reachSq = (config.reachM || 1e9) ** 2;
+const inReach = ([x, y]) => racePts.some(([px, py]) => (px - x) ** 2 + (py - y) ** 2 <= reachSq);
+for (const way of ways) {
+  const tags = way.tags || {}, pts = way.geometry.map(toGame);
+  if (!pts.some(inClip) || !pts.some(inReach)) continue;
+  const line = (tolerance) => cleanLine(pts, tolerance);
+  if (tags.highway === 'raceway' && /Pit Lane/i.test(tags.name || ''))
+    out.pitLanes.push({ name: tags.name, pts: line(0.25) });
+  else if (tags.highway === 'raceway' && /kart/.test(tags.sport || '')) out.karting.push({ pts: line(0.3) });
+  else if (tags.highway === 'raceway' && /motor/.test(tags.sport || '')) continue;   // a race piece
+  else if (tags.highway === 'raceway') out.dirt.push({ name: tags.name || '', pts: line(0.5) });
+  else if (SERVICE_WIDTH[tags.highway] && !tags.tunnel && tags.area !== 'yes')
+    out.roads.push({ kind: tags.highway, width: SERVICE_WIDTH[tags.highway], bridge: !!tags.bridge,
+      pts: line(0.5) });
+  else if (FOOT_WAYS.has(tags.highway) && tags.bridge) out.footbridges.push({ pts: line(0.5) });
+  else if (tags.landuse === 'residential' && closed(way)) out.homes.push({ pts: line(2) });
+  else if (tags.natural === 'shingle' && closed(way)) out.traps.push({ pts: line(0.5) });
+  else if (tags.barrier === 'fence' || tags.barrier === 'wall') out.fences.push({ kind: tags.barrier, pts: line(0.5) });
+  else if (tags.barrier === 'guard_rail') out.rails.push({ pts: line(0.3) });
+  else if (tags.barrier === 'tyres') out.tyres.push({ pts: line(0.3) });
+  else if (tags.building === 'grandstand' && closed(way)) out.stands.push({ name: tags.name || '', ...boxAround(pts) });
+  else if (tags.building && closed(way))
+    out.buildings.push({ name: tags.name || '', kind: tags.building, ...boxAround(pts) });
+  else if (tags.amenity === 'parking' && closed(way))
+    out.paddocks.push({ name: tags.name || '', surface: tags.surface || '', ...boxAround(pts) });
+  else if ((tags.natural === 'wood' || tags.landuse === 'forest') && closed(way)) out.woods.push({ pts: line(2) });
+}
+
+// ---- write the module ----
+// a space after every comma and colon between values, so long lines can be broken there
+const json = (value) => JSON.stringify(value).replace(/,(?=["[{\d-])/g, ', ')
+  .replace(/":(?=["[{\d-]|true|false)/g, '": ');
+const lines = [
+  `// ${path.basename(config.out)} - written by tools/osmvenue.mjs from OpenStreetMap; do not edit by`,
+  '// hand except the layouts (each the ordered road pieces a layout runs over, 1 forward / -1',
+  '// back). REAL metres in the game frame. Map data (c) OpenStreetMap contributors, ODbL.',
+  "import type { VenueData } from '../../venue.ts';",
+  '',
+  `export const ${config.exportName}: VenueData = {`,
+];
+for (const [key, value] of Object.entries(out)) {
+  if (key === 'layouts') {
+    lines.push('  layouts: {');
+    for (const [id, steps] of Object.entries(value)) lines.push(`    ${id}: ${json(steps)},`);
+    lines.push('  },');
+    continue;
+  }
+  lines.push(`  ${key}: [`);
+  for (const item of value) lines.push(`    ${json(item)},`);
+  lines.push('  ],');
+}
+lines.push('};', '');
+// keep lines under the lint's 100: break long point lists after a comma
+const wrapped = lines.flatMap((text) => {
+  if (text.length <= 100) return [text];
+  const parts = [];
+  let rest = text;
+  while (rest.length > 100) {
+    const cut = rest.lastIndexOf(', ', 98);
+    // nowhere to break (a long name): leave the line long rather than loop
+    if (cut < 12) break;
+    parts.push(rest.slice(0, cut + 1));
+    rest = `      ${rest.slice(cut + 2)}`;
+  }
+  parts.push(rest);
+  return parts;
+});
+fs.writeFileSync(config.out, wrapped.join('\n'));
+const summary = Object.entries(out).map(([key, value]) => `${key} ${Array.isArray(value) ? value.length : Object.keys(value).length}`);
+console.log('wrote', config.out, '-', summary.join(', '));
+for (const [id, steps] of Object.entries(out.layouts)) {
+  const len = steps.reduce((sum, [name]) => sum + pieces.find((piece) => piece.name === name).len, 0);
+  console.log(`  layout ${id}: ${len.toFixed(0)} real m over ${steps.length} pieces`);
+}

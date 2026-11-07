@@ -1,0 +1,22 @@
+{
+  "osm": "brands-snatch.osm.json",
+  "out": "src/world/levels/venues/brands-snatch.ts",
+  "exportName": "BRANDS_VENUE",
+  "origin": [51.3569, 0.2627],
+  "turnDeg": 28.09,
+  "clip": [-700, -520, 700, 620],
+  "reachM": 180,
+  "names": {
+    "171570164": "Pilgrims Drop top",
+    "171570165": "Sheene approach",
+    "171570166": "Brabham end",
+    "171570167": "Graham Hill",
+    "171570251": "Clearways approach",
+    "820329314": "Surtees GP",
+    "820329315": "Clearways GP"
+  },
+  "layouts": {
+    "gp": { "through": ["Brabham Straight", "Hawthorn Hill", "Druids Bend"], "avoid": ["McLaren"] },
+    "indy": { "through": ["Brabham Straight", "McLaren", "Druids Bend"], "avoid": ["Pilgrims Drop"] }
+  }
+}

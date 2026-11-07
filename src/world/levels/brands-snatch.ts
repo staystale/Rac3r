@@ -6,6 +6,10 @@ import { prepBumps } from "../terrain.ts";
 import { onTrack, querySubtrack } from "../tyrewall.ts";
 import { ss01, trackKit } from "./kit.ts";
 import { CIRCUIT_BUSHES } from "./bushes.ts";
+import { FIX } from "../../core/fixes.ts";
+import { venueLevel } from "../venue.ts";
+import { BRANDS_SPEC } from "./brands-venue.ts";
+import type { Level } from "../types.ts";
 import type { Point, Lane, Trap, Cone, Prop, Barrier, Bump, Subtrack } from "../types.ts";
 // =============================================================================================
 // BRANDS SNATCH — parody of Brands Hatch (Kent). Built. Decisions (user): BOTH layouts
@@ -391,6 +395,11 @@ function brandsLevel(levelId: string, name: string, mapPts: Point[]) {
     })(),
   };
 }
-export const BH_GP_LEVEL = brandsLevel('brands-snatch', 'Brands Snatch GP', [...BH_TOP, ...BH_GP]);
-export const BH_INDY_LEVEL = brandsLevel(
-  'brands-snatch-indy', 'Brands Snatch Indy', [...BH_TOP, ...BH_INDY]);
+// ?bigbrands=1: the real venue at 3/4 scale, both layouts sharing its scenery (brands-venue.ts)
+export const BH_GP_LEVEL: Level = FIX.bigbrands
+  ? venueLevel(BRANDS_SPEC, 'gp', 'brands-snatch', 'Brands Snatch GP')
+  : brandsLevel('brands-snatch', 'Brands Snatch GP', [...BH_TOP, ...BH_GP]) as unknown as Level;
+export const BH_INDY_LEVEL: Level = FIX.bigbrands
+  ? venueLevel(BRANDS_SPEC, 'indy', 'brands-snatch-indy', 'Brands Snatch Indy')
+  : brandsLevel('brands-snatch-indy', 'Brands Snatch Indy',
+    [...BH_TOP, ...BH_INDY]) as unknown as Level;
