@@ -42,4 +42,7 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
+  // side drafting: a car alongside another's rear quarter takes the air off its tail
+  // (physics/wake.ts; owner 11-08, Naffcar first)
+  sidedraft: atLoad('sidedraft'),
 };

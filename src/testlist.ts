@@ -12,6 +12,14 @@ export interface TestEntry {
 }
 
 export const TEST_LIST: TestEntry[] = [
+  {
+    id: 'sidedraft',
+    added: '2026-11-08',
+    name: 'Side drafting: a nose alongside the rear quarter of a car takes the air off its tail',
+    where: 'Test link + &sidedraft=1: a Naffcar on the Stock Car oval with AI (any race works)',
+    try: 'Pull alongside a car, nose at its rear quarter, on a straight; then be side drafted.',
+    wrong: 'No pull or slowing, a big tug, cars rubbing door to door more or crashing in packs.',
+  },
   // (approved late, deleted: fields, grassedge, catchthem, slipsdual, fps - TODO.md 1c; dirtroad,
   // animals, labext, labsplit, zoomhold, gpupaint, minimap, zoomspring, grassgrip, hwmap,
   // cracktufts, sharpcars, sharpmarks, jokerfix, groundlookup, exacttiles, hudmenu, tyreoff,
