@@ -263,14 +263,16 @@ shared.menu = shared.MENU
       carSprite: (x, livery, wheels) => (typeof x === 'string'
         ? shared.renderer.pixelCarWithWheels(applyLivery(makeCar(x).spec, livery ?? null)) : wheels
           ? shared.renderer.pixelCarWithWheels(x) : shared.renderer.pixelCar(x))! }) : null;
+// the long-grass textures (~115 ms on the phone) now, while loading, not in a frame of the menu -
+// or of the level a link opens straight into (?menu=0: the idle warm-up painted one in a frame
+// 0.6 s in, MEASURED 143 ms on the owner's phone)
+shared.renderer.warmBladeTextures();
 if (shared.MENU) {
   shared.hud.setHelpLabel('II');
   // the track thumbnails now, while the loading screen is up. MEASURED: phone: painted on the
   // TEST MODE tap they took 193 ms, and putting the menu's race level back (wear cleared, so
   // every ground tile stale) cost 68 ms the frame after
   prepareThumbs();
-  // the long-grass textures (~115 ms on the phone) now, not in a frame of the menu
-  shared.renderer.warmBladeTextures();
   enterMenu();
   shared.menu!.show();
   // the phone report's load time: ms from the page opening to the menu shown (ui/report.ts)
