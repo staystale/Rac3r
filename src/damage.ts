@@ -12,6 +12,7 @@ import {
 } from './physics/engineheat.ts';
 import { levelStingers, tyresOnStinger } from './world/stingers.ts';
 import { LEVEL } from './world/state.ts';
+import { FIX } from './core/fixes.ts';
 import { crashOil, rollOil } from './world/oil.ts';
 import { crashDebris, wheelBits, rollParts } from './world/debris.ts';
 import {
@@ -89,7 +90,7 @@ export interface DamageCar extends Partial<DamageState>, PressureCar, Partial<En
   // crash debris (world/debris.ts): a bit per corner whose part / window is gone
   partsOff?: number; glassOut?: number;
   _dsp?: RenderCar['_dsp'];   // the damaged sprite (render/cardamage.ts)
-  _scrapeT?: number; _sideKick?: { dir: number; dv: number };
+  _scrapeT?: number; _sideKick?: { dir: number; dv: number; carry?: number };
 }
 /** A car whose damage state has been made (damageInit has run). */
 type DamagedCar = DamageCar & DamageState & PressureState & EngineState;
@@ -240,6 +241,33 @@ function wheelImpact(car: DamagedCar, note: WheelHit | null, weights: number[],
   return wheelShares(weights, note);
 }
 
+// ?rollway (owner 11-08: "sometimes it seems to roll the wrong way"): m/s a car's sideways speed
+// INTO the side it was hit on must reach for it to have slid into the thing - its base stopped, it
+// trips over toward it - rather than been struck (shoved away, it trips over its far wheels).
+// MEASURED (tools/scratch/_rollway.mjs): sliding sideways into Armco rolled AWAY from it 17 of 17.
+// Tripping over it, the car keeps CARRY_SHARE of its sideways speed into it (roll.ts carryOver)
+const SLID_INTO_MS = 2, CARRY_SHARE = 0.5;
+
+/**
+ * The roll a hard side hit may start: away from the impact (struck) or, under ?rollway, toward it
+ * when the car slid into it, carrying on over it.
+ * @param car the car
+ * @param vx0 velocity x before the hit, m/s
+ * @param vy0 velocity y before the hit, m/s
+ * @param lateral the side the hit came from, car frame (+ = its +y side)
+ * @param deltaV the hit's speed change, m/s
+ * @returns the kick: the roll's direction (+1 = over toward its +y), its size, and (slid into
+ *   it) the sideways speed it carries over
+ */
+function sideKick(car: DamageCar, vx0: number, vy0: number, lateral: number, deltaV: number) {
+  const fromSide = Math.sign(lateral);
+  if (!FIX.rollway) return { dir: -fromSide, dv: deltaV };
+  const slideLat = -vx0 * Math.sin(car.heading) + vy0 * Math.cos(car.heading);
+  return slideLat * fromSide > SLID_INTO_MS
+    ? { dir: fromSide, dv: deltaV, carry: slideLat * CARRY_SHARE }
+    : { dir: -fromSide, dv: deltaV };
+}
+
 /**
  * One resolved collision: the velocity change since (vx0, vy0) becomes a scrape or an impact.
  * @param car the car, its velocity already changed by the collision
@@ -278,8 +306,8 @@ export function hit(
   }
   const amt = DMG_K * (size - DMG_FLOOR) ** DMG_EXP * give;
   // a hard hit from the SIDE may trip the car over (roll.ts tripCheck): it is pushed, and rolls,
-  // away from the impact
-  if (Math.abs(lateral) > 0.6) car._sideKick = { dir: -Math.sign(lateral), dv: deltaV };
+  // away from the impact - or (?rollway) over toward it when it slid into it
+  if (Math.abs(lateral) > 0.6) car._sideKick = sideKick(car, vx0, vy0, lateral, deltaV);
   hardHitCorners(hurt, amt, weights, endW, rnd, punctureK);
   // the radiator (and the sump) sit behind the front: the harder-hit front corner's share
   crackOnHit(hurt as DamagedCar & EngineCar, amt * Math.max(weights[0], weights[1]) * radiator,

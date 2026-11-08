@@ -3,6 +3,7 @@
 // break, burst, tip, pop). Every function takes the one cones context made in cones.ts.
 import { debrisPunctures } from '../physics/tyrewear.ts';
 import { noteHit } from '../physics/punctures.ts';
+import { tumblesOverObject } from '../physics/tumble.ts';
 import { hasOpenWheels, wheelHalf } from '../physics/openwheel.ts';
 import { CORNER_OF_WHEEL } from '../world/wheels.ts';
 import {
@@ -191,6 +192,8 @@ function drivenOver(ctx: ConesCtx, obj: Loose, car: ConeCar, relX: number, relY:
     if (debrisPunctures(obj.kind, 0, false)) { car.burstTyre = 0; car.burstSlow = true; }
   }
   if (obj.kind === 'straw' || BROKEN.has(obj.kind)) return true;
+  // a car tumbling fast goes over a light one (?rollover: physics/tumble.ts)
+  if (tumblesOverObject(car, obj.mass)) return true;
   if (obj.kind === 'tarp' || rollsOver(ctx, obj, car)) {
     dragTarp(obj, car, relX, relY);
     return true;

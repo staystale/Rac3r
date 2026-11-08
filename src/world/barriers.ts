@@ -7,6 +7,7 @@ import { solidsNear } from "./solidgrid.ts";
 import { isSolidWrecked, noteMarshalSolid, smashHut } from "./marshalbox.ts";
 import { solidBox } from "./treetrunks.ts";
 import { noteHit } from "../physics/punctures.ts";
+import { tumblesOverBarrier } from "../physics/tumble.ts";
 import { isNarrow, notePost } from "../physics/posthit.ts";
 import {
   edgeCorner, hasOpenWheels, noteWheelBump, wheelBox, wheelEdge, wheelReach,
@@ -574,6 +575,17 @@ export function segRunBoxes(barrier: Barrier): number[] {
   barrier._runs = boxes;
   return boxes;
 }
+/**
+ * Whether a car can touch a barrier now: a solid one with segments, near it, and not one it is
+ * tumbling over (a low one, ?rollover: physics/tumble.ts).
+ * @param car the car body
+ * @param barrier the barrier
+ * @returns true when it is to be clamped against
+ */
+function meetsBarrier(car: CarBody, barrier: Barrier): boolean {
+  return !!BARRIER_HALF[barrier.kind] && !!barrier._segs
+    && !isFarFrom(barrier, car.x, car.y, car.spec.len) && !tumblesOverBarrier(car, barrier.kind);
+}
 export function barrierClamp(car: CarBody): void {
   clampToBarriers(car, LEVEL.barriers);
 }
@@ -590,10 +602,10 @@ export function clampToBarriers(car: CarBody, list: Barrier[] | undefined): void
   const halfLen = spec.len * 0.48, halfWid = spec.wid * 0.48, open = hasOpenWheels(car);
   for (const barrier of list) {
     const half = BARRIER_HALF[barrier.kind];
-    if (!half || !barrier._segs) continue;
-    if (isFarFrom(barrier, car.x, car.y, spec.len)) continue;
+    if (!meetsBarrier(car, barrier)) continue;
     const vx0 = car.vx, vy0 = car.vy, rail = railOf(barrier);
-    for (const seg of barrier._segs) {
+    // (! : meetsBarrier checked it has segments)
+    for (const seg of barrier._segs!) {
       if (car.x < seg.minX - spec.len || car.x > seg.maxX + spec.len
           || car.y < seg.minY - spec.len || car.y > seg.maxY + spec.len) continue;
       clampCornersToSeg(car, seg, half, halfLen, halfWid, cosHead, sinHead, rail);

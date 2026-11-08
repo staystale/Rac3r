@@ -60,6 +60,22 @@ export const TEST_LIST: TestEntry[] = [
   // burstcap, tyresleep, stackvary (the crash bench: stacks 1-4 high, bursting by chance), linewall
   // (the line gives a wall by the edge room), tallfence passed 2026-11-08)
   {
+    id: 'rollway',
+    added: '2026-11-08',
+    name: 'Rolls the right way: slid into something it trips over toward it; struck, rolls away',
+    where: 'Test link + &rollway=1: TEST MODE > Lab (the flip ramp), any Armco',
+    try: 'Slide sideways into Armco fast; get T-boned by an AI; watch which way it goes over.',
+    wrong: 'Rolling away from a barrier it slid into, or rolling one way while moving the other.',
+  },
+  {
+    id: 'rollover',
+    added: '2026-11-08',
+    name: 'A car tumbling fast goes over Armco, tyres and parts - never a catch fence or wall',
+    where: 'Test link + &rollover=1 (with &rollway=1): any Armco, tyre walls; Festival of Splat',
+    try: 'Roll a car at speed into Armco and tyre stacks; then into a catch fence or wall.',
+    wrong: 'Going over a catch fence / wall, or a slow roll still going over Armco.',
+  },
+  {
     id: 'castlecumvenue',
     added: '2026-11-08',
     name: 'Castle Cum as the real venue (Castle Combe) at 1/2 size, the real Armco and fences',

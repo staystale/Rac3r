@@ -33,7 +33,9 @@ export interface RollCar {
   t?: { vLong: number };
   roll: RollState | null;
   _airT?: number; _rolls?: number; _tripCell?: number | null;
-  _sideKick?: { dir: number; dv: number } | null;   // a hard side hit (damage.ts): may start a roll
+  // a hard side hit (damage.ts): may start a roll; carry, m/s sideways it keeps as it trips over
+  // what it slid into (?rollway)
+  _sideKick?: { dir: number; dv: number; carry?: number } | null;
 }
 /** Called when the body hits the ground: the quarter-turn kind (side / roof) and how hard. */
 type RollHit = (kind: string, side: number, rate: number) => void;
@@ -96,6 +98,19 @@ export function startRoll(car: RollCar, dir: number, vLat: number) {
   };
 }
 
+/**
+ * A car tripping over what it slid into (?rollway) goes on toward it at this sideways speed - not
+ * the bounce off it: a tall thing stops it again, a low one it may tumble over (?rollover).
+ * @param car the car
+ * @param carry m/s sideways (car frame, + toward its +y)
+ */
+function carryOver(car: RollCar, carry: number) {
+  const cosH = Math.cos(car.heading), sinH = Math.sin(car.heading),
+    add = carry - (-car.vx * sinH + car.vy * cosH);
+  car.vx -= sinH * add;
+  car.vy += cosH * add;
+}
+
 // call each sim step while the car is on its wheels (after vehicle.step)
 export function tripCheck(car: RollCar, dt: number, rnd: () => number = Math.random) {
   if (rolling(car)) return false;
@@ -110,6 +125,7 @@ export function tripCheck(car: RollCar, dt: number, rnd: () => number = Math.ran
   if (kick && kick.dv > 7 * stability
     && rnd() < Math.min(0.6, (kick.dv - 7 * stability) / 10)) {
     startRoll(car, kick.dir, kick.dv);
+    if (kick.carry) carryOver(car, kick.carry);
     return true;
   }
   // a flip ramp under one side's wheels throws the car over (world/flipramps.ts)
