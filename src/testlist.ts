@@ -80,6 +80,8 @@ export const TEST_LIST: TestEntry[] = [
     where: 'Test link + &tyresleep=1: TEST MODE > Test > Festival of Splat',
     try: 'Watch the thrown tyres settle after the crash; knock tyres on a circuit.',
     wrong: 'Tyres stopping dead or jerking to a halt, a tyre wall that looks frozen.',
+  },
+  {
     id: 'castlecumvenue',
     added: '2026-11-08',
     name: 'Castle Cum as the real venue (Castle Combe) at 1/2 size, the real Armco and fences',
