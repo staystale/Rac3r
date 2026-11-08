@@ -48,7 +48,8 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   Ordi, JCB = JCBee, Mini = Minnie, Lamborghini = Lamburghini, Nissan = Nissun, Peugeot =
   Pugeot, Ford = Fjord, NASCAR = Naffcar, Formula One / Two = Formula Won / Too, BriSCA = BriSKA.
   TRACKS: Thruxton = Thruston, Castle Combe = Castle Cum, Brands Hatch = Brands Snatch,
-  Knockhill = Knobhill, Lydden Hill = Slidden Hill, Kielder = Killder, Daytona = Dieatona.
+  Knockhill = Knobhill, Lydden Hill = Slidden Hill, Kielder = Killder, Daytona = Dieatona,
+  Snetterton = Snotterton (owner 11-08).
 - No keys, tokens, tunnel URLs or process IDs in the repo. No itch.io push until the owner says so.
 - The foreman may push to `main` once the change is proven (routine below).
 - Keep the test server and the tunnel running.

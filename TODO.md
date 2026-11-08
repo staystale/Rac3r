@@ -142,8 +142,8 @@ last handover, written on request.
    CREDITS PASSED 11-08 (menu/credits.ts, on the main menu): "made by G"; the owner wants a studio
    name (a parody pun) - to be picked. Add a line there with anything else the game takes.
 2. NEW UK TRACKS at that scale (Snetterton, Donington Park, + Silverstone / Oulton Park) - names
-   agreed first. ORDER (owner 11-08): Castle Cum's venue passes -> SNETTERTON next (name ideas
-   put to the owner 11-08) -> then back to converting the old levels (Thruston, Knobhill, ...).
+   agreed first. ORDER (owner 11-08): Castle Cum's venue passes -> SNETTERTON next, as SNOTTERTON
+   (owner 11-08) -> then back to converting the old levels (Thruston, Knobhill, ...).
 3. ROLLING LOOK - smoother than the dice flip on the same physics; mockup first.
 4. SIDE DRAFTING (Naffcar first), then the Naffcar extras (air brakes, aero upgrades, Dieatona).
 5. MORE HIGHWAY FLAVOURS.
