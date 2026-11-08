@@ -43,6 +43,8 @@ export interface VenueData {
   rails?: { kind: string; pts: Point[] }[];
   // an airfield's runways, taxiways (lines, width real m) and aprons (areas): Thruxton's infield
   aero?: { kind: string; surface: string; width: number; area: boolean; pts: Point[] }[];
+  // hedgerows and tree rows along the field edges (trees stand along them)
+  rows?: { pts: Point[] }[];
 }
 
 /** One venue level's hand-set facts (real metres in the venue data's frame). */
@@ -92,6 +94,8 @@ export interface VenueSpec {
   // landmarks the map does not carry (a prop kind at its real spot, size m across, scaled with the
   // map): where the sources show them
   landmarks?: { at: Point; kind: string; size: number }[];
+  // light aircraft parked on the airfield's grass stands (data.aero stands), one a colour
+  planes?: string[];
   seed: number;
 }
 

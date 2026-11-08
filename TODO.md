@@ -187,6 +187,10 @@ last handover, written on request.
    runways, taxiways, apron as zones; the hangars), the tunnel under the start straight, the pits,
    the grandstands at Club, the viewing banks (the BARC visitor guide), the skid pan. UNDER TEST;
    the old thruston.ts and its traced-map credit go on pass.
+   ROUND 2 (owner 11-08: "lost some features the original had", "aeroplanes and stuff around the
+   edges"): six light aircraft on the grass aircraft stands (OSM parking positions; the old level's
+   colours, a Cessna's 11 m span at 1/2), the race trucks on the Main Apron (the paddock), the
+   hedgerow trees along the real hedges (the west side's, as the old woods).
 3. ROLLING LOOK - smoother than the dice flip on the same physics; mockup first.
 4. SIDE DRAFTING (Naffcar first) PASSED + DEFAULT 11-08 (owner: "Pass"): physics/wake.ts part 5 - a nose
    alongside a car's rear quarter, up to +20 % drag on it and -6 % on the car alongside, gone by 1.2 m

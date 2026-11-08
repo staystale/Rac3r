@@ -5,7 +5,7 @@ import { isHutWrecked } from '../../world/marshalbox.ts';
 import { drawSeasonTree } from '../trees.ts';
 import type { Prop } from '../../world/types.ts';
 import type { PropCtx } from './types.ts';
-import { SCULPTURE_M } from '../../world/barriers.ts';
+import { PLANE_SPAN_M, SCULPTURE_M } from '../../world/barriers.ts';
 
 /**
  * Draws the plane prop (plane).
@@ -15,14 +15,16 @@ import { SCULPTURE_M } from '../../world/barriers.ts';
  */
 export function drawPlane(propCtx: PropCtx, prop: Prop, ppm: number) {
   const { view } = propCtx;
-  // LIGHT AIRCRAFT, nose along +x: fuselage, wing, tailplane, a coloured stripe
+  // LIGHT AIRCRAFT, nose along +x: fuselage, wing, tailplane, a coloured stripe; PLANE_SPAN_M
+  // across the wing, or size m (a venue's, at its scale)
+  const unit = prop.size ? ppm * prop.size / PLANE_SPAN_M : ppm;
   const paint = (x: number, y: number, width: number, height: number, col: string) => {
     view.ctx.fillStyle = col;
-    view.ctx.fillRect(x * ppm, y * ppm, width * ppm, height * ppm);
+    view.ctx.fillRect(x * unit, y * unit, width * unit, height * unit);
   };
   view.ctx.fillStyle = 'rgba(10,12,16,0.30)';
-  view.ctx.fillRect(-3.2 * ppm + 0.8 * ppm, -0.5 * ppm + 1.2 * ppm, 7 * ppm, 1 * ppm);
-  view.ctx.fillRect(0.3 * ppm, -4.5 * ppm + 1.2 * ppm, 1.4 * ppm, 9 * ppm);
+  view.ctx.fillRect(-3.2 * unit + 0.8 * unit, -0.5 * unit + 1.2 * unit, 7 * unit, 1 * unit);
+  view.ctx.fillRect(0.3 * unit, -4.5 * unit + 1.2 * unit, 1.4 * unit, 9 * unit);
   paint(-3.2, -0.5, 7, 1, '#eef0f2');
   paint(0.3, -4.5, 1.4, 9, '#e3e6ea');
   paint(-3.2, -1.6, 0.8, 3.2, '#e3e6ea');

@@ -51,6 +51,9 @@ export const THRUSTON_SPEC: VenueSpec = {
   // the skid pan at the top of the main driveway, before the tunnel (the visitor guide; aerial
   // photographs: about 45 x 70 m), plain tarmac (no wet sample: the weather lays water)
   pads: [{ at: [-700, 530], w: 45, h: 70, rot: 0, surface: 'tarmac' }],
+  // light aircraft on the airfield's grass stands (OSM's aircraft stands; the aerial photographs
+  // show them parked there in rows), in the old level's six colours
+  planes: ['#c8302c', '#2b56b5', '#e2c13a', '#2f7d4f', '#c8302c', '#5a5e66'],
   // the windsocks on the airfield (OSM)
   landmarks: [{ at: [183, -228], kind: 'windsock', size: 1 }, { at: [271, -8], kind: 'windsock',
     size: 1 }],

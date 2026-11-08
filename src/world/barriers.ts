@@ -121,6 +121,9 @@ export const SEG_BOX_PAD = 4;
 // m: the sculpture prop's crown across as drawn, and its legs' solid box (a prop's size scales
 // both: a venue's sculpture at its scale)
 export const SCULPTURE_M = 2.7, SCULPTURE_LEGS_M = 2.2;
+// m: the plane prop's wingspan as drawn (a prop's size scales it and its boxes: a venue's, at its
+// scale)
+export const PLANE_SPAN_M = 9;
 
 export function prepBarriers(level: { barriers?: Barrier[] }): void {
   for (const barrier of level.barriers || []) {
@@ -179,8 +182,12 @@ function addStructureSolids(out: Solid[], prop: Prop): boolean {
     case 'tower': box(0, 0, prop.w || prop.size || 9, prop.h || prop.size || 9); return true;
     case 'truck': box(0, 0, 14, 2.5); return true;
     // fuselage, wing, tailplane
-    case 'plane': box(0.3, 0, 7, 1); box(1.0, 0, 1.4, 9); box(-2.8, 0, 0.8,
-        3.2); return true;
+    case 'plane': {
+      const scale = prop.size ? prop.size / PLANE_SPAN_M : 1;
+      box(0.3 * scale, 0, 7 * scale, 1 * scale); box(1.0 * scale, 0, 1.4 * scale, 9 * scale);
+      box(-2.8 * scale, 0, 0.8 * scale, 3.2 * scale);
+      return true;
+    }
     case 'marshal':
       box(0, 0, 2.4, 2);
       // the hut's box knows its hut (world/marshalbox.ts: smashed, it stops being solid)
