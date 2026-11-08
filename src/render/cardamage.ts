@@ -2,6 +2,7 @@
 import { hash2d } from "../core/random.ts";
 import { shade } from "../render.ts";   // hoisted, only called at draw time (no cycle)
 import { SPRITE_PPM } from "./shared.ts";
+import { notePutPixels, spriteToWork } from "./spritepixels.ts";
 import type {
   CarSprite, RenderCar, RenderCarSpec, RollFace, SideSprite, SilCanvas, View,
 } from "./types.ts";
@@ -187,17 +188,12 @@ function crushRoof(
  * @param car the car
  * @param sprite the undamaged top sprite
  * @param withRoof whether the roof damage is drawn
- * @returns a new canvas
+ * @returns a new canvas and the pixels put on it
  */
 function crushTop(car: RenderCar, sprite: CarSprite, withRoof: boolean) {
   const rdKeep = car.roofDmg;
   if (!withRoof) car.roofDmg = 0;
-  const canvas = document.createElement('canvas');
-  canvas.width = sprite.c.width;
-  canvas.height = sprite.c.height;
-  const canvasCtx = canvas.getContext('2d')!;
-  canvasCtx.drawImage(sprite.c, 0, 0);
-  const img = canvasCtx.getImageData(0, 0, canvas.width, canvas.height), pixels = img.data,
+  const { canvas, ctx: canvasCtx, img } = spriteToWork(sprite.c), pixels = img.data,
       width = canvas.width, height = canvas.height, lengthPx = sprite.Lp, widthPx = sprite.Wp;
   const seed = (car.num || 1) * 2654435761;
   const hsh = hash2d(seed);
@@ -213,7 +209,7 @@ function crushTop(car: RenderCar, sprite: CarSprite, withRoof: boolean) {
   if (roofDamage > 0.05) crushRoof(pixels, geo, roofDamage, hsh);
   canvasCtx.putImageData(img, 0, 0);
   car.roofDmg = rdKeep;
-  return canvas;
+  return { canvas, img };
 }
 
 /**
@@ -234,7 +230,10 @@ function damagedSprite(car: RenderCar, sprite: CarSprite) {
   let out = sprite;
   if (car.dmg!.some((x) => x >= 0.02) || car.roofDmg > 0.05) {   // ! : only called
     // when car.dmg is set
-    out = { ...sprite, c: crushTop(car, sprite, true) };
+    const crushed = crushTop(car, sprite, true);
+    // nothing is drawn on it after: the parts it loses are taken off these pixels unread
+    notePutPixels(crushed.canvas, crushed.img);
+    out = { ...sprite, c: crushed.canvas };
   }
   car._dsp = { key, base: sprite, sp: out };
   return out;
@@ -377,7 +376,7 @@ function underSprite(dmgCtx: DamageContext, spec: RenderCarSpec): CarSprite {
 function damageUnderFace(dmgCtx: DamageContext, car: RenderCar): CarSprite {
   const spec = car.spec;
   const under = underSprite(dmgCtx, spec);
-  const out = { ...under, c: crushTop(car, under, false) };
+  const out = { ...under, c: crushTop(car, under, false).canvas };
   // a lost wheel: its tyre block gone from the underside
   const ctx = out.c.getContext('2d')!, halfTrack = (spec.trackWidth || 1.5) / 2 * SPRITE_PPM,
       mid = under.Wp / 2, wheelRadius = (spec.wheelR || 0.3) * SPRITE_PPM;
@@ -456,12 +455,7 @@ function damageSideFace(dmgCtx: DamageContext, car: RenderCar, kind: string): Si
   const spec = car.spec;
   const sp0 = sideSprite(dmgCtx, spec), plus = kind === 'sideP', frontCorner = plus ? 1 : 0,
       rearCorner = plus ? 3 : 2;
-  const canvas = document.createElement('canvas');
-  canvas.width = sp0.c.width;
-  canvas.height = sp0.c.height;
-  const ctx = canvas.getContext('2d')!;
-  ctx.drawImage(sp0.c, 0, 0);
-  const img = ctx.getImageData(0, 0, canvas.width, canvas.height), pixels = img.data,
+  const { canvas, ctx, img } = spriteToWork(sp0.c), pixels = img.data,
       width = canvas.width, height = canvas.height, lengthPx = sp0.Lp, heightPx = sp0.Hp;
   const seed = (car.num || 1) * 40503 + (plus ? 7 : 3);
   const hsh = hash2d(seed);

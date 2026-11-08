@@ -77,10 +77,18 @@ last handover, written on request.
    ~1 000 near enough); a barrier's segments boxed in runs of 8 and met by the reach a touch needs,
    not the cars' 4 m pad. Back to back on the desktop, the impact's second: median 13.7 -> 6.9 ms a
    step, p95 22 -> 10.7, worst 26-37 -> 14-17; loose objects ~60 % of it, the 20 cars' own physics
-   ~2 ms. Tried, no gain: a distance test before each car's hitByCar. NEXT: the owner's phone run
-   on the bench (&report=1: frame times, sim vs draw); then, ask first: settled tyres asleep
-   sooner, a burst's tyres capped. Also: objcheck fails on main too (Killder: 6 of 1118 objects at
-   rest move at load).
+   ~2 ms. Tried, no gain: a distance test before each car's hitByCar. DRAWING (11-08, the real
+   game on the laptop at phone size: tools/scratch/_benchreport.mjs, _benchprof.mjs): through the
+   impact 5-14 fps, sim 45-97 ms and draw 28-95 ms a frame (a slow frame takes up to 12 steps the
+   next). NOT the ~1000 loose objects (~4 % of the impact's CPU; ~2 ms a frame once settled) but
+   the dented cars' pictures, made again at each damage step, each reading its sprite back from
+   the GPU (getImageData 22 % of the impact's CPU). Now each sprite is read once and a dented
+   sprite's own pixels kept (render/spritepixels.ts): 22 -> 9.7 %, every picture the same as
+   drawn (tools/scratch/_spritework.mjs: 285 dented / lost-part / rolled pictures). Left: the
+   first read of each car's clean sprites (~5 %), each thrown part's picture (~4 %). NEXT: the
+   owner's phone run on the bench (&report=1: frame times, sim vs draw); then, ask first:
+   settled tyres asleep sooner, a burst's tyres capped. Also: objcheck fails on main too
+   (Killder: 6 of 1118 objects at rest move at load).
    ROLLS (owner 11-08, later): the rolling crash relook - check which way a car rolls from an
    impact ("sometimes it seems to roll the wrong way"), and whether a car can roll over things
    (tyres, fences).

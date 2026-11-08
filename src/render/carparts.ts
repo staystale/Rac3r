@@ -5,6 +5,7 @@
 // had shed: "the emitted part ... doesn't match what's on the car ... the emitted parts can be
 // damaged slightly").
 import { SPRITE_PPM } from "./shared.ts";
+import { spriteToWork } from "./spritepixels.ts";
 import { shade } from "../render.ts";   // hoisted, only called at draw time (no cycle)
 import { bitsOf, type CarBits } from "../carbits.ts";
 
@@ -431,11 +432,7 @@ function lostPixel(rgba: Uint8ClampedArray, i: number, part: LostPart, x: number
  * @returns a new sprite
  */
 export function withoutParts(spec: RenderCarSpec, sprite: CarSprite, lost: string): CarSprite {
-  const canvas = document.createElement('canvas');
-  canvas.width = sprite.c.width; canvas.height = sprite.c.height;
-  const ctx = canvas.getContext('2d')!;
-  ctx.drawImage(sprite.c, 0, 0);
-  const img = ctx.getImageData(0, 0, canvas.width, canvas.height), rgba = img.data;
+  const { canvas, ctx, img } = spriteToWork(sprite.c), rgba = img.data;
   for (const entry of lost.split(',').filter(Boolean)) {
     const [kind, corner] = entry.split(':');
     // (the wing is left out by the painters - spec.noWing; the engine shows in the bay)
