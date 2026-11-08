@@ -1,6 +1,8 @@
 // venueplan.mjs - a venue level as a PLAN (no game render): the raced road, every lane (by width,
 // labelled with its index), zones, barriers by kind, props' footprints by kind, on a metre grid.
 // node tools/venueplan.mjs <level> <x0> <y0> <w> <h> <out.png>   (game m; built 11-07)
+// EXTRA=<file.json> also draws [{ pts: [[x, y], ...], col: '#rrggbb' }] over it (game m)
+import fs from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { startServer, launchBrowser } from './lib/browser.mjs';
 const imp = (path) => import(pathToFileURL(process.cwd() + path).href);
@@ -19,6 +21,7 @@ const data = {
   props: level.props.map((p) => ({ kind: p.kind, x: p.x, y: p.y, w: p.w || p.wid || 0, h: p.h || 0,
     rot: p.rot || 0, front: p.front, back: p.back })),
   cones: (level.cones || []).map((c) => [c.x, c.y]),
+  extra: process.env.EXTRA ? JSON.parse(fs.readFileSync(process.env.EXTRA, 'utf8')) : [],
 };
 const srv = await startServer();
 const browser = await launchBrowser();
@@ -67,6 +70,7 @@ try {
       ctx.fillStyle = PCOL[p.kind] || '#444'; ctx.font = '10px sans-serif';
       if (p.kind !== 'parkedcar') ctx.fillText(p.kind, sx(p.x) + 2, sy(p.y) + 10);
     }
+    for (const mark of data.extra) line(mark.pts, mark.col || '#f60', 3);
     ctx.font = '11px sans-serif';
     for (let gx = Math.ceil(X0 / 10) * 10; gx < X0 + W; gx += 10) {
       ctx.strokeStyle = gx % 50 ? 'rgba(0,0,0,.08)' : 'rgba(255,0,0,.4)'; ctx.lineWidth = 1;

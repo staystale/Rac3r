@@ -4,7 +4,9 @@
 //   props on props (footprints overlap), props on barriers, props on roads (lanes) or the track,
 //   tyre stacks on the track, on roads or in props, barriers on the track, on roads or in props,
 //   two barriers doubled (within DOUBLE_M of each other along DOUBLE_RUN_M), a barrier crossing
-//   another. Bridges, footbridges, the gantry and tunnel portals stand over or by roads by design.
+//   another; a tree's canopy, a lamp or a corner floodlight's ring of tyres by a road piece (the
+//   track, or a race road no layout uses). Bridges, footbridges, the gantry and tunnel portals stand
+//   over or by roads by design.
 // node tools/venueaudit.mjs <level> [--list]
 import { pathToFileURL } from 'node:url';
 
@@ -14,6 +16,7 @@ const { LEVELS } = await imp('/src/world/levels/index.ts');
 const { querySubtrack } = await imp('/src/world/tyrewall.ts');
 // (a venue's level is built on first use: world/load.ts buildLevel)
 const { buildLevel } = await imp('/src/world/load.ts');
+const { planLamps, cornerTyres } = await imp('/src/world/lampplan.ts');
 const found = LEVELS.find((entry) => entry.id === levelId);
 const level = found && buildLevel(found);
 if (!level) throw new Error(`no level ${levelId}`);
@@ -89,6 +92,19 @@ for (const [i, prop] of solidProps.entries()) {
     if (rail.pts.some(([x, y]) => inProp(prop, x, y, 0.3))) { note('prop on a barrier', `${name(prop)} x ${rail.kind}`); break; }
   }
 }
+// by a road piece (the raced track, or a race road no layout uses - an old line beside a chicane):
+// a tree's canopy and its shadow (0.85 of its size s from the trunk), a lamp's foot, a corner
+// floodlight's ring of tyres - each PIECE_CLEAR_M clear of its edge, as the track's own are
+const PIECE_CLEAR_M = 3;
+const pieces = level.lanes.filter((lane) => lane.surface.id === 'racetarmac');
+const pieceGap = (x, y) => Math.min(querySubtrack(level.subtrack, x, y).dist - half,
+  ...pieces.map((lane) => distToLine(lane.pts, x, y) - lane.width / 2));
+for (const tree of props.filter((prop) => prop.kind === 'tree'))
+  if (pieceGap(tree.x, tree.y) < (tree.s || 4) * 0.85) note('canopy over a road piece', name(tree));
+for (const lamp of planLamps(level))
+  if (pieceGap(lamp.x, lamp.y) < 1) note('lamp on a road piece', name(lamp));
+for (const tyre of cornerTyres(level))
+  if (pieceGap(tyre.x, tyre.y) < PIECE_CLEAR_M) note('corner ring by a road piece', `${tyre.x.toFixed(0)},${tyre.y.toFixed(0)}`);
 // tyre stacks on the track, on roads, in props
 for (const cone of level.cones) {
   if (onTrack(cone.x, cone.y)) note('tyre on the track', `${cone.x.toFixed(0)},${cone.y.toFixed(0)}`);
@@ -108,7 +124,12 @@ for (const [i, rail] of rails.entries()) {
   const lanePts = rail.pts.filter(([x, y]) => onLane(x, y)).length;
   if (lanePts) note('barrier on a road', `${rail.kind} ${lanePts} pts at ${rail.pts[0].map((v) => v.toFixed(0))}`);
   for (const other of rails.slice(i + 1)) {
-    const close = rail.pts.filter(([x, y]) => distToLine(other.pts, x, y) < DOUBLE_M);
+    // two chunks of one barrier share an end point (a joint, not a double): the stretch by it
+    // is the joint's, as at a bend in the line
+    const joints = [rail.pts[0], rail.pts.at(-1)].filter(([x, y]) => [other.pts[0], other.pts.at(-1)]
+      .some(([ox, oy]) => Math.hypot(x - ox, y - oy) < 1));
+    const close = rail.pts.filter(([x, y]) => distToLine(other.pts, x, y) < DOUBLE_M
+      && joints.every(([jx, jy]) => Math.hypot(x - jx, y - jy) > DOUBLE_RUN_M));
     if (close.length * 2 >= DOUBLE_RUN_M) note('barriers doubled', `${rail.kind} x ${other.kind} over ~${close.length * 2} m at ${close[0].map((v) => v.toFixed(0))}`);
   }
 }

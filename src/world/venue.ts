@@ -15,7 +15,7 @@ import { solidsFromProps } from "./barriers.ts";
 import { venueCrossings } from "./crossings.ts";
 import { CIRCUIT_BUSHES } from "./levels/bushes.ts";
 import { buildVenueScenery } from "./venuescenery.ts";
-import { VENUE_ROAD_M, pointAlong } from "./venuegeo.ts";
+import { VENUE_ROAD_M, lineLength, pointAlong } from "./venuegeo.ts";
 import type { Bump, Cone, Lane, Level, Point, Subtrack } from "./types.ts";
 
 /** A turned rectangle from the map (real m, the long side along w). */
@@ -38,6 +38,9 @@ export interface VenueData {
   paddocks: (VenueBox & { surface: string; pts: Point[] })[];
   woods: { pts: Point[] }[];
   homes: { pts: Point[] }[];
+  // the real circuit's rails (OSM guard rails and concrete barriers; written for venues since
+  // Castle Cum): where spec.followRails is set the Armco stands where they do
+  rails?: { kind: string; pts: Point[] }[];
 }
 
 /** One venue level's hand-set facts (real metres in the venue data's frame). */
@@ -72,6 +75,12 @@ export interface VenueSpec {
   // surfaces laid by hand that the map does not carry (real m: centre, size, turn; a surface
   // sample the owner keeps, as Castle Cum's skid pan)
   pads?: { at: Point; w: number; h: number; rot: number; surface: keyof typeof SURFACES }[];
+  // the edge follows the real circuit's rails (data.rails, owner 11-08 for Castle Cum: "keep it
+  // like the real track where possible"): Armco where they are, a catch fence there instead where
+  // spectators stand - in place of open run-off away from traps and hazards
+  followRails?: boolean;
+  // rails seen on aerial photographs that the map does not carry (real m), followed as its own
+  railsSeen?: Point[][];
   seed: number;
 }
 
@@ -89,6 +98,8 @@ const VENUE_MIN_R = 15.5;
 const CLOSE_IN_M = 14;
 // m along an unraced piece the closing row may go to find a clear place
 const CLOSE_LOOK_M = 120;
+// m a closing row's tyres keep past the raced road's edge - past its kerb where it has one
+const CLOSE_CLEAR_M = 1.5;
 const ROUND = (value: number) => Math.round(value * 100) / 100;
 
 /**
@@ -157,7 +168,7 @@ function traceLayout(spec: VenueSpec, layout: string, scale: number): Subtrack {
 
 /**
  * A venue's spec with its map warped (spec.warps): every point and every x / y in its data,
- * hills, banks, boards, tyre walls, pads and start moved by the warps.
+ * hills, banks, boards, tyre walls, rails seen, pads and start moved by the warps.
  * @param spec the venue as mapped
  * @returns the venue warped (the same object with no warps)
  */
@@ -194,6 +205,7 @@ function warpSpec(spec: VenueSpec): VenueSpec {
   return { ...spec, data: walk(spec.data) as VenueData, hills: walk(spec.hills) as Bump[],
     banks: walk(spec.banks) as VenueSpec['banks'], boards: walk(spec.boards) as VenueSpec['boards'],
     tyreWalls: walk(spec.tyreWalls) as VenueSpec['tyreWalls'],
+    railsSeen: walk(spec.railsSeen) as VenueSpec['railsSeen'],
     pads: walk(spec.pads) as VenueSpec['pads'], start: move(spec.start) };
 }
 
@@ -243,24 +255,57 @@ function closedPieces(build: VenueBuild, layout: string): { lanes: Lane[]; cones
 }
 
 /**
+ * How far the raced road's kerb reaches past its edge at a spot (0 where it has none there).
+ * @param sub the raced road
+ * @param trackDist metres along it
+ * @param side the side of it
+ * @returns metres
+ */
+function kerbOut(sub: Subtrack, trackDist: number, side: string): number {
+  let out = 0;
+  for (const kerb of sub.curvedKerbs || []) {
+    if (kerb.side !== side) continue;
+    const onKerb = (dist: number) => dist >= kerb.startDist && dist <= kerb.endDist;
+    if (onKerb(trackDist) || onKerb(trackDist + sub.totalDist)) out = Math.max(out, kerb.width);
+  }
+  return out;
+}
+
+/**
  * The tyre row across an unraced piece: the first place along it from CLOSE_IN_M where every
- * tyre stands clear of the raced road (where the two part at a shallow angle the piece is still
- * beside the track for a while).
+ * tyre stands CLOSE_CLEAR_M clear of the raced road, its kerb included (where the two part at a
+ * shallow angle the piece is still beside the track for a while). A piece that never clears
+ * (the old line beside a chicane, a few metres off its kerb all along) is closed in its own half
+ * where the most of the row clears, the tyres too near the raced road left out.
  * @param line the piece from its junction end
  * @param sub the raced road
  * @param half half the road's width
- * @returns the tyre stacks, or null if it never clears
+ * @returns the tyre stacks, or null if none clears
  */
 function closureRow(line: Point[], sub: Subtrack, half: number): Cone[] | null {
-  for (let along = CLOSE_IN_M; along < CLOSE_LOOK_M; along += 2) {
+  const clear = (tyre: Cone) => {
+    const hit = querySubtrack(sub, tyre.x, tyre.y);
+    return hit.dist > half + kerbOut(sub, hit.trackDist, hit.side) + CLOSE_CLEAR_M;
+  };
+  const rowAt = (along: number): Cone[] | null => {
     const spot = pointAlong(line, along);
     if (!spot) return null;
     const row: Cone[] = [];
     for (let across = -half + 0.5; across <= half - 0.5; across += 0.95)
       row.push({ x: spot.x + spot.nx * across, y: spot.y + spot.ny * across, kind: 'tyrestack' });
-    if (row.every((tyre) => querySubtrack(sub, tyre.x, tyre.y).dist > half + 1.5)) return row;
+    return row;
+  };
+  for (let along = CLOSE_IN_M; along < CLOSE_LOOK_M; along += 2) {
+    const row = rowAt(along);
+    if (!row) break;
+    if (row.every(clear)) return row;
   }
-  return null;
+  let best: Cone[] | null = null;
+  for (let along = CLOSE_IN_M; along <= lineLength(line) / 2; along += 2) {
+    const kept = (rowAt(along) || []).filter(clear);
+    if (kept.length > (best ? best.length : 0)) best = kept;
+  }
+  return best;
 }
 
 /**

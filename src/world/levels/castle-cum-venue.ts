@@ -6,9 +6,13 @@
 // sign (the corners, the viewing banks, the paddock, the skid pan and kart track outside
 // Hammerdown) and aerial photographs (the red and white tyre walls at Quarry and Tower, grass
 // run-off and no gravel traps, no bridge or tunnel over or under the race track: its footbridges
-// cross the ring road and the paddock road). The frame is turned as the old level was: the start
-// straight across the bottom, run right to left, the lap clockwise. The hills are the old level's
-// (the Avon Rise crest before Quarry, the run down to Tower, Folly's bumps) at the same corners.
+// cross the ring road and the paddock road - owner 11-08: "keep them out if they're not there").
+// The edge is the real circuit's (owner 11-08: "keep it like the real track where possible"):
+// Armco where its rails are (OSM, and two seen on the aerial photographs), the tyre walls, a catch
+// fence instead on the viewing banks, the old lines inside it. The frame is turned as the old
+// level was: the start straight across the bottom, run right to left, the lap clockwise. The
+// hills are the old level's (the Avon Rise crest before Quarry, the run down to Tower, Folly's
+// bumps) at the same corners.
 import { CASTLE_CUM_VENUE } from "./venues/castle-cum.ts";
 import { venueLevel } from "../venue.ts";
 import type { VenueSpec } from "../venue.ts";
@@ -64,6 +68,16 @@ export const CASTLE_CUM_SPEC: VenueSpec = {
   // the hand finish (game m): the Quarry Bar stands beside the ring road outside Quarry (our
   // placing pushed it onto the road, which broke round it): back off the road
   finish: { move: [{ at: [-282.4, 116.1], by: [-2, 6] }] },
+  // the edge as the real circuit's: Armco where its rails are (owner 11-08: "keep it like the real
+  // track where possible"), the catch fence instead on the viewing banks
+  followRails: true,
+  // rails on the aerial photographs that OSM does not map: from Tower's tyre wall up the outside
+  // to Bobbies, and beside the old line's far end at Bobbies
+  railsSeen: [
+    [[415.7, -283.2], [419.6, -245], [424.3, -209.6], [426.4, -184.6], [426.6, -153.5],
+      [427.4, -133.8]],
+    [[441.4, -9.7], [451.3, 64.6]],
+  ],
   seed: 1950,
 };
 

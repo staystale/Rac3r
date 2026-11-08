@@ -1,8 +1,8 @@
 // tools/osmvenue.mjs - turns an OpenStreetMap download of a real circuit into a venue data module
 // (world/levels/venues/*.ts): every race road piece, the pit lane, service roads, gravel traps,
-// fences, rails, grandstands, buildings, paddocks and woods, in REAL metres in the game's frame
-// (x right, y down), turned so the track sits the way the level always has. The level scales it
-// (world/venue.ts). Map data (c) OpenStreetMap contributors, ODbL.
+// rails (guard rails, concrete barriers), grandstands, buildings, paddocks and woods, in REAL metres
+// in the game's frame (x right, y down), turned so the track sits the way the level always has.
+// The level scales it (world/venue.ts). Map data (c) OpenStreetMap contributors, ODbL.
 //
 //   node tools/osmvenue.mjs <venue config .json>
 //
@@ -204,7 +204,7 @@ const SERVICE_WIDTH = { service: 5, residential: 6, unclassified: 6, tertiary: 7
 const FOOT_WAYS = new Set(['footway', 'path', 'steps', 'pedestrian']);
 const out = { pieces: [], layouts: {}, pitLanes: [], roads: [], footbridges: [], dirt: [],
   karting: [], tunnels: [], traps: [], tyres: [], stands: [], buildings: [], paddocks: [],
-  woods: [], homes: [] };
+  woods: [], homes: [], rails: [] };
 for (const piece of pieces)
   out.pieces.push({ name: piece.name, pts: cleanLine(piece.raw, 0.25) });
 for (const [id, spec] of Object.entries(config.layouts || {})) out.layouts[id] = buildLayout(spec);
@@ -237,6 +237,9 @@ for (const way of ways) {
   else if (tags.landuse === 'residential' && closed(way)) out.homes.push({ pts: line(2) });
   else if (tags.natural === 'shingle' && closed(way)) out.traps.push({ pts: line(0.5) });
   else if (tags.barrier === 'tyres') out.tyres.push({ pts: line(0.3) });
+  // the real circuit's rails: Armco and concrete barriers (a venue built with followRails uses them)
+  else if (tags.barrier === 'guard_rail' || tags.barrier === 'jersey_barrier')
+    out.rails.push({ kind: tags.barrier, pts: line(0.3) });
   else if (tags.building === 'grandstand' && closed(way)) out.stands.push({ name: tags.name || '', ...boxAround(pts) });
   // a marshal post mapped as a building (its fire extinguisher): the venue places its own
   else if (tags.building && tags.emergency) continue;

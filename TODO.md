@@ -119,7 +119,10 @@ last handover, written on request.
    venues/castle-cum.ts; the venue helper): the 1999 layout, 1485 m (real 2977), the old lines at
    the Esses / Bobbies closed by tyres, no gravel traps (real: grass to tyre walls - spec.tyreWalls
    at Quarry + Tower), catch fences on the banks, no bridge or tunnel over the track (real), the
-   skid pan kept (spec.pads). No wire fence. UNDER TEST; on pass delete the old castle-cum.ts.
+   skid pan kept (spec.pads). No wire fence. Owner 11-08: no footbridge where none is real; the
+   edge "like the real track where possible" - Armco where the real rails are (spec.followRails,
+   data.rails from OSM + spec.railsSeen from aerials), the old lines inside the edge. UNDER TEST;
+   on pass delete the old castle-cum.ts and its traced-map credit.
    CREDITS PASSED 11-08 (menu/credits.ts, on the main menu): "made by G"; the owner wants a studio
    name (a parody pun) - to be picked. Add a line there with anything else the game takes.
 2. NEW UK TRACKS at that scale (Snetterton, Donington Park, + Silverstone / Oulton Park) - names

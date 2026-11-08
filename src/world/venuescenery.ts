@@ -6,16 +6,15 @@
 // race trucks in rows), the car parks (mown grass, parked cars in rows), the service roads (each
 // piece at least MIN_ROAD_M - no stubs), bridges over the track carrying their road at its real
 // angle with approaches meeting it, the tunnels' portals both sides, grandstands, buildings, the
-// kart track and rally stages, woods, boards; and the pit lane's painted lines.
-import { alongTrack } from "./barriers.ts";
+// kart track and rally stages, woods, boards (the pit lane, its wall and lines: world/venuepit.ts).
 import { SURFACES } from "./surfaces.ts";
 import { onTrack, querySubtrack } from "./tyrewall.ts";
 import { parkMiller } from "../core/random.ts";
-import { HALF_ROAD, VENUE_ROAD_M, centreAt, centreBetween, distToLine, makePlacer, nearestLoop,
-  resample, smoothLine } from "./venuegeo.ts";
-import { boardOnArmco, buildEdge, buildRims, inZones, marshalPosts,
+import { HALF_ROAD, VENUE_ROAD_M, centreAt, distToLine, lineLength, makePlacer, nearestLoop,
+  pointAlong, resample, smoothLine } from "./venuegeo.ts";
+import { WALL_REACH_M, boardOnArmco, boxedLine, buildEdge, buildRims, inZones, marshalPosts,
   outlineZone, pastRim, trapZones } from "./venueedge.ts";
-import type { EdgeNeeds } from "./venueedge.ts";
+import type { EdgeNeeds, WallLine } from "./venueedge.ts";
 import { REACH_M, cellKey, inBuilding, inSolid, nearArmco, nearRace, onLanes, placeAll }
   from "./venuesite.ts";
 import type { Site } from "./venuesite.ts";
@@ -23,6 +22,7 @@ import { FOOT_REACH_M, handFinish, tidyRoads, venueRoads, withoutDuplicates }
   from "./venueroads.ts";
 import { continueRoad, joinApproaches, joinFrom } from "./venuejoin.ts";
 import type { VenueBox, VenueBuild } from "./venue.ts";
+import { EDGE_TO_WALL, PIT_W, pitLane, pitLines } from "./venuepit.ts";
 import type { Barrier, Cone, Lane, Paint, Point, Prop, Subtrack, Zone } from "./types.ts";
 
 /** What buildVenueScenery returns: everything but the raced road. */
@@ -31,13 +31,10 @@ export interface VenueScenery {
   paint: Paint[]; bounds: { x0: number; y0: number; x1: number; y1: number };
 }
 
-// m: the pit lane's width, the wall's gap from it, where it may meet the track (its ends) and the
-// wall's distance past the road's edge
-const PIT_W = 9, PIT_WALL_GAP = 0.6, PIT_MERGE_M = 30, EDGE_TO_WALL = 3;
-// the pit lane's easing beside the track: points either side in the mean, rounds of easing
-const PIT_EASE_REACH = 6, PIT_EASE_ROUNDS = 4;
 // m: the garages' front stands at least this far behind the pit lane's edge
 const GARAGE_GAP_M = 1.5;
+// m the track's edge barriers keep off the pit wall
+const PIT_WALL_CLEAR_M = 4;
 // m from the pit lane's centre a parked truck or car keeps (the apron in front of the garages)
 const PIT_APRON_M = 16;
 // m: a bridge's approach and its width; a tunnel portal's distance outside the edge, its length
@@ -51,8 +48,6 @@ const APRON_M = 6, APRON_RIM_M = 1.5;
 const SAME_TUNNEL_M = 12;
 // m: a bridge deck's width as a hazard box; how near a stand or bank puts a catch fence
 const DECK_BOX_M = 12, SPECTATOR_REACH_M = 30;
-// m from a real tyre wall's mapped line within which the edge stands along it (spec.tyreWalls)
-const WALL_REACH_M = 6;
 // m from a marshal post's centre a board's face keeps (its 2.4 x 2 m hut and a margin)
 const POST_CLEAR_M = 3;
 // m: half a bridge approach's width (the roads it meets are 5-6 m)
@@ -65,122 +60,15 @@ const BAY_M = 2.7, ROW_M = 6.5, BAY_FULL = 0.55, MAX_PARKED = 160;
 const TRUCK_ALONG_M = 17, TRUCK_ACROSS_M = 6, TRUCK_FULL = 0.6, MAX_TRUCKS = 12;
 // trees: how many at most, the share of tries kept outside the woods, m outside the edge
 const MAX_TREES = 260, OPEN_TREE_SHARE = 0.05, TREE_OUT_M = 6;
+// m a tree's trunk keeps off a road piece's edge (a raced road the edge already keeps it off; an
+// unraced one - an old line beside a chicane - has no edge): the largest canopy and its shadow
+const TREE_PIECE_M = 6.5;
 // building kinds that are homes, sheds and farm buildings (the venue's neighbours, not its own)
 const NOT_VENUE = new Set(['house', 'residential', 'garage', 'barn', 'silo', 'shed', 'farm',
   'detached', 'semidetached_house', 'terrace', 'hotel', 'greenhouse']);
 const ROOFS = ['#5b626b', '#6b6158', '#596372', '#6e6e66'];
 const TRUCK_COLS = ['#c8302c', '#2b56b5', '#e2c13a', '#2e8b57', '#e8e6e0'];
 const PARKED_COLS = ['#c8302c', '#2b56b5', '#e8e6e0', '#1d1f24', '#8f949c', '#2e8b57', '#d9a13a'];
-
-/**
- * The pit lane at game scale, kept clear of the wall (the game's road is wider than the real
- * one), and the pit wall: parallel to the road, EDGE_TO_WALL past its edge, along the stretch the
- * lane runs beside it.
- * @param site the venue's builders' state
- * @returns the lane and the wall
- */
-function pitLane(site: Site): { lane: Lane; wall: Barrier | null } {
-  const spec = site.build.spec;
-  const data = spec.data.pitLanes.find((entry) => entry.name === spec.pitLane);
-  if (!data) throw new Error(`venue: no pit lane ${spec.pitLane}`);
-  const dense = resample(placeAll(site, data.pts), 2);
-  const need = HALF_ROAD + EDGE_TO_WALL + PIT_WALL_GAP + PIT_W / 2;
-  const beside: { sub: Subtrack; dist: number; side: number }[] = [];
-  // the clearance the lane needs: in full along the wall, easing to nothing over each merge (a
-  // jump in it was a kink where the merge ended)
-  const clearance = (i: number, count: number) => {
-    const frac = Math.min(1, Math.min(i, count - 1 - i) * 2 / PIT_MERGE_M);
-    // eased in and out (a straight ramp left a corner where it topped out)
-    return need * frac * frac * (3 - 2 * frac);
-  };
-  dense.forEach(([x, y], i) => {
-    if (Math.min(i, dense.length - 1 - i) * 2 < PIT_MERGE_M) return;
-    const { sub, hit } = nearestLoop(site.loops, x, y);
-    beside.push({ sub, dist: hit.trackDist, side: hit.side === 'left' ? 1 : -1 });
-  });
-  // the lane in the track's own measure - distance along it, offset beside it - held out to its
-  // clearance and eased there, then laid back beside the track (held out point by point along
-  // the track's normals it bunched and jogged on a bend's inside)
-  const sub = nearestLoop(site.loops, ...dense[Math.floor(dense.length / 2)]).sub;
-  const total = sub.totalDist, measured: Point[] = [];
-  let sideSum = 0;
-  for (const [x, y] of dense) {
-    const hit = querySubtrack(sub, x, y), side = hit.side === 'left' ? 1 : -1;
-    let along = hit.trackDist;
-    // one measure through the lap's start (no jump of a lap)
-    const prev = measured.length ? measured[measured.length - 1][0] : along;
-    while (along - prev > total / 2) along -= total;
-    while (prev - along > total / 2) along += total;
-    measured.push([along, side * hit.dist]);
-    sideSum += side;
-  }
-  const out = Math.sign(sideSum || 1);
-  const hold = (pts: Point[]) => pts.map(([along, off], i): Point =>
-    [along, out * Math.max(out * off, clearance(i, pts.length))]);
-  // eased and held to the clearance in turn (easing alone pulled it in where the ramp tops out)
-  let measuredEased = hold(measured);
-  for (let round = 0; round < PIT_EASE_ROUNDS; round++)
-    measuredEased = hold(smoothLine(measuredEased, PIT_EASE_REACH, 1, true));
-  const eased = measuredEased.map(([along, off]) => {
-    const centre = centreBetween(sub, along);
-    return [centre.x + centre.nx * off, centre.y + centre.ny * off] as Point;
-  });
-  let wall: Barrier | null = null;
-  if (beside.length > 8) {
-    const sides = beside.reduce((sum, spot) => sum + spot.side, 0), trim = 6;
-    const offset = Math.sign(sides || 1) * (HALF_ROAD + EDGE_TO_WALL);
-    wall = { kind: 'pitwall', pts: alongTrack(beside[0].sub, beside[0].dist + trim,
-      beside[beside.length - 1].dist - trim, offset, 2) };
-  }
-  return { lane: { pts: eased, width: PIT_W, surface: SURFACES.concrete }, wall };
-}
-
-/**
- * A line moved sideways by an offset (its left normal +).
- * @param pts the line
- * @param off metres
- * @returns the moved line
- */
-function offsetLine(pts: Point[], off: number): Point[] {
-  return pts.slice(1).map(([x, y], i) => {
-    const [prevX, prevY] = pts[i], len = Math.hypot(x - prevX, y - prevY) || 1;
-    return [x - (y - prevY) / len * off, y + (x - prevX) / len * off] as Point;
-  });
-}
-
-/**
- * The pit lane's painted lines: the divider between the fast lane (by the wall) and the working
- * lane (by the garages), and the solid entry / exit lines along the track's edge where the lane
- * leaves and joins it.
- * @param site the venue's builders' state
- * @param pit the pit lane
- * @returns the lines
- */
-function pitLines(site: Site, pit: Lane): Paint[] {
-  const mid = Math.floor(pit.pts.length / 2), [x, y] = pit.pts[mid];
-  const [nextX, nextY] = pit.pts[mid + 1], len = Math.hypot(nextX - x, nextY - y) || 1;
-  const { sub, hit } = nearestLoop(site.loops, x, y), centre = centreAt(sub, hit.trackDist);
-  // the wall side: + when the track lies on the lane's left
-  const across = (centre.x - x) * -(nextY - y) / len + (centre.y - y) * (nextX - x) / len;
-  const wallSide = Math.sign(across) || 1;
-  const divider = smoothLine(offsetLine(smoothLine(pit.pts).slice(15, -15),
-    wallSide * (PIT_W / 2 - PIT_W / 3)));
-  const lines: Paint[] = [{ kind: 'line', x: 0, y: 0, pts: divider, lw: 0.15, tone: 0.75 }];
-  for (const end of [pit.pts.slice(0, 16), pit.pts.slice(-16)]) {
-    const hits = end.map(([endX, endY]) => nearestLoop(site.loops, endX, endY));
-    // the lane's side of the road: where it lies furthest out (a merge ending on the centreline
-    // puts its last points either side - each on its own side, the line crossed the road)
-    const far = hits.reduce((best, near) => (near.hit.dist > best.hit.dist ? near : best));
-    const side = far.hit.side === 'left' ? 1 : -1;
-    const edge = hits.map((near) => {
-      const road = centreAt(near.sub, near.hit.trackDist);
-      return [road.x + road.nx * side * (HALF_ROAD - 0.4),
-        road.y + road.ny * side * (HALF_ROAD - 0.4)] as Point;
-    });
-    lines.push({ kind: 'line', x: 0, y: 0, pts: smoothLine(edge), lw: 0.3, tone: 0.9 });
-  }
-  return lines;
-}
 
 /**
  * Where a mapped line crosses a race road: the road's centre sample there, the line's heading and
@@ -526,8 +414,8 @@ function venuePaddocks(site: Site, fill: boolean): { zones: Zone[]; props: Prop[
 }
 
 /**
- * Trees in the mapped woods (and a few in the open), outside the edge, clear of lanes, zones and
- * buildings.
+ * Trees in the mapped woods (and a few in the open), outside the edge, clear of lanes (their
+ * canopies clear of a road piece), zones and buildings.
  * @param site the venue's builders' state
  * @param bounds where to scatter
  * @param solids the props they keep clear of
@@ -539,6 +427,7 @@ function venueTrees(site: Site, bounds: VenueScenery['bounds'], solids: Prop[],
   const woods = site.build.spec.data.woods.map((wood) => outlineZone(placeAll(site, wood.pts),
     SURFACES.grass));
   const trees: Prop[] = [];
+  const pieces = site.lanes.filter((lane) => lane.surface === SURFACES.racetarmac);
   const nearSolid = (x: number, y: number) => solids.some((prop) => {
     const reach = Math.max(prop.w || 2, prop.h || 2) / 2 + 3;
     return Math.abs(prop.x - x) < reach && Math.abs(prop.y - y) < reach;
@@ -548,7 +437,7 @@ function venueTrees(site: Site, bounds: VenueScenery['bounds'], solids: Prop[],
     const y = bounds.y0 + site.rnd() * (bounds.y1 - bounds.y0);
     if (!inZones(woods, x, y) && site.rnd() > OPEN_TREE_SHARE) continue;
     if (pastRim(site.rims, x, y) < TREE_OUT_M || onLanes(site.lanes, x, y, 4)
-      || inZones(zones, x, y) || nearSolid(x, y)) continue;
+      || onLanes(pieces, x, y, TREE_PIECE_M) || inZones(zones, x, y) || nearSolid(x, y)) continue;
     trees.push({ kind: 'tree', x, y, s: 3.5 + site.rnd() * 3, seed: i });
   }
   return trees;
@@ -611,20 +500,22 @@ function spectatorSpots(site: Site, props: Prop[]): Point[] {
 
 /**
  * What decides the edge: hazards (buildings, tunnel portals, a bridge's deck), where spectators
- * stand (the grandstands, the banks) and the real tyre walls (spec.tyreWalls).
+ * stand (the grandstands, the banks), the real tyre walls (spec.tyreWalls) and rails (followed).
  * @param site the venue's builders' state
  * @param bridges the bridge props
  * @param portals the tunnel portal props
+ * @param lines the real tyre walls and rails at game scale
  * @returns the edge's needs
  */
-function edgeNeeds(site: Site, bridges: Prop[], portals: Prop[]): EdgeNeeds {
+function edgeNeeds(site: Site, bridges: Prop[], portals: Prop[],
+  lines: { walls: WallLine[]; rails: WallLine[] }): EdgeNeeds {
   const solids = [...site.buildings, ...portals];
   const decks = bridges.map((bridge) => ({ ...bridge, w: bridge.wid, h: DECK_BOX_M }));
   const spots = spectatorSpots(site, site.buildings);
-  const walls = (site.build.spec.tyreWalls || []).map((wall) => placeAll(site, wall));
   return {
-    ...(walls.length ? { walled: (x: number, y: number) =>
-      walls.some((wall) => distToLine(wall, x, y) < WALL_REACH_M) } : {}),
+    ...(lines.walls.length ? { walled: (x: number, y: number) =>
+      lines.walls.some((wall) => distToLine(wall.pts, x, y) < WALL_REACH_M) } : {}),
+    ...(lines.rails.length ? { rails: lines.rails } : {}),
     hazard: (x, y) => inBuilding(solids, x, y, 1) || inBuilding(decks, x, y, 0),
     watched: (x, y) => spots.some(([spotX, spotY]) => Math.abs(spotX - x) < SPECTATOR_REACH_M
       && Math.abs(spotY - y) < SPECTATOR_REACH_M
@@ -698,6 +589,46 @@ function clearPosts(site: Site, posts: Prop[], barriers: Barrier[]): Prop[] {
 }
 
 /**
+ * The venue's builders' state to start from: the map's placer, the traps, the real tyre walls and
+ * rails, the pieces no layout races (an old line beside a chicane: inside the edge, as a trap)
+ * and every layout's rim.
+ * @param build the venue at game scale
+ * @param closed the lanes of the pieces this layout does not race
+ * @returns the site, the trap zones and the real lines
+ */
+function venueSite(build: VenueBuild, closed: Lane[]):
+  { site: Site; traps: Zone[]; lines: { walls: WallLine[]; rails: WallLine[] } } {
+  const loops = Object.values(build.loops), spec = build.spec;
+  const widen = (VENUE_ROAD_M - spec.realRoadM * build.scale) / 2;
+  const place = makePlacer(build.scale, loops, widen);
+  const traps = trapZones(spec.data.traps.map((trap) => trap.pts.map(place)), loops);
+  const lines = { walls: (spec.tyreWalls || []).map((wall) => boxedLine(wall.map(place))),
+    rails: spec.followRails ? [...(spec.data.rails || []).map((rail) => rail.pts),
+      ...(spec.railsSeen || [])].map((pts) => boxedLine(pts.map(place))) : [] };
+  const pieces = closed.filter((lane) => {
+    const mid = pointAlong(lane.pts, lineLength(lane.pts) / 2);
+    return !!mid && !loops.some((loop) => querySubtrack(loop, mid.x, mid.y).dist < HALF_ROAD);
+  });
+  const site: Site = { build, loops, rims: buildRims(loops, traps, { walls: lines.walls, pieces }),
+    place, rnd: parkMiller(spec.seed), lanes: [...closed], buildings: [], portals: [],
+    armco: new Set(), pitPts: [] };
+  return { site, traps, lines };
+}
+
+/**
+ * The hand finish's moves (spec.finish): a building our placing pushed onto a road moved off it.
+ * @param site the venue's builders' state (its buildings moved in place)
+ */
+function finishMoves(site: Site): void {
+  const spec = site.build.spec;
+  for (const { at, by } of spec.finish?.move || []) {
+    const building = site.buildings.find((prop) => inBuilding([prop], at[0], at[1], 0));
+    if (!building) console.warn(`venue ${spec.id}: finish move at ${at} meets no building`);
+    else Object.assign(building, { x: building.x + by[0], y: building.y + by[1] });
+  }
+}
+
+/**
  * Everything of the venue but the raced road, the same for each of its layouts.
  * @param build the venue at game scale
  * @param sub the raced road
@@ -706,12 +637,8 @@ function clearPosts(site: Site, posts: Prop[], barriers: Barrier[]): Prop[] {
  */
 export function buildVenueScenery(build: VenueBuild, sub: Subtrack, closed: Lane[]): VenueScenery {
   const loops = Object.values(build.loops), spec = build.spec;
-  const widen = (VENUE_ROAD_M - spec.realRoadM * build.scale) / 2;
-  const place = makePlacer(build.scale, loops, widen);
-  const traps = trapZones(spec.data.traps.map((trap) => trap.pts.map(place)), loops);
-  const site: Site = { build, loops, rims: buildRims(loops, traps), place,
-    rnd: parkMiller(spec.seed), lanes: [...closed], buildings: [], portals: [], armco: new Set(),
-    pitPts: [] };
+  const { site, traps, lines } = venueSite(build, closed);
+  const place = site.place;
   const pit = pitLane(site);
   site.lanes.push(pit.lane);
   site.pitPts = pit.lane.pts;
@@ -719,18 +646,17 @@ export function buildVenueScenery(build: VenueBuild, sub: Subtrack, closed: Lane
   site.lanes.push(...bridges.lanes);
   // the buildings first: the tunnels' portals and the edge keep off them, the roads go round them
   site.buildings = venueBuildings(site, pit.lane);
-  // the hand finish's moves (spec.finish): a building our placing pushed onto a road moved off
-  for (const { at, by } of spec.finish?.move || []) {
-    const building = site.buildings.find((prop) => inBuilding([prop], at[0], at[1], 0));
-    if (!building) console.warn(`venue ${spec.id}: finish move at ${at} meets no building`);
-    else Object.assign(building, { x: building.x + by[0], y: building.y + by[1] });
-  }
+  finishMoves(site);
   const tunnels = venueTunnels(site);
   site.lanes.push(...tunnels.lanes);
   site.portals = tunnels.props;
+  // the pit wall is its stretch's barrier: the edge keeps PIT_WALL_CLEAR_M off it (with a rail
+  // mapped there, Armco stood just behind it)
+  const pitWall = pit.wall ? pit.wall.pts : null;
   const edge = buildEdge(site.rims, { loops, lanes: site.lanes,
-    blocked: (x, y) => inBuilding(site.buildings, x, y, 1) }, traps,
-  edgeNeeds(site, bridges.props, tunnels.props));
+    blocked: (x, y) => inBuilding(site.buildings, x, y, 1)
+      || (!!pitWall && distToLine(pitWall, x, y) < PIT_WALL_CLEAR_M) }, traps,
+  edgeNeeds(site, bridges.props, tunnels.props, lines));
   for (const rail of edge.barriers)
     for (const [x, y] of resample(rail.pts, 1)) site.armco.add(cellKey(x, y));
   const roads = venueRoads(site);

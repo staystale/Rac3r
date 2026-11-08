@@ -12,6 +12,7 @@
 //   roads     none here (the endless highway lays its own as the road grows:
 //             highway/roadlamps.ts)
 import { FLOOR } from './bounds.ts';
+import { SURFACES } from './surfaces.ts';
 import { catOf } from './levels/category.ts';
 import { smoothOnTrack } from './barriers.ts';
 import type { Level, Point, Prop, Subtrack, TrackPoint } from './types.ts';
@@ -419,6 +420,22 @@ function tightestCorners(sub: Subtrack, count: number): number[] {
 }
 
 /**
+ * How far a spot is from the nearest edge of a race road the lap does not use (a venue's unraced
+ * piece - an old line beside a chicane - is race tarmac too: the corner rings keep off it as off
+ * the track).
+ * @param level the level
+ * @param spot the point
+ * @returns metres past the nearest such edge (Infinity with none)
+ */
+function piecesGap(level: Level, spot: Spot): number {
+  let best = Infinity;
+  for (const lane of level.lanes || [])
+    if (lane.surface === SURFACES.racetarmac)
+      best = Math.min(best, lineGap(lane.pts as [number, number][], spot) - lane.width / 2);
+  return best;
+}
+
+/**
  * A clear spot inside a corner, off the racing line, for a floodlight on a ring of tyres: tried
  * at CORNER_OUTS_M out from the track edge on the inside (the side the chord bends toward).
  * @param level the level
@@ -436,6 +453,7 @@ function cornerSpot(level: Level, sub: Subtrack, dist: number): CornerSpot | nul
     const spot = { x: apex.x + apex.nx * off, y: apex.y + apex.ny * off };
     const inFloor = Math.abs(spot.x) < FLOOR - 12 && Math.abs(spot.y) < FLOOR - 12;
     if (inFloor && trackGap(sub, spot) >= sub.width / 2 + TYRE_RING_M + 3
+      && piecesGap(level, spot) >= TYRE_RING_M + 3
       && isFreeOfThings(level, spot, TYRE_RING_M + 1)) {
       return { ...spot, rot: Math.atan2(apex.y - spot.y, apex.x - spot.x) };
     }
