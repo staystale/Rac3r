@@ -143,12 +143,14 @@ export function aiWant(entry: AiEntry, dt: number) {
  */
 export function stepAIPhysics(entry: AiEntry, want: CarInput, dt: number) {
   const car = entry.car;
-  const held = LEVEL.stage ? carHeld(car) : startHeld();
+  // (a held car is off at once: no start lights)
+  const held = !entry.held && (LEVEL.stage ? carHeld(car) : startHeld());
   if (rolling(car)) {
     stepRoll(car, dt, (kind, side, weight) => hitRoll(car, kind, side, weight));
     // an overturned AI, once it has stopped: back on its wheels on the road (as a marshal
-    // would), mended
-    if (car.roll && car.roll.phase !== 'rolling' && car.roll.still > 1.5) aiReset(entry);
+    // would), mended - not a held car
+    if (car.roll && car.roll.phase !== 'rolling' && car.roll.still > 1.5 && !entry.held)
+      aiReset(entry);
   } else {
     const formed = held && game.start.rolling && formationWant(car, car._slot || 0, entry);
     step(car, formed || (held ? (game.start.rolling ? atPace(want, car)
@@ -271,14 +273,15 @@ export function stepAICar(entry: AiEntry, dt: number) {
     const v0x = car.vx, v0y = car.vy;
     clampWorld(car, dt);
     hit(car, v0x, v0y);
-    stepAIInjury(entry, dt);
+    if (!entry.held) stepAIInjury(entry, dt);
     applyGround(car, dt);
-    const want = aiWant(entry, dt);
+    const want = entry.held || aiWant(entry, dt);
     // the AI's brake lights show its brakes
     car.brakeLight = want.brake;
     car.handbrakeOn = want.handbrake ? 1 : 0;
     stepAIPhysics(entry, want, dt);
     assertFinite(car);
+    if (entry.held) return;
     // the JOKER gate, counted for every AI exactly as for the player (stepJoker)
     stepAIJoker(entry);
     stepAIStuck(entry, dt);

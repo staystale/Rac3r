@@ -3,6 +3,7 @@ import type { Barrier, Level } from "../types.ts";
 import { SURFACES } from "../surfaces.ts";
 import { alongTrack, solidsFromProps } from "../barriers.ts";
 import { BOWLING_ALLEY_LEVEL, ROUGH_PATCH_LEVEL } from "./lab-extension.ts";
+import { CRASH_BENCH_LEVEL } from "./crashbench.ts";
 import { onTrack, propClearance } from "../tyrewall.ts";
 import {
   SB_SUBTRACK, SB_CONES, SB_COVERS, SB_ZONES, SB_BUMPS, SB_PAINT, SB_BOARDS, SB_PROPS, SB_SPAWN,
@@ -78,6 +79,8 @@ export const LEVELS: Level[] = [
   // the Lab's sister test grounds (lab-extension.ts): the surface lanes, the off-road area
   BOWLING_ALLEY_LEVEL,
   ROUGH_PATCH_LEVEL,
+  // the physics under load, to watch (crashbench.ts)
+  CRASH_BENCH_LEVEL,
   {
     id: 'test-track', name: 'Test Track',
     coneCount: true,      // show the knocked-cone tally (a cone course)

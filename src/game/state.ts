@@ -80,6 +80,8 @@ export interface AiEntry extends FormKeeper {
   hurtWait?: number | null; hurtT?: number;   // a hurt car waiting to be repaired
   jLap?: number | null;   // the lap it took its joker
   id?: string; cls?: string; sub?: string;
+  // a held car (game/crashbench.ts): drives with these, no driver, never put back on a road
+  held?: CarInput;
 }
 
 /** What a hurt car's pause-then-reset reads (an AI entry, or the menu demo car). */

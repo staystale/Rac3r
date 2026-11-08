@@ -100,10 +100,11 @@ function respond(ctx: ConesCtx, objA: Loose, objB: Loose, rel: number, nx: numbe
  * @param objB second object
  */
 function pair(ctx: ConesCtx, objA: Loose, objB: Loose) {
-  if (passesThrough(objA, objB)) return;
   const reach = objA.r + objB.r;
   const dx = objB.x - objA.x, dy = objB.y - objA.y;
+  // the box reject first: nearly every pair is apart, and it is arithmetic (tools/crashbench.mjs)
   if (dx > reach || dx < -reach || dy > reach || dy < -reach) return;
+  if (passesThrough(objA, objB)) return;
   const dist = Math.hypot(dx, dy);
   if (dist >= reach || dist < 1e-6) return;
   const nx = dx / dist, ny = dy / dist;
@@ -136,6 +137,58 @@ function pairWithResting(ctx: ConesCtx, mover: Loose) {
   }
 }
 
+// moving objects from which they are paired through a grid, not each with every other: a burst
+// tyre wall threw ~900 and paired ~400 000 a step (tools/crashbench.mjs: the impact's second
+// 32 ms a step, the budget 8)
+const CROWD = 64;
+
+// the later movers' indices, reused (no allocation a step)
+const LATER: number[] = [];
+
+/**
+ * Every later mover, for a few movers (each with every other, as ever).
+ * @param count how many movers
+ * @returns mover i -> the indices above it
+ */
+function everyLater(count: number): (index: number) => number[] {
+  return (index) => {
+    LATER.length = 0;
+    for (let next = index + 1; next < count; next++) LATER.push(next);
+    return LATER;
+  };
+}
+
+/**
+ * The movers near each mover, through a grid of where they all are at the step's start: for mover
+ * i, the later movers (index above i) in the cells round it, in index order - the same pairs, in
+ * the same order, as pairing each with every later one, less the ones too far apart to touch
+ * (the reach: the biggest mover's diameter, and a cell for the pushes of the pairs before).
+ * @param movers the moving objects
+ * @returns mover i -> the indices to pair it with
+ */
+function crowdGrid(movers: Loose[]): (index: number) => number[] {
+  const grid = new Map<number, number[]>(), cellOf: number[] = [];
+  let biggest = 0;
+  movers.forEach((mover, index) => {
+    biggest = Math.max(biggest, mover.r);
+    const cellX = Math.floor(mover.x / OBJ_CELL), cellY = Math.floor(mover.y / OBJ_CELL);
+    cellOf.push(cellX, cellY);
+    const key = cellX * 65536 + cellY;
+    (grid.get(key) || grid.set(key, []).get(key)!).push(index);
+  });
+  const span = Math.ceil((2 * biggest) / OBJ_CELL) + 1, found: number[] = [];
+  return (index) => {
+    found.length = 0;
+    const cellX = cellOf[index * 2], cellY = cellOf[index * 2 + 1];
+    for (let x = cellX - span; x <= cellX + span; x++) for (let y = cellY - span; y <= cellY + span;
+      y++) {
+      const cell = grid.get(x * 65536 + y);
+      if (cell) for (const other of cell) if (other > index) found.push(other);
+    }
+    return found.sort((first, second) => first - second);
+  };
+}
+
 /**
  * OBJECT-OBJECT COLLISIONS (requirement: tyres should hit other tyres and cones or objects etc and
  * pass impact onto them if necessary). Every object is a circle of radius r and mass m.
@@ -158,10 +211,11 @@ export function collideObjects(ctx: ConesCtx) {
   prevMovers.length = 0; for (let i = 0; i < movers.length; i++) prevMovers.push(movers[i]);
   if (!movers.length) return;
   ctx.burst.length = 0;
+  const near = movers.length > CROWD ? crowdGrid(movers) : everyLater(movers.length);
   for (let moverIdx = 0; moverIdx < movers.length; moverIdx++) {
     const mover = movers[moverIdx];
-    // movers against each other, each pair once
-    for (let next = moverIdx + 1; next < movers.length; next++) pair(ctx, mover, movers[next]);
+    // movers against each other, each pair once (a crowd: only the ones near enough, in order)
+    for (const next of near(moverIdx)) pair(ctx, mover, movers[next]);
     // movers against whatever is resting in the 3x3 cells around them (skip ones that have
     // since moved)
     pairWithResting(ctx, mover);

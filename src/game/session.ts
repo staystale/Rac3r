@@ -1,4 +1,5 @@
 // session.ts — Session: lap timing, reset, restart, records and the race flow.
+import { lineUpCrashBench } from './crashbench.ts';
 import { hwLevel } from './state.ts';
 import { reset } from '../vehicle.ts';
 import { resetHighway, roadFrame } from '../highway.ts';
@@ -299,6 +300,36 @@ export function onScreen(x: number, y: number) {
   return screenX > -margin && screenX < shared.renderer.W + margin && screenY > -margin
     && screenY < shared.renderer.H + margin;
 }
+/**
+ * The field for a (re)start, once the player is on the spawn: the start lights, the AI on the grid
+ * and you on your slot, the highway's traffic, the race flow.
+ */
+function startField() {
+  armStart();
+  spawnAI();
+  // any race grid puts YOU on your slot too — pole included (was gridSlot > 0: on pole you stayed
+  // on the centreline spawn, out of formation)
+  if (game.start.rolling || (game.ai.length && !LEVEL.stage)) {
+    const slotPos = gridPos(game.ai.length ? shared.gridSlot : 0);
+    reset(game.car, slotPos.x, slotPos.y, slotPos.h);
+    if (shared.renderer && shared.renderer.snap) shared.renderer.snap(game.car);
+  }
+  // (the menu race too - owner 11-07: "no traffic on menu highway races?")
+  game.traffic.reset(LEVEL.endless ? hwLevel() : null, shared.trafficDensity);
+  if (LEVEL.endless && game.ai.length) {
+    const [spanStart, spanEnd] = hwGridSpan(hwLevel(), game.ai.length + 1);
+    game.traffic.clearSpan(spanStart, spanEnd);
+  }   // a clear road for the grid
+  // the treadmill guard measures "dropped back" from the furthest point reached (the spawn): a
+  // back-row grid slot is up to ~50 m behind it, which read as WRONG WAY 5 s into the race
+  // (MEASURED, tools/_tfgame). Start the record where YOU start.
+  if (LEVEL.endless && LEVEL._hw) {
+    const frame = roadFrame(hwLevel(), game.car.x, game.car.y, null);
+    if (frame) LEVEL._hw.best = Math.min(LEVEL._hw.best, frame.s);
+  }
+  startFlow();
+}
+
 export function doRestart() {
   saveRecords();
   // the event's weather from its start (before the cars' tyres take the track temperature and the
@@ -328,31 +359,9 @@ export function doRestart() {
   // AI (the menu demo's) stepped on this one - on a level with no racing line (the Lab family)
   // recoverAI threw on every step
   game.ai = [];
-  setTimeout(() => {
-    armStart();
-    spawnAI();
-    // any race grid puts YOU on your slot too — pole included (was gridSlot > 0: on pole you stayed
-    // on the centreline spawn, out of formation)
-    if (game.start.rolling || (game.ai.length && !LEVEL.stage)) {
-      const slotPos = gridPos(game.ai.length ? shared.gridSlot : 0);
-      reset(game.car, slotPos.x, slotPos.y, slotPos.h);
-      if (shared.renderer && shared.renderer.snap) shared.renderer.snap(game.car);
-    }
-    // (the menu race too - owner 11-07: "no traffic on menu highway races?")
-    game.traffic.reset(LEVEL.endless ? hwLevel() : null, shared.trafficDensity);
-    if (LEVEL.endless && game.ai.length) {
-      const [spanStart, spanEnd] = hwGridSpan(hwLevel(), game.ai.length + 1);
-      game.traffic.clearSpan(spanStart, spanEnd);
-    }   // a clear road for the grid
-    // the treadmill guard measures "dropped back" from the furthest point reached (the spawn): a
-    // back-row grid slot is up to ~50 m behind it, which read as WRONG WAY 5 s into the race
-    // (MEASURED, tools/_tfgame). Start the record where YOU start.
-    if (LEVEL.endless && LEVEL._hw) {
-      const frame = roadFrame(hwLevel(), game.car.x, game.car.y, null);
-      if (frame) LEVEL._hw.best = Math.min(LEVEL._hw.best, frame.s);
-    }
-    startFlow();
-  }, 0);   // after this function has put the player on the spawn
+  // the field: the crash bench's (game/crashbench.ts, you in it), else the race grid
+  setTimeout(() => { if (!lineUpCrashBench()) startField(); }, 0);   // after this function has put
+  // the player on the spawn
   game.car.prevWheels = null;
   game.car.simTime = 0;
   shared.lapState.lap = 0;

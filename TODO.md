@@ -62,6 +62,17 @@ last handover, written on request.
    deckwear.ts): leaks and glass land there, not on the track beneath. UNDER TEST.
    CATCH FENCES round 3 (owner: "still too strong ... catch n drag"): tear from ~40 km/h, grab a
    sliding car (0.6 kept a step), a tear tangles and drags the car 1 s. UNDER TEST (fencedrag).
+   CRASH BENCH (owner 11-08: 20 cars at 120 mph into a 3 x 100 tyre wall on Armco): FESTIVAL OF SPLAT
+   (world/levels/crashbench.ts; ?level=crash-bench) and tools/crashbench.mjs (same scene, timed,
+   seeded fingerprint). Found: 94 % of a step in the loose objects - every moving object paired
+   with every other (~900 burst tyres: ~400 000 pairs a step). Exact fixes (fingerprint the same):
+   the box reject first, a crowd (>64 movers) paired through a grid - the impact's second 59 -> 15
+   ms a step, worst 84 -> 29 (desktop). NEXT, ask first: objects vs barriers / walls through a grid
+   (~15 %), objects vs cars by distance, sleep settled tyres sooner, cap a burst's tyres.
+   ROLLS (owner 11-08, later): the rolling crash relook - check which way a car rolls from an
+   impact ("sometimes it seems to roll the wrong way"), and whether a car can roll over things
+   (tyres, fences).
+   CI (owner 11-08: "30 mins is too long"): to discuss - see the proposal in the session.
    PERFORMANCE CHECK 11-08 (CPU x4 lap, tools/framecheck.mjs): Brands work median 12.7 ms, p95
    24-29 (Thruston 13.2 / 23.0; Castle Cum 24.4 / 39.1 - the heaviest, older); crossings on: no
    measurable cost. Fixed: Brands was built at page load (7.3 s of level import here, now 0.85 s).
