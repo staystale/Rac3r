@@ -742,7 +742,9 @@ function behindRail(point: Point, loops: Subtrack[], rims: Rim[]): Point {
 /**
  * A board behind the Armco (and its catch fence) near a spot, facing the track: the rail's points
  * are tried from the nearest outward until the board's whole face stands clear of every barrier
- * and tyre stack (on a bend a straight board would cross the curved rail).
+ * and tyre stack (on a bend a straight board would cross the curved rail). With no Armco within
+ * BOARD_LOOK_M, behind a catch fence (a spectator bank with no Armco near: Brands' KUM TYRES board
+ * by Paddock Hill was silently left out).
  * @param barriers every barrier (the Armco and catch fences)
  * @param cones the tyre stacks
  * @param loops every layout's road
@@ -754,12 +756,14 @@ function behindRail(point: Point, loops: Subtrack[], rims: Rim[]): Point {
  */
 export function boardOnArmco(barriers: Barrier[], cones: Cone[], loops: Subtrack[], spot: Point,
   label: string, rims: Rim[], blocked: (x: number, y: number) => boolean): Prop | null {
-  const railPts = barriers.filter((rail) => rail.kind === 'armco').flatMap((rail) => rail.pts)
+  const railPts = (kind: Barrier['kind']) => barriers.filter((rail) => rail.kind === kind)
+    .flatMap((rail) => rail.pts)
     .filter(([x, y]) => Math.hypot(x - spot[0], y - spot[1]) < BOARD_LOOK_M)
     .sort((first, second) => Math.hypot(first[0] - spot[0], first[1] - spot[1])
       - Math.hypot(second[0] - spot[0], second[1] - spot[1]));
   const near = barriers.flatMap((rail) => rail.pts);
-  for (const point of railPts) {
+  const armco = railPts('armco');
+  for (const point of armco.length ? armco : railPts('catchfence')) {
     const away = behindRail(point, loops, rims);
     const x = point[0] + away[0] * BOARD_BACK_M, y = point[1] + away[1] * BOARD_BACK_M;
     const alongX = -away[1], alongY = away[0];
