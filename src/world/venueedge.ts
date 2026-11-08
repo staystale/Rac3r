@@ -563,9 +563,9 @@ export function buildEdge(rims: Rim[], keep: EdgeClear, traps: Zone[], needs: Ed
       const kinds = edgeKinds(rim, side, traps, needs, keep.loops);
       const line = needs.rails ? easedLoop(rimLine(rim, side), rim, side) : rimLine(rim, side);
       const fresh: Point[] = [];
-      // where Armco gives way to a catch fence the line runs on: no flare across the fence (along
-      // a venue that follows its real rails)
-      const fence = needs.rails ? kindRuns(line, kinds, EDGE_CATCH).flat() : [];
+      // where Armco gives way to a catch fence the line runs on: no flare across the fence (a free
+      // end still flares)
+      const fence = kindRuns(line, kinds, EDGE_CATCH).flat();
       const flareClear = (x: number, y: number) => clear(x, y) && !nearRoad(x, y)
         && fence.every(([fenceX, fenceY]) =>
           Math.abs(fenceX - x) > FLARE_CLEAR_M || Math.abs(fenceY - y) > FLARE_CLEAR_M);
