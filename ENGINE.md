@@ -220,7 +220,7 @@ lists (zones, bumps, props, barriers), which the physics and the renderer both r
 what you drive on.
 
 A circuit is its real venue (`world/venue.ts` and `venue*.ts`, from OpenStreetMap; `levels/brands-venue.ts`
-is the spec of one, `levels/castle-cum-venue.ts` another behind `?castlecumvenue=1`): `venuescenery.ts` the
+is the spec of one, `levels/castle-cum-venue.ts` another): `venuescenery.ts` the
 scenery, `venueedge.ts` the barriers (traps, real tyre walls, a venue's real rails where it follows them,
 catch fences), `venueroads.ts` / `venuejoin.ts` the roads, `venuepit.ts` the pit lane, `tools/venueaudit.mjs`
 and `tools/venueplan.mjs` the checks. Its road bridges and tunnels are LEVELS a car can drive:

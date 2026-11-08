@@ -19,7 +19,6 @@ import {
   TH_SUBTRACK, TH_ZONES, TH_BUMPS, TH_PAINT, TH_PROPS, TH_CONES, TH_STAND, TH_PIT,
   TH_LANES,
 } from "./thruston.ts";
-import { CC_SUBTRACK, CC_ZONES, CC_BUMPS, CC_PAINT, CC_PROPS, CC_LANES } from "./castle-cum.ts";
 import {
   SH_SUBTRACK, SH_BUMPS, SH_START, SH_JOKER, SH_PADDOCK, SH_JOKER_RULE, SH_PROPS, SH_ARMCO,
 } from "./slidden-hill.ts";
@@ -31,15 +30,13 @@ import {
 } from "./killder.ts";
 import { BH_GP_LEVEL, BH_INDY_LEVEL } from "./brands-venue.ts";
 import { CC_VENUE_LEVEL } from "./castle-cum-venue.ts";
-import { FIX } from "../../core/fixes.ts";
 import { LAB_PAINT, LAB_BOARDS } from "../barriers.ts";
 import { courseCones, slalom, outerTyreWall } from "../tyrewall.ts";
 import { LAB_BUMPS, LAB_PANELS } from "./sandbox.ts";
 import { KH_LEVEL } from "./knobhill.ts";
 import { rxDress, jokerBales } from "./kit.ts";
-import { CIRCUIT_BUSHES, LAB_BUSHES, RALLY_BUSHES, TEST_TRACK_BUSHES } from "./bushes.ts";
+import { LAB_BUSHES, RALLY_BUSHES, TEST_TRACK_BUSHES } from "./bushes.ts";
 import { SH_TYREWALL, SH_STARTWALL } from "./slidden-hill.ts";
-import { CC_TYREWALL, CC_KIT, CC_ARMCO } from "./castle-cum.ts";
 import { TH_ARMCO } from "./thruston.ts";
 // =============================================================================================
 // THE LEVELS. `base` is what you are on where no zone covers you; `zones` are first-hit-wins.
@@ -184,40 +181,8 @@ export const LEVELS: Level[] = [
       };
     })(),
   },
-  // ?castlecumvenue=1: the real venue (castle-cum-venue.ts), built on first use
-  FIX.castlecumvenue ? CC_VENUE_LEVEL : {
-    id: 'castle-cum', name: 'Castle Cum',
-    base: SURFACES.grass,
-    subtrack: CC_SUBTRACK,
-    camber: { maxDeg: 3, refR: 70, crown: 0.02, edge: 6, sections: [] },
-    zones: CC_ZONES,
-    bumps: CC_BUMPS,
-    paint: CC_PAINT,
-    boards: [],
-    props: CC_PROPS,
-    seams: false,
-    bushes: CIRCUIT_BUSHES,
-    cones: [
-      ...CC_TYREWALL,
-      ...[1000, 1012, 1024].map((dist, idx) => (
-        { ...CC_KIT.at(dist, idx % 2 ? 9 : -9), kind: 'tyrestack' }
-      )),
-    ],
-    lanes: CC_LANES,
-    solids: solidsFromProps(CC_PROPS),
-    barriers: [
-      { kind: 'pitwall', pts: alongTrack(CC_SUBTRACK, 1250, 97, -10, 2) },
-      { kind: 'line', pts: alongTrack(CC_SUBTRACK, 1255, 92, -15.5, 2) },
-      ...CC_ARMCO.map(([begin, end]): Barrier =>
-        ({ kind: 'armco', pts: alongTrack(CC_SUBTRACK, begin, end, -16, 2) })),
-      // "only a waist high fence" on the Camp bank
-      { kind: 'fence', pts: alongTrack(CC_SUBTRACK, 1110, 1215, -22, 2) },
-    ],
-    spawn: (() => {
-      const pose = onTrack(CC_SUBTRACK, CC_SUBTRACK.totalDist - 15, 0, {});
-      return { x: pose.x, y: pose.y, heading: pose.rot };
-    })(),
-  },
+  // the real venue (castle-cum-venue.ts), built on first use
+  CC_VENUE_LEVEL,
   {
     id: 'thruston', name: 'Thruston',
     base: SURFACES.grass,

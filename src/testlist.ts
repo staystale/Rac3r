@@ -58,8 +58,8 @@ export const TEST_LIST: TestEntry[] = [
   // 2026-11-08; fenceshred (catch fences tear and shred), partsover (the drive-over chance by
   // ground clearance), crossings (drivable bridges and tunnels), fencedrag passed 2026-11-08;
   // burstcap, tyresleep, stackvary (the crash bench: stacks 1-4 high, bursting by chance), linewall
-  // (the line gives a wall by the edge room), tallfence, rollway (rolls the right way) passed
-  // 2026-11-08)
+  // (the line gives a wall by the edge room), tallfence, rollway (rolls the right way), castlecumvenue (Castle Kum as
+  // the real venue) passed 2026-11-08)
   {
     id: 'rollover',
     added: '2026-11-08',
@@ -67,13 +67,5 @@ export const TEST_LIST: TestEntry[] = [
     where: 'Test link + &rollover=1 (with &rollway=1): any Armco, tyre walls; Festival of Splat',
     try: 'Roll a car at speed into Armco and tyre stacks; then into a catch fence or wall.',
     wrong: 'Going over a catch fence / wall, or a slow roll still going over Armco.',
-  },
-  {
-    id: 'castlecumvenue',
-    added: '2026-11-08',
-    name: 'Castle Cum as the real venue (Castle Combe) at 1/2 size, the real Armco and fences',
-    where: 'Test link + &castlecumvenue=1: TEST MODE > UK CIRCUITS > Castle Cum',
-    try: 'Lap it, look round: Quarry + Tower tyre walls, catch fences, pits, paddock, skid pan.',
-    wrong: 'A road or prop on the track, a gap in a barrier, a road to nowhere, a wire fence.',
   },
 ];
