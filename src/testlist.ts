@@ -76,7 +76,7 @@ export const TEST_LIST: TestEntry[] = [
     id: 'partsover',
     added: '2026-11-08',
     name: 'Crash parts and fence bits: a chance each time to drive over them, by ground clearance',
-    where: 'Plain link: any level - crash hard to shed parts, then drive at them (try the F1, a 4x4)',
+    where: 'Plain link: any level - crash hard to shed parts, drive at them (try F1, a 4x4)',
     try: 'Doors, bumpers, struts: sometimes under you, sometimes hit; low cars hit more often.',
     wrong: 'Always one or the other, an engine block or wheel driven over, a part stuck under you.',
   },
