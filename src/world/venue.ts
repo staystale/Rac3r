@@ -41,6 +41,8 @@ export interface VenueData {
   // the real circuit's rails (OSM guard rails and concrete barriers; written for venues since
   // Castle Kum): where spec.followRails is set the Armco stands where they do
   rails?: { kind: string; pts: Point[] }[];
+  // an airfield's runways, taxiways (lines, width real m) and aprons (areas): Thruxton's infield
+  aero?: { kind: string; surface: string; width: number; area: boolean; pts: Point[] }[];
 }
 
 /** One venue level's hand-set facts (real metres in the venue data's frame). */

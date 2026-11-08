@@ -49,7 +49,8 @@ function inProp(prop, x, y, pad = 0) {
       const [xi, yi] = poly[i], [xj, yj] = poly[j];
       if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) inside = !inside;
     }
-    return inside;
+    // (within pad of its front or back counts: a paddock road ending behind the garages)
+    return inside || (pad > 0 && (distToLine(prop.front, x, y) < pad || distToLine(prop.back, x, y) < pad));
   }
   const [width, height] = SIZE[prop.kind] || [prop.w || 0, prop.h || 0];
   if (!width || !height) return false;
