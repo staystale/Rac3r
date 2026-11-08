@@ -85,10 +85,17 @@ last handover, written on request.
    the GPU (getImageData 22 % of the impact's CPU). Now each sprite is read once and a dented
    sprite's own pixels kept (render/spritepixels.ts): 22 -> 9.7 %, every picture the same as
    drawn (tools/scratch/_spritework.mjs: 285 dented / lost-part / rolled pictures). Left: the
-   first read of each car's clean sprites (~5 %), each thrown part's picture (~4 %). NEXT: the
-   owner's phone run on the bench (&report=1: frame times, sim vs draw); then, ask first:
-   settled tyres asleep sooner, a burst's tyres capped. Also: objcheck fails on main too
-   (Killder: 6 of 1118 objects at rest move at load).
+   first read of each car's clean sprites (~5 %), each thrown part's picture (~4 %).
+   PASSED 11-08 (owner: "ok pass"). THE PHONE (3 runs, &report=1, 440x751 Safari): the impact's
+   worst half second 40-43 fps, then 56-60 with ~950 tyres down; the impact itself ~6 frames over
+   0.25 s at 36-51 ms - sim 12-22 ms (4-6 steps, ~3 ms a step: twice the laptop), draw 9-26 ms
+   (4 normally; the first frame paints 9 ground tiles as the camera zooms in). Two hitches before
+   the crash in every run: ~150 ms at 0.6 s (the texture warm-up, warmMs 143) and 72-102 ms at the
+   restart (zoomed out to 0.8 px/m, GPU uploads, our JS 15-25 ms). NEXT (ask first): the clean
+   sprites read at the level's start, not at the first dent (exact); the thrown parts' pictures
+   without a read back; then, if still short, settled tyres asleep sooner / a burst's tyres
+   capped (behaviour). Also: objcheck fails on main too (Killder: 6 of 1118 objects at rest move
+   at load).
    ROLLS (owner 11-08, later): the rolling crash relook - check which way a car rolls from an
    impact ("sometimes it seems to roll the wrong way"), and whether a car can roll over things
    (tyres, fences).
