@@ -28,7 +28,7 @@ import {
 import {
   KD_SUBTRACK, KD_BUMPS, KD_WATER, KD_PAINT, KD_CONES, KD_PROPS, KD_TAPE, KD_YARD, KD_FINISH,
 } from "./killder.ts";
-import { BH_GP_LEVEL, BH_INDY_LEVEL } from "./brands-snatch.ts";
+import { BH_GP_LEVEL, BH_INDY_LEVEL } from "./brands-venue.ts";
 import { LAB_PAINT, LAB_BOARDS } from "../barriers.ts";
 import { courseCones, slalom, outerTyreWall } from "../tyrewall.ts";
 import { LAB_BUMPS, LAB_PANELS } from "./sandbox.ts";

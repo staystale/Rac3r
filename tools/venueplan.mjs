@@ -1,6 +1,6 @@
 // venueplan.mjs - a venue level as a PLAN (no game render): the raced road, every lane (by width,
 // labelled with its index), zones, barriers by kind, props' footprints by kind, on a metre grid.
-// BIGBRANDS=1 node tools/venueplan.mjs <level> <x0> <y0> <w> <h> <out.png>   (game m; built 11-07)
+// node tools/venueplan.mjs <level> <x0> <y0> <w> <h> <out.png>   (game m; built 11-07)
 import { pathToFileURL } from 'node:url';
 import { startServer, launchBrowser } from './lib/browser.mjs';
 const imp = (path) => import(pathToFileURL(process.cwd() + path).href);

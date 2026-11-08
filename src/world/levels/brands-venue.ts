@@ -1,4 +1,4 @@
-// world/levels/brands-venue.ts - BRANDS SNATCH AS THE REAL VENUE (?bigbrands=1, world/venue.ts):
+// world/levels/brands-venue.ts - BRANDS SNATCH AS THE REAL VENUE (world/venue.ts):
 // the real Brands Hatch from OpenStreetMap (venues/brands-snatch.ts) at 1/2 of real length with
 // the 13 m road, the GP and the Indy as two layouts of one venue sharing its scenery. Checked
 // against the circuit's own venue map (art/ref/bh-indy-msv.png: the grandstands, pits, paddocks,
@@ -7,7 +7,9 @@
 // the contour map art/ref/bh1.png), carried into real metres (the old trace: 0.656 real m a map
 // pixel, turned 28 deg); the frame is turned as the old level was (Brabham across the top).
 import { BRANDS_VENUE } from "./venues/brands-snatch.ts";
+import { venueLevel } from "../venue.ts";
 import type { VenueSpec } from "../venue.ts";
+import type { Level } from "../types.ts";
 
 export const BRANDS_SPEC: VenueSpec = {
   id: 'brands-snatch',
@@ -66,3 +68,9 @@ export const BRANDS_SPEC: VenueSpec = {
   },
   seed: 3911,
 };
+
+// the two layouts of the one venue, sharing its scenery
+export const BH_GP_LEVEL: Level = venueLevel(BRANDS_SPEC, 'gp', 'brands-snatch',
+  'Brands Snatch GP');
+export const BH_INDY_LEVEL: Level = venueLevel(BRANDS_SPEC, 'indy', 'brands-snatch-indy',
+  'Brands Snatch Indy');

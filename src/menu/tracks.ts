@@ -10,7 +10,6 @@ import { addPane, addButton, addElement, copyThumb } from './widgets.ts';
 import { showSetup } from './setup.ts';
 import { showSettings } from './settings.ts';
 import { showCredits } from './credits.ts';
-import { FIX } from '../core/fixes.ts';
 import type { Menu } from '../menu.ts';
 import type { Level, StageRecipe } from '../world/types.ts';
 import { MENU_COL } from './palette.ts';
@@ -128,8 +127,7 @@ export function showMainMenu(menu: Menu) {
   addButton(menu, buttons, 'STORY', () => {}, '', true, 'LOCKED');
   addButton(menu, buttons, 'TEST MODE', () => showTrackSelect(menu), 'go');
   addButton(menu, buttons, 'SETTINGS', () => showSettings(menu, () => showMainMenu(menu)));
-  if (FIX.credits)
-    addButton(menu, buttons, 'CREDITS', () => showCredits(menu, () => showMainMenu(menu)));
+  addButton(menu, buttons, 'CREDITS', () => showCredits(menu, () => showMainMenu(menu)));
 }
 
 /**

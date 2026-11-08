@@ -5,7 +5,7 @@
 //   tyre stacks on the track, on roads or in props, barriers on the track, on roads or in props,
 //   two barriers doubled (within DOUBLE_M of each other along DOUBLE_RUN_M), a barrier crossing
 //   another. Bridges, footbridges, the gantry and tunnel portals stand over or by roads by design.
-// node tools/venueaudit.mjs <level> [--list]   (BIGBRANDS=1 for the Brands venue)
+// node tools/venueaudit.mjs <level> [--list]
 import { pathToFileURL } from 'node:url';
 
 const [levelId = 'brands-snatch', flag] = process.argv.slice(2);

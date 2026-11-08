@@ -1,13 +1,16 @@
-// menu/credits.ts - THE CREDITS SCREEN (owner 11-07: "add a credits button to the menu"), opened
-// from the main menu. It names whose work the game carries: the traced circuit maps (Wikimedia
-// Commons, CC BY-SA - attribution required), OpenStreetMap's map data (ODbL - attribution
-// required) and the menu fonts (SIL OFL). Add a line here in the same change as anything else
-// the game takes from someone else.
+// menu/credits.ts - THE CREDITS SCREEN, opened from the main menu. It names who made the game,
+// then whose work the game carries: the traced circuit maps (Wikimedia Commons, CC BY-SA -
+// attribution required), OpenStreetMap's map data (ODbL - attribution required) and the menu
+// fonts (SIL OFL). Add a line here in the same change as anything else the game takes from
+// someone else.
 import { addPane, addButton, addElement } from './widgets.ts';
 import { MENU_COL } from './palette.ts';
 
 // what one menu context needs here (menu.ts builds it)
 interface Menu { root: HTMLElement; openedAt: number }
+
+// who made the game, the first line under the heading
+const MADE_BY = 'G';
 
 // the copyright sign in a plain face: the menu's pixel faces draw it as an @
 const COPYRIGHT = '<span style="font-family:sans-serif">©</span>';
@@ -83,6 +86,8 @@ function addCredit(panel: HTMLElement, credit: Credit): void {
 export function showCredits(menu: Menu, back: () => void): void {
   const panel = addPane(menu, false) as HTMLElement;
   addElement(panel, 'h2', 'CREDITS');
+  const maker = addElement(panel, 'div', `RAC3R · MADE BY ${MADE_BY}`, 'sub') as HTMLElement;
+  maker.style.cssText = `margin:4px 0 6px;color:${MENU_COL.fg}`;
   for (const group of CREDITS) {
     const heading = addElement(panel, 'div', group.heading, 'sub') as HTMLElement;
     heading.style.cssText = `text-align:left;margin-top:10px;color:${MENU_COL.accent}`;

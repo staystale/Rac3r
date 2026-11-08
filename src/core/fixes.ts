@@ -9,7 +9,7 @@
 // menustyle, testgarage, ai10, k12, resetin, belly, agtyre, ai20, aifast, aisafe passed 11-03;
 // drycover, rimsoft, bushmark, leafpop, aireact, skillband,
 // bhquiet, aiweave, jokerflow, aisliders, hudlean, aibands, puffroom, aigrip,
-// aidodge, ailines, ailook, dodgefar, markjump passed 11-04.)
+// aidodge, ailines, ailook, dodgefar, markjump passed 11-04; credits, bigbrands passed 11-08.)
 import { envValue } from './debug.ts';
 
 /**
@@ -40,10 +40,4 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
-  // ?credits=1: a CREDITS button on the main menu (menu/credits.ts: the traced maps, map data and
-  // fonts the game carries, with their licences; owner 11-07)
-  credits: atLoad('credits'),
-  // ?bigbrands=1: Brands Snatch as the real venue at 1/2 of real length, the GP and the Indy two
-  // layouts of it sharing its scenery (world/venue.ts, world/levels/brands-venue.ts; owner 11-07)
-  bigbrands: atLoad('bigbrands'),
 };

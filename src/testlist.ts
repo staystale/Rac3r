@@ -54,21 +54,6 @@ export const TEST_LIST: TestEntry[] = [
   // passed 2026-11-04; wetrace, lineback, onroad, rejoinfast, menurand (AI R7)
   // passed 2026-11-07; indyscale decided 2026-11-07 (3/4, the 13 m road) and removed; carpaint,
   // carlooks, carreal (the car look: paint parts, rims, redraws, real shapes), partsoff, bigparts,
-  // hwlanes, hwbales, f1aero passed 2026-11-07)
-  {
-    id: 'credits',
-    added: '2026-11-07',
-    name: 'A CREDITS button on the main menu',
-    where: 'Test link + &credits=1: the main menu, under SETTINGS',
-    try: 'Open CREDITS: map data, the traced circuit maps and the fonts, each with its licence.',
-    wrong: 'The button cut off or overlapping, text unreadable, a licence link dead, BACK lost.',
-  },
-  {
-    id: 'bigbrands',
-    added: '2026-11-07',
-    name: 'Brands Snatch as the real venue at 1/2 size, sealed by Armco, GP and Indy one venue',
-    where: 'Test link + &bigbrands=1: TEST MODE > UK CIRCUITS > Brands Snatch GP, then Indy',
-    try: 'Look round: traps, Armco + catch fence, pits, paddocks, car parks, bridges, tunnels.',
-    wrong: 'A gap in the Armco, a road or prop on the track, a bridge or tunnel that is wrong.',
-  },
+  // hwlanes, hwbales, f1aero passed 2026-11-07; credits, bigbrands (the Brands venue) passed
+  // 2026-11-08)
 ];

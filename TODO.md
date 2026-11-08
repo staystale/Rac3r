@@ -9,7 +9,8 @@ last handover, written on request.
 
 1. EVERY CIRCUIT AS ITS REAL VENUE AT 1/2 OF REAL SIZE (owner 11-07, round 2: "let's make all tracks
    1/2 size ... about the right time for a lap"; the old circuits were 0.45-0.47, Thruston 0.32).
-   Brands is the pilot (GP + Indy one venue), behind ?bigbrands=1; then every track the same way.
+   Brands, the pilot (GP + Indy one venue), PASSED 11-08: the default, the old build deleted. Then
+   every track the same way (rally stages in, ovals made real, test levels stay, lap counts kept).
    Owner 11-07: real boundaries, roads, grandstands, pits, parking, surroundings - "one track like
    the real thing that can be modified simply", "the same decorations for both" layouts, "logical
    realistic", "keep our art style". ONE VENUE per circuit: every road piece exists every time, a
@@ -35,7 +36,7 @@ last handover, written on request.
    it. The corner floodlights are placed before the lap pylons on every level (the 2.6 m double at
    Brands, 3.1 m at Slidden Hill). Long barriers are skipped by their box in collision.
    Checks: barriercheck all OK both layouts, propcheck clear, no floodlight doubles, worldhash SAME
-   off. Shots: tools/scratch/_venueshots.mjs <level> bigbrands=1 "dist,x:y,..." (ZOOM, VIEW env).
+   off. Shots: tools/scratch/_venueshots.mjs <level> "" "dist,x:y,..." (ZOOM, VIEW, WAIT env).
    On pass: delete the old Brands build, then the next track. Not yet: kerbs on the closed GP loop.
    ROUND 3 (owner 11-07): Armco as the old Brands had it, slightly more - behind traps, before hazards
    (buildings, bridge decks, portals, another stretch of track) - a catch fence INSTEAD where
@@ -43,14 +44,15 @@ last handover, written on request.
    gameplay"); trucks / parked cars only where they fit (no building, road or pit apron); closing
    tyre rows clear of the raced road; a smoother pit lane; boards behind their rail; roads that go
    somewhere (tools/venueaudit.mjs: overlaps + dead ends - clean on both layouts); bridge and
-   tunnel roads joined smoothly (world/venuejoin.ts). NEXT (owner OK): the underpass DRIVABLE
-   (a car below the track: no contact with the cars above, tarmac underfoot, hidden, no marks).
+   tunnel roads joined smoothly (world/venuejoin.ts). NEXT (owner OK 11-07, asked again 11-08):
+   DRIVABLE BRIDGES AND TUNNELS as one layer system - a car on a deck or in a tunnel stays on that
+   level until it leaves by an end: parapets / tunnel walls hold it, the deck's tarmac underfoot, no
+   contact with the cars on the track, no marks or smoke on the track, no lap counted, drawn above
+   the track (deck) or hidden under it (tunnel).
    OWNER RULE (11-07): never the black wire / rope fence ('fence' barrier) - the old levels still
    use it (Castle Cum, Thruston): replace as each gets its venue pass.
-   CREDITS (owner 11-07: "add a credits button to the menu"): ?credits=1 UNDER TEST (menu/
-   credits.ts) - OpenStreetMap (ODbL) and the five traced Wikimedia maps (CC BY-SA) REQUIRE
-   attribution; add a line there with anything else the game takes from someone. Owner to say
-   what name the game itself is credited to (if any).
+   CREDITS PASSED 11-08 (menu/credits.ts, on the main menu): "made by G"; the owner wants a studio
+   name (a parody pun) - to be picked. Add a line there with anything else the game takes.
 2. NEW UK TRACKS at that scale (Snetterton, Donington Park, + Silverstone / Oulton Park) - names
    agreed first.
 3. ROLLING LOOK - smoother than the dice flip on the same physics; mockup first.
