@@ -258,7 +258,12 @@ function camberTable(track: Subtrack, cfg: Camber): Float32Array {
     turn[i] = turnAngle > 0 ? 1 : -1;
     deg[i] = Math.min(cfg.maxDeg, cfg.maxDeg * cfg.refR / radius);
     for (const sec of cfg.sections || [])
-      if (track.pts[i].dist >= sec.from && track.pts[i].dist < sec.to) deg[i] = sec.deg;
+      if (track.pts[i].dist >= sec.from && track.pts[i].dist < sec.to) {
+        deg[i] = sec.deg;
+        // a section with a side banks that way whichever way the road wanders (an oval's banking,
+        // always toward the infield: on its straights the bend's sign is noise)
+        if (sec.side) turn[i] = sec.side;
+      }
   }
   // smooth along the track (moving average over +-6 points) so a section boundary is never a step
   const smoothed = new Float32Array(count);

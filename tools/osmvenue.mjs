@@ -13,8 +13,10 @@
 //   "extra": [{ "source": "...", "tags": { OSM tags }, "pts": [[lat, lon], ...] }] - features the map
 //   does not carry, traced from another source (the circuit's map, aerial photographs), read as
 //   ways (a closed one repeats its first point) }
-// A name in "names" also names a building, stand or car park of that way id; "kinds": { "<way
-// id>": "hangar" } sets a building's kind where the map says only building=yes.
+// A name in "names" also names a building, stand, car park or pit lane of that way id; "kinds":
+// { "<way id>": "hangar" } sets a building's kind where the map says only building=yes; "dirt":
+// [way ids] makes a motor raceway a dirt track (Daytona's flat track), not a race road piece. A
+// stand longer than STAND_SLICE_M is written as its slices (a curved one round a tri-oval).
 // A layout is the shortest loop through its "through" pieces that avoids its "avoid" pieces; it is
 // written as the ordered list of pieces it runs over, so a layout is changed by editing that list.
 import fs from 'node:fs';
@@ -35,6 +37,41 @@ function toGame(node) {
 }
 const round1 = (value) => Math.round(value * 10) / 10;
 const inClip = ([x, y]) => x >= CLIP_X0 && x <= CLIP_X1 && y >= CLIP_Y0 && y <= CLIP_Y1;
+
+// real m: the longest a stand is written as one box (longer, it is written as its slices)
+const STAND_SLICE_M = 100, STAND_SLICE_KEEP = 0.7;
+
+/**
+ * A stand's boxes: one, or a long (curved) one's slices along its length, each its own box.
+ * @param {[number, number][]} pts the outline
+ * @returns {object[]} the boxes
+ */
+function standBoxes(pts) {
+  const whole = boxAround(pts);
+  if (whole.w <= STAND_SLICE_M * 1.5) return [whole];
+  const cosA = Math.cos(whole.rot), sinA = Math.sin(whole.rot), dense = [];
+  for (let i = 1; i < pts.length; i++) {
+    const [ax, ay] = pts[i - 1], [bx, by] = pts[i], len = Math.hypot(bx - ax, by - ay);
+    for (let t = 0; t < len; t += 2) dense.push([ax + (bx - ax) * t / len, ay + (by - ay) * t / len]);
+  }
+  const along = ([x, y]) => (x - whole.x) * cosA + (y - whole.y) * sinA;
+  const count = Math.ceil(whole.w / STAND_SLICE_M), size = whole.w / count;
+  const boxes = [];
+  for (let k = 0; k < count; k++) {
+    const from = -whole.w / 2 + k * size, to = from + size;
+    const part = dense.filter((point) => along(point) >= from - 0.5 && along(point) <= to + 0.5);
+    if (part.length < 3) continue;
+    // the slice's long side along the stand's (a near-square slice's box can turn 90 degrees)
+    const box = boxAround(part), turn = Math.abs(Math.atan2(Math.sin(box.rot - whole.rot),
+      Math.cos(box.rot - whole.rot)));
+    // (each a little shorter than its slice: a curved stand's slices overlapped at the joints)
+    boxes.push(turn > Math.PI / 4 && turn < 3 * Math.PI / 4
+      ? { ...box, w: round1(box.h * STAND_SLICE_KEEP), h: box.w,
+        rot: Math.round(Math.atan2(Math.sin(box.rot + Math.PI / 2), Math.cos(box.rot + Math.PI / 2))
+          * 1000) / 1000 } : { ...box, w: round1(box.w * STAND_SLICE_KEEP) });
+  }
+  return boxes;
+}
 
 /** Douglas-Peucker simplification to a tolerance in metres */
 function simplify(points, tolerance) {
@@ -136,8 +173,10 @@ const ways = [
 ];
 
 // ---- race road pieces: every motor raceway split where pieces meet ----
+const dirtIds = new Set((config.dirt || []).map(String));
 const raceWays = ways.filter((way) => way.tags?.highway === 'raceway'
-  && /motor/.test(way.tags.sport || '') && !/Pit Lane/i.test(way.tags.name || ''));
+  && /motor/.test(way.tags.sport || '') && !/Pit Lane/i.test(way.tags.name || '')
+  && !dirtIds.has(String(way.id)));
 const uses = new Map();
 for (const way of raceWays) for (const node of way.geometry) uses.set(keyOf(node), (uses.get(keyOf(node)) || 0) + 1);
 const pieces = [];
@@ -211,7 +250,7 @@ const SERVICE_WIDTH = { service: 5, residential: 6, unclassified: 6, tertiary: 7
 const FOOT_WAYS = new Set(['footway', 'path', 'steps', 'pedestrian']);
 const out = { pieces: [], layouts: {}, pitLanes: [], roads: [], footbridges: [], dirt: [],
   karting: [], tunnels: [], traps: [], tyres: [], stands: [], buildings: [], paddocks: [],
-  woods: [], homes: [], rails: [], aero: [], rows: [] };
+  woods: [], homes: [], rails: [], aero: [], rows: [], water: [] };
 for (const piece of pieces)
   out.pieces.push({ name: piece.name, pts: cleanLine(piece.raw, 0.25) });
 for (const [id, spec] of Object.entries(config.layouts || {})) out.layouts[id] = buildLayout(spec);
@@ -227,8 +266,10 @@ for (const way of ways) {
   if (!pts.some(inClip) || !pts.some(inReach)) continue;
   const line = (tolerance) => cleanLine(pts, tolerance);
   if (tags.highway === 'raceway' && /Pit Lane/i.test(tags.name || ''))
-    out.pitLanes.push({ name: tags.name, pts: line(0.25) });
+    out.pitLanes.push({ name: config.names?.[way.id] || tags.name, pts: line(0.25) });
   else if (tags.highway === 'raceway' && /kart/.test(tags.sport || '')) out.karting.push({ pts: line(0.3) });
+  else if (tags.highway === 'raceway' && dirtIds.has(String(way.id)))
+    out.dirt.push({ name: tags.name || '', pts: line(0.5) });
   else if (tags.highway === 'raceway' && /motor/.test(tags.sport || '')) continue;   // a race piece
   else if (tags.highway === 'raceway') out.dirt.push({ name: tags.name || '', pts: line(0.5) });
   // (a road through a building - tunnel=building_passage - is a road, not a tunnel under the track)
@@ -249,7 +290,8 @@ for (const way of ways) {
     out.rails.push({ kind: tags.barrier, pts: line(0.3) });
   // (a building mapped by its name as a grandstand is one)
   else if ((tags.building === 'grandstand' || /grandstand/i.test(tags.name || '')) && closed(way))
-    out.stands.push({ name: config.names?.[way.id] || tags.name || '', ...boxAround(pts) });
+    for (const box of standBoxes(pts))
+      out.stands.push({ name: config.names?.[way.id] || tags.name || '', ...box });
   // a marshal post mapped as a building (its fire extinguisher): the venue places its own
   else if (tags.building && tags.emergency) continue;
   else if (tags.building && closed(way))
@@ -272,6 +314,8 @@ for (const way of ways) {
     out.paddocks.push({ name: tags.name || '', surface: tags.surface || '', ...boxAround(pts),
       pts: line(1) });
   else if ((tags.natural === 'wood' || tags.landuse === 'forest') && closed(way)) out.woods.push({ pts: line(2) });
+  // lakes and ponds (scenery water)
+  else if (tags.natural === 'water' && closed(way)) out.water.push({ name: tags.name || '', pts: line(1) });
   // hedgerows and tree rows: the trees along the field edges
   else if (tags.barrier === 'hedge' || tags.natural === 'tree_row') out.rows.push({ pts: line(2) });
 }

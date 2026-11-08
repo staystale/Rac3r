@@ -16,7 +16,7 @@ import { venueCrossings } from "./crossings.ts";
 import { CIRCUIT_BUSHES } from "./levels/bushes.ts";
 import { buildVenueScenery } from "./venuescenery.ts";
 import { VENUE_ROAD_M, lineLength, pointAlong } from "./venuegeo.ts";
-import type { Bump, Cone, Lane, Level, Point, Subtrack } from "./types.ts";
+import type { Barrier, Bump, Camber, Cone, Lane, Level, Point, Subtrack } from "./types.ts";
 
 /** A turned rectangle from the map (real m, the long side along w). */
 export interface VenueBox { name: string; x: number; y: number; w: number; h: number; rot: number }
@@ -45,6 +45,8 @@ export interface VenueData {
   aero?: { kind: string; surface: string; width: number; area: boolean; pts: Point[] }[];
   // hedgerows and tree rows along the field edges (trees stand along them)
   rows?: { pts: Point[] }[];
+  // lakes and ponds (scenery water)
+  water?: { name: string; pts: Point[] }[];
 }
 
 /** One venue level's hand-set facts (real metres in the venue data's frame). */
@@ -59,12 +61,16 @@ export interface VenueSpec {
   // m (game): the tightest radius its traced layouts keep, where the real hairpins are tighter
   // than VENUE_MIN_R at the venue's scale (eased wider, a hairpin's two legs were drawn together)
   minR?: number;
+  // the trace's smoothing (world/subtrack.ts traceTrack passes / kern), stronger where the map's
+  // line jogs a few metres along a fast banked bend (Dieatona's tri-oval)
+  trace?: Record<string, { passes: number; kern: number }>;
   pitLane: string;   // the data's pit lane in use
   hills: Bump[];   // the hills (r and d / h in real m: scaled with the map)
   // spectator earth banks; a catch fence in front of each unless fenced is false (the sources show
   // its viewers behind the circuit's rail, no fence)
   banks: { pts: Point[]; r: number; h: number; fenced?: boolean }[];
-  boards: { at: Point; label: string }[];   // advertising boards (the road side nearest)
+  // advertising boards (the road side nearest; on: only on that kind of barrier)
+  boards: { at: Point; label: string; on?: Barrier['kind'] }[];
   bridgeLabel?: string;   // painted on the footbridge
   // the map warped before it is built: past a line (through at, normal dir) everything moves
   // shift m along dir, eased in over band m (more room where the real place is tight)
@@ -96,6 +102,13 @@ export interface VenueSpec {
   landmarks?: { at: Point; kind: string; size: number }[];
   // light aircraft parked on the airfield's grass stands (data.aero stands), one a colour
   planes?: string[];
+  // an oval's: races start rolling; each layout's banking (world/terrain.ts camberTable: sections
+  // by lap metre); the concrete wall round the named layout's outside, gapM past its edge
+  rollingStart?: boolean;
+  camber?: Record<string, Camber>;
+  ovalWall?: { layout: string; gapM: number; kind: Barrier['kind'] };
+  // surfaces laid by hand as outlines (real m): a mown pattern in the infield grass
+  patches?: { pts: Point[]; surface: keyof typeof SURFACES }[];
   seed: number;
 }
 
@@ -175,7 +188,9 @@ function startAt(line: Point[], spot: Point): Point[] {
 function traceLayout(spec: VenueSpec, layout: string, scale: number): Subtrack {
   const line = startAt(layoutLine(spec.data, layout), spec.starts?.[layout] || spec.start);
   const sub = createSubtrack(
-    traceTrack(line, { mpp: scale, cx: 0, cy: 0, rMin: spec.minR || VENUE_MIN_R }), VENUE_ROAD_M,
+    traceTrack(line, { mpp: scale, cx: 0, cy: 0, rMin: spec.minR || VENUE_MIN_R,
+      ...spec.trace?.[layout] }),
+    VENUE_ROAD_M,
     [{ startDist: 0, endDist: 1e9, surface: SURFACES.racetarmac }], [], true);
   sub.curvedKerbs = autoKerbs(sub, { maxR: 70, exitR: 30, heavyR: 22, minTurn: 20, mergeGap: 12 });
   return sub;
@@ -223,6 +238,7 @@ function warpSpec(spec: VenueSpec): VenueSpec {
     railsSeen: walk(spec.railsSeen) as VenueSpec['railsSeen'],
     pads: walk(spec.pads) as VenueSpec['pads'],
     landmarks: walk(spec.landmarks) as VenueSpec['landmarks'], start: move(spec.start),
+    patches: walk(spec.patches) as VenueSpec['patches'],
     starts: walk(spec.starts) as VenueSpec['starts'] };
 }
 
@@ -367,8 +383,9 @@ export function venueLevel(spec: VenueSpec, layout: string, levelId: string,
     id: levelId, name, base: SURFACES.grass, subtrack: sub, bounds: scenery.bounds,
     floor: Math.ceil(Math.max(-scenery.bounds.x0, scenery.bounds.x1, -scenery.bounds.y0,
       scenery.bounds.y1)),
-    camber: { maxDeg: 3, refR: 70, crown: 0.02, edge: 6, sections: [] },
-    zones: scenery.zones, covers: [], bumps: prepBumps(venueBumps(build)), boards: [],
+    camber: spec.camber?.[layout] || { maxDeg: 3, refR: 70, crown: 0.02, edge: 6, sections: [] },
+    ...(spec.rollingStart ? { rollingStart: true } : {}),
+    zones: scenery.zones, covers: scenery.covers, bumps: prepBumps(venueBumps(build)), boards: [],
     seams: false, cones: [...closed.cones, ...scenery.cones], bushes: CIRCUIT_BUSHES,
     lanes: [...scenery.lanes, ...closed.lanes], barriers: scenery.barriers,
     props: scenery.props, solids: solidsFromProps(scenery.props),

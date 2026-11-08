@@ -42,6 +42,8 @@ export function pitLane(site: Site): { lane: Lane; wall: Barrier | null } {
   dense.forEach(([x, y], i) => {
     if (Math.min(i, dense.length - 1 - i) * 2 < PIT_MERGE_M) return;
     const { sub, hit } = nearestLoop(site.loops, x, y);
+    // (a stretch of lane beyond the road's lookup has no side: the tri-oval's chord)
+    if (!Number.isFinite(hit.dist)) return;
     beside.push({ sub, dist: hit.trackDist, side: hit.side === 'left' ? 1 : -1 });
   });
   // the lane in the track's own measure - distance along it, offset beside it - held out to its
