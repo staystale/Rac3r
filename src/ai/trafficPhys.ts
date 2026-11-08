@@ -143,7 +143,7 @@ export function drivePhysics(
   // ---- the same physics as every car: clamps (+ the damage they do), ground, then the
   // tyres or the tumble
   const v0x = car.vx, v0y = car.vy;
-  clampWorld(car);
+  clampWorld(car, dt);
   hit(car, v0x, v0y);
   applyGround(car, dt);
   if (rolling(car)) {

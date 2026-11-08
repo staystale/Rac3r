@@ -220,7 +220,7 @@ export function stepCarPhysics(inp: CarInput) {
     // DAMAGE (damage.ts): the velocity change the clamps impose IS the impact
     const pv0x = game.car.vx, pv0y = game.car.vy;
     // the fence, buildings, barriers, trees ... or a bridge's or tunnel's walls
-    clampWorld(game.car);
+    clampWorld(game.car, PHYSICS_STEP_SECONDS);
     hit(game.car, pv0x, pv0y);
     applyGround(game.car, PHYSICS_STEP_SECONDS);
     // ROLLOVER (roll.ts): a rolling / overturned car has no tyres to drive on — the body

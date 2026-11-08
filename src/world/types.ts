@@ -249,6 +249,7 @@ export interface CarBody {
   crossing?: number;
   crossX?: number;
   crossY?: number;
+  tangleT?: number;   // s a torn catch fence still drags it (world/armcodent.ts)
 }
 
 // A DRIVABLE BRIDGE OR TUNNEL (world/crossings.ts): a straight way between two ends, over or under

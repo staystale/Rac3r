@@ -17,7 +17,7 @@ import {
   DECK_ROAD_HI, DECK_ROAD_LO, PORTAL_LINTEL_M, PORTAL_WALL_M, VENUE_DECK,
 } from "./crossinggeo.ts";
 import {
-  applyRailHit, dents, isTornAfter, railBounce, railContact, straightenRails,
+  applyRailHit, dents, isTornAfter, railBounce, railContact, railScrape, straightenRails,
 } from "./armcodent.ts";
 import type {
   Barrier, BarrierKind, BarrierSeg, CarBody, Point, Prop, Solid, Subtrack,
@@ -299,11 +299,12 @@ function pickAxis(
  * @param ny surface normal y
  * @param elastic the bounce (an armco rail's is softer: world/armcodent.ts)
  */
-function bounceOffNormal(car: CarBody, nx: number, ny: number, elastic = BARRIER_E): void {
+function bounceOffNormal(car: CarBody, nx: number, ny: number, elastic = BARRIER_E,
+  scrape = BARRIER_SCRAPE): void {
   const normalSpeed = car.vx * nx + car.vy * ny;
   if (normalSpeed < 0) {
     const tangX = -ny, tangY = nx, tangSpeed = car.vx * tangX + car.vy * tangY;
-    const vn2 = -normalSpeed * elastic, vt2 = tangSpeed * BARRIER_SCRAPE;
+    const vn2 = -normalSpeed * elastic, vt2 = tangSpeed * scrape;
     car.vx = nx * vn2 + tangX * vt2;
     car.vy = ny * vn2 + tangY * vt2;
     car.yawRate *= 0.6;
@@ -493,7 +494,8 @@ function clampCornerToSeg(
   const push = half - dist * side;
   car.x += nx * push;
   car.y += ny * push;
-  bounceOffNormal(car, nx, ny, rail ? railBounce(rail) : BARRIER_E);
+  bounceOffNormal(car, nx, ny, rail ? railBounce(rail) : BARRIER_E,
+    rail ? railScrape(rail) : BARRIER_SCRAPE);
 }
 /**
  * Clamp the car's four corners against one barrier segment.

@@ -269,7 +269,7 @@ export function stepAICar(entry: AiEntry, dt: number) {
   car.tcsOn = !!game.car.tcsOn && !!(car.spec.aids && car.spec.aids.tcs);
   try {
     const v0x = car.vx, v0y = car.vy;
-    clampWorld(car);
+    clampWorld(car, dt);
     hit(car, v0x, v0y);
     stepAIInjury(entry, dt);
     applyGround(car, dt);

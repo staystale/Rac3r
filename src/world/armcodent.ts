@@ -13,23 +13,32 @@
 // Only the level's armco barriers: the arena's edge fence is left out (owner).
 import type { Barrier, BarrierSeg, Point } from './types.ts';
 
-/** How a rail gives: when it dents, how deep, when it tears, its bounce and how much of a
- * hit's damage the car still takes. */
+/** How a rail gives: when it dents, how deep, when it tears, its bounce, how much of a hit's
+ * damage the car still takes, the share of the car's speed along it kept a contact step (its
+ * grab), and the share of its speed into it a car tearing through loses at once. */
 interface RailFeel { from: number; perV: number; max: number; tear: number; bounce: number;
-  give: number }
+  give: number; scrape: number; tearLoss: number }
 // THE ARMCO: m/s into the rail below which it does not dent (from); m of dent per m/s above that
 // (perV: 50 km/h square on ~0.4 m, 80 km/h ~0.77 m); the deepest a dent goes (max, m); a hit that
 // would take it this deep tears it (tear: one square hit from ~115 km/h, or a second hard one on
 // a deep dent); its bounce (a wall's BARRIER_E is 0.3) and the share of a hit's damage the car
 // still takes (give: measured, the softer bounce alone took only ~3 % off).
 // THE CATCH FENCE (owner 11-07: weaker than the Armco, as real ones are; 11-08: "slightly weaker
-// and shred to bits when hit"): mesh on posts - it gives from a slower hit and deeper, tears from
-// ~63 km/h square (was ~77), barely bounces, takes more of the hit off the car, and a tear SHREDS
-// it: the torn stretch flies off as scraps of mesh and bent posts (loose objects: world/debris.ts).
+// and shred to bits when hit", then "still too strong ... catch n drag"): mesh on posts - it gives
+// from 1 m/s and deeper, tears from ~40 km/h square, barely bounces, takes most of the hit off
+// the car, GRABS a car sliding along it (keeps 0.6 of its speed along a contact step, the Armco
+// 0.85), and a tear SHREDS it (the torn stretch flies off as scraps of mesh and bent posts: loose
+// objects, world/debris.ts) and TANGLES the car: less speed lost at once, then the mesh drags it
+// (TANGLE_*) as it tears loose.
 const RAIL_FEEL: Record<string, RailFeel> = {
-  armco: { from: 3, perV: 0.04, max: 0.8, tear: 1.1, bounce: 0.2, give: 0.9 },
-  catchfence: { from: 1.2, perV: 0.08, max: 1.2, tear: 1.3, bounce: 0.06, give: 0.5 },
+  armco: { from: 3, perV: 0.04, max: 0.8, tear: 1.1, bounce: 0.2, give: 0.9, scrape: 0.85,
+    tearLoss: 0.4 },
+  catchfence: { from: 1, perV: 0.1, max: 0.95, tear: 1, bounce: 0.05, give: 0.3, scrape: 0.6,
+    tearLoss: 0.2 },
 };
+// a car torn through a catch fence is dragged by the mesh this long, s, slowing it this hard at
+// first, m/s^2, easing off as it tears loose
+const TANGLE_S = 1, TANGLE_DECEL = 6;
 // a torn catch fence's shreds: scraps of mesh and posts a gap throws, the share of the car's speed
 // into it they fly off with (least, most), their spread along the fence, m/s
 const SHRED_MESH = 6, SHRED_POSTS = 2, SHRED_SPEED: [number, number] = [0.35, 0.8],
@@ -76,9 +85,8 @@ function shredFence(from: Point, till: Point, nx: number, ny: number, into: numb
 }
 // the dent's half width along the rail and the spacing of the points added there, m
 const DENT_HALF_M = 3, DENT_STEP_M = 0.5;
-// the gap a tear opens each side of the hit, m; the share of its speed into the rail a car
-// loses going through
-const TEAR_HALF_M = 2, TEAR_LOSS = 0.4;
+// the gap a tear opens each side of the hit, m
+const TEAR_HALF_M = 2;
 
 /**
  * Whether a barrier dents (an armco rail).
@@ -93,6 +101,34 @@ export const dents = (barrier: Barrier): boolean => barrier.kind in RAIL_FEEL;
  * @returns the restitution
  */
 export const railBounce = (barrier: Barrier): number => RAIL_FEEL[barrier.kind].bounce;
+
+/**
+ * A rail's grab on a car sliding along it (world/barriers.ts): the share of its speed along it
+ * kept a contact step.
+ * @param barrier the rail
+ * @returns the share
+ */
+export const railScrape = (barrier: Barrier): number => RAIL_FEEL[barrier.kind].scrape;
+
+/**
+ * A car tangled in a torn catch fence is dragged by the mesh (world/crossings.ts clampWorld, each
+ * step): slowed along its way, less as it tears loose.
+ * @param car the car (its tangle, s left)
+ * @param car.vx velocity x, m/s
+ * @param car.vy velocity y, m/s
+ * @param car.tangleT s of drag left (set by a tear)
+ * @param dt the step, s
+ */
+export function dragTangled(car: { vx: number; vy: number; tangleT?: number }, dt: number): void {
+  if (!car.tangleT || car.tangleT <= 0) return;
+  const speed = Math.hypot(car.vx, car.vy);
+  const slow = Math.min(speed, TANGLE_DECEL * (car.tangleT / TANGLE_S) * dt);
+  if (speed > 0) {
+    car.vx -= (car.vx / speed) * slow;
+    car.vy -= (car.vy / speed) * slow;
+  }
+  car.tangleT = Math.max(0, car.tangleT - dt);
+}
 
 /**
  * The scale on a hit's damage for what was hit: an armco rail gives a little (damage.ts hit).
@@ -166,16 +202,19 @@ function keepStraight(barrier: Barrier): void {
  * @param car the car's velocity, m/s (changed when it tears through)
  * @param car.vx velocity x
  * @param car.vy velocity y
+ * @param car.tangleT s a torn catch fence drags it (set when it tears one)
  * @returns true when it tore (the car goes on through: no bounce)
  */
 export function railContact(barrier: Barrier, seg: BarrierSeg, frac: number, nx: number, ny: number,
-    car: { vx: number; vy: number }): boolean {
+    car: { vx: number; vy: number; tangleT?: number }): boolean {
   const into = -(car.vx * nx + car.vy * ny), feel = RAIL_FEEL[barrier.kind];
   if (!(into > feel.from)) return false;
   if (depthAt(barrier, seg, frac) + feel.perV * (into - feel.from) >= feel.tear) {
-    tear(barrier, seg, frac, barrier.kind === 'catchfence' ? { nx, ny, into } : null);
-    car.vx += nx * into * TEAR_LOSS;
-    car.vy += ny * into * TEAR_LOSS;
+    const mesh = barrier.kind === 'catchfence';
+    tear(barrier, seg, frac, mesh ? { nx, ny, into } : null);
+    car.vx += nx * into * feel.tearLoss;
+    car.vy += ny * into * feel.tearLoss;
+    if (mesh) car.tangleT = TANGLE_S;
     return true;
   }
   if (!pending || into > pending.into) pending = { seg, frac, into, nx, ny };

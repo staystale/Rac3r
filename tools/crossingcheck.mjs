@@ -25,7 +25,7 @@ if (!ways.length) process.exit(1);
  */
 function drive(car, want, seconds, watch) {
   for (let time = 0; time < seconds; time += PHYSICS_STEP_SECONDS) {
-    clampWorld(car);
+    clampWorld(car, PHYSICS_STEP_SECONDS);
     L.applyGround(car, PHYSICS_STEP_SECONDS);
     step(car, want(car), PHYSICS_STEP_SECONDS);
     watch(car);

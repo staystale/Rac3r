@@ -10,6 +10,7 @@
 // on is up the ramp or down into the cut.
 import { FIX } from "../core/fixes.ts";
 import { barrierClamp, clampToBarriers, prepBarriers, solidClamp } from "./barriers.ts";
+import { dragTangled } from "./armcodent.ts";
 import {
   DECK_ROAD_HI, DECK_ROAD_LO, PORTAL_LINTEL_M, VENUE_DECK, acrossOf, alongOf, crossingOf,
 } from "./crossinggeo.ts";
@@ -29,10 +30,12 @@ const RISE_SHARE = 0.025, RISE_MAX_M = 2.5;
  * Steps which level a car is on (an end crossed into a crossing puts it on; an end crossed out
  * puts it back on the ground), then holds it against that level: a crossing's walls, or the
  * ground's fence, obstacles, barriers and solids. Every car's physics step calls it before
- * applyGround (world/wear.ts).
+ * applyGround (world/wear.ts). A car tangled in a torn catch fence is dragged (world/armcodent.ts).
  * @param car the car body
+ * @param dt the step, s
  */
-export function clampWorld(car: CarBody): void {
+export function clampWorld(car: CarBody, dt: number): void {
+  dragTangled(car, dt);
   stepLevel(car);
   const way = crossingOf(car);
   if (way) {
