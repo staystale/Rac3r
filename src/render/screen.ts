@@ -7,7 +7,10 @@ import { drawWetTrails } from "../wettrail.ts";
 import { drawStingers } from "./stingers.ts";
 import { drawFlipRamps } from "./flipramps.ts";
 import type { CarPicture } from "./cars.ts";
+import { crossingOf, isUnderground } from "../world/crossinggeo.ts";
+import { LEVEL } from "../world/state.ts";
 import type { RenderCar, RenderGame, RenderMarks, View } from "./types.ts";
+import type { Crossing } from "../world/types.ts";
 
 /** What the screen passes read from the renderer (render.ts RenderCtx has all of it). */
 export interface ScreenCtx {
@@ -71,32 +74,29 @@ export function forEachDrawnCar(ctx: ScreenCtx, game: RenderGame,
  * (everything under the cars) is blitted first; each car's picture is painted enlarged by a whole
  * factor (nearest), then turned and scaled onto the screen with smoothing, which blends only
  * across its pixel edges; then the art buffer is cleared, takes the overhead props and is blitted
- * over the cars.
+ * over the cars. A car on a bridge (world/crossings.ts) is drawn after that, over the bridge; one
+ * in a tunnel only where it is in a portal's open cut - and the player's own, under the ground,
+ * faint over everything so it can be steered.
  *
  * @param ctx the renderer context
  * @param game the game to draw
  * @param lock what applyViewLock changed (the sub-pixel shift)
  */
 export function drawSharpCarLayers(ctx: ScreenCtx, game: RenderGame, lock: ScreenLock) {
-  const { view, state, mainCtx } = ctx;
+  const { state, mainCtx } = ctx;
   blitArt(ctx, lock);
-  const devPerCss = view.dpr * state.blockPx;
-  const devPerTexel = (ctx.PPMz() / SPRITE_PPM) * devPerCss;
-  // enlarged so the final step only shrinks a little (an even edge blend); shrunk below one
-  // device px per texel the browser's high-quality filter averages instead of dropping pixels
-  const enlarge = Math.max(1, Math.ceil(devPerTexel - 0.01)), scale = devPerTexel / enlarge;
   mainCtx.save();
-  mainCtx.imageSmoothingEnabled = true;
-  mainCtx.imageSmoothingQuality = enlarge === 1 && scale < 1 ? 'high' : 'low';
+  const sharp = sharpScale(ctx, lock);
   drawSparksOnScreen(ctx, lock);
   forEachDrawnCar(ctx, game, (car) => {
-    const picture = ctx.paintCarPicture(car, enlarge);
-    mainCtx.setTransform(1, 0, 0, 1, 0, 0);
-    mainCtx.translate(ctx.toScreenX(car.x) * devPerCss + lock.subX,
-      ctx.toScreenY(car.y) * devPerCss + lock.subY);
-    mainCtx.rotate(car.heading);
-    mainCtx.scale(scale, scale);
-    mainCtx.drawImage(picture.canvas, -picture.originX, -picture.originY);
+    const way = crossingOf(car);
+    if (!way) drawSharpCar(ctx, car, sharp);
+    else if (way.kind === 'tunnel') {
+      mainCtx.save();
+      clipToCuts(ctx, way, sharp);
+      drawSharpCar(ctx, car, sharp);
+      mainCtx.restore();
+    }
   });
   mainCtx.restore();
   clearArt(ctx);
@@ -105,6 +105,92 @@ export function drawSharpCarLayers(ctx: ScreenCtx, game: RenderGame, lock: Scree
   if (!ctx.skip('fx')) ctx.drawOverPuffs(state.wallDt);
   if (!ctx.skip('rain')) ctx.drawRain();
   blitArt(ctx, lock);
+  if (!LEVEL.crossings) return;
+  mainCtx.save();
+  sharpScale(ctx, lock);
+  forEachDrawnCar(ctx, game, (car) => {
+    const way = crossingOf(car);
+    if (way && way.kind === 'bridge') drawSharpCar(ctx, car, sharp);
+  });
+  if (isUnderground(game.car) && !ctx.skip('car')) {
+    mainCtx.globalAlpha = UNDERGROUND_ALPHA;
+    drawSharpCar(ctx, game.car, sharp);
+  }
+  mainCtx.restore();
+}
+
+// the player's own car under the ground (in a tunnel): drawn this faint over everything
+const UNDERGROUND_ALPHA = 0.4;
+
+/** How a frame's sharp cars are put on the screen: device px a CSS px, enlargement, scale. */
+interface SharpScale { devPerCss: number; enlarge: number; scale: number; subX: number;
+  subY: number }
+
+/**
+ * The frame's sharp-car scale, and the screen canvas set to smooth by it.
+ * @param ctx the renderer context
+ * @param lock what applyViewLock changed (the sub-pixel shift)
+ * @returns the scale
+ */
+function sharpScale(ctx: ScreenCtx, lock: ScreenLock): SharpScale {
+  const { view, state, mainCtx } = ctx;
+  const devPerCss = view.dpr * state.blockPx;
+  const devPerTexel = (ctx.PPMz() / SPRITE_PPM) * devPerCss;
+  // enlarged so the final step only shrinks a little (an even edge blend); shrunk below one
+  // device px per texel the browser's high-quality filter averages instead of dropping pixels
+  const enlarge = Math.max(1, Math.ceil(devPerTexel - 0.01)), scale = devPerTexel / enlarge;
+  mainCtx.imageSmoothingEnabled = true;
+  mainCtx.imageSmoothingQuality = enlarge === 1 && scale < 1 ? 'high' : 'low';
+  return { devPerCss, enlarge, scale, subX: lock.subX, subY: lock.subY };
+}
+
+/**
+ * Draws one car's picture turned and scaled onto the screen canvas.
+ * @param ctx the renderer context
+ * @param car the car
+ * @param sharp the frame's sharp-car scale
+ */
+function drawSharpCar(ctx: ScreenCtx, car: RenderCar, sharp: SharpScale) {
+  const { mainCtx } = ctx, picture = ctx.paintCarPicture(car, sharp.enlarge);
+  mainCtx.setTransform(1, 0, 0, 1, 0, 0);
+  mainCtx.translate(ctx.toScreenX(car.x) * sharp.devPerCss + sharp.subX,
+    ctx.toScreenY(car.y) * sharp.devPerCss + sharp.subY);
+  mainCtx.rotate(car.heading);
+  mainCtx.scale(sharp.scale, sharp.scale);
+  mainCtx.drawImage(picture.canvas, -picture.originX, -picture.originY);
+  mainCtx.setTransform(1, 0, 0, 1, 0, 0);
+}
+
+// m: a tunnel's cut drawn this much wider than its walls (a car's mirror over the wall's top)
+const CUT_MARGIN_M = 0.6;
+
+/**
+ * Clips the screen canvas to a tunnel's two open cuts (where its cars are seen).
+ * @param ctx the renderer context
+ * @param way the tunnel
+ * @param sharp the frame's sharp-car scale
+ */
+function clipToCuts(ctx: ScreenCtx, way: Crossing, sharp: SharpScale) {
+  const { mainCtx } = ctx;
+  const least = way.minAcross - CUT_MARGIN_M, most = way.maxAcross + CUT_MARGIN_M;
+  const corner = (along: number, across: number, first: boolean) => {
+    const x = way.ax + way.dirX * along - way.dirY * across;
+    const y = way.ay + way.dirY * along + way.dirX * across;
+    const screenX = ctx.toScreenX(x) * sharp.devPerCss + sharp.subX;
+    const screenY = ctx.toScreenY(y) * sharp.devPerCss + sharp.subY;
+    if (first) mainCtx.moveTo(screenX, screenY);
+    else mainCtx.lineTo(screenX, screenY);
+  };
+  mainCtx.setTransform(1, 0, 0, 1, 0, 0);
+  mainCtx.beginPath();
+  for (const [near, far] of [[0, way.cut], [way.length - way.cut, way.length]]) {
+    corner(near, least, true);
+    corner(far, least, false);
+    corner(far, most, false);
+    corner(near, most, false);
+    mainCtx.closePath();
+  }
+  mainCtx.clip();
 }
 
 /**

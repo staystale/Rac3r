@@ -38,6 +38,7 @@ import { createNight } from "./render/light.ts";
 import { updateLampLight } from "./world/lamps.ts";
 import { WEATHER } from "./world/weather.ts";
 import { noteBodies } from "./render/leafpop.ts";
+import { onGround } from "./world/crossinggeo.ts";
 
 // PPM is derived from the SHORT side of the viewport, so the car is a consistent fraction of the
 // screen everywhere (a flat PPM of 16 put a 4 m car at 64 px on a 1280 px desktop, too small
@@ -257,14 +258,17 @@ const AI_DUST_M = 90;
 function drawEffects(ctx: RenderCtx, game: RenderGame, wallDt: number) {
   const { skip } = ctx;
   ctx.addPuffs(game.cones.drainHits());
-  ctx.addSpray(game.car, game.marks, wallDt);
-  ctx.addSmoke(game.car, game.marks, wallDt);
+  // none from a car on a bridge or in a tunnel (world/crossings.ts): it would land on the track
+  if (onGround(game.car)) {
+    ctx.addSpray(game.car, game.marks, wallDt);
+    ctx.addSmoke(game.car, game.marks, wallDt);
+  }
   // a car's body ploughing into a bush throws leaves (render/leafpop.ts)
-  noteBodies([game.car, ...(game.ai || []).map((rival) => rival.car)]);
+  noteBodies([game.car, ...(game.ai || []).map((rival) => rival.car)].filter(onGround));
   // the AI cars near you too (owner 11-03: AI cars threw no smoke or dust)
   for (const rival of game.ai || []) {
     const car = rival.car;
-    if (Math.abs(car.x - game.car.x) > AI_DUST_M
+    if (!onGround(car) || Math.abs(car.x - game.car.x) > AI_DUST_M
       || Math.abs(car.y - game.car.y) > AI_DUST_M) continue;
     ctx.addSpray(car, game.marks, wallDt, true);
     ctx.addSmoke(car, game.marks, wallDt, true);
@@ -276,7 +280,7 @@ function drawEffects(ctx: RenderCtx, game: RenderGame, wallDt: number) {
       ? game.traffic.cars.filter((vehicle) => vehicle.dmg
         && Math.abs(vehicle.x - game.car.x) < 90 && Math.abs(vehicle.y - game.car.y) < 90)
       : []),
-  ];
+  ].filter(onGround);
   ctx.setAirCars(effectCars);   // the cars stirring the air (render/airflow.ts)
   for (const car of effectCars) {
     ctx.addEngineSmoke(car, wallDt);

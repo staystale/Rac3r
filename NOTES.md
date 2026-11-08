@@ -261,11 +261,21 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   both ways (it folded 8 m of map over between Brabham and Cooper: torn paddocks, kinked roads).
 - Tunnel portals are solid to everything laid after them; a tunnel's road carries on the road that
   ends at its mouth (cut back to where the curve runs on smoothly), never loops round to it.
+- BRIDGES AND TUNNELS ARE DRIVABLE LEVELS (owner OK 11-07, asked again 11-08; ?crossings=1 under
+  test): a car changes level only through an END (a ramp's foot, a portal's open end); on one it
+  meets only its walls, its deck, the cars on it - nothing on the ground, no marks, no lap. The
+  ground meets the ends as solid (ramp walls + abutment, portal walls + lintel). A tunnel car is
+  seen only in the open cuts; the player's own shows faint underground to steer by (a choice made
+  for playability, open to the owner). tools/crossingcheck.mjs drives each one both ways.
 - "Straight Outta Swindon" is a reserved name for a future highway level (the test straight that
   used it was removed 10-17).
 
 ## Measured lessons
 
+- A RED CI RUN IS A BUG UNTIL SHOWN OTHERWISE (11-08): the renderhash jobs failed for a day as a
+  "tool failure" (reading 'mass') - it was the game: a torn-off driven wheel threw a drive shaft
+  with no loose-object entry and the sim step threw. tools/partcheck.mjs now walks every car's
+  every part; add a part kind and its DEBRIS entry in the same change.
 - RENDERHASH COMPARES LIKE WITH LIKE (10-24): a level's hash depends on which levels ran before
   it in the same page - a --only list against a reference saved by --shard reads DIFFERENT on
   every level with no code change. Prove a change by running the SAME list (same --only or

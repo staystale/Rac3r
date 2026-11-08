@@ -12,8 +12,9 @@ import { LEVEL } from "../world/state.ts";
 import { headlightsWanted } from "../world/daylight.ts";
 import { WEATHER } from "../world/weather.ts";
 import { stepWetTrails } from "../wettrail.ts";
-import { applyGround, fenceClamp, obstacleClamp } from "../world/wear.ts";
-import { barrierClamp, solidClamp } from "../world/barriers.ts";
+import { applyGround } from "../world/wear.ts";
+import { clampWorld } from "../world/crossings.ts";
+import { onGround } from "../world/crossinggeo.ts";
 import { takeThrownPlanks } from "../world/marshalbox.ts";
 import { throwParts, stepParts } from "../world/debris.ts";
 import { findNearestSubtrackPoint } from "../world/tyrewall.ts";
@@ -217,10 +218,8 @@ export function stepCarPhysics(inp: CarInput) {
   try {
     // DAMAGE (damage.ts): the velocity change the clamps impose IS the impact
     const pv0x = game.car.vx, pv0y = game.car.vy;
-    fenceClamp(game.car);
-    obstacleClamp(game.car);
-    barrierClamp(game.car);
-    solidClamp(game.car);   // trees, planes, hangars ... (lab.ts solidsFromProps)
+    // the fence, buildings, barriers, trees ... or a bridge's or tunnel's walls
+    clampWorld(game.car);
     hit(game.car, pv0x, pv0y);
     applyGround(game.car, PHYSICS_STEP_SECONDS);
     // ROLLOVER (roll.ts): a rolling / overturned car has no tyres to drive on — the body
@@ -413,7 +412,7 @@ export function stepTrafficContacts(tcars: TrafficVehicle[]) {
       ? [...racers, ...tcars] : racers, startVel = all.map((racer) => [racer.vx, racer.vy]);
     carContacts(all);
     all.forEach((racer, i) => hit(racer, startVel[i][0], startVel[i][1]));
-    if (game.ai.length) wakeStep(racers);
+    if (game.ai.length) wakeStep(racers.filter(onGround));
   }
 }
 
@@ -429,13 +428,14 @@ export function stepLooseCones(tcars: TrafficVehicle[]) {
     const near = tcars.length
       ? tcars.filter((racer) => Math.abs(racer.x - game.car.x) < 60
         && Math.abs(racer.y - game.car.y) < 60) : [];
-    const field = game.ai.length || near.length
-      ? [game.car, ...game.ai.map((entry) => entry.car), ...near] : [game.car],
+    // (a car on a bridge or in a tunnel touches nothing on the ground: world/crossings.ts)
+    const field = (game.ai.length || near.length
+      ? [game.car, ...game.ai.map((entry) => entry.car), ...near] : [game.car]).filter(onGround),
         startVel = field.map((racer) => [racer.vx, racer.vy]);
     // planks a smashed marshal hut threw out join the loose objects (world/marshalbox.ts)
     const planks = takeThrownPlanks();
     if (planks.length) game.cones.spawn(planks);
-    game.cones.step(field.length > 1 ? field : game.car, PHYSICS_STEP_SECONDS);
+    game.cones.step(field.length === 1 ? field[0] : field, PHYSICS_STEP_SECONDS);
     field.forEach((racer, i) => hit(racer, startVel[i][0], startVel[i][1]));
     // DAMAGE: a torn-off wheel becomes a loose tyre, thrown from its corner with the car's
     // speed and outward
@@ -483,14 +483,15 @@ function looseRim(spec: { id: string; len: number; rim?: string; spokes?: string
  */
 export function stepTyreMarks(tcars: TrafficVehicle[]) {
   for (const entry of game.ai)
-    if (!rolling(entry.car)) game.marks.stamp(game.marks.wheelsOf(entry.car));
+    if (!rolling(entry.car) && onGround(entry.car))
+      game.marks.stamp(game.marks.wheelsOf(entry.car));
   // a skidding / crashing traffic car marks the road
   for (const racer of tcars) if (!rolling(racer) && racer.dmg
     && (Math.abs(racer.t.slipR) > 0.1 || racer.t.lockedF
       || racer.t.lockedR)) game.marks.stamp(game.marks.wheelsOf(racer));
   game.marks.follow(game.car.x, game.car.y);
   // marks are stamped on the SIM step: a mark is world bookkeeping, not an animation
-  if (!rolling(game.car)) game.marks.stamp(game.marks.wheelsOf(game.car));
+  if (!rolling(game.car) && onGround(game.car)) game.marks.stamp(game.marks.wheelsOf(game.car));
   game.marks.fade(PHYSICS_STEP_SECONDS);
   stepWetTrails(PHYSICS_STEP_SECONDS);
 }

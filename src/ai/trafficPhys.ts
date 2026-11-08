@@ -6,8 +6,8 @@ import type { DriveEnv } from "./trafficLane.ts";
 import { cruise, gearFor } from "./trafficSpawn.ts";
 import { roadPose } from "../highway.ts";
 import { step } from "../vehicle.ts";
-import { applyGround, fenceClamp, obstacleClamp } from "../world/wear.ts";
-import { barrierClamp, solidClamp } from "../world/barriers.ts";
+import { applyGround } from "../world/wear.ts";
+import { clampWorld } from "../world/crossings.ts";
 import { hit, tooInjured } from "../damage.ts";
 import { rolling, tripCheck, stepRoll } from "../roll.ts";
 import type { TrafficCar } from "./types.ts";
@@ -143,10 +143,7 @@ export function drivePhysics(
   // ---- the same physics as every car: clamps (+ the damage they do), ground, then the
   // tyres or the tumble
   const v0x = car.vx, v0y = car.vy;
-  fenceClamp(car);
-  obstacleClamp(car);
-  barrierClamp(car);
-  solidClamp(car);
+  clampWorld(car);
   hit(car, v0x, v0y);
   applyGround(car, dt);
   if (rolling(car)) {

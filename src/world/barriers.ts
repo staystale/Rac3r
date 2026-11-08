@@ -12,6 +12,10 @@ import {
   edgeCorner, hasOpenWheels, noteWheelBump, wheelBox, wheelEdge, wheelReach,
 } from "../physics/openwheel.ts";
 import { CORNER_OF_WHEEL } from "./wheels.ts";
+import { FIX } from "../core/fixes.ts";
+import {
+  DECK_ROAD_HI, DECK_ROAD_LO, PORTAL_LINTEL_M, PORTAL_WALL_M, VENUE_DECK,
+} from "./crossinggeo.ts";
 import {
   applyRailHit, dents, isTornAfter, railBounce, railContact, straightenRails,
 } from "./armcodent.ts";
@@ -198,10 +202,43 @@ function addFurnitureSolids(out: Solid[], prop: Prop): boolean {
         / 2, 0, 1.6, 3.0); return true;
     // highway BRIDGES (highway.ts extras): the two ABUTMENTS (4 m blocks) at the ends of the
     // span, out on the grass; the deck is overhead
-    case 'bridge': box(-(prop.wid || 30) / 2 - 2, 0, 4, prop.carries === 'foot' ? 3.8
-        : 8); box((prop.wid || 30) / 2 + 2, 0, 4, prop.carries === 'foot' ? 3.8
-        : 8); return true;
+    case 'bridge': addBridgeSolids(box, prop); return true;
     default: return false;
+  }
+}
+/**
+ * A bridge's ends: a highway bridge's two abutments (4 m blocks out on the grass), a drivable
+ * venue bridge's ramps and abutments.
+ * @param box adds one box in the prop's frame (centre x, y, length, width)
+ * @param prop the bridge (wid its span)
+ */
+function addBridgeSolids(box: (offX: number, offY: number, width: number, height: number) => void,
+  prop: Prop): void {
+  if (FIX.crossings && prop.look === 'venue') {
+    addRampSolids(box, prop);
+    return;
+  }
+  const across = prop.carries === 'foot' ? 3.8 : 8;
+  box(-(prop.wid || 30) / 2 - 2, 0, 4, across);
+  box((prop.wid || 30) / 2 + 2, 0, 4, across);
+}
+/**
+ * A venue road bridge's ends solid to a car on the ground (world/crossings.ts: one on the bridge
+ * meets its walls instead): each abutment with its wing walls across the deck's end (from below
+ * the deck), and its ramp's two retaining walls as far as the ramp's foot (from beside it). The
+ * measures are the drawing's (render/props/venueprops.ts, world/crossinggeo.ts VENUE_DECK).
+ * @param box adds one box in the prop's frame (centre x, y, length, width)
+ * @param prop the bridge (wid its span, appL its ramps' lengths)
+ */
+function addRampSolids(box: (offX: number, offY: number, width: number, height: number) => void,
+  prop: Prop): void {
+  const half = (prop.wid || 30) / 2, { abutment, wing, road, rampWall } = VENUE_DECK;
+  const deck = road + 2 * VENUE_DECK.beam + VENUE_DECK.footway;
+  for (const [end, ramp] of [[-1, prop.appL![0]], [1, prop.appL![1]]]) {
+    box(end * (half + abutment / 2), 0, abutment, deck + wing);
+    const rampMid = end * (half + abutment + ramp / 2);
+    box(rampMid, DECK_ROAD_LO - rampWall / 2, ramp, rampWall);
+    box(rampMid, DECK_ROAD_HI + rampWall / 2, ramp, rampWall);
   }
 }
 /**
@@ -222,6 +259,10 @@ function addSmallSolids(out: Solid[], prop: Prop): boolean {
     case 'tunnel':
       box(0, -prop.h! / 2 - 0.3, prop.w!, 0.6);
       box(0, prop.h! / 2 + 0.3, prop.w!, 0.6);
+      // the lintel's face over the mouth (a car on the ground drives into the cut only from its
+      // open end; one in the tunnel passes under it - world/crossings.ts)
+      if (FIX.crossings)
+        box(prop.w! / 2 - PORTAL_LINTEL_M / 2, 0, PORTAL_LINTEL_M, prop.h! + 2 * PORTAL_WALL_M);
       return true;
     case 'sculpture': box(0, 0, 2.2, 2.2); return true;
     case 'bale': box(0, 0, 1.6, 1.6); return true;
@@ -503,7 +544,16 @@ function isFarFrom(barrier: Barrier, x: number, y: number, reach: number): boole
   return x < box[0] - reach || x > box[2] + reach || y < box[1] - reach || y > box[3] + reach;
 }
 export function barrierClamp(car: CarBody): void {
-  const list = LEVEL.barriers;
+  clampToBarriers(car, LEVEL.barriers);
+}
+
+/**
+ * The car against a list of barriers: its corners (and open wheels) pushed out of every segment
+ * near it, the hit noted, an armco rail dented.
+ * @param car the car body
+ * @param list the barriers (the level's, or a bridge's or tunnel's walls: world/crossings.ts)
+ */
+export function clampToBarriers(car: CarBody, list: Barrier[] | undefined): void {
   if (!list || !list.length) return;
   const spec = car.spec, cosHead = Math.cos(car.heading), sinHead = Math.sin(car.heading);
   const halfLen = spec.len * 0.48, halfWid = spec.wid * 0.48, open = hasOpenWheels(car);

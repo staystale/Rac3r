@@ -213,7 +213,7 @@ export type RenderCarSpec =
 
 // What the car layers read of a CAR (vehicle.ts Car + what damage.ts / roll.ts / the render
 // layers add).
-export interface RenderCar extends CamCar, Pick<Car, 'heading' | 'delta'> {
+export interface RenderCar extends CamCar, Pick<Car, 'heading' | 'delta' | 'crossing'> {
   spec: RenderCarSpec;
   num?: number;  dmg?: number[];    // the next five are set together with dmg by damageInit
   crushL: number[];

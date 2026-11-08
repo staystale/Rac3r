@@ -49,6 +49,9 @@ last handover, written on request.
    level until it leaves by an end: parapets / tunnel walls hold it, the deck's tarmac underfoot, no
    contact with the cars on the track, no marks or smoke on the track, no lap counted, drawn above
    the track (deck) or hidden under it (tunnel).
+   BUILT 11-08 behind ?crossings=1 (world/crossings.ts, crossinggeo.ts; tools/crossingcheck.mjs:
+   both Brands layouts all OK - on at one end, held by the walls, off at the other; a ground car
+   cannot get on from the side; a car on the track below stays on the ground). UNDER TEST.
    OWNER RULE (11-07): never the black wire / rope fence ('fence' barrier) - the old levels still
    use it (Castle Cum, Thruston): replace as each gets its venue pass.
    CREDITS PASSED 11-08 (menu/credits.ts, on the main menu): "made by G"; the owner wants a studio

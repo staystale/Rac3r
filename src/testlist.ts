@@ -56,4 +56,12 @@ export const TEST_LIST: TestEntry[] = [
   // carlooks, carreal (the car look: paint parts, rims, redraws, real shapes), partsoff, bigparts,
   // hwlanes, hwbales, f1aero passed 2026-11-07; credits, bigbrands (the Brands venue) passed
   // 2026-11-08)
+  {
+    id: 'crossings',
+    added: '2026-11-08',
+    name: 'Drivable bridges and tunnels (Brands: 2 road bridges, the Paddock Hill tunnel)',
+    where: 'Test link + &crossings=1: TEST MODE > UK CIRCUITS > Brands Snatch GP or Indy',
+    try: 'Leave the track by the pit exit roads, drive up a bridge ramp / down into the tunnel.',
+    wrong: 'Stuck on a ramp, through a wall, hitting cars below, a lap counted, marks on track.',
+  },
 ];

@@ -244,6 +244,32 @@ export interface CarBody {
   bankLatForce?: number;   // set by applyGround
   bankLoadFactor?: number;   // set by applyGround
   mods: { mass: number };
+  // the LEVEL.crossings index of the bridge / tunnel the car is on, -1 on the ground; and where
+  // it was the step before (world/crossings.ts: it changes level only through an end)
+  crossing?: number;
+  crossX?: number;
+  crossY?: number;
+}
+
+// A DRIVABLE BRIDGE OR TUNNEL (world/crossings.ts): a straight way between two ends, over or under
+// the track. A car comes onto it only through an end and keeps to it - held by its walls, on its
+// tarmac, apart from the cars on the ground - until it leaves by an end.
+export interface Crossing {
+  kind: 'bridge' | 'tunnel';
+  // end A, where a car changes level (a ramp's foot, a portal's mouth), m
+  ax: number;
+  ay: number;
+  // unit, from A toward end B; m from A to B
+  dirX: number;
+  dirY: number;
+  length: number;
+  // m across the way (+ along (-dirY, dirX)) to each wall's face
+  minAcross: number;
+  maxAcross: number;
+  // m in from each end a tunnel's open cut runs (its car still seen); 0 for a bridge
+  cut: number;
+  // the walls holding a car on it (kind 'wall'; no ground car meets them)
+  walls: Barrier[];
 }
 
 // One wheel's contact point in the world, metres.
@@ -461,6 +487,7 @@ export interface Level {
   _layout?: number;   // highway.ts
   barriers?: Barrier[];
   solids?: Solid[];
+  crossings?: Crossing[];   // its drivable bridges and tunnels (world/crossings.ts)
   paint: Paint[];
   boards: Board[];
   cones: Cone[];

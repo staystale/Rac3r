@@ -94,6 +94,8 @@ export interface Car {
   // this step (-1 none; damage.ts applyBurst)
   tyreWear?: number[]; burstTyre?: number; tyreWearOwned?: boolean; tyreWearStart?: number[];
   _p: CarPrev | null; prevWheels: CarWheelPos[] | null;
+  // the bridge / tunnel it is on, -1 the ground; where it was a step ago (world/crossings.ts)
+  crossing?: number; crossX?: number; crossY?: number;
   // the ground under each wheel (world/wear.ts stepWear; null after a reset)
   wheelSurf?: WheelGround[] | null;
   roll: CarRoll | null; sparks: boolean; streamers: Streamer[] | null;
@@ -354,6 +356,8 @@ export function reset(car: Car, x = 0, y = 0, heading = -Math.PI / 2) {
   // where it is now, so after a teleport (an AI / traffic respawn, the highway put-back) it wore a
   // straight line from the old spot to the new one - across the verge AND the carriageway.
   car.prevWheels = null; car.wheelSurf = null;
+  // ... and on the ground, off any bridge or tunnel (world/crossings.ts)
+  car.crossing = -1; car.crossX = undefined; car.crossY = undefined;
   // ROLLOVER (roll.ts): a reset puts the car back on its wheels
   car.roll = null; car.sparks = false;
   // tape stuck to the car goes with it (requirement: resetting should remove any tape)

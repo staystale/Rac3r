@@ -1,5 +1,6 @@
 import { noteHit, type HitNoter } from './physics/punctures.ts';
 import { wheelContacts, type WheelCar } from './physics/openwheel.ts';
+import { sameLevel } from './world/crossinggeo.ts';
 // contact.ts — CAR-TO-CAR CONTACT (AI stage 1; requirement: full contact). Every pair of cars is
 // tested as two oriented boxes with the separating-axis test (the same test solidClamp
 // uses for props). On overlap: the two are pushed apart along the axis of least overlap, split
@@ -16,6 +17,7 @@ export interface ContactCar {
   x: number; y: number; vx: number; vy: number; heading: number; yawRate: number;
   spec: { len: number; wid: number; mass: number };
   shake?: number;   // the camera shake a hit adds to
+  crossing?: number;   // the bridge / tunnel it is on (world/crossings.ts)
 }
 
 /**
@@ -101,8 +103,10 @@ export function carContacts(cars: (ContactCar & WheelCar & HitNoter)[]): number 
   let count = 0;
   for (let i = 0; i < cars.length; i++)
     for (let other = i + 1; other < cars.length; other++)
-      // both always run (a body touch does not skip the wheels)
-      if ([carContact(cars[i], cars[other]), wheelContacts(cars[i], cars[other])].some(Boolean)) {
+      // both always run (a body touch does not skip the wheels); a car on a bridge or in a
+      // tunnel touches only the cars on it (world/crossings.ts)
+      if (sameLevel(cars[i], cars[other])
+        && [carContact(cars[i], cars[other]), wheelContacts(cars[i], cars[other])].some(Boolean)) {
         count++;
         noteHit(cars[i], 'car');
         noteHit(cars[other], 'car');

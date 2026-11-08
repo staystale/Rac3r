@@ -5,8 +5,9 @@ import { hwPutBack } from '../highwayrace.ts';
 import { hit, hitRoll, repair, tooInjured, applyBurst, stepDamage } from '../damage.ts';
 import { rolling, tripCheck, stepRoll } from '../roll.ts';
 import { LEVEL } from "../world/state.ts";
-import { applyGround, fenceClamp, obstacleClamp } from "../world/wear.ts";
-import { barrierClamp, solidClamp } from "../world/barriers.ts";
+import { applyGround } from "../world/wear.ts";
+import { clampWorld } from "../world/crossings.ts";
+import { sameLevel } from "../world/crossinggeo.ts";
 import { crossedJoker } from './rules.ts';
 import { findNearestSubtrackPoint, onTrack } from "../world/tyrewall.ts";
 import { startHeld, carHeld, atPace, formationWant } from './order.ts';
@@ -124,7 +125,8 @@ export function aiWant(entry: AiEntry, dt: number) {
   const want = entry.drv.drive(car, dt, () => (
     { obstacles: entry.obs,
       cars: [game.car, ...game.ai.map((other) => other.car),
-        ...(LEVEL.endless ? game.traffic.cars : [])].filter((other) => other !== car),
+        ...(LEVEL.endless ? game.traffic.cars : [])].filter((other) => other !== car
+          && sameLevel(other, car)),
           hold: startHeld(), lap,
             laps: game.flow ? game.flow.laps : shared.race.on ? shared.race.laps
               : (LEVEL.joker && LEVEL.joker.laps) || 5 }));
@@ -267,10 +269,7 @@ export function stepAICar(entry: AiEntry, dt: number) {
   car.tcsOn = !!game.car.tcsOn && !!(car.spec.aids && car.spec.aids.tcs);
   try {
     const v0x = car.vx, v0y = car.vy;
-    fenceClamp(car);
-    obstacleClamp(car);
-    barrierClamp(car);
-    solidClamp(car);
+    clampWorld(car);
     hit(car, v0x, v0y);
     stepAIInjury(entry, dt);
     applyGround(car, dt);

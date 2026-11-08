@@ -3,13 +3,15 @@
 // mouth, a lintel over it) and a PARKED CAR in the car parks. Drawn in the props' frame: x along
 // the prop's rot, metres times ppm.
 import { COL } from '../../world/colours.ts';
+import { FIX } from '../../core/fixes.ts';
+import { PORTAL_LINTEL_M, PORTAL_WALL_M, VENUE_DECK } from '../../world/crossinggeo.ts';
 import type { Prop } from '../../world/types.ts';
 import type { PropCtx } from './types.ts';
 
 // the ramp's shades, from the road at the open end to the dark at the mouth
 const RAMP_SHADES = ['#3b3e45', '#2f3238', '#24262b', '#191a1e', '#0f1013'];
-// m: a portal wall's thickness, the lintel's depth
-const WALL_M = 0.6, LINTEL_M = 1;
+// m: a portal wall's thickness, the lintel's depth (world/crossinggeo.ts: the solids read them)
+const WALL_M = PORTAL_WALL_M, LINTEL_M = PORTAL_LINTEL_M;
 // m: a parked car's length and width
 const CAR_LEN_M = 4.2, CAR_WID_M = 1.8;
 
@@ -58,12 +60,32 @@ export function drawParkedCar(propCtx: PropCtx, prop: Prop, ppm: number) {
   paint(-1.45, -halfW + 0.25, 0.5, CAR_WID_M - 0.5, '#1f2a36');
 }
 
-// a venue road bridge: m of the road on the deck, the edge beams, the footway; how far each ramp
-// runs out beyond its end, in how many steps down, and its retaining walls' thickness
-const DECK_ROAD_M = 7, BEAM_M = 0.7, FOOTWAY_M = 1.4, RAMP_M = 9, RAMP_STEPS = 3,
-  RAMP_WALL_M = 0.4;
+// a venue road bridge (world/crossinggeo.ts VENUE_DECK: the solids and the drivable deck read
+// them): m of the road on the deck, the edge beams, the footway; how far each ramp runs out
+// beyond its end, in how many steps down, and its retaining walls' thickness
+const DECK_ROAD_M = VENUE_DECK.road, BEAM_M = VENUE_DECK.beam, FOOTWAY_M = VENUE_DECK.footway,
+  RAMP_M = 9, RAMP_STEPS = 3, RAMP_WALL_M = VENUE_DECK.rampWall;
 // m: an abutment's depth along the road and its wing walls' reach out past the deck
-const ABUTMENT_M = 1.6, WING_M = 2.2;
+const ABUTMENT_M = VENUE_DECK.abutment, WING_M = VENUE_DECK.wing;
+
+/**
+ * A venue bridge's abutments and wing walls (a drivable bridge's road runs on over them to its
+ * ramps: world/crossings.ts).
+ * @param paint fills a box in the bridge's frame (x, y, length, width, colour)
+ * @param half half the deck's span, m
+ * @param top the deck's -y edge, m
+ * @param deck the deck's width, m
+ * @param road the road's -y edge, m
+ */
+function drawAbutments(paint: (x: number, y: number, width: number, height: number,
+  col: string) => void, half: number, top: number, deck: number, road: number) {
+  for (const end of [-1, 1]) {
+    const x = end < 0 ? -half - ABUTMENT_M : half;
+    paint(x, top - WING_M * 0.5, ABUTMENT_M, deck + WING_M, '#a9a7a0');
+    paint(x, top - WING_M * 0.5, ABUTMENT_M, 0.3, '#c9c6bd');
+    if (FIX.crossings) paint(x, road, ABUTMENT_M, DECK_ROAD_M, COL.tarmac);
+  }
+}
 
 /**
  * Draws a venue's road bridge (world/venuescenery.ts, look 'venue'): a ramp at each end (the road
@@ -105,12 +127,7 @@ export function drawVenueBridge(propCtx: PropCtx, prop: Prop, ppm: number) {
   // the deck's shadow on the track (the sun from the top left)
   ctx.fillStyle = 'rgba(10,12,16,0.38)';
   ctx.fillRect((-half + 1.2) * ppm, (top + 1.8) * ppm, 2 * half * ppm, deck * ppm);
-  // abutments and wing walls
-  for (const end of [-1, 1]) {
-    const x = end < 0 ? -half - ABUTMENT_M : half;
-    paint(x, top - WING_M * 0.5, ABUTMENT_M, deck + WING_M, '#a9a7a0');
-    paint(x, top - WING_M * 0.5, ABUTMENT_M, 0.3, '#c9c6bd');
-  }
+  drawAbutments(paint, half, top, deck, road);
   // the deck: edge beams, the road with its edge lines, the footway, the joints at its ends
   paint(-half, top, 2 * half, deck, '#b5b2aa');
   paint(-half, top, 2 * half, 0.25, '#d8d5cd');

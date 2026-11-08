@@ -7,6 +7,7 @@ import { aiTraits } from '../ai/traits.ts';
 
 import { LEVEL } from "../world/state.ts";
 import { onTrack, querySubtrack } from "../world/tyrewall.ts";
+import { onGround } from "../world/crossinggeo.ts";
 import { STAGE_GAP_S, GRID_STEP, gridColumn } from './grid.ts';
 import { formationInput, roadFormationInput } from '../ai/formation.ts';
 import { shared, game, hwLevel } from './state.ts';
@@ -95,6 +96,8 @@ export function stepStart(dt: number) {
 export function progressOf(car: GameCar) {
   const sub = LEVEL.subtrack!, total = sub.totalDist, near = querySubtrack(sub, car.x, car.y),
     along = near.trackDist;
+  // on a bridge over it or in a tunnel under it the car is not on the lap: held where it left
+  if (!onGround(car)) return car._prog;
   if (car._prog === undefined) {
     if (near.dist > sub.width / 2 + 2) return undefined;   // not on the lap yet
     car._prog = along > total / 2 ? along - total : along;

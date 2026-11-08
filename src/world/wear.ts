@@ -26,6 +26,7 @@ import {
   dampWornTo, digPace, digRuleOf, digsDry, wearHolds, wornDirtTo,
 } from "./dig.ts";
 import { bumpAt, bankHeightAt, BUMP_STEER } from "./terrain.ts";
+import { crossingOf, deckGround, deckSlope } from "./crossinggeo.ts";
 import { querySubtrack } from "./tyrewall.ts";
 import { noteHit } from "../physics/punctures.ts";
 import { bushPass } from "./bushes.ts";
@@ -554,14 +555,11 @@ function scrubIceUnder(car: CarBody, wheel: { x: number; y: number }, i: number,
   if (cell) scrubCell(cell, slip * dt * heatScrub);
 }
 
-// Put the ground under the car. Lives HERE, not in main.ts, so the game and every harness run the
-// identical code — MEASURED BUG: tools/kerbcheck.mjs had its own copy, the field names
-// changed under it, and it cheerfully reported load 1.00 at every speed from 3 to 42 m/s. Identical
-// outcomes across different inputs is CLAUDE.md rule 1, and it was my own instrument lying again.
-//
-// Sampled AT EACH AXLE, not at the centre. A 2.6 m wheelbase over a 3.5 m kerb means the front is
-// cresting while the rear is still climbing, and that phase difference is the whole character of
-// riding a kerb — one end light while the other still grips. One sample point would average it
+// Put the ground under the car (a bridge's deck or a tunnel's floor on one: world/crossinggeo.ts).
+// Lives HERE so the game and every harness run the identical code (a tool's own copy once
+// reported load 1.00 at every speed). Sampled AT EACH AXLE, not at the centre: a 2.6 m wheelbase
+// over a 3.5 m kerb means the front is cresting while the rear still climbs - the whole character
+// of riding a kerb, one end light while the other still grips; one sample point would average it
 // away. LOCAL LOOKUP HINT (AI stage 1: applyGround made 34 track lookups per car per
 // physics step — slope, bump steer, camber, kerbs — each a fresh grid search; with 6 cars that was
 // a third of the frame). The car is looked up ONCE; the samples around it search only the 21
@@ -674,9 +672,9 @@ function applyGroundInner(car: CarBody, dt: number): void {
   const spec = car.spec;
   const cosH = Math.cos(car.heading), sinH = Math.sin(car.heading);
   const frontX = car.x + cosH * spec.lf, frontY = car.y + sinH * spec.lf;
-  const rearX = car.x - cosH * spec.lr, rearY = car.y - sinH * spec.lr;
-  const frontGround = groundAt(frontX, frontY);
-  const rearGround = groundAt(rearX, rearY);
+  const rearX = car.x - cosH * spec.lr, rearY = car.y - sinH * spec.lr, deck = crossingOf(car);
+  const frontGround = deck ? deckGround(deck, frontX, frontY) : groundAt(frontX, frontY);
+  const rearGround = deck ? deckGround(deck, rearX, rearY) : groundAt(rearX, rearY);
   // The true discrete derivative, so driving ALONG a ridged kerb shakes the car for exactly the
   // same reason crossing one does. There is no separate "rumble" code anywhere, and there should
   // not be. FIRST STEP AFTER A RESET (requirement: resetting on terrain causes the car to get stuck
@@ -707,11 +705,14 @@ function applyGroundInner(car: CarBody, dt: number): void {
   // included (fixed earlier today); banking is now real height (bankHeightAt).
   car.bankLatForce = 0; car.bankLoadFactor = 1.0;
   if (car.air > 0) { car.slopeLong = 0; car.slopeLat = 0; car.slopeYaw = 0; }
+  else if (deck) deckSlope(car, deck, cosH, sinH);
   else applySlopeForces(car, cosH, sinH);
-  car.bellyDepth = car.air > 0 ? 0 : bellyDepth(car, cosH, sinH);
-
-  // Dynamic surface wear: continuous swept tyre paths for all 4 wheels
-  stepWear(car, dt);
+  car.bellyDepth = car.air > 0 || deck ? 0 : bellyDepth(car, cosH, sinH);
+  // Dynamic surface wear: continuous swept tyre paths for all 4 wheels (none off the ground)
+  if (!deck) { stepWear(car, dt); return; }
+  car.prevWheels = null;
+  const under = car.wheelSurf || (car.wheelSurf = []);
+  for (let i = 0; i < 4; i++) under[i] = rearGround.surface;
 }
 
 // The fence is the one hard constraint out here, because a barrier IS one.

@@ -12,6 +12,8 @@ import { SURFACES } from "./surfaces.ts";
 import { prepBumps } from "./terrain.ts";
 import { onTrack, querySubtrack } from "./tyrewall.ts";
 import { solidsFromProps } from "./barriers.ts";
+import { venueCrossings } from "./crossings.ts";
+import { FIX } from "../core/fixes.ts";
 import { CIRCUIT_BUSHES } from "./levels/bushes.ts";
 import { buildVenueScenery } from "./venuescenery.ts";
 import { VENUE_ROAD_M, pointAlong } from "./venuegeo.ts";
@@ -302,6 +304,7 @@ export function venueLevel(spec: VenueSpec, layout: string, levelId: string,
     seams: false, cones: [...closed.cones, ...scenery.cones], bushes: CIRCUIT_BUSHES,
     lanes: [...scenery.lanes, ...closed.lanes], barriers: scenery.barriers,
     props: scenery.props, solids: solidsFromProps(scenery.props),
+    ...(FIX.crossings ? { crossings: venueCrossings(scenery.props) } : {}),
     paint: [{ kind: 'chequered', x: sub.pts[0].x, y: sub.pts[0].y, len: 1.6, wid: VENUE_ROAD_M,
       rot: sub.pts[0].heading }, ...scenery.paint],
     spawn: { x: start.x, y: start.y, heading: start.rot },

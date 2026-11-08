@@ -215,3 +215,12 @@ traced track), generated stages from `stagegen.ts`, and the endless highway (`hi
 parody pun (CLAUDE.md). A level is loaded by `world/load.ts`; `world/state.ts` holds the active one and its
 lists (zones, bumps, props, barriers), which the physics and the renderer both read, so what you see is
 what you drive on.
+
+A circuit is its real venue (`world/venue.ts` and `venue*.ts`, from OpenStreetMap; `levels/brands-venue.ts`
+is the spec of one). Its road bridges and tunnels are LEVELS a car can drive (`?crossings=1`):
+`world/crossings.ts` `clampWorld` (every car's step, before `applyGround`) puts a car on a crossing when
+its centre comes in over an end between the walls and off when it passes an end; on one it meets only the
+crossing's walls, drives on its deck (`crossinggeo.ts`: tarmac, straight from end height to end height, no
+wear), touches only cars on it (`contact.ts`), stamps no marks, throws no effects, counts no lap
+(`game/order.ts`), and is drawn over the bridge or, in a tunnel, only in the portals' open cuts (the
+player's own faint under the ground: `render/screen.ts`). `tools/crossingcheck.mjs` drives every one.

@@ -4,6 +4,7 @@
 // rubbed out of it (destination-out, with pictures drawn once: no gradient is made per frame),
 // then the glows' colour is laid in as a tint; then it is laid over the screen canvas once, under
 // the HUD. The cost is one extra full-screen image a frame.
+import { isUnderground } from "../world/crossinggeo.ts";
 import { DAYLIGHT } from '../world/daylight.ts';
 import { activeLamps, lampsLit } from '../world/lamps.ts';
 import { indicatorBlinkOn, lampLevel } from './cars.ts';
@@ -246,6 +247,7 @@ function glowAt(painter: GlowPainter, car: RenderCar, along: number, across: num
  * @param isBlinkOn the indicators are in the lit half of their blink
  */
 function drawCarGlows(painter: GlowPainter, car: RenderCar, isBlinkOn: boolean) {
+  if (isUnderground(car)) return;
   if (isBlinkOn) drawIndicatorGlows(painter, car);
   drawRearGlows(painter, car);
   // hot brake discs glow at their wheels (render/brakeglow.ts): orange, redder the hotter
@@ -440,6 +442,8 @@ function drawBeams(painter: PoolPainter, beam: HTMLCanvasElement, car: RenderCar
  */
 function drawFieldBeams(painter: PoolPainter, beam: HTMLCanvasElement, game: RenderGame) {
   const each = (car: RenderCar) => {
+    // a car in a tunnel lights nothing up here (world/crossings.ts)
+    if (isUnderground(car)) return;
     drawBeams(painter, beam, car);
     drawReverseBeams(painter, beam, car);
   };
