@@ -9,6 +9,8 @@ import type { Point, Subtrack, SubtrackHit, TrackPoint } from "./types.ts";
 // m (game): the game's road on every circuit
 export const VENUE_ROAD_M = 13;
 export const HALF_ROAD = VENUE_ROAD_M / 2;
+// m: the kart track's width (the venue tells its lanes from the roads by it)
+export const KART_W = 4;
 // m (game) from a race road within which the map is stepped back in full, and where the step has
 // faded to nothing (so far scenery stays where the map puts it)
 const STEP_FULL_M = 40, STEP_GONE_M = 110;
@@ -42,6 +44,19 @@ export function lineLength(pts: Point[]): number {
   for (let i = 1; i < pts.length; i++)
     total += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]);
   return total;
+}
+
+// m: a line whose ends lie this close, at least LOOP_MIN_M long, is a closed loop (no ends)
+const LOOP_GAP_M = 3, LOOP_MIN_M = 30;
+
+/**
+ * Whether a line is a closed loop (a kart track): its two ends one point.
+ * @param pts the points
+ * @returns true when closed
+ */
+export function isClosedLoop(pts: Point[]): boolean {
+  const [firstX, firstY] = pts[0], [lastX, lastY] = pts[pts.length - 1];
+  return Math.hypot(firstX - lastX, firstY - lastY) < LOOP_GAP_M && lineLength(pts) > LOOP_MIN_M;
 }
 
 /**

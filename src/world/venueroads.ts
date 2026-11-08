@@ -4,8 +4,8 @@
 // lane, a paddock, a building, the track - or run off the map; a dangling spur is trimmed back to
 // its last junction, a road joining nothing goes.
 import { SURFACES } from "./surfaces.ts";
-import { clearRuns, distToLine, lineLength, resample, roadDistance, smoothLine }
-  from "./venuegeo.ts";
+import { KART_W, centreAt, clearRuns, distToLine, isClosedLoop, lineLength, nearestLoop,
+  resample, roadDistance, smoothLine } from "./venuegeo.ts";
 import { inZones, pastRim } from "./venueedge.ts";
 import { joinFrom } from "./venuejoin.ts";
 import { REACH_M, inSolid, nearArmco, nearRace, onLanes, placeAll, stepOut }
@@ -24,8 +24,6 @@ const ROAD_STEP_LIMIT_M = 3;
 const ROAD_ARMCO_GAP_M = 4.5;
 // m: a road piece going nowhere is kept only this long; an end within JOIN_M of a lane meets it
 const LONE_ROAD_M = 90, JOIN_M = 3;
-// m: the kart track's width
-const KART_W = 4;
 // m: a road end within this of another lane (beyond both half widths) meets it; a road end this
 // near
 // the venue's reach was cut by it (the road goes on into the world)
@@ -33,6 +31,9 @@ const JOIN_GAP_M = 3, LEAVE_MARGIN_M = 8;
 // a road beside another within PARALLEL_M, the same way (within PARALLEL_DEG), for more than
 // DUPLICATE_M doubles it
 const PARALLEL_M = 9, PARALLEL_DEG = 35, DUPLICATE_M = 16;
+// m: the kart track keeps this far off every road beyond both half widths; it moves out from the
+// race track KART_STEP_M at a time, at most KART_SHIFT_M, to clear them
+const KART_GAP_M = 1.5, KART_STEP_M = 1, KART_SHIFT_M = 15;
 // m from a building's wall a road's edge may stop and still reach it (tools/venueaudit.mjs: same)
 const BUILDING_REACH_M = 2;
 // points (2 m apart) back from a road end where the lane it already met is looked for
@@ -55,25 +56,51 @@ const FINISH_REACH_M = 3, FINISH_JOIN_M = 3;
  */
 export function venueRoads(site: Site): Lane[] {
   const data = site.build.spec.data, lanes: Lane[] = [];
-  const add = (pts: Point[], width: number, surface: Lane['surface']) => {
+  // a line at game scale laid as a lane where clear
+  const lay = (pts: Point[], width: number, surface: Lane['surface']) => {
     const clear = (x: number, y: number) => pastRim(site.rims, x, y) > ROAD_OUT_M + width / 2
       && nearRace(site, x, y, REACH_M) && !onLanes(site.lanes, x, y, width / 2)
       && !inSolid(site, x, y, width / 2 + 1) && !nearArmco(site, x, y, width / 2 + 1);
     // a road beside the track but too close to the edge (the game road is wider) steps out to
     // clear it, as a building does; one that cuts across the run-off is cut there
-    const placed = smoothLine(resample(placeAll(site, pts), 2).map((point) =>
+    const placed = smoothLine(resample(pts, 2).map((point) =>
       stepOut(site, point, ROAD_OUT_M + width / 2 + ROAD_ARMCO_GAP_M, ROAD_STEP_LIMIT_M)), 3, 4);
     for (const run of clearRuns(placed, clear))
       if (lineLength(run) >= MIN_ROAD_M) lanes.push({ pts: run, width, surface });
   };
+  const add = (pts: Point[], width: number, surface: Lane['surface']) =>
+    lay(placeAll(site, pts), width, surface);
   // the venue's own roads: the village streets next door (residential) are not its
   for (const road of data.roads)
     if (!road.bridge && road.kind !== 'residential')
       add(road.pts, road.width, road.kind === 'track' ? SURFACES.dirt : SURFACES.tarmac);
   for (const stage of data.dirt) add(stage.pts, 5, SURFACES.dirt);
   // the kart track: karts' width (its mapped tyre lines stand at its edges)
-  for (const kart of data.karting) add(kart.pts, KART_W, SURFACES.tarmac);
+  for (const kart of data.karting)
+    lay(kartClear(site, placeAll(site, kart.pts), lanes), KART_W, SURFACES.tarmac);
   return joinedUp(site, lanes);
+}
+
+/**
+ * A kart track kept off the roads: the whole of it moved straight out from the race track (a road
+ * stepped out from the track's edge can run over it - Castle Combe's ring road beside its kart
+ * track), KART_STEP_M at a time up to KART_SHIFT_M; left where it is when it never clears.
+ * @param site the venue's builders' state
+ * @param pts the kart track at game scale
+ * @param roads the roads laid
+ * @returns the kart track
+ */
+function kartClear(site: Site, pts: Point[], roads: Lane[]): Point[] {
+  const midX = pts.reduce((sum, [x]) => sum + x, 0) / pts.length;
+  const midY = pts.reduce((sum, [, y]) => sum + y, 0) / pts.length;
+  const { sub, hit } = nearestLoop(site.loops, midX, midY);
+  const centre = centreAt(sub, hit.trackDist), side = hit.side === 'left' ? 1 : -1;
+  for (let shift = 0; shift <= KART_SHIFT_M; shift += KART_STEP_M) {
+    const moved = pts.map(([x, y]): Point =>
+      [x + centre.nx * side * shift, y + centre.ny * side * shift]);
+    if (moved.every(([x, y]) => !onLanes(roads, x, y, KART_W / 2 + KART_GAP_M))) return moved;
+  }
+  return pts;
 }
 
 /**
@@ -251,12 +278,14 @@ export function tidyRoads(site: Site, roads: Lane[], ends: RoadEnds): Lane[] {
 
 /**
  * Whether a road is a bypass: both its ends join the same other lane (a fork that comes back to
- * the road it left - two roads to the same place).
+ * the road it left - two roads to the same place). A closed loop is not one (a kart track whose
+ * start is by a road: both its ends are the one point).
  * @param site the venue's builders' state
  * @param road the road
  * @returns true when it is
  */
 function isBypass(site: Site, road: Lane): boolean {
+  if (isClosedLoop(road.pts)) return false;
   const joined = (end: Point) => site.lanes.filter((other) => other !== road
     && distToLine(other.pts, end[0], end[1]) < (other.width + road.width) / 2 + JOIN_GAP_M);
   const first = joined(road.pts[0]), last = joined(road.pts[road.pts.length - 1]);
@@ -297,7 +326,9 @@ function doubles(road: Lane, i: number, other: Point[]): boolean {
 /**
  * Roads with no road doubled (owner 11-07: "two nearly go to the same place"): longest first, a
  * road running beside one already kept (or a bridge's / tunnel's road) for more than DUPLICATE_M
- * is cut there; the pieces left are tidied after (tidyRoads joins or drops them).
+ * is cut there; the pieces left are tidied after (tidyRoads joins or drops them). The kart track
+ * and the roads are told apart: a kart track beside a road is two things, not one mapped twice
+ * (Castle Combe's runs beside the ring road).
  * @param site the venue's builders' state (its lanes follow the roads)
  * @param roads the roads
  * @param fixed the bridges' and tunnels' roads (kept as they are)
@@ -307,8 +338,10 @@ export function withoutDuplicates(site: Site, roads: Lane[], fixed: Lane[]): Lan
   const kept: Lane[] = [];
   const order = roads.slice()
     .sort((first, second) => lineLength(second.pts) - lineLength(first.pts));
+  const isKart = (lane: Lane) => lane.width === KART_W;
   for (const road of order) {
-    const others = [...fixed, ...kept].map((lane) => resample(lane.pts, 2));
+    const others = [...fixed, ...kept].filter((lane) => isKart(lane) === isKart(road))
+      .map((lane) => resample(lane.pts, 2));
     const dup = road.pts.map((point, i) => others.some((other) => doubles(road, i, other)));
     // a doubled stretch longer than DUPLICATE_M goes whole (from where it starts to where it ends)
     const drop = dup.slice();

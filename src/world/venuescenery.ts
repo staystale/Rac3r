@@ -51,6 +51,10 @@ const APRON_M = 6, APRON_RIM_M = 1.5;
 const SAME_TUNNEL_M = 12;
 // m: a bridge deck's width as a hazard box; how near a stand or bank puts a catch fence
 const DECK_BOX_M = 12, SPECTATOR_REACH_M = 30;
+// m from a real tyre wall's mapped line within which the edge stands along it (spec.tyreWalls)
+const WALL_REACH_M = 6;
+// m from a marshal post's centre a board's face keeps (its 2.4 x 2 m hut and a margin)
+const POST_CLEAR_M = 3;
 // m: half a bridge approach's width (the roads it meets are 5-6 m)
 const APPROACH_HALF_M = 3;
 // m: a building stays this far outside the edge (moved out in NUDGE_STEP_M steps)
@@ -67,8 +71,6 @@ const NOT_VENUE = new Set(['house', 'residential', 'garage', 'barn', 'silo', 'sh
 const ROOFS = ['#5b626b', '#6b6158', '#596372', '#6e6e66'];
 const TRUCK_COLS = ['#c8302c', '#2b56b5', '#e2c13a', '#2e8b57', '#e8e6e0'];
 const PARKED_COLS = ['#c8302c', '#2b56b5', '#e8e6e0', '#1d1f24', '#8f949c', '#2e8b57', '#d9a13a'];
-
-
 
 /**
  * The pit lane at game scale, kept clear of the wall (the game's road is wider than the real
@@ -146,7 +148,6 @@ function offsetLine(pts: Point[], off: number): Point[] {
   });
 }
 
-
 /**
  * The pit lane's painted lines: the divider between the fast lane (by the wall) and the working
  * lane (by the garages), and the solid entry / exit lines along the track's edge where the lane
@@ -166,9 +167,13 @@ function pitLines(site: Site, pit: Lane): Paint[] {
     wallSide * (PIT_W / 2 - PIT_W / 3)));
   const lines: Paint[] = [{ kind: 'line', x: 0, y: 0, pts: divider, lw: 0.15, tone: 0.75 }];
   for (const end of [pit.pts.slice(0, 16), pit.pts.slice(-16)]) {
-    const edge = end.map(([endX, endY]) => {
-      const near = nearestLoop(site.loops, endX, endY);
-      const road = centreAt(near.sub, near.hit.trackDist), side = near.hit.side === 'left' ? 1 : -1;
+    const hits = end.map(([endX, endY]) => nearestLoop(site.loops, endX, endY));
+    // the lane's side of the road: where it lies furthest out (a merge ending on the centreline
+    // puts its last points either side - each on its own side, the line crossed the road)
+    const far = hits.reduce((best, near) => (near.hit.dist > best.hit.dist ? near : best));
+    const side = far.hit.side === 'left' ? 1 : -1;
+    const edge = hits.map((near) => {
+      const road = centreAt(near.sub, near.hit.trackDist);
       return [road.x + road.nx * side * (HALF_ROAD - 0.4),
         road.y + road.ny * side * (HALF_ROAD - 0.4)] as Point;
     });
@@ -176,12 +181,6 @@ function pitLines(site: Site, pit: Lane): Paint[] {
   }
   return lines;
 }
-
-
-
-
-
-
 
 /**
  * Where a mapped line crosses a race road: the road's centre sample there, the line's heading and
@@ -556,6 +555,24 @@ function venueTrees(site: Site, bounds: VenueScenery['bounds'], solids: Prop[],
 }
 
 /**
+ * The surfaces laid by hand (spec.pads: a skid pan), placed and scaled as the map is.
+ * @param site the venue's builders' state
+ * @returns the zones
+ */
+function venuePads(site: Site): Zone[] {
+  return (site.build.spec.pads || []).map((pad) => {
+    const [x, y] = site.place(pad.at), scale = site.build.scale;
+    const cosR = Math.cos(pad.rot), sinR = Math.sin(pad.rot);
+    const halfW = pad.w * scale / 2, halfH = pad.h * scale / 2;
+    // its corners as an outline (the zones the scenery keeps clear of are outlines)
+    const corners = [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([along, across]): Point =>
+      [x + cosR * along * halfW - sinR * across * halfH,
+        y + sinR * along * halfW + cosR * across * halfH]);
+    return outlineZone(corners, SURFACES[pad.surface]);
+  });
+}
+
+/**
  * The box round everything the venue keeps, plus a margin.
  * @param loops every layout's road
  * @param lanes the lanes
@@ -593,8 +610,8 @@ function spectatorSpots(site: Site, props: Prop[]): Point[] {
 }
 
 /**
- * What decides the edge: hazards (buildings, tunnel portals, a bridge's deck) and where
- * spectators stand (the grandstands, the banks).
+ * What decides the edge: hazards (buildings, tunnel portals, a bridge's deck), where spectators
+ * stand (the grandstands, the banks) and the real tyre walls (spec.tyreWalls).
  * @param site the venue's builders' state
  * @param bridges the bridge props
  * @param portals the tunnel portal props
@@ -604,7 +621,10 @@ function edgeNeeds(site: Site, bridges: Prop[], portals: Prop[]): EdgeNeeds {
   const solids = [...site.buildings, ...portals];
   const decks = bridges.map((bridge) => ({ ...bridge, w: bridge.wid, h: DECK_BOX_M }));
   const spots = spectatorSpots(site, site.buildings);
+  const walls = (site.build.spec.tyreWalls || []).map((wall) => placeAll(site, wall));
   return {
+    ...(walls.length ? { walled: (x: number, y: number) =>
+      walls.some((wall) => distToLine(wall, x, y) < WALL_REACH_M) } : {}),
     hazard: (x, y) => inBuilding(solids, x, y, 1) || inBuilding(decks, x, y, 0),
     watched: (x, y) => spots.some(([spotX, spotY]) => Math.abs(spotX - x) < SPECTATOR_REACH_M
       && Math.abs(spotY - y) < SPECTATOR_REACH_M
@@ -677,11 +697,6 @@ function clearPosts(site: Site, posts: Prop[], barriers: Barrier[]): Prop[] {
   });
 }
 
-
-
-
-
-
 /**
  * Everything of the venue but the raced road, the same for each of its layouts.
  * @param build the venue at game scale
@@ -744,15 +759,18 @@ export function buildVenueScenery(build: VenueBuild, sub: Subtrack, closed: Lane
     // the start gantry spans the track with its legs on the pit wall's line (not in the pit lane)
     { kind: 'gantry', x: start.x, y: start.y, wid: 2 * (HALF_ROAD + EDGE_TO_WALL),
       rot: start.rot + Math.PI / 2 }];
+  // a marshal post has no box: a board keeps POST_CLEAR_M off its centre
+  const posts = props.filter((prop) => prop.kind === 'marshal');
   for (const board of spec.boards) {
     const prop = boardOnArmco(edge.barriers, edge.cones, loops, place(board.at), board.label,
-      site.rims, (x, y) => inBuilding(props, x, y, 1.5) || onLanes(site.lanes, x, y, 1.5));
+      site.rims, (x, y) => inBuilding(props, x, y, 1.5) || onLanes(site.lanes, x, y, 1.5)
+        || posts.some((post) => Math.hypot(post.x - x, post.y - y) < POST_CLEAR_M));
     // its 18 m face as its box, so nothing else stands on it
     if (prop) props.push({ ...prop, w: 18, h: 1.2 });
   }
   const bounds = venueBounds(loops, [pit.lane, ...bridges.lanes, ...tunnels.lanes, ...finished],
     props);
-  const zones = [...traps, ...paddocks.zones];
+  const zones = [...traps, ...paddocks.zones, ...venuePads(site)];
   const lanes = [pit.lane, ...bridges.lanes, ...tunnels.lanes, ...finished];
   props.push(...venueTrees(site, bounds, props, zones));
   // the kart track's tyre lines, none on a road

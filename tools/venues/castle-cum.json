@@ -1,0 +1,23 @@
+{
+  "osm": "castle-cum.osm.json",
+  "out": "src/world/levels/venues/castle-cum.ts",
+  "exportName": "CASTLE_CUM_VENUE",
+  "origin": [51.4892, -2.2115],
+  "turnDeg": 197,
+  "clip": [-700, -560, 700, 660],
+  "reachM": 180,
+  "names": {
+    "1549322809": "Camp",
+    "1549322881": "Folly to Farm Straight",
+    "1549322880": "The Esses",
+    "35406015": "Esses old line",
+    "166852440": "Old Paddock to Tower",
+    "1549322879": "Bobbies",
+    "35406076": "Bobbies old line",
+    "1549322878": "Westway"
+  },
+  "layouts": {
+    "circuit": { "through": ["Camp", "The Esses", "Bobbies"],
+      "avoid": ["Esses old line", "Bobbies old line"] }
+  }
+}

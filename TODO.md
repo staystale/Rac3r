@@ -115,6 +115,11 @@ last handover, written on request.
    11-08, with the crash parts' drive-over chance by ground clearance.
    OWNER RULE (11-07): never the black wire / rope fence ('fence' barrier) - the old levels still
    use it (Castle Cum, Thruston): replace as each gets its venue pass.
+   CASTLE CUM VENUE BUILT 11-08 behind ?castlecumvenue=1 (levels/castle-cum-venue.ts, OSM data
+   venues/castle-cum.ts; the venue helper): the 1999 layout, 1485 m (real 2977), the old lines at
+   the Esses / Bobbies closed by tyres, no gravel traps (real: grass to tyre walls - spec.tyreWalls
+   at Quarry + Tower), catch fences on the banks, no bridge or tunnel over the track (real), the
+   skid pan kept (spec.pads). No wire fence. UNDER TEST; on pass delete the old castle-cum.ts.
    CREDITS PASSED 11-08 (menu/credits.ts, on the main menu): "made by G"; the owner wants a studio
    name (a parody pun) - to be picked. Add a line there with anything else the game takes.
 2. NEW UK TRACKS at that scale (Snetterton, Donington Park, + Silverstone / Oulton Park) - names

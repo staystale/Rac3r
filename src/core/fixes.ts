@@ -47,4 +47,7 @@ export const FIX = {
   burstcap: atLoad('burstcap'),
   // tyre stacks 1-4 high, bursting by chance by how hard they are hit (coneConsts.ts stackBursts)
   stackvary: atLoad('stackvary'),
+  // ?castlecumvenue=1: Castle Cum as the real venue at 1/2 of real length, sealed as Brands is
+  // (world/levels/castle-cum-venue.ts; owner 11-08)
+  castlecumvenue: atLoad('castlecumvenue'),
 };

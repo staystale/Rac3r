@@ -92,8 +92,41 @@ function convexHull(points) {
   return [...lower.slice(0, -1), ...upper.slice(0, -1)];
 }
 
-const ways = osm.elements.filter((element) => element.type === 'way' && element.geometry);
 const keyOf = (node) => `${node.lat.toFixed(7)},${node.lon.toFixed(7)}`;
+
+/**
+ * A multipolygon's outer rings as closed ways carrying the relation's tags (a paddock or a wood
+ * mapped as a relation): its outer members joined end to end.
+ * @param relation the relation (out geom)
+ * @returns the closed ways
+ */
+function relationRings(relation) {
+  const parts = relation.members.filter((member) => member.role === 'outer' && member.geometry)
+    .map((member) => member.geometry.slice());
+  const rings = [];
+  while (parts.length) {
+    const ring = parts.shift();
+    for (let joined = true; joined && keyOf(ring[0]) !== keyOf(ring.at(-1));) {
+      joined = false;
+      for (const [i, part] of parts.entries()) {
+        if (keyOf(part[0]) === keyOf(ring.at(-1))) ring.push(...part.slice(1));
+        else if (keyOf(part.at(-1)) === keyOf(ring.at(-1))) ring.push(...part.reverse().slice(1));
+        else continue;
+        parts.splice(i, 1);
+        joined = true;
+        break;
+      }
+    }
+    if (keyOf(ring[0]) === keyOf(ring.at(-1)))
+      rings.push({ type: 'way', id: relation.id, tags: relation.tags, geometry: ring });
+  }
+  return rings;
+}
+const ways = [
+  ...osm.elements.filter((element) => element.type === 'way' && element.geometry),
+  ...osm.elements.filter((element) => element.type === 'relation'
+    && element.tags?.type === 'multipolygon').flatMap(relationRings),
+];
 
 // ---- race road pieces: every motor raceway split where pieces meet ----
 const raceWays = ways.filter((way) => way.tags?.highway === 'raceway'
@@ -191,8 +224,12 @@ for (const way of ways) {
   else if (tags.highway === 'raceway' && /kart/.test(tags.sport || '')) out.karting.push({ pts: line(0.3) });
   else if (tags.highway === 'raceway' && /motor/.test(tags.sport || '')) continue;   // a race piece
   else if (tags.highway === 'raceway') out.dirt.push({ name: tags.name || '', pts: line(0.5) });
-  else if ((SERVICE_WIDTH[tags.highway] || FOOT_WAYS.has(tags.highway)) && tags.tunnel)
+  // (a road through a building - tunnel=building_passage - is a road, not a tunnel under the track)
+  else if ((SERVICE_WIDTH[tags.highway] || FOOT_WAYS.has(tags.highway)) && tags.tunnel
+    && tags.tunnel !== 'building_passage')
     out.tunnels.push({ kind: tags.highway, pts: line(0.5) });
+  // a car park's own aisles are its tarmac, not roads (the paddock zone is paved already)
+  else if (tags.service === 'parking_aisle') continue;
   else if (SERVICE_WIDTH[tags.highway] && tags.area !== 'yes')
     out.roads.push({ kind: tags.highway, width: SERVICE_WIDTH[tags.highway], bridge: !!tags.bridge,
       pts: line(0.5) });
@@ -201,6 +238,8 @@ for (const way of ways) {
   else if (tags.natural === 'shingle' && closed(way)) out.traps.push({ pts: line(0.5) });
   else if (tags.barrier === 'tyres') out.tyres.push({ pts: line(0.3) });
   else if (tags.building === 'grandstand' && closed(way)) out.stands.push({ name: tags.name || '', ...boxAround(pts) });
+  // a marshal post mapped as a building (its fire extinguisher): the venue places its own
+  else if (tags.building && tags.emergency) continue;
   else if (tags.building && closed(way))
     out.buildings.push({ name: tags.name || '', kind: tags.building, ...boxAround(pts) });
   else if (tags.amenity === 'parking' && closed(way))

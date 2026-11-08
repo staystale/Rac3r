@@ -3,7 +3,7 @@
 // out"): straight off the end of the ramp, then a curve into the road along its own heading - the
 // smoothest of every join within reach - at the road's width, the road's dead end past the joint
 // trimmed, the drawn ramp (render/props/venueprops.ts, appL) shortened when the road is near.
-import { lineLength } from "./venuegeo.ts";
+import { KART_W, isClosedLoop, lineLength } from "./venuegeo.ts";
 import type { Lane, Point, Prop } from "./types.ts";
 
 // m beyond a deck's end a road is looked for to join its approach to
@@ -157,13 +157,14 @@ function arrivals(meet: Meet, from: Point): [Point, number][] {
 
 /**
  * Which of a road's ends past a joint is a dead end to trim: one within TRIM_M of the joint that
- * lies back toward the bridge.
+ * lies back toward the bridge. A kart track's loop has none: its end runs on as its start.
  * @param meet the meeting
  * @param from the ramp's end
  * @returns the end, or null with none
  */
 function stubTrimmed(meet: Meet, from: Point): 'start' | 'end' | null {
   const pts = meet.road.pts;
+  if (meet.road.width === KART_W && isClosedLoop(pts)) return null;
   const toStart = lineLengthOf(pts.slice(0, meet.index + 1));
   const toEnd = lineLengthOf(pts.slice(meet.index));
   const nearer = (point: Point) => Math.hypot(point[0] - from[0], point[1] - from[1])

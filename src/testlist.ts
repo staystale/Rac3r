@@ -80,5 +80,11 @@ export const TEST_LIST: TestEntry[] = [
     where: 'Test link + &tyresleep=1: TEST MODE > Test > Festival of Splat',
     try: 'Watch the thrown tyres settle after the crash; knock tyres on a circuit.',
     wrong: 'Tyres stopping dead or jerking to a halt, a tyre wall that looks frozen.',
+    id: 'castlecumvenue',
+    added: '2026-11-08',
+    name: 'Castle Cum as the real venue (Castle Combe) at 1/2 size, the edge as Brands has it',
+    where: 'Test link + &castlecumvenue=1: TEST MODE > UK CIRCUITS > Castle Cum',
+    try: 'Lap it, look round: Quarry + Tower tyre walls, catch fences, pits, paddock, skid pan.',
+    wrong: 'A road or prop on the track, a gap in a barrier, a road to nowhere, a wire fence.',
   },
 ];

@@ -66,6 +66,12 @@ export interface VenueSpec {
     drop?: Point[];
     roads?: { pts: Point[]; width?: number }[];
   };
+  // the real tyre walls where the run-off is grass, no trap (real m, each a line along the wall):
+  // Armco there with the two tyre rows in front, as behind a trap (world/venueedge.ts)
+  tyreWalls?: Point[][];
+  // surfaces laid by hand that the map does not carry (real m: centre, size, turn; a surface
+  // sample the owner keeps, as Castle Cum's skid pan)
+  pads?: { at: Point; w: number; h: number; rot: number; surface: keyof typeof SURFACES }[];
   seed: number;
 }
 
@@ -151,7 +157,7 @@ function traceLayout(spec: VenueSpec, layout: string, scale: number): Subtrack {
 
 /**
  * A venue's spec with its map warped (spec.warps): every point and every x / y in its data,
- * hills, banks, boards and start moved by the warps.
+ * hills, banks, boards, tyre walls, pads and start moved by the warps.
  * @param spec the venue as mapped
  * @returns the venue warped (the same object with no warps)
  */
@@ -187,7 +193,8 @@ function warpSpec(spec: VenueSpec): VenueSpec {
   };
   return { ...spec, data: walk(spec.data) as VenueData, hills: walk(spec.hills) as Bump[],
     banks: walk(spec.banks) as VenueSpec['banks'], boards: walk(spec.boards) as VenueSpec['boards'],
-    start: move(spec.start) };
+    tyreWalls: walk(spec.tyreWalls) as VenueSpec['tyreWalls'],
+    pads: walk(spec.pads) as VenueSpec['pads'], start: move(spec.start) };
 }
 
 const builds = new Map<VenueSpec, VenueBuild>();

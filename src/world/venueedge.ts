@@ -301,16 +301,21 @@ function withoutDoubles(pts: Point[], used: Point[], gapM: number): Point[][] {
 /** What stands at a rim sample. */
 const EDGE_NONE = 0, EDGE_ARMCO = 1, EDGE_CATCH = 2;
 
-/** What decides the edge beside a road: hazards beyond it and where spectators stand. */
+/**
+ * What decides the edge beside a road: hazards beyond it, where spectators stand, and the real
+ * tyre walls (a venue whose run-off is grass to a tyre wall, no trap: Castle Combe's Quarry).
+ */
 export interface EdgeNeeds {
   hazard: (x: number, y: number) => boolean;   // a solid thing there (Armco protects it)
   watched: (x: number, y: number) => boolean;   // spectators near (a catch fence instead)
+  walled?: (x: number, y: number) => boolean;   // a real tyre wall (Armco, tyres in front)
 }
 
 /**
- * What stands at each rim sample of one side: Armco behind a trap or before a hazard within
- * HAZARD_M beyond the rim, a catch fence where spectators are, else nothing (open run-off); gaps
- * under GAP_FILL_M between two runs of the same kind filled, each run grown EXTEND_M each way.
+ * What stands at each rim sample of one side: Armco behind a trap or along a real tyre wall, or
+ * before a hazard within HAZARD_M beyond the rim, a catch fence where spectators are, else
+ * nothing (open run-off); gaps under GAP_FILL_M between two runs of the same kind filled, each
+ * run grown EXTEND_M each way.
  * @param rim the road's rim
  * @param side +1 left, -1 right
  * @param traps the trap zones
@@ -326,7 +331,7 @@ function edgeKinds(rim: Rim, side: number, traps: Zone[], needs: EdgeNeeds,
     const centre = centreAt(rim.sub, i * RIM_STEP_M);
     const outX = centre.nx * side, outY = centre.ny * side;
     const x = centre.x + outX * offs[i], y = centre.y + outY * offs[i];
-    let hazard = trapDepth(centre, side, traps) > 0;
+    let hazard = trapDepth(centre, side, traps) > 0 || !!needs.walled?.(x, y);
     for (let past = 0; past <= HAZARD_M && !hazard; past += 2) {
       const probeX = x + outX * past, probeY = y + outY * past;
       hazard = needs.hazard(probeX, probeY)
@@ -431,7 +436,7 @@ export function buildEdge(rims: Rim[], keep: EdgeClear, traps: Zone[], needs: Ed
               barriers.push({ kind: barrierKind, pts: chunk });
             fresh.push(...run);
             // a tyre wall in front of either, where it stands behind a trap
-            cones.push(...trapTyres(run, keep.loops, traps, clear));
+            cones.push(...trapTyres(run, keep.loops, traps, clear, needs.walled));
           }
       used.push(...fresh);
     }
@@ -454,22 +459,24 @@ function chunks(pts: Point[], count: number): Point[][] {
 
 /**
  * The two tyre rows in front of an Armco run, where it stands behind a trap (gravel within reach
- * just in front of it).
+ * just in front of it) or along a real tyre wall.
  * @param run the Armco run
  * @param loops every layout's road
  * @param traps the trap zones
  * @param clear true where a point may stand
+ * @param walled true along a real tyre wall (none when absent)
  * @returns the tyre stacks
  */
 function trapTyres(run: Point[], loops: Subtrack[], traps: Zone[],
-  clear: (x: number, y: number) => boolean): Cone[] {
+  clear: (x: number, y: number) => boolean, walled?: (x: number, y: number) => boolean): Cone[] {
+  const behind = (x: number, y: number) => nearTrap(traps, x, y, 3) || !!walled?.(x, y);
   const out: Cone[] = [];
   for (const [front, shift] of TYRE_ROWS) {
     const row = run.map((point) => {
       const away = awayFrom(loops, point);
       return [point[0] - away[0] * front, point[1] - away[1] * front] as Point;
     });
-    for (const line of clearRuns(row, (x, y) => clear(x, y) && nearTrap(traps, x, y, 3), 0.95)) {
+    for (const line of clearRuns(row, (x, y) => clear(x, y) && behind(x, y), 0.95)) {
       if (line.length < MIN_TYRE_ROW) continue;
       for (let i = shift ? 1 : 0; i < line.length; i++)
         out.push({ x: line[i][0], y: line[i][1], kind: 'tyrestack' });

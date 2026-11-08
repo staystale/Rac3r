@@ -137,6 +137,8 @@ const along = (pts) => { const out = [0]; for (let i = 1; i < pts.length; i++) o
 for (const [i, road] of roadsOnly.entries()) {
   const dist = along(road.pts), total = dist[dist.length - 1];
   for (const other of roadsOnly.slice(i + 1)) {
+    // a kart track (4 m) beside a road is two things, not one mapped twice (world/venueroads.ts)
+    if ((road.width === 4) !== (other.width === 4)) continue;
     let run = 0, worst = 0;
     road.pts.forEach(([x, y], k) => {
       if (dist[k] < 20 || dist[k] > total - 20) { run = 0; return; }
