@@ -182,6 +182,11 @@ last handover, written on request.
    road's close stretches; stands, banks, the bridge over Bentley Straight. PASSED + DEFAULT 11-08
    (owner: "snotterton looks like a straight pass"); left as built: the open grass edges (OSM maps no
    barriers there), the 100's start by Tyrrells, Brands without the new no-flare-back rule.
+   THRUSTON VENUE BUILT 11-08 behind ?thrustonvenue=1 (levels/thruston-venue.ts, OSM data in
+   venues/thruston.ts; the venue helper): 1892 m (real 3793, OSM 3771), the airfield inside (OSM
+   runways, taxiways, apron as zones; the hangars), the tunnel under the start straight, the pits,
+   the grandstands at Club, the viewing banks (the BARC visitor guide), the skid pan. UNDER TEST;
+   the old thruston.ts and its traced-map credit go on pass.
 3. ROLLING LOOK - smoother than the dice flip on the same physics; mockup first.
 4. SIDE DRAFTING (Naffcar first) PASSED + DEFAULT 11-08 (owner: "Pass"): physics/wake.ts part 5 - a nose
    alongside a car's rear quarter, up to +20 % drag on it and -6 % on the car alongside, gone by 1.2 m

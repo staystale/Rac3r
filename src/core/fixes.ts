@@ -44,4 +44,7 @@ export function dialAtLoad(name: string): number {
 export const FIX = {
   // a stock car's roof flaps pop up when it travels backwards fast (physics/roofflaps.ts)
   roofflaps: atLoad('roofflaps'),
+  // ?thrustonvenue=1: Thruston as the real venue (Thruxton) at 1/2 of real length
+  // (world/levels/thruston-venue.ts; owner 11-08)
+  thrustonvenue: atLoad('thrustonvenue'),
 };

@@ -13,6 +13,14 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'thrustonvenue',
+    added: '2026-11-08',
+    name: 'Thruston as the real venue (Thruxton) at 1/2 size, the airfield inside it',
+    where: 'Test link + &thrustonvenue=1: TEST MODE > UK CIRCUITS > Thruston',
+    try: 'Lap it; look at the pits, the tunnel under the start straight, Club, the Complex.',
+    wrong: 'A road or prop on the track, a barrier gap, a road to nowhere, a broken tunnel.',
+  },
+  {
     id: 'roofflaps',
     added: '2026-11-08',
     name: 'Naffcar roof flaps: two plates pop up on the roof when it goes backwards fast',
