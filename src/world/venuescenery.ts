@@ -278,7 +278,8 @@ function venueBuildings(site: Site, pit: Lane): Prop[] {
     if (overlapsAny(prop, props)) return;
     if (!standClear(site, prop)) return;
     props.push(/control tower/i.test(building.name) ? { ...prop, kind: 'tower' }
-      : { ...prop, roof: ROOFS[i % ROOFS.length] });
+      : building.kind === 'hangar' ? { ...prop, kind: 'hangar' }
+        : { ...prop, roof: ROOFS[i % ROOFS.length] });
   });
   for (const mark of site.build.spec.landmarks || []) {
     const [x, y] = site.place(mark.at), size = mark.size * site.build.scale;
@@ -449,6 +450,35 @@ function venueTrees(site: Site, bounds: VenueScenery['bounds'], solids: Prop[],
     trees.push({ kind: 'tree', x, y, s: 3.5 + site.rnd() * 3, seed: i });
   }
   return trees;
+}
+
+/**
+ * An airfield's paved runways, taxiways and aprons as tarmac, a grass runway as mown grass (a
+ * grass taxiway or apron is the field it lies in), placed and scaled as the map is.
+ * @param site the venue's builders' state
+ * @returns the zones
+ */
+function venueAero(site: Site): Zone[] {
+  const zones: Zone[] = [];
+  for (const way of site.build.spec.data.aero || []) {
+    const grass = way.surface === 'grass';
+    if (grass && way.kind !== 'runway') continue;
+    const surface = grass ? SURFACES.grassShort : SURFACES.tarmac, pts = placeAll(site, way.pts);
+    if (way.area) { zones.push(outlineZone(pts, surface)); continue; }
+    // a line: each stretch a box its width wide (the joints overlap)
+    const half = way.width * site.build.scale / 2;
+    for (let i = 1; i < pts.length; i++) {
+      const [fromX, fromY] = pts[i - 1], [toX, toY] = pts[i];
+      const len = Math.hypot(toX - fromX, toY - fromY) || 1;
+      const alongX = (toX - fromX) / len * half, alongY = (toY - fromY) / len * half;
+      const box = [[-1, 1], [1, 1], [1, -1], [-1, -1]].map(([end, side]): Point => {
+        const [baseX, baseY] = end < 0 ? [fromX, fromY] : [toX, toY];
+        return [baseX + alongX * end - alongY * side, baseY + alongY * end + alongX * side];
+      });
+      zones.push(outlineZone(box, surface));
+    }
+  }
+  return zones;
 }
 
 /**
@@ -706,7 +736,7 @@ export function buildVenueScenery(build: VenueBuild, sub: Subtrack, closed: Lane
   }
   const bounds = venueBounds(loops, [pit.lane, ...bridges.lanes, ...tunnels.lanes, ...finished],
     props);
-  const zones = [...traps, ...paddocks.zones, ...venuePads(site)];
+  const zones = [...traps, ...paddocks.zones, ...venuePads(site), ...venueAero(site)];
   const lanes = [pit.lane, ...bridges.lanes, ...tunnels.lanes, ...finished];
   props.push(...venueTrees(site, bounds, props, zones));
   // the kart track's tyre lines, none on a road

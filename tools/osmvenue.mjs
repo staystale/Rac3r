@@ -13,7 +13,8 @@
 //   "extra": [{ "source": "...", "tags": { OSM tags }, "pts": [[lat, lon], ...] }] - features the map
 //   does not carry, traced from another source (the circuit's map, aerial photographs), read as
 //   ways (a closed one repeats its first point) }
-// A name in "names" also names a building, stand or car park of that way id.
+// A name in "names" also names a building, stand or car park of that way id; "kinds": { "<way
+// id>": "hangar" } sets a building's kind where the map says only building=yes.
 // A layout is the shortest loop through its "through" pieces that avoids its "avoid" pieces; it is
 // written as the ordered list of pieces it runs over, so a layout is changed by editing that list.
 import fs from 'node:fs';
@@ -210,7 +211,7 @@ const SERVICE_WIDTH = { service: 5, residential: 6, unclassified: 6, tertiary: 7
 const FOOT_WAYS = new Set(['footway', 'path', 'steps', 'pedestrian']);
 const out = { pieces: [], layouts: {}, pitLanes: [], roads: [], footbridges: [], dirt: [],
   karting: [], tunnels: [], traps: [], tyres: [], stands: [], buildings: [], paddocks: [],
-  woods: [], homes: [], rails: [] };
+  woods: [], homes: [], rails: [], aero: [] };
 for (const piece of pieces)
   out.pieces.push({ name: piece.name, pts: cleanLine(piece.raw, 0.25) });
 for (const [id, spec] of Object.entries(config.layouts || {})) out.layouts[id] = buildLayout(spec);
@@ -246,13 +247,20 @@ for (const way of ways) {
   // the real circuit's rails: Armco and concrete barriers (a venue built with followRails uses them)
   else if (tags.barrier === 'guard_rail' || tags.barrier === 'jersey_barrier')
     out.rails.push({ kind: tags.barrier, pts: line(0.3) });
-  else if (tags.building === 'grandstand' && closed(way))
+  // (a building mapped by its name as a grandstand is one)
+  else if ((tags.building === 'grandstand' || /grandstand/i.test(tags.name || '')) && closed(way))
     out.stands.push({ name: config.names?.[way.id] || tags.name || '', ...boxAround(pts) });
   // a marshal post mapped as a building (its fire extinguisher): the venue places its own
   else if (tags.building && tags.emergency) continue;
   else if (tags.building && closed(way))
-    out.buildings.push({ name: config.names?.[way.id] || tags.name || '', kind: tags.building,
-      ...boxAround(pts) });
+    out.buildings.push({ name: config.names?.[way.id] || tags.name || '',
+      kind: config.kinds?.[way.id] || tags.building, ...boxAround(pts) });
+  // an airfield inside the circuit: its runways, taxiways and aprons (paved or grass)
+  else if (['runway', 'taxiway', 'apron'].includes(tags.aeroway)
+    && !/displaced/.test(tags.runway || ''))
+    out.aero.push({ kind: tags.aeroway, surface: tags.surface || 'asphalt',
+      width: +(tags.width || 0) || (tags.aeroway === 'runway' ? 30 : 10),
+      area: tags.aeroway === 'apron' && closed(way), pts: line(1) });
   else if (tags.amenity === 'parking' && closed(way))
     out.paddocks.push({ name: tags.name || '', surface: tags.surface || '', ...boxAround(pts),
       pts: line(1) });
