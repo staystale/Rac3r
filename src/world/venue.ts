@@ -51,6 +51,10 @@ export interface VenueSpec {
   realRoadM: number;   // the real road's width, m (the game's is 13: the map steps back)
   calibrate: { layout: string; realLapM: number };   // the layout whose real lap sets the scale
   start: Point;   // the start / finish line
+  starts?: Record<string, Point>;   // a layout's own start / finish line where it has another
+  // m (game): the tightest radius its traced layouts keep, where the real hairpins are tighter
+  // than VENUE_MIN_R at the venue's scale (eased wider, a hairpin's two legs were drawn together)
+  minR?: number;
   pitLane: string;   // the data's pit lane in use
   hills: Bump[];   // the hills (r and d / h in real m: scaled with the map)
   // spectator earth banks; a catch fence in front of each unless fenced is false (the sources show
@@ -163,9 +167,9 @@ function startAt(line: Point[], spot: Point): Point[] {
  * @returns the subtrack
  */
 function traceLayout(spec: VenueSpec, layout: string, scale: number): Subtrack {
-  const line = startAt(layoutLine(spec.data, layout), spec.start);
+  const line = startAt(layoutLine(spec.data, layout), spec.starts?.[layout] || spec.start);
   const sub = createSubtrack(
-    traceTrack(line, { mpp: scale, cx: 0, cy: 0, rMin: VENUE_MIN_R }), VENUE_ROAD_M,
+    traceTrack(line, { mpp: scale, cx: 0, cy: 0, rMin: spec.minR || VENUE_MIN_R }), VENUE_ROAD_M,
     [{ startDist: 0, endDist: 1e9, surface: SURFACES.racetarmac }], [], true);
   sub.curvedKerbs = autoKerbs(sub, { maxR: 70, exitR: 30, heavyR: 22, minTurn: 20, mergeGap: 12 });
   return sub;
@@ -212,7 +216,8 @@ function warpSpec(spec: VenueSpec): VenueSpec {
     tyreWalls: walk(spec.tyreWalls) as VenueSpec['tyreWalls'],
     railsSeen: walk(spec.railsSeen) as VenueSpec['railsSeen'],
     pads: walk(spec.pads) as VenueSpec['pads'],
-    landmarks: walk(spec.landmarks) as VenueSpec['landmarks'], start: move(spec.start) };
+    landmarks: walk(spec.landmarks) as VenueSpec['landmarks'], start: move(spec.start),
+    starts: walk(spec.starts) as VenueSpec['starts'] };
 }
 
 const builds = new Map<VenueSpec, VenueBuild>();

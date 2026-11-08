@@ -9,7 +9,11 @@
 // The config: { "osm": the Overpass JSON (out geom), "out": the .ts to write, "exportName",
 //   "origin": [lat, lon], "turnDeg": degrees the map is turned (clockwise on screen),
 //   "clip": [x0, y0, x1, y1] real m in the turned frame, "names": { "<way id>": "piece name" },
-//   "layouts": { "<id>": { "through": [piece names], "avoid": [piece names] } } }
+//   "layouts": { "<id>": { "through": [piece names], "avoid": [piece names] } },
+//   "extra": [{ "source": "...", "tags": { OSM tags }, "pts": [[lat, lon], ...] }] - features the map
+//   does not carry, traced from another source (the circuit's map, aerial photographs), read as
+//   ways (a closed one repeats its first point) }
+// A name in "names" also names a building, stand or car park of that way id.
 // A layout is the shortest loop through its "through" pieces that avoids its "avoid" pieces; it is
 // written as the ordered list of pieces it runs over, so a layout is changed by editing that list.
 import fs from 'node:fs';
@@ -101,7 +105,7 @@ const keyOf = (node) => `${node.lat.toFixed(7)},${node.lon.toFixed(7)}`;
  * @returns the closed ways
  */
 function relationRings(relation) {
-  const parts = relation.members.filter((member) => member.role === 'outer' && member.geometry)
+  const parts = (relation.members || []).filter((member) => member.role === 'outer' && member.geometry)
     .map((member) => member.geometry.slice());
   const rings = [];
   while (parts.length) {
@@ -124,6 +128,8 @@ function relationRings(relation) {
 }
 const ways = [
   ...osm.elements.filter((element) => element.type === 'way' && element.geometry),
+  ...(config.extra || []).map((feature, i) => ({ type: 'way', id: `extra ${i}`, tags: feature.tags,
+    geometry: feature.pts.map(([lat, lon]) => ({ lat, lon })) })),
   ...osm.elements.filter((element) => element.type === 'relation'
     && element.tags?.type === 'multipolygon').flatMap(relationRings),
 ];
@@ -240,11 +246,13 @@ for (const way of ways) {
   // the real circuit's rails: Armco and concrete barriers (a venue built with followRails uses them)
   else if (tags.barrier === 'guard_rail' || tags.barrier === 'jersey_barrier')
     out.rails.push({ kind: tags.barrier, pts: line(0.3) });
-  else if (tags.building === 'grandstand' && closed(way)) out.stands.push({ name: tags.name || '', ...boxAround(pts) });
+  else if (tags.building === 'grandstand' && closed(way))
+    out.stands.push({ name: config.names?.[way.id] || tags.name || '', ...boxAround(pts) });
   // a marshal post mapped as a building (its fire extinguisher): the venue places its own
   else if (tags.building && tags.emergency) continue;
   else if (tags.building && closed(way))
-    out.buildings.push({ name: tags.name || '', kind: tags.building, ...boxAround(pts) });
+    out.buildings.push({ name: config.names?.[way.id] || tags.name || '', kind: tags.building,
+      ...boxAround(pts) });
   else if (tags.amenity === 'parking' && closed(way))
     out.paddocks.push({ name: tags.name || '', surface: tags.surface || '', ...boxAround(pts),
       pts: line(1) });

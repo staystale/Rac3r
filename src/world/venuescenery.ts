@@ -12,8 +12,9 @@ import { onTrack, querySubtrack } from "./tyrewall.ts";
 import { parkMiller } from "../core/random.ts";
 import { HALF_ROAD, VENUE_ROAD_M, centreAt, distToLine, lineLength, makePlacer, nearestLoop,
   pointAlong, resample, smoothLine } from "./venuegeo.ts";
-import { WALL_REACH_M, boardOnArmco, boxedLine, buildEdge, buildRims, inZones, marshalPosts,
-  outlineZone, pastRim, trapZones } from "./venueedge.ts";
+import { WALL_REACH_M, boxedLine, buildEdge, buildRims, inZones, outlineZone, pastRim,
+  trapZones } from "./venueedge.ts";
+import { boardOnArmco, marshalPosts } from "./venueposts.ts";
 import type { EdgeNeeds, WallLine } from "./venueedge.ts";
 import { REACH_M, cellKey, inBuilding, inSolid, nearArmco, nearRace, onLanes, placeAll }
   from "./venuesite.ts";
@@ -664,7 +665,7 @@ export function buildVenueScenery(build: VenueBuild, sub: Subtrack, closed: Lane
   const edge = buildEdge(site.rims, { loops, lanes: site.lanes,
     blocked: (x, y) => inBuilding(site.buildings, x, y, 1)
       || (!!pitWall && distToLine(pitWall, x, y) < PIT_WALL_CLEAR_M),
-    roads: [pit.lane, ...bridges.lanes, ...tunnels.lanes] }, traps,
+    roads: [pit.lane] }, traps,
   edgeNeeds(site, bridges.props, tunnels.props, lines));
   for (const rail of edge.barriers)
     for (const [x, y] of resample(rail.pts, 1)) site.armco.add(cellKey(x, y));
