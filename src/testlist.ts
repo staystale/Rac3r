@@ -21,6 +21,14 @@ export const TEST_LIST: TestEntry[] = [
     wrong: 'A wall end facing the road, gaps in a wall, a cactus on the road, bad walls look.',
   },
   {
+    id: 'dieatona',
+    added: '2026-11-08',
+    name: 'Dieatona (the Daytona parody) at 1/2 size: the banked tri-oval and the road course',
+    where: 'Test link + &dieatona=1: TEST MODE > OVALS > Dieatona / Dieatona Road Course',
+    try: 'Lap the banking flat out; the pits, Lake Lloyd, the tunnels, the road course infield.',
+    wrong: 'A car launched off the banking, a road over the track, a barrier gap, a stuck tunnel.',
+  },
+  {
     id: 'thrustonvenue',
     added: '2026-11-08',
     name: 'Thruston as the real venue (Thruxton) at 1/2 size, the airfield inside it',
