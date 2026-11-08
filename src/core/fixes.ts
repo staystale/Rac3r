@@ -11,7 +11,7 @@
 // bhquiet, aiweave, jokerflow, aisliders, hudlean, aibands, puffroom, aigrip,
 // aidodge, ailines, ailook, dodgefar, markjump passed 11-04; credits, bigbrands, crossings,
 // fencedrag, tyresleep, burstcap, stackvary, linewall, tallfence, rollway, castlecumvenue,
-// rollover, rollbody, snotterton passed 11-08.)
+// rollover, rollbody, snotterton, sidedraft passed 11-08.)
 import { envValue } from './debug.ts';
 
 /**
@@ -42,7 +42,4 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
-  // side drafting: a car alongside another's rear quarter takes the air off its tail
-  // (physics/wake.ts; owner 11-08, Naffcar first)
-  sidedraft: atLoad('sidedraft'),
 };

@@ -9,7 +9,7 @@
 //   3 THE SHAPE  the wake runs longer the faster the car making it goes (WAKE_LEN at WAKE_V,
 //                x0.6 .. x1.6) and with a wider car; it is as wide as that car.
 //   4 THE CUE    faint air streaks along any racer in a tow (render/particles.ts).
-//   5 THE SIDE DRAFT (owner 11-08, ?sidedraft=1: "side drafting, Naffcar first"): two cars door to
+//   5 THE SIDE DRAFT (owner 11-08: "side drafting, Naffcar first"; passed 11-08): two cars door to
 //                door at speed - the one with the other's nose alongside its rear quarter loses
 //                the clean air over its tail (up to SIDE_DRAG more drag, most with the nose at its
 //                rear quarter), the one alongside gets a little pull (up to SIDE_TOW less) - so a
@@ -22,7 +22,6 @@
 // and falls away fast, so it decays exponentially over WAKE_DECAY of the wake's length: at
 // 200 km/h 8 m behind cuts ~28 %, 15 m ~15 %, 25 m ~6 %; at 100 km/h 8 m ~21 %, 15 m ~8 %.
 // Every racer, the player too (sim.js: with AI on the track).
-import { FIX } from '../core/fixes.ts';
 
 const DRAFT_V = 12, DRAFT_MAX = 0.45, NOSE_GAP = 3;
 const WAKE_LEN = 28, WAKE_V = 30, WAKE_WID_REF = 1.8;
@@ -133,5 +132,5 @@ export function wakeStep(cars: WakeCar[]): void {
     car.wakeDown = 1 - dirty;
   });
   cars.forEach((car, i) => { car.dragMul = (car.dragMul ?? 1) * (1 - push[i]); });
-  if (FIX.sidedraft) sideDraft(cars);
+  sideDraft(cars);
 }

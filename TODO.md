@@ -183,7 +183,10 @@ last handover, written on request.
    (owner: "snotterton looks like a straight pass"); left as built: the open grass edges (OSM maps no
    barriers there), the 100's start by Tyrrells, Brands without the new no-flare-back rule.
 3. ROLLING LOOK - smoother than the dice flip on the same physics; mockup first.
-4. SIDE DRAFTING (Naffcar first), then the Naffcar extras (air brakes, aero upgrades, Dieatona).
+4. SIDE DRAFTING (Naffcar first) PASSED + DEFAULT 11-08 (owner: "Pass"): physics/wake.ts part 5 - a nose
+   alongside a car's rear quarter, up to +20 % drag on it and -6 % on the car alongside, gone by 1.2 m
+   between the doors, by how much the car's flanks catch the air (Naffcar 1 .. F1 0.15);
+   tools/scratch/_sidedraft.mjs. Next: the Naffcar extras (air brakes, aero upgrades, Dieatona).
 5. MORE HIGHWAY FLAVOURS.
 6. SMALL: Brands Snatch Indy's garage barrier on a lane (barriercheck); the highway AI dodging (owner
    "let's leave it for now").

@@ -12,14 +12,6 @@ export interface TestEntry {
 }
 
 export const TEST_LIST: TestEntry[] = [
-  {
-    id: 'sidedraft',
-    added: '2026-11-08',
-    name: 'Side drafting: a nose alongside the rear quarter of a car takes the air off its tail',
-    where: 'Test link + &sidedraft=1: a Naffcar on the Stock Car oval with AI (any race works)',
-    try: 'Pull alongside a car, nose at its rear quarter, on a straight; then be side drafted.',
-    wrong: 'No pull or slowing, a big tug, cars rubbing door to door more or crashing in packs.',
-  },
   // (approved late, deleted: fields, grassedge, catchthem, slipsdual, fps - TODO.md 1c; dirtroad,
   // animals, labext, labsplit, zoomhold, gpupaint, minimap, zoomspring, grassgrip, hwmap,
   // cracktufts, sharpcars, sharpmarks, jokerfix, groundlookup, exacttiles, hudmenu, tyreoff,
@@ -69,5 +61,6 @@ export const TEST_LIST: TestEntry[] = [
   // (the line gives a wall by the edge room), tallfence, rollway (rolls the right way),
   // castlecumvenue (Castle Kum as the real venue), rollover (a fast tumble goes over low things),
   // rollbody (a rolled car drawn as a body in its real shape, every car), snotterton (Snetterton
-  // as a venue: the 300, 200 and 100) passed 2026-11-08)
+  // as a venue: the 300, 200 and 100), sidedraft (a nose alongside a rear quarter takes the air off
+  // its tail) passed 2026-11-08)
 ];
