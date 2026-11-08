@@ -5,6 +5,7 @@ import { isHutWrecked } from '../../world/marshalbox.ts';
 import { drawSeasonTree } from '../trees.ts';
 import type { Prop } from '../../world/types.ts';
 import type { PropCtx } from './types.ts';
+import { SCULPTURE_M } from '../../world/barriers.ts';
 
 /**
  * Draws the plane prop (plane).
@@ -221,13 +222,14 @@ function drawWoodenHut(paint: (x: number, y: number, width: number, height: numb
 export function drawSculpture(propCtx: PropCtx, prop: Prop, ppm: number) {
   const { view } = propCtx;
   // the red steel SCULPTURE by the start line (photo): a crown of red squares, orange core,
-  // long shadow (it is tall)
+  // long shadow (it is tall). SCULPTURE_M across, or size m (a venue's, at its scale)
+  const unit = prop.size ? ppm * prop.size / SCULPTURE_M : ppm;
   const paint = (x: number, y: number, width: number, height: number, col: string) => {
     view.ctx.fillStyle = col;
-    view.ctx.fillRect(x * ppm, y * ppm, width * ppm, height * ppm);
+    view.ctx.fillRect(x * unit, y * unit, width * unit, height * unit);
   };
   view.ctx.fillStyle = 'rgba(10,12,16,0.32)';
-  view.ctx.fillRect(0.2 * ppm, 0.2 * ppm, 3.2 * ppm, 1.6 * ppm);
+  view.ctx.fillRect(0.2 * unit, 0.2 * unit, 3.2 * unit, 1.6 * unit);
   for (const [x, y] of [
     [-1.1, -1.1],
     [0.3, -1.3],

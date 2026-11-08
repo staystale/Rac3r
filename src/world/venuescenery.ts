@@ -254,7 +254,8 @@ function standClear(site: Site, prop: Prop): boolean {
 
 /**
  * The venue's own buildings (not the neighbours' homes): grandstands, the pit garages as a garage
- * row facing the pit lane, and every other building a flat-roofed block; each outside the edge.
+ * row facing the pit lane, the control tower with its cab, every other building a flat-roofed
+ * block, each outside the edge; and the landmarks the map does not carry where the sources show.
  * @param site the venue's builders' state
  * @param pit the pit lane
  * @returns the props
@@ -274,8 +275,14 @@ function venueBuildings(site: Site, pit: Lane): Prop[] {
     if (!building.name && prop.w! * prop.h! < 40) return;
     // one structure mapped twice (a stand and a building on it): keep the first
     if (overlapsAny(prop, props)) return;
-    if (standClear(site, prop)) props.push({ ...prop, roof: ROOFS[i % ROOFS.length] });
+    if (!standClear(site, prop)) return;
+    props.push(/control tower/i.test(building.name) ? { ...prop, kind: 'tower' }
+      : { ...prop, roof: ROOFS[i % ROOFS.length] });
   });
+  for (const mark of site.build.spec.landmarks || []) {
+    const [x, y] = site.place(mark.at), size = mark.size * site.build.scale;
+    props.push({ kind: mark.kind, x, y, size, w: size, h: size });
+  }
   return props;
 }
 

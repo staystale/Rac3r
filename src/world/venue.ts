@@ -81,6 +81,9 @@ export interface VenueSpec {
   followRails?: boolean;
   // rails seen on aerial photographs that the map does not carry (real m), followed as its own
   railsSeen?: Point[][];
+  // landmarks the map does not carry (a prop kind at its real spot, size m across, scaled with the
+  // map): where the sources show them
+  landmarks?: { at: Point; kind: string; size: number }[];
   seed: number;
 }
 
@@ -168,7 +171,7 @@ function traceLayout(spec: VenueSpec, layout: string, scale: number): Subtrack {
 
 /**
  * A venue's spec with its map warped (spec.warps): every point and every x / y in its data,
- * hills, banks, boards, tyre walls, rails seen, pads and start moved by the warps.
+ * hills, banks, boards, tyre walls, rails seen, pads, landmarks and start moved by the warps.
  * @param spec the venue as mapped
  * @returns the venue warped (the same object with no warps)
  */
@@ -206,7 +209,8 @@ function warpSpec(spec: VenueSpec): VenueSpec {
     banks: walk(spec.banks) as VenueSpec['banks'], boards: walk(spec.boards) as VenueSpec['boards'],
     tyreWalls: walk(spec.tyreWalls) as VenueSpec['tyreWalls'],
     railsSeen: walk(spec.railsSeen) as VenueSpec['railsSeen'],
-    pads: walk(spec.pads) as VenueSpec['pads'], start: move(spec.start) };
+    pads: walk(spec.pads) as VenueSpec['pads'],
+    landmarks: walk(spec.landmarks) as VenueSpec['landmarks'], start: move(spec.start) };
 }
 
 const builds = new Map<VenueSpec, VenueBuild>();

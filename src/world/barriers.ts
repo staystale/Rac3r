@@ -117,6 +117,9 @@ export function prepBarriersOf(level: { barriers?: Barrier[] }): void {
 }
 // m: a segment's box (minX ... maxY) reaches this far past its ends
 export const SEG_BOX_PAD = 4;
+// m: the sculpture prop's crown across as drawn, and its legs' solid box (a prop's size scales
+// both: a venue's sculpture at its scale)
+export const SCULPTURE_M = 2.7, SCULPTURE_LEGS_M = 2.2;
 
 export function prepBarriers(level: { barriers?: Barrier[] }): void {
   for (const barrier of level.barriers || []) {
@@ -171,7 +174,8 @@ function addStructureSolids(out: Solid[], prop: Prop): boolean {
   switch (prop.kind) {
     // always have w and h
     case 'hangar': case 'grandstand': box(0, 0, prop.w!, prop.h!); return true;
-    case 'tower': box(0, 0, prop.size || 9, prop.size || 9); return true;
+    // a square of size m, or a venue's mapped control tower (w x h)
+    case 'tower': box(0, 0, prop.w || prop.size || 9, prop.h || prop.size || 9); return true;
     case 'truck': box(0, 0, 14, 2.5); return true;
     // fuselage, wing, tailplane
     case 'plane': box(0.3, 0, 7, 1); box(1.0, 0, 1.4, 9); box(-2.8, 0, 0.8,
@@ -268,7 +272,12 @@ function addSmallSolids(out: Solid[], prop: Prop): boolean {
       // open end; one in the tunnel passes under it - world/crossings.ts)
       box(prop.w! / 2 - PORTAL_LINTEL_M / 2, 0, PORTAL_LINTEL_M, prop.h! + 2 * PORTAL_WALL_M);
       return true;
-    case 'sculpture': box(0, 0, 2.2, 2.2); return true;
+    // its legs' box, scaled with its crown (size m across, a venue's at its scale)
+    case 'sculpture': {
+      const side = prop.size ? SCULPTURE_LEGS_M * prop.size / SCULPTURE_M : SCULPTURE_LEGS_M;
+      box(0, 0, side, side);
+      return true;
+    }
     case 'bale': box(0, 0, 1.6, 1.6); return true;
     case 'rock': box(0, 0, (prop.s || 3) * 0.7, (prop.s || 3) * 0.7); return true;
     // (field sheep / cows are LOOSE OBJECTS since S-C, - cones.ts: pushable, a sheep

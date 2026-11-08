@@ -65,6 +65,10 @@ export const CASTLE_CUM_SPEC: VenueSpec = {
   // further out than mapped, clear of the ring road stepped out from the track): the wet surface
   // sample the old level had (owner: the test surfaces stay)
   pads: [{ at: [-156, -364], w: 44, h: 38, rot: 0.3, surface: 'wet' }],
+  // the red-orange steel marshals' tower (Marshal Post 1, ukcircuits.net) just past the line,
+  // right behind the pit wall (the start straight photograph; aerial photographs: its crown
+  // about 4.5 m across, 20 m past the line): between the wall and the pit lane
+  landmarks: [{ at: [163.8, 481.8], kind: 'sculpture', size: 4.5 }],
   // the hand finish (game m): the Quarry Bar stands beside the ring road outside Quarry (our
   // placing pushed it onto the road, which broke round it): back off the road
   finish: { move: [{ at: [-282.4, 116.1], by: [-2, 6] }] },

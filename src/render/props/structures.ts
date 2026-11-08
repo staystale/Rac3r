@@ -83,22 +83,23 @@ export function drawTower(propCtx: PropCtx, prop: Prop, ppm: number) {
   const { view } = propCtx;
   // CONTROL TOWER: a two-storey block (long shadow = tall) with a small glazed cab on the
   // roof. The first cut — a square with
-  // a thick dark band — photographed as a swimming pool.
-  const towerSize = (prop.size || 9) * ppm,
-    cabSize = towerSize * 0.45;
+  // a thick dark band — photographed as a swimming pool. A square of size m, or a mapped
+  // building's w x h (a venue's control tower: the cab sized to its shorter side)
+  const towerW = (prop.w || prop.size || 9) * ppm, towerH = (prop.h || prop.size || 9) * ppm,
+    cabSize = Math.min(towerW, towerH) * 0.45;
   view.ctx.fillStyle = 'rgba(10,12,16,0.40)';
   view.ctx.fillRect(
-    -towerSize / 2 + 1.6 * ppm,
-    -towerSize / 2 + 2.2 * ppm,
-    towerSize,
-    towerSize,
+    -towerW / 2 + 1.6 * ppm,
+    -towerH / 2 + 2.2 * ppm,
+    towerW,
+    towerH,
   );
   view.ctx.fillStyle = '#d9d5cc';
-  view.ctx.fillRect(-towerSize / 2, -towerSize / 2, towerSize, towerSize); // flat roof
+  view.ctx.fillRect(-towerW / 2, -towerH / 2, towerW, towerH); // flat roof
   view.ctx.fillStyle = '#bdb8ad';
-  view.ctx.fillRect(-towerSize / 2, towerSize / 2 - 0.5 * ppm, towerSize, 0.5 * ppm);
+  view.ctx.fillRect(-towerW / 2, towerH / 2 - 0.5 * ppm, towerW, 0.5 * ppm);
   // parapet shade
-  view.ctx.fillRect(towerSize / 2 - 0.5 * ppm, -towerSize / 2, 0.5 * ppm, towerSize);
+  view.ctx.fillRect(towerW / 2 - 0.5 * ppm, -towerH / 2, 0.5 * ppm, towerH);
   view.ctx.fillStyle = 'rgba(10,12,16,0.35)';
   // the cab's shadow
   view.ctx.fillRect(-cabSize / 2 + 0.6 * ppm, -cabSize / 2 + 0.8 * ppm, cabSize, cabSize);
