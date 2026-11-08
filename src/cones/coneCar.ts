@@ -334,7 +334,7 @@ function afterHit(ctx: ConesCtx, obj: Loose, car: ConeCar, newTyres: Loose[], re
   // ---- Tyre stack shattering into 3 dynamic tyres (shared with object-object hits: burstStack)
   if (obj.kind === 'bale' && rel > BALE_BURST_V) {
     burstBale(ctx, obj, car);
-  } else if (obj.kind === 'tyrestack' && stackBursts(rel, rel > 3.8 || obj.hitCount >= 2)
+  } else if (obj.kind === 'tyrestack' && stackBursts(rel)
     && mayBurst(ctx.prevMovers.length)) {
     burstStack(obj, newTyres);
   } else if (obj.kind === 'tyre') {

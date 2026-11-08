@@ -97,10 +97,14 @@ last handover, written on request.
    22 % (round 1) -> 7.6 -> 3.6 % of its CPU (laptop profile), every picture the same. Left there:
    the thrown parts' pictures (~3 %). PASSED 11-08 (owner: "much better"; phone, 1 run): the
    impact's worst half second 49 fps (was 40-43), 5 frames over 25 ms (6-10), worst 44 ms
-   (45-51). UNDER TEST (owner OK to build; "if it's improving performance and neither of us can
-   really tell visually keep it"): ?burstcap, ?tyresleep, and ?stackvary (owner: stacks 1-4 high,
-   bursting by chance by the hit) - crash bench load (objects moving, summed over the impact's
-   first 2 s, 4 seeds) -11 / -31 / -15 %, all three -44 %. Also: objcheck fails on main too (Killder: 6 of 1118 objects at rest move
+   (45-51). PASSED + DEFAULT 11-08 (owner: "crash bench approved pass seems to stay above 40fps
+   or better and seems better / unaffected damage crash wise"): burstcap (a stack holds together
+   while 400+ loose objects move), tyresleep (a tyre sliding flat stops at 0.25 m/s), stackvary
+   (stacks 1-4 high by where they stand, a burst by chance - none under 2.5 m/s, sure from 9 -
+   throwing its own tyres, its height as its shadow: render/stackshadow.ts); switches deleted.
+   Crash bench load (objects moving, summed over the impact's first 2 s, 4 seeds) -11 / -31 /
+   -15 %, all three -44 %. objcheck counts bursts over 40 tries (12 m/s 40/40, 6 m/s 19/40, 2 m/s
+   0/40). Also: objcheck fails on main too (Killder: 6 of 1118 objects at rest move
    at load).
    ROLLS (owner 11-08, later): the rolling crash relook - check which way a car rolls from an
    impact ("sometimes it seems to roll the wrong way"), and whether a car can roll over things
@@ -126,7 +130,8 @@ last handover, written on request.
    CREDITS PASSED 11-08 (menu/credits.ts, on the main menu): "made by G"; the owner wants a studio
    name (a parody pun) - to be picked. Add a line there with anything else the game takes.
 2. NEW UK TRACKS at that scale (Snetterton, Donington Park, + Silverstone / Oulton Park) - names
-   agreed first.
+   agreed first. ORDER (owner 11-08): Castle Cum's venue passes -> SNETTERTON next (name ideas
+   put to the owner 11-08) -> then back to converting the old levels (Thruston, Knobhill, ...).
 3. ROLLING LOOK - smoother than the dice flip on the same physics; mockup first.
 4. SIDE DRAFTING (Naffcar first), then the Naffcar extras (air brakes, aero upgrades, Dieatona).
 5. MORE HIGHWAY FLAVOURS.

@@ -56,31 +56,9 @@ export const TEST_LIST: TestEntry[] = [
   // carlooks, carreal (the car look: paint parts, rims, redraws, real shapes), partsoff, bigparts,
   // hwlanes, hwbales, f1aero passed 2026-11-07; credits, bigbrands (the Brands venue) passed
   // 2026-11-08; fenceshred (catch fences tear and shred), partsover (the drive-over chance by
-  // ground clearance), crossings (drivable bridges and tunnels), fencedrag passed 2026-11-08)
-  {
-    id: 'burstcap',
-    added: '2026-11-08',
-    name: 'Pile-ups: a tyre stack holds together once ~400 loose objects are already moving',
-    where: 'Test link + &burstcap=1: TEST MODE > Test > Festival of Splat (&report=1 to measure)',
-    try: 'Watch the 20-car crash into the tyre wall; run it with and without the switch.',
-    wrong: 'Stacks that never burst in a small crash, cars hurt worse, a lower frame rate.',
-  },
-  {
-    id: 'stackvary',
-    added: '2026-11-08',
-    name: 'Tyre stacks 1-4 high (taller: longer shadow), bursting by chance - harder hit, likelier',
-    where: 'Test link + &stackvary=1: any level with tyre walls; Festival of Splat',
-    try: 'Look at a tyre wall, then nudge and hit stacks gently and hard.',
-    wrong: 'Shadows wrong or floating, a gentle nudge bursting a stack, a hard hit never bursting.',
-  },
-  {
-    id: 'tyresleep',
-    added: '2026-11-08',
-    name: 'Pile-ups: tyres sliding flat stop a little sooner (at 0.25 m/s, was 0.05)',
-    where: 'Test link + &tyresleep=1: TEST MODE > Test > Festival of Splat',
-    try: 'Watch the thrown tyres settle after the crash; knock tyres on a circuit.',
-    wrong: 'Tyres stopping dead or jerking to a halt, a tyre wall that looks frozen.',
-  },
+  // ground clearance), crossings (drivable bridges and tunnels), fencedrag passed 2026-11-08;
+  // burstcap, tyresleep, stackvary (the crash bench: stacks 1-4 high, bursting by chance) passed
+  // 2026-11-08)
   {
     id: 'castlecumvenue',
     added: '2026-11-08',

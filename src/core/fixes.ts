@@ -10,7 +10,7 @@
 // drycover, rimsoft, bushmark, leafpop, aireact, skillband,
 // bhquiet, aiweave, jokerflow, aisliders, hudlean, aibands, puffroom, aigrip,
 // aidodge, ailines, ailook, dodgefar, markjump passed 11-04; credits, bigbrands, crossings,
-// fencedrag passed 11-08.)
+// fencedrag, tyresleep, burstcap, stackvary passed 11-08.)
 import { envValue } from './debug.ts';
 
 /**
@@ -41,12 +41,6 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
-  // a pile-up's settling tyres stop sooner (cones/coneConsts.ts SLEEP_V)
-  tyresleep: atLoad('tyresleep'),
-  // a tyre stack holds together when a pile-up already has many objects moving (BURST_CROWD)
-  burstcap: atLoad('burstcap'),
-  // tyre stacks 1-4 high, bursting by chance by how hard they are hit (coneConsts.ts stackBursts)
-  stackvary: atLoad('stackvary'),
   // ?castlecumvenue=1: Castle Cum as the real venue at 1/2 of real length, sealed as Brands is
   // (world/levels/castle-cum-venue.ts; owner 11-08)
   castlecumvenue: atLoad('castlecumvenue'),

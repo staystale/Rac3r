@@ -3,7 +3,7 @@
 //   node tools/objcheck.mjs        exit code 1 on any failure
 //
 // 1. a tyre flung at a cone knocks it over and passes its momentum on (momentum conserved)
-// 2. a tyre hitting a stack faster than STACK_BURST_V bursts it; slower only shoves it
+// 2. a tyre hitting a stack bursts it by chance, the likelier the harder; too slow only shoves it
 // 3. AT REST NOTHING MOVES: every level's objects stay perfectly still for 3 s (no object starts
 //    overlapping another and explodes apart) — and it costs ~nothing, since nothing is tested
 // 4. a car into the Stock Car tyre wall now knocks more over than the car touches (debris chains)
@@ -32,15 +32,21 @@ check(cone.vx > 5 && cone.down > 0 && cone.moved, 'the cone is knocked over and 
 check(tyre.vx < 10 * 0.9, 'the tyre loses speed doing it');
 check(Math.abs(p1 - p0) / p0 < 0.10, 'momentum passed on, not created (within drag over 6 steps)');
 
-// ---- 2. tyre -> stack, fast and slow
-for (const [v, want] of [[8, true], [2.5, false]]) {
-  c = createCones(); c.list.length = 0;
-  c.list.push(obj('tyre', 0, 0, v), obj('tyrestack', 0.95, 0)); c.rebuildGrid();    // 0.05 m short of contact
-  for (let i = 0; i < 30; i++) c.step(farCar, PHYSICS_STEP_SECONDS);
-  const burst = c.list.length > 2;
-  const shoved = c.list[1].moved && Math.hypot(c.list[1].x - 0.95, c.list[1].y) > 0.01;
-  console.log(`2. tyre ${v} m/s -> stack: ${burst ? 'BURST into ' + c.list.length + ' objects' : 'not burst; stack shoved ' + Math.hypot(c.list[1].x - 0.95, c.list[1].y).toFixed(2) + ' m'}`);
-  check(burst === want && (want || shoved), want ? 'a fast tyre bursts the stack' : 'a slow tyre only shoves it');
+// ---- 2. tyre -> stack: a burst by chance, the likelier the harder (cones/coneConsts.ts stackBursts:
+// never under 2.5 m/s, always from 9) - counted over tries; the old sure rule fails the middle band
+const TRIES = 40;
+for (const [v, least, most] of [[12, 1, 1], [6, 0.25, 0.8], [2, 0, 0]]) {
+  let bursts = 0, shoved = 0;
+  for (let t = 0; t < TRIES; t++) {
+    c = createCones(); c.list.length = 0;
+    c.list.push(obj('tyre', 0, 0, v), obj('tyrestack', 0.95, 0)); c.rebuildGrid();    // 0.05 m short of contact
+    for (let i = 0; i < 30; i++) c.step(farCar, PHYSICS_STEP_SECONDS);
+    if (c.list.length > 2) bursts++;
+    else if (c.list[1].moved && Math.hypot(c.list[1].x - 0.95, c.list[1].y) > 0.01) shoved++;
+  }
+  console.log(`2. tyre ${v} m/s -> stack, ${TRIES} tries: burst ${bursts}, only shoved ${shoved}`);
+  check(bursts / TRIES >= least && bursts / TRIES <= most && bursts + shoved === TRIES,
+    `a ${v} m/s tyre bursts the stack ${least * 100}-${most * 100} % of the time, else shoves it`);
 }
 
 // ---- 3. at rest, every level

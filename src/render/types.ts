@@ -264,7 +264,7 @@ export interface RenderCone {
   // the car it came off and which part (render/carparts.ts cuts it from its sprite)
   carSpec?: RenderCarSpec; cutKind?: string; cutCorner?: number; _n?: number;
   tyreW?: number;   // a loose wheel's tyre width, m
-  tyres?: number;   // a tyre stack's height in tyres (?stackvary): render/stackshadow.ts
+  tyres?: number;   // a tyre stack's height in tyres: render/stackshadow.ts
   fade?: number;   // a crashed car's part fading out, 1 .. 0
 }
 

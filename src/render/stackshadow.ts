@@ -1,5 +1,5 @@
-// render/stackshadow.ts: a tyre stack's height, seen from above (?stackvary: stacks 1-4 tyres
-// high, cones/coneConsts.ts heightenStack). From above a stack shows only its top tyre, so its
+// render/stackshadow.ts: a tyre stack's height, seen from above (stacks are 1-4 tyres high,
+// cones/coneConsts.ts heightenStack). From above a stack shows only its top tyre, so its
 // height is in its shadow: the taller, the further the shadow falls down-right, as a car's ride
 // height moves its shadow (render/cars.ts).
 

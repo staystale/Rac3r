@@ -1,5 +1,4 @@
 import type { Loose } from './coneTypes.ts';
-import { FIX } from '../core/fixes.ts';
 import { hash2d } from '../core/random.ts';
 // cones/coneConsts.ts: the tuning constants, the roadside debris table and the tyre-stack burst
 // shared by the cone, tyre and loose-object simulation (cones.ts and the files beside this one).
@@ -9,24 +8,24 @@ export const DRAG = 2.9;            // exponential velocity decay per second
 export const SPIN_DRAG = 4.0;       // spin decays a bit faster than translation
 export const RESTITUTION = 0.45;    // bounciness along the contact normal
 export const REST_V = 0.05;         // m/s to snap to zero
-// m/s a tyre sliding flat stops at (?tyresleep): a pile-up's tyres crept at 0.05-0.25 m/s for
-// ~0.4 s more each, all paired a step (tools/crashbench.mjs: 50-215 of them from 2.5 s on); it
-// stops ~6 cm short of where it would have
+// m/s a tyre sliding flat stops at: a pile-up's tyres crept at 0.05-0.25 m/s for ~0.4 s more
+// each, all paired a step (tools/crashbench.mjs: 50-215 of them from 2.5 s on); it stops ~6 cm
+// short of where it would have
 export const SLEEP_V = 0.25;
-// moving loose objects above which a tyre stack hit hard holds together instead of bursting
-// (?burstcap): a 20-car pile-up burst 300 stacks into ~900 tyres, all moving at once
+// moving loose objects above which a tyre stack hit hard holds together instead of bursting: a
+// 20-car pile-up burst 300 stacks into ~900 tyres, all moving at once
 export const BURST_CROWD = 400;
 
 /**
  * Whether a stack hit hard enough to burst may burst now.
  * @param movingNow how many loose objects moved in the last step
- * @returns true unless ?burstcap and the crowd is past BURST_CROWD
+ * @returns true while the crowd is under BURST_CROWD
  */
-export const mayBurst = (movingNow: number) => !FIX.burstcap || movingNow < BURST_CROWD;
+export const mayBurst = (movingNow: number) => movingNow < BURST_CROWD;
 
-// ?stackvary (owner 11-08: "a chance for tyre stacks to burst ... harder impact the more likely
-// ... stacks should vary between 1-4 high"): m/s of the hit below which a stack never bursts, and
-// from which it always does (the old sure line, 3.8 m/s, is now ~1 in 5)
+// a stack bursts by chance, the likelier the harder it is hit (owner 11-08: "a chance for tyre
+// stacks to burst ... harder impact the more likely"): m/s of the hit below which it never bursts,
+// and from which it always does (3.8 m/s, the old sure line, is ~1 in 5)
 export const BURST_LOW_V = 2.5, BURST_SURE_V = 9;
 // kg a tyre of a stack weighs (the 3-high stack was 38 kg)
 const STACK_TYRE_KG = 38 / 3;
@@ -36,18 +35,16 @@ const stackHash = hash2d(0x57ac);
 /**
  * Whether a stack hit this hard bursts.
  * @param rel the hit's closing speed, m/s
- * @param oldRule the sure rule without ?stackvary
  * @returns true when it bursts (by chance between BURST_LOW_V and BURST_SURE_V)
  */
-export function stackBursts(rel: number, oldRule: boolean): boolean {
-  if (!FIX.stackvary) return oldRule;
+export function stackBursts(rel: number): boolean {
   const chance = (rel - BURST_LOW_V) / (BURST_SURE_V - BURST_LOW_V);
   return chance >= 1 || (chance > 0 && Math.random() < chance);
 }
 
 /**
- * ?stackvary: a level's tyre stack made 1-4 tyres high, weighing its tyres; one tyre high is a
- * tyre lying flat.
+ * A level's tyre stack made 1-4 tyres high (owner 11-08: "stacks should vary between 1-4 high"),
+ * weighing its tyres; one tyre high is a tyre lying flat.
  * @param stack the stack, as the level placed it
  */
 export function heightenStack(stack: Loose): void {
@@ -73,7 +70,7 @@ export interface DebrisKind {
 // any other object hitting one, so a tyre flung into the wall bursts the stack it lands on.
 /**
  * Burst a tyre stack into one rolling tyre plus the rest of its tyres thrown, pushed onto `out`
- * (a stack of 3: two - one cartwheeling left, one skidding flat right; ?stackvary's 4-high also
+ * (a stack of 3: two - one cartwheeling left, one skidding flat right; a 4-high also
  * one skidding on ahead, its 2-high only the left one).
  * @param stack the stack (becomes the rolling tyre)
  * @param out receives the new tyres
@@ -125,8 +122,6 @@ export const OBJ_REST: Record<string, number> = {
 // patch of STRAW (no longer solid), a big straw-dust cloud, and the car loses BALE_DRAG of its
 // speed on top of the momentum it gave the bale.
 export const BALE_BURST_V = 5, BALE_DRAG = 0.22;   // restitution by kind; heavy props 0.15
-// m/s relative speed that bursts a stack (same threshold as the car)
-export const STACK_BURST_V = 3.8;
 
 // what TOPPLES when hit (cones; and since rally CHEVRON boards, 45 kg on their posts,
 // and FLAG poles, 12 kg — (requirement: heavy but impactable), they had been solid walls, then
