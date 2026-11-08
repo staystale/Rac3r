@@ -2,7 +2,7 @@
 import { hash2d } from "../core/random.ts";
 import { shade } from "../render.ts";   // hoisted, only called at draw time (no cycle)
 import { SPRITE_PPM } from "./shared.ts";
-import { notePutPixels, spriteToWork } from "./spritepixels.ts";
+import { notePutPixels, readSoon, spriteToWork } from "./spritepixels.ts";
 import type {
   CarSprite, RenderCar, RenderCarSpec, RollFace, SideSprite, SilCanvas, View,
 } from "./types.ts";
@@ -563,5 +563,14 @@ export function createCarDamage(view: View) {
       rolledFaces(dmgCtx, car, topSprite, phi),
     drawFaces: (faces: RollFace[], lengthPx: number, sil: boolean, off: number) =>
       drawFaces(dmgCtx, faces, lengthPx, sil, off),
+    /**
+     * A car's underside and side sprites made now and read on quiet frames (a pile-up rolls cars
+     * that were never rolled: their first reads fell in its frames).
+     * @param spec the car spec
+     */
+    prepareFaces: (spec: RenderCarSpec) => {
+      readSoon(underSprite(dmgCtx, spec).c);
+      readSoon(sideSprite(dmgCtx, spec).c);
+    },
   };
 }

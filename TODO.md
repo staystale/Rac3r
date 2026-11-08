@@ -91,10 +91,12 @@ last handover, written on request.
    0.25 s at 36-51 ms - sim 12-22 ms (4-6 steps, ~3 ms a step: twice the laptop), draw 9-26 ms
    (4 normally; the first frame paints 9 ground tiles as the camera zooms in). Two hitches before
    the crash in every run: ~150 ms at 0.6 s (the texture warm-up, warmMs 143) and 72-102 ms at the
-   restart (zoomed out to 0.8 px/m, GPU uploads, our JS 15-25 ms). NEXT (ask first): the clean
-   sprites read at the level's start, not at the first dent (exact); the thrown parts' pictures
-   without a read back; then, if still short, settled tyres asleep sooner / a burst's tyres
-   capped (behaviour). Also: objcheck fails on main too (Killder: 6 of 1118 objects at rest move
+   restart (zoomed out to 0.8 px/m, GPU uploads, our JS 15-25 ms). ROUND 3 (11-08, exact): each
+   car's clean sprite and its rolled faces made when it is first drawn and read one a frame
+   (render/spritepixels.ts readSoon / readNextSprite, game/loop.ts) - read backs in the impact
+   22 % (round 1) -> 7.6 -> 3.6 % of its CPU (laptop profile), every picture the same. Left there:
+   the thrown parts' pictures (~3 %). NEXT: the owner's phone run; then, if still short,
+   settled tyres asleep sooner / a burst's tyres capped (behaviour, ask first). Also: objcheck fails on main too (Killder: 6 of 1118 objects at rest move
    at load).
    ROLLS (owner 11-08, later): the rolling crash relook - check which way a car rolls from an
    impact ("sometimes it seems to roll the wrong way"), and whether a car can roll over things

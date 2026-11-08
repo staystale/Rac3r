@@ -15,6 +15,7 @@ import { stepAI } from './ai.ts';
 import { updateRecoveryTracking } from './session.ts';
 import { stepResults } from './menuflow.ts';
 import { takeMenuTaps } from '../menu/widgets.ts';
+import { readNextSprite } from '../render/spritepixels.ts';
 import {
   updateFpsMeter, readFrameInput, stepCarSignals, openGuideOnLanding, stepCarPhysics,
   stepEndlessHighway, updateAudio, dropBreadcrumb, stepRaceFlow, stepTrafficContacts,
@@ -275,4 +276,8 @@ export function loop(now: number) {
   const view = shared.renderer;
   shared.guide.draw(view.ctx, game, shared.hud.layout(view.W, view.H), view.W, view.H, wallDt,
     view);
+  // one car sprite built since read back now, not in the frames of the crash that dents it
+  // (render/spritepixels.ts); counted with the texture warm-up in the phone report
+  const readT0 = performance.now();
+  if (readNextSprite()) shared.warmMs = (shared.warmMs || 0) + performance.now() - readT0;
 }

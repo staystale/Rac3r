@@ -569,10 +569,11 @@ function buildModules(view: View, cam: Cam, settings: Settings,
   });
   const particles = createParticles(view, cam, { PPMz, toScreenX, toScreenY });
   const { pixelCar } = createCarSprite();
-  const { damagedSprite, silhouette, faceCache, rolledFaces, drawFaces } = createCarDamage(view);
+  const { damagedSprite, silhouette, faceCache, rolledFaces, drawFaces, prepareFaces } =
+    createCarDamage(view);
   const cars = createCars(view, cam, {
     PPMz, toScreenX, toScreenY, pixelCar, damagedSprite, silhouette, rolledFaces, drawFaces,
-    faceCache,
+    prepareFaces, faceCache,
   });
   const props = createProps(view, cam, {
     PPMz, toScreenX, toScreenY, roundRect, forSide: road.forSide, drawSlip: road.drawSlip,

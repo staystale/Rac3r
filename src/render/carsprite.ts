@@ -2,6 +2,7 @@
 import { shade } from "../render.ts";   // hoisted, only called at draw time (no cycle)
 import { SPRITE_PPM } from "./shared.ts";
 import { LOOKS } from "./carlooks.ts";
+import { readSoon } from "./spritepixels.ts";
 import type { CarSprite, RenderCarSpec } from "./types.ts";
 
 // A sprite per car, GENERATED on an integer grid in the reference style
@@ -605,6 +606,8 @@ export function createCarSprite() {
     if (spriteCache.has(key)) return spriteCache.get(key)!;   // has(key) was just true
     const out = paintCarSprite(spec);
     spriteCache.set(key, out);
+    // its pixels, for the dents it may take, read on a quiet frame (render/spritepixels.ts)
+    readSoon(out.c);
     return out;
   }
 

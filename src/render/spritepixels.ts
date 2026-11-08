@@ -6,6 +6,47 @@
 
 // the pixels a copy of each sprite canvas read back as
 const READ = new WeakMap<HTMLCanvasElement, ImageData>();
+// sprites made and not read yet, read one a frame (readNextSprite): a crash dents a whole field
+// in a quarter second, and their first reads all landed in its frames
+const WAITING: HTMLCanvasElement[] = [];
+
+/**
+ * Read a sprite back now: drawn onto a fresh canvas and read there, kept.
+ * @param source the sprite's canvas (never painted again)
+ * @returns its pixels
+ */
+function readSprite(source: HTMLCanvasElement): ImageData {
+  const copy = document.createElement('canvas');
+  copy.width = source.width;
+  copy.height = source.height;
+  const copyCtx = copy.getContext('2d')!;
+  copyCtx.drawImage(source, 0, 0);
+  const read = copyCtx.getImageData(0, 0, copy.width, copy.height);
+  READ.set(source, read);
+  return read;
+}
+
+/**
+ * A sprite just built that may be dented later: read it on a quiet frame (readNextSprite).
+ * @param source the sprite's canvas (never painted again)
+ */
+export function readSoon(source: HTMLCanvasElement) {
+  if (!READ.has(source)) WAITING.push(source);
+}
+
+/**
+ * Read the oldest sprite waiting, if any (the game loop calls it once a frame).
+ * @returns true when one was read
+ */
+export function readNextSprite(): boolean {
+  while (WAITING.length) {
+    const source = WAITING.shift()!;
+    if (READ.has(source)) continue;
+    readSprite(source);
+    return true;
+  }
+  return false;
+}
 
 /**
  * A sprite just made by putting pixels (nothing drawn on it after): keep what reading it back
@@ -45,13 +86,7 @@ export function spriteToWork(source: HTMLCanvasElement): SpriteWork {
   const canvas = document.createElement('canvas');
   canvas.width = source.width;
   canvas.height = source.height;
-  const ctx = canvas.getContext('2d')!;
-  let read = READ.get(source);
-  if (!read) {
-    ctx.drawImage(source, 0, 0);
-    read = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    READ.set(source, read);
-  }
+  const ctx = canvas.getContext('2d')!, read = READ.get(source) || readSprite(source);
   return { canvas, ctx, img: new ImageData(new Uint8ClampedArray(read.data), read.width,
     read.height) };
 }

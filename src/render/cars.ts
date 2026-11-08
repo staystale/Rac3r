@@ -26,6 +26,7 @@ interface CarsHelpers {
   silhouette: (cv: SilCanvas) => HTMLCanvasElement;
   rolledFaces: (car: RenderCar, sp: CarSprite, phi: number) => RollFace[];
   drawFaces: (faces: RollFace[], Lp: number, sil: boolean, off: number) => void;
+  prepareFaces: (spec: RenderCarSpec) => void;
   faceCache: Map<string, CarSprite | SideSprite>;
 }
 
@@ -359,6 +360,11 @@ function drawCarLamps(carsCtx: CarsContext, car: RenderCar, sprite: CarSprite) {
  */
 function drawPixelCar(carsCtx: CarsContext, car: RenderCar, heading = car.heading) {
   const { view, PPMz, toScreenX, toScreenY, pixelCar, damagedSprite, silhouette } = carsCtx;
+  // its rolled faces, made once and read before any crash needs them
+  if (!car._facesMade) {
+    car._facesMade = true;
+    carsCtx.prepareFaces(car.spec);
+  }
   // (a car whose wing / spoiler is off is painted without it)
   const shown = drawnSpec(car.spec), spec = car.partLost?.includes('spoiler')
     ? { ...shown, noWing: true } : shown, sp0 = pixelCar(spec),

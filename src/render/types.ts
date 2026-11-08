@@ -241,6 +241,7 @@ export interface RenderCar extends CamCar, Pick<Car, 'heading' | 'delta' | 'cros
   // caches the car layers set on the car itself
   _dsp?: { key: string; base: CarSprite; sp: CarSprite } | null;
   _dface?: Record<string, { key: string; out: CarSprite | SideSprite }>;
+  _facesMade?: boolean;   // its rolled faces made and waiting to be read (cardamage.ts)
 }
 
 // One game object the cones layer draws (cones.ts: cones, bales, tyres, animals, debris, ...).
