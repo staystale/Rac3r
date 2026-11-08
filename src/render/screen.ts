@@ -104,9 +104,10 @@ export function drawSharpCarLayers(ctx: ScreenCtx, game: RenderGame, lock: Scree
   });
   mainCtx.restore();
   clearArt(ctx);
-  if (!ctx.skip('props')) ctx.drawProps(true);
-  // steam and engine smoke rise off the bonnets, over the cars (render/enginesmoke.ts)
+  // steam and engine smoke rise off the bonnets, over the cars (render/enginesmoke.ts) - but under
+  // what is overhead: a bridge's deck, a gantry, a tree's canopy covers the smoke beneath it
   if (!ctx.skip('fx')) ctx.drawOverPuffs(state.wallDt);
+  if (!ctx.skip('props')) ctx.drawProps(true);
   if (!ctx.skip('rain')) ctx.drawRain();
   blitArt(ctx, lock);
   if (!LEVEL.crossings) return;

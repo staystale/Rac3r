@@ -202,11 +202,16 @@ function drivenOver(ctx: ConesCtx, obj: Loose, car: ConeCar, relX: number, relY:
 const MEETING_GAP_S = 0.3;
 // m: the ground clearance a part's chance is set for (the hatch's ride height, cars.ts)
 const CLEARANCE_REF_M = 0.14;
+// m: a tyre lying flat is driven over only by a car with more clearance than this, more likely
+// the higher (owner 11-08: not possible in most cars; a tractor's at 0.45 m: half the time) - an
+// upright or stacked tyre never
+const TYRE_CLEAR_M = 0.3;
 
 /**
  * Whether a car near a thrown part goes over it this meeting: a roll made when a car first comes
  * near (within hitByCar's 4 m) after none for MEETING_GAP_S, kept while one stays, against the
- * part's chance for THIS car's ground clearance (owner 11-08: lower, more likely hit; higher, less)
+ * part's chance for THIS car's ground clearance (owner 11-08: lower, more likely hit; higher, less;
+ * a tyre lying flat only for a car above TYRE_CLEAR_M)
  * - the chance raised to the power of the hatch's ride height over the car's: an F1 car at 0.07 m
  * meets a half-chance part 3 times in 4, a tractor at 0.45 m clears it 4 times in 5; always and
  * never stay so.
@@ -216,11 +221,16 @@ const CLEARANCE_REF_M = 0.14;
  * @returns true when driven over
  */
 function rollsOver(ctx: ConesCtx, obj: Loose, car: ConeCar): boolean {
-  if (!obj.overChance) return false;
+  const lyingTyre = obj.kind === 'tyre' && obj.mode === 'flat';
+  if (!obj.overChance && !lyingTyre) return false;
+  const clearance = Math.max(0.03, car.spec.rideH ?? CLEARANCE_REF_M);
+  const chance = lyingTyre ? Math.min(1, Math.max(0, (clearance - TYRE_CLEAR_M) / TYRE_CLEAR_M))
+    : Math.pow(obj.overChance!, CLEARANCE_REF_M / clearance);
+  // (no roll where the answer is sure: never, always)
+  if (chance <= 0 || chance >= 1) return chance >= 1;
   if (ctx.clock - (obj._meetT ?? -9) > MEETING_GAP_S) obj._roll = Math.random();
   obj._meetT = ctx.clock;
-  const clearance = Math.max(0.03, car.spec.rideH ?? CLEARANCE_REF_M);
-  return obj._roll! < Math.pow(obj.overChance, CLEARANCE_REF_M / clearance);
+  return obj._roll! < chance;
 }
 
 /**
