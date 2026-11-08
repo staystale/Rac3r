@@ -279,6 +279,16 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
 
 ## Measured lessons
 
+- A CANVAS READ BACK STALLS AND CAN RASTERISE DIFFERENTLY (11-08): getImageData waits for all the
+  drawing queued before it (the crash bench's re-dented cars: 22 % of the impact's CPU - read a
+  sprite once, render/spritepixels.ts). Chrome keeps a canvas's drawing as a list and rasterises
+  it by the canvas's mode when read: a canvas's own FIRST read back can differ from its second (a
+  fractional clearRect's soft edge). Prove pictures by drawing a copy onto a canvas of its own and
+  reading that (tools/scratch/_spritework.mjs).
+- THE CRASH BENCH'S COST IS IN THE IMPACT'S FIRST SECONDS (11-08): ~950 thrown tyres all moving,
+  and drawing as heavy as the physics (the dented cars, not the loose objects). A slow frame takes
+  up to MAX_STEPS steps the next, so sim and draw feed each other: read sim and draw per frame
+  (tools/scratch/_benchreport.mjs + &report=1), not one total.
 - A LEVEL BUILT ON FIRST USE HAS NO TRACK UNTIL setLevel (11-08): tools/renderhash.mjs picked
   circuits by "has a subtrack" and silently dropped Brands from every pixel check after it went
   lazy. Pick levels by what they are (a _build without a stage gen is a circuit), or build them.
@@ -429,6 +439,11 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
 - Never edit `src/` in the worktree a proof is running from: the tools load it as they go.
 - CI logs: the portable GitHub CLI, `C:/Users/Admin/tools/gh/bin/gh.exe run view <id>
   --log-failed -R staystale/Rac3r` (the anonymous API shows only pass / fail).
+- A HELPER SESSION IN PARALLEL (the venue helper, 11-08): its own worktree (`Desktop/G/rac3r-venue`)
+  and `CHECK_PORT=8097` for its browser tools (they start a server on 8090 by default, and one
+  that finds another worktree's server answering uses it); one heavy browser run at a time across
+  both - the lock file `Desktop/G/.browser-busy` (who, what, when) around it. While the helper
+  works, laptop frame times are noise: compare shares in a CPU profile, or wait.
 
 ## Tools worth knowing
 
