@@ -95,8 +95,12 @@ last handover, written on request.
    car's clean sprite and its rolled faces made when it is first drawn and read one a frame
    (render/spritepixels.ts readSoon / readNextSprite, game/loop.ts) - read backs in the impact
    22 % (round 1) -> 7.6 -> 3.6 % of its CPU (laptop profile), every picture the same. Left there:
-   the thrown parts' pictures (~3 %). NEXT: the owner's phone run; then, if still short,
-   settled tyres asleep sooner / a burst's tyres capped (behaviour, ask first). Also: objcheck fails on main too (Killder: 6 of 1118 objects at rest move
+   the thrown parts' pictures (~3 %). PASSED 11-08 (owner: "much better"; phone, 1 run): the
+   impact's worst half second 49 fps (was 40-43), 5 frames over 25 ms (6-10), worst 44 ms
+   (45-51). UNDER TEST (owner OK to build; "if it's improving performance and neither of us can
+   really tell visually keep it"): ?burstcap, ?tyresleep, and ?stackvary (owner: stacks 1-4 high,
+   bursting by chance by the hit) - crash bench load (objects moving, summed over the impact's
+   first 2 s, 4 seeds) -11 / -31 / -15 %, all three -44 %. Also: objcheck fails on main too (Killder: 6 of 1118 objects at rest move
    at load).
    ROLLS (owner 11-08, later): the rolling crash relook - check which way a car rolls from an
    impact ("sometimes it seems to roll the wrong way"), and whether a car can roll over things
