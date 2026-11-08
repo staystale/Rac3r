@@ -586,7 +586,7 @@ export function segRunBoxes(barrier: Barrier): number[] {
 }
 /**
  * Whether a car can touch a barrier now: a solid one with segments, near it, and not one it is
- * tumbling over (a low one, ?rollover: physics/tumble.ts).
+ * tumbling over (a low one: physics/tumble.ts).
  * @param car the car body
  * @param barrier the barrier
  * @returns true when it is to be clamped against

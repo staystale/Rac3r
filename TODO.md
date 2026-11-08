@@ -135,10 +135,14 @@ last handover, written on request.
    into the thing (into Armco: away 46 of 46). PASSED + DEFAULT 11-08 (owner: "cars seem to roll
    the right way now"): a car sliding more than 2 m/s into what it hit trips over toward it and
    carries half that speed on (damage.ts sideKick, roll.ts carryOver) - into Armco toward 45 of
-   45; T-boned still away. UNDER TEST: ?rollover (physics/tumble.ts) - a car rolling faster than
-   5 rad/s goes over Armco, the wire fence and loose objects up to 60 kg, never a catch fence,
-   wall, pit wall or building. REMIND THE OWNER to try it on a charged phone (11-08: the phone was
-   flat, low power mode - its report runs not to be trusted).
+   45; T-boned still away. PASSED + DEFAULT 11-08 (owner: "roll over" pass): a car rolling
+   faster than 5 rad/s goes over Armco, the wire fence and loose objects up to 60 kg, never a catch
+   fence, wall, pit wall or building (physics/tumble.ts).
+   CASTLE KUM (renamed from Castle Cum, owner 11-08) PASSED 11-08 with its round after the pass:
+   the fence audit (catch fence only Folly - Quarry, 336 m; Armco on OSM's rails elsewhere), the
+   control tower with its cab and mast and the red marshals' tower by the line, both to scale;
+   Brands' Armco joins its catch fence without a flare (owner: "looks ok to me", "castle Kum is
+   pass").
    OWNER RULE (11-07): never the black wire / rope fence ('fence' barrier) - the old levels still
    use it (Thruston): replace as each gets its venue pass.
    CASTLE KUM VENUE (levels/castle-cum-venue.ts, OSM data

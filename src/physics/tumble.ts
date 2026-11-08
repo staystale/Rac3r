@@ -1,8 +1,7 @@
-// physics/tumble.ts: a car TUMBLING fast enough to go over low things (?rollover; owner 11-08, to
+// physics/tumble.ts: a car TUMBLING fast enough to go over low things (owner 11-08, to
 // "a fast-tumbling car could go over low things (Armco, tyre stacks, a lying tyre) but never a
 // catch fence or wall": "sounds good"). On its wheels, or rolling slowly, a car is stopped by
 // them as before (world/barriers.ts, cones/coneCar.ts).
-import { FIX } from '../core/fixes.ts';
 
 // rad/s of roll above which the body clears low things (a roll starts at up to 14, and every
 // quarter turn on the ground takes 20-40 % off it)
@@ -18,11 +17,11 @@ interface Tumbler { roll?: { phase: string; w: number } | null }
 /**
  * Whether a car is tumbling fast enough to go over low things.
  * @param car the car
- * @returns true when it is (?rollover)
+ * @returns true when it is
  */
 export function isTumbling(car: object): boolean {
   const roll = (car as Tumbler).roll;
-  return FIX.rollover && !!roll && roll.phase === 'rolling' && Math.abs(roll.w) > TUMBLE_OVER_W;
+  return !!roll && roll.phase === 'rolling' && Math.abs(roll.w) > TUMBLE_OVER_W;
 }
 
 /**

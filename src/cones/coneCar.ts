@@ -192,7 +192,7 @@ function drivenOver(ctx: ConesCtx, obj: Loose, car: ConeCar, relX: number, relY:
     if (debrisPunctures(obj.kind, 0, false)) { car.burstTyre = 0; car.burstSlow = true; }
   }
   if (obj.kind === 'straw' || BROKEN.has(obj.kind)) return true;
-  // a car tumbling fast goes over a light one (?rollover: physics/tumble.ts)
+  // a car tumbling fast goes over a light one (physics/tumble.ts)
   if (tumblesOverObject(car, obj.mass)) return true;
   if (obj.kind === 'tarp' || rollsOver(ctx, obj, car)) {
     dragTarp(obj, car, relX, relY);

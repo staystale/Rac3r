@@ -59,13 +59,6 @@ export const TEST_LIST: TestEntry[] = [
   // ground clearance), crossings (drivable bridges and tunnels), fencedrag passed 2026-11-08;
   // burstcap, tyresleep, stackvary (the crash bench: stacks 1-4 high, bursting by chance), linewall
   // (the line gives a wall by the edge room), tallfence, rollway (rolls the right way),
-  // castlecumvenue (Castle Kum as the real venue) passed 2026-11-08)
-  {
-    id: 'rollover',
-    added: '2026-11-08',
-    name: 'A car tumbling fast goes over Armco, tyres and parts - never a catch fence or wall',
-    where: 'Test link + &rollover=1 (with &rollway=1): any Armco, tyre walls; Festival of Splat',
-    try: 'Roll a car at speed into Armco and tyre stacks; then into a catch fence or wall.',
-    wrong: 'Going over a catch fence / wall, or a slow roll still going over Armco.',
-  },
+  // castlecumvenue (Castle Kum as the real venue), rollover (a fast tumble goes over low things)
+  // passed 2026-11-08)
 ];

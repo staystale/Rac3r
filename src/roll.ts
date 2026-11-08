@@ -100,7 +100,7 @@ export function startRoll(car: RollCar, dir: number, vLat: number) {
 
 /**
  * A car tripping over what it slid into goes on toward it at this sideways speed - not
- * the bounce off it: a tall thing stops it again, a low one it may tumble over (?rollover).
+ * the bounce off it: a tall thing stops it again, a low one it may tumble over (physics/tumble.ts).
  * @param car the car
  * @param carry m/s sideways (car frame, + toward its +y)
  */
