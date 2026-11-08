@@ -433,7 +433,10 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   origin/main`.
 - Commit tags (11-07): a commit MEANT to change the simulation / the AI says [sim], level data
   [world], the pixels [look] - the `checks` workflow then reports that hash instead of failing it.
-  Untagged, a difference fails: it was not meant.
+  Untagged, a difference fails: it was not meant. A level change that moves anything drawn (a
+  board, a road) changes the pixels too: [world] [look] (the Brands board and loop, 11-08, failed
+  renderhash on [world] alone). The push to main needs only `verify` on that commit; a red
+  renderhash that shows only the meant levels is not a reason to run CI again.
 - Phone runs: `node tools/phonereport.mjs <report log> --since <UTC time>`; the log path is in the
   owner's README / the test server's start-up.
 - Long tools: run in the background, write to a file, poll it. One heavy browser tool at a time
