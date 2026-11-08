@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Roll mockup</title>
+<!-- rollmock.html - THE ROLLING LOOK, a mockup before anything changes in the game (owner 11-08:
+     "hasn't gotta be totally smooth but more like real life ... roll and catch / degrade chances
+     based on how the car is shaped"). Opened from the test server: /tools/scratch/rollmock.html.
+     NOW: the game's own rolled-car drawing (render/cardamage.ts rolledFaces / drawFaces) and its
+     spin loss per ground hit (roll.ts spinStep: 0.6-0.8 kept). PROPOSED: the same faces, shaded by
+     the angle they face, in 15 degree steps; the shadow lifts as the car stands on an edge; each
+     ground hit squashes it a frame and kicks up dust; and the spin kept per hit, and the chance a
+     sharp edge DIGS IN, by the real car's shape (ROUNDNESS below). Same dice for both panels. -->
+<style>
+  :root { --bg: #1b1d22; --panel: #2a2d34; --text: #e8e6e1; --dim: #9aa0aa; --accent: #e2c13a; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.4 system-ui, sans-serif; }
+  main { max-width: 760px; margin: 0 auto; padding: 12px 16px 40px; }
+  h1 { font-size: 18px; margin: 4px 0 8px; letter-spacing: 1px; }
+  .cars { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+  button { background: var(--panel); color: var(--text); border: 1px solid #444a55; border-radius: 6px;
+    padding: 7px 9px; font: inherit; min-height: 34px; }
+  button.on { border-color: var(--accent); color: var(--accent); }
+  .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 8px 0; }
+  .panel { background: var(--panel); border-radius: 8px; padding: 8px; margin: 10px 0; }
+  .panel h2 { font-size: 13px; margin: 0 0 6px; color: var(--accent); letter-spacing: 1px; }
+  canvas { width: 100%; height: auto; image-rendering: pixelated; display: block; background: #3b3e44;
+    border-radius: 4px; }
+  .out { color: var(--dim); font-size: 13px; margin-top: 4px; min-height: 18px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  td { padding: 4px 6px; border-top: 1px solid #3a3e46; vertical-align: top; }
+  td.num { text-align: right; color: var(--accent); white-space: nowrap; }
+  p.note { color: var(--dim); font-size: 13px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>ROLL MOCKUP</h1>
+  <p class="note">Pick a car, tap ROLL. Top: the game now. Bottom: the proposal - shaded faces, the
+    body lifting on its edge, a squash and dust at each hit, and how long it keeps rolling by its
+    shape. Both use the same dice.</p>
+  <div class="cars" id="cars"></div>
+  <div class="row">
+    <button id="roll">ROLL</button>
+    <button id="slow">SLOW MOTION: OFF</button>
+    <button id="hard">HARD ROLL</button>
+  </div>
+  <div class="panel"><h2>NOW</h2><canvas id="now" width="360" height="190"></canvas>
+    <div class="out" id="nowOut"></div></div>
+  <div class="panel"><h2>PROPOSED</h2><canvas id="next" width="360" height="190"></canvas>
+    <div class="out" id="nextOut"></div></div>
+  <div class="panel"><h2>ROUNDNESS BY THE REAL CAR (0 sharp / boxy - 1 round)</h2>
+    <table id="table"></table>
+    <p class="note">Round: keeps more spin at each hit, rolls further. Sharp or boxy: keeps less, and
+      an edge may DIG IN (the spin all but stops there, often on a side or the roof). Open cars
+      catch a wheel or wing. A low smooth wedge slides further on its roof.</p></div>
+</main>
+<script type="module">
+import { makeCar } from '/src/vehicle.ts';
+import { applyLivery } from '/src/cars.ts';
+import { drawnSpec } from '/src/render/cars.ts';
+import { createCarSprite } from '/src/render/carsprite.ts';
+import { createCarDamage } from '/src/render/cardamage.ts';
+
+// the real car's shape: how round its body is, and why (an opinion, for the owner to change)
+const SHAPE = {
+  'hatch-fwd': [0.55, 'Golf: a hatch with soft edges'],
+  'hatch-rwd': [0.6, 'M135i: a rounded hatch'],
+  'saloon-rwd': [0.5, '3 Series: a saloon, clear edges'],
+  'wrz-awd': [0.45, 'WRX: a saloon with a big wing that digs in'],
+  'estate-4x4': [0.25, 'V70: a boxy estate - its edges dig in'],
+  'muscle-rwd': [0.3, 'Chevelle: long and flat, sharp edges'],
+  'rally-4x4': [0.3, 'quattro S1: boxy, big wings'],
+  'track-rwd': [0.1, 'F1: open wheels and wings catch'],
+  'naffcar': [0.35, 'Naffcar: slab sides, a flat roof'],
+  'tractor': [0.1, 'Fastrac: a tall box on big wheels - tips and stops'],
+  'mini-fwd': [0.75, 'Mini: small and round - keeps rolling'],
+  'lambo-awd': [0.65, 'Huracan: a low smooth wedge - slides on its roof'],
+  'mikra-r1': [0.85, 'Micra: a bubble - rolls like a ball'],
+  'kit-2l': [0.6, '306 Maxi: a rounded 90s hatch'],
+  'rx-super': [0.45, 'Fiesta RX: a hatch with wide arches and a wing'],
+  'banger-f2': [0.15, 'BriSCA F2: an open cage and bars catch'],
+  'grass-special': [0.15, 'autograss buggy: an open frame catches'],
+  'drift-s13': [0.5, 'S13: a wedge coupe'],
+  'f2-rwd': [0.1, 'F2: open wheels and wings catch'],
+};
+const HALF_PI = Math.PI / 2, SETTLE_W = 2.4, ZOOM = 2, STEP = Math.PI / 12;
+const { pixelCar } = createCarSprite();
+const panels = ['now', 'next'].map((id) => {
+  const canvas = document.getElementById(id), ctx = canvas.getContext('2d');
+  ctx.imageSmoothingEnabled = false;
+  return { id, canvas, ctx, out: document.getElementById(id + 'Out'),
+    painter: createCarDamage({ ctx }) };
+});
+let carId = 'hatch-fwd', slow = false, hard = false, runs = [];
+
+// the dice: the same sequence for both panels of one roll
+function seeded(seed) {
+  let state = seed >>> 0;
+  return () => { state = (Math.imul(state, 1664525) + 1013904223) >>> 0; return state / 4294967296; };
+}
+
+/** One roll's motion: NOW (the game's spin loss) or PROPOSED (by shape, with digging in). */
+function makeRun(panel, roundness, seed) {
+  const rnd = seeded(seed), car = makeCar(carId);
+  car.spec = drawnSpec(applyLivery(car.spec, null));
+  return { panel, car, sprite: pixelCar(car.spec), rnd, roundness, phi: 0, w: hard ? 13 : 9,
+    y: 50, v: hard ? 11 : 8, hits: 0, digs: 0, squash: 0, dust: [], done: false, onFace: '' };
+}
+
+/** A quarter turn has the body meet the ground: spin and speed lost, maybe an edge digs in. */
+function groundHit(run) {
+  run.hits++;
+  if (run.panel.id === 'now') {
+    run.w *= 0.6 + 0.2 * run.rnd();
+    run.v *= 0.86;
+  } else {
+    const keep = 0.45 + 0.4 * run.roundness + (run.rnd() - 0.5) * 0.16;
+    run.w *= keep;
+    // a sharp edge, a wheel or a wing DIGS IN: the spin all but stops on that face
+    if (run.rnd() < 0.35 * (1 - run.roundness)) { run.w *= 0.3; run.digs++; }
+    run.v *= 0.86 - 0.08 * (1 - run.roundness);
+    run.squash = 0.09;
+    for (let i = 0; i < 7; i++) run.dust.push({ x: (run.rnd() - 0.5) * 60, y: 0,
+      vx: (run.rnd() - 0.5) * 30, vy: -10 - run.rnd() * 25, life: 0.5 });
+  }
+}
+
+/** One step of a roll (the physics of roll.ts spinStep and stepRoll, kept simple). */
+function stepRun(run, dt) {
+  if (run.done) return;
+  const was = Math.floor(run.phi / HALF_PI);
+  run.phi += run.w * dt;
+  if (Math.floor(run.phi / HALF_PI) !== was) groundHit(run);
+  if (Math.abs(run.w) < SETTLE_W) {
+    const target = Math.round(run.phi / HALF_PI) * HALF_PI;
+    run.w += ((target - run.phi) * 30 - run.w * 7) * dt;
+    if (Math.abs(target - run.phi) < 0.03 && Math.abs(run.w) < 0.3) {
+      run.phi = target; run.w = 0; run.done = true;
+      const face = ((Math.round(target / HALF_PI) % 4) + 4) % 4;
+      run.onFace = face === 0 ? 'its wheels' : face === 2 ? 'its roof' : 'a side';
+    }
+  }
+  // sliding: little drag while tumbling; on the roof a smooth wedge slides further
+  const slide = run.done ? (run.onFace === 'its roof' ? 1.2 + 4 * (1 - run.roundness) : 4) : 2.4;
+  run.v = Math.max(0, run.v - slide * dt);
+  run.y += run.v * dt * 6;
+  run.squash = Math.max(0, run.squash - dt);
+  for (const puff of run.dust) { puff.x += puff.vx * dt; puff.y += puff.vy * dt; puff.life -= dt; }
+  run.dust = run.dust.filter((puff) => puff.life > 0);
+}
+
+/** A face shaded by the angle it faces the sky at (PROPOSED). */
+function shaded(cv, light) {
+  const copy = document.createElement('canvas');
+  copy.width = cv.width; copy.height = cv.height;
+  const copyCtx = copy.getContext('2d');
+  copyCtx.drawImage(cv, 0, 0);
+  copyCtx.globalCompositeOperation = 'source-atop';
+  copyCtx.fillStyle = `rgba(10,12,16,${(1 - light) * 0.55})`;
+  copyCtx.fillRect(0, 0, copy.width, copy.height);
+  return copy;
+}
+
+/** Draws a run's car on its panel, the game's way (NOW) or the proposed way. */
+function drawRun(run) {
+  const { ctx, canvas, painter } = run.panel, next = run.panel.id === 'next';
+  ctx.fillStyle = '#3b3e44'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = '#464a51';
+  for (let x = 0; x < canvas.width; x += 24) ctx.fillRect(x, 0, 1, canvas.height);
+  const phi = next ? Math.round(run.phi / STEP) * STEP : run.phi;
+  const faces = painter.rolledFaces(run.car, run.sprite, phi), lengthPx = run.sprite.Lp;
+  // the body's middle stands highest on an edge: its shadow falls further (PROPOSED)
+  const width = run.sprite.Wp, height = width * 0.62;
+  const lift = next ? (0.5 * (width * Math.abs(Math.sin(phi)) + height * Math.abs(Math.cos(phi)))
+    - 0.5 * height) * 0.5 : 0;
+  ctx.save();
+  ctx.translate(canvas.width / 2, Math.min(canvas.height - 40, 40 + run.y));
+  ctx.scale(ZOOM, ZOOM);
+  ctx.rotate(-Math.PI / 2 + Math.PI / 2);
+  const squash = next ? 1 - run.squash : 1;
+  ctx.globalAlpha = 0.3;
+  painter.drawFaces(faces, lengthPx, true, 4 + lift);
+  ctx.globalAlpha = 1;
+  if (next) {
+    const lit = faces.map((face) => ({ ...face, cv: shaded(face.cv, Math.abs(face.ky)),
+      ky: face.ky * squash }));
+    painter.drawFaces(lit, lengthPx, false, 0);
+    ctx.fillStyle = 'rgba(190,180,160,0.7)';
+    for (const puff of run.dust) ctx.fillRect(Math.round(puff.x / ZOOM),
+      Math.round((width / 2 + 2 + puff.y) / ZOOM), 2, 2);
+  } else painter.drawFaces(faces, lengthPx, false, 0);
+  ctx.restore();
+  run.panel.out.textContent = `${run.hits} quarter turns${run.digs ? `, dug in ${run.digs}x`
+    : ''}${run.done ? `, came to rest on ${run.onFace}` : ''}`;
+}
+
+function roll() {
+  const seed = 1 + Math.floor(Math.random() * 1e6), shape = SHAPE[carId][0];
+  runs = panels.map((panel) => makeRun(panel, shape, seed));
+}
+let last = performance.now();
+function frame(now) {
+  const dt = Math.min(0.05, (now - last) / 1000) * (slow ? 0.35 : 1);
+  last = now;
+  for (const run of runs) { stepRun(run, dt); drawRun(run); }
+  requestAnimationFrame(frame);
+}
+
+const carsBox = document.getElementById('cars'), table = document.getElementById('table');
+for (const [id, [shape, why]] of Object.entries(SHAPE)) {
+  const button = document.createElement('button');
+  button.textContent = id;
+  button.onclick = () => { carId = id; for (const other of carsBox.children)
+    other.classList.toggle('on', other === button); roll(); };
+  if (id === carId) button.classList.add('on');
+  carsBox.appendChild(button);
+  const row = table.insertRow();
+  row.insertCell().textContent = why;
+  const num = row.insertCell(); num.className = 'num'; num.textContent = shape.toFixed(2);
+}
+document.getElementById('roll').onclick = roll;
+document.getElementById('slow').onclick = (event) => {
+  slow = !slow; event.target.textContent = `SLOW MOTION: ${slow ? 'ON' : 'OFF'}`; };
+document.getElementById('hard').onclick = (event) => {
+  hard = !hard; event.target.classList.toggle('on', hard); roll(); };
+roll();
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
