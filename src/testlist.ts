@@ -56,21 +56,5 @@ export const TEST_LIST: TestEntry[] = [
   // carlooks, carreal (the car look: paint parts, rims, redraws, real shapes), partsoff, bigparts,
   // hwlanes, hwbales, f1aero passed 2026-11-07; credits, bigbrands (the Brands venue) passed
   // 2026-11-08; fenceshred (catch fences tear and shred), partsover (the drive-over chance by
-  // ground clearance) passed 2026-11-08)
-  {
-    id: 'crossings',
-    added: '2026-11-08',
-    name: 'Drivable bridges and tunnels (Brands: 2 road bridges, 2 tunnels) with real slopes',
-    where: 'Test link + &crossings=1: TEST MODE > UK CIRCUITS > Brands Snatch GP or Indy',
-    try: 'Out via the pits to the service roads; up a bridge ramp, into the tunnel; skid on them.',
-    wrong: 'A snap at a ramp or mouth, stuck, through a wall, hitting cars below, marks under.',
-  },
-  {
-    id: 'fencedrag',
-    added: '2026-11-08',
-    name: 'Catch fences weaker (tear from ~40 km/h), grab a car along them, tangle and drag it',
-    where: 'Plain link: Brands Snatch, the see-through catch fences by the stands and banks',
-    try: 'Hit one slow (it catches you), fast (it tears, shreds, drags you); slide along it.',
-    wrong: 'A dead stop at speed, no drag after a tear, a car stuck in the fence.',
-  },
+  // ground clearance), crossings (drivable bridges and tunnels), fencedrag passed 2026-11-08)
 ];

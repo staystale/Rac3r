@@ -1,7 +1,6 @@
 // The bridge and footbridge painters: the road deck, the rails, the footings and the
 // walkway over the track.
 import type { Prop } from '../../world/types.ts';
-import { drawVenueBridge } from './venueprops.ts';
 import type { BridgeGeom, PropCtx } from './types.ts';
 
 /**
@@ -214,8 +213,6 @@ export function drawBridge(propCtx: PropCtx, prop: Prop, ppm: number) {
     drawRiverBoat(prop, half, paint);
     return;
   }
-  // a venue's road bridge has its own look (render/props/venueprops.ts)
-  if (prop.look === 'venue') { drawVenueBridge(propCtx, prop, ppm); return; }
   const negEnd = half + 3 + ((prop.appL && prop.appL[0]) ?? 0),
     posEnd = half + 3 + ((prop.appL && prop.appL[1]) ?? 0),
     trackLen = negEnd + posEnd,

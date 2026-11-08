@@ -217,7 +217,7 @@ lists (zones, bumps, props, barriers), which the physics and the renderer both r
 what you drive on.
 
 A circuit is its real venue (`world/venue.ts` and `venue*.ts`, from OpenStreetMap; `levels/brands-venue.ts`
-is the spec of one). Its road bridges and tunnels are LEVELS a car can drive (`?crossings=1`):
+is the spec of one). Its road bridges and tunnels are LEVELS a car can drive:
 `world/crossings.ts` `clampWorld` (every car's step, before `applyGround`) puts a car on a crossing when
 its centre comes in over an end between the walls and off when it passes an end; on one it meets only the
 crossing's walls, drives on its deck (`crossinggeo.ts`: tarmac, straight from end height to end height, no

@@ -9,7 +9,8 @@
 // menustyle, testgarage, ai10, k12, resetin, belly, agtyre, ai20, aifast, aisafe passed 11-03;
 // drycover, rimsoft, bushmark, leafpop, aireact, skillband,
 // bhquiet, aiweave, jokerflow, aisliders, hudlean, aibands, puffroom, aigrip,
-// aidodge, ailines, ailook, dodgefar, markjump passed 11-04; credits, bigbrands passed 11-08.)
+// aidodge, ailines, ailook, dodgefar, markjump passed 11-04; credits, bigbrands, crossings,
+// fencedrag passed 11-08.)
 import { envValue } from './debug.ts';
 
 /**
@@ -40,7 +41,4 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
-  // ?crossings=1: the venue's road bridges and tunnels DRIVABLE - a car on a deck or in a tunnel
-  // keeps to it until it leaves by an end (world/crossings.ts; owner 11-07, again 11-08)
-  crossings: atLoad('crossings'),
 };

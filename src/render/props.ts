@@ -37,7 +37,6 @@ import {
   drawBoard,
 } from './props/scenery.ts';
 import { drawParkedCar, drawTunnel, drawVenueBridge } from './props/venueprops.ts';
-import { FIX } from '../core/fixes.ts';
 
 /** the drawer of each prop kind (a kind with no entry is only positioned) */
 const PROP_DRAWERS: Record<string, PropDrawer> = {
@@ -160,7 +159,7 @@ function drawOneProp(propCtx: PropCtx, prop: Prop, ppm: number, overhead: boolea
  * @param prop the prop
  * @returns true for one
  */
-const isDrivableBridge = (prop: Prop): boolean => FIX.crossings && prop.kind === 'bridge'
+const isDrivableBridge = (prop: Prop): boolean => prop.kind === 'bridge'
   && prop.look === 'venue';
 
 /**

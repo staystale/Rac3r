@@ -261,8 +261,7 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   both ways (it folded 8 m of map over between Brabham and Cooper: torn paddocks, kinked roads).
 - Tunnel portals are solid to everything laid after them; a tunnel's road carries on the road that
   ends at its mouth (cut back to where the curve runs on smoothly), never loops round to it.
-- BRIDGES AND TUNNELS ARE DRIVABLE LEVELS (owner OK 11-07, asked again 11-08; ?crossings=1 under
-  test): a car changes level only through an END (a ramp's foot, a portal's open end); on one it
+- BRIDGES AND TUNNELS ARE DRIVABLE LEVELS (owner OK 11-07, passed 11-08): a car changes level only through an END (a ramp's foot, a portal's open end); on one it
   meets only its walls, its deck, the cars on it - nothing on the ground, no marks, no lap. The
   ground meets the ends as solid (ramp walls + abutment, portal walls + lintel). A tunnel car is
   seen only in the open cuts, hidden under the ground (owner 11-08: "if it's hidden it's hidden" -

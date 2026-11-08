@@ -11,7 +11,6 @@ import { alongTrack } from "./barriers.ts";
 import { SURFACES } from "./surfaces.ts";
 import { onTrack, querySubtrack } from "./tyrewall.ts";
 import { parkMiller } from "../core/random.ts";
-import { FIX } from "../core/fixes.ts";
 import { HALF_ROAD, VENUE_ROAD_M, centreAt, centreBetween, distToLine, makePlacer, nearestLoop,
   resample, smoothLine } from "./venuegeo.ts";
 import { boardOnArmco, buildEdge, buildRims, inZones, marshalPosts,
@@ -271,7 +270,7 @@ function clearMouth(site: Site, centre: { x: number; y: number }, dir: Point,
  * Whether a drivable tunnel's mouth (world/crossings.ts) opens onto room to drive out: APRON_M
  * of ground past it outside every Armco line and off every building (owner 11-08: the footpath
  * tunnel under Brabham came up 2.5 m from Cooper Straight's Armco - its portal walks on, past
- * Cooper Straight). Always so without the switch.
+ * Cooper Straight).
  * @param site the venue's builders' state
  * @param centre the track's centre where the tunnel passes under
  * @param dir the way out (unit)
@@ -281,7 +280,6 @@ function clearMouth(site: Site, centre: { x: number; y: number }, dir: Point,
  */
 function roomToDriveOut(site: Site, centre: { x: number; y: number }, dir: Point, mouth: number,
   half: number): boolean {
-  if (!FIX.crossings) return true;
   for (let ahead = 0.5; ahead <= APRON_M; ahead += 1)
     for (const side of [-half, 0, half]) {
       const x = centre.x + dir[0] * (mouth + ahead) - dir[1] * side;

@@ -8,9 +8,8 @@
 // pixel, turned 28 deg); the frame is turned as the old level was (Brabham across the top).
 import { BRANDS_VENUE } from "./venues/brands-snatch.ts";
 import { venueLevel } from "../venue.ts";
-import { FIX } from "../../core/fixes.ts";
 import type { VenueSpec } from "../venue.ts";
-import type { Level, Point } from "../types.ts";
+import type { Level } from "../types.ts";
 
 export const BRANDS_SPEC: VenueSpec = {
   id: 'brands-snatch',
@@ -67,7 +66,7 @@ export const BRANDS_SPEC: VenueSpec = {
       // (with the footpath tunnel drivable its paddock mouth is past Cooper Straight - world/
       // venuescenery.ts roomToDriveOut: the road runs on into the paddock instead of to it)
       { pts: [[71, -181], [62, -178.5], [52, -176.5], [42, -176.5], [34, -178],
-        ...(FIX.crossings ? [[30, -180.5], [26, -181.3], [22, -181.6]] as Point[] : [])] },
+        [30, -180.5], [26, -181.3], [22, -181.6]] },
     ],
   },
   seed: 3911,

@@ -59,10 +59,13 @@ last handover, written on request.
    drive out: it runs on under Cooper Straight, 103 m), the ways rise / dip as terrain, smoke under
    decks, a lying tyre driven over only by a tractor-high car. Then (owner: "water can drip up thru
    the tunnels", "should work like any other surface") a crossing has its own ground (world/
-   deckwear.ts): leaks and glass land there, not on the track beneath. UNDER TEST.
+   deckwear.ts): leaks and glass land there, not on the track beneath. ALL PASSED 11-08: the
+   default, the switch gone.
    CATCH FENCES round 3 (owner: "still too strong ... catch n drag"): tear from ~40 km/h, grab a
-   sliding car (0.6 kept a step), a tear tangles and drags the car 1 s. UNDER TEST (fencedrag).
-   CRASH BENCH (owner 11-08: 20 cars at 120 mph into a 3 x 100 tyre wall on Armco): FESTIVAL OF SPLAT
+   sliding car (0.6 kept a step), a tear tangles and drags the car 1 s. PASSED 11-08.
+   CRASH BENCH (owner 11-08: 20 cars at 120 mph into a 3 x 100 tyre wall on Armco; "keep working
+   into in the future ... drop no less than like 40 fps" - THE TARGET: 40 fps at the worst on the
+   owner's phone, the gameplay unchanged): FESTIVAL OF SPLAT
    (world/levels/crashbench.ts; ?level=crash-bench) and tools/crashbench.mjs (same scene, timed,
    seeded fingerprint). Found: 94 % of a step in the loose objects - every moving object paired
    with every other (~900 burst tyres: ~400 000 pairs a step). Exact fixes (fingerprint the same):
@@ -72,7 +75,9 @@ last handover, written on request.
    ROLLS (owner 11-08, later): the rolling crash relook - check which way a car rolls from an
    impact ("sometimes it seems to roll the wrong way"), and whether a car can roll over things
    (tyres, fences).
-   CI (owner 11-08: "30 mins is too long"): to discuss - see the proposal in the session.
+   CI (owner 11-08: "30 mins is too long", OK to the plan): no checks job on a push to main (the
+   branch's run covers the same commit), the screen checks only when screens change, no doubled
+   verify (.github/workflows/checks.yml).
    PERFORMANCE CHECK 11-08 (CPU x4 lap, tools/framecheck.mjs): Brands work median 12.7 ms, p95
    24-29 (Thruston 13.2 / 23.0; Castle Cum 24.4 / 39.1 - the heaviest, older); crossings on: no
    measurable cost. Fixed: Brands was built at page load (7.3 s of level import here, now 0.85 s).

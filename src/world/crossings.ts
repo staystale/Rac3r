@@ -1,4 +1,4 @@
-// world/crossings.ts - DRIVABLE BRIDGES AND TUNNELS (?crossings=1; the venue's road bridges over
+// world/crossings.ts - DRIVABLE BRIDGES AND TUNNELS (the venue's road bridges over
 // the track and its tunnels under it). A crossing (world/types.ts Crossing) is a straight way
 // between two ends - a bridge from one ramp's foot to the other's, a tunnel from one portal's open
 // end to the other's. A car comes onto it only by crossing an end into it; then, until it leaves
@@ -8,7 +8,6 @@
 // bridge or hidden in the tunnel (render/screen.ts). A car on the ground meets the ends as solid
 // (world/barriers.ts): a ramp's walls and abutment, a portal's walls and lintel - so the only way
 // on is up the ramp or down into the cut.
-import { FIX } from "../core/fixes.ts";
 import { barrierClamp, clampToBarriers, prepBarriers, solidClamp } from "./barriers.ts";
 import { dragTangled } from "./armcodent.ts";
 import {
@@ -138,12 +137,11 @@ function tunnelCrossing(first: Prop, second: Prop): Crossing {
 /**
  * The drivable crossings of a venue (world/venue.ts): each road bridge, and each tunnel's two
  * portals (laid in pairs, world/venuescenery.ts venueTunnels; a footpath's too, at its own
- * width - its mouths open onto room to drive out: roomToDriveOut). None without the switch.
+ * width - its mouths open onto room to drive out: roomToDriveOut).
  * @param props the venue's props
  * @returns the crossings
  */
 export function venueCrossings(props: Prop[]): Crossing[] {
-  if (!FIX.crossings) return [];
   const portals = props.filter((prop) => prop.kind === 'tunnel');
   const tunnels: Crossing[] = [];
   for (let i = 0; i + 1 < portals.length; i++) {

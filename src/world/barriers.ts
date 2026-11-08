@@ -12,7 +12,6 @@ import {
   edgeCorner, hasOpenWheels, noteWheelBump, wheelBox, wheelEdge, wheelReach,
 } from "../physics/openwheel.ts";
 import { CORNER_OF_WHEEL } from "./wheels.ts";
-import { FIX } from "../core/fixes.ts";
 import {
   DECK_ROAD_HI, DECK_ROAD_LO, PORTAL_LINTEL_M, PORTAL_WALL_M, VENUE_DECK,
 } from "./crossinggeo.ts";
@@ -214,7 +213,7 @@ function addFurnitureSolids(out: Solid[], prop: Prop): boolean {
  */
 function addBridgeSolids(box: (offX: number, offY: number, width: number, height: number) => void,
   prop: Prop): void {
-  if (FIX.crossings && prop.look === 'venue') {
+  if (prop.look === 'venue') {
     addRampSolids(box, prop);
     return;
   }
@@ -261,8 +260,7 @@ function addSmallSolids(out: Solid[], prop: Prop): boolean {
       box(0, prop.h! / 2 + 0.3, prop.w!, 0.6);
       // the lintel's face over the mouth (a car on the ground drives into the cut only from its
       // open end; one in the tunnel passes under it - world/crossings.ts)
-      if (FIX.crossings)
-        box(prop.w! / 2 - PORTAL_LINTEL_M / 2, 0, PORTAL_LINTEL_M, prop.h! + 2 * PORTAL_WALL_M);
+      box(prop.w! / 2 - PORTAL_LINTEL_M / 2, 0, PORTAL_LINTEL_M, prop.h! + 2 * PORTAL_WALL_M);
       return true;
     case 'sculpture': box(0, 0, 2.2, 2.2); return true;
     case 'bale': box(0, 0, 1.6, 1.6); return true;
