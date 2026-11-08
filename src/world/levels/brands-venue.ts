@@ -69,8 +69,9 @@ export const BRANDS_SPEC: VenueSpec = {
   seed: 3911,
 };
 
-// the two layouts of the one venue, sharing its scenery
-export const BH_GP_LEVEL: Level = venueLevel(BRANDS_SPEC, 'gp', 'brands-snatch',
-  'Brands Snatch GP');
-export const BH_INDY_LEVEL: Level = venueLevel(BRANDS_SPEC, 'indy', 'brands-snatch-indy',
-  'Brands Snatch Indy');
+// the two layouts of the one venue, sharing its scenery - each built on first use (world/load.ts
+// buildLevel): a venue takes seconds to build on a phone, and the page loaded every one up front
+const layoutLevel = (layout: string, levelId: string, name: string): Level =>
+  ({ id: levelId, name, _build: () => venueLevel(BRANDS_SPEC, layout, levelId, name) } as Level);
+export const BH_GP_LEVEL: Level = layoutLevel('gp', 'brands-snatch', 'Brands Snatch GP');
+export const BH_INDY_LEVEL: Level = layoutLevel('indy', 'brands-snatch-indy', 'Brands Snatch Indy');
