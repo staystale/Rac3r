@@ -251,6 +251,13 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   lanes", "not random gaps in barriers"): continuous Armco with smooth flared ends, tyres only in
   front of it behind traps, a catch fence (weaker than Armco) where spectators are, NEVER the black
   wire fence; bridges and tunnels as the real ones, roads joined up; keep the game's art style.
+- A ROLLED CAR IS ITS OWN SHAPE (11-08, owner, on the roll mockup and the F1 + Micra test): drawn
+  2D but in the real car's shape ("not a clear cube", "windscreens are angled"), 12 frames a turn
+  ("the sweet spot") in shaded bands, a slight blur and whoosh lines over the car that fade with
+  the spin; the livery's four colours, rims and details right in every frame; its damage carried.
+  It rolls by its shape: round keeps rolling, sharp digs in; F1-like and wide cars almost never
+  rest on a side; an open car rolling breaks up (wings, sidepods, wheels). Front-to-back roll and
+  suspension rock were put aside ("ignore front roll and suspension rock").
 - A VENUE IS AS REAL AS IT CAN BE (11-08, owner, on Castle Kum): its edge follows the real
   circuit's ("keep it like the real track where possible") - Armco where the real one has guard
   rail (OSM, aerial photos), the real tyre walls, a catch fence where spectators are - with the
