@@ -5,6 +5,7 @@ import { BARRIER_HALF } from '../../world/barriers.ts';
 import { isTornAfter } from '../../world/armcodent.ts';
 import type { Barrier, Point } from '../../world/types.ts';
 import type { PropCtx } from './types.ts';
+import { drawRockWall } from './desert.ts';
 
 /**
  * Draws the Armco fence round the runoff on each side of the arena.
@@ -155,7 +156,8 @@ function isBarrierOffscreen(propCtx: PropCtx, barrier: Barrier) {
       minY = Infinity,
       maxX = -Infinity,
       maxY = -Infinity;
-    for (const [x, y] of barrier.pts) {
+    // (a canyon wall's rock band reaches well past its face)
+    for (const [x, y] of barrier.band || barrier.pts) {
       minX = Math.min(minX, x);
       maxX = Math.max(maxX, x);
       minY = Math.min(minY, y);
@@ -221,6 +223,10 @@ function drawBarrierKind(propCtx: PropCtx, barrier: Barrier, half: number, ppm: 
     view.ctx.lineWidth = Math.max(1, half * ppm);
     view.ctx.stroke(); // bright face
     posts(barrier.pts, 2, 0.32, '#3d4049');
+    return;
+  }
+  if (barrier.kind === 'rock') {
+    drawRockWall(propCtx, barrier, ppm);
     return;
   }
   // wall / pitwall

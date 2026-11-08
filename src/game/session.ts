@@ -315,7 +315,9 @@ function startField() {
     if (shared.renderer && shared.renderer.snap) shared.renderer.snap(game.car);
   }
   // (the menu race too - owner 11-07: "no traffic on menu highway races?")
-  game.traffic.reset(LEVEL.endless ? hwLevel() : null, shared.trafficDensity);
+  // (Deaf Valley: no traffic yet - it comes the other way, round 2)
+  game.traffic.reset(LEVEL.endless ? hwLevel() : null, LEVEL.endless
+    && hwLevel()._cfg.theme === 'canyon' ? 0 : shared.trafficDensity);
   if (LEVEL.endless && game.ai.length) {
     const [spanStart, spanEnd] = hwGridSpan(hwLevel(), game.ai.length + 1);
     game.traffic.clearSpan(spanStart, spanEnd);

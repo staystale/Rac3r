@@ -37,6 +37,7 @@ import {
   drawBoard,
 } from './props/scenery.ts';
 import { drawParkedCar, drawTunnel, drawVenueBridge } from './props/venueprops.ts';
+import { drawCactus } from './props/desert.ts';
 
 /** the drawer of each prop kind (a kind with no entry is only positioned) */
 const PROP_DRAWERS: Record<string, PropDrawer> = {
@@ -54,6 +55,7 @@ const PROP_DRAWERS: Record<string, PropDrawer> = {
   truck: drawTruck,
   tree: drawTree,
   rock: drawRock,
+  cactus: drawCactus,
   crowd: drawCrowd,
   marshal: drawMarshal,
   footbridge: drawFootbridge,

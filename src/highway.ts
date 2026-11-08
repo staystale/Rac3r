@@ -20,6 +20,7 @@
 // carriageway — the same generator for later flavour levels.
 import { pruneHedges, resetHedges } from "./highway/hedges.ts";
 import { readSettings } from "./core/settings.ts";
+import { FIX } from "./core/fixes.ts";
 import { createSubtrack, ghostSegment } from "./world/subtrack.ts";
 import { meterEvent } from "./ui/meter.ts";
 import { SURFACES } from "./world/surfaces.ts";
@@ -391,10 +392,17 @@ export function createHighway(seed: number = 4242, preset: string = 'motorway') 
   return level;
 }
 let highwayAdded = false;
-// adds the endless motorway to LEVELS (called once, after the hand-made levels)
+// adds the endless motorway to LEVELS (called once, after the hand-made levels) - and, ?canyon=1,
+// DEAF VALLEY: the same endless road as a desert canyon (highway/canyon.ts; owner 11-08)
 export function addHighwayLevel() {
   if (highwayAdded) return;
   highwayAdded = true;
   LEVELS.push(createHighway(4242, QUERY_PRESET || 'motorway') as unknown as Level);
+  if (FIX.canyon) {
+    const canyon = createHighway(6677, 'canyon');
+    Object.assign(canyon, { id: 'deaf-valley', name: 'Deaf Valley', base: SURFACES.dirt,
+      roadTypes: { canyon: 'CANYON' } });
+    LEVELS.push(canyon as unknown as Level);
+  }
 }
 

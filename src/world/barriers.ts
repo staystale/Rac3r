@@ -32,11 +32,12 @@ import type {
 // fence catch fence, posts + mesh — solid building an invisible solid outline (props draw the
 // building)
 //   line     painted line (pit lane edge) — NOT solid
+//   rock     a canyon's rock wall (highway/canyon.ts) — solid, as a wall
 // Solid ones collide with the car's four corners (push out, bounce, scrape) on the same step as
 // obstacleClamp; what is drawn is exactly what you hit (user rule: visuals accurate to their
 // effects).
 export const BARRIER_HALF: Record<BarrierKind, number> = { armco: 0.3, wall: 0.45, pitwall: 0.5,
-    fence: 0.15, building: 0.1, line: 0, catchfence: 0.12 };
+    fence: 0.15, building: 0.1, line: 0, catchfence: 0.12, rock: 0.5 };
 const BARRIER_E = 0.3;           // restitution off a barrier (obstacles use 0.35)
 // share of the along-the-wall speed kept per contact step... (scrape)
 const BARRIER_SCRAPE = 0.85;
@@ -293,6 +294,12 @@ export function solidsFromProps(props: Prop[]): Solid[] {
   for (const prop of props) {
     if (addStructureSolids(out, prop)) continue;
     if (addFurnitureSolids(out, prop)) continue;
+    // a saguaro stands solid; a small barrel cactus is driven over (highway/canyon.ts)
+    if (prop.kind === 'cactus') {
+      const trunk = (prop.s || 2) * 0.4;
+      if ((prop.s || 2) >= 1.6) pushPropBox(out, prop, 0, 0, trunk, trunk);
+      continue;
+    }
     addSmallSolids(out, prop);
   }
   for (const solid of out) solid.r = Math.hypot(solid.w, solid.h) / 2;

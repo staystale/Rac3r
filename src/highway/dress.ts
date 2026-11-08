@@ -8,6 +8,7 @@ import { fields } from "./fields.ts";
 import { extras } from "./extras.ts";
 import { layLooseRoadside } from "./litter.ts";
 import { layRoadLamps } from "./roadlamps.ts";
+import { dressCanyon } from "./canyon.ts";
 import type { LevelObj } from '../cones/coneTypes.ts';
 import type { Point, BarrierKind } from '../world/types.ts';
 import type { HwPose, HwLevel, DressCtx, Stamp } from './hwtypes.ts';
@@ -276,6 +277,11 @@ function layWalls(ctx: DressCtx) {
  */
 export function dress(level: HwLevel, firstIdx: number, endIdx: number, loose: LevelObj[]) {
   const ctx = makeDressContext(level, firstIdx, endIdx, loose);
+  // a themed road dresses its own way (Deaf Valley: highway/canyon.ts)
+  if (level._cfg.theme === 'canyon') {
+    dressCanyon(ctx);
+    return;
+  }
   const { state, road, pointAt, clear } = ctx;
   // a long road can come back across what was laid beside an EARLIER stretch: every new point cuts
   // the approaches / rivers / slips

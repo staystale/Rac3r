@@ -55,6 +55,21 @@ export const HW_PRESETS: Record<string, HwCfg> = {
     walls: "wall",
     wallGap: 1.2,
   },
+  // DEAF VALLEY (owner 11-08: "canyon which can have the features you've described" - Death
+  // Valley, the parody): a twisty SINGLE CARRIAGEWAY, one lane each way, through canyons of rock
+  // and open desert (highway/canyon.ts dresses it)
+  canyon: {
+    lanes: 2,
+    laneW: 3.5,
+    shoulder: 0.6,
+    edge: 0.6,
+    maxDeg: 70,
+    sweep: [160, 420],
+    bend: [70, 150],
+    pStraight: 0.22,
+    pBend: 0.35,
+    theme: 'canyon',
+  },
 };
 export const HW_NAMES: Record<string, string> = {
   motorway: "MOTORWAY",

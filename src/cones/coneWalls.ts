@@ -13,7 +13,7 @@ const WALL_E = 0.3, WALL_SCRAPE = 0.8, OVER_V = 9, OVER_CHANCE = 0.3;
 // barriers too tall for anything loose to hop (owner 11-08: "chain link fences should
 // be tall ... can't of objects passing over it like tyres"): a catch fence's mesh is ~4 m, a
 // building's wall more; they stop even an object already hopping a low one
-const TALL = new Set(['catchfence', 'building']);
+const TALL = new Set(['catchfence', 'building', 'rock']);
 
 /**
  * Whether a barrier is too tall to hop.

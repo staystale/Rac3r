@@ -47,4 +47,6 @@ export const FIX = {
   // ?thrustonvenue=1: Thruston as the real venue (Thruxton) at 1/2 of real length
   // (world/levels/thruston-venue.ts; owner 11-08)
   thrustonvenue: atLoad('thrustonvenue'),
+  // DEAF VALLEY: the endless road as a desert canyon (highway/canyon.ts; owner 11-08)
+  canyon: atLoad('canyon'),
 };

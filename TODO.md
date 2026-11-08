@@ -192,7 +192,11 @@ last handover, written on request.
    alongside a car's rear quarter, up to +20 % drag on it and -6 % on the car alongside, gone by 1.2 m
    between the doors, by how much the car's flanks catch the air (Naffcar 1 .. F1 0.15);
    tools/scratch/_sidedraft.mjs. Next: the Naffcar extras (air brakes, aero upgrades, Dieatona).
-5. MORE HIGHWAY FLAVOURS.
+5. MORE HIGHWAY FLAVOURS (owner 11-08: the current roadside is COUNTRYSIDE; then CANYON - "Death
+   Valley", as DEAF VALLEY - and FARTMOOR, a super country lane with crossroads and traffic):
+   DEAF VALLEY round 1 UNDER TEST ?canyon=1 (highway/canyon.ts: rock walls, cactus, open desert;
+   round 2 oncoming traffic, round 3 crests and dips). Brands Indy's garage barrier on a lane
+   (item 6): clear since the venue rebuild (barriercheck all OK 11-08).
 6. SMALL: Brands Snatch Indy's garage barrier on a lane (barriercheck); the highway AI dodging (owner
    "let's leave it for now").
 - WATCH: an AI F1 field spins more since the real aero passed (12 races: incidents 56 -> 92, spins

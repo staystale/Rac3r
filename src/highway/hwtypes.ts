@@ -14,6 +14,7 @@ export interface HwCfg {
   sweep: number[]; bend: number[];   // radius ranges, m
   pStraight: number; pBend: number;   // the chance of a straight / a tight bend
   walls?: string; wallGap?: number;   // walled in: the barrier kind, m off the road edge
+  theme?: 'canyon';   // its own roadside (highway/canyon.ts); none: the countryside
 }
 
 /** The road's cross-section (road.ts laneGeo), m from the centre line. */

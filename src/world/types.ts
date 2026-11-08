@@ -410,7 +410,7 @@ export interface Ground {
 }
 
 export type BarrierKind = 'armco' | 'wall' | 'pitwall' | 'fence' | 'building' | 'line'
-  | 'catchfence';
+  | 'catchfence' | 'rock';
 
 // One padded segment of a barrier polyline (what prepBarriers pushes).
 export interface BarrierSeg {
@@ -442,6 +442,8 @@ export interface Barrier {
   _cbb?: [number, number, number, number];   // barriers.ts barrierClamp: the box round _segs
   _runs?: number[];   // barriers.ts segRunBoxes: the box round each run of SEG_RUN _segs
   field?: number;   // highway/fields.ts: the field (village) it belongs to
+  // a canyon's rock wall (highway/canyon.ts): the rock behind its face, and its strata lines
+  band?: Point[]; strata?: Point[][];
   _rbb?: [number, number, number, number];   // render/props/fence.ts caches the padded box
 }
 
@@ -644,6 +646,8 @@ export interface Lane {
   out?: number;   // gravel traps only (see Trap)
   _s?: number;   // highway.ts: the road distance it is dropped behind with
   field?: number;   // highway/fields.ts: the field (village) it belongs to
+  // a canyon's rock wall (highway/canyon.ts): the rock behind its face, and its strata lines
+  band?: Point[]; strata?: Point[][];
   _segs?: { ax: number; ay: number; dx: number; dy: number; l2: number }[];
   _bb?: [number, number, number, number];
 }
