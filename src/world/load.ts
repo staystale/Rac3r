@@ -1,4 +1,4 @@
-import { setFloor, setRect } from "./bounds.ts";
+import { BASE_FLOOR, setFloor, setRect } from "./bounds.ts";
 import { LEVEL, setActiveLevel } from "./state.ts";
 import { SURFACES, SURFACE_TRAP } from "./surfaces.ts";
 import { alongTrack, prepBarriers } from "./barriers.ts";
@@ -141,7 +141,27 @@ function prepareLevel(light = false): void {
 // at half width + 5.5 m). Pit / painted lines stay lines.
 // m: tape posts keep this far beyond a road lane's edge
 const TAPE_STEP = 4, LANE_CLEAR = 2.5;
+// m a tape post keeps inside the floor's edge: past it a loose object is held on the edge
+// (cones/coneStep.ts), so a post placed there jumped onto it as the level began (MEASURED,
+// tools/objcheck.mjs: Killder's 6 posts by a corner near the map's edge, moved 1.3-4 m)
+const FLOOR_CLEAR = 0.5;
 let tapeId = 0;
+
+/**
+ * Is a point on a level's floor, FLOOR_CLEAR inside its edge (LEVEL.bounds, else the square
+ * +-floor)? The level's own: tape is laid as it is built, before its floor is applied.
+ * @param level the level
+ * @param x world x
+ * @param y world y
+ * @returns true when on the floor
+ */
+function isOnFloor(level: Level, x: number, y: number): boolean {
+  const floor = level.floor || BASE_FLOOR, rect = level.bounds;
+  const left = rect ? rect.x0 : -floor, right = rect ? rect.x1 : floor,
+    bottom = rect ? rect.y0 : -floor, top = rect ? rect.y1 : floor;
+  return x > left + FLOOR_CLEAR && x < right - FLOOR_CLEAR && y > bottom + FLOOR_CLEAR
+    && y < top - FLOOR_CLEAR;
+}
 /**
  * Is a point within a road lane (half width + LANE_CLEAR)?
  * @param roads the road lanes (not gravel traps)
@@ -205,8 +225,8 @@ function tapePass(level: Level): void {
   for (const pts of runs) {
     const runId = tapeId++;
     pts.forEach(([x, y]: Point, i: number) => {
-      if (querySubtrack(level.subtrack!, x, y).dist > halfWidth + 1.5 && !isOnRoadLane(roads, x, y))
-        posts.push({ x, y, kind: 'tapepost', tape: runId, idx: i });
+      if (querySubtrack(level.subtrack!, x, y).dist > halfWidth + 1.5 && !isOnRoadLane(roads, x, y)
+        && isOnFloor(level, x, y)) posts.push({ x, y, kind: 'tapepost', tape: runId, idx: i });
     });
   }
   level.cones = [...(level.cones || []), ...posts];
