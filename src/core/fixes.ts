@@ -42,4 +42,7 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
+  // ?thrustonvenue=1: Thruston as the real venue (Thruxton) at 1/2 of real length
+  // (world/levels/thruston-venue.ts; owner 11-08)
+  thrustonvenue: atLoad('thrustonvenue'),
 };

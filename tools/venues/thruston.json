@@ -1,0 +1,43 @@
+{
+  "osm": "thruston.osm.json",
+  "out": "src/world/levels/venues/thruston.ts",
+  "exportName": "THRUSTON_VENUE",
+  "origin": [
+    51.21,
+    -1.6
+  ],
+  "turnDeg": 0,
+  "clip": [
+    -1000,
+    -800,
+    1000,
+    800
+  ],
+  "reachM": 180,
+  "names": {
+    "168913428": "Pit Garages",
+    "892471200": "Start Straight",
+    "892471202": "Allard to Campbell",
+    "892471206": "Segrave to Noble"
+  },
+  "layouts": {
+    "circuit": {
+      "through": [
+        "Start Straight",
+        "Segrave",
+        "Goodwood",
+        "Club"
+      ]
+    }
+  },
+  "kinds": {
+    "124904257": "hangar",
+    "124904258": "hangar",
+    "124904263": "hangar",
+    "124904264": "hangar",
+    "124904266": "hangar",
+    "124905301": "hangar",
+    "125125539": "hangar",
+    "878028414": "hangar"
+  }
+}

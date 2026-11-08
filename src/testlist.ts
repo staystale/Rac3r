@@ -62,4 +62,12 @@ export const TEST_LIST: TestEntry[] = [
   // castlecumvenue (Castle Kum as the real venue), rollover (a fast tumble goes over low things),
   // rollbody (a rolled car drawn as a body in its real shape, every car), snotterton (Snetterton
   // as a venue: the 300, 200 and 100) passed 2026-11-08)
+  {
+    id: 'thrustonvenue',
+    added: '2026-11-08',
+    name: 'Thruston as the real venue (Thruxton) at 1/2 size, the airfield inside it',
+    where: 'Test link + &thrustonvenue=1: TEST MODE > UK CIRCUITS > Thruston',
+    try: 'Lap it; look at the pits, the tunnel under the start straight, Club, the Complex.',
+    wrong: 'A road or prop on the track, a barrier gap, a road to nowhere, a broken tunnel.',
+  },
 ];
