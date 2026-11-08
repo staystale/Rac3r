@@ -1,7 +1,9 @@
 // cones/coneGrid.ts: the persistent grid of loose objects at rest, and the object-object
 // collisions of the ones that move (impulse along the contact normal, stack bursts, dust).
 // Every function takes the one cones context made in cones.ts (createCones).
-import { BROKEN, OBJ_REST, STACK_BURST_V, TOPPLE_V, TOPPLES, burstStack } from "./coneConsts.ts";
+import {
+  BROKEN, OBJ_REST, STACK_BURST_V, TOPPLE_V, TOPPLES, burstStack, mayBurst,
+} from "./coneConsts.ts";
 import type { ConesCtx, Loose } from './coneTypes.ts';
 
 export const OBJ_CELL = 2.5;              // m; larger than any moving object's diameter
@@ -85,8 +87,9 @@ function respond(ctx: ConesCtx, objA: Loose, objB: Loose, rel: number, nx: numbe
   // a glancing blow sets the struck object spinning
   objB.spin += ((objA.vx - objB.vx) * -ny + (objA.vy - objB.vy) * nx) * 0.8;
   touch(objA, rel); touch(objB, rel);
-  if (objB.kind === 'tyrestack' && rel > STACK_BURST_V) burstStack(objB, ctx.burst);
-  if (objA.kind === 'tyrestack' && rel > STACK_BURST_V) burstStack(objA, ctx.burst);
+  const canBurst = rel > STACK_BURST_V && mayBurst(ctx.prevMovers.length);
+  if (objB.kind === 'tyrestack' && canBurst) burstStack(objB, ctx.burst);
+  if (objA.kind === 'tyrestack' && canBurst) burstStack(objA, ctx.burst);
   if (rel > 2 && ctx.hits.length < 24) ctx.hits.push({ x: (objA.x + objB.x) / 2, y: (objA.y
       + objB.y) / 2, speed: rel, kind: objB.kind });
 }

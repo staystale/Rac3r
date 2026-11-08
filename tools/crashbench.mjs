@@ -8,7 +8,7 @@
 // loose objects (the stacks, the wheels and parts thrown) and the parts' fade. Prints the cost of
 // a step (median, p95, worst; the impact's second apart) and where it goes, and what happened
 // (stacks knocked, cars rolled, damage).
-// node tools/crashbench.mjs [seconds=5]       (built 11-08)
+// [SEED=n] node tools/crashbench.mjs [seconds=5]       (built 11-08)
 // node --cpu-prof --cpu-prof-dir=tools/scratch/prof tools/crashbench.mjs   for the hot functions
 import { makeCar, step, reset, PHYSICS_STEP_SECONDS } from '../src/vehicle.ts';
 import * as L from '../src/lab.ts';
@@ -26,7 +26,8 @@ import {
 const SECONDS = +(process.argv[2] || 5), DT = PHYSICS_STEP_SECONDS;
 // the same run every time (the bursts, trips and punctures draw on Math.random): its fingerprint
 // shows whether a change kept every outcome
-let seed = 12345;
+// SEED=n: another run (the fingerprint is per seed)
+let seed = +(process.env.SEED || 12345);
 Math.random = () => { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; return seed / 4294967296; };
 // the scene: world/levels/crashbench.ts (the game's Festival of Splat), every car held flat out
 L.setLevel('crash-bench');

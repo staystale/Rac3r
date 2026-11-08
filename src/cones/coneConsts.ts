@@ -1,4 +1,5 @@
 import type { Loose } from './coneTypes.ts';
+import { FIX } from '../core/fixes.ts';
 // cones/coneConsts.ts: the tuning constants, the roadside debris table and the tyre-stack burst
 // shared by the cone, tyre and loose-object simulation (cones.ts and the files beside this one).
 
@@ -7,6 +8,20 @@ export const DRAG = 2.9;            // exponential velocity decay per second
 export const SPIN_DRAG = 4.0;       // spin decays a bit faster than translation
 export const RESTITUTION = 0.45;    // bounciness along the contact normal
 export const REST_V = 0.05;         // m/s to snap to zero
+// m/s a tyre sliding flat stops at (?tyresleep): a pile-up's tyres crept at 0.05-0.25 m/s for
+// ~0.4 s more each, all paired a step (tools/crashbench.mjs: 50-215 of them from 2.5 s on); it
+// stops ~6 cm short of where it would have
+export const SLEEP_V = 0.25;
+// moving loose objects above which a tyre stack hit hard holds together instead of bursting
+// (?burstcap): a 20-car pile-up burst 300 stacks into ~900 tyres, all moving at once
+export const BURST_CROWD = 400;
+
+/**
+ * Whether a stack hit hard enough to burst may burst now.
+ * @param movingNow how many loose objects moved in the last step
+ * @returns true unless ?burstcap and the crowd is past BURST_CROWD
+ */
+export const mayBurst = (movingNow: number) => !FIX.burstcap || movingNow < BURST_CROWD;
 export const TOPPLE_V = 0.8;        // m/s hit needed to knock a cone flat
 export const MAX_CONE_V = 32;       // clamp fling speed
 

@@ -41,4 +41,8 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
+  // a pile-up's settling tyres stop sooner (cones/coneConsts.ts SLEEP_V)
+  tyresleep: atLoad('tyresleep'),
+  // a tyre stack holds together when a pile-up already has many objects moving (BURST_CROWD)
+  burstcap: atLoad('burstcap'),
 };
