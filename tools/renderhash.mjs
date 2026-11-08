@@ -140,7 +140,9 @@ async function runLevel(browser, base, id, endless) {
  */
 function levelList() {
   const only = onlyList();
-  const circuits = L.LEVELS.filter((lv) => lv.subtrack && !lv.stage && !lv.endless);
+  // (a venue circuit is built on first use: world/load.ts buildLevel - its _build, no stage gen)
+  const circuits = L.LEVELS.filter((lv) => (lv.subtrack || (lv._build && !lv.gen)) && !lv.stage
+    && !lv.endless);
   const stages = STAGE_IDS.filter((id) => L.LEVELS.some((lv) => lv.id === id));
   const ids = [...circuits.map((lv) => lv.id), ...stages];
   const all = [...ids.map((id) => ({ id, endless: false })), { id: 'highway', endless: true }];
