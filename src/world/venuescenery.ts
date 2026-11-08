@@ -11,6 +11,7 @@ import { alongTrack } from "./barriers.ts";
 import { SURFACES } from "./surfaces.ts";
 import { onTrack, querySubtrack } from "./tyrewall.ts";
 import { parkMiller } from "../core/random.ts";
+import { FIX } from "../core/fixes.ts";
 import { HALF_ROAD, VENUE_ROAD_M, centreAt, centreBetween, distToLine, makePlacer, nearestLoop,
   resample, smoothLine } from "./venuegeo.ts";
 import { boardOnArmco, buildEdge, buildRims, inZones, marshalPosts,
@@ -44,6 +45,9 @@ const PIT_APRON_M = 16;
 const APPROACH_M = 8, APPROACH_W = 6, PORTAL_OUT_M = 3, PORTAL_LEN_M = 9, PORTAL_LOOK_M = 80;
 // m a portal keeps off every road and building
 const PORTAL_CLEAR_M = 2.5;
+// m: a drivable tunnel's mouth opens onto this much clear ground (a car's length and more), at
+// least APRON_RIM_M outside every Armco line (roomToDriveOut)
+const APRON_M = 6, APRON_RIM_M = 1.5;
 // m: tunnels crossing the track this close together are one tunnel
 const SAME_TUNNEL_M = 12;
 // m: a bridge deck's width as a hazard box; how near a stand or bank puts a catch fence
@@ -257,9 +261,35 @@ function clearMouth(site: Site, centre: { x: number; y: number }, dir: Point,
           && !inBuilding(site.buildings, x, y, PORTAL_CLEAR_M);
       }));
     if (clear && pastRim(site.rims, centre.x + dir[0] * (out - PORTAL_LEN_M / 2),
-      centre.y + dir[1] * (out - PORTAL_LEN_M / 2)) >= PORTAL_OUT_M) return out;
+      centre.y + dir[1] * (out - PORTAL_LEN_M / 2)) >= PORTAL_OUT_M
+      && roomToDriveOut(site, centre, dir, out + PORTAL_LEN_M / 2, half)) return out;
   }
   return -1;
+}
+
+/**
+ * Whether a drivable tunnel's mouth (world/crossings.ts) opens onto room to drive out: APRON_M
+ * of ground past it outside every Armco line and off every building (owner 11-08: the footpath
+ * tunnel under Brabham came up 2.5 m from Cooper Straight's Armco - its portal walks on, past
+ * Cooper Straight). Always so without the switch.
+ * @param site the venue's builders' state
+ * @param centre the track's centre where the tunnel passes under
+ * @param dir the way out (unit)
+ * @param mouth m from the centre to the mouth
+ * @param half the portal's half width with its walls, m
+ * @returns true with room
+ */
+function roomToDriveOut(site: Site, centre: { x: number; y: number }, dir: Point, mouth: number,
+  half: number): boolean {
+  if (!FIX.crossings) return true;
+  for (let ahead = 0.5; ahead <= APRON_M; ahead += 1)
+    for (const side of [-half, 0, half]) {
+      const x = centre.x + dir[0] * (mouth + ahead) - dir[1] * side;
+      const y = centre.y + dir[1] * (mouth + ahead) + dir[0] * side;
+      if (pastRim(site.rims, x, y) < APRON_RIM_M || inBuilding(site.buildings, x, y, 0.5))
+        return false;
+    }
+  return true;
 }
 
 /**

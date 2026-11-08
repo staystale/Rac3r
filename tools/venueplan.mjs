@@ -6,7 +6,10 @@ import { startServer, launchBrowser } from './lib/browser.mjs';
 const imp = (path) => import(pathToFileURL(process.cwd() + path).href);
 const { LEVELS } = await imp('/src/world/levels/index.ts');
 const [levelId, x0, y0, w, h, out] = process.argv.slice(2);
-const level = LEVELS.find((entry) => entry.id === levelId);
+// (a venue's level is built on first use: world/load.ts buildLevel)
+const { buildLevel } = await imp('/src/world/load.ts');
+const found = LEVELS.find((entry) => entry.id === levelId);
+const level = found && buildLevel(found);
 const X0 = +x0, Y0 = +y0, W = +w, H = +h, Z = 1200 / W;
 const data = {
   track: level.subtrack.pts.map((p) => [p.x, p.y]), half: level.subtrack.width / 2,

@@ -108,7 +108,8 @@ export function deckSurface(way: Crossing): Surface {
 }
 
 /**
- * The ground under a point of a crossing: its deck, straight from end to end.
+ * The ground under a point of a crossing: from one end's ground height to the other's, with the
+ * way's rise (a bridge's arch, a tunnel's dip) on top.
  * @param way the crossing
  * @param x world x, m
  * @param y world y, m
@@ -117,19 +118,27 @@ export function deckSurface(way: Crossing): Surface {
 export function deckGround(way: Crossing, x: number, y: number): Ground {
   const [startH, endH] = endHeights(way);
   const share = Math.min(1, Math.max(0, alongOf(way, x, y) / way.length));
-  return { h: startH + (endH - startH) * share, surface: deckSurface(way) };
+  // the terrain's hump / dip shape along the way (world/terrain.ts): sin^2, level at both ends
+  // and at the middle - up over a bridge's ramps and deck, down into a tunnel
+  const lift = way.rise * Math.sin(Math.PI * share) ** 2;
+  return { h: startH + (endH - startH) * share + lift, surface: deckSurface(way) };
 }
 
 /**
  * The slope forces on a car on a crossing (world/wear.ts applySlopeForces on a plane): its
- * weight down the deck's grade, no yaw (a plane pulls both axles alike) and no bump steer.
+ * weight down the way's grade where it is (the ends' difference and the rise), no yaw (the grade
+ * is along the way, alike under both axles near enough) and no bump steer.
  * @param car the car (slope fields are written)
  * @param way the crossing
  * @param cosH cos of the car's heading
  * @param sinH sin of the car's heading
  */
 export function deckSlope(car: CarBody, way: Crossing, cosH: number, sinH: number): void {
-  const [startH, endH] = endHeights(way), grade = (endH - startH) / way.length;
+  const [startH, endH] = endHeights(way);
+  const share = Math.min(1, Math.max(0, alongOf(way, car.x, car.y) / way.length));
+  // the ends' difference, and the rise's slope here (d/da of rise sin^2(pi a / L))
+  const grade = (endH - startH) / way.length
+    + way.rise * (Math.PI / way.length) * Math.sin(2 * Math.PI * share);
   const gradeX = grade * way.dirX, gradeY = grade * way.dirY;
   const weight = car.spec.mass * car.mods.mass * 9.81;
   car.slopeLong = -weight * (gradeX * cosH + gradeY * sinH);

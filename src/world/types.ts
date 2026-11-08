@@ -268,6 +268,8 @@ export interface Crossing {
   maxAcross: number;
   // m in from each end a tunnel's open cut runs (its car still seen); 0 for a bridge
   cut: number;
+  // m the way rises at its middle over its ends' ground (a bridge's arch; a tunnel's dip, below 0)
+  rise: number;
   // the walls holding a car on it (kind 'wall'; no ground car meets them)
   walls: Barrier[];
 }

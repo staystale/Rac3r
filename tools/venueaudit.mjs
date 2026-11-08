@@ -12,7 +12,10 @@ const [levelId = 'brands-snatch', flag] = process.argv.slice(2);
 const imp = (path) => import(pathToFileURL(process.cwd() + path).href);
 const { LEVELS } = await imp('/src/world/levels/index.ts');
 const { querySubtrack } = await imp('/src/world/tyrewall.ts');
-const level = LEVELS.find((entry) => entry.id === levelId);
+// (a venue's level is built on first use: world/load.ts buildLevel)
+const { buildLevel } = await imp('/src/world/load.ts');
+const found = LEVELS.find((entry) => entry.id === levelId);
+const level = found && buildLevel(found);
 if (!level) throw new Error(`no level ${levelId}`);
 
 // m: a footprint's sample spacing; how near two barriers may run before they count as doubled,

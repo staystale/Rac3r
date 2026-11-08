@@ -54,14 +54,15 @@ last handover, written on request.
    cannot get on from the side; a car on the track below stays on the ground). UNDER TEST.
    ROUND 2 (owner 11-08: "snap" at the ends, "no transparent car", marks on decks/ramps): the
    bridge's ramps drawn under the cars (deck over), a tunnel car hidden only under the ground (no
-   faint car), each crossing's own marks layer (marks.ts). OPEN: the footway tunnel under Brabham
-   is closed - its paddock mouth opens 2.5 m from Cooper Straight's Armco (our squeezed infield);
-   owner to choose: run it on under Cooper Straight, bend it to come up on the paddock road, or
-   keep it a footpath (steps).
+   faint car), each crossing's own marks layer (marks.ts).
+   ROUND 3 (owner 11-08: "the rest is a pass"): the footpath tunnel drivable (a mouth needs room to
+   drive out: it runs on under Cooper Straight, 103 m), the ways rise / dip as terrain, smoke under
+   decks, a lying tyre driven over only by a tractor-high car. UNDER TEST.
    PERFORMANCE CHECK 11-08 (CPU x4 lap, tools/framecheck.mjs): Brands work median 12.7 ms, p95
    24-29 (Thruston 13.2 / 23.0; Castle Cum 24.4 / 39.1 - the heaviest, older); crossings on: no
    measurable cost. Fixed: Brands was built at page load (7.3 s of level import here, now 0.85 s).
-   CATCH FENCES (owner 11-08): tear from ~63 km/h square (was ~77) and SHRED (armcodent.ts).
+   CATCH FENCES (owner 11-08): tear from ~63 km/h square (was ~77) and SHRED (armcodent.ts) - PASSED
+   11-08, with the crash parts' drive-over chance by ground clearance.
    OWNER RULE (11-07): never the black wire / rope fence ('fence' barrier) - the old levels still
    use it (Castle Cum, Thruston): replace as each gets its venue pass.
    CREDITS PASSED 11-08 (menu/credits.ts, on the main menu): "made by G"; the owner wants a studio

@@ -55,29 +55,14 @@ export const TEST_LIST: TestEntry[] = [
   // passed 2026-11-07; indyscale decided 2026-11-07 (3/4, the 13 m road) and removed; carpaint,
   // carlooks, carreal (the car look: paint parts, rims, redraws, real shapes), partsoff, bigparts,
   // hwlanes, hwbales, f1aero passed 2026-11-07; credits, bigbrands (the Brands venue) passed
-  // 2026-11-08)
+  // 2026-11-08; fenceshred (catch fences tear and shred), partsover (the drive-over chance by
+  // ground clearance) passed 2026-11-08)
   {
     id: 'crossings',
     added: '2026-11-08',
-    name: 'Drivable bridges and tunnels (Brands: 2 road bridges, the Paddock Hill tunnel)',
+    name: 'Drivable bridges and tunnels (Brands: 2 road bridges, 2 tunnels) with real slopes',
     where: 'Test link + &crossings=1: TEST MODE > UK CIRCUITS > Brands Snatch GP or Indy',
     try: 'Out via the pits to the service roads; up a bridge ramp, into the tunnel; skid on them.',
     wrong: 'A snap at a ramp or mouth, stuck, through a wall, hitting cars below, marks under.',
-  },
-  {
-    id: 'fenceshred',
-    added: '2026-11-08',
-    name: 'Catch fences a bit weaker; a tear shreds them (mesh scraps and posts fly)',
-    where: 'Plain link: Brands Snatch, the see-through catch fences by the stands and banks',
-    try: 'Hit one square: under ~60 km/h it catches you; harder, it tears open and shreds.',
-    wrong: 'No shreds, shreds hanging in the air or never fading, a gap that does not open.',
-  },
-  {
-    id: 'partsover',
-    added: '2026-11-08',
-    name: 'Crash parts and fence bits: a chance each time to drive over them, by ground clearance',
-    where: 'Plain link: any level - crash hard to shed parts, drive at them (try F1, a 4x4)',
-    try: 'Doors, bumpers, struts: sometimes under you, sometimes hit; low cars hit more often.',
-    wrong: 'Always one or the other, an engine block or wheel driven over, a part stuck under you.',
   },
 ];

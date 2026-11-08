@@ -19,9 +19,11 @@ import type { Barrier, CarBody, Crossing, Point, Prop } from "./types.ts";
 
 // m: a crossing's walls are 'wall' barriers (half thickness 0.45, world/barriers.ts BARRIER_HALF)
 const WALL_HALF_M = 0.45;
-// m: a vehicle tunnel's portal is at least this wide (a footway's is 4.2: closed - at Brands its
-// paddock mouth opens 2.5 m from Cooper Straight's Armco, no room to drive out)
-const VEHICLE_PORTAL_M = 6;
+// a way's rise at its middle (a bridge up, a tunnel down): this share of its length, at most
+// RISE_MAX_M - gentle enough that a car goes light at a bridge's top, never flies (the crest
+// rule): MEASURED at Brands (1.0 / 1.3 m up, 1.4 m down) no air to 90 km/h; at 120 a 0.44 s hop
+// off the short bridge only (4 % flew from 90)
+const RISE_SHARE = 0.025, RISE_MAX_M = 2.5;
 
 /**
  * Steps which level a car is on (an end crossed into a crossing puts it on; an end crossed out
@@ -98,8 +100,9 @@ function makeCrossing(kind: Crossing['kind'], start: Point, end: Point, sides: P
     [end[0] - dirY * offset, end[1] + dirX * offset]] });
   const walls = [wall(minAcross - WALL_HALF_M), wall(maxAcross + WALL_HALF_M)];
   prepBarriers({ barriers: walls });
+  const rise = Math.min(RISE_MAX_M, RISE_SHARE * length) * (kind === 'bridge' ? 1 : -1);
   return { kind, ax: start[0], ay: start[1], dirX, dirY, length, minAcross, maxAcross, cut,
-    walls };
+    rise, walls };
 }
 
 /**
@@ -130,15 +133,15 @@ function tunnelCrossing(first: Prop, second: Prop): Crossing {
 }
 
 /**
- * The drivable crossings of a venue (world/venue.ts): each road bridge, and each vehicle
- * tunnel's two portals (laid in pairs, world/venuescenery.ts venueTunnels). None without the
- * switch.
+ * The drivable crossings of a venue (world/venue.ts): each road bridge, and each tunnel's two
+ * portals (laid in pairs, world/venuescenery.ts venueTunnels; a footpath's too, at its own
+ * width - its mouths open onto room to drive out: roomToDriveOut). None without the switch.
  * @param props the venue's props
  * @returns the crossings
  */
 export function venueCrossings(props: Prop[]): Crossing[] {
   if (!FIX.crossings) return [];
-  const portals = props.filter((prop) => prop.kind === 'tunnel' && prop.h! >= VEHICLE_PORTAL_M);
+  const portals = props.filter((prop) => prop.kind === 'tunnel');
   const tunnels: Crossing[] = [];
   for (let i = 0; i + 1 < portals.length; i++) {
     // a tunnel's two portals face each other across the track

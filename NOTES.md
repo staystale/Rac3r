@@ -266,7 +266,11 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   meets only its walls, its deck, the cars on it - nothing on the ground, no marks, no lap. The
   ground meets the ends as solid (ramp walls + abutment, portal walls + lintel). A tunnel car is
   seen only in the open cuts, hidden under the ground (owner 11-08: "if it's hidden it's hidden" -
-  no faint car). tools/crossingcheck.mjs drives each one both ways.
+  no faint car). Its way has the terrain's shape: a bridge rises (a sin^2 arch, 2.5 % of its length),
+  a tunnel dips - gentle enough to go light, not fly (no air to 90 km/h). A tunnel's mouth opens
+  onto room to drive out, else its portal walks on (the Brands footpath tunnel runs on under Cooper
+  Straight). Smoke goes under what is overhead (a deck, a canopy). tools/crossingcheck.mjs drives
+  each one both ways.
 - "Straight Outta Swindon" is a reserved name for a future highway level (the test straight that
   used it was removed 10-17).
 
