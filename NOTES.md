@@ -249,6 +249,12 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   lanes", "not random gaps in barriers"): continuous Armco with smooth flared ends, tyres only in
   front of it behind traps, a catch fence (weaker than Armco) where spectators are, NEVER the black
   wire fence; bridges and tunnels as the real ones, roads joined up; keep the game's art style.
+- A VENUE IS AS REAL AS IT CAN BE (11-08, owner, on Castle Cum): its edge follows the real
+  circuit's ("keep it like the real track where possible") - Armco where the real one has guard
+  rail (OSM, aerial photos), the real tyre walls, a catch fence where spectators are - with the
+  sealed-edge rules; and nothing the real place does not have ("keep them out if they're not
+  there": no footbridge over a track that has none). Brands was built to the earlier default
+  (Armco behind traps and before hazards, open run-off elsewhere).
 - A VENUE'S HAND FINISH (11-07, owner: "maybe if needs hand finish to get clean road connections"):
   the rules build the venue; where the real map's joints cannot be made clean by rule (our
   game-sized garages over the real paddock road, a bridge's ramp landing on a junction), the spec's
