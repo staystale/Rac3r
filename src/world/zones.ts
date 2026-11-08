@@ -2,7 +2,7 @@
 import { blockAt } from "./fieldblocks.ts";
 import { LEVEL } from "./state.ts";
 import { SURFACES } from "./surfaces.ts";
-import type { Point, Subtrack, SubtrackHit, Surface, Zone } from "./types.ts";
+import type { Lane, Point, Subtrack, SubtrackHit, Surface, Zone } from "./types.ts";
 import { querySubtrackInto } from "./tyrewall.ts";
 
 // ---------------------------------------------------------------------------------------------
@@ -25,6 +25,50 @@ function inRoundRect(dx: number, dy: number, halfW: number, halfH: number,
 // LANES (Thruston pit lane): LEVEL.lanes [{ pts: [[x,y]...] open polyline, width,
 // surface }] — a ribbon of one surface along a path, for pit lanes and access roads. Drawn by
 // render.ts drawLanes from the same pts and width.
+// m: a lane's segment grid cell. laneAt looks only at the segments filed in the point's cell: a
+// venue's lanes are resampled every 2 m (Castle Cum's ring road 600 points, its box most of the
+// map) and every lookup inside a box walked all of them (6.7 % of a lap's profile there).
+const LANE_CELL_M = 8;
+/** A lane's segments filed by grid cell over its box (built on first use, as _segs). */
+interface LaneGrid { cols: number; cells: (number[] | undefined)[] }
+// keyed on the lane's segment list: the highway clears a lane's _segs when a cut moves its points
+// (highway/cuts.ts, extras.ts), and the grid is built again with them
+const LANE_GRIDS = new WeakMap<object, LaneGrid>();
+
+/**
+ * A lane's segment grid: each cell lists, in order, every segment whose box padded by half the
+ * lane's width meets the cell - every segment a point in the cell can be within half the width
+ * of, so laneAt answers exactly as when it walked them all.
+ * @param lane the lane (its _segs and _bb built)
+ * @returns the grid
+ */
+function laneGrid(lane: Lane): LaneGrid {
+  const known = LANE_GRIDS.get(lane._segs!);
+  if (known) return known;
+  const box = lane._bb!, pad = lane.width / 2 + 1e-6;
+  const cols = Math.floor((box[2] - box[0]) / LANE_CELL_M) + 1;
+  const cells: (number[] | undefined)[] = [];
+  const cellOf = (value: number, origin: number) => Math.floor((value - origin) / LANE_CELL_M);
+  lane._segs!.forEach((seg, index) => {
+    const endX = seg.ax + seg.dx, endY = seg.ay + seg.dy;
+    const col0 = Math.max(0, cellOf(Math.min(seg.ax, endX) - pad, box[0]));
+    const col1 = Math.min(cols - 1, cellOf(Math.max(seg.ax, endX) + pad, box[0]));
+    const row0 = Math.max(0, cellOf(Math.min(seg.ay, endY) - pad, box[1]));
+    const row1 = cellOf(Math.max(seg.ay, endY) + pad, box[1]);
+    for (let row = row0; row <= row1; row++)
+      for (let col = col0; col <= col1; col++) (cells[row * cols + col] ||= []).push(index);
+  });
+  const grid = { cols, cells };
+  LANE_GRIDS.set(lane._segs!, grid);
+  return grid;
+}
+
+/**
+ * The surface of the first lane a point lies on (within half its width of its line).
+ * @param x world x
+ * @param y world y
+ * @returns the lane's surface, or null off every lane
+ */
 export function laneAt(x: number, y: number): Surface | null {
   const list = LEVEL.lanes;
   if (!list) return null;
@@ -45,8 +89,12 @@ export function laneAt(x: number, y: number): Surface | null {
     }
     const box = lane._bb!;   // set above on first visit
     if (x < box[0] || x > box[2] || y < box[1] || y > box[3]) continue;
-    const halfWidthSq = (lane.width / 2) ** 2;
-    for (const seg of lane._segs) {
+    const halfWidthSq = (lane.width / 2) ** 2, grid = laneGrid(lane);
+    const cell = grid.cells[Math.floor((y - box[1]) / LANE_CELL_M) * grid.cols
+      + Math.floor((x - box[0]) / LANE_CELL_M)];
+    if (!cell) continue;
+    for (const index of cell) {
+      const seg = lane._segs[index];
       let frac = ((x - seg.ax) * seg.dx + (y - seg.ay) * seg.dy) / seg.l2;
       frac = frac < 0 ? 0 : frac > 1 ? 1 : frac;
       const perpX = x - seg.ax - seg.dx * frac, perpY = y - seg.ay - seg.dy * frac;

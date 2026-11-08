@@ -185,6 +185,9 @@ the night light map (`render/light.ts drawSparkGlows`).
   car's clamp and a moving loose object test the few near them, in the lists' order (identical
   answers). Rebuilt when the level, its solids or its lamps change (the highway sets
   `solidsDirty` at each window rebuild). Highway: 4.3 -> 0.3 us a car-step with ~250 solids.
+- Lane lookups: `world/zones.ts laneAt` files each lane's segments by 8 m cell over its box (built
+  on first use, again when the highway rebuilds a lane's segments), so a lookup tests only its
+  cell's segments, in order (identical answers: `tools/scratch/_cclaneat.mjs`).
 - The game clock: `world/clock.ts` - a global time of day / season / moon
   (1 game day = 1 real hour, a season 7 days), saved in its own storage key, run by the sim step
   in events (`game/loop.ts`); it sets the sky (`daylight.ts setSky`: darkness and the dark's
@@ -217,7 +220,10 @@ lists (zones, bumps, props, barriers), which the physics and the renderer both r
 what you drive on.
 
 A circuit is its real venue (`world/venue.ts` and `venue*.ts`, from OpenStreetMap; `levels/brands-venue.ts`
-is the spec of one). Its road bridges and tunnels are LEVELS a car can drive:
+is the spec of one, `levels/castle-cum-venue.ts` another behind `?castlecumvenue=1`): `venuescenery.ts` the
+scenery, `venueedge.ts` the barriers (traps, real tyre walls, a venue's real rails where it follows them,
+catch fences), `venueroads.ts` / `venuejoin.ts` the roads, `venuepit.ts` the pit lane, `tools/venueaudit.mjs`
+and `tools/venueplan.mjs` the checks. Its road bridges and tunnels are LEVELS a car can drive:
 `world/crossings.ts` `clampWorld` (every car's step, before `applyGround`) puts a car on a crossing when
 its centre comes in over an end between the walls and off when it passes an end; on one it meets only the
 crossing's walls, drives on its deck (`crossinggeo.ts`: tarmac, straight from end height to end height, no
