@@ -1,5 +1,6 @@
 import type { Loose } from './coneTypes.ts';
 import { FIX } from '../core/fixes.ts';
+import { hash2d } from '../core/random.ts';
 // cones/coneConsts.ts: the tuning constants, the roadside debris table and the tyre-stack burst
 // shared by the cone, tyre and loose-object simulation (cones.ts and the files beside this one).
 
@@ -22,6 +23,43 @@ export const BURST_CROWD = 400;
  * @returns true unless ?burstcap and the crowd is past BURST_CROWD
  */
 export const mayBurst = (movingNow: number) => !FIX.burstcap || movingNow < BURST_CROWD;
+
+// ?stackvary (owner 11-08: "a chance for tyre stacks to burst ... harder impact the more likely
+// ... stacks should vary between 1-4 high"): m/s of the hit below which a stack never bursts, and
+// from which it always does (the old sure line, 3.8 m/s, is now ~1 in 5)
+export const BURST_LOW_V = 2.5, BURST_SURE_V = 9;
+// kg a tyre of a stack weighs (the 3-high stack was 38 kg)
+const STACK_TYRE_KG = 38 / 3;
+// each stack's height, by where it stands (the same every time the level loads)
+const stackHash = hash2d(0x57ac);
+
+/**
+ * Whether a stack hit this hard bursts.
+ * @param rel the hit's closing speed, m/s
+ * @param oldRule the sure rule without ?stackvary
+ * @returns true when it bursts (by chance between BURST_LOW_V and BURST_SURE_V)
+ */
+export function stackBursts(rel: number, oldRule: boolean): boolean {
+  if (!FIX.stackvary) return oldRule;
+  const chance = (rel - BURST_LOW_V) / (BURST_SURE_V - BURST_LOW_V);
+  return chance >= 1 || (chance > 0 && Math.random() < chance);
+}
+
+/**
+ * ?stackvary: a level's tyre stack made 1-4 tyres high, weighing its tyres; one tyre high is a
+ * tyre lying flat.
+ * @param stack the stack, as the level placed it
+ */
+export function heightenStack(stack: Loose): void {
+  const tyres = 1 + Math.floor(stackHash(Math.round(stack.x * 10), Math.round(stack.y * 10))
+    * 4);
+  if (tyres === 1) {
+    stack.kind = 'tyre'; stack.mode = 'flat'; stack.mass = 12; stack.r = 0.42;
+    return;
+  }
+  stack.tyres = tyres;
+  stack.mass = STACK_TYRE_KG * tyres;
+}
 export const TOPPLE_V = 0.8;        // m/s hit needed to knock a cone flat
 export const MAX_CONE_V = 32;       // clamp fling speed
 
@@ -34,16 +72,20 @@ export interface DebrisKind {
 // cartwheeling left, one skidding flat right. Used by the car hitting a stack AND by
 // any other object hitting one, so a tyre flung into the wall bursts the stack it lands on.
 /**
- * Burst a tyre stack into one rolling tyre plus two thrown tyres pushed onto `out`.
+ * Burst a tyre stack into one rolling tyre plus the rest of its tyres thrown, pushed onto `out`
+ * (a stack of 3: two - one cartwheeling left, one skidding flat right; ?stackvary's 4-high also
+ * one skidding on ahead, its 2-high only the left one).
  * @param stack the stack (becomes the rolling tyre)
- * @param out receives the two new tyres
+ * @param out receives the new tyres
  */
 export function burstStack(stack: Loose, out: Loose[]): void {
+  const thrown = (stack.tyres ?? 3) - 1;
   stack.kind = 'tyre';
   stack.mode = 'roll';
   stack.mass = 12;
   stack.r = 0.42;
   stack.down = 0;
+  stack.tyres = undefined;
   const baseAng = Math.atan2(stack.vy, stack.vx);
   const spHit = Math.hypot(stack.vx, stack.vy);
   const angL = baseAng + 0.55, angR = baseAng - 0.55;
@@ -56,10 +98,16 @@ export function burstStack(stack: Loose, out: Loose[]): void {
       + Math.sin(angL) * 0.45,
     vx: Math.cos(angL) * spHit * 0.90, vy: Math.sin(angL) * spHit * 0.90, ang: angL,
     spin: (Math.random() - 0.5) * 6, down: 0.5, flipPhase: 0, flipSpeed: 14 + Math.random() * 8 });
+  if (thrown < 2) return;
   out.push({ ...common, mode: 'flat', x: stack.x + Math.cos(angR) * 0.45, y: stack.y
       + Math.sin(angR) * 0.45,
     vx: Math.cos(angR) * spHit * 0.85, vy: Math.sin(angR) * spHit * 0.85, ang: angR,
     spin: (Math.random() - 0.5) * 12, down: 1.0, flipPhase: 0, flipSpeed: 0 });
+  if (thrown < 3) return;
+  out.push({ ...common, mode: 'flat', x: stack.x + Math.cos(baseAng) * 0.9, y: stack.y
+      + Math.sin(baseAng) * 0.9,
+    vx: Math.cos(baseAng) * spHit * 0.7, vy: Math.sin(baseAng) * spHit * 0.7, ang: baseAng,
+    spin: (Math.random() - 0.5) * 8, down: 1.0, flipPhase: 0, flipSpeed: 0 });
 }
 
 // OBJECT-OBJECT COLLISIONS (requirement: tyres should hit other tyres and cones or objects etc and

@@ -5,6 +5,7 @@ import { hash2d, parkMiller } from "../core/random.ts";
 import { SPRITE_PPM, fxRandom } from "./shared.ts";
 import type { Cam, Chip, RenderCone, RenderTape, TapeCar, TapeGame, View } from "./types.ts";
 import { drawBanger, drawCaravan, drawPodium } from "./objectsProps.ts";
+import { drawStackShadow } from "./stackshadow.ts";
 import { shade } from "../render.ts";   // read only at draw time (no load-time cycle)
 
 // what createObjects destructures from the renderer and the particles
@@ -191,6 +192,7 @@ function drawPixelObject(env: ObjectsCtx, cone: RenderCone) {
   const sprite = pixelObjectSprite(env, cone);
   if (!sprite) return false;
   const unit = env.PPMz() / SPRITE_PPM;
+  if (cone.tyres) drawStackShadow(env.view.ctx, unit, cone.tyres);
   env.view.ctx.rotate(cone.ang || 0);
   env.view.ctx.scale(unit, unit);
   env.view.ctx.drawImage(sprite.c, -sprite.size / 2, -sprite.size / 2);

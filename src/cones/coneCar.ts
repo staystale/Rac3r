@@ -7,7 +7,7 @@ import { hasOpenWheels, wheelHalf } from '../physics/openwheel.ts';
 import { CORNER_OF_WHEEL } from '../world/wheels.ts';
 import {
   BALE_BURST_V, BALE_DRAG, BROKEN, COW_TIP_V, DEBRIS, MAX_CONE_V, RESTITUTION, SHEEP_POP_V,
-  TOPPLE_V, TOPPLES, burstStack, mayBurst,
+  TOPPLE_V, TOPPLES, burstStack, mayBurst, stackBursts,
 } from "./coneConsts.ts";
 import type { ConesCtx, Loose, ConeCar } from './coneTypes.ts';
 
@@ -334,7 +334,7 @@ function afterHit(ctx: ConesCtx, obj: Loose, car: ConeCar, newTyres: Loose[], re
   // ---- Tyre stack shattering into 3 dynamic tyres (shared with object-object hits: burstStack)
   if (obj.kind === 'bale' && rel > BALE_BURST_V) {
     burstBale(ctx, obj, car);
-  } else if (obj.kind === 'tyrestack' && (rel > 3.8 || obj.hitCount >= 2)
+  } else if (obj.kind === 'tyrestack' && stackBursts(rel, rel > 3.8 || obj.hitCount >= 2)
     && mayBurst(ctx.prevMovers.length)) {
     burstStack(obj, newTyres);
   } else if (obj.kind === 'tyre') {

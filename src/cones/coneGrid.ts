@@ -2,7 +2,7 @@
 // collisions of the ones that move (impulse along the contact normal, stack bursts, dust).
 // Every function takes the one cones context made in cones.ts (createCones).
 import {
-  BROKEN, OBJ_REST, STACK_BURST_V, TOPPLE_V, TOPPLES, burstStack, mayBurst,
+  BROKEN, OBJ_REST, STACK_BURST_V, TOPPLE_V, TOPPLES, burstStack, mayBurst, stackBursts,
 } from "./coneConsts.ts";
 import type { ConesCtx, Loose } from './coneTypes.ts';
 
@@ -70,6 +70,15 @@ function passesThrough(objA: Loose, objB: Loose) {
 }
 
 /**
+ * Whether a tyre stack struck by another object at this speed bursts.
+ * @param ctx the cones context
+ * @param rel closing speed along the normal, m/s
+ * @returns true when it bursts
+ */
+const stackGoes = (ctx: ConesCtx, rel: number) => stackBursts(rel, rel > STACK_BURST_V)
+  && mayBurst(ctx.prevMovers.length);
+
+/**
  * Impulse and consequences for a touching pair: velocity change, spin, bursts and dust.
  * @param ctx the cones context
  * @param objA first object
@@ -87,9 +96,9 @@ function respond(ctx: ConesCtx, objA: Loose, objB: Loose, rel: number, nx: numbe
   // a glancing blow sets the struck object spinning
   objB.spin += ((objA.vx - objB.vx) * -ny + (objA.vy - objB.vy) * nx) * 0.8;
   touch(objA, rel); touch(objB, rel);
-  const canBurst = rel > STACK_BURST_V && mayBurst(ctx.prevMovers.length);
-  if (objB.kind === 'tyrestack' && canBurst) burstStack(objB, ctx.burst);
-  if (objA.kind === 'tyrestack' && canBurst) burstStack(objA, ctx.burst);
+  // each stack in the pair rolls its own chance (?stackvary)
+  if (objB.kind === 'tyrestack' && stackGoes(ctx, rel)) burstStack(objB, ctx.burst);
+  if (objA.kind === 'tyrestack' && stackGoes(ctx, rel)) burstStack(objA, ctx.burst);
   if (rel > 2 && ctx.hits.length < 24) ctx.hits.push({ x: (objA.x + objB.x) / 2, y: (objA.y
       + objB.y) / 2, speed: rel, kind: objB.kind });
 }

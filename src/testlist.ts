@@ -66,6 +66,14 @@ export const TEST_LIST: TestEntry[] = [
     wrong: 'Stacks that never burst in a small crash, cars hurt worse, a lower frame rate.',
   },
   {
+    id: 'stackvary',
+    added: '2026-11-08',
+    name: 'Tyre stacks 1-4 high (taller: longer shadow), bursting by chance - harder hit, likelier',
+    where: 'Test link + &stackvary=1: any level with tyre walls; Festival of Splat',
+    try: 'Look at a tyre wall, then nudge and hit stacks gently and hard.',
+    wrong: 'Shadows wrong or floating, a gentle nudge bursting a stack, a hard hit never bursting.',
+  },
+  {
     id: 'tyresleep',
     added: '2026-11-08',
     name: 'Pile-ups: tyres sliding flat stop a little sooner (at 0.25 m/s, was 0.05)',

@@ -45,4 +45,6 @@ export const FIX = {
   tyresleep: atLoad('tyresleep'),
   // a tyre stack holds together when a pile-up already has many objects moving (BURST_CROWD)
   burstcap: atLoad('burstcap'),
+  // tyre stacks 1-4 high, bursting by chance by how hard they are hit (coneConsts.ts stackBursts)
+  stackvary: atLoad('stackvary'),
 };

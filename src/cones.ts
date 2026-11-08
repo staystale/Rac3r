@@ -8,7 +8,8 @@ import { CONES, LEVEL } from "./world/state.ts";
 import { cornerTyres } from "./world/lampplan.ts";
 import { fileAtRest, rebuildRestGrid } from "./cones/coneGrid.ts";
 import { stepCones } from "./cones/coneStep.ts";
-import { CONE_R, DEBRIS, TOPPLES } from "./cones/coneConsts.ts";
+import { CONE_R, DEBRIS, TOPPLES, heightenStack } from "./cones/coneConsts.ts";
+import { FIX } from "./core/fixes.ts";
 import type { ConesCtx, Loose, LevelObj, ConeCar, TapeSection } from './cones/coneTypes.ts';
 
 export { DEBRIS };
@@ -49,6 +50,18 @@ function radiusOf(levelObj: LevelObj) {
  * @returns the live object
  */
 function live(levelObj: LevelObj): Loose {
+  const obj = liveAsPlaced(levelObj);
+  // ?stackvary: a tyre stack 1-4 tyres high
+  if (FIX.stackvary && obj.kind === 'tyrestack') heightenStack(obj);
+  return obj;
+}
+
+/**
+ * A level object -> a live loose object as the level placed it.
+ * @param levelObj the level object
+ * @returns the live object
+ */
+function liveAsPlaced(levelObj: LevelObj): Loose {
   return {
     kind: levelObj.kind || 'cone',
     mode: levelObj.kind === 'tyrestack' ? 'stack' : levelObj.kind === 'tyre' ? 'flat'
