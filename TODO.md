@@ -2,7 +2,7 @@
 
 New session? Read `CLAUDE.md`, then `NOTES.md`, then this file. Open items only: finished work is in
 the git history (this file was swept on 2026-10-19: every finished entry deleted; the owner's
-decisions and the measured lessons live in `NOTES.md`). `docs/handover-2026-11-03.md` is the
+decisions and the measured lessons live in `NOTES.md`). `docs/handover-2026-11-08.md` is the
 last handover, written on request.
 
 ## NEXT - ORDER AGREED 11-07 (owner: "ok let's do 1. first and proceed in this order")
