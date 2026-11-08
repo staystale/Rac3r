@@ -1,4 +1,4 @@
-// ccshots.mjs — photographs Castle Cum at 844x390 into shots/look/cc-*.png (corners, chicanes, pits, scenery). Needs the server.
+// ccshots.mjs — photographs Castle Kum at 844x390 into shots/look/cc-*.png (corners, chicanes, pits, scenery). Needs the server.
 import { startServer, launchBrowser } from './lib/browser.mjs';
 const srv = await startServer();
 process.on('exit', srv.stop);

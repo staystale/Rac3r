@@ -1,5 +1,5 @@
 // _onelook.mjs - photographs a strip of TYRE-MADE ice / snow / water next to the weather's ice
-// (Castle Cum, cold, the field's ice at 0.5), with ?onelook=0 and =1, at 390x844. Temp folder.
+// (Castle Kum, cold, the field's ice at 0.5), with ?onelook=0 and =1, at 390x844. Temp folder.
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { startServer, launchBrowser, gotoGame } from '../lib/browser.mjs';

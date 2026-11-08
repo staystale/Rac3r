@@ -1,4 +1,4 @@
-// _wheelgone.mjs - K7 (owner 11-01): a wheel that has come off takes nothing more. Castle Cum,
+// _wheelgone.mjs - K7 (owner 11-01): a wheel that has come off takes nothing more. Castle Kum,
 // the hatch on the autopilot: the front -y wheel knocked off, then a burst asked of that tyre and
 // the run driven 20 s; a flat on the other front for comparison. Off / on ?wheelgone=1.
 // node tools/scratch/_wheelgone.mjs

@@ -1,4 +1,4 @@
-// _treenight.mjs - K5 (owner 11-01): a lighter edge round tree canopies at night. Castle Cum at
+// _treenight.mjs - K5 (owner 11-01): a lighter edge round tree canopies at night. Castle Kum at
 // ?night=1, the car parked beside the nearest tree, zoomed in; photos 844x390 / 390x844. [query]
 // node tools/scratch/_treenight.mjs [extra query] [tag]
 import { startServer, launchBrowser, gotoGame } from '../lib/browser.mjs';

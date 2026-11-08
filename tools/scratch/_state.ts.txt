@@ -1,0 +1,147 @@
+// state.ts — the ONE home of the state shared by the game modules.
+//   game: the world object every module reads (filled in by main.ts)
+//   shared: the module-level variables of main.ts that more than one module reads or writes
+//     (settings, renderer, hud, mode, started, acc ...), assigned in main.ts in boot order
+import type { Car, CarInput } from '../vehicle.ts';
+import type { DamageCar } from '../damage.ts';
+import type { RoadFrame } from '../ai/types.ts';
+import type { createCones } from '../cones.ts';
+import type { createMarks } from '../marks.ts';
+import type { createTraffic } from '../traffic.ts';
+import type { RaceFlow } from '../raceflow.ts';
+import type { Settings } from '../core/settings.ts';
+import type { createRenderer } from '../render.ts';
+import type { createHud } from '../hud.ts';
+import type { createGuide } from '../guide.ts';
+import type { createAudio } from '../audio.ts';
+import type { InputState } from '../input.ts';
+import type { createMenu } from '../menu.ts';
+import type { createAIDriver } from '../ai/circuit.ts';
+import type { createAutoDriver } from '../ai/autodrive.ts';
+import type { createMeter } from '../ui/meter.ts';
+import type { createReporter } from '../ui/report.ts';
+import type { createFramePacer } from './pacing.ts';
+import type { createChurn } from '../core/churn.ts';
+
+/** A car in the session: the car, its damage / tyre / engine systems, and what the game tags. */
+export type GameCar = Car & DamageCar & {
+  _hwf?: RoadFrame | null;   // where it is on the highway's road
+  _hwS?: number;   // its road distance last step (the hint for the next frame)
+  _jokers?: number; _cutPen?: number; _prog?: number; _predT?: number;
+  _stageStart?: number | null;
+  indicator?: number; lightsOn?: boolean;
+  num?: number;
+};
+
+/** A circuit / stage AI driver (ai/circuit.ts). */
+export type AiDriver = ReturnType<typeof createAIDriver>;
+
+/** One AI racer: its car, its driver, and the game's bookkeeping. */
+export interface AiEntry {
+  car: GameCar; drv: AiDriver;
+  stuckT: number; inGate: boolean;
+  offT?: number;   // seconds off the road
+  obs?: unknown; obsT?: number;   // loose objects near it (the driver steers round them)
+  hurtWait?: number | null; hurtT?: number;   // a hurt car waiting to be repaired
+  jLap?: number | null;   // the lap it took its joker
+  id?: string; cls?: string; sub?: string;
+}
+
+/** The race start: lights on, the clock, green, a rolling (formation) start. */
+export interface GameStart {
+  on: boolean; t: number; tGreen: number; green: boolean; rolling?: boolean;
+  drv?: { drive: (car: GameCar, dt: number, ctx: object) => CarInput };
+  [field: string]: unknown;
+}
+
+/** The rallycross race (joker rule): laps, time, the joker and its penalty. */
+export interface RxRace {
+  on: boolean; laps: number; t: number; started: boolean; joker: boolean; done: boolean;
+  total: number; penalty: number; jokers?: number;
+}
+
+/** A stage's timer: ready / running / done, the time, the best and the last run. */
+export interface StageTimer {
+  state: string; t: number; best: number | null; last: number | null; prevD: number | null;
+  pen: number;
+}
+
+/** The player's laps. */
+export interface LapState {
+  lap: number; lapTime: number; bestTime: number | null; lastTime: number | null;
+  started: boolean; halfway: boolean;
+}
+
+/** The game object (filled in by main.ts). */
+export interface Game {
+  dev: boolean; settings: Settings;
+  car: GameCar;
+  cones: ReturnType<typeof createCones>;
+  marks: ReturnType<typeof createMarks>;
+  traffic: ReturnType<typeof createTraffic>;
+  ai: AiEntry[];
+  poleCar?: GameCar | null;
+  flow: RaceFlow | null; flowShown?: boolean; flowDoneAt?: number;
+  start: GameStart;
+  race: RxRace; stage: StageTimer; lap: LapState;
+  audio: ReturnType<typeof createAudio>;
+  input: InputState;
+  in: CarInput | null;   // the input the sim stepped with this frame
+  fps: number; fpsLow: number; fpsClear?: boolean;
+  stepsLastFrame: number; simMs?: number; drawMs?: number;
+  drawn?: { x: number; y: number; t: number };   // where the car was drawn last frame
+  testMode: boolean; paused: boolean; menuMode?: boolean;
+  notice?: { text: string; good?: boolean; at: number } | null;
+  position?: number;   // your place in a race
+  trackD?: number | null;   // your distance round the track
+  hwBest: number; hwDist?: number;   // the endless highway: your best, this run
+  camCount?: number; camFines?: number; camBest?: number;
+  camCaught?: { at: number; kmh: number; mph: number; fine: number } | null;
+  // the joker (game/rules.ts)
+  jokerPrev?: { x: number; y: number } | null; jokerLap?: number | null; jokerAt?: number;
+  inJokerLane?: boolean; inJokerGate?: boolean; jokerTaken?: boolean; jokers?: number;
+  lastOnJoker?: { along: number; off: number } | null;
+}
+
+/** The shared variables of the game modules (main.ts assigns them in boot order). */
+export interface Shared {
+  settings: Settings; DEV: boolean; MENU: boolean;
+  canvas: HTMLCanvasElement; boot: HTMLElement;
+  renderer: ReturnType<typeof createRenderer>;
+  hud: ReturnType<typeof createHud>;
+  guide: ReturnType<typeof createGuide>;
+  audio: ReturnType<typeof createAudio>;
+  input: InputState;
+  menu: ReturnType<typeof createMenu> | null;
+  meter: ReturnType<typeof createMeter> | null;
+  reporter: ReturnType<typeof createReporter> | null;
+  pacer: ReturnType<typeof createFramePacer>;
+  churn: ReturnType<typeof createChurn> | null;
+  mode: string;   // 'menu' | 'session'
+  started: boolean; paused: boolean;
+  acc: number; last: number;   // the fixed-step accumulator; the last frame's time
+  race: RxRace; stage: StageTimer; lapState: LapState;
+  aiCount: number; aiDiff: number; aiCarMode: string; raceLaps: number; gridSlot: number;
+  trafficDensity: number;
+  demo: AiDriver | null; demoStill: number;
+  demoHurt?: { car: GameCar; drv: AiDriver | null; hurtWait: number | null; hurtT: number };
+  autoDrv: ReturnType<typeof createAutoDriver> | null; autoStill: number;
+  DEMO_LEVEL: string; DEMO_CAR: string; DEMO_AI: number; DEMO_DIFF: number;
+  guidePending: boolean; rulesPending: string | null;
+  trackProgress: number;
+  lastOnTrack: { dist: number; off: number } | null;
+  lastGood: { x: number; y: number; heading: number };
+  breadcrumbs: { x: number; y: number; heading: number; t?: number }[];
+  lastBreadcrumbTime: number;
+  camRecord: Record<string, number>; camDirty: boolean; savedHwBest: number;
+  fpsHist: number[]; fpsAcc: number; fpsN: number;
+  minimapOn: boolean; progressOn: boolean; trackTempOn: boolean;
+  weatherPlan: { mode: string; season: number; [field: string]: unknown } | null;
+  meterTiles: number; meterTouches: number; meterUploads: number; meterMipmaps: number;
+  warmMs: number; loadMs?: number; nanReports: number;
+}
+
+/** The game object (filled in by main.ts). */
+export const game = {} as Game;
+/** The shared variables of the game modules. */
+export const shared = {} as Shared;

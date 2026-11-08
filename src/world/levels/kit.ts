@@ -6,7 +6,7 @@ import { onTrack, querySubtrack } from "../tyrewall.ts";
 import type { Subtrack, Lane, Point, Prop, Bump, Cone, TrackKit } from "../types.ts";
 export const ss01 = (x: number): number => (x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x));
 
-// TRACK KIT (written for Castle Cum after doing Thruston endY hand): decorate a traced
+// TRACK KIT (written for Castle Kum after doing Thruston endY hand): decorate a traced
 // circuit endY DISTANCE + OFFSET (+ = right of travel; on a clockwise lap that is the INSIDE).
 // Everything generated is filtered off the road, off the given lanes and inside the floor — the
 // Thruston lesson: an outside offset on the inside of a left-hander lands on the track.

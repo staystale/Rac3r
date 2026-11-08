@@ -1,4 +1,4 @@
-// _lamppools.mjs - the lamp pools at ?night=0.85 (844x390): Castle Cum's start straight (street
+// _lamppools.mjs - the lamp pools at ?night=0.85 (844x390): Castle Kum's start straight (street
 // lights) at the spawn, and the camera on a floodlight pylon of each level given (zoom 0.3).
 // Photos named by the label argv[2] (e.g. old / new). Temp folder.
 // node tools/scratch/_lamppools.mjs <label> [level ...]

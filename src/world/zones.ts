@@ -26,7 +26,7 @@ function inRoundRect(dx: number, dy: number, halfW: number, halfH: number,
 // surface }] — a ribbon of one surface along a path, for pit lanes and access roads. Drawn by
 // render.ts drawLanes from the same pts and width.
 // m: a lane's segment grid cell. laneAt looks only at the segments filed in the point's cell: a
-// venue's lanes are resampled every 2 m (Castle Cum's ring road 600 points, its box most of the
+// venue's lanes are resampled every 2 m (Castle Kum's ring road 600 points, its box most of the
 // map) and every lookup inside a box walked all of them (6.7 % of a lap's profile there).
 const LANE_CELL_M = 8;
 /** A lane's segments filed by grid cell over its box (built on first use, as _segs). */

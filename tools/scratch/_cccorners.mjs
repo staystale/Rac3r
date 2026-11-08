@@ -1,4 +1,4 @@
-// _cccorners.mjs - the lap metre of each named corner of Castle Cum (OSM's locality nodes, real m
+// _cccorners.mjs - the lap metre of each named corner of Castle Kum (OSM's locality nodes, real m
 // in the venue's frame, placed at game scale)
 import { venueBuild } from '../../src/world/venue.ts';
 import { CASTLE_CUM_SPEC } from '../../src/world/levels/castle-cum-venue.ts';

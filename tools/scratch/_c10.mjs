@@ -3,7 +3,7 @@
 // 'track-rwd') placed by hand and moved at 120 Hz without their engines:
 //  A side by side, one drifting into the other at 1.5 m/s: the closest the centres got
 //  B behind, the follower's left front wheel into the leader's right rear (bodies 1.85 m apart)
-//  C along Castle Cum's longest armco, drifting into it at 2 m/s: the closest the centre got
+//  C along Castle Kum's longest armco, drifting into it at 2 m/s: the closest the centre got
 //  D a tree trunk 1.2 m off the centre line: only the left front wheel meets it - 20 tries at
 //    30 / 40 / 60 / 80 km/h, wheels ripped off
 // node tools/scratch/_c10.mjs

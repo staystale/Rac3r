@@ -1,5 +1,5 @@
 // _ainumbers.mjs - K10 (owner 11-01): AI race numbers random 2-99, never yours, painted on.
-// Castle Cum, 5 AI, your car #7: the numbers dealt in 3 launches; a photo of the grid. ?ainumbers=1.
+// Castle Kum, 5 AI, your car #7: the numbers dealt in 3 launches; a photo of the grid. ?ainumbers=1.
 // node tools/scratch/_ainumbers.mjs
 import { startServer, launchBrowser, gotoGame } from '../lib/browser.mjs';
 const server = await startServer();

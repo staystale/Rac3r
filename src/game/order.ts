@@ -132,7 +132,7 @@ export function progressOf(car: GameCar) {
 // after the drive had been subtracted). Back on the road: gain >= CUT_MIN -> a cut. RX race / rally
 // stage (timed): +1 s per CUT_PER_S m gained, at least 2 s, into the result. A circuit race: gain
 // >= CUT_RESET -> the car is put back where it left the road, progress and all; smaller cuts pass.
-// Free practice: nothing. CUT_MIN 8 -> 15 m: normal racing clipped one Castle Cum / Thruston inside
+// Free practice: nothing. CUT_MIN 8 -> 15 m: normal racing clipped one Castle Kum / Thruston inside
 // at 8-10 m (~0.3 s), MEASURED (racecheck4) — not a cut
 export const CUT_OFF = 1.0, CUT_MIN = 15, CUT_RESET = 25, CUT_PER_S = 5;
 export function onLane(x: number, y: number) {

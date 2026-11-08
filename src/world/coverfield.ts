@@ -70,7 +70,7 @@ export const FIELD_SQ = 0.5;
 // then it builds or wears with racing; a snow level's own snow is its area, full) - each a range,
 // dealt from the weather's seeded stream
 // RAIN GRIP (owner: "less and more smaller puddles maybe like real rain"; "water
-// can still evaporate during rain just less"). MEASURED before (_coverfield.mjs, Castle Cum):
+// can still evaporate during rain just less"). MEASURED before (_coverfield.mjs, Castle Kum):
 // heavy rain left 98 % of the race surface under water in 10 min, light rain 100 % in 25. Now the
 // water rises only to RAIN_WATER_BASE + RAIN_WATER_PER_RAIN x rain (light ~0.21, heavy 0.33 of
 // the catch) and runs off above it at RUNOFF_PER_S; it evaporates in rain too, at RAIN_EVAP_SHARE

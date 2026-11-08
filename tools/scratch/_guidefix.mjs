@@ -1,0 +1,25 @@
+import fs from 'node:fs';
+const p = 'src/guide.ts';
+let s = fs.readFileSync(p, 'utf8');
+const r = (a, b, all) => {
+  if (!s.includes(a)) throw new Error(a);
+  s = all ? s.split(a).join(b) : s.replace(a, b);
+};
+r('const CARDS = [', 'const CARDS: GuideCard[] = [');
+r('export const RULES = {', 'export const RULES: Record<string, GuideCard[]> = {');
+r('const NOTICE = (scene) =>', 'const NOTICE = (scene: GuideScene) =>');
+r('const LIGHTS = (scene) =>', 'const LIGHTS = (scene: GuideScene) =>');
+s = s.replace(/target: \(scene\) =>/g, 'target: (scene: GuideScene) =>');
+s = s.replace(/text: \(scene\) =>/g, 'text: (scene: GuideScene) =>');
+r('function union(...rects) {', 'function union(...rects: Rect[]): Rect {');
+r('const inRect = (point, rect) =>', 'const inRect = (point: { x: number; y: number }, rect: Rect | null) =>');
+r('const overlaps = (first, second) =>', 'const overlaps = (first: Rect, second: Rect) =>');
+r('function edgePoint(rect: Rect, target: Rect | null) {', 'function edgePoint(rect: Rect, target: { x: number; y: number }) {');
+r('const guideFont = (size, weight = 600) =>', 'const guideFont = (size: number, weight = 600) =>');
+r('  const clampX = (x) =>', '  const clampX = (x: number) =>');
+r('  const clampY = (y) =>', '  const clampY = (y: number) =>');
+r('  const dotsW = skipB.x - box.x - pad - 6;', '  const dotsW = skipB!.x - box.x - pad - 6;');
+r('  const raw = card.target(scene);', '  const raw = card.target ? card.target(scene) : null;');
+r('  const lines = wrap(ctx, text, cardW - pad * 2);', "  const lines = wrap(ctx, text || '', cardW - pad * 2);");
+fs.writeFileSync(p, s);
+console.log('ok');

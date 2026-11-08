@@ -1,5 +1,5 @@
 // _glowshots.mjs - the indicator glow at ?night=0.8: the player's indicator on, four photos a
-// blink apart (844x390, Castle Cum, no AI). Temp folder.
+// blink apart (844x390, Castle Kum, no AI). Temp folder.
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { startServer, launchBrowser, gotoGame } from '../lib/browser.mjs';

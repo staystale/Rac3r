@@ -1,6 +1,6 @@
 // mapgrid.mjs — renders a ZOOMED, GRIDDED crop of a reference map so centreline points can be read off in map pixels (10 px minor,
 // 50 px major lines, labelled). node tools/mapgrid.mjs <map.png> <x0> <y0> <w> <h> <out.png>   (output 1000 px wide)
-// Built 2026-10-04 (Thruston re-trace; reused for Castle Cum).
+// Built 2026-10-04 (Thruston re-trace; reused for Castle Kum).
 import { startServer, launchBrowser } from './lib/browser.mjs';
 import fs from 'fs';
 const srv = await startServer();

@@ -113,7 +113,7 @@ last handover, written on request.
    branch's run covers the same commit), the screen checks only when screens change, no doubled
    verify (.github/workflows/checks.yml).
    PERFORMANCE CHECK 11-08 (CPU x4 lap, tools/framecheck.mjs): Brands work median 12.7 ms, p95
-   24-29 (Thruston 13.2 / 23.0; Castle Cum 24.4 / 39.1 - the heaviest, older); crossings on: no
+   24-29 (Thruston 13.2 / 23.0; Castle Kum 24.4 / 39.1 - the heaviest, older); crossings on: no
    measurable cost. Fixed: Brands was built at page load (7.3 s of level import here, now 0.85 s).
    CATCH FENCES (owner 11-08): tear from ~63 km/h square (was ~77) and SHRED (armcodent.ts) - PASSED
    11-08, with the crash parts' drive-over chance by ground clearance.
@@ -125,9 +125,9 @@ last handover, written on request.
    "the fix should come from adjusting the racing line there" - a start-lane rule was tried and
    dropped): PASSED + DEFAULT 11-08 - the racing line leaves an edge with a barrier within 3.5 m of
    it (no run-off) 2.5 m more room (ai/line.ts wallLimits). tools/scratch/_startcrash.mjs (20 AI on
-   the game's grid, 3 seeds): Castle Cum venue wall hits 23 -> 10, hard car hits 31 -> 8; old level
+   the game's grid, 3 seeds): Castle Kum venue wall hits 23 -> 10, hard car hits 31 -> 8; old level
    31 -> 7, 38 -> 11. Alone: Slidden Hill 56.3 -> 49.1 s, Stock Car 26.7 -> 23.5 s, the rest within
-   0.3 s. Checked 11-08: the cars a spread field puts off the road 100-150 m past Castle Cum's
+   0.3 s. Checked 11-08: the cars a spread field puts off the road 100-150 m past Castle Kum's
    line are wheels over the INSIDE of a ~100-130 m bend (grass, no barrier; a lone AI laps it
    clean) - not crashes; left as it is (owner OK).
    ROLLS (owner 11-08: "sometimes it seems to roll the wrong way"; tools/scratch/_rollway.mjs): a
@@ -141,7 +141,7 @@ last handover, written on request.
    flat, low power mode - its report runs not to be trusted).
    OWNER RULE (11-07): never the black wire / rope fence ('fence' barrier) - the old levels still
    use it (Thruston): replace as each gets its venue pass.
-   CASTLE CUM VENUE (levels/castle-cum-venue.ts, OSM data
+   CASTLE KUM VENUE (levels/castle-cum-venue.ts, OSM data
    venues/castle-cum.ts; the venue helper): the 1999 layout, 1485 m (real 2977), the old lines at
    the Esses / Bobbies closed by tyres, no gravel traps (real: grass to tyre walls - spec.tyreWalls
    at Quarry + Tower), catch fences on the banks, no bridge or tunnel over the track (real), the
@@ -158,7 +158,7 @@ last handover, written on request.
    CREDITS PASSED 11-08 (menu/credits.ts, on the main menu): "made by G"; the owner wants a studio
    name (a parody pun) - to be picked. Add a line there with anything else the game takes.
 2. NEW UK TRACKS at that scale (Snetterton, Donington Park, + Silverstone / Oulton Park) - names
-   agreed first. ORDER (owner 11-08): Castle Cum's venue passes -> SNETTERTON next, as SNOTTERTON
+   agreed first. ORDER (owner 11-08): Castle Kum's venue passes -> SNETTERTON next, as SNOTTERTON
    (owner 11-08) -> then back to converting the old levels (Thruston, Knobhill, ...).
 3. ROLLING LOOK - smoother than the dice flip on the same physics; mockup first.
 4. SIDE DRAFTING (Naffcar first), then the Naffcar extras (air brakes, aero upgrades, Dieatona).
@@ -193,7 +193,7 @@ last handover, written on request.
    13 m. Picked: 3/4 OF REAL LENGTH, the 13 m road. Measured at 3/4 (10 AI, 90 s): 85 km/h vs
    70 today, off the track 6.6 %, 56 fps.
 - NEXT BIG ONE (owner 11-07): REWORK EVERY LEVEL TO 3/4 OF REAL SIZE, the 13 m road - every track
-  with a real counterpart (Thruston, Castle Cum, Brands Snatch GP + Indy, Knobhill, Slidden Hill,
+  with a real counterpart (Thruston, Castle Kum, Brands Snatch GP + Indy, Knobhill, Slidden Hill,
   the ovals by their real ones), each calibrated to its real lap length (as the Indy: the map's
   scale bar can be off), the hills scaled with it. Today 0.41-0.48 of real, so about 1.6-1.8x
   bigger: Brands GP ~2.9 km a lap, about 0.6 x 1 km. AND CHECK + ADJUST THE COSMETICS (owner:
@@ -553,7 +553,7 @@ Then, to work through when it fits (owner 11-07, not ordered):
   0.3 s further (ai/dodge.ts); standing lamp posts within 45 m join each AI's obstacles (game/ai.ts)
   and are steered round off the road too (driverTraffic.ts offRoadSkip). MEASURED: stopped car (9
   runs) 413 -> 346 hits; fields (6 seeds) Realish incidents 102 -> 85, Real 138 -> 115, passes
-  228 -> 210 / 268 -> 219; lamps knocked down (15 AI x 90 s, Thruston + Brands + Castle Cum) 6 -> 3.
+  228 -> 210 / 268 -> 219; lamps knocked down (15 AI x 90 s, Thruston + Brands + Castle Kum) 6 -> 3.
   Off-track dodging: round a car in the way the AI may use 0.8 m past the edge, 2.5 m round a
   stopped / slow one (driverTraffic.ts WIDE / WIDE_SLOW). NEXT (owner "yes"): one line choice per
   corner clear of everything (oil, glass, cones, tyres, stopped cars, posts), wide / just off the
@@ -562,7 +562,7 @@ Then, to work through when it fits (owner 11-07, not ordered):
   on arriving at a corner a driver checks the line it chose through it for fresh oil / glass (its
   middle and wheels) and takes the nearest earlier / later apex (b +-0.3, +-0.6) that misses it;
   a weak driver may not see it (half the time at skill 0); once a corner, a few dozen map reads.
-  MEASURED (_oilline.mjs, 9 runs): on the oil 46.3 -> 36.6 s (Thruston 14.3 -> 8.0, Castle Cum
+  MEASURED (_oilline.mjs, 9 runs): on the oil 46.3 -> 36.6 s (Thruston 14.3 -> 8.0, Castle Kum
   13.8 -> 8.6, Brands 18.2 -> 20.0: no near line misses it there); off-road 17.2 -> 19.0 s. Tries up
   to +-1.2 ran Brands wide (2-3 -> 10-11 s off-road): kept to +-0.6. On the oil the AI already
   slows (its plan's grip) and its foot / slide control manage it (owner asked; felt grip needless).
@@ -593,7 +593,7 @@ Then, to work through when it fits (owner 11-07, not ordered):
   and the ATTACK logic picked the stopped car as a car to pass and drove into it at racing pace.
   Now (ai/dodge.ts): a car's real size across my path, 0.6 (skill 0) .. 1.6 s (skill 1) ahead,
   braking until the swerve fits, a stopped / crawling car never an attack or cover target. Hits
-  Thruston 11 -> 10, Brands 34 -> 8, Castle Cum 32 -> 20; the skilled driver 0 / 1 / 1. Fields (6
+  Thruston 11 -> 10, Brands 34 -> 8, Castle Kum 32 -> 20; the skilled driver 0 / 1 / 1. Fields (6
   seeds): Realish incidents 103 -> 106, Real 113 -> 99 (noise both ways). NEXT (owner): lines by
   driver and corner (habits, a fresh choice per corner for traffic / hazards / the next corner,
   skill = consistency), CHEAP.
@@ -690,7 +690,7 @@ Then, to work through when it fits (owner 11-07, not ordered):
   parody names, best-launch 0-100 in the garage); smokelinger, aidust, puffpool (smoke / dust no
   longer evicted early); jokerhint; pit garages solid all round; muscle tyres (fit by class AND
   rim; the Chevvy on Good Yeah Polyglass GT; Micky Tomson ET Streat, BF Goodwrench Radial T/A);
-  Castle Cum's DUNFLOP footbridge; Brands Snatch's bridges (Hailwood Hill footbridge, two GP road
+  Castle Kum's DUNFLOP footbridge; Brands Snatch's bridges (Hailwood Hill footbridge, two GP road
   bridges); THE PIXEL MENUS (the owner's logo + "A DRIVING SANDBOX", logo colours, pixel-art
   shaded buttons, ember = locked in, electric-blue blink on press, Silkscreen / Press Start 2P /
   VT323 with one set of digits, landscape a finger in from the notch); THE TEST GARAGE (main
@@ -816,17 +816,17 @@ BUGS (S-M each; ONE test round before the root fix - owner 11-01: OK)
   FOUND 11-02 (owner: check the line / subtrack for sharp awkward turns and objects;
   tools/scratch/_lineaudit.mjs, _seamdrive.mjs): (1) LAP SEAM - subtrack.ts resamplePath
   leaves a stub last segment (lap not a multiple of 1.5 m: Killder 0.07 m, Sweaty Lamb 0.44,
-  Castle Cum 0.46, Slidden 0.83, Thruston 1.39); line.ts smoothLine assumes even spacing and
+  Castle Kum 0.46, Slidden 0.83, Thruston 1.39); line.ts smoothLine assumes even spacing and
   kinks the line there (R 0.6 m Killder): a lone AI brakes 11 -> 5 m/s at Killder's line,
-  28.5 -> 24 at Castle Cum's (target 50 just past it). (2) CENTRELINE KINKS the 8 m-arc rMin
-  check misses: Thruston 222 m (R 7 in a 46 m bend), Brands Indy 271 m; line kinks Castle Cum
+  28.5 -> 24 at Castle Kum's (target 50 just past it). (2) CENTRELINE KINKS the 8 m-arc rMin
+  check misses: Thruston 222 m (R 7 in a 46 m bend), Brands Indy 271 m; line kinks Castle Kum
   583, Knobhill 739, Test Track 679 / 724. (3) OBJECTS: none on any racing line; cones /
   tyre stacks 1.6-2.6 m off it (Test Track, Sandbox, Sweaty Lamb 558-591 m) count only for a
   car off its line. PLAN (asked): even resample (step = lap / round(lap / 1.5)) + a short-arc
   kink pass in traceTrack, behind a switch, then re-audit and a field run.
   DEFAULT 11-02 (owner: "evenlap pass"). BUILT ?evenlap=1 (world/subtrack.ts resampleEven + maskKinks: 3 m-arc R < 30 and < 0.6 x
   the 8 m R; read as core/fixes.ts loads - the circuits trace at import): audit 0 kinks / seams
-  on all 8 traced circuits; a lone AI over the line Killder 6.1 -> 17.4 m/s, Castle Cum 24.3 ->
+  on all 8 traced circuits; a lone AI over the line Killder 6.1 -> 17.4 m/s, Castle Kum 24.3 ->
   31.8. 5-AI field swings off the line a lap (noisy, cars on cars): Thruston 5.6 -> 4.5, Castle
   Cum 7.2 -> 8.3. OVALS (owner: weaves before the start / finish): no seam or kink (built from
   apexes, not traced); a lone AI holds its line (no reversals); field swings ~1-2 a lap, 3/4
@@ -1069,7 +1069,7 @@ A. FIXES AND CHECKS (S-M each; first, they change what is already there)
 - A6 Rain too slippery: damp ground a small grip loss, puddles the real one (less for wet tyres,
   as now); fewer, smaller puddles; water evaporates slowly even in rain. Measure before / after.
   S-M. DEFAULT (owner: all pass) (10-24): MEASURED before: damp tarmac x tyre wet factor left soft
-  track tyres 51 % of dry grip; Castle Cum soaked +15-22 % lap time; heavy rain flooded 98 % of
+  track tyres 51 % of dry grip; Castle Kum soaked +15-22 % lap time; heavy rain flooded 98 % of
   the race surface. Now damp takes 40 % of the loss (soft tyres 80 %; laps +5-7 %, rain tyres
   still fastest), water rises to a ceiling by rain (heavy 22 %, light 9 % of the surface),
   evaporates at 1/5 rate while raining. Probes: _rainlap.mjs, _coverfield.mjs (RAINGRIP=1).
@@ -1166,7 +1166,7 @@ C. CAR SYSTEMS + DAMAGE (L; one chain - extend damage.ts, no second damage model
   Sources: a cracked sump drips ~20 cells (engineheat.ts), a hit of 0.2+ damage spills 1-4 cells
   (likelier the bigger), a rollover impact 25 %. Soaks into sand, gravel, dirt, mud, thick mud,
   long grass, bushes, traps; never dries, rain never washes it. MEASURED (_oil.mjs, _oilgrip.mjs,
-  Castle Cum): oil racetarmac mu 0.350 (dry 1.060); the car on it reads 'oil'; one oil cell in a
+  Castle Kum): oil racetarmac mu 0.350 (dry 1.060); the car on it reads 'oil'; one oil cell in a
   ring of water spread 1 -> 7 in 5 s -> 10 (generations stop it); sump at 25 km/h: 19 cells;
   20 head-on 70 km/h hits spilled 6 times (9 cells); autopilot 90 s through a 9-cell spill
   9 -> 10 (it spreads slightly); 0 page errors. Photos 844x390 / 390x844.
@@ -1183,7 +1183,7 @@ C. CAR SYSTEMS + DAMAGE (L; one chain - extend damage.ts, no second damage model
   off 48 slow, 0 pops); ?oilwear=1 - when oil would spread (driven through, beside water) it
   spreads 75 %, the cell wears away 25 % (50 crash spills x 20 passes: 53 cells, 13 of 50
   originals left; off 100 cells, 50 left). Switch off: simhash SAME.
-  MEASURED (_debris.mjs, Castle Cum): 12 hits from 50 km/h (mended between) knocked off 15 parts
+  MEASURED (_debris.mjs, Castle Kum): 12 hits from 50 km/h (mended between) knocked off 15 parts
   (6 bumpers - one an end - 6 panels, 3 wings) and laid 12 glass cells; 30 parts -> the oldest
   6 faded, 24 left; glass swept by the first tyre over it, the fronts picking up slow leaks
   (59 passes in 12 s: both fronts leaking); 0 page errors; switch off simhash SAME. world/pass.ts
@@ -1195,7 +1195,7 @@ C. CAR SYSTEMS + DAMAGE (L; one chain - extend damage.ts, no second damage model
   chance (physics/punctures.ts); no glass from the track car, banger, grass-track car.
   Behind ?debris=1.
 - C8 Penetration: small hard objects (lamp posts) hit harder at speed; flat barriers do not.
-  MEASURED 10-26 (tools/scratch/_c8measure.mjs, hatch into a Castle Cum street light / a tree):
+  MEASURED 10-26 (tools/scratch/_c8measure.mjs, hatch into a Castle Kum street light / a tree):
   the flat rule reads damage off the speed CHANGE, so a street light that snaps (from ~47 km/h,
   the car keeps 65 %) did 1.44 total at 45 km/h but 0.18 at 50 (0.68 at 100); and the spot hit
   was ignored (centre and 0.6 m off identical). OWNER 10-26: P1 one curve by closing speed, the
@@ -1207,7 +1207,7 @@ C. CAR SYSTEMS + DAMAGE (L; one chain - extend damage.ts, no second damage model
   fronts), so ?posthit=hard counts it as a wall's bounce: hit corner 0.58 / 1.00 / 1.00, never
   lighter than a wall. DEFAULT 10-26 (owner: "=1 seems best"; ?posthit and =hard deleted).
 - C9 Armco dents (barrier segments deform). M.
-  MEASURED 10-26 (tools/scratch/_c9measure.mjs, hatch into Castle Cum's longest armco run):
+  MEASURED 10-26 (tools/scratch/_c9measure.mjs, hatch into Castle Kum's longest armco run):
   armco was a concrete wall - square on 30 / 50 / 80 km/h = 0.21 / 0.77 / 2.23 total, bounced
   back at ~17 %; it never moved or remembered a hit. OWNER 10-26: softer "but only a bit" and
   dents; very fast hits can tear it; posts / paint scuffs only if easy (not done: the posts
@@ -1224,7 +1224,7 @@ C. CAR SYSTEMS + DAMAGE (L; one chain - extend damage.ts, no second damage model
   spreads as oil does - a 25 % chance a pass; then 50:50 (owner) it runs into the next cell the
   way the wheel went or the cell's water is used up; each spread a generation weaker (3).
   world/waterdrag.ts (wear.ts passCell); DEFAULT 10-26 (owner: "pass"; ?waterspread deleted).
-  MEASURED (_waterdrag.mjs, 20 one-cell puddles on Castle Cum tarmac, a wheel down each line a
+  MEASURED (_waterdrag.mjs, 20 one-cell puddles on Castle Kum tarmac, a wheel down each line a
   round): before - 20 wet to round 2, all cleared at round 3 (3 passes); now - 19 / 20 / 5 / 3 /
   1 / 0 wet, reaching 2 cells (3 m) ahead.
 - C10 Open-wheel cars: exposed wheels collide with other cars (today they pass through), can be
@@ -1302,7 +1302,7 @@ C. CAR SYSTEMS + DAMAGE (L; one chain - extend damage.ts, no second damage model
   as the rain, behaving the same, more the worse the leak): a radiator's water lands as ~60 wear
   cells of the tyres' water (puddles.ts rules: grip, clearing, drying, black ice; the field's
   look), one every ~23 m at race pace for a fast leak, ~140 m for a slow one; pools when
-  stopped. Real game (_engineshots.mjs, Castle Cum autopilot, fast leak): empty 40 s, 115 C
+  stopped. Real game (_engineshots.mjs, Castle Kum autopilot, fast leak): empty 40 s, 115 C
   100 s, seized 172 s; an AI seized, reset and came back mended; 0 page errors.. NEXT: C6 oil (design first).
 
 D. TREES, BUSHES + SEASONS (M). BUSHES: pass-through, heavy drag, wear to long grass, minor
@@ -1318,7 +1318,7 @@ GRAVEL -> SAND DEFAULT (owner: all pass) (10-24, world/dig.ts): a dry pass 2 % a
 10 % at 40 C (damp sand still turns back to gravel at 10 %).
 DEFAULT 10-24 (owner: "all pass"; switches deleted; owner answers: cracked ice MORE grip and degrades faster; melt = the weather
 melting ice and snow should leave water):
-- MELTWATER (coverfield.ts, weather.ts setMeltSoak). CAUSE (_meltwater.mjs, Castle Cum, a
+- MELTWATER (coverfield.ts, weather.ts setMeltSoak). CAUSE (_meltwater.mjs, Castle Kum, a
   full coat in a dry spell): drying ran with the melt and ate it - snow left 0-3 % of the
   surface wet, ice at 5 C none. Now all meltwater stays, a melting coat dries as slowly as rain
   and runs off above heavy rain's ceiling, the track's damp rises as in a 0.25 drizzle while it

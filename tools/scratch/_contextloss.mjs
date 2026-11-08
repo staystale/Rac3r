@@ -1,5 +1,5 @@
 // _contextloss.mjs - the GPU ground losing its WebGL context and getting it back, as Safari can do
-// (WEBGL_lose_context): Castle Cum by day, a photo before, while lost and after the restore, and
+// (WEBGL_lose_context): Castle Kum by day, a photo before, while lost and after the restore, and
 // the GPU ground's state (active, tiles drawn, uploads) at each. Prints page errors.
 // Photos in the temp folder. node tools/scratch/_contextloss.mjs
 import { tmpdir } from 'node:os';

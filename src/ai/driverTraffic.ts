@@ -9,7 +9,7 @@ import { OBJECT_MORE, clearOf, matchSpeed, reachOf, readBraking, swerveCap } fro
 import { blockOn, gapLine, seeCar } from "./gapPick.ts";
 import type { SeenCar } from "./gapPick.ts";
 
-// MEASURED (aidrivecheck, HB on/off, Realish + Real, hatch + 4x4): Slidden / Knobhill / Castle Cum
+// MEASURED (aidrivecheck, HB on/off, Realish + Real, hatch + 4x4): Slidden / Knobhill / Castle Kum
 // within 0.1 s, Sweaty Lamb +0.2..+0.7 s, 6 pulls per 2 min at Slidden, 4 at Sweaty Lamb — it is
 // FLAVOUR (the user's "drift and stuff"), not pace. A heading-error trigger fired ~never. m past
 // the usual edge allowed to get round a car / a slow or stopped one

@@ -1,5 +1,5 @@
 // _hudcost.mjs - the HUD text fix (TODO: "the HUD text is redrawn every frame - draw it only when
-// it changes"; measure first and after): Castle Cum, VS AI x5, your car on autopilot, CPU x4 at
+// it changes"; measure first and after): Castle Kum, VS AI x5, your car on autopilot, CPU x4 at
 // 844x390 dpr 3, 15 s. Per frame: hud.draw's time, the renderer's frame time, and the HUD's
 // fillText / strokeText calls. node tools/scratch/_hudcost.mjs [extra query]
 import { startServer, launchBrowser, gotoGame } from '../lib/browser.mjs';

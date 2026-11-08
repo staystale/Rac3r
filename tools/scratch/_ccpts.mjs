@@ -1,4 +1,4 @@
-// _ccpts.mjs - points along the Castle Cum venue's real lap (real m, the venue data's frame):
+// _ccpts.mjs - points along the Castle Kum venue's real lap (real m, the venue data's frame):
 // node tools/scratch/_ccpts.mjs <dist> [offset] ... - from the start line, offset + = left
 import { CASTLE_CUM_VENUE as DATA } from '../../src/world/levels/venues/castle-cum.ts';
 

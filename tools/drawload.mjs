@@ -7,7 +7,7 @@
 //   2D canvases: fills, strokes, images and path pieces, on the screen canvas, the art buffer, and
 //     off-screen canvases (tiles, textures, sprites being painted).
 // Phone size (440x732, dpr 3), a race with 3 AI on the autopilot; measured over a window of the
-// race (default 8-13 s after the start: Castle Cum's corner 2, zoomed out at speed).
+// race (default 8-13 s after the start: Castle Kum's corner 2, zoomed out at speed).
 // node tools/drawload.mjs [level] [extra query, e.g. "skip=props"] [from s] [to s]
 import { startServer, launchBrowser, gotoGame } from './lib/browser.mjs';
 

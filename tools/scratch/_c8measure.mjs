@@ -1,4 +1,4 @@
-// _c8measure.mjs - C8 post hits: the player's hatch driven into a fresh Castle Cum street light,
+// _c8measure.mjs - C8 post hits: the player's hatch driven into a fresh Castle Kum street light,
 // then into a tree trunk, at a range of closing speeds, dead centre and 0.6 m off centre. Prints
 // the damage per corner (damage.ts order: the fronts, then the rears), the total, the speed kept,
 // whether the post snapped and the radiator leak (engLeak). A fresh launch per run.

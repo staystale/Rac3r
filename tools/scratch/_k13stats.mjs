@@ -1,0 +1,33 @@
+// carstats.mjs — MEASURES each car's garage numbers and writes src/carstats.js (CLAUDE.md rule 10: read the car, not the
+// receipt — the garage shows what the car actually does, measured, never a hand-typed spec sheet). Re-run after any
+// change to cars.js or the vehicle model:   node tools/carstats.mjs
+import fs from 'fs';
+import { makeCar, step, reset, PHYSICS_STEP_SECONDS } from '../../src/vehicle.ts';
+import { CAR_IDS } from '../../src/cars.ts';
+import { SURFACES } from '../../src/lab.js';
+const out = {};
+for (const id of CAR_IDS) {
+  const s = makeCar(id).spec;
+  // 0-100 km/h and top speed: flat out on warm tyres, 60 s
+  let c = makeCar(id); reset(c, 0, 0, 0); c.tyreT = [85, 85, 85, 85];
+  let t = 0, t100 = null, vmax = 0;
+  for (; t < 60; t += PHYSICS_STEP_SECONDS) { c.surface = SURFACES.racetarmac; step(c, { steer: 0, throttle: 1, brake: 0, handbrake: 0 }, PHYSICS_STEP_SECONDS); const v = c.t.vLong; vmax = Math.max(vmax, v); if (t100 === null && v >= 27.78) t100 = t; }
+  // 100-0 km/h with its own aids as fitted
+  c = makeCar(id); reset(c, 0, 0, 0); c.tyreT = [85, 85, 85, 85]; c.vx = 27.78; c.gear = 3; let d = 0;
+  for (let k = 0; k < 120 * 10 && (c.t.vLong > 0.3 || k < 10); k++) { c.surface = SURFACES.tarmac; step(c, { steer: 0, throttle: 0, brake: 1, handbrake: 0 }, PHYSICS_STEP_SECONDS); d += Math.max(0, c.t.vLong) * PHYSICS_STEP_SECONDS; }
+  // grip: best steady lateral g at 60 km/h on tarmac, steer swept
+  let g = 0;
+  for (let st = 0.02; st <= 0.5; st += 0.02) {
+    c = makeCar(id); reset(c, 0, 0, 0); c.tyreT = [85, 85, 85, 85]; c.vx = 16.7; c.gear = 2; let ay = 0, n = 0, bad = false;
+    for (let k = 0; k < 480; k++) { c.surface = SURFACES.tarmac; step(c, { steer: st, throttle: c.t.vLong < 16.7 ? 0.5 : 0, brake: 0, handbrake: 0 }, PHYSICS_STEP_SECONDS);
+      if (Math.abs(Math.atan2(c.t.vLat, Math.abs(c.t.vLong))) > 0.2) bad = true; if (k > 300) { ay += Math.abs(c.t.vLong * c.yawRate); n++; } }
+    if (!bad) g = Math.max(g, ay / n / 9.81);
+  }
+  out[id] = {
+    topKph: Math.round(vmax * 3.6), zeroTo100: t100 === null ? null : +t100.toFixed(1), brake100: +d.toFixed(1), gripG: +g.toFixed(2),
+    massKg: s.mass, drive: s.drive >= 0.99 ? 'FWD' : s.drive <= 0.01 ? 'RWD' : '4WD', aids: s.aids || null,
+  };
+  console.log(id.padEnd(11), JSON.stringify(out[id]));
+}
+
+

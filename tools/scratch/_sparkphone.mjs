@@ -1,5 +1,5 @@
 // _sparkphone.mjs - sparks as the owner's phone shows them: 440x751 css at dpr 3 (the phone
-// reports), Castle Cum at race speed on the autopilot, the front +y wheel on its rim; a burst of
+// reports), Castle Kum at race speed on the autopilot, the front +y wheel on its rim; a burst of
 // full-resolution crops round the car, 80 ms apart. node tools/scratch/_sparkphone.mjs <out> [query]
 import { join } from 'node:path';
 import { startServer, launchBrowser, gotoGame } from '../lib/browser.mjs';

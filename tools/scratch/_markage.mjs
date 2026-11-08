@@ -1,4 +1,4 @@
-// _markage.mjs - K4 (owner 11-01): tyre marks fade oldest first, in small cells. Castle Cum,
+// _markage.mjs - K4 (owner 11-01): tyre marks fade oldest first, in small cells. Castle Kum,
 // paused; a 20 m skid A laid at t 0 and B at t 60 s beside it, then the marks layer faded by hand
 // (marks.fade) and each skid's ink read every 15 s. Plus the fade's cost with a busy layer.
 // Off / on ?markage=1.

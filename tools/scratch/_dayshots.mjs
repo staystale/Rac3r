@@ -1,4 +1,4 @@
-// _dayshots.mjs - ?daytime=1&lamps=1: Castle Cum with 3 AI started at 19:00 / 20:00 / 22:00 of
+// _dayshots.mjs - ?daytime=1&lamps=1: Castle Kum with 3 AI started at 19:00 / 20:00 / 22:00 of
 // the game clock's day (an autumn start: sunset ~19:30), 844x390, after 6 s; then the TEST MODE
 // setup's TIME rows (390x844). Temp folder.
 import { tmpdir } from 'node:os';

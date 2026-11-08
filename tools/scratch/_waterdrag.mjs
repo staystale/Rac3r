@@ -1,5 +1,5 @@
 // _waterdrag.mjs - water dragged by the tyres measured in the game's own pass rule (wear.ts recordWearAt):
-// Castle Cum, dry, 20 lines of 10 wear cells along the start straight, each with a one-cell
+// Castle Kum, dry, 20 lines of 10 wear cells along the start straight, each with a one-cell
 // puddle at its 3rd cell; a wheel drives along each line (+heading, cell by cell) 6 rounds.
 // Prints, per round, the water cells on the lines and the furthest any water got from its
 // puddle, and the bases under the lines.

@@ -1,4 +1,4 @@
-// _wheeloffheat.mjs - a lost wheel's tyre reads 0 (owner): the autopilot drives Castle Cum, a
+// _wheeloffheat.mjs - a lost wheel's tyre reads 0 (owner): the autopilot drives Castle Kum, a
 // wheel is knocked off (damage corner 1, front +y = tyre 0), the four tyre temps read after 3 s;
 // then a repair and 3 s more.
 import { startServer, launchBrowser, gotoGame } from '../lib/browser.mjs';

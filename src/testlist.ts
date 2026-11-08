@@ -58,8 +58,8 @@ export const TEST_LIST: TestEntry[] = [
   // 2026-11-08; fenceshred (catch fences tear and shred), partsover (the drive-over chance by
   // ground clearance), crossings (drivable bridges and tunnels), fencedrag passed 2026-11-08;
   // burstcap, tyresleep, stackvary (the crash bench: stacks 1-4 high, bursting by chance), linewall
-  // (the line gives a wall by the edge room), tallfence, rollway (rolls the right way), castlecumvenue (Castle Kum as
-  // the real venue) passed 2026-11-08)
+  // (the line gives a wall by the edge room), tallfence, rollway (rolls the right way),
+  // castlecumvenue (Castle Kum as the real venue) passed 2026-11-08)
   {
     id: 'rollover',
     added: '2026-11-08',

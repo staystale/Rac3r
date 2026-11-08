@@ -30,7 +30,7 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
 - WEATHER ONLY (10-24): no level- or stage-drawn snow, ice or puddles - the weather lays them.
   SCENERY WATER (lakes, rivers, fords, the highway's rivers and canals) never evaporates but can
   freeze. The test levels' surface samples (Lab, Test Track pads, Sandbox, Lab extension, the
-  Castle Cum skid pan) stay. A level with no setting for what lies under its snow: make a
+  Castle Kum skid pan) stay. A level with no setting for what lies under its snow: make a
   logical call (snow stages: the road from the stage's seed).
 - HANDBRAKE HEAT (10-24): the handbrake heats the REAR tyres; the fronts heat only by the
   turning they do (never by the handbrake itself).
@@ -41,13 +41,14 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
 - ONE PARODY PER REAL NAME (owner 11-03: "make sure all our naming conventions are consistent ...
   dont go generating similar different ones if we already have that name parody"). Check this
   register before naming anything; reuse the entry; add every new one here.
-  BRANDS: Dunlop = DUNFLOP (the Castle Cum footbridge said DUMLOP: ?namefix), Avon = AVAN, Kumho = KUM,
+  BRANDS: Dunlop = DUNFLOP (the Castle Kum footbridge said DUMLOP: ?namefix), Avon = AVAN, Kumho = KUM,
   Pirelli = PIRRELLY, SPUM (budget tyres / oil), CREEM OIL, Goodyear = GOOD YEAH (owner 11-03), Mickey Thompson =
   MICKY TOMSON, BFGoodrich = BF GOODWRENCH, Firestone = FIRESTONED.
   CARS: VW = Folksvagon, BMW = BMV, Subaru = Subaroo, Volvo = Volvoh, Chevrolet = Chevvy, Audi =
   Ordi, JCB = JCBee, Mini = Minnie, Lamborghini = Lamburghini, Nissan = Nissun, Peugeot =
   Pugeot, Ford = Fjord, NASCAR = Naffcar, Formula One / Two = Formula Won / Too, BriSCA = BriSKA.
-  TRACKS: Thruxton = Thruston, Castle Combe = Castle Cum, Brands Hatch = Brands Snatch,
+  TRACKS: Thruxton = Thruston, Castle Combe = Castle Kum (renamed from Castle Cum, owner 11-08),
+  Brands Hatch = Brands Snatch,
   Knockhill = Knobhill, Lydden Hill = Slidden Hill, Kielder = Killder, Daytona = Dieatona,
   Snetterton = Snotterton (owner 11-08).
 - No keys, tokens, tunnel URLs or process IDs in the repo. No itch.io push until the owner says so.
@@ -250,7 +251,7 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   lanes", "not random gaps in barriers"): continuous Armco with smooth flared ends, tyres only in
   front of it behind traps, a catch fence (weaker than Armco) where spectators are, NEVER the black
   wire fence; bridges and tunnels as the real ones, roads joined up; keep the game's art style.
-- A VENUE IS AS REAL AS IT CAN BE (11-08, owner, on Castle Cum): its edge follows the real
+- A VENUE IS AS REAL AS IT CAN BE (11-08, owner, on Castle Kum): its edge follows the real
   circuit's ("keep it like the real track where possible") - Armco where the real one has guard
   rail (OSM, aerial photos), the real tyre walls, a catch fence where spectators are - with the
   sealed-edge rules; and nothing the real place does not have ("keep them out if they're not
@@ -312,7 +313,7 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   overstate our cost; use them for A/B only, never as the reason for a change the owner will feel.
 - GPU work helps visual problems (texture flicker at zoom), not speed on the phone - and it costs
   smoothness there: the WebGL ground under the 2D canvas made Safari hold 48-78 frames in 15 s at
-  Castle Cum's corners, the CPU ground 9, the original build 0. Every new look is a per-frame cost
+  Castle Kum's corners, the CPU ground 9, the original build 0. Every new look is a per-frame cost
   for Safari: prove each with a held-frame recording before it becomes the default.
 - The held frames are Safari's way of showing the page: the same default build in DuckDuckGo
   (iOS WebKit too) showed the owner no holds while a Safari tab held 42 in 10 s (10-17). The
@@ -320,13 +321,13 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   look in the home-screen app too before blaming our drawing.
 - Never copy pixels between the 2D canvas and WebGL every frame: uploading the art buffer each frame
   took the phone's draw time from 3 to 7-8 ms and juddered.
-- Felt judder comes and goes on the same build (two Castle Cum runs, same link: "juddery" and "fine",
+- Felt judder comes and goes on the same build (two Castle Kum runs, same link: "juddery" and "fine",
   both ~0.4 % slow frames). One rough run is a reason for a back-to-back A/B, not proof.
 - Safari rounds rAF timestamps to whole ms: frame pacing (`game/pacing.ts`) fixed the constant shake.
 - The 136 m highway hitch was the skid-mark layer re-centring (26 MB copy); it now wraps.
 - `preserveDrawingBuffer: true` on the WebGL canvas is needed on the iPhone (fewer slow frames).
 - Held frames are invisible to rAF: an owner screen recording showed Safari holding ~6 frames a
-  second at Castle Cum's corners while every rAF and physics step was on time. Count held frames in a
+  second at Castle Kum's corners while every rAF and physics step was on time. Count held frames in a
   recording (frames identical to the one before while things move), and count drawing work with
   tools/drawload.mjs; frame times alone cannot see this.
 - In the recording counter (motion.html, frames shrunk to 220 px) the ground moves ~1.3 px a
@@ -363,7 +364,7 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
 
 - simhash / renderhash run the BROWSER game (main.ts applies the settings): prove an old path with
   RAC3R_QUERY=<switch>=0, never a node wrapper that sets a module flag (main.ts overrides it).
-- The cover field costs ~nothing on the laptop GPU (Castle Cum race 54.2 vs 55.5 fps, a snow stage
+- The cover field costs ~nothing on the laptop GPU (Castle Kum race 54.2 vs 55.5 fps, a snow stage
   under a full coat 60): one full-screen pass reading one texel a pixel (rim reads only near
   patch edges); the catch is computed per 8 m chunk on the CPU within 2 ms a frame.
 

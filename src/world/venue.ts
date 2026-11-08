@@ -39,7 +39,7 @@ export interface VenueData {
   woods: { pts: Point[] }[];
   homes: { pts: Point[] }[];
   // the real circuit's rails (OSM guard rails and concrete barriers; written for venues since
-  // Castle Cum): where spec.followRails is set the Armco stands where they do
+  // Castle Kum): where spec.followRails is set the Armco stands where they do
   rails?: { kind: string; pts: Point[] }[];
 }
 
@@ -75,9 +75,9 @@ export interface VenueSpec {
   // Armco there with the two tyre rows in front, as behind a trap (world/venueedge.ts)
   tyreWalls?: Point[][];
   // surfaces laid by hand that the map does not carry (real m: centre, size, turn; a surface
-  // sample the owner keeps, as Castle Cum's skid pan)
+  // sample the owner keeps, as Castle Kum's skid pan)
   pads?: { at: Point; w: number; h: number; rot: number; surface: keyof typeof SURFACES }[];
-  // the edge follows the real circuit's rails (data.rails, owner 11-08 for Castle Cum: "keep it
+  // the edge follows the real circuit's rails (data.rails, owner 11-08 for Castle Kum: "keep it
   // like the real track where possible"): Armco where they are, a catch fence there instead where
   // spectators stand - in place of open run-off away from traps and hazards
   followRails?: boolean;

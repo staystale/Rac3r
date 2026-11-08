@@ -1,0 +1,16 @@
+  MENU REDESIGN (owner 11-03, mockup agreed over rounds - build behind a switch, one screen at a
+  time: main menu, then garage + upgrades): LOGO = the owner's own image (pixel shard letters,
+  burst, electric blue 3) with its sub line changed to "A DRIVING SANDBOX" in the same chunky
+  pixel type. COLOURS = the logo's: near-black, ember red to orange for actions, burnt brown edges,
+  electric blue (the 3) for selected / better. NO smooth gradients: buttons PIXEL-ART SHADED (flat
+  middle for the words, light top-left bevel, dark bottom-right, 2 px checker dither between shades,
+  a few highlight pixels). TYPE: headers / buttons Silkscreen + Press Start 2P (bigger: buttons
+  17 px, titles 22 px); stats, numbers and small labels VT323 (18-21 px); ONE set of digits
+  (EVERY number in the pixel header face Silkscreen - stat values too - so a 4 is always the
+  same 4 and nothing sits off its line; owner 11-03). GARAGE: the upgradeable
+  parts' level bars head the sections they apply to (Engine, Drivetrain, Suspension, Body,
+  Quality; "also" where two parts move a stat); tap a stat or section -> its upgrade screen
+  (levels, now vs that level, gains, price); TOUGHNESS (new, Body: how easily the car is hurt, per
+  car from its real build - F1 easy, Volvo / tractor hard, realistic at both ends; measured from a
+  50 km/h wall hit); TRAVEL (new: a suspension travel limit - bottoming out, owner: ok); UNITS one
+  game-wide setting, a KM/H / MPH chip in the garage and the speedo tap. Every number measured.

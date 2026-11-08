@@ -1,4 +1,4 @@
-// _nightedge.mjs - ?night=1: is the dark laid to every edge of the screen? Drives Castle Cum
+// _nightedge.mjs - ?night=1: is the dark laid to every edge of the screen? Drives Castle Kum
 // (autopilot) and, over 40 frames, reads the screen canvas's alpha in the outermost device px
 // column / row of each side vs 20 px in (the dark layer is the only full-screen fill there).
 // Prints the frames where an edge had less darkness than the inside.

@@ -1,4 +1,4 @@
-// _hudprofile.mjs - where the HUD's time goes: a CPU profile (CDP, CPU x4) of Castle Cum with 5 AI
+// _hudprofile.mjs - where the HUD's time goes: a CPU profile (CDP, CPU x4) of Castle Kum with 5 AI
 // and your car on autopilot, 12 s, the self time of every function in the HUD's files (hud.js,
 // hud/*) and of the canvas calls they make (attributed to their caller), as a share of the HUD.
 // node tools/scratch/_hudprofile.mjs [extra query]

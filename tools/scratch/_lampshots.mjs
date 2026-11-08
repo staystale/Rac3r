@@ -1,4 +1,4 @@
-// _lampshots.mjs - ?lamps=1: photographs Castle Cum's start straight by day and at ?night=0.8
+// _lampshots.mjs - ?lamps=1: photographs Castle Kum's start straight by day and at ?night=0.8
 // (844x390, 390x844), then drives the car into the first street light and the first Stock Car
 // pylon at 40 km/h and prints where it stopped (a solid stops it). Temp folder.
 import { tmpdir } from 'node:os';

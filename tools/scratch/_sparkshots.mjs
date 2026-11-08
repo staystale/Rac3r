@@ -1,5 +1,5 @@
 // _sparkshots.mjs - sparks (owner: "I don't see sparks"; "sparks should be a light source at
-// night"): the autopilot up to speed on Castle Cum, then the front +y wheel on its rim; photos at
+// night"): the autopilot up to speed on Castle Kum, then the front +y wheel on its rim; photos at
 // race zoom by day and at night (?night=0.85), 844x390, and a crop round the car.
 // node tools/scratch/_sparkshots.mjs <out folder>
 import { join } from 'node:path';

@@ -1,4 +1,4 @@
-// _ccinfo.mjs - the Castle Cum venue's numbers: lap, bounds, counts by kind (CASTLECUMVENUE=1)
+// _ccinfo.mjs - the Castle Kum venue's numbers: lap, bounds, counts by kind (CASTLECUMVENUE=1)
 import { LEVELS } from '../../src/world/levels/index.ts';
 import { buildLevel } from '../../src/world/load.ts';
 const level = buildLevel(LEVELS.find((entry) => entry.id === (process.argv[2] || 'castle-cum')));

@@ -54,7 +54,7 @@ export const ZOOM_MIN = 0.30;   // how far out the camera pulls at high speed
 const SHADE_MARGIN_M = 16;
 export const LOOKAHEAD = 2.6;   // seconds of road kept in view at any speed
 // device px per CSS px at most (?dpr=2: the old cap). MEASURED on the owner's iPhone (3x screen),
-// Castle Cum autopilot back to back: 1.5 vs 2 dropped about half the frames (4.5 vs 8.4 a minute)
+// Castle Kum autopilot back to back: 1.5 vs 2 dropped about half the frames (4.5 vs 8.4 a minute)
 // and halved our slow frames; the owner saw no blur
 export const MAX_DPR = 1.5;
 

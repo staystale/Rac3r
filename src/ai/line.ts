@@ -188,7 +188,7 @@ function coneLimits(ctx: LineCtx, low: Float64Array, high: Float64Array) {
 // WALLS BY THE EDGE (owner 11-08: "the fix should come from adjusting the racing line there"): an
 // edge with a barrier within WALL_NEAR m of it - no run-off, as a pit wall - is given WALL_ROOM m
 // more by the line than an edge with grass beyond (a driver leaves a wall more than a verge).
-// MEASURED: Castle Cum's line ran 1.6 m off the edge along the pit wall through the grid, and a
+// MEASURED: Castle Kum's line ran 1.6 m off the edge along the pit wall through the grid, and a
 // field funnelled onto it was squeezed into the wall (tools/scratch/_startcrash.mjs: every wall
 // hit the pit wall). 20-car starts, 3 seeds, venue: wall hits 23 / 17 / 10 / 9, hard car hits
 // 31 / 27 / 8 / 20 with no room / 1.5 / 2.5 / 3 m; the old level 2.5 m: 31 -> 7, 38 -> 11

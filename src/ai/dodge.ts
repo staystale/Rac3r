@@ -1,7 +1,7 @@
 // ai/dodge.ts - DODGING BY SKILL (the AI rework R5, passed 11-04; owner: "maybe more skilled
 // drivers can avoid collisions even more"; "AI should try to avoid crashing, especially high
 // skilled"). MEASURED (tools/scratch/_stopcar.mjs: a car stopped across the racing line, 6 AI x 3
-// laps): 11-34 hits on it at 50-90 km/h on Thruston / Brands / Castle Cum, the most skilled driver
+// laps): 11-34 hits on it at 50-90 km/h on Thruston / Brands / Castle Kum, the most skilled driver
 // no better (4-14 hits). Three causes: a car was a POINT (kept ~2.1 m from its centre - a car
 // across the road is ~4 m long); it was seen 1.1 s ahead for everyone while its 2.5 m/s swerve
 // needed more (3.5 m at 30 m/s is ~40 m); and it never braked to make the swerve. Now a car has

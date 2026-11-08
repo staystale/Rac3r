@@ -1,4 +1,4 @@
-// _nightshots.mjs - photographs ?night= (the night layer): Castle Cum with 3 AI (their headlights
+// _nightshots.mjs - photographs ?night= (the night layer): Castle Kum with 3 AI (their headlights
 // follow the dark) and Stock Car (floodlight pylons), at 844x390 and 390x844, the player's lights
 // on. Also reads the frame's draw time with and without the night (laptop, A/B only). Temp folder.
 // node tools/scratch/_nightshots.mjs [darkness]

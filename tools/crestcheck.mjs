@@ -1,5 +1,5 @@
 // crestcheck.mjs — how LIGHT does each car go over a crest on an autodrive lap? Reports, per window of track distance, the speed
-// there, the lowest load factor (1 = normal, 0 = wheels off the ground) and seconds airborne. Built 2026-10-04 for Castle Cum's
+// there, the lowest load factor (1 = normal, 0 = wheels off the ground) and seconds airborne. Built 2026-10-04 for Castle Kum's
 // Avon Rise (user: "felt — light over the top", not flying). node tools/crestcheck.mjs [level] [d0-d1,...]
 import { makeCar, step, reset, PHYSICS_STEP_SECONDS } from '../src/vehicle.ts';
 import * as L from '../src/lab.ts';

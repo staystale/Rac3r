@@ -1,4 +1,4 @@
-// _ccacross.mjs <lapM> [from] [to] - what the built Castle Cum has along the normal at a lap distance:
+// _ccacross.mjs <lapM> [from] [to] - what the built Castle Kum has along the normal at a lap distance:
 // each barrier and lane edge crossed, by signed distance from the centreline (+ = right)
 import { LEVELS } from '../../src/world/levels/index.ts';
 import { buildLevel } from '../../src/world/load.ts';

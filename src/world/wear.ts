@@ -700,7 +700,7 @@ function applyGroundInner(car: CarBody, dt: number): void {
   // not be. FIRST STEP AFTER A RESET (requirement: resetting on terrain causes the car to get stuck
   // when pulling away). reset zeroes the ground + suspension heights, so on a hill the first
   // derivative read the whole hill as one step: MEASURED a reset 7.5 m up Sweaty Lamb
-  // launched the car 106 m into the air (Slidden Hill 67 m; Castle Cum's 1.1 m crest 1.1 s of air).
+  // launched the car 106 m into the air (Slidden Hill 67 m; Castle Kum's 1.1 m crest 1.1 s of air).
   // Now the first step after a reset puts the ground AND the body at the local height with no
   // vertical speed.
   if (!car.groundInit) {

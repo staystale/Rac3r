@@ -1,0 +1,17 @@
+import { startServer, launchBrowser } from '../lib/browser.mjs';
+const srv = await startServer(); process.on('exit', srv.stop);
+const browser = await launchBrowser();
+const ctx = await browser.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true });
+const page = await ctx.newPage(); const errs = [];
+page.on('pageerror', (e) => errs.push(e.message));
+await page.goto(srv.url + '/?touch=1&menu=1&guide=0');
+await page.waitForSelector('#menu button', { timeout: 30000 });
+await page.waitForTimeout(800);
+await page.locator('#menu button', { hasText: 'SETTINGS' }).click(); await page.waitForTimeout(500); await page.screenshot({ path: 'tools/scratch/_settings-top.png' }); await page.locator('#menu button', { hasText: 'STEERING' }).click();
+await page.waitForTimeout(500);
+await page.locator('#menu input[type=range]').nth(0).fill('60');
+await page.locator('#menu input[type=range]').nth(1).fill('100');
+await page.waitForTimeout(200);
+await page.screenshot({ path: 'tools/scratch/_settings.png' });
+console.log(await page.evaluate(() => localStorage.getItem('rac3r.steer')), errs.join('; ') || 'no errors');
+await browser.close();

@@ -1,4 +1,4 @@
-// _c9measure.mjs - C9 baseline: the player's hatch driven into Castle Cum's armco (mid-run of the
+// _c9measure.mjs - C9 baseline: the player's hatch driven into Castle Kum's armco (mid-run of the
 // longest armco barrier) at a range of speeds, square on (90 deg) and glancing (25 deg). Prints
 // the damage per corner (fronts, then rears), the total, the speed kept and the angle it leaves
 // at. A fresh launch per run.

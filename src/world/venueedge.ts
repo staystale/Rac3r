@@ -5,7 +5,7 @@
 // from the track; two rows of tyres in front of it behind each trap and along a real tyre wall. A
 // CATCH FENCE (owner 11-07: weaker than the Armco, as real ones are) stands instead where
 // spectators are: the grandstands and the earth banks. The gravel traps are the real ones'
-// outlines (zones with poly). A venue that follows its real rails (Castle Cum) has Armco where
+// outlines (zones with poly). A venue that follows its real rails (Castle Kum) has Armco where
 // they are, else open run-off away from traps and hazards. Marshal posts stand behind the Armco
 // outside each corner, boards on it.
 import { SURFACES } from "./surfaces.ts";

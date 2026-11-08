@@ -1,5 +1,5 @@
 // _glowmapshots.mjs - the lamp glows drawn on the screen (old) vs in the light map (?glowmap=1):
-// Castle Cum at ?night=0.8 in the rain with 3 AI, the player's lights and hazards on (amber
+// Castle Kum at ?night=0.8 in the rain with 3 AI, the player's lights and hazards on (amber
 // indicators, red tail + rain lights), at 844x390 and 390x844, a full photo and a close-up of the
 // player's car each. Temp folder. node tools/scratch/_glowmapshots.mjs
 import { tmpdir } from 'node:os';

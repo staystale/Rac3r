@@ -84,7 +84,7 @@ export function pedalStep(drv: Drv, car: AiCar, path: AiPath, nearIdx: number,
   // OFF ROAD / LOOSE (requirement: they still slow down like mad off road / changing surfaces): on
   // loose ground a sliding front is the surface, not a mistake — keep driving (UNDER_LOOSE
   // throttle) and never brake for it. MEASURED before (aifieldcheck SURF, Brands +
-  // Castle Cum, 6 cars): on grass / dirt the AI braked 26-36 % and lifted 13-33 % of the time,
+  // Castle Kum, 6 cars): on grass / dirt the AI braked 26-36 % and lifted 13-33 % of the time,
   // front slip > 0.14 for 19-40 %. ...only OFF THE PLANNED SURFACE (the car on clearly worse
   // ground than its racing line: off the road, onto a loose patch). On a loose line (Sweaty
   // Lamb's gravel) the old lift + brake stays: applied there too, the 4x4 at Real left the stage

@@ -147,7 +147,7 @@ function parseColour(cache: ColourCache, colour: string) {
 
 /**
  * The texture of a canvas, uploaded once; mipmaps are built the first time it is drawn shrunk, or
- * with the upload. MEASURED (Castle Cum zoom glide): the first zoom-out past one
+ * with the upload. MEASURED (Castle Kum zoom glide): the first zoom-out past one
  * screen px per tile px built them for every tile in view in one frame (14 on a landscape phone;
  * tiles painted while zoomed in have none); sharpness 1.5 put that zoom at ~0.5, mid speed.
  * @param webgl the WebGL2 context

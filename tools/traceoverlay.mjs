@@ -12,7 +12,7 @@ const st = L.LEVEL.subtrack, hw = st.width / 2;
 const P = (x, y) => [+cx + x / +mpp, +cy + y / +mpp];
 const centre = st.pts.map(p => P(p.x, p.y)), left = st.pts.map(p => P(p.x + p.nx * hw, p.y + p.ny * hw)), right = st.pts.map(p => P(p.x - p.nx * hw, p.y - p.ny * hw));
 const marks = st.pts.filter((p, i) => i % 1 === 0).reduce((a, p) => { const d = Math.floor(p.dist / 100); if (!a.seen.has(d)) { a.seen.add(d); a.out.push([...P(p.x, p.y), d * 100]); } return a; }, { seen: new Set(), out: [] }).out;
-// the map's own size (PNG header), not Thruston's 960 x 676 — Castle Cum's 1280 x 1080 map was squashed (2026-10-04)
+// the map's own size (PNG header), not Thruston's 960 x 676 — Castle Kum's 1280 x 1080 map was squashed (2026-10-04)
 const buf = fs.readFileSync(map), MW = buf.readUInt32BE(16), MH = buf.readUInt32BE(20);
 const b = await launchBrowser();
 const pg = await b.newPage({ viewport: { width: MW, height: MH }, deviceScaleFactor: MW > 1000 ? 1.5 : 2 });

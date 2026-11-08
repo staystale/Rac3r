@@ -1,4 +1,4 @@
-// _ccrailcover.mjs - metres of each side of the Castle Cum lap with a real rail beside it within
+// _ccrailcover.mjs - metres of each side of the Castle Kum lap with a real rail beside it within
 // 30 m of the edge (OSM, then OSM + the rails seen on the aerial photographs), at game scale
 import { CASTLE_CUM_SPEC as SPEC } from '../../src/world/levels/castle-cum-venue.ts';
 import { venueBuild } from '../../src/world/venue.ts';

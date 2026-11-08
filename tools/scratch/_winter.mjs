@@ -70,7 +70,7 @@ for (const id of ['lab', 'bowling-alley', 'rough-patch']) {
     + ` snow ${sites.filter((s) => s.snowy).length})`);
 }
 
-// 5. cost: Castle Cum with ~6000 wear cells, the per-second puddle tick (cell passes included)
+// 5. cost: Castle Kum with ~6000 wear cells, the per-second puddle tick (cell passes included)
 L.setLevel('castle-cum'); STATE.LEVEL._puddleSites = P.buildPuddleSites(STATE.LEVEL); wear.clearWear();
 Wx.startWeather({ mode: 'dry', season: 2, seed: 5 }); P.resetPuddles(); Wx.setWetness(0.3);
 const sub = STATE.LEVEL.subtrack;

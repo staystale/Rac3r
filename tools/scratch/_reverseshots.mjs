@@ -1,5 +1,5 @@
 // _reverseshots.mjs - reversing light photos: the player's car held in reverse gear, parked on
-// Castle Cum's start straight, by day and at ?night=0.8 (844x390, 390x844), zoomed in.
+// Castle Kum's start straight, by day and at ?night=0.8 (844x390, 390x844), zoomed in.
 // node tools/scratch/_reverseshots.mjs <out folder>
 import { join } from 'node:path';
 import { startServer, launchBrowser, gotoGame } from '../lib/browser.mjs';

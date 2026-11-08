@@ -1,4 +1,4 @@
-// _lamphits.mjs - ?lamps=1&night=0.8: a car driven into Castle Cum's first street light at 4, 9
+// _lamphits.mjs - ?lamps=1&night=0.8: a car driven into Castle Kum's first street light at 4, 9
 // and 17 m/s (nudge / hard / snap), then three passes over the fallen post at 15 m/s. Prints the
 // lamp (lean, light, down, solidity) and the car's speed after each; photos of the wonked, the
 // fallen and the flattened post. Temp folder.

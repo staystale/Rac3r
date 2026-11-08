@@ -1,5 +1,5 @@
 // _hudflash2.mjs - owner 11-02: the HUD flashes on the TEST link only, "after damage off road".
-// Castle Cum, hatch on the grass, damaged (corners / a wheel off / a rim), driven 4 s; every
+// Castle Kum, hatch on the grass, damaged (corners / a wheel off / a rim), driven 4 s; every
 // frame the HUD regions' mean brightness is read after the game drew (setTimeout 0 after rAF);
 // counts frames whose region jumps >12 against both neighbours (a flash). Plain vs round.
 // node tools/scratch/_hudflash2.mjs

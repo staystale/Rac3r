@@ -1,4 +1,4 @@
-// world/levels/castle-cum-venue.ts - CASTLE CUM AS THE REAL VENUE (world/venue.ts): the real
+// world/levels/castle-cum-venue.ts - CASTLE KUM AS THE REAL VENUE (world/venue.ts): the real
 // Castle Combe Circuit (Wiltshire) from OpenStreetMap (venues/castle-cum.ts) at 1/2 of real
 // length with the 13 m road. One layout: the circuit with the two chicanes of 1999 (the Esses
 // and Bobbies; the old aerodrome lines beside them stay as road, closed by tyres). Checked against
@@ -57,7 +57,7 @@ export const CASTLE_CUM_SPEC: VenueSpec = {
   ],
   // the boards stand on Armco (world/venueedge.ts boardOnArmco): Castle Combe's is round Tower
   boards: [
-    { at: [301.3, -351.6], label: 'CASTLE CUM' },
+    { at: [301.3, -351.6], label: 'CASTLE KUM' },
     { at: [380.6, -331.2], label: 'KUM TYRES' },
     { at: [416.8, -284], label: 'SPUM OIL' },
   ],
@@ -92,5 +92,5 @@ export const CASTLE_CUM_SPEC: VenueSpec = {
 
 // the one layout, built on first use (world/load.ts buildLevel): a venue takes seconds to build
 // on a phone
-export const CC_VENUE_LEVEL: Level = ({ id: 'castle-cum', name: 'Castle Cum',
-  _build: () => venueLevel(CASTLE_CUM_SPEC, 'circuit', 'castle-cum', 'Castle Cum') } as Level);
+export const CC_VENUE_LEVEL: Level = ({ id: 'castle-cum', name: 'Castle Kum',
+  _build: () => venueLevel(CASTLE_CUM_SPEC, 'circuit', 'castle-cum', 'Castle Kum') } as Level);

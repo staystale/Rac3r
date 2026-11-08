@@ -1,0 +1,25 @@
+{
+ "all": "60f906aa55a6572c79ef6b00ea5ce39b809cecd3feecae445b1befca1833d45a",
+ "levels": {
+  "test-track": "c2edd23b909eaf4ca3feb227965ed52f803f071301dc7c37c5d2a36c7ce2867f",
+  "knobhill": "850194f87d9416aef1a17dfd600dda43f48c274d8f8e35f31caa48342a408fcb",
+  "highway": "aaf7e834e8f2c0fc178da8d30e3a92e1f5de4dd1d666447f0e9055a8a3119c92"
+ },
+ "captures": {
+  "test-track-t02": "cd242c62ab3bbeaaf3e8b1d75666d7bf6f9a631c48fa43aac9d275ddbd8cb406",
+  "test-track-t08": "ea6e25649be63f382de450666c3ddd958c2744f378c807c4cb5ba9861ad2c016",
+  "test-track-t14": "ebcaf25e21c8f7cff0b18672d5e5798404a31bc59356565726b6f8418ff9dabb",
+  "test-track-t20": "afbaa052e1d0f0a2a8d9d62e63391047fea1e757a7866116657f4069a8c385ff",
+  "test-track-damaged": "7345cc284d0bde688da36327313dc03cb9a03ec8b2adb14cae555005127c9f3f",
+  "knobhill-t02": "2016f43bc57d111c5385d2ad9c5ea231d0bf5b1fa28db6ec03147f03b54218bb",
+  "knobhill-t08": "cfc324f0ba08736253bde2bedec2d02aa20049957e507ff69b1ae8f92a53ff95",
+  "knobhill-t14": "d11bb40a398b52e643ae725f10bd6f8f9a844aa92cb82efbb34e9bc28a535573",
+  "knobhill-t20": "51b9a76a9ee12999f66213337016efc602665d7418a07ac50d1bf1b905ca2017",
+  "knobhill-damaged": "b69e0a8456a9966785eeece06a1b353f4515cf35a5ca056c0faa15c4e77aac13",
+  "highway-t02": "3e31b7aeb026ecef3953d3a3e96c8376c3ebb1a4ae2e069f90b0736284a0781f",
+  "highway-t08": "9537bde241345d9497a25bbb367c49e51192126377668d8b5e119d2cadbc5154",
+  "highway-t14": "0501a440bcf74cbca2d56b5c35a693b3210bad734aa39ae340465aaf81f9f639",
+  "highway-t20": "718f6e991a3e04b7e7530a0b2ee5e8b2f2eef492ad0b730e2545607da7cac401",
+  "highway-damaged": "ac7e8f59de26e320d9bc1d8d7e677a42deaf6d662c492615c113296388b40e97"
+ }
+}

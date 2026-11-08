@@ -1,4 +1,4 @@
-// _c10shots.mjs - C10 photo: the player's F1 (Track spec) at Castle Cum, driven at
+// _c10shots.mjs - C10 photo: the player's F1 (Track spec) at Castle Kum, driven at
 // 60 km/h so only its left front wheel meets a lone tree's trunk; 1.5 s later, at 390x844 and
 // 844x390 (dpr 3): the wheel off, the loose tyre, the bare corner. Prints the wheels and damage.
 // node tools/scratch/_c10shots.mjs [query]   -> shots/look/c10-<port|land>.png

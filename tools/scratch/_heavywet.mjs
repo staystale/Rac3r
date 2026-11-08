@@ -1,4 +1,4 @@
-// _heavywet.mjs - K1 (owner 11-01): wet trails only in a puddle or heavy rain. Castle Cum on the
+// _heavywet.mjs - K1 (owner 11-01): wet trails only in a puddle or heavy rain. Castle Kum on the
 // autopilot, the track soaked (wetness 1) under no rain / light 0.45 / heavy 1: the share of wheel
 // samples laying the wet trail on damp ground (not a puddle) and in puddles. Off / on ?heavywet=1.
 // node tools/scratch/_heavywet.mjs

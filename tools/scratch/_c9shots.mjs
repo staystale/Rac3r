@@ -1,4 +1,4 @@
-// _c9shots.mjs - C9 armco dents in the real game (?armcodent=1): Castle Cum's longest armco run,
+// _c9shots.mjs - C9 armco dents in the real game (?armcodent=1): Castle Kum's longest armco run,
 // the hatch driven square into it at four spots 12 m apart - 50 km/h, 80 km/h, 120 km/h, and
 // 80 km/h twice - then parked beside them for a photo at 390x844 and 844x390 (dpr 3). Prints each
 // spot's dent depth (the rail's furthest point from where it was) and whether it tore; then a

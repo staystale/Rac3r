@@ -10,7 +10,7 @@ import type { Point, Sector, Lane, Cone, Prop, Subtrack } from "../types.ts";
 // SLIDDEN HILL — parody of Lydden Hill (Kent), the rallycross circuit. Built. Decisions
 //: loose sections = HARD DIRT + gravel patches (the dirt inclusion table), JOKER
 // = an "RX race" (5 laps from the start grid, joker once, missed = +5 s), START on the RX grid (the
-// dead-end start straight), scenery like Castle Cum + the hill. TRACED from the official RX map
+// dead-end start straight), scenery like Castle Kum + the hill. TRACED from the official RX map
 // (art/ref/ly2.png = Wikimedia "Lydden_Hill_-_Rallycross.svg" at 1280 px: black = tarmac, yellow =
 // gravel; no scale bar — sized for a ~1 km lap, 0.30 game m per px). Lap from the JUNCTION where
 // the start straight meets the loop: up the diagonal -> PADDOCK HILL (the outer tarmac sweep,

@@ -1,0 +1,118 @@
+diff --git a/src/ai/driverSteps.ts b/src/ai/driverSteps.ts
+index bed19b0..83b858d 100644
+--- a/src/ai/driverSteps.ts
++++ b/src/ai/driverSteps.ts
+@@ -5,6 +5,8 @@ import { GRAVITY } from "../cars.ts";
+ import { K_BRAKE, carGrip } from "./line.ts";
+ import type { profileOf } from "./line.ts";
+ import { lateralAhead } from "./rejoin.ts";
++import { aimFrom, steerDemand } from "./steerLaw.ts";
++import { FIX } from "../core/fixes.ts";
+ import type { RejoinAim } from "./rejoin.ts";
+ import type { AiCar, CircuitState, RacingLine, Traits } from "./types.ts";
+ 
+@@ -17,6 +19,30 @@ const EDGE_DRIFT = 2.0;
+ 
+ type AiPath = CircuitState["path"];
+ 
++/**
++ * ?oneai (the AI rework R8 stage 2): the circuit driver's demand by the ONE steering law
++ * (ai/steerLaw.ts, the highway driver's), the path as the road.
++ * @param car the car
++ * @param speed m/s
++ * @param aheadH the path's heading a little ahead, rad
++ * @param frontPt the path point by the front axle (h, R, turn)
++ * @param frontPt.h its heading
++ * @param frontPt.R its radius, m
++ * @param frontPt.turn its turn's sign
++ * @param cross the front axle's cross-track error, m
++ * @returns rad at the wheels
++ */
++function lawDemand(car: AiCar, speed: number, aheadH: number,
++  frontPt: { h: number; R: number; turn: number }, cross: number): number {
++  // (the aim: heading at circuit speeds, the course at highway speeds - ai/steerLaw.ts aimFrom)
++  let psi = aheadH - aimFrom(car.heading, car.vx, car.vy); psi = Math.atan2(Math.sin(psi), Math.cos(psi));
++  const relH = Math.atan2(Math.sin(car.heading - frontPt.h), Math.cos(car.heading - frontPt.h));
++  return steerDemand({ psi, cross, speed, yawRate: car.yawRate, delta: car.delta,
++    wheelbase: car.spec.L, latErr: speed * Math.sin(relH),
++    yawRoad: speed * frontPt.turn / Math.max(1, frontPt.R), relH,
++    slipRear: (car.t && car.t.slipR) || 0 });
++}
++
+ /** Stanley steering aim at the front axle: heading error, demand, lock and cap. */
+ export function steerAim(car: AiCar, path: AiPath, nearIdx: number,
+     idx: (pos: number) => number, speed: number, latT: number, crossMax = Infinity) {
+@@ -38,7 +64,8 @@ export function steerAim(car: AiCar, path: AiPath, nearIdx: number,
+   // (R2: a car rejoining, not making a move, has its error capped - ai/rejoin.ts)
+   const cross = Math.max(-crossMax, Math.min(crossMax, (frontX - frontPt.x) * -Math.sin(frontPt.h)
+       + (frontY - frontPt.y) * Math.cos(frontPt.h) - latT));
+-  const deltaS = psi + Math.atan2(-1.2 * cross, speed + 2) - 0.03 * (
++  const deltaS = FIX.oneai ? lawDemand(car, speed, ahead.h, frontPt, cross)
++    : psi + Math.atan2(-1.2 * cross, speed + 2) - 0.03 * (
+       car.yawRate - speed * Math.tan(car.delta) / spec.L);
+   const muHere = car.surface.mu * spec.mu;
+   // cap: the kinematic angle for the grip-limited turn + a front slip allowance (the bench cap
+diff --git a/src/ai/weaverSteer.ts b/src/ai/weaverSteer.ts
+index 4a25ae4..06eacc7 100644
+--- a/src/ai/weaverSteer.ts
++++ b/src/ai/weaverSteer.ts
+@@ -3,6 +3,8 @@
+ import { GRAVITY } from "./weaverCtx.ts";
+ import type { Step, Wvr } from "./weaverCtx.ts";
+ import { roadPose } from "../highway.ts";
++import { aimFrom, steerDemand } from "./steerLaw.ts";
++import { FIX } from "../core/fixes.ts";
+ 
+ /** The steering command (and the road's own yaw rate, which the throttle reads). */
+ export function steerCmd(wvr: Wvr, step: Step) {
+@@ -27,7 +29,9 @@ export function steerCmd(wvr: Wvr, step: Step) {
+   // (MEASURED weavecheck: in a bend the car's sideslip, ~1 deg at 180 km/h, left a steady 0.5 m
+   // drift off the line that Stanley's heading term never saw - and it drifted into the car it was
+   // passing): the angle the car is actually TRAVELLING at
+-  const course = speed > 3 ? Math.atan2(car.vy, car.vx) : car.heading;
++  // (?oneai: the aim every driver has - ai/steerLaw.ts aimFrom)
++  const course = FIX.oneai ? aimFrom(car.heading, car.vx, car.vy)
++    : speed > 3 ? Math.atan2(car.vy, car.vx) : car.heading;
+   let psi = aheadPose.h + Math.atan2(state.tv || 0, speed + 1) - course;
+   psi = Math.atan2(Math.sin(psi), Math.cos(psi));
+   const cross = axle.off - offT, LOCK = car.spec.steerMax || 0.56;
+@@ -35,23 +39,16 @@ export function steerCmd(wvr: Wvr, step: Step) {
+   // and the car's own sideways speed across
+   // the road is damped toward the target's (MEASURED weavecheck: lateral momentum carried it 30
+   // m into the grass)
+-  const relH = Math.atan2(Math.sin(car.heading - hRoad), Math.cos(car.heading - hRoad)),
+-    hMax = Math.max(0.05, Math.min(0.35, 4 / Math.max(1, speed)));
++  const relH = Math.atan2(Math.sin(car.heading - hRoad), Math.cos(car.heading - hRoad));
+   // YAW DAMPING on the ACTUAL yaw rate vs the road's (MEASURED weavecheck, Real: at 200 km/h the
+   // car rotated 0.4 rad/s through the line while Stanley's psi still pointed across - yaw kept
+   // building into a 35 deg slide). The car should turn with the road plus what the swerve needs;
+   // anything beyond that is countered.
+   const latVel = vAl * Math.sin(relH), latErr = latVel - (state.tv || 0),
+     yawRoad = vAl * (pts[Math.max(0, Math.min(pts.length - 1, idx0))].curv || 0);
+-  let deltaS = psi + Math.atan2(-1.2 * cross, speed + 2)
+-    - 0.03 * (car.yawRate - speed * Math.tan(car.delta) / car.spec.L)
+-    - 0.02 * latErr - 0.12 * (car.yawRate - yawRoad);
+-  if (relH > hMax) deltaS = Math.min(deltaS, -(relH - hMax) * 2);
+-  else if (relH < -hMax) deltaS = Math.max(deltaS, (-hMax - relH) * 2);
+-  // COUNTER-STEER a sliding rear: the slip angle itself, as a driver catches it (and hold off
+-  // the brakes, below)
+-  const slipRear = (car.t && car.t.slipR) || 0;
+-  if (Math.abs(slipRear) > 0.08) deltaS -= slipRear * 0.9;
++  // (the law itself - heading cap, counter-steer - is ai/steerLaw.ts, one for every driver)
++  const deltaS = steerDemand({ psi, cross, speed, yawRate: car.yawRate, delta: car.delta,
++    wheelbase: car.spec.L, latErr, yawRoad, relH, slipRear: (car.t && car.t.slipR) || 0 });
+   const cap = Math.min(1,
+     (1.6 * car.spec.L * grip * GRAVITY / Math.max(4, speed * speed)) / LOCK + 0.02);
+   const steer = Math.max(-cap, Math.min(cap, deltaS / LOCK));
+diff --git a/src/core/fixes.ts b/src/core/fixes.ts
+index 58cd6bd..372d1f3 100644
+--- a/src/core/fixes.ts
++++ b/src/core/fixes.ts
+@@ -44,4 +44,7 @@ export const FIX = {
+   // reflexes: the foot that feathers wheelspin, and the road read ahead by skill (2.6 .. 3.8 s, was
+   // 3.2 for all) (ai/weaver*.ts; owner 11-04)
+   hwshare: atLoad('hwshare'),
++  // ?oneai=1: the AI rework R8 stages 2-4 (one AI) - one steering law for every driver
++  // (ai/steerLaw.ts) ...
++  oneai: atLoad('oneai'),
+ };

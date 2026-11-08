@@ -1,4 +1,4 @@
-// _hudflash.mjs - owner 11-02: "UI / HUD flashes like crazy when driving off the track". Castle Cum,
+// _hudflash.mjs - owner 11-02: "UI / HUD flashes like crazy when driving off the track". Castle Kum,
 // the hatch put on the grass beside the track and driven (throttle + steer) 4 s; the screen
 // grabbed ~20 times: per HUD region, how many grabs differ from the one before. Plain vs the round.
 // node tools/scratch/_hudflash.mjs

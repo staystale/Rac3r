@@ -17,7 +17,7 @@ interface WearTyre { grip: Record<string, number>; bySurf?: Record<string, numbe
 interface WearSurface { id: string; under?: string; wetK?: number; hard?: boolean }
 
 // wear per joule of friction work, per tonne of car (a heavier car does more work for the same
-// driving). MEASURED (tools: a hatch racing 3 laps of Castle Cum at Realish ~0.1 of a set on its
+// driving). MEASURED (tools: a hatch racing 3 laps of Castle Kum at Realish ~0.1 of a set on its
 // busiest tyre; a long aggressive race several times that) - see TODO.md
 const WEAR_PER_J = 1.8e-7;
 // a rain tyre (cars.ts: KUM Wet 1.22, PIRRELLY Full Wet 1.35); how wet ground must be to count

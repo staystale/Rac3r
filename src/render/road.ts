@@ -55,7 +55,7 @@ interface WorldBox {
 
 /**
  * Traces the pieces (quad plus an end disc each) of one lane that touch the view into the
- * current path. SEGMENT CULL (Castle Cum): the ring road's box is the whole map, so only the
+ * current path. SEGMENT CULL (Castle Kum): the ring road's box is the whole map, so only the
  * pieces touching the view are built, and the pattern is painted only over their box.
  * @param ctx the road context
  * @param lane the lane (pts, width)

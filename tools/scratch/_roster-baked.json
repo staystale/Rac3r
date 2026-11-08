@@ -1,0 +1,1564 @@
+{
+ "hatch-fwd": {
+  "cgH": 0.52,
+  "wheelR": 0.319,
+  "trackWidth": 1.5,
+  "tyreWidth": 0.225,
+  "slideGrip": 0.85,
+  "shiftTime": 0.25,
+  "brakeMaxDecel": 1.8,
+  "driveEff": 0.9,
+  "idleRpm": 900,
+  "dragC": 0.429,
+  "rollC": 0.015,
+  "izzK": 2.4,
+  "aeroK": 1,
+  "downforceF": 0.02,
+  "downforceR": 0.04,
+  "susF": 1.4,
+  "susZ": 0.38,
+  "reverseRatio": -3.4,
+  "reverseMaxSpeed": 5.5,
+  "id": "hatch-fwd",
+  "name": "Folksvagon Gulf GTEye",
+  "kind": "hatch",
+  "cls": "road",
+  "sub": "Hatch",
+  "cg": 0.55,
+  "rideH": 0.14,
+  "aids": {
+   "abs": true,
+   "tcs": true
+  },
+  "mass": 1351,
+  "lf": 1.1,
+  "lr": 1.4,
+  "len": 4,
+  "wid": 1.7,
+  "drive": 1,
+  "brakeBiasF": 0.65,
+  "caF": 102263,
+  "caR": 109769,
+  "mu": 1.3,
+  "curve": [
+   [
+    900,
+    210
+   ],
+   [
+    1500,
+    350
+   ],
+   [
+    4400,
+    350
+   ],
+   [
+    6200,
+    250
+   ],
+   [
+    6500,
+    220
+   ]
+  ],
+  "redline": 6500,
+  "upshiftRpm": 6200,
+  "downshiftRpm": 2600,
+  "gears": [
+   3.77,
+   2.09,
+   1.47,
+   1.1,
+   0.92,
+   0.77
+  ],
+  "finalDrive": 3.94,
+  "paint": "#4a8fd4",
+  "trim": "#2b5c8f",
+  "glass": "#8fb8d8",
+  "L": 2.5,
+  "Izz": 5104.078
+ },
+ "hatch-rwd": {
+  "cgH": 0.52,
+  "wheelR": 0.314,
+  "trackWidth": 1.5,
+  "tyreWidth": 0.245,
+  "slideGrip": 0.85,
+  "shiftTime": 0.25,
+  "brakeMaxDecel": 1.8,
+  "driveEff": 0.9,
+  "idleRpm": 800,
+  "dragC": 0.445,
+  "rollC": 0.015,
+  "izzK": 3.4,
+  "aeroK": 1,
+  "downforceF": 0.02,
+  "downforceR": 0.04,
+  "susF": 1.4,
+  "susZ": 0.38,
+  "reverseRatio": -3.4,
+  "reverseMaxSpeed": 5.5,
+  "id": "hatch-rwd",
+  "name": "BMV Em135Aye",
+  "kind": "hatch",
+  "cls": "road",
+  "sub": "Hatch",
+  "cg": 0.53,
+  "rideH": 0.13,
+  "aids": {
+   "abs": true,
+   "tcs": true
+  },
+  "mass": 1425,
+  "lf": 1.25,
+  "lr": 1.25,
+  "len": 4,
+  "wid": 1.7,
+  "drive": 0,
+  "brakeBiasF": 0.65,
+  "caF": 107865,
+  "caR": 112813,
+  "mu": 1.32,
+  "curve": [
+   [
+    800,
+    270
+   ],
+   [
+    1300,
+    450
+   ],
+   [
+    4500,
+    450
+   ],
+   [
+    5800,
+    387
+   ],
+   [
+    7000,
+    340
+   ]
+  ],
+  "redline": 7000,
+  "upshiftRpm": 6600,
+  "downshiftRpm": 2600,
+  "gears": [
+   4.11,
+   2.32,
+   1.54,
+   1.18,
+   1,
+   0.85
+  ],
+  "finalDrive": 3.15,
+  "paint": "#e0603a",
+  "trim": "#9c3a1c",
+  "glass": "#cfa98f",
+  "L": 2.5,
+  "Izz": 7626.8375
+ },
+ "saloon-rwd": {
+  "cgH": 0.52,
+  "wheelR": 0.317,
+  "trackWidth": 1.5,
+  "tyreWidth": 0.225,
+  "slideGrip": 0.85,
+  "shiftTime": 0.25,
+  "brakeMaxDecel": 1.8,
+  "driveEff": 0.9,
+  "idleRpm": 750,
+  "dragC": 0.391,
+  "rollC": 0.015,
+  "izzK": 2.4,
+  "aeroK": 1,
+  "downforceF": 0.02,
+  "downforceR": 0.04,
+  "susF": 1.4,
+  "susZ": 0.38,
+  "reverseRatio": -3.4,
+  "reverseMaxSpeed": 5.5,
+  "id": "saloon-rwd",
+  "name": "BMV 3 Serious",
+  "kind": "saloon",
+  "cls": "road",
+  "sub": "Saloon",
+  "cg": 0.52,
+  "rideH": 0.13,
+  "aids": {
+   "abs": true,
+   "tcs": true
+  },
+  "mass": 1450,
+  "lf": 1.36,
+  "lr": 1.36,
+  "len": 4.47,
+  "wid": 1.74,
+  "drive": 0,
+  "brakeBiasF": 0.65,
+  "caF": 112000,
+  "caR": 118000,
+  "mu": 1.34,
+  "curve": [
+   [
+    750,
+    225
+   ],
+   [
+    3000,
+    300
+   ],
+   [
+    4000,
+    300
+   ],
+   [
+    5900,
+    275
+   ],
+   [
+    6500,
+    242
+   ]
+  ],
+  "redline": 6500,
+  "upshiftRpm": 6200,
+  "downshiftRpm": 2600,
+  "gears": [
+   4.21,
+   2.49,
+   1.66,
+   1.24,
+   1
+  ],
+  "finalDrive": 3.07,
+  "paint": "#a9aeb6",
+  "trim": "#4a4f58",
+  "glass": "#8fa3b8",
+  "rim": "#d6d9df",
+  "L": 2.72,
+  "Izz": 6672.464999999999
+ },
+ "wrz-awd": {
+  "cgH": 0.52,
+  "wheelR": 0.317,
+  "trackWidth": 1.5,
+  "tyreWidth": 0.225,
+  "slideGrip": 0.85,
+  "shiftTime": 0.25,
+  "brakeMaxDecel": 1.8,
+  "driveEff": 0.9,
+  "idleRpm": 900,
+  "dragC": 0.45,
+  "rollC": 0.015,
+  "izzK": 2.4,
+  "aeroK": 1,
+  "downforceF": 0.02,
+  "downforceR": 0.04,
+  "susF": 1.4,
+  "susZ": 0.38,
+  "reverseRatio": -3.4,
+  "reverseMaxSpeed": 5.5,
+  "id": "wrz-awd",
+  "name": "Subaroo WRZ",
+  "kind": "wrz",
+  "cls": "rally",
+  "sub": "2L+",
+  "cg": 0.53,
+  "rideH": 0.15,
+  "aids": {
+   "abs": true,
+   "tcs": false
+  },
+  "mass": 1495,
+  "lf": 1.09,
+  "lr": 1.435,
+  "len": 4.47,
+  "wid": 1.74,
+  "drive": 0.36,
+  "brakeBiasF": 0.65,
+  "caF": 118752,
+  "caR": 122993,
+  "mu": 1.32,
+  "curve": [
+   [
+    900,
+    183
+   ],
+   [
+    3600,
+    407
+   ],
+   [
+    4400,
+    407
+   ],
+   [
+    6400,
+    307
+   ],
+   [
+    7000,
+    270
+   ]
+  ],
+  "redline": 7000,
+  "upshiftRpm": 6700,
+  "downshiftRpm": 2800,
+  "gears": [
+   3.636,
+   2.375,
+   1.761,
+   1.346,
+   0.971,
+   0.756
+  ],
+  "finalDrive": 3.9,
+  "paint": "#1d3f9a",
+  "trim": "#0f2257",
+  "glass": "#93abd2",
+  "rim": "#c9a227",
+  "aiK": 0.94,
+  "L": 2.5250000000000004,
+  "Izz": 6879.541499999998
+ },
+ "estate-4x4": {
+  "cgH": 0.52,
+  "wheelR": 0.323,
+  "trackWidth": 1.5,
+  "tyreWidth": 0.235,
+  "slideGrip": 0.85,
+  "shiftTime": 0.25,
+  "brakeMaxDecel": 1.8,
+  "driveEff": 0.9,
+  "idleRpm": 800,
+  "dragC": 0.465,
+  "rollC": 0.015,
+  "izzK": 2.4,
+  "aeroK": 1,
+  "downforceF": 0.02,
+  "downforceR": 0.04,
+  "susF": 1.4,
+  "susZ": 0.38,
+  "reverseRatio": -3.4,
+  "reverseMaxSpeed": 5.5,
+  "id": "estate-4x4",
+  "name": "Volvoh V70 Arr",
+  "kind": "estate",
+  "cls": "road",
+  "sub": "Estate",
+  "cg": 0.66,
+  "rideH": 0.21,
+  "aids": {
+   "abs": true,
+   "tcs": true
+  },
+  "mass": 1665,
+  "lf": 1.35,
+  "lr": 1.35,
+  "len": 4.7,
+  "wid": 1.8,
+  "drive": 0.5,
+  "brakeBiasF": 0.65,
+  "caF": 114066,
+  "caR": 123265,
+  "mu": 1.24,
+  "curve": [
+   [
+    800,
+    240
+   ],
+   [
+    1950,
+    400
+   ],
+   [
+    5250,
+    400
+   ],
+   [
+    5500,
+    384
+   ],
+   [
+    6500,
+    338
+   ]
+  ],
+  "redline": 6500,
+  "upshiftRpm": 6000,
+  "downshiftRpm": 2200,
+  "gears": [
+   3.54,
+   2.05,
+   1.38,
+   1.03,
+   0.82,
+   0.68
+  ],
+  "finalDrive": 3.55,
+  "paint": "#4f6b52",
+  "trim": "#2f4433",
+  "glass": "#9fb8a4",
+  "L": 2.7,
+  "Izz": 8434.890000000001
+ },
+ "muscle-rwd": {
+  "cgH": 0.52,
+  "wheelR": 0.335,
+  "trackWidth": 1.5,
+  "tyreWidth": 0.215,
+  "slideGrip": 0.85,
+  "shiftTime": 0.25,
+  "brakeMaxDecel": 1.8,
+  "driveEff": 0.9,
+  "idleRpm": 750,
+  "dragC": 0.674,
+  "rollC": 0.015,
+  "izzK": 2.4,
+  "aeroK": 1,
+  "downforceF": 0.02,
+  "downforceR": 0.04,
+  "susF": 1.4,
+  "susZ": 0.38,
+  "reverseRatio": -3.4,
+  "reverseMaxSpeed": 5.5,
+  "id": "muscle-rwd",
+  "name": "Chevvy Shovelle SS 454",
+  "kind": "muscle",
+  "cls": "road",
+  "sub": "Muscle",
+  "cg": 0.5,
+  "rideH": 0.12,
+  "aids": {
+   "abs": true,
+   "tcs": false
+  },
+  "mass": 1730,
+  "lf": 1.3,
+  "lr": 1.3,
+  "len": 4.8,
+  "wid": 1.9,
+  "drive": 0,
+  "brakeBiasF": 0.65,
+  "caF": 109505,
+  "caR": 115027,
+  "mu": 1.34,
+  "curve": [
+   [
+    750,
+    475
+   ],
+   [
+    3000,
+    678
+   ],
+   [
+    3600,
+    678
+   ],
+   [
+    5600,
+    457
+   ],
+   [
+    6500,
+    402
+   ]
+  ],
+  "redline": 6500,
+  "upshiftRpm": 6000,
+  "downshiftRpm": 2200,
+  "gears": [
+   2.2,
+   1.64,
+   1.28,
+   1
+  ],
+  "finalDrive": 3.31,
+  "paint": "#b3252f",
+  "trim": "#6e141b",
+  "glass": "#d0a0a4",
+  "L": 2.6,
+  "Izz": 9220.9
+ },
+ "rally-4x4": {
+  "cgH": 0.52,
+  "wheelR": 0.3,
+  "trackWidth": 1.5,
+  "tyreWidth": 0.2,
+  "slideGrip": 0.85,
+  "shiftTime": 0.25,
+  "brakeMaxDecel": 1.8,
+  "driveEff": 0.9,
+  "idleRpm": 1200,
+  "dragC": 0.49,
+  "rollC": 0.015,
+  "izzK": 2.4,
+  "aeroK": 1.6,
+  "downforceF": 0.9,
+  "downforceR": 1.7,
+  "susF": 1.05,
+  "susZ": 0.46,
+  "reverseRatio": -3.4,
+  "reverseMaxSpeed": 5.5,
+  "id": "rally-4x4",
+  "name": "Ordi Sport Kwattro S1",
+  "kind": "rally",
+  "cls": "rally",
+  "sub": "Group B",
+  "cg": 0.52,
+  "rideH": 0.2,
+  "mass": 1090,
+  "lf": 1.2,
+  "lr": 1.3,
+  "len": 4.1,
+  "wid": 1.82,
+  "drive": 0.22,
+  "brakeBiasF": 0.65,
+  "caF": 97664,
+  "caR": 103768,
+  "mu": 1.41,
+  "curve": [
+   [
+    1200,
+    236
+   ],
+   [
+    4500,
+    590
+   ],
+   [
+    5500,
+    590
+   ],
+   [
+    8000,
+    418
+   ],
+   [
+    8500,
+    368
+   ]
+  ],
+  "redline": 8500,
+  "upshiftRpm": 8000,
+  "downshiftRpm": 3000,
+  "gears": [
+   3,
+   2.06,
+   1.55,
+   1.23,
+   1,
+   0.84
+  ],
+  "finalDrive": 4.9,
+  "paint": "#2f6fd0",
+  "trim": "#12325f",
+  "glass": "#9fc0e4",
+  "L": 2.5,
+  "Izz": 4386.6831999999995
+ },
+ "track-rwd": {
+  "cgH": 0.52,
+  "wheelR": 0.36,
+  "trackWidth": 1.85,
+  "tyreWidth": 0.32,
+  "slideGrip": 0.85,
+  "shiftTime": 0.25,
+  "brakeMaxDecel": 1.8,
+  "driveEff": 0.9,
+  "idleRpm": 4000,
+  "dragC": 0.674,
+  "rollC": 0.015,
+  "izzK": 2.4,
+  "aeroK": 1.4,
+  "downforceF": 1.73,
+  "downforceR": 2.5,
+  "susF": 2.3,
+  "susZ": 0.3,
+  "reverseRatio": -3.4,
+  "reverseMaxSpeed": 5.5,
+  "id": "track-rwd",
+  "name": "Formula Won",
+  "kind": "track",
+  "cls": "single",
+  "sub": "F1",
+  "cg": 0.36,
+  "rideH": 0.07,
+  "mass": 798,
+  "lf": 1.55,
+  "lr": 1.35,
+  "len": 4.4,
+  "wid": 1.35,
+  "drive": 0,
+  "brakeBiasF": 0.6,
+  "caF": 155683,
+  "caR": 167433,
+  "mu": 1.92,
+  "curve": [
+   [
+    4000,
+    384
+   ],
+   [
+    9000,
+    640
+   ],
+   [
+    10500,
+    640
+   ],
+   [
+    11500,
+    619
+   ],
+   [
+    12500,
+    545
+   ]
+  ],
+  "redline": 12500,
+  "upshiftRpm": 12000,
+  "downshiftRpm": 8000,
+  "gears": [
+   3.1,
+   2.4,
+   1.95,
+   1.65,
+   1.42,
+   1.25,
+   1.12,
+   1
+  ],
+  "finalDrive": 4.8,
+  "paint": "#e9e9ee",
+  "trim": "#3a3a44",
+  "glass": "#9aa0ae",
+  "L": 2.9000000000000004,
+  "Izz": 3380.7270000000003
+ },
+ "naffcar": {
+  "cgH": 0.52,
+  "wheelR": 0.356,
+  "trackWidth": 1.85,
+  "tyreWidth": 0.2,
+  "slideGrip": 0.85,
+  "shiftTime": 0.25,
+  "brakeMaxDecel": 1.8,
+  "driveEff": 0.9,
+  "idleRpm": 1500,
+  "dragC": 0.551,
+  "rollC": 0.015,
+  "izzK": 2.4,
+  "aeroK": 1.1,
+  "downforceF": 0.8,
+  "downforceR": 1.2,
+  "susF": 2.1,
+  "susZ": 0.35,
+  "reverseRatio": -3.4,
+  "reverseMaxSpeed": 5.5,
+  "id": "naffcar",
+  "name": "Naffcar V8",
+  "kind": "muscle",
+  "cls": "oval",
+  "sub": "Naffcar",
+  "cg": 0.48,
+  "rideH": 0.1,
+  "mass": 1542,
+  "lf": 1.35,
+  "lr": 1.45,
+  "len": 5.1,
+  "wid": 1.95,
+  "drive": 0,
+  "brakeBiasF": 0.65,
+  "caF": 139244,
+  "caR": 149559,
+  "mu": 1.74,
+  "curve": [
+   [
+    1500,
+    366
+   ],
+   [
+    6500,
+    610
+   ],
+   [
+    7500,
+    610
+   ],
+   [
+    9000,
+    531
+   ],
+   [
+    9500,
+    467
+   ]
+  ],
+  "redline": 9500,
+  "upshiftRpm": 9200,
+  "downshiftRpm": 5500,
+  "gears": [
+   2.85,
+   1.97,
+   1.49,
+   1.2,
+   1
+  ],
+  "finalDrive": 3.9,
+  "paint": "#f2a900",
+  "trim": "#111111",
+  "glass": "#555555",
+  "L": 2.8,
+  "Izz": 9194.175
+ },
+ "tractor": {
+  "cgH": 0.52,
+  "wheelR": 0.801,
+  "trackWidth": 1.5,
+  "tyreWidth": 0.6,
+  "slideGrip": 0.85,
+  "shiftTime": 0.25,
+  "brakeMaxDecel": 1.8,
+  "driveEff": 0.9,
+  "idleRpm": 800,
+  "dragC": 3.859,
+  "rollC": 0.015,
+  "izzK": 2.4,
+  "aeroK": 0.8,
+  "downforceF": 0,
+  "downforceR": 0,
+  "susF": 1.1,
+  "susZ": 0.55,
+  "reverseRatio": -3.4,
+  "reverseMaxSpeed": 5.5,
+  "id": "tractor",
+  "name": "JCBee Fastrack 8330",
+  "kind": "tractor",
+  "cls": "offroad",
+  "sub": "Odd",
+  "cg": 1.05,
+  "rideH": 0.45,
+  "mass": 11400,
+  "lf": 1.5,
+  "lr": 1.1,
+  "len": 4.2,
+  "wid": 2.1,
+  "drive": 0,
+  "brakeBiasF": 0.65,
+  "caF": 350769,
+  "caR": 613846,
+  "mu": 1.33,
+  "curve": [
+   [
+    800,
+    936
+   ],
+   [
+    1400,
+    1440
+   ],
+   [
+    1600,
+    1440
+   ],
+   [
+    2100,
+    1182
+   ],
+   [
+    2300,
+    1040
+   ]
+  ],
+  "redline": 2300,
+  "upshiftRpm": 2200,
+  "downshiftRpm": 1100,
+  "gears": [
+   4.2,
+   2.7,
+   1.8,
+   1.25,
+   0.9
+  ],
+  "finalDrive": 11.1,
+  "paint": "#2e7d32",
+  "trim": "#fbc02d",
+  "glass": "#37474f",
+  "L": 2.6,
+  "Izz": 50274
+ },
+ "mini-fwd": {
+  "cgH": 0.52,
+  "wheelR": 0.243,
+  "trackWidth": 1.24,
+  "tyreWidth": 0.145,
+  "slideGrip": 0.85,
+  "shiftTime": 0.25,
+  "brakeMaxDecel": 1.8,
+  "driveEff": 0.9,
+  "idleRpm": 800,
+  "dragC": 0.47,
+  "rollC": 0.015,
+  "izzK": 2.6,
+  "aeroK": 1,
+  "downforceF": 0.02,
+  "downforceR": 0.04,
+  "susF": 1.4,
+  "susZ": 0.38,
+  "reverseRatio": -3.4,
+  "reverseMaxSpeed": 5.5,
+  "id": "mini-fwd",
+  "name": "Minnie Cooped S",
+  "kind": "mini",
+  "cls": "road",
+  "sub": "Hatch",
+  "cg": 0.48,
+  "rideH": 0.12,
+  "aids": {
+   "abs": false,
+   "tcs": false
+  },
+  "mass": 650,
+  "lf": 0.82,
+  "lr": 1.22,
+  "len": 3.05,
+  "wid": 1.41,
+  "drive": 1,
+  "brakeBiasF": 0.65,
+  "caF": 58406,
+  "caR": 60290,
+  "mu": 1.18,
+  "curve": [
+   [
+    800,
+    75
+   ],
+   [
+    3000,
+    107
+   ],
+   [
+    3500,
+    107
+   ],
+   [
+    5800,
+    94
+   ],
+   [
+    6500,
+    83
+   ]
+  ],
+  "redline": 6500,
+  "upshiftRpm": 6200,
+  "downshiftRpm": 2600,
+  "gears": [
+   3.33,
+   2.09,
+   1.35,
+   1
+  ],
+  "finalDrive": 3.44,
+  "paint": "#1f4d2e",
+  "trim": "#f0f0ea",
+  "glass": "#9fb8a4",
+  "rim": "#c9ccd4",
+  "L": 2.04,
+  "Izz": 1590.0928333333331
+ },
+ "lambo-awd": {
+  "cgH": 0.52,
+  "wheelR": 0.345,
+  "trackWidth": 1.67,
+  "tyreWidth": 0.305,
+  "slideGrip": 0.85,
+  "shiftTime": 0.25,
+  "brakeMaxDecel": 1.8,
+  "driveEff": 0.9,
+  "idleRpm": 1000,
+  "dragC": 0.466,
+  "rollC": 0.015,
+  "izzK": 2.4,
+  "aeroK": 1.2,
+  "downforceF": 0.35,
+  "downforceR": 0.55,
+  "susF": 1.8,
+  "susZ": 0.38,
+  "reverseRatio": -3.4,
+  "reverseMaxSpeed": 5.5,
+  "id": "lambo-awd",
+  "name": "Lamburghini Hurrikan",
+  "kind": "lambo",
+  "cls": "road",
+  "sub": "Sports",
+  "cg": 0.45,
+  "rideH": 0.1,
+  "cyl": 10,
+  "aids": {
+   "abs": true,
+   "tcs": true
+  },
+  "mass": 1553,
+  "lf": 1.49,
+  "lr": 1.13,
+  "len": 4.46,
+  "wid": 1.93,
+  "drive": 0.3,
+  "brakeBiasF": 0.65,
+  "caF": 139989,
+  "caR": 155300,
+  "mu": 1.45,
+  "curve": [
+   [
+    1000,
+    364
+   ],
+   [
+    6000,
+    560
+   ],
+   [
+    6500,
+    560
+   ],
+   [
+    8250,
+    520
+   ],
+   [
+    8500,
+    457
+   ]
+  ],
+  "redline": 8500,
+  "upshiftRpm": 8300,
+  "downshiftRpm": 4000,
+  "gears": [
+   3.133,
+   2.083,
+   1.575,
+   1.244,
+   0.979,
+   0.788,
+   0.677
+  ],
+  "finalDrive": 4.89,
+  "paint": "#9bc53d",
+  "trim": "#16181d",
+  "glass": "#2a2f38",
+  "rim": "#16181d",
+  "L": 2.62,
+  "Izz": 7335.2849
+ },
+ "mikra-r1": {
+  "cgH": 0.52,
+  "wheelR": 0.3,
+  "trackWidth": 1.5,
+  "tyreWidth": 0.2,
+  "slideGrip": 0.85,
+  "shiftTime": 0.25,
+  "brakeMaxDecel": 1.8,
+  "driveEff": 0.9,
+  "idleRpm": 850,
+  "dragC": 0.44,
+  "rollC": 0.015,
+  "izzK": 2.4,
+  "aeroK": 1,
+  "downforceF": 0.02,
+  "downforceR": 0.04,
+  "susF": 1.1,
+  "susZ": 0.45,
+  "reverseRatio": -3.4,
+  "reverseMaxSpeed": 5.5,
+  "id": "mikra-r1",
+  "name": "Nissun Mikra R1",
+  "kind": "mikra",
+  "cls": "rally",
+  "sub": "1L",
+  "cg": 0.52,
+  "rideH": 0.18,
+  "aids": {
+   "abs": false,
+   "tcs": false
+  },
+  "mass": 980,
+  "lf": 0.98,
+  "lr": 1.47,
+  "len": 3.8,
+  "wid": 1.68,
+  "drive": 1,
+  "brakeBiasF": 0.65,
+  "caF": 92000,
+  "caR": 98000,
+  "mu": 1.29,
+  "curve": [
+   [
+    1200,
+    108
+   ],
+   [
+    2200,
+    146
+   ],
+   [
+    3200,
+    162
+   ],
+   [
+    4200,
+    165
+   ],
+   [
+    5200,
+    156
+   ],
+   [
+    6200,
+    138
+   ],
+   [
+    7000,
+    121
+   ]
+  ],
+  "redline": 7000,
+  "upshiftRpm": 6600,
+  "downshiftRpm": 3000,
+  "gears": [
+   3.5,
+   2.1,
+   1.5,
+   1.15,
+   0.92
+  ],
+  "finalDrive": 4.3,
+  "paint": "#f0f0ea",
+  "trim": "#c8342a",
+  "glass": "#9fb0c4",
+  "L": 2.45,
+  "Izz": 3383.4303999999997
+ },
+ "kit-2l": {
+  "cgH": 0.52,
+  "wheelR": 0.3,
+  "trackWidth": 1.65,
+  "tyreWidth": 0.2,
+  "slideGrip": 0.85,
+  "shiftTime": 0.25,
+  "brakeMaxDecel": 1.8,
+  "driveEff": 0.9,
+  "idleRpm": 1100,
+  "dragC": 0.44,
+  "rollC": 0.015,
+  "izzK": 2.4,
+  "aeroK": 1,
+  "downforceF": 0.02,
+  "downforceR": 0.04,
+  "susF": 1.15,
+  "susZ": 0.44,
+  "reverseRatio": -3.4,
+  "reverseMaxSpeed": 5.5,
+  "id": "kit-2l",
+  "name": "Pugeot 306 Maxxi",
+  "kind": "kit",
+  "cls": "rally",
+  "sub": "2L",
+  "cg": 0.5,
+  "rideH": 0.17,
+  "aids": {
+   "abs": false,
+   "tcs": false
+  },
+  "mass": 960,
+  "lf": 1,
+  "lr": 1.58,
+  "len": 4.03,
+  "wid": 1.83,
+  "drive": 1,
+  "brakeBiasF": 0.65,
+  "caF": 109440,
+  "caR": 96000,
+  "mu": 1.43,
+  "curve": [
+   [
+    1500,
+    149
+   ],
+   [
+    3000,
+    209
+   ],
+   [
+    4500,
+    249
+   ],
+   [
+    6000,
+    269
+   ],
+   [
+    7000,
+    272
+   ],
+   [
+    8000,
+    249
+   ],
+   [
+    8500,
+    229
+   ]
+  ],
+  "redline": 8500,
+  "upshiftRpm": 8200,
+  "downshiftRpm": 4500,
+  "gears": [
+   3,
+   2.2,
+   1.75,
+   1.45,
+   1.22,
+   1.05
+  ],
+  "finalDrive": 4.2,
+  "paint": "#f0f0ea",
+  "trim": "#1d3f9a",
+  "glass": "#9fb0c4",
+  "L": 2.58,
+  "Izz": 3761.2416000000003
+ },
+ "rx-super": {
+  "cgH": 0.52,
+  "wheelR": 0.3,
+  "trackWidth": 1.7,
+  "tyreWidth": 0.2,
+  "slideGrip": 0.85,
+  "shiftTime": 0.25,
+  "brakeMaxDecel": 1.8,
+  "driveEff": 0.9,
+  "idleRpm": 1500,
+  "dragC": 0.6,
+  "rollC": 0.015,
+  "izzK": 2.4,
+  "aeroK": 1.4,
+  "downforceF": 0.6,
+  "downforceR": 1.2,
+  "susF": 1.1,
+  "susZ": 0.46,
+  "reverseRatio": -3.4,
+  "reverseMaxSpeed": 5.5,
+  "id": "rx-super",
+  "name": "Fjord Fiester RX",
+  "kind": "rxcar",
+  "cls": "rx",
+  "sub": "Supercar",
+  "cg": 0.5,
+  "rideH": 0.2,
+  "aids": {
+   "abs": false,
+   "tcs": false
+  },
+  "mass": 1300,
+  "lf": 1.15,
+  "lr": 1.34,
+  "len": 4.1,
+  "wid": 1.95,
+  "drive": 0.45,
+  "brakeBiasF": 0.65,
+  "caF": 112000,
+  "caR": 118000,
+  "mu": 1.48,
+  "curve": [
+   [
+    1500,
+    495
+   ],
+   [
+    3500,
+    900
+   ],
+   [
+    4500,
+    900
+   ],
+   [
+    6500,
+    657
+   ],
+   [
+    7500,
+    578
+   ]
+  ],
+  "redline": 7500,
+  "upshiftRpm": 7100,
+  "downshiftRpm": 3500,
+  "gears": [
+   2.6,
+   1.9,
+   1.5,
+   1.2,
+   0.95
+  ],
+  "finalDrive": 4,
+  "paint": "#e0603a",
+  "trim": "#16181d",
+  "glass": "#2a2f38",
+  "L": 2.49,
+  "Izz": 5359.249999999999
+ },
+ "banger-f2": {
+  "cgH": 0.52,
+  "wheelR": 0.3,
+  "trackWidth": 1.5,
+  "tyreWidth": 0.2,
+  "slideGrip": 0.85,
+  "shiftTime": 0.25,
+  "brakeMaxDecel": 1.8,
+  "driveEff": 0.9,
+  "idleRpm": 850,
+  "dragC": 0.66,
+  "rollC": 0.015,
+  "izzK": 2.4,
+  "aeroK": 1,
+  "downforceF": 0.02,
+  "downforceR": 0.04,
+  "susF": 1.6,
+  "susZ": 0.36,
+  "reverseRatio": -3.4,
+  "reverseMaxSpeed": 5.5,
+  "id": "banger-f2",
+  "name": "BriSKA F2 Stocker",
+  "kind": "banger",
+  "cls": "stock",
+  "sub": "Stock car",
+  "cg": 0.5,
+  "rideH": 0.14,
+  "aids": {
+   "abs": false,
+   "tcs": false
+  },
+  "mass": 1150,
+  "lf": 1.25,
+  "lr": 1.25,
+  "len": 4.3,
+  "wid": 1.85,
+  "drive": 0,
+  "brakeBiasF": 0.65,
+  "caF": 108000,
+  "caR": 112000,
+  "mu": 1.34,
+  "curve": [
+   [
+    900,
+    194
+   ],
+   [
+    2000,
+    255
+   ],
+   [
+    3000,
+    276
+   ],
+   [
+    4000,
+    278
+   ],
+   [
+    5000,
+    255
+   ],
+   [
+    6000,
+    219
+   ]
+  ],
+  "redline": 6500,
+  "upshiftRpm": 6000,
+  "downshiftRpm": 2600,
+  "gears": [
+   2.97,
+   2.01,
+   1.4,
+   1
+  ],
+  "finalDrive": 3.9,
+  "paint": "#c8342a",
+  "trim": "#f2a900",
+  "glass": "#2a2f38",
+  "L": 2.5,
+  "Izz": 5039.874999999999
+ },
+ "grass-special": {
+  "cgH": 0.52,
+  "wheelR": 0.3,
+  "trackWidth": 1.6,
+  "tyreWidth": 0.2,
+  "slideGrip": 0.85,
+  "shiftTime": 0.25,
+  "brakeMaxDecel": 1.8,
+  "driveEff": 0.9,
+  "idleRpm": 1100,
+  "dragC": 0.65,
+  "rollC": 0.015,
+  "izzK": 2.4,
+  "aeroK": 1,
+  "downforceF": 0.02,
+  "downforceR": 0.04,
+  "susF": 1,
+  "susZ": 0.5,
+  "reverseRatio": -3.4,
+  "reverseMaxSpeed": 5.5,
+  "id": "grass-special",
+  "name": "Autograss Special",
+  "kind": "grass",
+  "cls": "stock",
+  "sub": "Grass track",
+  "cg": 0.42,
+  "rideH": 0.2,
+  "aids": {
+   "abs": false,
+   "tcs": false
+  },
+  "mass": 650,
+  "lf": 1.25,
+  "lr": 0.95,
+  "len": 3.4,
+  "wid": 1.75,
+  "drive": 0,
+  "brakeBiasF": 0.65,
+  "caF": 70000,
+  "caR": 80000,
+  "mu": 1.38,
+  "curve": [
+   [
+    1500,
+    161
+   ],
+   [
+    3000,
+    218
+   ],
+   [
+    4500,
+    258
+   ],
+   [
+    6000,
+    278
+   ],
+   [
+    7000,
+    282
+   ],
+   [
+    8000,
+    266
+   ],
+   [
+    8800,
+    242
+   ]
+  ],
+  "redline": 8800,
+  "upshiftRpm": 8400,
+  "downshiftRpm": 4500,
+  "gears": [
+   2.9,
+   2.1,
+   1.65,
+   1.35,
+   1.12
+  ],
+  "finalDrive": 4.9,
+  "paint": "#f2a900",
+  "trim": "#16181d",
+  "glass": "#2a2f38",
+  "L": 2.2,
+  "Izz": 1900.925
+ },
+ "drift-s13": {
+  "cgH": 0.52,
+  "wheelR": 0.3,
+  "trackWidth": 1.5,
+  "tyreWidth": 0.2,
+  "slideGrip": 0.85,
+  "shiftTime": 0.25,
+  "brakeMaxDecel": 1.8,
+  "driveEff": 0.9,
+  "idleRpm": 850,
+  "dragC": 0.42,
+  "rollC": 0.015,
+  "izzK": 2.6,
+  "aeroK": 1,
+  "downforceF": 0.02,
+  "downforceR": 0.04,
+  "susF": 1.4,
+  "susZ": 0.38,
+  "reverseRatio": -3.4,
+  "reverseMaxSpeed": 5.5,
+  "id": "drift-s13",
+  "name": "Nissun Sylvya S13 D",
+  "kind": "drift",
+  "cls": "drift",
+  "sub": "Pro",
+  "cg": 0.5,
+  "rideH": 0.11,
+  "steerMax": 0.85,
+  "aids": {
+   "abs": false,
+   "tcs": false
+  },
+  "mass": 1220,
+  "lf": 1.23,
+  "lr": 1.25,
+  "len": 4.52,
+  "wid": 1.69,
+  "drive": 0,
+  "brakeBiasF": 0.65,
+  "caF": 116000,
+  "caR": 98000,
+  "mu": 1.37,
+  "curve": [
+   [
+    1200,
+    344
+   ],
+   [
+    2500,
+    579
+   ],
+   [
+    3500,
+    724
+   ],
+   [
+    4500,
+    751
+   ],
+   [
+    5500,
+    724
+   ],
+   [
+    6500,
+    652
+   ],
+   [
+    7800,
+    543
+   ]
+  ],
+  "redline": 7800,
+  "upshiftRpm": 7400,
+  "downshiftRpm": 3500,
+  "gears": [
+   3.32,
+   1.9,
+   1.31,
+   1,
+   0.75
+  ],
+  "finalDrive": 4.6,
+  "paint": "#f0f0ea",
+  "trim": "#e86fa8",
+  "glass": "#2a2f38",
+  "rim": "#c9a227",
+  "L": 2.48,
+  "Izz": 6155.398166666666
+ },
+ "f2-rwd": {
+  "cgH": 0.52,
+  "wheelR": 0.3,
+  "trackWidth": 1.8,
+  "tyreWidth": 0.3,
+  "slideGrip": 0.85,
+  "shiftTime": 0.25,
+  "brakeMaxDecel": 1.8,
+  "driveEff": 0.9,
+  "idleRpm": 850,
+  "dragC": 0.582,
+  "rollC": 0.015,
+  "izzK": 2.4,
+  "aeroK": 1.3,
+  "downforceF": 1.12,
+  "downforceR": 1.62,
+  "susF": 2.2,
+  "susZ": 0.3,
+  "reverseRatio": -3.4,
+  "reverseMaxSpeed": 5.5,
+  "id": "f2-rwd",
+  "name": "Formula Too",
+  "kind": "track",
+  "cls": "single",
+  "sub": "F2",
+  "cg": 0.36,
+  "rideH": 0.07,
+  "cyl": 6,
+  "mass": 755,
+  "lf": 1.55,
+  "lr": 1.35,
+  "len": 4.3,
+  "wid": 1.3,
+  "drive": 0,
+  "brakeBiasF": 0.6,
+  "caF": 150000,
+  "caR": 160000,
+  "mu": 1.9,
+  "curve": [
+   [
+    1500,
+    330
+   ],
+   [
+    3000,
+    429
+   ],
+   [
+    4500,
+    495
+   ],
+   [
+    6000,
+    547
+   ],
+   [
+    7000,
+    571
+   ],
+   [
+    8000,
+    552
+   ],
+   [
+    9000,
+    467
+   ]
+  ],
+  "redline": 9000,
+  "upshiftRpm": 8600,
+  "downshiftRpm": 4200,
+  "gears": [
+   2.9,
+   2,
+   1.55,
+   1.25,
+   1.05,
+   0.88
+  ],
+  "finalDrive": 3.4,
+  "paint": "#2f6fd0",
+  "trim": "#16181d",
+  "glass": "#9aa0ae",
+  "L": 2.9000000000000004,
+  "Izz": 3047.18
+ }
+}
