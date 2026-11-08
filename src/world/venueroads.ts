@@ -187,6 +187,12 @@ function carryOff(site: Site, road: Lane, atStart: boolean,
   const out = Math.min(...reach) + 2;
   if (!Number.isFinite(out) || out < 0) return false;
   const edge: Point = [tip[0] + dirX * out, tip[1] + dirY * out];
+  // never across the race track or its run-off on the way (a road cut by the reach on the far side
+  // of the oval ran straight over it to the map's edge)
+  for (let along = 2; along < out; along += 2) {
+    const x = tip[0] + dirX * along, y = tip[1] + dirY * along;
+    if (pastRim(site.rims, x, y) < ROAD_OUT_M + road.width / 2) return false;
+  }
   road.pts = atStart ? [edge, ...pts] : [...pts, edge];
   return true;
 }

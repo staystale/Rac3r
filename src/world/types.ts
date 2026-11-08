@@ -681,7 +681,8 @@ export interface Camber {
   refR: number;
   crown?: number;
   edge?: number;
-  sections?: { from: number; to: number; deg: number }[];
+  // side: +1 / -1 banks that way regardless of the bend (an oval's turns and straights)
+  sections?: { from: number; to: number; deg: number; side?: 1 | -1 }[];
 }
 
 // One cell of terrain.ts's natural-ground cache: amplitude (m) of each noise family.

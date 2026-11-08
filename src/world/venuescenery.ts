@@ -16,6 +16,7 @@ import { WALL_REACH_M, boxedLine, buildEdge, buildRims, inZones, outlineZone, pa
   trapZones } from "./venueedge.ts";
 import { boardOnArmco, marshalPosts } from "./venueposts.ts";
 import { venueAero, venuePlanes } from "./venueairfield.ts";
+import { ovalWall, venuePatches, venueWater } from "./venueoval.ts";
 import type { EdgeNeeds, WallLine } from "./venueedge.ts";
 import { REACH_M, cellKey, inBuilding, inSolid, nearArmco, nearRace, onLanes, placeAll }
   from "./venuesite.ts";
@@ -25,11 +26,11 @@ import { FOOT_REACH_M, handFinish, tidyRoads, venueRoads, withoutDuplicates }
 import { continueRoad, joinApproaches, joinFrom } from "./venuejoin.ts";
 import type { VenueBox, VenueBuild } from "./venue.ts";
 import { EDGE_TO_WALL, PIT_W, pitLane, pitLines } from "./venuepit.ts";
-import type { Barrier, Cone, Lane, Paint, Point, Prop, Subtrack, Zone } from "./types.ts";
+import type { Barrier, Cone, Cover, Lane, Paint, Point, Prop, Subtrack, Zone } from "./types.ts";
 
 /** What buildVenueScenery returns: everything but the raced road. */
 export interface VenueScenery {
-  lanes: Lane[]; zones: Zone[]; cones: Cone[]; barriers: Barrier[]; props: Prop[];
+  lanes: Lane[]; zones: Zone[]; cones: Cone[]; barriers: Barrier[]; props: Prop[]; covers: Cover[];
   paint: Paint[]; bounds: { x0: number; y0: number; x1: number; y1: number };
 }
 
@@ -37,6 +38,10 @@ export interface VenueScenery {
 const GARAGE_GAP_M = 1.5;
 // m the track's edge barriers keep off the pit wall
 const PIT_WALL_CLEAR_M = 4;
+// m the track's edge barriers keep off an oval's outside wall (it is their barrier there)
+const OVAL_WALL_CLEAR_M = 7;
+// m behind an oval's wall a board stands (past the run-off's rim, which lies beyond the wall)
+const WALL_BOARD_BACK_M = 6;
 // m from the pit lane's centre a parked truck or car keeps (the apron in front of the garages)
 const PIT_APRON_M = 16;
 // m: a bridge's approach and its width; a tunnel portal's distance outside the edge, its length
@@ -599,6 +604,31 @@ function joinTunnels(site: Site, tunnels: { props: Prop[]; lanes: Lane[] }, road
 }
 
 /**
+ * The venue's boards (spec.boards) on its barriers, each clear of the props, the roads and the
+ * marshal posts (a post has no box: a board keeps POST_CLEAR_M off its centre).
+ * @param site the venue's builders' state
+ * @param edge the edge's barriers and tyres
+ * @param outerWall an oval's outside wall (a board named to the wall stands only on it)
+ * @param props the props standing
+ * @returns the boards, each with its 18 m face as its box (nothing else stands on it)
+ */
+function venueBoards(site: Site, edge: { barriers: Barrier[]; cones: Cone[] },
+  outerWall: Barrier | null, props: Prop[]): Prop[] {
+  const posts = props.filter((prop) => prop.kind === 'marshal'), boards: Prop[] = [];
+  for (const board of site.build.spec.boards) {
+    const rails = board.on ? [...edge.barriers, ...(outerWall ? [outerWall] : [])]
+      .filter((rail) => rail.kind === board.on) : edge.barriers;
+    const prop = boardOnArmco(rails, edge.cones, site.loops, site.place(board.at), board.label,
+      site.rims, (x, y) => inBuilding([...props, ...boards], x, y, 1.5)
+        || onLanes(site.lanes, x, y, 1.5)
+        || posts.some((post) => Math.hypot(post.x - x, post.y - y) < POST_CLEAR_M),
+      board.on === 'wall' ? WALL_BOARD_BACK_M : undefined);
+    if (prop) boards.push({ ...prop, w: 18, h: 1.2 });
+  }
+  return boards;
+}
+
+/**
  * Marshal posts kept clear: moved out from the track (2 m a try) off every barrier, road and
  * building, or left out.
  * @param site the venue's builders' state
@@ -608,7 +638,9 @@ function joinTunnels(site: Site, tunnels: { props: Prop[]; lanes: Lane[] }, road
  */
 function clearPosts(site: Site, posts: Prop[], barriers: Barrier[]): Prop[] {
   const railPts = barriers.flatMap((rail) => rail.pts);
+  // (off every layout's road too: a corner's outside can be another layout's track)
   const clear = (post: Prop) => !onLanes(site.lanes, post.x, post.y, 2)
+    && nearestLoop(site.loops, post.x, post.y).hit.dist > HALF_ROAD + 2
     && !inSolid(site, post.x, post.y, 2)
     && railPts.every(([x, y]) => Math.abs(x - post.x) > 2.5 || Math.abs(y - post.y) > 2.5);
   return posts.filter((post) => {
@@ -673,7 +705,6 @@ function finishMoves(site: Site): void {
 export function buildVenueScenery(build: VenueBuild, sub: Subtrack, closed: Lane[]): VenueScenery {
   const loops = Object.values(build.loops), spec = build.spec;
   const { site, traps, lines } = venueSite(build, closed);
-  const place = site.place;
   const pit = pitLane(site);
   site.lanes.push(pit.lane);
   site.pitPts = pit.lane.pts;
@@ -688,9 +719,12 @@ export function buildVenueScenery(build: VenueBuild, sub: Subtrack, closed: Lane
   // the pit wall is its stretch's barrier: the edge keeps PIT_WALL_CLEAR_M off it (with a rail
   // mapped there, Armco stood just behind it)
   const pitWall = pit.wall ? pit.wall.pts : null;
+  // an oval's outside wall is its stretch's barrier, as the pit wall (spec.ovalWall)
+  const outerWall = ovalWall(site);
   const edge = buildEdge(site.rims, { loops, lanes: site.lanes,
     blocked: (x, y) => inBuilding(site.buildings, x, y, 1)
-      || (!!pitWall && distToLine(pitWall, x, y) < PIT_WALL_CLEAR_M),
+      || (!!pitWall && distToLine(pitWall, x, y) < PIT_WALL_CLEAR_M)
+      || (!!outerWall && distToLine(outerWall.pts, x, y) < OVAL_WALL_CLEAR_M),
     roads: [pit.lane] }, traps,
   edgeNeeds(site, bridges.props, tunnels.props, lines));
   for (const rail of edge.barriers)
@@ -721,18 +755,11 @@ export function buildVenueScenery(build: VenueBuild, sub: Subtrack, closed: Lane
     // the start gantry spans the track with its legs on the pit wall's line (not in the pit lane)
     { kind: 'gantry', x: start.x, y: start.y, wid: 2 * (HALF_ROAD + EDGE_TO_WALL),
       rot: start.rot + Math.PI / 2 }];
-  // a marshal post has no box: a board keeps POST_CLEAR_M off its centre
-  const posts = props.filter((prop) => prop.kind === 'marshal');
-  for (const board of spec.boards) {
-    const prop = boardOnArmco(edge.barriers, edge.cones, loops, place(board.at), board.label,
-      site.rims, (x, y) => inBuilding(props, x, y, 1.5) || onLanes(site.lanes, x, y, 1.5)
-        || posts.some((post) => Math.hypot(post.x - x, post.y - y) < POST_CLEAR_M));
-    // its 18 m face as its box, so nothing else stands on it
-    if (prop) props.push({ ...prop, w: 18, h: 1.2 });
-  }
+  props.push(...venueBoards(site, edge, outerWall, props));
   const bounds = venueBounds(loops, [pit.lane, ...bridges.lanes, ...tunnels.lanes, ...finished],
     props);
-  const zones = [...traps, ...paddocks.zones, ...venuePads(site), ...venueAero(site)];
+  const zones = [...venuePatches(site), ...traps, ...paddocks.zones, ...venuePads(site),
+    ...venueAero(site)];
   const lanes = [pit.lane, ...bridges.lanes, ...tunnels.lanes, ...finished];
   props.push(...venuePlanes(site, zones, props));
   props.push(...venueTrees(site, bounds, props, zones));
@@ -741,6 +768,7 @@ export function buildVenueScenery(build: VenueBuild, sub: Subtrack, closed: Lane
     .filter(([x, y]) => !onLanes(site.lanes, x, y, 0.6))
     .map(([x, y]) => ({ x, y, kind: 'tyrestack' })));
   return { lanes, zones, cones: [...edge.cones, ...karting],
-    barriers: [...(pit.wall ? [pit.wall] : []), ...edge.barriers],
-    props, paint: pitLines(site, pit.lane), bounds };
+    barriers: [...(pit.wall ? [pit.wall] : []), ...(outerWall ? [outerWall] : []),
+      ...edge.barriers],
+    props, paint: pitLines(site, pit.lane), bounds, covers: venueWater(site) };
 }
