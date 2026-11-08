@@ -391,7 +391,7 @@ function drawTape(env: ObjectsCtx, game: TapeGame) {
 const DEBRIS_KINDS = new Set(['pallet', 'box', 'crate', 'bin', 'sandbag', 'barrel', 'exhaust',
   'bumper', 'wing', 'panel', 'tarp', 'splinters', 'cardboard', 'sand', 'fluff',
   // a bad crash's bits (render/carparts.ts draws them)
-  'bonnet', 'boot', 'spoiler', 'mirror', 'wishbone', 'strut', 'engine']);
+  'bonnet', 'boot', 'spoiler', 'mirror', 'wishbone', 'strut', 'shaft', 'engine']);
 
 /**
  * Makes a drawer of filled rects in metres at the given pixels per metre.

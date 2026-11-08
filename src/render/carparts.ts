@@ -302,6 +302,19 @@ function flatStrut(): FlatCanvas {
 }
 
 /**
+ * a DRIVE SHAFT - the steel bar (the car's own drawing's colours, render/cars.ts) with its
+ * joint at each end.
+ * @returns the drawing
+ */
+function flatShaft(): FlatCanvas {
+  const flat = bitCanvas(partPx(0.7), 3), { block } = flat, wide = flat.canvas.width;
+  block(0, 1, wide, 1, '#4a4f57');
+  block(0, 0, 3, 3, '#16181d');
+  block(wide - 3, 0, 3, 3, '#16181d');
+  return flat;
+}
+
+/**
  * an ENGINE BLOCK - its size by its cylinders, the plugs in one row (inline), two
  * banks (a V) or two outer rows (a flat), the pulley at the front, the manifold's rust.
  * @param bits the car's bits
@@ -325,8 +338,9 @@ function flatEngine(bits: CarBits): FlatCanvas {
 }
 
 /**
- * a bad crash's DRAWN bit (the exhaust, a mirror, a wishbone, a strut, the engine) for
- * its car, lightly damaged; null for the bits cut from the car's sprite (bonnet, boot, spoiler).
+ * a bad crash's DRAWN bit (the exhaust, a mirror, a wishbone, a strut, a drive shaft, the
+ * engine) for its car, lightly damaged; null for the bits cut from the car's sprite (bonnet,
+ * boot, spoiler).
  * @param spec the car as drawn
  * @param kind the bit
  * @param seed its seed
@@ -337,7 +351,7 @@ export function drawnBit(spec: RenderCarSpec, kind: string,
   const bits = bitsOf(String(spec.id));
   const flat = kind === 'exhaust' ? flatExhaust(bits) : kind === 'mirror' ? flatMirror(spec)
     : kind === 'wishbone' ? flatWishbone() : kind === 'strut' ? flatStrut()
-      : kind === 'engine' ? flatEngine(bits) : null;
+      : kind === 'shaft' ? flatShaft() : kind === 'engine' ? flatEngine(bits) : null;
   if (!flat) return null;
   damage(flat.ctx, flat.canvas.width, flat.canvas.height, seed);
   return flat.canvas;
