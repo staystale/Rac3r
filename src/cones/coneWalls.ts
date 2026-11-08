@@ -1,7 +1,9 @@
 // cones/coneWalls.ts: pushes a moving loose object out of barrier segments and level solids,
 // bouncing it off with a little scrape, or letting a fast one hop over (cone.over).
 import { LEVEL } from "../world/state.ts";
-import { BARRIER_HALF } from "../world/barriers.ts";
+import {
+  BARRIER_HALF, SEG_BOX_PAD, SEG_RUN, isFarFrom, segRunBoxes,
+} from "../world/barriers.ts";
 import { solidsNear } from "../world/solidgrid.ts";
 import { isSolidWrecked } from "../world/marshalbox.ts";
 import { solidBox } from "../world/treetrunks.ts";
@@ -33,16 +35,29 @@ function bounce(cone: Loose, speed: number, nx: number, ny: number, push: number
 }
 
 /**
+ * How far past a segment's box (padded by SEG_BOX_PAD for the cars) the object can still touch it:
+ * within the barrier's half width and its own radius of the segment, so of the segment's own ends
+ * (less than the pad: negative). A segment it is further from is skipped untested - it could not
+ * be touched (the pad alone let a pile-up's tyres project onto ~20 segments of the rail each).
+ * @param half the barrier's half width
+ * @param radius the object's radius
+ * @returns metres past the padded box
+ */
+const touchReach = (half: number, radius: number) => half + radius + 0.01 - SEG_BOX_PAD;
+
+/**
  * Test the object against one barrier segment and bounce it if it touches.
  * @param cone the loose object
  * @param radius its radius
  * @param speed its speed
  * @param segment a barrier segment
  * @param half the barrier's half width
+ * @param reach touchReach(half, radius)
  */
-function hitSegment(cone: Loose, radius: number, speed: number, segment: BarrierSeg, half: number) {
-  if (cone.x < segment.minX - radius || cone.x > segment.maxX + radius || cone.y
-      < segment.minY - radius || cone.y > segment.maxY + radius) return;
+function hitSegment(cone: Loose, radius: number, speed: number, segment: BarrierSeg, half: number,
+  reach: number) {
+  if (cone.x < segment.minX - reach || cone.x > segment.maxX + reach || cone.y
+      < segment.minY - reach || cone.y > segment.maxY + reach) return;
   let along = ((cone.x - segment.ax) * segment.dx + (cone.y - segment.ay) * segment.dy)
       / segment.l2;
   along = along < 0 ? 0 : along > 1 ? 1 : along;
@@ -64,9 +79,19 @@ function hitSegment(cone: Loose, radius: number, speed: number, segment: Barrier
 function hitBarriers(cone: Loose, radius: number, speed: number) {
   for (const barrier of LEVEL.barriers || []) {
     const half = BARRIER_HALF[barrier.kind]; if (!half || !barrier._segs) continue;
-    for (const segment of barrier._segs) {
-      hitSegment(cone, radius, speed, segment, half);
-      if (cone.over) return;
+    // clear of the barrier's box, or of a run's, is clear of every segment in it (hitSegment's
+    // own box test): skipped whole, nothing moves, the same segments are met in the same order
+    const reach = touchReach(half, radius);
+    if (isFarFrom(barrier, cone.x, cone.y, reach)) continue;
+    const segs = barrier._segs, boxes = segRunBoxes(barrier);
+    for (let run = 0; run < boxes.length; run += 4) {
+      if (cone.x < boxes[run] - reach || cone.x > boxes[run + 2] + reach
+          || cone.y < boxes[run + 1] - reach || cone.y > boxes[run + 3] + reach) continue;
+      const first = (run / 4) * SEG_RUN, last = Math.min(segs.length, first + SEG_RUN);
+      for (let i = first; i < last; i++) {
+        hitSegment(cone, radius, speed, segs[i], half, reach);
+        if (cone.over) return;
+      }
     }
   }
 }

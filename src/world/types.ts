@@ -440,6 +440,7 @@ export interface Barrier {
   _s?: number;   // highway.ts
   _segs?: BarrierSeg[];   // added by prepBarriers
   _cbb?: [number, number, number, number];   // barriers.ts barrierClamp: the box round _segs
+  _runs?: number[];   // barriers.ts segRunBoxes: the box round each run of SEG_RUN _segs
   field?: number;   // highway/fields.ts: the field (village) it belongs to
   _rbb?: [number, number, number, number];   // render/props/fence.ts caches the padded box
 }

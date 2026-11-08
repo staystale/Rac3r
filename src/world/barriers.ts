@@ -114,19 +114,24 @@ export function resetTrackside(): void {
 export function prepBarriersOf(level: { barriers?: Barrier[] }): void {
   prepBarriers(level);
 }
+// m: a segment's box (minX ... maxY) reaches this far past its ends
+export const SEG_BOX_PAD = 4;
+
 export function prepBarriers(level: { barriers?: Barrier[] }): void {
   for (const barrier of level.barriers || []) {
     if (barrier._segs) continue;
     barrier._segs = [];
     delete barrier._cbb;
+    delete barrier._runs;
     for (let i = 0; i < barrier.pts.length - 1; i++) {
       const [startX, startY] = barrier.pts[i], [endX, endY] = barrier.pts[i + 1];
       const dx = endX - startX, dy = endY - startY, lenSq = dx * dx + dy * dy;
       // a stretch an armco rail is torn open on is not there (world/armcodent.ts)
       if (lenSq < 1e-6 || isTornAfter(barrier.pts[i])) continue;
       barrier._segs.push({ ax: startX, ay: startY, dx, dy, l2: lenSq,
-          minX: Math.min(startX, endX) - 4, maxX: Math.max(startX, endX) + 4,
-          minY: Math.min(startY, endY) - 4, maxY: Math.max(startY, endY) + 4, i0: i });
+          minX: Math.min(startX, endX) - SEG_BOX_PAD, maxX: Math.max(startX, endX) + SEG_BOX_PAD,
+          minY: Math.min(startY, endY) - SEG_BOX_PAD, maxY: Math.max(startY, endY) + SEG_BOX_PAD,
+          i0: i });
     }
   }
 }
@@ -539,9 +544,35 @@ function barrierBox(barrier: Barrier): [number, number, number, number] {
  * @param reach metres
  * @returns true when far
  */
-function isFarFrom(barrier: Barrier, x: number, y: number, reach: number): boolean {
+export function isFarFrom(barrier: Barrier, x: number, y: number, reach: number): boolean {
   const box = barrier._cbb || (barrier._cbb = barrierBox(barrier));
   return x < box[0] - reach || x > box[2] + reach || y < box[1] - reach || y > box[3] + reach;
+}
+
+// a barrier's segments boxed in runs of this many: a body clear of a run's box is clear of every
+// segment in it, so the run is skipped whole (a rail dented by a pile-up has ~130 segments, which
+// each of ~950 thrown tyres tested a step: tools/crashbench.mjs)
+export const SEG_RUN = 8;
+
+/**
+ * The boxes round a barrier's runs of SEG_RUN segments, flat [minX, minY, maxX, maxY, ...] by run
+ * (cached on it; cleared when its segments are built again).
+ * @param barrier the barrier (with _segs)
+ * @returns the boxes, 4 numbers a run
+ */
+export function segRunBoxes(barrier: Barrier): number[] {
+  if (barrier._runs) return barrier._runs;
+  const segs = barrier._segs!, boxes: number[] = [];
+  for (let first = 0; first < segs.length; first += SEG_RUN) {
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (let i = first; i < Math.min(segs.length, first + SEG_RUN); i++) {
+      minX = Math.min(minX, segs[i].minX); minY = Math.min(minY, segs[i].minY);
+      maxX = Math.max(maxX, segs[i].maxX); maxY = Math.max(maxY, segs[i].maxY);
+    }
+    boxes.push(minX, minY, maxX, maxY);
+  }
+  barrier._runs = boxes;
+  return boxes;
 }
 export function barrierClamp(car: CarBody): void {
   clampToBarriers(car, LEVEL.barriers);

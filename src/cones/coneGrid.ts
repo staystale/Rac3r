@@ -113,6 +113,8 @@ function pair(ctx: ConesCtx, objA: Loose, objB: Loose) {
   const pen = reach - dist;
   objA.x -= nx * pen * invMassA / invMassSum; objA.y -= ny * pen * invMassA / invMassSum;
   objB.x += nx * pen * invMassB / invMassSum; objB.y += ny * pen * invMassB / invMassSum;
+  if (objA._cs === crowdStamp) refileIfPushed(objA);
+  if (objB._cs === crowdStamp) refileIfPushed(objB);
   // closing speed along the normal
   const rel = (objA.vx - objB.vx) * nx + (objA.vy - objB.vy) * ny;
   if (rel <= 0) return;
@@ -142,51 +144,110 @@ function pairWithResting(ctx: ConesCtx, mover: Loose) {
 // 32 ms a step, the budget 8)
 const CROWD = 64;
 
-// the later movers' indices, reused (no allocation a step)
-const LATER: number[] = [];
+// the crowd's movers to pair one mover with, by index, reused (no allocation a step; grown when a
+// crowd outgrows it). A typed array sorts by number natively: sorting a plain array with a compare
+// function was 12 % of a crash bench step (tools/crashbench.mjs)
+let nearBuffer = new Int32Array(1024);
+
+// THE CROWD: its movers filed in a grid by where they are, each refiled when a push takes it more
+// than half CROWD_SLACK from where it was filed. A pair can touch only within the reach (the
+// biggest mover's diameter) of each other, so their filed spots are then within the reach and
+// CROWD_SLACK - one cell - of each other: the 3 x 3 cells round a mover hold every later mover
+// that can touch it. While a mover's turn runs only it and the movers found are pushed, so its
+// search stands until it is refiled itself (then it searches again for the rest). Every pair that
+// can touch is tested, in the same order as each with every later one. (A fixed 2.5 m allowance
+// for pushes searched ~16x the area: ~35 000 pairs tested a step for ~1 000 near enough;
+// tools/crashbench.mjs.)
+const CROWD_SLACK = 0.5;
+// this step's crowd (a crowd mover's _cs)
+let crowdStamp = 0;
+// the crowd's grid: cell key -> movers' indices; each mover's cell x, y; the cell's size (m); the
+// mover whose turn it is, and whether it was refiled in it
+const crowd = { grid: new Map<number, number[]>(), cellOf: [] as number[], size: 1, turn: -1,
+  turnRefiled: false };
 
 /**
- * Every later mover, for a few movers (each with every other, as ever).
- * @param count how many movers
- * @returns mover i -> the indices above it
+ * File a crowd mover in the cell it is in now.
+ * @param mover the mover
+ * @param index its index among the movers
  */
-function everyLater(count: number): (index: number) => number[] {
-  return (index) => {
-    LATER.length = 0;
-    for (let next = index + 1; next < count; next++) LATER.push(next);
-    return LATER;
-  };
+function fileInCrowd(mover: Loose, index: number) {
+  mover._sx = mover.x; mover._sy = mover.y;
+  const cellX = Math.floor(mover.x / crowd.size), cellY = Math.floor(mover.y / crowd.size);
+  crowd.cellOf[index * 2] = cellX; crowd.cellOf[index * 2 + 1] = cellY;
+  const key = cellX * 65536 + cellY;
+  (crowd.grid.get(key) || crowd.grid.set(key, []).get(key)!).push(index);
 }
 
 /**
- * The movers near each mover, through a grid of where they all are at the step's start: for mover
- * i, the later movers (index above i) in the cells round it, in index order - the same pairs, in
- * the same order, as pairing each with every later one, less the ones too far apart to touch
- * (the reach: the biggest mover's diameter, and a cell for the pushes of the pairs before).
- * @param movers the moving objects
- * @returns mover i -> the indices to pair it with
+ * After a push: refile a crowd mover pushed more than half CROWD_SLACK from where it was filed.
+ * @param mover a mover of this step's crowd
  */
-function crowdGrid(movers: Loose[]): (index: number) => number[] {
-  const grid = new Map<number, number[]>(), cellOf: number[] = [];
+function refileIfPushed(mover: Loose) {
+  const half = CROWD_SLACK / 2;
+  if (Math.abs(mover.x - mover._sx!) <= half && Math.abs(mover.y - mover._sy!) <= half) return;
+  const index = mover._ci!, cell = crowd.grid.get(crowd.cellOf[index * 2] * 65536
+    + crowd.cellOf[index * 2 + 1])!;
+  cell.splice(cell.indexOf(index), 1);
+  fileInCrowd(mover, index);
+  if (index === crowd.turn) crowd.turnRefiled = true;
+}
+
+/**
+ * File the crowd's movers by where they start the step.
+ * @param movers the moving objects
+ */
+function fileCrowd(movers: Loose[]) {
+  crowd.grid.clear();
+  crowd.cellOf.length = 0;
   let biggest = 0;
+  for (const mover of movers) biggest = Math.max(biggest, mover.r);
+  crowd.size = 2 * biggest + CROWD_SLACK;
   movers.forEach((mover, index) => {
-    biggest = Math.max(biggest, mover.r);
-    const cellX = Math.floor(mover.x / OBJ_CELL), cellY = Math.floor(mover.y / OBJ_CELL);
-    cellOf.push(cellX, cellY);
-    const key = cellX * 65536 + cellY;
-    (grid.get(key) || grid.set(key, []).get(key)!).push(index);
+    mover._cs = crowdStamp; mover._ci = index;
+    fileInCrowd(mover, index);
   });
-  const span = Math.ceil((2 * biggest) / OBJ_CELL) + 1, found: number[] = [];
-  return (index) => {
-    found.length = 0;
-    const cellX = cellOf[index * 2], cellY = cellOf[index * 2 + 1];
-    for (let x = cellX - span; x <= cellX + span; x++) for (let y = cellY - span; y <= cellY + span;
-      y++) {
-      const cell = grid.get(x * 65536 + y);
-      if (cell) for (const other of cell) if (other > index) found.push(other);
+  if (nearBuffer.length < movers.length) nearBuffer = new Int32Array(movers.length * 2);
+}
+
+/**
+ * The crowd's movers after one in the order filed in the 3 x 3 cells round it.
+ * @param index the mover
+ * @param after only movers with an index above this
+ * @returns how many indices are in nearBuffer, ascending
+ */
+function crowdNear(index: number, after: number): number {
+  const cellX = crowd.cellOf[index * 2], cellY = crowd.cellOf[index * 2 + 1];
+  let found = 0;
+  for (let x = cellX - 1; x <= cellX + 1; x++) for (let y = cellY - 1; y <= cellY + 1; y++) {
+    const cell = crowd.grid.get(x * 65536 + y);
+    if (cell) for (const other of cell) if (other > after) nearBuffer[found++] = other;
+  }
+  nearBuffer.subarray(0, found).sort();
+  return found;
+}
+
+/**
+ * Pair a crowd mover with every later mover that can touch it, in index order.
+ * @param ctx the cones context
+ * @param movers the moving objects
+ * @param index the mover
+ */
+function pairInCrowd(ctx: ConesCtx, movers: Loose[], index: number) {
+  crowd.turn = index;
+  crowd.turnRefiled = false;
+  let count = crowdNear(index, index);
+  for (let slot = 0; slot < count; slot++) {
+    const next = nearBuffer[slot];
+    pair(ctx, movers[index], movers[next]);
+    // pushed into another cell: search again round it for the movers after this one
+    if (crowd.turnRefiled) {
+      crowd.turnRefiled = false;
+      count = crowdNear(index, next);
+      slot = -1;
     }
-    return found.sort((first, second) => first - second);
-  };
+  }
+  crowd.turn = -1;
 }
 
 /**
@@ -211,11 +272,15 @@ export function collideObjects(ctx: ConesCtx) {
   prevMovers.length = 0; for (let i = 0; i < movers.length; i++) prevMovers.push(movers[i]);
   if (!movers.length) return;
   ctx.burst.length = 0;
-  const near = movers.length > CROWD ? crowdGrid(movers) : everyLater(movers.length);
+  // a new stamp every step: no mover of an earlier crowd is taken for one of this one
+  crowdStamp++;
+  const isCrowd = movers.length > CROWD;
+  if (isCrowd) fileCrowd(movers);
   for (let moverIdx = 0; moverIdx < movers.length; moverIdx++) {
     const mover = movers[moverIdx];
     // movers against each other, each pair once (a crowd: only the ones near enough, in order)
-    for (const next of near(moverIdx)) pair(ctx, mover, movers[next]);
+    if (isCrowd) pairInCrowd(ctx, movers, moverIdx);
+    else for (let next = moverIdx + 1; next < movers.length; next++) pair(ctx, mover, movers[next]);
     // movers against whatever is resting in the 3x3 cells around them (skip ones that have
     // since moved)
     pairWithResting(ctx, mover);

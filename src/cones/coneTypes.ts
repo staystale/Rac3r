@@ -25,6 +25,8 @@ export interface Loose {
   _n?: number;   // a fixed creation index (hits are taken in list order)
   _ck?: number;   // the rest-grid cell it is filed in
   _i?: number;   // its list index this step (a mover)
+  // the crowd it moves in this step, its index there and the spot it is filed by
+  _cs?: number; _ci?: number; _sx?: number; _sy?: number;
   _restX?: number; _restY?: number; _restCk?: number;   // its spot + cell when last at rest
   over?: boolean; overTried?: boolean;   // hopping a wall
   impacts?: number; _lastHit?: number;   // distinct hits (chevrons, flags, breaking debris)

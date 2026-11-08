@@ -70,8 +70,17 @@ last handover, written on request.
    seeded fingerprint). Found: 94 % of a step in the loose objects - every moving object paired
    with every other (~900 burst tyres: ~400 000 pairs a step). Exact fixes (fingerprint the same):
    the box reject first, a crowd (>64 movers) paired through a grid - the impact's second 59 -> 15
-   ms a step, worst 84 -> 29 (desktop). NEXT, ask first: objects vs barriers / walls through a grid
-   (~15 %), objects vs cars by distance, sleep settled tyres sooner, cap a burst's tyres.
+   ms a step, worst 84 -> 29 (desktop). ROUND 2 (11-08, exact, fingerprint f3d8ec4d the same): the
+   crowd's indices sorted as numbers (a typed array: the compare function was 12 % of a step);
+   searched in cells of the reach + 0.5 m, a mover refiled when pushed > 0.25 m (exact by
+   construction - the old fixed 2.5 m allowance searched ~16x the area: ~35 000 pairs a step for
+   ~1 000 near enough); a barrier's segments boxed in runs of 8 and met by the reach a touch needs,
+   not the cars' 4 m pad. Back to back on the desktop, the impact's second: median 13.7 -> 6.9 ms a
+   step, p95 22 -> 10.7, worst 26-37 -> 14-17; loose objects ~60 % of it, the 20 cars' own physics
+   ~2 ms. Tried, no gain: a distance test before each car's hitByCar. NEXT: the owner's phone run
+   on the bench (&report=1: frame times, sim vs draw); then, ask first: settled tyres asleep
+   sooner, a burst's tyres capped. Also: objcheck fails on main too (Killder: 6 of 1118 objects at
+   rest move at load).
    ROLLS (owner 11-08, later): the rolling crash relook - check which way a car rolls from an
    impact ("sometimes it seems to roll the wrong way"), and whether a car can roll over things
    (tyres, fences).
