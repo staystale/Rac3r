@@ -203,17 +203,19 @@ export function rollParts(car: DebrisCar, kind: string, side: number, scale: num
     return;
   }
   if (kind === 'side') {
-    shed('mirror', front, 0.4); shed('panel', front, 0.25); shed('panel', rear, 0.2);
-    shed('wing', front, 0.2); shed('wing', rear, 0.2);
-    if (bits.rear === 'spoiler') shed('spoiler', 2, 0.15);
+    // (owner 11-08: "cars should maybe have a high damage from rolling and then also shed more
+    // parts / have a higher chance" - about twice the chances of 11-07)
+    shed('mirror', front, 0.6); shed('panel', front, 0.45); shed('panel', rear, 0.4);
+    shed('wing', front, 0.4); shed('wing', rear, 0.4);
+    if (bits.rear === 'spoiler') shed('spoiler', 2, 0.3);
   } else if (kind === 'roof') {
-    if (bits.rear !== 'none') shed(bits.rear, 2, 0.3);
-    shed('mirror', 0, 0.3); shed('mirror', 1, 0.3);
-    if (bits.front === 'bonnet') shed('bonnet', 0, 0.15);
-    shed('exhaust', 2, 0.1);
+    if (bits.rear !== 'none') shed(bits.rear, 2, 0.5);
+    shed('mirror', 0, 0.5); shed('mirror', 1, 0.5);
+    if (bits.front === 'bonnet') shed('bonnet', 0, 0.3);
+    shed('exhaust', 2, 0.2);
   } else {
-    shed('bumper', 0, 0.15); shed('bumper', 2, 0.15); shed('exhaust', 2, 0.2);
-    shed('engine', bits.engine === 'front' ? 0 : 2, 0.03);
+    shed('bumper', 0, 0.3); shed('bumper', 2, 0.3); shed('exhaust', 2, 0.3);
+    shed('engine', bits.engine === 'front' ? 0 : 2, 0.05);
   }
 }
 

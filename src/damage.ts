@@ -388,7 +388,8 @@ export function stepDamage(car: DamageCar & ScrapeCar & EngineCar, dt: number): 
 export function hitRoll(car: DamageCar, kind: string, side: number, weight: number): void {
   if (!car.dmg) damageInit(car);
   const hurt = car as DamagedCar;
-  const amt = 0.1 + 0.02 * weight, corners = side > 0 ? [1, 3] : [0, 2];
+  // (owner 11-08: "cars should maybe have a high damage from rolling" - x1.5 of 11-07)
+  const amt = 0.15 + 0.03 * weight, corners = side > 0 ? [1, 3] : [0, 2];
   if (kind === 'roof') {
     hurt.roofDmg = Math.min(1, (hurt.roofDmg || 0) + amt * 1.4);
     for (let corner = 0; corner < 4; corner++)
@@ -407,7 +408,7 @@ export function hitRoll(car: DamageCar, kind: string, side: number, weight: numb
   gougeImpact(car as DamageCar & ScrapeCar);
   // (a roll is a hectic crash - the face that hit sheds the bits it carries)
   rollParts(car as Parameters<typeof rollParts>[0], kind, side, Math.min(1, amt / 0.3));
-  // (an open car's wheels tear off too - physics/openwheel.ts)
+  // (a wheel may tear off too, an open car's far more often - physics/openwheel.ts)
   rollRipWheels(hurt, kind, side, Math.min(1, amt / 0.3), Math.random);
   // ... and a rolling car sprays some oil (world/oil.ts)
   if (kind !== 'wheels') {

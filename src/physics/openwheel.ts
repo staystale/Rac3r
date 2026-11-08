@@ -187,13 +187,15 @@ export function ripWheel(car: { wheelOff: boolean[]; wheelSpawn?: number[]; dmgB
   (car.wheelSpawn || (car.wheelSpawn = [])).push(note.corner);
 }
 
-// an OPEN car ROLLING breaks up (owner 11-08: "f1 like cars should absolutely shed parts and break
-// if rolling"): at each meeting with the ground a wheel on that face may tear off (with its
-// wishbones) - on a side that side's two, on the roof or back on its wheels any of the four
-const ROLL_RIP: Record<string, number> = { side: 0.35, roof: 0.15, wheels: 0.12 };
+// a car ROLLING may lose a wheel (owner 11-08: "f1 like cars should absolutely shed parts and
+// break if rolling"; every car "shed more parts"): at each meeting with the ground a wheel on that
+// face may tear off (with its suspension) - on a side that side's two, on the roof or back on its
+// wheels any of the four; an open car's stand out and go far more often
+const ROLL_RIP: Record<string, number> = { side: 0.35, roof: 0.15, wheels: 0.12 },
+  ROLL_RIP_CLOSED: Record<string, number> = { side: 0.05, roof: 0.02, wheels: 0.04 };
 
 /**
- * An open car's wheels torn off as it rolls (damage.ts hitRoll).
+ * A car's wheels torn off as it rolls (damage.ts hitRoll).
  * @param car the car (its damage state made)
  * @param kind 'side', 'roof' or 'wheels'
  * @param side +1 = +y, -1 = -y (a side)
@@ -202,10 +204,11 @@ const ROLL_RIP: Record<string, number> = { side: 0.35, roof: 0.15, wheels: 0.12 
  */
 export function rollRipWheels(car: Parameters<typeof ripWheel>[0], kind: string, side: number,
   scale: number, rnd: () => number): void {
-  if (car.spec?.kind !== 'track' && car.spec?.kind !== 'grass') return;
-  const corners = kind !== 'side' ? [0, 1, 2, 3] : side > 0 ? [1, 3] : [0, 2];
+  const open = car.spec?.kind === 'track' || car.spec?.kind === 'grass',
+    chance = ((open ? ROLL_RIP : ROLL_RIP_CLOSED)[kind] ?? 0) * scale,
+    corners = kind !== 'side' ? [0, 1, 2, 3] : side > 0 ? [1, 3] : [0, 2];
   for (const corner of corners) {
-    if (car.wheelOff[corner] || rnd() >= (ROLL_RIP[kind] ?? 0) * scale) continue;
+    if (car.wheelOff[corner] || rnd() >= chance) continue;
     car.wheelOff[corner] = true;
     wheelBits(car, corner, rnd);
     car.dmgBill = (car.dmgBill || 0) + LOST_WHEEL_BILL;

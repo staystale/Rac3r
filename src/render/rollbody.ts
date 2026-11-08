@@ -66,6 +66,8 @@ interface Body {
 interface Pictures { sides: ProfilePicture[]; under: ProfilePicture }
 
 const BODIES = new WeakMap<RenderCar, Body>();
+// per car: the roll angle it was last drawn at, when, and the spin the screen showed
+const SEEN = new WeakMap<RenderCar, { phi: number; at: number; rate: number }>();
 const PICTURES = new Map<string, Pictures>();
 // the frame count, and the frame the last body was made in (one a frame)
 let frameNo = 0, builtIn = -1;
@@ -521,6 +523,29 @@ function frameAt(body: Body, phi: number): BodyFrame {
 }
 
 /**
+ * The spin the screen shows: the roll angle's change between a car's drawings, eased (owner 11-08:
+ * the whoosh "should fade when a car is still even if on its side or roof" - the roll's own rate
+ * stays as it was while the game is paused or the car held, and the lines kept flickering).
+ * @param car the car
+ * @param phi its roll angle now
+ * @returns rad/s
+ */
+function seenSpin(car: RenderCar, phi: number): number {
+  const now = performance.now(), seen = SEEN.get(car);
+  if (!seen) {
+    SEEN.set(car, { phi, at: now, rate: 0 });
+    return 0;
+  }
+  const gap = (now - seen.at) / 1000;
+  if (gap > 0.004) {
+    seen.rate = seen.rate * 0.5 + (gap > 0.25 ? 0 : (phi - seen.phi) / gap) * 0.5;
+    seen.phi = phi;
+    seen.at = now;
+  }
+  return seen.rate;
+}
+
+/**
  * Whoosh lines OVER the car as it rolls (owner 11-08: "should go over the car as it rolls and be
  * random and fade quick as momentum does"): a few thin pale arcs across the body the way its
  * surface sweeps, at random places along it each moment, as strong as its spin - gone fast as the
@@ -528,7 +553,7 @@ function frameAt(body: Body, phi: number): BodyFrame {
  * @param ctx the canvas
  * @param body the body
  * @param car the car (its number seeds the places)
- * @param spinRate the roll's rate, rad/s
+ * @param spinRate the spin the screen shows, rad/s
  */
 function whoosh(ctx: CanvasRenderingContext2D, body: Body, car: RenderCar, spinRate: number) {
   const strength = Math.min(1, (Math.abs(spinRate) - WHOOSH_W) / WHOOSH_SPAN) ** 2;
@@ -569,7 +594,7 @@ export function drawRolledBody(ctx: CanvasRenderingContext2D, car: RenderCar, sp
     ctx.drawImage(top.c, -top.Lp / 2 - 2, -top.Wp / 2 - 2);
     return;
   }
-  const phi = car.roll!.phi, spinRate = car.roll!.w ?? 0, spin = Math.abs(spinRate),
+  const phi = car.roll!.phi, spinRate = seenSpin(car, phi), spin = Math.abs(spinRate),
     frame = frameAt(body, phi), left = -body.length / 2 - 2;
   const lift = 0.25 * (top.Wp * Math.abs(Math.sin(phi))
     + body.heightMax * Math.abs(Math.cos(phi)) - body.heightMax);
