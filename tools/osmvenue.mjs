@@ -211,7 +211,7 @@ const SERVICE_WIDTH = { service: 5, residential: 6, unclassified: 6, tertiary: 7
 const FOOT_WAYS = new Set(['footway', 'path', 'steps', 'pedestrian']);
 const out = { pieces: [], layouts: {}, pitLanes: [], roads: [], footbridges: [], dirt: [],
   karting: [], tunnels: [], traps: [], tyres: [], stands: [], buildings: [], paddocks: [],
-  woods: [], homes: [], rails: [], aero: [] };
+  woods: [], homes: [], rails: [], aero: [], rows: [] };
 for (const piece of pieces)
   out.pieces.push({ name: piece.name, pts: cleanLine(piece.raw, 0.25) });
 for (const [id, spec] of Object.entries(config.layouts || {})) out.layouts[id] = buildLayout(spec);
@@ -255,6 +255,13 @@ for (const way of ways) {
   else if (tags.building && closed(way))
     out.buildings.push({ name: config.names?.[way.id] || tags.name || '',
       kind: config.kinds?.[way.id] || tags.building, ...boxAround(pts) });
+  // an apron named in "names" as a paddock is one (the race paddock on the airfield's apron)
+  else if (tags.aeroway === 'apron' && /paddock/i.test(config.names?.[way.id] || '') && closed(way))
+    out.paddocks.push({ name: config.names[way.id], surface: tags.surface || 'asphalt',
+      ...boxAround(pts), pts: line(1) });
+  // an aircraft stand: the line a parked aeroplane stands along
+  else if (tags.aeroway === 'parking_position')
+    out.aero.push({ kind: 'stand', surface: '', width: 0, area: false, pts: line(0.5) });
   // an airfield inside the circuit: its runways, taxiways and aprons (paved or grass)
   else if (['runway', 'taxiway', 'apron'].includes(tags.aeroway)
     && !/displaced/.test(tags.runway || ''))
@@ -265,6 +272,8 @@ for (const way of ways) {
     out.paddocks.push({ name: tags.name || '', surface: tags.surface || '', ...boxAround(pts),
       pts: line(1) });
   else if ((tags.natural === 'wood' || tags.landuse === 'forest') && closed(way)) out.woods.push({ pts: line(2) });
+  // hedgerows and tree rows: the trees along the field edges
+  else if (tags.barrier === 'hedge' || tags.natural === 'tree_row') out.rows.push({ pts: line(2) });
 }
 
 // ---- write the module ----

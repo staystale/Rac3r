@@ -15,6 +15,7 @@ import { HALF_ROAD, VENUE_ROAD_M, centreAt, distToLine, lineLength, makePlacer, 
 import { WALL_REACH_M, boxedLine, buildEdge, buildRims, inZones, outlineZone, pastRim,
   trapZones } from "./venueedge.ts";
 import { boardOnArmco, marshalPosts } from "./venueposts.ts";
+import { venueAero, venuePlanes } from "./venueairfield.ts";
 import type { EdgeNeeds, WallLine } from "./venueedge.ts";
 import { REACH_M, cellKey, inBuilding, inSolid, nearArmco, nearRace, onLanes, placeAll }
   from "./venuesite.ts";
@@ -61,6 +62,8 @@ const BAY_M = 2.7, ROW_M = 6.5, BAY_FULL = 0.55, MAX_PARKED = 160;
 const TRUCK_ALONG_M = 17, TRUCK_ACROSS_M = 6, TRUCK_FULL = 0.6, MAX_TRUCKS = 12;
 // trees: how many at most, the share of tries kept outside the woods, m outside the edge
 const MAX_TREES = 260, OPEN_TREE_SHARE = 0.05, TREE_OUT_M = 6;
+// hedgerow trees: m apart along a row, the share kept, the most
+const ROW_TREE_M = 9, ROW_TREE_SHARE = 0.6, MAX_ROW_TREES = 90;
 // m a tree's trunk keeps off a road piece's edge (a raced road the edge already keeps it off; an
 // unraced one - an old line beside a chicane - has no edge): the largest canopy and its shadow
 const TREE_PIECE_M = 6.5;
@@ -441,44 +444,37 @@ function venueTrees(site: Site, bounds: VenueScenery['bounds'], solids: Prop[],
     const reach = Math.max(prop.w || 2, prop.h || 2) / 2 + 3;
     return Math.abs(prop.x - x) < reach && Math.abs(prop.y - y) < reach;
   });
+  const clear = (x: number, y: number) => !(pastRim(site.rims, x, y) < TREE_OUT_M
+    || onLanes(site.lanes, x, y, 4) || onLanes(pieces, x, y, TREE_PIECE_M) || inZones(zones, x, y)
+    || nearSolid(x, y));
   for (let i = 0; i < MAX_TREES * 16 && trees.length < MAX_TREES; i++) {
     const x = bounds.x0 + site.rnd() * (bounds.x1 - bounds.x0);
     const y = bounds.y0 + site.rnd() * (bounds.y1 - bounds.y0);
     if (!inZones(woods, x, y) && site.rnd() > OPEN_TREE_SHARE) continue;
-    if (pastRim(site.rims, x, y) < TREE_OUT_M || onLanes(site.lanes, x, y, 4)
-      || onLanes(pieces, x, y, TREE_PIECE_M) || inZones(zones, x, y) || nearSolid(x, y)) continue;
+    if (!clear(x, y)) continue;
     trees.push({ kind: 'tree', x, y, s: 3.5 + site.rnd() * 3, seed: i });
   }
-  return trees;
+  return [...trees, ...rowTrees(site, bounds, clear)];
 }
 
 /**
- * An airfield's paved runways, taxiways and aprons as tarmac, a grass runway as mown grass (a
- * grass taxiway or apron is the field it lies in), placed and scaled as the map is.
+ * The hedgerows' trees (data.rows), ROW_TREE_M apart along each with some gaps, inside the map.
  * @param site the venue's builders' state
- * @returns the zones
+ * @param bounds the map
+ * @param clear true where a tree may stand
+ * @returns the tree props
  */
-function venueAero(site: Site): Zone[] {
-  const zones: Zone[] = [];
-  for (const way of site.build.spec.data.aero || []) {
-    const grass = way.surface === 'grass';
-    if (grass && way.kind !== 'runway') continue;
-    const surface = grass ? SURFACES.grassShort : SURFACES.tarmac, pts = placeAll(site, way.pts);
-    if (way.area) { zones.push(outlineZone(pts, surface)); continue; }
-    // a line: each stretch a box its width wide (the joints overlap)
-    const half = way.width * site.build.scale / 2;
-    for (let i = 1; i < pts.length; i++) {
-      const [fromX, fromY] = pts[i - 1], [toX, toY] = pts[i];
-      const len = Math.hypot(toX - fromX, toY - fromY) || 1;
-      const alongX = (toX - fromX) / len * half, alongY = (toY - fromY) / len * half;
-      const box = [[-1, 1], [1, 1], [1, -1], [-1, -1]].map(([end, side]): Point => {
-        const [baseX, baseY] = end < 0 ? [fromX, fromY] : [toX, toY];
-        return [baseX + alongX * end - alongY * side, baseY + alongY * end + alongX * side];
-      });
-      zones.push(outlineZone(box, surface));
+function rowTrees(site: Site, bounds: VenueScenery['bounds'],
+  clear: (x: number, y: number) => boolean): Prop[] {
+  const trees: Prop[] = [];
+  for (const row of site.build.spec.data.rows || [])
+    for (const [x, y] of resample(placeAll(site, row.pts), ROW_TREE_M)) {
+      const inside = x > bounds.x0 && x < bounds.x1 && y > bounds.y0 && y < bounds.y1;
+      if (trees.length >= MAX_ROW_TREES || !inside || site.rnd() > ROW_TREE_SHARE || !clear(x, y))
+        continue;
+      trees.push({ kind: 'tree', x, y, s: 3 + site.rnd() * 2.5, seed: 9001 + trees.length });
     }
-  }
-  return zones;
+  return trees;
 }
 
 /**
@@ -738,6 +734,7 @@ export function buildVenueScenery(build: VenueBuild, sub: Subtrack, closed: Lane
     props);
   const zones = [...traps, ...paddocks.zones, ...venuePads(site), ...venueAero(site)];
   const lanes = [pit.lane, ...bridges.lanes, ...tunnels.lanes, ...finished];
+  props.push(...venuePlanes(site, zones, props));
   props.push(...venueTrees(site, bounds, props, zones));
   // the kart track's tyre lines, none on a road
   const karting = spec.data.tyres.flatMap((line) => resample(placeAll(site, line.pts), 1)
