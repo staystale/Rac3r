@@ -138,6 +138,17 @@ last handover, written on request.
    45; T-boned still away. PASSED + DEFAULT 11-08 (owner: "roll over" pass): a car rolling
    faster than 5 rad/s goes over Armco, the wire fence and loose objects up to 60 kg, never a catch
    fence, wall, pit wall or building (physics/tumble.ts).
+   THE ROLLED CAR AS A BODY (owner 11-08 on the F1 + Micra test: "looks like a pass mostly",
+   "make sure all cars are done and it's on main"): DEFAULT 11-08 for every car, the old box of
+   faces deleted (render/cardamage.ts sideSprite / underSprite / rolledFaces). render/rollbody.ts:
+   each column a cross-section in the real roof line (render/carprofile.ts), 12 pictures a turn
+   in bands, the livery from the car's own top sprite on its sides, damage carried; a slight blur
+   and whoosh arcs over the body fading with the spin; at most one body made a frame (11-24 ms on
+   the laptop, tools/scratch/_rollbody.mjs). physics/rollshape.ts: spin kept by roundness, a dig
+   by sharpness, the chance to rest on a side (F1 / F2 3 %, Huracan 10 %, 300 rolls: F1 10, F2 1,
+   Huracan 15 on a side). An open car rolling sheds its wings and sidepods and may lose wheels
+   (world/debris.ts openRollParts, physics/openwheel.ts rollRipWheels). For the owner's check
+   on the phone: the colours, the whoosh, a hitch as a roll starts.
    CASTLE KUM (renamed from Castle Cum, owner 11-08) PASSED 11-08 with its round after the pass:
    the fence audit (catch fence only Folly - Quarry, 336 m; Armco on OSM's rails elsewhere), the
    control tower with its cab and mast and the red marshals' tower by the line, both to scale;
@@ -168,7 +179,9 @@ last handover, written on request.
    venues/snotterton.ts; the venue helper): the 300 / 200 / 100 one venue, 2389 / 1600 / 785 m (real
    4779 / 3219 / 1577), the 100 run anticlockwise by Firmans; spec.starts (the 100 by Tyrrells),
    spec.minR 11 (the real hairpins), a warp widening Firmans; one barrier on the midline between a
-   road's close stretches; stands, banks, the bridge over Bentley Straight. UNDER TEST.
+   road's close stretches; stands, banks, the bridge over Bentley Straight. PASSED + DEFAULT 11-08
+   (owner: "snotterton looks like a straight pass"); left as built: the open grass edges (OSM maps no
+   barriers there), the 100's start by Tyrrells, Brands without the new no-flare-back rule.
 3. ROLLING LOOK - smoother than the dice flip on the same physics; mockup first.
 4. SIDE DRAFTING (Naffcar first), then the Naffcar extras (air brakes, aero upgrades, Dieatona).
 5. MORE HIGHWAY FLAVOURS.

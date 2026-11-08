@@ -12,14 +12,6 @@ export interface TestEntry {
 }
 
 export const TEST_LIST: TestEntry[] = [
-  {
-    id: 'snotterton',
-    added: '2026-11-08',
-    name: 'Snotterton (Snetterton) as a new venue at 1/2 size: the 300, 200 and 100 layouts',
-    where: 'Test link + &snotterton=1: TEST MODE > UK CIRCUITS > Snotterton 300 / 200 / 100',
-    try: 'Lap each layout; look at the pits, the bridge over Bentley Straight, the closures.',
-    wrong: 'A road or prop on the track, a barrier gap, a road to nowhere, a closure in the way.',
-  },
   // (approved late, deleted: fields, grassedge, catchthem, slipsdual, fps - TODO.md 1c; dirtroad,
   // animals, labext, labsplit, zoomhold, gpupaint, minimap, zoomspring, grassgrip, hwmap,
   // cracktufts, sharpcars, sharpmarks, jokerfix, groundlookup, exacttiles, hudmenu, tyreoff,
@@ -68,5 +60,6 @@ export const TEST_LIST: TestEntry[] = [
   // burstcap, tyresleep, stackvary (the crash bench: stacks 1-4 high, bursting by chance), linewall
   // (the line gives a wall by the edge room), tallfence, rollway (rolls the right way),
   // castlecumvenue (Castle Kum as the real venue), rollover (a fast tumble goes over low things),
-  // rollbody (a rolled car drawn as a body in its real shape, every car) passed 2026-11-08)
+  // rollbody (a rolled car drawn as a body in its real shape, every car), snotterton (Snetterton
+  // as a venue: the 300, 200 and 100) passed 2026-11-08)
 ];
