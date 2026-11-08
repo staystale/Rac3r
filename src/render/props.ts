@@ -36,7 +36,8 @@ import {
   drawSolarFarm,
   drawBoard,
 } from './props/scenery.ts';
-import { drawParkedCar, drawTunnel } from './props/venueprops.ts';
+import { drawParkedCar, drawTunnel, drawVenueBridge } from './props/venueprops.ts';
+import { FIX } from '../core/fixes.ts';
 
 /** the drawer of each prop kind (a kind with no entry is only positioned) */
 const PROP_DRAWERS: Record<string, PropDrawer> = {
@@ -108,7 +109,7 @@ function propVisible(view: View, prop: Prop, screenX: number, screenY: number, p
  * @param overhead true for the overhead layer
  */
 function drawPropList(propCtx: PropCtx, overhead = false) {
-  const { view, PPMz, toScreenX, toScreenY, drawSlip } = propCtx;
+  const { PPMz, drawSlip } = propCtx;
   const ppm = PPMz();
   // bushes' leaves poke up over the cars (under the lamp heads and the tree canopies)
   if (overhead) drawBushTufts(propCtx, ppm);
@@ -118,9 +119,9 @@ function drawPropList(propCtx: PropCtx, overhead = false) {
   drawStreetLights(propCtx, ppm, overhead);
   if (!PROPS || !PROPS.length) return;
   for (const prop of PROPS) {
-    // a tree's canopy hangs over the cars too
+    // a tree's canopy hangs over the cars too; a drivable bridge is in both layers
     const isOver = OVERHEAD.has(prop.kind) || prop.kind === 'tree';
-    if (isOver !== overhead) continue;
+    if (isOver !== overhead && !isDrivableBridge(prop)) continue;
     if (prop.kind === 'garagerow') {
       drawGarageRow(propCtx, prop, ppm);
       continue;
@@ -129,18 +130,38 @@ function drawPropList(propCtx: PropCtx, overhead = false) {
       drawSlip(prop, ppm);
       continue;
     }
-    const screenX = toScreenX(prop.x),
-      screenY = toScreenY(prop.y);
-    if (!propVisible(view, prop, screenX, screenY, ppm)) continue;
-    view.ctx.save();
-    view.ctx.translate(screenX, screenY);
-    if (prop.rot) view.ctx.rotate(prop.rot);
-
-    const drawer = PROP_DRAWERS[prop.kind];
-    if (drawer) drawer(propCtx, prop, ppm);
-    view.ctx.restore();
+    drawOneProp(propCtx, prop, ppm, overhead);
   }
 }
+
+/**
+ * Draws one prop at its place and turn, when on screen.
+ * @param propCtx the view, camera and painter helpers
+ * @param prop the prop
+ * @param ppm pixels per metre
+ * @param overhead true in the overhead layer (a drivable bridge's deck, else its base)
+ */
+function drawOneProp(propCtx: PropCtx, prop: Prop, ppm: number, overhead: boolean) {
+  const { view, toScreenX, toScreenY } = propCtx;
+  const screenX = toScreenX(prop.x), screenY = toScreenY(prop.y);
+  if (!propVisible(view, prop, screenX, screenY, ppm)) return;
+  view.ctx.save();
+  view.ctx.translate(screenX, screenY);
+  if (prop.rot) view.ctx.rotate(prop.rot);
+  const drawer = PROP_DRAWERS[prop.kind];
+  if (isDrivableBridge(prop)) drawVenueBridge(propCtx, prop, ppm, overhead ? 'deck' : 'base');
+  else if (drawer) drawer(propCtx, prop, ppm);
+  view.ctx.restore();
+}
+
+/**
+ * Whether a prop is a drivable venue bridge (world/crossings.ts): its ramps and abutments are drawn
+ * under the cars (ground a car drives up), its deck over them.
+ * @param prop the prop
+ * @returns true for one
+ */
+const isDrivableBridge = (prop: Prop): boolean => FIX.crossings && prop.kind === 'bridge'
+  && prop.look === 'venue';
 
 /**
  * Builds the props layer: the fence, the barriers and the trackside props.

@@ -19,7 +19,8 @@ import { WEATHER } from "./world/weather.ts";
 import { CORNER_OF_WHEEL, wheelGone, metalCorner } from "./world/wheels.ts";
 import { MARK_GOUGE } from "./world/metalscrape.ts";
 import { addTrailPoint, clearWetTrails } from "./wettrail.ts";
-import type { Mark, Spray, Surface, WheelGround } from './world/types.ts';
+import { acrossOf, alongOf } from "./world/crossinggeo.ts";
+import type { Crossing, Mark, Spray, Surface, WheelGround } from './world/types.ts';
 
 // EXTENT is the FENCE, not the floor, so what happens in the run-off (gravel tracks) is
 // recorded too. The resolution is kept at 4.2 px/m so memory stays flat: a finer layer over this
@@ -53,8 +54,14 @@ interface MarkState {
   live?: Set<number>;   // the fade cells holding marks (the aged fade)
 }
 
-/** What every marks function takes. */
-interface MarkCtx { layer: HTMLCanvasElement; ctx: CanvasRenderingContext2D; state: MarkState }
+/**
+ * What every marks function takes. A bridge's or tunnel's own layer (world/crossings.ts) maps a
+ * world point into it (map): it never moves, keeps no wet trails and has no aged fade.
+ */
+interface MarkCtx {
+  layer: HTMLCanvasElement; ctx: CanvasRenderingContext2D; state: MarkState;
+  map?: (worldX: number, worldY: number) => number[];
+}
 
 /** One wheel this step: where, how hard it slips, how wide, what it marks and throws, its heat. */
 export interface MarkWheel {
@@ -179,6 +186,8 @@ function followMarks(markCtx: MarkCtx, x: number, y: number) {
  * @param markCtx the marks context
  */
 function clearMarks(markCtx: MarkCtx) {
+  // the bridges' and tunnels' own layers go with them (a restart, a new level)
+  CROSSING_MARKS.clear();
   const { ctx, state } = markCtx;
   ctx.clearRect(0, 0, SIZE, SIZE);
   state.shiftX = 0;
@@ -391,67 +400,116 @@ function dropRubberBall(markCtx: MarkCtx, wheel: MarkWheel, from: number[], dest
 const JUMP_M = 3;
 
 /**
+ * Where a wheel's mark this step starts, or null when it lays none: it did not slip (or rolls on a
+ * wet road: a trail, wettrail.ts), has not moved far enough, or jumped. Moves its last place on.
+ *
+ * @param markCtx the marks context
+ * @param wheel the wheel { key, x, y, slip, width, mark }
+ * @returns the last place to stroke from, or null
+ */
+function strokeStart(markCtx: MarkCtx, wheel: MarkWheel): { x: number; y: number } | null {
+  const { prev } = markCtx.state;
+  const last = prev.get(wheel.key);
+  // A LOOSE SURFACE MARKS WHETHER YOU SLIP OR NOT — a rolling wheel still cuts a rut through
+  // gravel. The wheel's mark comes off the surface itself (lab.ts), so this file has no idea what
+  // gravel is; a surface without one behaves exactly as before, which is the rule-6 no-op
+  // default.
+  const loose = wheel.mark;
+  // WET TRAIL: a wheel on a wet road lays a short fading trail (wettrail.ts), not a mark in this
+  // layer (none on a bridge's or tunnel's own layer)
+  if (last && loose === MARK_WET && !markCtx.map)
+    addTrailPoint(wheel.key, wheel.x, wheel.y, wheel.width * MARK_WET.widen);
+  if (!last || loose === MARK_WET || (!loose && !(wheel.slip > SLIP_FLOOR))) {
+    prev.set(wheel.key, { x: wheel.x, y: wheel.y });
+    return null;
+  }
+  // not far enough yet: keep prev
+  const moved = Math.hypot(wheel.x - last.x, wheel.y - last.y);
+  if (moved < STAMP_STEP) return null;
+  // (passed 11-04; owner: a mark "appeared after I reset my car") a wheel that JUMPED (a reset,
+  // a relocate: farther than any wheel goes in a step) starts a new mark there - it was stroked
+  // from where it had been, across the ground in between (the wear has the same 3 m guard)
+  prev.set(wheel.key, { x: wheel.x, y: wheel.y });
+  return moved > JUMP_M ? null : last;
+}
+
+/**
  * Stamps one wheel's mark for this step, if it slipped and moved far enough.
  *
  * @param markCtx the marks context
  * @param wheel the wheel { key, x, y, slip, width, mark, heat }
  */
 function stampWheel(markCtx: MarkCtx, wheel: MarkWheel) {
-  const { prev } = markCtx.state;
-  const last = prev.get(wheel.key);
-  if (!last) {
-    prev.set(wheel.key, { x: wheel.x, y: wheel.y });
-    return;
-  }
-  // A LOOSE SURFACE MARKS WHETHER YOU SLIP OR NOT — a rolling wheel still cuts a rut through
-  // gravel. `w.mark` comes off the surface itself (lab.ts), so this file has no idea what
-  // gravel is; a surface without one behaves exactly as before, which is the rule-6 no-op
-  // default.
-  const loose = wheel.mark;
-  // WET TRAIL: a wheel on a wet road lays a short fading trail (wettrail.ts), not a mark in this
-  // layer
-  if (loose === MARK_WET) {
-    prev.set(wheel.key, { x: wheel.x, y: wheel.y });
-    addTrailPoint(wheel.key, wheel.x, wheel.y, wheel.width * MARK_WET.widen);
-    return;
-  }
-  if (!loose && !(wheel.slip > SLIP_FLOOR)) {
-    prev.set(wheel.key, { x: wheel.x, y: wheel.y });
-    return;
-  }
-  // not far enough yet: keep prev
-  const moved = Math.hypot(wheel.x - last.x, wheel.y - last.y);
-  if (moved < STAMP_STEP) return;
-  // (passed 11-04; owner: a mark "appeared after I reset my car") a wheel that JUMPED (a reset,
-  // a relocate: farther than any wheel goes in a step) starts a new mark there - it was stroked
-  // from where it had been, across the ground in between (the wear has the same 3 m guard)
-  if (moved > JUMP_M) {
-    prev.set(wheel.key, { x: wheel.x, y: wheel.y });
-    return;
-  }
-  prev.set(wheel.key, { x: wheel.x, y: wheel.y });
+  const last = strokeStart(markCtx, wheel);
+  if (!last) return;
   // guard: a NaN here paints nothing but throws in some engines (rule 20)
   if (!Number.isFinite(wheel.x) || !Number.isFinite(wheel.y)
     || !Number.isFinite(last.x)) return;
   // A3: clamp to the layer. Past the fence the mark simply is not recorded — an explicit
   // decision at a known boundary rather than a silent no-op.
-  const { state } = markCtx;
-  if (Math.abs(wheel.x - state.shiftX / MARK_PPM) > MARK_EXTENT
-    || Math.abs(wheel.y - state.shiftY / MARK_PPM) > MARK_EXTENT) return;
+  const { state, map } = markCtx;
+  if (!map && (Math.abs(wheel.x - state.shiftX / MARK_PPM) > MARK_EXTENT
+    || Math.abs(wheel.y - state.shiftY / MARK_PPM) > MARK_EXTENT)) return;
 
-  const from = toPx(last.x, last.y);
-  const dest = toPx(wheel.x, wheel.y);
+  const from = (map || toPx)(last.x, last.y);
+  const dest = (map || toPx)(wheel.x, wheel.y);
   if (state.wraps) {
     // into the layer: the end inside it, the start moved by the same whole layers
     const baseX = Math.floor(dest[0] / SIZE) * SIZE, baseY = Math.floor(dest[1] / SIZE) * SIZE;
     from[0] -= baseX; dest[0] -= baseX;
     from[1] -= baseY; dest[1] -= baseY;
   }
-  strokeMark(markCtx, wheel, loose, from, dest);
+  strokeMark(markCtx, wheel, wheel.mark, from, dest);
   dropRubberBall(markCtx, wheel, from, dest);
   // the stroke's width plus how far off it a rubber ball may land
-  noteMarked(markCtx, from, dest, markCtx.ctx.lineWidth + (wheel.width * 1.2 + 0.7)
+  if (!map) noteMarked(markCtx, from, dest, markCtx.ctx.lineWidth + (wheel.width * 1.2 + 0.7)
     * MARK_PPM);
+}
+
+// m round a crossing's way its marks layer reaches (a wheel over the edge of its road)
+export const CROSSING_MARK_MARGIN_M = 2;
+// each bridge's and tunnel's own marks layer, made when its first mark is laid
+const CROSSING_MARKS = new Map<Crossing, MarkCtx>();
+
+/**
+ * A crossing's marks layer: px x along its way from end A (less the margin), y across it from
+ * its least wall (less the margin).
+ * @param way the crossing
+ * @returns its marks context
+ */
+function crossingLayer(way: Crossing): MarkCtx {
+  let markCtx = CROSSING_MARKS.get(way);
+  if (markCtx) return markCtx;
+  const margin = CROSSING_MARK_MARGIN_M, layer = document.createElement('canvas');
+  layer.width = Math.ceil((way.length + 2 * margin) * MARK_PPM);
+  layer.height = Math.ceil((way.maxAcross - way.minAcross + 2 * margin) * MARK_PPM);
+  const ctx = layer.getContext('2d')!;
+  ctx.lineCap = 'round';
+  markCtx = { layer, ctx, state: { prev: new Map(), stamps: 0, shiftX: 0, shiftY: 0,
+    wraps: false }, map: (worldX, worldY) => [
+    (alongOf(way, worldX, worldY) + margin) * MARK_PPM,
+    (acrossOf(way, worldX, worldY) - way.minAcross + margin) * MARK_PPM] };
+  CROSSING_MARKS.set(way, markCtx);
+  return markCtx;
+}
+
+/**
+ * Stamps a car's wheels on the bridge or tunnel it is on (its own layer: drawn over the deck and
+ * ramps, a tunnel's only in its open cuts - render/screen.ts).
+ * @param way the crossing
+ * @param wheels the car's wheels (listWheels)
+ */
+export function stampCrossingMarks(way: Crossing, wheels: MarkWheel[]): void {
+  stampMarks(crossingLayer(way), wheels);
+}
+
+/**
+ * Calls draw for each crossing that has marks.
+ * @param draw draws one crossing's layer (px: MARK_PPM a metre, from the margin before end A and
+ * its least wall)
+ */
+export function forEachCrossingMarks(draw: (way: Crossing, layer: HTMLCanvasElement) => void) {
+  for (const [way, markCtx] of CROSSING_MARKS) draw(way, markCtx.layer);
 }
 
 /**

@@ -52,6 +52,14 @@ last handover, written on request.
    BUILT 11-08 behind ?crossings=1 (world/crossings.ts, crossinggeo.ts; tools/crossingcheck.mjs:
    both Brands layouts all OK - on at one end, held by the walls, off at the other; a ground car
    cannot get on from the side; a car on the track below stays on the ground). UNDER TEST.
+   ROUND 2 (owner 11-08: "snap" at the ends, "no transparent car", marks on decks/ramps): the
+   bridge's ramps drawn under the cars (deck over), a tunnel car hidden only under the ground (no
+   faint car), each crossing's own marks layer (marks.ts). OPEN: the footway tunnel under Brabham
+   is closed - its paddock mouth opens 2.5 m from Cooper Straight's Armco (our squeezed infield);
+   owner to choose: run it on under Cooper Straight, bend it to come up on the paddock road, or
+   keep it a footpath (steps).
+   NEXT (owner 11-08): a performance check of everything new; catch
+   fences slightly weaker and shredding to bits when hit.
    OWNER RULE (11-07): never the black wire / rope fence ('fence' barrier) - the old levels still
    use it (Castle Cum, Thruston): replace as each gets its venue pass.
    CREDITS PASSED 11-08 (menu/credits.ts, on the main menu): "made by G"; the owner wants a studio

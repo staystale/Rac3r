@@ -222,5 +222,5 @@ is the spec of one). Its road bridges and tunnels are LEVELS a car can drive (`?
 its centre comes in over an end between the walls and off when it passes an end; on one it meets only the
 crossing's walls, drives on its deck (`crossinggeo.ts`: tarmac, straight from end height to end height, no
 wear), touches only cars on it (`contact.ts`), stamps no marks, throws no effects, counts no lap
-(`game/order.ts`), and is drawn over the bridge or, in a tunnel, only in the portals' open cuts (the
-player's own faint under the ground: `render/screen.ts`). `tools/crossingcheck.mjs` drives every one.
+(`game/order.ts`), and is drawn over the bridge or, in a tunnel, only outside its underground stretch
+(`render/screen.ts`); its tyre marks are its own layer, drawn the same way (`marks.ts`). `tools/crossingcheck.mjs` drives every one.

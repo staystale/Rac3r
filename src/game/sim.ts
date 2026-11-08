@@ -14,7 +14,8 @@ import { WEATHER } from "../world/weather.ts";
 import { stepWetTrails } from "../wettrail.ts";
 import { applyGround } from "../world/wear.ts";
 import { clampWorld } from "../world/crossings.ts";
-import { onGround } from "../world/crossinggeo.ts";
+import { crossingOf, onGround } from "../world/crossinggeo.ts";
+import { stampCrossingMarks } from "../marks.ts";
 import { takeThrownPlanks } from "../world/marshalbox.ts";
 import { throwParts, stepParts } from "../world/debris.ts";
 import { findNearestSubtrackPoint } from "../world/tyrewall.ts";
@@ -23,7 +24,7 @@ import { doReset, onScreen } from './session.ts';
 import { shared, game } from './state.ts';
 import { stepAIInjury } from './ai.ts';
 import { wakeStep } from '../physics/wake.ts';
-import type { CarInput } from '../vehicle.ts';
+import type { Car, CarInput } from '../vehicle.ts';
 import type { TrafficVehicle } from '../ai/types.ts';
 
 export function recoverCar(why: unknown) {
@@ -478,20 +479,28 @@ function looseRim(spec: { id: string; len: number; rim?: string; spokes?: string
 }
 
 /**
+ * Stamps one car's wheels: on the ground's marks, or on the bridge's or tunnel's it is on.
+ * @param car the car
+ */
+function stampTyres(car: Car) {
+  const way = crossingOf(car), wheels = game.marks.wheelsOf(car);
+  if (way) stampCrossingMarks(way, wheels);
+  else game.marks.stamp(wheels);
+}
+
+/**
  * Tyre marks for one sim step: the AI, skidding traffic and the player stamp the road.
  * @param tcars the traffic cars
  */
 export function stepTyreMarks(tcars: TrafficVehicle[]) {
-  for (const entry of game.ai)
-    if (!rolling(entry.car) && onGround(entry.car))
-      game.marks.stamp(game.marks.wheelsOf(entry.car));
+  for (const entry of game.ai) if (!rolling(entry.car)) stampTyres(entry.car);
   // a skidding / crashing traffic car marks the road
   for (const racer of tcars) if (!rolling(racer) && racer.dmg
     && (Math.abs(racer.t.slipR) > 0.1 || racer.t.lockedF
       || racer.t.lockedR)) game.marks.stamp(game.marks.wheelsOf(racer));
   game.marks.follow(game.car.x, game.car.y);
   // marks are stamped on the SIM step: a mark is world bookkeeping, not an animation
-  if (!rolling(game.car) && onGround(game.car)) game.marks.stamp(game.marks.wheelsOf(game.car));
+  if (!rolling(game.car)) stampTyres(game.car);
   game.marks.fade(PHYSICS_STEP_SECONDS);
   stepWetTrails(PHYSICS_STEP_SECONDS);
 }

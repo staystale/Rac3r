@@ -265,8 +265,8 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   test): a car changes level only through an END (a ramp's foot, a portal's open end); on one it
   meets only its walls, its deck, the cars on it - nothing on the ground, no marks, no lap. The
   ground meets the ends as solid (ramp walls + abutment, portal walls + lintel). A tunnel car is
-  seen only in the open cuts; the player's own shows faint underground to steer by (a choice made
-  for playability, open to the owner). tools/crossingcheck.mjs drives each one both ways.
+  seen only in the open cuts, hidden under the ground (owner 11-08: "if it's hidden it's hidden" -
+  no faint car). tools/crossingcheck.mjs drives each one both ways.
 - "Straight Outta Swindon" is a reserved name for a future highway level (the test straight that
   used it was removed 10-17).
 

@@ -61,7 +61,7 @@ export const TEST_LIST: TestEntry[] = [
     added: '2026-11-08',
     name: 'Drivable bridges and tunnels (Brands: 2 road bridges, the Paddock Hill tunnel)',
     where: 'Test link + &crossings=1: TEST MODE > UK CIRCUITS > Brands Snatch GP or Indy',
-    try: 'Leave the track by the pit exit roads, drive up a bridge ramp / down into the tunnel.',
-    wrong: 'Stuck on a ramp, through a wall, hitting cars below, a lap counted, marks on track.',
+    try: 'Out via the pits to the service roads; up a bridge ramp, into the tunnel; skid on them.',
+    wrong: 'A snap at a ramp or mouth, stuck, through a wall, hitting cars below, marks under.',
   },
 ];

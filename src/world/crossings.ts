@@ -19,7 +19,8 @@ import type { Barrier, CarBody, Crossing, Point, Prop } from "./types.ts";
 
 // m: a crossing's walls are 'wall' barriers (half thickness 0.45, world/barriers.ts BARRIER_HALF)
 const WALL_HALF_M = 0.45;
-// m: a vehicle tunnel's portal is at least this wide (a footway's is 4.2: not driven)
+// m: a vehicle tunnel's portal is at least this wide (a footway's is 4.2: closed - at Brands its
+// paddock mouth opens 2.5 m from Cooper Straight's Armco, no room to drive out)
 const VEHICLE_PORTAL_M = 6;
 
 /**
@@ -139,8 +140,12 @@ export function venueCrossings(props: Prop[]): Crossing[] {
   if (!FIX.crossings) return [];
   const portals = props.filter((prop) => prop.kind === 'tunnel' && prop.h! >= VEHICLE_PORTAL_M);
   const tunnels: Crossing[] = [];
-  for (let i = 0; i + 1 < portals.length; i += 2) tunnels.push(tunnelCrossing(portals[i],
-    portals[i + 1]));
+  for (let i = 0; i + 1 < portals.length; i++) {
+    // a tunnel's two portals face each other across the track
+    if (Math.cos((portals[i].rot || 0) - (portals[i + 1].rot || 0)) > -0.99) continue;
+    tunnels.push(tunnelCrossing(portals[i], portals[i + 1]));
+    i++;
+  }
   return [...props.filter((prop) => prop.kind === 'bridge' && prop.look === 'venue')
     .map(bridgeCrossing), ...tunnels];
 }

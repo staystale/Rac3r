@@ -7,7 +7,8 @@ import { drawWetTrails } from "../wettrail.ts";
 import { drawStingers } from "./stingers.ts";
 import { drawFlipRamps } from "./flipramps.ts";
 import type { CarPicture } from "./cars.ts";
-import { crossingOf, isUnderground } from "../world/crossinggeo.ts";
+import { crossingOf } from "../world/crossinggeo.ts";
+import { CROSSING_MARK_MARGIN_M, MARK_PPM, forEachCrossingMarks } from "../marks.ts";
 import { LEVEL } from "../world/state.ts";
 import type { RenderCar, RenderGame, RenderMarks, View } from "./types.ts";
 import type { Crossing } from "../world/types.ts";
@@ -75,8 +76,8 @@ export function forEachDrawnCar(ctx: ScreenCtx, game: RenderGame,
  * factor (nearest), then turned and scaled onto the screen with smoothing, which blends only
  * across its pixel edges; then the art buffer is cleared, takes the overhead props and is blitted
  * over the cars. A car on a bridge (world/crossings.ts) is drawn after that, over the bridge; one
- * in a tunnel only where it is in a portal's open cut - and the player's own, under the ground,
- * faint over everything so it can be steered.
+ * in a tunnel only where it is not under the ground (there it is hidden). A crossing's tyre
+ * marks (marks.ts) are drawn with its cars.
  *
  * @param ctx the renderer context
  * @param game the game to draw
@@ -87,13 +88,16 @@ export function drawSharpCarLayers(ctx: ScreenCtx, game: RenderGame, lock: Scree
   blitArt(ctx, lock);
   mainCtx.save();
   const sharp = sharpScale(ctx, lock);
+  // the tunnels' tyre marks over their portals' cuts (none shows under the ground)
+  if (LEVEL.crossings) drawCrossingMarks(ctx, sharp, 'tunnel');
   drawSparksOnScreen(ctx, lock);
   forEachDrawnCar(ctx, game, (car) => {
     const way = crossingOf(car);
     if (!way) drawSharpCar(ctx, car, sharp);
     else if (way.kind === 'tunnel') {
+      // hidden only where it is under the ground: it goes under the lintel bit by bit
       mainCtx.save();
-      clipToCuts(ctx, way, sharp);
+      clipAboveGround(ctx, way, sharp);
       drawSharpCar(ctx, car, sharp);
       mainCtx.restore();
     }
@@ -108,19 +112,40 @@ export function drawSharpCarLayers(ctx: ScreenCtx, game: RenderGame, lock: Scree
   if (!LEVEL.crossings) return;
   mainCtx.save();
   sharpScale(ctx, lock);
+  // the bridges' tyre marks on their decks and ramps, then the cars on them
+  drawCrossingMarks(ctx, sharp, 'bridge');
   forEachDrawnCar(ctx, game, (car) => {
     const way = crossingOf(car);
     if (way && way.kind === 'bridge') drawSharpCar(ctx, car, sharp);
   });
-  if (isUnderground(game.car) && !ctx.skip('car')) {
-    mainCtx.globalAlpha = UNDERGROUND_ALPHA;
-    drawSharpCar(ctx, game.car, sharp);
-  }
   mainCtx.restore();
 }
 
-// the player's own car under the ground (in a tunnel): drawn this faint over everything
-const UNDERGROUND_ALPHA = 0.4;
+/**
+ * Draws the tyre marks laid on each bridge or each tunnel (marks.ts: each its own layer in its
+ * own frame) - a tunnel's only outside its underground stretch.
+ * @param ctx the renderer context
+ * @param sharp the frame's sharp-car scale
+ * @param kind the bridges' or the tunnels'
+ */
+function drawCrossingMarks(ctx: ScreenCtx, sharp: SharpScale, kind: Crossing['kind']) {
+  const { mainCtx } = ctx, perPx = (ctx.PPMz() / MARK_PPM) * sharp.devPerCss;
+  forEachCrossingMarks((way, layer) => {
+    if (way.kind !== kind) return;
+    mainCtx.save();
+    if (kind === 'tunnel') clipAboveGround(ctx, way, sharp);
+    mainCtx.setTransform(1, 0, 0, 1, 0, 0);
+    mainCtx.translate(ctx.toScreenX(way.ax) * sharp.devPerCss + sharp.subX,
+      ctx.toScreenY(way.ay) * sharp.devPerCss + sharp.subY);
+    mainCtx.rotate(Math.atan2(way.dirY, way.dirX));
+    mainCtx.scale(perPx, perPx);
+    // as the ground's marks: hard blocks (render/road.ts drawMarks)
+    mainCtx.imageSmoothingEnabled = false;
+    mainCtx.drawImage(layer, -CROSSING_MARK_MARGIN_M * MARK_PPM,
+      (way.minAcross - CROSSING_MARK_MARGIN_M) * MARK_PPM);
+    mainCtx.restore();
+  });
+}
 
 /** How a frame's sharp cars are put on the screen: device px a CSS px, enlargement, scale. */
 interface SharpScale { devPerCss: number; enlarge: number; scale: number; subX: number;
@@ -161,18 +186,19 @@ function drawSharpCar(ctx: ScreenCtx, car: RenderCar, sharp: SharpScale) {
   mainCtx.setTransform(1, 0, 0, 1, 0, 0);
 }
 
-// m: a tunnel's cut drawn this much wider than its walls (a car's mirror over the wall's top)
-const CUT_MARGIN_M = 0.6;
+// m: a tunnel's underground stretch reaches this far past its walls (a car's mirror over them)
+const UNDERGROUND_MARGIN_M = 0.6;
 
 /**
- * Clips the screen canvas to a tunnel's two open cuts (where its cars are seen).
+ * Clips the screen canvas to everything but a tunnel's underground stretch (from one portal's
+ * lintel to the other's): what is in it is hidden.
  * @param ctx the renderer context
  * @param way the tunnel
  * @param sharp the frame's sharp-car scale
  */
-function clipToCuts(ctx: ScreenCtx, way: Crossing, sharp: SharpScale) {
+function clipAboveGround(ctx: ScreenCtx, way: Crossing, sharp: SharpScale) {
   const { mainCtx } = ctx;
-  const least = way.minAcross - CUT_MARGIN_M, most = way.maxAcross + CUT_MARGIN_M;
+  const least = way.minAcross - UNDERGROUND_MARGIN_M, most = way.maxAcross + UNDERGROUND_MARGIN_M;
   const corner = (along: number, across: number, first: boolean) => {
     const x = way.ax + way.dirX * along - way.dirY * across;
     const y = way.ay + way.dirY * along + way.dirX * across;
@@ -183,14 +209,14 @@ function clipToCuts(ctx: ScreenCtx, way: Crossing, sharp: SharpScale) {
   };
   mainCtx.setTransform(1, 0, 0, 1, 0, 0);
   mainCtx.beginPath();
-  for (const [near, far] of [[0, way.cut], [way.length - way.cut, way.length]]) {
-    corner(near, least, true);
-    corner(far, least, false);
-    corner(far, most, false);
-    corner(near, most, false);
-    mainCtx.closePath();
-  }
-  mainCtx.clip();
+  // the whole canvas, the stretch cut out of it (even-odd)
+  mainCtx.rect(0, 0, ctx.canvas.width, ctx.canvas.height);
+  corner(way.cut, least, true);
+  corner(way.length - way.cut, least, false);
+  corner(way.length - way.cut, most, false);
+  corner(way.cut, most, false);
+  mainCtx.closePath();
+  mainCtx.clip('evenodd');
 }
 
 /**
