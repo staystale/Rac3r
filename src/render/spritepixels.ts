@@ -68,6 +68,15 @@ export function notePutPixels(canvas: HTMLCanvasElement, img: ImageData) {
   READ.set(canvas, new ImageData(read, img.width, img.height));
 }
 
+/**
+ * A sprite's pixels to read, not change (read back once, kept).
+ * @param source the sprite's canvas (never painted again)
+ * @returns its pixels
+ */
+export function spritePixels(source: HTMLCanvasElement): ImageData {
+  return READ.get(source) || readSprite(source);
+}
+
 /** A fresh canvas the size of a sprite, its context, and the sprite's pixels to change and put. */
 export interface SpriteWork {
   canvas: HTMLCanvasElement;

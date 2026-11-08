@@ -1,4 +1,4 @@
-// _rollbody.mjs - the rolled car as a BODY (?rollbody=1, render/rollbody.ts), in the game: for
+// _rollbody.mjs - the rolled car as a BODY (render/rollbody.ts), in the game: for
 // each car 300 rolls stepped straight through roll.ts (where they came to rest - wheels / side /
 // roof - and the quarter turns each); the cost (ms) of making its body and its pictures; then in
 // the Lab, clean and damaged (a crushed front corner and roof, a lost door, wing and wheel), the
@@ -6,7 +6,9 @@
 // real roll photographed mid-spin (-live.png, the blur and whoosh lines).
 // node tools/scratch/_rollbody.mjs [cars] [extra query]
 import { startServer, launchBrowser, gotoGame } from '../lib/browser.mjs';
-const [carsArg = 'track-rwd,mikra-r1', query = 'rollbody=1'] = process.argv.slice(2);
+// SHOTS=0: only the numbers
+const [carsArg = 'track-rwd,mikra-r1', query = 'x=1'] = process.argv.slice(2),
+  SHOTS = process.env.SHOTS !== '0';
 const server = await startServer();
 const browser = await launchBrowser();
 const CLIP = 150;
@@ -27,28 +29,30 @@ async function setUp([id, damaged]) {
     rests[!test.roll ? 'wheels' : test.roll.phase]++;
   }
   // the cost: a fresh body and its 12 pictures, then a drawing of a made one
-  const { drawRolledBody } = await import('/src/render/rollbody.ts');
+  const { drawRolledBody, newBodyFrame } = await import('/src/render/rollbody.ts');
   const { drawnSpec } = await import('/src/render/cars.ts');
   const { createCarSprite } = await import('/src/render/carsprite.ts');
   const spec = drawnSpec(car.spec), sprite = createCarSprite().pixelCar(spec),
     off = document.createElement('canvas').getContext('2d');
   // (one body first: the pictures' first reads, which the game does on quiet frames)
-  drawRolledBody(off, { ...car, roll: { phi: 1, w: 0 } }, spec, sprite, 4);
+  newBodyFrame();
+  drawRolledBody(off, { ...car, roll: { phi: 1, w: 0 } }, spec, [sprite, sprite], 4);
   const copy = { ...car }, cost = [];
   for (let k = 0; k < 12; k++) {
     copy.roll = { phase: 'rolling', phi: k * Math.PI / 6, w: 0 };
+    newBodyFrame();
     const start = performance.now();
-    drawRolledBody(off, copy, spec, sprite, 4);
+    drawRolledBody(off, copy, spec, [sprite, sprite], 4);
     cost.push(performance.now() - start);
   }
   const again = performance.now();
-  for (let k = 0; k < 100; k++) drawRolledBody(off, copy, spec, sprite, 4);
+  for (let k = 0; k < 100; k++) drawRolledBody(off, copy, spec, [sprite, sprite], 4);
   if (damaged) {
     car.dmg = [0.7, 0.2, 0.3, 0.1]; car.crushL = [0.5, 0.1, 0.1, 0];
     car.crushS = [0.4, 0, 0.3, 0]; car.roofDmg = 0.5; car.wheelOff = [false, false, false, true];
     car.partLost = 'panel:0,wing:2';
   }
-  game.renderer.debugZoom(3.4);
+  game.renderer.debugZoom(2.4);
   return { rests, turnsEach: +(turns / 300).toFixed(2), firstMs: +cost[0].toFixed(1),
     eachFrameMs: +(cost.slice(1).reduce((a, b) => a + b, 0) / 11).toFixed(2),
     drawMs: +((performance.now() - again) / 100).toFixed(3) };
@@ -56,13 +60,18 @@ async function setUp([id, damaged]) {
 
 try {
   for (const carId of carsArg.split(',')) {
-    for (const hurt of [false, true]) {
+    for (const hurt of SHOTS ? [false, true] : [false]) {
       const page = await browser.newPage({ viewport: { width: 390, height: 600 } });
       const errors = []; page.on('pageerror', (err) => errors.push(err.message));
       await gotoGame(page, `${server.url}/?pc=1&guide=0&menu=0&rules=0&noaudio=1&${query}`);
       await page.mouse.click(200, 300);
       await page.waitForTimeout(1200);
       const res = await page.evaluate(setUp, [carId, hurt]);
+      if (!SHOTS) {
+        console.log(carId, JSON.stringify(res), errors.length ? 'ERRORS ' + errors.join(' | ') : 'errors none');
+        await page.close();
+        continue;
+      }
       await page.waitForTimeout(1500);
       const shots = [];
       for (let k = 0; k < 12; k++) {

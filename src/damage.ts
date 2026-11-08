@@ -19,7 +19,8 @@ import {
 } from './physics/posthit.ts';
 import { CORNER_OF_WHEEL } from './world/wheels.ts';
 import { railGive } from './world/armcodent.ts';
-import { ripWheel, takeWheelHit, wheelShares, type WheelHit } from './physics/openwheel.ts';
+import { ripWheel, rollRipWheels, takeWheelHit, wheelShares, type WheelHit }
+  from './physics/openwheel.ts';
 // damage.ts — CAR DAMAGE. Bookkeeping on the sim step; vehicle.ts reads only
 // car.wreck (multipliers, no-op by default — CLAUDE.md §2 rule 6), render.ts draws the crush /
 // dents / chips / loose wheels, hud.ts the tyre diagram, the results the repair bill.
@@ -406,6 +407,8 @@ export function hitRoll(car: DamageCar, kind: string, side: number, weight: numb
   gougeImpact(car as DamageCar & ScrapeCar);
   // (a roll is a hectic crash - the face that hit sheds the bits it carries)
   rollParts(car as Parameters<typeof rollParts>[0], kind, side, Math.min(1, amt / 0.3));
+  // (an open car's wheels tear off too - physics/openwheel.ts)
+  rollRipWheels(hurt, kind, side, Math.min(1, amt / 0.3), Math.random);
   // ... and a rolling car sprays some oil (world/oil.ts)
   if (kind !== 'wheels') {
     crackOnRoll(hurt as DamagedCar & EngineCar, Math.random);

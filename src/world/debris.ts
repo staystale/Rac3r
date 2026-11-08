@@ -164,6 +164,26 @@ function shedOnRoll(car: DebrisCar, kind: string, corner: number, chance: number
 }
 
 /**
+ * an OPEN car rolling breaks up (owner 11-08: "f1 like cars should absolutely shed parts and break
+ * if rolling"): its wings (its 'bumpers', render/carparts.ts) and sidepods ('panels') - its wheels
+ * too (physics/openwheel.ts rollRipWheels).
+ * @param shed sheds a part by its chance
+ * @param kind 'side', 'roof' or 'wheels'
+ * @param front the front corner on the side it hit
+ * @param rear the rear corner
+ */
+function openRollParts(shed: (part: string, corner: number, chance: number) => void, kind: string,
+  front: number, rear: number) {
+  if (kind === 'side') {
+    shed('panel', front, 0.6); shed('panel', rear, 0.5); shed('bumper', 0, 0.35);
+  } else if (kind === 'roof') {
+    shed('bumper', 2, 0.7); shed('bumper', 0, 0.6);
+  } else {
+    shed('bumper', 0, 0.4); shed('bumper', 2, 0.3);
+  }
+}
+
+/**
  * a ROLL is a hectic crash (owner 11-07: "maybe rolling increases the chance for all
  * parts") - each time the body meets the ground (damage.ts hitRoll) it may shed what that face
  * carries, the car's own bits (carbits.ts): ON A SIDE that side's mirror, door and wings, the
@@ -178,6 +198,10 @@ export function rollParts(car: DebrisCar, kind: string, side: number, scale: num
   const bits = bitsOf(car.spec?.id || ''), front = side > 0 ? 1 : 0, rear = side > 0 ? 3 : 2;
   const shed = (part: string, corner: number, chance: number) =>
     shedOnRoll(car, part, corner, chance * scale);
+  if (car.spec?.kind === 'track' || car.spec?.kind === 'grass') {
+    openRollParts(shed, kind, front, rear);
+    return;
+  }
   if (kind === 'side') {
     shed('mirror', front, 0.4); shed('panel', front, 0.25); shed('panel', rear, 0.2);
     shed('wing', front, 0.2); shed('wing', rear, 0.2);

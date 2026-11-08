@@ -187,6 +187,32 @@ export function ripWheel(car: { wheelOff: boolean[]; wheelSpawn?: number[]; dmgB
   (car.wheelSpawn || (car.wheelSpawn = [])).push(note.corner);
 }
 
+// an OPEN car ROLLING breaks up (owner 11-08: "f1 like cars should absolutely shed parts and break
+// if rolling"): at each meeting with the ground a wheel on that face may tear off (with its
+// wishbones) - on a side that side's two, on the roof or back on its wheels any of the four
+const ROLL_RIP: Record<string, number> = { side: 0.35, roof: 0.15, wheels: 0.12 };
+
+/**
+ * An open car's wheels torn off as it rolls (damage.ts hitRoll).
+ * @param car the car (its damage state made)
+ * @param kind 'side', 'roof' or 'wheels'
+ * @param side +1 = +y, -1 = -y (a side)
+ * @param scale the impact's share, 0..1
+ * @param rnd the random source
+ */
+export function rollRipWheels(car: Parameters<typeof ripWheel>[0], kind: string, side: number,
+  scale: number, rnd: () => number): void {
+  if (car.spec?.kind !== 'track' && car.spec?.kind !== 'grass') return;
+  const corners = kind !== 'side' ? [0, 1, 2, 3] : side > 0 ? [1, 3] : [0, 2];
+  for (const corner of corners) {
+    if (car.wheelOff[corner] || rnd() >= (ROLL_RIP[kind] ?? 0) * scale) continue;
+    car.wheelOff[corner] = true;
+    wheelBits(car, corner, rnd);
+    car.dmgBill = (car.dmgBill || 0) + LOST_WHEEL_BILL;
+    (car.wheelSpawn || (car.wheelSpawn = [])).push(corner);
+  }
+}
+
 // scratch boxes and the SAT result (no allocation per call: the contact pass runs every step)
 const scratchA: Box = { x: 0, y: 0, hl: 0, hw: 0, cos: 1, sin: 0 };
 const scratchB: Box = { x: 0, y: 0, hl: 0, hw: 0, cos: 1, sin: 0 };

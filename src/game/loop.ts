@@ -16,6 +16,7 @@ import { updateRecoveryTracking } from './session.ts';
 import { stepResults } from './menuflow.ts';
 import { takeMenuTaps } from '../menu/widgets.ts';
 import { readNextSprite } from '../render/spritepixels.ts';
+import { newBodyFrame } from '../render/rollbody.ts';
 import {
   updateFpsMeter, readFrameInput, stepCarSignals, openGuideOnLanding, stepCarPhysics,
   stepEndlessHighway, updateAudio, dropBreadcrumb, stepRaceFlow, stepTrafficContacts,
@@ -280,4 +281,6 @@ export function loop(now: number) {
   // (render/spritepixels.ts); counted with the texture warm-up in the phone report
   const readT0 = performance.now();
   if (readNextSprite()) shared.warmMs = (shared.warmMs || 0) + performance.now() - readT0;
+  // one rolled car's body may be made in the next frame (render/rollbody.ts)
+  newBodyFrame();
 }

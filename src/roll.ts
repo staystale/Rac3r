@@ -17,14 +17,14 @@
 // that ground (sparks on hard ground). Sim time (rule 5): it moves the car; render.ts draws it
 // (faces, sparks), main.ts hands control back on RESET (player) or resets the AI. m: body height
 // (the side face the camera sees on a rolled car)
-import { FIX } from './core/fixes.ts';
 import { rollShapeOf, shapedHit } from './physics/rollshape.ts';
 import { levelFlipRamps, rampFlip } from './world/flipramps.ts';
 import { LEVEL } from './world/state.ts';
 import { groundAt } from './world/wear.ts';
 import type { CarRoll } from './vehicle.ts';
 /** The rollover state (car.roll; vehicle.ts CarRoll). */
-export type RollState = CarRoll;
+// (sideOk: whether it may come to rest on a side, decided once as it settles)
+export type RollState = CarRoll & { sideOk?: boolean };
 /** A car as the rollover reads and moves it (the player, the AI, highway traffic). */
 export interface RollCar {
   x: number; y: number; vx: number; vy: number; heading: number; yawRate: number; rpm: number;
@@ -226,16 +226,15 @@ export function stepRoll(car: RollCar, dt: number, onHit: RollHit) {
  * @returns true when the car came to rest on its wheels (the roll is over)
  */
 function spinStep(car: RollCar, state: RollState, dt: number, onHit: RollHit) {
-  // (?rollbody=1: by its shape - physics/rollshape.ts)
-  const shape = FIX.rollbody ? rollShapeOf(car.spec.id) : null;
+  // by its shape (physics/rollshape.ts)
+  const shape = rollShapeOf(car.spec.id);
   const was = Math.floor(state.phi / HALF_PI + 1e-9 * Math.sign(state.w));
   state.phi += state.w * dt;
   const now = Math.floor(state.phi / HALF_PI + 1e-9 * Math.sign(state.w));
   if (now !== was) {   // a quarter turn: the body meets the ground on its next face
     // 1 / 3 a side, 2 the roof, 0 the wheels
     const face = ((Math.round(state.phi / HALF_PI) % 4) + 4) % 4,
-      hit = shape ? shapedHit(shape, Math.random)
-        : { spin: 0.6 + 0.2 * Math.random(), speed: 0.86 };
+      hit = shapedHit(shape, Math.random);
     state.w *= hit.spin;
     car.vx *= hit.speed;
     car.vy *= hit.speed;
@@ -246,7 +245,10 @@ function spinStep(car: RollCar, state: RollState, dt: number, onHit: RollHit) {
       Math.abs(state.w),
     );
   }
-  return Math.abs(state.w) < SETTLE_W && settleStep(car, state, dt, !!shape && !shape.side);
+  if (Math.abs(state.w) >= SETTLE_W) return false;
+  // may it rest on a side? once, as it starts to settle
+  if (state.sideOk === undefined) state.sideOk = Math.random() < shape.side;
+  return settleStep(car, state, dt, !state.sideOk);
 }
 
 /**

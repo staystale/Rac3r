@@ -1,27 +1,31 @@
-// render/rollbody.ts - THE ROLLED CAR AS A BODY (owner 11-08 on the roll mockup,
-// tools/scratch/rollmock.html: "make it look 3d in the shape the car should be ish rather than a
-// clear cube"; "draw it 2D but"; "remember windscreens are angled"; "12 roll frames is the sweet
-// spot", "shaded bands"; "slight motion blur and some woosh lines"). Behind ?rollbody=1, for the
-// F1 and the Micra first (physics/rollshape.ts). Along its length every column of the car is a
-// rounded cross-section - as wide as its top sprite there, as tall as its real roof line
-// (render/carprofile.ts), as round as the real car - and the picture at a roll angle shows, in
-// each screen row of a column, the nearest point of the turned section: painted from the picture
-// covering that part (the top sprite on the roof and bonnet, the side profile down the flanks, the
-// underside below), lit from above in bands. The wheels stand off it as boxes; an open car's
-// wings and sidepods too. DAMAGE: the top sprite is the car's own (dents, cut ends, lost parts -
-// the body is as wide as it is, so a crushed end is shorter, a lost wing or sidepod gone); the
-// side and underside pictures take the same crush (render/cardamage.ts carveSide, crushTop); a
-// lost door, wing or bumper leaves its opening dark; a lost wheel is gone; a crushed roof sits
-// lower. The body's surface is made once per damage step (a new top sprite), each of the 12
+// render/rollbody.ts - THE ROLLED CAR AS A BODY (owner 11-08 on the roll mockup: "make it look 3d
+// in the shape the car should be ish rather than a clear cube"; "draw it 2D but"; "remember
+// windscreens are angled"; "12 roll frames is the sweet spot", "shaded bands"; "slight motion
+// blur and some woosh lines"; "paint colouring for all 4 colours inc rims and details need to be
+// accurate in a roll"; every car, the one way a rolled car is drawn). Along its length every column
+// of the car is a rounded cross-section - as wide as its top sprite there, as tall as its real roof
+// line (render/carprofile.ts), as round as the real car (physics/rollshape.ts) - and the picture at
+// a roll angle shows, in each screen row of a column, the nearest point of the turned section:
+// painted from the picture covering that part (the top sprite on the roof and bonnet, the side
+// profile down the flanks, the underside below), lit from above in bands. The side pictures carry
+// the car's own top sprite's colours along their top edge and waist (its livery: paint, trim,
+// third colour, details); the rims are its rims. The wheels stand off it as boxes; an open car's
+// wings and sidepods too, in their colours from the top sprite. DAMAGE: the top sprite is the
+// car's own (dents, cut ends, lost parts - the body is as wide as it is, so a crushed end is
+// shorter, a lost wing or sidepod gone); the side and underside pictures take the same crush
+// (render/cardamage.ts carveSide, crushPixels); a lost door, wing or bumper leaves its opening
+// dark; a lost wheel is gone; a crushed roof sits lower. The pictures are pixels (no read back from
+// the GPU); the body's surface is made once per damage step (a new top sprite), at most one a
+// frame (newBodyFrame) - a car waiting shows its last body a frame longer - and each of the 12
 // pictures once from it as the roll needs it.
-import { FIX } from '../core/fixes.ts';
+import { hash2d } from '../core/random.ts';
 import { rollShapeOf } from '../physics/rollshape.ts';
-import { carveSide, crushTop } from './cardamage.ts';
+import { carveSide, crushPixels } from './cardamage.ts';
 import { heightsPx, paintSideProfile, paintUnderProfile, profileOf } from './carprofile.ts';
-import type { CarProfile, ProfilePicture } from './carprofile.ts';
+import type { CarProfile, ProfilePicture, SideAccents } from './carprofile.ts';
 import { tyreBox } from './cars.ts';
 import { SPRITE_PPM } from './shared.ts';
-import { readSoon, spriteToWork } from './spritepixels.ts';
+import { readSoon, spritePixels } from './spritepixels.ts';
 import type { CarSprite, RenderCar, RenderCarSpec } from './types.ts';
 
 // 12 pictures a turn; the light in BANDS steps, from above and AHEAD a little (the windscreen and
@@ -29,12 +33,12 @@ import type { CarSprite, RenderCar, RenderCarSpec } from './types.ts';
 // width gone at the roof (the side glass is angled too)
 const FRAMES = 12, BANDS = 3, AHEAD = 0.3, CABIN_IN = 0.3;
 // the blur: pictures a moment back [s, alpha] from BLUR_W rad/s of spin; whoosh lines from
-// WHOOSH_W rad/s or WHOOSH_V m/s
-const BLUR: [number, number][] = [[0.07, 0.12], [0.035, 0.25]], BLUR_W = 4, WHOOSH_W = 5,
-  WHOOSH_V = 5;
+// WHOOSH_W rad/s, full at WHOOSH_W + WHOOSH_SPAN
+const BLUR: [number, number][] = [[0.07, 0.12], [0.035, 0.25]], BLUR_W = 4, WHOOSH_W = 3,
+  WHOOSH_SPAN = 8;
 // m: an open car's sidepods' top
 const POD_M = 0.55;
-const TYRE_RGB = 0x16171c, OPENING = [29, 30, 35];
+const TYRE_RGB = 0x16171c, OPENING = [29, 30, 35], GREY = 0x8a8d96;
 
 /** Something standing off the body (a wheel's slice, a wing, a sidepod), px across and up. */
 interface Box {
@@ -58,43 +62,85 @@ interface Body {
   xs: Int16Array; ys: Float32Array; zs: Float32Array; nys: Float32Array; nzs: Float32Array;
   alongs: Float32Array; rgbs: Uint32Array; frames: (BodyFrame | undefined)[];
 }
+/** A look's pictures: the -y and +y sides and the underside. */
+interface Pictures { sides: ProfilePicture[]; under: ProfilePicture }
 
 const BODIES = new WeakMap<RenderCar, Body>();
-const PICTURES = new Map<string, { side: ProfilePicture; under: ProfilePicture }>();
+const PICTURES = new Map<string, Pictures>();
+// the frame count, and the frame the last body was made in (one a frame)
+let frameNo = 0, builtIn = -1;
+
+/** A new frame: one more body may be made (game/loop.ts, once a frame). */
+export function newBodyFrame() { frameNo++; }
 
 /**
- * Whether a car rolls as a body (?rollbody=1, a car with a rolling shape).
- * @param spec the car as drawn
- * @returns true when it does
+ * A picture's pixel as 0xRRGGBB, or -1 where it is clear.
+ * @param img the picture
+ * @param x px
+ * @param y px
+ * @returns the colour
  */
-export const drawsAsBody = (spec: RenderCarSpec) => FIX.rollbody && !!rollShapeOf(spec.id);
+function texel(img: ImageData, x: number, y: number): number {
+  const col = Math.round(x), row = Math.round(y);
+  if (col < 0 || row < 0 || col >= img.width || row >= img.height) return -1;
+  const idx = (row * img.width + col) * 4, data = img.data;
+  return data[idx + 3] ? (data[idx] << 16) | (data[idx + 1] << 8) | data[idx + 2] : -1;
+}
 
 /**
- * A car's side and underside pictures, per look.
+ * The colours of a car's own top sprite along one side, for its side picture: the middle row (its
+ * top edge seen from the side) and the outermost row but its outline (the waist).
+ * @param top the clean top sprite's pixels
+ * @param length the car's length, px
+ * @param plus the +y side
+ * @returns the colours per column
+ */
+function accentsOf(top: ImageData, length: number, plus: boolean): SideAccents {
+  const accents = { top: new Int32Array(length).fill(-1), waist: new Int32Array(length).fill(-1) },
+    middle = Math.round(top.height / 2 - 0.5);
+  for (let x = 0; x < length; x++) {
+    accents.top[x] = texel(top, x + 2, middle);
+    for (let step = 0; step < top.height; step++) {
+      const row = plus ? top.height - 1 - step : step;
+      if (texel(top, x + 2, row) < 0) continue;
+      accents.waist[x] = texel(top, x + 2, plus ? row - 1 : row + 1);
+      break;
+    }
+  }
+  return accents;
+}
+
+/**
+ * A car's side and underside pictures, per look (its colours from its clean top sprite).
  * @param spec the car as drawn
- * @param widthPx its top sprite's width
+ * @param clean its top sprite, undamaged
  * @returns the pictures
  */
-function picturesOf(spec: RenderCarSpec, widthPx: number) {
-  const key = `${spec.id}|${spec.paint}|${spec.trim}|${spec.rim}|${widthPx}`;
+function picturesOf(spec: RenderCarSpec, clean: CarSprite): Pictures {
+  const key = `${spec.id}|${spec.paint}|${spec.trim}|${spec.third}|${spec.rim}|${spec.num}|${
+    clean.Wp}`;
   let pictures = PICTURES.get(key);
   if (!pictures) {
-    pictures = { side: paintSideProfile(spec), under: paintUnderProfile(spec, widthPx) };
+    const top = spritePixels(clean.c);
+    pictures = { sides: [false, true].map((plus) =>
+      paintSideProfile(spec, accentsOf(top, clean.Lp, plus))),
+    under: paintUnderProfile(spec, clean.Wp) };
     PICTURES.set(key, pictures);
   }
   return pictures;
 }
 
 /**
- * A car's pictures made now and read on quiet frames (not in the frame it first rolls).
- * @param spec the car as drawn
- * @param widthPx its top sprite's width
+ * A car's clean top sprite read on a quiet frame (its pictures are made from it when it rolls).
+ * @param clean its top sprite, undamaged
  */
-export function prepareBody(spec: RenderCarSpec, widthPx: number) {
-  const { side, under } = picturesOf(spec, widthPx);
-  readSoon(side.c);
-  readSoon(under.c);
+export function prepareBody(clean: CarSprite) {
+  readSoon(clean.c);
 }
+
+/** A copy of a picture's pixels to change. */
+const copyOf = (img: ImageData) => new ImageData(new Uint8ClampedArray(img.data), img.width,
+  img.height);
 
 /**
  * Paint a dark opening on a side picture where a part came off (its body's pixels only).
@@ -144,23 +190,52 @@ function openings(car: RenderCar, spec: RenderCarSpec, img: ImageData, picture: 
 }
 
 /**
+ * A lost wheel's tyre gone from the underside picture.
+ * @param car the car
+ * @param spec the car as drawn
+ * @param img the underside's pixels
+ * @param widthPx the body's width, px
+ */
+function lostTyres(car: RenderCar, spec: RenderCarSpec, img: ImageData, widthPx: number) {
+  const length = img.width - 4, track = (spec.trackWidth || 1.5) * SPRITE_PPM;
+  for (let corner = 0; corner < 4; corner++) {
+    if (!car.wheelOff?.[corner]) continue;
+    const rear = corner > 1, { len, wid } = tyreBox(spec, rear),
+      axle = length / 2 + (rear ? -spec.lr : spec.lf) * SPRITE_PPM,
+      across = widthPx / 2 + (corner % 2 ? 1 : -1) * track / 2;
+    for (let row = Math.round(across - wid / 2) + 2; row < across + wid / 2 + 2; row++) {
+      for (let x = Math.round(axle - len / 2) + 2; x < axle + len / 2 + 2; x++) {
+        if (row >= 0 && row < img.height && x >= 0 && x < img.width)
+          img.data[(row * img.width + x) * 4 + 3] = 0;
+      }
+    }
+  }
+}
+
+/**
  * The pictures a damaged car's body is painted from.
  * @param car the car
  * @param spec the car as drawn
  * @param top its top sprite (damaged, without its lost parts)
+ * @param clean its top sprite, undamaged
  * @returns the pixels
  */
-function paintsOf(car: RenderCar, spec: RenderCarSpec, top: CarSprite): Paints {
-  const { side, under } = picturesOf(spec, top.Wp), hurt = !!car.dmg;
-  const sides = [false, true].map((plus) => {
-    const img = spriteToWork(side.c).img;
-    if (hurt) carveSide(car, img, side.Lp, side.Hp, plus);
-    if (car.partLost && !profileOf(spec).open) openings(car, spec, img, side, plus);
+function paintsOf(car: RenderCar, spec: RenderCarSpec, top: CarSprite, clean: CarSprite): Paints {
+  const { sides, under } = picturesOf(spec, clean), hurt = !!car.dmg;
+  const hurtSides = sides.map((side, plusSide) => {
+    if (!hurt && !car.partLost) return side.img;
+    const img = copyOf(side.img);
+    if (hurt) carveSide(car, img, side.Lp, side.Hp, plusSide === 1);
+    if (car.partLost && !profileOf(spec).open) openings(car, spec, img, side, plusSide === 1);
     return img;
   });
-  const below = hurt ? crushTop(car, { c: under.c, Lp: under.Lp, Wp: under.Hp }, false).img
-    : spriteToWork(under.c).img;
-  return { top: spriteToWork(top.c).img, sides, under: below, Wp: top.Wp };
+  let below = under.img;
+  if (hurt) {
+    below = copyOf(under.img);
+    crushPixels(car, below, under.Lp, under.Hp, false);
+    lostTyres(car, spec, below, under.Hp);
+  }
+  return { top: spritePixels(top.c), sides: hurtSides, under: below, Wp: top.Wp };
 }
 
 /**
@@ -173,7 +248,7 @@ function paintsOf(car: RenderCar, spec: RenderCarSpec, top: CarSprite): Paints {
  */
 function wheelBoxes(car: RenderCar, spec: RenderCarSpec, x: number, length: number): Box[] {
   const track = (spec.trackWidth || 1.5) * SPRITE_PPM, boxes: Box[] = [],
-    rimRgb = parseInt((spec.rim || '#6d707a').slice(1), 16);
+    rimRgb = parseInt((spec.rim || '#6d707a').slice(1, 7), 16);
   for (let corner = 0; corner < 4; corner++) {
     if (car.wheelOff?.[corner]) continue;
     const rear = corner > 1, { len: dia, wid } = tyreBox(spec, rear),
@@ -189,27 +264,28 @@ function wheelBoxes(car: RenderCar, spec: RenderCarSpec, x: number, length: numb
 
 /**
  * An open car's column: its tub, and what is wider than the tub there in its top sprite (so a
- * lost part is gone) - a wing (a plane on two endplates) or a sidepod.
+ * lost part is gone) - a wing (a plane on two endplates) or a sidepod, in its colours there (the
+ * plane or pod its middle's, an endplate its edge's).
  * @param col the column as the top sprite gives it
  * @param profile the car's profile
  * @param share the column's share of the length, tail 0
- * @param dims the top sprite's width and px a metre
+ * @param look the top sprite's width, px a metre, the colour mid-column and at its edge
  */
-function openColumn(col: Column, profile: CarProfile, share: number, dims: number[]) {
-  const [widthPx, scale] = dims, open = profile.open!, tubHalf = widthPx * open.tub / 2,
-    paint = 0x8a8d96;
+function openColumn(col: Column, profile: CarProfile, share: number, look: number[]) {
+  const [widthPx, scale, middle, edge] = look, open = profile.open!,
+    tubHalf = widthPx * open.tub / 2, plain = middle >= 0 ? middle : GREY;
   if (col.half > tubHalf + 0.5) {
     const wing = open.wings.find(([from, upto]) => share >= from && share < upto);
     if (wing) {
       const low = wing[2] * scale, high = wing[3] * scale,
         plane = Math.max(1.5, (high - low) * 0.3);
-      col.boxes.push({ centre: col.centre, half: col.half, low: high - plane, high, rgb: paint,
+      col.boxes.push({ centre: col.centre, half: col.half, low: high - plane, high, rgb: plain,
         textured: true });
       for (const side of [-1, 1]) col.boxes.push({ centre: col.centre + side * (col.half - 0.5),
-        half: 0.5, low, high, rgb: paint });
+        half: 0.5, low, high, rgb: edge >= 0 ? edge : plain });
     } else {
       col.boxes.push({ centre: col.centre, half: col.half, low: col.bottom,
-        high: Math.min(col.top, POD_M * scale), rgb: paint, textured: true });
+        high: Math.min(col.top, POD_M * scale), rgb: edge >= 0 ? edge : plain, textured: true });
     }
   }
   col.half = Math.min(col.half, tubHalf);
@@ -246,25 +322,12 @@ function columnsOf(car: RenderCar, spec: RenderCarSpec, paints: Paints, heightMa
       centre: (first + last + 1) / 2 - 2 - widthPx / 2,
       top: Math.max(clearance + 2, height), bottom: clearance,
       slope: (heightAt(x + 1) - heightAt(x - 1)) / 2, boxes: [] };
-    if (profile.open) openColumn(col, profile, share, [widthPx, scale]);
+    if (profile.open) openColumn(col, profile, share, [widthPx, scale,
+      texel(top, x + 2, (first + last) / 2), texel(top, x + 2, first + 1)]);
     col.boxes.push(...wheelBoxes(car, spec, x, length));
     cols.push(col);
   }
   return cols;
-}
-
-/**
- * A picture's pixel as 0xRRGGBB, or -1 where it is clear.
- * @param img the picture
- * @param x px
- * @param y px
- * @returns the colour
- */
-function texel(img: ImageData, x: number, y: number): number {
-  const col = Math.round(x), row = Math.round(y);
-  if (col < 0 || row < 0 || col >= img.width || row >= img.height) return -1;
-  const idx = (row * img.width + col) * 4, data = img.data;
-  return data[idx + 3] ? (data[idx] << 16) | (data[idx + 1] << 8) | data[idx + 2] : -1;
 }
 
 /** The samples of a body's surface as they are made. */
@@ -376,18 +439,22 @@ function boxSamples(samples: Samples, x: number, box: Box,
 }
 
 /**
- * A car's body for its damage now (its top sprite: a new one each damage step), kept per car.
+ * A car's body for its damage now (its top sprite: a new one each damage step), kept per car; at
+ * most one made a frame - a car waiting keeps its last body a frame longer (null: none yet).
  * @param car the car
  * @param spec the car as drawn
  * @param top its top sprite
+ * @param clean its top sprite, undamaged
  * @returns the body
  */
-function bodyOf(car: RenderCar, spec: RenderCarSpec, top: CarSprite): Body {
+function bodyOf(car: RenderCar, spec: RenderCarSpec, top: CarSprite, clean: CarSprite) {
   const kept = BODIES.get(car);
   if (kept && kept.base === top.c) return kept;
-  const paints = paintsOf(car, spec, top), heightMax = picturesOf(spec, top.Wp).side.Hp,
+  if (builtIn === frameNo) return kept ?? null;
+  builtIn = frameNo;
+  const paints = paintsOf(car, spec, top, clean), heightMax = picturesOf(spec, clean).sides[0].Hp,
     cols = columnsOf(car, spec, paints, heightMax), profile = profileOf(spec),
-    scale = cols.length / profile.len, round = rollShapeOf(spec.id)?.round ?? 0.5;
+    scale = cols.length / profile.len, round = rollShapeOf(spec.id).round;
   const form = { paints, power: 2 / (2 + 6 * (1 - round)), floor: -heightMax / 2,
     waist: -heightMax / 2 + (profile.waist ? profile.waist * scale : Infinity) };
   const samples = new Samples();
@@ -454,47 +521,56 @@ function frameAt(body: Body, phi: number): BodyFrame {
 }
 
 /**
- * Whoosh lines: thin pale streaks trailing off the body's back edge against its slide, longer the
- * faster it goes and spins, flickering along its length (car frame, sprite px).
+ * Whoosh lines OVER the car as it rolls (owner 11-08: "should go over the car as it rolls and be
+ * random and fade quick as momentum does"): a few thin pale arcs across the body the way its
+ * surface sweeps, at random places along it each moment, as strong as its spin - gone fast as the
+ * spin dies (car frame, sprite px).
  * @param ctx the canvas
  * @param body the body
- * @param phi the roll angle
- * @param motion along / across the car m/s, the spin rad/s, the top sprite's width
+ * @param car the car (its number seeds the places)
+ * @param spinRate the roll's rate, rad/s
  */
-function whoosh(ctx: CanvasRenderingContext2D, body: Body, phi: number, motion: number[]) {
-  const [along, across, spin, widthPx] = motion, speed = Math.hypot(along, across) || 1,
-    extent = 0.5 * (widthPx * Math.abs(Math.cos(phi)) + body.heightMax * Math.abs(Math.sin(phi))),
-    rush = speed + spin * 0.5, length = Math.min(16, rush * 1.2),
-    tick = Math.floor(performance.now() / 70), backX = -along / speed, backY = -across / speed;
-  ctx.strokeStyle = '#e8ecf2';
+function whoosh(ctx: CanvasRenderingContext2D, body: Body, car: RenderCar, spinRate: number) {
+  const strength = Math.min(1, (Math.abs(spinRate) - WHOOSH_W) / WHOOSH_SPAN) ** 2;
+  if (!(strength > 0.01)) return;
+  const phi = car.roll!.phi, extent = 0.5 * (body.heightMax * Math.abs(Math.sin(phi))
+      + body.reach * Math.abs(Math.cos(phi))),
+    tick = Math.floor(performance.now() / 45), hsh = hash2d((car.num || 1) * 7919 + 13),
+    count = 2 + Math.round(4 * strength), turn = Math.sign(spinRate) * 3;
+  ctx.strokeStyle = '#eef2f8';
   ctx.lineWidth = 1;
-  ctx.globalAlpha = Math.min(0.45, rush / 30);
-  ctx.beginPath();
-  for (let i = 0; i < 4; i++) {
-    const spot = ((i * 0.27 + ((tick * 7 + i * 3) % 5) * 0.04) - 0.45) * body.length,
-      startY = across ? -Math.sign(across) * (extent + 2) : 0,
-      reachOut = length * (0.6 + 0.4 * ((tick + i) % 2));
-    ctx.moveTo(spot, startY);
-    ctx.lineTo(spot + backX * reachOut, startY + backY * reachOut);
+  for (let i = 0; i < count; i++) {
+    const spot = (hsh(i * 4, tick) - 0.5) * body.length * 0.9,
+      from = -extent * (0.4 + 0.8 * hsh(i * 4 + 1, tick)),
+      upto = extent * (0.4 + 0.8 * hsh(i * 4 + 2, tick));
+    ctx.globalAlpha = (0.25 + 0.4 * hsh(i * 4 + 3, tick)) * strength;
+    ctx.beginPath();
+    ctx.moveTo(spot, from);
+    ctx.quadraticCurveTo(spot + turn, (from + upto) / 2, spot, upto);
+    ctx.stroke();
   }
-  ctx.stroke();
   ctx.globalAlpha = 1;
 }
 
 /**
  * Draw a rolling car as its body (the context at the car, its heading, sprite px): its shadow
  * further off as it stands on an edge, a slight blur of where it was a moment ago when it spins
- * fast, whoosh lines, the body.
+ * fast, the body, whoosh lines over it. A car whose first body waits a frame shows flat.
  * @param ctx the canvas
  * @param car the car
  * @param spec the car as drawn
- * @param top its top sprite (damaged, without its lost parts)
+ * @param sprites its top sprite (damaged, without its lost parts) and its clean one
  * @param shadowOff the shadow's offset
  */
 export function drawRolledBody(ctx: CanvasRenderingContext2D, car: RenderCar, spec: RenderCarSpec,
-  top: CarSprite, shadowOff: number) {
-  const body = bodyOf(car, spec, top), phi = car.roll!.phi, spinRate = car.roll!.w ?? 0,
-    spin = Math.abs(spinRate), frame = frameAt(body, phi), left = -body.length / 2 - 2;
+  sprites: CarSprite[], shadowOff: number) {
+  const [top, clean] = sprites, body = bodyOf(car, spec, top, clean);
+  if (!body) {
+    ctx.drawImage(top.c, -top.Lp / 2 - 2, -top.Wp / 2 - 2);
+    return;
+  }
+  const phi = car.roll!.phi, spinRate = car.roll!.w ?? 0, spin = Math.abs(spinRate),
+    frame = frameAt(body, phi), left = -body.length / 2 - 2;
   const lift = 0.25 * (top.Wp * Math.abs(Math.sin(phi))
     + body.heightMax * Math.abs(Math.cos(phi)) - body.heightMax);
   ctx.globalAlpha = 0.3;
@@ -509,6 +585,5 @@ export function drawRolledBody(ctx: CanvasRenderingContext2D, car: RenderCar, sp
   }
   ctx.globalAlpha = 1;
   ctx.drawImage(frame.canvas, left, -frame.half);
-  if (spin > WHOOSH_W || Math.hypot(along, across) > WHOOSH_V)
-    whoosh(ctx, body, phi, [along, across, spin, top.Wp]);
+  whoosh(ctx, body, car, spinRate);
 }

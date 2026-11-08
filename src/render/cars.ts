@@ -9,9 +9,9 @@ import { DAYLIGHT } from "../world/daylight.ts";
 import { REVERSE_LAMP, isReversing } from "./reverselights.ts";
 import { settledLampLevel } from "./carlamps.ts";
 import { drawTyreByPressure, wheelTurn } from "./tyrelook.ts";
-import { drawRolledBody, drawsAsBody, prepareBody } from "./rollbody.ts";
+import { drawRolledBody, prepareBody } from "./rollbody.ts";
 import type {
-  Cam, CarSprite, RenderCar, RenderCarSpec, RenderCone, RollFace, SideSprite, SilCanvas, View,
+  Cam, CarSprite, RenderCar, RenderCarSpec, RenderCone, SilCanvas, View,
 } from "./types.ts";
 
 // an open-wheeler's suspension arms
@@ -25,10 +25,7 @@ interface CarsHelpers {
   pixelCar: (spec: RenderCarSpec) => CarSprite;
   damagedSprite: (car: RenderCar, sp: CarSprite) => CarSprite;
   silhouette: (cv: SilCanvas) => HTMLCanvasElement;
-  rolledFaces: (car: RenderCar, sp: CarSprite, phi: number) => RollFace[];
-  drawFaces: (faces: RollFace[], Lp: number, sil: boolean, off: number) => void;
-  prepareFaces: (spec: RenderCarSpec) => void;
-  faceCache: Map<string, CarSprite | SideSprite>;
+  faceCache: Map<string, CarSprite>;
 }
 
 /** What the moved functions share: the view and the renderer helpers. */
@@ -246,25 +243,6 @@ function drawCarWheels(carsCtx: CarsContext, car: RenderCar, sprite: CarSprite) 
 }
 
 /**
- * Draw the car sprite's rolled faces and their shadows, then restore the context.
- * @param carsCtx the shared view and helpers
- * @param car the rolling car
- * @param sprite the body sprite
- * @param shOff the shadow offset
- */
-function drawRolledCar(
-  carsCtx: CarsContext, car: RenderCar, sprite: CarSprite, shOff: number,
-) {
-  const { view, rolledFaces, drawFaces } = carsCtx;
-  const faces = rolledFaces(car, sprite, car.roll!.phi);
-  view.ctx.globalAlpha = 0.3;
-  drawFaces(faces, sprite.Lp, true, shOff + 2);
-  view.ctx.globalAlpha = 1;
-  drawFaces(faces, sprite.Lp, false, 0);
-  view.ctx.restore();
-}
-
-/**
  * LAMPS BREAK WITH DAMAGE: every lamp lives on its corner (damage.ts: 0 front -y, 1 front +y,
  * 2 rear -y, 3 rear +y). Full up to LAMP_OK, then it flickers and dims, out from LAMP_GONE
  * (~a 25-30 km/h head-on on that corner). Headlight beam + lamp, brake light and indicator
@@ -361,20 +339,16 @@ function drawCarLamps(carsCtx: CarsContext, car: RenderCar, sprite: CarSprite) {
  */
 function drawPixelCar(carsCtx: CarsContext, car: RenderCar, heading = car.heading) {
   const { view, PPMz, toScreenX, toScreenY, pixelCar, damagedSprite, silhouette } = carsCtx;
-  // its rolled faces, made once and read before any crash needs them
-  if (!car._facesMade) {
-    car._facesMade = true;
-    carsCtx.prepareFaces(car.spec);
-  }
   // (a car whose wing / spoiler is off is painted without it)
   const shown = drawnSpec(car.spec), spec = car.partLost?.includes('spoiler')
     ? { ...shown, noWing: true } : shown, sp0 = pixelCar(spec),
     hurt = car.dmg ? damagedSprite(car, sp0) : sp0, scale = PPMz() / SPRITE_PPM;
   // (without the parts it has lost - render/carparts.ts)
-  const sprite = car.partLost ? lostSprite(car, spec, hurt) : hurt, asBody = drawsAsBody(spec);
-  if (asBody && !car._bodyMade) {
+  const sprite = car.partLost ? lostSprite(car, spec, hurt) : hurt;
+  // its clean sprite read on a quiet frame: a roll paints its sides from it (render/rollbody.ts)
+  if (!car._bodyMade) {
     car._bodyMade = true;
-    prepareBody(spec, sprite.Wp);
+    prepareBody(sp0);
   }
   view.ctx.save();
   view.ctx.translate(toScreenX(car.x), toScreenY(car.y));
@@ -384,11 +358,9 @@ function drawPixelCar(carsCtx: CarsContext, car: RenderCar, heading = car.headin
   // (cars.js rideH)
   const shOff = 2 + Math.round((spec.rideH || 0.13) * 10);
   if (car.roll && car.roll.phi) {
-    // (?rollbody=1: as a body in its real shape - render/rollbody.ts)
-    if (asBody) {
-      drawRolledBody(view.ctx, car, spec, sprite, shOff);
-      view.ctx.restore();
-    } else drawRolledCar(carsCtx, car, sprite, shOff);
+    // rolled: as a body in its real shape (render/rollbody.ts)
+    drawRolledBody(view.ctx, car, spec, [sprite, sp0], shOff);
+    view.ctx.restore();
     return;
   }
   view.ctx.globalAlpha = 0.3;

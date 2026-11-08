@@ -1,7 +1,7 @@
 // _spritework.mjs - the damaged car pictures as pixel hashes, to prove a change to how they are
 // made leaves every pixel the same: each car of the roster at several damage states - its dented
 // top sprite (render/cardamage.ts damagedSprite), that sprite with parts lost (render/carparts.ts
-// withoutParts) and its rolled faces (underside, both sides). Run on two builds and compare the
+// withoutParts). Run on two builds and compare the
 // printed hash. node tools/scratch/_spritework.mjs
 import { startServer, launchBrowser, gotoGame } from '../lib/browser.mjs';
 
@@ -16,7 +16,7 @@ try {
     const parts = await import('/src/render/carparts.ts');
     const drawn = await import('/src/render/cars.ts');
     const damage = await import('/src/render/cardamage.ts');
-    const renderer = window.__game.renderer, painter = damage.createCarDamage({});
+    const renderer = window.__game.renderer, painter = damage.createCarDamage();
     // what DRAWING a picture gives (as the game does each frame): drawn onto a canvas of its own
     // and read there - a picture's own first read back can rasterise it differently (Chrome keeps
     // a canvas's drawing as a list until it is read, and rasterises it by the canvas's mode then)
@@ -52,10 +52,7 @@ try {
         car.roofDmg = roof; car.dmg = crushL.map((value, i) => Math.max(value, crushS[i]));
         const dented = painter.damagedSprite(car, sprite);
         const lost = parts.withoutParts(car.spec, dented, 'bumper:0,wing:1,panel:2');
-        const faces = [Math.PI, Math.PI / 2, -Math.PI / 2]
-          .flatMap((phi) => painter.rolledFaces(car, dented, phi));
-        const named = [['dent', dented.c], ['lost', lost.c],
-          ...faces.map((face, i) => [`face${i}`, face.cv])];
+        const named = [['dent', dented.c], ['lost', lost.c]];
         const label = `${row.id} s${states.findIndex((state) => state[0] === crushL)}`;
         for (const [name, canvas] of named) {
           const hash = hashOf(canvas);

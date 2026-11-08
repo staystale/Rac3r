@@ -189,21 +189,6 @@ export interface CarSprite {
   Wp: number;
 }
 
-// The side face of a rolled car (sideSprite): the canvas and its size in art px.
-export interface SideSprite {
-  c: SilCanvas;
-  Lp: number;
-  Hp: number;
-}
-
-// One face of a rolled car as rolledFaces returns it for drawFaces.
-export interface RollFace {
-  cv: HTMLCanvasElement;
-  cy: number;
-  ky: number;
-  hh: number;
-}
-
 // What the car layers read of a car SPEC (cars.ts Spec).
 export type RenderCarSpec =
   Pick<Spec, 'id' | 'paint' | 'trim' | 'kind' | 'lf' | 'lr' | 'len' | 'wid'>
@@ -240,9 +225,7 @@ export interface RenderCar extends CamCar, Pick<Car, 'heading' | 'delta' | 'cros
   gear?: number;   // the gear, -1 in reverse (vehicle.ts): its reversing lights
   // caches the car layers set on the car itself
   _dsp?: { key: string; base: CarSprite; sp: CarSprite } | null;
-  _dface?: Record<string, { key: string; out: CarSprite | SideSprite }>;
-  _facesMade?: boolean;   // its rolled faces made and waiting to be read (cardamage.ts)
-  _bodyMade?: boolean;   // its rolled body's pictures made and waiting to be read (rollbody.ts)
+  _bodyMade?: boolean;   // its clean sprite waiting to be read for a roll (rollbody.ts)
 }
 
 // One game object the cones layer draws (cones.ts: cones, bales, tyres, animals, debris, ...).

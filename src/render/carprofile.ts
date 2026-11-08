@@ -5,7 +5,7 @@
 // windows). Here every car has its roof line from tail to nose (the windscreen and rear screen at
 // their angle), its side glass, its waist; an open car its tub and wings. paintSideProfile and
 // paintUnderProfile paint them in the car's colours at its drawn length; heightsPx gives the body's
-// height along its length for the rolled body (tools/scratch/rollmock.html).
+// height along its length for the rolled body (render/rollbody.ts).
 import { SPRITE_PPM } from "./shared.ts";
 import { shade } from "../render.ts";   // hoisted, only called at draw time (no cycle)
 import { tyreBox } from "./cars.ts";
@@ -108,47 +108,77 @@ export function heightsPx(spec: RenderCarSpec): Float32Array {
   return out;
 }
 
-/** A side or underside picture: its canvas, length and height px (the sprites' 2 px margin). */
-export interface ProfilePicture { c: HTMLCanvasElement; Lp: number; Hp: number }
+/** A side or underside picture: its pixels (the sprites' 2 px margin), length and height px. */
+export interface ProfilePicture { img: ImageData; Lp: number; Hp: number }
+/** Colours from the car's own top sprite for a side picture, per column (0xRRGGBB, -1 none): the
+ * top edge (the middle of the top sprite - a trim roof, a stripe, the glass) and the waist (its
+ * outermost row on that side - a pinstripe, a mirror cap, an arch). */
+export interface SideAccents { top: Int32Array; waist: Int32Array }
 
 /**
- * A fresh picture canvas and a rect painter on its 2 px margin.
+ * A colour as 0xRRGGBB: '#rgb', '#rrggbb' or 'rgb(r,g,b)' (render.ts shade).
+ * @param col the colour
+ * @returns the packed colour
+ */
+function packed(col: string): number {
+  if (col.startsWith('rgb')) {
+    const [red, green, blue] = col.slice(col.indexOf('(') + 1, -1).split(',').map(Number);
+    return (red << 16) | (green << 8) | blue;
+  }
+  const hex = col.length === 4 ? col.slice(1).split('').map((digit) => digit + digit).join('')
+    : col.slice(1, 7);
+  return parseInt(hex, 16);
+}
+
+/**
+ * A fresh picture's pixels and a rect painter on its 2 px margin (pixels, not a canvas: nothing
+ * to read back from the GPU).
  * @param width px
  * @param height px
- * @returns the canvas and the painter
+ * @returns the pixels and the painter (a colour as CSS or 0xRRGGBB)
  */
 function pictureOf(width: number, height: number) {
-  const canvas = document.createElement('canvas');
-  canvas.width = width + 4; canvas.height = height + 4;
-  const ctx = canvas.getContext('2d')!;
-  const rect = (x: number, y: number, wide: number, tall: number, col: string) => {
-    if (wide <= 0 || tall <= 0) return;
-    ctx.fillStyle = col;
-    ctx.fillRect(2 + Math.round(x), 2 + Math.round(y), Math.round(wide), Math.round(tall));
+  const img = new ImageData(Math.max(1, width + 4), Math.max(1, height + 4)), data = img.data;
+  const rect = (x: number, y: number, wide: number, tall: number, col: string | number) => {
+    const rgb = typeof col === 'number' ? col : packed(col),
+      left = Math.max(0, 2 + Math.round(x)), top = Math.max(0, 2 + Math.round(y)),
+      right = Math.min(img.width, left + Math.round(wide) + Math.min(0, 2 + Math.round(x))),
+      bottom = Math.min(img.height, top + Math.round(tall) + Math.min(0, 2 + Math.round(y)));
+    for (let row = top; row < bottom; row++) for (let across = left; across < right; across++) {
+      const idx = (row * img.width + across) * 4;
+      data[idx] = rgb >> 16; data[idx + 1] = (rgb >> 8) & 255; data[idx + 2] = rgb & 255;
+      data[idx + 3] = 255;
+    }
   };
-  return { canvas, rect };
+  return { img, rect };
 }
 
 /**
  * The car seen from its side (tail left, nose right): its roof line with the glass at its angle,
- * paint, wheels at their real size and place, lamps; an open car its tub, wings and wheels.
+ * paint, wheels at their real size and place, lamps; an open car its tub, wings and wheels. Its
+ * top edge and waist carry the colours of the car's own top sprite on that side (accents), so a
+ * livery's trim, third colour and details read on its side too.
  * @param spec the car as drawn
+ * @param accents the top sprite's colours along that side, or none
  * @returns the picture
  */
-export function paintSideProfile(spec: RenderCarSpec): ProfilePicture {
+export function paintSideProfile(spec: RenderCarSpec, accents?: SideAccents): ProfilePicture {
   const profile = profileOf(spec), tops = heightsPx(spec), lengthPx = tops.length,
     scale = pxPerM(spec), heightPx = Math.ceil(Math.max(...tops)) + 1,
-    { canvas, rect } = pictureOf(lengthPx, heightPx);
+    { img, rect } = pictureOf(lengthPx, heightPx);
   const paint = spec.paint || '#d0552f', outline = shade(paint, 0.4), glass = '#15171d',
     clearance = Math.max(1, (spec.rideH ?? 0.13) * scale);
   const waist = (profile.waist ?? 0) * scale, [glassFrom, glassTo] = profile.glass ?? [1, 0];
+  // the glass under the roof line (the windscreen and rear screen at the roof line's angle)
+  const body = profile.open ? shade(paint, 0.85) : paint, glassAt = (share: number, high: number) =>
+    !profile.open && share > glassFrom && share < glassTo && high > waist + 2;
   for (let x = 0; x < lengthPx; x++) {
-    const top = heightPx - tops[x], bottom = heightPx - clearance, share = x / lengthPx;
-    rect(x, top, 1, bottom - top, profile.open ? shade(paint, 0.85) : paint);
+    const top = heightPx - tops[x];
+    rect(x, top, 1, heightPx - clearance - top, body);
+    if (glassAt(x / lengthPx, tops[x])) rect(x, top + 1, 1, heightPx - waist - top - 1, glass);
     rect(x, top, 1, 1, outline);
-    // the glass under the roof line (the windscreen and rear screen at the roof line's angle)
-    if (!profile.open && share > glassFrom && share < glassTo && tops[x] > waist + 2)
-      rect(x, top + 1, 1, heightPx - waist - top - 1, glass);
+    if (accents) accentColumn(rect, accents, x, [top, waist > 0 && tops[x] > waist + 1
+      ? heightPx - waist : -1]);
   }
   for (const [from, upto, low, high] of profile.open?.wings ?? [])
     rect(from * lengthPx, heightPx - high * scale, (upto - from) * lengthPx, (high - low) * scale,
@@ -156,7 +186,21 @@ export function paintSideProfile(spec: RenderCarSpec): ProfilePicture {
   rect(lengthPx - 2, heightPx - waist - 3, 2, 2, '#fff3c4');
   rect(0, heightPx - waist - 3, 2, 2, '#c8342a');
   sideWheels(spec, rect, lengthPx, heightPx);
-  return { c: canvas, Lp: lengthPx, Hp: heightPx };
+  return { img, Lp: lengthPx, Hp: heightPx };
+}
+
+/**
+ * A side picture column's accents: the top sprite's colours on its top edge and its waist.
+ * @param rect the picture's painter
+ * @param accents the colours
+ * @param x the column
+ * @param rows the top edge's row and the waist's (-1 none)
+ */
+function accentColumn(rect: (x: number, y: number, wide: number, tall: number,
+  col: string | number) => void, accents: SideAccents, x: number, rows: number[]) {
+  const [top, waist] = rows;
+  if (accents.top[x] >= 0) rect(x, top + 1, 1, 1, accents.top[x]);
+  if (accents.waist[x] >= 0 && waist >= 0) rect(x, waist, 1, 1, accents.waist[x]);
 }
 
 /**
@@ -167,7 +211,7 @@ export function paintSideProfile(spec: RenderCarSpec): ProfilePicture {
  * @param heightPx the picture's height, px
  */
 function sideWheels(spec: RenderCarSpec, rect: (x: number, y: number, wide: number, tall: number,
-  col: string) => void, lengthPx: number, heightPx: number) {
+  col: string | number) => void, lengthPx: number, heightPx: number) {
   for (const [axle, rear] of [[spec.lf, false], [-spec.lr, true]] as [number, boolean][]) {
     const dia = tyreBox(spec, rear).len, mid = lengthPx / 2 + axle * SPRITE_PPM;
     // round: each column the circle's chord, the rim a smaller circle in it
@@ -190,7 +234,7 @@ function sideWheels(spec: RenderCarSpec, rect: (x: number, y: number, wide: numb
  */
 export function paintUnderProfile(spec: RenderCarSpec, widthPx: number): ProfilePicture {
   const profile = profileOf(spec), lengthPx = Math.round(spec.len * SPRITE_PPM),
-    { canvas, rect } = pictureOf(lengthPx, widthPx), mid = widthPx / 2;
+    { img, rect } = pictureOf(lengthPx, widthPx), mid = widthPx / 2;
   const paint = spec.paint || '#d0552f', floor = '#34353b', metal = '#5a5d66';
   if (profile.open) {
     const tub = widthPx * profile.open.tub;
@@ -217,5 +261,5 @@ export function paintUnderProfile(spec: RenderCarSpec, widthPx: number): Profile
     for (const side of [-1, 1]) rect(axle - len / 2, mid + side * track / 2 - wid / 2, len, wid,
       '#16171c');
   }
-  return { c: canvas, Lp: lengthPx, Hp: widthPx };
+  return { img, Lp: lengthPx, Hp: widthPx };
 }

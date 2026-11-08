@@ -20,14 +20,6 @@ export const TEST_LIST: TestEntry[] = [
     try: 'Lap each layout; look at the pits, the bridge over Bentley Straight, the closures.',
     wrong: 'A road or prop on the track, a barrier gap, a road to nowhere, a closure in the way.',
   },
-  {
-    id: 'rollbody',
-    added: '2026-11-08',
-    name: 'F1 + Micra roll as a real-shaped body: 12 frames, banded light, blur, whoosh',
-    where: 'Test link + &rollbody=1, pick the F1 or the Micra; the Lab flip ramp, gravel',
-    try: 'Roll them at speed and slowly, crash first then roll (dents, lost door / wheel).',
-    wrong: 'An F1 resting on its side, a hitch as a roll starts, a box look, damage missing.',
-  },
   // (approved late, deleted: fields, grassedge, catchthem, slipsdual, fps - TODO.md 1c; dirtroad,
   // animals, labext, labsplit, zoomhold, gpupaint, minimap, zoomspring, grassgrip, hwmap,
   // cracktufts, sharpcars, sharpmarks, jokerfix, groundlookup, exacttiles, hudmenu, tyreoff,
@@ -75,6 +67,6 @@ export const TEST_LIST: TestEntry[] = [
   // ground clearance), crossings (drivable bridges and tunnels), fencedrag passed 2026-11-08;
   // burstcap, tyresleep, stackvary (the crash bench: stacks 1-4 high, bursting by chance), linewall
   // (the line gives a wall by the edge room), tallfence, rollway (rolls the right way),
-  // castlecumvenue (Castle Kum as the real venue), rollover (a fast tumble goes over low things)
-  // passed 2026-11-08)
+  // castlecumvenue (Castle Kum as the real venue), rollover (a fast tumble goes over low things),
+  // rollbody (a rolled car drawn as a body in its real shape, every car) passed 2026-11-08)
 ];

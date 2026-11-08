@@ -11,7 +11,7 @@
 // bhquiet, aiweave, jokerflow, aisliders, hudlean, aibands, puffroom, aigrip,
 // aidodge, ailines, ailook, dodgefar, markjump passed 11-04; credits, bigbrands, crossings,
 // fencedrag, tyresleep, burstcap, stackvary, linewall, tallfence, rollway, castlecumvenue,
-// rollover passed 11-08.)
+// rollover, rollbody passed 11-08.)
 import { envValue } from './debug.ts';
 
 /**
@@ -42,9 +42,6 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
-  // the rolled car drawn as a BODY in its real shape, rolling by its shape (render/rollbody.ts,
-  // physics/rollshape.ts): the F1 and the Micra first
-  rollbody: atLoad('rollbody'),
   // ?snotterton=1: Snotterton (Snetterton) as a new venue at 1/2 of real length, its 300, 200 and
   // 100 layouts in TEST MODE (world/levels/snotterton-venue.ts; owner 11-08)
   snotterton: atLoad('snotterton'),

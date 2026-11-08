@@ -280,8 +280,8 @@ const NAME_RULES = [
   ['props', 'drawFence drawBarriers drawProps drawBridge drawGarageRow OVERHEAD drawCones drawTape '
     + 'drawDebris DEBRIS_KINDS objCache objSprite pdisc pixelObjectSprite drawPixelObject'],
   ['hud', 'drawArrows'],
-  ['cars', 'wheel DIGITS spriteCache pixelCar crushTop damagedSprite silhouette faceCache ROLL_HP sideSprite '
-    + 'underSprite dmgFace rolledFaces drawFaces drawPixelCar drawCar'],
+  ['cars', 'wheel DIGITS spriteCache pixelCar crushTop damagedSprite silhouette faceCache crushPixels carveSide '
+    + 'drawRolledBody frameAt bodyOf drawPixelCar drawCar'],
   ['frame', 'frame'],
 ];
 const GUESS = new Set(['drawArrows', 'drawWear', 'drawBumps', 'drawRunoff', 'drawFence', 'thumbnail',
