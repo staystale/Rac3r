@@ -558,8 +558,8 @@ export function buildEdge(rims: Rim[], keep: EdgeClear, traps: Zone[], needs: Ed
       const kinds = edgeKinds(rim, side, traps, needs, keep.loops);
       const line = needs.rails ? easedLoop(rimLine(rim, side), rim, side) : rimLine(rim, side);
       const fresh: Point[] = [];
-      // where Armco gives way to a catch fence the line runs on: no flare across the fence (a
-      // venue that follows its rails; Brands' flares meet its fences - not changed unasked)
+      // where Armco gives way to a catch fence the line runs on: no flare across the fence (along
+      // a venue that follows its real rails)
       const fence = needs.rails ? kindRuns(line, kinds, EDGE_CATCH).flat() : [];
       const flareClear = (x: number, y: number) => clear(x, y) && fence.every(([fenceX, fenceY]) =>
         Math.abs(fenceX - x) > FLARE_CLEAR_M || Math.abs(fenceY - y) > FLARE_CLEAR_M);
@@ -743,8 +743,7 @@ function behindRail(point: Point, loops: Subtrack[], rims: Rim[]): Point {
  * A board behind the Armco (and its catch fence) near a spot, facing the track: the rail's points
  * are tried from the nearest outward until the board's whole face stands clear of every barrier
  * and tyre stack (on a bend a straight board would cross the curved rail). With no Armco within
- * BOARD_LOOK_M, behind a catch fence (a spectator bank with no Armco near: Brands' KUM TYRES board
- * by Paddock Hill was silently left out).
+ * BOARD_LOOK_M, behind a catch fence (a spectator bank with no Armco near).
  * @param barriers every barrier (the Armco and catch fences)
  * @param cones the tyre stacks
  * @param loops every layout's road
