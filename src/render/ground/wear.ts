@@ -5,13 +5,14 @@ import { BUMPS, LEVEL } from "../../world/state.ts";
 import { COL } from "../../world/colours.ts";
 import { VERGE_W } from "../../world/surfaces.ts";
 import { wearMap, WEAR_CELL } from "../../world/wear.ts";
-import type { Bump } from "../../world/types.ts";
+import type { Bump, WearCell } from "../../world/types.ts";
 import type { WearGroup } from "../types.ts";
 import type { GroundCtx } from "./types.ts";
 import { speckle } from "./prims.ts";
 import { paintLayers, artBase } from "./art.ts";
 import { puddleWater } from "./covers.ts";
 import { cellCoverOnGpu, fieldLaysCell } from "../../world/coverfield.ts";
+import { paintDeckCovers } from "./deckcovers.ts";
 
 // the group key of worn cells that are now standing water over a ground
 const PUDDLE_KEY = 'puddle|';
@@ -34,7 +35,7 @@ const PUDDLE_KEY = 'puddle|';
  */
 export function drawWear(groundCtx: GroundCtx, pass = 'base') {
   if (!wearMap || wearMap.size === 0) return 0;
-  const groups = groupWornCells(groundCtx, pass);
+  const groups = groupWornCells(groundCtx, wearMap.values(), pass);
   let cells = 0;
   for (const [groupKey, group] of groups) {
     paintWearGroup(groundCtx, groupKey, group);
@@ -44,26 +45,40 @@ export function drawWear(groundCtx: GroundCtx, pass = 'base') {
 }
 
 /**
+ * What a worn cell shows in a pass: the surface it has become, or null when it shows nothing
+ * changed or belongs to the other pass.
+ * @param cell the cell
+ * @param pass 'base' or 'cover' (drawWear), or null: every cell, its own look (a deck)
+ * @returns the surface id to paint, or null
+ */
+function shownAs(cell: WearCell, pass: string | null): string | null {
+  // the cover field's own water / snow is drawn on the GPU (glfield.ts): the ground under it here
+  // the tyres' ice / snow / water too (one look, glfield.ts) - not on a deck, which is over it
+  const shows = pass && (fieldLaysCell(cell) || cellCoverOnGpu(cell)) ? cell.base : cell.current!;
+  if (shows === cell.orig) return null;
+  const startedCovered = cell.orig === 'snow' || cell.orig === 'ice' || cell.orig === 'wet';
+  return pass && (pass === 'cover') !== startedCovered ? null : shows;
+}
+
+/**
  * Groups the visible worn cells of one pass by the surface each has become.
  *
  * @param groundCtx the shared ground painter context
- * @param pass 'base' or 'cover', as for drawWear
+ * @param cells the cells (the wear map's, or a crossing's at their real place: drawDeckWear)
+ * @param pass 'base' or 'cover', as for drawWear; null for every cell, its own look (a deck:
+ *   the GPU water and snow are the ground's, under it)
  * @returns the screen rectangles and world bounding box of each group, keyed by surface
  */
-function groupWornCells(groundCtx: GroundCtx, pass: string) {
+function groupWornCells(groundCtx: GroundCtx, cells: Iterable<WearCell>, pass: string | null) {
   const { view, toScreenX, toScreenY } = groundCtx;
   // a worn cell now LOOKS like what it has become (the same SURFACE_ART as everywhere
   // else) instead of a flat tinted square. Visible cells are grouped by surface, and each group
   // is one path: fill its base, clip to it, paint its layers once — so 1000 worn cells cost a
   // handful of draw calls.
   const groups = new Map<string, WearGroup>();
-  for (const cell of wearMap.values()) {
-    // the cover field's own water / snow is drawn on the GPU (glfield.ts): the ground under it here
-    // the tyres' ice / snow / water too (one look, glfield.ts)
-    const shows = fieldLaysCell(cell) || cellCoverOnGpu(cell) ? cell.base : cell.current!;
-    if (shows === cell.orig) continue;
-    const startedCovered = cell.orig === 'snow' || cell.orig === 'ice' || cell.orig === 'wet';
-    if ((pass === 'cover') !== startedCovered) continue;
+  for (const cell of cells) {
+    const shows = shownAs(cell, pass);
+    if (!shows) continue;
     const px0 = Math.round(toScreenX(cell.cx * WEAR_CELL)),
       py0 = Math.round(toScreenY(cell.cy * WEAR_CELL));
     const px1 = Math.round(toScreenX((cell.cx + 1) * WEAR_CELL)),
@@ -86,6 +101,26 @@ function groupWornCells(groundCtx: GroundCtx, pass: string) {
     group.by1 = Math.max(group.by1, (cell.cy + 1) * WEAR_CELL);
   }
   return groups;
+}
+
+/**
+ * Draws a bridge's or tunnel's own worn ground (world/deckwear.ts: water, oil, glass) with the
+ * ground's own looks, each cell at its real place, over the deck or in a tunnel's open cuts (the
+ * caller clips).
+ * @param groundCtx the shared ground painter context
+ * @param cells the crossing's cells (their cx as filed)
+ * @param shiftCells how far they are filed along x, cells
+ */
+export function drawDeckWear(groundCtx: GroundCtx, cells: WearCell[], shiftCells: number) {
+  const shown = cells.filter((cell) => cell.current !== cell.orig)
+    .map((cell) => ({ ...cell, cx: cell.cx - shiftCells }));
+  if (!shown.length) return;
+  // its oil, water and glass as the GPU field draws them on the ground; the rest as the tiles do
+  const covered = shown.filter((cell) => cellCoverOnGpu(cell));
+  const rest = shown.filter((cell) => !cellCoverOnGpu(cell));
+  for (const [groupKey, group] of groupWornCells(groundCtx, rest, null))
+    paintWearGroup(groundCtx, groupKey, group);
+  if (covered.length) paintDeckCovers(groundCtx, covered);
 }
 
 /**

@@ -29,6 +29,7 @@ export interface ScreenCtx {
   drawPixelCar: (car: RenderCar) => void;
   paintCarPicture: (car: RenderCar, enlarge: number) => CarPicture;
   drawProps: (overhead?: boolean) => void;
+  drawCrossingGround: (kind: 'bridge' | 'tunnel') => void;
   drawMarks: (marks: RenderMarks) => void;
   drawRain: () => void;
   drawOverPuffs: (wallDt: number) => void;
@@ -108,6 +109,8 @@ export function drawSharpCarLayers(ctx: ScreenCtx, game: RenderGame, lock: Scree
   // what is overhead: a bridge's deck, a gantry, a tree's canopy covers the smoke beneath it
   if (!ctx.skip('fx')) ctx.drawOverPuffs(state.wallDt);
   if (!ctx.skip('props')) ctx.drawProps(true);
+  // a bridge's own ground (its water, oil, glass) on its deck and ramps (world/deckwear.ts)
+  if (LEVEL.crossings && !ctx.skip('ground')) ctx.drawCrossingGround('bridge');
   if (!ctx.skip('rain')) ctx.drawRain();
   blitArt(ctx, lock);
   if (!LEVEL.crossings) return;

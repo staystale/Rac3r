@@ -27,12 +27,12 @@ import {
 } from "./dig.ts";
 import { bumpAt, bankHeightAt, BUMP_STEER } from "./terrain.ts";
 import { crossingOf, deckGround, deckSlope } from "./crossinggeo.ts";
+import { clearDeckCells, deckOfX, deckShiftOf, isDeckX, noteDeckCell } from "./deckwear.ts";
 import { querySubtrack } from "./tyrewall.ts";
-import { noteHit } from "../physics/punctures.ts";
 import { bushPass } from "./bushes.ts";
 import { crackPass, crackScrubFactor, crackedIce } from "./icecrack.ts";
 import type {
-  CarBody, CoverId, Ground, Layers, Obstacle, Patch, Subtrack, Surface, WearCell,
+  CarBody, CoverId, Ground, Layers, Patch, Subtrack, Surface, WearCell,
 } from "./types.ts";
 
 // =============================================================================================
@@ -117,6 +117,7 @@ export function clearWear(): void {
   wearClock = 0;
   wearDirty.length = 0;
   wearEpoch++;          // tells the renderer every baked tile is out of date
+  clearDeckCells();
 
 }
 
@@ -180,6 +181,8 @@ export const zoneSurfaceAt = (x: number, y: number): Surface => zoneAt(x, y);
  * @returns the surface
  */
 export function groundSurfaceAt(x: number, y: number): Surface {
+  // a bridge's or tunnel's own ground is tarmac (world/deckwear.ts)
+  if (isDeckX(x)) return SURFACES.tarmac;
   const zoneSurface = zoneAt(x, y);
   return zoneSurface.id === 'kerb' ? zoneSurface : (patchAt(x, y) || zoneSurface);
 }
@@ -248,6 +251,7 @@ export function getCell(cellX: number, cellY: number, always = false): WearCell 
       area: layers.area };
     cell.current = cell.orig;
     wearMap.set(key, cell);
+    noteDeckCell(cell, cellX * WEAR_CELL);
   }
   return cell;
 }
@@ -383,8 +387,9 @@ export function getWornSurface(x: number, y: number): Surface | null {
   if (wearMap.size === 0) return null;
   const cell = wearMap.get(wearKey(Math.floor(x / WEAR_CELL), Math.floor(y / WEAR_CELL)));
   if (!cell) return null;
-  // cracked ice grips more (icecrack.ts)
-  const surface = surfaceOf(cell.base, cell.cover, cell.standing, cellDamp(cell, wearClock));
+  // cracked ice grips more (icecrack.ts); no rain reaches a tunnel's floor
+  const surface = surfaceOf(cell.base, cell.cover, cell.standing,
+    roofed(x) ? 0 : cellDamp(cell, wearClock));
   return crackedIce(surface, cell);
 }
 
@@ -408,8 +413,15 @@ function floorSurfaceAt(x: number, y: number): Surface {
   const worn = getWornSurface(x, y);
   if (worn) return worn;
   const layers = layersAt(x, y);
-  return surfaceOf(layers.base, layers.cover, layers.standing, WEATHER.wetness);
+  return surfaceOf(layers.base, layers.cover, layers.standing, roofed(x) ? 0 : WEATHER.wetness);
 }
+
+/**
+ * Whether a (filed) x is a tunnel's floor, under a roof (no rain: world/deckwear.ts).
+ * @param x world x as filed, m
+ * @returns true in a tunnel
+ */
+const roofed = (x: number): boolean => isDeckX(x) && deckOfX(x)?.kind === 'tunnel';
 
 /**
  * The surface a wheel touches at a point - groundAt's surface without the heights (the marks and
@@ -420,7 +432,9 @@ function floorSurfaceAt(x: number, y: number): Surface {
  */
 function wheelSurfaceAt(x: number, y: number): Surface {
   const overX = Math.max(x - FX1, FX0 - x), overY = Math.max(y - FY1, FY0 - y);
-  return Math.max(overX, overY) <= -KERB_W ? floorSurfaceAt(x, y) : groundAt(x, y).surface;
+  // (a crossing's own ground, filed far off the level, is all floor: world/deckwear.ts)
+  return Math.max(overX, overY) <= -KERB_W || isDeckX(x) ? floorSurfaceAt(x, y)
+    : groundAt(x, y).surface;
 }
 
 export function groundAt(x: number, y: number): Ground {
@@ -494,10 +508,12 @@ function recordWearPoint(x: number, y: number, simTime: number, tyreT = 0,
 // carWheels order is FL, FR, RL, RR with L = +lateral; vehicle.js indexes tyres the same way
 // (0..3).
 const TYRE_OF_WHEEL = [0, 1, 2, 3];
-export function stepWear(car: CarBody, dt: number): void {
+export function stepWear(car: CarBody, dt: number, shiftX = 0): void {
   wearClock += dt;
   if (Math.hypot(car.vx, car.vy) < 0.6) return;
   const curr = carWheels(car);
+  // on a bridge or in a tunnel the wheels wear its own ground (world/deckwear.ts)
+  if (shiftX) for (const wheel of curr) wheel.x += shiftX;
   if (!car.prevWheels) car.prevWheels = curr;
   const telemetry = car.t;
   setPassTyre(car.spec.tyre);
@@ -675,6 +691,10 @@ function applyGroundInner(car: CarBody, dt: number): void {
   const rearX = car.x - cosH * spec.lr, rearY = car.y - sinH * spec.lr, deck = crossingOf(car);
   const frontGround = deck ? deckGround(deck, frontX, frontY) : groundAt(frontX, frontY);
   const rearGround = deck ? deckGround(deck, rearX, rearY) : groundAt(rearX, rearY);
+  // a deck's surface is its own ground's (its water, oil: world/deckwear.ts)
+  const shiftX = deck ? deckShiftOf(car) : 0;
+  if (deck) frontGround.surface = floorSurfaceAt(frontX + shiftX, frontY);
+  if (deck) rearGround.surface = floorSurfaceAt(rearX + shiftX, rearY);
   // The true discrete derivative, so driving ALONG a ridged kerb shakes the car for exactly the
   // same reason crossing one does. There is no separate "rumble" code anywhere, and there should
   // not be. FIRST STEP AFTER A RESET (requirement: resetting on terrain causes the car to get stuck
@@ -708,90 +728,8 @@ function applyGroundInner(car: CarBody, dt: number): void {
   else if (deck) deckSlope(car, deck, cosH, sinH);
   else applySlopeForces(car, cosH, sinH);
   car.bellyDepth = car.air > 0 || deck ? 0 : bellyDepth(car, cosH, sinH);
-  // Dynamic surface wear: continuous swept tyre paths for all 4 wheels (none off the ground)
-  if (!deck) { stepWear(car, dt); return; }
-  car.prevWheels = null;
-  const under = car.wheelSurf || (car.wheelSurf = []);
-  for (let i = 0; i < 4; i++) under[i] = rearGround.surface;
-}
-
-// The fence is the one hard constraint out here, because a barrier IS one.
-// PREVENTS WEDGING: bounds against car corners rather than center point, prevents body
-// from penetrating the fence, zeroes penetrating velocity with elastic rebound, and damps snagging
-// yaw.
-export function fenceClamp(car: CarBody): void {
-  const spec = car.spec;
-  const reach = Math.max(spec.wid, spec.len) * 0.48;
-  // per side (S-B: the floor is a rectangle): the fence is RUNOFF_W past each floor edge
-  for (const axis of ['x', 'y'] as const) {
-    const lower = (axis === 'x' ? FX0 : FY0) - RUNOFF_W + reach,
-      upper = (axis === 'x' ? FX1 : FY1) + RUNOFF_W - reach;
-    if (car[axis] > upper || car[axis] < lower) {
-      const sgn = car[axis] > upper ? 1 : -1;
-      car[axis] = sgn > 0 ? upper : lower;
-      const velKey = axis === 'x' ? 'vx' : 'vy';
-      if (car[velKey] * sgn > 0) {
-        car[velKey] = -car[velKey] * 0.35;
-        car.yawRate *= 0.65;     // kill corner pivot snagging
-        noteHit(car, 'fence');
-      }
-    }
-  }
-}
-
-/**
- * Push the car out of one solid obstacle (grandstand, pit wall, marshal tower) if it is inside,
- * bouncing it off the side of least penetration.
- * @param car the car body
- * @param obstacle the obstacle rectangle
- * @param reachX how far the car reaches along x
- * @param reachY how far the car reaches along y
- */
-function pushOutOfObstacle(
-  car: CarBody, obstacle: Obstacle, reachX: number, reachY: number,
-): void {
-  const halfW = obstacle.w / 2, halfH = obstacle.h / 2;
-  const minX = obstacle.x - halfW - reachX;
-  const maxX = obstacle.x + halfW + reachX;
-  const minY = obstacle.y - halfH - reachY;
-  const maxY = obstacle.y + halfH + reachY;
-
-  if (car.x > minX && car.x < maxX && car.y > minY && car.y < maxY) {
-    const penLeft = car.x - minX;
-    const penRight = maxX - car.x;
-    const penTop = car.y - minY;
-    const penBottom = maxY - car.y;
-    const minPen = Math.min(penLeft, penRight, penTop, penBottom);
-
-    if (minPen === penLeft) {
-      car.x = minX;
-      if (car.vx > 0) car.vx = -car.vx * 0.35;
-    } else if (minPen === penRight) {
-      car.x = maxX;
-      if (car.vx < 0) car.vx = -car.vx * 0.35;
-    } else if (minPen === penTop) {
-      car.y = minY;
-      if (car.vy > 0) car.vy = -car.vy * 0.35;
-    } else {
-      car.y = maxY;
-      if (car.vy < 0) car.vy = -car.vy * 0.35;
-    }
-    car.yawRate *= 0.50;
-    const speed = Math.hypot(car.vx, car.vy);
-    car.shake = Math.min(1.0, (car.shake || 0) + speed * 0.12);
-  }
-}
-// Solid impactable obstacle collision (grandstands, pit divider walls, marshal towers)
-export function obstacleClamp(car: CarBody): void {
-  if (!LEVEL.obstacles || !LEVEL.obstacles.length) return;
-  const spec = car.spec;
-  const reachX = spec.len * 0.45, reachY = spec.wid * 0.45;
-
-  const vx0 = car.vx, vy0 = car.vy;
-  for (let i = 0; i < LEVEL.obstacles.length; i++)
-    pushOutOfObstacle(car, LEVEL.obstacles[i], reachX, reachY);
-  // the obstacles are buildings and stands
-  if (car.vx !== vx0 || car.vy !== vy0) noteHit(car, 'building');
+  // Dynamic surface wear: continuous swept tyre paths for all 4 wheels (a crossing's own ground)
+  stepWear(car, dt, shiftX);
 }
 
 export function resetPATCH_GRID(): void {

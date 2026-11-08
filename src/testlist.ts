@@ -65,4 +65,12 @@ export const TEST_LIST: TestEntry[] = [
     try: 'Out via the pits to the service roads; up a bridge ramp, into the tunnel; skid on them.',
     wrong: 'A snap at a ramp or mouth, stuck, through a wall, hitting cars below, marks under.',
   },
+  {
+    id: 'fencedrag',
+    added: '2026-11-08',
+    name: 'Catch fences weaker (tear from ~40 km/h), grab a car along them, tangle and drag it',
+    where: 'Plain link: Brands Snatch, the see-through catch fences by the stands and banks',
+    try: 'Hit one slow (it catches you), fast (it tears, shreds, drags you); slide along it.',
+    wrong: 'A dead stop at speed, no drag after a tear, a car stuck in the fence.',
+  },
 ];

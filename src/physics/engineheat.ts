@@ -17,6 +17,7 @@ import { WEATHER } from '../world/weather.ts';
 import { SPRAY_WET } from '../world/surfaces.ts';
 import { getCell, wearDirty, WEAR_CELL } from '../world/wear.ts';
 import { spillOil, DRIP_GEN } from '../world/oil.ts';
+import { deckShiftOf } from '../world/deckwear.ts';
 
 /** The engine state on a car. */
 export interface EngineState {
@@ -34,6 +35,7 @@ export interface EngineState {
 /** A car as this file reads it. */
 export interface EngineCar extends Partial<EngineState> {
   x: number; y: number; vx: number; vy: number; heading: number; rpm: number;
+  crossing?: number;   // the bridge / tunnel it is on (world/crossings.ts)
   spec: { redline: number; len: number };
   throttleUsed?: number;
   wheelSurf?: ({ spray?: unknown } | null)[] | null;
@@ -161,8 +163,10 @@ function stepLeaks(car: EngineCar, state: EngineState, dt: number) {
     state.leakCells += lost * WATER_CELLS;
     if (state.leakCells >= 1) {
       state.leakCells -= 1;
-      const ahead = car.spec.len * LEAK_AT;
-      wetCellAt(car.x + Math.cos(car.heading) * ahead, car.y + Math.sin(car.heading) * ahead);
+      // (on a bridge or in a tunnel, its own ground: world/deckwear.ts)
+      const ahead = car.spec.len * LEAK_AT, shiftX = deckShiftOf(car);
+      wetCellAt(car.x + shiftX + Math.cos(car.heading) * ahead,
+        car.y + Math.sin(car.heading) * ahead);
     }
   }
   if (state.oilLeak > 0 && state.engOil > 0) {
@@ -172,8 +176,8 @@ function stepLeaks(car: EngineCar, state: EngineState, dt: number) {
     if (state.oilCells >= 1) {
       state.oilCells -= 1;
       const ahead = car.spec.len * LEAK_AT * 0.5;
-      spillOil(car.x + Math.cos(car.heading) * ahead, car.y + Math.sin(car.heading) * ahead,
-        DRIP_GEN);
+      spillOil(car.x + deckShiftOf(car) + Math.cos(car.heading) * ahead,
+        car.y + Math.sin(car.heading) * ahead, DRIP_GEN);
     }
   }
 }

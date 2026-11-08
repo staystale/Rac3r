@@ -57,7 +57,11 @@ last handover, written on request.
    faint car), each crossing's own marks layer (marks.ts).
    ROUND 3 (owner 11-08: "the rest is a pass"): the footpath tunnel drivable (a mouth needs room to
    drive out: it runs on under Cooper Straight, 103 m), the ways rise / dip as terrain, smoke under
-   decks, a lying tyre driven over only by a tractor-high car. UNDER TEST.
+   decks, a lying tyre driven over only by a tractor-high car. Then (owner: "water can drip up thru
+   the tunnels", "should work like any other surface") a crossing has its own ground (world/
+   deckwear.ts): leaks and glass land there, not on the track beneath. UNDER TEST.
+   CATCH FENCES round 3 (owner: "still too strong ... catch n drag"): tear from ~40 km/h, grab a
+   sliding car (0.6 kept a step), a tear tangles and drags the car 1 s. UNDER TEST (fencedrag).
    PERFORMANCE CHECK 11-08 (CPU x4 lap, tools/framecheck.mjs): Brands work median 12.7 ms, p95
    24-29 (Thruston 13.2 / 23.0; Castle Cum 24.4 / 39.1 - the heaviest, older); crossings on: no
    measurable cost. Fixed: Brands was built at page load (7.3 s of level import here, now 0.85 s).

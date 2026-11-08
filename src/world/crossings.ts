@@ -15,7 +15,7 @@ import {
   DECK_ROAD_HI, DECK_ROAD_LO, PORTAL_LINTEL_M, VENUE_DECK, acrossOf, alongOf, crossingOf,
 } from "./crossinggeo.ts";
 import { LEVEL } from "./state.ts";
-import { fenceClamp, obstacleClamp } from "./wear.ts";
+import { fenceClamp, obstacleClamp } from "./obstacles.ts";
 import type { Barrier, CarBody, Crossing, Point, Prop } from "./types.ts";
 
 // m: a crossing's walls are 'wall' barriers (half thickness 0.45, world/barriers.ts BARRIER_HALF)

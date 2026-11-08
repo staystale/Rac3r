@@ -269,13 +269,20 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   no faint car). Its way has the terrain's shape: a bridge rises (a sin^2 arch, 2.5 % of its length),
   a tunnel dips - gentle enough to go light, not fly (no air to 90 km/h). A tunnel's mouth opens
   onto room to drive out, else its portal walks on (the Brands footpath tunnel runs on under Cooper
-  Straight). Smoke goes under what is overhead (a deck, a canopy). tools/crossingcheck.mjs drives
+  Straight). Smoke goes under what is overhead (a deck, a canopy). A crossing has its OWN GROUND:
+  the same wear cells and rules as any ground, filed far off the map (world/deckwear.ts) - what a
+  car lets go of on it (radiator water, oil, glass) lands there, looks, grips and dries as anywhere
+  (owner: "it should work like any other surface"), never on the track beneath. tools/
+  crossingcheck.mjs drives
   each one both ways.
 - "Straight Outta Swindon" is a reserved name for a future highway level (the test straight that
   used it was removed 10-17).
 
 ## Measured lessons
 
+- A LEVEL BUILT ON FIRST USE HAS NO TRACK UNTIL setLevel (11-08): tools/renderhash.mjs picked
+  circuits by "has a subtrack" and silently dropped Brands from every pixel check after it went
+  lazy. Pick levels by what they are (a _build without a stage gen is a circuit), or build them.
 - A RED CI RUN IS A BUG UNTIL SHOWN OTHERWISE (11-08): the renderhash jobs failed for a day as a
   "tool failure" (reading 'mass') - it was the game: a torn-off driven wheel threw a drive shaft
   with no loose-object entry and the sim step threw. tools/partcheck.mjs now walks every car's

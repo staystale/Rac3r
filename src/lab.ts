@@ -13,6 +13,7 @@ export * from "./world/levels/lab-extension.ts";
 export * from "./world/zones.ts";
 export * from "./world/terrain.ts";
 export * from "./world/wear.ts";
+export * from "./world/obstacles.ts";
 export * from "./world/tyrewall.ts";
 export * from "./world/levels/index.ts";
 export * from "./world/blend.ts";

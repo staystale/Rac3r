@@ -10,6 +10,7 @@
 // carries each square's LEVEL AREA (1..4, coverfield.ts AREA_KINDS: the level's own snow, ice,
 // water, packed snow), whose own levels are tried before the weather's; a bare
 // square of mud (5) or thick mud (6) is ice where the frost reaches (coverfield.ts FROST).
+import { GLASS_LOOK, OIL_LOOK, WATER_LOOK, glslList } from "./coverlooks.ts";
 import { LEVEL } from "../world/state.ts";
 import {
   wearMap, wearEpoch, wearKey, WEAR_CELL, groundSurfaceAt, layersAt,
@@ -116,14 +117,16 @@ int kindOf(ivec2 square, out float depth) {
 vec4 lookOf(int kind, bool rim, float thick, float sheen, ivec2 square) {
   if (kind == 5) {
     float streak = fract(float(square.x + square.y) * 0.027) < 0.1 ? 1.0 : 0.0;
-    return rim ? vec4(0.32, 0.14, 0.48, 0.9)
-      : vec4(mix(vec3(0.04, 0.02, 0.06), vec3(0.27, 0.10, 0.40), max(sheen, streak) * 0.75),
-        0.86 + 0.1 * thick);
+    return rim ? vec4(${glslList(OIL_LOOK.rim)})
+      : vec4(mix(vec3(${glslList(OIL_LOOK.body)}), vec3(${glslList(OIL_LOOK.sheen)}),
+        max(sheen, streak) * ${glslList([OIL_LOOK.sheenShare])}),
+        ${glslList([OIL_LOOK.alpha])} + ${glslList([OIL_LOOK.thickAlpha])} * thick);
   }
   if (kind == 1) {
-    return rim ? vec4(0.08, 0.12, 0.20, 0.45)
-      : vec4(mix(vec3(0.16, 0.26, 0.44), vec3(0.40, 0.54, 0.72), sheen * 0.3),
-        0.28 + 0.22 * thick);
+    return rim ? vec4(${glslList(WATER_LOOK.rim)})
+      : vec4(mix(vec3(${glslList(WATER_LOOK.body)}), vec3(${glslList(WATER_LOOK.sheen)}),
+        sheen * ${glslList([WATER_LOOK.sheenShare])}),
+        ${glslList([WATER_LOOK.alpha])} + ${glslList([WATER_LOOK.thickAlpha])} * thick);
   }
   if (kind == 2) {
     float streak = fract(float(square.x + square.y) * 0.027) < 0.1 ? 1.0 : 0.0;
@@ -142,8 +145,8 @@ vec4 lookOf(int kind, bool rim, float thick, float sheen, ivec2 square) {
 // GLASS (world/debris.ts): tiny pale specks, GLASS_PX a square side (about the art pixel), on
 // GLASS_SHARE of them; each glints by its own phase against where the CAMERA is, so as the view
 // moves the glints wander and their colour drifts gently (owner); none between the specks
-const int GLASS_PX = 8;
-const float GLASS_SHARE = 0.05;
+const int GLASS_PX = ${GLASS_LOOK.px};
+const float GLASS_SHARE = ${glslList([GLASS_LOOK.share])};
 uint glassHash(ivec2 speck) {
   uint hash = uint(speck.x * 73856093) ^ uint(speck.y * 19349663) ^ 3266489917u;
   hash = hash * 747796405u + 2891336453u;
@@ -158,7 +161,7 @@ vec4 glassLook(ivec2 square, vec2 inSq) {
   float glint = sin(dot(camera, vec2(0.9, 0.7)) + own * 40.0);
   float hue = 6.2832 * (own + 0.08 * dot(camera, vec2(0.3, 0.2)));
   vec3 tint = 0.5 + 0.5 * cos(hue + vec3(0.0, 2.1, 4.2));
-  vec3 pale = mix(vec3(0.80, 0.87, 0.93), tint, 0.3);
+  vec3 pale = mix(vec3(${glslList(GLASS_LOOK.pale)}), tint, 0.3);
   if (glint > 0.9) return vec4(mix(pale, vec3(1.0), 0.8), 1.0);
   return vec4(pale, 0.45 + 0.3 * max(glint, 0.0));
 }

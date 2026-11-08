@@ -39,6 +39,7 @@ import { updateLampLight } from "./world/lamps.ts";
 import { WEATHER } from "./world/weather.ts";
 import { noteBodies } from "./render/leafpop.ts";
 import { onGround } from "./world/crossinggeo.ts";
+import { LEVEL } from "./world/state.ts";
 
 // PPM is derived from the SHORT side of the viewport, so the car is a consistent fraction of the
 // screen everywhere (a flat PPM of 16 put a 4 m car at 64 px on a 1280 px desktop, too small
@@ -239,6 +240,8 @@ function drawWorldLayers(ctx: RenderCtx, game: RenderGame, lock: ViewLock, wallT
   if (!skip('fence')) ctx.drawFence();
   if (!skip('barriers')) ctx.drawBarriers();
   if (!skip('props')) ctx.drawProps();
+  // a tunnel's own ground in its open cuts, over the portals (world/deckwear.ts)
+  if (LEVEL.crossings && !skip('ground')) ctx.drawCrossingGround('tunnel');
   if (!skip('cones')) {
     ctx.drawCones(game.cones.list);
     ctx.drawTape(game);

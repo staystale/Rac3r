@@ -16,6 +16,7 @@ import { getCell, wearDirty, WEAR_CELL } from "./wear.ts";
 import { PASS } from "./pass.ts";
 import { DEBRIS } from "../cones/coneConsts.ts";
 import { takeFenceShreds } from "./armcodent.ts";
+import { deckShiftOf } from "./deckwear.ts";
 import type { WearCell } from "./types.ts";
 
 // a corner's hit of PART_HIT+ knocks its part off PART_P_MIN of the time, surely at
@@ -50,7 +51,7 @@ const NO_GLASS = new Set(['track', 'banger', 'grass']);
 
 /** A car as the debris reads it. */
 export interface DebrisCar {
-  x?: number; y?: number; vx: number; vy: number; heading: number;
+  x?: number; y?: number; vx: number; vy: number; heading: number; crossing?: number;
   spec?: { id?: string; kind?: string; paint?: string; trim?: string; lf?: number; lr?: number;
     trackWidth?: number; drive?: number };
   partSpawn?: { corner: number; kind: string }[];
@@ -255,7 +256,9 @@ function shatterGlass(car: DebrisCar, corner: number, rnd: () => number) {
   const count = GLASS_CELLS_MIN + Math.floor(rnd() * (GLASS_CELLS_MORE + 1));
   for (let i = 0; i < count; i++) {
     const ahead = rnd() * GLASS_REACH_M, spread = (rnd() - 0.5) * GLASS_REACH_M;
-    glassCell(spot.x + aimX * ahead - aimY * spread, spot.y + aimY * ahead + aimX * spread);
+    // (on a bridge or in a tunnel, its own ground: world/deckwear.ts)
+    glassCell(spot.x + deckShiftOf(car) + aimX * ahead - aimY * spread,
+      spot.y + aimY * ahead + aimX * spread);
   }
 }
 

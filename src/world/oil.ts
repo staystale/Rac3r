@@ -10,6 +10,7 @@
 // ahead); WATER SPREADS IT - oil next to water has a 50:50 chance a second to run into that wet
 // cell (oil floats on water: the cell becomes oil). Each spread is a generation weaker
 // (cell.oilGen), so a spill grows a few cells and stops.
+import { deckShiftOf } from "./deckwear.ts";
 import { getCell, wearDirty, wearKey, wearMap, WEAR_CELL } from "./wear.ts";
 import { fieldCoverAt } from "./coverfield.ts";
 import { PASS } from "./pass.ts";
@@ -51,7 +52,7 @@ export function spillOil(x: number, y: number, gen: number): boolean {
 }
 
 /** A car as the spills read it. */
-interface SpillCar { x?: number; y?: number; vx: number; vy: number }
+interface SpillCar { x?: number; y?: number; vx: number; vy: number; crossing?: number }
 
 /**
  * Oil round a car: count cells within OIL_REACH_M of it.
@@ -60,10 +61,11 @@ interface SpillCar { x?: number; y?: number; vx: number; vy: number }
  * @param rnd the random source
  */
 function spillPatch(car: SpillCar, count: number, rnd: () => number): void {
+  // (on a bridge or in a tunnel, its own ground: world/deckwear.ts)
+  const fromX = (car.x || 0) + deckShiftOf(car);
   for (let i = 0; i < count; i++) {
     const angle = rnd() * Math.PI * 2, reach = rnd() * OIL_REACH_M;
-    spillOil((car.x || 0) + Math.cos(angle) * reach, (car.y || 0) + Math.sin(angle) * reach,
-      SPILL_GEN);
+    spillOil(fromX + Math.cos(angle) * reach, (car.y || 0) + Math.sin(angle) * reach, SPILL_GEN);
   }
 }
 
