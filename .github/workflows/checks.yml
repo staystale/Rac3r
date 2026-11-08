@@ -7,9 +7,13 @@ name: checks
 # against it). An untagged difference fails: something changed that was not meant to. The
 # runners have no GPU: the WebGL2 ground runs in software (SwiftShader), ~3-6 min a level, so
 # the pixel check (renderhash) is its own job split over 4 machines (--shard): every level on
-# every push.
+# every push. Not on a push to main (owner 11-08: "30mins is too long"): main takes only a commit
+# already checked on its branch (the same commit, the same result). The screen checks (menus, the
+# guide, input, the layout: ~11 of ~18 min) run only when a push touches the screens; the code
+# check (verify) is its own workflow.
 on:
   push:
+    branches-ignore: [main]
   pull_request:
 
 jobs:
@@ -44,7 +48,15 @@ jobs:
           for tag in sim world; do
             if echo "$MSGS" | grep -qF "[$tag]"; then echo "TAG_$tag=1" >> "$GITHUB_ENV"; echo "[$tag]: reported only"; fi
           done
-      - run: node tools/runall.mjs --skip renderhash,simhash,worldhash
+      - name: The suite (the screen checks only when the screens changed)
+        run: |
+          BASE=$(git merge-base origin/main HEAD)
+          if [ "$BASE" = "$(git rev-parse HEAD)" ]; then BASE=$(git rev-parse HEAD~1); fi
+          SKIP=renderhash,simhash,worldhash,verify
+          SCREENS='^(src/(menu|hud|ui)/|src/(menu|hud|input|guide|testlist)\.ts|src/game/(menuflow|controls)\.ts|index\.html|.*\.css|tools/(inputcheck|uicheck|menucheck|guidecheck)\.mjs)'
+          if git diff --name-only "$BASE" HEAD | grep -qE "$SCREENS"; then echo "screens changed: their checks run";
+          else SKIP="$SKIP,inputcheck,uicheck,menucheck,guidecheck"; echo "screens unchanged: their checks skipped"; fi
+          node tools/runall.mjs --skip "$SKIP"
       - name: simhash
         if: always()
         continue-on-error: ${{ env.TAG_sim == '1' }}
