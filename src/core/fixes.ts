@@ -42,4 +42,6 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
+  // a stock car's roof flaps pop up when it travels backwards fast (physics/roofflaps.ts)
+  roofflaps: atLoad('roofflaps'),
 };

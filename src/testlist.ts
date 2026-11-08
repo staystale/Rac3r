@@ -12,6 +12,14 @@ export interface TestEntry {
 }
 
 export const TEST_LIST: TestEntry[] = [
+  {
+    id: 'roofflaps',
+    added: '2026-11-08',
+    name: 'Naffcar roof flaps: two plates pop up on the roof when it goes backwards fast',
+    where: 'Test link + &roofflaps=1: the Naffcar, Stock Car oval or any track',
+    try: 'Spin it over 90 km/h so it slides backwards; watch the roof as it comes round.',
+    wrong: 'Flaps up when driving normally, never up in a fast spin, or stuck up after it stops.',
+  },
   // (approved late, deleted: fields, grassedge, catchthem, slipsdual, fps - TODO.md 1c; dirtroad,
   // animals, labext, labsplit, zoomhold, gpupaint, minimap, zoomspring, grassgrip, hwmap,
   // cracktufts, sharpcars, sharpmarks, jokerfix, groundlookup, exacttiles, hudmenu, tyreoff,

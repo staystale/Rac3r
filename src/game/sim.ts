@@ -24,6 +24,7 @@ import { doReset, onScreen } from './session.ts';
 import { shared, game } from './state.ts';
 import { stepAIInjury } from './ai.ts';
 import { wakeStep } from '../physics/wake.ts';
+import { roofFlapStep } from '../physics/roofflaps.ts';
 import type { Car, CarInput } from '../vehicle.ts';
 import type { TrafficVehicle } from '../ai/types.ts';
 
@@ -415,6 +416,9 @@ export function stepTrafficContacts(tcars: TrafficVehicle[]) {
     all.forEach((racer, i) => hit(racer, startVel[i][0], startVel[i][1]));
     if (game.ai.length) wakeStep(racers.filter(onGround));
   }
+  // a stock car's roof flaps (physics/roofflaps.ts)
+  for (const racer of [game.car, ...game.ai.map((entry) => entry.car)])
+    roofFlapStep(racer, PHYSICS_STEP_SECONDS);
 }
 
 /**

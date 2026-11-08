@@ -332,6 +332,27 @@ function drawCarLamps(carsCtx: CarsContext, car: RenderCar, sprite: CarSprite) {
 }
 
 /**
+ * A stock car's ROOF FLAPS standing (physics/roofflaps.ts): two dark plates across the back of the
+ * roof, hinged at their front edge (a pale line), longer and with more shadow as they rise; the
+ * rear one shorter across.
+ * @param ctx the canvas (at the car, sprite px)
+ * @param raised how far up, 0..1
+ * @param sprite the body sprite
+ */
+function drawRoofFlaps(ctx: CanvasRenderingContext2D, raised: number, sprite: CarSprite) {
+  const tall = Math.max(1, Math.round(1 + 3 * raised));
+  for (const [along, inset] of [[-0.12, 0], [-0.2, 2]]) {
+    const hinge = Math.round(sprite.Lp * along), half = Math.round(sprite.Wp * 0.26) - inset;
+    ctx.fillStyle = 'rgba(10,10,14,0.3)';
+    ctx.fillRect(hinge - tall + 1, -half + 1, tall, half * 2);
+    ctx.fillStyle = '#1e2026';
+    ctx.fillRect(hinge - tall, -half, tall, half * 2);
+    ctx.fillStyle = '#9aa0aa';
+    ctx.fillRect(hinge, -half, 1, half * 2);
+  }
+}
+
+/**
  * Draw one car: shadow, wheels (by their air), body and lamps (or the rolled faces).
  * @param carsCtx the shared view and helpers
  * @param car the car
@@ -371,6 +392,7 @@ function drawPixelCar(carsCtx: CarsContext, car: RenderCar, heading = car.headin
   // the wheels show their own air (render/tyrelook.ts: squashed, flat, on the rim)
   drawCarWheels(carsCtx, car, sprite);
   view.ctx.drawImage(sprite.c, -sprite.Lp / 2 - 2, -sprite.Wp / 2 - 2);
+  if (car.flaps) drawRoofFlaps(view.ctx, car.flaps, sprite);
   drawCarLamps(carsCtx, car, sprite);
   view.ctx.restore();
 }

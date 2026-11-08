@@ -225,6 +225,7 @@ export interface RenderCar extends CamCar, Pick<Car, 'heading' | 'delta' | 'cros
   gear?: number;   // the gear, -1 in reverse (vehicle.ts): its reversing lights
   // caches the car layers set on the car itself
   _dsp?: { key: string; base: CarSprite; sp: CarSprite } | null;
+  flaps?: number;   // a stock car's roof flaps standing, 0..1 (physics/roofflaps.ts)
   _bodyMade?: boolean;   // its clean sprite waiting to be read for a roll (rollbody.ts)
 }
 
