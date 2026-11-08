@@ -213,6 +213,26 @@ export function makePlacer(scale: number, loops: Subtrack[], widenM: number): (p
 }
 
 /**
+ * A line with each end carried on to the nearest of some points within reachM of it (a barrier's
+ * end joined to the next barrier's).
+ * @param pts the line
+ * @param targets the points an end may join
+ * @param reachM metres
+ * @returns the line, its ends joined where one is near
+ */
+export function joinEnds(pts: Point[], targets: Point[], reachM: number): Point[] {
+  const nearest = (end: Point): Point[] => {
+    let best: Point | null = null, bestGap = reachM;
+    for (const point of targets) {
+      const gap = Math.hypot(point[0] - end[0], point[1] - end[1]);
+      if (gap > 1e-6 && gap < bestGap) [best, bestGap] = [point, gap];
+    }
+    return best ? [best] : [];
+  };
+  return [...nearest(pts[0]), ...pts, ...nearest(pts[pts.length - 1])];
+}
+
+/**
  * A line with its ends cut back while a test holds there (a barrier's end off a road).
  * @param pts the line
  * @param cut true where an end point goes

@@ -11,7 +11,7 @@
 import { SURFACES } from "./surfaces.ts";
 import { insidePolygon } from "./zones.ts";
 import { HALF_ROAD, centreAt, clearRuns, distToLine, lineLength, nearestLoop, roadDistance,
-  trimEnds } from "./venuegeo.ts";
+  joinEnds, trimEnds } from "./venuegeo.ts";
 import type { Barrier, Cone, Point, Prop, Subtrack, TrackPoint, Zone } from "./types.ts";
 
 // m past the road's edge the Armco stands where there is no trap (the run-off: grass)
@@ -54,6 +54,8 @@ const RUN_MAX_M = 60;
 const FLARE_ON_M = 6, FLARE_OUT_M = 1.6;
 // m a flare's points keep from a catch fence (an Armco end meeting one is not flared across it)
 const FLARE_CLEAR_M = 3;
+// m within which an Armco end is carried on to a catch fence's end (the two meet, no gap)
+const FENCE_JOIN_M = 4;
 // m off a road's edge a barrier's end keeps (the pit lane leaving the track meets no end head on)
 const END_ROAD_M = 4;
 // m in front of the Armco of its two tyre rows behind a trap, and the second row's stagger
@@ -563,9 +565,10 @@ export function buildEdge(rims: Rim[], keep: EdgeClear, traps: Zone[], needs: Ed
       const kinds = edgeKinds(rim, side, traps, needs, keep.loops);
       const line = needs.rails ? easedLoop(rimLine(rim, side), rim, side) : rimLine(rim, side);
       const fresh: Point[] = [];
-      // where Armco gives way to a catch fence the line runs on: no flare across the fence (a free
-      // end still flares)
-      const fence = kindRuns(line, kinds, EDGE_CATCH).flat();
+      // where Armco gives way to a catch fence the line runs on to the fence's end post: no flare
+      // across the fence (a free end still flares)
+      const fenceRuns = kindRuns(line, kinds, EDGE_CATCH), fence = fenceRuns.flat();
+      const fenceEnds = fenceRuns.flatMap((run) => [run[0], run[run.length - 1]]);
       const flareClear = (x: number, y: number) => clear(x, y) && !nearRoad(x, y)
         && fence.every(([fenceX, fenceY]) =>
           Math.abs(fenceX - x) > FLARE_CLEAR_M || Math.abs(fenceY - y) > FLARE_CLEAR_M);
@@ -579,7 +582,8 @@ export function buildEdge(rims: Rim[], keep: EdgeClear, traps: Zone[], needs: Ed
             // Armco flared at its real ends, then cut into short runs (no flare where only cut)
             const ends: [Point, Point] = [awayFrom(keep.loops, run[0]),
               awayFrom(keep.loops, run[run.length - 1])];
-            const flared = barrierKind === 'armco' ? flare(run, ends, flareClear) : run;
+            const flared = barrierKind === 'armco'
+              ? flare(joinEnds(run, fenceEnds, FENCE_JOIN_M), ends, flareClear) : run;
             const shaped = needs.rails ? withoutRepeats(flared) : flared;
             for (const chunk of chunks(shaped, RUN_MAX_M / RIM_STEP_M))
               barriers.push({ kind: barrierKind, pts: chunk });
