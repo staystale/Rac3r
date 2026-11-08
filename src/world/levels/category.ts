@@ -7,7 +7,8 @@ const CAT_OF: Record<string, string> = { 'test-track': 'circuits', thruston: 'ci
   'castle-cum': 'circuits', 'brands-snatch': 'circuits', 'brands-snatch-indy': 'circuits',
   snotterton: 'circuits', 'snotterton-200': 'circuits', 'snotterton-100': 'circuits',
   'sweaty-lamb': 'rally', killder: 'rally', knobhill: 'rx', 'slidden-hill': 'rx',
-  'grass-track': 'ovals', 'stock-car': 'ovals', naffcar: 'ovals',
+  'grass-track': 'ovals', dieatona: 'ovals', 'dieatona-road': 'ovals', 'stock-car': 'ovals',
+  naffcar: 'ovals',
   lab: 'test', sandbox: 'test', 'bowling-alley': 'test', 'rough-patch': 'test',
   'crash-bench': 'test' };
 

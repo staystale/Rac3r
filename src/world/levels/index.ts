@@ -31,6 +31,7 @@ import {
 import { BH_GP_LEVEL, BH_INDY_LEVEL } from "./brands-venue.ts";
 import { CC_VENUE_LEVEL } from "./castle-cum-venue.ts";
 import { SN_LEVELS } from "./snotterton-venue.ts";
+import { DT_LEVELS } from "./dieatona-venue.ts";
 import { TH_VENUE_LEVEL } from "./thruston-venue.ts";
 import { FIX } from "../../core/fixes.ts";
 import { LAB_PAINT, LAB_BOARDS } from "../barriers.ts";
@@ -301,6 +302,8 @@ export const LEVELS: Level[] = [
       { x: -14, y: 64, w: 4.4, h: 3.6 }, // Marshal tower / official box
     ],
   },
+  // ?dieatona=1: Dieatona's oval and road course (dieatona-venue.ts), built on first use
+  ...(FIX.dieatona ? DT_LEVELS : []),
   {
     id: 'naffcar', name: 'Naffcar Speedway',
     rollingStart: true,   // races start ROLLING (user: the ovals)

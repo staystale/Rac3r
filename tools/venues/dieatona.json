@@ -1,0 +1,84 @@
+{
+  "osm": "dieatona.osm.json",
+  "out": "src/world/levels/venues/dieatona.ts",
+  "exportName": "DIEATONA_VENUE",
+  "origin": [
+    29.1855,
+    -81.0697
+  ],
+  "turnDeg": 233,
+  "clip": [
+    -1100,
+    -1000,
+    1100,
+    1000
+  ],
+  "reachM": 180,
+  "names": {
+    "11371365": "Turn 1 Entry",
+    "198465561": "Dogleg Cut",
+    "198465563": "Horseshoe Cut",
+    "198465566": "West Horseshoe Back",
+    "352067003": "Pit Lane (pit road)",
+    "352067004": "Turns 1 and 2",
+    "352070308": "Infield Out",
+    "352070309": "Back Straight North",
+    "352070310": "West Horseshoe Exit",
+    "352070311": "Back Straight",
+    "352070313": "Infield South",
+    "352104913": "Infield South Straight",
+    "352104914": "Infield Kink",
+    "352696267": "Infield In"
+  },
+  "dirt": [
+    "352067002",
+    "352070307",
+    "352070312",
+    "352070314"
+  ],
+  "layouts": {
+    "oval": {
+      "through": [
+        "Speedway",
+        "Turns 1 and 2",
+        "Back Straight North",
+        "Turn 1 Entry"
+      ],
+      "avoid": [
+        "Le Mans Chicane",
+        "2021 NASCAR chicane",
+        "Infield In",
+        "Infield Out",
+        "West Horseshoe Exit",
+        "West Horseshoe Back",
+        "West Horseshoe",
+        "Infield South Straight",
+        "Infield South",
+        "Dogleg",
+        "Dogleg Cut",
+        "Infield Kink",
+        "International Horseshoe",
+        "Horseshoe Cut"
+      ]
+    },
+    "road": {
+      "through": [
+        "Speedway",
+        "Infield In",
+        "International Horseshoe",
+        "West Horseshoe",
+        "Le Mans Chicane",
+        "Turns 1 and 2"
+      ],
+      "avoid": [
+        "Turn 1 Entry",
+        "Back Straight North",
+        "Horseshoe Cut",
+        "Dogleg Cut",
+        "Infield South Straight",
+        "West Horseshoe Back",
+        "2021 NASCAR chicane"
+      ]
+    }
+  }
+}

@@ -42,6 +42,9 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
+  // ?dieatona=1: Dieatona (the Daytona parody) as a new venue at 1/2 of real length, the oval and
+  // the road course (world/levels/dieatona-venue.ts; owner 11-08)
+  dieatona: atLoad('dieatona'),
   // a stock car's roof flaps pop up when it travels backwards fast (physics/roofflaps.ts)
   roofflaps: atLoad('roofflaps'),
   // ?thrustonvenue=1: Thruston as the real venue (Thruxton) at 1/2 of real length
