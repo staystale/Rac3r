@@ -149,6 +149,12 @@ last handover, written on request.
    edge "like the real track where possible" - Armco where the real rails are (spec.followRails,
    data.rails from OSM + spec.railsSeen from aerials), the old lines inside the edge. PASSED 11-08
    (owner: "castle cum pass"): the default, the old build, its switch and traced-map credit gone.
+   Then (owner 11-08): the control tower (OSM's, 14 x 8 m) drawn as the tower prop with its cab
+   and mast, the red marshals' tower by the line (spec.landmarks, to scale); the FENCE AUDIT ("caged
+   in on straights"): a catch fence only where a source shows one (Folly - Avon Rise - Quarry, 336
+   m), Armco on the real rails at the Esses and Dean Straight (bank fenced: false); a barrier end
+   keeps 4 m off the pit lane; Brands' Armco no longer flares across a catch fence (one end).
+   UNDER TEST.
    CREDITS PASSED 11-08 (menu/credits.ts, on the main menu): "made by G"; the owner wants a studio
    name (a parody pun) - to be picked. Add a line there with anything else the game takes.
 2. NEW UK TRACKS at that scale (Snetterton, Donington Park, + Silverstone / Oulton Park) - names
