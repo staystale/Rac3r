@@ -1,0 +1,129 @@
+{
+  "osm": "snotterton.osm.json",
+  "out": "src/world/levels/venues/snotterton.ts",
+  "exportName": "SNOTTERTON_VENUE",
+  "origin": [
+    52.4652,
+    0.947
+  ],
+  "turnDeg": 0,
+  "clip": [
+    -1000,
+    -600,
+    1000,
+    600
+  ],
+  "reachM": 180,
+  "names": {
+    "145755929": "Pit Garages",
+    "145755937": "Nelson to Bomb Hole",
+    "159636492": "Wilson",
+    "159636493": "Riches to Wilson",
+    "159636494": "Bomb Hole to Coram",
+    "161975517": "Chapman",
+    "161975520": "Wilson to Palmer",
+    "161975521": "Coram to Murrays",
+    "232356867": "Hamilton to Oggies",
+    "232356868": "Oggies to Williams",
+    "232356869": "Agostini to Hamilton",
+    "232356870": "Palmer to Agostini",
+    "232356871": "Brundle to Nelson"
+  },
+  "layouts": {
+    "100": {
+      "through": [
+        "Firmans",
+        "Agostini",
+        "Palmer"
+      ],
+      "avoid": [
+        "Chapman",
+        "Bentley Straight",
+        "Riches to Wilson",
+        "Wilson"
+      ]
+    },
+    "200": {
+      "through": [
+        "Senna Straight",
+        "Chapman",
+        "Bentley Straight",
+        "Coram"
+      ],
+      "avoid": [
+        "Firmans",
+        "Palmer"
+      ]
+    },
+    "300": {
+      "through": [
+        "Senna Straight",
+        "Agostini",
+        "Bentley Straight",
+        "Coram"
+      ],
+      "avoid": [
+        "Chapman",
+        "Firmans"
+      ]
+    }
+  },
+  "extra": [
+    {
+      "source": "the circuit map (Oliver Sear Stand, outside Bomb Hole) and the aerial photographs",
+      "tags": {
+        "building": "grandstand"
+      },
+      "pts": [
+        [
+          52.466259,
+          0.956073
+        ],
+        [
+          52.466197,
+          0.95635
+        ],
+        [
+          52.46613,
+          0.95631
+        ],
+        [
+          52.466191,
+          0.956033
+        ],
+        [
+          52.466259,
+          0.956073
+        ]
+      ]
+    },
+    {
+      "source": "the circuit map (Jim Russell Stand, outside Murrays) and the aerial photographs",
+      "tags": {
+        "building": "grandstand"
+      },
+      "pts": [
+        [
+          52.464197,
+          0.95214
+        ],
+        [
+          52.464289,
+          0.952321
+        ],
+        [
+          52.464224,
+          0.952411
+        ],
+        [
+          52.464132,
+          0.95223
+        ],
+        [
+          52.464197,
+          0.95214
+        ]
+      ]
+    }
+  ]
+}

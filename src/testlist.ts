@@ -13,6 +13,14 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'snotterton',
+    added: '2026-11-08',
+    name: 'Snotterton (Snetterton) as a new venue at 1/2 size: the 300, 200 and 100 layouts',
+    where: 'Test link + &snotterton=1: TEST MODE > UK CIRCUITS > Snotterton 300 / 200 / 100',
+    try: 'Lap each layout; look at the pits, the bridge over Bentley Straight, the closures.',
+    wrong: 'A road or prop on the track, a barrier gap, a road to nowhere, a closure in the way.',
+  },
+  {
     id: 'rollbody',
     added: '2026-11-08',
     name: 'F1 + Micra roll as a real-shaped body: 12 frames, banded light, blur, whoosh',

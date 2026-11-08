@@ -45,4 +45,7 @@ export const FIX = {
   // the rolled car drawn as a BODY in its real shape, rolling by its shape (render/rollbody.ts,
   // physics/rollshape.ts): the F1 and the Micra first
   rollbody: atLoad('rollbody'),
+  // ?snotterton=1: Snotterton (Snetterton) as a new venue at 1/2 of real length, its 300, 200 and
+  // 100 layouts in TEST MODE (world/levels/snotterton-venue.ts; owner 11-08)
+  snotterton: atLoad('snotterton'),
 };
