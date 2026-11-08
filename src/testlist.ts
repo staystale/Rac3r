@@ -60,6 +60,14 @@ export const TEST_LIST: TestEntry[] = [
   // burstcap, tyresleep, stackvary (the crash bench: stacks 1-4 high, bursting by chance) passed
   // 2026-11-08)
   {
+    id: 'tallfence',
+    added: '2026-11-08',
+    name: 'Catch fences too tall to hop: no tyre or part goes over one (Armco still can)',
+    where: 'Test link + &tallfence=1: Brands Snatch / Castle Cum stands; Festival of Splat',
+    try: 'Fling tyres and parts at a catch fence hard; compare with an Armco stretch.',
+    wrong: 'Anything sailing over a catch fence, stuck in it, or Armco now never hopped.',
+  },
+  {
     id: 'castlecumvenue',
     added: '2026-11-08',
     name: 'Castle Cum as the real venue (Castle Combe) at 1/2 size, the real Armco and fences',

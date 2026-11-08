@@ -41,6 +41,8 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
+  // a catch fence (and a building) too tall for loose objects to hop (cones/coneWalls.ts TALL)
+  tallfence: atLoad('tallfence'),
   // ?castlecumvenue=1: Castle Cum as the real venue at 1/2 of real length, sealed as Brands is
   // (world/levels/castle-cum-venue.ts; owner 11-08)
   castlecumvenue: atLoad('castlecumvenue'),

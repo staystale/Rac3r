@@ -1,15 +1,27 @@
 // cones/coneWalls.ts: pushes a moving loose object out of barrier segments and level solids,
 // bouncing it off with a little scrape, or letting a fast one hop over (cone.over).
 import { LEVEL } from "../world/state.ts";
+import { FIX } from "../core/fixes.ts";
 import {
   BARRIER_HALF, SEG_BOX_PAD, SEG_RUN, isFarFrom, segRunBoxes,
 } from "../world/barriers.ts";
 import { solidsNear } from "../world/solidgrid.ts";
 import { isSolidWrecked } from "../world/marshalbox.ts";
 import { solidBox } from "../world/treetrunks.ts";
-import type { BarrierSeg, Solid } from '../world/types.ts';
+import type { Barrier, BarrierSeg, Solid } from '../world/types.ts';
 import type { Loose } from './coneTypes.ts';
 const WALL_E = 0.3, WALL_SCRAPE = 0.8, OVER_V = 9, OVER_CHANCE = 0.3;
+// barriers too tall for anything loose to hop (?tallfence; owner 11-08: "chain link fences should
+// be tall ... can't of objects passing over it like tyres"): a catch fence's mesh is ~4 m, a
+// building's wall more; they stop even an object already hopping a low one
+const TALL = new Set(['catchfence', 'building']);
+
+/**
+ * Whether a barrier is too tall to hop (?tallfence).
+ * @param kind the barrier's kind
+ * @returns true when nothing loose goes over it
+ */
+const isTall = (kind: string) => FIX.tallfence && TALL.has(kind);
 
 /**
  * Push the object out along (nx, ny) by `push` and reflect its velocity; a fast one may hop over.
@@ -18,9 +30,11 @@ const WALL_E = 0.3, WALL_SCRAPE = 0.8, OVER_V = 9, OVER_CHANCE = 0.3;
  * @param nx contact normal x
  * @param ny contact normal y
  * @param push how far to move it out
+ * @param mayHop whether it can go over (not a tall barrier)
  */
-function bounce(cone: Loose, speed: number, nx: number, ny: number, push: number) {
-  if (speed > OVER_V && !cone.overTried) {
+function bounce(cone: Loose, speed: number, nx: number, ny: number, push: number,
+  mayHop = true) {
+  if (mayHop && speed > OVER_V && !cone.overTried) {
     cone.overTried = true;
     if (Math.random() < OVER_CHANCE) { cone.over = true; return; }
   }
@@ -53,9 +67,10 @@ const touchReach = (half: number, radius: number) => half + radius + 0.01 - SEG_
  * @param segment a barrier segment
  * @param half the barrier's half width
  * @param reach touchReach(half, radius)
+ * @param mayHop whether it can go over this barrier
  */
 function hitSegment(cone: Loose, radius: number, speed: number, segment: BarrierSeg, half: number,
-  reach: number) {
+  reach: number, mayHop: boolean) {
   if (cone.x < segment.minX - reach || cone.x > segment.maxX + reach || cone.y
       < segment.minY - reach || cone.y > segment.maxY + reach) return;
   let along = ((cone.x - segment.ax) * segment.dx + (cone.y - segment.ay) * segment.dy)
@@ -66,33 +81,52 @@ function hitSegment(cone: Loose, radius: number, speed: number, segment: Barrier
   if (dist >= half + radius) return;
   if (dist < 1e-6) {
     bounce(cone, speed, -segment.dy / Math.sqrt(segment.l2), segment.dx / Math.sqrt(segment.l2),
-        half + radius);
-  } else bounce(cone, speed, dx / dist, dy / dist, half + radius - dist);
+        half + radius, mayHop);
+  } else bounce(cone, speed, dx / dist, dy / dist, half + radius - dist, mayHop);
 }
 
 /**
- * Bounce the object off every barrier it touches, stopping once it hops over.
+ * Bounce the object off one barrier's segments it touches, run by run.
  * @param cone the loose object
  * @param radius its radius
  * @param speed its speed
+ * @param barrier the barrier (with _segs)
+ * @param tallOnly only meeting it because it is too tall to hop (the object is hopping)
+ * @returns true once the object hops over it (stop testing barriers)
  */
-function hitBarriers(cone: Loose, radius: number, speed: number) {
-  for (const barrier of LEVEL.barriers || []) {
-    const half = BARRIER_HALF[barrier.kind]; if (!half || !barrier._segs) continue;
-    // clear of the barrier's box, or of a run's, is clear of every segment in it (hitSegment's
-    // own box test): skipped whole, nothing moves, the same segments are met in the same order
-    const reach = touchReach(half, radius);
-    if (isFarFrom(barrier, cone.x, cone.y, reach)) continue;
-    const segs = barrier._segs, boxes = segRunBoxes(barrier);
-    for (let run = 0; run < boxes.length; run += 4) {
-      if (cone.x < boxes[run] - reach || cone.x > boxes[run + 2] + reach
-          || cone.y < boxes[run + 1] - reach || cone.y > boxes[run + 3] + reach) continue;
-      const first = (run / 4) * SEG_RUN, last = Math.min(segs.length, first + SEG_RUN);
-      for (let i = first; i < last; i++) {
-        hitSegment(cone, radius, speed, segs[i], half, reach);
-        if (cone.over) return;
-      }
+function hitBarrier(cone: Loose, radius: number, speed: number, barrier: Barrier,
+  tallOnly: boolean): boolean {
+  const half = BARRIER_HALF[barrier.kind], tall = isTall(barrier.kind);
+  // clear of the barrier's box, or of a run's, is clear of every segment in it (hitSegment's own
+  // box test): skipped whole, nothing moves, the same segments are met in the same order
+  const reach = touchReach(half, radius);
+  if (isFarFrom(barrier, cone.x, cone.y, reach)) return false;
+  const segs = barrier._segs!, boxes = segRunBoxes(barrier);
+  for (let run = 0; run < boxes.length; run += 4) {
+    if (cone.x < boxes[run] - reach || cone.x > boxes[run + 2] + reach
+        || cone.y < boxes[run + 1] - reach || cone.y > boxes[run + 3] + reach) continue;
+    const first = (run / 4) * SEG_RUN, last = Math.min(segs.length, first + SEG_RUN);
+    for (let i = first; i < last; i++) {
+      hitSegment(cone, radius, speed, segs[i], half, reach, !tall);
+      if (cone.over && !tallOnly) return true;
     }
+  }
+  return false;
+}
+
+/**
+ * Bounce the object off every barrier it touches, stopping once it hops over (an object already
+ * hopping meets only the tall ones).
+ * @param cone the loose object
+ * @param radius its radius
+ * @param speed its speed
+ * @param tallOnly only the barriers too tall to hop
+ */
+function hitBarriers(cone: Loose, radius: number, speed: number, tallOnly = false) {
+  for (const barrier of LEVEL.barriers || []) {
+    if (!BARRIER_HALF[barrier.kind] || !barrier._segs) continue;
+    if (tallOnly && !isTall(barrier.kind)) continue;
+    if (hitBarrier(cone, radius, speed, barrier, tallOnly)) return;
   }
 }
 
@@ -154,8 +188,12 @@ function hitSolids(cone: Loose, radius: number, speed: number) {
  */
 export function hitWalls(cone: Loose) {
   const radius = cone.r || 0.3;
-  if (cone.over) return;
   const speed = Math.hypot(cone.vx, cone.vy);
+  // hopping over a low barrier: only a tall one stops it (?tallfence)
+  if (cone.over) {
+    if (FIX.tallfence) hitBarriers(cone, radius, speed, true);
+    return;
+  }
   hitBarriers(cone, radius, speed);
   if (cone.over) return;
   hitSolids(cone, radius, speed);
