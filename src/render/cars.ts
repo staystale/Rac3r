@@ -332,16 +332,18 @@ function drawCarLamps(carsCtx: CarsContext, car: RenderCar, sprite: CarSprite) {
 }
 
 /**
- * A stock car's ROOF FLAPS standing (physics/roofflaps.ts): two dark plates across the back of the
- * roof, hinged at their front edge (a pale line), longer and with more shadow as they rise; the
- * rear one shorter across.
+ * A stock car's ROOF FLAPS standing (physics/roofflaps.ts): two dark plates at the back edge of the
+ * roof, as the real ones (owner 11-08: the flaps must not hide the roof number) - hinged at their
+ * front edge (a pale line) where the Naffcar's roof meets its rear window (render/carlooks.ts
+ * paintNextGen: roof from 0.30 of its length, the number from 0.31), rising back over the glass,
+ * longer and with more shadow as they rise; the rear one shorter across.
  * @param ctx the canvas (at the car, sprite px)
  * @param raised how far up, 0..1
  * @param sprite the body sprite
  */
 function drawRoofFlaps(ctx: CanvasRenderingContext2D, raised: number, sprite: CarSprite) {
   const tall = Math.max(1, Math.round(1 + 3 * raised));
-  for (const [along, inset] of [[-0.12, 0], [-0.2, 2]]) {
+  for (const [along, inset] of [[-0.19, 0], [-0.235, 2]]) {
     const hinge = Math.round(sprite.Lp * along), half = Math.round(sprite.Wp * 0.26) - inset;
     ctx.fillStyle = 'rgba(10,10,14,0.3)';
     ctx.fillRect(hinge - tall + 1, -half + 1, tall, half * 2);
