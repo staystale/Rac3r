@@ -302,6 +302,16 @@ function partLook(car: DebrisCar, corner: number, kind: string) {
   return car.spec ? { carSpec: car.spec, cutKind: kind, cutCorner: corner } : {};
 }
 
+// the chance a car meeting a thrown part DRIVES OVER it (dragging it a little) rather than into
+// it, rolled afresh each time a car meets it (cones/coneCar.ts; owner 11-08: "a chance of being
+// driven into / driven over ... not a guarantee either way"), by kind: a scrap of mesh always, a
+// mirror mostly, a panel / door, wing, bumper or wishbone more often than not, a bonnet, boot
+// lid, spoiler, exhaust, strut or shaft half the time, a fence post less; an engine block (and a
+// wheel, thrown as a tyre) never
+const DRIVE_OVER_CHANCE: Record<string, number> = { mesh: 1, mirror: 0.7, panel: 0.6, wing: 0.6,
+  bumper: 0.6, wishbone: 0.6, bonnet: 0.5, boot: 0.5, spoiler: 0.5, exhaust: 0.5, strut: 0.5,
+  shaft: 0.5, fencepost: 0.4, engine: 0 };
+
 /**
  * The parts the cars in play knocked off this step are thrown out of their corners as loose
  * objects (game/sim.ts, after the wheels torn off).
@@ -316,7 +326,8 @@ export function throwParts(cars: DebrisCar[], loose: LooseObjects): void {
   // a torn catch fence's shreds (world/armcodent.ts)
   for (const bit of takeFenceShreds()) {
     const table = DEBRIS[bit.kind as keyof typeof DEBRIS];
-    loose.add({ ...bit, mode: bit.kind, part: true, mass: table.mass, r: table.r, fade: 1 });
+    loose.add({ ...bit, mode: bit.kind, part: true, mass: table.mass, r: table.r, fade: 1,
+      overChance: DRIVE_OVER_CHANCE[bit.kind] ?? 0 });
     parts.push(loose.list[loose.list.length - 1]);
   }
   for (const car of cars) {
@@ -326,7 +337,7 @@ export function throwParts(cars: DebrisCar[], loose: LooseObjects): void {
       const outX = -Math.sin(car.heading) * spot.side * THROW_OUT;
       const outY = Math.cos(car.heading) * spot.side * THROW_OUT;
       loose.add({ kind, mode: kind, part: true, mass: table.mass, r: table.r, x: spot.x,
-        y: spot.y,
+        y: spot.y, overChance: DRIVE_OVER_CHANCE[kind] ?? 0,
         vx: car.vx * KEEP_SPEED + outX, vy: car.vy * KEEP_SPEED + outY, ang: car.heading,
         spin: (Math.random() - 0.5) * 8, col: car.spec?.paint, trim: car.spec?.trim, fade: 1,
         ...partLook(car, corner, kind) });

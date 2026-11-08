@@ -32,6 +32,9 @@ export interface Loose {
   flat?: boolean;   // flattened: driven over
   _nailT?: number;   // the last time its nails had a go at a tyre
   part?: boolean; trim?: string; fade?: number;   // a crashed car's part (world/debris.ts)
+  // its chance a car meeting it drives over it; this meeting's roll and when a car was last near
+  // (cones/coneCar.ts rollsOver)
+  overChance?: number; _over?: boolean; _meetT?: number;
   // the car it came off and which part (render/carparts.ts cuts it from its sprite)
   carSpec?: object; cutKind?: string; cutCorner?: number;
 }

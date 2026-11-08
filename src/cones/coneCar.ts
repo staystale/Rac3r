@@ -173,6 +173,49 @@ function countChevronImpacts(ctx: ConesCtx, obj: Loose) {
 }
 
 /**
+ * What a car drives over rather than hits: a burst bale's straw, broken debris (a broken pallet's
+ * nails may puncture a tyre, once a second at most), a tarp, a crash part or fence shred when this
+ * meeting's roll says so (world/debris.ts: dragged a little), a flattened chevron or flag.
+ * @param ctx the cones context
+ * @param obj the object
+ * @param car the car
+ * @param relX the object's x from the car, m
+ * @param relY its y
+ * @returns true when driven over (no contact)
+ */
+function drivenOver(ctx: ConesCtx, obj: Loose, car: ConeCar, relX: number, relY: number): boolean {
+  if (obj.kind === 'splinters' && relX * relX + relY * relY < 4
+    && ctx.clock - (obj._nailT ?? -9) > 1) {
+    obj._nailT = ctx.clock;
+    // nails and debris let a tyre down slowly (damage.ts applyBurst)
+    if (debrisPunctures(obj.kind, 0, false)) { car.burstTyre = 0; car.burstSlow = true; }
+  }
+  if (obj.kind === 'straw' || BROKEN.has(obj.kind)) return true;
+  if (obj.kind === 'tarp' || rollsOver(ctx, obj)) {
+    dragTarp(obj, car, relX, relY);
+    return true;
+  }
+  return !!obj.flat;
+}
+
+// s with no car near a part before the next car near it is a new meeting (a new roll)
+const MEETING_GAP_S = 0.3;
+
+/**
+ * Whether a car near a thrown part goes over it this meeting: rolled on its chance when a car
+ * first comes near (within hitByCar's 4 m) after none for MEETING_GAP_S, kept while one stays.
+ * @param ctx the cones context (its clock)
+ * @param obj the part
+ * @returns true when driven over
+ */
+function rollsOver(ctx: ConesCtx, obj: Loose): boolean {
+  if (!obj.overChance) return false;
+  if (ctx.clock - (obj._meetT ?? -9) > MEETING_GAP_S) obj._over = Math.random() < obj.overChance;
+  obj._meetT = ctx.clock;
+  return !!obj._over;
+}
+
+/**
  * DEBRIS that breaks: DISTINCT impacts (> 0.3 s apart, as the chevrons); at `breaks` it
  * becomes its flat patch, out of the collisions.
  * @param ctx the cones context
@@ -296,20 +339,7 @@ function afterHit(ctx: ConesCtx, obj: Loose, car: ConeCar, newTyres: Loose[], re
  */
 export function hitByCar(ctx: ConesCtx, obj: Loose, car: ConeCar, newTyres: Loose[]) {
   const relX = obj.x - car.x, relY = obj.y - car.y;
-  if (relX * relX + relY * relY > 16) return;
-  // a burst bale / broken debris is a flat patch: you drive through it - a broken pallet's nails
-  // may puncture a tyre (once a second at most)
-  if (obj.kind === 'splinters' && relX * relX + relY * relY < 4
-    && ctx.clock - (obj._nailT ?? -9) > 1) {
-    obj._nailT = ctx.clock;
-    // nails and debris let a tyre down slowly (damage.ts applyBurst)
-    if (debrisPunctures(obj.kind, 0, false)) { car.burstTyre = 0; car.burstSlow = true; }
-  }
-  if (obj.kind === 'straw' || BROKEN.has(obj.kind)) return;
-  // dragged along a bit
-  if (obj.kind === 'tarp') { dragTarp(obj, car, relX, relY); return; }
-  // a chevron / flag flattened by 2 impacts: driven over
-  if (obj.flat) return;
+  if (relX * relX + relY * relY > 16 || drivenOver(ctx, obj, car, relX, relY)) return;
   const contact = bodyContact(obj, car, relX, relY) || wheelsContact(obj, car, relX, relY);
   if (!contact) return;
   noteHit(car, obj.kind);

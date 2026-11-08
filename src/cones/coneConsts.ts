@@ -100,8 +100,9 @@ export const DEBRIS: Record<string, DebrisKind> = {
   engine:   { mass: 140, r: 0.55, breaks: 0 },
   // always flat: you drive over it (it drags off with you)
   tarp:     { mass: 3,  r: 0.9, breaks: 0, flat: true },
-  // a torn catch fence's shreds (world/armcodent.ts): a scrap of mesh lies flat, a post is steel
-  mesh:     { mass: 3,  r: 0.6, breaks: 0, flat: true },
+  // a torn catch fence's shreds (world/armcodent.ts): a scrap of mesh (it lands flat:
+  // world/debris.ts), a post is steel
+  mesh:     { mass: 3,  r: 0.6, breaks: 0 },
   fencepost: { mass: 9, r: 0.35, breaks: 0 },
 };
 export const BROKEN = new Set(['splinters', 'cardboard', 'sand', 'fluff']);
