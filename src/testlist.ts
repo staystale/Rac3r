@@ -72,4 +72,12 @@ export const TEST_LIST: TestEntry[] = [
     try: 'Hit one square: under ~60 km/h it catches you; harder, it tears open and shreds.',
     wrong: 'No shreds, shreds hanging in the air or never fading, a gap that does not open.',
   },
+  {
+    id: 'partsover',
+    added: '2026-11-08',
+    name: 'Crash parts and fence bits: a chance each time to drive over them, by ground clearance',
+    where: 'Plain link: any level - crash hard to shed parts, then drive at them (try the F1, a 4x4)',
+    try: 'Doors, bumpers, struts: sometimes under you, sometimes hit; low cars hit more often.',
+    wrong: 'Always one or the other, an engine block or wheel driven over, a part stuck under you.',
+  },
 ];
