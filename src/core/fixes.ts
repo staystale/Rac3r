@@ -10,7 +10,7 @@
 // drycover, rimsoft, bushmark, leafpop, aireact, skillband,
 // bhquiet, aiweave, jokerflow, aisliders, hudlean, aibands, puffroom, aigrip,
 // aidodge, ailines, ailook, dodgefar, markjump passed 11-04; credits, bigbrands, crossings,
-// fencedrag, tyresleep, burstcap, stackvary, linewall, tallfence passed 11-08.)
+// fencedrag, tyresleep, burstcap, stackvary, linewall, tallfence, rollway passed 11-08.)
 import { envValue } from './debug.ts';
 
 /**
@@ -41,8 +41,6 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
-  // a car slid sideways into something rolls over toward it, a struck one away (damage.ts)
-  rollway: atLoad('rollway'),
   // a car tumbling fast goes over low barriers and light loose objects (physics/tumble.ts)
   rollover: atLoad('rollover'),
   // ?castlecumvenue=1: Castle Cum as the real venue at 1/2 of real length, sealed as Brands is

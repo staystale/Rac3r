@@ -127,8 +127,18 @@ last handover, written on request.
    it (no run-off) 2.5 m more room (ai/line.ts wallLimits). tools/scratch/_startcrash.mjs (20 AI on
    the game's grid, 3 seeds): Castle Cum venue wall hits 23 -> 10, hard car hits 31 -> 8; old level
    31 -> 7, 38 -> 11. Alone: Slidden Hill 56.3 -> 49.1 s, Stock Car 26.7 -> 23.5 s, the rest within
-   0.3 s. STILL OPEN: a field spread across the road runs off at the kink 100-135 m past Castle Cum's
-   line (8 cars in one start) - root cause in the line / corner speeds first.
+   0.3 s. Checked 11-08: the cars a spread field puts off the road 100-150 m past Castle Cum's
+   line are wheels over the INSIDE of a ~100-130 m bend (grass, no barrier; a lone AI laps it
+   clean) - not crashes; left as it is (owner OK).
+   ROLLS (owner 11-08: "sometimes it seems to roll the wrong way"; tools/scratch/_rollway.mjs): a
+   hard side hit always rolled a car away from the impact - right when struck, wrong when it slid
+   into the thing (into Armco: away 46 of 46). PASSED + DEFAULT 11-08 (owner: "cars seem to roll
+   the right way now"): a car sliding more than 2 m/s into what it hit trips over toward it and
+   carries half that speed on (damage.ts sideKick, roll.ts carryOver) - into Armco toward 45 of
+   45; T-boned still away. UNDER TEST: ?rollover (physics/tumble.ts) - a car rolling faster than
+   5 rad/s goes over Armco, the wire fence and loose objects up to 60 kg, never a catch fence,
+   wall, pit wall or building. REMIND THE OWNER to try it on a charged phone (11-08: the phone was
+   flat, low power mode - its report runs not to be trusted).
    OWNER RULE (11-07): never the black wire / rope fence ('fence' barrier) - the old levels still
    use it (Castle Cum, Thruston): replace as each gets its venue pass.
    CASTLE CUM VENUE BUILT 11-08 behind ?castlecumvenue=1 (levels/castle-cum-venue.ts, OSM data

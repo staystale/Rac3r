@@ -34,7 +34,7 @@ export interface RollCar {
   roll: RollState | null;
   _airT?: number; _rolls?: number; _tripCell?: number | null;
   // a hard side hit (damage.ts): may start a roll; carry, m/s sideways it keeps as it trips over
-  // what it slid into (?rollway)
+  // what it slid into
   _sideKick?: { dir: number; dv: number; carry?: number } | null;
 }
 /** Called when the body hits the ground: the quarter-turn kind (side / roof) and how hard. */
@@ -99,7 +99,7 @@ export function startRoll(car: RollCar, dir: number, vLat: number) {
 }
 
 /**
- * A car tripping over what it slid into (?rollway) goes on toward it at this sideways speed - not
+ * A car tripping over what it slid into goes on toward it at this sideways speed - not
  * the bounce off it: a tall thing stops it again, a low one it may tumble over (?rollover).
  * @param car the car
  * @param carry m/s sideways (car frame, + toward its +y)

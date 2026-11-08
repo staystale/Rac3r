@@ -58,15 +58,8 @@ export const TEST_LIST: TestEntry[] = [
   // 2026-11-08; fenceshred (catch fences tear and shred), partsover (the drive-over chance by
   // ground clearance), crossings (drivable bridges and tunnels), fencedrag passed 2026-11-08;
   // burstcap, tyresleep, stackvary (the crash bench: stacks 1-4 high, bursting by chance), linewall
-  // (the line gives a wall by the edge room), tallfence passed 2026-11-08)
-  {
-    id: 'rollway',
-    added: '2026-11-08',
-    name: 'Rolls the right way: slid into something it trips over toward it; struck, rolls away',
-    where: 'Test link + &rollway=1: TEST MODE > Lab (the flip ramp), any Armco',
-    try: 'Slide sideways into Armco fast; get T-boned by an AI; watch which way it goes over.',
-    wrong: 'Rolling away from a barrier it slid into, or rolling one way while moving the other.',
-  },
+  // (the line gives a wall by the edge room), tallfence, rollway (rolls the right way) passed
+  // 2026-11-08)
   {
     id: 'rollover',
     added: '2026-11-08',
