@@ -9,6 +9,7 @@ import { DAYLIGHT } from "../world/daylight.ts";
 import { REVERSE_LAMP, isReversing } from "./reverselights.ts";
 import { settledLampLevel } from "./carlamps.ts";
 import { drawTyreByPressure, wheelTurn } from "./tyrelook.ts";
+import { drawRolledBody, drawsAsBody, prepareBody } from "./rollbody.ts";
 import type {
   Cam, CarSprite, RenderCar, RenderCarSpec, RenderCone, RollFace, SideSprite, SilCanvas, View,
 } from "./types.ts";
@@ -370,7 +371,11 @@ function drawPixelCar(carsCtx: CarsContext, car: RenderCar, heading = car.headin
     ? { ...shown, noWing: true } : shown, sp0 = pixelCar(spec),
     hurt = car.dmg ? damagedSprite(car, sp0) : sp0, scale = PPMz() / SPRITE_PPM;
   // (without the parts it has lost - render/carparts.ts)
-  const sprite = car.partLost ? lostSprite(car, spec, hurt) : hurt;
+  const sprite = car.partLost ? lostSprite(car, spec, hurt) : hurt, asBody = drawsAsBody(spec);
+  if (asBody && !car._bodyMade) {
+    car._bodyMade = true;
+    prepareBody(spec, sprite.Wp);
+  }
   view.ctx.save();
   view.ctx.translate(toScreenX(car.x), toScreenY(car.y));
   view.ctx.rotate(heading);
@@ -379,7 +384,11 @@ function drawPixelCar(carsCtx: CarsContext, car: RenderCar, heading = car.headin
   // (cars.js rideH)
   const shOff = 2 + Math.round((spec.rideH || 0.13) * 10);
   if (car.roll && car.roll.phi) {
-    drawRolledCar(carsCtx, car, sprite, shOff);
+    // (?rollbody=1: as a body in its real shape - render/rollbody.ts)
+    if (asBody) {
+      drawRolledBody(view.ctx, car, spec, sprite, shOff);
+      view.ctx.restore();
+    } else drawRolledCar(carsCtx, car, sprite, shOff);
     return;
   }
   view.ctx.globalAlpha = 0.3;

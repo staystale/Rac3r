@@ -229,7 +229,7 @@ export interface RenderCar extends CamCar, Pick<Car, 'heading' | 'delta' | 'cros
   onRim?: boolean[];
   _wheelTurn?: number;
   _wheelAt?: number;
-  roll?: { phi: number } | null;
+  roll?: { phi: number; w?: number } | null;
   lightsOn?: boolean;
   indicator?: number;
   hazard?: boolean;
@@ -242,6 +242,7 @@ export interface RenderCar extends CamCar, Pick<Car, 'heading' | 'delta' | 'cros
   _dsp?: { key: string; base: CarSprite; sp: CarSprite } | null;
   _dface?: Record<string, { key: string; out: CarSprite | SideSprite }>;
   _facesMade?: boolean;   // its rolled faces made and waiting to be read (cardamage.ts)
+  _bodyMade?: boolean;   // its rolled body's pictures made and waiting to be read (rollbody.ts)
 }
 
 // One game object the cones layer draws (cones.ts: cones, bales, tyres, animals, debris, ...).

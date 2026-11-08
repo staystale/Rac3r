@@ -12,6 +12,14 @@ export interface TestEntry {
 }
 
 export const TEST_LIST: TestEntry[] = [
+  {
+    id: 'rollbody',
+    added: '2026-11-08',
+    name: 'F1 + Micra roll as a real-shaped body: 12 frames, banded light, blur, whoosh',
+    where: 'Test link + &rollbody=1, pick the F1 or the Micra; the Lab flip ramp, gravel',
+    try: 'Roll them at speed and slowly, crash first then roll (dents, lost door / wheel).',
+    wrong: 'An F1 resting on its side, a hitch as a roll starts, a box look, damage missing.',
+  },
   // (approved late, deleted: fields, grassedge, catchthem, slipsdual, fps - TODO.md 1c; dirtroad,
   // animals, labext, labsplit, zoomhold, gpupaint, minimap, zoomspring, grassgrip, hwmap,
   // cracktufts, sharpcars, sharpmarks, jokerfix, groundlookup, exacttiles, hudmenu, tyreoff,

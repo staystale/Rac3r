@@ -42,4 +42,7 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
+  // the rolled car drawn as a BODY in its real shape, rolling by its shape (render/rollbody.ts,
+  // physics/rollshape.ts): the F1 and the Micra first
+  rollbody: atLoad('rollbody'),
 };

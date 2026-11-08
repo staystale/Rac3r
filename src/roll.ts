@@ -17,6 +17,8 @@
 // that ground (sparks on hard ground). Sim time (rule 5): it moves the car; render.ts draws it
 // (faces, sparks), main.ts hands control back on RESET (player) or resets the AI. m: body height
 // (the side face the camera sees on a rolled car)
+import { FIX } from './core/fixes.ts';
+import { rollShapeOf, shapedHit } from './physics/rollshape.ts';
 import { levelFlipRamps, rampFlip } from './world/flipramps.ts';
 import { LEVEL } from './world/state.ts';
 import { groundAt } from './world/wear.ts';
@@ -28,7 +30,7 @@ export interface RollCar {
   x: number; y: number; vx: number; vy: number; heading: number; yawRate: number; rpm: number;
   air: number;   // height off the ground, m
   sparks?: boolean;
-  spec: { lf: number; lr: number; trackWidth?: number; cg?: number; cgH?: number };
+  spec: { id?: string; lf: number; lr: number; trackWidth?: number; cg?: number; cgH?: number };
   surface?: { id?: string; hard?: boolean };
   t?: { vLong: number };
   roll: RollState | null;
@@ -224,15 +226,19 @@ export function stepRoll(car: RollCar, dt: number, onHit: RollHit) {
  * @returns true when the car came to rest on its wheels (the roll is over)
  */
 function spinStep(car: RollCar, state: RollState, dt: number, onHit: RollHit) {
+  // (?rollbody=1: by its shape - physics/rollshape.ts)
+  const shape = FIX.rollbody ? rollShapeOf(car.spec.id) : null;
   const was = Math.floor(state.phi / HALF_PI + 1e-9 * Math.sign(state.w));
   state.phi += state.w * dt;
   const now = Math.floor(state.phi / HALF_PI + 1e-9 * Math.sign(state.w));
   if (now !== was) {   // a quarter turn: the body meets the ground on its next face
     // 1 / 3 a side, 2 the roof, 0 the wheels
-    const face = ((Math.round(state.phi / HALF_PI) % 4) + 4) % 4;
-    state.w *= 0.6 + 0.2 * Math.random();
-    car.vx *= 0.86;
-    car.vy *= 0.86;
+    const face = ((Math.round(state.phi / HALF_PI) % 4) + 4) % 4,
+      hit = shape ? shapedHit(shape, Math.random)
+        : { spin: 0.6 + 0.2 * Math.random(), speed: 0.86 };
+    state.w *= hit.spin;
+    car.vx *= hit.speed;
+    car.vy *= hit.speed;
     // rolling toward +y lands on its +y side first
     if (onHit) onHit(
       face === 2 ? 'roof' : face === 0 ? 'wheels' : 'side',
@@ -240,19 +246,25 @@ function spinStep(car: RollCar, state: RollState, dt: number, onHit: RollHit) {
       Math.abs(state.w),
     );
   }
-  if (Math.abs(state.w) < SETTLE_W) {
-    // fall onto the nearest face
-    const target = Math.round(state.phi / HALF_PI) * HALF_PI;
-    state.w += ((target - state.phi) * 30 - state.w * 7) * dt;
-    if (Math.abs(target - state.phi) < 0.03 && Math.abs(state.w) < 0.3) {
-      const face = ((Math.round(target / HALF_PI) % 4) + 4) % 4;
-      state.phi = face * HALF_PI;
-      state.w = 0;
-      state.phase = face === 0 ? 'none' : face === 2 ? 'roof' : 'side';
-      // back on its wheels: done - and no more sparks (owner 11-07: "if they land on their wheels
-      // again they can continue sparking - they shouldn't"; the flag was only cleared on a reset)
-      if (state.phase === 'none') { car.roll = null; car.sparks = false; return true; }
-    }
+  return Math.abs(state.w) < SETTLE_W && settleStep(car, state, dt, !!shape && !shape.side);
+}
+
+/**
+ * Under SETTLE_W a rolling car falls onto the nearest face (one that cannot rest on a side:
+ * its wheels or its roof).
+ * @returns true when it came to rest on its wheels (the roll is over)
+ */
+function settleStep(car: RollCar, state: RollState, dt: number, noSide: boolean) {
+  const unit = noSide ? Math.PI : HALF_PI, target = Math.round(state.phi / unit) * unit;
+  state.w += ((target - state.phi) * 30 - state.w * 7) * dt;
+  if (Math.abs(target - state.phi) < 0.03 && Math.abs(state.w) < 0.3) {
+    const face = ((Math.round(target / HALF_PI) % 4) + 4) % 4;
+    state.phi = face * HALF_PI;
+    state.w = 0;
+    state.phase = face === 0 ? 'none' : face === 2 ? 'roof' : 'side';
+    // back on its wheels: done - and no more sparks (owner 11-07: "if they land on their wheels
+    // again they can continue sparking - they shouldn't"; the flag was only cleared on a reset)
+    if (state.phase === 'none') { car.roll = null; car.sparks = false; return true; }
   }
   return false;
 }

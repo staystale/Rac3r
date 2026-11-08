@@ -190,7 +190,7 @@ function crushRoof(
  * @param withRoof whether the roof damage is drawn
  * @returns a new canvas and the pixels put on it
  */
-function crushTop(car: RenderCar, sprite: CarSprite, withRoof: boolean) {
+export function crushTop(car: RenderCar, sprite: CarSprite, withRoof: boolean) {
   const rdKeep = car.roofDmg;
   if (!withRoof) car.roofDmg = 0;
   const { canvas, ctx: canvasCtx, img } = spriteToWork(sprite.c), pixels = img.data,
@@ -452,11 +452,26 @@ function carveSidePixel(
  * @returns the damaged side sprite
  */
 function damageSideFace(dmgCtx: DamageContext, car: RenderCar, kind: string): SideSprite {
-  const spec = car.spec;
-  const sp0 = sideSprite(dmgCtx, spec), plus = kind === 'sideP', frontCorner = plus ? 1 : 0,
-      rearCorner = plus ? 3 : 2;
-  const { canvas, ctx, img } = spriteToWork(sp0.c), pixels = img.data,
-      width = canvas.width, height = canvas.height, lengthPx = sp0.Lp, heightPx = sp0.Hp;
+  const sp0 = sideSprite(dmgCtx, car.spec);
+  const { canvas, ctx, img } = spriteToWork(sp0.c);
+  carveSide(car, img, sp0.Lp, sp0.Hp, kind === 'sideP');
+  ctx.putImageData(img, 0, 0);
+  return { ...sp0, c: canvas };
+}
+
+/**
+ * Carve a side picture's pixels with the car's damage (the side face's carve; the rolled body's
+ * real side profile too - render/rollbody.ts).
+ * @param car the car
+ * @param img the side picture's pixels (its 2 px margin), changed in place
+ * @param lengthPx the car's length, px
+ * @param heightPx the picture's height, px
+ * @param plus the +y side (else the -y)
+ */
+export function carveSide(car: RenderCar, img: ImageData, lengthPx: number, heightPx: number,
+    plus: boolean) {
+  const spec = car.spec, frontCorner = plus ? 1 : 0, rearCorner = plus ? 3 : 2;
+  const pixels = img.data, width = img.width, height = img.height;
   const seed = (car.num || 1) * 40503 + (plus ? 7 : 3);
   const hsh = hash2d(seed);
   const depthFront = lengthPx * 0.26 * car.crushL[frontCorner], depthRear = lengthPx * 0.22
@@ -469,8 +484,6 @@ function damageSideFace(dmgCtx: DamageContext, car: RenderCar, kind: string): Si
   for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
     carveSidePixel(pixels, x, y, sideGeo, hsh);
   }
-  ctx.putImageData(img, 0, 0);
-  return { ...sp0, c: canvas };
 }
 
 /**
