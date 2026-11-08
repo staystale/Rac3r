@@ -191,7 +191,7 @@ function drivenOver(ctx: ConesCtx, obj: Loose, car: ConeCar, relX: number, relY:
     if (debrisPunctures(obj.kind, 0, false)) { car.burstTyre = 0; car.burstSlow = true; }
   }
   if (obj.kind === 'straw' || BROKEN.has(obj.kind)) return true;
-  if (obj.kind === 'tarp' || rollsOver(ctx, obj)) {
+  if (obj.kind === 'tarp' || rollsOver(ctx, obj, car)) {
     dragTarp(obj, car, relX, relY);
     return true;
   }
@@ -200,19 +200,27 @@ function drivenOver(ctx: ConesCtx, obj: Loose, car: ConeCar, relX: number, relY:
 
 // s with no car near a part before the next car near it is a new meeting (a new roll)
 const MEETING_GAP_S = 0.3;
+// m: the ground clearance a part's chance is set for (the hatch's ride height, cars.ts)
+const CLEARANCE_REF_M = 0.14;
 
 /**
- * Whether a car near a thrown part goes over it this meeting: rolled on its chance when a car
- * first comes near (within hitByCar's 4 m) after none for MEETING_GAP_S, kept while one stays.
+ * Whether a car near a thrown part goes over it this meeting: a roll made when a car first comes
+ * near (within hitByCar's 4 m) after none for MEETING_GAP_S, kept while one stays, against the
+ * part's chance for THIS car's ground clearance (owner 11-08: lower, more likely hit; higher, less)
+ * - the chance raised to the power of the hatch's ride height over the car's: an F1 car at 0.07 m
+ * meets a half-chance part 3 times in 4, a tractor at 0.45 m clears it 4 times in 5; always and
+ * never stay so.
  * @param ctx the cones context (its clock)
  * @param obj the part
+ * @param car the car
  * @returns true when driven over
  */
-function rollsOver(ctx: ConesCtx, obj: Loose): boolean {
+function rollsOver(ctx: ConesCtx, obj: Loose, car: ConeCar): boolean {
   if (!obj.overChance) return false;
-  if (ctx.clock - (obj._meetT ?? -9) > MEETING_GAP_S) obj._over = Math.random() < obj.overChance;
+  if (ctx.clock - (obj._meetT ?? -9) > MEETING_GAP_S) obj._roll = Math.random();
   obj._meetT = ctx.clock;
-  return !!obj._over;
+  const clearance = Math.max(0.03, car.spec.rideH ?? CLEARANCE_REF_M);
+  return obj._roll! < Math.pow(obj.overChance, CLEARANCE_REF_M / clearance);
 }
 
 /**

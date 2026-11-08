@@ -304,10 +304,11 @@ function partLook(car: DebrisCar, corner: number, kind: string) {
 
 // the chance a car meeting a thrown part DRIVES OVER it (dragging it a little) rather than into
 // it, rolled afresh each time a car meets it (cones/coneCar.ts; owner 11-08: "a chance of being
-// driven into / driven over ... not a guarantee either way"), by kind: a scrap of mesh always, a
-// mirror mostly, a panel / door, wing, bumper or wishbone more often than not, a bonnet, boot
-// lid, spoiler, exhaust, strut or shaft half the time, a fence post less; an engine block (and a
-// wheel, thrown as a tyre) never
+// driven into / driven over ... not a guarantee either way"), for the hatch's ground clearance (a
+// lower car hits more, a higher one clears more: cones/coneCar.ts rollsOver), by kind: a scrap
+// of mesh always, a mirror mostly, a panel / door, wing, bumper or wishbone more often than not,
+// a bonnet, boot lid, spoiler, exhaust, strut or shaft half the time, a fence post less; an
+// engine block (and a wheel, thrown as a tyre) never
 const DRIVE_OVER_CHANCE: Record<string, number> = { mesh: 1, mirror: 0.7, panel: 0.6, wing: 0.6,
   bumper: 0.6, wishbone: 0.6, bonnet: 0.5, boot: 0.5, spoiler: 0.5, exhaust: 0.5, strut: 0.5,
   shaft: 0.5, fencepost: 0.4, engine: 0 };

@@ -32,9 +32,9 @@ export interface Loose {
   flat?: boolean;   // flattened: driven over
   _nailT?: number;   // the last time its nails had a go at a tyre
   part?: boolean; trim?: string; fade?: number;   // a crashed car's part (world/debris.ts)
-  // its chance a car meeting it drives over it; this meeting's roll and when a car was last near
-  // (cones/coneCar.ts rollsOver)
-  overChance?: number; _over?: boolean; _meetT?: number;
+  // its chance a car meeting it drives over it (at the hatch's ground clearance); this meeting's
+  // roll and when a car was last near (cones/coneCar.ts rollsOver)
+  overChance?: number; _roll?: number; _meetT?: number;
   // the car it came off and which part (render/carparts.ts cuts it from its sprite)
   carSpec?: object; cutKind?: string; cutCorner?: number;
 }
@@ -59,7 +59,8 @@ export interface ConeHit { x: number; y: number; speed: number; kind?: string }
 /** A car as the loose objects see it. */
 export interface ConeCar {
   x: number; y: number; vx: number; vy: number; heading: number; yawRate: number;
-  spec: { len: number; wid: number; mass: number; lf: number; lr: number; trackWidth?: number };
+  spec: { len: number; wid: number; mass: number; lf: number; lr: number; trackWidth?: number;
+    rideH?: number };   // rideH: its ground clearance, m (cars.ts)
   streamers?: Streamer[] | null;   // (null: reset)
   burstTyre?: number; burstSlow?: boolean;   // damage.ts applyBurst: a tyre to burst, slowly
   wheelOff?: boolean[];
