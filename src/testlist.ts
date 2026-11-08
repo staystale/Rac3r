@@ -57,24 +57,8 @@ export const TEST_LIST: TestEntry[] = [
   // hwlanes, hwbales, f1aero passed 2026-11-07; credits, bigbrands (the Brands venue) passed
   // 2026-11-08; fenceshred (catch fences tear and shred), partsover (the drive-over chance by
   // ground clearance), crossings (drivable bridges and tunnels), fencedrag passed 2026-11-08;
-  // burstcap, tyresleep, stackvary (the crash bench: stacks 1-4 high, bursting by chance) passed
-  // 2026-11-08)
-  {
-    id: 'linewall',
-    added: '2026-11-08',
-    name: 'The AI racing line leaves a wall right by the edge 2.5 m more room (Castle Cum starts)',
-    where: 'Test link + &linewall=1: Castle Cum with a full grid; Stock Car, Slidden Hill',
-    try: 'Start a race with 20 AI and watch the pit-wall side; race the ovals and RX.',
-    wrong: 'Pile-ups by the pit wall at the start, AI slower or running wide on walled tracks.',
-  },
-  {
-    id: 'tallfence',
-    added: '2026-11-08',
-    name: 'Catch fences too tall to hop: no tyre or part goes over one (Armco still can)',
-    where: 'Test link + &tallfence=1: Brands Snatch / Castle Cum stands; Festival of Splat',
-    try: 'Fling tyres and parts at a catch fence hard; compare with an Armco stretch.',
-    wrong: 'Anything sailing over a catch fence, stuck in it, or Armco now never hopped.',
-  },
+  // burstcap, tyresleep, stackvary (the crash bench: stacks 1-4 high, bursting by chance), linewall
+  // (the line gives a wall by the edge room), tallfence passed 2026-11-08)
   {
     id: 'castlecumvenue',
     added: '2026-11-08',

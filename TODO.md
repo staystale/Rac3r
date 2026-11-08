@@ -117,6 +117,18 @@ last handover, written on request.
    measurable cost. Fixed: Brands was built at page load (7.3 s of level import here, now 0.85 s).
    CATCH FENCES (owner 11-08): tear from ~63 km/h square (was ~77) and SHRED (armcodent.ts) - PASSED
    11-08, with the crash parts' drive-over chance by ground clearance.
+   TALL FENCES PASSED + DEFAULT 11-08 (owner: "chain link fences should be tall ... can't of
+   objects passing over it"): no loose object hops a catch fence or a building, even one already
+   hopping a low barrier (cones/coneWalls.ts TALL); Armco still hopped (tyrewallcheck: 0/80 over a
+   catch fence, ~30 % over Armco).
+   START CRASHES (owner 11-08: "cars crash on start too much ... wide close to the pit wall / dirt";
+   "the fix should come from adjusting the racing line there" - a start-lane rule was tried and
+   dropped): PASSED + DEFAULT 11-08 - the racing line leaves an edge with a barrier within 3.5 m of
+   it (no run-off) 2.5 m more room (ai/line.ts wallLimits). tools/scratch/_startcrash.mjs (20 AI on
+   the game's grid, 3 seeds): Castle Cum venue wall hits 23 -> 10, hard car hits 31 -> 8; old level
+   31 -> 7, 38 -> 11. Alone: Slidden Hill 56.3 -> 49.1 s, Stock Car 26.7 -> 23.5 s, the rest within
+   0.3 s. STILL OPEN: a field spread across the road runs off at the kink 100-135 m past Castle Cum's
+   line (8 cars in one start) - root cause in the line / corner speeds first.
    OWNER RULE (11-07): never the black wire / rope fence ('fence' barrier) - the old levels still
    use it (Castle Cum, Thruston): replace as each gets its venue pass.
    CASTLE CUM VENUE BUILT 11-08 behind ?castlecumvenue=1 (levels/castle-cum-venue.ts, OSM data

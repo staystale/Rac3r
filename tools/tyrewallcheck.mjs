@@ -4,7 +4,6 @@
 // Also: no Slidden Hill start-wall stack sits on the start straight. node tools/tyrewallcheck.mjs
 import * as L from '../src/lab.ts';
 import { createCones } from '../src/cones.ts';
-import { FIX } from '../src/core/fixes.ts';
 const fails = [];
 L.setLevel('thruston');
 const st = L.LEVEL.subtrack, farCar = { x: 9999, y: 9999, vx: 0, vy: 0, heading: 0, yawRate: 0, spec: { len: 4, wid: 1.8, mass: 1200 } };
@@ -24,14 +23,13 @@ let held = 0; for (let i = 0; i < 20; i++) if (trial(8) === "held") held++;   //
 console.log(`slow hit (8 m/s, under OVER_V): held by the Armco ${held}/20`); if (held !== 20) fails.push('slow');
 let over = 0; const N = 80; for (let i = 0; i < N; i++) if (trial(16) === 'over') over++;
 console.log(`hard hit (16 m/s): over the Armco ${over}/${N} (${(100 * over / N).toFixed(0)} %, want ~30)`); if (over < N * 0.15 || over > N * 0.45) fails.push('hard');
-// (3) ?tallfence (owner 11-08: "chain link fences should be tall ... can't of objects passing over it"): the same rail as a
+// (3) catch fences are tall (owner 11-08: "chain link fences should be tall ... can't of objects passing over it"): the same rail as a
 // catch fence, the same hard hits - none goes over it
 const railKinds = L.LEVEL.barriers.map((b) => b.kind);
 for (const b of L.LEVEL.barriers) if (b.kind === 'armco') b.kind = 'catchfence';
-FIX.tallfence = true;
 let overFence = 0; for (let i = 0; i < N; i++) if (trial(16) === 'over') overFence++;
-FIX.tallfence = false; L.LEVEL.barriers.forEach((b, i) => { b.kind = railKinds[i]; });
-console.log(`hard hit (16 m/s), the rail as a catch fence (?tallfence): over it ${overFence}/${N} (want 0)`); if (overFence) fails.push('fence');
+L.LEVEL.barriers.forEach((b, i) => { b.kind = railKinds[i]; });
+console.log(`hard hit (16 m/s), the rail as a catch fence: over it ${overFence}/${N} (want 0)`); if (overFence) fails.push('fence');
 L.setLevel('slidden-hill');
 const S = L.LEVEL.lanes[0];
 const dSeg = (x, y, P) => { let m = Infinity; for (let i = 0; i < P.length - 1; i++) { const [ax, ay] = P[i], [bx, by] = P[i + 1], dx = bx - ax, dy = by - ay, l2 = dx * dx + dy * dy; let t = Math.max(0, Math.min(1, ((x - ax) * dx + (y - ay) * dy) / l2)); m = Math.min(m, Math.hypot(x - ax - dx * t, y - ay - dy * t)); } return m; };

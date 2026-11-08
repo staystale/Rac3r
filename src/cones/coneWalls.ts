@@ -1,7 +1,6 @@
 // cones/coneWalls.ts: pushes a moving loose object out of barrier segments and level solids,
 // bouncing it off with a little scrape, or letting a fast one hop over (cone.over).
 import { LEVEL } from "../world/state.ts";
-import { FIX } from "../core/fixes.ts";
 import {
   BARRIER_HALF, SEG_BOX_PAD, SEG_RUN, isFarFrom, segRunBoxes,
 } from "../world/barriers.ts";
@@ -11,17 +10,17 @@ import { solidBox } from "../world/treetrunks.ts";
 import type { Barrier, BarrierSeg, Solid } from '../world/types.ts';
 import type { Loose } from './coneTypes.ts';
 const WALL_E = 0.3, WALL_SCRAPE = 0.8, OVER_V = 9, OVER_CHANCE = 0.3;
-// barriers too tall for anything loose to hop (?tallfence; owner 11-08: "chain link fences should
+// barriers too tall for anything loose to hop (owner 11-08: "chain link fences should
 // be tall ... can't of objects passing over it like tyres"): a catch fence's mesh is ~4 m, a
 // building's wall more; they stop even an object already hopping a low one
 const TALL = new Set(['catchfence', 'building']);
 
 /**
- * Whether a barrier is too tall to hop (?tallfence).
+ * Whether a barrier is too tall to hop.
  * @param kind the barrier's kind
  * @returns true when nothing loose goes over it
  */
-const isTall = (kind: string) => FIX.tallfence && TALL.has(kind);
+const isTall = (kind: string) => TALL.has(kind);
 
 /**
  * Push the object out along (nx, ny) by `push` and reflect its velocity; a fast one may hop over.
@@ -189,9 +188,9 @@ function hitSolids(cone: Loose, radius: number, speed: number) {
 export function hitWalls(cone: Loose) {
   const radius = cone.r || 0.3;
   const speed = Math.hypot(cone.vx, cone.vy);
-  // hopping over a low barrier: only a tall one stops it (?tallfence)
+  // hopping over a low barrier: only a tall one stops it
   if (cone.over) {
-    if (FIX.tallfence) hitBarriers(cone, radius, speed, true);
+    hitBarriers(cone, radius, speed, true);
     return;
   }
   hitBarriers(cone, radius, speed);

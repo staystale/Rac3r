@@ -17,7 +17,6 @@ import { WEATHER } from "../world/weather.ts";
 import { coverEpoch } from "../world/coverfield.ts";
 import { querySubtrack } from "../world/tyrewall.ts";
 import { BARRIER_HALF } from "../world/barriers.ts";
-import { FIX } from "../core/fixes.ts";
 import { GRAVITY } from "../cars.ts";
 import { CAR_STATS } from "../carstats.ts";
 import { flowBranch } from "./branchline.ts";
@@ -186,19 +185,19 @@ function coneLimits(ctx: LineCtx, low: Float64Array, high: Float64Array) {
   }
 }
 
-// ?linewall (owner 11-08: "the fix should come from adjusting the racing line there"): a road edge
-// with a barrier within WALL_NEAR m of it - no run-off, as a pit wall - is given WALL_ROOM m more
-// by the line than an edge with grass beyond (a driver leaves a wall more than a verge). MEASURED:
-// Castle Cum's line ran 1.6 m off the edge along the pit wall through the grid, and a field
-// funnelled onto it was squeezed into the wall (tools/scratch/_startcrash.mjs: every wall hit
-// the pit wall). 20-car starts, 3 seeds, venue: wall hits 23 / 17 / 10 / 9, hard car hits 31 / 27 /
-// 8 / 20 with no room / 1.5 / 2.5 / 3 m; the old level 2.5 m: 31 -> 7, 38 -> 11
+// WALLS BY THE EDGE (owner 11-08: "the fix should come from adjusting the racing line there"): an
+// edge with a barrier within WALL_NEAR m of it - no run-off, as a pit wall - is given WALL_ROOM m
+// more by the line than an edge with grass beyond (a driver leaves a wall more than a verge).
+// MEASURED: Castle Cum's line ran 1.6 m off the edge along the pit wall through the grid, and a
+// field funnelled onto it was squeezed into the wall (tools/scratch/_startcrash.mjs: every wall
+// hit the pit wall). 20-car starts, 3 seeds, venue: wall hits 23 / 17 / 10 / 9, hard car hits
+// 31 / 27 / 8 / 20 with no room / 1.5 / 2.5 / 3 m; the old level 2.5 m: 31 -> 7, 38 -> 11
 const WALL_NEAR = 3.5, WALL_ROOM = 2.5;
 // m between the points sampled along a barrier
 const WALL_SAMPLE = 2;
 
 /**
- * BARRIERS CLOSE BY THE EDGE narrow the limits for the line on their side (?linewall).
+ * BARRIERS CLOSE BY THE EDGE narrow the limits for the line on their side.
  * @param ctx the line context
  * @param low the lower limits, per point (changed)
  * @param high the upper limits, per point (changed)
@@ -319,7 +318,7 @@ export function racingLine(level: Level): RacingLine {
   const map = gripMap(ctx);
   const { low, high } = hairpinLimits(ctx);
   coneLimits(ctx, low, high);
-  if (FIX.linewall) wallLimits(ctx, low, high);
+  wallLimits(ctx, low, high);
   const off = smoothLine(ctx, map, low, high);
   // (cast: finishPath, just below, sets h, R, turn and mu on these points)
   const pts = centre.map((point, i) => ({
