@@ -53,7 +53,9 @@ export interface VenueSpec {
   start: Point;   // the start / finish line
   pitLane: string;   // the data's pit lane in use
   hills: Bump[];   // the hills (r and d / h in real m: scaled with the map)
-  banks: { pts: Point[]; r: number; h: number }[];   // spectator earth banks
+  // spectator earth banks; a catch fence in front of each unless fenced is false (the sources show
+  // its viewers behind the circuit's rail, no fence)
+  banks: { pts: Point[]; r: number; h: number; fenced?: boolean }[];
   boards: { at: Point; label: string }[];   // advertising boards (the road side nearest)
   bridgeLabel?: string;   // painted on the footbridge
   // the map warped before it is built: past a line (through at, normal dir) everything moves

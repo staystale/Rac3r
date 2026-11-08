@@ -42,13 +42,18 @@ export const CASTLE_CUM_SPEC: VenueSpec = {
     { kind: 'dip', x: -129.8, y: 434, r: 6, d: 0.09 },
     { kind: 'hump', x: -152.9, y: 425.7, r: 6, h: 0.1 },
   ],
-  // the viewing banks (the site sign; the debris fencing at Camp, Folly and Quarry): outside
-  // Folly, round Quarry, outside the Esses' old line and along Dean Straight into Camp
+  // the viewing banks (the site sign): outside Folly and Avon Rise, round Quarry, outside the
+  // Esses' old line and along Dean Straight. A catch fence only where the real place has one
+  // (owner 11-08: "feels a little caged in on straights"): the debris fencing at Folly and Quarry
+  // (PistonHeads 19.12.2001: Camp, Folly, Quarry) and along Avon Rise (aerial photographs); at the
+  // Esses (OSM: a 1 m wooden railing on the bank) and on Dean Straight the viewers stand behind
+  // the circuit's rail (OSM guard rails): Armco there
   banks: [
     { pts: [[-199.7, 436.8], [-259.3, 400.2], [-320.2, 361.1], [-383.9, 308.2]], r: 14, h: 2.6 },
     { pts: [[-506.9, 241], [-583, 210.8], [-607.5, 124.8], [-561.5, 56.5]], r: 14, h: 3 },
-    { pts: [[-327.2, -160.7], [-291.1, -196.5], [-255, -232.3]], r: 14, h: 2.6 },
-    { pts: [[470, 101.8], [452.3, 176.2], [432.9, 243.8], [415.8, 301.3]], r: 14, h: 4 },
+    { pts: [[-327.2, -160.7], [-291.1, -196.5], [-255, -232.3]], r: 14, h: 2.6, fenced: false },
+    { pts: [[470, 101.8], [452.3, 176.2], [432.9, 243.8], [415.8, 301.3]], r: 14, h: 4,
+      fenced: false },
   ],
   // the boards stand on Armco (world/venueedge.ts boardOnArmco): Castle Combe's is round Tower
   boards: [

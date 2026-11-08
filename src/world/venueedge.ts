@@ -10,8 +10,8 @@
 // outside each corner, boards on it.
 import { SURFACES } from "./surfaces.ts";
 import { insidePolygon } from "./zones.ts";
-import { HALF_ROAD, centreAt, clearRuns, distToLine, lineLength, nearestLoop, roadDistance }
-  from "./venuegeo.ts";
+import { HALF_ROAD, centreAt, clearRuns, distToLine, lineLength, nearestLoop, roadDistance,
+  trimEnds } from "./venuegeo.ts";
 import type { Barrier, Cone, Point, Prop, Subtrack, TrackPoint, Zone } from "./types.ts";
 
 // m past the road's edge the Armco stands where there is no trap (the run-off: grass)
@@ -54,6 +54,8 @@ const RUN_MAX_M = 60;
 const FLARE_ON_M = 6, FLARE_OUT_M = 1.6;
 // m a flare's points keep from a catch fence (an Armco end meeting one is not flared across it)
 const FLARE_CLEAR_M = 3;
+// m off a road's edge a barrier's end keeps (the pit lane leaving the track meets no end head on)
+const END_ROAD_M = 4;
 // m in front of the Armco of its two tyre rows behind a trap, and the second row's stagger
 const TYRE_ROWS: [number, number][] = [[1.4, 0], [2.35, 0.475]];
 // m beyond the rim a hazard is looked for (Armco before it); m of gap filled between two runs of a
@@ -361,6 +363,7 @@ function rimLine(rim: Rim, side: number, back = 0): Point[] {
 export interface EdgeClear {
   loops: Subtrack[]; lanes: { pts: Point[]; width: number }[];
   blocked: (x: number, y: number) => boolean;   // a building there (the edge keeps off it)
+  roads?: { pts: Point[]; width: number }[];   // the ways a barrier's end keeps END_ROAD_M off
 }
 
 /**
@@ -550,6 +553,8 @@ export function buildEdge(rims: Rim[], keep: EdgeClear, traps: Zone[], needs: Ed
   { barriers: Barrier[]; cones: Cone[] } {
   const barriers: Barrier[] = [], cones: Cone[] = [], used: Point[] = [];
   const clear = (x: number, y: number) => edgeClear(keep, x, y);
+  const nearRoad = (x: number, y: number) => (keep.roads || []).some((road) =>
+    distToLine(road.pts, x, y) < road.width / 2 + END_ROAD_M);
   for (const rim of rims) {
     // one barrier round the run-off of every layout: none inside another layout's run-off
     const others = rims.filter((other) => other !== rim);
@@ -561,13 +566,15 @@ export function buildEdge(rims: Rim[], keep: EdgeClear, traps: Zone[], needs: Ed
       // where Armco gives way to a catch fence the line runs on: no flare across the fence (along
       // a venue that follows its real rails)
       const fence = needs.rails ? kindRuns(line, kinds, EDGE_CATCH).flat() : [];
-      const flareClear = (x: number, y: number) => clear(x, y) && fence.every(([fenceX, fenceY]) =>
-        Math.abs(fenceX - x) > FLARE_CLEAR_M || Math.abs(fenceY - y) > FLARE_CLEAR_M);
+      const flareClear = (x: number, y: number) => clear(x, y) && !nearRoad(x, y)
+        && fence.every(([fenceX, fenceY]) =>
+          Math.abs(fenceX - x) > FLARE_CLEAR_M || Math.abs(fenceY - y) > FLARE_CLEAR_M);
       for (const [kind, barrierKind] of [[EDGE_ARMCO, 'armco'], [EDGE_CATCH, 'catchfence']] as
         [number, Barrier['kind']][])
         for (const part of kindRuns(line, kinds, kind)
           .flatMap((run) => withoutDoubles(run, used, 3)))
-          for (const run of clearRuns(part, outsideOthers, RIM_STEP_M)) {
+          for (const cut of clearRuns(part, outsideOthers, RIM_STEP_M)) {
+            const run = trimEnds(cut, nearRoad);
             if (run.length < MIN_RUN_PTS || lineLength(run) < MIN_RUN_M) continue;
             // Armco flared at its real ends, then cut into short runs (no flare where only cut)
             const ends: [Point, Point] = [awayFrom(keep.loops, run[0]),

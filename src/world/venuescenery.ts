@@ -487,7 +487,8 @@ function venueBounds(loops: Subtrack[], lanes: Lane[], props: Prop[]): VenueScen
 }
 
 /**
- * Where people stand: each grandstand's corners and centre, and the banks' points.
+ * Where people stand behind a catch fence: each grandstand's corners and centre, and the points
+ * of the banks that have one.
  * @param site the venue's builders' state
  * @param props the props
  * @returns the points
@@ -500,7 +501,7 @@ function spectatorSpots(site: Site, props: Prop[]): Point[] {
       spots.push([stand.x + cosR * along * stand.w! - sinR * across * stand.h!,
         stand.y + sinR * along * stand.w! + cosR * across * stand.h!]);
   }
-  for (const bank of site.build.spec.banks)
+  for (const bank of site.build.spec.banks.filter((entry) => entry.fenced !== false))
     for (const point of bank.pts) spots.push(site.place(point));
   return spots;
 }
@@ -662,7 +663,8 @@ export function buildVenueScenery(build: VenueBuild, sub: Subtrack, closed: Lane
   const pitWall = pit.wall ? pit.wall.pts : null;
   const edge = buildEdge(site.rims, { loops, lanes: site.lanes,
     blocked: (x, y) => inBuilding(site.buildings, x, y, 1)
-      || (!!pitWall && distToLine(pitWall, x, y) < PIT_WALL_CLEAR_M) }, traps,
+      || (!!pitWall && distToLine(pitWall, x, y) < PIT_WALL_CLEAR_M),
+    roads: [pit.lane, ...bridges.lanes, ...tunnels.lanes] }, traps,
   edgeNeeds(site, bridges.props, tunnels.props, lines));
   for (const rail of edge.barriers)
     for (const [x, y] of resample(rail.pts, 1)) site.armco.add(cellKey(x, y));

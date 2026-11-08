@@ -213,6 +213,19 @@ export function makePlacer(scale: number, loops: Subtrack[], widenM: number): (p
 }
 
 /**
+ * A line with its ends cut back while a test holds there (a barrier's end off a road).
+ * @param pts the line
+ * @param cut true where an end point goes
+ * @returns what is left of it
+ */
+export function trimEnds(pts: Point[], cut: (x: number, y: number) => boolean): Point[] {
+  let first = 0, last = pts.length;
+  while (first < last && cut(...pts[first])) first++;
+  while (last > first && cut(...pts[last - 1])) last--;
+  return pts.slice(first, last);
+}
+
+/**
  * Splits a line into the runs that stay clear, each at most maxM long (short runs keep collision
  * and drawing cheap: a far run is skipped by its box).
  * @param pts the line
