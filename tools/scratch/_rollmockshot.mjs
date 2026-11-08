@@ -1,5 +1,5 @@
 // _rollmockshot.mjs - photographs tools/scratch/rollmock.html at phone size mid-roll and at rest,
-// with page errors. node tools/scratch/_rollmockshot.mjs [car]
+// (the PROPOSED panel), with page errors. node tools/scratch/_rollmockshot.mjs [car]
 import { startServer, launchBrowser } from '../lib/browser.mjs';
 const car = process.argv[2] || 'hatch-fwd';
 const server = await startServer();
@@ -13,9 +13,9 @@ try {
   await page.waitForTimeout(1500);
   await page.click(`#cars button:text-is("${car}")`);
   await page.click('#slow');
-  for (const at of [0.25, 0.6, 4]) {
+  for (const at of [0.15, 0.3, 4]) {
     await page.waitForTimeout(at * 1000);
-    await page.screenshot({ path: `tools/scratch/_rollmock-${car}-${at}s.png`, fullPage: false });
+    await (await page.$('#next')).screenshot({ path: `tools/scratch/_rollmock-${car}-${at}s.png` });
   }
   console.log(errors.length ? 'ERRORS ' + errors.join(' | ') : 'errors none');
 } finally {

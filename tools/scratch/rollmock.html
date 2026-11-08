@@ -10,7 +10,8 @@
      NOW: the game's own rolled-car drawing (render/cardamage.ts rolledFaces / drawFaces) and its
      spin loss per ground hit (roll.ts spinStep: 0.6-0.8 kept). PROPOSED: the same faces, shaded by
      the angle they face, in 15 degree steps; the shadow lifts as the car stands on an edge; each
-     ground hit squashes it a frame and kicks up dust; and the spin kept per hit, and the chance a
+     ground hit squashes it a frame; spinning fast, a slight blur and whoosh lines (no dust of its
+     own, the game throws plenty); the spin kept per hit, and the chance a
      sharp edge DIGS IN, by the real car's shape (ROUNDNESS below). Same dice for both panels. -->
 <style>
   :root { --bg: #1b1d22; --panel: #2a2d34; --text: #e8e6e1; --dim: #9aa0aa; --accent: #e2c13a; }
@@ -37,13 +38,16 @@
 <main>
   <h1>ROLL MOCKUP</h1>
   <p class="note">Pick a car, tap ROLL. Top: the game now. Bottom: the proposal - shaded faces, the
-    body lifting on its edge, a squash and dust at each hit, and how long it keeps rolling by its
+    body in the real car's profile, lifting on its edge, a squash at each hit, a slight blur and
+    whoosh lines when it spins fast, and how long it keeps rolling by its
     shape. Both use the same dice.</p>
   <div class="cars" id="cars"></div>
   <div class="row">
     <button id="roll">ROLL</button>
     <button id="slow">SLOW MOTION: OFF</button>
     <button id="hard">HARD ROLL</button>
+    <button id="angles">ANGLES: 16 A TURN</button>
+    <button id="bands" class="on">SHADING: BANDS</button>
   </div>
   <div class="panel"><h2>NOW</h2><canvas id="now" width="360" height="190"></canvas>
     <div class="out" id="nowOut"></div></div>
@@ -58,9 +62,11 @@
 <script type="module">
 import { makeCar } from '/src/vehicle.ts';
 import { applyLivery } from '/src/cars.ts';
-import { drawnSpec } from '/src/render/cars.ts';
+import { drawnSpec, tyreBox } from '/src/render/cars.ts';
 import { createCarSprite } from '/src/render/carsprite.ts';
 import { createCarDamage } from '/src/render/cardamage.ts';
+import { heightsPx, paintSideProfile, paintUnderProfile, profileOf } from '/src/render/carprofile.ts';
+import { SPRITE_PPM } from '/src/render/shared.ts';
 
 // the real car's shape: how round its body is, and why (an opinion, for the owner to change)
 const SHAPE = {
@@ -105,7 +111,7 @@ function makeRun(panel, roundness, seed) {
   const rnd = seeded(seed), car = makeCar(carId);
   car.spec = drawnSpec(applyLivery(car.spec, null));
   return { panel, car, sprite: pixelCar(car.spec), rnd, roundness, phi: 0, w: hard ? 13 : 9,
-    y: 50, v: hard ? 11 : 8, hits: 0, digs: 0, squash: 0, dust: [], done: false, onFace: '' };
+    y: 50, v: hard ? 11 : 8, hits: 0, digs: 0, squash: 0, done: false, onFace: '' };
 }
 
 /** A quarter turn has the body meet the ground: spin and speed lost, maybe an edge digs in. */
@@ -121,8 +127,6 @@ function groundHit(run) {
     if (run.rnd() < 0.35 * (1 - run.roundness)) { run.w *= 0.3; run.digs++; }
     run.v *= 0.86 - 0.08 * (1 - run.roundness);
     run.squash = 0.09;
-    for (let i = 0; i < 7; i++) run.dust.push({ x: (run.rnd() - 0.5) * 60, y: 0,
-      vx: (run.rnd() - 0.5) * 30, vy: -10 - run.rnd() * 25, life: 0.5 });
   }
 }
 
@@ -146,42 +150,84 @@ function stepRun(run, dt) {
   run.v = Math.max(0, run.v - slide * dt);
   run.y += run.v * dt * 6;
   run.squash = Math.max(0, run.squash - dt);
-  for (const puff of run.dust) { puff.x += puff.vx * dt; puff.y += puff.vy * dt; puff.life -= dt; }
-  run.dust = run.dust.filter((puff) => puff.life > 0);
 }
 
 // ---- PROPOSED: the car as a BODY, not a box. Along its length every column is a rounded
-// cross-section - as wide as the top sprite there, as tall as the side sprite there (bonnet low,
-// roof high) - its roundness the real car's (a superellipse: round 1 = an ellipse, 0 = nearly a
-// rectangle). Turned by the roll angle, each screen row of a column shows the highest point of
-// the turned section there, painted from the sprite that covers that part of the body (the top on
-// the roof and bonnet, the side sprite down the flanks, the underside below) and lit by how much
-// it faces the sky. Made once per car per 10 degrees and kept.
+// cross-section - as wide as the top sprite there, as tall as the real car's roof line there
+// (render/carprofile.ts: bonnet low, the windscreen rising at its angle, the roof, the rear screen
+// down to the boot) - its roundness the real car's (a superellipse: round 1 = an ellipse, 0 =
+// nearly a rectangle). An open car is a narrow tub with its wheels and wings standing off it.
+// Turned by the roll angle, each screen row of a column shows the highest point of the turned
+// section there, painted from the picture that covers that part of the body (the top sprite on the
+// roof and bonnet, the car's side profile down the flanks, its underside below) and lit by how
+// much it faces the sky. Made once per car per 10 degrees and kept.
 const pixelsOf = (cv) => cv.getContext('2d').getImageData(0, 0, cv.width, cv.height);
-const BUCKETS = 36, SAMPLES = 320;
+// owner 11-08 on round 2: "slightly too accurate and a bit smooth" - fewer angles a turn (the
+// smudge between), the light in flat bands; both on buttons to try
+const SAMPLES = 320;
+let BUCKETS = 16, bands = true;
 
-/** The car's body model, once per car: its sprites' pixels and each column's width / height. */
+/** The car's body model, once per car: its pictures' pixels; per column its body (width, top,
+ * bottom, the roof line's slope), its wheels and, an open car, its wings standing off the tub. */
 function bodyOf(run) {
   if (run.body) return run.body;
-  const { painter } = run.panel, top = run.sprite;
-  const side = painter.rolledFaces(run.car, top, Math.PI / 2)[0].cv;
-  const under = painter.rolledFaces(run.car, top, Math.PI)[0].cv;
-  const topPx = pixelsOf(top.c), sidePx = pixelsOf(side), underPx = pixelsOf(under);
-  const length = top.Lp, heightMax = side.height - 4, cols = [];
+  const top = run.sprite, spec = run.car.spec, profile = profileOf(spec);
+  const side = paintSideProfile(spec), under = paintUnderProfile(spec, top.Wp);
+  const topPx = pixelsOf(top.c), sidePx = pixelsOf(side.c), underPx = pixelsOf(under.c);
+  const length = top.Lp, tops = heightsPx(spec), heightMax = side.Hp,
+    scale = tops.length / profile.len, clearance = Math.max(1, (spec.rideH ?? 0.13) * scale);
+  const cols = [];
   for (let x = 0; x < length; x++) {
-    let lo = Infinity, hi = -Infinity, roof = Infinity;
+    let lo = Infinity, hi = -Infinity;
     for (let y = 0; y < top.c.height; y++) if (topPx.data[(y * top.c.width + x + 2) * 4 + 3]) {
       lo = Math.min(lo, y); hi = Math.max(hi, y); }
-    for (let y = 0; y < side.height; y++) if (sidePx.data[(y * side.width + x + 2) * 4 + 3]) {
-      roof = Math.min(roof, y); break; }
-    const half = hi >= lo ? (hi - lo + 1) / 2 : top.Wp / 2,
-      tall = roof < Infinity ? side.height - 2 - roof : heightMax;
-    cols.push({ half, tall: Math.max(2, tall) });
+    let half = hi >= lo ? (hi - lo + 1) / 2 : top.Wp / 2;
+    if (profile.open) half = Math.min(half, top.Wp * profile.open.tub / 2);
+    const at = (i) => tops[Math.min(tops.length - 1, Math.max(0, i))];
+    cols.push({ half, top: Math.max(clearance + 2, at(x)), bottom: clearance,
+      slope: (at(x + 1) - at(x - 1)) / 2, boxes: [] });
   }
-  const reach = Math.ceil(Math.max(...cols.map((col) => Math.hypot(col.half, heightMax))));
-  run.body = { top, topPx, sidePx, underPx, side, under, length, heightMax, cols, reach,
+  standOff(spec, profile, cols, top.Wp, scale);
+  const reach = Math.ceil(Math.max(...cols.map((col) => Math.hypot(Math.max(col.half,
+    ...col.boxes.map((box) => Math.abs(box.centre) + box.halfW)), heightMax))));
+  const waist = profile.waist ? profile.waist * scale : Infinity;
+  run.body = { top, topPx, sidePx, underPx, length, heightMax, cols, reach, waist,
     images: new Map() };
   return run.body;
+}
+
+/** The wheels (each column's slice of the tyre's circle, the rim on its outer face) and an open
+ * car's wings (a plane on two endplates), as boxes standing off the body. */
+function standOff(spec, profile, cols, widthPx, scale) {
+  const track = (spec.trackWidth || 1.5) * SPRITE_PPM, length = cols.length,
+    rimRgb = rgbOf(spec.rim || '#6d707a', 1);
+  for (const [axle, rear] of [[spec.lf, false], [-spec.lr, true]]) {
+    const { len: dia, wid } = tyreBox(spec, rear), mid = length / 2 + axle * SPRITE_PPM;
+    for (let x = Math.floor(mid - dia / 2); x <= mid + dia / 2; x++) {
+      if (x < 0 || x >= length) continue;
+      const along = x + 0.5 - mid, rise = Math.sqrt(Math.max(0, (dia / 2) ** 2 - along ** 2)),
+        rim = Math.sqrt(Math.max(0, (dia * 0.3) ** 2 - along ** 2));
+      for (const sideOf of [-1, 1]) cols[x].boxes.push({ centre: sideOf * track / 2,
+        halfW: wid / 2, low: dia / 2 - rise, high: dia / 2 + rise, rgb: [22, 23, 28],
+        rim: { out: sideOf, low: dia / 2 - rim, high: dia / 2 + rim, rgb: rimRgb } });
+    }
+  }
+  const wingRgb = rgbOf(spec.paint || '#d0552f', 0.6);
+  for (const [from, upto, low, high, span] of profile.open?.wings ?? []) {
+    const reachOut = widthPx * span / 2, plane = Math.max(1.5, (high - low) * scale * 0.3);
+    for (let x = Math.floor(from * length); x < Math.min(length, upto * length); x++) {
+      cols[x].boxes.push({ centre: 0, halfW: reachOut, low: high * scale - plane,
+        high: high * scale, rgb: wingRgb });
+      for (const sideOf of [-1, 1]) cols[x].boxes.push({ centre: sideOf * (reachOut - 0.5),
+        halfW: 0.5, low: low * scale, high: high * scale, rgb: wingRgb });
+    }
+  }
+}
+
+/** A colour as [r, g, b], darkened by a share. */
+function rgbOf(hex, share) {
+  const value = parseInt(hex.slice(1), 16);
+  return [(value >> 16) & 255, (value >> 8) & 255, value & 255].map((part) => part * share);
 }
 
 /** A pixel of a sprite's ImageData, or null where it is clear. */
@@ -192,56 +238,86 @@ function texel(img, x, y) {
   return img.data[at + 3] ? img.data.subarray(at, at + 4) : null;
 }
 
-/** The body turned to a roll angle, as a picture (kept per 10 degrees). */
+/** The body turned to a roll angle, as a picture (kept per angle step). */
 function bodyImage(body, roundness, phi) {
   const bucket = ((Math.round(phi / (2 * Math.PI / BUCKETS)) % BUCKETS) + BUCKETS) % BUCKETS;
-  if (body.images.has(bucket)) return body.images.get(bucket);
+  const key = `${BUCKETS} ${bands} ${bucket}`;
+  if (body.images.has(key)) return body.images.get(key);
   const angle = bucket * 2 * Math.PI / BUCKETS, cosA = Math.cos(angle), sinA = Math.sin(angle);
   const power = 2 / (2 + 6 * (1 - roundness)), height = body.reach * 2 + 4;
   const out = new ImageData(body.length + 4, height), floor = -body.heightMax / 2;
-  // the waistline: above it the cabin leans in to the roof (its glass is angled - owner: "remember
-  // windscreens are angled"), CABIN_IN of the width gone at the top
-  const waist = floor + body.heightMax * 0.55, roofTop = floor + body.heightMax, CABIN_IN = 0.3;
-  const point = (half, mid, semi, t) => {
-    const c = Math.cos(t), s = Math.sin(t), z = mid + semi * Math.sign(s) * Math.abs(s) ** power,
-      lean = z > waist ? 1 - CABIN_IN * (z - waist) / (roofTop - waist) : 1;
-    return [half * lean * Math.sign(c) * Math.abs(c) ** power, z];
-  };
+  const ramp = (value) => Math.min(1, Math.max(0, value));
+  // above the waist the cabin leans in to its roof (the side glass is angled), CABIN_IN of the
+  // width gone at the top; the windscreen and rear screen are at the roof line's angle along the
+  // length: their normal leans to the nose or tail, the light (from above and a little ahead)
+  // shades them apart from the roof
+  const CABIN_IN = 0.3, AHEAD = 0.3;
   for (let x = 0; x < body.length; x++) {
-    const { half, tall } = body.cols[x], mid = floor + tall / 2, semi = tall / 2;
+    const col = body.cols[x], bottom = floor + col.bottom, roofZ = floor + col.top,
+      mid = (bottom + roofZ) / 2, semi = (roofZ - bottom) / 2, waistZ = floor + body.waist;
     const best = new Float32Array(height).fill(-Infinity);
+    const plot = (y, z, normalY, normalZ, along, colour) => {
+      const turnedY = y * cosA - z * sinA, turnedZ = y * sinA + z * cosA,
+        row = Math.round(turnedY + body.reach + 2);
+      if (row < 0 || row >= height || turnedZ <= best[row]) return;
+      const rgb = colour(); if (!rgb) return;
+      best[row] = turnedZ;
+      const norm = Math.hypot(along, normalY, normalZ) || 1,
+        litZ = (normalY * sinA + normalZ * cosA) / norm,
+        smooth = Math.max(0, litZ * (1 - AHEAD) + (along / norm) * AHEAD),
+        lit = bands ? Math.round(smooth * 3) / 3 : smooth;
+      // a pale rim where the body turns away (its curve reads)
+      const light = 0.32 + 0.68 * lit + (litZ > 0 && litZ < 0.25 ? 0.12 : 0),
+        at = (row * out.width + x + 2) * 4;
+      out.data[at] = rgb[0] * light; out.data[at + 1] = rgb[1] * light;
+      out.data[at + 2] = rgb[2] * light; out.data[at + 3] = 255;
+    };
+    const point = (t) => {
+      const c = Math.cos(t), s = Math.sin(t), z = mid + semi * Math.sign(s) * Math.abs(s) ** power,
+        lean = z > waistZ && roofZ > waistZ + 2 ? 1 - CABIN_IN * (z - waistZ) / (roofZ - waistZ) : 1;
+      return [col.half * lean * Math.sign(c) * Math.abs(c) ** power, z];
+    };
     for (let k = 0; k < SAMPLES; k++) {
-      const t = (k / SAMPLES) * 2 * Math.PI, [y, z] = point(half, mid, semi, t);
+      const t = (k / SAMPLES) * 2 * Math.PI, [y, z] = point(t);
       // the surface's normal from the shape itself (its neighbours either side), outward
-      const [y0, z0] = point(half, mid, semi, t - 0.02), [y1, z1] = point(half, mid, semi, t + 0.02);
+      const [y0, z0] = point(t - 0.02), [y1, z1] = point(t + 0.02);
       let normalY = z1 - z0, normalZ = -(y1 - y0);
       if (normalY * y + normalZ * (z - mid) < 0) { normalY = -normalY; normalZ = -normalZ; }
       const norm = Math.hypot(normalY, normalZ) || 1;
       normalY /= norm; normalZ /= norm;
-      const turnedY = y * cosA - z * sinA, turnedZ = y * sinA + z * cosA,
-        litZ = normalY * sinA + normalZ * cosA, row = Math.round(turnedY + body.reach + 2);
-      if (row < 0 || row >= height || turnedZ <= best[row]) continue;
-      // the sprites BLENDED by how much this part faces up, down or out (no hard seam between
-      // the roof's picture and the flank's)
-      const ramp = (value) => Math.min(1, Math.max(0, value));
-      const parts = [
-        [ramp((normalZ - 0.15) / 0.55), texel(body.topPx, x + 2, y + body.top.Wp / 2 + 2)],
-        [ramp((-normalZ - 0.15) / 0.55), texel(body.underPx, x + 2, y + body.top.Wp / 2 + 2)],
-        [ramp((Math.abs(normalY) - 0.25) / 0.5), texel(body.sidePx, x + 2,
-          body.heightMax / 2 - z + 2)],
-      ];
-      let red = 0, green = 0, blue = 0, weight = 0;
-      for (const [share, tex] of parts) if (share > 0 && tex) {
-        red += tex[0] * share; green += tex[1] * share; blue += tex[2] * share; weight += share;
+      // the roof line's slope tips an upper surface to the nose (falling) or the tail (rising)
+      const along = normalZ > 0 ? -col.slope * normalZ : 0;
+      // the pictures BLENDED by how much this part faces up, down or out (no hard seams); the
+      // top and underside read a pixel in from their edge (not their dark outline, a streak)
+      const inside = Math.sign(y) * Math.min(Math.abs(y), Math.max(0, col.half - 1.5));
+      plot(y, z, normalY, normalZ, along, () => {
+        const parts = [
+          [ramp(z > waistZ ? (normalZ - 0.6) / 0.3 : (normalZ - 0.15) / 0.55),
+            texel(body.topPx, x + 2, inside + body.top.Wp / 2 + 2)],
+          [ramp((-normalZ - 0.15) / 0.55), texel(body.underPx, x + 2, inside + body.top.Wp / 2 + 2)],
+          [ramp((Math.abs(normalY) - 0.25) / 0.5), texel(body.sidePx, x + 2,
+            body.heightMax - (z - floor) + 2)],
+        ];
+        let red = 0, green = 0, blue = 0, weight = 0;
+        for (const [share, tex] of parts) if (share > 0 && tex) {
+          red += tex[0] * share; green += tex[1] * share; blue += tex[2] * share; weight += share;
+        }
+        return weight ? [red / weight, green / weight, blue / weight] : null;
+      });
+    }
+    // the wheels and an open car's wings: boxes, their four faces; the rim on a tyre's outside
+    for (const box of col.boxes) {
+      const low = floor + box.low, high = floor + box.high, left = box.centre - box.halfW,
+        right = box.centre + box.halfW, colour = () => box.rgb,
+        rimAt = (up) => () => (up >= floor + box.rim.low && up <= floor + box.rim.high
+          ? box.rim.rgb : box.rgb),
+        steps = Math.ceil(2 * Math.max(right - left, high - low)) + 2;
+      for (let i = 0; i <= steps; i++) {
+        const across = left + (right - left) * i / steps, up = low + (high - low) * i / steps;
+        plot(across, high, 0, 1, 0, colour); plot(across, low, 0, -1, 0, colour);
+        plot(left, up, -1, 0, 0, box.rim?.out === -1 ? rimAt(up) : colour);
+        plot(right, up, 1, 0, 0, box.rim?.out === 1 ? rimAt(up) : colour);
       }
-      if (!weight) continue;
-      best[row] = turnedZ;
-      // light from above: the part facing the sky full, one facing away dim; a pale rim where it
-      // turns away (the body's curve reads)
-      const light = 0.32 + 0.68 * Math.max(0, litZ) + (litZ > 0 && litZ < 0.25 ? 0.12 : 0),
-        at = (row * out.width + x + 2) * 4;
-      out.data[at] = red / weight * light; out.data[at + 1] = green / weight * light;
-      out.data[at + 2] = blue / weight * light; out.data[at + 3] = 255;
     }
   }
   const canvas = document.createElement('canvas');
@@ -255,8 +331,24 @@ function bodyImage(body, roundness, phi) {
   shadowCtx.fillStyle = '#14121c';
   shadowCtx.fillRect(0, 0, out.width, out.height);
   const image = { canvas, shadow, half: body.reach + 2 };
-  body.images.set(bucket, image);
+  body.images.set(key, image);
   return image;
+}
+
+/** Whoosh lines: thin pale streaks trailing off the body's back edge, opposite its slide, longer
+ * the faster it goes and spins, flickering along its length. */
+function whoosh(ctx, run, body) {
+  const extent = 0.5 * (run.sprite.Wp * Math.abs(Math.cos(run.phi))
+    + body.heightMax * Math.abs(Math.sin(run.phi))), speed = run.v + Math.abs(run.w) * 0.5;
+  const length = Math.min(16, speed * 1.2), tick = Math.floor(performance.now() / 70);
+  ctx.fillStyle = '#e8ecf2';
+  for (let i = 0; i < 4; i++) {
+    const at = ((i * 0.27 + ((tick * 7 + i * 3) % 5) * 0.04) - 0.45) * body.length;
+    ctx.globalAlpha = Math.min(0.45, speed / 30);
+    ctx.fillRect(Math.round(at), Math.round(-extent - 2 - length * (0.6 + 0.4 * ((tick + i) % 2))),
+      1, Math.round(length * (0.6 + 0.4 * ((tick + i) % 2))));
+  }
+  ctx.globalAlpha = 1;
 }
 
 /** Draws a run's car on its panel, the game's way (NOW) or the proposed way. */
@@ -276,24 +368,24 @@ function drawRun(run) {
   ctx.scale(ZOOM, ZOOM);
   ctx.rotate(-Math.PI / 2 + Math.PI / 2);
   if (next) {
-    // the body at this angle; spinning fast, a smudge of where it was a moment ago
+    // the body at this angle; spinning, a slight blur of where it was a moment ago (two faint
+    // frames back along its turn and its slide) and whoosh lines trailing it (owner 11-08; no dust
+    // of its own, the game's grass and dirt throw plenty)
     const body = bodyOf(run), image = bodyImage(body, run.roundness, run.phi),
-      left = -body.length / 2 - 2, squash = 1 - run.squash;
+      left = -body.length / 2 - 2, squash = 1 - run.squash, spin = Math.abs(run.w);
     ctx.globalAlpha = 0.3;
     ctx.drawImage(image.shadow, left + 4 + lift, -image.half + 4 + lift);
-    if (Math.abs(run.w) > 6) {
-      const behind = bodyImage(body, run.roundness, run.phi - run.w * 0.035);
-      ctx.globalAlpha = 0.35;
-      ctx.drawImage(behind.canvas, left, -behind.half);
+    if (spin > 4) for (const [back, alpha] of [[0.07, 0.12], [0.035, 0.25]]) {
+      const behind = bodyImage(body, run.roundness, run.phi - run.w * back);
+      ctx.globalAlpha = alpha * Math.min(1, (spin - 4) / 4);
+      ctx.drawImage(behind.canvas, left, -behind.half - run.v * back * 6 / ZOOM);
     }
+    if (spin > 5 || run.v > 5) whoosh(ctx, run, body);
     ctx.globalAlpha = 1;
     ctx.save();
     ctx.scale(1, squash);
     ctx.drawImage(image.canvas, left, -image.half);
     ctx.restore();
-    ctx.fillStyle = 'rgba(190,180,160,0.7)';
-    for (const puff of run.dust) ctx.fillRect(Math.round(puff.x / ZOOM),
-      Math.round((width / 2 + 2 + puff.y) / ZOOM), 2, 2);
   } else {
     ctx.globalAlpha = 0.3;
     painter.drawFaces(faces, lengthPx, true, 4);
@@ -334,6 +426,12 @@ document.getElementById('slow').onclick = (event) => {
   slow = !slow; event.target.textContent = `SLOW MOTION: ${slow ? 'ON' : 'OFF'}`; };
 document.getElementById('hard').onclick = (event) => {
   hard = !hard; event.target.classList.toggle('on', hard); roll(); };
+document.getElementById('angles').onclick = (event) => {
+  BUCKETS = { 8: 12, 12: 16, 16: 36, 36: 8 }[BUCKETS];
+  event.target.textContent = `ANGLES: ${BUCKETS} A TURN`; };
+document.getElementById('bands').onclick = (event) => {
+  bands = !bands; event.target.classList.toggle('on', bands);
+  event.target.textContent = `SHADING: ${bands ? 'BANDS' : 'SMOOTH'}`; };
 roll();
 requestAnimationFrame(frame);
 
