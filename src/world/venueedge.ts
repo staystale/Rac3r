@@ -7,12 +7,12 @@
 // spectators are: the grandstands and the earth banks. The gravel traps are the real ones'
 // outlines (zones with poly). A venue that follows its real rails (Castle Kum) has Armco where
 // they are, else open run-off away from traps and hazards. Marshal posts stand behind the Armco
-// outside each corner, boards on it.
+// outside each corner, boards on it (world/venueposts.ts).
 import { SURFACES } from "./surfaces.ts";
 import { insidePolygon } from "./zones.ts";
-import { HALF_ROAD, centreAt, clearRuns, distToLine, lineLength, nearestLoop, roadDistance,
-  joinEnds, trimEnds } from "./venuegeo.ts";
-import type { Barrier, Cone, Point, Prop, Subtrack, TrackPoint, Zone } from "./types.ts";
+import { HALF_ROAD, centreAt, clearRuns, distToLine, joinEnds, lineLength, nearestLoop,
+  trimEnds } from "./venuegeo.ts";
+import type { Barrier, Cone, Point, Subtrack, TrackPoint, Zone } from "./types.ts";
 
 // m past the road's edge the Armco stands where there is no trap (the run-off: grass)
 export const RUNOFF_M = 5;
@@ -45,7 +45,14 @@ const TRAP_SHARE = 0.15;
 const CURVE_SPAN_M = 10, INSIDE_SHARE = 0.8;
 // m between the rim samples; the window (samples each side) the rim is eased over, so it bends
 // round a trap's ends instead of stepping
-const RIM_STEP_M = 2, RIM_EASE = 6;
+export const RIM_STEP_M = 2;
+const RIM_EASE = 6;
+// m along the road beyond which a stretch beside a point is another stretch of it (midline)
+const MIDLINE_APART_M = 40;
+// m: two stretches' barriers nearer each other than twice this stand as one, on the midline
+const MIDLINE_MERGE_M = 4;
+// m within which two samples on the midline are one barrier's
+const FACING_M = 1.5;
 // m (game): a rim point nearer another road's centre than its half width + this is left out
 const ROAD_CLEAR_M = 2.5;
 // m: the longest single Armco run (collision and drawing skip far runs by their box)
@@ -65,11 +72,6 @@ const TYRE_ROWS: [number, number][] = [[1.4, 0], [2.35, 0.475]];
 const HAZARD_M = 14, GAP_FILL_M = 24, EXTEND_M = 8, MIN_RUN_PTS = 14, MIN_RUN_M = 26;
 // the fewest tyres a row in front of a barrier keeps (a few alone read as litter)
 const MIN_TYRE_ROW = 16;
-// m behind the Armco of a marshal post, and of a board (behind the catch fence too)
-const MARSHAL_BACK_M = 3.2, BOARD_BACK_M = 3;
-// m: half a board's face, how far it keeps from a barrier point or a tyre, how far along the
-// rail a clear spot is looked for
-const BOARD_HALF_M = 9, BOARD_GAP_M = 2.5, BOARD_LOOK_M = 80;
 
 /** One layout road's rim: the Armco's distance from the centre, per side, every RIM_STEP_M. */
 export interface Rim { sub: Subtrack; left: Float32Array; right: Float32Array }
@@ -151,12 +153,14 @@ function touchesRunoff(zone: Zone, loops: Subtrack[]): boolean {
  */
 function rimSide(sub: Subtrack, side: number, traps: Zone[], lines: RimLines): Float32Array {
   const count = Math.ceil(sub.totalDist / RIM_STEP_M), raw = new Float32Array(count);
+  const mids = new Float32Array(count);
   for (let i = 0; i < count; i++) {
     const centre = centreAt(sub, i * RIM_STEP_M), trapOut = trapDepth(centre, side, traps);
     const pieceOut = pieceDepth(centre, side, lines.pieces);
-    raw[i] = Math.min(Math.max(HALF_ROAD + RUNOFF_M, trapOut ? trapOut + TRAP_BACK_M : 0,
-      wallDepth(centre, side, lines.walls), pieceOut ? pieceOut + PIECE_BACK_M : 0),
-    insideReach(sub, i * RIM_STEP_M, side));
+    const mid = mids[i] = midline(sub, centre, side);
+    raw[i] = Number.isFinite(mid) ? mid : Math.min(Math.max(HALF_ROAD + RUNOFF_M,
+      trapOut ? trapOut + TRAP_BACK_M : 0, wallDepth(centre, side, lines.walls),
+      pieceOut ? pieceOut + PIECE_BACK_M : 0), insideReach(sub, i * RIM_STEP_M, side));
   }
   // ease: the most within the window, then its mean (a bend, never a step)
   const most = raw.map((value, i) => {
@@ -165,12 +169,18 @@ function rimSide(sub: Subtrack, side: number, traps: Zone[], lines: RimLines): F
       top = Math.max(top, raw[(i + near + count) % count]);
     return top;
   });
-  return most.map((value, i) => {
+  // (never past the midline to another stretch: eased, it reached into the other's run-off)
+  const offs = most.map((value, i) => {
     let sum = 0;
     for (let near = -RIM_EASE; near <= RIM_EASE; near++) sum += most[(i + near + count) % count];
-    return sum / (2 * RIM_EASE + 1);
+    return Math.min(sum / (2 * RIM_EASE + 1), mids[i]);
   });
+  if (mids.some(Number.isFinite)) MIDLINED.add(offs);
+  return offs;
 }
+
+// the rim sides that stand on a midline somewhere (their barrier shared with another stretch)
+const MIDLINED = new WeakSet<Float32Array>();
 
 /**
  * How far out the trap beside a road point reaches: gravel must start within TRAP_NEAR_M of the
@@ -206,6 +216,27 @@ function insideReach(sub: Subtrack, dist: number, side: number): number {
   // turning toward the left normal (turn > 0) puts the left side inside the bend
   if (Math.abs(turn) < 1e-3 || Math.sign(turn) !== side) return Infinity;
   return INSIDE_SHARE * (2 * CURVE_SPAN_M) / Math.abs(turn);
+}
+
+/**
+ * Where another stretch of the same road comes near beside a point (a hairpin's legs, a loop
+ * doubling back): the midline between them, so the two sides' run-off meet there and carry one
+ * barrier between them; Infinity with none so near that the two barriers would stand within
+ * twice MIDLINE_MERGE_M of each other.
+ * @param sub the road
+ * @param centre the road's centre sample
+ * @param side +1 the left normal, -1 the right
+ * @returns metres from the centre to the midline
+ */
+function midline(sub: Subtrack, centre: TrackPoint, side: number): number {
+  for (let out = HALF_ROAD + 1; out <= HALF_ROAD + RUNOFF_M + MIDLINE_MERGE_M; out += 0.25) {
+    const x = centre.x + centre.nx * side * out, y = centre.y + centre.ny * side * out;
+    const { hit } = nearestLoop([sub], x, y);
+    const along = Math.abs(hit.trackDist - centre.dist);
+    const apart = Math.min(along, sub.totalDist - along) > MIDLINE_APART_M;
+    if (apart && hit.dist < out) return out - 0.125;
+  }
+  return Infinity;
 }
 
 /** A real line at game scale (a tyre wall, a rail) with its box (a far one is not looked at). */
@@ -365,7 +396,7 @@ function rimLine(rim: Rim, side: number, back = 0): Point[] {
 export interface EdgeClear {
   loops: Subtrack[]; lanes: { pts: Point[]; width: number }[];
   blocked: (x: number, y: number) => boolean;   // a building there (the edge keeps off it)
-  roads?: { pts: Point[]; width: number }[];   // the ways a barrier's end keeps END_ROAD_M off
+  roads?: { pts: Point[]; width: number }[];   // the pit lane: a barrier's end keeps END_ROAD_M off
 }
 
 /**
@@ -411,7 +442,7 @@ function flare(run: Point[], away: [Point, Point], clear: (x: number, y: number)
  * @param point the point
  * @returns the direction
  */
-function awayFrom(loops: Subtrack[], point: Point): Point {
+export function awayFrom(loops: Subtrack[], point: Point): Point {
   const { sub, hit } = nearestLoop(loops, point[0], point[1]);
   const centre = centreAt(sub, hit.trackDist), side = hit.side === 'left' ? 1 : -1;
   return [centre.nx * side, centre.ny * side];
@@ -434,6 +465,28 @@ function withoutDoubles(pts: Point[], used: Point[], gapM: number): Point[][] {
   }
   if (run.length > 1) runs.push(run);
   return runs;
+}
+
+/**
+ * Two stretches of one road side by side share one barrier on the midline (world/venueedge.ts
+ * midline): a sample on the same side of the line as an earlier one, far along it, within
+ * FACING_M of it carries nothing - the earlier one's barrier stands there.
+ * @param line the rim line (a point a sample)
+ * @param kinds what stands at each sample (changed)
+ */
+function dropFacing(line: Point[], kinds: Uint8Array): void {
+  const count = kinds.length, apart = MIDLINE_APART_M / RIM_STEP_M;
+  for (let i = 0; i < count; i++) {
+    if (kinds[i] === EDGE_NONE) continue;
+    for (let j = 0; j < i; j++) {
+      if (kinds[j] === EDGE_NONE || Math.min(i - j, count - i + j) <= apart) continue;
+      const [dx, dy] = [line[i][0] - line[j][0], line[i][1] - line[j][1]];
+      if (Math.abs(dx) < FACING_M && Math.abs(dy) < FACING_M) {
+        kinds[i] = EDGE_NONE;
+        break;
+      }
+    }
+  }
 }
 
 /** What stands at a rim sample. */
@@ -555,6 +608,7 @@ export function buildEdge(rims: Rim[], keep: EdgeClear, traps: Zone[], needs: Ed
   { barriers: Barrier[]; cones: Cone[] } {
   const barriers: Barrier[] = [], cones: Cone[] = [], used: Point[] = [];
   const clear = (x: number, y: number) => edgeClear(keep, x, y);
+  const midlined = rims.some((rim) => MIDLINED.has(rim.left) || MIDLINED.has(rim.right));
   const nearRoad = (x: number, y: number) => (keep.roads || []).some((road) =>
     distToLine(road.pts, x, y) < road.width / 2 + END_ROAD_M);
   for (const rim of rims) {
@@ -564,14 +618,19 @@ export function buildEdge(rims: Rim[], keep: EdgeClear, traps: Zone[], needs: Ed
     for (const side of [1, -1]) {
       const kinds = edgeKinds(rim, side, traps, needs, keep.loops);
       const line = needs.rails ? easedLoop(rimLine(rim, side), rim, side) : rimLine(rim, side);
+      dropFacing(line, kinds);
       const fresh: Point[] = [];
       // where Armco gives way to a catch fence the line runs on to the fence's end post: no flare
       // across the fence (a free end still flares)
       const fenceRuns = kindRuns(line, kinds, EDGE_CATCH), fence = fenceRuns.flat();
       const fenceEnds = fenceRuns.flatMap((run) => [run[0], run[run.length - 1]]);
+      // (nor, where stretches share a midline barrier, onto a barrier already standing: a run cut
+      // short by the shared one flared back over it)
+      const apart = ([pointX, pointY]: Point, x: number, y: number) =>
+        Math.abs(pointX - x) > FLARE_CLEAR_M || Math.abs(pointY - y) > FLARE_CLEAR_M;
       const flareClear = (x: number, y: number) => clear(x, y) && !nearRoad(x, y)
-        && fence.every(([fenceX, fenceY]) =>
-          Math.abs(fenceX - x) > FLARE_CLEAR_M || Math.abs(fenceY - y) > FLARE_CLEAR_M);
+        && fence.every((point) => apart(point, x, y))
+        && (!midlined || used.every((point) => apart(point, x, y)));
       for (const [kind, barrierKind] of [[EDGE_ARMCO, 'armco'], [EDGE_CATCH, 'catchfence']] as
         [number, Barrier['kind']][])
         for (const part of kindRuns(line, kinds, kind)
@@ -700,96 +759,4 @@ function nearTrap(traps: Zone[], x: number, y: number, reach: number): boolean {
     && Math.abs(y - zone.y) <= zone.h / 2 + reach
     && (insidePolygon(zone.poly!, x, y)
       || distToLine([...zone.poly!, zone.poly![0]], x, y) < reach));
-}
-
-/**
- * A marshal post behind the Armco outside each corner of every layout (one where layouts share a
- * corner).
- * @param rims every layout road's rim
- * @returns the posts
- */
-export function marshalPosts(rims: Rim[]): Prop[] {
-  const posts: Prop[] = [];
-  for (const rim of rims)
-    for (const kerb of rim.sub.curvedKerbs) {
-      const mid = (kerb.startDist + kerb.endDist) / 2;
-      const before = centreAt(rim.sub, mid - 8), after = centreAt(rim.sub, mid + 8);
-      // the turn: toward the left normal when the heading swings that way; outside the other
-      const turn = before.dirX * after.dirY - before.dirY * after.dirX;
-      const side = turn > 0 ? -1 : 1, offs = side > 0 ? rim.left : rim.right;
-      const centre = centreAt(rim.sub, mid);
-      const out = side * (offs[Math.floor(mid / RIM_STEP_M) % offs.length] + MARSHAL_BACK_M);
-      const spot = { x: centre.x + centre.nx * out, y: centre.y + centre.ny * out };
-      if (posts.some((post) => Math.hypot(post.x - spot.x, post.y - spot.y) < 25)) continue;
-      posts.push({ kind: 'marshal', ...spot, rot: Math.atan2(centre.dirY, centre.dirX) });
-    }
-  return posts;
-}
-
-/**
- * Which way is behind a rail point: away from the road the rail was built from (the rim whose
- * offset matches the point's distance from it - away from the NEAREST road can point at another
- * layout's road where two meet).
- * @param point the rail point
- * @param loops every layout's road
- * @param rims every layout road's rim
- * @returns the unit direction
- */
-function behindRail(point: Point, loops: Subtrack[], rims: Rim[]): Point {
-  let away: Point = awayFrom(loops, point), match = Infinity;
-  for (const rim of rims) {
-    const { hit } = nearestLoop([rim.sub], point[0], point[1]);
-    if (!Number.isFinite(hit.dist)) continue;
-    const offs = hit.side === 'left' ? rim.left : rim.right;
-    const miss = Math.abs(hit.dist - offs[Math.floor(hit.trackDist / RIM_STEP_M) % offs.length]);
-    if (miss >= match) continue;
-    match = miss;
-    const centre = centreAt(rim.sub, hit.trackDist), side = hit.side === 'left' ? 1 : -1;
-    away = [centre.nx * side, centre.ny * side];
-  }
-  return away;
-}
-
-/**
- * A board behind the Armco (and its catch fence) near a spot, facing the track: the rail's points
- * are tried from the nearest outward until the board's whole face stands clear of every barrier
- * and tyre stack (on a bend a straight board would cross the curved rail). With no Armco within
- * BOARD_LOOK_M, behind a catch fence (a spectator bank with no Armco near).
- * @param barriers every barrier (the Armco and catch fences)
- * @param cones the tyre stacks
- * @param loops every layout's road
- * @param spot where the board should be
- * @param label its words
- * @param rims every layout road's rim
- * @param blocked true where a building stands (the board keeps off it)
- * @returns the board prop, or null with no clear spot within BOARD_LOOK_M
- */
-export function boardOnArmco(barriers: Barrier[], cones: Cone[], loops: Subtrack[], spot: Point,
-  label: string, rims: Rim[], blocked: (x: number, y: number) => boolean): Prop | null {
-  const railPts = (kind: Barrier['kind']) => barriers.filter((rail) => rail.kind === kind)
-    .flatMap((rail) => rail.pts)
-    .filter(([x, y]) => Math.hypot(x - spot[0], y - spot[1]) < BOARD_LOOK_M)
-    .sort((first, second) => Math.hypot(first[0] - spot[0], first[1] - spot[1])
-      - Math.hypot(second[0] - spot[0], second[1] - spot[1]));
-  const near = barriers.flatMap((rail) => rail.pts);
-  const armco = railPts('armco');
-  for (const point of armco.length ? armco : railPts('catchfence')) {
-    const away = behindRail(point, loops, rims);
-    const x = point[0] + away[0] * BOARD_BACK_M, y = point[1] + away[1] * BOARD_BACK_M;
-    const alongX = -away[1], alongY = away[0];
-    // behind the rail: every point of the face further from the road than the rail itself
-    const railGap = roadDistance(loops, point[0], point[1]);
-    const apart = (fromX: number, fromY: number, toX: number, toY: number) =>
-      Math.hypot(fromX - toX, fromY - toY) > BOARD_GAP_M;
-    let clear = true;
-    for (let along = -BOARD_HALF_M; along <= BOARD_HALF_M && clear; along += 1.5) {
-      const faceX = x + alongX * along, faceY = y + alongY * along;
-      clear = near.every(([railX, railY]) => apart(railX, railY, faceX, faceY))
-        && cones.every((cone) => apart(cone.x, cone.y, faceX, faceY))
-        && pastRim(rims, faceX, faceY) > 1 && !blocked(faceX, faceY)
-        && roadDistance(loops, faceX, faceY) > railGap + 1.5;
-    }
-    if (clear) return { kind: 'board', label, x, y, rot: Math.atan2(alongY, alongX) };
-  }
-  return null;
 }
