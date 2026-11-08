@@ -15,6 +15,7 @@ import { bitsOf } from '../carbits.ts';
 import { getCell, wearDirty, WEAR_CELL } from "./wear.ts";
 import { PASS } from "./pass.ts";
 import { DEBRIS } from "../cones/coneConsts.ts";
+import { takeFenceShreds } from "./armcodent.ts";
 import type { WearCell } from "./types.ts";
 
 // a corner's hit of PART_HIT+ knocks its part off PART_P_MIN of the time, surely at
@@ -311,6 +312,12 @@ export function throwParts(cars: DebrisCar[], loose: LooseObjects): void {
   if (partsList !== loose.list) {
     parts = loose.list.filter((obj) => obj.part);
     partsList = loose.list;
+  }
+  // a torn catch fence's shreds (world/armcodent.ts)
+  for (const bit of takeFenceShreds()) {
+    const table = DEBRIS[bit.kind as keyof typeof DEBRIS];
+    loose.add({ ...bit, mode: bit.kind, part: true, mass: table.mass, r: table.r, fade: 1 });
+    parts.push(loose.list[loose.list.length - 1]);
   }
   for (const car of cars) {
     while (car.partSpawn && car.partSpawn.length) {

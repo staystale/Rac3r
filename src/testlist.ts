@@ -64,4 +64,12 @@ export const TEST_LIST: TestEntry[] = [
     try: 'Out via the pits to the service roads; up a bridge ramp, into the tunnel; skid on them.',
     wrong: 'A snap at a ramp or mouth, stuck, through a wall, hitting cars below, marks under.',
   },
+  {
+    id: 'fenceshred',
+    added: '2026-11-08',
+    name: 'Catch fences a bit weaker; a tear shreds them (mesh scraps and posts fly)',
+    where: 'Plain link: Brands Snatch, the see-through catch fences by the stands and banks',
+    try: 'Hit one square: under ~60 km/h it catches you; harder, it tears open and shreds.',
+    wrong: 'No shreds, shreds hanging in the air or never fading, a gap that does not open.',
+  },
 ];

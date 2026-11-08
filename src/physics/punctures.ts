@@ -46,7 +46,7 @@ const NAILS_CHANCE = 0.03;
 const METAL = new Set(['car', 'banger', 'truck', 'caravan', 'armco', 'catchfence', 'fence',
   'barrel', 'gantry',
   'pylon', 'lamp', 'chevron', 'tower', 'windsock', 'exhaust', 'bumper', 'wing', 'panel', 'bonnet',
-  'boot', 'spoiler', 'wishbone', 'strut', 'shaft', 'engine']);
+  'boot', 'spoiler', 'wishbone', 'strut', 'shaft', 'engine', 'fencepost']);
 
 /**
  * Whether what the car hit this step is metal (a car's body meeting it is metal on metal).

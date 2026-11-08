@@ -1,7 +1,7 @@
 // The OBJECTS layer of the renderer: pixel objects (cones, tyres), rally tape, roadside debris,
 // animals, knockable boards and flags, and the banger, caravan and podium props.
 import { drawWheelFace, realWheel, faceSize, OLD_WHEEL } from "./wheelface.ts";
-import { parkMiller } from "../core/random.ts";
+import { hash2d, parkMiller } from "../core/random.ts";
 import { SPRITE_PPM, fxRandom } from "./shared.ts";
 import type { Cam, Chip, RenderCone, RenderTape, TapeCar, TapeGame, View } from "./types.ts";
 import { drawBanger, drawCaravan, drawPodium } from "./objectsProps.ts";
@@ -389,7 +389,8 @@ function drawTape(env: ObjectsCtx, game: TapeGame) {
 // ROADSIDE DEBRIS (cones.ts DEBRIS): top-down squares, rotated with the object; broken ones are
 // a scatter of bits (seeded by home)
 const DEBRIS_KINDS = new Set(['pallet', 'box', 'crate', 'bin', 'sandbag', 'barrel', 'exhaust',
-  'bumper', 'wing', 'panel', 'tarp', 'splinters', 'cardboard', 'sand', 'fluff',
+  'bumper', 'wing', 'panel', 'tarp', 'splinters', 'cardboard', 'sand', 'fluff', 'mesh',
+  'fencepost',
   // a bad crash's bits (render/carparts.ts draws them)
   'bonnet', 'boot', 'spoiler', 'mirror', 'wishbone', 'strut', 'shaft', 'engine']);
 
@@ -444,6 +445,47 @@ function drawDebrisStacks(
   }
 }
 
+// the catch fence's mesh and its wires, its galvanised posts (render/props/fence.ts)
+const MESH_COL = 'rgba(206,212,220,0.45)', WIRE_COL = 'rgba(226,230,236,0.8)';
+const POST_COL = '#b9bec6', POST_BENT_COL = '#9ca2ab';
+// mixes a shred's home into a seed (its shape: the same every frame, different for each)
+const SHRED_HASH = hash2d(7);
+
+/**
+ * Draws a torn catch fence's shred (world/armcodent.ts), each its own random shape seeded by
+ * where it was thrown from: a crumpled scrap of see-through mesh (a few torn patches over each
+ * other, wires at uneven spacing), or a galvanised post bent at a random angle.
+ * @param cone the shred
+ * @param rect the rect drawer
+ * @param shadow the shadow drawer
+ * @returns whether the kind was one of these
+ */
+function drawFenceShred(cone: RenderCone, rect: RectFn, shadow: (w: number, h: number) => void) {
+  if (cone.kind !== 'mesh' && cone.kind !== 'fencepost') return false;
+  const rand = parkMiller(Math.floor(SHRED_HASH(Math.round(cone.hx * 100),
+    Math.round(cone.hy * 100)) * 2147483645) + 1);
+  if (cone.kind === 'mesh') {
+    const patches = 3 + Math.floor(rand() * 3);
+    for (let patch = 0; patch < patches; patch++) {
+      const width = 0.3 + rand() * 0.6, height = 0.2 + rand() * 0.45;
+      const left = (rand() - 0.5) * 0.8 - width / 2, top = (rand() - 0.5) * 0.6 - height / 2;
+      rect(left, top, width, height, MESH_COL);
+      for (let wire = left + rand() * 0.2; wire < left + width; wire += 0.22 + rand() * 0.12)
+        rect(wire, top, 0.05, height, WIRE_COL);
+      rect(left, top + rand() * height, width, 0.05, WIRE_COL);
+    }
+    return true;
+  }
+  // a post: one straight length, then bent off at a random angle
+  const straight = 0.4 + rand() * 0.5, bent = 0.2 + rand() * 0.5, angle = (rand() - 0.5) * 2.2;
+  shadow(straight + bent, 0.18);
+  for (let along = 0; along < straight; along += 0.08) rect(along - straight, -0.06, 0.1, 0.12,
+    POST_COL);
+  for (let along = 0; along < bent; along += 0.08)
+    rect(Math.cos(angle) * along - 0.05, Math.sin(angle) * along - 0.06, 0.1, 0.12, POST_BENT_COL);
+  return true;
+}
+
 /**
  * Draws the second group of debris: barrel, exhaust, bumper and tarp.
  * @param cone the debris
@@ -473,7 +515,7 @@ function drawDebrisParts(
     rect(-0.9, -0.2, 1.8, 0.12, 'rgba(255,255,255,0.18)');
     rect(0.2, -0.7, 0.12, 1.4, 'rgba(0,0,0,0.15)');
     return true;
-    default: return false;
+    default: return drawFenceShred(cone, rect, shadow);
   }
 }
 

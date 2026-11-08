@@ -58,8 +58,10 @@ last handover, written on request.
    is closed - its paddock mouth opens 2.5 m from Cooper Straight's Armco (our squeezed infield);
    owner to choose: run it on under Cooper Straight, bend it to come up on the paddock road, or
    keep it a footpath (steps).
-   NEXT (owner 11-08): a performance check of everything new; catch
-   fences slightly weaker and shredding to bits when hit.
+   PERFORMANCE CHECK 11-08 (CPU x4 lap, tools/framecheck.mjs): Brands work median 12.7 ms, p95
+   24-29 (Thruston 13.2 / 23.0; Castle Cum 24.4 / 39.1 - the heaviest, older); crossings on: no
+   measurable cost. Fixed: Brands was built at page load (7.3 s of level import here, now 0.85 s).
+   CATCH FENCES (owner 11-08): tear from ~63 km/h square (was ~77) and SHRED (armcodent.ts).
    OWNER RULE (11-07): never the black wire / rope fence ('fence' barrier) - the old levels still
    use it (Castle Cum, Thruston): replace as each gets its venue pass.
    CREDITS PASSED 11-08 (menu/credits.ts, on the main menu): "made by G"; the owner wants a studio

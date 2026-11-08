@@ -22,13 +22,58 @@ interface RailFeel { from: number; perV: number; max: number; tear: number; boun
 // would take it this deep tears it (tear: one square hit from ~115 km/h, or a second hard one on
 // a deep dent); its bounce (a wall's BARRIER_E is 0.3) and the share of a hit's damage the car
 // still takes (give: measured, the softer bounce alone took only ~3 % off).
-// THE CATCH FENCE (owner 11-07: weaker than the Armco, as real ones are): mesh on posts - it gives
-// from a slower hit and twice as deep, tears from ~77 km/h square, barely bounces, and takes more
-// of the hit off the car.
+// THE CATCH FENCE (owner 11-07: weaker than the Armco, as real ones are; 11-08: "slightly weaker
+// and shred to bits when hit"): mesh on posts - it gives from a slower hit and deeper, tears from
+// ~63 km/h square (was ~77), barely bounces, takes more of the hit off the car, and a tear SHREDS
+// it: the torn stretch flies off as scraps of mesh and bent posts (loose objects: world/debris.ts).
 const RAIL_FEEL: Record<string, RailFeel> = {
   armco: { from: 3, perV: 0.04, max: 0.8, tear: 1.1, bounce: 0.2, give: 0.9 },
-  catchfence: { from: 1.5, perV: 0.08, max: 1.4, tear: 1.6, bounce: 0.08, give: 0.6 },
+  catchfence: { from: 1.2, perV: 0.08, max: 1.2, tear: 1.3, bounce: 0.06, give: 0.5 },
 };
+// a torn catch fence's shreds: scraps of mesh and posts a gap throws, the share of the car's speed
+// into it they fly off with (least, most), their spread along the fence, m/s
+const SHRED_MESH = 6, SHRED_POSTS = 2, SHRED_SPEED: [number, number] = [0.35, 0.8],
+  SHRED_SPREAD = 2.5;
+/** The loose-object kinds a torn catch fence throws (cones/coneConsts.ts DEBRIS has each). */
+export const SHRED_KINDS = ['mesh', 'fencepost'];
+
+/** One shred of a torn fence on its way to the loose objects (world/debris.ts throwParts). */
+export interface FenceShred { kind: string; x: number; y: number; vx: number; vy: number;
+  ang: number; spin: number }
+// the shreds torn fences threw since the game last took them
+const shreds: FenceShred[] = [];
+
+/**
+ * The shreds torn catch fences have thrown since the last call (the game adds them to its loose
+ * objects).
+ * @returns the shreds
+ */
+export function takeFenceShreds(): FenceShred[] {
+  return shreds.splice(0, shreds.length);
+}
+
+/**
+ * A torn catch fence's stretch flies off as shreds: scraps of mesh and posts along the gap,
+ * thrown on the way the car went through.
+ * @param from the gap's start, world m
+ * @param till the gap's end
+ * @param nx the normal toward the car, unit x
+ * @param ny unit y
+ * @param into the car's speed into the fence, m/s
+ */
+function shredFence(from: Point, till: Point, nx: number, ny: number, into: number): void {
+  const alongX = till[0] - from[0], alongY = till[1] - from[1];
+  const len = Math.hypot(alongX, alongY) || 1;
+  for (let i = 0; i < SHRED_MESH + SHRED_POSTS; i++) {
+    const share = Math.random(), push = into * (SHRED_SPEED[0]
+      + Math.random() * (SHRED_SPEED[1] - SHRED_SPEED[0]));
+    const spread = (Math.random() * 2 - 1) * SHRED_SPREAD;
+    shreds.push({ kind: i < SHRED_MESH ? 'mesh' : 'fencepost',
+      x: from[0] + alongX * share, y: from[1] + alongY * share,
+      vx: -nx * push + (alongX / len) * spread, vy: -ny * push + (alongY / len) * spread,
+      ang: Math.atan2(alongY, alongX) + (Math.random() - 0.5), spin: (Math.random() - 0.5) * 10 });
+  }
+}
 // the dent's half width along the rail and the spacing of the points added there, m
 const DENT_HALF_M = 3, DENT_STEP_M = 0.5;
 // the gap a tear opens each side of the hit, m; the share of its speed into the rail a car
@@ -128,7 +173,7 @@ export function railContact(barrier: Barrier, seg: BarrierSeg, frac: number, nx:
   const into = -(car.vx * nx + car.vy * ny), feel = RAIL_FEEL[barrier.kind];
   if (!(into > feel.from)) return false;
   if (depthAt(barrier, seg, frac) + feel.perV * (into - feel.from) >= feel.tear) {
-    tear(barrier, seg, frac);
+    tear(barrier, seg, frac, barrier.kind === 'catchfence' ? { nx, ny, into } : null);
     car.vx += nx * into * TEAR_LOSS;
     car.vy += ny * into * TEAR_LOSS;
     return true;
@@ -169,12 +214,18 @@ function finePoints(old: Point[], oldLengths: number[], hitAt: number, half: num
 }
 
 /**
- * Opens a gap in the rail round a spot: the stretches within TEAR_HALF_M are no longer there.
+ * Opens a gap in the rail round a spot: the stretches within TEAR_HALF_M are no longer there (a
+ * catch fence's fly off as shreds).
  * @param barrier the rail
  * @param seg the segment hit
  * @param frac 0..1 along it
+ * @param shred the way the car went through, for a catch fence's shreds (null: none)
+ * @param shred.nx the normal toward the car, unit x
+ * @param shred.ny unit y
+ * @param shred.into the car's speed into it, m/s
  */
-function tear(barrier: Barrier, seg: BarrierSeg, frac: number): void {
+function tear(barrier: Barrier, seg: BarrierSeg, frac: number,
+  shred: { nx: number; ny: number; into: number } | null): void {
   keepStraight(barrier);
   const old = barrier.pts, oldLengths = arcLengths(old), start = seg.i0!;
   const hitAt = oldLengths[start] + (oldLengths[start + 1] - oldLengths[start]) * frac;
@@ -185,9 +236,14 @@ function tear(barrier: Barrier, seg: BarrierSeg, frac: number): void {
         && oldLengths[other.i0!] < hitAt + TEAR_HALF_M) other.torn = true;
   }
   const pts = finePoints(old, oldLengths, hitAt, TEAR_HALF_M), lengths = arcLengths(pts);
+  const gap: Point[] = [];
   for (let i = 0; i < pts.length - 1; i++) {
-    if (Math.abs((lengths[i] + lengths[i + 1]) / 2 - hitAt) < TEAR_HALF_M) tornAfter.add(pts[i]);
+    if (Math.abs((lengths[i] + lengths[i + 1]) / 2 - hitAt) >= TEAR_HALF_M) continue;
+    tornAfter.add(pts[i]);
+    gap.push(pts[i], pts[i + 1]);
   }
+  if (shred && gap.length) shredFence(gap[0], gap[gap.length - 1], shred.nx, shred.ny,
+    shred.into);
   barrier.pts = pts;
   pending = null;
   tornNow = true;
@@ -236,5 +292,6 @@ export function straightenRails(): Barrier[] {
   tornAfter = new WeakSet();
   pending = null;
   tornNow = false;
+  shreds.length = 0;
   return rails;
 }
