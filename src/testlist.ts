@@ -61,6 +61,14 @@ export const TEST_LIST: TestEntry[] = [
   // (the line gives a wall by the edge room), tallfence, rollway (rolls the right way),
   // castlecumvenue (Castle Kum as the real venue) passed 2026-11-08)
   {
+    id: 'snotterton',
+    added: '2026-11-08',
+    name: 'Snotterton (Snetterton) as a new venue at 1/2 size: the 300, 200 and 100 layouts',
+    where: 'Test link + &snotterton=1: TEST MODE > UK CIRCUITS > Snotterton 300 / 200 / 100',
+    try: 'Lap each layout; look at the pits, the bridge over Bentley Straight, the closures.',
+    wrong: 'A road or prop on the track, a barrier gap, a road to nowhere, a closure in the way.',
+  },
+  {
     id: 'rollover',
     added: '2026-11-08',
     name: 'A car tumbling fast goes over Armco, tyres and parts - never a catch fence or wall',

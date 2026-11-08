@@ -160,6 +160,11 @@ last handover, written on request.
 2. NEW UK TRACKS at that scale (Snetterton, Donington Park, + Silverstone / Oulton Park) - names
    agreed first. ORDER (owner 11-08): Castle Kum's venue passes -> SNETTERTON next, as SNOTTERTON
    (owner 11-08) -> then back to converting the old levels (Thruston, Knobhill, ...).
+   SNOTTERTON BUILT 11-08 behind ?snotterton=1 (levels/snotterton-venue.ts, OSM data in
+   venues/snotterton.ts; the venue helper): the 300 / 200 / 100 one venue, 2389 / 1600 / 785 m (real
+   4779 / 3219 / 1577), the 100 run anticlockwise by Firmans; spec.starts (the 100 by Tyrrells),
+   spec.minR 11 (the real hairpins), a warp widening Firmans; one barrier on the midline between a
+   road's close stretches; stands, banks, the bridge over Bentley Straight. UNDER TEST.
 3. ROLLING LOOK - smoother than the dice flip on the same physics; mockup first.
 4. SIDE DRAFTING (Naffcar first), then the Naffcar extras (air brakes, aero upgrades, Dieatona).
 5. MORE HIGHWAY FLAVOURS.

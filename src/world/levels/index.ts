@@ -30,6 +30,8 @@ import {
 } from "./killder.ts";
 import { BH_GP_LEVEL, BH_INDY_LEVEL } from "./brands-venue.ts";
 import { CC_VENUE_LEVEL } from "./castle-cum-venue.ts";
+import { SN_LEVELS } from "./snotterton-venue.ts";
+import { FIX } from "../../core/fixes.ts";
 import { LAB_PAINT, LAB_BOARDS } from "../barriers.ts";
 import { courseCones, slalom, outerTyreWall } from "../tyrewall.ts";
 import { LAB_BUMPS, LAB_PANELS } from "./sandbox.ts";
@@ -183,6 +185,8 @@ export const LEVELS: Level[] = [
   },
   // the real venue (castle-cum-venue.ts), built on first use
   CC_VENUE_LEVEL,
+  // ?snotterton=1: the new venue's three layouts (snotterton-venue.ts), built on first use
+  ...(FIX.snotterton ? SN_LEVELS : []),
   {
     id: 'thruston', name: 'Thruston',
     base: SURFACES.grass,

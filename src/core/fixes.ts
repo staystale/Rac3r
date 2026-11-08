@@ -42,6 +42,9 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
+  // ?snotterton=1: Snotterton (Snetterton) as a new venue at 1/2 of real length, its 300, 200 and
+  // 100 layouts in TEST MODE (world/levels/snotterton-venue.ts; owner 11-08)
+  snotterton: atLoad('snotterton'),
   // a car tumbling fast goes over low barriers and light loose objects (physics/tumble.ts)
   rollover: atLoad('rollover'),
 };
