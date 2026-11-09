@@ -1,6 +1,7 @@
 // barriers.ts - the BARRIERS section (barriers, solid props, clamps). Moved verbatim out of
 // lab.ts.
 import { rideUp } from "./jersey.ts";
+import { FIX } from "../core/fixes.ts";
 import { hoodooSpires, archShape } from './formations.ts';
 import { WRECK_M, GAS_SHOP, GAS_PUMPS, GAS_POSTS } from './desertjunk.ts';
 import { LEVEL } from "./state.ts";
@@ -571,6 +572,43 @@ function clampCornersToSeg(
   }
 }
 /**
+ * A segment's end against the car's body (?barrierends=1): the corners alone let a barrier's end,
+ * or a bend's point, run in between them - MEASURED, tools/scratch/_barrierend.mjs: driven at a
+ * fence's end along its line, the end went 0.85 m into the car, which drove 40 m on down the line,
+ * through it. Inside the body (grown by the barrier's half width), the car is pushed out the
+ * shorter way - back off it, or sideways - and bounces or tears the rail as off any face.
+ * @param car the car body
+ * @param seg the segment
+ * @param end 0 its start, 1 its end
+ * @param box the barrier's half width, the car's half length and width, its heading's cos and sin
+ * @param box.half m
+ * @param box.halfLen m
+ * @param box.halfWid m
+ * @param box.cosHead cos
+ * @param box.sinHead sin
+ * @param rail the Armco rail (dents, tears), or null
+ */
+function clampPointToCar(car: CarBody, seg: BarrierSeg, end: number,
+  box: { half: number; halfLen: number; halfWid: number; cosHead: number; sinHead: number },
+  rail: Barrier | null): void {
+  if (seg.torn) return;
+  const { half, halfLen, halfWid, cosHead, sinHead } = box;
+  const relX = seg.ax + seg.dx * end - car.x, relY = seg.ay + seg.dy * end - car.y;
+  const along = relX * cosHead + relY * sinHead, across = -relX * sinHead + relY * cosHead;
+  const inLong = halfLen + half - Math.abs(along), inLat = halfWid + half - Math.abs(across);
+  if (inLong <= 0 || inLat <= 0) return;
+  // the push: away from the point, along the car or across it, whichever is shorter
+  const lengthwise = inLong < inLat, sign = -(Math.sign(lengthwise ? along : across) || 1);
+  const nx = lengthwise ? cosHead * sign : -sinHead * sign,
+    ny = lengthwise ? sinHead * sign : cosHead * sign, depth = lengthwise ? inLong : inLat;
+  if (rail && railContact(rail, seg, end, nx, ny, car)) return;
+  car.x += nx * depth;
+  car.y += ny * depth;
+  bounceOffNormal(car, nx, ny, rail ? railBounce(rail) : BARRIER_E,
+    rail ? railScrape(rail) : BARRIER_SCRAPE);
+}
+
+/**
  * A barrier's box round its segments (cached on it; cleared when its segments are built again).
  * @param barrier the barrier
  * @returns [minX, minY, maxX, maxY]
@@ -669,6 +707,9 @@ export function clampToBarriers(car: CarBody, list: Barrier[] | undefined): void
           || car.y < seg.minY - spec.len || car.y > seg.maxY + spec.len) continue;
       clampCornersToSeg(car, seg, half, halfLen, halfWid, cosHead, sinHead, rail);
       if (open) clampWheelsToSeg(car, seg, half, rail);
+      // (?barrierends=1: its ends against the car's body)
+      if (FIX.barrierends) for (const end of [0, 1])
+        clampPointToCar(car, seg, end, { half, halfLen, halfWid, cosHead, sinHead }, rail);
     }
     if (car.vx !== vx0 || car.vy !== vy0) hitBarrier(car, barrier, vx0, vy0);
     settleRail(rail);

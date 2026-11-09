@@ -13,6 +13,14 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'barrierends',
+    added: '2026-11-09',
+    name: 'Barrier ends are solid: drive at the end of a fence, Armco, a wall - it hits',
+    where: 'Test link + &barrierends=1: Highway to Hull > DUAL C/WAY (wooden fence middle), any',
+    try: 'Drive straight down a wooden fence line; hit an Armco or wall end head on and glancing.',
+    wrong: 'A barrier through the car, no slowing down a wooden fence, a car stuck or launched.',
+  },
+  {
     id: 'farlaybys',
     added: '2026-11-09',
     name: 'Lay-bys on the oncoming side too, at their own spots, on the roads without a shoulder',

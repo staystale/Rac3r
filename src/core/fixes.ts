@@ -44,6 +44,12 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
+  // ?barrierends=1: a barrier's ends (and bends) are solid to the car's whole body, not only its
+  // corners - a car driving at the end of a fence, Armco or a wall hits it; a wooden fence breaks
+  // a piece at a time, each one slowing it (owner 11-09: "wooden fence and other barriers can't
+  // be hit on the end ? They should and they should behave correctly", "armco can go thru the
+  // car"; world/barriers.ts clampPointToCar)
+  barrierends: atLoad('barrierends'),
   // ?farlaybys=1: the lay-bys on the far side too - the other way's, at their own spots (owner
   // 11-09: "They should be on oncoming side of the roads that need them too so it's even and real";
   // highway/laybys.ts)
