@@ -1,0 +1,190 @@
+{
+  "osm": "croughed.osm.json",
+  "out": "src/world/levels/venues/croughed.ts",
+  "exportName": "CROUGHED_VENUE",
+  "origin": [
+    54.4553,
+    -1.5564
+  ],
+  "turnDeg": 0,
+  "clip": [
+    -750,
+    -650,
+    550,
+    550
+  ],
+  "reachM": 150,
+  "skip": [
+    108510895
+  ],
+  "names": {
+    "26261511": "Main Straight north",
+    "222641544": "Barcroft exit",
+    "222641545": "Sunny Out exit",
+    "222641546": "Clervaux run",
+    "222641547": "Tower exit",
+    "222641548": "Esses exit"
+  },
+  "layouts": {
+    "circuit": {
+      "through": [
+        "Main Straight",
+        "Main Straight north",
+        "Clervaux run",
+        "Clervaux",
+        "Hawthorn",
+        "Chicane",
+        "Back Straight",
+        "Tower Bend",
+        "Tower exit",
+        "Jim Clark Esses",
+        "Esses exit",
+        "Barcroft",
+        "Barcroft exit",
+        "Sunny In",
+        "Sunny Out",
+        "Sunny Out exit",
+        "Complex",
+        "Hairpin"
+      ],
+      "avoid": [
+        "Club Link"
+      ]
+    },
+    "club": {
+      "through": [
+        "Main Straight",
+        "Clervaux",
+        "Hawthorn",
+        "Back Straight",
+        "Tower Bend",
+        "Club Link"
+      ],
+      "avoid": [
+        "Complex"
+      ]
+    }
+  },
+  "extra": [
+    {
+      "source": "aerial photographs (ESRI World Imagery), traced 11-09: the gravel trap on the outside of Clervaux",
+      "tags": {
+        "natural": "shingle"
+      },
+      "pts": [
+        [
+          54.458878,
+          -1.553979
+        ],
+        [
+          54.458878,
+          -1.55373
+        ],
+        [
+          54.458888,
+          -1.553249
+        ],
+        [
+          54.458864,
+          -1.552957
+        ],
+        [
+          54.458843,
+          -1.552872
+        ],
+        [
+          54.458813,
+          -1.552957
+        ],
+        [
+          54.458788,
+          -1.553061
+        ],
+        [
+          54.458739,
+          -1.553387
+        ],
+        [
+          54.458684,
+          -1.553773
+        ],
+        [
+          54.458633,
+          -1.554082
+        ],
+        [
+          54.458642,
+          -1.554159
+        ],
+        [
+          54.458723,
+          -1.554221
+        ],
+        [
+          54.458878,
+          -1.553979
+        ]
+      ]
+    },
+    {
+      "source": "aerial photographs (ESRI World Imagery), traced 11-09: the gravel trap on the outside of Barcroft",
+      "tags": {
+        "natural": "shingle"
+      },
+      "pts": [
+        [
+          54.454851,
+          -1.563786
+        ],
+        [
+          54.454743,
+          -1.56357
+        ],
+        [
+          54.454474,
+          -1.563091
+        ],
+        [
+          54.454276,
+          -1.562689
+        ],
+        [
+          54.454114,
+          -1.562396
+        ],
+        [
+          54.454069,
+          -1.56238
+        ],
+        [
+          54.454159,
+          -1.562535
+        ],
+        [
+          54.45424,
+          -1.562766
+        ],
+        [
+          54.454411,
+          -1.562998
+        ],
+        [
+          54.454518,
+          -1.563276
+        ],
+        [
+          54.454644,
+          -1.563585
+        ],
+        [
+          54.454779,
+          -1.563817
+        ],
+        [
+          54.454851,
+          -1.563786
+        ]
+      ]
+    }
+  ]
+}

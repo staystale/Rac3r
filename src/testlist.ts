@@ -13,6 +13,14 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'croughed',
+    added: '2026-11-09',
+    name: 'Croughed (Croft Circuit) at 1/2 size, a new track: the Main and the Club',
+    where: 'Test link + &croughed=1: TEST MODE > CIRCUITS > Croughed, Croughed Club',
+    try: 'Lap both: Clervaux, Hawthorn, Tower, the Esses, Sunny, the Complex, the Hairpin.',
+    wrong: 'A road or prop on the track, a barrier gap, a road to nowhere, a fence not real.',
+  },
+  {
     id: 'goodwoody',
     added: '2026-11-09',
     name: 'Goodwoody (the Goodwood Motor Circuit) at 1/2 size, a new track round the airfield',

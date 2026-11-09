@@ -491,6 +491,16 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   spot by a junction cut the side road, not the one meant. Put the spot more than 3 m from every
   other road (tools/scratch/_lanelist.mjs lists each road's ends; `x y reach` those by a spot),
   and drop a finish entry the build warns "meets no road" about.
+- A HAIRPIN TIGHTER THAN THE LEAST RADIUS IS EASED AWAY WHOLE, NOT JUST OPENED (11-09, Croughed):
+  traceTrack opens a corner under spec.minR by smoothing it, and a U whose legs stand closer than
+  twice minR (game) shrinks along its length until they are that far apart. Croft's Hairpin (legs
+  33 m real, 17 game) went, the lap read 1616 m not 1711, and _closest.mjs found no close stretches
+  (the legs were gone). Compare the traced lap with realLapM x share after every build; warp the
+  legs apart (spec.warps) to twice minR.
+- OSM MAY MAP A CIRCUIT'S BARRIERS AS barrier=wall (11-09, Croughed): one mapper drew Croft's with
+  the raceways, on the lines the photos show. tools/osmvenue.mjs reads only guard_rail and
+  jersey_barrier into data.rails, so they were laid as spec.railsSeen - leaving out the pit wall
+  (world/venuepit.ts lays its own) and the walls round the paddock and huts.
 
 ## Routine
 
