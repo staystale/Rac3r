@@ -436,6 +436,9 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   without the tape id before calling it a change (Knobhill venue: the same, ids apart).
 - aidrivecheck counts a car on the joker lane as off (it is off the lap's road): JOKERROAD=1 counts
   it as road, to see a rallycross level's real offs.
+- A VENUE'S START IS THE MAP'S POINT NEAREST spec.start (11-09): a straight the map draws as its two
+  ends put Donington's line 111 m away, on the Melbourne Loop. spec.startOnLine takes the spot's
+  foot on the line (Brands starts 18.6 real m from its nearest point too - left as approved).
 - TWO STRETCHES NEED 36 REAL M BETWEEN CENTRES FOR A BARRIER BETWEEN at 1/2 scale (11-09): the game
   road is 13 m, the edge keeps a barrier 2.5 m off each road. Lydden's Devil's Elbow ran 26 m from
   the gravel run and North Bend's legs 31 m apart: the roads touched, a car could cut half the lap.

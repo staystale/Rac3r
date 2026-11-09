@@ -1,0 +1,14 @@
+{
+  "osm": "dongington.osm.json",
+  "out": "src/world/levels/venues/dongington.ts",
+  "exportName": "DONGINGTON_VENUE",
+  "origin": [52.8300, -1.3745],
+  "turnDeg": 0,
+  "clip": [-1100, -900, 1100, 900],
+  "reachM": 180,
+  "race": [27131003],
+  "layouts": {
+    "gp": { "through": ["Wheatcroft Straight", "Redgate", "Craner Curves", "Old Hairpin", "Starkey's Bridge", "McLeans", "Coppice", "Fogarty's", "Melbourne Hairpin", "Goddards"], "avoid": ["Roberts", "Old GP pit entry"] },
+    "national": { "through": ["Wheatcroft Straight", "Redgate", "Craner Curves", "Old Hairpin", "Starkey's Bridge", "McLeans", "Coppice", "Roberts"], "avoid": ["Fogarty's", "Goddards", "Old GP pit entry", "Melbourne Loop (down)", "Melbourne Loop (up)", "Melbourne Loop (up) 2", "Melbourne Hairpin"] }
+  }
+}

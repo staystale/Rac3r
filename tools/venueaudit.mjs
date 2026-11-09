@@ -187,7 +187,9 @@ for (const pts of runs) {
   if (runLen(pts) < 24) note('armco run short', `${runLen(pts).toFixed(0)} m at ${pts[0].map((v) => v.toFixed(0))}`);
   for (const end of [pts[0], pts[pts.length - 1]]) {
     const lane = level.lanes.find((ln) => ln.surface.id !== 'racetarmac' && distToLine(ln.pts, end[0], end[1]) < ln.width / 2 + 4);
-    if (lane) note('armco ends at a road', `end ${end.map((v) => v.toFixed(0))} by ${lane.surface.id} w${lane.width}`);
+    // (a tunnel's mouth in the barrier line closes the gap: its portal stands there, solid)
+    const atPortal = props.some((prop) => prop.kind === 'tunnel' && Math.hypot(prop.x - end[0], prop.y - end[1]) < (prop.wid || prop.w || 10) / 2 + 6);
+    if (lane && !atPortal) note('armco ends at a road', `end ${end.map((v) => v.toFixed(0))} by ${lane.surface.id} w${lane.width}`);
   }
 }
 // roads: kinks (more than 30 deg between 2 m steps) and crossings with no junction

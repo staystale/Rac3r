@@ -25,7 +25,7 @@ import { FOOT_REACH_M, handFinish, tidyRoads, venueRoads, withoutDuplicates }
   from "./venueroads.ts";
 import { continueRoad, joinApproaches, joinFrom } from "./venuejoin.ts";
 import type { VenueBox, VenueBuild } from "./venue.ts";
-import { EDGE_TO_WALL, PIT_W, pitLane, pitLines } from "./venuepit.ts";
+import { EDGE_TO_WALL, inRow, pitLane, pitLines, placeGarageRow } from "./venuepit.ts";
 import type { Barrier, Cone, Cover, Lane, Paint, Patch, Point, Prop, Subtrack, Zone }
   from "./types.ts";
 
@@ -35,8 +35,6 @@ export interface VenueScenery {
   patches: Patch[]; paint: Paint[]; bounds: { x0: number; y0: number; x1: number; y1: number };
 }
 
-// m: the garages' front stands at least this far behind the pit lane's edge
-const GARAGE_GAP_M = 1.5;
 // m the track's edge barriers keep off the pit wall
 const PIT_WALL_CLEAR_M = 4;
 // m the track's edge barriers keep off an oval's outside wall (it is their barrier there)
@@ -289,12 +287,14 @@ function venueBuildings(site: Site, pit: Lane | null): Prop[] {
   data.buildings.forEach((building, i) => {
     const prop = boxProp(site, building, 'block');
     if (!nearRace(site, prop.x, prop.y, REACH_M)) return;
-    if (pit && /pit garages/i.test(building.name)) { props.push(garageRow(prop, pit)); return; }
+    if (pit && /pit garages/i.test(building.name)) { placeGarageRow(props, prop, pit); return; }
     if (NOT_VENUE.has(building.kind) || inZones(homes, prop.x, prop.y)) return;
     if (!building.name && prop.w! * prop.h! < 40) return;
     // one structure mapped twice (a stand and a building on it): keep the first
     if (overlapsAny(prop, props)) return;
     if (!standClear(site, prop)) return;
+    // (nor moved out onto the garage row: one structure mapped in its footprint)
+    if (props.some((other) => other.kind === 'garagerow' && inRow(other, prop))) return;
     props.push(/control tower/i.test(building.name) ? { ...prop, kind: 'tower' }
       : building.kind === 'hangar' ? { ...prop, kind: 'hangar' }
         : { ...prop, roof: ROOFS[i % ROOFS.length] });
@@ -321,38 +321,6 @@ function overlapsAny(prop: Prop, others: Prop[]): boolean {
   };
   return others.some((other) => corners(prop).some(([x, y]) => inBuilding([other], x, y, 0.5))
     || corners(other).some(([x, y]) => inBuilding([prop], x, y, 0.5)));
-}
-
-/**
- * The pit garages as a garage row: its long side nearer the pit lane is the front, moved back
- * until it stands GARAGE_GAP_M behind the lane's edge.
- * @param box the building at game scale
- * @param pit the pit lane
- * @returns the garage row prop
- */
-function garageRow(box: Prop, pit: Lane): Prop {
-  const cosR = Math.cos(box.rot!), sinR = Math.sin(box.rot!), halfW = box.w! / 2;
-  const halfH = box.h! / 2;
-  const edge = (shift: number, across: number): Point[] => {
-    const out: Point[] = [];
-    for (let along = -halfW; along <= halfW + 0.01; along += 2.5)
-      out.push([box.x + cosR * along - sinR * (across + shift),
-        box.y + sinR * along + cosR * (across + shift)]);
-    return out;
-  };
-  const mean = (line: Point[]) =>
-    line.reduce((sum, [x, y]) => sum + distToLine(pit.pts, x, y), 0) / line.length;
-  const sign = mean(edge(0, -halfH)) <= mean(edge(0, halfH)) ? -1 : 1;
-  let shift = 0;
-  for (let tries = 0; tries < 6; tries++) {
-    const nearest = Math.min(...edge(shift, sign * halfH)
-      .map(([x, y]) => distToLine(pit.pts, x, y)));
-    if (nearest >= PIT_W / 2 + GARAGE_GAP_M - 0.01) break;
-    shift -= sign * (PIT_W / 2 + GARAGE_GAP_M - nearest);
-  }
-  return { kind: 'garagerow', brand: 'KUM TYRES', x: box.x, y: box.y,
-    front: edge(shift, sign * halfH), back: edge(shift, -sign * halfH),
-    banner: edge(shift, sign * (halfH - 0.9)) };
 }
 
 /**

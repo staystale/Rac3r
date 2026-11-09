@@ -5,16 +5,21 @@
 import { alongTrack } from "./barriers.ts";
 import { SURFACES } from "./surfaces.ts";
 import { querySubtrack } from "./tyrewall.ts";
-import { HALF_ROAD, centreAt, centreBetween, nearestLoop, resample, smoothLine }
+import { HALF_ROAD, centreAt, centreBetween, distToLine, nearestLoop, resample, smoothLine }
   from "./venuegeo.ts";
-import { placeAll } from "./venuesite.ts";
+import { inBuilding, placeAll } from "./venuesite.ts";
+import { insidePolygon } from "./zones.ts";
 import type { Site } from "./venuesite.ts";
-import type { Barrier, Lane, Paint, Point, Subtrack } from "./types.ts";
+import type { Barrier, Lane, Paint, Point, Prop, Subtrack } from "./types.ts";
 
 // m: the pit lane's width, the wall's gap from it, where it may meet the track (its ends) and the
 // wall's distance past the road's edge
 export const PIT_W = 9, EDGE_TO_WALL = 3;
 const PIT_WALL_GAP = 0.6, PIT_MERGE_M = 30;
+// m the pit wall's ends keep off a road beside them
+const WALL_ROAD_M = 1;
+// m: the garages' front stands at least this far behind the pit lane's edge
+const GARAGE_GAP_M = 1.5;
 // the pit lane's easing beside the track: points either side in the mean, rounds of easing
 const PIT_EASE_REACH = 6, PIT_EASE_ROUNDS = 4;
 
@@ -77,8 +82,14 @@ export function pitLane(site: Site): { lane: Lane; wall: Barrier | null } {
   if (beside.length > 8) {
     const sides = beside.reduce((sum, spot) => sum + spot.side, 0), trim = 6;
     const offset = Math.sign(sides || 1) * (HALF_ROAD + EDGE_TO_WALL);
-    wall = { kind: 'pitwall', pts: alongTrack(beside[0].sub, beside[0].dist + trim,
-      beside[beside.length - 1].dist - trim, offset, 2) };
+    const pts = alongTrack(beside[0].sub, beside[0].dist + trim,
+      beside[beside.length - 1].dist - trim, offset, 2);
+    // its ends off any road beside them (a closed race piece meets the straight by the lane's end)
+    const onRoad = ([x, y]: Point) => site.lanes.some((lane) =>
+      distToLine(lane.pts, x, y) < lane.width / 2 + WALL_ROAD_M);
+    while (pts.length > 2 && onRoad(pts[0])) pts.shift();
+    while (pts.length > 2 && onRoad(pts[pts.length - 1])) pts.pop();
+    wall = { kind: 'pitwall', pts };
   }
   return { lane: { pts: eased, width: PIT_W, surface: SURFACES.concrete }, wall };
 }
@@ -128,4 +139,66 @@ export function pitLines(site: Site, pit: Lane): Paint[] {
     lines.push({ kind: 'line', x: 0, y: 0, pts: smoothLine(edge), lw: 0.3, tone: 0.9 });
   }
   return lines;
+}
+
+/**
+ * The pit garages placed as a garage row, in place of any building already standing in its
+ * footprint (one structure mapped twice).
+ * @param props the buildings so far (changed)
+ * @param box the pit garages' building at game scale
+ * @param pit the pit lane
+ */
+export function placeGarageRow(props: Prop[], box: Prop, pit: Lane): void {
+  const row = garageRow(box, pit);
+  for (let idx = props.length - 1; idx >= 0; idx--)
+    if (props[idx].kind === 'block' && inRow(row, props[idx])) props.splice(idx, 1);
+  props.push(row);
+}
+
+/**
+ * Whether a building box meets a garage row (a corner of either inside the other).
+ * @param row the garage row
+ * @param box the building
+ * @returns true when they meet
+ */
+export function inRow(row: Prop, box: Prop): boolean {
+  const outline = [...row.front!, ...row.back!.slice().reverse()];
+  const cosR = Math.cos(box.rot || 0), sinR = Math.sin(box.rot || 0);
+  const corners = [[0, 0], [-1, -1], [1, -1], [1, 1], [-1, 1]].map(([along, across]): Point =>
+    [box.x + cosR * along * (box.w || 0) / 2 - sinR * across * (box.h || 0) / 2,
+      box.y + sinR * along * (box.w || 0) / 2 + cosR * across * (box.h || 0) / 2]);
+  return corners.some(([x, y]) => insidePolygon(outline, x, y))
+    || outline.some(([x, y]) => inBuilding([box], x, y, 0));
+}
+
+/**
+ * The pit garages as a garage row: its long side nearer the pit lane is the front, moved back
+ * until it stands GARAGE_GAP_M behind the lane's edge.
+ * @param box the building at game scale
+ * @param pit the pit lane
+ * @returns the garage row prop
+ */
+function garageRow(box: Prop, pit: Lane): Prop {
+  const cosR = Math.cos(box.rot!), sinR = Math.sin(box.rot!), halfW = box.w! / 2;
+  const halfH = box.h! / 2;
+  const edge = (shift: number, across: number): Point[] => {
+    const out: Point[] = [];
+    for (let along = -halfW; along <= halfW + 0.01; along += 2.5)
+      out.push([box.x + cosR * along - sinR * (across + shift),
+        box.y + sinR * along + cosR * (across + shift)]);
+    return out;
+  };
+  const mean = (line: Point[]) =>
+    line.reduce((sum, [x, y]) => sum + distToLine(pit.pts, x, y), 0) / line.length;
+  const sign = mean(edge(0, -halfH)) <= mean(edge(0, halfH)) ? -1 : 1;
+  let shift = 0;
+  for (let tries = 0; tries < 6; tries++) {
+    const nearest = Math.min(...edge(shift, sign * halfH)
+      .map(([x, y]) => distToLine(pit.pts, x, y)));
+    if (nearest >= PIT_W / 2 + GARAGE_GAP_M - 0.01) break;
+    shift -= sign * (PIT_W / 2 + GARAGE_GAP_M - nearest);
+  }
+  return { kind: 'garagerow', brand: 'KUM TYRES', x: box.x, y: box.y,
+    front: edge(shift, sign * halfH), back: edge(shift, -sign * halfH),
+    banner: edge(shift, sign * (halfH - 0.9)) };
 }

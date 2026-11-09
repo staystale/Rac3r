@@ -31,6 +31,7 @@ import {
 import { BH_GP_LEVEL, BH_INDY_LEVEL } from "./brands-venue.ts";
 import { CC_VENUE_LEVEL } from "./castle-cum-venue.ts";
 import { SN_LEVELS } from "./snotterton-venue.ts";
+import { DG_LEVELS } from "./dongington-venue.ts";
 import { DT_LEVELS } from "./dieatona-venue.ts";
 import { TH_VENUE_LEVEL } from "./thruston-venue.ts";
 import { KH_VENUE_LEVELS } from "./knobhill-venue.ts";
@@ -191,6 +192,8 @@ export const LEVELS: Level[] = [
   CC_VENUE_LEVEL,
   // Snotterton's three layouts (snotterton-venue.ts), built on first use
   ...SN_LEVELS,
+  // ?dongington=1: Dongington Park, a new venue (dongington-venue.ts), its GP and National
+  ...(FIX.dongington ? DG_LEVELS : []),
   // ?thrustonvenue=1: the real venue (thruston-venue.ts), built on first use
   FIX.thrustonvenue ? TH_VENUE_LEVEL : {
     id: 'thruston', name: 'Thruston',
