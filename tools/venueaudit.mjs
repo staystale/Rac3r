@@ -97,7 +97,9 @@ for (const [i, prop] of solidProps.entries()) {
 // a tree's canopy and its shadow (0.85 of its size s from the trunk), a lamp's foot, a corner
 // floodlight's ring of tyres - each PIECE_CLEAR_M clear of its edge, as the track's own are
 const PIECE_CLEAR_M = 3;
-const pieces = level.lanes.filter((lane) => lane.surface.id === 'racetarmac');
+// (a race piece is a 13 m lane: race tarmac, or an unraced rallycross gravel section's dirt)
+const isPiece = (lane) => lane.surface.id === 'racetarmac' || lane.width === 13;
+const pieces = level.lanes.filter(isPiece);
 const pieceGap = (x, y) => Math.min(querySubtrack(level.subtrack, x, y).dist - half,
   ...pieces.map((lane) => distToLine(lane.pts, x, y) - lane.width / 2));
 for (const tree of props.filter((prop) => prop.kind === 'tree'))
@@ -110,9 +112,9 @@ for (const tyre of cornerTyres(level))
 for (const cone of level.cones) {
   if (onTrack(cone.x, cone.y)) note('tyre on the track', `${cone.x.toFixed(0)},${cone.y.toFixed(0)}`);
   else {
-    // a closing row stands across an unraced piece of the track (racetarmac) by design
+    // a closing row stands across an unraced piece of the track by design
     const lane = onLane(cone.x, cone.y);
-    if (lane && lane.surface.id !== 'racetarmac') note('tyre on a road', `${cone.x.toFixed(0)},${cone.y.toFixed(0)}`);
+    if (lane && !isPiece(lane)) note('tyre on a road', `${cone.x.toFixed(0)},${cone.y.toFixed(0)}`);
   }
   const prop = solidProps.find((entry) => inProp(entry, cone.x, cone.y, 0.4));
   if (prop) note('tyre in a prop', `${cone.x.toFixed(0)},${cone.y.toFixed(0)} in ${name(prop)}`);

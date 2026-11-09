@@ -1,10 +1,11 @@
 // aidrivecheck.mjs — the RACING AI (stage 2) lapping alone, node only. Per level x car x difficulty: lap time, off-road seconds, worst
 // distance past the edge, and the bench driver's lap for comparison. A PRO ("real") must be clearly quicker than the bench and clean;
-// "mobile" slower and messier. node tools/aidrivecheck.mjs [levels,comma] [cars,comma] [diffs,comma e.g. 0,4]
+// "mobile" slower and messier. [JOKERROAD=1: the rallycross joker lane counts as road] node tools/aidrivecheck.mjs [levels,comma] [cars,comma] [diffs,comma e.g. 0,4]
 import { makeCar, step, reset, PHYSICS_STEP_SECONDS } from '../src/vehicle.ts';
 import * as L from '../src/lab.ts';
 import { addStageLevels } from '../src/stagegen.ts';   // registers the generated + set rally stages in LEVELS
 import { createAutoDriver } from '../src/ai/autodrive.ts';
+import { jokerLane, laneSpot } from '../src/world/joker.ts';
 // the levels importing these modules used to add (task 078 made it explicit)
 addStageLevels();
 const { createAIDriver } = await import(process.env.AINEXT ? '../src/ai/circuit.next.js' : '../src/ai/circuit.ts'), { aiTraits, DIFFICULTIES } = await import('../src/ai/traits.ts'), { racingLine } = await import('../src/ai/line.ts');
@@ -17,6 +18,7 @@ if (process.argv[6]) globalThis.__AI_KB = +process.argv[6];  // braking fraction
 function lap(lv, carId, mk) {
   L.setLevel(lv); L.clearWear(); const st = L.LEVEL.subtrack, hw = st.width / 2;   // wear from the previous run changes grip (measured: bench 60.8 vs 52.4 s)
   const car = makeCar(carId); const p = L.onTrack(st, st.totalDist - 30, 0, {}); reset(car, p.x, p.y, p.rot);
+  const joker = jokerLane(L.LEVEL);
   const drv = mk(); const lt = []; let tl = 0, t = 0, t0 = null, off = 0, worst = 0, wAt = 0, prev = null, laps = 0;
   while (t < 400) {
     L.applyGround(car, PHYSICS_STEP_SECONDS); step(car, drv.drive(car, PHYSICS_STEP_SECONDS), PHYSICS_STEP_SECONDS); t += PHYSICS_STEP_SECONDS;
@@ -24,7 +26,9 @@ function lap(lv, carId, mk) {
     if (prev !== null && prev > st.totalDist - 60 && q.trackDist < 60) { laps++; if (laps > 1) lt.push((t - tl).toFixed(1)); tl = t; if (laps === 1) t0 = t; else if (laps === 3) return { lap: (t - t0) / 2, off, worst, wAt, lt }; }
     // POINT-TO-POINT stage (lab.ts ghostSegment): one run, start line -> FINISH; off counted only on the stage
     const S = L.LEVEL.stage; if (S && st.ghost && laps === 1 && prev !== null && prev < S.finish && q.trackDist >= S.finish && q.trackDist - prev < 30) return { lap: t - t0, off, worst, wAt, lt };
-    if (laps >= 1) { if (q.dist > hw) off += PHYSICS_STEP_SECONDS; if (q.dist - hw > worst) { worst = q.dist - hw; wAt = q.trackDist; } }
+    // JOKERROAD=1: a car on the rallycross joker lane is on the road (it is off the lap's own)
+    const spot = joker && laneSpot(joker, car.x, car.y), onJoker = process.env.JOKERROAD && spot && Math.abs(spot.off) <= joker.width / 2;
+    if (laps >= 1 && !onJoker) { if (q.dist > hw) off += PHYSICS_STEP_SECONDS; if (q.dist - hw > worst) { worst = q.dist - hw; wAt = q.trackDist; } }
     prev = q.trackDist;
   }
   return { lap: NaN, off, worst, wAt, lt };
