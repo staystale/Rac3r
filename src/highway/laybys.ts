@@ -4,12 +4,11 @@
 // than a car (the dual carriageway, the walled road, the canyon road) a tarmac pull-in on our left
 // every GAP_MIN..GAP_MAX m - FLAT_M long, DEEP_M past the road edge, tapering in and out over
 // TAPER_M - and every reset there goes back to the last one behind (game/session.ts, highway.ts
-// highwayRespawn, highwayrace.ts hwPutBack). ?farlaybys=1: the other way's too, on the far side
-// ("They should be on oncoming side of the roads that need them too so it's even and real"), at
+// highwayRespawn, highwayrace.ts hwPutBack); the other way's too, on the far side ("They should be
+// on oncoming side of the roads that need them too so it's even and real"; passed 11-09), at
 // their own spots. The walls, the Armco and Deaf Valley's ground step out round one, its rock is
 // cut back; the scenery keeps off it. By road distance from the road's seed, so every dress call,
 // the ground and the resets agree; none where Deaf Valley's gorge falls away on that side.
-import { FIX } from '../core/fixes.ts';
 import { SURFACES } from '../world/surfaces.ts';
 import { gorgeAt } from './gorge.ts';
 import { keepOut } from './cuts.ts';
@@ -31,14 +30,11 @@ interface Plan { mids: number[]; open: boolean[]; next: number; state: number }
 const PLANS = new Map<string, Plan>();
 
 /**
- * Whether a road has lay-bys on a side: its hard shoulder narrower than a car (the far side's,
- * ?farlaybys=1).
+ * Whether a road has lay-bys (each side): its hard shoulder narrower than a car.
  * @param level the highway level
- * @param side -1 our left (the default) / +1 the far side
  * @returns true when it does
  */
-export const laybysOn = (level: HwLevel, side = -1) => level._cfg.shoulder < SHOULDER_MIN_M
-  && (side < 0 || FIX.farlaybys);
+export const laybysOn = (level: HwLevel) => level._cfg.shoulder < SHOULDER_MIN_M;
 
 /**
  * A road side's plan of lay-bys, laid out to past a road distance.
@@ -89,7 +85,7 @@ function lastAtOrBefore(mids: number[], dist: number): number {
  * @returns m past the road edge (0: none)
  */
 export function bayOut(level: HwLevel, dist: number, side = -1): number {
-  if (!laybysOn(level, side)) return 0;
+  if (!laybysOn(level)) return 0;
   // (the lay-bys are further apart than two of them are long: the one at or before dist +
   // HALF_M is the only one that can reach dist)
   const plan = planTo(level, dist, side), i = lastAtOrBefore(plan.mids, dist + HALF_M);
@@ -134,7 +130,7 @@ export function bayBehind(level: HwLevel, dist: number, free: (at: number) => bo
 export function layLaybys(ctx: DressCtx) {
   const { level, road, firstIdx, endIdx, pointAt, halfWidth } = ctx;
   for (const side of [-1, 1]) {
-    if (!laybysOn(level, side)) continue;
+    if (!laybysOn(level)) continue;
     let run: number[] = [];
     const flush = () => {
       if (run.length > 1) bayZone(ctx, run, side);

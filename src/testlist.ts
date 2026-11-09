@@ -21,22 +21,6 @@ export const TEST_LIST: TestEntry[] = [
     wrong: 'A missing barrier or wall, canyon rock on the road, a gantry over the single lane.',
   },
   {
-    id: 'barrierends',
-    added: '2026-11-09',
-    name: 'Barrier ends are solid: drive at the end of a fence, Armco, a wall - it hits',
-    where: 'Test link + &barrierends=1: Highway to Hull > DUAL C/WAY (wooden fence middle), any',
-    try: 'Drive straight down a wooden fence line; hit an Armco or wall end head on and glancing.',
-    wrong: 'A barrier through the car, no slowing down a wooden fence, a car stuck or launched.',
-  },
-  {
-    id: 'farlaybys',
-    added: '2026-11-09',
-    name: 'Lay-bys on the oncoming side too, at their own spots, on the roads without a shoulder',
-    where: 'Test link + &farlaybys=1: Highway to Hull > DUAL C/WAY, WALLED; DEAF VALLEY',
-    try: 'Look along the far side: lay-bys there too, walls and rock round them.',
-    wrong: 'A wall, tree, rock or sign in one, one over a drop, one opposite every one of ours.',
-  },
-  {
     id: 'holdoncoming',
     added: '2026-11-09',
     name: 'Deaf Valley: no oncoming cars until the race has started, then they come from ahead',

@@ -1,7 +1,6 @@
 // barriers.ts - the BARRIERS section (barriers, solid props, clamps). Moved verbatim out of
 // lab.ts.
 import { rideUp } from "./jersey.ts";
-import { FIX } from "../core/fixes.ts";
 import { hoodooSpires, archShape } from './formations.ts';
 import { WRECK_M, GAS_SHOP, GAS_PUMPS, GAS_POSTS } from './desertjunk.ts';
 import { LEVEL } from "./state.ts";
@@ -572,8 +571,9 @@ function clampCornersToSeg(
   }
 }
 /**
- * A segment's end against the car's body (?barrierends=1): the corners alone let a barrier's end,
- * or a bend's point, run in between them - MEASURED, tools/scratch/_barrierend.mjs: driven at a
+ * A segment's end against the car's body (owner 11-09, passed: "wooden fence and other barriers
+ * can't be hit on the end ?"): the corners alone let a barrier's end, or a bend's point, run in
+ * between them - MEASURED, tools/scratch/_barrierend.mjs: driven at a
  * fence's end along its line, the end went 0.85 m into the car, which drove 40 m on down the line,
  * through it. Inside the body (grown by the barrier's half width), the car is pushed out the
  * shorter way - back off it, or sideways - and bounces or tears the rail as off any face.
@@ -707,8 +707,8 @@ export function clampToBarriers(car: CarBody, list: Barrier[] | undefined): void
           || car.y < seg.minY - spec.len || car.y > seg.maxY + spec.len) continue;
       clampCornersToSeg(car, seg, half, halfLen, halfWid, cosHead, sinHead, rail);
       if (open) clampWheelsToSeg(car, seg, half, rail);
-      // (?barrierends=1: its ends against the car's body)
-      if (FIX.barrierends) for (const end of [0, 1])
+      // (its ends against the car's body)
+      for (const end of [0, 1])
         clampPointToCar(car, seg, end, { half, halfLen, halfWid, cosHead, sinHead }, rail);
     }
     if (car.vx !== vx0 || car.vy !== vy0) hitBarrier(car, barrier, vx0, vy0);
