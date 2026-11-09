@@ -1,0 +1,107 @@
+{
+  "osm": "anglesleazy.osm.json",
+  "out": "src/world/levels/venues/anglesleazy.ts",
+  "exportName": "ANGLESLEAZY_VENUE",
+  "origin": [
+    53.1875,
+    -4.4975
+  ],
+  "turnDeg": 0,
+  "clip": [
+    -700,
+    -900,
+    700,
+    500
+  ],
+  "reachM": 180,
+  "skip": [
+    1208536464,
+    1208536465
+  ],
+  "names": {
+    "108374689": "Hairpin Straight",
+    "108374690": "Corkscrew link",
+    "108374691": "School Corner",
+    "264841296": "National Pit Lane",
+    "892471213": "Target exit",
+    "892471215": "Banking exit",
+    "892471216": "Church exit",
+    "892471218": "School exit",
+    "892471221": "Rocket exit",
+    "892471223": "Peel exit",
+    "892471225": "Tom Pryce Straight",
+    "892471227": "Start Straight",
+    "1238070257": "National pit entry"
+  },
+  "layouts": {
+    "international": {
+      "through": [
+        "School",
+        "Rocket In",
+        "Rocket Out",
+        "Peel",
+        "Corkscrew",
+        "Hairpin",
+        "Bus Stop",
+        "Target",
+        "Banking",
+        "Church"
+      ],
+      "avoid": [
+        "Club Hairpin",
+        "School Corner",
+        "Corkscrew link"
+      ]
+    },
+    "coastal": {
+      "through": [
+        "School",
+        "Rocket In",
+        "Rocket Out",
+        "Peel",
+        "Corkscrew",
+        "Target",
+        "Banking",
+        "Church"
+      ],
+      "avoid": [
+        "Club Hairpin",
+        "Hairpin",
+        "School Corner"
+      ]
+    },
+    "national": {
+      "through": [
+        "Tom Pryce Straight",
+        "Hairpin",
+        "Hairpin Straight",
+        "School Corner",
+        "Rocket In",
+        "Peel",
+        "Corkscrew"
+      ],
+      "avoid": [
+        "School",
+        "Start Straight",
+        "Target",
+        "Church",
+        "Club Hairpin",
+        "Corkscrew link"
+      ]
+    },
+    "club": {
+      "through": [
+        "Club Hairpin",
+        "Target",
+        "Banking",
+        "Church"
+      ],
+      "avoid": [
+        "Bus Stop",
+        "School Corner",
+        "Hairpin",
+        "Rocket In"
+      ]
+    }
+  }
+}

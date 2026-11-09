@@ -35,6 +35,7 @@ import { DG_LEVELS } from "./dongington-venue.ts";
 import { SS_LEVELS } from "./sillystone-venue.ts";
 import { CW_LEVELS } from "./cadwallop-venue.ts";
 import { MP_LEVELS } from "./malarkey-venue.ts";
+import { AG_LEVELS } from "./anglesleazy-venue.ts";
 import { OP_LEVELS } from "./oultonpork-venue.ts";
 import { DT_LEVELS } from "./dieatona-venue.ts";
 import { TH_VENUE_LEVEL } from "./thruston-venue.ts";
@@ -205,6 +206,8 @@ export const LEVELS: Level[] = [
   // Malarkey Park, a new venue (malarkey-venue.ts), its Car Circuit and Oval (Mallory's one-mile
   // road layout: listed with its venue, not the ovals)
   ...MP_LEVELS,
+  // ?anglesleazy=1: Anglesleazy, a new venue (anglesleazy-venue.ts), its four layouts
+  ...(FIX.anglesleazy ? AG_LEVELS : []),
   // Oulton Pork, a new venue (oultonpork-venue.ts), its International, Island and Frosters
   ...OP_LEVELS,
   // ?thrustonvenue=1: the real venue (thruston-venue.ts), built on first use

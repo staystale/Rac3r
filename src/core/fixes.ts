@@ -54,4 +54,7 @@ export const FIX = {
   // ?knobhillvenue=1: Knobhill as the real venue (Knockhill) at 1/2 of real length, the
   // rallycross (the Knobhill level) and the circuit (world/levels/knobhill-venue.ts; owner 11-09)
   knobhillvenue: atLoad('knobhillvenue'),
+  // ?anglesleazy=1: Anglesleazy, a NEW venue (the Anglesey Circuit) at 1/2 of real length, the
+  // International, Coastal, National and Club (world/levels/anglesleazy-venue.ts; owner 11-09)
+  anglesleazy: atLoad('anglesleazy'),
 };

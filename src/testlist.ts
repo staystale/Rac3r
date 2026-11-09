@@ -13,6 +13,14 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'anglesleazy',
+    added: '2026-11-09',
+    name: 'Anglesleazy (the Anglesey Circuit) at 1/2 size, a new track: four layouts',
+    where: 'Test link + &anglesleazy=1: TEST MODE > CIRCUITS > Anglesleazy > any layout',
+    try: 'Lap all four: the Corkscrew, the Hairpin, the Bus Stop, the Banking, the Club Hairpin.',
+    wrong: 'A road or prop on the track, a barrier gap, a road to nowhere, a fence not real.',
+  },
+  {
     id: 'venueoverlaps',
     added: '2026-11-09',
     name: 'Tidier venues: tyre walls in two neat rows, nothing piled on each other, no zig-zags',

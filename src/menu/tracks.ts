@@ -23,6 +23,8 @@ export const KIND: Record<string, string> = { lab: 'TEST GROUND', 'test-track': 
   'oultonpork-island': 'UK CIRCUIT · ISLAND', 'oultonpork-fosters': 'UK CIRCUIT · FROSTERS',
   cadwallop: 'UK CIRCUIT · FULL', 'cadwallop-club': 'UK CIRCUIT · CLUB',
   malarkey: 'UK CIRCUIT · CAR', 'malarkey-oval': 'UK CIRCUIT · OVAL',
+  anglesleazy: 'UK CIRCUIT · INTERNATIONAL', 'anglesleazy-coastal': 'UK CIRCUIT · COASTAL',
+  'anglesleazy-national': 'UK CIRCUIT · NATIONAL', 'anglesleazy-club': 'UK CIRCUIT · CLUB',
   'brands-snatch-indy': 'UK CIRCUIT · INDY', snotterton: 'UK CIRCUIT · 300',
   'snotterton-200': 'UK CIRCUIT · 200', 'snotterton-100': 'UK CIRCUIT · 100',
   'sweaty-lamb': 'RALLY STAGE',

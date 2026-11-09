@@ -11,6 +11,8 @@ const CAT_OF: Record<string, string> = { 'test-track': 'circuits', thruston: 'ci
   sillystone: 'circuits', 'sillystone-national': 'circuits', oultonpork: 'circuits',
   'oultonpork-island': 'circuits', 'oultonpork-fosters': 'circuits', cadwallop: 'circuits',
   'cadwallop-club': 'circuits', malarkey: 'circuits', 'malarkey-oval': 'circuits',
+  anglesleazy: 'circuits', 'anglesleazy-coastal': 'circuits', 'anglesleazy-national': 'circuits',
+  'anglesleazy-club': 'circuits',
   'sweaty-lamb': 'rally', killder: 'rally', knobhill: 'rx', 'slidden-hill': 'rx',
   'grass-track': 'ovals', dieatona: 'ovals', 'dieatona-road': 'ovals', 'stock-car': 'ovals',
   naffcar: 'ovals',
