@@ -45,6 +45,14 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
+  // ?desertroom=1: Deaf Valley with more room off the road - the canyon walls, the high road's
+  // uphill wall, a gorge's lip, the washes and dunes further out - more cacti by the road and on
+  // the dunes, and the signs and cacti kept out of a petrol station's way in and out (owner 11-09:
+  // "a tiny bit more breathing room off the road between rocky walls or gullies in Death Valley so
+  // passing off the road is more possible but keep the features", "More cactus on the side of the
+  // road / in the sand dunes", "Make sure signs don't go across petrol station entrance or exits";
+  // highway/canyon.ts, gorge.ts)
+  desertroom: atLoad('desertroom'),
   // ?hwpick=1: the endless roads picked in the level selector - the scenery (COUNTRYSIDE, DEAF
   // VALLEY), then the road (MOTORWAY, INTERSTATE, DUAL C/WAY, WALLED, SINGLE LANE), any road in any
   // scenery (owner 11-09: "Highway levels should be able to be any country side or canyon road

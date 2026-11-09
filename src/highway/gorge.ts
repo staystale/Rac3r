@@ -19,6 +19,7 @@
 // ground and the dunes come from the ground's own place (no seam). All of it lies within REACH m
 // of the road edge (the road's lookup reaches that far: highway.ts), faded out before it.
 import { stretchAt, inFrom, type Stretch } from './desertplan.ts';
+import { FIX } from '../core/fixes.ts';
 import { SURFACES } from '../world/surfaces.ts';
 import { blendPatch, tri, BLEND_W } from '../world/blend.ts';
 import { indexNewBushes, reindexBushes } from '../world/load.ts';
@@ -28,16 +29,19 @@ import type { Point } from '../world/types.ts';
 
 export const REACH = 50;
 // the ledge: the flat verge, the fall's plan width, the depth, the floor's width; the ease in
-const VERGE = 1.2, FALL_MIN = 7, FALL_MAX = 11, DEPTH_MIN = 20, DEPTH_MAX = 35, FLOOR_MIN = 7,
-  FLOOR_MAX = 12, RISE_MIN = 9, RISE_MAX = 13, EASE_M = 150;
+// (?desertroom=1: a 3 m verge)
+const VERGE = FIX.desertroom ? 3 : 1.2, FALL_MIN = 7, FALL_MAX = 11, DEPTH_MIN = 20,
+  DEPTH_MAX = 35, FLOOR_MIN = 7, FLOOR_MAX = 12, RISE_MIN = 9, RISE_MAX = 13, EASE_M = 150;
 // the desert: a wash's start off the edge, width, depth; a rise's peak off the edge and height
-const WASH_IN = 5, WASH_MIN = 14, WASH_MAX = 22, WASH_DEEP = 4.5, RISE_PEAK = 22, RISE_END = 44,
-  RISE_HIGH = 5, SIDES_EASE_M = 120, FLAT_START = 100;
+// (?desertroom=1: a wash from 7 m, a rise from 8 m)
+const WASH_IN = FIX.desertroom ? 7 : 5, RISE_FROM = FIX.desertroom ? 8 : 6, WASH_MIN = 14,
+  WASH_MAX = 22, WASH_DEEP = 4.5, RISE_PEAK = 22, RISE_END = 44, RISE_HIGH = 5, SIDES_EASE_M = 120,
+  FLAT_START = 100;
 // the rolling ground: its height and size; the dunes: their height, spacing, their slip face's
 // share of a dune, how far the wind's way wanders; the ground they keep off the road edge and
 // where they fade before REACH
 const ROLL_HIGH = 3, ROLL_M = 45, DUNE_HIGH = 5, DUNE_M = 34, SLIP = 0.25, DUNE_WANDER = 0.35,
-  NEAR_FADE = 5, NEAR_FADE_M = 10, FAR_FADE_M = 12;
+  NEAR_FADE = FIX.desertroom ? 7 : 5, NEAR_FADE_M = 10, FAR_FADE_M = 12;   // (?desertroom=1: 7)
 
 /**
  * A number's hash, 0..1 (a stretch's choices, the same every visit).
@@ -163,7 +167,7 @@ function desertHeight(stretch: Stretch, side: number, seed: number, past: number
     const cos = Math.cos(Math.PI * (frac - 0.5));
     return -WASH_DEEP * (0.6 + 0.4 * size) * cos * cos * ease;
   }
-  const rise = past < RISE_PEAK ? smooth((past - 6) / (RISE_PEAK - 6))
+  const rise = past < RISE_PEAK ? smooth((past - RISE_FROM) / (RISE_PEAK - RISE_FROM))
     : 1 - smooth((past - RISE_PEAK) / (RISE_END - RISE_PEAK));
   return RISE_HIGH * (0.5 + 0.5 * size) * rise * ease;
 }

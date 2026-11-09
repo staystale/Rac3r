@@ -13,6 +13,14 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'desertroom',
+    added: '2026-11-09',
+    name: 'Deaf Valley: more room off the road, more cacti, signs clear of the petrol stations',
+    where: 'Test link + &desertroom=1: Highway to Hull > DEAF VALLEY (VS AI too)',
+    try: 'Pass off the road by the rock walls and gorges; look at the dunes; a petrol station.',
+    wrong: 'Walls still tight, a gorge or wash too gentle now, a sign in a station way in.',
+  },
+  {
     id: 'hwpick',
     added: '2026-11-09',
     name: 'Endless roads: pick the scenery, then the road - any road in Countryside or Deaf Valley',

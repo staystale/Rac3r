@@ -11,6 +11,8 @@
 // the ground and the resets agree; none where Deaf Valley's gorge falls away on that side.
 import { SURFACES } from '../world/surfaces.ts';
 import { gorgeAt } from './gorge.ts';
+import { byStation } from './desertplan.ts';
+import { FIX } from '../core/fixes.ts';
 import { keepOut } from './cuts.ts';
 import { STEP } from './presets.ts';
 import type { Point } from '../world/types.ts';
@@ -52,9 +54,10 @@ function planTo(level: HwLevel, dist: number, side: number): Plan {
   const rand = () => (plan!.state = (plan!.state * 16807) % 2147483647) / 2147483647;
   while (plan.next <= dist + HALF_M) {
     const mid = plan.next;
-    // (none over a gorge falling away on that side: Deaf Valley's high road)
+    // (none over a gorge falling away on that side: Deaf Valley's high road; ?desertroom=1: none
+    // by a petrol station - MEASURED, _desertroom.mjs: their keep-out stopped 2 stations in 3)
     const open = !canyon || [-HALF_M, 0, HALF_M].every((along) => !gorgeAt(mid + along, side,
-      seed));
+      seed) && !(FIX.desertroom && byStation(mid + along, side, seed)));
     plan.mids.push(mid);
     plan.open.push(open);
     plan.next = mid + GAP_MIN + rand() * (GAP_MAX - GAP_MIN);

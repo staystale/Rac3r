@@ -133,3 +133,29 @@ export function desertWideAt(dist: number, seed: number): Partial<HwCfg> | null 
   const kind = stretchAt(dist, seed).kind;
   return kind === 'desert' || kind === 'dunes' ? DESERT_WIDE : null;
 }
+
+/**
+ * A desert stretch's petrol station (highway/canyon.ts gasStation): three stretches in five have
+ * one, 44-48 m in, on a side - the same pick every visit.
+ * @param index the stretch's number
+ * @param seed the road's seed
+ * @returns its side (-1 / +1), or null: none
+ */
+export function stationSideOf(index: number, seed: number): number | null {
+  const pick = Math.abs(Math.sin(index * 12.9898 + seed * 78.233) * 43758.5453) % 1;
+  return pick > 0.6 ? null : pick < 0.3 ? 1 : -1;
+}
+
+/**
+ * Whether a road distance is by a petrol station's forecourt or its ways in and out on a side (a
+ * lay-by keeps off it: highway/laybys.ts).
+ * @param dist road distance, m
+ * @param side -1 / +1
+ * @param seed the road's seed
+ * @returns true when it is
+ */
+export function byStation(dist: number, side: number, seed: number): boolean {
+  const stretch = stretchAt(dist, seed);
+  return stretch.kind === 'desert' && stretch.along > 8 && stretch.along < 90
+    && stationSideOf(stretch.index, seed) === side;
+}
