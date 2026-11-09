@@ -347,7 +347,7 @@ export function highwayGuard(level: HwLevel, car: HwCar, dt: number) {
 // of the furthest point reached, facing up the road
 export function highwayRespawn(level: HwLevel) {
   const state = stateOf(level), first = state.pts[0].s;
-  // (?laybys=1: the last lay-by behind)
+  // (a road without a hard shoulder: the last lay-by behind)
   const bay = bayBehind(level, state.best - 6, undefined, first + 20);
   const dist = Math.max(0, (bay ? bay.s : state.best - 6) - first);
   const pos = onTrack(level.subtrack!, dist, bay ? bay.off : shoulderOff(level), {});
@@ -389,7 +389,7 @@ const baseOf = (preset: string) =>
 // the ground off the road: Deaf Valley's gorges and washes (highway/gorge.ts), else flat
 const roadsideOf = (level: HwLevel, preset: string) => HW_PRESETS[preset].theme === 'canyon'
   ? (dist: number, offset: number, halfWidth: number, spot: { x: number; y: number }) =>
-    desertGround(dist, offset, halfWidth + (offset < 0 ? bayOut(level, dist) : 0), level.seed,
+    desertGround(dist, offset, halfWidth + bayOut(level, dist, offset < 0 ? -1 : 1), level.seed,
       spot) : undefined;
 const settings = readSettings(typeof location !== 'undefined' ? location.search : '');
 const QUERY_PRESET = typeof location !== 'undefined' ? settings.highwayDebug : null;

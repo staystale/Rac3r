@@ -67,20 +67,20 @@ function wallGapAt(dist: number, side: number, seed: number): number | null {
   return UPHILL_MIN + (UPHILL_MAX - UPHILL_MIN) * wobble + out;
 }
 
-// m a lay-by cut into the rock keeps its face off the lay-by's outer edge (?laybys=1)
+// m a lay-by cut into the rock keeps its face off the lay-by's outer edge (highway/laybys.ts)
 const NOTCH_M = 0.6;
 
 /**
- * The rock's face off the road edge for a road: wallGapAt, cut back into the rock on our left where
- * a lay-by needs the room (?laybys=1, owner 11-09: "cut it out the rock don't move the rock / Like
- * real life": the rock behind stays where it was - layRockWalls).
+ * The rock's face off the road edge for a road: wallGapAt, cut back into the rock where a lay-by
+ * needs the room (owner 11-09: "cut it out the rock don't move the rock / Like real life": the
+ * rock behind stays where it was - layRockWalls).
  * @param ctx the dress context
  * @param dist road distance
  * @param side -1 / +1
  * @returns m off the road edge, or null
  */
 function gapOf(ctx: DressCtx, dist: number, side: number): number | null {
-  const gap = wallGapAt(dist, side, ctx.state.seed), bay = side < 0 ? bayOut(ctx.level, dist) : 0;
+  const gap = wallGapAt(dist, side, ctx.state.seed), bay = bayOut(ctx.level, dist, side);
   return gap === null || bay <= 0 ? gap : Math.max(gap, bay + NOTCH_M);
 }
 

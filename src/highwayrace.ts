@@ -77,7 +77,7 @@ export function hwPutBack(level: HighwayLevel, dist: number, cars: AiCar[]) {
   const off = shoulderOff(level as unknown as HwLevel);
   const free = (spot: number, across: number) => !cars.some((other) => other._hwf
     && Math.abs(other._hwf.off - across) < 2.6 && Math.abs(other._hwf.s - spot) < 8);
-  // (?laybys=1: the last lay-by behind, a spot in it clear of cars)
+  // (a road without a hard shoulder: the last lay-by behind, a spot in it clear of cars)
   const bay = bayBehind(level as unknown as HwLevel, dist, (spot) => free(spot, -(level._hw.geo.hw
     + 1.6)), s0 + 20);
   if (bay) return roadPose(level, bay.s, bay.off);

@@ -13,12 +13,12 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
-    id: 'laybys',
+    id: 'farlaybys',
     added: '2026-11-09',
-    name: 'Lay-bys every 250-400 m on the dual, walled and canyon roads; resets go to the last one',
-    where: 'Test link + &laybys=1: Highway to Hull > DUAL C/WAY, WALLED; DEAF VALLEY',
-    try: 'Press R, go wide, go the wrong way, crash a racer: back in the lay-by behind.',
-    wrong: 'A wall, tree, rock or sign in a lay-by, a reset in a lane, a lay-by over a drop.',
+    name: 'Lay-bys on the oncoming side too, at their own spots, on the roads without a shoulder',
+    where: 'Test link + &farlaybys=1: Highway to Hull > DUAL C/WAY, WALLED; DEAF VALLEY',
+    try: 'Look along the far side: lay-bys there too, walls and rock round them.',
+    wrong: 'A wall, tree, rock or sign in one, one over a drop, one opposite every one of ours.',
   },
   {
     id: 'holdoncoming',

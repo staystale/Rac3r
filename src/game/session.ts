@@ -166,7 +166,7 @@ function resetOnJoker(place: PlaceCar) {
 function resetOnShoulder(place: PlaceCar): boolean {
   if (!LEVEL.endless) return false;
   const level = hwLevel(), here = roadFrame(level, game.car.x, game.car.y, null);
-  // (?laybys=1: the last lay-by behind)
+  // (a road without a hard shoulder: the last lay-by behind)
   const bay = here && bayBehind(level, here.s - RESET_BACK, undefined, roadSpan(level).s0 + 20);
   const pose = bay ? roadPose(level, bay.s, bay.off) : here
     ? roadPose(level, here.s - RESET_BACK, shoulderOff(level)) : highwayRespawn(level);

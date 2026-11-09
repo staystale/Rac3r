@@ -252,9 +252,9 @@ function layArmco(ctx: DressCtx) {
           flush();
           continue;
         }
-        // (?laybys=1: out round a lay-by)
+        // (out round a lay-by)
         const pos = pointAt(j, runNow.side * (halfWidth + 1.8
-          + (runNow.side < 0 ? bayOut(level, road[j].s) : 0)));
+          + bayOut(level, road[j].s, runNow.side)));
         pts.push([pos.x, pos.y]);
       }
       flush();
@@ -290,8 +290,8 @@ function layWalls(ctx: DressCtx) {
             flush();
             continue;
           }
-          // (?laybys=1: the left wall out round a lay-by)
-          const edge = halfWidth + wallGap + (side < 0 ? bayOut(level, road[j].s) : 0);
+          // (out round a lay-by)
+          const edge = halfWidth + wallGap + bayOut(level, road[j].s, side);
           const pos = pointAt(
             j,
             sideOffset
@@ -315,7 +315,7 @@ function layWalls(ctx: DressCtx) {
  */
 export function dress(level: HwLevel, firstIdx: number, endIdx: number, loose: LevelObj[]) {
   const ctx = makeDressContext(level, firstIdx, endIdx, loose);
-  // (?laybys=1: the lay-bys first - the scenery keeps off them)
+  // (the lay-bys first - the scenery keeps off them)
   layLaybys(ctx);
   // a themed road dresses its own way (Deaf Valley: highway/canyon.ts)
   if (level._cfg.theme === 'canyon') {
