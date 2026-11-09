@@ -436,6 +436,11 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   without the tape id before calling it a change (Knobhill venue: the same, ids apart).
 - aidrivecheck counts a car on the joker lane as off (it is off the lap's road): JOKERROAD=1 counts
   it as road, to see a rallycross level's real offs.
+- TWO STRETCHES NEED 36 REAL M BETWEEN CENTRES FOR A BARRIER BETWEEN at 1/2 scale (11-09): the game
+  road is 13 m, the edge keeps a barrier 2.5 m off each road. Lydden's Devil's Elbow ran 26 m from
+  the gravel run and North Bend's legs 31 m apart: the roads touched, a car could cut half the lap.
+  Measure the closest stretches of each layout (any two points over 60 lap m apart) and warp them
+  apart (spec.warps); a lane beside the lap (a start straight) is held off it instead.
 
 ## Routine
 

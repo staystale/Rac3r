@@ -16,7 +16,8 @@
 // A name in "names" also names a building, stand, car park or pit lane of that way id; "kinds":
 // { "<way id>": "hangar" } sets a building's kind where the map says only building=yes; "dirt":
 // [way ids] makes a motor raceway a dirt track (Daytona's flat track), not a race road piece; a race
-// piece with a loose surface (OSM unpaved, gravel ...) is written with surface 'dirt'. A
+// piece with a loose surface (OSM unpaved, gravel ...) is written with surface 'dirt'; "race": [way
+// ids] makes a raceway the map gives no sport a race piece. A
 // stand longer than STAND_SLICE_M is written as its slices (a curved one round a tri-oval).
 // A layout is the shortest loop through its "through" pieces that avoids its "avoid" pieces; it is
 // written as the ordered list of pieces it runs over, so a layout is changed by editing that list.
@@ -177,8 +178,11 @@ const ways = [
 // a race piece with a loose surface is raced on dirt (a rallycross lap's gravel section)
 const LOOSE = /unpaved|gravel|dirt|ground|compacted/;
 const dirtIds = new Set((config.dirt || []).map(String));
+// "race": [way ids] - raceways the map gives no sport that are race road (a link traced from Bing)
+const raceIds = new Set((config.race || []).map(String));
+const isMotor = (way) => /motor/.test(way.tags.sport || '') || raceIds.has(String(way.id));
 const raceWays = ways.filter((way) => way.tags?.highway === 'raceway'
-  && /motor/.test(way.tags.sport || '') && !/Pit Lane/i.test(way.tags.name || '')
+  && isMotor(way) && !/Pit Lane/i.test(way.tags.name || '')
   && !dirtIds.has(String(way.id)));
 const uses = new Map();
 for (const way of raceWays) for (const node of way.geometry) uses.set(keyOf(node), (uses.get(keyOf(node)) || 0) + 1);
@@ -275,7 +279,7 @@ for (const way of ways) {
   else if (tags.highway === 'raceway' && /kart/.test(tags.sport || '')) out.karting.push({ pts: line(0.3) });
   else if (tags.highway === 'raceway' && dirtIds.has(String(way.id)))
     out.dirt.push({ name: tags.name || '', pts: line(0.5) });
-  else if (tags.highway === 'raceway' && /motor/.test(tags.sport || '')) continue;   // a race piece
+  else if (tags.highway === 'raceway' && isMotor(way)) continue;   // a race piece
   else if (tags.highway === 'raceway') out.dirt.push({ name: tags.name || '', pts: line(0.5) });
   // (a road through a building - tunnel=building_passage - is a road, not a tunnel under the track)
   else if ((SERVICE_WIDTH[tags.highway] || FOOT_WAYS.has(tags.highway)) && tags.tunnel
