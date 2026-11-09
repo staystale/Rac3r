@@ -11,7 +11,7 @@ import { cruise, fresh, lanesOf, rebuildCars, roomAt } from "./trafficSpawn.ts";
  * @param ctx the traffic
  * @param spawn where you start
  * @param want how many
- * @param dir 1 our way, -1 the other way (?oncoming=1)
+ * @param dir 1 our way, -1 the other way
  */
 function spreadCars(ctx: TrafficCtx, spawn: { s: number; off: number }, want: number, dir = 1) {
   const centres = lanesOf(ctx, dir), laneCount = centres.length, ents = [spawn],
@@ -46,7 +46,7 @@ export function resetTraffic(ctx: TrafficCtx, nextLevel: HighwayLevel | null, de
     return;
   }
   const ours = Math.min(MAX_CARS, Math.round(density * PER_LANE * geo(ctx).own.length));
-  // the other way's (?oncoming=1): as many a lane, up to half as many again in all
+  // the other way's: as many a lane, up to half as many again in all
   const theirs = Math.min(MAX_CARS / 2,
     Math.round(density * PER_LANE * geo(ctx).oncoming.length));
   ctx.want = ours + theirs;

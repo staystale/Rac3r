@@ -1,23 +1,22 @@
 // highway road: the centre-line generator (elements, curvature, growTo) and the readers of it
 // (locate, roadFrame, roadPose, roadSpan). Split out of highway.ts.
 import { STEP, UP_HEADING, K_RATE, wrap } from "./presets.ts";
-import { FIX } from "../core/fixes.ts";
 import type { HwCfg, HwGeo, HwPoint, HwElem, HwState, HwLevel } from './hwtypes.ts';
 // lateral offsets from the centreline: - = the driver's LEFT (the -normal side; lab.ts normals
 // point to the driver's right)
-// m: the central reservation between two carriageways (?oncoming=1), its barrier in the middle
+// m: the central reservation between two carriageways, its barrier in the middle
 const RESERVE_M = 3;
 
 /**
  * The road's cross-section: our carriageway - the hard shoulder, the lanes, the edge strip - and
- * (?oncoming=1, cfg.oncoming) the other way's beyond a central reservation, mirrored: its offside
+ * (cfg.oncoming) the other way's beyond a central reservation, mirrored: its offside
  * lane by the reservation, its hard shoulder outermost.
  * @param cfg the road type
  * @returns the cross-section
  */
 export function laneGeo(cfg: HwCfg): HwGeo {
   const carriage = cfg.shoulder + cfg.lanes * cfg.laneW + cfg.edge;
-  const twin = FIX.oncoming && cfg.oncoming === 'carriageway';
+  const twin = cfg.oncoming === 'carriageway';
   const width = twin ? 2 * carriage + RESERVE_M : carriage,
     halfWidth = width / 2,
     base = -halfWidth + cfg.shoulder;

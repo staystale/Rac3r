@@ -1,4 +1,4 @@
-// world/levels/sillystone-venue.ts - SILLYSTONE, a NEW venue (?sillystone=1, world/venue.ts):
+// world/levels/sillystone-venue.ts - SILLYSTONE, a venue (world/venue.ts; passed 11-09):
 // Silverstone (Northamptonshire) from OpenStreetMap (venues/sillystone.ts) at 1/2 of real length
 // with the 13 m road, two layouts one venue sharing its scenery: the GP (the Arena layout since
 // 2011, its pits in the Wing on the Hamilton Straight) and the National (Woodcote, Copse, Maggotts,

@@ -13,11 +13,10 @@
 // gravel and before hazards - another stretch of the track, a building).
 import { OULTONPORK_VENUE } from "./venues/oultonpork.ts";
 import { venueLap, venueLevel } from "../venue.ts";
-import { FIX } from "../../core/fixes.ts";
 import type { VenueSpec } from "../venue.ts";
 import type { Level, Point } from "../types.ts";
 
-// THE REAL ARMCO (?oultonrails=1; owner 11-09: "Yes do those all" - OSM maps none, and Old Hall's
+// THE REAL ARMCO (owner 11-09: "Yes do those all", passed 11-09 - OSM maps none, and Old Hall's
 // exit was open grass with the car park behind it: 20-car starts threw cars 13-23 m off into the
 // parked cars). Traced from aerial photographs (ESRI World Imagery, 0.36 m a pixel), real m, each
 // a barrier line the edge follows (spec.railsSeen with followRails): the Armco stands at the
@@ -108,7 +107,9 @@ export const OULTONPORK_SPEC: VenueSpec = {
   ],
   // Oulton Park's first race meeting, 1953
   seed: 1953,
-  ...(FIX.oultonrails ? { followRails: true, railsSeen: OP_RAILS, tyreWalls: OP_WALLS } : {}),
+  followRails: true,
+  railsSeen: OP_RAILS,
+  tyreWalls: OP_WALLS,
 };
 
 // the three layouts of the one venue, sharing its scenery - each built on first use (world/load.ts

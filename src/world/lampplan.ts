@@ -11,17 +11,16 @@
 //             down an open stretch, to knock over
 //   roads     none here (the endless highway lays its own as the road grows:
 //             highway/roadlamps.ts)
-import { FIX } from '../core/fixes.ts';
 import { FLOOR } from './bounds.ts';
 import { SURFACES } from './surfaces.ts';
 import { catOf } from './levels/category.ts';
 import { smoothOnTrack } from './barriers.ts';
 import type { Level, Point, Prop, Subtrack, TrackPoint } from './types.ts';
 
-// street lights: how far out from the track edge their posts stand, spacing, and the stretch of
-// the lap round the start / finish line (m before, m after)
-const STREET_OUT_M = 2.5, STREET_GAP_M = 34, STRAIGHT_BEFORE_M = 150, STRAIGHT_AFTER_M = 110;
-// ?runoff=1 (owner 11-09 on Sillystone: "a lot of crashes"): street lights only where the road
+// street lights: their spacing, and the stretch of the lap round the start / finish line (m
+// before, m after)
+const STREET_GAP_M = 34, STRAIGHT_BEFORE_M = 150, STRAIGHT_AFTER_M = 110;
+// (owner 11-09 on Sillystone: "a lot of crashes"; passed 11-09): street lights only where the road
 // runs straight - none where it bends tighter than STREET_BEND_R, read over STREET_READ_M either
 // side (at a half-size venue the corner before the line fell within the 150 m) - each at the first
 // clear of STREET_OUTS_M past the edge, back behind the barriers' line. MEASURED
@@ -56,8 +55,9 @@ const CORNER_OUTS_M = [14, 18, 11, 22];
 const TYRE_RING_M = 2.8, TYRE_RING_COUNT = 10;
 const cornerCache = new WeakMap<Level, CornerSpot[]>();
 // a generated stage's villages: a building block this near the road, m, gets street lights
-// every VILLAGE_GAP_M over VILLAGE_LEN_M of road beside it
-const VILLAGE_REACH_M = 40, VILLAGE_GAP_M = 30, VILLAGE_LEN_M = 60;
+// every VILLAGE_GAP_M over VILLAGE_LEN_M of road beside it, VILLAGE_OUT_M off its edge (a
+// village's lamps stand by its road)
+const VILLAGE_REACH_M = 40, VILLAGE_GAP_M = 30, VILLAGE_LEN_M = 60, VILLAGE_OUT_M = 2.5;
 // a rally stage's fairy-light strings: their length and how far off the road edge, m
 const FAIRY_LEN_M = 30, FAIRY_OUT_M = 5;
 // a fairy-light string's bulb spacing along the road, and how far off any road a bulb must be, m
@@ -223,8 +223,8 @@ function outsideOf(sub: Subtrack, point: TrackPoint): number {
 }
 
 /**
- * A street light beside the start / finish straight, when its spot is clear (?runoff=1: only
- * where the road runs straight, at the first clear of STREET_OUTS_M).
+ * A street light beside the start / finish straight, when its spot is clear: only where the road
+ * runs straight, at the first clear of STREET_OUTS_M.
  * @param level the level (with a subtrack)
  * @param placed the lamps so far (added to)
  * @param dist distance along the lap, m
@@ -232,10 +232,6 @@ function outsideOf(sub: Subtrack, point: TrackPoint): number {
  */
 function streetLight(level: Level, placed: Prop[], dist: number, side: number): void {
   const sub = level.subtrack!;
-  if (!FIX.runoff) {
-    tryPlace(level, placed, besideTrack(sub, dist, side, STREET_OUT_M, 'streetlight'));
-    return;
-  }
   const before = sampleAt(sub, dist - STREET_READ_M), after = sampleAt(sub, dist + STREET_READ_M);
   const turn = Math.abs(Math.atan2(before.dirX * after.dirY - before.dirY * after.dirX,
     before.dirX * after.dirX + before.dirY * after.dirY));
@@ -314,7 +310,7 @@ function lightVillages(level: Level, placed: Prop[]): void {
   const sub = level.subtrack!;
   for (const village of villageStretches(level)) {
     for (let along = -VILLAGE_LEN_M / 2; along <= VILLAGE_LEN_M / 2; along += VILLAGE_GAP_M) {
-      tryPlace(level, placed, besideTrack(sub, village.dist + along, village.side, STREET_OUT_M,
+      tryPlace(level, placed, besideTrack(sub, village.dist + along, village.side, VILLAGE_OUT_M,
         'streetlight'));
     }
   }

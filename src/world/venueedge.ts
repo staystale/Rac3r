@@ -8,7 +8,6 @@
 // outlines (zones with poly). A venue that follows its real rails (Castle Kum) has Armco where
 // they are, else open run-off away from traps and hazards. Marshal posts stand behind the Armco
 // outside each corner, boards on it (world/venueposts.ts).
-import { FIX } from "../core/fixes.ts";
 import { TRAP_NEAR_M, inZones } from "./venuetraps.ts";
 import { insidePolygon } from "./zones.ts";
 import { HALF_ROAD, centreAt, clearRuns, distToLine, evenly, joinEnds, lineLength, nearestLoop,
@@ -67,7 +66,7 @@ const END_ROAD_M = 4;
 const TYRE_ROWS: [number, number][] = [[1.4, 0], [2.35, 0.475]];
 // m between a row's tyres (a tyre stack's width: touching)
 const TYRE_STEP_M = 0.95;
-// ?runoff=1 (owner 11-09 on Sillystone: "a lot of crashes"): a catch fence stands back,
+// (owner 11-09 on Sillystone: "a lot of crashes"; passed 11-09): a catch fence stands back,
 // CATCH_RUNOFF_M past the road's edge - twice the Armco's run-off - or FENCE_GAP_M in front of
 // whatever stands nearer (a stand, a building, a lane, another stretch's run-off), never nearer
 // than the rim. MEASURED (tools/scratch/_startcrash.mjs, 20-car starts): Sillystone's fences,
@@ -542,7 +541,7 @@ function kindRuns(pts: Point[], kinds: Uint8Array, kind: number): Point[][] {
 }
 
 /**
- * Sets a rim side's catch fence back (?runoff=1): at each of its samples the room found walking
+ * Sets a rim side's catch fence back: at each of its samples the room found walking
  * out along the normal, short of CATCH_RUNOFF_M past the edge (and of a bend's inside reach),
  * FENCE_GAP_M kept in front of what stands there; eased - the least within RIM_EASE samples,
  * then the mean - so the fence's ends meet the rim, and added to the rim (what is laid later keeps
@@ -607,8 +606,7 @@ export function buildEdge(rims: Rim[], keep: EdgeClear, traps: Zone[], needs: Ed
     const outsideOthers = (x: number, y: number) => clear(x, y) && pastRim(others, x, y) > -1;
     for (const side of [1, -1]) {
       const kinds = edgeKinds(rim, side, traps, needs, keep.loops);
-      if (FIX.runoff)
-        setFenceBack(rim, side, kinds, keep.loops, (x, y) => clear(x, y) && !needs.hazard(x, y));
+      setFenceBack(rim, side, kinds, keep.loops, (x, y) => clear(x, y) && !needs.hazard(x, y));
       const line = needs.rails ? easedLoop(rimLine(rim, side), rim, side) : rimLine(rim, side);
       dropFacing(line, kinds);
       const fresh: Point[] = [];

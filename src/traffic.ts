@@ -32,7 +32,7 @@ export function createTraffic({ rnd = Math.random } = {}) {
   };
   return {
     cars: ctx.cars,
-    // what the racers read (?oncoming=1: not the other carriageway's)
+    // what the racers read (not the other carriageway's)
     ourSide: ctx.ourSide,
     reset: (nextLevel: HighwayLevel | null, density: number) => (
       resetTraffic(ctx, nextLevel, density)

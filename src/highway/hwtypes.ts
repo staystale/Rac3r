@@ -18,7 +18,7 @@ export interface HwCfg {
   kRate?: number;   // the fastest curvature change, 1/m per m (road.ts; else presets.ts K_RATE)
   // its changes by road distance (Deaf Valley's HIGH road: highway/desertplan.ts)
   stretch?: (dist: number, seed: number) => Partial<HwCfg> | null;
-  // ?oncoming=1, the other way's traffic: a second carriageway, mirrored, the far side of a central
+  // the other way's traffic: a second carriageway, mirrored, the far side of a central
   // reservation with a barrier of kind median (road.ts laneGeo)
   oncoming?: 'carriageway';
   median?: BarrierKind;

@@ -1,7 +1,6 @@
 // world/venueposts.ts - WHAT STANDS BEHIND A VENUE'S EDGE (world/venueedge.ts builds the edge): a
 // marshal post behind the Armco outside each corner, and the boards on the Armco (or a catch
 // fence where no Armco is near), facing the track - and the start gantry across the road.
-import { FIX } from "../core/fixes.ts";
 import { onTrack } from "./tyrewall.ts";
 import { HALF_ROAD, centreAt, distToLine, nearestLoop, roadDistance } from "./venuegeo.ts";
 import { RIM_STEP_M, RUNOFF_M, awayFrom, pastRim } from "./venueedge.ts";
@@ -112,15 +111,14 @@ export function boardOnArmco(barriers: Barrier[], cones: Cone[], loops: Subtrack
   return null;
 }
 
-// m behind the edge's rim the start gantry's leg stands where no pit wall is beside the start
-// (?runoff=1); m a leg's spot keeps off a lane's edge (its box 0.6 m either way, and a gap)
+// m behind the edge's rim the start gantry's leg stands where no pit wall is beside the start;
+// m a leg's spot keeps off a lane's edge (its box 0.6 m either way, and a gap)
 const LEG_BACK_M = 1, LEG_LANE_M = 1.5;
 
 /**
- * The start gantry across the raced road at its start, its legs on the pit wall's line (not in
- * the pit lane). ?runoff=1: a leg only where the wall stands beside the start, the other
- * LEG_BACK_M behind the edge's rim (where no lane runs there), the lights over the road's centre
- * (podX). MEASURED
+ * The start gantry across the raced road at its start: a leg on the pit wall's line where the
+ * wall stands beside the start (not in the pit lane), the other LEG_BACK_M behind the edge's rim
+ * (where no lane runs there), the lights over the road's centre (podX). MEASURED
  * (tools/scratch/_startcrash.mjs, 20-car starts; owner 11-09 on Sillystone: "a lot of crashes"):
  * on the wall's line both sides, the far leg stood 1.9 m past the edge in the open run-off and
  * took the hardest hits of the starts, 31 m/s at Sillystone and 39 m/s at Oulton Pork.
@@ -133,7 +131,6 @@ export function startGantry(site: Site, sub: Subtrack, pitWalls: Barrier[]): Pro
   const start = onTrack(sub, 2, 0, {}), onWall = HALF_ROAD + EDGE_TO_WALL;
   const gantry = { kind: 'gantry', x: start.x, y: start.y, wid: 2 * onWall,
     rot: start.rot + Math.PI / 2 };
-  if (!FIX.runoff) return gantry;
   // (the gantry's own across: its rot a quarter turn on from the road's, toward the left normal)
   const acrossX = Math.cos(gantry.rot), acrossY = Math.sin(gantry.rot);
   const spot = (out: number): Point => [start.x + acrossX * out, start.y + acrossY * out];

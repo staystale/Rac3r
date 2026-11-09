@@ -225,12 +225,22 @@ last handover, written on request.
    5891) and the National (1321 m, real 2639) one venue; both pit lanes (the Wing's, its entry cut
    inside Club laid as mapped: spec.pitCuts; the National pits'), the Wing as the garages, 32 stands,
    the bridges / footbridges / tunnels OSM maps, the Stowe circuit closed in the infield. The
-   International not built (its links mapped as estimates). UNDER TEST.
+   International not built (its links mapped as estimates). PASSED + DEFAULT 11-09 (owner:
+   "Otherwise it's a pass" - everything on the round's link).
    OULTON PORK BUILT 11-09 behind ?oultonpork=1 (levels/oultonpork-venue.ts, OSM data in
    venues/oultonpork.ts; the venue helper): the International, the Island and the Fosters (as
    FROSTERS: Foster's is a lager brand) one venue. PASSED + DEFAULT 11-09 (owner: "Pass for oulton
-   pork"); left as built: the edge by the venue rule (OSM maps no rails; tracing the real Armco
-   from aerial photos offered, no answer yet).
+   pork"). ITS REAL ARMCO (owner: "Yes do those all"): traced from aerial photos by the helper
+   (levels/oultonpork-venue.ts OP_RAILS, Old Hall's outside a tyre wall at its real place), PASSED
+   + DEFAULT 11-09.
+   START CRASHES (owner 11-09: "a lot of crashes on silver stone"), PASSED + DEFAULT 11-09: the
+   pit wall back to 5 m by a bend, the gantry's far leg behind the edge, catch fences set back to
+   10 m, street lights only along the straight 6-12 m out (NOTES: nothing solid nearer the road
+   than its run-off). The grid left as it is (the back of the grid's hits were the lamps: 47 -> 2
+   in the first 5 s of 21 starts). LAP LENGTHS on the TEST MODE cards, PASSED + DEFAULT 11-09.
+   NEXT VENUES (owner 11-09: "Yes do those all"; the helper, one at a time behind a switch):
+   CADWALLOP PARK (Cadwell, built behind ?cadwallop=1), MALARKEY PARK (Mallory), ANGLESLEAZY
+   (Anglesey), GOODWOODY (Goodwood), CROUGHED (Croft, the owner's name).
 3. ROLLING LOOK - smoother than the dice flip on the same physics; mockup first.
 4. SIDE DRAFTING (Naffcar first) PASSED + DEFAULT 11-08 (owner: "Pass"): physics/wake.ts part 5 - a nose
    alongside a car's rear quarter, up to +20 % drag on it and -6 % on the car alongside, gone by 1.2 m
@@ -241,7 +251,13 @@ last handover, written on request.
    car's tail; now the tow, the push and the side draft act only between cars at DRAFT_V (43 km/h)
    or more, and a car in the air or alone is reset to none (tools/scratch/_wakestill.mjs: parked
    0.771 -> 1.000; the moving tow 0.705 and side draft 1.129 / 0.961 unchanged).
-5. MORE HIGHWAY FLAVOURS (owner 11-08: the current roadside is COUNTRYSIDE; then CANYON - "Death
+5. ONCOMING TRAFFIC (owner 11-09: "give all levels an apposing road with oncoming traffic"),
+   PASSED + DEFAULT 11-09 on the motorway, interstate, dual carriageway and walled roads: the other
+   carriageway past a central barrier (highway/road.ts laneGeo, traffic TrafficCar.dir). NEXT
+   (owner 11-09): the central reservation varied by road and at random - a JERSEY barrier that
+   flips a car hit fast, Armco, chain link, a wooden fence; Deaf Valley's single carriageway both
+   ways (owner: "they can crash when passing it's ok").
+   MORE HIGHWAY FLAVOURS (owner 11-08: the current roadside is COUNTRYSIDE; then CANYON - "Death
    Valley", as DEAF VALLEY - and FARTMOOR, a super country lane with crossroads and traffic):
    DEAF VALLEY PASSED + DEFAULT 11-09 (owner: "Ok Death Valley pass maybe more cactus in the desert";
    the desert's cacti x1.5 again; the switch gone; the countryside's random biomes and the rolling

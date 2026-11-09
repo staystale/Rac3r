@@ -1,5 +1,4 @@
 import { LEVELS } from '../world/levels/index.ts';
-import { FIX } from '../core/fixes.ts';
 import { catOf, lapOf, menuCatOf } from '../world/levels/category.ts';
 import { buildLevel } from '../world/load.ts';
 import { THEMES, LENGTHS } from '../stagegen.ts';
@@ -206,14 +205,13 @@ function addTrackCard(menu: Menu, grid: HTMLElement, level: Level) {
 }
 
 /**
- * A card's length line (?laplen=1; owner 11-09: "Can tracks show their length when selecting
+ * A card's length line (owner 11-09, passed 11-09: "Can tracks show their length when selecting
  * them / Especially between version of themselves"): the lap - a rally stage's length - in km, a
  * venue's card the range of its layouts'; none for the endless roads and the test grounds.
  * @param button the card
  * @param levels the level, or the venue's layouts
  */
 function addLength(button: HTMLElement, levels: Level[]) {
-  if (!FIX.laplen) return;
   const laps = levels.map(lapOf).filter((lap) => lap > 0);
   if (!laps.length) return;
   const inKm = (metres: number) => (metres / 1000).toFixed(2);

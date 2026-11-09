@@ -13,52 +13,12 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
-    id: 'oncoming',
-    added: '2026-11-09',
-    name: 'Oncoming traffic: the motorways and dual carriageway get their other carriageway',
-    where: 'Test link + &oncoming=1: Highway to Hull > MOTORWAY / INTERSTATE / DUAL / WALLED',
-    try: 'Drive and race up the road: the other way\'s cars across the central barrier.',
-    wrong: 'A car on the wrong side, through the barrier, facing the wrong way, or popping in.',
-  },
-  {
-    id: 'oultonrails',
-    added: '2026-11-09',
-    name: 'Oulton Pork\'s real Armco, traced from aerial photos; Old Hall\'s tyre wall',
-    where: 'Test link + &oultonrails=1 (&runoff=1): UK CIRCUITS > Oulton Pork > any layout',
-    try: 'Start a full grid: watch Old Hall\'s exit; lap: the pit straight, Lakeside, Lodge.',
-    wrong: 'A car into the car park or the trees, a barrier on the road, a gap the photos lack.',
-  },
-  {
-    id: 'runoff',
-    added: '2026-11-09',
-    name: 'Fewer start crashes: pit wall back by a bend, gantry leg and street lights off the road',
-    where: 'Test link + &runoff=1 (&sillystone=1): Sillystone, Oulton Pork, any venue, 19 AI',
-    try: 'Start a full grid: watch the first corner, the gantry, the lamps, the stands\' fences.',
-    wrong: 'A wall, leg or lamp still at the road edge, a fence in a stand, a gap in a barrier.',
-  },
-  {
-    id: 'laplen',
-    added: '2026-11-09',
-    name: 'Track lengths in TEST MODE: each card\'s lap, a venue card its layouts\' range',
-    where: 'Test link + &laplen=1: TEST MODE > any type > the cards, and a venue\'s layouts',
-    try: 'Compare the layouts of Snotterton, Oulton Pork and Brands; the rally stages.',
-    wrong: 'A length missing or wrong, the text spilling out of the card.',
-  },
-  {
     id: 'venueoverlaps',
     added: '2026-11-09',
     name: 'Tidier venues: tyre walls in two neat rows, nothing piled on each other, no zig-zags',
-    where: 'Plain link: Brands, Castle Kum, Snotterton, Dongington; &sillystone=1 &knobhillvenue=1',
+    where: 'Plain link: Brands, Castle Kum, Snotterton, Dongington, Sillystone; &knobhillvenue=1',
     try: 'Look along the tyre walls in front of the Armco and the rows closing the unused roads.',
     wrong: 'Tyres piled or overlapping, a wall three deep, closing rows crossing, a gap in a wall.',
-  },
-  {
-    id: 'sillystone',
-    added: '2026-11-09',
-    name: 'Sillystone (Silverstone) at 1/2 size, a new track: the GP and the National',
-    where: 'Test link + &sillystone=1: TEST MODE > CIRCUITS > Sillystone > GP / National',
-    try: 'Lap both: Copse, Maggotts-Becketts, Hangar Straight, Stowe, the Arena, the Wing pits.',
-    wrong: 'A road or prop on the track, a barrier gap, a road to nowhere, a fence not real.',
   },
   {
     id: 'knobhillvenue',

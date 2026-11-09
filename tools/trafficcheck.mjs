@@ -3,7 +3,7 @@
 // STOPPED on the hard shoulder, then FAST again. Measures, per preset and density: traffic-on-traffic CONTACTS (they must not crash
 // into each other), cars POPPING IN / OUT inside the view, traffic off the carriageway, lane changes, recycles, and the step cost.
 // node tools/trafficcheck.mjs [density 0..1.5] [seconds per phase]
-// ONCOMING=1 (?oncoming=1): the other way's traffic too - per phase how many
+// The other way's traffic too (the other carriageway): per phase how many
 // of it are live, how fast, and whether it keeps to its side (beyond geo.oppL)
 import { makeCar, PHYSICS_STEP_SECONDS } from '../src/vehicle.ts';
 import * as L from '../src/lab.ts';
@@ -17,8 +17,7 @@ let fails = 0; const check = (ok, msg) => { console.log((ok ? 'ok   ' : 'FAIL ')
 // the VIEW, as main.ts gives it: the treadmill camera puts you ~3/4 down the screen. Worst case = zoomed right out in portrait
 // (ZOOM_MIN 0.3 x 22 px/m on 844 px = 128 m tall): ~100 m ahead, ~35 m behind, +-30 m sideways
 const VIEW_AHEAD = 100, VIEW_BEHIND = 35, VIEW_SIDE = 30;
-const ONCOMING = process.env.ONCOMING === '1';
-for (const preset of ['motorway', 'interstate', 'dual', ...(ONCOMING ? ['walled'] : [])]) {
+for (const preset of ['motorway', 'interstate', 'dual', 'walled']) {
   let s0 = 4242 + preset.length * 7; let r = s0; const rnd = () => ((r = (Math.imul(r, 1664525) + 1013904223) >>> 0) / 4294967296);
   const lv = H.createHighway(s0, preset); lv.id = 'tf-' + preset; L.LEVELS.push(lv); L.setLevel(lv.id);
   const geo = H.laneGeo(lv._cfg), C = geo.centres, me = makeCar('saloon-rwd');
@@ -57,7 +56,7 @@ for (const preset of ['motorway', 'interstate', 'dual', ...(ONCOMING ? ['walled'
     }
     const st = tr.stats();
     const theirs = tr.list.filter((tt) => !tt.parked && (tt.dir ?? 1) < 0).length;
-    if (ONCOMING) console.log(`  ${preset} after ${name}: the other way's live ${theirs}, avg ${(theirV / Math.max(1, theirSteps) * 3.6).toFixed(0)} km/h, car-steps on our side ${theirSide}`);
+    console.log(`  ${preset} after ${name}: the other way's live ${theirs}, avg ${(theirV / Math.max(1, theirSteps) * 3.6).toFixed(0)} km/h, car-steps on our side ${theirSide}`);
     console.log(`  ${preset} after ${name}: live ${st.live}/${st.want}, placed ${st.placed}, recycled ${st.recycled}, forced in view ${st.visHits} | contacts so far ${contacts} (${contactCars.size} cars)`);
   }
   const st = tr.stats();
@@ -68,7 +67,7 @@ for (const preset of ['motorway', 'interstate', 'dual', ...(ONCOMING ? ['walled'
   check(wrecks === 0, `${preset}: no traffic wrecked itself (${wrecks} car-steps)`);
   check(st.recycled > 10, `${preset}: cars recycled (${st.recycled})`);
   check(lanes > 0, `${preset}: lane changes happen (${lanes} samples)`);
-  if (ONCOMING) check(theirSteps > 0 && theirSide === 0, `${preset}: the other way's traffic runs, on its own side (${theirSteps} car-steps, ${theirSide} on ours)`);
+  check(theirSteps > 0 && theirSide === 0, `${preset}: the other way's traffic runs, on its own side (${theirSteps} car-steps, ${theirSide} on ours)`);
   check(ms / n < 0.25, `${preset}: step cost ${(ms / n * 1000).toFixed(0)} us`);
 }
 console.log(fails ? `\n${fails} FAIL(S)` : '\nALL OK');

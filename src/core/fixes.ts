@@ -11,7 +11,8 @@
 // bhquiet, aiweave, jokerflow, aisliders, hudlean, aibands, puffroom, aigrip,
 // aidodge, ailines, ailook, dodgefar, markjump passed 11-04; credits, bigbrands, crossings,
 // fencedrag, tyresleep, burstcap, stackvary, linewall, tallfence, rollway, castlecumvenue,
-// rollover, rollbody, snotterton, sidedraft passed 11-08; oultonpork passed 11-09.)
+// rollover, rollbody, snotterton, sidedraft passed 11-08; oultonpork, sillystone, runoff, laplen,
+// oncoming, oultonrails passed 11-09.)
 import { envValue } from './debug.ts';
 
 /**
@@ -53,23 +54,4 @@ export const FIX = {
   // ?knobhillvenue=1: Knobhill as the real venue (Knockhill) at 1/2 of real length, the
   // rallycross (the Knobhill level) and the circuit (world/levels/knobhill-venue.ts; owner 11-09)
   knobhillvenue: atLoad('knobhillvenue'),
-  // ?sillystone=1: Sillystone (working name), a NEW venue (Silverstone) at 1/2 of real length, the
-  // GP and the National (world/levels/sillystone-venue.ts; owner 11-09)
-  sillystone: atLoad('sillystone'),
-  // ?runoff=1: the start crash fixes at every venue (owner 11-09 on Sillystone: "a lot of
-  // crashes"): the pit wall set back by a bend, the start gantry's far leg behind the edge, the
-  // catch fences set back toward the stands (world/venuepit.ts, venuescenery.ts, venueedge.ts)
-  runoff: atLoad('runoff'),
-  // ?laplen=1: each track card shows its lap (a rally stage's length), a venue's card the range
-  // of its layouts' (menu/tracks.ts; owner 11-09: "Can tracks show their length when selecting
-  // them")
-  laplen: atLoad('laplen'),
-  // ?oncoming=1: traffic coming the other way on the endless roads (owner 11-09: "give all levels
-  // an apposing road with oncoming traffic on that like normal motorways or a roads do"): the
-  // motorways' and dual carriageways' other carriageway past a central reservation
-  // (highway/road.ts laneGeo, ai/traffic*.ts)
-  oncoming: atLoad('oncoming'),
-  // ?oultonrails=1: Oulton Pork's real Armco, traced from aerial photographs (owner 11-09: "Yes do
-  // those all"; world/levels/oultonpork-venue.ts OP_RAILS) - Old Hall's exit open to the car park
-  oultonrails: atLoad('oultonrails'),
 };

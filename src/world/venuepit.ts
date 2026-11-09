@@ -2,7 +2,6 @@
 // lane at game scale, held clear of the pit wall and eased in at its two ends, the wall parallel
 // to the road, and the painted lines - the fast / working lane divider and the solid entry and
 // exit lines along the track's edge.
-import { FIX } from "../core/fixes.ts";
 import { alongTrack } from "./barriers.ts";
 import { SURFACES } from "./surfaces.ts";
 import { querySubtrack } from "./tyrewall.ts";
@@ -25,7 +24,7 @@ const WALL_ROAD_M = 1;
 const BEND_SPAN_M = 4, FOLD_SHARE = 0.8;
 // a cut pit lane's joints eased: points either side in the mean, passes
 const CUT_EASE_REACH = 5, CUT_EASE_PASSES = 3;
-// ?runoff=1 (owner 11-09 on Sillystone: "a lot of crashes"): where the road beside it bends
+// (owner 11-09 on Sillystone: "a lot of crashes"; passed 11-09): where the road beside it bends
 // tighter than PIT_BEND_R (read over BEND_READ_M either side) the pit wall stands back at the
 // Armco's run-off, RUNOFF_M past the edge, eased in and out over BEND_EASE_M along the road (and
 // the lane with it). MEASURED (tools/scratch/_startcrash.mjs, 20-car starts): two thirds of
@@ -155,13 +154,12 @@ function easedLane(sub: Subtrack, dense: Point[], lost: boolean[],
 
 /**
  * How far past the road's edge the pit wall stands at a distance along it: EDGE_TO_WALL, eased
- * back to RUNOFF_M by a bend (?runoff=1).
+ * back to RUNOFF_M by a bend.
  * @param sub the road
  * @param dist metres along it
  * @returns metres past the edge
  */
 export function wallGap(sub: Subtrack, dist: number): number {
-  if (!FIX.runoff) return EDGE_TO_WALL;
   let share = 0;
   for (let near = -BEND_EASE_M; near <= BEND_EASE_M; near += 2)
     if (bendRadius(sub, dist + near) < PIT_BEND_R)

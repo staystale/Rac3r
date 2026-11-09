@@ -37,14 +37,14 @@ export function gearFor(car: TrafficVehicle, speed: number) {
 }
 
 /**
- * A car's way along the road: 1 ours, -1 the other way's (?oncoming=1).
+ * A car's way along the road: 1 ours, -1 the other way's.
  * @param slot the car
  * @returns 1 or -1
  */
 export const dirOf = (slot: { dir?: number }) => slot.dir ?? 1;
 
 /**
- * The lanes a way's traffic drives (?oncoming=1: the other way's, its nearside first).
+ * The lanes a way's traffic drives (the other way's, its nearside first).
  * @param ctx the traffic
  * @param dir 1 our way, -1 the other way
  * @returns the lanes' offsets, m

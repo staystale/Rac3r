@@ -32,7 +32,7 @@ export function driveOne(ctx: TrafficCtx, slot: TrafficCar, env: DriveEnv) {
   car._p = { x: car.x, y: car.y, h: car.heading };
   const speed = Math.hypot(car.vx, car.vy);
   const { lead, gap } = findLead(slot, env.ents);
-  // (the other way's traffic keeps its lane: ?oncoming=1)
+  // (the other way's traffic keeps its lane)
   if ((slot.dir ?? 1) > 0) {
     laneDecisions(ctx, slot, env, lead, gap);
     crossLanes(ctx, slot, env);

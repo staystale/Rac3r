@@ -349,7 +349,7 @@ export function dress(level: HwLevel, firstIdx: number, endIdx: number, loose: L
 }
 
 /**
- * The CENTRAL RESERVATION's barrier between two carriageways (?oncoming=1: geo.median), in
+ * The CENTRAL RESERVATION's barrier between two carriageways (geo.median), in
  * ~120 m pieces as the walls, overlapping by one point.
  * @param ctx the dress context
  */

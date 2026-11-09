@@ -17,7 +17,7 @@ export const HW_PRESETS: Record<string, HwCfg> = {
     bend: [180, 300],
     pStraight: 0.34,
     pBend: 0.2,
-    // the other carriageway past a concrete central barrier (?oncoming=1)
+    // the other carriageway past a concrete central barrier
     oncoming: 'carriageway',
     median: 'wall',
   },

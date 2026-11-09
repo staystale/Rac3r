@@ -115,7 +115,7 @@ function recycle(ctx: TrafficCtx, ents: TrafficEnt[], playerS: number, vis: VisF
  */
 function assignPhys(ctx: TrafficCtx, ents: TrafficEnt[]) {
   const reals = ents.filter((ent) => ent.you), median = geo(ctx).median;
-  // (?oncoming=1: a real car the far side of the central reservation's barrier cannot touch it)
+  // (a real car the far side of the central reservation's barrier cannot touch it)
   const sameSide = (off: number, other: number) => median == null
     || Math.sign(off - median) === Math.sign(other - median);
   for (const slot of ctx.list) {
@@ -131,7 +131,7 @@ function assignPhys(ctx: TrafficCtx, ents: TrafficEnt[]) {
 
 /**
  * What each way's cars drive on: its lanes and the offsets they keep inside - ours from inside
- * the hard shoulder to our carriageway's edge, the other way's (?oncoming=1) beyond our side to
+ * the hard shoulder to our carriageway's edge, the other way's beyond our side to
  * inside its own hard shoulder.
  * @param ctx the traffic
  * @param dt the step, s

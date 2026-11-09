@@ -43,7 +43,7 @@ export interface TrafficCtx {
   // is not in it
   cars: TrafficVehicle[];
   // those of them the racers read: not the far side of a central reservation's barrier
-  // (?oncoming=1 - MEASURED, hwracecheck: reading the other way's cars 7.6 m across on the dual
+  // (MEASURED, hwracecheck: reading the other way's cars 7.6 m across on the dual
   // carriageway, the racers ran 9-12 km/h slower)
   ourSide: TrafficVehicle[];
 }
