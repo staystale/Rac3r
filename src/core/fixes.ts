@@ -12,7 +12,8 @@
 // aidodge, ailines, ailook, dodgefar, markjump passed 11-04; credits, bigbrands, crossings,
 // fencedrag, tyresleep, burstcap, stackvary, linewall, tallfence, rollway, castlecumvenue,
 // rollover, rollbody, snotterton, sidedraft passed 11-08; oultonpork, sillystone, runoff, laplen,
-// oncoming, oultonrails, cadwallop, malarkey, medians, twoway, clearance passed 11-09.)
+// oncoming, oultonrails, cadwallop, malarkey, medians, twoway, clearance, passcare, gantry,
+// anglesleazy, goodwoody, croughed passed 11-09.)
 import { envValue } from './debug.ts';
 
 /**
@@ -54,21 +55,4 @@ export const FIX = {
   // ?knobhillvenue=1: Knobhill as the real venue (Knockhill) at 1/2 of real length, the
   // rallycross (the Knobhill level) and the circuit (world/levels/knobhill-venue.ts; owner 11-09)
   knobhillvenue: atLoad('knobhillvenue'),
-  // ?anglesleazy=1: Anglesleazy, a NEW venue (the Anglesey Circuit) at 1/2 of real length, the
-  // International, Coastal, National and Club (world/levels/anglesleazy-venue.ts; owner 11-09)
-  anglesleazy: atLoad('anglesleazy'),
-  // ?goodwoody=1: Goodwoody, a NEW venue (the Goodwood Motor Circuit) at 1/2 of real length
-  // (world/levels/goodwoody-venue.ts; owner 11-09: "Yes do those all")
-  goodwoody: atLoad('goodwoody'),
-  // ?croughed=1: Croughed, a NEW venue (Croft Circuit) at 1/2 of real length, the Main and Club
-  // circuits (world/levels/croughed-venue.ts; the owner picked the name 11-09)
-  croughed: atLoad('croughed'),
-  // ?gantry=1: a start gantry's far leg goes on past a lane or a building behind the edge (was:
-  // back to the old spot, 3 m past the road's edge; world/venueposts.ts startGantry)
-  gantry: atLoad('gantry'),
-  // ?passcare=1: on a two-way road the racers keep to their own lane and pass into the other one -
-  // or wide off the road - only when it is clear: a car coming at them read at the closing speed
-  // (ai/gapPick.ts, driverTraffic.ts, roadLine.ts; owner 11-09: "We should make ai predominantly
-  // drive in the correct lane and weave wide off road / into oncoming traffic when clear")
-  passcare: atLoad('passcare'),
 };

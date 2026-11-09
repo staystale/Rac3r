@@ -1,7 +1,6 @@
 // ai/driverTraffic.ts: the circuit driver's reading of traffic and obstacles: cars ahead,
 // alongside and behind, and loose objects on the road. Functions take the driver context.
 import { debugValue } from "../core/debug.ts";
-import { FIX } from "../core/fixes.ts";
 import { GRAVITY } from "../cars.ts";
 import { OBST_CLEAR, carGrip, profileOf } from "./line.ts";
 import type { AiCar, CarsAcc, CarsEnv, DriveCtx } from "./types.ts";
@@ -269,15 +268,14 @@ const BOXED_BRAKE = 0.9, BOXED_GAP_M = 3;
 const MARGIN_WAY = 1;
 
 /**
- * The speed a driver reads a car ahead at (?passcare=1: one coming at me at the closing speed -
- * MEASURED, hwracecheck on Deaf Valley both ways: read at my own speed, the other way's car was
- * met 1.7 s after it was seen; else my own speed).
+ * The speed a driver reads a car ahead at: my own, or one coming at me at the closing speed
+ * (MEASURED, hwracecheck on Deaf Valley both ways: read at my own speed, the other way's car was
+ * met 1.7 s after it was seen).
  * @param speed my m/s
  * @param vAlong its m/s along my way
  * @returns m/s
  */
-const readSpeed = (speed: number, vAlong: number) =>
-  (FIX.passcare ? Math.max(speed, speed - vAlong) : speed);
+const readSpeed = (speed: number, vAlong: number) => Math.max(speed, speed - vAlong);
 
 /** The s of travel the gap spotter reads the cars ahead in, by skill. */
 function gapLook(skill: number) {
@@ -305,7 +303,7 @@ export function carsStep(drv: Drv, car: AiCar, others: AiCar[], path: AiPath, ne
   for (const other of others) {
     const relX = other.x - car.x, relY = other.y - car.y, fwd = relX * cosH + relY * sinH,
         lat = -relX * sinH + relY * cosH;
-    // (cars to 60 m behind too - the gap picker's mirror; ?passcare=1: ahead, read as far in time
+    // (cars to 60 m behind too - the gap picker's mirror; ahead, read as far in time
     // as a car going my way - one coming at me at the closing speed)
     if (fwd < -60 || fwd > 8 + readSpeed(speed, other.vx * cosH + other.vy * sinH) * look
       || Math.abs(lat) > 8) continue;

@@ -1,4 +1,4 @@
-// world/levels/anglesleazy-venue.ts - ANGLESLEAZY, a NEW venue (?anglesleazy=1, world/venue.ts):
+// world/levels/anglesleazy-venue.ts - ANGLESLEAZY, a venue (world/venue.ts; passed 11-09):
 // the Anglesey Circuit (Trac Mon, Ty Croes) from OpenStreetMap (venues/anglesleazy.ts) at 1/2 of
 // real length with the 13 m road, its four layouts one venue sharing its scenery: the
 // International (the Corkscrew, Tom Pryce Straight out to the Hairpin, the Bus Stop, Target, the

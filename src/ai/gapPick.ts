@@ -11,7 +11,6 @@
 // less the swerve to it, with a bonus for the line already chosen; a line whose way across is
 // blocked halfway, or that a faster car behind is about to arrive on, is out; past the usual edge
 // only when it is clearly quicker.
-import { FIX } from '../core/fixes.ts';
 import { reachOf } from './dodge.ts';
 import type { AiCar } from './types.ts';
 
@@ -108,7 +107,7 @@ function placeCost(off: number, centre: number, edge: number, lanes?: number[]) 
 }
 
 /**
- * The free road along a line up to the car on it: its gap, or - one coming at me, ?passcare=1 -
+ * The free road along a line up to the car on it: its gap, or - one coming at me -
  * what I cover before we meet (a two-way road's other lane: read as its gap, a car 150 m off at a
  * 55 m/s closing speed looked as free as an empty lane).
  * @param block the car on the line: its gap (m) and m/s along my way
@@ -116,7 +115,7 @@ function placeCost(off: number, centre: number, edge: number, lanes?: number[]) 
  * @returns m
  */
 function freeTo(block: { gap: number; v: number }, speed: number): number {
-  if (!FIX.passcare || block.v >= 0) return block.gap;
+  if (block.v >= 0) return block.gap;
   return block.gap * speed / Math.max(1, speed - block.v);
 }
 

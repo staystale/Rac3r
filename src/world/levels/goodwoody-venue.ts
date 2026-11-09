@@ -1,4 +1,4 @@
-// world/levels/goodwoody-venue.ts - GOODWOODY, a NEW venue (?goodwoody=1, world/venue.ts): the
+// world/levels/goodwoody-venue.ts - GOODWOODY, a venue (world/venue.ts; passed 11-09): the
 // Goodwood Motor Circuit (West Sussex) from OpenStreetMap (venues/goodwoody.ts) at 1/2 of real
 // length with the 13 m road: Madgwick, Fordwater, St Mary's, Lavant, the Lavant Straight,
 // Woodcote and the chicane onto the start / finish straight, round the airfield. Checked against

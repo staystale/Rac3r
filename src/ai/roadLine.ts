@@ -6,7 +6,6 @@
 // again for each new subtrack: the MIDDLE of the lanes (not the hard shoulder), a point every
 // LINE_SP m, its corners found as a circuit's are. The circuit driver drives it like any racing
 // line; the traffic is cars to go round (driverTraffic.ts), so it races through, not queueing.
-import { FIX } from '../core/fixes.ts';
 import { finishPath, findCorners } from './line.ts';
 import type { LinePoint, RacingLine } from './types.ts';
 import type { HighwayLevel } from './types.ts';
@@ -80,9 +79,9 @@ export function roadLine(level: HighwayLevel): RacingLine {
   const path = finishPath(pts, false, (pts.length - 1) * LINE_SP);
   const { cid, corners } = findCorners(path.pts, path.n);
   // its LANES (passed 11-07) - a driver keeps the one it is in (driverLane.ts laneStep)
-  // (?passcare=1: a two-way road's - Deaf Valley's - only our way's, the other lane for passing;
-  // the line's room still spans both)
-  const lanes = (FIX.passcare ? geo.own : geo.centres).map((centre: number) => centre - mid);
+  // (a two-way road's - Deaf Valley's - only our way's, the other lane for passing; the line's
+  // room still spans both)
+  const lanes = geo.own.map((centre: number) => centre - mid);
   const line = Object.assign(path, { hw: laneHalf + LANE_ROOM_M, lat: [], mu: [], best: [], cid,
     corners, lanes }) as RacingLine;
   LINES.set(sub, line);

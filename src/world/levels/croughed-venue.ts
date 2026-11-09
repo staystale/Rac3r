@@ -1,4 +1,4 @@
-// world/levels/croughed-venue.ts - CROUGHED, a NEW venue (?croughed=1, world/venue.ts): Croft
+// world/levels/croughed-venue.ts - CROUGHED, a venue (world/venue.ts; passed 11-09): Croft
 // Circuit (North Yorkshire) from OpenStreetMap (venues/croughed.ts) at 1/2 of real length with the
 // 13 m road: Clervaux, Hawthorn, the chicane, the Back Straight, Tower Bend, the Esses, Barcroft,
 // Sunny, the Complex and the Hairpin onto the Main Straight, on the old airfield. Checked against

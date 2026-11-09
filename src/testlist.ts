@@ -13,46 +13,6 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
-    id: 'croughed',
-    added: '2026-11-09',
-    name: 'Croughed (Croft Circuit) at 1/2 size, a new track: the Main and the Club',
-    where: 'Test link + &croughed=1: TEST MODE > CIRCUITS > Croughed, Croughed Club',
-    try: 'Lap both: Clervaux, Hawthorn, Tower, the Esses, Sunny, the Complex, the Hairpin.',
-    wrong: 'A road or prop on the track, a barrier gap, a road to nowhere, a fence not real.',
-  },
-  {
-    id: 'goodwoody',
-    added: '2026-11-09',
-    name: 'Goodwoody (the Goodwood Motor Circuit) at 1/2 size, a new track round the airfield',
-    where: 'Test link + &goodwoody=1: TEST MODE > CIRCUITS > Goodwoody',
-    try: 'Lap it: Madgwick, Fordwater, St Mary\'s, Lavant, Woodcote, the chicane, the pits.',
-    wrong: 'A road or prop on the track, a barrier gap, a road to nowhere, a fence not real.',
-  },
-  {
-    id: 'passcare',
-    added: '2026-11-09',
-    name: 'Careful passing on Deaf Valley: racers keep their lane, pull out only when it is clear',
-    where: 'Test link + &passcare=1: Highway to Hull > DEAF VALLEY, VS AI with traffic',
-    try: 'Race up the canyon: racers queue in the left lane, pass into the other lane when clear.',
-    wrong: 'Racers sat in the other lane, pulling out into an oncoming car, or never passing.',
-  },
-  {
-    id: 'gantry',
-    added: '2026-11-09',
-    name: 'Start gantry legs off the run-off: past a lane or building behind the edge',
-    where: 'Test link + &gantry=1 (&anglesleazy=1): Anglesleazy International, Oulton Pork',
-    try: 'Start a full grid and look at the gantry: both legs clear of the run-off.',
-    wrong: 'A leg in a lane, a building or on another road; lights not over the road.',
-  },
-  {
-    id: 'anglesleazy',
-    added: '2026-11-09',
-    name: 'Anglesleazy (the Anglesey Circuit) at 1/2 size, a new track: four layouts',
-    where: 'Test link + &anglesleazy=1: TEST MODE > CIRCUITS > Anglesleazy > any layout',
-    try: 'Lap all four: the Corkscrew, the Hairpin, the Bus Stop, the Banking, the Club Hairpin.',
-    wrong: 'A road or prop on the track, a barrier gap, a road to nowhere, a fence not real.',
-  },
-  {
     id: 'venueoverlaps',
     added: '2026-11-09',
     name: 'Tidier venues: tyre walls in two neat rows, nothing piled on each other, no zig-zags',

@@ -208,12 +208,12 @@ export const LEVELS: Level[] = [
   // Malarkey Park, a new venue (malarkey-venue.ts), its Car Circuit and Oval (Mallory's one-mile
   // road layout: listed with its venue, not the ovals)
   ...MP_LEVELS,
-  // ?anglesleazy=1: Anglesleazy, a new venue (anglesleazy-venue.ts), its four layouts
-  ...(FIX.anglesleazy ? AG_LEVELS : []),
-  // ?goodwoody=1: Goodwoody, a new venue (goodwoody-venue.ts)
-  ...(FIX.goodwoody ? GW_LEVELS : []),
-  // ?croughed=1: Croughed, a new venue (croughed-venue.ts), its two layouts
-  ...(FIX.croughed ? CR_LEVELS : []),
+  // Anglesleazy, a new venue (anglesleazy-venue.ts), its four layouts
+  ...AG_LEVELS,
+  // Goodwoody, a new venue (goodwoody-venue.ts)
+  ...GW_LEVELS,
+  // Croughed, a new venue (croughed-venue.ts), its two layouts
+  ...CR_LEVELS,
   // Oulton Pork, a new venue (oultonpork-venue.ts), its International, Island and Frosters
   ...OP_LEVELS,
   // ?thrustonvenue=1: the real venue (thruston-venue.ts), built on first use
