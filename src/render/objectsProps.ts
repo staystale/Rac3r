@@ -1,6 +1,8 @@
 // The big roadside props of the objects layer, seen from above: the banger, the caravan and the
 // podium.
 import type { RenderCone, View } from "./types.ts";
+// Deaf Valley's cacti (loose: they snap when hit) - drawn by render/props/desert.ts
+export { drawLooseCactus } from "./props/desert.ts";
 
 // what the prop drawers read of the objects context
 interface PropsEnv {

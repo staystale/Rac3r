@@ -233,7 +233,21 @@ last handover, written on request.
 5. MORE HIGHWAY FLAVOURS (owner 11-08: the current roadside is COUNTRYSIDE; then CANYON - "Death
    Valley", as DEAF VALLEY - and FARTMOOR, a super country lane with crossroads and traffic):
    DEAF VALLEY round 1 UNDER TEST ?canyon=1 (highway/canyon.ts: rock walls, cactus, open desert;
-   round 2 oncoming traffic, round 3 crests and dips). Brands Indy's garage barrier on a lane
+   round 2 oncoming traffic, round 3 crests and dips). 11-09 (owner): a THEME of Highway to Hull
+   ("should come under highway levels and be a theme choice": presets.ts HW_THEMES); on gravel
+   with sand / dirt patches ("leave colour of surfaces alone"); ROUND 1b (highway/desertplan.ts):
+   CANYON 500 m (owner: "slightly less frequent / shorter sections"), the HIGH road 800 m - a ledge
+   with a gorge one side or both made of TERRAIN (owner: "no high edges jsut a drop ... use terrain
+   to make it genuinely slopped": highway/gorge.ts through level.roadside -> world/terrain.ts,
+   the road lookup reaching 50 m; Armco on half the falling sides), windier (R 40-90 bends), then
+   OPEN DESERT 900 m - straighter ("some straight road sections too": 65 % straight, 712 m the
+   longest), a dry wash or a rise beside the road; rock formations (buttes, hoodoos, arches:
+   world/formations.ts); cacti loose, snapping into spiny pulp with a high puncture chance.
+   physics/steepground.ts: ground steeper than ~56 deg ahead is a wall (an impact), a landing
+   after airtime faster than 13 m/s crashes (and may tumble); a rolling car falls to the ground
+   and feels the slope (roll.ts rollFall / slopePull). tools/scratch/_gorgefall.mjs (40 / 70 /
+   110 km/h over an open lip: all end in the gorge, damaged), _canyonshot, _gorgeprofile,
+   _canyonroad. simhash SAME on every run (the rolling fall / slope behind ?canyon=1 too). Brands Indy's garage barrier on a lane
    (item 6): clear since the venue rebuild (barriercheck all OK 11-08).
 6. SMALL: Brands Snatch Indy's garage barrier on a lane (barriercheck); the highway AI dodging (owner
    "let's leave it for now").

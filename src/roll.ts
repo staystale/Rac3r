@@ -20,6 +20,7 @@
 import { rollShapeOf, shapedHit } from './physics/rollshape.ts';
 import { levelFlipRamps, rampFlip } from './world/flipramps.ts';
 import { LEVEL } from './world/state.ts';
+import { FIX } from './core/fixes.ts';
 import { groundAt } from './world/wear.ts';
 import type { CarRoll } from './vehicle.ts';
 /** The rollover state (car.roll; vehicle.ts CarRoll). */
@@ -30,7 +31,15 @@ export interface RollCar {
   x: number; y: number; vx: number; vy: number; heading: number; yawRate: number; rpm: number;
   air: number;   // height off the ground, m
   sparks?: boolean;
-  spec: { id?: string; lf: number; lr: number; trackWidth?: number; cg?: number; cgH?: number };
+  spec: { id?: string; lf: number; lr: number; trackWidth?: number; cg?: number; cgH?: number;
+    mass?: number };
+  mods?: { mass?: number };
+  // the slope's pull, N, along / across it (world/wear.ts applyGround)
+  slopeLong?: number; slopeLat?: number;
+  // its body over each axle and the ground there, m, and the body's vertical speeds (physics/
+  // loads.ts while on its wheels; rollFall while it tumbles)
+  z?: number; zF?: number; zR?: number; zvF?: number; zvR?: number; groundF?: number;
+  groundR?: number;
   surface?: { id?: string; hard?: boolean };
   t?: { vLong: number };
   roll: RollState | null;
@@ -197,6 +206,11 @@ export function stepRoll(car: RollCar, dt: number, onHit: RollHit) {
   const state = car.roll!, surface = car.surface || {}, gravity = 9.81,
     speed = Math.hypot(car.vx, car.vy);
   if (state.phase === 'rolling' && spinStep(car, state, dt, onHit)) return;
+  // (?canyon=1, with Deaf Valley's gorges: the plain link rolls as it did)
+  if (FIX.canyon) {
+    rollFall(car, dt);
+    slopePull(car, dt);
+  }
   // the body slides on whatever it is lying on (while rolling: mostly in the air, little drag)
   const friction = state.phase === 'rolling' ? 0.25 : muBody(surface);
   if (speed > 0.01) {
@@ -219,6 +233,45 @@ export function stepRoll(car: RollCar, dt: number, onHit: RollHit) {
   state.still = speed < 0.8 ? state.still + dt : 0;
   if (car.t) { car.t.vLong = speed; }
   car.rpm = Math.max(800, (car.rpm || 800) - 3000 * dt);
+}
+
+// the body's fall while it tumbles (physics/loads.ts's vertical gravity scale)
+const FALL_G = 9.81 * 1.4, AIR_OFF = 0.3;
+/**
+ * A rolling or overturned car's body falls to the ground under it (owner 11-09, Deaf Valley: a car
+ * tumbling off a drop goes down into the gorge, not on at the height it rolled at), and lies on it;
+ * its airtime is counted again, so the slope pulls it once it is down (world/wear.ts applyGround).
+ * @param car the car
+ * @param dt the step, s
+ */
+function rollFall(car: RollCar, dt: number) {
+  const axle = (zKey: 'zF' | 'zR', vKey: 'zvF' | 'zvR', ground: number) => {
+    let height = car[zKey] ?? ground, speed = car[vKey] ?? 0;
+    if (height > ground) {
+      speed -= FALL_G * dt;
+      height += speed * dt;
+    }
+    if (height <= ground) { height = ground; speed = 0; }
+    car[zKey] = height;
+    car[vKey] = speed;
+    return height - ground;
+  };
+  const upF = axle('zF', 'zvF', car.groundF ?? 0), upR = axle('zR', 'zvR', car.groundR ?? 0);
+  car.z = ((car.zF ?? 0) + (car.zR ?? 0)) / 2;
+  car.air = upF > AIR_OFF && upR > AIR_OFF ? car.air + dt : 0;
+}
+
+/**
+ * The slope's pull on a rolling or overturned car (owner 11-09, Deaf Valley's gorges: it slides and
+ * tumbles down a slope into the gorge; on a gentle one its body's friction holds it, as before).
+ * @param car the car (slopeLong / slopeLat from world/wear.ts applyGround)
+ * @param dt the step, s
+ */
+function slopePull(car: RollCar, dt: number) {
+  const mass = (car.spec.mass || 1200) * (car.mods?.mass || 1), long = car.slopeLong || 0,
+    lat = car.slopeLat || 0, cosH = Math.cos(car.heading), sinH = Math.sin(car.heading);
+  car.vx += ((long * cosH - lat * sinH) / mass) * dt;
+  car.vy += ((long * sinH + lat * cosH) / mass) * dt;
 }
 
 /**

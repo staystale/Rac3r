@@ -162,8 +162,13 @@ export const DEBRIS: Record<string, DebrisKind> = {
   // world/debris.ts), a post is steel
   mesh:     { mass: 3,  r: 0.6, breaks: 0 },
   fencepost: { mass: 9, r: 0.35, breaks: 0 },
+  // Deaf Valley's cacti (highway/canyon.ts; owner 11-09: "cactus should be destructible but high
+  // puncture chance"): a saguaro and a small barrel cactus snap at the first hit into a flat patch
+  // of spiny pulp (physics/punctures.ts: their spines)
+  cactus:   { mass: 150, r: 0.5, breaks: 1, into: 'pulp' },
+  barrelcactus: { mass: 20, r: 0.35, breaks: 1, into: 'pulp' },
 };
-export const BROKEN = new Set(['splinters', 'cardboard', 'sand', 'fluff']);
+export const BROKEN = new Set(['splinters', 'cardboard', 'sand', 'fluff', 'pulp']);
 // ANIMALS (S-C; (requirement: Can we make Cows and sheep impactable ? Sheep can be like a tyres
 // impact weight but burst into white particles / [cows] should stay solid and be heavier more like
 // hay bails impact weight); Q5: "no gore... sheep should explode into white fluff over like 30mph

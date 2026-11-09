@@ -176,16 +176,29 @@ function addCurvedKerbHeights(height: number, track: Subtrack, hit: SubtrackHit)
 }
 // bumpAt's subtrack hit, reused (no allocation per lookup); bumpAt never runs inside itself
 const BUMP_HIT: SubtrackHit = { dist: Infinity, side: 'left', trackDist: 0, seg: null };
+/**
+ * The ground's height off the road where the level shapes it (Deaf Valley's gorges and washes:
+ * highway/gorge.ts), at a lookup's nearest point of the road.
+ * @param track the road
+ * @param hit the lookup's hit on it
+ * @returns m
+ */
+function roadsideHeight(track: Subtrack, hit: SubtrackHit): number {
+  if (hit.seg == null || !Number.isFinite(hit.dist)) return 0;
+  return LEVEL.roadside!(hit.trackDist + (track.sBase || 0),
+    hit.side === 'left' ? hit.dist : -hit.dist, track.width / 2);
+}
 export function bumpAt(x: number, y: number, smooth = false): number {
   const list = LEVEL.bumps;
   // ONE subtrack query per lookup, shared by the banking, the camber and the curved kerbs. MEASURED
   // (requirement: still seeing lag at high speeds): three separate scans made a Test Track ground
   // tile cost ~12 ms to shade on a PC.
   const track = LEVEL.subtrack;
-  const hit = track && (LEVEL.bankAngle || LEVEL.camber || (!smooth && track.curvedKerbs))
-    ? querySubtrackInto(track, x, y, BUMP_HIT) : null;
+  const hit = track && (LEVEL.bankAngle || LEVEL.camber || LEVEL.roadside
+    || (!smooth && track.curvedKerbs)) ? querySubtrackInto(track, x, y, BUMP_HIT) : null;
   let height = bankHeightAt(x, y, hit) + camberHeightAt(x, y, hit) - rutAt(x, y)
     + naturalHeightAt(x, y);
+  if (LEVEL.roadside && hit) height += roadsideHeight(track!, hit);
   ensureBumpGrid(list);
   // _bumpGrid was just set above if it was stale
   const cell = cellAt(LEVEL._bumpGrid!, x, y, BUMP_CELL) || NO_BUMPS;

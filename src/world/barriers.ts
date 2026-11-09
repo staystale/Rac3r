@@ -1,5 +1,6 @@
 // barriers.ts - the BARRIERS section (barriers, solid props, clamps). Moved verbatim out of
 // lab.ts.
+import { hoodooSpires, archShape } from './formations.ts';
 import { LEVEL } from "./state.ts";
 import { activeLamps, resetLamps, type Lamp } from "./lamps.ts";
 import { driveOverPost, hitLamp } from "./lampdamage.ts";
@@ -296,17 +297,30 @@ function addSmallSolids(out: Solid[], prop: Prop): boolean {
     default: return false;
   }
 }
+/**
+ * Solid boxes of Deaf Valley's rock formations (world/formations.ts): a butte's core, each
+ * hoodoo spire, an arch's two legs (you drive under its span).
+ * @param out the solids list being built
+ * @param prop the prop
+ * @returns true when the prop kind was handled here
+ */
+function addFormationSolids(out: Solid[], prop: Prop): boolean {
+  const size = prop.s || 0;
+  if (prop.kind === 'butte') pushPropBox(out, prop, 0, 0, size * 0.8, size * 0.5);
+  else if (prop.kind === 'hoodoo')
+    for (const spire of hoodooSpires(prop)) pushPropBox(out, prop, spire.x, spire.y, spire.d,
+      spire.d);
+  else if (prop.kind === 'arch')
+    for (const [x, y, wid, len] of archShape(prop).legs) pushPropBox(out, prop, x, y, wid, len);
+  else return false;
+  return true;
+}
 export function solidsFromProps(props: Prop[]): Solid[] {
   const out: Solid[] = [];
   for (const prop of props) {
     if (addStructureSolids(out, prop)) continue;
     if (addFurnitureSolids(out, prop)) continue;
-    // a saguaro stands solid; a small barrel cactus is driven over (highway/canyon.ts)
-    if (prop.kind === 'cactus') {
-      const trunk = (prop.s || 2) * 0.4;
-      if ((prop.s || 2) >= 1.6) pushPropBox(out, prop, 0, 0, trunk, trunk);
-      continue;
-    }
+    if (addFormationSolids(out, prop)) continue;
     addSmallSolids(out, prop);
   }
   for (const solid of out) solid.r = Math.hypot(solid.w, solid.h) / 2;

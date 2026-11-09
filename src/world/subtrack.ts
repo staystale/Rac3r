@@ -376,7 +376,7 @@ export function traceTrack(mapPts: Point[], {
 export const SUB_CELL = 16;   // m, subtrack lookup grid cell
 export function createSubtrack(
   apexes: Point[], width = 13, sectors: Sector[] = [], curvedKerbs: CurvedKerb[] = [],
-  dense = false,
+  dense = false, reach = 18,
 ): Subtrack {
   const pts = dense ? apexes : smoothPath(apexes, 20);
   let totalDist = 0;
@@ -398,8 +398,9 @@ export function createSubtrack(
     totalDist += len;
     // pad 5 -> 18 m past the edge: the camber eases off over 6 m and the Naffcar back slope over
     // 16 m; at 5 the lookup returned "no track" part-way down them and the ground stepped. The
-    // GRID below keeps the wider pad cheap.
-    const pad = width / 2 + 18;
+    // GRID below keeps the wider pad cheap. (reach: further, for ground shaped further off the
+    // road - Deaf Valley's gorges, highway/gorge.ts)
+    const pad = width / 2 + reach;
     segs.push({
       ax: ptFrom[0], ay: ptFrom[1], bx: ptTo[0], by: ptTo[1],
       dx, dy, l2: len * len, len,

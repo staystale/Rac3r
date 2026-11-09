@@ -37,7 +37,7 @@ import {
   drawBoard,
 } from './props/scenery.ts';
 import { drawParkedCar, drawTunnel, drawVenueBridge } from './props/venueprops.ts';
-import { drawCactus } from './props/desert.ts';
+import { drawButte, drawHoodoo, drawArch } from './props/formations.ts';
 
 /** the drawer of each prop kind (a kind with no entry is only positioned) */
 const PROP_DRAWERS: Record<string, PropDrawer> = {
@@ -55,7 +55,6 @@ const PROP_DRAWERS: Record<string, PropDrawer> = {
   truck: drawTruck,
   tree: drawTree,
   rock: drawRock,
-  cactus: drawCactus,
   crowd: drawCrowd,
   marshal: drawMarshal,
   footbridge: drawFootbridge,
@@ -72,12 +71,16 @@ const PROP_DRAWERS: Record<string, PropDrawer> = {
   river: drawBridge,
   tunnel: drawTunnel,
   parkedcar: drawParkedCar,
+  butte: drawButte,
+  hoodoo: drawHoodoo,
+  arch: drawArch,
 };
 
 // OVERHEAD props span the track ABOVE the cars and are drawn AFTER them. MEASURED BUG (user,
 // "the gantry being below cars on the naffcar track"): every prop was drawn before
 // the car, so cars drove OVER the start gantry.
-const OVERHEAD = new Set(['gantry', 'footbridge', 'bridge']);
+// (a desert arch too: you drive under its span - highway/canyon.ts)
+const OVERHEAD = new Set(['gantry', 'footbridge', 'bridge', 'arch']);
 /**
  * Whether a prop is on screen, with a margin by the prop's own size.
  * @param view the canvas view
@@ -91,7 +94,8 @@ function propVisible(view: View, prop: Prop, screenX: number, screenY: number, p
   // margin by the prop's own size (a fixed 150 px let a 20 m hangar pop in at the screen edge)
   const margin = Math.max(
     150,
-    Math.max(prop.w || 0, prop.h || 0, prop.size || 0, prop.wid || 0, 18) * ppm * 0.75,
+    Math.max(prop.w || 0, prop.h || 0, prop.size || 0, prop.wid || 0, prop.s || 0, 18) * ppm
+      * 0.75,
     (prop.reach || 0) * ppm,
   );
   return !(

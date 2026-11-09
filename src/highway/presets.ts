@@ -1,6 +1,7 @@
 // highway presets: the road types (HW_PRESETS), the window constants and the silly signs,
 // plus the tiny wrap / rng helpers every highway file shares. Split out of highway.ts.
 import { lcg } from "../core/random.ts";
+import { desertRoadAt } from "./desertplan.ts";
 import type { HwCfg } from "./hwtypes.ts";
 // lanes / laneW / shoulder (left, hard shoulder; a solid line inside it when >= 2 m) / edge (right
 // margin) in m; maxDeg off straight up; sweep / bend = radius ranges (m); pStraight / pBend =
@@ -69,6 +70,10 @@ export const HW_PRESETS: Record<string, HwCfg> = {
     pStraight: 0.22,
     pBend: 0.35,
     theme: 'canyon',
+    // long winding S-bends (the canyon spec 10-06: "long winding and S ing corners"); the HIGH
+    // road windier still (highway/desertplan.ts)
+    kRate: 1.5e-4,
+    stretch: desertRoadAt,
   },
 };
 export const HW_NAMES: Record<string, string> = {

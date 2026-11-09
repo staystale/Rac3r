@@ -27,6 +27,8 @@ const BIG_HIT_CHANCE: Record<string, number> = {
   // a flat panel medium, steel arms and springs sharp, the engine hard, a mirror soft
   bonnet: MEDIUM, boot: MEDIUM, spoiler: SHARP, mirror: SOFT, wishbone: SHARP, strut: SHARP,
   engine: HARD,
+  // a cactus's spines (Deaf Valley)
+  cactus: SHARP, barrelcactus: SHARP,
 };
 // anything not in the table counts as hard
 const UNKNOWN = HARD;
@@ -38,9 +40,14 @@ const DEBRIS_CHANCE: Record<string, number> = {
   // a bent wishbone's tube ends worst, a strut's spring, the engine's brackets, a wing's edges, a
   // flat bonnet / boot lid little, a mirror's glass less
   wishbone: 0.14, strut: 0.1, engine: 0.12, spoiler: 0.06, bonnet: 0.03, boot: 0.03, mirror: 0.02,
+  // (owner 11-09: "cactus should be destructible but high puncture chance"): a saguaro's spines
+  // half the time, a barrel cactus's (a tyre rolls right over it) more
+  cactus: 0.5, barrelcactus: 0.6,
 };
-// driving over a broken pallet's nails: the chance a second on them
-const NAILS_CHANCE = 0.03;
+// driving over a broken pallet's nails, a snapped cactus's spines: the chance a second on them
+const NAILS_CHANCE = 0.03, SPINES_CHANCE = 0.15;
+/** What has a go at a tyre driven over it, once a second (cones/coneCar.ts drivenOver). */
+export const PRICKLY = new Set(['splinters', 'pulp']);
 
 // what a car hitting it meets as METAL ON METAL (sparks fly from a big hit: render/particles.ts)
 const METAL = new Set(['car', 'banger', 'truck', 'caravan', 'armco', 'catchfence', 'fence',
@@ -88,9 +95,10 @@ export function takeHitFactor(car: HitNoter): number {
 
 /**
  * The chance running into this debris, or a second on pallet nails, punctures a tyre.
- * @param kind the object's kind ('splinters': the nails)
+ * @param kind the object's kind ('splinters': the nails; 'pulp': a snapped cactus's spines)
  * @returns the chance
  */
 export function debrisChance(kind: string): number {
-  return kind === 'splinters' ? NAILS_CHANCE : DEBRIS_CHANCE[kind] ?? 0;
+  return kind === 'splinters' ? NAILS_CHANCE : kind === 'pulp' ? SPINES_CHANCE
+    : DEBRIS_CHANCE[kind] ?? 0;
 }

@@ -512,6 +512,9 @@ export interface Level {
   lanes?: Lane[];
   base?: Surface;
   bankAngle?: number;   // radians; banked ovals only
+  // the ground's height off the road (world/terrain.ts bumpAt; Deaf Valley's gorges: highway/
+  // gorge.ts): m added at a road distance and an offset (+ the +normal side), the road's half width
+  roadside?: (dist: number, offset: number, halfWidth: number) => number;
   camber?: Camber;
   _bumpGridOf?: Bump[] | null;   // terrain.ts bumpAt: the list the grid was built from
   _bumpGrid?: Map<number, Bump[]>;   // terrain.ts bumpAt

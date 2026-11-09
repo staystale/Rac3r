@@ -1,47 +1,42 @@
 // highway/canyon.ts - DEAF VALLEY's roadside (owner 11-08: "canyon which can have the features
-// you've described / Cactus too?"; the canyon road's road type is presets.ts canyon). By road
-// distance the road runs through a CANYON (CANYON_M) - a rock wall each side weaving GAP_MIN ..
-// GAP_MAX m off the road edge, the rock behind it (a band THICK m deep with strata lines, its face
-// shading the verge) swinging away over FLARE_M at each end so no wall end faces the road;
-// saguaros on the rims, red boulders, rock formations beyond - then OPEN DESERT (DESERT_M):
-// saguaros, barrel cacti, boulders. Everything is a function of road distance (and the road's own
-// seed), so the stretches each dress call lays join exactly.
+// you've described / Cactus too?"; 11-09: the HIGH road, the gorges, the rock formations; the
+// canyon road's road type is presets.ts canyon). By road distance (highway/desertplan.ts) the road
+// runs through a CANYON - a rock wall each side weaving GAP_MIN .. GAP_MAX m off the road edge, the
+// rock behind it (a band THICK m deep with strata lines, its face shading the verge) swinging away
+// over FLARE_M at each end so no wall end faces the road; saguaros on the rims, red boulders - then
+// the HIGH road - a rock wall close on its uphill side, a side that falls away open to its gorge
+// (highway/gorge.ts: the ground falls, the floor, the rise beyond, the Armco) - then the OPEN
+// DESERT: saguaros, barrel cacti, boulders, the rock formations (buttes, hoodoos, arches). The
+// cacti are loose objects (cones/coneConsts.ts DEBRIS: they snap when hit, and their spines
+// puncture).
+// Everything is a function of road distance (and the road's own seed), so the stretches each
+// dress call lays join exactly.
+import { stretchAt, CYCLE } from './desertplan.ts';
+import { gorgeAt, rimOf, layGround, roomAt } from './gorge.ts';
 import type { Point, Prop } from '../world/types.ts';
 import type { DressCtx, HwPose } from './hwtypes.ts';
 
-const CANYON_M = 900, DESERT_M = 600, FLARE_M = 80, FLARE_OUT = 30;
+const FLARE_M = 80, FLARE_OUT = 30;
 const GAP_MIN = 2.5, GAP_MAX = 7.5, THICK_MIN = 10, THICK_MAX = 22;
+// the HIGH road's uphill wall: close to the road
+const UPHILL_MIN = 1.2, UPHILL_MAX = 3.5;
 // road points per wall piece (each dropped behind with the rest)
 const PIECE = 30;
-const CYCLE = CANYON_M + DESERT_M;
 
 /**
- * How far into its canyon a road distance is, m, or -1 in the open desert.
- * @param dist road distance
- * @returns m into the canyon, or -1
- */
-function canyonAlong(dist: number): number {
-  const along = ((dist % CYCLE) + CYCLE) % CYCLE;
-  return along < CANYON_M ? along : -1;
-}
-
-/**
- * A canyon wall's gap off the road edge at a road distance: weaving, swinging out at the ends.
+ * 0..1 weaving along the road, its own way each side.
  * @param dist road distance
  * @param side -1 / +1
  * @param seed the road's seed
- * @returns m
+ * @returns 0..1
  */
-function gapAt(dist: number, side: number, seed: number): number {
-  const along = Math.max(0, canyonAlong(dist)), phase = (seed % 97) * 0.13 + side * 1.7;
-  const wobble = 0.5 + 0.5 * Math.sin(dist / 97 + phase)
-    * (0.6 + 0.4 * Math.sin(dist / 233 + side));
-  const toEnd = Math.min(along, CANYON_M - along), flare = Math.max(0, 1 - toEnd / FLARE_M);
-  return GAP_MIN + (GAP_MAX - GAP_MIN) * wobble + FLARE_OUT * flare * flare;
+function wobbleAt(dist: number, side: number, seed: number): number {
+  const phase = (seed % 97) * 0.13 + side * 1.7;
+  return 0.5 + 0.5 * Math.sin(dist / 97 + phase) * (0.6 + 0.4 * Math.sin(dist / 233 + side));
 }
 
 /**
- * The rock's depth behind a canyon wall's face at a road distance, m.
+ * The rock's depth behind a wall's face at a road distance, m.
  * @param dist road distance
  * @param side -1 / +1
  * @returns m
@@ -50,11 +45,32 @@ const thickAt = (dist: number, side: number) =>
   THICK_MIN + (THICK_MAX - THICK_MIN) * (0.5 + 0.5 * Math.sin(dist / 61 + side * 2.3));
 
 /**
- * The canyon walls of road points [firstIdx, endIdx): a rock wall each side in PIECE-point pieces
- * (overlapping by one point), each with its rock band and two strata lines.
+ * A rock wall's face at a road distance on one side - m off the road edge, swinging out over
+ * FLARE_M at its stretch's ends - or null where there is none: the canyon's walls, the HIGH road's
+ * uphill wall (none on a side falling into a gorge: its far side is the ground rising).
+ * @param dist road distance
+ * @param side -1 / +1
+ * @param seed the road's seed
+ * @returns m off the road edge, or null
+ */
+function wallGapAt(dist: number, side: number, seed: number): number | null {
+  const stretch = stretchAt(dist), toEnd = Math.min(stretch.along, stretch.len - stretch.along),
+    flare = Math.max(0, 1 - toEnd / FLARE_M), out = FLARE_OUT * flare * flare,
+    wobble = wobbleAt(dist, side, seed);
+  if (stretch.kind === 'canyon') return GAP_MIN + (GAP_MAX - GAP_MIN) * wobble + out;
+  if (stretch.kind !== 'high') return null;
+  const cut = gorgeAt(dist, side, seed, stretch);
+  if (cut) return null;
+  return UPHILL_MIN + (UPHILL_MAX - UPHILL_MIN) * wobble + out;
+}
+
+/**
+ * The rock walls of road points [firstIdx, endIdx): each side in PIECE-point pieces (overlapping
+ * by one point), each with its rock band and two strata lines, kept off every other part of the
+ * road (the inside of a tight bend).
  * @param ctx the dress context
  */
-function layCanyonWalls(ctx: DressCtx) {
+function layRockWalls(ctx: DressCtx) {
   const { level, halfWidth, road, firstIdx, endIdx, pointAt } = ctx, seed = ctx.state.seed;
   for (let startIdx = Math.max(0, firstIdx - 1); startIdx < endIdx; startIdx += PIECE)
     for (const side of [-1, 1]) {
@@ -65,17 +81,18 @@ function layCanyonWalls(ctx: DressCtx) {
         face = []; back = []; strata = [[], []];
       };
       for (let j = startIdx; j <= Math.min(endIdx, road.length - 1, startIdx + PIECE); j++) {
-        const dist = road[j].s;
-        if (canyonAlong(dist) < 0) { flush(); continue; }
-        const gap = halfWidth + gapAt(dist, side, seed), thick = thickAt(dist, side),
+        const dist = road[j].s, gap = wallGapAt(dist, side, seed);
+        if (gap === null) { flush(); continue; }
+        const near = roomAt(ctx, j, side, halfWidth + gap, 2.5),
+          deep = Math.max(2, roomAt(ctx, j, side, near + thickAt(dist, side), 3) - near),
           spot = (off: number) => {
             const pos = pointAt(j, side * off);
             return [pos.x, pos.y] as Point;
           };
-        face.push(spot(gap));
-        back.push(spot(gap + thick));
-        strata[0].push(spot(gap + thick * (0.32 + 0.06 * Math.sin(dist / 23 + side))));
-        strata[1].push(spot(gap + thick * (0.66 + 0.06 * Math.sin(dist / 31 - side))));
+        face.push(spot(near));
+        back.push(spot(near + deep));
+        strata[0].push(spot(near + deep * (0.32 + 0.06 * Math.sin(dist / 23 + side))));
+        strata[1].push(spot(near + deep * (0.66 + 0.06 * Math.sin(dist / 31 - side))));
       }
       flush();
     }
@@ -95,58 +112,105 @@ function place(ctx: DressCtx, i: number, off: number, prop: Omit<Prop, 'x' | 'y'
 }
 
 /**
- * A canyon's rims and beyond at point i: saguaros on the rock, red boulders by the wall, rock
- * formations past it.
+ * A cactus (a loose object: it snaps when hit) at point i if clear there: a saguaro, or a small
+ * barrel cactus.
+ * @param ctx the dress context
+ * @param i road point
+ * @param off m off the centre line (signed)
+ * @param tall a saguaro
+ */
+function cactus(ctx: DressCtx, i: number, off: number, tall: boolean) {
+  const pos: HwPose = ctx.pointAt(i, off);
+  if (ctx.loose && ctx.clear(pos.x, pos.y, tall ? 1.5 : 1))
+    ctx.loose.push({ kind: tall ? 'cactus' : 'barrelcactus', x: pos.x, y: pos.y,
+      rot: ((ctx.road[i].s | 0) % 7) * 0.9, _s: ctx.road[i].s });
+}
+
+/**
+ * A rim at point i (a canyon's, the HIGH road's uphill side): saguaros on the rock, red boulders
+ * by the wall, big boulders past it.
  * @param ctx the dress context
  * @param i road point
  * @param side -1 / +1
+ * @param rim m off the road edge to the wall's face
  */
-function canyonProps(ctx: DressCtx, i: number, side: number) {
+function rimProps(ctx: DressCtx, i: number, side: number, rim: number) {
   const { rand, halfWidth, road } = ctx, dist = road[i].s, seed = (dist | 0) * 2 + side,
-    rim = halfWidth + gapAt(dist, side, ctx.state.seed), thick = thickAt(dist, side);
-  if (rand() < 0.1) place(ctx, i, side * (rim + 2 + rand() * (thick - 3)),
-    { kind: 'cactus', s: 2.2 + rand(), seed });
-  if (rand() < 0.05) place(ctx, i, side * (rim - 1.2), { kind: 'rock', s: 1 + rand() * 1.5,
-    pal: 'red', seed });
-  if (i % 8 === 0 && rand() < 0.3) place(ctx, i, side * (rim + thick + 6 + rand() * 30),
-    { kind: 'rock', s: 8 + rand() * 12, pal: 'red', seed });
+    thick = thickAt(dist, side);
+  if (rand() < 0.1) cactus(ctx, i, side * (halfWidth + rim + 2 + rand() * (thick - 3)), true);
+  if (rand() < 0.05) place(ctx, i, side * (halfWidth + rim - 1.2), { kind: 'rock',
+    s: 1 + rand() * 1.5, pal: 'red', seed });
+  if (i % 8 === 0 && rand() < 0.3) place(ctx, i, side * (halfWidth + rim + thick + 6 + rand()
+    * 30), { kind: 'rock', s: 8 + rand() * 12, pal: 'red', seed });
 }
 
 /**
- * The open desert at point i: saguaros, barrel cacti, boulders.
+ * The open desert at point i from `from` m off the centre line out: saguaros, barrel cacti,
+ * boulders, now and then a rock formation far out.
  * @param ctx the dress context
  * @param i road point
  * @param side -1 / +1
+ * @param from m off the centre line where the open ground starts
  */
-function desertProps(ctx: DressCtx, i: number, side: number) {
-  const { rand, halfWidth, road } = ctx, seed = (road[i].s | 0) * 2 + side;
-  if (rand() < 0.06) place(ctx, i, side * (halfWidth + 6 + rand() * 45),
-    { kind: 'cactus', s: 2.2 + rand(), seed });
-  if (rand() < 0.08) place(ctx, i, side * (halfWidth + 2.5 + rand() * 20),
-    { kind: 'cactus', s: 0.7 + rand() * 0.4, seed });
-  if (rand() < 0.05) place(ctx, i, side * (halfWidth + 4 + rand() * 40),
-    { kind: 'rock', s: 1.5 + rand() * 2.5, pal: 'red', seed });
-  if (i % 10 === 0 && rand() < 0.2) place(ctx, i, side * (halfWidth + 40 + rand() * 60),
-    { kind: 'rock', s: 10 + rand() * 14, pal: 'red', seed });
+function desertProps(ctx: DressCtx, i: number, side: number, from: number) {
+  const { rand, road } = ctx, seed = (road[i].s | 0) * 2 + side;
+  if (rand() < 0.06) cactus(ctx, i, side * (from + 2 + rand() * 45), true);
+  if (rand() < 0.08) cactus(ctx, i, side * (from - 1.5 + rand() * 20), false);
+  if (rand() < 0.05) place(ctx, i, side * (from + rand() * 40), { kind: 'rock',
+    s: 1.5 + rand() * 2.5, pal: 'red', seed });
+  if (i % 6 === 0 && rand() < 0.1) formation(ctx, i, side, from, seed);
 }
 
 /**
- * Dress road points [firstIdx, endIdx) as Deaf Valley: the canyon walls, the cacti and rocks, a
- * DEAF VALLEY board now and then.
+ * A rock formation at point i, far out: a BUTTE (a flat-topped mass 18-45 m across), a cluster of
+ * HOODOOS (spires), an ARCH (14-26 m span, across the way the road runs), or a big boulder.
+ * @param ctx the dress context
+ * @param i road point
+ * @param side -1 / +1
+ * @param from m off the centre line where the open ground starts
+ * @param seed its look's seed
+ */
+function formation(ctx: DressCtx, i: number, side: number, from: number, seed: number) {
+  const { rand } = ctx, pick = rand(), rot = rand() * Math.PI;
+  if (pick < 0.35) {
+    const size = 18 + rand() * 27;
+    place(ctx, i, side * (from + 25 + size / 2 + rand() * 60), { kind: 'butte', s: size, rot,
+      seed });
+  } else if (pick < 0.7) {
+    const size = 6 + rand() * 7;
+    place(ctx, i, side * (from + 10 + size / 2 + rand() * 50), { kind: 'hoodoo', s: size, rot,
+      seed });
+  } else if (pick < 0.85) {
+    const size = 14 + rand() * 12;
+    place(ctx, i, side * (from + 15 + size / 2 + rand() * 40), { kind: 'arch', s: size,
+      rot: ctx.pointAt(i, 0).rot + (rand() - 0.5) * 0.8, seed });
+  } else place(ctx, i, side * (from + 12 + rand() * 50), { kind: 'rock', s: 8 + rand() * 12,
+    pal: 'red', seed });
+}
+
+/**
+ * Dress road points [firstIdx, endIdx) as Deaf Valley: the rock walls, the ground (gorges, washes:
+ * highway/gorge.ts), the cacti, rocks and formations, a DEAF VALLEY board now and then.
  * @param ctx the dress context
  */
 export function dressCanyon(ctx: DressCtx) {
-  const { level, road, firstIdx, endIdx, halfWidth } = ctx;
+  const { level, road, firstIdx, endIdx, halfWidth, state } = ctx;
   for (let i = firstIdx; i < endIdx; i++) {
-    const dist = road[i].s, inCanyon = canyonAlong(dist) >= 0;
-    if (i % 2 === 0) for (const side of [-1, 1])
-      (inCanyon ? canyonProps : desertProps)(ctx, i, side);
-    // the board where each canyon opens out into the desert
+    const dist = road[i].s, stretch = stretchAt(dist);
+    if (i % 2 === 0) for (const side of [-1, 1]) {
+      const gap = wallGapAt(dist, side, state.seed), cut = gorgeAt(dist, side, state.seed);
+      if (stretch.kind === 'desert') desertProps(ctx, i, side, halfWidth + 1);
+      // past a gorge's far rim, the plateau
+      else if (cut) { if (i % 4 === 0) desertProps(ctx, i, side, halfWidth + rimOf(cut) + 3); }
+      else if (gap !== null) rimProps(ctx, i, side, gap);
+    }
+    // the board at the start of each canyon
     if (Math.floor(dist / CYCLE) !== Math.floor((dist - 4) / CYCLE)) {
       const pos = ctx.pointAt(i, -(halfWidth + 5));
       level.props.push({ kind: 'board', x: pos.x, y: pos.y, rot: pos.rot, label: 'DEAF VALLEY',
         _s: dist } as Prop);
     }
   }
-  layCanyonWalls(ctx);
+  layGround(ctx);
+  layRockWalls(ctx);
 }

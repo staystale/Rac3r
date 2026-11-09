@@ -8,7 +8,7 @@
 // window never punctures by chance (no random draw at all), so nothing happens out of the blue.
 // Crashes (damage.ts) and debris (cones/coneCar.ts) may puncture too.
 
-import { debrisChance } from './punctures.ts';
+import { debrisChance, PRICKLY } from './punctures.ts';
 import { CORNER_OF_WHEEL, wheelGone } from '../world/wheels.ts';
 
 /** The tyre fields wear reads (cars.ts Tyre). */
@@ -141,7 +141,7 @@ export function setHealth(wear: number[]): { dryLoss: number; wetLoss: number; p
  * @returns true to puncture
  */
 export function debrisPunctures(kind: string, closingV: number, isDebris: boolean): boolean {
-  if (kind === 'splinters') return Math.random() < debrisChance(kind);
+  if (PRICKLY.has(kind)) return Math.random() < debrisChance(kind);
   return isDebris && closingV > DEBRIS_HIT_V && Math.random() < debrisChance(kind);
 }
 

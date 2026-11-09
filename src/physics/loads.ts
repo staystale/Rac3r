@@ -6,6 +6,7 @@ import type { Car } from '../vehicle.ts';
 import { CLUTCH_RELEASE, CLUTCH_TAKEUP } from './powertrain.ts';
 import { LOAD_MAX } from './tyres.ts';
 import { drivenWheelSpeed } from './wheelspin.ts';
+import { noteLanding, LANDING_AIR } from './steepground.ts';
 
 /**
  * Section 4 of step: longitudinal weight transfer, the per-axle suspension springs riding the
@@ -62,6 +63,9 @@ export function computeAxleLoads(car: Car, carSpec: Spec, mass: number, gravity:
       car[zKey] += car[vKey] * dt;
       return 0;
     }
+    // a hard landing after airtime (physics/steepground.ts: a fall into a gorge crashes; a rumble
+    // strip's ridges move the ground as fast, but a car on them was never in the air)
+    if (car.air > LANDING_AIR) noteLanding(car, car[vKey] - groundV);
     const rel = groundH - car[zKey];                           // + = spring compressed past static
     // m/s^2 of body accel from spring + damper
     const aSus = susK * rel + susC * (groundV - car[vKey]);

@@ -15,6 +15,7 @@ import {
 } from "./crossinggeo.ts";
 import { LEVEL } from "./state.ts";
 import { fenceClamp, obstacleClamp } from "./obstacles.ts";
+import { steepClamp, landingClamp } from "../physics/steepground.ts";
 import type { Barrier, CarBody, Crossing, Point, Prop } from "./types.ts";
 
 // m: a crossing's walls are 'wall' barriers (half thickness 0.45, world/barriers.ts BARRIER_HALF)
@@ -45,6 +46,9 @@ export function clampWorld(car: CarBody, dt: number): void {
   obstacleClamp(car);
   barrierClamp(car);
   solidClamp(car);
+  // ground too steep to drive, and a hard landing (physics/steepground.ts: Deaf Valley's gorges)
+  steepClamp(car);
+  landingClamp(car);
 }
 
 /**

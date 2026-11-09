@@ -59,9 +59,10 @@ function nextElement(state: HwState, cfg: HwCfg) {
   // ramp gave the dual carriageway's R 120-200 bends a 5.7e-4 jump per 4 m step and the bench
   // driver ran wide out of an S-bend); a turn too small for that ramp is made WIDER (lower k),
   // never sharper.
-  let curv = 1 / rad, ramp = Math.max(curv / K_RATE, Math.min(160, turn * rad * 0.35));
+  const kRate = cfg.kRate || K_RATE;
+  let curv = 1 / rad, ramp = Math.max(curv / kRate, Math.min(160, turn * rad * 0.35));
   if (curv * ramp > turn) {
-    ramp = Math.max(ramp * 0.5, Math.sqrt(turn / K_RATE));
+    ramp = Math.max(ramp * 0.5, Math.sqrt(turn / kRate));
     curv = Math.min(curv, turn / ramp);
   }
   const hold = Math.max(0, turn / curv - ramp);
@@ -78,7 +79,11 @@ const curvAt = (elem: HwElem, along: number) =>
 export function growTo(level: HwLevel, sTarget: number) {
   const state = stateOf(level);
   while (state.s < sTarget) {
-    if (!state.plan.length) state.plan.push(nextElement(state, level._cfg));
+    if (!state.plan.length) {
+      // a road type that changes along the road (Deaf Valley's HIGH road) plans from where it is
+      const changes = level._cfg.stretch?.(state.s);
+      state.plan.push(nextElement(state, changes ? { ...level._cfg, ...changes } : level._cfg));
+    }
     const elem = state.plan[0], along = elem.done || 0;
     // midpoint curvature over the step: exact for a linear ramp, so the heading lands exactly where
     // the element says

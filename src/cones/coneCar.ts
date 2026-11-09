@@ -2,7 +2,7 @@
 // tyres / bales): the contact, the momentum swap, and what the hit does to the object (topple,
 // break, burst, tip, pop). Every function takes the one cones context made in cones.ts.
 import { debrisPunctures } from '../physics/tyrewear.ts';
-import { noteHit } from '../physics/punctures.ts';
+import { noteHit, PRICKLY } from '../physics/punctures.ts';
 import { tumblesOverObject } from '../physics/tumble.ts';
 import { hasOpenWheels, wheelHalf } from '../physics/openwheel.ts';
 import { CORNER_OF_WHEEL } from '../world/wheels.ts';
@@ -185,7 +185,7 @@ function countChevronImpacts(ctx: ConesCtx, obj: Loose) {
  * @returns true when driven over (no contact)
  */
 function drivenOver(ctx: ConesCtx, obj: Loose, car: ConeCar, relX: number, relY: number): boolean {
-  if (obj.kind === 'splinters' && relX * relX + relY * relY < 4
+  if (PRICKLY.has(obj.kind) && relX * relX + relY * relY < 4
     && ctx.clock - (obj._nailT ?? -9) > 1) {
     obj._nailT = ctx.clock;
     // nails and debris let a tyre down slowly (damage.ts applyBurst)

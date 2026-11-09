@@ -35,6 +35,7 @@ import { HW_PRESETS, HW_NAMES, HW_THEMES, STEP, AHEAD, BEHIND, SPAWN_S, UP_HEADI
 import { laneGeo, stateOf, growTo, locate, roadFrame } from "./highway/road.ts";
 import { syncCovers, SIDE_W_HALF } from "./highway/cuts.ts";
 import { dress } from "./highway/dress.ts";
+import { desertGround, REACH } from "./highway/gorge.ts";
 import type { HwState, HwLevel, HwCar } from './highway/hwtypes.ts';
 import type { RoadLoc } from './highway/road.ts';
 import type { Level } from './world/types.ts';
@@ -66,7 +67,9 @@ function rebuild(level: HwLevel) {
     state.geo.width,
     [{ startDist: 0, endDist: 1e9, surface: SURFACES.tarmac }],
     [],
-    true
+    true,
+    // Deaf Valley's ground is shaped further out (its gorges: highway/gorge.ts)
+    level._cfg.theme === 'canyon' ? REACH : undefined,
   );
   // the closing segment, end -> start: never road
   ghostSegment(sub, road.length - 1);
@@ -356,12 +359,17 @@ export function setHighwayPreset(level: HwLevel, preset: string) {
   level.roadType = preset;
   level._cfg = HW_PRESETS[preset];
   level.base = baseOf(preset);
+  level.roadside = roadsideOf(level, preset);
   level._layout = (level._layout || 0) + 1;
 }
 // the ground off the road: the countryside's grass, Deaf Valley's desert gravel (owner 11-09:
 // "use gravel and sand for the desert not dirt")
 const baseOf = (preset: string) =>
   HW_PRESETS[preset].theme === 'canyon' ? SURFACES.gravel : SURFACES.grass;
+// the ground off the road: Deaf Valley's gorges and washes (highway/gorge.ts), else flat
+const roadsideOf = (level: HwLevel, preset: string) => HW_PRESETS[preset].theme === 'canyon'
+  ? (dist: number, offset: number, halfWidth: number) =>
+    desertGround(dist, offset, halfWidth, level.seed) : undefined;
 const settings = readSettings(typeof location !== 'undefined' ? location.search : '');
 const QUERY_PRESET = typeof location !== 'undefined' ? settings.highwayDebug : null;
 export function createHighway(seed: number = 4242, preset: string = 'motorway') {
@@ -395,6 +403,7 @@ export function createHighway(seed: number = 4242, preset: string = 'motorway') 
     lamps: [],
     spawn: { x: 0, y: 0, heading: 0 },
   } as unknown as HwLevel;   // its road state (_hw) is built by resetHighway just below
+  level.roadside = roadsideOf(level, preset);
   resetHighway(level);
   return level;
 }
