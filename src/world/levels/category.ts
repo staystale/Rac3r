@@ -2,6 +2,7 @@
 // roads, anything new and unlisted -> circuits (so a new level is never hidden). The menu groups
 // the track list by it (menu/tracks.ts) and the lamp plan lights each kind its own way
 // (world/lampplan.ts).
+import { FIX } from '../../core/fixes.ts';
 import type { Level } from '../types.ts';
 
 const CAT_OF: Record<string, string> = { 'test-track': 'circuits', thruston: 'circuits',
@@ -29,13 +30,16 @@ export const catOf = (level: { id: string; gen?: unknown; endless?: boolean }): 
   CAT_OF[level.id] || (level.gen ? 'rally' : level.endless ? 'roads' : 'circuits');
 
 // listed in the menu under another category than its kind (owner 11-09: "The test track should
-// go with other test tracks" - it is still lit and rained on as a circuit)
-const LISTED_UNDER: Record<string, string> = { 'test-track': 'test' };
+// go with other test tracks" - it is still lit and rained on as a circuit). ?worldcat=1: the
+// world championship circuits under WORLD CIRCUITS (owner 11-09: "categorise stuff") - still
+// circuits by kind (lit, rained on and raced as one)
+const LISTED_UNDER: Record<string, string> = { 'test-track': 'test',
+  ...(FIX.worldcat ? { spa: 'world', monza: 'world' } : {}) };
 
 /**
  * The category a level is listed under in the menu (menu/tracks.ts).
  * @param level the level
- * @returns circuits, rally, rx, ovals, roads or test
+ * @returns circuits, world, rally, rx, ovals, roads or test
  */
 export const menuCatOf = (level: { id: string; gen?: unknown; endless?: boolean }): string =>
   LISTED_UNDER[level.id] || catOf(level);

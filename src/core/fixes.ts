@@ -45,6 +45,9 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
+  // ?worldcat=1: TEST MODE lists the world championship circuits (Spa-Frankenchumps, Monzarella)
+  // under WORLD CIRCUITS, not CIRCUITS (owner 11-09: "categorise stuff"; world/levels/category.ts)
+  worldcat: atLoad('worldcat'),
   // ?spaforest=1: Spa-Frankenchumps in the Ardennes forest, 8000 trees (owner 11-09: yes to a
   // per-venue tree count; world/levels/spa-venue.ts, VenueSpec.trees)
   spaforest: atLoad('spaforest'),

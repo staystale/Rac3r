@@ -13,6 +13,14 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'worldcat',
+    added: '2026-11-09',
+    name: 'TEST MODE: a WORLD CIRCUITS category with Spa-Frankenchumps (and Monzarella)',
+    where: 'Test link + &worldcat=1: TEST MODE (with &monza=1 for Monzarella)',
+    try: 'Open WORLD CIRCUITS: Spa is there, no longer under CIRCUITS; pick it and race.',
+    wrong: 'Spa in both lists or neither, an empty category card, a wrong label.',
+  },
+  {
     id: 'spaforest',
     added: '2026-11-09',
     name: 'Spa-Frankenchumps in the Ardennes: the forest round the circuit, 8000 trees',

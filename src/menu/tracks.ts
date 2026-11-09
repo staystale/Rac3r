@@ -39,6 +39,8 @@ export const KIND: Record<string, string> = { lab: 'TEST GROUND', 'test-track': 
 // flat grid one tap away.
 const CATS = [
   { id: 'circuits', name: 'CIRCUITS', sub: 'road racing · laps · grids' },
+  // (shown only with a level listed under it: world/levels/category.ts LISTED_UNDER)
+  { id: 'world', name: 'WORLD CIRCUITS', sub: 'the championships\' tracks · F1 · GT' },
   { id: 'rally', name: 'RALLY STAGES', sub: 'point to point · against the clock' },
   { id: 'rx', name: 'RALLYCROSS', sub: 'mixed surface · joker lap' },
   { id: 'ovals', name: 'OVALS', sub: 'stock car · speedway · autograss' },
