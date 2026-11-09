@@ -6,12 +6,12 @@ import { makeCar, reset, step, PHYSICS_STEP_SECONDS as DT } from '../../src/vehi
 import { takeFenceShreds } from '../../src/world/armcodent.ts';
 import { hit } from '../../src/damage.ts';
 L.setLevel('lab');
-for (const kind of ['woodfence', 'catchfence', 'armco']) for (const kmh of [20, 30, 40, 60]) {
+for (const kind of ['woodfence', 'catchfence', 'armco']) for (const kmh of [8, 12, 16, 25]) {
   const level = { barriers: [{ kind, pts: [[-50, 600], [50, 600]] }] };
   L.prepBarriers(level); takeFenceShreds();
   const car = makeCar('hatch-fwd'), v = kmh / 3.6, head = Math.PI / 2 * 0.8;
   reset(car, 0, 590, head); car.vx = Math.cos(head) * v; car.vy = Math.sin(head) * v;
-  for (let t = 0; t < 2; t += DT) {
+  for (let t = 0; t < 6; t += DT) {
     const vx0 = car.vx, vy0 = car.vy;
     L.clampToBarriers(car, level.barriers); hit(car, vx0, vy0);
     step(car, { steer: 0, throttle: 0, brake: 0, handbrake: 0 }, DT);

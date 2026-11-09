@@ -35,24 +35,26 @@ const RAIL_FEEL: Record<string, RailFeel> = {
     tearLoss: 0.4 },
   catchfence: { from: 1, perV: 0.1, max: 0.95, tear: 1, bounce: 0.05, give: 0.3, scrape: 0.6,
     tearLoss: 0.2 },
-  // THE WOODEN FENCE (a central reservation's, highway/medians.ts): posts and rails - it gives a
-  // little, breaks from ~35 km/h square (MEASURED, tools/scratch/_woodfencecheck.mjs), and its
-  // broken stretch flies off as rails and posts
-  woodfence: { from: 1.5, perV: 0.09, max: 0.5, tear: 0.6, bounce: 0.08, give: 0.4, scrape: 0.7,
-    tearLoss: 0.25 },
+  // THE WOODEN FENCE (a central reservation's, highway/medians.ts; owner 11-09: "Wooden Fences
+  // should be weaker and emit Broken bits of wood when broke"): posts and rails - it barely
+  // gives, breaks from ~20 km/h square (MEASURED, tools/scratch/_woodfencecheck.mjs), its broken
+  // stretch flies off as rails, posts and bits of wood
+  woodfence: { from: 0.8, perV: 0.12, max: 0.4, tear: 0.35, bounce: 0.05, give: 0.25,
+    scrape: 0.6, tearLoss: 0.12 },
 };
-// what a torn rail's stretch flies off as: its pieces, and how many of the first kind
-const SHREDS: Record<string, [string, string, number]> = {
-  catchfence: ['mesh', 'fencepost', 6], woodfence: ['woodrail', 'woodpost', 3] };
+// what a torn rail's stretch flies off as: each piece and how many
+const SHREDS: Record<string, [string, number][]> = {
+  catchfence: [['mesh', 6], ['fencepost', 2]],
+  woodfence: [['woodrail', 2], ['woodpost', 2], ['woodchip', 8]] };
 // a car torn through a catch fence is dragged by the mesh this long, s, slowing it this hard at
 // first, m/s^2, easing off as it tears loose
 const TANGLE_S = 1, TANGLE_DECEL = 6;
 // a torn catch fence's shreds: scraps of mesh and posts a gap throws, the share of the car's speed
 // into it they fly off with (least, most), their spread along the fence, m/s
-const SHRED_POSTS = 2, SHRED_SPEED: [number, number] = [0.35, 0.8],
+const SHRED_SPEED: [number, number] = [0.35, 0.8],
   SHRED_SPREAD = 2.5;
 /** The loose-object kinds a torn catch fence throws (cones/coneConsts.ts DEBRIS has each). */
-export const SHRED_KINDS = ['mesh', 'fencepost', 'woodrail', 'woodpost'];
+export const SHRED_KINDS = ['mesh', 'fencepost', 'woodrail', 'woodpost', 'woodchip'];
 
 /** One shred of a torn fence on its way to the loose objects (world/debris.ts throwParts). */
 export interface FenceShred { kind: string; x: number; y: number; vx: number; vy: number;
@@ -80,14 +82,15 @@ export function takeFenceShreds(): FenceShred[] {
  * @param pieces what it flies off as (SHREDS: the catch fence's mesh and posts)
  */
 function shredFence(from: Point, till: Point, nx: number, ny: number, into: number,
-  pieces: [string, string, number] = SHREDS.catchfence): void {
+  pieces: [string, number][] = SHREDS.catchfence): void {
   const alongX = till[0] - from[0], alongY = till[1] - from[1];
-  const len = Math.hypot(alongX, alongY) || 1, [first, second, many] = pieces;
-  for (let i = 0; i < many + SHRED_POSTS; i++) {
+  const len = Math.hypot(alongX, alongY) || 1;
+  const kinds = pieces.flatMap(([kind, count]) => Array<string>(count).fill(kind));
+  for (const kind of kinds) {
     const share = Math.random(), push = into * (SHRED_SPEED[0]
       + Math.random() * (SHRED_SPEED[1] - SHRED_SPEED[0]));
     const spread = (Math.random() * 2 - 1) * SHRED_SPREAD;
-    shreds.push({ kind: i < many ? first : second,
+    shreds.push({ kind,
       x: from[0] + alongX * share, y: from[1] + alongY * share,
       vx: -nx * push + (alongX / len) * spread, vy: -ny * push + (alongY / len) * spread,
       ang: Math.atan2(alongY, alongX) + (Math.random() - 0.5), spin: (Math.random() - 0.5) * 10 });

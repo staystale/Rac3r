@@ -11,7 +11,6 @@
 //             down an open stretch, to knock over
 //   roads     none here (the endless highway lays its own as the road grows:
 //             highway/roadlamps.ts)
-import { FIX } from '../core/fixes.ts';
 import { querySubtrack } from './tyrewall.ts';
 import { FLOOR } from './bounds.ts';
 import { SURFACES } from './surfaces.ts';
@@ -32,7 +31,7 @@ const STREET_BEND_R = 150, STREET_READ_M = 10, STREET_OUTS_M = [6, 8, 10, 12];
 // floodlight pylons: how far out from the track edge, and their spacing by kind, m
 const FLOOD_OUT_M = 16;
 const FLOOD_GAP_M: Record<string, number> = { circuits: 140, ovals: 70, rx: 110 };
-// ?clearance=1: m past a raced road's edge a lamp keeps, measured exactly (the nearest sample's
+// m past a raced road's edge a lamp keeps, measured exactly (the nearest sample's
 // distance let one stand 0.6 m off Oulton Pork's Island hairpin, inside a corner's floodlight
 // ring; tools/scratch/_solidnear.mjs) - a rally stage's village lamps stand by their road
 const LAMP_ROAD_M = 5;
@@ -150,16 +149,14 @@ function inZone(zone: { x: number; y: number; w: number; h: number; rot?: number
 }
 
 /**
- * How far a point is from a level's raced road's centreline, m (?clearance=1: measured exactly,
- * and a closed track's lamps keep LAMP_ROAD_M - 1.5 more off it; else the nearest sample's).
+ * How far a point is from a level's raced road's centreline, measured exactly, m - a closed
+ * track's lamps keep LAMP_ROAD_M - 1.5 more off it.
  * @param level the level (with a subtrack)
  * @param spot the point
  * @returns the distance, less the extra room a lamp keeps
  */
 function roadGap(level: Level, spot: Spot): number {
-  const sub = level.subtrack!;
-  if (!FIX.clearance) return trackGap(sub, spot);
-  const gap = querySubtrack(sub, spot.x, spot.y).dist;
+  const gap = querySubtrack(level.subtrack!, spot.x, spot.y).dist;
   return catOf(level) === 'rally' ? gap : gap - (LAMP_ROAD_M - 1.5);
 }
 
@@ -195,11 +192,11 @@ function isFreeOfThings(level: Level, spot: Spot, reach: number): boolean {
       lineGap(lane.pts as [number, number][], spot) < lane.width / 2 + reach)
     && !(level.cones || []).some((cone) => near(cone.x, cone.y, reach + 0.8))
     && !(level.zones || []).some((zone) => isPanel(zone) && inZone(zone, spot, reach))
-    && !(FIX.clearance && inWater(level, spot, reach));
+    && !inWater(level, spot, reach);
 }
 
 /**
- * Whether a point lies within reach of the level's scenery water (a lake, a river: ?clearance=1 -
+ * Whether a point lies within reach of the level's scenery water (a lake, a river -
  * a corner floodlight's tyre ring stood half in Malarkey Park's lake by Stebbe Straight).
  * @param level the level
  * @param spot the point

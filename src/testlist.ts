@@ -13,46 +13,6 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
-    id: 'clearance',
-    added: '2026-11-09',
-    name: 'Nothing solid inside the run-off: lamps and marshal posts 5 m clear, gantry legs tidy',
-    where: 'Test link + &clearance=1 (&cadwallop=1): Oulton Pork Island, Cadwallop Club, any track',
-    try: 'Look along each venue: no lamp or post at the road edge; the Club start gantry.',
-    wrong: 'A lamp or post missing where it should be, one at the edge, a gantry leg on a road.',
-  },
-  {
-    id: 'twoway',
-    added: '2026-11-09',
-    name: 'Deaf Valley both ways: slow cars in your lane, oncoming in the other (racers do crash)',
-    where: 'Test link + &twoway=1: Highway to Hull > DEAF VALLEY, alone and VS AI',
-    try: 'Overtake into the oncoming lane; watch the other way\'s cars brake and edge over.',
-    wrong: 'A car on the wrong side by itself, spinning off alone, popping in, or no traffic.',
-  },
-  {
-    id: 'medians',
-    added: '2026-11-09',
-    name: 'Central barriers varied: Jersey barrier (throws a fast car), Armco, chain link, wood',
-    where: 'Test link + &medians=1: Highway to Hull > MOTORWAY / INTERSTATE / DUAL / WALLED',
-    try: 'Drive a few km: the barrier changes. Glance off a Jersey barrier at 150 km/h; hit wood.',
-    wrong: 'A gap or a doubled barrier where kinds change, wood not breaking, a slow tap flipping.',
-  },
-  {
-    id: 'malarkey',
-    added: '2026-11-09',
-    name: 'Malarkey Park (Mallory Park) at 1/2 size, a new track: the Car Circuit and the Oval',
-    where: 'Test link + &malarkey=1: TEST MODE > CIRCUITS > Malarkey Park > Car Circuit / Oval',
-    try: 'Lap both: Gerard\'s round the lake, the Esses, Shaw\'s Hairpin, the Devil\'s Elbow.',
-    wrong: 'A road or prop on the track, a barrier gap, a road to nowhere, a fence not real.',
-  },
-  {
-    id: 'cadwallop',
-    added: '2026-11-09',
-    name: 'Cadwallop Park (Cadwell Park) at 1/2 size, a new track: the Full and the Club',
-    where: 'Test link + &cadwallop=1: TEST MODE > CIRCUITS > Cadwallop Park > Full / Club',
-    try: 'Lap both: Coppice, Charlies, the woods, the Mountain, Hall Bends, the Club Hairpin.',
-    wrong: 'A road or prop on the track, a barrier gap, a road to nowhere, a fence not real.',
-  },
-  {
     id: 'venueoverlaps',
     added: '2026-11-09',
     name: 'Tidier venues: tyre walls in two neat rows, nothing piled on each other, no zig-zags',

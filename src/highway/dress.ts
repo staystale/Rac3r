@@ -363,7 +363,7 @@ function layMedian(ctx: DressCtx) {
       const pos = pointAt(j, offset);
       pts.push([pos.x, pos.y]);
     }
-    if (pts.length > 1) level.barriers.push({ kind: medianAt(level._cfg, level._hw.seed,
-      road[startIdx].s), pts, _s: road[startIdx].s });
+    const kind = medianAt(level._cfg, level._hw.seed, road[startIdx].s);
+    if (kind && pts.length > 1) level.barriers.push({ kind, pts, _s: road[startIdx].s });
   }
 }

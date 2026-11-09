@@ -1,4 +1,4 @@
-// world/levels/malarkey-venue.ts - MALARKEY PARK, a NEW venue (?malarkey=1, world/venue.ts):
+// world/levels/malarkey-venue.ts - MALARKEY PARK, a venue (world/venue.ts; passed 11-09):
 // Mallory Park (Leicestershire) from OpenStreetMap (venues/malarkey.ts) at 1/2 of real length
 // with the 13 m road, its two car layouts one venue sharing its scenery: the Car Circuit (Gerard's,
 // Stebbe Straight, the John Cooper Esses out to Shaw's Hairpin, back down the Devil's Elbow) and

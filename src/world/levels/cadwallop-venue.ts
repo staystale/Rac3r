@@ -1,4 +1,4 @@
-// world/levels/cadwallop-venue.ts - CADWALLOP PARK, a NEW venue (?cadwallop=1, world/venue.ts):
+// world/levels/cadwallop-venue.ts - CADWALLOP PARK, a venue (world/venue.ts; passed 11-09):
 // Cadwell Park (Lincolnshire) from OpenStreetMap (venues/cadwallop.ts) at 1/2 of real length with
 // the 13 m road, its two layouts one venue sharing its scenery: the Full (the Mountain, Hall Bends,
 // the Hairpin and Barn) and the Club (the Club Hairpin cutting from the foot of the Mountain onto

@@ -17,11 +17,10 @@ export const HW_PRESETS: Record<string, HwCfg> = {
     bend: [180, 300],
     pStraight: 0.34,
     pBend: 0.2,
-    // the other carriageway past a concrete central barrier (?medians=1: the Jersey barrier
-    // mostly, Armco on older stretches)
+    // the other carriageway past the central reservation: the Jersey barrier mostly, Armco on
+    // older stretches, now and then none
     oncoming: 'carriageway',
-    median: 'wall',
-    medians: [['jersey', 0.6], ['armco', 0.4]],
+    medians: [['jersey', 0.5], ['armco', 0.35], ['none', 0.15]],
   },
   interstate: {
     lanes: 4,
@@ -34,9 +33,8 @@ export const HW_PRESETS: Record<string, HwCfg> = {
     pStraight: 0.45,
     pBend: 0.1,
     oncoming: 'carriageway',
-    median: 'wall',
-    // (the Jersey barrier, Armco, a chain-link fence)
-    medians: [['jersey', 0.5], ['armco', 0.25], ['catchfence', 0.25]],
+    // (the Jersey barrier, Armco, a chain-link fence, often an open grass median)
+    medians: [['jersey', 0.35], ['armco', 0.2], ['catchfence', 0.15], ['none', 0.3]],
   },
   dual: {
     lanes: 2,
@@ -48,11 +46,10 @@ export const HW_PRESETS: Record<string, HwCfg> = {
     bend: [120, 200],
     pStraight: 0.3,
     pBend: 0.25,
-    // a dual carriageway A road: a steel barrier down the middle (?medians=1: Armco, a chain-link
-    // fence, a wooden post-and-rail fence in the country)
+    // a dual carriageway A road: Armco down the middle, a chain-link fence, a wooden post-and-rail
+    // fence in the country, or none
     oncoming: 'carriageway',
-    median: 'armco',
-    medians: [['armco', 0.5], ['catchfence', 0.25], ['woodfence', 0.25]],
+    medians: [['armco', 0.4], ['catchfence', 0.2], ['woodfence', 0.15], ['none', 0.25]],
   },
   // WALLED IN (requirement: some levels that use this mechanic should be more walled in):
   // `walls` = a continuous barrier kind both sides, `wallGap` m off the road edge; no trees / barns
@@ -70,7 +67,6 @@ export const HW_PRESETS: Record<string, HwCfg> = {
     walls: "wall",
     wallGap: 1.2,
     oncoming: 'carriageway',
-    median: 'wall',
     medians: [['jersey', 1]],
   },
   // DEAF VALLEY (owner 11-08: "canyon which can have the features you've described" - Death
@@ -87,7 +83,7 @@ export const HW_PRESETS: Record<string, HwCfg> = {
     pStraight: 0.22,
     pBend: 0.35,
     theme: 'canyon',
-    // its right-hand lane comes the other way (?twoway=1)
+    // its right-hand lane comes the other way
     oncoming: 'lane',
     // long winding S-bends (the canyon spec 10-06: "long winding and S ing corners"); the HIGH
     // road windier still (highway/desertplan.ts)

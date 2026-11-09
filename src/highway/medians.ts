@@ -1,10 +1,9 @@
-// highway/medians.ts - THE CENTRAL RESERVATION'S BARRIER along a road (?medians=1; owner 11-09:
-// "can some roads have chain link fences or wooden fences or armco for the central reservation /
-// Vary it randomly and appropriate to track"): each road type's own mix (presets.ts cfg.medians -
-// a motorway's concrete Jersey barrier and Armco, a dual carriageway's Armco, chain link and
-// wooden fences), the kind changing every STRETCH_M by the road's seed, never the same twice
-// running; with the switch off, cfg.median all the way.
-import { FIX } from "../core/fixes.ts";
+// highway/medians.ts - THE CENTRAL RESERVATION'S BARRIER along a road (owner 11-09: "can some
+// roads have chain link fences or wooden fences or armco for the central reservation / Vary it
+// randomly and appropriate to track"; "It's okay for central reservations to not always be
+// there"): each road type's own mix (presets.ts cfg.medians - a motorway's concrete Jersey barrier
+// and Armco, a dual carriageway's Armco, chain link and wooden fences, now and then none), the
+// kind changing every STRETCH_M by the road's seed, never the same twice running.
 import type { BarrierKind } from "../world/types.ts";
 import type { HwCfg } from "./hwtypes.ts";
 
@@ -12,19 +11,19 @@ import type { HwCfg } from "./hwtypes.ts";
 const STRETCH_M: [number, number] = [800, 2500];
 
 /** A road's plan so far: where each stretch ends, its kind, and the plan's random state. */
-interface MedianPlan { ends: number[]; kinds: BarrierKind[]; state: number }
+interface MedianPlan { ends: number[]; kinds: (BarrierKind | 'none')[]; state: number }
 const PLANS = new Map<string, MedianPlan>();
 
 /**
  * The central reservation's barrier at a road distance.
- * @param cfg the road type (its median, and its mix)
+ * @param cfg the road type (its mix)
  * @param seed the road's seed
  * @param dist m along the road
- * @returns the barrier's kind
+ * @returns the barrier's kind (null: none there)
  */
-export function medianAt(cfg: HwCfg, seed: number, dist: number): BarrierKind {
+export function medianAt(cfg: HwCfg, seed: number, dist: number): BarrierKind | null {
   const mix = cfg.medians;
-  if (!FIX.medians || !mix || !mix.length) return cfg.median || 'armco';
+  if (!mix || !mix.length) return null;
   const key = `${seed}:${mix.map(([kind, weight]) => kind + weight).join(',')}`;
   let plan = PLANS.get(key);
   if (!plan) PLANS.set(key, plan = { ends: [], kinds: [], state: (seed ^ 0x2545f491) >>> 0 || 1 });
@@ -40,5 +39,6 @@ export function medianAt(cfg: HwCfg, seed: number, dist: number): BarrierKind {
   }
   let idx = 0;
   while (plan.ends[idx] <= dist) idx++;
-  return plan.kinds[idx];
+  const kind = plan.kinds[idx];
+  return kind === 'none' ? null : kind;
 }

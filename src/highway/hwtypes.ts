@@ -19,12 +19,12 @@ export interface HwCfg {
   // its changes by road distance (Deaf Valley's HIGH road: highway/desertplan.ts)
   stretch?: (dist: number, seed: number) => Partial<HwCfg> | null;
   // the other way's traffic: 'carriageway' - a second carriageway, mirrored, the far side of a
-  // central reservation with a barrier of kind median; 'lane' (?twoway=1) - a single carriageway
+  // central reservation (its barriers: medians); 'lane' - a single carriageway
   // whose right-hand lane comes the other way (road.ts laneGeo)
   oncoming?: 'carriageway' | 'lane';
-  median?: BarrierKind;
-  // ?medians=1: the central barrier's kinds and their weights along the road (highway/medians.ts)
-  medians?: [BarrierKind, number][];
+  // the central reservation's barrier kinds and their weights along the road ('none': open)
+  // (highway/medians.ts)
+  medians?: [BarrierKind | 'none', number][];
 }
 
 /** The road's cross-section (road.ts laneGeo), m from the centre line (+ = the driver's right). */

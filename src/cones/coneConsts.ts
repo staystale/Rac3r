@@ -163,9 +163,10 @@ export const DEBRIS: Record<string, DebrisKind> = {
   mesh:     { mass: 3,  r: 0.6, breaks: 0 },
   fencepost: { mass: 9, r: 0.35, breaks: 0 },
   // a torn wooden fence's (world/armcodent.ts): a rail, snapping into splinters when hit again,
-  // and a post
+  // a post, and a bit of wood
   woodrail: { mass: 8, r: 0.9, breaks: 1, into: 'splinters' },
   woodpost: { mass: 7, r: 0.3, breaks: 1, into: 'splinters' },
+  woodchip: { mass: 1, r: 0.2, breaks: 0 },
   // Deaf Valley's cacti (highway/canyon.ts; owner 11-09: "cactus should be destructible but high
   // puncture chance"): a saguaro and a small barrel cactus snap at the first hit into a flat patch
   // of spiny pulp (physics/punctures.ts: their spines)

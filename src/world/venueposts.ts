@@ -2,7 +2,6 @@
 // marshal post behind the Armco outside each corner, and the boards on the Armco (or a catch
 // fence where no Armco is near), facing the track - and the start gantry across the road.
 import { onTrack } from "./tyrewall.ts";
-import { FIX } from "../core/fixes.ts";
 import { HALF_ROAD, centreAt, distToLine, nearestLoop, roadDistance } from "./venuegeo.ts";
 import { RIM_STEP_M, RUNOFF_M, awayFrom, pastRim } from "./venueedge.ts";
 import { EDGE_TO_WALL } from "./venuepit.ts";
@@ -144,10 +143,9 @@ export function startGantry(site: Site, sub: Subtrack, pitWalls: Barrier[]): Pro
     // no wall by it, then between the road and the lane, as before)
     for (let out = HALF_ROAD; out < HALF_ROAD + 40; out += 0.25) {
       const [x, y] = spot(side * out);
-      // (?clearance=1: another road first - the Club's start beside Mansfield at Cadwallop - the
-      // leg stays this side of it, on the old spot)
-      // (past the old spot any road this near is another stretch's)
-      if (FIX.clearance && out > onWall
+      // (another road first - the Club's start beside Mansfield at Cadwallop: past the old spot
+      // any road this near is another stretch's - the leg stays this side of it, on the old spot)
+      if (out > onWall
         && nearestLoop(site.loops, x, y).hit.dist < HALF_ROAD + LEG_LANE_M) return onWall;
       if (pastRim(site.rims, x, y) >= LEG_BACK_M)
         return onLanes(site.lanes, x, y, LEG_LANE_M) ? onWall : out;

@@ -12,7 +12,7 @@
 // aidodge, ailines, ailook, dodgefar, markjump passed 11-04; credits, bigbrands, crossings,
 // fencedrag, tyresleep, burstcap, stackvary, linewall, tallfence, rollway, castlecumvenue,
 // rollover, rollbody, snotterton, sidedraft passed 11-08; oultonpork, sillystone, runoff, laplen,
-// oncoming, oultonrails passed 11-09.)
+// oncoming, oultonrails, cadwallop, malarkey, medians, twoway, clearance passed 11-09.)
 import { envValue } from './debug.ts';
 
 /**
@@ -54,23 +54,4 @@ export const FIX = {
   // ?knobhillvenue=1: Knobhill as the real venue (Knockhill) at 1/2 of real length, the
   // rallycross (the Knobhill level) and the circuit (world/levels/knobhill-venue.ts; owner 11-09)
   knobhillvenue: atLoad('knobhillvenue'),
-  // ?cadwallop=1: Cadwallop Park, a NEW venue (Cadwell Park) at 1/2 of real length, the Full and
-  // the Club (world/levels/cadwallop-venue.ts; owner 11-09: "Yes do those all")
-  cadwallop: atLoad('cadwallop'),
-  // ?medians=1: the central reservation varied by road and at random along it - a JERSEY barrier
-  // that throws a car hit fast, Armco, chain link, a wooden fence (highway/medians.ts,
-  // world/jersey.ts; owner 11-09: "Can central reservation be a jersey barrier that flips cars at
-  // higher speed ?", "Vary it randomly and appropriate to track")
-  medians: atLoad('medians'),
-  // ?twoway=1: Deaf Valley's single carriageway both ways - our way's traffic in its left lane,
-  // the other way's in its right (highway/road.ts laneGeo; owner 11-09: "they can crash when
-  // passing it's ok")
-  twoway: atLoad('twoway'),
-  // ?clearance=1: nothing solid inside a raced road's run-off - lamps 5 m clear of its edge
-  // (measured exactly), marshal posts too, a gantry's leg never past another road
-  // (world/lampplan.ts, venuescenery.ts clearPosts, venueposts.ts startGantry)
-  clearance: atLoad('clearance'),
-  // ?malarkey=1: Malarkey Park, a NEW venue (Mallory Park) at 1/2 of real length, the Car Circuit
-  // and the Oval (world/levels/malarkey-venue.ts; owner 11-09: "Yes do those all")
-  malarkey: atLoad('malarkey'),
 };

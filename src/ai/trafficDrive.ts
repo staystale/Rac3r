@@ -9,7 +9,7 @@ import { carryKinematic, drivePhysics } from "./trafficPhys.ts";
 import type { TrafficCar, TrafficEnt } from "./types.ts";
 
 // s to meeting a car coming at it in its lane within which the other way's car brakes, the most
-// it brakes, and the m it edges toward its own verge then (?twoway=1, Deaf Valley: following it,
+// it brakes, and the m it edges toward its own verge then (Deaf Valley: following it,
 // it stopped dead in the road - MEASURED, hwracecheck: racers ran into the queue; braking in full
 // as it edged over, it spun off - tools/trafficcheck.mjs TWOWAY=1: 92 car-steps off the road)
 const MEET_T = 3, MEET_BRAKE = 0.5, MEET_EDGE_M = 0.8;
