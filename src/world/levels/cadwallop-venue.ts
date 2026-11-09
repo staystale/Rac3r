@@ -10,12 +10,34 @@
 // layout is not built: its link from the pit straight onto the Mountain is a U-turn between two
 // roads 16 m apart.
 // EU-DEM heights fitted as three hollows (rms 2.8 m): high to the west (Park, 144 m), down to the
-// valley east of the pit straight (105). North up, the lap clockwise.
+// valley east of the pit straight (105). North up, the lap clockwise. OSM maps no rails: the Armco
+// is traced from aerial photographs (CW_RAILS).
 import { CADWALLOP_VENUE } from "./venues/cadwallop.ts";
 import { venueLap, venueLevel } from "../venue.ts";
 import type { VenueSpec } from "../venue.ts";
-import type { Level } from "../types.ts";
+import type { Level, Point } from "../types.ts";
 
+// THE REAL ARMCO (owner 11-09: OSM maps none at Cadwell - trace it as at Oulton): barrier lines
+// seen on aerial photographs (ESRI World Imagery, 0.36 m a pixel), real m, each followed by the
+// edge (spec.railsSeen with followRails: the Armco at the run-off's rim beside it)
+const CW_RAILS: Point[][] = [
+  // Hall Bends, the east side, and the west side's kinks
+  [[241, -373], [240.5, -329], [237, -285], [234.5, -264]],
+  [[219, -360], [215, -339], [205, -311], [203, -298]],
+  // the Hairpin's outside, round into Barn
+  [[259, -413.5], [295.6, -400.5], [332, -387.5], [366, -369], [369.7, -357.6]],
+  // the pit straight's east side, down to the Club Hairpin
+  [[232, -72], [216.4, -33], [200.8, 6], [172, 65.6]],
+  // the Mountain: its foot's outside, and both sides up to Hall Bends
+  [[100.7, -69.6], [100.7, -2], [117.6, 9.7], [138.4, 24], [148.8, 37]],
+  [[167, -184.4], [152.8, -158], [140.8, -134]],
+  [[181.6, -182], [174.4, -153], [164.8, -122]],
+  // Coppice's outside, to Charlies
+  [[146, 263], [172, 302], [198, 341], [218.8, 372]],
+  // Park Straight's north side, and the Gooseneck's east side down to Mansfield
+  [[-220.4, 251.6], [-170, 290.8], [-128, 324.4], [-80.4, 383.2]],
+  [[-156, 226.4], [-128, 265.6], [-102.8, 302], [-80.4, 344]],
+];
 // the venue's name (agreed 11-09, owner: "Yes do those all"), in one place
 export const CADWALLOP = 'Cadwallop Park';
 
@@ -58,6 +80,8 @@ export const CADWALLOP_SPEC: VenueSpec = {
   boards: [],
   // Cadwell Park's first race meeting, 1934
   seed: 1934,
+  followRails: true,
+  railsSeen: CW_RAILS,
 };
 
 // the two layouts of the one venue, sharing its scenery - each built on first use (world/load.ts
