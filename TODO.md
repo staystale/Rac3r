@@ -196,6 +196,12 @@ last handover, written on request.
    banking (31 / 18 / 3 deg, camber sections with a fixed side), the SAFER wall, Lake Lloyd (scenery
    water), the turn 1 and turn 4 tunnels, the frontstretch stands, rolling start, a mown skull in the
    tri-oval grass. UNDER TEST; the old Naffcar Speedway stays as the classic.
+   KNOBHILL VENUE BUILT 11-09 behind ?knobhillvenue=1 (levels/knobhill-venue.ts, OSM data in
+   venues/knobhill.ts; the venue helper): the rallycross as the Knobhill level (686 m, OSM 1384 real:
+   the real gravel through the infield from Leslie's to Hislop's, 40 % loose; the real joker round
+   Taylor's hairpin, the lap cutting up the escape road) and the International circuit as
+   Knobhill Circuit (988 m, real 2039). Venue system: a loose race piece's dirt sector, spec.joker.
+   UNDER TEST; the old knobhill.ts goes on pass.
 3. ROLLING LOOK - smoother than the dice flip on the same physics; mockup first.
 4. SIDE DRAFTING (Naffcar first) PASSED + DEFAULT 11-08 (owner: "Pass"): physics/wake.ts part 5 - a nose
    alongside a car's rear quarter, up to +20 % drag on it and -6 % on the car alongside, gone by 1.2 m

@@ -33,6 +33,7 @@ import { CC_VENUE_LEVEL } from "./castle-cum-venue.ts";
 import { SN_LEVELS } from "./snotterton-venue.ts";
 import { DT_LEVELS } from "./dieatona-venue.ts";
 import { TH_VENUE_LEVEL } from "./thruston-venue.ts";
+import { KH_VENUE_LEVELS } from "./knobhill-venue.ts";
 import { FIX } from "../../core/fixes.ts";
 import { LAB_PAINT, LAB_BOARDS } from "../barriers.ts";
 import { courseCones, slalom, outerTyreWall } from "../tyrewall.ts";
@@ -103,7 +104,8 @@ export const LEVELS: Level[] = [
     bushes: TEST_TRACK_BUSHES,
     spawn: { x: -62, y: -96.48, heading: 0.0109 },
   },
-  KH_LEVEL,
+  // ?knobhillvenue=1: the real venue (knobhill-venue.ts), its rallycross and its circuit
+  ...(FIX.knobhillvenue ? KH_VENUE_LEVELS : [KH_LEVEL]),
   BH_GP_LEVEL,
   BH_INDY_LEVEL,
   {
