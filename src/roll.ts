@@ -126,8 +126,7 @@ function carryOver(car: RollCar, carry: number) {
 }
 
 /**
- * A car going over a Jersey barrier (?jerseyover=1) crosses it at this speed, its speed along it
- * kept.
+ * A car going over a Jersey barrier crosses it at this speed, its speed along it kept.
  * @param car the car
  * @param over the way across (a unit vector) and m/s
  */
@@ -149,7 +148,7 @@ function rideRoll(car: RollCar, rnd: () => number): boolean {
   car._rideUp = null;
   if (!ride || rnd() >= ride.chance) return false;
   startRoll(car, ride.dir, ride.vLat);
-  // (?jerseyover=1: over the top, on across it)
+  // (over the top: on across it)
   if (ride.over) goAcross(car, ride.over);
   return true;
 }

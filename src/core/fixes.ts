@@ -13,7 +13,7 @@
 // fencedrag, tyresleep, burstcap, stackvary, linewall, tallfence, rollway, castlecumvenue,
 // rollover, rollbody, snotterton, sidedraft passed 11-08; oultonpork, sillystone, runoff, laplen,
 // oncoming, oultonrails, cadwallop, malarkey, medians, twoway, clearance, passcare, gantry,
-// anglesleazy, goodwoody, croughed passed 11-09.)
+// anglesleazy, goodwoody, croughed, jerseyover, shoulder passed 11-09.)
 import { envValue } from './debug.ts';
 
 /**
@@ -44,20 +44,11 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
-  // ?jerseyover=1: a Jersey barrier rolls most cars that hit it fast - every one at 100 mph - and
-  // throws most of those over the top into the other carriageway (owner 11-09: "There should be a
-  // high chance to roll over jersey barrier - hitting it over 100mph should flip you and have a
-  // high chance to allow you over it into on coming traffic"; world/jersey.ts)
-  jerseyover: atLoad('jerseyover'),
   // ?holdoncoming=1: no oncoming traffic on a single carriageway (Deaf Valley) until the race has
   // started - the other way's cars join from out of sight ahead after the green (owner 11-09:
   // "no on coming traffic on Death Valley or any small single carriage way until after the race
   // has started"; ai/trafficReset.ts, trafficStep.ts)
   holdoncoming: atLoad('holdoncoming'),
-  // ?shoulder=1: every reset on the endless roads - the R key, the going-wide guard, an AI put
-  // back - on our hard shoulder, facing up the road (owner 11-09: "Resetting should start up in
-  // the hard shoulder only"; highway/road.ts shoulderOff)
-  shoulder: atLoad('shoulder'),
   // ?dieatona=1: Dieatona (the Daytona parody) as a new venue at 1/2 of real length, the oval and
   // the road course (world/levels/dieatona-venue.ts; owner 11-08)
   dieatona: atLoad('dieatona'),

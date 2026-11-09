@@ -2,6 +2,7 @@
 import { hwLevel } from './state.ts';
 import { step, reset, assertFinite } from '../vehicle.ts';
 import { hwPutBack } from '../highwayrace.ts';
+import { roadFrame } from '../highway.ts';
 import { hit, hitRoll, repair, tooInjured, applyBurst, stepDamage } from '../damage.ts';
 import { rolling, tripCheck, stepRoll } from '../roll.ts';
 import { LEVEL } from "../world/state.ts";
@@ -24,12 +25,13 @@ import type { RaceFlow } from '../raceflow.ts';
 // the road yet): the nearest centreline point, as before.
 export function aiReset(entry: HurtEntry) {
   const car = entry.car, sub = LEVEL.subtrack!, rec = car._lastOn;
-  // the HIGHWAY: 15 m back from where it was, in the lane with the most room, facing up the road,
-  // rolling (highwayrace.js hwPutBack)
+  // the HIGHWAY: 15 m back from where it was, on the hard shoulder, facing up the road, rolling
+  // (highwayrace.ts hwPutBack)
   if (LEVEL.endless) {
     const all = [game.car, ...game.ai.map((other) => other.car),
       ...game.traffic.cars].filter((other) => other !== car),
-        point = hwPutBack(hwLevel(), (car._hwf ? car._hwf.s : 0) - 15, all);
+        frame = car._hwf ?? roadFrame(hwLevel(), car.x, car.y, null),
+        point = hwPutBack(hwLevel(), (frame ? frame.s : 0) - 15, all);
     const speed = Math.max(12, 0.5 * Math.hypot(car.vx, car.vy));
     reset(car, point.x, point.y, point.h);
     car.vx = Math.cos(point.h) * speed;

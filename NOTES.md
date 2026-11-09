@@ -501,6 +501,12 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   the raceways, on the lines the photos show. tools/osmvenue.mjs reads only guard_rail and
   jersey_barrier into data.rails, so they were laid as spec.railsSeen - leaving out the pit wall
   (world/venuepit.ts lays its own) and the walls round the paddock and huts.
+- A RESET ON A TWO-WAY ROAD NEVER TAKES "THE NEAREST EDGE" (11-09, owner: "reset still can leave me
+  on the opposite carriage way !"): the circuits' reset puts the car on the edge it left by, and a
+  car thrown over the Jersey barrier left by the oncoming side's. Every endless-road reset - the R
+  key, a stuck car, the off-road and wrong-way guards, an AI put back - goes to our hard shoulder
+  (highway/road.ts shoulderOff), facing up the road; tools/scratch/_resetspots.mjs tries each.
+
 
 ## Routine
 

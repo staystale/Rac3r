@@ -13,22 +13,6 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
-    id: 'jerseyover',
-    added: '2026-11-09',
-    name: 'Jersey barrier: most fast hits roll you, 100 mph always, mostly over into oncoming',
-    where: 'Test link + &jerseyover=1: Highway to Hull > Motorway or Walled (the concrete middle)',
-    try: 'Hit the central concrete barrier at 70, 90 and 100+ mph, glancing and steeper.',
-    wrong: 'Not rolled at 100 mph, never over the top, stuck on it, or thrown off the far side.',
-  },
-  {
-    id: 'shoulder',
-    added: '2026-11-09',
-    name: 'Highway resets on the hard shoulder: the R key, going wide, a racer put back',
-    where: 'Test link + &shoulder=1: Highway to Hull, any road, alone and VS AI',
-    try: 'Press R in each lane and on the far carriageway; go wide off the road; crash a racer.',
-    wrong: 'Put back in a live lane, on the other carriageway, facing across the road.',
-  },
-  {
     id: 'holdoncoming',
     added: '2026-11-09',
     name: 'Deaf Valley: no oncoming cars until the race has started, then they come from ahead',

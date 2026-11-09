@@ -2,9 +2,8 @@
 import { lineUpCrashBench } from './crashbench.ts';
 import { hwLevel } from './state.ts';
 import { reset } from '../vehicle.ts';
-import { resetHighway, roadFrame, roadPose } from '../highway.ts';
+import { resetHighway, roadFrame, roadPose, highwayRespawn } from '../highway.ts';
 import { shoulderOff } from '../highway/road.ts';
-import { FIX } from '../core/fixes.ts';
 import { createHwFlow, hwGridSpan } from '../highwayrace.ts';
 import { createRaceFlow } from '../raceflow.ts';
 import { repair, resetBill } from '../damage.ts';
@@ -154,6 +153,27 @@ function resetOnJoker(place: PlaceCar) {
 }
 
 /**
+ * On the endless roads (owner 11-09, passed: "Resetting should start up in the hard shoulder
+ * only"): back RESET_BACK m from where you are - from the other carriageway too - on our hard
+ * shoulder, facing up the road, the traffic cleared from round it; too far off the road to say
+ * where you are, the guard's spot (highway.ts highwayRespawn) - never the circuits' nearest edge,
+ * which on a twin carriageway can be the other one's.
+ * @param place puts the car
+ * @returns true when it did (on an endless road, always)
+ */
+function resetOnShoulder(place: PlaceCar): boolean {
+  if (!LEVEL.endless) return false;
+  const level = hwLevel(), here = roadFrame(level, game.car.x, game.car.y, null);
+  const pose = here ? roadPose(level, here.s - RESET_BACK, shoulderOff(level))
+    : highwayRespawn(level);
+  place(game.car, pose.x, pose.y, pose.h);
+  game.traffic.clearAround(pose.x, pose.y, 30);
+  shared.lastOnTrack = null;
+  if (shared.renderer && shared.renderer.snap) shared.renderer.snap(game.car);
+  return true;
+}
+
+/**
  * CIRCUITS (requirement: reset doesn't work nicely — always behind / in line with where the
  * player LEFT the track, half on half off as if corrected, a random close angle pointing back on,
  * NOT on the racing line). Was: the nearest CENTRELINE point, dead straight — on the racing line,
@@ -163,24 +183,6 @@ function resetOnJoker(place: PlaceCar) {
  * @param place puts the car down
  * @returns true when the car was put back on the circuit
  */
-/**
- * On the endless roads (?shoulder=1): back RESET_BACK m from where you are, on our hard shoulder,
- * facing up the road, the traffic cleared from round it.
- * @param place puts the car
- * @returns true when it did
- */
-function resetOnShoulder(place: PlaceCar): boolean {
-  if (!FIX.shoulder || !LEVEL.endless) return false;
-  const level = hwLevel(), here = roadFrame(level, game.car.x, game.car.y, null);
-  if (!here) return false;
-  const pose = roadPose(level, here.s - RESET_BACK, shoulderOff(level));
-  place(game.car, pose.x, pose.y, pose.h);
-  game.traffic.clearAround(pose.x, pose.y, 30);
-  shared.lastOnTrack = null;
-  if (shared.renderer && shared.renderer.snap) shared.renderer.snap(game.car);
-  return true;
-}
-
 function resetOnCircuit(place: PlaceCar) {
   if (!LEVEL.subtrack) return false;
   const sub = LEVEL.subtrack!;

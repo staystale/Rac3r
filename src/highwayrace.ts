@@ -17,7 +17,6 @@
 import { roadFrame, roadPose, roadSpan } from './highway.ts';
 import { shoulderOff } from './highway/road.ts';
 import type { HwLevel } from './highway/hwtypes.ts';
-import { FIX } from './core/fixes.ts';
 import type { AiCar, HighwayLevel } from "./ai/types.ts";
 import { endRace, order } from "./ai/hwFlow.ts";
 import { stepFlow } from "./ai/hwFlowStep.ts";
@@ -65,36 +64,20 @@ export function hwGridSpan(level: HighwayLevel, count: number) {
   const spawnS = roadFrame(level, level.spawn.x, level.spawn.y, null)!.s;
   return [spawnS - GRID_BACK - (Math.ceil(count / 2) + 1) * GRID_ROW - 25, spawnS + 60];
 }
-// where to put a car back (crashed / stuck / rolled): at road distance s, in the lane with the most
-// room, facing up the road
-// how many 12 m steps back a put-back on the hard shoulder looks for room (?shoulder=1)
+// where to put a car back (crashed / stuck / rolled; owner 11-09, passed: "Resetting should start
+// up in the hard shoulder only"): at road distance s on the hard shoulder - from the other
+// carriageway too - facing up the road, stepped back past any car there; how many 12 m steps back
+// it looks for room
 const PUT_BACK_TRIES = 4;
 
 export function hwPutBack(level: HighwayLevel, dist: number, cars: AiCar[]) {
-  const { s0, s1 } = roadSpan(level), centres = level._hw.geo.centres;
+  const { s0, s1 } = roadSpan(level);
   dist = Math.max(s0 + 60, Math.min(s1 - 60, dist));
-  // (?shoulder=1: on the hard shoulder, back along it past any car there)
-  if (FIX.shoulder) {
-    const off = shoulderOff(level as unknown as HwLevel);
-    for (let tries = 0; tries < PUT_BACK_TRIES && cars.some((other) => other._hwf
-      && Math.abs(other._hwf.off - off) < 2.6 && Math.abs(other._hwf.s - dist) < 10); tries++)
-      dist = Math.max(s0 + 60, dist - 12);
-    return roadPose(level, dist, off);
-  }
-  let best = 0, room = -1;
-  for (let lane = 0; lane < centres.length; lane++) {
-    let nearest = 99;
-    for (const other of cars) {
-      const frame = other._hwf;
-      if (frame && Math.abs(frame.off - centres[lane]) < 2.6) nearest = Math.min(nearest,
-        Math.abs(frame.s - dist));
-    }
-    if (nearest > room) {
-      room = nearest;
-      best = lane;
-    }
-  }
-  return roadPose(level, dist, centres[best]);
+  const off = shoulderOff(level as unknown as HwLevel);
+  for (let tries = 0; tries < PUT_BACK_TRIES && cars.some((other) => other._hwf
+    && Math.abs(other._hwf.off - off) < 2.6 && Math.abs(other._hwf.s - dist) < 10); tries++)
+    dist = Math.max(s0 + 60, dist - 12);
+  return roadPose(level, dist, off);
 }
 
 // (the RACER itself is the one AI driver, createAIDriver (ai/circuit.ts), for circuits and the
