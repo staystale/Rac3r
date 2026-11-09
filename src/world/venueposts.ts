@@ -1,11 +1,12 @@
 // world/venueposts.ts - WHAT STANDS BEHIND A VENUE'S EDGE (world/venueedge.ts builds the edge): a
 // marshal post behind the Armco outside each corner, and the boards on the Armco (or a catch
 // fence where no Armco is near), facing the track - and the start gantry across the road.
-import { onTrack } from "./tyrewall.ts";
+import { onTrack, querySubtrack } from "./tyrewall.ts";
 import { HALF_ROAD, centreAt, distToLine, nearestLoop, roadDistance } from "./venuegeo.ts";
 import { RIM_STEP_M, RUNOFF_M, awayFrom, pastRim } from "./venueedge.ts";
 import { EDGE_TO_WALL } from "./venuepit.ts";
-import { onLanes } from "./venuesite.ts";
+import { inBuilding, onLanes } from "./venuesite.ts";
+import { FIX } from "../core/fixes.ts";
 import type { Rim } from "./venueedge.ts";
 import type { Site } from "./venuesite.ts";
 import type { Barrier, Cone, Point, Prop, Subtrack } from "./types.ts";
@@ -114,6 +115,8 @@ export function boardOnArmco(barriers: Barrier[], cones: Cone[], loops: Subtrack
 // m behind the edge's rim the start gantry's leg stands where no pit wall is beside the start;
 // m a leg's spot keeps off a lane's edge (its box 0.6 m either way, and a gap)
 const LEG_BACK_M = 1, LEG_LANE_M = 1.5;
+// m along the lap from the start within which a road point is the start's own stretch
+const OWN_STRETCH_M = 60;
 
 /**
  * The start gantry across the raced road at its start: a leg on the pit wall's line where the
@@ -140,15 +143,29 @@ export function startGantry(site: Site, sub: Subtrack, pitWalls: Barrier[]): Pro
       if (pitWalls.some((wall) => distToLine(wall.pts, x, y) < 0.2)) return out;
     }
     // (none there: behind the rim - unless a lane runs there, the pit lane beside the start with
-    // no wall by it, then between the road and the lane, as before)
+    // no wall by it, then between the road and the lane, as before; ?gantry=1: on past the lane
+    // and any building - MEASURED, tools/scratch/_startcrash.mjs: on the old spot, 3 m past the
+    // edge, it took 17 of 28 start hits at Anglesleazy, 39.8 m/s)
+    let ours = onWall;
     for (let out = HALF_ROAD; out < HALF_ROAD + 40; out += 0.25) {
       const [x, y] = spot(side * out);
       // (another road first - the Club's start beside Mansfield at Cadwallop: past the old spot
-      // any road this near is another stretch's - the leg stays this side of it, on the old spot)
-      if (out > onWall
-        && nearestLoop(site.loops, x, y).hit.dist < HALF_ROAD + LEG_LANE_M) return onWall;
-      if (pastRim(site.rims, x, y) >= LEG_BACK_M)
-        return onLanes(site.lanes, x, y, LEG_LANE_M) ? onWall : out;
+      // any road this near is another stretch's - the leg stays this side of it, on the old spot;
+      // ?gantry=1: only the far side of this layout's own lap stops it - another layout's road
+      // is a lane it steps past - and it stands this side of the midline, short of it by
+      // LEG_BACK_M: at Anglesleazy the National's straight runs alongside, the lap's far side
+      // 40 m off)
+      const own = querySubtrack(sub, x, y), along = Math.abs(own.trackDist - 2);
+      const atStart = Math.min(along, sub.totalDist - along) < OWN_STRETCH_M;
+      if (out > onWall && (FIX.gantry ? !atStart && own.dist < HALF_ROAD + LEG_LANE_M
+        : nearestLoop(site.loops, x, y).hit.dist < HALF_ROAD + LEG_LANE_M))
+        return FIX.gantry ? Math.max(onWall, ours - LEG_BACK_M) : onWall;
+      if (atStart) ours = out;
+      if (pastRim(site.rims, x, y) < LEG_BACK_M) continue;
+      const blocked = onLanes(site.lanes, x, y, LEG_LANE_M)
+        || (FIX.gantry && inBuilding(site.buildings, x, y, LEG_LANE_M));
+      if (!blocked) return out;
+      if (!FIX.gantry) return onWall;
     }
     return onWall;
   };

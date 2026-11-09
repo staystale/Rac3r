@@ -13,6 +13,14 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'gantry',
+    added: '2026-11-09',
+    name: 'Start gantry legs off the run-off: past a lane or building behind the edge',
+    where: 'Test link + &gantry=1 (&anglesleazy=1): Anglesleazy International, Oulton Pork',
+    try: 'Start a full grid and look at the gantry: both legs clear of the run-off.',
+    wrong: 'A leg in a lane, a building or on another road; lights not over the road.',
+  },
+  {
     id: 'anglesleazy',
     added: '2026-11-09',
     name: 'Anglesleazy (the Anglesey Circuit) at 1/2 size, a new track: four layouts',
