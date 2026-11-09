@@ -20,6 +20,28 @@ const LANE_ROOM_M = 0.2;
 const SMOOTH = 6;
 
 const LINES = new WeakMap<object, RacingLine>();
+// A FALLING EDGE (Deaf Valley's gorges: level.roadside, highway/gorge.ts) - the ground DROP_DEPTH m
+// down DROP_PROBE m past either edge: the speed plan counts on EDGE_GRIP of the grip there
+// (MEASURED, tools/scratch/_canyonshot.mjs: the autopilot took a 256 m bend at 170 km/h, 0.9 g,
+// drifted 4 m wide - a verge on any other road - and over the lip into the gorge).
+const DROP_PROBE = 3, DROP_DEPTH = 1, EDGE_GRIP = 0.8;
+
+/**
+ * Whether the ground falls away beside a point of the line (either edge).
+ * @param level the highway level
+ * @param point the line point (its road distance from the window's start)
+ * @param sBase the window's start, m
+ * @returns true by a gorge
+ */
+function byDrop(level: HighwayLevel, point: LinePoint, sBase: number): boolean {
+  const roadside = level.roadside, halfWidth = level._hw.geo.hw;
+  if (!roadside) return false;
+  return [1, -1].some((side) => {
+    const off = side * (halfWidth + DROP_PROBE);
+    return roadside(point.dist + sBase, off, halfWidth, { x: point.x + point.nx * off,
+      y: point.y + point.ny * off }) < -DROP_DEPTH;
+  });
+}
 
 /**
  * The highway's line for the road as it stands (one per subtrack, made when the road grows).
@@ -53,6 +75,7 @@ export function roadLine(level: HighwayLevel): RacingLine {
       pts[i].y = 0.5 * pts[i].y + 0.25 * (pts[i - 1].y + pts[i + 1].y);
     }
   }
+  for (const point of pts) if (byDrop(level, point, sFirst)) point.edge = EDGE_GRIP;
   const path = finishPath(pts, false, (pts.length - 1) * LINE_SP);
   const { cid, corners } = findCorners(path.pts, path.n);
   // its LANES (passed 11-07) - a driver keeps the one it is in (driverLane.ts laneStep)

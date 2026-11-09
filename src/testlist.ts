@@ -31,9 +31,9 @@ export const TEST_LIST: TestEntry[] = [
   {
     id: 'canyon',
     added: '2026-11-08',
-    name: 'Deaf Valley: canyons, the HIGH road over gorges, the open desert, rock formations',
+    name: 'Deaf Valley: random stretches - canyon, HIGH road over gorges, desert, dunes; junk',
     where: 'Test link + &canyon=1: ENDLESS ROADS > Highway to Hull > theme DEAF VALLEY',
-    try: 'Go over an open gorge edge; hit a cactus (punctures); the straights, the hoodoos.',
+    try: 'Go over an open gorge edge; hit a cactus; the dunes, the gas station, the wrecks.',
     wrong: 'A car flung out of a gorge, stuck on a slope, a wall end facing the road, a seam.',
   },
   {

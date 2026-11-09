@@ -181,13 +181,19 @@ const BUMP_HIT: SubtrackHit = { dist: Infinity, side: 'left', trackDist: 0, seg:
  * highway/gorge.ts), at a lookup's nearest point of the road.
  * @param track the road
  * @param hit the lookup's hit on it
+ * @param x the ground point, m
+ * @param y the ground point, m
  * @returns m
  */
-function roadsideHeight(track: Subtrack, hit: SubtrackHit): number {
+function roadsideHeight(track: Subtrack, hit: SubtrackHit, x: number, y: number): number {
   if (hit.seg == null || !Number.isFinite(hit.dist)) return 0;
+  ROADSIDE_AT.x = x;
+  ROADSIDE_AT.y = y;
   return LEVEL.roadside!(hit.trackDist + (track.sBase || 0),
-    hit.side === 'left' ? hit.dist : -hit.dist, track.width / 2);
+    hit.side === 'left' ? hit.dist : -hit.dist, track.width / 2, ROADSIDE_AT);
 }
+// the ground point handed to level.roadside (no allocation per lookup)
+const ROADSIDE_AT = { x: 0, y: 0 };
 export function bumpAt(x: number, y: number, smooth = false): number {
   const list = LEVEL.bumps;
   // ONE subtrack query per lookup, shared by the banking, the camber and the curved kerbs. MEASURED
@@ -198,7 +204,7 @@ export function bumpAt(x: number, y: number, smooth = false): number {
     || (!smooth && track.curvedKerbs)) ? querySubtrackInto(track, x, y, BUMP_HIT) : null;
   let height = bankHeightAt(x, y, hit) + camberHeightAt(x, y, hit) - rutAt(x, y)
     + naturalHeightAt(x, y);
-  if (LEVEL.roadside && hit) height += roadsideHeight(track!, hit);
+  if (LEVEL.roadside && hit) height += roadsideHeight(track!, hit, x, y);
   ensureBumpGrid(list);
   // _bumpGrid was just set above if it was stale
   const cell = cellAt(LEVEL._bumpGrid!, x, y, BUMP_CELL) || NO_BUMPS;

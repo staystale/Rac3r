@@ -18,6 +18,6 @@ for (const dist of dists) {
   if (i < 1) { console.log(dist, 'outside the window'); continue; }
   const before = road[i - 1], after = road[i + 1], hdg = Math.atan2(after.y - before.y, after.x - before.x);
   const row = offs.map((off) => heightAt(road[i].x - Math.sin(hdg) * off, road[i].y + Math.cos(hdg) * off));
-  console.log(String(dist).padStart(5), stretchAt(dist).kind.padEnd(7), row.map((h) => h.toFixed(1).padStart(6)).join(''));
+  console.log(String(dist).padStart(5), stretchAt(dist, level.seed).kind.padEnd(7), row.map((h) => h.toFixed(1).padStart(6)).join(''));
 }
 console.log('offsets', offs.join(' '));

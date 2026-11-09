@@ -35,7 +35,7 @@ import { HW_PRESETS, HW_NAMES, HW_THEMES, STEP, AHEAD, BEHIND, SPAWN_S, UP_HEADI
 import { laneGeo, stateOf, growTo, locate, roadFrame } from "./highway/road.ts";
 import { syncCovers, SIDE_W_HALF } from "./highway/cuts.ts";
 import { dress } from "./highway/dress.ts";
-import { desertGround, REACH } from "./highway/gorge.ts";
+import { desertGround, REACH, resetStreamed, pruneStreamed } from "./highway/gorge.ts";
 import type { HwState, HwLevel, HwCar } from './highway/hwtypes.ts';
 import type { RoadLoc } from './highway/road.ts';
 import type { Level } from './world/types.ts';
@@ -138,6 +138,7 @@ export function resetHighway(level: HwLevel) {
   level.zones.length = 0;
   level.lamps.length = 0;
   resetHedges(level);
+  resetStreamed(level);
   const state = level._hw;
   state.pts.push({ x: 0, y: 0, s: 0, curv: 0 });
   // the first window's loose objects ARE the level's cones (cones.ts reset reads lv.cones on
@@ -200,6 +201,7 @@ export function stepHighway(level: HwLevel, car: HwCar) {
   dropBehind(level.props); dropBehind(level.bumps); dropBehind(level.barriers);
   dropBehind(level.lanes); dropBehind(level.zones); dropBehind(level.lamps);
   pruneHedges(level, startDist);
+  pruneStreamed(level, startDist);
   for (const list of [state.keep, state.cuts] as { _s?: number }[][]) {
     const kept = list.filter(keep);
     list.length = 0;
@@ -368,8 +370,8 @@ const baseOf = (preset: string) =>
   HW_PRESETS[preset].theme === 'canyon' ? SURFACES.gravel : SURFACES.grass;
 // the ground off the road: Deaf Valley's gorges and washes (highway/gorge.ts), else flat
 const roadsideOf = (level: HwLevel, preset: string) => HW_PRESETS[preset].theme === 'canyon'
-  ? (dist: number, offset: number, halfWidth: number) =>
-    desertGround(dist, offset, halfWidth, level.seed) : undefined;
+  ? (dist: number, offset: number, halfWidth: number, spot: { x: number; y: number }) =>
+    desertGround(dist, offset, halfWidth, level.seed, spot) : undefined;
 const settings = readSettings(typeof location !== 'undefined' ? location.search : '');
 const QUERY_PRESET = typeof location !== 'undefined' ? settings.highwayDebug : null;
 export function createHighway(seed: number = 4242, preset: string = 'motorway') {

@@ -11,7 +11,8 @@
 // puncture).
 // Everything is a function of road distance (and the road's own seed), so the stretches each
 // dress call lays join exactly.
-import { stretchAt, CYCLE } from './desertplan.ts';
+import { stretchAt } from './desertplan.ts';
+import { SURFACES } from '../world/surfaces.ts';
 import { gorgeAt, rimOf, layGround, roomAt } from './gorge.ts';
 import type { Point, Prop } from '../world/types.ts';
 import type { DressCtx, HwPose } from './hwtypes.ts';
@@ -54,7 +55,8 @@ const thickAt = (dist: number, side: number) =>
  * @returns m off the road edge, or null
  */
 function wallGapAt(dist: number, side: number, seed: number): number | null {
-  const stretch = stretchAt(dist), toEnd = Math.min(stretch.along, stretch.len - stretch.along),
+  const stretch = stretchAt(dist, seed),
+    toEnd = Math.min(stretch.along, stretch.len - stretch.along),
     flare = Math.max(0, 1 - toEnd / FLARE_M), out = FLARE_OUT * flare * flare,
     wobble = wobbleAt(dist, side, seed);
   if (stretch.kind === 'canyon') return GAP_MIN + (GAP_MAX - GAP_MIN) * wobble + out;
@@ -137,7 +139,7 @@ function cactus(ctx: DressCtx, i: number, off: number, tall: boolean) {
 function rimProps(ctx: DressCtx, i: number, side: number, rim: number) {
   const { rand, halfWidth, road } = ctx, dist = road[i].s, seed = (dist | 0) * 2 + side,
     thick = thickAt(dist, side);
-  if (rand() < 0.1) cactus(ctx, i, side * (halfWidth + rim + 2 + rand() * (thick - 3)), true);
+  if (rand() < 0.18) cactus(ctx, i, side * (halfWidth + rim + 2 + rand() * (thick - 3)), true);
   if (rand() < 0.05) place(ctx, i, side * (halfWidth + rim - 1.2), { kind: 'rock',
     s: 1 + rand() * 1.5, pal: 'red', seed });
   if (i % 8 === 0 && rand() < 0.3) place(ctx, i, side * (halfWidth + rim + thick + 6 + rand()
@@ -154,11 +156,107 @@ function rimProps(ctx: DressCtx, i: number, side: number, rim: number) {
  */
 function desertProps(ctx: DressCtx, i: number, side: number, from: number) {
   const { rand, road } = ctx, seed = (road[i].s | 0) * 2 + side;
-  if (rand() < 0.06) cactus(ctx, i, side * (from + 2 + rand() * 45), true);
-  if (rand() < 0.08) cactus(ctx, i, side * (from - 1.5 + rand() * 20), false);
+  // (owner 11-09: "cactus could be more popular haha": about twice as many)
+  if (rand() < 0.13) cactus(ctx, i, side * (from + 2 + rand() * 45), true);
+  if (rand() < 0.15) cactus(ctx, i, side * (from - 1.5 + rand() * 20), false);
   if (rand() < 0.05) place(ctx, i, side * (from + rand() * 40), { kind: 'rock',
     s: 1.5 + rand() * 2.5, pal: 'red', seed });
   if (i % 6 === 0 && rand() < 0.1) formation(ctx, i, side, from, seed);
+  junk(ctx, i, side, from, seed);
+}
+
+/**
+ * The desert's junk at point i (owner 11-09: "Definite rusted out cars ... cattle skull"): now and
+ * then a rusted-out car (a solid wreck, sometimes on its roof), a cattle skull.
+ * @param ctx the dress context
+ * @param i road point
+ * @param side -1 / +1
+ * @param from m off the centre line where the open ground starts
+ * @param seed its look's seed
+ */
+function junk(ctx: DressCtx, i: number, side: number, from: number, seed: number) {
+  const { rand, pointAt } = ctx;
+  if (i % 10 === 0 && rand() < 0.08) place(ctx, i, side * (from + 4 + rand() * 35),
+    { kind: 'wreck', rot: pointAt(i, 0).rot + (rand() - 0.5) * 2.4, flip: rand() < 0.25, seed });
+  if (rand() < 0.012) place(ctx, i, side * (from + 1 + rand() * 12), { kind: 'skull',
+    rot: rand() * Math.PI * 2, seed });
+}
+
+/**
+ * The dunes at point i: little grows on them - a barrel cactus now and then, a wreck half buried,
+ * a skull.
+ * @param ctx the dress context
+ * @param i road point
+ * @param side -1 / +1
+ * @param from m off the centre line where the dunes start
+ */
+function dunesProps(ctx: DressCtx, i: number, side: number, from: number) {
+  const { rand, road } = ctx, seed = (road[i].s | 0) * 2 + side;
+  if (rand() < 0.04) cactus(ctx, i, side * (from + rand() * 30), false);
+  if (i % 4 === 0) junk(ctx, i, side, from, seed);
+}
+
+// the desert's road signs (owner 11-09: "road signs can be a thing"), one every SIGN_M m of road
+// on alternating sides
+const DESERT_SIGNS = ['FLASH FLOOD AREA', 'NEXT GAS 100 MI', 'WATCH FOR ROCKS',
+  'DO NOT STOP ON SALT', 'SPEED LIMIT 55 (MAYBE)', 'NO SERVICES', 'DRINK WATER',
+  'GORGE AHEAD (SORRY)', 'TURN BACK (JOKING)', 'CACTUS CROSSING'];
+const SIGN_M = 420;
+
+/**
+ * A road sign at point i where the road passes each SIGN_M m mark (a board by the verge).
+ * @param ctx the dress context
+ * @param i road point
+ */
+function roadSign(ctx: DressCtx, i: number) {
+  const { road, halfWidth, level } = ctx, dist = road[i].s, mark = Math.floor(dist / SIGN_M);
+  if (mark === Math.floor((dist - 4) / SIGN_M) || mark < 1) return;
+  const side = mark % 2 ? 1 : -1, pos = ctx.pointAt(i, side * (halfWidth + 3.5));
+  if (!ctx.clear(pos.x, pos.y, 2)) return;
+  level.props.push({ kind: 'board', x: pos.x, y: pos.y, rot: pos.rot,
+    label: DESERT_SIGNS[(mark * 7 + (ctx.state.seed % 13)) % DESERT_SIGNS.length],
+    _s: dist } as Prop);
+}
+
+// the station's apron: road points either way its edge runs along the road (the way in and out),
+// those its forecourt's far side spans, and how deep it is off the road edge, m
+const APRON_OUT = 7, APRON_IN = 4, APRON_DEEP = 19;
+
+/**
+ * The LAST GASP gas station near the start of a desert stretch (owner 11-09: "gas station"; its
+ * first FLAT_START m are flat: highway/gorge.ts): a concrete apron off the road edge - its way in
+ * and out tapering off the road ("a little road in n out blending into the main road"), the
+ * forecourt - the shop, two pumps under the canopy (drawn over the cars), its sign. Three desert
+ * stretches in five.
+ * @param ctx the dress context
+ * @param i road point (the stretch 44-48 m in)
+ * @param index the stretch's number
+ */
+function gasStation(ctx: DressCtx, i: number, index: number) {
+  const { level, road, halfWidth, state } = ctx,
+    pick = Math.abs(Math.sin(index * 12.9898 + state.seed * 78.233) * 43758.5453) % 1;
+  if (pick > 0.6) return;
+  const side = pick < 0.3 ? 1 : -1, apron = ctx.pointAt(i, side * (halfWidth + 10)),
+    rot = apron.rot + (side < 0 ? Math.PI : 0), dist = road[i].s;
+  if (!ctx.clear(apron.x, apron.y, 9) || i < APRON_OUT || i + APRON_OUT >= road.length) return;
+  const poly: Point[] = [];
+  for (let j = i - APRON_OUT; j <= i + APRON_OUT; j++) {
+    const pos = ctx.pointAt(j, side * (halfWidth + 0.3));
+    poly.push([pos.x, pos.y]);
+  }
+  for (let j = i + APRON_IN; j >= i - APRON_IN; j--) {
+    const pos = ctx.pointAt(j, side * (halfWidth + APRON_DEEP));
+    poly.push([pos.x, pos.y]);
+  }
+  const allX = poly.map(([x]) => x), allY = poly.map(([, y]) => y), minX = Math.min(...allX),
+    maxX = Math.max(...allX), minY = Math.min(...allY), maxY = Math.max(...allY);
+  level.zones.push({ x: (minX + maxX) / 2, y: (minY + maxY) / 2, w: maxX - minX, h: maxY - minY,
+    poly, surface: SURFACES.concrete, art: null, boxed: true, _s: dist });
+  level.props.push({ kind: 'gasstation', x: apron.x, y: apron.y, rot, _s: dist } as Prop,
+    { kind: 'canopy', x: apron.x, y: apron.y, rot, _s: dist } as Prop);
+  const board = ctx.pointAt(i - 5, side * (halfWidth + 3.5));
+  level.props.push({ kind: 'board', x: board.x, y: board.y, rot: board.rot, label: 'LAST GASP',
+    _s: dist } as Prop);
 }
 
 /**
@@ -196,16 +294,20 @@ function formation(ctx: DressCtx, i: number, side: number, from: number, seed: n
 export function dressCanyon(ctx: DressCtx) {
   const { level, road, firstIdx, endIdx, halfWidth, state } = ctx;
   for (let i = firstIdx; i < endIdx; i++) {
-    const dist = road[i].s, stretch = stretchAt(dist);
+    const dist = road[i].s, stretch = stretchAt(dist, state.seed);
+    if (stretch.kind === 'desert' && stretch.along >= 44 && stretch.along < 48)
+      gasStation(ctx, i, stretch.index);
+    if (stretch.kind !== 'canyon') roadSign(ctx, i);
     if (i % 2 === 0) for (const side of [-1, 1]) {
       const gap = wallGapAt(dist, side, state.seed), cut = gorgeAt(dist, side, state.seed);
       if (stretch.kind === 'desert') desertProps(ctx, i, side, halfWidth + 1);
+      else if (stretch.kind === 'dunes') dunesProps(ctx, i, side, halfWidth + 2);
       // past a gorge's far rim, the plateau
       else if (cut) { if (i % 4 === 0) desertProps(ctx, i, side, halfWidth + rimOf(cut) + 3); }
       else if (gap !== null) rimProps(ctx, i, side, gap);
     }
     // the board at the start of each canyon
-    if (Math.floor(dist / CYCLE) !== Math.floor((dist - 4) / CYCLE)) {
+    if (stretch.kind === 'canyon' && stretch.along < 4) {
       const pos = ctx.pointAt(i, -(halfWidth + 5));
       level.props.push({ kind: 'board', x: pos.x, y: pos.y, rot: pos.rot, label: 'DEAF VALLEY',
         _s: dist } as Prop);

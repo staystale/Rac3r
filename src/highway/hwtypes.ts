@@ -17,7 +17,7 @@ export interface HwCfg {
   theme?: 'canyon';   // its own roadside (highway/canyon.ts); none: the countryside
   kRate?: number;   // the fastest curvature change, 1/m per m (road.ts; else presets.ts K_RATE)
   // its changes by road distance (Deaf Valley's HIGH road: highway/desertplan.ts)
-  stretch?: (dist: number) => Partial<HwCfg> | null;
+  stretch?: (dist: number, seed: number) => Partial<HwCfg> | null;
 }
 
 /** The road's cross-section (road.ts laneGeo), m from the centre line. */

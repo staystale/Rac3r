@@ -43,13 +43,13 @@ export function seededRng(str: string): () => number {
   };
 }
 // 0..1, dense near 0: the "greater at the point of blend" falloff
-const tri = (rng: Rng): number => rng() * rng();
+export const tri = (rng: Rng): number => rng() * rng();
 // SQUARES, not circles (requirement: make the surface and transitions squares too, no circles):
 // every blend patch is an axis-aligned square of 0.5, 1.0 or
 // 1.5 m on a half-metre world grid.
 const SQ_GRID = 0.5;
 const snapG = (value: number): number => Math.round(value / SQ_GRID) * SQ_GRID;
-function blendPatch(rng: Rng, x: number, y: number, surface: Surface): Patch {
+export function blendPatch(rng: Rng, x: number, y: number, surface: Surface): Patch {
   const size = SQ_GRID * (1 + Math.floor(rng() * 3));
   return { x: snapG(x), y: snapG(y), w: size, h: size, sq: true, surface, blend: true };
 }

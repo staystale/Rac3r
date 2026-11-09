@@ -141,6 +141,9 @@ export interface PathPoint {
   R: number;
   turn: number;
   mu: number;
+  // the share of the ground's grip the speed plan counts on (ai/roadLine.ts: less by an edge the
+  // ground falls away from - a gorge's lip); none: all of it
+  edge?: number;
 }
 
 // A point of the racing line: the centre-line point it lies beside and its offset from it.

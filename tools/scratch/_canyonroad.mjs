@@ -10,7 +10,7 @@ growTo(level, km * 1000);
 const stats = {};
 let run = 0, runKind = '';
 for (const pt of stateOf(level).pts) {
-  const kind = stretchAt(pt.s).kind, row = stats[kind] ||= { pts: 0, straight: 0, minR: Infinity,
+  const kind = stretchAt(pt.s, level.seed).kind, row = stats[kind] ||= { pts: 0, straight: 0, minR: Infinity,
     longest: 0 };
   row.pts++;
   const curv = Math.abs(pt.curv || 0);

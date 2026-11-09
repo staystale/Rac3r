@@ -152,6 +152,7 @@ export interface Prop {
   size?: number;
   label?: string;
   col?: string;
+  flip?: boolean;   // highway/canyon.ts: a wreck on its roof
   s?: number;
   seed?: number;
   brand?: string;
@@ -331,6 +332,8 @@ export interface Patch {
   blend?: boolean;   // blend.ts: made by buildBlend
   src?: string;   // blend.ts: 'change' for sector change points
   bush?: boolean;   // world/bushplan.ts: a bush (drawn with its own shadow and rim)
+  // laid with a streamed road's zones (highway/gorge.ts: their edges' blend), dropped behind it
+  streamed?: boolean; _s?: number;
   art?: string;   // the look it is drawn with when not its surface's (a bush's kind)
 }
 
@@ -513,8 +516,10 @@ export interface Level {
   base?: Surface;
   bankAngle?: number;   // radians; banked ovals only
   // the ground's height off the road (world/terrain.ts bumpAt; Deaf Valley's gorges: highway/
-  // gorge.ts): m added at a road distance and an offset (+ the +normal side), the road's half width
-  roadside?: (dist: number, offset: number, halfWidth: number) => number;
+  // gorge.ts): m added at a road distance and an offset (+ the +normal side), the road's half
+  // width, the ground point
+  roadside?: (dist: number, offset: number, halfWidth: number,
+    at: { x: number; y: number }) => number;
   camber?: Camber;
   _bumpGridOf?: Bump[] | null;   // terrain.ts bumpAt: the list the grid was built from
   _bumpGrid?: Map<number, Bump[]>;   // terrain.ts bumpAt
@@ -532,6 +537,7 @@ export interface Level {
   _branches?: Branches;   // ai/line.ts racingLine: the joker / start lane paths, cached
   bushes?: BushPlan;   // where its bushes grow (world/bushplan.ts)
   _bushes?: Patch[];   // load.ts prepareLevel: its bushes, planned once
+  _streamed?: Patch[];   // highway/gorge.ts: its streamed zones' edge blend (load.ts reindex)
 }
 
 // One 0.5 m cell of a merged cover group.

@@ -85,7 +85,7 @@ export function finishPath<P extends PathPoint>(pts: P[], closed: boolean, total
     pts[i].R = arc / Math.max(1e-4, Math.abs(turnDelta));
     pts[i].turn = Math.sign(turnDelta);
   }
-  for (const point of pts) point.mu = lineMu(point.x, point.y);
+  for (const point of pts) point.mu = lineMu(point.x, point.y) * (point.edge ?? 1);
   return { pts, n: count, closed, total, sp: step, prof: {}, wetEpoch: groundEpoch() };
 }
 
@@ -500,7 +500,7 @@ const groundEpoch = () => WEATHER.epoch * 1e6 + coverEpoch();
  * @param path the path (changed in place)
  */
 function regripPath(path: Path) {
-  for (const point of path.pts) point.mu = lineMu(point.x, point.y);
+  for (const point of path.pts) point.mu = lineMu(point.x, point.y) * (point.edge ?? 1);
   path.prof = {};
   path.wetEpoch = groundEpoch();
 }

@@ -38,6 +38,7 @@ import {
 } from './props/scenery.ts';
 import { drawParkedCar, drawTunnel, drawVenueBridge } from './props/venueprops.ts';
 import { drawButte, drawHoodoo, drawArch } from './props/formations.ts';
+import { drawWreck, drawSkull, drawGasStation, drawCanopy } from './props/desertjunk.ts';
 
 /** the drawer of each prop kind (a kind with no entry is only positioned) */
 const PROP_DRAWERS: Record<string, PropDrawer> = {
@@ -74,13 +75,17 @@ const PROP_DRAWERS: Record<string, PropDrawer> = {
   butte: drawButte,
   hoodoo: drawHoodoo,
   arch: drawArch,
+  wreck: drawWreck,
+  skull: drawSkull,
+  gasstation: drawGasStation,
+  canopy: drawCanopy,
 };
 
 // OVERHEAD props span the track ABOVE the cars and are drawn AFTER them. MEASURED BUG (user,
 // "the gantry being below cars on the naffcar track"): every prop was drawn before
 // the car, so cars drove OVER the start gantry.
-// (a desert arch too: you drive under its span - highway/canyon.ts)
-const OVERHEAD = new Set(['gantry', 'footbridge', 'bridge', 'arch']);
+// (a desert arch too: you drive under its span; a gas station's canopy - highway/canyon.ts)
+const OVERHEAD = new Set(['gantry', 'footbridge', 'bridge', 'arch', 'canopy']);
 /**
  * Whether a prop is on screen, with a margin by the prop's own size.
  * @param view the canvas view

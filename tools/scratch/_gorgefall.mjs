@@ -31,7 +31,7 @@ try {
     const { gorgeAt, ledgeOf } = await import('/src/highway/gorge.ts');
     const { stretchAt } = await import('/src/highway/desertplan.ts');
     for (let i = 5; i < road.length - 5; i++) {
-      const st = stretchAt(road[i].s);
+      const st = stretchAt(road[i].s, level._hw.seed);
       if (st.kind !== 'high') continue;
       for (const side of [-1, 1]) {
         const cut = gorgeAt(road[i].s, side, level._hw.seed);

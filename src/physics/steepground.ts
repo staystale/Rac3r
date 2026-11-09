@@ -10,12 +10,14 @@
 //                little bounce.
 //   THE LANDING  a body meeting the ground faster than LAND_HURT m/s (loads.ts notes it: a ~6 m
 //                fall, past any jump's landing) crashes: the ground takes LAND_GRAB of the speed
-//                past that off its way, and a hard one may tumble it over (roll.ts, as a side hit).
+//                past that off its way (owner 11-09: "the bottom of the gorge shouldn't
+//                automatically make you roll": the damage, and a crooked landing's own roll
+//                chance).
 import { heightAt } from '../world/terrain.ts';
 import { noteHit } from './punctures.ts';
 
 const FACE_AHEAD = 0.8, FACE_RISE = 1.2, FACE_BOUNCE = 0.15, SLOPE_STEP = 0.3;
-const LAND_HURT = 13, LAND_GRAB = 0.8, LAND_TUMBLE = 5, TUMBLE_KICK = 1.6;
+const LAND_HURT = 13, LAND_GRAB = 0.8;
 // s in the air before a landing counts (loads.ts)
 export const LANDING_AIR = 0.25;
 
@@ -24,7 +26,6 @@ interface SteepCar {
   x: number; y: number; vx: number; vy: number; zF: number;
   spec: { lf: number };
   _landV?: number; _hitKind?: string | null;
-  _sideKick?: { dir: number; dv: number; carry?: number } | null;
 }
 
 /**
@@ -65,12 +66,10 @@ export function steepClamp(car: SteepCar): void {
 }
 
 /**
- * THE LANDING: a body that met the ground too fast (noteLanding) loses speed to it, and a hard one
- * may tumble.
+ * THE LANDING: a body that met the ground too fast (noteLanding) loses speed to it (the damage).
  * @param car the car
- * @param rnd the random source
  */
-export function landingClamp(car: SteepCar, rnd: () => number = Math.random): void {
+export function landingClamp(car: SteepCar): void {
   const hard = -(car._landV ?? 0) - LAND_HURT;
   car._landV = 0;
   if (hard <= 0) return;
@@ -81,6 +80,4 @@ export function landingClamp(car: SteepCar, rnd: () => number = Math.random): vo
     car.vy -= (car.vy / speed) * lose;
   }
   noteHit(car, 'rock');
-  if (hard > LAND_TUMBLE)
-    car._sideKick = { dir: rnd() < 0.5 ? -1 : 1, dv: hard * TUMBLE_KICK };
 }

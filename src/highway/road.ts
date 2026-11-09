@@ -81,7 +81,7 @@ export function growTo(level: HwLevel, sTarget: number) {
   while (state.s < sTarget) {
     if (!state.plan.length) {
       // a road type that changes along the road (Deaf Valley's HIGH road) plans from where it is
-      const changes = level._cfg.stretch?.(state.s);
+      const changes = level._cfg.stretch?.(state.s, state.seed);
       state.plan.push(nextElement(state, changes ? { ...level._cfg, ...changes } : level._cfg));
     }
     const elem = state.plan[0], along = elem.done || 0;

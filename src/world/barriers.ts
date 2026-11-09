@@ -1,6 +1,7 @@
 // barriers.ts - the BARRIERS section (barriers, solid props, clamps). Moved verbatim out of
 // lab.ts.
 import { hoodooSpires, archShape } from './formations.ts';
+import { WRECK_M, GAS_SHOP, GAS_PUMPS, GAS_POSTS } from './desertjunk.ts';
 import { LEVEL } from "./state.ts";
 import { activeLamps, resetLamps, type Lamp } from "./lamps.ts";
 import { driveOverPost, hitLamp } from "./lampdamage.ts";
@@ -299,7 +300,8 @@ function addSmallSolids(out: Solid[], prop: Prop): boolean {
 }
 /**
  * Solid boxes of Deaf Valley's rock formations (world/formations.ts): a butte's core, each
- * hoodoo spire, an arch's two legs (you drive under its span).
+ * hoodoo spire, an arch's two legs (you drive under its span); its junk (world/desertjunk.ts): a
+ * wreck, the gas station's shop and pumps, its canopy's posts.
  * @param out the solids list being built
  * @param prop the prop
  * @returns true when the prop kind was handled here
@@ -312,6 +314,11 @@ function addFormationSolids(out: Solid[], prop: Prop): boolean {
       spire.d);
   else if (prop.kind === 'arch')
     for (const [x, y, wid, len] of archShape(prop).legs) pushPropBox(out, prop, x, y, wid, len);
+  else if (prop.kind === 'wreck') pushPropBox(out, prop, 0, 0, WRECK_M[0], WRECK_M[1]);
+  else if (prop.kind === 'gasstation')
+    for (const [x, y, wid, len] of [GAS_SHOP, ...GAS_PUMPS]) pushPropBox(out, prop, x, y, wid, len);
+  else if (prop.kind === 'canopy')
+    for (const [x, y] of GAS_POSTS) pushPropBox(out, prop, x, y, 0.4, 0.4);
   else return false;
   return true;
 }

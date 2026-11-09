@@ -10,12 +10,19 @@
 //           falling sides (the rest open: you can go over); the other side a rock wall close by
 //           (canyon.ts).
 //   DESERT  each side a dry WASH (a sandy trough beside the road, boulders in it) or a RISE (the
-//           ground banking up away from the road and down again).
+//           ground banking up away from the road and down again), on ROLLING ground (owner
+//           11-09: "more varied and random terrain"); its first FLAT_START m flat (a gas station).
+//   DUNES   sand both sides, the dunes' ridges across it (a long windward slope, a short steep
+//           slip face), their size and way the wind blew changing over the ground.
 // Everything eases in and out over each stretch's ends; a stretch's depth is its own (the same
-// all along it, so where two parts of the road are nearest the ground meets itself). All of it
-// lies within REACH m of the road edge (the road's lookup reaches that far: highway.ts).
+// all along it, so where two parts of the road are nearest the ground meets itself); the rolling
+// ground and the dunes come from the ground's own place (no seam). All of it lies within REACH m
+// of the road edge (the road's lookup reaches that far: highway.ts), faded out before it.
 import { stretchAt, inFrom, type Stretch } from './desertplan.ts';
 import { SURFACES } from '../world/surfaces.ts';
+import { blendPatch, tri, BLEND_W } from '../world/blend.ts';
+import { indexNewBushes, reindexBushes } from '../world/load.ts';
+import type { Level, Surface, Zone } from '../world/types.ts';
 import type { DressCtx } from './hwtypes.ts';
 import type { Point } from '../world/types.ts';
 
@@ -25,7 +32,12 @@ const VERGE = 1.2, FALL_MIN = 7, FALL_MAX = 11, DEPTH_MIN = 20, DEPTH_MAX = 35, 
   FLOOR_MAX = 12, RISE_MIN = 9, RISE_MAX = 13, EASE_M = 150;
 // the desert: a wash's start off the edge, width, depth; a rise's peak off the edge and height
 const WASH_IN = 5, WASH_MIN = 14, WASH_MAX = 22, WASH_DEEP = 4.5, RISE_PEAK = 22, RISE_END = 44,
-  RISE_HIGH = 5, SIDES_EASE_M = 120;
+  RISE_HIGH = 5, SIDES_EASE_M = 120, FLAT_START = 100;
+// the rolling ground: its height and size; the dunes: their height, spacing, their slip face's
+// share of a dune, how far the wind's way wanders; the ground they keep off the road edge and
+// where they fade before REACH
+const ROLL_HIGH = 3, ROLL_M = 45, DUNE_HIGH = 5, DUNE_M = 34, SLIP = 0.25, DUNE_WANDER = 0.35,
+  NEAR_FADE = 5, NEAR_FADE_M = 10, FAR_FADE_M = 12;
 
 /**
  * A number's hash, 0..1 (a stretch's choices, the same every visit).
@@ -38,6 +50,23 @@ function hash01(seed: number): number {
   mix = Math.imul(mix, 0xc2b2ae35);
   mix ^= mix >>> 16;
   return (mix >>> 0) / 4294967296;
+}
+
+/**
+ * Smooth value noise over the ground, -1..1 (the rolling ground, the dunes' size and wander).
+ * @param x m / cell
+ * @param y m / cell
+ * @param seed the road's seed
+ * @returns -1..1
+ */
+function noiseAt(x: number, y: number, seed: number): number {
+  const cellX = Math.floor(x), cellY = Math.floor(y), fracX = x - cellX, fracY = y - cellY,
+    corner = (dx: number, dy: number) => hash01((cellX + dx) * 73856093 ^ (cellY + dy) * 19349663
+      ^ seed * 83492791) * 2 - 1,
+    easeX = fracX * fracX * (3 - 2 * fracX), easeY = fracY * fracY * (3 - 2 * fracY);
+  const top = corner(0, 0) + (corner(1, 0) - corner(0, 0)) * easeX,
+    bottom = corner(0, 1) + (corner(1, 1) - corner(0, 1)) * easeX;
+  return top + (bottom - top) * easeY;
 }
 
 /**
@@ -67,7 +96,7 @@ export interface Cut { depth: number; fall: number; floor: number; rise: number;
  * @returns the cut, or null
  */
 export function gorgeAt(dist: number, side: number, seed: number,
-    stretch: Stretch = stretchAt(dist)): Cut | null {
+    stretch: Stretch = stretchAt(dist, seed)): Cut | null {
   if (stretch.kind !== 'high' || !ledgeOf(stretch.index, side, seed).drop) return null;
   const wave = (period: number, phase: number) =>
     0.5 + 0.5 * Math.sin(dist / period + phase + side * 1.3 + (seed % 31));
@@ -127,8 +156,7 @@ export const washOf = (size: number) => ({ from: WASH_IN, width: WASH_MIN
  * @returns m
  */
 function desertHeight(stretch: Stretch, side: number, seed: number, past: number): number {
-  const { wash, size } = desertSideOf(stretch.index, side, seed),
-    ease = inFrom(stretch, SIDES_EASE_M);
+  const { wash, size } = desertSideOf(stretch.index, side, seed), ease = sidesEase(stretch);
   if (wash) {
     const { from, width } = washOf(size), frac = (past - from) / width;
     if (frac <= 0 || frac >= 1) return 0;
@@ -141,23 +169,63 @@ function desertHeight(stretch: Stretch, side: number, seed: number, past: number
 }
 
 /**
+ * How far a desert stretch's side ground has come in: none over its first FLAT_START m (where a
+ * gas station may stand: highway/canyon.ts), then easing in; easing out at its end.
+ * @param stretch the stretch
+ * @returns 0..1
+ */
+export const sidesEase = (stretch: Stretch) => Math.min(smooth((stretch.along - FLAT_START)
+  / SIDES_EASE_M), smooth((stretch.len - stretch.along) / SIDES_EASE_M));
+
+/**
+ * 0 by the road, 1 from NEAR_FADE + NEAR_FADE_M m off its edge, 0 again by REACH (the rolling
+ * ground and the dunes).
+ * @param past m off the road edge
+ * @returns 0..1
+ */
+const fadeOff = (past: number) => smooth((past - NEAR_FADE) / NEAR_FADE_M)
+  * (1 - smooth((past - (REACH - FAR_FADE_M - 2)) / FAR_FADE_M));
+
+/**
+ * A dune field's height at a ground point: ridges across the wind (its way wandering), each a
+ * long windward slope and a short slip face, their size changing over the ground.
+ * @param x world x, m
+ * @param y world y, m
+ * @param seed the road's seed
+ * @param wind the way the wind blew, rad
+ * @returns m (0 .. DUNE_HIGH)
+ */
+function duneAt(x: number, y: number, seed: number, wind: number): number {
+  const across = (x * Math.cos(wind) + y * Math.sin(wind)) / DUNE_M
+    + DUNE_WANDER * noiseAt(x / 60, y / 60, seed + 5), frac = across - Math.floor(across),
+    shape = frac < 1 - SLIP ? smooth(frac / (1 - SLIP)) : 1 - smooth((frac - 1 + SLIP) / SLIP);
+  return DUNE_HIGH * (0.55 + 0.45 * noiseAt(x / 140, y / 140, seed + 9)) * shape;
+}
+
+/**
  * DEAF VALLEY's ground `offset` m off the centre line at a road distance (level.roadside).
  * @param dist road distance
  * @param offset m off the centre line (+: the driver's right, as pointAt)
  * @param halfWidth the road's half width, m
  * @param seed the road's seed
+ * @param spot the ground point, m (the rolling ground and the dunes)
  * @returns m added to the ground's height
  */
-export function desertGround(dist: number, offset: number, halfWidth: number,
-    seed: number): number {
+export function desertGround(dist: number, offset: number, halfWidth: number, seed: number,
+    spot: { x: number; y: number }): number {
   const past = Math.abs(offset) - halfWidth;
   if (past <= 0) return 0;
-  const stretch = stretchAt(dist), side = offset < 0 ? -1 : 1;
+  const stretch = stretchAt(dist, seed), side = offset < 0 ? -1 : 1;
   if (stretch.kind === 'high') {
     const cut = gorgeAt(dist, side, seed, stretch);
     return cut ? gorgeHeight(cut, past) : 0;
   }
-  return stretch.kind === 'desert' ? desertHeight(stretch, side, seed, past) : 0;
+  if (stretch.kind === 'desert') return desertHeight(stretch, side, seed, past)
+    + ROLL_HIGH * noiseAt(spot.x / ROLL_M, spot.y / ROLL_M, seed) * fadeOff(past)
+    * sidesEase(stretch);
+  if (stretch.kind === 'dunes') return duneAt(spot.x, spot.y, seed, hash01(stretch.index * 3 + seed)
+    * Math.PI) * fadeOff(past) * inFrom(stretch, SIDES_EASE_M);
+  return 0;
 }
 
 /**
@@ -199,7 +267,8 @@ function layLipArmco(ctx: DressCtx) {
         rail = [];
       };
       for (let j = startIdx; j <= Math.min(endIdx, road.length - 1, startIdx + PIECE); j++) {
-        const stretch = stretchAt(road[j].s), cut = gorgeAt(road[j].s, side, state.seed, stretch);
+        const stretch = stretchAt(road[j].s, state.seed),
+          cut = gorgeAt(road[j].s, side, state.seed, stretch);
         if (!cut || cut.ease < 0.5 || !ledgeOf(stretch.index, side, state.seed).armco) {
           flush();
           continue;
@@ -219,14 +288,21 @@ function layLipArmco(ctx: DressCtx) {
  * @param side -1 / +1
  * @param from m off the road edge
  * @param upTo m off the road edge
+ * @param ends which of its short sides end the chain: START_END, LAST_END (blended too)
+ * @param surface its ground (sand)
+ * @param blend its edges' blend
  */
-function laySand(ctx: DressCtx, i: number, side: number, from: number, upTo: number) {
+function laySand(ctx: DressCtx, i: number, side: number, from: number, upTo: number,
+    ends = 0, surface: Surface = SURFACES.sand, blend = CHAIN_BLEND) {
   const { level, road, halfWidth, pointAt } = ctx,
     near = roomAt(ctx, i, side, halfWidth + upTo, 2) - halfWidth;
   if (near - from < 2) return;
-  const mid = pointAt(i, side * (halfWidth + (from + near) / 2));
-  level.zones.push({ x: mid.x, y: mid.y, w: FLOOR_STEP * 4 + 4, h: near - from, rot: mid.rot,
-    surface: SURFACES.sand, art: null, _s: road[i].s });
+  const mid = pointAt(i, side * (halfWidth + (from + near) / 2)),
+    zone: Zone = { x: mid.x, y: mid.y, w: FLOOR_STEP * 4 + 4, h: near - from, rot: mid.rot,
+      surface, art: null, _s: road[i].s };
+  level.zones.push(zone);
+  // a chain of these along the road: only its long sides are its edges (and its own ends)
+  speckle(ctx, zone, ends, blend);
 }
 
 /**
@@ -236,45 +312,152 @@ function laySand(ctx: DressCtx, i: number, side: number, from: number, upTo: num
  * @param ctx the dress context
  */
 export function layGround(ctx: DressCtx) {
-  const { road, firstIdx, endIdx, state, rand, halfWidth } = ctx;
+  const { road, firstIdx, endIdx, state } = ctx;
   layLipArmco(ctx);
   for (let i = firstIdx; i < endIdx; i++) {
-    const stretch = stretchAt(road[i].s);
+    const stretch = stretchAt(road[i].s, state.seed);
+    if (stretch.kind === 'dunes') { layDunes(ctx, i, stretch); continue; }
     for (const side of [-1, 1]) {
-      if (stretch.kind === 'high') {
-        const cut = gorgeAt(road[i].s, side, state.seed, stretch);
-        if (!cut || cut.ease < 0.3) continue;
-        if (i % FLOOR_STEP === 0) laySand(ctx, i, side, footOf(cut) - 1, farOf(cut) + 1);
-        // boulders fallen down the fall, on the floor, down the far rise
-        if (rand() < 0.2) boulder(ctx, i, side * (halfWidth + VERGE + 2 + rand()
-          * (rimOf(cut) - VERGE - 2)), 1 + rand() * 2.8);
-      } else if (stretch.kind === 'desert') {
-        if (i % 8 === 0 && rand() < 0.3) patch(ctx, i, side);
-        const { wash, size } = desertSideOf(stretch.index, side, state.seed);
-        if (!wash || inFrom(stretch, SIDES_EASE_M) < 0.3) continue;
-        const span = washOf(size);
-        if (i % FLOOR_STEP === 0) laySand(ctx, i, side, span.from + 2, span.from + span.width - 2);
-        if (rand() < 0.06) boulder(ctx, i, side * (halfWidth + span.from + 3 + rand()
-          * (span.width - 6)), 1 + rand() * 2);
-      }
+      if (stretch.kind === 'high') layGorgeSide(ctx, i, side, stretch);
+      else if (stretch.kind === 'desert') layDesertSide(ctx, i, side, stretch);
     }
   }
 }
 
 /**
- * A patch of other ground in the desert's gravel at road point i (owner 11-09: "gravel and sand
- * for the desert ... it can have patches of whatever looks right"): sand mostly, now and then
- * dirt, 12-36 m along and 8-20 m across, clear of the road.
+ * A HIGH stretch's falling side at road point i: the gorge's sand floor, boulders fallen down the
+ * fall, on the floor, down the far rise.
+ * @param ctx the dress context
+ * @param i road point
+ * @param side -1 / +1
+ * @param stretch the stretch
+ */
+function layGorgeSide(ctx: DressCtx, i: number, side: number, stretch: Stretch) {
+  const { road, state, rand, halfWidth } = ctx, cut = gorgeAt(road[i].s, side, state.seed, stretch);
+  if (!cut || cut.ease < 0.3) return;
+  if (i % FLOOR_STEP === 0) laySand(ctx, i, side, footOf(cut) - 1, farOf(cut) + 1);
+  if (rand() < 0.2) boulder(ctx, i, side * (halfWidth + VERGE + 2 + rand()
+    * (rimOf(cut) - VERGE - 2)), 1 + rand() * 2.8);
+}
+
+/**
+ * A DESERT stretch's side at road point i: now and then a patch, a wash's sand floor and boulders.
+ * @param ctx the dress context
+ * @param i road point
+ * @param side -1 / +1
+ * @param stretch the stretch
+ */
+function layDesertSide(ctx: DressCtx, i: number, side: number, stretch: Stretch) {
+  const { state, rand, halfWidth } = ctx;
+  if (i % 8 === 0 && rand() < 0.3) patch(ctx, i, side);
+  const { wash, size } = desertSideOf(stretch.index, side, state.seed);
+  if (!wash || sidesEase(stretch) < 0.3) return;
+  const span = washOf(size);
+  if (i % FLOOR_STEP === 0) laySand(ctx, i, side, span.from + 2, span.from + span.width - 2);
+  if (rand() < 0.06) boulder(ctx, i, side * (halfWidth + span.from + 3 + rand()
+    * (span.width - 6)), 1 + rand() * 2);
+}
+
+/**
+ * The dunes beside road point i: sand both sides from just off the edge out (its chain's end
+ * blended at the stretch's ends), now and then a barrel cactus or a red rock.
+ * @param ctx the dress context
+ * @param i road point
+ * @param stretch the dunes stretch
+ */
+function layDunes(ctx: DressCtx, i: number, stretch: Stretch) {
+  const { rand, halfWidth } = ctx,
+    end = (stretch.along < FLOOR_STEP * 4 ? START_END : 0)
+      | (stretch.len - stretch.along < FLOOR_STEP * 4 ? LAST_END : 0);
+  for (const side of [-1, 1]) {
+    if (i % FLOOR_STEP === 0) laySand(ctx, i, side, 1.5, REACH + 6, end);
+    if (rand() < 0.03) boulder(ctx, i, side * (halfWidth + 6 + rand() * 40), 1 + rand() * 1.5);
+  }
+}
+
+/**
+ * A patch of other ground in the desert's gravel from road point i on (owner 11-09: "gravel and
+ * sand for the desert ... it can have patches of whatever looks right"; "patches need more
+ * blending / to be larger"; "need to look better / be parallel to the road"): sand mostly, now
+ * and then dirt, 25-60 m along the road and 14-32 m across, a chain following it, its edges and
+ * ends blended wide.
  * @param ctx the dress context
  * @param i road point
  * @param side -1 / +1
  */
 function patch(ctx: DressCtx, i: number, side: number) {
-  const { rand, halfWidth, level, road } = ctx, along = 12 + rand() * 24, across = 8 + rand() * 12,
-    pos = ctx.pointAt(i, side * (halfWidth + 3 + across / 2 + rand() * 25));
-  if (!ctx.clear(pos.x, pos.y, across / 2 + 1)) return;
-  level.zones.push({ x: pos.x, y: pos.y, w: along, h: across, rot: pos.rot + (rand() - 0.5) * 0.6,
-    surface: rand() < 0.8 ? SURFACES.sand : SURFACES.dirt, art: null, _s: road[i].s });
+  const { rand, road } = ctx, along = 25 + rand() * 35, across = 14 + rand() * 18,
+    from = 3 + rand() * 25, links = Math.max(2, Math.round(along / (FLOOR_STEP * 4))),
+    surface = rand() < 0.8 ? SURFACES.sand : SURFACES.dirt;
+  for (let link = 0; link < links && i + link * FLOOR_STEP < road.length; link++)
+    laySand(ctx, i + link * FLOOR_STEP, side, from, from + across, (link === 0 ? START_END : 0)
+      | (link === links - 1 ? LAST_END : 0), surface, PATCH_BLEND);
+}
+
+// the edge blend's chance a square each side of every SPECKLE_STEP m of edge
+const SPECKLE_STEP = 1.2;
+// the edge blend of a floor's chain, and of a patch's: denser, reaching further each way
+// (x BLEND_W)
+const CHAIN_BLEND = { chance: 0.5, reach: 1 }, PATCH_BLEND = { chance: 0.8, reach: 1.7 };
+// a chain's first and last links (laySand ends): their short side blended as well
+const START_END = 1, LAST_END = 2;
+
+/**
+ * A streamed zone's edges blended as every level's are (world/blend.ts, owner 11-09: "the sand
+ * patches should blend how other soft surfaces do like speckles and fade between them"): squares
+ * of the zone's ground scattered out over the gravel and of the gravel in over it, most at the
+ * edge, none past BLEND_W; laid with the zone, indexed with the ground (world/load.ts), dropped
+ * behind it.
+ * @param ctx the dress context
+ * @param zone the zone (turned: rot)
+ * @param ends which short sides as well: START_END (behind), LAST_END (ahead)
+ * @param blend how dense the squares and how far they reach (x BLEND_W)
+ */
+function speckle(ctx: DressCtx, zone: Zone, ends: number,
+    blend: { chance: number; reach: number }) {
+  const { level, rand } = ctx, base = level.base as Surface, cos = Math.cos(zone.rot || 0),
+    sin = Math.sin(zone.rot || 0), added = [];
+  // each side: [along x?, its fixed local coordinate, its length, outward sign]
+  const sides: [boolean, number, number, number][] = [[true, zone.h / 2, zone.w, 1],
+    [true, -zone.h / 2, zone.w, -1]];
+  if (ends & LAST_END) sides.push([false, zone.w / 2, zone.h, 1]);
+  if (ends & START_END) sides.push([false, -zone.w / 2, zone.h, -1]);
+  for (const [alongX, fixed, len, out] of sides)
+    for (let along = -len / 2 + 0.5; along < len / 2; along += SPECKLE_STEP)
+      for (const [sign, surface] of [[1, zone.surface], [-1, base]] as [number, Surface][]) {
+        if (rand() > blend.chance) continue;
+        const deep = fixed + out * sign * (0.3 + tri(rand) * BLEND_W * blend.reach),
+          localX = alongX ? along : deep, localY = alongX ? deep : along,
+          x = zone.x + localX * cos - localY * sin, y = zone.y + localX * sin + localY * cos;
+        if (!ctx.clear(x, y, 0.8)) continue;
+        added.push({ ...blendPatch(rand, x, y, surface), streamed: true, _s: zone._s });
+      }
+  level._streamed = [...(level._streamed || []), ...added];
+  indexNewBushes(level as Level, added);
+}
+
+/**
+ * A new road (highway.ts resetHighway): no streamed patches until its zones are laid.
+ * @param level the highway level
+ */
+export function resetStreamed(level: Level) {
+  if (!level._streamed || !level._streamed.length) return;
+  level._streamed = [];
+  reindexBushes(level);
+}
+
+/**
+ * Drops the streamed patches the road has left behind (highway.ts slide).
+ * @param level the highway level
+ * @param startDist the road distance everything before is dropped, m
+ */
+export function pruneStreamed(level: Level, startDist: number) {
+  const list = level._streamed;
+  if (!list || !list.length) return;
+  const kept = list.filter((square) => (square._s ?? 0) >= startDist);
+  if (kept.length === list.length) return;
+  level._streamed = kept;
+  reindexBushes(level);
 }
 
 /**

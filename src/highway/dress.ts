@@ -1,6 +1,7 @@
 // highway dress: the per-window dressing (trees, gantries, armco, walls, litter) and the
 // NOX / NOF node-tool switches. Split out of highway.ts.
 import { envValue } from "../core/debug.ts";
+import { FIX } from "../core/fixes.ts";
 import { STEP, SIGNS } from "./presets.ts";
 import { stateOf } from "./road.ts";
 import { blocked, cutBy, sideStep, sideFlush, syncCovers, SLIP_W, cutSkips } from "./cuts.ts";
@@ -59,8 +60,39 @@ function makeDressContext(level: HwLevel, firstIdx: number, endIdx: number, loos
  * @param dist road distance
  * @returns the biome name there
  */
-function biomeAtDist(dist: number) {
+function biomeAtDist(dist: number, seed: number) {
+  // ?canyon=1 (owner 11-09: "endless roads should cycle randomly between their potential next track
+  // sections so it always varies"): the road's own random order and lengths
+  if (FIX.canyon) return biomePlanAt(dist, seed);
   return ["farm", "forest", "farm", "rocky", "farm", "forest"][Math.floor(dist / 2200) % 6];
+}
+
+// the countryside's stretches in a random order: each 1.4-3 km, farmland the likeliest, never the
+// same twice running; by road and road distance, laid as far as asked (biomePlanAt)
+const BIOMES: [string, number][] = [["farm", 0.5], ["forest", 0.3], ["rocky", 0.2]];
+const BIOME_PLANS = new Map<number, { ends: number[]; names: string[]; state: number }>();
+
+/**
+ * The countryside's stretch at a road distance on a road (?canyon=1).
+ * @param dist road distance, m
+ * @param seed the road's seed
+ * @returns the biome name there
+ */
+function biomePlanAt(dist: number, seed: number): string {
+  let plan = BIOME_PLANS.get(seed);
+  if (!plan) BIOME_PLANS.set(seed, plan = { ends: [2200], names: ["farm"], state: seed || 1 });
+  const rand = () => (plan!.state = (plan!.state * 16807) % 2147483647) / 2147483647;
+  while (plan.ends[plan.ends.length - 1] <= dist) {
+    const last = plan.names[plan.names.length - 1], next = BIOMES.filter(([name]) => name !== last),
+      total = next.reduce((sum, [, weight]) => sum + weight, 0);
+    let pick = rand() * total, name = next[next.length - 1][0];
+    for (const [each, weight] of next) if ((pick -= weight) < 0) { name = each; break; }
+    plan.names.push(name);
+    plan.ends.push(plan.ends[plan.ends.length - 1] + 1400 + rand() * 1600);
+  }
+  let idx = 0;
+  while (plan.ends[idx] <= dist) idx++;
+  return plan.names[idx];
 }
 
 /**
@@ -290,7 +322,7 @@ export function dress(level: HwLevel, firstIdx: number, endIdx: number, loose: L
       if (!cutSkips(cut, road[j].s)) cutBy(level, cut, road[j].x, road[j].y);
   for (let i = firstIdx; i < endIdx; i++) {
     const dist = road[i].s,
-      biomeName = biomeAtDist(dist),
+      biomeName = biomeAtDist(dist, state.seed),
       mark = ((obj: { _s?: number }) => {
         obj._s = dist;
         return obj;

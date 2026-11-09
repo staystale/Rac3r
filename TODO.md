@@ -253,7 +253,16 @@ last handover, written on request.
    after airtime faster than 13 m/s crashes (and may tumble); a rolling car falls to the ground
    and feels the slope (roll.ts rollFall / slopePull). tools/scratch/_gorgefall.mjs (40 / 70 /
    110 km/h over an open lip: all end in the gorge, damaged), _canyonshot, _gorgeprofile,
-   _canyonroad. simhash SAME on every run (the rolling fall / slope behind ?canyon=1 too). Brands Indy's garage barrier on a lane
+   _canyonroad. simhash SAME on every run (the rolling fall / slope behind ?canyon=1 too).
+   ROUND 1c 11-09 (owner): the stretches in a RANDOM order and lengths from the road's seed
+   ("endless roads should cycle randomly": desertplan.ts; the countryside's biomes too, dress.ts,
+   ?canyon=1), DUNES ("sand dunes yeah": ridges with slip faces) and rolling ground ("more varied
+   and random terrain"), patches parallel to the road and blended ("speckles and fade": streamed
+   edge squares, world/load.ts), a landing no longer tumbles you ("shouldn't automatically make you
+   roll"), twice the cacti, rusted-out cars, cattle skulls, road signs, the LAST GASP gas station
+   (its apron tapering in and out off the road). The highway AI holds back grip by a falling edge
+   (ai/roadLine.ts EDGE_GRIP: the autopilot had drifted into a gorge at 170 km/h; now 2.5 m worst
+   off the centre line). simhash SAME. Tumbleweed: later (cost). Brands Indy's garage barrier on a lane
    (item 6): clear since the venue rebuild (barriercheck all OK 11-08).
 6. SMALL: Brands Snatch Indy's garage barrier on a lane (barriercheck); the highway AI dodging (owner
    "let's leave it for now").

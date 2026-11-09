@@ -79,12 +79,14 @@ function gridPatch(patch: Patch): void {
 }
 /**
  * Re-indexes the active level's bushes after they changed (the highway's hedges stream with its
- * fields, highway/hedges.ts): the patch list keeps every other patch and takes the bushes now.
+ * fields, highway/hedges.ts), and its streamed patches (highway/gorge.ts): the patch list keeps
+ * every other patch and takes the bushes and streamed patches now.
  * @param level the level whose bushes changed (nothing to do unless it is the active one)
  */
 export function reindexBushes(level: Level): void {
   if (level !== LEVEL || !LEVEL.allPatches) return;
-  LEVEL.allPatches = LEVEL.allPatches.filter((patch) => !patch.bush).concat(LEVEL._bushes || []);
+  LEVEL.allPatches = LEVEL.allPatches.filter((patch) => !patch.bush && !patch.streamed)
+    .concat(LEVEL._bushes || [], LEVEL._streamed || []);
   indexPatchGrid();
 }
 /**

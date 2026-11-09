@@ -26,6 +26,6 @@ for (let dist = road[0].s + STEP; dist < road[road.length - 1].s; dist += STEP) 
     if (bar.kind === 'rock') row[off < 0 ? 'left' : 'right'] = off.toFixed(1);
     else kinds.add(bar.kind + (off < 0 ? 'L' : 'R'));
   }
-  console.log(String(Math.round(dist)).padStart(5), stretchAt(dist).kind.padEnd(7),
+  console.log(String(Math.round(dist)).padStart(5), stretchAt(dist, level.seed).kind.padEnd(7),
     String(row.left).padStart(7), String(row.right).padStart(7), [...kinds].join(' '));
 }
