@@ -34,6 +34,7 @@ import { SN_LEVELS } from "./snotterton-venue.ts";
 import { DT_LEVELS } from "./dieatona-venue.ts";
 import { TH_VENUE_LEVEL } from "./thruston-venue.ts";
 import { KH_VENUE_LEVELS } from "./knobhill-venue.ts";
+import { SH_VENUE_LEVELS } from "./slidden-hill-venue.ts";
 import { FIX } from "../../core/fixes.ts";
 import { LAB_PAINT, LAB_BOARDS } from "../barriers.ts";
 import { courseCones, slalom, outerTyreWall } from "../tyrewall.ts";
@@ -151,7 +152,8 @@ export const LEVELS: Level[] = [
       return { x: pose.x, y: pose.y, heading: pose.rot };
     })(),
   },
-  {
+  // ?sliddenhillvenue=1: the real venue (slidden-hill-venue.ts), its rallycross and its circuit
+  ...(FIX.sliddenhillvenue ? SH_VENUE_LEVELS : [{
     id: 'slidden-hill', name: 'Slidden Hill',
     base: SURFACES.grass,
     subtrack: SH_SUBTRACK,
@@ -186,7 +188,7 @@ export const LEVELS: Level[] = [
         x: spawnX, y: spawnY, heading: Math.atan2(toPt[1] - fromPt[1], toPt[0] - fromPt[0]),
       };
     })(),
-  },
+  } as Level]),
   // the real venue (castle-cum-venue.ts), built on first use
   CC_VENUE_LEVEL,
   // Snotterton's three layouts (snotterton-venue.ts), built on first use
