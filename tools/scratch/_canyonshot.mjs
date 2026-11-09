@@ -12,7 +12,7 @@ try {
   await gotoGame(page, `${server.url}/?pc=1&guide=0&menu=0&rules=0&noaudio=1&canyon=1&autopilot=1`);
   await page.mouse.click(width / 2, height / 2);
   await page.waitForTimeout(800);
-  await page.evaluate(() => window.__game.launch('deaf-valley', 'hatch-rwd', { ai: 0 }));
+  await page.evaluate(() => window.__game.launch('highway', 'hatch-rwd', { ai: 0, road: 'canyon' }));
   // (the first canyon opens into the desert 900 m in: about 24-30 s on the autopilot)
   let waited = 0;
   for (const at of [3, 14, 24, 30]) {

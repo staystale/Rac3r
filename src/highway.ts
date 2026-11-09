@@ -30,7 +30,7 @@ import { prepBarriersOf, solidsFromProps } from "./world/barriers.ts";
 import { onTrack } from "./world/tyrewall.ts";
 import { zoneSurfaceAt, pruneWear } from "./world/wear.ts";
 import { seedFieldBlocks } from "./world/levelmud.ts";
-import { HW_PRESETS, HW_NAMES, STEP, AHEAD, BEHIND, SPAWN_S, UP_HEADING, rng }
+import { HW_PRESETS, HW_NAMES, HW_THEMES, STEP, AHEAD, BEHIND, SPAWN_S, UP_HEADING, rng }
   from "./highway/presets.ts";
 import { laneGeo, stateOf, growTo, locate, roadFrame } from "./highway/road.ts";
 import { syncCovers, SIDE_W_HALF } from "./highway/cuts.ts";
@@ -355,8 +355,13 @@ export function setHighwayPreset(level: HwLevel, preset: string) {
   if (!HW_PRESETS[preset] || level.roadType === preset) return;
   level.roadType = preset;
   level._cfg = HW_PRESETS[preset];
+  level.base = baseOf(preset);
   level._layout = (level._layout || 0) + 1;
 }
+// the ground off the road: the countryside's grass, Deaf Valley's desert gravel (owner 11-09:
+// "use gravel and sand for the desert not dirt")
+const baseOf = (preset: string) =>
+  HW_PRESETS[preset].theme === 'canyon' ? SURFACES.gravel : SURFACES.grass;
 const settings = readSettings(typeof location !== 'undefined' ? location.search : '');
 const QUERY_PRESET = typeof location !== 'undefined' ? settings.highwayDebug : null;
 export function createHighway(seed: number = 4242, preset: string = 'motorway') {
@@ -370,7 +375,9 @@ export function createHighway(seed: number = 4242, preset: string = 'motorway') 
     _cfg: HW_PRESETS[preset],
     roadType: preset,
     roadTypes: HW_NAMES,
-    base: SURFACES.grass,
+    // ?canyon=1: the theme choice (Deaf Valley)
+    ...(FIX.canyon ? { themes: HW_THEMES } : {}),
+    base: baseOf(preset),
     subtrack: null,
     camber: { maxDeg: 0, refR: 60, crown: 0.03, edge: 5, sections: [] },
     zones: [],
@@ -392,17 +399,11 @@ export function createHighway(seed: number = 4242, preset: string = 'motorway') 
   return level;
 }
 let highwayAdded = false;
-// adds the endless motorway to LEVELS (called once, after the hand-made levels) - and, ?canyon=1,
-// DEAF VALLEY: the same endless road as a desert canyon (highway/canyon.ts; owner 11-08)
+// adds the endless motorway to LEVELS (called once, after the hand-made levels); ?canyon=1 gives it
+// the DEAF VALLEY theme (highway/canyon.ts; owner 11-08)
 export function addHighwayLevel() {
   if (highwayAdded) return;
   highwayAdded = true;
   LEVELS.push(createHighway(4242, QUERY_PRESET || 'motorway') as unknown as Level);
-  if (FIX.canyon) {
-    const canyon = createHighway(6677, 'canyon');
-    Object.assign(canyon, { id: 'deaf-valley', name: 'Deaf Valley', base: SURFACES.dirt,
-      roadTypes: { canyon: 'CANYON' } });
-    LEVELS.push(canyon as unknown as Level);
-  }
 }
 

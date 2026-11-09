@@ -77,6 +77,13 @@ export const HW_NAMES: Record<string, string> = {
   dual: "DUAL C/WAY",
   walled: "WALLED",
 };
+// THEMES (owner 11-09 on Deaf Valley: "It should come under highway levels and be a theme
+// choice"): the roadside and ground a road runs through - the road type's theme (HwCfg.theme; none
+// is the countryside) - each with the road types Test Mode setup offers in it
+export const HW_THEMES: Record<string, { name: string; roads: Record<string, string> }> = {
+  countryside: { name: "COUNTRYSIDE", roads: HW_NAMES },
+  canyon: { name: "DEAF VALLEY", roads: { canyon: "CANYON ROAD" } },
+};
 // SPAWN_S 40 -> 300 (MEASURED, treadmillcheck: the road's raw START was only 40 m behind
 // the car at spawn, inside a zoomed-out view); K_RATE = the fastest curvature change, 1/m per m (a
 // clothoid; 5e-5 = a 0 -> R 200 ramp over 100 m)

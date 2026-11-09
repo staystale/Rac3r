@@ -90,13 +90,25 @@ function addSetupHeader(menu: Menu, panel: HTMLElement, level: Level) {
  * @param state the setup state (reads / writes road)
  */
 function addRoadTypeRow(menu: Menu, panel: HTMLElement, level: Level, state: SetupState) {
-  if (level.roadTypes) {
-    const roadRow = addElement(panel, 'div', '', 'row');
-    const roadBtns = Object.entries(level.roadTypes).map(([roadKey, name]) => addButton(menu,
+  let roads = level.roadTypes;
+  if (level.themes) {
+    // THEME (owner 11-09: Deaf Valley "should come under highway levels and be a theme choice"):
+    // a theme's own road types below it; another theme reopens the setup on its first road type
+    const themes = level.themes, theme = Object.keys(themes).find((key) => state.road
+      && state.road in themes[key].roads) || Object.keys(themes)[0];
+    const themeRow = addElement(panel, 'div', '', 'row');
+    for (const [key, entry] of Object.entries(themes)) addButton(menu, themeRow, entry.name, () => {
+      if (key !== theme) showSetup(menu, level,
+        { ...setupChoices(state), road: Object.keys(entry.roads)[0] });
+    }, key === theme ? 'on' : '');
+    roads = themes[theme].roads;
+  }
+  if (roads) {
+    const roadRow = addElement(panel, 'div', '', 'row'), keys = Object.keys(roads);
+    const roadBtns = Object.entries(roads).map(([roadKey, name]) => addButton(menu,
       roadRow, name, () => {
         state.road = roadKey;
-        roadBtns.forEach((button, i) => button.classList.toggle('on',
-          Object.keys(level.roadTypes!)[i] === state.road));
+        roadBtns.forEach((button, i) => button.classList.toggle('on', keys[i] === state.road));
       }, roadKey === state.road ? 'on' : ''));
   }
 }

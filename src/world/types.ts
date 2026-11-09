@@ -490,6 +490,8 @@ export interface Level {
   fixed?: boolean;   // stagegen.ts
   gen?: StageRecipe;   // stagegen.ts: a generated stage's recipe (world/levels/category.ts)
   roadTypes?: Record<string, string>;   // highway.ts: the road types setup offers, key -> name
+  // highway.ts: the themes setup offers (presets.ts HW_THEMES), each with its road types
+  themes?: Record<string, { name: string; roads: Record<string, string> }>;
   litter?: number;   // main.ts, highway levels
   roadType?: string;   // highway.ts
   _layout?: number;   // highway.ts

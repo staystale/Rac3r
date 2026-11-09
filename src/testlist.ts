@@ -24,7 +24,7 @@ export const TEST_LIST: TestEntry[] = [
     id: 'canyon',
     added: '2026-11-08',
     name: 'Deaf Valley: the endless road as a desert canyon - rock walls, cactus, open desert',
-    where: 'Test link + &canyon=1: TEST MODE > ROADS > Deaf Valley (no traffic yet: round 2)',
+    where: 'Test link + &canyon=1: ENDLESS ROADS > Highway to Hull > theme DEAF VALLEY',
     try: 'Drive it fast through the canyons and the open desert; hit a wall, a saguaro.',
     wrong: 'A wall end facing the road, gaps in a wall, a cactus on the road, bad walls look.',
   },
