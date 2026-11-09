@@ -62,4 +62,8 @@ export const FIX = {
   // world/jersey.ts; owner 11-09: "Can central reservation be a jersey barrier that flips cars at
   // higher speed ?", "Vary it randomly and appropriate to track")
   medians: atLoad('medians'),
+  // ?twoway=1: Deaf Valley's single carriageway both ways - our way's traffic in its left lane,
+  // the other way's in its right (highway/road.ts laneGeo; owner 11-09: "they can crash when
+  // passing it's ok")
+  twoway: atLoad('twoway'),
 };

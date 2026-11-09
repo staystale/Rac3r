@@ -13,6 +13,14 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'twoway',
+    added: '2026-11-09',
+    name: 'Deaf Valley both ways: slow cars in your lane, oncoming in the other (racers do crash)',
+    where: 'Test link + &twoway=1: Highway to Hull > DEAF VALLEY, alone and VS AI',
+    try: 'Overtake into the oncoming lane; watch the other way\'s cars brake and edge over.',
+    wrong: 'A car on the wrong side by itself, spinning off alone, popping in, or no traffic.',
+  },
+  {
     id: 'medians',
     added: '2026-11-09',
     name: 'Central barriers varied: Jersey barrier (throws a fast car), Armco, chain link, wood',

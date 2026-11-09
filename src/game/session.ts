@@ -1,6 +1,7 @@
 // session.ts — Session: lap timing, reset, restart, records and the race flow.
 import { lineUpCrashBench } from './crashbench.ts';
 import { hwLevel } from './state.ts';
+import { FIX } from '../core/fixes.ts';
 import { reset } from '../vehicle.ts';
 import { resetHighway, roadFrame } from '../highway.ts';
 import { createHwFlow, hwGridSpan } from '../highwayrace.ts';
@@ -301,6 +302,15 @@ export function onScreen(x: number, y: number) {
     && screenY < shared.renderer.H + margin;
 }
 /**
+ * The highway's traffic density: the setting's - none on Deaf Valley but with ?twoway=1 (both
+ * ways on its single carriageway).
+ * @returns the density, 0-1.5
+ */
+function trafficDensity(): number {
+  return LEVEL.endless && !FIX.twoway && hwLevel()._cfg.theme === 'canyon' ? 0
+    : shared.trafficDensity;
+}
+/**
  * The field for a (re)start, once the player is on the spawn: the start lights, the AI on the grid
  * and you on your slot, the highway's traffic, the race flow.
  */
@@ -315,9 +325,7 @@ function startField() {
     if (shared.renderer && shared.renderer.snap) shared.renderer.snap(game.car);
   }
   // (the menu race too - owner 11-07: "no traffic on menu highway races?")
-  // (Deaf Valley: no traffic yet - it comes the other way, round 2)
-  game.traffic.reset(LEVEL.endless ? hwLevel() : null, LEVEL.endless
-    && hwLevel()._cfg.theme === 'canyon' ? 0 : shared.trafficDensity);
+  game.traffic.reset(LEVEL.endless ? hwLevel() : null, trafficDensity());
   if (LEVEL.endless && game.ai.length) {
     const [spanStart, spanEnd] = hwGridSpan(hwLevel(), game.ai.length + 1);
     game.traffic.clearSpan(spanStart, spanEnd);

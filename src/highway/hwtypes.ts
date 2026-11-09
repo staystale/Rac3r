@@ -18,9 +18,10 @@ export interface HwCfg {
   kRate?: number;   // the fastest curvature change, 1/m per m (road.ts; else presets.ts K_RATE)
   // its changes by road distance (Deaf Valley's HIGH road: highway/desertplan.ts)
   stretch?: (dist: number, seed: number) => Partial<HwCfg> | null;
-  // the other way's traffic: a second carriageway, mirrored, the far side of a central
-  // reservation with a barrier of kind median (road.ts laneGeo)
-  oncoming?: 'carriageway';
+  // the other way's traffic: 'carriageway' - a second carriageway, mirrored, the far side of a
+  // central reservation with a barrier of kind median; 'lane' (?twoway=1) - a single carriageway
+  // whose right-hand lane comes the other way (road.ts laneGeo)
+  oncoming?: 'carriageway' | 'lane';
   median?: BarrierKind;
   // ?medians=1: the central barrier's kinds and their weights along the road (highway/medians.ts)
   medians?: [BarrierKind, number][];
@@ -31,7 +32,7 @@ export interface HwGeo {
   width: number; hw: number;
   centres: number[];   // our way's lanes, left first (the racers' road: ai/roadLine.ts)
   dashes: number[]; solid: number[];   // the lane lines drawn
-  own: number[];   // the lanes our way's traffic drives
+  own: number[];   // the lanes our way's traffic drives (a single carriageway's: its left one)
   oncoming: number[];   // the other way's lanes, its nearside first (none: no oncoming traffic)
   ownR: number;   // our carriageway's right edge (our traffic keeps inside it)
   oppL: number;   // the other way's edge nearest us (its traffic keeps beyond it)

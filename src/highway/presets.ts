@@ -87,6 +87,8 @@ export const HW_PRESETS: Record<string, HwCfg> = {
     pStraight: 0.22,
     pBend: 0.35,
     theme: 'canyon',
+    // its right-hand lane comes the other way (?twoway=1)
+    oncoming: 'lane',
     // long winding S-bends (the canyon spec 10-06: "long winding and S ing corners"); the HIGH
     // road windier still (highway/desertplan.ts)
     kRate: 1.5e-4,

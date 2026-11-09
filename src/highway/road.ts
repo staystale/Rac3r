@@ -1,6 +1,7 @@
 // highway road: the centre-line generator (elements, curvature, growTo) and the readers of it
 // (locate, roadFrame, roadPose, roadSpan). Split out of highway.ts.
 import { STEP, UP_HEADING, K_RATE, wrap } from "./presets.ts";
+import { FIX } from "../core/fixes.ts";
 import type { HwCfg, HwGeo, HwPoint, HwElem, HwState, HwLevel } from './hwtypes.ts';
 // lateral offsets from the centreline: - = the driver's LEFT (the -normal side; lab.ts normals
 // point to the driver's right)
@@ -10,7 +11,8 @@ const RESERVE_M = 3;
 /**
  * The road's cross-section: our carriageway - the hard shoulder, the lanes, the edge strip - and
  * (cfg.oncoming) the other way's beyond a central reservation, mirrored: its offside
- * lane by the reservation, its hard shoulder outermost.
+ * lane by the reservation, its hard shoulder outermost. A single carriageway (cfg.oncoming 'lane',
+ * ?twoway=1) keeps its shape, its right-hand lane the other way's.
  * @param cfg the road type
  * @returns the cross-section
  */
@@ -23,8 +25,12 @@ export function laneGeo(cfg: HwCfg): HwGeo {
   const centres = Array.from({ length: cfg.lanes }, (item, i) => base + cfg.laneW * (i + 0.5)),
     dashes = Array.from({ length: cfg.lanes - 1 }, (item, idx) => base + cfg.laneW * (idx + 1)),
     solid = cfg.shoulder >= 2 ? [base] : [];
-  if (!twin) return { width, hw: halfWidth, centres, dashes, solid, own: centres, oncoming: [],
-    ownR: halfWidth, oppL: halfWidth, median: null };
+  if (!twin) {
+    const single = FIX.twoway && cfg.oncoming === 'lane' && cfg.lanes === 2;
+    return { width, hw: halfWidth, centres, dashes, solid,
+      own: single ? [centres[0]] : centres, oncoming: single ? [centres[1]] : [],
+      ownR: halfWidth, oppL: single ? (centres[0] + centres[1]) / 2 : halfWidth, median: null };
+  }
   // the far carriageway's nearside lane edge (inside its hard shoulder), and its lanes from there
   const farBase = halfWidth - cfg.shoulder;
   return { width, hw: halfWidth, centres,

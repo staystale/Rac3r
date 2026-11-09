@@ -8,12 +8,30 @@ import type { DriveEnv } from "./trafficLane.ts";
 import { carryKinematic, drivePhysics } from "./trafficPhys.ts";
 import type { TrafficCar, TrafficEnt } from "./types.ts";
 
+// s to meeting a car coming at it in its lane within which the other way's car brakes, the most
+// it brakes, and the m it edges toward its own verge then (?twoway=1, Deaf Valley: following it,
+// it stopped dead in the road - MEASURED, hwracecheck: racers ran into the queue; braking in full
+// as it edged over, it spun off - tools/trafficcheck.mjs TWOWAY=1: 92 car-steps off the road)
+const MEET_T = 3, MEET_BRAKE = 0.5, MEET_EDGE_M = 0.8;
+
 /** SPEED: cruise, or follow the car ahead; hard braking when a collision is close. */
 function speedTarget(slot: TrafficCar, lead: TrafficEnt | null, gap: number) {
   let vTarget = slot.vWant, brakeX = 0;
+  const dir = slot.dir ?? 1;
+  if (dir < 0) slot.bias = 0;
+  if (lead && dir < 0 && dir * lead.v < 0) {
+    // the other way's car and one coming at it (a racer passing): no following - it brakes and
+    // edges over as the meeting nears
+    const ttc = gap / Math.max(1, slot.vAl - dir * lead.v);
+    if (ttc < MEET_T) {
+      brakeX = MEET_BRAKE * (MEET_T - ttc) / MEET_T;
+      slot.bias = MEET_EDGE_M;
+    }
+    return { vTarget, brakeX };
+  }
   if (lead) {
-    // (the lead's speed this car's way: one coming at it is negative - it brakes hard)
-    const leadV = (slot.dir ?? 1) * lead.v;
+    // (the lead's speed this car's way)
+    const leadV = dir * lead.v;
     const wantGap = GAP0 + HEADWAY * Math.max(0, slot.vAl);
     vTarget = Math.min(vTarget, Math.max(0, leadV + (gap - wantGap) * 0.4));
     if (gap < 2.5) vTarget = 0;
