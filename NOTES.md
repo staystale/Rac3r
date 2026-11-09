@@ -458,6 +458,10 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   marshal hut's corner on a kerb. venueaudit counts tyres on tyres / barriers / kerbs, props on
   kerbs, loose objects at no place and barriers folding back; world/venue.ts tidyLoose drops any
   left (the first laid kept).
+- A HAND FINISH'S drop / cut TAKES THE FIRST ROAD WITHIN 3 M of its spot (11-09, Oulton Pork): a
+  spot by a junction cut the side road, not the one meant. Put the spot more than 3 m from every
+  other road (tools/scratch/_lanelist.mjs lists each road's ends; `x y reach` those by a spot),
+  and drop a finish entry the build warns "meets no road" about.
 
 ## Routine
 

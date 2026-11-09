@@ -13,6 +13,14 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'oultonpork',
+    added: '2026-11-09',
+    name: 'Oulton Pork (Oulton Park) at 1/2 size, a new track: International, Island, Frosters',
+    where: 'Test link + &oultonpork=1: TEST MODE > CIRCUITS > Oulton Pork > the three layouts',
+    try: 'Lap all three: Old Hall, Cascades, Lakeside, the hairpins, Hilltop, Druids, Lodge.',
+    wrong: 'A road or prop on the track, a barrier gap, a road to nowhere, a fence not real.',
+  },
+  {
     id: 'venueoverlaps',
     added: '2026-11-09',
     name: 'Tidier venues: tyre walls in two neat rows, nothing piled on each other, no zig-zags',

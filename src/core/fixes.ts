@@ -56,4 +56,7 @@ export const FIX = {
   // ?sillystone=1: Sillystone (working name), a NEW venue (Silverstone) at 1/2 of real length, the
   // GP and the National (world/levels/sillystone-venue.ts; owner 11-09)
   sillystone: atLoad('sillystone'),
+  // ?oultonpork=1: Oulton Pork (working name), a NEW venue (Oulton Park) at 1/2 of real length, the
+  // International, the Island and the Fosters (world/levels/oultonpork-venue.ts; owner 11-09)
+  oultonpork: atLoad('oultonpork'),
 };

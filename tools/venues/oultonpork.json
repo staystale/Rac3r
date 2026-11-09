@@ -1,0 +1,245 @@
+{
+  "osm": "oultonpork.osm.json",
+  "out": "src/world/levels/venues/oultonpork.ts",
+  "exportName": "OULTONPORK_VENUE",
+  "origin": [
+    53.1765,
+    -2.616
+  ],
+  "turnDeg": 0,
+  "clip": [
+    -800,
+    -950,
+    800,
+    950
+  ],
+  "reachM": 180,
+  "skip": [
+    848296254,
+    1265663568
+  ],
+  "names": {
+    "27299256": "Old Knickerbrook line",
+    "450023909": "Britten's bypass",
+    "721714388": "Pit garages"
+  },
+  "layouts": {
+    "international": {
+      "through": [
+        "Old Hall Corner",
+        "Cascades",
+        "Lakeside",
+        "Island Bend",
+        "Shell Oils Corner",
+        "Britten's",
+        "Hilltop",
+        "Hislop's",
+        "Knickerbrook",
+        "Druids Corner",
+        "Lodge Corner"
+      ],
+      "avoid": [
+        "Island Hairpin",
+        "Foster's",
+        "Old Knickerbrook line",
+        "Britten's bypass",
+        "Pit Lane"
+      ]
+    },
+    "island": {
+      "through": [
+        "Old Hall Corner",
+        "Cascades",
+        "Lakeside",
+        "Island Hairpin",
+        "Hilltop",
+        "Hislop's",
+        "Knickerbrook",
+        "Druids Corner",
+        "Lodge Corner"
+      ],
+      "avoid": [
+        "Shell Oils Corner",
+        "Foster's",
+        "Old Knickerbrook line",
+        "Pit Lane"
+      ]
+    },
+    "fosters": {
+      "through": [
+        "Old Hall Corner",
+        "Cascades",
+        "Foster's",
+        "Hislop's",
+        "Knickerbrook",
+        "Druids Corner",
+        "Lodge Corner"
+      ],
+      "avoid": [
+        "Lakeside",
+        "Island Hairpin",
+        "Old Knickerbrook line",
+        "Pit Lane"
+      ]
+    }
+  },
+  "extra": [
+    {
+      "source": "aerial photographs (ESRI World Imagery), traced 11-09: the footbridge over Deer Leap and the pit entry",
+      "tags": {
+        "highway": "footway",
+        "bridge": "yes"
+      },
+      "pts": [
+        [
+          53.181288,
+          -2.613362
+        ],
+        [
+          53.181288,
+          -2.612808
+        ]
+      ]
+    },
+    {
+      "source": "aerial photographs (ESRI World Imagery), traced 11-09: Druids gravel trap",
+      "tags": {
+        "natural": "shingle"
+      },
+      "pts": [
+        [
+          53.182278,
+          -2.620934
+        ],
+        [
+          53.182278,
+          -2.620406
+        ],
+        [
+          53.182206,
+          -2.619927
+        ],
+        [
+          53.18213,
+          -2.620047
+        ],
+        [
+          53.182009,
+          -2.620287
+        ],
+        [
+          53.18189,
+          -2.620486
+        ],
+        [
+          53.181746,
+          -2.620646
+        ],
+        [
+          53.181627,
+          -2.620747
+        ],
+        [
+          53.18165,
+          -2.620867
+        ],
+        [
+          53.181818,
+          -2.620906
+        ],
+        [
+          53.182009,
+          -2.620934
+        ],
+        [
+          53.182278,
+          -2.620934
+        ]
+      ]
+    },
+    {
+      "source": "aerial photographs (ESRI World Imagery), traced 11-09: Lodge gravel trap",
+      "tags": {
+        "natural": "shingle"
+      },
+      "pts": [
+        [
+          53.183192,
+          -2.612927
+        ],
+        [
+          53.183192,
+          -2.612583
+        ],
+        [
+          53.183085,
+          -2.612418
+        ],
+        [
+          53.182671,
+          -2.612403
+        ],
+        [
+          53.182213,
+          -2.612448
+        ],
+        [
+          53.18215,
+          -2.612613
+        ],
+        [
+          53.182492,
+          -2.612643
+        ],
+        [
+          53.182725,
+          -2.612658
+        ],
+        [
+          53.182932,
+          -2.612748
+        ],
+        [
+          53.183103,
+          -2.612853
+        ],
+        [
+          53.183192,
+          -2.612927
+        ]
+      ]
+    },
+    {
+      "source": "aerial photographs (ESRI World Imagery), traced 11-09: the gravel trap outside the Shell Oils hairpin",
+      "tags": {
+        "natural": "shingle"
+      },
+      "pts": [
+        [
+          53.171011,
+          -2.611039
+        ],
+        [
+          53.171056,
+          -2.610499
+        ],
+        [
+          53.170948,
+          -2.610409
+        ],
+        [
+          53.17085,
+          -2.610574
+        ],
+        [
+          53.170913,
+          -2.610844
+        ],
+        [
+          53.171011,
+          -2.611039
+        ]
+      ]
+    }
+  ]
+}
