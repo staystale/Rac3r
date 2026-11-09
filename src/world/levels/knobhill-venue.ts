@@ -13,7 +13,7 @@
 //     start straight. The JOKER is the real one: "run along the bottom straight and around the
 //     hairpin" instead (British Rallycross, Knockhill).
 import { KNOBHILL_VENUE } from "./venues/knobhill.ts";
-import { venueLevel } from "../venue.ts";
+import { venueLap, venueLevel } from "../venue.ts";
 import { rallycrossLevel } from "./rallycross-venue.ts";
 import type { VenueSpec } from "../venue.ts";
 import type { Level } from "../types.ts";
@@ -50,8 +50,8 @@ export const KNOBHILL_SPEC: VenueSpec = {
 const circuitLevel = (): Level =>
   venueLevel(KNOBHILL_SPEC, 'circuit', 'knobhill-circuit', 'Knobhill Circuit');
 export const KH_VENUE_LEVELS: Level[] = [
-  ({ id: 'knobhill', name: 'Knobhill', venue: 'Knobhill',
+  ({ id: 'knobhill', name: 'Knobhill', venue: 'Knobhill', _lap: () => venueLap(KNOBHILL_SPEC, 'rx'),
     _build: () => rallycrossLevel(KNOBHILL_SPEC, 'rx', 'knobhill', 'Knobhill') } as Level),
   ({ id: 'knobhill-circuit', name: 'Knobhill Circuit', venue: 'Knobhill',
-    _build: circuitLevel } as Level),
+    _lap: () => venueLap(KNOBHILL_SPEC, 'circuit'), _build: circuitLevel } as Level),
 ];

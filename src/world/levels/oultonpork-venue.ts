@@ -1,6 +1,6 @@
-// world/levels/oultonpork-venue.ts - OULTON PORK (working name), a NEW venue (?oultonpork=1,
-// world/venue.ts): Oulton Park (Cheshire) from OpenStreetMap (venues/oultonpork.ts) at 1/2 of real
-// length with the 13 m road, its three layouts one venue sharing its scenery: the International
+// world/levels/oultonpork-venue.ts - OULTON PORK, a venue (world/venue.ts; passed 11-09): Oulton
+// Park (Cheshire) from OpenStreetMap (venues/oultonpork.ts) at 1/2 of real length with the 13 m
+// road, its three layouts one venue sharing its scenery: the International
 // (the Island Bend loop out to the Shell Oils hairpin and back through Britten's), the Island (the
 // Island hairpin cutting the loop) and the Fosters (Foster's cutting from Cascades to Hislop's).
 // Checked against Wikipedia (International 4.307 km, Island 3.616, Fosters 2.656; the OSM loops
@@ -12,7 +12,7 @@
 // North up, the lap clockwise. OSM maps no rails: the edge is the venue rule's (Armco behind the
 // gravel and before hazards - another stretch of the track, a building).
 import { OULTONPORK_VENUE } from "./venues/oultonpork.ts";
-import { venueLevel } from "../venue.ts";
+import { venueLap, venueLevel } from "../venue.ts";
 import type { VenueSpec } from "../venue.ts";
 import type { Level } from "../types.ts";
 
@@ -68,6 +68,7 @@ export const OULTONPORK_SPEC: VenueSpec = {
 // buildLevel)
 const layoutLevel = (layout: string, levelId: string, name: string): Level =>
   ({ id: levelId, name, venue: OULTONPORK,
+    _lap: () => venueLap(OULTONPORK_SPEC, layout),
     _build: () => venueLevel(OULTONPORK_SPEC, layout, levelId, name) } as Level);
 export const OP_LEVELS: Level[] = [
   layoutLevel('international', 'oultonpork', `${OULTONPORK} International`),

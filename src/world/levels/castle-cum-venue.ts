@@ -14,7 +14,7 @@
 // hills are the old level's (the Avon Rise crest before Quarry, the run down to Tower, Folly's
 // bumps) at the same corners.
 import { CASTLE_CUM_VENUE } from "./venues/castle-cum.ts";
-import { venueLevel } from "../venue.ts";
+import { venueLap, venueLevel } from "../venue.ts";
 import type { VenueSpec } from "../venue.ts";
 import type { Level } from "../types.ts";
 
@@ -93,4 +93,5 @@ export const CASTLE_CUM_SPEC: VenueSpec = {
 // the one layout, built on first use (world/load.ts buildLevel): a venue takes seconds to build
 // on a phone
 export const CC_VENUE_LEVEL: Level = ({ id: 'castle-cum', name: 'Castle Kum',
-  _build: () => venueLevel(CASTLE_CUM_SPEC, 'circuit', 'castle-cum', 'Castle Kum') } as Level);
+  _lap: () => venueLap(CASTLE_CUM_SPEC, 'circuit'),
+    _build: () => venueLevel(CASTLE_CUM_SPEC, 'circuit', 'castle-cum', 'Castle Kum') } as Level);

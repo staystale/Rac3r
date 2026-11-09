@@ -11,6 +11,7 @@
 //             down an open stretch, to knock over
 //   roads     none here (the endless highway lays its own as the road grows:
 //             highway/roadlamps.ts)
+import { FIX } from '../core/fixes.ts';
 import { FLOOR } from './bounds.ts';
 import { SURFACES } from './surfaces.ts';
 import { catOf } from './levels/category.ts';
@@ -20,6 +21,13 @@ import type { Level, Point, Prop, Subtrack, TrackPoint } from './types.ts';
 // street lights: how far out from the track edge their posts stand, spacing, and the stretch of
 // the lap round the start / finish line (m before, m after)
 const STREET_OUT_M = 2.5, STREET_GAP_M = 34, STRAIGHT_BEFORE_M = 150, STRAIGHT_AFTER_M = 110;
+// ?runoff=1 (owner 11-09 on Sillystone: "a lot of crashes"): street lights only where the road
+// runs straight - none where it bends tighter than STREET_BEND_R, read over STREET_READ_M either
+// side (at a half-size venue the corner before the line fell within the 150 m) - each at the first
+// clear of STREET_OUTS_M past the edge, back behind the barriers' line. MEASURED
+// (tools/scratch/_startcrash.mjs, 20-car starts): posts 2.5 m out took the hits of the back of the
+// grid in the last corner (15 m/s at Oulton Pork, every start) and of the field at the green.
+const STREET_BEND_R = 150, STREET_READ_M = 10, STREET_OUTS_M = [6, 8, 10, 12];
 // floodlight pylons: how far out from the track edge, and their spacing by kind, m
 const FLOOD_OUT_M = 16;
 const FLOOD_GAP_M: Record<string, number> = { circuits: 140, ovals: 70, rx: 110 };
@@ -215,6 +223,33 @@ function outsideOf(sub: Subtrack, point: TrackPoint): number {
 }
 
 /**
+ * A street light beside the start / finish straight, when its spot is clear (?runoff=1: only
+ * where the road runs straight, at the first clear of STREET_OUTS_M).
+ * @param level the level (with a subtrack)
+ * @param placed the lamps so far (added to)
+ * @param dist distance along the lap, m
+ * @param side +1 or -1 (the side of the track normal)
+ */
+function streetLight(level: Level, placed: Prop[], dist: number, side: number): void {
+  const sub = level.subtrack!;
+  if (!FIX.runoff) {
+    tryPlace(level, placed, besideTrack(sub, dist, side, STREET_OUT_M, 'streetlight'));
+    return;
+  }
+  const before = sampleAt(sub, dist - STREET_READ_M), after = sampleAt(sub, dist + STREET_READ_M);
+  const turn = Math.abs(Math.atan2(before.dirX * after.dirY - before.dirY * after.dirX,
+    before.dirX * after.dirX + before.dirY * after.dirY));
+  if (turn > 2 * STREET_READ_M / STREET_BEND_R) return;
+  for (const out of STREET_OUTS_M) {
+    const lamp = besideTrack(sub, dist, side, out, 'streetlight');
+    if (isClear(level, lamp, STREET_REACH_M, placed)) {
+      placed.push(lamp);
+      return;
+    }
+  }
+}
+
+/**
  * Street lights both sides of the start / finish straight, and pylons round the outside.
  * @param level the level (with a subtrack)
  * @param placed the lamps so far (added to)
@@ -225,9 +260,8 @@ function lightLap(level: Level, placed: Prop[], floodGap: number, withStraight: 
   const sub = level.subtrack!;
   if (withStraight) {
     for (let along = -STRAIGHT_BEFORE_M; along <= STRAIGHT_AFTER_M; along += STREET_GAP_M) {
-      tryPlace(level, placed, besideTrack(sub, along, 1, STREET_OUT_M, 'streetlight'));
-      tryPlace(level, placed, besideTrack(sub, along + STREET_GAP_M / 2, -1, STREET_OUT_M,
-        'streetlight'));
+      streetLight(level, placed, along, 1);
+      streetLight(level, placed, along + STREET_GAP_M / 2, -1);
     }
   }
   if (!floodGap) return;

@@ -5,7 +5,7 @@
 // Mans chicane on the back straight). The frame is turned so the frontstretch and its grandstands
 // run along the bottom, the oval run anticlockwise (left to right along the bottom).
 import { DIEATONA_VENUE } from "./venues/dieatona.ts";
-import { venueLevel } from "../venue.ts";
+import { venueLap, venueLevel } from "../venue.ts";
 import type { VenueSpec } from "../venue.ts";
 import type { Camber, Level } from "../types.ts";
 
@@ -95,6 +95,7 @@ export const DIEATONA_SPEC: VenueSpec = {
 // the two layouts of the one venue, each built on first use (world/load.ts buildLevel)
 const layoutLevel = (layout: string, levelId: string, name: string): Level =>
   ({ id: levelId, name, venue: 'Dieatona',
+    _lap: () => venueLap(DIEATONA_SPEC, layout),
     _build: () => venueLevel(DIEATONA_SPEC, layout, levelId, name) } as Level);
 export const DT_LEVELS: Level[] = [
   layoutLevel('oval', 'dieatona', 'Dieatona'),

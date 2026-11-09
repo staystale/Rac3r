@@ -9,7 +9,7 @@
 // aerial photographs. The frame is the map's own (north up): Senna Straight across the bottom, run
 // right to left, the 300 clockwise. Flat Norfolk airfield: no hills.
 import { SNOTTERTON_VENUE } from "./venues/snotterton.ts";
-import { venueLevel } from "../venue.ts";
+import { venueLap, venueLevel } from "../venue.ts";
 import type { VenueSpec } from "../venue.ts";
 import type { Level } from "../types.ts";
 
@@ -51,6 +51,7 @@ export const SNOTTERTON_SPEC: VenueSpec = {
 // buildLevel)
 const layoutLevel = (layout: string, levelId: string, name: string): Level =>
   ({ id: levelId, name, venue: 'Snotterton',
+    _lap: () => venueLap(SNOTTERTON_SPEC, layout),
     _build: () => venueLevel(SNOTTERTON_SPEC, layout, levelId, name) } as Level);
 export const SN_LEVELS: Level[] = [
   layoutLevel('300', 'snotterton', 'Snotterton 300'),

@@ -226,6 +226,11 @@ last handover, written on request.
    inside Club laid as mapped: spec.pitCuts; the National pits'), the Wing as the garages, 32 stands,
    the bridges / footbridges / tunnels OSM maps, the Stowe circuit closed in the infield. The
    International not built (its links mapped as estimates). UNDER TEST.
+   OULTON PORK BUILT 11-09 behind ?oultonpork=1 (levels/oultonpork-venue.ts, OSM data in
+   venues/oultonpork.ts; the venue helper): the International, the Island and the Fosters (as
+   FROSTERS: Foster's is a lager brand) one venue. PASSED + DEFAULT 11-09 (owner: "Pass for oulton
+   pork"); left as built: the edge by the venue rule (OSM maps no rails; tracing the real Armco
+   from aerial photos offered, no answer yet).
 3. ROLLING LOOK - smoother than the dice flip on the same physics; mockup first.
 4. SIDE DRAFTING (Naffcar first) PASSED + DEFAULT 11-08 (owner: "Pass"): physics/wake.ts part 5 - a nose
    alongside a car's rear quarter, up to +20 % drag on it and -6 % on the car alongside, gone by 1.2 m

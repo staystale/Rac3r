@@ -2,6 +2,7 @@
 // roads, anything new and unlisted -> circuits (so a new level is never hidden). The menu groups
 // the track list by it (menu/tracks.ts) and the lamp plan lights each kind its own way
 // (world/lampplan.ts).
+import type { Level } from '../types.ts';
 
 const CAT_OF: Record<string, string> = { 'test-track': 'circuits', thruston: 'circuits',
   'castle-cum': 'circuits', 'brands-snatch': 'circuits', 'brands-snatch-indy': 'circuits',
@@ -34,3 +35,18 @@ const LISTED_UNDER: Record<string, string> = { 'test-track': 'test' };
  */
 export const menuCatOf = (level: { id: string; gen?: unknown; endless?: boolean }): string =>
   LISTED_UNDER[level.id] || catOf(level);
+
+/**
+ * A level's lap (a rally stage's length), m, for the menu (owner 11-09: "Can tracks show their
+ * length when selecting them / Especially between version of themselves"): a level built on first
+ * use from what it carries before (Level._lap: a venue's traced road), a generated stage from its
+ * recipe; 0 for the endless roads and the test grounds (no lap).
+ * @param level the level
+ * @returns metres (0: none to show)
+ */
+export function lapOf(level: Level): number {
+  if (level.endless || catOf(level) === 'test') return 0;
+  if (level._lap) return level._lap();
+  if (level.gen?.km) return level.gen.km * 1000;
+  return level.subtrack?.totalDist || 0;
+}

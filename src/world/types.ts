@@ -193,6 +193,9 @@ export interface Prop {
   cone?: boolean;   // highway.ts foot bridges
   people?: number;   // highway.ts foot bridges
   reach?: number;   // gantry / overhead props: how far they span the track (level data)
+  // a start gantry's lights' middle along its span from its centre, m (a venue's: its legs
+  // unequally far off the road, world/venuescenery.ts startGantry)
+  podX?: number;
   _camHit?: number;   // highway.ts: a speed-camera gantry already passed (1)
   _flash?: number;   // render/props/buildings.ts reads it: when a camera flashed (set by the game)
 }
@@ -534,6 +537,8 @@ export interface Level {
   _line?: RacingLine;   // ai/line.ts racingLine: the racing line, cached
   // stagegen.ts addStageLevels: a rally stage, generated on first use (load.ts buildLevel)
   _build?: () => Level;
+  // a level built on first use: its lap, m, read before it is (the menu: levels/category.ts lapOf)
+  _lap?: () => number;
   _branches?: Branches;   // ai/line.ts racingLine: the joker / start lane paths, cached
   bushes?: BushPlan;   // where its bushes grow (world/bushplan.ts)
   _bushes?: Patch[];   // load.ts prepareLevel: its bushes, planned once

@@ -9,7 +9,7 @@
 // as the old level sat): the start straight up the west side, the lap clockwise. Flat, as the
 // old level: Segrave's "nasty bump just before the apex" and bumpy Goodwood.
 import { THRUSTON_VENUE } from "./venues/thruston.ts";
-import { venueLevel } from "../venue.ts";
+import { venueLap, venueLevel } from "../venue.ts";
 import type { VenueSpec } from "../venue.ts";
 import type { Level } from "../types.ts";
 
@@ -63,4 +63,5 @@ export const THRUSTON_SPEC: VenueSpec = {
 // the one layout, built on first use (world/load.ts buildLevel): a venue takes seconds to build
 // on a phone
 export const TH_VENUE_LEVEL: Level = ({ id: 'thruston', name: 'Thruston',
-  _build: () => venueLevel(THRUSTON_SPEC, 'circuit', 'thruston', 'Thruston') } as Level);
+  _lap: () => venueLap(THRUSTON_SPEC, 'circuit'),
+    _build: () => venueLevel(THRUSTON_SPEC, 'circuit', 'thruston', 'Thruston') } as Level);

@@ -1,9 +1,14 @@
 // world/venueposts.ts - WHAT STANDS BEHIND A VENUE'S EDGE (world/venueedge.ts builds the edge): a
 // marshal post behind the Armco outside each corner, and the boards on the Armco (or a catch
-// fence where no Armco is near), facing the track.
-import { centreAt, nearestLoop, roadDistance } from "./venuegeo.ts";
-import { RIM_STEP_M, awayFrom, pastRim } from "./venueedge.ts";
+// fence where no Armco is near), facing the track - and the start gantry across the road.
+import { FIX } from "../core/fixes.ts";
+import { onTrack } from "./tyrewall.ts";
+import { HALF_ROAD, centreAt, distToLine, nearestLoop, roadDistance } from "./venuegeo.ts";
+import { RIM_STEP_M, RUNOFF_M, awayFrom, pastRim } from "./venueedge.ts";
+import { EDGE_TO_WALL } from "./venuepit.ts";
+import { onLanes } from "./venuesite.ts";
 import type { Rim } from "./venueedge.ts";
+import type { Site } from "./venuesite.ts";
 import type { Barrier, Cone, Point, Prop, Subtrack } from "./types.ts";
 
 // m behind the Armco of a marshal post, and of a board (behind the catch fence too)
@@ -105,4 +110,46 @@ export function boardOnArmco(barriers: Barrier[], cones: Cone[], loops: Subtrack
     if (clear) return { kind: 'board', label, x, y, rot: Math.atan2(alongY, alongX) };
   }
   return null;
+}
+
+// m behind the edge's rim the start gantry's leg stands where no pit wall is beside the start
+// (?runoff=1); m a leg's spot keeps off a lane's edge (its box 0.6 m either way, and a gap)
+const LEG_BACK_M = 1, LEG_LANE_M = 1.5;
+
+/**
+ * The start gantry across the raced road at its start, its legs on the pit wall's line (not in
+ * the pit lane). ?runoff=1: a leg only where the wall stands beside the start, the other
+ * LEG_BACK_M behind the edge's rim (where no lane runs there), the lights over the road's centre
+ * (podX). MEASURED
+ * (tools/scratch/_startcrash.mjs, 20-car starts; owner 11-09 on Sillystone: "a lot of crashes"):
+ * on the wall's line both sides, the far leg stood 1.9 m past the edge in the open run-off and
+ * took the hardest hits of the starts, 31 m/s at Sillystone and 39 m/s at Oulton Pork.
+ * @param site the venue's builders' state
+ * @param sub the raced road
+ * @param pitWalls the pit walls
+ * @returns the gantry
+ */
+export function startGantry(site: Site, sub: Subtrack, pitWalls: Barrier[]): Prop {
+  const start = onTrack(sub, 2, 0, {}), onWall = HALF_ROAD + EDGE_TO_WALL;
+  const gantry = { kind: 'gantry', x: start.x, y: start.y, wid: 2 * onWall,
+    rot: start.rot + Math.PI / 2 };
+  if (!FIX.runoff) return gantry;
+  // (the gantry's own across: its rot a quarter turn on from the road's, toward the left normal)
+  const acrossX = Math.cos(gantry.rot), acrossY = Math.sin(gantry.rot);
+  const spot = (out: number): Point => [start.x + acrossX * out, start.y + acrossY * out];
+  const legOut = (side: number) => {
+    for (let out = HALF_ROAD; out <= HALF_ROAD + RUNOFF_M + 1; out += 0.25) {
+      const [x, y] = spot(side * out);
+      if (pitWalls.some((wall) => distToLine(wall.pts, x, y) < 0.2)) return out;
+    }
+    // (none there: behind the rim - unless a lane runs there, the pit lane beside the start with
+    // no wall by it, then between the road and the lane, as before)
+    for (let out = HALF_ROAD; out < HALF_ROAD + 40; out += 0.25)
+      if (pastRim(site.rims, ...spot(side * out)) >= LEG_BACK_M)
+        return onLanes(site.lanes, ...spot(side * out), LEG_LANE_M) ? onWall : out;
+    return onWall;
+  };
+  const left = legOut(1), right = legOut(-1), shift = (left - right) / 2;
+  const [x, y] = spot(shift);
+  return { ...gantry, x, y, wid: left + right, podX: -shift };
 }

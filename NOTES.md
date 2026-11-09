@@ -458,6 +458,13 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   marshal hut's corner on a kerb. venueaudit counts tyres on tyres / barriers / kerbs, props on
   kerbs, loose objects at no place and barriers folding back; world/venue.ts tidyLoose drops any
   left (the first laid kept).
+- NOTHING SOLID NEARER THE ROAD THAN ITS RUN-OFF (11-09, the start crash review): 20-car starts
+  (tools/scratch/_startcrash.mjs, which names a solid's hit by the solid's kind - the nearest
+  barrier's name hid them) found the hardest hits on a start gantry's far leg (1.9 m past the edge,
+  up to 39 m/s) and on street lights 2.5 m out, the 150 m before the line reaching into the corner
+  before it at a half-size venue - and the pit wall, 3 m out, inside the first corner. A wall moved
+  beyond 3.5 m stops narrowing the AI line (ai/line.ts WALL_NEAR): the field then uses the whole
+  road there and its kerb, as by any Armco, so it is still hit, half as often.
 - A HAND FINISH'S drop / cut TAKES THE FIRST ROAD WITHIN 3 M of its spot (11-09, Oulton Pork): a
   spot by a junction cut the side road, not the one meant. Put the spot more than 3 m from every
   other road (tools/scratch/_lanelist.mjs lists each road's ends; `x y reach` those by a spot),

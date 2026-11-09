@@ -9,7 +9,7 @@
 // 67, McLeans 90, Coppice 96) and aerial photographs. North up: the pit straight (Wheatcroft
 // Straight) across the middle run west to Redgate, the lap clockwise.
 import { DONGINGTON_VENUE } from "./venues/dongington.ts";
-import { venueLevel } from "../venue.ts";
+import { venueLap, venueLevel } from "../venue.ts";
 import type { VenueSpec } from "../venue.ts";
 import type { Level } from "../types.ts";
 
@@ -56,6 +56,7 @@ export const DONGINGTON_SPEC: VenueSpec = {
 // buildLevel)
 const layoutLevel = (layout: string, levelId: string, name: string): Level =>
   ({ id: levelId, name, venue: DONGINGTON,
+    _lap: () => venueLap(DONGINGTON_SPEC, layout),
     _build: () => venueLevel(DONGINGTON_SPEC, layout, levelId, name) } as Level);
 export const DG_LEVELS: Level[] = [
   layoutLevel('gp', 'dongington', `${DONGINGTON} GP`),

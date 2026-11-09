@@ -8,13 +8,13 @@
 // angle with approaches meeting it, the tunnels' portals both sides, grandstands, buildings, the
 // kart track and rally stages, woods, boards (the pit lane, its wall and lines: world/venuepit.ts).
 import { SURFACES } from "./surfaces.ts";
-import { onTrack, querySubtrack } from "./tyrewall.ts";
+import { querySubtrack } from "./tyrewall.ts";
 import { parkMiller } from "../core/random.ts";
 import { HALF_ROAD, VENUE_ROAD_M, centreAt, distToLine, evenly, kerbOut, lineLength,
   makePlacer, nearestLoop, pointAlong, resample, smoothLine } from "./venuegeo.ts";
 import { WALL_REACH_M, boxedLine, buildEdge, buildRims, inZones, outlineZone, pastRim,
   trapZones } from "./venueedge.ts";
-import { boardOnArmco, marshalPosts } from "./venueposts.ts";
+import { boardOnArmco, marshalPosts, startGantry } from "./venueposts.ts";
 import { venueAero, venuePlanes } from "./venueairfield.ts";
 import { nearWater, onPatches, ovalWall, venueMown, venueWater } from "./venueoval.ts";
 import type { EdgeNeeds, WallLine } from "./venueedge.ts";
@@ -25,7 +25,7 @@ import { FOOT_REACH_M, handFinish, tidyRoads, venueRoads, withoutDuplicates }
   from "./venueroads.ts";
 import { continueRoad, joinApproaches, joinFrom } from "./venuejoin.ts";
 import type { VenueBox, VenueBuild } from "./venue.ts";
-import { EDGE_TO_WALL, inRow, pitLane, pitLines, placeGarageRow } from "./venuepit.ts";
+import { inRow, pitLane, pitLines, placeGarageRow } from "./venuepit.ts";
 import type { Barrier, Cone, Cover, Lane, Paint, Patch, Point, Prop, Subtrack, Zone }
   from "./types.ts";
 
@@ -763,12 +763,9 @@ export function buildVenueScenery(build: VenueBuild, sub: Subtrack, closed: Lane
     (x, y) => inBuilding(site.buildings, x, y, 1 + APPROACH_HALF_M));
   joinTunnels(site, tunnels, finished);
   const paddocks = venuePaddocks(site, true);
-  const start = onTrack(sub, 2, 0, {});
   const props: Prop[] = [...site.buildings, ...bridges.props, ...tunnels.props,
     ...paddocks.props, ...clearPosts(site, marshalPosts(site.rims), edge.barriers, edge.cones),
-    // the start gantry spans the track with its legs on the pit wall's line (not in the pit lane)
-    { kind: 'gantry', x: start.x, y: start.y, wid: 2 * (HALF_ROAD + EDGE_TO_WALL),
-      rot: start.rot + Math.PI / 2 }];
+    startGantry(site, sub, pitWalls)];
   props.push(...venueBoards(site, edge, outerWall, props));
   const bounds = venueBounds(loops, [...pitLanes, ...bridges.lanes, ...tunnels.lanes,
     ...finished], props);

@@ -505,6 +505,17 @@ function venueBumps(build: VenueBuild): Bump[] {
 }
 
 /**
+ * A venue layout's lap before its level is built: its traced road's length (the scenery is not
+ * built; the menu's lap lengths, world/levels/category.ts lapOf).
+ * @param spec the venue
+ * @param layout the layout
+ * @returns metres
+ */
+export function venueLap(spec: VenueSpec, layout: string): number {
+  return venueBuild(spec).loops[layout].totalDist;
+}
+
+/**
  * One layout of a venue as a level: its road, the closed-off pieces, and the venue's shared
  * scenery.
  * @param spec the venue

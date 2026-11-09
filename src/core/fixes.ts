@@ -11,7 +11,7 @@
 // bhquiet, aiweave, jokerflow, aisliders, hudlean, aibands, puffroom, aigrip,
 // aidodge, ailines, ailook, dodgefar, markjump passed 11-04; credits, bigbrands, crossings,
 // fencedrag, tyresleep, burstcap, stackvary, linewall, tallfence, rollway, castlecumvenue,
-// rollover, rollbody, snotterton, sidedraft passed 11-08.)
+// rollover, rollbody, snotterton, sidedraft passed 11-08; oultonpork passed 11-09.)
 import { envValue } from './debug.ts';
 
 /**
@@ -56,7 +56,12 @@ export const FIX = {
   // ?sillystone=1: Sillystone (working name), a NEW venue (Silverstone) at 1/2 of real length, the
   // GP and the National (world/levels/sillystone-venue.ts; owner 11-09)
   sillystone: atLoad('sillystone'),
-  // ?oultonpork=1: Oulton Pork (working name), a NEW venue (Oulton Park) at 1/2 of real length, the
-  // International, the Island and the Fosters (world/levels/oultonpork-venue.ts; owner 11-09)
-  oultonpork: atLoad('oultonpork'),
+  // ?runoff=1: the start crash fixes at every venue (owner 11-09 on Sillystone: "a lot of
+  // crashes"): the pit wall set back by a bend, the start gantry's far leg behind the edge, the
+  // catch fences set back toward the stands (world/venuepit.ts, venuescenery.ts, venueedge.ts)
+  runoff: atLoad('runoff'),
+  // ?laplen=1: each track card shows its lap (a rally stage's length), a venue's card the range
+  // of its layouts' (menu/tracks.ts; owner 11-09: "Can tracks show their length when selecting
+  // them")
+  laplen: atLoad('laplen'),
 };

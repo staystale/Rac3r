@@ -54,17 +54,31 @@ const nearestBarrier = (x, y) => {
   }
   return best;
 };
+// the solid nearest a point (its box centre)
+const nearestSolid = (x, y) => {
+  let best = { kind: 'solid', dist: Infinity };
+  for (const solid of L.LEVEL.solids || []) {
+    const dist = Math.hypot(solid.x - x, solid.y - y) - (solid.r || 0);
+    if (dist < best.dist) best = { kind: solid.kind || '?', dist };
+  }
+  return best;
+};
 const wallHits = [], carHits = [], offs = [], spread = new Map();
 let touching = new Set();
 for (let tick = 0; tick * DT < SECONDS; tick++) {
   const t = tick * DT;
   for (const f of field) {
     const car = f.car, vx0 = car.vx, vy0 = car.vy;
-    L.barrierClamp(car); L.solidClamp(car);
+    car._hitKind = undefined;
+    L.barrierClamp(car);
+    const byBarrier = Math.hypot(car.vx - vx0, car.vy - vy0);
+    L.solidClamp(car);
     const dv = Math.hypot(car.vx - vx0, car.vy - vy0);
     if (dv > 1 && t - (f.wallT ?? -9) > 0.5) {
       f.wallT = t;
-      const near = nearestBarrier(car.x, car.y);
+      // (a solid's hit - a gantry leg, a post - named by the nearest solid, not the barrier)
+      const near = byBarrier > 1 ? nearestBarrier(car.x, car.y)
+        : { kind: 'solid:' + (car._hitKind || nearestSolid(car.x, car.y).kind) };
       wallHits.push({ t, slot: f.slot, dv, kind: near.kind, at: along(car.x, car.y),
         side: across(car.x, car.y) });
     }

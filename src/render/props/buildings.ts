@@ -283,10 +283,10 @@ export function drawGantry(propCtx: PropCtx, prop: Prop, ppm: number) {
     view.ctx.lineTo(braceX, 0.6 * ppm);
   }
   view.ctx.stroke();
-  // 5 circular start light pods with bright red glowing LED cores
-  const lightSpacing = gantryW / 8;
+  // 5 circular start light pods with bright red glowing LED cores (over the road's centre: podX)
+  const lightSpacing = gantryW / 8, podMid = (prop.podX || 0) * ppm;
   for (let pod = -2; pod <= 2; pod++) {
-    const podX = pod * lightSpacing;
+    const podX = podMid + pod * lightSpacing;
     view.ctx.fillStyle = '#111317';
     roundRect(view.ctx, podX - 0.35 * ppm, -0.45 * ppm, 0.7 * ppm, 0.9 * ppm, 3);
     view.ctx.fill();
@@ -311,13 +311,13 @@ export function drawGantry(propCtx: PropCtx, prop: Prop, ppm: number) {
   }
   // Center digital lap / position board with green LEDs
   view.ctx.fillStyle = '#0a0d0a';
-  roundRect(view.ctx, -1.4 * ppm, -0.55 * ppm, 2.8 * ppm, 0.45 * ppm, 2);
+  roundRect(view.ctx, podMid - 1.4 * ppm, -0.55 * ppm, 2.8 * ppm, 0.45 * ppm, 2);
   view.ctx.fill();
   view.ctx.fillStyle = '#22c55e';
   view.ctx.font = `700 ${Math.round(0.32 * ppm)}px ui-monospace, monospace`;
   view.ctx.textAlign = 'center';
   view.ctx.textBaseline = 'middle';
-  view.ctx.fillText('LAP 1', 0, -0.32 * ppm);
+  view.ctx.fillText('LAP 1', podMid, -0.32 * ppm);
 }
 
 /**

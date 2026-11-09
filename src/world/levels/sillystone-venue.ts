@@ -8,7 +8,7 @@
 // The International is not built: its links through the Arena are mapped only as estimates. North
 // up, the GP clockwise. Flat: the old airfield.
 import { SILLYSTONE_VENUE } from "./venues/sillystone.ts";
-import { venueLevel } from "../venue.ts";
+import { venueLap, venueLevel } from "../venue.ts";
 import type { VenueSpec } from "../venue.ts";
 import type { Level } from "../types.ts";
 
@@ -62,6 +62,7 @@ export const SILLYSTONE_SPEC: VenueSpec = {
 // buildLevel)
 const layoutLevel = (layout: string, levelId: string, name: string): Level =>
   ({ id: levelId, name, venue: SILLYSTONE,
+    _lap: () => venueLap(SILLYSTONE_SPEC, layout),
     _build: () => venueLevel(SILLYSTONE_SPEC, layout, levelId, name) } as Level);
 export const SS_LEVELS: Level[] = [
   layoutLevel('gp', 'sillystone', `${SILLYSTONE} GP`),

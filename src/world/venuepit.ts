@@ -2,11 +2,13 @@
 // lane at game scale, held clear of the pit wall and eased in at its two ends, the wall parallel
 // to the road, and the painted lines - the fast / working lane divider and the solid entry and
 // exit lines along the track's edge.
+import { FIX } from "../core/fixes.ts";
 import { alongTrack } from "./barriers.ts";
 import { SURFACES } from "./surfaces.ts";
 import { querySubtrack } from "./tyrewall.ts";
 import { HALF_ROAD, centreAt, centreBetween, distToLine, nearestLoop, resample, smoothLine }
   from "./venuegeo.ts";
+import { RUNOFF_M } from "./venueedge.ts";
 import { inBuilding, placeAll } from "./venuesite.ts";
 import { insidePolygon } from "./zones.ts";
 import type { Site } from "./venuesite.ts";
@@ -23,6 +25,13 @@ const WALL_ROAD_M = 1;
 const BEND_SPAN_M = 4, FOLD_SHARE = 0.8;
 // a cut pit lane's joints eased: points either side in the mean, passes
 const CUT_EASE_REACH = 5, CUT_EASE_PASSES = 3;
+// ?runoff=1 (owner 11-09 on Sillystone: "a lot of crashes"): where the road beside it bends
+// tighter than PIT_BEND_R (read over BEND_READ_M either side) the pit wall stands back at the
+// Armco's run-off, RUNOFF_M past the edge, eased in and out over BEND_EASE_M along the road (and
+// the lane with it). MEASURED (tools/scratch/_startcrash.mjs, 20-car starts): two thirds of
+// Sillystone's barrier hits, and most of Oulton Pork's, were on the wall inside the first corner,
+// 3 m past the edge, where the field runs over the kerb.
+const PIT_BEND_R = 150, BEND_READ_M = 10, BEND_EASE_M = 20;
 // m: the garages' front stands at least this far behind the pit lane's edge
 const GARAGE_GAP_M = 1.5;
 // the pit lane's easing beside the track: points either side in the mean, rounds of easing
@@ -59,7 +68,8 @@ export function pitLane(site: Site, name: string): { lane: Lane; wall: Barrier |
     const [from, until] = longestRun(lost);
     beside = beside.filter((spot) => spot.at >= from && spot.at < until);
   }
-  const eased = easedLane(sub, dense, lost, need);
+  const eased = easedLane(sub, dense, lost,
+    (along) => HALF_ROAD + wallGap(sub, along) + PIT_WALL_GAP + PIT_W / 2);
   // (where a stretch was laid as mapped, the joints eased: spec.pitCuts)
   const lanePts = spec.pitCuts ? smoothLine(eased, CUT_EASE_REACH, CUT_EASE_PASSES) : eased;
   return { lane: { pts: lanePts, width: PIT_W, surface: SURFACES.concrete },
@@ -93,10 +103,11 @@ function besideSpots(site: Site, dense: Point[]): Beside[] {
  * @param sub the road
  * @param dense the lane, resampled
  * @param lost true for each point laid as mapped
- * @param need m the lane's centre keeps from the road's
+ * @param need m the lane's centre keeps from the road's at a distance along it
  * @returns the lane's points
  */
-function easedLane(sub: Subtrack, dense: Point[], lost: boolean[], need: number): Point[] {
+function easedLane(sub: Subtrack, dense: Point[], lost: boolean[],
+  need: (along: number) => number): Point[] {
   const total = sub.totalDist, measured: Point[] = [];
   let sideSum = 0;
   for (const [i, [x, y]] of dense.entries()) {
@@ -118,9 +129,9 @@ function easedLane(sub: Subtrack, dense: Point[], lost: boolean[], need: number)
   // the clearance the lane needs: in full along the wall, easing to nothing over each merge (a
   // jump in it was a kink where the merge ended), eased in and out (a straight ramp left a corner
   // where it topped out)
-  const clearance = (i: number) => {
+  const clearance = (i: number, along: number) => {
     const frac = Math.min(1, Math.min(i, dense.length - 1 - i) * 2 / PIT_MERGE_M);
-    return need * frac * frac * (3 - 2 * frac);
+    return need(along) * frac * frac * (3 - 2 * frac);
   };
   const eased: Point[] = dense.slice();
   for (let from = 0; from < dense.length;) {
@@ -129,7 +140,7 @@ function easedLane(sub: Subtrack, dense: Point[], lost: boolean[], need: number)
     while (until < dense.length && !lost[until]) until++;
     // eased and held to the clearance in turn (easing alone pulled it in where the ramp tops out)
     const hold = (pts: Point[]) => pts.map(([along, off], i): Point =>
-      [along, out * Math.max(out * off, clearance(from + i))]);
+      [along, out * Math.max(out * off, clearance(from + i, along))]);
     let measuredEased = hold(measured.slice(from, until));
     for (let round = 0; round < PIT_EASE_ROUNDS; round++)
       measuredEased = hold(smoothLine(measuredEased, PIT_EASE_REACH, 1, true));
@@ -143,9 +154,39 @@ function easedLane(sub: Subtrack, dense: Point[], lost: boolean[], need: number)
 }
 
 /**
- * The pit wall: parallel to the road, EDGE_TO_WALL past its edge, along the stretch the lane runs
- * beside it - its ends off any road beside them (a closed race piece meets the straight by the
- * lane's end) and off the lane itself (a long merge runs in under the wall's end).
+ * How far past the road's edge the pit wall stands at a distance along it: EDGE_TO_WALL, eased
+ * back to RUNOFF_M by a bend (?runoff=1).
+ * @param sub the road
+ * @param dist metres along it
+ * @returns metres past the edge
+ */
+export function wallGap(sub: Subtrack, dist: number): number {
+  if (!FIX.runoff) return EDGE_TO_WALL;
+  let share = 0;
+  for (let near = -BEND_EASE_M; near <= BEND_EASE_M; near += 2)
+    if (bendRadius(sub, dist + near) < PIT_BEND_R)
+      share = Math.max(share, 1 - Math.abs(near) / BEND_EASE_M);
+  return EDGE_TO_WALL + (RUNOFF_M - EDGE_TO_WALL) * share * share * (3 - 2 * share);
+}
+
+/**
+ * The road's bend radius at a distance along it, read over BEND_READ_M either side.
+ * @param sub the road
+ * @param dist metres along it
+ * @returns metres (Infinity on a straight)
+ */
+function bendRadius(sub: Subtrack, dist: number): number {
+  const before = centreAt(sub, dist - BEND_READ_M), after = centreAt(sub, dist + BEND_READ_M);
+  const turn = Math.abs(Math.atan2(before.dirX * after.dirY - before.dirY * after.dirX,
+    before.dirX * after.dirX + before.dirY * after.dirY));
+  return turn > 1e-3 ? 2 * BEND_READ_M / turn : Infinity;
+}
+
+/**
+ * The pit wall: parallel to the road, EDGE_TO_WALL past its edge (wallGap: further by a bend),
+ * along the stretch the lane runs beside it - its ends off any road beside them (a closed race
+ * piece meets the straight by the lane's end) and off the lane itself (a long merge runs in under
+ * the wall's end).
  * @param site the venue's builders' state
  * @param beside the lane's spots beside the road
  * @param lanePts the lane
@@ -153,9 +194,9 @@ function easedLane(sub: Subtrack, dense: Point[], lost: boolean[], need: number)
  */
 function pitWall(site: Site, beside: Beside[], lanePts: Point[]): Barrier {
   const sides = beside.reduce((sum, spot) => sum + spot.side, 0), trim = 6;
-  const offset = Math.sign(sides || 1) * (HALF_ROAD + EDGE_TO_WALL);
-  const pts = alongTrack(beside[0].sub, beside[0].dist + trim,
-    beside[beside.length - 1].dist - trim, offset, 2);
+  const out = Math.sign(sides || 1), road = beside[0].sub, from = beside[0].dist + trim;
+  const pts = alongTrack(road, from, beside[beside.length - 1].dist - trim,
+    (along) => out * (HALF_ROAD + wallGap(road, from + along)), 2);
   const onRoad = ([x, y]: Point) => site.lanes.some((lane) =>
     distToLine(lane.pts, x, y) < lane.width / 2 + WALL_ROAD_M)
     || distToLine(lanePts, x, y) < PIT_W / 2;

@@ -1,5 +1,6 @@
 import { LEVELS } from '../world/levels/index.ts';
-import { menuCatOf } from '../world/levels/category.ts';
+import { FIX } from '../core/fixes.ts';
+import { catOf, lapOf, menuCatOf } from '../world/levels/category.ts';
 import { buildLevel } from '../world/load.ts';
 import { THEMES, LENGTHS } from '../stagegen.ts';
 
@@ -201,6 +202,25 @@ function addTrackCard(menu: Menu, grid: HTMLElement, level: Level) {
   addElement(button, 'span', level.name, 'nm');
   addElement(button, 'span', level.endless ? 'ENDLESS MOTORWAY' : level.fixed ? 'RALLY STAGE · '
     + THEME_NAMES[level.gen!.theme].name.split(' ')[0] : KIND[level.id] || 'TRACK', 'k');
+  addLength(button, [level]);
+}
+
+/**
+ * A card's length line (?laplen=1; owner 11-09: "Can tracks show their length when selecting
+ * them / Especially between version of themselves"): the lap - a rally stage's length - in km, a
+ * venue's card the range of its layouts'; none for the endless roads and the test grounds.
+ * @param button the card
+ * @param levels the level, or the venue's layouts
+ */
+function addLength(button: HTMLElement, levels: Level[]) {
+  if (!FIX.laplen) return;
+  const laps = levels.map(lapOf).filter((lap) => lap > 0);
+  if (!laps.length) return;
+  const inKm = (metres: number) => (metres / 1000).toFixed(2);
+  const low = Math.min(...laps), high = Math.max(...laps);
+  const word = levels.every((level) => catOf(level) === 'rally') ? 'STAGE' : 'LAP';
+  addElement(button, 'span', laps.length > 1
+    ? `${word}S ${inKm(low)}-${inKm(high)} KM` : `${word} ${inKm(low)} KM`, 'k');
 }
 
 /**
@@ -234,6 +254,7 @@ function addVenueCard(menu: Menu, grid: HTMLElement, cat: string, layouts: Level
   addElement(button, 'span', layouts[0].venue!, 'nm');
   addElement(button, 'span', (kinds.size === 1 ? [...kinds][0] + ' · ' : '') + layouts.length
     + ' LAYOUTS', 'k');
+  addLength(button, layouts);
 }
 
 /**

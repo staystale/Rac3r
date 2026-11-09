@@ -7,7 +7,7 @@
 // the contour map art/ref/bh1.png), carried into real metres (the old trace: 0.656 real m a map
 // pixel, turned 28 deg); the frame is turned as the old level was (Brabham across the top).
 import { BRANDS_VENUE } from "./venues/brands-snatch.ts";
-import { venueLevel } from "../venue.ts";
+import { venueLap, venueLevel } from "../venue.ts";
 import type { VenueSpec } from "../venue.ts";
 import type { Level } from "../types.ts";
 
@@ -76,6 +76,7 @@ export const BRANDS_SPEC: VenueSpec = {
 // buildLevel): a venue takes seconds to build on a phone, and the page loaded every one up front
 const layoutLevel = (layout: string, levelId: string, name: string): Level =>
   ({ id: levelId, name, venue: 'Brands Snatch',
+    _lap: () => venueLap(BRANDS_SPEC, layout),
     _build: () => venueLevel(BRANDS_SPEC, layout, levelId, name) } as Level);
 export const BH_GP_LEVEL: Level = layoutLevel('gp', 'brands-snatch', 'Brands Snatch GP');
 export const BH_INDY_LEVEL: Level = layoutLevel('indy', 'brands-snatch-indy', 'Brands Snatch Indy');

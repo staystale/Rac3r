@@ -198,9 +198,8 @@ export const LEVELS: Level[] = [
   ...DG_LEVELS,
   // ?sillystone=1: Sillystone, a new venue (sillystone-venue.ts), its GP and National
   ...(FIX.sillystone ? SS_LEVELS : []),
-  // ?oultonpork=1: Oulton Pork, a new venue (oultonpork-venue.ts), its International, Island and
-  // Fosters
-  ...(FIX.oultonpork ? OP_LEVELS : []),
+  // Oulton Pork, a new venue (oultonpork-venue.ts), its International, Island and Frosters
+  ...OP_LEVELS,
   // ?thrustonvenue=1: the real venue (thruston-venue.ts), built on first use
   FIX.thrustonvenue ? TH_VENUE_LEVEL : {
     id: 'thruston', name: 'Thruston',

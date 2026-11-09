@@ -37,6 +37,11 @@ try {
   await shot('circuits');
   await tap('Snotterton');
   await shot('snotterton');
+  await tap('TRACKS');
+  await tap('Oulton Pork');
+  await shot('oultonpork');
+  await tap('TRACKS');
+  await tap('Snotterton');
   await tap('Snotterton 200');
   console.log('setup', await page.evaluate(() => document.querySelector('#menu h2')?.textContent));
   await page.screenshot({ path: `tools/scratch/_layoutshot-setup-${width}x${height}.png` });

@@ -202,10 +202,11 @@ function gantryLights(painter: EventPainter, isTint: boolean, prop: Prop, game: 
   const isGreen = start.green && sinceGreen < GREEN_HOLD_S;
   const reds = start.green ? 0 : Math.min(3, Math.floor(start.t / START_STEP_S));
   if (!isGreen && !reds) return;
-  const cos = Math.cos(rot), sin = Math.sin(rot), spacing = width / 8;
+  const cos = Math.cos(rot), sin = Math.sin(rot), spacing = width / 8, mid = prop.podX || 0;
   const pods = isGreen ? [-2, -1, 0, 1, 2] : [-1, 0, 1].slice(0, reds);
   for (const pod of pods) {
-    glow(painter, isTint, prop.x + cos * pod * spacing, prop.y + sin * pod * spacing,
+    const along = mid + pod * spacing;
+    glow(painter, isTint, prop.x + cos * along, prop.y + sin * along,
       START_GLOW_M, isGreen ? GREEN : RED, 0.9);
   }
 }
