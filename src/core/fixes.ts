@@ -60,4 +60,9 @@ export const FIX = {
   // ?gantry=1: a start gantry's far leg goes on past a lane or a building behind the edge (was:
   // back to the old spot, 3 m past the road's edge; world/venueposts.ts startGantry)
   gantry: atLoad('gantry'),
+  // ?passcare=1: on a two-way road the racers keep to their own lane and pass into the other one -
+  // or wide off the road - only when it is clear: a car coming at them read at the closing speed
+  // (ai/gapPick.ts, driverTraffic.ts, roadLine.ts; owner 11-09: "We should make ai predominantly
+  // drive in the correct lane and weave wide off road / into oncoming traffic when clear")
+  passcare: atLoad('passcare'),
 };

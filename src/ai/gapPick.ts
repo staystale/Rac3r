@@ -11,6 +11,7 @@
 // less the swerve to it, with a bonus for the line already chosen; a line whose way across is
 // blocked halfway, or that a faster car behind is about to arrive on, is out; past the usual edge
 // only when it is clearly quicker.
+import { FIX } from '../core/fixes.ts';
 import { reachOf } from './dodge.ts';
 import type { AiCar } from './types.ts';
 
@@ -107,6 +108,19 @@ function placeCost(off: number, centre: number, edge: number, lanes?: number[]) 
 }
 
 /**
+ * The free road along a line up to the car on it: its gap, or - one coming at me, ?passcare=1 -
+ * what I cover before we meet (a two-way road's other lane: read as its gap, a car 150 m off at a
+ * 55 m/s closing speed looked as free as an empty lane).
+ * @param block the car on the line: its gap (m) and m/s along my way
+ * @param speed my m/s
+ * @returns m
+ */
+function freeTo(block: { gap: number; v: number }, speed: number): number {
+  if (!FIX.passcare || block.v >= 0) return block.gap;
+  return block.gap * speed / Math.max(1, speed - block.v);
+}
+
+/**
  * The line to take through the cars: the best scored across the room.
  * @param seen the cars seen (my path's frame)
  * @param mine my place: lat (m off the path), base (the line chosen last), half width, length,
@@ -126,8 +140,8 @@ export function gapLine(seen: SeenCar[], mine: { lat: number; base: number; half
     const off = Math.abs(want - lat) > REACH_M ? lat + Math.sign(want - lat) * REACH_M : want;
     const block = blockOn(seen, off, half, len);
     if (block && block.side) continue;
-    let score = block ? Math.min(block.gap, speed * look) + Math.max(0, block.v) * KEPT_V
-      : speed * look + FREE_BONUS;
+    let score = block ? Math.min(freeTo(block, speed), speed * look)
+      + Math.max(0, block.v) * KEPT_V : speed * look + FREE_BONUS;
     score -= (Math.abs(off - base) + 0.3 * Math.abs(off - lat)) * (MOVE_K + speed * MOVE_SPEED_K)
       - (Math.abs(off - base) < 0.6 ? COMMIT : 0);
     score -= placeCost(off, centre, edge, lanes);

@@ -13,6 +13,14 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'passcare',
+    added: '2026-11-09',
+    name: 'Careful passing on Deaf Valley: racers keep their lane, pull out only when it is clear',
+    where: 'Test link + &passcare=1: Highway to Hull > DEAF VALLEY, VS AI with traffic',
+    try: 'Race up the canyon: racers queue in the left lane, pass into the other lane when clear.',
+    wrong: 'Racers sat in the other lane, pulling out into an oncoming car, or never passing.',
+  },
+  {
     id: 'gantry',
     added: '2026-11-09',
     name: 'Start gantry legs off the run-off: past a lane or building behind the edge',

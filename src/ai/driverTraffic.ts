@@ -1,6 +1,7 @@
 // ai/driverTraffic.ts: the circuit driver's reading of traffic and obstacles: cars ahead,
 // alongside and behind, and loose objects on the road. Functions take the driver context.
 import { debugValue } from "../core/debug.ts";
+import { FIX } from "../core/fixes.ts";
 import { GRAVITY } from "../cars.ts";
 import { OBST_CLEAR, carGrip, profileOf } from "./line.ts";
 import type { AiCar, CarsAcc, CarsEnv, DriveCtx } from "./types.ts";
@@ -267,6 +268,17 @@ const BOXED_BRAKE = 0.9, BOXED_GAP_M = 3;
 // m beside my line a crawling car counts as in my way
 const MARGIN_WAY = 1;
 
+/**
+ * The speed a driver reads a car ahead at (?passcare=1: one coming at me at the closing speed -
+ * MEASURED, hwracecheck on Deaf Valley both ways: read at my own speed, the other way's car was
+ * met 1.7 s after it was seen; else my own speed).
+ * @param speed my m/s
+ * @param vAlong its m/s along my way
+ * @returns m/s
+ */
+const readSpeed = (speed: number, vAlong: number) =>
+  (FIX.passcare ? Math.max(speed, speed - vAlong) : speed);
+
 /** The s of travel the gap spotter reads the cars ahead in, by skill. */
 function gapLook(skill: number) {
   return GAP_LOOK_WEAK + (GAP_LOOK_TOP - GAP_LOOK_WEAK) * Math.max(0, Math.min(1, skill));
@@ -293,8 +305,10 @@ export function carsStep(drv: Drv, car: AiCar, others: AiCar[], path: AiPath, ne
   for (const other of others) {
     const relX = other.x - car.x, relY = other.y - car.y, fwd = relX * cosH + relY * sinH,
         lat = -relX * sinH + relY * cosH;
-    // (cars to 60 m behind too - the gap picker's mirror)
-    if (fwd < -60 || fwd > 8 + speed * look || Math.abs(lat) > 8) continue;
+    // (cars to 60 m behind too - the gap picker's mirror; ?passcare=1: ahead, read as far in time
+    // as a car going my way - one coming at me at the closing speed)
+    if (fwd < -60 || fwd > 8 + readSpeed(speed, other.vx * cosH + other.vy * sinH) * look
+      || Math.abs(lat) > 8) continue;
     // its lateral place relative to MY path
     const closeIdx = closestPathIdx(drv, env, other, fwd);
     const point = path.pts[closeIdx], otherLat = (other.x - point.x) * -Math.sin(point.h) + (
@@ -359,7 +373,8 @@ function gapStep(drv: Drv, car: AiCar, acc: CarsAcc, seen: SeenCar[], mine: { my
   const half = car.spec.wid / 2, len = car.spec.len;
   // picking while any car is ahead within reading distance - not only while one is on my line
   // (once the swerve began the car was off it, and the pick let go back into it, MEASURED)
-  const ahead = seen.some((other) => other.fwd > 0 && other.fwd < speed * look + 8);
+  const ahead = seen.some((other) => other.fwd > 0
+    && other.fwd < readSpeed(speed, other.v) * look + 8);
   if (!ahead) { state.gapBase = null; return; }
   if (!blockOn(seen, myLat, half, len) && state.gapBase == null) return;
   // (the room past the edge only with a car stopped or crawling IN MY WAY - offTrackOk;

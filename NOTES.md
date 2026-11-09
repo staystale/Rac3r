@@ -458,6 +458,15 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   marshal hut's corner on a kerb. venueaudit counts tyres on tyres / barriers / kerbs, props on
   kerbs, loose objects at no place and barriers folding back; world/venue.ts tidyLoose drops any
   left (the first laid kept).
+- A CAR COMING AT YOU IS NOT A STOPPED CAR (11-09, ?passcare=1): the gap picker scored a line's
+  free road as the gap to the car on it, so on a two-way road a lane with a car 150 m off at a
+  55 m/s closing speed looked as free as an empty one; the free road to it is what you cover before
+  you meet (gap x speed / closing speed), and it is read as far ahead in time as a car going your
+  way. hwracecheck's pace on a crashy road is not the game's: it never puts a wrecked racer back,
+  so the field piles up behind it - compare the contact counts over several seeds.
+- NEVER PUT BACKTICKS INSIDE A BASH COMMAND (11-09): a node -e edit with template strings inside
+  double quotes ran their contents as shell commands (bash's command substitution). Write the
+  edit script with the file tool and run it with node.
 - ONCOMING TRAFFIC ON A SINGLE CARRIAGEWAY NEEDS RACERS THAT PASS WITH CARE (11-09, ?oncoming=1):
   Deaf Valley's two lanes with the other way's cars in the right one sent the racers head-on into
   them (tools/hwracecheck.mjs: racer-traffic contacts 244 steps, two wrecks, the field at 66 km/h).
