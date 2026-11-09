@@ -44,26 +44,19 @@ const ROAD_BANKING = banked([
   ...hold(2622, 2885, 18),
 ]);
 
-// THE SUBTLE SKULL (the owner's Die-tona joke): mown into the tri-oval's grass where the real one
-// has its painted logo - short grass on the grass, the eyes, nose and teeth left long (real m, its
-// top toward the infield, so it reads from above and from the grandstands)
-type Outline = [number, number][];
-const ellipse = (midX: number, midY: number, radX: number, radY: number): Outline =>
-  Array.from({ length: 16 }, (_unused, step): [number, number] =>
-    [+(midX + radX * Math.cos(step * Math.PI / 8)).toFixed(1),
-      +(midY + radY * Math.sin(step * Math.PI / 8)).toFixed(1)]);
-const rect = (left: number, top: number, right: number, bottom: number): Outline =>
-  [[left, top], [right, top], [right, bottom], [left, bottom]];
-const skull = (midX: number, midY: number) => [
-  ...[ellipse(midX - 6, midY - 4, 4, 4.5), ellipse(midX + 6, midY - 4, 4, 4.5),
-    [[midX - 2, midY + 5], [midX + 2, midY + 5], [midX, midY + 1]] as Outline,
-    rect(midX - 5.1, midY + 9, midX - 3.9, midY + 14), rect(midX - 0.6, midY + 9, midX + 0.6,
-      midY + 14), rect(midX + 3.9, midY + 9, midX + 5.1, midY + 14)]
-    .map((pts) => ({ pts, surface: 'grass' as const })),
-  { pts: ellipse(midX, midY - 4, 15, 13), surface: 'grassShort' as const },
-  { pts: [[midX - 9, midY + 4], [midX + 9, midY + 4], [midX + 9, midY + 12],
-    [midX + 7, midY + 14.5], [midX - 7, midY + 14.5], [midX - 9, midY + 12]] as Outline,
-  surface: 'grassShort' as const },
+// THE SUBTLE SKULL (the owner's Die-tona joke): mown into the infield's grass behind the pit road
+// at the tri-oval, where the real one has its logo - short grass on the grass, the eyes, nose and
+// gaps between the teeth left long; upright on the screen
+const SKULL = [
+  '.#######.',
+  '#########',
+  '#########',
+  '#..###..#',
+  '#..###..#',
+  '####.####',
+  '.#######.',
+  '..#.#.#..',
+  '..#####..',
 ];
 
 export const DIEATONA_SPEC: VenueSpec = {
@@ -95,7 +88,7 @@ export const DIEATONA_SPEC: VenueSpec = {
     { at: [790, -60], label: 'SPUM OIL', on: 'wall' },
     { at: [-790, -60], label: 'CREEM OIL', on: 'wall' },
   ],
-  patches: skull(0, 337),
+  mown: [{ at: [0, 322], pxM: 1.6, rows: SKULL }],
   seed: 1959,
 };
 

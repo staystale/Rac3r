@@ -16,7 +16,7 @@ import { WALL_REACH_M, boxedLine, buildEdge, buildRims, inZones, outlineZone, pa
   trapZones } from "./venueedge.ts";
 import { boardOnArmco, marshalPosts } from "./venueposts.ts";
 import { venueAero, venuePlanes } from "./venueairfield.ts";
-import { ovalWall, venuePatches, venueWater } from "./venueoval.ts";
+import { nearWater, onPatches, ovalWall, venueMown, venueWater } from "./venueoval.ts";
 import type { EdgeNeeds, WallLine } from "./venueedge.ts";
 import { REACH_M, cellKey, inBuilding, inSolid, nearArmco, nearRace, onLanes, placeAll }
   from "./venuesite.ts";
@@ -26,12 +26,13 @@ import { FOOT_REACH_M, handFinish, tidyRoads, venueRoads, withoutDuplicates }
 import { continueRoad, joinApproaches, joinFrom } from "./venuejoin.ts";
 import type { VenueBox, VenueBuild } from "./venue.ts";
 import { EDGE_TO_WALL, PIT_W, pitLane, pitLines } from "./venuepit.ts";
-import type { Barrier, Cone, Cover, Lane, Paint, Point, Prop, Subtrack, Zone } from "./types.ts";
+import type { Barrier, Cone, Cover, Lane, Paint, Patch, Point, Prop, Subtrack, Zone }
+  from "./types.ts";
 
 /** What buildVenueScenery returns: everything but the raced road. */
 export interface VenueScenery {
   lanes: Lane[]; zones: Zone[]; cones: Cone[]; barriers: Barrier[]; props: Prop[]; covers: Cover[];
-  paint: Paint[]; bounds: { x0: number; y0: number; x1: number; y1: number };
+  patches: Patch[]; paint: Paint[]; bounds: { x0: number; y0: number; x1: number; y1: number };
 }
 
 // m: the garages' front stands at least this far behind the pit lane's edge
@@ -69,6 +70,9 @@ const TRUCK_ALONG_M = 17, TRUCK_ACROSS_M = 6, TRUCK_FULL = 0.6, MAX_TRUCKS = 12;
 const MAX_TREES = 260, OPEN_TREE_SHARE = 0.05, TREE_OUT_M = 6;
 // hedgerow trees: m apart along a row, the share kept, the most
 const ROW_TREE_M = 9, ROW_TREE_SHARE = 0.6, MAX_ROW_TREES = 90;
+// m a tree's trunk keeps off a lake's shore (its canopy may hang over the water) and off a mown
+// pattern (its canopy clear of it)
+const TREE_WATER_M = 3, TREE_MOWN_M = 6;
 // m a tree's trunk keeps off a road piece's edge (a raced road the edge already keeps it off; an
 // unraced one - an old line beside a chicane - has no edge): the largest canopy and its shadow
 const TREE_PIECE_M = 6.5;
@@ -432,15 +436,16 @@ function venuePaddocks(site: Site, fill: boolean): { zones: Zone[]; props: Prop[
 
 /**
  * Trees in the mapped woods (and a few in the open), outside the edge, clear of lanes (their
- * canopies clear of a road piece), zones and buildings.
+ * canopies clear of a road piece), zones, buildings, the lakes and the mown patterns.
  * @param site the venue's builders' state
  * @param bounds where to scatter
  * @param solids the props they keep clear of
  * @param zones the zones they keep out of
+ * @param ground the scenery water and the mown patterns they keep out of
  * @returns the tree props
  */
 function venueTrees(site: Site, bounds: VenueScenery['bounds'], solids: Prop[],
-  zones: Zone[]): Prop[] {
+  zones: Zone[], ground: { covers: Cover[]; patches: Patch[] }): Prop[] {
   const woods = site.build.spec.data.woods.map((wood) => outlineZone(placeAll(site, wood.pts),
     SURFACES.grass));
   const trees: Prop[] = [];
@@ -451,7 +456,8 @@ function venueTrees(site: Site, bounds: VenueScenery['bounds'], solids: Prop[],
   });
   const clear = (x: number, y: number) => !(pastRim(site.rims, x, y) < TREE_OUT_M
     || onLanes(site.lanes, x, y, 4) || onLanes(pieces, x, y, TREE_PIECE_M) || inZones(zones, x, y)
-    || nearSolid(x, y));
+    || nearSolid(x, y) || nearWater(ground.covers, x, y, TREE_WATER_M)
+    || onPatches(ground.patches, x, y, TREE_MOWN_M));
   for (let i = 0; i < MAX_TREES * 16 && trees.length < MAX_TREES; i++) {
     const x = bounds.x0 + site.rnd() * (bounds.x1 - bounds.x0);
     const y = bounds.y0 + site.rnd() * (bounds.y1 - bounds.y0);
@@ -758,11 +764,11 @@ export function buildVenueScenery(build: VenueBuild, sub: Subtrack, closed: Lane
   props.push(...venueBoards(site, edge, outerWall, props));
   const bounds = venueBounds(loops, [pit.lane, ...bridges.lanes, ...tunnels.lanes, ...finished],
     props);
-  const zones = [...venuePatches(site), ...traps, ...paddocks.zones, ...venuePads(site),
-    ...venueAero(site)];
+  const zones = [...traps, ...paddocks.zones, ...venuePads(site), ...venueAero(site)];
   const lanes = [pit.lane, ...bridges.lanes, ...tunnels.lanes, ...finished];
   props.push(...venuePlanes(site, zones, props));
-  props.push(...venueTrees(site, bounds, props, zones));
+  const covers = venueWater(site), patches = venueMown(site);
+  props.push(...venueTrees(site, bounds, props, zones, { covers, patches }));
   // the kart track's tyre lines, none on a road
   const karting = spec.data.tyres.flatMap((line) => resample(placeAll(site, line.pts), 1)
     .filter(([x, y]) => !onLanes(site.lanes, x, y, 0.6))
@@ -770,5 +776,5 @@ export function buildVenueScenery(build: VenueBuild, sub: Subtrack, closed: Lane
   return { lanes, zones, cones: [...edge.cones, ...karting],
     barriers: [...(pit.wall ? [pit.wall] : []), ...(outerWall ? [outerWall] : []),
       ...edge.barriers],
-    props, paint: pitLines(site, pit.lane), bounds, covers: venueWater(site) };
+    props, paint: pitLines(site, pit.lane), bounds, covers, patches };
 }
