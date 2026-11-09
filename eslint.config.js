@@ -30,4 +30,10 @@ export default [
     plugins: { "@typescript-eslint": tsPlugin },
     rules: { "no-unused-vars": "off", "@typescript-eslint/no-unused-vars": "error" },
   },
+  // a venue's map data is written by tools/osmvenue.mjs from OpenStreetMap, not by hand: as long as
+  // the real place needs (Silverstone's roads and buildings ran past 800 lines)
+  {
+    files: ["src/world/levels/venues/*.ts"],
+    rules: { "max-lines": "off" },
+  },
 ];

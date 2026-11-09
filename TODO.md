@@ -220,6 +220,12 @@ last handover, written on request.
    down Craner to the Old Hairpin (EU-DEM heights). PASSED + DEFAULT 11-09 (owner: "Donnington is
    pass"); left as built: the catch fence in front of the Hollywood grandstand (no source shows it;
    asked, no answer yet). NEXT: Silverstone (working name Sillystone, ?sillystone=1).
+   SILLYSTONE BUILT 11-09 behind ?sillystone=1 (levels/sillystone-venue.ts, OSM data in
+   venues/sillystone.ts; the venue helper; working name, one constant): the GP (Arena, 2946 m, real
+   5891) and the National (1321 m, real 2639) one venue; both pit lanes (the Wing's, its entry cut
+   inside Club laid as mapped: spec.pitCuts; the National pits'), the Wing as the garages, 32 stands,
+   the bridges / footbridges / tunnels OSM maps, the Stowe circuit closed in the infield. The
+   International not built (its links mapped as estimates). UNDER TEST.
 3. ROLLING LOOK - smoother than the dice flip on the same physics; mockup first.
 4. SIDE DRAFTING (Naffcar first) PASSED + DEFAULT 11-08 (owner: "Pass"): physics/wake.ts part 5 - a nose
    alongside a car's rear quarter, up to +20 % drag on it and -6 % on the car alongside, gone by 1.2 m

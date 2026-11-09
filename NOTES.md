@@ -439,6 +439,10 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
 - A VENUE'S START IS THE MAP'S POINT NEAREST spec.start (11-09): a straight the map draws as its two
   ends put Donington's line 111 m away, on the Melbourne Loop. spec.startOnLine takes the spot's
   foot on the line (Brands starts 18.6 real m from its nearest point too - left as approved).
+- A NaN OR INFINITE POINT IN A ROAD RUNS resample() FOREVER (11-09): Silverstone's Wing pit lane,
+  measured beyond the road's lookup inside Club, came out at Infinity and the next resample filled
+  2 GB. A venue that runs out of memory: look for non-finite points first (spec.pitCuts lays such
+  a stretch as mapped).
 - TWO STRETCHES NEED 36 REAL M BETWEEN CENTRES FOR A BARRIER BETWEEN at 1/2 scale (11-09): the game
   road is 13 m, the edge keeps a barrier 2.5 m off each road. Lydden's Devil's Elbow ran 26 m from
   the gravel run and North Bend's legs 31 m apart: the roads touched, a car could cut half the lap.

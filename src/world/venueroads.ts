@@ -345,9 +345,16 @@ export function withoutDuplicates(site: Site, roads: Lane[], fixed: Lane[]): Lan
   const order = roads.slice()
     .sort((first, second) => lineLength(second.pts) - lineLength(first.pts));
   const isKart = (lane: Lane) => lane.width === KART_W;
+  // each lane resampled once (resampled afresh for every road, a venue with 200 roads ran out of
+  // memory)
+  const sampled = new Map<Lane, Point[]>();
+  const samples = (lane: Lane) => {
+    if (!sampled.has(lane)) sampled.set(lane, resample(lane.pts, 2));
+    return sampled.get(lane)!;
+  };
   for (const road of order) {
     const others = [...fixed, ...kept].filter((lane) => isKart(lane) === isKart(road))
-      .map((lane) => resample(lane.pts, 2));
+      .map(samples);
     const dup = road.pts.map((point, i) => others.some((other) => doubles(road, i, other)));
     // a doubled stretch longer than DUPLICATE_M goes whole (from where it starts to where it ends)
     const drop = dup.slice();
