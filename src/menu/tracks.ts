@@ -17,7 +17,7 @@ import { MENU_COL } from './palette.ts';
 export const KIND: Record<string, string> = { lab: 'TEST GROUND', 'test-track': 'CIRCUIT',
   thruston: 'UK CIRCUIT',
   'castle-cum': 'UK CIRCUIT', 'brands-snatch': 'UK CIRCUIT · GP', knobhill: 'RALLYCROSS',
-  'knobhill-circuit': 'UK CIRCUIT', 'slidden-hill-circuit': 'UK CIRCUIT',
+  'knobhill-circuit': 'UK CIRCUIT',
   'brands-snatch-indy': 'UK CIRCUIT · INDY', snotterton: 'UK CIRCUIT · 300',
   'snotterton-200': 'UK CIRCUIT · 200', 'snotterton-100': 'UK CIRCUIT · 100',
   'sweaty-lamb': 'RALLY STAGE',

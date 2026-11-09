@@ -55,8 +55,4 @@ export const FIX = {
   // ?knobhillvenue=1: Knobhill as the real venue (Knockhill) at 1/2 of real length, the
   // rallycross (the Knobhill level) and the circuit (world/levels/knobhill-venue.ts; owner 11-09)
   knobhillvenue: atLoad('knobhillvenue'),
-  // ?sliddenhillvenue=1: Slidden Hill as the real venue (Lydden Hill) at 1/2 of real length, the
-  // rallycross (the Slidden Hill level) and the circuit (world/levels/slidden-hill-venue.ts; owner
-  // 11-09)
-  sliddenhillvenue: atLoad('sliddenhillvenue'),
 };

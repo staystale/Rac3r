@@ -13,14 +13,6 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
-    id: 'sliddenhillvenue',
-    added: '2026-11-09',
-    name: 'Slidden Hill as the real venue (Lydden Hill) at 1/2 size: rallycross and circuit',
-    where: 'Link + &sliddenhillvenue=1: RALLYCROSS > Slidden Hill; UK CIRCUITS > ... Circuit',
-    try: 'Race the rallycross from the start straight: the gravel loop, the joker round Chessons.',
-    wrong: 'A joker not counted, a car stuck on the start straight or gravel, a road on the track.',
-  },
-  {
     id: 'knobhillvenue',
     added: '2026-11-09',
     name: 'Knobhill as the real venue (Knockhill) at 1/2 size: the rallycross and the circuit',

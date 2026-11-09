@@ -202,12 +202,11 @@ last handover, written on request.
    Taylor's hairpin, the lap cutting up the escape road) and the International circuit as
    Knobhill Circuit (988 m, real 2039). Venue system: a loose race piece's dirt sector, spec.joker.
    UNDER TEST; the old knobhill.ts goes on pass.
-   SLIDDEN HILL VENUE BUILT 11-09 behind ?sliddenhillvenue=1 (levels/slidden-hill-venue.ts, OSM
-   data in venues/slidden-hill.ts; the venue helper): the World RX rallycross as the Slidden Hill
-   level (667 m, World RX 1.335 km: the gravel loop inside Chessons, the diagonal to Dover Slope,
-   the gravel run back; the joker round the outside on tarmac; the grid on the dead-end start
-   straight) and the road circuit as Slidden Hill Circuit (716 m). Not built: Nitro RX's 2022
-   Talladega banking, jump and last-corner joker. UNDER TEST; the old slidden-hill.ts goes on pass.
+   SLIDDEN HILL VENUE (built 11-09 behind ?sliddenhillvenue=1) REVERTED 11-09 (owner: "Looks messed
+   up revert to what we had before and leave the tracks as the are now"): the old slidden-hill.ts
+   stays. NO MORE CONVERSIONS of the old levels (owner 11-09 on the ovals: "don't touch ovals
+   then"; the rally stages too): the venue helper moves onto NEW tracks ("Move the helper onto new
+   tracks") - Donington Park next from this list, names agreed first.
 3. ROLLING LOOK - smoother than the dice flip on the same physics; mockup first.
 4. SIDE DRAFTING (Naffcar first) PASSED + DEFAULT 11-08 (owner: "Pass"): physics/wake.ts part 5 - a nose
    alongside a car's rear quarter, up to +20 % drag on it and -6 % on the car alongside, gone by 1.2 m
