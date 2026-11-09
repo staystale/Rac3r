@@ -22,7 +22,7 @@ for (const way of ways) {
   else if (tags.building) cmds.push({ t: 'poly', pts, col: '#777777' });
   else if (tags.natural === 'shingle') cmds.push({ t: 'poly', pts, col: '#e0cf9a' });
   else if (tags.highway === 'raceway') {
-    cmds.push({ t: 'line', pts, col: tags.surface === 'unpaved' ? '#a0522d' : tags.sport === 'karting' ? '#cc8800' : '#222222', w: 10 * Z });
+    cmds.push({ t: 'line', pts, col: /unpaved|dirt|gravel|ground|compacted/.test(tags.surface || '') ? '#a0522d' : tags.sport === 'karting' ? '#cc8800' : '#222222', w: 10 * Z });
     cmds.push({ t: 'text', at: pts[Math.floor(pts.length / 2)], s: `${way.id} ${tags.name || ''}`, col: '#0000ff' });
   } else if (tags.highway) cmds.push({ t: 'line', pts, col: '#999999', w: 4 * Z });
   else if (tags.barrier === 'guard_rail') cmds.push({ t: 'line', pts, col: '#1e5fd0', w: 2 });

@@ -13,14 +13,10 @@
 //     start straight. The JOKER is the real one: "run along the bottom straight and around the
 //     hairpin" instead (British Rallycross, Knockhill).
 import { KNOBHILL_VENUE } from "./venues/knobhill.ts";
-import { venueBuild, venueLevel } from "../venue.ts";
-import { venueJoker } from "../venuejoker.ts";
-import { SURFACES } from "../surfaces.ts";
-import { jokerApproach, jokerArrow } from "./slidden-hill.ts";
-import { jokerBales, rxDress } from "./kit.ts";
-import { RX_BUSHES } from "./bushes.ts";
+import { venueLevel } from "../venue.ts";
+import { rallycrossLevel } from "./rallycross-venue.ts";
 import type { VenueSpec } from "../venue.ts";
-import type { Level, Point } from "../types.ts";
+import type { Level } from "../types.ts";
 
 export const KNOBHILL_SPEC: VenueSpec = {
   id: 'knobhill',
@@ -50,33 +46,11 @@ export const KNOBHILL_SPEC: VenueSpec = {
   seed: 1974,
 };
 
-// the joker rule (the old Knobhill's: 30 s for a missed or a second joker, 5 laps a race)
-const JOKER_PENALTY_S = 30, JOKER_LAPS = 5, JOKER_GATE_R = 7;
-
-/**
- * The rallycross layout as the Knobhill level: the venue's level with the joker rule, the
- * rallycross dressing (hay bales round the corners where no wall stands, both sides of the gravel
- * lined; bales between the joker and the lap where they run apart) and the rallycross bushes.
- * @returns the level
- */
-function rallycrossLevel(): Level {
-  const level = venueLevel(KNOBHILL_SPEC, 'rx', 'knobhill', 'Knobhill');
-  const sub = level.subtrack!, lane = venueJoker(venueBuild(KNOBHILL_SPEC), 'rx')!;
-  const loose = sub.sectors.filter((sector) => sector.surface === SURFACES.dirt)
-    .map((sector): Point => [sector.startDist, sector.endDist]);
-  const bales = rxDress(sub, level.lanes || [], level.cones, loose);
-  const cones = [...level.cones, ...bales];
-  const mid = lane.pts[Math.floor(lane.pts.length / 2)];
-  return { ...level, bushes: RX_BUSHES, cones: [...cones, ...jokerBales(sub, lane, cones)],
-    joker: { gate: { x: mid[0], y: mid[1], r: JOKER_GATE_R }, penalty: JOKER_PENALTY_S,
-      laps: JOKER_LAPS,
-      arrows: [jokerArrow(sub, lane.pts), jokerApproach(sub, lane.pts)].filter(Boolean) } };
-}
-
 // the two layouts of the one venue, each built on first use (world/load.ts buildLevel)
 const circuitLevel = (): Level =>
   venueLevel(KNOBHILL_SPEC, 'circuit', 'knobhill-circuit', 'Knobhill Circuit');
 export const KH_VENUE_LEVELS: Level[] = [
-  ({ id: 'knobhill', name: 'Knobhill', _build: rallycrossLevel } as Level),
+  ({ id: 'knobhill', name: 'Knobhill',
+    _build: () => rallycrossLevel(KNOBHILL_SPEC, 'rx', 'knobhill', 'Knobhill') } as Level),
   ({ id: 'knobhill-circuit', name: 'Knobhill Circuit', _build: circuitLevel } as Level),
 ];

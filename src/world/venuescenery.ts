@@ -75,6 +75,10 @@ const ROW_TREE_M = 9, ROW_TREE_SHARE = 0.6, MAX_ROW_TREES = 90;
 const TREE_WATER_M = 3, TREE_MOWN_M = 6;
 // m a tree's trunk keeps off a mapped tyre wall's line (the largest trunk's box and a tyre)
 const TREE_TYRE_M = 2.5;
+// m a marshal post's centre keeps from a tyre stack (its hut's half diagonal and a tyre)
+const POST_TYRE_M = 2;
+// m past a tree's trunk box a barrier keeps (tools/venueaudit.mjs: a prop on a barrier)
+const TREE_RAIL_M = 0.3;
 // m a tree's trunk keeps off a road piece's edge (a raced road the edge already keeps it off; an
 // unraced one - an old line beside a chicane - has no edge): the largest canopy and its shadow
 const TREE_PIECE_M = 6.5;
@@ -272,10 +276,10 @@ function standClear(site: Site, prop: Prop): boolean {
  * row facing the pit lane, the control tower with its cab, every other building a flat-roofed
  * block, each outside the edge; and the landmarks the map does not carry where the sources show.
  * @param site the venue's builders' state
- * @param pit the pit lane
+ * @param pit the pit lane (none: no garage row)
  * @returns the props
  */
-function venueBuildings(site: Site, pit: Lane): Prop[] {
+function venueBuildings(site: Site, pit: Lane | null): Prop[] {
   const data = site.build.spec.data, props: Prop[] = [];
   const homes = data.homes.map((home) => outlineZone(placeAll(site, home.pts), SURFACES.grass));
   for (const stand of data.stands) {
@@ -285,7 +289,7 @@ function venueBuildings(site: Site, pit: Lane): Prop[] {
   data.buildings.forEach((building, i) => {
     const prop = boxProp(site, building, 'block');
     if (!nearRace(site, prop.x, prop.y, REACH_M)) return;
-    if (/pit garages/i.test(building.name)) { props.push(garageRow(prop, pit)); return; }
+    if (pit && /pit garages/i.test(building.name)) { props.push(garageRow(prop, pit)); return; }
     if (NOT_VENUE.has(building.kind) || inZones(homes, prop.x, prop.y)) return;
     if (!building.name && prop.w! * prop.h! < 40) return;
     // one structure mapped twice (a stand and a building on it): keep the first
@@ -640,20 +644,23 @@ function venueBoards(site: Site, edge: { barriers: Barrier[]; cones: Cone[] },
 }
 
 /**
- * Marshal posts kept clear: moved out from the track (2 m a try) off every barrier, road and
- * building, or left out.
+ * Marshal posts kept clear: moved out from the track (2 m a try) off every barrier, tyre wall,
+ * road and building, or left out.
  * @param site the venue's builders' state
  * @param posts the posts (moved in place)
  * @param barriers the edge's barriers
+ * @param tyres the edge's tyre walls
  * @returns the posts that stand clear
  */
-function clearPosts(site: Site, posts: Prop[], barriers: Barrier[]): Prop[] {
+function clearPosts(site: Site, posts: Prop[], barriers: Barrier[], tyres: Cone[]): Prop[] {
   const railPts = barriers.flatMap((rail) => rail.pts);
   // (off every layout's road too: a corner's outside can be another layout's track)
   const clear = (post: Prop) => !onLanes(site.lanes, post.x, post.y, 2)
     && nearestLoop(site.loops, post.x, post.y).hit.dist > HALF_ROAD + 2
     && !inSolid(site, post.x, post.y, 2)
-    && railPts.every(([x, y]) => Math.abs(x - post.x) > 2.5 || Math.abs(y - post.y) > 2.5);
+    && railPts.every(([x, y]) => Math.abs(x - post.x) > 2.5 || Math.abs(y - post.y) > 2.5)
+    // (nor on a tyre wall: a stack inside its hut)
+    && tyres.every((tyre) => Math.hypot(tyre.x - post.x, tyre.y - post.y) > POST_TYRE_M);
   return posts.filter((post) => {
     for (let tries = 0; tries < 5; tries++) {
       if (clear(post)) return true;
@@ -716,27 +723,29 @@ function finishMoves(site: Site): void {
 export function buildVenueScenery(build: VenueBuild, sub: Subtrack, closed: Lane[]): VenueScenery {
   const loops = Object.values(build.loops), spec = build.spec;
   const { site, traps, lines } = venueSite(build, closed);
-  const pit = pitLane(site);
-  site.lanes.push(pit.lane);
-  site.pitPts = pit.lane.pts;
+  // (a venue with no pit lane mapped - a rallycross venue - has none, nor a pit wall)
+  const pit = spec.pitLane ? pitLane(site) : null, pitLanes = pit ? [pit.lane] : [];
+  const pitWalls = pit && pit.wall ? [pit.wall] : [];
+  site.lanes.push(...pitLanes);
+  site.pitPts = pit ? pit.lane.pts : [];
   const bridges = venueBridges(site);
   site.lanes.push(...bridges.lanes);
   // the buildings first: the tunnels' portals and the edge keep off them, the roads go round them
-  site.buildings = venueBuildings(site, pit.lane);
+  site.buildings = venueBuildings(site, pitLanes[0] || null);
   finishMoves(site);
   const tunnels = venueTunnels(site);
   site.lanes.push(...tunnels.lanes);
   site.portals = tunnels.props;
   // the pit wall is its stretch's barrier: the edge keeps PIT_WALL_CLEAR_M off it (with a rail
   // mapped there, Armco stood just behind it)
-  const pitWall = pit.wall ? pit.wall.pts : null;
+  const pitWall = pitWalls.length ? pitWalls[0].pts : null;
   // an oval's outside wall is its stretch's barrier, as the pit wall (spec.ovalWall)
-  const outerWall = ovalWall(site);
+  const outerWall = ovalWall(site), walls = [...pitWalls, ...(outerWall ? [outerWall] : [])];
   const edge = buildEdge(site.rims, { loops, lanes: site.lanes,
     blocked: (x, y) => inBuilding(site.buildings, x, y, 1)
       || (!!pitWall && distToLine(pitWall, x, y) < PIT_WALL_CLEAR_M)
       || (!!outerWall && distToLine(outerWall.pts, x, y) < OVAL_WALL_CLEAR_M),
-    roads: [pit.lane] }, traps,
+    roads: pitLanes }, traps,
   edgeNeeds(site, bridges.props, tunnels.props, lines));
   for (const rail of edge.barriers)
     for (const [x, y] of resample(rail.pts, 1)) site.armco.add(cellKey(x, y));
@@ -745,9 +754,9 @@ export function buildVenueScenery(build: VenueBuild, sub: Subtrack, closed: Lane
   // the road network cleaned (no road doubled) and settled (every end meeting something - a road
   // ending at a bridge's ramp or a tunnel's mouth meets it), THEN the bridges and tunnels joined
   // to it, and no road changed after (a later change left an approach hooked to nothing)
-  const cleanRoads = withoutDuplicates(site, roads, [pit.lane]);
+  const cleanRoads = withoutDuplicates(site, roads, pitLanes);
   const fixedProps = [...site.buildings, ...bridges.props, ...tunnels.props];
-  const roadBounds = venueBounds(loops, [pit.lane, ...cleanRoads], fixedProps);
+  const roadBounds = venueBounds(loops, [...pitLanes, ...cleanRoads], fixedProps);
   const feet = [...bridges.lanes, ...tunnels.lanes].map((lane) => lane.pts[lane.pts.length - 1]);
   const goodRoads = tidyRoads(site, cleanRoads,
     { zones: venuePaddocks(site, false).zones, bounds: roadBounds, feet });
@@ -762,24 +771,27 @@ export function buildVenueScenery(build: VenueBuild, sub: Subtrack, closed: Lane
   const paddocks = venuePaddocks(site, true);
   const start = onTrack(sub, 2, 0, {});
   const props: Prop[] = [...site.buildings, ...bridges.props, ...tunnels.props,
-    ...paddocks.props, ...clearPosts(site, marshalPosts(site.rims), edge.barriers),
+    ...paddocks.props, ...clearPosts(site, marshalPosts(site.rims), edge.barriers, edge.cones),
     // the start gantry spans the track with its legs on the pit wall's line (not in the pit lane)
     { kind: 'gantry', x: start.x, y: start.y, wid: 2 * (HALF_ROAD + EDGE_TO_WALL),
       rot: start.rot + Math.PI / 2 }];
   props.push(...venueBoards(site, edge, outerWall, props));
-  const bounds = venueBounds(loops, [pit.lane, ...bridges.lanes, ...tunnels.lanes, ...finished],
-    props);
+  const bounds = venueBounds(loops, [...pitLanes, ...bridges.lanes, ...tunnels.lanes,
+    ...finished], props);
   const zones = [...traps, ...paddocks.zones, ...venuePads(site), ...venueAero(site)];
-  const lanes = [pit.lane, ...bridges.lanes, ...tunnels.lanes, ...finished];
+  const lanes = [...pitLanes, ...bridges.lanes, ...tunnels.lanes, ...finished];
   props.push(...venuePlanes(site, zones, props));
   const covers = venueWater(site), patches = venueMown(site);
-  props.push(...venueTrees(site, bounds, props, zones, { covers, patches }));
+  // (no tree whose trunk stands on a barrier: its solid box, a quarter of its size either way)
+  const allRails = [...walls, ...edge.barriers].flatMap((rail) => rail.pts);
+  props.push(...venueTrees(site, bounds, props, zones, { covers, patches }).filter((tree) =>
+    allRails.every(([x, y]) => Math.abs(x - tree.x) > (tree.s || 4) / 4 + TREE_RAIL_M
+      || Math.abs(y - tree.y) > (tree.s || 4) / 4 + TREE_RAIL_M)));
   // the kart track's tyre lines, none on a road
   const karting = spec.data.tyres.flatMap((line) => resample(placeAll(site, line.pts), 1)
     .filter(([x, y]) => !onLanes(site.lanes, x, y, 0.6))
     .map(([x, y]) => ({ x, y, kind: 'tyrestack' })));
   return { lanes, zones, cones: [...edge.cones, ...karting],
-    barriers: [...(pit.wall ? [pit.wall] : []), ...(outerWall ? [outerWall] : []),
-      ...edge.barriers],
-    props, paint: pitLines(site, pit.lane), bounds, covers, patches };
+    barriers: [...walls, ...edge.barriers],
+    props, paint: pitLanes.flatMap((lane) => pitLines(site, lane)), bounds, covers, patches };
 }

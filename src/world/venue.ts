@@ -16,7 +16,7 @@ import { venueCrossings } from "./crossings.ts";
 import { CIRCUIT_BUSHES } from "./levels/bushes.ts";
 import { buildVenueScenery } from "./venuescenery.ts";
 import { VENUE_ROAD_M, distToLine, lineLength, pointAlong } from "./venuegeo.ts";
-import { venueJoker } from "./venuejoker.ts";
+import { laneSpawn, venueJoker, venueStartLane } from "./venuejoker.ts";
 import type { Barrier, Bump, Camber, Cone, Lane, Level, Point, Subtrack } from "./types.ts";
 
 /** A turned rectangle from the map (real m, the long side along w). */
@@ -66,7 +66,7 @@ export interface VenueSpec {
   // the trace's smoothing (world/subtrack.ts traceTrack passes / kern), stronger where the map's
   // line jogs a few metres along a fast banked bend (Dieatona's tri-oval)
   trace?: Record<string, { passes: number; kern: number }>;
-  pitLane: string;   // the data's pit lane in use
+  pitLane?: string;   // the data's pit lane in use (none: a venue with no pit lane, rallycross)
   hills: Bump[];   // the hills (r and d / h in real m: scaled with the map)
   // spectator earth banks; a catch fence in front of each unless fenced is false (the sources show
   // its viewers behind the circuit's rail, no fence)
@@ -109,6 +109,9 @@ export interface VenueSpec {
   rollingStart?: boolean;
   camber?: Record<string, Camber>;
   ovalWall?: { layout: string; gapM: number; kind: Barrier['kind'] };
+  // a rallycross layout's START LANE: its pieces in driving order from the dead end of the start
+  // straight to where it meets the lap (the grid stands on it, off the lap; ai/line.ts startLane)
+  startLane?: { layout: string; pieces: string[] };
   // a rallycross layout's JOKER: the part of another layout's loop (`loop`) round `near` (real m)
   // that this layout does not race, a lane a car must take once in a race (game/rules.ts)
   joker?: { layout: string; loop: string; near: Point };
@@ -320,22 +323,25 @@ export function venueBuild(rawSpec: VenueSpec): VenueBuild {
 
 /**
  * The pieces a layout does not race, as road lanes (on their own surface), and a tyre row across
- * each where it leaves the layout's road (as the real circuit closes them) - but the joker's,
- * which stay open: the joker lane runs over them.
+ * each where it leaves the layout's road (as the real circuit closes them) - but the joker's and
+ * the start lane's, which stay open: those lanes run over them.
  * @param build the venue at game scale
  * @param layout the layout raced
- * @param joker the layout's joker lane, or null
+ * @param open the layout's joker and start lanes (null where it has none)
  * @returns the lanes and the tyre stacks
  */
 function closedPieces(build: VenueBuild, layout: string,
-  joker: Lane | null): { lanes: Lane[]; cones: Cone[] } {
+  open: (Lane | null)[]): { lanes: Lane[]; cones: Cone[] } {
   const raced = new Set(build.spec.data.layouts[layout].map(([name]) => name));
+  // (the start lane's pieces by name: the lane is held off the lap, apart from them)
+  const start = build.spec.startLane;
+  if (start && start.layout === layout) for (const name of start.pieces) raced.add(name);
   const sub = build.loops[layout], half = VENUE_ROAD_M / 2;
   const lanes: Lane[] = [], cones: Cone[] = [];
   for (const piece of build.pieces) {
     if (raced.has(piece.name)) continue;
     const mid = pointAlong(piece.pts, lineLength(piece.pts) / 2);
-    if (joker && mid && distToLine(joker.pts, mid.x, mid.y) < half) continue;
+    if (mid && open.some((lane) => lane && distToLine(lane.pts, mid.x, mid.y) < half)) continue;
     lanes.push({ pts: piece.pts, width: VENUE_ROAD_M,
       surface: SURFACES[piece.surface || 'racetarmac'] });
     for (const end of [piece.pts, piece.pts.slice().reverse()]) {
@@ -437,11 +443,13 @@ export function venueLevel(spec: VenueSpec, layout: string, levelId: string,
   name: string): Level {
   const build = venueBuild(spec), sub = build.loops[layout];
   const joker = venueJoker(build, layout);
-  const closed = closedPieces(build, layout, joker);
+  const startLane = venueStartLane(build, layout);
+  const closed = closedPieces(build, layout, [joker, startLane]);
   // the joker first among the lanes (world/joker.ts takes the first lane by its gate)
-  const jokerLanes = joker ? [joker] : [];
+  const jokerLanes = [joker, startLane].filter((lane): lane is Lane => !!lane);
   const scenery = buildVenueScenery(build, sub, [...jokerLanes, ...closed.lanes]);
-  const start = onTrack(sub, sub.totalDist - 15, 0, {});
+  // on the grid near the start lane's dead end, facing along it; else 15 m before the line
+  const start = startLane ? laneSpawn(startLane) : onTrack(sub, sub.totalDist - 15, 0, {});
   return {
     id: levelId, name, base: SURFACES.grass, subtrack: sub, bounds: scenery.bounds,
     floor: Math.ceil(Math.max(-scenery.bounds.x0, scenery.bounds.x1, -scenery.bounds.y0,
