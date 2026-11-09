@@ -38,6 +38,7 @@ import { MP_LEVELS } from "./malarkey-venue.ts";
 import { AG_LEVELS } from "./anglesleazy-venue.ts";
 import { GW_LEVELS } from "./goodwoody-venue.ts";
 import { CR_LEVELS } from "./croughed-venue.ts";
+import { SPA_LEVELS } from "./spa-venue.ts";
 import { OP_LEVELS } from "./oultonpork-venue.ts";
 import { DT_LEVELS } from "./dieatona-venue.ts";
 import { TH_VENUE_LEVEL } from "./thruston-venue.ts";
@@ -214,6 +215,8 @@ export const LEVELS: Level[] = [
   ...GW_LEVELS,
   // Croughed, a new venue (croughed-venue.ts), its two layouts
   ...CR_LEVELS,
+  // ?spa=1: Spa-Frankenchumps, a new venue (spa-venue.ts), the first world championship circuit
+  ...(FIX.spa ? SPA_LEVELS : []),
   // Oulton Pork, a new venue (oultonpork-venue.ts), its International, Island and Frosters
   ...OP_LEVELS,
   // ?thrustonvenue=1: the real venue (thruston-venue.ts), built on first use

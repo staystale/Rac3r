@@ -50,7 +50,8 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   TRACKS: Thruxton = Thruston, Castle Combe = Castle Kum (renamed from Castle Cum, owner 11-08),
   Brands Hatch = Brands Snatch,
   Knockhill = Knobhill, Lydden Hill = Slidden Hill, Kielder = Killder, Daytona = Dieatona,
-  Snetterton = Snotterton (owner 11-08).
+  Snetterton = Snotterton (owner 11-08), Spa-Francorchamps = Spa-Frankenchumps (owner's brief
+  11-09).
 - No keys, tokens, tunnel URLs or process IDs in the repo. No itch.io push until the owner says so.
 - The foreman may push to `main` once the change is proven (routine below).
 - Keep the test server and the tunnel running.
@@ -501,9 +502,18 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   (the legs were gone). Compare the traced lap with realLapM x share after every build; warp the
   legs apart (spec.warps) to twice minR.
 - OSM MAY MAP A CIRCUIT'S BARRIERS AS barrier=wall (11-09, Croughed): one mapper drew Croft's with
-  the raceways, on the lines the photos show. tools/osmvenue.mjs reads only guard_rail and
-  jersey_barrier into data.rails, so they were laid as spec.railsSeen - leaving out the pit wall
-  (world/venuepit.ts lays its own) and the walls round the paddock and huts.
+  the raceways, on the lines the photos show (Spa's as walls and fences). tools/osmvenue.mjs reads
+  guard_rail and jersey_barrier into data.rails, and the barrier ways its config lists ("rails":
+  Spa); Croft's were laid as spec.railsSeen - leaving out the pit wall (world/venuepit.ts lays its
+  own) and the walls round the paddock, the huts and a kart track.
+- A PIT LANE THAT LOOPS ROUND INSIDE A HAIRPIN HAS NO ROOM AT 1/2 SCALE (11-09, Spa): La Source's
+  pit exit turns 150 degrees inside the hairpin to join after it; at the game's scale the hairpin's
+  two legs leave no room for a 9 m lane (it folded back, its wall on the lane). The loop is cut
+  from the map (tools/venues/spa.json "trim") and the lane eases into the straight before it.
+- A TUNNEL WHOSE FAR ROAD IS A PUBLIC ROAD IS DROPPED (11-09, Spa): the venue keeps service roads,
+  not primary / secondary ones, and short pieces (under 30 m, or a stream bridge) are left out, so
+  a tunnel's outer road can end in nothing and the tunnel goes. A hand-drawn road (spec.finish
+  .roads) out to a building or a road gives it its far end (Paul Frere's tunnel).
 - A RESET ON A TWO-WAY ROAD NEVER TAKES "THE NEAREST EDGE" (11-09, owner: "reset still can leave me
   on the opposite carriage way !"): the circuits' reset puts the car on the edge it left by, and a
   car thrown over the Jersey barrier left by the oncoming side's. Every endless-road reset - the R

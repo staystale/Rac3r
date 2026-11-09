@@ -267,6 +267,16 @@ CARS: talk to the owner once the tracks are done (trucks, a Dakar car / truck).
    NEXT VENUES (owner 11-09: "Yes do those all"; the helper, one at a time behind a switch):
    CADWALLOP PARK (Cadwell, built behind ?cadwallop=1), MALARKEY PARK (Mallory), ANGLESLEAZY
    (Anglesey), GOODWOODY (Goodwood), CROUGHED (Croft, the owner's name).
+   WORLD CIRCUITS (owner 11-09, through the foreman: the F1 and GT seasons will use them; the
+   helper, one at a time behind a switch): SPA-FRANKENCHUMPS (Spa-Francorchamps), then MONZARELLA
+   (Monza). SPA-FRANKENCHUMPS BUILT 11-09 behind ?spa=1 (levels/spa-venue.ts, OSM data in
+   venues/spa.ts; the venue helper): the GP circuit, 3484 m (real 7004, OSM 7002), the start under
+   the gantry, the F1 pit lane (its exit loop inside La Source cut: it joins before La Source), the
+   circuit's barriers (OSM walls and guard rails) followed, 19 gravel traps, 4 drivable tunnels
+   (the start straight, Raidillon, Blanchimont, Paul Frere), the grandstands, paddocks and car
+   parks, EU-DEM heights as 14 hills (Eau Rouge 392 m up to Malmedy 470, down to Paul Frere 365).
+   Listed under CIRCUITS as 'WORLD CIRCUIT · GP'. UNDER TEST. Left out: the support pit lane, the
+   motorcycle chicane, the Ster and Malmedy tunnels; the forest is the venues' 260 trees.
 3. ROLLING LOOK - smoother than the dice flip on the same physics; mockup first.
 4. SIDE DRAFTING (Naffcar first) PASSED + DEFAULT 11-08 (owner: "Pass"): physics/wake.ts part 5 - a nose
    alongside a car's rear quarter, up to +20 % drag on it and -6 % on the car alongside, gone by 1.2 m

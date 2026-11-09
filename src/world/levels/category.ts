@@ -13,7 +13,7 @@ const CAT_OF: Record<string, string> = { 'test-track': 'circuits', thruston: 'ci
   'cadwallop-club': 'circuits', malarkey: 'circuits', 'malarkey-oval': 'circuits',
   anglesleazy: 'circuits', 'anglesleazy-coastal': 'circuits', 'anglesleazy-national': 'circuits',
   'anglesleazy-club': 'circuits', goodwoody: 'circuits', croughed: 'circuits',
-  'croughed-club': 'circuits',
+  'croughed-club': 'circuits', spa: 'circuits',
   'sweaty-lamb': 'rally', killder: 'rally', knobhill: 'rx', 'slidden-hill': 'rx',
   'grass-track': 'ovals', dieatona: 'ovals', 'dieatona-road': 'ovals', 'stock-car': 'ovals',
   naffcar: 'ovals',

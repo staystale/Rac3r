@@ -13,6 +13,14 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'spa',
+    added: '2026-11-09',
+    name: 'Spa-Frankenchumps (Spa-Francorchamps) at 1/2 size, the first world circuit',
+    where: 'Test link + &spa=1: TEST MODE > CIRCUITS > Spa-Frankenchumps',
+    try: 'Lap it: La Source, Eau Rouge up Raidillon, Kemmel, Pouhon, Blanchimont, Bus Stop.',
+    wrong: 'A road or prop on the track, a barrier gap, a road to nowhere, a fence not real.',
+  },
+  {
     id: 'desertroom',
     added: '2026-11-09',
     name: 'Deaf Valley: more room off the road, more cacti, signs clear of the petrol stations',

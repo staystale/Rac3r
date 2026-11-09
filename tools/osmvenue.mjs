@@ -18,7 +18,11 @@
 // [way ids] makes a motor raceway a dirt track (Daytona's flat track), not a race road piece; a race
 // piece with a loose surface (OSM unpaved, gravel ...) is written with surface 'dirt'; "race": [way
 // ids] makes a raceway the map gives no sport a race piece; "skip": [way ids] leaves a raceway out
-// (a driving-experience track or a motocross course beside the venue). A
+// (a driving-experience track or a motocross course beside the venue); "rails": [way ids] reads
+// those barrier lines as rails (a mapper who drew the circuit's barriers as walls or fences: Croft,
+// Spa); "posts": [way ids] leaves out marshal posts mapped as buildings by name only (Spa's P1 ..
+// P19: the venue places its own); "trim": { "<way id>": [first, last] } keeps only those nodes of a
+// way. A
 // stand longer than STAND_SLICE_M is written as its slices (a curved one round a tri-oval).
 // A layout is the shortest loop through its "through" pieces that avoids its "avoid" pieces; it is
 // written as the ordered list of pieces it runs over, so a layout is changed by editing that list.
@@ -174,6 +178,13 @@ const ways = [
   ...osm.elements.filter((element) => element.type === 'relation'
     && element.tags?.type === 'multipolygon').flatMap(relationRings),
 ];
+// "trim": { "<way id>": [first, last] } keeps only those nodes of a way (Spa's pit exit loops round
+// inside La Source, a hairpin too tight at the game's scale for a lane inside it)
+for (const [id, [first, last]] of Object.entries(config.trim || {})) {
+  const way = ways.find((entry) => String(entry.id) === id);
+  if (!way) throw new Error(`trim: no way ${id}`);
+  way.geometry = way.geometry.slice(first, last + 1);
+}
 
 // ---- race road pieces: every motor raceway split where pieces meet ----
 // a race piece with a loose surface is raced on dirt (a rallycross lap's gravel section)
@@ -183,6 +194,10 @@ const dirtIds = new Set((config.dirt || []).map(String));
 const raceIds = new Set((config.race || []).map(String));
 // "skip": [way ids] - raceways that are not the venue's (driving-experience tracks, motocross)
 const skipIds = new Set((config.skip || []).map(String));
+// "rails": [way ids] - the circuit's barriers mapped as barrier=wall or fence, read as rails
+const railIds = new Set((config.rails || []).map(String));
+// "posts": [way ids] - marshal posts mapped as buildings by name only (no emergency tag)
+const postIds = new Set((config.posts || []).map(String));
 const isMotor = (way) => !skipIds.has(String(way.id))
   && (/motor/.test(way.tags.sport || '') || raceIds.has(String(way.id)));
 const raceWays = ways.filter((way) => way.tags?.highway === 'raceway'
@@ -300,7 +315,8 @@ for (const way of ways) {
   else if (tags.natural === 'shingle' && closed(way)) out.traps.push({ pts: line(0.5) });
   else if (tags.barrier === 'tyres') out.tyres.push({ pts: line(0.3) });
   // the real circuit's rails: Armco and concrete barriers (a venue built with followRails uses them)
-  else if (tags.barrier === 'guard_rail' || tags.barrier === 'jersey_barrier')
+  else if (tags.barrier === 'guard_rail' || tags.barrier === 'jersey_barrier'
+    || (!!tags.barrier && railIds.has(String(way.id))))
     out.rails.push({ kind: tags.barrier, pts: line(0.3) });
   // (a building mapped by its name as a grandstand is one)
   else if ((tags.building === 'grandstand' || tags.leisure === 'bleachers'
@@ -308,7 +324,7 @@ for (const way of ways) {
     for (const box of standBoxes(pts))
       out.stands.push({ name: config.names?.[way.id] || tags.name || '', ...box });
   // a marshal post mapped as a building (its fire extinguisher): the venue places its own
-  else if (tags.building && tags.emergency) continue;
+  else if (tags.building && (tags.emergency || postIds.has(String(way.id)))) continue;
   else if (tags.building && closed(way))
     out.buildings.push({ name: config.names?.[way.id] || tags.name || '',
       kind: config.kinds?.[way.id] || tags.building, ...boxAround(pts) });
