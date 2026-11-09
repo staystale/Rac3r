@@ -18,7 +18,7 @@ export const TEST_LIST: TestEntry[] = [
     name: 'AI off its line keep their place across the road: fewer cars off at a first hairpin',
     where: 'Test link + &offaim=1: Spa-Frankenchumps VS AI, a big grid (and other tracks)',
     try: 'Start mid-grid and watch La Source; race a few laps two and three abreast.',
-    wrong: 'The pack across the grass inside a hairpin, cars weaving, passing gone, worse elsewhere.',
+    wrong: 'The pack across the grass inside a hairpin, cars weaving, passing gone elsewhere.',
   },
   {
     id: 'holdoncoming',

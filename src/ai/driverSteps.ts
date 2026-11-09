@@ -31,18 +31,18 @@ const OFF_ROAD_M = 2;
  * road on La Source's inside - steered by the line's heading where the line swings across the road
  * for the hairpin; alone, on the line, it took it cleanly.
  * @param path the path (its points' off: the racing line's; a branch has none - unchanged)
- * @param at the car's point, the front axle's, the look point and the one after it
- * @param at.nearIdx the car's point
- * @param at.frontIdx the front axle's
- * @param at.aheadIdx the look point
- * @param at.nextIdx the one after it
+ * @param where the car's point, the front axle's, the look point and the one after it
+ * @param where.nearIdx the car's point
+ * @param where.frontIdx the front axle's
+ * @param where.aheadIdx the look point
+ * @param where.nextIdx the one after it
  * @param latT m off the line at the car's point
  * @returns the target off the line at the front axle, and the turn (rad) taken off the heading
  */
-function offRoad(path: AiPath, at: { nearIdx: number; frontIdx: number; aheadIdx: number;
+function offRoad(path: AiPath, where: { nearIdx: number; frontIdx: number; aheadIdx: number;
   nextIdx: number }, latT: number): { lat: number; turn: number } {
-  const pts = path.pts as unknown as { off?: number }[], near = pts[at.nearIdx].off,
-    front = pts[at.frontIdx].off, ahead = pts[at.aheadIdx].off, next = pts[at.nextIdx].off;
+  const pts = path.pts as unknown as { off?: number }[], near = pts[where.nearIdx].off,
+    front = pts[where.frontIdx].off, ahead = pts[where.aheadIdx].off, next = pts[where.nextIdx].off;
   if (near === undefined || front === undefined || ahead === undefined || next === undefined)
     return { lat: latT, turn: 0 };
   const share = Math.min(1, Math.abs(latT) / OFF_ROAD_M);
