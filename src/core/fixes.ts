@@ -54,4 +54,7 @@ export const FIX = {
   // ?knobhillvenue=1: Knobhill as the real venue (Knockhill) at 1/2 of real length, the
   // rallycross (the Knobhill level) and the circuit (world/levels/knobhill-venue.ts; owner 11-09)
   knobhillvenue: atLoad('knobhillvenue'),
+  // ?cadwallop=1: Cadwallop Park, a NEW venue (Cadwell Park) at 1/2 of real length, the Full and
+  // the Club (world/levels/cadwallop-venue.ts; owner 11-09: "Yes do those all")
+  cadwallop: atLoad('cadwallop'),
 };

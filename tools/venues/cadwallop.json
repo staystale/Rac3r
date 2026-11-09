@@ -1,0 +1,71 @@
+{
+  "osm": "cadwallop.osm.json",
+  "out": "src/world/levels/venues/cadwallop.ts",
+  "exportName": "CADWALLOP_VENUE",
+  "origin": [
+    53.3095,
+    -0.063
+  ],
+  "turnDeg": 0,
+  "clip": [
+    -700,
+    -650,
+    700,
+    700
+  ],
+  "reachM": 180,
+  "names": {
+    "396423019": "Mansfield Straight",
+    "396423020": "Pit Straight",
+    "396424044": "Coppice link",
+    "396424045": "Mansfield link",
+    "396425075": "Pit exit"
+  },
+  "layouts": {
+    "full": {
+      "through": [
+        "Pit Straight",
+        "Coppice",
+        "Charlies",
+        "Park Straight",
+        "Park",
+        "Chris Curve",
+        "The Gooseneck",
+        "Mansfield",
+        "Mansfield Straight",
+        "The Mountain",
+        "Hall Bends",
+        "The Hairpin",
+        "Barn"
+      ],
+      "avoid": [
+        "Club Hairpin",
+        "Coppice link",
+        "Mansfield link"
+      ]
+    },
+    "club": {
+      "through": [
+        "Pit Straight 2",
+        "Coppice",
+        "Charlies",
+        "Park Straight",
+        "Park",
+        "Chris Curve",
+        "The Gooseneck",
+        "Mansfield",
+        "Mansfield Straight",
+        "Club Hairpin"
+      ],
+      "avoid": [
+        "Pit Straight",
+        "The Mountain",
+        "Hall Bends",
+        "The Hairpin",
+        "Barn",
+        "Coppice link",
+        "Mansfield link"
+      ]
+    }
+  }
+}

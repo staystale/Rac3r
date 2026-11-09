@@ -13,6 +13,14 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'cadwallop',
+    added: '2026-11-09',
+    name: 'Cadwallop Park (Cadwell Park) at 1/2 size, a new track: the Full and the Club',
+    where: 'Test link + &cadwallop=1: TEST MODE > CIRCUITS > Cadwallop Park > Full / Club',
+    try: 'Lap both: Coppice, Charlies, the woods, the Mountain, Hall Bends, the Club Hairpin.',
+    wrong: 'A road or prop on the track, a barrier gap, a road to nowhere, a fence not real.',
+  },
+  {
     id: 'venueoverlaps',
     added: '2026-11-09',
     name: 'Tidier venues: tyre walls in two neat rows, nothing piled on each other, no zig-zags',

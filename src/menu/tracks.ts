@@ -21,6 +21,7 @@ export const KIND: Record<string, string> = { lab: 'TEST GROUND', 'test-track': 
   'dongington-national': 'UK CIRCUIT · NATIONAL', sillystone: 'UK CIRCUIT · GP',
   'sillystone-national': 'UK CIRCUIT · NATIONAL', oultonpork: 'UK CIRCUIT · INTERNATIONAL',
   'oultonpork-island': 'UK CIRCUIT · ISLAND', 'oultonpork-fosters': 'UK CIRCUIT · FROSTERS',
+  cadwallop: 'UK CIRCUIT · FULL', 'cadwallop-club': 'UK CIRCUIT · CLUB',
   'brands-snatch-indy': 'UK CIRCUIT · INDY', snotterton: 'UK CIRCUIT · 300',
   'snotterton-200': 'UK CIRCUIT · 200', 'snotterton-100': 'UK CIRCUIT · 100',
   'sweaty-lamb': 'RALLY STAGE',

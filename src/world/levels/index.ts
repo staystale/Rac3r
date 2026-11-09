@@ -33,6 +33,7 @@ import { CC_VENUE_LEVEL } from "./castle-cum-venue.ts";
 import { SN_LEVELS } from "./snotterton-venue.ts";
 import { DG_LEVELS } from "./dongington-venue.ts";
 import { SS_LEVELS } from "./sillystone-venue.ts";
+import { CW_LEVELS } from "./cadwallop-venue.ts";
 import { OP_LEVELS } from "./oultonpork-venue.ts";
 import { DT_LEVELS } from "./dieatona-venue.ts";
 import { TH_VENUE_LEVEL } from "./thruston-venue.ts";
@@ -198,6 +199,8 @@ export const LEVELS: Level[] = [
   ...DG_LEVELS,
   // Sillystone, a new venue (sillystone-venue.ts), its GP and National
   ...SS_LEVELS,
+  // ?cadwallop=1: Cadwallop Park, a new venue (cadwallop-venue.ts), its Full and Club
+  ...(FIX.cadwallop ? CW_LEVELS : []),
   // Oulton Pork, a new venue (oultonpork-venue.ts), its International, Island and Frosters
   ...OP_LEVELS,
   // ?thrustonvenue=1: the real venue (thruston-venue.ts), built on first use
