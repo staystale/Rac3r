@@ -21,22 +21,6 @@ export const TEST_LIST: TestEntry[] = [
     wrong: 'A road or prop on the track, a barrier gap, a road to nowhere, a fence not real.',
   },
   {
-    id: 'desertroom',
-    added: '2026-11-09',
-    name: 'Deaf Valley: more room off the road, more cacti, signs clear of the petrol stations',
-    where: 'Test link + &desertroom=1: Highway to Hull > DEAF VALLEY (VS AI too)',
-    try: 'Pass off the road by the rock walls and gorges; look at the dunes; a petrol station.',
-    wrong: 'Walls still tight, a gorge or wash too gentle now, a sign in a station way in.',
-  },
-  {
-    id: 'hwpick',
-    added: '2026-11-09',
-    name: 'Endless roads: pick the scenery, then the road - any road in Countryside or Deaf Valley',
-    where: 'Test link + &hwpick=1: TEST MODE > ENDLESS ROADS',
-    try: 'Each scenery with each road: Deaf Valley motorway, the single lane road in the fields.',
-    wrong: 'A missing barrier or wall, canyon rock on the road, a gantry over the single lane.',
-  },
-  {
     id: 'holdoncoming',
     added: '2026-11-09',
     name: 'Deaf Valley: no oncoming cars until the race has started, then they come from ahead',

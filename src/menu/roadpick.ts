@@ -1,4 +1,4 @@
-// menu/roadpick.ts - THE ENDLESS ROADS PICKED IN THE LEVEL SELECTOR (?hwpick=1; owner 11-09: "The
+// menu/roadpick.ts - THE ENDLESS ROADS PICKED IN THE LEVEL SELECTOR (passed 11-09; owner: "The
 // menu to choose needs to be simple and clear / and be in the level selector not the pre race setup
 // menu after / So you choose the asthetic type and then the road type"): TEST MODE > ENDLESS ROADS
 // is the SCENERY's cards (COUNTRYSIDE, DEAF VALLEY), then the ROAD's (every road in every scenery),
@@ -100,7 +100,7 @@ function paintCard(scenery: string, road: string | null): HTMLCanvasElement {
 const highwayLevel = () => LEVELS.find((level) => level.endless);
 
 /**
- * TEST MODE > ENDLESS ROADS (?hwpick=1), step 1: the scenery.
+ * TEST MODE > ENDLESS ROADS, step 1: the scenery.
  * @param menu the menu context
  */
 export function showSceneryList(menu: Menu) {
@@ -123,7 +123,7 @@ export function showSceneryList(menu: Menu) {
 }
 
 /**
- * TEST MODE > ENDLESS ROADS (?hwpick=1), step 2: the road in a scenery, then its setup.
+ * TEST MODE > ENDLESS ROADS, step 2: the road in a scenery, then its setup.
  * @param menu the menu context
  * @param scenery the scenery picked (HW_SCENERY)
  */

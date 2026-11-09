@@ -21,14 +21,19 @@ owner before they ship (proposed below).
    (streets, walls, the tunnel) last.
 2. WRC: one famous stage per rally remade from the map data as the venues are (Col de Turini,
    Ouninpohja, Sardinia, Safari, Acropolis; Sweaty Lamb is Wales).
-3. DAKAR: open desert, checkpoint gates, other racers, Deaf Valley's terrain; short stages. The
-   owner's worry: boring, and how navigation works (a big arrow? a compass in the pause menu for a
-   hard mode?) - to be agreed before it is built.
+3. DAKAR: open desert, checkpoint gates, other racers, Deaf Valley's terrain; short stages (3-6
+   min). NO EXTRA HAZARDS (owner 11-09: "jsut what's there terrain cactus other racers ect rocks
+   surfaces ect is dangerous enough"). Navigation proposed: normal - a big arrow at the screen's
+   edge to the next checkpoint, its distance; hard - the compass bearing and distance only, read in
+   the pause menu as a road book (the owner's idea); a missed checkpoint a time penalty.
 4. SST (Stadium Super Trucks): "keep it simple 5-10 tracks and a couple different trucks with
    different specs"; a mix of tracks (street circuits, our circuits, stadium) with jump ramps
    (world/flipramps.ts exists).
 5. RALLYCROSS: the RX tracks and cars we have (Knobhill RX, Slidden Hill; the Fjord Fiester RX)
-   plus a few more for a season.
+   plus more (owner 11-09: "is there not more uk rally cross tracks ?", "I thought America had some
+   stadium ones with jumps tunnels ect ?"): UK - Pembrey, Croft's RX layout (on the Croughed
+   venue), Blyton; the US stadium / Nitro RX style - gap jumps over the track, crossovers on a
+   bridge (both systems exist); a World RX one or two (Holjes). Names to agree.
 CARS: talk to the owner once the tracks are done (trucks, a Dakar car / truck).
 
 ## NEXT - ORDER AGREED 11-07 (owner: "ok let's do 1. first and proceed in this order")

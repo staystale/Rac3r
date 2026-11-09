@@ -18,7 +18,6 @@ import { MAX_AI } from '../core/settings.ts';
 import { ROSTER } from '../cars.ts';
 import { showAiDrivers, storedTune, storeTune, tuneLine } from './aidrivers.ts';
 import { HW_ROADS, HW_SCENERY } from '../highway/presets.ts';
-import { FIX } from '../core/fixes.ts';
 
 // WEATHER: follow the SEASON (its chances; it can change in the race) or a fixed sky
 const WEATHER_MODES = [['season', 'SEASON'], ['dry', 'DRY'], ['hot', 'HOT'],
@@ -76,8 +75,7 @@ function addSetupSlider(menu: Menu, panel: HTMLElement, label: string, min: numb
 function addSetupHeader(menu: Menu, panel: HTMLElement, level: Level) {
   buildLevel(level);   // a set rally stage is generated on first use: its length is read below
   addElement(panel, 'h2', level.name);
-  addElement(panel, 'div', level.endless ? (FIX.hwpick ? 'ENDLESS ROAD' : 'ENDLESS MOTORWAY')
-    + ' · HOW FAR CAN YOU GET?' : level.fixed
+  addElement(panel, 'div', level.endless ? 'ENDLESS ROAD · HOW FAR CAN YOU GET?' : level.fixed
     ? `RALLY STAGE · ${THEME_NAMES[level.gen!.theme].name} · `
       + `${level.gen!.km!.toFixed(2)} KM · POINT TO POINT`
     : level.gen ? 'GENERATED RALLY STAGE · POINT TO POINT' : KIND[level.id] || 'TRACK', 'sub');
@@ -85,41 +83,16 @@ function addSetupHeader(menu: Menu, panel: HTMLElement, level: Level) {
 }
 
 /**
- * Adds the ROAD TYPE buttons (endless highway, requirement: how do I test the lane presets — I
- * don't see any buttons): lanes / width / walls.
- * @param menu the menu context
+ * The endless road's line in the setup: its scenery and road, picked in the level selector
+ * (menu/roadpick.ts; owner 11-09: "be in the level selector not the pre race setup menu").
  * @param panel the setup pane
  * @param level the chosen level
- * @param state the setup state (reads / writes road)
+ * @param state the setup state (reads road, scenery)
  */
-function addRoadTypeRow(menu: Menu, panel: HTMLElement, level: Level, state: SetupState) {
-  // (?hwpick=1: picked in the level selector - menu/roadpick.ts - named here)
-  if (FIX.hwpick) {
-    if (level.endless) addElement(panel, 'div', [HW_SCENERY[state.scenery || 'countryside'],
-      HW_ROADS[state.road || 'motorway']].map((entry) => entry?.name).join(' · '), 'selcar');
-    return;
-  }
-  let roads = level.roadTypes;
-  if (level.themes) {
-    // THEME (owner 11-09: Deaf Valley "should come under highway levels and be a theme choice"):
-    // a theme's own road types below it; another theme reopens the setup on its first road type
-    const themes = level.themes, theme = Object.keys(themes).find((key) => state.road
-      && state.road in themes[key].roads) || Object.keys(themes)[0];
-    const themeRow = addElement(panel, 'div', '', 'row');
-    for (const [key, entry] of Object.entries(themes)) addButton(menu, themeRow, entry.name, () => {
-      if (key !== theme) showSetup(menu, level,
-        { ...setupChoices(state), road: Object.keys(entry.roads)[0] });
-    }, key === theme ? 'on' : '');
-    roads = themes[theme].roads;
-  }
-  if (roads) {
-    const roadRow = addElement(panel, 'div', '', 'row'), keys = Object.keys(roads);
-    const roadBtns = Object.entries(roads).map(([roadKey, name]) => addButton(menu,
-      roadRow, name, () => {
-        state.road = roadKey;
-        roadBtns.forEach((button, i) => button.classList.toggle('on', keys[i] === state.road));
-      }, roadKey === state.road ? 'on' : ''));
-  }
+function addRoadTypeRow(panel: HTMLElement, level: Level, state: SetupState) {
+  if (!level.endless) return;
+  addElement(panel, 'div', [HW_SCENERY[state.scenery || 'countryside'],
+    HW_ROADS[state.road || 'motorway']].map((entry) => entry?.name).join(' · '), 'selcar');
 }
 
 /**
@@ -471,7 +444,7 @@ export function showSetup(menu: Menu, level: Level, kept: Partial<SetupState> = 
     ui: {},   // the opponent / difficulty widgets paintSetupOpponents updates
     paint: () => {},   // repaints the setup rows (wrapped by the laps row)
   };
-  addRoadTypeRow(menu, panel, level, state);
+  addRoadTypeRow(panel, level, state);
   addTrafficSliders(menu, panel, level, state);
   addOpponentCountRows(menu, panel, state);
   addDifficultyRows(menu, panel, state);

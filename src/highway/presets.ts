@@ -69,10 +69,11 @@ export const HW_PRESETS: Record<string, HwCfg> = {
     oncoming: 'carriageway',
     medians: [['jersey', 1]],
   },
-  // DEAF VALLEY (owner 11-08: "canyon which can have the features you've described" - Death
-  // Valley, the parody): a twisty SINGLE CARRIAGEWAY, one lane each way, through canyons of rock
-  // and open desert (highway/canyon.ts dresses it)
-  canyon: {
+  // SINGLE LANE (owner 11-09: "Canyon is the windy on coming road", "Can twisty jsut be called
+  // single lane"; the key is twisty): a twisty SINGLE CARRIAGEWAY, one lane each way - Deaf
+  // Valley's road first (owner 11-08: "canyon which can have the features you've described"), in
+  // any scenery since (sceneryCfg)
+  twisty: {
     lanes: 2,
     laneW: 3.5,
     shoulder: 0.6,
@@ -82,37 +83,17 @@ export const HW_PRESETS: Record<string, HwCfg> = {
     bend: [70, 150],
     pStraight: 0.22,
     pBend: 0.35,
-    theme: 'canyon',
     // its right-hand lane comes the other way
     oncoming: 'lane',
-    // long winding S-bends (the canyon spec 10-06: "long winding and S ing corners"); the HIGH
-    // road windier still (highway/desertplan.ts)
+    // long winding S-bends (the canyon spec 10-06: "long winding and S ing corners"); in Deaf
+    // Valley the HIGH road windier still (highway/desertplan.ts desertRoadAt)
     kRate: 1.5e-4,
-    stretch: desertRoadAt,
   },
 };
-// ?hwpick=1: SINGLE LANE (owner 11-09: "Can twisty jsut be called single lane"; the key stays
-// twisty) - the canyon road's shape and its oncoming lane, in any scenery (the scenery's own:
-// HW_SCENERY, sceneryCfg)
-HW_PRESETS.twisty = Object.fromEntries(Object.entries(HW_PRESETS.canyon)
-  .filter(([key]) => key !== 'theme' && key !== 'stretch')) as unknown as HwCfg;
-export const HW_NAMES: Record<string, string> = {
-  motorway: "MOTORWAY",
-  interstate: "INTERSTATE",
-  dual: "DUAL C/WAY",
-  walled: "WALLED",
-};
-// THEMES (owner 11-09 on Deaf Valley: "It should come under highway levels and be a theme
-// choice"): the roadside and ground a road runs through - the road type's theme (HwCfg.theme; none
-// is the countryside) - each with the road types Test Mode setup offers in it
-export const HW_THEMES: Record<string, { name: string; roads: Record<string, string> }> = {
-  countryside: { name: "COUNTRYSIDE", roads: HW_NAMES },
-  canyon: { name: "DEAF VALLEY", roads: { canyon: "CANYON ROAD" } },
-};
-// ?hwpick=1 (owner 11-09: "Canyon is the windy on coming road / Death valley is the asthetic /
+// (owner 11-09, passed: "Canyon is the windy on coming road / Death valley is the asthetic /
 // side of road stuff / Same for motorway is the road and country side is the asthetic"): the
 // SCENERIES - the roadside and ground (HwCfg.theme) - and the ROADS, every one in each; a road's
-// line for its card
+// line for its card (picked in the level selector: menu/roadpick.ts)
 export const HW_SCENERY: Record<string, { name: string; line: string }> = {
   countryside: { name: "COUNTRYSIDE", line: "FIELDS · HEDGES · BRIDGES" },
   canyon: { name: "DEAF VALLEY", line: "CANYONS · GORGES · DUNES" },
@@ -125,8 +106,21 @@ export const HW_ROADS: Record<string, { name: string; line: string }> = {
   twisty: { name: "SINGLE LANE", line: "1 + 1 · TWO-WAY · TWISTY" },
 };
 const SCENERY_CFGS = new Map<string, HwCfg>();
+
 /**
- * A road type in a scenery (?hwpick=1): the road's own lanes and bends, the scenery's roadside -
+ * A road type and scenery from a road name - the old CANYON road (tools, ?hw=canyon, a saved
+ * setup) is the single lane in Deaf Valley.
+ * @param preset the road name
+ * @param scenery the scenery asked for, if any
+ * @returns the road type (a motorway if it is none) and the scenery (none: keep the level's)
+ */
+export function roadPick(preset: string, scenery?: string): { road: string; scenery?: string } {
+  if (preset === 'canyon') return { road: 'twisty', scenery: 'canyon' };
+  return { road: HW_PRESETS[preset] ? preset : 'motorway',
+    scenery: scenery && HW_SCENERY[scenery] ? scenery : undefined };
+}
+/**
+ * A road type in a scenery: the road's own lanes and bends, the scenery's roadside -
  * Deaf Valley's stretches shaping its road (the twisty road its hairpins on the high road, a wide
  * road only its straights in the open desert: desertplan.ts).
  * @param road the road type (HW_PRESETS)

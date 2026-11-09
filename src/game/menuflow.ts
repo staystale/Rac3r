@@ -1,9 +1,8 @@
 // menuflow.ts — Menu, launch, pause and the results screen flow.
-import { FIX } from '../core/fixes.ts';
 import { applyLivery, applyTyre } from '../cars.ts';
 import { createCones } from '../cones.ts';
 import { rulesSeen } from '../guide.ts';
-import { setHighwayPreset, HW_NAMES, HW_ROADS, HW_SCENERY } from '../highway.ts';
+import { setHighwayPreset, HW_ROADS, HW_SCENERY } from '../highway.ts';
 import { catOf } from '../world/levels/category.ts';
 import { createAIDriver } from '../ai/circuit.ts';
 import { aiTraits } from '../ai/traits.ts';
@@ -104,12 +103,11 @@ const FIELD_MIN = 5, FIELD_MAX = 20;
 function menuLevel(): string {
   const highway = LEVELS.find((level) => level.endless);
   if (highway && Math.random() < HW_CHANCE) {
-    // (?hwpick=1: any road in any scenery)
-    const roads = Object.keys(FIX.hwpick ? HW_ROADS : HW_NAMES),
-      sceneries = Object.keys(HW_SCENERY);
+    // (any road in any scenery)
+    const roads = Object.keys(HW_ROADS), sceneries = Object.keys(HW_SCENERY);
     setHighwayPreset(highway as unknown as HwLevel,
       roads[Math.floor(Math.random() * roads.length)],
-      FIX.hwpick ? sceneries[Math.floor(Math.random() * sceneries.length)] : undefined);
+      sceneries[Math.floor(Math.random() * sceneries.length)]);
     return highway.id;
   }
   const pool = LEVELS.filter((level) => MENU_CATS.has(catOf(level)) && level.id !== LEVEL.id);

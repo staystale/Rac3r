@@ -13,7 +13,6 @@
 // dress call lays join exactly.
 import { bayOut } from './laybys.ts';
 import { keepOut } from './cuts.ts';
-import { FIX } from '../core/fixes.ts';
 import { stretchAt, stationSideOf } from './desertplan.ts';
 import { SURFACES } from '../world/surfaces.ts';
 import { gorgeAt, rimOf, layGround, roomAt } from './gorge.ts';
@@ -21,12 +20,12 @@ import type { Point, Prop } from '../world/types.ts';
 import type { DressCtx, HwPose } from './hwtypes.ts';
 
 const FLARE_M = 80, FLARE_OUT = 30;
-// (?desertroom=1: more room - 4 .. 9)
-const GAP_MIN = FIX.desertroom ? 4 : 2.5, GAP_MAX = FIX.desertroom ? 9 : 7.5, THICK_MIN = 10,
-  THICK_MAX = 22;
+// (owner 11-09, passed: "a tiny bit more breathing room off the road between rocky walls or
+// gullies" - was 2.5 .. 7.5)
+const GAP_MIN = 4, GAP_MAX = 9, THICK_MIN = 10, THICK_MAX = 22;
 // the HIGH road's uphill wall: close to the road
-// (?desertroom=1: 2.5 .. 4.5)
-const UPHILL_MIN = FIX.desertroom ? 2.5 : 1.2, UPHILL_MAX = FIX.desertroom ? 4.5 : 3.5;
+// (more room, 11-09: was 1.2 .. 3.5)
+const UPHILL_MIN = 2.5, UPHILL_MAX = 4.5;
 // road points per wall piece (each dropped behind with the rest)
 const PIECE = 30;
 
@@ -165,8 +164,7 @@ function cactus(ctx: DressCtx, i: number, off: number, tall: boolean) {
 function rimProps(ctx: DressCtx, i: number, side: number, rim: number) {
   const { rand, halfWidth, road } = ctx, dist = road[i].s, seed = (dist | 0) * 2 + side,
     thick = thickAt(dist, side);
-  if (rand() < (FIX.desertroom ? 0.26 : 0.18)) cactus(ctx, i, side * (halfWidth + rim + 2
-    + rand() * (thick - 3)), true);
+  if (rand() < 0.26) cactus(ctx, i, side * (halfWidth + rim + 2 + rand() * (thick - 3)), true);
   if (rand() < 0.05) place(ctx, i, side * (halfWidth + rim - 1.2), { kind: 'rock',
     s: 1 + rand() * 1.5, pal: 'red', seed });
   if (i % 8 === 0 && rand() < 0.3) place(ctx, i, side * (halfWidth + rim + thick + 6 + rand()
@@ -185,12 +183,11 @@ function desertProps(ctx: DressCtx, i: number, side: number, from: number) {
   const { rand, road } = ctx, seed = (road[i].s | 0) * 2 + side;
   // (owner 11-09: "cactus could be more popular haha", then "maybe more cactus in the desert":
   // about three times the first)
-  // (?desertroom=1: half as many again, and a band of them by the road)
-  const more = FIX.desertroom ? 1.5 : 1;
-  if (rand() < 0.2 * more) cactus(ctx, i, side * (from + 2 + rand() * 45), true);
-  if (rand() < 0.22 * more) cactus(ctx, i, side * (from - 1.5 + rand() * 20), false);
-  if (FIX.desertroom && rand() < 0.12) cactus(ctx, i, side * (from + 2 + rand() * 5),
-    rand() < 0.4);
+  // (11-09, "More cactus on the side of the road": half as many again, and a band of them by the
+  // road)
+  if (rand() < 0.3) cactus(ctx, i, side * (from + 2 + rand() * 45), true);
+  if (rand() < 0.33) cactus(ctx, i, side * (from - 1.5 + rand() * 20), false);
+  if (rand() < 0.12) cactus(ctx, i, side * (from + 2 + rand() * 5), rand() < 0.4);
   if (rand() < 0.05) place(ctx, i, side * (from + rand() * 40), { kind: 'rock',
     s: 1.5 + rand() * 2.5, pal: 'red', seed });
   if (i % 6 === 0 && rand() < 0.1) formation(ctx, i, side, from, seed);
@@ -224,9 +221,9 @@ function junk(ctx: DressCtx, i: number, side: number, from: number, seed: number
  */
 function dunesProps(ctx: DressCtx, i: number, side: number, from: number) {
   const { rand, road } = ctx, seed = (road[i].s | 0) * 2 + side;
-  if (rand() < (FIX.desertroom ? 0.12 : 0.04)) cactus(ctx, i, side * (from + rand() * 30), false);
-  // (?desertroom=1: saguaros on the dunes too)
-  if (FIX.desertroom && rand() < 0.06) cactus(ctx, i, side * (from + 4 + rand() * 30), true);
+  // (11-09, "in the sand dunes": three times the barrel cacti, saguaros too)
+  if (rand() < 0.12) cactus(ctx, i, side * (from + rand() * 30), false);
+  if (rand() < 0.06) cactus(ctx, i, side * (from + 4 + rand() * 30), true);
   if (i % 4 === 0) junk(ctx, i, side, from, seed);
 }
 
@@ -287,13 +284,12 @@ function gasStation(ctx: DressCtx, i: number, index: number) {
     poly, surface: SURFACES.concrete, art: null, boxed: true, _s: dist });
   level.props.push({ kind: 'gasstation', x: apron.x, y: apron.y, rot, _s: dist } as Prop,
     { kind: 'canopy', x: apron.x, y: apron.y, rot, _s: dist } as Prop);
-  // (?desertroom=1: its board before the way in, not in it; the forecourt and its ways in and
-  // out kept clear)
-  const board = ctx.pointAt(FIX.desertroom ? Math.max(0, i - APRON_OUT - 3) : i - 5,
-    side * (halfWidth + 3.5));
+  // (its board before the way in, not in it - owner 11-09: "Make sure signs don't go across petrol
+  // station entrance or exits"; the forecourt and its ways in and out kept clear)
+  const board = ctx.pointAt(Math.max(0, i - APRON_OUT - 3), side * (halfWidth + 3.5));
   level.props.push({ kind: 'board', x: board.x, y: board.y, rot: board.rot, label: 'LAST GASP',
     _s: dist } as Prop);
-  if (FIX.desertroom) for (let j = i - APRON_OUT; j <= i + APRON_OUT; j += 3) {
+  for (let j = i - APRON_OUT; j <= i + APRON_OUT; j += 3) {
     const pos = ctx.pointAt(j, side * (halfWidth + APRON_DEEP / 2));
     keepOut(level, { x: pos.x, y: pos.y, ax: Math.cos(pos.rot), ay: Math.sin(pos.rot),
       hu: 7, hv: APRON_DEEP / 2 + 1.5 }, road[j].s);
@@ -363,15 +359,12 @@ function sideProps(ctx: DressCtx, i: number, side: number, kind: string) {
  */
 export function dressCanyon(ctx: DressCtx) {
   const { level, road, firstIdx, endIdx, halfWidth, state } = ctx;
-  // (?desertroom=1: the petrol stations first - the signs, cacti and rocks laid below keep off
-  // their way in and out)
-  // (a station whose way out runs past the road built so far is laid by the next call - MEASURED,
-  // _desertroom.mjs: one in three was dropped at the window's end)
-  if (FIX.desertroom) for (let i = Math.max(0, firstIdx - APRON_OUT); i < endIdx - APRON_OUT; i++)
-    stationAt(ctx, i);
+  // the petrol stations first - the signs, cacti and rocks laid below keep off their way in and
+  // out (a station whose way out runs past the road built so far is laid by the next call -
+  // MEASURED, _desertroom.mjs: one in three was dropped at the window's end)
+  for (let i = Math.max(0, firstIdx - APRON_OUT); i < endIdx - APRON_OUT; i++) stationAt(ctx, i);
   for (let i = firstIdx; i < endIdx; i++) {
     const dist = road[i].s, stretch = stretchAt(dist, state.seed);
-    if (!FIX.desertroom) stationAt(ctx, i);
     if (stretch.kind !== 'canyon') roadSign(ctx, i);
     if (i % 2 === 0) for (const side of [-1, 1]) sideProps(ctx, i, side, stretch.kind);
     // the board at the start of each canyon

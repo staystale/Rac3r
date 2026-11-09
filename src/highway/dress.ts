@@ -1,6 +1,5 @@
 // highway dress: the per-window dressing (trees, gantries, armco, walls, litter) and the
 // NOX / NOF node-tool switches. Split out of highway.ts.
-import { FIX } from "../core/fixes.ts";
 import { layLaybys, bayOut } from "./laybys.ts";
 import { envValue } from "../core/debug.ts";
 import { STEP, SIGNS } from "./presets.ts";
@@ -178,8 +177,8 @@ function layGantryAndSign(ctx: DressCtx, i: number, dist: number, mark: Stamp) {
       : null;
   };
   if (Math.floor(dist / 3000) !== Math.floor((dist - STEP) / 3000)) state.gantryDue = true;
-  // (?hwpick=1: no motorway gantry over a single carriageway - the twisty road in the country)
-  if (FIX.hwpick && level._cfg.oncoming === 'lane') state.gantryDue = false;
+  // (no motorway gantry over a single carriageway - the single lane in the country)
+  if (level._cfg.oncoming === 'lane') state.gantryDue = false;
   if (state.gantryDue && freeAt(i, -(halfWidth + 3), 2) && freeAt(i, halfWidth + 3, 2)) {
     state.gantryDue = false;
     const pos = pointAt(i, 0);
@@ -323,9 +322,9 @@ export function dress(level: HwLevel, firstIdx: number, endIdx: number, loose: L
   // a themed road dresses its own way (Deaf Valley: highway/canyon.ts)
   if (level._cfg.theme === 'canyon') {
     dressCanyon(ctx);
-    // (?hwpick=1: any road there - a twin carriageway's central reservation, the walled road's
-    // walls)
-    if (FIX.hwpick) { layWalls(ctx); layMedian(ctx); }
+    // (any road there - a twin carriageway's central reservation, the walled road's walls)
+    layWalls(ctx);
+    layMedian(ctx);
     return;
   }
   const { state, road, pointAt, clear } = ctx;

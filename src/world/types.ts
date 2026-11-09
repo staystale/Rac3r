@@ -495,12 +495,10 @@ export interface Level {
   solidsDirty?: boolean;   // highway.ts
   fixed?: boolean;   // stagegen.ts
   gen?: StageRecipe;   // stagegen.ts: a generated stage's recipe (world/levels/category.ts)
-  roadTypes?: Record<string, string>;   // highway.ts: the road types setup offers, key -> name
-  // highway.ts: the themes setup offers (presets.ts HW_THEMES), each with its road types
   themes?: Record<string, { name: string; roads: Record<string, string> }>;
   litter?: number;   // main.ts, highway levels
   roadType?: string;   // highway.ts
-  scenery?: string;   // highway.ts (?hwpick=1): the scenery the road runs through (HW_SCENERY)
+  scenery?: string;   // highway.ts: the scenery the road runs through (presets.ts HW_SCENERY)
   _layout?: number;   // highway.ts
   barriers?: Barrier[];
   solids?: Solid[];
