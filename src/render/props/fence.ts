@@ -229,6 +229,7 @@ function drawBarrierKind(propCtx: PropCtx, barrier: Barrier, half: number, ppm: 
     drawRockWall(propCtx, barrier, ppm);
     return;
   }
+  if (drawMedianKind(propCtx, barrier, half, ppm)) return;
   // wall / pitwall
   path(barrier.pts);
   view.ctx.strokeStyle = '#a9a7a0';
@@ -247,6 +248,40 @@ function drawBarrierKind(propCtx: PropCtx, barrier: Barrier, half: number, ppm: 
     });
     view.ctx.setLineDash([]);
   }
+}
+
+/**
+ * Draws a central reservation's own kinds (highway/medians.ts): a JERSEY barrier seen from above -
+ * its wide sloped foot in light concrete, the narrow top darker, a joint between its sections every
+ * 4 m - or a WOODEN post-and-rail fence, brown rails and a post every 2.5 m.
+ * @param propCtx the view and painter helpers
+ * @param barrier the barrier
+ * @param half half the collision width in metres
+ * @param ppm pixels per metre
+ * @returns whether it was one of these
+ */
+function drawMedianKind(propCtx: PropCtx, barrier: Barrier, half: number, ppm: number): boolean {
+  const { view } = propCtx;
+  const path = () => barrierPath(propCtx, barrier.pts);
+  if (barrier.kind === 'jersey') {
+    path();
+    view.ctx.strokeStyle = '#c4c1b8';
+    view.ctx.lineWidth = Math.max(2, 2 * half * ppm);
+    view.ctx.stroke();
+    path();
+    view.ctx.strokeStyle = '#9c998f';
+    view.ctx.lineWidth = Math.max(1, 0.35 * half * ppm);
+    view.ctx.stroke();
+    barrierPosts(propCtx, ppm, barrier.pts, 4, 0.12, '#8a877e');
+    return true;
+  }
+  if (barrier.kind !== 'woodfence') return false;
+  path();
+  view.ctx.strokeStyle = '#7a5a36';
+  view.ctx.lineWidth = Math.max(1, 1.2 * half * ppm);
+  view.ctx.stroke();
+  barrierPosts(propCtx, ppm, barrier.pts, 2.5, 0.3, '#5a4026');
+  return true;
 }
 
 /**

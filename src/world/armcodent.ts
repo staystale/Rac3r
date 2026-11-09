@@ -35,16 +35,24 @@ const RAIL_FEEL: Record<string, RailFeel> = {
     tearLoss: 0.4 },
   catchfence: { from: 1, perV: 0.1, max: 0.95, tear: 1, bounce: 0.05, give: 0.3, scrape: 0.6,
     tearLoss: 0.2 },
+  // THE WOODEN FENCE (a central reservation's, highway/medians.ts): posts and rails - it gives a
+  // little, breaks from ~35 km/h square (MEASURED, tools/scratch/_woodfencecheck.mjs), and its
+  // broken stretch flies off as rails and posts
+  woodfence: { from: 1.5, perV: 0.09, max: 0.5, tear: 0.6, bounce: 0.08, give: 0.4, scrape: 0.7,
+    tearLoss: 0.25 },
 };
+// what a torn rail's stretch flies off as: its pieces, and how many of the first kind
+const SHREDS: Record<string, [string, string, number]> = {
+  catchfence: ['mesh', 'fencepost', 6], woodfence: ['woodrail', 'woodpost', 3] };
 // a car torn through a catch fence is dragged by the mesh this long, s, slowing it this hard at
 // first, m/s^2, easing off as it tears loose
 const TANGLE_S = 1, TANGLE_DECEL = 6;
 // a torn catch fence's shreds: scraps of mesh and posts a gap throws, the share of the car's speed
 // into it they fly off with (least, most), their spread along the fence, m/s
-const SHRED_MESH = 6, SHRED_POSTS = 2, SHRED_SPEED: [number, number] = [0.35, 0.8],
+const SHRED_POSTS = 2, SHRED_SPEED: [number, number] = [0.35, 0.8],
   SHRED_SPREAD = 2.5;
 /** The loose-object kinds a torn catch fence throws (cones/coneConsts.ts DEBRIS has each). */
-export const SHRED_KINDS = ['mesh', 'fencepost'];
+export const SHRED_KINDS = ['mesh', 'fencepost', 'woodrail', 'woodpost'];
 
 /** One shred of a torn fence on its way to the loose objects (world/debris.ts throwParts). */
 export interface FenceShred { kind: string; x: number; y: number; vx: number; vy: number;
@@ -69,15 +77,17 @@ export function takeFenceShreds(): FenceShred[] {
  * @param nx the normal toward the car, unit x
  * @param ny unit y
  * @param into the car's speed into the fence, m/s
+ * @param pieces what it flies off as (SHREDS: the catch fence's mesh and posts)
  */
-function shredFence(from: Point, till: Point, nx: number, ny: number, into: number): void {
+function shredFence(from: Point, till: Point, nx: number, ny: number, into: number,
+  pieces: [string, string, number] = SHREDS.catchfence): void {
   const alongX = till[0] - from[0], alongY = till[1] - from[1];
-  const len = Math.hypot(alongX, alongY) || 1;
-  for (let i = 0; i < SHRED_MESH + SHRED_POSTS; i++) {
+  const len = Math.hypot(alongX, alongY) || 1, [first, second, many] = pieces;
+  for (let i = 0; i < many + SHRED_POSTS; i++) {
     const share = Math.random(), push = into * (SHRED_SPEED[0]
       + Math.random() * (SHRED_SPEED[1] - SHRED_SPEED[0]));
     const spread = (Math.random() * 2 - 1) * SHRED_SPREAD;
-    shreds.push({ kind: i < SHRED_MESH ? 'mesh' : 'fencepost',
+    shreds.push({ kind: i < many ? first : second,
       x: from[0] + alongX * share, y: from[1] + alongY * share,
       vx: -nx * push + (alongX / len) * spread, vy: -ny * push + (alongY / len) * spread,
       ang: Math.atan2(alongY, alongX) + (Math.random() - 0.5), spin: (Math.random() - 0.5) * 10 });
@@ -211,7 +221,7 @@ export function railContact(barrier: Barrier, seg: BarrierSeg, frac: number, nx:
   if (!(into > feel.from)) return false;
   if (depthAt(barrier, seg, frac) + feel.perV * (into - feel.from) >= feel.tear) {
     const mesh = barrier.kind === 'catchfence';
-    tear(barrier, seg, frac, mesh ? { nx, ny, into } : null);
+    tear(barrier, seg, frac, SHREDS[barrier.kind] ? { nx, ny, into } : null);
     car.vx += nx * into * feel.tearLoss;
     car.vy += ny * into * feel.tearLoss;
     if (mesh) car.tangleT = TANGLE_S;
@@ -282,7 +292,7 @@ function tear(barrier: Barrier, seg: BarrierSeg, frac: number,
     gap.push(pts[i], pts[i + 1]);
   }
   if (shred && gap.length) shredFence(gap[0], gap[gap.length - 1], shred.nx, shred.ny,
-    shred.into);
+    shred.into, SHREDS[barrier.kind]);
   barrier.pts = pts;
   pending = null;
   tornNow = true;

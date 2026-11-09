@@ -57,4 +57,9 @@ export const FIX = {
   // ?cadwallop=1: Cadwallop Park, a NEW venue (Cadwell Park) at 1/2 of real length, the Full and
   // the Club (world/levels/cadwallop-venue.ts; owner 11-09: "Yes do those all")
   cadwallop: atLoad('cadwallop'),
+  // ?medians=1: the central reservation varied by road and at random along it - a JERSEY barrier
+  // that throws a car hit fast, Armco, chain link, a wooden fence (highway/medians.ts,
+  // world/jersey.ts; owner 11-09: "Can central reservation be a jersey barrier that flips cars at
+  // higher speed ?", "Vary it randomly and appropriate to track")
+  medians: atLoad('medians'),
 };

@@ -416,7 +416,7 @@ export interface Ground {
 }
 
 export type BarrierKind = 'armco' | 'wall' | 'pitwall' | 'fence' | 'building' | 'line'
-  | 'catchfence' | 'rock';
+  | 'catchfence' | 'rock' | 'jersey' | 'woodfence';
 
 // One padded segment of a barrier polyline (what prepBarriers pushes).
 export interface BarrierSeg {

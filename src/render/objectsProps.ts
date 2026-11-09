@@ -1,8 +1,22 @@
 // The big roadside props of the objects layer, seen from above: the banger, the caravan and the
 // podium.
 import type { RenderCone, View } from "./types.ts";
-// Deaf Valley's cacti (loose: they snap when hit) - drawn by render/props/desert.ts
-export { drawLooseCactus } from "./props/desert.ts";
+import { drawLooseCactus } from "./props/desert.ts";
+import { drawWoodPiece } from "./props/woodfence.ts";
+
+/**
+ * The loose props of the outdoors drawn by their own modules: Deaf Valley's cacti (they snap when
+ * hit: render/props/desert.ts) and a torn wooden fence's rails and posts
+ * (render/props/woodfence.ts).
+ * @param ctx the canvas
+ * @param cone the loose object (centred, turned)
+ * @param ppm pixels per metre
+ * @returns whether one was drawn
+ */
+export function drawLooseProp(ctx: CanvasRenderingContext2D,
+    cone: { kind: string; ang?: number; hx?: number; hy?: number }, ppm: number): boolean {
+  return drawLooseCactus(ctx, cone, ppm) || drawWoodPiece(ctx, cone, ppm);
+}
 
 // what the prop drawers read of the objects context
 interface PropsEnv {

@@ -4,7 +4,7 @@ import { drawWheelFace, realWheel, faceSize, OLD_WHEEL } from "./wheelface.ts";
 import { hash2d, parkMiller } from "../core/random.ts";
 import { SPRITE_PPM, fxRandom } from "./shared.ts";
 import type { Cam, Chip, RenderCone, RenderTape, TapeCar, TapeGame, View } from "./types.ts";
-import { drawBanger, drawCaravan, drawPodium, drawLooseCactus } from "./objectsProps.ts";
+import { drawBanger, drawCaravan, drawPodium, drawLooseProp } from "./objectsProps.ts";
 import { drawStackShadow } from "./stackshadow.ts";
 import { shade } from "../render.ts";   // read only at draw time (no load-time cycle)
 
@@ -760,7 +760,7 @@ function drawConeKind(env: ObjectsCtx, cone: RenderCone) {
   else if (cone.kind === 'banger') drawBanger(env, cone);
   else if (cone.kind === 'caravan') drawCaravan(env, cone);
   else if (cone.kind === 'podium') drawPodium(env, cone);
-  else drawLooseCactus(env.view.ctx, cone, env.PPMz());
+  else drawLooseProp(env.view.ctx, cone, env.PPMz());
 }
 
 /**

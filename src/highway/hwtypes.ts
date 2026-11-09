@@ -22,6 +22,8 @@ export interface HwCfg {
   // reservation with a barrier of kind median (road.ts laneGeo)
   oncoming?: 'carriageway';
   median?: BarrierKind;
+  // ?medians=1: the central barrier's kinds and their weights along the road (highway/medians.ts)
+  medians?: [BarrierKind, number][];
 }
 
 /** The road's cross-section (road.ts laneGeo), m from the centre line (+ = the driver's right). */

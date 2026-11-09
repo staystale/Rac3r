@@ -13,6 +13,14 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'medians',
+    added: '2026-11-09',
+    name: 'Central barriers varied: Jersey barrier (throws a fast car), Armco, chain link, wood',
+    where: 'Test link + &medians=1: Highway to Hull > MOTORWAY / INTERSTATE / DUAL / WALLED',
+    try: 'Drive a few km: the barrier changes. Glance off a Jersey barrier at 150 km/h; hit wood.',
+    wrong: 'A gap or a doubled barrier where kinds change, wood not breaking, a slow tap flipping.',
+  },
+  {
     id: 'cadwallop',
     added: '2026-11-09',
     name: 'Cadwallop Park (Cadwell Park) at 1/2 size, a new track: the Full and the Club',

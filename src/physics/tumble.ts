@@ -6,8 +6,9 @@
 // rad/s of roll above which the body clears low things (a roll starts at up to 14, and every
 // quarter turn on the ground takes 20-40 % off it)
 export const TUMBLE_OVER_W = 5;
-// the barriers low enough to tumble over (a catch fence, a wall, a pit wall, a building are not)
-const LOW_BARRIERS = new Set(['armco', 'fence']);
+// the barriers low enough to tumble over (a catch fence, a wall, a pit wall, a building are not;
+// a Jersey barrier is waist high)
+const LOW_BARRIERS = new Set(['armco', 'fence', 'woodfence', 'jersey']);
 // kg: the loose objects light and low enough to tumble over (cones, tyres, stacks, parts)
 const LOW_OBJECT_KG = 60;
 

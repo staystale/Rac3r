@@ -9,6 +9,7 @@ import { extras } from "./extras.ts";
 import { layLooseRoadside } from "./litter.ts";
 import { layRoadLamps } from "./roadlamps.ts";
 import { dressCanyon } from "./canyon.ts";
+import { medianAt } from "./medians.ts";
 import type { LevelObj } from '../cones/coneTypes.ts';
 import type { Point, BarrierKind } from '../world/types.ts';
 import type { HwPose, HwLevel, DressCtx, Stamp } from './hwtypes.ts';
@@ -350,7 +351,7 @@ export function dress(level: HwLevel, firstIdx: number, endIdx: number, loose: L
 
 /**
  * The CENTRAL RESERVATION's barrier between two carriageways (geo.median), in
- * ~120 m pieces as the walls, overlapping by one point.
+ * ~120 m pieces as the walls, overlapping by one point, each its stretch's kind (medians.ts).
  * @param ctx the dress context
  */
 function layMedian(ctx: DressCtx) {
@@ -362,7 +363,7 @@ function layMedian(ctx: DressCtx) {
       const pos = pointAt(j, offset);
       pts.push([pos.x, pos.y]);
     }
-    if (pts.length > 1) level.barriers.push({ kind: level._cfg.median || 'armco', pts,
-      _s: road[startIdx].s });
+    if (pts.length > 1) level.barriers.push({ kind: medianAt(level._cfg, level._hw.seed,
+      road[startIdx].s), pts, _s: road[startIdx].s });
   }
 }

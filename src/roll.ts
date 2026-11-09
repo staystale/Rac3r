@@ -46,6 +46,9 @@ export interface RollCar {
   // a hard side hit (damage.ts): may start a roll; carry, m/s sideways it keeps as it trips over
   // what it slid into
   _sideKick?: { dir: number; dv: number; carry?: number } | null;
+  // a Jersey barrier ridden up (world/jersey.ts): the roll's way, its sideways speed and chance
+  _rideUp?: { dir: number; vLat: number; chance: number } | null;
+  _rideCool?: number;
 }
 /** Called when the body hits the ground: the quarter-turn kind (side / roof) and how hard. */
 type RollHit = (kind: string, side: number, rate: number) => void;
@@ -129,6 +132,14 @@ export function tripCheck(car: RollCar, dt: number, rnd: () => number = Math.ran
     stability = ssf / SSF_REF;
   const cosH = Math.cos(car.heading), sinH = Math.sin(car.heading),
     vLat = -car.vx * sinH + car.vy * cosH;
+  // a Jersey barrier's face ridden up fast (world/jersey.ts)
+  if (car._rideCool) car._rideCool--;
+  const ride = car._rideUp;
+  car._rideUp = null;
+  if (ride && rnd() < ride.chance) {
+    startRoll(car, ride.dir, ride.vLat);
+    return true;
+  }
   // a hard side impact (damage.ts) or a crooked landing
   const kick = car._sideKick;
   car._sideKick = null;

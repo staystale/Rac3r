@@ -17,9 +17,11 @@ export const HW_PRESETS: Record<string, HwCfg> = {
     bend: [180, 300],
     pStraight: 0.34,
     pBend: 0.2,
-    // the other carriageway past a concrete central barrier
+    // the other carriageway past a concrete central barrier (?medians=1: the Jersey barrier
+    // mostly, Armco on older stretches)
     oncoming: 'carriageway',
     median: 'wall',
+    medians: [['jersey', 0.6], ['armco', 0.4]],
   },
   interstate: {
     lanes: 4,
@@ -33,6 +35,8 @@ export const HW_PRESETS: Record<string, HwCfg> = {
     pBend: 0.1,
     oncoming: 'carriageway',
     median: 'wall',
+    // (the Jersey barrier, Armco, a chain-link fence)
+    medians: [['jersey', 0.5], ['armco', 0.25], ['catchfence', 0.25]],
   },
   dual: {
     lanes: 2,
@@ -44,9 +48,11 @@ export const HW_PRESETS: Record<string, HwCfg> = {
     bend: [120, 200],
     pStraight: 0.3,
     pBend: 0.25,
-    // a dual carriageway A road: a steel barrier down the middle
+    // a dual carriageway A road: a steel barrier down the middle (?medians=1: Armco, a chain-link
+    // fence, a wooden post-and-rail fence in the country)
     oncoming: 'carriageway',
     median: 'armco',
+    medians: [['armco', 0.5], ['catchfence', 0.25], ['woodfence', 0.25]],
   },
   // WALLED IN (requirement: some levels that use this mechanic should be more walled in):
   // `walls` = a continuous barrier kind both sides, `wallGap` m off the road edge; no trees / barns
@@ -65,6 +71,7 @@ export const HW_PRESETS: Record<string, HwCfg> = {
     wallGap: 1.2,
     oncoming: 'carriageway',
     median: 'wall',
+    medians: [['jersey', 1]],
   },
   // DEAF VALLEY (owner 11-08: "canyon which can have the features you've described" - Death
   // Valley, the parody): a twisty SINGLE CARRIAGEWAY, one lane each way, through canyons of rock

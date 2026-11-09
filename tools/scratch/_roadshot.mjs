@@ -32,7 +32,9 @@ try {
         ours: slots.filter((slot) => (slot.dir ?? 1) > 0).length,
         theirs: slots.filter((slot) => (slot.dir ?? 1) < 0).length,
         width: +level._hw.geo.width.toFixed(1), median: level._hw.geo.median,
-        barriers: level.barriers.filter((bar) => bar.kind === level._cfg.median).length,
+        // the central barrier's kinds within 40 m of the car
+        here: [...new Set(level.barriers.filter((bar) => bar.pts.some(([x, y]) =>
+          Math.hypot(x - car.x, y - car.y) < 40)).map((bar) => bar.kind))].join('/'),
         fps: game.fps ? Math.round(game.fps) : undefined };
     });
     await page.screenshot({ path: `tools/scratch/_road-${road}-${target}-${width}x${height}.png` });

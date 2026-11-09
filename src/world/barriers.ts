@@ -1,5 +1,6 @@
 // barriers.ts - the BARRIERS section (barriers, solid props, clamps). Moved verbatim out of
 // lab.ts.
+import { rideUp } from "./jersey.ts";
 import { hoodooSpires, archShape } from './formations.ts';
 import { WRECK_M, GAS_SHOP, GAS_PUMPS, GAS_POSTS } from './desertjunk.ts';
 import { LEVEL } from "./state.ts";
@@ -39,7 +40,8 @@ import type {
 // obstacleClamp; what is drawn is exactly what you hit (user rule: visuals accurate to their
 // effects).
 export const BARRIER_HALF: Record<BarrierKind, number> = { armco: 0.3, wall: 0.45, pitwall: 0.5,
-    fence: 0.15, building: 0.1, line: 0, catchfence: 0.12, rock: 0.5 };
+    fence: 0.15, building: 0.1, line: 0, catchfence: 0.12, rock: 0.5, jersey: 0.4,
+    woodfence: 0.12 };
 const BARRIER_E = 0.3;           // restitution off a barrier (obstacles use 0.35)
 // share of the along-the-wall speed kept per contact step... (scrape)
 const BARRIER_SCRAPE = 0.85;
@@ -635,6 +637,19 @@ export function barrierClamp(car: CarBody): void {
 }
 
 /**
+ * A barrier just hit: noted (the puncture's kind), and a Jersey barrier's sloped face - a car
+ * glancing off it fast may ride up and roll (world/jersey.ts).
+ * @param car the car body (its velocity after the clamp)
+ * @param barrier the barrier
+ * @param vx0 its velocity before, x
+ * @param vy0 its velocity before, y
+ */
+function hitBarrier(car: CarBody, barrier: Barrier, vx0: number, vy0: number): void {
+  noteHit(car, barrier.kind);
+  if (barrier.kind === 'jersey') rideUp(car, vx0, vy0);
+}
+
+/**
  * The car against a list of barriers: its corners (and open wheels) pushed out of every segment
  * near it, the hit noted, an armco rail dented.
  * @param car the car body
@@ -655,7 +670,7 @@ export function clampToBarriers(car: CarBody, list: Barrier[] | undefined): void
       clampCornersToSeg(car, seg, half, halfLen, halfWid, cosHead, sinHead, rail);
       if (open) clampWheelsToSeg(car, seg, half, rail);
     }
-    if (car.vx !== vx0 || car.vy !== vy0) noteHit(car, barrier.kind);
+    if (car.vx !== vx0 || car.vy !== vy0) hitBarrier(car, barrier, vx0, vy0);
     settleRail(rail);
   }
 }
