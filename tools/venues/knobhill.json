@@ -1,0 +1,13 @@
+{
+  "osm": "knobhill.osm.json",
+  "out": "src/world/levels/venues/knobhill.ts",
+  "exportName": "KNOBHILL_VENUE",
+  "origin": [56.1283, -3.5058],
+  "turnDeg": 0,
+  "clip": [-650, -650, 650, 650],
+  "reachM": 180,
+  "layouts": {
+    "circuit": { "through": ["Home Straight", "Duffus Dip", "Butcher's", "Clark's", "Hislop's", "Taylor's Hairpin"], "avoid": ["National Circuit", "Rallycross"] },
+    "rx": { "through": ["Duffus Dip", "Rallycross", "National Circuit"], "avoid": ["Taylor's Hairpin", "Clark's"] }
+  }
+}

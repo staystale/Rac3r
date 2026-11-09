@@ -13,6 +13,14 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'knobhillvenue',
+    added: '2026-11-09',
+    name: 'Knobhill as the real venue (Knockhill) at 1/2 size: the rallycross and the circuit',
+    where: 'Test link + &knobhillvenue=1: RALLYCROSS > Knobhill; UK CIRCUITS > Knobhill Circuit',
+    try: 'Race the rallycross: the gravel, the joker round the hairpin; lap the circuit.',
+    wrong: 'A joker not counted, a car stuck at the gravel, a road or prop on the track.',
+  },
+  {
     id: 'canyon',
     added: '2026-11-08',
     name: 'Deaf Valley: the endless road as a desert canyon - rock walls, cactus, open desert',
