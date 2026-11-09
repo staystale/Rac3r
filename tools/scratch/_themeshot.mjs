@@ -1,4 +1,4 @@
-// _themeshot.mjs - the endless road's THEME choice (?canyon=1, menu/setup.ts addRoadTypeRow) at
+// _themeshot.mjs - the endless road's THEME choice (menu/setup.ts addRoadTypeRow) at
 // phone size: the setup on COUNTRYSIDE, on DEAF VALLEY, then a launch on it - the setup rows'
 // buttons, the road type and ground it launched with, photos, page errors.
 import { startServer, launchBrowser, gotoGame } from '../lib/browser.mjs';
@@ -10,7 +10,7 @@ try {
   const page = await context.newPage();
   const errors = [];
   page.on('pageerror', (err) => errors.push(err.message));
-  await gotoGame(page, `${server.url}/?touch=1&menu=1&guide=0&noaudio=1&canyon=1`);
+  await gotoGame(page, `${server.url}/?touch=1&menu=1&guide=0&noaudio=1`);
   await page.waitForTimeout(2500);
   const tap = async (text) => {
     await page.locator('#menu button', { hasText: text }).first().tap();

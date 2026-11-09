@@ -156,9 +156,10 @@ function rimProps(ctx: DressCtx, i: number, side: number, rim: number) {
  */
 function desertProps(ctx: DressCtx, i: number, side: number, from: number) {
   const { rand, road } = ctx, seed = (road[i].s | 0) * 2 + side;
-  // (owner 11-09: "cactus could be more popular haha": about twice as many)
-  if (rand() < 0.13) cactus(ctx, i, side * (from + 2 + rand() * 45), true);
-  if (rand() < 0.15) cactus(ctx, i, side * (from - 1.5 + rand() * 20), false);
+  // (owner 11-09: "cactus could be more popular haha", then "maybe more cactus in the desert":
+  // about three times the first)
+  if (rand() < 0.2) cactus(ctx, i, side * (from + 2 + rand() * 45), true);
+  if (rand() < 0.22) cactus(ctx, i, side * (from - 1.5 + rand() * 20), false);
   if (rand() < 0.05) place(ctx, i, side * (from + rand() * 40), { kind: 'rock',
     s: 1.5 + rand() * 2.5, pal: 'red', seed });
   if (i % 6 === 0 && rand() < 0.1) formation(ctx, i, side, from, seed);

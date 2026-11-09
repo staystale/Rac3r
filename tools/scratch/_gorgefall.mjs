@@ -11,7 +11,7 @@ const browser = await launchBrowser();
 try {
   const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
   const errors = []; page.on('pageerror', (err) => errors.push(err.message));
-  await gotoGame(page, `${server.url}/?pc=1&guide=0&menu=0&rules=0&noaudio=1&canyon=1`);
+  await gotoGame(page, `${server.url}/?pc=1&guide=0&menu=0&rules=0&noaudio=1`);
   await page.mouse.click(195, 422);
   await page.waitForTimeout(800);
   await page.evaluate(() => window.__game.launch('highway', 'hatch-rwd', { ai: 0, road: 'canyon' }));

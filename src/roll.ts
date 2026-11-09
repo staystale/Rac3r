@@ -20,7 +20,6 @@
 import { rollShapeOf, shapedHit } from './physics/rollshape.ts';
 import { levelFlipRamps, rampFlip } from './world/flipramps.ts';
 import { LEVEL } from './world/state.ts';
-import { FIX } from './core/fixes.ts';
 import { groundAt } from './world/wear.ts';
 import type { CarRoll } from './vehicle.ts';
 /** The rollover state (car.roll; vehicle.ts CarRoll). */
@@ -206,11 +205,8 @@ export function stepRoll(car: RollCar, dt: number, onHit: RollHit) {
   const state = car.roll!, surface = car.surface || {}, gravity = 9.81,
     speed = Math.hypot(car.vx, car.vy);
   if (state.phase === 'rolling' && spinStep(car, state, dt, onHit)) return;
-  // (?canyon=1, with Deaf Valley's gorges: the plain link rolls as it did)
-  if (FIX.canyon) {
-    rollFall(car, dt);
-    slopePull(car, dt);
-  }
+  rollFall(car, dt);
+  slopePull(car, dt);
   // the body slides on whatever it is lying on (while rolling: mostly in the air, little drag)
   const friction = state.phase === 'rolling' ? 0.25 : muBody(surface);
   if (speed > 0.01) {

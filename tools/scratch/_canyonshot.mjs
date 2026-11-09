@@ -1,4 +1,4 @@
-// _canyonshot.mjs - DEAF VALLEY (?canyon=1: Highway to Hull's DEAF VALLEY theme, highway/canyon.ts
+// _canyonshot.mjs - DEAF VALLEY (Highway to Hull's DEAF VALLEY theme, highway/canyon.ts
 // + gorge.ts) on the autopilot: a phone-size photo at each road distance in SHOTS as it drives the
 // canyon, the HIGH road (its gorges) and the open desert; at each the speed, the car's offset off
 // the centre line, what is laid (rock walls, cliff faces, Armco, sand zones, formations, cacti),
@@ -13,7 +13,7 @@ const browser = await launchBrowser();
 try {
   const page = await browser.newPage({ viewport: { width, height } });
   const errors = []; page.on('pageerror', (err) => errors.push(err.message));
-  await gotoGame(page, `${server.url}/?pc=1&guide=0&menu=0&rules=0&noaudio=1&canyon=1&autopilot=1`
+  await gotoGame(page, `${server.url}/?pc=1&guide=0&menu=0&rules=0&noaudio=1&autopilot=1`
     + (process.env.ZOOM ? `&zoom=${process.env.ZOOM}` : ''));
   await page.mouse.click(width / 2, height / 2);
   await page.waitForTimeout(800);

@@ -29,14 +29,6 @@ export const TEST_LIST: TestEntry[] = [
     wrong: 'A joker not counted, a car stuck at the gravel, a road or prop on the track.',
   },
   {
-    id: 'canyon',
-    added: '2026-11-08',
-    name: 'Deaf Valley: random stretches - canyon, HIGH road over gorges, desert, dunes; junk',
-    where: 'Test link + &canyon=1: ENDLESS ROADS > Highway to Hull > theme DEAF VALLEY',
-    try: 'Go over an open gorge edge; hit a cactus; the dunes, the gas station, the wrecks.',
-    wrong: 'A car flung out of a gorge, stuck on a slope, a wall end facing the road, a seam.',
-  },
-  {
     id: 'dieatona',
     added: '2026-11-08',
     name: 'Dieatona (the Daytona parody) at 1/2 size: the banked tri-oval and the road course',

@@ -238,7 +238,10 @@ last handover, written on request.
    0.771 -> 1.000; the moving tow 0.705 and side draft 1.129 / 0.961 unchanged).
 5. MORE HIGHWAY FLAVOURS (owner 11-08: the current roadside is COUNTRYSIDE; then CANYON - "Death
    Valley", as DEAF VALLEY - and FARTMOOR, a super country lane with crossroads and traffic):
-   DEAF VALLEY round 1 UNDER TEST ?canyon=1 (highway/canyon.ts: rock walls, cactus, open desert;
+   DEAF VALLEY PASSED + DEFAULT 11-09 (owner: "Ok Death Valley pass maybe more cactus in the desert";
+   the desert's cacti x1.5 again; the switch gone; the countryside's random biomes and the rolling
+   car's fall / slope with it). NEXT: its traffic (owner: "traffic doesn't seem to work?" - off on
+   the canyon road until it can come the other way: round 2). Was: round 1 UNDER TEST ?canyon=1 (highway/canyon.ts: rock walls, cactus, open desert;
    round 2 oncoming traffic, round 3 crests and dips). 11-09 (owner): a THEME of Highway to Hull
    ("should come under highway levels and be a theme choice": presets.ts HW_THEMES); on gravel
    with sand / dirt patches ("leave colour of surfaces alone"); ROUND 1b (highway/desertplan.ts):

@@ -50,8 +50,6 @@ export const FIX = {
   // ?thrustonvenue=1: Thruston as the real venue (Thruxton) at 1/2 of real length
   // (world/levels/thruston-venue.ts; owner 11-08)
   thrustonvenue: atLoad('thrustonvenue'),
-  // DEAF VALLEY: the endless road as a desert canyon (highway/canyon.ts; owner 11-08)
-  canyon: atLoad('canyon'),
   // ?knobhillvenue=1: Knobhill as the real venue (Knockhill) at 1/2 of real length, the
   // rallycross (the Knobhill level) and the circuit (world/levels/knobhill-venue.ts; owner 11-09)
   knobhillvenue: atLoad('knobhillvenue'),

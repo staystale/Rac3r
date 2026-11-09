@@ -20,7 +20,6 @@
 // carriageway — the same generator for later flavour levels.
 import { pruneHedges, resetHedges } from "./highway/hedges.ts";
 import { readSettings } from "./core/settings.ts";
-import { FIX } from "./core/fixes.ts";
 import { createSubtrack, ghostSegment } from "./world/subtrack.ts";
 import { meterEvent } from "./ui/meter.ts";
 import { SURFACES } from "./world/surfaces.ts";
@@ -385,8 +384,8 @@ export function createHighway(seed: number = 4242, preset: string = 'motorway') 
     _cfg: HW_PRESETS[preset],
     roadType: preset,
     roadTypes: HW_NAMES,
-    // ?canyon=1: the theme choice (Deaf Valley)
-    ...(FIX.canyon ? { themes: HW_THEMES } : {}),
+    // the theme choice (COUNTRYSIDE / DEAF VALLEY; passed 11-09)
+    themes: HW_THEMES,
     base: baseOf(preset),
     subtrack: null,
     camber: { maxDeg: 0, refR: 60, crown: 0.03, edge: 5, sections: [] },
@@ -410,8 +409,8 @@ export function createHighway(seed: number = 4242, preset: string = 'motorway') 
   return level;
 }
 let highwayAdded = false;
-// adds the endless motorway to LEVELS (called once, after the hand-made levels); ?canyon=1 gives it
-// the DEAF VALLEY theme (highway/canyon.ts; owner 11-08)
+// adds the endless motorway to LEVELS (called once, after the hand-made levels), with its DEAF
+// VALLEY theme (highway/canyon.ts; owner 11-08, passed 11-09)
 export function addHighwayLevel() {
   if (highwayAdded) return;
   highwayAdded = true;

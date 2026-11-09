@@ -1,7 +1,6 @@
 // highway dress: the per-window dressing (trees, gantries, armco, walls, litter) and the
 // NOX / NOF node-tool switches. Split out of highway.ts.
 import { envValue } from "../core/debug.ts";
-import { FIX } from "../core/fixes.ts";
 import { STEP, SIGNS } from "./presets.ts";
 import { stateOf } from "./road.ts";
 import { blocked, cutBy, sideStep, sideFlush, syncCovers, SLIP_W, cutSkips } from "./cuts.ts";
@@ -60,12 +59,10 @@ function makeDressContext(level: HwLevel, firstIdx: number, endIdx: number, loos
  * @param dist road distance
  * @returns the biome name there
  */
-function biomeAtDist(dist: number, seed: number) {
-  // ?canyon=1 (owner 11-09: "endless roads should cycle randomly between their potential next track
-  // sections so it always varies"): the road's own random order and lengths
-  if (FIX.canyon) return biomePlanAt(dist, seed);
-  return ["farm", "forest", "farm", "rocky", "farm", "forest"][Math.floor(dist / 2200) % 6];
-}
+// (owner 11-09: "endless roads should cycle randomly between their potential next track sections
+// so it always varies"): the road's own random order and lengths (was farm, forest, farm, rocky,
+// farm, forest, 2.2 km each, round and round)
+const biomeAtDist = (dist: number, seed: number) => biomePlanAt(dist, seed);
 
 // the countryside's stretches in a random order: each 1.4-3 km, farmland the likeliest, never the
 // same twice running; by road and road distance, laid as far as asked (biomePlanAt)
@@ -73,7 +70,7 @@ const BIOMES: [string, number][] = [["farm", 0.5], ["forest", 0.3], ["rocky", 0.
 const BIOME_PLANS = new Map<number, { ends: number[]; names: string[]; state: number }>();
 
 /**
- * The countryside's stretch at a road distance on a road (?canyon=1).
+ * The countryside's stretch at a road distance on a road.
  * @param dist road distance, m
  * @param seed the road's seed
  * @returns the biome name there
