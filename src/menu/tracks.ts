@@ -1,5 +1,6 @@
 import { LEVELS } from '../world/levels/index.ts';
-import { catOf } from '../world/levels/category.ts';
+import { menuCatOf } from '../world/levels/category.ts';
+import { FIX } from '../core/fixes.ts';
 import { buildLevel } from '../world/load.ts';
 import { THEMES, LENGTHS } from '../stagegen.ts';
 
@@ -36,7 +37,6 @@ const CATS = [
   { id: 'test', name: 'TEST GROUNDS', sub: 'surfaces · physics · free play' },
   { id: 'all', name: 'ALL TRACKS', sub: 'everything in one list' },
 ];
-export { catOf };
 
 /**
  * Finds the sample point of a generated stage's track nearest a distance along it.
@@ -147,7 +147,8 @@ export function showTrackSelect(menu: Menu) {
   if (!menu.thumbs) menu.thumbs = menu.api.thumbs();
   const list = addElement(panel, 'div', '', 'cats');
   for (const category of CATS) {
-    const lvs = LEVELS.filter((entry) => category.id === 'all' || catOf(entry) === category.id);
+    const lvs = LEVELS.filter((entry) => category.id === 'all'
+      || menuCatOf(entry) === category.id);
     if (!lvs.length) continue;
     const button = addButton(menu, list, '', () => {
       profile.lastCat = category.id;
@@ -201,7 +202,41 @@ function addTrackCard(menu: Menu, grid: HTMLElement, level: Level) {
 }
 
 /**
- * TEST MODE step 1b: the track cards of one category.
+ * The layouts of a level's venue listed in a category (ALL TRACKS: every one of them).
+ * @param level the level
+ * @param cat the category id (CATS)
+ * @returns its venue's layouts there; just the level when it is no venue's layout
+ */
+function layoutsOf(level: Level, cat: string): Level[] {
+  if (!FIX.layouts || !level.venue) return [level];
+  return LEVELS.filter((entry) => entry.venue === level.venue
+    && (cat === 'all' || menuCatOf(entry) === cat));
+}
+
+/**
+ * Adds a venue's card to the track grid, for more than one of its layouts in the list: it opens
+ * the venue's layouts (owner 11-09: "once you select a track with multiple layouts it should then
+ * show its options ... before it changes to the ... setup menu").
+ * @param menu the menu context
+ * @param grid the card grid
+ * @param cat the category id (CATS)
+ * @param layouts the venue's layouts in the list
+ */
+function addVenueCard(menu: Menu, grid: HTMLElement, cat: string, layouts: Level[]) {
+  const last = layouts.find((entry) => entry.id === menu.profile.lastLevel),
+    kinds = new Set(layouts.map((entry) => (KIND[entry.id] || 'TRACK').split(' · ')[0]));
+  const button = addButton(menu, grid, '', () => showLayoutList(menu, cat, layouts[0].venue!),
+    'card' + (last ? ' on' : ''));
+  const thumb = menu.thumbs![(last || layouts[0]).id];
+  if (thumb) button.appendChild(copyThumb(thumb));
+  addElement(button, 'span', layouts[0].venue!, 'nm');
+  addElement(button, 'span', (kinds.size === 1 ? [...kinds][0] + ' · ' : '') + layouts.length
+    + ' LAYOUTS', 'k');
+}
+
+/**
+ * TEST MODE step 1b: the track cards of one category, a venue with more than one layout there
+ * as one card (?layouts=1).
  * @param menu the menu context
  * @param cat the category id (CATS)
  */
@@ -215,12 +250,46 @@ export function showTrackList(menu: Menu, cat: string) {
     if (cur && savedGen && (['seed', 'theme', 'len', 'style'] as const).some((key) => savedGen[key]
       !== cur.gen![key])) menu.api.genStage(savedGen);
   }
-  const grid = addElement(panel, 'div', '', 'grid');
-  for (const level of LEVELS.filter((entry) => cat === 'all' || catOf(entry) === cat)) {
-    addTrackCard(menu, grid, level);
+  const grid = addElement(panel, 'div', '', 'grid'), venues = new Set<string>();
+  for (const level of LEVELS.filter((entry) => cat === 'all' || menuCatOf(entry) === cat)) {
+    const layouts = layoutsOf(level, cat);
+    if (layouts.length < 2) addTrackCard(menu, grid, level);
+    else if (!venues.has(level.venue!)) {
+      venues.add(level.venue!);
+      addVenueCard(menu, grid, cat, layouts);
+    }
   }
   const row = addElement(panel, 'div', '', 'row');
   addButton(menu, row, '◀ TYPES', () => showTrackSelect(menu));
+}
+
+/**
+ * TEST MODE step 1c: one venue's layouts in a category, then a layout's setup.
+ * @param menu the menu context
+ * @param cat the category id (CATS)
+ * @param venue the venue (Level.venue)
+ */
+export function showLayoutList(menu: Menu, cat: string, venue: string) {
+  const panel = addPane(menu, true);
+  addElement(panel, 'h2', 'TEST MODE · ' + venue.toUpperCase());
+  addElement(panel, 'div', 'CHOOSE A LAYOUT', 'sub');
+  if (!menu.thumbs) menu.thumbs = menu.api.thumbs();
+  const grid = addElement(panel, 'div', '', 'grid');
+  for (const level of LEVELS.filter((entry) => entry.venue === venue
+    && (cat === 'all' || menuCatOf(entry) === cat))) addTrackCard(menu, grid, level);
+  const row = addElement(panel, 'div', '', 'row');
+  addButton(menu, row, '◀ TRACKS', () => showTrackList(menu, cat));
+}
+
+/**
+ * Back from a level's setup: to its venue's layouts, else to the track list it was chosen from.
+ * @param menu the menu context
+ * @param level the level
+ */
+export function backToTracks(menu: Menu, level: Level) {
+  const cat = menu.profile.lastCat || menuCatOf(level);
+  if (layoutsOf(level, cat).length > 1) showLayoutList(menu, cat, level.venue!);
+  else showTrackList(menu, cat);
 }
 
 /**

@@ -50,7 +50,7 @@ export const SNOTTERTON_SPEC: VenueSpec = {
 // the three layouts of the one venue, sharing its scenery - each built on first use (world/load.ts
 // buildLevel)
 const layoutLevel = (layout: string, levelId: string, name: string): Level =>
-  ({ id: levelId, name,
+  ({ id: levelId, name, venue: 'Snotterton',
     _build: () => venueLevel(SNOTTERTON_SPEC, layout, levelId, name) } as Level);
 export const SN_LEVELS: Level[] = [
   layoutLevel('300', 'snotterton', 'Snotterton 300'),

@@ -94,7 +94,7 @@ export const DIEATONA_SPEC: VenueSpec = {
 
 // the two layouts of the one venue, each built on first use (world/load.ts buildLevel)
 const layoutLevel = (layout: string, levelId: string, name: string): Level =>
-  ({ id: levelId, name,
+  ({ id: levelId, name, venue: 'Dieatona',
     _build: () => venueLevel(DIEATONA_SPEC, layout, levelId, name) } as Level);
 export const DT_LEVELS: Level[] = [
   layoutLevel('oval', 'dieatona', 'Dieatona'),

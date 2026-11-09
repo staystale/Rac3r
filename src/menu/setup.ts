@@ -4,7 +4,7 @@ import { THEMES } from '../stagegen.ts';
 const THEME_NAMES = THEMES as Record<string, { name: string }>;
 import { saveProfile } from './profile.ts';
 import { addPane, addButton, addElement } from './widgets.ts';
-import { KIND, catOf, showTrackList, addGenRows } from './tracks.ts';
+import { KIND, backToTracks, addGenRows } from './tracks.ts';
 import { showGarage } from './garage.ts';
 import { hideMenu } from '../menu.ts';
 import { buildLevel } from '../world/load.ts';
@@ -343,7 +343,7 @@ function addLaunchButtons(menu: Menu, panel: HTMLElement, level: Level, state: S
         livery: (profile.livery || {})[profile.active],
         tyre: (profile.tyres || {})[profile.active] });
   }, 'go');
-  addButton(menu, panel, '◀ BACK', () => showTrackList(menu, profile.lastCat || catOf(level)));
+  addButton(menu, panel, '◀ BACK', () => backToTracks(menu, level));
 }
 
 /**

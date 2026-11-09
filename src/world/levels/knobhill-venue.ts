@@ -50,7 +50,8 @@ export const KNOBHILL_SPEC: VenueSpec = {
 const circuitLevel = (): Level =>
   venueLevel(KNOBHILL_SPEC, 'circuit', 'knobhill-circuit', 'Knobhill Circuit');
 export const KH_VENUE_LEVELS: Level[] = [
-  ({ id: 'knobhill', name: 'Knobhill',
+  ({ id: 'knobhill', name: 'Knobhill', venue: 'Knobhill',
     _build: () => rallycrossLevel(KNOBHILL_SPEC, 'rx', 'knobhill', 'Knobhill') } as Level),
-  ({ id: 'knobhill-circuit', name: 'Knobhill Circuit', _build: circuitLevel } as Level),
+  ({ id: 'knobhill-circuit', name: 'Knobhill Circuit', venue: 'Knobhill',
+    _build: circuitLevel } as Level),
 ];

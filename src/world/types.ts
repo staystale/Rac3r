@@ -473,6 +473,8 @@ export interface JokerRule {
 export interface Level {
   id: string;
   name: string;
+  // the venue it is one layout of (menu/tracks.ts: the venue's card, then its layouts)
+  venue?: string;
   coneCount?: boolean;   // show the knocked-cone tally (a cone course)
   rollingStart?: boolean;   // races start rolling (the ovals)
   snowy?: boolean;   // a snow-themed stage (weather only): its theme biases the weather
