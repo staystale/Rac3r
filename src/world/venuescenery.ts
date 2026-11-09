@@ -10,8 +10,8 @@
 import { SURFACES } from "./surfaces.ts";
 import { onTrack, querySubtrack } from "./tyrewall.ts";
 import { parkMiller } from "../core/random.ts";
-import { HALF_ROAD, VENUE_ROAD_M, centreAt, distToLine, lineLength, makePlacer, nearestLoop,
-  pointAlong, resample, smoothLine } from "./venuegeo.ts";
+import { HALF_ROAD, VENUE_ROAD_M, centreAt, distToLine, evenly, kerbOut, lineLength,
+  makePlacer, nearestLoop, pointAlong, resample, smoothLine } from "./venuegeo.ts";
 import { WALL_REACH_M, boxedLine, buildEdge, buildRims, inZones, outlineZone, pastRim,
   trapZones } from "./venueedge.ts";
 import { boardOnArmco, marshalPosts } from "./venueposts.ts";
@@ -75,6 +75,11 @@ const TREE_WATER_M = 3, TREE_MOWN_M = 6;
 const TREE_TYRE_M = 2.5;
 // m a marshal post's centre keeps from a tyre stack (its hut's half diagonal and a tyre)
 const POST_TYRE_M = 2;
+// m within which a mapped tyre wall's stack stands on the edge's own rows (a stack's width)
+const MAP_WALL_CLEAR_M = 1;
+// m a marshal post's centre keeps past a kerb's outer edge (its hut's half diagonal, 1.6, and a
+// step: at 1.5 a turned hut's corner still stood on the National's kerb at Sillystone)
+const POST_KERB_M = 2;
 // m past a tree's trunk box a barrier keeps (tools/venueaudit.mjs: a prop on a barrier)
 const TREE_RAIL_M = 0.3;
 // m a tree's trunk keeps off a road piece's edge (a raced road the edge already keeps it off; an
@@ -641,6 +646,11 @@ function clearPosts(site: Site, posts: Prop[], barriers: Barrier[], tyres: Cone[
   // (off every layout's road too: a corner's outside can be another layout's track)
   const clear = (post: Prop) => !onLanes(site.lanes, post.x, post.y, 2)
     && nearestLoop(site.loops, post.x, post.y).hit.dist > HALF_ROAD + 2
+    // (nor on a kerb: a wide one reaches past the 2 m)
+    && site.loops.every((loop) => {
+      const hit = querySubtrack(loop, post.x, post.y);
+      return !(hit.dist < HALF_ROAD + kerbOut(loop, hit.trackDist, hit.side) + POST_KERB_M);
+    })
     && !inSolid(site, post.x, post.y, 2)
     && railPts.every(([x, y]) => Math.abs(x - post.x) > 2.5 || Math.abs(y - post.y) > 2.5)
     // (nor on a tyre wall: a stack inside its hut)
@@ -771,9 +781,14 @@ export function buildVenueScenery(build: VenueBuild, sub: Subtrack, closed: Lane
   props.push(...venueTrees(site, bounds, props, zones, { covers, patches }).filter((tree) =>
     allRails.every(([x, y]) => Math.abs(x - tree.x) > (tree.s || 4) / 4 + TREE_RAIL_M
       || Math.abs(y - tree.y) > (tree.s || 4) / 4 + TREE_RAIL_M)));
-  // the kart track's tyre lines, none on a road
-  const karting = spec.data.tyres.flatMap((line) => resample(placeAll(site, line.pts), 1)
-    .filter(([x, y]) => !onLanes(site.lanes, x, y, 0.6))
+  // the mapped tyre walls, spaced along each line, none on a road - nor where the edge already
+  // stands its two rows along it (laid again, the wall stood three deep at Dongington)
+  const edgeTyres = edge.cones.map((tyre): Point => [tyre.x, tyre.y]);
+  const karting = spec.data.tyres.flatMap((line) => evenly(placeAll(site, line.pts), 1)
+    .filter(([x, y]) => !onLanes(site.lanes, x, y, 0.6)
+      && edgeTyres.every(([edgeX, edgeY]) => Math.abs(edgeX - x) > MAP_WALL_CLEAR_M
+        || Math.abs(edgeY - y) > MAP_WALL_CLEAR_M
+        || Math.hypot(edgeX - x, edgeY - y) > MAP_WALL_CLEAR_M))
     .map(([x, y]) => ({ x, y, kind: 'tyrestack' })));
   return { lanes, zones, cones: [...edge.cones, ...karting],
     barriers: [...walls, ...edge.barriers],

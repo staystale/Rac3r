@@ -10,7 +10,7 @@
 // outside each corner, boards on it (world/venueposts.ts).
 import { SURFACES } from "./surfaces.ts";
 import { insidePolygon } from "./zones.ts";
-import { HALF_ROAD, centreAt, clearRuns, distToLine, joinEnds, lineLength, nearestLoop,
+import { HALF_ROAD, centreAt, clearRuns, distToLine, evenly, joinEnds, lineLength, nearestLoop,
   trimEnds } from "./venuegeo.ts";
 import type { Barrier, Cone, Point, Subtrack, TrackPoint, Zone } from "./types.ts";
 
@@ -67,6 +67,8 @@ const FENCE_JOIN_M = 4;
 const END_ROAD_M = 4;
 // m in front of the Armco of its two tyre rows behind a trap, and the second row's stagger
 const TYRE_ROWS: [number, number][] = [[1.4, 0], [2.35, 0.475]];
+// m between a row's tyres (a tyre stack's width: touching)
+const TYRE_STEP_M = 0.95;
 // m beyond the rim a hazard is looked for (Armco before it); m of gap filled between two runs of a
 // kind; m a run is grown each way; the fewest points a run keeps
 const HAZARD_M = 14, GAP_FILL_M = 24, EXTEND_M = 8, MIN_RUN_PTS = 14, MIN_RUN_M = 26;
@@ -651,7 +653,7 @@ export function buildEdge(rims: Rim[], keep: EdgeClear, traps: Zone[], needs: Ed
           && sideOthers.every((point) => apart(point, x, y));
         const flared = barrierKind === 'armco'
           ? flare(joinEnds(run, fenceEnds, FENCE_JOIN_M), ends, runClear) : run;
-        const shaped = needs.rails ? withoutRepeats(flared) : flared;
+        const shaped = withoutFolds(needs.rails ? withoutRepeats(flared) : flared);
         for (const chunk of chunks(shaped, RUN_MAX_M / RIM_STEP_M))
           barriers.push({ kind: barrierKind, pts: chunk });
         fresh.push(...run);
@@ -714,6 +716,25 @@ function withoutRepeats(pts: Point[]): Point[] {
 }
 
 /**
+ * A line with no point where it folds back on itself (a step turning more than a right angle
+ * from the one before - no Armco bends that hard in a step: the rim's notch by a trap's corner
+ * zig-zagged the Armco by a trap at Dongington), the fold's tip left out until none is left.
+ * @param pts the line
+ * @returns the line
+ */
+function withoutFolds(pts: Point[]): Point[] {
+  const out = pts.slice();
+  for (let i = 1; i + 1 < out.length;) {
+    const [fromX, fromY] = out[i - 1], [tipX, tipY] = out[i], [toX, toY] = out[i + 1];
+    if ((tipX - fromX) * (toX - tipX) + (tipY - fromY) * (toY - tipY) < 0) {
+      out.splice(i, 1);
+      i = Math.max(1, i - 1);
+    } else i++;
+  }
+  return out;
+}
+
+/**
  * A line cut into pieces of at most count segments, each sharing its end point with the next.
  * @param pts the line
  * @param count segments a piece
@@ -745,11 +766,19 @@ function trapTyres(run: Point[], loops: Subtrack[], traps: Zone[],
       const away = awayFrom(loops, point);
       return [point[0] - away[0] * front, point[1] - away[1] * front] as Point;
     });
-    for (const line of clearRuns(row, (x, y) => clear(x, y) && behind(x, y), 0.95)) {
-      if (line.length < MIN_TYRE_ROW) continue;
-      for (let i = shift ? 1 : 0; i < line.length; i++)
-        out.push({ x: line[i][0], y: line[i][1], kind: 'tyrestack' });
+    // (spaced along the row: no two closer than laid)
+    let line: Point[] = [];
+    const lay = () => {
+      if (line.length >= MIN_TYRE_ROW)
+        for (let i = shift ? 1 : 0; i < line.length; i++)
+          out.push({ x: line[i][0], y: line[i][1], kind: 'tyrestack' });
+      line = [];
+    };
+    for (const spot of evenly(row, TYRE_STEP_M)) {
+      if (clear(spot[0], spot[1]) && behind(spot[0], spot[1])) line.push(spot);
+      else lay();
     }
+    lay();
   }
   return out;
 }

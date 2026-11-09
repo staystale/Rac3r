@@ -3,7 +3,9 @@
 // over the Armco). Builds a level and checks every pair that should never meet:
 //   props on props (footprints overlap), props on barriers, props on roads (lanes) or the track,
 //   tyre stacks on the track, on roads or in props, barriers on the track, on roads or in props,
-//   two barriers doubled (within DOUBLE_M of each other along DOUBLE_RUN_M), a barrier crossing
+//   tyres on tyres, on barriers and on kerbs, props on kerbs, loose objects at no place,
+//   two barriers doubled (within DOUBLE_M of each other along DOUBLE_RUN_M), a barrier folding
+//   back on itself, a barrier crossing
 //   another; a tree's canopy, a lamp or a corner floodlight's ring of tyres by a road piece (the
 //   track, or a race road no layout uses). Bridges, footbridges, the gantry and tunnel portals stand
 //   over or by roads by design.
@@ -119,11 +121,82 @@ for (const cone of level.cones) {
   const prop = solidProps.find((entry) => inProp(entry, cone.x, cone.y, 0.4));
   if (prop) note('tyre in a prop', `${cone.x.toFixed(0)},${cone.y.toFixed(0)} in ${name(prop)}`);
 }
+// TYRES ON TYRES, ON BARRIERS, ON KERBS (owner 11-09 on Sillystone: "some sloppy place over lapping
+// tyres and stuff"): each loose object (a corner floodlight's ring too) a disc of its cones.ts
+// radius - two overlapping by more than OVERLAP_SHARE of their radii (rows stand 0.95 m apart,
+// touching, by design), one on
+// a barrier's line, one on a kerb (the strip past the road's edge a kerb covers) or a prop on one
+const RADIUS = { tyrestack: 0.48, tyre: 0.35, bale: 0.8, cone: 0.2 }, OVERLAP_SHARE = 0.9;
+const radius = (obj) => RADIUS[obj.kind || 'cone'];
+// (one at no place - an Infinity or NaN position - is a mistake of its own: Knobhill's joker bales)
+const placed = (obj) => Number.isFinite(obj.x) && Number.isFinite(obj.y);
+for (const obj of level.cones) if (!placed(obj)) note('loose object at no place', obj.kind || 'cone');
+const loose = [...level.cones, ...cornerTyres(level)].filter((obj) => radius(obj) && placed(obj));
+const at = (obj) => obj.x.toFixed(1) + ',' + obj.y.toFixed(1);
+const cellOf = (x, y) => Math.floor(x / 2) + ',' + Math.floor(y / 2);
+const grid = new Map();
+for (const obj of loose) {
+  const key = cellOf(obj.x, obj.y);
+  if (!grid.has(key)) grid.set(key, []);
+  grid.get(key).push(obj);
+}
+const seen = new Set();
+for (const obj of loose) {
+  const cx = Math.floor(obj.x / 2), cy = Math.floor(obj.y / 2);
+  for (let gx = cx - 1; gx <= cx + 1; gx++) for (let gy = cy - 1; gy <= cy + 1; gy++)
+    for (const other of grid.get(gx + ',' + gy) || []) {
+      if (other === obj || seen.has(other)) continue;
+      if (Math.hypot(obj.x - other.x, obj.y - other.y) < (radius(obj) + radius(other)) * OVERLAP_SHARE)
+        note('tyre on a tyre', at(obj) + ' (' + (obj.kind || 'cone') + ' x ' + (other.kind || 'cone') + ')');
+    }
+  seen.add(obj);
+}
+const railLines = (level.barriers || []).filter((rail) => rail.kind !== 'line');
+for (const obj of loose) {
+  const rail = railLines.find((line) => distToLine(line.pts, obj.x, obj.y) < radius(obj) * 0.8);
+  if (rail) note('tyre on a barrier', at(obj) + ' on ' + rail.kind);
+}
+const kerbOut = (hit) => {
+  let width = 0;
+  for (const kerb of level.subtrack.curvedKerbs || []) {
+    if (kerb.side !== hit.side) continue;
+    const dist = hit.trackDist, inside = kerb.startDist <= kerb.endDist
+      ? dist >= kerb.startDist && dist <= kerb.endDist : dist >= kerb.startDist || dist <= kerb.endDist;
+    if (inside) width = Math.max(width, kerb.width || 0);
+  }
+  return width;
+};
+const onKerb = (x, y, pad) => {
+  const hit = querySubtrack(level.subtrack, x, y);
+  if (!Number.isFinite(hit.dist) || hit.dist < half) return false;
+  const width = kerbOut(hit);
+  return width > 0 && hit.dist < half + width + pad;
+};
+for (const obj of loose) if (onKerb(obj.x, obj.y, radius(obj) * 0.5)) note('tyre on a kerb', at(obj));
+// (a prop whose whole footprint lies past the widest kerb is skipped: a wood's box has thousands
+// of sample points)
+const widest = Math.max(0, ...(level.subtrack.curvedKerbs || []).map((kerb) => kerb.width || 0));
+const reachOf = (prop) => {
+  const pts = footprint(prop);
+  return Math.max(...pts.map(([x, y]) => Math.hypot(x - prop.x, y - prop.y)));
+};
+for (const prop of solidProps) {
+  const [width, height] = SIZE[prop.kind] || [prop.w || 0, prop.h || 0];
+  const reach = prop.front ? reachOf(prop) : Math.hypot(width, height) / 2;
+  if (querySubtrack(level.subtrack, prop.x, prop.y).dist - reach > half + widest) continue;
+  if (footprint(prop).some(([x, y]) => onKerb(x, y, 0))) note('prop on a kerb', name(prop));
+}
 // barriers on the track, on roads, doubled, crossing
 const rails = (level.barriers || []).filter((rail) => rail.kind !== 'building' && rail.kind !== 'line');
 for (const [i, rail] of rails.entries()) {
   const onT = rail.pts.filter(([x, y]) => querySubtrack(level.subtrack, x, y).dist < half + 0.5).length;
   if (onT) note('barrier on the track', `${rail.kind} ${onT} pts`);
+  // (a barrier folding back on itself: a step turning more than a right angle from the one before
+  // - no 2 m Armco step bends that hard - a zig-zag by a trap at Dongington)
+  for (let k = 2; k < rail.pts.length; k++) {
+    const [ax, ay] = rail.pts[k - 2], [bx, by] = rail.pts[k - 1], [cx, cy] = rail.pts[k];
+    if ((bx - ax) * (cx - bx) + (by - ay) * (cy - by) < 0) note('barrier folds back', `${rail.kind} at ${bx.toFixed(0)},${by.toFixed(0)}`);
+  }
   const lanePts = rail.pts.filter(([x, y]) => onLane(x, y)).length;
   if (lanePts) note('barrier on a road', `${rail.kind} ${lanePts} pts at ${rail.pts[0].map((v) => v.toFixed(0))}`);
   for (const other of rails.slice(i + 1)) {

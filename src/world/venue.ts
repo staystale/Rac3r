@@ -15,7 +15,7 @@ import { solidsFromProps } from "./barriers.ts";
 import { venueCrossings } from "./crossings.ts";
 import { CIRCUIT_BUSHES } from "./levels/bushes.ts";
 import { buildVenueScenery } from "./venuescenery.ts";
-import { VENUE_ROAD_M, distToLine, lineLength, pointAlong } from "./venuegeo.ts";
+import { VENUE_ROAD_M, distToLine, kerbOut, lineLength, pointAlong } from "./venuegeo.ts";
 import { laneSpawn, venueJoker, venueStartLane } from "./venuejoker.ts";
 import type { Barrier, Bump, Camber, Cone, Lane, Level, Point, Subtrack } from "./types.ts";
 
@@ -146,6 +146,9 @@ const CLOSE_IN_M = 14;
 const CLOSE_LOOK_M = 120;
 // m a closing row's tyres keep past the raced road's edge - past its kerb where it has one
 const CLOSE_CLEAR_M = 1.5;
+// m a closing row's tyres keep from another closing row's (two pieces forking at one junction
+// had their rows crossed in an X at Sillystone)
+const CLOSE_APART_M = 1.2;
 const ROUND = (value: number) => Math.round(value * 100) / 100;
 
 /**
@@ -366,28 +369,76 @@ function closedPieces(build: VenueBuild, layout: string,
       surface: SURFACES[piece.surface || 'racetarmac'] });
     for (const end of [piece.pts, piece.pts.slice().reverse()]) {
       if (querySubtrack(sub, end[0][0], end[0][1]).dist > VENUE_ROAD_M) continue;
-      const row = closureRow(end, sub, half);
+      const row = closureRow(end, sub, half, cones);
       if (row) cones.push(...row);
     }
   }
   return { lanes, cones };
 }
 
+// LOOSE OBJECTS TIDIED (owner 11-09 on Sillystone: "some sloppy place over lapping tyres and
+// stuff"): each a disc of its radius (cones.ts) - one at no place, on a barrier's line, on the
+// raced road's kerb, or overlapping one kept before it by more than STACKED_SHARE of their radii
+// (rows stand 0.95 m apart, touching, by design), is left out (tools/venueaudit.mjs counts each).
+// A tyre row laid in front of a curved Armco run folded back over itself, two runs' rows crossed,
+// a closing row lay on the edge's.
+const LOOSE_R: Record<string, number> = { tyrestack: 0.48, tyre: 0.35, bale: 0.8, cone: 0.2 };
+const STACKED_SHARE = 0.9, ON_RAIL_SHARE = 0.8, ON_KERB_SHARE = 0.5, LOOSE_CELL_M = 2;
+const looseRadius = (cone: Cone): number => LOOSE_R[cone.kind || 'cone'] || 0;
+const looseCell = (x: number, y: number): number =>
+  Math.floor(x / LOOSE_CELL_M) * 65536 + Math.floor(y / LOOSE_CELL_M);
+
 /**
- * How far the raced road's kerb reaches past its edge at a spot (0 where it has none there).
+ * Whether a loose object lies on the raced road's kerb (the strip past its edge a kerb covers).
  * @param sub the raced road
- * @param trackDist metres along it
- * @param side the side of it
- * @returns metres
+ * @param cone the object
+ * @returns true when on one
  */
-function kerbOut(sub: Subtrack, trackDist: number, side: string): number {
-  let out = 0;
-  for (const kerb of sub.curvedKerbs || []) {
-    if (kerb.side !== side) continue;
-    const onKerb = (dist: number) => dist >= kerb.startDist && dist <= kerb.endDist;
-    if (onKerb(trackDist) || onKerb(trackDist + sub.totalDist)) out = Math.max(out, kerb.width);
+function onKerb(sub: Subtrack, cone: Cone): boolean {
+  const hit = querySubtrack(sub, cone.x, cone.y), half = sub.width / 2;
+  if (!(hit.dist >= half)) return false;
+  const width = kerbOut(sub, hit.trackDist, hit.side);
+  return width > 0 && hit.dist < half + width + looseRadius(cone) * ON_KERB_SHARE;
+}
+
+/**
+ * Whether a loose object overlaps one already kept.
+ * @param grid the kept ones by LOOSE_CELL_M cell
+ * @param cone the object
+ * @returns true when it does
+ */
+function stackedOn(grid: Map<number, Cone[]>, cone: Cone): boolean {
+  const cellX = Math.floor(cone.x / LOOSE_CELL_M), cellY = Math.floor(cone.y / LOOSE_CELL_M);
+  for (let colX = cellX - 1; colX <= cellX + 1; colX++)
+    for (let rowY = cellY - 1; rowY <= cellY + 1; rowY++)
+      if ((grid.get(colX * 65536 + rowY) || []).some((other) => Math.hypot(other.x - cone.x,
+        other.y - cone.y) < (looseRadius(cone) + looseRadius(other)) * STACKED_SHARE)) return true;
+  return false;
+}
+
+/**
+ * A venue's loose objects with none at no place, on a barrier, on a kerb or on another (the first
+ * kept). One with no size (a tape post) is kept as it is.
+ * @param cones the objects, in the order they were laid (a closing row first)
+ * @param barriers the barriers
+ * @param sub the raced road
+ * @returns the objects kept
+ */
+export function tidyLoose(cones: Cone[], barriers: Barrier[], sub: Subtrack): Cone[] {
+  const rails = barriers.filter((rail) => rail.kind !== 'line');
+  const kept: Cone[] = [], grid = new Map<number, Cone[]>();
+  for (const cone of cones) {
+    if (!Number.isFinite(cone.x) || !Number.isFinite(cone.y)) continue;
+    const reach = looseRadius(cone);
+    if (!reach) { kept.push(cone); continue; }
+    if (rails.some((rail) => distToLine(rail.pts, cone.x, cone.y) < reach * ON_RAIL_SHARE)
+      || onKerb(sub, cone) || stackedOn(grid, cone)) continue;
+    kept.push(cone);
+    const key = looseCell(cone.x, cone.y);
+    if (!grid.has(key)) grid.set(key, []);
+    grid.get(key)!.push(cone);
   }
-  return out;
+  return kept;
 }
 
 /**
@@ -395,16 +446,19 @@ function kerbOut(sub: Subtrack, trackDist: number, side: string): number {
  * tyre stands CLOSE_CLEAR_M clear of the raced road, its kerb included (where the two part at a
  * shallow angle the piece is still beside the track for a while). A piece that never clears
  * (the old line beside a chicane, a few metres off its kerb all along) is closed in its own half
- * where the most of the row clears, the tyres too near the raced road left out.
+ * where the most of the row clears, the tyres too near the raced road left out. Every tyre
+ * keeps CLOSE_APART_M from the rows already laid.
  * @param line the piece from its junction end
  * @param sub the raced road
  * @param half half the road's width
+ * @param laid the closing rows' tyres already laid
  * @returns the tyre stacks, or null if none clears
  */
-function closureRow(line: Point[], sub: Subtrack, half: number): Cone[] | null {
+function closureRow(line: Point[], sub: Subtrack, half: number, laid: Cone[]): Cone[] | null {
   const clear = (tyre: Cone) => {
     const hit = querySubtrack(sub, tyre.x, tyre.y);
-    return hit.dist > half + kerbOut(sub, hit.trackDist, hit.side) + CLOSE_CLEAR_M;
+    return hit.dist > half + kerbOut(sub, hit.trackDist, hit.side) + CLOSE_CLEAR_M
+      && laid.every((other) => Math.hypot(other.x - tyre.x, other.y - tyre.y) >= CLOSE_APART_M);
   };
   const rowAt = (along: number): Cone[] | null => {
     const spot = pointAlong(line, along);
@@ -478,9 +532,11 @@ export function venueLevel(spec: VenueSpec, layout: string, levelId: string,
     ...(spec.rollingStart ? { rollingStart: true } : {}),
     ...(scenery.patches.length ? { patches: scenery.patches } : {}),
     zones: scenery.zones, covers: scenery.covers, bumps: prepBumps(venueBumps(build)), boards: [],
-    // (a closing row's tyre on another road - a pit lane easing in by the junction - left out)
-    seams: false, cones: [...closed.cones.filter((tyre) => !scenery.lanes.some((lane) =>
+    // (a closing row's tyre on another road - a pit lane easing in by the junction - left out;
+    // none on another, on a barrier or on a kerb)
+    seams: false, cones: tidyLoose([...closed.cones.filter((tyre) => !scenery.lanes.some((lane) =>
       distToLine(lane.pts, tyre.x, tyre.y) < lane.width / 2)), ...scenery.cones],
+    scenery.barriers, sub),
     bushes: CIRCUIT_BUSHES,
     lanes: [...jokerLanes, ...scenery.lanes, ...closed.lanes], barriers: scenery.barriers,
     props: scenery.props, solids: solidsFromProps(scenery.props),

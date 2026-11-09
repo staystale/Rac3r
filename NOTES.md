@@ -448,6 +448,16 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   the gravel run and North Bend's legs 31 m apart: the roads touched, a car could cut half the lap.
   Measure the closest stretches of each layout (any two points over 60 lap m apart) and warp them
   apart (spec.warps); a lane beside the lap (a start straight) is held off it instead.
+- resample() SPLITS EACH SEGMENT ON ITS OWN (11-09, owner on Sillystone: "sloppy place over lapping
+  tyres"): a 1 m segment at 0.95 gives two points 0.5 m apart, so the tyre rows in front of the
+  eased Armco (1 m points) stood twice as close as laid, on one another, at every venue. A row of
+  things spaced by their size is laid with evenly() (the spacing carried round corners). The same
+  round found a mapped tyre wall laid again over the edge's own two rows (three deep at
+  Dongington), crossed closing rows where two pieces fork, an Armco zig-zag (a rim notch by a
+  trap), Knobhill's joker bales at Infinity (a joker point past the lap's lookup reach) and a
+  marshal hut's corner on a kerb. venueaudit counts tyres on tyres / barriers / kerbs, props on
+  kerbs, loose objects at no place and barriers folding back; world/venue.ts tidyLoose drops any
+  left (the first laid kept).
 
 ## Routine
 

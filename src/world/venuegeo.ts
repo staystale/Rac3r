@@ -35,6 +35,27 @@ export function resample(pts: Point[], stepM: number): Point[] {
 }
 
 /**
+ * Points every stepM along a line, the spacing carried across its corners (resample splits each
+ * segment on its own: a 1 m segment at 0.95 gives two points 0.5 m apart - the tyre rows in front
+ * of the eased Armco stood twice as close as laid, on one another).
+ * @param pts the line
+ * @param stepM metres between points
+ * @returns the points, the line's first one first
+ */
+export function evenly(pts: Point[], stepM: number): Point[] {
+  const out: Point[] = [pts[0]];
+  let next = stepM;
+  for (let i = 1; i < pts.length; i++) {
+    const [fromX, fromY] = pts[i - 1], [toX, toY] = pts[i];
+    const len = Math.hypot(toX - fromX, toY - fromY);
+    for (; next <= len; next += stepM)
+      out.push([fromX + (toX - fromX) * next / len, fromY + (toY - fromY) * next / len]);
+    next -= len;
+  }
+  return out;
+}
+
+/**
  * An open line's length.
  * @param pts the points
  * @returns metres
@@ -315,4 +336,21 @@ export function smoothLine(pts: Point[], reach = 3, passes = 3, toEnds = false):
       return [sumX / (2 * span + 1), sumY / (2 * span + 1)] as Point;
     });
   return line;
+}
+
+/**
+ * How far the raced road's kerb reaches past its edge at a spot (0 where it has none there).
+ * @param sub the raced road
+ * @param trackDist metres along it
+ * @param side the side of it
+ * @returns metres
+ */
+export function kerbOut(sub: Subtrack, trackDist: number, side: string): number {
+  let out = 0;
+  for (const kerb of sub.curvedKerbs || []) {
+    if (kerb.side !== side) continue;
+    const onKerb = (dist: number) => dist >= kerb.startDist && dist <= kerb.endDist;
+    if (onKerb(trackDist) || onKerb(trackDist + sub.totalDist)) out = Math.max(out, kerb.width);
+  }
+  return out;
 }

@@ -174,7 +174,9 @@ export function jokerBales(sub: Subtrack, joker: Lane, existing: Cone[]): Cone[]
         query = querySubtrack(sub, x, y), gap = query.dist - halfWidth - jokerHalf;
       // clear of the main road's KERBS (2.4 m) too: bale centre >= 3.3 m off the road edge and
       // >= 0.9 m off the joker edge (photographed on a kerb)
-      if (gap < 4.2) continue;
+      // (a joker point past the lap's lookup reach has no lap beside it: its gap is Infinity, and
+      // the bale was written at Infinity - Knobhill's venue joker, 36 of them)
+      if (gap < 4.2 || !Number.isFinite(gap)) continue;
       const centre = onTrack(sub, query.trackDist, 0, {}), dx = centre.x - x, dy = centre.y - y,
         toCentre = Math.hypot(dx, dy) || 1, shift = jokerHalf + Math.min(gap / 2, gap - 3.3);
       const bale = {

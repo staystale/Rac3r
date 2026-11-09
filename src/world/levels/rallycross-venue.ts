@@ -2,7 +2,7 @@
 // Hill): the venue's level (world/venue.ts) with the joker rule, the rallycross dressing - hay
 // bales round the corners where no wall stands and both sides of the loose stretches lined, bales
 // between the joker and the lap where they run apart - and the rallycross bushes.
-import { venueBuild, venueLevel } from "../venue.ts";
+import { tidyLoose, venueBuild, venueLevel } from "../venue.ts";
 import { venueJoker } from "../venuejoker.ts";
 import { SURFACES } from "../surfaces.ts";
 import { jokerApproach, jokerArrow } from "./slidden-hill.ts";
@@ -52,7 +52,9 @@ export function rallycrossLevel(spec: VenueSpec, layout: string, levelId: string
     .filter((cone) => !inSolid(level.solids || [], cone.x, cone.y));
   const cones = [...level.cones, ...bales];
   const mid = lane.pts[Math.floor(lane.pts.length / 2)];
-  return { ...level, bushes: RX_BUSHES, cones: [...cones, ...jokerBales(sub, lane, cones)],
+  // (tidied as the venue's own: none on another or on a barrier)
+  return { ...level, bushes: RX_BUSHES,
+    cones: tidyLoose([...cones, ...jokerBales(sub, lane, cones)], level.barriers || [], sub),
     joker: { gate: { x: mid[0], y: mid[1], r: JOKER_GATE_R }, penalty: JOKER_PENALTY_S,
       laps: JOKER_LAPS,
       arrows: [jokerArrow(sub, lane.pts), jokerApproach(sub, lane.pts)].filter(Boolean) } };
