@@ -194,7 +194,28 @@ function isFreeOfThings(level: Level, spot: Spot, reach: number): boolean {
     && !(level.lanes || []).some((lane) =>
       lineGap(lane.pts as [number, number][], spot) < lane.width / 2 + reach)
     && !(level.cones || []).some((cone) => near(cone.x, cone.y, reach + 0.8))
-    && !(level.zones || []).some((zone) => isPanel(zone) && inZone(zone, spot, reach));
+    && !(level.zones || []).some((zone) => isPanel(zone) && inZone(zone, spot, reach))
+    && !(FIX.clearance && inWater(level, spot, reach));
+}
+
+/**
+ * Whether a point lies within reach of the level's scenery water (a lake, a river: ?clearance=1 -
+ * a corner floodlight's tyre ring stood half in Malarkey Park's lake by Stebbe Straight).
+ * @param level the level
+ * @param spot the point
+ * @param reach the clearance, m
+ * @returns true in or by the water
+ */
+function inWater(level: Level, spot: Spot, reach: number): boolean {
+  return (level.covers || []).some((cover) => {
+    if (!cover.water) return false;
+    const offX = spot.x - cover.x, offY = spot.y - cover.y;
+    const cosR = Math.cos(cover.rot || 0), sinR = Math.sin(cover.rot || 0);
+    const along = Math.abs(offX * cosR + offY * sinR) / (cover.w / 2 + reach);
+    const across = Math.abs(-offX * sinR + offY * cosR) / (cover.h / 2 + reach);
+    return cover.shape === 'ellipse' ? along * along + across * across <= 1
+      : along <= 1 && across <= 1;
+  });
 }
 
 /**
