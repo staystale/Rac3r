@@ -13,14 +13,6 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
-    id: 'dongington',
-    added: '2026-11-09',
-    name: 'Dongington Park (Donington Park) at 1/2 size, a new track: the GP and the National',
-    where: 'Test link + &dongington=1: TEST MODE > CIRCUITS > Dongington Park > GP / National',
-    try: 'Lap both: down Craner Curves, the Old Hairpin, McLeans, Coppice, the Melbourne Loop.',
-    wrong: 'A road or prop on the track, a barrier gap, a road to nowhere, a fence not real.',
-  },
-  {
     id: 'knobhillvenue',
     added: '2026-11-09',
     name: 'Knobhill as the real venue (Knockhill) at 1/2 size: the rallycross and the circuit',

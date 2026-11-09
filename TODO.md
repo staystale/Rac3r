@@ -217,7 +217,9 @@ last handover, written on request.
    venues/dongington.ts; the venue helper; the owner picked the name): the GP (2010 m, real 4020) and
    the National (1599 m, real 3149) one venue, venue: 'Dongington Park' (one card);
    Armco on OSM's rails, the four real tunnels, the Hollywood grandstand, the pit garages, the valley
-   down Craner to the Old Hairpin (EU-DEM heights). UNDER TEST.
+   down Craner to the Old Hairpin (EU-DEM heights). PASSED + DEFAULT 11-09 (owner: "Donnington is
+   pass"); left as built: the catch fence in front of the Hollywood grandstand (no source shows it;
+   asked, no answer yet). NEXT: Silverstone (working name Sillystone, ?sillystone=1).
 3. ROLLING LOOK - smoother than the dice flip on the same physics; mockup first.
 4. SIDE DRAFTING (Naffcar first) PASSED + DEFAULT 11-08 (owner: "Pass"): physics/wake.ts part 5 - a nose
    alongside a car's rear quarter, up to +20 % drag on it and -6 % on the car alongside, gone by 1.2 m

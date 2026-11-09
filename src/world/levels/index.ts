@@ -192,8 +192,8 @@ export const LEVELS: Level[] = [
   CC_VENUE_LEVEL,
   // Snotterton's three layouts (snotterton-venue.ts), built on first use
   ...SN_LEVELS,
-  // ?dongington=1: Dongington Park, a new venue (dongington-venue.ts), its GP and National
-  ...(FIX.dongington ? DG_LEVELS : []),
+  // Dongington Park, a new venue (dongington-venue.ts), its GP and National
+  ...DG_LEVELS,
   // ?thrustonvenue=1: the real venue (thruston-venue.ts), built on first use
   FIX.thrustonvenue ? TH_VENUE_LEVEL : {
     id: 'thruston', name: 'Thruston',

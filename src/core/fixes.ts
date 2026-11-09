@@ -55,7 +55,4 @@ export const FIX = {
   // ?knobhillvenue=1: Knobhill as the real venue (Knockhill) at 1/2 of real length, the
   // rallycross (the Knobhill level) and the circuit (world/levels/knobhill-venue.ts; owner 11-09)
   knobhillvenue: atLoad('knobhillvenue'),
-  // ?dongington=1: Dongington Park, a NEW venue (Donington Park) at 1/2 of real length, the GP
-  // and the National (world/levels/dongington-venue.ts; owner 11-09)
-  dongington: atLoad('dongington'),
 };

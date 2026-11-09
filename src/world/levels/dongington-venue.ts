@@ -1,4 +1,4 @@
-// world/levels/dongington-venue.ts - DONGINGTON PARK, a NEW venue (?dongington=1, world/venue.ts):
+// world/levels/dongington-venue.ts - DONGINGTON PARK, a NEW venue (world/venue.ts; PASSED 11-09):
 // Donington Park (Leicestershire) from OpenStreetMap (venues/dongington.ts) at 1/2 of real length
 // with the 13 m road, its two layouts one venue sharing its scenery: the GP (with the Melbourne
 // Loop) and the National (Roberts cutting from the Esses to the pit straight). Checked against
