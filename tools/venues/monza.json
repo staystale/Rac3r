@@ -1,0 +1,54 @@
+{
+  "osm": "monza.osm.json",
+  "out": "src/world/levels/venues/monza.ts",
+  "exportName": "MONZA_VENUE",
+  "origin": [45.6206, 9.2887],
+  "turnDeg": 0,
+  "clip": [-950, -1500, 950, 1300],
+  "reachM": 180,
+  "skip": [19982933, 19983025, 34404638, 34404729, 34404730, 231256008, 231256009, 725687994,
+    725687995, 1313097098, 1313098145, 1313098146, 34405200, 193475050, 231262585, 1443867790,
+    1443867791, 1238685998, 38168756, 188180726, 188180730, 188180731, 188180734, 188180738,
+    188180740, 188180745, 188180747, 179968267],
+  "traps": [231025694, 231025696, 231025697, 231026021, 231026022, 231026023, 231026026,
+    231026028, 231026218, 231260688],
+  "names": {
+    "19842206": "Rettifilo",
+    "179968264": "Curva Grande in",
+    "179968220": "Curva Grande",
+    "179968262": "Roggia approach",
+    "179968263": "Lesmo approach",
+    "179968251": "Lesmo link",
+    "179968252": "Serraglio approach",
+    "179968228": "Serraglio",
+    "1443867792": "Serraglio exit",
+    "1443867793": "Under the banking",
+    "179968254": "Ascari approach",
+    "179968226": "Vialone",
+    "179968249": "Ascari link",
+    "179968239": "Ascari",
+    "179968257": "Back Straight",
+    "179968234": "Parabolica",
+    "34404652": "Pit Garages (Palazzina Box)"
+  },
+  "layouts": {
+    "gp": {
+      "through": [
+        "Rettifilo",
+        "Variante del Rettifilo",
+        "Curva Grande in",
+        "Curva Grande",
+        "Variante della Roggia",
+        "Lesmo 1",
+        "Lesmo 2",
+        "Serraglio",
+        "Under the banking",
+        "Vialone",
+        "Ascari",
+        "Back Straight",
+        "Parabolica"
+      ],
+      "avoid": ["Raccordo Junior"]
+    }
+  }
+}

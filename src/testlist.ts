@@ -13,6 +13,14 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'monza',
+    added: '2026-11-09',
+    name: 'Monzarella (Monza) at 1/2 size, a world circuit: the GP circuit',
+    where: 'Test link + &monza=1: TEST MODE > CIRCUITS (or &worldcat=1: WORLD CIRCUITS)',
+    try: 'Lap it: the first chicane, Curva Grande, Roggia, the Lesmos, Ascari, Parabolica.',
+    wrong: 'A road or prop on the track, a barrier gap, a road to nowhere, a fence not real.',
+  },
+  {
     id: 'worldcat',
     added: '2026-11-09',
     name: 'TEST MODE: a WORLD CIRCUITS category with Spa-Frankenchumps (and Monzarella)',

@@ -39,6 +39,7 @@ import { AG_LEVELS } from "./anglesleazy-venue.ts";
 import { GW_LEVELS } from "./goodwoody-venue.ts";
 import { CR_LEVELS } from "./croughed-venue.ts";
 import { SPA_LEVELS } from "./spa-venue.ts";
+import { MONZA_LEVELS } from "./monza-venue.ts";
 import { OP_LEVELS } from "./oultonpork-venue.ts";
 import { DT_LEVELS } from "./dieatona-venue.ts";
 import { TH_VENUE_LEVEL } from "./thruston-venue.ts";
@@ -217,6 +218,8 @@ export const LEVELS: Level[] = [
   ...CR_LEVELS,
   // Spa-Frankenchumps, a venue (spa-venue.ts), the first world championship circuit (passed 11-09)
   ...SPA_LEVELS,
+  // ?monza=1: Monzarella, a new venue (monza-venue.ts), a world championship circuit
+  ...(FIX.monza ? MONZA_LEVELS : []),
   // Oulton Pork, a new venue (oultonpork-venue.ts), its International, Island and Frosters
   ...OP_LEVELS,
   // ?thrustonvenue=1: the real venue (thruston-venue.ts), built on first use

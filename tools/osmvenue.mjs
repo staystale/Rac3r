@@ -22,7 +22,7 @@
 // those barrier lines as rails (a mapper who drew the circuit's barriers as walls or fences: Croft,
 // Spa); "posts": [way ids] leaves out marshal posts mapped as buildings by name only (Spa's P1 ..
 // P19: the venue places its own); "trim": { "<way id>": [first, last] } keeps only those nodes of a
-// way. A
+// way; "traps": [way ids] reads those areas as gravel traps (Monza's are mapped natural=sand). A
 // stand longer than STAND_SLICE_M is written as its slices (a curved one round a tri-oval).
 // A layout is the shortest loop through its "through" pieces that avoids its "avoid" pieces; it is
 // written as the ordered list of pieces it runs over, so a layout is changed by editing that list.
@@ -198,6 +198,8 @@ const skipIds = new Set((config.skip || []).map(String));
 const railIds = new Set((config.rails || []).map(String));
 // "posts": [way ids] - marshal posts mapped as buildings by name only (no emergency tag)
 const postIds = new Set((config.posts || []).map(String));
+// "traps": [way ids] - the circuit's gravel traps mapped as another surface (natural=sand)
+const trapIds = new Set((config.traps || []).map(String));
 const isMotor = (way) => !skipIds.has(String(way.id))
   && (/motor/.test(way.tags.sport || '') || raceIds.has(String(way.id)));
 const raceWays = ways.filter((way) => way.tags?.highway === 'raceway'
@@ -312,7 +314,8 @@ for (const way of ways) {
       pts: line(0.5) });
   else if (FOOT_WAYS.has(tags.highway) && tags.bridge) out.footbridges.push({ pts: line(0.5) });
   else if (tags.landuse === 'residential' && closed(way)) out.homes.push({ pts: line(2) });
-  else if (tags.natural === 'shingle' && closed(way)) out.traps.push({ pts: line(0.5) });
+  else if ((tags.natural === 'shingle' || trapIds.has(String(way.id))) && closed(way))
+    out.traps.push({ pts: line(0.5) });
   else if (tags.barrier === 'tyres') out.tyres.push({ pts: line(0.3) });
   // the real circuit's rails: Armco and concrete barriers (a venue built with followRails uses them)
   else if (tags.barrier === 'guard_rail' || tags.barrier === 'jersey_barrier'

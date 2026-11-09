@@ -290,6 +290,17 @@ CARS: talk to the owner once the tracks are done (trucks, a Dakar car / truck).
    WORLD CIRCUITS (owner 11-09: "categorise stuff") behind ?worldcat=1: a TEST MODE category for
    the world championship circuits (Spa-Frankenchumps, Monzarella) - the menu listing only
    (category.ts LISTED_UNDER), still circuits by kind (lamps, weather, the menu race). UNDER TEST.
+   MONZARELLA BUILT 11-09 behind ?monza=1 (levels/monza-venue.ts, OSM data in venues/monza.ts; the
+   venue helper): the GP circuit, 2889 m (real 5793, OSM 5801), the start at the head of the grid,
+   the pit lane, OSM's gravel traps (mapped as sand: tools/venues/monza.json "traps"), barriers
+   both sides all round (the aerial photographs; OSM maps only the pit straight's rails), catch
+   fences at its many grandstands, 2 drivable tunnels under the pit straight, 3 footbridges, the
+   Junior link closed by tyres, EU-DEM heights as two hills (181 m at the Parabolica to 199 at the
+   Lesmos). Left out: the old banked oval (its north banking crosses the circuit on a race-width
+   bridge), the Pirelli ruins, the escape road and the motorcycle chicane at the first chicane, two
+   tunnels whose far roads are not kept. UNDER TEST. With it (venuescenery.ts): one bridge a
+   crossing - a footbridge's stairs mapped as bridges stood a second deck on Monza's, and at
+   Sillystone two footbridges stood on the road bridge by the Wing (now the road bridge alone).
 3. ROLLING LOOK - smoother than the dice flip on the same physics; mockup first.
 4. SIDE DRAFTING (Naffcar first) PASSED + DEFAULT 11-08 (owner: "Pass"): physics/wake.ts part 5 - a nose
    alongside a car's rear quarter, up to +20 % drag on it and -6 % on the car alongside, gone by 1.2 m

@@ -45,6 +45,9 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
+  // ?monza=1: Monzarella, a NEW venue (the Autodromo Nazionale Monza) at 1/2 of real length, a
+  // world championship circuit (world/levels/monza-venue.ts; owner 11-09)
+  monza: atLoad('monza'),
   // ?worldcat=1: TEST MODE lists the world championship circuits (Spa-Frankenchumps, Monzarella)
   // under WORLD CIRCUITS, not CIRCUITS (owner 11-09: "categorise stuff"; world/levels/category.ts)
   worldcat: atLoad('worldcat'),

@@ -124,7 +124,7 @@ function crossing(site: Site, line: Point[]) {
  * @returns the bridge props and the approach lanes
  */
 function venueBridges(site: Site): { props: Prop[]; lanes: Lane[] } {
-  const data = site.build.spec.data, props: Prop[] = [], lanes: Lane[] = [];
+  const data = site.build.spec.data, props: Prop[] = [], lanes: Lane[] = [], laid: Point[] = [];
   const decks: [Point[], string][] = [
     ...data.roads.filter((road) => road.bridge).map((road): [Point[], string] =>
       [road.pts, 'bridge']),
@@ -134,6 +134,9 @@ function venueBridges(site: Site): { props: Prop[]; lanes: Lane[] } {
     const cross = crossing(site, placeAll(site, pts));
     if (!cross) continue;
     const { centre } = cross, inside = -pastRim(site.rims, centre.x, centre.y);
+    // one bridge a crossing (a footbridge's stairs mapped as bridges stood a second deck on it)
+    if (laid.some(([x, y]) => Math.hypot(x - centre.x, y - centre.y) < SAME_TUNNEL_M)) continue;
+    laid.push([centre.x, centre.y]);
     const span = Math.min(70, 2 * (inside + 3) / cross.sine);
     const label = kind === 'footbridge' ? site.build.spec.bridgeLabel : undefined;
     props.push({ kind, x: centre.x, y: centre.y, rot: cross.head, wid: span,

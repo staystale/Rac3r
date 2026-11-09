@@ -520,6 +520,11 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   the whole list for the layers under and over the cars, so a prop's cost is paid wherever it
   stands. 8000 trees at Spa: CPU x4 work 12.5-13.7 -> 16.7-17.6 ms a frame (the scan ~8 % of a
   profile: drawPropList, propVisible, drawProps); a grid of props by cell would pay for the screen.
+- A CATCH FENCE BREAKS WHERE TWO STANDS' SPECTATORS DO NOT MEET (11-09, Monza): the edge marks
+  30 m round each stand's corners as watched; between two stands a few metres left over became
+  Armco shorter than a run, dropped - a 4-8 m gap between two fence runs, and a fence jogging round
+  a stand broke the same way. tools/scratch/_barriergaps.mjs (barrier ends 0.3-12 m from another
+  barrier) finds them; the hand finish moves the stand (spec.finish.move).
 - A RESET ON A TWO-WAY ROAD NEVER TAKES "THE NEAREST EDGE" (11-09, owner: "reset still can leave me
   on the opposite carriage way !"): the circuits' reset puts the car on the edge it left by, and a
   car thrown over the Jersey barrier left by the oncoming side's. Every endless-road reset - the R
