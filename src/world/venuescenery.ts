@@ -270,31 +270,46 @@ function standClear(site: Site, prop: Prop): boolean {
 }
 
 /**
+ * The lane nearest a point.
+ * @param lanes the lanes (one at least)
+ * @param x world x
+ * @param y world y
+ * @returns the lane
+ */
+const nearestLane = (lanes: Lane[], x: number, y: number): Lane => lanes.reduce((best, lane) =>
+  (distToLine(lane.pts, x, y) < distToLine(best.pts, x, y) ? lane : best));
+
+/**
  * The venue's own buildings (not the neighbours' homes): grandstands, the pit garages as a garage
  * row facing the pit lane, the control tower with its cab, every other building a flat-roofed
  * block, each outside the edge; and the landmarks the map does not carry where the sources show.
  * @param site the venue's builders' state
- * @param pit the pit lane (none: no garage row)
+ * @param pits the pit lanes (none: no garage row; the garages face the nearest)
  * @returns the props
  */
-function venueBuildings(site: Site, pit: Lane | null): Prop[] {
+function venueBuildings(site: Site, pits: Lane[]): Prop[] {
   const data = site.build.spec.data, props: Prop[] = [];
   const homes = data.homes.map((home) => outlineZone(placeAll(site, home.pts), SURFACES.grass));
   for (const stand of data.stands) {
     const prop = boxProp(site, stand, 'grandstand');
-    if (standClear(site, prop)) props.push(prop);
+    // (one stand mapped twice - a stand and its bleachers - keeps the first)
+    if (standClear(site, prop) && !overlapsAny(prop, props, 0)) props.push(prop);
   }
   data.buildings.forEach((building, i) => {
     const prop = boxProp(site, building, 'block');
     if (!nearRace(site, prop.x, prop.y, REACH_M)) return;
-    if (pit && /pit garages/i.test(building.name)) { placeGarageRow(props, prop, pit); return; }
+    if (pits.length && /pit garages/i.test(building.name)) {
+      placeGarageRow(props, prop, nearestLane(pits, prop.x, prop.y));
+      return;
+    }
     if (NOT_VENUE.has(building.kind) || inZones(homes, prop.x, prop.y)) return;
     if (!building.name && prop.w! * prop.h! < 40) return;
     // one structure mapped twice (a stand and a building on it): keep the first
     if (overlapsAny(prop, props)) return;
     if (!standClear(site, prop)) return;
-    // (nor moved out onto the garage row: one structure mapped in its footprint)
+    // (nor moved out onto the garage row or a stand: one structure mapped twice)
     if (props.some((other) => other.kind === 'garagerow' && inRow(other, prop))) return;
+    if (overlapsAny(prop, props.filter((other) => other.kind === 'grandstand'), 0)) return;
     props.push(/control tower/i.test(building.name) ? { ...prop, kind: 'tower' }
       : building.kind === 'hangar' ? { ...prop, kind: 'hangar' }
         : { ...prop, roof: ROOFS[i % ROOFS.length] });
@@ -312,15 +327,15 @@ function venueBuildings(site: Site, pit: Lane | null): Prop[] {
  * @param others the props
  * @returns true when they overlap
  */
-function overlapsAny(prop: Prop, others: Prop[]): boolean {
+function overlapsAny(prop: Prop, others: Prop[], pad = 0.5): boolean {
   const corners = (box: Prop): Point[] => {
     const cosR = Math.cos(box.rot || 0), sinR = Math.sin(box.rot || 0);
     return [[0, 0], [-1, -1], [1, -1], [1, 1], [-1, 1]].map(([along, across]) =>
       [box.x + cosR * along * (box.w || 0) / 2 - sinR * across * (box.h || 0) / 2,
         box.y + sinR * along * (box.w || 0) / 2 + cosR * across * (box.h || 0) / 2] as Point);
   };
-  return others.some((other) => corners(prop).some(([x, y]) => inBuilding([other], x, y, 0.5))
-    || corners(other).some(([x, y]) => inBuilding([prop], x, y, 0.5)));
+  return others.some((other) => corners(prop).some(([x, y]) => inBuilding([other], x, y, pad))
+    || corners(other).some(([x, y]) => inBuilding([prop], x, y, pad)));
 }
 
 /**
@@ -366,7 +381,8 @@ function rowSlots(site: Site, box: Prop, zone: Zone, spacing: [number, number, n
       if (slots.length >= most || site.rnd() > share) continue;
       const x = box.x + cosR * bay - sinR * row, y = box.y + sinR * bay + cosR * row;
       // never on the pit apron (between the pit lane and the garage doors)
-      if (fits(x, y) && distToLine(site.pitPts, x, y) > PIT_APRON_M) slots.push({ x, y });
+      if (fits(x, y) && site.pitPts.every((line) => distToLine(line, x, y) > PIT_APRON_M))
+        slots.push({ x, y });
     }
   return slots;
 }
@@ -692,26 +708,26 @@ export function buildVenueScenery(build: VenueBuild, sub: Subtrack, closed: Lane
   const loops = Object.values(build.loops), spec = build.spec;
   const { site, traps, lines } = venueSite(build, closed);
   // (a venue with no pit lane mapped - a rallycross venue - has none, nor a pit wall)
-  const pit = spec.pitLane ? pitLane(site) : null, pitLanes = pit ? [pit.lane] : [];
-  const pitWalls = pit && pit.wall ? [pit.wall] : [];
+  const pits = ([] as string[]).concat(spec.pitLane || []).map((name) => pitLane(site, name));
+  const pitLanes = pits.map((pit) => pit.lane);
+  const pitWalls = pits.flatMap((pit) => (pit.wall ? [pit.wall] : []));
   site.lanes.push(...pitLanes);
-  site.pitPts = pit ? pit.lane.pts : [];
+  site.pitPts = pitLanes.map((lane) => lane.pts);
   const bridges = venueBridges(site);
   site.lanes.push(...bridges.lanes);
   // the buildings first: the tunnels' portals and the edge keep off them, the roads go round them
-  site.buildings = venueBuildings(site, pitLanes[0] || null);
+  site.buildings = venueBuildings(site, pitLanes);
   finishMoves(site);
   const tunnels = venueTunnels(site);
   site.lanes.push(...tunnels.lanes);
   site.portals = tunnels.props;
   // the pit wall is its stretch's barrier: the edge keeps PIT_WALL_CLEAR_M off it (with a rail
   // mapped there, Armco stood just behind it)
-  const pitWall = pitWalls.length ? pitWalls[0].pts : null;
   // an oval's outside wall is its stretch's barrier, as the pit wall (spec.ovalWall)
   const outerWall = ovalWall(site), walls = [...pitWalls, ...(outerWall ? [outerWall] : [])];
   const edge = buildEdge(site.rims, { loops, lanes: site.lanes,
     blocked: (x, y) => inBuilding(site.buildings, x, y, 1)
-      || (!!pitWall && distToLine(pitWall, x, y) < PIT_WALL_CLEAR_M)
+      || pitWalls.some((wall) => distToLine(wall.pts, x, y) < PIT_WALL_CLEAR_M)
       || (!!outerWall && distToLine(outerWall.pts, x, y) < OVAL_WALL_CLEAR_M),
     roads: pitLanes }, traps,
   edgeNeeds(site, bridges.props, tunnels.props, lines));

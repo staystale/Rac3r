@@ -17,7 +17,8 @@
 // { "<way id>": "hangar" } sets a building's kind where the map says only building=yes; "dirt":
 // [way ids] makes a motor raceway a dirt track (Daytona's flat track), not a race road piece; a race
 // piece with a loose surface (OSM unpaved, gravel ...) is written with surface 'dirt'; "race": [way
-// ids] makes a raceway the map gives no sport a race piece. A
+// ids] makes a raceway the map gives no sport a race piece; "skip": [way ids] leaves a raceway out
+// (a driving-experience track or a motocross course beside the venue). A
 // stand longer than STAND_SLICE_M is written as its slices (a curved one round a tri-oval).
 // A layout is the shortest loop through its "through" pieces that avoids its "avoid" pieces; it is
 // written as the ordered list of pieces it runs over, so a layout is changed by editing that list.
@@ -180,7 +181,10 @@ const LOOSE = /unpaved|gravel|dirt|ground|compacted/;
 const dirtIds = new Set((config.dirt || []).map(String));
 // "race": [way ids] - raceways the map gives no sport that are race road (a link traced from Bing)
 const raceIds = new Set((config.race || []).map(String));
-const isMotor = (way) => /motor/.test(way.tags.sport || '') || raceIds.has(String(way.id));
+// "skip": [way ids] - raceways that are not the venue's (driving-experience tracks, motocross)
+const skipIds = new Set((config.skip || []).map(String));
+const isMotor = (way) => !skipIds.has(String(way.id))
+  && (/motor/.test(way.tags.sport || '') || raceIds.has(String(way.id)));
 const raceWays = ways.filter((way) => way.tags?.highway === 'raceway'
   && isMotor(way) && !/Pit Lane/i.test(way.tags.name || '')
   && !dirtIds.has(String(way.id)));
@@ -280,6 +284,7 @@ for (const way of ways) {
   else if (tags.highway === 'raceway' && dirtIds.has(String(way.id)))
     out.dirt.push({ name: tags.name || '', pts: line(0.5) });
   else if (tags.highway === 'raceway' && isMotor(way)) continue;   // a race piece
+  else if (tags.highway === 'raceway' && skipIds.has(String(way.id))) continue;
   else if (tags.highway === 'raceway') out.dirt.push({ name: tags.name || '', pts: line(0.5) });
   // (a road through a building - tunnel=building_passage - is a road, not a tunnel under the track)
   else if ((SERVICE_WIDTH[tags.highway] || FOOT_WAYS.has(tags.highway)) && tags.tunnel

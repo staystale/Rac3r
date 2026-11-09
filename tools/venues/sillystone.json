@@ -1,0 +1,121 @@
+{
+  "osm": "sillystone.osm.json",
+  "out": "src/world/levels/venues/sillystone.ts",
+  "exportName": "SILLYSTONE_VENUE",
+  "origin": [
+    52.0715,
+    -1.017
+  ],
+  "turnDeg": 0,
+  "clip": [
+    -1300,
+    -1300,
+    1300,
+    1300
+  ],
+  "reachM": 180,
+  "skip": [
+    169854666,
+    224513497,
+    227912189,
+    227912193,
+    227912202,
+    227912210,
+    227912211,
+    434659829,
+    434659834,
+    434659836,
+    434659841,
+    434659843,
+    507983803,
+    606111964,
+    606111976,
+    606111982,
+    606170294,
+    606170295,
+    606170355,
+    606170356,
+    606170358,
+    606170360,
+    606170361,
+    892391583,
+    892391584,
+    892391587,
+    892391588,
+    892391589,
+    892391591,
+    892391592,
+    892391593,
+    892391594,
+    892391595,
+    892391596,
+    892391599,
+    892391600,
+    1098338048,
+    1484867850
+  ],
+  "layouts": {
+    "gp": {
+      "through": [
+        "Hamilton Straight",
+        "Abbey",
+        "Farm Curve",
+        "Village",
+        "The Loop",
+        "Aintree",
+        "Wellington Straight",
+        "Luffield",
+        "Woodcote",
+        "National Pit Straight",
+        "Copse",
+        "Maggotts",
+        "Becketts",
+        "Chapel",
+        "Hangar Straight",
+        "Stowe",
+        "Vale Approach",
+        "Club"
+      ],
+      "avoid": [
+        "way 169733771",
+        "way 227820536",
+        "way 227820536 2",
+        "way 227820536 3",
+        "way 227332428",
+        "way 227332428 2",
+        "way 227820535",
+        "way 227820537",
+        "way 3945001"
+      ]
+    },
+    "national": {
+      "through": [
+        "Woodcote",
+        "National Pit Straight",
+        "Copse",
+        "Maggotts",
+        "way 227820537",
+        "Wellington Straight",
+        "Luffield"
+      ],
+      "avoid": [
+        "Becketts",
+        "Aintree",
+        "way 169730586 2",
+        "way 169733771",
+        "way 227820536",
+        "way 227820536 2",
+        "way 227820536 3",
+        "way 227332428",
+        "way 227332428 2",
+        "way 227820535"
+      ]
+    }
+  },
+  "names": {
+    "169618241": "Brooklands Exit",
+    "169733769": "Chapel",
+    "169848884": "Vale Approach",
+    "227332429": "Pit Garages (the Silverstone Wing)"
+  }
+}

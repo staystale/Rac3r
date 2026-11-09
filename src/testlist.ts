@@ -13,6 +13,14 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'sillystone',
+    added: '2026-11-09',
+    name: 'Sillystone (Silverstone) at 1/2 size, a new track: the GP and the National',
+    where: 'Test link + &sillystone=1: TEST MODE > CIRCUITS > Sillystone > GP / National',
+    try: 'Lap both: Copse, Maggotts-Becketts, Hangar Straight, Stowe, the Arena, the Wing pits.',
+    wrong: 'A road or prop on the track, a barrier gap, a road to nowhere, a fence not real.',
+  },
+  {
     id: 'knobhillvenue',
     added: '2026-11-09',
     name: 'Knobhill as the real venue (Knockhill) at 1/2 size: the rallycross and the circuit',

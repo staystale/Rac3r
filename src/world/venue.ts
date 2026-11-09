@@ -69,7 +69,13 @@ export interface VenueSpec {
   // the trace's smoothing (world/subtrack.ts traceTrack passes / kern), stronger where the map's
   // line jogs a few metres along a fast banked bend (Dieatona's tri-oval)
   trace?: Record<string, { passes: number; kern: number }>;
-  pitLane?: string;   // the data's pit lane in use (none: a venue with no pit lane, rallycross)
+  // the data's pit lanes in use (none: a venue with no pit lane; two: Silverstone's Wing and its
+  // National pits, both standing for every layout)
+  pitLane?: string | string[];
+  // a pit lane that cuts inside a corner (Silverstone's into the Wing, inside Club): where it
+  // stands inside a bend further off than the bend's radius it is laid as mapped (the road's
+  // measure folds)
+  pitCuts?: boolean;
   hills: Bump[];   // the hills (r and d / h in real m: scaled with the map)
   // spectator earth banks; a catch fence in front of each unless fenced is false (the sources show
   // its viewers behind the circuit's rail, no fence)

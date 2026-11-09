@@ -188,7 +188,9 @@ for (const pts of runs) {
   for (const end of [pts[0], pts[pts.length - 1]]) {
     const lane = level.lanes.find((ln) => ln.surface.id !== 'racetarmac' && distToLine(ln.pts, end[0], end[1]) < ln.width / 2 + 4);
     // (a tunnel's mouth in the barrier line closes the gap: its portal stands there, solid)
-    const atPortal = props.some((prop) => prop.kind === 'tunnel' && Math.hypot(prop.x - end[0], prop.y - end[1]) < (prop.wid || prop.w || 10) / 2 + 6);
+    const atPortal = props.some((prop) => prop.kind === 'tunnel' && Math.hypot(prop.x - end[0], prop.y - end[1]) < (prop.wid || prop.w || 10) / 2 + 6)
+      // (nor a bridge's deck over the track: its abutments stand at the barrier line)
+      || props.some((prop) => prop.kind === 'bridge' && Math.hypot(prop.x - end[0], prop.y - end[1]) < (prop.wid || prop.w || 10) / 2 + 4);
     if (lane && !atPortal) note('armco ends at a road', `end ${end.map((v) => v.toFixed(0))} by ${lane.surface.id} w${lane.width}`);
   }
 }

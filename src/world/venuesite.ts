@@ -18,7 +18,7 @@ export interface Site {
   rnd: () => number; lanes: Lane[]; buildings: Prop[];
   portals: Prop[];   // the tunnels' portals (laid before the roads, which keep off them)
   armco: Set<string>;   // the 2 m cells the Armco runs through (roads keep out of them)
-  pitPts: Point[];   // the pit lane's line (trucks and cars keep off its apron)
+  pitPts: Point[][];   // the pit lanes' lines (trucks and cars keep off their aprons)
 }
 
 export const placeAll = (site: Site, pts: Point[]): Point[] => pts.map(site.place);

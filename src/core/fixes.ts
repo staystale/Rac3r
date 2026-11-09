@@ -55,4 +55,7 @@ export const FIX = {
   // ?knobhillvenue=1: Knobhill as the real venue (Knockhill) at 1/2 of real length, the
   // rallycross (the Knobhill level) and the circuit (world/levels/knobhill-venue.ts; owner 11-09)
   knobhillvenue: atLoad('knobhillvenue'),
+  // ?sillystone=1: Sillystone (working name), a NEW venue (Silverstone) at 1/2 of real length, the
+  // GP and the National (world/levels/sillystone-venue.ts; owner 11-09)
+  sillystone: atLoad('sillystone'),
 };
