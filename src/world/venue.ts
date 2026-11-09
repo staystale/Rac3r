@@ -59,6 +59,9 @@ export interface VenueSpec {
   realRoadM: number;   // the real road's width, m (the game's is 13: the map steps back)
   calibrate: { layout: string; realLapM: number };   // the layout whose real lap sets the scale
   start: Point;   // the start / finish line
+  // the start / finish line where the spot's foot is on the line, between the map's points
+  // (Donington draws its pit straight as two; the others start at the map's point nearest the spot)
+  startOnLine?: boolean;
   starts?: Record<string, Point>;   // a layout's own start / finish line where it has another
   // m (game): the tightest radius its traced layouts keep, where the real hairpins are tighter
   // than VENUE_MIN_R at the venue's scale (eased wider, a hairpin's two legs were drawn together)
@@ -172,17 +175,27 @@ function loopLength(line: Point[]): number {
 }
 
 /**
- * Turns a closed line to start at the point nearest a spot.
+ * Turns a closed line to start at the point nearest a spot (onSegment: at the spot's foot on the
+ * line between its points - a start on a straight the map draws as two points).
  * @param line the points
  * @param spot where it should start
+ * @param onSegment the foot on the line, not the nearest of its points
  * @returns the same loop from that point
  */
-function startAt(line: Point[], spot: Point): Point[] {
-  let best = 0, bestSq = Infinity;
+function startAt(line: Point[], spot: Point, onSegment = false): Point[] {
+  let best = 0, bestSq = Infinity, foot: Point | null = null;
   line.forEach(([x, y], i) => {
-    const distSq = (x - spot[0]) ** 2 + (y - spot[1]) ** 2;
-    if (distSq < bestSq) { bestSq = distSq; best = i; }
+    const [toX, toY] = line[(i + 1) % line.length], dx = toX - x, dy = toY - y;
+    // (on a segment: the spot's foot on it, else the point itself)
+    const frac = onSegment ? Math.max(0, Math.min(1,
+      ((spot[0] - x) * dx + (spot[1] - y) * dy) / (dx * dx + dy * dy || 1))) : 0;
+    const atX = x + dx * frac, atY = y + dy * frac;
+    const distSq = (atX - spot[0]) ** 2 + (atY - spot[1]) ** 2;
+    if (distSq < bestSq)
+      [bestSq, best, foot] = [distSq, i, frac > 0 && frac < 1 ? [atX, atY] : null];
   });
+  // the foot between two points starts the loop, the next point after it
+  if (foot) return [foot, ...line.slice(best + 1), ...line.slice(0, best + 1)];
   return [...line.slice(best), ...line.slice(0, best)];
 }
 
@@ -195,7 +208,8 @@ function startAt(line: Point[], spot: Point): Point[] {
  * @returns the subtrack
  */
 function traceLayout(spec: VenueSpec, layout: string, scale: number): Subtrack {
-  const line = startAt(layoutLine(spec.data, layout), spec.starts?.[layout] || spec.start);
+  const line = startAt(layoutLine(spec.data, layout), spec.starts?.[layout] || spec.start,
+    spec.startOnLine);
   const pts = traceTrack(line, { mpp: scale, cx: 0, cy: 0, rMin: spec.minR || VENUE_MIN_R,
     ...spec.trace?.[layout] });
   const loose = looseStretches(spec, layout, scale, pts);
@@ -458,7 +472,10 @@ export function venueLevel(spec: VenueSpec, layout: string, levelId: string,
     ...(spec.rollingStart ? { rollingStart: true } : {}),
     ...(scenery.patches.length ? { patches: scenery.patches } : {}),
     zones: scenery.zones, covers: scenery.covers, bumps: prepBumps(venueBumps(build)), boards: [],
-    seams: false, cones: [...closed.cones, ...scenery.cones], bushes: CIRCUIT_BUSHES,
+    // (a closing row's tyre on another road - a pit lane easing in by the junction - left out)
+    seams: false, cones: [...closed.cones.filter((tyre) => !scenery.lanes.some((lane) =>
+      distToLine(lane.pts, tyre.x, tyre.y) < lane.width / 2)), ...scenery.cones],
+    bushes: CIRCUIT_BUSHES,
     lanes: [...jokerLanes, ...scenery.lanes, ...closed.lanes], barriers: scenery.barriers,
     props: scenery.props, solids: solidsFromProps(scenery.props),
     crossings: venueCrossings(scenery.props),

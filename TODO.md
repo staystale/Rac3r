@@ -207,6 +207,11 @@ last handover, written on request.
    stays. NO MORE CONVERSIONS of the old levels (owner 11-09 on the ovals: "don't touch ovals
    then"; the rally stages too): the venue helper moves onto NEW tracks ("Move the helper onto new
    tracks") - Donington Park next from this list, names agreed first.
+   DONGINGTON PARK BUILT 11-09 behind ?dongington=1 (levels/dongington-venue.ts, OSM data in
+   venues/dongington.ts; the venue helper; the owner picked the name): the GP (2010 m, real 4020) and
+   the National (1599 m, real 3149) one venue, venue: 'Dongington Park' (one card under ?layouts=1);
+   Armco on OSM's rails, the four real tunnels, the Hollywood grandstand, the pit garages, the valley
+   down Craner to the Old Hairpin (EU-DEM heights). UNDER TEST.
 3. ROLLING LOOK - smoother than the dice flip on the same physics; mockup first.
 4. SIDE DRAFTING (Naffcar first) PASSED + DEFAULT 11-08 (owner: "Pass"): physics/wake.ts part 5 - a nose
    alongside a car's rear quarter, up to +20 % drag on it and -6 % on the car alongside, gone by 1.2 m
