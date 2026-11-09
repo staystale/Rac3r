@@ -45,6 +45,11 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
+  // ?offaim=1: an AI off its racing line holds its place across the ROAD - its heading the road's,
+  // not the line's - so it no longer drifts with the line where the line swings across the road
+  // (owner 11-09 on Spa: "lots of crashes with big grids", "I think it's the hair pin first
+  // corner"; ai/driverSteps.ts steerAim)
+  offaim: atLoad('offaim'),
   // ?holdoncoming=1: no oncoming traffic on a single carriageway (Deaf Valley) until the race has
   // started - the other way's cars join from out of sight ahead after the green (owner 11-09:
   // "no on coming traffic on Death Valley or any small single carriage way until after the race

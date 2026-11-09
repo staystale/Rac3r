@@ -13,6 +13,14 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'offaim',
+    added: '2026-11-09',
+    name: 'AI off its line keep their place across the road: fewer cars off at a first hairpin',
+    where: 'Test link + &offaim=1: Spa-Frankenchumps VS AI, a big grid (and other tracks)',
+    try: 'Start mid-grid and watch La Source; race a few laps two and three abreast.',
+    wrong: 'The pack across the grass inside a hairpin, cars weaving, passing gone, worse elsewhere.',
+  },
+  {
     id: 'holdoncoming',
     added: '2026-11-09',
     name: 'Deaf Valley: no oncoming cars until the race has started, then they come from ahead',
