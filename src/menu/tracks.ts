@@ -25,6 +25,7 @@ export const KIND: Record<string, string> = { lab: 'TEST GROUND', 'test-track': 
   malarkey: 'UK CIRCUIT · CAR', 'malarkey-oval': 'UK CIRCUIT · OVAL',
   anglesleazy: 'UK CIRCUIT · INTERNATIONAL', 'anglesleazy-coastal': 'UK CIRCUIT · COASTAL',
   'anglesleazy-national': 'UK CIRCUIT · NATIONAL', 'anglesleazy-club': 'UK CIRCUIT · CLUB',
+  goodwoody: 'UK CIRCUIT',
   'brands-snatch-indy': 'UK CIRCUIT · INDY', snotterton: 'UK CIRCUIT · 300',
   'snotterton-200': 'UK CIRCUIT · 200', 'snotterton-100': 'UK CIRCUIT · 100',
   'sweaty-lamb': 'RALLY STAGE',

@@ -1,0 +1,64 @@
+{
+  "osm": "goodwoody.osm.json",
+  "out": "src/world/levels/venues/goodwoody.ts",
+  "exportName": "GOODWOODY_VENUE",
+  "origin": [
+    50.8585,
+    -0.7585
+  ],
+  "turnDeg": 0,
+  "clip": [
+    -900,
+    -850,
+    750,
+    800
+  ],
+  "reachM": 180,
+  "skip": [
+    171558330,
+    851598206
+  ],
+  "names": {
+    "171558328": "Woodcote exit",
+    "171558332": "Fordwater",
+    "171558335": "Chicane bypass",
+    "171558337": "Lavant Straight"
+  },
+  "layouts": {
+    "circuit": {
+      "through": [
+        "Start/Finish Straight",
+        "Madgwick",
+        "Fordwater",
+        "St. Marys",
+        "Lavant",
+        "Lavant Straight",
+        "Woodcote",
+        "Woodcote exit",
+        "Chicane"
+      ],
+      "avoid": [
+        "Chicane bypass"
+      ]
+    }
+  },
+  "extra": [
+    {
+      "source": "aerial photographs (ESRI World Imagery), traced 11-09: the footbridge over the start / finish straight by Madgwick",
+      "tags": {
+        "highway": "footway",
+        "bridge": "yes"
+      },
+      "pts": [
+        [
+          50.855976,
+          -0.752651
+        ],
+        [
+          50.855967,
+          -0.751925
+        ]
+      ]
+    }
+  ]
+}

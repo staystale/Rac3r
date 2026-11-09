@@ -13,6 +13,14 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'goodwoody',
+    added: '2026-11-09',
+    name: 'Goodwoody (the Goodwood Motor Circuit) at 1/2 size, a new track round the airfield',
+    where: 'Test link + &goodwoody=1: TEST MODE > CIRCUITS > Goodwoody',
+    try: 'Lap it: Madgwick, Fordwater, St Mary\'s, Lavant, Woodcote, the chicane, the pits.',
+    wrong: 'A road or prop on the track, a barrier gap, a road to nowhere, a fence not real.',
+  },
+  {
     id: 'passcare',
     added: '2026-11-09',
     name: 'Careful passing on Deaf Valley: racers keep their lane, pull out only when it is clear',

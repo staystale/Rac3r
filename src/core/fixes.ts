@@ -57,6 +57,9 @@ export const FIX = {
   // ?anglesleazy=1: Anglesleazy, a NEW venue (the Anglesey Circuit) at 1/2 of real length, the
   // International, Coastal, National and Club (world/levels/anglesleazy-venue.ts; owner 11-09)
   anglesleazy: atLoad('anglesleazy'),
+  // ?goodwoody=1: Goodwoody, a NEW venue (the Goodwood Motor Circuit) at 1/2 of real length
+  // (world/levels/goodwoody-venue.ts; owner 11-09: "Yes do those all")
+  goodwoody: atLoad('goodwoody'),
   // ?gantry=1: a start gantry's far leg goes on past a lane or a building behind the edge (was:
   // back to the old spot, 3 m past the road's edge; world/venueposts.ts startGantry)
   gantry: atLoad('gantry'),

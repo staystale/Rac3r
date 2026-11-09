@@ -36,6 +36,7 @@ import { SS_LEVELS } from "./sillystone-venue.ts";
 import { CW_LEVELS } from "./cadwallop-venue.ts";
 import { MP_LEVELS } from "./malarkey-venue.ts";
 import { AG_LEVELS } from "./anglesleazy-venue.ts";
+import { GW_LEVELS } from "./goodwoody-venue.ts";
 import { OP_LEVELS } from "./oultonpork-venue.ts";
 import { DT_LEVELS } from "./dieatona-venue.ts";
 import { TH_VENUE_LEVEL } from "./thruston-venue.ts";
@@ -208,6 +209,8 @@ export const LEVELS: Level[] = [
   ...MP_LEVELS,
   // ?anglesleazy=1: Anglesleazy, a new venue (anglesleazy-venue.ts), its four layouts
   ...(FIX.anglesleazy ? AG_LEVELS : []),
+  // ?goodwoody=1: Goodwoody, a new venue (goodwoody-venue.ts)
+  ...(FIX.goodwoody ? GW_LEVELS : []),
   // Oulton Pork, a new venue (oultonpork-venue.ts), its International, Island and Frosters
   ...OP_LEVELS,
   // ?thrustonvenue=1: the real venue (thruston-venue.ts), built on first use
