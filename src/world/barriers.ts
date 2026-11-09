@@ -646,7 +646,7 @@ export function barrierClamp(car: CarBody): void {
  */
 function hitBarrier(car: CarBody, barrier: Barrier, vx0: number, vy0: number): void {
   noteHit(car, barrier.kind);
-  if (barrier.kind === 'jersey') rideUp(car, vx0, vy0);
+  if (barrier.kind === 'jersey') rideUp(car, vx0, vy0, barrier._segs);
 }
 
 /**

@@ -17,6 +17,7 @@
 // that ground (sparks on hard ground). Sim time (rule 5): it moves the car; render.ts draws it
 // (faces, sparks), main.ts hands control back on RESET (player) or resets the AI. m: body height
 // (the side face the camera sees on a rolled car)
+import type { RideUp } from "./world/jersey.ts";
 import { rollShapeOf, shapedHit } from './physics/rollshape.ts';
 import { levelFlipRamps, rampFlip } from './world/flipramps.ts';
 import { LEVEL } from './world/state.ts';
@@ -47,7 +48,7 @@ export interface RollCar {
   // what it slid into
   _sideKick?: { dir: number; dv: number; carry?: number } | null;
   // a Jersey barrier ridden up (world/jersey.ts): the roll's way, its sideways speed and chance
-  _rideUp?: { dir: number; vLat: number; chance: number } | null;
+  _rideUp?: RideUp | null;
   _rideCool?: number;
 }
 /** Called when the body hits the ground: the quarter-turn kind (side / roof) and how hard. */
@@ -124,6 +125,35 @@ function carryOver(car: RollCar, carry: number) {
   car.vy += cosH * add;
 }
 
+/**
+ * A car going over a Jersey barrier (?jerseyover=1) crosses it at this speed, its speed along it
+ * kept.
+ * @param car the car
+ * @param over the way across (a unit vector) and m/s
+ */
+function goAcross(car: RollCar, over: { nx: number; ny: number; v: number }) {
+  const add = over.v - (car.vx * over.nx + car.vy * over.ny);
+  car.vx += over.nx * add;
+  car.vy += over.ny * add;
+}
+
+/**
+ * A Jersey barrier's face ridden up fast (world/jersey.ts): the roll it may start.
+ * @param car the car
+ * @param rnd the dice
+ * @returns true when the car started to roll
+ */
+function rideRoll(car: RollCar, rnd: () => number): boolean {
+  if (car._rideCool) car._rideCool--;
+  const ride = car._rideUp;
+  car._rideUp = null;
+  if (!ride || rnd() >= ride.chance) return false;
+  startRoll(car, ride.dir, ride.vLat);
+  // (?jerseyover=1: over the top, on across it)
+  if (ride.over) goAcross(car, ride.over);
+  return true;
+}
+
 // call each sim step while the car is on its wheels (after vehicle.step)
 export function tripCheck(car: RollCar, dt: number, rnd: () => number = Math.random) {
   if (rolling(car)) return false;
@@ -132,14 +162,7 @@ export function tripCheck(car: RollCar, dt: number, rnd: () => number = Math.ran
     stability = ssf / SSF_REF;
   const cosH = Math.cos(car.heading), sinH = Math.sin(car.heading),
     vLat = -car.vx * sinH + car.vy * cosH;
-  // a Jersey barrier's face ridden up fast (world/jersey.ts)
-  if (car._rideCool) car._rideCool--;
-  const ride = car._rideUp;
-  car._rideUp = null;
-  if (ride && rnd() < ride.chance) {
-    startRoll(car, ride.dir, ride.vLat);
-    return true;
-  }
+  if (rideRoll(car, rnd)) return true;
   // a hard side impact (damage.ts) or a crooked landing
   const kick = car._sideKick;
   car._sideKick = null;

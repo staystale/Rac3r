@@ -44,6 +44,11 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
+  // ?jerseyover=1: a Jersey barrier rolls most cars that hit it fast - every one at 100 mph - and
+  // throws most of those over the top into the other carriageway (owner 11-09: "There should be a
+  // high chance to roll over jersey barrier - hitting it over 100mph should flip you and have a
+  // high chance to allow you over it into on coming traffic"; world/jersey.ts)
+  jerseyover: atLoad('jerseyover'),
   // ?holdoncoming=1: no oncoming traffic on a single carriageway (Deaf Valley) until the race has
   // started - the other way's cars join from out of sight ahead after the green (owner 11-09:
   // "no on coming traffic on Death Valley or any small single carriage way until after the race
