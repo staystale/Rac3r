@@ -14,7 +14,7 @@
 // rollover, rollbody, snotterton, sidedraft passed 11-08; oultonpork, sillystone, runoff, laplen,
 // oncoming, oultonrails, cadwallop, malarkey, medians, twoway, clearance, passcare, gantry,
 // anglesleazy, goodwoody, croughed, jerseyover, shoulder, laybys, farlaybys, barrierends,
-// hwpick, desertroom passed 11-09.)
+// hwpick, desertroom, spa passed 11-09.)
 import { envValue } from './debug.ts';
 
 /**
@@ -61,7 +61,4 @@ export const FIX = {
   // ?knobhillvenue=1: Knobhill as the real venue (Knockhill) at 1/2 of real length, the
   // rallycross (the Knobhill level) and the circuit (world/levels/knobhill-venue.ts; owner 11-09)
   knobhillvenue: atLoad('knobhillvenue'),
-  // ?spa=1: Spa-Frankenchumps, a NEW venue (the Circuit de Spa-Francorchamps) at 1/2 of real
-  // length, the first of the world championship circuits (world/levels/spa-venue.ts; owner 11-09)
-  spa: atLoad('spa'),
 };

@@ -215,8 +215,8 @@ export const LEVELS: Level[] = [
   ...GW_LEVELS,
   // Croughed, a new venue (croughed-venue.ts), its two layouts
   ...CR_LEVELS,
-  // ?spa=1: Spa-Frankenchumps, a new venue (spa-venue.ts), the first world championship circuit
-  ...(FIX.spa ? SPA_LEVELS : []),
+  // Spa-Frankenchumps, a venue (spa-venue.ts), the first world championship circuit (passed 11-09)
+  ...SPA_LEVELS,
   // Oulton Pork, a new venue (oultonpork-venue.ts), its International, Island and Frosters
   ...OP_LEVELS,
   // ?thrustonvenue=1: the real venue (thruston-venue.ts), built on first use

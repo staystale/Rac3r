@@ -1,4 +1,4 @@
-// world/levels/spa-venue.ts - SPA-FRANKENCHUMPS, a NEW venue (world/venue.ts; owner 11-09: the
+// world/levels/spa-venue.ts - SPA-FRANKENCHUMPS, a venue (world/venue.ts; owner 11-09, passed: the
 // world championship circuits): the Circuit de Spa-Francorchamps (Belgium) from OpenStreetMap
 // (venues/spa.ts) at 1/2 of real length with the 13 m road: La Source, the old pit straight down
 // to Eau Rouge, Raidillon, the Kemmel straight up to Les Combes, Malmedy, Rivage, Speaker's
