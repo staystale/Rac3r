@@ -58,8 +58,9 @@ const RUN_MAX_M = 60;
 const FLARE_ON_M = 6, FLARE_OUT_M = 1.6;
 // m a flare's points keep from a catch fence (an Armco end meeting one is not flared across it)
 const FLARE_CLEAR_M = 3;
-// m within which an Armco end is carried on to a catch fence's end (the two meet, no gap)
-const FENCE_JOIN_M = 4;
+// m within which an Armco end is carried on to a catch fence's end (the two meet, no gap; at 4 m
+// Spa's La Source left a 4.4 m gap - the fence stands back further than the Armco)
+const FENCE_JOIN_M = 5;
 // m off a road's edge a barrier's end keeps (the pit lane leaving the track meets no end head on)
 const END_ROAD_M = 4;
 // m in front of the Armco of its two tyre rows behind a trap, and the second row's stagger

@@ -37,6 +37,9 @@ const FLOOD_GAP_M: Record<string, number> = { circuits: 140, ovals: 70, rx: 110 
 const LAMP_ROAD_M = 5;
 // clearances, m: a street light's post and a pylon's base; lamps apart
 const STREET_REACH_M = 1, FLOOD_REACH_M = 2.5, LAMP_APART_M = 8;
+// m a lamp keeps off a pit lane's edge (a venue's pit lane is its only concrete lane: world/
+// venuepit.ts): a street light stood 1.1 m off Spa's, on the garage apron by the pit exit
+const PIT_LANE_CLEAR_M = 2;
 // a test ground: the floodlight ring's inset from the floor edge and spacing; the lamp alley's
 // length, half width and post spacing
 const RING_INSET_M = 24, RING_GAP_M = 90;
@@ -188,8 +191,9 @@ function isFreeOfThings(level: Level, spot: Spot, reach: number): boolean {
   return !(level.solids || []).some((solid) => near(solid.x, solid.y, (solid.r || 1) + reach))
     && !(level.barriers || []).some((barrier) =>
       lineGap(barrier.pts as [number, number][], spot) < reach + 0.8)
-    && !(level.lanes || []).some((lane) =>
-      lineGap(lane.pts as [number, number][], spot) < lane.width / 2 + reach)
+    && !(level.lanes || []).some((lane) => lineGap(lane.pts as [number, number][], spot)
+      < lane.width / 2 + (lane.surface === SURFACES.concrete ? Math.max(reach, PIT_LANE_CLEAR_M)
+        : reach))
     && !(level.cones || []).some((cone) => near(cone.x, cone.y, reach + 0.8))
     && !(level.zones || []).some((zone) => isPanel(zone) && inZone(zone, spot, reach))
     && !inWater(level, spot, reach);

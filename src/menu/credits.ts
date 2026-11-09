@@ -1,6 +1,7 @@
 // menu/credits.ts - THE CREDITS SCREEN, opened from the main menu. It names who made the game,
 // then whose work the game carries: the traced circuit maps (Wikimedia Commons, CC BY-SA -
-// attribution required), OpenStreetMap's map data (ODbL - attribution required) and the menu
+// attribution required), OpenStreetMap's map data (ODbL - attribution required), the EU-DEM
+// heights the venues' hills are fitted to (Copernicus - attribution required) and the menu
 // fonts (SIL OFL). Add a line here in the same change as anything else the game takes from
 // someone else.
 import { addPane, addButton, addElement } from './widgets.ts';
@@ -26,6 +27,10 @@ const CREDITS: { heading: string; items: Credit[] }[] = [
       { what: 'Circuit venues: roads, buildings, grandstands, fences, woods',
         who: `${COPYRIGHT} OpenStreetMap contributors`, licence: 'ODbL',
         link: 'https://www.openstreetmap.org/copyright' },
+      { what: 'Circuit venues: the heights of the ground',
+        who: 'Produced using Copernicus data and information funded by the European Union'
+          + ' - EU-DEM layers', licence: 'Copernicus data policy',
+        link: 'https://land.copernicus.eu/en/data-policy' },
     ],
   },
   {

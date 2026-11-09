@@ -50,8 +50,10 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   TRACKS: Thruxton = Thruston, Castle Combe = Castle Kum (renamed from Castle Cum, owner 11-08),
   Brands Hatch = Brands Snatch,
   Knockhill = Knobhill, Lydden Hill = Slidden Hill, Kielder = Killder, Daytona = Dieatona,
-  Snetterton = Snotterton (owner 11-08), Spa-Francorchamps = Spa-Frankenchumps (owner's brief
-  11-09).
+  Snetterton = Snotterton (owner 11-08), Donington Park = Dongington Park, Silverstone =
+  Sillystone, Oulton Park = Oulton Pork (its Foster's layout = Frosters), Cadwell Park = Cadwallop
+  Park, Mallory Park = Malarkey Park, Anglesey = Anglesleazy, Goodwood = Goodwoody, Croft =
+  Croughed (owner 11-09), Spa-Francorchamps = Spa-Frankenchumps (owner's brief 11-09).
 - No keys, tokens, tunnel URLs or process IDs in the repo. No itch.io push until the owner says so.
 - The foreman may push to `main` once the change is proven (routine below).
 - Keep the test server and the tunnel running.
