@@ -424,6 +424,12 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   stronger engine at the same throttle ran 4.5 m into the next slot.
 - The loose-object STEP-ROUND is for small round things: a long ground patch (oil, glass) is not one
   obstacle, nor one per cell - every way tried put the field on the oil more (TODO 11-04).
+- A ZONE'S EDGE IS BLENDED ~6 M EACH WAY (world/blend.ts), and an outlined zone's along its BOX, not
+  its outline (11-08): Dieatona's skull as zones (2 m eyes) drew as a pale blob. A small pattern
+  on the ground is authored PATCHES (crisp squares: VenueSpec.mown), not zones.
+- A LAKE OF OVERLAPPING ELLIPSES SCALLOPS its shore ~9 % of its depth between slices (11-08): lay
+  it as turned rectangles (world/venueoval.ts), finer on a small pond; trim a slice at a road
+  rather than drop it (whole slices dropped left 40 m gaps in Lake Lloyd).
 
 ## Routine
 

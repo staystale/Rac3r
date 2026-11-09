@@ -107,8 +107,9 @@ export interface VenueSpec {
   rollingStart?: boolean;
   camber?: Record<string, Camber>;
   ovalWall?: { layout: string; gapM: number; kind: Barrier['kind'] };
-  // surfaces laid by hand as outlines (real m): a mown pattern in the infield grass
-  patches?: { pts: Point[]; surface: keyof typeof SURFACES }[];
+  // patterns mown into the grass: pixel art in short grass ('#' a square pxM game m across, any
+  // other character the grass left long), its middle at `at` (real m), the rows top to bottom
+  mown?: { at: Point; pxM: number; rows: string[] }[];
   seed: number;
 }
 
@@ -238,7 +239,7 @@ function warpSpec(spec: VenueSpec): VenueSpec {
     railsSeen: walk(spec.railsSeen) as VenueSpec['railsSeen'],
     pads: walk(spec.pads) as VenueSpec['pads'],
     landmarks: walk(spec.landmarks) as VenueSpec['landmarks'], start: move(spec.start),
-    patches: walk(spec.patches) as VenueSpec['patches'],
+    mown: walk(spec.mown) as VenueSpec['mown'],
     starts: walk(spec.starts) as VenueSpec['starts'] };
 }
 
@@ -385,6 +386,7 @@ export function venueLevel(spec: VenueSpec, layout: string, levelId: string,
       scenery.bounds.y1)),
     camber: spec.camber?.[layout] || { maxDeg: 3, refR: 70, crown: 0.02, edge: 6, sections: [] },
     ...(spec.rollingStart ? { rollingStart: true } : {}),
+    ...(scenery.patches.length ? { patches: scenery.patches } : {}),
     zones: scenery.zones, covers: scenery.covers, bumps: prepBumps(venueBumps(build)), boards: [],
     seams: false, cones: [...closed.cones, ...scenery.cones], bushes: CIRCUIT_BUSHES,
     lanes: [...scenery.lanes, ...closed.lanes], barriers: scenery.barriers,

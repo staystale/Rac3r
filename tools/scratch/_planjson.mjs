@@ -16,10 +16,17 @@ for (const zone of (level.zones || []).filter((entry) => entry.poly)) {
   cmds.push({ t: 'poly', pts: zone.poly.map(px),
     col: id === 'gravel' ? '#e0cf9a' : id === 'tarmac' ? '#8a8f99' : id === 'wet' ? '#7fa6c9' : '#b9c7ae' });
 }
+for (const patch of level.patches || []) {
+  const [hw, hh] = [patch.w / 2, patch.h / 2];
+  cmds.push({ t: 'poly', pts: [[-hw, -hh], [hw, -hh], [hw, hh], [-hw, hh]].map(([u, v]) => px([patch.x + u, patch.y + v])), col: '#a8bc70' });
+}
 for (const cover of level.covers || []) {
   const cosR = Math.cos(cover.rot || 0), sinR = Math.sin(cover.rot || 0), ring = [];
-  for (let k = 0; k < 16; k++) {
-    const ang = k / 16 * Math.PI * 2, u = Math.cos(ang) * cover.w / 2, v = Math.sin(ang) * cover.h / 2;
+  const ring16 = cover.shape === 'ellipse';
+  for (let k = 0; k < (ring16 ? 16 : 4); k++) {
+    const ang = ring16 ? k / 16 * Math.PI * 2 : (k + 0.5) / 4 * Math.PI * 2;
+    const u = (ring16 ? Math.cos(ang) : Math.sign(Math.cos(ang))) * cover.w / 2;
+    const v = (ring16 ? Math.sin(ang) : Math.sign(Math.sin(ang))) * cover.h / 2;
     ring.push(px([cover.x + cosR * u - sinR * v, cover.y + sinR * u + cosR * v]));
   }
   cmds.push({ t: 'poly', pts: ring, col: cover.water ? '#4f86c6' : '#9ab' });
