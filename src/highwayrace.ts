@@ -16,6 +16,7 @@
 // -> "PULLING AWAY n"; at 0 the race ends and you have won. Positions = how far up the road.
 import { roadFrame, roadPose, roadSpan } from './highway.ts';
 import { shoulderOff } from './highway/road.ts';
+import { bayBehind } from './highway/laybys.ts';
 import type { HwLevel } from './highway/hwtypes.ts';
 import type { AiCar, HighwayLevel } from "./ai/types.ts";
 import { endRace, order } from "./ai/hwFlow.ts";
@@ -74,6 +75,12 @@ export function hwPutBack(level: HighwayLevel, dist: number, cars: AiCar[]) {
   const { s0, s1 } = roadSpan(level);
   dist = Math.max(s0 + 60, Math.min(s1 - 60, dist));
   const off = shoulderOff(level as unknown as HwLevel);
+  const free = (spot: number, across: number) => !cars.some((other) => other._hwf
+    && Math.abs(other._hwf.off - across) < 2.6 && Math.abs(other._hwf.s - spot) < 8);
+  // (?laybys=1: the last lay-by behind, a spot in it clear of cars)
+  const bay = bayBehind(level as unknown as HwLevel, dist, (spot) => free(spot, -(level._hw.geo.hw
+    + 1.6)), s0 + 20);
+  if (bay) return roadPose(level, bay.s, bay.off);
   for (let tries = 0; tries < PUT_BACK_TRIES && cars.some((other) => other._hwf
     && Math.abs(other._hwf.off - off) < 2.6 && Math.abs(other._hwf.s - dist) < 10); tries++)
     dist = Math.max(s0 + 60, dist - 12);

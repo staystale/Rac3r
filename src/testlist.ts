@@ -13,6 +13,14 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'laybys',
+    added: '2026-11-09',
+    name: 'Lay-bys every 250-400 m on the dual, walled and canyon roads; resets go to the last one',
+    where: 'Test link + &laybys=1: Highway to Hull > DUAL C/WAY, WALLED; DEAF VALLEY',
+    try: 'Press R, go wide, go the wrong way, crash a racer: back in the lay-by behind.',
+    wrong: 'A wall, tree, rock or sign in a lay-by, a reset in a lane, a lay-by over a drop.',
+  },
+  {
     id: 'holdoncoming',
     added: '2026-11-09',
     name: 'Deaf Valley: no oncoming cars until the race has started, then they come from ahead',

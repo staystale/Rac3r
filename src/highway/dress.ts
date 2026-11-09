@@ -1,5 +1,6 @@
 // highway dress: the per-window dressing (trees, gantries, armco, walls, litter) and the
 // NOX / NOF node-tool switches. Split out of highway.ts.
+import { layLaybys, bayOut } from "./laybys.ts";
 import { envValue } from "../core/debug.ts";
 import { STEP, SIGNS } from "./presets.ts";
 import { stateOf } from "./road.ts";
@@ -39,9 +40,9 @@ function makeDressContext(level: HwLevel, firstIdx: number, endIdx: number, loos
       rot: heading,
     };
   };
-  // clear of the road AND of every approach / river / slip (st.keep) AND of the secret side road
-  // (its points carry sideOff)
-  const clear = (x: number, y: number, radius: number) => {
+  // clear of the road AND of the secret side road (its points carry sideOff) - and (clear) of every
+  // approach / river / slip / lay-by (st.keep)
+  const roadClear = (x: number, y: number, radius: number) => {
     for (let j = Math.max(0, firstIdx - 60); j < Math.min(road.length, endIdx + 60); j += 2) {
       const dist2 = (road[j].x - x) ** 2 + (road[j].y - y) ** 2;
       if (
@@ -50,9 +51,12 @@ function makeDressContext(level: HwLevel, firstIdx: number, endIdx: number, loos
       )
         return false;
     }
-    return !blocked(state.keep, x, y, radius);
+    return true;
   };
-  return { level, state, rand, halfWidth, road, firstIdx, endIdx, loose, pointAt, clear };
+  const clear = (x: number, y: number, radius: number) => roadClear(x, y, radius)
+    && !blocked(state.keep, x, y, radius);
+  return { level, state, rand, halfWidth, road, firstIdx, endIdx, loose, pointAt, clear,
+    roadClear };
 }
 
 /**
@@ -248,7 +252,9 @@ function layArmco(ctx: DressCtx) {
           flush();
           continue;
         }
-        const pos = pointAt(j, runNow.side * (halfWidth + 1.8));
+        // (?laybys=1: out round a lay-by)
+        const pos = pointAt(j, runNow.side * (halfWidth + 1.8
+          + (runNow.side < 0 ? bayOut(level, road[j].s) : 0)));
         pts.push([pos.x, pos.y]);
       }
       flush();
@@ -284,11 +290,13 @@ function layWalls(ctx: DressCtx) {
             flush();
             continue;
           }
+          // (?laybys=1: the left wall out round a lay-by)
+          const edge = halfWidth + wallGap + (side < 0 ? bayOut(level, road[j].s) : 0);
           const pos = pointAt(
             j,
             sideOffset
-              ? -Math.max(halfWidth + wallGap, sideOffset + SLIP_W / 2 + wallGap)
-              : side * (halfWidth + wallGap)
+              ? -Math.max(edge, sideOffset + SLIP_W / 2 + wallGap)
+              : side * edge
           );
           pts.push([pos.x, pos.y]);
         }
@@ -307,6 +315,8 @@ function layWalls(ctx: DressCtx) {
  */
 export function dress(level: HwLevel, firstIdx: number, endIdx: number, loose: LevelObj[]) {
   const ctx = makeDressContext(level, firstIdx, endIdx, loose);
+  // (?laybys=1: the lay-bys first - the scenery keeps off them)
+  layLaybys(ctx);
   // a themed road dresses its own way (Deaf Valley: highway/canyon.ts)
   if (level._cfg.theme === 'canyon') {
     dressCanyon(ctx);

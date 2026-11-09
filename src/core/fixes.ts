@@ -44,6 +44,11 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
+  // ?laybys=1: a lay-by on our left every 250-400 m of a road whose hard shoulder is narrower than
+  // a car (the dual carriageway, the walled road, the canyon road), every reset there back to the
+  // last one behind (owner 11-09: "all roads should have some kind of extra tarmac breathing room
+  // for the reset", "Let's try lay-bys behind a switch"; highway/laybys.ts)
+  laybys: atLoad('laybys'),
   // ?holdoncoming=1: no oncoming traffic on a single carriageway (Deaf Valley) until the race has
   // started - the other way's cars join from out of sight ahead after the green (owner 11-09:
   // "no on coming traffic on Death Valley or any small single carriage way until after the race

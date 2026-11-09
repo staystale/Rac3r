@@ -4,11 +4,12 @@
 // make sure they also reset to a approved reset point"): the autopilot drives each road to 500 m,
 // then each way a reset comes - the R key from the other carriageway (or the oncoming lane), R
 // from 40 m off the road, the off-road guard (90 m off), the wrong-way guard - and where it put
-// the car: across the road against the hard shoulder, and its heading off the road's.
-// [ROADS=motorway,dual,walled,canyon] [QUERY=] node tools/scratch/_resetspots.mjs
+// the car: across the road against the hard shoulder (past the road edge: in a lay-by, ?laybys=1),
+// how far back, its heading off the road's; a phone-size photo after each R.
+// [ROADS=motorway,dual,walled,canyon] [QUERY=laybys=1] node tools/scratch/_resetspots.mjs
 import { startServer, launchBrowser, gotoGame } from '../lib/browser.mjs';
 const roads = (process.env.ROADS || 'motorway,interstate,dual,walled,canyon').split(',');
-const query = process.env.QUERY ?? '';
+const query = process.env.QUERY ?? 'laybys=1';
 const server = await startServer();
 const browser = await launchBrowser();
 try {
@@ -28,17 +29,21 @@ try {
         await page.waitForTimeout(500);
       }
       // moved across the road from where it is (the road's right: + off)
-      const moved = await page.evaluate((kind) => {
+      let moved = null;
+      // (the road frame is null for a step after a put-back)
+      for (let waited = 0; waited < 30 && !moved; waited++) moved = await page.waitForTimeout(100)
+        .then(() => page.evaluate((kind) => {
         const game = window.__game, level = game.level, q = level._hw.q, car = game.car;
+        if (!q) return null;
         const geo = level._hw.geo, far = geo.oncoming.length ? geo.oncoming[0] : geo.hw - 1;
         const to = kind.startsWith('R, the other') ? far : kind.startsWith('R, 40') ? geo.hw + 40
           : kind.startsWith('guard, 90') ? geo.hw + 90 : null;
         game.notice = null;
-        if (to === null) { level._hw.best = q.s + 300; return { from: q.off }; }
+        if (to === null) { level._hw.best = q.s + 300; return { from: q.off, s: q.s + 300 }; }
         const by = to - q.off;
         car.x += -q.dy * by; car.y += q.dx * by;
-        return { from: +to.toFixed(1) };
-      }, how);
+        return { from: +to.toFixed(1), s: kind.startsWith('guard') ? level._hw.best : q.s };
+      }, how));
       if (how.startsWith('R')) {
         await page.waitForTimeout(150);
         await page.keyboard.press('r');
@@ -51,16 +56,20 @@ try {
           if (!q) return null;
           const geo = level._hw.geo, cfg = level._cfg;
           const off = q.off, head = Math.atan2(q.dy, q.dx) - car.heading;
-          return { off: +off.toFixed(2), shoulder: [-geo.hw, -geo.hw + cfg.shoulder]
+          return { off: +off.toFixed(2), s: q.s, edge: -geo.hw, shoulder: [-geo.hw, -geo.hw + cfg.shoulder]
             .map((value) => +value.toFixed(2)), lane: +geo.centres[0].toFixed(2),
           turned: Math.round(Math.abs(Math.atan2(Math.sin(head), Math.cos(head))) * 180 / Math.PI),
           why: game.notice?.text ?? '-' };
         });
         if (res && how.startsWith('guard') && res.why === '-') res = null;
       }
+      const where = res && res.off < res.edge - 0.3 ? 'IN A LAY-BY' : 'on the road';
       lines.push(`  ${how.padEnd(17)} from ${String(moved.from).padStart(6)}: `
-        + (res ? `-> ${res.off} (shoulder ${res.shoulder.join('..')}, left lane ${res.lane}),`
-          + ` ${res.turned} deg off the road's way, "${res.why}"` : 'no reset seen'));
+        + (res ? `-> ${res.off} ${where} (edge ${res.edge.toFixed(2)}, shoulder `
+          + `${res.shoulder.join('..')}), ${Math.round(moved.s - res.s)} m back, ${res.turned} deg`
+          + ` off the road's way, "${res.why}"` : 'no reset seen'));
+      if (how.startsWith('R, the')) await page.screenshot({ path:
+        `tools/scratch/_resetspot-${road}-390.png`, clip: { x: 227, y: 0, width: 390, height: 390 } });
       await page.waitForTimeout(1500);
     }
     console.log(road + ':\n' + lines.join('\n'));

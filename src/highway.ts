@@ -18,6 +18,7 @@
 // continuous across every join — straight -> sweeper -> S-bend -> straight, no kinks, no sudden
 // steering. LANES are config (HW_PRESETS): a UK motorway, a wide interstate, a skinny dual
 // carriageway — the same generator for later flavour levels.
+import { bayOut, bayBehind } from "./highway/laybys.ts";
 import { pruneHedges, resetHedges } from "./highway/hedges.ts";
 import { readSettings } from "./core/settings.ts";
 import { createSubtrack, ghostSegment } from "./world/subtrack.ts";
@@ -345,12 +346,30 @@ export function highwayGuard(level: HwLevel, car: HwCar, dt: number) {
 // the put-back pose (wrong way, off the road, an exit taken): the hard shoulder, a few metres short
 // of the furthest point reached, facing up the road
 export function highwayRespawn(level: HwLevel) {
-  const state = stateOf(level), dist = Math.max(0, state.best - 6 - state.pts[0].s);
-  const pos = onTrack(level.subtrack!, dist, shoulderOff(level), {});
-  state.backT = 0;
-  state.ci = Math.min(state.pts.length - 1, Math.round(dist / STEP));
-  state.q = null;
+  const state = stateOf(level), first = state.pts[0].s;
+  // (?laybys=1: the last lay-by behind)
+  const bay = bayBehind(level, state.best - 6, undefined, first + 20);
+  const dist = Math.max(0, (bay ? bay.s : state.best - 6) - first);
+  const pos = onTrack(level.subtrack!, dist, bay ? bay.off : shoulderOff(level), {});
+  rehome(level, dist + first);
   return { x: pos.x, y: pos.y, h: pos.rot };
+}
+
+/**
+ * The car put down elsewhere on the road (a reset): its road frame is looked for there, not where
+ * it was.
+ * @param level the highway level
+ * @param dist the road distance it is put at, m
+ */
+export function rehome(level: HwLevel, dist: number) {
+  const state = stateOf(level);
+  state.backT = 0;
+  // (the furthest point reached comes back to it: the wrong-way guard reads 30 m short of that
+  // as gone back - MEASURED, ?laybys=1: a lay-by 140 m behind was reset WRONG WAY every step)
+  state.best = Math.min(state.best, dist);
+  state.ci = Math.max(0, Math.min(state.pts.length - 1, Math.round((dist - state.pts[0].s)
+    / STEP)));
+  state.q = null;
 }
 // ROAD TYPE (requirement: how do I test the lane presets — I don't see any buttons): Test
 // Mode setup offers lv.roadTypes; the launch calls this before the restart builds the road.
@@ -370,7 +389,8 @@ const baseOf = (preset: string) =>
 // the ground off the road: Deaf Valley's gorges and washes (highway/gorge.ts), else flat
 const roadsideOf = (level: HwLevel, preset: string) => HW_PRESETS[preset].theme === 'canyon'
   ? (dist: number, offset: number, halfWidth: number, spot: { x: number; y: number }) =>
-    desertGround(dist, offset, halfWidth, level.seed, spot) : undefined;
+    desertGround(dist, offset, halfWidth + (offset < 0 ? bayOut(level, dist) : 0), level.seed,
+      spot) : undefined;
 const settings = readSettings(typeof location !== 'undefined' ? location.search : '');
 const QUERY_PRESET = typeof location !== 'undefined' ? settings.highwayDebug : null;
 export function createHighway(seed: number = 4242, preset: string = 'motorway') {

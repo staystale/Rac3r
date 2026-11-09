@@ -244,7 +244,9 @@ export function roomAt(ctx: DressCtx, i: number, side: number, want: number,
   let off = want;
   for (; off > ctx.halfWidth + margin; off -= 1.5) {
     const pos = ctx.pointAt(i, side * off);
-    if (ctx.clear(pos.x, pos.y, margin)) return off;
+    // (the road only: a lay-by's keep-out is what a wall stands round - MEASURED, ?laybys=1: read
+    // as blocked, it pulled the canyon's face in a 1.5 m step at a time, a sawtooth)
+    if (ctx.roadClear(pos.x, pos.y, margin)) return off;
   }
   return off;
 }

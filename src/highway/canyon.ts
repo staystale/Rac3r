@@ -11,6 +11,7 @@
 // puncture).
 // Everything is a function of road distance (and the road's own seed), so the stretches each
 // dress call lays join exactly.
+import { bayOut } from './laybys.ts';
 import { stretchAt } from './desertplan.ts';
 import { SURFACES } from '../world/surfaces.ts';
 import { gorgeAt, rimOf, layGround, roomAt } from './gorge.ts';
@@ -66,6 +67,23 @@ function wallGapAt(dist: number, side: number, seed: number): number | null {
   return UPHILL_MIN + (UPHILL_MAX - UPHILL_MIN) * wobble + out;
 }
 
+// m a lay-by cut into the rock keeps its face off the lay-by's outer edge (?laybys=1)
+const NOTCH_M = 0.6;
+
+/**
+ * The rock's face off the road edge for a road: wallGapAt, cut back into the rock on our left where
+ * a lay-by needs the room (?laybys=1, owner 11-09: "cut it out the rock don't move the rock / Like
+ * real life": the rock behind stays where it was - layRockWalls).
+ * @param ctx the dress context
+ * @param dist road distance
+ * @param side -1 / +1
+ * @returns m off the road edge, or null
+ */
+function gapOf(ctx: DressCtx, dist: number, side: number): number | null {
+  const gap = wallGapAt(dist, side, ctx.state.seed), bay = side < 0 ? bayOut(ctx.level, dist) : 0;
+  return gap === null || bay <= 0 ? gap : Math.max(gap, bay + NOTCH_M);
+}
+
 /**
  * The rock walls of road points [firstIdx, endIdx): each side in PIECE-point pieces (overlapping
  * by one point), each with its rock band and two strata lines, kept off every other part of the
@@ -73,7 +91,7 @@ function wallGapAt(dist: number, side: number, seed: number): number | null {
  * @param ctx the dress context
  */
 function layRockWalls(ctx: DressCtx) {
-  const { level, halfWidth, road, firstIdx, endIdx, pointAt } = ctx, seed = ctx.state.seed;
+  const { level, halfWidth, road, firstIdx, endIdx, pointAt } = ctx;
   for (let startIdx = Math.max(0, firstIdx - 1); startIdx < endIdx; startIdx += PIECE)
     for (const side of [-1, 1]) {
       let face: Point[] = [], back: Point[] = [], strata: Point[][] = [[], []];
@@ -83,18 +101,21 @@ function layRockWalls(ctx: DressCtx) {
         face = []; back = []; strata = [[], []];
       };
       for (let j = startIdx; j <= Math.min(endIdx, road.length - 1, startIdx + PIECE); j++) {
-        const dist = road[j].s, gap = wallGapAt(dist, side, seed);
+        const dist = road[j].s, gap = wallGapAt(dist, side, ctx.state.seed);
         if (gap === null) { flush(); continue; }
-        const near = roomAt(ctx, j, side, halfWidth + gap, 2.5),
-          deep = Math.max(2, roomAt(ctx, j, side, near + thickAt(dist, side), 3) - near),
+        // (the rock as it stands; a lay-by's notch cuts its face back, never past its back -
+        // the strata cut off at the face)
+        const from = roomAt(ctx, j, side, halfWidth + gap, 2.5),
+          deep = Math.max(2, roomAt(ctx, j, side, from + thickAt(dist, side), 3) - from),
+          near = Math.min(from + deep - 1, Math.max(from, halfWidth + gapOf(ctx, dist, side)!)),
           spot = (off: number) => {
-            const pos = pointAt(j, side * off);
+            const pos = pointAt(j, side * Math.max(near, off));
             return [pos.x, pos.y] as Point;
           };
         face.push(spot(near));
-        back.push(spot(near + deep));
-        strata[0].push(spot(near + deep * (0.32 + 0.06 * Math.sin(dist / 23 + side))));
-        strata[1].push(spot(near + deep * (0.66 + 0.06 * Math.sin(dist / 31 - side))));
+        back.push(spot(from + deep));
+        strata[0].push(spot(from + deep * (0.32 + 0.06 * Math.sin(dist / 23 + side))));
+        strata[1].push(spot(from + deep * (0.66 + 0.06 * Math.sin(dist / 31 - side))));
       }
       flush();
     }
@@ -300,7 +321,7 @@ export function dressCanyon(ctx: DressCtx) {
       gasStation(ctx, i, stretch.index);
     if (stretch.kind !== 'canyon') roadSign(ctx, i);
     if (i % 2 === 0) for (const side of [-1, 1]) {
-      const gap = wallGapAt(dist, side, state.seed), cut = gorgeAt(dist, side, state.seed);
+      const gap = gapOf(ctx, dist, side), cut = gorgeAt(dist, side, state.seed);
       if (stretch.kind === 'desert') desertProps(ctx, i, side, halfWidth + 1);
       else if (stretch.kind === 'dunes') dunesProps(ctx, i, side, halfWidth + 2);
       // past a gorge's far rim, the plateau
@@ -309,7 +330,7 @@ export function dressCanyon(ctx: DressCtx) {
     }
     // the board at the start of each canyon
     if (stretch.kind === 'canyon' && stretch.along < 4) {
-      const pos = ctx.pointAt(i, -(halfWidth + 5));
+      const pos = ctx.pointAt(i, -(halfWidth + 5 + bayOut(level, dist)));
       level.props.push({ kind: 'board', x: pos.x, y: pos.y, rot: pos.rot, label: 'DEAF VALLEY',
         _s: dist } as Prop);
     }

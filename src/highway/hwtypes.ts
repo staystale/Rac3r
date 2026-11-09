@@ -128,4 +128,6 @@ export interface DressCtx {
   loose: LevelObj[];   // receives the loose objects (the level's cones on the first stretch)
   pointAt: (i: number, off: number) => HwPose;
   clear: (x: number, y: number, radius: number) => boolean;
+  // clear of the road alone (not of the keep-out areas: a wall stands round a lay-by)
+  roadClear: (x: number, y: number, radius: number) => boolean;
 }

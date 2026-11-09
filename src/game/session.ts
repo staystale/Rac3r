@@ -2,7 +2,9 @@
 import { lineUpCrashBench } from './crashbench.ts';
 import { hwLevel } from './state.ts';
 import { reset } from '../vehicle.ts';
-import { resetHighway, roadFrame, roadPose, highwayRespawn } from '../highway.ts';
+import { resetHighway, roadFrame, roadPose, roadSpan, highwayRespawn, rehome }
+  from '../highway.ts';
+import { bayBehind } from '../highway/laybys.ts';
 import { shoulderOff } from '../highway/road.ts';
 import { createHwFlow, hwGridSpan } from '../highwayrace.ts';
 import { createRaceFlow } from '../raceflow.ts';
@@ -164,8 +166,11 @@ function resetOnJoker(place: PlaceCar) {
 function resetOnShoulder(place: PlaceCar): boolean {
   if (!LEVEL.endless) return false;
   const level = hwLevel(), here = roadFrame(level, game.car.x, game.car.y, null);
-  const pose = here ? roadPose(level, here.s - RESET_BACK, shoulderOff(level))
-    : highwayRespawn(level);
+  // (?laybys=1: the last lay-by behind)
+  const bay = here && bayBehind(level, here.s - RESET_BACK, undefined, roadSpan(level).s0 + 20);
+  const pose = bay ? roadPose(level, bay.s, bay.off) : here
+    ? roadPose(level, here.s - RESET_BACK, shoulderOff(level)) : highwayRespawn(level);
+  if (here) rehome(level, bay ? bay.s : here.s - RESET_BACK);
   place(game.car, pose.x, pose.y, pose.h);
   game.traffic.clearAround(pose.x, pose.y, 30);
   shared.lastOnTrack = null;
