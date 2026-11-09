@@ -472,6 +472,12 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   before it at a half-size venue - and the pit wall, 3 m out, inside the first corner. A wall moved
   beyond 3.5 m stops narrowing the AI line (ai/line.ts WALL_NEAR): the field then uses the whole
   road there and its kerb, as by any Armco, so it is still hit, half as often.
+- A FOLLOWED RAIL (spec.railsSeen) PUTS ARMCO AT THE RUN-OFF'S RIM, ~5 m past the edge, not where the
+  rail is (11-09, Oulton Pork): it marks which stretches have Armco. Where the real barrier stands
+  further back, lay it as spec.tyreWalls (the rim reaches the wall, two tyre rows in front): Old
+  Hall's outside at its real 15-17 m (7.5-10 game m) took the start's hardest hit from 30.5 m/s
+  (a parked car) to 13.8, where the rail's Armco at 5 m took 15.7 and doubled the hits. Two stretches
+  close enough to share a barrier get one by rule - a traced line between them doubles it.
 - A HAND FINISH'S drop / cut TAKES THE FIRST ROAD WITHIN 3 M of its spot (11-09, Oulton Pork): a
   spot by a junction cut the side road, not the one meant. Put the spot more than 3 m from every
   other road (tools/scratch/_lanelist.mjs lists each road's ends; `x y reach` those by a spot),

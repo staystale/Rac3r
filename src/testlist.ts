@@ -21,6 +21,14 @@ export const TEST_LIST: TestEntry[] = [
     wrong: 'A car on the wrong side, through the barrier, facing the wrong way, or popping in.',
   },
   {
+    id: 'oultonrails',
+    added: '2026-11-09',
+    name: 'Oulton Pork\'s real Armco, traced from aerial photos; Old Hall\'s tyre wall',
+    where: 'Test link + &oultonrails=1 (&runoff=1): UK CIRCUITS > Oulton Pork > any layout',
+    try: 'Start a full grid: watch Old Hall\'s exit; lap: the pit straight, Lakeside, Lodge.',
+    wrong: 'A car into the car park or the trees, a barrier on the road, a gap the photos lack.',
+  },
+  {
     id: 'runoff',
     added: '2026-11-09',
     name: 'Fewer start crashes: pit wall back by a bend, gantry leg and street lights off the road',

@@ -69,4 +69,7 @@ export const FIX = {
   // motorways' and dual carriageways' other carriageway past a central reservation
   // (highway/road.ts laneGeo, ai/traffic*.ts)
   oncoming: atLoad('oncoming'),
+  // ?oultonrails=1: Oulton Pork's real Armco, traced from aerial photographs (owner 11-09: "Yes do
+  // those all"; world/levels/oultonpork-venue.ts OP_RAILS) - Old Hall's exit open to the car park
+  oultonrails: atLoad('oultonrails'),
 };
