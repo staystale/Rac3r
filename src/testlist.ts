@@ -13,6 +13,14 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'venueoverlaps',
+    added: '2026-11-09',
+    name: 'Tidier venues: tyre walls in two neat rows, nothing piled on each other, no zig-zags',
+    where: 'Plain link: Brands, Castle Kum, Snotterton, Dongington; &sillystone=1 &knobhillvenue=1',
+    try: 'Look along the tyre walls in front of the Armco and the rows closing the unused roads.',
+    wrong: 'Tyres piled or overlapping, a wall three deep, closing rows crossing, a gap in a wall.',
+  },
+  {
     id: 'sillystone',
     added: '2026-11-09',
     name: 'Sillystone (Silverstone) at 1/2 size, a new track: the GP and the National',
