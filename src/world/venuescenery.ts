@@ -459,7 +459,8 @@ function venueTrees(site: Site, bounds: VenueScenery['bounds'], solids: Prop[],
     || nearSolid(x, y) || nearWater(ground.covers, x, y, TREE_WATER_M)
     || onPatches(ground.patches, x, y, TREE_MOWN_M)
     || tyreLines.some((line) => distToLine(line, x, y) < TREE_TYRE_M));
-  for (let i = 0; i < MAX_TREES * 16 && trees.length < MAX_TREES; i++) {
+  const most = site.build.spec.trees || MAX_TREES;
+  for (let i = 0; i < most * 16 && trees.length < most; i++) {
     const x = bounds.x0 + site.rnd() * (bounds.x1 - bounds.x0);
     const y = bounds.y0 + site.rnd() * (bounds.y1 - bounds.y0);
     if (!inZones(woods, x, y) && site.rnd() > OPEN_TREE_SHARE) continue;

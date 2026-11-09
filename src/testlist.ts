@@ -13,6 +13,14 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'spaforest',
+    added: '2026-11-09',
+    name: 'Spa-Frankenchumps in the Ardennes: the forest round the circuit, 8000 trees',
+    where: 'Test link + &spaforest=1: TEST MODE > CIRCUITS > Spa-Frankenchumps',
+    try: 'Lap it, VS AI too: Kemmel, Pouhon, Blanchimont. Watch the frame rate (FPS).',
+    wrong: 'Lag, a tree on the track or a road, trees too thin to read as a forest.',
+  },
+  {
     id: 'offaim',
     added: '2026-11-09',
     name: 'AI off its line keep their place across the road: fewer cars off at a first hairpin',

@@ -516,6 +516,10 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   not primary / secondary ones, and short pieces (under 30 m, or a stream bridge) are left out, so
   a tunnel's outer road can end in nothing and the tunnel goes. A hand-drawn road (spec.finish
   .roads) out to a building or a road gives it its far end (Paul Frere's tunnel).
+- EVERY PROP IS TESTED FOR THE SCREEN TWICE A FRAME (11-09, Spa's forest): render/props.ts walks
+  the whole list for the layers under and over the cars, so a prop's cost is paid wherever it
+  stands. 8000 trees at Spa: CPU x4 work 12.5-13.7 -> 16.7-17.6 ms a frame (the scan ~8 % of a
+  profile: drawPropList, propVisible, drawProps); a grid of props by cell would pay for the screen.
 - A RESET ON A TWO-WAY ROAD NEVER TAKES "THE NEAREST EDGE" (11-09, owner: "reset still can leave me
   on the opposite carriage way !"): the circuits' reset puts the car on the edge it left by, and a
   car thrown over the Jersey barrier left by the oncoming side's. Every endless-road reset - the R

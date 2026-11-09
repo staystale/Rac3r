@@ -45,6 +45,9 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
+  // ?spaforest=1: Spa-Frankenchumps in the Ardennes forest, 8000 trees (owner 11-09: yes to a
+  // per-venue tree count; world/levels/spa-venue.ts, VenueSpec.trees)
+  spaforest: atLoad('spaforest'),
   // ?offaim=1: an AI off its racing line holds its place across the ROAD - its heading the road's,
   // not the line's - so it no longer drifts with the line where the line swings across the road
   // (owner 11-09 on Spa: "lots of crashes with big grids", "I think it's the hair pin first

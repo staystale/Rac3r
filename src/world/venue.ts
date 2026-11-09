@@ -128,6 +128,9 @@ export interface VenueSpec {
   // patterns mown into the grass: pixel art in short grass ('#' a square pxM game m across, any
   // other character the grass left long), its middle at `at` (real m), the rows top to bottom
   mown?: { at: Point; pxM: number; rows: string[] }[];
+  // the most trees in its woods (world/venuescenery.ts MAX_TREES, 260, for a venue that does not
+  // say): a venue in a forest (Spa in the Ardennes, owner 11-09) has more
+  trees?: number;
   seed: number;
 }
 

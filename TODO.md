@@ -280,8 +280,13 @@ CARS: talk to the owner once the tracks are done (trucks, a Dakar car / truck).
    circuit's barriers (OSM walls and guard rails) followed, 19 gravel traps, 4 drivable tunnels
    (the start straight, Raidillon, Blanchimont, Paul Frere), the grandstands, paddocks and car
    parks, EU-DEM heights as 14 hills (Eau Rouge 392 m up to Malmedy 470, down to Paul Frere 365).
-   Listed under CIRCUITS as 'WORLD CIRCUIT · GP'. UNDER TEST. Left out: the support pit lane, the
-   motorcycle chicane, the Ster and Malmedy tunnels; the forest is the venues' 260 trees.
+   PASSED + DEFAULT 11-09 (owner: Spa passed; the pit exit before La Source is fine; the names
+   FRANKENCHUMPS and 'WORLD CIRCUIT · GP' kept). Left out: the support pit lane, the motorcycle
+   chicane, the Ster and Malmedy tunnels. Then (owner 11-09: yes to a per-venue tree count): the
+   Ardennes forest behind ?spaforest=1 - 8000 trees (spec.trees; the other venues keep 260). CPU x4 frame work in the
+   forest (tools/scratch/_framecheckat.mjs, Kemmel / Pouhon / Blanchimont) 12.5-13.7 -> 16.7-17.6
+   ms: every prop is tested twice a frame for the screen (render/props.ts) - a grid of props by
+   cell would test only those near it (not done: a renderer change, proposed). UNDER TEST.
 3. ROLLING LOOK - smoother than the dice flip on the same physics; mockup first.
 4. SIDE DRAFTING (Naffcar first) PASSED + DEFAULT 11-08 (owner: "Pass"): physics/wake.ts part 5 - a nose
    alongside a car's rear quarter, up to +20 % drag on it and -6 % on the car alongside, gone by 1.2 m
