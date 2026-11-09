@@ -1,7 +1,7 @@
 // highway presets: the road types (HW_PRESETS), the window constants and the silly signs,
 // plus the tiny wrap / rng helpers every highway file shares. Split out of highway.ts.
 import { lcg } from "../core/random.ts";
-import { desertRoadAt } from "./desertplan.ts";
+import { desertRoadAt, desertWideAt } from "./desertplan.ts";
 import type { HwCfg } from "./hwtypes.ts";
 // lanes / laneW / shoulder (left, hard shoulder; a solid line inside it when >= 2 m) / edge (right
 // margin) in m; maxDeg off straight up; sweep / bend = radius ranges (m); pStraight / pBend =
@@ -91,6 +91,11 @@ export const HW_PRESETS: Record<string, HwCfg> = {
     stretch: desertRoadAt,
   },
 };
+// ?hwpick=1: SINGLE LANE (owner 11-09: "Can twisty jsut be called single lane"; the key stays
+// twisty) - the canyon road's shape and its oncoming lane, in any scenery (the scenery's own:
+// HW_SCENERY, sceneryCfg)
+HW_PRESETS.twisty = Object.fromEntries(Object.entries(HW_PRESETS.canyon)
+  .filter(([key]) => key !== 'theme' && key !== 'stretch')) as unknown as HwCfg;
 export const HW_NAMES: Record<string, string> = {
   motorway: "MOTORWAY",
   interstate: "INTERSTATE",
@@ -104,6 +109,40 @@ export const HW_THEMES: Record<string, { name: string; roads: Record<string, str
   countryside: { name: "COUNTRYSIDE", roads: HW_NAMES },
   canyon: { name: "DEAF VALLEY", roads: { canyon: "CANYON ROAD" } },
 };
+// ?hwpick=1 (owner 11-09: "Canyon is the windy on coming road / Death valley is the asthetic /
+// side of road stuff / Same for motorway is the road and country side is the asthetic"): the
+// SCENERIES - the roadside and ground (HwCfg.theme) - and the ROADS, every one in each; a road's
+// line for its card
+export const HW_SCENERY: Record<string, { name: string; line: string }> = {
+  countryside: { name: "COUNTRYSIDE", line: "FIELDS · HEDGES · BRIDGES" },
+  canyon: { name: "DEAF VALLEY", line: "CANYONS · GORGES · DUNES" },
+};
+export const HW_ROADS: Record<string, { name: string; line: string }> = {
+  motorway: { name: "MOTORWAY", line: "3 + 3 LANES" },
+  interstate: { name: "INTERSTATE", line: "4 + 4 LANES" },
+  dual: { name: "DUAL C/WAY", line: "2 + 2 LANES" },
+  walled: { name: "WALLED", line: "3 + 3 LANES · WALLS" },
+  twisty: { name: "SINGLE LANE", line: "1 + 1 · TWO-WAY · TWISTY" },
+};
+const SCENERY_CFGS = new Map<string, HwCfg>();
+/**
+ * A road type in a scenery (?hwpick=1): the road's own lanes and bends, the scenery's roadside -
+ * Deaf Valley's stretches shaping its road (the twisty road its hairpins on the high road, a wide
+ * road only its straights in the open desert: desertplan.ts).
+ * @param road the road type (HW_PRESETS)
+ * @param scenery the scenery (HW_SCENERY)
+ * @returns the road type (the same object for the same pair)
+ */
+export function sceneryCfg(road: string, scenery: string): HwCfg {
+  const key = road + ':' + scenery;
+  let cfg = SCENERY_CFGS.get(key);
+  if (!cfg) {
+    cfg = scenery === 'canyon' ? { ...HW_PRESETS[road], theme: 'canyon',
+      stretch: road === 'twisty' ? desertRoadAt : desertWideAt } : HW_PRESETS[road];
+    SCENERY_CFGS.set(key, cfg);
+  }
+  return cfg;
+}
 // SPAWN_S 40 -> 300 (MEASURED, treadmillcheck: the road's raw START was only 40 m behind
 // the car at spawn, inside a zoomed-out view); K_RATE = the fastest curvature change, 1/m per m (a
 // clothoid; 5e-5 = a 0 -> R 200 ramp over 100 m)

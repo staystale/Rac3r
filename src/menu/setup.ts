@@ -17,6 +17,8 @@ import { MENU_COL } from './palette.ts';
 import { MAX_AI } from '../core/settings.ts';
 import { ROSTER } from '../cars.ts';
 import { showAiDrivers, storedTune, storeTune, tuneLine } from './aidrivers.ts';
+import { HW_ROADS, HW_SCENERY } from '../highway/presets.ts';
+import { FIX } from '../core/fixes.ts';
 
 // WEATHER: follow the SEASON (its chances; it can change in the race) or a fixed sky
 const WEATHER_MODES = [['season', 'SEASON'], ['dry', 'DRY'], ['hot', 'HOT'],
@@ -74,7 +76,8 @@ function addSetupSlider(menu: Menu, panel: HTMLElement, label: string, min: numb
 function addSetupHeader(menu: Menu, panel: HTMLElement, level: Level) {
   buildLevel(level);   // a set rally stage is generated on first use: its length is read below
   addElement(panel, 'h2', level.name);
-  addElement(panel, 'div', level.endless ? 'ENDLESS MOTORWAY · HOW FAR CAN YOU GET?' : level.fixed
+  addElement(panel, 'div', level.endless ? (FIX.hwpick ? 'ENDLESS ROAD' : 'ENDLESS MOTORWAY')
+    + ' · HOW FAR CAN YOU GET?' : level.fixed
     ? `RALLY STAGE · ${THEME_NAMES[level.gen!.theme].name} · `
       + `${level.gen!.km!.toFixed(2)} KM · POINT TO POINT`
     : level.gen ? 'GENERATED RALLY STAGE · POINT TO POINT' : KIND[level.id] || 'TRACK', 'sub');
@@ -90,6 +93,12 @@ function addSetupHeader(menu: Menu, panel: HTMLElement, level: Level) {
  * @param state the setup state (reads / writes road)
  */
 function addRoadTypeRow(menu: Menu, panel: HTMLElement, level: Level, state: SetupState) {
+  // (?hwpick=1: picked in the level selector - menu/roadpick.ts - named here)
+  if (FIX.hwpick) {
+    if (level.endless) addElement(panel, 'div', [HW_SCENERY[state.scenery || 'countryside'],
+      HW_ROADS[state.road || 'motorway']].map((entry) => entry?.name).join(' · '), 'selcar');
+    return;
+  }
   let roads = level.roadTypes;
   if (level.themes) {
     // THEME (owner 11-09: Deaf Valley "should come under highway levels and be a theme choice"):
@@ -347,6 +356,7 @@ function addLaunchButtons(menu: Menu, panel: HTMLElement, level: Level, state: S
     hideMenu(menu);
     menu.api.launch(level.id, profile.active,
       { rx: state.rxRace, ai: state.opponents, diff: state.diff, road: state.road,
+        scenery: state.scenery ?? null,
         aiCars: state.aiCars, aiTune: aiPanel(menu) ? state.aiTune || null : null,
         ...(state.weather ? { weather: state.weather } : {}),
         ...(state.time !== undefined ? { time: state.time } : {}),
@@ -404,8 +414,10 @@ const aiPanel = (menu: Menu) => menu.api.dev;
  * @returns the choices
  */
 function setupChoices(state: SetupState): Partial<SetupState> {
-  const { road, traffic, litter, opponents, aiN, diff, aiCars, rxRace, laps, time, aiTune } = state;
-  return { road, traffic, litter, opponents, aiN, diff, aiCars, rxRace, laps, time, aiTune };
+  const { road, scenery, traffic, litter, opponents, aiN, diff, aiCars, rxRace, laps, time,
+    aiTune } = state;
+  return { road, scenery, traffic, litter, opponents, aiN, diff, aiCars, rxRace, laps, time,
+    aiTune };
 }
 
 /**
@@ -446,6 +458,7 @@ export function showSetup(menu: Menu, level: Level, kept: Partial<SetupState> = 
   addSetupHeader(menu, panel, level);
   const state = {
     road: level.roadType || null,   // endless highway road type
+    scenery: level.scenery || null,   // its scenery (?hwpick=1)
     traffic: menu.profile.traffic ?? 0.6,   // endless: traffic density
     litter: menu.profile.litter ?? 1,   // endless: roadside litter density
     opponents: 0,   // VS AI opponents (0 = solo)

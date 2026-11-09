@@ -500,6 +500,7 @@ export interface Level {
   themes?: Record<string, { name: string; roads: Record<string, string> }>;
   litter?: number;   // main.ts, highway levels
   roadType?: string;   // highway.ts
+  scenery?: string;   // highway.ts (?hwpick=1): the scenery the road runs through (HW_SCENERY)
   _layout?: number;   // highway.ts
   barriers?: Barrier[];
   solids?: Solid[];

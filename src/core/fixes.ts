@@ -44,6 +44,12 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
+  // ?hwpick=1: the endless roads picked in the level selector - the scenery (COUNTRYSIDE, DEAF
+  // VALLEY), then the road (MOTORWAY, INTERSTATE, DUAL C/WAY, WALLED, SINGLE LANE), any road in any
+  // scenery (owner 11-09: "Highway levels should be able to be any country side or canyon road
+  // motor duel carriage way ect", "So you choose the asthetic type and then the road type";
+  // menu/roadpick.ts, highway/presets.ts HW_SCENERY)
+  hwpick: atLoad('hwpick'),
   // ?barrierends=1: a barrier's ends (and bends) are solid to the car's whole body, not only its
   // corners - a car driving at the end of a fence, Armco or a wall hits it; a wooden fence breaks
   // a piece at a time, each one slowing it (owner 11-09: "wooden fence and other barriers can't

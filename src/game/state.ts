@@ -62,6 +62,7 @@ export interface LaunchOpts {
   ai?: number; diff?: number; aiCars?: string;   // opponents, their difficulty, their cars
   rx?: boolean; laps?: number;   // the RX race; laps (0 = practice)
   road?: string | null; traffic?: number; litter?: number;   // the endless highway
+  scenery?: string | null;   // its scenery (?hwpick=1: highway/presets.ts HW_SCENERY)
   weather?: { mode: WeatherMode; season: number }; time?: number | null;   // the conditions
   livery?: { paint?: string; trim?: string; num?: number } | null; tyre?: string;   // garage
   aiTune?: AiTune | null;   // the AI DRIVERS dials (ai/tune.ts)

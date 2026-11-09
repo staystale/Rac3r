@@ -30,16 +30,17 @@ import { prepBarriersOf, solidsFromProps } from "./world/barriers.ts";
 import { onTrack } from "./world/tyrewall.ts";
 import { zoneSurfaceAt, pruneWear } from "./world/wear.ts";
 import { seedFieldBlocks } from "./world/levelmud.ts";
-import { HW_PRESETS, HW_NAMES, HW_THEMES, STEP, AHEAD, BEHIND, SPAWN_S, UP_HEADING, rng }
-  from "./highway/presets.ts";
+import { HW_PRESETS, HW_NAMES, HW_THEMES, HW_SCENERY, sceneryCfg, STEP, AHEAD, BEHIND, SPAWN_S,
+  UP_HEADING, rng } from "./highway/presets.ts";
 import { laneGeo, stateOf, growTo, locate, roadFrame, shoulderOff } from "./highway/road.ts";
 import { syncCovers, SIDE_W_HALF } from "./highway/cuts.ts";
 import { dress } from "./highway/dress.ts";
 import { desertGround, REACH, resetStreamed, pruneStreamed } from "./highway/gorge.ts";
-import type { HwState, HwLevel, HwCar } from './highway/hwtypes.ts';
+import type { HwState, HwLevel, HwCar, HwCfg } from './highway/hwtypes.ts';
 import type { RoadLoc } from './highway/road.ts';
 import type { Level } from './world/types.ts';
-export { HW_PRESETS, HW_NAMES } from "./highway/presets.ts";
+import { FIX } from "./core/fixes.ts";
+export { HW_PRESETS, HW_NAMES, HW_SCENERY, HW_ROADS } from "./highway/presets.ts";
 export { laneGeo, roadFrame, roadPose, roadSpan } from "./highway/road.ts";
 // THE GUARD (requirement: go backwards should reset you): rolling BACK down the road faster than
 // BACK_V for BACK_T s, or BACK_M m behind the furthest you have got, or OFF_M m past the road edge
@@ -374,20 +375,32 @@ export function rehome(level: HwLevel, dist: number) {
 // ROAD TYPE (requirement: how do I test the lane presets — I don't see any buttons): Test
 // Mode setup offers lv.roadTypes; the launch calls this before the restart builds the road.
 // ?hw=interstate etc. still works for tools.
-export function setHighwayPreset(level: HwLevel, preset: string) {
-  if (!HW_PRESETS[preset] || level.roadType === preset) return;
+/**
+ * Sets the road type (and, ?hwpick=1, the scenery it runs through: HW_SCENERY; kept when not
+ * given): the next restart builds the road afresh.
+ * @param level the highway level
+ * @param preset the road type (HW_PRESETS; ?hwpick=1: the old canyon road is the twisty road in
+ *   Deaf Valley)
+ * @param scenery the scenery
+ */
+export function setHighwayPreset(level: HwLevel, preset: string, scenery?: string) {
+  if (FIX.hwpick && preset === 'canyon') { preset = 'twisty'; scenery = 'canyon'; }
+  if (!HW_PRESETS[preset]) return;
+  const view = FIX.hwpick ? (scenery && HW_SCENERY[scenery] ? scenery : level.scenery
+    || 'countryside') : undefined;
+  if (level.roadType === preset && level.scenery === view) return;
   level.roadType = preset;
-  level._cfg = HW_PRESETS[preset];
-  level.base = baseOf(preset);
-  level.roadside = roadsideOf(level, preset);
+  level.scenery = view;
+  level._cfg = view ? sceneryCfg(preset, view) : HW_PRESETS[preset];
+  level.base = baseOf(level._cfg);
+  level.roadside = roadsideOf(level, level._cfg);
   level._layout = (level._layout || 0) + 1;
 }
 // the ground off the road: the countryside's grass, Deaf Valley's desert gravel (owner 11-09:
 // "use gravel and sand for the desert not dirt")
-const baseOf = (preset: string) =>
-  HW_PRESETS[preset].theme === 'canyon' ? SURFACES.gravel : SURFACES.grass;
+const baseOf = (cfg: HwCfg) => cfg.theme === 'canyon' ? SURFACES.gravel : SURFACES.grass;
 // the ground off the road: Deaf Valley's gorges and washes (highway/gorge.ts), else flat
-const roadsideOf = (level: HwLevel, preset: string) => HW_PRESETS[preset].theme === 'canyon'
+const roadsideOf = (level: HwLevel, cfg: HwCfg) => cfg.theme === 'canyon'
   ? (dist: number, offset: number, halfWidth: number, spot: { x: number; y: number }) =>
     desertGround(dist, offset, halfWidth + bayOut(level, dist, offset < 0 ? -1 : 1), level.seed,
       spot) : undefined;
@@ -406,7 +419,7 @@ export function createHighway(seed: number = 4242, preset: string = 'motorway') 
     roadTypes: HW_NAMES,
     // the theme choice (COUNTRYSIDE / DEAF VALLEY; passed 11-09)
     themes: HW_THEMES,
-    base: baseOf(preset),
+    base: baseOf(HW_PRESETS[preset]),
     subtrack: null,
     camber: { maxDeg: 0, refR: 60, crown: 0.03, edge: 5, sections: [] },
     zones: [],
@@ -424,7 +437,9 @@ export function createHighway(seed: number = 4242, preset: string = 'motorway') 
     lamps: [],
     spawn: { x: 0, y: 0, heading: 0 },
   } as unknown as HwLevel;   // its road state (_hw) is built by resetHighway just below
-  level.roadside = roadsideOf(level, preset);
+  level.roadside = roadsideOf(level, level._cfg);
+  // (?hwpick=1: in a scenery - the countryside, or Deaf Valley for the old canyon road)
+  if (FIX.hwpick) setHighwayPreset(level, preset, preset === 'canyon' ? 'canyon' : 'countryside');
   resetHighway(level);
   return level;
 }

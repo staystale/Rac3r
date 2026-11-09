@@ -5,6 +5,32 @@ the git history (this file was swept on 2026-10-19: every finished entry deleted
 decisions and the measured lessons live in `NOTES.md`). `docs/handover-2026-11-08.md` is the
 last handover, written on request.
 
+## CHAMPIONSHIPS - PLAN AGREED 11-09 (owner: "F1 / Gt / Maybe btcc not dtm", "Sst it is then",
+"Dakar ok", "Wrc ok", "we forgot rally cross", "your suggested working order for this is fine")
+
+The venue helper builds the tracks one at a time, each behind its own switch (the brief:
+docs/handover-2026-11-08.md); the main session reviews each and merges it. Names agreed with the
+owner before they ship (proposed below).
+1. F1: Sillystone (have), Monaco (Moanaco), Spa (Spa-Frankenchumps), Monza (Monzarella), Suzuka
+   (Snoozuka), Yas Marina (Yass Marina). GT: Nurburgring (Nerdburgring, the Nordschleife as the
+   "Nordschlep"), Le Mans (Le Manky, the "Mulsanity" straight), Spa, Bathurst (Bathworst), the
+   Dieatona road course (have); Dubai (Dubious Autodrome) a possible extra. BTCC: the UK venues
+   we have (Brands, Donington, Thruxton, Oulton, Croft, Snetterton, Knockhill, Silverstone) - no
+   new tracks. ORDER: Spa, Monza (the simplest), then SIMPLE versions of the long ones (the
+   Nordschleife ~10 km, Le Mans ~7 km at 1/2) for the owner to test on the phone first, Monaco
+   (streets, walls, the tunnel) last.
+2. WRC: one famous stage per rally remade from the map data as the venues are (Col de Turini,
+   Ouninpohja, Sardinia, Safari, Acropolis; Sweaty Lamb is Wales).
+3. DAKAR: open desert, checkpoint gates, other racers, Deaf Valley's terrain; short stages. The
+   owner's worry: boring, and how navigation works (a big arrow? a compass in the pause menu for a
+   hard mode?) - to be agreed before it is built.
+4. SST (Stadium Super Trucks): "keep it simple 5-10 tracks and a couple different trucks with
+   different specs"; a mix of tracks (street circuits, our circuits, stadium) with jump ramps
+   (world/flipramps.ts exists).
+5. RALLYCROSS: the RX tracks and cars we have (Knobhill RX, Slidden Hill; the Fjord Fiester RX)
+   plus a few more for a season.
+CARS: talk to the owner once the tracks are done (trucks, a Dakar car / truck).
+
 ## NEXT - ORDER AGREED 11-07 (owner: "ok let's do 1. first and proceed in this order")
 
 1. EVERY CIRCUIT AS ITS REAL VENUE AT 1/2 OF REAL SIZE (owner 11-07, round 2: "let's make all tracks

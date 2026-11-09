@@ -117,3 +117,19 @@ export function desertRoadAt(dist: number, seed: number): Partial<HwCfg> | null 
   const kind = stretchAt(dist, seed).kind;
   return kind === 'high' ? HIGH_ROAD : kind === 'canyon' ? null : DESERT_ROAD;
 }
+
+// ?hwpick=1: a wide road's (a motorway's) open desert and dunes - longer straights, its own sweeps
+const DESERT_WIDE: Partial<HwCfg> = { pStraight: 0.55, pBend: 0.1 };
+
+/**
+ * Deaf Valley's changes to a WIDE road by road distance (?hwpick=1: a motorway, a dual carriageway
+ * there): the open desert and the dunes straighter; the canyons and the high road its own bends
+ * (a hairpin is the twisty road's: desertRoadAt).
+ * @param dist road distance, m
+ * @param seed the road's seed
+ * @returns the stretch's changes, or null
+ */
+export function desertWideAt(dist: number, seed: number): Partial<HwCfg> | null {
+  const kind = stretchAt(dist, seed).kind;
+  return kind === 'desert' || kind === 'dunes' ? DESERT_WIDE : null;
+}

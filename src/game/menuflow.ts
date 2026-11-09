@@ -1,8 +1,9 @@
 // menuflow.ts — Menu, launch, pause and the results screen flow.
+import { FIX } from '../core/fixes.ts';
 import { applyLivery, applyTyre } from '../cars.ts';
 import { createCones } from '../cones.ts';
 import { rulesSeen } from '../guide.ts';
-import { setHighwayPreset, HW_NAMES } from '../highway.ts';
+import { setHighwayPreset, HW_NAMES, HW_ROADS, HW_SCENERY } from '../highway.ts';
 import { catOf } from '../world/levels/category.ts';
 import { createAIDriver } from '../ai/circuit.ts';
 import { aiTraits } from '../ai/traits.ts';
@@ -103,9 +104,12 @@ const FIELD_MIN = 5, FIELD_MAX = 20;
 function menuLevel(): string {
   const highway = LEVELS.find((level) => level.endless);
   if (highway && Math.random() < HW_CHANCE) {
-    const roads = Object.keys(HW_NAMES);
+    // (?hwpick=1: any road in any scenery)
+    const roads = Object.keys(FIX.hwpick ? HW_ROADS : HW_NAMES),
+      sceneries = Object.keys(HW_SCENERY);
     setHighwayPreset(highway as unknown as HwLevel,
-      roads[Math.floor(Math.random() * roads.length)]);
+      roads[Math.floor(Math.random() * roads.length)],
+      FIX.hwpick ? sceneries[Math.floor(Math.random() * sceneries.length)] : undefined);
     return highway.id;
   }
   const pool = LEVELS.filter((level) => MENU_CATS.has(catOf(level)) && level.id !== LEVEL.id);
@@ -145,17 +149,24 @@ export function enterMenu() {
     aiTraits(shared.DEMO_DIFF, 2, menuAi + 1, 1 + Math.floor(Math.random() * 1e6)));
 }
 /**
+ * The ROAD TYPE of a launch (endless highway, Test Mode setup) - and its scenery (?hwpick=1) - set
+ * before the restart builds the road.
+ * @param levelId the level to launch
+ * @param opts the launch options
+ */
+function applyRoadType(levelId: string, opts: LaunchOpts) {
+  const level = LEVELS.find((item) => item.id === levelId);
+  if (level && level.endless && opts.road)
+    setHighwayPreset(level as unknown as HwLevel, opts.road, opts.scenery ?? undefined);
+}
+
+/**
  * Applies the setup options of a launch (road, AI, race, traffic, litter) before the restart.
  * @param levelId the level to launch
  * @param opts the launch options
  */
 export function applyLaunchOptions(levelId: string, opts: LaunchOpts) {
-  // ROAD TYPE (endless highway, Test Mode setup): set before the restart below builds the road
-  {
-    const level = LEVELS.find((item) => item.id === levelId);
-    if (level && level.endless && opts.road)
-      setHighwayPreset(level as unknown as HwLevel, opts.road);
-  }
+  applyRoadType(levelId, opts);
   shared.aiCount = Math.max(0, Math.min(MAX_AI, (opts.ai ?? 0) | 0));
   shared.aiDiff = shared.settings.aiDifficulty;   // the menu race set its own
   if (opts.diff != null) shared.aiDiff = Math.max(0, Math.min(4, opts.diff | 0));

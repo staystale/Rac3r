@@ -71,6 +71,9 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
 
 ## Decisions (owner)
 
+- CHAMPIONSHIPS (11-09, owner): F1, GT, BTCC (not DTM: the UK venues), WRC stages, Dakar, SST
+  (Stadium Super Trucks) and rallycross; a decent set of tracks for each, not too many - tracks
+  shared between championships where they can be (TODO.md CHAMPIONSHIPS). Cars after the tracks.
 - ONE-SYSTEM CLEAN-UP (10-19, owner): every approved feature below is the only way the game does
   that job - the old paths and their `=0` switches are deleted (TODO.md lists the groups). What
   remain are test tools (`?night=`, `?rain=`, `?report=1`, `?skip=`, `?dpr=`, `?autopilot=`).

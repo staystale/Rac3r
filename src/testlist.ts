@@ -13,6 +13,14 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'hwpick',
+    added: '2026-11-09',
+    name: 'Endless roads: pick the scenery, then the road - any road in Countryside or Deaf Valley',
+    where: 'Test link + &hwpick=1: TEST MODE > ENDLESS ROADS',
+    try: 'Each scenery with each road: Deaf Valley motorway, the single lane road in the fields.',
+    wrong: 'A missing barrier or wall, canyon rock on the road, a gantry over the single lane.',
+  },
+  {
     id: 'barrierends',
     added: '2026-11-09',
     name: 'Barrier ends are solid: drive at the end of a fence, Armco, a wall - it hits',

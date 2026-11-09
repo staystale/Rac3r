@@ -13,6 +13,8 @@ import { showCredits } from './credits.ts';
 import type { Menu } from '../menu.ts';
 import type { Level, StageRecipe } from '../world/types.ts';
 import { MENU_COL } from './palette.ts';
+import { showSceneryList, showRoadList } from './roadpick.ts';
+import { FIX } from '../core/fixes.ts';
 
 export const KIND: Record<string, string> = { lab: 'TEST GROUND', 'test-track': 'CIRCUIT',
   thruston: 'UK CIRCUIT',
@@ -188,7 +190,9 @@ function addTrackCard(menu: Menu, grid: HTMLElement, level: Level) {
   const button = addButton(menu, grid, '', () => {
     profile.lastLevel = level.id;
     saveProfile(profile);
-    showSetup(menu, level);
+    // (?hwpick=1: the endless road's scenery and road first)
+    if (FIX.hwpick && level.endless) showSceneryList(menu);
+    else showSetup(menu, level);
   }, 'card' + (level.id === profile.lastLevel ? ' on' : ''));
   if (level.gen && !level.fixed) {
     buildLevel(level);   // the generator's stage is generated on first use: its road map below
@@ -267,6 +271,8 @@ function addVenueCard(menu: Menu, grid: HTMLElement, cat: string, layouts: Level
  * @param cat the category id (CATS)
  */
 export function showTrackList(menu: Menu, cat: string) {
+  // (?hwpick=1: the endless roads by scenery, then road: menu/roadpick.ts)
+  if (FIX.hwpick && cat === 'roads') { showSceneryList(menu); return; }
   const panel = addPane(menu, true), catEntry = CATS.find((entry) => entry.id === cat)
     || CATS[CATS.length - 1];
   addElement(panel, 'h2', 'TEST MODE · ' + catEntry.name);
@@ -313,6 +319,11 @@ export function showLayoutList(menu: Menu, cat: string, venue: string) {
  * @param level the level
  */
 export function backToTracks(menu: Menu, level: Level) {
+  // (?hwpick=1: the endless road back to its roads)
+  if (FIX.hwpick && level.endless) {
+    showRoadList(menu, level.scenery || menu.profile.hwScenery || 'countryside');
+    return;
+  }
   const cat = menu.profile.lastCat || menuCatOf(level);
   if (layoutsOf(level, cat).length > 1) showLayoutList(menu, cat, level.venue!);
   else showTrackList(menu, cat);

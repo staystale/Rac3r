@@ -60,6 +60,7 @@ export interface SetupUi {
 /** The setup screen's choices (menu/setup.ts showSetup). */
 export interface SetupState {
   road: string | null;   // the endless highway's road type
+  scenery?: string | null;   // its scenery (?hwpick=1: highway/presets.ts HW_SCENERY)
   traffic: number; litter: number;   // endless: traffic and roadside litter density
   opponents: number;   // VS AI opponents (0 = solo)
   aiN: number;   // how many opponents VS AI picks
