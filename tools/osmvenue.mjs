@@ -15,7 +15,8 @@
 //   ways (a closed one repeats its first point) }
 // A name in "names" also names a building, stand, car park or pit lane of that way id; "kinds":
 // { "<way id>": "hangar" } sets a building's kind where the map says only building=yes; "dirt":
-// [way ids] makes a motor raceway a dirt track (Daytona's flat track), not a race road piece. A
+// [way ids] makes a motor raceway a dirt track (Daytona's flat track), not a race road piece; a race
+// piece with a loose surface (OSM unpaved, gravel ...) is written with surface 'dirt'. A
 // stand longer than STAND_SLICE_M is written as its slices (a curved one round a tri-oval).
 // A layout is the shortest loop through its "through" pieces that avoids its "avoid" pieces; it is
 // written as the ordered list of pieces it runs over, so a layout is changed by editing that list.
@@ -173,6 +174,8 @@ const ways = [
 ];
 
 // ---- race road pieces: every motor raceway split where pieces meet ----
+// a race piece with a loose surface is raced on dirt (a rallycross lap's gravel section)
+const LOOSE = /unpaved|gravel|dirt|ground|compacted/;
 const dirtIds = new Set((config.dirt || []).map(String));
 const raceWays = ways.filter((way) => way.tags?.highway === 'raceway'
   && /motor/.test(way.tags.sport || '') && !/Pit Lane/i.test(way.tags.name || '')
@@ -187,7 +190,8 @@ for (const way of raceWays) {
     run.push(way.geometry[i]);
     if (i === way.geometry.length - 1 || uses.get(keyOf(way.geometry[i])) > 1) {
       pieces.push({ name: part ? `${baseName} ${part + 1}` : baseName, osm: way.id,
-        from: keyOf(run[0]), to: keyOf(run.at(-1)), raw: run.map(toGame) });
+        from: keyOf(run[0]), to: keyOf(run.at(-1)), raw: run.map(toGame),
+        loose: LOOSE.test(way.tags.surface || '') });
       run = [way.geometry[i]];
       part++;
     }
@@ -252,7 +256,8 @@ const out = { pieces: [], layouts: {}, pitLanes: [], roads: [], footbridges: [],
   karting: [], tunnels: [], traps: [], tyres: [], stands: [], buildings: [], paddocks: [],
   woods: [], homes: [], rails: [], aero: [], rows: [], water: [] };
 for (const piece of pieces)
-  out.pieces.push({ name: piece.name, pts: cleanLine(piece.raw, 0.25) });
+  out.pieces.push({ name: piece.name, ...(piece.loose ? { surface: 'dirt' } : {}),
+    pts: cleanLine(piece.raw, 0.25) });
 for (const [id, spec] of Object.entries(config.layouts || {})) out.layouts[id] = buildLayout(spec);
 
 const closed = (way) => way.geometry.length > 3 && keyOf(way.geometry[0]) === keyOf(way.geometry.at(-1));
@@ -289,7 +294,8 @@ for (const way of ways) {
   else if (tags.barrier === 'guard_rail' || tags.barrier === 'jersey_barrier')
     out.rails.push({ kind: tags.barrier, pts: line(0.3) });
   // (a building mapped by its name as a grandstand is one)
-  else if ((tags.building === 'grandstand' || /grandstand/i.test(tags.name || '')) && closed(way))
+  else if ((tags.building === 'grandstand' || tags.leisure === 'bleachers'
+    || /grandstand/i.test(tags.name || '')) && closed(way))
     for (const box of standBoxes(pts))
       out.stands.push({ name: config.names?.[way.id] || tags.name || '', ...box });
   // a marshal post mapped as a building (its fire extinguisher): the venue places its own

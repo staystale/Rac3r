@@ -430,6 +430,12 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
 - A LAKE OF OVERLAPPING ELLIPSES SCALLOPS its shore ~9 % of its depth between slices (11-08): lay
   it as turned rectangles (world/venueoval.ts), finer on a small pond; trim a slice at a road
   rather than drop it (whole slices dropped left 40 m gaps in Lake Lloyd).
+- WORLDHASH WITH A LEVEL SWITCH ON SHOWS LATER RALLY / RX LEVELS DIFFERENT (11-09): the rally tape's
+  run ids come from one counter across every level built (world/load.ts tapeId), so a level with
+  more or fewer tape runs shifts the ids of every stage and rx level after it. Compare their cones
+  without the tape id before calling it a change (Knobhill venue: the same, ids apart).
+- aidrivecheck counts a car on the joker lane as off (it is off the lap's road): JOKERROAD=1 counts
+  it as road, to see a rallycross level's real offs.
 
 ## Routine
 

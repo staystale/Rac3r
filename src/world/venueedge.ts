@@ -631,25 +631,33 @@ export function buildEdge(rims: Rim[], keep: EdgeClear, traps: Zone[], needs: Ed
       const flareClear = (x: number, y: number) => clear(x, y) && !nearRoad(x, y)
         && fence.every((point) => apart(point, x, y))
         && (!midlined || used.every((point) => apart(point, x, y)));
+      const sideRuns: { run: Point[]; barrierKind: Barrier['kind'] }[] = [];
       for (const [kind, barrierKind] of [[EDGE_ARMCO, 'armco'], [EDGE_CATCH, 'catchfence']] as
         [number, Barrier['kind']][])
         for (const part of kindRuns(line, kinds, kind)
           .flatMap((run) => withoutDoubles(run, used, 3)))
           for (const cut of clearRuns(part, outsideOthers, RIM_STEP_M)) {
             const run = trimEnds(cut, nearRoad);
-            if (run.length < MIN_RUN_PTS || lineLength(run) < MIN_RUN_M) continue;
-            // Armco flared at its real ends, then cut into short runs (no flare where only cut)
-            const ends: [Point, Point] = [awayFrom(keep.loops, run[0]),
-              awayFrom(keep.loops, run[run.length - 1])];
-            const flared = barrierKind === 'armco'
-              ? flare(joinEnds(run, fenceEnds, FENCE_JOIN_M), ends, flareClear) : run;
-            const shaped = needs.rails ? withoutRepeats(flared) : flared;
-            for (const chunk of chunks(shaped, RUN_MAX_M / RIM_STEP_M))
-              barriers.push({ kind: barrierKind, pts: chunk });
-            fresh.push(...run);
-            // a tyre wall in front of either, where it stands behind a trap
-            cones.push(...trapTyres(run, keep.loops, traps, clear, needs.walled));
+            if (run.length >= MIN_RUN_PTS && lineLength(run) >= MIN_RUN_M)
+              sideRuns.push({ run, barrierKind });
           }
+      for (const { run, barrierKind } of sideRuns) {
+        // Armco flared at its real ends, then cut into short runs (no flare where only cut,
+        // nor alongside the side's next run: a run cut short flared over the one after it)
+        const ends: [Point, Point] = [awayFrom(keep.loops, run[0]),
+          awayFrom(keep.loops, run[run.length - 1])];
+        const sideOthers = sideRuns.flatMap((other) => (other.run === run ? [] : other.run));
+        const runClear = (x: number, y: number) => flareClear(x, y)
+          && sideOthers.every((point) => apart(point, x, y));
+        const flared = barrierKind === 'armco'
+          ? flare(joinEnds(run, fenceEnds, FENCE_JOIN_M), ends, runClear) : run;
+        const shaped = needs.rails ? withoutRepeats(flared) : flared;
+        for (const chunk of chunks(shaped, RUN_MAX_M / RIM_STEP_M))
+          barriers.push({ kind: barrierKind, pts: chunk });
+        fresh.push(...run);
+        // a tyre wall in front of either, where it stands behind a trap
+        cones.push(...trapTyres(run, keep.loops, traps, clear, needs.walled));
+      }
       used.push(...fresh);
     }
   }

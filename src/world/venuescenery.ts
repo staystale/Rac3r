@@ -73,6 +73,8 @@ const ROW_TREE_M = 9, ROW_TREE_SHARE = 0.6, MAX_ROW_TREES = 90;
 // m a tree's trunk keeps off a lake's shore (its canopy may hang over the water) and off a mown
 // pattern (its canopy clear of it)
 const TREE_WATER_M = 3, TREE_MOWN_M = 6;
+// m a tree's trunk keeps off a mapped tyre wall's line (the largest trunk's box and a tyre)
+const TREE_TYRE_M = 2.5;
 // m a tree's trunk keeps off a road piece's edge (a raced road the edge already keeps it off; an
 // unraced one - an old line beside a chicane - has no edge): the largest canopy and its shadow
 const TREE_PIECE_M = 6.5;
@@ -454,10 +456,13 @@ function venueTrees(site: Site, bounds: VenueScenery['bounds'], solids: Prop[],
     const reach = Math.max(prop.w || 2, prop.h || 2) / 2 + 3;
     return Math.abs(prop.x - x) < reach && Math.abs(prop.y - y) < reach;
   });
+  // (a tree's trunk never in a mapped tyre wall)
+  const tyreLines = site.build.spec.data.tyres.map((line) => placeAll(site, line.pts));
   const clear = (x: number, y: number) => !(pastRim(site.rims, x, y) < TREE_OUT_M
     || onLanes(site.lanes, x, y, 4) || onLanes(pieces, x, y, TREE_PIECE_M) || inZones(zones, x, y)
     || nearSolid(x, y) || nearWater(ground.covers, x, y, TREE_WATER_M)
-    || onPatches(ground.patches, x, y, TREE_MOWN_M));
+    || onPatches(ground.patches, x, y, TREE_MOWN_M)
+    || tyreLines.some((line) => distToLine(line, x, y) < TREE_TYRE_M));
   for (let i = 0; i < MAX_TREES * 16 && trees.length < MAX_TREES; i++) {
     const x = bounds.x0 + site.rnd() * (bounds.x1 - bounds.x0);
     const y = bounds.y0 + site.rnd() * (bounds.y1 - bounds.y0);
