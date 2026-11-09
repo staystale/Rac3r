@@ -358,6 +358,8 @@ export interface TrafficCar {
   kOff: number | null;
   kin: boolean;
   phys: boolean;
+  // -1: it drives the other way (?oncoming=1: the other carriageway or lane); none / 1: our way
+  dir?: number;
 }
 
 // Everyone on the road in road coordinates (stepTraffic): along, sideways, speed along.

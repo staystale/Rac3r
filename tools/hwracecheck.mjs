@@ -37,7 +37,7 @@ while (t < T) {
   hwFrames(lv, [...cars, ...tr.cars]);
   const t0 = performance.now();
   const green = t >= HW_GREEN;
-  for (let k = 0; k < N; k++) { const c = cars[k], others = [...cars.filter((o) => o !== c), ...tr.cars];
+  for (let k = 0; k < N; k++) { const c = cars[k], others = [...cars.filter((o) => o !== c), ...tr.ourSide];
     let w = drv[k].drive(c, PHYSICS_STEP_SECONDS, { cars: others, hold: !green });
     if (t >= PACE_T0) { const d = drv[k].state.dbg, Lm = pace[k].lim, va = c._hwf ? c._hwf.v : 0;
       if (!d) Lm.other++; else if (d.brakeX > 0) Lm.emerg++; else if (d.vFollow < d.vCorner - 0.5 && d.vT - va < 2.5) { Lm.follow++; const F = pace[k].fo, B = d.fol;
@@ -58,7 +58,7 @@ while (t < T) {
   if (t >= PACE_T0) cars.forEach((c, k) => { const f = c._hwf, P = pace[k]; if (!f) return; const v = Math.hypot(c.vx, c.vy) * 3.6;
     if (P.s0 == null) P.s0 = f.s; P.s1 = f.s; P.n++; P.sum += v; if (v < 130) P.slow++; P.min = Math.min(P.min, v);
     let near = Infinity, stuck = false;
-    for (const o of tr.cars) { const g = o._hwf; if (!g) continue; const ds = g.s - f.s;
+    for (const o of tr.ourSide) { const g = o._hwf; if (!g) continue; const ds = g.s - f.s;
       if (ds > 0) near = Math.min(near, ds);
       if (ds > 0 && ds < 40 && Math.abs(g.off - f.off) < 2.5 && v < g.v * 3.6 + 15) stuck = true;
       const was = P.rk.get(o); if (ds > 3) P.rk.set(o, 1); else if (ds < -3) { if (was === 1) P.pass++; P.rk.set(o, -1); } }

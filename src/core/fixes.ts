@@ -64,4 +64,9 @@ export const FIX = {
   // of its layouts' (menu/tracks.ts; owner 11-09: "Can tracks show their length when selecting
   // them")
   laplen: atLoad('laplen'),
+  // ?oncoming=1: traffic coming the other way on the endless roads (owner 11-09: "give all levels
+  // an apposing road with oncoming traffic on that like normal motorways or a roads do"): the
+  // motorways' and dual carriageways' other carriageway past a central reservation
+  // (highway/road.ts laneGeo, ai/traffic*.ts)
+  oncoming: atLoad('oncoming'),
 };

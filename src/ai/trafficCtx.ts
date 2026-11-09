@@ -42,6 +42,10 @@ export interface TrafficCtx {
   // the LIVE cars (drawn + collided); a parked slot (waiting for a free off-screen spot)
   // is not in it
   cars: TrafficVehicle[];
+  // those of them the racers read: not the far side of a central reservation's barrier
+  // (?oncoming=1 - MEASURED, hwracecheck: reading the other way's cars 7.6 m across on the dual
+  // carriageway, the racers ran 9-12 km/h slower)
+  ourSide: TrafficVehicle[];
 }
 
 /** Is (x, y) at road distance dist on screen right now? */

@@ -28,9 +28,12 @@ export { PER_LANE };
 export function createTraffic({ rnd = Math.random } = {}) {
   const ctx: TrafficCtx = {
     rnd, list: [], level: null, want: 0, placed: 0, recycled: 0, visHits: 0, cars: [],
+    ourSide: [],
   };
   return {
     cars: ctx.cars,
+    // what the racers read (?oncoming=1: not the other carriageway's)
+    ourSide: ctx.ourSide,
     reset: (nextLevel: HighwayLevel | null, density: number) => (
       resetTraffic(ctx, nextLevel, density)
     ),

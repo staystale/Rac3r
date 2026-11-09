@@ -2,9 +2,9 @@
 // "a lot of crashes on silver stone"; "maybe check that for tight spot n silly crashes too"): for
 // every venue layout, how far back from the start line the road runs before it bends tighter than
 // BEND_R (the grid's 20 cars need 19 slots x GRID_STEP behind pole), and the run to the first bend.
-// SILLYSTONE=1 OULTONPORK=1 node tools/scratch/_grridroom.mjs [ids,comma]
+// [BEND_R=150] SILLYSTONE=1 node tools/scratch/_gridroom.mjs [ids,comma]
 import * as L from '../../src/lab.ts';
-const BEND_R = 150, SPAN = 10;
+const BEND_R = +(process.env.BEND_R || 150), SPAN = 10;
 const only = process.argv[2] ? process.argv[2].split(',') : null;
 const radiusAt = (sub, dist) => {
   const at = (d) => L.onTrack(sub, ((d % sub.totalDist) + sub.totalDist) % sub.totalDist, 0, {});
@@ -13,7 +13,7 @@ const radiusAt = (sub, dist) => {
   return { r: Math.abs(turn) > 1e-4 ? 2 * SPAN / Math.abs(turn) : Infinity, sign: Math.sign(turn) };
 };
 for (const level of L.LEVELS) {
-  if (!level.venue || (only && !only.includes(level.id))) continue;
+  if (only ? !only.includes(level.id) : !level.venue && !['thruston', 'test-track', 'knobhill'].includes(level.id)) continue;
   L.setLevel(level.id);
   const sub = L.LEVEL.subtrack, spawn = L.LEVEL.spawn;
   if (!sub || L.LEVEL.endless) continue;

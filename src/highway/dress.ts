@@ -345,4 +345,24 @@ export function dress(level: HwLevel, firstIdx: number, endIdx: number, loose: L
   layRoadLamps(ctx);
   layLooseRoadside(ctx);
   layWalls(ctx);
+  layMedian(ctx);
+}
+
+/**
+ * The CENTRAL RESERVATION's barrier between two carriageways (?oncoming=1: geo.median), in
+ * ~120 m pieces as the walls, overlapping by one point.
+ * @param ctx the dress context
+ */
+function layMedian(ctx: DressCtx) {
+  const { level, road, firstIdx, endIdx, pointAt } = ctx, offset = level._hw.geo.median;
+  if (offset == null) return;
+  for (let startIdx = Math.max(0, firstIdx - 1); startIdx < endIdx; startIdx += 30) {
+    const pts: Point[] = [];
+    for (let j = startIdx; j <= Math.min(road.length - 1, startIdx + 30); j++) {
+      const pos = pointAt(j, offset);
+      pts.push([pos.x, pos.y]);
+    }
+    if (pts.length > 1) level.barriers.push({ kind: level._cfg.median || 'armco', pts,
+      _s: road[startIdx].s });
+  }
 }

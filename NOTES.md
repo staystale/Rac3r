@@ -458,6 +458,13 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   marshal hut's corner on a kerb. venueaudit counts tyres on tyres / barriers / kerbs, props on
   kerbs, loose objects at no place and barriers folding back; world/venue.ts tidyLoose drops any
   left (the first laid kept).
+- ONCOMING TRAFFIC ON A SINGLE CARRIAGEWAY NEEDS RACERS THAT PASS WITH CARE (11-09, ?oncoming=1):
+  Deaf Valley's two lanes with the other way's cars in the right one sent the racers head-on into
+  them (tools/hwracecheck.mjs: racer-traffic contacts 244 steps, two wrecks, the field at 66 km/h).
+  Reading them at the closing speed did not help, nor holding the racers' lanes to the left one
+  (1260 contact steps): the racing line keeps the whole road and the passing has no 'is the other
+  lane clear' judgement. Twin carriageways are safe (the barrier between); the single carriageway
+  waits for that passing work.
 - NOTHING SOLID NEARER THE ROAD THAN ITS RUN-OFF (11-09, the start crash review): 20-car starts
   (tools/scratch/_startcrash.mjs, which names a solid's hit by the solid's kind - the nearest
   barrier's name hid them) found the hardest hits on a start gantry's far leg (1.9 m past the edge,

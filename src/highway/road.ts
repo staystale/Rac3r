@@ -1,17 +1,42 @@
 // highway road: the centre-line generator (elements, curvature, growTo) and the readers of it
 // (locate, roadFrame, roadPose, roadSpan). Split out of highway.ts.
 import { STEP, UP_HEADING, K_RATE, wrap } from "./presets.ts";
-import type { HwCfg, HwPoint, HwElem, HwState, HwLevel } from './hwtypes.ts';
+import { FIX } from "../core/fixes.ts";
+import type { HwCfg, HwGeo, HwPoint, HwElem, HwState, HwLevel } from './hwtypes.ts';
 // lateral offsets from the centreline: - = the driver's LEFT (the -normal side; lab.ts normals
 // point to the driver's right)
-export function laneGeo(cfg: HwCfg) {
-  const width = cfg.shoulder + cfg.lanes * cfg.laneW + cfg.edge,
+// m: the central reservation between two carriageways (?oncoming=1), its barrier in the middle
+const RESERVE_M = 3;
+
+/**
+ * The road's cross-section: our carriageway - the hard shoulder, the lanes, the edge strip - and
+ * (?oncoming=1, cfg.oncoming) the other way's beyond a central reservation, mirrored: its offside
+ * lane by the reservation, its hard shoulder outermost.
+ * @param cfg the road type
+ * @returns the cross-section
+ */
+export function laneGeo(cfg: HwCfg): HwGeo {
+  const carriage = cfg.shoulder + cfg.lanes * cfg.laneW + cfg.edge;
+  const twin = FIX.oncoming && cfg.oncoming === 'carriageway';
+  const width = twin ? 2 * carriage + RESERVE_M : carriage,
     halfWidth = width / 2,
     base = -halfWidth + cfg.shoulder;
-  return { width, hw: halfWidth,
-    centres: Array.from({ length: cfg.lanes }, (item, i) => base + cfg.laneW * (i + 0.5)),
-    dashes: Array.from({ length: cfg.lanes - 1 }, (item, idx) => base + cfg.laneW * (idx + 1)),
-    solid: cfg.shoulder >= 2 ? [base] : [] };
+  const centres = Array.from({ length: cfg.lanes }, (item, i) => base + cfg.laneW * (i + 0.5)),
+    dashes = Array.from({ length: cfg.lanes - 1 }, (item, idx) => base + cfg.laneW * (idx + 1)),
+    solid = cfg.shoulder >= 2 ? [base] : [];
+  if (!twin) return { width, hw: halfWidth, centres, dashes, solid, own: centres, oncoming: [],
+    ownR: halfWidth, oppL: halfWidth, median: null };
+  // the far carriageway's nearside lane edge (inside its hard shoulder), and its lanes from there
+  const farBase = halfWidth - cfg.shoulder;
+  return { width, hw: halfWidth, centres,
+    dashes: [...dashes,
+      ...Array.from({ length: cfg.lanes - 1 }, (item, idx) => farBase - cfg.laneW * (idx + 1))],
+    // each carriageway's solid line by the reservation, and the far hard shoulder's
+    solid: [...solid, base + cfg.lanes * cfg.laneW, farBase - cfg.lanes * cfg.laneW,
+      ...(cfg.shoulder >= 2 ? [farBase] : [])],
+    own: centres,
+    oncoming: Array.from({ length: cfg.lanes }, (item, i) => farBase - cfg.laneW * (i + 0.5)),
+    ownR: -halfWidth + carriage, oppL: halfWidth - carriage, median: 0 };
 }
 export function stateOf(level: HwLevel) {
   return level._hw;

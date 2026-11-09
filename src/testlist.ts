@@ -13,6 +13,14 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'oncoming',
+    added: '2026-11-09',
+    name: 'Oncoming traffic: the motorways and dual carriageway get their other carriageway',
+    where: 'Test link + &oncoming=1: Highway to Hull > MOTORWAY / INTERSTATE / DUAL / WALLED',
+    try: 'Drive and race up the road: the other way\'s cars across the central barrier.',
+    wrong: 'A car on the wrong side, through the barrier, facing the wrong way, or popping in.',
+  },
+  {
     id: 'runoff',
     added: '2026-11-09',
     name: 'Fewer start crashes: pit wall back by a bend, gantry leg and street lights off the road',

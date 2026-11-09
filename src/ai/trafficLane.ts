@@ -21,7 +21,8 @@ export function findLead(slot: TrafficCar, ents: TrafficEnt[]) {
   let lead: TrafficEnt | null = null, gap = Infinity;
   for (const ent of ents) {
     if (ent.car === car) continue;
-    const ahead = ent.s - slot.s;
+    // (ahead its own way: the other way's traffic looks down the road)
+    const ahead = (slot.dir ?? 1) * (ent.s - slot.s);
     if (ahead <= 0 || ahead > 110) continue;
     if (Math.min(Math.abs(ent.off - slot.laneOff), Math.abs(ent.off - slot.off)) > 2.3) continue;
     const bumperGap = ahead - (car.spec.len + ent.car.spec.len) / 2;

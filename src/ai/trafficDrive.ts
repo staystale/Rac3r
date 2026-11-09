@@ -12,10 +12,12 @@ import type { TrafficCar, TrafficEnt } from "./types.ts";
 function speedTarget(slot: TrafficCar, lead: TrafficEnt | null, gap: number) {
   let vTarget = slot.vWant, brakeX = 0;
   if (lead) {
+    // (the lead's speed this car's way: one coming at it is negative - it brakes hard)
+    const leadV = (slot.dir ?? 1) * lead.v;
     const wantGap = GAP0 + HEADWAY * Math.max(0, slot.vAl);
-    vTarget = Math.min(vTarget, Math.max(0, lead.v + (gap - wantGap) * 0.4));
+    vTarget = Math.min(vTarget, Math.max(0, leadV + (gap - wantGap) * 0.4));
     if (gap < 2.5) vTarget = 0;
-    const close = slot.vAl - lead.v;
+    const close = slot.vAl - leadV;
     if (close > 0.5) {
       const ttc = gap / close;
       if (ttc < 2.5) brakeX = Math.min(1, (2.5 - ttc) / 1.8);
@@ -30,9 +32,12 @@ export function driveOne(ctx: TrafficCtx, slot: TrafficCar, env: DriveEnv) {
   car._p = { x: car.x, y: car.y, h: car.heading };
   const speed = Math.hypot(car.vx, car.vy);
   const { lead, gap } = findLead(slot, env.ents);
-  laneDecisions(ctx, slot, env, lead, gap);
-  crossLanes(ctx, slot, env);
-  leanAway(slot, env);
+  // (the other way's traffic keeps its lane: ?oncoming=1)
+  if ((slot.dir ?? 1) > 0) {
+    laneDecisions(ctx, slot, env, lead, gap);
+    crossLanes(ctx, slot, env);
+    leanAway(slot, env);
+  }
   const { vTarget, brakeX } = speedTarget(slot, lead, gap);
   // ---- LOD (MEASURED, tools/_tfprof: applyGround alone is ~17 us per car-step,
   // 18 cars = 0.57 ms a step = a phone frame's budget gone): a car OUT OF VIEW and > PHYS_NEAR

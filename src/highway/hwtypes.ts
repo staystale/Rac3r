@@ -1,6 +1,6 @@
 // highway/hwtypes.ts: the shapes the endless highway shares - its road type, the road it grows,
 // the state it keeps on the level (level._hw), and the dressing context.
-import type { Level, Point, Prop, Lane, Zone, Barrier, Solid, Cover,
+import type { Level, Point, Prop, Lane, Zone, Barrier, BarrierKind, Solid, Cover,
   Bump } from '../world/types.ts';
 import type { RoadQ } from '../ai/types.ts';
 import type { LevelObj } from '../cones/coneTypes.ts';
@@ -18,11 +18,22 @@ export interface HwCfg {
   kRate?: number;   // the fastest curvature change, 1/m per m (road.ts; else presets.ts K_RATE)
   // its changes by road distance (Deaf Valley's HIGH road: highway/desertplan.ts)
   stretch?: (dist: number, seed: number) => Partial<HwCfg> | null;
+  // ?oncoming=1, the other way's traffic: a second carriageway, mirrored, the far side of a central
+  // reservation with a barrier of kind median (road.ts laneGeo)
+  oncoming?: 'carriageway';
+  median?: BarrierKind;
 }
 
-/** The road's cross-section (road.ts laneGeo), m from the centre line. */
+/** The road's cross-section (road.ts laneGeo), m from the centre line (+ = the driver's right). */
 export interface HwGeo {
-  width: number; hw: number; centres: number[]; dashes: number[]; solid: number[];
+  width: number; hw: number;
+  centres: number[];   // our way's lanes, left first (the racers' road: ai/roadLine.ts)
+  dashes: number[]; solid: number[];   // the lane lines drawn
+  own: number[];   // the lanes our way's traffic drives
+  oncoming: number[];   // the other way's lanes, its nearside first (none: no oncoming traffic)
+  ownR: number;   // our carriageway's right edge (our traffic keeps inside it)
+  oppL: number;   // the other way's edge nearest us (its traffic keeps beyond it)
+  median: number | null;   // the central reservation's barrier, its offset (null: none)
 }
 
 /** A point of the road's centre line. */

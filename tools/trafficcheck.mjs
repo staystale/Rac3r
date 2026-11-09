@@ -3,6 +3,8 @@
 // STOPPED on the hard shoulder, then FAST again. Measures, per preset and density: traffic-on-traffic CONTACTS (they must not crash
 // into each other), cars POPPING IN / OUT inside the view, traffic off the carriageway, lane changes, recycles, and the step cost.
 // node tools/trafficcheck.mjs [density 0..1.5] [seconds per phase]
+// ONCOMING=1 (?oncoming=1): the other way's traffic too - per phase how many
+// of it are live, how fast, and whether it keeps to its side (beyond geo.oppL)
 import { makeCar, PHYSICS_STEP_SECONDS } from '../src/vehicle.ts';
 import * as L from '../src/lab.ts';
 import * as H from '../src/highway.ts';
@@ -15,7 +17,8 @@ let fails = 0; const check = (ok, msg) => { console.log((ok ? 'ok   ' : 'FAIL ')
 // the VIEW, as main.ts gives it: the treadmill camera puts you ~3/4 down the screen. Worst case = zoomed right out in portrait
 // (ZOOM_MIN 0.3 x 22 px/m on 844 px = 128 m tall): ~100 m ahead, ~35 m behind, +-30 m sideways
 const VIEW_AHEAD = 100, VIEW_BEHIND = 35, VIEW_SIDE = 30;
-for (const preset of ['motorway', 'interstate', 'dual']) {
+const ONCOMING = process.env.ONCOMING === '1';
+for (const preset of ['motorway', 'interstate', 'dual', ...(ONCOMING ? ['walled'] : [])]) {
   let s0 = 4242 + preset.length * 7; let r = s0; const rnd = () => ((r = (Math.imul(r, 1664525) + 1013904223) >>> 0) / 4294967296);
   const lv = H.createHighway(s0, preset); lv.id = 'tf-' + preset; L.LEVELS.push(lv); L.setLevel(lv.id);
   const geo = H.laneGeo(lv._cfg), C = geo.centres, me = makeCar('saloon-rwd');
@@ -25,6 +28,7 @@ for (const preset of ['motorway', 'interstate', 'dual']) {
   place(); H.stepHighway(lv, me); tr.reset(lv, DENS);
   const vis = (x, y, s) => { const ds = s - pS; if (ds < -VIEW_BEHIND || ds > VIEW_AHEAD) return false; const f = H.roadFrame(lv, x, y, s); return !f || Math.abs(f.off - pOff) < VIEW_SIDE; };
   const inView = (c) => { const f = H.roadFrame(lv, c.x, c.y, c._tS); c._tS = f && f.s; return f && vis(c.x, c.y, f.s); };
+  let theirSide = 0, theirSteps = 0, theirV = 0;
   let contacts = 0, contactCars = new Set(), popIn = 0, popOut = 0, offRoad = 0, lanes = 0, ms = 0, n = 0, minLive = Infinity, maxLive = 0, vSum = 0, vN = 0, wrecks = 0;
   let prev = new Map(tr.cars.map((c) => [c, inView(c)]));
   const phases = [['fast', 140 / 3.6, C.length - 1], ['slow', 70 / 3.6, 0], ['stopped', 0, -1], ['fast again', 140 / 3.6, C.length - 1]];
@@ -46,11 +50,14 @@ for (const preset of ['motorway', 'interstate', 'dual']) {
       for (const c of cs) { const iv = inView(c); now.set(c, iv); if (!prev.has(c) && iv) popIn++; }
       for (const [c, iv] of prev) if (!now.has(c) && iv) popOut++;
       prev = now;
+      for (const tt of tr.list) if (!tt.parked && (tt.dir ?? 1) < 0) { theirSteps++; theirV += tt.vAl; if (tt.off < geo.oppL) theirSide++; }
       for (const tt of tr.list) if (!tt.parked) { if (Math.abs(tt.off) > geo.hw + 0.3) { offRoad++; if (process.env.TFDBG && !tt._dbgOff) { tt._dbgOff = 1; console.log(`    OFF ${name} t ${t.toFixed(1)}: s ${(tt.s - pS).toFixed(1)} off ${tt.off.toFixed(2)} laneOff ${tt.laneOff.toFixed(2)} lane ${tt.lane}->${tt.laneT} v ${(tt.vAl * 3.6).toFixed(0)} phys ${tt.phys} kin ${tt.kin} wreck ${tt.wreck} heading-err ${(Math.atan2(tt.car.vy, tt.car.vx) * 57.3).toFixed(0)} | player off ${pOff.toFixed(2)}`); } }
         if (tt.wreck) { wrecks++; if (process.env.TFDBG && !tt._dbgW) { tt._dbgW = 1; console.log(`    WRECK ${name} t ${t.toFixed(1)}: s ${(tt.s - pS).toFixed(1)} off ${tt.off.toFixed(2)} dmg ${tt.car.dmg.map((d) => d.toFixed(2))} roll ${!!(tt.car.roll && tt.car.roll.phase !== 'none')} v ${(Math.hypot(tt.car.vx, tt.car.vy) * 3.6).toFixed(0)}`); } } vSum += Math.hypot(tt.car.vx, tt.car.vy); vN++; }
       if (Math.round(t / PHYSICS_STEP_SECONDS) % 120 === 0) lanes = tr.list.reduce((a, tt) => a + (tt.laneT !== tt.lane ? 1 : 0), lanes);
     }
     const st = tr.stats();
+    const theirs = tr.list.filter((tt) => !tt.parked && (tt.dir ?? 1) < 0).length;
+    if (ONCOMING) console.log(`  ${preset} after ${name}: the other way's live ${theirs}, avg ${(theirV / Math.max(1, theirSteps) * 3.6).toFixed(0)} km/h, car-steps on our side ${theirSide}`);
     console.log(`  ${preset} after ${name}: live ${st.live}/${st.want}, placed ${st.placed}, recycled ${st.recycled}, forced in view ${st.visHits} | contacts so far ${contacts} (${contactCars.size} cars)`);
   }
   const st = tr.stats();
@@ -61,6 +68,7 @@ for (const preset of ['motorway', 'interstate', 'dual']) {
   check(wrecks === 0, `${preset}: no traffic wrecked itself (${wrecks} car-steps)`);
   check(st.recycled > 10, `${preset}: cars recycled (${st.recycled})`);
   check(lanes > 0, `${preset}: lane changes happen (${lanes} samples)`);
+  if (ONCOMING) check(theirSteps > 0 && theirSide === 0, `${preset}: the other way's traffic runs, on its own side (${theirSteps} car-steps, ${theirSide} on ours)`);
   check(ms / n < 0.25, `${preset}: step cost ${(ms / n * 1000).toFixed(0)} us`);
 }
 console.log(fails ? `\n${fails} FAIL(S)` : '\nALL OK');

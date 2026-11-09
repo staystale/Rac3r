@@ -17,6 +17,9 @@ export const HW_PRESETS: Record<string, HwCfg> = {
     bend: [180, 300],
     pStraight: 0.34,
     pBend: 0.2,
+    // the other carriageway past a concrete central barrier (?oncoming=1)
+    oncoming: 'carriageway',
+    median: 'wall',
   },
   interstate: {
     lanes: 4,
@@ -28,6 +31,8 @@ export const HW_PRESETS: Record<string, HwCfg> = {
     bend: [350, 500],
     pStraight: 0.45,
     pBend: 0.1,
+    oncoming: 'carriageway',
+    median: 'wall',
   },
   dual: {
     lanes: 2,
@@ -39,6 +44,9 @@ export const HW_PRESETS: Record<string, HwCfg> = {
     bend: [120, 200],
     pStraight: 0.3,
     pBend: 0.25,
+    // a dual carriageway A road: a steel barrier down the middle
+    oncoming: 'carriageway',
+    median: 'armco',
   },
   // WALLED IN (requirement: some levels that use this mechanic should be more walled in):
   // `walls` = a continuous barrier kind both sides, `wallGap` m off the road edge; no trees / barns
@@ -55,6 +63,8 @@ export const HW_PRESETS: Record<string, HwCfg> = {
     pBend: 0.2,
     walls: "wall",
     wallGap: 1.2,
+    oncoming: 'carriageway',
+    median: 'wall',
   },
   // DEAF VALLEY (owner 11-08: "canyon which can have the features you've described" - Death
   // Valley, the parody): a twisty SINGLE CARRIAGEWAY, one lane each way, through canyons of rock

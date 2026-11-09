@@ -4,21 +4,29 @@ import { roadFrame } from "../highway.ts";
 import type { HighwayLevel, TrafficCar } from "./types.ts";
 import { MAX_CARS, PER_LANE, geo } from "./trafficCtx.ts";
 import type { TrafficCtx } from "./trafficCtx.ts";
-import { cruise, fresh, rebuildCars, roomAt } from "./trafficSpawn.ts";
+import { cruise, fresh, lanesOf, rebuildCars, roomAt } from "./trafficSpawn.ts";
 
-/** Spread the cars over the road round the spawn (none in your lane within 40 m ahead). */
-function spreadCars(ctx: TrafficCtx, spawn: { s: number; off: number }) {
-  const centres = geo(ctx).centres, laneCount = centres.length, ents = [spawn];
-  for (let i = 0, tries = 0; i < ctx.want && tries < ctx.want * 25; tries++) {
+/**
+ * Spread a way's cars over the road round the spawn (none in your lane within 40 m ahead).
+ * @param ctx the traffic
+ * @param spawn where you start
+ * @param want how many
+ * @param dir 1 our way, -1 the other way (?oncoming=1)
+ */
+function spreadCars(ctx: TrafficCtx, spawn: { s: number; off: number }, want: number, dir = 1) {
+  const centres = lanesOf(ctx, dir), laneCount = centres.length, ents = [spawn],
+    from = ctx.list.length;
+  for (let tries = 0; ctx.list.length - from < want && tries < want * 25; tries++) {
     const dist = spawn.s - 100 + ctx.rnd() * 520, lane = (ctx.rnd() * laneCount) | 0,
       mine = Math.abs(centres[lane] - spawn.off) < 1.5;
     if ((mine && dist < spawn.s + 40) || Math.abs(dist - spawn.s) < 14
-      || !roomAt(ctx, ents, dist, lane, 26, 26)) continue;
-    const slot = fresh(ctx, {} as TrafficCar, dist, lane, cruise(ctx, lane, laneCount));
+      || !roomAt(ctx, ents, dist, lane, 26, 26, dir)) continue;
+    const slot = fresh(ctx, {} as TrafficCar, dist, lane, cruise(ctx, lane, laneCount), dir);
     ctx.list.push(slot);
     ents.push({ s: dist, off: slot.off });
-    i++;
   }
+  // no room at the start: they join from off screen
+  while (ctx.list.length - from < want) ctx.list.push({ parked: true, dir } as TrafficCar);
 }
 
 /**
@@ -37,14 +45,14 @@ export function resetTraffic(ctx: TrafficCtx, nextLevel: HighwayLevel | null, de
     rebuildCars(ctx);
     return;
   }
-  const laneCount = geo(ctx).centres.length;
-  ctx.want = Math.min(MAX_CARS, Math.round(density * PER_LANE * laneCount));
+  const ours = Math.min(MAX_CARS, Math.round(density * PER_LANE * geo(ctx).own.length));
+  // the other way's (?oncoming=1): as many a lane, up to half as many again in all
+  const theirs = Math.min(MAX_CARS / 2,
+    Math.round(density * PER_LANE * geo(ctx).oncoming.length));
+  ctx.want = ours + theirs;
   const spawn = roadFrame(level, level.spawn.x, level.spawn.y, null)!;
-  spreadCars(ctx, { s: spawn.s, off: spawn.off });
-  while (ctx.list.length < ctx.want) {
-    // no room at the start: they join from off screen
-    ctx.list.push({ parked: true } as TrafficCar);
-  }
+  spreadCars(ctx, { s: spawn.s, off: spawn.off }, ours);
+  if (theirs) spreadCars(ctx, { s: spawn.s, off: spawn.off }, theirs, -1);
   rebuildCars(ctx);
 }
 

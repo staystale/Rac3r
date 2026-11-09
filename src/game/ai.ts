@@ -125,7 +125,7 @@ export function aiWant(entry: AiEntry, dt: number) {
   const want = entry.drv.drive(car, dt, () => (
     { obstacles: entry.obs,
       cars: [game.car, ...game.ai.map((other) => other.car),
-        ...(LEVEL.endless ? game.traffic.cars : [])].filter((other) => other !== car
+        ...(LEVEL.endless ? game.traffic.ourSide : [])].filter((other) => other !== car
           && sameLevel(other, car)),
           hold: startHeld(), lap,
             laps: game.flow ? game.flow.laps : shared.race.on ? shared.race.laps

@@ -36,9 +36,25 @@ export function gearFor(car: TrafficVehicle, speed: number) {
   car.rpm = Math.max(spec.idleRpm, Math.min(spec.redline, rpmAt(best)));
 }
 
+/**
+ * A car's way along the road: 1 ours, -1 the other way's (?oncoming=1).
+ * @param slot the car
+ * @returns 1 or -1
+ */
+export const dirOf = (slot: { dir?: number }) => slot.dir ?? 1;
+
+/**
+ * The lanes a way's traffic drives (?oncoming=1: the other way's, its nearside first).
+ * @param ctx the traffic
+ * @param dir 1 our way, -1 the other way
+ * @returns the lanes' offsets, m
+ */
+export const lanesOf = (ctx: TrafficCtx, dir = 1) =>
+  (dir < 0 ? geo(ctx).oncoming : geo(ctx).own);
+
 /** Fill a slot with a fresh random car at road distance dist in lane, doing speed. */
 export function fresh(
-  ctx: TrafficCtx, slot: TrafficCar, dist: number, lane: number, speed: number,
+  ctx: TrafficCtx, slot: TrafficCar, dist: number, lane: number, speed: number, dir = 1,
 ) {
   const ids = VEH.filter(([candId]) => ROSTER.some((entry) => entry.id === candId)),
     [vehId] = pick(ctx, ids), paintIdx = PAINTS.indexOf(pick(ctx, PAINTS)),
@@ -48,16 +64,17 @@ export function fresh(
   car.traffic = true;
   car.absOn = !!(car.spec.aids && car.spec.aids.abs);
   car.tcsOn = !!(car.spec.aids && car.spec.aids.tcs);
-  const off = geo(ctx).centres[lane], pose = roadPose(ctx.level!, dist, off);
-  reset(car, pose.x, pose.y, pose.h);
-  car.vx = Math.cos(pose.h) * speed;
-  car.vy = Math.sin(pose.h) * speed;
+  const lanes = lanesOf(ctx, dir), off = lanes[lane], pose = roadPose(ctx.level!, dist, off),
+    heading = pose.h + (dir < 0 ? Math.PI : 0);
+  reset(car, pose.x, pose.y, heading);
+  car.vx = Math.cos(heading) * speed;
+  car.vy = Math.sin(heading) * speed;
   gearFor(car, speed);
   Object.assign(slot, {
     car, lane, laneT: lane, laneOff: off, bias: 0,
-    vWant: cruise(ctx, lane, geo(ctx).centres.length), s: dist, off, vAl: speed,
+    vWant: cruise(ctx, lane, lanes.length), s: dist, off, vAl: speed,
     ind: 0, indT: 0, think: ctx.rnd() * 0.3, keepLeftT: 0, wreck: false, deadT: 0,
-    parked: false, kOff: null, kin: false, phys: true,
+    parked: false, kOff: null, kin: false, phys: true, dir,
   });
   return slot;
 }
@@ -65,7 +82,13 @@ export function fresh(
 /** Rebuild the live car list from the slots that are not parked. */
 export function rebuildCars(ctx: TrafficCtx) {
   ctx.cars.length = 0;
-  for (const slot of ctx.list) if (!slot.parked) ctx.cars.push(slot.car);
+  ctx.ourSide.length = 0;
+  const median = ctx.level?._hw?.geo.median ?? null;
+  for (const slot of ctx.list) {
+    if (slot.parked) continue;
+    ctx.cars.push(slot.car);
+    if (median == null || dirOf(slot) > 0) ctx.ourSide.push(slot.car);
+  }
 }
 
 /**
@@ -74,9 +97,9 @@ export function rebuildCars(ctx: TrafficCtx) {
  */
 export function roomAt(
   ctx: TrafficCtx, ents: { s: number; off: number }[], dist: number, lane: number,
-  ahead = 30, behind = 30,
+  ahead = 30, behind = 30, dir = 1,
 ) {
-  const centre = geo(ctx).centres[lane];
+  const centre = lanesOf(ctx, dir)[lane];
   for (const ent of ents)
     if (Math.abs(ent.off - centre) < 2.6 && ent.s - dist < ahead && dist - ent.s < behind)
       return false;
@@ -89,17 +112,17 @@ export function roomAt(
  */
 export function spot(
   ctx: TrafficCtx, ents: { s: number; off: number }[], playerS: number, from: string,
-  vis: VisFn,
+  vis: VisFn, dir = 1,
 ) {
   const { s0: roadStart, s1: roadEnd } = roadSpan(ctx.level!),
     [near, far] = from === 'ahead' ? SPAWN_AHEAD : SPAWN_BEHIND,
-    laneCount = geo(ctx).centres.length;
+    lanes = lanesOf(ctx, dir), laneCount = lanes.length;
   for (let attempt = 0; attempt < 8; attempt++) {
     const dist = playerS + (from === 'ahead' ? 1 : -1) * (near + ctx.rnd() * (far - near)),
       lane = (ctx.rnd() * laneCount) | 0;
-    if (dist < roadStart + 60 || dist > roadEnd - 60 || !roomAt(ctx, ents, dist, lane))
-      continue;
-    const pose = roadPose(ctx.level!, dist, geo(ctx).centres[lane]);
+    if (dist < roadStart + 60 || dist > roadEnd - 60
+      || !roomAt(ctx, ents, dist, lane, 30, 30, dir)) continue;
+    const pose = roadPose(ctx.level!, dist, lanes[lane]);
     if (vis(pose.x, pose.y, dist)) continue;
     return { s: dist, lane };
   }

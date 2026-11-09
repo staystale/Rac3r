@@ -70,19 +70,22 @@ export function carryKinematic(
     latV = slot.kOff == null ? 0
       : Math.max(-LAT_V, Math.min(LAT_V, (offK - slot.kOff) / dt));
   slot.kOff = offK;
-  const pose = roadPose(ctx.level!, slot.s + slot.vAl * dt, offK),
-    heading = pose.h + Math.atan2(latV, Math.max(3, slot.vAl));
+  // (the other way's: down the road, turned round - its sideways drift and the bend's turn as
+  // the car feels them flip with it)
+  const dir = slot.dir ?? 1, sNext = slot.s + dir * slot.vAl * dt;
+  const pose = roadPose(ctx.level!, sNext, offK), faced = pose.h + (dir < 0 ? Math.PI : 0),
+    heading = faced + Math.atan2(dir * latV, Math.max(3, slot.vAl));
   // yaw rate + steering held at what the BEND needs (MEASURED: woken with both 0 in a
   // bend, a car ran 0.3 m off the edge for 1.2 s)
-  const poseAhead = roadPose(ctx.level!, slot.s + slot.vAl * dt + 4, offK);
+  const poseAhead = roadPose(ctx.level!, sNext + 4, offK);
   let dHead = poseAhead.h - pose.h;
   dHead = Math.atan2(Math.sin(dHead), Math.cos(dHead));
-  const kRoad = dHead / 4;
+  const kRoad = dir * dHead / 4;
   car.x = pose.x;
   car.y = pose.y;
   car.heading = heading;
-  car.vx = Math.cos(pose.h) * slot.vAl - Math.sin(pose.h) * latV;
-  car.vy = Math.sin(pose.h) * slot.vAl + Math.cos(pose.h) * latV;
+  car.vx = Math.cos(faced) * slot.vAl - Math.sin(faced) * dir * latV;
+  car.vy = Math.sin(faced) * slot.vAl + Math.cos(faced) * dir * latV;
   car.yawRate = slot.vAl * kRoad;
   car.delta = Math.atan(kRoad * car.spec.L);
   car.indicator = slot.laneT !== slot.lane ? slot.ind : 0;
@@ -104,7 +107,7 @@ function physicsInput(
   // PURE PURSUIT on the lane line (+ the lean), kept inside the carriageway
   const offT = Math.max(env.minOff, Math.min(env.maxOff, slot.laneOff + slot.bias)),
     lookAhead = Math.max(10, Math.min(32, 8 + 0.5 * speed)),
-    target = roadPose(ctx.level!, slot.s + lookAhead, offT);
+    target = roadPose(ctx.level!, slot.s + (slot.dir ?? 1) * lookAhead, offT);
   const cosH = Math.cos(car.heading), sinH = Math.sin(car.heading),
     toX = target.x - car.x, toY = target.y - car.y,
     xLocal = toX * cosH + toY * sinH, yLocal = -toX * sinH + toY * cosH;
