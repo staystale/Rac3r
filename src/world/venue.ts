@@ -17,7 +17,8 @@ import { CIRCUIT_BUSHES } from "./levels/bushes.ts";
 import { buildVenueScenery } from "./venuescenery.ts";
 import { VENUE_ROAD_M, distToLine, kerbOut, lineLength, pointAlong } from "./venuegeo.ts";
 import { laneSpawn, venueJoker, venueStartLane } from "./venuejoker.ts";
-import type { Barrier, Bump, Camber, Cone, Lane, Level, Point, Subtrack } from "./types.ts";
+import { nearWater } from "./venueoval.ts";
+import type { Barrier, Bump, Camber, Cone, Cover, Lane, Level, Point, Subtrack } from "./types.ts";
 
 /** A turned rectangle from the map (real m, the long side along w). */
 export interface VenueBox { name: string; x: number; y: number; w: number; h: number; rot: number }
@@ -381,7 +382,8 @@ function closedPieces(build: VenueBuild, layout: string,
 // raced road's kerb, or overlapping one kept before it by more than STACKED_SHARE of their radii
 // (rows stand 0.95 m apart, touching, by design), is left out (tools/venueaudit.mjs counts each).
 // A tyre row laid in front of a curved Armco run folded back over itself, two runs' rows crossed,
-// a closing row lay on the edge's.
+// a closing row lay on the edge's. Nor one in the scenery's water (Gerard's inside tyre wall at
+// Malarkey, laid along the lake's shore, stood its back row in the lake).
 const LOOSE_R: Record<string, number> = { tyrestack: 0.48, tyre: 0.35, bale: 0.8, cone: 0.2 };
 const STACKED_SHARE = 0.9, ON_RAIL_SHARE = 0.8, ON_KERB_SHARE = 0.5, LOOSE_CELL_M = 2;
 const looseRadius = (cone: Cone): number => LOOSE_R[cone.kind || 'cone'] || 0;
@@ -417,14 +419,16 @@ function stackedOn(grid: Map<number, Cone[]>, cone: Cone): boolean {
 }
 
 /**
- * A venue's loose objects with none at no place, on a barrier, on a kerb or on another (the first
- * kept). One with no size (a tape post) is kept as it is.
+ * A venue's loose objects with none at no place, on a barrier, on a kerb, in water or on another
+ * (the first kept). One with no size (a tape post) is kept as it is.
  * @param cones the objects, in the order they were laid (a closing row first)
  * @param barriers the barriers
  * @param sub the raced road
+ * @param covers the scenery's covers (its lakes and rivers)
  * @returns the objects kept
  */
-export function tidyLoose(cones: Cone[], barriers: Barrier[], sub: Subtrack): Cone[] {
+export function tidyLoose(cones: Cone[], barriers: Barrier[], sub: Subtrack,
+  covers: Cover[] = []): Cone[] {
   const rails = barriers.filter((rail) => rail.kind !== 'line');
   const kept: Cone[] = [], grid = new Map<number, Cone[]>();
   for (const cone of cones) {
@@ -432,7 +436,8 @@ export function tidyLoose(cones: Cone[], barriers: Barrier[], sub: Subtrack): Co
     const reach = looseRadius(cone);
     if (!reach) { kept.push(cone); continue; }
     if (rails.some((rail) => distToLine(rail.pts, cone.x, cone.y) < reach * ON_RAIL_SHARE)
-      || onKerb(sub, cone) || stackedOn(grid, cone)) continue;
+      || onKerb(sub, cone) || nearWater(covers, cone.x, cone.y, reach) || stackedOn(grid, cone))
+      continue;
     kept.push(cone);
     const key = looseCell(cone.x, cone.y);
     if (!grid.has(key)) grid.set(key, []);
@@ -547,7 +552,7 @@ export function venueLevel(spec: VenueSpec, layout: string, levelId: string,
     // none on another, on a barrier or on a kerb)
     seams: false, cones: tidyLoose([...closed.cones.filter((tyre) => !scenery.lanes.some((lane) =>
       distToLine(lane.pts, tyre.x, tyre.y) < lane.width / 2)), ...scenery.cones],
-    scenery.barriers, sub),
+    scenery.barriers, sub, scenery.covers),
     bushes: CIRCUIT_BUSHES,
     lanes: [...jokerLanes, ...scenery.lanes, ...closed.lanes], barriers: scenery.barriers,
     props: scenery.props, solids: solidsFromProps(scenery.props),

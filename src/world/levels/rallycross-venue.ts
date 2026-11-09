@@ -54,7 +54,8 @@ export function rallycrossLevel(spec: VenueSpec, layout: string, levelId: string
   const mid = lane.pts[Math.floor(lane.pts.length / 2)];
   // (tidied as the venue's own: none on another or on a barrier)
   return { ...level, bushes: RX_BUSHES,
-    cones: tidyLoose([...cones, ...jokerBales(sub, lane, cones)], level.barriers || [], sub),
+    cones: tidyLoose([...cones, ...jokerBales(sub, lane, cones)], level.barriers || [], sub,
+      level.covers || []),
     joker: { gate: { x: mid[0], y: mid[1], r: JOKER_GATE_R }, penalty: JOKER_PENALTY_S,
       laps: JOKER_LAPS,
       arrows: [jokerArrow(sub, lane.pts), jokerApproach(sub, lane.pts)].filter(Boolean) } };
