@@ -287,7 +287,6 @@ function drawEffects(ctx: RenderCtx, game: RenderGame, wallDt: number) {
   ctx.setAirCars(effectCars);   // the cars stirring the air (render/airflow.ts)
   for (const car of effectCars) {
     ctx.addEngineSmoke(car, wallDt);
-    ctx.addTowLines(car, wallDt);   // the tow cue (physics/wake.ts)
     ctx.addChips(car);
     ctx.addSparks(car, wallDt);
   }

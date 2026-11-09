@@ -8,7 +8,8 @@
 //                its own drag (the follower fills the low pressure behind it, as in a draft line).
 //   3 THE SHAPE  the wake runs longer the faster the car making it goes (WAKE_LEN at WAKE_V,
 //                x0.6 .. x1.6) and with a wider car; it is as wide as that car.
-//   4 THE CUE    faint air streaks along any racer in a tow (render/particles.ts).
+//   4 THE CUE    (gone 11-09, owner: "the side of the car slip stream waves lines should go I
+//                don't like how they look"): nothing draws the tow.
 //   5 THE SIDE DRAFT (owner 11-08: "side drafting, Naffcar first"; passed 11-08): two cars door to
 //                door at speed - the one with the other's nose alongside its rear quarter loses
 //                the clean air over its tail (up to SIDE_DRAG more drag, most with the nose at its
@@ -21,7 +22,10 @@
 // end (25 m behind at 200 km/h still cut 21 %); a real tow is strong within a car length or two
 // and falls away fast, so it decays exponentially over WAKE_DECAY of the wake's length: at
 // 200 km/h 8 m behind cuts ~28 %, 15 m ~15 %, 25 m ~6 %; at 100 km/h 8 m ~21 %, 15 m ~8 %.
-// Every racer, the player too (sim.js: with AI on the track).
+// Every racer, the player too (sim.js: with AI on the track). Only a car moving at DRAFT_V or more
+// is in a wake or a side draft (owner 11-09: "woosh marks next to the car when I'm parked still":
+// a car parked on the grid as the field drove off was in their wakes, and so in the tow cue's
+// streaks - since removed).
 
 const DRAFT_V = 12, DRAFT_MAX = 0.45, NOSE_GAP = 3;
 const WAKE_LEN = 28, WAKE_V = 30, WAKE_WID_REF = 1.8;
@@ -82,7 +86,7 @@ const sideAir = (car: WakeCar) => SIDE_AIR[String(car.spec.id || '').split('#')[
 function alongside(car: WakeCar, other: WakeCar): number {
   const speed = Math.hypot(car.vx, car.vy), cosH = Math.cos(car.heading),
     sinH = Math.sin(car.heading);
-  if (other === car || speed < DRAFT_V
+  if (other === car || speed < DRAFT_V || Math.hypot(other.vx, other.vy) < DRAFT_V
     || Math.cos(other.heading) * cosH + Math.sin(other.heading) * sinH < 0.9) return 0;
   const relX = other.x - car.x, relY = other.y - car.y, half = (car.spec.len || 4.5) / 2,
     // its nose along the car: -1 at the car's tail, 1 at its nose
@@ -118,7 +122,7 @@ export function wakeStep(cars: WakeCar[]): void {
   const push = cars.map(() => 0);
   cars.forEach((car) => {
     let cut = 0, dirty = 0;
-    cars.forEach((other, j) => {
+    if (Math.hypot(car.vx, car.vy) >= DRAFT_V) cars.forEach((other, j) => {
       const wake = inWake(car, other);
       if (!wake.along) return;
       cut = Math.max(cut, DRAFT_MAX * wake.along * (0.5 + 0.5 * wake.across));

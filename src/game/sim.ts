@@ -409,6 +409,9 @@ export function stepTrafficContacts(tcars: TrafficVehicle[]) {
   // you and the AI — full contact, damage
   if (tcars.length || game.traffic.want) game.traffic.step(PHYSICS_STEP_SECONDS,
     { player: game.car, others: game.ai.map((entry) => entry.car), visible: onScreen });
+  // the wake (physics/wake.ts) on the racers on the ground; a car in the air, or alone, has none
+  for (const racer of [game.car, ...game.ai.map((entry) => entry.car)])
+    racer.dragMul = racer.wakeDown = 1;
   if (game.ai.length || tcars.length) {
     const racers = [game.car, ...game.ai.map((entry) => entry.car)], all = tcars.length
       ? [...racers, ...tcars] : racers, startVel = all.map((racer) => [racer.vx, racer.vy]);

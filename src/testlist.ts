@@ -13,14 +13,6 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
-    id: 'layouts',
-    added: '2026-11-09',
-    name: 'A track with more than one layout: one card, then its layouts before the setup',
-    where: 'Test link + &layouts=1: TEST MODE > CIRCUITS > Brands Snatch / Snotterton',
-    try: 'Pick Snotterton, then a layout; BACK from the setup returns to the layouts.',
-    wrong: 'A layout missing, a track shown twice, BACK landing on the wrong list.',
-  },
-  {
     id: 'knobhillvenue',
     added: '2026-11-09',
     name: 'Knobhill as the real venue (Knockhill) at 1/2 size: the rallycross and the circuit',

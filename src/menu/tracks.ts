@@ -1,6 +1,5 @@
 import { LEVELS } from '../world/levels/index.ts';
 import { menuCatOf } from '../world/levels/category.ts';
-import { FIX } from '../core/fixes.ts';
 import { buildLevel } from '../world/load.ts';
 import { THEMES, LENGTHS } from '../stagegen.ts';
 
@@ -208,7 +207,7 @@ function addTrackCard(menu: Menu, grid: HTMLElement, level: Level) {
  * @returns its venue's layouts there; just the level when it is no venue's layout
  */
 function layoutsOf(level: Level, cat: string): Level[] {
-  if (!FIX.layouts || !level.venue) return [level];
+  if (!level.venue) return [level];
   return LEVELS.filter((entry) => entry.venue === level.venue
     && (cat === 'all' || menuCatOf(entry) === cat));
 }
@@ -236,7 +235,7 @@ function addVenueCard(menu: Menu, grid: HTMLElement, cat: string, layouts: Level
 
 /**
  * TEST MODE step 1b: the track cards of one category, a venue with more than one layout there
- * as one card (?layouts=1).
+ * as one card (owner 11-09: "Menu layout pass").
  * @param menu the menu context
  * @param cat the category id (CATS)
  */

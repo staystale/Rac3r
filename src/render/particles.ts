@@ -19,10 +19,6 @@ interface DmgEvent {
   scrape?: boolean; amt: number; c: number; metal?: boolean; aim?: number; speed?: number;
 }
 
-// one air streak: where its head is, how it drifts, its age and length (m), the car's heading
-interface Streak { x: number; y: number; vx: number; vy: number; age: number; life: number;
-  len: number; heading: number; alpha: number }
-
 // the mutable values the particle layer keeps between frames
 interface ParticleState {
   puffs: Puff[];
@@ -31,9 +27,6 @@ interface ParticleState {
   overPuffs: Puff[];
   // the cars stirring the air this frame (render/airflow.ts)
   airCars: AirCar[];
-  // AIR STREAKS along the racers in a tow, and each car's fractional remainder
-  streaks: Streak[];
-  streakDebt: Map<object, number>;
   // WHEEL SPRAY keeps a fractional remainder, because a rate below one particle per frame must
   // still emit at the right average rather than rounding to nothing.
   sprayDebt: number;
@@ -622,76 +615,6 @@ function renderPuffs(ctx: ParticleCtx, wallDt: number, puffs: Puff[] = ctx.state
   drawPuffsCheap(ctx, wallDt, puffs, windNow(puffs === ctx.state.puffs ? wallDt : 0));
 }
 
-// THE TOW CUE (physics/wake.ts 4): thin pale streaks flow back along any racer in another's wake
-// (the AI in yours too: owner "it should show on ai cars when they are slipstreaming you"); the
-// air is still, so they drift at a share of the car's speed and fall behind. Round 2 (owner: "some
-// shorter some longer and more see thru with distance and less lines, more and less see thru
-// closer to the lead car"): the tow's strength (its cut over STREAK_FULL_CUT) sets how many
-// (STREAK_RATE x strength^1.5 a second) and how solid (STREAK_ALPHA_FAR .. _NEAR); lengths run
-// STREAK_LEN x 0.3 .. 1.7.
-const STREAK_RATE = 30, STREAK_FULL_CUT = 0.4, STREAK_FROM = 0.05, STREAK_LIFE = 0.32;
-const STREAK_LEN = 1.6, STREAK_DRIFT = 0.55, MAX_STREAKS = 90;
-const STREAK_ALPHA_FAR = 0.1, STREAK_ALPHA_NEAR = 0.55;
-/** What the streaks read of a car. */
-interface TowCar { x: number; y: number; vx: number; vy: number; heading: number;
-  spec: { len: number; wid: number }; dragMul?: number }
-
-/**
- * Emit this frame's air streaks for a car in a tow.
- * @param ctx particle context
- * @param car a racer
- * @param wallDt wall-clock frame time
- */
-function emitStreaks(ctx: ParticleCtx, car: TowCar, wallDt: number) {
-  const state = ctx.state, cut = 1 - (car.dragMul ?? 1);
-  if (cut < STREAK_FROM) { state.streakDebt.delete(car); return; }
-  const strength = Math.min(1, cut / STREAK_FULL_CUT);
-  let debt = (state.streakDebt.get(car) || 0) + STREAK_RATE * strength ** 1.5 * wallDt;
-  const cosH = Math.cos(car.heading), sinH = Math.sin(car.heading);
-  const alpha = STREAK_ALPHA_FAR + (STREAK_ALPHA_NEAR - STREAK_ALPHA_FAR) * strength;
-  for (; debt >= 1; debt--) {
-    const along = (fxRandom() - 0.3) * car.spec.len;
-    const side = (fxRandom() < 0.5 ? -1 : 1) * (car.spec.wid / 2 + 0.15 + fxRandom() * 0.5);
-    if (state.streaks.length >= MAX_STREAKS) state.streaks.shift();
-    state.streaks.push({ x: car.x + cosH * along - sinH * side, y: car.y + sinH * along + cosH
-      * side, vx: car.vx * STREAK_DRIFT, vy: car.vy * STREAK_DRIFT, age: 0,
-      life: STREAK_LIFE * (0.7 + fxRandom() * 0.6), len: STREAK_LEN * (0.3 + fxRandom() * 1.4),
-      heading: car.heading, alpha });
-  }
-  state.streakDebt.set(car, debt);
-}
-
-/**
- * Draw (and age) the air streaks: one-art-pixel pale lines, fading out.
- * @param ctx particle context
- * @param wallDt wall-clock frame time
- */
-function renderStreaks(ctx: ParticleCtx, wallDt: number) {
-  const { view, PPMz, toScreenX, toScreenY } = ctx, streaks = ctx.state.streaks;
-  if (!streaks.length) return;
-  const ppm = PPMz(), dpr = view.dpr;
-  view.ctx.save();
-  view.ctx.setTransform(1, 0, 0, 1, 0, 0);
-  view.ctx.strokeStyle = '#f4f6fa';
-  view.ctx.lineWidth = Math.max(1, Math.round(dpr));
-  for (let i = streaks.length - 1; i >= 0; i--) {
-    const streak = streaks[i];
-    streak.age += wallDt;
-    if (streak.age >= streak.life) { streaks.splice(i, 1); continue; }
-    streak.x += streak.vx * wallDt; streak.y += streak.vy * wallDt;
-    view.ctx.globalAlpha = streak.alpha * (1 - streak.age / streak.life);
-    const headX = Math.round(toScreenX(streak.x) * dpr),
-      headY = Math.round(toScreenY(streak.y) * dpr);
-    const back = streak.len * ppm * dpr;
-    view.ctx.beginPath();
-    view.ctx.moveTo(headX, headY);
-    view.ctx.lineTo(Math.round(headX - Math.cos(streak.heading) * back),
-      Math.round(headY - Math.sin(streak.heading) * back));
-    view.ctx.stroke();
-  }
-  view.ctx.restore();
-}
-
 /**
  * Runs an emitter with this car's own spray / smoke remainders (several cars throw, and one
  * shared remainder would hand one car's half-puff to the next).
@@ -718,8 +641,7 @@ function withCarDebts(state: ParticleState, car: object, emit: () => void, byAi 
  */
 export function createParticles(view: View, cam: Cam, helpers: ParticleHelpers) {
   const { PPMz, toScreenX, toScreenY } = helpers;
-  const state: ParticleState = { puffs: [], overPuffs: [], streaks: [], streakDebt: new Map(),
-    airCars: [],
+  const state: ParticleState = { puffs: [], overPuffs: [], airCars: [],
     sprayDebt: 0, smokeDebt: 0, carDebts: new Map(), aiThrowing: false,
     chips: [], sparks: [] };
   const ctx: ParticleCtx = { view, cam, PPMz, toScreenX, toScreenY, state };
@@ -741,11 +663,7 @@ export function createParticles(view: View, cam: Cam, helpers: ParticleHelpers) 
     drawSparks: (wallDt: number, target: CanvasRenderingContext2D) =>
       renderSparks(ctx, wallDt, target),
     drawPuffs: (wallDt: number) => renderPuffs(ctx, wallDt),
-    drawOverPuffs: (wallDt: number) => {
-      renderPuffs(ctx, wallDt, state.overPuffs);
-      renderStreaks(ctx, wallDt);
-    },
-    addTowLines: (car: TowCar, wallDt: number) => emitStreaks(ctx, car, wallDt),
+    drawOverPuffs: (wallDt: number) => renderPuffs(ctx, wallDt, state.overPuffs),
     setAirCars: (cars: AirCar[]) => { state.airCars = cars; },
   };
 }

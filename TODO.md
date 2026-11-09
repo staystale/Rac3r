@@ -206,12 +206,23 @@ last handover, written on request.
    up revert to what we had before and leave the tracks as the are now"): the old slidden-hill.ts
    stays. NO MORE CONVERSIONS of the old levels (owner 11-09 on the ovals: "don't touch ovals
    then"; the rally stages too): the venue helper moves onto NEW tracks ("Move the helper onto new
-   tracks") - Donington Park next from this list, names agreed first.
+   tracks") - Donington Park next from this list, as DONGINGTON PARK (owner 11-09: "Can we call it
+   dongington"; id 'dongington').
+   TEST MODE LAYOUTS PASSED + DEFAULT 11-09 (owner: "Menu layout pass"): a venue with more than one
+   layout in a category is one card (Level.venue), then its layouts, then the setup; BACK from the
+   setup returns to the layouts (menu/tracks.ts showLayoutList; tools/scratch/_layoutshot.mjs).
+   The Test Track is listed under TEST GROUNDS (owner 11-09: "The test track should go with other
+   test tracks"; category.ts menuCatOf - still lit and rained on as a circuit).
 3. ROLLING LOOK - smoother than the dice flip on the same physics; mockup first.
 4. SIDE DRAFTING (Naffcar first) PASSED + DEFAULT 11-08 (owner: "Pass"): physics/wake.ts part 5 - a nose
    alongside a car's rear quarter, up to +20 % drag on it and -6 % on the car alongside, gone by 1.2 m
    between the doors, by how much the car's flanks catch the air (Naffcar 1 .. F1 0.15);
    tools/scratch/_sidedraft.mjs. Next: the Naffcar extras (air brakes, aero upgrades, Dieatona).
+   FIX 11-09 (owner: "woosh marks next to the car when I'm parked still"): a still car sat in the
+   wake of cars driving off ahead (a 23 % tow, so the tow cue's streaks) and pulled at a passing
+   car's tail; now the tow, the push and the side draft act only between cars at DRAFT_V (43 km/h)
+   or more, and a car in the air or alone is reset to none (tools/scratch/_wakestill.mjs: parked
+   0.771 -> 1.000; the moving tow 0.705 and side draft 1.129 / 0.961 unchanged).
 5. MORE HIGHWAY FLAVOURS (owner 11-08: the current roadside is COUNTRYSIDE; then CANYON - "Death
    Valley", as DEAF VALLEY - and FARTMOOR, a super country lane with crossroads and traffic):
    DEAF VALLEY round 1 UNDER TEST ?canyon=1 (highway/canyon.ts: rock walls, cactus, open desert;

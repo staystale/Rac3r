@@ -1,9 +1,9 @@
-// _layoutshot.mjs - TEST MODE's layout step (?layouts=1, menu/tracks.ts showLayoutList) at phone
+// _layoutshot.mjs - TEST MODE's layout step (menu/tracks.ts showLayoutList) at phone
 // size: the CIRCUITS and TEST GROUNDS track lists (their card names), Snotterton's layouts, a
 // layout's setup and BACK from it; shots _layoutshot-<step>-<w>x<h>.png, page errors.
-// node tools/scratch/_layoutshot.mjs [query]   (default layouts=1&dieatona=1)
+// node tools/scratch/_layoutshot.mjs [query]   (default dieatona=1)
 import { startServer, launchBrowser, gotoGame } from '../lib/browser.mjs';
-const [query = 'layouts=1&dieatona=1'] = process.argv.slice(2);
+const [query = 'dieatona=1'] = process.argv.slice(2);
 const server = await startServer();
 const browser = await launchBrowser();
 try {

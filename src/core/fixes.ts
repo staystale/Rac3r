@@ -55,7 +55,4 @@ export const FIX = {
   // ?knobhillvenue=1: Knobhill as the real venue (Knockhill) at 1/2 of real length, the
   // rallycross (the Knobhill level) and the circuit (world/levels/knobhill-venue.ts; owner 11-09)
   knobhillvenue: atLoad('knobhillvenue'),
-  // ?layouts=1: TEST MODE lists a venue with more than one layout as one card, then its layouts
-  // before the setup (menu/tracks.ts showLayoutList; owner 11-09)
-  layouts: atLoad('layouts'),
 };
