@@ -70,4 +70,7 @@ export const FIX = {
   // (measured exactly), marshal posts too, a gantry's leg never past another road
   // (world/lampplan.ts, venuescenery.ts clearPosts, venueposts.ts startGantry)
   clearance: atLoad('clearance'),
+  // ?malarkey=1: Malarkey Park, a NEW venue (Mallory Park) at 1/2 of real length, the Car Circuit
+  // and the Oval (world/levels/malarkey-venue.ts; owner 11-09: "Yes do those all")
+  malarkey: atLoad('malarkey'),
 };

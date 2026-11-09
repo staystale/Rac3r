@@ -37,6 +37,14 @@ export const TEST_LIST: TestEntry[] = [
     wrong: 'A gap or a doubled barrier where kinds change, wood not breaking, a slow tap flipping.',
   },
   {
+    id: 'malarkey',
+    added: '2026-11-09',
+    name: 'Malarkey Park (Mallory Park) at 1/2 size, a new track: the Car Circuit and the Oval',
+    where: 'Test link + &malarkey=1: TEST MODE > CIRCUITS > Malarkey Park > Car Circuit / Oval',
+    try: 'Lap both: Gerard\'s round the lake, the Esses, Shaw\'s Hairpin, the Devil\'s Elbow.',
+    wrong: 'A road or prop on the track, a barrier gap, a road to nowhere, a fence not real.',
+  },
+  {
     id: 'cadwallop',
     added: '2026-11-09',
     name: 'Cadwallop Park (Cadwell Park) at 1/2 size, a new track: the Full and the Club',
