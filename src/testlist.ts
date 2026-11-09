@@ -13,6 +13,14 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'clearance',
+    added: '2026-11-09',
+    name: 'Nothing solid inside the run-off: lamps and marshal posts 5 m clear, gantry legs tidy',
+    where: 'Test link + &clearance=1 (&cadwallop=1): Oulton Pork Island, Cadwallop Club, any track',
+    try: 'Look along each venue: no lamp or post at the road edge; the Club start gantry.',
+    wrong: 'A lamp or post missing where it should be, one at the edge, a gantry leg on a road.',
+  },
+  {
     id: 'twoway',
     added: '2026-11-09',
     name: 'Deaf Valley both ways: slow cars in your lane, oncoming in the other (racers do crash)',

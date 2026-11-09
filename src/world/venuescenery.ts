@@ -10,6 +10,7 @@
 import { SURFACES } from "./surfaces.ts";
 import { querySubtrack } from "./tyrewall.ts";
 import { parkMiller } from "../core/random.ts";
+import { FIX } from "../core/fixes.ts";
 import { HALF_ROAD, VENUE_ROAD_M, centreAt, distToLine, evenly, kerbOut, lineLength,
   makePlacer, nearestLoop, pointAlong, resample, smoothLine } from "./venuegeo.ts";
 import { WALL_REACH_M, boxedLine, buildEdge, buildRims, inZones, outlineZone, pastRim,
@@ -37,6 +38,9 @@ export interface VenueScenery {
 
 // m the track's edge barriers keep off the pit wall
 const PIT_WALL_CLEAR_M = 4;
+// m past every layout's road edge a marshal post keeps (?clearance=1: was 2 - one stood 2.2 m off
+// Oulton Pork's Island hairpin, built for another layout's corner)
+const POST_ROAD_M = 5;
 // m the track's edge barriers keep off an oval's outside wall (it is their barrier there)
 const OVAL_WALL_CLEAR_M = 7;
 // m behind an oval's wall a board stands (past the run-off's rim, which lies beyond the wall)
@@ -645,7 +649,8 @@ function clearPosts(site: Site, posts: Prop[], barriers: Barrier[], tyres: Cone[
   const railPts = barriers.flatMap((rail) => rail.pts);
   // (off every layout's road too: a corner's outside can be another layout's track)
   const clear = (post: Prop) => !onLanes(site.lanes, post.x, post.y, 2)
-    && nearestLoop(site.loops, post.x, post.y).hit.dist > HALF_ROAD + 2
+    && nearestLoop(site.loops, post.x, post.y).hit.dist > HALF_ROAD + (FIX.clearance
+      ? POST_ROAD_M : 2)
     // (nor on a kerb: a wide one reaches past the 2 m)
     && site.loops.every((loop) => {
       const hit = querySubtrack(loop, post.x, post.y);

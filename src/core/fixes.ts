@@ -66,4 +66,8 @@ export const FIX = {
   // the other way's in its right (highway/road.ts laneGeo; owner 11-09: "they can crash when
   // passing it's ok")
   twoway: atLoad('twoway'),
+  // ?clearance=1: nothing solid inside a raced road's run-off - lamps 5 m clear of its edge
+  // (measured exactly), marshal posts too, a gantry's leg never past another road
+  // (world/lampplan.ts, venuescenery.ts clearPosts, venueposts.ts startGantry)
+  clearance: atLoad('clearance'),
 };

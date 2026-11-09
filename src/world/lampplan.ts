@@ -11,6 +11,8 @@
 //             down an open stretch, to knock over
 //   roads     none here (the endless highway lays its own as the road grows:
 //             highway/roadlamps.ts)
+import { FIX } from '../core/fixes.ts';
+import { querySubtrack } from './tyrewall.ts';
 import { FLOOR } from './bounds.ts';
 import { SURFACES } from './surfaces.ts';
 import { catOf } from './levels/category.ts';
@@ -30,6 +32,10 @@ const STREET_BEND_R = 150, STREET_READ_M = 10, STREET_OUTS_M = [6, 8, 10, 12];
 // floodlight pylons: how far out from the track edge, and their spacing by kind, m
 const FLOOD_OUT_M = 16;
 const FLOOD_GAP_M: Record<string, number> = { circuits: 140, ovals: 70, rx: 110 };
+// ?clearance=1: m past a raced road's edge a lamp keeps, measured exactly (the nearest sample's
+// distance let one stand 0.6 m off Oulton Pork's Island hairpin, inside a corner's floodlight
+// ring; tools/scratch/_solidnear.mjs) - a rally stage's village lamps stand by their road
+const LAMP_ROAD_M = 5;
 // clearances, m: a street light's post and a pylon's base; lamps apart
 const STREET_REACH_M = 1, FLOOD_REACH_M = 2.5, LAMP_APART_M = 8;
 // a test ground: the floodlight ring's inset from the floor edge and spacing; the lamp alley's
@@ -144,6 +150,20 @@ function inZone(zone: { x: number; y: number; w: number; h: number; rot?: number
 }
 
 /**
+ * How far a point is from a level's raced road's centreline, m (?clearance=1: measured exactly,
+ * and a closed track's lamps keep LAMP_ROAD_M - 1.5 more off it; else the nearest sample's).
+ * @param level the level (with a subtrack)
+ * @param spot the point
+ * @returns the distance, less the extra room a lamp keeps
+ */
+function roadGap(level: Level, spot: Spot): number {
+  const sub = level.subtrack!;
+  if (!FIX.clearance) return trackGap(sub, spot);
+  const gap = querySubtrack(sub, spot.x, spot.y).dist;
+  return catOf(level) === 'rally' ? gap : gap - (LAMP_ROAD_M - 1.5);
+}
+
+/**
  * Whether a lamp may stand here: inside the floor, off the track and its lanes, clear of solids,
  * barriers, loose objects, zones and the lamps already placed.
  * @param level the level
@@ -154,8 +174,7 @@ function inZone(zone: { x: number; y: number; w: number; h: number; rot?: number
  */
 function isClear(level: Level, spot: Spot, reach: number, placed: Prop[]): boolean {
   if (Math.abs(spot.x) > FLOOR - 6 - reach || Math.abs(spot.y) > FLOOR - 6 - reach) return false;
-  if (level.subtrack && trackGap(level.subtrack, spot) < level.subtrack.width / 2 + 1.5)
-    return false;
+  if (level.subtrack && roadGap(level, spot) < level.subtrack.width / 2 + 1.5) return false;
   return isFreeOfThings(level, spot, reach)
     && placed.every((lamp) => Math.hypot(lamp.x - spot.x, lamp.y - spot.y) >= LAMP_APART_M);
 }
