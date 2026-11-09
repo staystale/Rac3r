@@ -1,7 +1,6 @@
 // ai/driverSteps.ts: the circuit driver's steering, speed, handbrake and slide steps.
 // Closures over one driver's state, racing line, traits and random stream (circuit.ts).
 import { debugValue } from "../core/debug.ts";
-import { FIX } from "../core/fixes.ts";
 import { GRAVITY } from "../cars.ts";
 import { K_BRAKE, carGrip } from "./line.ts";
 import type { profileOf } from "./line.ts";
@@ -23,10 +22,10 @@ type AiPath = CircuitState["path"];
 const OFF_ROAD_M = 2;
 
 /**
- * Steering off the racing line (?offaim=1): a car told to be latT off its line HERE keeps that
- * place across the road - at the front axle the target is the same distance from the road's
- * middle, and the heading it steers to is the road's (the line's less the line's own slope across
- * the road), blended in over OFF_ROAD_M. MEASURED, tools/scratch/_hairpintrace.mjs (a 4-car start
+ * Steering off the racing line (owner 11-09, passed: "it's better"): a car told to be latT off
+ * its line HERE keeps that place across the road - at the front axle the target is the same
+ * distance from the road's middle, and the heading it steers to is the road's (the line's less the
+ * line's own slope across the road), blended in over OFF_ROAD_M. MEASURED, tools/scratch/_hairpintrace.mjs (a 4-car start
  * at Spa): the pole car aimed 3.2-3.8 m right of the middle and drifted from 1.7 to 8.0 m - off the
  * road on La Source's inside - steered by the line's heading where the line swings across the road
  * for the hairpin; alone, on the line, it took it cleanly.
@@ -67,10 +66,10 @@ export function steerAim(car: AiCar, path: AiPath, nearIdx: number,
   }
   const look = Math.round((2 + speed * 0.15) / path.sp), ahead = pts[idx(frontIdx + look)],
       frontPt = pts[frontIdx];
-  // (?offaim=1: off the line, its place across the road held - the target and the heading the
-  // road's, not the line's; on it, the line's as before)
-  const off = FIX.offaim ? offRoad(path, { nearIdx, frontIdx, aheadIdx: idx(frontIdx + look),
-    nextIdx: idx(frontIdx + look + 1) }, latT) : { lat: latT, turn: 0 };
+  // (off the line, its place across the road held - the target and the heading the road's, not
+  // the line's; on it, the line's)
+  const off = offRoad(path, { nearIdx, frontIdx, aheadIdx: idx(frontIdx + look),
+    nextIdx: idx(frontIdx + look + 1) }, latT);
   let psi = ahead.h - off.turn - car.heading; psi = Math.atan2(Math.sin(psi), Math.cos(psi));
   // (R2: a car rejoining, not making a move, has its error capped - ai/rejoin.ts)
   const cross = Math.max(-crossMax, Math.min(crossMax, (frontX - frontPt.x) * -Math.sin(frontPt.h)

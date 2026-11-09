@@ -14,7 +14,7 @@
 // rollover, rollbody, snotterton, sidedraft passed 11-08; oultonpork, sillystone, runoff, laplen,
 // oncoming, oultonrails, cadwallop, malarkey, medians, twoway, clearance, passcare, gantry,
 // anglesleazy, goodwoody, croughed, jerseyover, shoulder, laybys, farlaybys, barrierends,
-// hwpick, desertroom, spa passed 11-09.)
+// hwpick, desertroom, spa, offaim passed 11-09.)
 import { envValue } from './debug.ts';
 
 /**
@@ -54,11 +54,6 @@ export const FIX = {
   // ?spaforest=1: Spa-Frankenchumps in the Ardennes forest, 8000 trees (owner 11-09: yes to a
   // per-venue tree count; world/levels/spa-venue.ts, VenueSpec.trees)
   spaforest: atLoad('spaforest'),
-  // ?offaim=1: an AI off its racing line holds its place across the ROAD - its heading the road's,
-  // not the line's - so it no longer drifts with the line where the line swings across the road
-  // (owner 11-09 on Spa: "lots of crashes with big grids", "I think it's the hair pin first
-  // corner"; ai/driverSteps.ts steerAim)
-  offaim: atLoad('offaim'),
   // ?holdoncoming=1: no oncoming traffic on a single carriageway (Deaf Valley) until the race has
   // started - the other way's cars join from out of sight ahead after the green (owner 11-09:
   // "no on coming traffic on Death Valley or any small single carriage way until after the race
