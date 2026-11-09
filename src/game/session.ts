@@ -2,7 +2,9 @@
 import { lineUpCrashBench } from './crashbench.ts';
 import { hwLevel } from './state.ts';
 import { reset } from '../vehicle.ts';
-import { resetHighway, roadFrame } from '../highway.ts';
+import { resetHighway, roadFrame, roadPose } from '../highway.ts';
+import { shoulderOff } from '../highway/road.ts';
+import { FIX } from '../core/fixes.ts';
 import { createHwFlow, hwGridSpan } from '../highwayrace.ts';
 import { createRaceFlow } from '../raceflow.ts';
 import { repair, resetBill } from '../damage.ts';
@@ -161,6 +163,24 @@ function resetOnJoker(place: PlaceCar) {
  * @param place puts the car down
  * @returns true when the car was put back on the circuit
  */
+/**
+ * On the endless roads (?shoulder=1): back RESET_BACK m from where you are, on our hard shoulder,
+ * facing up the road, the traffic cleared from round it.
+ * @param place puts the car
+ * @returns true when it did
+ */
+function resetOnShoulder(place: PlaceCar): boolean {
+  if (!FIX.shoulder || !LEVEL.endless) return false;
+  const level = hwLevel(), here = roadFrame(level, game.car.x, game.car.y, null);
+  if (!here) return false;
+  const pose = roadPose(level, here.s - RESET_BACK, shoulderOff(level));
+  place(game.car, pose.x, pose.y, pose.h);
+  game.traffic.clearAround(pose.x, pose.y, 30);
+  shared.lastOnTrack = null;
+  if (shared.renderer && shared.renderer.snap) shared.renderer.snap(game.car);
+  return true;
+}
+
 function resetOnCircuit(place: PlaceCar) {
   if (!LEVEL.subtrack) return false;
   const sub = LEVEL.subtrack!;
@@ -195,7 +215,8 @@ export function doReset() {
     resetCar(car, x, y, heading);
     if (keepT) car.tyreT = keepT.slice();
   };
-  if (resetOnJoker(resetKeepingTyres) || resetOnCircuit(resetKeepingTyres)) return;
+  if (resetOnJoker(resetKeepingTyres) || resetOnShoulder(resetKeepingTyres)
+    || resetOnCircuit(resetKeepingTyres)) return;
   if (shared.breadcrumbs.length > 0) {
     const safe = shared.breadcrumbs[Math.max(0, shared.breadcrumbs.length - 5)];   // ~2 s back
     resetKeepingTyres(game.car, safe.x, safe.y, safe.heading);

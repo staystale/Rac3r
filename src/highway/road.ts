@@ -42,6 +42,20 @@ export function laneGeo(cfg: HwCfg): HwGeo {
     oncoming: Array.from({ length: cfg.lanes }, (item, i) => farBase - cfg.laneW * (i + 0.5)),
     ownR: -halfWidth + carriage, oppL: halfWidth - carriage, median: 0 };
 }
+// m of a car's half width (and a little) a reset keeps inside the road's left edge where the hard
+// shoulder is narrower than a car (?shoulder=1)
+const SHOULDER_HALF_M = 1.05;
+
+/**
+ * Where a reset puts a car across the road (?shoulder=1): the middle of our hard shoulder, or a
+ * car's half width in from the left edge where the shoulder is narrower.
+ * @param level the highway level
+ * @returns the offset, m (- = the driver's left)
+ */
+export function shoulderOff(level: HwLevel): number {
+  return -level._hw.geo.hw + Math.max(level._cfg.shoulder / 2, SHOULDER_HALF_M);
+}
+
 export function stateOf(level: HwLevel) {
   return level._hw;
 }

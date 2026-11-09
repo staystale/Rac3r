@@ -31,13 +31,14 @@ import { zoneSurfaceAt, pruneWear } from "./world/wear.ts";
 import { seedFieldBlocks } from "./world/levelmud.ts";
 import { HW_PRESETS, HW_NAMES, HW_THEMES, STEP, AHEAD, BEHIND, SPAWN_S, UP_HEADING, rng }
   from "./highway/presets.ts";
-import { laneGeo, stateOf, growTo, locate, roadFrame } from "./highway/road.ts";
+import { laneGeo, stateOf, growTo, locate, roadFrame, shoulderOff } from "./highway/road.ts";
 import { syncCovers, SIDE_W_HALF } from "./highway/cuts.ts";
 import { dress } from "./highway/dress.ts";
 import { desertGround, REACH, resetStreamed, pruneStreamed } from "./highway/gorge.ts";
 import type { HwState, HwLevel, HwCar } from './highway/hwtypes.ts';
 import type { RoadLoc } from './highway/road.ts';
 import type { Level } from './world/types.ts';
+import { FIX } from "./core/fixes.ts";
 export { HW_PRESETS, HW_NAMES } from "./highway/presets.ts";
 export { laneGeo, roadFrame, roadPose, roadSpan } from "./highway/road.ts";
 // THE GUARD (requirement: go backwards should reset you): rolling BACK down the road faster than
@@ -342,11 +343,12 @@ export function highwayGuard(level: HwLevel, car: HwCar, dt: number) {
   }
   return null;
 }
-// the put-back pose: the LEFT lane, a few metres short of the furthest point reached, facing up the
-// road
+// the put-back pose: the LEFT lane (?shoulder=1: the hard shoulder), a few metres short of the
+// furthest point reached, facing up the road
 export function highwayRespawn(level: HwLevel) {
   const state = stateOf(level), dist = Math.max(0, state.best - 6 - state.pts[0].s);
-  const pos = onTrack(level.subtrack!, dist, state.geo.centres[0], {});
+  const pos = onTrack(level.subtrack!, dist,
+    FIX.shoulder ? shoulderOff(level) : state.geo.centres[0], {});
   state.backT = 0;
   state.ci = Math.min(state.pts.length - 1, Math.round(dist / STEP));
   state.q = null;

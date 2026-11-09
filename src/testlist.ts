@@ -13,6 +13,22 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'shoulder',
+    added: '2026-11-09',
+    name: 'Highway resets on the hard shoulder: the R key, going wide, a racer put back',
+    where: 'Test link + &shoulder=1: Highway to Hull, any road, alone and VS AI',
+    try: 'Press R in each lane and on the far carriageway; go wide off the road; crash a racer.',
+    wrong: 'Put back in a live lane, on the other carriageway, facing across the road.',
+  },
+  {
+    id: 'holdoncoming',
+    added: '2026-11-09',
+    name: 'Deaf Valley: no oncoming cars until the race has started, then they come from ahead',
+    where: 'Test link + &holdoncoming=1: Highway to Hull > DEAF VALLEY, VS AI and alone',
+    try: 'Wait on the grid: the other lane stays empty; after the green the first ones arrive.',
+    wrong: 'An oncoming car at the start, or none ever coming, or one popping in close.',
+  },
+  {
     id: 'venueoverlaps',
     added: '2026-11-09',
     name: 'Tidier venues: tyre walls in two neat rows, nothing piled on each other, no zig-zags',

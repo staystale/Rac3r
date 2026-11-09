@@ -10,12 +10,15 @@ import type { TrafficCtx, VisFn } from "./trafficCtx.ts";
 import { driveOne } from "./trafficDrive.ts";
 import { cruise, dirOf, fresh, lanesOf, rebuildCars, spot } from "./trafficSpawn.ts";
 import type { DriveEnv } from "./trafficLane.ts";
+import { holdsOncoming } from "./trafficReset.ts";
+import { FIX } from "../core/fixes.ts";
 
 /** The inputs of a step: you, the AI cars and the renderer's screen test. */
 export interface StepArgs {
   player: AiCar;
   others?: AiCar[];
   visible?: VisFn;
+  held?: boolean;   // the race not started yet (a single carriageway's other way waits)
 }
 
 /** Everyone in road coordinates: s along, off sideways (+ = right), v along the road. */
@@ -67,8 +70,11 @@ function leaving(slot: TrafficCar, relS: number, seen: boolean,
 }
 
 /** RECYCLE (out of view only) + place the parked slots; true if the live cars changed. */
-function recycle(ctx: TrafficCtx, ents: TrafficEnt[], playerS: number, vis: VisFn) {
+function recycle(ctx: TrafficCtx, ents: TrafficEnt[], playerS: number, vis: VisFn,
+  held = false) {
   const span = roadSpan(ctx.level!);
+  // (?holdoncoming=1: a single carriageway's other way joins only once the race has started)
+  const waits = (dir: number) => dir < 0 && held && FIX.holdoncoming && holdsOncoming(ctx);
   let changed = false;
   const drop = (slot: TrafficCar) => {
     const i = ents.findIndex((ent) => ent.t === slot);
@@ -82,6 +88,7 @@ function recycle(ctx: TrafficCtx, ents: TrafficEnt[], playerS: number, vis: VisF
   for (const slot of ctx.list) {
     const dir = dirOf(slot);
     if (slot.parked) {
+      if (waits(dir)) continue;
       const place = spot(ctx, ents, playerS, 'ahead', vis, dir);
       if (place) {
         join(slot, place, dir);
@@ -159,7 +166,7 @@ export function stepTraffic(ctx: TrafficCtx, dt: number, args: StepArgs) {
   const playerS = level._hw.q.s;
   const vis = args.visible || ((x, y, dist) => dist - playerS > -90 && dist - playerS < 270);
   const ents = collectEnts(ctx, args);
-  let changed = recycle(ctx, ents, playerS, vis);
+  let changed = recycle(ctx, ents, playerS, vis, args.held);
   if (changed) {
     rebuildCars(ctx);
     changed = false;

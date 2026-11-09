@@ -15,6 +15,9 @@
 // HW_CATCH s (back on screen = cancelled), at 0 the race ends. Every AI behind you AND off screen
 // -> "PULLING AWAY n"; at 0 the race ends and you have won. Positions = how far up the road.
 import { roadFrame, roadPose, roadSpan } from './highway.ts';
+import { shoulderOff } from './highway/road.ts';
+import type { HwLevel } from './highway/hwtypes.ts';
+import { FIX } from './core/fixes.ts';
 import type { AiCar, HighwayLevel } from "./ai/types.ts";
 import { endRace, order } from "./ai/hwFlow.ts";
 import { stepFlow } from "./ai/hwFlowStep.ts";
@@ -64,9 +67,20 @@ export function hwGridSpan(level: HighwayLevel, count: number) {
 }
 // where to put a car back (crashed / stuck / rolled): at road distance s, in the lane with the most
 // room, facing up the road
+// how many 12 m steps back a put-back on the hard shoulder looks for room (?shoulder=1)
+const PUT_BACK_TRIES = 4;
+
 export function hwPutBack(level: HighwayLevel, dist: number, cars: AiCar[]) {
   const { s0, s1 } = roadSpan(level), centres = level._hw.geo.centres;
   dist = Math.max(s0 + 60, Math.min(s1 - 60, dist));
+  // (?shoulder=1: on the hard shoulder, back along it past any car there)
+  if (FIX.shoulder) {
+    const off = shoulderOff(level as unknown as HwLevel);
+    for (let tries = 0; tries < PUT_BACK_TRIES && cars.some((other) => other._hwf
+      && Math.abs(other._hwf.off - off) < 2.6 && Math.abs(other._hwf.s - dist) < 10); tries++)
+      dist = Math.max(s0 + 60, dist - 12);
+    return roadPose(level, dist, off);
+  }
   let best = 0, room = -1;
   for (let lane = 0; lane < centres.length; lane++) {
     let nearest = 99;

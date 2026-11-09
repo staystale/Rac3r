@@ -44,6 +44,15 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
+  // ?holdoncoming=1: no oncoming traffic on a single carriageway (Deaf Valley) until the race has
+  // started - the other way's cars join from out of sight ahead after the green (owner 11-09:
+  // "no on coming traffic on Death Valley or any small single carriage way until after the race
+  // has started"; ai/trafficReset.ts, trafficStep.ts)
+  holdoncoming: atLoad('holdoncoming'),
+  // ?shoulder=1: every reset on the endless roads - the R key, the going-wide guard, an AI put
+  // back - on our hard shoulder, facing up the road (owner 11-09: "Resetting should start up in
+  // the hard shoulder only"; highway/road.ts shoulderOff)
+  shoulder: atLoad('shoulder'),
   // ?dieatona=1: Dieatona (the Daytona parody) as a new venue at 1/2 of real length, the oval and
   // the road course (world/levels/dieatona-venue.ts; owner 11-08)
   dieatona: atLoad('dieatona'),
