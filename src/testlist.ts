@@ -13,6 +13,14 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'roundit',
+    added: '2026-11-10',
+    name: 'AI go round cars in time, brake fully for a car, creep out of queues, off track if need',
+    where: 'Test link + &roundit=1: any circuit VS AI, a big grid (Spa, Brands)',
+    try: 'Start mid-grid; watch the first corners and the queues; race a few laps.',
+    wrong: 'Pile-ups as before, cars stopping for nothing, timid racing, no passes.',
+  },
+  {
     id: 'monza',
     added: '2026-11-09',
     name: 'Monzarella (Monza) at 1/2 size, a world circuit: the GP circuit',

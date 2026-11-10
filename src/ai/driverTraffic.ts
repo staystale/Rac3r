@@ -7,6 +7,7 @@ import type { AiCar, CarsAcc, CarsEnv, DriveCtx } from "./types.ts";
 import type { Drv, AiPath } from "./driverCtx.ts";
 import { OBJECT_MORE, clearOf, matchSpeed, reachOf, readBraking, swerveCap } from "./dodge.ts";
 import { blockOn, gapLine, seeCar } from "./gapPick.ts";
+import { FIX } from "../core/fixes.ts";
 import type { SeenCar } from "./gapPick.ts";
 
 // MEASURED (aidrivecheck, HB on/off, Realish + Real, hatch + 4x4): Slidden / Knobhill / Castle Kum
@@ -377,15 +378,23 @@ function gapStep(drv: Drv, car: AiCar, acc: CarsAcc, seen: SeenCar[], mine: { my
   if (!blockOn(seen, myLat, half, len) && state.gapBase == null) return;
   // (the room past the edge only with a car stopped or crawling IN MY WAY - offTrackOk;
   // "anywhere ahead" let the whole field onto the grass after a first-bend crash, MEASURED)
-  const room = latLim + (seen.some((other) => other.fwd > 0 && other.fwd < speed * look + 8
-    && Math.abs(other.lat - myLat) < other.across + half + MARGIN_WAY && offTrackOk(other.v, speed))
-    ? WIDE : 0);
+  const inWay = seen.filter((other) => other.fwd > 0 && other.fwd < speed * look + 8
+    && Math.abs(other.lat - myLat) < other.across + half + MARGIN_WAY
+    && offTrackOk(other.v, speed));
+  // (?roundit=1: round a car crawling in a queue, as far off the road as round a stopped one -
+  // owner 11-10: "They can go off track too if needed")
+  const room = latLim + (!inWay.length ? 0 : FIX.roundit && inWay.some((other) => other.v
+    < CREEP_UNDER_V) ? WIDE_SLOW : WIDE);
   const line = gapLine(seen, { lat: myLat, base: state.gapBase ?? myLat, half, len, speed, look,
     lo: -room - lineOff, hi: room - lineOff, edge: latLim, centre: lineOff,
     lanes: drv.state.path === drv.main ? drv.line.lanes : undefined });
   state.gapBase = line;
   acc.dodgeT = line - latT;
   acc.conflict = true;
+  // (?roundit=1: across to it before the car in my way now - else slower until I can be;
+  // MEASURED, tools/scratch/_ploughtrace.mjs, a 20-car start at Brands: 13 of 21 hard hits by a
+  // car that had picked its way round 1-3 m across and kept wanting 80-116 km/h)
+  if (FIX.roundit) roundIt(acc, seen, { line, myLat, half, len, speed });
   // BOXED IN: a car still on the best line - brake to arrive behind it at its speed (MEASURED
   // pacesuite: a pack abreast at 185 km/h kept its foot down to 9 m from 90 km/h traffic, wrecks)
   const block = blockOn(seen, line, half, len);
@@ -400,6 +409,38 @@ function gapStep(drv: Drv, car: AiCar, acc: CarsAcc, seen: SeenCar[], mine: { my
     }
   }
   if (Math.abs(lineOff + line) > latLim) { state.wide = room; state.wideUntil = state.t + 1.2; }
+}
+
+// ?roundit=1: m/s from which a way round a car caps the speed to what gets across in time; the
+// m/s a car in a slow queue may close on the one ahead to get out to a clear line, and the
+// queue's speed (the one ahead's) it does that under
+const SWERVE_MIN_V = 8, CREEP_V = 2, CREEP_UNDER_V = 8;
+
+/**
+ * Going round the car in my way now (?roundit=1), to the line picked: at speed, no faster than gets
+ * me across before I reach it (MEASURED, tools/scratch/_ploughtrace.mjs, a 20-car start at Brands:
+ * 13 of 21 hard hits by a car that had picked its way round 1-3 m across and kept wanting 80-116
+ * km/h); in a slow queue, a little faster than it - a car held to the speed of one at walking
+ * pace cannot steer out (MEASURED, _startflow.mjs at Spa: the stuck cars had a clear line picked
+ * and crept at the leader's 4 km/h, turning without getting across).
+ * @param acc the cars' read (followCap, urgent)
+ * @param seen the cars seen
+ * @param mine the line picked, where I am, my half width, length and m/s
+ * @param mine.line m off my path
+ * @param mine.myLat m off my path
+ * @param mine.half m
+ * @param mine.len m
+ * @param mine.speed m/s
+ */
+function roundIt(acc: CarsAcc, seen: SeenCar[], mine: { line: number; myLat: number; half: number;
+  len: number; speed: number }) {
+  const { line, myLat, half, len, speed } = mine, now = blockOn(seen, myLat, half, len);
+  if (!now || now.side || Math.abs(line - myLat) <= 0.3) return;
+  if (speed > SWERVE_MIN_V) {
+    const cap = swerveCap(Math.abs(line - myLat), now.gap, speed, now.v);
+    if (cap < Infinity) { acc.followCap = Math.min(acc.followCap, cap); acc.urgent = true; }
+  } else if (now.v < CREEP_UNDER_V && !blockOn(seen, line, half, len))
+    acc.followCap = Math.max(acc.followCap, Math.max(0, now.v) + CREEP_V);
 }
 
 /** OBSTACLES: the way round a loose object, when no car is in the way. */

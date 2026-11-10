@@ -1,5 +1,6 @@
 // ai/driverPedals.ts: the circuit driver's steering, slide, throttle, brake and handbrake
 // controls. Functions take the driver context.
+import { FIX } from "../core/fixes.ts";
 import { profileOf } from "./line.ts";
 import { steerAim, profileSpeed, DRIFT_SLIP } from "./driverSteps.ts";
 import type { AiCar } from "./types.ts";
@@ -53,14 +54,23 @@ export function throttleFor(drv: Drv, speed: number, targetSpeed: number, slide:
 }
 
 /** Throttle and brake for the target speed. */
+// m/s over the speed it wants, a car the reason, from which an AI brakes fully even turning
+// (?roundit=1)
+const CAR_FULL = 2;
+
 export function pedals(drv: Drv, speed: number, targetSpeed: number, thrForce: boolean,
     slide: Slide,
-    looseUnder: boolean) {
+    looseUnder: boolean, forCar = false) {
   const { drifting, under, over, steer } = slide;
   let throttle = throttleFor(drv, speed, targetSpeed, slide, looseUnder);
   if (thrForce && speed < targetSpeed * 1.1) throttle = 1;
-  let brake = speed > targetSpeed + 0.3 ? Math.min(1, (speed - targetSpeed) * 1.5) * Math.max(
-      0.6, 1 - Math.abs(steer) / 0.5) : 0;
+  // (turning, a share off the brake - ?roundit=1: not with a car the reason, CAR_FULL m/s too
+  // fast: MEASURED, _ploughtrace.mjs, into Spa's La Source cars 20-30 km/h over the speed they
+  // wanted braked 30-47 % and ran into the car ahead)
+  const turnShare = FIX.roundit && forCar && speed > targetSpeed + CAR_FULL ? 1
+    : Math.max(0.6, 1 - Math.abs(steer) / 0.5);
+  let brake = speed > targetSpeed + 0.3 ? Math.min(1, (speed - targetSpeed) * 1.5) * turnShare
+    : 0;
   if (under && !looseUnder && speed > 0.85 * targetSpeed) brake = Math.max(brake, 0.35);
   if (over || drifting) brake = 0;
   return { throttle, brake };
@@ -99,7 +109,8 @@ export function pedalStep(drv: Drv, car: AiCar, path: AiPath, nearIdx: number,
     state.driftOn = false;
     state.driftBan = state.t + DRIFT_BAN;
   }
-  let { throttle, brake } = pedals(drv, speed, targetSpeed, thrForce, slide, looseUnder);
+  let { throttle, brake } = pedals(drv, speed, targetSpeed, thrForce, slide, looseUnder,
+    followCap <= targetSpeed + 0.01);
   // the foot feathers the wheelspin (by skill; held near the peak on grippy ground)
   throttle = footThrottle(drv, car, speed, throttle, dt, drifting || thrForce);
   // HANDBRAKE TURNS (requirement: they should also use handbrake and drift and stuff): into a
