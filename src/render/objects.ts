@@ -391,7 +391,7 @@ function drawTape(env: ObjectsCtx, game: TapeGame) {
 // ROADSIDE DEBRIS (cones.ts DEBRIS): top-down squares, rotated with the object; broken ones are
 // a scatter of bits (seeded by home)
 const DEBRIS_KINDS = new Set(['pallet', 'box', 'crate', 'bin', 'sandbag', 'barrel', 'exhaust',
-  'bumper', 'wing', 'panel', 'tarp', 'splinters', 'cardboard', 'sand', 'fluff', 'mesh',
+  'bumper', 'wing', 'panel', 'tarp', 'splinters', 'cardboard', 'sand', 'fluff', 'mesh', 'twigs',
   'fencepost',
   // a bad crash's bits (render/carparts.ts draws them)
   'bonnet', 'boot', 'spoiler', 'mirror', 'wishbone', 'strut', 'shaft', 'engine']);

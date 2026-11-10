@@ -38,7 +38,7 @@ import {
 } from './props/scenery.ts';
 import { drawParkedCar, drawTunnel, drawVenueBridge } from './props/venueprops.ts';
 import { drawButte, drawHoodoo, drawArch } from './props/formations.ts';
-import { drawWreck, drawSkull, drawGasStation, drawCanopy } from './props/desertjunk.ts';
+import { drawWreck, drawSkull, drawGasStation, drawCanopy, drawShack } from './props/desertjunk.ts';
 import { propsNear, screenBox } from './propgrid.ts';
 
 /** the drawer of each prop kind (a kind with no entry is only positioned) */
@@ -78,6 +78,7 @@ const PROP_DRAWERS: Record<string, PropDrawer> = {
   arch: drawArch,
   wreck: drawWreck,
   skull: drawSkull,
+  shack: drawShack,
   gasstation: drawGasStation,
   canopy: drawCanopy,
 };

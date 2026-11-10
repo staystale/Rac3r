@@ -13,6 +13,14 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'desertjunk',
+    added: '2026-11-10',
+    name: 'Deaf Valley junk: crates and oil drums, old tyres, tin shacks, tumbleweed on the breeze',
+    where: 'Test link + &desertjunk=1: Highway to Hull > DEAF VALLEY > any road',
+    try: 'Drive a few km: tumbleweed blowing across the road; knock drums, tyres, crates; a shack.',
+    wrong: 'Junk on the road or in a station, tumbleweed stuck or gone before you see it, lag.',
+  },
+  {
     id: 'venueoverlaps',
     added: '2026-11-09',
     name: 'Tidier venues: tyre walls in two neat rows, nothing piled on each other, no zig-zags',

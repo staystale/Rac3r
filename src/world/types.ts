@@ -75,6 +75,7 @@ export interface Cone {
   tape?: string | number;   // load.ts tapePass numbers its tapes
   idx?: number;
   field?: number;   // highway/fields.ts: a field's animals go when the field is cleared
+  wind?: [number, number];   // a tumbleweed's breeze, m/s (?desertjunk=1: highway/canyon.ts)
 }
 
 export interface Spawn {

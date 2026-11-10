@@ -46,6 +46,11 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
+  // ?desertjunk=1: Deaf Valley's roadside junk - dumps of crates and oil drums, old tyres lying
+  // and in piles, a tin shack now and then with junk round it, and TUMBLEWEED that a gust takes
+  // across the road as you come (owner 11-09: "Burned-out cars, Crates and oil drums,
+  // Tumbleweed, Old tyres and a shack"; highway/canyon.ts junk, cones/coneStep.ts blowTumbleweed)
+  desertjunk: atLoad('desertjunk'),
   // ?dieatona=1: Dieatona (the Daytona parody) as a new venue at 1/2 of real length, the oval and
   // the road course (world/levels/dieatona-venue.ts; owner 11-08)
   dieatona: atLoad('dieatona'),

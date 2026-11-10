@@ -172,8 +172,14 @@ export const DEBRIS: Record<string, DebrisKind> = {
   // of spiny pulp (physics/punctures.ts: their spines)
   cactus:   { mass: 150, r: 0.5, breaks: 1, into: 'pulp' },
   barrelcactus: { mass: 20, r: 0.35, breaks: 1, into: 'pulp' },
+  // TUMBLEWEED (?desertjunk=1): a dry ball of brush, bursting at the first hit into twigs
+  tumbleweed: { mass: 4, r: 0.7, breaks: 1, into: 'twigs' },
 };
-export const BROKEN = new Set(['splinters', 'cardboard', 'sand', 'fluff', 'pulp']);
+export const BROKEN = new Set(['splinters', 'cardboard', 'sand', 'fluff', 'pulp', 'twigs']);
+// a TUMBLEWEED (?desertjunk=1) lies snagged until a car comes within TUMBLE_WAKE_M, then a gust
+// takes it: it eases to its breeze (Loose.wind) at TUMBLE_EASE /s, the breeze rising and falling
+// by TUMBLE_GUST of itself, and rolls on across the desert, never at rest
+export const TUMBLE_WAKE_M = 140, TUMBLE_EASE = 1.5, TUMBLE_GUST = 0.35;
 // ANIMALS (S-C; (requirement: Can we make Cows and sheep impactable ? Sheep can be like a tyres
 // impact weight but burst into white particles / [cows] should stay solid and be heavier more like
 // hay bails impact weight); Q5: "no gore... sheep should explode into white fluff over like 30mph

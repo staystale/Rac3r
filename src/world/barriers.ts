@@ -2,7 +2,7 @@
 // lab.ts.
 import { rideUp } from "./jersey.ts";
 import { hoodooSpires, archShape } from './formations.ts';
-import { WRECK_M, GAS_SHOP, GAS_PUMPS, GAS_POSTS } from './desertjunk.ts';
+import { WRECK_M, SHACK_M, GAS_SHOP, GAS_PUMPS, GAS_POSTS } from './desertjunk.ts';
 import { LEVEL } from "./state.ts";
 import { activeLamps, resetLamps, type Lamp } from "./lamps.ts";
 import { driveOverPost, hitLamp } from "./lampdamage.ts";
@@ -317,6 +317,7 @@ function addFormationSolids(out: Solid[], prop: Prop): boolean {
   else if (prop.kind === 'arch')
     for (const [x, y, wid, len] of archShape(prop).legs) pushPropBox(out, prop, x, y, wid, len);
   else if (prop.kind === 'wreck') pushPropBox(out, prop, 0, 0, WRECK_M[0], WRECK_M[1]);
+  else if (prop.kind === 'shack') pushPropBox(out, prop, 0, 0, SHACK_M[0], SHACK_M[1]);
   else if (prop.kind === 'gasstation')
     for (const [x, y, wid, len] of [GAS_SHOP, ...GAS_PUMPS]) pushPropBox(out, prop, x, y, wid, len);
   else if (prop.kind === 'canopy')

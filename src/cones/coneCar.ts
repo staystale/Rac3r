@@ -255,7 +255,7 @@ function breakDebris(ctx: ConesCtx, obj: Loose, rel: number) {
     for (let dust = 0; dust < 4 && ctx.hits.length < 24; dust++)
       ctx.hits.push({
         x: obj.x + (Math.random() - 0.5) * 1.6, y: obj.y + (Math.random() - 0.5) * 1.6,
-        speed: 14, kind: debris.into === 'sand' ? 'bale' : 'tyre'
+        speed: 14, kind: debris.into === 'sand' || debris.into === 'twigs' ? 'bale' : 'tyre'
       });
   }
 }

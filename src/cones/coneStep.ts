@@ -1,7 +1,8 @@
 // cones/coneStep.ts: one simulation step of the loose objects: motion by mode (roll, flip,
 // wobble, flat slide), spin, the floor, the cars' hits, then the object-object collisions.
 import { FX0, FX1, FY0, FY1 } from "../world/bounds.ts";
-import { BROKEN, DRAG, REST_V, SLEEP_V, SPIN_DRAG } from "./coneConsts.ts";
+import { BROKEN, DRAG, REST_V, SLEEP_V, SPIN_DRAG, TUMBLE_EASE, TUMBLE_GUST,
+  TUMBLE_WAKE_M } from "./coneConsts.ts";
 import { hitWalls } from "./coneWalls.ts";
 import { hitByCar } from "./coneCar.ts";
 import { stepTape } from "./coneTape.ts";
@@ -80,6 +81,34 @@ function moveFlat(obj: Loose, dt: number) {
 }
 
 /**
+ * A TUMBLEWEED's breeze (?desertjunk=1): snagged until a car comes within TUMBLE_WAKE_M, then
+ * easing to its breeze as it gusts, hopping the low barriers (MEASURED, _desertjunkshot.mjs: on
+ * the dual carriageway all 5 seen stopped at the central reservation), and rolling (rollDist:
+ * render/props/tumbleweed.ts hops and turns it by it).
+ * @param obj the tumbleweed
+ * @param cars the cars
+ * @param dt step seconds
+ * @param clock sim time, s
+ */
+function blowTumbleweed(obj: Loose, cars: ConeCar[], dt: number, clock: number) {
+  if (!obj.wind) return;
+  if (!obj.blowing) {
+    const near = TUMBLE_WAKE_M * TUMBLE_WAKE_M;
+    if (!cars.some((car) => (car.x - obj.x) ** 2 + (car.y - obj.y) ** 2 < near)) return;
+    obj.blowing = true;
+    // (up off the ground with the gust: over the low barriers - a central reservation, armco -
+    // not the tall ones, a rock wall, a catch fence: coneWalls.ts)
+    obj.over = true;
+  }
+  // (each its own gusts, by its home spot)
+  const gust = 1 + TUMBLE_GUST * Math.sin(clock * 1.7 + (obj.hx || 0) * 0.37 + (obj.hy || 0)
+    * 0.21), ease = 1 - Math.exp(-TUMBLE_EASE * dt);
+  obj.vx += (obj.wind[0] * gust - obj.vx) * ease;
+  obj.vy += (obj.wind[1] * gust - obj.vy) * ease;
+  obj.rollDist += Math.hypot(obj.vx, obj.vy) * dt;
+}
+
+/**
  * Integrate one object's movement based on its simulation mode, then stop it or bounce it off
  * the walls.
  * @param ctx the cones context
@@ -93,7 +122,8 @@ function integrate(ctx: ConesCtx, obj: Loose, dt: number, speed: number) {
   if (obj.mode === 'roll') moveRoll(obj, dt, speed);
   else if (obj.mode === 'flip') moveFlip(obj, dt, speed);
   else if (obj.mode === 'wobble') moveWobble(ctx, obj, dt, speed);
-  else moveFlat(obj, dt);
+  // (a tumbleweed goes with its breeze: blowTumbleweed)
+  else if (obj.kind !== 'tumbleweed') moveFlat(obj, dt);
 
   // (a tyre sliding flat stops sooner, at SLEEP_V)
   const restAt = obj.kind === 'tyre' && obj.mode === 'flat' ? SLEEP_V : REST_V;
@@ -122,6 +152,7 @@ function stillAtRest(obj: Loose) {
  * @param newTyres receives the tyres a burst stack throws out
  */
 function stepObject(ctx: ConesCtx, obj: Loose, cars: ConeCar[], dt: number, newTyres: Loose[]) {
+  if (obj.kind === 'tumbleweed') blowTumbleweed(obj, cars, dt, ctx.clock);
   if (stillAtRest(obj)) return;
   const speed = Math.hypot(obj.vx, obj.vy);
 

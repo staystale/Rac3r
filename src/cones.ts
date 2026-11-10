@@ -73,6 +73,7 @@ function liveAsPlaced(levelObj: LevelObj): Loose {
     col: levelObj.col, tape: levelObj.tape, idx: levelObj.idx, field: levelObj.field,
     paint: levelObj.paint,
     num: levelObj.num,
+    wind: levelObj.wind,
     hitCount: 0,
     rollDist: 0,
     flipPhase: 0,

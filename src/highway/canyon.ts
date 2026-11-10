@@ -18,6 +18,8 @@ import { SURFACES } from '../world/surfaces.ts';
 import { gorgeAt, rimOf, layGround, roomAt } from './gorge.ts';
 import type { Point, Prop } from '../world/types.ts';
 import type { DressCtx, HwPose } from './hwtypes.ts';
+import type { LevelObj } from '../cones/coneTypes.ts';
+import { FIX } from '../core/fixes.ts';
 
 const FLARE_M = 80, FLARE_OUT = 30;
 // (owner 11-09, passed: "a tiny bit more breathing room off the road between rocky walls or
@@ -209,6 +211,104 @@ function junk(ctx: DressCtx, i: number, side: number, from: number, seed: number
     { kind: 'wreck', rot: pointAt(i, 0).rot + (rand() - 0.5) * 2.4, flip: rand() < 0.25, seed });
   if (rand() < 0.012) place(ctx, i, side * (from + 1 + rand() * 12), { kind: 'skull',
     rot: rand() * Math.PI * 2, seed });
+  // (?desertjunk=1: its rolls only with it on - the valley as before without)
+  if (FIX.desertjunk) moreJunk(ctx, i, side, from, seed);
+}
+
+// the desert's breeze (?desertjunk=1): across the road one way or the other, BREEZE_M of road at
+// a time, BREEZE_MIN-BREEZE_MAX m/s, a little down the road with it
+const BREEZE_M = 4000, BREEZE_MIN = 3.5, BREEZE_MAX = 6;
+// the desert's oil drums: rust, faded blue, olive, a red gone brown
+const DRUM_PAINT = ['#7a4a2a', '#3e5f7a', '#5c6339', '#8a3b22'];
+
+/**
+ * The breeze at a road distance: m/s across the world (the road climbs the screen, so across it).
+ * @param dist road distance, m
+ * @returns its velocity, m/s
+ */
+function breezeAt(dist: number): [number, number] {
+  const hash = Math.imul(Math.floor(dist / BREEZE_M) + 7, 2654435761) >>> 0;
+  const speed = BREEZE_MIN + ((hash >>> 1) % 100) / 100 * (BREEZE_MAX - BREEZE_MIN);
+  return [(hash & 1 ? 1 : -1) * speed, speed * 0.12];
+}
+
+/**
+ * A loose object (cones.ts: knocked about, broken) at point i, off m off the centre line, if clear.
+ * @param ctx the dress context
+ * @param i road point
+ * @param off m off the centre line (signed)
+ * @param obj the object but its place
+ * @param room m it needs clear round it
+ */
+function addLoose(ctx: DressCtx, i: number, off: number, obj: Omit<LevelObj, 'x' | 'y'>,
+  room = 0.8) {
+  const spot = Math.max(0, Math.min(ctx.road.length - 1, i)), pos: HwPose = ctx.pointAt(spot, off);
+  if (ctx.loose && ctx.clear(pos.x, pos.y, room))
+    ctx.loose.push({ ...obj, x: pos.x, y: pos.y, _s: ctx.road[spot].s } as LevelObj);
+}
+
+/**
+ * A heap of junk round a spot: crates and oil drums, old tyres.
+ * @param ctx the dress context
+ * @param i road point
+ * @param off m off the centre line (signed)
+ * @param count how many
+ * @param kinds what it is made of
+ */
+function heap(ctx: DressCtx, i: number, off: number, count: number, kinds: string[]) {
+  const { rand } = ctx;
+  for (let item = 0; item < count; item++) {
+    const kind = kinds[Math.floor(rand() * kinds.length)];
+    addLoose(ctx, i + Math.round((rand() - 0.5) * 2), off + (rand() - 0.5) * 3, { kind,
+      rot: rand() * Math.PI * 2, ...(kind === 'barrel' ? { paint: DRUM_PAINT[Math.floor(rand()
+        * DRUM_PAINT.length)] } : {}) });
+  }
+}
+
+/**
+ * The rest of the desert's junk (?desertjunk=1; owner 11-09: "Burned-out cars, Crates and oil
+ * drums, Tumbleweed, Old tyres and a shack"): a dump of crates and oil drums, old tyres lying or in
+ * a pile, now and then a tin shack with junk round it, and tumbleweed - mostly on the side the
+ * breeze comes from, snagged until a car comes (cones/coneStep.ts blowTumbleweed).
+ * @param ctx the dress context
+ * @param i road point
+ * @param side -1 / +1
+ * @param from m off the centre line where the open ground starts
+ * @param seed its look's seed
+ */
+function moreJunk(ctx: DressCtx, i: number, side: number, from: number, seed: number) {
+  const { rand, pointAt } = ctx;
+  if (rand() < 0.002) heap(ctx, i, side * (from + 3 + rand() * 30), 2 + Math.floor(rand() * 4),
+    ['crate', 'barrel', 'barrel']);
+  if (rand() < 0.003) heap(ctx, i, side * (from + 1 + rand() * 20), 1 + Math.floor(rand() * 3),
+    ['tyre']);
+  if (rand() < 0.0012) {
+    const off = side * (from + 4 + rand() * 25);
+    addLoose(ctx, i, off, { kind: 'tyrestack', rot: rand() * Math.PI * 2 }, 1.2);
+    heap(ctx, i, off + side * 1.5, 1 + Math.floor(rand() * 2), ['tyre']);
+  }
+  if (i % 10 === 0 && rand() < 0.012) {
+    const off = side * (from + 14 + rand() * 30);
+    place(ctx, i, off, { kind: 'shack', rot: pointAt(i, 0).rot + (rand() - 0.5) * 0.5, s: 5,
+      seed });
+    heap(ctx, i + 2, off - side * 4, 2 + Math.floor(rand() * 3), ['barrel', 'tyre', 'crate']);
+  }
+  tumbleweed(ctx, i, side, side * (from + 3 + rand() * 32), [0.024, 0.005]);
+}
+
+/**
+ * Now and then a TUMBLEWEED at point i (?desertjunk=1), snagged until a car comes: mostly on the
+ * side the breeze comes from, to blow across the road.
+ * @param ctx the dress context
+ * @param i road point
+ * @param side -1 / +1
+ * @param off m off the centre line (signed)
+ * @param rates its chance upwind, downwind
+ */
+function tumbleweed(ctx: DressCtx, i: number, side: number, off: number, rates: number[]) {
+  const wind = breezeAt(ctx.road[i].s), upwind = side === -Math.sign(wind[0]);
+  if (ctx.rand() < rates[upwind ? 0 : 1]) addLoose(ctx, i, off, { kind: 'tumbleweed', rot: 0,
+    wind });
 }
 
 /**
@@ -349,7 +449,11 @@ function sideProps(ctx: DressCtx, i: number, side: number, kind: string) {
   else if (kind === 'dunes') dunesProps(ctx, i, side, halfWidth + 2);
   // past a gorge's far rim, the plateau
   else if (cut) { if (i % 4 === 0) desertProps(ctx, i, side, halfWidth + rimOf(cut) + 3); }
-  else if (gap !== null) rimProps(ctx, i, side, gap);
+  else if (gap !== null) {
+    rimProps(ctx, i, side, gap);
+    // (?desertjunk=1: down the canyons too, from the foot of the wall)
+    if (FIX.desertjunk) tumbleweed(ctx, i, side, side * (ctx.halfWidth + gap * 0.6), [0.016, 0]);
+  }
 }
 
 /**

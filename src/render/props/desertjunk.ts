@@ -4,10 +4,12 @@
 // other prop's: a RUSTED-OUT CAR (rust and primer, no glass, no wheels - or on its roof, its
 // floor pan and axles up), a CATTLE SKULL (bleached bone, the horns), the LAST GASP station (the
 // shop's flat roof and its plant, two pumps on their islands) and its CANOPY (over the cars).
-import { WRECK_M, GAS_SHOP, GAS_PUMPS, GAS_CANOPY } from '../../world/desertjunk.ts';
+import { WRECK_M, GAS_SHOP, GAS_PUMPS, GAS_CANOPY, SHACK_M } from '../../world/desertjunk.ts';
 import type { Prop } from '../../world/types.ts';
 import type { PropCtx } from './types.ts';
 
+// (a shack's tin: the sheet, its ribs light and dark)
+const TIN = ['#8f8c83', '#a6a39a', '#7b786f'];
 const SHADOW = 'rgba(30,18,10,0.34)', RUST = ['#7a4a2a', '#9b6236', '#5a3520', '#b07a44'],
   GLASSLESS = '#1d1a17', BONE = '#efe6d2', BONE_DARK = '#b9ad94';
 
@@ -53,6 +55,34 @@ export function drawWreck(propCtx: PropCtx, prop: Prop, ppm: number) {
   rect(-len * 0.3, -wid * 0.36, len * 0.1, wid * 0.72, GLASSLESS);
   rect(-len * 0.2, -wid * 0.36, len * 0.28, wid * 0.72, RUST[2]);
   rect(-len * 0.12, -wid * 0.2, len * 0.1, wid * 0.22, GLASSLESS);
+}
+
+/**
+ * A tin shack (?desertjunk=1): its shadow, the corrugated roof in faded tin and rust, its ridge,
+ * a sheet gone and patched with planks, a lean-to off the back.
+ * @param propCtx the view and painter helpers
+ * @param prop the shack
+ * @param ppm pixels per metre
+ */
+export function drawShack(propCtx: PropCtx, prop: Prop, ppm: number) {
+  const ctx = propCtx.view.ctx, [len, wid] = SHACK_M, seed = prop.seed || 1,
+    rect = (x: number, y: number, wide: number, high: number, col: string) => {
+      ctx.fillStyle = col;
+      ctx.fillRect(x * ppm, y * ppm, Math.max(1, wide * ppm), Math.max(1, high * ppm));
+    };
+  const [shX, shY] = shadowShift(prop, 0.9);
+  rect(-len / 2 + shX, -wid / 2 + shY, len, wid + 1.4, SHADOW);
+  // the lean-to off the back, lower and darker
+  rect(-len * 0.4, wid / 2, len * 0.6, 1.4, '#6f6a5f');
+  rect(-len / 2, -wid / 2, len, wid, TIN[0]);
+  // the corrugations across the roof, rust patches by the seed, the ridge along it
+  for (let rib = 0; rib < 13; rib++)
+    rect(-len / 2 + rib * (len / 13), -wid / 2, len / 26, wid, TIN[1 + (rib % 2)]);
+  for (let spot = 0; spot < 4; spot++)
+    rect(-len / 2 + ((seed * 0.29 + spot * 0.53) % 0.8) * len, -wid / 2 + ((seed * 0.17 + spot
+      * 0.37) % 0.75) * wid, len * 0.18, wid * 0.22, RUST[(seed + spot) % 4]);
+  rect(-len / 2, -0.08, len, 0.16, '#5b574f');
+  rect(len * 0.18, -wid * 0.42, len * 0.16, wid * 0.36, '#8a6a43');
 }
 
 /**
