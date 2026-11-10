@@ -1,6 +1,6 @@
 // ai/trafficAcross.ts: a highway traffic car moving across lanes (indicate, drift over, abort)
 // and leaning away from you inside its lane.
-import { LAT_V } from "./trafficCtx.ts";
+import { latOf } from "./trafficCtx.ts";
 import type { TrafficCtx } from "./trafficCtx.ts";
 import type { DriveEnv } from "./trafficLane.ts";
 import { cruise } from "./trafficSpawn.ts";
@@ -40,13 +40,14 @@ export function crossLanes(ctx: TrafficCtx, slot: TrafficCar, env: DriveEnv) {
   if (slot.indT <= 0) abortCross(slot, env);
   if (slot.indT > 0) slot.indT -= dt;
   else {
-    const goal = centres[slot.laneT], diff = goal - slot.laneOff, latStep = LAT_V * dt;
+    const goal = centres[slot.laneT], diff = goal - slot.laneOff, latStep = latOf(slot) * dt;
     slot.laneOff = Math.abs(diff) <= latStep ? goal : slot.laneOff + Math.sign(diff) * latStep;
     if (slot.laneOff === goal) {
       slot.lane = slot.laneT;
       slot.ind = 0;
       slot.keepLeftT = 0;
-      slot.vWant = cruise(ctx, slot.lane, env.laneCount);
+      // (a quicker driver, a speeder keeps its own: ?trafficeven=1, ?speeders=1)
+      if (!slot.quick) slot.vWant = cruise(ctx, slot.lane, env.laneCount);
     }
   }
 }

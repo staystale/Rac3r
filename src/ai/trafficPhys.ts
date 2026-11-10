@@ -1,6 +1,6 @@
 // ai/trafficPhys.ts: how a highway traffic car is moved once it has decided: carried along its
 // lane line (kinematic, out of view) or driven by the same physics as every car.
-import { LAT_V } from "./trafficCtx.ts";
+import { latOf } from "./trafficCtx.ts";
 import type { TrafficCtx } from "./trafficCtx.ts";
 import type { DriveEnv } from "./trafficLane.ts";
 import { cruise, gearFor } from "./trafficSpawn.ts";
@@ -10,7 +10,7 @@ import { applyGround } from "../world/wear.ts";
 import { clampWorld } from "../world/crossings.ts";
 import { hit, tooInjured } from "../damage.ts";
 import { rolling, tripCheck, stepRoll } from "../roll.ts";
-import type { TrafficCar } from "./types.ts";
+import type { DriveInput, TrafficCar } from "./types.ts";
 
 // HANDOVER EASE (owner: traffic "changes lane / shuffles into lane", traffic
 // only). MEASURED (tools/scratch/_laneshuffle.mjs, highway, traffic 1.5, 180 s, undamaged cars):
@@ -36,7 +36,7 @@ function takeOverFromPhysics(ctx: TrafficCtx, slot: TrafficCar, env: DriveEnv): 
   if (nearest === slot.lane) return;
   slot.lane = slot.laneT = nearest;
   slot.laneOff = env.centres[nearest];
-  slot.vWant = cruise(ctx, nearest, env.laneCount);
+  if (!slot.quick) slot.vWant = cruise(ctx, nearest, env.laneCount);
 }
 
 /**
@@ -49,7 +49,7 @@ function takeOverFromPhysics(ctx: TrafficCtx, slot: TrafficCar, env: DriveEnv): 
 function carriedOffset(slot: TrafficCar, env: DriveEnv): number {
   const line = Math.max(env.minOff, Math.min(env.maxOff, slot.laneOff));
   if (slot.kOff == null) return line;
-  const maxStep = LAT_V * env.dt;
+  const maxStep = latOf(slot) * env.dt;
   return slot.kOff + Math.max(-maxStep, Math.min(maxStep, line - slot.kOff));
 }
 
@@ -68,7 +68,7 @@ export function carryKinematic(
   if (slot.kOff == null) takeOverFromPhysics(ctx, slot, env);
   const offK = carriedOffset(slot, env),
     latV = slot.kOff == null ? 0
-      : Math.max(-LAT_V, Math.min(LAT_V, (offK - slot.kOff) / dt));
+      : Math.max(-latOf(slot), Math.min(latOf(slot), (offK - slot.kOff) / dt));
   slot.kOff = offK;
   // (the other way's: down the road, turned round - its sideways drift and the bend's turn as
   // the car feels them flip with it)
@@ -123,10 +123,13 @@ function physicsInput(
   };
 }
 
-/** A real car: the input, then the same physics as every car. */
+/**
+ * A real car: the input (or the given one: a speeder's racing driver, a parked car's), then the
+ * same physics as every car.
+ */
 export function drivePhysics(
   ctx: TrafficCtx, slot: TrafficCar, env: DriveEnv, speed: number, vTarget: number,
-  brakeX: number,
+  brakeX: number, given?: DriveInput,
 ) {
   const car = slot.car, dt = env.dt;
   if (slot.kin) {   // waking up: the gear for the speed it is doing
@@ -138,7 +141,7 @@ export function drivePhysics(
     // hill 4.4 m higher, the ground's jump read as 32 m/s up and threw the car 42 m in the air
     car.groundInit = false;
   }
-  const input = physicsInput(ctx, slot, env, speed, vTarget, brakeX);
+  const input = given ?? physicsInput(ctx, slot, env, speed, vTarget, brakeX);
   car.indicator = slot.laneT !== slot.lane ? slot.ind : 0;
   car.hazard = slot.wreck;
   car.brakeLight = input.brake;

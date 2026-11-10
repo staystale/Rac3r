@@ -26,6 +26,19 @@ export const CROSS_T = 6;           // s a lane change takes, indicating include
 // (LOD; 0.75 s at a 220 km/h closing speed)
 export const PHYS_NEAR = 45;
 export const HEADWAY = 1.1, GAP0 = 5;   // following: GAP0 + HEADWAY x v metres, bumper to bumper
+// (?speeders=1) a speeder out of sight (carried, the traffic's own lane logic): its lane changes
+// SPEEDER_LAT x as quick, signalled SPEEDER_IND s; it follows at SPEEDER_HEADWAY s (tailgates) and
+// looks SPEEDER_LOOK_M ahead for a slower car to go round, either side (MEASURED, a probe: carried
+// with the traffic's own, a speeder sat at 100-104 km/h behind a cruising car for 20 s and more)
+export const SPEEDER_LAT = 2.5, SPEEDER_IND = 0.3, SPEEDER_HEADWAY = 0.5, SPEEDER_LOOK_M = 90;
+
+/**
+ * How fast a car moves across, m/s: a speeder's SPEEDER_LAT x quicker (?speeders=1).
+ * @param slot the car
+ * @param slot.racer a speeder's driver
+ * @returns m/s
+ */
+export const latOf = (slot: { racer?: unknown }) => (slot.racer ? LAT_V * SPEEDER_LAT : LAT_V);
 // m along the road from you (+ out of view)
 export const RECYCLE_BEHIND = 70, RECYCLE_AHEAD = 520, HARD_BEHIND = 320;
 export const SPAWN_AHEAD = [300, 470], SPAWN_BEHIND = [150, 240];

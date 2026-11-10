@@ -75,9 +75,22 @@ export function fresh(
     car, lane, laneT: lane, laneOff: off, bias: 0,
     vWant: cruise(ctx, lane, lanes.length), s: dist, off, vAl: speed,
     ind: 0, indT: 0, think: ctx.rnd() * 0.3, keepLeftT: 0, wreck: false, deadT: 0,
-    parked: false, kOff: null, kin: false, phys: true, dir,
+    parked: false, kOff: null, kin: false, phys: true, dir, quick: false, racer: null, broke: null,
   });
   return slot;
+}
+
+/**
+ * A placed car put moving at speed along its heading, its gear and revs for it.
+ * @param slot the car
+ * @param speed m/s
+ */
+export function setSpeed(slot: TrafficCar, speed: number) {
+  const car = slot.car;
+  car.vx = Math.cos(car.heading) * speed;
+  car.vy = Math.sin(car.heading) * speed;
+  slot.vAl = speed;
+  gearFor(car, speed);
 }
 
 /** Rebuild the live car list from the slots that are not parked. */

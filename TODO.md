@@ -95,11 +95,25 @@ ROUND 1, QUICK FIXES (each behind its own switch, one test link) - BUILT 11-10, 
    still", "I want them too like a real road"). MEASURED (tools/scratch/_trafficsides.mjs, traffic
    0.6, cars within 300 m): a single carriageway yours 1.9 -> 2.3-2.6 (the other way 3.2-3.3), the
    dual 5.3-5.5 -> 6.6-6.7 (5.7); at 90 km/h on the dual 3.9 -> 4.7.
+   FIXED 11-10 (the "come up behind" part did not work: a car put back behind you, out of sight,
+   went again the next step - at 90 km/h 0-1 came past in 90 s): every car of your way is dealt
+   its driver as it joins (ai/trafficKinds.ts: cruising, a fifth quicker at 125-150 km/h), put back
+   behind you when it is faster than you (and kept while it catches you up), ahead when slower;
+   one pulling away out of sight past 400 m is put back where you will meet it; a quicker driver
+   keeps its speed through lane changes. At ~74 km/h on the motorway 16 came past in 120 s. A
+   single carriageway's traffic still queues behind you (it does not use the other lane).
    6b. SPEEDERS (owner 11-10: "can we make a small % of the traffic speed and get in the way ect",
-   "They can jsut adopt the racing ai I guess"): a few traffic cars driven by the racing AI - fast,
-   overtaking, cutting in. NEXT.
-   6c. BREAKDOWNS ("pull into hard shoulders if they have an issue ect haha"): now and then a car
-   with a fault pulls onto the hard shoulder, hazards on.
+   "They can jsut adopt the racing ai I guess"): BUILT 11-10 behind ?speeders=1 (ai/
+   trafficSpeeder.ts): 1 in 15 of your way's cars, the racing AI at its wheel near a real car, held
+   at 150-180 km/h, weaving and cutting in; out of sight carried with quick lane changes, either
+   side, tailgating. Owner: "speeders can crash ... check they do dodge too" - on the motorway the
+   ones seen passed clean; on the twisty two-way road the two seen both crashed (the road's own
+   wrecks the same with or without them: 5 / 4 / 6 in 120 s).
+   6c. BREAKDOWNS ("pull into hard shoulders if they have an issue ect haha"): BUILT 11-10 behind
+   ?breakdowns=1 (ai/trafficBreak.ts): a nearside car now and then indicates, slows, pulls onto the
+   hard shoulder (the verge where a reset would find room, on a road without one) and stops,
+   hazards on; 1 in 25 put back ahead already stopped there; it waits for you. Motorway, 6.2 km:
+   3 seen (2 pulling over, 1 stopped).
 7. Still traffic goes after a while, and after a bad crash it waits ~10 s then is removed ("so it
    doesn't block roads"). Built behind ?trafficclear=1 (a still wreck gone even in view after
    10 s, any other still car after 15 s) - DROPPED 11-10 before the test (owner: "let's roll back
@@ -129,7 +143,14 @@ ROUND 2, DEAF VALLEY:
     crate, a bin a drum, a sandbag a crate, a tarp a pallet; no chevrons or cone tapers; none where
     the ground is not clear), and its own heaps, shacks, wrecks and skulls by the slider too: 88-90
     a km at LITTER 1, none at 0, ~205 at 3. Cactus patches (4-9 round a spot) and far singles.
-    The skull is still ~5 CSS px at speed - its size asked of the owner.
+    Skull size: owner "Skulls are fine as they are". Then (owner: "The slider should affect the
+    amount of junk cactus / cow skulls and barrels", "Seems like you mixed up the two types of road
+    litter ... Cow skulls cactus and barrels burnt out cars should only be for Death Valley ... tyres
+    no wheel inside / And tarps barrels pallets tyres (with wheel as we have now) ect / To be country
+    side litter"): every cactus by the slider too; the desert's litter skulls, oil drums and BARE
+    tyres only (no pallets, tarps, boxes, crates); the countryside's as it was. Through the menu
+    (tools/scratch/_littermenu.mjs): Deaf Valley OFF 0, 1.0x 164, 3.0x 399; the countryside 11 /
+    102 / 198 (its litter worked; Deaf Valley's had no slider on the plain link).
 ROUND 3, THE OTHER HIGHWAYS:
 11. Petrol stations on the other highway levels, reset spots too.
 12. Lamps on the central reservation.

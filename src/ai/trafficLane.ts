@@ -1,7 +1,7 @@
 // ai/trafficLane.ts: a highway traffic car's lane decisions each step: the car ahead, choosing
 // a lane (overtake, keep left, for no reason), indicating, drifting across, aborting, and the
 // lean away from you.
-import { CROSS_T, IND_T } from "./trafficCtx.ts";
+import { CROSS_T, IND_T, SPEEDER_IND, SPEEDER_LOOK_M } from "./trafficCtx.ts";
 import type { TrafficCtx } from "./trafficCtx.ts";
 import type { TrafficCar, TrafficEnt } from "./types.ts";
 
@@ -65,9 +65,13 @@ function slowIn(slot: TrafficCar, env: DriveEnv, laneNo: number) {
   return false;
 }
 
-/** Blocked by a slower car: overtake on the right, else rarely on the left. */
+/**
+ * Blocked by a slower car: overtake on the right, else rarely on the left (?speeders=1: a speeder
+ * either side).
+ */
 function overtakeLane(ctx: TrafficCtx, slot: TrafficCar, env: DriveEnv) {
   if (laneClear(slot, env, slot.lane + 1)) return slot.lane + 1;
+  if (slot.racer) return laneClear(slot, env, slot.lane - 1) ? slot.lane - 1 : null;
   return ctx.rnd() < 0.3 && laneClear(slot, env, slot.lane - 1) && !slowIn(slot, env, slot.lane - 1)
     ? slot.lane - 1 : null;
 }
@@ -77,7 +81,7 @@ function chooseLane(
   ctx: TrafficCtx, slot: TrafficCar, env: DriveEnv, lead: TrafficEnt | null, gap: number,
 ) {
   const rnd = ctx.rnd;
-  const blocked = lead && lead.v < slot.vWant - 3 && gap < 45;
+  const blocked = lead && lead.v < slot.vWant - 3 && gap < (slot.racer ? SPEEDER_LOOK_M : 45);
   let goLane: number | null = null;
   if (blocked) goLane = overtakeLane(ctx, slot, env);
   else if (slot.lane > 0 && slot.keepLeftT > 8 && laneClear(slot, env, slot.lane - 1)
@@ -100,7 +104,7 @@ export function laneDecisions(
     if (goLane != null) {
       slot.laneT = goLane;
       slot.ind = Math.sign(goLane - slot.lane);
-      slot.indT = IND_T;
+      slot.indT = slot.racer ? SPEEDER_IND : IND_T;
     }
   } else if (slot.indT > 0 && !laneClear(slot, env, slot.laneT)) {   // changed its mind
     slot.laneT = slot.lane;

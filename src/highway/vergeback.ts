@@ -24,14 +24,15 @@ const BAY_NEAR_M = 40, BAY_FAR_M = 150, VERGE_STEP_M = 10, VERGE_TRIES = 15;
 const OFF_M = 1.6, HALF_ON_M = 0.1, CLEAR_M = 1.5, DROP_M = 0.6;
 
 /**
- * Whether a car fits at a spot: no barrier (a rock wall, Armco) within CLEAR_M of its middle or of
- * its ends, the ground not fallen away below the road's edge (a gorge).
+ * Whether a car fits at a spot (a reset's; a broken down car's, ai/trafficBreak.ts): no barrier
+ * (a rock wall, Armco) within CLEAR_M of its middle or of its ends, the ground not fallen away
+ * below the road's edge (a gorge).
  * @param level the highway level
  * @param dist road distance, m
  * @param off m off the road's line
  * @returns room
  */
-function roomAt(level: HwLevel, dist: number, off: number): boolean {
+export function vergeRoom(level: HwLevel, dist: number, off: number): boolean {
   const pose = roadPose(level, dist, off), half = level._hw.geo.hw;
   const ends = [-2, 0, 2].map((along) => [pose.x + Math.cos(pose.h) * along,
     pose.y + Math.sin(pose.h) * along]);
@@ -74,7 +75,7 @@ export function vergeBack(level: HwLevel, dist: number, floor: number,
   for (let tries = 0; tries < VERGE_TRIES; tries++) {
     const spot = Math.max(floor, dist - tries * VERGE_STEP_M);
     for (const off of [-(half + OFF_M), -(half + HALF_ON_M)])
-      if (roomAt(level, spot, off)) return { s: spot, off };
+      if (vergeRoom(level, spot, off)) return { s: spot, off };
   }
   return bayBehind(level, dist, free, Math.max(floor, dist - BAY_FAR_M));
 }

@@ -15,6 +15,13 @@ import { rejoinClear } from "./gapPick.ts";
 import { SWERVE_RATE } from "./dodge.ts";
 import type { Drv, AiPath } from "./driverCtx.ts";
 
+/**
+ * The most a driver drives at (?speeders=1: a speeder's, ai/trafficSpeeder.ts), m/s.
+ * @param ctx the drive context
+ * @returns the cap, or Infinity
+ */
+const capOf = (ctx: DriveCtx) => ctx.vMax ?? Infinity;
+
 // m: the lateral target never puts the car's centre closer than this to the road edge
 const WANDER_EDGE = 1.1;
 
@@ -120,8 +127,9 @@ export function drive(drv: Drv, car: AiCar, dt = 1 / 120, ctx: DriveCtx = {}) {
   const nearIdx = state.i!; let prof = profileOf(path, spec, main, drv.traits.kBrake);
   const others = ctx.cars || [];
   const push = battleStep(drv, car, others);
-  // ---- JOKER: decide once per lap ~220 m before the branch; take it at the switch point
-  const jCap = jokerStep(drv, car, ctx, path, nearIdx, lap, laps);
+  // ---- JOKER: decide once per lap ~220 m before the branch; take it at the switch point (and a
+  // speeder's most: ?speeders=1)
+  const jCap = Math.min(jokerStep(drv, car, ctx, path, nearIdx, lap, laps), capOf(ctx));
 
   // ---- MISTAKES (requirement: genuine subtle driving errors that lead to crashes and / or slower
   // lap times), drawn per corner ~45 m out

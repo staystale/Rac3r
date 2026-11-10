@@ -64,8 +64,19 @@ export const FIX = {
   vergereset: atLoad('vergereset'),
   // ?trafficeven=1: your way's traffic put back nearer ahead, as near as out of sight lets (owner
   // 11-10: "not enough cars on my side of the road and too many on the oncoming side"; ai/
-  // trafficSpawn.ts spot)
+  // trafficSpawn.ts spot); and the faster drivers put back behind you kept while they catch you
+  // up, put back at their speed ("can cars on my side come up behind me still"; ai/trafficStep.ts)
   trafficeven: atLoad('trafficeven'),
+  // ?speeders=1: now and then one of your way's cars a SPEEDER - the racing driver at its wheel at
+  // 150-180 km/h, weaving through and cutting in, from behind or ahead (owner 11-10: "can we make a
+  // small % of the traffic speed and get in the way", "They can jsut adopt the racing ai"; ai/
+  // trafficSpeeder.ts)
+  speeders: atLoad('speeders'),
+  // ?breakdowns=1: now and then one of your way's cars has an issue - it indicates, slows and pulls
+  // onto the hard shoulder (the verge, where there is room, on a road without one) and stops, its
+  // hazards on; some already stopped there ahead (owner 11-10: "And pull into hard shoulders if
+  // they have an issue"; ai/trafficBreak.ts)
+  breakdowns: atLoad('breakdowns'),
   // ?bushflat=1: no hill shading on the bushes - they sit on top of the shaded ground, working the
   // same (owner 11-10: "Don't apply terrain to bushes it's making them look weird they can sit on
   // top / still working the same jsut a visual change"; render/glshade.ts, world/wear.ts bushAt)
