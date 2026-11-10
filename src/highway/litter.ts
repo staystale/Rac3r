@@ -22,6 +22,28 @@ const DEBRIS_PICK = [
 const DEBRIS_COL = ['#2f5d3a', '#2b56b5', '#c8302c', '#3a3f47', '#d6a21e', '#2f6fb0'];
 /** Adds a loose object tagged with its road distance, and returns it. */
 type AddLoose = (obj: LevelObj, dist: number) => LevelObj;
+// THE DESERT'S LITTER (Deaf Valley with ?desertmore=1; owner 11-10: "Junk levels should be
+// controlled by the slider in test menu and should be consistent across levels", "Obviously
+// split by asthetic still"): the same layers and chances, its kinds the desert's - a cone a skull,
+// an oil drum or a crate, a bin a drum, a sandbag a crate, a tarp a pallet; no chevrons or cone
+// tapers (road works); none where the ground is not clear (a rock wall, a cactus)
+const DESERT_KIND: Record<string, string> = { bin: 'barrel', sandbag: 'crate', tarp: 'pallet' };
+const DESERT_CONE = ['skull', 'skull', 'barrel', 'crate'];
+const DESERT_DRUM = ['#7a4a2a', '#3e5f7a', '#5c6339', '#8a3b22'];
+
+/**
+ * A litter object in the desert's kinds, or null for none there.
+ * @param obj the countryside's object
+ * @param rand the litter's random stream
+ * @returns the desert's, or null
+ */
+function desertLitter(obj: LevelObj, rand: () => number): LevelObj | null {
+  if (obj.kind === 'chevron') return null;
+  const kind = obj.kind === 'cone' ? DESERT_CONE[(rand() * DESERT_CONE.length) | 0]
+    : DESERT_KIND[obj.kind ?? ''] || obj.kind;
+  return { ...obj, kind, ...(kind === 'barrel' ? { paint: DESERT_DRUM[(rand() * DESERT_DRUM.length)
+    | 0] } : {}) } as LevelObj;
+}
 /** What the litter layers share: their random stream, the adder, the density-scaled chance. */
 interface Loot { looseRand: () => number; addLoose: AddLoose; chance: (prob: number) => number;
   density: number }
@@ -188,11 +210,14 @@ function layConeTaper(ctx: DressCtx, loot: Loot, i: number, dist: number) {
 export function layLooseRoadside(ctx: DressCtx) {
   const { level, state, road, firstIdx, endIdx, loose } = ctx;
   if (!level._cfg.walls && loose) {
-    const looseRand = state.lrnd,
+    const looseRand = state.lrnd, desert = level._cfg.theme === 'canyon',
       addLoose = (obj: LevelObj, dist: number) => {
-        obj._s = dist;
-        loose.push(obj);
-        return obj;
+        // (the desert's kinds, where the ground is clear)
+        const placed = desert ? desertLitter(obj, looseRand) : obj;
+        if (!placed || (desert && !ctx.clear(placed.x, placed.y, 0.8))) return obj;
+        placed._s = dist;
+        loose.push(placed);
+        return placed;
       };
     // LITTER DENSITY (requirement: they should be RANDOM and also have a SLIDER for frequency /
     // density; default 1 = as tested and seen): lv.litter x every litter chance (setup's LITTER
@@ -205,7 +230,7 @@ export function layLooseRoadside(ctx: DressCtx) {
       layVergeLitter(ctx, loot, i, dist);
       layDebrisScatter(ctx, loot, i);
       layTyreStacks(ctx, loot, i, dist);
-      layConeTaper(ctx, loot, i, dist);
+      if (!desert) layConeTaper(ctx, loot, i, dist);
     }
   }
 }

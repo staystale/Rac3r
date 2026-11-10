@@ -15,6 +15,7 @@ import { bayOut } from './laybys.ts';
 import { keepOut } from './cuts.ts';
 import { stretchAt, stationSideOf } from './desertplan.ts';
 import { SURFACES } from '../world/surfaces.ts';
+import { FIX } from '../core/fixes.ts';
 import { gorgeAt, rimOf, layGround, roomAt } from './gorge.ts';
 import type { Level, Patch, Point, Prop, Surface, Zone } from '../world/types.ts';
 import { blendPatch, tri, BLEND_W } from '../world/blend.ts';
@@ -235,7 +236,30 @@ function desertProps(ctx: DressCtx, i: number, side: number, from: number) {
   if (rand() < 0.05) place(ctx, i, side * (from + rand() * 40), { kind: 'rock',
     s: 1.5 + rand() * 2.5, pal: 'red', seed });
   if (i % 6 === 0 && rand() < 0.1) formation(ctx, i, side, from, seed);
+  // (?desertmore=1: cactus patches, and singles spread further out)
+  if (FIX.desertmore) moreCactus(ctx, i, side, from);
   junk(ctx, i, side, from, seed);
+}
+
+/**
+ * More of the desert's cactus (?desertmore=1; owner 11-10: "cactus should be in patches too and
+ * more single ones spread out"): now and then a PATCH - PATCH_MIN..PATCH_MAX saguaros and barrel
+ * cacti round a spot - and a single saguaro further out.
+ * @param ctx the dress context
+ * @param i road point
+ * @param side -1 / +1
+ * @param from m off the centre line where the open ground starts
+ */
+function moreCactus(ctx: DressCtx, i: number, side: number, from: number) {
+  const { rand } = ctx;
+  if (rand() < PATCH_CHANCE) {
+    const middle = from + 4 + rand() * 40, count = PATCH_MIN + Math.floor(rand() * (PATCH_MAX
+      - PATCH_MIN + 1));
+    for (let plant = 0; plant < count; plant++)
+      cactus(ctx, i + Math.round((rand() - 0.5) * 4), side * (middle + (rand() - 0.5) * 2
+        * PATCH_R), rand() < 0.45);
+  }
+  if (rand() < FAR_CHANCE) cactus(ctx, i, side * (from + 30 + rand() * 60), true);
 }
 
 /**
@@ -248,10 +272,11 @@ function desertProps(ctx: DressCtx, i: number, side: number, from: number) {
  * @param seed its look's seed
  */
 function junk(ctx: DressCtx, i: number, side: number, from: number, seed: number) {
-  const { rand, pointAt } = ctx;
-  if (i % 10 === 0 && rand() < 0.08) place(ctx, i, side * (from + 4 + rand() * 35),
+  const { rand, pointAt } = ctx, more = FIX.desertmore ? litterOf(ctx) : 1;
+  // (?desertmore=1: the wrecks and skulls by the LITTER slider too)
+  if (i % 10 === 0 && rand() < 0.08 * more) place(ctx, i, side * (from + 4 + rand() * 35),
     { kind: 'wreck', rot: pointAt(i, 0).rot + (rand() - 0.5) * 2.4, flip: rand() < 0.25, seed });
-  if (rand() < 0.012) skull(ctx, i, side * (from + 1 + rand() * 12), rand() * Math.PI * 2);
+  if (rand() < 0.012 * more) skull(ctx, i, side * (from + 1 + rand() * 12), rand() * Math.PI * 2);
   moreJunk(ctx, i, side, from, seed);
 }
 
@@ -266,6 +291,18 @@ function junk(ctx: DressCtx, i: number, side: number, from: number, seed: number
 function skull(ctx: DressCtx, i: number, off: number, rot: number) {
   addLoose(ctx, i, off, { kind: 'skull', rot }, 2);
 }
+
+// (?desertmore=1) the share of its old reach out from the road the desert's junk keeps
+const NEAR_SHARE = 0.6;
+/**
+ * The setup's LITTER slider on a highway level (0 none .. 3 a scrapyard; 1 as tested).
+ * @param ctx the dress context
+ * @returns the density
+ */
+const litterOf = (ctx: DressCtx): number => (ctx.level as { litter?: number }).litter ?? 1;
+// (?desertmore=1) a cactus patch's chance at a road point (each side, every other point), its
+// plants, its reach either way, m; a far single saguaro's chance
+const PATCH_CHANCE = 0.018, PATCH_MIN = 4, PATCH_MAX = 9, PATCH_R = 5, FAR_CHANCE = 0.12;
 
 // the desert's breeze: across the road one way or the other, BREEZE_M of road at
 // a time, BREEZE_MIN-BREEZE_MAX m/s, a little down the road with it
@@ -330,17 +367,20 @@ function heap(ctx: DressCtx, i: number, off: number, count: number, kinds: strin
  */
 function moreJunk(ctx: DressCtx, i: number, side: number, from: number, seed: number) {
   const { rand, pointAt } = ctx;
-  if (rand() < 0.002) heap(ctx, i, side * (from + 3 + rand() * 30), 2 + Math.floor(rand() * 4),
-    ['crate', 'barrel', 'barrel']);
-  if (rand() < 0.003) heap(ctx, i, side * (from + 1 + rand() * 20), 1 + Math.floor(rand() * 3),
-    ['tyre']);
-  if (rand() < 0.0012) {
-    const off = side * (from + 4 + rand() * 25);
+  // (?desertmore=1: the setup's LITTER slider as every endless road's - highway/litter.ts - and
+  // nearer the road)
+  const more = FIX.desertmore ? litterOf(ctx) : 1, near = FIX.desertmore ? NEAR_SHARE : 1;
+  if (rand() < 0.002 * more) heap(ctx, i, side * (from + 3 + rand() * 30 * near), 2
+    + Math.floor(rand() * 4), ['crate', 'barrel', 'barrel']);
+  if (rand() < 0.003 * more) heap(ctx, i, side * (from + 1 + rand() * 20 * near), 1
+    + Math.floor(rand() * 3), ['tyre']);
+  if (rand() < 0.0012 * more) {
+    const off = side * (from + 4 + rand() * 25 * near);
     addLoose(ctx, i, off, { kind: 'tyrestack', rot: rand() * Math.PI * 2 }, 1.2);
     heap(ctx, i, off + side * 1.5, 1 + Math.floor(rand() * 2), ['tyre']);
   }
-  if (i % 10 === 0 && rand() < 0.012) {
-    const off = side * (from + 14 + rand() * 30);
+  if (i % 10 === 0 && rand() < 0.012 * more) {
+    const off = side * (from + 14 + rand() * 30 * near);
     place(ctx, i, off, { kind: 'shack', rot: pointAt(i, 0).rot + (rand() - 0.5) * 0.5, s: 5,
       seed });
     heap(ctx, i + 2, off - side * 4, 2 + Math.floor(rand() * 3), ['barrel', 'tyre', 'crate']);
@@ -348,7 +388,7 @@ function moreJunk(ctx: DressCtx, i: number, side: number, from: number, seed: nu
   // (owner 11-10, "I jsut didn't see them": MEASURED, tools/scratch/_junkseen.mjs, 0.9-1.5 skulls
   // and 0.9-1.5 tumbleweed on screen a km, 2-6 m off its edge - three times the tumbleweed, nearer
   // the road, and as many skulls again by the verge)
-  if (rand() < 0.03) skull(ctx, i, side * (from + 0.5 + rand() * 5), rand() * Math.PI * 2);
+  if (rand() < 0.03 * more) skull(ctx, i, side * (from + 0.5 + rand() * 5), rand() * Math.PI * 2);
   tumbleweed(ctx, i, side, side * (from + 2 + rand() * 16), [0.07, 0.012]);
 }
 

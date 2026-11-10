@@ -13,6 +13,14 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'desertmore',
+    added: '2026-11-10',
+    name: 'Deaf Valley junk by the LITTER slider (as much as other roads), cactus patches',
+    where: 'Test link + &desertmore=1: Highway to Hull > DEAF VALLEY (set the LITTER slider)',
+    try: 'Drive at LITTER 1, then 0 and 3: drums, crates, tyres, skulls by the road; cactus clumps',
+    wrong: 'Junk on the road or in a rock wall, the slider doing nothing, a scrapyard at 1, lag.',
+  },
+  {
     id: 'vergereset',
     added: '2026-11-10',
     name: 'Deaf Valley resets: the verge where you are, more lay-bys, never on the road',

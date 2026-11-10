@@ -47,6 +47,14 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
+  // ?desertmore=1: Deaf Valley's junk from the same LITTER slider as every endless road, as much
+  // of it (the shared litter, desert kinds: highway/litter.ts), its own heaps, shacks and skulls
+  // scaled by the slider too and nearer the road; and the cactus in PATCHES, with more single ones
+  // spread out further (owner 11-10: "I'm not seeing much road side junk on Death Valley levels
+  // ... cactus should be in patches too and more single ones spread out", "Junk levels should be
+  // controlled by the slider in test menu and should be consistent across levels", "Obviously
+  // split by asthetic still"; highway/canyon.ts, highway/litter.ts)
+  desertmore: atLoad('desertmore'),
   // ?vergereset=1: a reset on a road with no hard shoulder goes to a lay-by just behind, else the
   // verge where you are (half on where there is no room), never onto the lane; and Deaf
   // Valley's lay-bys come oftener, every 160-260 m (owner 11-10: resets "seem to sometimes set on a

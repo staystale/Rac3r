@@ -120,6 +120,16 @@ ROUND 2, DEAF VALLEY:
    road's gorge Armco there is no verge: a lay-by or the lane's edge there.
 10. The junk: "not seeing much road side junk ... never seen a cow skull" (a skull is ~5 CSS px at
     speed: its size?); cactus in patches too, and more single ones spread out.
+    BUILT 11-10 behind ?desertmore=1 (owner, on the way: "Junk levels should be controlled by the
+    slider in test menu and should be consistent across levels", "Obviously split by asthetic
+    still"): Deaf Valley had no share of the shared litter (highway/dress.ts skipped it) and its own
+    junk fixed - MEASURED, tools/scratch/_junkcount.mjs, on screen a km: crates 0.2-0.8, drums
+    0-0.6, tyres 1.4-1.5, shacks 0-0.4; the countryside's litter 84 a km. Now the shared litter
+    there too, in the desert's kinds (highway/litter.ts desertLitter: a cone a skull / drum /
+    crate, a bin a drum, a sandbag a crate, a tarp a pallet; no chevrons or cone tapers; none where
+    the ground is not clear), and its own heaps, shacks, wrecks and skulls by the slider too: 88-90
+    a km at LITTER 1, none at 0, ~205 at 3. Cactus patches (4-9 round a spot) and far singles.
+    The skull is still ~5 CSS px at speed - its size asked of the owner.
 ROUND 3, THE OTHER HIGHWAYS:
 11. Petrol stations on the other highway levels, reset spots too.
 12. Lamps on the central reservation.

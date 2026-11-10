@@ -1,5 +1,6 @@
 // highway dress: the per-window dressing (trees, gantries, armco, walls, litter) and the
 // NOX / NOF node-tool switches. Split out of highway.ts.
+import { FIX } from "../core/fixes.ts";
 import { layLaybys, bayOut } from "./laybys.ts";
 import { envValue } from "../core/debug.ts";
 import { STEP, SIGNS } from "./presets.ts";
@@ -322,6 +323,8 @@ export function dress(level: HwLevel, firstIdx: number, endIdx: number, loose: L
   // a themed road dresses its own way (Deaf Valley: highway/canyon.ts)
   if (level._cfg.theme === 'canyon') {
     dressCanyon(ctx);
+    // (?desertmore=1: the shared litter, its slider and its amount - in the desert's kinds)
+    if (FIX.desertmore) layLooseRoadside(ctx);
     // (any road there - a twin carriageway's central reservation, the walled road's walls)
     layWalls(ctx);
     layMedian(ctx);
