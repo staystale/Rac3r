@@ -34,26 +34,57 @@ export function order(ctx: HwCtx) {
     entry !== myEntry && sOf(entry) > sOf(myEntry)).length : 1;
 }
 
-/** The race is over: the results table, sorted by how far up the road, and your place. */
-export function endRace(ctx: HwCtx) {
+/**
+ * The race is over: the results table - those over the finish line first, by their time
+ * (?hwfinish=1), then by how far up the road - and your place.
+ * @param ctx the flow's context
+ * @param why how it ended: 'away' (the getaway), 'finish' (you crossed the line), 'time'
+ */
+export function endRace(ctx: HwCtx, why = 'away') {
   const flow = ctx.flow, sRef = ctx.sRef;
   flow.state = 'done';
   flow.endT = flow.t;
   flow.cdKind = null;
+  flow.endWhy = why;
   const rows: HwRow[] = ctx.entries.map((entry) => ({ car: entry.car, player: entry.player,
     num: entry.car.num || 1, paint: entry.car.spec.paint, s: sOf(entry),
     dist: Math.max(0, sOf(entry) - sRef),
-    bill: Math.round(entry.car.dmgBill || 0), time: flow.t, total: flow.t, penalty: 0, est: false,
-      best: null, laps: 0 }));
-  rows.sort((first, second) => second.s - first.s);
+    bill: Math.round(entry.car.dmgBill || 0), time: entry.doneT ?? flow.t,
+    total: entry.doneT ?? flow.t, penalty: 0, est: false, best: null, laps: 0,
+    done: entry.doneT ?? null }));
+  // (Infinity - Infinity is NaN, falsy: two not over the line go by the road)
+  rows.sort((first, second) => (first.done ?? Infinity) - (second.done ?? Infinity)
+    || second.s - first.s);
   rows.forEach((row, i) => {
     row.pos = i + 1;
     row.gapM = rows[0].s - row.s;
-    row.gap = 0;
+    row.gap = row.done != null && rows[0].done != null ? row.done - rows[0].done : 0;
   });
   flow.results = rows;
   flow.myPlace = (rows.find((row) => row.player) || {}).pos;
   flow.flags.push(flow.t);
+}
+
+/**
+ * The finish (?hwfinish=1): each racer over the line gets its time; the race ends as YOU cross it
+ * (the rest placed by the road), or when the clock runs out.
+ * @param ctx the flow's context
+ * @returns true when the race has ended
+ */
+export function atFinish(ctx: HwCtx): boolean {
+  const flow = ctx.flow, finish = flow.finish;
+  if (!finish) return false;
+  if (finish.t && flow.t >= finish.t) {
+    endRace(ctx, 'time');
+    return true;
+  }
+  if (finish.s == null) return false;
+  for (const entry of ctx.entries) {
+    if (entry.doneT == null && sOf(entry) >= finish.s) entry.doneT = flow.t;
+  }
+  if (!ctx.entries.some((entry) => entry.player && entry.doneT != null)) return false;
+  endRace(ctx, 'finish');
+  return true;
 }
 
 /**

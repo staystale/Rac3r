@@ -18,6 +18,8 @@ import { MAX_AI } from '../core/settings.ts';
 import { ROSTER } from '../cars.ts';
 import { showAiDrivers, storedTune, storeTune, tuneLine } from './aidrivers.ts';
 import { HW_ROADS, HW_SCENERY } from '../highway/presets.ts';
+import { addFinishRows } from './finishrow.ts';
+import { FIX } from '../core/fixes.ts';
 
 // WEATHER: follow the SEASON (its chances; it can change in the race) or a fixed sky
 const WEATHER_MODES = [['season', 'SEASON'], ['dry', 'DRY'], ['hot', 'HOT'],
@@ -249,7 +251,7 @@ font-size:14px';
   const lPaint = () => {
     lLbl.textContent = state.laps + (state.laps === 1 ? ' LAP' : ' LAPS');
     lRow.style.display = (state.opponents || state.rxRace) && !level.endless ? '' : 'none';
-    if (hwNote) hwNote.style.display = state.opponents ? '' : 'none';
+    if (hwNote) hwNote.style.display = state.opponents && !FIX.hwfinish ? '' : 'none';
   };
   const hwNote = level.endless ? addElement(panel, 'div',
     'ROLLING START · GET AWAY: LOSE THEM OFF THE BOTTOM OF THE SCREEN TO WIN · LET ONE GET AWAY \
@@ -333,7 +335,8 @@ function addLaunchButtons(menu: Menu, panel: HTMLElement, level: Level, state: S
         aiCars: state.aiCars, aiTune: aiPanel(menu) ? state.aiTune || null : null,
         ...(state.weather ? { weather: state.weather } : {}),
         ...(state.time !== undefined ? { time: state.time } : {}),
-        ...(level.endless ? { traffic: state.traffic, litter: state.litter } : {}),
+        ...(level.endless ? { traffic: state.traffic, litter: state.litter,
+          finish: state.finish ?? null } : {}),
         laps: state.opponents || state.rxRace ? state.laps : 0,
         livery: (profile.livery || {})[profile.active],
         tyre: (profile.tyres || {})[profile.active] });
@@ -388,9 +391,9 @@ const aiPanel = (menu: Menu) => menu.api.dev;
  */
 function setupChoices(state: SetupState): Partial<SetupState> {
   const { road, scenery, traffic, litter, opponents, aiN, diff, aiCars, rxRace, laps, time,
-    aiTune } = state;
+    aiTune, finish } = state;
   return { road, scenery, traffic, litter, opponents, aiN, diff, aiCars, rxRace, laps, time,
-    aiTune };
+    aiTune, finish };
 }
 
 /**
@@ -453,6 +456,7 @@ export function showSetup(menu: Menu, level: Level, kept: Partial<SetupState> = 
   state.paint();
   addRxRaceRow(menu, panel, level, state);
   addLapsRow(menu, panel, level, state);
+  addFinishRows(menu, panel, level, state);
   state.paint();
   addWeatherRows(menu, panel, state, level);
   if (menu.api.daytime) addTimeRows(menu, panel, state);

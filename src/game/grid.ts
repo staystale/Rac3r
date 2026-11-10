@@ -154,7 +154,10 @@ export function spawnAI(count: number = shared.aiCount) {
   game.ai = [];
   game.poleCar = null;
   const sub = LEVEL.subtrack!;
-  if (!sub || !count) return;
+  if (!sub || !count) {
+    shared.gridSlot = 0;
+    return;
+  }
   shared.gridSlot = drawGridSlot(count);
   const seed = 1 + Math.floor(Math.random() * 1e6), ids = aiCarIds(count, seed),
     nums = aiNumbers(count, seed);

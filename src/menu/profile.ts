@@ -22,6 +22,7 @@ export interface Profile {
   aiCars?: string;   // setup: AI cars of the same model or the class
   traffic?: number;   // setup: endless traffic density
   litter?: number;   // setup: endless roadside litter density
+  hwFinish?: string;   // ?hwfinish=1: the endless road's finish (highway/finish.ts)
   hwScenery?: string; hwRoad?: string;   // ?hwpick=1: the endless road's scenery and road picked
   weather?: Record<string, unknown>;   // setup: the weather picks
   gen?: { theme: string; len: string; style: string; seed: number };   // the last generated stage

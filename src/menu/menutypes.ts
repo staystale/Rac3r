@@ -38,6 +38,7 @@ export interface ResultRow {
   bill: number;   // the damage bill, £
   gap?: number;   // s behind the winner
   dist?: number; gapM?: number;   // the highway: m driven; m behind the leader
+  done?: number | null;   // the highway (?hwfinish=1): its time over the finish line
 }
 
 /** A finished race, as the results read it (raceflow.ts). */
@@ -46,6 +47,8 @@ export interface ResultsFlow {
   t: number; endT: number | null;   // the race clock; when it ended
   laps: number;
   highway?: boolean; stage?: unknown;   // the kind of event
+  // the highway (?hwfinish=1): its finish, and how the race ended (finish / time / away)
+  finish?: { m?: number; t?: number } | null; endWhy?: string;
 }
 
 /** The setup screen's widgets that paintSetupOpponents repaints. */
@@ -68,6 +71,7 @@ export interface SetupState {
   aiCars: string;   // AI cars: 'class' or 'same'
   rxRace: boolean;   // the RX race (joker level) rather than practice
   laps: number;
+  finish?: string;   // the endless highway's finish code (?hwfinish=1: highway/finish.ts)
   ui: SetupUi;
   paint: () => void;   // repaints the setup rows
   weather?: { mode: string; season: number };

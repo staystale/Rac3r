@@ -22,6 +22,7 @@ import type { AiCar, HighwayLevel } from "./ai/types.ts";
 import { endRace, order } from "./ai/hwFlow.ts";
 import { stepFlow } from "./ai/hwFlowStep.ts";
 import type { HwCtx, HwFlow, HwFlowArgs } from "./ai/hwFlowTypes.ts";
+import type { Paint } from "./world/types.ts";
 
 export const HW_GREEN = 6, HW_COUNT = 8;
 // CATCH THEM is SOFT (requirement: catch them timer should be longer on highway, also it should be
@@ -95,14 +96,49 @@ export function hwPutBack(level: HighwayLevel, dist: number, cars: AiCar[]) {
 // green; flow.order -> your position. Results rows are raceflow.ts-shaped (+ dist / gapM) so
 // menu.ts can show them; flow.highway marks the distance table.
 export function createHwFlow(
-  { lv, cars, visible, count = HW_COUNT, catchT = HW_CATCH }: HwFlowArgs) {
+  { lv, cars, visible, count = HW_COUNT, catchT = HW_CATCH, finish = null }: HwFlowArgs) {
   const sRef = roadFrame(lv, lv.spawn.x, lv.spawn.y, null)!.s;   // ! : null before the road exists
   const entries = cars.map(({ car, player }) => ({ car, player: !!player }));
   const flow: HwFlow = { highway: true, state: 'racing', t: 0, laps: 0, entries: entries, flags: [],
-    results: null, cd: null, cdKind: null, cdHold: false, myPlace: null };
+    results: null, cd: null, cdKind: null, cdHold: false, myPlace: null,
+    finish: finish ? { ...finish, ...(finish.m ? { s: sRef + finish.m } : {}) } : null };
   const ctx: HwCtx = { flow, entries, visible, count, catchT, sRef, gapPrev: null, gapRate: 0 };
+  clearFinishLine(lv);
   flow.order = () => order(ctx);
-  flow.step = (dt: number) => stepFlow(ctx, dt);
+  flow.step = (dt: number) => {
+    if (flow.finish?.s != null && !finishLine) paintFinishLine(lv, flow.finish.s);
+    stepFlow(ctx, dt);
+  };
   flow.end = () => endRace(ctx);
   return flow;
+}
+
+// THE FINISH LINE (?hwfinish=1, a distance): a chequered line across our carriageway (a single
+// carriageway: the whole road) at the finish, painted once the road has grown past it - far ahead,
+// out of sight; the last one is taken off when a race starts again
+let finishLine: Paint | null = null;
+
+/**
+ * Takes the last race's finish line off the road.
+ * @param level the highway level
+ */
+export function clearFinishLine(level: HighwayLevel) {
+  const paint = (level as unknown as { paint: Paint[] }).paint, spot = finishLine ? paint.indexOf(
+    finishLine) : -1;
+  if (spot >= 0) paint.splice(spot, 1);
+  finishLine = null;
+}
+
+/**
+ * Paints the finish line at road distance s, once the road reaches past it.
+ * @param level the highway level
+ * @param dist the finish's road distance, m
+ */
+function paintFinishLine(level: HighwayLevel, dist: number) {
+  if (roadSpan(level).s1 < dist + 10) return;
+  const geo = level._hw.geo as { hw: number; ownR: number }, left = -geo.hw, right = geo.ownR,
+    pose = roadPose(level, dist, (left + right) / 2);
+  finishLine = { kind: 'chequered', x: pose.x, y: pose.y, len: 1.6, wid: right - left,
+    rot: pose.h, tone: 1 };
+  (level as unknown as { paint: Paint[] }).paint.push(finishLine);
 }

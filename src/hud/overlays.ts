@@ -175,9 +175,23 @@ function noteNewFlag(state: HudState, flow: HudFlow, now: number) {
   state.flagSeen = flow.flags.length;
   state.flagAt = now;
   const place = flow.myPlace;
-  state.flagTxt = flow.stage ? 'STAGE FINISHED' : flow.highway
-    ? (place === 1 ? 'YOU GOT AWAY!' : 'P' + place + ' — THEY GOT AWAY') : place === 1
-    ? 'YOU WIN!' : place ? 'P' + place + ' — FINISH' : 'FINISH';
+  state.flagTxt = flow.stage ? 'STAGE FINISHED' : flow.highway ? highwayFlag(flow, place)
+    : place === 1 ? 'YOU WIN!' : place ? 'P' + place + ' — FINISH' : 'FINISH';
+}
+
+/**
+ * The highway's flag words: over the finish line, the clock out (?hwfinish=1), or the getaway.
+ * @param flow the race flow
+ * @param place your place
+ * @returns the words
+ */
+function highwayFlag(flow: HudFlow, place?: number): string {
+  const solo = flow.entries.length < 2;
+  if (flow.endWhy === 'finish') return solo ? 'FINISH' : place === 1 ? 'YOU WIN!' : 'P' + place
+    + ' — FINISH';
+  if (flow.endWhy === 'time') return solo ? 'TIME UP' : place === 1 ? 'TIME UP — YOU WIN!' : 'P'
+    + place + ' — TIME UP';
+  return place === 1 ? 'YOU GOT AWAY!' : 'P' + place + ' — THEY GOT AWAY';
 }
 
 /**

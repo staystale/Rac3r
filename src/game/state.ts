@@ -63,6 +63,7 @@ export interface LaunchOpts {
   rx?: boolean; laps?: number;   // the RX race; laps (0 = practice)
   road?: string | null; traffic?: number; litter?: number;   // the endless highway
   scenery?: string | null;   // its scenery (?hwpick=1: highway/presets.ts HW_SCENERY)
+  finish?: string | null;   // ?hwfinish=1: its finish's code (highway/finish.ts; null: endless)
   weather?: { mode: WeatherMode; season: number }; time?: number | null;   // the conditions
   livery?: { paint?: string; trim?: string; num?: number } | null; tyre?: string;   // garage
   aiTune?: AiTune | null;   // the AI DRIVERS dials (ai/tune.ts)
@@ -163,6 +164,7 @@ export interface Shared {
   acc: number; last: number;   // the fixed-step accumulator; the last frame's time
   race: RxRace; stage: StageTimer; lapState: LapState;
   aiCount: number; aiDiff: number; aiCarMode: string; raceLaps: number; gridSlot: number;
+  hwFinish?: string | null;   // ?hwfinish=1: the highway's finish code (highway/finish.ts)
   aiTune?: AiTune | null;   // the dials of this session's field
   trafficDensity: number;
   demo: AiDriver | null; demoStill: number;

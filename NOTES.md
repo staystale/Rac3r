@@ -313,6 +313,12 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
 - A LEVEL BUILT ON FIRST USE HAS NO TRACK UNTIL setLevel (11-08): tools/renderhash.mjs picked
   circuits by "has a subtrack" and silently dropped Brands from every pixel check after it went
   lazy. Pick levels by what they are (a _build without a stage gen is a circuit), or build them.
+- TWO WORKERS, ONE TOOL PORT (11-10): every browser tool's server (tools/lib/browser.mjs) takes
+  CHECK_PORT, 8090 by default, and a tool that finds the port taken talks to whichever server is
+  there - another worktree's, serving other code (a FINISH row "missing" was the helper's build).
+  Each worker its own CHECK_PORT (the foreman 8121+, the venue helper 8090-8110), and before
+  stopping a server by PID, read its PARENT: the foreman stopped the helper's renderhash server
+  taking it for an orphan of its own.
 - A RED CI RUN IS A BUG UNTIL SHOWN OTHERWISE (11-08): the renderhash jobs failed for a day as a
   "tool failure" (reading 'mass') - it was the game: a torn-off driven wheel threw a drive shaft
   with no loose-object entry and the sim step threw. tools/partcheck.mjs now walks every car's

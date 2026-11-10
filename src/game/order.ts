@@ -1,4 +1,5 @@
 // order.ts — The start lights, the rolling start, track cuts and the race order.
+import { finishOf } from '../highway/finish.ts';
 import { reset, PHYSICS_STEP_SECONDS } from '../vehicle.ts';
 import { createAutoDriver } from '../ai/autodrive.ts';
 import { HW_GREEN, hwSlot } from '../highwayrace.ts';
@@ -28,7 +29,10 @@ export function armStart() {
   // 4 = top; only where there is a track to drive (the Lab the game boots on has none)
   shared.autoDrv = shared.settings.autopilot && LEVEL.subtrack
     ? createAIDriver(LEVEL, aiTraits(4, 0, 1)) : null;
-  const active = shared.mode !== 'menu' && (shared.race.on || shared.aiCount > 0),
+  // (?hwfinish=1: a highway run with a finish starts behind the lights solo too - its clock
+  // from the green)
+  const active = shared.mode !== 'menu' && (shared.race.on || shared.aiCount > 0
+    || (!!LEVEL.endless && !!finishOf(shared.hwFinish))),
     isRolling = active && (!!LEVEL.rollingStart || !!LEVEL.endless) && !!LEVEL.subtrack;
   game.start = { on: active, t: 0, tGreen: isRolling ? Infinity : 4 * START_STEP,
     tGreen0: isRolling ? undefined : 4 * START_STEP, rolling: isRolling, green: !active };

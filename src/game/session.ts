@@ -6,7 +6,8 @@ import { resetHighway, roadFrame, roadPose, roadSpan, highwayRespawn, rehome }
   from '../highway.ts';
 import { bayBehind } from '../highway/laybys.ts';
 import { shoulderOff } from '../highway/road.ts';
-import { createHwFlow, hwGridSpan } from '../highwayrace.ts';
+import { clearFinishLine, createHwFlow, hwGridSpan } from '../highwayrace.ts';
+import { finishOf } from '../highway/finish.ts';
 import { createRaceFlow } from '../raceflow.ts';
 import { repair, resetBill } from '../damage.ts';
 import { SPAWN, LEVEL } from "../world/state.ts";
@@ -254,7 +255,7 @@ export function buildFlow() {
   if (LEVEL.endless) {
     return createHwFlow({ lv: hwLevel(),
       cars: [{ car: game.car, player: true }, ...game.ai.map((entry) => ({ car: entry.car }))],
-        visible: (car) => onScreen(car.x, car.y) });
+        visible: (car) => onScreen(car.x, car.y), finish: finishOf(shared.hwFinish) });
   }
   if (LEVEL.stage) {
     return createRaceFlow({ cars: [{ car: game.car, player: true },
@@ -278,7 +279,12 @@ export function startFlow() {
   // your lights count to YOUR start
   if (LEVEL.stage && game.start.on) game.start.tGreen = startAtOf(game.car);
   clearCutCounts();
-  if (shared.mode !== 'session' || !LEVEL.subtrack || !(game.ai.length || shared.race.on)) return;
+  // (?hwfinish=1: a highway run with a finish has its flow solo too)
+  if (shared.mode !== 'session' || !LEVEL.subtrack || !(game.ai.length || shared.race.on
+    || (LEVEL.endless && finishOf(shared.hwFinish)))) {
+    if (LEVEL.endless) clearFinishLine(hwLevel());
+    return;
+  }
   game.flow = buildFlow();
 }
 // NO storage writes in the frame loop: a synchronous localStorage write can stall a phone frame
@@ -344,7 +350,7 @@ function startField() {
   }
   // (the menu race too - owner 11-07: "no traffic on menu highway races?")
   game.traffic.reset(LEVEL.endless ? hwLevel() : null, shared.trafficDensity);
-  if (LEVEL.endless && game.ai.length) {
+  if (LEVEL.endless && game.start.rolling) {
     const [spanStart, spanEnd] = hwGridSpan(hwLevel(), game.ai.length + 1);
     game.traffic.clearSpan(spanStart, spanEnd);
   }   // a clear road for the grid

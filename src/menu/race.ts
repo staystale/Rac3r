@@ -7,6 +7,7 @@ import { showSettings } from './settings.ts';
 import type { Menu } from '../menu.ts';
 import type { PauseActions, ResultsActions, ResultRow, ResultsFlow } from './menutypes.ts';
 import { MENU_COL } from './palette.ts';
+import { finishLabel } from '../highway/finish.ts';
 
 /**
  * IN-SESSION PAUSE (spec §4 step 3): the track and car stay loaded until you leave. Car swap
@@ -235,26 +236,43 @@ function addRacerCells(grid: HTMLElement, racer: ResultRow, cls: string) {
  * @param act the results actions
  */
 function showHighwayTable(menu: Menu, flow: ResultsFlow, act: ResultsActions) {
-  const racers = flow.results;
+  const racers = flow.results, toLine = !!flow.finish?.m;
   const panel = addPane(menu, true);
   addElement(panel, 'h2', 'RESULTS');
-  addElement(panel, 'div', act.name + ' · ROLLING START · ' + formatRaceTime(flow.endT || flow.t),
-    'sub');
+  addElement(panel, 'div', act.name + ' · ROLLING START · ' + (flow.finish ? finishLabel(
+    flow.finish) + ' · ' : '') + formatRaceTime(flow.endT || flow.t), 'sub');
   const grid = addElement(panel, 'div', '', 'res');
   grid.style.gridTemplateColumns = 'repeat(5, auto)';
-  for (const head of ['POS', 'CAR', 'DISTANCE', 'GAP', 'REPAIR']) addElement(grid, 'div', head,
-    'h');
+  // (?hwfinish=1, a distance: the time over the line, else how far it got)
+  for (const head of ['POS', 'CAR', toLine ? 'FINISH' : 'DISTANCE', 'GAP', 'REPAIR'])
+    addElement(grid, 'div', head, 'h');
   for (const racer of racers) {
-    const cls = racer.player ? 'me' : '';
+    const cls = racer.player ? 'me' : '', over = racer.done != null;
     addRacerCells(grid, racer, cls);
-    addElement(grid, 'div', formatKm(racer.dist!), cls);
-    addElement(grid, 'div', racer.pos === 1 ? '' : '-' + Math.round(racer.gapM!) + ' m', cls);
+    addElement(grid, 'div', over ? formatRaceTime(racer.done!) : formatKm(racer.dist!), cls);
+    addElement(grid, 'div', racer.pos === 1 ? '' : over ? '+' + racer.gap!.toFixed(2)
+      : '-' + Math.round(racer.gapM!) + ' m', cls);
     addElement(grid, 'div', racer.bill ? '£' + racer.bill.toLocaleString('en-GB') : '-', cls);
   }
-  addElement(panel, 'div', (racers[0] && racers[0].player) ? 'YOU GOT AWAY' : 'THEY GOT AWAY',
-    'sub');
+  addElement(panel, 'div', highwayVerdict(flow, racers), 'sub');
   addRepairsLine(panel, racers);
   addResultsButtons(menu, panel, act);
+}
+
+/**
+ * The highway's result in words: over the finish line, the clock out (?hwfinish=1), or who got
+ * away.
+ * @param flow the race flow
+ * @param racers the results
+ * @returns the line
+ */
+function highwayVerdict(flow: ResultsFlow, racers: ResultRow[]): string {
+  const you = racers.find((racer) => racer.player), solo = racers.length < 2;
+  if (flow.endWhy === 'finish' && you) return solo ? 'FINISHED IN ' + formatRaceTime(you.done
+    ?? flow.t) : 'FINISHED P' + you.pos + ' OF ' + racers.length;
+  if (flow.endWhy === 'time' && you) return solo ? 'TIME UP · ' + formatKm(you.dist!)
+    : 'TIME UP · P' + you.pos + ' OF ' + racers.length;
+  return (racers[0] && racers[0].player) ? 'YOU GOT AWAY' : 'THEY GOT AWAY';
 }
 
 /**
@@ -350,6 +368,8 @@ function addPodiumStep(menu: Menu, pod: HTMLElement, flow: ResultsFlow, racer: R
 export function showResults(menu: Menu, flow: ResultsFlow, act: ResultsActions) {
   menu.root.className = '';
   const racers = flow.results;
+  // (a solo highway run with a finish, ?hwfinish=1: no podium for one)
+  if (racers.length < 2) return showResultsTable(menu, flow, act);
   const panel = addPane(menu, false);
   addElement(panel, 'h2', 'RESULTS');
   addElement(panel, 'div', act.name, 'sub');

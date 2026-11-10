@@ -17,13 +17,17 @@ import type { HudRect } from './widgets.ts';
  * @returns {void}
  */
 export function drawHudLapEndless(ctx: CanvasRenderingContext2D, game: HudGame, lapRect: HudRect) {
-  drawHudLabel(ctx, 'DISTANCE', lapRect.x + 8, lapRect.y + 13,
+  const top = finishLine(game) || { label: 'DISTANCE',
+    value: ((game.hwDist || 0) / 1000).toFixed(2) + ' KM' };
+  drawHudLabel(ctx, top.label, lapRect.x + 8, lapRect.y + 13,
     { size: 11, weight: 700, col: COL.live });
-  drawHudLabel(ctx, ((game.hwDist || 0) / 1000).toFixed(2) + ' KM', lapRect.x + lapRect.w - 8,
+  drawHudLabel(ctx, top.value, lapRect.x + lapRect.w - 8,
     lapRect.y + 13, { size: 11, weight: 700, align: 'right', col: COL.hudText });
   // in a VS AI race the second line is the gap to the car ahead (or your lead over the one
-  // behind) instead of your best
+  // behind) instead of your best; a solo run with a finish (?hwfinish=1) its time (a distance) or
+  // how far it has got (a time)
   const flow = game.flow, player = flow && flow.highway && game.car._hwf;
+  if (soloFinishLine(ctx, game, lapRect)) return;
   if (player && game.ai && game.ai.length) {
     const gaps = game.ai.map((rival) => (rival.car._hwf ? rival.car._hwf.s - player.s
       : -Infinity)), ahead = gaps.filter((gap) => gap > 0),
@@ -34,6 +38,39 @@ export function drawHudLapEndless(ctx: CanvasRenderingContext2D, game: HudGame, 
       { size: 9, weight: 700, col: ahead.length ? COL.inkSoft : COL.live });
   } else drawHudLabel(ctx, 'BEST ' + ((game.hwBest || 0) / 1000).toFixed(2) + ' KM', lapRect.x + 8,
     lapRect.y + 26, { size: 9, weight: 600, col: COL.inkSoft });
+}
+
+/**
+ * The second line of a SOLO highway run with a finish (?hwfinish=1): its time (a distance), how far
+ * it has got (a time).
+ * @param ctx
+ * @param game the game
+ * @param lapRect the lap panel rectangle
+ * @returns true when drawn (a solo run with a finish)
+ */
+function soloFinishLine(ctx: CanvasRenderingContext2D, game: HudGame, lapRect: HudRect): boolean {
+  const flow = game.flow;
+  if (!flow || !flow.highway || !flow.finish || (game.ai && game.ai.length)) return false;
+  drawHudLabel(ctx, flow.finish.m ? 'TIME ' + fmtTime(flow.t)
+    : ((game.hwDist || 0) / 1000).toFixed(2) + ' KM', lapRect.x + 8, lapRect.y + 26,
+  { size: 9, weight: 700, col: COL.live });
+  return true;
+}
+
+/**
+ * The top line of a highway run with a finish (?hwfinish=1): TO GO (a distance) or TIME LEFT (a
+ * time).
+ * @param game the game
+ * @returns the label and its value, or null (endless)
+ */
+function finishLine(game: HudGame): { label: string; value: string } | null {
+  const flow = game.flow, finish = flow && flow.highway ? flow.finish : null;
+  if (!flow || !finish) return null;
+  if (finish.m) return { label: 'TO GO', value: (Math.max(0, finish.m - (game.hwDist || 0))
+    / 1000).toFixed(2) + ' KM' };
+  const left = Math.max(0, Math.ceil((finish.t || 0) - flow.t));
+  return { label: 'TIME LEFT', value: Math.floor(left / 60) + ':' + String(left % 60).padStart(2,
+    '0') };
 }
 
 /**
