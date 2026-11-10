@@ -12,14 +12,6 @@ export interface TestEntry {
 }
 
 export const TEST_LIST: TestEntry[] = [
-  {
-    id: 'venueoverlaps',
-    added: '2026-11-09',
-    name: 'Tidier venues: tyre walls in two neat rows, nothing piled on each other, no zig-zags',
-    where: 'Plain link: Brands, Castle Kum, Snotterton, Dongington, Sillystone, Knobhill Circuit',
-    try: 'Look along the tyre walls in front of the Armco and the rows closing the unused roads.',
-    wrong: 'Tyres piled or overlapping, a wall three deep, closing rows crossing, a gap in a wall.',
-  },
   // (approved late, deleted: fields, grassedge, catchthem, slipsdual, fps - TODO.md 1c; dirtroad,
   // animals, labext, labsplit, zoomhold, gpupaint, minimap, zoomspring, grassgrip, hwmap,
   // cracktufts, sharpcars, sharpmarks, jokerfix, groundlookup, exacttiles, hudmenu, tyreoff,

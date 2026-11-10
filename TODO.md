@@ -374,6 +374,12 @@ CARS: talk to the owner once the tracks are done (trucks, a Dakar car / truck).
    background (menu/thumbfiles.ts) and paints only a level without one; the per-version saved cache
    (thumbcache.ts, the bundle fingerprint) gone. After: the tap 0.8-1.0 s (CPU x4 5.1), the menu up
    2.5-5.7 s as before (3.0-5.1); menucheck passes both sizes; tools/thumbcheck.mjs in the suite.
+   THE GROUND COVERS COMPACT 11-10 (owner: "Yass please"): a merged cover's cells as grid coordinates in
+   typed arrays, its rim / ground lookups / filing as indices, each cover's cells the same (its unused
+   rim gone) - MEASURED (tools/scratch/_coverheap.mjs, Yass Marina, forced GC): JS heap 47.8 -> 33.5 MB,
+   156 249 cells either way; CPU x4 work the same (median 13.4 / 13.5 ms).
+   TIDIER VENUES (the overlap fixes: tyre walls in two neat rows, nothing piled up) PASSED 11-10
+   (owner: "Rider walls pass"; on the plain link since 11-09, its test list entry gone).
    YASS MARINA BUILT 11-10 (was behind ?yasmarina=1; the name approved 11-10; levels/yasmarina-venue.ts,
    OSM data in venues/yasmarina.ts; the venue helper): the Yas Marina Circuit's 2021 GP lap as a
    FULL venue, 2632 m (real 5281, OSM 5303) - the pit lane with its EXIT IN A TUNNEL under the

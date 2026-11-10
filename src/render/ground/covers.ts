@@ -5,7 +5,7 @@ import {
   coverCut, layersAt, PATCH_CELL, PATCH_GRID, PATCH_ORDER, patchKey,
 } from "../../world/wear.ts";
 import type {
-  Cover, CoverCells, CoverId, MergedCell, MergedCover, Patch,
+  Cover, CoverCells, CoverId, MergedCover, Patch,
 } from "../../world/types.ts";
 import type { GroundCtx, ViewRect } from "./types.ts";
 import { paintLayers, artBase } from "./art.ts";
@@ -23,10 +23,11 @@ import { castBushShadow, lightBushTop, shadeBushSide } from "./bushes.ts";
 // outline every one of them).
 
 /**
- * Returns the 0.5 m world-grid cells whose centre is inside a cover, cached on the cover.
+ * Returns the 0.5 m world-grid cells whose centre is inside a cover, cached on the cover: their
+ * grid coordinates (x / G, y / G) in pairs.
  *
  * @param cover the cover to measure
- * @returns the cells: all of them and the rim
+ * @returns the cells
  */
 function coverCells(cover: Cover): CoverCells {
   if (cover._cells) return cover._cells;
@@ -45,20 +46,14 @@ function coverCells(cover: Cover): CoverCells {
       ? (dx * dx) / (halfW * halfW) + (dy * dy) / (halfH * halfH) <= 1
       : Math.abs(dx) <= halfW && Math.abs(dy) <= halfH;
   };
-  const all: number[] = [], rim: number[] = [];
+  const all: number[] = [];
   for (let x = Math.floor((cover.x - reachX) / cellSize) * cellSize;
     x < cover.x + reachX; x += cellSize)
     for (let y = Math.floor((cover.y - reachY) / cellSize) * cellSize;
-      y < cover.y + reachY; y += cellSize) {
-      const midX = x + cellSize / 2, midY = y + cellSize / 2;
-      if (!inside(midX, midY)) continue;
-      all.push(x, y);
-      if (
-        !inside(midX + cellSize, midY) || !inside(midX - cellSize, midY) ||
-        !inside(midX, midY + cellSize) || !inside(midX, midY - cellSize)
-      ) rim.push(x, y);
-    }
-  return (cover._cells = { all, rim, G: cellSize });
+      y < cover.y + reachY; y += cellSize)
+      if (inside(x + cellSize / 2, y + cellSize / 2))
+        all.push(Math.round(x / cellSize), Math.round(y / cellSize));
+  return (cover._cells = { all: Int32Array.from(all), G: cellSize });
 }
 
 // the tint of a puddle by the surface under it
@@ -205,61 +200,53 @@ function paintPatchInside(groundCtx: GroundCtx, patch: Patch, artId: string, rea
 // coverAt answers for, so it still matches the physics); each tint fills once, the pattern is
 // clipped to the union, one rim round the outside.
 
+// COMPACT (owner 11-10: "Yes" to Yass Marina's memory): a merged cover keeps its cells as grid
+// coordinates in typed arrays and its rim, its ground lookups and its filing by place as indices
+// into them - MEASURED (tools/scratch/_coverheap.mjs, Yass Marina, after a forced GC): 156 249
+// cells held as objects (x, y, gx, gy, base), and each cover's cells as number arrays besides.
+const KEY_ROW = 131071;
+// the grounds a puddle's cells were looked up on (MergedCover.base: an index + 1, 0 not yet)
+const GROUNDS: string[] = [], GROUND_OF = new Map<string, number>();
+
 /**
- * Collects every cover's cells into one map of cells per cover kind.
+ * Builds the merged covers of each kind: the union of its covers' cells (in the covers' order,
+ * each cell once), the rim cells, the bounding box.
  *
  * @param list the level covers
  * @param cellSize the cell size in metres
- * @returns the cells keyed by cover kind and grid position
- */
-function collectCoverCells(
-  list: Cover[], cellSize: number
-): Map<CoverId, Map<number, MergedCell>> {
-  const kinds = new Map<CoverId, Map<number, MergedCell>>();
-  for (const cover of list) {
-    let kindCells = kinds.get(cover.cover);
-    if (!kindCells) kinds.set(cover.cover, (kindCells = new Map()));
-    const own = coverCells(cover);
-    for (let i = 0; i < own.all.length; i += 2) {
-      const gridX = Math.round(own.all[i] / cellSize),
-        gridY = Math.round(own.all[i + 1] / cellSize),
-        key = gridX * 131071 + gridY;
-      if (!kindCells.has(key))
-        kindCells.set(key, {
-          x: own.all[i], y: own.all[i + 1], gx: gridX, gy: gridY,
-        });
-    }
-  }
-  return kinds;
-}
-
-/**
- * Builds the merged covers of each kind: its cells, the rim cells and the bounding box.
- *
- * @param kinds the cells of each cover kind
- * @param cellSize the cell size in metres
  * @returns the merged covers
  */
-function buildMergedCovers(
-  kinds: Map<CoverId, Map<number, MergedCell>>, cellSize: number
-): MergedCover[] {
-  const out: MergedCover[] = [];
-  for (const [kind, kindCells] of kinds) {
-    const cells = [...kindCells.values()], rim: MergedCell[] = [];
-    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-    for (const cell of cells) {
-      if (
-        !kindCells.has((cell.gx + 1) * 131071 + cell.gy) ||
-        !kindCells.has((cell.gx - 1) * 131071 + cell.gy) ||
-        !kindCells.has(cell.gx * 131071 + cell.gy + 1) ||
-        !kindCells.has(cell.gx * 131071 + cell.gy - 1)
-      ) rim.push(cell);
-      minX = Math.min(minX, cell.x);
-      minY = Math.min(minY, cell.y);
-      maxX = Math.max(maxX, cell.x + cellSize);
-      maxY = Math.max(maxY, cell.y + cellSize);
+function buildMergedCovers(list: Cover[], cellSize: number): MergedCover[] {
+  const kinds = new Map<CoverId, { keys: Set<number>; gx: number[]; gy: number[] }>();
+  for (const cover of list) {
+    let kind = kinds.get(cover.cover);
+    if (!kind) kinds.set(cover.cover, (kind = { keys: new Set(), gx: [], gy: [] }));
+    const own = coverCells(cover).all;
+    for (let i = 0; i < own.length; i += 2) {
+      const key = own[i] * KEY_ROW + own[i + 1];
+      if (kind.keys.has(key)) continue;
+      kind.keys.add(key);
+      kind.gx.push(own[i]);
+      kind.gy.push(own[i + 1]);
     }
-    out.push({ kind, cells, rim, bb: [minX, minY, maxX, maxY], G: cellSize });
+  }
+  const out: MergedCover[] = [];
+  for (const [kind, { keys, gx, gy }] of kinds) {
+    const rim: number[] = [];
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (let i = 0; i < gx.length; i++) {
+      const cellX = gx[i], cellY = gy[i];
+      if (!keys.has((cellX + 1) * KEY_ROW + cellY) || !keys.has((cellX - 1) * KEY_ROW + cellY)
+        || !keys.has(cellX * KEY_ROW + cellY + 1) || !keys.has(cellX * KEY_ROW + cellY - 1))
+        rim.push(i);
+      minX = Math.min(minX, cellX * cellSize);
+      minY = Math.min(minY, cellY * cellSize);
+      maxX = Math.max(maxX, (cellX + 1) * cellSize);
+      maxY = Math.max(maxY, (cellY + 1) * cellSize);
+    }
+    out.push({ kind, gx: Int32Array.from(gx), gy: Int32Array.from(gy),
+      rim: Uint32Array.from(rim), base: new Uint8Array(gx.length), bb: [minX, minY, maxX, maxY],
+      G: cellSize });
   }
   return out;
 }
@@ -272,8 +259,7 @@ function buildMergedCovers(
  */
 function mergedCovers(list: Cover[]): MergedCover[] {
   if (LEVEL._mergedOf === list) return LEVEL._merged!;   // set together with _mergedOf
-  const cellSize = 0.5;
-  const out = buildMergedCovers(collectCoverCells(list, cellSize), cellSize);
+  const out = buildMergedCovers(list, 0.5);
   LEVEL._mergedOf = list;
   LEVEL._merged = out;
   return out;
@@ -284,54 +270,68 @@ function mergedCovers(list: Cover[]): MergedCover[] {
 // order). MEASURED (the venue helper, Yass Marina): the marina is ~194 000 cells, all filtered on
 // every tile painted - covers.ts 6.6 % of the CPU x4 profile, the p95 34.9-35.1 ms (Spa 26.9-42.7).
 const FILE_M = 16;
-/** A list of cells filed by FILE_M square: each square's cell indices, ascending. */
-type CellFile = Map<number, number[]>;
-const files = new WeakMap<MergedCell[], CellFile>();
+/** A list of cells filed by FILE_M square: each square's places in the list, ascending. */
+type CellFile = Map<number, Uint32Array>;
+const files = new WeakMap<object, CellFile>();
 const fileKey = (fileX: number, fileY: number) => fileX * 65537 + fileY;
 
 /**
- * The cells of a list filed by FILE_M square (built once per list).
- * @param cells the cells
- * @returns square -> cell indices
+ * A list's cells filed by FILE_M square (built once per list).
+ * @param grp the merged cover
+ * @param list its rim (cell indices), or null for all its cells
+ * @returns square -> places in the list
  */
-function fileOf(cells: MergedCell[]): CellFile {
-  let file = files.get(cells);
+function fileOf(grp: MergedCover, list: Uint32Array | null): CellFile {
+  const owner = list || grp.gx;
+  let file = files.get(owner);
   if (file) return file;
+  const count = list ? list.length : grp.gx.length, per = grp.G / FILE_M;
+  const keyAt = (place: number) => {
+    const cell = list ? list[place] : place;
+    return fileKey(Math.floor(grp.gx[cell] * per), Math.floor(grp.gy[cell] * per));
+  };
+  const sizes = new Map<number, number>();
+  for (let place = 0; place < count; place++) {
+    const key = keyAt(place);
+    sizes.set(key, (sizes.get(key) || 0) + 1);
+  }
   file = new Map();
-  cells.forEach((cell, i) => {
-    const key = fileKey(Math.floor(cell.x / FILE_M), Math.floor(cell.y / FILE_M));
-    let list = file!.get(key);
-    if (!list) file!.set(key, (list = []));
-    list.push(i);
-  });
-  files.set(cells, file);
+  const filled = new Map<number, number>();
+  for (const [key, size] of sizes) { file.set(key, new Uint32Array(size)); filled.set(key, 0); }
+  for (let place = 0; place < count; place++) {
+    const key = keyAt(place), slot = filled.get(key)!;
+    file.get(key)![slot] = place;
+    filled.set(key, slot + 1);
+  }
+  files.set(owner, file);
   return file;
 }
 
 /**
- * Keeps the cells that touch the visible rectangle, in their order: those filed in the squares
- * it touches, tested.
+ * The cells of a list that touch the visible rectangle, in the list's order: those filed in the
+ * squares it touches, tested.
  *
- * @param cells the cells to test
- * @param cellSize the cell size in metres
+ * @param grp the merged cover
+ * @param list its rim (cell indices), or null for all its cells
  * @param viewRect the visible rectangle
- * @returns the cells in view
+ * @returns the cell indices in view
  */
-function filterCellsInView(cells: MergedCell[], cellSize: number, viewRect: ViewRect) {
-  const { vx0, vx1, vy0, vy1 } = viewRect, file = fileOf(cells), near: number[] = [];
+function filterCellsInView(grp: MergedCover, list: Uint32Array | null, viewRect: ViewRect) {
+  const { vx0, vx1, vy0, vy1 } = viewRect, cellSize = grp.G, file = fileOf(grp, list),
+    near: number[] = [];
   for (let fileX = Math.floor((vx0 - cellSize) / FILE_M); fileX <= Math.floor(vx1 / FILE_M);
     fileX++)
     for (let fileY = Math.floor((vy0 - cellSize) / FILE_M); fileY <= Math.floor(vy1 / FILE_M);
       fileY++) {
-      const list = file.get(fileKey(fileX, fileY));
-      if (list) for (const i of list) near.push(i);
+      const places = file.get(fileKey(fileX, fileY));
+      if (places) for (const place of places) near.push(place);
     }
   near.sort((first, second) => first - second);
-  const out: MergedCell[] = [];
-  for (const i of near) {
-    const cell = cells[i];
-    if (cell.x + cellSize >= vx0 && cell.x <= vx1 && cell.y + cellSize >= vy0 && cell.y <= vy1)
-      out.push(cell);
+  const out: number[] = [];
+  for (const place of near) {
+    const cell = list ? list[place] : place, x = grp.gx[cell] * cellSize,
+      y = grp.gy[cell] * cellSize;
+    if (x + cellSize >= vx0 && x <= vx1 && y + cellSize >= vy0 && y <= vy1) out.push(cell);
   }
   return out;
 }
@@ -340,29 +340,36 @@ function filterCellsInView(cells: MergedCell[], cellSize: number, viewRect: View
  * Adds the cells as squares to a new path.
  *
  * @param groundCtx the shared ground painter context
- * @param cells the cells to trace
- * @param cellSize the cell size in metres
+ * @param grp the merged cover
+ * @param cells the cell indices to trace
  */
-function pathCells(groundCtx: GroundCtx, cells: MergedCell[], cellSize: number) {
+function pathCells(groundCtx: GroundCtx, grp: MergedCover, cells: number[]) {
   const { view, PPMz, toScreenX, toScreenY } = groundCtx;
-  const ppm = PPMz();
+  const ppm = PPMz(), cellSize = grp.G;
   view.ctx.beginPath();
   for (const cell of cells)
-    view.ctx.rect(toScreenX(cell.x), toScreenY(cell.y), cellSize * ppm, cellSize * ppm);
+    view.ctx.rect(toScreenX(grp.gx[cell] * cellSize), toScreenY(grp.gy[cell] * cellSize),
+      cellSize * ppm, cellSize * ppm);
 }
 
 /**
  * The cells of a puddle grouped by the ground under each (looked up once per cell).
- * @param vis the puddle's cells in view
- * @param cellSize the cell size in metres
+ * @param grp the merged cover
+ * @param vis the puddle's cell indices in view
  * @returns the cells of each ground
  */
-function cellsByGround(vis: MergedCell[], cellSize: number): Map<string, MergedCell[]> {
-  const groups = new Map<string, MergedCell[]>();
+function cellsByGround(grp: MergedCover, vis: number[]): Map<string, number[]> {
+  const groups = new Map<string, number[]>(), cellSize = grp.G;
   for (const cell of vis) {
-    cell.base ??= layersAt(cell.x + cellSize / 2, cell.y + cellSize / 2).base;
-    let group = groups.get(cell.base);
-    if (!group) groups.set(cell.base, (group = []));
+    if (!grp.base[cell]) {
+      const base = layersAt((grp.gx[cell] + 0.5) * cellSize, (grp.gy[cell] + 0.5) * cellSize).base;
+      let ground = GROUND_OF.get(base);
+      if (ground === undefined) { ground = GROUNDS.push(base); GROUND_OF.set(base, ground); }
+      grp.base[cell] = ground;
+    }
+    const base = GROUNDS[grp.base[cell] - 1];
+    let group = groups.get(base);
+    if (!group) groups.set(base, (group = []));
     group.push(cell);
   }
   return groups;
@@ -374,28 +381,27 @@ function cellsByGround(vis: MergedCell[], cellSize: number): Map<string, MergedC
  *
  * @param groundCtx the shared ground painter context
  * @param grp the merged cover
- * @param vis its cells in view
+ * @param vis its cell indices in view
  * @param viewRect the visible rectangle
  * @param box [x0, y0, x1, y1] of its visible bounding box in metres
  */
 function paintPuddleCover(
-  groundCtx: GroundCtx, grp: MergedCover, vis: MergedCell[], viewRect: ViewRect,
-  box: number[]
+  groundCtx: GroundCtx, grp: MergedCover, vis: number[], viewRect: ViewRect, box: number[]
 ) {
   const { view, toScreenX, toScreenY } = groundCtx;
-  const cellSize = grp.G, [bx0, by0, bx1, by1] = box;
-  for (const [base, cells] of cellsByGround(vis, cellSize)) {
-    pathCells(groundCtx, cells, cellSize);
+  const [bx0, by0, bx1, by1] = box;
+  for (const [base, cells] of cellsByGround(grp, vis)) {
+    pathCells(groundCtx, grp, cells);
     view.ctx.fillStyle = puddleWater(base);
     view.ctx.fill();
   }
-  pathCells(groundCtx, vis, cellSize);
+  pathCells(groundCtx, grp, vis);
   view.ctx.save();
   view.ctx.clip();
   view.ctx.translate(toScreenX(0), toScreenY(0));
   paintLayers(groundCtx, 'puddle', bx0, by0, bx1, by1);
   view.ctx.restore();
-  pathCells(groundCtx, filterCellsInView(grp.rim, cellSize, viewRect), cellSize);
+  pathCells(groundCtx, grp, filterCellsInView(grp, grp.rim, viewRect));
   view.ctx.fillStyle = 'rgba(30,40,58,0.30)';
   view.ctx.fill();
 }
@@ -405,17 +411,16 @@ function paintPuddleCover(
  *
  * @param groundCtx the shared ground painter context
  * @param grp the merged cover
- * @param vis its cells in view
+ * @param vis its cell indices in view
  * @param viewRect the visible rectangle
  * @param box [x0, y0, x1, y1] of its visible bounding box in metres
  */
 function paintSolidCover(
-  groundCtx: GroundCtx, grp: MergedCover, vis: MergedCell[], viewRect: ViewRect,
-  box: number[]
+  groundCtx: GroundCtx, grp: MergedCover, vis: number[], viewRect: ViewRect, box: number[]
 ) {
   const { view, toScreenX, toScreenY } = groundCtx;
-  const cellSize = grp.G, [bx0, by0, bx1, by1] = box;
-  pathCells(groundCtx, vis, cellSize);
+  const [bx0, by0, bx1, by1] = box;
+  pathCells(groundCtx, grp, vis);
   view.ctx.fillStyle = artBase(groundCtx, grp.kind, '#ffffff');
   view.ctx.fill();
   view.ctx.save();
@@ -423,7 +428,7 @@ function paintSolidCover(
   view.ctx.translate(toScreenX(0), toScreenY(0));
   paintLayers(groundCtx, grp.kind, bx0, by0, bx1, by1);
   view.ctx.restore();
-  pathCells(groundCtx, filterCellsInView(grp.rim, cellSize, viewRect), cellSize);
+  pathCells(groundCtx, grp, filterCellsInView(grp, grp.rim, viewRect));
   view.ctx.fillStyle = grp.kind === 'snow'
     ? 'rgba(160,180,205,0.55)' : 'rgba(255,255,255,0.55)';
   view.ctx.fill();
@@ -442,9 +447,9 @@ function drawCoversMerged(groundCtx: GroundCtx, list: Cover[]) {
     vy0 = cam.y - view.H / 2 / ppm, vy1 = cam.y + view.H / 2 / ppm;
   const viewRect: ViewRect = { vx0, vx1, vy0, vy1 };
   for (const grp of mergedCovers(list)) {
-    const [minX, minY, maxX, maxY] = grp.bb, cellSize = grp.G;
+    const [minX, minY, maxX, maxY] = grp.bb;
     if (maxX < vx0 || minX > vx1 || maxY < vy0 || minY > vy1) continue;
-    const vis = filterCellsInView(grp.cells, cellSize, viewRect);
+    const vis = filterCellsInView(grp, null, viewRect);
     if (!vis.length) continue;
     const bx0 = Math.max(minX, vx0), by0 = Math.max(minY, vy0),
       bx1 = Math.min(maxX, vx1), by1 = Math.min(maxY, vy1);

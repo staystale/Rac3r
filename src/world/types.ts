@@ -321,10 +321,9 @@ export interface Cover {
 }
 
 
-// The 0.5 m world-grid cells inside a cover, as x, y pairs; rim = those with an outside neighbour.
+// The 0.5 m world-grid cells inside a cover, as grid x, y pairs (x / G, y / G).
 export interface CoverCells {
-  all: number[];
-  rim: number[];
+  all: Int32Array;
   G: number;
 }
 
@@ -549,20 +548,15 @@ export interface Level {
   _streamed?: Patch[];   // highway/gorge.ts: its streamed zones' edge blend (load.ts reindex)
 }
 
-// One 0.5 m cell of a merged cover group.
-export interface MergedCell {
-  x: number;
-  y: number;
-  gx: number;
-  gy: number;
-  base?: string;   // the ground under it (a puddle's tint), looked up once
-}
-
-// All covers of one kind joined (ground.ts mergedCovers); rim = cells with an outside neighbour.
+// All covers of one kind joined (render/ground/covers.ts mergedCovers): its 0.5 m cells as grid
+// coordinates (x / G, y / G), rim = the indices of those with an outside neighbour, base = each
+// cell's ground (a puddle's tint), looked up once (an index + 1 into covers.ts GROUNDS; 0 not yet).
 export interface MergedCover {
   kind: CoverId;
-  cells: MergedCell[];
-  rim: MergedCell[];
+  gx: Int32Array;
+  gy: Int32Array;
+  rim: Uint32Array;
+  base: Uint8Array;
   bb: [number, number, number, number];
   G: number;
 }
