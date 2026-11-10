@@ -1,4 +1,5 @@
 // session.ts — Session: lap timing, reset, restart, records and the race flow.
+import { hazardsAfterReset } from './resethazard.ts';
 import { lineUpCrashBench } from './crashbench.ts';
 import { hwLevel } from './state.ts';
 import { reset } from '../vehicle.ts';
@@ -215,6 +216,7 @@ function resetOnCircuit(place: PlaceCar) {
 export function doReset() {
   // Safe track/free-roam recovery: places car back on nearest track edge or recent clear spot
   game.car.prevWheels = null;
+  hazardsAfterReset(game.car);
   repair(game.car);   // DAMAGE: RESET mends the car (user); the repair bill keeps counting
   // RESET KEEPS TYRE HEAT (step 2): vehicle.js reset starts the tyres cold, which is
   // right for RESTART and a new car, but RESET is a recovery — you have not stopped driving. Put

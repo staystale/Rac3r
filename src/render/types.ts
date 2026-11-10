@@ -218,6 +218,7 @@ export interface RenderCar extends CamCar, Pick<Car, 'heading' | 'delta' | 'cros
   lightsOn?: boolean;
   indicator?: number;
   hazard?: boolean;
+  hazardUntil?: number;   // a reset car's hazards, until (wall-clock ms; game/resethazard.ts)
   brakeLight?: number;
   rainLight?: boolean;   // the rear rain light is on (game/sim.ts)
   handbrakeOn?: number;   // the handbrake is on, 1 (game/loop.ts, game/ai.ts): rear brake heat

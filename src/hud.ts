@@ -17,7 +17,9 @@
 // Buttons are DATA so hit-testing and drawing read the same geometry. Two copies of
 // a rect is how a button ends up visually somewhere its tap is not.
 
-import { layoutHud, hitHud, setHudMph, setHudTempF, setHudTyreHud } from './hud/layout.ts';
+import { layoutHud, hitHud, setHudMph, setHudTempF, setHudTyreHud, TYRE_HUD_KEY }
+  from './hud/layout.ts';
+import { FIX } from './core/fixes.ts';
 import { drawHudTrackTemp } from './hud/tracktemp.ts';
 import {
   drawHudLights,
@@ -41,7 +43,7 @@ import type { HudState, HudCar, ScreenPoint, HudGame } from './hud/hudtypes.ts';
 // the pieces hud.ts itself hides on the player's choice (the minimap and the progress bar live in
 // hud/minimap.ts, the tyre diagram is state.tyreHud), and where each choice is remembered
 const HIDEABLE = ['lapTimer', 'speedo'];
-const pieceKey = (pieceId: string) => 'rac3r.hud.' + pieceId;
+const pieceKey = (pieceId: string) => 'rac3r.hud.' + (FIX.hudon ? 'v2.' : '') + pieceId;
 
 /**
  * Loads the HUD's per-device choices (the tyre HUD, the speed units); storage can throw in private
@@ -50,8 +52,10 @@ const pieceKey = (pieceId: string) => 'rac3r.hud.' + pieceId;
  */
 function loadHudChoices(state: HudState) {
   try {
-    state.tyreHud = localStorage.getItem('carsim.tyreHud') === '1';
-  } catch { /* no storage: stays off */ }
+    // (?hudon=1: on unless turned off - its own new key, hud/layout.ts TYRE_HUD_KEY)
+    const stored = localStorage.getItem(TYRE_HUD_KEY);
+    state.tyreHud = FIX.hudon ? stored !== '0' : stored === '1';
+  } catch { state.tyreHud = FIX.hudon; }
   try {
     state.mph = localStorage.getItem('carsim.units') === 'mph';
   } catch { /* no storage: km/h */ }

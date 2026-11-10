@@ -2,6 +2,7 @@
 // Pure moves out of hud.ts.
 
 import { PEDAL } from '../input.ts';
+import { FIX } from '../core/fixes.ts';
 import { MARGIN, BTN_H, DIAGRAM_H } from './widgets.ts';
 import { trackTempShown } from './tracktemp.ts';
 import type { HudState, HudCar, ScreenPoint } from './hudtypes.ts';
@@ -248,7 +249,9 @@ function hitControls(state: HudState, rects: HudRects, point: ScreenPoint) {
 export function setHudTyreHud(state: HudState, enabled: boolean) {
   state.tyreHud = !!enabled;
   try {
-    localStorage.setItem('carsim.tyreHud', state.tyreHud ? '1' : '0');
+    localStorage.setItem(TYRE_HUD_KEY, state.tyreHud ? '1' : '0');
   } catch { /* fine */ }
 }
 export type HudRects = ReturnType<typeof layoutHud>;
+/** Where the tyre / damage diagram's choice is kept (?hudon=1: a new key, on by default). */
+export const TYRE_HUD_KEY = FIX.hudon ? 'carsim.tyreHud.v2' : 'carsim.tyreHud';

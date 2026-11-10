@@ -5,6 +5,7 @@
 import { addPane, addButton, addElement } from './widgets.ts';
 import { STEER_FEEL, setSteerFeel, stickReach, curveSteer } from '../core/steerfeel.ts';
 import { MENU_COL } from './palette.ts';
+import { FIX } from '../core/fixes.ts';
 
 // what one menu context needs here (menu.ts builds it)
 interface Menu { root: HTMLElement; openedAt: number }
@@ -18,7 +19,8 @@ type FeelKey = keyof typeof STEER_FEEL;
 function previewText(): string {
   const reach = stickReach(STICK_PX, SHOW_V);
   const halfDeg = curveSteer(0.5 * STICK_PX / reach) * LOCK_DEG;
-  return `At 120 km/h: full lock takes ${Math.round(reach)} px of thumb (${STICK_PX} at rest); `
+  return `At 120 km/h: full lock takes ${Math.round(reach)} px of thumb (${Math.round(stickReach(
+    STICK_PX, 0))} at rest); `
     + `${STICK_PX / 2} px gives ${halfDeg.toFixed(1)}° of the ${LOCK_DEG}°`;
 }
 
@@ -101,6 +103,9 @@ function showSteering(menu: Menu, back: () => void, resume?: () => void): void {
     + 'stick is still full lock. The same at every speed.', update);
   addFeelSlider(panel, 'throw', 'STEER AT SPEED', 'The faster you go, the further you push for '
     + 'full lock (up to twice as far at 120 km/h). Full lock is always there.', update);
+  // (?sticksize=1: the stick's size, today's the least)
+  if (FIX.sticksize) addFeelSlider(panel, 'size', 'STICK SIZE', 'A bigger stick: more thumb '
+    + 'for full lock, finer steering (up to twice the size). OFF is the smallest.', update);
   preview = addElement(panel, 'div', '', 'sub') as HTMLElement;
   preview.style.cssText = 'text-align:left;color:' + MENU_COL.accent;
   update();

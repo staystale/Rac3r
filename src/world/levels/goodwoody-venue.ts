@@ -7,6 +7,7 @@
 // photographs (ESRI World Imagery) for the Armco and tyre walls, which the map does not carry.
 // EU-DEM heights fitted as one slope (rms 1.5 m): up to the north by Lavant (34 m) from
 // Fordwater (22). North up, the lap clockwise.
+import { FIX } from "../../core/fixes.ts";
 import { GOODWOODY_VENUE } from "./venues/goodwoody.ts";
 import { venueLap, venueLevel } from "../venue.ts";
 import type { VenueSpec } from "../venue.ts";
@@ -32,7 +33,8 @@ const GW_WALLS: Point[][] = [
 ];
 
 // the venue's name (agreed 11-09, owner: "Yes do those all"), in one place
-export const GOODWOODY = 'Goodwoody';
+// (?badwood=1: BAD WOOD - owner 11-10: "Rename goodwoody to bad wood")
+export const GOODWOODY = FIX.badwood ? 'Bad Wood' : 'Goodwoody';
 
 export const GOODWOODY_SPEC: VenueSpec = {
   id: 'goodwoody',

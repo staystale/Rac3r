@@ -206,6 +206,30 @@ function patchAt(x: number, y: number): Surface | null {
   }
   return null;
 }
+/**
+ * Whether a point is inside a bush (a bush patch: world/bushplan.ts), by PATCH_GRID.
+ * @param x world x, m
+ * @param y world y, m
+ * @returns inside one
+ */
+export function bushAt(x: number, y: number): boolean {
+  if (!PATCH_GRID.size) return false;
+  const list = PATCH_GRID.get(patchKey(Math.floor(x / PATCH_CELL), Math.floor(y / PATCH_CELL)));
+  if (!list) return false;
+  for (const patch of list) {
+    if (!patch.bush) continue;
+    const dx = x - patch.x, dy = y - patch.y;
+    if (patch.sq) {
+      if (Math.abs(dx) <= patch.w / 2 && Math.abs(dy) <= patch.h / 2) return true;
+      continue;
+    }
+    const cosRot = Math.cos(patch.rot || 0), sinRot = Math.sin(patch.rot || 0),
+      localU = dx * cosRot + dy * sinRot, localV = -dx * sinRot + dy * cosRot;
+    if ((localU * localU) / ((patch.w / 2) ** 2) + (localV * localV) / ((patch.h / 2) ** 2) <= 1)
+      return true;
+  }
+  return false;
+}
 export function layersAt(x: number, y: number): Layers {
   // `standing`: the water here is a PUDDLE (LEVEL.covers), not a damp wet zone — they dry
   // differently

@@ -261,6 +261,17 @@ export function lampLevel(car: RenderCar, corner: number) {
  * Whether the indicators are in the lit half of their blink (~1.5 Hz, wall clock).
  * @returns true while lit
  */
+/**
+ * Whether a car's hazard lights are on: a crashed traffic car's (car.hazard), a car just reset's
+ * (game/resethazard.ts: car.hazardUntil, wall-clock ms).
+ * @param car the car
+ * @param car.hazard a wreck's
+ * @param car.hazardUntil a reset's, until then
+ * @returns on
+ */
+export const hazardsOn = (car: { hazard?: boolean; hazardUntil?: number }): boolean =>
+  !!car.hazard || (car.hazardUntil ?? 0) > performance.now();
+
 export function indicatorBlinkOn(): boolean {
   return Math.floor(performance.now() / 333) % 2 === 0;
 }
@@ -282,7 +293,7 @@ function drawHeadlights(carsCtx: CarsContext, car: RenderCar, sprite: CarSprite)
 
 /**
  * INDICATORS: amber at the front + rear corners of that side, blinking ~1.5 Hz (wall clock);
- * HAZARDS (car.hazard, a crashed traffic car): both sides at once.
+ * HAZARDS (hazardsOn: a crashed traffic car, a car just reset): both sides at once.
  * @param carsCtx the shared view and helpers
  * @param car the car
  * @param sprite the body sprite
@@ -290,8 +301,9 @@ function drawHeadlights(carsCtx: CarsContext, car: RenderCar, sprite: CarSprite)
 function drawIndicators(carsCtx: CarsContext, car: RenderCar, sprite: CarSprite) {
   const { view } = carsCtx;
   // (the ! below: indicator or hazard was truthy above)
-  if ((car.indicator || car.hazard) && indicatorBlinkOn())
-  for (const ind of car.hazard ? [-1, 1] : [car.indicator!]) {
+  const hazard = hazardsOn(car);
+  if ((car.indicator || hazard) && indicatorBlinkOn())
+  for (const ind of hazard ? [-1, 1] : [car.indicator!]) {
     const y = ind < 0 ? -sprite.Wp / 2 : sprite.Wp / 2 - 3;
     view.ctx.fillStyle = '#ffa630';
     const sideIdx = ind < 0 ? 0 : 1;

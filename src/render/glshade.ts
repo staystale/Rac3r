@@ -7,7 +7,8 @@
 // margin), and drawn over the ground every frame. A zoom change never needs a cell that is not
 // there yet.
 import { LEVEL } from "../world/state.ts";
-import { wearEpoch } from "../world/wear.ts";
+import { bushAt, wearEpoch } from "../world/wear.ts";
+import { FIX } from "../core/fixes.ts";
 import { TEX_PPM } from "./textures.ts";
 import { SHADE_CELL_M, sampleHeights, shadeLevels, shadeTint } from "./tilesShade.ts";
 import { wrapTexels } from "./glpaint.ts";
@@ -140,9 +141,12 @@ function computeChunk(webgl: WebGL2RenderingContext, grid: ShadeGrid, chunkX: nu
   const heights = sampleHeights(cells, cell, CHUNK_M, minX + CHUNK_M / 2, minY + CHUNK_M / 2);
   const { levels } = shadeLevels(heights, cells, cell);
   for (let index = 0; index < levels.length; index++) {
-    const level = levels[index], strength = Math.abs(level), offset = index * 4;
-    const tint = level === 0 ? null : shadeTint(level, minX + ((index % cells) + 0.5) * cell,
-      minY + (Math.floor(index / cells) + 0.5) * cell);
+    const centreX = minX + ((index % cells) + 0.5) * cell,
+      centreY = minY + (Math.floor(index / cells) + 0.5) * cell;
+    // (?bushflat=1: a bush's cells unshaded - it sits on top of the shaded ground)
+    const level = FIX.bushflat && bushAt(centreX, centreY) ? 0 : levels[index],
+      strength = Math.abs(level), offset = index * 4;
+    const tint = level === 0 ? null : shadeTint(level, centreX, centreY);
     pixels[offset] = tint ? Math.round(tint[0] * strength) : 0;
     pixels[offset + 1] = tint ? Math.round(tint[1] * strength) : 0;
     pixels[offset + 2] = tint ? Math.round(tint[2] * strength) : 0;

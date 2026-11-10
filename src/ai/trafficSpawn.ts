@@ -5,6 +5,7 @@ import { ROSTER } from "../cars.ts";
 import { roadPose, roadSpan } from "../highway.ts";
 import type { TrafficCar, TrafficVehicle } from "./types.ts";
 import { PAINTS, SPAWN_AHEAD, SPAWN_BEHIND, VEH, geo } from "./trafficCtx.ts";
+import { FIX } from "../core/fixes.ts";
 import type { TrafficCtx, VisFn } from "./trafficCtx.ts";
 
 /** A random row of a weighted table (the weight is the last column). */
@@ -110,12 +111,19 @@ export function roomAt(
  * A free OFF-SCREEN spot ahead of / behind playerS; null if there is none this step
  * (try again next step).
  */
+// (?trafficeven=1) m ahead your way's traffic is put back: as near as out of sight lets (the
+// oncoming way's SPAWN_AHEAD) - MEASURED, tools/scratch/_trafficsides.mjs (a single carriageway,
+// traffic 0.6): put back 300-470 m ahead, your way's cars kept about your speed out of sight
+// ahead - 1.9 of them within 300 m of you on average, the other way's 3.2
+const OWN_AHEAD = [140, 300];
+
 export function spot(
   ctx: TrafficCtx, ents: { s: number; off: number }[], playerS: number, from: string,
   vis: VisFn, dir = 1,
 ) {
   const { s0: roadStart, s1: roadEnd } = roadSpan(ctx.level!),
-    [near, far] = from === 'ahead' ? SPAWN_AHEAD : SPAWN_BEHIND,
+    [near, far] = from === 'ahead' ? (FIX.trafficeven && dir > 0 ? OWN_AHEAD : SPAWN_AHEAD)
+      : SPAWN_BEHIND,
     lanes = lanesOf(ctx, dir), laneCount = lanes.length;
   for (let attempt = 0; attempt < 8; attempt++) {
     const dist = playerS + (from === 'ahead' ? 1 : -1) * (near + ctx.rnd() * (far - near)),

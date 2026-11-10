@@ -72,20 +72,39 @@ CARS: talk to the owner once the tracks are done (trucks, a Dakar car / truck).
 
 ## THE OWNER'S LIST (11-10: "Add this to the todo and work thru it logically") - in this order
 
-ROUND 1, QUICK FIXES (each behind its own switch, one test link):
-1. Goodwoody renamed BAD WOOD ("Rename goodwoody to bad wood").
+ROUND 1, QUICK FIXES (each behind its own switch, one test link) - BUILT 11-10, UNDER TEST:
+1. Goodwoody renamed BAD WOOD ("Rename goodwoody to bad wood"). ?badwood=1 (the id stays).
 2. The HUD on by itself where the difficulty allows it ("Hud should be on automatically if it can
-   be on for that difficulty level").
+   be on for that difficulty level"). ?hudon=1: the minimap, progress bar, track temperature
+   and tyre / damage diagram on by default in every mode (REAL still locks the minimap and the
+   gauge off); the earlier choices start afresh once. Shot: RICH, a fresh device, all on.
 3. A reset puts the hazard lights on for 3 s ("resets ... should put hazards on for 3 seconds").
+   ?resethazard=1 (game/resethazard.ts; the player's and an AI car's reset): 2999 ms after a reset,
+   off at 3.6 s.
 4. The steering stick's area size in the control settings, today's size the least ("start size of
    the steering stick area should be a thing so user can increase that - current size should be
-   minimum").
+   minimum"). ?sticksize=1: STICK SIZE in STEERING CONTROLS, 38 px (today's, OFF) to 76 px.
 5. Bushes: no terrain look on them - drawn on top, working the same ("Don't apply terrain to bushes
-   it's making them look weird").
+   it's making them look weird"). ?bushflat=1: a bush's shade cells unshaded (render/glshade.ts,
+   world/wear.ts bushAt) - shot on Killder's steepest bush: its colours kept, not washed pale.
 6. Traffic both ways from ONE density slider, even amounts each way ("not enough cars on my side of
-   the road and too many on the oncoming side").
+   the road and too many on the oncoming side"). ONE slider already - each way PER_LANE x
+   lanes; your way's cars were put back 300-470 m ahead and, at about your speed, kept out of
+   sight ahead. ?trafficeven=1: put back 140-300 m ahead, and a third of those you pass come back
+   from behind as faster drivers (125-150 km/h: owner "can cars on my side come up behind me
+   still", "I want them too like a real road"). MEASURED (tools/scratch/_trafficsides.mjs, traffic
+   0.6, cars within 300 m): a single carriageway yours 1.9 -> 2.3-2.6 (the other way 3.2-3.3), the
+   dual 5.3-5.5 -> 6.6-6.7 (5.7); at 90 km/h on the dual 3.9 -> 4.7.
+   6b. SPEEDERS (owner 11-10: "can we make a small % of the traffic speed and get in the way ect",
+   "They can jsut adopt the racing ai I guess"): a few traffic cars driven by the racing AI - fast,
+   overtaking, cutting in. NEXT.
+   6c. BREAKDOWNS ("pull into hard shoulders if they have an issue ect haha"): now and then a car
+   with a fault pulls onto the hard shoulder, hazards on.
 7. Still traffic goes after a while, and after a bad crash it waits ~10 s then is removed ("so it
-   doesn't block roads").
+   doesn't block roads"). Built behind ?trafficclear=1 (a still wreck gone even in view after
+   10 s, any other still car after 15 s) - DROPPED 11-10 before the test (owner: "let's roll back
+   the traffic clear rule I like it keep it how it was"): still traffic goes once out of view, as
+   before.
 ROUND 2, DEAF VALLEY:
 8. Resets between lay-bys "seem to sometimes set on a road" - meant, or a fault? Find out.
 9. More reset spots ("not many lay-bys and it's quite hard to make progress"): lay-bys more often,

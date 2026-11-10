@@ -7,7 +7,7 @@
 import { isUnderground } from "../world/crossinggeo.ts";
 import { DAYLIGHT } from '../world/daylight.ts';
 import { activeLamps, lampsLit } from '../world/lamps.ts';
-import { indicatorBlinkOn, lampLevel } from './cars.ts';
+import { hazardsOn, indicatorBlinkOn, lampLevel } from './cars.ts';
 import { traceDecks } from './lightdecks.ts';
 import { drawEventGlows } from './eventglows.ts';
 import { BRAKE_GLOW, BRAKE_GLOW_HOT, BRAKE_GLOW_M, hotBrakes } from './brakeglow.ts';
@@ -267,8 +267,8 @@ function drawCarGlows(painter: GlowPainter, car: RenderCar, isBlinkOn: boolean) 
  */
 function drawIndicatorGlows(painter: GlowPainter, car: RenderCar) {
   const halfLen = car.spec.len / 2, halfWid = car.spec.wid / 2;
-  const side = car.hazard ? 0 : car.indicator || 0;
-  if (!side && !car.hazard) return;
+  const hazard = hazardsOn(car), side = hazard ? 0 : car.indicator || 0;
+  if (!side && !hazard) return;
   // corners (damage.ts): 0 front -y, 1 front +y, 2 rear -y, 3 rear +y
   for (const along of [halfLen, -halfLen]) {
     for (const across of side ? [side * halfWid] : [-halfWid, halfWid]) {

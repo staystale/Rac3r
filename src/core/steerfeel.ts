@@ -9,14 +9,19 @@
 //   THROW  (C) more thumb for full lock as the car goes faster: the stick's reach grows by up to
 //          throw x THROW_GROW of itself, reached at THROW_V. Full lock is always there - it is
 //          never speed-limited steering - it just takes a longer push at speed.
+//   SIZE   (?sticksize=1; owner 11-10: "start size of the steering stick area should be a thing so
+//          user can increase that - current size should be minimum") the stick's reach at rest,
+//          today's the least, up to SIZE_GROW more of itself at full; THROW grows it from there.
 // Touch only: the keyboard's left / right are all-or-nothing.
+import { FIX } from './fixes.ts';
 
 const KEY = 'rac3r.steer';
 const CURVE_POW_MAX = 2.6;
 const THROW_GROW = 1.0, THROW_V = 33;   // x2 the reach at 120 km/h with THROW at 1
+const SIZE_GROW = 1.0;   // (?sticksize=1) x2 the stick at SIZE 1
 
-/** The two settings, 0..1 each. */
-export const STEER_FEEL = { curve: 0, throw: 0 };
+/** The settings, 0..1 each. */
+export const STEER_FEEL = { curve: 0, throw: 0, size: 0 };
 
 /** Read the saved settings (private windows: the defaults). */
 function load(): void {
@@ -26,6 +31,7 @@ function load(): void {
     if (saved) {
       STEER_FEEL.curve = clamp01(saved.curve);
       STEER_FEEL.throw = clamp01(saved.throw);
+      STEER_FEEL.size = clamp01(saved.size);
     }
   } catch { /* no storage: defaults */ }
 }
@@ -42,7 +48,7 @@ function clamp01(value: unknown): number {
 
 /**
  * Change one setting and remember it.
- * @param key curve or throw
+ * @param key curve, throw or size
  * @param value 0..1
  */
 export function setSteerFeel(key: keyof typeof STEER_FEEL, value: number): void {
@@ -53,13 +59,15 @@ export function setSteerFeel(key: keyof typeof STEER_FEEL, value: number): void 
 }
 
 /**
- * The stick's reach for full lock at a speed (THROW).
- * @param basePx the reach at rest, px
+ * The stick's reach for full lock at a speed (SIZE, THROW).
+ * @param basePx the reach at rest at the least size, px
  * @param speed the car's speed, m/s
  * @returns px of thumb for full lock
  */
 export function stickReach(basePx: number, speed: number): number {
-  return basePx * (1 + STEER_FEEL.throw * THROW_GROW * Math.min(1, Math.abs(speed) / THROW_V));
+  const size = FIX.sticksize ? 1 + STEER_FEEL.size * SIZE_GROW : 1;
+  return basePx * size * (1 + STEER_FEEL.throw * THROW_GROW
+    * Math.min(1, Math.abs(speed) / THROW_V));
 }
 
 /**

@@ -1,4 +1,5 @@
 // ai.ts — Stepping the AI cars: injury, driving, joker and stuck handling.
+import { hazardsAfterReset } from './resethazard.ts';
 import { hwLevel } from './state.ts';
 import { step, reset, assertFinite } from '../vehicle.ts';
 import { hwPutBack } from '../highwayrace.ts';
@@ -26,6 +27,7 @@ import type { RaceFlow } from '../raceflow.ts';
 // the road yet): the nearest centreline point, as before.
 export function aiReset(entry: HurtEntry) {
   const car = entry.car, sub = LEVEL.subtrack!, rec = car._lastOn;
+  hazardsAfterReset(car);
   // the HIGHWAY: 15 m back from where it was, on the hard shoulder, facing up the road, rolling
   // (highwayrace.ts hwPutBack)
   if (LEVEL.endless) {
@@ -257,6 +259,7 @@ export function recoverAI(entry: AiEntry) {
   }
   const sub = LEVEL.subtrack!, nearest = trackSpotOf(sub, from.x, from.y, car)!;
   reset(car, nearest.x, nearest.y, nearest.heading);
+  hazardsAfterReset(car);
   entry.drv.relocate();
 }
 

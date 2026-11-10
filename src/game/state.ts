@@ -37,6 +37,7 @@ export type GameCar = Car & DamageCar & DamageState & {
   _stageStart?: number | null;
   indicator?: number; lightsOn?: boolean;
   indT?: number; indTurned?: boolean;   // the indicator's blink clock; cancelled by the turn
+  hazardUntil?: number;   // a reset's hazard lights, until (wall-clock ms; game/resethazard.ts)
   brakeLight?: number; handbrakeOn?: number; rainLight?: boolean;   // the lamps
   num?: number;
   _slot?: number;   // its grid slot (a stage: relative to yours)

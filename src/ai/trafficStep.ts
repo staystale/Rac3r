@@ -1,5 +1,6 @@
 // ai/trafficStep.ts: one physics step of the highway traffic: everyone in road coordinates,
 // recycling the cars that are out of view, the physics / kinematic choice, and driving each car.
+import { FIX } from "../core/fixes.ts";
 import { roadFrame, roadSpan } from "../highway.ts";
 import { rolling } from "../roll.ts";
 import type { AiCar, TrafficCar, TrafficEnt } from "./types.ts";
@@ -68,6 +69,33 @@ function leaving(slot: TrafficCar, relS: number, seen: boolean,
   };
 }
 
+// (?trafficeven=1; owner 11-10: "can cars on my side come up behind me still", "I want them too
+// like a real road") the share of your way's cars you passed that come back from behind as a faster
+// driver, and its cruise, km/h (the traffic cruises at 90-110: ai/trafficSpawn.ts cruise)
+const FAST_SHARE = 0.35, FAST_KMH = [125, 150];
+
+/**
+ * Where a recycled car comes back: the other way's always ahead; yours from behind if it had
+ * pulled away ahead, else ahead - or (?trafficeven=1) now and then from behind as a faster driver.
+ * @param ctx the traffic
+ * @param dir its way (+1 yours)
+ * @param relS its road distance from you, m
+ * @returns ahead / behind, and whether it comes back faster
+ */
+function putBack(ctx: TrafficCtx, dir: number, relS: number) {
+  const fast = FIX.trafficeven && dir > 0 && relS <= 0 && ctx.rnd() < FAST_SHARE;
+  return { from: (relS > 0 && dir > 0) || fast ? 'behind' : 'ahead', fast };
+}
+
+/**
+ * A car come back as a faster driver: its cruise raised to FAST_KMH.
+ * @param ctx the traffic
+ * @param slot the car
+ */
+function quicken(ctx: TrafficCtx, slot: TrafficCar) {
+  slot.vWant = Math.max(slot.vWant, (FAST_KMH[0] + ctx.rnd() * (FAST_KMH[1] - FAST_KMH[0])) / 3.6);
+}
+
 /** RECYCLE (out of view only) + place the parked slots; true if the live cars changed. */
 function recycle(ctx: TrafficCtx, ents: TrafficEnt[], playerS: number, vis: VisFn,
   held = false) {
@@ -100,11 +128,13 @@ function recycle(ctx: TrafficCtx, ents: TrafficEnt[], playerS: number, vis: VisF
     if (!away && !forced) continue;
     if (forced && seen) ctx.visHits++;
     drop(slot);
-    // (the other way's traffic always comes from ahead)
-    const from = relS > 0 && dir > 0 ? 'behind' : 'ahead';
+    // (the other way's traffic always comes from ahead; ?trafficeven=1: one of yours you passed now
+    // and then a faster driver, from behind - it comes up on you if you are slower)
+    const { from, fast } = putBack(ctx, dir, relS);
     const place = spot(ctx, ents, playerS, from, vis, dir);
     if (place) {
       join(slot, place, dir);
+      if (fast) quicken(ctx, slot);
       ctx.recycled++;
     } else {
       slot.parked = true;
