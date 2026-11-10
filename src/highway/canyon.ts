@@ -344,8 +344,17 @@ function addLoose(ctx: DressCtx, i: number, off: number, obj: Omit<LevelObj, 'x'
   room = 0.8) {
   const spot = Math.max(0, Math.min(ctx.road.length - 1, i)), pos: HwPose = ctx.pointAt(spot, off);
   if (ctx.loose && ctx.clear(pos.x, pos.y, room))
-    ctx.loose.push({ ...obj, x: pos.x, y: pos.y, _s: ctx.road[spot].s } as LevelObj);
+    ctx.loose.push({ ...obj, x: pos.x, y: pos.y, _s: ctx.road[spot].s,
+      ...(FIX.desertmore && (obj.kind === 'tyre' || obj.kind === 'tyrestack') ? { bare: true }
+        : {}) } as LevelObj);
 }
+
+// (?desertmore=1) the desert's junk heaps without the crates - the countryside's (owner 11-10:
+// "Cow skulls cactus and barrels burnt out cars should only be for Death Valley ... tyres no wheel
+// inside")
+const DUMP = (): string[] => (FIX.desertmore ? ['barrel'] : ['crate', 'barrel', 'barrel']);
+const SHACK_JUNK = (): string[] => (FIX.desertmore ? ['barrel', 'tyre'] : ['barrel', 'tyre',
+  'crate']);
 
 /**
  * A heap of junk round a spot: crates and oil drums, old tyres.
@@ -382,7 +391,7 @@ function moreJunk(ctx: DressCtx, i: number, side: number, from: number, seed: nu
   // nearer the road)
   const more = FIX.desertmore ? litterOf(ctx) : 1, near = FIX.desertmore ? NEAR_SHARE : 1;
   if (rand() < 0.002 * more) heap(ctx, i, side * (from + 3 + rand() * 30 * near), 2
-    + Math.floor(rand() * 4), ['crate', 'barrel', 'barrel']);
+    + Math.floor(rand() * 4), DUMP());
   if (rand() < 0.003 * more) heap(ctx, i, side * (from + 1 + rand() * 20 * near), 1
     + Math.floor(rand() * 3), ['tyre']);
   if (rand() < 0.0012 * more) {
@@ -394,7 +403,7 @@ function moreJunk(ctx: DressCtx, i: number, side: number, from: number, seed: nu
     const off = side * (from + 14 + rand() * 30 * near);
     place(ctx, i, off, { kind: 'shack', rot: pointAt(i, 0).rot + (rand() - 0.5) * 0.5, s: 5,
       seed });
-    heap(ctx, i + 2, off - side * 4, 2 + Math.floor(rand() * 3), ['barrel', 'tyre', 'crate']);
+    heap(ctx, i + 2, off - side * 4, 2 + Math.floor(rand() * 3), SHACK_JUNK());
   }
   // (owner 11-10, "I jsut didn't see them": MEASURED, tools/scratch/_junkseen.mjs, 0.9-1.5 skulls
   // and 0.9-1.5 tumbleweed on screen a km, 2-6 m off its edge - three times the tumbleweed, nearer

@@ -71,7 +71,7 @@ function liveAsPlaced(levelObj: LevelObj): Loose {
     r: radiusOf(levelObj),
     // field: a highway field's animals go when the field is cleared
     col: levelObj.col, tape: levelObj.tape, idx: levelObj.idx, field: levelObj.field,
-    paint: levelObj.paint,
+    paint: levelObj.paint, bare: levelObj.bare,
     num: levelObj.num,
     wind: levelObj.wind, lead: levelObj.lead,
     hitCount: 0,

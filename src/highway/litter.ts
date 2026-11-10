@@ -24,11 +24,14 @@ const DEBRIS_COL = ['#2f5d3a', '#2b56b5', '#c8302c', '#3a3f47', '#d6a21e', '#2f6
 type AddLoose = (obj: LevelObj, dist: number) => LevelObj;
 // THE DESERT'S LITTER (Deaf Valley with ?desertmore=1; owner 11-10: "Junk levels should be
 // controlled by the slider in test menu and should be consistent across levels", "Obviously
-// split by asthetic still"): the same layers and chances, its kinds the desert's - a cone a skull,
-// an oil drum or a crate, a bin a drum, a sandbag a crate, a tarp a pallet; no chevrons or cone
-// tapers (road works); none where the ground is not clear (a rock wall, a cactus)
-const DESERT_KIND: Record<string, string> = { bin: 'barrel', sandbag: 'crate', tarp: 'pallet' };
-const DESERT_CONE = ['skull', 'skull', 'barrel', 'crate'];
+// split by asthetic still", then "Cow skulls cactus and barrels burnt out cars should only be for
+// Death Valley themed levels - tyres no wheel inside / And tarps barrels pallets tyres (with wheel
+// as we have now) ect / To be country side litter"): the same layers and chances, its kinds only
+// the desert's - a cone a skull or an oil drum, the roadside debris an oil drum, a bare tyre or a
+// skull, a tyre a bare one; no chevrons or cone tapers (road works); none where the ground is not
+// clear (a rock wall, a cactus)
+const DESERT_CONE = ['skull', 'skull', 'barrel', 'barrel'];
+const DESERT_DEBRIS = ['barrel', 'barrel', 'tyre', 'skull'];
 const DESERT_DRUM = ['#7a4a2a', '#3e5f7a', '#5c6339', '#8a3b22'];
 
 /**
@@ -39,10 +42,12 @@ const DESERT_DRUM = ['#7a4a2a', '#3e5f7a', '#5c6339', '#8a3b22'];
  */
 function desertLitter(obj: LevelObj, rand: () => number): LevelObj | null {
   if (obj.kind === 'chevron') return null;
-  const kind = obj.kind === 'cone' ? DESERT_CONE[(rand() * DESERT_CONE.length) | 0]
-    : DESERT_KIND[obj.kind ?? ''] || obj.kind;
-  return { ...obj, kind, ...(kind === 'barrel' ? { paint: DESERT_DRUM[(rand() * DESERT_DRUM.length)
-    | 0] } : {}) } as LevelObj;
+  const pick = (from: string[]) => from[(rand() * from.length) | 0];
+  const kind = obj.kind === 'cone' ? pick(DESERT_CONE) : obj.kind === 'tyre'
+    || obj.kind === 'tyrestack' ? obj.kind : pick(DESERT_DEBRIS);
+  // (an oil drum takes its paint, not the debris colour)
+  return { ...obj, col: undefined, kind, ...(kind === 'barrel' ? { paint: pick(DESERT_DRUM) } : {}),
+    ...(kind === 'tyre' || kind === 'tyrestack' ? { bare: true } : {}) } as LevelObj;
 }
 /** What the litter layers share: their random stream, the adder, the density-scaled chance. */
 interface Loot { looseRand: () => number; addLoose: AddLoose; chance: (prob: number) => number;

@@ -76,6 +76,7 @@ export interface Cone {
   idx?: number;
   field?: number;   // highway/fields.ts: a field's animals go when the field is cleared
   wind?: [number, number];   // a tumbleweed's breeze, m/s (highway/canyon.ts)
+  bare?: boolean;   // (?desertmore=1) a tyre with no wheel in it, Deaf Valley's (litter.ts)
   lead?: number;   // and the s that breeze takes it to the road's middle
 }
 

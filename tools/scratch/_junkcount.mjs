@@ -3,7 +3,7 @@
 // too and more single ones spread out"): the autopilot down the canyon road (ROAD) for SECONDS at
 // phone size; every half second the props and loose objects in view, counted once each by kind -
 // a km of road's worth, and how far past the road's edge they stood (median). Q adds a query.
-// [ROAD=twisty] [SCENERY=canyon] [KINDS=a,b] [SECONDS=120] [Q=] node tools/scratch/_junkcount.mjs
+// [LITTER=0..3] [ROAD=twisty] [SCENERY=canyon] [KINDS=a,b] [SECONDS=120] [Q=] node tools/scratch/_junkcount.mjs
 import { startServer, launchBrowser, gotoGame } from '../lib/browser.mjs';
 const ROAD = process.env.ROAD || 'twisty', SECONDS = +(process.env.SECONDS || 120);
 const KINDS = (process.env.KINDS || 'skull,tumbleweed,crate,barrel,tyre,tyrestack,shack,wreck,cactus,'
@@ -16,8 +16,9 @@ try {
     + (process.env.Q || ''));
   await page.mouse.click(195, 422);
   await page.waitForTimeout(800);
-  await page.evaluate(([road, scenery]) => window.__game.launch('highway', 'hatch-rwd', { ai: 0, road,
-    scenery, traffic: 0 }), [ROAD, SCENERY]);
+  await page.evaluate(([road, scenery, litter]) => window.__game.launch('highway', 'hatch-rwd', { ai: 0,
+    road, scenery, traffic: 0, ...(litter === '' ? {} : { litter: +litter }) }), [ROAD, SCENERY,
+    process.env.LITTER ?? '']);
   await page.waitForTimeout(2000);
   const seen = new Map(), km = { at: 0 };
   for (let t = 0; t < SECONDS; t += 0.5) {
@@ -48,7 +49,7 @@ try {
       + (list.length ? ` (${list[list.length >> 1].toFixed(0)} m out)` : '');
   });
   const all = [...seen.values()].length;
-  console.log(`${ROAD} ${SCENERY}${process.env.Q || ''}, ${km.at.toFixed(2)} km: ${rows.join(', ')}; all ${(all
+  console.log(`${ROAD} ${SCENERY}${process.env.Q || ''} litter ${process.env.LITTER ?? '-'}, ${km.at.toFixed(2)} km: ${rows.join(', ')}; all ${(all
     / Math.max(0.1, km.at)).toFixed(1)}/km`);
 } finally {
   await browser.close();

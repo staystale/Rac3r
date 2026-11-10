@@ -15,10 +15,10 @@ export const TEST_LIST: TestEntry[] = [
   {
     id: 'desertmore',
     added: '2026-11-10',
-    name: 'Deaf Valley junk by the LITTER slider (as much as other roads), cactus patches',
+    name: 'Deaf Valley junk + cactus by the LITTER slider; its own kinds, the countryside its own',
     where: 'Test link + &desertmore=1: Highway to Hull > DEAF VALLEY (set the LITTER slider)',
-    try: 'Drive at LITTER 1, then 0 and 3: drums, crates, tyres, skulls by the road; cactus clumps',
-    wrong: 'Junk on the road or in a rock wall, the slider doing nothing, a scrapyard at 1, lag.',
+    try: 'LITTER 1, then OFF and 3: skulls, oil drums, bare tyres, wrecks, cactus - none to lots.',
+    wrong: 'Pallets, tarps or tyres with wheels in the desert; junk on the road or in a wall; lag.',
   },
   {
     id: 'vergereset',
