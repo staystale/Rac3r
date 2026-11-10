@@ -394,7 +394,8 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   Cum in snow, 10-18: 0.10 % slow frames).
 - CI runners have no GPU: the WebGL2 ground runs in SwiftShader, 3-6 min a level for renderhash
   and the menu / guide checks several times slower than the laptop. Fixed sleeps time out there:
-  wait for the condition. renderhash runs as 4 parallel shards (`--shard k/4`).
+  wait for the condition. renderhash runs as 8 parallel shards (`--shard k/8`; 4 ran into the
+  60 min job limit with the world circuits, 11-10).
 - framecheck A/B: alternate the order (on, off, on, off). The first run after a pause painted 3x
   the tiles (385 vs 120) whichever side it was.
 - Wear cells cost per cell where code walks them all (pruneWear each highway rebuild, the worn
