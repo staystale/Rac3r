@@ -19,7 +19,6 @@ import { ROSTER } from '../cars.ts';
 import { showAiDrivers, storedTune, storeTune, tuneLine } from './aidrivers.ts';
 import { HW_ROADS, HW_SCENERY } from '../highway/presets.ts';
 import { addFinishRows } from './finishrow.ts';
-import { FIX } from '../core/fixes.ts';
 
 // WEATHER: follow the SEASON (its chances; it can change in the race) or a fixed sky
 const WEATHER_MODES = [['season', 'SEASON'], ['dry', 'DRY'], ['hot', 'HOT'],
@@ -246,16 +245,11 @@ function addLapsRow(menu: Menu, panel: HTMLElement, level: Level, state: SetupSt
   const lRow = addElement(panel, 'div', '', 'row'), lLbl = addElement(lRow, 'div', '');
   lLbl.style.cssText = 'flex:1;display:flex;align-items:center;justify-content:center;\
 font-size:14px';
-  // (the highway has no laps: a ROLLING START, and it ends when someone gets away off screen — a
-  // line says so instead)
+  // (the highway has no laps: its FINISH rows and their line say how it ends - menu/finishrow.ts)
   const lPaint = () => {
     lLbl.textContent = state.laps + (state.laps === 1 ? ' LAP' : ' LAPS');
     lRow.style.display = (state.opponents || state.rxRace) && !level.endless ? '' : 'none';
-    if (hwNote) hwNote.style.display = state.opponents && !FIX.hwfinish ? '' : 'none';
   };
-  const hwNote = level.endless ? addElement(panel, 'div',
-    'ROLLING START · GET AWAY: LOSE THEM OFF THE BOTTOM OF THE SCREEN TO WIN · LET ONE GET AWAY \
-OFF THE TOP AND IT IS OVER', 'sub') : null;
   addButton(menu, lRow, '−', () => {
     state.laps = Math.max(1, state.laps - 1);
     lPaint();

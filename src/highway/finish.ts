@@ -1,4 +1,4 @@
-// highway/finish.ts - THE HIGHWAY'S FINISH (?hwfinish=1; owner 11-09: "we should allow highway
+// highway/finish.ts - THE HIGHWAY'S FINISH (passed 11-10; owner 11-09: "we should allow highway
 // levels to have a distance or timer to end it… or infinit / It should be an option in the menu",
 // "Timer or distance - or get away"): ENDLESS (a VS AI race ends on the getaway alone, a solo run
 // never), a distance from the start, or a time from the green. The setup picks one

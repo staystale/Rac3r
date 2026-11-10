@@ -66,7 +66,7 @@ export function stepFlow(ctx: HwCtx, dt: number) {
   if (flow.state === 'done') return;
   flow.t += dt;
   noteRoadPositions(entries);
-  // (?hwfinish=1: over the line, or the clock out - solo too)
+  // (over the line, or the clock out - solo too)
   if (atFinish(ctx)) return;
   const myEntry = entries.find((entry) => entry.player),
     rivals = entries.filter((entry) => !entry.player);

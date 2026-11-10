@@ -14,7 +14,7 @@
 // rollover, rollbody, snotterton, sidedraft passed 11-08; oultonpork, sillystone, runoff, laplen,
 // oncoming, oultonrails, cadwallop, malarkey, medians, twoway, clearance, passcare, gantry,
 // anglesleazy, goodwoody, croughed, jerseyover, shoulder, laybys, farlaybys, barrierends,
-// hwpick, desertroom, spa, offaim passed 11-09; nordschlep, worldcat passed 11-10.)
+// hwpick, desertroom, spa, offaim passed 11-09; nordschlep, worldcat, hwfinish passed 11-10.)
 import { envValue } from './debug.ts';
 
 /**
@@ -45,12 +45,6 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
-  // ?hwfinish=1: Highway to Hull's setup has a FINISH - ENDLESS, 5 / 10 / 20 KM or 3 / 5 / 10 MIN;
-  // a VS AI race ends at it or on the getaway, a solo run starts behind the lights and ends at it
-  // (owner 11-09: "we should allow highway levels to have a distance or timer to end it… or
-  // infinit / It should be an option in the menu", "Timer or distance - or get away";
-  // highway/finish.ts, ai/hwFlow.ts atFinish, menu/finishrow.ts)
-  hwfinish: atLoad('hwfinish'),
   // ?roundit=1: AI go round a car in their way in time - a gap picked beside it caps their speed to
   // what they can get across by (and they swerve at the rate that cap counts on), and with a car
   // the reason to slow they brake fully even while turning (owner 11-10: "ai need to be more

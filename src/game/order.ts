@@ -29,7 +29,7 @@ export function armStart() {
   // 4 = top; only where there is a track to drive (the Lab the game boots on has none)
   shared.autoDrv = shared.settings.autopilot && LEVEL.subtrack
     ? createAIDriver(LEVEL, aiTraits(4, 0, 1)) : null;
-  // (?hwfinish=1: a highway run with a finish starts behind the lights solo too - its clock
+  // (a highway run with a finish starts behind the lights solo too - its clock
   // from the green)
   const active = shared.mode !== 'menu' && (shared.race.on || shared.aiCount > 0
     || (!!LEVEL.endless && !!finishOf(shared.hwFinish))),

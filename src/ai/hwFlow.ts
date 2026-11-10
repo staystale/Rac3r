@@ -35,8 +35,8 @@ export function order(ctx: HwCtx) {
 }
 
 /**
- * The race is over: the results table - those over the finish line first, by their time
- * (?hwfinish=1), then by how far up the road - and your place.
+ * The race is over: the results table - those over the finish line first, by their time,
+ * then by how far up the road - and your place.
  * @param ctx the flow's context
  * @param why how it ended: 'away' (the getaway), 'finish' (you crossed the line), 'time'
  */
@@ -66,7 +66,7 @@ export function endRace(ctx: HwCtx, why = 'away') {
 }
 
 /**
- * The finish (?hwfinish=1): each racer over the line gets its time; the race ends as YOU cross it
+ * The finish: each racer over the line gets its time; the race ends as YOU cross it
  * (the rest placed by the road), or when the clock runs out.
  * @param ctx the flow's context
  * @returns true when the race has ended

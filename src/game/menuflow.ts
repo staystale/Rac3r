@@ -1,5 +1,4 @@
 // menuflow.ts — Menu, launch, pause and the results screen flow.
-import { FIX } from '../core/fixes.ts';
 import { applyLivery, applyTyre } from '../cars.ts';
 import { createCones } from '../cones.ts';
 import { rulesSeen } from '../guide.ts';
@@ -174,7 +173,7 @@ export function applyLaunchOptions(levelId: string, opts: LaunchOpts) {
   shared.aiCarMode = opts.aiCars === 'class' ? 'class' : 'same';
   shared.aiTune = opts.aiTune || null;
   shared.raceLaps = Math.max(0, Math.min(10, (opts.laps ?? 0) | 0));
-  shared.hwFinish = FIX.hwfinish ? opts.finish ?? null : null;
+  shared.hwFinish = opts.finish ?? null;
   // WEATHER (setup): the plan and the seed its random stream starts from, so a restart
   // replays the same weather; none = the dry 18 C game
   // the game clock: the global time, or (TEST MODE) the hour the setup picked

@@ -113,7 +113,7 @@ export function createHwFlow(
   return flow;
 }
 
-// THE FINISH LINE (?hwfinish=1, a distance): a chequered line across our carriageway (a single
+// THE FINISH LINE (a distance): a chequered line across our carriageway (a single
 // carriageway: the whole road) at the finish, painted once the road has grown past it - far ahead,
 // out of sight; the last one is taken off when a race starts again
 let finishLine: Paint | null = null;

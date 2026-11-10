@@ -45,7 +45,7 @@ export interface HudFlow {
   entries: HudFlowEntry[]; flags: unknown[];   // the order; one flag per finisher so far
   highway?: boolean; stage?: boolean;   // the kind of event
   laps: number; myPlace?: number; t: number;
-  // ?hwfinish=1: the highway's finish (m / t; s its road distance), how the race ended
+  // the highway's finish (m / t; s its road distance), how the race ended
   finish?: { m?: number; t?: number; s?: number } | null; endWhy?: string;
 }
 /** The rallycross race state: laps, time, the joker and its penalty (raceflow.ts). */

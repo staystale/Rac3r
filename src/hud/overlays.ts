@@ -180,7 +180,7 @@ function noteNewFlag(state: HudState, flow: HudFlow, now: number) {
 }
 
 /**
- * The highway's flag words: over the finish line, the clock out (?hwfinish=1), or the getaway.
+ * The highway's flag words: over the finish line, the clock out, or the getaway.
  * @param flow the race flow
  * @param place your place
  * @returns the words

@@ -279,7 +279,7 @@ export function startFlow() {
   // your lights count to YOUR start
   if (LEVEL.stage && game.start.on) game.start.tGreen = startAtOf(game.car);
   clearCutCounts();
-  // (?hwfinish=1: a highway run with a finish has its flow solo too)
+  // (a highway run with a finish has its flow solo too)
   if (shared.mode !== 'session' || !LEVEL.subtrack || !(game.ai.length || shared.race.on
     || (LEVEL.endless && finishOf(shared.hwFinish)))) {
     if (LEVEL.endless) clearFinishLine(hwLevel());

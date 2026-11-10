@@ -8,20 +8,20 @@ export interface HwEntry {
   car: AiCar;
   player: boolean;
   lastS?: number;   // its last road position, kept while it has no road frame (hwFlow.ts)
-  doneT?: number;   // ?hwfinish=1: the race time it crossed the finish line at
+  doneT?: number;   // the race time it crossed the finish line at
 }
 // One row of the results table (raceflow.ts-shaped, + dist / gapM).
 export interface HwRow {
   car: AiCar; player: boolean; num: number; paint: string; s: number; dist: number;
   bill: number; time: number; total: number; penalty: number; est: boolean; best: null;
   laps: number; pos?: number; gapM?: number; gap?: number;
-  done?: number | null;   // ?hwfinish=1: its time over the finish line (null: not over it)
+  done?: number | null;   // its time over the finish line (null: not over it)
 }
 // What createHwFlow takes.
 export interface HwFlowArgs {
   lv: HighwayLevel; cars: { car: AiCar; player?: boolean }[];
   visible: (car: AiCar) => boolean; count?: number; catchT?: number;
-  finish?: HwFinish | null;   // ?hwfinish=1: a distance or a time (highway/finish.ts)
+  finish?: HwFinish | null;   // a distance or a time (highway/finish.ts)
 }
 // What createHwFlow returns: the race state, and the countdowns' bookkeeping.
 export interface HwFlow {
@@ -32,7 +32,7 @@ export interface HwFlow {
   order?: () => number; step?: (dt: number) => void; end?: () => void;
   endT?: number; lostT?: number; cdLeft?: number | null; cdOffAt?: number;
   edge?: number | null; nearT?: number;
-  // ?hwfinish=1: the finish (s: its road distance), and how the race ended ('finish' over the
+  // the finish (s: its road distance), and how the race ended ('finish' over the
   // line, 'time' the clock ran out, 'away' the getaway)
   finish?: (HwFinish & { s?: number }) | null; endWhy?: string;
 }

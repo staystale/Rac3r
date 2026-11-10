@@ -243,7 +243,7 @@ function showHighwayTable(menu: Menu, flow: ResultsFlow, act: ResultsActions) {
     flow.finish) + ' · ' : '') + formatRaceTime(flow.endT || flow.t), 'sub');
   const grid = addElement(panel, 'div', '', 'res');
   grid.style.gridTemplateColumns = 'repeat(5, auto)';
-  // (?hwfinish=1, a distance: the time over the line, else how far it got)
+  // (a distance: the time over the line, else how far it got)
   for (const head of ['POS', 'CAR', toLine ? 'FINISH' : 'DISTANCE', 'GAP', 'REPAIR'])
     addElement(grid, 'div', head, 'h');
   for (const racer of racers) {
@@ -260,7 +260,7 @@ function showHighwayTable(menu: Menu, flow: ResultsFlow, act: ResultsActions) {
 }
 
 /**
- * The highway's result in words: over the finish line, the clock out (?hwfinish=1), or who got
+ * The highway's result in words: over the finish line, the clock out, or who got
  * away.
  * @param flow the race flow
  * @param racers the results
@@ -368,7 +368,7 @@ function addPodiumStep(menu: Menu, pod: HTMLElement, flow: ResultsFlow, racer: R
 export function showResults(menu: Menu, flow: ResultsFlow, act: ResultsActions) {
   menu.root.className = '';
   const racers = flow.results;
-  // (a solo highway run with a finish, ?hwfinish=1: no podium for one)
+  // (a solo highway run with a finish: no podium for one)
   if (racers.length < 2) return showResultsTable(menu, flow, act);
   const panel = addPane(menu, false);
   addElement(panel, 'h2', 'RESULTS');

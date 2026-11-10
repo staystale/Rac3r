@@ -1,8 +1,7 @@
-// menu/finishrow.ts - THE HIGHWAY'S FINISH in the setup (?hwfinish=1; owner 11-09: "we should
+// menu/finishrow.ts - THE HIGHWAY'S FINISH in the setup (passed 11-10; owner 11-09: "we should
 // allow highway levels to have a distance or timer to end it… or infinit / It should be an option
 // in the menu", "Timer or distance - or get away"): ENDLESS, then the distances on one row and the
 // times on the next, and a line saying what the choice means solo or VS AI. Remembered.
-import { FIX } from '../core/fixes.ts';
 import { HW_FINISHES, finishOf } from '../highway/finish.ts';
 import { saveProfile } from './profile.ts';
 import { addButton, addElement } from './widgets.ts';
@@ -27,7 +26,7 @@ function finishNote(code: string, vsAi: boolean): string {
 }
 
 /**
- * Adds the FINISH rows of an endless level (?hwfinish=1). Wraps state.paint so the line follows
+ * Adds the FINISH rows of an endless level. Wraps state.paint so the line follows
  * SOLO / VS AI.
  * @param menu the menu context
  * @param panel the setup pane
@@ -35,7 +34,7 @@ function finishNote(code: string, vsAi: boolean): string {
  * @param state the setup state (reads opponents; reads / writes finish, paint)
  */
 export function addFinishRows(menu: Menu, panel: HTMLElement, level: Level, state: SetupState) {
-  if (!level.endless || !FIX.hwfinish) return;
+  if (!level.endless) return;
   const profile = menu.profile as { hwFinish?: string };
   state.finish = state.finish ?? (finishOf(profile.hwFinish) ? profile.hwFinish! : 'endless');
   addElement(panel, 'div', 'FINISH', 'sub');

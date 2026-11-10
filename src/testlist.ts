@@ -13,14 +13,6 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
-    id: 'hwfinish',
-    added: '2026-11-10',
-    name: 'Highway to Hull: a FINISH - endless, 5 / 10 / 20 km or 3 / 5 / 10 min, solo or VS AI',
-    where: 'Test link + &hwfinish=1: Highway to Hull > any scenery and road > setup FINISH',
-    try: 'Solo 5 KM and 3 MIN; VS AI 5 KM (beat them to the line) and 3 MIN; ENDLESS as before.',
-    wrong: 'No finish line, the race not ending, TO GO / TIME LEFT wrong, the wrong winner.',
-  },
-  {
     id: 'roundit',
     added: '2026-11-10',
     name: 'AI go round cars in time, brake fully for a car, creep out of queues, off track if need',

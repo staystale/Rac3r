@@ -24,7 +24,7 @@ export function drawHudLapEndless(ctx: CanvasRenderingContext2D, game: HudGame, 
   drawHudLabel(ctx, top.value, lapRect.x + lapRect.w - 8,
     lapRect.y + 13, { size: 11, weight: 700, align: 'right', col: COL.hudText });
   // in a VS AI race the second line is the gap to the car ahead (or your lead over the one
-  // behind) instead of your best; a solo run with a finish (?hwfinish=1) its time (a distance) or
+  // behind) instead of your best; a solo run with a finish its time (a distance) or
   // how far it has got (a time)
   const flow = game.flow, player = flow && flow.highway && game.car._hwf;
   if (soloFinishLine(ctx, game, lapRect)) return;
@@ -41,7 +41,7 @@ export function drawHudLapEndless(ctx: CanvasRenderingContext2D, game: HudGame, 
 }
 
 /**
- * The second line of a SOLO highway run with a finish (?hwfinish=1): its time (a distance), how far
+ * The second line of a SOLO highway run with a finish: its time (a distance), how far
  * it has got (a time).
  * @param ctx
  * @param game the game
@@ -58,7 +58,7 @@ function soloFinishLine(ctx: CanvasRenderingContext2D, game: HudGame, lapRect: H
 }
 
 /**
- * The top line of a highway run with a finish (?hwfinish=1): TO GO (a distance) or TIME LEFT (a
+ * The top line of a highway run with a finish: TO GO (a distance) or TIME LEFT (a
  * time).
  * @param game the game
  * @returns the label and its value, or null (endless)
