@@ -327,11 +327,13 @@ CARS: talk to the owner once the tracks are done (trucks, a Dakar car / truck).
    the track, followed), the woods at 260 trees, a grid on the start straight, EU-DEM heights as 25
    hills (44 m at the Virage du Karting to 83 m at the Dunlop bridge); no pit lane, roads,
    buildings or stands, no Bugatti circuit. Listed under WORLD CIRCUITS ('WORLD CIRCUIT · 24
-   HOURS'). MEASURED: build 0.9 s (node), the AI line 0.5 s on its first car, JS heap 59-62 MB
+   MINUTES', owner 11-10: "world circuit 24minutes lol"). MEASURED: build 0.9 s (node), the AI line 0.5 s on its first car, JS heap 59-62 MB
    with 10 AI, CPU x4 work median 11.5-11.8 ms, p95 24.2-29.6 (the Nordschlep 28.0-28.5, Spa
    23.3-23.4), a lap 252 s for the scripted driver. Open run-off (no OSM wall within reach) at
    the Dunlop curve, the Esses, Tertre Rouge's exit, before the first chicane, Mulsanne,
-   Indianapolis's approach, the Porsche curves and Maison Blanche. UNDER TEST.
+   Indianapolis's approach, the Porsche curves and Maison Blanche. PASSED + DEFAULT 11-10
+   (owner: "Pass"). Next (owner 11-10): fences at the open run-off, "wooden fences or chain link
+   fences and mix it up so it's not always Armco" - the world circuits have a lot of Armco.
 3. ROLLING LOOK - smoother than the dice flip on the same physics; mockup first.
 4. SIDE DRAFTING (Naffcar first) PASSED + DEFAULT 11-08 (owner: "Pass"): physics/wake.ts part 5 - a nose
    alongside a car's rear quarter, up to +20 % drag on it and -6 % on the car alongside, gone by 1.2 m

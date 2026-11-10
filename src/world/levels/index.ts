@@ -224,8 +224,8 @@ export const LEVELS: Level[] = [
   ...MONZA_LEVELS,
   // the Nerdburgring Nordschlep, a venue (nordschlep-venue.ts), a simple first build (passed 11-10)
   ...NERD_LEVELS,
-  // ?lemans=1: Le Manky, the Circuit de la Sarthe, a simple first build (lemans-venue.ts)
-  ...(FIX.lemans ? LEMANS_LEVELS : []),
+  // Le Manky, the Circuit de la Sarthe, a simple first build (lemans-venue.ts; passed 11-10)
+  ...LEMANS_LEVELS,
   // Oulton Pork, a new venue (oultonpork-venue.ts), its International, Island and Frosters
   ...OP_LEVELS,
   // ?thrustonvenue=1: the real venue (thruston-venue.ts), built on first use
