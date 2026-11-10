@@ -209,7 +209,8 @@ function cactus(ctx: DressCtx, i: number, off: number, tall: boolean) {
 function rimProps(ctx: DressCtx, i: number, side: number, rim: number) {
   const { rand, halfWidth, road } = ctx, dist = road[i].s, seed = (dist | 0) * 2 + side,
     thick = thickAt(dist, side);
-  if (rand() < 0.26) cactus(ctx, i, side * (halfWidth + rim + 2 + rand() * (thick - 3)), true);
+  if (rand() < cactusOdds(ctx, 0.26)) cactus(ctx, i, side * (halfWidth + rim + 2 + rand()
+    * (thick - 3)), true);
   if (rand() < 0.05) place(ctx, i, side * (halfWidth + rim - 1.2), { kind: 'rock',
     s: 1 + rand() * 1.5, pal: 'red', seed });
   if (i % 8 === 0 && rand() < 0.3) place(ctx, i, side * (halfWidth + rim + thick + 6 + rand()
@@ -230,9 +231,9 @@ function desertProps(ctx: DressCtx, i: number, side: number, from: number) {
   // about three times the first)
   // (11-09, "More cactus on the side of the road": half as many again, and a band of them by the
   // road)
-  if (rand() < 0.3) cactus(ctx, i, side * (from + 2 + rand() * 45), true);
-  if (rand() < 0.33) cactus(ctx, i, side * (from - 1.5 + rand() * 20), false);
-  if (rand() < 0.12) cactus(ctx, i, side * (from + 2 + rand() * 5), rand() < 0.4);
+  if (rand() < cactusOdds(ctx, 0.3)) cactus(ctx, i, side * (from + 2 + rand() * 45), true);
+  if (rand() < cactusOdds(ctx, 0.33)) cactus(ctx, i, side * (from - 1.5 + rand() * 20), false);
+  if (rand() < cactusOdds(ctx, 0.12)) cactus(ctx, i, side * (from + 2 + rand() * 5), rand() < 0.4);
   if (rand() < 0.05) place(ctx, i, side * (from + rand() * 40), { kind: 'rock',
     s: 1.5 + rand() * 2.5, pal: 'red', seed });
   if (i % 6 === 0 && rand() < 0.1) formation(ctx, i, side, from, seed);
@@ -252,14 +253,14 @@ function desertProps(ctx: DressCtx, i: number, side: number, from: number) {
  */
 function moreCactus(ctx: DressCtx, i: number, side: number, from: number) {
   const { rand } = ctx;
-  if (rand() < PATCH_CHANCE) {
+  if (rand() < cactusOdds(ctx, PATCH_CHANCE)) {
     const middle = from + 4 + rand() * 40, count = PATCH_MIN + Math.floor(rand() * (PATCH_MAX
       - PATCH_MIN + 1));
     for (let plant = 0; plant < count; plant++)
       cactus(ctx, i + Math.round((rand() - 0.5) * 4), side * (middle + (rand() - 0.5) * 2
         * PATCH_R), rand() < 0.45);
   }
-  if (rand() < FAR_CHANCE) cactus(ctx, i, side * (from + 30 + rand() * 60), true);
+  if (rand() < cactusOdds(ctx, FAR_CHANCE)) cactus(ctx, i, side * (from + 30 + rand() * 60), true);
 }
 
 /**
@@ -300,6 +301,16 @@ const NEAR_SHARE = 0.6;
  * @returns the density
  */
 const litterOf = (ctx: DressCtx): number => (ctx.level as { litter?: number }).litter ?? 1;
+
+/**
+ * A cactus's chance, by the LITTER slider too with ?desertmore=1 (owner 11-10: "The slider should
+ * affect the amount of junk cactus / cow skulls and barrels and stuff"): OFF none, 3x three times.
+ * @param ctx the dress context
+ * @param prob its chance at 1x
+ * @returns the chance
+ */
+const cactusOdds = (ctx: DressCtx, prob: number): number => (FIX.desertmore
+  ? Math.min(0.95, prob * litterOf(ctx)) : prob);
 // (?desertmore=1) a cactus patch's chance at a road point (each side, every other point), its
 // plants, its reach either way, m; a far single saguaro's chance
 const PATCH_CHANCE = 0.018, PATCH_MIN = 4, PATCH_MAX = 9, PATCH_R = 5, FAR_CHANCE = 0.12;
@@ -423,8 +434,8 @@ function tumbleweed(ctx: DressCtx, i: number, side: number, off: number, rates: 
 function dunesProps(ctx: DressCtx, i: number, side: number, from: number) {
   const { rand, road } = ctx, seed = (road[i].s | 0) * 2 + side;
   // (11-09, "in the sand dunes": three times the barrel cacti, saguaros too)
-  if (rand() < 0.12) cactus(ctx, i, side * (from + rand() * 30), false);
-  if (rand() < 0.06) cactus(ctx, i, side * (from + 4 + rand() * 30), true);
+  if (rand() < cactusOdds(ctx, 0.12)) cactus(ctx, i, side * (from + rand() * 30), false);
+  if (rand() < cactusOdds(ctx, 0.06)) cactus(ctx, i, side * (from + 4 + rand() * 30), true);
   if (i % 4 === 0) junk(ctx, i, side, from, seed);
 }
 
