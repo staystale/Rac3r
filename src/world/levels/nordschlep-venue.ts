@@ -116,6 +116,7 @@ export const NORDSCHLEP_SPEC: VenueSpec = {
   // the Nurburgring opened in 1927
   seed: 1927,
   followRails: true,
+  mixFences: true,
 };
 
 // the one layout - built on first use (world/load.ts buildLevel)

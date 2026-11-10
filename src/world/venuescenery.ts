@@ -12,12 +12,12 @@ import { querySubtrack } from "./tyrewall.ts";
 import { parkMiller } from "../core/random.ts";
 import { HALF_ROAD, VENUE_ROAD_M, centreAt, distToLine, evenly, kerbOut, lineLength,
   makePlacer, nearestLoop, pointAlong, resample, smoothLine } from "./venuegeo.ts";
-import { WALL_REACH_M, boxedLine, buildEdge, buildRims, inZones, outlineZone, pastRim,
+import { WALL_REACH_M, boxedLine, buildEdge, railLines, buildRims, inZones, outlineZone, pastRim,
   trapZones } from "./venueedge.ts";
 import { boardOnArmco, marshalPosts, startGantry } from "./venueposts.ts";
 import { venueAero, venuePlanes } from "./venueairfield.ts";
 import { nearWater, onPatches, ovalWall, venueMown, venueWater } from "./venueoval.ts";
-import type { EdgeNeeds, WallLine } from "./venueedge.ts";
+import type { EdgeNeeds, RealLines } from "./venueedge.ts";
 import { REACH_M, cellKey, inBuilding, inSolid, nearArmco, nearRace, onLanes, placeAll }
   from "./venuesite.ts";
 import type { Site } from "./venuesite.ts";
@@ -559,14 +559,14 @@ function spectatorSpots(site: Site, props: Prop[]): Point[] {
  * @returns the edge's needs
  */
 function edgeNeeds(site: Site, bridges: Prop[], portals: Prop[],
-  lines: { walls: WallLine[]; rails: WallLine[] }): EdgeNeeds {
+  lines: RealLines): EdgeNeeds {
   const solids = [...site.buildings, ...portals];
   const decks = bridges.map((bridge) => ({ ...bridge, w: bridge.wid, h: DECK_BOX_M }));
   const spots = spectatorSpots(site, site.buildings);
   return {
     ...(lines.walls.length ? { walled: (x: number, y: number) =>
       lines.walls.some((wall) => distToLine(wall.pts, x, y) < WALL_REACH_M) } : {}),
-    ...(lines.rails.length ? { rails: lines.rails } : {}),
+    ...(lines.rails.length ? { rails: lines.rails, mix: lines.mix } : {}),
     hazard: (x, y) => inBuilding(solids, x, y, 1) || inBuilding(decks, x, y, 0),
     watched: (x, y) => spots.some(([spotX, spotY]) => Math.abs(spotX - x) < SPECTATOR_REACH_M
       && Math.abs(spotY - y) < SPECTATOR_REACH_M
@@ -683,14 +683,13 @@ function clearPosts(site: Site, posts: Prop[], barriers: Barrier[], tyres: Cone[
  * @returns the site, the trap zones and the real lines
  */
 function venueSite(build: VenueBuild, closed: Lane[]):
-  { site: Site; traps: Zone[]; lines: { walls: WallLine[]; rails: WallLine[] } } {
+  { site: Site; traps: Zone[]; lines: RealLines } {
   const loops = Object.values(build.loops), spec = build.spec;
   const widen = (VENUE_ROAD_M - spec.realRoadM * build.scale) / 2;
   const place = makePlacer(build.scale, loops, widen);
   const traps = trapZones(spec.data.traps.map((trap) => trap.pts.map(place)), loops);
   const lines = { walls: (spec.tyreWalls || []).map((wall) => boxedLine(wall.map(place))),
-    rails: spec.followRails ? [...(spec.data.rails || []).map((rail) => rail.pts),
-      ...(spec.railsSeen || [])].map((pts) => boxedLine(pts.map(place))) : [] };
+    ...railLines(spec, place) };
   const pieces = closed.filter((lane) => {
     const mid = pointAlong(lane.pts, lineLength(lane.pts) / 2);
     return !!mid && !loops.some((loop) => querySubtrack(loop, mid.x, mid.y).dist < HALF_ROAD);

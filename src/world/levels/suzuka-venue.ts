@@ -143,6 +143,7 @@ export const SUZUKA_SPEC: VenueSpec = {
   // Suzuka opened in 1962
   seed: 1962,
   followRails: true,
+  mixFences: true,
   railsSeen: SZ_RAILS,
   // the figure of eight: the Degner-to-hairpin leg runs under the back straight's crossover
   crossover: { under: 'Degner underpass' },

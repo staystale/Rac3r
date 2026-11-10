@@ -13,6 +13,14 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'fences',
+    added: '2026-11-10',
+    name: 'World circuits: chain link where the map has a fence, wooden fences on open run-off',
+    where: 'Test link + &fences=1: TEST MODE > WORLD CIRCUITS > Le Manky, Spa (Snoozuka too)',
+    try: 'A lap of Le Manky and of Spa: mostly Armco still, the odd fence; crash into one of each.',
+    wrong: 'A fence across a road or the pits, a gap, too much or too little mixed, lag.',
+  },
+  {
     id: 'suzuka',
     added: '2026-11-10',
     name: 'Snoozuka: the Suzuka Circuit at 1/2 (2.9 km), the figure of eight over its crossover',

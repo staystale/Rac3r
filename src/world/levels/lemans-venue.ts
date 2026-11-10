@@ -65,6 +65,7 @@ export const LEMANS_SPEC: VenueSpec = {
   // the first 24-hour race at Le Mans, 1923
   seed: 1923,
   followRails: true,
+  mixFences: true,
 };
 
 // the one layout - built on first use (world/load.ts buildLevel)

@@ -87,6 +87,7 @@ export const SPA_SPEC: VenueSpec = {
   // the first car race on the circuit, 1922
   seed: 1922,
   followRails: true,
+  mixFences: true,
 };
 
 // the one layout - built on first use (world/load.ts buildLevel)

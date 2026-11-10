@@ -13,6 +13,9 @@ import { insidePolygon } from "./zones.ts";
 import { HALF_ROAD, centreAt, clearRuns, distToLine, evenly, joinEnds, lineLength, nearestLoop,
   trimEnds } from "./venuegeo.ts";
 import { crossoverAt, overCap, underSpan, underground } from "./venuecross.ts";
+import { EDGE_ARMCO, EDGE_BARRIERS, EDGE_CATCH, EDGE_NONE, EDGE_WOOD, FENCE_KINDS, WOOD_RUNOFF_M,
+  fillGaps, growRuns, kindRuns, mixesFences, railEdge, woodOnOpen } from "./venuefences.ts";
+import type { VenueSpec } from "./venue.ts";
 import type { Barrier, Cone, Point, Subtrack, TrackPoint, Zone } from "./types.ts";
 
 // m past the road's edge the Armco stands where there is no trap (the run-off: grass)
@@ -189,8 +192,11 @@ function midline(sub: Subtrack, centre: TrackPoint, side: number): number {
   return Infinity;
 }
 
-/** A real line at game scale (a tyre wall, a rail) with its box (a far one is not looked at). */
-export interface WallLine { pts: Point[]; box: [number, number, number, number] }
+/**
+ * A real line at game scale (a tyre wall, a rail) with its box (a far one is not looked at) and,
+ * a rail, the map's kind (barrier=guard_rail, wall, fence; 'seen': from the aerial photographs).
+ */
+export interface WallLine { pts: Point[]; box: [number, number, number, number]; kind?: string }
 
 /**
  * A line with its box.
@@ -201,6 +207,24 @@ export function boxedLine(pts: Point[]): WallLine {
   const allX = pts.map(([x]) => x), allY = pts.map(([, y]) => y);
   return { pts, box: [Math.min(...allX), Math.min(...allY), Math.max(...allX),
     Math.max(...allY)] };
+}
+
+/** A venue's real lines at game scale: its tyre walls, its rails, whether its edge is mixed. */
+export interface RealLines { walls: WallLine[]; rails: WallLine[]; mix?: boolean }
+
+/**
+ * A venue's real rails at game scale with their kinds (none unless it follows them: the map's,
+ * then those seen on the aerial photographs) and whether its edge is mixed (world/venuefences.ts).
+ * @param spec the venue
+ * @param place real m to game m
+ * @returns the rails and the mix
+ */
+export function railLines(spec: VenueSpec, place: (point: Point) => Point):
+  { rails: WallLine[]; mix: boolean } {
+  const real = spec.followRails ? [...(spec.data.rails || []), ...(spec.railsSeen || [])
+    .map((pts) => ({ kind: 'seen', pts }))] : [];
+  return { rails: real.map((rail) => ({ ...boxedLine(rail.pts.map(place)), kind: rail.kind })),
+    mix: mixesFences(spec.mixFences) };
 }
 
 /**
@@ -246,15 +270,16 @@ function wallDepth(centre: TrackPoint, side: number, walls: WallLine[]): number 
  * @param centre the road's centre sample
  * @param side +1 the left normal, -1 the right
  * @param rails the rails
- * @returns true when one does
+ * @returns the nearest rail out from the edge, or null
  */
-function railBeside(centre: TrackPoint, side: number, rails: WallLine[]): boolean {
+function railBeside(centre: TrackPoint, side: number, rails: WallLine[]): WallLine | null {
   const near = linesNear(rails, centre.x, centre.y, HALF_ROAD + RAIL_LOOK_M);
   for (let out = HALF_ROAD + 0.5; near.length && out <= HALF_ROAD + RAIL_LOOK_M; out += 1) {
     const x = centre.x + centre.nx * side * out, y = centre.y + centre.ny * side * out;
-    if (near.some((rail) => distToLine(rail.pts, x, y) < WALL_HIT_M)) return true;
+    const hit = near.find((rail) => distToLine(rail.pts, x, y) < WALL_HIT_M);
+    if (hit) return hit;
   }
-  return false;
+  return null;
 }
 
 /** What the rim stands beyond besides the traps (game scale; none on most venues). */
@@ -442,8 +467,6 @@ function dropFacing(line: Point[], kinds: Uint8Array): void {
   }
 }
 
-/** What stands at a rim sample. */
-const EDGE_NONE = 0, EDGE_ARMCO = 1, EDGE_CATCH = 2;
 
 /**
  * What decides the edge beside a road: hazards beyond it, where spectators stand, and the real
@@ -454,13 +477,42 @@ export interface EdgeNeeds {
   watched: (x: number, y: number) => boolean;   // spectators near (a catch fence instead)
   walled?: (x: number, y: number) => boolean;   // a real tyre wall (Armco, tyres in front)
   rails?: WallLine[];   // the real rails of a venue that follows them (Armco where they are)
+  mix?: boolean;   // a world circuit's edge mixed (?fences=1: world/venuefences.ts)
 }
 
 /**
- * What stands at each rim sample of one side: Armco behind a trap, along a real tyre wall or rail,
- * or before a hazard within HAZARD_M beyond the rim, a catch fence where spectators are, else
- * nothing (open run-off); gaps under GAP_FILL_M (RAIL_GAP_FILL_M following real rails) between
- * two runs of the same kind filled, each run grown EXTEND_M each way.
+ * What stands at one rim sample (edgeKinds): Armco behind a trap, along a real tyre wall or rail
+ * (on a mixed edge a mapped fence's chain link, where no trap or tyre wall wants the Armco), or
+ * before a hazard within HAZARD_M beyond the rim, a catch fence where spectators are, else nothing.
+ * @param centre the road's centre sample
+ * @param side +1 left, -1 right
+ * @param off m from the centre to the rim there
+ * @param traps the trap zones
+ * @param needs the hazards and spectators
+ * @param loops every layout's road (another stretch of track is a hazard)
+ * @returns its kind
+ */
+function sampleKind(centre: TrackPoint, side: number, off: number, traps: Zone[],
+  needs: EdgeNeeds, loops: Subtrack[]): number {
+  const outX = centre.nx * side, outY = centre.ny * side;
+  const x = centre.x + outX * off, y = centre.y + outY * off;
+  const rail = needs.rails ? railBeside(centre, side, needs.rails) : null;
+  let hazard = trapDepth(centre, side, traps) > 0 || !!needs.walled?.(x, y), railKind = EDGE_ARMCO;
+  if (rail && !hazard) railKind = railEdge(rail.kind, !!needs.mix);
+  hazard ||= !!rail;
+  for (let past = 0; past <= HAZARD_M && !hazard; past += 2) {
+    const probeX = x + outX * past, probeY = y + outY * past;
+    hazard = needs.hazard(probeX, probeY)
+      || nearestLoop(loops, probeX, probeY).hit.dist < HALF_ROAD + 1;
+  }
+  return needs.watched(x, y) ? EDGE_CATCH : hazard ? railKind : EDGE_NONE;
+}
+
+/**
+ * What stands at each rim sample of one side (sampleKind: Armco, a catch fence, a mapped fence's
+ * chain link, or nothing - open run-off); gaps under GAP_FILL_M (RAIL_GAP_FILL_M following real
+ * rails) between two runs of the same kind filled, each run grown EXTEND_M each way; on a mixed
+ * edge the open run-off left a wooden fence.
  * @param rim the road's rim
  * @param side +1 left, -1 right
  * @param traps the trap zones
@@ -472,86 +524,20 @@ function edgeKinds(rim: Rim, side: number, traps: Zone[], needs: EdgeNeeds,
   loops: Subtrack[]): Uint8Array {
   const offs = side > 0 ? rim.left : rim.right, count = offs.length;
   const kinds = new Uint8Array(count);
-  for (let i = 0; i < count; i++) {
-    const centre = centreAt(rim.sub, i * RIM_STEP_M);
-    const outX = centre.nx * side, outY = centre.ny * side;
-    const x = centre.x + outX * offs[i], y = centre.y + outY * offs[i];
-    let hazard = trapDepth(centre, side, traps) > 0 || !!needs.walled?.(x, y)
-      || (!!needs.rails && railBeside(centre, side, needs.rails));
-    for (let past = 0; past <= HAZARD_M && !hazard; past += 2) {
-      const probeX = x + outX * past, probeY = y + outY * past;
-      hazard = needs.hazard(probeX, probeY)
-        || nearestLoop(loops, probeX, probeY).hit.dist < HALF_ROAD + 1;
-    }
-    kinds[i] = needs.watched(x, y) ? EDGE_CATCH : hazard ? EDGE_ARMCO : EDGE_NONE;
-  }
+  for (let i = 0; i < count; i++)
+    kinds[i] = sampleKind(centreAt(rim.sub, i * RIM_STEP_M), side, offs[i], traps, needs, loops);
   fillGaps(kinds, Math.round((needs.rails ? RAIL_GAP_FILL_M : GAP_FILL_M) / RIM_STEP_M));
   growRuns(kinds, Math.round(EXTEND_M / RIM_STEP_M));
+  if (needs.mix) woodOnOpen(kinds);
   // a crossover: the cut's walls under it, the bridge's parapets over it (world/venuecross.ts)
   for (let i = 0; i < count; i++) if (crossoverAt(rim.sub, i * RIM_STEP_M)) kinds[i] = EDGE_NONE;
   return kinds;
 }
 
 /**
- * Fills each gap of nothing no longer than most samples between two runs of the same kind (no
- * random short gaps).
- * @param kinds the kinds round the loop (changed)
- * @param most samples
- */
-function fillGaps(kinds: Uint8Array, most: number): void {
-  const count = kinds.length;
-  for (let i = 0; i < count; i++) {
-    if (kinds[i] === EDGE_NONE || kinds[(i + 1) % count] !== EDGE_NONE) continue;
-    let gap = 1;
-    while (gap <= most && kinds[(i + gap) % count] === EDGE_NONE) gap++;
-    if (gap <= most && kinds[(i + gap) % count] === kinds[i])
-      for (let fill = 1; fill < gap; fill++) kinds[(i + fill) % count] = kinds[i];
-  }
-}
-
-/**
- * Grows every run into the nothing either side of it by up to grow samples.
- * @param kinds the kinds round the loop (changed)
- * @param grow samples
- */
-function growRuns(kinds: Uint8Array, grow: number): void {
-  const count = kinds.length, before = kinds.slice();
-  for (let i = 0; i < count; i++) {
-    if (before[i] !== EDGE_NONE) continue;
-    for (let reach = 1; reach <= grow; reach++) {
-      const ahead = before[(i + reach) % count], behind = before[(i - reach + count) % count];
-      if (ahead !== EDGE_NONE || behind !== EDGE_NONE) {
-        kinds[i] = ahead !== EDGE_NONE ? ahead : behind;
-        break;
-      }
-    }
-  }
-}
-
-/**
- * The runs of one kind round a rim side, as point lists (a run across the loop's start joined).
- * @param pts the rim line's points (one a sample)
- * @param kinds the kinds
- * @param kind the kind wanted
- * @returns the runs
- */
-function kindRuns(pts: Point[], kinds: Uint8Array, kind: number): Point[][] {
-  const count = kinds.length, runs: Point[][] = [];
-  const first = kinds.findIndex((value) => value !== kind);
-  if (first < 0) return [pts.slice(0, count).concat([pts[0]])];
-  let run: Point[] = [];
-  for (let step = 1; step <= count; step++) {
-    const i = (first + step) % count;
-    if (kinds[i] === kind) run.push(pts[i]);
-    else if (run.length) { runs.push(run); run = []; }
-  }
-  if (run.length) runs.push(run);
-  return runs.filter((line) => line.length > 1);
-}
-
-/**
- * Sets a rim side's catch fence back: at each of its samples the room found walking
- * out along the normal, short of CATCH_RUNOFF_M past the edge (and of a bend's inside reach),
+ * Sets a rim side's catch fence back (a mixed edge's wooden fence too, to WOOD_RUNOFF_M): at
+ * each of its samples the room found walking out along the normal, short of CATCH_RUNOFF_M past
+ * the edge (and of a bend's inside reach),
  * FENCE_GAP_M kept in front of what stands there; eased - the least within RIM_EASE samples,
  * then the mean - so the fence's ends meet the rim, and added to the rim (what is laid later keeps
  * off the line where it now stands).
@@ -565,10 +551,11 @@ function setFenceBack(rim: Rim, side: number, kinds: Uint8Array, loops: Subtrack
   open: (x: number, y: number) => boolean): void {
   const offs = side > 0 ? rim.left : rim.right, count = offs.length, push = new Float32Array(count);
   for (let i = 0; i < count; i++) {
-    if (kinds[i] !== EDGE_CATCH) continue;
+    const back = kinds[i] === EDGE_CATCH ? CATCH_RUNOFF_M : kinds[i] === EDGE_WOOD
+      ? WOOD_RUNOFF_M : 0;
+    if (!back) continue;
     const centre = centreAt(rim.sub, i * RIM_STEP_M);
-    const most = Math.min(HALF_ROAD + CATCH_RUNOFF_M, insideReach(rim.sub, i * RIM_STEP_M, side))
-      - offs[i];
+    const most = Math.min(HALF_ROAD + back, insideReach(rim.sub, i * RIM_STEP_M, side)) - offs[i];
     let room = 0;
     for (; room < most + FENCE_GAP_M; room += FENCE_PROBE_M) {
       const out = side * (offs[i] + room + FENCE_PROBE_M);
@@ -621,7 +608,8 @@ export function buildEdge(rims: Rim[], keep: EdgeClear, traps: Zone[], needs: Ed
       const fresh: Point[] = [];
       // where Armco gives way to a catch fence the line runs on to the fence's end post: no flare
       // across the fence (a free end still flares)
-      const fenceRuns = kindRuns(line, kinds, EDGE_CATCH), fence = fenceRuns.flat();
+      const fenceRuns = FENCE_KINDS.flatMap((kind) => kindRuns(line, kinds, kind)),
+        fence = fenceRuns.flat();
       const fenceEnds = fenceRuns.flatMap((run) => [run[0], run[run.length - 1]]);
       // (nor, where stretches share a midline barrier, onto a barrier already standing: a run cut
       // short by the shared one flared back over it)
@@ -631,8 +619,7 @@ export function buildEdge(rims: Rim[], keep: EdgeClear, traps: Zone[], needs: Ed
         && fence.every((point) => apart(point, x, y))
         && (!midlined || used.every((point) => apart(point, x, y)));
       const sideRuns: { run: Point[]; barrierKind: Barrier['kind'] }[] = [];
-      for (const [kind, barrierKind] of [[EDGE_ARMCO, 'armco'], [EDGE_CATCH, 'catchfence']] as
-        [number, Barrier['kind']][])
+      for (const [kind, barrierKind] of EDGE_BARRIERS)
         for (const part of kindRuns(line, kinds, kind)
           .flatMap((run) => withoutDoubles(run, used, 3)))
           for (const cut of clearRuns(part, outsideOthers, RIM_STEP_M)) {

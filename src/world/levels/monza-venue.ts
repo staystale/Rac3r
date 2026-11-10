@@ -106,6 +106,7 @@ export const MONZA_SPEC: VenueSpec = {
   // Monza opened in 1922
   seed: 1922,
   followRails: true,
+  mixFences: true,
   railsSeen: MZ_RAILS,
 };
 

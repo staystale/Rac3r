@@ -346,6 +346,21 @@ CARS: talk to the owner once the tracks are done (trucks, a Dakar car / truck).
    MB with 10 AI, CPU x4 work median 13.7-16.8 ms, p95 28.7-29.7 (Spa 13.6-15.5 / 22.7-26.5),
    three 20-car starts (seeds 7 / 8 / 9): barrier hits 0 / 0 / 0, hard car hits 1 / 5 / 5; a lap
    137 s for the scripted driver. UNDER TEST.
+   THE WORLD CIRCUITS' FENCES 11-10 behind ?fences=1 (owner 11-10: "maybe use wooden fences or
+   chain link fences and mix it up so it's not always Armco", "mostly Armco is ok if the track is
+   like that irl just mix it up a bit"; world/venuefences.ts, VenueSpec.mixFences on Spa,
+   Monzarella, the Nordschlep, Le Manky, Snoozuka): every rail a world circuit followed was built
+   as Armco whatever the map calls it (real m, both sides: Spa walls 10.1 km, fences 2.9, guard
+   rail 0.8; the Nordschleife guard rail 41.2, fences 11.7; Le Mans walls 23.8, fences 5.4) -> a
+   mapped fence nearest the track a chain link fence where it stands (no trap or tyre wall
+   there), the open run-off a wooden fence set back to 15 m past the edge; walls and guard rails
+   stay Armco. MEASURED (tools/scratch/_fencemix.mjs): Spa Armco 93 -> 75 %, chain link 7 -> 25;
+   Le Manky Armco 100 -> 87 %, chain link 2, wood 10, open run-off 9.5 -> 0.3 % of the sides; the
+   Nordschlep 100 -> 99 % Armco (its fences stand behind the guard rail); Monzarella as before.
+   Switch off: worldhash SAME, simhash SAME. barriercheck all OK. 20-car starts (seeds 7-9) at Le
+   Manky and Spa the same either way (no barrier reached); Le Manky CPU x4 work median 12.6 ->
+   12.3 ms, p95 27.1 -> 26.4. A fence gives where Armco holds: wood from ~20 km/h, chain link
+   tears and drags (world/armcodent.ts). UNDER TEST.
 3. ROLLING LOOK - smoother than the dice flip on the same physics; mockup first.
 4. SIDE DRAFTING (Naffcar first) PASSED + DEFAULT 11-08 (owner: "Pass"): physics/wake.ts part 5 - a nose
    alongside a car's rear quarter, up to +20 % drag on it and -6 % on the car alongside, gone by 1.2 m
