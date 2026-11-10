@@ -157,7 +157,7 @@ export function showTrackSelect(menu: Menu) {
   const profile = menu.profile;
   const panel = addPane(menu, true);
   addElement(panel, 'h2', 'TEST MODE · CHOOSE A TYPE');
-  if (!menu.thumbs) menu.thumbs = menu.api.thumbs();
+  menu.thumbs = menu.api.thumbs();
   const list = addElement(panel, 'div', '', 'cats');
   for (const category of CATS) {
     const lvs = LEVELS.filter((entry) => category.id === 'all'
@@ -280,7 +280,7 @@ export function showTrackList(menu: Menu, cat: string) {
   const panel = addPane(menu, true), catEntry = CATS.find((entry) => entry.id === cat)
     || CATS[CATS.length - 1];
   addElement(panel, 'h2', 'TEST MODE · ' + catEntry.name);
-  if (!menu.thumbs) menu.thumbs = menu.api.thumbs();
+  menu.thumbs = menu.api.thumbs();
   {
     const cur = LEVELS.find((entry) => entry.gen && !entry.fixed), savedGen = menu.profile.gen;
     if (cur && savedGen && (['seed', 'theme', 'len', 'style'] as const).some((key) => savedGen[key]
@@ -309,7 +309,7 @@ export function showLayoutList(menu: Menu, cat: string, venue: string) {
   const panel = addPane(menu, true);
   addElement(panel, 'h2', 'TEST MODE · ' + venue.toUpperCase());
   addElement(panel, 'div', 'CHOOSE A LAYOUT', 'sub');
-  if (!menu.thumbs) menu.thumbs = menu.api.thumbs();
+  menu.thumbs = menu.api.thumbs();
   const grid = addElement(panel, 'div', '', 'grid');
   for (const level of LEVELS.filter((entry) => entry.venue === venue
     && (cat === 'all' || menuCatOf(entry) === cat))) addTrackCard(menu, grid, level);

@@ -591,8 +591,14 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   references (`tools/.renderhash` etc.) between changes instead of re-saving on the base. A change
   meant to alter pixels: prove the old path SAME with `RAC3R_QUERY=<switch>=0`, then save new ones.
 - Photograph visual changes at 844x390 and 390x844 and look at them before reporting.
-- To main: commit, `git push origin HEAD:refs/heads/foreman/<name>`, wait for the `verify` check-run
-  (GitHub API `repos/staystale/Rac3r/commits/<sha>/check-runs`), `git push origin HEAD:refs/heads/main`,
+- A level added, or its look changed: `node tools/thumbs.mjs <id,...>` paints its menu thumbnail into
+  assets/thumbs (shipped: src/menu/thumbfiles.ts; tools/thumbcheck.mjs, in the suite, fails on a
+  level without one). The menu no longer paints them itself (11-10: the first TEST MODE tap after an
+  update froze 37-49 s on the laptop painting all of them).
+- To main: commit, `git push origin HEAD:refs/heads/foreman/<name>`, wait for EVERY check-run - `verify`,
+  `checks` (the suite: menucheck, barriercheck ...) and the 8 renderhash shards (GitHub API
+  `repos/staystale/Rac3r/commits/<sha>/check-runs`; 11-10: `verify` alone passed a commit whose
+  `checks` failed), `git push origin HEAD:refs/heads/main`,
   delete the branch, then move the served clone: `git fetch -q origin && git checkout -q --detach
   origin/main`.
 - Commit tags (11-07): a commit MEANT to change the simulation / the AI says [sim], level data

@@ -3,7 +3,6 @@ import { build } from "esbuild";
 import { rm, mkdir, readFile, writeFile, stat, cp } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { join } from "node:path";
-import { sourceHash } from "./lib/buildid.mjs";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const dist = join(root, "dist");
@@ -18,10 +17,9 @@ await build({
   minify: true,
   sourcemap: true,
   target: "es2022",
-  // the version fingerprint: the saved menu thumbnails are per version (src/menu/thumbcache.ts)
-  define: { "globalThis.__RAC3R_BUILD__": JSON.stringify(await sourceHash(root)) },
 });
-// the static files the page loads (menu logo, pixel fonts: menu/pixelstyle.ts)
+// the static files the page loads (menu logo, pixel fonts: menu/pixelstyle.ts; the track
+// thumbnails: menu/thumbfiles.ts)
 await cp(join(root, "assets"), join(dist, "assets"), { recursive: true });
 const html = await readFile(join(root, "index.html"), "utf8");
 // the page loads either path (index.html); both are the one bundle here

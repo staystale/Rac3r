@@ -367,6 +367,13 @@ CARS: talk to the owner once the tracks are done (trucks, a Dakar car / truck).
    Manky and Spa the same either way (no barrier reached); Le Manky CPU x4 work median 12.6 ->
    12.3 ms, p95 27.1 -> 26.4. A fence gives where Armco holds: wood from ~20 km/h, chain link
    tears and drags (world/armcodent.ts). PASSED + DEFAULT 11-10 (owner: "As are fences").
+   SHIPPED THUMBNAILS 11-10 (owner: "Yes"): the first TEST MODE tap after an update painted every
+   track's thumbnail (a light build each) - MEASURED, tools/scratch/_menuload.mjs on the laptop: 37 s
+   before the 11-10 venues, 49-64 s with them, Spa alone 6.5 s; CI's menucheck timed out on it. Now
+   tools/thumbs.mjs paints them once into assets/thumbs (46, 1.6 MB), the menu reads them in the
+   background (menu/thumbfiles.ts) and paints only a level without one; the per-version saved cache
+   (thumbcache.ts, the bundle fingerprint) gone. After: the tap 0.8-1.0 s (CPU x4 5.1), the menu up
+   2.5-5.7 s as before (3.0-5.1); menucheck passes both sizes; tools/thumbcheck.mjs in the suite.
 3. ROLLING LOOK - smoother than the dice flip on the same physics; mockup first.
 4. SIDE DRAFTING (Naffcar first) PASSED + DEFAULT 11-08 (owner: "Pass"): physics/wake.ts part 5 - a nose
    alongside a car's rear quarter, up to +20 % drag on it and -6 % on the car alongside, gone by 1.2 m

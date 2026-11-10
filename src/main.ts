@@ -50,7 +50,7 @@ import { spawnAI } from './game/grid.ts';
 import { doReset, saveRecords, doRestart } from './game/session.ts';
 import { hudDown, onKey, selectLevel, selectCar } from './game/controls.ts';
 import {
-  start, enterMenu, launch, paintThumbs, prepareThumbs, refreshMinimap,
+  start, enterMenu, launch, paintThumbs, paintThumbsNow, prepareThumbs, refreshMinimap,
 } from './game/menuflow.ts';
 import { loop } from './game/loop.ts';
 import { MAX_AI } from './core/settings.ts';
@@ -237,6 +237,7 @@ window.__game.launch = (levelId: string, car: string, opts?: LaunchOpts) =>
 window.__game.crossedJoker = (prevX: number, prevY: number, x: number, y: number) => (LEVEL.joker
   ? crossedJoker(LEVEL.joker, prevX, prevY, x, y) : null);
 window.__game.selectLevel = selectLevel;
+window.__game.paintThumbsNow = paintThumbsNow;   // (tools/thumbs.mjs)
 Object.defineProperty(window.__game, 'level', { get: () => LEVEL });
 window.__game.renderer = shared.renderer;
 window.__game.input = shared.input;
@@ -269,9 +270,7 @@ shared.menu = shared.MENU
 shared.renderer.warmBladeTextures();
 if (shared.MENU) {
   shared.hud.setHelpLabel('II');
-  // the track thumbnails now, while the loading screen is up. MEASURED: phone: painted on the
-  // TEST MODE tap they took 193 ms, and putting the menu's race level back (wear cleared, so
-  // every ground tile stale) cost 68 ms the frame after
+  // the track thumbnails, read in the background (shipped: menu/thumbfiles.ts)
   prepareThumbs();
   enterMenu();
   shared.menu!.show();

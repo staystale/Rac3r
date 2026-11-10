@@ -18,7 +18,7 @@ import {
   minimapSetting, setMinimapSetting, progressSetting, setProgressSetting,
 } from '../hud/minimap.ts';
 import { setTrackTempSetting, trackTempSetting } from '../hud/tracktemp.ts';
-import { BUILD_ID, hasSavedThumbs, readThumbs, saveThumbs } from '../menu/thumbcache.ts';
+import { loadShippedThumbs } from '../menu/thumbfiles.ts';
 import { loadProfile } from '../menu/profile.ts';
 import type { Level } from '../world/types.ts';
 import type { HwLevel } from '../highway/hwtypes.ts';
@@ -256,14 +256,15 @@ export function openPause() {
     },
   });
 }
-// TRACK THUMBNAILS (the menu's track lists). MEASURED (TEST MODE tap, CPU x4): painting them all on
-// the tap froze the menu 3.1 s, 2.0 s of it building ground detail a 320 px thumbnail cannot show
-// (now a light build, load.ts prepareLevel). Each is painted with its level current, then the
-// level before is put back.
-// ms after the menu shows before the painted thumbnails are saved (thumbcache.js), clear of its
-// start
-const THUMB_SAVE_MS = 4000;
+// TRACK THUMBNAILS (the menu's track lists): SHIPPED as images (menu/thumbfiles.ts; owner 11-10),
+// read in the background at load; only a level without one is painted, when a list asks.
+// MEASURED (tools/scratch/_menuload.mjs, the laptop): painting every one on the first TEST MODE tap
+// after an update froze the menu 37 s, 49 s with the 11-10 venues (each 2-6 s to build), and CI's
+// menucheck timed out on it. A painted one is a light build (load.ts prepareLevel) with its level
+// current, then the level before is put back.
 const thumbs: Record<string, HTMLCanvasElement> = {};
+// the levels with a shipped thumbnail, once its list has been read (till then none is painted)
+let shipped: Set<string> | null = null;
 /**
  * Paints one level's thumbnail (its level becomes current: put the old one back after).
  * @param level the level
@@ -273,33 +274,42 @@ function paintThumb(level: Level) {
   thumbs[level.id] = shared.renderer.thumbnail(320);
 }
 /**
- * Every level's thumbnail, painting the ones still missing now.
- * @returns level id -> thumbnail
+ * Paints levels' thumbnails now, the level current put back after.
+ * @param levels the levels
  */
-export function paintThumbs() {
-  const keep = LEVEL.id, missing = LEVELS.filter((level) => !thumbs[level.id]);
-  if (!missing.length) return thumbs;
-  for (const level of missing) paintThumb(level);
+function paintAll(levels: Level[]) {
+  if (!levels.length) return;
+  const keep = LEVEL.id;
+  for (const level of levels) paintThumb(level);
   setLevel(keep);
   game.cones = createCones();
   clearWear();
+}
+/**
+ * Every level's thumbnail: the shipped ones, and painted now those of levels without one (once
+ * the shipped list has been read).
+ * @returns level id -> thumbnail
+ */
+export function paintThumbs() {
+  if (shipped) paintAll(LEVELS.filter((level) => !thumbs[level.id] && !shipped!.has(level.id)));
   return thumbs;
 }
 /**
- * The thumbnails at load (main.ts, while the loading screen is up): with this version's saved on
- * the device, read back (a tap before they arrive paints what is missing); else painted now, and
- * saved a moment after the menu is up.
+ * Levels' thumbnails painted now whether shipped or not (tools/thumbs.mjs makes the shipped
+ * ones with it).
+ * @param ids the level ids
+ * @returns level id -> thumbnail for those
+ */
+export function paintThumbsNow(ids: string[]): Record<string, HTMLCanvasElement> {
+  paintAll(LEVELS.filter((level) => ids.includes(level.id)));
+  return Object.fromEntries(ids.map((levelId) => [levelId, thumbs[levelId]]));
+}
+/**
+ * The thumbnails at load (main.ts): the shipped ones read in the background (a list opened before
+ * they arrive shows what has; one that will not come is painted when a list asks).
  */
 export function prepareThumbs() {
-  const build = BUILD_ID;
-  if (hasSavedThumbs(build)) {
-    readThumbs().then((saved) => {
-      for (const [levelId, canvas] of Object.entries(saved)) thumbs[levelId] ??= canvas;
-    }).catch(() => {});
-    return;
-  }
-  paintThumbs();
-  setTimeout(() => saveThumbs(build, thumbs).catch(() => {}), THUMB_SAVE_MS);
+  loadShippedThumbs(thumbs).then((ids) => { shipped = ids; }).catch(() => { shipped = new Set(); });
 }
 // RESULTS: 1.6 s after the race ends (the flag sweep), the podium then the table (menu.ts results)
 export function stepResults() {
