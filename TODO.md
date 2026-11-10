@@ -26,6 +26,12 @@ owner before they ship (proposed below).
    surfaces ect is dangerous enough"). Navigation proposed: normal - a big arrow at the screen's
    edge to the next checkpoint, its distance; hard - the compass bearing and distance only, read in
    the pause menu as a road book (the owner's idea); a missed checkpoint a time penalty.
+   NAVIGATION DECIDED (owner 11-10): a MAP in the pause menu - a pixel-art map of the area, as a
+   real one would be but not exact, looking like a BOOK (the book's surface textured with our
+   terrain look); like a real map and unclear: NO "you are here", only landmarks, rock features and
+   the like; a procedural stage's map spawned from the SAME SEED as the stage, so they match. And a
+   small pixel-art COMPASS on screen for those levels / events. ("ask any questions when we come to
+   do it".)
 4. SST (Stadium Super Trucks): "keep it simple 5-10 tracks and a couple different trucks with
    different specs"; a mix of tracks (street circuits, our circuits, stadium) with jump ramps
    (world/flipramps.ts exists).
@@ -34,6 +40,11 @@ owner before they ship (proposed below).
    stadium ones with jumps tunnels ect ?"): UK - Pembrey, Croft's RX layout (on the Croughed
    venue), Blyton; the US stadium / Nitro RX style - gap jumps over the track, crossovers on a
    bridge (both systems exist); a World RX one or two (Holjes). Names to agree.
+   NEW TRACKS (owner 11-10: "Yes and some head to head swap over tracks ! Tarmac and
+   dirt / gravel like other rally cross stuff I've seen. Discuss"): the old stages stay as they are
+   ("keep the originals"); new ones from the map (Pembrey, Blyton) and a stadium one, plus a
+   HEAD-TO-HEAD SWAP-OVER track - two parallel lanes that cross on a bridge so each car runs both,
+   mixed tarmac and gravel. Under discussion.
 CARS: talk to the owner once the tracks are done (trucks, a Dakar car / truck).
 
 ## NEXT - ORDER AGREED 11-07 (owner: "ok let's do 1. first and proceed in this order")
