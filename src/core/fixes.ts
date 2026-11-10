@@ -45,6 +45,10 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
+  // ?nordschlep=1: the Nerdburgring Nordschlep, the Nurburgring Nordschleife at 1/2 of real
+  // length as a SIMPLE first build - the lap, its barriers, its heights (owner 11-09: to try the
+  // long tracks' frame rate and feel; world/levels/nordschlep-venue.ts)
+  nordschlep: atLoad('nordschlep'),
   // ?roundit=1: AI go round a car in their way in time - a gap picked beside it caps their speed to
   // what they can get across by (and they swerve at the rate that cap counts on), and with a car
   // the reason to slow they brake fully even while turning (owner 11-10: "ai need to be more

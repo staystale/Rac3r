@@ -13,6 +13,14 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'nordschlep',
+    added: '2026-11-10',
+    name: 'Nerdburgring Nordschlep: the Nordschleife at 1/2 (10.4 km), a simple first build',
+    where: 'Test link + &nordschlep=1 (&worldcat=1: WORLD CIRCUITS): TEST MODE',
+    try: 'A whole lap, then VS AI: the frame rate (FPS), the hills, Karussell, Pflanzgarten.',
+    wrong: 'Lag or hitches, a jump that throws you, a barrier gap, the minimap or lap times off.',
+  },
+  {
     id: 'roundit',
     added: '2026-11-10',
     name: 'AI go round cars in time, brake fully for a car, creep out of queues, off track if need',

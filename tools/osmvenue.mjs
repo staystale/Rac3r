@@ -22,7 +22,9 @@
 // those barrier lines as rails (a mapper who drew the circuit's barriers as walls or fences: Croft,
 // Spa); "posts": [way ids] leaves out marshal posts mapped as buildings by name only (Spa's P1 ..
 // P19: the venue places its own); "trim": { "<way id>": [first, last] } keeps only those nodes of a
-// way; "traps": [way ids] reads those areas as gravel traps (Monza's are mapped natural=sand). A
+// way; "traps": [way ids] reads those areas as gravel traps (Monza's are mapped natural=sand);
+// "leaveOut": [kinds of feature] writes those lists empty (a simple first build: the Nordschleife's
+// lap and barriers, no buildings or roads). A
 // stand longer than STAND_SLICE_M is written as its slices (a curved one round a tri-oval).
 // A layout is the shortest loop through its "through" pieces that avoids its "avoid" pieces; it is
 // written as the ordered list of pieces it runs over, so a layout is changed by editing that list.
@@ -352,6 +354,12 @@ for (const way of ways) {
   else if (tags.natural === 'water' && closed(way)) out.water.push({ name: tags.name || '', pts: line(1) });
   // hedgerows and tree rows: the trees along the field edges
   else if (tags.barrier === 'hedge' || tags.natural === 'tree_row') out.rows.push({ pts: line(2) });
+}
+
+// a simple first build leaves whole kinds of feature out ("leaveOut": ["buildings", "roads", ...])
+for (const key of config.leaveOut || []) {
+  if (!Array.isArray(out[key]) || key === 'pieces') throw new Error(`leaveOut: no list ${key}`);
+  out[key] = [];
 }
 
 // ---- write the module ----

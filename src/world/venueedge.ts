@@ -640,7 +640,11 @@ export function buildEdge(rims: Rim[], keep: EdgeClear, traps: Zone[], needs: Ed
         const sideOthers = sideRuns.flatMap((other) => (other.run === run ? [] : other.run));
         const runClear = (x: number, y: number) => flareClear(x, y)
           && sideOthers.every((point) => apart(point, x, y));
-        const flared = barrierKind === 'armco'
+        // (a side Armco all round - the Nordschleife, no pit lane - is a closed ring: no ends to
+        // flare, else both flared apart at the lap's start, a gap with the two ends overlapping)
+        const ring = Math.hypot(run[0][0] - run[run.length - 1][0],
+          run[0][1] - run[run.length - 1][1]) < 0.01;
+        const flared = barrierKind === 'armco' && !ring
           ? flare(joinEnds(run, fenceEnds, FENCE_JOIN_M), ends, runClear) : run;
         const shaped = withoutFolds(needs.rails ? withoutRepeats(flared) : flared);
         for (const chunk of chunks(shaped, RUN_MAX_M / RIM_STEP_M))

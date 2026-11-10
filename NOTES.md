@@ -525,6 +525,14 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   Armco shorter than a run, dropped - a 4-8 m gap between two fence runs, and a fence jogging round
   a stand broke the same way. tools/scratch/_barriergaps.mjs (barrier ends 0.3-12 m from another
   barrier) finds them; the hand finish moves the stand (spec.finish.move).
+- AN ARMCO SIDE ALL ROUND IS A RING (11-10, the Nordschlep: no pit lane, barriers all round): the
+  edge flared both ends of a whole-lap run apart at the lap's start - a 1.6 m gap, the two ends
+  overlapping 14 m. A run that closes on itself is no longer flared (world/venueedge.ts).
+- THE KERBS ARE DRAWN LAP-LONG ON EVERY GROUND TILE (11-10, the Nordschlep): render/road.ts
+  drawCurvedKerbs tests every lap point against every kerb and draws every tooth of the lap on each
+  tile (and overview) it paints - 49 000 tests and 492 teeth at Spa, 563 000 and 1502 on the
+  10.4 km Nordschlep, 17 % of its CPU profile (spikes to 250-290 ms at CPU x4 as tiles paint). A
+  lap this long needs the kerbs found by distance and culled to the tile (proposed, not done).
 - A RESET ON A TWO-WAY ROAD NEVER TAKES "THE NEAREST EDGE" (11-09, owner: "reset still can leave me
   on the opposite carriage way !"): the circuits' reset puts the car on the edge it left by, and a
   car thrown over the Jersey barrier left by the oncoming side's. Every endless-road reset - the R

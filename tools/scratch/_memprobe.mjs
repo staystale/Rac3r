@@ -2,7 +2,8 @@
 // after 3.5 min of 20 AI on Thruston, 11-03): every live canvas / OffscreenCanvas / ImageBitmap
 // backing store (w x h x 4 bytes, after a forced GC) plus the JS heap, at a phone's size (440 x 751,
 // dpr 3). Runs thruston then knobhill (as the owner did) with N AI.
-// node tools/scratch/_memprobe.mjs [n] [secs per level]
+// node tools/scratch/_memprobe.mjs [n] [secs per level]   (env LEVELS=a,b the levels in turn,
+// QUERY=&x=1 switches on the page)
 import { startServer, launchBrowser } from '../lib/browser.mjs';
 const n = +(process.argv[2] || 20), secs = +(process.argv[3] || 40);
 const srv = await startServer();
@@ -64,10 +65,10 @@ try {
     console.log(`${label}: canvases+bitmaps ${total.toFixed(0)} MB ${JSON.stringify(Object.fromEntries(Object.entries(r.by).map(([k, v]) => [k, `${v.n} / ${v.mb.toFixed(0)}MB`])))}, JS heap ${r.heap.toFixed(0)} MB, ${r.ai} AI`);
     console.log('   biggest: ' + r.biggest.join(', '));
   };
-  await page.goto(srv.url + '/?touch=1&guide=0&menu=0&rules=0&drycover=1&rimsoft=1&bushmark=1&leafpop=1&level=thruston');
+  await page.goto(srv.url + '/?touch=1&guide=0&menu=0&rules=0&drycover=1&rimsoft=1&bushmark=1&leafpop=1&level=thruston' + (process.env.QUERY || ''));
   await page.waitForFunction(() => window.__game && window.__game.launch, null, { timeout: 60000 });
   await snap('loaded');
-  for (const lv of ['thruston', 'knobhill']) {
+  for (const lv of (process.env.LEVELS || 'thruston,knobhill').split(',')) {
     await page.evaluate(([l, c]) => window.__game.launch(l, 'hatch-fwd', { ai: c, laps: 9 }), [lv, n]);
     await page.waitForTimeout(1500); await page.touchscreen.tap(220, 375); await page.waitForTimeout(500);
     await page.evaluate(async () => {

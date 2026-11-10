@@ -40,6 +40,7 @@ import { GW_LEVELS } from "./goodwoody-venue.ts";
 import { CR_LEVELS } from "./croughed-venue.ts";
 import { SPA_LEVELS } from "./spa-venue.ts";
 import { MONZA_LEVELS } from "./monza-venue.ts";
+import { NERD_LEVELS } from "./nordschlep-venue.ts";
 import { OP_LEVELS } from "./oultonpork-venue.ts";
 import { DT_LEVELS } from "./dieatona-venue.ts";
 import { TH_VENUE_LEVEL } from "./thruston-venue.ts";
@@ -220,6 +221,8 @@ export const LEVELS: Level[] = [
   ...SPA_LEVELS,
   // ?monza=1: Monzarella, a new venue (monza-venue.ts), a world championship circuit
   ...(FIX.monza ? MONZA_LEVELS : []),
+  // ?nordschlep=1: the Nerdburgring Nordschlep, a simple first build (nordschlep-venue.ts)
+  ...(FIX.nordschlep ? NERD_LEVELS : []),
   // Oulton Pork, a new venue (oultonpork-venue.ts), its International, Island and Frosters
   ...OP_LEVELS,
   // ?thrustonvenue=1: the real venue (thruston-venue.ts), built on first use

@@ -301,6 +301,15 @@ CARS: talk to the owner once the tracks are done (trucks, a Dakar car / truck).
    tunnels whose far roads are not kept. UNDER TEST. With it (venuescenery.ts): one bridge a
    crossing - a footbridge's stairs mapped as bridges stood a second deck on Monza's, and at
    Sillystone two footbridges stood on the road bridge by the Wing (now the road bridge alone).
+   NERDBURGRING NORDSCHLEP (the Nurburgring Nordschleife) BUILT 11-10 behind ?nordschlep=1 as a
+   SIMPLE first build (owner 11-09: the long tracks simple first, to try the frame rate and the feel;
+   levels/nordschlep-venue.ts, OSM data in venues/nordschlep.ts; the venue helper): the lap, 10420 m
+   (real 20832, OSM 20772), its barriers all round (OSM's guard rails, walls and fences), the woods
+   at 260 trees, a grid at T13, EU-DEM heights as 70 hills (340-629 m); no pit lane, roads,
+   buildings or stands (tools/venues/nordschlep.json leaveOut), no GP circuit yet. The Karussell's
+   legs warped apart. MEASURED: build 2.1 s (node), the AI line 1.3 s on its first car (Spa 0.3),
+   JS heap 66-69 MB with 10 AI (Spa 49-54), CPU x4 work p95 78-83 ms against Spa's 46 - the
+   kerbs drawn lap-long on every tile (NOTES); a lap 476 s for the scripted driver. UNDER TEST.
 3. ROLLING LOOK - smoother than the dice flip on the same physics; mockup first.
 4. SIDE DRAFTING (Naffcar first) PASSED + DEFAULT 11-08 (owner: "Pass"): physics/wake.ts part 5 - a nose
    alongside a car's rear quarter, up to +20 % drag on it and -6 % on the car alongside, gone by 1.2 m

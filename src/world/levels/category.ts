@@ -14,7 +14,7 @@ const CAT_OF: Record<string, string> = { 'test-track': 'circuits', thruston: 'ci
   'cadwallop-club': 'circuits', malarkey: 'circuits', 'malarkey-oval': 'circuits',
   anglesleazy: 'circuits', 'anglesleazy-coastal': 'circuits', 'anglesleazy-national': 'circuits',
   'anglesleazy-club': 'circuits', goodwoody: 'circuits', croughed: 'circuits',
-  'croughed-club': 'circuits', spa: 'circuits', monza: 'circuits',
+  'croughed-club': 'circuits', spa: 'circuits', monza: 'circuits', nordschlep: 'circuits',
   'sweaty-lamb': 'rally', killder: 'rally', knobhill: 'rx', 'slidden-hill': 'rx',
   'grass-track': 'ovals', dieatona: 'ovals', 'dieatona-road': 'ovals', 'stock-car': 'ovals',
   naffcar: 'ovals',
@@ -34,7 +34,7 @@ export const catOf = (level: { id: string; gen?: unknown; endless?: boolean }): 
 // world championship circuits under WORLD CIRCUITS (owner 11-09: "categorise stuff") - still
 // circuits by kind (lit, rained on and raced as one)
 const LISTED_UNDER: Record<string, string> = { 'test-track': 'test',
-  ...(FIX.worldcat ? { spa: 'world', monza: 'world' } : {}) };
+  ...(FIX.worldcat ? { spa: 'world', monza: 'world', nordschlep: 'world' } : {}) };
 
 /**
  * The category a level is listed under in the menu (menu/tracks.ts).
