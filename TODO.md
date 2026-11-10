@@ -285,8 +285,11 @@ CARS: talk to the owner once the tracks are done (trucks, a Dakar car / truck).
    chicane, the Ster and Malmedy tunnels. Then (owner 11-09: yes to a per-venue tree count): the
    Ardennes forest behind ?spaforest=1 - 8000 trees (spec.trees; the other venues keep 260). CPU x4 frame work in the
    forest (tools/scratch/_framecheckat.mjs, Kemmel / Pouhon / Blanchimont) 12.5-13.7 -> 16.7-17.6
-   ms: every prop is tested twice a frame for the screen (render/props.ts) - a grid of props by
-   cell would test only those near it (not done: a renderer change, proposed). UNDER TEST.
+   ms: every prop was tested twice a frame for the screen (render/props.ts). FIXED 11-10 (owner:
+   "Ok"): render/propgrid.ts files the props by 32 m cell, a frame tests the cells round the
+   screen - forest work median 16.9-17.0 -> 12.8-12.9 ms, p95 28.8-29.1 -> 22.5-22.9, the same
+   as without the forest (13.0-13.7); identical pixels (renderhash, and _renderhashat.mjs at the
+   three corners in the forest). UNDER TEST.
    WORLD CIRCUITS (owner 11-09: "categorise stuff") PASSED + DEFAULT 11-10 (passed with the
    Nordschleife's link): a TEST MODE category for the world championship circuits
    (Spa-Frankenchumps, Monzarella, the Nordschlep) - the menu listing only (category.ts
@@ -310,8 +313,12 @@ CARS: talk to the owner once the tracks are done (trucks, a Dakar car / truck).
    buildings or stands (tools/venues/nordschlep.json leaveOut), no GP circuit yet. The Karussell's
    legs warped apart. MEASURED: build 2.1 s (node), the AI line 1.3 s on its first car (Spa 0.3),
    JS heap 66-69 MB with 10 AI (Spa 49-54), CPU x4 work p95 78-83 ms against Spa's 46 - the
-   kerbs drawn lap-long on every tile (NOTES); a lap 476 s for the scripted driver. NEXT: the kerb
-   and prop speed-ups (owner 11-10: "Ok" - identical pixels), then Le Manky the same way.
+   kerbs drawn lap-long on every tile (NOTES); a lap 476 s for the scripted driver. KERB AND PROP
+   SPEED-UPS 11-10 (owner: "Ok" - identical pixels): render/kerbs.ts (each kerb's teeth found once,
+   a kerb off the tile skipped: 1502 teeth a tile -> 21) and render/propgrid.ts; CPU x4 work at
+   2000 / 5000 / 8000 m, alternated with main: p95 47.2-48.5 -> 28.1-29.5 ms, worst 74-107 ->
+   49-73, the kerbs 14 % of the profile -> under 0.4. Renderhash SAME (Spa, the Nordschlep, Brands,
+   the highway, a forest stage). NEXT: Le Manky the same way.
 3. ROLLING LOOK - smoother than the dice flip on the same physics; mockup first.
 4. SIDE DRAFTING (Naffcar first) PASSED + DEFAULT 11-08 (owner: "Pass"): physics/wake.ts part 5 - a nose
    alongside a car's rear quarter, up to +20 % drag on it and -6 % on the car alongside, gone by 1.2 m

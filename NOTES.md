@@ -534,11 +534,16 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
 - AN ARMCO SIDE ALL ROUND IS A RING (11-10, the Nordschlep: no pit lane, barriers all round): the
   edge flared both ends of a whole-lap run apart at the lap's start - a 1.6 m gap, the two ends
   overlapping 14 m. A run that closes on itself is no longer flared (world/venueedge.ts).
-- THE KERBS ARE DRAWN LAP-LONG ON EVERY GROUND TILE (11-10, the Nordschlep): render/road.ts
-  drawCurvedKerbs tests every lap point against every kerb and draws every tooth of the lap on each
-  tile (and overview) it paints - 49 000 tests and 492 teeth at Spa, 563 000 and 1502 on the
-  10.4 km Nordschlep, 17 % of its CPU profile (spikes to 250-290 ms at CPU x4 as tiles paint). A
-  lap this long needs the kerbs found by distance and culled to the tile (proposed, not done).
+- THE KERBS WERE DRAWN LAP-LONG ON EVERY GROUND TILE (11-10, the Nordschlep): road.ts
+  drawCurvedKerbs tested every lap point against every kerb and drew every tooth of the lap on each
+  tile (and overview) it painted - 49 000 tests and 492 teeth at Spa, 563 000 and 1502 on the
+  10.4 km Nordschlep, 17 % of its CPU profile (spikes to 250-290 ms at CPU x4 as tiles paint).
+  FIXED (owner 11-10: "Ok"): render/kerbs.ts finds each kerb's teeth once per subtrack and skips a
+  kerb whose box misses the tile - 21 teeth a tile on the Nordschlep, the same pixels. Likewise
+  render/propgrid.ts: props filed by 32 m cell, a frame tests the cells round the screen, not
+  every prop twice. A per-frame or per-tile loop over the whole level is fine at 3 km and 500
+  props; the long laps and the forest are where it shows. Tested exact by
+  tools/scratch/_kerbcheck.mjs and _propgridcheck.mjs, and renderhash.
 - A RESET ON A TWO-WAY ROAD NEVER TAKES "THE NEAREST EDGE" (11-09, owner: "reset still can leave me
   on the opposite carriage way !"): the circuits' reset puts the car on the edge it left by, and a
   car thrown over the Jersey barrier left by the oncoming side's. Every endless-road reset - the R
@@ -579,9 +584,11 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
 - CI logs: the portable GitHub CLI, `C:/Users/Admin/tools/gh/bin/gh.exe run view <id>
   --log-failed -R staystale/Rac3r` (the anonymous API shows only pass / fail).
 - A HELPER SESSION IN PARALLEL (the venue helper, 11-08): its own worktree (`Desktop/G/rac3r-venue`)
-  and `CHECK_PORT=8097` for its browser tools (they start a server on 8090 by default, and one
-  that finds another worktree's server answering uses it); one heavy browser run at a time across
-  both - the lock file `Desktop/G/.browser-busy` (who, what, when) around it. While the helper
+  and its own CHECK_PORT for its browser tools - the helper 8090-8110 (8103), the foreman 8121
+  (11-10: both on 8097 once, and one stopped the other's server mid-renderhash). The tools start a
+  server on 8090 by default, and one that finds another worktree's server answering USES IT - a
+  proof then measures the other worktree's code. One heavy browser run at a time across both - the
+  lock file `Desktop/G/.browser-busy` (who, what, when) around it. While the helper
   works, laptop frame times are noise: compare shares in a CPU profile, or wait.
 
 ## Tools worth knowing

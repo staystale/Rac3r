@@ -7,6 +7,7 @@ import { COL } from "../world/colours.ts";
 import { MARK_EXTENT, MARK_PPM } from '../marks.ts';
 import { paintAs } from "../world/coverfield.ts";
 import { drawPaintLine } from "./paintline.ts";
+import { drawCurvedKerbs } from "./kerbs.ts";
 import type { Prop } from "../world/types.ts";
 import type { Cam, ForSide, RenderMarks, RoadGame, View } from "./types.ts";
 
@@ -364,84 +365,6 @@ function drawLaneDashes(ctx: RoadCtx) {
   view.ctx.setLineDash([]);
   for (const off of sub.laneSolid || []) strokeOffsetLine(ctx, sub, off);
   view.ctx.restore();
-}
-
-// CURVED CORNER KERBS are drawn AFTER patches, wear and covers, so nothing can paint over them:
-// kerbs are their own surface, bumpy and slightly slippy like real race kerbs. The physics
-// already treats them that way (SURFACES.kerb, mu 0.70, ridges in bumpAt).
-
-/**
- * Draws one tooth of a curved kerb between two track samples: the quad, its outer highlight
- * bevel along the crest and the inner shadow joint along the asphalt edge.
- * @param ctx the road context
- * @param sub the subtrack
- * @param kerb the curved kerb (side, width)
- * @param index the index of the tooth's first sample
- */
-function drawKerbTooth(
-  ctx: RoadCtx, sub: Sub, kerb: NonNullable<Sub['curvedKerbs']>[number], index: number,
-) {
-  const { view, PPMz, toScreenX, toScreenY } = ctx;
-  const pts = sub.pts, count = pts.length, pxPerM = PPMz(), halfW = sub.width / 2;
-  const sgn = kerb.side === 'left' ? 1 : -1;
-  const kerbWidth = kerb.width || 2.4;
-  const startPt = pts[index];
-  const endPt = pts[(index + 1) % count];
-
-  // Red and white kerb teeth alternating every 2.0 m along the corner
-  const tooth = Math.floor(startPt.dist / 2.0) % 2;
-  view.ctx.fillStyle = tooth ? COL.kerbB : COL.kerbA;
-
-  const iaX = toScreenX(startPt.x + sgn * startPt.nx * halfW), iaY = toScreenY(
-      startPt.y + sgn * startPt.ny * halfW);
-  const ibX = toScreenX(endPt.x + sgn * endPt.nx * halfW), ibY = toScreenY(
-      endPt.y + sgn * endPt.ny * halfW);
-  const oaX = toScreenX(startPt.x + sgn * startPt.nx * (halfW + kerbWidth)),
-    oaY = toScreenY(
-      startPt.y + sgn * startPt.ny * (halfW + kerbWidth));
-  const obX = toScreenX(endPt.x + sgn * endPt.nx * (halfW + kerbWidth)), obY = toScreenY(
-      endPt.y + sgn * endPt.ny * (halfW + kerbWidth));
-
-  view.ctx.beginPath();
-  view.ctx.moveTo(iaX, iaY);
-  view.ctx.lineTo(ibX, ibY);
-  view.ctx.lineTo(obX, obY);
-  view.ctx.lineTo(oaX, oaY);
-  view.ctx.closePath();
-  view.ctx.fill();
-
-  // Outer highlight bevel along crest
-  view.ctx.strokeStyle = 'rgba(255,255,255,0.40)';
-  view.ctx.lineWidth = Math.max(1, 0.08 * pxPerM);
-  view.ctx.beginPath();
-  view.ctx.moveTo(oaX, oaY); view.ctx.lineTo(obX, obY);
-  view.ctx.stroke();
-
-  // Inner shadow joint along asphalt edge
-  view.ctx.strokeStyle = 'rgba(0,0,0,0.22)';
-  view.ctx.lineWidth = Math.max(1, 0.08 * pxPerM);
-  view.ctx.beginPath();
-  view.ctx.moveTo(iaX, iaY); view.ctx.lineTo(ibX, ibY);
-  view.ctx.stroke();
-}
-
-/**
- * Draws the curved corner kerbs of the subtrack.
- * @param ctx the road context
- */
-function drawCurvedKerbs(ctx: RoadCtx) {
-  if (!LEVEL.subtrack || !LEVEL.subtrack.pts) return;
-  const sub = LEVEL.subtrack, pts = sub.pts, count = pts.length;
-  if (sub.curvedKerbs) {
-    for (const kerb of sub.curvedKerbs) {
-      const start = kerb.startDist, end = kerb.endDist;
-      for (let i = 0; i < count; i++) {
-        const startPt = pts[i];
-        if (startPt.dist < start || startPt.dist > end) continue;
-        drawKerbTooth(ctx, sub, kerb, i);
-      }
-    }
-  }
 }
 
 /**

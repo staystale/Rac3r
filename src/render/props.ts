@@ -1,6 +1,6 @@
 // The PROPS layer of the renderer: the fence, the barriers and the trackside props, each prop
 // kind dispatched to its painter in render/props/, with the overhead ones drawn above the cars.
-import { PROPS } from '../world/state.ts';
+import { LEVEL, PROPS } from '../world/state.ts';
 import type { Prop } from '../world/types.ts';
 import type { Cam, View } from './types.ts';
 import type { PropCtx, PropDrawer, PropsHelpers } from './props/types.ts';
@@ -39,6 +39,7 @@ import {
 import { drawParkedCar, drawTunnel, drawVenueBridge } from './props/venueprops.ts';
 import { drawButte, drawHoodoo, drawArch } from './props/formations.ts';
 import { drawWreck, drawSkull, drawGasStation, drawCanopy } from './props/desertjunk.ts';
+import { propsNear, screenBox } from './propgrid.ts';
 
 /** the drawer of each prop kind (a kind with no entry is only positioned) */
 const PROP_DRAWERS: Record<string, PropDrawer> = {
@@ -86,6 +87,8 @@ const PROP_DRAWERS: Record<string, PropDrawer> = {
 // the car, so cars drove OVER the start gantry.
 // (a desert arch too: you drive under its span; a gas station's canopy - highway/canyon.ts)
 const OVERHEAD = new Set(['gantry', 'footbridge', 'bridge', 'arch', 'canopy']);
+// every prop is drawn this far off the screen at least (more for a big one: propVisible)
+const SCREEN_PAD_PX = 150;
 /**
  * Whether a prop is on screen, with a margin by the prop's own size.
  * @param view the canvas view
@@ -98,7 +101,7 @@ const OVERHEAD = new Set(['gantry', 'footbridge', 'bridge', 'arch', 'canopy']);
 function propVisible(view: View, prop: Prop, screenX: number, screenY: number, ppm: number) {
   // margin by the prop's own size (a fixed 150 px let a 20 m hangar pop in at the screen edge)
   const margin = Math.max(
-    150,
+    SCREEN_PAD_PX,
     Math.max(prop.w || 0, prop.h || 0, prop.size || 0, prop.wid || 0, prop.s || 0, 18) * ppm
       * 0.75,
     (prop.reach || 0) * ppm,
@@ -119,7 +122,7 @@ function propVisible(view: View, prop: Prop, screenX: number, screenY: number, p
  * @param overhead true for the overhead layer
  */
 function drawPropList(propCtx: PropCtx, overhead = false) {
-  const { PPMz, drawSlip } = propCtx;
+  const { PPMz } = propCtx;
   const ppm = PPMz();
   // bushes' leaves poke up over the cars (under the lamp heads and the tree canopies)
   if (overhead) drawBushTufts(propCtx, ppm);
@@ -128,20 +131,34 @@ function drawPropList(propCtx: PropCtx, overhead = false) {
   // the street lights: standing heads hang above the cars, fallen posts lie under them
   drawStreetLights(propCtx, ppm, overhead);
   if (!PROPS || !PROPS.length) return;
-  for (const prop of PROPS) {
-    // a tree's canopy hangs over the cars too; a drivable bridge is in both layers
-    const isOver = OVERHEAD.has(prop.kind) || prop.kind === 'tree';
-    if (isOver !== overhead && !isDrivableBridge(prop)) continue;
-    if (prop.kind === 'garagerow') {
-      drawGarageRow(propCtx, prop, ppm);
-      continue;
-    }
-    if (prop.kind === 'slip') {
-      drawSlip(prop, ppm);
-      continue;
-    }
-    drawOneProp(propCtx, prop, ppm, overhead);
+  // the endless road changes its props as it goes (highway/*.ts): it walks the whole list
+  const near = LEVEL.endless ? null : propsNear(PROPS, screenBox(propCtx.view,
+    propCtx.toScreenX, propCtx.toScreenY, SCREEN_PAD_PX));
+  if (near) for (const idx of near) drawListedProp(propCtx, PROPS[idx], ppm, overhead);
+  else for (const prop of PROPS) drawListedProp(propCtx, prop, ppm, overhead);
+}
+
+/**
+ * Draws one prop of the list in its layer: a garage row or a slip road by its own painter, any
+ * other prop when on screen.
+ * @param propCtx the view, camera and painter helpers
+ * @param prop the prop
+ * @param ppm pixels per metre
+ * @param overhead true for the overhead layer
+ */
+function drawListedProp(propCtx: PropCtx, prop: Prop, ppm: number, overhead: boolean) {
+  // a tree's canopy hangs over the cars too; a drivable bridge is in both layers
+  const isOver = OVERHEAD.has(prop.kind) || prop.kind === 'tree';
+  if (isOver !== overhead && !isDrivableBridge(prop)) return;
+  if (prop.kind === 'garagerow') {
+    drawGarageRow(propCtx, prop, ppm);
+    return;
   }
+  if (prop.kind === 'slip') {
+    propCtx.drawSlip(prop, ppm);
+    return;
+  }
+  drawOneProp(propCtx, prop, ppm, overhead);
 }
 
 /**
