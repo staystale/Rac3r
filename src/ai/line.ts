@@ -359,9 +359,12 @@ function openPath(coords: number[][], rounds = 40) {
     total += Math.hypot(out[i].x - out[i - 1].x, out[i].y - out[i - 1].y);
   return { pts: out, total };
 }
-export const nearestIdx = (pts: PathPoint[], x: number, y: number) => {
+// (keep: only the points it passes - the road a car is on at a crossover, world/trackunder.ts)
+export const nearestIdx = (pts: PathPoint[], x: number, y: number,
+  keep?: (point: PathPoint) => boolean) => {
   let bestIdx = 0, bestDist = Infinity;
   for (let i = 0; i < pts.length; i++) {
+    if (keep && !keep(pts[i])) continue;
     const dist = (pts[i].x - x) ** 2 + (pts[i].y - y) ** 2;
     if (dist < bestDist) { bestDist = dist; bestIdx = i; }
   }

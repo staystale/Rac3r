@@ -12,6 +12,7 @@ import { TRAP_NEAR_M, inZones } from "./venuetraps.ts";
 import { insidePolygon } from "./zones.ts";
 import { HALF_ROAD, centreAt, clearRuns, distToLine, evenly, joinEnds, lineLength, nearestLoop,
   trimEnds } from "./venuegeo.ts";
+import { crossoverAt, overCap, underSpan, underground } from "./venuecross.ts";
 import type { Barrier, Cone, Point, Subtrack, TrackPoint, Zone } from "./types.ts";
 
 // m past the road's edge the Armco stands where there is no trap (the run-off: grass)
@@ -120,7 +121,7 @@ function rimSide(sub: Subtrack, side: number, traps: Zone[], lines: RimLines): F
   const offs = most.map((value, i) => {
     let sum = 0;
     for (let near = -RIM_EASE; near <= RIM_EASE; near++) sum += most[(i + near + count) % count];
-    return Math.min(sum / (2 * RIM_EASE + 1), mids[i]);
+    return Math.min(sum / (2 * RIM_EASE + 1), mids[i], overCap(sub, i * RIM_STEP_M));
   });
   if (mids.some(Number.isFinite)) MIDLINED.add(offs);
   return offs;
@@ -180,7 +181,9 @@ function midline(sub: Subtrack, centre: TrackPoint, side: number): number {
     const x = centre.x + centre.nx * side * out, y = centre.y + centre.ny * side * out;
     const { hit } = nearestLoop([sub], x, y);
     const along = Math.abs(hit.trackDist - centre.dist);
-    const apart = Math.min(along, sub.totalDist - along) > MIDLINE_APART_M;
+    // (never the road below a crossover: it runs under this one, world/venuecross.ts)
+    const apart = Math.min(along, sub.totalDist - along) > MIDLINE_APART_M
+      && !underSpan(sub, hit.trackDist);
     if (apart && hit.dist < out) return out - 0.125;
   }
   return Infinity;
@@ -355,8 +358,11 @@ export interface EdgeClear {
  * @returns true when clear
  */
 function edgeClear(keep: EdgeClear, x: number, y: number): boolean {
-  for (const sub of keep.loops)
-    if (nearestLoop([sub], x, y).hit.dist < HALF_ROAD + ROAD_CLEAR_M) return false;
+  for (const sub of keep.loops) {
+    // (over a crossover's underground stretch the road over it carries its edge: venuecross.ts)
+    const { hit } = nearestLoop([sub], x, y);
+    if (hit.dist < HALF_ROAD + ROAD_CLEAR_M && !underground(sub, hit.trackDist)) return false;
+  }
   return keep.lanes.every((lane) => distToLine(lane.pts, x, y) > lane.width / 2 + 1)
     && !keep.blocked(x, y);
 }
@@ -481,6 +487,8 @@ function edgeKinds(rim: Rim, side: number, traps: Zone[], needs: EdgeNeeds,
   }
   fillGaps(kinds, Math.round((needs.rails ? RAIL_GAP_FILL_M : GAP_FILL_M) / RIM_STEP_M));
   growRuns(kinds, Math.round(EXTEND_M / RIM_STEP_M));
+  // a crossover: the cut's walls under it, the bridge's parapets over it (world/venuecross.ts)
+  for (let i = 0; i < count; i++) if (crossoverAt(rim.sub, i * RIM_STEP_M)) kinds[i] = EDGE_NONE;
   return kinds;
 }
 

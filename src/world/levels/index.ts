@@ -42,6 +42,7 @@ import { SPA_LEVELS } from "./spa-venue.ts";
 import { MONZA_LEVELS } from "./monza-venue.ts";
 import { NERD_LEVELS } from "./nordschlep-venue.ts";
 import { LEMANS_LEVELS } from "./lemans-venue.ts";
+import { SUZUKA_LEVELS } from "./suzuka-venue.ts";
 import { OP_LEVELS } from "./oultonpork-venue.ts";
 import { DT_LEVELS } from "./dieatona-venue.ts";
 import { TH_VENUE_LEVEL } from "./thruston-venue.ts";
@@ -226,6 +227,8 @@ export const LEVELS: Level[] = [
   ...NERD_LEVELS,
   // Le Manky, the Circuit de la Sarthe, a simple first build (lemans-venue.ts; passed 11-10)
   ...LEMANS_LEVELS,
+  // ?suzuka=1: Snoozuka, the Suzuka Circuit with its crossover (suzuka-venue.ts)
+  ...(FIX.suzuka ? SUZUKA_LEVELS : []),
   // Oulton Pork, a new venue (oultonpork-venue.ts), its International, Island and Frosters
   ...OP_LEVELS,
   // ?thrustonvenue=1: the real venue (thruston-venue.ts), built on first use

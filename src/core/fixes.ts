@@ -46,6 +46,10 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
+  // ?suzuka=1: Snoozuka, the Suzuka Circuit (Japan) at 1/2 of real length - the figure of eight,
+  // the back straight over the Degner-to-hairpin leg on a drivable crossover, a world
+  // championship circuit (owner 11-10; world/levels/suzuka-venue.ts)
+  suzuka: atLoad('suzuka'),
   // ?desertjunk=1: Deaf Valley's roadside junk - dumps of crates and oil drums, old tyres lying
   // and in piles, a tin shack now and then with junk round it, and TUMBLEWEED that a gust takes
   // across the road as you come (owner 11-09: "Burned-out cars, Crates and oil drums,

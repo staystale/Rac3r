@@ -28,7 +28,8 @@ import {
 import { bumpAt, bankHeightAt, BUMP_STEER } from "./terrain.ts";
 import { crossingOf, deckGround, deckSlope } from "./crossinggeo.ts";
 import { clearDeckCells, deckOfX, deckShiftOf, isDeckX, noteDeckCell } from "./deckwear.ts";
-import { querySubtrack } from "./tyrewall.ts";
+import { queriesAt, querySubtrack } from "./tyrewall.ts";
+import { queryLevelOf } from "./trackunder.ts";
 import { bushPass } from "./bushes.ts";
 import { crackPass, crackScrubFactor, crackedIce } from "./icecrack.ts";
 import type {
@@ -585,9 +586,13 @@ function scrubIceUnder(car: CarBody, wheel: { x: number; y: number }, i: number,
 export let qsHintSub: Subtrack | null = null, qsHint = -1;
 export function applyGround(car: CarBody, dt: number): void {
   const st0 = LEVEL.subtrack;
-  if (st0) { const hit = querySubtrack(st0, car.x,
-    car.y); qsHintSub = hit.seg != null ? st0 : null; qsHint = hit.seg ?? -1; }
-  try { applyGroundInner(car, dt); } finally { qsHintSub = null; qsHint = -1; }
+  // a car on the ground is on the road it is on, not the one below a crossover (trackunder.ts)
+  const was = queriesAt(queryLevelOf(car));
+  try {
+    if (st0) { const hit = querySubtrack(st0, car.x,
+      car.y); qsHintSub = hit.seg != null ? st0 : null; qsHint = hit.seg ?? -1; }
+    applyGroundInner(car, dt);
+  } finally { qsHintSub = null; qsHint = -1; queriesAt(was); }
 }
 // FEWER GROUND LOOKUPS (owner approved). Every car asks for the smooth ground
 // height ~22 times a physics step (120 a second): a central-difference slope (4 heights) under each

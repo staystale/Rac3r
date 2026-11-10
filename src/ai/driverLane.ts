@@ -4,7 +4,8 @@
 import { lateralOf } from './rejoin.ts';
 import { querySubtrack } from "../world/tyrewall.ts";
 import { K_BRAKE, nearestIdx, profileOf } from "./line.ts";
-import type { AiCar, CarsAcc, CircuitState } from "./types.ts";
+import { inTrackUnderpass, underSpan } from "../world/trackunder.ts";
+import type { AiCar, CarsAcc, CircuitState, LinePoint, PathPoint } from "./types.ts";
 import type { Drv, AiPath } from "./driverCtx.ts";
 import { cornerNudge } from "./cornerLine.ts";
 
@@ -73,7 +74,13 @@ export function placeAtStart(drv: Drv, car: AiCar) {
       const nearest = nearestIdx(branches.start.pts, car.x, car.y), point = branches.start.pts[
       nearest]; return [point.x - car.x, point.y - car.y]; })()) < 12) {
     state.path = branches.start; state.i = nearestIdx(branches.start.pts, car.x, car.y);
-  } else { state.path = main; state.i = nearestIdx(main.pts, car.x, car.y); }
+  } else {
+    // at a crossover, a point of the road the car is on (the underpass, or the road over it)
+    const sub = level.subtrack, under = !!sub && inTrackUnderpass(car as { crossing?: number });
+    const keep = sub && sub.under ? (point: PathPoint) => (underSpan(sub,
+      (point as LinePoint).dist) !== null) === under : undefined;
+    state.path = main; state.i = nearestIdx(main.pts, car.x, car.y, keep);
+  }
 }
 
 /** Applies the running mistake to the line (latT) and the speed (vMul); may arm the throttle. */

@@ -13,6 +13,8 @@ import { prepBumps } from "./terrain.ts";
 import { onTrack, querySubtrack } from "./tyrewall.ts";
 import { solidsFromProps } from "./barriers.ts";
 import { venueCrossings } from "./crossings.ts";
+import { markUnder } from "./trackunder.ts";
+import { underParapets, underPortals, underSpans } from "./venuecross.ts";
 import { CIRCUIT_BUSHES } from "./levels/bushes.ts";
 import { buildVenueScenery } from "./venuescenery.ts";
 import { VENUE_ROAD_M, distToLine, kerbOut, lineLength, pointAlong } from "./venuegeo.ts";
@@ -131,6 +133,9 @@ export interface VenueSpec {
   // the most trees in its woods (world/venuescenery.ts MAX_TREES, 260, for a venue that does not
   // say): a venue in a forest (Spa in the Ardennes, owner 11-09) has more
   trees?: number;
+  // a figure of eight (Snoozuka): the piece whose stretch runs under the road where the layout's
+  // loop crosses itself, in a cut and under the road over it (world/venuecross.ts)
+  crossover?: { under: string };
   seed: number;
 }
 
@@ -343,6 +348,9 @@ export function venueBuild(rawSpec: VenueSpec): VenueBuild {
     loops[layout] = traceLayout(spec, layout, scale);
   const pieces = spec.data.pieces.map((piece) => ({ ...piece,
     pts: piece.pts.map(([x, y]) => [ROUND(x * scale), ROUND(y * scale)] as Point) }));
+  // a figure of eight: the stretch that runs under the road over it (world/trackunder.ts)
+  const under = spec.crossover && pieces.find((piece) => piece.name === spec.crossover!.under);
+  for (const loop of Object.values(loops)) markUnder(loop, underSpans(loop, under?.pts));
   const build = { spec, scale, loops, pieces };
   builds.set(rawSpec, build);
   return build;
@@ -541,6 +549,8 @@ export function venueLevel(spec: VenueSpec, layout: string, levelId: string,
   // the joker first among the lanes (world/joker.ts takes the first lane by its gate)
   const jokerLanes = [joker, startLane].filter((lane): lane is Lane => !!lane);
   const scenery = buildVenueScenery(build, sub, [...jokerLanes, ...closed.lanes]);
+  // a figure of eight's underpass portals, first (world/crossings.ts pairs the portals in order)
+  const props = [...underPortals(sub), ...scenery.props];
   // on the grid near the start lane's dead end, facing along it; else 15 m before the line
   const start = startLane ? laneSpawn(startLane) : onTrack(sub, sub.totalDist - 15, 0, {});
   return {
@@ -557,9 +567,9 @@ export function venueLevel(spec: VenueSpec, layout: string, levelId: string,
       distToLine(lane.pts, tyre.x, tyre.y) < lane.width / 2)), ...scenery.cones],
     scenery.barriers, sub, scenery.covers),
     bushes: CIRCUIT_BUSHES,
-    lanes: [...jokerLanes, ...scenery.lanes, ...closed.lanes], barriers: scenery.barriers,
-    props: scenery.props, solids: solidsFromProps(scenery.props),
-    crossings: venueCrossings(scenery.props),
+    lanes: [...jokerLanes, ...scenery.lanes, ...closed.lanes],
+    barriers: [...scenery.barriers, ...underParapets(sub)],
+    props, solids: solidsFromProps(props), crossings: venueCrossings(props),
     paint: [{ kind: 'chequered', x: sub.pts[0].x, y: sub.pts[0].y, len: 1.6, wid: VENUE_ROAD_M,
       rot: sub.pts[0].heading }, ...scenery.paint],
     spawn: { x: start.x, y: start.y, heading: start.rot },

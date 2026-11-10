@@ -7,7 +7,8 @@ import { createAIDriver } from '../ai/circuit.ts';
 import { aiTraits } from '../ai/traits.ts';
 
 import { LEVEL } from "../world/state.ts";
-import { onTrack, querySubtrack } from "../world/tyrewall.ts";
+import { onTrack, queriesAt, querySubtrack } from "../world/tyrewall.ts";
+import { inTrackUnderpass, queryLevelOf } from "../world/trackunder.ts";
 import { onGround } from "../world/crossinggeo.ts";
 import { STAGE_GAP_S, GRID_STEP, gridColumn } from './grid.ts';
 import { formationInput, roadFormationInput } from '../ai/formation.ts';
@@ -98,10 +99,14 @@ export function stepStart(dt: number) {
 // Each car's distance round the lap, UNWRAPPED across the line (a car behind the line on the grid
 // starts slightly negative), from the nearest centreline point; ranked.
 export function progressOf(car: GameCar) {
+  // on a bridge over it or in a tunnel under it the car is not on the lap: held where it left -
+  // but in the lap's own underpass (a figure of eight) it is on the road below
+  if (!onGround(car) && !inTrackUnderpass(car)) return car._prog;
+  // (on the ground never the road below a crossover, in the underpass only it: trackunder.ts)
+  const was = queriesAt(queryLevelOf(car));
   const sub = LEVEL.subtrack!, total = sub.totalDist, near = querySubtrack(sub, car.x, car.y),
     along = near.trackDist;
-  // on a bridge over it or in a tunnel under it the car is not on the lap: held where it left
-  if (!onGround(car)) return car._prog;
+  queriesAt(was);
   if (car._prog === undefined) {
     if (near.dist > sub.width / 2 + 2) return undefined;   // not on the lap yet
     car._prog = along > total / 2 ? along - total : along;

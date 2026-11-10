@@ -134,8 +134,10 @@ function tunnelCrossing(first: Prop, second: Prop): Crossing {
   const openEnd = (portal: Prop): Point => [
     portal.x - Math.cos(portal.rot || 0) * portal.w! / 2,
     portal.y - Math.sin(portal.rot || 0) * portal.w! / 2];
-  return makeCrossing('tunnel', openEnd(first), openEnd(second), [-first.h! / 2, first.h! / 2],
-    first.w! - PORTAL_LINTEL_M);
+  const way = makeCrossing('tunnel', openEnd(first), openEnd(second),
+    [-first.h! / 2, first.h! / 2], first.w! - PORTAL_LINTEL_M);
+  // the race road's own underpass (a figure of eight: world/trackunder.ts)
+  return first.track ? { ...way, track: true } : way;
 }
 
 /**

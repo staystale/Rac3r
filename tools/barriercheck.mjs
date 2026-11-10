@@ -1,6 +1,7 @@
 // barriercheck.mjs — every SOLID barrier point must be clear of the road (>= half width + 2 m from the centreline) and off every
 // lane; lanes must not cross the road except where they join it. node tools/barriercheck.mjs [level]. Built 2026-10-04 (Thruston pits).
 import * as L from '../src/lab.ts';
+import { onGroundQuery } from '../src/world/tyrewall.ts';
 const lv = process.argv[2] || 'thruston';
 L.setLevel(lv);
 const st = L.LEVEL.subtrack, hw = st.width / 2;
@@ -15,7 +16,11 @@ const onLane = (x, y) => (L.LEVEL.lanes || []).some((ln) => ln.pts.some(([a, b],
 for (const b of L.LEVEL.barriers || []) {
   if (b.kind === 'line') continue;
   let minD = Infinity, laneHits = 0;
-  for (const [x, y] of b.pts) { minD = Math.min(minD, L.querySubtrack(st, x, y).dist); if (onLane(x, y)) laneHits++; }
+  // (a barrier stands on the ground: over a crossover it is on the bridge, not the road below)
+  for (const [x, y] of b.pts) {
+    minD = Math.min(minD, onGroundQuery(() => L.querySubtrack(st, x, y)).dist);
+    if (onLane(x, y)) laneHits++;
+  }
   const ok = minD >= hw + 2 && laneHits === 0;
   if (!ok) fails.push(b.kind);
   console.log(`${ok ? 'OK  ' : 'FAIL'} ${b.kind.padEnd(8)} ${b.pts.length} pts, nearest ${minD.toFixed(1)} m from the centreline (road edge ${hw}), on a lane: ${laneHits}`);

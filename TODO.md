@@ -334,6 +334,18 @@ CARS: talk to the owner once the tracks are done (trucks, a Dakar car / truck).
    Indianapolis's approach, the Porsche curves and Maison Blanche. PASSED + DEFAULT 11-10
    (owner: "Pass"). Next (owner 11-10): fences at the open run-off, "wooden fences or chain link
    fences and mix it up so it's not always Armco" - the world circuits have a lot of Armco.
+   SNOOZUKA BUILT 11-10 behind ?suzuka=1 (the name confirmed by the owner 11-10;
+   levels/suzuka-venue.ts, OSM data in venues/suzuka.ts; the venue helper): the Suzuka Circuit as a
+   FULL venue, 2904 m (real 5807, OSM 5813) - the pit lane, OSM's gravel traps (mapped as sand),
+   barriers both sides all round (a line 10 real m off each side from the aerial photographs, as
+   Monzarella's, with OSM's walls and fences), grandstands and catch fences, the access tunnels,
+   the woods at 260 trees, boards (DUNFLOP, PIRRELLY, GOOD YEAH, SNOOZUKA), SRTM heights as 20
+   hills (EU-DEM is Europe only; credited). THE CROSSOVER: the Degner-to-hairpin leg in a cut
+   and under the back straight, the race road's own underpass (NOTES: A ROAD THAT CROSSES
+   ITSELF). MEASURED: build 3.5 s (node), the AI line 0.3-0.4 s on its first car, JS heap 52-57
+   MB with 10 AI, CPU x4 work median 13.7-16.8 ms, p95 28.7-29.7 (Spa 13.6-15.5 / 22.7-26.5),
+   three 20-car starts (seeds 7 / 8 / 9): barrier hits 0 / 0 / 0, hard car hits 1 / 5 / 5; a lap
+   137 s for the scripted driver. UNDER TEST.
 3. ROLLING LOOK - smoother than the dice flip on the same physics; mockup first.
 4. SIDE DRAFTING (Naffcar first) PASSED + DEFAULT 11-08 (owner: "Pass"): physics/wake.ts part 5 - a nose
    alongside a car's rear quarter, up to +20 % drag on it and -6 % on the car alongside, gone by 1.2 m

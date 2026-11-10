@@ -15,7 +15,7 @@ import { pathToFileURL } from 'node:url';
 const [levelId = 'brands-snatch', flag] = process.argv.slice(2);
 const imp = (path) => import(pathToFileURL(process.cwd() + path).href);
 const { LEVELS } = await imp('/src/world/levels/index.ts');
-const { querySubtrack } = await imp('/src/world/tyrewall.ts');
+const { querySubtrack, onGroundQuery } = await imp('/src/world/tyrewall.ts');
 // (a venue's level is built on first use: world/load.ts buildLevel)
 const { buildLevel } = await imp('/src/world/load.ts');
 const { planLamps, cornerTyres } = await imp('/src/world/lampplan.ts');
@@ -189,7 +189,9 @@ for (const prop of solidProps) {
 // barriers on the track, on roads, doubled, crossing
 const rails = (level.barriers || []).filter((rail) => rail.kind !== 'building' && rail.kind !== 'line');
 for (const [i, rail] of rails.entries()) {
-  const onT = rail.pts.filter(([x, y]) => querySubtrack(level.subtrack, x, y).dist < half + 0.5).length;
+  // (a barrier stands on the ground: over a crossover it is on the bridge, not the road below)
+  const onT = rail.pts.filter(([x, y]) => onGroundQuery(() => querySubtrack(level.subtrack, x, y))
+    .dist < half + 0.5).length;
   if (onT) note('barrier on the track', `${rail.kind} ${onT} pts`);
   // (a barrier folding back on itself: a step turning more than a right angle from the one before
   // - no 2 m Armco step bends that hard - a zig-zag by a trap at Dongington)

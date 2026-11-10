@@ -90,6 +90,42 @@ export function onTrack<T extends object>(
   };
 }
 
+// QUERIES BY LEVEL (a figure of eight, world/trackunder.ts): GROUND, the stretch under the track is
+// not looked at - a car on the ground at the crossover is on the road over it; UNDER, only that
+// stretch - a car in the underpass is on the road below. ALL (as before) for every build-time
+// question and every level whose road never crosses itself.
+export const QUERY_ALL = 0, QUERY_GROUND = 1, QUERY_UNDER = 2;
+let queryLevel = QUERY_ALL;
+/**
+ * Whether a segment is out of the lookups at the level they are made for.
+ * @param segment the segment
+ * @returns true to pass it by
+ */
+const offLevel = (segment: SubSeg) => queryLevel !== QUERY_ALL
+  && (segment.under === true) === (queryLevel === QUERY_GROUND);
+/**
+ * Runs a lookup for a car on the ground: the stretches under the track (Subtrack.under) are left
+ * out of every query inside it. Nested calls keep the outer setting when they end.
+ * @param run the lookup
+ * @returns what it returns
+ */
+export function onGroundQuery<T>(run: () => T): T {
+  const was = queryLevel;
+  queryLevel = QUERY_GROUND;
+  try { return run(); } finally { queryLevel = was; }
+}
+/**
+ * Sets the level the lookups are made for (onGroundQuery without a closure, for the per-step
+ * lookups that must not allocate).
+ * @param level QUERY_ALL, QUERY_GROUND or QUERY_UNDER
+ * @returns the level before, to put back
+ */
+export function queriesAt(level: number): number {
+  const was = queryLevel;
+  queryLevel = level;
+  return was;
+}
+
 // NEAR-HINT SEARCH. The probes come from one car (its wheels, and 0.3 m either side of them for
 // the slope), so the nearest segment is almost always a few round the car's own. MEASURED (Brands,
 // 5 cars, CPU x4): the full +-21 window was 0.96 s of every 15 s of racing. The +-NEAR_FIRST window
@@ -109,7 +145,7 @@ function nearestAroundHint(segs: SubSeg[], probeX: number, probeY: number, reach
   nearBest.dist2 = Infinity; nearBest.index = -1; nearBest.frac = 0; nearBest.shift = 0;
   for (let shift = -reach; shift <= reach; shift++) {
     const i = (qsHint + shift + count) % count, segment = segs[i];
-    if (segment.ghost) continue;
+    if (segment.ghost || offLevel(segment)) continue;
     let frac = ((probeX - segment.ax) * segment.dx + (probeY - segment.ay) * segment.dy)
       / (segment.l2 || 1);
     if (frac < 0) frac = 0; else if (frac > 1) frac = 1;
@@ -179,6 +215,7 @@ function scanSegments(
   for (let candIdx = 0; candIdx < candCount; candIdx++) {
     const i = cand ? cand[candIdx] : candIdx;
     const segment = segs[i];
+    if (offLevel(segment)) continue;
     if (probeX < segment.minX || probeX > segment.maxX
       || probeY < segment.minY || probeY > segment.maxY) continue;
     let frac = ((probeX - segment.ax) * segment.dx + (probeY - segment.ay) * segment.dy)
@@ -266,6 +303,7 @@ export function findNearestSubtrackPoint(
   let best: TrackPoint | null = null, bestDist2 = Infinity;
   for (let i = 0; i < pts.length; i++) {
     const point = pts[i];
+    if (subtrack.segs[i] && offLevel(subtrack.segs[i])) continue;
     // Never place ahead of driven distance
     if (point.dist > maxProgressDist + 8) continue;
     const dx = x - point.x, dy = y - point.y;

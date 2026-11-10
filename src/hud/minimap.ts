@@ -18,6 +18,7 @@
 import { LEVEL } from '../world/state.ts';
 import { MARGIN } from './widgets.ts';
 import { jokerLane } from '../world/joker.ts';
+import { inTrackUnderpass } from '../world/trackunder.ts';
 import type { HudState, HudGame } from './hudtypes.ts';
 import type { HudRects } from './layout.ts';
 import type { Level, TrackPoint } from '../world/types.ts';
@@ -172,10 +173,13 @@ export function setMinimapView(source: () => number) {
  * @param y car y, m
  * @returns the point's index
  */
-function nearestPoint(pts: TrackPoint[], x: number, y: number) {
+function nearestPoint(pts: TrackPoint[], x: number, y: number, under: boolean) {
   let best = mapState.idx, bestD = Infinity;
+  const segs = LEVEL.subtrack && LEVEL.subtrack.under ? LEVEL.subtrack.segs : null;
   const look = (i: number) => {
     const index = (i + pts.length) % pts.length, point = pts[index];
+    // at a crossover only the road the car is on (world/trackunder.ts)
+    if (segs && !!segs[index]?.under !== under) return;
     const distSq = (point.x - x) ** 2 + (point.y - y) ** 2;
     if (distSq < bestD) { bestD = distSq; best = index; }
   };
@@ -334,7 +338,7 @@ export function drawHudMinimap(ctx: CanvasRenderingContext2D, hud: HudState, rec
   if (!mapShown && !barShown) return;
   if (!sub || !sub.pts || sub.pts.length < 2) return;
   if (mapState.level !== LEVEL) Object.assign(mapState, { level: LEVEL, idx: 0, heading: null });
-  const idx = nearestPoint(sub.pts, game.car.x, game.car.y);
+  const idx = nearestPoint(sub.pts, game.car.x, game.car.y, inTrackUnderpass(game.car));
   const { x, y } = minimapAt(rects);
   if (mapShown) drawWindow(ctx, game, x, y, idx, wallDt);
   if (barShown) drawProgress(ctx, x, mapShown ? y + SIZE + 5 : y, sub.pts[idx].dist, sub.totalDist);

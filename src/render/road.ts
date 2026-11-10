@@ -8,6 +8,7 @@ import { MARK_EXTENT, MARK_PPM } from '../marks.ts';
 import { paintAs } from "../world/coverfield.ts";
 import { drawPaintLine } from "./paintline.ts";
 import { drawCurvedKerbs } from "./kerbs.ts";
+import { underground } from "../world/trackunder.ts";
 import type { Prop } from "../world/types.ts";
 import type { Cam, ForSide, RenderMarks, RoadGame, View } from "./types.ts";
 
@@ -150,6 +151,8 @@ function drawLanes(ctx: RoadCtx) {
  */
 function ribbonSurfaceAt(sub: Sub, dist: number) {
   if (sub.ghost && dist >= sub.ghost.d0 && dist < sub.ghost.d1) return 'ghost';
+  // (nor the road below a crossover under the ground: the road over it shows whole)
+  if (sub.under && underground(sub, dist)) return 'ghost';
   const sector = sub.sectorAt ? sub.sectorAt(dist) : null;
   return (sector && sector.surface) ? paintAs(sector.surface.id, sector.surface.under) : 'tarmac';
 }

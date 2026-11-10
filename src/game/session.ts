@@ -17,7 +17,8 @@ import { resetTrackside } from "../world/barriers.ts";
 import { resetPuddles } from "../world/puddles.ts";
 import { resetCoverField } from "../world/coverfield.ts";
 import { resetRace, resetStage } from './rules.ts';
-import { findNearestSubtrackPoint, onTrack } from "../world/tyrewall.ts";
+import { onTrack } from "../world/tyrewall.ts";
+import { clearOfUnder, trackSpotOf } from "../world/trackunder.ts";
 import { jokerLane, lanePose } from "../world/joker.ts";
 import { resetCar, armStart, startHeld, startAtOf } from './order.ts';
 import { gridPos, spawnAI } from './grid.ts';
@@ -194,13 +195,13 @@ function resetOnCircuit(place: PlaceCar) {
   const sub = LEVEL.subtrack!;
   let rec = shared.lastOnTrack;
   if (!rec) {
-    const point = findNearestSubtrackPoint(sub, game.car.x, game.car.y, shared.trackProgress);
+    const point = trackSpotOf(sub, game.car.x, game.car.y, game.car, shared.trackProgress);
     if (point) rec = { dist: point.dist,
       off: (game.car.x - point.x) * point.nx + (game.car.y - point.y) * point.ny };
   }
   if (!rec) return false;
   const side = Math.sign(rec.off) || (Math.random() < 0.5 ? -1 : 1);
-  const dist = (rec.dist - RESET_BACK + sub.totalDist) % sub.totalDist;
+  const dist = clearOfUnder(sub, (rec.dist - RESET_BACK + sub.totalDist) % sub.totalDist);
   const ang = (RESET_ANG[0] + Math.random() * (RESET_ANG[1] - RESET_ANG[0])) * Math.PI / 180;
   const point = onTrack(sub, dist, side * Math.max(0, sub.width / 2 - resetInset(ang)), {});
   // +heading turns the nose toward +normal, so a car on the +side turns by -ang to point back

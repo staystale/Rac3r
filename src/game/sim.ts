@@ -18,7 +18,7 @@ import { crossingOf, onGround } from "../world/crossinggeo.ts";
 import { stampCrossingMarks } from "../marks.ts";
 import { takeThrownPlanks } from "../world/marshalbox.ts";
 import { throwParts, stepParts } from "../world/debris.ts";
-import { findNearestSubtrackPoint } from "../world/tyrewall.ts";
+import { trackSpotOf } from "../world/trackunder.ts";
 import { resetCar, startHeld, stepOrder, formationWant } from './order.ts';
 import { doReset, onScreen } from './session.ts';
 import { shared, game } from './state.ts';
@@ -83,7 +83,7 @@ export function autopilotInput(wallDt: number) {
     shared.autoStill = 0;
     if (LEVEL.endless) doReset();
     else {
-      const spot = findNearestSubtrackPoint(LEVEL.subtrack!, game.car.x, game.car.y)!;
+      const spot = trackSpotOf(LEVEL.subtrack!, game.car.x, game.car.y, game.car)!;
       reset(game.car, spot.x, spot.y, spot.heading);
     }
     shared.autoDrv!.relocate();
@@ -115,7 +115,7 @@ export function demoInput(wallDt: number) {
   }
   if (shared.demoStill > 3 || ('lastDist' in demo.state && demo.state.lastDist > 30)) {
     shared.demoStill = 0;
-    const spot = findNearestSubtrackPoint(LEVEL.subtrack!, game.car.x, game.car.y)!;
+    const spot = trackSpotOf(LEVEL.subtrack!, game.car.x, game.car.y, game.car)!;
     reset(game.car, spot.x, spot.y, spot.heading);
     demo.relocate();
   }

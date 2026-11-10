@@ -13,6 +13,14 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'suzuka',
+    added: '2026-11-10',
+    name: 'Snoozuka: the Suzuka Circuit at 1/2 (2.9 km), the figure of eight over its crossover',
+    where: 'Test link + &suzuka=1: TEST MODE > WORLD CIRCUITS',
+    try: 'A lap, then VS AI: the Esses, Degner, under the crossover, Spoon, 130R over it.',
+    wrong: 'A car on the wrong level, lap or place jumping at the crossover, a bad reset there.',
+  },
+  {
     id: 'desertjunk',
     added: '2026-11-10',
     name: 'Deaf Valley junk: crates and oil drums, old tyres, tin shacks, tumbleweed on the breeze',

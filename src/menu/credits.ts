@@ -1,9 +1,9 @@
 // menu/credits.ts - THE CREDITS SCREEN, opened from the main menu. It names who made the game,
 // then whose work the game carries: the traced circuit maps (Wikimedia Commons, CC BY-SA -
 // attribution required), OpenStreetMap's map data (ODbL - attribution required), the EU-DEM
-// heights the venues' hills are fitted to (Copernicus - attribution required) and the menu
-// fonts (SIL OFL). Add a line here in the same change as anything else the game takes from
-// someone else.
+// heights the venues' hills are fitted to (Copernicus - attribution required; SRTM outside
+// Europe) and the menu fonts (SIL OFL). Add a line here in the same change as anything else the
+// game takes from someone else.
 import { addPane, addButton, addElement } from './widgets.ts';
 import { MENU_COL } from './palette.ts';
 
@@ -31,6 +31,11 @@ const CREDITS: { heading: string; items: Credit[] }[] = [
         who: 'Produced using Copernicus data and information funded by the European Union'
           + ' - EU-DEM layers', licence: 'Copernicus data policy',
         link: 'https://land.copernicus.eu/en/data-policy' },
+      { what: 'Circuit venues outside Europe (Snoozuka): the heights of the ground',
+        who: 'Shuttle Radar Topography Mission (SRTM) data courtesy of NASA and the U.S. Geological'
+          + ' Survey', licence: 'public domain',
+        link: 'https://www.usgs.gov/centers/eros/science/usgs-eros-archive-digital-elevation-'
+          + 'shuttle-radar-topography-mission-srtm-1' },
     ],
   },
   {

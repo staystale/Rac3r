@@ -10,7 +10,8 @@ import { applyGround } from "../world/wear.ts";
 import { clampWorld } from "../world/crossings.ts";
 import { sameLevel } from "../world/crossinggeo.ts";
 import { crossedJoker } from './rules.ts';
-import { findNearestSubtrackPoint, onTrack } from "../world/tyrewall.ts";
+import { onTrack } from "../world/tyrewall.ts";
+import { clearOfUnder, trackSpotOf } from "../world/trackunder.ts";
 import { startHeld, carHeld, atPace, formationWant } from './order.ts';
 import { RESET_BACK, RESET_ANG } from './session.ts';
 import { shared, game } from './state.ts';
@@ -44,13 +45,13 @@ export function aiReset(entry: HurtEntry) {
   }
   if (rec) {
     const side = Math.sign(rec.off) || (Math.random() < 0.5 ? -1 : 1),
-      dist = (rec.dist - RESET_BACK + sub.totalDist) % sub.totalDist;
+      dist = clearOfUnder(sub, (rec.dist - RESET_BACK + sub.totalDist) % sub.totalDist);
     const point = onTrack(sub, dist, side * sub.width / 2, {}),
       ang = (RESET_ANG[0] + Math.random() * (RESET_ANG[1] - RESET_ANG[0])) * Math.PI / 180;
     reset(car, point.x, point.y, point.rot - side * ang);
     car._lastOn = { dist: dist, off: side * (sub.width / 2 - 0.5) };
   } else {
-    const nearest = findNearestSubtrackPoint(sub, car.x, car.y)!;   // a circuit has points
+    const nearest = trackSpotOf(sub, car.x, car.y, car)!;   // a circuit has points
     reset(car, nearest.x, nearest.y, nearest.heading);
   }
   entry.drv.relocate();
@@ -254,7 +255,7 @@ export function recoverAI(entry: AiEntry) {
     } catch { /* next step */ }
     return;
   }
-  const sub = LEVEL.subtrack!, nearest = findNearestSubtrackPoint(sub, from.x, from.y)!;
+  const sub = LEVEL.subtrack!, nearest = trackSpotOf(sub, from.x, from.y, car)!;
   reset(car, nearest.x, nearest.y, nearest.heading);
   entry.drv.relocate();
 }

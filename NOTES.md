@@ -54,7 +54,8 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   Sillystone, Oulton Park = Oulton Pork (its Foster's layout = Frosters), Cadwell Park = Cadwallop
   Park, Mallory Park = Malarkey Park, Anglesey = Anglesleazy, Goodwood = Goodwoody, Croft =
   Croughed (owner 11-09), Spa-Francorchamps = Spa-Frankenchumps (owner's brief 11-09), Le Mans =
-  Le Manky (its Mulsanne straight, the Hunaudieres, = the Mulsanity; owner's brief 11-09).
+  Le Manky (its Mulsanne straight, the Hunaudieres, = the Mulsanity; owner's brief 11-09), Suzuka =
+  Snoozuka (the brief 11-09, confirmed by the owner 11-10).
 - No keys, tokens, tunnel URLs or process IDs in the repo. No itch.io push until the owner says so.
 - The foreman may push to `main` once the change is proven (routine below).
 - Keep the test server and the tunnel running.
@@ -533,6 +534,26 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   Armco shorter than a run, dropped - a 4-8 m gap between two fence runs, and a fence jogging round
   a stand broke the same way. tools/scratch/_barriergaps.mjs (barrier ends 0.3-12 m from another
   barrier) finds them; the hand finish moves the stand (spec.finish.move).
+- A ROAD THAT CROSSES ITSELF (11-10, Snoozuka's figure of eight; owner: "keep the figure-of-eight
+  as a drivable bridge"): every lookup of "where on the lap is this point" took the NEAREST stretch,
+  and on the bridge the road below is as near - MEASURED: on the 25 x 13 m of road over the cut the
+  plain lookup took the road below for 99 of 325 points (the race order, the ground under the
+  wheels, a reset, the AI's re-place, the minimap would all have jumped half a lap). Now the road
+  below is the race road's own tunnel crossing (world/venuecross.ts portals, Crossing.track) and
+  its segments are marked under (world/trackunder.ts): a car's lookups are made at its LEVEL
+  (tyrewall.ts queriesAt / onGroundQuery: the ground's leave the stretch below out, the
+  underpass's take only it); a car in it keeps its race progress along it; a reset never lands in
+  its cut. Every build-time question still sees the whole road, and a level whose road never
+  crosses itself has no marked segment - the same answers (worldhash, simhash). The bridge has
+  its own parapets (underParapets: the edge stands neither over nor under a crossover), the
+  road below is not drawn under the ground (road.ts ribbonSurfaceAt). Proved by
+  tools/scratch/_crossovercheck.mjs (an AI field passing both legs: no progress jump, no car on
+  the wrong level, the resets and re-place) and _crossovershots.mjs (the live game: the car in
+  the cut, hidden under the bridge, the minimap); barriercheck, venueaudit and propcheck judge a
+  barrier or a solid on the ground (the bridge's parapets are not on the road below).
+- A TOOL PUTS A CAR DOWN WITH THE GAME'S reset (11-10, _crossovershots.mjs): a car moved by
+  setting x and y keeps the height of where it was - 7 m below the back straight it popped out of
+  the ground, flew and crashed on the bridge, a crash that was never the bridge's.
 - A RACED PUBLIC ROAD'S NODES ARE HUNDREDS OF METRES APART (11-10, Le Manky): tools/osmvenue.mjs
   kept a feature within reachM of every 4th node of the race pieces - enough on a raceway, whose
   nodes are metres apart, but the D338's straight (raced with "roadRace") has a node every

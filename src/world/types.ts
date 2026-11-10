@@ -189,6 +189,7 @@ export interface Prop {
   phase?: number;   // highway.ts bridges
   cow?: boolean;   // highway.ts road bridges
   cars?: number;   // highway.ts road bridges
+  track?: boolean;   // a portal of the race road's own underpass (world/venuecross.ts)
   quiet?: boolean;   // a road bridge with no traffic over it (Brands Snatch's)
   look?: string;   // a prop drawn in another look ('venue': a venue's road bridge)
   trainEvery?: number;   // highway.ts rail bridges
@@ -279,6 +280,8 @@ export interface Crossing {
   rise: number;
   // the walls holding a car on it (kind 'wall'; no ground car meets them)
   walls: Barrier[];
+  // the race road's own underpass (a figure of eight: world/trackunder.ts)
+  track?: boolean;
 }
 
 // One wheel's contact point in the world, metres.
@@ -611,6 +614,8 @@ export interface SubSeg {
   minY: number;
   maxY: number;
   ghost?: boolean;   // set by ghostSegment
+  // under another stretch of the same road (a figure of eight's underpass: world/trackunder.ts)
+  under?: boolean;
 }
 
 // What createSubtrack returns (the track centre line and its lookup grid).
@@ -631,6 +636,9 @@ export interface Subtrack {
   _camber?: Float32Array;   // terrain.ts camberHeightAt
   _camberCfg?: Camber;   // terrain.ts camberHeightAt
   layoutId?: number;   // highway.ts, grass-track.js: a new value means cached ground is stale
+  // the stretches that pass under another stretch, m along, and where along the road over it they
+  // cross (world/trackunder.ts)
+  under?: { d0: number; d1: number; over?: number; overHalf?: number; cut?: number }[];
 }
 
 // Options of autoKerbs (all optional; defaults in subtrack.ts).
