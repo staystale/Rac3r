@@ -109,6 +109,15 @@ ROUND 2, DEAF VALLEY:
 8. Resets between lay-bys "seem to sometimes set on a road" - meant, or a fault? Find out.
 9. More reset spots ("not many lay-bys and it's quite hard to make progress"): lay-bys more often,
    half on / half off the verge where there is little room.
+   8-9 BUILT 11-10 behind ?vergereset=1 (highway/vergeback.ts): the cause - a reset went to the
+   last lay-by behind however far, and with none left in the road's window to the shoulder's
+   offset, inside the lane's edge (the "set on a road"); and back to the same lay-by each time
+   (MEASURED, tools/scratch/_vergespots.mjs, a reset every 6 s: all 20 to the lay-by 87 m back).
+   Now a lay-by within 40 m behind, else the verge where you are (the car clear off the road where
+   there is no barrier, rock or drop, half on where there is not; 10 m further back each try, up
+   to 150 m), else a lay-by within 150 m; Deaf Valley's lay-bys every 160-260 m (was 250-400).
+   30 resets: 26 off the road, 3 half on, 1 in a lay-by; median 4 m back, most 41. Along the high
+   road's gorge Armco there is no verge: a lay-by or the lane's edge there.
 10. The junk: "not seeing much road side junk ... never seen a cow skull" (a skull is ~5 CSS px at
     speed: its size?); cactus in patches too, and more single ones spread out.
 ROUND 3, THE OTHER HIGHWAYS:

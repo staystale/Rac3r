@@ -47,6 +47,12 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
+  // ?vergereset=1: a reset on a road with no hard shoulder goes to a lay-by just behind, else the
+  // verge where you are (half on where there is no room), never onto the lane; and Deaf
+  // Valley's lay-bys come oftener, every 160-260 m (owner 11-10: resets "seem to sometimes set on a
+  // road", "isn't many lay-bys ... hard to make progress", "More reset spaces ... half on half off
+  // is fine"; highway/vergeback.ts, highway/laybys.ts)
+  vergereset: atLoad('vergereset'),
   // ?trafficeven=1: your way's traffic put back nearer ahead, as near as out of sight lets (owner
   // 11-10: "not enough cars on my side of the road and too many on the oncoming side"; ai/
   // trafficSpawn.ts spot)

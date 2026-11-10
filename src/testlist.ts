@@ -13,6 +13,14 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'vergereset',
+    added: '2026-11-10',
+    name: 'Deaf Valley resets: the verge where you are, more lay-bys, never on the road',
+    where: 'Test link + &vergereset=1: Highway to Hull > DEAF VALLEY > SINGLE LANE',
+    try: 'Crash or RESET often: you land just off the road a few m back, or a lay-by just behind.',
+    wrong: 'Put on the road, back to the same lay-by again, in a rock wall or over a drop.',
+  },
+  {
     id: 'badwood',
     added: '2026-11-10',
     name: 'Goodwoody renamed Bad Wood',

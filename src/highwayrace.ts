@@ -14,6 +14,7 @@
 // THE END (flow): EVERY AI ahead of you and the slowest of them OFF SCREEN -> "CATCH THEM n" for
 // HW_CATCH s (back on screen = cancelled), at 0 the race ends. Every AI behind you AND off screen
 // -> "PULLING AWAY n"; at 0 the race ends and you have won. Positions = how far up the road.
+import { vergeBack } from './highway/vergeback.ts';
 import { roadFrame, roadPose, roadSpan } from './highway.ts';
 import { shoulderOff } from './highway/road.ts';
 import { bayBehind } from './highway/laybys.ts';
@@ -79,8 +80,9 @@ export function hwPutBack(level: HighwayLevel, dist: number, cars: AiCar[]) {
   const free = (spot: number, across: number) => !cars.some((other) => other._hwf
     && Math.abs(other._hwf.off - across) < 2.6 && Math.abs(other._hwf.s - spot) < 8);
   // (a road without a hard shoulder: the last lay-by behind, a spot in it clear of cars)
-  const bay = bayBehind(level as unknown as HwLevel, dist, (spot) => free(spot, -(level._hw.geo.hw
-    + 1.6)), s0 + 20);
+  const bayFree = (spot: number) => free(spot, -(level._hw.geo.hw + 1.6));
+  const bay = vergeBack(level as unknown as HwLevel, dist, s0 + 20, bayFree)
+    ?? bayBehind(level as unknown as HwLevel, dist, bayFree, s0 + 20);
   if (bay) return roadPose(level, bay.s, bay.off);
   for (let tries = 0; tries < PUT_BACK_TRIES && cars.some((other) => other._hwf
     && Math.abs(other._hwf.off - off) < 2.6 && Math.abs(other._hwf.s - dist) < 10); tries++)

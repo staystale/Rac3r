@@ -1,4 +1,5 @@
 // session.ts — Session: lap timing, reset, restart, records and the race flow.
+import { vergeBack } from '../highway/vergeback.ts';
 import { hazardsAfterReset } from './resethazard.ts';
 import { lineUpCrashBench } from './crashbench.ts';
 import { hwLevel } from './state.ts';
@@ -170,7 +171,8 @@ function resetOnShoulder(place: PlaceCar): boolean {
   if (!LEVEL.endless) return false;
   const level = hwLevel(), here = roadFrame(level, game.car.x, game.car.y, null);
   // (a road without a hard shoulder: the last lay-by behind)
-  const bay = here && bayBehind(level, here.s - RESET_BACK, undefined, roadSpan(level).s0 + 20);
+  const bay = here && (vergeBack(level, here.s - RESET_BACK, roadSpan(level).s0 + 20)
+    ?? bayBehind(level, here.s - RESET_BACK, undefined, roadSpan(level).s0 + 20));
   const pose = bay ? roadPose(level, bay.s, bay.off) : here
     ? roadPose(level, here.s - RESET_BACK, shoulderOff(level)) : highwayRespawn(level);
   if (here) rehome(level, bay ? bay.s : here.s - RESET_BACK);

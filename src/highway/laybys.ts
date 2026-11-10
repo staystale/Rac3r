@@ -9,6 +9,7 @@
 // their own spots. The walls, the Armco and Deaf Valley's ground step out round one, its rock is
 // cut back; the scenery keeps off it. By road distance from the road's seed, so every dress call,
 // the ground and the resets agree; none where Deaf Valley's gorge falls away on that side.
+import { FIX } from '../core/fixes.ts';
 import { SURFACES } from '../world/surfaces.ts';
 import { gorgeAt } from './gorge.ts';
 import { byStation } from './desertplan.ts';
@@ -22,6 +23,9 @@ const SHOULDER_MIN_M = 2.2;
 // m between lay-bys' middles; the first's middle this far into the road (the far side's further:
 // not opposite ours)
 const GAP_MIN = 250, GAP_MAX = 400, FIRST_M = 120, FAR_FIRST_M = 260;
+// (?vergereset=1) Deaf Valley's gap between lay-bys, m (owner 11-10: "it seems like there isn't
+// many lay-bys and it's quite hard to make progress on Death Valley")
+const CANYON_GAP = [160, 260];
 // m: the flat length, each taper's, the depth past the road edge
 const FLAT_M = 32, TAPER_M = 18, DEEP_M = 3.2;
 const HALF_M = FLAT_M / 2 + TAPER_M;
@@ -59,7 +63,9 @@ function planTo(level: HwLevel, dist: number, side: number): Plan {
       seed) && !byStation(mid + along, side, seed));
     plan.mids.push(mid);
     plan.open.push(open);
-    plan.next = mid + GAP_MIN + rand() * (GAP_MAX - GAP_MIN);
+    // (?vergereset=1: Deaf Valley's oftener - CANYON_GAP)
+    const [gapMin, gapMax] = canyon && FIX.vergereset ? CANYON_GAP : [GAP_MIN, GAP_MAX];
+    plan.next = mid + gapMin + rand() * (gapMax - gapMin);
   }
   return plan;
 }
