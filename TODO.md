@@ -70,6 +70,43 @@ owner before they ship (proposed below).
    ramming, how a car is out, the winner).
 CARS: talk to the owner once the tracks are done (trucks, a Dakar car / truck).
 
+## THE OWNER'S LIST (11-10: "Add this to the todo and work thru it logically") - in this order
+
+ROUND 1, QUICK FIXES (each behind its own switch, one test link):
+1. Goodwoody renamed BAD WOOD ("Rename goodwoody to bad wood").
+2. The HUD on by itself where the difficulty allows it ("Hud should be on automatically if it can
+   be on for that difficulty level").
+3. A reset puts the hazard lights on for 3 s ("resets ... should put hazards on for 3 seconds").
+4. The steering stick's area size in the control settings, today's size the least ("start size of
+   the steering stick area should be a thing so user can increase that - current size should be
+   minimum").
+5. Bushes: no terrain look on them - drawn on top, working the same ("Don't apply terrain to bushes
+   it's making them look weird").
+6. Traffic both ways from ONE density slider, even amounts each way ("not enough cars on my side of
+   the road and too many on the oncoming side").
+7. Still traffic goes after a while, and after a bad crash it waits ~10 s then is removed ("so it
+   doesn't block roads").
+ROUND 2, DEAF VALLEY:
+8. Resets between lay-bys "seem to sometimes set on a road" - meant, or a fault? Find out.
+9. More reset spots ("not many lay-bys and it's quite hard to make progress"): lay-bys more often,
+   half on / half off the verge where there is little room.
+10. The junk: "not seeing much road side junk ... never seen a cow skull" (a skull is ~5 CSS px at
+    speed: its size?); cactus in patches too, and more single ones spread out.
+ROUND 3, THE OTHER HIGHWAYS:
+11. Petrol stations on the other highway levels, reset spots too.
+12. Lamps on the central reservation.
+ROUND 4, POLICE ON THE HIGHWAYS (a design to agree first): waiting in lay-bys and petrol stations,
+    cruising as traffic either side; they chase you / try to crash into you after: speeding past a
+    speed camera nearby (that raises the chance they come; otherwise random), crashing, flashing
+    your lights, changing lane without indicating; speeding hard raises the chance; a big pile-up
+    brings them. A police car too damaged goes, until the next random one ("to keep it chill").
+ROUND 5, LOADING AND SPEED:
+13. The first load is long, and a circuit loads slower than "I'm able to drive faster than circuits
+    even load in an f1" - fix.
+14. If a wait cannot be avoided: a loading bar of our cars driving right to left into a traffic jam
+    / a wall, crashing and stacking.
+15. A performance pass once the list is recorded and its simple parts fixed.
+
 ## NEXT - ORDER AGREED 11-07 (owner: "ok let's do 1. first and proceed in this order")
 
 1. EVERY CIRCUIT AS ITS REAL VENUE AT 1/2 OF REAL SIZE (owner 11-07, round 2: "let's make all tracks
