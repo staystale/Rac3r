@@ -44,7 +44,27 @@ owner before they ship (proposed below).
    dirt / gravel like other rally cross stuff I've seen. Discuss"): the old stages stay as they are
    ("keep the originals"); new ones from the map (Pembrey, Blyton) and a stadium one, plus a
    HEAD-TO-HEAD SWAP-OVER track - two parallel lanes that cross on a bridge so each car runs both,
-   mixed tarmac and gravel. Under discussion.
+   mixed tarmac and gravel. AGREED 11-10 (owner: "Side by side ace make them all or at least 4+",
+   "tarmac plus dirt x games make 52 gap version", "Make the stadiums that were around the tracks
+   if we can creative license allowed", the event HEAD-TO-HEADBUTT, "wobbly is great"):
+   - the Race of Champions stadium format: two interwoven lanes side by side joined by one
+     crossover bridge, so each car covers both - ONE path crossing itself (Snoozuka's crossover
+     system: world/trackunder.ts), the two cars started half a path apart, side by side; tarmac
+     with gravel in the same places on both lanes. 1v1 heats (best of three, a knockout bracket)
+     AND a 4-car race round the whole path. The stadium round it (stands, the bowl), creative
+     licence allowed. WOBBLY STADIUM first (Wembley, ROC 2007-08); then 3+ more ROC stadiums
+     (names to agree: Stade de France 2004-06, the Bird's Nest 2009, Accor Stadium 2025, ...).
+   - X GAMES RALLYCROSS, Los Angeles 2012: tarmac and dirt round the streets, the joker's 52 ft
+     (16 m) dirt-to-dirt GAP JUMP (terrain ramps: the game's airtime and landings). Name to agree.
+   - THE WEMBLEY STOCK CAR TRACK (owner 11-10: "add the Wembley stock car arena too ... it can size
+     match with the current stock car circuit or relative if it's bigger irl"): the old Wembley's
+     speedway track round the pitch, 345 m real (378 yd: Wembley Lions, Wikipedia), stock cars there
+     from 1955 - smaller than our Stock Car oval (551 m), so built at its size (Wembley's shape, a
+     ~550 m lap), in the old stadium's bowl.
+6. DEMOLITION DERBY (owner 11-10: "Demolition derby levels classic tarmac circle - and we can reuse
+   stock car tracks ect for that too"): a classic tarmac circle arena, and a derby mode on the stock
+   car tracks (Stock Car, Grass Track, the Wembley oval). Questions when we come to it (the AI
+   ramming, how a car is out, the winner).
 CARS: talk to the owner once the tracks are done (trucks, a Dakar car / truck).
 
 ## NEXT - ORDER AGREED 11-07 (owner: "ok let's do 1. first and proceed in this order")
