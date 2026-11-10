@@ -153,7 +153,13 @@ ROUND 2, DEAF VALLEY:
     102 / 198 (its litter worked; Deaf Valley's had no slider on the plain link).
 ROUND 3, THE OTHER HIGHWAYS:
 11. Petrol stations on the other highway levels, reset spots too.
-12. Lamps on the central reservation.
+12. Lamps on the central reservation. Owner 11-10: services with their own slip road on the
+    motorways "yeah", the names "perfect" (SHALL, SMELL, ESS-NO, GULP, TAXACO; WELCOME BRAKE,
+    ROADTHIEF, EXTORTION), the reservation's lamps "Instead" of the verge ones. BUILT 11-10 behind
+    ?medianlamps=1 (highway/roadlamps.ts layReservationLamps, world/lamps.ts twin heads): on a road
+    with a central reservation a twin-arm column every 68 m in its middle (on the barrier where
+    there is one), an arm and head over each carriageway - each side a pool every 68 m as before,
+    half the posts; the verges dark. Motorway: 27 lamps loaded, all twin; photos day and night.
 ROUND 4, POLICE ON THE HIGHWAYS (a design to agree first): waiting in lay-bys and petrol stations,
     cruising as traffic either side; they chase you / try to crash into you after: speeding past a
     speed camera nearby (that raises the chance they come; otherwise random), crashing, flashing

@@ -6,7 +6,7 @@
 // the HUD. The cost is one extra full-screen image a frame.
 import { isUnderground } from "../world/crossinggeo.ts";
 import { DAYLIGHT } from '../world/daylight.ts';
-import { activeLamps, lampsLit } from '../world/lamps.ts';
+import { lampHeads, activeLamps, lampsLit } from '../world/lamps.ts';
 import { hazardsOn, indicatorBlinkOn, lampLevel } from './cars.ts';
 import { traceDecks } from './lightdecks.ts';
 import { drawEventGlows } from './eventglows.ts';
@@ -214,8 +214,10 @@ function drawHeadGlows(painter: GlowPainter) {
   for (const lamp of activeLamps()) {
     if (lamp.kind !== 'street' || lamp.down || lamp.shown <= 0) continue;
     painter.ctx.globalAlpha = painter.strength * lamp.shown;
-    painter.ctx.drawImage(painter.headGlow, painter.mapX(lamp.headX) - size / 2,
-      painter.mapY(lamp.headY) - size / 2, size, size);
+    // (a twin-arm street light's two heads: ?medianlamps=1)
+    for (const [headX, headY] of lampHeads(lamp))
+      painter.ctx.drawImage(painter.headGlow, painter.mapX(headX) - size / 2,
+        painter.mapY(headY) - size / 2, size, size);
   }
 }
 
@@ -364,8 +366,8 @@ function drawPools(painter: PoolPainter, isTint: boolean) {
   for (const lamp of activeLamps()) {
     if (lamp.shown <= 0) continue;
     lightCtx.globalAlpha = lamp.shown * (isTint ? POOL_TINT_ALPHA : 1);
-    drawPool(painter, picture, artX(lamp.headX), artY(lamp.headY),
-      2 * lamp.poolM * share * artPerMetre());
+    for (const [headX, headY] of lampHeads(lamp))
+      drawPool(painter, picture, artX(headX), artY(headY), 2 * lamp.poolM * share * artPerMetre());
   }
   lightCtx.globalAlpha = 1;
 }

@@ -68,6 +68,15 @@ function drawStanding(ctx: CanvasRenderingContext2D, lamp: Lamp, ppm: number, li
   ctx.strokeStyle = POLE;
   if (Math.hypot(topX, topY) > 1) stroke(ctx, 0, 0, topX, topY, ARM_WIDE_M * 1.4 * ppm);
   stroke(ctx, topX, topY, topX + armX, topY + armY, ARM_WIDE_M * ppm);
+  // (?medianlamps=1: a twin-arm column's second arm and head, the other way)
+  if (lamp.twin) {
+    stroke(ctx, topX, topY, topX - armX, topY - armY, ARM_WIDE_M * ppm);
+    ctx.save();
+    ctx.translate(topX - armX, topY - armY);
+    ctx.rotate(lamp.rot);
+    drawHead(ctx, ppm, lit ? lamp.shown : 0);
+    ctx.restore();
+  }
   ctx.translate(topX + armX, topY + armY);
   ctx.rotate(lamp.rot);
   drawHead(ctx, ppm, lit ? lamp.shown : 0);
@@ -90,8 +99,16 @@ function drawFallen(ctx: CanvasRenderingContext2D, lamp: Lamp, ppm: number) {
   ctx.lineTo(len * 0.45, bend);
   ctx.lineTo(len, -bend * 0.4);
   ctx.stroke();
-  // the arm lies across the end of the pole, the dead head at its end
+  // the arm lies across the end of the pole, the dead head at its end (a twin's both ways)
   stroke(ctx, len, -bend * 0.4, len, -bend * 0.4 + STREET_ARM_M * ppm, ARM_WIDE_M * ppm);
+  if (lamp.twin) {
+    stroke(ctx, len, -bend * 0.4, len, -bend * 0.4 - STREET_ARM_M * ppm, ARM_WIDE_M * ppm);
+    ctx.save();
+    ctx.translate(len, -bend * 0.4 - STREET_ARM_M * ppm);
+    ctx.rotate(Math.PI / 2);
+    drawHead(ctx, ppm, 0);
+    ctx.restore();
+  }
   ctx.translate(len, -bend * 0.4 + STREET_ARM_M * ppm);
   ctx.rotate(Math.PI / 2);
   drawHead(ctx, ppm, 0);

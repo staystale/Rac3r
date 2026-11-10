@@ -5,6 +5,7 @@
 // it (highway.ts keeps level.lamps by road distance); world/lamps.ts makes each entry a lamp
 // (solid, knockable, lit from dusk) and keeps it, damage and all, while it is loaded. A spot
 // that is not clear (a slip road, a bridge, a river, a gantry leg, a sign) is left dark.
+import { FIX } from '../core/fixes.ts';
 import { solidsFromProps } from '../world/barriers.ts';
 import { blocked } from './cuts.ts';
 import { STEP } from './presets.ts';
@@ -14,6 +15,9 @@ import type { Prop } from '../world/types.ts';
 // the gap from one street light to the next, m (the sides alternate: each side every 68 m); the
 // circuits' start-straight spacing
 const LAMP_GAP_M = 34;
+// (?medianlamps=1) the gap from one twin-arm column in the central reservation to the next, m:
+// an arm over each carriageway, so each side keeps a light every 68 m
+const TWIN_GAP_M = 2 * LAMP_GAP_M;
 // how far out from the road edge a post stands, m (as on the circuits)
 const STREET_OUT_M = 2.5;
 // a post's clearance from the road's points and keep-out areas, and from scenery solids, m
@@ -24,7 +28,7 @@ const NEAR_ALONG_M = 40, NEAR_POINTS = 60;
 
 /** The parts of highway/dress.ts's dress context the lamps use. */
 interface DressContext {
-  level: { lamps: Prop[]; props: Prop[] };
+  level: { lamps: Prop[]; props: Prop[]; _cfg?: { oncoming?: string } };
   state: { keep: KeepRect[] };
   halfWidth: number;
   road: { x: number; y: number; s: number; sideOff?: number }[];
@@ -77,6 +81,10 @@ function isClearOfScenery(props: Prop[], dist: number, x: number, y: number): bo
  */
 export function layRoadLamps(ctx: DressContext): void {
   const { level, state, road, firstIdx, endIdx, pointAt, halfWidth } = ctx;
+  if (FIX.medianlamps && level._cfg?.oncoming === 'carriageway') {
+    layReservationLamps(ctx);
+    return;
+  }
   for (let i = firstIdx; i < endIdx; i++) {
     const dist = road[i].s, count = Math.floor(dist / LAMP_GAP_M);
     if (count === Math.floor((dist - STEP) / LAMP_GAP_M)) continue;
@@ -91,5 +99,26 @@ export function layRoadLamps(ctx: DressContext): void {
     const armX = side * Math.sin(pos.rot), armY = -side * Math.cos(pos.rot);
     level.lamps.push({ kind: 'streetlight', x: pos.x, y: pos.y, rot: Math.atan2(armY, armX),
       _s: dist });
+  }
+}
+
+/**
+ * (?medianlamps=1) Lays the street lights of a road with a central reservation for road points
+ * [firstIdx, endIdx): a twin-arm column in the reservation's middle each time the road passes a
+ * multiple of TWIN_GAP_M, an arm over each carriageway (the same spots on every build of the
+ * seed); left dark where a keep-out area or a scenery solid (a bridge's pier, a gantry leg) is.
+ * @param ctx the dress context
+ */
+function layReservationLamps(ctx: DressContext): void {
+  const { level, state, road, firstIdx, endIdx, pointAt } = ctx;
+  for (let i = firstIdx; i < endIdx; i++) {
+    const dist = road[i].s;
+    if (Math.floor(dist / TWIN_GAP_M) === Math.floor((dist - STEP) / TWIN_GAP_M)) continue;
+    const pos = pointAt(i, 0);
+    if (blocked(state.keep, pos.x, pos.y, ROAD_CLEAR_M)
+      || !isClearOfScenery(level.props, dist, pos.x, pos.y)) continue;
+    // (one arm across the road to the right, the other the left: the heading turned a quarter)
+    level.lamps.push({ kind: 'streetlight', x: pos.x, y: pos.y, rot: pos.rot + Math.PI / 2,
+      twin: true, _s: dist });
   }
 }

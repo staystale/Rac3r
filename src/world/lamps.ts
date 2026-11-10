@@ -36,6 +36,9 @@ export interface Lamp {
   headY: number;
   rot: number;      // the arm's direction (a pylon: the way it faces), radians
   armM: number;     // how far out the light hangs: a street light's arm (a pylon: 0), m
+  twin: boolean;    // (?medianlamps=1) a second arm the other way, its head at twinX, twinY
+  twinX: number;
+  twinY: number;
   poolM: number;    // the pool's radius, m
   level: number;    // how bright it can be, 0..1 (hard hits take it down)
   shown: number;    // how bright it is this frame (level, dipping when it flickers)
@@ -80,6 +83,19 @@ export function placeHead(lamp: Lamp): void {
   const height = lamp.kind === 'street' ? STREET_HEIGHT_M : FLOOD_HEIGHT_M;
   lamp.headX = lamp.x + lamp.leanX * height + Math.cos(lamp.rot) * lamp.armM;
   lamp.headY = lamp.y + lamp.leanY * height + Math.sin(lamp.rot) * lamp.armM;
+  lamp.twinX = lamp.x + lamp.leanX * height - Math.cos(lamp.rot) * lamp.armM;
+  lamp.twinY = lamp.y + lamp.leanY * height - Math.sin(lamp.rot) * lamp.armM;
+}
+
+/**
+ * Where a lamp's light hangs: its head, and a twin-arm street light's second head
+ * (?medianlamps=1).
+ * @param lamp the lamp
+ * @returns the heads, m
+ */
+export function lampHeads(lamp: Lamp): [number, number][] {
+  return lamp.twin ? [[lamp.headX, lamp.headY], [lamp.twinX, lamp.twinY]]
+    : [[lamp.headX, lamp.headY]];
 }
 
 /**
@@ -96,6 +112,7 @@ function makeLamp(prop: Prop, kind: Lamp['kind'], ownDraw = false): Lamp {
     // the light is where the lamp's body is (owner): at the end of a street light's arm, on the
     // pylon itself
     armM: kind === 'street' ? STREET_ARM_M : 0,
+    twin: kind === 'street' && !!prop.twin, twinX: prop.x, twinY: prop.y,
     poolM: kind === 'street' ? STREET_POOL_M : FLOOD_POOL_M, level: 1, shown: 1, flicker: 0,
     settleAt: 0,
     leanX: 0, leanY: 0, down: false, fallX: 1, fallY: 0, solidity: 1, mangle: 0,

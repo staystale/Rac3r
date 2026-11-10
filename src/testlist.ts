@@ -13,6 +13,14 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'medianlamps',
+    added: '2026-11-10',
+    name: 'Street lights in the central reservation: twin-arm columns, none on the verges',
+    where: 'Test link + &medianlamps=1: Highway to Hull, MOTORWAY or DUAL C/WAY, START HOUR night',
+    try: 'Drive at night: a column every 68 m in the middle, a light over each side; hit one.',
+    wrong: 'Lamps still on the verges, one side dark, a column in a lane or a gantry, lag.',
+  },
+  {
     id: 'desertmore',
     added: '2026-11-10',
     name: 'Deaf Valley junk + cactus by the LITTER slider; its own kinds, the countryside its own',

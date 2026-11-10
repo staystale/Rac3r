@@ -1,7 +1,9 @@
 // _hwlampshots.mjs - photographs the highway's street lights at ?night=0.8 and by day
 // (844x390, 390x844) at the start and after 25 s of autopilot (the lamps streamed in ahead), then
 // drives the car into a street light at 50 km/h and prints what the post did (lean / down) and
-// the lamps loaded. node tools/scratch/_hwlampshots.mjs <out folder>
+// the lamps loaded. ROAD: the road type (motorway, dual ...); Q: more switches (?medianlamps=1: the
+// twin-arm columns in the central reservation - counted); PHONE=1: the phone size only.
+// [ROAD=] [Q=] [PHONE=1] node tools/scratch/_hwlampshots.mjs <out folder>
 import { join } from 'node:path';
 import { startServer, launchBrowser, gotoGame } from '../lib/browser.mjs';
 
@@ -14,25 +16,29 @@ async function openHighway(query, viewport) {
     hasTouch: true });
   const page = await context.newPage();
   page.on('pageerror', (error) => console.log('ERROR ' + error));
-  await gotoGame(page, `${server.url}/?touch=1&guide=0&menu=0&rules=0&${query}`);
+  await gotoGame(page, `${server.url}/?touch=1&guide=0&menu=0&rules=0&${query}${process.env.Q || ''}`);
   await page.touchscreen.tap(viewport.width / 2, viewport.height / 2);
   await page.waitForTimeout(400);
-  await page.evaluate(() => window.__game.launch('highway', 'hatch-rwd',
-    { ai: 0, weather: { mode: 'dry', season: 2, seed: 4 } }));
+  await page.evaluate((road) => window.__game.launch('highway', 'hatch-rwd',
+    { ai: 0, weather: { mode: 'dry', season: 2, seed: 4 },
+      ...(road ? { road, scenery: 'countryside' } : {}) }), process.env.ROAD || '');
   await page.waitForTimeout(4000);
   return { context, page };
 }
 
 try {
   for (const query of ['night=0.8', '']) {
-    for (const viewport of [{ width: 844, height: 390 }, { width: 390, height: 844 }]) {
+    for (const viewport of process.env.PHONE ? [{ width: 390, height: 844 }]
+      : [{ width: 844, height: 390 }, { width: 390, height: 844 }]) {
       const { context, page } = await openHighway(query + '&autopilot=1', viewport);
       const tag = `${query.includes('night') ? 'night' : 'day'}-${viewport.width}`;
       await page.screenshot({ path: join(out, `hwlamps-${tag}-start.png`) });
       await page.waitForTimeout(25000);
       await page.screenshot({ path: join(out, `hwlamps-${tag}-25s.png`) });
-      const count = await page.evaluate(async () =>
-        (await import('/src/world/lamps.ts')).activeLamps().length);
+      const count = await page.evaluate(async () => {
+        const lamps = (await import('/src/world/lamps.ts')).activeLamps();
+        return `${lamps.length} (twin ${lamps.filter((lamp) => lamp.twin).length})`;
+      });
       console.log('photos', tag, 'lamps loaded', count);
       await context.close();
     }

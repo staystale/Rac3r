@@ -156,6 +156,7 @@ export interface Prop {
   label?: string;
   col?: string;
   flip?: boolean;   // highway/canyon.ts: a wreck on its roof
+  twin?: boolean;   // a street light with two arms, the second the other way (?medianlamps=1)
   s?: number;
   seed?: number;
   brand?: string;

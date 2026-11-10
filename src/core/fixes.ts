@@ -47,6 +47,11 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
+  // ?medianlamps=1: on a road with a central reservation (dual, motorway, interstate, walled) the
+  // street lights stand in it - a TWIN-ARM column every 68 m, an arm over each carriageway -
+  // instead of on the verges (owner 11-10: "lamps on the central reservation", "Instead then");
+  // each side's light as before (a pool every 68 m), half the posts (highway/roadlamps.ts)
+  medianlamps: atLoad('medianlamps'),
   // ?desertmore=1: Deaf Valley's junk from the same LITTER slider as every endless road, as much
   // of it (the shared litter, desert kinds: highway/litter.ts), its own heaps, shacks and skulls
   // scaled by the slider too and nearer the road; and the cactus in PATCHES, with more single ones
