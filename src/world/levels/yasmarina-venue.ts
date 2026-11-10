@@ -75,18 +75,21 @@ export const YASMARINA_SPEC: VenueSpec = {
   // THE PIT EXIT (ESRI World Imagery; OSM maps it as a tunnel under the first corner): the pit lane
   // runs on round the corner's outside, dips into a cut and under the track, comes up on its
   // inside and runs on to rejoin - a drivable crossing (world/crossings.ts; venuecross.ts
-  // pitTunnelPortals) between the two hand-laid pit roads, game m
-  pitTunnel: { a: [149.9, 7.9], b: [100.7, -16.3] },
+  // pitTunnelPortals) between the two hand-laid pit roads, game m - its way in 4 m further out
+  // than the map's along the tunnel, its way out 2 m (owner 11-10: "the tunnel and arm code seem to
+  // interact ... give them both a bit more space": the corner's Armco stood 0.5 m into the way
+  // in's box and 0.3 m off its road; now 2.2 / 3.4 m, the way out's 4.2 / 5.5)
+  pitTunnel: { a: [153.5,9.7], b: [98.9,-17.2] },
   finish: {
     roads: [
       { width: 9, pts: [
       [103.1, 53], [107.1, 52.7], [111.2, 52.4], [115.3, 52], [119.4, 51.4], [123.5, 50.6],
       [127.5, 49.7], [131.5, 48.6], [135.3, 47.3], [138.9, 45.9], [142.3, 44.1], [145.4, 42.2],
       [148.3, 39.9], [150.8, 37.5], [153, 34.7], [154.7, 31.6], [156, 28.2], [156.9, 24.5],
-      [157.8, 20.8], [158.9, 17], [158.9, 13.7], [157.1, 11.5], [146.7, 6.4],
+      [157.8, 20.8], [158.9, 17], [158.9, 13.7], [157.1, 11.5], [150.3, 8.2],
       ] },
       { width: 9, pts: [
-      [103.8, -14.7], [93.5, -19.8], [90.6, -21.7], [88.8, -23.9], [87.9, -26.5], [87.8, -29.3],
+      [102, -15.6], [93.5, -19.8], [90.6, -21.7], [88.8, -23.9], [87.9, -26.5], [87.8, -29.3],
       [88.3, -32.3], [89.3, -35.6], [90.6, -39], [92.1, -42.5], [93.6, -46.2], [94.9, -50],
       [96, -53.8], [96.7, -57.6], [96.7, -61.4], [96, -65.2],
       ] },

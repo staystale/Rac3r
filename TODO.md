@@ -374,7 +374,7 @@ CARS: talk to the owner once the tracks are done (trucks, a Dakar car / truck).
    background (menu/thumbfiles.ts) and paints only a level without one; the per-version saved cache
    (thumbcache.ts, the bundle fingerprint) gone. After: the tap 0.8-1.0 s (CPU x4 5.1), the menu up
    2.5-5.7 s as before (3.0-5.1); menucheck passes both sizes; tools/thumbcheck.mjs in the suite.
-   YASS MARINA BUILT 11-10 behind ?yasmarina=1 (the name approved 11-10; levels/yasmarina-venue.ts,
+   YASS MARINA BUILT 11-10 (was behind ?yasmarina=1; the name approved 11-10; levels/yasmarina-venue.ts,
    OSM data in venues/yasmarina.ts; the venue helper): the Yas Marina Circuit's 2021 GP lap as a
    FULL venue, 2632 m (real 5281, OSM 5303) - the pit lane with its EXIT IN A TUNNEL under the
    first corner, drivable (the lane runs on round the corner's outside, down a cut, under the
@@ -394,8 +394,12 @@ CARS: talk to the owner once the tracks are done (trucks, a Dakar car / truck).
    bounds (venueroads.ts carryOff takes the bounds before venueBounds adds its margin), a spur
    joined along its road, a footpath tunnel's road beside the pit exit, 8-9 m between the pit wall
    and the Armco where the pit roads leave the track. The marina's water costs heap and tile paints
-   (NOTES: A BIG WATER IS HUNDREDS OF THOUSANDS OF CELLS) - proposed: the cover cells filed by
-   tile.
+   (NOTES: A BIG WATER IS HUNDREDS OF THOUSANDS OF CELLS) - the cover cells filed by place
+   (owner 11-10: "Yes"; render/ground/covers.ts: work p95 32-34 -> 26-29 ms). PASSED + DEFAULT
+   11-10 (owner: "all pass, except on the first corner, the tunnel and arm code seem to interact
+   ... give them both a bit more space"): the pit tunnel's way in 4 m further out, its way out 2 m -
+   the Armco 2.2 m off the way in (was 0.5 into it), 3.4 m off its road (0.3); the pit lane driven
+   end to end at 30 km/h, crossingcheck / barriercheck / propcheck all OK.
 3. ROLLING LOOK - smoother than the dice flip on the same physics; mockup first.
 4. SIDE DRAFTING (Naffcar first) PASSED + DEFAULT 11-08 (owner: "Pass"): physics/wake.ts part 5 - a nose
    alongside a car's rear quarter, up to +20 % drag on it and -6 % on the car alongside, gone by 1.2 m

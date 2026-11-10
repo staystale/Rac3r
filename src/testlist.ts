@@ -13,14 +13,6 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
-    id: 'yasmarina',
-    added: '2026-11-10',
-    name: 'Yass Marina: the Yas Marina Circuit at 1/2 (2.6 km), its pit exit in a tunnel',
-    where: 'Test link + &yasmarina=1: TEST MODE > WORLD CIRCUITS',
-    try: 'A lap, then the pit lane: under the track at the first corner and out to rejoin.',
-    wrong: 'Stuck in the tunnel, the hotel bridge in the way, a barrier across the road.',
-  },
-  {
     id: 'venueoverlaps',
     added: '2026-11-09',
     name: 'Tidier venues: tyre walls in two neat rows, nothing piled on each other, no zig-zags',
