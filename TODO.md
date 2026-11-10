@@ -318,7 +318,20 @@ CARS: talk to the owner once the tracks are done (trucks, a Dakar car / truck).
    a kerb off the tile skipped: 1502 teeth a tile -> 21) and render/propgrid.ts; CPU x4 work at
    2000 / 5000 / 8000 m, alternated with main: p95 47.2-48.5 -> 28.1-29.5 ms, worst 74-107 ->
    49-73, the kerbs 14 % of the profile -> under 0.4. Renderhash SAME (Spa, the Nordschlep, Brands,
-   the highway, a forest stage). NEXT: Le Manky the same way.
+   the highway, a forest stage).
+   LE MANKY BUILT 11-10 behind ?lemans=1 as a SIMPLE first build (owner 11-10: the long tracks
+   simple first; levels/lemans-venue.ts, OSM data in venues/lemans.ts; the venue helper): the
+   Circuit de la Sarthe's 24-hour lap, 6812 m (real 13626, OSM 13627) with the Mulsanne
+   chicanes, mostly over closed public road (the D338, D140, D139: tools/venues/lemans.json
+   "roadRace", new in osmvenue.mjs, opt-in), its barriers (the walls and fences OSM maps beside
+   the track, followed), the woods at 260 trees, a grid on the start straight, EU-DEM heights as 25
+   hills (44 m at the Virage du Karting to 83 m at the Dunlop bridge); no pit lane, roads,
+   buildings or stands, no Bugatti circuit. Listed under WORLD CIRCUITS ('WORLD CIRCUIT · 24
+   HOURS'). MEASURED: build 0.9 s (node), the AI line 0.5 s on its first car, JS heap 59-62 MB
+   with 10 AI, CPU x4 work median 11.5-11.8 ms, p95 24.2-29.6 (the Nordschlep 28.0-28.5, Spa
+   23.3-23.4), a lap 252 s for the scripted driver. Open run-off (no OSM wall within reach) at
+   the Dunlop curve, the Esses, Tertre Rouge's exit, before the first chicane, Mulsanne,
+   Indianapolis's approach, the Porsche curves and Maison Blanche. UNDER TEST.
 3. ROLLING LOOK - smoother than the dice flip on the same physics; mockup first.
 4. SIDE DRAFTING (Naffcar first) PASSED + DEFAULT 11-08 (owner: "Pass"): physics/wake.ts part 5 - a nose
    alongside a car's rear quarter, up to +20 % drag on it and -6 % on the car alongside, gone by 1.2 m

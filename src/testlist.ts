@@ -13,6 +13,14 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'lemans',
+    added: '2026-11-10',
+    name: 'Le Manky: the Circuit de la Sarthe at 1/2 (6.8 km), a simple first build',
+    where: 'Test link + &lemans=1: TEST MODE > WORLD CIRCUITS',
+    try: 'A whole lap, then VS AI: the Mulsanity straight, its chicanes, Mulsanne, Arnage.',
+    wrong: 'Lag or hitches, a barrier gap, a chicane missing, the minimap or lap times off.',
+  },
+  {
     id: 'desertjunk',
     added: '2026-11-10',
     name: 'Deaf Valley junk: crates and oil drums, old tyres, tin shacks, tumbleweed on the breeze',

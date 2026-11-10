@@ -24,7 +24,9 @@
 // P19: the venue places its own); "trim": { "<way id>": [first, last] } keeps only those nodes of a
 // way; "traps": [way ids] reads those areas as gravel traps (Monza's are mapped natural=sand);
 // "leaveOut": [kinds of feature] writes those lists empty (a simple first build: the Nordschleife's
-// lap and barriers, no buildings or roads). A
+// lap and barriers, no buildings or roads); "roadRace": [way ids] races those public road ways (a
+// primary, a tertiary) as race pieces - a circuit over closed public roads (Le Mans' Hunaudieres
+// and Mulsanne legs; the other venues name none, so their pieces are as before). A
 // stand longer than STAND_SLICE_M is written as its slices (a curved one round a tri-oval).
 // A layout is the shortest loop through its "through" pieces that avoids its "avoid" pieces; it is
 // written as the ordered list of pieces it runs over, so a layout is changed by editing that list.
@@ -202,11 +204,13 @@ const railIds = new Set((config.rails || []).map(String));
 const postIds = new Set((config.posts || []).map(String));
 // "traps": [way ids] - the circuit's gravel traps mapped as another surface (natural=sand)
 const trapIds = new Set((config.traps || []).map(String));
+// "roadRace": [way ids] - public road ways raced as race road (closed for the race: Le Mans)
+const roadRaceIds = new Set((config.roadRace || []).map(String));
 const isMotor = (way) => !skipIds.has(String(way.id))
   && (/motor/.test(way.tags.sport || '') || raceIds.has(String(way.id)));
-const raceWays = ways.filter((way) => way.tags?.highway === 'raceway'
+const raceWays = ways.filter((way) => (way.tags?.highway === 'raceway'
   && isMotor(way) && !/Pit Lane/i.test(way.tags.name || '')
-  && !dirtIds.has(String(way.id)));
+  && !dirtIds.has(String(way.id))) || roadRaceIds.has(String(way.id)));
 const uses = new Map();
 for (const way of raceWays) for (const node of way.geometry) uses.set(keyOf(node), (uses.get(keyOf(node)) || 0) + 1);
 const pieces = [];
@@ -218,7 +222,7 @@ for (const way of raceWays) {
     if (i === way.geometry.length - 1 || uses.get(keyOf(way.geometry[i])) > 1) {
       pieces.push({ name: part ? `${baseName} ${part + 1}` : baseName, osm: way.id,
         from: keyOf(run[0]), to: keyOf(run.at(-1)), raw: run.map(toGame),
-        loose: LOOSE.test(way.tags.surface || '') });
+        loose: LOOSE.test(way.tags.surface || ''), road: roadRaceIds.has(String(way.id)) });
       run = [way.geometry[i]];
       part++;
     }
@@ -289,13 +293,24 @@ for (const [id, spec] of Object.entries(config.layouts || {})) out.layouts[id] =
 
 const closed = (way) => way.geometry.length > 3 && keyOf(way.geometry[0]) === keyOf(way.geometry.at(-1));
 // the venue's reach: only what lies within config.reachM real m of a race road is kept (the
-// village next door, far fields and roads are not the venue's)
-const racePts = pieces.flatMap((piece) => piece.raw.filter((point, i) => i % 4 === 0));
+// village next door, far fields and roads are not the venue's). A raceway's nodes are close (every
+// 4th is enough); a raced public road's are hundreds of m apart on a straight (Le Mans): every 20 m
+const REACH_STEP_M = 20;
+const alongEvery = (line, stepM) => line.flatMap(([ax, ay], i) => {
+  if (i === line.length - 1) return [[ax, ay]];
+  const [bx, by] = line[i + 1];
+  const steps = Math.max(1, Math.ceil(Math.hypot(bx - ax, by - ay) / stepM));
+  return Array.from({ length: steps },
+    (_, k) => [ax + (bx - ax) * k / steps, ay + (by - ay) * k / steps]);
+});
+const racePts = pieces.flatMap((piece) => (piece.road ? alongEvery(piece.raw, REACH_STEP_M)
+  : piece.raw.filter((point, i) => i % 4 === 0)));
 const reachSq = (config.reachM || 1e9) ** 2;
 const inReach = ([x, y]) => racePts.some(([px, py]) => (px - x) ** 2 + (py - y) ** 2 <= reachSq);
 for (const way of ways) {
   const tags = way.tags || {}, pts = way.geometry.map(toGame);
   if (!pts.some(inClip) || !pts.some(inReach)) continue;
+  if (roadRaceIds.has(String(way.id))) continue;   // a race piece
   const line = (tolerance) => cleanLine(pts, tolerance);
   if (tags.highway === 'raceway' && /Pit Lane/i.test(tags.name || ''))
     out.pitLanes.push({ name: config.names?.[way.id] || tags.name, pts: line(0.25) });

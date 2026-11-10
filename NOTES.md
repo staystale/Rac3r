@@ -53,7 +53,8 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   Snetterton = Snotterton (owner 11-08), Donington Park = Dongington Park, Silverstone =
   Sillystone, Oulton Park = Oulton Pork (its Foster's layout = Frosters), Cadwell Park = Cadwallop
   Park, Mallory Park = Malarkey Park, Anglesey = Anglesleazy, Goodwood = Goodwoody, Croft =
-  Croughed (owner 11-09), Spa-Francorchamps = Spa-Frankenchumps (owner's brief 11-09).
+  Croughed (owner 11-09), Spa-Francorchamps = Spa-Frankenchumps (owner's brief 11-09), Le Mans =
+  Le Manky (its Mulsanne straight, the Hunaudieres, = the Mulsanity; owner's brief 11-09).
 - No keys, tokens, tunnel URLs or process IDs in the repo. No itch.io push until the owner says so.
 - The foreman may push to `main` once the change is proven (routine below).
 - Keep the test server and the tunnel running.
@@ -532,6 +533,12 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   Armco shorter than a run, dropped - a 4-8 m gap between two fence runs, and a fence jogging round
   a stand broke the same way. tools/scratch/_barriergaps.mjs (barrier ends 0.3-12 m from another
   barrier) finds them; the hand finish moves the stand (spec.finish.move).
+- A RACED PUBLIC ROAD'S NODES ARE HUNDREDS OF METRES APART (11-10, Le Manky): tools/osmvenue.mjs
+  kept a feature within reachM of every 4th node of the race pieces - enough on a raceway, whose
+  nodes are metres apart, but the D338's straight (raced with "roadRace") has a node every
+  100-400 m, and the concrete walls beside the Hunaudieres fell out of reach (a 100 m stretch of
+  the straight open both sides). A raced public road is now measured every 20 m along it; the
+  other venues, which race no public road, write byte-identical files (all 17 configs rerun).
 - AN ARMCO SIDE ALL ROUND IS A RING (11-10, the Nordschlep: no pit lane, barriers all round): the
   edge flared both ends of a whole-lap run apart at the lap's start - a 1.6 m gap, the two ends
   overlapping 14 m. A run that closes on itself is no longer flared (world/venueedge.ts).

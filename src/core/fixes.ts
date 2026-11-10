@@ -46,6 +46,10 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
+  // ?lemans=1: Le Manky, the Circuit de la Sarthe (Le Mans) at 1/2 of real length as a SIMPLE
+  // first build - the lap over its closed public roads, its barriers, its heights (owner 11-10:
+  // the long tracks simple first, Le Mans after the Nordschleife; world/levels/lemans-venue.ts)
+  lemans: atLoad('lemans'),
   // ?desertjunk=1: Deaf Valley's roadside junk - dumps of crates and oil drums, old tyres lying
   // and in piles, a tin shack now and then with junk round it, and TUMBLEWEED that a gust takes
   // across the road as you come (owner 11-09: "Burned-out cars, Crates and oil drums,
