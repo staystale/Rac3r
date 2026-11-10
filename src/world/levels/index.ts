@@ -221,8 +221,8 @@ export const LEVELS: Level[] = [
   ...SPA_LEVELS,
   // ?monza=1: Monzarella, a new venue (monza-venue.ts), a world championship circuit
   ...(FIX.monza ? MONZA_LEVELS : []),
-  // ?nordschlep=1: the Nerdburgring Nordschlep, a simple first build (nordschlep-venue.ts)
-  ...(FIX.nordschlep ? NERD_LEVELS : []),
+  // the Nerdburgring Nordschlep, a venue (nordschlep-venue.ts), a simple first build (passed 11-10)
+  ...NERD_LEVELS,
   // Oulton Pork, a new venue (oultonpork-venue.ts), its International, Island and Frosters
   ...OP_LEVELS,
   // ?thrustonvenue=1: the real venue (thruston-venue.ts), built on first use

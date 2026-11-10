@@ -13,14 +13,6 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
-    id: 'nordschlep',
-    added: '2026-11-10',
-    name: 'Nerdburgring Nordschlep: the Nordschleife at 1/2 (10.4 km), a simple first build',
-    where: 'Test link + &nordschlep=1 (&worldcat=1: WORLD CIRCUITS): TEST MODE',
-    try: 'A whole lap, then VS AI: the frame rate (FPS), the hills, Karussell, Pflanzgarten.',
-    wrong: 'Lag or hitches, a jump that throws you, a barrier gap, the minimap or lap times off.',
-  },
-  {
     id: 'roundit',
     added: '2026-11-10',
     name: 'AI go round cars in time, brake fully for a car, creep out of queues, off track if need',
@@ -32,17 +24,9 @@ export const TEST_LIST: TestEntry[] = [
     id: 'monza',
     added: '2026-11-09',
     name: 'Monzarella (Monza) at 1/2 size, a world circuit: the GP circuit',
-    where: 'Test link + &monza=1: TEST MODE > CIRCUITS (or &worldcat=1: WORLD CIRCUITS)',
+    where: 'Test link + &monza=1: TEST MODE > WORLD CIRCUITS > Monzarella',
     try: 'Lap it: the first chicane, Curva Grande, Roggia, the Lesmos, Ascari, Parabolica.',
     wrong: 'A road or prop on the track, a barrier gap, a road to nowhere, a fence not real.',
-  },
-  {
-    id: 'worldcat',
-    added: '2026-11-09',
-    name: 'TEST MODE: a WORLD CIRCUITS category with Spa-Frankenchumps (and Monzarella)',
-    where: 'Test link + &worldcat=1: TEST MODE (with &monza=1 for Monzarella)',
-    try: 'Open WORLD CIRCUITS: Spa is there, no longer under CIRCUITS; pick it and race.',
-    wrong: 'Spa in both lists or neither, an empty category card, a wrong label.',
   },
   {
     id: 'spaforest',

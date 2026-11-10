@@ -14,7 +14,7 @@
 // rollover, rollbody, snotterton, sidedraft passed 11-08; oultonpork, sillystone, runoff, laplen,
 // oncoming, oultonrails, cadwallop, malarkey, medians, twoway, clearance, passcare, gantry,
 // anglesleazy, goodwoody, croughed, jerseyover, shoulder, laybys, farlaybys, barrierends,
-// hwpick, desertroom, spa, offaim passed 11-09.)
+// hwpick, desertroom, spa, offaim passed 11-09; nordschlep, worldcat passed 11-10.)
 import { envValue } from './debug.ts';
 
 /**
@@ -45,10 +45,6 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
-  // ?nordschlep=1: the Nerdburgring Nordschlep, the Nurburgring Nordschleife at 1/2 of real
-  // length as a SIMPLE first build - the lap, its barriers, its heights (owner 11-09: to try the
-  // long tracks' frame rate and feel; world/levels/nordschlep-venue.ts)
-  nordschlep: atLoad('nordschlep'),
   // ?roundit=1: AI go round a car in their way in time - a gap picked beside it caps their speed to
   // what they can get across by (and they swerve at the rate that cap counts on), and with a car
   // the reason to slow they brake fully even while turning (owner 11-10: "ai need to be more
@@ -58,9 +54,6 @@ export const FIX = {
   // ?monza=1: Monzarella, a NEW venue (the Autodromo Nazionale Monza) at 1/2 of real length, a
   // world championship circuit (world/levels/monza-venue.ts; owner 11-09)
   monza: atLoad('monza'),
-  // ?worldcat=1: TEST MODE lists the world championship circuits (Spa-Frankenchumps, Monzarella)
-  // under WORLD CIRCUITS, not CIRCUITS (owner 11-09: "categorise stuff"; world/levels/category.ts)
-  worldcat: atLoad('worldcat'),
   // ?spaforest=1: Spa-Frankenchumps in the Ardennes forest, 8000 trees (owner 11-09: yes to a
   // per-venue tree count; world/levels/spa-venue.ts, VenueSpec.trees)
   spaforest: atLoad('spaforest'),
