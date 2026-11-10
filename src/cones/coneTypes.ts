@@ -34,8 +34,9 @@ export interface Loose {
   tipped?: boolean;   // a cow on its side
   flat?: boolean;   // flattened: driven over
   _nailT?: number;   // the last time its nails had a go at a tyre
-  // a tumbleweed (?desertjunk=1): its breeze, m/s, and whether a gust has taken it yet
-  wind?: [number, number]; blowing?: boolean;
+  // a tumbleweed (?desertjunk=1): its breeze, m/s, the s it takes it to the road's middle, and
+  // whether a gust has taken it yet
+  wind?: [number, number]; lead?: number; blowing?: boolean;
   part?: boolean; trim?: string; fade?: number;   // a crashed car's part (world/debris.ts)
   // its chance a car meeting it drives over it (at the hatch's ground clearance); this meeting's
   // roll and when a car was last near (cones/coneCar.ts rollsOver)

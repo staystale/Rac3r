@@ -176,10 +176,13 @@ export const DEBRIS: Record<string, DebrisKind> = {
   tumbleweed: { mass: 4, r: 0.7, breaks: 1, into: 'twigs' },
 };
 export const BROKEN = new Set(['splinters', 'cardboard', 'sand', 'fluff', 'pulp', 'twigs']);
-// a TUMBLEWEED (?desertjunk=1) lies snagged until a car comes within TUMBLE_WAKE_M, then a gust
-// takes it: it eases to its breeze (Loose.wind) at TUMBLE_EASE /s, the breeze rising and falling
-// by TUMBLE_GUST of itself, and rolls on across the desert, never at rest
-export const TUMBLE_WAKE_M = 140, TUMBLE_EASE = 1.5, TUMBLE_GUST = 0.35;
+// a TUMBLEWEED (?desertjunk=1) lies snagged until a car comes, then a gust takes it: it eases to
+// its breeze (Loose.wind) at TUMBLE_EASE /s, the breeze rising and falling by TUMBLE_GUST of
+// itself, and rolls on across the desert, never at rest. It goes in time to be on the road
+// TUMBLE_AHEAD_M before the car: the car that far off and as far again as it comes in the
+// tumbleweed's lead (Loose.lead) and TUMBLE_SPINUP_S (MEASURED, tools/scratch/_junkseen.mjs: woken
+// 140 m off, most crossed behind the car, on screen 1.5-3 s)
+export const TUMBLE_AHEAD_M = 50, TUMBLE_SPINUP_S = 0.7, TUMBLE_EASE = 1.5, TUMBLE_GUST = 0.35;
 // ANIMALS (S-C; (requirement: Can we make Cows and sheep impactable ? Sheep can be like a tyres
 // impact weight but burst into white particles / [cows] should stay solid and be heavier more like
 // hay bails impact weight); Q5: "no gore... sheep should explode into white fluff over like 30mph

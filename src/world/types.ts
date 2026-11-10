@@ -76,6 +76,7 @@ export interface Cone {
   idx?: number;
   field?: number;   // highway/fields.ts: a field's animals go when the field is cleared
   wind?: [number, number];   // a tumbleweed's breeze, m/s (?desertjunk=1: highway/canyon.ts)
+  lead?: number;   // and the s that breeze takes it to the road's middle
 }
 
 export interface Spawn {

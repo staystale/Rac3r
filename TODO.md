@@ -381,6 +381,17 @@ CARS: talk to the owner once the tracks are done (trucks, a Dakar car / truck).
    (ai/roadLine.ts EDGE_GRIP: the autopilot had drifted into a gorge at 170 km/h; now 2.5 m worst
    off the centre line). simhash SAME. Tumbleweed: later (cost). Brands Indy's garage barrier on a lane
    (item 6): clear since the venue rebuild (barriercheck all OK 11-08).
+   DEAF VALLEY'S JUNK 11-10 behind ?desertjunk=1 (owner 11-09: "Burned-out cars, Crates and oil
+   drums, Tumbleweed, Old tyres and a shack"): heaps of crates and drums, old tyres, tin shacks,
+   tumbleweed on the breeze. FIX 11-10 (owner: "Not seeing cow skulls or tumble weed", "I don't
+   think it's their look I jsut didn't see them"): MEASURED, tools/scratch/_junkseen.mjs (2 min
+   on each road, traffic): 0.8-1.6 skulls and 1.1-1.4 tumbleweed on screen a km, 1.4-2 s each,
+   0-0.5 tumbleweed a km on the road in front of the car (woken 140 m off, most crossed behind it)
+   -> three times the tumbleweed, nearer the road, each woken in time to be on the road 50 m
+   ahead of the car that comes (its lead: m to the road's middle over the breeze across it), and
+   a skull by the verge as often again: 4.6-5.0 skulls and 5.2-6.1 tumbleweed on screen a km,
+   3.3-4.6 a km on the road ahead. 52 fps (51 before). A skull is ~5 CSS px wide at speed (the
+   ground's speckles' size); the owner keeps its look. UNDER TEST.
 6. SMALL: Brands Snatch Indy's garage barrier on a lane (barriercheck); the highway AI dodging (owner
    "let's leave it for now").
 - WATCH: an AI F1 field spins more since the real aero passed (12 races: incidents 56 -> 92, spins

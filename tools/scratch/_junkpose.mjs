@@ -2,7 +2,7 @@
 // set still on the road beside the first of each kind ahead of it - a shack, an oil drum, a tyre
 // pile, a lying tyre, a tumbleweed - and a phone shot centred on it (2x). Then a tumbleweed hit:
 // the car driven at one blowing, what it bursts into.
-// [ROAD=dual] node tools/scratch/_junkpose.mjs
+// [ROAD=dual] [KINDS=shack,barrel,...] node tools/scratch/_junkpose.mjs
 import { startServer, launchBrowser, gotoGame } from '../lib/browser.mjs';
 const ROAD = process.env.ROAD || 'dual';
 const server = await startServer();
@@ -19,7 +19,7 @@ try {
   await page.evaluate((road) => window.__game.launch('highway', 'hatch-rwd',
     { ai: 0, road, scenery: 'canyon', traffic: 0 }), ROAD);
   await page.waitForTimeout(1500);
-  for (const kind of ['shack', 'barrel', 'tyrestack', 'tyre', 'tumbleweed']) {
+  for (const kind of (process.env.KINDS || 'shack,barrel,tyrestack,tyre,tumbleweed').split(',')) {
     // step the car up the road (still) until one is in the window, then beside it
     const got = await page.evaluate(async (want) => {
       const game = window.__game, level = game.level;

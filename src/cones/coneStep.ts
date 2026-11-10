@@ -1,8 +1,8 @@
 // cones/coneStep.ts: one simulation step of the loose objects: motion by mode (roll, flip,
 // wobble, flat slide), spin, the floor, the cars' hits, then the object-object collisions.
 import { FX0, FX1, FY0, FY1 } from "../world/bounds.ts";
-import { BROKEN, DRAG, REST_V, SLEEP_V, SPIN_DRAG, TUMBLE_EASE, TUMBLE_GUST,
-  TUMBLE_WAKE_M } from "./coneConsts.ts";
+import { BROKEN, DRAG, REST_V, SLEEP_V, SPIN_DRAG, TUMBLE_AHEAD_M, TUMBLE_EASE,
+  TUMBLE_GUST, TUMBLE_SPINUP_S } from "./coneConsts.ts";
 import { hitWalls } from "./coneWalls.ts";
 import { hitByCar } from "./coneCar.ts";
 import { stepTape } from "./coneTape.ts";
@@ -81,7 +81,7 @@ function moveFlat(obj: Loose, dt: number) {
 }
 
 /**
- * A TUMBLEWEED's breeze (?desertjunk=1): snagged until a car comes within TUMBLE_WAKE_M, then
+ * A TUMBLEWEED's breeze (?desertjunk=1): snagged until a car comes in time to cross before it, then
  * easing to its breeze as it gusts, hopping the low barriers (MEASURED, _desertjunkshot.mjs: on
  * the dual carriageway all 5 seen stopped at the central reservation), and rolling (rollDist:
  * render/props/tumbleweed.ts hops and turns it by it).
@@ -93,8 +93,10 @@ function moveFlat(obj: Loose, dt: number) {
 function blowTumbleweed(obj: Loose, cars: ConeCar[], dt: number, clock: number) {
   if (!obj.wind) return;
   if (!obj.blowing) {
-    const near = TUMBLE_WAKE_M * TUMBLE_WAKE_M;
-    if (!cars.some((car) => (car.x - obj.x) ** 2 + (car.y - obj.y) ** 2 < near)) return;
+    // (in time to cross in front of the car: TUMBLE_AHEAD_M off, and its way in the lead)
+    const lead = (obj.lead || 0) + TUMBLE_SPINUP_S;
+    if (!cars.some((car) => (car.x - obj.x) ** 2 + (car.y - obj.y) ** 2 < (TUMBLE_AHEAD_M
+      + Math.hypot(car.vx, car.vy) * lead) ** 2)) return;
     obj.blowing = true;
     // (up off the ground with the gust: over the low barriers - a central reservation, armco -
     // not the tall ones, a rock wall, a catch fence: coneWalls.ts)

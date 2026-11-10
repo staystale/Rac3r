@@ -293,7 +293,12 @@ function moreJunk(ctx: DressCtx, i: number, side: number, from: number, seed: nu
       seed });
     heap(ctx, i + 2, off - side * 4, 2 + Math.floor(rand() * 3), ['barrel', 'tyre', 'crate']);
   }
-  tumbleweed(ctx, i, side, side * (from + 3 + rand() * 32), [0.024, 0.005]);
+  // (owner 11-10, "I jsut didn't see them": MEASURED, tools/scratch/_junkseen.mjs, 0.9-1.5 skulls
+  // and 0.9-1.5 tumbleweed on screen a km, 2-6 m off its edge - three times the tumbleweed, nearer
+  // the road, and as many skulls again by the verge)
+  if (rand() < 0.03) place(ctx, i, side * (from + 0.5 + rand() * 5), { kind: 'skull',
+    rot: rand() * Math.PI * 2, seed });
+  tumbleweed(ctx, i, side, side * (from + 2 + rand() * 16), [0.07, 0.012]);
 }
 
 /**
@@ -307,8 +312,13 @@ function moreJunk(ctx: DressCtx, i: number, side: number, from: number, seed: nu
  */
 function tumbleweed(ctx: DressCtx, i: number, side: number, off: number, rates: number[]) {
   const wind = breezeAt(ctx.road[i].s), upwind = side === -Math.sign(wind[0]);
-  if (ctx.rand() < rates[upwind ? 0 : 1]) addLoose(ctx, i, off, { kind: 'tumbleweed', rot: 0,
-    wind });
+  if (ctx.rand() >= rates[upwind ? 0 : 1]) return;
+  // (its lead: m to the road's middle over the breeze across the road there, s)
+  const here = ctx.pointAt(i, 0), next = ctx.pointAt(Math.min(ctx.road.length - 1, i + 1), 0),
+    len = Math.hypot(next.x - here.x, next.y - here.y) || 1;
+  const across = Math.abs(wind[0] * (here.y - next.y) + wind[1] * (next.x - here.x)) / len;
+  addLoose(ctx, i, off, { kind: 'tumbleweed', rot: 0, wind, lead: Math.abs(off) / Math.max(1,
+    across) });
 }
 
 /**
@@ -452,7 +462,7 @@ function sideProps(ctx: DressCtx, i: number, side: number, kind: string) {
   else if (gap !== null) {
     rimProps(ctx, i, side, gap);
     // (?desertjunk=1: down the canyons too, from the foot of the wall)
-    if (FIX.desertjunk) tumbleweed(ctx, i, side, side * (ctx.halfWidth + gap * 0.6), [0.016, 0]);
+    if (FIX.desertjunk) tumbleweed(ctx, i, side, side * (ctx.halfWidth + gap * 0.6), [0.04, 0]);
   }
 }
 
