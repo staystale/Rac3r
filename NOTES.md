@@ -7,6 +7,10 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
 
 ## Owner rules
 
+- TRACKS AND STADIUMS (11-10): "save tracks and stadiums for the worker to build and you to approve -
+  and then let me approve" - the venue helper builds them, the foreman reviews (photos, numbers,
+  CI) and merges behind a switch, then the owner passes it.
+
 - Discuss before anything non-trivial: find the root cause, propose the fix with a size (S / M / L, a
   total for a plan), wait for a yes. No chains of experiments without telling the owner.
 - One step at a time, then pause for the owner's phone verdict. Give tap-able links.
