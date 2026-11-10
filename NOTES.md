@@ -60,7 +60,11 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   Croughed (owner 11-09), Spa-Francorchamps = Spa-Frankenchumps (owner's brief 11-09), Le Mans =
   Le Manky (its Mulsanne straight, the Hunaudieres, = the Mulsanity; owner's brief 11-09), Suzuka =
   Snoozuka (the brief 11-09, confirmed by the owner 11-10), Yas Marina = Yass Marina (the brief
-  11-10, the name approved).
+  11-10, the name approved), Bathurst = Bathworst (approved 11-10). Approved 11-10: the Race of
+  Champions head-to-head event = HEAD-TO-HEADBUTT; its stadiums Wembley = Wobbly Stadium, Stade de
+  France = Stade de Prance, the Bird's Nest = The Bird's Mess, Accor Stadium = Accordion Stadium,
+  Esprit Arena = Dusseldork Arena; the old Wembley (the Empire Stadium, its stock car oval) = Old
+  Wobbly; X Games = X Gayms (the owner's), L.A. Live = L.A. Lively.
 - No keys, tokens, tunnel URLs or process IDs in the repo. No itch.io push until the owner says so.
 - The foreman may push to `main` once the change is proven (routine below).
 - Keep the test server and the tunnel running.
