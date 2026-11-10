@@ -111,8 +111,8 @@ export interface VenueSpec {
   followRails?: boolean;
   // rails seen on aerial photographs that the map does not carry (real m), followed as its own
   railsSeen?: Point[][];
-  // a world circuit: its edge mixed with ?fences=1 - a mapped fence's chain link, a wooden fence
-  // on the open run-off (world/venuefences.ts)
+  // a world circuit: its edge mixed - a mapped fence's chain link, a wooden fence on the open
+  // run-off (world/venuefences.ts)
   mixFences?: boolean;
   // landmarks the map does not carry (a prop kind at its real spot, size m across, scaled with the
   // map): where the sources show them

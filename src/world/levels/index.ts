@@ -227,8 +227,8 @@ export const LEVELS: Level[] = [
   ...NERD_LEVELS,
   // Le Manky, the Circuit de la Sarthe, a simple first build (lemans-venue.ts; passed 11-10)
   ...LEMANS_LEVELS,
-  // ?suzuka=1: Snoozuka, the Suzuka Circuit with its crossover (suzuka-venue.ts)
-  ...(FIX.suzuka ? SUZUKA_LEVELS : []),
+  // Snoozuka, the Suzuka Circuit with its crossover (suzuka-venue.ts; passed 11-10)
+  ...SUZUKA_LEVELS,
   // Oulton Pork, a new venue (oultonpork-venue.ts), its International, Island and Frosters
   ...OP_LEVELS,
   // ?thrustonvenue=1: the real venue (thruston-venue.ts), built on first use

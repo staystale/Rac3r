@@ -1,6 +1,6 @@
 // _fencemix.mjs - THE WORLD CIRCUITS' EDGE BY KIND (?fences=1: world/venuefences.ts): each level
 // built in node, its barriers' m by kind (armco, catchfence, woodfence ...), and the share of the
-// lap's two sides with nothing within 30 m (open run-off). Run with FENCES=1 for the mix.
+// lap's two sides with nothing within 30 m (open run-off). (The mix passed 11-10: always on now.)
 // [FENCES=1] node tools/scratch/_fencemix.mjs [level,level...]
 import { LEVELS } from '../../src/world/levels/index.ts';
 import { buildLevel } from '../../src/world/load.ts';

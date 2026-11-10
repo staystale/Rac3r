@@ -334,7 +334,7 @@ CARS: talk to the owner once the tracks are done (trucks, a Dakar car / truck).
    Indianapolis's approach, the Porsche curves and Maison Blanche. PASSED + DEFAULT 11-10
    (owner: "Pass"). Next (owner 11-10): fences at the open run-off, "wooden fences or chain link
    fences and mix it up so it's not always Armco" - the world circuits have a lot of Armco.
-   SNOOZUKA BUILT 11-10 behind ?suzuka=1 (the name confirmed by the owner 11-10;
+   SNOOZUKA BUILT 11-10 (was behind ?suzuka=1) (the name confirmed by the owner 11-10;
    levels/suzuka-venue.ts, OSM data in venues/suzuka.ts; the venue helper): the Suzuka Circuit as a
    FULL venue, 2904 m (real 5807, OSM 5813) - the pit lane, OSM's gravel traps (mapped as sand),
    barriers both sides all round (a line 10 real m off each side from the aerial photographs, as
@@ -345,8 +345,8 @@ CARS: talk to the owner once the tracks are done (trucks, a Dakar car / truck).
    ITSELF). MEASURED: build 3.5 s (node), the AI line 0.3-0.4 s on its first car, JS heap 52-57
    MB with 10 AI, CPU x4 work median 13.7-16.8 ms, p95 28.7-29.7 (Spa 13.6-15.5 / 22.7-26.5),
    three 20-car starts (seeds 7 / 8 / 9): barrier hits 0 / 0 / 0, hard car hits 1 / 5 / 5; a lap
-   137 s for the scripted driver. UNDER TEST.
-   THE WORLD CIRCUITS' FENCES 11-10 behind ?fences=1 (owner 11-10: "maybe use wooden fences or
+   137 s for the scripted driver. PASSED + DEFAULT 11-10 (owner: "Snoozuka is a pass").
+   THE WORLD CIRCUITS' FENCES 11-10 (was behind ?fences=1) (owner 11-10: "maybe use wooden fences or
    chain link fences and mix it up so it's not always Armco", "mostly Armco is ok if the track is
    like that irl just mix it up a bit"; world/venuefences.ts, VenueSpec.mixFences on Spa,
    Monzarella, the Nordschlep, Le Manky, Snoozuka): every rail a world circuit followed was built
@@ -360,7 +360,7 @@ CARS: talk to the owner once the tracks are done (trucks, a Dakar car / truck).
    Switch off: worldhash SAME, simhash SAME. barriercheck all OK. 20-car starts (seeds 7-9) at Le
    Manky and Spa the same either way (no barrier reached); Le Manky CPU x4 work median 12.6 ->
    12.3 ms, p95 27.1 -> 26.4. A fence gives where Armco holds: wood from ~20 km/h, chain link
-   tears and drags (world/armcodent.ts). UNDER TEST.
+   tears and drags (world/armcodent.ts). PASSED + DEFAULT 11-10 (owner: "As are fences").
 3. ROLLING LOOK - smoother than the dice flip on the same physics; mockup first.
 4. SIDE DRAFTING (Naffcar first) PASSED + DEFAULT 11-08 (owner: "Pass"): physics/wake.ts part 5 - a nose
    alongside a car's rear quarter, up to +20 % drag on it and -6 % on the car alongside, gone by 1.2 m

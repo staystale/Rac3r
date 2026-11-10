@@ -14,7 +14,7 @@ import { HALF_ROAD, centreAt, clearRuns, distToLine, evenly, joinEnds, lineLengt
   trimEnds } from "./venuegeo.ts";
 import { crossoverAt, overCap, underSpan, underground } from "./venuecross.ts";
 import { EDGE_ARMCO, EDGE_BARRIERS, EDGE_CATCH, EDGE_NONE, EDGE_WOOD, FENCE_KINDS, WOOD_RUNOFF_M,
-  fillGaps, growRuns, kindRuns, mixesFences, railEdge, woodOnOpen } from "./venuefences.ts";
+  fillGaps, growRuns, kindRuns, railEdge, woodOnOpen } from "./venuefences.ts";
 import type { VenueSpec } from "./venue.ts";
 import type { Barrier, Cone, Point, Subtrack, TrackPoint, Zone } from "./types.ts";
 
@@ -224,7 +224,7 @@ export function railLines(spec: VenueSpec, place: (point: Point) => Point):
   const real = spec.followRails ? [...(spec.data.rails || []), ...(spec.railsSeen || [])
     .map((pts) => ({ kind: 'seen', pts }))] : [];
   return { rails: real.map((rail) => ({ ...boxedLine(rail.pts.map(place)), kind: rail.kind })),
-    mix: mixesFences(spec.mixFences) };
+    mix: !!spec.mixFences };
 }
 
 /**
@@ -477,7 +477,7 @@ export interface EdgeNeeds {
   watched: (x: number, y: number) => boolean;   // spectators near (a catch fence instead)
   walled?: (x: number, y: number) => boolean;   // a real tyre wall (Armco, tyres in front)
   rails?: WallLine[];   // the real rails of a venue that follows them (Armco where they are)
-  mix?: boolean;   // a world circuit's edge mixed (?fences=1: world/venuefences.ts)
+  mix?: boolean;   // a world circuit's edge mixed (world/venuefences.ts)
 }
 
 /**

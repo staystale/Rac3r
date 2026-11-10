@@ -1,14 +1,13 @@
 // world/venuefences.ts - WHAT STANDS AT A VENUE'S EDGE, sample by sample round each side of a
 // road's rim (world/venueedge.ts edgeKinds picks it, buildEdge lays it): Armco, a catch fence
-// where spectators are, or nothing (open run-off). On a world circuit (VenueSpec.mixFences) with
-// ?fences=1 (owner 11-10: "maybe use wooden fences or chain link fences and mix it up so it's not
-// always Armco", "mostly Armco is ok if the track is like that irl just mix it up a bit") also a
+// where spectators are, or nothing (open run-off). On a world circuit (VenueSpec.mixFences; owner
+// 11-10: "maybe use wooden fences or chain link fences and mix it up so it's not always Armco",
+// "mostly Armco is ok if the track is like that irl just mix it up a bit"; passed 11-10) also a
 // CHAIN LINK fence where the rail it follows is a fence on the map (not Armco), and a WOODEN FENCE
 // set back on the open run-off (Le Manky's, where the map carries none). MEASURED: every rail a
 // world circuit followed was built as Armco, whatever the map calls it - real m, both sides: Spa
 // walls 10.1 km, fences 2.9, guard rail 0.8; the Nordschleife guard rail 41.2, fences 11.7; Le
 // Mans walls 23.8, fences 5.4, guard rail 0.2. The walls stay Armco.
-import { FIX } from "../core/fixes.ts";
 import type { Barrier, Point } from "./types.ts";
 
 /** What stands at a rim sample. */
@@ -20,13 +19,6 @@ export const EDGE_BARRIERS: [number, Barrier['kind']][] = [[EDGE_ARMCO, 'armco']
 export const FENCE_KINDS = [EDGE_CATCH, EDGE_MESH, EDGE_WOOD];
 // m past the road's edge a wooden fence on the open run-off stands (three times the Armco's 5)
 export const WOOD_RUNOFF_M = 15;
-
-/**
- * Whether a venue's edge is mixed: a world circuit's, with ?fences=1.
- * @param mixFences the venue's VenueSpec.mixFences
- * @returns true to mix it
- */
-export const mixesFences = (mixFences?: boolean): boolean => !!mixFences && FIX.fences;
 
 /**
  * The kind at a sample beside a real rail: a mapped fence's chain link on a mixed edge (where

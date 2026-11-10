@@ -15,7 +15,7 @@
 // oncoming, oultonrails, cadwallop, malarkey, medians, twoway, clearance, passcare, gantry,
 // anglesleazy, goodwoody, croughed, jerseyover, shoulder, laybys, farlaybys, barrierends,
 // hwpick, desertroom, spa, offaim passed 11-09; nordschlep, worldcat, hwfinish,
-// roundit, monza, spaforest, holdoncoming, lemans passed 11-10.)
+// roundit, monza, spaforest, holdoncoming, lemans, suzuka, fences passed 11-10.)
 import { envValue } from './debug.ts';
 
 /**
@@ -46,15 +46,6 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
-  // ?fences=1: the world circuits' edges mixed - a fence on the map a chain link fence, not Armco,
-  // and a wooden fence set back on the open run-off; the map's guard rails and walls stay Armco
-  // (owner 11-10: "mix it up so it's not always Armco", "mostly Armco is ok if the track is like
-  // that irl just mix it up a bit"; world/venuefences.ts)
-  fences: atLoad('fences'),
-  // ?suzuka=1: Snoozuka, the Suzuka Circuit (Japan) at 1/2 of real length - the figure of eight,
-  // the back straight over the Degner-to-hairpin leg on a drivable crossover, a world
-  // championship circuit (owner 11-10; world/levels/suzuka-venue.ts)
-  suzuka: atLoad('suzuka'),
   // ?desertjunk=1: Deaf Valley's roadside junk - dumps of crates and oil drums, old tyres lying
   // and in piles, a tin shack now and then with junk round it, and TUMBLEWEED that a gust takes
   // across the road as you come (owner 11-09: "Burned-out cars, Crates and oil drums,
