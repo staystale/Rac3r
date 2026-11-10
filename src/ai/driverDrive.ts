@@ -13,7 +13,6 @@ import type { AiCar, DriveCtx } from "./types.ts";
 import { rejoinCross, rejoinAim, lateralOf } from "./rejoin.ts";
 import { rejoinClear } from "./gapPick.ts";
 import { SWERVE_RATE } from "./dodge.ts";
-import { FIX } from "../core/fixes.ts";
 import type { Drv, AiPath } from "./driverCtx.ts";
 
 // m: the lateral target never puts the car's centre closer than this to the road edge
@@ -58,10 +57,9 @@ function trafficStep(drv: Drv, car: AiCar, ctx: DriveCtx, path: AiPath, nearIdx:
         lineOff, latLim, latT, myLat, cars, vMul, dodgeT, conflict, prof));
   } else { state.atk = null; state.cover = null; state.cc = -1; }
   // (round a car in the way with no time to spare, the swerve's own rate: ai/dodge.ts)
-  // (?roundit=1: going round a car, the rate swerveCap counts on - the move was planned at
-  // SWERVE_RATE and made at 2.5 m/s, arriving short)
-  const rate = state.atk ? 3.5 : cars.urgent || (FIX.roundit && conflict) ? Math.max(2.5,
-    SWERVE_RATE) : 2.5;
+  // (going round a car, the rate swerveCap counts on - the move was planned at SWERVE_RATE and
+  // made at 2.5 m/s, arriving short)
+  const rate = state.atk ? 3.5 : cars.urgent || conflict ? Math.max(2.5, SWERVE_RATE) : 2.5;
   state.dodge += Math.max(-rate * dt, Math.min(rate * dt, dodgeT - state.dodge)) * (
       conflict ? 1 : 0.5);
   state.follow = followCap < Infinity;

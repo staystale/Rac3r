@@ -16,7 +16,6 @@
 // the lap clockwise.
 import { SPA_VENUE } from "./venues/spa.ts";
 import { venueLap, venueLevel } from "../venue.ts";
-import { FIX } from "../../core/fixes.ts";
 import type { VenueSpec } from "../venue.ts";
 import type { Level } from "../types.ts";
 
@@ -80,12 +79,11 @@ export const SPA_SPEC: VenueSpec = {
     { at: [-250, 250], label: 'GOOD YEAH' },
     { at: [-90, -380], label: 'DUNFLOP' },
   ],
-  // ?spaforest=1: the most trees, the Ardennes forest round the circuit (owner 11-09: a forest
-  // that reads as the Ardennes; the other venues keep 260). MEASURED (tools/scratch/
-  // _framecheckat.mjs, CPU x4, 400 frames from Kemmel, Pouhon and Blanchimont): work a frame
-  // 12.5-13.7 ms with 260 trees, 16.7-17.6 with 8000 - every prop is tested twice a frame for the
-  // screen (render/props.ts)
-  ...(FIX.spaforest ? { trees: 8000 } : {}),
+  // the most trees, the Ardennes forest round the circuit (owner 11-09: a forest that reads as
+  // the Ardennes; the other venues keep 260; passed 11-10). MEASURED (tools/scratch/
+  // _framecheckat.mjs, CPU x4, Kemmel, Pouhon and Blanchimont): work a frame 12.5-13.7 ms with 260
+  // trees, 16.7-17.6 with 8000 - then 12.8-12.9 with the props filed by cell (render/propgrid.ts)
+  trees: 8000,
   // the first car race on the circuit, 1922
   seed: 1922,
   followRails: true,

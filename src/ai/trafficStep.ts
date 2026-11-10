@@ -11,7 +11,6 @@ import { driveOne } from "./trafficDrive.ts";
 import { cruise, dirOf, fresh, lanesOf, rebuildCars, spot } from "./trafficSpawn.ts";
 import type { DriveEnv } from "./trafficLane.ts";
 import { holdsOncoming } from "./trafficReset.ts";
-import { FIX } from "../core/fixes.ts";
 
 /** The inputs of a step: you, the AI cars and the renderer's screen test. */
 export interface StepArgs {
@@ -73,8 +72,8 @@ function leaving(slot: TrafficCar, relS: number, seen: boolean,
 function recycle(ctx: TrafficCtx, ents: TrafficEnt[], playerS: number, vis: VisFn,
   held = false) {
   const span = roadSpan(ctx.level!);
-  // (?holdoncoming=1: a single carriageway's other way joins only once the race has started)
-  const waits = (dir: number) => dir < 0 && held && FIX.holdoncoming && holdsOncoming(ctx);
+  // (a single carriageway's other way joins only once the race has started)
+  const waits = (dir: number) => dir < 0 && held && holdsOncoming(ctx);
   let changed = false;
   const drop = (slot: TrafficCar) => {
     const i = ents.findIndex((ent) => ent.t === slot);

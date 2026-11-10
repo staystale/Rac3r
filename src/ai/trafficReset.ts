@@ -1,6 +1,5 @@
 // ai/trafficReset.ts: restarting the highway traffic (cars spread round the spawn) and
 // making room by sending cars off the road.
-import { FIX } from "../core/fixes.ts";
 import { roadFrame } from "../highway.ts";
 import type { HighwayLevel, TrafficCar } from "./types.ts";
 import { MAX_CARS, PER_LANE, geo } from "./trafficCtx.ts";
@@ -31,7 +30,7 @@ function spreadCars(ctx: TrafficCtx, spawn: { s: number; off: number }, want: nu
 }
 
 /**
- * Whether a road's other way waits for the race to start (?holdoncoming=1): a single
+ * Whether a road's other way waits for the race to start: a single
  * carriageway's - the two ways on one road, no barrier between.
  * @param ctx the traffic
  * @returns true when it waits
@@ -62,9 +61,9 @@ export function resetTraffic(ctx: TrafficCtx, nextLevel: HighwayLevel | null, de
   ctx.want = ours + theirs;
   const spawn = roadFrame(level, level.spawn.x, level.spawn.y, null)!;
   spreadCars(ctx, { s: spawn.s, off: spawn.off }, ours);
-  // (?holdoncoming=1: a single carriageway's other way starts parked - none on the road at the
+  // (a single carriageway's other way starts parked - none on the road at the
   // start, they join from out of sight ahead once the race is under way: trafficStep.ts)
-  if (theirs && FIX.holdoncoming && holdsOncoming(ctx)) {
+  if (theirs && holdsOncoming(ctx)) {
     for (let i = 0; i < theirs; i++) ctx.list.push({ parked: true, dir: -1 } as TrafficCar);
   } else if (theirs) spreadCars(ctx, { s: spawn.s, off: spawn.off }, theirs, -1);
   rebuildCars(ctx);

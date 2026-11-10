@@ -1,6 +1,5 @@
 // ai/driverPedals.ts: the circuit driver's steering, slide, throttle, brake and handbrake
 // controls. Functions take the driver context.
-import { FIX } from "../core/fixes.ts";
 import { profileOf } from "./line.ts";
 import { steerAim, profileSpeed, DRIFT_SLIP } from "./driverSteps.ts";
 import type { AiCar } from "./types.ts";
@@ -55,7 +54,6 @@ export function throttleFor(drv: Drv, speed: number, targetSpeed: number, slide:
 
 /** Throttle and brake for the target speed. */
 // m/s over the speed it wants, a car the reason, from which an AI brakes fully even turning
-// (?roundit=1)
 const CAR_FULL = 2;
 
 export function pedals(drv: Drv, speed: number, targetSpeed: number, thrForce: boolean,
@@ -64,10 +62,10 @@ export function pedals(drv: Drv, speed: number, targetSpeed: number, thrForce: b
   const { drifting, under, over, steer } = slide;
   let throttle = throttleFor(drv, speed, targetSpeed, slide, looseUnder);
   if (thrForce && speed < targetSpeed * 1.1) throttle = 1;
-  // (turning, a share off the brake - ?roundit=1: not with a car the reason, CAR_FULL m/s too
-  // fast: MEASURED, _ploughtrace.mjs, into Spa's La Source cars 20-30 km/h over the speed they
-  // wanted braked 30-47 % and ran into the car ahead)
-  const turnShare = FIX.roundit && forCar && speed > targetSpeed + CAR_FULL ? 1
+  // (turning, a share off the brake - not with a car the reason, CAR_FULL m/s too fast:
+  // MEASURED, _ploughtrace.mjs, into Spa's La Source cars 20-30 km/h over the speed they wanted
+  // braked 30-47 % and ran into the car ahead)
+  const turnShare = forCar && speed > targetSpeed + CAR_FULL ? 1
     : Math.max(0.6, 1 - Math.abs(steer) / 0.5);
   let brake = speed > targetSpeed + 0.3 ? Math.min(1, (speed - targetSpeed) * 1.5) * turnShare
     : 0;

@@ -289,12 +289,12 @@ CARS: talk to the owner once the tracks are done (trucks, a Dakar car / truck).
    "Ok"): render/propgrid.ts files the props by 32 m cell, a frame tests the cells round the
    screen - forest work median 16.9-17.0 -> 12.8-12.9 ms, p95 28.8-29.1 -> 22.5-22.9, the same
    as without the forest (13.0-13.7); identical pixels (renderhash, and _renderhashat.mjs at the
-   three corners in the forest). UNDER TEST.
+   three corners in the forest). PASSED + DEFAULT 11-10 (owner: "123 all pass").
    WORLD CIRCUITS (owner 11-09: "categorise stuff") PASSED + DEFAULT 11-10 (passed with the
    Nordschleife's link): a TEST MODE category for the world championship circuits
    (Spa-Frankenchumps, Monzarella, the Nordschlep) - the menu listing only (category.ts
    LISTED_UNDER), still circuits by kind (lamps, weather, the menu race).
-   MONZARELLA BUILT 11-09 behind ?monza=1 (levels/monza-venue.ts, OSM data in venues/monza.ts; the
+   MONZARELLA PASSED + DEFAULT 11-10 (owner: "123 all pass"; built 11-09, levels/monza-venue.ts, OSM data in venues/monza.ts; the
    venue helper): the GP circuit, 2889 m (real 5793, OSM 5801), the start at the head of the grid,
    the pit lane, OSM's gravel traps (mapped as sand: tools/venues/monza.json "traps"), barriers
    both sides all round (the aerial photographs; OSM maps only the pit straight's rails), catch
@@ -302,7 +302,7 @@ CARS: talk to the owner once the tracks are done (trucks, a Dakar car / truck).
    Junior link closed by tyres, EU-DEM heights as two hills (181 m at the Parabolica to 199 at the
    Lesmos). Left out: the old banked oval (its north banking crosses the circuit on a race-width
    bridge), the Pirelli ruins, the escape road and the motorcycle chicane at the first chicane, two
-   tunnels whose far roads are not kept. UNDER TEST. With it (venuescenery.ts): one bridge a
+   tunnels whose far roads are not kept. With it (venuescenery.ts): one bridge a
    crossing - a footbridge's stairs mapped as bridges stood a second deck on Monza's, and at
    Sillystone two footbridges stood on the road bridge by the Wing (now the road bridge alone).
    NERDBURGRING NORDSCHLEP (the Nurburgring Nordschleife) PASSED + DEFAULT 11-10 (owner: "Mean pass

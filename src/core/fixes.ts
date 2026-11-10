@@ -14,7 +14,8 @@
 // rollover, rollbody, snotterton, sidedraft passed 11-08; oultonpork, sillystone, runoff, laplen,
 // oncoming, oultonrails, cadwallop, malarkey, medians, twoway, clearance, passcare, gantry,
 // anglesleazy, goodwoody, croughed, jerseyover, shoulder, laybys, farlaybys, barrierends,
-// hwpick, desertroom, spa, offaim passed 11-09; nordschlep, worldcat, hwfinish passed 11-10.)
+// hwpick, desertroom, spa, offaim passed 11-09; nordschlep, worldcat, hwfinish,
+// roundit, monza, spaforest, holdoncoming passed 11-10.)
 import { envValue } from './debug.ts';
 
 /**
@@ -45,23 +46,6 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
-  // ?roundit=1: AI go round a car in their way in time - a gap picked beside it caps their speed to
-  // what they can get across by (and they swerve at the rate that cap counts on), and with a car
-  // the reason to slow they brake fully even while turning (owner 11-10: "ai need to be more
-  // willing to drive around stuff ahah they seem to want to plough into it always";
-  // ai/driverTraffic.ts gapStep, driverPedals.ts pedals)
-  roundit: atLoad('roundit'),
-  // ?monza=1: Monzarella, a NEW venue (the Autodromo Nazionale Monza) at 1/2 of real length, a
-  // world championship circuit (world/levels/monza-venue.ts; owner 11-09)
-  monza: atLoad('monza'),
-  // ?spaforest=1: Spa-Frankenchumps in the Ardennes forest, 8000 trees (owner 11-09: yes to a
-  // per-venue tree count; world/levels/spa-venue.ts, VenueSpec.trees)
-  spaforest: atLoad('spaforest'),
-  // ?holdoncoming=1: no oncoming traffic on a single carriageway (Deaf Valley) until the race has
-  // started - the other way's cars join from out of sight ahead after the green (owner 11-09:
-  // "no on coming traffic on Death Valley or any small single carriage way until after the race
-  // has started"; ai/trafficReset.ts, trafficStep.ts)
-  holdoncoming: atLoad('holdoncoming'),
   // ?dieatona=1: Dieatona (the Daytona parody) as a new venue at 1/2 of real length, the oval and
   // the road course (world/levels/dieatona-venue.ts; owner 11-08)
   dieatona: atLoad('dieatona'),

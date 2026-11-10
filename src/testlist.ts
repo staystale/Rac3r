@@ -13,38 +13,6 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
-    id: 'roundit',
-    added: '2026-11-10',
-    name: 'AI go round cars in time, brake fully for a car, creep out of queues, off track if need',
-    where: 'Test link + &roundit=1: any circuit VS AI, a big grid (Spa, Brands)',
-    try: 'Start mid-grid; watch the first corners and the queues; race a few laps.',
-    wrong: 'Pile-ups as before, cars stopping for nothing, timid racing, no passes.',
-  },
-  {
-    id: 'monza',
-    added: '2026-11-09',
-    name: 'Monzarella (Monza) at 1/2 size, a world circuit: the GP circuit',
-    where: 'Test link + &monza=1: TEST MODE > WORLD CIRCUITS > Monzarella',
-    try: 'Lap it: the first chicane, Curva Grande, Roggia, the Lesmos, Ascari, Parabolica.',
-    wrong: 'A road or prop on the track, a barrier gap, a road to nowhere, a fence not real.',
-  },
-  {
-    id: 'spaforest',
-    added: '2026-11-09',
-    name: 'Spa-Frankenchumps in the Ardennes: the forest round the circuit, 8000 trees',
-    where: 'Test link + &spaforest=1: TEST MODE > CIRCUITS > Spa-Frankenchumps',
-    try: 'Lap it, VS AI too: Kemmel, Pouhon, Blanchimont. Watch the frame rate (FPS).',
-    wrong: 'Lag, a tree on the track or a road, trees too thin to read as a forest.',
-  },
-  {
-    id: 'holdoncoming',
-    added: '2026-11-09',
-    name: 'Deaf Valley: no oncoming cars until the race has started, then they come from ahead',
-    where: 'Test link + &holdoncoming=1: Highway to Hull > DEAF VALLEY, VS AI and alone',
-    try: 'Wait on the grid: the other lane stays empty; after the green the first ones arrive.',
-    wrong: 'An oncoming car at the start, or none ever coming, or one popping in close.',
-  },
-  {
     id: 'venueoverlaps',
     added: '2026-11-09',
     name: 'Tidier venues: tyre walls in two neat rows, nothing piled on each other, no zig-zags',

@@ -1,6 +1,6 @@
 // The PROP GRID of the renderer: the level's props filed by 32 m cell, so a frame tests only the
 // props in the cells round the screen instead of every prop, twice (props.ts draws an under-cars
-// and an overhead layer). MEASURED (11-10): Spa in the forest (?spaforest=1) has 8000 trees and
+// and an overhead layer). MEASURED (11-10): Spa in the forest has 8000 trees and
 // both layers walked all of them every frame. The props are still drawn in list order and each
 // still passes props.ts propVisible, so the same props are drawn, in the same order (renderhash).
 import type { Prop } from '../world/types.ts';
